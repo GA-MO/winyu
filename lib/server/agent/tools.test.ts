@@ -148,23 +148,25 @@ describe("create_handoff", () => {
   });
 });
 
-describe("empty collections", () => {
-  test("alerts, forecasts and memory answer gracefully", async () => {
-    const alerts = await call<{ ok: boolean; summary: string; data: unknown[] }>("u_anucha", "get_alerts", { status: "open", limit: null });
+describe("analytics plane tools", () => {
+  test("alerts and forecasts come from the engine, memory is still empty", async () => {
+    const alerts = await call<{ ok: boolean; summary: string; data: { severity: string; hypothesis: string }[] }>("u_anucha", "get_alerts", { status: "open", limit: null });
     expect(alerts.ok).toBe(true);
-    expect(alerts.data).toEqual([]);
-    expect(alerts.summary).toContain("ยังไม่มี");
-    const forecast = await call<{ summary: string }>("u_anucha", "get_forecast", { metric: "net_sales_volume", dims: {}, weeks: 8 });
-    expect(forecast.summary).toContain("ยังไม่มี");
+    expect(alerts.data.length).toBeGreaterThan(0);
+    for (const row of alerts.data) expect(row.hypothesis.length).toBeGreaterThan(10);
+    const forecast = await call<{ summary: string; data: unknown[] }>("u_anucha", "get_forecast", { metric: "net_sales_volume", dims: { region: "northeast", brand: "leo" }, weeks: 8 });
+    expect(forecast.data).toHaveLength(8);
+    expect(forecast.summary).toContain("MAPE");
     const memory = await call<{ summary: string }>("u_anucha", "recall_memory", { query: "เอเย่นต์" });
     expect(memory.summary).toContain("ยังไม่มี");
   });
 });
 
 describe("run_job", () => {
-  test("reports the engine is missing until phase 2B", async () => {
-    const result = await call<{ ok: boolean; error: string }>("u_ton", "run_job", { job: "anomaly" });
-    expect(result).toEqual({ ok: false, error: "engine not installed yet" });
+  test("an IT admin can re-run the detection engine", async () => {
+    const result = await call<{ ok: boolean; data: { alerts: number } }>("u_ton", "run_job", { job: "anomaly" });
+    expect(result.ok).toBe(true);
+    expect(result.data.alerts).toBeGreaterThan(0);
   });
 });
 

@@ -60,9 +60,16 @@ export function Landing({
   }, []);
 
   const start = useCallback(
-    async (prompt: string) => {
+    async (prompt: string, intentKey?: string) => {
       if (busy) return;
       setBusy(true);
+      if (intentKey) {
+        void fetch(QUICK_ACTIONS_ENDPOINT, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ intentKey, prompt, kind: "quick_action" }),
+        }).catch(() => undefined);
+      }
       const response = await fetch(THREADS_ENDPOINT, {
         method: "POST",
         headers: { "content-type": "application/json" },
@@ -141,7 +148,7 @@ export function Landing({
               <div className="flex flex-wrap justify-center gap-2">
                 {actions.map((action) => (
                   <Tooltip key={action.id}>
-                    <TooltipTrigger className={PILL} onClick={() => void start(action.prompt)}>
+                    <TooltipTrigger className={PILL} onClick={() => void start(action.prompt, action.intentKey)}>
                       <ChipIcon text={`${action.label} ${action.prompt}`} />
                       {action.label}
                     </TooltipTrigger>

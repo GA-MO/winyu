@@ -7,7 +7,7 @@ export type AmbientPacket = { id: string; title: string; ask: string; fromName: 
 
 export type AmbientCounts = { alerts: number; packets: number; widgets: number };
 
-export type AmbientInput = { alert: Alert | null; packet: AmbientPacket | null; brief: string; counts: AmbientCounts };
+export type AmbientInput = { alert: Alert | null; packet: AmbientPacket | null; brief: string; bullets: string[]; counts: AmbientCounts };
 
 export type AmbientTone = "danger" | "warning" | "info" | "brand";
 
@@ -66,9 +66,11 @@ function packetCard(packet: AmbientPacket): AmbientCard {
   };
 }
 
-function briefCard(counts: AmbientCounts): AmbientCard {
+function briefCard(counts: AmbientCounts, bullets: string[], shown: string | null): AmbientCard {
   const root = "ambient-brief";
-  const body = `การ์ดที่ปักไว้ ${counts.widgets} · แจ้งเตือนที่เปิดอยู่ ${counts.alerts} · งานที่ส่งต่อมา ${counts.packets}`;
+  const counted = `การ์ดที่ปักไว้ ${counts.widgets} · แจ้งเตือนที่เปิดอยู่ ${counts.alerts} · งานที่ส่งต่อมา ${counts.packets}`;
+  const fresh = shown ? bullets.filter((line) => !line.includes(shown)) : bullets;
+  const body = fresh.length > 0 ? fresh.slice(0, 2).join(" · ") : counted;
   const title = "ภาพรวมของคุณวันนี้";
   return {
     id: root,
@@ -91,6 +93,6 @@ export function ambientCards(input: AmbientInput): AmbientCard[] {
   const cards: AmbientCard[] = [];
   if (input.alert) cards.push(alertCard(input.alert));
   if (input.packet) cards.push(packetCard(input.packet));
-  cards.push(briefCard(input.counts));
+  cards.push(briefCard(input.counts, input.bullets, input.alert?.hypothesis ?? null));
   return cards.slice(0, MAX_CARDS);
 }

@@ -1,0 +1,121 @@
+import { describe, expect, test } from "bun:test";
+import type { Dim } from "@/lib/contracts";
+import { INJECTED_ANOMALIES } from "@/lib/data/anomalies";
+import { TH } from "@/lib/i18n/th";
+import { Z_OPEN, detectAnomalies, dropRollUps, thresholdFor, thresholdKey, type Detection } from "./anomaly";
+import { DAILY_SCAN, scanSeries } from "./stats";
+
+const DETECTED = detectAnomalies();
+
+type Matcher = { id: string; direction: "up" | "down"; match: (detection: Detection) => boolean };
+
+const MATCHERS: Matcher[] = [
+  {
+    id: "anom_rungrueang_leo620",
+    direction: "down",
+    match: (detection) => detection.dims.agent === "ag_nea_07" && detection.dims.sku === "sku_leo_bottle620",
+  },
+  {
+    id: "anom_purra_pm25_north",
+    direction: "up",
+    match: (detection) => detection.dims.sku === "sku_purra_pet600" && ["pv_chiangmai", "pv_lamphun"].includes(detection.dims.province ?? ""),
+  },
+  {
+    id: "anom_lamphun_purra_cover",
+    direction: "down",
+    match: (detection) => detection.metric === "days_of_cover" && detection.dims.dc === "dc_lamphun" && detection.dims.sku === "sku_purra_pet600",
+  },
+  {
+    id: "anom_northeast_silent_agents",
+    direction: "down",
+    match: (detection) => ["ag_nea_02", "ag_nea_05"].includes(detection.dims.agent ?? "") && detection.metric === "net_sales_volume",
+  },
+  {
+    id: "anom_cstore_soda_promo",
+    direction: "up",
+    match: (detection) => detection.dims.sku === "sku_singha_soda_can320" && detection.dims.channel === "modern_trade",
+  },
+  {
+    id: "anom_south_ar_overdue",
+    direction: "up",
+    match: (detection) => detection.metric === "ar_overdue" && detection.dims.region === "south",
+  },
+  {
+    id: "anom_khonkaen_line2",
+    direction: "down",
+    match: (detection) => detection.metric === "production_output" && detection.dims.plant === "pl_khonkaen",
+  },
+];
+
+function hits(matcher: Matcher): Detection[] {
+  return DETECTED.filter((detection) => detection.direction === matcher.direction && matcher.match(detection));
+}
+
+describe("anomaly detection", () => {
+  test("every injected anomaly has a matcher", () => {
+    expect(MATCHERS.map((matcher) => matcher.id).sort()).toEqual(INJECTED_ANOMALIES.map((anomaly) => anomaly.id).sort());
+  });
+
+  for (const matcher of MATCHERS) {
+    test(`finds ${matcher.id} going ${matcher.direction}`, () => {
+      const found = hits(matcher);
+      expect(found.length).toBeGreaterThan(0);
+      const [first] = found;
+      expect(first.hypothesis.length).toBeGreaterThan(10);
+      expect(first.verifySteps).toHaveLength(2);
+      expect(first.ownerUserId).not.toBe("");
+      expect(first.window.from <= first.window.to).toBe(true);
+    });
+  }
+
+  test("the promotion driven spike is labelled as explained, not as a fault", () => {
+    const promo = hits(MATCHERS[4] as Matcher);
+    expect(promo.some((detection) => detection.explained)).toBe(true);
+    const explained = promo.find((detection) => detection.explained) as Detection;
+    expect(explained.hypothesis).toContain(TH.engine.promoTag);
+    expect(explained.severity).toBe("P3");
+  });
+
+  test("the detected window covers the injected window of the Khon Kaen outage", () => {
+    const [outage] = hits(MATCHERS[6] as Matcher);
+    const injected = INJECTED_ANOMALIES.find((anomaly) => anomaly.id === "anom_khonkaen_line2");
+    expect(outage.window.from <= (injected?.window.to as string)).toBe(true);
+    expect(outage.window.to >= (injected?.window.from as string)).toBe(true);
+  });
+
+  test("every alert stays inside the alert contract and carries a scope", () => {
+    for (const detection of DETECTED) {
+      expect(["P1", "P2", "P3"]).toContain(detection.severity);
+      expect(Object.keys(detection.dims).length).toBeGreaterThan(0);
+      expect(Number.isFinite(detection.zScore)).toBe(true);
+    }
+  });
+
+  test("detection is deterministic", () => {
+    expect(detectAnomalies().map((detection) => detection.id)).toEqual(DETECTED.map((detection) => detection.id));
+  });
+
+  test("a roll-up is dropped when a deeper slice explains the same move", () => {
+    const base = { metric: "net_sales_volume" as const, direction: "down" as const, severity: "P1" as const };
+    const coarse = { ...base, id: "coarse", dims: { region: "northeast" } as Partial<Record<Dim, string>> } as Detection;
+    const fine = { ...base, id: "fine", dims: { region: "northeast", agent: "ag_nea_02" } as Partial<Record<Dim, string>> } as Detection;
+    expect(dropRollUps([coarse, fine]).map((detection) => detection.id)).toEqual(["fine"]);
+  });
+
+  test("three dismissals raise the bar for the same slice", () => {
+    const key = thresholdKey("net_sales_volume", { region: "northeast" });
+    expect(thresholdFor(key, {})).toBe(Z_OPEN);
+    expect(thresholdFor(key, { [key]: 2 })).toBe(Z_OPEN);
+    expect(thresholdFor(key, { [key]: 3 })).toBeGreaterThan(Z_OPEN);
+  });
+
+  test("a flat series with a step change is found, a flat one is not", () => {
+    const season = Array.from({ length: 120 }, (_, index) => index % 7);
+    const flat = Array.from({ length: 120 }, (_, index) => 100 + (index % 7) * 2);
+    expect(Math.abs(scanSeries(flat, season, DAILY_SCAN)?.z ?? 0)).toBeLessThan(Z_OPEN);
+    const stepped = flat.map((value, index) => (index >= 110 ? value * 0.5 : value));
+    const scan = scanSeries(stepped, season, DAILY_SCAN);
+    expect(scan?.direction).toBe("down");
+    expect(Math.abs(scan?.z ?? 0)).toBeGreaterThan(Z_OPEN);
+  });
+});

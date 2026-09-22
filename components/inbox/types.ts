@@ -1,4 +1,11 @@
-export type EvidenceLine = { label: string; value: string };
+export type EvidenceLine = {
+  label: string;
+  value: string;
+  summary: string;
+  masked: boolean;
+  denied: boolean;
+  requestPrompt: string | null;
+};
 
 export type HandoffItem = {
   id: string;
@@ -13,6 +20,7 @@ export type HandoffItem = {
   suggestedActions: string[];
   digest: string;
   at: string;
+  outcome: string | null;
   replies: { name: string; at: string; text: string }[];
 };
 
@@ -24,6 +32,10 @@ export type AlertItem = {
   verifySteps: [string, string];
   at: string;
   scope: string;
+  window: string;
+  movement: string;
+  ownerName: string;
+  handoffPrompt: string;
 };
 
 export type ReplyItem = { id: string; title: string; toName: string; text: string; at: string; status: string };

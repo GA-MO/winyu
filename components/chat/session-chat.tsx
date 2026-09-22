@@ -20,6 +20,9 @@ import { setHostContext } from "@/components/providers/host-context";
 import { COP_CHAT_LABELS } from "./labels";
 
 const CHAT_ENDPOINT = "/api/chat";
+const THREADS_ENDPOINT = "/api/threads";
+const QUICK_ACTIONS_ENDPOINT = "/api/quick-actions";
+const SAVE_DEBOUNCE_MS = 800;
 const THROTTLE_MS = 50;
 const FALLBACK_MODEL = "mock";
 const COLUMN = "mx-auto w-full max-w-3xl px-4 sm:px-6";
@@ -31,11 +34,13 @@ export type SessionPreload = { packetId: string; fromName: string };
 export function SessionChat({
   threadId,
   initialPrompt,
+  initialMessages,
   preload,
   suggestions,
 }: {
   threadId: string;
   initialPrompt: string | null;
+  initialMessages: VexaMessage[];
   preload: SessionPreload | null;
   suggestions: QuickAction[];
 }) {
@@ -48,7 +53,9 @@ export function SessionChat({
   const modelRef = useRef(model);
   modelRef.current = model;
   const [text, setText] = useState("");
+  const [chips, setChips] = useState(suggestions);
   const sent = useRef(false);
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     setHostContext({ threadId, preloadPacketId: preload?.packetId ?? null });
@@ -80,6 +87,8 @@ export function SessionChat({
   );
 
   const { messages, sendMessage, status, error, addToolApprovalResponse, addToolOutput } = useChat<VexaMessage>({
+    id: threadId,
+    messages: initialMessages,
     transport,
     experimental_throttle: THROTTLE_MS,
     sendAutomaticallyWhen: (options) =>
@@ -95,6 +104,32 @@ export function SessionChat({
   });
 
   const isStreaming = status === "streaming" || status === "submitted";
+
+  const refreshChips = useCallback(() => {
+    fetch(QUICK_ACTIONS_ENDPOINT)
+      .then((response) => (response.ok ? response.json() : null))
+      .then((payload: { actions?: QuickAction[] } | null) => {
+        if (payload?.actions) setChips(payload.actions);
+      })
+      .catch(() => undefined);
+  }, []);
+
+  useEffect(() => {
+    if (isStreaming || messages.length === 0) return;
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => {
+      void fetch(`${THREADS_ENDPOINT}/${threadId}`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ messages }),
+      })
+        .then(() => refreshChips())
+        .catch(() => undefined);
+    }, SAVE_DEBOUNCE_MS);
+    return () => {
+      if (saveTimer.current) clearTimeout(saveTimer.current);
+    };
+  }, [isStreaming, messages, refreshChips, threadId]);
 
   const send = useCallback(
     (value: string) => {
@@ -165,8 +200,20 @@ export function SessionChat({
         <div className={`flex flex-col gap-3 ${COLUMN}`}>
           {messages.length === 0 ? (
             <div className="flex flex-wrap gap-2">
-              {suggestions.slice(0, 4).map((action) => (
-                <button key={action.id} type="button" onClick={() => send(action.prompt)} className={PILL}>
+              {chips.slice(0, 4).map((action) => (
+                <button
+                  key={action.id}
+                  type="button"
+                  onClick={() => {
+                    void fetch(QUICK_ACTIONS_ENDPOINT, {
+                      method: "POST",
+                      headers: { "content-type": "application/json" },
+                      body: JSON.stringify({ intentKey: action.intentKey, prompt: action.prompt, kind: "quick_action" }),
+                    }).catch(() => undefined);
+                    send(action.prompt);
+                  }}
+                  className={PILL}
+                >
                   <ChipIcon text={`${action.label} ${action.prompt}`} />
                   {action.label}
                 </button>

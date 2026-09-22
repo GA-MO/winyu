@@ -4,7 +4,8 @@ import { DashboardView } from "@/components/dashboard/dashboard-view";
 import { GlowBackdrop } from "@/components/ui/glow-backdrop";
 import { GradientText } from "@/components/ui/gradient-text";
 import { TH } from "@/lib/i18n/th";
-import { widgetViews } from "@/lib/server/dashboard";
+import { changesSince } from "@/lib/server/briefing";
+import { layoutHistory, refreshSuggestions, widgetViews } from "@/lib/server/dashboard";
 import { readAccess } from "@/lib/server/session";
 
 export const dynamic = "force-dynamic";
@@ -13,7 +14,11 @@ export default async function DashboardPage() {
   const access = readAccess(await cookies());
   if (!access) redirect("/login");
 
+  await refreshSuggestions(access);
   const views = widgetViews(access);
+  const changes = changesSince(access);
+  const history = layoutHistory(access);
+  const restorable = history.find((entry) => entry.savedAt.slice(0, 10) < new Date().toISOString().slice(0, 10)) ?? null;
   return (
     <div className="relative min-h-dvh overflow-hidden">
       <GlowBackdrop />
@@ -24,7 +29,12 @@ export default async function DashboardPage() {
           </h1>
           <p className="text-sm text-muted-foreground">{TH.dash.placeholderNote}</p>
         </header>
-        <DashboardView pinned={views.filter((view) => view.widget.pinned)} suggested={views.filter((view) => !view.widget.pinned)} />
+        <DashboardView
+          pinned={views.filter((view) => view.widget.pinned)}
+          suggested={views.filter((view) => !view.widget.pinned)}
+          changes={changes}
+          restorable={restorable ? { version: restorable.version, savedAt: restorable.savedAt } : null}
+        />
       </div>
     </div>
   );

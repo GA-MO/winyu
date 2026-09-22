@@ -12,10 +12,25 @@ import { TH } from "@/lib/i18n/th";
 const WIDGETS_ENDPOINT = "/api/dashboard/widgets";
 const ICON = "rounded-full p-1.5 text-muted-foreground transition hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 const TRAY = "rounded-2xl border border-dashed border-border bg-muted/40 p-4";
+const GRID = "grid items-stretch gap-4 md:grid-cols-2 xl:grid-cols-3";
+const CELL = "flex h-full flex-col gap-1.5 [&>*:last-child]:h-full";
+const LAYOUT_ENDPOINT = "/api/dashboard/layout";
 
 export type DashboardWidgetView = { widget: WidgetSpec; spec: Spec };
 
-export function DashboardView({ pinned, suggested }: { pinned: DashboardWidgetView[]; suggested: DashboardWidgetView[] }) {
+export type RestorableLayout = { version: number; savedAt: string };
+
+export function DashboardView({
+  pinned,
+  suggested,
+  changes,
+  restorable,
+}: {
+  pinned: DashboardWidgetView[];
+  suggested: DashboardWidgetView[];
+  changes: string[];
+  restorable: RestorableLayout | null;
+}) {
   const router = useRouter();
   const [pendingChange, startTransition] = useTransition();
 
@@ -29,14 +44,39 @@ export function DashboardView({ pinned, suggested }: { pinned: DashboardWidgetVi
     [router],
   );
 
+  const restore = useCallback(() => {
+    startTransition(async () => {
+      await fetch(LAYOUT_ENDPOINT, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "rollback" }) });
+      router.refresh();
+    });
+  }, [router]);
+
   return (
     <div className="flex flex-col gap-8">
+      {changes.length > 0 ? (
+        <section className="rounded-2xl border border-border bg-card p-4 shadow-card">
+          <h2 className="text-sm font-medium">{TH.dashboard.changes}</h2>
+          <ul className="mt-2 flex flex-col gap-1 text-sm text-muted-foreground">
+            {changes.map((line) => (
+              <li key={line}>{line}</li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
       <section className="flex flex-col gap-3">
-        <h2 className="text-sm font-medium text-muted-foreground">{TH.dash.pinnedZone}</h2>
+        <div className="flex items-center justify-between gap-2">
+          <h2 className="text-sm font-medium text-muted-foreground">{TH.dash.pinnedZone}</h2>
+          {restorable ? (
+            <button type="button" disabled={pendingChange} onClick={restore} className="rounded-full border border-border px-3 py-1 text-xs text-muted-foreground transition hover:text-foreground">
+              {TH.compose.yesterday}
+            </button>
+          ) : null}
+        </div>
         {pinned.length === 0 ? <p className="text-sm text-muted-foreground">{TH.dash.empty}</p> : null}
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div className={GRID}>
           {pinned.map((view, index) => (
-            <div key={view.widget.id} className="flex flex-col gap-1.5 animate-hero-rise" style={{ animationDelay: `${index * 50}ms` }}>
+            <div key={view.widget.id} className={`${CELL} animate-hero-rise`} style={{ animationDelay: `${index * 50}ms` }}>
               <div className="flex items-center justify-end gap-0.5">
                 <WhyCard widget={view.widget} />
                 <button type="button" disabled={pendingChange} onClick={() => act(view.widget.id, "up")} aria-label={TH.dash.moveUp} className={ICON}>
@@ -58,9 +98,9 @@ export function DashboardView({ pinned, suggested }: { pinned: DashboardWidgetVi
       <section className="flex flex-col gap-3">
         <h2 className="text-sm font-medium text-muted-foreground">{TH.dash.suggestedZone}</h2>
         <div className={TRAY}>
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <div className={GRID}>
             {suggested.map((view) => (
-              <div key={view.widget.id} className="flex flex-col gap-1.5">
+              <div key={view.widget.id} className={CELL}>
                 <div className="flex items-center justify-between gap-2">
                   <p className="min-w-0 truncate text-xs text-muted-foreground">{view.widget.reason ?? TH.dash.reasonTemplate}</p>
                   <div className="flex shrink-0 items-center gap-0.5">

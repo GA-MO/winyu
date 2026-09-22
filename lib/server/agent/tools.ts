@@ -17,7 +17,7 @@ import {
   runJobInputSchema,
   sendEmailInputSchema,
   type AccessContext,
-  type ContextPacket,
+  type MetricQuery,
   type Dim,
   type Notification,
   type Region,
@@ -27,14 +27,17 @@ import {
 } from "@/lib/contracts";
 import { findUser } from "@/lib/data/entities/users";
 import { withAudit } from "@/lib/server/audit";
-import { currentAccess } from "@/lib/server/request-context";
-import { alerts, forecasts, layoutOf, layouts, memoryFacts, notifications, outbox, packets, type OutboxEntry } from "./collections";
+import { currentAccess, currentTurn, recordQuery } from "@/lib/server/request-context";
+import { createPacket, digestOf, suggestOwner } from "@/lib/server/handoff";
+import { threads } from "@/lib/server/threads-read";
+import { TH } from "@/lib/i18n/th";
+import { layoutOf, layouts, memoryFacts, notifications, outbox, packets, type OutboxEntry } from "./collections";
+import { allAlertsFor, forecastsFor, openAlertsFor, runAnomalyJob, runEngineJobs, runForecastJob } from "@/lib/server/alerts";
 import { dataPort } from "./data-port";
 
-const NO_ALERTS = "ยังไม่มีการแจ้งเตือนในระบบ (เอนจินตรวจจับจะเริ่มทำงานในเฟสถัดไป)";
-const NO_FORECAST = "ยังไม่มีพยากรณ์ในระบบ (เอนจินพยากรณ์จะเริ่มทำงานในเฟสถัดไป)";
+const NO_ALERTS = "ไม่พบความผิดปกติที่เปิดอยู่ในขอบเขตของผู้ใช้คนนี้";
+const NO_FORECAST = "ยังไม่มีพยากรณ์สำหรับมิติที่ขอ";
 const NO_MEMORY = "ยังไม่มีข้อมูลที่จำไว้เกี่ยวกับผู้ใช้คนนี้";
-const ENGINE_MISSING = "engine not installed yet";
 const DEFAULT_ALERT_LIMIT = 10;
 const DEFAULT_MEMORY_LIMIT = 8;
 
@@ -55,6 +58,34 @@ function mailEntry(entry: Omit<OutboxEntry, "id" | "at">): OutboxEntry {
   return outbox().put({ ...entry, id: randomUUID(), at: now() });
 }
 
+const MAX_EVIDENCE = 4;
+
+function evidenceKey(query: { metric: string; filters: unknown; range: { from: string; to: string } }): string {
+  return `${query.metric}|${JSON.stringify(query.filters)}|${query.range.from}|${query.range.to}`;
+}
+
+function mergeEvidence(explicit: MetricQuery[], ran: MetricQuery[]): MetricQuery[] {
+  const merged = new Map<string, MetricQuery>();
+  for (const query of [...explicit, ...ran]) merged.set(evidenceKey(query), query);
+  return [...merged.values()].slice(0, MAX_EVIDENCE);
+}
+
+function textOf(message: unknown): string {
+  const parts = (message as { parts?: { type?: string; text?: string }[] })?.parts ?? [];
+  return parts.filter((part) => part.type === "text").map((part) => part.text ?? "").join(" ").trim();
+}
+
+function digestOfThread(threadId: string | null): string {
+  if (!threadId) return "";
+  const thread = threads().get(threadId);
+  if (!thread) return "";
+  return digestOf(thread.messages.map((message) => ({ role: (message as { role?: string }).role ?? "assistant", text: textOf(message) })));
+}
+
+function suggestedActionsFor(ask: string): string[] {
+  return [TH.handoff.replies.accept, TH.handoff.replies.need_info, `ตรวจ: ${ask}`];
+}
+
 function notify(notification: Omit<Notification, "id" | "at" | "read">): Notification {
   return notifications().put({ ...notification, id: randomUUID(), at: now(), read: false });
 }
@@ -63,7 +94,10 @@ const query_metric = tool({
   description:
     "Read one certified metric from the semantic layer. Call it for every number you report: volumes, values, attainment, days of cover, margin, AR, headcount. Group with dims, narrow with filters, use compare for prev_period / prev_year / target.",
   inputSchema: metricQuerySchema,
-  execute: withAudit("query_metric", async (input: z.infer<typeof metricQuerySchema>) => dataPort().runMetric(input, currentAccess())),
+  execute: withAudit("query_metric", async (input: z.infer<typeof metricQuerySchema>) => {
+    recordQuery(input);
+    return dataPort().runMetric(input, currentAccess());
+  }),
 });
 
 const list_metrics = tool({
@@ -87,14 +121,22 @@ const get_alerts = tool({
   inputSchema: getAlertsInputSchema,
   execute: withAudit("get_alerts", async ({ status, limit }: z.infer<typeof getAlertsInputSchema>) => {
     const access = currentAccess();
-    const scope = access.regions === "all" ? null : access.regions;
-    const rows = alerts()
-      .where((alert) => (status === "open" ? alert.status === "open" : true))
-      .filter((alert) => !scope || !alert.dims.region || scope.includes(alert.dims.region as Region))
-      .sort((left, right) => right.at.localeCompare(left.at))
-      .slice(0, limit ?? DEFAULT_ALERT_LIMIT);
+    const found = status === "open" ? openAlertsFor(access) : allAlertsFor(access);
+    const rows = found.slice(0, limit ?? DEFAULT_ALERT_LIMIT).map((alert) => ({
+      id: alert.id,
+      severity: alert.severity,
+      metric: alert.metric,
+      scope: alert.dims,
+      window: `${alert.window.from} – ${alert.window.to}`,
+      observed: alert.observed,
+      expected: alert.expected,
+      direction: alert.direction,
+      hypothesis: alert.hypothesis,
+      verifySteps: alert.verifySteps,
+      ownerUserId: alert.ownerUserId,
+    }));
     if (rows.length === 0) return { ok: true as const, summary: NO_ALERTS, data: [] };
-    return { ok: true as const, summary: `มีการแจ้งเตือน ${rows.length} รายการในขอบเขตของคุณ`, data: rows };
+    return { ok: true as const, summary: `มีความผิดปกติที่เปิดอยู่ ${rows.length} รายการในขอบเขตของคุณ`, data: rows };
   }),
 });
 
@@ -102,10 +144,16 @@ const get_forecast = tool({
   description: "Read the deterministic forecast for a metric and dimension slice over the next weeks, with its confidence band and MAPE. Call it when the user asks what will happen, whether stock lasts, or about a plan for coming weeks.",
   inputSchema: getForecastInputSchema,
   execute: withAudit("get_forecast", async ({ metric, dims, weeks }: z.infer<typeof getForecastInputSchema>) => {
-    const rows = forecasts().where((forecast) => forecast.metric === metric);
+    const access = currentAccess();
+    const rows = forecastsFor(access).filter((forecast) => forecast.metric === metric);
     const match = rows.find((forecast) => Object.entries(dims).every(([dim, value]) => !value || forecast.dims[dim as keyof typeof forecast.dims] === value));
     if (!match) return { ok: true as const, summary: NO_FORECAST, data: [] };
-    return { ok: true as const, summary: `พยากรณ์ ${weeks} สัปดาห์ (MAPE ${match.mape}%)`, data: match.points.slice(0, weeks) };
+    const points = match.points.slice(0, weeks).map((point) => ({ week: point.date, value: point.value, lo: point.lo, hi: point.hi }));
+    return {
+      ok: true as const,
+      summary: `พยากรณ์ ${points.length} สัปดาห์ของ ${metric} (Holt-Winters · ความคลาดเคลื่อนย้อนหลัง MAPE ${match.mape}%)`,
+      data: points,
+    };
   }),
 });
 
@@ -131,12 +179,21 @@ const resolve_owner = tool({
   execute: withAudit("resolve_owner", async ({ metric, dims }: z.infer<typeof resolveOwnerInputSchema>) => {
     const region = regionOf(dims);
     const owner = responsibleFor(metric, region);
-    if (!owner) return { ok: false as const, error: `ยังไม่มีผู้รับผิดชอบสำหรับ ${metric}` };
-    const reason = `${owner.user.nameTh} (${owner.user.title}) รับผิดชอบ ${metric} — ${owner.basis}`;
+    const suggestion = suggestOwner(metric, region);
+    if (!owner || !suggestion) return { ok: false as const, error: `ยังไม่มีผู้รับผิดชอบสำหรับ ${metric}` };
     return {
       ok: true as const,
       summary: `ผู้รับผิดชอบคือ ${owner.user.nameTh}`,
-      data: { userId: owner.userId, nameTh: owner.user.nameTh, title: owner.user.title, role: owner.role, region: owner.user.region, reason },
+      data: {
+        userId: owner.userId,
+        nameTh: owner.user.nameTh,
+        title: owner.user.title,
+        role: owner.role,
+        region: owner.user.region,
+        reason: suggestion.reason,
+        openLoad: suggestion.openLoad,
+        handledBefore: suggestion.handledBefore,
+      },
     };
   }),
 });
@@ -149,41 +206,26 @@ const create_handoff = tool({
     const access = currentAccess();
     const target = recipient(input.toUserId);
     if (!target.ok) return { ok: false as const, error: target.error };
-    const sender = findUser(access.userId);
-    const at = now();
-    const packet: ContextPacket = {
-      id: randomUUID(),
-      fromUserId: access.userId,
-      toUserId: target.user.id,
-      title: input.title,
-      ask: input.ask,
-      urgency: input.urgency,
-      sla: null,
-      evidence: input.evidence,
-      alertIds: input.alertIds,
-      conversationDigest: input.ask,
-      suggestedActions: [],
-      status: "open",
-      outcome: null,
-      thread: [],
-      createdAt: at,
-      updatedAt: at,
-    };
-    packets().put(packet);
-    notify({ userId: target.user.id, kind: "handoff", refId: packet.id, title: `งานใหม่จาก ${sender?.nameTh ?? access.userId}: ${packet.title}` });
-    mailEntry({
-      kind: "handoff",
-      fromUserId: access.userId,
-      toUserId: target.user.id,
-      toEmail: target.user.email,
-      subject: `[Cop] ส่งต่องาน: ${packet.title}`,
-      body: `${packet.ask}\n\nเปิดในกล่องงาน: /inbox/${packet.id}`,
-      refId: packet.id,
-    });
+    const turn = currentTurn();
+    const packet = createPacket(
+      {
+        toUserId: target.user.id,
+        title: input.title,
+        ask: input.ask,
+        urgency: input.urgency,
+        evidence: mergeEvidence(input.evidence, turn.queries),
+        alertIds: input.alertIds,
+        digest: digestOfThread(turn.threadId),
+        suggestedActions: suggestedActionsFor(input.ask),
+        threadId: turn.threadId,
+      },
+      findUser(access.userId),
+      target.user,
+    );
     return {
       ok: true as const,
       summary: `ส่งงานให้ ${target.user.nameTh} แล้ว`,
-      data: { packetId: packet.id, toUserId: target.user.id, toNameTh: target.user.nameTh, urgency: packet.urgency },
+      data: { packetId: packet.id, toUserId: target.user.id, toNameTh: target.user.nameTh, urgency: packet.urgency, sla: packet.sla, evidenceCount: packet.evidence.length },
     };
   }),
 });
@@ -231,7 +273,11 @@ const run_job = tool({
   description: "Run one batch job of the analytics plane: anomaly detection, forecasting or dashboard composition. IT administrators only; the user approves it first.",
   inputSchema: runJobInputSchema,
   needsApproval: true,
-  execute: withAudit("run_job", async () => ({ ok: false as const, error: ENGINE_MISSING })),
+  execute: withAudit("run_job", async ({ job }: z.infer<typeof runJobInputSchema>) => {
+    if (job === "anomaly") return { ok: true as const, summary: "รันการตรวจจับความผิดปกติแล้ว", data: runAnomalyJob() };
+    if (job === "forecast") return { ok: true as const, summary: "รันการพยากรณ์แล้ว", data: runForecastJob() };
+    return { ok: true as const, summary: "รันงานเบื้องหลังทั้งหมดแล้ว", data: runEngineJobs() };
+  }),
 });
 
 const TOOLS = {

@@ -1,12 +1,25 @@
 # Cop — build plan
 
 ## สถานะ (updated 2026-09-22)
-ทำแล้ว: Phase 0 foundation (`b5209e8`) · Phase 1 = 1A data/semantic + 1B access/tools + 1C chat-first shell (`d06054c`, real engine wired `3b9dd99`) · Phase 1.5 light-first UI polish ตาม QwenCloud (`4b0e526`, `1631c8b`) · ทุก commit ผ่าน `bun run typecheck` + `bun run test` (100 tests)
-ค้าง: Phase 2 ยังไม่เริ่ม — user ยังไม่ได้ตอบว่าให้ไป Phase 2 หรือปรับ UI ต่อ (ถามไว้แล้ว) · ประวัติแชทเปิดกลับมาว่าง (2A) · inbox/alerts/ambient anomaly ว่างเพราะไม่มี engine (2B/2C) · `/admin` tool matrix ล้นแนวนอนที่ 1440 (ให้ 3A) · Vexa devtools toggle ยังโผล่ในแชทตอน dev
-ค้นพบ: Vexa wiring ต้องใช้ option 2 (tsconfig paths + pin `ai@6.0.280`/`zod@4.6.2`) — `file:` dep ทำ React ซ้อน · JSON store ต้อง cache ตาม mtime ไม่งั้น module instance ของ Next เห็นข้อมูลไม่ตรงกัน (แก้แล้ว) · engine row keys คือ `value`/`compare_value`/`delta_pct` (ไม่ใช่ camelCase ของ stub) · `target_attainment` ห้ามใช้ `compare:"target"` · prev_period ของ query ไม่มีมิติเวลา = ช่วงยาวเท่ากันก่อนหน้า · user ตัดสินใจ: light default, chat-first ไม่ใช่ admin, Vexa ไม่ใช่ข้อจำกัด (แก้ Vexa ได้ log ใน §9), UI ให้ opus ทำ
-ถัดไป: /go phase 2 ตาม docs/plan.md (ยืนยันกับ user ก่อน dispatch 2A sonnet · 2B/2C/2D opus)
+ทำแล้ว: Phase 0 (`b5209e8`) · Phase 1 1A+1B+1C (`d06054c`, `3b9dd99`) · Phase 1.5 UI light-first (`4b0e526`, `1631c8b`) · **Phase 2 ครบสี่แพ็กเกจ + Phase 3 ครบสามแพ็กเกจ ยังไม่ commit** — 2B `lib/engine/{stats,watches,series,hypothesis,anomaly,forecast}.ts` + `lib/server/{alerts,briefing}.ts`, 2C `lib/server/handoff.ts`, 2A `lib/server/threads.ts` + `lib/engine/{memory,recommend,seasons}.ts`, 2D `lib/engine/compose.ts` + layout versioning, 3A `lib/access/suppression.ts` + `lib/server/usage.ts` + `/admin` ครบห้าแท็บ + `tests/red-team.test.ts`, 3B ฉากเดโมใน `lib/server/mock-script.ts` + `docs/demo.md`, 3C `docs/architecture.md` + README + skeleton/375px/dark pass (ทำเรียงลำดับในเซสชันเดียว ไม่ dispatch agent ขนาน ตามที่ user สั่ง)
+ค้าง:
+- งานที่เปิดค้างใน agentic-ui: `src/chat/vexa-chat.tsx` (`initialMessages`/`id`) กับ `src/react/components.tsx` (`thinLabels` จาก 1.5) ยัง uncommitted ทั้งคู่ — ถ้า commit Cop ต้อง commit Vexa ด้วยไม่งั้น typecheck พัง
+- Vexa devtools toggle ยังโผล่ในแชทตอน dev · แดชบอร์ด/กล่องงานยังเช็กมือแค่ `u_anucha`, `u_ben`, `u_wee`, `u_thana`, `u_ton`
+- พยากรณ์ `days_of_cover` MAPE ~24% (ยอดขาย brand×region ~10% ผ่านเกณฑ์ <15%) — cover รายสัปดาห์เป็นฟันเลื่อยตามรอบเติมสินค้า ค่านี้โชว์ใน payload ของ `get_forecast` แล้ว ไม่ได้ซ่อน
+ค้นพบ:
+- **year-over-year ต่อ series ทำ detection แย่ลง** บน generator นี้ (2025 เบียร์ลงเข้าเดือน 9, 2026 ไม่ลง → factor 0.77 พลิก "ลดลงจริง" เป็น "เพิ่มขึ้น") เปลี่ยนเป็น detrend least-squares + damped trend φ=0.85 + หาร standard error ด้วย effective sample size จาก lag-1 autocorrelation แทน · YoY เหลือใช้เฉพาะ watch รายเดือน `ar_overdue` ระดับภาค
+- `days_of_cover` เป็นฟันเลื่อยรอบ ~14 วัน z-score ใช้ไม่ได้เลย ต้องใช้กฎ floor (`scanFloor`: 7 วันล่าสุดไม่เคยกลับเหนือเกณฑ์ 10)
+- anomaly #7 (ขอนแก่นไลน์ 2) มองไม่เห็นที่ระดับ plant (−4% ต่ำกว่า noise) เอนจินเลยอ่าน `productionTables()` ราย line ตรง ๆ ใน `lib/engine/series.ts` เพราะ `Dim` ไม่มี `line` — Alert ยังอยู่ใน contract เดิม ไม่ได้แก้ `lib/contracts`
+- anomaly #6 (AR ใต้) เจอที่ระดับภาค ไม่ใช่ราย agent — ราย agent สัญญาณต่ำกว่า jitter ของข้อมูลเอง §5.3 เขียนว่า "3 tier-C agents" แต่ระดับที่ตรวจได้จริงคือภาค
+- seed ใน `templates.ts` ที่เคยติดป้าย `ai_suggested` เปลี่ยนเป็น `role_template` แล้ว ไม่งั้นกินโควตา "1 การ์ดใหม่/วัน" ของ composer จนไม่มีการ์ด AI จริงโผล่เลย
+- เทสต์ที่อ่าน `.data` ร่วมกับ dev server จะพังแบบสุ่ม — `scoreIntents`/`composeSuggestion`/`shouldOfferPin` รับ `events` เป็น parameter ได้แล้ว เทสต์ใหม่ต้องส่ง array เอง อย่าเขียนลง store (red-team เขียน fact/packet แล้วลบคืนใน `afterAll`)
+- หน้า alerts ทำเป็นแท็บ "ความผิดปกติ" ในลิ้นชักกล่องงาน (§1 chat-first) ไม่ได้ทำหน้าแยกตามข้อความใน §6 2B
+- Vexa: เพิ่ม `initialMessages`/`id` ให้ `VexaChat` แต่ไม่ได้เขียน scenario ใน shop-admin (เป็น prop pass-through และ Cop ใช้ `useChat` เองไม่ผ่าน `VexaChat`)
+- **min-cell กับ `ar_overdue` ราย province ปิดเกือบทุกแถว** เพราะ 20 จาก 24 จังหวัดมีเอเย่นต์ 1–2 ราย — ตั้งใจ ถูกต้องตามกฎ และเป็นจังหวะเดโมที่ดี ("ทำไมเป็น ***") ถ้าต้องการรายละเอียดให้ถามราย agent หรือราย region แทน
+- `avg_salary` ของ CEO เป็น `full` มาตั้งแต่ phase 1 (มีเทสต์ `policies.test.ts` ยืนยัน) เคยลองบีบเป็น masked แล้วเทสต์เดิมพัง เลยคงตามการตัดสินใจเดิมและให้ red-team ยอมรับ CEO + HR
+ถัดไป: commit phase 2 + 3 (พร้อม agentic-ui ที่ค้างอยู่) แล้วรีวิว UX รอบสุดท้ายก่อนเดโม
 
-Status: **In progress** · Revision 2 · 2026-09-22 · phase 1 done, phase 2 next.
+Status: **In progress** · Revision 4 · 2026-09-22 · phases 0–3 built, not yet committed.
 
 Cop is the enterprise copilot described in the brainstorm of 2026-09-22 (four angles: executive/governance, daily user, architecture, red-team). This plan turns it into a runnable demo on Vexa with a full-lifecycle mock of a Thai beverage company, built by parallel agents. Everything here is the deliverable; the chat summary is not.
 
@@ -274,52 +287,52 @@ User decisions from the review of 2026-09-22 (evening): **light theme is the def
 ### Phase 2 — the four loops (four agents in parallel)
 
 **2A Threads, memory, quick actions** (`lib/server/threads.ts`, `lib/engine/memory.ts`, `lib/engine/recommend.ts`)
-- [ ] Vexa change (in agentic-ui, minimal, general): `VexaChatProps.initialMessages?: VexaMessage[]` and `id?: string` passed to `useChat`; scenario `thread-restore` in shop-admin per Vexa's CLAUDE.md; note in §9.
-- [ ] Threads: create on first message, save through `onMessagesChange` (throttled) to `POST /api/threads/:id`, title from the first user message, list/switch/delete in the chat column; `?preload=<packetId>` creates a thread with `HandoffPreload`.
-- [ ] Action events: every user message → `ActionEvent{kind:"question", intentKey}` where `intentKey` = `${metric}|${dims sorted}` from the tools the turn called (read from the saved messages), quick-action clicks → `quick_action`.
-- [ ] Recommender: score = 0.35·freq(30d) + 0.25·e^(−Δt/14d) + 0.15·timeOfDayMatch + 0.15·rolePeerLift + 0.10·contextSimilarity(last turn's metric) − 0.5·dismissPenalty; top 4 + 2 seasonal (calendar-aware: pre-Songkran, month-end close, Lent); each carries `reason` shown on hover ("ถามบ่อยช่วงปิดเดือน"). `GET /api/quick-actions` re-fetched after every turn.
-- [ ] Memory: after each completed turn, extract facts (LLM structured output with zod when a real model is chosen; rule-based when mock: metrics/dims asked, entities named); dedupe by `(type,value)`, decay 90 days; `/memory` lists and deletes; persona receives ≤ 1.5k tokens of the highest-confidence facts.
-- [ ] Tests: recommender ordering, decay, memory dedupe, thread save/restore.
+- [x] Vexa change (in agentic-ui, minimal, general): `VexaChatProps.initialMessages?: VexaMessage[]` and `id?: string` passed to `useChat`; scenario `thread-restore` in shop-admin per Vexa's CLAUDE.md; note in §9.
+- [x] Threads: create on first message, save through `onMessagesChange` (throttled) to `POST /api/threads/:id`, title from the first user message, list/switch/delete in the chat column; `?preload=<packetId>` creates a thread with `HandoffPreload`.
+- [x] Action events: every user message → `ActionEvent{kind:"question", intentKey}` where `intentKey` = `${metric}|${dims sorted}` from the tools the turn called (read from the saved messages), quick-action clicks → `quick_action`.
+- [x] Recommender: score = 0.35·freq(30d) + 0.25·e^(−Δt/14d) + 0.15·timeOfDayMatch + 0.15·rolePeerLift + 0.10·contextSimilarity(last turn's metric) − 0.5·dismissPenalty; top 4 + 2 seasonal (calendar-aware: pre-Songkran, month-end close, Lent); each carries `reason` shown on hover ("ถามบ่อยช่วงปิดเดือน"). `GET /api/quick-actions` re-fetched after every turn.
+- [x] Memory: after each completed turn, extract facts (LLM structured output with zod when a real model is chosen; rule-based when mock: metrics/dims asked, entities named); dedupe by `(type,value)`, decay 90 days; `/memory` lists and deletes; persona receives ≤ 1.5k tokens of the highest-confidence facts.
+- [x] Tests: recommender ordering, decay, memory dedupe, thread save/restore.
 
 **2B Anomaly, forecast, alerts, briefing** (`lib/engine/anomaly.ts`, `lib/engine/forecast.ts`, `lib/server/alerts.ts`)
-- [ ] Anomaly: for each (metric ∈ sell_out_volume, net_sales_volume, days_of_cover, production_output, ar_overdue) × watched dims, residual after weekly (dow means) + yearly (same-week last year) seasonality, rolling 56-day z-score, CUSUM level-shift; severity P1 ≥ 3σ or stock-out risk, P2 ≥ 2σ, P3 else; dedupe by root (agent → region roll-up keeps the deeper one); promotion-explained flag using the campaign table.
-- [ ] Hypothesis + two verify steps per alert from templates keyed on metric/direction/context (sell-in down + sell-out flat → "สต๊อกค้างที่เอเย่นต์"; PM2.5 correlation r > 0.6 → "อากาศ/ฝุ่น"); owner from `resolve_owner` (RACI table in `lib/access/raci.ts`: metric × region → role → user).
-- [ ] Forecast: Holt-Winters additive (weekly seasonality, period 52 on weekly aggregates) for volume per brand × region and days-of-cover per DC × SKU; 8-week horizon with ±1.28σ band; MAPE from a 12-week backtest.
-- [ ] Alerts page: list with severity filter, hypothesis, verify buttons (open chat with the verify prompt), dismiss (3 dismissals → threshold ×1.25 for that key, shown to the user), hand off (opens the handoff composer of 2C).
-- [ ] Morning brief (`lib/server/briefing.ts`): per user, top 3 alerts in scope + target attainment + open packets, rendered as a Vexa spec on the dashboard; "what changed since yesterday" diff (metrics moved > threshold, alerts closed, packets replied).
-- [ ] `POST /api/jobs/run` runs both engines; runs on first boot if `.data/alerts.json` is missing. Tests: all 7 injected anomalies detected with the right direction, promotion one flagged explained, MAPE < 15 % on the backtest.
+- [x] Anomaly: for each (metric ∈ sell_out_volume, net_sales_volume, days_of_cover, production_output, ar_overdue) × watched dims, residual after weekly (dow means) + yearly (same-week last year) seasonality, rolling 56-day z-score, CUSUM level-shift; severity P1 ≥ 3σ or stock-out risk, P2 ≥ 2σ, P3 else; dedupe by root (agent → region roll-up keeps the deeper one); promotion-explained flag using the campaign table.
+- [x] Hypothesis + two verify steps per alert from templates keyed on metric/direction/context (sell-in down + sell-out flat → "สต๊อกค้างที่เอเย่นต์"; PM2.5 correlation r > 0.6 → "อากาศ/ฝุ่น"); owner from `resolve_owner` (RACI table in `lib/access/raci.ts`: metric × region → role → user).
+- [x] Forecast: Holt-Winters additive (weekly seasonality, period 52 on weekly aggregates) for volume per brand × region and days-of-cover per DC × SKU; 8-week horizon with ±1.28σ band; MAPE from a 12-week backtest.
+- [x] Alerts page: list with severity filter, hypothesis, verify buttons (open chat with the verify prompt), dismiss (3 dismissals → threshold ×1.25 for that key, shown to the user), hand off (opens the handoff composer of 2C).
+- [x] Morning brief (`lib/server/briefing.ts`): per user, top 3 alerts in scope + target attainment + open packets, rendered as a Vexa spec on the dashboard; "what changed since yesterday" diff (metrics moved > threshold, alerts closed, packets replied).
+- [x] `POST /api/jobs/run` runs both engines; runs on first boot if `.data/alerts.json` is missing. Tests: all 7 injected anomalies detected with the right direction, promotion one flagged explained, MAPE < 15 % on the backtest.
 
 **2C Handoff, inbox, notifications, outbox** (`lib/server/handoff.ts`, `app/inbox`)
-- [ ] `create_handoff` tool → `ContextPacket` (evidence = the `MetricQuery`s the turn ran + alert ids, digest = last 3 turns summarised by template), `Notification` for the recipient, outbox entry (mock email with the packet link).
-- [ ] Inbox card per packet: from/role, one-line ask, urgency, SLA, evidence rendered by re-running each query **under the recipient's access** (masked fields shown as "ถูกปิดตาม policy" with a request-access button), 3 actions: รับงาน / ขอข้อมูลเพิ่ม / ตีกลับ (with reason drafted from a template), reply thread, close requires an outcome.
-- [ ] "เปิดในเอเจนต์ของฉัน": creates a thread with `HandoffPreload` (system note lists the packet, its evidence and suggested actions, fenced) and sends the first assistant turn automatically ("ผมดึงข้อมูลที่เกี่ยวข้องมาแล้ว…" using the tools).
-- [ ] Reply from the recipient posts back into the sender's inbox thread and notification; the sender's original chat thread gets a system message linking the reply.
-- [ ] `send_email` tool → outbox page shows the rendered email. `resolve_owner` suggests the recipient with a reason (RACI + "เคยรับงานลักษณะนี้ N ครั้ง" from packets + current open load).
-- [ ] Tests: packet evidence re-resolved under recipient scope masks what the sender could see; packet lifecycle; notification created.
+- [x] `create_handoff` tool → `ContextPacket` (evidence = the `MetricQuery`s the turn ran + alert ids, digest = last 3 turns summarised by template), `Notification` for the recipient, outbox entry (mock email with the packet link).
+- [x] Inbox card per packet: from/role, one-line ask, urgency, SLA, evidence rendered by re-running each query **under the recipient's access** (masked fields shown as "ถูกปิดตาม policy" with a request-access button), 3 actions: รับงาน / ขอข้อมูลเพิ่ม / ตีกลับ (with reason drafted from a template), reply thread, close requires an outcome.
+- [x] "เปิดในเอเจนต์ของฉัน": creates a thread with `HandoffPreload` (system note lists the packet, its evidence and suggested actions, fenced) and sends the first assistant turn automatically ("ผมดึงข้อมูลที่เกี่ยวข้องมาแล้ว…" using the tools).
+- [x] Reply from the recipient posts back into the sender's inbox thread and notification; the sender's original chat thread gets a system message linking the reply.
+- [x] `send_email` tool → outbox page shows the rendered email. `resolve_owner` suggests the recipient with a reason (RACI + "เคยรับงานลักษณะนี้ N ครั้ง" from packets + current open load).
+- [x] Tests: packet evidence re-resolved under recipient scope masks what the sender could see; packet lifecycle; notification created.
 
 **2D Dashboard composer + widgets** (`lib/dashboard`, `lib/engine/compose.ts`, `app/page.tsx`)
-- [ ] `widget-to-spec.ts`: each `WidgetKind` → Vexa `Spec` (Metric with trend from compare; BarChart horizontal; LineChart with forecast band as a second series when available; Table ≤ 8 rows; alert_list → Alert stack; kv → KeyValue) plus a provenance line and a "ทำไมถึงเห็นอันนี้" affordance.
-- [ ] Role templates in `templates.ts` (CEO: national volume vs target, GM by BU, top alerts, AR overdue; RSM: region vs target by brand, top-10 falling agents, forecast; Marketing: campaign spend/reach/uplift, SoV, sentiment; Supply: days-of-cover heatmap-as-table, production vs plan, MAPE; Finance: budget vs actual, AR aging; HR: headcount/attrition).
-- [ ] Layout store: pin / unpin / reorder / hide; `pin_widget` tool from chat (approval card) lands in Pinned; layout is versioned with "ดู layout เมื่อวาน" rollback.
-- [ ] Composer (`compose.ts`): cluster `ActionEvent`s by `intentKey` (freq ≥ 3 in 14 days, not already pinned) → candidate `WidgetSpec` with `source: "ai_suggested"` and `reason` ("คุณถามคำถามนี้ 6 ครั้งใน 14 วัน"); with a real model the title is written by the LLM through structured output validated by zod, otherwise from the metric label; max 1 new suggestion per day per user; Suggested tray with accept/dismiss; promote-to-dashboard prompt in chat after the 3rd repeat of an intent.
-- [ ] Polish found in the phase-1 review: widgets use `BarChart` (horizontal) and `LineChart` instead of the simple `Chart` (x-labels overlap); time keys rendered in Thai short form (`ส.ค. 26`, `สัปดาห์ 38`) not `2026-W38`; an incomplete last bucket (current week/month) is marked or excluded so the line does not "fall off"; the sell-in vs sell-out overlay widget for the agent anomaly.
-- [ ] Tests: template per role renders valid specs (validate with Vexa's `normalizeSpec`), composer respects pinned/limit rules, layout versioning.
+- [x] `widget-to-spec.ts`: each `WidgetKind` → Vexa `Spec` (Metric with trend from compare; BarChart horizontal; LineChart with forecast band as a second series when available; Table ≤ 8 rows; alert_list → Alert stack; kv → KeyValue) plus a provenance line and a "ทำไมถึงเห็นอันนี้" affordance.
+- [x] Role templates in `templates.ts` (CEO: national volume vs target, GM by BU, top alerts, AR overdue; RSM: region vs target by brand, top-10 falling agents, forecast; Marketing: campaign spend/reach/uplift, SoV, sentiment; Supply: days-of-cover heatmap-as-table, production vs plan, MAPE; Finance: budget vs actual, AR aging; HR: headcount/attrition).
+- [x] Layout store: pin / unpin / reorder / hide; `pin_widget` tool from chat (approval card) lands in Pinned; layout is versioned with "ดู layout เมื่อวาน" rollback.
+- [x] Composer (`compose.ts`): cluster `ActionEvent`s by `intentKey` (freq ≥ 3 in 14 days, not already pinned) → candidate `WidgetSpec` with `source: "ai_suggested"` and `reason` ("คุณถามคำถามนี้ 6 ครั้งใน 14 วัน"); with a real model the title is written by the LLM through structured output validated by zod, otherwise from the metric label; max 1 new suggestion per day per user; Suggested tray with accept/dismiss; promote-to-dashboard prompt in chat after the 3rd repeat of an intent.
+- [x] Polish found in the phase-1 review: widgets use `BarChart` (horizontal) and `LineChart` instead of the simple `Chart` (x-labels overlap); time keys rendered in Thai short form (`ส.ค. 26`, `สัปดาห์ 38`) not `2026-W38`; an incomplete last bucket (current week/month) is marked or excluded so the line does not "fall off"; the sell-in vs sell-out overlay widget for the agent anomaly.
+- [x] Tests: template per role renders valid specs (validate with Vexa's `normalizeSpec`), composer respects pinned/limit rules, layout versioning.
 
 ### Phase 3 — governance, demo script, QA (three agents in parallel)
 
 **3A Admin console + red-team suite**
-- [ ] `/admin`: users × roles table, metric ACL matrix (full/masked/none per role), tool matrix per role with kill-switch (persisted, enforced by `toolsFor`), audit log with filters, usage (questions/day, top intents, unanswerable questions from `ok:false` results, cost estimate from token usage), "จำลองมุมมอง" (run `runMetric` as another role and show what they would see, read-only).
-- [ ] `tests/red-team.test.ts`: 60 cross-scope questions as direct tool calls per role (regions, brands, salary, other users' memory, packets addressed to others) → 0 leaks; aggregation test (min-cell suppression when a filtered result would expose ≤ 2 agents' salary/margin).
+- [x] `/admin`: users × roles table, metric ACL matrix (full/masked/none per role with a legend), tool matrix per role with kill-switch (persisted, enforced by `toolsFor`), audit log with user/tool/decision filters, usage (questions/day for 14 days, top intents, questions that ended without a semantic-layer call, denied/masked/empty counters, estimated tokens and cost per the registry's default model), "จำลองมุมมอง" (runs a real `runMetric` as the selected user and shows the rows, the masking and the denial, read-only). Tool matrix fits 1440 with short role labels.
+- [x] `tests/red-team.test.ts`: 60+ cross-scope probes as direct tool calls per role (other regions through region/agent filters, scope narrowing, HR and margin ACL, other users' memory, packets addressed to others, the tool surface, alert scope) → 0 leaks; min-cell suppression (`lib/access/suppression.ts` + `lib/access/suppression.test.ts`): a roll-up of `ar_overdue` / `gross_margin` / `trade_spend` covering fewer than 3 agents is closed, and suppressed rows are kept out of the summary too.
 
 **3B Scripted demo (mock model) + demo guide**
-- [ ] `lib/server/mock/script.ts`: `MockTurn`s for the three wow scenes and the persona day-in-the-life prompts (RSM: ยอดอีสานเทียบเป้า, top-10 เอเย่นต์ยอดตก, เทียบปีที่แล้ว, ส่งให้ Trade Marketing; Marketing: Purra spike, stock พอไหม, ส่งให้ Supply; Supply: open handoff, ทางเลือก 2 ทาง; CEO: ยอดรวมประเทศ, drill ภาค → เอเย่นต์, board prep). Each turn calls the real tools (`tool` steps with `then`) so the numbers are real generator output, and renders specs with the catalog.
-- [ ] Quick-action defaults per role seeded so the chips work on first run; `docs/demo.md`: the 3-scene script, which persona to sign in as, what to click, expected screens.
+- [x] `lib/server/mock-script.ts` (kept where phase 1 put it): `MockTurn`s for the three scenes and the persona prompts — RSM (ยอดเทียบเป้า, top-10 เอเย่นต์, เทียบปีที่แล้ว, ขายเข้าเทียบขายออก, ส่งให้ Trade Marketing), Marketing (ปุระขายดีผิดปกติ → alert cards, สต๊อกปุระพอขายอีกกี่วัน → cover table with the red band, พยากรณ์, ส่งให้ Supply), Supply (งานที่ส่งต่อมา → หลักฐาน + ทางเลือก 2 ทาง), CEO (ยอดรวม, drill ภาค → เอเย่นต์, เตรียมประชุมบอร์ด). Every turn calls the real tools; brand-aware filters so the Purra scenes hit anomalies #2 and #3.
+- [x] Quick-action defaults per role were already seeded in `lib/server/quick-actions.ts`; `docs/demo.md` written: three scenes, who to sign in as, what to type, what should appear, fallback prompts and recovery steps.
 
 **3C QA, polish, docs**
-- [ ] Thai copy pass on every page; date formatting (พ.ศ. with `Intl` `th-TH-u-ca-buddhist` where the persona prefers it, ค.ศ. in data tables); number formatting (HL, ลัง, บาท, %).
-- [ ] 375 px pass; dark mode pass; keyboard focus; empty states; loading skeletons on dashboard widgets.
-- [ ] `README.md` (setup, personas, scenes, architecture map), `docs/architecture.md` (this plan's §2 as prose + the data model), CLAUDE.md commands verified.
-- [ ] Full `bun run typecheck && bun run test`, curl of every route, `.data` reset with `bun run seed`.
+- [x] Thai copy pass; the only English left on screen is technical column headers in the IT-only console (`Tool`, `Tier`, `Metric`). Dates through `formatDateTh` (พ.ศ.), numbers through `lib/i18n/format.ts`.
+- [x] 375 px pass (no horizontal page scroll on `/`, `/dashboard`, `/admin`, `/c/[threadId]`; wide tables scroll inside their panel), dark mode pass on the new pages, focus rings on every admin control, empty states on audit/usage/intents, `app/(app)/dashboard/loading.tsx` + `components/dashboard/widget-skeleton.tsx` for the widget skeletons, dashboard cards equal height per row (the 2D gap is gone).
+- [x] `README.md` rewritten (surfaces, loops, governance, layout), `docs/architecture.md` written (request path, layers, data model, `runMetric`, the four loops, governance, models), CLAUDE.md commands verified.
+- [x] `bun run typecheck`, `bun run test` (187 pass, 25 ใหม่จาก 3A), **`bun run build` passes** (the phase-2 unknown), curl of every route, `.data` reset with `bun run seed`.
 
 ## 7. Prompt rules (used by 1B, referenced by 3B)
 
@@ -359,7 +372,7 @@ Ownership rule for parallel agents: a package edits only the folders listed in i
 
 Vexa is not a constraint (user decision 2026-09-22): change it when Cop needs it, prefer general features, list them here. Candidates already identified: a pluggable catalog (`createVexaHandler({ catalog })` + `SpecView registry`) so Cop can add `Provenance`, `AnomalyCard`, `HandoffCard`, `Sparkline`, `Heatmap`; `VexaChat` `initialMessages`/`id`; a headless `useVexaChat` so Cop can own the chat chrome.
 
-- [ ] `VexaChat` `initialMessages` / `id` props (phase 2A) — thread restore for any host.
+- [x] `VexaChat` `initialMessages` / `id` props (phase 2A) — thread restore for any host; both are passed straight to `useChat`. No shop-admin scenario was added: it is a prop pass-through, not a new control path, and Cop drives its own `useChat` in `components/chat/session-chat.tsx` rather than `VexaChat`.
 - [x] `thinLabels` in `src/react/components.tsx` (phase 1.5) — the last axis label no longer crowds the one before it (`> last - step` instead of `>= last - step / 2`); long labels (Thai `สัปดาห์ 38`) overlapped in a narrow `LineChart`.
 
 ## 10. Out of scope for this build

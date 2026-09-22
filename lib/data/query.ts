@@ -4,6 +4,7 @@ import {
   type MetricResult, type MetricRow, type Provenance, type Region,
 } from "@/lib/contracts";
 import { METRIC_LIST, TIME_DIMS, findMetric, metricDef } from "@/lib/semantic/metrics";
+import { MIN_CELL_SIZE, SUPPRESSED_FIELDS, SUPPRESSED_VALUE, cellScopeOf, isSmallCell } from "@/lib/access/suppression";
 import { displayLabel, resolveDimValue, resolveEntities, resolveEntity } from "@/lib/semantic/dictionary";
 import {
   financeTables, forecastAccuracyTables, hrTables, inventoryTables, marketingTables, productionTables, salesCube,
@@ -724,16 +725,31 @@ function indexCompare(rows: Aggregated[]): Map<string, number> {
   return table;
 }
 
-function buildRows(def: MetricDef, dims: Dim[], rows: Aggregated[], compareRows: Aggregated[] | null, masked: boolean): MetricRow[] {
+function allFilters(filters: Filters): Partial<Record<Dim, string[]>> {
+  const out: Partial<Record<Dim, string[]>> = {};
+  for (const [dim, values] of filters) out[dim] = [...values];
+  return out;
+}
+
+function smallCellKeys(metric: MetricId, dims: Dim[], rows: Aggregated[], filters: Filters): Set<string> {
+  const applied = allFilters(filters);
+  const keys = new Set<string>();
+  for (const row of rows) {
+    if (isSmallCell(metric, dims, applied, cellScopeOf(dims, row.dims))) keys.add(row.key);
+  }
+  return keys;
+}
+
+function buildRows(def: MetricDef, dims: Dim[], rows: Aggregated[], compareRows: Aggregated[] | null, masked: boolean, suppressed: Set<string>): MetricRow[] {
   const compareIndex = compareRows ? indexCompare(compareRows) : null;
   return rows.map((row) => {
     const out: MetricRow = {};
     for (const dim of dims) out[dim] = TIME_DIMS.includes(dim) ? row.dims[dim] : displayLabel(dim, row.dims[dim]);
-    if (masked) {
-      out.value = "***";
+    if (masked || suppressed.has(row.key)) {
+      out.value = SUPPRESSED_VALUE;
       if (compareIndex) {
-        out.compare_value = "***";
-        out.delta_pct = "***";
+        out.compare_value = SUPPRESSED_VALUE;
+        out.delta_pct = SUPPRESSED_VALUE;
       }
       return out;
     }
@@ -751,7 +767,7 @@ function buildRows(def: MetricDef, dims: Dim[], rows: Aggregated[], compareRows:
   });
 }
 
-function summarize(def: MetricDef, query: MetricQuery, rows: Aggregated[], all: Aggregated[], ratio: boolean, compareRows: Aggregated[] | null, masked: boolean): string {
+function summarize(def: MetricDef, query: MetricQuery, rows: Aggregated[], all: Aggregated[], ratio: boolean, compareRows: Aggregated[] | null, masked: boolean, suppressed: Set<string>): string {
   const span = `${formatThaiDate(query.range.from)} – ${formatThaiDate(query.range.to)}`;
   if (masked) return `${def.labelTh} ${span}: ข้อมูลถูกปิดตามนโยบาย (masked) — เห็นได้เฉพาะโครงสร้างข้อมูล`;
   if (all.length === 0) return `${def.labelTh} ${span}: ไม่พบข้อมูลตามเงื่อนไขที่ขอ`;
@@ -762,7 +778,7 @@ function summarize(def: MetricDef, query: MetricQuery, rows: Aggregated[], all: 
   const parts = [`${def.labelTh} ${span}: ${headline}`];
   const nonTimeDim = query.dims.find((dim) => !TIME_DIMS.includes(dim));
   if (nonTimeDim) {
-    const ranked = [...all].sort((left, right) => right.value - left.value).slice(0, 3);
+    const ranked = all.filter((row) => !suppressed.has(row.key)).sort((left, right) => right.value - left.value).slice(0, 3);
     const top = ranked.map((row) => `${displayLabel(nonTimeDim, row.dims[nonTimeDim])} ${formatForSummary(def, row.value)}`);
     if (top.length > 0) parts.push(`สูงสุด: ${top.join(" · ")}`);
   }
@@ -837,7 +853,8 @@ export function runMetric(query: MetricQuery, access: AccessContext): MetricResu
   const limit = query.limit ?? DEFAULT_LIMIT;
   const capped = sortRows(aggregated, dims, limit, masked);
   const cappedCompare = compareRows ? sortRows(compareRows, dims, limit, masked) : null;
-  const rows = buildRows(def, dims, capped, cappedCompare, masked);
+  const suppressed = masked ? new Set<string>() : smallCellKeys(def.id, dims, aggregated, filters);
+  const rows = buildRows(def, dims, capped, cappedCompare, masked, suppressed);
   const provenance: Provenance = {
     metric: def.id,
     certified: def.certified,
@@ -846,10 +863,11 @@ export function runMetric(query: MetricQuery, access: AccessContext): MetricResu
     rowCount: rows.length,
     filtersApplied: filtersToRecord(filters, scope.scopeApplied),
     scopeApplied: scope.scopeApplied,
-    masked: masked ? ["value", "compare_value", "delta_pct"] : [],
+    masked: masked || suppressed.size > 0 ? [...SUPPRESSED_FIELDS] : [],
     trust: def.certified ? "verified" : "derived",
   };
-  return { ok: true, rows, summary: summarize(def, query, capped, aggregated, ratio, cappedCompare, masked), provenance };
+  const summary = summarize(def, query, capped, aggregated, ratio, cappedCompare, masked, suppressed);
+  return { ok: true, rows, summary: suppressed.size > 0 ? `${summary} · ปิด ${suppressed.size} แถวที่รวมข้อมูลน้อยกว่า ${MIN_CELL_SIZE} เอเย่นต์` : summary, provenance };
 }
 
 function dedupe(dims: Dim[]): Dim[] {
@@ -971,3 +989,20 @@ export function describeEntity(kind: "agent" | "sku" | "dc" | "campaign" | "user
 }
 
 export { INJECTED_ANOMALIES };
+
+export type SeriesQuery = { metric: MetricId; dims: Dim[]; filters: Partial<Record<Dim, string[]>>; range: { from: string; to: string } };
+export type SeriesRow = { key: string; dims: Record<Dim, string>; value: number };
+
+/** The batch plane's reader: the same aggregation as `runMetric` without access scoping, masking or the row cap. */
+export function runSeries(query: SeriesQuery): SeriesRow[] {
+  const def = metricDef(query.metric);
+  if (!def) return [];
+  const full: MetricQuery = { ...query, grain: "day", compare: "none", limit: null };
+  const range = rangeDays(full);
+  if ("ok" in range) return [];
+  const filters = normalizeFilters(full, def);
+  if ("ok" in filters) return [];
+  const dims = dedupe(query.dims);
+  const rows = aggregate(shapeFor(def.id, NO_SHIFT), dims, filters, range.from, range.to, RATIO_METRICS.has(def.id));
+  return "ok" in rows ? [] : rows;
+}

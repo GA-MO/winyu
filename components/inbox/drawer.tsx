@@ -18,13 +18,16 @@ const ACTION = "rounded-full border border-border bg-card px-3 py-1.5 text-xs te
 const ITEM = "flex flex-col gap-2 rounded-2xl border border-border bg-card p-3 shadow-card";
 const URGENCY_TONE: Record<HandoffItem["urgency"], string> = { low: "text-muted-foreground", medium: "text-warning", high: "text-danger" };
 const SEVERITY_TONE: Record<AlertItem["severity"], string> = { P1: "text-danger", P2: "text-warning", P3: "text-info" };
+const SEVERITIES = ["P1", "P2", "P3"] as const;
 
 type Tab = (typeof TABS)[number];
+type PacketAction = "accept" | "need_info" | "return" | "resolve";
 
 export function InboxDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
   const router = useRouter();
   const [tab, setTab] = useState<Tab>("handoffs");
   const [data, setData] = useState<InboxPayload>(EMPTY);
+  const [note, setNote] = useState<string | null>(null);
 
   const load = useCallback(() => {
     fetch(INBOX_ENDPOINT)
@@ -48,8 +51,18 @@ export function InboxDrawer({ open, onClose }: { open: boolean; onClose: () => v
   }, [onClose]);
 
   const act = useCallback(
-    async (packetId: string, action: "accept" | "need_info" | "return") => {
-      await fetch(`${INBOX_ENDPOINT}/${packetId}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action }) });
+    async (packetId: string, action: PacketAction, outcome?: string) => {
+      const response = await fetch(`${INBOX_ENDPOINT}/${packetId}`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ action, outcome: outcome ?? null }),
+      });
+      if (!response.ok) {
+        const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+        setNote(payload?.error ?? TH.handoff.closeNeedsOutcome);
+        return;
+      }
+      setNote(null);
       load();
     },
     [load],
@@ -57,7 +70,9 @@ export function InboxDrawer({ open, onClose }: { open: boolean; onClose: () => v
 
   const dismiss = useCallback(
     async (alertId: string) => {
-      await fetch(`${ALERTS_ENDPOINT}/${alertId}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "dismiss" }) });
+      const response = await fetch(`${ALERTS_ENDPOINT}/${alertId}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "dismiss" }) });
+      const payload = (await response.json().catch(() => null)) as { note?: string | null } | null;
+      setNote(payload?.note ?? TH.inbox.dismissed);
       load();
     },
     [load],
@@ -93,8 +108,23 @@ export function InboxDrawer({ open, onClose }: { open: boolean; onClose: () => v
         </nav>
 
         <div className="vexa-scrollbar flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-3">
-          {tab === "handoffs" ? <HandoffList items={data.handoffs} onAct={act} onOpen={(id) => router.push(`/c/new?preload=${id}`)} /> : null}
-          {tab === "alerts" ? <AlertList items={data.alerts} onDismiss={dismiss} onVerify={(prompt) => router.push(`/c/new?prompt=${encodeURIComponent(prompt)}`)} /> : null}
+          {tab === "handoffs" ? (
+            <HandoffList
+              items={data.handoffs}
+              note={note}
+              onAct={act}
+              onOpen={(id) => router.push(`/c/new?preload=${id}`)}
+              onAsk={(prompt) => router.push(`/c/new?prompt=${encodeURIComponent(prompt)}`)}
+            />
+          ) : null}
+          {tab === "alerts" ? (
+            <AlertList
+              items={data.alerts}
+              note={note}
+              onDismiss={dismiss}
+              onAsk={(prompt) => router.push(`/c/new?prompt=${encodeURIComponent(prompt)}`)}
+            />
+          ) : null}
           {tab === "replies" ? <ReplyList items={data.replies} /> : null}
         </div>
       </aside>
@@ -111,49 +141,104 @@ function EmptyLine({ text }: { text: string }) {
   );
 }
 
-function HandoffList({ items, onAct, onOpen }: { items: HandoffItem[]; onAct: (id: string, action: "accept" | "need_info" | "return") => void; onOpen: (id: string) => void }) {
+function HandoffList({
+  items,
+  note,
+  onAct,
+  onOpen,
+  onAsk,
+}: {
+  items: HandoffItem[];
+  note: string | null;
+  onAct: (id: string, action: PacketAction, outcome?: string) => void;
+  onOpen: (id: string) => void;
+  onAsk: (prompt: string) => void;
+}) {
   if (items.length === 0) return <EmptyLine text={TH.inbox.empty.handoffs} />;
   return (
     <>
+      {note ? <p className="px-1 text-xs text-danger">{note}</p> : null}
       {items.map((item) => (
-        <article key={item.id} className={ITEM}>
-          <div className="flex items-start justify-between gap-2">
-            <div className="min-w-0">
-              <h3 className="truncate text-sm font-medium">{item.title}</h3>
-              <p className="mt-0.5 text-xs text-muted-foreground">{TH.inbox.from(item.fromName, item.fromRole)}</p>
+        <HandoffCard key={item.id} item={item} onAct={onAct} onOpen={onOpen} onAsk={onAsk} />
+      ))}
+    </>
+  );
+}
+
+function HandoffCard({
+  item,
+  onAct,
+  onOpen,
+  onAsk,
+}: {
+  item: HandoffItem;
+  onAct: (id: string, action: PacketAction, outcome?: string) => void;
+  onOpen: (id: string) => void;
+  onAsk: (prompt: string) => void;
+}) {
+  const [outcome, setOutcome] = useState("");
+  return (
+    <article className={ITEM}>
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <h3 className="truncate text-sm font-medium">{item.title}</h3>
+          <p className="mt-0.5 text-xs text-muted-foreground">{TH.inbox.from(item.fromName, item.fromRole)}</p>
+        </div>
+        <span className={cn("shrink-0 text-xs", URGENCY_TONE[item.urgency])}>{TH.inbox.urgency[item.urgency]}</span>
+      </div>
+      <p className="text-sm text-muted-foreground">{item.ask}</p>
+      <dl className="flex flex-col gap-1 rounded-xl bg-muted p-2.5 text-xs">
+        <div className="flex justify-between gap-2">
+          <dt className="text-muted-foreground">{TH.inbox.sla}</dt>
+          <dd>{item.sla ? relativeTimeTh(item.sla) : TH.inbox.noSla}</dd>
+        </div>
+        <div className="flex justify-between gap-2">
+          <dt className="text-muted-foreground">{TH.inbox.statusLabel}</dt>
+          <dd>{TH.inbox.status[item.status]}</dd>
+        </div>
+        <div className="flex justify-between gap-2">
+          <dt className="text-muted-foreground">{TH.inbox.sentAt}</dt>
+          <dd>{relativeTimeTh(item.at)}</dd>
+        </div>
+      </dl>
+
+      {item.evidence.length > 0 ? (
+        <section className="flex flex-col gap-1.5">
+          <h4 className="text-xs font-medium text-muted-foreground">{TH.inbox.evidence}</h4>
+          <p className="text-[11px] text-muted-foreground">{TH.handoff.evidenceUnderYourScope}</p>
+          {item.evidence.map((line) => (
+            <div key={`${item.id}-${line.label}-${line.value}`} className="rounded-xl border border-border p-2 text-xs">
+              <p className="font-medium">{line.label}</p>
+              <p className="text-muted-foreground">{line.value}</p>
+              <p className={cn("mt-1", line.denied || line.masked ? "text-warning" : "text-muted-foreground")}>
+                {line.masked ? TH.handoff.maskedNote : line.summary}
+              </p>
+              {line.requestPrompt ? (
+                <button type="button" onClick={() => onAsk(line.requestPrompt as string)} className={cn(ACTION, "mt-1.5")}>
+                  {TH.handoff.requestAccess}
+                </button>
+              ) : null}
             </div>
-            <span className={cn("shrink-0 text-xs", URGENCY_TONE[item.urgency])}>{TH.inbox.urgency[item.urgency]}</span>
-          </div>
-          <p className="text-sm text-muted-foreground">{item.ask}</p>
-          <dl className="flex flex-col gap-1 rounded-xl bg-muted p-2.5 text-xs">
-            <div className="flex justify-between gap-2">
-              <dt className="text-muted-foreground">{TH.inbox.sla}</dt>
-              <dd>{item.sla ?? TH.inbox.noSla}</dd>
-            </div>
-            <div className="flex justify-between gap-2">
-              <dt className="text-muted-foreground">{TH.inbox.statusLabel}</dt>
-              <dd>{TH.inbox.status[item.status]}</dd>
-            </div>
-            <div className="flex justify-between gap-2">
-              <dt className="text-muted-foreground">{TH.inbox.sentAt}</dt>
-              <dd>{relativeTimeTh(item.at)}</dd>
-            </div>
-            {item.evidence.map((line) => (
-              <div key={`${item.id}-${line.label}`} className="flex justify-between gap-2">
-                <dt className="text-muted-foreground">{line.label}</dt>
-                <dd className="truncate text-right">{line.value}</dd>
-              </div>
-            ))}
-          </dl>
-          {item.replies.length > 0 ? (
-            <ul className="flex flex-col gap-1 text-xs text-muted-foreground">
-              {item.replies.map((reply, index) => (
-                <li key={`${item.id}-reply-${index}`}>
-                  {reply.name}: {reply.text}
-                </li>
-              ))}
-            </ul>
-          ) : null}
+          ))}
+        </section>
+      ) : null}
+
+      {item.replies.length > 0 ? (
+        <ul className="flex flex-col gap-1 text-xs text-muted-foreground">
+          {item.replies.map((reply, index) => (
+            <li key={`${item.id}-reply-${index}`}>
+              {reply.name}: {reply.text}
+            </li>
+          ))}
+        </ul>
+      ) : null}
+
+      {item.status === "resolved" ? (
+        <p className="text-xs text-success">
+          {TH.handoff.outcome}: {item.outcome}
+        </p>
+      ) : (
+        <>
           <div className="flex flex-wrap gap-1.5">
             <button type="button" onClick={() => onAct(item.id, "accept")} className={ACTION}>
               {TH.inbox.accept}
@@ -171,17 +256,47 @@ function HandoffList({ items, onAct, onOpen }: { items: HandoffItem[]; onAct: (i
               </span>
             </button>
           </div>
-        </article>
-      ))}
-    </>
+          <div className="flex gap-1.5">
+            <input
+              value={outcome}
+              onChange={(event) => setOutcome(event.target.value)}
+              placeholder={TH.handoff.outcomePlaceholder}
+              className="min-w-0 flex-1 rounded-full border border-border bg-card px-3 py-1.5 text-xs outline-none focus:border-foreground/25"
+            />
+            <button type="button" onClick={() => onAct(item.id, "resolve", outcome)} className={ACTION}>
+              {TH.handoff.close}
+            </button>
+          </div>
+        </>
+      )}
+    </article>
   );
 }
 
-function AlertList({ items, onDismiss, onVerify }: { items: AlertItem[]; onDismiss: (id: string) => void; onVerify: (prompt: string) => void }) {
+function AlertList({ items, note, onDismiss, onAsk }: { items: AlertItem[]; note: string | null; onDismiss: (id: string) => void; onAsk: (prompt: string) => void }) {
+  const [severity, setSeverity] = useState<AlertItem["severity"] | "all">("all");
+  const shown = severity === "all" ? items : items.filter((item) => item.severity === severity);
   if (items.length === 0) return <EmptyLine text={TH.inbox.empty.alerts} />;
   return (
     <>
-      {items.map((item) => (
+      <div className="flex flex-wrap items-center gap-1.5 px-1">
+        <span className="text-xs text-muted-foreground">{TH.inbox.severityFilter}</span>
+        {(["all", ...SEVERITIES] as const).map((level) => (
+          <button
+            key={level}
+            type="button"
+            onClick={() => setSeverity(level)}
+            className={cn(
+              "rounded-full border px-2.5 py-1 text-xs transition",
+              severity === level ? "border-transparent bg-ink text-ink-foreground" : "border-border text-muted-foreground hover:text-foreground",
+            )}
+          >
+            {level === "all" ? TH.inbox.allSeverities : `${level} · ${TH.severity[level]}`}
+          </button>
+        ))}
+      </div>
+      {note ? <p className="px-1 text-xs text-muted-foreground">{note}</p> : null}
+      {shown.map((item) => (
         <article key={item.id} className={ITEM}>
           <div className="flex items-center justify-between gap-2">
             <span className={cn("text-xs font-medium", SEVERITY_TONE[item.severity])}>
@@ -189,14 +304,33 @@ function AlertList({ items, onDismiss, onVerify }: { items: AlertItem[]; onDismi
             </span>
             <span className="text-xs text-muted-foreground">{relativeTimeTh(item.at)}</span>
           </div>
-          <h3 className="text-sm font-medium">{item.metric}{item.scope ? ` · ${item.scope}` : ""}</h3>
+          <h3 className="text-sm font-medium">
+            {item.metric}
+            {item.scope ? ` · ${item.scope}` : ""}
+          </h3>
           <p className="text-sm text-muted-foreground">{item.hypothesis}</p>
-          <div className="flex flex-wrap gap-1.5">
+          <dl className="flex flex-col gap-1 rounded-xl bg-muted p-2.5 text-xs">
+            <div className="flex justify-between gap-2">
+              <dt className="text-muted-foreground">{TH.inbox.window}</dt>
+              <dd className="text-right">{item.window}</dd>
+            </div>
+            <div className="flex justify-between gap-2">
+              <dt className="text-muted-foreground">{TH.inbox.numbers}</dt>
+              <dd className="text-right">{item.movement}</dd>
+            </div>
+            {item.ownerName ? <div className="text-muted-foreground">{TH.inbox.owner(item.ownerName)}</div> : null}
+          </dl>
+          <div className="flex flex-col gap-1.5">
             {item.verifySteps.map((step, index) => (
-              <button key={`${item.id}-step-${index}`} type="button" onClick={() => onVerify(step)} className={ACTION}>
-                {TH.inbox.verify} {index + 1}
+              <button key={`${item.id}-step-${index}`} type="button" onClick={() => onAsk(step)} className={cn(ACTION, "text-left")}>
+                {TH.inbox.verify} {index + 1}: {step}
               </button>
             ))}
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            <button type="button" onClick={() => onAsk(item.handoffPrompt)} className={cn(ACTION, "border-transparent bg-ink text-ink-foreground hover:text-ink-foreground")}>
+              {TH.inbox.handoff}
+            </button>
             <button type="button" onClick={() => onDismiss(item.id)} className={ACTION}>
               {TH.inbox.dismiss}
             </button>

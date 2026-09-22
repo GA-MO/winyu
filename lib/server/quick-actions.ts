@@ -1,4 +1,5 @@
 import type { AccessContext, QuickAction, RoleId } from "@/lib/contracts";
+import { quickActionsFrom } from "@/lib/engine/recommend";
 
 const MAX_ACTIONS = 6;
 
@@ -22,8 +23,13 @@ const ROLE_ACTIONS: Partial<Record<RoleId, QuickAction[]>> = {
   it_admin: [{ id: "qa_audit", label: "การใช้งานเครื่องมือ", prompt: "สรุปการเรียกใช้เครื่องมือย้อนหลัง 7 วัน", score: 0.7, reason: "ตรวจสอบการใช้งานประจำสัปดาห์", intentKey: "audit|tool" }],
 };
 
-/** The chips the landing shows: shared defaults first, then what this role asks for most. 2A replaces this with the learned recommender. */
-export function quickActionsFor(access: AccessContext): QuickAction[] {
+/** The role defaults a cold-start user sees before the recommender has any behaviour to learn from. */
+export function defaultActionsFor(access: AccessContext): QuickAction[] {
   const roleActions = ROLE_ACTIONS[access.role] ?? [];
-  return [...SHARED_ACTIONS, ...roleActions].slice(0, MAX_ACTIONS);
+  return [...(roleActions ?? []), ...SHARED_ACTIONS].slice(0, MAX_ACTIONS);
+}
+
+/** The chips the landing shows: what this user actually asks, the calendar's suggestions, then the role defaults. */
+export function quickActionsFor(access: AccessContext): QuickAction[] {
+  return quickActionsFrom(access, defaultActionsFor(access));
 }

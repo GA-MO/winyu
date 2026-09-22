@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import type { VexaMessage } from "vexa/protocol";
 import { redirect } from "next/navigation";
 import { SessionChat, type SessionPreload } from "@/components/chat/session-chat";
 import { findUser } from "@/lib/data/entities/users";
@@ -33,6 +34,7 @@ export default async function SessionPage({ params, searchParams }: PageProps) {
     <SessionChat
       threadId={thread.id}
       initialPrompt={prompt ?? null}
+      initialMessages={thread.messages as VexaMessage[]}
       preload={preloadOf(packetId, access.userId)}
       suggestions={quickActionsFor(access)}
     />

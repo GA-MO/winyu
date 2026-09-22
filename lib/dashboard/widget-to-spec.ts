@@ -1,4 +1,4 @@
-import type { Dim, MetricQuery, MetricResult, MetricRow, WidgetSpec } from "@/lib/contracts";
+import type { Alert, Dim, Forecast, MetricQuery, MetricResult, MetricRow, WidgetSpec } from "@/lib/contracts";
 import type { Spec, SpecElement } from "vexa/protocol";
 import { TH } from "@/lib/i18n/th";
 import { addDays, monthKeyOfIso, weekKeyOfIso } from "@/lib/data/dates";
@@ -14,6 +14,11 @@ const MAX_ALERTS = 4;
 const ALERT_TONES: readonly Tone[] = ["danger", "warning", "info"];
 const TIME_DIMS: readonly Dim[] = ["date", "week", "month"];
 const SUNDAY = 0;
+const SEVERITY_TONES: Record<Alert["severity"], Tone> = { P1: "danger", P2: "warning", P3: "info" };
+
+export type WidgetExtras = { alerts?: Alert[]; forecast?: Forecast | null; overlay?: { name: string; result: MetricResult } | null };
+
+const NO_EXTRAS: WidgetExtras = {};
 
 function element(type: string, props: Record<string, unknown>, children: string[] = []): SpecElement {
   return { type, props, children } as SpecElement;
@@ -120,8 +125,45 @@ function barBody(id: string, widget: WidgetSpec, rows: MetricRow[]): Elements {
   return { [id]: element("BarChart", { title: null, labels, series, horizontal: true, stacked: false, showValues: true, format, height: "md" }) };
 }
 
-function lineBody(id: string, widget: WidgetSpec, rows: MetricRow[]): Elements {
+function overlaySeries(widget: WidgetSpec, labels: string[], extras: WidgetExtras) {
+  const overlay = extras.overlay;
+  if (!overlay || !overlay.result.ok) return null;
+  const points = chartPoints(widget, overlay.result.rows);
+  const byLabel = new Map(points.map((point) => [point.label, point.value]));
+  return { name: overlay.name, values: labels.map((label) => byLabel.get(label) ?? 0) };
+}
+
+function forecastSeries(labels: string[], extras: WidgetExtras) {
+  const forecast = extras.forecast;
+  if (!forecast || forecast.points.length === 0) return null;
+  const padding = labels.map(() => null as number | null);
+  const values = [...padding, ...forecast.points.map((point) => point.value)];
+  const band = [...padding, ...forecast.points.map((point) => point.lo)];
+  const extraLabels = forecast.points.map((point) => periodLabelTh(weekKeyOfIso(point.date)));
+  return { labels: [...labels, ...extraLabels], values, band };
+}
+
+function lineBody(id: string, widget: WidgetSpec, rows: MetricRow[], extras: WidgetExtras): Elements {
   const { labels, series, format } = seriesFor(widget, rows);
+  const overlay = overlaySeries(widget, labels, extras);
+  if (overlay) {
+    return { [id]: element("LineChart", { title: null, labels, series: [...series, overlay], area: false, showDots: false, format, height: "md" }) };
+  }
+  const forecast = forecastSeries(labels, extras);
+  if (forecast) {
+    const padded = series.map((entry) => ({ ...entry, values: [...entry.values, ...forecast.labels.slice(labels.length).map(() => null as number | null)] }));
+    return {
+      [id]: element("LineChart", {
+        title: null,
+        labels: forecast.labels,
+        series: [...padded, { name: TH.dash.forecast, values: forecast.values }, { name: TH.dash.forecastLow, values: forecast.band }],
+        area: false,
+        showDots: false,
+        format,
+        height: "md",
+      }),
+    };
+  }
   return { [id]: element("LineChart", { title: null, labels, series, area: true, showDots: false, format, height: "md" }) };
 }
 
@@ -152,6 +194,20 @@ function kvBody(id: string, widget: WidgetSpec, rows: MetricRow[]): Elements {
   return { [id]: element("Table", { columns, rows: tableRows }) };
 }
 
+function realAlertBody(id: string, alerts: Alert[]): Elements {
+  const items = alerts.slice(0, MAX_ALERTS);
+  const children = items.map((_, index) => `${id}-item-${index}`);
+  const elements: Elements = { [id]: element("Stack", { direction: "vertical", gap: "sm" }, children) };
+  items.forEach((alert, index) => {
+    elements[`${id}-item-${index}`] = element("Alert", {
+      title: `${TH.severity[alert.severity]} · ${metricLabel(alert.metric)}`,
+      body: alert.hypothesis,
+      tone: SEVERITY_TONES[alert.severity],
+    });
+  });
+  return elements;
+}
+
 function alertListBody(id: string, widget: WidgetSpec, rows: MetricRow[]): Elements {
   const items = rows.slice(0, MAX_ALERTS);
   const children = items.map((_, index) => `${id}-item-${index}`);
@@ -167,11 +223,12 @@ function alertListBody(id: string, widget: WidgetSpec, rows: MetricRow[]): Eleme
   return elements;
 }
 
-function bodyFor(id: string, widget: WidgetSpec, rows: MetricRow[], masked: boolean): Elements {
+function bodyFor(id: string, widget: WidgetSpec, rows: MetricRow[], masked: boolean, extras: WidgetExtras): Elements {
+  if (widget.kind === "alert_list" && extras.alerts && extras.alerts.length > 0) return realAlertBody(id, extras.alerts);
   if (masked && widget.kind !== "metric") return kvBody(id, widget, rows);
   if (widget.kind === "metric") return metricBody(id, widget, rows);
   if (widget.kind === "bar") return barBody(id, widget, rows);
-  if (widget.kind === "line") return lineBody(id, widget, rows);
+  if (widget.kind === "line") return lineBody(id, widget, rows, extras);
   if (widget.kind === "table") return tableBody(id, widget, rows);
   if (widget.kind === "alert_list") return alertListBody(id, widget, rows);
   return kvBody(id, widget, rows);
@@ -189,7 +246,7 @@ function deniedSpec(widget: WidgetSpec, message: string): Spec {
 }
 
 /** A widget plus the rows it resolved to, as a Vexa spec: stable element ids, a provenance line, masked and denied variants included. */
-export function widgetToSpec(widget: WidgetSpec, result: MetricResult): Spec {
+export function widgetToSpec(widget: WidgetSpec, result: MetricResult, extras: WidgetExtras = NO_EXTRAS): Spec {
   if (!result.ok) return deniedSpec(widget, result.error);
   const root = `${widget.id}-root`;
   const bodyId = `${widget.id}-body`;
@@ -203,7 +260,7 @@ export function widgetToSpec(widget: WidgetSpec, result: MetricResult): Spec {
     root,
     elements: {
       [root]: element("Card", { title: widget.title, description: result.summary }, [bodyId, noteId]),
-      ...bodyFor(bodyId, widget, trimmed.rows, masked),
+      ...bodyFor(bodyId, widget, trimmed.rows, masked, extras),
       [noteId]: element("Text", { content: notes, muted: true }),
     },
   };

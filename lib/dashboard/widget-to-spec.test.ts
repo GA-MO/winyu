@@ -105,6 +105,7 @@ describe("widgetToSpec", () => {
         ownerUserId: RSM, status: "open", dismissCount: 0,
       },
       packet: { id: "p1", title: "ยอดอีสานต่ำกว่าเป้า", ask: "ช่วยตรวจเอเย่นต์ที่ยอดตก", fromName: "คุณอนุชา", urgency: "high" },
+      bullets: ["ทดสอบสรุปเช้า"],
       brief: "วันนี้ยังไม่มีอะไรผิดปกติ",
       counts: { alerts: 1, packets: 1, widgets: 4 },
     });

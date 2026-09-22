@@ -1,5 +1,6 @@
 import { badRequest, notFound, readBody, requireAccess, unauthenticated } from "../../_guard";
-import { alerts } from "@/lib/server/agent/collections";
+import { alertById, dismissAlert } from "@/lib/server/alerts";
+import { TH } from "@/lib/i18n/th";
 
 type RouteContext = { params: Promise<{ id: string }> };
 type ActionBody = { action?: unknown };
@@ -9,8 +10,9 @@ export async function POST(req: Request, context: RouteContext) {
   if (!access) return unauthenticated();
   const body = await readBody<ActionBody>(req);
   if (!body || body.action !== "dismiss") return badRequest();
-  const alert = alerts().get((await context.params).id);
-  if (!alert) return notFound();
-  const updated = alerts().put({ ...alert, status: "dismissed", dismissCount: alert.dismissCount + 1 });
-  return Response.json({ alert: updated });
+  const id = (await context.params).id;
+  if (!alertById(id)) return notFound();
+  const result = dismissAlert(id);
+  if (!result) return notFound();
+  return Response.json({ alert: result.alert, note: result.raised ? TH.engine.thresholdRaised(result.alert.dismissCount) : null });
 }

@@ -1,12 +1,14 @@
 import { runMetric } from "@/lib/data/query";
-import type { AccessContext, Alert, ContextPacket, DashboardLayout, MetricResult, WidgetSpec } from "@/lib/contracts";
+import type { AccessContext, DashboardLayout, MetricResult, WidgetSpec } from "@/lib/contracts";
 import type { Spec } from "vexa/protocol";
-import { alerts, layouts, packets } from "@/lib/server/agent/collections";
+import { layoutVersions, layouts } from "@/lib/server/agent/collections";
+import { forecastsFor, openAlertsFor, openPacketsFor } from "@/lib/server/alerts";
+import { composeSuggestion } from "@/lib/engine/compose";
+import { morningBriefFor } from "@/lib/server/briefing";
 import { ambientCards, type AmbientCard } from "@/lib/dashboard/ambient";
 import { templateFor } from "@/lib/dashboard/templates";
-import { widgetToSpec } from "@/lib/dashboard/widget-to-spec";
+import { widgetToSpec, type WidgetExtras } from "@/lib/dashboard/widget-to-spec";
 import { findUser } from "@/lib/data/entities/users";
-import { TH } from "@/lib/i18n/th";
 
 export type WidgetView = { widget: WidgetSpec; spec: Spec };
 
@@ -32,7 +34,23 @@ function seedLayout(access: AccessContext): DashboardLayout {
 
 function save(layout: DashboardLayout): DashboardLayout {
   layouts().put(layout);
+  layoutVersions().put({ id: `${layout.userId}_${layout.version}`, userId: layout.userId, version: layout.version, widgets: layout.widgets, savedAt: layout.updatedAt });
   return layout;
+}
+
+export function layoutHistory(access: AccessContext) {
+  return layoutVersions()
+    .where((entry) => entry.userId === access.userId)
+    .sort((left, right) => right.version - left.version);
+}
+
+/** Puts back the newest layout saved before today, so an overnight change can be undone. */
+export function rollbackToYesterday(access: AccessContext): DashboardLayout | null {
+  const today = new Date().toISOString().slice(0, 10);
+  const previous = layoutHistory(access).find((entry) => entry.savedAt.slice(0, 10) < today);
+  if (!previous) return null;
+  const layout = layoutFor(access);
+  return save({ ...layout, widgets: previous.widgets, version: layout.version + 1, updatedAt: new Date().toISOString() });
 }
 
 /** The user's dashboard layout, seeded from the role template the first time they arrive. */
@@ -47,8 +65,39 @@ export function resolveWidget(widget: WidgetSpec, access: AccessContext): Metric
   return runMetric(widget.query, access);
 }
 
+const OVERLAY_PAIR: Partial<Record<string, { metric: WidgetSpec["query"]["metric"]; name: string }>> = {
+  sell_out_volume: { metric: "net_sales_volume", name: "ขายเข้า (Sell-in)" },
+};
+
+function extrasFor(widget: WidgetSpec, access: AccessContext): WidgetExtras {
+  if (widget.kind === "alert_list") {
+    return { alerts: openAlertsFor(access).filter((alert) => alert.metric === widget.query.metric || widget.query.dims.length === 0).slice(0, 4) };
+  }
+  if (widget.kind !== "line") return {};
+  const pair = OVERLAY_PAIR[widget.query.metric];
+  if (pair) return { overlay: { name: pair.name, result: runMetric({ ...widget.query, metric: pair.metric, compare: "none" }, access) } };
+  const forecast = forecastsFor(access).find((entry) => entry.metric === widget.query.metric && Object.entries(entry.dims).every(([dim, value]) => {
+    const filter = widget.query.filters[dim as keyof typeof widget.query.filters];
+    return !filter || filter.includes(value as string);
+  }));
+  return { forecast: forecast ?? null };
+}
+
 function viewOf(widget: WidgetSpec, access: AccessContext): WidgetView {
-  return { widget, spec: widgetToSpec(widget, resolveWidget(widget, access)) };
+  return { widget, spec: widgetToSpec(widget, resolveWidget(widget, access), extrasFor(widget, access)) };
+}
+
+/** Adds at most one AI-suggested card a day to the tray, from what the user keeps asking. */
+export async function refreshSuggestions(access: AccessContext): Promise<DashboardLayout> {
+  const layout = layoutFor(access);
+  const suggestion = await composeSuggestion(access, layout.widgets);
+  if (!suggestion) return layout;
+  return save({
+    ...layout,
+    widgets: [...layout.widgets, { ...suggestion, position: layout.widgets.length }],
+    version: layout.version + 1,
+    updatedAt: new Date().toISOString(),
+  });
 }
 
 export function widgetViews(access: AccessContext): WidgetView[] {
@@ -64,46 +113,24 @@ export function pinnedViews(access: AccessContext): WidgetView[] {
     .slice(0, BACKDROP_LIMIT);
 }
 
-function inScope(alert: Alert, access: AccessContext): boolean {
-  if (alert.ownerUserId === access.userId) return true;
-  if (access.regions === "all") return true;
-  const region = alert.dims.region;
-  return !region || access.regions.includes(region as never);
-}
-
-export function openAlertsFor(access: AccessContext): Alert[] {
-  return alerts()
-    .where((alert) => alert.status === "open" && inScope(alert, access))
-    .sort((left, right) => left.severity.localeCompare(right.severity) || right.at.localeCompare(left.at));
-}
-
-export function openPacketsFor(access: AccessContext): ContextPacket[] {
-  return packets()
-    .where((packet) => packet.toUserId === access.userId && packet.status !== "resolved")
-    .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt));
-}
+export { openAlertsFor, openPacketsFor };
 
 /** Cop's opening line: what it found overnight, or that nothing is wrong. */
 export function morningBrief(access: AccessContext): string {
-  const alertCount = openAlertsFor(access).length;
-  const packetCount = openPacketsFor(access).length;
-  const parts: string[] = [];
-  if (alertCount > 0) parts.push(TH.brief.alerts(alertCount));
-  if (packetCount > 0) parts.push(TH.brief.packets(packetCount));
-  if (parts.length === 0) return TH.brief.quiet;
-  return `${parts.join(TH.brief.join)}${TH.brief.suffix}`;
+  return morningBriefFor(access).line;
 }
 
 export function ambientFor(access: AccessContext): AmbientCard[] {
+  const brief = morningBriefFor(access);
   const openAlerts = openAlertsFor(access);
   const openPackets = openPacketsFor(access);
-  const alert = openAlerts[0] ?? null;
   const packet = openPackets[0] ?? null;
   const fromName = packet ? (findUser(packet.fromUserId)?.nameTh ?? packet.fromUserId) : "";
   return ambientCards({
-    alert,
+    alert: openAlerts[0] ?? null,
     packet: packet ? { id: packet.id, title: packet.title, ask: packet.ask, fromName, urgency: packet.urgency } : null,
-    brief: morningBrief(access),
+    brief: brief.line,
+    bullets: brief.bullets,
     counts: { alerts: openAlerts.length, packets: openPackets.length, widgets: layoutFor(access).widgets.filter((widget) => widget.pinned).length },
   });
 }

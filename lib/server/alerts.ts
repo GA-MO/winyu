@@ -1,0 +1,111 @@
+import { existsSync } from "node:fs";
+import path from "node:path";
+import type { AccessContext, Alert, ContextPacket, Forecast, Region } from "@/lib/contracts";
+import { alertThresholds, alerts, forecasts, packets } from "@/lib/server/agent/collections";
+import { DATA_DIR } from "@/lib/server/store/json-store";
+import { detectAnomalies, thresholdKey, toAlert, type Thresholds } from "@/lib/engine/anomaly";
+import { buildForecasts } from "@/lib/engine/forecast";
+
+const SEVERITY_RANK: Record<Alert["severity"], number> = { P1: 0, P2: 1, P3: 2 };
+
+let running = false;
+
+function storedThresholds(): Thresholds {
+  return Object.fromEntries(alertThresholds().all().map((entry) => [entry.id, entry.dismissals]));
+}
+
+/** Re-runs detection and folds the result into the stored alerts, keeping what the user already did with them. */
+export function runAnomalyJob(): { alerts: number } {
+  const store = alerts();
+  const previous = new Map(store.all().map((alert) => [alert.id, alert]));
+  const detections = detectAnomalies(storedThresholds());
+  const kept = new Set<string>();
+  for (const detection of detections) {
+    store.put(toAlert(detection, previous.get(detection.id) ?? null));
+    kept.add(detection.id);
+  }
+  for (const alert of previous.values()) {
+    if (!kept.has(alert.id) && alert.status === "open") store.remove(alert.id);
+  }
+  return { alerts: kept.size };
+}
+
+export function runForecastJob(): { forecasts: number } {
+  const store = forecasts();
+  for (const stale of store.all()) store.remove(stale.id);
+  const built = buildForecasts();
+  for (const forecast of built) store.put(forecast);
+  return { forecasts: built.length };
+}
+
+export function runEngineJobs(): { alerts: number; forecasts: number } {
+  return { ...runAnomalyJob(), ...runForecastJob() };
+}
+
+/** Fills the analytics plane the first time the app runs against an empty `.data`. */
+export function ensureEngine(): void {
+  if (running) return;
+  if (existsSync(path.join(DATA_DIR, "alerts.json"))) return;
+  running = true;
+  try {
+    runEngineJobs();
+  } finally {
+    running = false;
+  }
+}
+
+function inScope(alert: Alert, access: AccessContext): boolean {
+  if (alert.ownerUserId === access.userId) return true;
+  if (access.metricAcl[alert.metric] === "none") return false;
+  if (access.regions === "all") return true;
+  const region = alert.dims.region;
+  return !region || access.regions.includes(region as Region);
+}
+
+function rank(left: Alert, right: Alert): number {
+  return SEVERITY_RANK[left.severity] - SEVERITY_RANK[right.severity] || Math.abs(right.zScore) - Math.abs(left.zScore);
+}
+
+export function openAlertsFor(access: AccessContext): Alert[] {
+  ensureEngine();
+  return alerts().where((alert) => alert.status === "open" && inScope(alert, access)).sort(rank);
+}
+
+export function allAlertsFor(access: AccessContext): Alert[] {
+  ensureEngine();
+  return alerts().where((alert) => inScope(alert, access)).sort(rank);
+}
+
+export function openPacketsFor(access: AccessContext): ContextPacket[] {
+  return packets()
+    .where((packet) => packet.toUserId === access.userId && packet.status !== "resolved")
+    .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt));
+}
+
+export function forecastsFor(access: AccessContext): Forecast[] {
+  ensureEngine();
+  return forecasts().where((forecast) => {
+    if (access.metricAcl[forecast.metric] === "none") return false;
+    if (access.regions === "all") return true;
+    const region = forecast.dims.region;
+    return !region || access.regions.includes(region as Region);
+  });
+}
+
+/** Dismissing three times in a row raises the bar the same slice has to clear next run. */
+export function dismissAlert(id: string): { alert: Alert; raised: boolean } | null {
+  const alert = alerts().get(id);
+  if (!alert) return null;
+  const dismissCount = alert.dismissCount + 1;
+  const updated = alerts().put({ ...alert, status: "dismissed", dismissCount });
+  const key = thresholdKey(alert.metric, alert.dims);
+  const store = alertThresholds();
+  const entry = store.get(key);
+  const dismissals = (entry?.dismissals ?? 0) + 1;
+  store.put({ id: key, dismissals, updatedAt: new Date().toISOString() });
+  return { alert: updated, raised: dismissals % 3 === 0 };
+}
+
+export function alertById(id: string): Alert | null {
+  return alerts().get(id);
+}
