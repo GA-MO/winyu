@@ -1,0 +1,86 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "allowJs": false,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "types": [
+      "bun-types"
+    ],
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": [
+        "./*"
+      ],
+      "vexa": [
+        "../agentic-ui/src/index.ts"
+      ],
+      "vexa/protocol": [
+        "../agentic-ui/src/protocol/index.ts"
+      ],
+      "vexa/core": [
+        "../agentic-ui/src/core/index.ts"
+      ],
+      "vexa/server": [
+        "../agentic-ui/src/server/index.ts"
+      ],
+      "vexa/mock": [
+        "../agentic-ui/src/mock/index.ts"
+      ],
+      "vexa/admin": [
+        "../agentic-ui/src/admin/index.ts"
+      ],
+      "vexa/react": [
+        "../agentic-ui/src/react/index.ts"
+      ],
+      "vexa/chat": [
+        "../agentic-ui/src/chat/index.ts"
+      ],
+      "vexa/lib/*": [
+        "../agentic-ui/src/lib/*"
+      ],
+      "vexa/ui/*": [
+        "../agentic-ui/src/ui/*"
+      ],
+      "vexa/ai-elements/*": [
+        "../agentic-ui/src/ai-elements/*"
+      ],
+      "ai": [
+        "./node_modules/ai"
+      ],
+      "ai/test": [
+        "./node_modules/ai/dist/test/index.d.ts"
+      ],
+      "@ai-sdk/react": [
+        "./node_modules/@ai-sdk/react"
+      ]
+    }
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    ".data"
+  ]
+}
