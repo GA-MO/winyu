@@ -6,17 +6,18 @@ Cop is the enterprise copilot described in the brainstorm of 2026-09-22 (four an
 
 ## 1. What we are building
 
-One Next.js app, signed-in personas, five surfaces:
+One Next.js app, signed-in personas. **UX principle (decided with the user on 2026-09-22): this is an AI agent, not an admin system.** The chat is the front door, the dashboard is the ambient backdrop, everything else is a drawer or a card inside the chat. Visual language = the Vexa website (dark-first, indigo→violet glow blobs, glass panels, elevated cards with colored shadows, gradient display text). No sidebar of admin menus.
 
 | Surface | Route | What it does |
 |---|---|---|
-| Dashboard | `/` | Pinned zone (user-owned, stable) + Suggested zone (AI proposes, user accepts) + alert strip + "what changed since yesterday" + morning brief. Widgets are rendered through Vexa `SpecView` from deterministic specs; data re-queried on every load under the user's scope |
-| Chat | `/chat`, `/chat/[threadId]` | Vexa chat (`layout: "page"`), thread list, quick-action chips learned from behaviour, replies as generative UI, memory per user |
-| Inbox | `/inbox`, `/inbox/[packetId]` | Handoffs received and sent, context packet re-resolved under the recipient's scope, "open in my agent" preloads a thread |
-| Alerts | `/alerts` | Anomalies and forecasts from the deterministic engine, each with a hypothesis and two ways to verify, dismiss feedback |
-| Admin | `/admin/*` | RBAC matrix, tool permission matrix, audit log, usage, "view as role" simulator, kill switch per tool |
+| Home = chat landing | `/` | Full-viewport: the user's pinned dashboard cards sit **behind** the chat, blurred and dimmed (parallax on scroll, ⌘D / "ดูแดชบอร์ด" brings them to the front at full opacity). In front: a gradient greeting, **Cop speaks first** (one-sentence morning brief: alerts found overnight, handoffs waiting), a large glowing composer, 4–6 learned quick-action chips, and 2–3 **ambient cards** (top alert, brief, handoff waiting) rendered as Vexa specs — clicking one starts a session with that context |
+| Session | `/c/[threadId]` | Sending from the landing morphs it into a session: composer docks to the bottom, the conversation is a centered column (Claude style, max-w-3xl), generative UI inline in the reply; a card can expand to a full-width sheet. Thread rail on the left: collapsed to icons by default, expands (≡ or hover) into "แชทใหม่", search, sessions grouped วันนี้ / เมื่อวาน / 7 วัน / เก่ากว่า, rename/delete |
+| Inbox drawer | `?inbox` (right drawer, from the bell) | One drawer for everything that arrived: handoffs (accept / need info / return / open in my agent), alerts (hypothesis, verify, dismiss), replies. Each item is also a card the agent can show inline in chat |
+| Dashboard | `/dashboard` (and ⌘D from home) | The pinned + suggested cards at full size, with pin/unpin/reorder, "ทำไมถึงเห็นอันนี้", and the suggested tray; visually the same cards as the landing backdrop |
+| Account sheet | avatar → sheet | Memory (what Cop remembers, delete), theme, persona switch (demo), and — for `it_admin` only — the admin console link |
+| Admin console | `/admin` | RBAC + metric ACL matrix, tool kill-switch, audit, usage, "view as role" simulator. Deliberately plain; it is the only admin-looking page and only IT sees it |
 
-Plus `/login` (pick a persona), `/memory` (what the system remembers, delete), `/outbox` (what would have been emailed).
+Plus `/login` (persona picker on the same dark glow background) and `/outbox` (what would have been emailed; linked from the admin console).
 
 Decisions that every package respects:
 
@@ -228,26 +229,28 @@ Every package: `bun run typecheck`, `bun run test`, curl of the page it changed,
 ### Phase 1 — data, access, shell (three agents in parallel)
 
 **1A Data + semantic layer** (`lib/data`, `lib/semantic`)
-- [ ] Entities per §5.1, generator per §5.2, anomalies per §5.3, query engine per §5.4.
-- [ ] `lib/semantic/metrics.ts`: every `MetricId` with owner, certified, dims, aclDims, synonyms (Thai + English, incl. "เอเย่นต์", "ซับเอเย่นต์", "ลัง", "โหล", "เฮกโตลิตร"), unit, format, description; `findMetric(text)` synonym lookup.
-- [ ] `lib/semantic/dictionary.ts`: entity alias resolver (agent names with spelling variants, province aliases, brand nicknames "เบียร์สิงห์", "ลีโอ").
-- [ ] Tests: determinism (same seed → same totals), scope injection, masking, compare modes, 7 anomalies visible.
-- [ ] `scripts/inspect-data.ts` prints monthly volume by brand as a sanity table.
+- [x] Entities per §5.1, generator per §5.2, anomalies per §5.3, query engine per §5.4.
+- [x] `lib/semantic/metrics.ts`: every `MetricId` with owner, certified, dims, aclDims, synonyms (Thai + English, incl. "เอเย่นต์", "ซับเอเย่นต์", "ลัง", "โหล", "เฮกโตลิตร"), unit, format, description; `findMetric(text)` synonym lookup.
+- [x] `lib/semantic/dictionary.ts`: entity alias resolver (agent names with spelling variants, province aliases, brand nicknames "เบียร์สิงห์", "ลีโอ").
+- [x] Tests: determinism (same seed → same totals), scope injection, masking, compare modes, 7 anomalies visible.
+- [x] `scripts/inspect-data.ts` prints monthly volume by brand as a sanity table.
 
 **1B Access + agent tools + handler** (`lib/access`, `lib/server/agent`)
-- [ ] `lib/access/policies.ts` full table for 10 roles; `lib/access/enforce.ts` (`toolsFor(access)`, `assertTool`, `scopePredicates`); audit log writer (`AuditEntry`) around every tool execute.
-- [ ] Tools per §4 table on top of 1A's `runMetric` (build against the contract; until 1A lands, a tiny in-memory stub in `lib/data/stub.ts` that 1A replaces).
-- [ ] `lib/server/agent/persona.ts`: persona per user (name, role, region, today in both ค.ศ. and พ.ศ., responsibilities, vocabulary rules, "answer in Thai", UI rules: Metric/Grid for KPIs, BarChart horizontal for comparisons, LineChart for trends, Table ≤ 10 rows, Alert for anomalies, a provenance line under every data card: `แหล่งข้อมูล · certified/derived · ณ วันที่`), memory facts fenced under "สิ่งที่จำได้เกี่ยวกับผู้ใช้", handoff preload fenced under "งานที่ส่งต่อมา".
-- [ ] `lib/server/agent/handler.ts`: `handlerFor(role)` memoized `createVexaHandler` with `tools: toolsFor(role)`, `toolTiers`, `stopWhen: stepCountIs(6)`, rules from §7; route wraps in `requestContext.run(access, …)`.
-- [ ] Tests: viewer role cannot see `avg_salary` (masked), sales_rsm NE cannot query region south (`PERMISSION_DENIED`), tool list per role matches the table, audit entry written per call.
+- [x] `lib/access/policies.ts` full table for 10 roles; `lib/access/enforce.ts` (`toolsFor(access)`, `assertTool`, `scopePredicates`); audit log writer (`AuditEntry`) around every tool execute.
+- [x] Tools per §4 table on top of 1A's `runMetric` (build against the contract; until 1A lands, a tiny in-memory stub behind `lib/server/agent/data-port.ts` — `stubDataPort` — that 1A replaces through `registerDataPort`).
+- [x] `lib/server/agent/persona.ts`: persona per user (name, role, region, today in both ค.ศ. and พ.ศ., responsibilities, vocabulary rules, "answer in Thai", UI rules: Metric/Grid for KPIs, BarChart horizontal for comparisons, LineChart for trends, Table ≤ 10 rows, Alert for anomalies, a provenance line under every data card: `แหล่งข้อมูล · certified/derived · ณ วันที่`), memory facts fenced under "สิ่งที่จำได้เกี่ยวกับผู้ใช้", handoff preload fenced under "งานที่ส่งต่อมา".
+- [x] `lib/server/agent/handler.ts`: `handlerFor(role)` memoized `createVexaHandler` with `tools: toolsFor(role)`, `toolTiers`, `stopWhen: stepCountIs(6)`, rules from §7; route wraps in `requestContext.run(access, …)`.
+- [x] Tests: viewer role cannot see `avg_salary` (masked), sales_rsm NE cannot query region south (`PERMISSION_DENIED`), tool list per role matches the table, audit entry written per call.
 
-**1C App shell + pages** (`app/`, `components/`)
-- [ ] Layout with Vexa tokens and DESIGN.md feel (elevated cards, colored shadows, indigo→violet accents; dark mode toggle via `VexaProvider theme.mode`).
-- [ ] `/` dashboard: Pinned zone, Suggested tray, alert strip, "เปลี่ยนแปลงตั้งแต่เมื่อวาน" card, morning brief card — all reading from server functions in `lib/server/dashboard.ts` that phase 2D fills (1C ships them returning role-template widgets from `lib/dashboard/templates.ts` and renders each widget via `SpecView` from `lib/dashboard/widget-to-spec.ts`).
-- [ ] `/chat` shell: thread list column (from store), `VexaChat layout="page"` with suggestions from `GET /api/quick-actions` (returns role defaults until 2A), model picker on, Thai labels via `chat.labels`.
-- [ ] `/inbox`, `/alerts`, `/memory`, `/outbox`, `/admin` pages rendering lists from the store with empty states; `/admin` tabs: ผู้ใช้และสิทธิ์, เครื่องมือ, Audit, การใช้งาน, จำลองมุมมอง.
-- [ ] Notification bell reading `Notification` store; persona switcher posting to `/api/session`.
-- [ ] Responsive at 375 px; no horizontal scroll; curl checks for every route.
+**1C Chat-first app shell + pages** (`app/`, `components/`, `lib/dashboard`, `lib/i18n`, `lib/server/{dashboard,quick-actions,threads-read}.ts`)
+- [x] Visual foundation from the Vexa website: read `agentic-ui/website/app/app.css` (blob/drift/shimmer keyframes, display font) and `website/app/components/hero-section.tsx` (GradientBlobs, gradient text, glass pill); port the keyframes into `app/globals.css`, dark-first (`class="dark"` default, toggle persisted), fonts Noto Sans Thai + Inter (+ Bricolage Grotesque for display if cheap).
+- [x] Landing `/`: backdrop layer = pinned dashboard cards (from `lib/server/dashboard.ts`, rendered with `SpecView`, `pointer-events-none`, blurred/dimmed with a radial mask); foreground = greeting (gradient text, Thai, time-of-day aware), Cop's opening line (from `morningBrief(access)`), composer (large, rounded-2xl, gradient border glow, ⌘K focus), quick-action chips from `GET /api/quick-actions`, ambient cards row. "ดูแดชบอร์ด" button + ⌘D toggles the backdrop to the front (full opacity, interactive) without navigation.
+- [x] Session `/c/[threadId]`: `VexaChat layout="page"` restyled through `labels`/props to fit the column; a new thread is created client-side on first send (`POST /api/threads` returns the id, router replaces the URL); `?prompt=` and `?preload=<packetId>` seed the first message/banner. Thread rail component with the grouping, search, rename, delete (store reads via `lib/server/threads-read.ts`; 2A owns persistence of messages and may extend this file).
+- [x] Inbox drawer (bell → right drawer, URL `?inbox`): handoffs / alerts / replies tabs with the actions described in §1; item detail expands in place; "เปิดในเอเจนต์ของฉัน" → `/c/new?preload=<id>`.
+- [x] `/dashboard`: the same cards at full size with pin/unpin/reorder, suggested tray accept/dismiss, "ทำไมถึงเห็นอันนี้" hover-card, versioned layout; role templates in `lib/dashboard/templates.ts`, `widget-to-spec.ts` for every `WidgetKind` (+ masked/denied variants), `lib/server/dashboard.ts` with `layoutFor(access)` and a placeholder `resolveWidget` the orchestrator swaps for the engine.
+- [x] Account sheet (avatar): memory list with delete, theme toggle, persona switch, admin link for it_admin. `/admin` plain tabs (ผู้ใช้และสิทธิ์, เครื่องมือ + kill switch, Audit, การใช้งาน, จำลองมุมมอง). `/outbox` list. `/login` persona grid on the glow background.
+- [x] Motion: landing → session morph (composer docks, cards fade), chips hover lift, cards `hero-rise` on mount; respect `prefers-reduced-motion`. 375 px pass, no horizontal scroll, keyboard focus.
+- [x] `lib/i18n/th.ts` strings, `lib/i18n/format.ts` helpers; curl checks for `/`, `/login`, `/dashboard`, `/c/<id>`, `/admin`, `/outbox`.
 
 ### Phase 2 — the four loops (four agents in parallel)
 
@@ -319,22 +322,22 @@ Persona rules the handler passes as `rules` (Thai unless noted):
 | 0 | foundation | fable (already running) | first package, proves the wiring | Reads Vexa CLAUDE.md + starter-next; proves §3 wiring first; writes contracts verbatim from §4 |
 | 1 | 1A data | opus | algorithmic generator, numeric correctness, tests | Pure TS, tests first; no UI; performance budget |
 | 1 | 1B access + tools | opus | security boundary, Vexa handler internals | Builds on contracts + stub; reads Vexa `core/handler.ts`, `core/prompt.ts`, shop-admin `chat-handler.ts` |
-| 1 | 1C shell | sonnet | many pages, well-specified UI | Reads Vexa `DESIGN.md`, `styles.css`, `chat/vexa-chat.tsx`, `react/spec-view.tsx` |
-| 2 | 2A threads/memory/quick actions | sonnet | CRUD + scoring formula given in the plan | Vexa change (initialMessages) needs a scenario in agentic-ui |
+| 1 | 1C shell | opus | UI quality matters to the user (user asked for opus on UI) | Reads Vexa `DESIGN.md`, `styles.css`, `chat/vexa-chat.tsx`, `react/spec-view.tsx` |
+| 2 | 2A threads/memory/quick actions | sonnet (UI parts opus) | CRUD + scoring formula given in the plan | Vexa change (initialMessages) needs a scenario in agentic-ui |
 | 2 | 2B anomaly/forecast | opus | statistics, must find all 7 injected anomalies | Tests against §5.3 |
-| 2 | 2C handoff/inbox | sonnet | workflow + pages, contracts fixed | Re-resolution under recipient scope is the one hard rule |
-| 2 | 2D dashboard composer | sonnet | spec builders + templates | Validate specs with Vexa `normalizeSpec` |
+| 2 | 2C handoff/inbox | opus | workflow + pages, contracts fixed | Re-resolution under recipient scope is the one hard rule |
+| 2 | 2D dashboard composer | opus | spec builders + templates | Validate specs with Vexa `normalizeSpec` |
 | 3 | 3A admin + red-team | opus | permission audit, adversarial tests | 60-question suite, 0 leaks |
 | 3 | 3B scripted demo | sonnet | mock turns from real tool output | Needs 1A numbers |
 | 3 | 3C QA/polish/docs | sonnet (haiku for README/copy sweeps) | breadth over depth | Runs last inside the phase |
 
-Model choice rule: opus for anything that guards data (access, red-team) or needs numeric/statistical correctness; sonnet for well-specified UI and workflow packages; haiku for mechanical sweeps (copy, formatting, curl checks, README). Never default to one model for everything.
+Model choice rule: opus for anything that guards data (access, red-team), needs numeric/statistical correctness, or is user-facing UI (the user wants opus on UI); sonnet for non-UI workflow/glue packages; haiku for mechanical sweeps (copy, formatting, curl checks, README). Never default to one model for everything.
 
 Ownership rule for parallel agents: a package edits only the folders listed in its heading plus new files; shared files are append-only; no package changes `lib/contracts/*` (a needed change is proposed in its report and applied by the orchestrator between phases).
 
 ## 9. Changes to Vexa (agentic-ui) made for Cop
 
-Keep this list short; each entry is a general feature with a scenario.
+Vexa is not a constraint (user decision 2026-09-22): change it when Cop needs it, prefer general features, list them here. Candidates already identified: a pluggable catalog (`createVexaHandler({ catalog })` + `SpecView registry`) so Cop can add `Provenance`, `AnomalyCard`, `HandoffCard`, `Sparkline`, `Heatmap`; `VexaChat` `initialMessages`/`id`; a headless `useVexaChat` so Cop can own the chat chrome.
 
 - [ ] `VexaChat` `initialMessages` / `id` props (phase 2A) — thread restore for any host.
 

@@ -6,7 +6,7 @@ export type ContextPacket = { id: string; fromUserId: string; toUserId: string; 
   conversationDigest: string; suggestedActions: string[]; status: "open" | "accepted" | "need_info" | "returned" | "resolved";
   outcome: string | null; thread: PacketReply[]; createdAt: string; updatedAt: string };
 export type PacketReply = { userId: string; at: string; text: string };
-export type Notification = { id: string; userId: string; at: string; kind: "handoff" | "alert" | "reply"; refId: string; read: boolean; title: string };
+export type Notification = { id: string; userId: string; at: string; kind: "handoff" | "alert" | "reply" | "email"; refId: string; read: boolean; title: string };
 
 export const URGENCIES = ["low", "medium", "high"] as const;
 export const PACKET_STATUSES = ["open", "accepted", "need_info", "returned", "resolved"] as const;
@@ -31,3 +31,5 @@ export const contextPacketSchema = z.object({
   createdAt: z.string(),
   updatedAt: z.string(),
 }) satisfies z.ZodType<ContextPacket>;
+
+export type OutboxEntry = { id: string; at: string; kind: "handoff" | "email"; fromUserId: string; toUserId: string; toEmail: string; subject: string; body: string; refId: string | null };

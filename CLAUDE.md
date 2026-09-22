@@ -6,12 +6,12 @@ Read `docs/plan.md` before any task. It holds the phases, the work packages, the
 
 ## Vexa
 
-Vexa (the generative-UI library) lives at `/Users/sbpdigital/Development/agentic-ui` and is consumed from there (see `docs/plan.md` §3 for how it is wired). Read its `CLAUDE.md` before touching anything under `vexa/*`. Its rules that also apply here:
+Vexa (the generative-UI library) lives at `/Users/sbpdigital/Development/agentic-ui` and is consumed from there through tsconfig paths (see `docs/plan.md` §3). **Vexa is a foundation and a source of ideas, not a constraint** (user decision, 2026-09-22). Take what fits: the catalog + json-render spec streaming, `createVexaHandler`, the scripted mock model, the tokens and the website's visual language, the ai-elements. Where Vexa's chrome or rules fight Cop's product (chat header, overlay, closed catalog, "no Thai"), build Cop's own layer on top of Vexa's headless pieces or change Vexa itself — the user owns both repos. Prefer, in this order: (1) compose Cop UI from Vexa primitives (`vexa/ai-elements/*`, `vexa/ui/*`, `SpecView`, the transport); (2) extend Vexa with a general feature (catalog plug-in, `initialMessages`, host components) and list it in `docs/plan.md` §9; (3) vendor a file into `lib/vendor/vexa/` and diverge, noting why. Read Vexa's `CLAUDE.md` before touching its repo.
 
-- The catalog is closed: the model renders only catalog components. Adding one touches five places in the Vexa repo (its CLAUDE.md lists them); prefer composing existing components.
-- Config that costs money, grants capability or is prompt text lives on the server (`createVexaHandler`); the client gets presentation only. Never add a client-controlled field that changes server behaviour.
-- Colors are tokens only (`primary`, `foreground`, `muted-foreground`, `card`, `border`, `success`, `warning`, `danger`, `info`, `chart-1..5`). Never a raw Tailwind palette color or hex in app code. The design system is Vexa's (`DESIGN.md` there: indigo → violet, colored shadows, elevated cards).
-- Vexa must stay usable by other hosts: a change to Vexa is a general feature with a scenario, never a Cop-specific hack. Keep such changes minimal and list them in `docs/plan.md` §9.
+What still holds because it is good engineering, not Vexa loyalty:
+- The model renders only components in a catalog (Vexa's or Cop's extension); every number in a prop comes from a tool result.
+- Config that costs money, grants capability or is prompt text lives on the server; the client gets presentation only.
+- Colors are tokens (`primary`, `foreground`, `muted-foreground`, `card`, `border`, `success`, `warning`, `danger`, `info`, `chart-1..5`, `brand-violet`); new tokens are added in `app/globals.css`, never as raw palette classes or hex in components.
 
 ## Commands
 

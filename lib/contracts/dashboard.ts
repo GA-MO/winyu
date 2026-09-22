@@ -5,7 +5,7 @@ export type WidgetKind = "metric" | "bar" | "line" | "table" | "alert_list" | "k
 export type WidgetSpec = { id: string; userId: string; title: string; kind: WidgetKind; query: MetricQuery;
   pinned: boolean; position: number; source: "role_template" | "user_pin" | "ai_suggested"; reason: string | null;
   createdAt: string; version: number };
-export type DashboardLayout = { userId: string; version: number; widgets: WidgetSpec[]; updatedAt: string };
+export type DashboardLayout = { id: string; userId: string; version: number; widgets: WidgetSpec[]; updatedAt: string };
 
 export const WIDGET_KINDS = ["metric", "bar", "line", "table", "alert_list", "kv"] as const satisfies readonly WidgetKind[];
 export const WIDGET_SOURCES = ["role_template", "user_pin", "ai_suggested"] as const;

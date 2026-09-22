@@ -25,32 +25,32 @@ export const ROLE_POLICIES: Record<RoleId, RolePolicy> = {
   cfo: { regions: "all", brands: "all", metricAcl: acl("full", { [SALARY]: "masked" }), toolAllow: toolsAllowedFor("cfo") },
   sales_director: {
     regions: "all", brands: "all",
-    metricAcl: acl("full", { ...visible(HR_METRICS, "masked"), [SALARY]: "none" }),
+    metricAcl: acl("full", { ...visible(HR_METRICS, "masked"), [SALARY]: "masked" }),
     toolAllow: toolsAllowedFor("sales_director"),
   },
   sales_rsm: {
     regions: "own", brands: "all",
-    metricAcl: acl("none", { ...visible(SALES_METRICS, "full"), ...visible(["stock_on_hand", "days_of_cover"], "full"), ...visible(["campaign_uplift", "trade_spend"], "full"), ar_overdue: "full", gross_margin: "masked" }),
+    metricAcl: acl("none", { ...visible(SALES_METRICS, "full"), ...visible(["stock_on_hand", "days_of_cover"], "full"), ...visible(["campaign_uplift", "trade_spend"], "full"), ar_overdue: "full", gross_margin: "masked", [SALARY]: "masked" }),
     toolAllow: toolsAllowedFor("sales_rsm"),
   },
   sales_rep: {
     regions: "own", brands: "all",
-    metricAcl: acl("none", { ...visible(SALES_METRICS, "full"), ...visible(["stock_on_hand", "days_of_cover"], "full"), ar_overdue: "masked" }),
+    metricAcl: acl("none", { ...visible(SALES_METRICS, "full"), ...visible(["stock_on_hand", "days_of_cover"], "full"), ar_overdue: "masked", [SALARY]: "masked" }),
     toolAllow: toolsAllowedFor("sales_rep"),
   },
   marketing_lead: {
     regions: "all", brands: "all",
-    metricAcl: acl("none", { ...visible(SALES_METRICS, "full"), ...visible(MARKETING_METRICS, "full"), ...visible(["stock_on_hand", "days_of_cover"], "full"), ...visible(FINANCE_METRICS, "masked") }),
+    metricAcl: acl("none", { ...visible(SALES_METRICS, "full"), ...visible(MARKETING_METRICS, "full"), ...visible(["stock_on_hand", "days_of_cover"], "full"), ...visible(FINANCE_METRICS, "masked"), [SALARY]: "masked" }),
     toolAllow: toolsAllowedFor("marketing_lead"),
   },
   supply_planner: {
     regions: "all", brands: "all",
-    metricAcl: acl("none", { ...visible(SUPPLY_METRICS, "full"), ...visible(["net_sales_volume", "sell_out_volume"], "full"), campaign_uplift: "full" }),
+    metricAcl: acl("none", { ...visible(SUPPLY_METRICS, "full"), ...visible(["net_sales_volume", "sell_out_volume"], "full"), campaign_uplift: "full", [SALARY]: "masked" }),
     toolAllow: toolsAllowedFor("supply_planner"),
   },
   finance_analyst: {
     regions: "all", brands: "all",
-    metricAcl: acl("full", { ...visible(HR_METRICS, "none"), [SALARY]: "none" }),
+    metricAcl: acl("full", { ...visible(HR_METRICS, "none"), [SALARY]: "masked" }),
     toolAllow: toolsAllowedFor("finance_analyst"),
   },
   hr_manager: {
@@ -60,7 +60,7 @@ export const ROLE_POLICIES: Record<RoleId, RolePolicy> = {
   },
   it_admin: {
     regions: "all", brands: "all",
-    metricAcl: acl("masked", { ...visible(HR_METRICS, "masked"), [SALARY]: "none" }),
+    metricAcl: acl("masked", { ...visible(HR_METRICS, "masked"), [SALARY]: "masked" }),
     toolAllow: toolsAllowedFor("it_admin"),
   },
 };

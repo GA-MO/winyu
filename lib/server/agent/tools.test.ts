@@ -1,0 +1,177 @@
+import { describe, expect, test } from "bun:test";
+import type { Tool } from "ai";
+import { accessFor } from "@/lib/access/policies";
+import type { AccessContext, MetricQuery, MetricResult } from "@/lib/contracts";
+import { findUser } from "@/lib/data/entities/users";
+import { auditLog } from "@/lib/server/audit";
+import { runWithAccess } from "@/lib/server/request-context";
+import { notifications, outbox, packets } from "./collections";
+import { copTools, toolsForAccess } from "./tools";
+
+const TODAY = "2026-09-22";
+const MONTH_START = "2026-09-01";
+
+function accessOf(userId: string): AccessContext {
+  const user = findUser(userId);
+  if (!user) throw new Error(`no user ${userId}`);
+  return accessFor(user);
+}
+
+function query(partial: Partial<MetricQuery>): MetricQuery {
+  return {
+    metric: "net_sales_volume",
+    dims: ["region"],
+    filters: {},
+    range: { from: MONTH_START, to: TODAY },
+    grain: "month",
+    compare: "none",
+    limit: 10,
+    ...partial,
+  };
+}
+
+async function call<T>(userId: string, name: string, input: unknown): Promise<T> {
+  const access = accessOf(userId);
+  const definition = copTools[name] as Tool;
+  const execute = definition.execute as (args: unknown, options: unknown) => Promise<T>;
+  return runWithAccess(access, () => execute(input, {}));
+}
+
+describe("query_metric", () => {
+  test("an RSM cannot read another region", async () => {
+    const result = await call<MetricResult>("u_anucha", "query_metric", query({ filters: { region: ["south"] } }));
+    expect(result.ok).toBe(false);
+    if (result.ok) throw new Error("expected a denial");
+    expect(result.code).toBe("PERMISSION_DENIED");
+    expect(result.error).toMatch(/south|ภาคใต้/);
+  });
+
+  test("an unfiltered RSM question is narrowed to its own region", async () => {
+    const result = await call<MetricResult>("u_anucha", "query_metric", query({}));
+    if (!result.ok) throw new Error(result.error);
+    expect(result.provenance.scopeApplied).toEqual({ region: ["northeast"] });
+    expect(result.rows.every((row) => row.region === "ภาคอีสาน")).toBe(true);
+  });
+
+  test("the CEO reads every region", async () => {
+    const result = await call<MetricResult>("u_thana", "query_metric", query({ filters: { region: ["south"] } }));
+    if (!result.ok) throw new Error(result.error);
+    expect(result.rows.length).toBeGreaterThan(0);
+    expect(result.rows[0].region).toBe("ภาคใต้");
+    expect(result.provenance.masked).toEqual([]);
+  });
+
+  test("avg_salary comes back masked for a sales rep and in full for HR", async () => {
+    const masked = await call<MetricResult>("u_krit", "query_metric", query({ metric: "avg_salary", dims: ["department"] }));
+    if (!masked.ok) throw new Error(masked.error);
+    expect(masked.provenance.masked.length).toBeGreaterThan(0);
+    expect(masked.rows.every((row) => row.value === "***")).toBe(true);
+    expect(masked.rows.length).toBeGreaterThan(0);
+
+    const full = await call<MetricResult>("u_may", "query_metric", query({ metric: "avg_salary", dims: ["department"] }));
+    if (!full.ok) throw new Error(full.error);
+    expect(full.provenance.masked).toEqual([]);
+    expect(typeof full.rows[0].value).toBe("number");
+  });
+
+  test("a metric the role cannot see at all is denied", async () => {
+    const result = await call<MetricResult>("u_krit", "query_metric", query({ metric: "gross_margin", dims: ["region"] }));
+    expect(result.ok).toBe(false);
+    if (result.ok) throw new Error("expected a denial");
+    expect(result.code).toBe("PERMISSION_DENIED");
+  });
+});
+
+describe("audit", () => {
+  test("one entry per tool call, with the decision", async () => {
+    const before = auditLog().all().length;
+    await call("u_anucha", "query_metric", query({}));
+    await call("u_anucha", "query_metric", query({ filters: { region: ["south"] } }));
+    const entries = auditLog().all();
+    expect(entries.length).toBe(before + 2);
+    const mine = entries.slice(-2);
+    expect(mine.every((entry) => entry.userId === "u_anucha" && entry.tool === "query_metric")).toBe(true);
+    expect(mine.map((entry) => entry.decision)).toEqual(["allow", "deny"]);
+    expect(mine[0].argsHash).not.toBe(mine[1].argsHash);
+    expect(mine[0].rowsReturned).toBeGreaterThan(0);
+  });
+
+  test("a masked result is audited as masked", async () => {
+    await call("u_krit", "query_metric", query({ metric: "avg_salary", dims: ["department"] }));
+    const last = auditLog().all().slice(-1)[0];
+    expect(last.decision).toBe("masked");
+  });
+});
+
+describe("resolve_owner", () => {
+  test("sales in the northeast resolves to the RSM of that region", async () => {
+    const result = await call<{ ok: boolean; data: { userId: string; reason: string } }>("u_thana", "resolve_owner", {
+      metric: "net_sales_volume",
+      dims: { region: "northeast" },
+    });
+    expect(result.ok).toBe(true);
+    expect(result.data.userId).toBe("u_anucha");
+    expect(result.data.reason.length).toBeGreaterThan(0);
+  });
+});
+
+describe("create_handoff", () => {
+  test("writes a packet, a notification and an outbox entry", async () => {
+    const result = await call<{ ok: boolean; data: { packetId: string } }>("u_anucha", "create_handoff", {
+      toUserId: "u_pim",
+      title: "ยอดขายภาคอีสานต่ำกว่าเป้า",
+      ask: "ช่วยตรวจสอบเอเย่นต์ที่ยอดตก",
+      urgency: "high",
+      evidence: [query({ filters: { region: ["northeast"] } })],
+      alertIds: [],
+    });
+    expect(result.ok).toBe(true);
+    const packet = packets().get(result.data.packetId);
+    expect(packet?.toUserId).toBe("u_pim");
+    expect(packet?.status).toBe("open");
+    expect(packet?.evidence.length).toBe(1);
+    expect(notifications().where((item) => item.refId === result.data.packetId).length).toBe(1);
+    expect(outbox().where((item) => item.refId === result.data.packetId).length).toBe(1);
+  });
+
+  test("an unknown recipient is rejected", async () => {
+    const result = await call<{ ok: boolean; error: string }>("u_anucha", "create_handoff", {
+      toUserId: "u_nobody",
+      title: "x",
+      ask: "y",
+      urgency: "low",
+      evidence: [],
+      alertIds: [],
+    });
+    expect(result.ok).toBe(false);
+    expect(result.error).toContain("u_nobody");
+  });
+});
+
+describe("empty collections", () => {
+  test("alerts, forecasts and memory answer gracefully", async () => {
+    const alerts = await call<{ ok: boolean; summary: string; data: unknown[] }>("u_anucha", "get_alerts", { status: "open", limit: null });
+    expect(alerts.ok).toBe(true);
+    expect(alerts.data).toEqual([]);
+    expect(alerts.summary).toContain("ยังไม่มี");
+    const forecast = await call<{ summary: string }>("u_anucha", "get_forecast", { metric: "net_sales_volume", dims: {}, weeks: 8 });
+    expect(forecast.summary).toContain("ยังไม่มี");
+    const memory = await call<{ summary: string }>("u_anucha", "recall_memory", { query: "เอเย่นต์" });
+    expect(memory.summary).toContain("ยังไม่มี");
+  });
+});
+
+describe("run_job", () => {
+  test("reports the engine is missing until phase 2B", async () => {
+    const result = await call<{ ok: boolean; error: string }>("u_ton", "run_job", { job: "anomaly" });
+    expect(result).toEqual({ ok: false, error: "engine not installed yet" });
+  });
+});
+
+describe("toolsForAccess", () => {
+  test("returns only the allowed subset", () => {
+    expect(Object.keys(toolsForAccess(accessOf("u_krit")))).not.toContain("create_handoff");
+    expect(Object.keys(toolsForAccess(accessOf("u_ton")))).toContain("run_job");
+    expect(Object.keys(toolsForAccess(accessOf("u_thana")))).not.toContain("run_job");
+  });
+});

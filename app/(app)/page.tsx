@@ -1,23 +1,30 @@
 import { cookies } from "next/headers";
-import { ElevatedCard } from "@/components/shell/elevated-card";
-import { PageHeader } from "@/components/shell/page-header";
+import { redirect } from "next/navigation";
+import { Landing } from "@/components/landing/landing";
+import { shortName, timeOfDay } from "@/lib/i18n/format";
 import { TH } from "@/lib/i18n/th";
-import { readUser } from "@/lib/server/session";
+import { ambientFor, morningBrief, pinnedViews } from "@/lib/server/dashboard";
+import { quickActionsFor } from "@/lib/server/quick-actions";
+import { readAccess, readUser } from "@/lib/server/session";
 
-const PLACEHOLDER_CARDS = [TH.dashboard.pinned, TH.dashboard.suggested, TH.dashboard.changes];
+export const dynamic = "force-dynamic";
 
-export default async function DashboardPage() {
-  const user = readUser(await cookies());
+export default async function LandingPage() {
+  const jar = await cookies();
+  const user = readUser(jar);
+  const access = readAccess(jar);
+  if (!user || !access) redirect("/login");
+
+  const greeting = TH.landing.greeting[timeOfDay()](shortName(user.nameTh));
+  const widgets = pinnedViews(access).map((view) => ({ id: view.widget.id, spec: view.spec }));
+
   return (
-    <div className="flex flex-col gap-6 p-4 md:p-6">
-      <PageHeader title={TH.dashboard.title} description={user ? TH.dashboard.greeting(user.nameTh) : undefined} />
-      <div className="grid gap-4 md:grid-cols-3">
-        {PLACEHOLDER_CARDS.map((title) => (
-          <ElevatedCard key={title} title={title}>
-            <p className="text-sm text-muted-foreground">{TH.dashboard.placeholder}</p>
-          </ElevatedCard>
-        ))}
-      </div>
-    </div>
+    <Landing
+      greeting={greeting}
+      brief={morningBrief(access)}
+      widgets={widgets}
+      quickActions={quickActionsFor(access)}
+      ambient={ambientFor(access)}
+    />
   );
 }

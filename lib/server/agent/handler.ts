@@ -1,43 +1,41 @@
-import { stepCountIs, tool } from "ai";
-import { z } from "zod";
+import { stepCountIs } from "ai";
 import { createVexaHandler, type PersonaContext } from "vexa/server";
+import type { AccessContext, RoleId } from "@/lib/contracts";
 import { findUser } from "@/lib/data/entities/users";
 import { models } from "@/lib/server/models";
 import { currentAccess } from "@/lib/server/request-context";
+import { COP_RULES, personaFor } from "./persona";
+import { toolTiers, toolsForAccess } from "./tools";
 
-const MAX_STEPS = 4;
-const BUDDHIST_YEAR_OFFSET = 543;
+const MAX_STEPS = 6;
 
-const ping = tool({
-  description: "Health check that returns who is asking; use it when the user says ping.",
-  inputSchema: z.object({ note: z.string().nullable() }),
-  execute: async () => {
-    const access = currentAccess();
-    return { ok: true, summary: "pong", data: { userId: access.userId, role: access.role } };
-  },
-});
+type ChatHandler = ReturnType<typeof createVexaHandler>;
 
-function buddhistDate(today: string) {
-  const [year, month, day] = today.split("-");
-  return `${day}/${month}/${Number(year) + BUDDHIST_YEAR_OFFSET}`;
+const handlers = new Map<RoleId, ChatHandler>();
+
+function build(access: AccessContext): ChatHandler {
+  return createVexaHandler({
+    models,
+    persona: (ctx: PersonaContext) => {
+      const current = currentAccess();
+      return personaFor(current, findUser(current.userId), ctx);
+    },
+    rules: COP_RULES,
+    tools: toolsForAccess(access),
+    toolTiers,
+    stopWhen: stepCountIs(MAX_STEPS),
+  });
 }
 
-function persona({ today }: PersonaContext): string[] {
-  const access = currentAccess();
-  const user = findUser(access.userId);
-  const name = user?.nameTh ?? access.userId;
-  const title = user?.title ?? access.role;
-  return [
-    `คุณคือ Cop ผู้ช่วยข้อมูลภายในของบริษัทเครื่องดื่ม กำลังคุยกับ ${name} (${title}, บทบาท ${access.role})`,
-    `วันนี้คือ ${today} (${buddhistDate(today)} พ.ศ.)`,
-    "ตอบเป็นภาษาไทย กระชับ 1–3 ประโยค แล้วให้ UI แสดงข้อมูล",
-    "ทุกตัวเลขต้องมาจากผลลัพธ์ tool ในบทสนทนานี้ ถ้าไม่มีข้อมูล ให้บอกว่าไม่มี",
-  ];
+/** The chat handler of one role, memoized: the tool set depends on the role, the persona on the request context. */
+export function handlerFor(access: AccessContext): ChatHandler {
+  const cached = handlers.get(access.role);
+  if (cached) return cached;
+  const handler = build(access);
+  handlers.set(access.role, handler);
+  return handler;
 }
 
-export const chatHandler = createVexaHandler({
-  models,
-  persona,
-  tools: { ping },
-  stopWhen: stepCountIs(MAX_STEPS),
-});
+export function resetHandlers(): void {
+  handlers.clear();
+}

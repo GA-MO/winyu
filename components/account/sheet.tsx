@@ -1,0 +1,155 @@
+"use client";
+
+import { useCallback, useEffect, useState, useTransition } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { LogOut, Moon, Shield, Sun, Trash2, X } from "lucide-react";
+import { cn } from "vexa/lib/utils";
+import type { MemoryFact, User } from "@/lib/contracts";
+import { TH } from "@/lib/i18n/th";
+import { useTheme } from "@/components/theme/theme-provider";
+
+const MEMORY_ENDPOINT = "/api/memory";
+const SESSION_ENDPOINT = "/api/session";
+const PANEL = "fixed right-0 top-0 z-50 flex h-dvh w-full max-w-[24rem] flex-col border-l border-border/60 bg-card/85 backdrop-blur-2xl animate-panel-in";
+const SECTION = "flex flex-col gap-2 border-b border-border/60 px-4 py-4";
+const CHOICE = "flex items-center gap-2 rounded-lg border border-border/70 px-3 py-1.5 text-xs transition hover:border-primary/50";
+
+export function AccountSheet({ open, onClose, user, users }: { open: boolean; onClose: () => void; user: User; users: readonly User[] }) {
+  const router = useRouter();
+  const { mode, setMode } = useTheme();
+  const [facts, setFacts] = useState<MemoryFact[]>([]);
+  const [pending, startTransition] = useTransition();
+
+  const load = useCallback(() => {
+    fetch(MEMORY_ENDPOINT)
+      .then((response) => (response.ok ? response.json() : null))
+      .then((payload: { facts?: MemoryFact[] } | null) => setFacts(payload?.facts ?? []))
+      .catch(() => undefined);
+  }, []);
+
+  useEffect(() => {
+    if (open) load();
+  }, [load, open]);
+
+  const forget = useCallback(
+    async (id: string) => {
+      await fetch(`${MEMORY_ENDPOINT}/${id}`, { method: "DELETE" });
+      load();
+    },
+    [load],
+  );
+
+  const switchTo = useCallback(
+    (userId: string) => {
+      startTransition(async () => {
+        await fetch(SESSION_ENDPOINT, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ userId }) });
+        onClose();
+        router.push("/");
+        router.refresh();
+      });
+    },
+    [onClose, router],
+  );
+
+  const signOut = useCallback(() => {
+    startTransition(async () => {
+      await fetch(SESSION_ENDPOINT, { method: "DELETE" });
+      router.push("/login");
+    });
+  }, [router]);
+
+  if (!open) return null;
+
+  const grouped = Object.entries(
+    facts.reduce<Record<string, MemoryFact[]>>((groups, fact) => ({ ...groups, [fact.type]: [...(groups[fact.type] ?? []), fact] }), {}),
+  );
+
+  return (
+    <>
+      <button type="button" aria-label={TH.common.close} onClick={onClose} className="fixed inset-0 z-40 bg-background/60 backdrop-blur-sm" />
+      <aside className={PANEL} aria-label={TH.account.open}>
+        <header className="flex items-center justify-between gap-2 border-b border-border/60 px-4 py-3">
+          <div className="flex items-center gap-2">
+            <span className="flex size-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-brand-violet text-sm font-semibold text-primary-foreground">
+              {user.nameTh.replace(/^คุณ/, "").slice(0, 1)}
+            </span>
+            <span className="flex flex-col leading-tight">
+              <span className="text-sm font-medium">{user.nameTh}</span>
+              <span className="text-xs text-muted-foreground">{user.title}</span>
+            </span>
+          </div>
+          <button type="button" onClick={onClose} aria-label={TH.common.close} className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground">
+            <X className="size-4" aria-hidden />
+          </button>
+        </header>
+
+        <div className="vexa-scrollbar flex min-h-0 flex-1 flex-col overflow-y-auto">
+          <section className={SECTION}>
+            <h3 className="text-xs font-medium tracking-wide text-muted-foreground">{TH.account.memory}</h3>
+            <p className="text-xs text-muted-foreground">{TH.account.memoryNote}</p>
+            {grouped.length === 0 ? <p className="text-sm text-muted-foreground">{TH.account.memoryEmpty}</p> : null}
+            {grouped.map(([type, items]) => (
+              <div key={type} className="flex flex-col gap-1">
+                <h4 className="text-xs text-muted-foreground">{TH.account.memoryType[type as keyof typeof TH.account.memoryType] ?? type}</h4>
+                {items.map((fact) => (
+                  <div key={fact.id} className="flex items-center justify-between gap-2 rounded-lg bg-muted/50 px-2 py-1.5 text-sm">
+                    <span className="min-w-0 truncate">{fact.value}</span>
+                    <button type="button" onClick={() => void forget(fact.id)} aria-label={TH.common.delete} className="text-muted-foreground hover:text-danger">
+                      <Trash2 className="size-3.5" aria-hidden />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ))}
+          </section>
+
+          <section className={SECTION}>
+            <h3 className="text-xs font-medium tracking-wide text-muted-foreground">{TH.account.theme}</h3>
+            <div className="flex gap-2">
+              <button type="button" onClick={() => setMode("dark")} className={cn(CHOICE, mode === "dark" ? "border-primary/60 text-foreground" : "text-muted-foreground")}>
+                <Moon className="size-3.5" aria-hidden />
+                {TH.account.themeDark}
+              </button>
+              <button type="button" onClick={() => setMode("light")} className={cn(CHOICE, mode === "light" ? "border-primary/60 text-foreground" : "text-muted-foreground")}>
+                <Sun className="size-3.5" aria-hidden />
+                {TH.account.themeLight}
+              </button>
+            </div>
+          </section>
+
+          <section className={SECTION}>
+            <h3 className="text-xs font-medium tracking-wide text-muted-foreground">{TH.account.persona}</h3>
+            <div className="flex flex-col gap-1">
+              {users.map((person) => (
+                <button
+                  key={person.id}
+                  type="button"
+                  disabled={pending}
+                  onClick={() => switchTo(person.id)}
+                  className={cn("flex flex-col items-start rounded-lg px-2 py-1.5 text-left text-sm transition hover:bg-muted", person.id === user.id ? "bg-muted" : "")}
+                >
+                  <span>{person.nameTh}</span>
+                  <span className="text-xs text-muted-foreground">{person.title}</span>
+                </button>
+              ))}
+            </div>
+          </section>
+
+          <section className={SECTION}>
+            {user.role === "it_admin" ? (
+              <Link href="/admin" onClick={onClose} className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground">
+                <Shield className="size-4" aria-hidden />
+                {TH.account.adminLink}
+              </Link>
+            ) : null}
+            <button type="button" onClick={signOut} disabled={pending} className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-danger hover:bg-muted">
+              <LogOut className="size-4" aria-hidden />
+              {TH.account.signOut}
+            </button>
+          </section>
+        </div>
+      </aside>
+    </>
+  );
+}
