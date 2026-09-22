@@ -1,5 +1,11 @@
 # Cop — build plan
 
+## สถานะ (updated 2026-09-22)
+ทำแล้ว: Phase 0 foundation (`b5209e8`) · Phase 1 = 1A data/semantic + 1B access/tools + 1C chat-first shell (`d06054c`, real engine wired `3b9dd99`) · Phase 1.5 light-first UI polish ตาม QwenCloud (`4b0e526`, `1631c8b`) · ทุก commit ผ่าน `bun run typecheck` + `bun run test` (100 tests)
+ค้าง: Phase 2 ยังไม่เริ่ม — user ยังไม่ได้ตอบว่าให้ไป Phase 2 หรือปรับ UI ต่อ (ถามไว้แล้ว) · ประวัติแชทเปิดกลับมาว่าง (2A) · inbox/alerts/ambient anomaly ว่างเพราะไม่มี engine (2B/2C) · `/admin` tool matrix ล้นแนวนอนที่ 1440 (ให้ 3A) · Vexa devtools toggle ยังโผล่ในแชทตอน dev
+ค้นพบ: Vexa wiring ต้องใช้ option 2 (tsconfig paths + pin `ai@6.0.280`/`zod@4.6.2`) — `file:` dep ทำ React ซ้อน · JSON store ต้อง cache ตาม mtime ไม่งั้น module instance ของ Next เห็นข้อมูลไม่ตรงกัน (แก้แล้ว) · engine row keys คือ `value`/`compare_value`/`delta_pct` (ไม่ใช่ camelCase ของ stub) · `target_attainment` ห้ามใช้ `compare:"target"` · prev_period ของ query ไม่มีมิติเวลา = ช่วงยาวเท่ากันก่อนหน้า · user ตัดสินใจ: light default, chat-first ไม่ใช่ admin, Vexa ไม่ใช่ข้อจำกัด (แก้ Vexa ได้ log ใน §9), UI ให้ opus ทำ
+ถัดไป: /go phase 2 ตาม docs/plan.md (ยืนยันกับ user ก่อน dispatch 2A sonnet · 2B/2C/2D opus)
+
 Status: **In progress** · Revision 2 · 2026-09-22 · phase 1 done, phase 2 next.
 
 Cop is the enterprise copilot described in the brainstorm of 2026-09-22 (four angles: executive/governance, daily user, architecture, red-team). This plan turns it into a runnable demo on Vexa with a full-lifecycle mock of a Thai beverage company, built by parallel agents. Everything here is the deliverable; the chat summary is not.
