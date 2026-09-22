@@ -18,7 +18,7 @@ import { WidgetCards, type WidgetCard } from "@/components/dashboard/widget-card
 const THREADS_ENDPOINT = "/api/threads";
 const QUICK_ACTIONS_ENDPOINT = "/api/quick-actions";
 const BACKDROP = "pointer-events-none absolute inset-0 cop-mask-center cop-backdrop-dim";
-const PANEL = "w-full max-w-2xl rounded-[2rem] border border-border bg-panel p-5 shadow-panel backdrop-blur-xl sm:p-8";
+const PANEL = "w-full max-w-3xl rounded-[2rem] border border-border bg-panel p-5 shadow-panel backdrop-blur-xl sm:p-8";
 const AMBIENT = "flex min-w-[15rem] max-w-sm flex-1 basis-0 flex-col gap-1 rounded-2xl border border-border border-l-[3px] bg-card p-4 text-left shadow-card transition duration-200 hover:-translate-y-0.5 hover:shadow-lift focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 const AMBIENT_ACCENT: Record<AmbientTone, string> = {
   danger: "border-l-danger",
@@ -121,11 +121,11 @@ export function Landing({
       </div>
 
       <div className="relative flex min-h-dvh flex-col items-center justify-center gap-5 px-4 pb-16 pt-20 sm:px-6">
-        <div className={cn("flex w-full max-w-2xl flex-col items-center gap-5 transition-all duration-300", busy ? "opacity-0" : "opacity-100")}>
+        <div className={cn("flex w-full max-w-3xl flex-col items-center gap-5 transition-all duration-300", busy ? "opacity-0" : "opacity-100")}>
           <div className={cn(PANEL, "flex flex-col gap-5 animate-hero-rise")}>
             <header className="flex flex-col gap-2 text-center">
-              <h1 className="font-display text-[1.75rem] font-semibold leading-[1.2] tracking-[-0.02em] sm:text-[3.25rem]">
-                {greeting.lead} <GradientText>{greeting.name}</GradientText>
+              <h1 className="text-balance font-display text-[1.75rem] font-semibold leading-[1.2] tracking-[-0.02em] sm:text-[3rem]">
+                {greeting.lead} <GradientText className="whitespace-nowrap">{greeting.name}</GradientText>
               </h1>
               <p className="text-sm text-muted-foreground sm:text-base">{brief}</p>
             </header>
