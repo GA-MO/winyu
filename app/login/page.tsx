@@ -10,12 +10,12 @@ export default function LoginPage() {
       <GlowBackdrop />
       <div className="relative mx-auto flex max-w-6xl flex-col gap-8 px-4 py-12 sm:px-8 sm:py-20">
         <header className="flex flex-col gap-3">
-          <p className="inline-flex w-fit items-center gap-2 rounded-full border border-border/70 bg-card/70 px-3 py-1 text-xs font-medium text-muted-foreground backdrop-blur">
+          <p className="inline-flex w-fit items-center gap-2 rounded-full border border-border bg-card px-3.5 py-1.5 text-xs font-medium text-muted-foreground shadow-card">
             <span className="size-1.5 animate-hero-pulse rounded-full bg-success" />
             {TH.app.name} · {TH.app.tagline}
           </p>
-          <h1 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">
-            <GradientText>{TH.login.title}</GradientText>
+          <h1 className="font-display text-[2.25rem] font-semibold leading-[1.15] tracking-[-0.02em] sm:text-[3.25rem]">
+            {TH.app.name} · <GradientText>{TH.login.title}</GradientText>
           </h1>
           <p className="max-w-2xl text-sm text-muted-foreground sm:text-base">{TH.login.subtitle}</p>
           <p className="text-xs text-muted-foreground">{TH.login.demoNotice}</p>

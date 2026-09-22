@@ -9,7 +9,9 @@ export type AmbientCounts = { alerts: number; packets: number; widgets: number }
 
 export type AmbientInput = { alert: Alert | null; packet: AmbientPacket | null; brief: string; counts: AmbientCounts };
 
-export type AmbientCard = { id: string; label: string; prompt: string; spec: Spec };
+export type AmbientTone = "danger" | "warning" | "info" | "brand";
+
+export type AmbientCard = { id: string; label: string; title: string; body: string; tone: AmbientTone; prompt: string; spec: Spec };
 
 const MAX_CARDS = 3;
 const SEVERITY_TONES: Record<Alert["severity"], "danger" | "warning" | "info"> = { P1: "danger", P2: "warning", P3: "info" };
@@ -20,15 +22,19 @@ function element(type: string, props: Record<string, unknown>, children: string[
 
 function alertCard(alert: Alert): AmbientCard {
   const root = `ambient-alert-${alert.id}`;
+  const title = `${TH.severity[alert.severity]} · ${metricLabel(alert.metric)}`;
   return {
     id: root,
     label: TH.inbox.tabs.alerts,
+    title,
+    body: alert.hypothesis,
+    tone: SEVERITY_TONES[alert.severity],
     prompt: alert.verifySteps[0],
     spec: {
       root,
       elements: {
         [root]: element("Alert", {
-          title: `${TH.severity[alert.severity]} · ${metricLabel(alert.metric)}`,
+          title,
           body: alert.hypothesis,
           tone: SEVERITY_TONES[alert.severity],
         }),
@@ -42,6 +48,9 @@ function packetCard(packet: AmbientPacket): AmbientCard {
   return {
     id: root,
     label: TH.inbox.tabs.handoffs,
+    title: packet.title,
+    body: packet.ask,
+    tone: "brand",
     prompt: `สรุปงานที่ส่งต่อมาเรื่อง ${packet.title} และบอกว่าควรเริ่มตรวจอะไรก่อน`,
     spec: {
       root,
@@ -60,14 +69,18 @@ function packetCard(packet: AmbientPacket): AmbientCard {
 function briefCard(counts: AmbientCounts): AmbientCard {
   const root = "ambient-brief";
   const body = `การ์ดที่ปักไว้ ${counts.widgets} · แจ้งเตือนที่เปิดอยู่ ${counts.alerts} · งานที่ส่งต่อมา ${counts.packets}`;
+  const title = "ภาพรวมของคุณวันนี้";
   return {
     id: root,
     label: TH.landing.ambient,
+    title,
+    body,
+    tone: "info",
     prompt: "สรุปภาพรวมวันนี้ให้หน่อย พร้อมบอกว่าควรดูอะไรก่อน",
     spec: {
       root,
       elements: {
-        [root]: element("Callout", { eyebrow: TH.landing.ambient, title: "ภาพรวมของคุณวันนี้", body, tone: "info" }),
+        [root]: element("Callout", { eyebrow: TH.landing.ambient, title, body, tone: "info" }),
       },
     },
   };

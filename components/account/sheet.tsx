@@ -11,9 +11,9 @@ import { useTheme } from "@/components/theme/theme-provider";
 
 const MEMORY_ENDPOINT = "/api/memory";
 const SESSION_ENDPOINT = "/api/session";
-const PANEL = "fixed right-0 top-0 z-50 flex h-dvh w-full max-w-[24rem] flex-col border-l border-border/60 bg-card/85 backdrop-blur-2xl animate-panel-in";
-const SECTION = "flex flex-col gap-2 border-b border-border/60 px-4 py-4";
-const CHOICE = "flex items-center gap-2 rounded-lg border border-border/70 px-3 py-1.5 text-xs transition hover:border-primary/50";
+const PANEL = "fixed right-0 top-0 z-50 flex h-dvh w-full max-w-[24rem] flex-col border-l border-border bg-card shadow-panel animate-panel-in";
+const SECTION = "flex flex-col gap-2 border-b border-border px-4 py-4";
+const CHOICE = "flex items-center gap-2 rounded-full border border-border px-3.5 py-1.5 text-xs transition hover:border-foreground/25";
 
 export function AccountSheet({ open, onClose, user, users }: { open: boolean; onClose: () => void; user: User; users: readonly User[] }) {
   const router = useRouter();
@@ -67,11 +67,11 @@ export function AccountSheet({ open, onClose, user, users }: { open: boolean; on
 
   return (
     <>
-      <button type="button" aria-label={TH.common.close} onClick={onClose} className="fixed inset-0 z-40 bg-background/60 backdrop-blur-sm" />
+      <button type="button" aria-label={TH.common.close} onClick={onClose} className="fixed inset-0 z-40 bg-foreground/10 backdrop-blur-sm" />
       <aside className={PANEL} aria-label={TH.account.open}>
-        <header className="flex items-center justify-between gap-2 border-b border-border/60 px-4 py-3">
+        <header className="flex items-center justify-between gap-2 border-b border-border px-4 py-3">
           <div className="flex items-center gap-2">
-            <span className="flex size-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-brand-violet text-sm font-semibold text-primary-foreground">
+            <span className="flex size-9 items-center justify-center rounded-xl bg-ink text-sm font-semibold text-ink-foreground">
               {user.nameTh.replace(/^คุณ/, "").slice(0, 1)}
             </span>
             <span className="flex flex-col leading-tight">
@@ -93,7 +93,7 @@ export function AccountSheet({ open, onClose, user, users }: { open: boolean; on
               <div key={type} className="flex flex-col gap-1">
                 <h4 className="text-xs text-muted-foreground">{TH.account.memoryType[type as keyof typeof TH.account.memoryType] ?? type}</h4>
                 {items.map((fact) => (
-                  <div key={fact.id} className="flex items-center justify-between gap-2 rounded-lg bg-muted/50 px-2 py-1.5 text-sm">
+                  <div key={fact.id} className="flex items-center justify-between gap-2 rounded-xl bg-muted px-2.5 py-1.5 text-sm">
                     <span className="min-w-0 truncate">{fact.value}</span>
                     <button type="button" onClick={() => void forget(fact.id)} aria-label={TH.common.delete} className="text-muted-foreground hover:text-danger">
                       <Trash2 className="size-3.5" aria-hidden />
@@ -107,11 +107,11 @@ export function AccountSheet({ open, onClose, user, users }: { open: boolean; on
           <section className={SECTION}>
             <h3 className="text-xs font-medium tracking-wide text-muted-foreground">{TH.account.theme}</h3>
             <div className="flex gap-2">
-              <button type="button" onClick={() => setMode("dark")} className={cn(CHOICE, mode === "dark" ? "border-primary/60 text-foreground" : "text-muted-foreground")}>
+              <button type="button" onClick={() => setMode("dark")} className={cn(CHOICE, mode === "dark" ? "border-transparent bg-bubble text-foreground" : "text-muted-foreground")}>
                 <Moon className="size-3.5" aria-hidden />
                 {TH.account.themeDark}
               </button>
-              <button type="button" onClick={() => setMode("light")} className={cn(CHOICE, mode === "light" ? "border-primary/60 text-foreground" : "text-muted-foreground")}>
+              <button type="button" onClick={() => setMode("light")} className={cn(CHOICE, mode === "light" ? "border-transparent bg-bubble text-foreground" : "text-muted-foreground")}>
                 <Sun className="size-3.5" aria-hidden />
                 {TH.account.themeLight}
               </button>
@@ -127,7 +127,7 @@ export function AccountSheet({ open, onClose, user, users }: { open: boolean; on
                   type="button"
                   disabled={pending}
                   onClick={() => switchTo(person.id)}
-                  className={cn("flex flex-col items-start rounded-lg px-2 py-1.5 text-left text-sm transition hover:bg-muted", person.id === user.id ? "bg-muted" : "")}
+                  className={cn("flex flex-col items-start rounded-xl px-2.5 py-1.5 text-left text-sm transition hover:bg-muted", person.id === user.id ? "bg-bubble" : "")}
                 >
                   <span>{person.nameTh}</span>
                   <span className="text-xs text-muted-foreground">{person.title}</span>

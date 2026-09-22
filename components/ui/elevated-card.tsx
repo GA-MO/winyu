@@ -1,7 +1,6 @@
 import { cn } from "vexa/lib/utils";
 
-const BASE = "group relative flex flex-col gap-3 rounded-2xl border border-border/70 bg-card p-5 transition duration-300 hover:-translate-y-0.5";
-const SHADOW = "shadow-[0_18px_50px_-30px_var(--vexa-glow),0_8px_24px_-18px_var(--vexa-glow-violet)] hover:shadow-[0_28px_70px_-32px_var(--vexa-glow),0_12px_32px_-18px_var(--vexa-glow-violet)]";
+const BASE = "group relative flex flex-col gap-3 rounded-2xl border border-border bg-card p-5 shadow-card transition duration-300 hover:-translate-y-0.5 hover:shadow-lift";
 
 export function ElevatedCard({
   title,
@@ -17,7 +16,7 @@ export function ElevatedCard({
   children?: React.ReactNode;
 }) {
   return (
-    <section className={cn(BASE, SHADOW, className)}>
+    <section className={cn(BASE, className)}>
       {title || action ? (
         <header className="flex items-start justify-between gap-3">
           <div className="min-w-0">

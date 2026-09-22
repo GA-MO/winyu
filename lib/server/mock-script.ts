@@ -1,5 +1,6 @@
 import type { MockScript, MockStep } from "vexa/mock";
 import type { Spec, SpecElement } from "vexa/protocol";
+import { formatDateTh } from "@/lib/i18n/format";
 
 const TODAY = "2026-09-22";
 const MONTH_START = "2026-09-01";
@@ -58,8 +59,8 @@ function summaryOf(output: unknown): string {
 
 function provenanceText(output: unknown): string {
   const provenance = (output as MetricOutput).provenance;
-  if (!provenance) return "แหล่งข้อมูล: ไม่ระบุ";
-  return `แหล่งข้อมูล: ${provenance.sourceSystem} · ${provenance.certified ? "รับรองแล้ว" : "คำนวณ"} · ณ ${provenance.asOf}`;
+  if (!provenance?.asOf) return "แหล่งข้อมูล: ไม่ระบุ";
+  return `แหล่งข้อมูล: ${provenance.sourceSystem} · ${provenance.certified ? "รับรองแล้ว" : "คำนวณ"} · ณ ${formatDateTh(provenance.asOf)}`;
 }
 
 function maskedCount(output: unknown): number {

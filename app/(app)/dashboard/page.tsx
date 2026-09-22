@@ -19,7 +19,7 @@ export default async function DashboardPage() {
       <GlowBackdrop />
       <div className="relative mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 py-10 sm:px-8">
         <header className="flex flex-col gap-1">
-          <h1 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">
+          <h1 className="font-display text-[2rem] font-semibold leading-tight tracking-[-0.02em] sm:text-[2.75rem]">
             <GradientText>{TH.dash.title}</GradientText>
           </h1>
           <p className="text-sm text-muted-foreground">{TH.dash.placeholderNote}</p>

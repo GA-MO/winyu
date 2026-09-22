@@ -12,7 +12,9 @@ const THREADS_ENDPOINT = "/api/threads";
 const STORAGE_KEY = "cop-rail-open";
 const GROUP_ORDER: ThreadGroup[] = ["today", "yesterday", "week", "older"];
 const ICON_BUTTON = "flex size-10 items-center justify-center rounded-xl text-muted-foreground transition hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
-const ROW = "group flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-muted-foreground transition hover:bg-muted hover:text-foreground";
+const ROW = "group flex items-center gap-2 rounded-full px-3 py-1.5 text-sm text-muted-foreground transition hover:bg-muted hover:text-foreground";
+const ROW_ACTIVE = "bg-bubble text-foreground";
+const BRAND_MARK = "flex size-8 shrink-0 items-center justify-center rounded-xl bg-ink text-sm font-bold text-ink-foreground";
 
 type ThreadSummary = { id: string; title: string; createdAt: string; updatedAt: string; packetId: string | null };
 
@@ -43,6 +45,10 @@ export function ThreadRail() {
   const [draft, setDraft] = useState("");
 
   useEffect(() => setOpen(storedOpen()), []);
+
+  useEffect(() => {
+    document.documentElement.style.setProperty("--cop-rail-offset", open ? "var(--cop-rail-expanded)" : "var(--cop-rail-collapsed)");
+  }, [open]);
 
   const load = useCallback(() => {
     fetch(THREADS_ENDPOINT)
@@ -90,26 +96,24 @@ export function ThreadRail() {
 
   return (
     <>
-      <button type="button" onClick={() => setMobileOpen(true)} aria-label={TH.rail.expand} className={cn(ICON_BUTTON, "fixed left-2 top-2 z-30 bg-card/70 backdrop-blur md:hidden")}>
+      <button type="button" onClick={() => setMobileOpen(true)} aria-label={TH.rail.expand} className={cn(ICON_BUTTON, "fixed left-2 top-2 z-30 border border-border bg-card shadow-card md:hidden")}>
         <Menu className="size-5" aria-hidden />
       </button>
 
-      {mobileOpen ? <button type="button" aria-label={TH.common.close} onClick={() => setMobileOpen(false)} className="fixed inset-0 z-30 bg-background/70 backdrop-blur-sm md:hidden" /> : null}
+      {mobileOpen ? <button type="button" aria-label={TH.common.close} onClick={() => setMobileOpen(false)} className="fixed inset-0 z-30 bg-foreground/10 backdrop-blur-sm md:hidden" /> : null}
 
       <aside
         className={cn(
-          "fixed left-0 top-0 z-40 flex h-dvh shrink-0 flex-col gap-2 border-r border-border/60 bg-card/60 py-3 backdrop-blur-xl transition-all duration-300",
+          "fixed left-0 top-0 z-40 flex h-dvh shrink-0 flex-col gap-2 border-r border-border bg-card py-3 transition-all duration-300",
           expanded ? "w-72 px-3" : "w-14 px-2",
           mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
         )}
       >
-        <div className={cn("flex items-center gap-2", expanded ? "justify-between" : "justify-center")}>
-          {expanded ? (
-            <Link href="/" className="flex items-center gap-2 px-1">
-              <span className="flex size-8 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-brand-violet text-sm font-bold text-primary-foreground shadow-lg shadow-primary/30">C</span>
-              <span className="text-base font-semibold tracking-tight">{TH.app.name}</span>
-            </Link>
-          ) : null}
+        <div className={cn("flex items-center gap-2", expanded ? "justify-between" : "flex-col")}>
+          <Link href="/" aria-label={TH.app.name} className="flex items-center gap-2 px-1">
+            <span className={BRAND_MARK}>C</span>
+            {expanded ? <span className="text-base font-semibold tracking-tight">{TH.app.name}</span> : null}
+          </Link>
           <button type="button" onClick={toggle} aria-label={expanded ? TH.rail.collapse : TH.rail.expand} className={cn(ICON_BUTTON, "hidden md:flex")}>
             <Menu className="size-5" aria-hidden />
           </button>
@@ -136,7 +140,7 @@ export function ThreadRail() {
 
         {expanded ? (
           <>
-            <label className="flex items-center gap-2 rounded-xl border border-border/70 bg-background/60 px-2.5 py-1.5">
+            <label className="flex items-center gap-2 rounded-full border border-border bg-background px-3 py-1.5">
               <Search className="size-4 shrink-0 text-muted-foreground" aria-hidden />
               <input
                 value={query}
@@ -151,9 +155,9 @@ export function ThreadRail() {
               {grouped.length === 0 ? <p className="px-2 py-4 text-xs text-muted-foreground">{TH.rail.empty}</p> : null}
               {grouped.map((entry) => (
                 <section key={entry.group} className="flex flex-col gap-0.5">
-                  <h2 className="px-2 py-1 text-[11px] font-medium tracking-wide text-muted-foreground/70">{TH.rail.groups[entry.group]}</h2>
+                  <h2 className="px-3 py-1 text-[11px] font-medium tracking-wide text-muted-foreground">{TH.rail.groups[entry.group]}</h2>
                   {entry.items.map((thread) => (
-                    <div key={thread.id} className={cn(ROW, pathname === `/c/${thread.id}` ? "bg-muted text-foreground" : "")}>
+                    <div key={thread.id} className={cn(ROW, pathname === `/c/${thread.id}` ? ROW_ACTIVE : "")}>
                       {editing === thread.id ? (
                         <>
                           <input
@@ -211,9 +215,9 @@ function RailLink({ href, icon, label, expanded, active }: { href: string; icon:
       aria-label={label}
       title={label}
       className={cn(
-        expanded ? "flex items-center gap-3 rounded-xl px-2 py-2 text-sm" : ICON_BUTTON,
+        expanded ? "flex items-center gap-3 rounded-full px-3 py-2 text-sm" : ICON_BUTTON,
         "text-muted-foreground transition hover:bg-muted hover:text-foreground",
-        active ? "bg-muted text-foreground" : "",
+        active ? ROW_ACTIVE : "",
       )}
     >
       {icon}

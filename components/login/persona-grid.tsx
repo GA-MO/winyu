@@ -6,9 +6,9 @@ import type { User } from "@/lib/contracts";
 import { TH } from "@/lib/i18n/th";
 
 const SESSION_ENDPOINT = "/api/session";
-const CARD = "flex w-full flex-col items-start gap-2 rounded-2xl border border-border/70 bg-card/70 p-4 text-left backdrop-blur transition duration-300 hover:-translate-y-0.5 hover:border-primary/50 disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
-const CARD_SHADOW = "shadow-[0_18px_50px_-30px_var(--vexa-glow),0_8px_24px_-18px_var(--vexa-glow-violet)] hover:shadow-[0_28px_70px_-32px_var(--vexa-glow)]";
-const CHIP = "rounded-full border border-border/70 px-2 py-0.5 text-[11px] text-muted-foreground";
+const CARD = "flex w-full flex-col items-start gap-2 rounded-2xl border border-border bg-card p-4 text-left shadow-card transition duration-300 hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-lift disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+const CHIP = "rounded-full border border-border px-2.5 py-0.5 text-[11px] text-muted-foreground";
+const ENTER = "mt-1 inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-[11px] font-medium text-muted-foreground transition group-hover:border-transparent group-hover:bg-ink group-hover:text-ink-foreground";
 
 export function PersonaGrid({ users }: { users: readonly User[] }) {
   const router = useRouter();
@@ -42,10 +42,10 @@ export function PersonaGrid({ users }: { users: readonly User[] }) {
               onClick={() => signIn(user.id)}
               disabled={pending}
               aria-label={`${TH.login.pick} ${user.nameTh}`}
-              className={`${CARD} ${CARD_SHADOW}`}
+              className={`group ${CARD}`}
             >
               <span className="flex w-full items-center gap-2">
-                <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-brand-violet text-sm font-semibold text-primary-foreground">
+                <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-ink text-sm font-semibold text-ink-foreground">
                   {user.nameTh.replace(/^คุณ/, "").slice(0, 1)}
                 </span>
                 <span className="min-w-0 flex-1 truncate font-medium">{user.nameTh}</span>
@@ -55,7 +55,7 @@ export function PersonaGrid({ users }: { users: readonly User[] }) {
                 <span className={CHIP}>{TH.role[user.role]}</span>
                 <span className={CHIP}>{user.region ? TH.region[user.region] : TH.region.all}</span>
               </span>
-              {chosen === user.id && pending ? <span className="text-xs text-primary">{TH.login.signingIn}</span> : null}
+              <span className={ENTER}>{chosen === user.id && pending ? TH.login.signingIn : TH.login.title}</span>
             </button>
           </li>
         ))}

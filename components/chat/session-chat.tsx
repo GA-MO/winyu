@@ -14,6 +14,8 @@ import { TH } from "@/lib/i18n/th";
 import { CopComposer } from "@/components/composer/cop-composer";
 import { GlassPanel } from "@/components/ui/glass-panel";
 import { GlowBackdrop } from "@/components/ui/glow-backdrop";
+import { ChipIcon } from "@/components/ui/chip-icon";
+import { PILL } from "@/components/ui/pill";
 import { setHostContext } from "@/components/providers/host-context";
 import { COP_CHAT_LABELS } from "./labels";
 
@@ -111,12 +113,12 @@ export function SessionChat({
 
   return (
     <div className="relative flex h-dvh min-h-0 flex-col">
-      <GlowBackdrop className="opacity-60" />
+      <GlowBackdrop className="opacity-70" />
       <Conversation className="relative z-10 min-h-0 flex-1">
-        <ConversationContent className={`flex flex-col gap-6 py-6 ${COLUMN}`}>
+        <ConversationContent className={`cop-chat flex flex-col gap-6 pb-6 pt-16 ${COLUMN}`}>
           {preload ? (
             <GlassPanel className="flex items-start gap-3 p-4 animate-hero-rise">
-              <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-brand-violet text-primary-foreground">
+              <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-xl bg-ink text-ink-foreground">
                 <Inbox className="size-4" aria-hidden />
               </span>
               <div className="min-w-0">
@@ -128,7 +130,7 @@ export function SessionChat({
 
           {messages.length === 0 && !isStreaming ? (
             <div className="flex flex-col items-center gap-3 py-16 text-center animate-hero-rise">
-              <span className="flex size-12 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/20 to-brand-violet/20 text-primary">
+              <span className="flex size-12 items-center justify-center rounded-2xl border border-border bg-card text-primary shadow-card">
                 <Sparkles className="size-5" aria-hidden />
               </span>
               <p className="text-base font-medium">{TH.chat.emptyTitle}</p>
@@ -159,17 +161,13 @@ export function SessionChat({
         <ConversationScrollButton />
       </Conversation>
 
-      <div className="relative z-10 shrink-0 pb-4 pt-2">
+      <div className="relative z-10 shrink-0 border-t border-border bg-background/90 pb-4 pt-3 backdrop-blur">
         <div className={`flex flex-col gap-3 ${COLUMN}`}>
           {messages.length === 0 ? (
             <div className="flex flex-wrap gap-2">
               {suggestions.slice(0, 4).map((action) => (
-                <button
-                  key={action.id}
-                  type="button"
-                  onClick={() => send(action.prompt)}
-                  className="rounded-full border border-border/70 bg-card/70 px-3 py-1.5 text-xs text-muted-foreground backdrop-blur transition hover:-translate-y-0.5 hover:border-primary/50 hover:text-foreground"
-                >
+                <button key={action.id} type="button" onClick={() => send(action.prompt)} className={PILL}>
+                  <ChipIcon text={`${action.label} ${action.prompt}`} />
                   {action.label}
                 </button>
               ))}

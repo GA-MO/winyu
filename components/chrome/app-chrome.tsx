@@ -9,7 +9,7 @@ import { InboxDrawer } from "@/components/inbox/drawer";
 import { AccountSheet } from "@/components/account/sheet";
 
 const NOTIFICATIONS_ENDPOINT = "/api/notifications";
-const BUTTON = "flex size-9 items-center justify-center rounded-xl border border-border/60 bg-card/70 text-muted-foreground backdrop-blur transition hover:border-primary/50 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+const BUTTON = "flex size-9 items-center justify-center rounded-full border border-border bg-card text-muted-foreground shadow-card transition hover:-translate-y-0.5 hover:border-foreground/25 hover:text-foreground hover:shadow-lift focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
 function ChromeInner({ user, users }: { user: User; users: readonly User[] }) {
   const params = useSearchParams();
@@ -41,7 +41,7 @@ function ChromeInner({ user, users }: { user: User; users: readonly User[] }) {
         <button type="button" onClick={() => setInboxOpen(true)} aria-label={TH.inbox.open} className={`relative ${BUTTON}`}>
           <Bell className="size-4" aria-hidden />
           {unread > 0 ? (
-            <span className="absolute -right-1 -top-1 flex size-4 items-center justify-center rounded-full bg-danger text-[10px] font-semibold text-primary-foreground">{unread}</span>
+            <span className="absolute -right-1 -top-1 flex size-4 items-center justify-center rounded-full bg-danger text-[10px] font-semibold text-card">{unread}</span>
           ) : null}
         </button>
         <button type="button" onClick={() => setAccountOpen(true)} aria-label={TH.account.open} className={BUTTON}>

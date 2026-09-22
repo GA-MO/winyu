@@ -5,11 +5,11 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 export type ThemeMode = "light" | "dark";
 
 export const THEME_STORAGE_KEY = "cop-theme";
-export const THEME_BOOT_SCRIPT = `try{var m=localStorage.getItem("${THEME_STORAGE_KEY}");if(m==="light")document.documentElement.classList.remove("dark");}catch(e){}`;
+export const THEME_BOOT_SCRIPT = `try{var m=localStorage.getItem("${THEME_STORAGE_KEY}");document.documentElement.classList.toggle("dark",m==="dark");}catch(e){}`;
 
 type ThemeValue = { mode: ThemeMode; setMode: (mode: ThemeMode) => void; toggle: () => void };
 
-const ThemeContext = createContext<ThemeValue>({ mode: "dark", setMode: () => undefined, toggle: () => undefined });
+const ThemeContext = createContext<ThemeValue>({ mode: "light", setMode: () => undefined, toggle: () => undefined });
 
 function storedMode(): ThemeMode | null {
   try {
@@ -29,7 +29,7 @@ function persist(mode: ThemeMode) {
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [mode, setMode] = useState<ThemeMode>("dark");
+  const [mode, setMode] = useState<ThemeMode>("light");
 
   useEffect(() => {
     const saved = storedMode();

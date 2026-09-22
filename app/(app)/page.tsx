@@ -15,7 +15,7 @@ export default async function LandingPage() {
   const access = readAccess(jar);
   if (!user || !access) redirect("/login");
 
-  const greeting = TH.landing.greeting[timeOfDay()](shortName(user.nameTh));
+  const greeting = { lead: TH.landing.greeting[timeOfDay()], name: shortName(user.nameTh) };
   const widgets = pinnedViews(access).map((view) => ({ id: view.widget.id, spec: view.spec }));
 
   return (

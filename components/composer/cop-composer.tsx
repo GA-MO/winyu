@@ -6,13 +6,13 @@ import { cn } from "vexa/lib/utils";
 import { TH } from "@/lib/i18n/th";
 
 const SIZES = {
-  hero: { frame: "rounded-[1.4rem] px-4 py-3.5", field: "min-h-14 text-base", button: "size-11" },
-  docked: { frame: "rounded-2xl px-3 py-2.5", field: "min-h-10 text-sm", button: "size-9" },
+  hero: { frame: "rounded-[1.75rem] px-4 py-3.5", field: "min-h-14 text-base", button: "size-11" },
+  docked: { frame: "rounded-[1.5rem] px-3 py-2.5", field: "min-h-10 text-sm", button: "size-9" },
 } as const;
 
-const FRAME = "cop-focus-glow flex items-end gap-2 border border-border/70 bg-card/80 backdrop-blur-xl transition";
+const FRAME = "cop-focus-ring flex items-end gap-2 border border-border bg-card shadow-card transition";
 const FIELD = "w-full flex-1 resize-none bg-transparent leading-relaxed text-foreground outline-none placeholder:text-muted-foreground";
-const SEND = "inline-flex shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-brand-violet text-primary-foreground shadow-lg shadow-primary/30 transition hover:shadow-xl hover:shadow-primary/40 disabled:opacity-40 disabled:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+const SEND = "inline-flex shrink-0 items-center justify-center rounded-full bg-ink text-ink-foreground transition hover:opacity-90 disabled:bg-muted disabled:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 const MAX_HEIGHT_PX = 220;
 
 export type CopComposerProps = {
@@ -51,6 +51,11 @@ export function CopComposer({
   }, [value]);
 
   useEffect(() => {
+    if (!autoFocus) return;
+    field.current?.focus({ preventScroll: true });
+  }, [autoFocus]);
+
+  useEffect(() => {
     function focusOnShortcut(event: KeyboardEvent) {
       if (event.key.toLowerCase() !== "k" || !(event.metaKey || event.ctrlKey)) return;
       event.preventDefault();
@@ -73,7 +78,6 @@ export function CopComposer({
           ref={field}
           rows={1}
           value={value}
-          autoFocus={autoFocus}
           aria-label={placeholder}
           placeholder={placeholder}
           onChange={(event) => onValueChange(event.target.value)}
@@ -94,7 +98,7 @@ export function CopComposer({
           </button>
         )}
       </div>
-      {hint ? <div className="px-1 text-xs text-muted-foreground">{hint}</div> : null}
+      {hint ? <div className="px-2 text-center text-xs text-muted-foreground">{hint}</div> : null}
     </div>
   );
 }

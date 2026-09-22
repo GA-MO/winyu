@@ -22,8 +22,8 @@ const TABS = ["users", "tools", "audit", "usage", "simulate"] as const;
 const AUDIT_LIMIT = 40;
 const CELL = "whitespace-nowrap px-2.5 py-1.5 text-xs";
 const TABLE = "w-full min-w-max border-collapse text-left";
-const HEAD = "border-b border-border/60 text-xs font-medium text-muted-foreground";
-const PANEL = "overflow-x-auto rounded-2xl border border-border/70 bg-card/60 p-3 backdrop-blur";
+const HEAD = "border-b border-border text-xs font-medium text-muted-foreground";
+const PANEL = "overflow-x-auto rounded-2xl border border-border bg-card p-3 shadow-card";
 
 type Tab = (typeof TABS)[number];
 
@@ -54,7 +54,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
       <GlowBackdrop />
       <div className="relative mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-10 sm:px-8">
         <header className="flex flex-col gap-1">
-          <h1 className="font-display text-2xl font-bold tracking-tight">
+          <h1 className="font-display text-[2rem] font-semibold leading-tight tracking-[-0.02em]">
             <GradientText>{TH.admin.title}</GradientText>
           </h1>
         </header>
@@ -75,7 +75,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
         </nav>
 
         {user.role !== "it_admin" ? (
-          <p className="rounded-2xl border border-border/70 bg-card/60 p-6 text-sm text-muted-foreground">{TH.admin.denied}</p>
+          <p className="rounded-2xl border border-border bg-card p-6 text-sm text-muted-foreground">{TH.admin.denied}</p>
         ) : (
           <>
             {current === "users" ? <UsersTab /> : null}
@@ -105,7 +105,7 @@ function UsersTab() {
           </thead>
           <tbody>
             {USERS.map((person) => (
-              <tr key={person.id} className="border-b border-border/40">
+              <tr key={person.id} className="border-b border-border">
                 <td className={CELL}>{person.nameTh}</td>
                 <td className={CELL}>{TH.role[person.role]}</td>
                 <td className={CELL}>{person.region ? TH.region[person.region] : TH.region.all}</td>
@@ -131,7 +131,7 @@ function UsersTab() {
           </thead>
           <tbody>
             {METRIC_IDS.map((metric) => (
-              <tr key={metric} className="border-b border-border/40">
+              <tr key={metric} className="border-b border-border">
                 <td className={CELL}>{metricLabel(metric)}</td>
                 {ROLE_IDS.map((role) => (
                   <td key={`${metric}-${role}`} className={CELL}>
@@ -168,7 +168,7 @@ function ToolsTab() {
           {TOOL_SURFACE.map((entry) => {
             const isKilled = killed.has(entry.name);
             return (
-              <tr key={entry.name} className="border-b border-border/40">
+              <tr key={entry.name} className="border-b border-border">
                 <td className={CELL}>{entry.name}</td>
                 <td className={CELL}>{entry.tier}</td>
                 {ROLE_IDS.map((role) => (
@@ -180,7 +180,7 @@ function ToolsTab() {
                   <form action={toggleTool}>
                     <input type="hidden" name="tool" value={entry.name} />
                     <input type="hidden" name="killed" value={String(isKilled)} />
-                    <button type="submit" className={`rounded-lg border px-2 py-1 text-xs transition ${isKilled ? "border-danger/60 text-danger" : "border-border/70 text-muted-foreground hover:text-foreground"}`}>
+                    <button type="submit" className={`rounded-full border px-2.5 py-1 text-xs transition ${isKilled ? "border-danger/60 text-danger" : "border-border text-muted-foreground hover:text-foreground"}`}>
                       {isKilled ? TH.admin.killed : TH.admin.live}
                     </button>
                   </form>
@@ -214,7 +214,7 @@ function AuditTab() {
         </thead>
         <tbody>
           {entries.map((entry) => (
-            <tr key={entry.id} className="border-b border-border/40">
+            <tr key={entry.id} className="border-b border-border">
               <td className={CELL}>{`${formatDateTh(entry.at)} ${formatTimeTh(entry.at)}`}</td>
               <td className={CELL}>{findUser(entry.userId)?.nameTh ?? entry.userId}</td>
               <td className={CELL}>{entry.tool}</td>
@@ -241,7 +241,7 @@ function UsageTab() {
   return (
     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
       {counters.map((counter) => (
-        <div key={counter.label} className="rounded-2xl border border-border/70 bg-card/60 p-4 backdrop-blur">
+        <div key={counter.label} className="rounded-2xl border border-border bg-card p-4 shadow-card">
           <p className="text-xs text-muted-foreground">{counter.label}</p>
           <p className="mt-1 font-display text-2xl font-semibold">{counter.value}</p>
         </div>
@@ -260,26 +260,26 @@ function SimulateTab({ userId }: { userId: string }) {
         <label className="text-sm text-muted-foreground" htmlFor="as">
           {TH.admin.simulate}
         </label>
-        <select id="as" name="as" defaultValue={target.id} className="rounded-lg border border-border/70 bg-card/60 px-2 py-1.5 text-sm">
+        <select id="as" name="as" defaultValue={target.id} className="rounded-full border border-border bg-card px-3 py-1.5 text-sm">
           {USERS.map((person) => (
             <option key={person.id} value={person.id}>
               {person.nameTh} · {TH.role[person.role]}
             </option>
           ))}
         </select>
-        <button type="submit" className="rounded-lg border border-border/70 px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground">
+        <button type="submit" className="rounded-full border border-border bg-card px-3.5 py-1.5 text-sm text-muted-foreground hover:text-foreground">
           {TH.common.confirm}
         </button>
       </form>
 
       <div className="grid gap-3 md:grid-cols-2">
-        <div className="rounded-2xl border border-border/70 bg-card/60 p-4">
+        <div className="rounded-2xl border border-border bg-card p-4 shadow-card">
           <h2 className="text-sm font-medium">{TH.admin.simulateScope}</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             {access.regions === "all" ? TH.region.all : access.regions.map((region) => TH.region[region]).join(", ")}
           </p>
         </div>
-        <div className="rounded-2xl border border-border/70 bg-card/60 p-4">
+        <div className="rounded-2xl border border-border bg-card p-4 shadow-card">
           <h2 className="text-sm font-medium">{TH.admin.simulateTools}</h2>
           <p className="mt-1 text-sm text-muted-foreground">{access.toolAllow.join(", ")}</p>
         </div>
@@ -295,7 +295,7 @@ function SimulateTab({ userId }: { userId: string }) {
           </thead>
           <tbody>
             {METRIC_IDS.map((metric) => (
-              <tr key={metric} className="border-b border-border/40">
+              <tr key={metric} className="border-b border-border">
                 <td className={CELL}>{metricLabel(metric)}</td>
                 <td className={CELL}>{TH.admin.acl[access.metricAcl[metric]]}</td>
               </tr>

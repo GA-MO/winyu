@@ -13,8 +13,9 @@ const ALERTS_ENDPOINT = "/api/alerts";
 const NOTIFICATIONS_ENDPOINT = "/api/notifications";
 const EMPTY: InboxPayload = { handoffs: [], alerts: [], replies: [], unread: 0 };
 const TABS = ["handoffs", "alerts", "replies"] as const;
-const PANEL = "fixed right-0 top-0 z-50 flex h-dvh w-full max-w-[26rem] flex-col border-l border-border/60 bg-card/85 backdrop-blur-2xl animate-panel-in";
-const ACTION = "rounded-lg border border-border/70 px-2.5 py-1.5 text-xs text-muted-foreground transition hover:border-primary/50 hover:text-foreground";
+const PANEL = "fixed right-0 top-0 z-50 flex h-dvh w-full max-w-[26rem] flex-col border-l border-border bg-card shadow-panel animate-panel-in";
+const ACTION = "rounded-full border border-border bg-card px-3 py-1.5 text-xs text-muted-foreground transition hover:border-foreground/25 hover:text-foreground";
+const ITEM = "flex flex-col gap-2 rounded-2xl border border-border bg-card p-3 shadow-card";
 const URGENCY_TONE: Record<HandoffItem["urgency"], string> = { low: "text-muted-foreground", medium: "text-warning", high: "text-danger" };
 const SEVERITY_TONE: Record<AlertItem["severity"], string> = { P1: "text-danger", P2: "text-warning", P3: "text-info" };
 
@@ -68,22 +69,22 @@ export function InboxDrawer({ open, onClose }: { open: boolean; onClose: () => v
 
   return (
     <>
-      <button type="button" aria-label={TH.common.close} onClick={onClose} className="fixed inset-0 z-40 bg-background/60 backdrop-blur-sm" />
+      <button type="button" aria-label={TH.common.close} onClick={onClose} className="fixed inset-0 z-40 bg-foreground/10 backdrop-blur-sm" />
       <aside className={PANEL} aria-label={TH.inbox.title}>
-        <header className="flex items-center justify-between gap-2 border-b border-border/60 px-4 py-3">
+        <header className="flex items-center justify-between gap-2 border-b border-border px-4 py-3">
           <h2 className="text-sm font-semibold tracking-tight">{TH.inbox.title}</h2>
           <button type="button" onClick={onClose} aria-label={TH.common.close} className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground">
             <X className="size-4" aria-hidden />
           </button>
         </header>
 
-        <nav className="flex gap-1 border-b border-border/60 px-2 py-2">
+        <nav className="flex gap-1 border-b border-border px-2 py-2">
           {TABS.map((item) => (
             <button
               key={item}
               type="button"
               onClick={() => setTab(item)}
-              className={cn("rounded-lg px-3 py-1.5 text-xs transition", tab === item ? "bg-muted font-medium text-foreground" : "text-muted-foreground hover:text-foreground")}
+              className={cn("rounded-full px-3 py-1.5 text-xs transition", tab === item ? "bg-bubble font-medium text-foreground" : "text-muted-foreground hover:text-foreground")}
             >
               {TH.inbox.tabs[item]}
               {counts[item] > 0 ? <span className="ml-1.5 text-muted-foreground">{counts[item]}</span> : null}
@@ -115,7 +116,7 @@ function HandoffList({ items, onAct, onOpen }: { items: HandoffItem[]; onAct: (i
   return (
     <>
       {items.map((item) => (
-        <article key={item.id} className="flex flex-col gap-2 rounded-xl border border-border/70 bg-background/50 p-3">
+        <article key={item.id} className={ITEM}>
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
               <h3 className="truncate text-sm font-medium">{item.title}</h3>
@@ -124,7 +125,7 @@ function HandoffList({ items, onAct, onOpen }: { items: HandoffItem[]; onAct: (i
             <span className={cn("shrink-0 text-xs", URGENCY_TONE[item.urgency])}>{TH.inbox.urgency[item.urgency]}</span>
           </div>
           <p className="text-sm text-muted-foreground">{item.ask}</p>
-          <dl className="flex flex-col gap-1 rounded-lg bg-muted/50 p-2 text-xs">
+          <dl className="flex flex-col gap-1 rounded-xl bg-muted p-2.5 text-xs">
             <div className="flex justify-between gap-2">
               <dt className="text-muted-foreground">{TH.inbox.sla}</dt>
               <dd>{item.sla ?? TH.inbox.noSla}</dd>
@@ -163,7 +164,7 @@ function HandoffList({ items, onAct, onOpen }: { items: HandoffItem[]; onAct: (i
             <button type="button" onClick={() => onAct(item.id, "return")} className={ACTION}>
               {TH.inbox.reject}
             </button>
-            <button type="button" onClick={() => onOpen(item.id)} className={cn(ACTION, "border-primary/50 text-foreground")}>
+            <button type="button" onClick={() => onOpen(item.id)} className={cn(ACTION, "border-transparent bg-ink text-ink-foreground hover:text-ink-foreground")}>
               <span className="flex items-center gap-1">
                 {TH.inbox.openInAgent}
                 <ArrowRight className="size-3" aria-hidden />
@@ -181,7 +182,7 @@ function AlertList({ items, onDismiss, onVerify }: { items: AlertItem[]; onDismi
   return (
     <>
       {items.map((item) => (
-        <article key={item.id} className="flex flex-col gap-2 rounded-xl border border-border/70 bg-background/50 p-3">
+        <article key={item.id} className={ITEM}>
           <div className="flex items-center justify-between gap-2">
             <span className={cn("text-xs font-medium", SEVERITY_TONE[item.severity])}>
               {item.severity} · {TH.severity[item.severity]}
@@ -211,7 +212,7 @@ function ReplyList({ items }: { items: ReplyItem[] }) {
   return (
     <>
       {items.map((item) => (
-        <article key={item.id} className="flex flex-col gap-1 rounded-xl border border-border/70 bg-background/50 p-3">
+        <article key={item.id} className={cn(ITEM, "gap-1")}>
           <h3 className="text-sm font-medium">{item.title}</h3>
           <p className="text-xs text-muted-foreground">
             {item.toName} · {item.status} · {relativeTimeTh(item.at)}

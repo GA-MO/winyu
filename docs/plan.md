@@ -256,14 +256,14 @@ Every package: `bun run typecheck`, `bun run test`, curl of the page it changed,
 
 User decisions from the review of 2026-09-22 (evening): **light theme is the default**; the look should follow QwenCloud (qwencloud.com pricing + Try AI pages): page bg `rgb(249,250,253)`, text `rgb(11,12,15)`, Inter + Noto Sans Thai, display h1 ~60px/600/-1.2px, black pill primary button, white pill chips with a 1px inset border `rgb(230,233,239)` radius 24px, one gradient accent phrase (indigo→violet→coral) in an otherwise near-black headline, soft pastel blobs, white cards with 1px border + very soft shadow, generous whitespace. Dark stays available from the account sheet.
 
-- [ ] Light default (`<html>` without `dark`, boot script default light, toggle persists); light palette tuned to the values above; gradient text only on the name in the greeting.
-- [ ] Landing backdrop in light mode is a smear: reduce blur to ~2px, opacity ~0.35, white radial mask toward the centre, keep card edges crisp; a soft translucent white panel behind the greeting + composer so the column always has contrast.
-- [ ] Composer (landing + session): white, 1px border, soft shadow, 2px gradient ring on focus, black round send button; chips as Qwen; ambient cards white with a coloured left accent.
-- [ ] Dashboard mode (⌘D): cards fully crisp (no residual blur/opacity), content offset by the rail so the expanded rail never covers the first card; sticky top composer.
-- [ ] Widgets: `BarChart horizontal` / `LineChart` instead of `Chart`; Thai short time labels; partial last bucket marked (dashed) or excluded.
-- [ ] Bug: `/c/new?prompt=…` bounces to `/` instead of creating a thread and auto-sending; alerts' verify buttons depend on it.
-- [ ] Session page, login, account sheet, inbox drawer, dashboard, admin: light pass with the same card/border/shadow language; drawer/sheet dim = `bg-foreground/10` + light backdrop-blur, not mush.
-- [ ] Greeting: ตอนเช้า / ตอนบ่าย / ตอนเย็น / ค่ำ mapping; verify with the browser at 1440×900 and 375×812, screenshots into `docs/screenshots/` (light).
+- [x] Light default (`<html>` without `dark`, boot script default light, toggle persists); light palette tuned to the values above; gradient text only on the name in the greeting.
+- [x] Landing backdrop in light mode is a smear: reduce blur to ~2px, opacity ~0.35, white radial mask toward the centre, keep card edges crisp; a soft translucent white panel behind the greeting + composer so the column always has contrast.
+- [x] Composer (landing + session): white, 1px border, soft shadow, 2px gradient ring on focus, black round send button; chips as Qwen; ambient cards white with a coloured left accent.
+- [x] Dashboard mode (⌘D): cards fully crisp (no residual blur/opacity), content offset by the rail so the expanded rail never covers the first card; sticky top composer.
+- [x] Widgets: `BarChart horizontal` / `LineChart` instead of `Chart`; Thai short time labels; partial last bucket marked (dashed) or excluded.
+- [x] Bug: `/c/new?prompt=…` bounces to `/` instead of creating a thread and auto-sending; alerts' verify buttons depend on it.
+- [x] Session page, login, account sheet, inbox drawer, dashboard, admin: light pass with the same card/border/shadow language; drawer/sheet dim = `bg-foreground/10` + light backdrop-blur, not mush.
+- [x] Greeting: ตอนเช้า / ตอนบ่าย / ตอนเย็น / ค่ำ mapping; verify with the browser at 1440×900 and 375×812, screenshots into `docs/screenshots/` (light).
 
 ### Phase 2 — the four loops (four agents in parallel)
 
@@ -354,6 +354,7 @@ Ownership rule for parallel agents: a package edits only the folders listed in i
 Vexa is not a constraint (user decision 2026-09-22): change it when Cop needs it, prefer general features, list them here. Candidates already identified: a pluggable catalog (`createVexaHandler({ catalog })` + `SpecView registry`) so Cop can add `Provenance`, `AnomalyCard`, `HandoffCard`, `Sparkline`, `Heatmap`; `VexaChat` `initialMessages`/`id`; a headless `useVexaChat` so Cop can own the chat chrome.
 
 - [ ] `VexaChat` `initialMessages` / `id` props (phase 2A) — thread restore for any host.
+- [x] `thinLabels` in `src/react/components.tsx` (phase 1.5) — the last axis label no longer crowds the one before it (`> last - step` instead of `>= last - step / 2`); long labels (Thai `สัปดาห์ 38`) overlapped in a narrow `LineChart`.
 
 ## 10. Out of scope for this build
 

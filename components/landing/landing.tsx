@@ -2,23 +2,32 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { LayoutDashboard, MessageSquare } from "lucide-react";
-import { SpecView } from "vexa/react";
+import { LayoutDashboard, MessageSquare, ShieldCheck } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "vexa/ui/tooltip";
 import { cn } from "vexa/lib/utils";
 import type { QuickAction } from "@/lib/contracts";
-import type { AmbientCard } from "@/lib/dashboard/ambient";
+import type { AmbientCard, AmbientTone } from "@/lib/dashboard/ambient";
 import { TH } from "@/lib/i18n/th";
 import { CopComposer } from "@/components/composer/cop-composer";
+import { ChipIcon } from "@/components/ui/chip-icon";
 import { GlowBackdrop } from "@/components/ui/glow-backdrop";
 import { GradientText } from "@/components/ui/gradient-text";
+import { PILL } from "@/components/ui/pill";
 import { WidgetCards, type WidgetCard } from "@/components/dashboard/widget-cards";
 
 const THREADS_ENDPOINT = "/api/threads";
 const QUICK_ACTIONS_ENDPOINT = "/api/quick-actions";
-const BACKDROP_CHAT = "pointer-events-none cop-mask-center opacity-40 blur-sm";
-const BACKDROP_OPEN = "opacity-100";
-const CHIP = "rounded-full border border-border/70 bg-card/70 px-3.5 py-1.5 text-xs text-muted-foreground backdrop-blur transition hover:-translate-y-0.5 hover:border-primary/50 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+const BACKDROP = "pointer-events-none absolute inset-0 cop-mask-center cop-backdrop-dim";
+const PANEL = "w-full max-w-2xl rounded-[2rem] border border-border bg-panel p-5 shadow-panel backdrop-blur-xl sm:p-8";
+const AMBIENT = "flex min-w-[15rem] max-w-sm flex-1 basis-0 flex-col gap-1 rounded-2xl border border-border border-l-[3px] bg-card p-4 text-left shadow-card transition duration-200 hover:-translate-y-0.5 hover:shadow-lift focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+const AMBIENT_ACCENT: Record<AmbientTone, string> = {
+  danger: "border-l-danger",
+  warning: "border-l-warning",
+  info: "border-l-info",
+  brand: "border-l-primary",
+};
+
+export type Greeting = { lead: string; name: string };
 
 export function Landing({
   greeting,
@@ -27,7 +36,7 @@ export function Landing({
   quickActions,
   ambient,
 }: {
-  greeting: string;
+  greeting: Greeting;
   brief: string;
   widgets: WidgetCard[];
   quickActions: QuickAction[];
@@ -79,54 +88,61 @@ export function Landing({
     return () => window.removeEventListener("keydown", toggleDashboard);
   }, []);
 
+  if (dashboardMode) {
+    return (
+      <div className="relative min-h-dvh">
+        <GlowBackdrop />
+        <div className="relative flex min-h-dvh flex-col">
+          <div className="sticky top-0 z-20 border-b border-border bg-background/90 px-4 py-3 backdrop-blur sm:px-8">
+            <div className="mx-auto flex w-full max-w-3xl items-center gap-2">
+              <CopComposer value={text} onValueChange={setText} onSubmit={start} size="docked" busy={busy} className="flex-1" />
+              <button type="button" onClick={() => setDashboardMode(false)} className={cn(PILL, "shrink-0 py-2.5")}>
+                <MessageSquare className="size-3.5" aria-hidden />
+                {TH.landing.backToChat}
+              </button>
+            </div>
+          </div>
+          <div className="px-4 pb-16 pt-6 sm:px-8">
+            <WidgetCards widgets={widgets} />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="relative min-h-dvh overflow-hidden">
+    <div className="relative min-h-dvh overflow-x-hidden">
       <GlowBackdrop />
 
-      <div className={cn("absolute inset-0 transition-all duration-500 ease-out", dashboardMode ? BACKDROP_OPEN : BACKDROP_CHAT)}>
-        <div className="h-full overflow-y-auto px-4 pb-24 pt-20 sm:px-8">
+      <div aria-hidden className={BACKDROP}>
+        <div className="h-full overflow-hidden px-4 pt-20 sm:px-8">
           <WidgetCards widgets={widgets} />
         </div>
       </div>
 
-      {dashboardMode ? (
-        <div className="pointer-events-none sticky top-0 z-10 flex justify-center px-4 pt-4">
-          <div className="pointer-events-auto flex w-full max-w-2xl items-center gap-2">
-            <CopComposer value={text} onValueChange={setText} onSubmit={start} size="docked" busy={busy} className="flex-1" />
-            <button type="button" onClick={() => setDashboardMode(false)} className={cn(CHIP, "shrink-0 py-2.5")}>
-              <span className="flex items-center gap-1.5">
-                <MessageSquare className="size-3.5" aria-hidden />
-                {TH.landing.backToChat}
-              </span>
-            </button>
-          </div>
-        </div>
-      ) : (
-        <div className="relative flex min-h-dvh flex-col items-center justify-center px-4 py-16 sm:px-6">
-          <div className={cn("flex w-full max-w-2xl flex-col gap-6 transition-all duration-300", busy ? "opacity-0" : "opacity-100")}>
-            <header className={cn("flex flex-col gap-2 animate-hero-rise transition-all duration-300", busy ? "-translate-y-3" : "")}>
-              <h1 className="font-display text-3xl font-bold leading-tight tracking-tight sm:text-4xl">
-                <GradientText>{greeting}</GradientText>
+      <div className="relative flex min-h-dvh flex-col items-center justify-center gap-5 px-4 pb-16 pt-20 sm:px-6">
+        <div className={cn("flex w-full max-w-2xl flex-col items-center gap-5 transition-all duration-300", busy ? "opacity-0" : "opacity-100")}>
+          <div className={cn(PANEL, "flex flex-col gap-5 animate-hero-rise")}>
+            <header className="flex flex-col gap-2 text-center">
+              <h1 className="font-display text-[1.75rem] font-semibold leading-[1.2] tracking-[-0.02em] sm:text-[3.25rem]">
+                {greeting.lead} <GradientText>{greeting.name}</GradientText>
               </h1>
               <p className="text-sm text-muted-foreground sm:text-base">{brief}</p>
             </header>
 
-            <div className="animate-hero-rise [animation-delay:80ms]">
-              <CopComposer
-                value={text}
-                onValueChange={setText}
-                onSubmit={start}
-                busy={busy}
-                autoFocus
-                hint={TH.landing.composerHint}
-              />
-            </div>
+            <CopComposer value={text} onValueChange={setText} onSubmit={start} busy={busy} autoFocus hint={TH.landing.composerHint} />
+
+            <p className="flex items-center gap-2 rounded-2xl border border-border bg-accent/50 px-3 py-2 text-xs text-muted-foreground">
+              <ShieldCheck className="size-3.5 shrink-0 text-primary" aria-hidden />
+              {TH.landing.infoStrip}
+            </p>
 
             <TooltipProvider delay={200}>
-              <div className="flex flex-wrap gap-2 animate-hero-rise [animation-delay:140ms]">
+              <div className="flex flex-wrap justify-center gap-2">
                 {actions.map((action) => (
                   <Tooltip key={action.id}>
-                    <TooltipTrigger className={CHIP} onClick={() => void start(action.prompt)}>
+                    <TooltipTrigger className={PILL} onClick={() => void start(action.prompt)}>
+                      <ChipIcon text={`${action.label} ${action.prompt}`} />
                       {action.label}
                     </TooltipTrigger>
                     <TooltipContent>{action.reason}</TooltipContent>
@@ -134,33 +150,34 @@ export function Landing({
                 ))}
               </div>
             </TooltipProvider>
+          </div>
 
-            <div className="flex flex-wrap justify-center gap-3 animate-hero-rise [animation-delay:200ms]">
-              {ambient.map((card) => (
-                <button
-                  key={card.id}
-                  type="button"
-                  onClick={() => void start(card.prompt)}
-                  aria-label={`${TH.landing.openInAgent}: ${card.label}`}
-                  className="min-w-0 grow basis-full rounded-2xl text-left transition hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:basis-[calc(33.333%-0.5rem)]"
-                >
-                  <SpecView spec={card.spec} showDevtools={false} />
-                </button>
-              ))}
-            </div>
-
-            <div className="flex justify-center animate-hero-rise [animation-delay:260ms]">
-              <button type="button" onClick={() => setDashboardMode(true)} className={CHIP}>
-                <span className="flex items-center gap-1.5">
-                  <LayoutDashboard className="size-3.5" aria-hidden />
-                  {TH.landing.viewDashboard}
-                  <span className="text-muted-foreground/70">{TH.landing.dashboardHint}</span>
-                </span>
+          <div className="flex w-full flex-wrap justify-center gap-3 animate-hero-rise [animation-delay:160ms]">
+            {ambient.map((card) => (
+              <button
+                key={card.id}
+                type="button"
+                onClick={() => void start(card.prompt)}
+                aria-label={`${TH.landing.openInAgent}: ${card.title}`}
+                className={cn(AMBIENT, AMBIENT_ACCENT[card.tone])}
+              >
+                <span className="text-[11px] font-medium tracking-wide text-muted-foreground">{card.label}</span>
+                <span className="text-sm font-semibold tracking-tight">{card.title}</span>
+                <span className="line-clamp-2 text-xs text-muted-foreground">{card.body}</span>
               </button>
-            </div>
+            ))}
+          </div>
+
+          <div className="flex flex-col items-center gap-3 animate-hero-rise [animation-delay:220ms]">
+            <button type="button" onClick={() => setDashboardMode(true)} className={PILL}>
+              <LayoutDashboard className="size-3.5" aria-hidden />
+              {TH.landing.viewDashboard}
+              <span className="text-muted-foreground/70">{TH.landing.dashboardHint}</span>
+            </button>
+            <p className="text-center text-xs text-muted-foreground/80">{TH.landing.disclaimer}</p>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }

@@ -71,10 +71,10 @@ export const TH = {
   },
   landing: {
     greeting: {
-      morning: (name: string) => `สวัสดีตอนเช้าครับ ${name}`,
-      afternoon: (name: string) => `สวัสดีตอนบ่ายครับ ${name}`,
-      evening: (name: string) => `สวัสดีตอนเย็นครับ ${name}`,
-      night: (name: string) => `สวัสดีครับ ${name}`,
+      morning: "สวัสดีตอนเช้าครับ",
+      afternoon: "สวัสดีตอนบ่ายครับ",
+      evening: "สวัสดีตอนเย็นครับ",
+      night: "สวัสดีตอนค่ำครับ",
     },
     composerPlaceholder: "ถาม Cop เรื่องยอดขาย สต๊อก แคมเปญ หรือการเงิน…",
     composerHint: "กด ⌘K เพื่อพิมพ์ · Enter เพื่อส่ง",
@@ -87,6 +87,8 @@ export const TH = {
     openInAgent: "ถาม Cop เรื่องนี้",
     attach: "แนบไฟล์",
     voice: "พูดคำถาม",
+    infoStrip: "ทุกตัวเลขมาจาก semantic layer ที่รับรองแล้ว ตามสิทธิ์ของคุณ",
+    disclaimer: "Cop เป็นเดโม ข้อมูลทั้งหมดถูกสร้างขึ้นเพื่อการสาธิต",
   },
   brief: {
     quiet: "วันนี้ยังไม่มีอะไรผิดปกติ ถามอะไรก็ได้เลยครับ",
@@ -158,6 +160,8 @@ export const TH = {
     denied: "ข้อมูลนี้อยู่นอกขอบเขตสิทธิ์ของคุณ",
     maskedNote: (count: number) => `มี ${count} ฟิลด์ถูกปิดตามสิทธิ์`,
     placeholderNote: "ข้อมูลจาก semantic layer ที่รับรองแล้ว ตามสิทธิ์ของคุณ",
+    partialWeek: "สัปดาห์ปัจจุบันยังไม่ครบ",
+    partialMonth: "เดือนปัจจุบันยังไม่ครบ",
   },
   account: {
     open: "บัญชีของฉัน",

@@ -77,16 +77,43 @@ export function threadGroupOf(value: string, now: Date = new Date()): ThreadGrou
 
 export type TimeOfDay = "morning" | "afternoon" | "evening" | "night";
 
-const MORNING_END = 12;
-const AFTERNOON_END = 17;
-const EVENING_END = 21;
+const MORNING_FROM = 5;
+const AFTERNOON_FROM = 11;
+const EVENING_FROM = 16;
+const NIGHT_FROM = 19;
 
 export function timeOfDay(now: Date = new Date()): TimeOfDay {
   const hour = now.getHours();
-  if (hour < MORNING_END) return "morning";
-  if (hour < AFTERNOON_END) return "afternoon";
-  if (hour < EVENING_END) return "evening";
-  return "night";
+  if (hour < MORNING_FROM || hour >= NIGHT_FROM) return "night";
+  if (hour < AFTERNOON_FROM) return "morning";
+  if (hour < EVENING_FROM) return "afternoon";
+  return "evening";
+}
+
+const THAI_MONTHS_SHORT = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
+const THAI_YEAR_OFFSET = 543;
+const SHORT_YEAR_MODULO = 100;
+const WEEK_KEY = /^(\d{4})-W(\d{2})$/;
+const MONTH_KEY = /^(\d{4})-(\d{2})$/;
+const DATE_KEY = /^(\d{4})-(\d{2})-(\d{2})$/;
+
+function thaiShortYear(year: number): string {
+  return String((year + THAI_YEAR_OFFSET) % SHORT_YEAR_MODULO).padStart(2, "0");
+}
+
+function thaiMonth(month: number): string {
+  return THAI_MONTHS_SHORT[month - 1] ?? String(month);
+}
+
+/** "2026-W38" → "สัปดาห์ 38", "2026-08" → "ส.ค. 69", "2026-09-22" → "22 ก.ย."; anything else is returned untouched. */
+export function periodLabelTh(key: string): string {
+  const week = WEEK_KEY.exec(key);
+  if (week) return `สัปดาห์ ${Number(week[2])}`;
+  const date = DATE_KEY.exec(key);
+  if (date) return `${Number(date[3])} ${thaiMonth(Number(date[2]))}`;
+  const month = MONTH_KEY.exec(key);
+  if (month) return `${thaiMonth(Number(month[2]))} ${thaiShortYear(Number(month[1]))}`;
+  return key;
 }
 
 /** "คุณอนุชา พรหมศรี" → "คุณอนุชา": the form the agent greets people with. */

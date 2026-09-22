@@ -10,8 +10,8 @@ import type { WidgetSpec } from "@/lib/contracts";
 import { TH } from "@/lib/i18n/th";
 
 const WIDGETS_ENDPOINT = "/api/dashboard/widgets";
-const ICON = "rounded-lg p-1.5 text-muted-foreground transition hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
-const TRAY = "rounded-2xl border border-dashed border-border/70 bg-card/40 p-4";
+const ICON = "rounded-full p-1.5 text-muted-foreground transition hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+const TRAY = "rounded-2xl border border-dashed border-border bg-muted/40 p-4";
 
 export type DashboardWidgetView = { widget: WidgetSpec; spec: Spec };
 

@@ -1,8 +1,9 @@
-import type { MetricResult, MetricRow, WidgetSpec } from "@/lib/contracts";
+import type { Dim, MetricQuery, MetricResult, MetricRow, WidgetSpec } from "@/lib/contracts";
 import type { Spec, SpecElement } from "vexa/protocol";
 import { TH } from "@/lib/i18n/th";
-import { formatDateTh } from "@/lib/i18n/format";
-import { formatMetricValue, metricLabel, metricUnit } from "./metric-display";
+import { addDays, monthKeyOfIso, weekKeyOfIso } from "@/lib/data/dates";
+import { formatDateTh, periodLabelTh } from "@/lib/i18n/format";
+import { formatMetricValue, metricFormat, metricLabel, metricUnit } from "./metric-display";
 
 type Elements = Record<string, SpecElement>;
 type Tone = "info" | "success" | "warning" | "danger";
@@ -11,6 +12,8 @@ const NEUTRAL_BAND = 0.02;
 const MAX_TABLE_ROWS = 8;
 const MAX_ALERTS = 4;
 const ALERT_TONES: readonly Tone[] = ["danger", "warning", "info"];
+const TIME_DIMS: readonly Dim[] = ["date", "week", "month"];
+const SUNDAY = 0;
 
 function element(type: string, props: Record<string, unknown>, children: string[] = []): SpecElement {
   return { type, props, children } as SpecElement;
@@ -39,9 +42,44 @@ function deltaText(widget: WidgetSpec, row: MetricRow): string | null {
   return `${sign}${percent}% ${against}`;
 }
 
+function isTimeDim(dim: Dim): boolean {
+  return TIME_DIMS.includes(dim);
+}
+
+function timeDimOf(query: MetricQuery): Dim | null {
+  return query.dims.find(isTimeDim) ?? null;
+}
+
 function labelOf(widget: WidgetSpec, row: MetricRow): string {
-  const parts = widget.query.dims.map((dim) => row[dim]).filter((part) => part !== null && part !== undefined && part !== "");
-  return parts.length > 0 ? parts.map(String).join(" · ") : metricLabel(widget.query.metric);
+  const parts = widget.query.dims
+    .map((dim) => ({ dim, value: row[dim] }))
+    .filter((part) => part.value !== null && part.value !== undefined && part.value !== "")
+    .map((part) => (isTimeDim(part.dim) ? periodLabelTh(String(part.value)) : String(part.value)));
+  return parts.length > 0 ? parts.join(" · ") : metricLabel(widget.query.metric);
+}
+
+function endsOnFullBucket(query: MetricQuery): boolean {
+  if (query.grain === "month") return monthKeyOfIso(addDays(query.range.to, 1)) !== monthKeyOfIso(query.range.to);
+  if (query.grain === "week") return new Date(`${query.range.to}T00:00:00Z`).getUTCDay() === SUNDAY;
+  return true;
+}
+
+function partialBucketKey(query: MetricQuery): string | null {
+  if (endsOnFullBucket(query)) return null;
+  if (query.grain === "month") return monthKeyOfIso(query.range.to);
+  if (query.grain === "week") return weekKeyOfIso(query.range.to);
+  return null;
+}
+
+/** A trend whose last bucket is the running week or month drops that bucket and says so, instead of falling off a cliff. */
+function withoutPartialBucket(widget: WidgetSpec, rows: MetricRow[]): { rows: MetricRow[]; note: string | null } {
+  if (widget.kind !== "line" || rows.length < 2) return { rows, note: null };
+  const dim = timeDimOf(widget.query);
+  const key = partialBucketKey(widget.query);
+  if (!dim || !key) return { rows, note: null };
+  const last = rows[rows.length - 1];
+  if (String(last[dim]) !== key) return { rows, note: null };
+  return { rows: rows.slice(0, -1), note: widget.query.grain === "month" ? TH.dash.partialMonth : TH.dash.partialWeek };
 }
 
 function chartPoints(widget: WidgetSpec, rows: MetricRow[]): { label: string; value: number }[] {
@@ -68,8 +106,23 @@ function metricBody(id: string, widget: WidgetSpec, rows: MetricRow[]): Elements
   };
 }
 
-function chartBody(id: string, widget: WidgetSpec, rows: MetricRow[], kind: "bar" | "line"): Elements {
-  return { [id]: element("Chart", { title: null, kind, points: chartPoints(widget, rows) }) };
+function seriesFor(widget: WidgetSpec, rows: MetricRow[]) {
+  const points = chartPoints(widget, rows);
+  return {
+    labels: points.map((point) => point.label),
+    series: [{ name: metricLabel(widget.query.metric), values: points.map((point) => point.value) }],
+    format: metricFormat(widget.query.metric),
+  };
+}
+
+function barBody(id: string, widget: WidgetSpec, rows: MetricRow[]): Elements {
+  const { labels, series, format } = seriesFor(widget, rows);
+  return { [id]: element("BarChart", { title: null, labels, series, horizontal: true, stacked: false, showValues: true, format, height: "md" }) };
+}
+
+function lineBody(id: string, widget: WidgetSpec, rows: MetricRow[]): Elements {
+  const { labels, series, format } = seriesFor(widget, rows);
+  return { [id]: element("LineChart", { title: null, labels, series, area: true, showDots: false, format, height: "md" }) };
 }
 
 function tableBody(id: string, widget: WidgetSpec, rows: MetricRow[]): Elements {
@@ -117,8 +170,8 @@ function alertListBody(id: string, widget: WidgetSpec, rows: MetricRow[]): Eleme
 function bodyFor(id: string, widget: WidgetSpec, rows: MetricRow[], masked: boolean): Elements {
   if (masked && widget.kind !== "metric") return kvBody(id, widget, rows);
   if (widget.kind === "metric") return metricBody(id, widget, rows);
-  if (widget.kind === "bar") return chartBody(id, widget, rows, "bar");
-  if (widget.kind === "line") return chartBody(id, widget, rows, "line");
+  if (widget.kind === "bar") return barBody(id, widget, rows);
+  if (widget.kind === "line") return lineBody(id, widget, rows);
   if (widget.kind === "table") return tableBody(id, widget, rows);
   if (widget.kind === "alert_list") return alertListBody(id, widget, rows);
   return kvBody(id, widget, rows);
@@ -142,12 +195,15 @@ export function widgetToSpec(widget: WidgetSpec, result: MetricResult): Spec {
   const bodyId = `${widget.id}-body`;
   const noteId = `${widget.id}-note`;
   const masked = result.provenance.masked.length > 0;
-  const notes = masked ? `${provenanceLine(result)} · ${TH.dash.maskedNote(result.provenance.masked.length)}` : provenanceLine(result);
+  const trimmed = withoutPartialBucket(widget, result.rows);
+  const notes = [provenanceLine(result), masked ? TH.dash.maskedNote(result.provenance.masked.length) : null, trimmed.note]
+    .filter((line): line is string => line !== null)
+    .join(" · ");
   return {
     root,
     elements: {
       [root]: element("Card", { title: widget.title, description: result.summary }, [bodyId, noteId]),
-      ...bodyFor(bodyId, widget, result.rows, masked),
+      ...bodyFor(bodyId, widget, trimmed.rows, masked),
       [noteId]: element("Text", { content: notes, muted: true }),
     },
   };

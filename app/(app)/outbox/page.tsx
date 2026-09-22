@@ -24,7 +24,7 @@ export default async function OutboxPage() {
       <GlowBackdrop />
       <div className="relative mx-auto flex w-full max-w-4xl flex-col gap-6 px-4 py-10 sm:px-8">
         <header className="flex flex-col gap-1">
-          <h1 className="font-display text-2xl font-bold tracking-tight">
+          <h1 className="font-display text-[2rem] font-semibold leading-tight tracking-[-0.02em]">
             <GradientText>{TH.outbox.title}</GradientText>
           </h1>
           <p className="text-sm text-muted-foreground">{TH.outbox.note}</p>
