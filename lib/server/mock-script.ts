@@ -37,7 +37,14 @@ function rowsOf(output: unknown): Row[] {
 
 function textOf(row: Row, key: string): string {
   const value = row[key];
-  return value === null || value === undefined ? "-" : String(value);
+  if (value === null || value === undefined) return "-";
+  return typeof value === "number" ? value.toLocaleString("th-TH", { maximumFractionDigits: 1 }) : String(value);
+}
+
+function deltaTextOf(row: Row): string {
+  const value = row.delta_pct;
+  if (typeof value !== "number") return "-";
+  return `${value > 0 ? "+" : ""}${value.toFixed(1)}%`;
 }
 
 function numberOf(row: Row, key: string): number {
@@ -60,7 +67,7 @@ function maskedCount(output: unknown): number {
 }
 
 function trendOf(row: Row): "up" | "down" | "neutral" {
-  const delta = numberOf(row, "deltaPct");
+  const delta = numberOf(row, "delta_pct");
   if (delta > 1) return "up";
   if (delta < -1) return "down";
   return "neutral";
@@ -94,7 +101,7 @@ function salesSpec(output: unknown): Spec {
   metrics.forEach((row, index) => {
     elements[`metric${index}`] = {
       type: "Metric",
-      props: { label: textOf(row, "region"), value: textOf(row, "valueLabel"), detail: `เทียบเป้า ${textOf(row, "deltaLabel")}`, trend: trendOf(row) },
+      props: { label: textOf(row, "region"), value: textOf(row, "value"), detail: `เทียบเป้า ${deltaTextOf(row)}`, trend: trendOf(row) },
       children: [],
     };
   });
@@ -104,7 +111,7 @@ function salesSpec(output: unknown): Spec {
 function agentSpec(output: unknown): Spec {
   const rows = rowsOf(output)
     .slice(0, MAX_TABLE_ROWS)
-    .map((row) => ({ agent: textOf(row, "agent"), volume: textOf(row, "valueLabel"), delta: textOf(row, "deltaLabel") }));
+    .map((row) => ({ agent: textOf(row, "agent"), volume: textOf(row, "value"), delta: deltaTextOf(row) }));
   return {
     root: "card",
     elements: {
@@ -130,7 +137,7 @@ function salarySpec(output: unknown): Spec {
   const count = maskedCount(output);
   const rows = rowsOf(output)
     .slice(0, MAX_TABLE_ROWS)
-    .map((row) => ({ department: textOf(row, "department"), salary: textOf(row, "valueLabel") }));
+    .map((row) => ({ department: textOf(row, "department"), salary: textOf(row, "value") }));
   return {
     root: "card",
     elements: {

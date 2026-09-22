@@ -31,7 +31,7 @@ function trendOf(value: number | null, previous: number | null): "up" | "down" |
 
 function deltaText(widget: WidgetSpec, row: MetricRow): string | null {
   const value = numericOf(row, "value");
-  const previous = numericOf(row, "compare");
+  const previous = numericOf(row, "compare_value");
   if (value === null || previous === null || previous === 0) return null;
   const percent = Math.round(((value - previous) / Math.abs(previous)) * 1000) / 10;
   const sign = percent >= 0 ? "+" : "";
@@ -39,9 +39,14 @@ function deltaText(widget: WidgetSpec, row: MetricRow): string | null {
   return `${sign}${percent}% ${against}`;
 }
 
-function chartPoints(rows: MetricRow[]): { label: string; value: number }[] {
+function labelOf(widget: WidgetSpec, row: MetricRow): string {
+  const parts = widget.query.dims.map((dim) => row[dim]).filter((part) => part !== null && part !== undefined && part !== "");
+  return parts.length > 0 ? parts.map(String).join(" · ") : metricLabel(widget.query.metric);
+}
+
+function chartPoints(widget: WidgetSpec, rows: MetricRow[]): { label: string; value: number }[] {
   return rows
-    .map((row) => ({ label: String(row.label ?? ""), value: numericOf(row, "value") }))
+    .map((row) => ({ label: labelOf(widget, row), value: numericOf(row, "value") }))
     .filter((point): point is { label: string; value: number } => point.value !== null);
 }
 
@@ -51,20 +56,20 @@ function provenanceLine(result: Extract<MetricResult, { ok: true }>): string {
 }
 
 function metricBody(id: string, widget: WidgetSpec, rows: MetricRow[]): Elements {
-  const row = rows[0] ?? { label: metricLabel(widget.query.metric), value: null };
+  const row = rows[0] ?? { value: null };
   const detail = deltaText(widget, row) ?? metricUnit(widget.query.metric);
   return {
     [id]: element("Metric", {
-      label: String(row.label ?? metricLabel(widget.query.metric)),
+      label: labelOf(widget, row),
       value: formatMetricValue(widget.query.metric, row.value as number | string | null),
       detail,
-      trend: trendOf(numericOf(row, "value"), numericOf(row, "compare")),
+      trend: trendOf(numericOf(row, "value"), numericOf(row, "compare_value")),
     }),
   };
 }
 
 function chartBody(id: string, widget: WidgetSpec, rows: MetricRow[], kind: "bar" | "line"): Elements {
-  return { [id]: element("Chart", { title: null, kind, points: chartPoints(rows) }) };
+  return { [id]: element("Chart", { title: null, kind, points: chartPoints(widget, rows) }) };
 }
 
 function tableBody(id: string, widget: WidgetSpec, rows: MetricRow[]): Elements {
@@ -75,9 +80,9 @@ function tableBody(id: string, widget: WidgetSpec, rows: MetricRow[]): Elements 
     ...(withCompare ? [{ key: "compare", label: "ช่วงก่อนหน้า" }] : []),
   ];
   const tableRows = rows.slice(0, MAX_TABLE_ROWS).map((row) => ({
-    label: String(row.label ?? ""),
+    label: labelOf(widget, row),
     value: formatMetricValue(widget.query.metric, row.value as number | string | null),
-    ...(withCompare ? { compare: formatMetricValue(widget.query.metric, row.compare as number | string | null) } : {}),
+    ...(withCompare ? { compare: formatMetricValue(widget.query.metric, row.compare_value as number | string | null) } : {}),
   }));
   return { [id]: element("Table", { columns, rows: tableRows }) };
 }
@@ -88,7 +93,7 @@ function kvBody(id: string, widget: WidgetSpec, rows: MetricRow[]): Elements {
     { key: "value", label: metricLabel(widget.query.metric) },
   ];
   const tableRows = rows.slice(0, MAX_TABLE_ROWS).map((row) => ({
-    label: String(row.label ?? ""),
+    label: labelOf(widget, row),
     value: formatMetricValue(widget.query.metric, row.value as number | string | null),
   }));
   return { [id]: element("Table", { columns, rows: tableRows }) };

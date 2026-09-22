@@ -1,6 +1,6 @@
 # Cop — build plan
 
-Status: **In progress** · Revision 2 · 2026-09-22 · phase 0 done, phase 1 not started.
+Status: **In progress** · Revision 2 · 2026-09-22 · phase 1 done, phase 2 next.
 
 Cop is the enterprise copilot described in the brainstorm of 2026-09-22 (four angles: executive/governance, daily user, architecture, red-team). This plan turns it into a runnable demo on Vexa with a full-lifecycle mock of a Thai beverage company, built by parallel agents. Everything here is the deliverable; the chat summary is not.
 

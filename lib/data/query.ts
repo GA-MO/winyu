@@ -785,7 +785,7 @@ function compareRange(query: MetricQuery, from: number, to: number): { from: num
     return { from: Math.max(0, from - PREV_YEAR_DAYS), to: to - PREV_YEAR_DAYS, shift: { days: PREV_YEAR_DAYS, months: 0 } };
   }
   if (query.compare !== "prev_period") return null;
-  if (query.grain === "month") {
+  if (query.grain === "month" && query.dims.some((dim) => TIME_DIMS.includes(dim))) {
     const firstMonth = MONTH_OF_DAY[from];
     const months = MONTH_OF_DAY[to] - firstMonth + 1;
     if (firstMonth - months < 0) return null;

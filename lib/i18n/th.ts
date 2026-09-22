@@ -157,7 +157,7 @@ export const TH = {
     trust: { verified: "รับรองแล้ว", derived: "คำนวณ", estimated: "ประมาณการ" },
     denied: "ข้อมูลนี้อยู่นอกขอบเขตสิทธิ์ของคุณ",
     maskedNote: (count: number) => `มี ${count} ฟิลด์ถูกปิดตามสิทธิ์`,
-    placeholderNote: "ตัวเลขตัวอย่างระหว่างรอเชื่อม semantic layer",
+    placeholderNote: "ข้อมูลจาก semantic layer ที่รับรองแล้ว ตามสิทธิ์ของคุณ",
   },
   account: {
     open: "บัญชีของฉัน",
