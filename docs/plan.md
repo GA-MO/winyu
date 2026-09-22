@@ -252,6 +252,19 @@ Every package: `bun run typecheck`, `bun run test`, curl of the page it changed,
 - [x] Motion: landing → session morph (composer docks, cards fade), chips hover lift, cards `hero-rise` on mount; respect `prefers-reduced-motion`. 375 px pass, no horizontal scroll, keyboard focus.
 - [x] `lib/i18n/th.ts` strings, `lib/i18n/format.ts` helpers; curl checks for `/`, `/login`, `/dashboard`, `/c/<id>`, `/admin`, `/outbox`.
 
+### Phase 1.5 — UI polish after the user's review (one opus agent)
+
+User decisions from the review of 2026-09-22 (evening): **light theme is the default**; the look should follow QwenCloud (qwencloud.com pricing + Try AI pages): page bg `rgb(249,250,253)`, text `rgb(11,12,15)`, Inter + Noto Sans Thai, display h1 ~60px/600/-1.2px, black pill primary button, white pill chips with a 1px inset border `rgb(230,233,239)` radius 24px, one gradient accent phrase (indigo→violet→coral) in an otherwise near-black headline, soft pastel blobs, white cards with 1px border + very soft shadow, generous whitespace. Dark stays available from the account sheet.
+
+- [ ] Light default (`<html>` without `dark`, boot script default light, toggle persists); light palette tuned to the values above; gradient text only on the name in the greeting.
+- [ ] Landing backdrop in light mode is a smear: reduce blur to ~2px, opacity ~0.35, white radial mask toward the centre, keep card edges crisp; a soft translucent white panel behind the greeting + composer so the column always has contrast.
+- [ ] Composer (landing + session): white, 1px border, soft shadow, 2px gradient ring on focus, black round send button; chips as Qwen; ambient cards white with a coloured left accent.
+- [ ] Dashboard mode (⌘D): cards fully crisp (no residual blur/opacity), content offset by the rail so the expanded rail never covers the first card; sticky top composer.
+- [ ] Widgets: `BarChart horizontal` / `LineChart` instead of `Chart`; Thai short time labels; partial last bucket marked (dashed) or excluded.
+- [ ] Bug: `/c/new?prompt=…` bounces to `/` instead of creating a thread and auto-sending; alerts' verify buttons depend on it.
+- [ ] Session page, login, account sheet, inbox drawer, dashboard, admin: light pass with the same card/border/shadow language; drawer/sheet dim = `bg-foreground/10` + light backdrop-blur, not mush.
+- [ ] Greeting: ตอนเช้า / ตอนบ่าย / ตอนเย็น / ค่ำ mapping; verify with the browser at 1440×900 and 375×812, screenshots into `docs/screenshots/` (light).
+
 ### Phase 2 — the four loops (four agents in parallel)
 
 **2A Threads, memory, quick actions** (`lib/server/threads.ts`, `lib/engine/memory.ts`, `lib/engine/recommend.ts`)
