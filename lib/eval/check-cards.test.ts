@@ -17,7 +17,7 @@ function handDrawn(footnote: string, value: string): Spec {
 
 function grounded(spec: Spec) {
   const outputs = [{ ok: true, total: 494728, provenance: { asOf: "2026-09-22" } }];
-  return checkTurn({ text: "", spec, toolOutputs: outputs }, CASE).find((result) => result.id === "grounded");
+  return checkTurn({ text: "", spec, toolOutputs: outputs, toolInputs: [] }, CASE).find((result) => result.id === "grounded");
 }
 
 describe("grounded check", () => {

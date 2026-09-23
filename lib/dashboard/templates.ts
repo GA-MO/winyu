@@ -51,7 +51,7 @@ const CEO_SEEDS: WidgetSeed[] = [
   seed({ key: "volume_trend", title: "ปริมาณขายรายเดือน", kind: "line", metric: "net_sales_volume", dims: ["month"], range: LAST_6_MONTHS, compare: "prev_year" }),
   seed({ key: "margin_bu", title: "กำไรขั้นต้นตามกลุ่มธุรกิจ", kind: "bar", metric: "gross_margin", dims: ["business_unit"], range: YEAR_TO_DATE }),
   seed({ key: "alerts", title: "ความผิดปกติที่ต้องดู", kind: "alert_list", metric: "sell_out_volume", dims: ["region"], range: LAST_4_WEEKS, grain: "week", compare: "prev_period" }),
-  seed({ key: "ar", title: "ลูกหนี้ค้างชำระตามภาค", kind: "bar", metric: "ar_overdue", dims: ["region"], range: MONTH_TO_DATE, pinned: false, source: "role_template", reason: "คุณเปิดดูลูกหนี้ค้างชำระ 4 ครั้งใน 14 วัน" }),
+  seed({ key: "ar", title: "ลูกหนี้ค้างชำระตามภาค", kind: "bar", metric: "ar_overdue", dims: ["region"], range: MONTH_TO_DATE, pinned: false, source: "role_template", reason: "ใช้ติดตามเงินที่ค้างจากเอเย่นต์" }),
 ];
 
 const CFO_SEEDS: WidgetSeed[] = [
@@ -59,7 +59,7 @@ const CFO_SEEDS: WidgetSeed[] = [
   seed({ key: "value", title: "มูลค่าขายเดือนนี้", kind: "metric", metric: "net_sales_value", compare: "prev_period" }),
   seed({ key: "ar_region", title: "ลูกหนี้ค้างชำระตามภาค", kind: "bar", metric: "ar_overdue", dims: ["region"] }),
   seed({ key: "trade_spend", title: "งบส่งเสริมการขาย", kind: "kv", metric: "trade_spend", dims: ["region"], limit: TOP_ROWS }),
-  seed({ key: "mape", title: "ความคลาดเคลื่อนพยากรณ์", kind: "metric", metric: "forecast_mape", pinned: false, source: "role_template", reason: "ถามบ่อยช่วงปิดเดือน" }),
+  seed({ key: "mape", title: "ความคลาดเคลื่อนพยากรณ์", kind: "metric", metric: "forecast_mape", pinned: false, source: "role_template", reason: "ใช้ดูว่าพยากรณ์แม่นแค่ไหนก่อนวางแผน" }),
 ];
 
 const SALES_DIRECTOR_SEEDS: WidgetSeed[] = [
@@ -74,7 +74,7 @@ const SALES_RSM_SEEDS: WidgetSeed[] = [
   seed({ key: "falling_agents", title: "เอเย่นต์ที่ยอดตกเทียบไตรมาสก่อน", kind: "table", metric: "net_sales_volume", dims: ["agent"], range: LAST_4_WEEKS, grain: "week", compare: "prev_period", limit: TOP_ROWS }),
   seed({ key: "sell_out", title: "ยอดขายออกจากร้านรายสัปดาห์", kind: "line", metric: "sell_out_volume", dims: ["week"], range: LAST_QUARTER, grain: "week", compare: "prev_year" }),
   seed({ key: "cover", title: "จำนวนวันที่สต๊อกพอขาย", kind: "kv", metric: "days_of_cover", dims: ["dc"], limit: TOP_ROWS }),
-  seed({ key: "alerts", title: "ความผิดปกติในภาคของคุณ", kind: "alert_list", metric: "sell_out_volume", dims: ["agent"], range: LAST_4_WEEKS, grain: "week", compare: "prev_period", pinned: false, source: "role_template", reason: "คุณเปิดดูความผิดปกติทุกเช้าวันจันทร์" }),
+  seed({ key: "alerts", title: "ความผิดปกติในภาคของคุณ", kind: "alert_list", metric: "sell_out_volume", dims: ["agent"], range: LAST_4_WEEKS, grain: "week", compare: "prev_period", pinned: false, source: "role_template", reason: "ใช้ดูความผิดปกติในภาคของคุณที่เดียว" }),
 ];
 
 const SALES_REP_SEEDS: WidgetSeed[] = [
@@ -88,7 +88,7 @@ const MARKETING_SEEDS: WidgetSeed[] = [
   seed({ key: "uplift", title: "ผลยกระดับจากแคมเปญ", kind: "metric", metric: "campaign_uplift", compare: "prev_period" }),
   seed({ key: "sov", title: "ส่วนแบ่งเสียงรายสัปดาห์", kind: "line", metric: "share_of_voice", dims: ["week"], range: LAST_QUARTER, grain: "week" }),
   seed({ key: "sentiment", title: "คะแนนความรู้สึกตามแบรนด์", kind: "kv", metric: "sentiment_score", dims: ["brand"], limit: TOP_ROWS }),
-  seed({ key: "sell_out", title: "ยอดขายออกจากร้านตามแบรนด์", kind: "bar", metric: "sell_out_volume", dims: ["brand"], range: LAST_4_WEEKS, grain: "week", pinned: false, source: "role_template", reason: "คุณถามยอดหลังแคมเปญทุกครั้ง" }),
+  seed({ key: "sell_out", title: "ยอดขายออกจากร้านตามแบรนด์", kind: "bar", metric: "sell_out_volume", dims: ["brand"], range: LAST_4_WEEKS, grain: "week", pinned: false, source: "role_template", reason: "ใช้ดูว่าแคมเปญขายออกได้จริงไหม" }),
 ];
 
 const SUPPLY_SEEDS: WidgetSeed[] = [
@@ -96,7 +96,7 @@ const SUPPLY_SEEDS: WidgetSeed[] = [
   seed({ key: "production", title: "กำลังการผลิตตามโรงงาน", kind: "bar", metric: "production_output", dims: ["plant"], range: LAST_4_WEEKS, grain: "week", compare: "prev_period" }),
   seed({ key: "mape", title: "ความคลาดเคลื่อนพยากรณ์", kind: "metric", metric: "forecast_mape", compare: "prev_period" }),
   seed({ key: "capacity", title: "อัตราการใช้กำลังผลิตรายสัปดาห์", kind: "line", metric: "capacity_utilization", dims: ["week"], range: LAST_QUARTER, grain: "week" }),
-  seed({ key: "sell_out", title: "ยอดขายออกจากร้านตาม SKU", kind: "kv", metric: "sell_out_volume", dims: ["sku"], limit: TOP_ROWS, pinned: false, source: "role_template", reason: "ใช้ประกอบการวางแผนผลิตทุกสัปดาห์" }),
+  seed({ key: "sell_out", title: "ยอดขายออกจากร้านตาม SKU", kind: "kv", metric: "sell_out_volume", dims: ["sku"], limit: TOP_ROWS, pinned: false, source: "role_template", reason: "ใช้ประกอบการวางแผนผลิต" }),
 ];
 
 const FINANCE_SEEDS: WidgetSeed[] = [

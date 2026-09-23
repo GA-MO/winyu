@@ -1,11 +1,16 @@
 import type { Spec, SpecElement } from "vexa/protocol";
+import { watchMetricInputSchema } from "@/lib/contracts";
 import type { EvalCase } from "./cases";
 
-export type CheckId = "calledTool" | "usedCard" | "boundToTool" | "sortedRight" | "titleIsAnswer" | "noSummaryProse" | "grounded";
+export type CheckId = "calledTool" | "askedApproval" | "usedCard" | "boundToTool" | "sortedRight" | "titleIsAnswer" | "noSummaryProse" | "grounded";
 
 export type CheckResult = { id: CheckId; ok: boolean; detail: string };
 
-export type Turn = { text: string; spec: Spec | null; toolOutputs: Record<string, unknown>[] };
+export type ToolInput = { tool: string; input: unknown };
+
+export type Turn = { text: string; spec: Spec | null; toolOutputs: Record<string, unknown>[]; toolInputs: ToolInput[] };
+
+const APPROVAL_SCHEMAS: Partial<Record<string, { safeParse: (value: unknown) => { success: boolean } }>> = { watch_metric: watchMetricInputSchema };
 
 const CARD_TYPES = new Set(["DataCard", "AlertsCard"]);
 const NUMBER_IN_TEXT = /-?\d[\d,.]{2,}/g;
@@ -69,9 +74,14 @@ export function checkTurn(turn: Turn, testCase: EvalCase): CheckResult[] {
   const source = props.source as { $state?: string } | undefined;
   const title = typeof props.title === "string" ? props.title : "";
   const description = props.description;
-  const results: CheckResult[] = [
-    check("calledTool", turn.toolOutputs.length > 0, `เรียก tool ${turn.toolOutputs.length} ครั้ง`),
-  ];
+  const called = Math.max(turn.toolOutputs.length, turn.toolInputs.length);
+  const results: CheckResult[] = [check("calledTool", called > 0, `เรียก tool ${called} ครั้ง`)];
+  if (testCase.expectApproval) {
+    const asked = turn.toolInputs.find((entry) => entry.tool === testCase.expectApproval);
+    const schema = APPROVAL_SCHEMAS[testCase.expectApproval];
+    const valid = asked !== undefined && (!schema || schema.safeParse(asked.input).success);
+    results.push(check("askedApproval", valid, asked ? `input ${valid ? "ถูกต้อง" : "ไม่ผ่าน schema"}` : `ไม่ได้เรียก ${testCase.expectApproval}`));
+  }
   if (testCase.expectComponent) {
     results.push(check("usedCard", card?.type === testCase.expectComponent, `ได้ ${card?.type ?? "ไม่มีการ์ด"} คาดว่า ${testCase.expectComponent}`));
     results.push(check("boundToTool", typeof source?.$state === "string" && source.$state.startsWith("/tools/"), `source = ${source?.$state ?? "ไม่ได้ผูก"}`));

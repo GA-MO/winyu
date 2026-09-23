@@ -6,6 +6,7 @@ import { TH } from "@/lib/i18n/th";
 import { ambientFor, landingKpis, landingStatus, visitsFor } from "@/lib/server/dashboard";
 import { quickActionsFor } from "@/lib/server/quick-actions";
 import { readAccess, readUser } from "@/lib/server/session";
+import { markVisit } from "@/lib/server/visits";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +16,7 @@ export default async function LandingPage() {
   const access = readAccess(jar);
   if (!user || !access) redirect("/login");
 
+  markVisit(access);
   const greeting = { lead: TH.landing.greeting[timeOfDay()], name: shortName(user.nameTh) };
 
   return (

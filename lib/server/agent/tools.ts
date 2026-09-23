@@ -12,6 +12,7 @@ import {
   listMetricsInputSchema,
   metricQuerySchema,
   pinWidgetInputSchema,
+  watchMetricInputSchema,
   recallMemoryInputSchema,
   resolveOwnerInputSchema,
   runJobInputSchema,
@@ -43,6 +44,9 @@ import { alertRowOf } from "@/lib/cards/alert-row";
 import { ADDITIVE_FORECAST_METRICS, forecastSlice } from "@/lib/engine/forecast-slice";
 import { periodLabelTh } from "@/lib/i18n/format";
 import { weekKeyOfIso } from "@/lib/data/dates";
+import { conditionLabel, createWatch, runWatchJob } from "@/lib/server/watches";
+import { runDigestJob } from "@/lib/server/digest";
+import { lessonFor } from "@/lib/server/outcomes";
 
 const NO_ALERTS = "ไม่พบความผิดปกติที่เปิดอยู่ในขอบเขตของผู้ใช้คนนี้";
 const NO_FORECAST = "ยังไม่มีพยากรณ์สำหรับมิติที่ขอ";
@@ -134,12 +138,18 @@ const get_alerts = tool({
   execute: withAudit("get_alerts", async ({ status, limit }: z.infer<typeof getAlertsInputSchema>) => {
     const access = currentAccess();
     const found = status === "open" ? openAlertsFor(access) : allAlertsFor(access);
-    const rows = found.slice(0, limit ?? DEFAULT_ALERT_LIMIT).map(alertRowOf);
-    if (rows.length === 0) return { ok: true as const, summary: NO_ALERTS, rows: [], nextActions: [] };
+    const shown = found.slice(0, limit ?? DEFAULT_ALERT_LIMIT);
+    const rows = shown.map(alertRowOf);
+    if (rows.length === 0) return { ok: true as const, summary: NO_ALERTS, rows: [], lessons: [], nextActions: [] };
+    const lessons = shown.flatMap((alert) => {
+      const lesson = lessonFor(alert);
+      return lesson ? [{ alertId: alert.id, lesson }] : [];
+    });
     return {
       ok: true as const,
       summary: `มีความผิดปกติที่เปิดอยู่ ${rows.length} รายการในขอบเขตของคุณ`,
       rows,
+      lessons,
       nextActions: actionsForAlert(access, found[0] ?? null),
     };
   }),
@@ -196,18 +206,18 @@ const resolve_owner = tool({
   inputSchema: resolveOwnerInputSchema,
   execute: withAudit("resolve_owner", async ({ metric, dims }: z.infer<typeof resolveOwnerInputSchema>) => {
     const region = regionOf(dims);
-    const owner = responsibleFor(metric, region);
-    const suggestion = suggestOwner(metric, region);
-    if (!owner || !suggestion) return { ok: false as const, error: `ยังไม่มีผู้รับผิดชอบสำหรับ ${metric}` };
+    const suggestion = suggestOwner(metric, region, currentAccess().userId);
+    const target = suggestion ? findUser(suggestion.userId) : null;
+    if (!suggestion || !target) return { ok: false as const, error: `ยังไม่มีผู้รับผิดชอบสำหรับ ${metric}` };
     return {
       ok: true as const,
-      summary: `ผู้รับผิดชอบคือ ${owner.user.nameTh}`,
+      summary: `ผู้รับผิดชอบคือ ${target.nameTh}`,
       data: {
-        userId: owner.userId,
-        nameTh: owner.user.nameTh,
-        title: owner.user.title,
-        role: owner.role,
-        region: owner.user.region,
+        userId: target.id,
+        nameTh: target.nameTh,
+        title: target.title,
+        role: target.role,
+        region: target.region,
         reason: suggestion.reason,
         openLoad: suggestion.openLoad,
         handledBefore: suggestion.handledBefore,
@@ -287,6 +297,22 @@ const pin_widget = tool({
   }),
 });
 
+const watch_metric = tool({
+  description:
+    "Keep watching a metric for the user and notify them when it crosses a line: condition.kind 'below' / 'above' compares each row's value with condition.value (in the metric's unit), 'change' fires when the change against the previous period reaches condition.value percent. Use it when the user says เตือน / แจ้งเมื่อ / คอยดู / ถ้า…ให้บอก. The query is checked every hour under the user's own scope, rolling to the latest data. The user approves it first.",
+  inputSchema: watchMetricInputSchema,
+  needsApproval: true,
+  execute: withAudit("watch_metric", async ({ title, query, condition }: z.infer<typeof watchMetricInputSchema>) => {
+    const created = createWatch(currentAccess(), { title, query, condition });
+    if (!created.ok) return { ok: false as const, error: created.error };
+    return {
+      ok: true as const,
+      summary: TH.watch.created(title, created.now),
+      data: { watchId: created.watch.id, condition: conditionLabel(query, condition), state: created.watch.state, now: created.now },
+    };
+  }),
+});
+
 const run_job = tool({
   description: "Run one batch job of the analytics plane: anomaly detection, forecasting or dashboard composition. IT administrators only; the user approves it first.",
   inputSchema: runJobInputSchema,
@@ -294,6 +320,8 @@ const run_job = tool({
   execute: withAudit("run_job", async ({ job }: z.infer<typeof runJobInputSchema>) => {
     if (job === "anomaly") return { ok: true as const, summary: "รันการตรวจจับความผิดปกติแล้ว", data: runAnomalyJob() };
     if (job === "forecast") return { ok: true as const, summary: "รันการพยากรณ์แล้ว", data: runForecastJob() };
+    if (job === "watches") return { ok: true as const, summary: "ตรวจเรื่องที่ผู้ใช้เฝ้าดูแล้ว", data: runWatchJob() };
+    if (job === "digest") return { ok: true as const, summary: "ส่งสรุปตอนเช้าแล้ว", data: runDigestJob() };
     return { ok: true as const, summary: "รันงานเบื้องหลังทั้งหมดแล้ว", data: runEngineJobs() };
   }),
 });
@@ -309,6 +337,7 @@ const TOOLS = {
   create_handoff,
   send_email,
   pin_widget,
+  watch_metric,
   run_job,
 } satisfies Record<ToolName, Tool>;
 

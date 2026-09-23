@@ -9,6 +9,7 @@ import { formatDateTh } from "@/lib/i18n/format";
 import { TH } from "@/lib/i18n/th";
 import { notifications, outbox, packetOrigins, packets, type OutboxEntry } from "./agent/collections";
 import { threads } from "./threads-read";
+import { rememberAction } from "@/lib/engine/memory";
 
 const MAX_EVIDENCE_ROWS = 6;
 const DIGEST_TURNS = 3;
@@ -112,6 +113,11 @@ export function createPacket(input: HandoffInput, sender: User | null, recipient
     updatedAt: at,
   };
   packets().put(packet);
+  const first = input.evidence[0];
+  if (sender && first) {
+    const scope = scopeOf(first.filters);
+    rememberAction(sender.id, { type: "responsibility", value: TH.memory.sentTo(scope ? `${metricLabel(first.metric)} ${scope}` : metricLabel(first.metric), recipient.nameTh) });
+  }
   if (input.threadId) packetOrigins().put({ id: packet.id, threadId: input.threadId, userId: packet.fromUserId });
   notify({ userId: recipient.id, kind: "handoff", refId: packet.id, title: TH.handoff.newFrom(sender?.nameTh ?? packet.fromUserId, packet.title) });
   mail({
@@ -168,18 +174,42 @@ export function actOnPacket(packet: ContextPacket, access: AccessContext, action
 
 export type OwnerSuggestion = { userId: string; nameTh: string; title: string; reason: string; openLoad: number; handledBefore: number };
 
-/** Who should get this: the RACI owner, how often they have handled the same metric, and what is already on their plate. */
-export function suggestOwner(metric: ContextPacket["evidence"][number]["metric"], region: string | null): OwnerSuggestion | null {
-  const owner = responsibleFor(metric, (region ?? null) as never);
-  if (!owner) return null;
-  const theirs = packets().where((packet) => packet.toUserId === owner.userId);
+const MIN_USUAL_SENDS = 2;
+
+const HANDLED: ReadonlySet<ContextPacket["status"]> = new Set(["accepted", "resolved"]);
+
+function aboutRegion(query: MetricQuery, region: string | null): boolean {
+  const filtered = query.filters.region ?? [];
+  return region === null ? filtered.length === 0 : filtered.includes(region);
+}
+
+/** The colleague who took this metric and region from this sender at least twice — accepted or closed it, not just received it. */
+export function usualRecipient(fromUserId: string, metric: MetricQuery["metric"], region: string | null): { userId: string; sent: number } | null {
+  const counts = new Map<string, number>();
+  for (const packet of packets().where((entry) => entry.fromUserId === fromUserId && HANDLED.has(entry.status))) {
+    if (!packet.evidence.some((query) => query.metric === metric && aboutRegion(query, region))) continue;
+    counts.set(packet.toUserId, (counts.get(packet.toUserId) ?? 0) + 1);
+  }
+  const [best] = [...counts.entries()].sort((left, right) => right[1] - left[1]);
+  return best && best[1] >= MIN_USUAL_SENDS ? { userId: best[0], sent: best[1] } : null;
+}
+
+/** Who should get this: whom this user usually sends it to, else the RACI owner; with how often they handled it and their open load. */
+export function suggestOwner(metric: ContextPacket["evidence"][number]["metric"], region: string | null, fromUserId: string | null = null): OwnerSuggestion | null {
+  const raci = responsibleFor(metric, (region ?? null) as never);
+  const usual = fromUserId ? usualRecipient(fromUserId, metric, region) : null;
+  const usualUser = usual ? findUser(usual.userId) : null;
+  const target = usualUser ?? raci?.user ?? null;
+  if (!target) return null;
+  const theirs = packets().where((packet) => packet.toUserId === target.id);
   const handledBefore = theirs.filter((packet) => packet.evidence.some((query) => query.metric === metric)).length;
   const openLoad = theirs.filter((packet) => packet.status === "open" || packet.status === "accepted").length;
+  const basis = usual && usualUser ? TH.handoff.usualReason(usual.sent, usualUser.nameTh) : (raci?.basis ?? "");
   return {
-    userId: owner.userId,
-    nameTh: owner.user.nameTh,
-    title: owner.user.title,
-    reason: TH.handoff.ownerReason(owner.basis, handledBefore, openLoad),
+    userId: target.id,
+    nameTh: target.nameTh,
+    title: target.title,
+    reason: TH.handoff.ownerReason(basis, handledBefore, openLoad),
     openLoad,
     handledBefore,
   };

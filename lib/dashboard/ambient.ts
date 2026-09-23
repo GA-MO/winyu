@@ -10,6 +10,7 @@ export type AmbientInput = {
   alerts: readonly Alert[];
   packet: AmbientPacket | null;
   ownerName: (alert: Alert) => string | null;
+  lessonOf: (alert: Alert) => string | null;
   actionsFor: (alert: Alert) => NextAction[];
 };
 
@@ -24,7 +25,10 @@ export type AmbientCard = {
   title: string;
   headline: AmbientHeadline | null;
   body: string | null;
+  lesson: string | null;
   prompt: string;
+  packetId: string | null;
+  alertId: string | null;
   handoff: NextAction | null;
   spec: Spec;
 };
@@ -51,7 +55,7 @@ function signedGap(alert: Alert, gapLabel: string | null): string | null {
   return `${alert.direction === "down" ? "−" : "+"}${gapLabel}`;
 }
 
-function alertCard(alert: Alert, owner: string | null, actions: NextAction[]): AmbientCard {
+function alertCard(alert: Alert, owner: string | null, lesson: string | null, actions: NextAction[]): AmbientCard {
   const row = alertRowOf(alert);
   const root = `ambient-alert-${alert.id}`;
   const tone = SEVERITY_TONES[alert.severity];
@@ -65,7 +69,10 @@ function alertCard(alert: Alert, owner: string | null, actions: NextAction[]): A
     title: row.scopeLabel,
     headline: gap ? { value: gap, tone, caption } : null,
     body: owner ? `${TH.inbox.owner(owner)} · ${row.hypothesis}` : row.hypothesis,
+    lesson,
     prompt: TH.landing.askAbout(row.scopeLabel),
+    packetId: null,
+    alertId: alert.id,
     handoff: actions.find((action) => action.kind === "handoff" && action.tool !== null) ?? null,
     spec: {
       root,
@@ -85,7 +92,10 @@ function packetCard(packet: AmbientPacket): AmbientCard {
     title: packet.title,
     headline: null,
     body: `${from} · ${packet.ask}`,
+    lesson: null,
     prompt: TH.landing.packetPrompt(packet.title),
+    packetId: packet.id,
+    alertId: null,
     handoff: null,
     spec: {
       root,
@@ -96,17 +106,19 @@ function packetCard(packet: AmbientPacket): AmbientCard {
 
 function differentStory(first: Alert, alerts: readonly Alert[]): Alert | null {
   const others = alerts.filter((alert) => alert.id !== first.id);
-  return others.find((alert) => alert.dims.region !== first.dims.region || alert.metric !== first.metric) ?? others[0] ?? null;
+  const serious = others.filter((alert) => alert.severity !== "P3");
+  const pool = serious.length > 0 ? serious : others;
+  return pool.find((alert) => alert.dims.region !== first.dims.region || alert.metric !== first.metric) ?? pool[0] ?? null;
 }
 
 /** Up to two cards under the KPIs, each leading with the number that decides: the top alert, then the newest handoff or an alert from a different region or metric. */
 export function ambientCards(input: AmbientInput): AmbientCard[] {
   const [first] = input.alerts;
   const cards: AmbientCard[] = [];
-  if (first) cards.push(alertCard(first, input.ownerName(first), input.actionsFor(first)));
+  if (first) cards.push(alertCard(first, input.ownerName(first), input.lessonOf(first), input.actionsFor(first)));
   const second = first ? differentStory(first, input.alerts) : null;
   if (input.packet) cards.push(packetCard(input.packet));
-  else if (second) cards.push(alertCard(second, input.ownerName(second), input.actionsFor(second)));
+  else if (second) cards.push(alertCard(second, input.ownerName(second), input.lessonOf(second), input.actionsFor(second)));
   return cards.slice(0, MAX_CARDS);
 }
 

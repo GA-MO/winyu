@@ -5,7 +5,8 @@ import { TODAY, addDays, formatThaiDate } from "@/lib/data/dates";
 import { metricLabel } from "@/lib/dashboard/metric-display";
 import { templateFor } from "@/lib/dashboard/templates";
 import { TH } from "@/lib/i18n/th";
-import { openAlertsFor, openPacketsFor } from "./alerts";
+import { openAlertsFor, openPacketsFor, relevanceOf } from "./alerts";
+import type { Baseline } from "./visits";
 
 const TOP_ALERTS = 3;
 const MOVE_THRESHOLD = 5;
@@ -85,14 +86,15 @@ export function morningBriefFor(access: AccessContext): MorningBrief {
 
 export type DashboardChange = { label: string; deltaPct: number | null; metric: MetricId | null };
 
-/** What is different on this dashboard since yesterday, as chips: new alerts, new replies, the metrics that moved. */
-export function changesSince(access: AccessContext): DashboardChange[] {
-  const yesterday = addDays(TODAY, -1);
-  const fresh = openAlertsFor(access).filter((alert) => alert.at.slice(0, 10) >= yesterday);
-  const replied = openPacketsFor(access).filter((packet) => packet.thread.length > 0 && packet.updatedAt.slice(0, 10) >= yesterday);
+/** What is different since the user last looked: alerts that were not there, replies that came in, and the metrics that moved. */
+export function changesSince(access: AccessContext, baseline: Baseline): DashboardChange[] {
   const changes: DashboardChange[] = [];
-  if (fresh.length > 0) changes.push({ label: TH.brief.newAlerts(fresh.length), deltaPct: null, metric: null });
-  if (replied.length > 0) changes.push({ label: TH.brief.newReplies(replied.length), deltaPct: null, metric: null });
+  if (baseline) {
+    const fresh = openAlertsFor(access).filter((alert) => relevanceOf(alert, access) !== "other" && !baseline.alertIds.has(alert.id));
+    const replied = openPacketsFor(access).filter((packet) => packet.thread.length > 0 && packet.updatedAt > baseline.at);
+    if (fresh.length > 0) changes.push({ label: TH.brief.newAlerts(fresh.length), deltaPct: null, metric: null });
+    if (replied.length > 0) changes.push({ label: TH.brief.newReplies(replied.length), deltaPct: null, metric: null });
+  }
   for (const move of movesFor(access)) changes.push({ label: move.label, deltaPct: move.deltaPct, metric: move.metric });
   return changes;
 }

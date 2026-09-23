@@ -19,6 +19,7 @@ import { PILL } from "@/components/ui/pill";
 
 const THREADS_ENDPOINT = "/api/threads";
 const QUICK_ACTIONS_ENDPOINT = "/api/quick-actions";
+const ALERTS_ENDPOINT = "/api/alerts";
 const DASHBOARD_PATH = "/dashboard";
 const MAX_CHIPS = 4;
 const HERO = "flex w-full max-w-3xl flex-col gap-6";
@@ -97,6 +98,7 @@ function AmbientCardView({ card, onOpen, onHandoff }: { card: AmbientCard; onOpe
         ) : null}
         <span className="line-clamp-2 text-sm font-semibold tracking-tight">{card.title}</span>
         {card.body ? <span className="line-clamp-2 text-xs text-muted-foreground">{card.body}</span> : null}
+        {card.lesson ? <span className="line-clamp-2 rounded-lg bg-muted px-2 py-1 text-xs text-foreground">{card.lesson}</span> : null}
       </button>
       {handoff ? (
         <div className="mt-auto flex pt-1">
@@ -186,7 +188,7 @@ export function Landing({
   }, []);
 
   const start = useCallback(
-    async (prompt: string, intentKey?: string, title?: string) => {
+    async (prompt: string, intentKey?: string, title?: string, preloadPacketId?: string) => {
       if (busy) return;
       setBusy(true);
       setFailed(false);
@@ -201,7 +203,7 @@ export function Landing({
       const response = await fetch(THREADS_ENDPOINT, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ firstMessage: prompt, title }),
+        body: JSON.stringify({ firstMessage: prompt, title, preloadPacketId }),
       }).catch(() => null);
       if (!response?.ok) {
         setBusy(false);
@@ -212,6 +214,20 @@ export function Landing({
       router.push(`/c/${id}?prompt=${encodeURIComponent(prompt)}`);
     },
     [busy, router],
+  );
+
+  const openAmbient = useCallback(
+    (card: AmbientCard) => {
+      if (card.alertId) {
+        void fetch(`${ALERTS_ENDPOINT}/${card.alertId}`, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ action: "open" }),
+        }).catch(() => undefined);
+      }
+      void start(card.prompt, undefined, undefined, card.packetId ?? undefined);
+    },
+    [start],
   );
 
   useEffect(() => {
@@ -268,7 +284,7 @@ export function Landing({
                 <AmbientCardView
                   key={card.id}
                   card={card}
-                  onOpen={() => void start(card.prompt)}
+                  onOpen={() => openAmbient(card)}
                   onHandoff={(action) => action.tool && void start(formatActionMessage(action.tool, action.input ?? {}), undefined, action.label)}
                 />
               ))}

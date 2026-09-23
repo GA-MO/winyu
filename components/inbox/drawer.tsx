@@ -43,17 +43,24 @@ export function focusFromParams(params: URLSearchParams): InboxFocus {
   return { tab: isTab(tab) ? tab : DEFAULT_FOCUS.tab, severity: isSeverity(severity) ? severity : DEFAULT_FOCUS.severity };
 }
 type PacketAction = "accept" | "need_info" | "return" | "resolve";
+type AlertAction = "open" | "mute" | "dismiss";
+type Verdict = "real" | "noise";
+type PacketAct = (id: string, action: PacketAction, outcome?: string, verdict?: Verdict) => void;
 
 export function InboxDrawer({ open, onClose, focus = DEFAULT_FOCUS }: { open: boolean; onClose: () => void; focus?: InboxFocus }) {
   const router = useRouter();
   const [tab, setTab] = useState<Tab>(focus.tab);
   const [data, setData] = useState<InboxPayload>(EMPTY);
+  const [loaded, setLoaded] = useState(false);
   const [note, setNote] = useState<string | null>(null);
 
   const load = useCallback(() => {
     fetch(INBOX_ENDPOINT)
       .then((response) => (response.ok ? response.json() : null))
-      .then((payload: InboxPayload | null) => setData(payload ?? EMPTY))
+      .then((payload: InboxPayload | null) => {
+        setData(payload ?? EMPTY);
+        setLoaded(true);
+      })
       .catch(() => undefined);
   }, []);
 
@@ -76,11 +83,11 @@ export function InboxDrawer({ open, onClose, focus = DEFAULT_FOCUS }: { open: bo
   }, [onClose]);
 
   const act = useCallback(
-    async (packetId: string, action: PacketAction, outcome?: string) => {
+    async (packetId: string, action: PacketAction, outcome?: string, verdict?: Verdict) => {
       const response = await fetch(`${INBOX_ENDPOINT}/${packetId}`, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ action, outcome: outcome ?? null }),
+        body: JSON.stringify({ action, outcome: outcome ?? null, verdict: verdict ?? null }),
       });
       if (!response.ok) {
         const payload = (await response.json().catch(() => null)) as { error?: string } | null;
@@ -93,12 +100,13 @@ export function InboxDrawer({ open, onClose, focus = DEFAULT_FOCUS }: { open: bo
     [load],
   );
 
-  const dismiss = useCallback(
-    async (alertId: string) => {
-      const response = await fetch(`${ALERTS_ENDPOINT}/${alertId}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "dismiss" }) });
-      const payload = (await response.json().catch(() => null)) as { note?: string | null } | null;
-      setNote(payload?.note ?? TH.inbox.dismissed);
-      load();
+  const actOnAlert = useCallback(
+    async (alertId: string, action: AlertAction) => {
+      const response = await fetch(`${ALERTS_ENDPOINT}/${alertId}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action }) });
+      if (action === "open") return;
+      const payload = (await response.json().catch(() => null)) as { note?: string | null; error?: string } | null;
+      setNote(payload?.error ?? payload?.note ?? null);
+      if (response.ok) load();
     },
     [load],
   );
@@ -133,7 +141,8 @@ export function InboxDrawer({ open, onClose, focus = DEFAULT_FOCUS }: { open: bo
         </nav>
 
         <div className="vexa-scrollbar flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-3">
-          {tab === "handoffs" ? (
+          {!loaded ? <p className="px-2 py-8 text-sm text-muted-foreground">{TH.common.loading}</p> : null}
+          {loaded && tab === "handoffs" ? (
             <HandoffList
               items={data.handoffs}
               note={note}
@@ -142,17 +151,17 @@ export function InboxDrawer({ open, onClose, focus = DEFAULT_FOCUS }: { open: bo
               onAsk={(prompt) => router.push(`/c/new?prompt=${encodeURIComponent(prompt)}`)}
             />
           ) : null}
-          {tab === "alerts" ? (
+          {loaded && tab === "alerts" ? (
             <AlertList
               key={focus.severity}
               items={data.alerts}
               note={note}
               initialSeverity={focus.severity}
-              onDismiss={dismiss}
+              onAct={actOnAlert}
               onAsk={(prompt) => router.push(`/c/new?prompt=${encodeURIComponent(prompt)}`)}
             />
           ) : null}
-          {tab === "replies" ? <ReplyList items={data.replies} /> : null}
+          {loaded && tab === "replies" ? <ReplyList items={data.replies} /> : null}
         </div>
       </aside>
     </>
@@ -177,7 +186,7 @@ function HandoffList({
 }: {
   items: HandoffItem[];
   note: string | null;
-  onAct: (id: string, action: PacketAction, outcome?: string) => void;
+  onAct: PacketAct;
   onOpen: (id: string) => void;
   onAsk: (prompt: string) => void;
 }) {
@@ -199,7 +208,7 @@ function HandoffCard({
   onAsk,
 }: {
   item: HandoffItem;
-  onAct: (id: string, action: PacketAction, outcome?: string) => void;
+  onAct: PacketAct;
   onOpen: (id: string) => void;
   onAsk: (prompt: string) => void;
 }) {
@@ -283,16 +292,27 @@ function HandoffCard({
               </span>
             </button>
           </div>
-          <div className="flex gap-1.5">
+          <div className="flex flex-wrap gap-1.5">
             <input
               value={outcome}
               onChange={(event) => setOutcome(event.target.value)}
               placeholder={TH.handoff.outcomePlaceholder}
-              className="min-w-0 flex-1 rounded-full border border-border bg-card px-3 py-1.5 text-xs outline-none focus:border-foreground/25"
+              className="min-w-[10rem] flex-1 rounded-full border border-border bg-card px-3 py-1.5 text-xs outline-none focus:border-foreground/25"
             />
-            <button type="button" onClick={() => onAct(item.id, "resolve", outcome)} className={ACTION}>
-              {TH.handoff.close}
-            </button>
+            {item.alertCount > 0 ? (
+              <>
+                <button type="button" onClick={() => onAct(item.id, "resolve", outcome, "real")} className={ACTION}>
+                  {TH.lesson.closeReal}
+                </button>
+                <button type="button" onClick={() => onAct(item.id, "resolve", outcome, "noise")} className={ACTION}>
+                  {TH.lesson.closeNoise}
+                </button>
+              </>
+            ) : (
+              <button type="button" onClick={() => onAct(item.id, "resolve", outcome)} className={ACTION}>
+                {TH.handoff.close}
+              </button>
+            )}
           </div>
         </>
       )}
@@ -304,13 +324,13 @@ function AlertList({
   items,
   note,
   initialSeverity,
-  onDismiss,
+  onAct,
   onAsk,
 }: {
   items: AlertItem[];
   note: string | null;
   initialSeverity: SeverityFilter;
-  onDismiss: (id: string) => void;
+  onAct: (id: string, action: AlertAction) => void;
   onAsk: (prompt: string) => void;
 }) {
   const [severity, setSeverity] = useState<SeverityFilter>(initialSeverity);
@@ -348,6 +368,7 @@ function AlertList({
             {item.scope ? ` · ${item.scope}` : ""}
           </h3>
           <p className="text-sm text-muted-foreground">{item.hypothesis}</p>
+          {item.lesson ? <p className="rounded-xl border border-border px-2.5 py-1.5 text-xs text-foreground">{item.lesson}</p> : null}
           <dl className="flex flex-col gap-1 rounded-xl bg-muted p-2.5 text-xs">
             <div className="flex justify-between gap-2">
               <dt className="text-muted-foreground">{TH.inbox.window}</dt>
@@ -365,18 +386,37 @@ function AlertList({
           </dl>
           <div className="flex flex-col gap-1.5">
             {item.verifySteps.map((step, index) => (
-              <button key={`${item.id}-step-${index}`} type="button" onClick={() => onAsk(step)} className={cn(ACTION, "text-left")}>
+              <button
+                key={`${item.id}-step-${index}`}
+                type="button"
+                onClick={() => {
+                  onAct(item.id, "open");
+                  onAsk(step);
+                }}
+                className={cn(ACTION, "text-left")}
+              >
                 {TH.inbox.verify} {index + 1}: {step}
               </button>
             ))}
           </div>
           <div className="flex flex-wrap gap-1.5">
-            <button type="button" onClick={() => onAsk(item.handoffPrompt)} className={cn(ACTION, "border-transparent bg-ink text-ink-foreground hover:text-ink-foreground")}>
+            <button
+              type="button"
+              onClick={() => {
+                onAct(item.id, "open");
+                onAsk(item.handoffPrompt);
+              }}
+              className={cn(ACTION, "border-transparent bg-ink text-ink-foreground hover:text-ink-foreground")}>
               {TH.inbox.handoff}
             </button>
-            <button type="button" onClick={() => onDismiss(item.id)} className={ACTION}>
-              {TH.inbox.dismiss}
+            <button type="button" onClick={() => onAct(item.id, "mute")} className={ACTION}>
+              {TH.inbox.mute}
             </button>
+            {item.canJudge ? (
+              <button type="button" onClick={() => onAct(item.id, "dismiss")} className={ACTION}>
+                {TH.inbox.dismiss}
+              </button>
+            ) : null}
           </div>
         </article>
       ))}

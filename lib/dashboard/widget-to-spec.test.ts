@@ -119,9 +119,29 @@ describe("widgetToSpec", () => {
       }],
       packet: { id: "p1", title: "ยอดอีสานต่ำกว่าเป้า", ask: "ช่วยตรวจเอเย่นต์ที่ยอดตก", fromName: "คุณอนุชา", urgency: "high" },
       ownerName: () => null,
+      lessonOf: () => null,
       actionsFor: () => [],
     });
     expect(cards.length).toBe(2);
     for (const card of cards) expect(validate(card.spec).success).toBe(true);
+  });
+
+  test("the second card is another serious story before an explained one", () => {
+    const base = {
+      at: "2026-09-22T01:00:00.000Z", window: { from: "2026-09-01", to: "2026-09-22" }, observed: 100, expected: 140, zScore: -3.1, direction: "down" as const,
+      hypothesis: "h", verifySteps: ["a", "b"] as [string, string], ownerUserId: RSM, status: "open" as const, dismissCount: 0,
+    };
+    const cards = ambientCards({
+      alerts: [
+        { ...base, id: "p1", severity: "P1", metric: "days_of_cover", dims: { region: "north" } },
+        { ...base, id: "p3", severity: "P3", metric: "production_output", dims: { region: "central" } },
+        { ...base, id: "p2", severity: "P2", metric: "days_of_cover", dims: { region: "north" } },
+      ],
+      packet: null,
+      ownerName: () => null,
+      lessonOf: () => null,
+      actionsFor: () => [],
+    });
+    expect(cards.map((card) => card.alertId)).toEqual(["p1", "p2"]);
   });
 });

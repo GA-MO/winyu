@@ -5,7 +5,8 @@ import { GlowBackdrop } from "@/components/ui/glow-backdrop";
 import { GradientText } from "@/components/ui/gradient-text";
 import { TH } from "@/lib/i18n/th";
 import { changesSince } from "@/lib/server/briefing";
-import { layoutHistory, refreshSuggestions, widgetViews } from "@/lib/server/dashboard";
+import { layoutHistory, refreshSuggestions, staleFor, widgetViews } from "@/lib/server/dashboard";
+import { markVisit } from "@/lib/server/visits";
 import { readAccess } from "@/lib/server/session";
 
 export const dynamic = "force-dynamic";
@@ -15,8 +16,10 @@ export default async function DashboardPage() {
   if (!access) redirect("/login");
 
   await refreshSuggestions(access);
+  const baseline = markVisit(access);
   const views = widgetViews(access);
-  const changes = changesSince(access);
+  const changes = changesSince(access, baseline);
+  const stale = new Set(staleFor(access).map((widget) => widget.id));
   const history = layoutHistory(access);
   const restorable = history.find((entry) => entry.savedAt.slice(0, 10) < new Date().toISOString().slice(0, 10)) ?? null;
   return (
@@ -31,6 +34,7 @@ export default async function DashboardPage() {
         </header>
         <DashboardView
           pinned={views.filter((view) => view.widget.pinned)}
+          stale={views.filter((view) => stale.has(view.widget.id)).map((view) => view.widget)}
           suggested={views.filter((view) => !view.widget.pinned)}
           changes={changes}
           restorable={restorable ? { version: restorable.version, savedAt: restorable.savedAt } : null}

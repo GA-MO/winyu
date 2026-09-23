@@ -3,13 +3,14 @@
 import { useCallback, useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { LogOut, Moon, Shield, Sun, Trash2, X } from "lucide-react";
+import { BellRing, LogOut, Moon, Shield, Sun, Trash2, X } from "lucide-react";
 import { cn } from "vexa/lib/utils";
-import type { MemoryFact, User } from "@/lib/contracts";
+import type { MemoryFact, User, WatchItem } from "@/lib/contracts";
 import { TH } from "@/lib/i18n/th";
 import { useTheme } from "@/components/theme/theme-provider";
 
 const MEMORY_ENDPOINT = "/api/memory";
+const WATCHES_ENDPOINT = "/api/watches";
 const SESSION_ENDPOINT = "/api/session";
 const PANEL = "fixed right-0 top-0 z-50 flex h-dvh w-full max-w-[24rem] flex-col border-l border-border bg-card shadow-panel animate-panel-in";
 const SECTION = "flex flex-col gap-2 border-b border-border px-4 py-4";
@@ -19,13 +20,18 @@ export function AccountSheet({ open, onClose, user, users }: { open: boolean; on
   const router = useRouter();
   const { mode, setMode } = useTheme();
   const [facts, setFacts] = useState<MemoryFact[]>([]);
+  const [watches, setWatches] = useState<WatchItem[]>([]);
+  const [loaded, setLoaded] = useState(false);
   const [pending, startTransition] = useTransition();
 
   const load = useCallback(() => {
-    fetch(MEMORY_ENDPOINT)
+    const memory = fetch(MEMORY_ENDPOINT)
       .then((response) => (response.ok ? response.json() : null))
-      .then((payload: { facts?: MemoryFact[] } | null) => setFacts(payload?.facts ?? []))
-      .catch(() => undefined);
+      .then((payload: { facts?: MemoryFact[] } | null) => setFacts(payload?.facts ?? []));
+    const watching = fetch(WATCHES_ENDPOINT)
+      .then((response) => (response.ok ? response.json() : null))
+      .then((payload: { watches?: WatchItem[] } | null) => setWatches(payload?.watches ?? []));
+    Promise.allSettled([memory, watching]).then(() => setLoaded(true));
   }, []);
 
   useEffect(() => {
@@ -35,6 +41,14 @@ export function AccountSheet({ open, onClose, user, users }: { open: boolean; on
   const forget = useCallback(
     async (id: string) => {
       await fetch(`${MEMORY_ENDPOINT}/${id}`, { method: "DELETE" });
+      load();
+    },
+    [load],
+  );
+
+  const unwatch = useCallback(
+    async (id: string) => {
+      await fetch(`${WATCHES_ENDPOINT}/${id}`, { method: "DELETE" });
       load();
     },
     [load],
@@ -86,9 +100,32 @@ export function AccountSheet({ open, onClose, user, users }: { open: boolean; on
 
         <div className="vexa-scrollbar flex min-h-0 flex-1 flex-col overflow-y-auto">
           <section className={SECTION}>
+            <h3 className="flex items-center gap-1.5 text-xs font-medium tracking-wide text-muted-foreground">
+              <BellRing className="size-3.5" aria-hidden />
+              {TH.watch.section}
+            </h3>
+            <p className="text-xs text-muted-foreground">{TH.watch.sectionNote}</p>
+            {loaded && watches.length === 0 ? <p className="text-sm text-muted-foreground">{TH.watch.empty}</p> : null}
+            {watches.map((watch) => (
+              <div key={watch.id} className="flex items-center justify-between gap-2 rounded-xl bg-muted px-2.5 py-1.5">
+                <span className="flex min-w-0 flex-col">
+                  <span className="truncate text-sm">{watch.title}</span>
+                  <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <span aria-hidden className={cn("size-1.5 rounded-full", watch.state === "triggered" ? "bg-warning" : "bg-success")} />
+                    {watch.state === "triggered" ? TH.watch.triggered : TH.watch.ok} · {watch.condition}
+                  </span>
+                </span>
+                <button type="button" onClick={() => void unwatch(watch.id)} aria-label={TH.watch.remove} className="text-muted-foreground hover:text-danger">
+                  <Trash2 className="size-3.5" aria-hidden />
+                </button>
+              </div>
+            ))}
+          </section>
+
+          <section className={SECTION}>
             <h3 className="text-xs font-medium tracking-wide text-muted-foreground">{TH.account.memory}</h3>
             <p className="text-xs text-muted-foreground">{TH.account.memoryNote}</p>
-            {grouped.length === 0 ? <p className="text-sm text-muted-foreground">{TH.account.memoryEmpty}</p> : null}
+            {loaded && grouped.length === 0 ? <p className="text-sm text-muted-foreground">{TH.account.memoryEmpty}</p> : null}
             {grouped.map(([type, items]) => (
               <div key={type} className="flex flex-col gap-1">
                 <h4 className="text-xs text-muted-foreground">{TH.account.memoryType[type as keyof typeof TH.account.memoryType] ?? type}</h4>

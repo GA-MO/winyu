@@ -2,6 +2,7 @@ import type { MockScript, MockStep } from "vexa/mock";
 import type { Spec, SpecElement } from "vexa/protocol";
 import { formatDateTh, formatPercent, periodLabelTh } from "@/lib/i18n/format";
 import { TH } from "@/lib/i18n/th";
+import { resolveEntity } from "@/lib/semantic/dictionary";
 
 const TODAY = "2026-09-22";
 const MONTH_START = "2026-09-01";
@@ -181,7 +182,7 @@ function headlineLead(output: unknown, subject: string, compare: string): string
   const headline = headlineOf(output);
   const value = headline.value ?? "—";
   const delta = headline.deltaPercent;
-  if (typeof delta !== "number") return `${subject}อยู่ที่ ${value}ครับ`;
+  if (typeof delta !== "number") return `${subject}อยู่ที่ ${value} ครับ`;
   const direction = delta < 0 ? "ต่ำกว่า" : "สูงกว่า";
   return `${subject}อยู่ที่ ${value} ${direction}${compare} ${formatPercent(Math.abs(Math.round(delta * 10) / 10))} ครับ`;
 }
@@ -387,6 +388,7 @@ const PRESSED_DONE: Record<string, string> = {
   create_handoff: HANDOFF_SENT,
   pin_widget: "ปักการ์ดไว้บนแดชบอร์ดแล้วครับ กด ⌘D เพื่อเปิดดู",
   send_email: "ส่งอีเมลแล้วครับ ในเดโมนี้จดหมายจะไปอยู่ในกล่องจดหมายออก",
+  watch_metric: "ตั้งการเฝ้าดูแล้วครับ ผมจะแจ้งในกล่องงานครั้งแรกที่เข้าเงื่อนไข",
 };
 
 type PressedAction = { tool: string; input: Record<string, unknown> };
@@ -861,7 +863,7 @@ type MetricAsk = {
   dims: string[];
   from: string;
   grain: "day" | "week" | "month";
-  compare: "none" | "prev_period" | "yoy" | "target";
+  compare: "none" | "prev_period" | "prev_year" | "target";
   title: string;
   subject: string;
   versus: string;
@@ -905,7 +907,93 @@ const BUDGET_STEPS = metricAskSteps({
   title: "ยอดขายจริงเทียบงบรายกลุ่มธุรกิจ", subject: "ยอดขายเดือนนี้", versus: "งบ", sortBy: "value_desc",
 });
 
+const ATTRITION_STEPS = metricAskSteps({
+  metric: "attrition_rate", dims: ["department"], from: MONTH_START, grain: "month", compare: "prev_year",
+  title: "อัตราการลาออกรายฝ่ายเดือนนี้", subject: "อัตราการลาออกเดือนนี้", versus: "ปีที่แล้ว", sortBy: "value_desc",
+});
+
+const CAMPAIGN_STEPS = metricAskSteps({
+  metric: "campaign_uplift", dims: ["campaign"], from: QUARTER_START, grain: "month", compare: "none",
+  title: "แคมเปญที่ยกยอดขายได้มากที่สุดไตรมาสนี้", subject: "ยอดเพิ่มจากแคมเปญไตรมาสนี้", versus: "เส้นฐาน", view: "bar", sortBy: "value_desc",
+});
+
+const HEADCOUNT_STEPS = metricAskSteps({
+  metric: "headcount", dims: ["department"], from: MONTH_START, grain: "month", compare: "prev_year",
+  title: "จำนวนพนักงานรายฝ่ายเทียบปีที่แล้ว", subject: "จำนวนพนักงานทั้งหมด", versus: "ปีที่แล้ว", view: "bar", sortBy: "value_desc",
+});
+
+const RERUN_ANOMALY_STEPS: MockStep[] = [
+  { text: "งานนี้จะรันการตรวจหาความผิดปกติใหม่ทั้งระบบครับ กดอนุมัติเพื่อเริ่ม" },
+  {
+    tool: "run_job",
+    input: { job: "anomaly" },
+    then: (output) => [{ text: String((output as { summary?: string }).summary ?? "รันเสร็จแล้วครับ") }],
+    onError: (result) => [{ text: `รันงานไม่สำเร็จครับ: ${(result as { error?: string }).error ?? "ไม่ทราบสาเหตุ"}` }],
+  },
+];
+
 const TOOL_USAGE_STEPS: MockStep[] = [{ text: "ประวัติการเรียกใช้เครื่องมือทั้งหมดอยู่ที่หน้า ผู้ดูแลระบบ → Audit ครับ เปิดดูแยกตามผู้ใช้และเครื่องมือได้ ผมยังไม่มีเครื่องมือสรุปตัวเลขนี้ในแชท" }];
+
+const WATCH_REQUEST = /เตือน(ฉัน|ผม|หน่อย)?\s*(ถ้า|เมื่อ)|แจ้ง(ฉัน|ผม)?\s*(ถ้า|เมื่อ)|คอยดู|เฝ้าดู/;
+const NUMBER = /(\d+(?:\.\d+)?)/;
+const WATCH_TITLE_CHARS = 40;
+const DEFAULT_LINES = { days_of_cover: 10, target_attainment: 90, ar_overdue: 50_000_000, net_sales_volume: 10 } as const;
+
+type WatchMetric = keyof typeof DEFAULT_LINES;
+
+function watchMetricOf(prompt: string): WatchMetric {
+  if (/สต๊อก|พอขาย|cover/i.test(prompt)) return "days_of_cover";
+  if (/เป้า/.test(prompt)) return "target_attainment";
+  if (/ลูกหนี้|ค้างชำระ/.test(prompt)) return "ar_overdue";
+  return "net_sales_volume";
+}
+
+function watchKindOf(prompt: string, metric: WatchMetric): "below" | "above" | "change" {
+  if (metric === "net_sales_volume") return "change";
+  if (/เกิน|สูงกว่า|มากกว่า/.test(prompt)) return "above";
+  if (/ต่ำกว่า|น้อยกว่า|ไม่ถึง/.test(prompt)) return "below";
+  return metric === "ar_overdue" ? "above" : "below";
+}
+
+function watchFilters(prompt: string, metric: WatchMetric): Record<string, string[]> {
+  const dc = metric === "days_of_cover" ? resolveEntity("dc", prompt) : null;
+  const agent = metric === "net_sales_volume" ? resolveEntity("agent", prompt) : null;
+  return { ...regionFilter(prompt), ...brandFilter(prompt), ...(dc ? { dc: [dc.id] } : {}), ...(agent ? { agent: [agent.id] } : {}) };
+}
+
+const WATCH_DIMS: Record<WatchMetric, string[]> = { days_of_cover: ["dc", "sku"], target_attainment: ["region"], ar_overdue: ["region"], net_sales_volume: ["agent"] };
+
+function watchTitle(prompt: string): string {
+  const title = prompt.replace(WATCH_REQUEST, "").replace(/ให้(หน่อย|ด้วย)|นะ|ครับ|ค่ะ/g, "").trim();
+  return title.length > WATCH_TITLE_CHARS ? `${title.slice(0, WATCH_TITLE_CHARS)}…` : title || prompt.slice(0, WATCH_TITLE_CHARS);
+}
+
+/** "เตือนฉันถ้า…" becomes a standing watch behind its approval card; the number in the sentence is the line. */
+function watchSteps(prompt: string): MockStep[] {
+  const metric = watchMetricOf(prompt);
+  const found = NUMBER.exec(prompt);
+  const value = found ? Number(found[1]) : DEFAULT_LINES[metric];
+  return [
+    {
+      tool: "watch_metric",
+      input: {
+        title: watchTitle(prompt),
+        query: {
+          metric,
+          dims: WATCH_DIMS[metric],
+          filters: watchFilters(prompt, metric),
+          range: { from: WEEK_START, to: TODAY },
+          grain: metric === "ar_overdue" ? "month" : "day",
+          compare: metric === "net_sales_volume" ? "prev_period" : "none",
+          limit: null,
+        },
+        condition: { kind: watchKindOf(prompt, metric), value },
+      },
+      then: (output) => [{ text: `${(output as { summary?: string }).summary ?? "ตั้งการเฝ้าดูแล้วครับ"} ผมจะแจ้งในกล่องงานครั้งแรกที่เข้าเงื่อนไข` }],
+      onError: (result) => [{ text: `ตั้งการเฝ้าดูไม่ได้ครับ: ${(result as { error?: string }).error ?? "ไม่ทราบสาเหตุ"}` }],
+    },
+  ];
+}
 
 export const COP_MOCK_PROMPTS = [
   "ยอดขายเดือนนี้เทียบเป้าแยกตามภาค",
@@ -920,6 +1008,7 @@ export const COP_MOCK_PROMPTS = [
   "เตรียมประชุมบอร์ด",
   "เงินเดือนเฉลี่ยแต่ละฝ่าย",
   "ส่งต่องานให้ผู้รับผิดชอบ",
+  "เตือนฉันถ้าสต๊อกดีซีลำพูนพอขายต่ำกว่า 10 วัน",
 ];
 
 /** Scripted turns that drive the real tools: the mock calls a tool, the handler executes it, the continuation renders the output. */
@@ -927,10 +1016,15 @@ export const COP_MOCK_SCRIPT: MockScript = {
   turns: [
     { match: /งานที่ส่งต่อมา|เปิดในเอเจนต์/, steps: PRELOAD_STEPS },
     { match: /⟦action⟧ runTool/, steps: pressedSteps },
+    { match: WATCH_REQUEST, steps: watchSteps },
     { match: /ส่งต่อ|handoff/i, steps: pressedSteps },
     { match: /^ตรวจความผิดปกติ|^ดูประวัติ|กับพื้นที่อื่น/, steps: focusedAlertSteps },
     { match: /สิทธิ์|เงินเดือน|salary/i, steps: SALARY_STEPS },
     { match: /กำไรขั้นต้น|gross margin/i, steps: MARGIN_STEPS },
+    { match: /ลาออก|attrition/i, steps: ATTRITION_STEPS },
+    { match: /แคมเปญ|campaign/i, steps: CAMPAIGN_STEPS },
+    { match: /พนักงาน|headcount/i, steps: HEADCOUNT_STEPS },
+    { match: /รันงาน|run_job/i, steps: RERUN_ANOMALY_STEPS },
     { match: /ค้างชำระ|ลูกหนี้/, steps: RECEIVABLES_STEPS },
     { match: /ห่าง(จาก)?เป้า/, steps: TARGET_GAP_STEPS },
     { match: /เอเย่นต์ที่(ผม|ฉัน|คุณ)?ดูแล/, steps: MY_AGENTS_STEPS },

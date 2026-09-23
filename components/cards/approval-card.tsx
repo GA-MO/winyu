@@ -1,9 +1,10 @@
 "use client";
 
 import type { LucideIcon } from "lucide-react";
-import { Check, LayoutGrid, Mail, RefreshCw, Send, X } from "lucide-react";
+import { BellRing, Check, LayoutGrid, Mail, RefreshCw, Send, X } from "lucide-react";
 import type { ApprovalRequest, RenderApproval } from "vexa/react";
-import type { MetricQuery, Urgency } from "@/lib/contracts";
+import type { MetricQuery, Urgency, WatchCondition } from "@/lib/contracts";
+import { conditionLabel } from "@/lib/engine/personal-watches";
 import { findUser } from "@/lib/data/entities/users";
 import { metricLabel } from "@/lib/dashboard/metric-display";
 import { displayLabel } from "@/lib/semantic/dictionary";
@@ -39,6 +40,7 @@ type HandoffInput = { toUserId?: string; title?: string; ask?: string; urgency?:
 type EmailInput = { toUserId?: string; subject?: string; body?: string };
 type PinInput = { title?: string; query?: MetricQuery };
 type JobInput = { job?: string };
+type WatchInput = { title?: string; query?: MetricQuery; condition?: WatchCondition };
 
 function personLine(userId: string | undefined): { name: string; line: string | null } {
   const user = userId ? findUser(userId) : null;
@@ -120,6 +122,24 @@ function pinDecision(input: PinInput): Decision {
   };
 }
 
+function watchDecision(input: WatchInput): Decision {
+  const condition = input.query && input.condition ? `${scopeOf(input.query)} ${conditionLabel(input.query, input.condition)}` : null;
+  return {
+    icon: BellRing,
+    title: TH.approve.watchDone,
+    person: null,
+    subjectLabel: TH.approve.subject,
+    subject: input.title ?? null,
+    body: condition ? { label: TH.approve.conditionLabel, text: condition } : null,
+    chips: [],
+    urgency: null,
+    effect: TH.approve.effectWatch,
+    confirm: TH.approve.confirmWatch,
+    cancel: TH.approve.cancelDo,
+    done: TH.approve.doneWatch,
+  };
+}
+
 function jobDecision(input: JobInput): Decision {
   const job = TH.approve.jobs[input.job ?? ""] ?? input.job ?? "";
   return {
@@ -143,6 +163,7 @@ function decisionOf(tool: string, input: unknown): Decision | null {
   if (tool === "create_handoff") return handoffDecision(value);
   if (tool === "send_email") return emailDecision(value);
   if (tool === "pin_widget") return pinDecision(value);
+  if (tool === "watch_metric") return watchDecision(value);
   if (tool === "run_job") return jobDecision(value);
   return null;
 }

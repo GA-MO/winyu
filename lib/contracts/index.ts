@@ -9,3 +9,4 @@ export * from "./handoff";
 export * from "./alerts";
 export * from "./audit";
 export * from "./tools";
+export * from "./watches";

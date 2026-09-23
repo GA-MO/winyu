@@ -15,6 +15,7 @@ import { GlowBackdrop } from "@/components/ui/glow-backdrop";
 import { GradientText } from "@/components/ui/gradient-text";
 import { readUser } from "@/lib/server/session";
 import { auditEntries, usageSummary, type UsageSummary } from "@/lib/server/usage";
+import { adoptionSummary, percentOf } from "@/lib/server/adoption";
 import { auditLog } from "@/lib/server/audit";
 
 type SearchParams = Promise<{ tab?: string; as?: string; metric?: string; user?: string; tool?: string; decision?: string }>;
@@ -328,11 +329,75 @@ function QuestionsPerDay({ summary }: { summary: UsageSummary }) {
   );
 }
 
+function AdoptionPanel() {
+  const adoption = adoptionSummary();
+  const fate = adoption.alerts;
+  const acted = percentOf(fate.total - fate.untouched, fate.total);
+  const PANEL_CARD = "rounded-2xl border border-border bg-card p-4 shadow-card";
+  return (
+    <section className="flex flex-col gap-3">
+      <div>
+        <h2 className="text-sm font-semibold">{TH.admin.adoption.title}</h2>
+        <p className="text-xs text-muted-foreground">{TH.admin.adoption.note}</p>
+      </div>
+      <div className="grid gap-3 lg:grid-cols-2">
+        <div className={PANEL_CARD}>
+          <p className="text-xs text-muted-foreground">{TH.admin.adoption.activeByRole}</p>
+          <ul className="mt-3 flex flex-col gap-1.5">
+            {adoption.activeByRole.map((entry) => (
+              <li key={entry.role} className="flex items-center gap-3 text-sm">
+                <span className="w-36 shrink-0 truncate">{TH.role[entry.role]}</span>
+                <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
+                  <span className="block h-full rounded-full bg-primary" style={{ width: `${percentOf(entry.active, entry.total)}%` }} />
+                </span>
+                <span className="w-10 shrink-0 text-right tabular-nums text-muted-foreground">
+                  {entry.active}/{entry.total}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className={PANEL_CARD}>
+          <p className="text-xs text-muted-foreground">{TH.admin.adoption.alerts}</p>
+          <p className="mt-1 font-display text-2xl font-semibold">{TH.admin.adoption.acted(acted)}</p>
+          <dl className="mt-3 grid grid-cols-2 gap-2 text-sm sm:grid-cols-4">
+            {(
+              [
+                ["handedOff", fate.handedOff],
+                ["closed", fate.closed],
+                ["opened", fate.opened],
+                ["untouched", fate.untouched],
+              ] as const
+            ).map(([key, count]) => (
+              <div key={key}>
+                <dt className="text-xs text-muted-foreground">{TH.admin.adoption[key]}</dt>
+                <dd className="tabular-nums">{count}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+        <div className={PANEL_CARD}>
+          <p className="text-xs text-muted-foreground">{TH.admin.adoption.handoffs}</p>
+          <p className="mt-1 text-sm">{TH.admin.adoption.handoffLine(adoption.handoffs.resolved, adoption.handoffs.total, adoption.handoffs.returned)}</p>
+          <p className="text-xs text-muted-foreground">{TH.admin.adoption.replyTime(adoption.handoffs.medianHoursToReply)}</p>
+        </div>
+        <div className={PANEL_CARD}>
+          <p className="text-xs text-muted-foreground">{TH.admin.adoption.cards}</p>
+          <p className="mt-1 text-sm">{adoption.cards.judged ? TH.admin.adoption.cardsLine(adoption.cards.viewed, adoption.cards.pinned) : TH.admin.adoption.cardsWaiting}</p>
+          <p className="mt-3 text-xs text-muted-foreground">{TH.admin.adoption.watches}</p>
+          <p className="mt-1 text-sm">{TH.admin.adoption.watchLine(adoption.watches.active, adoption.watches.triggered, adoption.watches.notified, adoption.watches.digests)}</p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function UsageTab() {
   const summary = usageSummary();
   const cost = summary.costUsd > 0 ? `$${summary.costUsd.toFixed(2)}` : TH.admin.usage.free;
   return (
     <div className="flex flex-col gap-4">
+      <AdoptionPanel />
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <Counter label={TH.admin.usage.questions} value={summary.questions} />
         <Counter label={TH.admin.usage.tools} value={summary.toolCalls} />

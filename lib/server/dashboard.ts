@@ -15,8 +15,13 @@ import { TH } from "@/lib/i18n/th";
 import { templateFor } from "@/lib/dashboard/templates";
 import { widgetToSpec, type WidgetExtras } from "@/lib/dashboard/widget-to-spec";
 import { findUser } from "@/lib/data/entities/users";
+import { attentionOf, staleWidgets, type Attention } from "@/lib/dashboard/attention";
+import { actionEvents } from "@/lib/server/agent/collections";
+import { lessonFor } from "@/lib/server/outcomes";
 
-export type WidgetView = { widget: WidgetSpec; spec: Spec };
+export type WidgetHeadline = { value: string; delta: string | null; tone: "good" | "bad" | "neutral" };
+
+export type WidgetView = { widget: WidgetSpec; spec: Spec; attention: Attention; headline: WidgetHeadline | null };
 
 const CREATED_AT = "2026-09-22T00:00:00.000Z";
 const KPI_LIMIT = 4;
@@ -68,8 +73,14 @@ export function rollbackToYesterday(access: AccessContext): DashboardLayout | nu
 /** The user's dashboard layout, seeded from the role template the first time they arrive. */
 export function layoutFor(access: AccessContext): DashboardLayout {
   const stored = layouts().get(access.userId);
-  if (stored && stored.widgets.length > 0) return stored;
+  if (stored && stored.widgets.length > 0) return withTemplateReasons(stored, access);
   return save(seedLayout(access));
+}
+
+function withTemplateReasons(layout: DashboardLayout, access: AccessContext): DashboardLayout {
+  const reasons = new Map(templateFor(access).map((seed) => [`w_${access.userId}_${seed.key}`, seed.reason]));
+  const widgets = layout.widgets.map((widget) => (widget.source === "role_template" && reasons.has(widget.id) ? { ...widget, reason: reasons.get(widget.id) ?? null } : widget));
+  return { ...layout, widgets };
 }
 
 /** Swap point for the orchestrator: 1A's `runMetric(widget.query, access)` replaces the placeholder without changing this signature. */
@@ -85,7 +96,7 @@ const OVERLAY_PAIR: Partial<Record<string, { metric: WidgetSpec["query"]["metric
 function extrasFor(widget: WidgetSpec, access: AccessContext): WidgetExtras {
   if (widget.kind === "alert_list") {
     const alerts = openAlertsFor(access)
-      .filter((alert) => alert.metric === widget.query.metric || widget.query.dims.length === 0)
+      .filter((alert) => relevanceOf(alert, access) !== "other")
       .slice(0, MAX_CARD_ALERTS);
     return { alerts: alerts.map(alertRowOf), actions: actionsForAlert(access, alerts[0] ?? null) };
   }
@@ -100,11 +111,17 @@ function extrasFor(widget: WidgetSpec, access: AccessContext): WidgetExtras {
   return { forecast: forecast ?? null };
 }
 
-function viewOf(widget: WidgetSpec, access: AccessContext): WidgetView {
+function viewOf(widget: WidgetSpec, access: AccessContext, relevant: readonly Alert[]): WidgetView {
   const result = resolveWidget(widget, access);
   const extras = extrasFor(widget, access);
   const actions = extras.actions ?? actionsForMetric(access, widget.query, result);
-  return { widget, spec: widgetToSpec(widget, result, { ...extras, actions }) };
+  const hero = presentCard({ title: widget.title, query: widget.query, result }).hero;
+  return {
+    widget,
+    spec: widgetToSpec(widget, result, { ...extras, actions }),
+    attention: attentionOf({ widget, result, alerts: relevant }),
+    headline: hero ? { value: hero.value, delta: hero.delta, tone: hero.tone } : null,
+  };
 }
 
 /** Adds at most one AI-suggested card a day to the tray, from what the user keeps asking. */
@@ -121,10 +138,16 @@ export async function refreshSuggestions(access: AccessContext): Promise<Dashboa
 }
 
 export function widgetViews(access: AccessContext): WidgetView[] {
+  const relevant = openAlertsFor(access).filter((alert) => relevanceOf(alert, access) !== "other");
   return layoutFor(access)
     .widgets.slice()
     .sort((left, right) => left.position - right.position)
-    .map((widget) => viewOf(widget, access));
+    .map((widget) => viewOf(widget, access, relevant));
+}
+
+/** Pinned cards this user has stopped looking at, offered for removal on the dashboard. */
+export function staleFor(access: AccessContext, now = Date.now()): WidgetSpec[] {
+  return staleWidgets(layoutFor(access).widgets, actionEvents().all(), access.userId, now);
 }
 
 /** The headline of each pinned card, through the same presenter the dashboard draws with; masked or denied cards are skipped. */
@@ -136,7 +159,7 @@ export function landingKpis(access: AccessContext): LandingKpi[] {
     const result = resolveWidget(widget, access);
     const parts = presentCard({ title: widget.title, query: widget.query, result });
     const hero = parts.hero;
-    if (!hero) continue;
+    if (!hero || kpis.some((kpi) => kpi.label === hero.label && kpi.value === hero.value)) continue;
     const weakest = weakestRow(widget.query, result);
     const note = weakest ? TH.landing.weakest(weakest.lowIsWorst, weakest.label, weakest.value) : parts.body.kind === "progress" ? parts.body.detail : null;
     kpis.push({ id: widget.id, label: hero.label, value: hero.value, delta: hero.delta, tone: hero.tone, detail: hero.detail, note });
@@ -190,6 +213,7 @@ export function ambientFor(access: AccessContext): AmbientCard[] {
   return ambientCards({
     alerts: openAlertsFor(access).filter((alert) => relevanceOf(alert, access) !== "other"),
     ownerName: (alert) => (alert.ownerUserId === access.userId ? null : (findUser(alert.ownerUserId)?.nameTh ?? null)),
+    lessonOf: lessonFor,
     actionsFor: (alert) => actionsForAlert(access, alert),
     packet: packet ? { id: packet.id, title: packet.title, ask: packet.ask, fromName, urgency: packet.urgency } : null,
   });

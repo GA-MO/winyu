@@ -91,15 +91,22 @@ function recordEvents(thread: Thread, turns: Turn[]): void {
   });
 }
 
-export function recordAction(userId: string, kind: ActionEvent["kind"], intentKey: string, prompt: string | null, threadId: string | null): ActionEvent {
+export function recordAction(
+  userId: string,
+  kind: ActionEvent["kind"],
+  intentKey: string,
+  prompt: string | null,
+  threadId: string | null,
+  subject: { metric: ActionEvent["metric"]; dims: ActionEvent["dims"] } = { metric: null, dims: [] },
+): ActionEvent {
   return actionEvents().put({
     id: `ev_${kind}_${userId}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
     userId,
     at: new Date().toISOString(),
     kind,
     intentKey,
-    metric: null,
-    dims: [],
+    metric: subject.metric,
+    dims: subject.dims,
     prompt,
     threadId,
   });

@@ -52,12 +52,13 @@ async function ask(testCase: EvalCase): Promise<Turn> {
     text: parts.filter((part) => part.type === "text-delta").map((part) => String(part.delta ?? "")).join(""),
     spec: specOf(parts),
     toolOutputs: parts.filter((part) => part.type === "tool-output-available").map((part) => part.output as Record<string, unknown>),
+    toolInputs: parts.filter((part) => part.type === "tool-input-available").map((part) => ({ tool: String(part.toolName), input: part.input })),
   };
 }
 
 describe("card contract", () => {
   for (const testCase of SCRIPTED_CASES) {
-    test(`${testCase.id} answers with a bound card`, async () => {
+    test(`${testCase.id} passes the card contract`, async () => {
       const failures = checkTurn(await ask(testCase), testCase).filter((result) => !result.ok);
       expect(failures.map((failure) => `${failure.id}: ${failure.detail}`)).toEqual([]);
     });

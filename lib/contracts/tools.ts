@@ -3,10 +3,11 @@ import { ROLE_IDS, type RoleId } from "./identity";
 import { widgetKindSchema } from "./dashboard";
 import { urgencySchema } from "./handoff";
 import { dimSchema, metricIdSchema, metricQuerySchema } from "./semantic";
+import { watchMetricInputSchema } from "./watches";
 
 export type ToolTier = "read" | "write" | "destructive";
 export type ToolName = "query_metric" | "list_metrics" | "describe_entity" | "get_alerts" | "get_forecast" | "recall_memory"
-  | "resolve_owner" | "create_handoff" | "send_email" | "pin_widget" | "run_job";
+  | "resolve_owner" | "create_handoff" | "send_email" | "pin_widget" | "watch_metric" | "run_job";
 export type ToolSurfaceEntry = { name: ToolName; tier: ToolTier; roles: RoleId[] | "all"; input: z.ZodType };
 
 const MAX_FORECAST_WEEKS = 26;
@@ -14,7 +15,7 @@ const MAX_ALERTS = 60;
 const ALL_BUT_SALES_REP: RoleId[] = ROLE_IDS.filter((role) => role !== "sales_rep");
 
 export const ENTITY_KINDS = ["agent", "sku", "dc", "campaign", "user"] as const;
-export const JOBS = ["anomaly", "forecast", "compose"] as const;
+export const JOBS = ["anomaly", "forecast", "compose", "watches", "digest"] as const;
 
 const metricScope = { metric: metricIdSchema, dims: z.partialRecord(dimSchema, z.string()) };
 
@@ -47,6 +48,7 @@ export const TOOL_SURFACE: readonly ToolSurfaceEntry[] = [
   { name: "create_handoff", tier: "write", roles: ALL_BUT_SALES_REP, input: createHandoffInputSchema },
   { name: "send_email", tier: "write", roles: ALL_BUT_SALES_REP, input: sendEmailInputSchema },
   { name: "pin_widget", tier: "write", roles: "all", input: pinWidgetInputSchema },
+  { name: "watch_metric", tier: "write", roles: "all", input: watchMetricInputSchema },
   { name: "run_job", tier: "destructive", roles: ["it_admin"], input: runJobInputSchema },
 ];
 

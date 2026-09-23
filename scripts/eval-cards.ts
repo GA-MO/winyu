@@ -78,6 +78,7 @@ async function ask(testCase: EvalCase, model: string): Promise<Turn & { tools: T
     text: parts.filter((part) => part.type === "text-delta").map((part) => String(part.delta ?? "")).join(""),
     spec: specOf(parts),
     toolOutputs: parts.filter((part) => part.type === "tool-output-available").map((part) => part.output as Record<string, unknown>),
+    toolInputs: parts.filter((part) => part.type === "tool-input-available").map((part) => ({ tool: String(part.toolName), input: part.input })),
     tools: toolTraceOf(parts),
   };
 }

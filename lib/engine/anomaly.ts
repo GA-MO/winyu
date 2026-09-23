@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import type { Alert, Dim, MetricId, Region } from "@/lib/contracts";
 import { responsibleFor } from "@/lib/access/raci";
+import { toneOf } from "@/lib/dashboard/metric-display";
 import { TODAY } from "@/lib/data/dates";
 import { explain, regionOfDims } from "./hypothesis";
 import { DAILY_SCAN, MONTHLY_SCAN, mean, scanFloor, scanSeries } from "./stats";
@@ -8,9 +9,10 @@ import { isoOfSlot, monthEnd, seriesFor } from "./series";
 import { WATCHES, parentKeyOf, watchById, type Watch } from "./watches";
 
 export const Z_OPEN = 4;
-export const Z_WARN = 2;
-export const Z_CRITICAL = 3;
+export const CRITICAL_GAP_PCT = 25;
+export const WARN_GAP_PCT = 10;
 const COVER_CRITICAL = 7;
+const PERCENT = 100;
 const FLOOR_WINDOW = 7;
 const BASELINE_TAIL = 56;
 const VALUE_DECIMALS = 1;
@@ -62,11 +64,20 @@ export function thresholdFor(key: string, thresholds: Thresholds): number {
   return Z_OPEN * DISMISS_FACTOR ** Math.floor(dismissals / DISMISS_STEP);
 }
 
-function severityOf(watch: Watch, z: number, observed: number): Alert["severity"] {
-  if (watch.lowThreshold !== null && observed <= COVER_CRITICAL) return "P1";
-  const magnitude = Math.abs(z);
-  if (magnitude >= Z_CRITICAL) return "P1";
-  if (magnitude >= Z_WARN) return "P2";
+function gapPercent(observed: number, expected: number): number {
+  if (expected === 0) return observed === 0 ? 0 : PERCENT;
+  return ((observed - expected) / Math.abs(expected)) * PERCENT;
+}
+
+/** How much this movement hurts: a harmful gap of 25% (or cover at a week) is critical, 10% is worth a look, good news only when it is big enough to plan for. */
+export function severityOf(watch: Pick<Watch, "metric" | "lowThreshold">, observed: number, expected: number): Alert["severity"] {
+  if (watch.lowThreshold !== null) return observed <= COVER_CRITICAL ? "P1" : "P2";
+  const gap = gapPercent(observed, expected);
+  const size = Math.abs(gap);
+  const harmful = toneOf(watch.metric, gap) === "bad";
+  if (harmful && size >= CRITICAL_GAP_PCT) return "P1";
+  if (harmful && size >= WARN_GAP_PCT) return "P2";
+  if (!harmful && size >= CRITICAL_GAP_PCT) return "P2";
   return "P3";
 }
 
@@ -127,7 +138,7 @@ function detectWatch(watch: Watch, thresholds: Thresholds, covered: Set<string>)
       expected: round(scan.expected),
       zScore: round(scan.z),
       direction: scan.direction,
-      severity: explanation.explained ? "P3" : severityOf(watch, scan.z, scan.observed),
+      severity: explanation.explained ? "P3" : severityOf(watch, scan.observed, scan.expected),
       hypothesis: explanation.hypothesis,
       verifySteps: explanation.verifySteps,
       ownerUserId: ownerOf(watch.metric, region),
@@ -163,11 +174,19 @@ export function detectAnomalies(thresholds: Thresholds = {}): Detection[] {
     .slice(0, MAX_ALERTS);
 }
 
+function statusAfterRerun(previous: Alert | null, severity: Alert["severity"]): Alert["status"] {
+  if (!previous) return "open";
+  if (previous.status !== "dismissed") return previous.status;
+  return SEVERITY_RANK[severity] < SEVERITY_RANK[previous.severity] ? "open" : "dismissed";
+}
+
+/** Folds a fresh detection into the stored alert; a dismissed alert stays dismissed, at the severity it was dismissed at, until it gets worse. */
 export function toAlert(detection: Detection, previous: Alert | null): Alert {
+  const status = statusAfterRerun(previous, detection.severity);
   return {
     id: detection.id,
     at: previous?.at ?? `${TODAY}T06:00:00.000Z`,
-    severity: detection.severity,
+    severity: status === "dismissed" && previous ? previous.severity : detection.severity,
     metric: detection.metric,
     dims: detection.dims,
     window: detection.window,
@@ -178,7 +197,7 @@ export function toAlert(detection: Detection, previous: Alert | null): Alert {
     hypothesis: detection.hypothesis,
     verifySteps: detection.verifySteps,
     ownerUserId: detection.ownerUserId,
-    status: previous?.status === "dismissed" ? "open" : (previous?.status ?? "open"),
+    status,
     dismissCount: previous?.dismissCount ?? 0,
   };
 }

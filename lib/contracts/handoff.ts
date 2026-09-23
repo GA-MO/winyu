@@ -33,4 +33,4 @@ export const contextPacketSchema = z.object({
   updatedAt: z.string(),
 }) satisfies z.ZodType<ContextPacket>;
 
-export type OutboxEntry = { id: string; at: string; kind: "handoff" | "email"; fromUserId: string; toUserId: string; toEmail: string; subject: string; body: string; refId: string | null };
+export type OutboxEntry = { id: string; at: string; kind: "handoff" | "email" | "watch" | "digest"; fromUserId: string; toUserId: string; toEmail: string; subject: string; body: string; refId: string | null };

@@ -3,7 +3,8 @@ import type { AlertItem, EvidenceLine, HandoffItem, InboxPayload, ReplyItem } fr
 import { requireAccess, unauthenticated } from "../_guard";
 import { notifications } from "@/lib/server/agent/collections";
 import { packetsFor, resolveEvidence, sentPackets, type EvidenceView } from "@/lib/server/handoff";
-import { openAlertsFor } from "@/lib/server/alerts";
+import { canJudge, openAlertsFor } from "@/lib/server/alerts";
+import { lessonFor } from "@/lib/server/outcomes";
 import { displayLabel } from "@/lib/semantic/dictionary";
 import { formatDelta, formatMetricValue, metricLabel, toneOf } from "@/lib/dashboard/metric-display";
 import { findUser } from "@/lib/data/entities/users";
@@ -51,11 +52,13 @@ function movementOf(alert: Alert): AlertItem["movement"] {
   };
 }
 
-function alertOf(alert: Alert): AlertItem {
+function alertOf(alert: Alert, access: AccessContext): AlertItem {
   const owner = findUser(alert.ownerUserId);
   const scope = scopeOf(alert);
   return {
     id: alert.id,
+    canJudge: canJudge(alert, access),
+    lesson: lessonFor(alert),
     severity: alert.severity,
     metric: metricLabel(alert.metric),
     hypothesis: alert.hypothesis,
@@ -84,6 +87,7 @@ function handoffOf(packet: ContextPacket, access: AccessContext): HandoffItem {
     digest: packet.conversationDigest,
     at: packet.createdAt,
     outcome: packet.outcome,
+    alertCount: packet.alertIds.length,
     replies: packet.thread.map((reply) => ({ name: nameOf(reply.userId), at: reply.at, text: reply.text })),
   };
 }
@@ -96,7 +100,7 @@ export async function GET() {
     .slice(0, MAX_ITEMS)
     .map((packet) => handoffOf(packet, access));
 
-  const alertItems: AlertItem[] = openAlertsFor(access).slice(0, MAX_ALERT_ITEMS).map(alertOf);
+  const alertItems: AlertItem[] = openAlertsFor(access).slice(0, MAX_ALERT_ITEMS).map((alert) => alertOf(alert, access));
 
   const replies: ReplyItem[] = sentPackets(access.userId)
     .filter((packet) => packet.thread.length > 0)

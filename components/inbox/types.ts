@@ -21,11 +21,14 @@ export type HandoffItem = {
   digest: string;
   at: string;
   outcome: string | null;
+  alertCount: number;
   replies: { name: string; at: string; text: string }[];
 };
 
 export type AlertItem = {
   id: string;
+  canJudge: boolean;
+  lesson: string | null;
   severity: "P1" | "P2" | "P3";
   metric: string;
   hypothesis: string;

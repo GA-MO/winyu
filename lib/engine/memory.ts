@@ -140,3 +140,9 @@ export async function rememberTurn(userId: string, turns: { prompt: string }[], 
   const extracted = (await extractByModel(prompts)) ?? extractByRule(prompts);
   return merge(userId, extracted, threadId);
 }
+
+/** Remembers something the user did rather than said — a line they set, where they sent a problem, what they said is not theirs. */
+export function rememberAction(userId: string, fact: Extracted): MemoryFact[] {
+  pruneMemory(userId);
+  return merge(userId, [fact], null);
+}

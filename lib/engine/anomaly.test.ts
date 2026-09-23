@@ -1,8 +1,9 @@
 import { describe, expect, test } from "bun:test";
-import type { Dim } from "@/lib/contracts";
+import type { Alert, Dim } from "@/lib/contracts";
+import { toneOf } from "@/lib/dashboard/metric-display";
 import { INJECTED_ANOMALIES } from "@/lib/data/anomalies";
 import { TH } from "@/lib/i18n/th";
-import { Z_OPEN, detectAnomalies, dropRollUps, thresholdFor, thresholdKey, type Detection } from "./anomaly";
+import { Z_OPEN, detectAnomalies, dropRollUps, severityOf, thresholdFor, thresholdKey, toAlert, type Detection } from "./anomaly";
 import { DAILY_SCAN, scanSeries } from "./stats";
 
 const DETECTED = detectAnomalies();
@@ -117,5 +118,57 @@ describe("anomaly detection", () => {
     const scan = scanSeries(stepped, season, DAILY_SCAN);
     expect(scan?.direction).toBe("down");
     expect(Math.abs(scan?.z ?? 0)).toBeGreaterThan(Z_OPEN);
+  });
+});
+
+describe("severity follows the harm, not the z-score", () => {
+  const sales = { metric: "net_sales_volume" as const, lowThreshold: null };
+  const overdue = { metric: "ar_overdue" as const, lowThreshold: null };
+  const cover = { metric: "days_of_cover" as const, lowThreshold: 10 };
+
+  test("a harmful quarter-sized gap is critical, a harmful tenth is worth a look", () => {
+    expect(severityOf(sales, 20, 100)).toBe("P1");
+    expect(severityOf(sales, 88, 100)).toBe("P2");
+    expect(severityOf(sales, 95, 100)).toBe("P3");
+    expect(severityOf(overdue, 170, 100)).toBe("P1");
+  });
+
+  test("good news is never critical, only big good news asks for planning", () => {
+    expect(severityOf(sales, 114, 100)).toBe("P3");
+    expect(severityOf(sales, 130, 100)).toBe("P2");
+    expect(severityOf(overdue, 60, 100)).toBe("P2");
+  });
+
+  test("cover under a week is critical, under the floor is worth a look", () => {
+    expect(severityOf(cover, 6.2, 12)).toBe("P1");
+    expect(severityOf(cover, 8.5, 12)).toBe("P2");
+  });
+
+  test("the injected scenarios keep few criticals", () => {
+    const critical = DETECTED.filter((detection) => detection.severity === "P1");
+    expect(critical.length).toBeGreaterThan(0);
+    expect(critical.length).toBeLessThanOrEqual(10);
+    for (const detection of critical.filter((entry) => entry.metric !== "days_of_cover")) {
+      const gap = ((detection.observed - detection.expected) / Math.abs(detection.expected)) * 100;
+      expect(toneOf(detection.metric, gap)).toBe("bad");
+    }
+  });
+});
+
+describe("a dismissed alert stays dismissed until it gets worse", () => {
+  const detection = DETECTED[0] as Detection;
+
+  test("same or milder severity keeps it closed at the severity it was closed at", () => {
+    const dismissed: Alert = { ...toAlert(detection, null), status: "dismissed", severity: "P1", dismissCount: 1 };
+    const rerun = toAlert({ ...detection, severity: "P1" }, dismissed);
+    expect(rerun.status).toBe("dismissed");
+    expect(toAlert({ ...detection, severity: "P3" }, dismissed).status).toBe("dismissed");
+  });
+
+  test("a worse severity opens it again", () => {
+    const dismissed: Alert = { ...toAlert(detection, null), status: "dismissed", severity: "P3", dismissCount: 1 };
+    const rerun = toAlert({ ...detection, severity: "P1" }, dismissed);
+    expect(rerun.status).toBe("open");
+    expect(rerun.severity).toBe("P1");
   });
 });

@@ -1,12 +1,16 @@
 import { existsSync } from "node:fs";
 import path from "node:path";
 import type { AccessContext, Alert, ContextPacket, Forecast, Region } from "@/lib/contracts";
-import { alertThresholds, alerts, forecasts, packets } from "@/lib/server/agent/collections";
+import { alertMutes, alertThresholds, alerts, forecasts, packets } from "@/lib/server/agent/collections";
 import { DATA_DIR } from "@/lib/server/store/json-store";
 import { detectAnomalies, thresholdKey, toAlert, type Thresholds } from "@/lib/engine/anomaly";
 import { buildForecasts } from "@/lib/engine/forecast";
 import { templateFor } from "@/lib/dashboard/templates";
+import { findUser } from "@/lib/data/entities/users";
 
+const MUTE_DAYS = 14;
+const DAY_MS = 86_400_000;
+const RAISE_EVERY = 3;
 const SEVERITY_RANK: Record<Alert["severity"], number> = { P1: 0, P2: 1, P3: 2 };
 
 export type AlertRelevance = "mine" | "watched" | "other";
@@ -61,7 +65,7 @@ export function ensureEngine(): void {
 
 function inScope(alert: Alert, access: AccessContext): boolean {
   if (alert.ownerUserId === access.userId) return true;
-  if (access.metricAcl[alert.metric] === "none") return false;
+  if (access.metricAcl[alert.metric] !== "full") return false;
   if (access.regions === "all") return true;
   const region = alert.dims.region;
   return !region || access.regions.includes(region as Region);
@@ -77,17 +81,32 @@ function watchedMetrics(access: AccessContext): ReadonlySet<string> {
   return new Set(templateFor(access).map((seed) => seed.query.metric));
 }
 
+function awayFromHome(alert: Alert, home: string | null): number {
+  return home !== null && alert.dims.region !== home ? 1 : 0;
+}
+
 function rankFor(access: AccessContext): (left: Alert, right: Alert) => number {
   const watched = watchedMetrics(access);
+  const home = findUser(access.userId)?.region ?? null;
   return (left, right) =>
     RELEVANCE_RANK[relevanceOf(left, access, watched)] - RELEVANCE_RANK[relevanceOf(right, access, watched)] ||
+    awayFromHome(left, home) - awayFromHome(right, home) ||
     SEVERITY_RANK[left.severity] - SEVERITY_RANK[right.severity] ||
     Math.abs(right.zScore) - Math.abs(left.zScore);
 }
 
+function mutedKeys(userId: string, now = Date.now()): ReadonlySet<string> {
+  const at = new Date(now).toISOString();
+  return new Set(alertMutes().where((mute) => mute.userId === userId && mute.until > at).map((mute) => mute.key));
+}
+
+/** The open alerts this user can see, minus the slices they said are not theirs, most relevant first. */
 export function openAlertsFor(access: AccessContext): Alert[] {
   ensureEngine();
-  return alerts().where((alert) => alert.status === "open" && inScope(alert, access)).sort(rankFor(access));
+  const muted = mutedKeys(access.userId);
+  return alerts()
+    .where((alert) => alert.status === "open" && inScope(alert, access) && !muted.has(thresholdKey(alert.metric, alert.dims)))
+    .sort(rankFor(access));
 }
 
 export function allAlertsFor(access: AccessContext): Alert[] {
@@ -111,18 +130,42 @@ export function forecastsFor(access: AccessContext): Forecast[] {
   });
 }
 
-/** Dismissing three times in a row raises the bar the same slice has to clear next run. */
-export function dismissAlert(id: string): { alert: Alert; raised: boolean } | null {
+function managesUser(managerId: string, userId: string): boolean {
+  let current = findUser(userId)?.managerId ?? null;
+  while (current) {
+    if (current === managerId) return true;
+    current = findUser(current)?.managerId ?? null;
+  }
+  return false;
+}
+
+/** Only the owner of an alert, or someone above them, can say it is not an anomaly for everyone. */
+export function canJudge(alert: Alert, access: AccessContext): boolean {
+  return alert.ownerUserId === access.userId || managesUser(access.userId, alert.ownerUserId);
+}
+
+/** The alert, if this user is allowed to see it at all. */
+export function visibleAlert(id: string, access: AccessContext): Alert | null {
   const alert = alerts().get(id);
-  if (!alert) return null;
-  const dismissCount = alert.dismissCount + 1;
-  const updated = alerts().put({ ...alert, status: "dismissed", dismissCount });
+  return alert && inScope(alert, access) ? alert : null;
+}
+
+/** "Not mine": hides this slice from this user only, for two weeks. */
+export function muteAlert(alert: Alert, access: AccessContext, now = Date.now()): { until: string } {
+  const key = thresholdKey(alert.metric, alert.dims);
+  const until = new Date(now + MUTE_DAYS * DAY_MS).toISOString();
+  alertMutes().put({ id: `${access.userId}|${key}`, userId: access.userId, key, until });
+  return { until };
+}
+
+/** "Not an anomaly": closes it for everyone; every third time on the same slice raises the bar the next run has to clear. */
+export function dismissAlert(alert: Alert): { alert: Alert; raised: boolean } {
+  const updated = alerts().put({ ...alert, status: "dismissed", dismissCount: alert.dismissCount + 1 });
   const key = thresholdKey(alert.metric, alert.dims);
   const store = alertThresholds();
-  const entry = store.get(key);
-  const dismissals = (entry?.dismissals ?? 0) + 1;
+  const dismissals = (store.get(key)?.dismissals ?? 0) + 1;
   store.put({ id: key, dismissals, updatedAt: new Date().toISOString() });
-  return { alert: updated, raised: dismissals % 3 === 0 };
+  return { alert: updated, raised: dismissals % RAISE_EVERY === 0 };
 }
 
 export function alertById(id: string): Alert | null {

@@ -31,6 +31,7 @@ export const describeCopToolCall: DescribeToolCall = (name, input) => {
   if (name === "create_handoff") return sentence(TH.approve.handoffDone(to), TH.approve.handoff(to));
   if (name === "send_email") return sentence(TH.approve.emailDone(to), TH.approve.email(to));
   if (name === "pin_widget") return sentence(TH.approve.pinDone, TH.approve.pin);
+  if (name === "watch_metric") return sentence(TH.approve.watchDone, TH.approve.watch);
   if (name === "run_job") return sentence(TH.approve.jobDone(jobOf(value)), TH.approve.job(jobOf(value)));
   return null;
 };

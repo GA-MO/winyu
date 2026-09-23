@@ -1,4 +1,4 @@
-import type { ActionEvent, Alert, ContextPacket, DashboardLayout, Forecast, MemoryFact, Notification, OutboxEntry } from "@/lib/contracts";
+import type { ActionEvent, Alert, ContextPacket, DashboardLayout, Forecast, MemoryFact, Notification, OutboxEntry, PersonalWatch } from "@/lib/contracts";
 import { collection } from "@/lib/server/store/json-store";
 
 export type StoredForecast = Forecast;
@@ -53,6 +53,40 @@ export type AlertThreshold = { id: string; dismissals: number; updatedAt: string
 
 export function alertThresholds() {
   return collection<AlertThreshold>("alert-thresholds");
+}
+
+export type AlertMute = { id: string; userId: string; key: string; until: string };
+
+export function alertMutes() {
+  return collection<AlertMute>("alert-mutes");
+}
+
+export type Visit = { id: string; at: string; alertIds: string[]; previousAt: string | null; previousAlertIds: string[] | null };
+
+export function visits() {
+  return collection<Visit>("visits");
+}
+
+export function personalWatches() {
+  return collection<PersonalWatch>("watches");
+}
+
+export type JobRun = { id: string; lastRunAt: string; lastRunDay: string };
+
+export function jobRuns() {
+  return collection<JobRun>("job-runs");
+}
+
+export type DigestSent = { id: string; day: string; alertIds: string[] };
+
+export function digests() {
+  return collection<DigestSent>("digests");
+}
+
+export type AlertOutcome = { id: string; key: string; alertId: string; verdict: "real" | "noise"; outcome: string; byUserId: string; at: string };
+
+export function alertOutcomes() {
+  return collection<AlertOutcome>("alert-outcomes");
 }
 
 export type PacketOrigin = { id: string; threadId: string; userId: string };

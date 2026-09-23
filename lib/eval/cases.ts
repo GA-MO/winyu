@@ -4,6 +4,7 @@ export type EvalCase = {
   prompt: string;
   expectSort?: "delta_asc" | "delta_desc" | "value_desc" | "value_asc";
   expectComponent?: "DataCard" | "AlertsCard";
+  expectApproval?: "watch_metric" | "create_handoff" | "pin_widget";
   scripted?: boolean;
 };
 
@@ -23,7 +24,14 @@ export const EVAL_CASES: EvalCase[] = [
   { id: "marketing-campaign", userId: "u_ben", prompt: "แคมเปญไหนได้ผลดีที่สุด", expectComponent: "DataCard", expectSort: "value_desc" },
   { id: "hr-attrition", userId: "u_may", prompt: "อัตราการลาออกแต่ละฝ่ายเป็นยังไง", expectComponent: "DataCard" },
   { id: "rep-denied", userId: "u_krit", prompt: "กำไรขั้นต้นของบริษัทเท่าไหร่" },
+  { scripted: true, id: "hr-headcount", userId: "u_may", prompt: "จำนวนพนักงานแต่ละฝ่ายเทียบปีที่แล้ว", expectComponent: "DataCard", expectSort: "value_desc" },
+  { scripted: true, id: "finance-budget", userId: "u_mint", prompt: "เปรียบเทียบงบกับยอดจริงของเดือนนี้", expectComponent: "DataCard" },
+  { id: "landing-alert-marketing", userId: "u_ben", prompt: "ตรวจความผิดปกติของ เพอร์ร่า ขวด PET 600 มล. · เชียงใหม่ · ภาคเหนือ ให้หน่อย", expectComponent: "AlertsCard" },
+  { id: "landing-alert-finance", userId: "u_mint", prompt: "ตรวจความผิดปกติของ ภาคใต้ ให้หน่อย", expectComponent: "AlertsCard" },
+  { id: "landing-visit", userId: "u_krit", prompt: "เทียบยอดขายเข้ากับยอดขายออกของ อุบลศรีสุข เทรดดิ้ง ก่อนไปเยี่ยม", expectComponent: "DataCard" },
   { scripted: true, id: "ceo-channel", userId: "u_thana", prompt: "ขอยอดขายแยกตามช่องทางหน่อย", expectComponent: "DataCard", expectSort: "value_desc" },
+  { scripted: true, id: "planner-watch", userId: "u_wee", prompt: "เตือนฉันถ้าสต๊อกดีซีลำพูนพอขายต่ำกว่า 10 วัน", expectApproval: "watch_metric" },
+  { id: "rsm-watch-agent", userId: "u_anucha", prompt: "ถ้ายอดขายเข้าของ ส.รุ่งเรือง เทรดดิ้ง เปลี่ยนเกิน 15% ให้เตือนผมด้วย", expectApproval: "watch_metric" },
 ];
 
 /** The subset the scripted mock answers, so the card contract is checked in `bun run test` with no API key. */

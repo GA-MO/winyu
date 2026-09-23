@@ -1,25 +1,28 @@
 # Cop — build plan
 
 ## สถานะ (updated 2026-09-23)
-ทำแล้ว: Phase 0–3 · 1.5–1.9 (Cop `5ef3363`, `d303add` บน `main`) · Vexa host catalog/approval/data-card (`d893818` บน `roadmap`) · โมเดลจริงตัวเดียว `google/gemini-3.8-flash` ผ่าน OpenRouter (`lib/server/models.ts`) · `eval:cards` 28/30 ×2 runs · Cop build ผ่าน · Vexa scenarios 39/43 (ที่ตกมีอยู่แล้วก่อนรอบนี้), `eval:ui` revenue-by-status/week-dashboard 4/5
+ทำแล้ว: Phase 0–3 · 1.5–1.9 (Cop `5ef3363`, `d303add`, `dd33323` บน `main`) · Vexa host catalog/approval/data-card (`d893818` บน `roadmap`) · โมเดลจริง `google/gemini-3.8-flash` ผ่าน OpenRouter · `eval:cards` 28/30 ×2 · หน้าแรก 1.9 ผ่านการทดลองใช้โดย agent 6 บทบาท (CEO/CFO/ผอ.ขาย/RSM/พนักงานขาย/supply) · typecheck + 231 tests ผ่านหลัง `dd33323`
 ค้าง:
-- working tree มีงาน Phase 1.9 ของ session cop-36 ยังไม่ commit (`app/(app)/page.tsx`, `app/api/threads/route.ts`, `landing.tsx`, `present.ts` `weakestRow`, `ambient.ts`, `dashboard.ts` `visitsFor`, `th.ts`, `lib/cards/weakest.test.ts` ใหม่) — ยังไม่ได้พิสูจน์: `bun run typecheck && bun run test` หลังการแก้ชุดนี้
-- การ์ดของ persona CFO/HR/supply/sales_rep ยังไม่เคยเปิดดูด้วยตา (Claude in Chrome ปิดใน settings, profile ของ chrome-devtools ถูกอีก session ถือ) · `run_job` ของ it_admin พิสูจน์ด้วยเทสต์เท่านั้น
+- ~~persona HR / marketing / finance_analyst / it_admin ยังไม่เคยเปิดหน้าแรก~~ ตรวจแล้ว 2026-09-23 (u_may, u_ben, u_pim, u_mint, u_ton ที่ 1280/375 px): แก้ alert บนเมตริกที่ถูก mask ยังโชว์ค่าจริง/คาดบนหน้าแรก กล่องงาน และ `get_alerts` (`inScope` ต้องเป็น `full`) · ชิปที่บทบาทไม่มีสิทธิ์ถูกตัด (`answerable` ใน `quick-actions.ts`) + ชิป HR/IT ของบทบาทเอง · KPI ซ้ำ · การ์ดงานที่ส่งมาบนหน้าแรกเปิดแชทแบบ preload เหมือนกล่องงาน (ก่อนหน้านี้ Gemini ใช้ tool จนหมด 6 ขั้นแล้วไม่ตอบ) · ความผิดปกติในภาคของผู้ใช้ขึ้นก่อน · `run_job` ขึ้นการ์ดอนุมัติในเบราว์เซอร์ (ยังไม่ได้กดอนุมัติ)
+- mock: `PRELOAD_STEPS` ตอบฉากสต๊อกของ supply เสมอ ไม่ว่างานที่ส่งมาจะเรื่องอะไร (Gemini ตอบถูก) · ชิป "เตรียมสต๊อกออกพรรษา" ใน mock ได้ตาราง cover รายดีซี ไม่ได้ YoY เบียร์ · คุณพิมมีงานที่ส่งมา 68 ชิ้นจากการทดลอง/eval ที่เขียนลง `.data`
+- หน้าแรก: เอเย่นต์อันดับ 1 ของ "ไปเยี่ยมวันนี้" ซ้ำกับการ์ดความผิดปกติข้างล่าง (`lib/server/dashboard.ts` `visitsFor` / `ambientFor`) · การ์ดใบที่สองอาจเป็น P3 ที่ engine อธิบายได้แล้ว (`differentStory` ใน `lib/dashboard/ambient.ts`) · แดชบอร์ดบอก "ความผิดปกติใหม่ 44 เรื่องตั้งแต่เมื่อวาน" (`changesSince` ใน `lib/server/briefing.ts`) เพราะ engine สร้างทุกเรื่องเมื่อวาน
+- mock: กดรายการเยี่ยมได้กราฟขายเข้า/ขายออกของทุกเอเย่นต์ ไม่เจาะรายเดียว; prompt การ์ดหน้าแรก (focused alert ×2, visit, งบเทียบจริง, headcount) อยู่ใน `lib/eval/cases.ts` แล้ว: `eval:cards` Gemini 35/40 ×2 (landing-visit/finance-budget 3/3 หลังเพิ่มกฎงบ tool ใน `COP_RULES`; ที่ตกคือ 429 ของ OpenRouter 2 เคส, ceo-alerts ตอบเป็นข้อความ 1/2, hr-headcount ไม่ใส่ sortBy 1/2, planner-forecast ปี 2026 1/2)
 - ยังไม่ push ทั้งสอง repo · Vexa `roadmap` ยังไม่ merge · devtools toggle ของ Vexa โผล่ในแชทตอน dev
 ค้นพบ:
-- `get_forecast` ที่ไม่ระบุมิติเคยคืนชุดแบรนด์×ภาคแรกเป็น "ทั้งประเทศ" (3.9k vs จริง ~57k hl/สัปดาห์) — `lib/engine/forecast-slice.ts` รวมเฉพาะเมตริกที่บวกได้, `days_of_cover` ต้องระบุ dc+sku
-- headline delta เคยเทียบทุกแถวกับ top-N หลัง limit (+171.9% vs จริง +8.4%) — แก้ใน `runMetric`; `compare:"target"` บน `target_attainment` ตอนนี้ = `none`
-- กฎการ์ดของ host ต้องอยู่ใน `COP_RULES` ไม่ใช่ `SHARED_INTRO` ของ Vexa (ทำ `eval:ui` ของ shop-admin ตก 5/5→2/5) · `eval:ui --report` เขียนทับ `docs/admin-ui-eval.md` + `specs.ts` ของ Vexa
-- Gemini 3.1 Flash Lite อ่อนเกินไป (ดึงข้อมูลแล้วตอบว่าไม่มีตัวเลข) · `.data` ถูกเขียนจากการใช้งานจริง เทสต์ห้ามถือว่าว่าง · `eval:cards` เขียน memory ผ่าน handler จริง
-ถัดไป: /go ตรวจ การ์ด persona CFO/HR/supply/sales_rep + run_job ของ it_admin ในเบราว์เซอร์ และ typecheck/test ของงาน 1.9 ที่ยังไม่ commit ตาม docs/plan.md
+- dashboard เบลอด้านหลังไม่ได้ช่วยให้ไม่พลาดข้อมูล — ถอดออก ใช้แถบ KPI จากการ์ดที่ปัก (ผ่าน `presentCard`) + `weakestRow`; §1 แก้แล้วว่า dashboard ไม่ใช่ backdrop
+- ปัญหาอันดับหนึ่งของทุกบทบาทคือ "ความผิดปกติของคนอื่น" — `openAlertsFor` ต้องเรียง ของฉัน → เมตริกที่บทบาทดู → ความรุนแรง (`relevanceOf` ใน `lib/server/alerts.ts`) · ทุกปุ่ม/ชิปบนหน้าแรกต้องมี turn ใน mock (เคยตัน 16 prompt)
+- alert ที่ watch เป็น `year_over_year` (ลูกหนี้) เก็บค่าเป็นสัดส่วน ไม่ใช่เงิน — `alertRowOf` จัดรูปเป็น "N เท่าของปีก่อน" · progress "ถึงเป้า" ใช้ได้เฉพาะ `target_attainment`
+- หัวเลขของเมตริกแบบอัตราเคยเฉลี่ยแถวแบบไม่ถ่วง (ลาออก 1.1% แยกฝ่าย vs 1.3% รวม, กำไรขั้นต้น 30.4% vs 26.9%) — `combined` ใน `lib/data/query.ts` ถ่วงด้วยตัวหาร · จำนวนพนักงานเคยหาร ฝ่าย×เดือน ได้ 564 แทน 4,511 (`SUMMED_ACROSS_NON_TIME`) · Gemini ที่ใช้ tool เกิน 6 ขั้นจบเทิร์นเงียบ ๆ ไม่มีข้อความหรือการ์ด
+- headline delta เคยเทียบทุกแถวกับ top-N (+171.9% vs +8.4%) แก้ใน `runMetric` · `get_forecast` ไม่ระบุมิติเคยคืนชุดแรกเป็นทั้งประเทศ · กฎการ์ดต้องอยู่ใน `COP_RULES` ไม่ใช่ `SHARED_INTRO` ของ Vexa · `.data` ถูกเขียนจากการใช้งานจริง เทสต์ห้ามถือว่าว่าง
+ถัดไป: **Phase 4** (4A → 4E) — ระบบเรียนรู้จากผู้ใช้และทำงานเองโดยไม่ต้องรอแชท
 
-Status: **In progress** · Revision 8 · 2026-09-23 · phases 0–3 and 1.6–1.9 committed in Cop; Vexa changes committed on `roadmap`.
+Status: **In progress** · Revision 9 · 2026-09-23 · phases 0–3 and 1.5–1.9 committed in Cop; Vexa changes committed on `roadmap`.
 
 Cop is the enterprise copilot described in the brainstorm of 2026-09-22 (four angles: executive/governance, daily user, architecture, red-team). This plan turns it into a runnable demo on Vexa with a full-lifecycle mock of a Thai beverage company, built by parallel agents. Everything here is the deliverable; the chat summary is not.
 
 ## 1. What we are building
 
-One Next.js app, signed-in personas. **UX principle (decided with the user on 2026-09-22): this is an AI agent, not an admin system.** The chat is the front door, the dashboard is the ambient backdrop, everything else is a drawer or a card inside the chat. Visual language = the Vexa website (dark-first, indigo→violet glow blobs, glass panels, elevated cards with colored shadows, gradient display text). No sidebar of admin menus.
+One Next.js app, signed-in personas. **UX principle (decided with the user on 2026-09-22): this is an AI agent, not an admin system.** The chat is the front door; the landing shows what needs this user (status line, KPI strip from pinned cards, their own alerts) and the dashboard is one click away (revised 2026-09-23: the blurred dashboard backdrop was removed); everything else is a drawer or a card inside the chat. Visual language = the Vexa website (dark-first, indigo→violet glow blobs, glass panels, elevated cards with colored shadows, gradient display text). No sidebar of admin menus.
 
 | Surface | Route | What it does |
 |---|---|---|
@@ -394,6 +397,61 @@ The user's question: "จะมั่นใจได้ไงว่า model จ
 - [x] 375 px pass (no horizontal page scroll on `/`, `/dashboard`, `/admin`, `/c/[threadId]`; wide tables scroll inside their panel), dark mode pass on the new pages, focus rings on every admin control, empty states on audit/usage/intents, `app/(app)/dashboard/loading.tsx` + `components/dashboard/widget-skeleton.tsx` for the widget skeletons, dashboard cards equal height per row (the 2D gap is gone).
 - [x] `README.md` rewritten (surfaces, loops, governance, layout), `docs/architecture.md` written (request path, layers, data model, `runMetric`, the four loops, governance, models), CLAUDE.md commands verified.
 - [x] `bun run typecheck`, `bun run test` (187 pass, 25 ใหม่จาก 3A), **`bun run build` passes** (the phase-2 unknown), curl of every route, `.data` reset with `bun run seed`.
+
+### Phase 4 — จากแชทที่รอคำถาม ไปเป็น agent ที่เรียนรู้และทำงานเอง (user review 2026-09-23)
+
+ผู้ใช้: "อยากให้ AI ทำงานอยู่หลายจุด ไม่ให้ manual แล้วปั้นข้อมูลแล้วแค่ chat … dashboard น่าเบื่อหรือแสดงของไม่ตรงใจ ยัดเยียดของที่ไม่จำเป็นหรือเปล่า ศึกษาเรียนรู้จาก user แค่ไหน … ไม่งั้นทำไปคนไม่ใช้มันเปลืองงบ"
+
+ผลตรวจโค้ดและ `.data/` (2026-09-23):
+- **severity ใช้ไม่ได้**: alert เปิดที่ |z| ≥ 4 (`Z_OPEN`) แต่ P1 คือ |z| ≥ 3 (`Z_CRITICAL`) → ทุกเรื่องที่ `explain` อธิบายไม่ได้เป็น P1 อัตโนมัติ (30 จาก 44) รวมถึงขายเข้า **+14%** ของเอเย่นต์รายเดียว ทิศที่เป็นข่าวดีถูกนับเป็นวิกฤตเท่ากับขายเข้า −80%
+- **ปิด alert แล้วกลับมา**: `toAlert` เปลี่ยน `dismissed` กลับเป็น `open` ทุกรอบที่ job รัน; การปิดเป็นของทุกคน (คนหนึ่งปิด อีกคนหายด้วย); `POST /api/alerts/[id]` ไม่ตรวจว่า alert อยู่ในขอบเขตของผู้กด (ใครก็ปิด alert ของ CEO ได้ถ้ารู้ id)
+- **สัญญาณพฤติกรรมไม่ถูกส่ง**: `events.json` มีแค่ `question` 76 / `quick_action` 13 — `alert_open`, `widget_view`, `dismiss` มีใน contract และ API แต่ไม่มี UI ไหนส่ง ระบบจึงไม่รู้ว่าการ์ดไหนไม่มีใครดู
+- **เหตุผลที่ไม่จริง**: chip ตั้งต้น (`quick-actions.ts` "คุณถามคำถามนี้ทุกต้นสัปดาห์", "เปิดดูทุกเช้า"), การ์ดใน `templates.ts` ("คุณเปิดดูลูกหนี้ค้างชำระ 4 ครั้งใน 14 วัน"), ชิปสิ้นเดือน ("คนตำแหน่งเดียวกับคุณถามเรื่องนี้บ่อย") แสดงกับผู้ใช้ใหม่ที่ไม่เคยทำสิ่งนั้น
+- **แดชบอร์ดโตอย่างเดียว**: `compose.ts` เพิ่มได้วันละใบ ไม่มีอะไรเสนอให้ถอดการ์ดที่ไม่มีคนดู; การ์ดที่ค่าปกติกินที่เท่ากับการ์ดที่ขยับแรง; "เปลี่ยนไปตั้งแต่เมื่อวาน" นับจากวันที่ alert ถูกสร้าง ไม่ใช่จากครั้งล่าสุดที่ผู้ใช้เปิด
+- **ผลลัพธ์ไม่ถูกเอากลับมาใช้**: `packet.outcome` ถูกเก็บตอนปิดงานแต่ไม่มีใครอ่าน alert เดิมไม่รู้ว่าครั้งก่อนเป็นเรื่องจริงหรือ noise และแก้อย่างไร
+- **ไม่มีอะไรทำงานเองตามเวลา**: engine รันตอนบูตครั้งแรกหรือเมื่อ IT กด; ผู้ใช้ตั้งเงื่อนไขเฝ้าดูของตัวเองไม่ได้ ต้องเปิดแอปมาถามเอง
+- memory เป็น keyword ("สนใจสต๊อกคงเหลือ", "ติดตาม สิงห์") ไม่จำเกณฑ์ การตัดสินใจ หรือว่าเรื่องแบบไหนส่งให้ใคร
+
+หลักของ phase นี้: **เรียนรู้ก่อน แล้วค่อยทำเอง** (agent ที่ทำงานเองบน alert ที่ยังมี noise ทำลายความเชื่อถือเร็วกว่าเดิม) · ทุกอย่างที่ส่งออกยังผ่าน approval (D6) · แดชบอร์ดยังไม่ขยับเอง (D3) มีแต่ "เสนอ" · ตัวเลขยังมาจาก semantic layer · ไม่เพิ่ม dependency ใหม่ ลำดับ 4A → 4B → 4C → 4D → 4E
+
+**4A ปิดวงการเรียนรู้ และ alert ที่เชื่อได้** (`lib/engine/anomaly.ts`, `lib/server/alerts.ts`, `app/api/alerts/[id]`, `components/inbox/drawer.tsx`, `components/landing/landing.tsx`, `lib/server/quick-actions.ts`, `lib/dashboard/templates.ts`, `lib/engine/seasons.ts`)
+- [x] severity ตามผลกระทบ ไม่ใช่ z อย่างเดียว (`severityOf`): ทิศที่เสียหาย (`toneOf` = bad) และห่างจากคาด ≥ 25% หรือ days-of-cover ≤ 7 → P1; ทิศเสียหาย ≥ 10% → P2; ข่าวดี ≥ 25% → P2 (ต้องเตรียมของ); ที่เหลือ → P3; อธิบายได้แล้ว → P3 เหมือนเดิม; days-of-cover ต่ำกว่าเกณฑ์แต่เกิน 7 วัน → P2 — เกณฑ์เป็นค่าคงที่ต้นไฟล์ มีเทสต์ และเทสต์ §5.3 เดิมยังผ่าน
+- [x] การปิด alert แยกสองความหมาย: **"ไม่เกี่ยวกับฉัน"** = ซ่อนเฉพาะผู้ใช้นั้น 14 วันต่อ slice (`alert-mutes`: userId + `thresholdKey`) ไม่กระทบคนอื่น; **"ไม่ใช่ความผิดปกติ"** (เฉพาะเจ้าของ alert หรือหัวหน้าในสายบังคับบัญชา — `canJudge`; ปุ่มนี้ไม่แสดงกับคนอื่น และ API ตอบ 403) = ปิดสำหรับทุกคนและนับเข้า `alert-thresholds` แบบเดิม
+- [x] alert ที่ถูกปิดแบบ "ไม่ใช่ความผิดปกติ" ไม่กลับมาเปิดใน job รอบถัดไป เว้นแต่ severity แย่ลง (`toAlert` เก็บ severity ตอนที่ปิดไว้เทียบ)
+- [x] `POST /api/alerts/[id]` ตรวจขอบเขต (`visibleAlert`) ก่อนทำอะไร — alert นอกขอบเขตตอบ 404 เหมือนไม่มี; รับ `open` / `mute` / `dismiss` — เทสต์ใน `lib/server/alerts.test.ts`
+- [x] UI ส่งสัญญาณจริง: เปิดการ์ด alert บนหน้าแรก / กด "ตรวจสอบ" ในกล่องงาน → `alert_open` (intentKey `alert:<thresholdKey>`, metric ของ alert); การ์ดแดชบอร์ดที่อยู่ในจอ ≥ 1.5 วินาที → `widget_view` (intentKey `widget:<id>`, ไม่เกินวันละครั้งต่อการ์ด) ผ่าน `POST /api/quick-actions` ที่มีอยู่ (`components/dashboard/seen-tracker.tsx`, dedupe รายวันใน route)
+- [x] เหตุผลต้องจริง: chip ตั้งต้นและการ์ดจาก template บอกว่า "ตั้งต้นสำหรับ<ตำแหน่ง>" จนกว่าจะมีพฤติกรรมจริงรองรับ; ลบเหตุผลที่อ้างพฤติกรรมของผู้ใช้หรือเพื่อนร่วมตำแหน่งที่ระบบไม่ได้นับ — เทสต์ `lib/server/quick-actions.test.ts` ทุก persona; layout ที่เก็บไว้ใน `.data` ได้เหตุผลใหม่จาก template ตอนอ่าน (`withTemplateReasons`)
+- [x] ตรวจ (curl): P1 ทั้งระบบ 30 → 7 (P2 6, P3 31); วิกฤตบนหน้าแรก CEO 30 → 6, CFO 1, supply 1, RSM อีสาน 5; rep อีสานกด "ไม่ใช่ความผิดปกติ" บน alert ของ RSM ได้ 403, RSM ภาคเหนือกดบน alert อีสานได้ 404
+- [ ] ค้าง: P1 ของ RSM อีสาน 4 ใน 5 เรื่องเป็นเรื่องเดียวกัน (เอเย่นต์ 2 รายหยุดสั่ง × 2 แบรนด์) — ควรรวม alert ของเอเย่นต์เดียวกันทิศเดียวกันเป็นเรื่องเดียว ก่อนนับบนหน้าแรก
+
+**4B แดชบอร์ดที่แสดงเฉพาะสิ่งที่เปลี่ยน** (`lib/dashboard/attention.ts` ใหม่, `lib/server/dashboard.ts`, `lib/server/briefing.ts`, `components/dashboard/dashboard-view.tsx`, `app/(app)/dashboard/page.tsx`)
+- [x] `attentionOf` (`lib/dashboard/attention.ts`) → `moved` เมื่อ มี alert ที่เกี่ยวกับผู้ใช้เปิดบนเมตริกนั้น / ระดับต่ำกว่าเกณฑ์ (ยอดเทียบเป้า < 95%, วันครอบคลุมสต๊อก < 10 วัน — บอกแถวที่แย่สุดผ่าน `weakestRow`) / headline ขยับ ≥ 5% / แถวใดแถวหนึ่งแย่ลง ≥ 25% (`sharpestHarm` ใหม่ใน `present.ts`) พร้อมเหตุผลหนึ่งบรรทัด; นอกนั้น `steady`
+- [x] แดชบอร์ด: การ์ด `moved` เต็มขนาดก่อน การ์ด `steady` ยุบเป็นแถวเดียว "ปกติ" (ชื่อ + ตัวเลขหลัก) กดแล้วขยาย (`SteadyPanel`) — ลำดับที่ผู้ใช้จัดยังอยู่ภายในแต่ละกลุ่ม (D3: ไม่มีการ์ดหาย) ผล: CEO ปกติ 1 จาก 4, supply 2 จาก 4, marketing 4 จาก 4
+- [x] เสนอถอด: การ์ดที่ปักแต่ไม่มี `widget_view` 14 วัน (และปักมานานกว่า 14 วัน) ขึ้นในถาดคำแนะนำ "ไม่ได้เปิดดู 14 วัน — เอาออกไหม" ผู้ใช้ตัดสินใจเอง (เอาออก / เก็บไว้ = นับเป็นการดู) ไม่มีการถอดอัตโนมัติ — เริ่มตัดสินเมื่อมีประวัติการดูครบ 14 วันแล้วเท่านั้น (`staleWidgets`)
+- [x] "เปลี่ยนไปตั้งแต่ครั้งก่อน": เทียบกับชุด alert ที่ผู้ใช้เห็นตอนเปิดครั้งก่อน (`lib/server/visits.ts`, reload ภายใน 30 นาทีนับเป็นครั้งเดียวกัน; เทียบชุด id ไม่ใช่เวลา เพราะเวลา alert เป็นปฏิทินข้อมูล ไม่ใช่นาฬิกาจริง) ครั้งแรกไม่มีอะไรนับเป็น "ใหม่" และนับเฉพาะ alert ที่เกี่ยวกับผู้ใช้ (`relevanceOf` ≠ other) — แก้ "ความผิดปกติใหม่ 44 เรื่อง" ที่ค้างจาก 1.9
+- [x] ตรวจด้วย curl: `/dashboard` 200 ของ CEO / supply / RSM / rep มีแผง "ปกติ N การ์ด" และเหตุผลบนการ์ดที่ขยับ
+- [x] ดูด้วยตา (chrome-devtools) ที่ 1440 และมือถือ: แดชบอร์ด CEO, หน้าแรก CEO / supply, กล่องงาน, แผงบัญชี, `/admin` ใช้จริงไหม — ไม่มี scroll แนวนอน · เจอและแก้: การ์ด "ความผิดปกติที่ต้องดู" กรองตามเมตริกของ template จนไม่เห็น P1 ขายเข้า −80% (ตอนนี้แสดง alert ที่เกี่ยวกับผู้ใช้ทุกเมตริก), หัวข้อ "ตั้งแต่เมื่อวาน" → "ตั้งแต่ครั้งก่อนที่คุณเปิด", เหตุผล "ต่ำกว่าเกณฑ์" บอกเกณฑ์ (95%), กล่องงานและแผงบัญชีโชว์ "ยังไม่มี…" ระหว่างโหลด, การ์ดใบที่สองบนหน้าแรกเลือก P3 ที่อธิบายได้แล้วทั้งที่มี P2 รออยู่ (ปิดเรื่องค้างจาก 1.9)
+
+**4C งานที่ agent ทำเองโดยไม่ต้องรอถาม** (`lib/engine/personal-watches.ts` ใหม่, `lib/server/agent/tools.ts`, `lib/contracts/tools.ts`, `instrumentation.ts` ใหม่, `lib/server/scheduler.ts` ใหม่)
+- [x] tool `watch_metric` (write, ผ่าน approval เหมือน `pin_widget`): "เตือนฉันถ้า<เมตริก><ขอบเขต> ต่ำกว่า/สูงกว่า X" หรือ "เปลี่ยนเกิน N%" เก็บ `MetricQuery` + เงื่อนไข ไม่เก็บค่า; ผู้ใช้ดู/ลบได้ในแผงบัญชี ("เรื่องที่ Cop เฝ้าดูให้คุณ", `/api/watches`) · การ์ดอนุมัติแสดง "เตือนเมื่อ <เมตริก · ขอบเขต> ต่ำกว่า X" · สร้างไม่ได้ถ้า query นอกขอบเขต (ไม่เก็บ)
+- [x] job `watches` (`lib/server/watches.ts`, กฎใน `lib/engine/personal-watches.ts`) ประเมินทุก watch ด้วย `AccessContext` ของเจ้าของ (สิทธิ์ถูกบังคับเหมือนตอนถาม) ถ้าเข้าเงื่อนไขครั้งแรกในรอบ → notification ในกล่องงาน + รายการใน outbox (จำลอง LINE/อีเมล) พร้อมตัวเลขจาก `runMetric`; ไม่เตือนซ้ำจนกว่าค่าจะกลับเข้าเกณฑ์แล้วหลุดอีกครั้ง · ระดับสต๊อกอ่านค่าวันล่าสุด ไม่เฉลี่ยทั้งช่วง (ค่าเฉลี่ย 7 วันของ DC ลำพูน 13.7 วันซ่อนเพอร์ร่า 600 ที่เหลือ 6 วัน) และดูทุกแถว ไม่ตัดที่ limit
+- [x] scheduler ในโปรเซส (`instrumentation.ts` `register()` → `lib/server/scheduler.ts`, กันรันซ้อนด้วย flag บน `globalThis`): anomaly + forecast วันละครั้ง, personal watches ทุกชั่วโมง, สรุปตอนเช้า 07:00 ต่อผู้ใช้ที่มีเรื่อง (P1/P2 ของตัวเอง + งานที่รอ + watch ที่เข้าเงื่อนไข) ลง outbox — ผู้ใช้ที่ไม่มีเรื่องไม่ได้อะไร; IT รันเองได้ผ่าน `run_job` / `POST /api/jobs/run` (`watches`, `digest`, `tick`) · สรุปตอนเช้าไม่ซ้ำ alert ที่เคยส่งแล้ว (`digests` collection) · ปิดได้ด้วย `COP_SCHEDULER=off` · `/outbox` แสดงสิ่งที่ Cop ส่งถึงผู้ใช้ด้วย
+- [x] mock มี turn สำหรับ "เตือนฉันถ้า…" (การ์ดอนุมัติ `watch_metric`) และ eval case `planner-watch` (scripted) + `rsm-watch-agent` (โมเดลจริง) — eval มีเช็ก `askedApproval` ใหม่ (เรียก tool ที่ถูกและ input ผ่าน schema)
+- [x] ตรวจ: watch ของ supply planner (DC ลำพูน < 10 วัน) → `tick` รัน engine + watches + digest → กล่องงานมีแจ้งเตือน 1, `/outbox` มี "เข้าเงื่อนไขแล้ว … เพอร์ร่า ขวด PET 600 มล. 6 วัน" และสรุปตอนเช้า; รันซ้ำไม่เตือนซ้ำ; rep ภาคเหนือตั้ง watch ภาคอีสานถูกปฏิเสธ (เทสต์)
+- [ ] ค้าง: dev server ต้อง restart ครั้งหนึ่งให้ `instrumentation.ts` เริ่มจับเวลา; ยังไม่ได้ลอง prompt "เตือนฉันถ้า…" กับ Gemini จริง (`bun run eval:cards -- --model=google/gemini-3.8-flash --case=rsm-watch-agent`)
+
+**4D ความจำที่จำการตัดสินใจ และผลลัพธ์ที่ย้อนกลับมาสอน** (`lib/server/handoff.ts`, `lib/server/alerts.ts`, `lib/engine/memory.ts`, `components/inbox/drawer.tsx`, `lib/cards/alert-row.ts`)
+- [x] ปิดงาน handoff ที่แนบ alert ต้องเลือกว่า "เป็นเรื่องจริง" หรือ "ไม่ใช่ปัญหา" พร้อมสรุปผล → `alert-outcomes` (thresholdKey, verdict, outcome, ผู้ปิด, วันที่); "ไม่ใช่ปัญหา" นับเป็นการปิดแบบ "ไม่ใช่ความผิดปกติ" ของ 4A, "เป็นเรื่องจริง" = alert `resolved` — ปิดโดยไม่เลือกได้ 400 (`lib/server/outcomes.ts`, ปุ่มสองปุ่มในกล่องงาน)
+- [x] alert บน slice เดิม (รวมถึงเรื่องที่ถูกปิดว่าไม่ใช่ปัญหาแล้วเปิดใหม่เพราะแย่ลง)แสดง "ครั้งก่อน: <ผล> — <ชื่อ>, <วันที่>" บนการ์ดหน้าแรก กล่องงาน และผล `get_alerts` (`lessons` — อยู่ในผล tool ซึ่ง Vexa fence ให้แล้ว เพราะเป็นข้อความที่ผู้ใช้อื่นพิมพ์)
+- [x] ความจำจากการกระทำ (rule-based ไม่ใช้ LLM): ตั้ง watch → preference "เกณฑ์<เมตริก>ของคุณคือ X"; ส่ง handoff → responsibility "เรื่อง<เมตริก><ขอบเขต> ส่งให้<ชื่อ>"; ปิด alert ว่าไม่เกี่ยว → preference "ไม่ติดตาม<เมตริก><ขอบเขต>" (`rememberAction`) — `suggestOwner` ใช้คนที่ **รับ/ปิด** เรื่องเมตริก+ภาคเดียวกันจากผู้ใช้คนนี้ ≥ 2 ครั้งก่อน RACI (นับแค่ "ส่งถึง" ไม่พอ: `.data` มี packet ค้าง 69 ใบจากการทดลองที่จะทำให้ทุกเรื่องไปหาคนเดียว)
+- [x] ตรวจ: เทสต์ `lib/server/outcomes.test.ts` (จริง → resolved + บทเรียน, noise → ปิดทุกคน, คนที่รับเรื่องบ่อยมาก่อน RACI เฉพาะภาคเดียวกัน, ถูกตีกลับไม่นับ); API ปิดงานที่มี alert โดยไม่เลือกได้ 400
+- [ ] ค้าง: ปุ่ม "ปิดงาน · เป็นเรื่องจริง / ไม่ใช่ปัญหา" และบรรทัด "ครั้งก่อน" ยังไม่มีข้อมูลเดโมให้เห็นด้วยตา (ต้องมี packet ที่แนบ alert ถึงผู้ใช้ที่ login)
+
+**4E วัดว่าคนใช้จริงไหม** (`lib/server/usage.ts`, `app/(app)/admin/page.tsx`)
+- [x] แท็บการใช้งานเพิ่ม "ใช้จริงไหม" (`lib/server/adoption.ts`, pure `adoptionOf` มีเทสต์): ผู้ใช้ที่ใช้จริงต่อสัปดาห์แยกบทบาท; alert ที่ถูกเปิด / ส่งต่อ / ปิด / ไม่มีใครแตะ (%); handoff ที่ปิดได้ / ตีกลับ และเวลากลางถึงการตอบกลับครั้งแรก; (เวลาจาก alert ถึงการกระทำยังวัดไม่ได้ — เวลา alert เป็นปฏิทินข้อมูล) การ์ดแดชบอร์ดที่ถูกดูใน 14 วัน (%); watch ที่ใช้งานอยู่และจำนวนที่เตือน
+- [x] เกณฑ์หยุด (เขียนใน `docs/pilot.md`): pilot 6 สัปดาห์กับ RSM / พนักงานขาย / supply planner; ถ้า alert ที่ถูกเปิดหรือส่งต่อ < 30% หรือผู้ใช้ต่อสัปดาห์ < 50% ของกลุ่ม pilot ในสัปดาห์ที่ 4 → หยุดขยาย แก้หรือตัดฟีเจอร์ก่อน
+
+ทุก package จบด้วย `bun run typecheck`, `bun run test`, curl หน้าที่เปลี่ยน และ mark checkbox ที่นี่
 
 ## 7. Prompt rules (used by 1B, referenced by 3B)
 

@@ -342,6 +342,21 @@ export function weakestRow(query: MetricQuery, result: MetricResult): WeakestRow
   return { label: labelOf(query, worst.row), value: valueTextOf(query, worst.row), lowIsWorst };
 }
 
+export type HarmfulRow = { label: string; delta: string; deltaPercent: number };
+
+/** The row of a breakdown that moved furthest in the bad direction, when it moved at least `minPercent`; time series have no such row. */
+export function sharpestHarm(query: MetricQuery, result: MetricResult, minPercent: number): HarmfulRow | null {
+  if (!result.ok || !rankDimOf(query) || timeDimOf(query)) return null;
+  let worst: HarmfulRow | null = null;
+  for (const row of result.rows) {
+    const delta = deltaPercentOf(row);
+    if (delta === null || Math.abs(delta) < minPercent || toneOf(query.metric, delta) !== "bad") continue;
+    if (worst && Math.abs(delta) <= Math.abs(worst.deltaPercent)) continue;
+    worst = { label: labelOf(query, row), delta: formatDelta(delta) ?? "", deltaPercent: delta };
+  }
+  return worst;
+}
+
 /**
  * The one decision table for every data card in Cop: what the headline is, which body the data shape deserves,
  * what the scope and source lines say. The dashboard renders it as a Vexa spec, the chat renders it as React.
