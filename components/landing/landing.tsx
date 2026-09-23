@@ -162,6 +162,7 @@ export function Landing({
   visits,
   quickActions,
   ambient,
+  draft,
 }: {
   greeting: Greeting;
   status: StatusLink[];
@@ -169,12 +170,17 @@ export function Landing({
   visits: VisitStop[];
   quickActions: QuickAction[];
   ambient: AmbientCard[];
+  draft: string;
 }) {
   const router = useRouter();
-  const [text, setText] = useState("");
+  const [text, setText] = useState(draft);
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
   const [actions, setActions] = useState(quickActions);
+
+  useEffect(() => {
+    if (draft) router.replace("/", { scroll: false });
+  }, [draft, router]);
 
   useEffect(() => {
     const controller = new AbortController();

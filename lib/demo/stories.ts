@@ -16,7 +16,7 @@ const CAST: Record<StoryKey, { minutes: number; userIds: string[]; landing?: str
 export const STORY_CAST: readonly string[] = [...new Set(Object.values(CAST).flatMap((cast) => cast.userIds))];
 
 function destinationFor(prompt: string | null, landing: string | undefined): string {
-  if (prompt) return `/c/new?prompt=${encodeURIComponent(prompt)}`;
+  if (prompt) return `/?draft=${encodeURIComponent(prompt)}`;
   return landing ?? "/";
 }
 

@@ -34,7 +34,7 @@ type Cluster = { intentKey: string; prompt: string; metric: MetricId | null; dim
 function clusterOf(events: readonly ActionEvent[], now: number): Cluster[] {
   const clusters = new Map<string, Cluster>();
   for (const event of events) {
-    if (!event.intentKey || daysAgo(event.at, now) > WINDOW_DAYS) continue;
+    if (!event.intentKey || event.kind === "follow_up" || daysAgo(event.at, now) > WINDOW_DAYS) continue;
     const found = clusters.get(event.intentKey) ?? {
       intentKey: event.intentKey,
       prompt: event.prompt ?? "",

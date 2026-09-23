@@ -39,7 +39,7 @@ import { displayLabel } from "@/lib/semantic/dictionary";
 import { layoutOf, layouts, memoryFacts, notifications, outbox, packets, type OutboxEntry } from "./collections";
 import { allAlertsFor, forecastsFor, openAlertsFor, runAnomalyJob, runEngineJobs, runForecastJob } from "@/lib/server/alerts";
 import { dataPort } from "./data-port";
-import { actionsForAlert, actionsForMetric } from "@/lib/server/next-actions";
+import { actionsForAlert, actionsForMetric, followUpsForMetric } from "@/lib/server/next-actions";
 import { alertRowOf } from "@/lib/cards/alert-row";
 import { ADDITIVE_FORECAST_METRICS, forecastSlice } from "@/lib/engine/forecast-slice";
 import { periodLabelTh } from "@/lib/i18n/format";
@@ -112,7 +112,8 @@ const query_metric = tool({
     const access = currentAccess();
     const result = dataPort().runMetric(input, access);
     if (!result.ok) return result;
-    return { ...result, query: input, nextActions: actionsForMetric(access, input, result) };
+    const nextActions = actionsForMetric(access, input, result);
+    return { ...result, query: input, nextActions, followUps: followUpsForMetric(access, input, result, nextActions) };
   }),
 });
 

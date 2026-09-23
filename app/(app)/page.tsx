@@ -10,13 +10,16 @@ import { markVisit } from "@/lib/server/visits";
 
 export const dynamic = "force-dynamic";
 
-export default async function LandingPage() {
+type PageProps = { searchParams: Promise<{ draft?: string }> };
+
+export default async function LandingPage({ searchParams }: PageProps) {
   const jar = await cookies();
   const user = readUser(jar);
   const access = readAccess(jar);
   if (!user || !access) redirect("/login");
 
   markVisit(access);
+  const { draft } = await searchParams;
   const greeting = { lead: TH.landing.greeting[timeOfDay()], name: shortName(user.nameTh) };
 
   return (
@@ -27,6 +30,7 @@ export default async function LandingPage() {
       visits={visitsFor(access)}
       quickActions={quickActionsFor(access)}
       ambient={ambientFor(access)}
+      draft={draft ?? ""}
     />
   );
 }

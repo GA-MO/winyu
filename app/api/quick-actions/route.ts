@@ -5,7 +5,7 @@ import { actionEvents } from "@/lib/server/agent/collections";
 
 type ClickBody = { intentKey?: unknown; prompt?: unknown; kind?: unknown };
 
-const KINDS = ["quick_action", "dismiss", "alert_open", "widget_view"] as const;
+const KINDS = ["quick_action", "follow_up", "dismiss", "alert_open", "widget_view"] as const;
 
 type Kind = (typeof KINDS)[number];
 

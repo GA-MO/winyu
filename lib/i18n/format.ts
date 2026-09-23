@@ -123,3 +123,11 @@ export function periodLabelTh(key: string): string {
 export function shortName(nameTh: string): string {
   return nameTh.split(" ")[0] ?? nameTh;
 }
+
+const THAI_THEN_LATIN = /([\u0E00-\u0E7F])([A-Za-z0-9(])/g;
+const LATIN_THEN_THAI = /([A-Za-z0-9)])([\u0E00-\u0E7F])/g;
+
+/** Puts a space where Thai text meets a Latin word or number, the way Thai writers set English terms apart. */
+export function spaceLatinTh(text: string): string {
+  return text.replace(THAI_THEN_LATIN, "$1 $2").replace(LATIN_THEN_THAI, "$1 $2");
+}

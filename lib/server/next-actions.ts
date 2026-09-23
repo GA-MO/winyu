@@ -1,5 +1,6 @@
-import type { AccessContext, Alert, MetricQuery, MetricResult, NextAction } from "@/lib/contracts";
+import type { AccessContext, Alert, MetricQuery, MetricResult, NextAction, QuickAction } from "@/lib/contracts";
 import { nextActionsFor } from "@/lib/engine/next-actions";
+import { followUpsFor, learnedKindShare } from "@/lib/engine/follow-ups";
 import { alertScopeLabel } from "@/lib/cards/alert-row";
 import { metricLabel } from "@/lib/dashboard/metric-display";
 import { openAlertsFor } from "@/lib/server/alerts";
@@ -72,4 +73,11 @@ export function actionsForAlert(access: AccessContext, alert: Alert | null): Nex
     alertScope: alertScopeLabel(alert),
     verifyStep: alert.verifySteps[0],
   });
+}
+
+/** The follow-up questions the chat offers under the composer after this result, minus what the card already offers. */
+export function followUpsForMetric(access: AccessContext, query: MetricQuery, result: MetricResult, cardActions: readonly NextAction[]): QuickAction[] {
+  if (!result.ok) return [];
+  const taken = cardActions.map((action) => action.prompt).filter((prompt): prompt is string => prompt !== null);
+  return followUpsFor(access, { query, result, taken }, learnedKindShare(actionEvents().all(), access.userId));
 }

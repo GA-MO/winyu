@@ -458,6 +458,13 @@ The user's question: "จะมั่นใจได้ไงว่า model จ
 - [x] `eval:cards` เต็มชุดกับ `google/gemini-3.8-flash`: 20/22 ($0.6542, 55 calls) — `planner-cover` ใช้ AlertsCard (summary ยังบอก "สูงสุด" ขัดกับแถว → แก้), `planner-forecast` grounded false positive ปี พ.ศ. ของวันนี้ (→ checker รับปีของ `TODAY`) · รันสองเคสซ้ำ: 7/7 + 2/2 ($0.0832)
 - [x] หน้าแรกดูด้วยตา (1280): HR (คุณเมย์) KPI 3 ใบ ไม่มี alert, marketing (คุณเบญ) KPI 4 + alert 2 ใบพร้อมปุ่มส่งงาน, finance (คุณมิ้นท์) KPI 4 + AR ภาคใต้ วิกฤต, IT (คุณต้น) ไม่มี KPI (ไม่มีเมตริกธุรกิจ) chip รัน job / การใช้งานเครื่องมือ — ไม่มี error · เจอและแก้: avatar ตัวอักษรแรกเป็นสระนำ ("เ" ของเมย์/เบญ) → เปลี่ยนเป็นไอคอน `UserRound` ตามที่ผู้ใช้ขอ
 
+**4G ชิปคำถามต่อจากผลของการ์ด (rule-based)** (user decision 2026-09-23: "ทำแบบกฎก่อนเลย"; ขั้นต่อไปที่ยังไม่ทำ: ให้โมเดลเลือก id จากรายการที่กฎสร้าง) (`lib/engine/follow-ups.ts`, `lib/server/next-actions.ts`, `lib/server/agent/tools.ts`, `components/chat/follow-ups.ts`, `components/chat/session-chat.tsx`)
+- [x] `followUpsFor` สร้างคำถามต่อจากรูปของผล ไม่ใช้โมเดล มี 6 แบบ: ทำไม<แถวแย่สุด> (`weakestRow` ?? `sharpestHarm` ≥ 5%) · ดู<ชั้นลูก>ใน<แถวนั้น> (ภาค→เอเย่นต์/DC/โรงงาน, แบรนด์→SKU, DC→SKU, กลุ่มธุรกิจ→แบรนด์) · แยกตาม<มิติ> (ตัวเลขเดียว ข้ามมิติที่การ์ดเสนอแล้ว) · แนวโน้มรายสัปดาห์/รายเดือน (เมื่อยอดตกเป็น "เริ่มแย่ตั้งแต่เมื่อไร") · เทียบปีก่อน (ไม่เสนอกับเป้าหรือเมื่อเทียบปีก่อนอยู่แล้ว) · พยากรณ์ 8 สัปดาห์ / "จะถึงเป้าไหม" (เฉพาะเมตริกที่ engine พยากรณ์ และมีสิทธิ์ `get_forecast`)
+- [x] คะแนน = ฐานของแต่ละแบบ + บวกเพิ่มเมื่อผลแย่ (ตก ≥ 5% หรือมีแถวที่ตกแรง) + 0.3 × สัดส่วนที่ผู้ใช้คนนี้กดแบบนั้นใน 30 วัน (event ใหม่ `follow_up`, intentKey `follow|<kind>`, recommender ไม่นับเป็น intent) · เอาสูงสุด 3 · ตัดคำถามที่ปุ่มบนการ์ด (`nextActions`) มีแล้ว
+- [x] `query_metric` คืน `followUps` คู่กับ `nextActions`; chat แสดงชิปคำถามต่อของการ์ดล่าสุดก่อน แล้วเติมชิปที่เรียนรู้จากประวัติจนครบ 3 · `spaceLatinTh` เว้นวรรคระหว่างไทยกับคำอังกฤษบนชิป
+- [x] ตรวจ: เทสต์ `lib/engine/follow-ups.test.ts` + `components/chat/follow-ups.test.ts`; `POST /api/chat` (mock, คุณอนุชา "เอเย่นต์รายไหนยอดตกบ้าง") คืน ทำไมอุบลศรีสุข เทรดดิ้ง / เริ่มแย่ตั้งแต่เมื่อไร / พยากรณ์ 8 สัปดาห์
+- [ ] ยังไม่ดูด้วยตาในเบราว์เซอร์ และยังไม่รัน `eval:cards` กับ Gemini (tool output ยาวขึ้นราว 3 ชิป)
+
 ทุก package จบด้วย `bun run typecheck`, `bun run test`, curl หน้าที่เปลี่ยน และ mark checkbox ที่นี่
 
 ## 7. Prompt rules (used by 1B, referenced by 3B)
