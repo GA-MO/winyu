@@ -80,13 +80,20 @@ export function threadGroupOf(value: string, now: Date = new Date()): ThreadGrou
 
 export type TimeOfDay = "morning" | "afternoon" | "evening" | "night";
 
+const TENANT_UTC_OFFSET_HOURS = 7;
+const HOURS_PER_DAY = 24;
 const MORNING_FROM = 5;
-const AFTERNOON_FROM = 11;
+const AFTERNOON_FROM = 12;
 const EVENING_FROM = 16;
 const NIGHT_FROM = 19;
 
+function tenantHour(now: Date): number {
+  return (now.getUTCHours() + TENANT_UTC_OFFSET_HOURS) % HOURS_PER_DAY;
+}
+
+/** The part of the day in Thailand, whatever timezone the server runs in. */
 export function timeOfDay(now: Date = new Date()): TimeOfDay {
-  const hour = now.getHours();
+  const hour = tenantHour(now);
   if (hour < MORNING_FROM || hour >= NIGHT_FROM) return "night";
   if (hour < AFTERNOON_FROM) return "morning";
   if (hour < EVENING_FROM) return "afternoon";
