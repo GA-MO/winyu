@@ -31,7 +31,8 @@ export function formatMetricValue(metric: MetricId, value: number | string | nul
   if (format === "percent") return formatPercent(value);
   const unit = metricUnit(metric);
   const formatted = formatNumber(value);
-  return unit && formatted !== "—" ? `${formatted} ${unit}` : formatted;
+  if (!unit || formatted === "—") return formatted;
+  return formatted.endsWith("ล้าน") ? `${formatted}${unit}` : `${formatted} ${unit}`;
 }
 
 const LOWER_IS_BETTER = new Set<MetricId>(["ar_overdue", "attrition_rate", "forecast_mape", "trade_spend"]);

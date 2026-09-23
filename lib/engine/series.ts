@@ -3,6 +3,7 @@ import { runSeries } from "@/lib/data/query";
 import {
   DAY_COUNT, DOW_OF_DAY, ISO_OF_DAY, MONTH_COUNT, MONTH_KEYS, TODAY, addDays, monthIndexOfKey, toDayIndex,
 } from "@/lib/data/dates";
+import { LITRES_PER_HL } from "@/lib/data/entities/products";
 import { PLANTS, PRODUCTION_LINES } from "@/lib/data/entities/supply";
 import { productionTables } from "@/lib/data/cache";
 import { LOOKBACK_DAYS, LOOKBACK_MONTHS, YEAR_MONTHS, type Watch } from "./watches";
@@ -65,7 +66,7 @@ function productionLineSeries(): EntitySeries[] {
   return PRODUCTION_LINES.map((entry, lineIndex) => {
     const plant = PLANTS[entry.plantIndex] as (typeof PLANTS)[number];
     const values: number[] = [];
-    for (let slot = 0; slot < slots; slot += 1) values.push(output[lineIndex * DAY_COUNT + window.from + slot] as number);
+    for (let slot = 0; slot < slots; slot += 1) values.push((output[lineIndex * DAY_COUNT + window.from + slot] as number) * LITRES_PER_HL);
     return {
       key: entry.line.id,
       dims: { plant: plant.id, region: plant.region } as Partial<Record<Dim, string>>,

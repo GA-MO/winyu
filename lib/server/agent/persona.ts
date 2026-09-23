@@ -33,7 +33,7 @@ const RESPONSIBILITIES: Record<RoleId, string> = {
 };
 
 const VOCABULARY = [
-  "คำศัพท์: เอเย่นต์ = ผู้แทนจำหน่าย (distributor), ซับเอเย่นต์ = ผู้แทนช่วง, HL = เฮกโตลิตร, ลัง = case, โหล = 12 ขวด, ปีงบ = ปีปฏิทิน, sell-in = ขายเข้าเอเย่นต์, sell-out = ขายออกหน้าร้าน",
+  "คำศัพท์: เอเย่นต์ = ผู้แทนจำหน่าย (distributor), ซับเอเย่นต์ = ผู้แทนช่วง, ปริมาณนับเป็นลิตร (1 HL = 100 ลิตร), ลัง = case, โหล = 12 ขวด, ปีงบ = ปีปฏิทิน, sell-in = ขายเข้าเอเย่นต์, sell-out = ขายออกหน้าร้าน",
 ];
 
 /** The prompt rules of docs/plan.md §7, passed to `createVexaHandler` as `rules`. */

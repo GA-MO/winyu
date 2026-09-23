@@ -20,6 +20,9 @@ export const PACK_LABELS_TH: Record<Pack, string> = {
   pack12: "แพ็ก 12",
 };
 
+/** Volume metrics are shown in litres; the generator keeps hectolitres. */
+export const LITRES_PER_HL = 100;
+
 const HL_PER_CASE: Record<Pack, number> = {
   bottle620: 0.0744,
   bottle320: 0.0768,

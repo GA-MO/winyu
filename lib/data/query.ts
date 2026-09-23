@@ -19,7 +19,7 @@ import { CHANNELS } from "./entities/channels";
 import { DEPARTMENTS } from "./entities/hr";
 import { CAMPAIGNS, campaignById } from "./entities/marketing";
 import { BUSINESS_UNIT_LABELS_TH, PROVINCES, REGION_LABELS_TH } from "./entities/org";
-import { BRAND_INFO, PACKS, SKUS, skuById } from "./entities/products";
+import { BRAND_INFO, LITRES_PER_HL, PACKS, SKUS, skuById } from "./entities/products";
 import { DISTRIBUTION_CENTERS, PLANTS, PLANT_BRAND_MIX, PRODUCTION_LINES, dcById } from "./entities/supply";
 import { findUser } from "./entities/users";
 import {
@@ -235,7 +235,7 @@ function salesShape(kind: SalesKind, shift: Shift): Shape {
 
 function skuFactor(kind: SalesKind, skuIdx: number): number {
   if (kind === "sell_in_value" || kind === "target_value") return SKU_PRICE_PER_CASE[skuIdx];
-  return SKU_HL_PER_CASE[skuIdx];
+  return SKU_HL_PER_CASE[skuIdx] * LITRES_PER_HL;
 }
 
 function scanSales(kind: SalesKind, plans: AxisPlan[], acc: Accumulator, from: number, to: number): void {
@@ -342,8 +342,8 @@ function productionShape(kind: "output" | "utilization" | "capacity", shift: Shi
         const offset = lineIdx * DAY_COUNT;
         for (let dayIdx = from; dayIdx <= to; dayIdx += 1) {
           if (dayPlan.allow && dayPlan.allow[dayIdx] === 0) continue;
-          const output = tables.outputHl[offset + dayIdx];
-          const capacity = tables.capacityHl[offset + dayIdx];
+          const output = tables.outputHl[offset + dayIdx] * LITRES_PER_HL;
+          const capacity = tables.capacityHl[offset + dayIdx] * LITRES_PER_HL;
           const dayCode = dayPlan.codes[dayIdx] * dayPlan.stride;
           const measured = kind === "capacity" ? capacity : kind === "utilization" ? output * PERCENT : output;
           if (!needsBrand) {
@@ -698,13 +698,16 @@ function formatNumber(value: number, fractionDigits: number): string {
 }
 
 const WHOLE_UNITS: ReadonlySet<string> = new Set(["คน"]);
+const MILLION_UNITS: ReadonlySet<string> = new Set(["ลิตร"]);
+const MILLION = 1_000_000;
 
 function formatForSummary(def: MetricDef, value: number): string {
   if (def.format === "percent") return `${formatNumber(value, 1)}%`;
   if (def.format === "currency") {
-    if (Math.abs(value) >= 1_000_000) return `${formatNumber(value / 1_000_000, 1)} ล้านบาท`;
+    if (Math.abs(value) >= MILLION) return `${formatNumber(value / MILLION, 1)} ล้านบาท`;
     return `${formatNumber(Math.round(value), 0)} บาท`;
   }
+  if (MILLION_UNITS.has(def.unit) && Math.abs(value) >= MILLION) return `${formatNumber(value / MILLION, 1)} ล้าน${def.unit}`;
   const digits = Math.abs(value) >= 100 || WHOLE_UNITS.has(def.unit) ? 0 : 1;
   return `${formatNumber(value, digits)} ${def.unit}`;
 }
@@ -980,17 +983,18 @@ function describeSku(id: string): DescribeResult {
   const sku = skuById(id);
   if (!sku) return { ok: false, error: `ไม่พบสินค้า "${id}"` };
   const brand = BRAND_INFO.find((info) => info.id === sku.brand);
+  const litresPerCase = Math.round(sku.hlPerCase * LITRES_PER_HL * 100) / 100;
   const data = {
     id: sku.id,
     ชื่อ: sku.nameTh,
     แบรนด์: brand?.nameTh ?? sku.brand,
     หน่วยธุรกิจ: BUSINESS_UNIT_LABELS_TH[brand?.businessUnit ?? "beer"],
     บรรจุภัณฑ์: sku.pack,
-    เฮกโตลิตรต่อลัง: sku.hlPerCase,
+    ลิตรต่อลัง: litresPerCase,
     ราคาต่อลัง: sku.pricePerCase,
     ภาษีสรรพสามิต: sku.excise ? "มี" : "ไม่มี",
   };
-  return { ok: true, data, summary: `${sku.nameTh} แบรนด์${brand?.nameTh ?? sku.brand} ${sku.hlPerCase} เฮกโตลิตรต่อลัง ราคา ${sku.pricePerCase} บาทต่อลัง` };
+  return { ok: true, data, summary: `${sku.nameTh} แบรนด์${brand?.nameTh ?? sku.brand} ${litresPerCase} ลิตรต่อลัง ราคา ${sku.pricePerCase} บาทต่อลัง` };
 }
 
 function describeDc(id: string): DescribeResult {

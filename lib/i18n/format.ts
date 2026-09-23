@@ -5,11 +5,12 @@ const MINUTE_MS = 60_000;
 const HOUR_MS = 60 * MINUTE_MS;
 const DAY_MS = 24 * HOUR_MS;
 const WEEK_MS = 7 * DAY_MS;
-const COMPACT_THRESHOLD = 1_000_000;
 const MASKED = "***";
 
+const WHOLE_FROM = 100;
+const MILLION = 1_000_000;
 const numberFormat = new Intl.NumberFormat(LOCALE, { maximumFractionDigits: 1 });
-const compactFormat = new Intl.NumberFormat(LOCALE, { notation: "compact", maximumFractionDigits: 1 });
+const wholeFormat = new Intl.NumberFormat(LOCALE, { maximumFractionDigits: 0 });
 const percentFormat = new Intl.NumberFormat(LOCALE, { maximumFractionDigits: 1 });
 const dateFormat = new Intl.DateTimeFormat(BUDDHIST_LOCALE, { day: "numeric", month: "short", year: "numeric" });
 const timeFormat = new Intl.DateTimeFormat(LOCALE, { hour: "2-digit", minute: "2-digit" });
@@ -23,7 +24,9 @@ export function formatNumber(value: number | string | null): string {
   if (isMasked(value)) return MASKED;
   const numeric = typeof value === "number" ? value : Number(value);
   if (!Number.isFinite(numeric)) return String(value);
-  return Math.abs(numeric) >= COMPACT_THRESHOLD ? compactFormat.format(numeric) : numberFormat.format(numeric);
+  const size = Math.abs(numeric);
+  if (size >= MILLION) return `${numberFormat.format(numeric / MILLION)} ล้าน`;
+  return size >= WHOLE_FROM ? wholeFormat.format(numeric) : numberFormat.format(numeric);
 }
 
 export function formatCurrency(value: number | string | null): string {

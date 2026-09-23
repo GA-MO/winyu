@@ -125,7 +125,7 @@ function printMonthlyVolumeByBrand(): void {
     }
   }
   const brands = BRAND_INFO.map((info) => info.nameTh);
-  console.log("\n=== ปริมาณขายเข้ารายเดือนแยกแบรนด์ (เฮกโตลิตร) ===");
+  console.log("\n=== ปริมาณขายเข้ารายเดือนแยกแบรนด์ (ลิตร) ===");
   console.log(pad("เดือน", 9) + brands.map((brand) => padStart(brand, 15)).join(""));
   for (const month of MONTH_KEYS) {
     const bucket = table.get(month);

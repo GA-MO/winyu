@@ -8,6 +8,7 @@
 - Vexa `roadmap` ยังไม่ merge, ยังไม่ push ทั้งสอง repo
 - ชื่อส่วนของ product เป็น English (ผู้ใช้ขอ 2026-09-23): แถบด้านข้างทั้งหมด (New chat, Dashboard, Inbox, Search, History, Today…) และคำทับศัพท์ในประโยคไทย → Dashboard / Inbox / Outbox / Chat / Agent / Admin console / DC; คำธุรกิจ (เอเย่นต์ แคมเปญ สต๊อก) และตำแหน่งงานยังเป็นไทย (ยังไม่ commit)
 - `/login` เริ่มจากเรื่องเดโม 4 เรื่อง (ผู้ใช้บอก 2026-09-23 ว่า 26 คนตาลาย ไม่รู้จะเล่นใคร): การ์ดเรื่องละ 1–2 คน กดชื่อแล้วเข้าสู่ระบบที่หน้าแรก คำถามแรกของเรื่องอยู่ในช่องพิมพ์ ยังไม่ส่ง (`/?draft=`; ผู้ใช้ขอ 2026-09-23 ไม่ให้ข้ามหน้าแรกและไม่เสียค่าโมเดลทุกครั้งที่ login) (`lib/demo/stories.ts`, `components/login/story-picker.tsx`); 26 คนพับไว้ใต้ "หรือเข้าเป็นคนอื่น" · สลับผู้ใช้ใน Account sheet แสดงคนในเรื่องก่อน ที่เหลือพับไว้ (ยังไม่ commit)
+- หน่วยปริมาณเป็น **ลิตร** แทนเฮกโตลิตร (ผู้ใช้ขอ 2026-09-23): generator ยังเก็บ HL แปลง ×100 ที่ `query.ts` (ขาย/เป้า/การผลิต) และ `engine/series.ts` (สายการผลิต) ด้วย `LITRES_PER_HL` ใน `entities/products.ts`; ≥ 1 ล้านแสดงเป็น "18.7 ล้านลิตร" ทั้งฝั่ง server label และ `formatNumber` (เลิกใช้ compact "M"), ค่า ≥ 100 ไม่มีทศนิยม; "เฮกโตลิตร"/"HL" ยังเป็น synonym ให้ค้นเจอ (ยังไม่ commit)
 ค้นพบ:
 - `query_metric` เรียงแถวจากมากไปน้อยแล้วตัดที่ limit เสมอ → เมตริกที่ต่ำคือความเสี่ยง (วันครอบคลุมสต๊อก) แถวที่สำคัญถูกตัดทิ้งก่อนถึงการ์ด (ดีซี × SKU มี 60+ แถว ต่ำสุดที่เหลือคือ 17.6 วัน ขณะที่จริงคือ 6.0)
 - Gemini เห็นเองว่าค่าเฉลี่ยรายดีซีซ่อน SKU ที่ใกล้หมด และตอบด้วย alert P1 ของลำพูนแทน DataCard (เคส `planner-cover` ตกครั้งแรก — หลัง summary บอก "ต่ำสุด" ก็กลับมาใช้ DataCard เรียงน้อยไปมาก)
@@ -245,7 +246,7 @@ Every package: `bun run typecheck`, `bun run test`, curl of the page it changed,
 
 **1A Data + semantic layer** (`lib/data`, `lib/semantic`)
 - [x] Entities per §5.1, generator per §5.2, anomalies per §5.3, query engine per §5.4.
-- [x] `lib/semantic/metrics.ts`: every `MetricId` with owner, certified, dims, aclDims, synonyms (Thai + English, incl. "เอเย่นต์", "ซับเอเย่นต์", "ลัง", "โหล", "เฮกโตลิตร"), unit, format, description; `findMetric(text)` synonym lookup.
+- [x] `lib/semantic/metrics.ts`: every `MetricId` with owner, certified, dims, aclDims, synonyms (Thai + English, incl. "เอเย่นต์", "ซับเอเย่นต์", "ลัง", "โหล", "ลิตร", "เฮกโตลิตร"), unit, format, description; `findMetric(text)` synonym lookup.
 - [x] `lib/semantic/dictionary.ts`: entity alias resolver (agent names with spelling variants, province aliases, brand nicknames "เบียร์สิงห์", "ลีโอ").
 - [x] Tests: determinism (same seed → same totals), scope injection, masking, compare modes, 7 anomalies visible.
 - [x] `scripts/inspect-data.ts` prints monthly volume by brand as a sanity table.

@@ -14,7 +14,7 @@ const AR_DIMS: Dim[] = ["month", "agent", "province", "region"];
 const HR_DIMS: Dim[] = ["month", "department"];
 const ACCURACY_DIMS: Dim[] = ["month", "brand", "region"];
 
-const VOLUME_WORDS = ["ยอดขาย", "ปริมาณ", "ลัง", "โหล", "เฮกโตลิตร", "HL", "volume"];
+const VOLUME_WORDS = ["ยอดขาย", "ปริมาณ", "ลัง", "โหล", "ลิตร", "เฮกโตลิตร", "HL", "volume"];
 
 function aclDimsOf(dims: Dim[]): Dim[] {
   return dims.filter((dim) => REGION_SCOPE_DIMS.includes(dim) || BRAND_SCOPE_DIMS.includes(dim));
@@ -24,10 +24,10 @@ type MetricSeed = Omit<MetricDef, "aclDims">;
 
 const SEEDS: readonly MetricSeed[] = [
   {
-    id: "net_sales_volume", label: "Net sales volume", labelTh: "ปริมาณขายเข้า (Sell-in)", unit: "เฮกโตลิตร", format: "number",
+    id: "net_sales_volume", label: "Net sales volume", labelTh: "ปริมาณขายเข้า (Sell-in)", unit: "ลิตร", format: "number",
     owner: "u_prasit", certified: true, dims: SALES_DIMS, sourceSystem: "SAP SD",
     synonyms: [...VOLUME_WORDS, "ขายเข้า", "sell-in", "sellin", "ยอดสั่งซื้อ", "เอเย่นต์", "ซับเอเย่นต์", "ตัวแทนจำหน่าย", "net sales volume", "ยอดขายเป็นลัง"],
-    description: "ปริมาณสินค้าที่ขายเข้าเอเย่นต์และซับเอเย่นต์ นับเป็นเฮกโตลิตร คำนวณจากจำนวนลังคูณปริมาตรต่อลัง",
+    description: "ปริมาณสินค้าที่ขายเข้าเอเย่นต์และซับเอเย่นต์ นับเป็นลิตร คำนวณจากจำนวนลังคูณปริมาตรต่อลัง",
   },
   {
     id: "net_sales_value", label: "Net sales value", labelTh: "มูลค่าขายเข้า", unit: "บาท", format: "currency",
@@ -36,9 +36,9 @@ const SEEDS: readonly MetricSeed[] = [
     description: "มูลค่าการขายเข้าเอเย่นต์ก่อนหักส่วนลดการค้า คิดจากราคาต่อลังคูณจำนวนลัง",
   },
   {
-    id: "sell_out_volume", label: "Sell-out volume", labelTh: "ปริมาณขายออก (Sell-out)", unit: "เฮกโตลิตร", format: "number",
+    id: "sell_out_volume", label: "Sell-out volume", labelTh: "ปริมาณขายออก (Sell-out)", unit: "ลิตร", format: "number",
     owner: "u_prasit", certified: true, dims: SALES_DIMS, sourceSystem: "SAP SD",
-    synonyms: ["ขายออก", "sell-out", "sellout", "ยอดขายหน้าร้าน", "ยอดขายถึงผู้บริโภค", "เฮกโตลิตร", "ลัง", "ยอดขาย"],
+    synonyms: ["ขายออก", "sell-out", "sellout", "ยอดขายหน้าร้าน", "ยอดขายถึงผู้บริโภค", "ลิตร", "เฮกโตลิตร", "ลัง", "ยอดขาย"],
     description: "ปริมาณที่เอเย่นต์ขายออกสู่ร้านค้าและผู้บริโภค ตามหลังขายเข้าราว 3–10 วัน",
   },
   {
@@ -60,10 +60,10 @@ const SEEDS: readonly MetricSeed[] = [
     description: "สต๊อกคงเหลือหารด้วยยอดจ่ายออกเฉลี่ย 28 วัน บอกว่าของพอขายอีกกี่วัน",
   },
   {
-    id: "production_output", label: "Production output", labelTh: "ปริมาณการผลิต", unit: "เฮกโตลิตร", format: "number",
+    id: "production_output", label: "Production output", labelTh: "ปริมาณการผลิต", unit: "ลิตร", format: "number",
     owner: "u_oat", certified: true, dims: PRODUCTION_DIMS, sourceSystem: "MES",
-    synonyms: ["การผลิต", "ผลิตได้", "output", "production", "โรงงาน", "สายการผลิต", "เฮกโตลิตร"],
-    description: "ปริมาณที่ผลิตได้จริงรายวันของแต่ละโรงงานและสายการผลิต นับเป็นเฮกโตลิตร",
+    synonyms: ["การผลิต", "ผลิตได้", "output", "production", "โรงงาน", "สายการผลิต", "ลิตร", "เฮกโตลิตร"],
+    description: "ปริมาณที่ผลิตได้จริงรายวันของแต่ละโรงงานและสายการผลิต นับเป็นลิตร",
   },
   {
     id: "capacity_utilization", label: "Capacity utilization", labelTh: "อัตราการใช้กำลังผลิต", unit: "%", format: "percent",

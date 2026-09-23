@@ -2,11 +2,11 @@ import { describe, expect, test } from "bun:test";
 import type { Spec } from "vexa/protocol";
 import { normalizeCopSpec } from "./normalize";
 
-const SUMMARY = "ปริมาณขายเข้า (Sell-in) 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 186,789 เฮกโตลิตร · เทียบช่วงก่อนหน้า -7.6%";
+const SUMMARY = "ปริมาณขายเข้า (Sell-in) 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 18.7 ล้านลิตร · เทียบช่วงก่อนหน้า -7.6%";
 
 const ANSWER = {
   query: { metric: "net_sales_volume", dims: ["agent"], filters: {}, range: { from: "2026-09-01", to: "2026-09-22" }, grain: "month", compare: "prev_period", limit: 10 },
-  headline: { aggregate: "sum", value: "186,789 เฮกโตลิตร", periodLabel: "1 ก.ย. 2569 – 22 ก.ย. 2569", rowCount: 10, deltaPercent: -7.6, compareLabel: "เทียบช่วงก่อนหน้า", top: [] },
+  headline: { aggregate: "sum", value: "18.7 ล้านลิตร", periodLabel: "1 ก.ย. 2569 – 22 ก.ย. 2569", rowCount: 10, deltaPercent: -7.6, compareLabel: "เทียบช่วงก่อนหน้า", top: [] },
   provenance: { metric: "net_sales_volume", certified: true, sourceSystem: "SAP SD", asOf: "2026-09-22", rowCount: 10, filtersApplied: {}, scopeApplied: {}, masked: [], trust: "verified" },
   summary: SUMMARY,
 };
