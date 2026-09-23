@@ -46,3 +46,10 @@ export function models(): ModelRegistry {
     ...MOCK,
   };
 }
+
+/** The model background jobs (memory extraction and review) run on: the default real model, or null when only the scripted mock is configured. */
+export function utilityModel(): LanguageModel | null {
+  const [id, entry] = Object.entries(models())[0] ?? [];
+  if (!id || id === MOCK_MODEL_ID || !entry || typeof entry !== "object" || !("model" in entry)) return null;
+  return typeof entry.model === "function" ? entry.model() : entry.model;
+}

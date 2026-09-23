@@ -11,6 +11,7 @@
     "test": "bun test",
     "seed": "bun run scripts/seed.ts",
     "inspect": "bun scripts/inspect-data.ts",
+    "memory:tidy": "bun scripts/tidy-memory.ts",
     "eval:cards": "bun run scripts/eval-cards.ts"
   },
   "dependencies": {

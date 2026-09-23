@@ -4,6 +4,7 @@ import type { AccessContext, ContextPacket, MemoryFact, RoleId, User } from "@/l
 import { layouts, memoryFacts, packets } from "./collections";
 import { isPinnedSlice, repeatedIntent } from "@/lib/engine/compose";
 import { metricLabel } from "@/lib/dashboard/metric-display";
+import { isTrusted } from "@/lib/engine/memory-status";
 
 const BUDDHIST_YEAR_OFFSET = 543;
 const MEMORY_CHAR_BUDGET = 2400;
@@ -41,10 +42,11 @@ export const COP_RULES: string[] = [
   "ตอบเป็นภาษาไทย กระชับ 1–3 ประโยค แล้วให้ UI แสดงข้อมูล ห้ามพิมพ์ตัวเลขซ้ำใน markdown",
   "ทุกตัวเลขต้องมาจากผลลัพธ์ tool ในบทสนทนานี้ ถ้าไม่มีข้อมูล ให้บอกว่าไม่มี ห้ามประมาณเอง",
   "ก่อนเรียก `query_metric` ให้ยืนยันนิยามในใจ: ถ้าคำถามกำกวมระหว่าง metric (เช่น \"ยอดขาย\" = ปริมาณหรือมูลค่า) ให้เลือก certified metric ที่ตรงที่สุดและบอกผู้ใช้ในประโยคเดียวว่าใช้ตัวไหน",
-  "ตอบคำถามเรื่องตัวเลขด้วย `DataCard` เสมอ: `{ title, source: { \"$state\": \"/tools/query_metric\" }, view, sortBy, description }` เท่านั้น ห้ามประกอบ Card + Metric + RankList + Table เอง เพราะ Cop วาดหัวเลข แถว แหล่งข้อมูล และปุ่มขั้นถัดไปให้จากผลลัพธ์ tool อยู่แล้ว",
+  "ตอบคำถามเรื่องตัวเลขด้วย `DataCard` เสมอ: `{ title, source: { \"$state\": \"/tools/query_metric\" }, with, view, sortBy, description }` เท่านั้น ห้ามประกอบ Card + Metric + RankList + Table เอง เพราะ Cop วาดหัวเลข แถว แหล่งข้อมูล และปุ่มขั้นถัดไปให้จากผลลัพธ์ tool อยู่แล้ว",
   "เรียก `query_metric` หลายครั้งในเทิร์นเดียว ให้การ์ดใบที่ n ผูกกับ `/tools/query_metric.n` (`.1`, `.2`) ไม่ใช่ `/tools/query_metric` ซึ่งคือครั้งล่าสุด",
-  "ใช้ tool ไม่เกิน 3 ครั้งต่อคำตอบ แล้ววาดการ์ดจากผลที่ได้ทันที ระบบตัดที่ 6 ขั้น ถ้าเรียก tool จนหมดจะไม่มีคำตอบเลย · เทียบสองเมตริกของสิ่งเดียว (เช่นขายเข้ากับขายออกของเอเย่นต์รายเดียว) = `query_metric` สองครั้งแล้ว DataCard สองใบใน Stack",
-  "`title` ของ DataCard คือคำตอบเป็นวลี ไม่ใช่ชื่อเมตริก · `sortBy` = `delta_asc` เมื่อถามว่าอะไรตก, `delta_desc` เมื่อถามว่าอะไรโต, `value_desc` เมื่อถามว่าใครมากสุด · `view` ปล่อย `auto` เว้นแต่ผู้ใช้ขอรูปแบบเจาะจง",
+  "ใช้ tool ไม่เกิน 3 ครั้งต่อคำตอบ แล้ววาดการ์ดจากผลที่ได้ทันที ระบบตัดที่ 6 ขั้น ถ้าเรียก tool จนหมดจะไม่มีคำตอบเลย · ดูหลายเมตริกด้วยกัน (ยอดขายกับค้างชำระของเอเย่นต์ทุกราย, ผลิต → ขายเข้า → ขายออก, ยอดขายกับงบแคมเปญรายเดือน) = `query_metric` ครั้งละเมตริกด้วย dims และช่วงเดียวกัน แล้ว DataCard ใบเดียว `source` = `.1`, `with` = [`.2`, `.3`] Cop เลือก scatter / funnel / เส้นคู่เอง · สองเรื่องที่ไม่เกี่ยวกัน = DataCard สองใบใน Stack",
+  "`title` ของ DataCard คือคำตอบเป็นวลี ไม่ใช่ชื่อเมตริก · `sortBy` = `delta_asc` เมื่อถามว่าอะไรตก, `delta_desc` เมื่อถามว่าอะไรโต, `value_desc` เมื่อถามว่าใครมากสุด และใส่ `sort` ค่าเดียวกันใน `query_metric` ด้วย ไม่งั้น `limit` จะตัดตามยอดก่อนแล้วได้รายชื่อผิด · `view` ปล่อย `auto` เว้นแต่ผู้ใช้ขอรูปแบบเจาะจง · `description` = null เป็นปกติ การ์ดบอกช่วงเวลา หน่วย แหล่งข้อมูล และสิ่งที่เทียบกันเองแล้ว ใส่เฉพาะเงื่อนไขที่การ์ดไม่บอก",
+  "`dims` กำหนดรูปการ์ด: แนวโน้มแยกกลุ่ม = `[\"month\", \"region\"]` (ได้แท่งซ้อนหรือหลายเส้น), สัดส่วน = มิติกลุ่มเดียวเช่น `[\"channel\"]` (ได้ donut), รายจังหวัด = `[\"province\"]` (ได้แผนที่), สองมิติกลุ่ม = `[\"region\", \"channel\"]` (ได้ heatmap) — ถามให้ครบมิติที่คำถามต้องการในครั้งเดียว ไม่ต้องแยกหลายครั้ง",
   "ความผิดปกติจาก `get_alerts` ตอบด้วย `AlertsCard` ผูกกับ `/tools/get_alerts` ไม่ต้องไล่เขียน Alert ทีละอัน",
   "ใช้ Card/Metric/RankList/Table/LineChart ประกอบเองได้เฉพาะตอนที่คำตอบต้องรวมผลจากหลาย tool เข้าด้วยกัน ซึ่ง DataCard ใบเดียวแสดงไม่ได้",
   "ผลลัพธ์ที่มี `masked` ให้บอกว่า \"มี N ฟิลด์ถูกปิดตามสิทธิ์\" และเสนอปุ่ม ขอสิทธิ์ (runTool `send_email` ถึงเจ้าของ metric) ห้ามเดาค่าที่ถูกปิด",
@@ -70,7 +72,7 @@ function scopeLine(access: AccessContext, user: User | null): string {
 
 function memoryLines(userId: string): string[] {
   const facts = memoryFacts()
-    .where((fact) => fact.userId === userId)
+    .where((fact) => fact.userId === userId && isTrusted(fact))
     .sort((left, right) => right.confidence - left.confidence)
     .slice(0, MEMORY_FACT_LIMIT);
   return withinBudget(facts);

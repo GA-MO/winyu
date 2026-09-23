@@ -71,11 +71,11 @@ function eventIdOf(threadId: string, index: number): string {
   return `ev_${threadId}_${index}`;
 }
 
-function recordEvents(thread: Thread, turns: Turn[]): void {
+function recordNewTurns(thread: Thread, turns: Turn[]): Turn[] {
   const store = actionEvents();
-  turns.forEach((turn, index) => {
+  return turns.filter((turn, index) => {
     const id = eventIdOf(thread.id, index);
-    if (store.get(id)) return;
+    if (store.get(id)) return false;
     const event: ActionEvent = {
       id,
       userId: thread.userId,
@@ -88,6 +88,7 @@ function recordEvents(thread: Thread, turns: Turn[]): void {
       threadId: thread.id,
     };
     store.put(event);
+    return true;
   });
 }
 
@@ -121,8 +122,8 @@ export async function saveMessages(threadId: string, userId: string, messages: u
   const turns = turnsOf(messages);
   const title = thread.title && turns.length === 0 ? thread.title : titleFrom(turns[0]?.prompt ?? thread.title);
   const saved = threads().put({ ...thread, title, messages, updatedAt: new Date().toISOString() });
-  recordEvents(saved, turns);
-  const facts = await rememberTurn(userId, turns, threadId);
+  const fresh = recordNewTurns(saved, turns);
+  const facts = await rememberTurn(userId, fresh, threadId);
   return { thread: saved, facts };
 }
 

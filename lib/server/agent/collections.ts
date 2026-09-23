@@ -9,6 +9,7 @@ export const COLLECTIONS = {
   alerts: "alerts",
   forecasts: "forecasts",
   memory: "memory",
+  memoryReviews: "memory-reviews",
   packets: "packets",
   notifications: "notifications",
   outbox: "outbox",
@@ -25,6 +26,12 @@ export function forecasts() {
 
 export function memoryFacts() {
   return collection<MemoryFact>(COLLECTIONS.memory);
+}
+
+export type MemoryReview = { id: string; at: string; before: number; after: number };
+
+export function memoryReviews() {
+  return collection<MemoryReview>(COLLECTIONS.memoryReviews);
 }
 
 export function packets() {

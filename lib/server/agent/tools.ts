@@ -48,6 +48,8 @@ import { addDays, TODAY, toDayIndex, weekKeyOfIso } from "@/lib/data/dates";
 import { calendarEvents, type CalendarEvent } from "@/lib/data/entities/calendar";
 import { impactOf, type DailyBeer, type EventImpact } from "@/lib/engine/calendar-impact";
 import { conditionLabel, createWatch, runWatchJob } from "@/lib/server/watches";
+import { similarity } from "@/lib/engine/memory-match";
+import { memoryStatus } from "@/lib/engine/memory-status";
 import { runDigestJob } from "@/lib/server/digest";
 import { lessonFor } from "@/lib/server/outcomes";
 
@@ -56,6 +58,7 @@ const NO_FORECAST = "ยังไม่มีพยากรณ์สำหร�
 const NO_MEMORY = "ยังไม่มีข้อมูลที่จำไว้เกี่ยวกับผู้ใช้คนนี้";
 const DEFAULT_ALERT_LIMIT = 10;
 const DEFAULT_MEMORY_LIMIT = 8;
+const RECALL_MIN_SIMILARITY = 0.25;
 
 function now(): string {
   return new Date().toISOString();
@@ -108,7 +111,7 @@ function notify(notification: Omit<Notification, "id" | "at" | "read">): Notific
 
 const query_metric = tool({
   description:
-    "Read one certified metric from the semantic layer. Call it for every number you report: volumes, values, attainment, days of cover, margin, AR, headcount. Group with dims, narrow with filters, use compare for prev_period / prev_year / target.",
+    "Read one certified metric from the semantic layer. Call it for every number you report: volumes, values, attainment, days of cover, margin, AR, headcount. Group with dims, narrow with filters, use compare for prev_period / prev_year / target. With a limit, set sort to the order the question asks (delta_asc = fell most, delta_desc = grew most, value_asc = lowest, value_desc = highest): rows are ranked by it before the limit cuts, so \"top 10 that fell\" really is the ten that fell most.",
   inputSchema: metricQuerySchema,
   execute: withAudit("query_metric", async (input: z.infer<typeof metricQuerySchema>) => {
     recordQuery(input);
@@ -245,12 +248,14 @@ const recall_memory = tool({
   inputSchema: recallMemoryInputSchema,
   execute: withAudit("recall_memory", async ({ query }: z.infer<typeof recallMemoryInputSchema>) => {
     const access = currentAccess();
-    const needle = query.toLowerCase();
+    const needle = query.toLowerCase().trim();
     const rows = memoryFacts()
       .where((fact) => fact.userId === access.userId)
-      .filter((fact) => fact.value.toLowerCase().includes(needle) || needle.length === 0)
-      .sort((left, right) => right.confidence - left.confidence)
-      .slice(0, DEFAULT_MEMORY_LIMIT);
+      .map((fact) => ({ fact, match: needle.length === 0 || fact.value.toLowerCase().includes(needle) ? 1 : similarity(needle, fact.value) }))
+      .filter(({ match }) => match >= RECALL_MIN_SIMILARITY)
+      .sort((left, right) => right.match - left.match || right.fact.confidence - left.fact.confidence)
+      .slice(0, DEFAULT_MEMORY_LIMIT)
+      .map(({ fact }) => ({ ...fact, status: memoryStatus(fact) }));
     if (rows.length === 0) return { ok: true as const, summary: NO_MEMORY, data: [] };
     return { ok: true as const, summary: `จำได้ ${rows.length} เรื่องที่เกี่ยวข้อง`, data: rows };
   }),

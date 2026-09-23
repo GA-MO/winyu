@@ -3,14 +3,17 @@
 import { useCallback, useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { BellRing, LogOut, Moon, Shield, Sun, Trash2, X } from "lucide-react";
+import { ArrowRight, BellRing, LogOut, Moon, Shield, Sun, Trash2, X } from "lucide-react";
 import { cn } from "vexa/lib/utils";
 import type { MemoryFact, User, WatchItem } from "@/lib/contracts";
 import { STORY_CAST } from "@/lib/demo/stories";
+import { isTrusted, lastSeenAt } from "@/lib/engine/memory-status";
 import { TH } from "@/lib/i18n/th";
 import { useTheme } from "@/components/theme/theme-provider";
 
 const MEMORY_ENDPOINT = "/api/memory";
+const MEMORY_PAGE = "/memory";
+const RECENT_FACTS = 3;
 const WATCHES_ENDPOINT = "/api/watches";
 const SESSION_ENDPOINT = "/api/session";
 const PANEL = "fixed right-0 top-0 z-50 flex h-dvh w-full max-w-[24rem] flex-col border-l border-border bg-card shadow-panel animate-panel-in";
@@ -38,14 +41,6 @@ export function AccountSheet({ open, onClose, user, users }: { open: boolean; on
   useEffect(() => {
     if (open) load();
   }, [load, open]);
-
-  const forget = useCallback(
-    async (id: string) => {
-      await fetch(`${MEMORY_ENDPOINT}/${id}`, { method: "DELETE" });
-      load();
-    },
-    [load],
-  );
 
   const unwatch = useCallback(
     async (id: string) => {
@@ -91,9 +86,9 @@ export function AccountSheet({ open, onClose, user, users }: { open: boolean; on
     </button>
   );
 
-  const grouped = Object.entries(
-    facts.reduce<Record<string, MemoryFact[]>>((groups, fact) => ({ ...groups, [fact.type]: [...(groups[fact.type] ?? []), fact] }), {}),
-  );
+  const trusted = facts.filter(isTrusted);
+  const learningCount = facts.length - trusted.length;
+  const recent = [...trusted].sort((left, right) => lastSeenAt(right).localeCompare(lastSeenAt(left))).slice(0, RECENT_FACTS);
 
   return (
     <>
@@ -139,22 +134,26 @@ export function AccountSheet({ open, onClose, user, users }: { open: boolean; on
           </section>
 
           <section className={SECTION}>
-            <h3 className="text-xs font-medium tracking-wide text-muted-foreground">{TH.account.memory}</h3>
-            <p className="text-xs text-muted-foreground">{TH.account.memoryNote}</p>
-            {loaded && grouped.length === 0 ? <p className="text-sm text-muted-foreground">{TH.account.memoryEmpty}</p> : null}
-            {grouped.map(([type, items]) => (
-              <div key={type} className="flex flex-col gap-1">
-                <h4 className="text-xs text-muted-foreground">{TH.account.memoryType[type as keyof typeof TH.account.memoryType] ?? type}</h4>
-                {items.map((fact) => (
-                  <div key={fact.id} className="flex items-center justify-between gap-2 rounded-xl bg-muted px-2.5 py-1.5 text-sm">
-                    <span className="min-w-0 truncate">{fact.value}</span>
-                    <button type="button" onClick={() => void forget(fact.id)} aria-label={TH.common.delete} className="text-muted-foreground hover:text-danger">
-                      <Trash2 className="size-3.5" aria-hidden />
-                    </button>
-                  </div>
-                ))}
-              </div>
+            <div className="flex items-center justify-between gap-2">
+              <h3 className="text-xs font-medium tracking-wide text-muted-foreground">{TH.account.memory}</h3>
+              <Link href={MEMORY_PAGE} onClick={onClose} className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
+                {TH.account.memoryManage}
+                <ArrowRight className="size-3" aria-hidden />
+              </Link>
+            </div>
+            {loaded && facts.length === 0 ? <p className="text-sm text-muted-foreground">{TH.account.memoryEmpty}</p> : null}
+            {facts.length > 0 ? <p className="text-sm">{TH.account.memorySummary(trusted.length, learningCount)}</p> : null}
+            {recent.map((fact) => (
+              <p key={fact.id} className="truncate rounded-xl bg-muted px-2.5 py-1.5 text-sm" title={fact.value}>
+                {fact.value}
+              </p>
             ))}
+            {learningCount > 0 ? (
+              <Link href={MEMORY_PAGE} onClick={onClose} className="flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-xs text-foreground hover:bg-muted">
+                <span aria-hidden className="size-1.5 rounded-full bg-warning" />
+                {TH.account.memoryWaiting(learningCount)}
+              </Link>
+            ) : null}
           </section>
 
           <section className={SECTION}>
