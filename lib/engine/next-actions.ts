@@ -1,6 +1,7 @@
 import type { AccessContext, Dim, NextAction, NextActionContext, Region, WidgetKind } from "@/lib/contracts";
 import { responsibleFor } from "@/lib/access/raci";
-import { metricLabel, metricSource } from "@/lib/dashboard/metric-display";
+import { metricLabel, metricSource, toneOf } from "@/lib/dashboard/metric-display";
+import { GEO_LEVELS, finestGeoLevel, geoValueOf } from "@/lib/data/entities/geo";
 import { METRICS } from "@/lib/semantic/metrics";
 import { findUser } from "@/lib/data/entities/users";
 import { shortName } from "@/lib/i18n/format";
@@ -10,12 +11,16 @@ const MAX_ACTIONS = 3;
 const MAX_LABEL_CHARS = 22;
 const BAD_DELTA_PCT = 5;
 const TIME_DIMS: readonly Dim[] = ["date", "week", "month"];
-const DRILL_DIM_ORDER: readonly Dim[] = ["region", "channel", "brand", "agent"];
+const DRILL_DIM_ORDER: readonly Dim[] = ["region", "province", "channel", "brand", "agent"];
 const WIDGET_KIND_FOR_DIMS: Record<string, WidgetKind> = { time: "line", none: "metric", other: "bar" };
 
+function singleFilters(context: NextActionContext): Partial<Record<Dim, string>> {
+  const entries = Object.entries(context.query.filters).filter(([, values]) => values?.length === 1);
+  return Object.fromEntries(entries.map(([dim, values]) => [dim, (values as string[])[0]]));
+}
+
 function regionOf(context: NextActionContext): Region | null {
-  const filter = context.query.filters.region;
-  return filter && filter.length === 1 ? (filter[0] as Region) : null;
+  return geoValueOf(singleFilters(context), "region") as Region | null;
 }
 
 function allows(access: AccessContext, tool: NextAction["tool"]): boolean {
@@ -88,7 +93,7 @@ function verifyAction(context: NextActionContext): NextAction | null {
   return {
     id: "verify",
     kind: "verify",
-    label: TH.next.verify,
+    label: context.alertScope ? (shortLabel(TH.next.verifyScope(context.alertScope)) ?? TH.next.verify) : TH.next.verify,
     reason: context.verifyStep,
     tool: null,
     input: null,
@@ -96,18 +101,25 @@ function verifyAction(context: NextActionContext): NextAction | null {
   };
 }
 
+function coveredByScope(context: NextActionContext, dim: Dim): boolean {
+  const level = GEO_LEVELS.indexOf(dim);
+  return level !== -1 && level <= finestGeoLevel(singleFilters(context));
+}
+
 function drillDim(context: NextActionContext): Dim | null {
   const used = new Set(context.query.dims);
-  return DRILL_DIM_ORDER.find((dim) => !used.has(dim) && METRICS[context.query.metric].dims.includes(dim)) ?? null;
+  return DRILL_DIM_ORDER.find(
+    (dim) => !used.has(dim) && !coveredByScope(context, dim) && METRICS[context.query.metric].dims.includes(dim),
+  ) ?? null;
 }
 
 function shortLabel(label: string): string | null {
   return label.length <= MAX_LABEL_CHARS ? label : null;
 }
 
-function drillAction(context: NextActionContext): NextAction | null {
+function drillAction(context: NextActionContext, causeOffered: boolean): NextAction | null {
   const metric = metricLabel(context.query.metric);
-  if (context.topLabel && context.deltaPercent !== null) {
+  if (!causeOffered && context.topLabel && context.deltaPercent !== null) {
     const short = shortLabel(context.topLabel);
     return {
       id: "drill-why",
@@ -134,7 +146,8 @@ function drillAction(context: NextActionContext): NextAction | null {
 
 function needsOwner(context: NextActionContext): boolean {
   if (context.alertIds.length > 0) return true;
-  return context.deltaPercent !== null && context.deltaPercent <= -BAD_DELTA_PCT;
+  if (context.deltaPercent === null || Math.abs(context.deltaPercent) < BAD_DELTA_PCT) return false;
+  return toneOf(context.query.metric, context.deltaPercent) === "bad";
 }
 
 /**
@@ -142,12 +155,13 @@ function needsOwner(context: NextActionContext): boolean {
  * hand the problem to the person accountable for it, pin a question the user keeps asking, verify an alert, drill in.
  */
 export function nextActionsFor(access: AccessContext, context: NextActionContext, repeats = 0): NextAction[] {
+  const verify = verifyAction(context);
   const candidates = [
     accessAction(access, context),
     needsOwner(context) ? handoffAction(access, context) : null,
-    verifyAction(context),
+    verify,
     pinAction(context, repeats),
-    drillAction(context),
+    drillAction(context, verify !== null),
   ];
   return candidates
     .filter((action): action is NextAction => action !== null && allows(access, action.tool))

@@ -1,4 +1,6 @@
-import type { AccessContext, Alert, MetricQuery, MetricResult, NextAction, QuickAction } from "@/lib/contracts";
+import type { AccessContext, Alert, Dim, MetricQuery, MetricResult, NextAction, QuickAction } from "@/lib/contracts";
+import { GEO_LEVELS, geoValueOf } from "@/lib/data/entities/geo";
+import { sharpestHarm } from "@/lib/cards/present";
 import { nextActionsFor } from "@/lib/engine/next-actions";
 import { followUpsFor, learnedKindShare } from "@/lib/engine/follow-ups";
 import { alertScopeLabel } from "@/lib/cards/alert-row";
@@ -9,6 +11,7 @@ import { isPinnedSlice } from "@/lib/engine/compose";
 import { intentKeyOf } from "@/lib/server/threads";
 
 const PERCENT = 100;
+const HARM_MIN_PCT = 5;
 const REPEAT_DAYS = 30;
 const DAY_MS = 86_400_000;
 
@@ -23,12 +26,26 @@ function alreadyPinned(userId: string, query: MetricQuery): boolean {
   return isPinnedSlice(layouts().get(userId)?.widgets ?? [], query);
 }
 
+function sharedGeoLevel(alert: Alert, dim: Dim): Dim | null {
+  const alertLevel = GEO_LEVELS.findLast((level) => alert.dims[level]) ?? null;
+  if (!alertLevel) return null;
+  return GEO_LEVELS.indexOf(alertLevel) < GEO_LEVELS.indexOf(dim) ? alertLevel : dim;
+}
+
+function alertCovers(alert: Alert, dim: Dim, values: readonly string[]): boolean {
+  if (!GEO_LEVELS.includes(dim)) {
+    const scope = alert.dims[dim];
+    return !scope || values.includes(scope);
+  }
+  const level = sharedGeoLevel(alert, dim);
+  if (!level) return false;
+  const alertValue = geoValueOf(alert.dims, level);
+  return values.some((value) => geoValueOf({ [dim]: value }, level) === alertValue);
+}
+
 function matchesQuery(alert: Alert, query: MetricQuery): boolean {
   if (alert.metric !== query.metric) return false;
-  return Object.entries(query.filters).every(([dim, values]) => {
-    const scope = alert.dims[dim as keyof typeof alert.dims];
-    return !values || values.length === 0 || !scope || values.includes(scope);
-  });
+  return Object.entries(query.filters).every(([dim, values]) => !values || values.length === 0 || alertCovers(alert, dim as Dim, values));
 }
 
 function titleOf(query: MetricQuery, result: Extract<MetricResult, { ok: true }>): string {
@@ -47,7 +64,7 @@ export function actionsForMetric(access: AccessContext, query: MetricQuery, resu
       query,
       deltaPercent: result.headline.deltaPercent,
       masked: result.provenance.masked,
-      topLabel: result.headline.top[0]?.label ?? null,
+      topLabel: sharpestHarm(query, result, HARM_MIN_PCT)?.label ?? null,
       alertIds: alert ? [alert.id] : [],
       alertScope: alert ? alertScopeLabel(alert) : null,
       verifyStep: alert ? alert.verifySteps[0] : null,

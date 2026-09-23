@@ -91,4 +91,33 @@ describe("nextActionsFor", () => {
     const actions = nextActionsFor(accessOf("u_siriporn"), contextOf({ deltaPercent: -20, masked: ["value"], alertIds: ["a1"], verifyStep: "ตรวจ", query: queryOf("ar_overdue", "northeast") }), 5);
     expect(actions.length).toBeLessThanOrEqual(3);
   });
+
+  test("overdue money falling is good news and asks nobody to act", () => {
+    const actions = nextActionsFor(accessOf(CEO), contextOf({ deltaPercent: -22.6, query: queryOf("ar_overdue") }));
+    expect(idsOf(actions)).not.toContain("handoff");
+  });
+
+  test("overdue money rising is bad news and goes to its owner", () => {
+    const actions = nextActionsFor(accessOf(CEO), contextOf({ deltaPercent: 13.5, query: queryOf("ar_overdue", "south") }));
+    expect(idsOf(actions)).toContain("handoff");
+  });
+
+  test("a province never offers a split by region, it offers the next finer level", () => {
+    const query: MetricQuery = { ...queryOf("ar_overdue"), dims: ["month"], filters: { province: ["pv_songkhla"] } };
+    const actions = nextActionsFor(accessOf(CEO), contextOf({ query, topLabel: null }));
+    expect(idsOf(actions)).not.toContain("drill-region");
+    expect(idsOf(actions)).toContain("drill-agent");
+  });
+
+  test("a province hands work to the owner of its region", () => {
+    const query: MetricQuery = { ...queryOf("net_sales_volume"), filters: { province: ["pv_khonkaen"] } };
+    const handoff = nextActionsFor(accessOf(CEO), contextOf({ deltaPercent: -12, query })).find((action) => action.id === "handoff");
+    expect((handoff?.input as { toUserId: string }).toUserId).toBe(RSM_NORTHEAST);
+  });
+
+  test("an alert's verify step replaces the why question instead of repeating it", () => {
+    const actions = nextActionsFor(accessOf(CEO), contextOf({ deltaPercent: -12, alertIds: ["a1"], alertScope: "ภาคใต้", verifyStep: "ดูเอเย่นต์ที่ค้างนานสุด" }));
+    expect(idsOf(actions)).toContain("verify");
+    expect(idsOf(actions)).not.toContain("drill-why");
+  });
 });
