@@ -519,6 +519,7 @@ Vexa is not a constraint (user decision 2026-09-22): change it when Cop needs it
   - `/tools/<name>.1`, `.2` … in spec state beside `/tools/<name>`, so two cards in one turn bind to different calls of the same tool.
   - `storedToolValue` keeps a server tool's own shape whole; only `{ ok, data, summary }` host-tool results are unwrapped to `data`. Before this, any server tool answering `{ ok: true, ... }` without `data` was flattened to `{ ok, summary }` and its payload was lost to specs.
 - [x] The three card-style lines Cop had added to Vexa's `SHARED_INTRO` (headline Metric first, RankList instead of BarChart, Table align/tone) moved back to Cop's `COP_RULES`: in Vexa they dropped shop-admin `eval:ui` `revenue-by-status` and `week-dashboard` from 5/5 to 2/5. `eval-ui` `labelledValues` now reads `RankList` rows and `revenue-by-status` accepts a RankList whose values match the store, since the catalog itself recommends RankList for a one-number comparison.
+- [x] A spec binds only to tool results up to its own message (2026-09-23, user reported an old card redrawn after a new question): `AssistantMessage` passed the whole chat to every `SpecView`, so `/tools/query_metric` in an earlier reply resolved to the latest call in the chat and every past DataCard redrew with the newest result. Now `AssistantMessage` passes `messages` through its own message, and `/tools/<name>.N` counts the calls within one turn (what Cop's catalog already told the model). Test: `src/chat/spec-tool-scope.test.tsx`.
 
 ## 10. Out of scope for this build
 
