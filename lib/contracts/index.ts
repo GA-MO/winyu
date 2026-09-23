@@ -1,5 +1,6 @@
 export * from "./identity";
 export * from "./semantic";
+export * from "./actions";
 export * from "./dashboard";
 export * from "./events";
 export * from "./threads";

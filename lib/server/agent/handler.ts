@@ -4,6 +4,7 @@ import type { AccessContext, RoleId } from "@/lib/contracts";
 import { findUser } from "@/lib/data/entities/users";
 import { models } from "@/lib/server/models";
 import { currentAccess } from "@/lib/server/request-context";
+import { copCatalog } from "@/lib/cards/catalog";
 import { COP_RULES, personaFor } from "./persona";
 import { toolTiers, toolsForAccess } from "./tools";
 
@@ -15,6 +16,7 @@ const handlers = new Map<RoleId, ChatHandler>();
 
 function build(access: AccessContext): ChatHandler {
   return createVexaHandler({
+    catalog: copCatalog,
     models,
     persona: (ctx: PersonaContext) => {
       const current = currentAccess();

@@ -16,6 +16,7 @@ type Rate = { input: number; output: number };
 const RATES: Record<string, Rate> = {
   "claude-sonnet-5": { input: 2, output: 10 },
   "claude-haiku-4-5-20251001": { input: 1, output: 5 },
+  "google/gemini-3.8-flash": { input: 0.75, output: 3.75 },
 };
 
 const FREE: Rate = { input: 0, output: 0 };

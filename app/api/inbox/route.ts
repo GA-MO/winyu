@@ -5,12 +5,13 @@ import { notifications } from "@/lib/server/agent/collections";
 import { packetsFor, resolveEvidence, sentPackets, type EvidenceView } from "@/lib/server/handoff";
 import { openAlertsFor } from "@/lib/server/alerts";
 import { displayLabel } from "@/lib/semantic/dictionary";
-import { metricLabel } from "@/lib/dashboard/metric-display";
+import { formatDelta, formatMetricValue, metricLabel, toneOf } from "@/lib/dashboard/metric-display";
 import { findUser } from "@/lib/data/entities/users";
 import { formatDateTh } from "@/lib/i18n/format";
 import { TH } from "@/lib/i18n/th";
 
 const MAX_ITEMS = 20;
+const MAX_ALERT_ITEMS = 60;
 
 function nameOf(userId: string): string {
   return findUser(userId)?.nameTh ?? userId;
@@ -32,6 +33,7 @@ function evidenceOf(view: EvidenceView): EvidenceLine {
   };
 }
 
+const PERCENT = 100;
 const SCOPE_ORDER: Dim[] = ["agent", "dc", "plant", "sku", "brand", "channel", "province", "region"];
 
 function scopeOf(alert: Alert): string {
@@ -39,9 +41,14 @@ function scopeOf(alert: Alert): string {
   return shown.map((dim) => displayLabel(dim, alert.dims[dim] as string)).join(" · ");
 }
 
-function movementOf(alert: Alert): string {
-  const delta = alert.expected === 0 ? 0 : ((alert.observed - alert.expected) / Math.abs(alert.expected)) * 100;
-  return TH.inbox.movement(alert.observed, alert.expected, delta);
+function movementOf(alert: Alert): AlertItem["movement"] {
+  const delta = alert.expected === 0 ? null : ((alert.observed - alert.expected) / Math.abs(alert.expected)) * PERCENT;
+  return {
+    observed: formatMetricValue(alert.metric, alert.observed),
+    expected: formatMetricValue(alert.metric, alert.expected),
+    delta: formatDelta(delta),
+    tone: toneOf(alert.metric, delta),
+  };
 }
 
 function alertOf(alert: Alert): AlertItem {
@@ -89,7 +96,7 @@ export async function GET() {
     .slice(0, MAX_ITEMS)
     .map((packet) => handoffOf(packet, access));
 
-  const alertItems: AlertItem[] = openAlertsFor(access).slice(0, MAX_ITEMS).map(alertOf);
+  const alertItems: AlertItem[] = openAlertsFor(access).slice(0, MAX_ALERT_ITEMS).map(alertOf);
 
   const replies: ReplyItem[] = sentPackets(access.userId)
     .filter((packet) => packet.thread.length > 0)

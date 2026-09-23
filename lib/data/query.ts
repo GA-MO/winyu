@@ -1,7 +1,7 @@
 import {
   BRANDS, BUSINESS_UNITS, REGIONS,
   type AccessContext, type Brand, type Dim, type Grain, type MetricDef, type MetricId, type MetricQuery,
-  type MetricResult, type MetricRow, type Provenance, type Region,
+  type MetricHeadline, type MetricResult, type MetricRow, type Provenance, type Region,
 } from "@/lib/contracts";
 import { METRIC_LIST, TIME_DIMS, findMetric, metricDef } from "@/lib/semantic/metrics";
 import { MIN_CELL_SIZE, SUPPRESSED_FIELDS, SUPPRESSED_VALUE, cellScopeOf, isSmallCell } from "@/lib/access/suppression";
@@ -540,6 +540,7 @@ function mapeShape(shift: Shift): Shape {
   };
 }
 
+const ALREADY_VS_TARGET: ReadonlySet<MetricId> = new Set<MetricId>(["target_attainment"]);
 const RATIO_METRICS: ReadonlySet<MetricId> = new Set<MetricId>([
   "target_attainment", "days_of_cover", "capacity_utilization", "forecast_mape",
   "campaign_uplift", "share_of_voice", "sentiment_score", "gross_margin", "attrition_rate", "avg_salary", "headcount",
@@ -747,6 +748,7 @@ function buildRows(def: MetricDef, dims: Dim[], rows: Aggregated[], compareRows:
     for (const dim of dims) out[dim] = TIME_DIMS.includes(dim) ? row.dims[dim] : displayLabel(dim, row.dims[dim]);
     if (masked || suppressed.has(row.key)) {
       out.value = SUPPRESSED_VALUE;
+      out.value_label = SUPPRESSED_VALUE;
       if (compareIndex) {
         out.compare_value = SUPPRESSED_VALUE;
         out.delta_pct = SUPPRESSED_VALUE;
@@ -754,6 +756,7 @@ function buildRows(def: MetricDef, dims: Dim[], rows: Aggregated[], compareRows:
       return out;
     }
     out.value = roundValue(def.format, row.value);
+    out.value_label = formatForSummary(def, row.value);
     if (!compareIndex) return out;
     const previous = compareIndex.get(row.key);
     if (previous === undefined) {
@@ -767,31 +770,65 @@ function buildRows(def: MetricDef, dims: Dim[], rows: Aggregated[], compareRows:
   });
 }
 
-function summarize(def: MetricDef, query: MetricQuery, rows: Aggregated[], all: Aggregated[], ratio: boolean, compareRows: Aggregated[] | null, masked: boolean, suppressed: Set<string>): string {
-  const span = `${formatThaiDate(query.range.from)} – ${formatThaiDate(query.range.to)}`;
-  if (masked) return `${def.labelTh} ${span}: ข้อมูลถูกปิดตามนโยบาย (masked) — เห็นได้เฉพาะโครงสร้างข้อมูล`;
-  if (all.length === 0) return `${def.labelTh} ${span}: ไม่พบข้อมูลตามเงื่อนไขที่ขอ`;
+const COMPARE_LABELS: Record<MetricQuery["compare"], string | null> = {
+  none: null,
+  prev_period: "เทียบช่วงก่อนหน้า",
+  prev_year: "เทียบปีก่อน",
+  target: "เทียบเป้า",
+};
+const TOP_IN_HEADLINE = 3;
+
+function deltaPercentOf(def: MetricDef, all: Aggregated[], compareRows: Aggregated[] | null, ratio: boolean): number | null {
+  if (!compareRows || compareRows.length === 0 || all.length === 0) return null;
+  const previous = compareRows.reduce((sum, row) => sum + row.value, 0);
+  const base = ratio ? previous / compareRows.length : previous;
+  if (base === 0) return null;
   const totals = all.reduce((sum, row) => sum + row.value, 0);
-  const headline = ratio
-    ? `เฉลี่ย ${formatForSummary(def, totals / all.length)}`
-    : `รวม ${formatForSummary(def, totals)}`;
-  const parts = [`${def.labelTh} ${span}: ${headline}`];
+  const current = ratio ? totals / all.length : totals;
+  return Math.round(((current - base) / Math.abs(base)) * PERCENT * 10) / 10;
+}
+
+function topOf(def: MetricDef, query: MetricQuery, all: Aggregated[], suppressed: Set<string>): { label: string; value: string }[] {
   const nonTimeDim = query.dims.find((dim) => !TIME_DIMS.includes(dim));
-  if (nonTimeDim) {
-    const ranked = all.filter((row) => !suppressed.has(row.key)).sort((left, right) => right.value - left.value).slice(0, 3);
-    const top = ranked.map((row) => `${displayLabel(nonTimeDim, row.dims[nonTimeDim])} ${formatForSummary(def, row.value)}`);
-    if (top.length > 0) parts.push(`สูงสุด: ${top.join(" · ")}`);
+  if (!nonTimeDim) return [];
+  return all
+    .filter((row) => !suppressed.has(row.key))
+    .sort((left, right) => right.value - left.value)
+    .slice(0, TOP_IN_HEADLINE)
+    .map((row) => ({ label: displayLabel(nonTimeDim, row.dims[nonTimeDim]), value: formatForSummary(def, row.value) }));
+}
+
+/** The decision-grade numbers of a result: what a card puts in big type, before any prose. */
+function headlineOf(def: MetricDef, query: MetricQuery, rows: Aggregated[], all: Aggregated[], ratio: boolean, compareRows: Aggregated[] | null, masked: boolean, suppressed: Set<string>): MetricHeadline {
+  const periodLabel = `${formatThaiDate(query.range.from)} – ${formatThaiDate(query.range.to)}`;
+  const aggregate = ratio ? "average" : "sum";
+  if (masked || all.length === 0) {
+    return { aggregate, value: "—", periodLabel, rowCount: rows.length, deltaPercent: null, compareLabel: null, top: [] };
   }
-  if (compareRows && compareRows.length > 0) {
-    const previous = compareRows.reduce((sum, row) => sum + row.value, 0);
-    const base = ratio ? previous / compareRows.length : previous;
-    const current = ratio ? totals / all.length : totals;
-    if (base !== 0) {
-      const delta = ((current - base) / Math.abs(base)) * PERCENT;
-      parts.push(`เทียบช่วงก่อนหน้า ${delta >= 0 ? "+" : ""}${formatNumber(Math.round(delta * 10) / 10, 1)}%`);
-    }
+  const totals = all.reduce((sum, row) => sum + row.value, 0);
+  const deltaPercent = deltaPercentOf(def, all, compareRows, ratio);
+  return {
+    aggregate,
+    value: formatForSummary(def, ratio ? totals / all.length : totals),
+    periodLabel,
+    rowCount: rows.length,
+    deltaPercent,
+    compareLabel: deltaPercent === null ? null : COMPARE_LABELS[query.compare] ?? "เทียบช่วงก่อนหน้า",
+    top: topOf(def, query, all, suppressed),
+  };
+}
+
+function summarize(def: MetricDef, query: MetricQuery, headline: MetricHeadline, masked: boolean, empty: boolean): string {
+  const span = headline.periodLabel;
+  if (masked) return `${def.labelTh} ${span}: ข้อมูลถูกปิดตามนโยบาย (masked) — เห็นได้เฉพาะโครงสร้างข้อมูล`;
+  if (empty) return `${def.labelTh} ${span}: ไม่พบข้อมูลตามเงื่อนไขที่ขอ`;
+  const lead = headline.aggregate === "average" ? "เฉลี่ย" : "รวม";
+  const parts = [`${def.labelTh} ${span}: ${lead} ${headline.value}`];
+  if (headline.top.length > 0) parts.push(`สูงสุด: ${headline.top.map((row) => `${row.label} ${row.value}`).join(" · ")}`);
+  if (headline.deltaPercent !== null) {
+    parts.push(`${headline.compareLabel} ${headline.deltaPercent >= 0 ? "+" : ""}${formatNumber(headline.deltaPercent, 1)}%`);
   }
-  parts.push(`(${rows.length} แถว · ${def.certified ? "certified" : "derived"} · ${def.sourceSystem})`);
+  parts.push(`(${headline.rowCount} แถว · ${def.certified ? "certified" : "derived"} · ${def.sourceSystem})`);
   return parts.join(" · ");
 }
 
@@ -834,13 +871,14 @@ export function runMetric(query: MetricQuery, access: AccessContext): MetricResu
   if ("ok" in aggregated) return aggregated;
 
   let compareRows: Aggregated[] | null = null;
-  if (query.compare === "target") {
+  const compare = query.compare === "target" && ALREADY_VS_TARGET.has(def.id) ? "none" : query.compare;
+  if (compare === "target") {
     const targetShape = targetShapeFor(def.id);
-    if (!targetShape) return fail("BAD_QUERY", `เมตริก ${def.id} ไม่มีเป้าหมายให้เทียบ`);
+    if (!targetShape) return fail("BAD_QUERY", `เมตริก ${def.id} ไม่มีเป้าหมายให้เทียบ ใช้ compare "none" หรือเทียบงวดก่อนแทน`);
     const targets = aggregate(targetShape, dims, filters, range.from, range.to, false);
     if ("ok" in targets) return targets;
     compareRows = targets;
-  } else if (query.compare !== "none") {
+  } else if (compare !== "none") {
     const previous = compareRange(query, range.from, range.to);
     if (previous) {
       const rows = aggregate(shapeFor(def.id, previous.shift), dims, filters, previous.from, previous.to, ratio);
@@ -866,8 +904,15 @@ export function runMetric(query: MetricQuery, access: AccessContext): MetricResu
     masked: masked || suppressed.size > 0 ? [...SUPPRESSED_FIELDS] : [],
     trust: def.certified ? "verified" : "derived",
   };
-  const summary = summarize(def, query, capped, aggregated, ratio, cappedCompare, masked, suppressed);
-  return { ok: true, rows, summary: suppressed.size > 0 ? `${summary} · ปิด ${suppressed.size} แถวที่รวมข้อมูลน้อยกว่า ${MIN_CELL_SIZE} เอเย่นต์` : summary, provenance };
+  const headline = headlineOf(def, query, capped, aggregated, ratio, compareRows, masked, suppressed);
+  const summary = summarize(def, query, headline, masked, aggregated.length === 0);
+  return {
+    ok: true,
+    rows,
+    summary: suppressed.size > 0 ? `${summary} · ปิด ${suppressed.size} แถวที่รวมข้อมูลน้อยกว่า ${MIN_CELL_SIZE} เอเย่นต์` : summary,
+    headline,
+    provenance,
+  };
 }
 
 function dedupe(dims: Dim[]): Dim[] {

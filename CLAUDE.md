@@ -13,13 +13,18 @@ What still holds because it is good engineering, not Vexa loyalty:
 - Config that costs money, grants capability or is prompt text lives on the server; the client gets presentation only.
 - Colors are tokens (`primary`, `foreground`, `muted-foreground`, `card`, `border`, `success`, `warning`, `danger`, `info`, `chart-1..5`, `brand-violet`); new tokens are added in `app/globals.css`, never as raw palette classes or hex in components.
 
+## How a card is decided
+
+The model chooses, Cop draws. A question about a metric is answered with `DataCard { title, source: { $state: "/tools/query_metric" }, view, sortBy }` and nothing else — `lib/cards/present.ts` holds the one decision table (which body the data shape deserves, the scope line, the source line) and both surfaces render it: the dashboard through `lib/dashboard/widget-to-spec.ts` as a Vexa spec, the chat through `components/cards/data-card.tsx` as React. `lib/engine/next-actions.ts` decides what the card offers to do next from rules, never from the model. Three things keep this true: the bound component (the model cannot mis-draw what it does not draw), `bun run eval:cards` (deterministic checks against a real model), and `lib/cards/normalize.ts` (fixes a card the model still drew by hand). Change the card shape in `present.ts`, never in one surface.
+
 ## Commands
 
 ```bash
 bun install
 bun run dev          # http://localhost:3100
 bun run typecheck    # must pass before any task is considered done
-bun run test         # bun test (happy-dom preload like Vexa)
+bun run test         # bun test (happy-dom preload like Vexa); includes the card contract against the scripted mock
+bun run eval:cards -- --model=google/gemini-3.8-flash   # the same checks against the real model (needs OPENROUTER_API_KEY); --runs=N, --case=<id>; --model=mock runs the scripted subset
 bun run seed         # regenerates .data/*.json from the generator (deterministic)
 ```
 

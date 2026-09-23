@@ -14,7 +14,9 @@ export type MetricQuery = { metric: MetricId; dims: Dim[]; filters: Partial<Reco
 export type MetricRow = Record<string, string | number | null>;
 export type Provenance = { metric: MetricId; certified: boolean; sourceSystem: string; asOf: string; rowCount: number;
   filtersApplied: Partial<Record<Dim, string[]>>; scopeApplied: Partial<Record<Dim, string[]>>; masked: string[]; trust: "verified" | "derived" | "estimated" };
-export type MetricResult = { ok: true; rows: MetricRow[]; summary: string; provenance: Provenance } | { ok: false; error: string; code: "PERMISSION_DENIED" | "UNKNOWN_METRIC" | "BAD_QUERY" };
+export type MetricHeadline = { aggregate: "sum" | "average"; value: string; periodLabel: string; rowCount: number;
+  deltaPercent: number | null; compareLabel: string | null; top: { label: string; value: string }[] };
+export type MetricResult = { ok: true; rows: MetricRow[]; summary: string; headline: MetricHeadline; provenance: Provenance } | { ok: false; error: string; code: "PERMISSION_DENIED" | "UNKNOWN_METRIC" | "BAD_QUERY" };
 
 export const METRIC_IDS = ["net_sales_volume", "net_sales_value", "sell_out_volume", "target_attainment",
   "stock_on_hand", "days_of_cover", "production_output", "capacity_utilization", "forecast_mape",

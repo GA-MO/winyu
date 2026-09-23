@@ -17,6 +17,7 @@ import {
   runJobInputSchema,
   sendEmailInputSchema,
   type AccessContext,
+  type Alert,
   type MetricQuery,
   type Dim,
   type Notification,
@@ -31,9 +32,17 @@ import { currentAccess, currentTurn, recordQuery } from "@/lib/server/request-co
 import { createPacket, digestOf, suggestOwner } from "@/lib/server/handoff";
 import { threads } from "@/lib/server/threads-read";
 import { TH } from "@/lib/i18n/th";
+import { formatMetricValue, metricLabel } from "@/lib/dashboard/metric-display";
+import { formatPercent } from "@/lib/i18n/format";
+import { displayLabel } from "@/lib/semantic/dictionary";
 import { layoutOf, layouts, memoryFacts, notifications, outbox, packets, type OutboxEntry } from "./collections";
 import { allAlertsFor, forecastsFor, openAlertsFor, runAnomalyJob, runEngineJobs, runForecastJob } from "@/lib/server/alerts";
 import { dataPort } from "./data-port";
+import { actionsForAlert, actionsForMetric } from "@/lib/server/next-actions";
+import { alertRowOf } from "@/lib/cards/alert-row";
+import { ADDITIVE_FORECAST_METRICS, forecastSlice } from "@/lib/engine/forecast-slice";
+import { periodLabelTh } from "@/lib/i18n/format";
+import { weekKeyOfIso } from "@/lib/data/dates";
 
 const NO_ALERTS = "ไม่พบความผิดปกติที่เปิดอยู่ในขอบเขตของผู้ใช้คนนี้";
 const NO_FORECAST = "ยังไม่มีพยากรณ์สำหรับมิติที่ขอ";
@@ -96,7 +105,10 @@ const query_metric = tool({
   inputSchema: metricQuerySchema,
   execute: withAudit("query_metric", async (input: z.infer<typeof metricQuerySchema>) => {
     recordQuery(input);
-    return dataPort().runMetric(input, currentAccess());
+    const access = currentAccess();
+    const result = dataPort().runMetric(input, access);
+    if (!result.ok) return result;
+    return { ...result, query: input, nextActions: actionsForMetric(access, input, result) };
   }),
 });
 
@@ -122,21 +134,14 @@ const get_alerts = tool({
   execute: withAudit("get_alerts", async ({ status, limit }: z.infer<typeof getAlertsInputSchema>) => {
     const access = currentAccess();
     const found = status === "open" ? openAlertsFor(access) : allAlertsFor(access);
-    const rows = found.slice(0, limit ?? DEFAULT_ALERT_LIMIT).map((alert) => ({
-      id: alert.id,
-      severity: alert.severity,
-      metric: alert.metric,
-      scope: alert.dims,
-      window: `${alert.window.from} – ${alert.window.to}`,
-      observed: alert.observed,
-      expected: alert.expected,
-      direction: alert.direction,
-      hypothesis: alert.hypothesis,
-      verifySteps: alert.verifySteps,
-      ownerUserId: alert.ownerUserId,
-    }));
-    if (rows.length === 0) return { ok: true as const, summary: NO_ALERTS, data: [] };
-    return { ok: true as const, summary: `มีความผิดปกติที่เปิดอยู่ ${rows.length} รายการในขอบเขตของคุณ`, data: rows };
+    const rows = found.slice(0, limit ?? DEFAULT_ALERT_LIMIT).map(alertRowOf);
+    if (rows.length === 0) return { ok: true as const, summary: NO_ALERTS, rows: [], nextActions: [] };
+    return {
+      ok: true as const,
+      summary: `มีความผิดปกติที่เปิดอยู่ ${rows.length} รายการในขอบเขตของคุณ`,
+      rows,
+      nextActions: actionsForAlert(access, found[0] ?? null),
+    };
   }),
 });
 
@@ -145,13 +150,26 @@ const get_forecast = tool({
   inputSchema: getForecastInputSchema,
   execute: withAudit("get_forecast", async ({ metric, dims, weeks }: z.infer<typeof getForecastInputSchema>) => {
     const access = currentAccess();
-    const rows = forecastsFor(access).filter((forecast) => forecast.metric === metric);
-    const match = rows.find((forecast) => Object.entries(dims).every(([dim, value]) => !value || forecast.dims[dim as keyof typeof forecast.dims] === value));
-    if (!match) return { ok: true as const, summary: NO_FORECAST, data: [] };
-    const points = match.points.slice(0, weeks).map((point) => ({ week: point.date, value: point.value, lo: point.lo, hi: point.hi }));
+    const slice = forecastSlice(forecastsFor(access), metric, dims);
+    if (!slice) return { ok: true as const, summary: NO_FORECAST, data: [] };
+    if (!slice.ok) return { ok: true as const, summary: `${NO_FORECAST} ต้องระบุ ${slice.missingDims.join(", ")} ด้วย เพราะรวมข้ามกันไม่ได้`, data: [] };
+    const points = slice.points.slice(0, weeks).map((point) => ({
+      week: periodLabelTh(weekKeyOfIso(point.date)),
+      value: Math.round(point.value),
+      value_label: formatMetricValue(metric, Math.round(point.value)),
+      range_label: `${formatMetricValue(metric, Math.round(point.lo))} – ${formatMetricValue(metric, Math.round(point.hi))}`,
+    }));
+    const total = points.reduce((sum, point) => sum + point.value, 0);
+    const combined = slice.seriesCount > 1 ? ` · รวม ${slice.seriesCount} ชุดพยากรณ์ย่อย` : "";
+    const additive = ADDITIVE_FORECAST_METRICS.has(metric);
+    const average = points.length > 0 ? Math.round(total / points.length) : 0;
+    const totalLine = additive ? ` · รวม ${points.length} สัปดาห์ ${formatMetricValue(metric, total)} · เฉลี่ยสัปดาห์ละ ${formatMetricValue(metric, average)}` : "";
     return {
       ok: true as const,
-      summary: `พยากรณ์ ${points.length} สัปดาห์ของ ${metric} (Holt-Winters · ความคลาดเคลื่อนย้อนหลัง MAPE ${match.mape}%)`,
+      summary: `พยากรณ์ ${points.length} สัปดาห์ของ${metricLabel(metric)}${combined}${totalLine} (Holt-Winters · ความคลาดเคลื่อนย้อนหลัง MAPE ${slice.mape}%)`,
+      total: additive ? total : null,
+      weekly_average: additive ? average : null,
+      mape: slice.mape,
       data: points,
     };
   }),

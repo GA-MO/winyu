@@ -5,8 +5,13 @@ import { alertThresholds, alerts, forecasts, packets } from "@/lib/server/agent/
 import { DATA_DIR } from "@/lib/server/store/json-store";
 import { detectAnomalies, thresholdKey, toAlert, type Thresholds } from "@/lib/engine/anomaly";
 import { buildForecasts } from "@/lib/engine/forecast";
+import { templateFor } from "@/lib/dashboard/templates";
 
 const SEVERITY_RANK: Record<Alert["severity"], number> = { P1: 0, P2: 1, P3: 2 };
+
+export type AlertRelevance = "mine" | "watched" | "other";
+
+const RELEVANCE_RANK: Record<AlertRelevance, number> = { mine: 0, watched: 1, other: 2 };
 
 let running = false;
 
@@ -62,18 +67,32 @@ function inScope(alert: Alert, access: AccessContext): boolean {
   return !region || access.regions.includes(region as Region);
 }
 
-function rank(left: Alert, right: Alert): number {
-  return SEVERITY_RANK[left.severity] - SEVERITY_RANK[right.severity] || Math.abs(right.zScore) - Math.abs(left.zScore);
+/** Whether an alert is this user's to act on: they own it, it is on a metric their role watches, or it is only in their scope. */
+export function relevanceOf(alert: Alert, access: AccessContext, watched: ReadonlySet<string> = watchedMetrics(access)): AlertRelevance {
+  if (alert.ownerUserId === access.userId) return "mine";
+  return watched.has(alert.metric) ? "watched" : "other";
+}
+
+function watchedMetrics(access: AccessContext): ReadonlySet<string> {
+  return new Set(templateFor(access).map((seed) => seed.query.metric));
+}
+
+function rankFor(access: AccessContext): (left: Alert, right: Alert) => number {
+  const watched = watchedMetrics(access);
+  return (left, right) =>
+    RELEVANCE_RANK[relevanceOf(left, access, watched)] - RELEVANCE_RANK[relevanceOf(right, access, watched)] ||
+    SEVERITY_RANK[left.severity] - SEVERITY_RANK[right.severity] ||
+    Math.abs(right.zScore) - Math.abs(left.zScore);
 }
 
 export function openAlertsFor(access: AccessContext): Alert[] {
   ensureEngine();
-  return alerts().where((alert) => alert.status === "open" && inScope(alert, access)).sort(rank);
+  return alerts().where((alert) => alert.status === "open" && inScope(alert, access)).sort(rankFor(access));
 }
 
 export function allAlertsFor(access: AccessContext): Alert[] {
   ensureEngine();
-  return alerts().where((alert) => inScope(alert, access)).sort(rank);
+  return alerts().where((alert) => inScope(alert, access)).sort(rankFor(access));
 }
 
 export function openPacketsFor(access: AccessContext): ContextPacket[] {

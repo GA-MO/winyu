@@ -5,7 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Bell } from "lucide-react";
 import type { User } from "@/lib/contracts";
 import { TH } from "@/lib/i18n/th";
-import { InboxDrawer } from "@/components/inbox/drawer";
+import { InboxDrawer, focusFromParams } from "@/components/inbox/drawer";
 import { AccountSheet } from "@/components/account/sheet";
 
 const NOTIFICATIONS_ENDPOINT = "/api/notifications";
@@ -48,7 +48,7 @@ function ChromeInner({ user, users }: { user: User; users: readonly User[] }) {
           <span className="text-xs font-semibold text-foreground">{user.nameTh.replace(/^คุณ/, "").slice(0, 1)}</span>
         </button>
       </div>
-      <InboxDrawer open={inboxOpen} onClose={closeInbox} />
+      <InboxDrawer open={inboxOpen} onClose={closeInbox} focus={focusFromParams(params)} />
       <AccountSheet open={accountOpen} onClose={() => setAccountOpen(false)} user={user} users={users} />
     </>
   );

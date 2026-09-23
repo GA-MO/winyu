@@ -244,3 +244,18 @@ describe("metric and entity lookup", () => {
     expect(runMetric(query({ metric: "gross_margin", dims: ["business_unit"] }), SUPPLY).ok).toBe(false);
   });
 });
+
+describe("headline delta", () => {
+  test("compares every row with every previous row, not the top of a limited list", () => {
+    const limited = runMetric(query({ metric: "net_sales_volume", dims: ["agent"], compare: "prev_period", limit: 10 }), CEO);
+    const whole = runMetric(query({ metric: "net_sales_volume", dims: [], compare: "prev_period" }), CEO);
+    if (!limited.ok || !whole.ok) throw new Error("query failed");
+    expect(limited.headline.deltaPercent).toBe(whole.headline.deltaPercent);
+  });
+
+  test("a target comparison on target_attainment answers without a delta instead of failing", () => {
+    const result = runMetric(query({ metric: "target_attainment", dims: [], compare: "target" }), CEO);
+    if (!result.ok) throw new Error(result.error);
+    expect(result.headline.deltaPercent).toBeNull();
+  });
+});

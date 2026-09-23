@@ -1,25 +1,25 @@
 # Cop — build plan
 
-## สถานะ (updated 2026-09-22)
-ทำแล้ว: Phase 0 (`b5209e8`) · Phase 1 1A+1B+1C (`d06054c`, `3b9dd99`) · Phase 1.5 UI light-first (`4b0e526`, `1631c8b`) · **Phase 2 ครบสี่แพ็กเกจ + Phase 3 ครบสามแพ็กเกจ ยังไม่ commit** — 2B `lib/engine/{stats,watches,series,hypothesis,anomaly,forecast}.ts` + `lib/server/{alerts,briefing}.ts`, 2C `lib/server/handoff.ts`, 2A `lib/server/threads.ts` + `lib/engine/{memory,recommend,seasons}.ts`, 2D `lib/engine/compose.ts` + layout versioning, 3A `lib/access/suppression.ts` + `lib/server/usage.ts` + `/admin` ครบห้าแท็บ + `tests/red-team.test.ts`, 3B ฉากเดโมใน `lib/server/mock-script.ts` + `docs/demo.md`, 3C `docs/architecture.md` + README + skeleton/375px/dark pass (ทำเรียงลำดับในเซสชันเดียว ไม่ dispatch agent ขนาน ตามที่ user สั่ง)
+## สถานะ (updated 2026-09-23)
+ทำแล้ว: Phase 0 (`b5209e8`) · Phase 1 (`d06054c`, `3b9dd99`) · Phase 1.5 (`4b0e526`, `1631c8b`) · Phase 2 + 3 (`2361436`) · Phase 1.6, 1.7, 1.8, 1.9 (commit นี้) · **โมเดลจริงตัวเดียว: `google/gemini-3.8-flash` ผ่าน OpenRouter** (user decision 2026-09-23 "ใช้แค่ model เดียว เน้น gemini"; Flash Lite อ่อนเกินไป — ดึงข้อมูลได้แล้วตอบว่าไม่มีตัวเลขและไม่วาดการ์ด)
+พิสูจน์แล้ว:
+- `bun run eval:cards -- --model=google/gemini-3.8-flash --runs=2` → **28/30** เคสสะอาด ทั้งสองเคสที่ตกคือปี พ.ศ. 2569 ที่โมเดลแปลงจากวันที่ของ tool ซึ่ง checker นับเป็นตัวเลขแต่งเอง — แก้ checker แล้ว (`yearsIn`, มีเทสต์) และรันซ้ำผ่าน
+- `bun run build` ของ Cop ผ่าน (build จากสำเนาชั่วคราวเพราะ dev server อีก session ใช้ `.next` อยู่) · typecheck + 227 tests ผ่าน
+- Vexa: typecheck + 213 tests ผ่าน · `test:scenarios` 39/43 กับ DeepSeek V4 Flash (โมเดลอ้างอิงของ Vexa); รันซ้ำแล้ว `admin-discover`/`admin-passive` ผ่าน, `patch-after-input` และ `admin-edit-product` ตกเหมือนกันบนโค้ดที่ commit แล้ว (stash ทดสอบ) จึงไม่ใช่ regression ของรอบนี้ · `eval:ui` เคยตก `revenue-by-status` 5/5→2/5 และ `week-dashboard` 5/5→2/5 เพราะกฎการ์ดของ Cop ถูกใส่ไว้ใน `SHARED_INTRO` ของ Vexa — ย้ายกลับไปอยู่ใน `COP_RULES` แล้ว และ verifier อ่าน `RankList` ได้ (Vexa เองแนะนำ RankList สำหรับเทียบตัวเลขเดียว) ผลหลังแก้ 4/5 และ 4/5
 ค้าง:
-- งานที่เปิดค้างใน agentic-ui: `src/chat/vexa-chat.tsx` (`initialMessages`/`id`) กับ `src/react/components.tsx` (`thinLabels` จาก 1.5) ยัง uncommitted ทั้งคู่ — ถ้า commit Cop ต้อง commit Vexa ด้วยไม่งั้น typecheck พัง
-- Vexa devtools toggle ยังโผล่ในแชทตอน dev · แดชบอร์ด/กล่องงานยังเช็กมือแค่ `u_anucha`, `u_ben`, `u_wee`, `u_thana`, `u_ton`
-- พยากรณ์ `days_of_cover` MAPE ~24% (ยอดขาย brand×region ~10% ผ่านเกณฑ์ <15%) — cover รายสัปดาห์เป็นฟันเลื่อยตามรอบเติมสินค้า ค่านี้โชว์ใน payload ของ `get_forecast` แล้ว ไม่ได้ซ่อน
+- **ยังไม่ push ทั้งสอง repo** · agentic-ui ยังไม่ commit (branch `roadmap`)
+- การ์ดของ persona CFO/HR/supply/sales_rep ยังไม่ได้เปิดดูด้วยตาในเบราว์เซอร์ (Claude in Chrome ปิดอยู่ และ chrome-devtools profile ถูกอีก session ถือไว้) — โครงสร้างการ์ดพิสูจน์ผ่าน eval แล้ว · `run_job` ของ it_admin ยังพิสูจน์ด้วยเทสต์เท่านั้น
+- Vexa devtools toggle ยังโผล่ในแชทตอน dev · `days_of_cover` MAPE ~24%
 ค้นพบ:
-- **year-over-year ต่อ series ทำ detection แย่ลง** บน generator นี้ (2025 เบียร์ลงเข้าเดือน 9, 2026 ไม่ลง → factor 0.77 พลิก "ลดลงจริง" เป็น "เพิ่มขึ้น") เปลี่ยนเป็น detrend least-squares + damped trend φ=0.85 + หาร standard error ด้วย effective sample size จาก lag-1 autocorrelation แทน · YoY เหลือใช้เฉพาะ watch รายเดือน `ar_overdue` ระดับภาค
-- `days_of_cover` เป็นฟันเลื่อยรอบ ~14 วัน z-score ใช้ไม่ได้เลย ต้องใช้กฎ floor (`scanFloor`: 7 วันล่าสุดไม่เคยกลับเหนือเกณฑ์ 10)
-- anomaly #7 (ขอนแก่นไลน์ 2) มองไม่เห็นที่ระดับ plant (−4% ต่ำกว่า noise) เอนจินเลยอ่าน `productionTables()` ราย line ตรง ๆ ใน `lib/engine/series.ts` เพราะ `Dim` ไม่มี `line` — Alert ยังอยู่ใน contract เดิม ไม่ได้แก้ `lib/contracts`
-- anomaly #6 (AR ใต้) เจอที่ระดับภาค ไม่ใช่ราย agent — ราย agent สัญญาณต่ำกว่า jitter ของข้อมูลเอง §5.3 เขียนว่า "3 tier-C agents" แต่ระดับที่ตรวจได้จริงคือภาค
-- seed ใน `templates.ts` ที่เคยติดป้าย `ai_suggested` เปลี่ยนเป็น `role_template` แล้ว ไม่งั้นกินโควตา "1 การ์ดใหม่/วัน" ของ composer จนไม่มีการ์ด AI จริงโผล่เลย
-- เทสต์ที่อ่าน `.data` ร่วมกับ dev server จะพังแบบสุ่ม — `scoreIntents`/`composeSuggestion`/`shouldOfferPin` รับ `events` เป็น parameter ได้แล้ว เทสต์ใหม่ต้องส่ง array เอง อย่าเขียนลง store (red-team เขียน fact/packet แล้วลบคืนใน `afterAll`)
-- หน้า alerts ทำเป็นแท็บ "ความผิดปกติ" ในลิ้นชักกล่องงาน (§1 chat-first) ไม่ได้ทำหน้าแยกตามข้อความใน §6 2B
-- Vexa: เพิ่ม `initialMessages`/`id` ให้ `VexaChat` แต่ไม่ได้เขียน scenario ใน shop-admin (เป็น prop pass-through และ Cop ใช้ `useChat` เองไม่ผ่าน `VexaChat`)
-- **min-cell กับ `ar_overdue` ราย province ปิดเกือบทุกแถว** เพราะ 20 จาก 24 จังหวัดมีเอเย่นต์ 1–2 ราย — ตั้งใจ ถูกต้องตามกฎ และเป็นจังหวะเดโมที่ดี ("ทำไมเป็น ***") ถ้าต้องการรายละเอียดให้ถามราย agent หรือราย region แทน
-- `avg_salary` ของ CEO เป็น `full` มาตั้งแต่ phase 1 (มีเทสต์ `policies.test.ts` ยืนยัน) เคยลองบีบเป็น masked แล้วเทสต์เดิมพัง เลยคงตามการตัดสินใจเดิมและให้ red-team ยอมรับ CEO + HR
-ถัดไป: commit phase 2 + 3 (พร้อม agentic-ui ที่ค้างอยู่) แล้วรีวิว UX รอบสุดท้ายก่อนเดโม
+- **`get_forecast` ที่ไม่ระบุมิติคืนพยากรณ์ของแบรนด์เดียวในภาคเดียว** (ชุดแรกในรายการ ~3,861 hl/สัปดาห์) แล้วบอกว่าเป็นของทั้งประเทศ (ของจริง ~60,000) — ตอนนี้ `lib/engine/forecast-slice.ts` รวมทุกชุดใต้มิติที่ระบุสำหรับเมตริกที่บวกกันได้ (`net_sales_volume`) และบังคับให้ระบุมิติครบสำหรับที่บวกไม่ได้ (`days_of_cover`); tool คืน `value_label`, `range_label`, `total`, `weekly_average` ตามกฎ §4 โมเดลจึงไม่ต้องปัดหรือบวกเอง
+- **headline delta เทียบยอดทุกแถวกับยอดของ N แถวแรกหลังตัด limit** — การ์ดเอเย่นต์ยอดตกโชว์ +171.9% ขณะที่จริง +8.4%; แก้ใน `runMetric` แล้วมีเทสต์
+- `compare: "target"` บน `target_attainment` เคยคืน error ทำให้โมเดลขอโทษกลางคำตอบ — ตอนนี้ถือว่าเป็น `none` เพราะค่าเทียบเป้าอยู่ในตัวเมตริกแล้ว
+- กฎการออกแบบของ host อยู่ใน `rules` ของ host เสมอ ไม่ใช่ `SHARED_INTRO` ของ Vexa — กฎที่ดีสำหรับ Cop ทำให้ shop-admin ตก eval
+- `eval:ui --report` เขียนทับ `docs/admin-ui-eval.md` และ `lib/eval-ui/specs.ts` ของ Vexa — ใช้เฉพาะตอนตั้งใจอัปเดตรายงาน
+- `.data` ถูกเขียนจากการใช้งานจริงผ่าน dev server (memory ของโมเดลจริง) เทสต์ที่ถือว่าที่เก็บว่างจึงพังแบบสุ่ม — เทสต์ต้องไม่พึ่งสถานะของ `.data`
+ถัดไป: commit agentic-ui, push ทั้งสอง repo เมื่อผู้ใช้สั่ง, เปิดดูการ์ด persona ที่เหลือในเบราว์เซอร์
 
-Status: **In progress** · Revision 4 · 2026-09-22 · phases 0–3 built, not yet committed.
+Status: **In progress** · Revision 8 · 2026-09-23 · phases 0–3 and 1.6–1.9 committed in Cop; Vexa changes uncommitted on `roadmap`.
 
 Cop is the enterprise copilot described in the brainstorm of 2026-09-22 (four angles: executive/governance, daily user, architecture, red-team). This plan turns it into a runnable demo on Vexa with a full-lifecycle mock of a Thai beverage company, built by parallel agents. Everything here is the deliverable; the chat summary is not.
 
@@ -48,7 +48,7 @@ Decisions that every package respects:
 | D4 | **Forecast, anomaly, recommender are deterministic.** The LLM explains and proposes after detection, never detects | Reproducible, testable, cheap |
 | D5 | **Handoff packets carry references, not values.** The recipient's agent re-runs the queries under the recipient's scope | No data leak across departments through a forwarded chart |
 | D6 | **Outbound actions are approval-gated.** `create_handoff`, `send_email`, `pin_widget` run through Vexa approval cards (`needsApproval`) | Human in the loop |
-| D7 | **Runs without a key.** Every demo scenario has a scripted mock turn (`vexa/mock`); a real model (Anthropic) is used when `ANTHROPIC_API_KEY` is set | Demo anywhere, tests without cost |
+| D7 | **Runs without a key.** Every demo scenario has a scripted mock turn (`vexa/mock`); a real model (Gemini 3.8 Flash via OpenRouter) is used when `OPENROUTER_API_KEY` is set | Demo anywhere, tests without cost |
 | D8 | **Mock data is generated, not hand-written.** A seeded deterministic generator produces 18 months of daily data across sales, supply, marketing, finance, HR with injected anomalies; `.data/` holds only user-state (threads, memory, packets), never business data | Realistic volume, reproducible, one place to tune |
 
 ## 2. Architecture
@@ -94,7 +94,7 @@ Cop lives in `/Users/sbpdigital/Development/Cop` as its own repo; Vexa in `/User
 - `app/globals.css`: `@import "../../agentic-ui/src/styles.css";` — Tailwind resolves `tw-animate-css`, `streamdown/styles.css` and the `@source` globs relative to that file, i.e. from `agentic-ui/node_modules`.
 - Versions: `ai`, `@ai-sdk/react` and `zod` in `package.json` are pinned to exactly what `../agentic-ui/node_modules` resolves (6.0.280 / 3.0.283 / 4.6.2). TypeScript dedupes a package only on an identical version, so a newer `ai` or `zod` in Cop makes `../agentic-ui/src/core/mcp.ts` fail with "type instantiation is excessively deep". After a Vexa dependency bump, re-pin here.
 
-Model registry (`lib/server/models.ts`): `mock` (always, `createScriptedModel(COP_SCRIPT)`), `claude-sonnet-5` and `claude-haiku-4-5-20251001` through `@ai-sdk/anthropic` when `ANTHROPIC_API_KEY` is set; Sonnet is the default when present. `.env.example` lists `ANTHROPIC_API_KEY` only.
+Model registry (`lib/server/models.ts`): **one real model** — `google/gemini-3.8-flash` through OpenRouter (`@openrouter/ai-sdk-provider`) when `OPENROUTER_API_KEY` is set, overridable with `AGENT_MODEL` (user decision 2026-09-23: one model, Gemini) — then `mock` (always, `createScriptedModel(COP_SCRIPT)`). The Anthropic entries remain only for when `ANTHROPIC_API_KEY` is set.
 
 Port 3100. `globals.css` = `@import "tailwindcss"; @import "../../agentic-ui/src/styles.css";`. `<html lang="th" class="vexa-scrollbar">`. Fonts: `Noto Sans Thai` + `Inter` from Google Fonts via `next/font`.
 
@@ -284,6 +284,70 @@ User decisions from the review of 2026-09-22 (evening): **light theme is the def
 - [x] Session page, login, account sheet, inbox drawer, dashboard, admin: light pass with the same card/border/shadow language; drawer/sheet dim = `bg-foreground/10` + light backdrop-blur, not mush.
 - [x] Greeting: ตอนเช้า / ตอนบ่าย / ตอนเย็น / ค่ำ mapping; verify with the browser at 1440×900 and 375×812, screenshots into `docs/screenshots/` (light).
 
+### Phase 1.6 — decision-grade cards (light-first, user review of 2026-09-22 late evening)
+
+User verdict on the cards: "ต้องดูแพงและข้อมูลจำเป็นตัดสินใจได้ง่าย ไม่เอาแต่ text เยอะ ๆ" and "เน้น light mode ก่อนเสมอ". What was wrong: every card dumped `result.summary` (a grounding sentence written for the model) into `Card.description`, so the answer was three lines of grey prose above the data; the provenance line repeated half of it; deltas were uncoloured text; the agent ranking was sorted by size, not by the decline it claimed to show; alert rows carried raw dim ids and no numbers; the national trend chart plotted a brand/region weekly forecast against national monthly actuals, and the null padding rendered as a crash to zero.
+
+- [x] Semantic layer returns a structured `MetricHeadline` (`aggregate`, `value`, `periodLabel`, `rowCount`, `deltaPercent`, `compareLabel`, `top`) beside the text `summary`; `summarize` is now derived from it. Rows carry `value_label` (pre-formatted, the rule §4 already asked for).
+- [x] One card shell everywhere: `Card.meta` = period + how many of what, `Card.footnote` = source · trust · asOf, `description` null. Body leads with `Metric size="lg"` (headline value + delta pill), then the rows or the chart.
+- [x] `metric-display.ts` owns direction vs judgement: `directionOf` (arrow), `toneOf` (good/bad; `ar_overdue`, `attrition_rate`, `forecast_mape`, `trade_spend` are lower-is-better), `formatDelta`.
+- [x] Rankings use `RankList` (rank, label, proportional bar, value, delta pill) instead of a two-column table or a horizontal bar chart; the "agents that dropped" card sorts by `delta_pct` ascending.
+- [x] A percent `metric` widget adds a `Progress` bar with "เหลืออีก N% ถึงเป้า".
+- [x] Alerts (dashboard, chat, landing, inbox) show Thai scope, `จริง X · คาด Y · ห่าง Z%` and a severity dot; `get_alerts` returns `scopeLabel` / `observedLabel` / `expectedLabel` / `gapLabel` so no consumer re-derives them.
+- [x] Forecast overlay only attaches when the forecast's dims are pinned by the widget's filters and the grain is weekly; forecast series is dashed and padded with nulls (real gaps, not zeros).
+- [x] Dashboard: masonry columns instead of a ragged grid, card actions inside the card on hover, "เปลี่ยนแปลงตั้งแต่เมื่อวาน" as delta chips (`changesSince` returns `DashboardChange[]`).
+- [x] `COP_RULES` teach the real model the same shell (meta/footnote/hero, RankList, table align/tone, alert meta, lower-is-better tone).
+- [x] Checked in the browser at 1440×900 in light mode: `/`, `/dashboard`, `/c/<id>` (ranking, alerts), `?inbox`; dark mode re-checked afterwards.
+
+### Phase 1.7 — the model chooses, Cop draws (user decision 2026-09-23)
+
+The user's question: "จะมั่นใจได้ไงว่า model จริงจะวาดสวยแบบที่คุณวาด … มันต้องมีวิธีคิดและหลักการสิ" plus "ควรมี next action suggestion ให้เสมอ". Phase 1.6 made the cards good but left their shape to the model's judgement at generation time, and nothing in the product ever offered to act — the chat asked the user to *type* "ส่งต่องานให้ผู้รับผิดชอบ". The principle: the model does the part that needs a model (understand the question, pick the data); Cop does the part with one right answer (draw the card, decide what to offer next). Three layers, chosen together with the user: a bound component, an eval, and a normalizer as the net.
+
+- [x] **`lib/cards/present.ts`** — one decision table (`presentCard` / `presentAlerts`) shared by the dashboard (rendered as a Vexa spec) and the chat (rendered as React). `widget-to-spec.ts` is now a thin spec writer on top of it; `lib/cards/alert-row.ts` gives every surface the same pre-labelled `AlertRow`.
+- [x] **`DataCard` / `AlertsCard` / `ActionStrip`** in Cop's own catalog (`lib/cards/catalog.ts`, via Vexa's new `extendCatalog`). The model writes `{ title, source: { $state: "/tools/query_metric" }, view, sortBy }` and nothing else; `components/cards/data-card.tsx` renders it through the presenter. The mock script now emits exactly that, so the demo proves the path.
+- [x] **`lib/engine/next-actions.ts`** — deterministic rules, not model judgement: masked fields → ask the metric owner (`send_email`); an open alert or a drop worse than 5% → hand to the RACI owner (`create_handoff`); asked 2+ times → `pin_widget`; an alert → its first verify step; always a drill-in. Capped at three, filtered by `access.toolAllow`, never offered to yourself. `query_metric` and `get_alerts` return them in `nextActions`, so the buttons exist on the dashboard, in the chat and behind an approval card.
+- [x] **`cop_action` host tool** — one button handler. A tool action becomes the `⟦action⟧ runTool` message the chat already understands (so the model still runs it behind Vexa's approval card); a question is simply asked. Works from the dashboard too, via `/c/new?prompt=`.
+- [x] **Follow-up chips after every reply**, not only on an empty thread (`session-chat.tsx` registered its sender in `components/providers/chat-sender.ts`).
+- [x] **Eval** — `bun run eval:cards -- --model=<id>` over `lib/eval/cases.ts` (15 questions × 5 personas) with deterministic checks in `lib/eval/check-cards.ts`: called a tool, used a bound card, sorted the way the question asked, title is an answer, no tool summary pasted as prose, every number traceable to a tool result. Writes `.eval-cards.json`. The scripted subset also runs in `bun run test` (`lib/eval/card-contract.test.ts`), so the contract is enforced with no API key.
+- [x] **`lib/cards/normalize.ts`** — the net for a card the model still draws by hand: drops a description that only repeats a tool summary, fills `meta`/`footnote` from provenance, right-aligns number columns and colours signed-percentage ones. Prop rewrites only, never structural surgery. Wired through Vexa's new `VexaProvider normalizeSpec`.
+- [x] **การขออนุมัติอ่านรู้เรื่อง** (จาก feedback ระหว่างทาง: "มันกาง json อะไรไม่รู้ให้ CEO เห็นทำไม" / "ไปอยู่ใน Thinking ทำไม" / "หลุด theme") — แก้ที่ค่าเริ่มต้นของ Vexa ไม่ใช่แค่ Cop: การ์ดอนุมัติย้ายออกมานอกบล็อก ProcessSteps ถาวร (ปิด Thinking แล้วยังกดอนุมัติได้), ไม่กางชื่อ tool และ input JSON อีก, `describeToolCall` ของ Cop เขียนเป็นประโยคไทย ("ส่งงานนี้ให้ คุณกนก ศรีสุวรรณ ใช่ไหมครับ" + เรื่อง/สิ่งที่ขอ/ความเร่งด่วน), รูปทรงและปุ่มเข้าชุดกับการ์ดข้อมูล
+- [x] mock `handoffSteps` อ่าน input ที่ปุ่มส่งมาจริง แทนที่จะเล่นสคริปต์ชื่อคนอื่น เดโมเลยไม่ขัดกันเอง
+- [x] รันกับโมเดลจริงแล้ว — `bun run eval:cards -- --model=google/gemini-3.8-flash --runs=2` ได้ 28/30 (สองเคสที่ตกเป็น false positive ของ checker ซึ่งแก้แล้ว)
+
+### Phase 1.8 — การ์ดอนุมัติที่ CEO ตัดสินใจได้ และข้อความแชทที่บอกคำตอบ (user review 2026-09-23)
+
+ผู้ใช้ลองใช้ระบบในมุม CEO แล้วสั่งว่า "ปรับ UI ข้อ Approve ให้สวยและ CEO ต้องตัดสินใจได้ง่าย … พวก Chat message ต้องลองดูหลาย ๆ case แล้วปรับ" ที่เห็นจริงบนหน้าจอ: การ์ดอนุมัติเป็นกล่องขาวเปล่า ๆ วาง label ซ้าย/ค่าชิดขวาจนตาต้องวิ่งข้ามจอ, โผล่ **ก่อน** ประโยคที่อธิบายเหตุผล, ฟองข้อความของปุ่มที่กดซ้ำเนื้อหาเดียวกันทั้งชุด, พออนุมัติแล้วเหลือกล่องสูงครึ่งจอที่เขียนแค่ "อนุมัติแล้ว" และประโยคนำของทุกคำตอบเป็นการบรรยายการ์ด ("ดูรายละเอียดในการ์ด") ไม่ใช่คำตอบ
+
+- [x] **`components/cards/approval-card.tsx`** — การ์ดตัดสินใจของ Cop เอง ใช้ shell เดียวกับการ์ดข้อมูล: หัวการ์ดบอกว่า *ใคร* จะได้งาน (ชื่อ + ตำแหน่ง + ฝ่าย จาก `findUser`) พร้อมป้ายความเร่งด่วนตาม tone token, ตัวการ์ดบอก *เรื่อง* / *สิ่งที่ขอให้ช่วย* / *หลักฐานที่แนบไปด้วย* (ชื่อเมตริกและขอบเขตจริง ไม่ใช่จำนวนดิบ) และ *สิ่งที่จะเกิดขึ้นเมื่ออนุมัติ*, ท้ายการ์ดมีบรรทัด "ไม่มีอะไรเกิดขึ้นจนกว่าคุณจะกดอนุมัติ" คู่กับปุ่มสองปุ่ม ครบสี่ tool (`create_handoff` / `send_email` / `pin_widget` / `run_job`) ตอบแล้วยุบเป็นใบเสร็จบรรทัดเดียว (อนุมัติ = เครื่องหมายถูกโทน success, ไม่อนุมัติ = เงียบและเทา)
+- [x] **ฟองข้อความของปุ่มเหลือประโยคเดียว** — `describe-tool.ts` ไม่ส่ง `details` อีก เพราะการ์ดที่ตามมาบอกครบแล้ว เดิมผู้ใช้อ่านเรื่อง/สิ่งที่ขอ/ความเร่งด่วนซ้ำสองรอบติดกัน
+- [x] **ข้อความนำทุก case คำนวณจากผลลัพธ์ tool** (`lib/server/mock-script.ts`): ยอดขาย → ตัวเลขจริง + ภาคที่ห่างเป้ามากที่สุด, เอเย่นต์ → รายที่ตกแรงที่สุด, เงินเดือน → ขึ้นกับว่ามีฟิลด์ถูกปิดจริงไหม (เดิมบอกว่า "ถูกปิดตามสิทธิ์" ทั้งที่การ์ดโชว์ตัวเลขครบ), สต๊อก → ศูนย์ที่เหลือน้อยที่สุดเทียบเกณฑ์, พยากรณ์ → ทิศทางจากสัปดาห์แรกถึงสุดท้าย, บอร์ด → กลุ่มที่ฉุด + กำไรสูงสุด, ขายเข้า/ขายออก → จำนวนเอเย่นต์ที่กำลังระบายสต๊อก, ความผิดปกติ → จำนวนที่เปิดอยู่จริง (เดิมพูด "3 เรื่อง" ขณะที่การ์ดโชว์ 4 จาก 20) และบทสรุปที่ดูจากข้อมูลว่ากระจุกอยู่ภาคเดียวไหม; ถ้อยคำเลือกตามเครื่องหมายของ delta ("ฉุดมากที่สุด" เฉพาะตอนติดลบ)
+- [x] **ปุ่มบนการ์ดทุกปุ่มมีปลายทาง** — mock เดิมรู้จักแค่ `create_handoff` ทำให้ปุ่ม "ปักเป็นการ์ดบนแดชบอร์ด" ตอบกลับด้วยข้อความ "ไม่มีสคริปต์"; `pressedSteps` รับ `⟦action⟧ runTool <tool>` ทุกตัวที่การ์ดเสนอได้
+- [x] **หัวข้อสมมติฐานที่ซ้ำกันในการ์ดความผิดปกติถูกตัด** (`presentAlerts`) — สี่แถวเคยเขียนประโยคเดียวกันสองรอบ
+- [x] `components/cards/approval-card.test.tsx` — ครอบทั้งสี่ tool ทั้งสถานะรออนุมัติ/อนุมัติแล้ว/ไม่อนุมัติ และเคส tool ที่ Cop ไม่รู้จัก (ต้องตกกลับไปการ์ดของ Vexa)
+- [x] เห็นด้วยตาแล้ว: light + dark, คอลัมน์ 360px และ 1440px, เส้นทางจากการ์ดความผิดปกติ → ปุ่ม → การ์ดอนุมัติ → ใบเสร็จ
+
+### Phase 1.9 — หน้าแรกที่บอกว่าวันนี้ต้องทำอะไร (user review 2026-09-23)
+
+รีวิวหน้าแรกแล้วเจอว่า ประโยคใต้ชื่อเป็นแค่ "พบความผิดปกติที่ต้องดู 44 เรื่อง" ที่ดูน่าตกใจแต่กดไม่ได้ (เลขเดียวกันยังซ้ำในการ์ด "ภาพรวมของคุณวันนี้"), การ์ดสามใบข้างล่างเป็นข้อความล้วนและตัวเลขที่ใช้ตัดสินใจเป็นตัวเล็กสีจาง, backdrop ที่เบลอยังอ่านตัวเลขออกครึ่ง ๆ จนแย่งสายตา, พอกดส่งแผงทั้งแผงหายไปและไม่มี error และโหมด ⌘D ซ้ำกับ `/dashboard`
+
+- [x] ใต้คำทักทายเป็นลิงก์สถานะ `รอคุณอยู่ ● วิกฤต N ● ควรดู N ● เฝ้าระวัง N ● งานที่ส่งมา N` แต่ละอันเปิดกล่องงานที่แท็บและระดับความรุนแรงนั้น (`?inbox=alerts&severity=P1`, `focusFromParams` ใน `components/inbox/drawer.tsx`) — `landingStatus` / `statusLinks`
+- [x] การ์ดใต้ช่องพิมพ์ขึ้นด้วยตัวเลขก่อน (`lib/dashboard/ambient.ts`): ความผิดปกติ = ส่วนต่างมีเครื่องหมาย (−80%) สีตามความรุนแรง + จริง/คาด แล้วตามด้วยขอบเขต, งานที่ส่งมา = ป้ายความเร่งด่วน, ภาพรวม = ยอดเทียบเป้า 28 วัน + delta pill ของตัวเลขที่ขยับแรง (แทนการ์ดนับจำนวนเดิม) ใช้ `alertRowOf` แทนการคำนวณซ้ำ
+- [x] ~~backdrop จางลง~~ → **ถอด backdrop แดชบอร์ดออกทั้งหมด** (ผู้ใช้ถาม "dashboard อยู่ด้านหลังจำเป็นไหม … กลัวไม่เห็นข้อมูลที่สำคัญ"): ภาพเบลอที่อ่านไม่ออกไม่ได้ช่วยให้ไม่พลาดอะไร แทนด้วย **แถบ KPI** (`landingKpis`) — ตัวเลขหลัก + delta ของการ์ดที่ปักไว้สูงสุด 4 ใบ ผ่าน `presentCard` ตัวเดียวกับแดชบอร์ด (การ์ดที่ถูก mask/ไม่มีสิทธิ์ถูกข้าม) กดแล้วไป `/dashboard`; การ์ดใต้ KPI เหลือ 2 ใบ (ความผิดปกติอันดับหนึ่ง + งานที่ส่งมา หรือความผิดปกติอันดับสอง) การ์ด "ภาพรวมวันนี้" ถูกแทนด้วยแถบ KPI; ลบ `components/dashboard/widget-cards.tsx` และ `.cop-mask-center` / `.cop-backdrop-dim` ที่ไม่มีใครใช้แล้ว
+- [x] กดส่งแล้วแผงค้างอยู่ในสถานะ busy, ส่งไม่สำเร็จมีข้อความ `startFailed`
+- [x] ตัดบรรทัด ⌘K และแถบ "semantic layer" ออกจากแผง (ย้ายเป็นบรรทัด trust ท้ายหน้า ไม่มีศัพท์เทคนิค), ชิปไม่เกิน 4 อัน และเป็นแถวเลื่อนแนวนอนบนมือถือ
+- [x] "ดูแดชบอร์ด" และ ⌘D ไปที่ `/dashboard` (โหมดแดชบอร์ดใน state ถูกถอดออก refresh/back ไม่หลุดอีก), `app/icon.svg` แก้ favicon 404
+- [x] เห็นด้วยตาแล้ว: CEO + RSM ที่ 1440×900, มือถือ 390px (ไม่มี scroll แนวนอน), ลิงก์สถานะเปิดกล่องงานที่ P1, ⌘D → `/dashboard`
+- [x] ชิปที่เรียนรู้จากประวัติไม่ถูกตัดด้วย "…" อีก: `labelOf` ใช้ชื่อของ action ประจำบทบาทที่ intent ตรงกัน ถ้าไม่มีก็ใช้ "เมตริกตามมิติ" (เช่น "ปริมาณขายเข้าตามภาค") และตัด prompt เฉพาะเมื่อไม่รู้เมตริก
+- [x] **ทดลองใช้โดย agent 6 บทบาท** (CEO, CFO, ผอ.ขาย, RSM อีสาน, พนักงานขาย ขอนแก่น, supply planner) แต่ละคนทำ 5-second test แล้วกดทุกจุด ผลที่ทุกบทบาทเจอตรงกันและแก้แล้ว:
+  - **กดการ์ด/ชิปแล้วเจอข้อความ debug ภาษาอังกฤษของ mock** (6/6 บทบาท) — การ์ดความผิดปกติส่ง `verifySteps[0]` ที่ mock ไม่รู้จัก และชิปประจำบทบาท 16 อันไม่มีสคริปต์ ตอนนี้การ์ดถาม `ตรวจความผิดปกติของ <ขอบเขต>` ซึ่ง mock ตอบเจาะเรื่องนั้น (`focusedAlertSteps`: ตัวเลขจริง/คาด + การ์ด Alert + ขั้นตอนตรวจ) ปุ่ม "ตรวจสอบ" ในกล่องงานก็ใช้ turn เดียวกัน และเพิ่ม turn ให้ กำไรขั้นต้น / ลูกหนี้ / ภาคที่ห่างเป้า / เอเย่นต์ที่ดูแล / งบเทียบจริง / audit — เช็กแล้วว่าทุก prompt ที่หน้าแรกส่งได้ของทุก persona มีปลายทาง
+  - **การ์ดโชว์ปัญหาของคนอื่น** (CFO, supply) — `openAlertsFor` เรียง ของฉัน → เมตริกที่บทบาทนี้ดู (`templateFor`) → ความรุนแรง; หน้าแรกแสดงเฉพาะสองกลุ่มแรก ที่เหลือเป็นลิงก์ "อื่น ๆ ในขอบเขต N" CFO จาก วิกฤต 30 (ยอดขายทั้งหมด) เหลือ วิกฤต 1 (ลูกหนี้ภาคใต้), supply planner เห็น DC ลำพูน 6.1 วันที่ต่ำกว่าเกณฑ์ 10 วัน
+  - **ตัวเลขไม่ตรงกัน** (CEO, CFO) — status บอก 30 แต่กล่องงานโชว์ 20 เพราะ inbox ตัดที่ 20 ตอนนี้ความผิดปกติในกล่องงานแสดงได้ถึง 60 (`MAX_ALERT_ITEMS`)
+  - การ์ดบอกผู้รับผิดชอบ (ผอ.ขาย), การ์ดใบที่สองเลือกคนละภาค/เมตริกกับใบแรก (CEO), KPI ยอดเทียบเป้ามี "เหลืออีก N% ถึงเป้า" สี warning (CEO, พนักงานขาย), ชิปมือถือมี fade บอกว่าเลื่อนได้ + KPI ช่องสุดท้ายเต็มแถวเมื่อจำนวนคี่, ชื่อชิปตามฤดูเป็นคำกริยา ("เตรียมสต๊อกออกพรรษา", "สรุปยอดปิดเดือน")
+  - บั๊กที่เจอระหว่างทาง: `present.ts` วาด progress "ถึงเป้า" ให้ทุกเมตริกที่เป็น % (MAPE 9.6% → "เหลืออีก 90.4% ถึงเป้า") ตอนนี้เฉพาะ `target_attainment`; ความผิดปกติลูกหนี้วัดเป็นสัดส่วนเทียบปีก่อน แต่ `alertRowOf` จัดรูปเป็นเงิน ("จริง 1.7 บาท") ตอนนี้เป็น "1.7 เท่าของปีก่อน" ทุกหน้า
+- [x] การ์ด "เอเย่นต์ที่ยอดตกมากที่สุด" โชว์ headline **+166%** — headline เทียบยอดทุกแถวกับ N แถวแรกหลังตัด limit แก้ใน `runMetric` แล้ว มีเทสต์
+- [ ] ค้างจากการทดลองใช้: ปุ่มส่งต่อบนการ์ดหน้าแรก (ตอนนี้ต้องเข้ากล่องงาน); บรรทัด "ภาคที่ห่างเป้ามากที่สุด" สำหรับ ผอ.ขาย; รายการ "ไปเยี่ยมวันนี้" สำหรับพนักงานขาย; แดชบอร์ดบอก "ความผิดปกติใหม่ 44 เรื่องตั้งแต่เมื่อวาน" เพราะ engine สร้างทุกเรื่องเมื่อวาน; ใบที่สองอาจเป็นเรื่อง P3 ที่ engine อธิบายได้แล้ว
+- [x] ถอดแผงขาวที่ครอบคำทักทาย + ช่องพิมพ์ + ชิปออก (ผู้ใช้ถาม "ถ้าเอา panel card ออกจะสวยกว่าไหม") — พอ backdrop จางแล้ว แผงไม่ได้ช่วยเรื่อง contrast อีก กลายเป็นกล่องซ้อนกล่อง ตอนนี้ช่องพิมพ์เป็นชิ้นเดียวที่ลอยขึ้นมา ตรวจแล้วทั้ง light/dark และมือถือ
+
 ### Phase 2 — the four loops (four agents in parallel)
 
 **2A Threads, memory, quick actions** (`lib/server/threads.ts`, `lib/engine/memory.ts`, `lib/engine/recommend.ts`)
@@ -374,6 +438,25 @@ Vexa is not a constraint (user decision 2026-09-22): change it when Cop needs it
 
 - [x] `VexaChat` `initialMessages` / `id` props (phase 2A) — thread restore for any host; both are passed straight to `useChat`. No shop-admin scenario was added: it is a prop pass-through, not a new control path, and Cop drives its own `useChat` in `components/chat/session-chat.tsx` rather than `VexaChat`.
 - [x] `thinLabels` in `src/react/components.tsx` (phase 1.5) — the last axis label no longer crowds the one before it (`> last - step` instead of `>= last - step / 2`); long labels (Thai `สัปดาห์ 38`) overlapped in a narrow `LineChart`.
+- [x] Data-card upgrade (phase 1.6), all general, all five places per Vexa's CLAUDE.md:
+  - `Card` gains `meta` (scope line under the title) and `footnote` (source line under a hairline), so a summary sentence never has to live in `description`.
+  - `Metric` gains `delta` (tinted pill with an arrow), `tone` (`good` / `bad` / `neutral` — whether the arrow's direction is good news, for metrics like churn or overdue payments), `note` and `size` (`lg` = the headline number of a card, bare instead of boxed).
+  - `Alert` gains `meta` (the numbers behind the callout) and a severity dot.
+  - `Table` columns gain `align` (`end` for numbers, with `tabular-nums`) and `tone` (`delta` colours a signed percentage by its sign); row hover.
+  - `RankList` (new): ranked rows with a proportional bar, the value and its delta — replaces a two-column `Table` or a horizontal `BarChart` for "compare one number across named things".
+  - `LineChart` series accept `null` values (a real gap, not a zero) and `style: "dashed"`, so a forecast can continue an actual series.
+  - `--vexa-card-edge` token for the 1px card shadow edge in `src/styles.css`.
+- [x] `VexaProvider renderApproval` + approvals under the reply (phase 1.8):
+  - `renderApproval: ({ tool, input, state, approved, approve, reject }) => ReactNode` on `VexaProvider` — a host draws the whole decision itself and returns null to keep Vexa's card. Cop uses it for `components/cards/approval-card.tsx`; without it an approval can only be described in words (`describeToolCall`), never designed.
+  - `PendingApprovals` moved below the reply text in `AssistantMessage`: the decision now reads after the sentence that leads to it, instead of above the explanation.
+  - `Alert.body` is nullable (schema + component), so a row that would only repeat the previous row's sentence can show its title and numbers alone.
+- [x] Host catalog components (phase 1.7) — the "pluggable catalog" candidate above, built:
+  - `extendCatalog({ components, actions })` in `src/core/catalog.ts` (which now exports `vexaComponents` / `vexaActions` as plain maps), `createVexaHandler({ catalog })` → `buildAgentInstructions({ catalog })`, so a host's components reach the prompt.
+  - `VexaProvider components` merges a host's renderers into the registry every `SpecView` uses; `SpecView components` overrides per view.
+  - `VexaProvider normalizeSpec: (spec, { toolOutputs }) => spec` runs before render, so a host can enforce its own card contract on whatever the model emitted.
+  - `/tools/<name>.1`, `.2` … in spec state beside `/tools/<name>`, so two cards in one turn bind to different calls of the same tool.
+  - `storedToolValue` keeps a server tool's own shape whole; only `{ ok, data, summary }` host-tool results are unwrapped to `data`. Before this, any server tool answering `{ ok: true, ... }` without `data` was flattened to `{ ok, summary }` and its payload was lost to specs.
+- [x] The three card-style lines Cop had added to Vexa's `SHARED_INTRO` (headline Metric first, RankList instead of BarChart, Table align/tone) moved back to Cop's `COP_RULES`: in Vexa they dropped shop-admin `eval:ui` `revenue-by-status` and `week-dashboard` from 5/5 to 2/5. `eval-ui` `labelledValues` now reads `RankList` rows and `revenue-by-status` accepts a RankList whose values match the store, since the catalog itself recommends RankList for a one-number comparison.
 
 ## 10. Out of scope for this build
 

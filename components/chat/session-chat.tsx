@@ -15,6 +15,7 @@ import { CopComposer } from "@/components/composer/cop-composer";
 import { GlassPanel } from "@/components/ui/glass-panel";
 import { GlowBackdrop } from "@/components/ui/glow-backdrop";
 import { ChipIcon } from "@/components/ui/chip-icon";
+import { registerChatSender } from "@/components/providers/chat-sender";
 import { PILL } from "@/components/ui/pill";
 import { setHostContext } from "@/components/providers/host-context";
 import { COP_CHAT_LABELS } from "./labels";
@@ -140,6 +141,11 @@ export function SessionChat({
   );
 
   useEffect(() => {
+    registerChatSender(send);
+    return () => registerChatSender(null);
+  }, [send]);
+
+  useEffect(() => {
     if (!modelReady || sent.current || !initialPrompt) return;
     sent.current = true;
     send(initialPrompt);
@@ -198,9 +204,9 @@ export function SessionChat({
 
       <div className="relative z-10 shrink-0 border-t border-border bg-background/90 pb-4 pt-3 backdrop-blur">
         <div className={`flex flex-col gap-3 ${COLUMN}`}>
-          {messages.length === 0 ? (
+          {!isStreaming ? (
             <div className="flex flex-wrap gap-2">
-              {chips.slice(0, 4).map((action) => (
+              {chips.slice(0, messages.length === 0 ? 4 : 3).map((action) => (
                 <button
                   key={action.id}
                   type="button"

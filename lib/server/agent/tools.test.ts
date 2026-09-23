@@ -37,6 +37,8 @@ async function call<T>(userId: string, name: string, input: unknown): Promise<T>
   return runWithAccess(access, () => execute(input, {}));
 }
 
+const NATIONAL_WEEKLY_FLOOR_HL = 30_000;
+
 describe("query_metric", () => {
   test("an RSM cannot read another region", async () => {
     const result = await call<MetricResult>("u_anucha", "query_metric", query({ filters: { region: ["south"] } }));
@@ -149,15 +151,18 @@ describe("create_handoff", () => {
 });
 
 describe("analytics plane tools", () => {
-  test("alerts and forecasts come from the engine, memory is still empty", async () => {
-    const alerts = await call<{ ok: boolean; summary: string; data: { severity: string; hypothesis: string }[] }>("u_anucha", "get_alerts", { status: "open", limit: null });
+  test("alerts and forecasts come from the engine, memory answers empty when nothing matches", async () => {
+    const alerts = await call<{ ok: boolean; summary: string; rows: { severity: string; hypothesis: string }[] }>("u_anucha", "get_alerts", { status: "open", limit: null });
     expect(alerts.ok).toBe(true);
-    expect(alerts.data.length).toBeGreaterThan(0);
-    for (const row of alerts.data) expect(row.hypothesis.length).toBeGreaterThan(10);
+    expect(alerts.rows.length).toBeGreaterThan(0);
+    for (const row of alerts.rows) expect(row.hypothesis.length).toBeGreaterThan(10);
     const forecast = await call<{ summary: string; data: unknown[] }>("u_anucha", "get_forecast", { metric: "net_sales_volume", dims: { region: "northeast", brand: "leo" }, weeks: 8 });
     expect(forecast.data).toHaveLength(8);
     expect(forecast.summary).toContain("MAPE");
-    const memory = await call<{ summary: string }>("u_anucha", "recall_memory", { query: "เอเย่นต์" });
+    const national = await call<{ summary: string; data: { value: number }[] }>("u_thana", "get_forecast", { metric: "net_sales_volume", dims: {}, weeks: 8 });
+    expect(national.summary).toContain("รวม 48 ชุดพยากรณ์ย่อย");
+    expect(national.data[0].value).toBeGreaterThan(NATIONAL_WEEKLY_FLOOR_HL);
+    const memory = await call<{ summary: string }>("u_anucha", "recall_memory", { query: "ไม่มีความจำไหนตรงกับคำนี้แน่นอน" });
     expect(memory.summary).toContain("ยังไม่มี");
   });
 });

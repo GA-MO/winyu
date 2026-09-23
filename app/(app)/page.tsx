@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { Landing } from "@/components/landing/landing";
 import { shortName, timeOfDay } from "@/lib/i18n/format";
 import { TH } from "@/lib/i18n/th";
-import { ambientFor, morningBrief, pinnedViews } from "@/lib/server/dashboard";
+import { ambientFor, landingKpis, landingStatus } from "@/lib/server/dashboard";
 import { quickActionsFor } from "@/lib/server/quick-actions";
 import { readAccess, readUser } from "@/lib/server/session";
 
@@ -16,13 +16,12 @@ export default async function LandingPage() {
   if (!user || !access) redirect("/login");
 
   const greeting = { lead: TH.landing.greeting[timeOfDay()], name: shortName(user.nameTh) };
-  const widgets = pinnedViews(access).map((view) => ({ id: view.widget.id, spec: view.spec }));
 
   return (
     <Landing
       greeting={greeting}
-      brief={morningBrief(access)}
-      widgets={widgets}
+      status={landingStatus(access)}
+      kpis={landingKpis(access)}
       quickActions={quickActionsFor(access)}
       ambient={ambientFor(access)}
     />

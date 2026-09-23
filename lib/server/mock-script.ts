@@ -1,6 +1,7 @@
 import type { MockScript, MockStep } from "vexa/mock";
 import type { Spec, SpecElement } from "vexa/protocol";
-import { formatDateTh, periodLabelTh } from "@/lib/i18n/format";
+import { formatDateTh, formatPercent, periodLabelTh } from "@/lib/i18n/format";
+import { TH } from "@/lib/i18n/th";
 
 const TODAY = "2026-09-22";
 const MONTH_START = "2026-09-01";
@@ -13,15 +14,28 @@ const MAX_ALERTS = 3;
 const MAX_FORECAST_WEEKS = 8;
 const MAX_METRICS = 3;
 const MAX_TABLE_ROWS = 8;
+const NEUTRAL_BAND_PCT = 2;
+const PERCENT = 100;
 
 type Row = Record<string, string | number | null>;
+type Headline = {
+  aggregate?: "sum" | "average";
+  value?: string;
+  periodLabel?: string;
+  rowCount?: number;
+  deltaPercent?: number | null;
+  compareLabel?: string | null;
+};
 type MetricOutput = {
   ok?: boolean;
   rows?: Row[];
   summary?: string;
   error?: string;
+  headline?: Headline;
   provenance?: { sourceSystem?: string; certified?: boolean; asOf?: string; masked?: string[] };
 };
+type Tone = "good" | "bad" | "neutral";
+type Direction = "up" | "down" | "neutral";
 type OwnerOutput = { ok?: boolean; data?: { userId?: string; nameTh?: string; reason?: string } };
 
 const REGION_CODES: [RegExp, string][] = [
@@ -76,14 +90,174 @@ function numberOf(row: Row, key: string): number {
   return Number.isFinite(value) ? value : 0;
 }
 
-function summaryOf(output: unknown): string {
-  return (output as MetricOutput).summary ?? "";
+function provenanceText(output: unknown): string | null {
+  const provenance = (output as MetricOutput).provenance;
+  if (!provenance?.asOf) return null;
+  return `${provenance.sourceSystem} · ${provenance.certified ? "รับรองแล้ว" : "คำนวณ"} · ณ ${formatDateTh(provenance.asOf)}`;
 }
 
-function provenanceText(output: unknown): string {
-  const provenance = (output as MetricOutput).provenance;
-  if (!provenance?.asOf) return "แหล่งข้อมูล: ไม่ระบุ";
-  return `แหล่งข้อมูล: ${provenance.sourceSystem} · ${provenance.certified ? "รับรองแล้ว" : "คำนวณ"} · ณ ${formatDateTh(provenance.asOf)}`;
+function headlineOf(output: unknown): Headline {
+  return (output as MetricOutput).headline ?? {};
+}
+
+function directionOf(deltaPercent: number | null | undefined): Direction {
+  if (typeof deltaPercent !== "number" || Math.abs(deltaPercent) < NEUTRAL_BAND_PCT) return "neutral";
+  return deltaPercent > 0 ? "up" : "down";
+}
+
+function deltaLabel(deltaPercent: number | null | undefined): string | null {
+  if (typeof deltaPercent !== "number") return null;
+  const rounded = Math.round(deltaPercent * 10) / 10;
+  return `${rounded > 0 ? "+" : ""}${formatPercent(rounded)}`;
+}
+
+const HANDOFF_SENT = "ส่งแล้วครับ ติดตามสถานะได้ในกล่องงาน เมื่อมีการตอบกลับผมจะแจ้งให้ทราบ";
+
+function behindTargetText(rows: Row[]): string | null {
+  return laggardText(rows, "region", "ภาคที่ห่างเป้ามากที่สุด", "ภาคที่เกินเป้าน้อยที่สุด");
+}
+
+function agentLead(output: unknown): string {
+  const rows = rowsOf(output);
+  const phrase = laggardText(rows, "agent", "เอเย่นต์ที่ตกแรงที่สุด", "ไม่มีเอเย่นต์รายไหนยอดตกครับ ตัวที่โตน้อยที่สุด");
+  if (!phrase) return "นี่คือเอเย่นต์ในขอบเขตของคุณ เรียงจากที่ตกแรงที่สุดครับ";
+  return `${phrase} เทียบงวดก่อนครับ ผมเรียงทั้ง ${rows.length} รายจากตกแรงไปหาน้อย`;
+}
+
+function salaryLead(output: unknown): string {
+  const masked = maskedCount(output);
+  if (masked > 0) return `เงินเดือนเฉลี่ยมี ${masked} ฟิลด์ที่ถูกปิดตามสิทธิ์ของคุณครับ ผมแสดงเท่าที่เปิดให้เห็นได้`;
+  const top = topValueText(rowsOf(output), "department");
+  return sentences([headlineLead(output, "เงินเดือนเฉลี่ยทั้งบริษัท", ""), top ? `ฝ่ายที่สูงที่สุดคือ ${top}` : null]);
+}
+
+function coverLead(output: unknown): string {
+  const rows = rowsOf(output);
+  const lowest = extremeRow(rows, "value", "min");
+  if (!lowest) return "ยังไม่มีข้อมูลสต๊อกในขอบเขตของคุณครับ";
+  const short = rows.filter((row) => numberOf(row, "value") < COVER_THRESHOLD).length;
+  const lead = `ศูนย์ที่เหลือน้อยที่สุดคือ ${textOf(lowest, "dc")} ${valueTextOf(lowest)} จากเกณฑ์ ${COVER_THRESHOLD} วันครับ`;
+  return sentences([lead, short > 0 ? `มี ${short} ศูนย์ที่ต่ำกว่าเกณฑ์` : null]);
+}
+
+function sellThroughLead(sellIn: unknown, sellOut: unknown): string {
+  const soldOut = new Map(rowsOf(sellOut).map((row) => [String(row.agent), numberOf(row, "value")]));
+  const destocking = rowsOf(sellIn).filter((row) => numberOf(row, "value") < (soldOut.get(String(row.agent)) ?? 0));
+  if (destocking.length === 0) return "ทุกเอเย่นต์สั่งเข้ามากกว่าที่ขายออกได้ครับ แปลว่าสต๊อกที่เอเย่นต์กำลังสะสมขึ้น";
+  return `${destocking.length} เอเย่นต์สั่งเข้าน้อยกว่าที่ขายออกครับ แปลว่ากำลังระบายสต๊อกที่ค้างอยู่ ไม่ใช่ดีมานด์ที่หายไป`;
+}
+
+function forecastLead(points: ForecastPoint[]): string {
+  const first = points[0]?.value ?? 0;
+  const last = points[points.length - 1]?.value ?? 0;
+  if (first === 0) return "พยากรณ์แปดสัปดาห์ข้างหน้าครับ เส้นประคือช่วงความเชื่อมั่น";
+  const change = ((last - first) / Math.abs(first)) * PERCENT;
+  const direction = change < 0 ? "ลดลง" : "เพิ่มขึ้น";
+  return `แปดสัปดาห์ข้างหน้าแนวโน้ม${direction} ${formatPercent(Math.abs(Math.round(change * 10) / 10))} จากสัปดาห์แรกถึงสัปดาห์สุดท้ายครับ เส้นประคือช่วงความเชื่อมั่น`;
+}
+
+function boardLead(sales: unknown, margin: unknown): string {
+  const laggard = laggardText(rowsOf(sales), "business_unit", "กลุ่มที่ฉุดมากที่สุด", "กลุ่มที่โตช้าที่สุด");
+  const best = topValueText(rowsOf(margin), "business_unit");
+  return sentences([
+    headlineLead(sales, "มูลค่าขายไตรมาสนี้", "ปีก่อน"),
+    laggard,
+    best ? `กำไรขั้นต้นสูงสุดคือ ${best}` : null,
+  ]);
+}
+
+function valueTextOf(row: Row): string {
+  const labelled = textOf(row, "value_label");
+  return labelled === "-" ? textOf(row, "value") : labelled;
+}
+
+function extremeRow(rows: Row[], key: string, pick: "min" | "max"): Row | null {
+  if (rows.length === 0) return null;
+  const ordered = [...rows].sort((left, right) => numberOf(left, key) - numberOf(right, key));
+  return pick === "min" ? ordered[0] : ordered[ordered.length - 1];
+}
+
+function headlineLead(output: unknown, subject: string, compare: string): string {
+  const headline = headlineOf(output);
+  const value = headline.value ?? "—";
+  const delta = headline.deltaPercent;
+  if (typeof delta !== "number") return `${subject}อยู่ที่ ${value}ครับ`;
+  const direction = delta < 0 ? "ต่ำกว่า" : "สูงกว่า";
+  return `${subject}อยู่ที่ ${value} ${direction}${compare} ${formatPercent(Math.abs(Math.round(delta * 10) / 10))} ครับ`;
+}
+
+function laggardRow(rows: Row[]): Row | null {
+  if (rows.length < 2) return null;
+  const row = extremeRow(rows, "delta_pct", "min");
+  return row && typeof row.delta_pct === "number" ? row : null;
+}
+
+function laggardText(rows: Row[], key: string, whenDown: string, whenUp: string): string | null {
+  const row = laggardRow(rows);
+  if (!row) return null;
+  const lead = numberOf(row, "delta_pct") < 0 ? whenDown : whenUp;
+  return `${lead}คือ ${textOf(row, key)} ${deltaTextOf(row)}`;
+}
+
+function topValueText(rows: Row[], key: string): string | null {
+  const row = extremeRow(rows, "value", "max");
+  return row ? `${textOf(row, key)} ${valueTextOf(row)}` : null;
+}
+
+function sentences(parts: (string | null)[]): string {
+  return parts.filter(Boolean).join(" ");
+}
+
+/** Title, the scope line under it, and the source line at the foot: every chat card wears the same shell. */
+function cardProps(title: string, output: unknown, unit: string | null, description: string | null = null) {
+  const headline = headlineOf(output);
+  const counted = unit && (headline.rowCount ?? 0) > 1 ? `${headline.rowCount} ${unit}` : null;
+  const period = headline.periodLabel ?? null;
+  return {
+    title,
+    description,
+    meta: [period, counted].filter(Boolean).join(" · ") || null,
+    footnote: provenanceText(output),
+  };
+}
+
+function heroElement(label: string, output: unknown, tone: Tone | null = null): SpecElement {
+  const headline = headlineOf(output);
+  const delta = headline.deltaPercent ?? null;
+  return {
+    type: "Metric",
+    props: {
+      label,
+      value: headline.value ?? "—",
+      delta: deltaLabel(delta),
+      trend: directionOf(delta),
+      tone,
+      detail: headline.compareLabel ?? null,
+      note: null,
+      size: "lg",
+    },
+    children: [],
+  };
+}
+
+function rankElement(rows: Row[], labelKey: string, tone: Tone | null = null): SpecElement {
+  const peak = Math.max(...rows.map((row) => Math.abs(numberOf(row, "value"))), 0);
+  return {
+    type: "RankList",
+    props: {
+      showRank: rows.length > 2,
+      items: rows.map((row) => ({
+        label: textOf(row, labelKey),
+        value: textOf(row, "value_label") === "-" ? textOf(row, "value") : textOf(row, "value_label"),
+        share: peak === 0 ? null : Math.abs(numberOf(row, "value")) / peak,
+        delta: typeof row.delta_pct === "number" ? deltaLabel(row.delta_pct) : null,
+        trend: directionOf(typeof row.delta_pct === "number" ? row.delta_pct : null),
+        tone,
+        note: null,
+      })),
+    },
+    children: [],
+  };
 }
 
 function maskedCount(output: unknown): number {
@@ -97,98 +271,52 @@ function trendOf(row: Row): "up" | "down" | "neutral" {
   return "neutral";
 }
 
-function sourceElement(output: unknown): SpecElement {
-  return { type: "Text", props: { content: provenanceText(output), muted: true }, children: [] };
-}
+const SOURCE = { $state: "/tools/query_metric" };
+const ALERT_SOURCE = { $state: "/tools/get_alerts" };
 
-function salesSpec(output: unknown): Spec {
-  const rows = rowsOf(output);
-  const metrics = rows.slice(0, MAX_METRICS);
-  const elements: Record<string, SpecElement> = {
-    card: { type: "Card", props: { title: "ยอดขายสุทธิเทียบเป้า", description: summaryOf(output) }, children: ["grid", "chart", "source"] },
-    grid: { type: "Grid", props: { columns: "3", gap: "sm" }, children: metrics.map((unused, index) => `metric${index}`) },
-    chart: {
-      type: "BarChart",
-      props: {
-        title: "ยอดขายรายภาค (HL)",
-        labels: rows.map((row) => textOf(row, "region")),
-        series: [{ name: "ยอดขาย", values: rows.map((row) => numberOf(row, "value")) }],
-        horizontal: true,
-        showValues: true,
-        format: "number",
-        height: "md",
-      },
-      children: [],
-    },
-    source: sourceElement(output),
-  };
-  metrics.forEach((row, index) => {
-    elements[`metric${index}`] = {
-      type: "Metric",
-      props: { label: textOf(row, "region"), value: textOf(row, "value"), detail: `เทียบเป้า ${deltaTextOf(row)}`, trend: trendOf(row) },
-      children: [],
-    };
-  });
-  return { root: "card", elements };
-}
-
-function agentSpec(output: unknown): Spec {
-  const rows = rowsOf(output)
-    .slice(0, MAX_TABLE_ROWS)
-    .map((row) => ({ agent: textOf(row, "agent"), volume: textOf(row, "value"), delta: deltaTextOf(row) }));
+/** The model's whole job for a data answer: name the card and point it at the tool result. Cop's presenter draws it. */
+function dataCard(title: string, options: { view?: string; sortBy?: string; description?: string } = {}): Spec {
   return {
     root: "card",
     elements: {
-      card: { type: "Card", props: { title: "เอเย่นต์ที่ยอดตกเทียบงวดก่อน", description: summaryOf(output) }, children: ["table", "source"] },
-      table: {
-        type: "Table",
+      card: {
+        type: "DataCard",
         props: {
-          columns: [
-            { key: "agent", label: "เอเย่นต์" },
-            { key: "volume", label: "ยอดขาย (HL)" },
-            { key: "delta", label: "เทียบงวดก่อน" },
-          ],
-          rows,
+          title,
+          source: SOURCE,
+          view: options.view ?? "auto",
+          sortBy: options.sortBy ?? null,
+          description: options.description ?? null,
         },
         children: [],
       },
-      source: sourceElement(output),
     },
   };
 }
 
-function salarySpec(output: unknown): Spec {
-  const count = maskedCount(output);
-  const rows = rowsOf(output)
-    .slice(0, MAX_TABLE_ROWS)
-    .map((row) => ({ department: textOf(row, "department"), salary: textOf(row, "value") }));
+function alertsCard(title: string): Spec {
   return {
     root: "card",
     elements: {
-      card: { type: "Card", props: { title: "เงินเดือนเฉลี่ยรายฝ่าย", description: summaryOf(output) }, children: ["alert", "table", "source"] },
-      alert: {
-        type: "Alert",
-        props: {
-          title: "ข้อมูลถูกปิดบางส่วน",
-          body: `มี ${count} ฟิลด์ถูกปิดตามสิทธิ์ของคุณ ค่าที่แสดงเป็น *** ขอสิทธิ์เพิ่มได้จากเจ้าของเมตริก`,
-          tone: "warning",
-        },
-        children: [],
-      },
-      table: {
-        type: "Table",
-        props: {
-          columns: [
-            { key: "department", label: "ฝ่าย" },
-            { key: "salary", label: "เงินเดือนเฉลี่ย" },
-          ],
-          rows,
-        },
-        children: [],
-      },
-      source: sourceElement(output),
+      card: { type: "AlertsCard", props: { title, source: ALERT_SOURCE, description: null }, children: [] },
     },
   };
+}
+
+function salesSpec(): Spec {
+  return dataCard("ยอดขายสุทธิเทียบเป้า", { sortBy: "value_desc" });
+}
+
+function byDeltaAscending(left: Row, right: Row): number {
+  return numberOf(left, "delta_pct") - numberOf(right, "delta_pct");
+}
+
+function agentSpec(): Spec {
+  return dataCard("เอเย่นต์ที่ยอดตกเทียบงวดก่อน", { view: "bar", sortBy: "delta_asc", description: "เรียงจากที่ตกแรงที่สุด แถบคือขนาดยอดขาย" });
+}
+
+function salarySpec(): Spec {
+  return dataCard("เงินเดือนเฉลี่ยรายฝ่าย");
 }
 
 function deniedSteps(output: unknown): MockStep[] {
@@ -211,7 +339,10 @@ function salesSteps(prompt: string): MockStep[] {
         compare: "target",
         limit: 10,
       },
-      then: (output) => [{ text: "ยอดขายสุทธิเดือนนี้เทียบเป้าครับ ดูรายละเอียดในการ์ด" }, { spec: salesSpec(output) }],
+      then: (output) => [
+        { text: sentences([headlineLead(output, "ยอดขายสุทธิเดือนนี้", "เป้า"), behindTargetText(rowsOf(output))]) },
+        { spec: salesSpec() },
+      ],
       onError: deniedSteps,
     },
   ];
@@ -229,7 +360,7 @@ const AGENT_STEPS: MockStep[] = [
       compare: "prev_period",
       limit: 10,
     },
-    then: (output) => [{ text: "นี่คือเอเย่นต์เรียงตามยอดขายพร้อมส่วนต่างเทียบงวดก่อนครับ" }, { spec: agentSpec(output) }],
+    then: (output) => [{ text: agentLead(output) }, { spec: agentSpec() }],
     onError: deniedSteps,
   },
 ];
@@ -246,10 +377,44 @@ const SALARY_STEPS: MockStep[] = [
       compare: "none",
       limit: 10,
     },
-    then: (output) => [{ text: "เงินเดือนเฉลี่ยเป็นข้อมูลที่ถูกปิดตามสิทธิ์ของคุณครับ" }, { spec: salarySpec(output) }],
+    then: (output) => [{ text: salaryLead(output) }, { spec: salarySpec() }],
     onError: deniedSteps,
   },
 ];
+
+const PRESSED_ACTION = /⟦action⟧ runTool ([a-z_]+) (\{[\s\S]*\})/;
+const PRESSED_DONE: Record<string, string> = {
+  create_handoff: HANDOFF_SENT,
+  pin_widget: "ปักการ์ดไว้บนแดชบอร์ดแล้วครับ กด ⌘D เพื่อเปิดดู",
+  send_email: "ส่งอีเมลแล้วครับ ในเดโมนี้จดหมายจะไปอยู่ในกล่องจดหมายออก",
+};
+
+type PressedAction = { tool: string; input: Record<string, unknown> };
+
+function pressedAction(prompt: string): PressedAction | null {
+  const match = PRESSED_ACTION.exec(prompt);
+  if (!match || !(match[1] in PRESSED_DONE)) return null;
+  try {
+    const input = JSON.parse(match[2]) as unknown;
+    return typeof input === "object" && input !== null ? { tool: match[1], input: input as Record<string, unknown> } : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Every button a card offers ends here: the pressed tool runs behind its own approval card, then says what it did. */
+function pressedSteps(prompt: string): MockStep[] {
+  const pressed = pressedAction(prompt);
+  if (!pressed) return HANDOFF_STEPS;
+  return [
+    {
+      tool: pressed.tool,
+      input: pressed.input,
+      then: () => [{ text: PRESSED_DONE[pressed.tool] }],
+      onError: (result) => [{ text: `ทำรายการไม่สำเร็จครับ: ${(result as { error?: string }).error ?? "ไม่ทราบสาเหตุ"}` }],
+    },
+  ];
+}
 
 const HANDOFF_STEPS: MockStep[] = [
   {
@@ -258,7 +423,7 @@ const HANDOFF_STEPS: MockStep[] = [
     then: (output) => {
       const owner = (output as OwnerOutput).data;
       return [
-        { text: `ผู้รับผิดชอบคือ ${owner?.nameTh ?? "ไม่ทราบ"} ครับ ผมจะส่งงานนี้ให้ กดอนุมัติเพื่อยืนยัน` },
+        { text: ownerLead(owner) },
         {
           tool: "create_handoff",
           input: {
@@ -279,7 +444,7 @@ const HANDOFF_STEPS: MockStep[] = [
             ],
             alertIds: [],
           },
-          then: (result) => [{ text: `ส่งงานเรียบร้อยครับ (${(result as { summary?: string }).summary ?? "สร้างแพ็กเกจงานแล้ว"})` }],
+          then: () => [{ text: HANDOFF_SENT }],
           onError: (result) => [{ text: `ส่งงานไม่สำเร็จครับ: ${(result as { error?: string }).error ?? "ไม่ทราบสาเหตุ"}` }],
         },
       ];
@@ -287,15 +452,28 @@ const HANDOFF_STEPS: MockStep[] = [
   },
 ];
 
-type AlertRow = { id?: string; severity?: string; metric?: string; hypothesis?: string; verifySteps?: string[]; scope?: Record<string, string> };
-type AlertOutput = { ok?: boolean; summary?: string; data?: AlertRow[] };
+type AlertRow = {
+  id?: string;
+  severity?: string;
+  severityLabel?: string;
+  metric?: string;
+  metricLabel?: string;
+  hypothesis?: string;
+  verifySteps?: string[];
+  scope?: Record<string, string>;
+  scopeLabel?: string;
+  observedLabel?: string;
+  expectedLabel?: string;
+  gapLabel?: string | null;
+};
+type AlertOutput = { ok?: boolean; summary?: string; rows?: AlertRow[] };
 type ForecastPoint = { week?: string; value?: number; lo?: number; hi?: number };
 type ForecastOutput = { ok?: boolean; summary?: string; data?: ForecastPoint[] };
 
 const SEVERITY_TONES: Record<string, string> = { P1: "danger", P2: "warning", P3: "info" };
 
 function alertRowsOf(output: unknown, focus: string | null = null): AlertRow[] {
-  const data = (output as AlertOutput).data;
+  const data = (output as AlertOutput).rows;
   if (!Array.isArray(data)) return [];
   const focused = focus ? data.filter((row) => JSON.stringify(row.scope ?? {}).includes(focus)) : [];
   return (focused.length > 0 ? focused : data).slice(0, MAX_ALERTS);
@@ -310,55 +488,12 @@ function periodLabels(rows: Row[], key: string): string[] {
   return rows.map((row) => periodLabelTh(String(row[key] ?? "")));
 }
 
-function trendSpec(output: unknown, title: string, timeKey: string, seriesName: string): Spec {
-  const rows = rowsOf(output);
-  return {
-    root: "card",
-    elements: {
-      card: { type: "Card", props: { title, description: summaryOf(output) }, children: ["chart", "source"] },
-      chart: {
-        type: "LineChart",
-        props: {
-          title: null,
-          labels: periodLabels(rows, timeKey),
-          series: [{ name: seriesName, values: rows.map((row) => numberOf(row, "value")) }],
-          area: true,
-          showDots: false,
-          format: "number",
-          height: "md",
-        },
-        children: [],
-      },
-      source: sourceElement(output),
-    },
-  };
+function trendSpec(title: string): Spec {
+  return dataCard(title, { view: "line" });
 }
 
-function yearOverYearSpec(output: unknown): Spec {
-  const rows = rowsOf(output);
-  return {
-    root: "card",
-    elements: {
-      card: { type: "Card", props: { title: "ยอดขายเทียบช่วงเดียวกันปีก่อน", description: summaryOf(output) }, children: ["chart", "source"] },
-      chart: {
-        type: "LineChart",
-        props: {
-          title: null,
-          labels: periodLabels(rows, "month"),
-          series: [
-            { name: "ปีนี้", values: rows.map((row) => numberOf(row, "value")) },
-            { name: "ปีที่แล้ว", values: rows.map((row) => numberOf(row, "compare_value")) },
-          ],
-          area: false,
-          showDots: false,
-          format: "number",
-          height: "md",
-        },
-        children: [],
-      },
-      source: sourceElement(output),
-    },
-  };
+function yearOverYearSpec(): Spec {
+  return dataCard("ยอดขายเทียบช่วงเดียวกันปีก่อน", { view: "line" });
 }
 
 function overlaySpec(sellIn: unknown, sellOut: unknown): Spec {
@@ -370,8 +505,8 @@ function overlaySpec(sellIn: unknown, sellOut: unknown): Spec {
     elements: {
       card: {
         type: "Card",
-        props: { title: "ขายเข้าเทียบขายออกรายเอเย่นต์", description: "ขายเข้าต่ำกว่าขายออกแปลว่าเอเย่นต์กำลังระบายสต๊อกที่ค้างอยู่" },
-        children: ["chart", "source"],
+        props: cardProps("ขายเข้าเทียบขายออกรายเอเย่นต์", sellIn, "เอเย่นต์", "ขายเข้าต่ำกว่าขายออกแปลว่าเอเย่นต์กำลังระบายสต๊อกที่ค้างอยู่"),
+        children: ["chart"],
       },
       chart: {
         type: "BarChart",
@@ -390,61 +525,52 @@ function overlaySpec(sellIn: unknown, sellOut: unknown): Spec {
         },
         children: [],
       },
-      source: sourceElement(sellIn),
     },
   };
 }
 
-function alertSpec(output: unknown, focus: string | null = null): Spec {
-  const rows = alertRowsOf(output, focus);
-  const elements: Record<string, SpecElement> = {
-    card: { type: "Card", props: { title: "ความผิดปกติที่ระบบตรวจพบ", description: (output as AlertOutput).summary ?? "" }, children: rows.map((unused, index) => `alert${index}`) },
-  };
-  rows.forEach((row, index) => {
-    elements[`alert${index}`] = {
-      type: "Alert",
-      props: {
-        title: `${row.severity ?? "P3"} · ${row.hypothesis ?? ""}`,
-        body: (row.verifySteps ?? []).map((step, order) => `${order + 1}. ${step}`).join(" · "),
-        tone: SEVERITY_TONES[row.severity ?? "P3"] ?? "info",
-      },
-      children: [],
-    };
-  });
-  return { root: "card", elements };
+function alertLead(output: unknown): string {
+  const total = (output as AlertOutput).rows?.length ?? 0;
+  return `ตอนนี้มีความผิดปกติที่เปิดอยู่ ${total} เรื่องครับ ผมเรียงตามความรุนแรงและใส่สมมติฐานกับวิธีตรวจไว้ให้ทุกเรื่อง`;
 }
 
-function coverSpec(output: unknown): Spec {
-  const rows = rowsOf(output).slice(0, MAX_TABLE_ROWS);
-  const risky = rows.filter((row) => numberOf(row, "value") < COVER_THRESHOLD);
-  const children = risky.length > 0 ? ["alert", "table", "source"] : ["table", "source"];
-  const elements: Record<string, SpecElement> = {
-    card: { type: "Card", props: { title: "จำนวนวันที่สต๊อกพอขายรายศูนย์กระจายสินค้า", description: summaryOf(output) }, children },
-    table: {
-      type: "Table",
-      props: {
-        columns: [
-          { key: "dc", label: "ศูนย์กระจายสินค้า" },
-          { key: "cover", label: "พอขาย (วัน)" },
-        ],
-        rows: rows.map((row) => ({ dc: textOf(row, "dc"), cover: textOf(row, "value") })),
-      },
-      children: [],
-    },
-    source: sourceElement(output),
-  };
-  if (risky.length > 0) {
-    elements.alert = {
-      type: "Alert",
-      props: {
-        title: `ต่ำกว่าเกณฑ์ ${COVER_THRESHOLD} วัน ${risky.length} แห่ง`,
-        body: risky.map((row) => `${textOf(row, "dc")} ${textOf(row, "value")} วัน`).join(" · "),
-        tone: "danger",
-      },
-      children: [],
-    };
-  }
-  return { root: "card", elements };
+function sharedRegionLabel(rows: AlertRow[]): string | null {
+  const regions = rows.map((row) => row.scope?.region).filter((region): region is string => Boolean(region));
+  if (regions.length !== rows.length || new Set(regions).size !== 1) return null;
+  return TH.region[regions[0] as keyof typeof TH.region] ?? null;
+}
+
+function alertConclusion(rows: AlertRow[]): string {
+  const region = sharedRegionLabel(rows);
+  if (!region) return "ผมแนะนำให้เริ่มจากเรื่องที่รุนแรงที่สุด แล้วส่งให้ผู้รับผิดชอบตรวจจากปุ่มบนการ์ดได้เลยครับ";
+  return `เรื่องที่รุนแรงที่สุดกระจุกอยู่${region}ทั้งหมด จึงน่าจะมีสาเหตุร่วมกันมากกว่าเป็นเรื่องรายเอเย่นต์ ผมแนะนำให้ส่งให้ผู้รับผิดชอบภาคนั้นตรวจทีเดียวครับ`;
+}
+
+function ownerLead(owner: OwnerOutput["data"]): string {
+  if (!owner?.nameTh) return "ยังไม่มีผู้รับผิดชอบที่ชัดเจนสำหรับเรื่องนี้ครับ";
+  return sentences([
+    `ผู้รับผิดชอบเรื่องนี้คือ ${owner.nameTh} ครับ`,
+    owner.reason ? `(${owner.reason})` : null,
+    "ผมร่างงานไว้ให้แล้ว ดูแล้วกดอนุมัติได้เลย",
+  ]);
+}
+
+function alertMetaText(row: AlertRow): string | null {
+  if (!row.observedLabel || !row.expectedLabel) return null;
+  const gap = row.gapLabel ? ` · ห่าง ${row.gapLabel}` : "";
+  return `จริง ${row.observedLabel} · คาด ${row.expectedLabel}${gap}`;
+}
+
+function alertSpec(): Spec {
+  return alertsCard("ความผิดปกติที่ระบบตรวจพบ");
+}
+
+function byValueAscending(left: Row, right: Row): number {
+  return numberOf(left, "value") - numberOf(right, "value");
+}
+
+function coverSpec(): Spec {
+  return dataCard("จำนวนวันที่สต๊อกพอขายรายศูนย์กระจายสินค้า", { view: "bar", sortBy: "value_asc", description: `เรียงจากที่เหลือน้อยที่สุด เกณฑ์เตือนคือ ${COVER_THRESHOLD} วัน` });
 }
 
 function forecastSpec(output: unknown): Spec {
@@ -452,19 +578,23 @@ function forecastSpec(output: unknown): Spec {
   return {
     root: "card",
     elements: {
-      card: { type: "Card", props: { title: "พยากรณ์ 8 สัปดาห์ข้างหน้า", description: (output as ForecastOutput).summary ?? "" }, children: ["chart"] },
+      card: {
+        type: "Card",
+        props: { title: "พยากรณ์ 8 สัปดาห์ข้างหน้า", description: null, meta: `${points.length} สัปดาห์`, footnote: (output as ForecastOutput).summary ?? null },
+        children: ["chart"],
+      },
       chart: {
         type: "LineChart",
         props: {
           title: null,
           labels: points.map((point) => periodLabelTh(String(point.week ?? ""))),
           series: [
-            { name: "พยากรณ์", values: points.map((point) => point.value ?? 0) },
-            { name: "ขอบล่าง", values: points.map((point) => point.lo ?? 0) },
-            { name: "ขอบบน", values: points.map((point) => point.hi ?? 0) },
+            { name: "พยากรณ์", values: points.map((point) => point.value ?? null), style: null },
+            { name: "ขอบล่าง", values: points.map((point) => point.lo ?? null), style: "dashed" },
+            { name: "ขอบบน", values: points.map((point) => point.hi ?? null), style: "dashed" },
           ],
           area: false,
-          showDots: false,
+          showDots: true,
           format: "number",
           height: "md",
         },
@@ -478,25 +608,24 @@ function boardSpec(sales: unknown, margin: unknown): Spec {
   const salesRows = rowsOf(sales).slice(0, MAX_METRICS);
   const marginRows = rowsOf(margin).slice(0, MAX_TABLE_ROWS);
   const elements: Record<string, SpecElement> = {
-    card: { type: "Card", props: { title: "สรุปเตรียมประชุมบอร์ด", description: summaryOf(sales) }, children: ["grid", "table", "source"] },
+    card: { type: "Card", props: cardProps("สรุปเตรียมประชุมบอร์ด", sales, "กลุ่มธุรกิจ"), children: ["hero", "grid", "margin"] },
+    hero: heroElement("ปริมาณขายสุทธิ", sales),
     grid: { type: "Grid", props: { columns: "3", gap: "sm" }, children: salesRows.map((unused, index) => `metric${index}`) },
-    table: {
-      type: "Table",
-      props: {
-        columns: [
-          { key: "unit", label: "กลุ่มธุรกิจ" },
-          { key: "margin", label: "กำไรขั้นต้น (%)" },
-        ],
-        rows: marginRows.map((row) => ({ unit: textOf(row, "business_unit"), margin: textOf(row, "value") })),
-      },
-      children: [],
-    },
-    source: sourceElement(sales),
+    margin: rankElement(marginRows, "business_unit"),
   };
   salesRows.forEach((row, index) => {
     elements[`metric${index}`] = {
       type: "Metric",
-      props: { label: textOf(row, "business_unit"), value: textOf(row, "value"), detail: `เทียบปีก่อน ${deltaTextOf(row)}`, trend: trendOf(row) },
+      props: {
+        label: textOf(row, "business_unit"),
+        value: textOf(row, "value"),
+        delta: deltaTextOf(row),
+        trend: trendOf(row),
+        tone: null,
+        detail: "เทียบปีก่อน",
+        note: null,
+        size: "sm",
+      },
       children: [],
     };
   });
@@ -515,7 +644,7 @@ const YEAR_STEPS: MockStep[] = [
       compare: "prev_year",
       limit: 12,
     },
-    then: (output) => [{ text: "เทียบกับช่วงเดียวกันปีที่แล้วรายเดือนครับ" }, { spec: yearOverYearSpec(output) }],
+    then: (output) => [{ text: headlineLead(output, "ยอดขายสะสมปีนี้", "ช่วงเดียวกันปีก่อน") }, { spec: yearOverYearSpec() }],
     onError: deniedSteps,
   },
 ];
@@ -545,7 +674,7 @@ const SELL_THROUGH_STEPS: MockStep[] = [
           limit: 8,
         },
         then: (sellOut) => [
-          { text: "เทียบขายเข้ากับขายออกของเอเย่นต์ในขอบเขตของคุณครับ ถ้าขายเข้าต่ำกว่าขายออกแปลว่ากำลังระบายสต๊อกที่ค้าง" },
+          { text: sellThroughLead(sellIn, sellOut) },
           { spec: overlaySpec(sellIn, sellOut) },
         ],
         onError: deniedSteps,
@@ -565,9 +694,9 @@ function alertSteps(prompt: string): MockStep[] {
         const rows = alertRowsOf(output, focus);
         if (rows.length === 0) return [{ text: "ตอนนี้ยังไม่มีความผิดปกติที่เปิดอยู่ในขอบเขตของคุณครับ" }];
         return [
-          { text: `ผมเจอ ${rows.length} เรื่องที่ควรดูครับ แต่ละเรื่องมีสมมติฐานและวิธีตรวจสองทาง` },
-          { spec: alertSpec(output, focus) },
-          { text: "ถ้าต้องการ ผมส่งเรื่องให้ผู้รับผิดชอบพร้อมหลักฐานได้เลย บอกว่า “ส่งต่องานให้ผู้รับผิดชอบ” ได้ครับ" },
+          { text: alertLead(output) },
+          { spec: alertSpec() },
+          { text: alertConclusion(rows) },
         ];
       },
     },
@@ -587,7 +716,7 @@ function coverSteps(prompt: string): MockStep[] {
         compare: "none",
         limit: 10,
       },
-      then: (output) => [{ text: `จำนวนวันที่สต๊อกพอขายล่าสุด เกณฑ์เตือนคือ ${COVER_THRESHOLD} วันครับ` }, { spec: coverSpec(output) }],
+      then: (output) => [{ text: coverLead(output) }, { spec: coverSpec() }],
       onError: deniedSteps,
     },
   ];
@@ -600,7 +729,7 @@ const FORECAST_STEPS: MockStep[] = [
     then: (output) => {
       const points = forecastPointsOf(output);
       if (points.length === 0) return [{ text: "ยังไม่มีพยากรณ์สำหรับมิตินี้ครับ ลองให้ระบบรันงานพยากรณ์ก่อน" }];
-      return [{ text: "พยากรณ์ Holt-Winters พร้อมช่วงความเชื่อมั่นครับ ค่า MAPE อยู่ในคำอธิบายการ์ด" }, { spec: forecastSpec(output) }];
+      return [{ text: forecastLead(points) }, { spec: forecastSpec(output) }];
     },
   },
 ];
@@ -630,7 +759,7 @@ const BOARD_STEPS: MockStep[] = [
           limit: 6,
         },
         then: (margin) => [
-          { text: "สรุปไตรมาสนี้สำหรับบอร์ดครับ มูลค่าขายแยกกลุ่มธุรกิจเทียบปีก่อน และกำไรขั้นต้นของแต่ละกลุ่ม" },
+          { text: boardLead(sales, margin) },
           { spec: boardSpec(sales, margin) },
         ],
         onError: deniedSteps,
@@ -658,7 +787,7 @@ const PRELOAD_STEPS: MockStep[] = [
         },
         then: (cover) => [
           { text: "ผมดึงข้อมูลของงานที่ส่งมาให้แล้วครับ ทั้งความผิดปกติที่เกี่ยวข้องและสต๊อกล่าสุดตามสิทธิ์ของคุณ" },
-          { spec: coverSpec(cover) },
+          { spec: coverSpec() },
           {
             text: "มีสองทางเลือกครับ (1) ย้ายสต๊อกจากศูนย์ที่ยังพอขายเกิน 20 วันมาเติมภายใน 3 วัน ใช้ค่าขนส่งเพิ่มแต่ไม่กระทบแผนผลิต (2) เพิ่มรอบผลิตในสัปดาห์หน้า ของถึงช้ากว่า 5 วันแต่ต้นทุนต่ำกว่า ผมเสนอทางที่ 1 ถ้าจะให้ส่งเรื่องกลับไปแจ้งผู้ส่งงาน บอกผมได้เลย",
           },
@@ -668,6 +797,115 @@ const PRELOAD_STEPS: MockStep[] = [
     ],
   },
 ];
+
+const FOCUS_ALERT_LIMIT = 60;
+
+function scopeHead(row: AlertRow): string {
+  return (row.scopeLabel ?? "").split(" · ")[0] ?? "";
+}
+
+function alertFocusedBy(output: unknown, prompt: string): AlertRow | null {
+  const rows = (output as AlertOutput).rows;
+  if (!Array.isArray(rows)) return null;
+  return rows.find((row) => row.scopeLabel && prompt.includes(row.scopeLabel)) ?? rows.find((row) => scopeHead(row) && prompt.includes(scopeHead(row))) ?? null;
+}
+
+function focusedAlertLead(row: AlertRow): string {
+  const gap = row.gapLabel ? ` ห่าง ${row.gapLabel}` : "";
+  return `${row.scopeLabel}: ${row.metricLabel} จริง ${row.observedLabel} เทียบที่ควรเป็น ${row.expectedLabel}${gap} ครับ`;
+}
+
+function focusedAlertNext(row: AlertRow): string {
+  const steps = (row.verifySteps ?? []).map((step, index) => `${index + 1}) ${step}`).join(" ");
+  return sentences([
+    steps ? `ควรตรวจตามนี้: ${steps}` : null,
+    "ถ้าจะให้ผู้รับผิดชอบตรวจต่อ ส่งต่อจากกล่องงานได้เลยครับ",
+  ]);
+}
+
+function focusedAlertSpec(row: AlertRow): Spec {
+  const gap = row.gapLabel ? ` · ห่าง ${row.gapLabel}` : "";
+  return {
+    root: "alert",
+    elements: {
+      alert: {
+        type: "Alert",
+        props: {
+          title: `${row.severityLabel ?? ""} · ${row.scopeLabel ?? ""}`,
+          meta: `จริง ${row.observedLabel} · คาด ${row.expectedLabel}${gap}`,
+          body: row.hypothesis ?? null,
+          tone: SEVERITY_TONES[row.severity ?? ""] ?? "warning",
+        },
+        children: [],
+      },
+    },
+  };
+}
+
+function focusedAlertSteps(prompt: string): MockStep[] {
+  return [
+    {
+      tool: "get_alerts",
+      input: { status: "open", limit: FOCUS_ALERT_LIMIT },
+      then: (output) => {
+        const row = alertFocusedBy(output, prompt);
+        if (!row) return [{ text: alertLead(output) }, { spec: alertSpec() }, { text: alertConclusion(alertRowsOf(output)) }];
+        return [{ text: focusedAlertLead(row) }, { spec: focusedAlertSpec(row) }, { text: focusedAlertNext(row) }];
+      },
+    },
+  ];
+}
+
+type MetricAsk = {
+  metric: string;
+  dims: string[];
+  from: string;
+  grain: "day" | "week" | "month";
+  compare: "none" | "prev_period" | "yoy" | "target";
+  title: string;
+  subject: string;
+  versus: string;
+  view?: string;
+  sortBy?: string;
+};
+
+function metricAskSteps(ask: MetricAsk): MockStep[] {
+  return [
+    {
+      tool: "query_metric",
+      input: { metric: ask.metric, dims: ask.dims, filters: {}, range: { from: ask.from, to: TODAY }, grain: ask.grain, compare: ask.compare, limit: 10 },
+      then: (output) => [{ text: headlineLead(output, ask.subject, ask.versus) }, { spec: dataCard(ask.title, { view: ask.view, sortBy: ask.sortBy }) }],
+      onError: deniedSteps,
+    },
+  ];
+}
+
+const MARGIN_STEPS = metricAskSteps({
+  metric: "gross_margin", dims: ["business_unit"], from: QUARTER_START, grain: "month", compare: "prev_period",
+  title: "อัตรากำไรขั้นต้นรายกลุ่มธุรกิจไตรมาสนี้", subject: "อัตรากำไรขั้นต้นไตรมาสนี้", versus: "ไตรมาสก่อน", sortBy: "value_desc",
+});
+
+const RECEIVABLES_STEPS = metricAskSteps({
+  metric: "ar_overdue", dims: ["region"], from: MONTH_START, grain: "month", compare: "prev_period",
+  title: "ลูกหนี้ค้างชำระรายภาค", subject: "ลูกหนี้ค้างชำระ", versus: "เดือนก่อน", sortBy: "value_desc",
+});
+
+const TARGET_GAP_STEPS = metricAskSteps({
+  metric: "target_attainment", dims: ["region"], from: MONTH_START, grain: "month", compare: "none",
+  title: "ภาคที่ห่างเป้ามากที่สุดเดือนนี้", subject: "ยอดเทียบเป้าเดือนนี้", versus: "เป้า", view: "bar", sortBy: "value_asc",
+});
+
+const MY_AGENTS_STEPS = metricAskSteps({
+  metric: "net_sales_volume", dims: ["agent"], from: MONTH_START, grain: "month", compare: "prev_period",
+  title: "ยอดของเอเย่นต์ที่คุณดูแลเดือนนี้", subject: "ยอดรวมของเอเย่นต์ที่คุณดูแลเดือนนี้", versus: "เดือนก่อน", view: "bar", sortBy: "value_desc",
+});
+
+const BUDGET_STEPS = metricAskSteps({
+  metric: "net_sales_value", dims: ["business_unit"], from: MONTH_START, grain: "month", compare: "target",
+  title: "ยอดขายจริงเทียบงบรายกลุ่มธุรกิจ", subject: "ยอดขายเดือนนี้", versus: "งบ", sortBy: "value_desc",
+});
+
+const TOOL_USAGE_STEPS: MockStep[] = [{ text: "ประวัติการเรียกใช้เครื่องมือทั้งหมดอยู่ที่หน้า ผู้ดูแลระบบ → Audit ครับ เปิดดูแยกตามผู้ใช้และเครื่องมือได้ ผมยังไม่มีเครื่องมือสรุปตัวเลขนี้ในแชท" }];
 
 export const COP_MOCK_PROMPTS = [
   "ยอดขายเดือนนี้เทียบเป้าแยกตามภาค",
@@ -688,8 +926,16 @@ export const COP_MOCK_PROMPTS = [
 export const COP_MOCK_SCRIPT: MockScript = {
   turns: [
     { match: /งานที่ส่งต่อมา|เปิดในเอเจนต์/, steps: PRELOAD_STEPS },
-    { match: /ส่งต่อ|handoff/i, steps: HANDOFF_STEPS },
+    { match: /⟦action⟧ runTool/, steps: pressedSteps },
+    { match: /ส่งต่อ|handoff/i, steps: pressedSteps },
+    { match: /^ตรวจความผิดปกติ|^ดูประวัติ|กับพื้นที่อื่น/, steps: focusedAlertSteps },
     { match: /สิทธิ์|เงินเดือน|salary/i, steps: SALARY_STEPS },
+    { match: /กำไรขั้นต้น|gross margin/i, steps: MARGIN_STEPS },
+    { match: /ค้างชำระ|ลูกหนี้/, steps: RECEIVABLES_STEPS },
+    { match: /ห่าง(จาก)?เป้า/, steps: TARGET_GAP_STEPS },
+    { match: /เอเย่นต์ที่(ผม|ฉัน|คุณ)?ดูแล/, steps: MY_AGENTS_STEPS },
+    { match: /งบ.*(จริง|actual)|budget/i, steps: BUDGET_STEPS },
+    { match: /เครื่องมือ|audit/i, steps: TOOL_USAGE_STEPS },
     { match: /บอร์ด|board|ประชุมผู้บริหาร/i, steps: BOARD_STEPS },
     { match: /พยากรณ์|forecast|อีกกี่สัปดาห์/i, steps: FORECAST_STEPS },
     { match: /สต๊อก|คงคลัง|พอขาย|cover|stock/i, steps: coverSteps },

@@ -73,10 +73,12 @@ describe("personaFor", () => {
 });
 
 describe("rules", () => {
-  test("carry the nine prompt rules of the plan", () => {
-    expect(COP_RULES.length).toBe(9);
+  test("carry the prompt rules of the plan", () => {
+    expect(COP_RULES.length).toBeGreaterThanOrEqual(9);
     expect(COP_RULES[0]).toContain("ตอบเป็นภาษาไทย");
     expect(COP_RULES.some((rule) => rule.includes("PERMISSION_DENIED"))).toBe(true);
+    expect(COP_RULES.some((rule) => rule.includes("RankList"))).toBe(true);
+    expect(COP_RULES.some((rule) => rule.includes("footnote"))).toBe(true);
   });
 });
 

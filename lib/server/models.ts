@@ -1,4 +1,5 @@
 import { createAnthropic } from "@ai-sdk/anthropic";
+import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 import { createScriptedModel, MOCK_MODEL_ID } from "vexa/mock";
 import type { ModelRegistry } from "vexa/server";
 import { COP_MOCK_SCRIPT } from "./mock-script";
@@ -6,19 +7,36 @@ import { COP_MOCK_SCRIPT } from "./mock-script";
 const SONNET_ID = "claude-sonnet-5";
 const HAIKU_ID = "claude-haiku-4-5-20251001";
 const ANTHROPIC_CONTEXT_TOKENS = 200_000;
+const OPENROUTER_APP_URL = "http://localhost:3100";
+const DEFAULT_OPENROUTER_MODEL = "google/gemini-3.8-flash";
+const OPENROUTER_CONTEXT_TOKENS = 1_000_000;
+const MODEL_NAMES: Record<string, string> = { "google/gemini-3.8-flash": "Gemini 3.8 Flash" };
 
 const MOCK: ModelRegistry = {
   [MOCK_MODEL_ID]: { model: () => createScriptedModel(COP_MOCK_SCRIPT), name: "Mock (scripted, ฟรี)", provider: "vexa-mock", maxTokens: 8_000 },
 };
 
-/** The registry GET /api/chat publishes; the first entry is the default. Anthropic models appear only when the key is set. */
-export function models(): ModelRegistry {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) return MOCK;
+function anthropicModels(apiKey: string): ModelRegistry {
   const anthropic = createAnthropic({ apiKey });
   return {
     [SONNET_ID]: { model: () => anthropic(SONNET_ID), name: "Claude Sonnet 5", maxTokens: ANTHROPIC_CONTEXT_TOKENS },
     [HAIKU_ID]: { model: () => anthropic(HAIKU_ID), name: "Claude Haiku 4.5", maxTokens: ANTHROPIC_CONTEXT_TOKENS },
+  };
+}
+
+function openRouterModels(apiKey: string, modelId: string): ModelRegistry {
+  const client = createOpenRouter({ apiKey, compatibility: "strict", appName: process.env.OPENROUTER_APP_TITLE ?? "Cop", appUrl: OPENROUTER_APP_URL });
+  return { [modelId]: { model: () => client(modelId), name: MODEL_NAMES[modelId] ?? modelId, provider: "openrouter", maxTokens: OPENROUTER_CONTEXT_TOKENS } };
+}
+
+/** The registry GET /api/chat publishes; the first entry is the default: one OpenRouter model (AGENT_MODEL, else Gemini 3.8 Flash) when its key is set, then the scripted mock. */
+export function models(): ModelRegistry {
+  const anthropicKey = process.env.ANTHROPIC_API_KEY;
+  const openRouterKey = process.env.OPENROUTER_API_KEY;
+  const modelId = process.env.AGENT_MODEL || DEFAULT_OPENROUTER_MODEL;
+  return {
+    ...(openRouterKey ? openRouterModels(openRouterKey, modelId) : {}),
+    ...(anthropicKey ? anthropicModels(anthropicKey) : {}),
     ...MOCK,
   };
 }

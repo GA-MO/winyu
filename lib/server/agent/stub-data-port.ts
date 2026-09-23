@@ -1,5 +1,5 @@
 import { applyScope, outOfScopeFilters, scopePredicates } from "@/lib/access/enforce";
-import type { AccessContext, Brand, Dim, MetricDef, MetricId, MetricQuery, MetricResult, MetricRow, Provenance, Region } from "@/lib/contracts";
+import type { AccessContext, Brand, Dim, MetricDef, MetricHeadline, MetricId, MetricQuery, MetricResult, MetricRow, Provenance, Region } from "@/lib/contracts";
 import { USERS, findUser } from "@/lib/data/entities/users";
 import type { DataPort, EntityDescription, EntityKind } from "./data-port";
 
@@ -254,6 +254,19 @@ function summaryOf(metricDef: MetricDef, rows: MetricRow[], total: number, maske
   return `${metricDef.labelTh} ช่วง ${period}: รวม ${formatValue(total, metricDef.format)} ${metricDef.unit} จาก ${rows.length} แถว`;
 }
 
+function headlineOf(metricDef: MetricDef, rows: MetricRow[], total: number, masked: boolean, months: string[]): MetricHeadline {
+  const periodLabel = months.length === 1 ? months[0] : `${months[0]} ถึง ${months[months.length - 1]}`;
+  return {
+    aggregate: "sum",
+    value: masked ? "—" : `${formatValue(total, metricDef.format)} ${metricDef.unit}`.trim(),
+    periodLabel,
+    rowCount: rows.length,
+    deltaPercent: null,
+    compareLabel: null,
+    top: [],
+  };
+}
+
 function runMetric(query: MetricQuery, access: AccessContext): MetricResult {
   const metricDef = METRIC_DEFS[query.metric];
   const shape = METRIC_SHAPES[query.metric];
@@ -327,6 +340,7 @@ function runMetric(query: MetricQuery, access: AccessContext): MetricResult {
     ok: true,
     rows: limited,
     summary: summaryOf(metricDef, limited, total, masked, months),
+    headline: headlineOf(metricDef, limited, total, masked, months),
     provenance: provenanceOf(metricDef, access, query, limited.length, maskedFields),
   };
 }

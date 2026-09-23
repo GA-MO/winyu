@@ -2,10 +2,12 @@ import { runMetric } from "@/lib/data/query";
 import type { AccessContext, DashboardLayout, MetricResult, WidgetSpec } from "@/lib/contracts";
 import type { Spec } from "vexa/protocol";
 import { layoutVersions, layouts } from "@/lib/server/agent/collections";
-import { forecastsFor, openAlertsFor, openPacketsFor } from "@/lib/server/alerts";
+import { forecastsFor, openAlertsFor, openPacketsFor, relevanceOf } from "@/lib/server/alerts";
+import { alertRowOf } from "@/lib/cards/alert-row";
+import { actionsForAlert, actionsForMetric } from "@/lib/server/next-actions";
 import { composeSuggestion } from "@/lib/engine/compose";
-import { morningBriefFor } from "@/lib/server/briefing";
-import { ambientCards, type AmbientCard } from "@/lib/dashboard/ambient";
+import { ambientCards, statusLinks, type AmbientCard, type LandingKpi, type StatusLink } from "@/lib/dashboard/ambient";
+import { presentCard } from "@/lib/cards/present";
 import { templateFor } from "@/lib/dashboard/templates";
 import { widgetToSpec, type WidgetExtras } from "@/lib/dashboard/widget-to-spec";
 import { findUser } from "@/lib/data/entities/users";
@@ -13,7 +15,7 @@ import { findUser } from "@/lib/data/entities/users";
 export type WidgetView = { widget: WidgetSpec; spec: Spec };
 
 const CREATED_AT = "2026-09-22T00:00:00.000Z";
-const BACKDROP_LIMIT = 6;
+const KPI_LIMIT = 4;
 
 function seedLayout(access: AccessContext): DashboardLayout {
   const widgets = templateFor(access).map((seed, position) => ({
@@ -65,26 +67,34 @@ export function resolveWidget(widget: WidgetSpec, access: AccessContext): Metric
   return runMetric(widget.query, access);
 }
 
+const MAX_CARD_ALERTS = 4;
 const OVERLAY_PAIR: Partial<Record<string, { metric: WidgetSpec["query"]["metric"]; name: string }>> = {
   sell_out_volume: { metric: "net_sales_volume", name: "ขายเข้า (Sell-in)" },
 };
 
 function extrasFor(widget: WidgetSpec, access: AccessContext): WidgetExtras {
   if (widget.kind === "alert_list") {
-    return { alerts: openAlertsFor(access).filter((alert) => alert.metric === widget.query.metric || widget.query.dims.length === 0).slice(0, 4) };
+    const alerts = openAlertsFor(access)
+      .filter((alert) => alert.metric === widget.query.metric || widget.query.dims.length === 0)
+      .slice(0, MAX_CARD_ALERTS);
+    return { alerts: alerts.map(alertRowOf), actions: actionsForAlert(access, alerts[0] ?? null) };
   }
   if (widget.kind !== "line") return {};
   const pair = OVERLAY_PAIR[widget.query.metric];
   if (pair) return { overlay: { name: pair.name, result: runMetric({ ...widget.query, metric: pair.metric, compare: "none" }, access) } };
+  if (widget.query.grain !== "week") return {};
   const forecast = forecastsFor(access).find((entry) => entry.metric === widget.query.metric && Object.entries(entry.dims).every(([dim, value]) => {
     const filter = widget.query.filters[dim as keyof typeof widget.query.filters];
-    return !filter || filter.includes(value as string);
+    return filter?.length === 1 && filter[0] === (value as string);
   }));
   return { forecast: forecast ?? null };
 }
 
 function viewOf(widget: WidgetSpec, access: AccessContext): WidgetView {
-  return { widget, spec: widgetToSpec(widget, resolveWidget(widget, access), extrasFor(widget, access)) };
+  const result = resolveWidget(widget, access);
+  const extras = extrasFor(widget, access);
+  const actions = extras.actions ?? actionsForMetric(access, widget.query, result);
+  return { widget, spec: widgetToSpec(widget, result, { ...extras, actions }) };
 }
 
 /** Adds at most one AI-suggested card a day to the tray, from what the user keeps asking. */
@@ -107,31 +117,36 @@ export function widgetViews(access: AccessContext): WidgetView[] {
     .map((widget) => viewOf(widget, access));
 }
 
-export function pinnedViews(access: AccessContext): WidgetView[] {
-  return widgetViews(access)
-    .filter((view) => view.widget.pinned)
-    .slice(0, BACKDROP_LIMIT);
+/** The headline of each pinned card, through the same presenter the dashboard draws with; masked or denied cards are skipped. */
+export function landingKpis(access: AccessContext): LandingKpi[] {
+  const kpis: LandingKpi[] = [];
+  const pinned = layoutFor(access).widgets.filter((widget) => widget.pinned && widget.kind !== "alert_list").sort((left, right) => left.position - right.position);
+  for (const widget of pinned) {
+    if (kpis.length >= KPI_LIMIT) break;
+    const parts = presentCard({ title: widget.title, query: widget.query, result: resolveWidget(widget, access) });
+    const hero = parts.hero;
+    if (!hero) continue;
+    kpis.push({ id: widget.id, label: hero.label, value: hero.value, delta: hero.delta, tone: hero.tone, detail: hero.detail, gap: parts.body.kind === "progress" ? parts.body.detail : null });
+  }
+  return kpis;
 }
 
 export { openAlertsFor, openPacketsFor };
 
-/** Cop's opening line: what it found overnight, or that nothing is wrong. */
-export function morningBrief(access: AccessContext): string {
-  return morningBriefFor(access).line;
+/** The inbox links under the greeting: open alerts per severity and the handoffs waiting for this user. */
+export function landingStatus(access: AccessContext): StatusLink[] {
+  const open = openAlertsFor(access);
+  const relevant = open.filter((alert) => relevanceOf(alert, access) !== "other");
+  return statusLinks(relevant, open.length - relevant.length, openPacketsFor(access).length);
 }
 
 export function ambientFor(access: AccessContext): AmbientCard[] {
-  const brief = morningBriefFor(access);
-  const openAlerts = openAlertsFor(access);
-  const openPackets = openPacketsFor(access);
-  const packet = openPackets[0] ?? null;
+  const packet = openPacketsFor(access)[0] ?? null;
   const fromName = packet ? (findUser(packet.fromUserId)?.nameTh ?? packet.fromUserId) : "";
   return ambientCards({
-    alert: openAlerts[0] ?? null,
+    alerts: openAlertsFor(access).filter((alert) => relevanceOf(alert, access) !== "other"),
+    ownerName: (alert) => (alert.ownerUserId === access.userId ? null : (findUser(alert.ownerUserId)?.nameTh ?? null)),
     packet: packet ? { id: packet.id, title: packet.title, ask: packet.ask, fromName, urgency: packet.urgency } : null,
-    brief: brief.line,
-    bullets: brief.bullets,
-    counts: { alerts: openAlerts.length, packets: openPackets.length, widgets: layoutFor(access).widgets.filter((widget) => widget.pinned).length },
   });
 }
 

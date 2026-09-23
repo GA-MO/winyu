@@ -9,6 +9,7 @@ export type PacketReply = { userId: string; at: string; text: string };
 export type Notification = { id: string; userId: string; at: string; kind: "handoff" | "alert" | "reply" | "email"; refId: string; read: boolean; title: string };
 
 export const URGENCIES = ["low", "medium", "high"] as const;
+export type Urgency = (typeof URGENCIES)[number];
 export const PACKET_STATUSES = ["open", "accepted", "need_info", "returned", "resolved"] as const;
 
 export const urgencySchema = z.enum(URGENCIES);

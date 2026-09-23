@@ -1,4 +1,4 @@
-import type { AccessContext, Alert, MetricQuery } from "@/lib/contracts";
+import type { AccessContext, Alert, MetricId, MetricQuery } from "@/lib/contracts";
 import type { Spec, SpecElement } from "vexa/protocol";
 import { runMetric } from "@/lib/data/query";
 import { TODAY, addDays, formatThaiDate } from "@/lib/data/dates";
@@ -12,7 +12,7 @@ const MOVE_THRESHOLD = 5;
 const MAX_MOVES = 3;
 const ATTAINMENT_DAYS = 27;
 
-export type BriefMove = { label: string; deltaPct: number };
+export type BriefMove = { label: string; deltaPct: number; metric: MetricId };
 export type MorningBrief = { line: string; bullets: string[]; attainment: number | null; alerts: Alert[]; moves: BriefMove[]; spec: Spec };
 
 function attainmentQuery(): MetricQuery {
@@ -43,7 +43,7 @@ function movesFor(access: AccessContext): BriefMove[] {
     if (!result.ok) continue;
     const delta = result.rows[0]?.delta_pct;
     if (typeof delta !== "number" || Math.abs(delta) < MOVE_THRESHOLD) continue;
-    moves.push({ label: seed.title, deltaPct: delta });
+    moves.push({ label: seed.title, deltaPct: delta, metric: seed.query.metric });
   }
   return moves;
 }
@@ -54,11 +54,12 @@ function element(type: string, props: Record<string, unknown>, children: string[
 
 function specOf(bullets: string[], line: string): Spec {
   const elements: Record<string, SpecElement> = {
-    brief: element("Card", { title: TH.brief.title, subtitle: formatThaiDate(TODAY) }, ["brief-line", "brief-list"]),
-    "brief-line": element("Text", { value: line, tone: "default" }),
-    "brief-list": element("KeyValue", {
-      items: bullets.map((text, index) => ({ label: `${index + 1}`, value: text })),
-    }),
+    brief: element(
+      "Card",
+      { title: TH.brief.title, meta: formatThaiDate(TODAY), description: line, footnote: null },
+      ["brief-list"],
+    ),
+    "brief-list": element("List", { items: bullets, ordered: true }),
   };
   return { root: "brief", elements };
 }
@@ -82,13 +83,16 @@ export function morningBriefFor(access: AccessContext): MorningBrief {
   return { line, bullets, attainment, alerts, moves, spec: specOf(bullets, line) };
 }
 
-export function changesSince(access: AccessContext): string[] {
+export type DashboardChange = { label: string; deltaPct: number | null; metric: MetricId | null };
+
+/** What is different on this dashboard since yesterday, as chips: new alerts, new replies, the metrics that moved. */
+export function changesSince(access: AccessContext): DashboardChange[] {
   const yesterday = addDays(TODAY, -1);
   const fresh = openAlertsFor(access).filter((alert) => alert.at.slice(0, 10) >= yesterday);
   const replied = openPacketsFor(access).filter((packet) => packet.thread.length > 0 && packet.updatedAt.slice(0, 10) >= yesterday);
-  const changes: string[] = [];
-  if (fresh.length > 0) changes.push(TH.brief.newAlerts(fresh.length));
-  if (replied.length > 0) changes.push(TH.brief.newReplies(replied.length));
-  for (const move of movesFor(access)) changes.push(TH.brief.moved(move.label, move.deltaPct));
+  const changes: DashboardChange[] = [];
+  if (fresh.length > 0) changes.push({ label: TH.brief.newAlerts(fresh.length), deltaPct: null, metric: null });
+  if (replied.length > 0) changes.push({ label: TH.brief.newReplies(replied.length), deltaPct: null, metric: null });
+  for (const move of movesFor(access)) changes.push({ label: move.label, deltaPct: move.deltaPct, metric: move.metric });
   return changes;
 }

@@ -18,14 +18,35 @@ const ACTION = "rounded-full border border-border bg-card px-3 py-1.5 text-xs te
 const ITEM = "flex flex-col gap-2 rounded-2xl border border-border bg-card p-3 shadow-card";
 const URGENCY_TONE: Record<HandoffItem["urgency"], string> = { low: "text-muted-foreground", medium: "text-warning", high: "text-danger" };
 const SEVERITY_TONE: Record<AlertItem["severity"], string> = { P1: "text-danger", P2: "text-warning", P3: "text-info" };
+const DELTA_TONE = { good: "text-success", bad: "text-danger", neutral: "text-muted-foreground" } as const;
 const SEVERITIES = ["P1", "P2", "P3"] as const;
 
 type Tab = (typeof TABS)[number];
+type SeverityFilter = AlertItem["severity"] | "all";
+
+export type InboxFocus = { tab: Tab; severity: SeverityFilter };
+
+const DEFAULT_FOCUS: InboxFocus = { tab: "handoffs", severity: "all" };
+
+function isTab(value: string | null): value is Tab {
+  return (TABS as readonly string[]).includes(value ?? "");
+}
+
+function isSeverity(value: string | null): value is AlertItem["severity"] {
+  return (SEVERITIES as readonly string[]).includes(value ?? "");
+}
+
+/** Which tab and severity a `?inbox=alerts&severity=P1` link opens the drawer on. */
+export function focusFromParams(params: URLSearchParams): InboxFocus {
+  const tab = params.get("inbox");
+  const severity = params.get("severity");
+  return { tab: isTab(tab) ? tab : DEFAULT_FOCUS.tab, severity: isSeverity(severity) ? severity : DEFAULT_FOCUS.severity };
+}
 type PacketAction = "accept" | "need_info" | "return" | "resolve";
 
-export function InboxDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
+export function InboxDrawer({ open, onClose, focus = DEFAULT_FOCUS }: { open: boolean; onClose: () => void; focus?: InboxFocus }) {
   const router = useRouter();
-  const [tab, setTab] = useState<Tab>("handoffs");
+  const [tab, setTab] = useState<Tab>(focus.tab);
   const [data, setData] = useState<InboxPayload>(EMPTY);
   const [note, setNote] = useState<string | null>(null);
 
@@ -35,6 +56,10 @@ export function InboxDrawer({ open, onClose }: { open: boolean; onClose: () => v
       .then((payload: InboxPayload | null) => setData(payload ?? EMPTY))
       .catch(() => undefined);
   }, []);
+
+  useEffect(() => {
+    if (open) setTab(focus.tab);
+  }, [focus.tab, open]);
 
   useEffect(() => {
     if (!open) return;
@@ -119,8 +144,10 @@ export function InboxDrawer({ open, onClose }: { open: boolean; onClose: () => v
           ) : null}
           {tab === "alerts" ? (
             <AlertList
+              key={focus.severity}
               items={data.alerts}
               note={note}
+              initialSeverity={focus.severity}
               onDismiss={dismiss}
               onAsk={(prompt) => router.push(`/c/new?prompt=${encodeURIComponent(prompt)}`)}
             />
@@ -273,8 +300,20 @@ function HandoffCard({
   );
 }
 
-function AlertList({ items, note, onDismiss, onAsk }: { items: AlertItem[]; note: string | null; onDismiss: (id: string) => void; onAsk: (prompt: string) => void }) {
-  const [severity, setSeverity] = useState<AlertItem["severity"] | "all">("all");
+function AlertList({
+  items,
+  note,
+  initialSeverity,
+  onDismiss,
+  onAsk,
+}: {
+  items: AlertItem[];
+  note: string | null;
+  initialSeverity: SeverityFilter;
+  onDismiss: (id: string) => void;
+  onAsk: (prompt: string) => void;
+}) {
+  const [severity, setSeverity] = useState<SeverityFilter>(initialSeverity);
   const shown = severity === "all" ? items : items.filter((item) => item.severity === severity);
   if (items.length === 0) return <EmptyLine text={TH.inbox.empty.alerts} />;
   return (
@@ -316,7 +355,11 @@ function AlertList({ items, note, onDismiss, onAsk }: { items: AlertItem[]; note
             </div>
             <div className="flex justify-between gap-2">
               <dt className="text-muted-foreground">{TH.inbox.numbers}</dt>
-              <dd className="text-right">{item.movement}</dd>
+              <dd className="flex items-center gap-1.5 text-right tabular-nums">
+                <span className="font-semibold">{item.movement.observed}</span>
+                <span className="text-muted-foreground">{TH.inbox.against(item.movement.expected)}</span>
+                {item.movement.delta ? <span className={cn("font-semibold", DELTA_TONE[item.movement.tone])}>{item.movement.delta}</span> : null}
+              </dd>
             </div>
             {item.ownerName ? <div className="text-muted-foreground">{TH.inbox.owner(item.ownerName)}</div> : null}
           </dl>

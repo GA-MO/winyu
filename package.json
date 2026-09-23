@@ -10,11 +10,13 @@
     "typecheck": "tsc --noEmit",
     "test": "bun test",
     "seed": "bun run scripts/seed.ts",
-    "inspect": "bun scripts/inspect-data.ts"
+    "inspect": "bun scripts/inspect-data.ts",
+    "eval:cards": "bun run scripts/eval-cards.ts"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^2.0.0",
     "@ai-sdk/react": "3.0.283",
+    "@openrouter/ai-sdk-provider": "^2.10.0",
     "ai": "6.0.280",
     "lucide-react": "^0.563.0",
     "next": "^15.5.0",

@@ -3,6 +3,7 @@ import { actionEvents } from "@/lib/server/agent/collections";
 import { USERS } from "@/lib/data/entities/users";
 import { LENT_WINDOW_LABEL, seasonalHints } from "./seasons";
 import { TH } from "@/lib/i18n/th";
+import { metricLabel } from "@/lib/dashboard/metric-display";
 
 const WINDOW_DAYS = 30;
 const RECENCY_DAYS = 14;
@@ -10,6 +11,8 @@ const DAY_MS = 86_400_000;
 const TOP_LEARNED = 4;
 const TOP_SEASONAL = 2;
 const BUCKET_HOURS = 6;
+const MAX_LABEL = 24;
+const PARENTHETICAL = /\s*\(.*\)$/;
 const WEIGHTS = { frequency: 0.35, recency: 0.25, timeOfDay: 0.15, peers: 0.15, context: 0.1, dismiss: 0.5 };
 
 export type Scored = { intentKey: string; prompt: string; score: number; reason: string; metric: MetricId | null; dims: Dim[]; dismissed: number };
@@ -73,9 +76,18 @@ function reasonFor(cluster: Cluster, now: number): string {
   return TH.quick.fromYourHistory;
 }
 
-function labelOf(prompt: string): string {
-  const trimmed = prompt.trim();
-  return trimmed.length > 34 ? `${trimmed.slice(0, 34)}…` : trimmed;
+function shortMetricLabel(metric: MetricId): string {
+  return metricLabel(metric).replace(PARENTHETICAL, "");
+}
+
+function labelOf(scored: Scored, fallback: readonly QuickAction[]): string {
+  const known = fallback.find((action) => action.intentKey === scored.intentKey);
+  if (known) return known.label;
+  const prompt = scored.prompt.trim();
+  if (prompt.length <= MAX_LABEL) return prompt;
+  if (!scored.metric) return `${prompt.slice(0, MAX_LABEL)}…`;
+  const dim = scored.dims[0];
+  return dim ? TH.quick.metricBy(shortMetricLabel(scored.metric), TH.dim[dim]) : shortMetricLabel(scored.metric);
 }
 
 /** The learned chips: how often, how recently, at what hour, what peers in the same role ask, and what the last turn was about. */
@@ -117,7 +129,7 @@ export function quickActionsFrom(access: AccessContext, fallback: QuickAction[],
     .slice(0, TOP_LEARNED)
     .map((scored, index) => ({
       id: `qa_learned_${index}`,
-      label: labelOf(scored.prompt),
+      label: labelOf(scored, fallback),
       prompt: scored.prompt,
       score: Math.round(scored.score * 100) / 100,
       reason: scored.reason,

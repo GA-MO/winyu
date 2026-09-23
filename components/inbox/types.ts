@@ -33,7 +33,7 @@ export type AlertItem = {
   at: string;
   scope: string;
   window: string;
-  movement: string;
+  movement: { observed: string; expected: string; delta: string | null; tone: "good" | "bad" | "neutral" };
   ownerName: string;
   handoffPrompt: string;
 };

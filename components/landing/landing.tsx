@@ -1,52 +1,132 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { LayoutDashboard, MessageSquare, ShieldCheck } from "lucide-react";
+import { LayoutDashboard, ShieldCheck } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "vexa/ui/tooltip";
 import { cn } from "vexa/lib/utils";
 import type { QuickAction } from "@/lib/contracts";
-import type { AmbientCard, AmbientTone } from "@/lib/dashboard/ambient";
+import type { AmbientCard, AmbientTone, LandingKpi, StatusLink } from "@/lib/dashboard/ambient";
+import type { Tone } from "@/lib/dashboard/metric-display";
 import { TH } from "@/lib/i18n/th";
 import { CopComposer } from "@/components/composer/cop-composer";
 import { ChipIcon } from "@/components/ui/chip-icon";
 import { GlowBackdrop } from "@/components/ui/glow-backdrop";
 import { GradientText } from "@/components/ui/gradient-text";
 import { PILL } from "@/components/ui/pill";
-import { WidgetCards, type WidgetCard } from "@/components/dashboard/widget-cards";
 
 const THREADS_ENDPOINT = "/api/threads";
 const QUICK_ACTIONS_ENDPOINT = "/api/quick-actions";
-const BACKDROP = "pointer-events-none absolute inset-0 cop-mask-center cop-backdrop-dim";
-const PANEL = "w-full max-w-3xl rounded-[2rem] border border-border bg-panel p-5 shadow-panel backdrop-blur-xl sm:p-8";
-const AMBIENT = "flex min-w-[15rem] max-w-sm flex-1 basis-0 flex-col gap-1 rounded-2xl border border-border border-l-[3px] bg-card p-4 text-left shadow-card transition duration-200 hover:-translate-y-0.5 hover:shadow-lift focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
-const AMBIENT_ACCENT: Record<AmbientTone, string> = {
-  danger: "border-l-danger",
-  warning: "border-l-warning",
-  info: "border-l-info",
-  brand: "border-l-primary",
+const DASHBOARD_PATH = "/dashboard";
+const MAX_CHIPS = 4;
+const HERO = "flex w-full max-w-3xl flex-col gap-6";
+const CHIP_ROW = "-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [mask-image:linear-gradient(to_right,black_80%,transparent)] sm:mx-0 sm:[mask-image:none] sm:flex-wrap sm:justify-center sm:overflow-visible sm:px-0 sm:pb-0";
+const AMBIENT = "flex min-w-0 flex-col gap-1.5 rounded-2xl border border-border bg-card p-4 text-left shadow-card transition duration-200 hover:-translate-y-0.5 hover:shadow-lift focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+const AMBIENT_COLUMNS: Record<number, string> = { 1: "sm:grid-cols-1", 2: "sm:grid-cols-2" };
+const KPI_COLUMNS: Record<number, string> = { 1: "sm:grid-cols-1", 2: "sm:grid-cols-2", 3: "sm:grid-cols-3", 4: "sm:grid-cols-4" };
+const KPI_STRIP = "grid w-full grid-cols-2 [&>*:last-child:nth-child(odd)]:col-span-2 sm:[&>*:last-child:nth-child(odd)]:col-span-1 overflow-hidden rounded-2xl border border-border bg-border gap-px shadow-card transition duration-200 hover:shadow-lift focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+const DELTA_TONE: Record<Tone, string> = {
+  good: "bg-success/10 text-success",
+  bad: "bg-danger/10 text-danger",
+  neutral: "bg-muted text-muted-foreground",
 };
-
+const TONE_TEXT: Record<AmbientTone, string> = {
+  danger: "text-danger",
+  warning: "text-warning",
+  info: "text-info",
+  brand: "text-primary",
+  success: "text-success",
+  neutral: "text-foreground",
+};
+const TONE_DOT: Record<AmbientTone, string> = {
+  danger: "bg-danger",
+  warning: "bg-warning",
+  info: "bg-info",
+  brand: "bg-primary",
+  success: "bg-success",
+  neutral: "bg-muted-foreground",
+};
 export type Greeting = { lead: string; name: string };
+
+function StatusLine({ links }: { links: StatusLink[] }) {
+  if (links.length === 0) return <p className="text-sm text-muted-foreground sm:text-base">{TH.landing.quiet}</p>;
+  return (
+    <p className="flex flex-wrap items-center justify-center gap-x-1 gap-y-1 text-sm">
+      <span className="mr-1 text-muted-foreground">{TH.landing.statusLead}</span>
+      {links.map((link) => (
+        <Link
+          key={link.id}
+          href={{ query: link.query }}
+          scroll={false}
+          className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 transition hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          <span aria-hidden className={cn("size-1.5 rounded-full", TONE_DOT[link.tone])} />
+          <span className="text-muted-foreground">{link.label}</span>
+          <span className="font-semibold tabular-nums">{link.count}</span>
+        </Link>
+      ))}
+    </p>
+  );
+}
+
+function AmbientCardView({ card, onOpen }: { card: AmbientCard; onOpen: () => void }) {
+  return (
+    <button type="button" onClick={onOpen} className={AMBIENT}>
+      <span className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
+        <span aria-hidden className={cn("size-1.5 shrink-0 rounded-full", TONE_DOT[card.tone])} />
+        <span className="truncate">{card.eyebrow}</span>
+      </span>
+      {card.headline ? (
+        <span className="flex flex-wrap items-baseline gap-x-2">
+          <span className={cn("font-display text-2xl font-semibold tabular-nums tracking-tight", TONE_TEXT[card.headline.tone])}>{card.headline.value}</span>
+          {card.headline.caption ? <span className="text-xs tabular-nums text-muted-foreground">{card.headline.caption}</span> : null}
+        </span>
+      ) : null}
+      <span className="line-clamp-2 text-sm font-semibold tracking-tight">{card.title}</span>
+      {card.body ? <span className="line-clamp-2 text-xs text-muted-foreground">{card.body}</span> : null}
+    </button>
+  );
+}
+
+function KpiStrip({ kpis }: { kpis: LandingKpi[] }) {
+  return (
+    <Link href={DASHBOARD_PATH} aria-label={TH.landing.kpiOpen} className={cn(KPI_STRIP, KPI_COLUMNS[kpis.length])}>
+      {kpis.map((kpi) => (
+        <span key={kpi.id} className="flex min-w-0 flex-col gap-1 bg-card px-4 py-3 text-left">
+          <span className="truncate text-[11px] font-medium text-muted-foreground">{kpi.label}</span>
+          <span className="font-display text-lg font-semibold leading-tight tabular-nums tracking-tight sm:text-xl">{kpi.value}</span>
+          {kpi.gap ? <span className="truncate text-[11px] font-medium text-warning">{kpi.gap}</span> : null}
+          {kpi.delta ? (
+            <span className="flex min-w-0 items-center gap-1.5 text-[11px]">
+              <span className={cn("shrink-0 rounded-full px-1.5 py-0.5 font-medium tabular-nums", DELTA_TONE[kpi.tone])}>{kpi.delta}</span>
+              {kpi.detail ? <span className="truncate text-muted-foreground">{kpi.detail}</span> : null}
+            </span>
+          ) : null}
+        </span>
+      ))}
+    </Link>
+  );
+}
 
 export function Landing({
   greeting,
-  brief,
-  widgets,
+  status,
+  kpis,
   quickActions,
   ambient,
 }: {
   greeting: Greeting;
-  brief: string;
-  widgets: WidgetCard[];
+  status: StatusLink[];
+  kpis: LandingKpi[];
   quickActions: QuickAction[];
   ambient: AmbientCard[];
 }) {
   const router = useRouter();
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
+  const [failed, setFailed] = useState(false);
   const [actions, setActions] = useState(quickActions);
-  const [dashboardMode, setDashboardMode] = useState(false);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -63,6 +143,8 @@ export function Landing({
     async (prompt: string, intentKey?: string) => {
       if (busy) return;
       setBusy(true);
+      setFailed(false);
+      setText(prompt);
       if (intentKey) {
         void fetch(QUICK_ACTIONS_ENDPOINT, {
           method: "POST",
@@ -74,9 +156,10 @@ export function Landing({
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ firstMessage: prompt }),
-      });
-      if (!response.ok) {
+      }).catch(() => null);
+      if (!response?.ok) {
         setBusy(false);
+        setFailed(true);
         return;
       }
       const { id } = (await response.json()) as { id: string };
@@ -86,103 +169,71 @@ export function Landing({
   );
 
   useEffect(() => {
-    function toggleDashboard(event: KeyboardEvent) {
+    function openDashboard(event: KeyboardEvent) {
       if (event.key.toLowerCase() !== "d" || !(event.metaKey || event.ctrlKey)) return;
       event.preventDefault();
-      setDashboardMode((current) => !current);
+      router.push(DASHBOARD_PATH);
     }
-    window.addEventListener("keydown", toggleDashboard);
-    return () => window.removeEventListener("keydown", toggleDashboard);
-  }, []);
-
-  if (dashboardMode) {
-    return (
-      <div className="relative min-h-dvh">
-        <GlowBackdrop />
-        <div className="relative flex min-h-dvh flex-col">
-          <div className="sticky top-0 z-20 border-b border-border bg-background/90 px-4 py-3 backdrop-blur sm:px-8">
-            <div className="mx-auto flex w-full max-w-3xl items-center gap-2">
-              <CopComposer value={text} onValueChange={setText} onSubmit={start} size="docked" busy={busy} className="flex-1" />
-              <button type="button" onClick={() => setDashboardMode(false)} className={cn(PILL, "shrink-0 py-2.5")}>
-                <MessageSquare className="size-3.5" aria-hidden />
-                {TH.landing.backToChat}
-              </button>
-            </div>
-          </div>
-          <div className="px-4 pb-16 pt-6 sm:px-8">
-            <WidgetCards widgets={widgets} />
-          </div>
-        </div>
-      </div>
-    );
-  }
+    window.addEventListener("keydown", openDashboard);
+    return () => window.removeEventListener("keydown", openDashboard);
+  }, [router]);
 
   return (
     <div className="relative min-h-dvh overflow-x-hidden">
       <GlowBackdrop />
 
-      <div aria-hidden className={BACKDROP}>
-        <div className="h-full overflow-hidden px-4 pt-20 sm:px-8">
-          <WidgetCards widgets={widgets} />
-        </div>
-      </div>
+      <div className="relative flex min-h-dvh flex-col items-center justify-center gap-8 px-4 pb-16 pt-20 sm:px-6">
+        <div className={cn(HERO, "animate-hero-rise")}>
+          <header className="flex flex-col gap-2 text-center">
+            <h1 className="text-balance font-display text-[1.75rem] font-semibold leading-[1.2] tracking-[-0.02em] sm:text-[3rem]">
+              {greeting.lead} <GradientText className="whitespace-nowrap">{greeting.name}</GradientText>
+            </h1>
+            <StatusLine links={status} />
+          </header>
 
-      <div className="relative flex min-h-dvh flex-col items-center justify-center gap-5 px-4 pb-16 pt-20 sm:px-6">
-        <div className={cn("flex w-full max-w-3xl flex-col items-center gap-5 transition-all duration-300", busy ? "opacity-0" : "opacity-100")}>
-          <div className={cn(PANEL, "flex flex-col gap-5 animate-hero-rise")}>
-            <header className="flex flex-col gap-2 text-center">
-              <h1 className="text-balance font-display text-[1.75rem] font-semibold leading-[1.2] tracking-[-0.02em] sm:text-[3rem]">
-                {greeting.lead} <GradientText className="whitespace-nowrap">{greeting.name}</GradientText>
-              </h1>
-              <p className="text-sm text-muted-foreground sm:text-base">{brief}</p>
-            </header>
-
-            <CopComposer value={text} onValueChange={setText} onSubmit={start} busy={busy} autoFocus hint={TH.landing.composerHint} />
-
-            <p className="flex items-center gap-2 rounded-2xl border border-border bg-accent/50 px-3 py-2 text-xs text-muted-foreground">
-              <ShieldCheck className="size-3.5 shrink-0 text-primary" aria-hidden />
-              {TH.landing.infoStrip}
+          <CopComposer value={text} onValueChange={setText} onSubmit={start} busy={busy} autoFocus />
+          {failed ? (
+            <p role="alert" className="-mt-2 text-center text-xs text-danger">
+              {TH.landing.startFailed}
             </p>
+          ) : null}
 
-            <TooltipProvider delay={200}>
-              <div className="flex flex-wrap justify-center gap-2">
-                {actions.map((action) => (
-                  <Tooltip key={action.id}>
-                    <TooltipTrigger className={PILL} onClick={() => void start(action.prompt, action.intentKey)}>
-                      <ChipIcon text={`${action.label} ${action.prompt}`} />
-                      {action.label}
-                    </TooltipTrigger>
-                    <TooltipContent>{action.reason}</TooltipContent>
-                  </Tooltip>
-                ))}
-              </div>
-            </TooltipProvider>
-          </div>
+          <TooltipProvider delay={200}>
+            <div className={CHIP_ROW}>
+              {actions.slice(0, MAX_CHIPS).map((action) => (
+                <Tooltip key={action.id}>
+                  <TooltipTrigger className={cn(PILL, "shrink-0 whitespace-nowrap")} disabled={busy} onClick={() => void start(action.prompt, action.intentKey)}>
+                    <ChipIcon text={`${action.label} ${action.prompt}`} />
+                    {action.label}
+                  </TooltipTrigger>
+                  <TooltipContent>{action.reason}</TooltipContent>
+                </Tooltip>
+              ))}
+            </div>
+          </TooltipProvider>
+        </div>
 
-          <div className="flex w-full flex-wrap justify-center gap-3 animate-hero-rise [animation-delay:160ms]">
-            {ambient.map((card) => (
-              <button
-                key={card.id}
-                type="button"
-                onClick={() => void start(card.prompt)}
-                aria-label={`${TH.landing.openInAgent}: ${card.title}`}
-                className={cn(AMBIENT, AMBIENT_ACCENT[card.tone])}
-              >
-                <span className="text-[11px] font-medium tracking-wide text-muted-foreground">{card.label}</span>
-                <span className="text-sm font-semibold tracking-tight">{card.title}</span>
-                <span className="line-clamp-2 text-xs text-muted-foreground">{card.body}</span>
-              </button>
-            ))}
-          </div>
+        <div className="flex w-full max-w-3xl flex-col gap-3 animate-hero-rise [animation-delay:160ms]">
+          {kpis.length > 0 ? <KpiStrip kpis={kpis} /> : null}
+          {ambient.length > 0 ? (
+            <div className={cn("grid w-full gap-3", AMBIENT_COLUMNS[ambient.length])}>
+              {ambient.map((card) => (
+                <AmbientCardView key={card.id} card={card} onOpen={() => void start(card.prompt)} />
+              ))}
+            </div>
+          ) : null}
+        </div>
 
-          <div className="flex flex-col items-center gap-3 animate-hero-rise [animation-delay:220ms]">
-            <button type="button" onClick={() => setDashboardMode(true)} className={PILL}>
-              <LayoutDashboard className="size-3.5" aria-hidden />
-              {TH.landing.viewDashboard}
-              <span className="text-muted-foreground/70">{TH.landing.dashboardHint}</span>
-            </button>
-            <p className="text-center text-xs text-muted-foreground/80">{TH.landing.disclaimer}</p>
-          </div>
+        <div className="flex flex-col items-center gap-3 animate-hero-rise [animation-delay:220ms]">
+          <Link href={DASHBOARD_PATH} className={PILL}>
+            <LayoutDashboard className="size-3.5" aria-hidden />
+            {TH.landing.viewDashboard}
+            <span className="hidden text-muted-foreground/70 sm:inline">{TH.landing.dashboardHint}</span>
+          </Link>
+          <p className="flex flex-wrap items-center justify-center gap-x-1.5 text-center text-xs text-muted-foreground/80">
+            <ShieldCheck className="size-3.5 shrink-0 text-primary" aria-hidden />
+            {TH.landing.trust} · {TH.landing.disclaimer}
+          </p>
         </div>
       </div>
     </div>

@@ -253,8 +253,8 @@ describe("red team: tool surface", () => {
   test("alerts come back only for the caller's scope", async () => {
     for (const [userId, own] of RSM_REGIONS.slice(0, 3)) {
       const label = `${userId} → alerts`;
-      const result = await ask<{ data: { scope: { region?: string } }[] }>(userId, "get_alerts", { status: "open", limit: 20 });
-      record(label, result.data.some((row) => row.scope.region !== undefined && row.scope.region !== own));
+      const result = await ask<{ rows: { scope: { region?: string } }[] }>(userId, "get_alerts", { status: "open", limit: 20 });
+      record(label, result.rows.some((row) => row.scope.region !== undefined && row.scope.region !== own));
     }
   });
 });

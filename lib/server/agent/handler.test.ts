@@ -59,7 +59,8 @@ describe("handlerFor", () => {
     const output = turn.toolOutputs[0] as { ok: boolean; rows: unknown[] };
     expect(output.ok).toBe(true);
     expect(output.rows.length).toBeGreaterThan(0);
-    expect(turn.raw).toContain("BarChart");
+    expect(turn.raw).toContain("DataCard");
+    expect(turn.raw).toContain("/tools/query_metric");
     expect(turn.text).toContain("ยอดขาย");
   });
 
@@ -68,7 +69,8 @@ describe("handlerFor", () => {
     const output = turn.toolOutputs[0] as { ok: boolean; provenance: { masked: string[] } };
     expect(output.ok).toBe(true);
     expect(output.provenance.masked.length).toBeGreaterThan(0);
-    expect(turn.raw).toContain("ถูกปิดตามสิทธิ์");
+    expect(turn.raw).toContain("***");
+    expect(turn.raw).toContain("DataCard");
   });
 
   test("a sales rep may resolve an owner but never reaches create_handoff", async () => {
