@@ -26,7 +26,8 @@ describe("role policies", () => {
     expect(ROLE_POLICIES.sales_rep.toolAllow).not.toContain("send_email");
     expect(ROLE_POLICIES.it_admin.toolAllow).toContain("run_job");
     expect(ROLE_POLICIES.ceo.toolAllow).not.toContain("run_job");
-    expect(ROLE_POLICIES.ceo.toolAllow.length).toBe(TOOL_SURFACE.length - 1);
+    expect(ROLE_POLICIES.ceo.toolAllow).not.toContain("set_permission");
+    expect(ROLE_POLICIES.ceo.toolAllow.length).toBe(TOOL_SURFACE.filter((entry) => entry.tier !== "destructive").length);
   });
 
   test("RSM scope is the own region, CEO scope is all", () => {

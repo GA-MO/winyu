@@ -5,8 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, BellRing, LogOut, Moon, Shield, Sun, Trash2, X } from "lucide-react";
 import { cn } from "vexa/lib/utils";
-import type { MemoryFact, User, WatchItem } from "@/lib/contracts";
-import { STORY_CAST } from "@/lib/demo/stories";
+import { ROLE_IDS, type MemoryFact, type User, type WatchItem } from "@/lib/contracts";
 import { isTrusted, lastSeenAt } from "@/lib/engine/memory-status";
 import { TH } from "@/lib/i18n/th";
 import { useTheme } from "@/components/theme/theme-provider";
@@ -71,8 +70,7 @@ export function AccountSheet({ open, onClose, user, users }: { open: boolean; on
 
   if (!open) return null;
 
-  const storyCast = STORY_CAST.flatMap((id) => users.find((person) => person.id === id) ?? []);
-  const others = users.filter((person) => !STORY_CAST.includes(person.id));
+  const byRole = ROLE_IDS.map((role) => ({ role, people: users.filter((person) => person.role === role) })).filter((group) => group.people.length > 0);
   const personButton = (person: User) => (
     <button
       key={person.id}
@@ -172,11 +170,15 @@ export function AccountSheet({ open, onClose, user, users }: { open: boolean; on
 
           <section className={SECTION}>
             <h3 className="text-xs font-medium tracking-wide text-muted-foreground">{TH.account.persona}</h3>
-            <div className="flex flex-col gap-1">{storyCast.map(personButton)}</div>
-            <details className="group">
-              <summary className="cursor-pointer rounded-xl px-2.5 py-1.5 text-xs text-muted-foreground hover:bg-muted">{TH.account.otherPeople(others.length)}</summary>
-              <div className="mt-1 flex flex-col gap-1">{others.map(personButton)}</div>
-            </details>
+            {byRole.map((group) => (
+              <details key={group.role} className="group" open={group.role === user.role}>
+                <summary className="flex cursor-pointer items-center justify-between rounded-xl px-2.5 py-1.5 text-xs text-muted-foreground hover:bg-muted">
+                  {TH.role[group.role]}
+                  <span className="tabular-nums">{group.people.length}</span>
+                </summary>
+                <div className="mt-1 flex flex-col gap-1">{group.people.map(personButton)}</div>
+              </details>
+            ))}
           </section>
 
           <section className={SECTION}>

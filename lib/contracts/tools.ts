@@ -7,7 +7,7 @@ import { watchMetricInputSchema } from "./watches";
 
 export type ToolTier = "read" | "write" | "destructive";
 export type ToolName = "query_metric" | "list_metrics" | "describe_entity" | "get_alerts" | "get_forecast" | "get_calendar" | "recall_memory"
-  | "resolve_owner" | "create_handoff" | "send_email" | "pin_widget" | "watch_metric" | "run_job";
+  | "resolve_owner" | "create_handoff" | "send_email" | "pin_widget" | "watch_metric" | "run_job" | "set_permission";
 export type ToolSurfaceEntry = { name: ToolName; tier: ToolTier; roles: RoleId[] | "all"; input: z.ZodType };
 
 const MAX_FORECAST_WEEKS = 26;
@@ -38,6 +38,14 @@ export const createHandoffInputSchema = z.object({
 export const sendEmailInputSchema = z.object({ toUserId: z.string().min(1), subject: z.string().min(1), body: z.string().min(1) });
 export const pinWidgetInputSchema = z.object({ title: z.string().min(1), kind: widgetKindSchema, query: metricQuerySchema });
 export const runJobInputSchema = z.object({ job: z.enum(JOBS) });
+export const PERMISSION_KINDS = ["metric", "tool"] as const;
+export const PERMISSION_VALUES = ["full", "masked", "none", "allow", "deny"] as const;
+export const setPermissionInputSchema = z.object({
+  role: z.enum(ROLE_IDS),
+  kind: z.enum(PERMISSION_KINDS),
+  key: z.string().min(1),
+  value: z.enum(PERMISSION_VALUES),
+});
 
 export const TOOL_SURFACE: readonly ToolSurfaceEntry[] = [
   { name: "query_metric", tier: "read", roles: "all", input: metricQuerySchema },
@@ -53,6 +61,7 @@ export const TOOL_SURFACE: readonly ToolSurfaceEntry[] = [
   { name: "pin_widget", tier: "write", roles: "all", input: pinWidgetInputSchema },
   { name: "watch_metric", tier: "write", roles: "all", input: watchMetricInputSchema },
   { name: "run_job", tier: "destructive", roles: ["it_admin"], input: runJobInputSchema },
+  { name: "set_permission", tier: "destructive", roles: ["it_admin"], input: setPermissionInputSchema },
 ];
 
 /** Tool names a role may call, in surface order. */

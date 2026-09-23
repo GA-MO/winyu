@@ -4,6 +4,7 @@ import { requireAccess, unauthenticated } from "../_guard";
 import { notifications } from "@/lib/server/agent/collections";
 import { packetsFor, resolveEvidence, sentPackets, type EvidenceView } from "@/lib/server/handoff";
 import { canJudge, openAlertsFor } from "@/lib/server/alerts";
+import { handoffEnabled } from "@/lib/access/enforce";
 import { lessonFor } from "@/lib/server/outcomes";
 import { displayLabel } from "@/lib/semantic/dictionary";
 import { formatDelta, formatMetricValue, metricLabel, toneOf } from "@/lib/dashboard/metric-display";
@@ -52,7 +53,7 @@ function movementOf(alert: Alert): AlertItem["movement"] {
   };
 }
 
-function alertOf(alert: Alert, access: AccessContext): AlertItem {
+function alertOf(alert: Alert, access: AccessContext, handoffOpen: boolean): AlertItem {
   const owner = findUser(alert.ownerUserId);
   const scope = scopeOf(alert);
   return {
@@ -68,7 +69,7 @@ function alertOf(alert: Alert, access: AccessContext): AlertItem {
     window: `${formatDateTh(alert.window.from)} – ${formatDateTh(alert.window.to)}`,
     movement: movementOf(alert),
     ownerName: owner?.nameTh ?? "",
-    handoffPrompt: TH.inbox.handoffPrompt(metricLabel(alert.metric), scope, owner?.nameTh ?? ""),
+    handoffPrompt: handoffOpen ? TH.inbox.handoffPrompt(metricLabel(alert.metric), scope, owner?.nameTh ?? "") : null,
   };
 }
 
@@ -96,11 +97,12 @@ export async function GET() {
   const access = await requireAccess();
   if (!access) return unauthenticated();
 
+  const handoffOpen = handoffEnabled();
   const handoffs: HandoffItem[] = packetsFor(access.userId)
     .slice(0, MAX_ITEMS)
     .map((packet) => handoffOf(packet, access));
 
-  const alertItems: AlertItem[] = openAlertsFor(access).slice(0, MAX_ALERT_ITEMS).map((alert) => alertOf(alert, access));
+  const alertItems: AlertItem[] = openAlertsFor(access).slice(0, MAX_ALERT_ITEMS).map((alert) => alertOf(alert, access, handoffOpen));
 
   const replies: ReplyItem[] = sentPackets(access.userId)
     .filter((packet) => packet.thread.length > 0)
@@ -111,6 +113,6 @@ export async function GET() {
     });
 
   const unread = notifications().where((item) => item.userId === access.userId && !item.read).length;
-  const payload: InboxPayload = { handoffs, alerts: alertItems, replies, unread };
+  const payload: InboxPayload = { handoffs, alerts: alertItems, replies, unread, handoffOpen };
   return Response.json(payload);
 }

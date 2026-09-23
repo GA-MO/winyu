@@ -1,8 +1,10 @@
 import type { AccessContext, User } from "@/lib/contracts";
-import { accessFor } from "@/lib/access/policies";
+import { liveAccessFor } from "@/lib/access/enforce";
 import { findUser } from "@/lib/data/entities/users";
+import { SESSION_COOKIE } from "./session-cookie";
 
-export const SESSION_COOKIE = "cop_session";
+export { SESSION_COOKIE };
+
 const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 30;
 
 type CookieReader = { get(name: string): { value: string } | undefined };
@@ -16,7 +18,7 @@ export function readUser(cookies: CookieReader): User | null {
 /** The access context of the signed-in persona, or null when the cookie is missing or names no user. */
 export function readAccess(cookies: CookieReader): AccessContext | null {
   const user = readUser(cookies);
-  return user ? accessFor(user) : null;
+  return user ? liveAccessFor(user) : null;
 }
 
 export function sessionCookie(userId: string) {

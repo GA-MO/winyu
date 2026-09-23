@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import type { AccessContext, MetricQuery, PersonalWatch, WatchCondition } from "@/lib/contracts";
 
 export { conditionLabel };
-import { accessFor } from "@/lib/access/policies";
+import { liveAccessFor } from "@/lib/access/enforce";
 import { findUser } from "@/lib/data/entities/users";
 import { runMetric } from "@/lib/data/query";
 import { checkWatch, conditionLabel, nextState, rollingQuery, windowDaysOf, type WatchHit } from "@/lib/engine/personal-watches";
@@ -92,7 +92,7 @@ export function runWatchJob(at = new Date()): { checked: number; fired: number }
   for (const watch of watches) {
     const user = findUser(watch.userId);
     if (!user) continue;
-    const check = checkWatch(runMetric(rollingQuery(watch), accessFor(user)), watch.condition);
+    const check = checkWatch(runMetric(rollingQuery(watch), liveAccessFor(user)), watch.condition);
     const next = nextState(watch.state, check.breached);
     personalWatches().put({
       ...watch,

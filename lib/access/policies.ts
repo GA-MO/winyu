@@ -11,6 +11,17 @@ const FINANCE_METRICS: MetricId[] = ["gross_margin", "trade_spend", "ar_overdue"
 const HR_METRICS: MetricId[] = ["headcount", "attrition_rate"];
 const SALARY: MetricId = "avg_salary";
 
+export type MetricDomain = "sales" | "supply" | "marketing" | "finance" | "hr";
+
+/** Metrics grouped by the department that owns them, in the order the admin console lists them. */
+export const METRIC_DOMAINS: readonly { id: MetricDomain; metrics: readonly MetricId[] }[] = [
+  { id: "sales", metrics: SALES_METRICS },
+  { id: "supply", metrics: SUPPLY_METRICS },
+  { id: "marketing", metrics: MARKETING_METRICS },
+  { id: "finance", metrics: FINANCE_METRICS },
+  { id: "hr", metrics: [...HR_METRICS, SALARY] },
+];
+
 function acl(defaultVisibility: Visibility, overrides: Partial<MetricAcl> = {}): MetricAcl {
   const table = Object.fromEntries(METRIC_IDS.map((id) => [id, defaultVisibility])) as MetricAcl;
   return { ...table, ...overrides };

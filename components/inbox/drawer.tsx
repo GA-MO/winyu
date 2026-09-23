@@ -11,7 +11,7 @@ import type { AlertItem, HandoffItem, InboxPayload, ReplyItem } from "./types";
 const INBOX_ENDPOINT = "/api/inbox";
 const ALERTS_ENDPOINT = "/api/alerts";
 const NOTIFICATIONS_ENDPOINT = "/api/notifications";
-const EMPTY: InboxPayload = { handoffs: [], alerts: [], replies: [], unread: 0 };
+const EMPTY: InboxPayload = { handoffs: [], alerts: [], replies: [], unread: 0, handoffOpen: true };
 const TABS = ["handoffs", "alerts", "replies"] as const;
 const PANEL = "fixed right-0 top-0 z-50 flex h-dvh w-full max-w-[26rem] flex-col border-l border-border bg-card shadow-panel animate-panel-in";
 const ACTION = "rounded-full border border-border bg-card px-3 py-1.5 text-xs text-muted-foreground transition hover:border-foreground/25 hover:text-foreground";
@@ -145,6 +145,7 @@ export function InboxDrawer({ open, onClose, focus = DEFAULT_FOCUS }: { open: bo
           {loaded && tab === "handoffs" ? (
             <HandoffList
               items={data.handoffs}
+              open={data.handoffOpen}
               note={note}
               onAct={act}
               onOpen={(id) => router.push(`/c/new?preload=${id}`)}
@@ -161,7 +162,7 @@ export function InboxDrawer({ open, onClose, focus = DEFAULT_FOCUS }: { open: bo
               onAsk={(prompt) => router.push(`/c/new?prompt=${encodeURIComponent(prompt)}`)}
             />
           ) : null}
-          {loaded && tab === "replies" ? <ReplyList items={data.replies} /> : null}
+          {loaded && tab === "replies" ? <ReplyList items={data.replies} open={data.handoffOpen} /> : null}
         </div>
       </aside>
     </>
@@ -183,14 +184,16 @@ function HandoffList({
   onAct,
   onOpen,
   onAsk,
+  open,
 }: {
   items: HandoffItem[];
+  open: boolean;
   note: string | null;
   onAct: PacketAct;
   onOpen: (id: string) => void;
   onAsk: (prompt: string) => void;
 }) {
-  if (items.length === 0) return <EmptyLine text={TH.inbox.empty.handoffs} />;
+  if (items.length === 0) return <EmptyLine text={open ? TH.inbox.empty.handoffs : TH.inbox.handoffClosed} />;
   return (
     <>
       {note ? <p className="px-1 text-xs text-danger">{note}</p> : null}
@@ -400,15 +403,17 @@ function AlertList({
             ))}
           </div>
           <div className="flex flex-wrap gap-1.5">
-            <button
-              type="button"
-              onClick={() => {
-                onAct(item.id, "open");
-                onAsk(item.handoffPrompt);
-              }}
-              className={cn(ACTION, "border-transparent bg-ink text-ink-foreground hover:text-ink-foreground")}>
-              {TH.inbox.handoff}
-            </button>
+            {item.handoffPrompt ? (
+              <button
+                type="button"
+                onClick={() => {
+                  onAct(item.id, "open");
+                  if (item.handoffPrompt) onAsk(item.handoffPrompt);
+                }}
+                className={cn(ACTION, "border-transparent bg-ink text-ink-foreground hover:text-ink-foreground")}>
+                {TH.inbox.handoff}
+              </button>
+            ) : null}
             <button type="button" onClick={() => onAct(item.id, "mute")} className={ACTION}>
               {TH.inbox.mute}
             </button>
@@ -424,8 +429,8 @@ function AlertList({
   );
 }
 
-function ReplyList({ items }: { items: ReplyItem[] }) {
-  if (items.length === 0) return <EmptyLine text={TH.inbox.empty.replies} />;
+function ReplyList({ items, open }: { items: ReplyItem[]; open: boolean }) {
+  if (items.length === 0) return <EmptyLine text={open ? TH.inbox.empty.replies : TH.inbox.handoffClosed} />;
   return (
     <>
       {items.map((item) => (

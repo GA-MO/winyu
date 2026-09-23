@@ -38,9 +38,9 @@ export type AlertItem = {
   window: string;
   movement: { observed: string; expected: string; delta: string | null; tone: "good" | "bad" | "neutral" };
   ownerName: string;
-  handoffPrompt: string;
+  handoffPrompt: string | null;
 };
 
 export type ReplyItem = { id: string; title: string; toName: string; text: string; at: string; status: string };
 
-export type InboxPayload = { handoffs: HandoffItem[]; alerts: AlertItem[]; replies: ReplyItem[]; unread: number };
+export type InboxPayload = { handoffs: HandoffItem[]; alerts: AlertItem[]; replies: ReplyItem[]; unread: number; handoffOpen: boolean };

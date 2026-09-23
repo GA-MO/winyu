@@ -1,11 +1,11 @@
 "use client";
 
 import type { LucideIcon } from "lucide-react";
-import { BellRing, Check, LayoutGrid, Mail, RefreshCw, Send, X } from "lucide-react";
+import { BellRing, Check, LayoutGrid, Mail, RefreshCw, Send, ShieldCheck, X } from "lucide-react";
 import type { ApprovalRequest, RenderApproval } from "vexa/react";
-import type { MetricQuery, Urgency, WatchCondition } from "@/lib/contracts";
+import { METRIC_IDS, ROLE_IDS, type MetricId, type MetricQuery, type RoleId, type Urgency, type WatchCondition } from "@/lib/contracts";
 import { conditionLabel } from "@/lib/engine/personal-watches";
-import { findUser } from "@/lib/data/entities/users";
+import { USERS, findUser } from "@/lib/data/entities/users";
 import { metricLabel } from "@/lib/dashboard/metric-display";
 import { displayLabel } from "@/lib/semantic/dictionary";
 import { TH } from "@/lib/i18n/th";
@@ -41,6 +41,15 @@ type EmailInput = { toUserId?: string; subject?: string; body?: string };
 type PinInput = { title?: string; query?: MetricQuery };
 type JobInput = { job?: string };
 type WatchInput = { title?: string; query?: MetricQuery; condition?: WatchCondition };
+type PermissionInput = { role?: string; kind?: string; key?: string; value?: string };
+
+const PERMISSION_VALUE_LABEL: Record<string, string> = {
+  full: TH.admin.acl.full,
+  masked: TH.admin.acl.masked,
+  none: TH.admin.acl.none,
+  allow: TH.admin.permission.allow,
+  deny: TH.admin.permission.deny,
+};
 
 function personLine(userId: string | undefined): { name: string; line: string | null } {
   const user = userId ? findUser(userId) : null;
@@ -158,6 +167,35 @@ function jobDecision(input: JobInput): Decision {
   };
 }
 
+function roleOf(value: string | undefined): RoleId | null {
+  return ROLE_IDS.includes(value as RoleId) ? (value as RoleId) : null;
+}
+
+function permissionSubject(input: PermissionInput): string {
+  const key = input.key ?? "";
+  return input.kind === "metric" && METRIC_IDS.includes(key as MetricId) ? metricLabel(key as MetricId) : key;
+}
+
+function permissionDecision(input: PermissionInput): Decision {
+  const role = roleOf(input.role);
+  const roleLabel = role ? TH.role[role] : (input.role ?? "");
+  const people = role ? USERS.filter((user) => user.role === role).length : 0;
+  return {
+    icon: ShieldCheck,
+    title: TH.approve.permissionDone(roleLabel),
+    person: TH.approve.permissionPeople(people),
+    subjectLabel: TH.approve.permissionChange,
+    subject: `${permissionSubject(input)} → ${PERMISSION_VALUE_LABEL[input.value ?? ""] ?? input.value ?? ""}`,
+    body: null,
+    chips: [],
+    urgency: null,
+    effect: TH.approve.effectPermission,
+    confirm: TH.approve.confirmPermission,
+    cancel: TH.approve.cancelDo,
+    done: TH.approve.donePermission(roleLabel),
+  };
+}
+
 function decisionOf(tool: string, input: unknown): Decision | null {
   const value = (input ?? {}) as Record<string, unknown>;
   if (tool === "create_handoff") return handoffDecision(value);
@@ -165,6 +203,7 @@ function decisionOf(tool: string, input: unknown): Decision | null {
   if (tool === "pin_widget") return pinDecision(value);
   if (tool === "watch_metric") return watchDecision(value);
   if (tool === "run_job") return jobDecision(value);
+  if (tool === "set_permission") return permissionDecision(value);
   return null;
 }
 

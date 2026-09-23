@@ -3,6 +3,7 @@ import { tool, type Tool, type ToolSet } from "ai";
 import type { z } from "zod";
 import { responsibleFor } from "@/lib/access/raci";
 import { toolsFor } from "@/lib/access/enforce";
+import { applyPermissionChange } from "@/lib/server/permissions";
 import {
   TOOL_SURFACE,
   createHandoffInputSchema,
@@ -18,6 +19,7 @@ import {
   resolveOwnerInputSchema,
   runJobInputSchema,
   sendEmailInputSchema,
+  setPermissionInputSchema,
   type AccessContext,
   type Alert,
   type MetricQuery,
@@ -386,6 +388,18 @@ const run_job = tool({
   }),
 });
 
+const set_permission = tool({
+  description:
+    "Change what one role may see or do, for every user in that role, effective on their next question. kind 'metric': key is a metric id from list_metrics, value 'full' (sees all), 'masked' (values shown as ***) or 'none' (cannot see it). kind 'tool': key is a tool name, value 'allow' or 'deny'. Roles: ceo, cfo, sales_director, sales_rsm (ผู้จัดการขายภาค), sales_rep (พนักงานขาย), marketing_lead, supply_planner, finance_analyst, hr_manager, it_admin. One change per call; call it once per role when the admin names several. IT administrators only; the admin approves it first.",
+  inputSchema: setPermissionInputSchema,
+  needsApproval: true,
+  execute: withAudit("set_permission", async (input: z.infer<typeof setPermissionInputSchema>) => {
+    const change = applyPermissionChange(input, currentAccess().userId);
+    if (!change.ok) return { ok: false as const, error: change.error };
+    return { ok: true as const, summary: change.summary, data: change.data };
+  }),
+});
+
 const TOOLS = {
   query_metric,
   list_metrics,
@@ -400,6 +414,7 @@ const TOOLS = {
   pin_widget,
   watch_metric,
   run_job,
+  set_permission,
 } satisfies Record<ToolName, Tool>;
 
 export const toolTiers: Partial<Record<ToolName, ToolTier>> = Object.fromEntries(

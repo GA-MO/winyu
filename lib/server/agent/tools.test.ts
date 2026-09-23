@@ -1,6 +1,8 @@
 import { describe, expect, test } from "bun:test";
 import type { Tool } from "ai";
 import { accessFor } from "@/lib/access/policies";
+import { liveAccessFor, setHandoffEnabled, withAdminSwitches } from "@/lib/access/enforce";
+import { resetRoleOverrides } from "@/lib/access/role-overrides";
 import type { AccessContext, MetricQuery, MetricResult } from "@/lib/contracts";
 import { findUser } from "@/lib/data/entities/users";
 import { auditLog } from "@/lib/server/audit";
@@ -175,10 +177,47 @@ describe("run_job", () => {
   });
 });
 
+describe("set_permission", () => {
+  test("an IT admin hides a metric from a role in chat, and the role's queries follow", async () => {
+    const result = await call<{ ok: boolean; summary: string; data: { before: string; after: string; affectedUsers: number } }>("u_ton", "set_permission", {
+      role: "sales_rep",
+      kind: "metric",
+      key: "net_sales_value",
+      value: "none",
+    });
+    expect(result.ok).toBe(true);
+    expect(result.data.after).toBe("ไม่เห็น");
+    expect(result.data.affectedUsers).toBeGreaterThan(0);
+    expect(liveAccessFor(findUser("u_krit")!).metricAcl.net_sales_value).toBe("none");
+    resetRoleOverrides();
+  });
+
+  test("an unknown metric and a destructive grant are refused", async () => {
+    const unknown = await call<{ ok: boolean }>("u_ton", "set_permission", { role: "sales_rep", kind: "metric", key: "profit", value: "full" });
+    expect(unknown.ok).toBe(false);
+    const grant = await call<{ ok: boolean }>("u_ton", "set_permission", { role: "sales_rep", kind: "tool", key: "run_job", value: "allow" });
+    expect(grant.ok).toBe(false);
+  });
+
+  test("only IT reaches the tool", () => {
+    expect(Object.keys(toolsForAccess(accessOf("u_ton")))).toContain("set_permission");
+    expect(Object.keys(toolsForAccess(accessOf("u_thana")))).not.toContain("set_permission");
+  });
+});
+
 describe("toolsForAccess", () => {
   test("returns only the allowed subset", () => {
     expect(Object.keys(toolsForAccess(accessOf("u_krit")))).not.toContain("create_handoff");
     expect(Object.keys(toolsForAccess(accessOf("u_ton")))).toContain("run_job");
     expect(Object.keys(toolsForAccess(accessOf("u_thana")))).not.toContain("run_job");
+  });
+
+  test("the admin handoff switch takes handoff and mail away from everyone, then gives them back", () => {
+    setHandoffEnabled(false, "u_ton");
+    expect(Object.keys(toolsForAccess(accessOf("u_anucha")))).not.toContain("create_handoff");
+    expect(Object.keys(toolsForAccess(accessOf("u_anucha")))).not.toContain("send_email");
+    expect(withAdminSwitches(accessOf("u_anucha")).toolAllow).not.toContain("create_handoff");
+    setHandoffEnabled(true, "u_ton");
+    expect(Object.keys(toolsForAccess(accessOf("u_anucha")))).toContain("create_handoff");
   });
 });

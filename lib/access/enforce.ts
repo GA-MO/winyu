@@ -1,7 +1,14 @@
-import { TOOL_SURFACE, type AccessContext, type Dim, type ToolName, type ToolTier } from "@/lib/contracts";
+import { TOOL_SURFACE, type AccessContext, type Dim, type ToolName, type ToolTier, type User } from "@/lib/contracts";
 import { collection } from "@/lib/server/store/json-store";
+import { accessFor } from "./policies";
+import { permissionsFor } from "./role-overrides";
 
 export const KILLED_TOOLS_COLLECTION = "killed-tools";
+export const SWITCHES_COLLECTION = "switches";
+export const HANDOFF_SWITCH_ID = "handoff";
+export const HANDOFF_TOOLS: readonly ToolName[] = ["create_handoff", "send_email"];
+
+export type SwitchEntry = { id: string; enabled: boolean; by: string; at: string };
 
 export type KillSwitchEntry = { id: ToolName; killedBy: string; at: string };
 
@@ -35,9 +42,40 @@ export function reviveTool(name: ToolName): boolean {
   return collection<KillSwitchEntry>(KILLED_TOOLS_COLLECTION).remove(name);
 }
 
-/** The tools a user may call: the surface, minus what the role policy withholds, minus the admin kill switch. */
+export function handoffSwitch(): SwitchEntry | null {
+  return collection<SwitchEntry>(SWITCHES_COLLECTION).get(HANDOFF_SWITCH_ID);
+}
+
+/** Whether people may send work and mail to each other; on until an admin turns it off. */
+export function handoffEnabled(): boolean {
+  return handoffSwitch()?.enabled ?? true;
+}
+
+export function setHandoffEnabled(enabled: boolean, by: string): SwitchEntry {
+  return collection<SwitchEntry>(SWITCHES_COLLECTION).put({ id: HANDOFF_SWITCH_ID, enabled, by, at: new Date().toISOString() });
+}
+
+function closedTools(): Set<string> {
+  const closed = new Set<string>(killedTools());
+  if (!handoffEnabled()) for (const name of HANDOFF_TOOLS) closed.add(name);
+  return closed;
+}
+
+/** The access context under the admin's role overrides, with every tool switched off taken out, so buttons and tools agree. */
+export function withAdminSwitches(access: AccessContext): AccessContext {
+  const closed = closedTools();
+  const permissions = permissionsFor(access.role);
+  return { ...access, metricAcl: permissions.metricAcl, toolAllow: permissions.toolAllow.filter((name) => !closed.has(name)) };
+}
+
+/** The access context a user's queries run under right now: the role policy, the admin's overrides and switches. */
+export function liveAccessFor(user: User): AccessContext {
+  return withAdminSwitches(accessFor(user));
+}
+
+/** The tools a user may call: the surface, minus what the role policy withholds, minus the admin kill switches. */
 export function toolsFor(access: AccessContext): ToolName[] {
-  const killed = new Set(killedTools());
+  const killed = closedTools();
   return TOOL_SURFACE.filter((entry) => access.toolAllow.includes(entry.name) && !killed.has(entry.name)).map((entry) => entry.name);
 }
 

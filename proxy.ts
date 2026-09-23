@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { SESSION_COOKIE } from "@/lib/server/session";
+import { SESSION_COOKIE } from "@/lib/server/session-cookie";
 
 const PUBLIC_PATHS = ["/login", "/api/session"];
 
@@ -7,7 +7,7 @@ function isPublic(pathname: string) {
   return PUBLIC_PATHS.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
 }
 
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
   if (isPublic(pathname)) return NextResponse.next();
   if (req.cookies.get(SESSION_COOKIE)?.value) return NextResponse.next();

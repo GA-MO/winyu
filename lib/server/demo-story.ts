@@ -5,6 +5,7 @@ import { findUser } from "@/lib/data/entities/users";
 import { alertOutcomes, alerts, packets } from "./agent/collections";
 import { runEngineJobs } from "./alerts";
 import { createPacket } from "./handoff";
+import { handoffEnabled } from "@/lib/access/enforce";
 
 const STORY_AGENT = "ag_nea_05";
 const SENDER_ID = "u_anucha";
@@ -15,7 +16,7 @@ const PAST_OUTCOME_AT = "2026-06-12T09:00:00.000Z";
 const PAST_OUTCOME = "ติดวงเงินเครดิต ขยายวงเงินแล้วยอดกลับใน 2 สัปดาห์";
 const LOOKBACK_DAYS = 27;
 
-export type DemoStory = { alertId: string; packetId: string; outcomeId: string; created: { packet: boolean; outcome: boolean } };
+export type DemoStory = { alertId: string; packetId: string | null; outcomeId: string; created: { packet: boolean; outcome: boolean } };
 
 function storyAlert(): Alert | null {
   return (
@@ -87,6 +88,6 @@ export function ensureDemoStory(): DemoStory | null {
   if (!alert) return null;
   const outcomeCreated = ensurePastOutcome(alert);
   const existing = openStoryPacket(alert.id);
-  const packet = existing ?? sendStoryPacket(alert);
-  return { alertId: alert.id, packetId: packet.id, outcomeId: PAST_OUTCOME_ID, created: { packet: !existing, outcome: outcomeCreated } };
+  const packet = existing ?? (handoffEnabled() ? sendStoryPacket(alert) : null);
+  return { alertId: alert.id, packetId: packet?.id ?? null, outcomeId: PAST_OUTCOME_ID, created: { packet: !existing && packet !== null, outcome: outcomeCreated } };
 }

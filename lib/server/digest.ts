@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import type { AccessContext, Alert, User } from "@/lib/contracts";
-import { accessFor } from "@/lib/access/policies";
+import { liveAccessFor } from "@/lib/access/enforce";
 import { USERS } from "@/lib/data/entities/users";
 import { alertRowOf } from "@/lib/cards/alert-row";
 import { TH } from "@/lib/i18n/th";
@@ -59,7 +59,7 @@ export function runDigestJob(at = new Date()): { sent: number; skipped: number }
       skipped += 1;
       continue;
     }
-    const digest = digestFor(accessFor(user), new Set(previous?.alertIds ?? []));
+    const digest = digestFor(liveAccessFor(user), new Set(previous?.alertIds ?? []));
     if (digest.lines.length === 0) {
       skipped += 1;
       continue;
