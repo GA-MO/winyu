@@ -65,6 +65,8 @@ const MAX_ALERTS = 4;
 const RANK_MIN_ROWS = 2;
 const TIME_DIMS: readonly Dim[] = ["date", "week", "month"];
 const SUNDAY = 0;
+const DC_PREFIX = "ศูนย์กระจายสินค้า";
+const DC_SHORT = "ดีซี";
 const PERCENT = 100;
 const NO_EXTRAS: CardExtras = {};
 const NO_ACTIONS: NextAction[] = [];
@@ -100,7 +102,7 @@ function labelOf(query: MetricQuery, row: MetricRow): string {
   const parts = query.dims
     .map((dim) => ({ dim, value: row[dim] }))
     .filter((part) => part.value !== null && part.value !== undefined && part.value !== "")
-    .map((part) => (isTimeDim(part.dim) ? periodLabelTh(String(part.value)) : String(part.value)));
+    .map((part) => (isTimeDim(part.dim) ? periodLabelTh(String(part.value)) : part.dim === "dc" ? String(part.value).replace(DC_PREFIX, DC_SHORT) : String(part.value)));
   return parts.length > 0 ? parts.join(" · ") : metricLabel(query.metric);
 }
 

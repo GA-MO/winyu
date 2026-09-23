@@ -101,6 +101,65 @@ export function dropRollUps(detections: Detection[]): Detection[] {
   });
 }
 
+function agentStoryKey(detection: Detection): string | null {
+  if (!detection.dims.agent || detection.dims.sku) return null;
+  return [detection.metric, detection.direction, detection.dims.agent].join("|");
+}
+
+function earlier(left: string, right: string): string {
+  return left < right ? left : right;
+}
+
+function later(left: string, right: string): string {
+  return left > right ? left : right;
+}
+
+function mergedStory(parts: Detection[]): Detection {
+  const lead = parts.reduce((best, part) => (Math.abs(part.zScore) > Math.abs(best.zScore) ? part : best));
+  const dims = { agent: lead.dims.agent, ...(lead.dims.region ? { region: lead.dims.region } : {}) };
+  const window = {
+    from: parts.reduce((min, part) => earlier(min, part.window.from), lead.window.from),
+    to: parts.reduce((max, part) => later(max, part.window.to), lead.window.to),
+  };
+  const observed = parts.reduce((sum, part) => sum + part.observed, 0);
+  const expected = parts.reduce((sum, part) => sum + part.expected, 0);
+  const region = regionOfDims(dims);
+  const explanation = explain({ metric: lead.metric, dims, direction: lead.direction, window, observed, expected, region, detail: null });
+  const worst = parts.reduce((best, part) => (SEVERITY_RANK[part.severity] < SEVERITY_RANK[best.severity] ? part : best));
+  return {
+    ...lead,
+    id: `al_${createHash("sha1").update(["story", lead.watchId, lead.metric, `agent=${lead.dims.agent}`, lead.direction].join("|")).digest("hex").slice(0, 16)}`,
+    dims,
+    window,
+    observed: round(observed),
+    expected: round(expected),
+    severity: explanation.explained ? "P3" : worst.severity,
+    hypothesis: explanation.hypothesis,
+    verifySteps: explanation.verifySteps,
+    explained: explanation.explained,
+  };
+}
+
+/** Folds the brands of one agent moving the same way into a single alert, since they are one story for the person who acts on it. */
+export function mergeAgentStories(detections: Detection[]): Detection[] {
+  const groups = new Map<string, Detection[]>();
+  for (const detection of detections) {
+    const key = agentStoryKey(detection);
+    if (key) groups.set(key, [...(groups.get(key) ?? []), detection]);
+  }
+  const merged = new Map<Detection, Detection | null>();
+  for (const parts of groups.values()) {
+    if (parts.length < 2) continue;
+    const story = mergedStory(parts);
+    parts.forEach((part, index) => merged.set(part, index === 0 ? story : null));
+  }
+  return detections.flatMap((detection) => {
+    if (!merged.has(detection)) return [detection];
+    const story = merged.get(detection);
+    return story ? [story] : [];
+  });
+}
+
 function detectWatch(watch: Watch, thresholds: Thresholds, covered: Set<string>): Detection[] {
   const parent = watch.parent ? watchById(watch.parent) : null;
   const found: Detection[] = [];
@@ -169,7 +228,7 @@ export function detectAnomalies(thresholds: Thresholds = {}): Detection[] {
     for (const detection of detections) covered.add(`${watch.id}:${watch.entityDims.map((dim) => detection.dims[dim] ?? "").join("|")}`);
     found.push(...detections);
   }
-  return capPerWatch(dropRollUps(found))
+  return capPerWatch(mergeAgentStories(dropRollUps(found)))
     .sort((left, right) => SEVERITY_RANK[left.severity] - SEVERITY_RANK[right.severity] || Math.abs(right.zScore) - Math.abs(left.zScore))
     .slice(0, MAX_ALERTS);
 }

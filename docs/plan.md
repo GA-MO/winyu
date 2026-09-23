@@ -1,20 +1,18 @@
 # Cop — build plan
 
 ## สถานะ (updated 2026-09-23)
-ทำแล้ว: Phase 0–3 · 1.5–1.9 (Cop `5ef3363`, `d303add`, `dd33323` บน `main`) · Vexa host catalog/approval/data-card (`d893818` บน `roadmap`) · โมเดลจริง `google/gemini-3.8-flash` ผ่าน OpenRouter · `eval:cards` 28/30 ×2 · หน้าแรก 1.9 ผ่านการทดลองใช้โดย agent 6 บทบาท (CEO/CFO/ผอ.ขาย/RSM/พนักงานขาย/supply) · typecheck + 231 tests ผ่านหลัง `dd33323`
+ทำแล้ว: Phase 0–3 · 1.5–1.9 (`5ef3363`, `d303add`, `dd33323`) · Phase 4A–4E (`0b19a76`) · eval แสดง token + ค่าใช้จ่าย (ยังไม่ commit) · **4F ตรวจหลัง Phase 4** (ยังไม่ commit): รวม alert เอเย่นต์เดียวกันทิศเดียวกันเป็นเรื่องเดียว, การ์ด/KPI สต๊อกบอกช่อง ดีซี × SKU ที่ต่ำสุด, `eval:cards` เต็มชุดกับ Gemini 20/22 → 22/22 หลังแก้, ดูหน้าแรก HR/marketing/finance/IT · typecheck + 337 tests ผ่าน
 ค้าง:
-- ~~persona HR / marketing / finance_analyst / it_admin ยังไม่เคยเปิดหน้าแรก~~ ตรวจแล้ว 2026-09-23 (u_may, u_ben, u_pim, u_mint, u_ton ที่ 1280/375 px): แก้ alert บนเมตริกที่ถูก mask ยังโชว์ค่าจริง/คาดบนหน้าแรก กล่องงาน และ `get_alerts` (`inScope` ต้องเป็น `full`) · ชิปที่บทบาทไม่มีสิทธิ์ถูกตัด (`answerable` ใน `quick-actions.ts`) + ชิป HR/IT ของบทบาทเอง · KPI ซ้ำ · การ์ดงานที่ส่งมาบนหน้าแรกเปิดแชทแบบ preload เหมือนกล่องงาน (ก่อนหน้านี้ Gemini ใช้ tool จนหมด 6 ขั้นแล้วไม่ตอบ) · ความผิดปกติในภาคของผู้ใช้ขึ้นก่อน · `run_job` ขึ้นการ์ดอนุมัติในเบราว์เซอร์ (ยังไม่ได้กดอนุมัติ)
-- mock: `PRELOAD_STEPS` ตอบฉากสต๊อกของ supply เสมอ ไม่ว่างานที่ส่งมาจะเรื่องอะไร (Gemini ตอบถูก) · ชิป "เตรียมสต๊อกออกพรรษา" ใน mock ได้ตาราง cover รายดีซี ไม่ได้ YoY เบียร์ · คุณพิมมีงานที่ส่งมา 68 ชิ้นจากการทดลอง/eval ที่เขียนลง `.data`
-- หน้าแรก: เอเย่นต์อันดับ 1 ของ "ไปเยี่ยมวันนี้" ซ้ำกับการ์ดความผิดปกติข้างล่าง (`lib/server/dashboard.ts` `visitsFor` / `ambientFor`) · การ์ดใบที่สองอาจเป็น P3 ที่ engine อธิบายได้แล้ว (`differentStory` ใน `lib/dashboard/ambient.ts`) · แดชบอร์ดบอก "ความผิดปกติใหม่ 44 เรื่องตั้งแต่เมื่อวาน" (`changesSince` ใน `lib/server/briefing.ts`) เพราะ engine สร้างทุกเรื่องเมื่อวาน
-- mock: กดรายการเยี่ยมได้กราฟขายเข้า/ขายออกของทุกเอเย่นต์ ไม่เจาะรายเดียว; prompt การ์ดหน้าแรก (focused alert ×2, visit, งบเทียบจริง, headcount) อยู่ใน `lib/eval/cases.ts` แล้ว: `eval:cards` Gemini 35/40 ×2 (landing-visit/finance-budget 3/3 หลังเพิ่มกฎงบ tool ใน `COP_RULES`; ที่ตกคือ 429 ของ OpenRouter 2 เคส, ceo-alerts ตอบเป็นข้อความ 1/2, hr-headcount ไม่ใส่ sortBy 1/2, planner-forecast ปี 2026 1/2)
-- ยังไม่ push ทั้งสอง repo · Vexa `roadmap` ยังไม่ merge · devtools toggle ของ Vexa โผล่ในแชทตอน dev
+- ยังไม่ commit: usage meter + 4F · `lib/data/query.ts` มีงานของ session อื่นปนอยู่ (ถัว HR headcount / ค่าเฉลี่ยถ่วงน้ำหนัก) บวก 4F (`RISK_WHEN_LOW`: เรียงแถวและ "ต่ำสุด" ใน summary ของวันครอบคลุมสต๊อก) — แยก hunk ตอน commit
+- restart dev server หนึ่งครั้ง ให้ `instrumentation.ts` เริ่ม scheduler (ตอนนี้ต้องใช้ `POST /api/jobs/run {"job":"tick"}` แทน)
+- ยังไม่ได้เห็นด้วยตา: ปุ่ม "ปิดงาน · เป็นเรื่องจริง / ไม่ใช่ปัญหา" และบรรทัด "ครั้งก่อน" (ไม่มี packet ที่แนบ alert ถึง persona ที่ login ในข้อมูลเดโม)
+- Vexa `roadmap` ยังไม่ merge, ยังไม่ push ทั้งสอง repo
 ค้นพบ:
-- dashboard เบลอด้านหลังไม่ได้ช่วยให้ไม่พลาดข้อมูล — ถอดออก ใช้แถบ KPI จากการ์ดที่ปัก (ผ่าน `presentCard`) + `weakestRow`; §1 แก้แล้วว่า dashboard ไม่ใช่ backdrop
-- ปัญหาอันดับหนึ่งของทุกบทบาทคือ "ความผิดปกติของคนอื่น" — `openAlertsFor` ต้องเรียง ของฉัน → เมตริกที่บทบาทดู → ความรุนแรง (`relevanceOf` ใน `lib/server/alerts.ts`) · ทุกปุ่ม/ชิปบนหน้าแรกต้องมี turn ใน mock (เคยตัน 16 prompt)
-- alert ที่ watch เป็น `year_over_year` (ลูกหนี้) เก็บค่าเป็นสัดส่วน ไม่ใช่เงิน — `alertRowOf` จัดรูปเป็น "N เท่าของปีก่อน" · progress "ถึงเป้า" ใช้ได้เฉพาะ `target_attainment`
-- หัวเลขของเมตริกแบบอัตราเคยเฉลี่ยแถวแบบไม่ถ่วง (ลาออก 1.1% แยกฝ่าย vs 1.3% รวม, กำไรขั้นต้น 30.4% vs 26.9%) — `combined` ใน `lib/data/query.ts` ถ่วงด้วยตัวหาร · จำนวนพนักงานเคยหาร ฝ่าย×เดือน ได้ 564 แทน 4,511 (`SUMMED_ACROSS_NON_TIME`) · Gemini ที่ใช้ tool เกิน 6 ขั้นจบเทิร์นเงียบ ๆ ไม่มีข้อความหรือการ์ด
-- headline delta เคยเทียบทุกแถวกับ top-N (+171.9% vs +8.4%) แก้ใน `runMetric` · `get_forecast` ไม่ระบุมิติเคยคืนชุดแรกเป็นทั้งประเทศ · กฎการ์ดต้องอยู่ใน `COP_RULES` ไม่ใช่ `SHARED_INTRO` ของ Vexa · `.data` ถูกเขียนจากการใช้งานจริง เทสต์ห้ามถือว่าว่าง
-ถัดไป: **Phase 4** (4A → 4E) — ระบบเรียนรู้จากผู้ใช้และทำงานเองโดยไม่ต้องรอแชท
+- `query_metric` เรียงแถวจากมากไปน้อยแล้วตัดที่ limit เสมอ → เมตริกที่ต่ำคือความเสี่ยง (วันครอบคลุมสต๊อก) แถวที่สำคัญถูกตัดทิ้งก่อนถึงการ์ด (ดีซี × SKU มี 60+ แถว ต่ำสุดที่เหลือคือ 17.6 วัน ขณะที่จริงคือ 6.0)
+- Gemini เห็นเองว่าค่าเฉลี่ยรายดีซีซ่อน SKU ที่ใกล้หมด และตอบด้วย alert P1 ของลำพูนแทน DataCard (เคส `planner-cover` ตกครั้งแรก — หลัง summary บอก "ต่ำสุด" ก็กลับมาใช้ DataCard เรียงน้อยไปมาก)
+- checker `grounded` นับปี พ.ศ. ของวันนี้ (อยู่ใน prompt `persona.ts`) เป็นตัวเลขที่แต่งเอง — false positive แก้แล้ว
+- ค่าใช้จ่าย Gemini ~87% ของ output เป็น reasoning tokens — เต็มชุด 22 เคส $0.65
+ถัดไป: /ship (แยก hunk ของ `lib/data/query.ts`)
 
 Status: **In progress** · Revision 9 · 2026-09-23 · phases 0–3 and 1.5–1.9 committed in Cop; Vexa changes committed on `roadmap`.
 
@@ -422,7 +420,7 @@ The user's question: "จะมั่นใจได้ไงว่า model จ
 - [x] UI ส่งสัญญาณจริง: เปิดการ์ด alert บนหน้าแรก / กด "ตรวจสอบ" ในกล่องงาน → `alert_open` (intentKey `alert:<thresholdKey>`, metric ของ alert); การ์ดแดชบอร์ดที่อยู่ในจอ ≥ 1.5 วินาที → `widget_view` (intentKey `widget:<id>`, ไม่เกินวันละครั้งต่อการ์ด) ผ่าน `POST /api/quick-actions` ที่มีอยู่ (`components/dashboard/seen-tracker.tsx`, dedupe รายวันใน route)
 - [x] เหตุผลต้องจริง: chip ตั้งต้นและการ์ดจาก template บอกว่า "ตั้งต้นสำหรับ<ตำแหน่ง>" จนกว่าจะมีพฤติกรรมจริงรองรับ; ลบเหตุผลที่อ้างพฤติกรรมของผู้ใช้หรือเพื่อนร่วมตำแหน่งที่ระบบไม่ได้นับ — เทสต์ `lib/server/quick-actions.test.ts` ทุก persona; layout ที่เก็บไว้ใน `.data` ได้เหตุผลใหม่จาก template ตอนอ่าน (`withTemplateReasons`)
 - [x] ตรวจ (curl): P1 ทั้งระบบ 30 → 7 (P2 6, P3 31); วิกฤตบนหน้าแรก CEO 30 → 6, CFO 1, supply 1, RSM อีสาน 5; rep อีสานกด "ไม่ใช่ความผิดปกติ" บน alert ของ RSM ได้ 403, RSM ภาคเหนือกดบน alert อีสานได้ 404
-- [ ] ค้าง: P1 ของ RSM อีสาน 4 ใน 5 เรื่องเป็นเรื่องเดียวกัน (เอเย่นต์ 2 รายหยุดสั่ง × 2 แบรนด์) — ควรรวม alert ของเอเย่นต์เดียวกันทิศเดียวกันเป็นเรื่องเดียว ก่อนนับบนหน้าแรก
+- [x] ~~ค้าง: P1 ของ RSM อีสาน 4 ใน 5 เรื่องเป็นเรื่องเดียวกัน~~ → ปิดใน 4F
 
 **4B แดชบอร์ดที่แสดงเฉพาะสิ่งที่เปลี่ยน** (`lib/dashboard/attention.ts` ใหม่, `lib/server/dashboard.ts`, `lib/server/briefing.ts`, `components/dashboard/dashboard-view.tsx`, `app/(app)/dashboard/page.tsx`)
 - [x] `attentionOf` (`lib/dashboard/attention.ts`) → `moved` เมื่อ มี alert ที่เกี่ยวกับผู้ใช้เปิดบนเมตริกนั้น / ระดับต่ำกว่าเกณฑ์ (ยอดเทียบเป้า < 95%, วันครอบคลุมสต๊อก < 10 วัน — บอกแถวที่แย่สุดผ่าน `weakestRow`) / headline ขยับ ≥ 5% / แถวใดแถวหนึ่งแย่ลง ≥ 25% (`sharpestHarm` ใหม่ใน `present.ts`) พร้อมเหตุผลหนึ่งบรรทัด; นอกนั้น `steady`
@@ -438,7 +436,7 @@ The user's question: "จะมั่นใจได้ไงว่า model จ
 - [x] scheduler ในโปรเซส (`instrumentation.ts` `register()` → `lib/server/scheduler.ts`, กันรันซ้อนด้วย flag บน `globalThis`): anomaly + forecast วันละครั้ง, personal watches ทุกชั่วโมง, สรุปตอนเช้า 07:00 ต่อผู้ใช้ที่มีเรื่อง (P1/P2 ของตัวเอง + งานที่รอ + watch ที่เข้าเงื่อนไข) ลง outbox — ผู้ใช้ที่ไม่มีเรื่องไม่ได้อะไร; IT รันเองได้ผ่าน `run_job` / `POST /api/jobs/run` (`watches`, `digest`, `tick`) · สรุปตอนเช้าไม่ซ้ำ alert ที่เคยส่งแล้ว (`digests` collection) · ปิดได้ด้วย `COP_SCHEDULER=off` · `/outbox` แสดงสิ่งที่ Cop ส่งถึงผู้ใช้ด้วย
 - [x] mock มี turn สำหรับ "เตือนฉันถ้า…" (การ์ดอนุมัติ `watch_metric`) และ eval case `planner-watch` (scripted) + `rsm-watch-agent` (โมเดลจริง) — eval มีเช็ก `askedApproval` ใหม่ (เรียก tool ที่ถูกและ input ผ่าน schema)
 - [x] ตรวจ: watch ของ supply planner (DC ลำพูน < 10 วัน) → `tick` รัน engine + watches + digest → กล่องงานมีแจ้งเตือน 1, `/outbox` มี "เข้าเงื่อนไขแล้ว … เพอร์ร่า ขวด PET 600 มล. 6 วัน" และสรุปตอนเช้า; รันซ้ำไม่เตือนซ้ำ; rep ภาคเหนือตั้ง watch ภาคอีสานถูกปฏิเสธ (เทสต์)
-- [ ] ค้าง: dev server ต้อง restart ครั้งหนึ่งให้ `instrumentation.ts` เริ่มจับเวลา; ยังไม่ได้ลอง prompt "เตือนฉันถ้า…" กับ Gemini จริง (`bun run eval:cards -- --model=google/gemini-3.8-flash --case=rsm-watch-agent`)
+- [ ] ค้าง: dev server ต้อง restart ครั้งหนึ่งให้ `instrumentation.ts` เริ่มจับเวลา (prompt "เตือนฉันถ้า…" กับ Gemini ผ่านแล้วใน 4F: `rsm-watch-agent` 3/3, `planner-watch` 3/3)
 
 **4D ความจำที่จำการตัดสินใจ และผลลัพธ์ที่ย้อนกลับมาสอน** (`lib/server/handoff.ts`, `lib/server/alerts.ts`, `lib/engine/memory.ts`, `components/inbox/drawer.tsx`, `lib/cards/alert-row.ts`)
 - [x] ปิดงาน handoff ที่แนบ alert ต้องเลือกว่า "เป็นเรื่องจริง" หรือ "ไม่ใช่ปัญหา" พร้อมสรุปผล → `alert-outcomes` (thresholdKey, verdict, outcome, ผู้ปิด, วันที่); "ไม่ใช่ปัญหา" นับเป็นการปิดแบบ "ไม่ใช่ความผิดปกติ" ของ 4A, "เป็นเรื่องจริง" = alert `resolved` — ปิดโดยไม่เลือกได้ 400 (`lib/server/outcomes.ts`, ปุ่มสองปุ่มในกล่องงาน)
@@ -449,7 +447,14 @@ The user's question: "จะมั่นใจได้ไงว่า model จ
 
 **4E วัดว่าคนใช้จริงไหม** (`lib/server/usage.ts`, `app/(app)/admin/page.tsx`)
 - [x] แท็บการใช้งานเพิ่ม "ใช้จริงไหม" (`lib/server/adoption.ts`, pure `adoptionOf` มีเทสต์): ผู้ใช้ที่ใช้จริงต่อสัปดาห์แยกบทบาท; alert ที่ถูกเปิด / ส่งต่อ / ปิด / ไม่มีใครแตะ (%); handoff ที่ปิดได้ / ตีกลับ และเวลากลางถึงการตอบกลับครั้งแรก; (เวลาจาก alert ถึงการกระทำยังวัดไม่ได้ — เวลา alert เป็นปฏิทินข้อมูล) การ์ดแดชบอร์ดที่ถูกดูใน 14 วัน (%); watch ที่ใช้งานอยู่และจำนวนที่เตือน
+- [x] `eval:cards` แสดง token และค่าใช้จ่ายที่ OpenRouter เรียกเก็บจริงต่อ case + รวม (`lib/server/usage-meter.ts` middleware, `usage: { include: true }`) — ~$0.03/case
 - [x] เกณฑ์หยุด (เขียนใน `docs/pilot.md`): pilot 6 สัปดาห์กับ RSM / พนักงานขาย / supply planner; ถ้า alert ที่ถูกเปิดหรือส่งต่อ < 30% หรือผู้ใช้ต่อสัปดาห์ < 50% ของกลุ่ม pilot ในสัปดาห์ที่ 4 → หยุดขยาย แก้หรือตัดฟีเจอร์ก่อน
+
+**4F ตรวจหลัง Phase 4** (`lib/engine/anomaly.ts`, `lib/dashboard/templates.ts`, `lib/server/dashboard.ts`, `lib/data/query.ts`, `lib/cards/present.ts`, `lib/eval/check-cards.ts`, `components/chrome/app-chrome.tsx`)
+- [x] รวม alert เรื่องเดียวกัน: `mergeAgentStories` (หลัง `dropRollUps`) รวม detection ของเอเย่นต์เดียวกัน เมตริกเดียวกัน ทิศเดียวกัน (ระดับแบรนด์ ไม่รวมระดับ SKU) เป็น alert เดียว — dims เหลือ agent + region, จริง/คาดรวมกันทุกแบรนด์, severity แย่สุด, หน้าต่างเวลากว้างสุด, สมมติฐานสร้างใหม่จาก dims ที่รวมแล้ว, id ใหม่คงที่ต่อ agent+ทิศ · RSM อีสาน วิกฤต 5 → 3 (อุบลศรีสุข −80%, อีสานรุ่งโรจน์ −77%, ส.รุ่งเรือง ลีโอ 620) · ทั้งระบบ 44 → 42 · เทสต์ 2 ข้อใน `anomaly.test.ts`
+- [x] การ์ดสต๊อกไม่เฉลี่ยซ่อนของหมด: template `cover` (RSM) / `cover_dc` (supply) เป็น dims ดีซี × SKU ชื่อ "สินค้าที่สต๊อกพอขายน้อยที่สุด…"; `query_metric` เรียงวันครอบคลุมสต๊อกจากน้อยไปมาก (`RISK_WHEN_LOW`) ทั้งแถว, top และ summary ("ต่ำสุด:"); layout ที่เก็บไว้รับ query/ชื่อใหม่ของการ์ด template ตอนอ่าน (`withTemplateReasons`); ป้ายดีซีย่อเป็น "ดีซี<จังหวัด>" ใน `labelOf` · KPI supply "ต่ำสุด ดีซีลำพูน · เพอร์ร่า ขวด PET 600 มล. 6.0 วัน" (เดิม "สงขลา 13.5"), RSM อีสาน "ต่ำสุด ดีซีนครราชสีมา · เพอร์ร่า … 7.7 วัน"
+- [x] `eval:cards` เต็มชุดกับ `google/gemini-3.8-flash`: 20/22 ($0.6542, 55 calls) — `planner-cover` ใช้ AlertsCard (summary ยังบอก "สูงสุด" ขัดกับแถว → แก้), `planner-forecast` grounded false positive ปี พ.ศ. ของวันนี้ (→ checker รับปีของ `TODAY`) · รันสองเคสซ้ำ: 7/7 + 2/2 ($0.0832)
+- [x] หน้าแรกดูด้วยตา (1280): HR (คุณเมย์) KPI 3 ใบ ไม่มี alert, marketing (คุณเบญ) KPI 4 + alert 2 ใบพร้อมปุ่มส่งงาน, finance (คุณมิ้นท์) KPI 4 + AR ภาคใต้ วิกฤต, IT (คุณต้น) ไม่มี KPI (ไม่มีเมตริกธุรกิจ) chip รัน job / การใช้งานเครื่องมือ — ไม่มี error · เจอและแก้: avatar ตัวอักษรแรกเป็นสระนำ ("เ" ของเมย์/เบญ) → เปลี่ยนเป็นไอคอน `UserRound` ตามที่ผู้ใช้ขอ
 
 ทุก package จบด้วย `bun run typecheck`, `bun run test`, curl หน้าที่เปลี่ยน และ mark checkbox ที่นี่
 

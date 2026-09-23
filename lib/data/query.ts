@@ -484,6 +484,11 @@ function arShape(shift: Shift): Shape {
 
 type HrKind = "headcount" | "attrition_rate" | "avg_salary";
 
+function allowedCount(plan: AxisPlan, count: number): number {
+  if (!plan.allow) return count;
+  return plan.allow.reduce((sum, allowed) => sum + allowed, 0) || 1;
+}
+
 function hrShape(kind: HrKind, shift: Shift): Shape {
   return {
     axes: [DEPARTMENT_AXIS, monthAxis(shift)],
@@ -492,6 +497,7 @@ function hrShape(kind: HrKind, shift: Shift): Shape {
       const [departmentPlan, monthPlan] = plans;
       const firstMonth = MONTH_OF_DAY[from];
       const lastMonth = MONTH_OF_DAY[to];
+      const departmentsPerRow = departmentPlan.dims.length > 0 ? 1 : allowedCount(departmentPlan, DEPARTMENT_COUNT);
       for (let departmentIdx = 0; departmentIdx < DEPARTMENT_COUNT; departmentIdx += 1) {
         if (departmentPlan.allow && departmentPlan.allow[departmentIdx] === 0) continue;
         const departmentCode = departmentPlan.codes[departmentIdx] * departmentPlan.stride;
@@ -502,7 +508,7 @@ function hrShape(kind: HrKind, shift: Shift): Shape {
           const code = departmentCode + monthPlan.codes[monthIdx] * monthPlan.stride;
           if (kind === "headcount") {
             acc.numerator[code] += people;
-            acc.denominator[code] += 1;
+            acc.denominator[code] += 1 / departmentsPerRow;
             continue;
           }
           const series = kind === "attrition_rate" ? tables.attritionRate : tables.avgSalaryThb;
@@ -546,6 +552,13 @@ const RATIO_METRICS: ReadonlySet<MetricId> = new Set<MetricId>([
   "campaign_uplift", "share_of_voice", "sentiment_score", "gross_margin", "attrition_rate", "avg_salary", "headcount",
 ]);
 
+const SUMMED_ACROSS_NON_TIME: ReadonlySet<MetricId> = new Set<MetricId>(["headcount"]);
+
+function averagedHeadline(def: MetricDef, query: MetricQuery, ratio: boolean): boolean {
+  if (!ratio) return false;
+  return !SUMMED_ACROSS_NON_TIME.has(def.id) || query.dims.some((dim) => TIME_DIMS.includes(dim));
+}
+
 function shapeFor(metric: MetricId, shift: Shift): Shape {
   switch (metric) {
     case "net_sales_volume": return salesShape("sell_in_volume", shift);
@@ -576,7 +589,7 @@ function targetShapeFor(metric: MetricId): Shape | null {
   return null;
 }
 
-type Aggregated = { key: string; dims: Record<Dim, string>; value: number };
+type Aggregated = { key: string; dims: Record<Dim, string>; value: number; weight: number };
 
 function aggregate(shape: Shape, dims: Dim[], filters: Filters, from: number, to: number, ratio: boolean): Aggregated[] | Failure {
   const plans = shape.axes.map((axis) => planAxis(axis, dims, filters));
@@ -591,7 +604,7 @@ function aggregate(shape: Shape, dims: Dim[], filters: Filters, from: number, to
     if (numerator === 0 && denominator === 0) continue;
     const value = ratio ? (denominator === 0 ? 0 : numerator / denominator) : numerator;
     const dimValues = decode(plans, code);
-    rows.push({ key: dims.map((dim) => dimValues[dim]).join("\u0001"), dims: dimValues, value });
+    rows.push({ key: dims.map((dim) => dimValues[dim]).join("\u0001"), dims: dimValues, value, weight: ratio ? denominator : 1 });
   }
   return rows;
 }
@@ -684,13 +697,15 @@ function formatNumber(value: number, fractionDigits: number): string {
   return new Intl.NumberFormat("th-TH", { minimumFractionDigits: fractionDigits, maximumFractionDigits: fractionDigits }).format(value);
 }
 
+const WHOLE_UNITS: ReadonlySet<string> = new Set(["คน"]);
+
 function formatForSummary(def: MetricDef, value: number): string {
   if (def.format === "percent") return `${formatNumber(value, 1)}%`;
   if (def.format === "currency") {
     if (Math.abs(value) >= 1_000_000) return `${formatNumber(value / 1_000_000, 1)} ล้านบาท`;
     return `${formatNumber(Math.round(value), 0)} บาท`;
   }
-  const digits = Math.abs(value) >= 100 ? 0 : 1;
+  const digits = Math.abs(value) >= 100 || WHOLE_UNITS.has(def.unit) ? 0 : 1;
   return `${formatNumber(value, digits)} ${def.unit}`;
 }
 
@@ -698,13 +713,15 @@ function firstTimeDim(dims: Dim[]): Dim | null {
   return dims.find((dim) => TIME_DIMS.includes(dim)) ?? null;
 }
 
-function sortRows(rows: Aggregated[], dims: Dim[], limit: number, masked: boolean): Aggregated[] {
+const RISK_WHEN_LOW: ReadonlySet<MetricId> = new Set<MetricId>(["days_of_cover"]);
+
+function sortRows(rows: Aggregated[], dims: Dim[], limit: number, masked: boolean, lowFirst: boolean): Aggregated[] {
   const timeDim = firstTimeDim(dims);
   if (masked && !timeDim) {
     return [...rows].sort((left, right) => left.key.localeCompare(right.key)).slice(0, limit);
   }
   if (!timeDim) {
-    return [...rows].sort((left, right) => right.value - left.value).slice(0, limit);
+    return [...rows].sort((left, right) => (lowFirst ? left.value - right.value : right.value - left.value)).slice(0, limit);
   }
   const sorted = [...rows].sort((left, right) => (left.dims[timeDim] < right.dims[timeDim] ? -1 : left.dims[timeDim] > right.dims[timeDim] ? 1 : right.value - left.value));
   return sorted.length > limit ? sorted.slice(sorted.length - limit) : sorted;
@@ -778,13 +795,17 @@ const COMPARE_LABELS: Record<MetricQuery["compare"], string | null> = {
 };
 const TOP_IN_HEADLINE = 3;
 
+function combined(rows: Aggregated[], averaged: boolean): number {
+  if (!averaged) return rows.reduce((sum, row) => sum + row.value, 0);
+  const weight = rows.reduce((sum, row) => sum + row.weight, 0);
+  return weight === 0 ? 0 : rows.reduce((sum, row) => sum + row.value * row.weight, 0) / weight;
+}
+
 function deltaPercentOf(def: MetricDef, all: Aggregated[], compareRows: Aggregated[] | null, ratio: boolean): number | null {
   if (!compareRows || compareRows.length === 0 || all.length === 0) return null;
-  const previous = compareRows.reduce((sum, row) => sum + row.value, 0);
-  const base = ratio ? previous / compareRows.length : previous;
+  const base = combined(compareRows, ratio);
   if (base === 0) return null;
-  const totals = all.reduce((sum, row) => sum + row.value, 0);
-  const current = ratio ? totals / all.length : totals;
+  const current = combined(all, ratio);
   return Math.round(((current - base) / Math.abs(base)) * PERCENT * 10) / 10;
 }
 
@@ -793,7 +814,7 @@ function topOf(def: MetricDef, query: MetricQuery, all: Aggregated[], suppressed
   if (!nonTimeDim) return [];
   return all
     .filter((row) => !suppressed.has(row.key))
-    .sort((left, right) => right.value - left.value)
+    .sort((left, right) => (RISK_WHEN_LOW.has(def.id) ? left.value - right.value : right.value - left.value))
     .slice(0, TOP_IN_HEADLINE)
     .map((row) => ({ label: displayLabel(nonTimeDim, row.dims[nonTimeDim]), value: formatForSummary(def, row.value) }));
 }
@@ -805,11 +826,10 @@ function headlineOf(def: MetricDef, query: MetricQuery, rows: Aggregated[], all:
   if (masked || all.length === 0) {
     return { aggregate, value: "—", periodLabel, rowCount: rows.length, deltaPercent: null, compareLabel: null, top: [] };
   }
-  const totals = all.reduce((sum, row) => sum + row.value, 0);
   const deltaPercent = deltaPercentOf(def, all, compareRows, ratio);
   return {
     aggregate,
-    value: formatForSummary(def, ratio ? totals / all.length : totals),
+    value: formatForSummary(def, combined(all, ratio)),
     periodLabel,
     rowCount: rows.length,
     deltaPercent,
@@ -824,7 +844,7 @@ function summarize(def: MetricDef, query: MetricQuery, headline: MetricHeadline,
   if (empty) return `${def.labelTh} ${span}: ไม่พบข้อมูลตามเงื่อนไขที่ขอ`;
   const lead = headline.aggregate === "average" ? "เฉลี่ย" : "รวม";
   const parts = [`${def.labelTh} ${span}: ${lead} ${headline.value}`];
-  if (headline.top.length > 0) parts.push(`สูงสุด: ${headline.top.map((row) => `${row.label} ${row.value}`).join(" · ")}`);
+  if (headline.top.length > 0) parts.push(`${RISK_WHEN_LOW.has(def.id) ? "ต่ำสุด" : "สูงสุด"}: ${headline.top.map((row) => `${row.label} ${row.value}`).join(" · ")}`);
   if (headline.deltaPercent !== null) {
     parts.push(`${headline.compareLabel} ${headline.deltaPercent >= 0 ? "+" : ""}${formatNumber(headline.deltaPercent, 1)}%`);
   }
@@ -889,8 +909,9 @@ export function runMetric(query: MetricQuery, access: AccessContext): MetricResu
 
   const masked = visibility === "masked";
   const limit = query.limit ?? DEFAULT_LIMIT;
-  const capped = sortRows(aggregated, dims, limit, masked);
-  const cappedCompare = compareRows ? sortRows(compareRows, dims, limit, masked) : null;
+  const lowFirst = RISK_WHEN_LOW.has(def.id);
+  const capped = sortRows(aggregated, dims, limit, masked, lowFirst);
+  const cappedCompare = compareRows ? sortRows(compareRows, dims, limit, masked, lowFirst) : null;
   const suppressed = masked ? new Set<string>() : smallCellKeys(def.id, dims, aggregated, filters);
   const rows = buildRows(def, dims, capped, cappedCompare, masked, suppressed);
   const provenance: Provenance = {
@@ -904,7 +925,7 @@ export function runMetric(query: MetricQuery, access: AccessContext): MetricResu
     masked: masked || suppressed.size > 0 ? [...SUPPRESSED_FIELDS] : [],
     trust: def.certified ? "verified" : "derived",
   };
-  const headline = headlineOf(def, query, capped, aggregated, ratio, compareRows, masked, suppressed);
+  const headline = headlineOf(def, query, capped, aggregated, averagedHeadline(def, query, ratio), compareRows, masked, suppressed);
   const summary = summarize(def, query, headline, masked, aggregated.length === 0);
   return {
     ok: true,

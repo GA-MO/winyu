@@ -1,5 +1,6 @@
 import type { Spec, SpecElement } from "vexa/protocol";
 import { watchMetricInputSchema } from "@/lib/contracts";
+import { TODAY } from "@/lib/data/dates";
 import type { EvalCase } from "./cases";
 
 export type CheckId = "calledTool" | "askedApproval" | "usedCard" | "boundToTool" | "sortedRight" | "titleIsAnswer" | "noSummaryProse" | "grounded";
@@ -63,6 +64,7 @@ function groundedCheck(spec: Spec | null, outputs: Record<string, unknown>[]): C
   const inTools = new Set<string>();
   numbersIn(outputs, inTools);
   yearsIn(outputs, inTools);
+  yearsIn(TODAY, inTools);
   const invented = [...inProps].filter((value) => !inTools.has(value));
   return check("grounded", invented.length === 0, invented.length === 0 ? "ทุกตัวเลขอยู่ในผลลัพธ์ tool" : `ตัวเลขที่ไม่มีใน tool: ${invented.slice(0, 5).join(", ")}`);
 }

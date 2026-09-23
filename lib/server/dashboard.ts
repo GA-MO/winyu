@@ -78,8 +78,11 @@ export function layoutFor(access: AccessContext): DashboardLayout {
 }
 
 function withTemplateReasons(layout: DashboardLayout, access: AccessContext): DashboardLayout {
-  const reasons = new Map(templateFor(access).map((seed) => [`w_${access.userId}_${seed.key}`, seed.reason]));
-  const widgets = layout.widgets.map((widget) => (widget.source === "role_template" && reasons.has(widget.id) ? { ...widget, reason: reasons.get(widget.id) ?? null } : widget));
+  const seeds = new Map(templateFor(access).map((seed) => [`w_${access.userId}_${seed.key}`, seed]));
+  const widgets = layout.widgets.map((widget) => {
+    const seed = widget.source === "role_template" ? seeds.get(widget.id) : undefined;
+    return seed ? { ...widget, title: seed.title, query: seed.query, reason: seed.reason } : widget;
+  });
   return { ...layout, widgets };
 }
 

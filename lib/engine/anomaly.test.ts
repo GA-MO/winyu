@@ -3,7 +3,7 @@ import type { Alert, Dim } from "@/lib/contracts";
 import { toneOf } from "@/lib/dashboard/metric-display";
 import { INJECTED_ANOMALIES } from "@/lib/data/anomalies";
 import { TH } from "@/lib/i18n/th";
-import { Z_OPEN, detectAnomalies, dropRollUps, severityOf, thresholdFor, thresholdKey, toAlert, type Detection } from "./anomaly";
+import { Z_OPEN, detectAnomalies, dropRollUps, mergeAgentStories, severityOf, thresholdFor, thresholdKey, toAlert, type Detection } from "./anomaly";
 import { DAILY_SCAN, scanSeries } from "./stats";
 
 const DETECTED = detectAnomalies();
@@ -101,6 +101,34 @@ describe("anomaly detection", () => {
     const coarse = { ...base, id: "coarse", dims: { region: "northeast" } as Partial<Record<Dim, string>> } as Detection;
     const fine = { ...base, id: "fine", dims: { region: "northeast", agent: "ag_nea_02" } as Partial<Record<Dim, string>> } as Detection;
     expect(dropRollUps([coarse, fine]).map((detection) => detection.id)).toEqual(["fine"]);
+  });
+
+  test("one agent falling across brands is one alert, not one per brand", () => {
+    const northeastAgentDrops = DETECTED.filter(
+      (detection) => detection.dims.region === "northeast" && detection.metric === "net_sales_volume" && detection.direction === "down" && !detection.dims.sku,
+    );
+    const agents = northeastAgentDrops.map((detection) => detection.dims.agent);
+    expect(new Set(agents).size).toBe(agents.length);
+    expect(northeastAgentDrops.every((detection) => detection.dims.brand === undefined)).toBe(true);
+  });
+
+  test("merging keeps the worst severity and sums the brands", () => {
+    const part = (brand: string, severity: Detection["severity"], observed: number): Detection => ({
+      ...DETECTED[0],
+      id: brand,
+      metric: "net_sales_volume",
+      direction: "down",
+      dims: { agent: "ag_nea_05", brand, region: "northeast" },
+      severity,
+      observed,
+      expected: 50,
+    });
+    const merged = mergeAgentStories([part("leo", "P2", 10), part("singha", "P1", 5)]);
+    expect(merged).toHaveLength(1);
+    expect(merged[0].severity).toBe("P1");
+    expect(merged[0].observed).toBe(15);
+    expect(merged[0].expected).toBe(100);
+    expect(merged[0].dims.brand).toBeUndefined();
   });
 
   test("three dismissals raise the bar for the same slice", () => {
