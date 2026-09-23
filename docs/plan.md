@@ -1,23 +1,17 @@
 # Cop — build plan
 
 ## สถานะ (updated 2026-09-23)
-ทำแล้ว: Phase 0 (`b5209e8`) · Phase 1 (`d06054c`, `3b9dd99`) · Phase 1.5 (`4b0e526`, `1631c8b`) · Phase 2 + 3 (`2361436`) · Phase 1.6, 1.7, 1.8, 1.9 (commit นี้) · **โมเดลจริงตัวเดียว: `google/gemini-3.8-flash` ผ่าน OpenRouter** (user decision 2026-09-23 "ใช้แค่ model เดียว เน้น gemini"; Flash Lite อ่อนเกินไป — ดึงข้อมูลได้แล้วตอบว่าไม่มีตัวเลขและไม่วาดการ์ด)
-พิสูจน์แล้ว:
-- `bun run eval:cards -- --model=google/gemini-3.8-flash --runs=2` → **28/30** เคสสะอาด ทั้งสองเคสที่ตกคือปี พ.ศ. 2569 ที่โมเดลแปลงจากวันที่ของ tool ซึ่ง checker นับเป็นตัวเลขแต่งเอง — แก้ checker แล้ว (`yearsIn`, มีเทสต์) และรันซ้ำผ่าน
-- `bun run build` ของ Cop ผ่าน (build จากสำเนาชั่วคราวเพราะ dev server อีก session ใช้ `.next` อยู่) · typecheck + 227 tests ผ่าน
-- Vexa: typecheck + 213 tests ผ่าน · `test:scenarios` 39/43 กับ DeepSeek V4 Flash (โมเดลอ้างอิงของ Vexa); รันซ้ำแล้ว `admin-discover`/`admin-passive` ผ่าน, `patch-after-input` และ `admin-edit-product` ตกเหมือนกันบนโค้ดที่ commit แล้ว (stash ทดสอบ) จึงไม่ใช่ regression ของรอบนี้ · `eval:ui` เคยตก `revenue-by-status` 5/5→2/5 และ `week-dashboard` 5/5→2/5 เพราะกฎการ์ดของ Cop ถูกใส่ไว้ใน `SHARED_INTRO` ของ Vexa — ย้ายกลับไปอยู่ใน `COP_RULES` แล้ว และ verifier อ่าน `RankList` ได้ (Vexa เองแนะนำ RankList สำหรับเทียบตัวเลขเดียว) ผลหลังแก้ 4/5 และ 4/5
+ทำแล้ว: Phase 0–3 · 1.5–1.9 (Cop `5ef3363`, `d303add` บน `main`) · Vexa host catalog/approval/data-card (`d893818` บน `roadmap`) · โมเดลจริงตัวเดียว `google/gemini-3.8-flash` ผ่าน OpenRouter (`lib/server/models.ts`) · `eval:cards` 28/30 ×2 runs · Cop build ผ่าน · Vexa scenarios 39/43 (ที่ตกมีอยู่แล้วก่อนรอบนี้), `eval:ui` revenue-by-status/week-dashboard 4/5
 ค้าง:
-- **ยังไม่ push ทั้งสอง repo** · Cop `5ef3363` บน `main`, agentic-ui `d893818` บน `roadmap` (ยังไม่ merge เข้า main ของ Vexa)
-- การ์ดของ persona CFO/HR/supply/sales_rep ยังไม่ได้เปิดดูด้วยตาในเบราว์เซอร์ (Claude in Chrome ปิดอยู่ และ chrome-devtools profile ถูกอีก session ถือไว้) — โครงสร้างการ์ดพิสูจน์ผ่าน eval แล้ว · `run_job` ของ it_admin ยังพิสูจน์ด้วยเทสต์เท่านั้น
-- Vexa devtools toggle ยังโผล่ในแชทตอน dev · `days_of_cover` MAPE ~24%
+- working tree มีงาน Phase 1.9 ของ session cop-36 ยังไม่ commit (`app/(app)/page.tsx`, `app/api/threads/route.ts`, `landing.tsx`, `present.ts` `weakestRow`, `ambient.ts`, `dashboard.ts` `visitsFor`, `th.ts`, `lib/cards/weakest.test.ts` ใหม่) — ยังไม่ได้พิสูจน์: `bun run typecheck && bun run test` หลังการแก้ชุดนี้
+- การ์ดของ persona CFO/HR/supply/sales_rep ยังไม่เคยเปิดดูด้วยตา (Claude in Chrome ปิดใน settings, profile ของ chrome-devtools ถูกอีก session ถือ) · `run_job` ของ it_admin พิสูจน์ด้วยเทสต์เท่านั้น
+- ยังไม่ push ทั้งสอง repo · Vexa `roadmap` ยังไม่ merge · devtools toggle ของ Vexa โผล่ในแชทตอน dev
 ค้นพบ:
-- **`get_forecast` ที่ไม่ระบุมิติคืนพยากรณ์ของแบรนด์เดียวในภาคเดียว** (ชุดแรกในรายการ ~3,861 hl/สัปดาห์) แล้วบอกว่าเป็นของทั้งประเทศ (ของจริง ~60,000) — ตอนนี้ `lib/engine/forecast-slice.ts` รวมทุกชุดใต้มิติที่ระบุสำหรับเมตริกที่บวกกันได้ (`net_sales_volume`) และบังคับให้ระบุมิติครบสำหรับที่บวกไม่ได้ (`days_of_cover`); tool คืน `value_label`, `range_label`, `total`, `weekly_average` ตามกฎ §4 โมเดลจึงไม่ต้องปัดหรือบวกเอง
-- **headline delta เทียบยอดทุกแถวกับยอดของ N แถวแรกหลังตัด limit** — การ์ดเอเย่นต์ยอดตกโชว์ +171.9% ขณะที่จริง +8.4%; แก้ใน `runMetric` แล้วมีเทสต์
-- `compare: "target"` บน `target_attainment` เคยคืน error ทำให้โมเดลขอโทษกลางคำตอบ — ตอนนี้ถือว่าเป็น `none` เพราะค่าเทียบเป้าอยู่ในตัวเมตริกแล้ว
-- กฎการออกแบบของ host อยู่ใน `rules` ของ host เสมอ ไม่ใช่ `SHARED_INTRO` ของ Vexa — กฎที่ดีสำหรับ Cop ทำให้ shop-admin ตก eval
-- `eval:ui --report` เขียนทับ `docs/admin-ui-eval.md` และ `lib/eval-ui/specs.ts` ของ Vexa — ใช้เฉพาะตอนตั้งใจอัปเดตรายงาน
-- `.data` ถูกเขียนจากการใช้งานจริงผ่าน dev server (memory ของโมเดลจริง) เทสต์ที่ถือว่าที่เก็บว่างจึงพังแบบสุ่ม — เทสต์ต้องไม่พึ่งสถานะของ `.data`
-ถัดไป: push ทั้งสอง repo เมื่อผู้ใช้สั่ง, เปิดดูการ์ด persona ที่เหลือในเบราว์เซอร์
+- `get_forecast` ที่ไม่ระบุมิติเคยคืนชุดแบรนด์×ภาคแรกเป็น "ทั้งประเทศ" (3.9k vs จริง ~57k hl/สัปดาห์) — `lib/engine/forecast-slice.ts` รวมเฉพาะเมตริกที่บวกได้, `days_of_cover` ต้องระบุ dc+sku
+- headline delta เคยเทียบทุกแถวกับ top-N หลัง limit (+171.9% vs จริง +8.4%) — แก้ใน `runMetric`; `compare:"target"` บน `target_attainment` ตอนนี้ = `none`
+- กฎการ์ดของ host ต้องอยู่ใน `COP_RULES` ไม่ใช่ `SHARED_INTRO` ของ Vexa (ทำ `eval:ui` ของ shop-admin ตก 5/5→2/5) · `eval:ui --report` เขียนทับ `docs/admin-ui-eval.md` + `specs.ts` ของ Vexa
+- Gemini 3.1 Flash Lite อ่อนเกินไป (ดึงข้อมูลแล้วตอบว่าไม่มีตัวเลข) · `.data` ถูกเขียนจากการใช้งานจริง เทสต์ห้ามถือว่าว่าง · `eval:cards` เขียน memory ผ่าน handler จริง
+ถัดไป: /go ตรวจ การ์ด persona CFO/HR/supply/sales_rep + run_job ของ it_admin ในเบราว์เซอร์ และ typecheck/test ของงาน 1.9 ที่ยังไม่ commit ตาม docs/plan.md
 
 Status: **In progress** · Revision 8 · 2026-09-23 · phases 0–3 and 1.6–1.9 committed in Cop; Vexa changes committed on `roadmap`.
 
@@ -345,7 +339,10 @@ The user's question: "จะมั่นใจได้ไงว่า model จ
   - การ์ดบอกผู้รับผิดชอบ (ผอ.ขาย), การ์ดใบที่สองเลือกคนละภาค/เมตริกกับใบแรก (CEO), KPI ยอดเทียบเป้ามี "เหลืออีก N% ถึงเป้า" สี warning (CEO, พนักงานขาย), ชิปมือถือมี fade บอกว่าเลื่อนได้ + KPI ช่องสุดท้ายเต็มแถวเมื่อจำนวนคี่, ชื่อชิปตามฤดูเป็นคำกริยา ("เตรียมสต๊อกออกพรรษา", "สรุปยอดปิดเดือน")
   - บั๊กที่เจอระหว่างทาง: `present.ts` วาด progress "ถึงเป้า" ให้ทุกเมตริกที่เป็น % (MAPE 9.6% → "เหลืออีก 90.4% ถึงเป้า") ตอนนี้เฉพาะ `target_attainment`; ความผิดปกติลูกหนี้วัดเป็นสัดส่วนเทียบปีก่อน แต่ `alertRowOf` จัดรูปเป็นเงิน ("จริง 1.7 บาท") ตอนนี้เป็น "1.7 เท่าของปีก่อน" ทุกหน้า
 - [x] การ์ด "เอเย่นต์ที่ยอดตกมากที่สุด" โชว์ headline **+166%** — headline เทียบยอดทุกแถวกับ N แถวแรกหลังตัด limit แก้ใน `runMetric` แล้ว มีเทสต์
-- [ ] ค้างจากการทดลองใช้: ปุ่มส่งต่อบนการ์ดหน้าแรก (ตอนนี้ต้องเข้ากล่องงาน); บรรทัด "ภาคที่ห่างเป้ามากที่สุด" สำหรับ ผอ.ขาย; รายการ "ไปเยี่ยมวันนี้" สำหรับพนักงานขาย; แดชบอร์ดบอก "ความผิดปกติใหม่ 44 เรื่องตั้งแต่เมื่อวาน" เพราะ engine สร้างทุกเรื่องเมื่อวาน; ใบที่สองอาจเป็นเรื่อง P3 ที่ engine อธิบายได้แล้ว
+- [x] **ปุ่มส่งต่อบนการ์ดหน้าแรก** — การ์ดความผิดปกติมีปุ่ม "ส่งงานให้<ผู้รับผิดชอบ>" จาก `actionsForAlert` (กฎเดียวกับการ์ดในแชท/แดชบอร์ด ไม่เสนอให้ส่งหาตัวเอง) กดแล้วเปิดแชทด้วยข้อความปุ่ม `⟦action⟧ runTool create_handoff …` → การ์ดอนุมัติของ phase 1.8 ไม่มีอะไรถูกส่งจนกว่าจะกดอนุมัติ; `POST /api/threads` รับ `title` เพื่อให้ชื่อแชทเป็นชื่อปุ่ม ไม่ใช่ข้อความ action ดิบ — ตรวจแล้วด้วย u_prasit → การ์ดอนุมัติส่งงานให้คุณอนุชา
+- [x] **จุดที่แย่ที่สุดบนแถบ KPI** (`weakestRow` ใน `present.ts`) — การ์ดที่ปักแบบแยกมิติของเมตริกที่ "ระดับ" ตัดสิน (ยอดเทียบเป้า / วันครอบคลุมสต๊อก ต่ำสุดคือแย่สุด; ลูกหนี้ค้าง / MAPE สูงสุดคือแย่สุด) โชว์ "ต่ำสุด ภาคอีสาน 68.4%" / "ต่ำสุด ศูนย์กระจายสินค้าสงขลา 13.5 วัน" ใต้ตัวเลข — ตอบ ผอ.ขาย (ภาคที่ห่างเป้า) และ supply planner (DC ที่ถูกค่าเฉลี่ยซ่อน) ด้วยกฎเดียว
+- [x] **"ไปเยี่ยมวันนี้" สำหรับพนักงานขาย** (`visitsFor`) — เอเย่นต์ในขอบเขตของตัวเองสูงสุด 3 ราย: มีความผิดปกติเปิดอยู่ก่อน แล้วตามด้วยขายเข้าที่ตกแรงที่สุด 27 วันเทียบช่วงก่อน เหตุผลเป็นตัวเลข ("ปริมาณขายเข้า −81%") กดแล้วถามเทียบขายเข้า/ขายออกของเอเย่นต์นั้นก่อนไปเยี่ยม
+- [ ] ค้าง: แดชบอร์ดบอก "ความผิดปกติใหม่ 44 เรื่องตั้งแต่เมื่อวาน" เพราะ engine สร้างทุกเรื่องเมื่อวาน; ใบที่สองอาจเป็นเรื่อง P3 ที่ engine อธิบายได้แล้ว; ของพนักงานขาย เอเย่นต์อันดับ 1 ในรายการเยี่ยมซ้ำกับการ์ดความผิดปกติข้างล่าง; คำตอบของ mock ตอนกดรายการเยี่ยมเป็นกราฟขายเข้า/ขายออกของเอเย่นต์ทุกราย ไม่ได้เจาะรายเดียว (โมเดลจริงกรองได้)
 - [x] ถอดแผงขาวที่ครอบคำทักทาย + ช่องพิมพ์ + ชิปออก (ผู้ใช้ถาม "ถ้าเอา panel card ออกจะสวยกว่าไหม") — พอ backdrop จางแล้ว แผงไม่ได้ช่วยเรื่อง contrast อีก กลายเป็นกล่องซ้อนกล่อง ตอนนี้ช่องพิมพ์เป็นชิ้นเดียวที่ลอยขึ้นมา ตรวจแล้วทั้ง light/dark และมือถือ
 
 ### Phase 2 — the four loops (four agents in parallel)

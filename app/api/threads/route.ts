@@ -2,7 +2,7 @@ import { badRequest, readBody, requireAccess, unauthenticated } from "../_guard"
 import { createThread, listThreads } from "@/lib/server/threads-read";
 import { packets } from "@/lib/server/agent/collections";
 
-type CreateBody = { firstMessage?: unknown; preloadPacketId?: unknown };
+type CreateBody = { firstMessage?: unknown; title?: unknown; preloadPacketId?: unknown };
 
 function preloadOf(packetId: string | null, userId: string) {
   if (!packetId) return null;
@@ -24,6 +24,7 @@ export async function POST(req: Request) {
   if (!body) return badRequest();
   const firstMessage = typeof body.firstMessage === "string" ? body.firstMessage : "";
   const packetId = typeof body.preloadPacketId === "string" ? body.preloadPacketId : null;
-  const thread = createThread(access.userId, firstMessage, preloadOf(packetId, access.userId));
+  const title = typeof body.title === "string" && body.title.trim() ? body.title : firstMessage;
+  const thread = createThread(access.userId, title, preloadOf(packetId, access.userId));
   return Response.json({ id: thread.id, title: thread.title });
 }

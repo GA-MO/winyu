@@ -1,4 +1,4 @@
-import type { Alert } from "@/lib/contracts";
+import type { Alert, NextAction } from "@/lib/contracts";
 import type { Spec, SpecElement } from "vexa/protocol";
 import { TH } from "@/lib/i18n/th";
 import { alertRowOf } from "@/lib/cards/alert-row";
@@ -6,7 +6,12 @@ import type { Tone } from "./metric-display";
 
 export type AmbientPacket = { id: string; title: string; ask: string; fromName: string; urgency: "low" | "medium" | "high" };
 
-export type AmbientInput = { alerts: readonly Alert[]; packet: AmbientPacket | null; ownerName: (alert: Alert) => string | null };
+export type AmbientInput = {
+  alerts: readonly Alert[];
+  packet: AmbientPacket | null;
+  ownerName: (alert: Alert) => string | null;
+  actionsFor: (alert: Alert) => NextAction[];
+};
 
 export type AmbientTone = "danger" | "warning" | "info" | "brand" | "success" | "neutral";
 
@@ -20,11 +25,15 @@ export type AmbientCard = {
   headline: AmbientHeadline | null;
   body: string | null;
   prompt: string;
+  handoff: NextAction | null;
   spec: Spec;
 };
 
 /** One pinned card's headline on the landing: the number the dashboard shows, readable without opening it. */
-export type LandingKpi = { id: string; label: string; value: string; delta: string | null; tone: Tone; detail: string | null; gap: string | null };
+export type LandingKpi = { id: string; label: string; value: string; delta: string | null; tone: Tone; detail: string | null; note: string | null };
+
+/** One agent a field rep should visit today, with the one reason that put it on the list. */
+export type VisitStop = { id: string; agent: string; reason: string; tone: AmbientTone; prompt: string };
 
 export type StatusLink = { id: string; label: string; count: number; tone: AmbientTone; query: Record<string, string> };
 
@@ -42,7 +51,7 @@ function signedGap(alert: Alert, gapLabel: string | null): string | null {
   return `${alert.direction === "down" ? "−" : "+"}${gapLabel}`;
 }
 
-function alertCard(alert: Alert, owner: string | null): AmbientCard {
+function alertCard(alert: Alert, owner: string | null, actions: NextAction[]): AmbientCard {
   const row = alertRowOf(alert);
   const root = `ambient-alert-${alert.id}`;
   const tone = SEVERITY_TONES[alert.severity];
@@ -57,6 +66,7 @@ function alertCard(alert: Alert, owner: string | null): AmbientCard {
     headline: gap ? { value: gap, tone, caption } : null,
     body: owner ? `${TH.inbox.owner(owner)} · ${row.hypothesis}` : row.hypothesis,
     prompt: TH.landing.askAbout(row.scopeLabel),
+    handoff: actions.find((action) => action.kind === "handoff" && action.tool !== null) ?? null,
     spec: {
       root,
       elements: { [root]: element("Alert", { title: row.scopeLabel, meta: gap ? `${gap} · ${caption}` : caption, body: row.hypothesis, tone }) },
@@ -76,6 +86,7 @@ function packetCard(packet: AmbientPacket): AmbientCard {
     headline: null,
     body: `${from} · ${packet.ask}`,
     prompt: TH.landing.packetPrompt(packet.title),
+    handoff: null,
     spec: {
       root,
       elements: { [root]: element("Callout", { eyebrow, title: packet.title, body: packet.ask, tone: "brand" }) },
@@ -92,10 +103,10 @@ function differentStory(first: Alert, alerts: readonly Alert[]): Alert | null {
 export function ambientCards(input: AmbientInput): AmbientCard[] {
   const [first] = input.alerts;
   const cards: AmbientCard[] = [];
-  if (first) cards.push(alertCard(first, input.ownerName(first)));
+  if (first) cards.push(alertCard(first, input.ownerName(first), input.actionsFor(first)));
   const second = first ? differentStory(first, input.alerts) : null;
   if (input.packet) cards.push(packetCard(input.packet));
-  else if (second) cards.push(alertCard(second, input.ownerName(second)));
+  else if (second) cards.push(alertCard(second, input.ownerName(second), input.actionsFor(second)));
   return cards.slice(0, MAX_CARDS);
 }
 

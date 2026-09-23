@@ -58,6 +58,8 @@ export type PresentInput = {
 
 const MAX_TABLE_ROWS = 8;
 const PROGRESS_METRICS: ReadonlySet<MetricId> = new Set(["target_attainment"]);
+const WORST_WHEN_LOW: ReadonlySet<MetricId> = new Set(["target_attainment", "days_of_cover"]);
+const WORST_WHEN_HIGH: ReadonlySet<MetricId> = new Set(["ar_overdue", "forecast_mape"]);
 const MAX_RANK_ROWS = 8;
 const MAX_ALERTS = 4;
 const RANK_MIN_ROWS = 2;
@@ -325,6 +327,19 @@ export function presentAlerts(input: PresentAlertsInput): CardParts {
     actions: input.actions ?? NO_ACTIONS,
     denied: null,
   };
+}
+
+export type WeakestRow = { label: string; value: string; lowIsWorst: boolean };
+
+/** The row that most needs attention in a breakdown whose level decides — lowest attainment or cover, highest overdue or forecast error — or null. */
+export function weakestRow(query: MetricQuery, result: MetricResult): WeakestRow | null {
+  if (!result.ok || !rankDimOf(query) || timeDimOf(query) || result.rows.length < 2) return null;
+  const lowIsWorst = WORST_WHEN_LOW.has(query.metric);
+  if (!lowIsWorst && !WORST_WHEN_HIGH.has(query.metric)) return null;
+  const scored = result.rows.map((row) => ({ row, value: numericOf(row, "value") })).filter((entry): entry is { row: MetricRow; value: number } => entry.value !== null);
+  if (scored.length < 2) return null;
+  const worst = scored.reduce((best, entry) => ((lowIsWorst ? entry.value < best.value : entry.value > best.value) ? entry : best));
+  return { label: labelOf(query, worst.row), value: valueTextOf(query, worst.row), lowIsWorst };
 }
 
 /**

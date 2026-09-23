@@ -3,11 +3,12 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { LayoutDashboard, ShieldCheck } from "lucide-react";
+import { ChevronRight, LayoutDashboard, MapPin, Send, ShieldCheck } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "vexa/ui/tooltip";
 import { cn } from "vexa/lib/utils";
-import type { QuickAction } from "@/lib/contracts";
-import type { AmbientCard, AmbientTone, LandingKpi, StatusLink } from "@/lib/dashboard/ambient";
+import { formatActionMessage } from "vexa/react";
+import type { NextAction, QuickAction } from "@/lib/contracts";
+import type { AmbientCard, AmbientTone, LandingKpi, StatusLink, VisitStop } from "@/lib/dashboard/ambient";
 import type { Tone } from "@/lib/dashboard/metric-display";
 import { TH } from "@/lib/i18n/th";
 import { CopComposer } from "@/components/composer/cop-composer";
@@ -22,10 +23,19 @@ const DASHBOARD_PATH = "/dashboard";
 const MAX_CHIPS = 4;
 const HERO = "flex w-full max-w-3xl flex-col gap-6";
 const CHIP_ROW = "-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [mask-image:linear-gradient(to_right,black_80%,transparent)] sm:mx-0 sm:[mask-image:none] sm:flex-wrap sm:justify-center sm:overflow-visible sm:px-0 sm:pb-0";
-const AMBIENT = "flex min-w-0 flex-col gap-1.5 rounded-2xl border border-border bg-card p-4 text-left shadow-card transition duration-200 hover:-translate-y-0.5 hover:shadow-lift focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+const AMBIENT = "flex min-w-0 flex-col gap-2 rounded-2xl border border-border bg-card p-4 text-left shadow-card transition duration-200 hover:-translate-y-0.5 hover:shadow-lift focus-within:ring-2 focus-within:ring-ring";
+const HANDOFF = "inline-flex items-center gap-1.5 rounded-full bg-ink px-3 py-1.5 text-xs font-medium text-ink-foreground transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50";
 const AMBIENT_COLUMNS: Record<number, string> = { 1: "sm:grid-cols-1", 2: "sm:grid-cols-2" };
 const KPI_COLUMNS: Record<number, string> = { 1: "sm:grid-cols-1", 2: "sm:grid-cols-2", 3: "sm:grid-cols-3", 4: "sm:grid-cols-4" };
 const KPI_STRIP = "grid w-full grid-cols-2 [&>*:last-child:nth-child(odd)]:col-span-2 sm:[&>*:last-child:nth-child(odd)]:col-span-1 overflow-hidden rounded-2xl border border-border bg-border gap-px shadow-card transition duration-200 hover:shadow-lift focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+const VISIT_TONE: Record<AmbientTone, string> = {
+  danger: "bg-danger/10 text-danger",
+  warning: "bg-warning/10 text-warning",
+  info: "bg-info/10 text-info",
+  brand: "bg-primary/10 text-primary",
+  success: "bg-success/10 text-success",
+  neutral: "bg-muted text-muted-foreground",
+};
 const DELTA_TONE: Record<Tone, string> = {
   good: "bg-success/10 text-success",
   bad: "bg-danger/10 text-danger",
@@ -70,22 +80,33 @@ function StatusLine({ links }: { links: StatusLink[] }) {
   );
 }
 
-function AmbientCardView({ card, onOpen }: { card: AmbientCard; onOpen: () => void }) {
+function AmbientCardView({ card, onOpen, onHandoff }: { card: AmbientCard; onOpen: () => void; onHandoff: (action: NextAction) => void }) {
+  const handoff = card.handoff;
   return (
-    <button type="button" onClick={onOpen} className={AMBIENT}>
-      <span className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
-        <span aria-hidden className={cn("size-1.5 shrink-0 rounded-full", TONE_DOT[card.tone])} />
-        <span className="truncate">{card.eyebrow}</span>
-      </span>
-      {card.headline ? (
-        <span className="flex flex-wrap items-baseline gap-x-2">
-          <span className={cn("font-display text-2xl font-semibold tabular-nums tracking-tight", TONE_TEXT[card.headline.tone])}>{card.headline.value}</span>
-          {card.headline.caption ? <span className="text-xs tabular-nums text-muted-foreground">{card.headline.caption}</span> : null}
+    <div className={AMBIENT}>
+      <button type="button" onClick={onOpen} className="flex min-w-0 flex-col gap-1.5 text-left focus-visible:outline-none">
+        <span className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
+          <span aria-hidden className={cn("size-1.5 shrink-0 rounded-full", TONE_DOT[card.tone])} />
+          <span className="truncate">{card.eyebrow}</span>
         </span>
+        {card.headline ? (
+          <span className="flex flex-wrap items-baseline gap-x-2">
+            <span className={cn("font-display text-2xl font-semibold tabular-nums tracking-tight", TONE_TEXT[card.headline.tone])}>{card.headline.value}</span>
+            {card.headline.caption ? <span className="text-xs tabular-nums text-muted-foreground">{card.headline.caption}</span> : null}
+          </span>
+        ) : null}
+        <span className="line-clamp-2 text-sm font-semibold tracking-tight">{card.title}</span>
+        {card.body ? <span className="line-clamp-2 text-xs text-muted-foreground">{card.body}</span> : null}
+      </button>
+      {handoff ? (
+        <div className="mt-auto flex pt-1">
+          <button type="button" onClick={() => onHandoff(handoff)} title={handoff.reason} className={HANDOFF}>
+            <Send className="size-3" aria-hidden />
+            {handoff.label}
+          </button>
+        </div>
       ) : null}
-      <span className="line-clamp-2 text-sm font-semibold tracking-tight">{card.title}</span>
-      {card.body ? <span className="line-clamp-2 text-xs text-muted-foreground">{card.body}</span> : null}
-    </button>
+    </div>
   );
 }
 
@@ -96,7 +117,7 @@ function KpiStrip({ kpis }: { kpis: LandingKpi[] }) {
         <span key={kpi.id} className="flex min-w-0 flex-col gap-1 bg-card px-4 py-3 text-left">
           <span className="truncate text-[11px] font-medium text-muted-foreground">{kpi.label}</span>
           <span className="font-display text-lg font-semibold leading-tight tabular-nums tracking-tight sm:text-xl">{kpi.value}</span>
-          {kpi.gap ? <span className="truncate text-[11px] font-medium text-warning">{kpi.gap}</span> : null}
+          {kpi.note ? <span className="line-clamp-2 text-[11px] font-medium text-warning">{kpi.note}</span> : null}
           {kpi.delta ? (
             <span className="flex min-w-0 items-center gap-1.5 text-[11px]">
               <span className={cn("shrink-0 rounded-full px-1.5 py-0.5 font-medium tabular-nums", DELTA_TONE[kpi.tone])}>{kpi.delta}</span>
@@ -109,16 +130,41 @@ function KpiStrip({ kpis }: { kpis: LandingKpi[] }) {
   );
 }
 
+function VisitList({ stops, onOpen }: { stops: VisitStop[]; onOpen: (stop: VisitStop) => void }) {
+  return (
+    <section aria-label={TH.landing.visitsTitle} className="overflow-hidden rounded-2xl border border-border bg-card shadow-card">
+      <h2 className="flex items-center gap-1.5 border-b border-border px-4 py-2.5 text-[11px] font-medium text-muted-foreground">
+        <MapPin className="size-3.5 text-primary" aria-hidden />
+        {TH.landing.visitsTitle}
+      </h2>
+      <ol className="divide-y divide-border">
+        {stops.map((stop, index) => (
+          <li key={stop.id}>
+            <button type="button" onClick={() => onOpen(stop)} className="flex w-full items-center gap-3 px-4 py-2.5 text-left transition hover:bg-muted focus-visible:bg-muted focus-visible:outline-none">
+              <span className="w-4 shrink-0 text-xs tabular-nums text-muted-foreground">{index + 1}</span>
+              <span className="min-w-0 flex-1 truncate text-sm font-semibold tracking-tight" title={stop.agent}>{stop.agent}</span>
+              <span className={cn("shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium tabular-nums", VISIT_TONE[stop.tone])}>{stop.reason}</span>
+              <ChevronRight className="size-3.5 shrink-0 text-muted-foreground" aria-hidden />
+            </button>
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
+}
+
 export function Landing({
   greeting,
   status,
   kpis,
+  visits,
   quickActions,
   ambient,
 }: {
   greeting: Greeting;
   status: StatusLink[];
   kpis: LandingKpi[];
+  visits: VisitStop[];
   quickActions: QuickAction[];
   ambient: AmbientCard[];
 }) {
@@ -140,11 +186,11 @@ export function Landing({
   }, []);
 
   const start = useCallback(
-    async (prompt: string, intentKey?: string) => {
+    async (prompt: string, intentKey?: string, title?: string) => {
       if (busy) return;
       setBusy(true);
       setFailed(false);
-      setText(prompt);
+      if (!title) setText(prompt);
       if (intentKey) {
         void fetch(QUICK_ACTIONS_ENDPOINT, {
           method: "POST",
@@ -155,7 +201,7 @@ export function Landing({
       const response = await fetch(THREADS_ENDPOINT, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ firstMessage: prompt }),
+        body: JSON.stringify({ firstMessage: prompt, title }),
       }).catch(() => null);
       if (!response?.ok) {
         setBusy(false);
@@ -215,10 +261,16 @@ export function Landing({
 
         <div className="flex w-full max-w-3xl flex-col gap-3 animate-hero-rise [animation-delay:160ms]">
           {kpis.length > 0 ? <KpiStrip kpis={kpis} /> : null}
+          {visits.length > 0 ? <VisitList stops={visits} onOpen={(stop) => void start(stop.prompt)} /> : null}
           {ambient.length > 0 ? (
             <div className={cn("grid w-full gap-3", AMBIENT_COLUMNS[ambient.length])}>
               {ambient.map((card) => (
-                <AmbientCardView key={card.id} card={card} onOpen={() => void start(card.prompt)} />
+                <AmbientCardView
+                  key={card.id}
+                  card={card}
+                  onOpen={() => void start(card.prompt)}
+                  onHandoff={(action) => action.tool && void start(formatActionMessage(action.tool, action.input ?? {}), undefined, action.label)}
+                />
               ))}
             </div>
           ) : null}

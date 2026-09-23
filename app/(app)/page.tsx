@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { Landing } from "@/components/landing/landing";
 import { shortName, timeOfDay } from "@/lib/i18n/format";
 import { TH } from "@/lib/i18n/th";
-import { ambientFor, landingKpis, landingStatus } from "@/lib/server/dashboard";
+import { ambientFor, landingKpis, landingStatus, visitsFor } from "@/lib/server/dashboard";
 import { quickActionsFor } from "@/lib/server/quick-actions";
 import { readAccess, readUser } from "@/lib/server/session";
 
@@ -22,6 +22,7 @@ export default async function LandingPage() {
       greeting={greeting}
       status={landingStatus(access)}
       kpis={landingKpis(access)}
+      visits={visitsFor(access)}
       quickActions={quickActionsFor(access)}
       ambient={ambientFor(access)}
     />

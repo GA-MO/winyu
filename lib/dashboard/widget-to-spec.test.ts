@@ -119,6 +119,7 @@ describe("widgetToSpec", () => {
       }],
       packet: { id: "p1", title: "ยอดอีสานต่ำกว่าเป้า", ask: "ช่วยตรวจเอเย่นต์ที่ยอดตก", fromName: "คุณอนุชา", urgency: "high" },
       ownerName: () => null,
+      actionsFor: () => [],
     });
     expect(cards.length).toBe(2);
     for (const card of cards) expect(validate(card.spec).success).toBe(true);
