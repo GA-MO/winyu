@@ -9,8 +9,7 @@ import { HoverCard, HoverCardContent, HoverCardTrigger } from "vexa/ui/hover-car
 import type { Spec } from "vexa/protocol";
 import type { WidgetSpec } from "@/lib/contracts";
 import type { DashboardChange } from "@/lib/server/briefing";
-import { toneOf } from "@/lib/dashboard/metric-display";
-import { formatPercent } from "@/lib/i18n/format";
+import { formatDelta, toneOf } from "@/lib/dashboard/metric-display";
 import { TH } from "@/lib/i18n/th";
 import type { Attention } from "@/lib/dashboard/attention";
 import { SeenTracker } from "./seen-tracker";
@@ -44,8 +43,7 @@ function ChangeChip({ change }: { change: DashboardChange }) {
       <span className="text-foreground">{change.label}</span>
       <span className={`inline-flex items-center gap-0.5 font-semibold tabular-nums ${DELTA_TONE[toneOf(change.metric, change.deltaPct)]}`}>
         <Arrow className="size-3" aria-hidden />
-        {rising ? "+" : ""}
-        {formatPercent(Math.round(change.deltaPct * 10) / 10)}
+        {formatDelta(change.deltaPct)}
       </span>
     </span>
   );

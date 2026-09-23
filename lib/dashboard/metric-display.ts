@@ -2,6 +2,8 @@ import type { MetricId } from "@/lib/contracts";
 import { formatCurrency, formatNumber, formatPercent } from "@/lib/i18n/format";
 import { METRICS } from "@/lib/semantic/metrics";
 
+const DELTA_FORMAT = new Intl.NumberFormat("th-TH", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+
 export type MetricFormat = "number" | "currency" | "percent";
 
 export function metricLabel(metric: MetricId): string {
@@ -59,5 +61,6 @@ export function toneOf(metric: MetricId, deltaPercent: number | null): Tone {
 export function formatDelta(deltaPercent: number | null): string | null {
   if (deltaPercent === null) return null;
   const rounded = Math.round(deltaPercent * 10) / 10;
-  return `${rounded > 0 ? "+" : ""}${formatPercent(rounded)}`;
+  if (rounded === 0) return "0%";
+  return `${rounded > 0 ? "+" : ""}${DELTA_FORMAT.format(rounded)}%`;
 }

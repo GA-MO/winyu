@@ -3,7 +3,7 @@ import { watchMetricInputSchema } from "@/lib/contracts";
 import { TODAY } from "@/lib/data/dates";
 import type { EvalCase } from "./cases";
 
-export type CheckId = "calledTool" | "askedApproval" | "usedCard" | "boundToTool" | "sortedRight" | "titleIsAnswer" | "noSummaryProse" | "grounded";
+export type CheckId = "calledTool" | "askedApproval" | "usedCard" | "boundToTool" | "sortedRight" | "comparedRight" | "titleIsAnswer" | "noSummaryProse" | "grounded";
 
 export type CheckResult = { id: CheckId; ok: boolean; detail: string };
 
@@ -18,6 +18,7 @@ const NUMBER_IN_TEXT = /-?\d[\d,.]{2,}/g;
 const MIN_TITLE_CHARS = 6;
 const ISO_YEAR = /\b(\d{4})-\d{2}-\d{2}/g;
 const BUDDHIST_ERA_OFFSET = 543;
+const METRIC_TOOL = "query_metric";
 
 function elements(spec: Spec | null): SpecElement[] {
   if (!spec || typeof spec.elements !== "object" || spec.elements === null) return [];
@@ -54,6 +55,27 @@ function summariesOf(outputs: Record<string, unknown>[]): string[] {
 
 function check(id: CheckId, ok: boolean, detail: string): CheckResult {
   return { id, ok, detail };
+}
+
+function describeQuery(input: unknown): string {
+  const query = input as { compare?: string; range?: { from?: string; to?: string } };
+  return `${query.compare ?? "?"} ${query.range?.from ?? "?"}..${query.range?.to ?? "?"}`;
+}
+
+/** The last day the engine actually reads: a range that runs past the data is cut at TODAY. */
+function readEnd(to: string | undefined): string | undefined {
+  return to !== undefined && to > TODAY ? TODAY : to;
+}
+
+function comparedCheck(turn: Turn, expected: NonNullable<EvalCase["expectCompare"]>): CheckResult {
+  const queries = turn.toolInputs.filter((entry) => entry.tool === METRIC_TOOL).map((entry) => entry.input);
+  const matches = queries.some((input) => {
+    const query = input as { compare?: string; range?: { from?: string; to?: string } };
+    if (query.compare !== expected.compare) return false;
+    return !expected.range || (query.range?.from === expected.range.from && readEnd(query.range?.to) === expected.range.to);
+  });
+  const wanted = expected.range ? `${expected.compare} ${expected.range.from}..${expected.range.to}` : expected.compare;
+  return check("comparedRight", matches, `ได้ ${queries.map(describeQuery).join(" · ") || "ไม่ได้ query"} คาดว่า ${wanted}`);
 }
 
 function groundedCheck(spec: Spec | null, outputs: Record<string, unknown>[]): CheckResult {
@@ -95,6 +117,7 @@ export function checkTurn(turn: Turn, testCase: EvalCase): CheckResult[] {
   if (testCase.expectSort) {
     results.push(check("sortedRight", props.sortBy === testCase.expectSort, `sortBy = ${String(props.sortBy)} คาดว่า ${testCase.expectSort}`));
   }
+  if (testCase.expectCompare) results.push(comparedCheck(turn, testCase.expectCompare));
   results.push(groundedCheck(turn.spec, turn.toolOutputs));
   return results;
 }

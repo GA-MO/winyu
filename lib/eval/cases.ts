@@ -5,6 +5,7 @@ export type EvalCase = {
   expectSort?: "delta_asc" | "delta_desc" | "value_desc" | "value_asc";
   expectComponent?: "DataCard" | "AlertsCard";
   expectApproval?: "watch_metric" | "create_handoff" | "pin_widget";
+  expectCompare?: { compare: "prev_period" | "prev_year"; range?: { from: string; to: string } };
   scripted?: boolean;
 };
 
@@ -31,6 +32,10 @@ export const EVAL_CASES: EvalCase[] = [
   { id: "landing-visit", userId: "u_krit", prompt: "เทียบยอดขายเข้ากับยอดขายออกของ อุบลศรีสุข เทรดดิ้ง ก่อนไปเยี่ยม", expectComponent: "DataCard" },
   { scripted: true, id: "ceo-channel", userId: "u_thana", prompt: "ขอยอดขายแยกตามช่องทางหน่อย", expectComponent: "DataCard", expectSort: "value_desc" },
   { scripted: true, id: "planner-watch", userId: "u_wee", prompt: "เตือนฉันถ้าสต๊อกดีซีลำพูนพอขายต่ำกว่า 10 วัน", expectApproval: "watch_metric" },
+  { id: "compare-month-to-date", userId: "u_thana", prompt: "ยอดขายเดือนนี้เทียบเดือนก่อนเป็นยังไง", expectComponent: "DataCard", expectCompare: { compare: "prev_period", range: { from: "2026-09-01", to: "2026-09-22" } } },
+  { id: "compare-top-decliners", userId: "u_thana", prompt: "10 เอเย่นต์ที่ยอดขายเดือนที่แล้วตกมากที่สุดเทียบเดือนก่อนหน้า", expectComponent: "DataCard", expectSort: "delta_asc", expectCompare: { compare: "prev_period", range: { from: "2026-08-01", to: "2026-08-31" } } },
+  { id: "compare-stock-weekly", userId: "u_wee", prompt: "สต๊อกคงเหลือรายสัปดาห์ เทียบกับช่วงก่อนหน้า", expectComponent: "DataCard", expectCompare: { compare: "prev_period" } },
+  { id: "compare-ar-last-year", userId: "u_siriporn", prompt: "ลูกหนี้ค้างชำระภาคใต้เดือนที่แล้ว แยกตามเอเย่นต์ เทียบช่วงเดียวกันปีก่อน", expectComponent: "DataCard", expectCompare: { compare: "prev_year", range: { from: "2026-08-01", to: "2026-08-31" } } },
   { id: "rsm-watch-agent", userId: "u_anucha", prompt: "ถ้ายอดขายเข้าของ ส.รุ่งเรือง เทรดดิ้ง เปลี่ยนเกิน 15% ให้เตือนผมด้วย", expectApproval: "watch_metric" },
 ];
 

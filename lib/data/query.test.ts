@@ -173,6 +173,23 @@ describe("aggregation and compare", () => {
     expect(Math.abs(compareTotal / totalOf(lastYear) - 1)).toBeLessThan(0.05);
   });
 
+  test("monthly metrics compare whole calendar months, not a shifted day window", () => {
+    const cases = [
+      { compare: "prev_year", range: { from: "2026-08-01", to: "2026-08-31" }, previous: { from: "2025-08-01", to: "2025-08-31" } },
+      { compare: "prev_period", range: { from: "2026-07-01", to: "2026-07-31" }, previous: { from: "2026-06-01", to: "2026-06-30" } },
+    ] as const;
+    for (const { compare, range, previous } of cases) {
+      const southAgents = { metric: "ar_overdue", dims: ["agent"], filters: { region: ["south"] } } satisfies Partial<MetricQuery>;
+      const result = runMetric(query({ ...southAgents, range, compare }), CEO);
+      const earlier = runMetric(query({ ...southAgents, range: previous }), CEO);
+      expect(result.ok && earlier.ok).toBe(true);
+      if (!result.ok || !earlier.ok) return;
+      const earlierByAgent = new Map(earlier.rows.map((row) => [row.agent, Number(row.value)]));
+      expect(result.rows.length).toBe(earlier.rows.length);
+      for (const row of result.rows) expect(Number(row.compare_value)).toBeCloseTo(earlierByAgent.get(row.agent) ?? Number.NaN, 0);
+    }
+  });
+
   test("target compare adds a target column and a sane attainment", () => {
     const result = runMetric(query({ metric: "net_sales_volume", dims: ["month"], compare: "target" }), CEO);
     expect(result.ok).toBe(true);
