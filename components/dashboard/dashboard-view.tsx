@@ -2,7 +2,7 @@
 
 import { useCallback, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowDownRight, ArrowUpRight, ChevronDown, ChevronUp, CircleCheck, HelpCircle, Pin, PinOff, X } from "lucide-react";
+import { ArrowDownRight, ArrowUpRight, ChevronDown, CircleCheck, HelpCircle, Pin, PinOff, X } from "lucide-react";
 import { SpecView } from "vexa/react";
 import { cn } from "vexa/lib/utils";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "vexa/ui/hover-card";
@@ -68,7 +68,7 @@ export function DashboardView({
   const steady = pinned.filter((view) => view.attention.level === "steady");
 
   const act = useCallback(
-    (widgetId: string, action: "pin" | "unpin" | "up" | "down" | "remove") => {
+    (widgetId: string, action: "pin" | "unpin" | "remove") => {
       startTransition(async () => {
         await fetch(`${WIDGETS_ENDPOINT}/${widgetId}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action }) });
         router.refresh();
@@ -127,12 +127,6 @@ export function DashboardView({
               <div className="animate-hero-rise" style={{ animationDelay: `${index * 50}ms` }}>
                 <div className={TOOLBAR}>
                   <WhyCard widget={view.widget} />
-                  <button type="button" disabled={pendingChange} onClick={() => act(view.widget.id, "up")} aria-label={TH.dash.moveUp} className={ICON}>
-                    <ChevronUp className="size-3.5" aria-hidden />
-                  </button>
-                  <button type="button" disabled={pendingChange} onClick={() => act(view.widget.id, "down")} aria-label={TH.dash.moveDown} className={ICON}>
-                    <ChevronDown className="size-3.5" aria-hidden />
-                  </button>
                   <button type="button" disabled={pendingChange} onClick={() => act(view.widget.id, "unpin")} aria-label={TH.dash.unpin} className={ICON}>
                     <PinOff className="size-3.5" aria-hidden />
                   </button>

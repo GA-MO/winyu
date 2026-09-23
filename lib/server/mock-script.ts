@@ -277,7 +277,7 @@ const SOURCE = { $state: "/tools/query_metric" };
 const ALERT_SOURCE = { $state: "/tools/get_alerts" };
 
 /** The model's whole job for a data answer: name the card and point it at the tool result. Cop's presenter draws it. */
-function dataCard(title: string, options: { view?: string; sortBy?: string; description?: string } = {}): Spec {
+function dataCard(title: string, options: { view?: string; sortBy?: string; description?: string; source?: string; with?: string[] } = {}): Spec {
   return {
     root: "card",
     elements: {
@@ -285,7 +285,8 @@ function dataCard(title: string, options: { view?: string; sortBy?: string; desc
         type: "DataCard",
         props: {
           title,
-          source: SOURCE,
+          source: options.source ? { $state: options.source } : SOURCE,
+          with: options.with ? options.with.map((path) => ({ $state: path })) : null,
           view: options.view ?? "auto",
           sortBy: options.sortBy ?? null,
           description: options.description ?? null,
@@ -328,13 +329,17 @@ function deniedSteps(output: unknown): MockStep[] {
   ];
 }
 
+function salesDimsOf(prompt: string): string[] {
+  return /ช่องทาง|channel/i.test(prompt) ? ["channel"] : ["region"];
+}
+
 function salesSteps(prompt: string): MockStep[] {
   return [
     {
       tool: "query_metric",
       input: {
         metric: "net_sales_volume",
-        dims: ["region"],
+        dims: salesDimsOf(prompt),
         filters: regionFilter(prompt),
         range: { from: MONTH_START, to: TODAY },
         grain: "month",
@@ -361,6 +366,7 @@ const AGENT_STEPS: MockStep[] = [
       grain: "month",
       compare: "prev_period",
       limit: 10,
+      sort: "delta_asc",
     },
     then: (output) => [{ text: agentLead(output) }, { spec: agentSpec() }],
     onError: deniedSteps,
@@ -443,6 +449,7 @@ const HANDOFF_STEPS: MockStep[] = [
                 grain: "month",
                 compare: "prev_period",
                 limit: 10,
+                sort: "delta_asc",
               },
             ],
             alertIds: [],
@@ -497,39 +504,6 @@ function trendSpec(title: string): Spec {
 
 function yearOverYearSpec(): Spec {
   return dataCard("ยอดขายเทียบช่วงเดียวกันปีก่อน", { view: "line" });
-}
-
-function overlaySpec(sellIn: unknown, sellOut: unknown): Spec {
-  const rows = rowsOf(sellIn);
-  const outRows = new Map(rowsOf(sellOut).map((row) => [String(row.agent), numberOf(row, "value")]));
-  const labels = rows.map((row) => textOf(row, "agent"));
-  return {
-    root: "card",
-    elements: {
-      card: {
-        type: "Card",
-        props: cardProps("ขายเข้าเทียบขายออกรายเอเย่นต์", sellIn, "เอเย่นต์", "ขายเข้าต่ำกว่าขายออกแปลว่าเอเย่นต์กำลังระบายสต๊อกที่ค้างอยู่"),
-        children: ["chart"],
-      },
-      chart: {
-        type: "BarChart",
-        props: {
-          title: null,
-          labels,
-          series: [
-            { name: "ขายเข้า", values: rows.map((row) => numberOf(row, "value")) },
-            { name: "ขายออก", values: labels.map((label) => outRows.get(label) ?? 0) },
-          ],
-          horizontal: true,
-          stacked: false,
-          showValues: false,
-          format: "number",
-          height: "lg",
-        },
-        children: [],
-      },
-    },
-  };
 }
 
 function alertLead(output: unknown): string {
@@ -678,7 +652,7 @@ const SELL_THROUGH_STEPS: MockStep[] = [
         },
         then: (sellOut) => [
           { text: sellThroughLead(sellIn, sellOut) },
-          { spec: overlaySpec(sellIn, sellOut) },
+          { spec: dataCard("ขายเข้าเทียบขายออกรายเอเย่นต์", { source: "/tools/query_metric.1", with: ["/tools/query_metric.2"] }) },
         ],
         onError: deniedSteps,
       },
@@ -718,6 +692,7 @@ function coverSteps(prompt: string): MockStep[] {
         grain: "day",
         compare: "none",
         limit: 10,
+        sort: "value_asc",
       },
       then: (output) => [{ text: coverLead(output) }, { spec: coverSpec() }],
       onError: deniedSteps,
@@ -787,6 +762,7 @@ const PRELOAD_STEPS: MockStep[] = [
           grain: "day",
           compare: "none",
           limit: 10,
+          sort: "value_asc",
         },
         then: (cover) => [
           { text: "ผมดึงข้อมูลของงานที่ส่งมาให้แล้วครับ ทั้งความผิดปกติที่เกี่ยวข้องและสต๊อกล่าสุดตามสิทธิ์ของคุณ" },
@@ -870,13 +846,14 @@ type MetricAsk = {
   versus: string;
   view?: string;
   sortBy?: string;
+  limit?: number | null;
 };
 
 function metricAskSteps(ask: MetricAsk): MockStep[] {
   return [
     {
       tool: "query_metric",
-      input: { metric: ask.metric, dims: ask.dims, filters: {}, range: { from: ask.from, to: TODAY }, grain: ask.grain, compare: ask.compare, limit: 10 },
+      input: { metric: ask.metric, dims: ask.dims, filters: {}, range: { from: ask.from, to: TODAY }, grain: ask.grain, compare: ask.compare, limit: ask.limit === undefined ? 10 : ask.limit, sort: ask.sortBy ?? null },
       then: (output) => [{ text: headlineLead(output, ask.subject, ask.versus) }, { spec: dataCard(ask.title, { view: ask.view, sortBy: ask.sortBy }) }],
       onError: deniedSteps,
     },
@@ -923,6 +900,55 @@ const HEADCOUNT_STEPS = metricAskSteps({
   title: "จำนวนพนักงานรายฝ่ายเทียบปีที่แล้ว", subject: "จำนวนพนักงานทั้งหมด", versus: "ปีที่แล้ว", view: "bar", sortBy: "value_desc",
 });
 
+const SIX_MONTHS_START = "2026-03-01";
+
+const REGION_MONTHLY_STEPS = metricAskSteps({
+  metric: "net_sales_volume", dims: ["month", "region"], from: SIX_MONTHS_START, grain: "month", compare: "none",
+  title: "ยอดขายเข้ารายเดือน แต่ละภาคมีส่วนเท่าไหร่", subject: "ยอดขายเข้า 6 เดือนล่าสุด", versus: "", limit: null,
+});
+
+const PROVINCE_ATTAINMENT_STEPS = metricAskSteps({
+  metric: "target_attainment", dims: ["province"], from: MONTH_START, grain: "month", compare: "prev_period",
+  title: "จังหวัดที่ยอดเทียบเป้าแย่ลงเดือนนี้", subject: "ยอดเทียบเป้าเดือนนี้", versus: "เดือนก่อน", limit: null,
+});
+
+const REGION_CHANNEL_STEPS = metricAskSteps({
+  metric: "net_sales_volume", dims: ["region", "channel"], from: MONTH_START, grain: "month", compare: "prev_period",
+  title: "ภาคไหน ช่องทางไหน ที่ยอดเปลี่ยนมากที่สุด", subject: "ยอดขายเข้าเดือนนี้", versus: "เดือนก่อน", limit: null,
+});
+
+type PairedAsk = { metric: string; dims: string[] };
+
+function pairedSteps(asks: PairedAsk[], range: { from: string; to: string }, title: string, lead: string, done: unknown[] = []): MockStep[] {
+  const [ask, ...rest] = asks;
+  const paths = [...done, null].map((_, index) => `/tools/query_metric.${index + 1}`);
+  return [
+    {
+      tool: "query_metric",
+      input: { metric: ask.metric, dims: ask.dims, filters: {}, range, grain: "month", compare: "none", limit: null },
+      then: (output) =>
+        rest.length > 0
+          ? pairedSteps(rest, range, title, lead, [...done, output])
+          : [{ text: lead }, { spec: dataCard(title, { source: paths[0], with: paths.slice(1) }) }],
+      onError: deniedSteps,
+    },
+  ];
+}
+
+const FLOW_STEPS = pairedSteps(
+  [{ metric: "production_output", dims: [] }, { metric: "net_sales_volume", dims: [] }, { metric: "sell_out_volume", dims: [] }],
+  LAST_AUDIT_MONTH,
+  "เบียร์ที่ผลิตเดือน ส.ค. ไปถึงร้านค้าเท่าไหร่",
+  "นี่คือเส้นทางจากโรงงานถึงร้านค้าเดือน ส.ค. ครับ ช่องว่างระหว่างขั้นคือสต๊อกที่ค้างอยู่ในคลังหรือที่เอเย่นต์",
+);
+
+const SALES_VS_OVERDUE_STEPS = pairedSteps(
+  [{ metric: "net_sales_value", dims: ["agent"] }, { metric: "ar_overdue", dims: ["agent"] }],
+  LAST_AUDIT_MONTH,
+  "เอเย่นต์ที่ขายมาก ค้างชำระมากด้วยไหม",
+  "จุดแต่ละจุดคือเอเย่นต์หนึ่งราย ดูรายที่อยู่มุมขวาบน: ขายมากและค้างชำระมาก",
+);
+
 const RERUN_ANOMALY_STEPS: MockStep[] = [
   { text: "งานนี้จะรันการตรวจหาความผิดปกติใหม่ทั้งระบบครับ กดอนุมัติเพื่อเริ่ม" },
   {
@@ -942,10 +968,10 @@ function marketShareSteps(prompt: string): MockStep[] {
   return [
     {
       tool: "query_metric",
-      input: { metric: "market_share", dims, filters, range: LAST_AUDIT_MONTH, grain: "month", compare: "prev_year", limit: 30 },
+      input: { metric: "market_share", dims, filters, range: LAST_AUDIT_MONTH, grain: "month", compare: "prev_year", limit: 30, sort: "delta_asc" },
       then: (output) => [
         { text: headlineLead(output, subject, "ปีก่อน") },
-        { spec: dataCard(title, { view: "bar", sortBy: "delta_asc", description: "ข้อมูล retail audit ล่าสุดคือเดือนที่ครบแล้ว เรียงจากที่เสียส่วนแบ่งมากสุด" }) },
+        { spec: dataCard(title, { sortBy: "delta_asc", description: "ข้อมูล retail audit ล่าสุดคือเดือนที่ครบแล้ว เรียงจากที่เสียส่วนแบ่งมากสุด" }) },
       ],
       onError: deniedSteps,
     },
@@ -1087,6 +1113,11 @@ export const COP_MOCK_PROMPTS = [
   "เตือนฉันถ้าสต๊อกดีซีลำพูนพอขายต่ำกว่า 10 วัน",
   "เดือนหน้ามีวันไหนที่กระทบยอดขาย",
   "ส่วนแบ่งตลาดเทียบคู่แข่ง",
+  "ยอดขายรายเดือนแยกภาค 6 เดือนล่าสุด",
+  "ยอดเทียบเป้ารายจังหวัด",
+  "ยอดขายแต่ละภาคแยกช่องทาง",
+  "ผลิต ขายเข้า ขายออก เดือนที่แล้ว",
+  "เอเย่นต์ที่ขายมากค้างชำระมากด้วยไหม",
 ];
 
 /** Scripted turns that drive the real tools: the mock calls a tool, the handler executes it, the continuation renders the output. */
@@ -1100,6 +1131,11 @@ export const COP_MOCK_SCRIPT: MockScript = {
     { match: /วันห้ามขาย|วันพระ|ปฏิทิน|วันหยุด|เทศกาล|วันไหน.*กระทบ|ออกพรรษา/, steps: CALENDAR_STEPS },
     { match: /ส่วนแบ่งตลาด|market share|มาร์เก็ตแชร์|คู่แข่ง|คาราบาว|ช้าง/i, steps: marketShareSteps },
     { match: /ขายออกเบียร์.*ใน.*(ปีก่อน|ปีที่แล้ว)/, steps: beerSellOutOfPlaceSteps },
+    { match: /ผลิต.*ขายเข้า.*ขายออก|จากโรงงานถึงร้าน/, steps: FLOW_STEPS },
+    { match: /ขาย(มาก|เยอะ).*ค้างชำระ|ยอดขาย.*กับ.*ค้างชำระ/, steps: SALES_VS_OVERDUE_STEPS },
+    { match: /รายจังหวัด|แต่ละจังหวัด/, steps: PROVINCE_ATTAINMENT_STEPS },
+    { match: /ภาค.*ช่องทาง|ช่องทาง.*ภาค/, steps: REGION_CHANNEL_STEPS },
+    { match: /รายเดือน.*(แยก|แต่ละ)ภาค|(แยก|แต่ละ)ภาค.*รายเดือน/, steps: REGION_MONTHLY_STEPS },
     { match: /สิทธิ์|เงินเดือน|salary/i, steps: SALARY_STEPS },
     { match: /กำไรขั้นต้น|gross margin/i, steps: MARGIN_STEPS },
     { match: /ลาออก|attrition/i, steps: ATTRITION_STEPS },

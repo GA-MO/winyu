@@ -9,8 +9,9 @@ export type Dim = "date" | "week" | "month" | "region" | "province" | "channel" 
 export type Grain = "day" | "week" | "month";
 export type MetricDef = { id: MetricId; label: string; labelTh: string; unit: string; format: "number" | "currency" | "percent";
   owner: string; certified: boolean; dims: Dim[]; aclDims: Dim[]; synonyms: string[]; description: string; sourceSystem: string };
+export type MetricSort = "value_desc" | "value_asc" | "delta_asc" | "delta_desc";
 export type MetricQuery = { metric: MetricId; dims: Dim[]; filters: Partial<Record<Dim, string[]>>;
-  range: { from: string; to: string }; grain: Grain; compare: "none" | "prev_period" | "prev_year" | "target"; limit: number | null };
+  range: { from: string; to: string }; grain: Grain; compare: "none" | "prev_period" | "prev_year" | "target"; limit: number | null; sort?: MetricSort | null };
 export type MetricRow = Record<string, string | number | null>;
 export type Provenance = { metric: MetricId; certified: boolean; sourceSystem: string; asOf: string; rowCount: number;
   filtersApplied: Partial<Record<Dim, string[]>>; scopeApplied: Partial<Record<Dim, string[]>>; masked: string[]; trust: "verified" | "derived" | "estimated" };
@@ -26,6 +27,7 @@ export const DIMS = ["date", "week", "month", "region", "province", "channel", "
   "agent", "dc", "plant", "campaign", "department", "business_unit", "maker"] as const satisfies readonly Dim[];
 export const GRAINS = ["day", "week", "month"] as const satisfies readonly Grain[];
 export const COMPARE_MODES = ["none", "prev_period", "prev_year", "target"] as const;
+export const METRIC_SORTS = ["value_desc", "value_asc", "delta_asc", "delta_desc"] as const satisfies readonly MetricSort[];
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 const MAX_ROWS = 60;
@@ -42,4 +44,5 @@ export const metricQuerySchema = z.object({
   grain: grainSchema,
   compare: z.enum(COMPARE_MODES),
   limit: z.number().int().min(1).max(MAX_ROWS).nullable(),
+  sort: z.enum(METRIC_SORTS).nullable().optional(),
 }) satisfies z.ZodType<MetricQuery>;

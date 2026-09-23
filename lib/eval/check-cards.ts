@@ -1,9 +1,11 @@
 import type { Spec, SpecElement } from "vexa/protocol";
 import { watchMetricInputSchema } from "@/lib/contracts";
 import { TODAY } from "@/lib/data/dates";
+import { presentCard, type CardView, type PresentSource, type SortBy } from "@/lib/cards/present";
+import type { MetricQuery, MetricResult } from "@/lib/contracts";
 import type { EvalCase } from "./cases";
 
-export type CheckId = "calledTool" | "askedApproval" | "usedCard" | "boundToTool" | "sortedRight" | "comparedRight" | "titleIsAnswer" | "noSummaryProse" | "grounded";
+export type CheckId = "calledTool" | "askedApproval" | "usedCard" | "boundToTool" | "sortedRight" | "comparedRight" | "cutRight" | "drewShape" | "titleIsAnswer" | "noSummaryProse" | "grounded";
 
 export type CheckResult = { id: CheckId; ok: boolean; detail: string };
 
@@ -19,6 +21,8 @@ const MIN_TITLE_CHARS = 6;
 const ISO_YEAR = /\b(\d{4})-\d{2}-\d{2}/g;
 const BUDDHIST_ERA_OFFSET = 543;
 const METRIC_TOOL = "query_metric";
+const ENGINE_DEFAULT_SORT = "value_desc";
+const METRIC_PATH = /^\/tools\/query_metric(?:\.(\d+))?$/;
 
 function elements(spec: Spec | null): SpecElement[] {
   if (!spec || typeof spec.elements !== "object" || spec.elements === null) return [];
@@ -92,6 +96,36 @@ function groundedCheck(spec: Spec | null, outputs: Record<string, unknown>[]): C
 }
 
 /** What a good Cop answer must be true of, checked without a model in the loop. */
+function metricAnswers(turn: Turn): Record<string, unknown>[] {
+  return turn.toolOutputs.filter((output) => "query" in output || (output.ok === false && "code" in output));
+}
+
+function boundAnswer(binding: unknown, answers: Record<string, unknown>[]): PresentSource | null {
+  const path = (binding as { $state?: unknown } | null)?.$state;
+  const match = typeof path === "string" ? METRIC_PATH.exec(path) : null;
+  if (!match) return null;
+  const output = match[1] ? answers[Number(match[1]) - 1] : answers[answers.length - 1];
+  if (!output || !("query" in output)) return null;
+  return { query: output.query as MetricQuery, result: output as unknown as MetricResult };
+}
+
+/** A limited query must be ranked the way the card is ordered, or the limit keeps the wrong rows (the ten biggest, not the ten that fell most). */
+function cutCheck(turn: Turn, expected: NonNullable<EvalCase["expectSort"]>): CheckResult {
+  const limited = turn.toolInputs.filter((entry) => entry.tool === METRIC_TOOL).map((entry) => entry.input as { limit?: unknown; sort?: unknown }).filter((input) => typeof input.limit === "number");
+  if (limited.length === 0) return check("cutRight", true, "ไม่ได้ตัดด้วย limit");
+  const wrong = limited.filter((input) => (input.sort ?? ENGINE_DEFAULT_SORT) !== expected);
+  return check("cutRight", wrong.length === 0, wrong.length === 0 ? `sort = ${expected} ก่อนตัด` : `ตัดด้วย limit แต่ sort = ${String(wrong[0].sort ?? "ไม่ได้ส่ง")} คาดว่า ${expected}`);
+}
+
+function shapeCheck(turn: Turn, props: Record<string, unknown>, expected: NonNullable<EvalCase["expectShape"]>): CheckResult {
+  const answers = metricAnswers(turn);
+  const first = boundAnswer(props.source, answers);
+  if (!first) return check("drewShape", false, "การ์ดไม่ได้ผูกกับผล query_metric");
+  const others = (Array.isArray(props.with) ? props.with : []).map((binding) => boundAnswer(binding, answers)).filter((other): other is PresentSource => other !== null);
+  const body = presentCard({ title: "", query: first.query, result: first.result, view: (props.view as CardView | null) ?? "auto", sortBy: (props.sortBy as SortBy | null) ?? null, others }).body;
+  return check("drewShape", body.kind === expected, `วาดเป็น ${body.kind} คาดว่า ${expected} (dims ${first.query.dims.join(",") || "-"}, with ${others.length})`);
+}
+
 export function checkTurn(turn: Turn, testCase: EvalCase): CheckResult[] {
   const card = cardElement(turn.spec);
   const props = propsOf(card);
@@ -116,8 +150,10 @@ export function checkTurn(turn: Turn, testCase: EvalCase): CheckResult[] {
   }
   if (testCase.expectSort) {
     results.push(check("sortedRight", props.sortBy === testCase.expectSort, `sortBy = ${String(props.sortBy)} คาดว่า ${testCase.expectSort}`));
+    results.push(cutCheck(turn, testCase.expectSort));
   }
   if (testCase.expectCompare) results.push(comparedCheck(turn, testCase.expectCompare));
+  if (testCase.expectShape) results.push(shapeCheck(turn, props, testCase.expectShape));
   results.push(groundedCheck(turn.spec, turn.toolOutputs));
   return results;
 }

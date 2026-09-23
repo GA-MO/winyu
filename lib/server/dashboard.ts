@@ -15,7 +15,7 @@ import { TH } from "@/lib/i18n/th";
 import { templateFor } from "@/lib/dashboard/templates";
 import { widgetToSpec, type WidgetExtras } from "@/lib/dashboard/widget-to-spec";
 import { findUser } from "@/lib/data/entities/users";
-import { attentionOf, staleWidgets, type Attention } from "@/lib/dashboard/attention";
+import { attentionOf, byAttention, staleWidgets, type Attention } from "@/lib/dashboard/attention";
 import { actionEvents } from "@/lib/server/agent/collections";
 import { lessonFor } from "@/lib/server/outcomes";
 
@@ -39,6 +39,7 @@ function seedLayout(access: AccessContext): DashboardLayout {
     title: seed.title,
     kind: seed.kind,
     query: seed.query,
+    sortBy: seed.sortBy,
     pinned: seed.pinned,
     position,
     source: seed.source,
@@ -81,7 +82,7 @@ function withTemplateReasons(layout: DashboardLayout, access: AccessContext): Da
   const seeds = new Map(templateFor(access).map((seed) => [`w_${access.userId}_${seed.key}`, seed]));
   const widgets = layout.widgets.map((widget) => {
     const seed = widget.source === "role_template" ? seeds.get(widget.id) : undefined;
-    return seed ? { ...widget, title: seed.title, query: seed.query, reason: seed.reason } : widget;
+    return seed ? { ...widget, title: seed.title, kind: seed.kind, query: seed.query, sortBy: seed.sortBy, reason: seed.reason } : widget;
   });
   return { ...layout, widgets };
 }
@@ -121,7 +122,7 @@ function viewOf(widget: WidgetSpec, access: AccessContext, relevant: readonly Al
   const hero = presentCard({ title: widget.title, query: widget.query, result }).hero;
   return {
     widget,
-    spec: widgetToSpec(widget, result, { ...extras, actions }),
+    spec: widgetToSpec(widget, result, { sortBy: widget.sortBy ?? null, ...extras, actions }),
     attention: attentionOf({ widget, result, alerts: relevant }),
     headline: hero ? { value: hero.value, delta: hero.delta, tone: hero.tone } : null,
   };
@@ -140,12 +141,14 @@ export async function refreshSuggestions(access: AccessContext): Promise<Dashboa
   });
 }
 
+function relevantAlerts(access: AccessContext): Alert[] {
+  return openAlertsFor(access).filter((alert) => relevanceOf(alert, access) !== "other");
+}
+
+/** Every card on the dashboard, the most urgent first. */
 export function widgetViews(access: AccessContext): WidgetView[] {
-  const relevant = openAlertsFor(access).filter((alert) => relevanceOf(alert, access) !== "other");
-  return layoutFor(access)
-    .widgets.slice()
-    .sort((left, right) => left.position - right.position)
-    .map((widget) => viewOf(widget, access, relevant));
+  const relevant = relevantAlerts(access);
+  return byAttention(layoutFor(access).widgets.map((widget) => viewOf(widget, access, relevant)));
 }
 
 /** Pinned cards this user has stopped looking at, offered for removal on the dashboard. */
@@ -153,13 +156,18 @@ export function staleFor(access: AccessContext, now = Date.now()): WidgetSpec[] 
   return staleWidgets(layoutFor(access).widgets, actionEvents().all(), access.userId, now);
 }
 
-/** The headline of each pinned card, through the same presenter the dashboard draws with; masked or denied cards are skipped. */
+/** The headline of each pinned card, the most urgent first as on the dashboard, through the same presenter the dashboard draws with; masked or denied cards are skipped. */
 export function landingKpis(access: AccessContext): LandingKpi[] {
   const kpis: LandingKpi[] = [];
-  const pinned = layoutFor(access).widgets.filter((widget) => widget.pinned && widget.kind !== "alert_list").sort((left, right) => left.position - right.position);
-  for (const widget of pinned) {
+  const relevant = relevantAlerts(access);
+  const pinned = layoutFor(access).widgets
+    .filter((widget) => widget.pinned && widget.kind !== "alert_list")
+    .map((widget) => {
+      const result = resolveWidget(widget, access);
+      return { widget, result, attention: attentionOf({ widget, result, alerts: relevant }) };
+    });
+  for (const { widget, result } of byAttention(pinned)) {
     if (kpis.length >= KPI_LIMIT) break;
-    const result = resolveWidget(widget, access);
     const parts = presentCard({ title: widget.title, query: widget.query, result });
     const hero = parts.hero;
     if (!hero || kpis.some((kpi) => kpi.label === hero.label && kpi.value === hero.value)) continue;
@@ -214,7 +222,7 @@ export function ambientFor(access: AccessContext): AmbientCard[] {
   const packet = openPacketsFor(access)[0] ?? null;
   const fromName = packet ? (findUser(packet.fromUserId)?.nameTh ?? packet.fromUserId) : "";
   return ambientCards({
-    alerts: openAlertsFor(access).filter((alert) => relevanceOf(alert, access) !== "other"),
+    alerts: relevantAlerts(access),
     ownerName: (alert) => (alert.ownerUserId === access.userId ? null : (findUser(alert.ownerUserId)?.nameTh ?? null)),
     lessonOf: lessonFor,
     actionsFor: (alert) => actionsForAlert(access, alert),
@@ -230,17 +238,6 @@ function mutate(access: AccessContext, change: (widgets: WidgetSpec[]) => Widget
 
 export function setWidgetPinned(access: AccessContext, widgetId: string, pinned: boolean): DashboardLayout {
   return mutate(access, (widgets) => widgets.map((widget) => (widget.id === widgetId ? { ...widget, pinned, source: pinned ? "user_pin" : widget.source, version: widget.version + 1 } : widget)));
-}
-
-export function moveWidget(access: AccessContext, widgetId: string, direction: "up" | "down"): DashboardLayout {
-  return mutate(access, (widgets) => {
-    const index = widgets.findIndex((widget) => widget.id === widgetId);
-    const target = direction === "up" ? index - 1 : index + 1;
-    if (index === -1 || target < 0 || target >= widgets.length) return widgets;
-    const next = widgets.slice();
-    [next[index], next[target]] = [next[target], next[index]];
-    return next;
-  });
 }
 
 export function removeWidget(access: AccessContext, widgetId: string): DashboardLayout {

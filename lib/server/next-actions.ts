@@ -1,4 +1,5 @@
 import type { AccessContext, Alert, Dim, MetricQuery, MetricResult, NextAction, QuickAction } from "@/lib/contracts";
+import { widgetKindFor } from "@/lib/cards/present";
 import { GEO_LEVELS, geoValueOf } from "@/lib/data/entities/geo";
 import { sharpestHarm } from "@/lib/cards/present";
 import { nextActionsFor } from "@/lib/engine/next-actions";
@@ -68,6 +69,7 @@ export function actionsForMetric(access: AccessContext, query: MetricQuery, resu
       alertIds: alert ? [alert.id] : [],
       alertScope: alert ? alertScopeLabel(alert) : null,
       verifyStep: alert ? alert.verifySteps[0] : null,
+      drawnAs: widgetKindFor(query, result),
     },
     alreadyPinned(access.userId, query) ? 0 : repeatsOf(access.userId, query),
   );

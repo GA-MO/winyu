@@ -28,6 +28,7 @@ function allows(access: AccessContext, tool: NextAction["tool"]): boolean {
 }
 
 function widgetKindOf(context: NextActionContext): WidgetKind {
+  if (context.drawnAs) return context.drawnAs;
   if (context.query.dims.length === 0) return WIDGET_KIND_FOR_DIMS.none;
   if (context.query.dims.some((dim) => TIME_DIMS.includes(dim))) return WIDGET_KIND_FOR_DIMS.time;
   return WIDGET_KIND_FOR_DIMS.other;

@@ -1,3 +1,5 @@
+import type { CardBody } from "@/lib/cards/present";
+
 export type EvalCase = {
   id: string;
   userId: string;
@@ -6,6 +8,7 @@ export type EvalCase = {
   expectComponent?: "DataCard" | "AlertsCard";
   expectApproval?: "watch_metric" | "create_handoff" | "pin_widget";
   expectCompare?: { compare: "prev_period" | "prev_year"; range?: { from: string; to: string } };
+  expectShape?: CardBody["kind"];
   scripted?: boolean;
 };
 
@@ -30,13 +33,20 @@ export const EVAL_CASES: EvalCase[] = [
   { id: "landing-alert-marketing", userId: "u_ben", prompt: "ตรวจความผิดปกติของ เพอร์ร่า ขวด PET 600 มล. · เชียงใหม่ · ภาคเหนือ ให้หน่อย", expectComponent: "AlertsCard" },
   { id: "landing-alert-finance", userId: "u_mint", prompt: "ตรวจความผิดปกติของ ภาคใต้ ให้หน่อย", expectComponent: "AlertsCard" },
   { id: "landing-visit", userId: "u_krit", prompt: "เทียบยอดขายเข้ากับยอดขายออกของ อุบลศรีสุข เทรดดิ้ง ก่อนไปเยี่ยม", expectComponent: "DataCard" },
-  { scripted: true, id: "ceo-channel", userId: "u_thana", prompt: "ขอยอดขายแยกตามช่องทางหน่อย", expectComponent: "DataCard", expectSort: "value_desc" },
+  { scripted: true, id: "ceo-channel", userId: "u_thana", prompt: "ขอยอดขายแยกตามช่องทางหน่อย", expectComponent: "DataCard", expectSort: "value_desc", expectShape: "share" },
   { scripted: true, id: "planner-watch", userId: "u_wee", prompt: "เตือนฉันถ้าสต๊อกดีซีลำพูนพอขายต่ำกว่า 10 วัน", expectApproval: "watch_metric" },
   { id: "compare-month-to-date", userId: "u_thana", prompt: "ยอดขายเดือนนี้เทียบเดือนก่อนเป็นยังไง", expectComponent: "DataCard", expectCompare: { compare: "prev_period", range: { from: "2026-09-01", to: "2026-09-22" } } },
   { id: "compare-top-decliners", userId: "u_thana", prompt: "10 เอเย่นต์ที่ยอดขายเดือนที่แล้วตกมากที่สุดเทียบเดือนก่อนหน้า", expectComponent: "DataCard", expectSort: "delta_asc", expectCompare: { compare: "prev_period", range: { from: "2026-08-01", to: "2026-08-31" } } },
   { id: "compare-stock-weekly", userId: "u_wee", prompt: "สต๊อกคงเหลือรายสัปดาห์ เทียบกับช่วงก่อนหน้า", expectComponent: "DataCard", expectCompare: { compare: "prev_period" } },
   { id: "compare-ar-last-year", userId: "u_siriporn", prompt: "ลูกหนี้ค้างชำระภาคใต้เดือนที่แล้ว แยกตามเอเย่นต์ เทียบช่วงเดียวกันปีก่อน", expectComponent: "DataCard", expectCompare: { compare: "prev_year", range: { from: "2026-08-01", to: "2026-08-31" } } },
   { id: "rsm-watch-agent", userId: "u_anucha", prompt: "ถ้ายอดขายเข้าของ ส.รุ่งเรือง เทรดดิ้ง เปลี่ยนเกิน 15% ให้เตือนผมด้วย", expectApproval: "watch_metric" },
+  { scripted: true, id: "shape-stacked", userId: "u_thana", prompt: "ยอดขายรายเดือนแยกภาค 6 เดือนล่าสุด", expectComponent: "DataCard", expectShape: "stacked" },
+  { scripted: true, id: "shape-province", userId: "u_thana", prompt: "ยอดเทียบเป้ารายจังหวัดเดือนนี้", expectComponent: "DataCard", expectShape: "rank" },
+  { scripted: true, id: "shape-heatmap", userId: "u_thana", prompt: "ยอดขายแต่ละภาคแยกช่องทาง เทียบเดือนก่อน", expectComponent: "DataCard", expectShape: "heatmap" },
+  { scripted: true, id: "shape-funnel", userId: "u_thana", prompt: "เดือน ส.ค. ผลิตเบียร์ได้เท่าไหร่ ขายเข้าเท่าไหร่ ขายออกเท่าไหร่", expectComponent: "DataCard", expectShape: "funnel" },
+  { scripted: true, id: "shape-scatter", userId: "u_thana", prompt: "เอเย่นต์ที่ขายมากค้างชำระมากด้วยไหม เดือน ส.ค.", expectComponent: "DataCard", expectShape: "scatter" },
+  { scripted: true, id: "shape-sell-through", userId: "u_thana", prompt: "เทียบยอดขายเข้ากับยอดขายออกของเอเย่นต์", expectComponent: "DataCard", expectShape: "scatter" },
+  { id: "shape-share-market", userId: "u_anucha", prompt: "สัดส่วนตลาดเบียร์ในนครราชสีมาเดือน ส.ค. แต่ละผู้ผลิตได้เท่าไหร่", expectComponent: "DataCard", expectShape: "share" },
 ];
 
 /** The subset the scripted mock answers, so the card contract is checked in `bun run test` with no API key. */

@@ -1,3 +1,4 @@
+import type { WidgetKind } from "./dashboard";
 import type { MetricQuery } from "./semantic";
 
 export type NextActionKind = "handoff" | "request_access" | "pin" | "verify" | "drill";
@@ -22,4 +23,5 @@ export type NextActionContext = {
   alertIds: string[];
   alertScope: string | null;
   verifyStep: string | null;
+  drawnAs?: WidgetKind | null;
 };

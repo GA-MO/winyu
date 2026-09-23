@@ -1,30 +1,15 @@
 "use client";
 
-import { Alert, Card, LineChart, Metric, Progress, RankList, Table } from "vexa/react";
+import { Alert, Card, Metric } from "vexa/react";
 import { useVexaHostContext } from "vexa/react";
 import type { NextAction } from "@/lib/contracts";
-import type { CardBody, CardParts } from "@/lib/cards/present";
+import type { CardParts } from "@/lib/cards/present";
 import { TH } from "@/lib/i18n/th";
-import { SignalList } from "./signal-list";
+import { CardBodyView } from "./charts/card-body";
 
 const ACTION_TOOL = "cop_action";
 const PRIMARY = "inline-flex items-center rounded-full bg-ink px-3.5 py-2 text-xs font-medium text-ink-foreground transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 const SECONDARY = "inline-flex items-center rounded-full border border-border bg-card px-3.5 py-2 text-xs font-medium text-muted-foreground transition hover:border-foreground/25 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
-
-function CardBodyView({ body }: { body: CardBody }) {
-  if (body.kind === "rank") return <RankList props={{ items: body.rows, showRank: body.showRank }} />;
-  if (body.kind === "progress") return <Progress props={{ label: body.label, value: body.value, detail: body.detail }} />;
-  if (body.kind === "line") {
-    return (
-      <LineChart
-        props={{ title: null, labels: body.labels, series: body.series, area: body.series.length === 1, showDots: false, format: body.format, height: "md" }}
-      />
-    );
-  }
-  if (body.kind === "table") return <Table props={{ columns: body.columns, rows: body.rows }} />;
-  if (body.kind === "alerts") return <SignalList items={body.items} />;
-  return null;
-}
 
 export function ActionStrip({ actions }: { actions: NextAction[] }) {
   const host = useVexaHostContext();

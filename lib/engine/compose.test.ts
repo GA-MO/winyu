@@ -3,7 +3,7 @@ import type { AccessContext, ActionEvent, WidgetSpec } from "@/lib/contracts";
 import { accessFor } from "@/lib/access/policies";
 import { findUser } from "@/lib/data/entities/users";
 import { layoutVersions, layouts } from "@/lib/server/agent/collections";
-import { layoutFor, moveWidget, rollbackToYesterday, setWidgetPinned } from "@/lib/server/dashboard";
+import { layoutFor, removeWidget, rollbackToYesterday, setWidgetPinned } from "@/lib/server/dashboard";
 import { TEMPLATE_ROLES, templateFor } from "@/lib/dashboard/templates";
 import { widgetToSpec } from "@/lib/dashboard/widget-to-spec";
 import { runMetric } from "@/lib/data/query";
@@ -138,15 +138,15 @@ describe("layout versioning", () => {
     const planner = access(VERSION_USER);
     const first = layoutFor(planner);
     const widgetId = first.widgets[0].id;
-    const moved = moveWidget(planner, first.widgets[1].id, "up");
-    expect(moved.version).toBeGreaterThan(first.version);
-    expect(moved.widgets[0].id).not.toBe(widgetId);
+    const removed = removeWidget(planner, widgetId);
+    expect(removed.version).toBeGreaterThan(first.version);
+    expect(removed.widgets[0].id).not.toBe(widgetId);
 
     const yesterday = new Date(Date.now() - DAY_MS).toISOString();
     layoutVersions().put({ id: `${VERSION_USER}_0`, userId: VERSION_USER, version: 0, widgets: first.widgets, savedAt: yesterday });
     const restored = rollbackToYesterday(planner);
     expect(restored?.widgets[0].id).toBe(widgetId);
-    expect(restored?.version).toBeGreaterThan(moved.version);
+    expect(restored?.version).toBeGreaterThan(removed.version);
   });
 
   test("unpinning is versioned too", () => {

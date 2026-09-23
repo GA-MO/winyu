@@ -1,11 +1,11 @@
 import { badRequest, readBody, requireAccess, unauthenticated } from "../../../_guard";
-import { moveWidget, removeWidget, setWidgetPinned } from "@/lib/server/dashboard";
+import { removeWidget, setWidgetPinned } from "@/lib/server/dashboard";
 
 type RouteContext = { params: Promise<{ id: string }> };
-type WidgetAction = "pin" | "unpin" | "up" | "down" | "remove";
+type WidgetAction = "pin" | "unpin" | "remove";
 type ActionBody = { action?: unknown };
 
-const ACTIONS: readonly WidgetAction[] = ["pin", "unpin", "up", "down", "remove"];
+const ACTIONS: readonly WidgetAction[] = ["pin", "unpin", "remove"];
 
 function isAction(value: unknown): value is WidgetAction {
   return typeof value === "string" && ACTIONS.includes(value as WidgetAction);
@@ -19,6 +19,5 @@ export async function POST(req: Request, context: RouteContext) {
   const widgetId = (await context.params).id;
   if (body.action === "pin") return Response.json({ layout: setWidgetPinned(access, widgetId, true) });
   if (body.action === "unpin") return Response.json({ layout: setWidgetPinned(access, widgetId, false) });
-  if (body.action === "remove") return Response.json({ layout: removeWidget(access, widgetId) });
-  return Response.json({ layout: moveWidget(access, widgetId, body.action) });
+  return Response.json({ layout: removeWidget(access, widgetId) });
 }

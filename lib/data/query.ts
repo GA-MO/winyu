@@ -1,6 +1,6 @@
 import {
   BRANDS, BUSINESS_UNITS, REGIONS,
-  type AccessContext, type Brand, type Dim, type Grain, type MetricDef, type MetricId, type MetricQuery,
+  type AccessContext, type Brand, type Dim, type Grain, type MetricDef, type MetricId, type MetricQuery, type MetricSort,
   type MetricHeadline, type MetricResult, type MetricRow, type Provenance, type Region,
 } from "@/lib/contracts";
 import { METRIC_LIST, TIME_DIMS, findMetric, metricDef } from "@/lib/semantic/metrics";
@@ -775,6 +775,24 @@ function firstTimeDim(dims: Dim[]): Dim | null {
 
 const RISK_WHEN_LOW: ReadonlySet<MetricId> = new Set<MetricId>(["days_of_cover"]);
 
+function changeOf(row: Aggregated, previous: Map<string, number> | null): number | null {
+  const before = previous?.get(row.key);
+  if (before === undefined || before === 0) return null;
+  return (row.value - before) / Math.abs(before);
+}
+
+/** The rows the question asked for, cut after ordering: "the ten that fell most" must rank every row by its change before keeping ten. */
+function orderedRows(rows: Aggregated[], sort: MetricSort, limit: number, compareRows: Aggregated[] | null): Aggregated[] {
+  if (sort === "value_desc") return [...rows].sort((left, right) => right.value - left.value).slice(0, limit);
+  if (sort === "value_asc") return [...rows].sort((left, right) => left.value - right.value).slice(0, limit);
+  const previous = compareRows ? indexCompare(compareRows) : null;
+  const sign = sort === "delta_asc" ? 1 : -1;
+  const scored = rows.map((row) => ({ row, change: changeOf(row, previous) }));
+  const known = scored.filter((entry) => entry.change !== null).sort((left, right) => sign * ((left.change as number) - (right.change as number)));
+  const unknown = scored.filter((entry) => entry.change === null).sort((left, right) => right.row.value - left.row.value);
+  return [...known, ...unknown].slice(0, limit).map((entry) => entry.row);
+}
+
 function sortRows(rows: Aggregated[], dims: Dim[], limit: number, masked: boolean, lowFirst: boolean): Aggregated[] {
   const timeDim = firstTimeDim(dims);
   if (masked && !timeDim) {
@@ -1016,7 +1034,7 @@ export function runMetric(query: MetricQuery, access: AccessContext): MetricResu
   const masked = visibility === "masked";
   const limit = query.limit ?? DEFAULT_LIMIT;
   const lowFirst = RISK_WHEN_LOW.has(def.id);
-  const capped = sortRows(aggregated, dims, limit, masked, lowFirst);
+  const capped = query.sort && !masked && !firstTimeDim(dims) ? orderedRows(aggregated, query.sort, limit, compareRows) : sortRows(aggregated, dims, limit, masked, lowFirst);
   const suppressed = masked ? new Set<string>() : smallCellKeys(def.id, dims, aggregated, filters);
   const rows = buildRows(def, dims, capped, compareRows, masked, suppressed);
   const provenance: Provenance = {

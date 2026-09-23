@@ -9,15 +9,17 @@ export const COP_COMPONENTS = {
     props: z.object({
       title: z.string(),
       source: sourceSchema,
-      view: z.enum(["auto", "metric", "bar", "line", "table", "kv", "alert_list"]).nullable(),
+      with: z.array(sourceSchema).max(3).nullable(),
+      view: z.enum(["auto", "metric", "bar", "line", "table", "kv", "alert_list", "share", "stacked", "area", "heatmap"]).nullable(),
       sortBy: z.enum(["value_desc", "value_asc", "delta_asc", "delta_desc"]).nullable(),
       description: z.string().nullable(),
     }),
     description:
-      "THE default answer to any question about a metric. `source` is bound to the tool result — { \"$state\": \"/tools/query_metric\" }, or \"/tools/query_metric.1\", \".2\" for the first and second call of the same turn. Cop renders the headline number, the rows or the chart, the source line and the next-action buttons from that result; never assemble those out of Card + Metric + RankList yourself. `view` auto picks the body from the data shape; override only when the user asked for a specific one. `sortBy` orders the rows — delta_asc for a question about what dropped.",
+      "THE default answer to any question about a metric. `source` is bound to the tool result — { \"$state\": \"/tools/query_metric\" }, or \"/tools/query_metric.1\", \".2\" for the first and second call of the same turn. Cop renders the headline number, the rows or the chart, the source line and the next-action buttons from that result; never assemble those out of Card + Metric + RankList yourself. `with` binds the other query_metric calls of the same turn (\"/tools/query_metric.2\", \".3\") when one card should show several metrics together: the same things measured two ways (scatter), stages of one flow in the same unit (funnel), or the same months (lines together); otherwise null. `view` auto picks the body from the data shape — donut, stacked bars, heatmap and multi-line included; override only when the user asked for a specific one (a view the data cannot fill falls back to auto). `sortBy` orders the rows — delta_asc for a question about what dropped.",
     example: {
       title: "เอเย่นต์ที่ยอดตกเทียบงวดก่อน",
       source: { $state: "/tools/query_metric" },
+      with: null,
       view: "auto",
       sortBy: "delta_asc",
       description: null,
@@ -59,6 +61,11 @@ export const COP_COMPONENTS = {
     }),
     description: "The anomaly rows inside an alert card. Cop fills it from get_alerts; never write one by hand, use AlertsCard.",
     example: { items: [] },
+  },
+  CardBody: {
+    props: z.object({ body: z.record(z.string(), z.unknown()) }),
+    description: "The chart inside a pinned dashboard card (donut, stacked bars, heatmap, scatter, funnel). Cop fills it from the widget's query; never write one by hand, use DataCard.",
+    example: { body: { kind: "none" } },
   },
   AlertsCard: {
     props: z.object({

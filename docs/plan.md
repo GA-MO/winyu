@@ -508,7 +508,7 @@ The user's question: "จะมั่นใจได้ไงว่า model จ
 - [x] Δ แสดงทศนิยมเดียวเสมอ ("−39.0%") ที่ `formatDelta`; ชิปการเปลี่ยนแปลงบน dashboard ใช้ `formatDelta` ด้วย
 - พบ: `ctx.today` ใน persona มาจากนาฬิกาจริงของ Vexa (23 ก.ย.) ขณะที่ข้อมูลจบ 22 ก.ย. → โมเดลส่ง `to` = 23 และหัวการ์ดเขียน "– 23 ก.ย." (ตัวเลขถูกเพราะ engine ตัดที่ TODAY)
 
-**5D การ์ดที่วาดได้ตามรูปของข้อมูล** (user decision 2026-09-23: "ทำเลยแต่ต้องดีกว่าเดิม แล้วพวก pie/donut, stacked bar, area, heatmap, map, scatter, funnel ล่ะ") (`lib/cards/present.ts`, `lib/cards/thai-tiles.ts` ใหม่, `components/cards/charts/*` ใหม่, `components/cards/card-parts.tsx`, `components/cards/data-card.tsx`, `lib/dashboard/widget-to-spec.ts`, `lib/cards/catalog.ts`, `lib/contracts/dashboard.ts`, `lib/server/agent/persona.ts`, `lib/server/mock-script.ts`, `scripts/eval-cards.ts`)
+**5D การ์ดที่วาดได้ตามรูปของข้อมูล** (user decision 2026-09-23: "ทำเลยแต่ต้องดีกว่าเดิม แล้วพวก pie/donut, stacked bar, area, heatmap, map, scatter, funnel ล่ะ") (`lib/cards/present.ts`, `components/cards/charts/*` ใหม่, `components/cards/card-parts.tsx`, `components/cards/data-card.tsx`, `lib/dashboard/widget-to-spec.ts`, `lib/cards/catalog.ts`, `lib/contracts/dashboard.ts`, `lib/server/agent/persona.ts`, `lib/server/mock-script.ts`, `scripts/eval-cards.ts`)
 
 ที่มา: การ์ดออกได้ ~6 แบบ เพราะ `viewFor` ดูแค่ "มีเวลาไหม / กี่แถว" และ `lineBody` ต่อทุกแถวเป็นเส้นเดียว — "ยอดรายเดือนแยกภาค" ได้เส้นเดียวที่กระโดดไปมาระหว่างภาค (อ่านผิดได้ ไม่ใช่แค่ไม่สวย) หลักเดิมยังอยู่: โมเดลเลือกการ์ดและผูกผล tool, Cop ตัดสินรูปจากรูปของข้อมูลในตารางเดียว ทั้ง dashboard และแชทได้พร้อมกัน ทุกตัวเลขมาจากแถวของ tool
 
@@ -516,16 +516,21 @@ The user's question: "จะมั่นใจได้ไงว่า model จ
 - เวลา × กลุ่ม, บวกได้ → **stacked bar** (≤ 12 ช่วง) / **stacked area** (> 12 ช่วง); กลุ่มเกิน 5 → 4 อันดับแรก + "อื่น ๆ"
 - เวลา × กลุ่ม, บวกไม่ได้ (%, เฉลี่ย, วัน) → **เส้นหลายเส้น** (≤ 5 กลุ่ม) / **heatmap** กลุ่ม × เวลา (> 5 กลุ่ม)
 - สองมิติกลุ่ม (เช่น ภาค × ช่องทาง, จังหวัด × ผู้ผลิต) → **heatmap**; มีค่าเทียบ → สีตาม Δ (เขียว/แดงตามทิศที่ดีของเมตริก) ไม่มี → สีตามค่า
-- จังหวัด (≥ 4) → **แผนที่ไทยแบบ tile** (24 จังหวัดวางตามตำแหน่งจริงโดยประมาณ, ไม่มี dependency) สีตาม Δ หรือค่า + 3 จังหวัดที่ต้องดู; ภาคใช้แผนที่เมื่อขอ
+- จังหวัด / ภาค → แถบจัดอันดับ (แผนที่ไทยแบบ tile ทำแล้วเอาออก — user 2026-09-23 "เอา map ออก": 4 จังหวัดของ RSM เป็นแผนที่ไม่บอกอะไรเพิ่ม สีเทาทั้งหมดเมื่อเปลี่ยน < 2% และซ้ำกับรายการข้างๆ)
 - ส่วนของทั้งหมด (ช่องทาง, กลุ่มธุรกิจ, แพ็ก, ผู้ผลิต) 2–6 กลุ่ม บวกได้หรือเป็นส่วนแบ่งตลาด และไม่ได้ถามว่าอะไรตก/โต → **donut**; ถามเรื่อง Δ → แถบจัดอันดับเหมือนเดิม
 - `with` (ผล `query_metric` ครั้งที่ 2–4 ในเทิร์นเดียวกัน): มิติกลุ่มเดียวกัน ≥ 4 จุด → **scatter** (x = เมตริกแรก, y = เมตริกที่สอง, เส้นมัธยฐาน, ชื่อจุดสุดโต่ง); ไม่มีมิติ หน่วยเดียวกัน → **funnel** ตามลำดับที่ส่ง (เช่น ผลิต → ขายเข้า → ขายออก, ส่วนที่หายระหว่างขั้น); อนุกรมเวลาเดียวกัน → เส้นทับกัน (หน่วยต่างกัน → ดัชนี งวดแรก = 100)
-- `view` ที่โมเดลขอแต่ข้อมูลวาดไม่ได้ (เช่นขอแผนที่ของรายการแบรนด์) → ตกกลับไปที่ auto ไม่วาดผิดรูป
+- `view` ที่โมเดลขอแต่ข้อมูลวาดไม่ได้ (เช่นขอ donut ของค่าเฉลี่ย) → ตกกลับไปที่ auto ไม่วาดผิดรูป
 
-- [ ] สัญญา `CardBody` ใหม่ (`stacked`, `share`, `heatmap`, `map`, `scatter`, `funnel`, `line` หลาย series) + `viewFor` ใหม่ + `others` ใน `PresentInput`
-- [ ] React: `components/cards/charts/*` วาดจาก body ที่ presenter คำนวณไว้แล้ว (สี = token ผสมกับ `card`, ไม่มี hex) · dashboard ใช้ element `CardBody` ตัวเดียวสำหรับ body ใหม่
-- [ ] `DataCard.with` ใน catalog + persona (แทนกฎ "DataCard สองใบใน Stack" เมื่อเป็น scatter/funnel) · `WidgetKind` เพิ่ม `share`, `stacked`, `area`, `heatmap`, `map`
-- [ ] เทสต์ตารางตัดสินทุกแถวข้างบนด้วยแถวจริงจาก engine · mock turn + เคส `eval:cards` ของ donut, heatmap, map, scatter, funnel
-- [ ] ตรวจด้วยตาในเบราว์เซอร์ทั้งแชทและ dashboard, light + dark, จอแคบ
+- [x] สัญญา `CardBody` ใหม่ (`stacked`, `share`, `heatmap`, `scatter`, `funnel`, `line` หลาย series) + `viewFor` ใหม่ + `others` ใน `PresentInput` (`lib/cards/chart-bodies.ts`, `lib/cards/rows.ts`)
+- [x] React: `components/cards/charts/*` วาดจาก body ที่ presenter คำนวณไว้แล้ว (สี = token ผสมกับ `card`) · dashboard ใช้ element `CardBody` ตัวเดียว (อยู่ใน catalog แบบ "ห้ามเขียนเอง")
+- [x] `DataCard.with` ใน catalog + persona · `WidgetKind` เพิ่ม `share`, `stacked`, `area`, `heatmap` · ปักจากแชทเก็บ kind ที่วาดจริง (`widgetKindFor`) · widget ของ template รีเฟรช kind จาก template
+- [x] เทสต์ตารางตัดสินด้วยแถวจริงจาก engine (`lib/cards/present.test.ts`) · mock turn + เคส `eval:cards` `shape-*` + check `drewShape` (presenter รันซ้ำบนผลที่การ์ดผูก)
+- [x] ตรวจด้วยตาในเบราว์เซอร์: แชท (Gemini จริง) ทุกรูป, dashboard (คุณวิชัย, คุณอนุชา), dark, จอ 390px ไม่มี scroll แนวนอน
+- พบระหว่างตรวจแล้วแก้: scope line นับแถวแทนกลุ่ม ("36 ภาค"), heatmap โหมด Δ ต้องเขียน Δ ไม่ใช่ค่า, scatter เส้นทแยงเฉพาะหน่วยเดียวกันและขนาดใกล้กัน (≤ 3 เท่า) ไม่งั้นจุดกองที่พื้น, ป้ายขั้น funnel ตัดวงเล็บ, prompt: `description` = null เป็นปกติ
+- [x] ตารางกลายเป็นแถบจัดอันดับ (user 2026-09-23: "Table ดูยากเข้าใจยากกว่าแบบที่มี bar"): `table`/`kv` ของรายการแยกกลุ่ม ≥ 2 แถว → rank; heatmap สองมิติต้องเต็ม ≥ 60% ของตาราง ไม่งั้น rank; ยังเป็นตาราง: อนุกรมเวลาที่ขอเป็นตาราง, ข้อมูลที่ถูกปิดตามสิทธิ์
+- [x] เรียงลำดับครบทาง: `MetricQuery.sort` — engine เรียงก่อนตัด `limit` (เดิมตัดตามยอดก่อน: "10 เอเย่นต์ที่ตกแรงสุด" ส.ค. ผิด 6 จาก 10 ราย) · template "ส่วนแบ่งตลาดตามจังหวัด" = แถบ `delta_asc` · การ์ดใช้ `query.sort` เมื่อไม่ได้ระบุ `sortBy` จึงปักแล้วลำดับไม่หาย · เรียงตาม Δ → แถบยาวตามขนาด Δ · แถว heatmap ตาม `sortBy` · `WidgetSpec.sortBy` (template "เอเย่นต์ที่ยอดตก" = `delta_asc`) · เทสต์ `lib/data/sort.test.ts` · check `cutRight` ใน eval
+- ตรวจ: typecheck ผ่าน (ยกเว้น `components/account/sheet.tsx` ของงาน memory ที่ทำคู่ขนาน), 441 tests · eval Gemini รายเคส: shape-* ทั้ง 7, ceo-channel/decline/trend, landing-visit, compare-top-decliners, planner-cover, marketing-campaign, rsm-agents ผ่าน · `cfo-ar` ยังไม่ได้ผล (OpenRouter rate limit) · eval เต็มชุดยังไม่ได้รัน
+- ยังไม่ทำ: ในรายการ "อะไรตก" ที่มีตัวที่โตปนอยู่ท้าย แถบของตัวที่โตยาวตามขนาดการโตด้วยสีเดียวกัน (pill บอกทิศ); ส่วนแบ่งตลาดยังแสดง Δ เป็น % สัมพัทธ์ไม่ใช่จุด; ย้าย chart ไป Vexa เป็นของกลาง (ตอนนี้อยู่ใน Cop)
 
 ## 7. Prompt rules (used by 1B, referenced by 3B)
 

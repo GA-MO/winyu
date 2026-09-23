@@ -1,6 +1,6 @@
-import type { AccessContext, Dim, Grain, MetricId, MetricQuery, RoleId, WidgetKind, WidgetSpec } from "@/lib/contracts";
+import type { AccessContext, Dim, Grain, MetricId, MetricQuery, RoleId, WidgetKind, WidgetSort, WidgetSpec } from "@/lib/contracts";
 
-export type WidgetSeed = { key: string; title: string; kind: WidgetKind; query: MetricQuery; pinned: boolean; source: WidgetSpec["source"]; reason: string | null };
+export type WidgetSeed = { key: string; title: string; kind: WidgetKind; query: MetricQuery; sortBy: WidgetSort | null; pinned: boolean; source: WidgetSpec["source"]; reason: string | null };
 
 const TODAY = "2026-09-22";
 const MONTH_TO_DATE = { from: "2026-09-01", to: TODAY };
@@ -22,6 +22,7 @@ type SeedInput = {
   compare?: MetricQuery["compare"];
   filters?: MetricQuery["filters"];
   limit?: number | null;
+  sortBy?: WidgetSort;
   pinned?: boolean;
   source?: WidgetSpec["source"];
   reason?: string | null;
@@ -32,6 +33,7 @@ function seed(input: SeedInput): WidgetSeed {
     key: input.key,
     title: input.title,
     kind: input.kind,
+    sortBy: input.sortBy ?? null,
     pinned: input.pinned ?? true,
     source: input.source ?? "role_template",
     reason: input.reason ?? null,
@@ -66,18 +68,18 @@ const CFO_SEEDS: WidgetSeed[] = [
 const SALES_DIRECTOR_SEEDS: WidgetSeed[] = [
   seed({ key: "attainment_region", title: "ความสำเร็จต่อเป้าตามภาค", kind: "bar", metric: "target_attainment", dims: ["region"], compare: "none" }),
   seed({ key: "volume_trend", title: "ปริมาณขายรายสัปดาห์", kind: "line", metric: "net_sales_volume", dims: ["week"], range: LAST_QUARTER, grain: "week", compare: "prev_year" }),
-  seed({ key: "agents", title: "เอเย่นต์ที่ยอดตกมากที่สุด", kind: "table", metric: "net_sales_volume", dims: ["agent"], range: LAST_4_WEEKS, grain: "week", compare: "prev_period", limit: TOP_ROWS }),
+  seed({ key: "agents", title: "เอเย่นต์ที่ยอดตกมากที่สุด", kind: "bar", sortBy: "delta_asc", metric: "net_sales_volume", dims: ["agent"], range: LAST_4_WEEKS, grain: "week", compare: "prev_period", limit: TOP_ROWS }),
   seed({ key: "alerts", title: "ความผิดปกติในทีมขาย", kind: "alert_list", metric: "sell_out_volume", dims: ["region"], range: LAST_4_WEEKS, grain: "week", compare: "prev_period" }),
   seed({ key: "market_share", title: "ส่วนแบ่งตลาดเบียร์ตามภาค เทียบปีก่อน", kind: "bar", metric: "market_share", dims: ["region"], range: LAST_AUDITED_MONTH, grain: "month", compare: "prev_year", pinned: false, source: "role_template", reason: "ดูว่าภาคไหนเสียส่วนแบ่งให้คู่แข่ง" }),
 ];
 
 const SALES_RSM_SEEDS: WidgetSeed[] = [
   seed({ key: "attainment_brand", title: "ยอดขายเทียบเป้าแยกตามแบรนด์", kind: "bar", metric: "target_attainment", dims: ["brand"], compare: "none" }),
-  seed({ key: "falling_agents", title: "เอเย่นต์ที่ยอดตกเทียบไตรมาสก่อน", kind: "table", metric: "net_sales_volume", dims: ["agent"], range: LAST_4_WEEKS, grain: "week", compare: "prev_period", limit: TOP_ROWS }),
+  seed({ key: "falling_agents", title: "เอเย่นต์ที่ยอดตกเทียบไตรมาสก่อน", kind: "bar", sortBy: "delta_asc", metric: "net_sales_volume", dims: ["agent"], range: LAST_4_WEEKS, grain: "week", compare: "prev_period", limit: TOP_ROWS }),
   seed({ key: "sell_out", title: "ยอดขายออกจากร้านรายสัปดาห์", kind: "line", metric: "sell_out_volume", dims: ["week"], range: LAST_QUARTER, grain: "week", compare: "prev_year" }),
   seed({ key: "cover", title: "สินค้าที่สต๊อกพอขายน้อยที่สุด", kind: "kv", metric: "days_of_cover", dims: ["dc", "sku"], limit: TOP_ROWS }),
   seed({ key: "alerts", title: "ความผิดปกติในภาคของคุณ", kind: "alert_list", metric: "sell_out_volume", dims: ["agent"], range: LAST_4_WEEKS, grain: "week", compare: "prev_period", pinned: false, source: "role_template", reason: "ใช้ดูความผิดปกติในภาคของคุณที่เดียว" }),
-  seed({ key: "market_share", title: "ส่วนแบ่งตลาดเบียร์ตามจังหวัด เทียบปีก่อน", kind: "bar", metric: "market_share", dims: ["province"], range: LAST_AUDITED_MONTH, grain: "month", compare: "prev_year", pinned: false, source: "role_template", reason: "ดูว่าจังหวัดไหนเสียส่วนแบ่งให้คู่แข่ง" }),
+  seed({ key: "market_share", title: "ส่วนแบ่งตลาดเบียร์ตามจังหวัด เทียบปีก่อน", kind: "bar", sortBy: "delta_asc", metric: "market_share", dims: ["province"], range: LAST_AUDITED_MONTH, grain: "month", compare: "prev_year", pinned: false, source: "role_template", reason: "ดูว่าจังหวัดไหนเสียส่วนแบ่งให้คู่แข่ง" }),
 ];
 
 const SALES_REP_SEEDS: WidgetSeed[] = [

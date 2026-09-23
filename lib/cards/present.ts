@@ -1,7 +1,22 @@
-import type { Alert, AlertRow, Dim, Forecast, MetricId, MetricQuery, MetricResult, MetricRow, NextAction, WidgetKind } from "@/lib/contracts";
+import { WIDGET_KINDS, type Alert, type AlertRow, type Dim, type Forecast, type MetricId, type MetricQuery, type MetricResult, type MetricRow, type NextAction, type WidgetKind } from "@/lib/contracts";
 import { TH } from "@/lib/i18n/th";
 import { addDays, monthKeyOfIso, weekKeyOfIso } from "@/lib/data/dates";
 import { formatDateTh, formatPercent, periodLabelTh } from "@/lib/i18n/format";
+import { deltaPercentOf, groupDimsOf, labelOf, numericOf, timeDimOf, valueTextOf } from "./rows";
+import {
+  bucketCountOf,
+  funnelBody,
+  groupCountOf,
+  heatmapBody,
+  isIndexedOverlay,
+  joinedRows,
+  overlaidLines,
+  sameUnit,
+  scatterBody,
+  seriesByGroup,
+  shareBody,
+  type Source,
+} from "./chart-bodies";
 import {
   directionOf,
   formatDelta,
@@ -16,7 +31,7 @@ import {
 
 export type AlertTone = "info" | "success" | "warning" | "danger";
 export type SortBy = "value_desc" | "value_asc" | "delta_asc" | "delta_desc";
-export type CardView = WidgetKind | "auto";
+export type CardView = WidgetKind | "auto" | "scatter" | "funnel";
 
 export type CardHero = { label: string; value: string; delta: string | null; trend: Direction; tone: Tone; detail: string | null };
 export type RankRow = { label: string; value: string; share: number | null; delta: string | null; trend: Direction; tone: Tone; note: string | null };
@@ -35,11 +50,23 @@ export type SignalItem = {
   why: string | null;
 };
 
+export type ColorScale = "value" | "delta";
+export type HeatCell = { text: string; detail: string | null; intensity: number; tone: Tone };
+export type ShareSlice = { label: string; valueText: string; share: number; shareText: string; isOther: boolean };
+export type ScatterPoint = { label: string; x: number; y: number; xText: string; yText: string; named: boolean };
+export type ScatterAxis = { label: string; format: MetricFormat; median: number; medianText: string };
+export type FunnelStage = { label: string; value: number; valueText: string; width: number; dropText: string | null; dropTone: Tone };
+
 export type CardBody =
   | { kind: "none" }
   | { kind: "rank"; rows: RankRow[]; showRank: boolean }
   | { kind: "progress"; label: string; value: number; detail: string }
   | { kind: "line"; labels: string[]; series: ChartSeries[]; format: MetricFormat }
+  | { kind: "stacked"; shape: "bar" | "area"; labels: string[]; series: ChartSeries[]; format: MetricFormat }
+  | { kind: "share"; slices: ShareSlice[]; centerValue: string; centerLabel: string }
+  | { kind: "heatmap"; rowLabels: string[]; columnLabels: string[]; cells: (HeatCell | null)[][]; scale: ColorScale; legend: string }
+  | { kind: "scatter"; points: ScatterPoint[]; x: ScatterAxis; y: ScatterAxis; note: string | null; diagonal: string | null }
+  | { kind: "funnel"; stages: FunnelStage[] }
   | { kind: "table"; columns: CardColumn[]; rows: Record<string, string>[] }
   | { kind: "alerts"; items: SignalItem[] };
 
@@ -65,7 +92,10 @@ export type PresentInput = {
   description?: string | null;
   extras?: CardExtras;
   actions?: NextAction[];
+  others?: PresentSource[];
 };
+
+export type PresentSource = { query: MetricQuery; result: MetricResult };
 
 const MAX_TABLE_ROWS = 8;
 const PROGRESS_METRICS: ReadonlySet<MetricId> = new Set(["target_attainment"]);
@@ -78,53 +108,21 @@ const SCOPE_SEPARATOR = " · ";
 const MINUS_SIGN = "−";
 const PLUS_SIGN = "+";
 const RANK_MIN_ROWS = 2;
-const TIME_DIMS: readonly Dim[] = ["date", "week", "month"];
 const SUNDAY = 0;
-const DC_PREFIX = "ศูนย์กระจายสินค้า";
-const DC_SHORT = "DC ";
 const PERCENT = 100;
 const NO_EXTRAS: CardExtras = {};
 const NO_ACTIONS: NextAction[] = [];
+const MAX_LINES = 5;
+const MAX_BAR_BUCKETS = 12;
+const MAX_SHARE_ROWS = 6;
+const MIN_SCATTER_POINTS = 4;
+const MIN_GRID_FILL = 0.6;
+const COMPOSITION_DIMS: ReadonlySet<Dim> = new Set(["channel", "business_unit", "maker", "pack"]);
+const SHARE_METRICS: ReadonlySet<MetricId> = new Set(["market_share", "share_of_voice"]);
 const SEVERITY_TONES: Record<Alert["severity"], AlertTone> = { P1: "danger", P2: "warning", P3: "info" };
 
-function numericOf(row: MetricRow, key: string): number | null {
-  const value = row[key];
-  return typeof value === "number" ? value : null;
-}
-
-function deltaPercentOf(row: MetricRow): number | null {
-  const stored = numericOf(row, "delta_pct");
-  if (stored !== null) return stored;
-  const value = numericOf(row, "value");
-  const previous = numericOf(row, "compare_value");
-  if (value === null || previous === null || previous === 0) return null;
-  return ((value - previous) / Math.abs(previous)) * PERCENT;
-}
-
-function isTimeDim(dim: Dim): boolean {
-  return TIME_DIMS.includes(dim);
-}
-
-function timeDimOf(query: MetricQuery): Dim | null {
-  return query.dims.find(isTimeDim) ?? null;
-}
-
 function rankDimOf(query: MetricQuery): Dim | null {
-  return query.dims.find((dim) => !isTimeDim(dim)) ?? null;
-}
-
-function labelOf(query: MetricQuery, row: MetricRow): string {
-  const parts = query.dims
-    .map((dim) => ({ dim, value: row[dim] }))
-    .filter((part) => part.value !== null && part.value !== undefined && part.value !== "")
-    .map((part) => (isTimeDim(part.dim) ? periodLabelTh(String(part.value)) : part.dim === "dc" ? String(part.value).replace(DC_PREFIX, DC_SHORT) : String(part.value)));
-  return parts.length > 0 ? parts.join(" · ") : metricLabel(query.metric);
-}
-
-function valueTextOf(query: MetricQuery, row: MetricRow): string {
-  const label = row.value_label;
-  if (typeof label === "string") return label;
-  return formatMetricValue(query.metric, row.value as number | string | null);
+  return groupDimsOf(query)[0] ?? null;
 }
 
 function endsOnFullBucket(query: MetricQuery): boolean {
@@ -140,15 +138,17 @@ function partialBucketKey(query: MetricQuery): string | null {
   return null;
 }
 
+const TIME_BODIES: ReadonlySet<CardView> = new Set(["line", "stacked", "area", "heatmap"]);
+
 /** A trend whose last bucket is the running week or month drops that bucket and says so, instead of falling off a cliff. */
 function withoutPartialBucket(query: MetricQuery, view: CardView, rows: MetricRow[]): { rows: MetricRow[]; note: string | null } {
-  if (view !== "line" || rows.length < 2) return { rows, note: null };
+  if (!TIME_BODIES.has(view) || rows.length < 2) return { rows, note: null };
   const dim = timeDimOf(query);
   const key = partialBucketKey(query);
   if (!dim || !key) return { rows, note: null };
-  const last = rows[rows.length - 1];
-  if (String(last[dim]) !== key) return { rows, note: null };
-  return { rows: rows.slice(0, -1), note: query.grain === "month" ? TH.dash.partialMonth : TH.dash.partialWeek };
+  const kept = rows.filter((row) => String(row[dim]) !== key);
+  if (kept.length === rows.length || kept.length === 0) return { rows, note: null };
+  return { rows: kept, note: query.grain === "month" ? TH.dash.partialMonth : TH.dash.partialWeek };
 }
 
 const SORTERS: Record<SortBy, (query: MetricQuery) => (left: MetricRow, right: MetricRow) => number> = {
@@ -163,16 +163,78 @@ function sorted(query: MetricQuery, rows: MetricRow[], sortBy: SortBy | null | u
   return [...rows].sort(SORTERS[sortBy](query));
 }
 
+type Shape = { query: MetricQuery; rows: MetricRow[]; additive: boolean; sortBy: SortBy | null };
+
+function asksAboutChange(sortBy: SortBy | null): boolean {
+  return sortBy === "delta_asc" || sortBy === "delta_desc";
+}
+
+function isPartOfWhole(shape: Shape): boolean {
+  const dim = rankDimOf(shape.query);
+  if (!dim || !COMPOSITION_DIMS.has(dim) || groupDimsOf(shape.query).length !== 1 || timeDimOf(shape.query)) return false;
+  if (shape.rows.length < RANK_MIN_ROWS || shape.rows.length > MAX_SHARE_ROWS) return false;
+  return shape.additive || SHARE_METRICS.has(shape.query.metric);
+}
+
+/** Whether two breakdowns fill enough of their grid to read as a heatmap; a top-N of DC × SKU leaves it mostly empty and reads better as ranked bars. */
+function isDenseGrid(shape: Shape): boolean {
+  const [first, second] = groupDimsOf(shape.query);
+  if (!first || !second) return false;
+  const distinct = (dim: Dim) => new Set(shape.rows.map((row) => row[dim])).size;
+  const columns = distinct(second);
+  const cells = distinct(first) * columns;
+  return columns >= RANK_MIN_ROWS && distinct(first) >= RANK_MIN_ROWS && shape.rows.length / cells >= MIN_GRID_FILL;
+}
+
+/** Whether the data can be drawn the way someone asked; a view the data cannot fill falls back to the automatic one. */
+function canDraw(view: CardView, shape: Shape): boolean {
+  const time = timeDimOf(shape.query);
+  const groups = groupDimsOf(shape.query).length;
+  if (view === "metric") return true;
+  if (view === "table" || view === "kv") return time !== null || shape.rows.length < RANK_MIN_ROWS;
+  if (view === "bar") return shape.rows.length >= RANK_MIN_ROWS && !time;
+  if (view === "line") return time !== null;
+  if (view === "stacked" || view === "area") return time !== null && groups >= 1 && shape.additive;
+  if (view === "heatmap") return (time !== null && groups >= 1) || isDenseGrid(shape);
+  if (view === "share") return !time && groups === 1 && shape.rows.length >= RANK_MIN_ROWS && (shape.additive || SHARE_METRICS.has(shape.query.metric));
+  return false;
+}
+
+function timeView(shape: Shape): CardView {
+  if (groupDimsOf(shape.query).length === 0) return "line";
+  if (shape.additive) return bucketCountOf(shape.query, shape.rows) > MAX_BAR_BUCKETS ? "area" : "stacked";
+  return groupCountOf(shape.query, shape.rows) <= MAX_LINES ? "line" : "heatmap";
+}
+
+function automaticView(shape: Shape): CardView {
+  const groups = groupDimsOf(shape.query);
+  if (timeDimOf(shape.query)) return timeView(shape);
+  if (groups.length >= 2) return isDenseGrid(shape) ? "heatmap" : "bar";
+  if (shape.rows.length <= 1) return "metric";
+  if (groups.length === 0) return "table";
+  if (isPartOfWhole(shape) && !asksAboutChange(shape.sortBy)) return "share";
+  return "bar";
+}
+
+/** The widget kind a result is drawn as when nobody asks for one, so a pinned card looks like the card it was pinned from. */
+export function widgetKindFor(query: MetricQuery, result: MetricResult): WidgetKind {
+  if (!result.ok) return "metric";
+  const view = automaticView({ query, rows: result.rows, additive: result.headline.aggregate === "sum", sortBy: null });
+  return WIDGET_KINDS.includes(view as WidgetKind) ? (view as WidgetKind) : "table";
+}
+
 /** Which body a result deserves, from the shape of the data rather than from anyone's judgement. */
-function viewFor(query: MetricQuery, rows: MetricRow[], requested: CardView, masked: boolean, extras: CardExtras): CardView {
+function viewFor(shape: Shape, requested: CardView, masked: boolean, extras: CardExtras): CardView {
   if (extras.alerts && extras.alerts.length > 0) return "alert_list";
   if (masked) return "kv";
-  if (requested !== "auto") return requested;
-  if (timeDimOf(query)) return "line";
-  if (rows.length >= RANK_MIN_ROWS && rankDimOf(query)) return "bar";
-  if (rows.length <= 1 && metricFormat(query.metric) === "percent") return "metric";
-  if (rows.length <= 1) return "metric";
-  return "table";
+  if (requested !== "auto" && canDraw(requested, shape)) return requested;
+  return automaticView(shape);
+}
+
+function groupCountFor(query: MetricQuery, rows: MetricRow[], rowCount: number): number {
+  const dim = rankDimOf(query);
+  if (!dim || (!timeDimOf(query) && groupDimsOf(query).length === 1)) return rowCount;
+  return new Set(rows.map((row) => row[dim])).size;
 }
 
 function scopeOf(query: MetricQuery, rowCount: number, periodLabel: string): string {
@@ -201,8 +263,9 @@ function heroOf(query: MetricQuery, result: Extract<MetricResult, { ok: true }>)
   };
 }
 
-function rankRowsOf(query: MetricQuery, rows: MetricRow[]): RankRow[] {
-  const values = rows.map((row) => numericOf(row, "value") ?? 0);
+/** Bars measure what the list is ordered by: the size of the change when the question is what fell or grew, the value otherwise. */
+function rankRowsOf(query: MetricQuery, rows: MetricRow[], sortBy: SortBy | null): RankRow[] {
+  const values = rows.map((row) => (asksAboutChange(sortBy) ? deltaPercentOf(row) : numericOf(row, "value")) ?? 0);
   const peak = Math.max(...values.map(Math.abs), 0);
   return rows.slice(0, MAX_RANK_ROWS).map((row, index) => {
     const delta = deltaPercentOf(row);
@@ -238,7 +301,12 @@ function compareSeries(query: MetricQuery, rows: MetricRow[]): ChartSeries | nul
   return { name: TH.dash.compare[query.compare], values, style: "dashed" };
 }
 
-function lineBody(query: MetricQuery, rows: MetricRow[], extras: CardExtras): CardBody {
+function lineBody(shape: Shape, extras: CardExtras): CardBody {
+  const { query, rows } = shape;
+  if (groupDimsOf(query).length > 0) {
+    const grouped = seriesByGroup(query, rows, false);
+    return { kind: "line", labels: grouped.labels, series: grouped.series, format: metricFormat(query.metric) };
+  }
   const points = chartPoints(query, rows);
   const labels = points.map((point) => point.label);
   const actual: ChartSeries = { name: metricLabel(query.metric), values: points.map((point) => point.value), style: null };
@@ -326,15 +394,80 @@ function alertsBody(alerts: AlertRow[]): CardBody {
   };
 }
 
-function bodyFor(query: MetricQuery, view: CardView, rows: MetricRow[], extras: CardExtras): CardBody {
+function bodyFor(shape: Shape, view: CardView, extras: CardExtras): CardBody {
+  const { query, rows } = shape;
   if (view === "alert_list") return alertsBody(extras.alerts ?? []);
-  if (view === "line") return lineBody(query, rows, extras);
+  if (view === "line") return lineBody(shape, extras);
+  if (view === "stacked" || view === "area") {
+    const grouped = seriesByGroup(query, rows, true);
+    return { kind: "stacked", shape: view === "area" ? "area" : "bar", labels: grouped.labels, series: grouped.series, format: metricFormat(query.metric) };
+  }
+  if (view === "heatmap") return heatmapBody(query, rows, shape.sortBy);
+  if (view === "share") return shareBody(query, rows);
   if (view === "table") return tableBody(query, rows, query.compare !== "none");
-  if (view === "bar" && rows.length >= RANK_MIN_ROWS) return { kind: "rank", rows: rankRowsOf(query, rows), showRank: rows.length > RANK_MIN_ROWS };
+  if (view === "bar" && rows.length >= RANK_MIN_ROWS) return { kind: "rank", rows: rankRowsOf(query, rows, shape.sortBy), showRank: rows.length > RANK_MIN_ROWS };
   if (view === "metric" && PROGRESS_METRICS.has(query.metric)) return progressBody(query, rows);
   if (view === "metric") return { kind: "none" };
   if (rows.length === 0) return { kind: "none" };
   return tableBody(query, rows, false);
+}
+
+function hiddenGroupsNote(shape: Shape, view: CardView): string | null {
+  if (view !== "line" || shape.additive || groupDimsOf(shape.query).length === 0) return null;
+  const count = groupCountOf(shape.query, shape.rows);
+  return count > MAX_LINES ? TH.dash.shownOf(MAX_LINES, count) : null;
+}
+
+type Pairing = { view: "scatter" | "funnel" | "overlay"; sources: Source[] };
+
+/** What a card bound to several metric results should draw, or null when they do not fit together and only the first is shown. */
+function pairingOf(first: Source, others: Source[]): Pairing | null {
+  if (others.length === 0) return null;
+  const all = [first, ...others];
+  const noDims = all.every((source) => source.query.dims.length === 0);
+  if (noDims && sameUnit(all)) return { view: "funnel", sources: all };
+  const timeOnly = all.every((source) => timeDimOf(source.query) !== null && groupDimsOf(source.query).length === 0);
+  if (timeOnly) return { view: "overlay", sources: all };
+  const [second] = others;
+  const sameGroups = groupDimsOf(first.query).join() === groupDimsOf(second.query).join() && groupDimsOf(first.query).length > 0;
+  const untimed = !timeDimOf(first.query) && !timeDimOf(second.query);
+  if (sameGroups && untimed && joinedRows(first, second).length >= MIN_SCATTER_POINTS) return { view: "scatter", sources: [first, second] };
+  return null;
+}
+
+function pairedBody(pairing: Pairing): CardBody {
+  const [first, ...others] = pairing.sources;
+  if (pairing.view === "funnel") return funnelBody(pairing.sources);
+  if (pairing.view === "scatter") return scatterBody(first, others[0]);
+  return overlaidLines(first, others);
+}
+
+function pairedMeta(pairing: Pairing): string {
+  const [first, ...others] = pairing.sources;
+  const period = first.result.headline.periodLabel;
+  if (pairing.view !== "scatter") return TH.dash.scope(period, null);
+  const dim = rankDimOf(first.query);
+  const count = joinedRows(first, others[0]).length;
+  return TH.dash.scope(period, dim ? `${count} ${TH.dash.dimUnit[dim]}` : null);
+}
+
+function pairedCard(input: PresentInput, pairing: Pairing): CardParts {
+  const [first, ...others] = pairing.sources;
+  const indexed = pairing.view === "overlay" && isIndexedOverlay(first, others);
+  return {
+    title: input.title,
+    meta: pairedMeta(pairing),
+    description: input.description ?? null,
+    footnote: footnoteOf(first.result, indexed ? TH.dash.indexedNote : null),
+    hero: pairing.view === "overlay" && !indexed ? heroOf(first.query, first.result) : null,
+    body: pairedBody(pairing),
+    actions: input.actions ?? NO_ACTIONS,
+    denied: null,
+  };
+}
+
+function okSources(others: PresentSource[] | undefined): Source[] {
+  return (others ?? []).flatMap((other) => (other.result.ok ? [{ query: other.query, result: other.result }] : []));
 }
 
 export type PresentAlertsInput = {
@@ -397,16 +530,21 @@ export function presentCard(input: PresentInput): CardParts {
   }
   const extras = input.extras ?? NO_EXTRAS;
   const masked = result.provenance.masked.length > 0;
-  const view = viewFor(query, result.rows, input.view ?? "auto", masked, extras);
+  const pairing = masked ? null : pairingOf({ query, result }, okSources(input.others));
+  if (pairing) return pairedCard(input, pairing);
+  const sortBy = input.sortBy ?? query.sort ?? null;
+  const whole: Shape = { query, rows: result.rows, additive: result.headline.aggregate === "sum", sortBy };
+  const view = viewFor(whole, input.view ?? "auto", masked, extras);
   const trimmed = withoutPartialBucket(query, view, result.rows);
-  const rows = sorted(query, trimmed.rows, input.sortBy);
+  const shape: Shape = { ...whole, rows: sorted(query, trimmed.rows, sortBy) };
+  const note = [trimmed.note, hiddenGroupsNote(shape, view)].filter((line): line is string => line !== null).join(" · ");
   return {
     title,
-    meta: scopeOf(query, result.headline.rowCount, result.headline.periodLabel),
+    meta: scopeOf(query, groupCountFor(query, result.rows, result.headline.rowCount), result.headline.periodLabel),
     description: input.description ?? null,
-    footnote: footnoteOf(result, trimmed.note),
+    footnote: footnoteOf(result, note || null),
     hero: masked || view === "alert_list" ? null : heroOf(query, result),
-    body: bodyFor(query, view, rows, extras),
+    body: bodyFor(shape, view, extras),
     actions: input.actions ?? NO_ACTIONS,
     denied: null,
   };

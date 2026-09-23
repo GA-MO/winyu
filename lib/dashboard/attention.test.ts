@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import type { ActionEvent, Alert, MetricQuery, MetricResult, MetricRow, WidgetSpec } from "@/lib/contracts";
-import { STALE_DAYS, attentionOf, staleWidgets } from "./attention";
+import { STALE_DAYS, attentionOf, byAttention, staleWidgets } from "./attention";
 
 const NOW = Date.parse("2026-10-20T09:00:00.000Z");
 const DAY_MS = 86_400_000;
@@ -23,7 +23,7 @@ function result(deltaPercent: number | null, rows: MetricRow[] = []): MetricResu
   } as MetricResult;
 }
 
-const ALERT = { id: "a1", metric: "net_sales_volume" } as Alert;
+const ALERT = { id: "a1", metric: "net_sales_volume", severity: "P2" } as Alert;
 
 describe("which pinned cards have something to say", () => {
   test("a small move with no alert is steady", () => {
@@ -57,6 +57,55 @@ describe("which pinned cards have something to say", () => {
     expect(fell.level).toBe("moved");
     expect(fell.reason).toContain("ส.รุ่งเรือง");
     expect(attentionOf({ widget: byAgent, result: result(1, [{ agent: "ส.รุ่งเรือง", value: 180, delta_pct: 80 }]), alerts: [] }).level).toBe("steady");
+  });
+});
+
+function scoreOf(card: WidgetSpec, cardResult: MetricResult, alerts: Alert[] = []): number {
+  return attentionOf({ widget: card, result: cardResult, alerts }).score;
+}
+
+describe("which card is read first", () => {
+  const byAgent = widget("w", { kind: "bar", query: query({ dims: ["agent"] }) });
+  const attainment = widget("w", { query: query({ metric: "target_attainment", compare: "none" }) });
+
+  test("steady scores nothing", () => {
+    expect(scoreOf(widget("w"), result(1))).toBe(0);
+  });
+
+  test("an alert outranks a level under its floor, which outranks a moved headline, which outranks one fallen row", () => {
+    const alert = scoreOf(widget("w"), result(0), [ALERT]);
+    const floor = scoreOf(attainment, result(null, [{ value: 90 }]));
+    const headline = scoreOf(widget("w"), result(60));
+    const row = scoreOf(byAgent, result(1, [{ agent: "ส.รุ่งเรือง", value: 1, delta_pct: -99 }]));
+    expect(alert).toBeGreaterThan(floor);
+    expect(floor).toBeGreaterThan(headline);
+    expect(headline).toBeGreaterThan(row);
+    expect(row).toBeGreaterThan(0);
+  });
+
+  test("a worse alert outranks a milder one, whatever the count", () => {
+    const p1 = scoreOf(widget("w"), result(0), [{ ...ALERT, severity: "P1" }]);
+    const p3s = scoreOf(widget("w"), result(0), [1, 2, 3, 4, 5].map((index) => ({ ...ALERT, id: `a${index}`, severity: "P3" }) as Alert));
+    expect(p1).toBeGreaterThan(p3s);
+  });
+
+  test("further under the floor ranks higher", () => {
+    expect(scoreOf(attainment, result(null, [{ value: 60 }]))).toBeGreaterThan(scoreOf(attainment, result(null, [{ value: 90 }])));
+  });
+
+  test("a harmful move outranks a bigger good one, and a bigger move outranks a smaller one in the same direction", () => {
+    expect(scoreOf(widget("w"), result(-6))).toBeGreaterThan(scoreOf(widget("w"), result(40)));
+    expect(scoreOf(widget("w"), result(-20))).toBeGreaterThan(scoreOf(widget("w"), result(-6)));
+  });
+
+  test("the order puts the most urgent first and keeps the saved position between equals", () => {
+    const views = [
+      { widget: widget("quiet_b", { position: 1 }), attention: attentionOf({ widget: widget("quiet_b"), result: result(1), alerts: [] }) },
+      { widget: widget("small", { position: 2 }), attention: attentionOf({ widget: widget("small"), result: result(-6), alerts: [] }) },
+      { widget: widget("quiet_a", { position: 0 }), attention: attentionOf({ widget: widget("quiet_a"), result: result(1), alerts: [] }) },
+      { widget: widget("alert", { position: 3 }), attention: attentionOf({ widget: widget("alert"), result: result(0), alerts: [ALERT] }) },
+    ];
+    expect(byAttention(views).map((entry) => entry.widget.id)).toEqual(["alert", "small", "quiet_a", "quiet_b"]);
   });
 });
 

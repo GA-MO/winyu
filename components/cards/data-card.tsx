@@ -2,16 +2,17 @@
 
 import type { ComponentRegistry } from "@json-render/react";
 import type { AlertRow, MetricQuery, MetricResult, NextAction } from "@/lib/contracts";
-import { presentAlerts, presentCard, type CardView, type SignalItem, type SortBy } from "@/lib/cards/present";
+import { presentAlerts, presentCard, type CardBody, type CardView, type PresentSource, type SignalItem, type SortBy } from "@/lib/cards/present";
 import { TH } from "@/lib/i18n/th";
 import { ActionStrip, CardPartsView } from "./card-parts";
+import { CardBodyView } from "./charts/card-body";
 import { SignalList } from "./signal-list";
 
 export type MetricAnswer = Extract<MetricResult, { ok: true }> & { query: MetricQuery; nextActions: NextAction[] };
 
 type AlertAnswer = { ok?: boolean; rows?: AlertRow[]; nextActions?: NextAction[] };
 
-type DataCardProps = { title: string; source?: unknown; view?: CardView | null; sortBy?: SortBy | null; description?: string | null };
+type DataCardProps = { title: string; source?: unknown; with?: unknown; view?: CardView | null; sortBy?: SortBy | null; description?: string | null };
 
 type AlertsCardProps = { title: string; source?: unknown; description?: string | null };
 
@@ -32,6 +33,14 @@ function actionsOf(source: unknown): NextAction[] {
   if (typeof source !== "object" || source === null) return [];
   const actions = (source as AlertAnswer).nextActions;
   return Array.isArray(actions) ? actions : [];
+}
+
+function othersOf(bindings: unknown): PresentSource[] {
+  if (!Array.isArray(bindings)) return [];
+  return bindings.flatMap((binding) => {
+    const answer = metricAnswerOf(binding);
+    return answer ? [{ query: answer.query, result: answer }] : [];
+  });
 }
 
 function Pending({ title }: { title: string }) {
@@ -55,6 +64,7 @@ export function DataCard({ props }: { props: DataCardProps }) {
     sortBy: props.sortBy ?? null,
     description: props.description ?? null,
     actions: answer.nextActions,
+    others: othersOf(props.with),
   });
   return <CardPartsView parts={parts} />;
 }
@@ -84,9 +94,15 @@ function actionStripOf(props: unknown): NextAction[] {
   return Array.isArray(actions) ? (actions as NextAction[]) : [];
 }
 
+function cardBodyOf(props: unknown): CardBody {
+  const body = (props as { body?: CardBody }).body;
+  return body ?? { kind: "none" };
+}
+
 export const COP_CARD_COMPONENTS: ComponentRegistry = {
   DataCard: ({ element }) => <DataCard props={element.props as never} />,
   AlertsCard: ({ element }) => <AlertsCard props={element.props as never} />,
   ActionStrip: ({ element }) => <ActionStrip actions={actionStripOf(element.props)} />,
   SignalList: ({ element }) => <SignalList items={signalsOf(element.props)} />,
+  CardBody: ({ element }) => <CardBodyView body={cardBodyOf(element.props)} />,
 };
