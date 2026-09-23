@@ -4,22 +4,13 @@ import { actionEvents, packets } from "@/lib/server/agent/collections";
 import { threads } from "@/lib/server/threads-read";
 import { turnsOf } from "@/lib/server/threads";
 import { models } from "@/lib/server/models";
+import { rateOf } from "@/lib/server/usage-meter";
 
 const DAYS = 14;
 const TOP_INTENTS = 8;
 const UNANSWERED_LIMIT = 8;
 const CHARS_PER_TOKEN = 3;
 const PER_MILLION = 1_000_000;
-
-type Rate = { input: number; output: number };
-
-const RATES: Record<string, Rate> = {
-  "claude-sonnet-5": { input: 2, output: 10 },
-  "claude-haiku-4-5-20251001": { input: 1, output: 5 },
-  "google/gemini-3.8-flash": { input: 0.75, output: 3.75 },
-};
-
-const FREE: Rate = { input: 0, output: 0 };
 
 export type UsagePoint = { day: string; count: number };
 export type IntentCount = { intentKey: string; count: number };
@@ -62,10 +53,6 @@ function tokensOf(text: string): number {
 
 function defaultModelId(): string {
   return Object.keys(models())[0] ?? "";
-}
-
-function rateOf(modelId: string): Rate {
-  return RATES[modelId] ?? FREE;
 }
 
 function countsPerDay(stamps: string[]): UsagePoint[] {

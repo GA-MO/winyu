@@ -1,8 +1,10 @@
 import { createAnthropic } from "@ai-sdk/anthropic";
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
+import { wrapLanguageModel, type LanguageModel } from "ai";
 import { createScriptedModel, MOCK_MODEL_ID } from "vexa/mock";
 import type { ModelRegistry } from "vexa/server";
 import { COP_MOCK_SCRIPT } from "./mock-script";
+import { meterMiddleware } from "./usage-meter";
 
 const SONNET_ID = "claude-sonnet-5";
 const HAIKU_ID = "claude-haiku-4-5-20251001";
@@ -16,17 +18,21 @@ const MOCK: ModelRegistry = {
   [MOCK_MODEL_ID]: { model: () => createScriptedModel(COP_MOCK_SCRIPT), name: "Mock (scripted, ฟรี)", provider: "vexa-mock", maxTokens: 8_000 },
 };
 
+function metered(modelId: string, model: Exclude<LanguageModel, string>) {
+  return wrapLanguageModel({ model: model as Parameters<typeof wrapLanguageModel>[0]["model"], middleware: meterMiddleware(modelId) });
+}
+
 function anthropicModels(apiKey: string): ModelRegistry {
   const anthropic = createAnthropic({ apiKey });
   return {
-    [SONNET_ID]: { model: () => anthropic(SONNET_ID), name: "Claude Sonnet 5", maxTokens: ANTHROPIC_CONTEXT_TOKENS },
-    [HAIKU_ID]: { model: () => anthropic(HAIKU_ID), name: "Claude Haiku 4.5", maxTokens: ANTHROPIC_CONTEXT_TOKENS },
+    [SONNET_ID]: { model: () => metered(SONNET_ID, anthropic(SONNET_ID)), name: "Claude Sonnet 5", maxTokens: ANTHROPIC_CONTEXT_TOKENS },
+    [HAIKU_ID]: { model: () => metered(HAIKU_ID, anthropic(HAIKU_ID)), name: "Claude Haiku 4.5", maxTokens: ANTHROPIC_CONTEXT_TOKENS },
   };
 }
 
 function openRouterModels(apiKey: string, modelId: string): ModelRegistry {
   const client = createOpenRouter({ apiKey, compatibility: "strict", appName: process.env.OPENROUTER_APP_TITLE ?? "Cop", appUrl: OPENROUTER_APP_URL });
-  return { [modelId]: { model: () => client(modelId), name: MODEL_NAMES[modelId] ?? modelId, provider: "openrouter", maxTokens: OPENROUTER_CONTEXT_TOKENS } };
+  return { [modelId]: { model: () => metered(modelId, client(modelId, { usage: { include: true } })), name: MODEL_NAMES[modelId] ?? modelId, provider: "openrouter", maxTokens: OPENROUTER_CONTEXT_TOKENS } };
 }
 
 /** The registry GET /api/chat publishes; the first entry is the default: one OpenRouter model (AGENT_MODEL, else Gemini 3.8 Flash) when its key is set, then the scripted mock. */

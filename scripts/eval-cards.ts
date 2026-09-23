@@ -6,6 +6,7 @@ import { handlerFor } from "@/lib/server/agent/handler";
 import { models } from "@/lib/server/models";
 import { EVAL_CASES, SCRIPTED_CASES, type EvalCase } from "@/lib/eval/cases";
 import { checkTurn, scoreOf, type CheckResult, type Turn } from "@/lib/eval/check-cards";
+import { emptyMeter, measure, type Metered } from "@/lib/server/usage-meter";
 
 const CHAT_URL = "http://localhost:3100/api/chat";
 const REPORT = ".eval-cards.json";
@@ -15,7 +16,7 @@ const DONE = "data: [DONE]";
 
 type Part = Record<string, unknown>;
 type ToolTrace = { tool: string; input: unknown; output?: unknown };
-type CaseReport = { id: string; run: number; model: string; passed: number; total: number; failures: CheckResult[]; text: string; tools: ToolTrace[]; spec: Spec | null };
+type CaseReport = { id: string; run: number; model: string; passed: number; total: number; failures: CheckResult[]; text: string; tools: ToolTrace[]; spec: Spec | null; usage: Metered };
 
 function argOf(name: string, fallback: string): string {
   const hit = process.argv.find((value) => value.startsWith(`--${name}=`));
@@ -83,10 +84,38 @@ async function ask(testCase: EvalCase, model: string): Promise<Turn & { tools: T
   };
 }
 
+const USD_DIGITS = 4;
+
+function add(total: Metered, usage: Metered): Metered {
+  return {
+    calls: total.calls + usage.calls,
+    inputTokens: total.inputTokens + usage.inputTokens,
+    cachedTokens: total.cachedTokens + usage.cachedTokens,
+    outputTokens: total.outputTokens + usage.outputTokens,
+    reasoningTokens: total.reasoningTokens + usage.reasoningTokens,
+    billedUsd: total.billedUsd + usage.billedUsd,
+    billedCalls: total.billedCalls + usage.billedCalls,
+    estimatedUsd: total.estimatedUsd + usage.estimatedUsd,
+  };
+}
+
+function costOf(usage: Metered): string {
+  if (usage.calls === 0) return "free";
+  if (usage.billedCalls === usage.calls) return `$${usage.billedUsd.toFixed(USD_DIGITS)} billed`;
+  if (usage.billedCalls > 0) return `$${usage.billedUsd.toFixed(USD_DIGITS)} billed for ${usage.billedCalls}/${usage.calls} calls · ~$${usage.estimatedUsd.toFixed(USD_DIGITS)} est.`;
+  return `~$${usage.estimatedUsd.toFixed(USD_DIGITS)} est.`;
+}
+
+function usageLine(usage: Metered): string {
+  const cached = usage.cachedTokens > 0 ? ` (${usage.cachedTokens.toLocaleString()} cached)` : "";
+  const reasoning = usage.reasoningTokens > 0 ? ` (${usage.reasoningTokens.toLocaleString()} reasoning)` : "";
+  return `${usage.calls} calls · in ${usage.inputTokens.toLocaleString()}${cached} · out ${usage.outputTokens.toLocaleString()}${reasoning} · ${costOf(usage)}`;
+}
+
 function line(report: CaseReport): string {
   const mark = report.failures.length === 0 ? "ok  " : "FAIL";
   const detail = report.failures.map((failure) => `${failure.id}: ${failure.detail}`).join(" · ");
-  return `${mark} ${report.id.padEnd(22)} ${report.passed}/${report.total} ${detail}`;
+  return `${mark} ${report.id.padEnd(22)} ${report.passed}/${report.total} [${usageLine(report.usage)}] ${detail}`;
 }
 
 async function main() {
@@ -101,18 +130,20 @@ async function main() {
 
   for (let run = 1; run <= runs; run += 1) {
     for (const testCase of cases) {
-      const turn = await ask(testCase, model);
+      const { result: turn, usage } = await measure(() => ask(testCase, model));
       const results = checkTurn(turn, testCase);
       const score = scoreOf(results);
-      const report: CaseReport = { id: testCase.id, run, model, ...score, failures: results.filter((result) => !result.ok), text: turn.text, tools: turn.tools, spec: turn.spec };
+      const report: CaseReport = { id: testCase.id, run, model, ...score, failures: results.filter((result) => !result.ok), text: turn.text, tools: turn.tools, spec: turn.spec, usage };
       reports.push(report);
       console.log(line(report));
     }
   }
 
   const passed = reports.filter((report) => report.failures.length === 0).length;
+  const usage = reports.reduce((total, report) => add(total, report.usage), emptyMeter());
   console.log(`\n${passed}/${reports.length} cases clean · model ${model} · ${runs} run(s)`);
-  await Bun.write(REPORT, JSON.stringify({ model, runs, at: new Date().toISOString(), reports }, null, 2));
+  console.log(`usage: ${usageLine(usage)}`);
+  await Bun.write(REPORT, JSON.stringify({ model, runs, at: new Date().toISOString(), usage, reports }, null, 2));
   console.log(`report written to ${REPORT}`);
   if (passed < reports.length) process.exitCode = 1;
 }
