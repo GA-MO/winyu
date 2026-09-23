@@ -61,6 +61,7 @@ export function SessionChat({
   const [chips, setChips] = useState(suggestions);
   const sent = useRef(false);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const savedMessages = useRef<unknown[]>(initialMessages);
 
   useEffect(() => {
     setHostContext({ threadId, preloadPacketId: preload?.packetId ?? null });
@@ -122,9 +123,10 @@ export function SessionChat({
   }, []);
 
   useEffect(() => {
-    if (isStreaming || messages.length === 0) return;
+    if (isStreaming || messages.length === 0 || messages === savedMessages.current) return;
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(() => {
+      savedMessages.current = messages;
       void fetch(`${THREADS_ENDPOINT}/${threadId}`, {
         method: "POST",
         headers: { "content-type": "application/json" },
@@ -161,7 +163,7 @@ export function SessionChat({
   return (
     <div className="relative flex h-dvh min-h-0 flex-col">
       <GlowBackdrop className="opacity-70" />
-      <Conversation className="relative z-10 min-h-0 flex-1">
+      <Conversation className="relative z-10 min-h-0 flex-1" initial="instant">
         <ConversationContent className={`cop-chat flex flex-col gap-6 pb-6 pt-16 ${COLUMN}`}>
           {preload ? (
             <GlassPanel className="flex items-start gap-3 p-4 animate-hero-rise">
