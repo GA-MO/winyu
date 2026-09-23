@@ -18,7 +18,7 @@ const ROLE_ACTIONS: Partial<Record<RoleId, QuickAction[]>> = {
   sales_rsm: [{ id: "qa_sell_out_gap", label: "ยอดขายเข้าเทียบยอดขายออก", prompt: "เปรียบเทียบยอดขายเข้ากับยอดขายออกของเอเย่นต์ในภาคของผม", score: 0.79, reason: "ช่วยจับสต๊อกค้างที่เอเย่นต์", intentKey: "sell_out_volume|agent" }],
   sales_rep: [{ id: "qa_my_agents", label: "เอเย่นต์ที่ผมดูแล", prompt: "สรุปยอดของเอเย่นต์ที่ผมดูแลเดือนนี้", score: 0.8, reason: "เริ่มวันจากเอเย่นต์ที่คุณดูแล", intentKey: "net_sales_volume|agent" }],
   marketing_lead: [{ id: "qa_campaign", label: "แคมเปญไหนคุ้มที่สุด", prompt: "แคมเปญไหนให้ผลยกระดับยอดขายคุ้มที่สุดในไตรมาสนี้", score: 0.83, reason: "วัดความคุ้มของแคมเปญ", intentKey: "campaign_uplift|campaign" }],
-  supply_planner: [{ id: "qa_cover", label: "ดีซีไหนสต๊อกต่ำ", prompt: "ดีซีไหนมีจำนวนวันที่สต๊อกพอขายต่ำกว่า 10 วัน", score: 0.85, reason: "เกณฑ์เตือนมาตรฐานคือ 10 วัน", intentKey: "days_of_cover|dc" }],
+  supply_planner: [{ id: "qa_cover", label: "DC ไหนสต๊อกต่ำ", prompt: "DC ไหนมีจำนวนวันที่สต๊อกพอขายต่ำกว่า 10 วัน", score: 0.85, reason: "เกณฑ์เตือนมาตรฐานคือ 10 วัน", intentKey: "days_of_cover|dc" }],
   finance_analyst: [{ id: "qa_budget", label: "งบเทียบจริง", prompt: "เปรียบเทียบงบกับยอดจริงของเดือนนี้", score: 0.77, reason: "ติดตามเงินค้างก่อนปิดเดือน", intentKey: "gross_margin|month" }],
   hr_manager: [
     { id: "qa_attrition", label: "อัตราการลาออก", prompt: "อัตราการลาออกเดือนนี้เทียบปีที่แล้วเป็นอย่างไร", score: 0.82, reason: "ติดตามการลาออกรายเดือน", intentKey: "attrition_rate|month" },

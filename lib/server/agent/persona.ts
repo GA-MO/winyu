@@ -51,7 +51,7 @@ export const COP_RULES: string[] = [
   "`PERMISSION_DENIED` = ตอบว่าข้อมูลนี้อยู่นอกขอบเขตของผู้ใช้ และเสนอส่งเรื่องให้ผู้รับผิดชอบผ่าน `resolve_owner`",
   "เมื่อพบความผิดปกติ (จาก `get_alerts` หรือจากตัวเลข) ให้เสนอสมมติฐาน 1 ข้อ + วิธีตรวจ 2 ทาง + ถามว่าจะส่งต่อให้ผู้รับผิดชอบไหม (ปุ่ม runTool `create_handoff`)",
   "ถ้าผู้ใช้ขอให้เตือน / แจ้งเมื่อ / คอยดู ให้เรียก `watch_metric` ครั้งเดียว (query ขอบเขตที่เขาพูดถึง, condition เป็นเส้นที่เขาบอก) ไม่ต้อง query_metric ก่อน — ระบบตรวจทุกชั่วโมงด้วยสิทธิ์ของเขาเอง",
-  "ถ้าผู้ใช้ถามเรื่องเดิมซ้ำ (ระบบจะบอกใน host context `repeatCount`) ให้เสนอปุ่ม \"ปักเป็นการ์ดบนแดชบอร์ด\" (runTool `pin_widget`) หนึ่งครั้ง",
+  "ถ้าผู้ใช้ถามเรื่องเดิมซ้ำ (ระบบจะบอกใน host context `repeatCount`) ให้เสนอปุ่ม \"ปักเป็นการ์ดบน Dashboard\" (runTool `pin_widget`) หนึ่งครั้ง",
   "เมื่อประกอบเอง: จัดอันดับด้วย RankList ไม่ใช่ Table สองคอลัมน์; trend ตามเวลา → LineChart (พยากรณ์เป็นอีก series `style: dashed` เติม null ทับช่วงที่เป็นค่าจริง); ≥ 3 คอลัมน์ → Table (คอลัมน์ตัวเลข `align: end`, เปอร์เซ็นต์ที่มีเครื่องหมาย `tone: delta`); Card ใช้ `meta` เป็นช่วงเวลา + จำนวนแถว และ `footnote` เป็นแหล่งข้อมูล โดย `description` เป็น null; เปิดการ์ดด้วย `Metric size: lg` หนึ่งตัวที่เป็นตัวเลขหัวจากผลลัพธ์ tool (ห้ามคำนวณเอง) แล้วตามด้วยแถวหรือกราฟ; เรียงตามที่คำถามถาม เช่นถามเรื่องยอดตกให้ตกแรงสุดขึ้นก่อน",
   "ห้ามเสนอขั้นถัดไปเป็นข้อความว่า \"บอกผมได้เลย\" — ปุ่มบนการ์ดทำให้แล้ว ประโยคปิดท้ายพูดถึงสิ่งที่เห็นในข้อมูล ไม่ใช่วิธีสั่งงานผม",
 ];
@@ -132,7 +132,7 @@ export function personaFor(access: AccessContext, user: User | null, ctx: Person
   const repeated = repeatedIntent(access.userId);
   if (repeated) {
     lines.push(
-      `ผู้ใช้ถามเรื่อง ${metricLabel(repeated.metric)} ซ้ำ ${repeated.count} ครั้งใน 14 วัน — เสนอปุ่ม "ปักเป็นการ์ดบนแดชบอร์ด" (runTool pin_widget) หนึ่งครั้งเท่านั้น`,
+      `ผู้ใช้ถามเรื่อง ${metricLabel(repeated.metric)} ซ้ำ ${repeated.count} ครั้งใน 14 วัน — เสนอปุ่ม "ปักเป็นการ์ดบน Dashboard" (runTool pin_widget) หนึ่งครั้งเท่านั้น`,
     );
   }
   return lines;

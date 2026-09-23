@@ -112,7 +112,7 @@ function deltaLabel(deltaPercent: number | null | undefined): string | null {
   return `${rounded > 0 ? "+" : ""}${formatPercent(rounded)}`;
 }
 
-const HANDOFF_SENT = "ส่งแล้วครับ ติดตามสถานะได้ในกล่องงาน เมื่อมีการตอบกลับผมจะแจ้งให้ทราบ";
+const HANDOFF_SENT = "ส่งแล้วครับ ติดตามสถานะได้ใน Inbox เมื่อมีการตอบกลับผมจะแจ้งให้ทราบ";
 
 function behindTargetText(rows: Row[]): string | null {
   return laggardText(rows, "region", "ภาคที่ห่างเป้ามากที่สุด", "ภาคที่เกินเป้าน้อยที่สุด");
@@ -386,9 +386,9 @@ const SALARY_STEPS: MockStep[] = [
 const PRESSED_ACTION = /⟦action⟧ runTool ([a-z_]+) (\{[\s\S]*\})/;
 const PRESSED_DONE: Record<string, string> = {
   create_handoff: HANDOFF_SENT,
-  pin_widget: "ปักการ์ดไว้บนแดชบอร์ดแล้วครับ กด ⌘D เพื่อเปิดดู",
-  send_email: "ส่งอีเมลแล้วครับ ในเดโมนี้จดหมายจะไปอยู่ในกล่องจดหมายออก",
-  watch_metric: "ตั้งการเฝ้าดูแล้วครับ ผมจะแจ้งในกล่องงานครั้งแรกที่เข้าเงื่อนไข",
+  pin_widget: "ปักการ์ดไว้บน Dashboard แล้วครับ กด ⌘D เพื่อเปิดดู",
+  send_email: "ส่งอีเมลแล้วครับ ในเดโมนี้จดหมายจะไปอยู่ใน Outbox",
+  watch_metric: "ตั้งการเฝ้าดูแล้วครับ ผมจะแจ้งใน Inbox ครั้งแรกที่เข้าเงื่อนไข",
 };
 
 type PressedAction = { tool: string; input: Record<string, unknown> };
@@ -821,7 +821,7 @@ function focusedAlertNext(row: AlertRow): string {
   const steps = (row.verifySteps ?? []).map((step, index) => `${index + 1}) ${step}`).join(" ");
   return sentences([
     steps ? `ควรตรวจตามนี้: ${steps}` : null,
-    "ถ้าจะให้ผู้รับผิดชอบตรวจต่อ ส่งต่อจากกล่องงานได้เลยครับ",
+    "ถ้าจะให้ผู้รับผิดชอบตรวจต่อ ส่งต่อจาก Inbox ได้เลยครับ",
   ]);
 }
 
@@ -932,7 +932,7 @@ const RERUN_ANOMALY_STEPS: MockStep[] = [
   },
 ];
 
-const TOOL_USAGE_STEPS: MockStep[] = [{ text: "ประวัติการเรียกใช้เครื่องมือทั้งหมดอยู่ที่หน้า ผู้ดูแลระบบ → Audit ครับ เปิดดูแยกตามผู้ใช้และเครื่องมือได้ ผมยังไม่มีเครื่องมือสรุปตัวเลขนี้ในแชท" }];
+const TOOL_USAGE_STEPS: MockStep[] = [{ text: "ประวัติการเรียกใช้เครื่องมือทั้งหมดอยู่ที่หน้า Admin → Audit ครับ เปิดดูแยกตามผู้ใช้และเครื่องมือได้ ผมยังไม่มีเครื่องมือสรุปตัวเลขนี้ใน Chat" }];
 
 const WATCH_REQUEST = /เตือน(ฉัน|ผม|หน่อย)?\s*(ถ้า|เมื่อ)|แจ้ง(ฉัน|ผม)?\s*(ถ้า|เมื่อ)|คอยดู|เฝ้าดู/;
 const NUMBER = /(\d+(?:\.\d+)?)/;
@@ -989,7 +989,7 @@ function watchSteps(prompt: string): MockStep[] {
         },
         condition: { kind: watchKindOf(prompt, metric), value },
       },
-      then: (output) => [{ text: `${(output as { summary?: string }).summary ?? "ตั้งการเฝ้าดูแล้วครับ"} ผมจะแจ้งในกล่องงานครั้งแรกที่เข้าเงื่อนไข` }],
+      then: (output) => [{ text: `${(output as { summary?: string }).summary ?? "ตั้งการเฝ้าดูแล้วครับ"} ผมจะแจ้งใน Inbox ครั้งแรกที่เข้าเงื่อนไข` }],
       onError: (result) => [{ text: `ตั้งการเฝ้าดูไม่ได้ครับ: ${(result as { error?: string }).error ?? "ไม่ทราบสาเหตุ"}` }],
     },
   ];
@@ -1014,7 +1014,7 @@ export const COP_MOCK_PROMPTS = [
 /** Scripted turns that drive the real tools: the mock calls a tool, the handler executes it, the continuation renders the output. */
 export const COP_MOCK_SCRIPT: MockScript = {
   turns: [
-    { match: /งานที่ส่งต่อมา|เปิดในเอเจนต์/, steps: PRELOAD_STEPS },
+    { match: /งานที่ส่งต่อมา|เปิดในเอเจนต์|เปิดใน Agent/, steps: PRELOAD_STEPS },
     { match: /⟦action⟧ runTool/, steps: pressedSteps },
     { match: WATCH_REQUEST, steps: watchSteps },
     { match: /ส่งต่อ|handoff/i, steps: pressedSteps },

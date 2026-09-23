@@ -293,7 +293,7 @@ const pin_widget = tool({
       version: layout.version + 1,
     };
     layouts().put({ id: access.userId, userId: access.userId, version: layout.version + 1, widgets: [...layout.widgets, widget], updatedAt: now() });
-    return { ok: true as const, summary: `ปักการ์ด "${title}" บนแดชบอร์ดแล้ว`, data: { widgetId: widget.id, position: widget.position } };
+    return { ok: true as const, summary: `ปักการ์ด "${title}" บน Dashboard แล้ว`, data: { widgetId: widget.id, position: widget.position } };
   }),
 });
 

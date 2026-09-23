@@ -92,7 +92,7 @@ const MARKETING_SEEDS: WidgetSeed[] = [
 ];
 
 const SUPPLY_SEEDS: WidgetSeed[] = [
-  seed({ key: "cover_dc", title: "สินค้าที่สต๊อกพอขายน้อยที่สุดตามดีซี", kind: "table", metric: "days_of_cover", dims: ["dc", "sku"], limit: TOP_ROWS }),
+  seed({ key: "cover_dc", title: "สินค้าที่สต๊อกพอขายน้อยที่สุดตาม DC", kind: "table", metric: "days_of_cover", dims: ["dc", "sku"], limit: TOP_ROWS }),
   seed({ key: "production", title: "กำลังการผลิตตามโรงงาน", kind: "bar", metric: "production_output", dims: ["plant"], range: LAST_4_WEEKS, grain: "week", compare: "prev_period" }),
   seed({ key: "mape", title: "ความคลาดเคลื่อนพยากรณ์", kind: "metric", metric: "forecast_mape", compare: "prev_period" }),
   seed({ key: "capacity", title: "อัตราการใช้กำลังผลิตรายสัปดาห์", kind: "line", metric: "capacity_utilization", dims: ["week"], range: LAST_QUARTER, grain: "week" }),
