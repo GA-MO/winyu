@@ -95,8 +95,13 @@ function suggestedToday(existing: WidgetSpec[], now: number): number {
   return existing.filter((widget) => widget.source === "ai_suggested" && widget.createdAt.slice(0, 10) === today).length;
 }
 
-function sameSlice(widget: WidgetSpec, candidate: Candidate): boolean {
+function sameSlice(widget: WidgetSpec, candidate: Pick<Candidate, "metric" | "dims">): boolean {
   return widget.query.metric === candidate.metric && [...widget.query.dims].sort().join(",") === [...candidate.dims].sort().join(",");
+}
+
+/** True when one of these widgets is already pinned to the same metric sliced by the same dimensions. */
+export function isPinnedSlice(widgets: readonly WidgetSpec[], slice: { metric: MetricId; dims: readonly Dim[] }): boolean {
+  return widgets.some((widget) => widget.pinned && sameSlice(widget, { metric: slice.metric, dims: [...slice.dims] }));
 }
 
 /** At most one new suggested card a day, never one the user already has. */
@@ -124,9 +129,9 @@ export async function composeSuggestion(access: AccessContext, existing: WidgetS
 }
 
 /** The one intent this user has repeated exactly enough times for the chat to offer a pin. */
-export function repeatedIntent(userId: string, now = Date.now(), events?: readonly ActionEvent[]): { metric: MetricId; count: number } | null {
+export function repeatedIntent(userId: string, now = Date.now(), events?: readonly ActionEvent[]): { metric: MetricId; dims: Dim[]; count: number } | null {
   const hit = candidatesFrom(events ?? actionEvents().all(), userId, now).find((candidate) => candidate.count === PROMOTE_AT);
-  return hit ? { metric: hit.metric, count: hit.count } : null;
+  return hit ? { metric: hit.metric, dims: hit.dims, count: hit.count } : null;
 }
 
 /** True once the user has asked the same thing often enough that the chat should offer to pin it. */

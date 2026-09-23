@@ -30,14 +30,7 @@ function bodyElements(id: string, body: CardBody): Elements {
     };
   }
   if (body.kind === "table") return { [id]: element("Table", { columns: body.columns, rows: body.rows }) };
-  if (body.kind === "alerts") {
-    const children = body.items.map((unused, index) => `${id}-item-${index}`);
-    const elements: Elements = { [id]: element("Stack", { direction: "vertical", gap: "sm" }, children) };
-    body.items.forEach((item, index) => {
-      elements[`${id}-item-${index}`] = element("Alert", { title: item.title, meta: item.meta, body: item.body, tone: item.tone });
-    });
-    return elements;
-  }
+  if (body.kind === "alerts") return { [id]: element("SignalList", { items: body.items }) };
   return {};
 }
 

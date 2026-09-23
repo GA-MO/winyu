@@ -2,9 +2,10 @@
 
 import type { ComponentRegistry } from "@json-render/react";
 import type { AlertRow, MetricQuery, MetricResult, NextAction } from "@/lib/contracts";
-import { presentAlerts, presentCard, type CardView, type SortBy } from "@/lib/cards/present";
+import { presentAlerts, presentCard, type CardView, type SignalItem, type SortBy } from "@/lib/cards/present";
 import { TH } from "@/lib/i18n/th";
 import { ActionStrip, CardPartsView } from "./card-parts";
+import { SignalList } from "./signal-list";
 
 export type MetricAnswer = Extract<MetricResult, { ok: true }> & { query: MetricQuery; nextActions: NextAction[] };
 
@@ -73,6 +74,11 @@ export function AlertsCard({ props }: { props: AlertsCardProps }) {
   );
 }
 
+function signalsOf(props: unknown): SignalItem[] {
+  const items = (props as { items?: unknown }).items;
+  return Array.isArray(items) ? (items as SignalItem[]) : [];
+}
+
 function actionStripOf(props: unknown): NextAction[] {
   const actions = (props as { actions?: unknown }).actions;
   return Array.isArray(actions) ? (actions as NextAction[]) : [];
@@ -82,4 +88,5 @@ export const COP_CARD_COMPONENTS: ComponentRegistry = {
   DataCard: ({ element }) => <DataCard props={element.props as never} />,
   AlertsCard: ({ element }) => <AlertsCard props={element.props as never} />,
   ActionStrip: ({ element }) => <ActionStrip actions={actionStripOf(element.props)} />,
+  SignalList: ({ element }) => <SignalList items={signalsOf(element.props)} />,
 };

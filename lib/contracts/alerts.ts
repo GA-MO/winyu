@@ -8,4 +8,4 @@ export type Forecast = { id: string; metric: MetricId; dims: Partial<Record<Dim,
 
 export type AlertRow = { id: string; severity: Alert["severity"]; severityLabel: string; metric: MetricId; metricLabel: string;
   scope: Partial<Record<Dim, string>>; scopeLabel: string; window: string; observedLabel: string; expectedLabel: string;
-  gapLabel: string | null; direction: "up" | "down"; hypothesis: string; verifySteps: readonly string[]; ownerUserId: string };
+  gapLabel: string | null; yearOverYear: boolean; direction: "up" | "down"; hypothesis: string; verifySteps: readonly string[]; ownerUserId: string };

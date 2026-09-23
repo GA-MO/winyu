@@ -44,6 +44,7 @@ export function alertRowOf(alert: Alert): AlertRow {
     observedLabel: valueLabelOf(alert, alert.observed),
     expectedLabel: valueLabelOf(alert, alert.expected),
     gapLabel: gapLabelOf(alert),
+    yearOverYear: measuredAgainstLastYear(alert),
     direction: alert.direction,
     hypothesis: alert.hypothesis,
     verifySteps: alert.verifySteps,

@@ -327,6 +327,16 @@ export const TH = {
     splitReason: (unit: string) => `ยังไม่ได้ดูแยกราย${unit}`,
     splitPrompt: (metric: string, unit: string) => `ขอ${metric}แยกตาม${unit} เรียงจากมากไปน้อย`,
   },
+  calendar: {
+    kind: { alcohol_ban: "ห้ามขายเครื่องดื่มแอลกอฮอล์", holiday: "วันหยุด", festival: "เทศกาล" } as Record<string, string>,
+    inDays: (days: number) => (days === 0 ? "วันนี้" : days > 0 ? `อีก ${days} วัน` : `${-days} วันที่แล้ว`),
+    sellOut: (percent: number) => `ขายออกเบียร์ ${percent > 0 ? "+" : ""}${percent}%`,
+    orderEve: (percent: number) => `เอเย่นต์สั่งเข้า 2 วันก่อนหน้า ${percent > 0 ? "+" : ""}${percent}%`,
+    basis: (name: string, date: string) => `วัดจาก${name} ${date}`,
+    noImpact: "ยังไม่มีข้อมูลครั้งก่อนในขอบเขตของคุณ",
+    summary: (count: number, from: string, to: string, bans: number) => `${from} – ${to} มี ${count} วันสำคัญ${bans > 0 ? ` ห้ามขายเครื่องดื่มแอลกอฮอล์ ${bans} วัน` : ""}`,
+    none: (from: string, to: string) => `${from} – ${to} ไม่มีวันห้ามขาย วันหยุด หรือเทศกาล`,
+  },
   follow: {
     why: (label: string) => `ทำไม${label}`,
     whyShort: "หาสาเหตุแถวที่แย่สุด",
@@ -371,10 +381,13 @@ export const TH = {
     dimUnit: {
       date: "วัน", week: "สัปดาห์", month: "เดือน", region: "ภาค", province: "จังหวัด", channel: "ช่องทาง",
       brand: "แบรนด์", sku: "SKU", pack: "ขนาดบรรจุ", agent: "เอเย่นต์", dc: "ศูนย์กระจายสินค้า", plant: "โรงงาน",
-      campaign: "แคมเปญ", department: "ฝ่าย", business_unit: "กลุ่มธุรกิจ",
+      campaign: "แคมเปญ", department: "ฝ่าย", business_unit: "กลุ่มธุรกิจ", maker: "ผู้ผลิต",
     } as Record<string, string>,
     compare: { none: "", prev_period: "เทียบช่วงก่อนหน้า", prev_year: "เทียบปีก่อน", target: "เทียบเป้า" } as Record<string, string>,
-    observedVsExpected: (observed: string, expected: string, gap: string) => `จริง ${observed} · คาด ${expected} · ห่าง ${gap}`,
+    actualVsExpected: (observed: string, expected: string) => `จริง ${observed} · คาด ${expected}`,
+    belowExpected: "ต่ำกว่าคาด",
+    aboveExpected: "สูงกว่าคาด",
+    whyToggle: "ทำไม",
     item: "รายการ",
     waiting: "กำลังดึงข้อมูล…",
     alertCount: (shown: number, total: number) => (shown < total ? `${total} รายการที่ต้องดู · แสดง ${shown} อันดับแรก` : `${total} รายการที่ต้องดู`),
@@ -491,6 +504,7 @@ export const TH = {
     headcount: "จำนวนพนักงาน",
     attrition_rate: "อัตราการลาออก",
     avg_salary: "เงินเดือนเฉลี่ย",
+    market_share: "ส่วนแบ่งตลาดเบียร์",
   },
   engine: {
     promoTag: "อธิบายได้ด้วยโปรโมชัน",
@@ -595,6 +609,7 @@ export const TH = {
     campaign: "แคมเปญ",
     department: "ฝ่าย",
     business_unit: "กลุ่มธุรกิจ",
+    maker: "ผู้ผลิต",
   },
   a11y: { skipToContent: "ข้ามไปที่เนื้อหา", closePanel: "ปิดแผง" },
 } as const;

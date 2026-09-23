@@ -22,7 +22,18 @@ export type CardHero = { label: string; value: string; delta: string | null; tre
 export type RankRow = { label: string; value: string; share: number | null; delta: string | null; trend: Direction; tone: Tone; note: string | null };
 export type CardColumn = { key: string; label: string; align: "start" | "end" | null; tone: "default" | "muted" | "delta" | null };
 export type ChartSeries = { name: string; values: (number | null)[]; style: "solid" | "dashed" | null };
-export type CardAlert = { title: string; meta: string | null; body: string | null; tone: AlertTone };
+export type SignalItem = {
+  id: string;
+  name: string;
+  place: string;
+  gap: string | null;
+  gapTone: Tone;
+  gapCaption: string | null;
+  numbers: string;
+  severity: AlertTone;
+  severityLabel: string;
+  why: string | null;
+};
 
 export type CardBody =
   | { kind: "none" }
@@ -30,7 +41,7 @@ export type CardBody =
   | { kind: "progress"; label: string; value: number; detail: string }
   | { kind: "line"; labels: string[]; series: ChartSeries[]; format: MetricFormat }
   | { kind: "table"; columns: CardColumn[]; rows: Record<string, string>[] }
-  | { kind: "alerts"; items: CardAlert[] };
+  | { kind: "alerts"; items: SignalItem[] };
 
 export type CardParts = {
   title: string;
@@ -62,6 +73,10 @@ const WORST_WHEN_LOW: ReadonlySet<MetricId> = new Set(["target_attainment", "day
 const WORST_WHEN_HIGH: ReadonlySet<MetricId> = new Set(["ar_overdue", "forecast_mape"]);
 const MAX_RANK_ROWS = 8;
 const MAX_ALERTS = 4;
+const PARENTHETICAL = /\s*\(.*\)$/;
+const SCOPE_SEPARATOR = " · ";
+const MINUS_SIGN = "−";
+const PLUS_SIGN = "+";
 const RANK_MIN_ROWS = 2;
 const TIME_DIMS: readonly Dim[] = ["date", "week", "month"];
 const SUNDAY = 0;
@@ -277,9 +292,26 @@ function progressBody(query: MetricQuery, rows: MetricRow[]): CardBody {
   };
 }
 
-function alertMetaOf(alert: AlertRow): string | null {
-  const gap = alert.gapLabel;
-  return gap ? TH.dash.observedVsExpected(alert.observedLabel, alert.expectedLabel, gap) : null;
+function signedGapOf(alert: AlertRow): string | null {
+  if (!alert.gapLabel) return null;
+  return `${alert.direction === "down" ? MINUS_SIGN : PLUS_SIGN}${alert.gapLabel}`;
+}
+
+function signalOf(alert: AlertRow, why: string | null): SignalItem {
+  const [name = alert.scopeLabel, ...rest] = alert.scopeLabel.split(SCOPE_SEPARATOR);
+  const metric = alert.metricLabel.replace(PARENTHETICAL, "");
+  return {
+    id: alert.id,
+    name,
+    place: [...rest, metric].join(SCOPE_SEPARATOR),
+    gap: signedGapOf(alert),
+    gapTone: toneOf(alert.metric, alert.direction === "down" ? -PERCENT : PERCENT),
+    gapCaption: alert.gapLabel ? (alert.direction === "down" ? TH.dash.belowExpected : TH.dash.aboveExpected) : null,
+    numbers: alert.yearOverYear ? alert.observedLabel : TH.dash.actualVsExpected(alert.observedLabel, alert.expectedLabel),
+    severity: SEVERITY_TONES[alert.severity],
+    severityLabel: alert.severityLabel,
+    why,
+  };
 }
 
 function alertsBody(alerts: AlertRow[]): CardBody {
@@ -289,12 +321,7 @@ function alertsBody(alerts: AlertRow[]): CardBody {
     items: alerts.slice(0, MAX_ALERTS).map((alert) => {
       const repeated = said.has(alert.hypothesis);
       said.add(alert.hypothesis);
-      return {
-        title: `${alert.severityLabel} · ${alert.scopeLabel}`,
-        meta: alertMetaOf(alert),
-        body: repeated ? null : alert.hypothesis,
-        tone: SEVERITY_TONES[alert.severity],
-      };
+      return signalOf(alert, repeated ? null : alert.hypothesis);
     }),
   };
 }

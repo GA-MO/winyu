@@ -40,6 +40,26 @@ export const COP_COMPONENTS = {
     description: "The next-action buttons of a card. Cop fills it from the tool result; never write one by hand.",
     example: { actions: [] },
   },
+  SignalList: {
+    props: z.object({
+      items: z.array(
+        z.object({
+          id: z.string(),
+          name: z.string(),
+          place: z.string(),
+          gap: z.string().nullable(),
+          gapTone: z.enum(["good", "bad", "neutral"]),
+          gapCaption: z.string().nullable(),
+          numbers: z.string(),
+          severity: z.enum(["info", "success", "warning", "danger"]),
+          severityLabel: z.string(),
+          why: z.string().nullable(),
+        }),
+      ),
+    }),
+    description: "The anomaly rows inside an alert card. Cop fills it from get_alerts; never write one by hand, use AlertsCard.",
+    example: { items: [] },
+  },
   AlertsCard: {
     props: z.object({
       title: z.string(),

@@ -4,7 +4,8 @@ import { followUpsFor, learnedKindShare } from "@/lib/engine/follow-ups";
 import { alertScopeLabel } from "@/lib/cards/alert-row";
 import { metricLabel } from "@/lib/dashboard/metric-display";
 import { openAlertsFor } from "@/lib/server/alerts";
-import { actionEvents } from "@/lib/server/agent/collections";
+import { actionEvents, layouts } from "@/lib/server/agent/collections";
+import { isPinnedSlice } from "@/lib/engine/compose";
 import { intentKeyOf } from "@/lib/server/threads";
 
 const PERCENT = 100;
@@ -16,6 +17,10 @@ function repeatsOf(userId: string, query: MetricQuery, now = Date.now()): number
   return actionEvents().where(
     (event) => event.userId === userId && event.intentKey === key && now - new Date(event.at).getTime() <= REPEAT_DAYS * DAY_MS,
   ).length;
+}
+
+function alreadyPinned(userId: string, query: MetricQuery): boolean {
+  return isPinnedSlice(layouts().get(userId)?.widgets ?? [], query);
 }
 
 function matchesQuery(alert: Alert, query: MetricQuery): boolean {
@@ -47,7 +52,7 @@ export function actionsForMetric(access: AccessContext, query: MetricQuery, resu
       alertScope: alert ? alertScopeLabel(alert) : null,
       verifyStep: alert ? alert.verifySteps[0] : null,
     },
-    repeatsOf(access.userId, query),
+    alreadyPinned(access.userId, query) ? 0 : repeatsOf(access.userId, query),
   );
 }
 

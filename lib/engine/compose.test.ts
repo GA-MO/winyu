@@ -7,8 +7,9 @@ import { layoutFor, moveWidget, rollbackToYesterday, setWidgetPinned } from "@/l
 import { TEMPLATE_ROLES, templateFor } from "@/lib/dashboard/templates";
 import { widgetToSpec } from "@/lib/dashboard/widget-to-spec";
 import { runMetric } from "@/lib/data/query";
-import { catalog, normalizeSpec } from "vexa/core";
-import { CLUSTER_DAYS, MIN_REPEATS, candidatesFrom, composeSuggestion, kindFor, queryFor, shouldOfferPin } from "./compose";
+import { normalizeSpec } from "vexa/core";
+import { copCatalog as catalog } from "@/lib/cards/catalog";
+import { CLUSTER_DAYS, MIN_REPEATS, candidatesFrom, composeSuggestion, isPinnedSlice, kindFor, queryFor, shouldOfferPin } from "./compose";
 
 const USER = "u_anucha";
 
@@ -155,5 +156,17 @@ describe("layout versioning", () => {
     const after = setWidgetPinned(planner, target.id, false);
     expect(after.widgets.find((widget) => widget.id === target.id)?.pinned).toBe(false);
     expect(after.version).toBeGreaterThan(layout.version);
+  });
+});
+
+describe("already on the dashboard", () => {
+  test("a pinned card on the same metric and dimensions counts, in any dimension order; a tray suggestion does not", () => {
+    const [widget] = templateFor(access()).filter((seed) => seed.pinned && seed.query.dims.length > 0);
+    if (!widget) throw new Error("no pinned template widget");
+    const pinned = { ...widget, id: "w1", userId: USER, position: 0, createdAt: "", version: 1 } as WidgetSpec;
+    const slice = { metric: pinned.query.metric, dims: [...pinned.query.dims].reverse() };
+    expect(isPinnedSlice([pinned], slice)).toBe(true);
+    expect(isPinnedSlice([{ ...pinned, pinned: false }], slice)).toBe(false);
+    expect(isPinnedSlice([pinned], { metric: pinned.query.metric, dims: [] })).toBe(false);
   });
 });

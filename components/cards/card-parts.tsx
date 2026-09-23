@@ -5,6 +5,7 @@ import { useVexaHostContext } from "vexa/react";
 import type { NextAction } from "@/lib/contracts";
 import type { CardBody, CardParts } from "@/lib/cards/present";
 import { TH } from "@/lib/i18n/th";
+import { SignalList } from "./signal-list";
 
 const ACTION_TOOL = "cop_action";
 const PRIMARY = "inline-flex items-center rounded-full bg-ink px-3.5 py-2 text-xs font-medium text-ink-foreground transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
@@ -21,15 +22,7 @@ function CardBodyView({ body }: { body: CardBody }) {
     );
   }
   if (body.kind === "table") return <Table props={{ columns: body.columns, rows: body.rows }} />;
-  if (body.kind === "alerts") {
-    return (
-      <div className="flex flex-col gap-2">
-        {body.items.map((item, index) => (
-          <Alert key={`${index}-${item.title}`} props={item} />
-        ))}
-      </div>
-    );
-  }
+  if (body.kind === "alerts") return <SignalList items={body.items} />;
   return null;
 }
 
