@@ -7,6 +7,7 @@ import { resolveEntity } from "@/lib/semantic/dictionary";
 const TODAY = "2026-09-22";
 const MONTH_START = "2026-09-01";
 const QUARTER_START = "2026-07-01";
+const LAST_AUDIT_MONTH = { from: "2026-08-01", to: "2026-08-31" };
 const YEAR_START = "2026-01-01";
 const RECENT_START = "2026-08-15";
 const WEEK_START = "2026-09-16";
@@ -932,6 +933,81 @@ const RERUN_ANOMALY_STEPS: MockStep[] = [
   },
 ];
 
+function marketShareSteps(prompt: string): MockStep[] {
+  const province = resolveEntity("province", prompt);
+  const dims = province ? ["maker"] : ["province"];
+  const filters = province ? { province: [province.id] } : {};
+  const title = province ? `ส่วนแบ่งตลาดเบียร์ใน${province.label}ทุกผู้ผลิต เทียบปีก่อน` : "ส่วนแบ่งตลาดเบียร์ของเรารายจังหวัด เทียบปีก่อน";
+  const subject = province ? `ส่วนแบ่งของเราใน${province.label}เดือน ส.ค.` : "ส่วนแบ่งตลาดเบียร์ของเราเดือน ส.ค.";
+  return [
+    {
+      tool: "query_metric",
+      input: { metric: "market_share", dims, filters, range: LAST_AUDIT_MONTH, grain: "month", compare: "prev_year", limit: 30 },
+      then: (output) => [
+        { text: headlineLead(output, subject, "ปีก่อน") },
+        { spec: dataCard(title, { view: "bar", sortBy: "delta_asc", description: "ข้อมูล retail audit ล่าสุดคือเดือนที่ครบแล้ว เรียงจากที่เสียส่วนแบ่งมากสุด" }) },
+      ],
+      onError: deniedSteps,
+    },
+  ];
+}
+
+function beerSellOutOfPlaceSteps(prompt: string): MockStep[] {
+  const province = resolveEntity("province", prompt);
+  const filters = province ? { province: [province.id], business_unit: ["beer"] } : { business_unit: ["beer"] };
+  const place = province?.label ?? "พื้นที่ของคุณ";
+  return [
+    {
+      tool: "query_metric",
+      input: { metric: "sell_out_volume", dims: ["month"], filters, range: { from: "2026-06-01", to: LAST_AUDIT_MONTH.to }, grain: "month", compare: "prev_year", limit: 12 },
+      then: (output) => [
+        { text: headlineLead(output, `ยอดขายออกเบียร์ของเราใน${place} มิ.ย.–ส.ค.`, "ช่วงเดียวกันปีก่อน") },
+        { spec: dataCard(`ยอดขายออกเบียร์ใน${place}รายเดือน เทียบปีก่อน`, { view: "bar" }) },
+      ],
+      onError: deniedSteps,
+    },
+  ];
+}
+
+type CalendarRow = { date_label?: string; when_label?: string; name?: string; kind?: string; kind_label?: string; impact_label?: string };
+
+function calendarRows(output: unknown): CalendarRow[] {
+  const data = (output as { data?: unknown }).data;
+  return Array.isArray(data) ? (data as CalendarRow[]) : [];
+}
+
+function calendarLead(output: unknown): string {
+  const rows = calendarRows(output);
+  const ban = rows.find((row) => row.kind === "alcohol_ban");
+  const summary = String((output as { summary?: string }).summary ?? "");
+  if (!ban) return `${summary} ครับ`;
+  return `${summary} ที่ต้องวางแผนคือ${ban.name} ${ban.date_label} (${ban.when_label}) ครั้งก่อน ${ban.impact_label} ควรให้เอเย่นต์เติมสต๊อกก่อนวันนั้นครับ`;
+}
+
+function calendarSpec(output: unknown): Spec {
+  const rows = calendarRows(output);
+  return {
+    root: "card",
+    elements: {
+      card: { type: "Card", props: { title: "วันที่กระทบยอดขายเบียร์ข้างหน้า", description: null, meta: String((output as { summary?: string }).summary ?? ""), footnote: "ปฏิทินวันห้ามขาย วันหยุด และเทศกาล · ผลกระทบวัดจากข้อมูลขายของครั้งก่อนในขอบเขตของคุณ" }, children: ["timeline"] },
+      timeline: {
+        type: "Timeline",
+        props: { items: rows.map((row) => ({ title: `${row.name ?? ""} · ${row.kind_label ?? ""}`, detail: row.impact_label ?? null, time: `${row.date_label ?? ""} · ${row.when_label ?? ""}` })) },
+        children: [],
+      },
+    },
+  };
+}
+
+const CALENDAR_STEPS: MockStep[] = [
+  {
+    tool: "get_calendar",
+    input: { from: null, to: null },
+    then: (output) => [{ text: calendarLead(output) }, { spec: calendarSpec(output) }],
+    onError: (result) => [{ text: `อ่านปฏิทินไม่ได้ครับ: ${(result as { error?: string }).error ?? "ไม่ทราบสาเหตุ"}` }],
+  },
+];
+
 const TOOL_USAGE_STEPS: MockStep[] = [{ text: "ประวัติการเรียกใช้เครื่องมือทั้งหมดอยู่ที่หน้า Admin → Audit ครับ เปิดดูแยกตามผู้ใช้และเครื่องมือได้ ผมยังไม่มีเครื่องมือสรุปตัวเลขนี้ใน Chat" }];
 
 const WATCH_REQUEST = /เตือน(ฉัน|ผม|หน่อย)?\s*(ถ้า|เมื่อ)|แจ้ง(ฉัน|ผม)?\s*(ถ้า|เมื่อ)|คอยดู|เฝ้าดู/;
@@ -1009,6 +1085,8 @@ export const COP_MOCK_PROMPTS = [
   "เงินเดือนเฉลี่ยแต่ละฝ่าย",
   "ส่งต่องานให้ผู้รับผิดชอบ",
   "เตือนฉันถ้าสต๊อกดีซีลำพูนพอขายต่ำกว่า 10 วัน",
+  "เดือนหน้ามีวันไหนที่กระทบยอดขาย",
+  "ส่วนแบ่งตลาดเทียบคู่แข่ง",
 ];
 
 /** Scripted turns that drive the real tools: the mock calls a tool, the handler executes it, the continuation renders the output. */
@@ -1019,6 +1097,9 @@ export const COP_MOCK_SCRIPT: MockScript = {
     { match: WATCH_REQUEST, steps: watchSteps },
     { match: /ส่งต่อ|handoff/i, steps: pressedSteps },
     { match: /^ตรวจความผิดปกติ|^ดูประวัติ|กับพื้นที่อื่น/, steps: focusedAlertSteps },
+    { match: /วันห้ามขาย|วันพระ|ปฏิทิน|วันหยุด|เทศกาล|วันไหน.*กระทบ|ออกพรรษา/, steps: CALENDAR_STEPS },
+    { match: /ส่วนแบ่งตลาด|market share|มาร์เก็ตแชร์|คู่แข่ง|คาราบาว|ช้าง/i, steps: marketShareSteps },
+    { match: /ขายออกเบียร์.*ใน.*(ปีก่อน|ปีที่แล้ว)/, steps: beerSellOutOfPlaceSteps },
     { match: /สิทธิ์|เงินเดือน|salary/i, steps: SALARY_STEPS },
     { match: /กำไรขั้นต้น|gross margin/i, steps: MARGIN_STEPS },
     { match: /ลาออก|attrition/i, steps: ATTRITION_STEPS },

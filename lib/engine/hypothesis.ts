@@ -6,7 +6,8 @@ import { agentById } from "@/lib/data/entities/agents";
 import { provinceById } from "@/lib/data/entities/org";
 import { PLANTS, dcById } from "@/lib/data/entities/supply";
 import { skuById } from "@/lib/data/entities/products";
-import { ISO_OF_DAY, toDayIndex } from "@/lib/data/dates";
+import { ISO_OF_DAY, addDays, toDayIndex } from "@/lib/data/dates";
+import { OWN_MAKER } from "@/lib/data/entities/market";
 import { displayLabel } from "@/lib/semantic/dictionary";
 import { TH } from "@/lib/i18n/th";
 import { pearson } from "./stats";
@@ -28,6 +29,8 @@ const PM25_CORRELATION = 0.6;
 const FLAT_RATIO = 0.12;
 const SILENT_SHARE = 0.25;
 const COVER_DECIMALS = 1;
+const SHARE_DECIMALS = 1;
+const DAYS_PER_MONTH = 30;
 
 function scopeLabel(dims: Partial<Record<Dim, string>>): string {
   const order: Dim[] = ["agent", "dc", "plant", "sku", "brand", "channel", "province", "region"];
@@ -112,10 +115,36 @@ function steps(first: string, second: string): [string, string] {
 }
 
 /** One hypothesis and two things to check, chosen from the metric, the direction and the context around the window. */
+type ShareShift = { maker: string; points: number };
+
+function shareShifts(context: Context): ShareShift[] {
+  const months = Math.max(1, Math.round((toDayIndex(context.window.to) - toDayIndex(context.window.from) + 1) / DAYS_PER_MONTH));
+  const before = { from: addDays(context.window.from, -months * DAYS_PER_MONTH), to: addDays(context.window.from, -1) };
+  const filters = filtersOf(context.dims);
+  const during = new Map(runSeries({ metric: "market_share", dims: ["maker"], filters, range: context.window }).map((row) => [row.dims.maker as string, row.value]));
+  const earlier = new Map(runSeries({ metric: "market_share", dims: ["maker"], filters, range: before }).map((row) => [row.dims.maker as string, row.value]));
+  return [...during].map(([maker, value]) => ({ maker, points: value - (earlier.get(maker) ?? value) }));
+}
+
+function shareExplanation(context: Context, place: string): Explanation {
+  const shifts = shareShifts(context);
+  const own = shifts.find((shift) => shift.maker === OWN_MAKER);
+  const rival = shifts.filter((shift) => shift.maker !== OWN_MAKER).sort((left, right) => right.points - left.points)[0];
+  const verifySteps = steps(TH.engine.verify.makersOfPlace(place), TH.engine.verify.sellOutLastYear(place));
+  if (!own || !rival || rival.points <= 0) return { hypothesis: TH.engine.hypothesis.genericDown(TH.metric.market_share, place), verifySteps, explained: false };
+  return {
+    hypothesis: TH.engine.hypothesis.rivalGain(place, displayLabel("maker", rival.maker), rival.points.toFixed(SHARE_DECIMALS), Math.abs(own.points).toFixed(SHARE_DECIMALS)),
+    verifySteps,
+    explained: false,
+  };
+}
+
 export function explain(context: Context): Explanation {
   const scope = scopeLabel(context.dims);
   const place = placeLabel(context.dims);
   const promo = campaignCovering(context);
+
+  if (context.metric === "market_share" && context.direction === "down") return shareExplanation(context, place);
 
   if (context.metric === "days_of_cover" && context.direction === "down") {
     return {

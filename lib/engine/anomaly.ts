@@ -5,12 +5,15 @@ import { toneOf } from "@/lib/dashboard/metric-display";
 import { TODAY } from "@/lib/data/dates";
 import { explain, regionOfDims } from "./hypothesis";
 import { DAILY_SCAN, MONTHLY_SCAN, mean, scanFloor, scanSeries } from "./stats";
-import { isoOfSlot, monthEnd, seriesFor } from "./series";
+import { calendarSkipFor, inLentRegime, isoOfSlot, monthEnd, seriesFor } from "./series";
 import { WATCHES, parentKeyOf, watchById, type Watch } from "./watches";
 
 export const Z_OPEN = 4;
 export const CRITICAL_GAP_PCT = 25;
 export const WARN_GAP_PCT = 10;
+const SHARE_CRITICAL_POINTS = 3;
+const SHARE_WARN_POINTS = 1.5;
+const POINT_METRICS: ReadonlySet<MetricId> = new Set<MetricId>(["market_share"]);
 const COVER_CRITICAL = 7;
 const PERCENT = 100;
 const FLOOR_WINDOW = 7;
@@ -70,8 +73,15 @@ function gapPercent(observed: number, expected: number): number {
 }
 
 /** How much this movement hurts: a harmful gap of 25% (or cover at a week) is critical, 10% is worth a look, good news only when it is big enough to plan for. */
+function severityInPoints(metric: MetricId, points: number): Alert["severity"] {
+  if (toneOf(metric, points) !== "bad") return "P3";
+  if (Math.abs(points) >= SHARE_CRITICAL_POINTS) return "P1";
+  return Math.abs(points) >= SHARE_WARN_POINTS ? "P2" : "P3";
+}
+
 export function severityOf(watch: Pick<Watch, "metric" | "lowThreshold">, observed: number, expected: number): Alert["severity"] {
   if (watch.lowThreshold !== null) return observed <= COVER_CRITICAL ? "P1" : "P2";
+  if (POINT_METRICS.has(watch.metric)) return severityInPoints(watch.metric, observed - expected);
   const gap = gapPercent(observed, expected);
   const size = Math.abs(gap);
   const harmful = toneOf(watch.metric, gap) === "bad";
@@ -168,7 +178,7 @@ function detectWatch(watch: Watch, thresholds: Thresholds, covered: Set<string>)
     const tailFrom = Math.max(0, series.values.length - BASELINE_TAIL);
     if (mean(series.values, tailFrom, series.values.length - 1) < watch.minLevel) continue;
     const scan = watch.lowThreshold === null
-      ? scanSeries(series.values, series.season, watch.grain === "month" ? MONTHLY_SCAN : DAILY_SCAN)
+      ? scanSeries(inLentRegime(watch, series), series.season, watch.scan ?? (watch.grain === "month" ? MONTHLY_SCAN : DAILY_SCAN), calendarSkipFor(watch, series))
       : scanFloor(series.values, watch.lowThreshold, FLOOR_WINDOW);
     if (!scan) continue;
     if (watch.lowThreshold === null && Math.abs(scan.z) < thresholdFor(thresholdKey(watch.metric, series.dims), thresholds)) continue;

@@ -8,6 +8,7 @@ const LAST_4_WEEKS = { from: "2026-08-25", to: TODAY };
 const LAST_QUARTER = { from: "2026-07-01", to: TODAY };
 const LAST_6_MONTHS = { from: "2026-04-01", to: TODAY };
 const YEAR_TO_DATE = { from: "2026-01-01", to: TODAY };
+const LAST_AUDITED_MONTH = { from: "2026-08-01", to: "2026-08-31" };
 const TOP_ROWS = 8;
 
 type SeedInput = {
@@ -67,6 +68,7 @@ const SALES_DIRECTOR_SEEDS: WidgetSeed[] = [
   seed({ key: "volume_trend", title: "ปริมาณขายรายสัปดาห์", kind: "line", metric: "net_sales_volume", dims: ["week"], range: LAST_QUARTER, grain: "week", compare: "prev_year" }),
   seed({ key: "agents", title: "เอเย่นต์ที่ยอดตกมากที่สุด", kind: "table", metric: "net_sales_volume", dims: ["agent"], range: LAST_4_WEEKS, grain: "week", compare: "prev_period", limit: TOP_ROWS }),
   seed({ key: "alerts", title: "ความผิดปกติในทีมขาย", kind: "alert_list", metric: "sell_out_volume", dims: ["region"], range: LAST_4_WEEKS, grain: "week", compare: "prev_period" }),
+  seed({ key: "market_share", title: "ส่วนแบ่งตลาดเบียร์ตามภาค เทียบปีก่อน", kind: "bar", metric: "market_share", dims: ["region"], range: LAST_AUDITED_MONTH, grain: "month", compare: "prev_year", pinned: false, source: "role_template", reason: "ดูว่าภาคไหนเสียส่วนแบ่งให้คู่แข่ง" }),
 ];
 
 const SALES_RSM_SEEDS: WidgetSeed[] = [
@@ -75,6 +77,7 @@ const SALES_RSM_SEEDS: WidgetSeed[] = [
   seed({ key: "sell_out", title: "ยอดขายออกจากร้านรายสัปดาห์", kind: "line", metric: "sell_out_volume", dims: ["week"], range: LAST_QUARTER, grain: "week", compare: "prev_year" }),
   seed({ key: "cover", title: "สินค้าที่สต๊อกพอขายน้อยที่สุด", kind: "kv", metric: "days_of_cover", dims: ["dc", "sku"], limit: TOP_ROWS }),
   seed({ key: "alerts", title: "ความผิดปกติในภาคของคุณ", kind: "alert_list", metric: "sell_out_volume", dims: ["agent"], range: LAST_4_WEEKS, grain: "week", compare: "prev_period", pinned: false, source: "role_template", reason: "ใช้ดูความผิดปกติในภาคของคุณที่เดียว" }),
+  seed({ key: "market_share", title: "ส่วนแบ่งตลาดเบียร์ตามจังหวัด เทียบปีก่อน", kind: "bar", metric: "market_share", dims: ["province"], range: LAST_AUDITED_MONTH, grain: "month", compare: "prev_year", pinned: false, source: "role_template", reason: "ดูว่าจังหวัดไหนเสียส่วนแบ่งให้คู่แข่ง" }),
 ];
 
 const SALES_REP_SEEDS: WidgetSeed[] = [

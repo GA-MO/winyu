@@ -1,6 +1,6 @@
 import type { Alert, AlertRow, Dim } from "@/lib/contracts";
 import { displayLabel } from "@/lib/semantic/dictionary";
-import { formatMetricValue, metricLabel } from "@/lib/dashboard/metric-display";
+import { formatMetricValue, metricFormat, metricLabel } from "@/lib/dashboard/metric-display";
 import { formatDateTh, formatNumber, formatPercent } from "@/lib/i18n/format";
 import { TH } from "@/lib/i18n/th";
 import { WATCHES } from "@/lib/engine/watches";
@@ -25,7 +25,10 @@ function valueLabelOf(alert: Alert, value: number): string {
   return measuredAgainstLastYear(alert) ? TH.dash.timesLastYear(formatNumber(value)) : formatMetricValue(alert.metric, value);
 }
 
+const POINT_DECIMALS = 1;
+
 function gapLabelOf(alert: Alert): string | null {
+  if (metricFormat(alert.metric) === "percent") return TH.dash.points(Math.abs(alert.observed - alert.expected).toFixed(POINT_DECIMALS));
   if (alert.expected === 0) return null;
   return formatPercent(Math.round(Math.abs((alert.observed - alert.expected) / alert.expected) * PERCENT));
 }

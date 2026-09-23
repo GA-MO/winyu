@@ -9,6 +9,7 @@ const CAST: Record<StoryKey, { minutes: number; userIds: string[]; landing?: str
   handoff: { minutes: 3, userIds: ["u_anucha", "u_krit"] },
   supply: { minutes: 4, userIds: ["u_ben", "u_wee"] },
   board: { minutes: 3, userIds: ["u_thana"] },
+  beerMarket: { minutes: 3, userIds: ["u_anucha", "u_wee"] },
   governance: { minutes: 3, userIds: ["u_ton"], landing: "/admin" },
 };
 

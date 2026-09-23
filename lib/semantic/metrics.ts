@@ -143,6 +143,12 @@ const SEEDS: readonly MetricSeed[] = [
     synonyms: ["เงินเดือน", "salary", "ค่าจ้าง", "เงินเดือนเฉลี่ย", "payroll"],
     description: "เงินเดือนเฉลี่ยต่อคนต่อเดือนแยกตามฝ่าย เป็นข้อมูลที่ถูกปิดตามนโยบายสำหรับบทบาทส่วนใหญ่",
   },
+  {
+    id: "market_share", label: "Beer market share", labelTh: "ส่วนแบ่งตลาดเบียร์", unit: "%", format: "percent",
+    owner: "u_prasit", certified: false, dims: ["month", "region", "province", "maker"], sourceSystem: "Retail audit รายเดือน",
+    synonyms: ["ส่วนแบ่งตลาด", "market share", "มาร์เก็ตแชร์", "แชร์ตลาด", "เทียบคู่แข่ง", "คู่แข่ง", "ช้าง", "ไทยเบฟ", "คาราบาว", "ตะวันแดง"],
+    description: "สัดส่วนปริมาณเบียร์ของแต่ละผู้ผลิตในตลาดรายจังหวัด จาก retail audit รายเดือน ข้อมูลล่าสุดคือเดือนที่ครบแล้ว ถ้าไม่ระบุผู้ผลิตจะเป็นส่วนแบ่งของบุญรอด",
+  },
 ];
 
 export const METRICS: Record<MetricId, MetricDef> = Object.fromEntries(
@@ -150,6 +156,9 @@ export const METRICS: Record<MetricId, MetricDef> = Object.fromEntries(
 ) as Record<MetricId, MetricDef>;
 
 export const METRIC_LIST: readonly MetricDef[] = METRIC_IDS.map((id) => METRICS[id]);
+
+/** Metrics reported once a month after the month closes (a retail audit): a card shows the last complete month, never a partial one. */
+export const CLOSED_MONTH_METRICS: ReadonlySet<MetricId> = new Set<MetricId>(["market_share"]);
 
 export function metricDef(id: string): MetricDef | null {
   return (METRICS as Record<string, MetricDef | undefined>)[id] ?? null;

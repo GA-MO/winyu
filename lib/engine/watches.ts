@@ -1,4 +1,5 @@
 import type { Dim, MetricId } from "@/lib/contracts";
+import { SHARE_SCAN, type ScanOptions } from "./stats";
 
 export type Watch = {
   id: string;
@@ -9,6 +10,7 @@ export type Watch = {
   lowThreshold: number | null;
   transform: "none" | "year_over_year";
   parent: string | null;
+  scan?: ScanOptions;
 };
 
 export const LOOKBACK_DAYS = 126;
@@ -23,6 +25,7 @@ export const WATCHES: readonly Watch[] = [
   { id: "sellout_sku_channel_region", metric: "sell_out_volume", entityDims: ["sku", "channel", "region"], grain: "day", minLevel: 4, lowThreshold: null, transform: "none", parent: null },
   { id: "cover_dc_sku", metric: "days_of_cover", entityDims: ["dc", "sku"], grain: "day", minLevel: 0.5, lowThreshold: 10, transform: "none", parent: null },
   { id: "output_plant", metric: "production_output", entityDims: ["plant"], grain: "day", minLevel: 0, lowThreshold: null, transform: "none", parent: null },
+  { id: "share_province", metric: "market_share", entityDims: ["province"], grain: "month", minLevel: 0, lowThreshold: null, transform: "none", parent: null, scan: SHARE_SCAN },
   { id: "ar_region", metric: "ar_overdue", entityDims: ["region"], grain: "month", minLevel: 0, lowThreshold: null, transform: "year_over_year", parent: null },
 ];
 

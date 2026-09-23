@@ -6,12 +6,13 @@ import { dimSchema, metricIdSchema, metricQuerySchema } from "./semantic";
 import { watchMetricInputSchema } from "./watches";
 
 export type ToolTier = "read" | "write" | "destructive";
-export type ToolName = "query_metric" | "list_metrics" | "describe_entity" | "get_alerts" | "get_forecast" | "recall_memory"
+export type ToolName = "query_metric" | "list_metrics" | "describe_entity" | "get_alerts" | "get_forecast" | "get_calendar" | "recall_memory"
   | "resolve_owner" | "create_handoff" | "send_email" | "pin_widget" | "watch_metric" | "run_job";
 export type ToolSurfaceEntry = { name: ToolName; tier: ToolTier; roles: RoleId[] | "all"; input: z.ZodType };
 
 const MAX_FORECAST_WEEKS = 26;
 const MAX_ALERTS = 60;
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 const ALL_BUT_SALES_REP: RoleId[] = ROLE_IDS.filter((role) => role !== "sales_rep");
 
 export const ENTITY_KINDS = ["agent", "sku", "dc", "campaign", "user"] as const;
@@ -23,6 +24,7 @@ export const listMetricsInputSchema = z.object({ search: z.string().nullable() }
 export const describeEntityInputSchema = z.object({ kind: z.enum(ENTITY_KINDS), query: z.string().min(1) });
 export const getAlertsInputSchema = z.object({ status: z.enum(["open", "all"]), limit: z.number().int().min(1).max(MAX_ALERTS).nullable() });
 export const getForecastInputSchema = z.object({ ...metricScope, weeks: z.number().int().min(1).max(MAX_FORECAST_WEEKS) });
+export const getCalendarInputSchema = z.object({ from: z.string().regex(ISO_DATE).nullable(), to: z.string().regex(ISO_DATE).nullable() });
 export const recallMemoryInputSchema = z.object({ query: z.string().min(1) });
 export const resolveOwnerInputSchema = z.object(metricScope);
 export const createHandoffInputSchema = z.object({
@@ -43,6 +45,7 @@ export const TOOL_SURFACE: readonly ToolSurfaceEntry[] = [
   { name: "describe_entity", tier: "read", roles: "all", input: describeEntityInputSchema },
   { name: "get_alerts", tier: "read", roles: "all", input: getAlertsInputSchema },
   { name: "get_forecast", tier: "read", roles: "all", input: getForecastInputSchema },
+  { name: "get_calendar", tier: "read", roles: "all", input: getCalendarInputSchema },
   { name: "recall_memory", tier: "read", roles: "all", input: recallMemoryInputSchema },
   { name: "resolve_owner", tier: "read", roles: "all", input: resolveOwnerInputSchema },
   { name: "create_handoff", tier: "write", roles: ALL_BUT_SALES_REP, input: createHandoffInputSchema },

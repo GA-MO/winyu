@@ -5,7 +5,7 @@ export type Responsible = { userId: string; user: User; role: RoleId; basis: str
 
 type MetricGroup = { role: RoleId; fallbackRole: RoleId; basis: string };
 
-const SALES_METRICS: MetricId[] = ["net_sales_volume", "net_sales_value", "sell_out_volume", "target_attainment"];
+const SALES_METRICS: MetricId[] = ["net_sales_volume", "net_sales_value", "sell_out_volume", "target_attainment", "market_share"];
 const SUPPLY_METRICS: MetricId[] = ["stock_on_hand", "days_of_cover", "production_output", "capacity_utilization", "forecast_mape"];
 const MARKETING_METRICS: MetricId[] = ["campaign_spend", "campaign_reach", "campaign_uplift", "share_of_voice", "sentiment_score"];
 const FINANCE_METRICS: MetricId[] = ["gross_margin", "trade_spend", "ar_overdue"];

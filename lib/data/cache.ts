@@ -3,6 +3,7 @@ import {
   type FinanceTables, type ForecastAccuracyTables, type HrTables, type InventoryTables, type MarketingTables,
   type ProductionTables, type SalesCube,
 } from "./generator";
+import { buildMarketShare, type MarketTables } from "./market-share";
 
 type Slot<T> = { value: T | null; buildMs: number };
 
@@ -13,6 +14,7 @@ const marketing: Slot<MarketingTables> = { value: null, buildMs: 0 };
 const finance: Slot<FinanceTables> = { value: null, buildMs: 0 };
 const hr: Slot<HrTables> = { value: null, buildMs: 0 };
 const forecastAccuracy: Slot<ForecastAccuracyTables> = { value: null, buildMs: 0 };
+const market: Slot<MarketTables> = { value: null, buildMs: 0 };
 
 function fill<T>(slot: Slot<T>, build: () => T): T {
   if (slot.value) return slot.value;
@@ -51,6 +53,10 @@ export function forecastAccuracyTables(): ForecastAccuracyTables {
   return fill(forecastAccuracy, buildForecastAccuracy);
 }
 
+export function marketTables(): MarketTables {
+  return fill(market, () => buildMarketShare(salesCube()));
+}
+
 export function warmAll(): void {
   salesCube();
   inventoryTables();
@@ -59,6 +65,7 @@ export function warmAll(): void {
   financeTables();
   hrTables();
   forecastAccuracyTables();
+  marketTables();
 }
 
 export function buildTimings(): Record<string, number> {
@@ -70,11 +77,12 @@ export function buildTimings(): Record<string, number> {
     finance: finance.buildMs,
     hr: hr.buildMs,
     forecastAccuracy: forecastAccuracy.buildMs,
+    market: market.buildMs,
   };
 }
 
 export function resetCaches(): void {
-  for (const slot of [sales, inventory, production, marketing, finance, hr, forecastAccuracy]) {
+  for (const slot of [sales, inventory, production, marketing, finance, hr, forecastAccuracy, market]) {
     slot.value = null;
     slot.buildMs = 0;
   }

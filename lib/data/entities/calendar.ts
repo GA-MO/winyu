@@ -18,6 +18,7 @@ export const THAI_HOLIDAYS: readonly Holiday[] = [
   { date: "2025-07-11", nameTh: "วันเข้าพรรษา", label: "Buddhist Lent Day" },
   { date: "2025-07-28", nameTh: "วันเฉลิมพระชนมพรรษาพระบาทสมเด็จพระเจ้าอยู่หัว", label: "King's Birthday" },
   { date: "2025-08-12", nameTh: "วันแม่แห่งชาติ", label: "Mother's Day" },
+  { date: "2025-10-07", nameTh: "วันออกพรรษา", label: "End of Buddhist Lent" },
   { date: "2025-10-13", nameTh: "วันคล้ายวันสวรรคต รัชกาลที่ 9", label: "King Bhumibol Memorial Day" },
   { date: "2025-10-23", nameTh: "วันปิยมหาราช", label: "Chulalongkorn Day" },
   { date: "2025-11-05", nameTh: "วันลอยกระทง", label: "Loy Krathong" },
@@ -35,11 +36,27 @@ export const THAI_HOLIDAYS: readonly Holiday[] = [
   { date: "2026-05-04", nameTh: "วันฉัตรมงคล", label: "Coronation Day" },
   { date: "2026-05-31", nameTh: "วันวิสาขบูชา", label: "Visakha Bucha" },
   { date: "2026-06-03", nameTh: "วันเฉลิมพระชนมพรรษาสมเด็จพระนางเจ้าฯ พระบรมราชินี", label: "Queen's Birthday" },
-  { date: "2026-06-29", nameTh: "วันอาสาฬหบูชา", label: "Asarnha Bucha" },
-  { date: "2026-06-30", nameTh: "วันเข้าพรรษา", label: "Buddhist Lent Day" },
   { date: "2026-07-28", nameTh: "วันเฉลิมพระชนมพรรษาพระบาทสมเด็จพระเจ้าอยู่หัว", label: "King's Birthday" },
+  { date: "2026-07-29", nameTh: "วันอาสาฬหบูชา", label: "Asarnha Bucha" },
+  { date: "2026-07-30", nameTh: "วันเข้าพรรษา", label: "Buddhist Lent Day" },
   { date: "2026-08-12", nameTh: "วันแม่แห่งชาติ", label: "Mother's Day" },
+  { date: "2026-10-13", nameTh: "วันคล้ายวันสวรรคต รัชกาลที่ 9", label: "King Bhumibol Memorial Day" },
+  { date: "2026-10-23", nameTh: "วันปิยมหาราช", label: "Chulalongkorn Day" },
+  { date: "2026-10-26", nameTh: "วันออกพรรษา", label: "End of Buddhist Lent" },
+  { date: "2026-11-24", nameTh: "วันลอยกระทง", label: "Loy Krathong" },
+  { date: "2026-12-05", nameTh: "วันพ่อแห่งชาติ", label: "Father's Day" },
+  { date: "2026-12-10", nameTh: "วันรัฐธรรมนูญ", label: "Constitution Day" },
+  { date: "2026-12-31", nameTh: "วันสิ้นปี", label: "New Year's Eve" },
 ];
+
+/** Buddhist holy days on which selling alcohol is prohibited; beer sell-out nearly stops, water and soda do not. */
+export const ALCOHOL_BAN_DATES: readonly string[] = [
+  "2025-05-11", "2025-07-10", "2025-07-11", "2025-10-07",
+  "2026-03-03", "2026-05-31", "2026-07-29", "2026-07-30", "2026-10-26",
+];
+
+export type CalendarEventKind = "alcohol_ban" | "holiday" | "festival";
+export type CalendarEvent = { from: string; to: string; nameTh: string; kind: CalendarEventKind };
 
 export const SONGKRAN_WINDOWS: readonly DateWindow[] = [
   { from: "2025-04-11", to: "2025-04-17", nameTh: "สงกรานต์ 2568" },
@@ -48,7 +65,7 @@ export const SONGKRAN_WINDOWS: readonly DateWindow[] = [
 
 export const BUDDHIST_LENT_WINDOWS: readonly DateWindow[] = [
   { from: "2025-07-11", to: "2025-10-07", nameTh: "เข้าพรรษา 2568" },
-  { from: "2026-06-30", to: "2026-09-26", nameTh: "เข้าพรรษา 2569" },
+  { from: "2026-07-30", to: "2026-10-26", nameTh: "เข้าพรรษา 2569" },
 ];
 
 const HOLIDAY_BY_DATE: ReadonlyMap<string, Holiday> = new Map(THAI_HOLIDAYS.map((holiday) => [holiday.date, holiday]));
@@ -73,6 +90,40 @@ export const HOLIDAY_FLAGS = (() => {
   }
   return flags;
 })();
+
+export const ALCOHOL_BAN_FLAGS = (() => {
+  const flags = new Uint8Array(DAY_COUNT);
+  for (const date of ALCOHOL_BAN_DATES) {
+    const day = toDayIndex(date);
+    if (day >= 0 && day < DAY_COUNT) flags[day] = 1;
+  }
+  return flags;
+})();
+
+const FESTIVAL_WINDOWS: readonly DateWindow[] = [
+  ...SONGKRAN_WINDOWS,
+  { from: "2025-12-24", to: "2026-01-01", nameTh: "เทศกาลปีใหม่ 2569" },
+  { from: "2026-12-24", to: "2027-01-01", nameTh: "เทศกาลปีใหม่ 2570" },
+];
+
+export function isAlcoholBanDay(iso: string): boolean {
+  return ALCOHOL_BAN_DATES.includes(iso);
+}
+
+/** Every dated event in a range, earliest first: no-sale days, public holidays and festival windows. */
+export function calendarEvents(from: string, to: string): CalendarEvent[] {
+  const events: CalendarEvent[] = [];
+  for (const holiday of THAI_HOLIDAYS) {
+    if (holiday.date < from || holiday.date > to) continue;
+    const kind: CalendarEventKind = isAlcoholBanDay(holiday.date) ? "alcohol_ban" : "holiday";
+    events.push({ from: holiday.date, to: holiday.date, nameTh: holiday.nameTh, kind });
+  }
+  for (const window of FESTIVAL_WINDOWS) {
+    if (window.to < from || window.from > to) continue;
+    events.push({ from: window.from, to: window.to, nameTh: window.nameTh, kind: "festival" });
+  }
+  return events.sort((left, right) => left.from.localeCompare(right.from) || left.kind.localeCompare(right.kind));
+}
 
 export function isHoliday(iso: string): boolean {
   return HOLIDAY_BY_DATE.has(iso);

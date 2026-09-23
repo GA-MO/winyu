@@ -3,7 +3,7 @@ import { z } from "zod";
 import type { AccessContext, ActionEvent, Dim, Grain, MetricId, MetricQuery, WidgetKind, WidgetSpec } from "@/lib/contracts";
 import { actionEvents } from "@/lib/server/agent/collections";
 import { TODAY, addDays } from "@/lib/data/dates";
-import { metricDef } from "@/lib/semantic/metrics";
+import { CLOSED_MONTH_METRICS, metricDef } from "@/lib/semantic/metrics";
 import { metricLabel } from "@/lib/dashboard/metric-display";
 import { models } from "@/lib/server/models";
 import { TH } from "@/lib/i18n/th";
@@ -52,17 +52,24 @@ function grainFor(dims: Dim[]): Grain {
   return "day";
 }
 
+function lastClosedMonth(): { from: string; to: string } {
+  const firstOfThisMonth = `${TODAY.slice(0, 7)}-01`;
+  const to = addDays(firstOfThisMonth, -1);
+  return { from: `${to.slice(0, 7)}-01`, to };
+}
+
 export function queryFor(candidate: Candidate, access: AccessContext): MetricQuery {
   const def = metricDef(candidate.metric);
   const dims = candidate.dims.filter((dim) => def?.dims.includes(dim));
   const filters = access.regions === "all" || access.regions.length === 0 ? {} : { region: [...access.regions] };
+  const closedMonth = CLOSED_MONTH_METRICS.has(candidate.metric);
   return {
     metric: candidate.metric,
     dims,
     filters,
-    range: { from: addDays(TODAY, -RANGE_DAYS), to: TODAY },
-    grain: grainFor(dims),
-    compare: "prev_period",
+    range: closedMonth ? lastClosedMonth() : { from: addDays(TODAY, -RANGE_DAYS), to: TODAY },
+    grain: closedMonth ? "month" : grainFor(dims),
+    compare: closedMonth ? "prev_year" : "prev_period",
     limit: ROW_LIMIT,
   };
 }

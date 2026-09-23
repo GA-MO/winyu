@@ -5,12 +5,13 @@ import { DEPARTMENTS } from "@/lib/data/entities/hr";
 import { CAMPAIGNS } from "@/lib/data/entities/marketing";
 import { BUSINESS_UNIT_LABELS_TH, PROVINCES, REGION_LABELS_TH } from "@/lib/data/entities/org";
 import { BRAND_INFO, PACKS, PACK_LABELS_TH, SKUS } from "@/lib/data/entities/products";
+import { MAKERS } from "@/lib/data/entities/market";
 import { DISTRIBUTION_CENTERS, PLANTS } from "@/lib/data/entities/supply";
 import { USERS } from "@/lib/data/entities/users";
 
 export type EntityKind =
   | "agent" | "sku" | "dc" | "campaign" | "user" | "region" | "province"
-  | "brand" | "channel" | "pack" | "plant" | "department" | "business_unit" | "chain";
+  | "brand" | "channel" | "pack" | "plant" | "department" | "business_unit" | "chain" | "maker";
 
 export type ResolvedEntity = { kind: EntityKind; id: string; label: string; score: number };
 
@@ -108,6 +109,7 @@ const CANDIDATES: Record<EntityKind, Candidate[]> = {
   department: DEPARTMENTS.map((department) => ({ id: department.id, label: department.nameTh, terms: [department.id, department.nameTh, department.label] })),
   business_unit: BUSINESS_UNITS.map((unit) => ({ id: unit, label: BUSINESS_UNIT_LABELS_TH[unit], terms: [unit, BUSINESS_UNIT_LABELS_TH[unit], unit.replace("_", " ")] })),
   chain: MODERN_TRADE_CHAINS.map((chain) => ({ id: chain.id, label: chain.nameTh, terms: [chain.id, chain.nameTh, chain.label] })),
+  maker: MAKERS.map((maker) => ({ id: maker.id, label: maker.nameTh, terms: [maker.id, maker.nameTh, maker.label, ...maker.nicknames] })),
 };
 
 const LABELS = (() => {
@@ -147,7 +149,7 @@ export function resolveEntities(kind: EntityKind, text: string): ResolvedEntity[
 const DIM_KINDS: Partial<Record<Dim, EntityKind>> = {
   region: "region", province: "province", channel: "channel", brand: "brand", sku: "sku",
   pack: "pack", agent: "agent", dc: "dc", plant: "plant", campaign: "campaign",
-  department: "department", business_unit: "business_unit",
+  department: "department", business_unit: "business_unit", maker: "maker",
 };
 
 export function entityKindOfDim(dim: Dim): EntityKind | null {

@@ -7,7 +7,7 @@ import { METRIC_LIST, TIME_DIMS, findMetric, metricDef } from "@/lib/semantic/me
 import { MIN_CELL_SIZE, SUPPRESSED_FIELDS, SUPPRESSED_VALUE, cellScopeOf, isSmallCell } from "@/lib/access/suppression";
 import { displayLabel, resolveDimValue, resolveEntities, resolveEntity } from "@/lib/semantic/dictionary";
 import {
-  financeTables, forecastAccuracyTables, hrTables, inventoryTables, marketingTables, productionTables, salesCube,
+  financeTables, forecastAccuracyTables, hrTables, inventoryTables, marketTables, marketingTables, productionTables, salesCube,
 } from "./cache";
 import { INJECTED_ANOMALIES } from "./anomalies";
 import {
@@ -21,6 +21,8 @@ import { CAMPAIGNS, campaignById } from "./entities/marketing";
 import { BUSINESS_UNIT_LABELS_TH, PROVINCES, REGION_LABELS_TH } from "./entities/org";
 import { BRAND_INFO, LITRES_PER_HL, PACKS, SKUS, skuById } from "./entities/products";
 import { DISTRIBUTION_CENTERS, PLANTS, PLANT_BRAND_MIX, PRODUCTION_LINES, dcById } from "./entities/supply";
+import { MAKERS, OWN_MAKER } from "./entities/market";
+import { MAKER_COUNT, PROVINCE_COUNT, marketIndex } from "./market-share";
 import { findUser } from "./entities/users";
 import {
   AGENT_COUNT, AGENT_DC_INDEX, AGENT_PROVINCE_INDEX, AGENT_REGION_INDEX, BRAND_COUNT, CAMPAIGN_COUNT, CHANNEL_COUNT,
@@ -31,6 +33,7 @@ import {
 const DEFAULT_LIMIT = 60;
 const MAX_GROUPS = 4_000_000;
 const PREV_YEAR_DAYS = 364;
+const MONTHS_PER_YEAR = 12;
 const PERCENT = 100;
 
 type Failure = { ok: false; error: string; code: "PERMISSION_DENIED" | "UNKNOWN_METRIC" | "BAD_QUERY" };
@@ -134,7 +137,8 @@ function clampMonth(index: number): number {
 }
 
 function monthLabelOfDay(dayIndex: number, shift: Shift): string {
-  return MONTH_KEYS[clampMonth(MONTH_OF_DAY[clampDay(dayIndex + shift.days)] + shift.months)];
+  if (shift.months !== 0) return MONTH_KEYS[clampMonth(MONTH_OF_DAY[dayIndex] + shift.months)];
+  return MONTH_KEYS[MONTH_OF_DAY[clampDay(dayIndex + shift.days)]];
 }
 
 function dayAxis(shift: Shift): AxisSpec {
@@ -173,6 +177,12 @@ const BRAND_AXIS: AxisSpec = {
   valueOf: (index, dim) => (dim === "brand" ? BRANDS[index] : BRAND_INFO[index].businessUnit),
 };
 
+const PROVINCE_AXIS: AxisSpec = {
+  count: PROVINCE_COUNT,
+  dims: ["province", "region"],
+  valueOf: (index, dim) => (dim === "province" ? PROVINCES[index].id : PROVINCES[index].region),
+};
+const MAKER_AXIS: AxisSpec = { count: MAKER_COUNT, dims: ["maker"], valueOf: (index) => MAKERS[index].id };
 const REGION_AXIS: AxisSpec = { count: REGION_COUNT, dims: ["region"], valueOf: (index) => REGIONS[index] };
 const CAMPAIGN_AXIS: AxisSpec = { count: CAMPAIGN_COUNT, dims: ["campaign"], valueOf: (index) => CAMPAIGNS[index].id };
 const DEPARTMENT_AXIS: AxisSpec = { count: DEPARTMENT_COUNT, dims: ["department"], valueOf: (index) => DEPARTMENTS[index].id };
@@ -404,14 +414,23 @@ function campaignShape(kind: CampaignKind, shift: Shift): Shape {
   };
 }
 
+/** Weeks whose middle day falls in the range, so a weekly metric asked for August never answers with July's or September's weeks; a range shorter than a week gets the week it ends in. */
+function weeksCentredIn(from: number, to: number): { firstWeek: number; lastWeek: number } {
+  let firstWeek = WEEK_OF_DAY[from];
+  let lastWeek = WEEK_OF_DAY[to];
+  if (WEEK_MIDDLE_DAY[firstWeek] < from) firstWeek += 1;
+  if (WEEK_MIDDLE_DAY[lastWeek] > to) lastWeek -= 1;
+  if (firstWeek > lastWeek) return { firstWeek: WEEK_OF_DAY[to], lastWeek: WEEK_OF_DAY[to] };
+  return { firstWeek, lastWeek };
+}
+
 function sovShape(shift: Shift): Shape {
   return {
   axes: [BRAND_AXIS, weekAxis(shift)],
   scan: (plans, acc, from, to) => {
     const tables = marketingTables();
     const [brandPlan, weekPlan] = plans;
-    const firstWeek = WEEK_OF_DAY[from];
-    const lastWeek = WEEK_OF_DAY[to];
+    const { firstWeek, lastWeek } = weeksCentredIn(from, to);
     for (let brandIdx = 0; brandIdx < BRAND_COUNT; brandIdx += 1) {
       if (brandPlan.allow && brandPlan.allow[brandIdx] === 0) continue;
       const brandCode = brandPlan.codes[brandIdx] * brandPlan.stride;
@@ -423,6 +442,35 @@ function sovShape(shift: Shift): Shape {
       }
     }
   },
+  };
+}
+
+function marketShareShape(shift: Shift): Shape {
+  return {
+    axes: [MAKER_AXIS, PROVINCE_AXIS, monthAxis(shift)],
+    scan: (plans, acc, from, to) => {
+      const { makerLitres } = marketTables();
+      const [makerPlan, provincePlan, monthPlan] = plans;
+      const firstMonth = MONTH_OF_DAY[from];
+      const lastMonth = MONTH_OF_DAY[to];
+      for (let provinceIdx = 0; provinceIdx < PROVINCE_COUNT; provinceIdx += 1) {
+        if (provincePlan.allow && provincePlan.allow[provinceIdx] === 0) continue;
+        const provinceCode = provincePlan.codes[provinceIdx] * provincePlan.stride;
+        for (let monthIdx = firstMonth; monthIdx <= lastMonth; monthIdx += 1) {
+          if (monthPlan.allow && monthPlan.allow[monthIdx] === 0) continue;
+          let market = 0;
+          for (let makerIdx = 0; makerIdx < MAKER_COUNT; makerIdx += 1) market += makerLitres[marketIndex(makerIdx, provinceIdx, monthIdx)];
+          if (market === 0) continue;
+          const monthCode = monthPlan.codes[monthIdx] * monthPlan.stride;
+          for (let makerIdx = 0; makerIdx < MAKER_COUNT; makerIdx += 1) {
+            if (makerPlan.allow && makerPlan.allow[makerIdx] === 0) continue;
+            const code = makerPlan.codes[makerIdx] * makerPlan.stride + provinceCode + monthCode;
+            acc.numerator[code] += makerLitres[marketIndex(makerIdx, provinceIdx, monthIdx)] * PERCENT;
+            acc.denominator[code] += market;
+          }
+        }
+      }
+    },
   };
 }
 
@@ -549,8 +597,13 @@ function mapeShape(shift: Shift): Shape {
 const ALREADY_VS_TARGET: ReadonlySet<MetricId> = new Set<MetricId>(["target_attainment"]);
 const RATIO_METRICS: ReadonlySet<MetricId> = new Set<MetricId>([
   "target_attainment", "days_of_cover", "capacity_utilization", "forecast_mape",
-  "campaign_uplift", "share_of_voice", "sentiment_score", "gross_margin", "attrition_rate", "avg_salary", "headcount",
+  "campaign_uplift", "share_of_voice", "sentiment_score", "gross_margin", "attrition_rate", "avg_salary", "headcount", "market_share",
 ]);
+
+/** Filters a metric needs to mean anything when the caller leaves the dimension out: the shares of every maker always add up to 100%. */
+const DEFAULT_FILTERS: Partial<Record<MetricId, Partial<Record<Dim, string>>>> = { market_share: { maker: OWN_MAKER } };
+
+const SNAPSHOT_METRICS: ReadonlySet<MetricId> = new Set<MetricId>(["stock_on_hand", "days_of_cover"]);
 
 const SUMMED_ACROSS_NON_TIME: ReadonlySet<MetricId> = new Set<MetricId>(["headcount"]);
 
@@ -578,6 +631,7 @@ function shapeFor(metric: MetricId, shift: Shift): Shape {
     case "gross_margin": return financeShape("gross_margin", shift);
     case "trade_spend": return financeShape("trade_spend", shift);
     case "ar_overdue": return arShape(shift);
+    case "market_share": return marketShareShape(shift);
     default: return hrShape(metric as HrKind, shift);
   }
 }
@@ -644,6 +698,9 @@ function normalizeFilters(query: MetricQuery, def: MetricDef): Filters | Failure
       resolved.add(id);
     }
     filters.set(dim, resolved);
+  }
+  for (const [dim, value] of Object.entries(DEFAULT_FILTERS[def.id] ?? {}) as [Dim, string][]) {
+    if (!filters.has(dim) && !query.dims.includes(dim)) filters.set(dim, new Set([value]));
   }
   return filters;
 }
@@ -823,16 +880,32 @@ function topOf(def: MetricDef, query: MetricQuery, all: Aggregated[], suppressed
 }
 
 /** The decision-grade numbers of a result: what a card puts in big type, before any prose. */
+/** Rows the headline stands for: when the caller split by a dimension that has a default (maker for market share), the headline is the default's row, not a blend of every maker. */
+function headlineSubset(def: MetricDef, query: MetricQuery, rows: Aggregated[]): Aggregated[] {
+  const defaults = Object.entries(DEFAULT_FILTERS[def.id] ?? {}).filter(([dim]) => query.dims.includes(dim as Dim)) as [Dim, string][];
+  const defaulted = defaults.length === 0 ? rows : rows.filter((row) => defaults.every(([dim, value]) => row.dims[dim] === value));
+  return SNAPSHOT_METRICS.has(def.id) ? latestBucket(query.dims, defaulted) : defaulted;
+}
+
+/** Rows of the last time bucket: a stock level is read at the end of the period, never summed across its weeks or months. */
+function latestBucket(dims: Dim[], rows: Aggregated[]): Aggregated[] {
+  const timeDim = firstTimeDim(dims);
+  if (!timeDim || rows.length === 0) return rows;
+  const latest = rows.reduce((max, row) => (row.dims[timeDim] > max ? row.dims[timeDim] : max), rows[0].dims[timeDim]);
+  return rows.filter((row) => row.dims[timeDim] === latest);
+}
+
 function headlineOf(def: MetricDef, query: MetricQuery, rows: Aggregated[], all: Aggregated[], ratio: boolean, compareRows: Aggregated[] | null, masked: boolean, suppressed: Set<string>): MetricHeadline {
   const periodLabel = `${formatThaiDate(query.range.from)} – ${formatThaiDate(query.range.to)}`;
   const aggregate = ratio ? "average" : "sum";
   if (masked || all.length === 0) {
     return { aggregate, value: "—", periodLabel, rowCount: rows.length, deltaPercent: null, compareLabel: null, top: [] };
   }
-  const deltaPercent = deltaPercentOf(def, all, compareRows, ratio);
+  const headlineRows = headlineSubset(def, query, all);
+  const deltaPercent = deltaPercentOf(def, headlineRows, compareRows ? headlineSubset(def, query, compareRows) : null, ratio);
   return {
     aggregate,
-    value: formatForSummary(def, combined(all, ratio)),
+    value: formatForSummary(def, combined(headlineRows, ratio)),
     periodLabel,
     rowCount: rows.length,
     deltaPercent,
@@ -855,21 +928,50 @@ function summarize(def: MetricDef, query: MetricQuery, headline: MetricHeadline,
   return parts.join(" · ");
 }
 
-function compareRange(query: MetricQuery, from: number, to: number): { from: number; to: number; shift: Shift } | null {
-  if (query.compare === "prev_year") {
-    if (to - PREV_YEAR_DAYS < 0) return null;
-    return { from: Math.max(0, from - PREV_YEAR_DAYS), to: to - PREV_YEAR_DAYS, shift: { days: PREV_YEAR_DAYS, months: 0 } };
+type PriorWindow = { from: number; to: number; shift: Shift };
+
+function readsWholeMonths(shape: Shape): boolean {
+  return !shape.axes.some((axis) => axis.dims.includes("week"));
+}
+
+function lastDayOfMonth(month: number): number {
+  return month + 1 < MONTH_COUNT ? MONTH_FIRST_DAY[month + 1] - 1 : DAY_COUNT - 1;
+}
+
+function isMonthStart(day: number): boolean {
+  return MONTH_FIRST_DAY[MONTH_OF_DAY[day]] === day;
+}
+
+function isMonthEnd(day: number): boolean {
+  const next = new Date(`${ISO_OF_DAY[day]}T00:00:00Z`);
+  next.setUTCDate(next.getUTCDate() + 1);
+  return next.getUTCDate() === 1;
+}
+
+function monthsBack(from: number, to: number, months: number, wholeLastMonth: boolean): PriorWindow | null {
+  const firstMonth = MONTH_OF_DAY[from] - months;
+  if (firstMonth < 0) return null;
+  const lastMonth = MONTH_OF_DAY[to] - months;
+  const daysIntoLastMonth = to - MONTH_FIRST_DAY[MONTH_OF_DAY[to]];
+  const priorTo = wholeLastMonth ? lastDayOfMonth(lastMonth) : Math.min(MONTH_FIRST_DAY[lastMonth] + daysIntoLastMonth, lastDayOfMonth(lastMonth));
+  const priorFrom = MONTH_FIRST_DAY[firstMonth];
+  return { from: priorFrom, to: priorTo, shift: { days: from - priorFrom, months } };
+}
+
+function daysBack(from: number, to: number, days: number): PriorWindow | null {
+  if (from - days < 0) return null;
+  return { from: from - days, to: to - days, shift: { days, months: 0 } };
+}
+
+/** The window a compare reads, decided by the range alone so every breakdown of one question shares it: calendar months when the range is whole months (or month-to-date, cut at the same day), otherwise the same number of days (364 back for a year, so weekdays line up). */
+function priorWindow(compare: MetricQuery["compare"], from: number, to: number, wholeMonths: boolean): PriorWindow | null {
+  if (compare !== "prev_period" && compare !== "prev_year") return null;
+  const monthAligned = wholeMonths || (isMonthStart(from) && (isMonthEnd(to) || to === DAY_COUNT - 1));
+  if (monthAligned) {
+    const months = compare === "prev_year" ? MONTHS_PER_YEAR : MONTH_OF_DAY[to] - MONTH_OF_DAY[from] + 1;
+    return monthsBack(from, to, months, wholeMonths || isMonthEnd(to));
   }
-  if (query.compare !== "prev_period") return null;
-  if (query.grain === "month" && query.dims.some((dim) => TIME_DIMS.includes(dim))) {
-    const firstMonth = MONTH_OF_DAY[from];
-    const months = MONTH_OF_DAY[to] - firstMonth + 1;
-    if (firstMonth - months < 0) return null;
-    return { from: MONTH_FIRST_DAY[firstMonth - months], to: MONTH_FIRST_DAY[firstMonth] - 1, shift: { days: 0, months } };
-  }
-  const length = to - from + 1;
-  if (to - length < 0) return null;
-  return { from: Math.max(0, from - length), to: to - length, shift: { days: length, months: 0 } };
+  return daysBack(from, to, compare === "prev_year" ? PREV_YEAR_DAYS : to - from + 1);
 }
 
 /** Runs one certified metric query under the caller's access scope. */
@@ -890,7 +992,8 @@ export function runMetric(query: MetricQuery, access: AccessContext): MetricResu
 
   const dims = dedupe(query.dims);
   const ratio = RATIO_METRICS.has(def.id);
-  const aggregated = aggregate(shapeFor(def.id, NO_SHIFT), dims, filters, range.from, range.to, ratio);
+  const shape = shapeFor(def.id, NO_SHIFT);
+  const aggregated = aggregate(shape, dims, filters, range.from, range.to, ratio);
   if ("ok" in aggregated) return aggregated;
 
   let compareRows: Aggregated[] | null = null;
@@ -902,7 +1005,7 @@ export function runMetric(query: MetricQuery, access: AccessContext): MetricResu
     if ("ok" in targets) return targets;
     compareRows = targets;
   } else if (compare !== "none") {
-    const previous = compareRange(query, range.from, range.to);
+    const previous = priorWindow(compare, range.from, range.to, readsWholeMonths(shape));
     if (previous) {
       const rows = aggregate(shapeFor(def.id, previous.shift), dims, filters, previous.from, previous.to, ratio);
       if ("ok" in rows) return rows;
@@ -914,9 +1017,8 @@ export function runMetric(query: MetricQuery, access: AccessContext): MetricResu
   const limit = query.limit ?? DEFAULT_LIMIT;
   const lowFirst = RISK_WHEN_LOW.has(def.id);
   const capped = sortRows(aggregated, dims, limit, masked, lowFirst);
-  const cappedCompare = compareRows ? sortRows(compareRows, dims, limit, masked, lowFirst) : null;
   const suppressed = masked ? new Set<string>() : smallCellKeys(def.id, dims, aggregated, filters);
-  const rows = buildRows(def, dims, capped, cappedCompare, masked, suppressed);
+  const rows = buildRows(def, dims, capped, compareRows, masked, suppressed);
   const provenance: Provenance = {
     metric: def.id,
     certified: def.certified,

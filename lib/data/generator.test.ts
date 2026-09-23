@@ -68,8 +68,9 @@ describe("calendar", () => {
     expect(isBuddhistLent("2025-07-11")).toBe(true);
     expect(isBuddhistLent("2025-10-07")).toBe(true);
     expect(isBuddhistLent("2025-10-08")).toBe(false);
-    expect(isBuddhistLent("2026-06-30")).toBe(true);
-    expect(isBuddhistLent("2026-09-26")).toBe(true);
+    expect(isBuddhistLent("2026-07-29")).toBe(false);
+    expect(isBuddhistLent("2026-07-30")).toBe(true);
+    expect(isBuddhistLent("2026-10-26")).toBe(true);
     expect(weekOf("2026-09-22")).toBe("2026-W39");
   });
 });

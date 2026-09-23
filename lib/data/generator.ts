@@ -5,7 +5,7 @@ import {
 } from "./dates";
 import { AGENTS } from "./entities/agents";
 import { CHANNELS, CHANNEL_INDEX, PACK_CHANNEL_AFFINITY, type ChannelId } from "./entities/channels";
-import { HOLIDAY_FLAGS, LENT_FLAGS, SONGKRAN_FLAGS } from "./entities/calendar";
+import { ALCOHOL_BAN_FLAGS, HOLIDAY_FLAGS, LENT_FLAGS, SONGKRAN_FLAGS } from "./entities/calendar";
 import { BASELINE_TRADE_SPEND_RATIO, BU_BUDGET_INDEX, TARGET_GROWTH, TRADE_SPEND_BUDGET_INDEX } from "./entities/finance";
 import { DEPARTMENTS } from "./entities/hr";
 import { CAMPAIGNS } from "./entities/marketing";
@@ -34,6 +34,9 @@ const LENT_BEER_FACTOR = 0.82;
 const SONGKRAN_BEER_FACTOR = 1.42;
 const SONGKRAN_LEAD_DAYS = 9;
 const SELL_OUT_SHRINK = 0.97;
+const BAN_DAY_SELL_OUT = 0.1;
+const BAN_EVE_SELL_OUT = 1.3;
+const BAN_ORDER_FACTORS: readonly number[] = [0.15, 1.35, 1.15];
 const SELL_OUT_LAGS = [3, 4, 5, 6, 7, 8, 9, 10];
 const SELL_OUT_WEIGHTS = [0.06, 0.12, 0.18, 0.2, 0.17, 0.13, 0.09, 0.05];
 const CONSUMER_DOW = [1.147, 0.836, 0.817, 0.855, 0.924, 1.118, 1.303];
@@ -107,6 +110,32 @@ const ORDER_DAY_FACTOR = (() => {
   const table = new Float64Array(DAY_COUNT);
   for (let dayIdx = 0; dayIdx < DAY_COUNT; dayIdx += 1) {
     table[dayIdx] = ORDER_DOW[DOW_OF_DAY[dayIdx]] * (HOLIDAY_FLAGS[dayIdx] === 1 ? HOLIDAY_ORDER_FACTOR : 1);
+  }
+  return table;
+})();
+
+function banOffset(dayIdx: number): number {
+  for (let offset = 0; offset < BAN_ORDER_FACTORS.length; offset += 1) {
+    const ahead = dayIdx + offset;
+    if (ahead < DAY_COUNT && ALCOHOL_BAN_FLAGS[ahead] === 1) return offset;
+  }
+  return -1;
+}
+
+const BEER_ORDER_BAN_FACTOR = (() => {
+  const table = new Float64Array(DAY_COUNT).fill(1);
+  for (let dayIdx = 0; dayIdx < DAY_COUNT; dayIdx += 1) {
+    const offset = banOffset(dayIdx);
+    if (offset >= 0) table[dayIdx] = BAN_ORDER_FACTORS[offset] as number;
+  }
+  return table;
+})();
+
+const BEER_SELL_OUT_BAN_FACTOR = (() => {
+  const table = new Float64Array(DAY_COUNT).fill(1);
+  for (let dayIdx = 0; dayIdx < DAY_COUNT; dayIdx += 1) {
+    if (ALCOHOL_BAN_FLAGS[dayIdx] === 1) table[dayIdx] = BAN_DAY_SELL_OUT;
+    else if (dayIdx + 1 < DAY_COUNT && ALCOHOL_BAN_FLAGS[dayIdx + 1] === 1) table[dayIdx] = BAN_EVE_SELL_OUT;
   }
   return table;
 })();
@@ -319,6 +348,7 @@ export function buildSalesCube(): SalesCube {
   }
 
   for (let skuIdx = 0; skuIdx < SKU_COUNT; skuIdx += 1) {
+    const isBeer = BRAND_IS_BEER[SKU_BRAND_INDEX[skuIdx]] === 1;
     for (let agentIdx = 0; agentIdx < AGENT_COUNT; agentIdx += 1) {
       const start = cubeIndex(skuIdx, agentIdx, 0);
       const outRules = rulesFor(CELL_RULES.sellOut, skuIdx, agentIdx);
@@ -328,12 +358,12 @@ export function buildSalesCube(): SalesCube {
           const source = dayIdx - SELL_OUT_LAGS[lagIdx];
           smoothed += SELL_OUT_WEIGHTS[lagIdx] * base[start + (source < 0 ? 0 : source)];
         }
-        let value = smoothed * SELL_OUT_SHRINK * CONSUMER_DOW[DOW_OF_DAY[dayIdx]];
+        let value = smoothed * SELL_OUT_SHRINK * CONSUMER_DOW[DOW_OF_DAY[dayIdx]] * (isBeer ? BEER_SELL_OUT_BAN_FACTOR[dayIdx] : 1);
         for (const rule of outRules) if (dayIdx >= rule.from && dayIdx <= rule.to) value *= rule.multiplier;
         sellOutCases[start + dayIdx] = value;
       }
       const inRules = rulesFor(CELL_RULES.sellIn, skuIdx, agentIdx);
-      for (let dayIdx = 0; dayIdx < DAY_COUNT; dayIdx += 1) base[start + dayIdx] *= ORDER_DAY_FACTOR[dayIdx];
+      for (let dayIdx = 0; dayIdx < DAY_COUNT; dayIdx += 1) base[start + dayIdx] *= ORDER_DAY_FACTOR[dayIdx] * (isBeer ? BEER_ORDER_BAN_FACTOR[dayIdx] : 1);
       for (const rule of inRules) {
         for (let dayIdx = rule.from; dayIdx <= rule.to; dayIdx += 1) base[start + dayIdx] *= rule.multiplier;
       }

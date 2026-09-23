@@ -3,9 +3,9 @@ import { z } from "zod";
 export type MetricId = "net_sales_volume" | "net_sales_value" | "sell_out_volume" | "target_attainment"
   | "stock_on_hand" | "days_of_cover" | "production_output" | "capacity_utilization" | "forecast_mape"
   | "campaign_spend" | "campaign_reach" | "campaign_uplift" | "share_of_voice" | "sentiment_score"
-  | "gross_margin" | "trade_spend" | "ar_overdue" | "headcount" | "attrition_rate" | "avg_salary";
+  | "gross_margin" | "trade_spend" | "ar_overdue" | "headcount" | "attrition_rate" | "avg_salary" | "market_share";
 export type Dim = "date" | "week" | "month" | "region" | "province" | "channel" | "brand" | "sku" | "pack"
-  | "agent" | "dc" | "plant" | "campaign" | "department" | "business_unit";
+  | "agent" | "dc" | "plant" | "campaign" | "department" | "business_unit" | "maker";
 export type Grain = "day" | "week" | "month";
 export type MetricDef = { id: MetricId; label: string; labelTh: string; unit: string; format: "number" | "currency" | "percent";
   owner: string; certified: boolean; dims: Dim[]; aclDims: Dim[]; synonyms: string[]; description: string; sourceSystem: string };
@@ -21,9 +21,9 @@ export type MetricResult = { ok: true; rows: MetricRow[]; summary: string; headl
 export const METRIC_IDS = ["net_sales_volume", "net_sales_value", "sell_out_volume", "target_attainment",
   "stock_on_hand", "days_of_cover", "production_output", "capacity_utilization", "forecast_mape",
   "campaign_spend", "campaign_reach", "campaign_uplift", "share_of_voice", "sentiment_score",
-  "gross_margin", "trade_spend", "ar_overdue", "headcount", "attrition_rate", "avg_salary"] as const satisfies readonly MetricId[];
+  "gross_margin", "trade_spend", "ar_overdue", "headcount", "attrition_rate", "avg_salary", "market_share"] as const satisfies readonly MetricId[];
 export const DIMS = ["date", "week", "month", "region", "province", "channel", "brand", "sku", "pack",
-  "agent", "dc", "plant", "campaign", "department", "business_unit"] as const satisfies readonly Dim[];
+  "agent", "dc", "plant", "campaign", "department", "business_unit", "maker"] as const satisfies readonly Dim[];
 export const GRAINS = ["day", "week", "month"] as const satisfies readonly Grain[];
 export const COMPARE_MODES = ["none", "prev_period", "prev_year", "target"] as const;
 
