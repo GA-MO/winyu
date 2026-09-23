@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { BellRing, LogOut, Moon, Shield, Sun, Trash2, X } from "lucide-react";
 import { cn } from "vexa/lib/utils";
 import type { MemoryFact, User, WatchItem } from "@/lib/contracts";
+import { STORY_CAST } from "@/lib/demo/stories";
 import { TH } from "@/lib/i18n/th";
 import { useTheme } from "@/components/theme/theme-provider";
 
@@ -74,6 +75,21 @@ export function AccountSheet({ open, onClose, user, users }: { open: boolean; on
   }, [router]);
 
   if (!open) return null;
+
+  const storyCast = STORY_CAST.flatMap((id) => users.find((person) => person.id === id) ?? []);
+  const others = users.filter((person) => !STORY_CAST.includes(person.id));
+  const personButton = (person: User) => (
+    <button
+      key={person.id}
+      type="button"
+      disabled={pending}
+      onClick={() => switchTo(person.id)}
+      className={cn("flex flex-col items-start rounded-xl px-2.5 py-1.5 text-left text-sm transition hover:bg-muted", person.id === user.id ? "bg-bubble" : "")}
+    >
+      <span>{person.nameTh}</span>
+      <span className="text-xs text-muted-foreground">{person.title}</span>
+    </button>
+  );
 
   const grouped = Object.entries(
     facts.reduce<Record<string, MemoryFact[]>>((groups, fact) => ({ ...groups, [fact.type]: [...(groups[fact.type] ?? []), fact] }), {}),
@@ -157,20 +173,11 @@ export function AccountSheet({ open, onClose, user, users }: { open: boolean; on
 
           <section className={SECTION}>
             <h3 className="text-xs font-medium tracking-wide text-muted-foreground">{TH.account.persona}</h3>
-            <div className="flex flex-col gap-1">
-              {users.map((person) => (
-                <button
-                  key={person.id}
-                  type="button"
-                  disabled={pending}
-                  onClick={() => switchTo(person.id)}
-                  className={cn("flex flex-col items-start rounded-xl px-2.5 py-1.5 text-left text-sm transition hover:bg-muted", person.id === user.id ? "bg-bubble" : "")}
-                >
-                  <span>{person.nameTh}</span>
-                  <span className="text-xs text-muted-foreground">{person.title}</span>
-                </button>
-              ))}
-            </div>
+            <div className="flex flex-col gap-1">{storyCast.map(personButton)}</div>
+            <details className="group">
+              <summary className="cursor-pointer rounded-xl px-2.5 py-1.5 text-xs text-muted-foreground hover:bg-muted">{TH.account.otherPeople(others.length)}</summary>
+              <div className="mt-1 flex flex-col gap-1">{others.map(personButton)}</div>
+            </details>
           </section>
 
           <section className={SECTION}>
