@@ -7,7 +7,7 @@
 - `bun run build` ของ Cop ผ่าน (build จากสำเนาชั่วคราวเพราะ dev server อีก session ใช้ `.next` อยู่) · typecheck + 227 tests ผ่าน
 - Vexa: typecheck + 213 tests ผ่าน · `test:scenarios` 39/43 กับ DeepSeek V4 Flash (โมเดลอ้างอิงของ Vexa); รันซ้ำแล้ว `admin-discover`/`admin-passive` ผ่าน, `patch-after-input` และ `admin-edit-product` ตกเหมือนกันบนโค้ดที่ commit แล้ว (stash ทดสอบ) จึงไม่ใช่ regression ของรอบนี้ · `eval:ui` เคยตก `revenue-by-status` 5/5→2/5 และ `week-dashboard` 5/5→2/5 เพราะกฎการ์ดของ Cop ถูกใส่ไว้ใน `SHARED_INTRO` ของ Vexa — ย้ายกลับไปอยู่ใน `COP_RULES` แล้ว และ verifier อ่าน `RankList` ได้ (Vexa เองแนะนำ RankList สำหรับเทียบตัวเลขเดียว) ผลหลังแก้ 4/5 และ 4/5
 ค้าง:
-- **ยังไม่ push ทั้งสอง repo** · agentic-ui ยังไม่ commit (branch `roadmap`)
+- **ยังไม่ push ทั้งสอง repo** · Cop `5ef3363` บน `main`, agentic-ui `d893818` บน `roadmap` (ยังไม่ merge เข้า main ของ Vexa)
 - การ์ดของ persona CFO/HR/supply/sales_rep ยังไม่ได้เปิดดูด้วยตาในเบราว์เซอร์ (Claude in Chrome ปิดอยู่ และ chrome-devtools profile ถูกอีก session ถือไว้) — โครงสร้างการ์ดพิสูจน์ผ่าน eval แล้ว · `run_job` ของ it_admin ยังพิสูจน์ด้วยเทสต์เท่านั้น
 - Vexa devtools toggle ยังโผล่ในแชทตอน dev · `days_of_cover` MAPE ~24%
 ค้นพบ:
@@ -17,9 +17,9 @@
 - กฎการออกแบบของ host อยู่ใน `rules` ของ host เสมอ ไม่ใช่ `SHARED_INTRO` ของ Vexa — กฎที่ดีสำหรับ Cop ทำให้ shop-admin ตก eval
 - `eval:ui --report` เขียนทับ `docs/admin-ui-eval.md` และ `lib/eval-ui/specs.ts` ของ Vexa — ใช้เฉพาะตอนตั้งใจอัปเดตรายงาน
 - `.data` ถูกเขียนจากการใช้งานจริงผ่าน dev server (memory ของโมเดลจริง) เทสต์ที่ถือว่าที่เก็บว่างจึงพังแบบสุ่ม — เทสต์ต้องไม่พึ่งสถานะของ `.data`
-ถัดไป: commit agentic-ui, push ทั้งสอง repo เมื่อผู้ใช้สั่ง, เปิดดูการ์ด persona ที่เหลือในเบราว์เซอร์
+ถัดไป: push ทั้งสอง repo เมื่อผู้ใช้สั่ง, เปิดดูการ์ด persona ที่เหลือในเบราว์เซอร์
 
-Status: **In progress** · Revision 8 · 2026-09-23 · phases 0–3 and 1.6–1.9 committed in Cop; Vexa changes uncommitted on `roadmap`.
+Status: **In progress** · Revision 8 · 2026-09-23 · phases 0–3 and 1.6–1.9 committed in Cop; Vexa changes committed on `roadmap`.
 
 Cop is the enterprise copilot described in the brainstorm of 2026-09-22 (four angles: executive/governance, daily user, architecture, red-team). This plan turns it into a runnable demo on Vexa with a full-lifecycle mock of a Thai beverage company, built by parallel agents. Everything here is the deliverable; the chat summary is not.
 
