@@ -1,8 +1,11 @@
-import { METRIC_IDS, type AccessContext, type MetricId, type QuickAction, type RoleId } from "@/lib/contracts";
+import { METRIC_IDS, type AccessContext, type MetricId, type QuickAction, type RoleId, type ToolName } from "@/lib/contracts";
+import { isToolAllowed } from "@/lib/access/enforce";
 import { quickActionsFrom } from "@/lib/engine/recommend";
 import { TH } from "@/lib/i18n/th";
 
 const MAX_ACTIONS = 6;
+const METRIC_TOOL: ToolName = "query_metric";
+const SUBJECT_TOOLS: Record<string, ToolName> = { calendar: "get_calendar", job: "run_job" };
 
 const SHARED_ACTIONS: QuickAction[] = [
   { id: "qa_attainment", label: "ยอดเทียบเป้าแยกตามภาค", prompt: "ยอดขายเดือนนี้เทียบเป้าแยกตามภาค", score: 0.92, reason: "ดูว่าภาคไหนยังห่างเป้า", intentKey: "target_attainment|region" },
@@ -31,9 +34,16 @@ const ROLE_ACTIONS: Partial<Record<RoleId, QuickAction[]>> = {
   ],
 };
 
+function toolAnswering(subject: string): ToolName | null {
+  if (METRIC_IDS.includes(subject as MetricId)) return METRIC_TOOL;
+  return SUBJECT_TOOLS[subject] ?? null;
+}
+
 function answerable(action: QuickAction, access: AccessContext): boolean {
-  const metric = action.intentKey.split("|")[0] as MetricId;
-  return !METRIC_IDS.includes(metric) || access.metricAcl[metric] === "full";
+  const subject = action.intentKey.split("|")[0] ?? "";
+  const tool = toolAnswering(subject);
+  if (tool && !isToolAllowed(access, tool)) return false;
+  return !METRIC_IDS.includes(subject as MetricId) || access.metricAcl[subject as MetricId] === "full";
 }
 
 /** The role defaults a cold-start user sees before the recommender has any behaviour to learn from; the reason says so instead of claiming a habit. */
