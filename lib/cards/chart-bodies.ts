@@ -1,6 +1,6 @@
 import type { Dim, MetricId, MetricQuery, MetricResult, MetricRow } from "@/lib/contracts";
 import { TH } from "@/lib/i18n/th";
-import { formatPercent, periodLabelTh } from "@/lib/i18n/format";
+import { formatPercent, formatWhole, periodLabelTh } from "@/lib/i18n/format";
 import { directionOf, formatDelta, formatMetricValue, metricFormat, metricLabel, metricUnit, toneOf, type Tone } from "@/lib/dashboard/metric-display";
 import { deltaPercentOf, groupDimsOf, labelAlong, labelOf, numericOf, timeDimOf, valueTextOf } from "./rows";
 import type { CardBody, CardHero, ChartSeries, ColorScale, GapRow, HeatCell, ScatterAxis, ScatterPoint, ShareSlice } from "./present";
@@ -324,6 +324,18 @@ function gapsOf(first: Source, second: Source): Gap[] {
     .sort((left, right) => left.percent - right.percent);
 }
 
+function exactTextOf(source: Source, row: MetricRow): string {
+  const unit = metricUnit(source.query.metric);
+  const whole = formatWhole(numericOf(row, "value") as number);
+  return unit ? `${whole} ${unit}` : whole;
+}
+
+function gapDetailOf(first: Source, second: Source, entry: Joined): string {
+  const [base, other] = [valueTextOf(first.query, entry.x), valueTextOf(second.query, entry.y)];
+  if (base !== other) return TH.dash.gapDetail(base, other);
+  return TH.dash.gapDetail(exactTextOf(first, entry.x), exactTextOf(second, entry.y));
+}
+
 /** The same things measured twice in one unit (sell-in against sell-out): one bar per thing for how far the second is from the first, the widest shortfall first. */
 export function gapBody(first: Source, second: Source): CardBody {
   const gaps = gapsOf(first, second);
@@ -334,7 +346,7 @@ export function gapBody(first: Source, second: Source): CardBody {
     label: entry.label,
     gap: percent / peak,
     gapText: formatDelta(percent) ?? "0%",
-    detail: TH.dash.gapDetail(valueTextOf(first.query, entry.x), valueTextOf(second.query, entry.y)),
+    detail: gapDetailOf(first, second, entry),
     tone: toneOf(second.query.metric, percent),
   }));
   return {

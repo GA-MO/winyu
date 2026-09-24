@@ -29,6 +29,11 @@ export function formatNumber(value: number | string | null): string {
   return size >= WHOLE_FROM ? wholeFormat.format(numeric) : numberFormat.format(numeric);
 }
 
+/** Every digit of a whole number, for when a compact label would hide the difference between two values. */
+export function formatWhole(value: number): string {
+  return wholeFormat.format(value);
+}
+
 export function formatCurrency(value: number | string | null): string {
   if (value === null) return "—";
   if (isMasked(value)) return MASKED;
