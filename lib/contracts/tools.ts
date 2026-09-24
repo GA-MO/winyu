@@ -16,7 +16,7 @@ export type ToolName = NativeToolName | ConnectorToolName;
 export const NATIVE_CONNECTORS = ["warehouse", "hris", "lms", "leave", "sites", "calendar", "mail", "cop"] as const;
 export type NativeConnectorId = (typeof NATIVE_CONNECTORS)[number];
 
-export type ConnectorKind = "native" | "mcp";
+export type ConnectorKind = "native" | "mcp" | "rest";
 
 /** A system Cop reaches tools through: its own ports (native) or a remote MCP server; what the admin groups tools under. */
 export type ConnectorDef = { id: string; labelTh: string; sourceSystemTh: string; kind: ConnectorKind };

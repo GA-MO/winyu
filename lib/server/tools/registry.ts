@@ -1,6 +1,6 @@
 import type { ConnectorDef, NativeToolName, RoleId, ToolName, ToolSurfaceEntry } from "@/lib/contracts";
 import { toolRolesInclude } from "@/lib/contracts";
-import { mcpConnectors } from "@/lib/server/connectors";
+import { remoteConnectors } from "@/lib/server/connectors";
 import { nativeConnectors } from "@/lib/server/connectors/native";
 import type { ConnectorField } from "@/lib/server/connectors/types";
 import type { CopTool } from "./define";
@@ -56,12 +56,12 @@ const NATIVE_TOOLS: { [Name in NativeToolName]: CopTool<Name> } = {
 };
 
 function allTools(): CopTool[] {
-  return [...Object.values(NATIVE_TOOLS), ...mcpConnectors().flatMap((connector) => connector.tools)];
+  return [...Object.values(NATIVE_TOOLS), ...remoteConnectors().flatMap((connector) => connector.tools)];
 }
 
 /** Every system tools reach: Cop's own ports first, then each MCP connector, in the order the admin groups them. */
 export function connectors(): ConnectorDef[] {
-  return [...nativeConnectors(), ...mcpConnectors().map((connector) => connector.def)];
+  return [...nativeConnectors(), ...remoteConnectors().map((connector) => connector.def)];
 }
 
 export type ConnectorGroup = { connector: ConnectorDef; tools: ToolSurfaceEntry[] };
@@ -85,7 +85,7 @@ export function toolsOfConnector(connector: string): ToolName[] {
 
 /** Every connector field only some roles see in full, keyed `${connector}.${field}`. */
 export function connectorFields(): ConnectorField[] {
-  return mcpConnectors().flatMap((connector) => connector.fields);
+  return remoteConnectors().flatMap((connector) => connector.fields);
 }
 
 /** Every tool Cop can call, in the order the admin lists them: the one list the policy, the overrides, the kill switch and the audit read. */

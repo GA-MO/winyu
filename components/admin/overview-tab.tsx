@@ -94,7 +94,7 @@ function SystemRow({ icon, title, value, names, tone, href }: { icon: LucideIcon
 function ConnectorProblems() {
   const problems = connectors().flatMap((connector) => {
     if (!connectorEnabled(connector.id)) return [`${connector.labelTh} · ${COPY.connectorOff}`];
-    if (connector.kind === "mcp" && connectorHealth(connector.id) === "offline") return [`${connector.labelTh} · ${COPY.connectorDown}`];
+    if (connector.kind !== "native" && connectorHealth(connector.id) === "offline") return [`${connector.labelTh} · ${COPY.connectorDown}`];
     return [];
   });
   return (

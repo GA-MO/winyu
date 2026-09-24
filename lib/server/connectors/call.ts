@@ -8,7 +8,7 @@ import { TH } from "@/lib/i18n/th";
 import { markReachable, remoteTool } from "./catalog";
 import { clientFor, dropClient } from "./pool";
 import { fencedRows, genericOutput, isRemoteError, maskedRows, MAX_CONNECTOR_ROWS, remoteErrorText, scopedArgs, scopedRows } from "./output";
-import type { ConnectorRow, ConnectorToolBinding, McpCallResult, McpConnectorConfig } from "./types";
+import type { ConnectorIdentity, ConnectorOutput, ConnectorRow, ConnectorToolBinding, McpCallResult, McpConnectorConfig, McpToolConfig, RemoteCaller, RemoteOutcome } from "./types";
 
 export const CONNECTOR_UNAVAILABLE = "CONNECTOR_UNAVAILABLE";
 export const CONNECTOR_FAILED = "CONNECTOR_FAILED";
@@ -23,7 +23,8 @@ export type ConnectorToolResult =
 
 class ConnectorTimeout extends Error {}
 
-function withinTimeout<T>(work: Promise<T>, timeoutMs: number): Promise<T> {
+/** Settles with the work, or rejects once the connector's time is up. */
+export function withinTimeout<T>(work: Promise<T>, timeoutMs: number): Promise<T> {
   let timer: ReturnType<typeof setTimeout> | undefined;
   const timeout = new Promise<never>((_resolve, reject) => {
     timer = setTimeout(() => reject(new ConnectorTimeout()), timeoutMs);
@@ -31,7 +32,7 @@ function withinTimeout<T>(work: Promise<T>, timeoutMs: number): Promise<T> {
   return Promise.race([work, timeout]).finally(() => clearTimeout(timer));
 }
 
-async function callRemote(connector: McpConnectorConfig, binding: ConnectorToolBinding, args: Record<string, unknown>, access: AccessContext): Promise<McpCallResult | null> {
+async function callRemote(connector: McpConnectorConfig, binding: ConnectorToolBinding<McpToolConfig>, args: Record<string, unknown>, access: AccessContext): Promise<McpCallResult | null> {
   const work = clientFor(connector, access).then((client) => client.callTool({ name: binding.remoteName, arguments: args, options: { timeout: connector.timeoutMs } }));
   try {
     const result = await withinTimeout(work, connector.timeoutMs);
@@ -44,6 +45,16 @@ async function callRemote(connector: McpConnectorConfig, binding: ConnectorToolB
   }
 }
 
+/** How an MCP tool is asked: the pooled client of the person asking, the server's error flag, then the adapter or the generic flattening. */
+export function mcpCaller(connector: McpConnectorConfig, binding: ConnectorToolBinding<McpToolConfig>): RemoteCaller {
+  return async (args, access): Promise<RemoteOutcome> => {
+    const raw = await callRemote(connector, binding, args, access);
+    if (!raw) return { ok: false, reason: "unavailable" };
+    if (isRemoteError(raw)) return { ok: false, reason: "failed", text: remoteErrorText(raw) };
+    return { ok: true, output: binding.config.output ? binding.config.output(raw) : genericOutput(raw) };
+  };
+}
+
 function argsOf(binding: ConnectorToolBinding, input: unknown): Record<string, unknown> {
   return (binding.config.input ?? ANY_ARGS).parse(input) as Record<string, unknown>;
 }
@@ -53,8 +64,7 @@ function summaryOf(binding: ConnectorToolBinding, summary: string | undefined, c
   return summary ?? TH.admin.connectors.rows(binding.config.labelTh, count);
 }
 
-async function shaped(connector: McpConnectorConfig, binding: ConnectorToolBinding, raw: McpCallResult, access: AccessContext): Promise<ConnectorToolResult> {
-  const output = binding.config.output ? binding.config.output(raw) : genericOutput(raw);
+async function shaped(connector: ConnectorIdentity, binding: ConnectorToolBinding, output: ConnectorOutput, access: AccessContext): Promise<ConnectorToolResult> {
   const inScope = await scopedRows(binding.config.scope, output.rows, access);
   if (output.rows.length > 0 && inScope.length === 0) return { ok: false, code: PERMISSION_DENIED, error: TH.admin.connectors.outOfScope(binding.config.labelTh) };
   const { rows, masked } = maskedRows(inScope, binding.fields, access);
@@ -66,31 +76,31 @@ async function shaped(connector: McpConnectorConfig, binding: ConnectorToolBindi
   };
 }
 
-/** One call to a connector tool as the person asking: Cop's scope on the way in, the server as that person, then Cop's scope, masking and fence on the way out. */
-export async function callConnectorTool(connector: McpConnectorConfig, binding: ConnectorToolBinding, input: unknown): Promise<ConnectorToolResult> {
+/** One call to a connector tool as the person asking, whatever the transport: Cop's scope on the way in, the other system as that person, then Cop's scope, masking and fence on the way out. */
+export async function callConnectorTool(connector: ConnectorIdentity, binding: ConnectorToolBinding, input: unknown, call: RemoteCaller): Promise<ConnectorToolResult> {
   const access = currentAccess();
   if (!isToolAllowed(withAdminSwitches(access), binding.name)) return { ok: false, code: TOOL_NOT_ALLOWED, error: TH.admin.connectors.notAllowed(binding.config.labelTh) };
   const args = scopedArgs(binding.config.scope, argsOf(binding, input), access);
-  const raw = await callRemote(connector, binding, args, access);
-  if (!raw) return { ok: false, code: CONNECTOR_UNAVAILABLE, error: TH.admin.connectors.unavailable(connector.labelTh) };
-  if (isRemoteError(raw)) return { ok: false, code: CONNECTOR_FAILED, error: `${TH.admin.connectors.failed(connector.labelTh)}: ${remoteErrorText(raw)}` };
-  return shaped(connector, binding, raw, access);
+  const outcome = await call(args, access);
+  if (outcome.ok) return shaped(connector, binding, outcome.output, access);
+  if (outcome.reason === "unavailable") return { ok: false, code: CONNECTOR_UNAVAILABLE, error: TH.admin.connectors.unavailable(connector.labelTh) };
+  return { ok: false, code: CONNECTOR_FAILED, error: `${TH.admin.connectors.failed(connector.labelTh)}: ${outcome.text}` };
 }
 
-function descriptionOf(connector: McpConnectorConfig, binding: ConnectorToolBinding): string {
+function descriptionOf(connector: ConnectorIdentity, binding: ConnectorToolBinding): string {
   if (binding.config.description) return binding.config.description;
   const remote = remoteTool(connector.id, binding.remoteName)?.description;
   return remote ? fence(remote) : binding.config.labelTh;
 }
 
-function inputSchemaOf(connector: McpConnectorConfig, binding: ConnectorToolBinding) {
+function inputSchemaOf(connector: ConnectorIdentity, binding: ConnectorToolBinding) {
   if (binding.config.input) return binding.config.input;
   const remote = remoteTool(connector.id, binding.remoteName)?.inputSchema;
   return remote ? jsonSchema(remote) : ANY_ARGS;
 }
 
 /** The AI SDK tool the handler hands the model; description and schema follow what the server last said, unless Cop wrote its own. */
-export function executableOf(connector: McpConnectorConfig, binding: ConnectorToolBinding, execute: (input: unknown) => Promise<ConnectorToolResult>): Tool {
+export function executableOf(connector: ConnectorIdentity, binding: ConnectorToolBinding, execute: (input: unknown) => Promise<ConnectorToolResult>): Tool {
   return {
     get description() {
       return descriptionOf(connector, binding);
