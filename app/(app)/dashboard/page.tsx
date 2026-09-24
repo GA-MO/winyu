@@ -17,8 +17,7 @@ export default async function DashboardPage() {
 
   await refreshSuggestions(access);
   const baseline = markVisit(access);
-  const views = widgetViews(access);
-  const changes = changesSince(access, baseline);
+  const [views, changes] = await Promise.all([widgetViews(access), changesSince(access, baseline)]);
   const stale = new Set(staleFor(access).map((widget) => widget.id));
   const history = layoutHistory(access);
   const restorable = history.find((entry) => entry.savedAt.slice(0, 10) < new Date().toISOString().slice(0, 10)) ?? null;

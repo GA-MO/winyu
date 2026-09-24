@@ -2,7 +2,7 @@ import { AlertTriangle, Ban } from "lucide-react";
 import { ROLE_IDS, type Dim, type MetricId, type MetricRow } from "@/lib/contracts";
 import { METRIC_DOMAINS } from "@/lib/access/policies";
 import { liveAccessFor } from "@/lib/access/enforce";
-import { runMetric } from "@/lib/data/query";
+import { metricsPort } from "@/lib/server/ports/metrics";
 import { TIME_DIMS, metricDef } from "@/lib/semantic/metrics";
 import { USERS, findUser } from "@/lib/data/entities/users";
 import { metricLabel } from "@/lib/dashboard/metric-display";
@@ -42,11 +42,11 @@ function ResultRows({ rows, dim }: { rows: MetricRow[]; dim: Dim }) {
   );
 }
 
-export function SimulateTab({ userId, metric }: { userId: string; metric: MetricId }) {
+export async function SimulateTab({ userId, metric }: { userId: string; metric: MetricId }) {
   const target = findUser(userId) ?? USERS[0];
   const access = liveAccessFor(target);
   const dim = breakdownDimOf(metric);
-  const result = runMetric({ metric, dims: [dim], filters: {}, range: SIMULATE_RANGE, grain: "month", compare: "none", limit: SIMULATE_ROWS }, access);
+  const result = await metricsPort().runMetric({ metric, dims: [dim], filters: {}, range: SIMULATE_RANGE, grain: "month", compare: "none", limit: SIMULATE_ROWS }, access);
   const scope = access.regions === "all" ? TH.region.all : access.regions.map((region) => TH.region[region]).join(", ");
   return (
     <div className="flex flex-col gap-4">

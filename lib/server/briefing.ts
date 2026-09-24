@@ -1,6 +1,6 @@
 import type { AccessContext, Alert, MetricId, MetricQuery } from "@/lib/contracts";
 import type { Spec, SpecElement } from "vexa/protocol";
-import { runMetric } from "@/lib/data/query";
+import { metricsPort } from "@/lib/server/ports/metrics";
 import { TODAY, addDays, formatThaiDate } from "@/lib/data/dates";
 import { metricLabel } from "@/lib/dashboard/metric-display";
 import { templateFor } from "@/lib/dashboard/templates";
@@ -28,19 +28,19 @@ function attainmentQuery(): MetricQuery {
   };
 }
 
-function attainmentOf(access: AccessContext): number | null {
+async function attainmentOf(access: AccessContext): Promise<number | null> {
   if (access.metricAcl.target_attainment !== "full") return null;
-  const result = runMetric(attainmentQuery(), access);
+  const result = await metricsPort().runMetric(attainmentQuery(), access);
   if (!result.ok) return null;
   const value = result.rows[0]?.value;
   return typeof value === "number" ? value : null;
 }
 
-function movesFor(access: AccessContext): BriefMove[] {
+async function movesFor(access: AccessContext): Promise<BriefMove[]> {
   const moves: BriefMove[] = [];
   for (const seed of templateFor(access).slice(0, MAX_MOVES + 2)) {
     if (moves.length >= MAX_MOVES) break;
-    const result = runMetric({ ...seed.query, dims: [], compare: "prev_period", limit: 1 }, access);
+    const result = await metricsPort().runMetric({ ...seed.query, dims: [], compare: "prev_period", limit: 1 }, access);
     if (!result.ok) continue;
     const delta = result.rows[0]?.delta_pct;
     if (typeof delta !== "number" || Math.abs(delta) < MOVE_THRESHOLD) continue;
@@ -66,11 +66,10 @@ function specOf(bullets: string[], line: string): Spec {
 }
 
 /** What Cop opens with: the alerts it found, what moved, and what is waiting for this user. */
-export function morningBriefFor(access: AccessContext): MorningBrief {
+export async function morningBriefFor(access: AccessContext): Promise<MorningBrief> {
   const alerts = openAlertsFor(access).slice(0, TOP_ALERTS);
   const packets = openPacketsFor(access);
-  const attainment = attainmentOf(access);
-  const moves = movesFor(access);
+  const [attainment, moves] = await Promise.all([attainmentOf(access), movesFor(access)]);
   const bullets: string[] = [];
   for (const alert of alerts) bullets.push(`${TH.severity[alert.severity]} · ${metricLabel(alert.metric)} — ${alert.hypothesis}`);
   if (attainment !== null) bullets.push(TH.brief.attainment(attainment));
@@ -87,7 +86,7 @@ export function morningBriefFor(access: AccessContext): MorningBrief {
 export type DashboardChange = { label: string; deltaPct: number | null; metric: MetricId | null };
 
 /** What is different since the user last looked: alerts that were not there, replies that came in, and the metrics that moved. */
-export function changesSince(access: AccessContext, baseline: Baseline): DashboardChange[] {
+export async function changesSince(access: AccessContext, baseline: Baseline): Promise<DashboardChange[]> {
   const changes: DashboardChange[] = [];
   if (baseline) {
     const fresh = openAlertsFor(access).filter((alert) => relevanceOf(alert, access) !== "other" && !baseline.alertIds.has(alert.id));
@@ -95,6 +94,6 @@ export function changesSince(access: AccessContext, baseline: Baseline): Dashboa
     if (fresh.length > 0) changes.push({ label: TH.brief.newAlerts(fresh.length), deltaPct: null, metric: null });
     if (replied.length > 0) changes.push({ label: TH.brief.newReplies(replied.length), deltaPct: null, metric: null });
   }
-  for (const move of movesFor(access)) changes.push({ label: move.label, deltaPct: move.deltaPct, metric: move.metric });
+  for (const move of await movesFor(access)) changes.push({ label: move.label, deltaPct: move.deltaPct, metric: move.metric });
   return changes;
 }

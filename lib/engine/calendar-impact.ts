@@ -7,7 +7,7 @@ const EVE_DAYS = 2;
 const PERCENT = 100;
 
 /** Daily beer volume by ISO date for the caller's scope, or null when the caller may not see it. */
-export type DailyBeer = (metric: "sell_out_volume" | "net_sales_volume", from: string, to: string) => ReadonlyMap<string, number> | null;
+export type DailyBeer = (metric: "sell_out_volume" | "net_sales_volume", from: string, to: string) => Promise<ReadonlyMap<string, number> | null>;
 
 export type EventImpact = { reference: CalendarEvent; sellOutPercent: number | null; orderEvePercent: number | null };
 
@@ -59,11 +59,10 @@ function lastPast(event: CalendarEvent): CalendarEvent | null {
   return past.filter((candidate) => candidate.nameTh.split(" ")[0] === event.nameTh.split(" ")[0]).at(-1) ?? null;
 }
 
-function banImpact(reference: CalendarEvent, beer: DailyBeer): EventImpact | null {
+async function banImpact(reference: CalendarEvent, beer: DailyBeer): Promise<EventImpact | null> {
   const day = reference.from;
   const from = addDays(day, -(NORMAL_WEEKS * DAYS_PER_WEEK + EVE_DAYS));
-  const sellOut = beer("sell_out_volume", from, day);
-  const sellIn = beer("net_sales_volume", from, day);
+  const [sellOut, sellIn] = await Promise.all([beer("sell_out_volume", from, day), beer("net_sales_volume", from, day)]);
   if (!sellOut || !sellIn) return null;
   const outPercent = percentChange(sellOut.get(day) ?? 0, sameWeekdayNormal(sellOut, day));
   let eveActual = 0;
@@ -76,9 +75,9 @@ function banImpact(reference: CalendarEvent, beer: DailyBeer): EventImpact | nul
   return { reference, sellOutPercent: outPercent, orderEvePercent: percentChange(eveActual, eveNormal) };
 }
 
-function windowImpact(reference: CalendarEvent, beer: DailyBeer): EventImpact | null {
+async function windowImpact(reference: CalendarEvent, beer: DailyBeer): Promise<EventImpact | null> {
   const before = addDays(reference.from, -NORMAL_WEEKS * DAYS_PER_WEEK);
-  const sellOut = beer("sell_out_volume", before, reference.to);
+  const sellOut = await beer("sell_out_volume", before, reference.to);
   if (!sellOut) return null;
   const singleDay = reference.from === reference.to;
   const during = singleDay ? (sellOut.get(reference.from) ?? 0) : dailyMean(sellOut, reference.from, reference.to);
@@ -87,7 +86,7 @@ function windowImpact(reference: CalendarEvent, beer: DailyBeer): EventImpact | 
 }
 
 /** What the most recent comparable event did to beer volume in the caller's scope, measured from data; null when there is no past event or no access. */
-export function impactOf(event: CalendarEvent, beer: DailyBeer): EventImpact | null {
+export async function impactOf(event: CalendarEvent, beer: DailyBeer): Promise<EventImpact | null> {
   const reference = event.to < TODAY ? event : lastPast(event);
   if (!reference) return null;
   if (reference.kind === "alcohol_ban") return banImpact(reference, beer);

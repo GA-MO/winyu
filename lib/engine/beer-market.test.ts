@@ -23,7 +23,7 @@ function shareQuery(dims: MetricQuery["dims"], filters: MetricQuery["filters"] =
 
 function beerOf(userId: string): DailyBeer {
   const scope = access(userId);
-  return (metric, from, to) => {
+  return async (metric, from, to) => {
     const result = runMetric({ metric, dims: ["date"], filters: { business_unit: ["beer"] }, range: { from, to }, grain: "day", compare: "none", limit: 60 }, scope);
     return result.ok ? new Map(result.rows.map((row) => [String(row.date), Number(row.value)])) : null;
   };
@@ -70,13 +70,13 @@ describe("no-sale days and Buddhist Lent", () => {
     expect(lentEffect()).toBeLessThan(0.9);
   });
 
-  test("the next no-sale day carries what the last one did, measured in the caller's scope", () => {
+  test("the next no-sale day carries what the last one did, measured in the caller's scope", async () => {
     const endOfLent = calendarEvents("2026-10-26", "2026-10-26").find((event) => event.kind === "alcohol_ban");
     if (!endOfLent) throw new Error("missing end of Lent");
-    const impact = impactOf(endOfLent, beerOf("u_anucha"));
+    const impact = await impactOf(endOfLent, beerOf("u_anucha"));
     expect(impact?.sellOutPercent).toBeLessThan(-80);
     expect(impact?.orderEvePercent).toBeGreaterThan(10);
-    expect(impactOf(endOfLent, beerOf("u_may"))).toBeNull();
+    expect(await impactOf(endOfLent, beerOf("u_may"))).toBeNull();
   });
 
   test("no daily sales alert starts on a no-sale day", () => {

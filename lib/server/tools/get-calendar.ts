@@ -5,7 +5,7 @@ import { calendarEvents, type CalendarEvent } from "@/lib/data/entities/calendar
 import { impactOf, type DailyBeer, type EventImpact } from "@/lib/engine/calendar-impact";
 import { formatDateTh } from "@/lib/i18n/format";
 import { TH } from "@/lib/i18n/th";
-import { dataPort } from "@/lib/server/agent/data-port";
+import { metricsPort } from "@/lib/server/ports/metrics";
 import { currentAccess } from "@/lib/server/request-context";
 import { defineTool } from "./define";
 
@@ -14,8 +14,8 @@ const CALENDAR_MAX_ROWS = 20;
 const CALENDAR_DAILY_LIMIT = 60;
 
 function beerFor(access: AccessContext): DailyBeer {
-  return (metric, from, to) => {
-    const result = dataPort().runMetric(
+  return async (metric, from, to) => {
+    const result = await metricsPort().runMetric(
       { metric, dims: ["date"], filters: { business_unit: ["beer"] }, range: { from, to }, grain: "day", compare: "none", limit: CALENDAR_DAILY_LIMIT },
       access,
     );
@@ -50,15 +50,15 @@ export const getCalendarTool = defineTool({
     const events = calendarEvents(start, end).slice(0, CALENDAR_MAX_ROWS);
     if (events.length === 0) return { ok: true as const, summary: TH.calendar.none(formatDateTh(start), formatDateTh(end)), data: [] };
     const beer = beerFor(access);
-    const rows = events.map((event) => ({
+    const rows = await Promise.all(events.map(async (event) => ({
       date: event.from,
       date_label: dateSpanLabel(event),
       when_label: TH.calendar.inDays(toDayIndex(event.from) - toDayIndex(TODAY)),
       name: event.nameTh,
       kind: event.kind,
       kind_label: TH.calendar.kind[event.kind],
-      impact_label: impactLabel(impactOf(event, beer)),
-    }));
+      impact_label: impactLabel(await impactOf(event, beer)),
+    })));
     const bans = events.filter((event) => event.kind === "alcohol_ban").length;
     return { ok: true as const, summary: TH.calendar.summary(events.length, formatDateTh(start), formatDateTh(end), bans), data: rows };
   },

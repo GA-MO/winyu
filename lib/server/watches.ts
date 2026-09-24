@@ -4,7 +4,7 @@ import type { AccessContext, MetricQuery, PersonalWatch, WatchCondition } from "
 export { conditionLabel };
 import { liveAccessFor } from "@/lib/access/enforce";
 import { findUser } from "@/lib/data/entities/users";
-import { runMetric } from "@/lib/data/query";
+import { metricsPort } from "@/lib/server/ports/metrics";
 import { checkWatch, conditionLabel, nextState, rollingQuery, windowDaysOf, type WatchHit } from "@/lib/engine/personal-watches";
 import { formatMetricValue, formatDelta } from "@/lib/dashboard/metric-display";
 import { displayLabel } from "@/lib/semantic/dictionary";
@@ -29,12 +29,12 @@ function hitLabel(watch: PersonalWatch, hit: WatchHit): string {
 }
 
 /** Stores a standing question after checking it runs under the user's own scope; out-of-scope watches are refused, not stored. */
-export function createWatch(access: AccessContext, input: { title: string; query: MetricQuery; condition: WatchCondition }, at = new Date()): WatchCreated {
+export async function createWatch(access: AccessContext, input: { title: string; query: MetricQuery; condition: WatchCondition }, at = new Date()): Promise<WatchCreated> {
   const mine = personalWatches().where((watch) => watch.userId === access.userId);
   if (mine.length >= MAX_WATCHES_PER_USER) return { ok: false, error: TH.watch.tooMany(MAX_WATCHES_PER_USER) };
   const windowDays = windowDaysOf(input.query);
   const draft = { query: input.query, windowDays, condition: input.condition };
-  const result = runMetric(rollingQuery(draft), access);
+  const result = await metricsPort().runMetric(rollingQuery(draft), access);
   if (!result.ok) return { ok: false, error: result.error };
   const check = checkWatch(result, input.condition);
   const watch: PersonalWatch = {
@@ -86,13 +86,13 @@ function tell(watch: PersonalWatch, hit: WatchHit): void {
 }
 
 /** Re-asks every standing question under its owner's scope and tells the owner the first time a line is crossed. */
-export function runWatchJob(at = new Date()): { checked: number; fired: number } {
+export async function runWatchJob(at = new Date()): Promise<{ checked: number; fired: number }> {
   let fired = 0;
   const watches = personalWatches().all();
   for (const watch of watches) {
     const user = findUser(watch.userId);
     if (!user) continue;
-    const check = checkWatch(runMetric(rollingQuery(watch), liveAccessFor(user)), watch.condition);
+    const check = checkWatch(await metricsPort().runMetric(rollingQuery(watch), liveAccessFor(user)), watch.condition);
     const next = nextState(watch.state, check.breached);
     personalWatches().put({
       ...watch,

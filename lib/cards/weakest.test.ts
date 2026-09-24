@@ -56,9 +56,9 @@ describe("weakest row", () => {
 });
 
 describe("visit list", () => {
-  test("only field reps get one, capped at three, alerts and drops only", () => {
-    expect(visitsFor(accessOf("u_thana"))).toEqual([]);
-    const stops = visitsFor(accessOf("u_krit"));
+  test("only field reps get one, capped at three, alerts and drops only", async () => {
+    expect(await visitsFor(accessOf("u_thana"))).toEqual([]);
+    const stops = await visitsFor(accessOf("u_krit"));
     expect(stops.length).toBeGreaterThan(0);
     expect(stops.length).toBeLessThanOrEqual(3);
     for (const stop of stops) expect(stop.reason.length).toBeGreaterThan(0);

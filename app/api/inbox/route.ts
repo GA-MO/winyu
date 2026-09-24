@@ -73,7 +73,7 @@ function alertOf(alert: Alert, access: AccessContext, handoffOpen: boolean): Ale
   };
 }
 
-function handoffOf(packet: ContextPacket, access: AccessContext): HandoffItem {
+async function handoffOf(packet: ContextPacket, access: AccessContext): Promise<HandoffItem> {
   return {
     id: packet.id,
     title: packet.title,
@@ -83,7 +83,7 @@ function handoffOf(packet: ContextPacket, access: AccessContext): HandoffItem {
     status: packet.status,
     fromName: nameOf(packet.fromUserId),
     fromRole: roleOf(packet.fromUserId),
-    evidence: resolveEvidence(packet, access).map(evidenceOf),
+    evidence: (await resolveEvidence(packet, access)).map(evidenceOf),
     suggestedActions: [...packet.suggestedActions],
     digest: packet.conversationDigest,
     at: packet.createdAt,
@@ -98,9 +98,9 @@ export async function GET() {
   if (!access) return unauthenticated();
 
   const handoffOpen = handoffEnabled();
-  const handoffs: HandoffItem[] = packetsFor(access.userId)
+  const handoffs: HandoffItem[] = await Promise.all(packetsFor(access.userId)
     .slice(0, MAX_ITEMS)
-    .map((packet) => handoffOf(packet, access));
+    .map((packet) => handoffOf(packet, access)));
 
   const alertItems: AlertItem[] = openAlertsFor(access).slice(0, MAX_ALERT_ITEMS).map((alert) => alertOf(alert, access, handoffOpen));
 

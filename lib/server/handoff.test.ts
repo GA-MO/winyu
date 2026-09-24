@@ -48,30 +48,30 @@ afterAll(() => {
 });
 
 describe("handoff packets", () => {
-  test("evidence is re-run under the recipient's scope, not copied from the sender", () => {
+  test("evidence is re-run under the recipient's scope, not copied from the sender", async () => {
     const packet = makePacket("u_wee", [query("net_sales_volume", { region: ["northeast"] }), query("gross_margin"), query("avg_salary")]);
-    const asPlanner = resolveEvidence(packet, access("u_wee"));
+    const asPlanner = await resolveEvidence(packet, access("u_wee"));
     expect(asPlanner[0].denied).toBe(false);
     expect(asPlanner[1].denied).toBe(true);
     expect(asPlanner[1].summary).toBe(TH.handoff.denied);
     expect(asPlanner[1].rows).toEqual([]);
     expect(asPlanner[2].masked).toBe(true);
-    const asCfo = resolveEvidence(packet, access("u_siriporn"));
+    const asCfo = await resolveEvidence(packet, access("u_siriporn"));
     expect(asCfo[1].denied).toBe(false);
   });
 
-  test("a masked metric is flagged instead of shown", () => {
+  test("a masked metric is flagged instead of shown", async () => {
     const packet = makePacket("u_siriporn", [query("avg_salary")]);
-    const asCfo = resolveEvidence(packet, access("u_siriporn"));
+    const asCfo = await resolveEvidence(packet, access("u_siriporn"));
     expect(asCfo[0].masked).toBe(true);
     expect(asCfo[0].rows.every((row) => row.value === "***")).toBe(true);
-    const asHr = resolveEvidence(packet, access(SALARY_READER));
+    const asHr = await resolveEvidence(packet, access(SALARY_READER));
     expect(asHr[0].masked).toBe(false);
   });
 
-  test("a region outside the recipient's scope comes back denied", () => {
+  test("a region outside the recipient's scope comes back denied", async () => {
     const packet = makePacket("u_anucha", [query("net_sales_volume", { region: ["south"] })]);
-    const asRsm = resolveEvidence(packet, access("u_anucha"));
+    const asRsm = await resolveEvidence(packet, access("u_anucha"));
     expect(asRsm[0].denied).toBe(true);
   });
 

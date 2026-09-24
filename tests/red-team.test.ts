@@ -226,10 +226,10 @@ describe("red team: other users' state", () => {
     }
   });
 
-  test("packet evidence is re-run under the reader's own scope", () => {
+  test("packet evidence is re-run under the reader's own scope", async () => {
     const packet = packets().get(planted.packets[0]);
     if (!packet) throw new Error("planted packet is gone");
-    const views = resolveEvidence(packet, access("u_saranya"));
+    const views = await resolveEvidence(packet, access("u_saranya"));
     record("u_saranya → northeast evidence", views.some((view) => view.rows.some((row) => row.region === REGION_LABELS_TH.northeast)));
   });
 });

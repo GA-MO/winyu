@@ -31,8 +31,8 @@ afterAll(() => {
 });
 
 describe("standing watches", () => {
-  test("a watch over the line is stored as already triggered, and says where", () => {
-    const result = createWatch(PLANNER, { title: "สต๊อกดีซีลำพูน", query: COVER_LAMPHUN, condition: { kind: "below", value: 10 } });
+  test("a watch over the line is stored as already triggered, and says where", async () => {
+    const result = await createWatch(PLANNER, { title: "สต๊อกดีซีลำพูน", query: COVER_LAMPHUN, condition: { kind: "below", value: 10 } });
     if (!result.ok) throw new Error(result.error);
     created.push(result.watch.id);
     expect(result.watch.state).toBe("triggered");
@@ -42,20 +42,20 @@ describe("standing watches", () => {
     expect(memoryFacts().where((fact) => fact.userId === PLANNER.userId && fact.type === "preference" && fact.value.includes("ต่ำกว่า 10 วัน")).length).toBe(1);
   });
 
-  test("a watch outside the user's scope is refused and not stored", () => {
+  test("a watch outside the user's scope is refused and not stored", async () => {
     const before = personalWatches().all().length;
-    const result = createWatch(NORTH_REP, { title: "อีสาน", query: NORTHEAST_SALES, condition: { kind: "change", value: 10 } });
+    const result = await createWatch(NORTH_REP, { title: "อีสาน", query: NORTHEAST_SALES, condition: { kind: "change", value: 10 } });
     expect(result.ok).toBe(false);
     expect(personalWatches().all().length).toBe(before);
   });
 
-  test("the job tells the owner once when a watch crosses, not again while it stays over", () => {
-    const result = createWatch(PLANNER, { title: "สต๊อกดีซีลำพูน รอบ 2", query: COVER_LAMPHUN, condition: { kind: "below", value: 10 } });
+  test("the job tells the owner once when a watch crosses, not again while it stays over", async () => {
+    const result = await createWatch(PLANNER, { title: "สต๊อกดีซีลำพูน รอบ 2", query: COVER_LAMPHUN, condition: { kind: "below", value: 10 } });
     if (!result.ok) throw new Error(result.error);
     created.push(result.watch.id);
     personalWatches().put({ ...result.watch, state: "ok" });
-    runWatchJob();
-    runWatchJob();
+    await runWatchJob();
+    await runWatchJob();
     expect(notifications().where((entry) => entry.refId === result.watch.id)).toHaveLength(1);
     expect(outbox().where((entry) => entry.refId === result.watch.id && entry.toUserId === PLANNER.userId)).toHaveLength(1);
   });

@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import type { AccessContext, ContextPacket, Dim, MetricQuery, MetricRow, Notification, PacketReply, User } from "@/lib/contracts";
-import { runMetric } from "@/lib/data/query";
+import { metricsPort } from "@/lib/server/ports/metrics";
 import { responsibleFor } from "@/lib/access/raci";
 import { findUser } from "@/lib/data/entities/users";
 import { metricLabel } from "@/lib/dashboard/metric-display";
@@ -40,9 +40,9 @@ function scopeOf(filters: Partial<Record<Dim, string[]>>): string {
 }
 
 /** Re-runs the sender's queries under the reader's own scope: a packet carries references, never values. */
-export function resolveEvidence(packet: ContextPacket, access: AccessContext): EvidenceView[] {
-  return packet.evidence.map((query) => {
-    const result = runMetric({ ...query, limit: MAX_EVIDENCE_ROWS }, access);
+export async function resolveEvidence(packet: ContextPacket, access: AccessContext): Promise<EvidenceView[]> {
+  return Promise.all(packet.evidence.map(async (query) => {
+    const result = await metricsPort().runMetric({ ...query, limit: MAX_EVIDENCE_ROWS }, access);
     const base = { metric: metricLabel(query.metric), scope: scopeOf(query.filters), range: `${formatDateTh(query.range.from)} – ${formatDateTh(query.range.to)}` };
     if (!result.ok) {
       return { ...base, summary: TH.handoff.denied, rows: [], masked: false, denied: true, ownerUserId: responsibleFor(query.metric, null)?.userId ?? null };
@@ -56,7 +56,7 @@ export function resolveEvidence(packet: ContextPacket, access: AccessContext): E
       denied: false,
       ownerUserId: masked ? (responsibleFor(query.metric, null)?.userId ?? null) : null,
     };
-  });
+  }));
 }
 
 export function digestOf(turns: { role: string; text: string }[]): string {

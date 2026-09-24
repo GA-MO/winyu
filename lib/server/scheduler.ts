@@ -35,12 +35,12 @@ const RUNNERS: Record<Due, (at: Date) => unknown> = {
 };
 
 /** One scheduler pass; safe to call by hand. */
-export function tick(now = Date.now()): Due[] {
+export async function tick(now = Date.now()): Promise<Due[]> {
   const store = jobRuns();
   const last = Object.fromEntries(store.all().map((run) => [run.id, run]));
   const due = dueJobs(now, last);
   for (const job of due) {
-    RUNNERS[job](new Date(now));
+    await RUNNERS[job](new Date(now));
     store.put({ id: job, lastRunAt: new Date(now).toISOString(), lastRunDay: bangkokOf(now).day });
   }
   return due;
@@ -51,10 +51,6 @@ export function startScheduler(): void {
   const scope = globalThis as SchedulerGlobal;
   if (scope[STARTED]) return;
   scope[STARTED] = setInterval(() => {
-    try {
-      tick();
-    } catch (error) {
-      console.error("[cop] scheduler tick failed", error);
-    }
+    tick().catch((error: unknown) => console.error("[cop] scheduler tick failed", error));
   }, TICK_MS);
 }

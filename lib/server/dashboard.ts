@@ -1,4 +1,4 @@
-import { runMetric } from "@/lib/data/query";
+import { metricsPort } from "@/lib/server/ports/metrics";
 import type { AccessContext, Alert, DashboardLayout, MetricResult, WidgetSpec } from "@/lib/contracts";
 import type { Spec } from "vexa/protocol";
 import { layoutVersions, layouts } from "@/lib/server/agent/collections";
@@ -87,9 +87,9 @@ function withTemplateReasons(layout: DashboardLayout, access: AccessContext): Da
   return { ...layout, widgets };
 }
 
-/** Swap point for the orchestrator: 1A's `runMetric(widget.query, access)` replaces the placeholder without changing this signature. */
-export function resolveWidget(widget: WidgetSpec, access: AccessContext): MetricResult {
-  return runMetric(widget.query, access);
+/** One card's numbers under the viewer's scope, read through the warehouse port. */
+export function resolveWidget(widget: WidgetSpec, access: AccessContext): Promise<MetricResult> {
+  return metricsPort().runMetric(widget.query, access);
 }
 
 const MAX_CARD_ALERTS = 4;
@@ -97,7 +97,7 @@ const OVERLAY_PAIR: Partial<Record<string, { metric: WidgetSpec["query"]["metric
   sell_out_volume: { metric: "net_sales_volume", name: "ขายเข้า (Sell-in)" },
 };
 
-function extrasFor(widget: WidgetSpec, access: AccessContext): WidgetExtras {
+async function extrasFor(widget: WidgetSpec, access: AccessContext): Promise<WidgetExtras> {
   if (widget.kind === "alert_list") {
     const alerts = openAlertsFor(access)
       .filter((alert) => relevanceOf(alert, access) !== "other")
@@ -106,7 +106,7 @@ function extrasFor(widget: WidgetSpec, access: AccessContext): WidgetExtras {
   }
   if (widget.kind !== "line") return {};
   const pair = OVERLAY_PAIR[widget.query.metric];
-  if (pair) return { overlay: { name: pair.name, result: runMetric({ ...widget.query, metric: pair.metric, compare: "none" }, access) } };
+  if (pair) return { overlay: { name: pair.name, result: await metricsPort().runMetric({ ...widget.query, metric: pair.metric, compare: "none" }, access) } };
   if (widget.query.grain !== "week") return {};
   const forecast = forecastsFor(access).find((entry) => entry.metric === widget.query.metric && Object.entries(entry.dims).every(([dim, value]) => {
     const filter = widget.query.filters[dim as keyof typeof widget.query.filters];
@@ -115,9 +115,8 @@ function extrasFor(widget: WidgetSpec, access: AccessContext): WidgetExtras {
   return { forecast: forecast ?? null };
 }
 
-function viewOf(widget: WidgetSpec, access: AccessContext, relevant: readonly Alert[]): WidgetView {
-  const result = resolveWidget(widget, access);
-  const extras = extrasFor(widget, access);
+async function viewOf(widget: WidgetSpec, access: AccessContext, relevant: readonly Alert[]): Promise<WidgetView> {
+  const [result, extras] = await Promise.all([resolveWidget(widget, access), extrasFor(widget, access)]);
   const actions = extras.actions ?? actionsForMetric(access, widget.query, result);
   const hero = presentCard({ title: widget.title, query: widget.query, result }).hero;
   return {
@@ -146,9 +145,9 @@ function relevantAlerts(access: AccessContext): Alert[] {
 }
 
 /** Every card on the dashboard, the most urgent first. */
-export function widgetViews(access: AccessContext): WidgetView[] {
+export async function widgetViews(access: AccessContext): Promise<WidgetView[]> {
   const relevant = relevantAlerts(access);
-  return byAttention(layoutFor(access).widgets.map((widget) => viewOf(widget, access, relevant)));
+  return byAttention(await Promise.all(layoutFor(access).widgets.map((widget) => viewOf(widget, access, relevant))));
 }
 
 /** Pinned cards this user has stopped looking at, offered for removal on the dashboard. */
@@ -157,15 +156,15 @@ export function staleFor(access: AccessContext, now = Date.now()): WidgetSpec[] 
 }
 
 /** The headline of each pinned card, the most urgent first as on the dashboard, through the same presenter the dashboard draws with; masked or denied cards are skipped. */
-export function landingKpis(access: AccessContext): LandingKpi[] {
+export async function landingKpis(access: AccessContext): Promise<LandingKpi[]> {
   const kpis: LandingKpi[] = [];
   const relevant = relevantAlerts(access);
-  const pinned = layoutFor(access).widgets
+  const pinned = await Promise.all(layoutFor(access).widgets
     .filter((widget) => widget.pinned && widget.kind !== "alert_list")
-    .map((widget) => {
-      const result = resolveWidget(widget, access);
+    .map(async (widget) => {
+      const result = await resolveWidget(widget, access);
       return { widget, result, attention: attentionOf({ widget, result, alerts: relevant }) };
-    });
+    }));
   for (const { widget, result } of byAttention(pinned)) {
     if (kpis.length >= KPI_LIMIT) break;
     const parts = presentCard({ title: widget.title, query: widget.query, result });
@@ -194,9 +193,9 @@ function alertReason(alert: Alert): string {
 }
 
 /** The agents a field rep should visit first: those with an open alert, then the steepest sell-in drop. Reps only. */
-export function visitsFor(access: AccessContext): VisitStop[] {
+export async function visitsFor(access: AccessContext): Promise<VisitStop[]> {
   if (!VISIT_ROLES.has(access.role)) return [];
-  const result = runMetric({ metric: "net_sales_volume", dims: ["agent"], filters: {}, range: { from: addDays(TODAY, -VISIT_WINDOW_DAYS), to: TODAY }, grain: "month", compare: "prev_period", limit: VISIT_SCAN_LIMIT }, access);
+  const result = await metricsPort().runMetric({ metric: "net_sales_volume", dims: ["agent"], filters: {}, range: { from: addDays(TODAY, -VISIT_WINDOW_DAYS), to: TODAY }, grain: "month", compare: "prev_period", limit: VISIT_SCAN_LIMIT }, access);
   if (!result.ok) return [];
   const alerted = new Map<string, Alert>();
   for (const alert of openAlertsFor(access)) {
