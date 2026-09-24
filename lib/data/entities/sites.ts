@@ -1,32 +1,6 @@
-import type { Region } from "@/lib/contracts";
+import type { Incident, Site } from "@/lib/contracts";
 
-export type SiteKind = "plant" | "dc" | "office";
-export type IncidentKind = "lti" | "first_aid" | "near_miss" | "property";
-
-export type Site = {
-  id: string;
-  nameTh: string;
-  kind: SiteKind;
-  provinceId: string;
-  placeTh: string;
-  region: Region;
-  photo: string;
-  headcount: number;
-  overtimeHoursPerHead3m: number;
-  safetyLeadId: string | null;
-  lastLtiBeforeLog: string | null;
-};
-
-export type Incident = {
-  id: string;
-  siteId: string;
-  date: string;
-  kind: IncidentKind;
-  titleTh: string;
-  detailTh: string;
-  actionTh: string;
-  closed: boolean;
-};
+export type { Incident, Site };
 
 const SITE_DIR = "/img/sites";
 
@@ -82,6 +56,3 @@ export function siteById(id: string): Site | null {
   return SITES.find((site) => site.id === id) ?? null;
 }
 
-export function incidentsOf(siteId: string): Incident[] {
-  return INCIDENTS.filter((incident) => incident.siteId === siteId);
-}

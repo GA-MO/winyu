@@ -1,4 +1,4 @@
-import { metricsPort } from "@/lib/server/ports/metrics";
+import { ports } from "@/lib/server/ports";
 import type { AccessContext, Alert, DashboardLayout, MetricResult, WidgetSpec } from "@/lib/contracts";
 import type { Spec } from "vexa/protocol";
 import { layoutVersions, layouts } from "@/lib/server/agent/collections";
@@ -89,7 +89,7 @@ function withTemplateReasons(layout: DashboardLayout, access: AccessContext): Da
 
 /** One card's numbers under the viewer's scope, read through the warehouse port. */
 export function resolveWidget(widget: WidgetSpec, access: AccessContext): Promise<MetricResult> {
-  return metricsPort().runMetric(widget.query, access);
+  return ports().metrics.runMetric(widget.query, access);
 }
 
 const MAX_CARD_ALERTS = 4;
@@ -106,7 +106,7 @@ async function extrasFor(widget: WidgetSpec, access: AccessContext): Promise<Wid
   }
   if (widget.kind !== "line") return {};
   const pair = OVERLAY_PAIR[widget.query.metric];
-  if (pair) return { overlay: { name: pair.name, result: await metricsPort().runMetric({ ...widget.query, metric: pair.metric, compare: "none" }, access) } };
+  if (pair) return { overlay: { name: pair.name, result: await ports().metrics.runMetric({ ...widget.query, metric: pair.metric, compare: "none" }, access) } };
   if (widget.query.grain !== "week") return {};
   const forecast = forecastsFor(access).find((entry) => entry.metric === widget.query.metric && Object.entries(entry.dims).every(([dim, value]) => {
     const filter = widget.query.filters[dim as keyof typeof widget.query.filters];
@@ -195,7 +195,7 @@ function alertReason(alert: Alert): string {
 /** The agents a field rep should visit first: those with an open alert, then the steepest sell-in drop. Reps only. */
 export async function visitsFor(access: AccessContext): Promise<VisitStop[]> {
   if (!VISIT_ROLES.has(access.role)) return [];
-  const result = await metricsPort().runMetric({ metric: "net_sales_volume", dims: ["agent"], filters: {}, range: { from: addDays(TODAY, -VISIT_WINDOW_DAYS), to: TODAY }, grain: "month", compare: "prev_period", limit: VISIT_SCAN_LIMIT }, access);
+  const result = await ports().metrics.runMetric({ metric: "net_sales_volume", dims: ["agent"], filters: {}, range: { from: addDays(TODAY, -VISIT_WINDOW_DAYS), to: TODAY }, grain: "month", compare: "prev_period", limit: VISIT_SCAN_LIMIT }, access);
   if (!result.ok) return [];
   const alerted = new Map<string, Alert>();
   for (const alert of openAlertsFor(access)) {

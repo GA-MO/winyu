@@ -1,5 +1,5 @@
 import { TODAY, toDayIndex } from "@/lib/data/dates";
-import type { Certificate, Employee } from "@/lib/data/entities/people";
+import type { Certificate, Employee } from "@/lib/contracts";
 
 export const PROBATION_DAYS = 119;
 export const NEW_HIRE_DAYS = 180;

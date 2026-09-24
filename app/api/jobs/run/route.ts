@@ -17,7 +17,7 @@ export async function POST(req: Request) {
   if (job === "anomaly") return Response.json(runAnomalyJob());
   if (job === "forecast") return Response.json(runForecastJob());
   if (job === "watches") return Response.json(await runWatchJob());
-  if (job === "digest") return Response.json(runDigestJob());
+  if (job === "digest") return Response.json(await runDigestJob());
   if (job === "tick") return Response.json({ ran: await tick() });
   if (job === "all" || job === "compose") return Response.json(runEngineJobs());
   return badRequest();

@@ -1,19 +1,6 @@
-export const CANDIDATE_STAGES = ["applied", "screening", "interview", "final", "offer"] as const;
-export type CandidateStage = (typeof CANDIDATE_STAGES)[number];
+import type { Candidate } from "@/lib/contracts";
 
-export type Candidate = {
-  id: string;
-  nameTh: string;
-  positionId: string;
-  stage: CandidateStage;
-  score: number | null;
-  appliedOn: string;
-  experienceTh: string;
-  strengthTh: string;
-  concernTh: string | null;
-  sourceTh: string;
-  expectedSalaryThb: number;
-};
+export type { Candidate };
 
 type CandidateSeed = Omit<Candidate, "positionId">;
 
@@ -87,6 +74,3 @@ export const CANDIDATES: readonly Candidate[] = [
   ]),
 ];
 
-export function candidatesOf(positionId: string): Candidate[] {
-  return CANDIDATES.filter((candidate) => candidate.positionId === positionId);
-}

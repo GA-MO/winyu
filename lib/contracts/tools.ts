@@ -2,6 +2,7 @@ import { z } from "zod";
 import { REGIONS, ROLE_IDS, type RoleId } from "./identity";
 import { widgetKindSchema } from "./dashboard";
 import { urgencySchema } from "./handoff";
+import { CANDIDATE_STAGES, LEAVE_KINDS } from "./records";
 import { dimSchema, metricIdSchema, metricQuerySchema } from "./semantic";
 import { watchMetricInputSchema } from "./watches";
 
@@ -43,12 +44,11 @@ export const findPeopleInputSchema = z.object({
 });
 export const getSiteInputSchema = z.object({ id: z.string().nullable(), name: z.string().nullable() });
 export const getPersonInputSchema = z.object({ id: z.string().nullable(), name: z.string().nullable() });
-export const CANDIDATE_STAGE_IDS = ["applied", "screening", "interview", "final", "offer"] as const;
-export const listCandidatesInputSchema = z.object({ position: z.string().nullable(), stage: z.enum(CANDIDATE_STAGE_IDS).nullable() });
+export const listCandidatesInputSchema = z.object({ position: z.string().nullable(), stage: z.enum(CANDIDATE_STAGES).nullable() });
 export const listCoursesInputSchema = z.object({ month: z.string().regex(/^\d{4}-\d{2}$/).nullable(), query: z.string().nullable() });
 export const getPolicyInputSchema = z.object({ topic: z.enum(["leave", "benefits"]) });
 export const requestLeaveInputSchema = z.object({
-  kind: z.enum(["annual", "sick", "personal"]),
+  kind: z.enum(LEAVE_KINDS),
   from: z.string().regex(ISO_DATE),
   to: z.string().regex(ISO_DATE),
   reason: z.string().max(200),

@@ -1,10 +1,10 @@
-import { randomUUID } from "node:crypto";
 import type { AccessContext, Alert, User } from "@/lib/contracts";
 import { liveAccessFor } from "@/lib/access/enforce";
 import { USERS } from "@/lib/data/entities/users";
 import { alertRowOf } from "@/lib/cards/alert-row";
 import { TH } from "@/lib/i18n/th";
-import { digests, outbox } from "./agent/collections";
+import { digests } from "./agent/collections";
+import { ports } from "./ports";
 import { openAlertsFor, openPacketsFor, relevanceOf } from "./alerts";
 import { watchesOf } from "./watches";
 
@@ -34,10 +34,8 @@ export function digestFor(access: AccessContext, alreadySent: ReadonlySet<string
   return { lines, count, alertIds: serious.map((alert) => alert.id) };
 }
 
-function send(user: User, digest: Digest, at: string): void {
-  outbox().put({
-    id: randomUUID(),
-    at,
+async function send(user: User, digest: Digest): Promise<void> {
+  await ports().mail.send({
     kind: "digest",
     fromUserId: SYSTEM_SENDER,
     toUserId: user.id,
@@ -49,7 +47,7 @@ function send(user: User, digest: Digest, at: string): void {
 }
 
 /** Once a day per user, and only to users who have something to hear; the alerts it mentions are not repeated tomorrow. */
-export function runDigestJob(at = new Date()): { sent: number; skipped: number } {
+export async function runDigestJob(at = new Date()): Promise<{ sent: number; skipped: number }> {
   const day = at.toISOString().slice(0, 10);
   let sent = 0;
   let skipped = 0;
@@ -64,7 +62,7 @@ export function runDigestJob(at = new Date()): { sent: number; skipped: number }
       skipped += 1;
       continue;
     }
-    send(user, digest, at.toISOString());
+    await send(user, digest);
     digests().put({ id: user.id, day, alertIds: digest.alertIds });
     sent += 1;
   }

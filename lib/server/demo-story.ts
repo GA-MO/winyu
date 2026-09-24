@@ -51,7 +51,7 @@ function openStoryPacket(alertId: string): ContextPacket | null {
   return packets().all().find((packet) => packet.fromUserId === SENDER_ID && packet.toUserId === RECIPIENT_ID && packet.alertIds.includes(alertId) && packet.status !== "resolved") ?? null;
 }
 
-function sendStoryPacket(alert: Alert): ContextPacket {
+function sendStoryPacket(alert: Alert): Promise<ContextPacket> {
   const sender = findUser(SENDER_ID) ?? null;
   const recipient = findUser(RECIPIENT_ID);
   if (!recipient) throw new Error(`demo story: missing user ${RECIPIENT_ID}`);
@@ -83,11 +83,11 @@ function sendStoryPacket(alert: Alert): ContextPacket {
 }
 
 /** Adds the one handoff story the demo needs to show closing with a verdict and the lesson from last time; safe to run again. */
-export function ensureDemoStory(): DemoStory | null {
+export async function ensureDemoStory(): Promise<DemoStory | null> {
   const alert = findOrRunEngine();
   if (!alert) return null;
   const outcomeCreated = ensurePastOutcome(alert);
   const existing = openStoryPacket(alert.id);
-  const packet = existing ?? (handoffEnabled() ? sendStoryPacket(alert) : null);
+  const packet = existing ?? (handoffEnabled() ? await sendStoryPacket(alert) : null);
   return { alertId: alert.id, packetId: packet?.id ?? null, outcomeId: PAST_OUTCOME_ID, created: { packet: !existing && packet !== null, outcome: outcomeCreated } };
 }

@@ -1,11 +1,12 @@
-import type { AccessContext } from "@/lib/contracts";
-import { employeeById } from "@/lib/data/entities/people";
-import { SITES, incidentsOf, siteById, type Incident, type Site } from "@/lib/data/entities/sites";
+import type { AccessContext, Incident, Site } from "@/lib/contracts";
 import { TODAY, addDays } from "@/lib/data/dates";
 import { RECENT_LTI_DAYS, SAFE_STREAK_DAYS, safetyOf, type SafetyStatus, type SiteSafety } from "@/lib/engine/site-safety";
 import { formatDateTh } from "@/lib/i18n/format";
 import { TH } from "@/lib/i18n/th";
 import { peopleAtSite, type PersonBadge } from "./people";
+import { ports } from "./ports";
+import { directoryOf } from "./ports/directory";
+import type { SiteRecords } from "./ports/sites";
 
 const T = TH.sites;
 const MAX_TIMELINE = 8;
@@ -33,8 +34,8 @@ function badgesOf(site: Site, safety: SiteSafety): PersonBadge[] {
   return badges;
 }
 
-function rankedRow(site: Site) {
-  const safety = safetyOf(site);
+function rankedRow(site: Site, incidents: readonly Incident[]) {
+  const safety = safetyOf(site, incidents);
   return { order: STATUS_ORDER[safety.status], streak: safety.daysSinceLti ?? Number.MAX_SAFE_INTEGER, row: rowOf(site, safety) };
 }
 
@@ -52,9 +53,9 @@ function rowOf(site: Site, safety: SiteSafety) {
   };
 }
 
-function lastYearOf(site: Site): Incident[] {
+function lastYearOf(site: Site, incidents: readonly Incident[]): Incident[] {
   const since = addDays(TODAY, -TIMELINE_DAYS);
-  return incidentsOf(site.id).filter((incident) => incident.date >= since && incident.date <= TODAY);
+  return incidents.filter((incident) => incident.siteId === site.id && incident.date >= since && incident.date <= TODAY);
 }
 
 function timelineOf(incidents: Incident[]) {
@@ -77,28 +78,30 @@ function metricsOf(site: Site, safety: SiteSafety) {
   ];
 }
 
-function resolveSite(id: string | null, name: string | null): Site | null {
-  const byId = id ? siteById(id) : null;
+function resolveSite(records: SiteRecords, id: string | null, name: string | null): Site | null {
+  const byId = id ? records.sites.find((site) => site.id === id) ?? null : null;
   if (byId) return byId;
   const needle = (name ?? id ?? "").replace(/^(โรงงาน|ศูนย์กระจายสินค้า|สำนักงาน)/, "").trim();
   if (needle.length === 0) return null;
-  return SITES.find((site) => site.nameTh.includes(needle)) ?? null;
+  return records.sites.find((site) => site.nameTh.includes(needle)) ?? null;
 }
 
 /** Every site, the ones that need attention first, each with its streak since the last lost-time injury. */
-export function listSites() {
-  const ranked = SITES.map(rankedRow).sort((left, right) => left.order - right.order || left.streak - right.streak);
+function listSites(records: SiteRecords) {
+  const ranked = records.sites.map((site) => rankedRow(site, records.incidents)).sort((left, right) => left.order - right.order || left.streak - right.streak);
   const alarms = ranked.filter((entry) => entry.order === STATUS_ORDER.alarm).length;
   return { ok: true as const, summary: T.summary(ranked.length, alarms), data: ranked.map((entry) => entry.row) };
 }
 
 /** One site's safety picture: photo, three numbers that decide, the incident timeline, open corrective actions and the people on site the viewer may see. */
-export function siteDetail(access: AccessContext, id: string | null, name: string | null) {
-  if (!id && !name) return listSites();
-  const site = resolveSite(id, name);
+export async function siteDetail(access: AccessContext, id: string | null, name: string | null) {
+  const records = await ports().sites.load();
+  if (!id && !name) return listSites(records);
+  const site = resolveSite(records, id, name);
   if (!site) return { ok: false as const, error: T.notFound(name ?? id ?? "") };
-  const safety = safetyOf(site);
-  const lead = site.safetyLeadId ? employeeById(site.safetyLeadId) : null;
+  const directory = directoryOf(await ports().directory.load());
+  const safety = safetyOf(site, records.incidents);
+  const lead = site.safetyLeadId ? directory.byId(site.safetyLeadId) : null;
   return {
     ok: true as const,
     summary: T.detailSummary(site.nameTh, T.status[safety.status] ?? safety.status),
@@ -115,8 +118,8 @@ export function siteDetail(access: AccessContext, id: string | null, name: strin
         ...(lead ? [{ label: T.fact.safetyLead, value: lead.nameTh }] : []),
       ],
       open_actions: safety.open.map((incident) => ({ title: incident.titleTh, body: incident.actionTh, date: formatDateTh(incident.date) })),
-      incidents: timelineOf(lastYearOf(site)),
-      people: peopleAtSite(access, site.id),
+      incidents: timelineOf(lastYearOf(site, records.incidents)),
+      people: peopleAtSite(access, site.id, directory),
     },
   };
 }

@@ -1,11 +1,13 @@
-import type { AccessContext } from "@/lib/contracts";
+import { CANDIDATE_STAGES, type AccessContext, type Candidate, type CandidateStage, type OpenPosition } from "@/lib/contracts";
 import { canSeeCandidates, canSeeSalary } from "@/lib/access/people-scope";
-import { OPEN_POSITIONS, employeeById, type OpenPosition } from "@/lib/data/entities/people";
-import { CANDIDATES, CANDIDATE_STAGES, candidatesOf, type Candidate, type CandidateStage } from "@/lib/data/entities/recruiting";
 import { TODAY, toDayIndex } from "@/lib/data/dates";
 import { formatCurrency, formatDateTh } from "@/lib/i18n/format";
 import { TH } from "@/lib/i18n/th";
 import type { PersonBadge } from "./people";
+import { ports } from "./ports";
+import { directoryOf, type Directory } from "./ports/directory";
+
+type Hiring = { directory: Directory; candidates: readonly Candidate[] };
 
 const T = TH.recruiting;
 const MAX_CANDIDATE_ROWS = 12;
@@ -35,8 +37,8 @@ function badgesOf(candidate: Candidate): PersonBadge[] {
   return badges;
 }
 
-function rowOf(access: AccessContext, candidate: Candidate) {
-  const position = OPEN_POSITIONS.find((entry) => entry.id === candidate.positionId);
+function rowOf(access: AccessContext, candidate: Candidate, hiring: Hiring) {
+  const position = hiring.directory.openPositions.find((entry) => entry.id === candidate.positionId);
   return {
     id: candidate.id,
     name: candidate.nameTh,
@@ -61,25 +63,25 @@ function furthestFirst(left: Candidate, right: Candidate): number {
   return stepOf(right.stage) - stepOf(left.stage) || (right.score ?? 0) - (left.score ?? 0) || left.appliedOn.localeCompare(right.appliedOn);
 }
 
-function visiblePositions(access: AccessContext): OpenPosition[] {
-  return OPEN_POSITIONS.filter((position) => canSeeCandidates(access, position.managerId));
+function visiblePositions(access: AccessContext, directory: Directory): OpenPosition[] {
+  return directory.openPositions.filter((position) => canSeeCandidates(access, position.managerId, directory));
 }
 
-function positionSummary(position: OpenPosition) {
-  const candidates = candidatesOf(position.id);
+function positionSummary(position: OpenPosition, hiring: Hiring) {
+  const candidates = hiring.candidates.filter((candidate) => candidate.positionId === position.id);
   const advanced = candidates.filter((candidate) => stepOf(candidate.stage) >= INTERVIEW_STEP).length;
   return {
     id: position.id,
     title: position.title,
-    manager: employeeById(position.managerId)?.nameTh ?? null,
+    manager: hiring.directory.byId(position.managerId)?.nameTh ?? null,
     candidates: T.count(candidates.length),
     advanced: T.advanced(advanced),
     open_label: T.openFor(daysOpen(position)),
   };
 }
 
-function metricsOf(positions: OpenPosition[]) {
-  const candidates = CANDIDATES.filter((candidate) => positions.some((position) => position.id === candidate.positionId));
+function metricsOf(positions: OpenPosition[], hiring: Hiring) {
+  const candidates = hiring.candidates.filter((candidate) => positions.some((position) => position.id === candidate.positionId));
   const recent = candidates.filter((candidate) => toDayIndex(TODAY) - toDayIndex(candidate.appliedOn) <= RECENT_DAYS).length;
   const advanced = candidates.filter((candidate) => stepOf(candidate.stage) >= INTERVIEW_STEP).length;
   const offers = candidates.filter((candidate) => candidate.stage === "offer").length;
@@ -108,12 +110,15 @@ function resolvePositions(visible: OpenPosition[], position: string | null): Ope
 }
 
 /** The candidates for the openings the viewer may see (HR, CEO, the hiring manager and above), furthest along first. */
-export function listCandidates(access: AccessContext, query: CandidateQuery) {
-  const visible = visiblePositions(access);
+export async function listCandidates(access: AccessContext, query: CandidateQuery) {
+  const [records, all] = await Promise.all([ports().directory.load(), ports().recruiting.candidates()]);
+  const hiring: Hiring = { directory: directoryOf(records), candidates: all };
+  const summaryOf = (position: OpenPosition) => positionSummary(position, hiring);
+  const visible = visiblePositions(access, hiring.directory);
   if (visible.length === 0) return { ok: false as const, code: "PERMISSION_DENIED" as const, error: T.denied };
   const positions = resolvePositions(visible, query.position);
-  if (positions.length === 0) return { ok: false as const, error: T.noPosition(query.position ?? ""), positions: visible.map(positionSummary) };
-  const candidates = CANDIDATES.filter((candidate) => positions.some((position) => position.id === candidate.positionId))
+  if (positions.length === 0) return { ok: false as const, error: T.noPosition(query.position ?? ""), positions: visible.map(summaryOf) };
+  const candidates = hiring.candidates.filter((candidate) => positions.some((position) => position.id === candidate.positionId))
     .filter((candidate) => !query.stage || candidate.stage === query.stage)
     .sort(furthestFirst);
   const single = positions.length === 1 ? positions[0] : null;
@@ -121,10 +126,10 @@ export function listCandidates(access: AccessContext, query: CandidateQuery) {
     ok: true as const,
     summary: single ? T.summary(single.title, candidates.length, daysOpen(single)) : T.summaryAll(positions.length, candidates.length),
     data: {
-      position: single ? positionSummary(single) : null,
-      metrics: metricsOf(positions),
-      candidates: candidates.slice(0, MAX_CANDIDATE_ROWS).map((candidate) => rowOf(access, candidate)),
-      positions: single ? [] : positions.map(positionSummary),
+      position: single ? summaryOf(single) : null,
+      metrics: metricsOf(positions, hiring),
+      candidates: candidates.slice(0, MAX_CANDIDATE_ROWS).map((candidate) => rowOf(access, candidate, hiring)),
+      positions: single ? [] : positions.map(summaryOf),
     },
   };
 }

@@ -1,13 +1,13 @@
 import { randomUUID } from "node:crypto";
 import type { AccessContext, ContextPacket, Dim, MetricQuery, MetricRow, Notification, PacketReply, User } from "@/lib/contracts";
-import { metricsPort } from "@/lib/server/ports/metrics";
+import { ports } from "@/lib/server/ports";
 import { responsibleFor } from "@/lib/access/raci";
 import { findUser } from "@/lib/data/entities/users";
 import { metricLabel } from "@/lib/dashboard/metric-display";
 import { displayLabel } from "@/lib/semantic/dictionary";
 import { formatDateTh } from "@/lib/i18n/format";
 import { TH } from "@/lib/i18n/th";
-import { notifications, outbox, packetOrigins, packets, type OutboxEntry } from "./agent/collections";
+import { notifications, packetOrigins, packets } from "./agent/collections";
 import { threads } from "./threads-read";
 import { rememberAction } from "@/lib/engine/memory";
 
@@ -42,7 +42,7 @@ function scopeOf(filters: Partial<Record<Dim, string[]>>): string {
 /** Re-runs the sender's queries under the reader's own scope: a packet carries references, never values. */
 export async function resolveEvidence(packet: ContextPacket, access: AccessContext): Promise<EvidenceView[]> {
   return Promise.all(packet.evidence.map(async (query) => {
-    const result = await metricsPort().runMetric({ ...query, limit: MAX_EVIDENCE_ROWS }, access);
+    const result = await ports().metrics.runMetric({ ...query, limit: MAX_EVIDENCE_ROWS }, access);
     const base = { metric: metricLabel(query.metric), scope: scopeOf(query.filters), range: `${formatDateTh(query.range.from)} – ${formatDateTh(query.range.to)}` };
     if (!result.ok) {
       return { ...base, summary: TH.handoff.denied, rows: [], masked: false, denied: true, ownerUserId: responsibleFor(query.metric, null)?.userId ?? null };
@@ -75,10 +75,6 @@ function notify(notification: Omit<Notification, "id" | "at" | "read">): Notific
   return notifications().put({ ...notification, id: randomUUID(), at: now(), read: false });
 }
 
-function mail(entry: Omit<OutboxEntry, "id" | "at">): OutboxEntry {
-  return outbox().put({ ...entry, id: randomUUID(), at: now() });
-}
-
 export type HandoffInput = {
   toUserId: string;
   title: string;
@@ -92,7 +88,7 @@ export type HandoffInput = {
 };
 
 /** Creates the packet, the recipient's notification and the outbox mail, and remembers which thread it came from. */
-export function createPacket(input: HandoffInput, sender: User | null, recipient: User): ContextPacket {
+export async function createPacket(input: HandoffInput, sender: User | null, recipient: User): Promise<ContextPacket> {
   const at = now();
   const packet: ContextPacket = {
     id: randomUUID(),
@@ -120,7 +116,7 @@ export function createPacket(input: HandoffInput, sender: User | null, recipient
   }
   if (input.threadId) packetOrigins().put({ id: packet.id, threadId: input.threadId, userId: packet.fromUserId });
   notify({ userId: recipient.id, kind: "handoff", refId: packet.id, title: TH.handoff.newFrom(sender?.nameTh ?? packet.fromUserId, packet.title) });
-  mail({
+  await ports().mail.send({
     kind: "handoff",
     fromUserId: packet.fromUserId,
     toUserId: recipient.id,

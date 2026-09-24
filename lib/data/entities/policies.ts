@@ -1,8 +1,6 @@
-export const LEAVE_KINDS = ["annual", "sick", "personal"] as const;
-export type LeaveKind = (typeof LEAVE_KINDS)[number];
+import { LEAVE_KINDS, type LeaveKind, type PolicySection, type PolicyTopic } from "@/lib/contracts";
 
-export type PolicySection = { titleTh: string; bodyTh: string };
-export type PolicyTopic = "leave" | "benefits";
+export { LEAVE_KINDS, type LeaveKind, type PolicySection, type PolicyTopic };
 
 export const ANNUAL_LEAVE_STEPS: readonly { minYears: number; days: number }[] = [
   { minYears: 10, days: 15 },
@@ -45,6 +43,3 @@ export function leaveUsedThisYear(employeeId: string): Readonly<Record<LeaveKind
   return LEAVE_USED_THIS_YEAR[employeeId] ?? DEFAULT_USED;
 }
 
-export function annualEntitlement(tenureYears: number): number {
-  return ANNUAL_LEAVE_STEPS.find((step) => tenureYears >= step.minYears)?.days ?? 0;
-}

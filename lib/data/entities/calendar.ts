@@ -1,7 +1,8 @@
+import type { DateWindow, Holiday } from "@/lib/contracts";
 import { DAY_COUNT, ISO_OF_DAY, toBuddhistYear, toDayIndex, weekKeyOfIso } from "../dates";
 
-export type Holiday = { date: string; nameTh: string; label: string };
-export type DateWindow = { from: string; to: string; nameTh: string };
+export type { DateWindow, Holiday };
+export { toBuddhistYear };
 
 export const FISCAL_YEAR_START_MONTH = 1;
 
@@ -55,9 +56,6 @@ export const ALCOHOL_BAN_DATES: readonly string[] = [
   "2026-03-03", "2026-05-31", "2026-07-29", "2026-07-30", "2026-10-26",
 ];
 
-export type CalendarEventKind = "alcohol_ban" | "holiday" | "festival";
-export type CalendarEvent = { from: string; to: string; nameTh: string; kind: CalendarEventKind };
-
 export const SONGKRAN_WINDOWS: readonly DateWindow[] = [
   { from: "2025-04-11", to: "2025-04-17", nameTh: "สงกรานต์ 2568" },
   { from: "2026-04-11", to: "2026-04-17", nameTh: "สงกรานต์ 2569" },
@@ -100,37 +98,14 @@ export const ALCOHOL_BAN_FLAGS = (() => {
   return flags;
 })();
 
-const FESTIVAL_WINDOWS: readonly DateWindow[] = [
+export const FESTIVAL_WINDOWS: readonly DateWindow[] = [
   ...SONGKRAN_WINDOWS,
   { from: "2025-12-24", to: "2026-01-01", nameTh: "เทศกาลปีใหม่ 2569" },
   { from: "2026-12-24", to: "2027-01-01", nameTh: "เทศกาลปีใหม่ 2570" },
 ];
 
-export function isAlcoholBanDay(iso: string): boolean {
-  return ALCOHOL_BAN_DATES.includes(iso);
-}
-
-/** Every dated event in a range, earliest first: no-sale days, public holidays and festival windows. */
-export function calendarEvents(from: string, to: string): CalendarEvent[] {
-  const events: CalendarEvent[] = [];
-  for (const holiday of THAI_HOLIDAYS) {
-    if (holiday.date < from || holiday.date > to) continue;
-    const kind: CalendarEventKind = isAlcoholBanDay(holiday.date) ? "alcohol_ban" : "holiday";
-    events.push({ from: holiday.date, to: holiday.date, nameTh: holiday.nameTh, kind });
-  }
-  for (const window of FESTIVAL_WINDOWS) {
-    if (window.to < from || window.from > to) continue;
-    events.push({ from: window.from, to: window.to, nameTh: window.nameTh, kind: "festival" });
-  }
-  return events.sort((left, right) => left.from.localeCompare(right.from) || left.kind.localeCompare(right.kind));
-}
-
 export function isHoliday(iso: string): boolean {
   return HOLIDAY_BY_DATE.has(iso);
-}
-
-export function holidayOn(iso: string): Holiday | null {
-  return HOLIDAY_BY_DATE.get(iso) ?? null;
 }
 
 function withinWindows(windows: readonly DateWindow[], iso: string): boolean {
@@ -154,4 +129,3 @@ export function isoOfDay(dayIndex: number): string {
   return ISO_OF_DAY[dayIndex] ?? ISO_OF_DAY[0] ?? "";
 }
 
-export { toBuddhistYear };

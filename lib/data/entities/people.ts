@@ -1,33 +1,8 @@
-import type { Region } from "@/lib/contracts";
+import type { CareerEvent, Certificate, Employee, OpenPosition } from "@/lib/contracts";
 import { DEPARTMENTS } from "./hr";
 import { USERS } from "./users";
 
-export type Gender = "female" | "male";
-export type CareerEventKind = "hired" | "promoted" | "moved" | "trained" | "award";
-export type CareerEvent = { date: string; kind: CareerEventKind; labelTh: string };
-export type Certificate = { nameTh: string; expires: string };
-
-export type Employee = {
-  id: string;
-  userId: string | null;
-  nameTh: string;
-  gender: Gender;
-  birthYear: number;
-  title: string;
-  departmentId: string;
-  region: Region | null;
-  provinceId: string | null;
-  siteId: string | null;
-  managerId: string | null;
-  hiredOn: string;
-  photo: string;
-  salaryThb: number;
-  overtimeHours3m: number;
-  history: CareerEvent[];
-  certificates: Certificate[];
-};
-
-export type OpenPosition = { id: string; title: string; departmentId: string; region: Region | null; provinceId: string | null; managerId: string; openedOn: string };
+export type { CareerEvent, Certificate, Employee, OpenPosition };
 
 type PersonDetail = Pick<Employee, "gender" | "birthYear" | "hiredOn" | "salaryThb" | "overtimeHours3m" | "history" | "certificates"> & {
   photo: number;
@@ -212,25 +187,3 @@ export const OPEN_POSITIONS: readonly OpenPosition[] = [
   { id: "op_ne_korat", title: "พนักงานขาย นครราชสีมา (เขตปากช่อง)", departmentId: "dept_sales", region: "northeast", provinceId: "pv_nakhonratchasima", managerId: "e_pong", openedOn: "2026-08-04" },
   { id: "op_kk_qc", title: "พนักงานควบคุมคุณภาพ โรงงานขอนแก่น", departmentId: "dept_production", region: "northeast", provinceId: "pv_khonkaen", managerId: "e_somsri", openedOn: "2026-09-01" },
 ];
-
-const EMPLOYEE_INDEX: ReadonlyMap<string, Employee> = new Map(EMPLOYEES.map((employee) => [employee.id, employee]));
-
-export function employeeById(id: string): Employee | null {
-  return EMPLOYEE_INDEX.get(id) ?? null;
-}
-
-/** The chain of managers above an employee, nearest first. */
-export function managersOf(employee: Employee): Employee[] {
-  const chain: Employee[] = [];
-  let next = employee.managerId ? employeeById(employee.managerId) : null;
-  while (next && !chain.includes(next)) {
-    chain.push(next);
-    next = next.managerId ? employeeById(next.managerId) : null;
-  }
-  return chain;
-}
-
-/** Whether `managerId` sits anywhere above the employee in the reporting line. */
-export function reportsTo(employee: Employee, managerId: string): boolean {
-  return managersOf(employee).some((manager) => manager.id === managerId);
-}

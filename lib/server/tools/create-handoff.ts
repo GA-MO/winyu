@@ -48,7 +48,7 @@ export const createHandoffTool = defineTool({
     const target = recipient(input.toUserId);
     if (!target.ok) return { ok: false as const, error: target.error };
     const turn = currentTurn();
-    const packet = createPacket(
+    const packet = await createPacket(
       {
         toUserId: target.user.id,
         title: input.title,

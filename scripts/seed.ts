@@ -22,5 +22,5 @@ if (!STORY_ONLY) {
   console.log(`seed: reset ${DATA_DIR} (${removed} files removed)`);
 }
 
-const story = ensureDemoStory();
+const story = await ensureDemoStory();
 console.log(story ? `seed: demo story alert ${story.alertId} · packet ${story.packetId} (${story.created.packet ? "new" : "kept"}) · lesson ${story.created.outcome ? "new" : "kept"}` : "seed: demo story skipped (no alert on the story agent)");

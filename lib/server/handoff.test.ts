@@ -20,10 +20,10 @@ function query(metric: MetricQuery["metric"], filters: MetricQuery["filters"] = 
   return { metric, dims: [], filters, range: { from: "2026-08-01", to: "2026-08-31" }, grain: "day", compare: "none", limit: null };
 }
 
-function makePacket(toUserId: string, evidence: MetricQuery[]): ContextPacket {
+async function makePacket(toUserId: string, evidence: MetricQuery[]): Promise<ContextPacket> {
   const recipient = findUser(toUserId);
   if (!recipient) throw new Error(`missing demo user ${toUserId}`);
-  const packet = createPacket(
+  const packet = (await createPacket(
     {
       toUserId,
       title: "ทดสอบการส่งต่องาน",
@@ -37,7 +37,7 @@ function makePacket(toUserId: string, evidence: MetricQuery[]): ContextPacket {
     },
     findUser(SENDER),
     recipient,
-  );
+  ));
   created.push(packet.id);
   return packet;
 }
@@ -49,7 +49,7 @@ afterAll(() => {
 
 describe("handoff packets", () => {
   test("evidence is re-run under the recipient's scope, not copied from the sender", async () => {
-    const packet = makePacket("u_wee", [query("net_sales_volume", { region: ["northeast"] }), query("gross_margin"), query("avg_salary")]);
+    const packet = await makePacket("u_wee", [query("net_sales_volume", { region: ["northeast"] }), query("gross_margin"), query("avg_salary")]);
     const asPlanner = await resolveEvidence(packet, access("u_wee"));
     expect(asPlanner[0].denied).toBe(false);
     expect(asPlanner[1].denied).toBe(true);
@@ -61,7 +61,7 @@ describe("handoff packets", () => {
   });
 
   test("a masked metric is flagged instead of shown", async () => {
-    const packet = makePacket("u_siriporn", [query("avg_salary")]);
+    const packet = await makePacket("u_siriporn", [query("avg_salary")]);
     const asCfo = await resolveEvidence(packet, access("u_siriporn"));
     expect(asCfo[0].masked).toBe(true);
     expect(asCfo[0].rows.every((row) => row.value === "***")).toBe(true);
@@ -70,20 +70,20 @@ describe("handoff packets", () => {
   });
 
   test("a region outside the recipient's scope comes back denied", async () => {
-    const packet = makePacket("u_anucha", [query("net_sales_volume", { region: ["south"] })]);
+    const packet = await makePacket("u_anucha", [query("net_sales_volume", { region: ["south"] })]);
     const asRsm = await resolveEvidence(packet, access("u_anucha"));
     expect(asRsm[0].denied).toBe(true);
   });
 
-  test("creating a packet notifies the recipient and sets an SLA", () => {
-    const packet = makePacket("u_wee", [query("days_of_cover")]);
+  test("creating a packet notifies the recipient and sets an SLA", async () => {
+    const packet = await makePacket("u_wee", [query("days_of_cover")]);
     expect(packet.status).toBe("open");
     expect(packet.sla).not.toBeNull();
     expect(notifications().where((item) => item.refId === packet.id && item.userId === "u_wee")).toHaveLength(1);
   });
 
-  test("the lifecycle runs open to accepted to resolved and tells the sender each time", () => {
-    const packet = makePacket("u_wee", [query("days_of_cover")]);
+  test("the lifecycle runs open to accepted to resolved and tells the sender each time", async () => {
+    const packet = await makePacket("u_wee", [query("days_of_cover")]);
     const accepted = actOnPacket(packet, access("u_wee"), "accept", TH.handoff.replies.accept, null);
     expect(accepted.status).toBe("accepted");
     const resolved = actOnPacket(accepted, access("u_wee"), "resolve", "เติมสต๊อกแล้ว", "เติมสต๊อกแล้ว");

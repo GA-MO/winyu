@@ -1,20 +1,6 @@
-export type CourseFormat = "classroom" | "online" | "field";
+import type { Course } from "@/lib/contracts";
 
-export type Course = {
-  id: string;
-  titleTh: string;
-  categoryTh: string;
-  cover: string;
-  format: CourseFormat;
-  placeTh: string;
-  starts: string;
-  days: number;
-  seats: number;
-  enrolled: number;
-  audienceTh: string;
-  renewsCertificate: string | null;
-  departmentIds: readonly string[] | null;
-};
+export type { Course };
 
 const COVER_DIR = "/img/courses";
 
@@ -45,6 +31,3 @@ export const COURSES: readonly Course[] = [
     starts: "2026-11-09", days: 2, seats: 40, enrolled: 14, audienceTh: "พนักงานที่เริ่มงานไม่เกิน 3 เดือน", renewsCertificate: null, departmentIds: null },
 ];
 
-export function courseById(id: string): Course | null {
-  return COURSES.find((course) => course.id === id) ?? null;
-}

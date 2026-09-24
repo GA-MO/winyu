@@ -1,5 +1,5 @@
 import { TODAY, toDayIndex } from "@/lib/data/dates";
-import { incidentsOf, type Incident, type Site } from "@/lib/data/entities/sites";
+import type { Incident, Site } from "@/lib/contracts";
 
 export const RECENT_DAYS = 90;
 export const RECENT_LTI_DAYS = 30;
@@ -34,8 +34,8 @@ function statusOf(daysSinceLti: number | null, open: number, recentCount: number
 }
 
 /** What a site's incident log says today: the streak since the last lost-time injury, the last 90 days against the 90 before, and what is still open. */
-export function safetyOf(site: Site, today: string = TODAY): SiteSafety {
-  const incidents = incidentsOf(site.id).filter((incident) => incident.date <= today);
+export function safetyOf(site: Site, log: readonly Incident[], today: string = TODAY): SiteSafety {
+  const incidents = log.filter((incident) => incident.siteId === site.id && incident.date <= today);
   const recent = incidents.filter((incident) => ageInDays(incident.date, today) < RECENT_DAYS);
   const previous = incidents.filter((incident) => {
     const age = ageInDays(incident.date, today);

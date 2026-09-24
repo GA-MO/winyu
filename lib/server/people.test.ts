@@ -15,14 +15,14 @@ function accessOf(userId: string) {
   return accessFor(user);
 }
 
-function profileOf(userId: string, personId: string) {
-  const result = personProfile(accessOf(userId), personId, null);
+async function profileOf(userId: string, personId: string) {
+  const result = await personProfile(accessOf(userId), personId, null);
   if (!result.ok) throw new Error(result.error);
   return result.data;
 }
 
-function factLabels(userId: string, personId: string): string[] {
-  return profileOf(userId, personId).facts.map((fact) => fact.label);
+async function factLabels(userId: string, personId: string): Promise<string[]> {
+  return (await profileOf(userId, personId)).facts.map((fact) => fact.label);
 }
 
 describe("people directory", () => {
@@ -32,8 +32,8 @@ describe("people directory", () => {
     for (const photo of photos) expect(existsSync(join(process.cwd(), "public", photo))).toBe(true);
   });
 
-  test("the northeast team lists its lead first and shows the open positions", () => {
-    const result = findPeople(accessOf("u_anucha"), { ...NO_FILTER, manager: "u_anucha" });
+  test("the northeast team lists its lead first and shows the open positions", async () => {
+    const result = await findPeople(accessOf("u_anucha"), { ...NO_FILTER, manager: "u_anucha" });
     expect(result.data[0]?.id).toBe("u_anucha");
     expect(result.data.map((row) => row.id)).toContain("e_joy");
     expect(result.open_positions.length).toBe(3);
@@ -49,36 +49,36 @@ describe("people directory", () => {
 });
 
 describe("people access", () => {
-  test("HR sees the risk badge and pay", () => {
-    const joy = findPeople(accessOf("u_may"), { ...NO_FILTER, query: "จอย" }).data[0];
+  test("HR sees the risk badge and pay", async () => {
+    const joy = (await findPeople(accessOf("u_may"), { ...NO_FILTER, query: "จอย" })).data[0];
     expect(joy?.badges.map((badge) => badge.label)).toContain("ควรคุยเรื่องความก้าวหน้า");
-    expect(factLabels("u_may", "e_pong")).toContain("เงินเดือน");
+    expect((await factLabels("u_may", "e_pong"))).toContain("เงินเดือน");
   });
 
-  test("a regional manager sees facts about their team but no risk judgement and no pay", () => {
-    const rows = findPeople(accessOf("u_anucha"), { ...NO_FILTER, manager: "u_anucha" }).data;
+  test("a regional manager sees facts about their team but no risk judgement and no pay", async () => {
+    const rows = (await findPeople(accessOf("u_anucha"), { ...NO_FILTER, manager: "u_anucha" })).data;
     const pong = rows.find((row) => row.id === "e_pong");
     expect(pong?.badges.some((badge) => badge.label.startsWith("โอที"))).toBe(true);
     expect(pong?.badges.some((badge) => badge.label.includes("ลาออก") || badge.label.includes("ความก้าวหน้า"))).toBe(false);
-    expect(factLabels("u_anucha", "e_pong")).not.toContain("เงินเดือน");
-    expect(profileOf("u_anucha", "e_pong").history.length).toBeGreaterThan(0);
+    expect((await factLabels("u_anucha", "e_pong"))).not.toContain("เงินเดือน");
+    expect((await profileOf("u_anucha", "e_pong")).history.length).toBeGreaterThan(0);
   });
 
-  test("a regional manager cannot open someone outside their region", () => {
-    expect(personProfile(accessOf("u_anucha"), "u_ploy", null).ok).toBe(false);
-    expect(findPeople(accessOf("u_anucha"), { ...NO_FILTER, region: "north" }).data).toEqual([]);
+  test("a regional manager cannot open someone outside their region", async () => {
+    expect((await personProfile(accessOf("u_anucha"), "u_ploy", null)).ok).toBe(false);
+    expect((await findPeople(accessOf("u_anucha"), { ...NO_FILTER, region: "north" })).data).toEqual([]);
   });
 
-  test("a sales rep gets directory fields only for a colleague", () => {
-    const joy = profileOf("u_krit", "e_joy");
+  test("a sales rep gets directory fields only for a colleague", async () => {
+    const joy = await profileOf("u_krit", "e_joy");
     expect(joy.badges).toEqual([]);
     expect(joy.history).toEqual([]);
     expect(joy.certificates).toEqual([]);
     expect(joy.facts.map((fact) => fact.label)).toEqual(["ฝ่าย", "พื้นที่", "หัวหน้า"]);
   });
 
-  test("a flag cannot be used to probe risk without the right to see it", () => {
-    expect(findPeople(accessOf("u_anucha"), { ...NO_FILTER, flag: "risk" }).data).toEqual([]);
-    expect(findPeople(accessOf("u_krit"), { ...NO_FILTER, flag: "overtime" }).data).toEqual([]);
+  test("a flag cannot be used to probe risk without the right to see it", async () => {
+    expect((await findPeople(accessOf("u_anucha"), { ...NO_FILTER, flag: "risk" })).data).toEqual([]);
+    expect((await findPeople(accessOf("u_krit"), { ...NO_FILTER, flag: "overtime" })).data).toEqual([]);
   });
 });

@@ -1,7 +1,5 @@
-import type { AccessContext } from "@/lib/contracts";
+import type { AccessContext, Course, Employee } from "@/lib/contracts";
 import { peopleViewOf } from "@/lib/access/people-scope";
-import { COURSES, courseById, type Course } from "@/lib/data/entities/courses";
-import { EMPLOYEES, employeeById, type Employee } from "@/lib/data/entities/people";
 import { TODAY, addDays } from "@/lib/data/dates";
 import { signalsOf } from "@/lib/engine/people-signals";
 import { formatDateTh } from "@/lib/i18n/format";
@@ -9,6 +7,8 @@ import { TH } from "@/lib/i18n/th";
 import type { PersonBadge } from "./people";
 import { approverOf, requestsOf, submitRequest } from "./staff-requests";
 import { staffRequests } from "./agent/collections";
+import { ports } from "./ports";
+import { directoryOf, type Directory } from "./ports/directory";
 
 const T = TH.courses;
 const MAX_COURSE_ROWS = 12;
@@ -33,8 +33,8 @@ function expiringFor(course: Course, employees: Employee[]): Expiring[] {
   }).sort((left, right) => left.daysLeft - right.daysLeft);
 }
 
-function teamOf(access: AccessContext): Employee[] {
-  return EMPLOYEES.filter((employee) => employee.id !== access.userId && (peopleViewOf(access, employee) ?? "directory") !== "directory");
+function teamOf(access: AccessContext, directory: Directory): Employee[] {
+  return directory.employees.filter((employee) => employee.id !== access.userId && (peopleViewOf(access, employee, directory) ?? "directory") !== "directory");
 }
 
 function seatsOf(left: number, course: Course) {
@@ -42,22 +42,22 @@ function seatsOf(left: number, course: Course) {
   return { label: left === 0 ? T.full : T.seatsLeft(left, course.seats), tone };
 }
 
-function badgesOf(access: AccessContext, course: Course, enrolled: boolean): PersonBadge[] {
+function badgesOf(access: AccessContext, course: Course, enrolled: boolean, directory: Directory): PersonBadge[] {
   const badges: PersonBadge[] = [];
   if (enrolled) badges.push({ label: T.badge.requested, tone: "success" });
-  const self = employeeById(access.userId);
+  const self = directory.byId(access.userId);
   const mine = self ? expiringFor(course, [self])[0] : undefined;
   if (mine) badges.push({ label: T.badge.yoursExpiring(mine.daysLeft), tone: "danger" });
   return badges;
 }
 
-function noteOf(access: AccessContext, course: Course): string | null {
-  const team = expiringFor(course, teamOf(access)).slice(0, MAX_SUGGESTED);
+function noteOf(access: AccessContext, course: Course, directory: Directory): string | null {
+  const team = expiringFor(course, teamOf(access, directory)).slice(0, MAX_SUGGESTED);
   if (team.length === 0) return null;
   return T.suggest(team.map((entry) => T.suggestPerson(entry.employee.nameTh, entry.daysLeft)).join(", "));
 }
 
-function rowOf(access: AccessContext, course: Course) {
+function rowOf(access: AccessContext, course: Course, directory: Directory) {
   const left = seatsLeft(course);
   const enrolled = requestsOf(access.userId, "course").some((request) => request.refId === course.id);
   return {
@@ -69,8 +69,8 @@ function rowOf(access: AccessContext, course: Course) {
     place: placeOf(course),
     audience: course.audienceTh,
     seats: seatsOf(left, course),
-    note: noteOf(access, course),
-    badges: badgesOf(access, course, enrolled),
+    note: noteOf(access, course, directory),
+    badges: badgesOf(access, course, enrolled, directory),
     can_enroll: left > 0 && !enrolled,
   };
 }
@@ -89,38 +89,46 @@ function inWindow(course: Course, month: string | null): boolean {
   return month ? course.starts.startsWith(month) : true;
 }
 
-function relevance(access: AccessContext, course: Course): number {
-  const self = employeeById(access.userId);
+function relevance(access: AccessContext, course: Course, directory: Directory): number {
+  const self = directory.byId(access.userId);
   if (self && expiringFor(course, [self]).length > 0) return 0;
-  if (expiringFor(course, teamOf(access)).length > 0) return 1;
+  if (expiringFor(course, teamOf(access, directory)).length > 0) return 1;
   return 2;
 }
 
 /** Upcoming courses (one month, or the next ones): the ones renewing the viewer's or their team's expiring certificate first, then soonest, with seats left and whose certificate each one renews. */
-export function listCourses(access: AccessContext, query: CourseQuery) {
-  const courses = COURSES.filter((course) => inWindow(course, query.month) && (!query.query || matchesQuery(course, query.query)))
-    .sort((left, right) => relevance(access, left) - relevance(access, right) || left.starts.localeCompare(right.starts))
+export async function listCourses(access: AccessContext, query: CourseQuery) {
+  const [catalogue, records] = await Promise.all([ports().learning.courses(), ports().directory.load()]);
+  const directory = directoryOf(records);
+  const courses = catalogue.filter((course) => inWindow(course, query.month) && (!query.query || matchesQuery(course, query.query)))
+    .sort((left, right) => relevance(access, left, directory) - relevance(access, right, directory) || left.starts.localeCompare(right.starts))
     .slice(0, MAX_COURSE_ROWS);
   if (courses.length === 0) return { ok: true as const, summary: T.none, data: [] };
-  const urgent = courses.filter((course) => relevance(access, course) < 2).length;
+  const urgent = courses.filter((course) => relevance(access, course, directory) < 2).length;
   return {
     ok: true as const,
     summary: T.summary(courses.length, formatDateTh(courses.reduce((first, course) => (course.starts < first ? course.starts : first), courses[0]?.starts ?? TODAY)), urgent),
-    data: courses.map((course) => rowOf(access, course)),
+    data: courses.map((course) => rowOf(access, course, directory)),
   };
 }
 
+/** One course by id or by words from its title, for the tool and the approval card. */
+export async function findCourse(courseId: string): Promise<Course | null> {
+  const catalogue = await ports().learning.courses();
+  return catalogue.find((entry) => entry.id === courseId) ?? catalogue.find((entry) => entry.titleTh.includes(courseId.trim())) ?? null;
+}
+
 /** Asks the viewer's manager to approve a seat on one course; the seat is held once the request is sent. */
-export function enrollCourse(access: AccessContext, courseId: string, threadId: string | null) {
-  const course = courseById(courseId) ?? COURSES.find((entry) => entry.titleTh.includes(courseId.trim())) ?? null;
+export async function enrollCourse(access: AccessContext, courseId: string, threadId: string | null) {
+  const course = await findCourse(courseId);
   if (!course) return { ok: false as const, error: T.notFound(courseId) };
   if (course.starts < TODAY) return { ok: false as const, error: T.started(course.titleTh) };
   if (requestsOf(access.userId, "course").some((request) => request.refId === course.id)) return { ok: false as const, error: T.already(course.titleTh) };
   if (seatsLeft(course) === 0) return { ok: false as const, error: T.fullError(course.titleTh) };
-  const approver = approverOf(access.userId);
+  const approver = await approverOf(access.userId);
   if (!approver) return { ok: false as const, error: T.noApprover };
   const when = T.when(formatDateTh(course.starts), course.days);
-  submitRequest(access, approver, {
+  await submitRequest(access, approver, {
     kind: "course",
     refId: course.id,
     from: course.starts,

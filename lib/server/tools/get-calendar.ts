@@ -1,11 +1,11 @@
 import type { z } from "zod";
-import { getCalendarInputSchema, type AccessContext } from "@/lib/contracts";
+import { getCalendarInputSchema, type AccessContext, type CalendarEvent } from "@/lib/contracts";
 import { addDays, TODAY, toDayIndex } from "@/lib/data/dates";
-import { calendarEvents, type CalendarEvent } from "@/lib/data/entities/calendar";
 import { impactOf, type DailyBeer, type EventImpact } from "@/lib/engine/calendar-impact";
 import { formatDateTh } from "@/lib/i18n/format";
 import { TH } from "@/lib/i18n/th";
-import { metricsPort } from "@/lib/server/ports/metrics";
+import { ports } from "@/lib/server/ports";
+import { calendarOf } from "@/lib/server/ports/calendar";
 import { currentAccess } from "@/lib/server/request-context";
 import { defineTool } from "./define";
 
@@ -15,7 +15,7 @@ const CALENDAR_DAILY_LIMIT = 60;
 
 function beerFor(access: AccessContext): DailyBeer {
   return async (metric, from, to) => {
-    const result = await metricsPort().runMetric(
+    const result = await ports().metrics.runMetric(
       { metric, dims: ["date"], filters: { business_unit: ["beer"] }, range: { from, to }, grain: "day", compare: "none", limit: CALENDAR_DAILY_LIMIT },
       access,
     );
@@ -47,7 +47,8 @@ export const getCalendarTool = defineTool({
     const access = currentAccess();
     const start = from ?? TODAY;
     const end = to ?? addDays(start, CALENDAR_DEFAULT_DAYS);
-    const events = calendarEvents(start, end).slice(0, CALENDAR_MAX_ROWS);
+    const calendar = calendarOf(await ports().calendar.load());
+    const events = calendar.events(start, end).slice(0, CALENDAR_MAX_ROWS);
     if (events.length === 0) return { ok: true as const, summary: TH.calendar.none(formatDateTh(start), formatDateTh(end)), data: [] };
     const beer = beerFor(access);
     const rows = await Promise.all(events.map(async (event) => ({
@@ -57,7 +58,7 @@ export const getCalendarTool = defineTool({
       name: event.nameTh,
       kind: event.kind,
       kind_label: TH.calendar.kind[event.kind],
-      impact_label: impactLabel(await impactOf(event, beer)),
+      impact_label: impactLabel(await impactOf(event, beer, calendar)),
     })));
     const bans = events.filter((event) => event.kind === "alcohol_ban").length;
     return { ok: true as const, summary: TH.calendar.summary(events.length, formatDateTh(start), formatDateTh(end), bans), data: rows };

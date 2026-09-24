@@ -16,7 +16,7 @@ export const runJobTool = defineTool({
     if (job === "anomaly") return { ok: true as const, summary: "รันการตรวจจับความผิดปกติแล้ว", data: runAnomalyJob() };
     if (job === "forecast") return { ok: true as const, summary: "รันการพยากรณ์แล้ว", data: runForecastJob() };
     if (job === "watches") return { ok: true as const, summary: "ตรวจเรื่องที่ผู้ใช้เฝ้าดูแล้ว", data: await runWatchJob() };
-    if (job === "digest") return { ok: true as const, summary: "ส่งสรุปตอนเช้าแล้ว", data: runDigestJob() };
+    if (job === "digest") return { ok: true as const, summary: "ส่งสรุปตอนเช้าแล้ว", data: await runDigestJob() };
     return { ok: true as const, summary: "รันงานเบื้องหลังทั้งหมดแล้ว", data: runEngineJobs() };
   },
 });

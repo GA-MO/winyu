@@ -1,6 +1,6 @@
 import type { AccessContext, Alert, MetricId, MetricQuery } from "@/lib/contracts";
 import type { Spec, SpecElement } from "vexa/protocol";
-import { metricsPort } from "@/lib/server/ports/metrics";
+import { ports } from "@/lib/server/ports";
 import { TODAY, addDays, formatThaiDate } from "@/lib/data/dates";
 import { metricLabel } from "@/lib/dashboard/metric-display";
 import { templateFor } from "@/lib/dashboard/templates";
@@ -30,7 +30,7 @@ function attainmentQuery(): MetricQuery {
 
 async function attainmentOf(access: AccessContext): Promise<number | null> {
   if (access.metricAcl.target_attainment !== "full") return null;
-  const result = await metricsPort().runMetric(attainmentQuery(), access);
+  const result = await ports().metrics.runMetric(attainmentQuery(), access);
   if (!result.ok) return null;
   const value = result.rows[0]?.value;
   return typeof value === "number" ? value : null;
@@ -40,7 +40,7 @@ async function movesFor(access: AccessContext): Promise<BriefMove[]> {
   const moves: BriefMove[] = [];
   for (const seed of templateFor(access).slice(0, MAX_MOVES + 2)) {
     if (moves.length >= MAX_MOVES) break;
-    const result = await metricsPort().runMetric({ ...seed.query, dims: [], compare: "prev_period", limit: 1 }, access);
+    const result = await ports().metrics.runMetric({ ...seed.query, dims: [], compare: "prev_period", limit: 1 }, access);
     if (!result.ok) continue;
     const delta = result.rows[0]?.delta_pct;
     if (typeof delta !== "number" || Math.abs(delta) < MOVE_THRESHOLD) continue;

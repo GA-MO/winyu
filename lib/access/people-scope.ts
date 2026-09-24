@@ -1,5 +1,5 @@
-import type { AccessContext } from "@/lib/contracts";
-import { employeeById, reportsTo, type Employee } from "@/lib/data/entities/people";
+import type { AccessContext, Employee } from "@/lib/contracts";
+import type { Directory } from "@/lib/server/ports/directory";
 
 /** How much of one employee's record a viewer may read: directory < team < hr. */
 export type PeopleView = "directory" | "team" | "hr";
@@ -14,12 +14,12 @@ function inRegionScope(access: AccessContext, employee: Employee): boolean {
 }
 
 /** The view a viewer gets of one employee, or null when the employee is outside their scope. */
-export function peopleViewOf(access: AccessContext, employee: Employee): PeopleView | null {
+export function peopleViewOf(access: AccessContext, employee: Employee, directory: Directory): PeopleView | null {
   if (HR_ROLES.has(access.role)) return "hr";
   if (!inRegionScope(access, employee)) return null;
   if (employee.id === access.userId) return "team";
   if (LEADERSHIP_ROLES.has(access.role)) return "team";
-  if (reportsTo(employee, access.userId)) return "team";
+  if (directory.reportsTo(employee, access.userId)) return "team";
   return "directory";
 }
 
@@ -29,9 +29,9 @@ export function canSeeSalary(access: AccessContext): boolean {
 }
 
 /** Whether the viewer may read the candidates for an opening: HR, the CEO, the hiring manager and anyone above them. */
-export function canSeeCandidates(access: AccessContext, hiringManagerId: string): boolean {
+export function canSeeCandidates(access: AccessContext, hiringManagerId: string, directory: Directory): boolean {
   if (HR_ROLES.has(access.role) || LEADERSHIP_ROLES.has(access.role)) return true;
   if (hiringManagerId === access.userId) return true;
-  const manager = employeeById(hiringManagerId);
-  return manager !== null && reportsTo(manager, access.userId);
+  const manager = directory.byId(hiringManagerId);
+  return manager !== null && directory.reportsTo(manager, access.userId);
 }

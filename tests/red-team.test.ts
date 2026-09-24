@@ -136,7 +136,7 @@ describe("red team: region scope", () => {
   });
 });
 
-describe("red team: metric ACL", () => {
+describe("red team: metric ACL", async () => {
   test("only HR and the CEO read salary", async () => {
     for (const [userId, role] of EVERY_ROLE) await probeMetric(userId, "avg_salary", ["department"], role === "hr_manager" || role === "ceo");
   });
@@ -161,7 +161,7 @@ describe("red team: metric ACL", () => {
   });
 });
 
-describe("red team: aggregation", () => {
+describe("red team: aggregation", async () => {
   test("a roll-up covering fewer than three agents is suppressed for every role that can read it", async () => {
     for (const userId of ["u_siriporn", "u_mint", "u_thana"]) {
       const label = `${userId} → ar_overdue by province`;
@@ -182,7 +182,7 @@ describe("red team: aggregation", () => {
   });
 });
 
-describe("red team: other users' state", () => {
+describe("red team: other users' state", async () => {
   test("memory of one user is invisible to another", async () => {
     const fact = memoryFacts().put({
       id: "rt_fact_pim",
@@ -202,10 +202,10 @@ describe("red team: other users' state", () => {
     }
   });
 
-  test("a packet addressed to someone else is not in this user's inbox", () => {
+  test("a packet addressed to someone else is not in this user's inbox", async () => {
     const recipient = findUser("u_pim");
     if (!recipient) throw new Error("missing demo user u_pim");
-    const packet = createPacket(
+    const packet = (await createPacket(
       {
         toUserId: "u_pim",
         title: "ทดสอบเรดทีม",
@@ -219,7 +219,7 @@ describe("red team: other users' state", () => {
       },
       findUser("u_anucha"),
       recipient,
-    );
+    ));
     planted.packets.push(packet.id);
     for (const userId of ["u_krit", "u_ben", "u_ton"]) {
       record(`${userId} → packet of u_pim`, packetsFor(userId).some((entry) => entry.id === packet.id));
@@ -234,7 +234,7 @@ describe("red team: other users' state", () => {
   });
 });
 
-describe("red team: tool surface", () => {
+describe("red team: tool surface", async () => {
   test("a sales rep has no outbound or admin tool", () => {
     const rep = toolsFor(access("u_krit"));
     for (const name of ["create_handoff", "send_email", "run_job"]) {
@@ -259,7 +259,7 @@ describe("red team: tool surface", () => {
   });
 });
 
-describe("red team: verdict", () => {
+describe("red team: verdict", async () => {
   test(`${MIN_PROBES}+ cross-scope probes leak nothing`, () => {
     expect(probeCount).toBeGreaterThanOrEqual(MIN_PROBES);
     expect(leaks).toEqual([]);

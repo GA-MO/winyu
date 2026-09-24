@@ -3,7 +3,9 @@ import type { MetricQuery } from "@/lib/contracts";
 import { accessFor } from "@/lib/access/policies";
 import { runMetric } from "@/lib/data/query";
 import { findUser } from "@/lib/data/entities/users";
-import { ALCOHOL_BAN_DATES, calendarEvents, isBuddhistLent } from "@/lib/data/entities/calendar";
+import { ALCOHOL_BAN_DATES, isBuddhistLent } from "@/lib/data/entities/calendar";
+import { GENERATOR_PORTS } from "@/lib/server/ports/generator";
+import { calendarOf } from "@/lib/server/ports/calendar";
 import { detectAnomalies } from "./anomaly";
 import { impactOf, type DailyBeer } from "./calendar-impact";
 import { lentEffect } from "./series";
@@ -71,12 +73,13 @@ describe("no-sale days and Buddhist Lent", () => {
   });
 
   test("the next no-sale day carries what the last one did, measured in the caller's scope", async () => {
-    const endOfLent = calendarEvents("2026-10-26", "2026-10-26").find((event) => event.kind === "alcohol_ban");
+    const calendar = calendarOf(await GENERATOR_PORTS.calendar.load());
+    const endOfLent = calendar.events("2026-10-26", "2026-10-26").find((event) => event.kind === "alcohol_ban");
     if (!endOfLent) throw new Error("missing end of Lent");
-    const impact = await impactOf(endOfLent, beerOf("u_anucha"));
+    const impact = await impactOf(endOfLent, beerOf("u_anucha"), calendar);
     expect(impact?.sellOutPercent).toBeLessThan(-80);
     expect(impact?.orderEvePercent).toBeGreaterThan(10);
-    expect(await impactOf(endOfLent, beerOf("u_may"))).toBeNull();
+    expect(await impactOf(endOfLent, beerOf("u_may"), calendar)).toBeNull();
   });
 
   test("no daily sales alert starts on a no-sale day", () => {

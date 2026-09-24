@@ -4,14 +4,14 @@ import type { AccessContext, MetricQuery, PersonalWatch, WatchCondition } from "
 export { conditionLabel };
 import { liveAccessFor } from "@/lib/access/enforce";
 import { findUser } from "@/lib/data/entities/users";
-import { metricsPort } from "@/lib/server/ports/metrics";
+import { ports } from "@/lib/server/ports";
 import { checkWatch, conditionLabel, nextState, rollingQuery, windowDaysOf, type WatchHit } from "@/lib/engine/personal-watches";
 import { formatMetricValue, formatDelta } from "@/lib/dashboard/metric-display";
 import { displayLabel } from "@/lib/semantic/dictionary";
 import { TH } from "@/lib/i18n/th";
 import { rememberAction } from "@/lib/engine/memory";
 import { metricLabel } from "@/lib/dashboard/metric-display";
-import { notifications, outbox, personalWatches } from "./agent/collections";
+import { notifications, personalWatches } from "./agent/collections";
 
 const MAX_WATCHES_PER_USER = 12;
 const SYSTEM_SENDER = "cop";
@@ -34,7 +34,7 @@ export async function createWatch(access: AccessContext, input: { title: string;
   if (mine.length >= MAX_WATCHES_PER_USER) return { ok: false, error: TH.watch.tooMany(MAX_WATCHES_PER_USER) };
   const windowDays = windowDaysOf(input.query);
   const draft = { query: input.query, windowDays, condition: input.condition };
-  const result = await metricsPort().runMetric(rollingQuery(draft), access);
+  const result = await ports().metrics.runMetric(rollingQuery(draft), access);
   if (!result.ok) return { ok: false, error: result.error };
   const check = checkWatch(result, input.condition);
   const watch: PersonalWatch = {
@@ -66,15 +66,13 @@ export function removeWatch(userId: string, id: string): boolean {
   return true;
 }
 
-function tell(watch: PersonalWatch, hit: WatchHit): void {
+async function tell(watch: PersonalWatch, hit: WatchHit): Promise<void> {
   const user = findUser(watch.userId);
   if (!user) return;
   const title = TH.watch.fired(watch.title, hitLabel(watch, hit));
   const at = new Date().toISOString();
   notifications().put({ id: randomUUID(), userId: user.id, at, kind: "alert", refId: watch.id, read: false, title });
-  outbox().put({
-    id: randomUUID(),
-    at,
+  await ports().mail.send({
     kind: "watch",
     fromUserId: SYSTEM_SENDER,
     toUserId: user.id,
@@ -92,7 +90,7 @@ export async function runWatchJob(at = new Date()): Promise<{ checked: number; f
   for (const watch of watches) {
     const user = findUser(watch.userId);
     if (!user) continue;
-    const check = checkWatch(await metricsPort().runMetric(rollingQuery(watch), liveAccessFor(user)), watch.condition);
+    const check = checkWatch(await ports().metrics.runMetric(rollingQuery(watch), liveAccessFor(user)), watch.condition);
     const next = nextState(watch.state, check.breached);
     personalWatches().put({
       ...watch,
@@ -101,7 +99,7 @@ export async function runWatchJob(at = new Date()): Promise<{ checked: number; f
       lastTriggeredAt: next.notify ? at.toISOString() : watch.lastTriggeredAt,
     });
     if (next.notify && check.hit) {
-      tell(watch, check.hit);
+      await tell(watch, check.hit);
       fired += 1;
     }
   }

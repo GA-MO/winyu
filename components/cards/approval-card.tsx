@@ -1,17 +1,18 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import type { LucideIcon } from "lucide-react";
 import { BellRing, CalendarDays, Check, GraduationCap, LayoutGrid, Mail, RefreshCw, Send, ShieldCheck, X } from "lucide-react";
 import type { ApprovalRequest, RenderApproval } from "vexa/react";
 import { METRIC_IDS, ROLE_IDS, type MetricId, type MetricQuery, type RoleId, type Urgency, type WatchCondition } from "@/lib/contracts";
 import { conditionLabel } from "@/lib/engine/personal-watches";
 import { USERS, findUser } from "@/lib/data/entities/users";
-import { courseById } from "@/lib/data/entities/courses";
 import { formatDateTh } from "@/lib/i18n/format";
 import { metricLabel } from "@/lib/dashboard/metric-display";
 import { displayLabel } from "@/lib/semantic/dictionary";
 import { TH } from "@/lib/i18n/th";
 
+const COURSES_ENDPOINT = "/api/courses";
 const MAX_EVIDENCE_LABELS = 2;
 const URGENCY_BADGE: Record<Urgency, string> = {
   high: "bg-danger/10 text-danger",
@@ -46,6 +47,7 @@ type WatchInput = { title?: string; query?: MetricQuery; condition?: WatchCondit
 type PermissionInput = { role?: string; kind?: string; key?: string; value?: string };
 type LeaveInput = { kind?: string; from?: string; to?: string; reason?: string };
 type EnrollInput = { courseId?: string };
+type CourseSummary = { id: string; title: string; starts: string; days: number };
 
 const PERMISSION_VALUE_LABEL: Record<string, string> = {
   full: TH.admin.acl.full,
@@ -223,14 +225,13 @@ function leaveDecision(input: LeaveInput): Decision {
   };
 }
 
-function enrollDecision(input: EnrollInput): Decision {
-  const course = input.courseId ? courseById(input.courseId) : null;
+function enrollDecision(input: EnrollInput, course: CourseSummary | null): Decision {
   return {
     icon: GraduationCap,
     title: TH.approve.enrollDone,
     person: course ? TH.courses.when(formatDateTh(course.starts), course.days) : null,
     subjectLabel: TH.approve.course,
-    subject: course?.titleTh ?? input.courseId ?? null,
+    subject: course?.title ?? null,
     body: null,
     chips: [],
     urgency: null,
@@ -250,7 +251,6 @@ function decisionOf(tool: string, input: unknown): Decision | null {
   if (tool === "run_job") return jobDecision(value);
   if (tool === "set_permission") return permissionDecision(value);
   if (tool === "request_leave") return leaveDecision(value);
-  if (tool === "enroll_course") return enrollDecision(value);
   return null;
 }
 
@@ -338,11 +338,36 @@ function DecisionCard({ decision, request }: { decision: Decision; request: Appr
   );
 }
 
-/** The one decision a CEO has to make, drawn by Cop: who gets the work, what it asks, what approving does. */
-export const renderCopApproval: RenderApproval = (request) => {
-  const decision = decisionOf(request.tool, request.input);
-  if (!decision) return null;
+function Approval({ decision, request }: { decision: Decision; request: ApprovalRequest }) {
   if (request.approved !== null) return <Receipt approved={request.approved} decision={decision} />;
   if (request.state !== "approval-requested") return null;
   return <DecisionCard decision={decision} request={request} />;
+}
+
+function useCourse(courseId: string | undefined): CourseSummary | null {
+  const [course, setCourse] = useState<CourseSummary | null>(null);
+  useEffect(() => {
+    if (!courseId) return;
+    const controller = new AbortController();
+    fetch(`${COURSES_ENDPOINT}/${encodeURIComponent(courseId)}`, { signal: controller.signal })
+      .then((response) => (response.ok ? (response.json() as Promise<CourseSummary>) : null))
+      .then((found) => setCourse(found))
+      .catch(() => undefined);
+    return () => controller.abort();
+  }, [courseId]);
+  return course;
+}
+
+function CourseApproval({ request }: { request: ApprovalRequest }) {
+  const input = (request.input ?? {}) as EnrollInput;
+  const course = useCourse(input.courseId);
+  return <Approval decision={enrollDecision(input, course)} request={request} />;
+}
+
+/** The one decision a CEO has to make, drawn by Cop: who gets the work, what it asks, what approving does. */
+export const renderCopApproval: RenderApproval = (request) => {
+  if (request.tool === "enroll_course") return <CourseApproval request={request} />;
+  const decision = decisionOf(request.tool, request.input);
+  if (!decision) return null;
+  return <Approval decision={decision} request={request} />;
 };
