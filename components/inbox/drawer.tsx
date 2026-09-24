@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { ArrowRight, BellOff, X } from "lucide-react";
 import { cn } from "vexa/lib/utils";
 import { TH } from "@/lib/i18n/th";
-import { relativeTimeTh } from "@/lib/i18n/format";
+import { dueTimeTh, relativeTimeTh } from "@/lib/i18n/format";
 import type { AlertItem, HandoffItem, InboxPayload, ReplyItem } from "./types";
 
 const INBOX_ENDPOINT = "/api/inbox";
@@ -229,7 +229,7 @@ function HandoffCard({
       <dl className="flex flex-col gap-1 rounded-xl bg-muted p-2.5 text-xs">
         <div className="flex justify-between gap-2">
           <dt className="text-muted-foreground">{TH.inbox.sla}</dt>
-          <dd>{item.sla ? relativeTimeTh(item.sla) : TH.inbox.noSla}</dd>
+          <dd>{item.sla ? dueTimeTh(item.sla) : TH.inbox.noSla}</dd>
         </div>
         <div className="flex justify-between gap-2">
           <dt className="text-muted-foreground">{TH.inbox.statusLabel}</dt>

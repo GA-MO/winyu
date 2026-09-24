@@ -73,6 +73,21 @@ export function relativeTimeTh(value: string | Date, now: Date = new Date()): st
   return formatDateTh(date);
 }
 
+/** A deadline from now: "อีก 3 ชั่วโมง" ahead, "เลยกำหนด 2 ชั่วโมง" once passed. */
+export function dueTimeTh(value: string | Date, now: Date = new Date()): string {
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return String(value);
+  const remaining = date.getTime() - now.getTime();
+  const span = spanTh(Math.abs(remaining));
+  return remaining >= 0 ? `อีก ${span}` : `เลยกำหนด ${span}`;
+}
+
+function spanTh(ms: number): string {
+  if (ms < HOUR_MS) return `${Math.max(1, Math.round(ms / MINUTE_MS))} นาที`;
+  if (ms < DAY_MS) return `${Math.round(ms / HOUR_MS)} ชั่วโมง`;
+  return `${Math.round(ms / DAY_MS)} วัน`;
+}
+
 export type ThreadGroup = "today" | "yesterday" | "week" | "older";
 
 export function threadGroupOf(value: string, now: Date = new Date()): ThreadGroup {

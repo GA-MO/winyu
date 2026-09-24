@@ -9,6 +9,9 @@ export type EvalCase = {
   expectApproval?: "watch_metric" | "create_handoff" | "pin_widget";
   expectCompare?: { compare: "prev_period" | "prev_year"; range?: { from: string; to: string } };
   expectShape?: CardBody["kind"];
+  expectPeople?: "find_people" | "get_person" | "get_site" | "list_candidates" | "list_courses" | "get_policy";
+  expectPress?: "ask" | "enroll_course";
+  forbidCarousel?: boolean;
   scripted?: boolean;
 };
 
@@ -47,6 +50,17 @@ export const EVAL_CASES: EvalCase[] = [
   { scripted: true, id: "shape-scatter", userId: "u_thana", prompt: "เอเย่นต์ที่ขายมากค้างชำระมากด้วยไหม เดือน ส.ค.", expectComponent: "DataCard", expectShape: "scatter" },
   { scripted: true, id: "shape-sell-through", userId: "u_thana", prompt: "เทียบยอดขายเข้ากับยอดขายออกของเอเย่นต์", expectComponent: "DataCard", expectShape: "gap" },
   { id: "shape-share-market", userId: "u_anucha", prompt: "สัดส่วนตลาดเบียร์ในนครราชสีมาเดือน ส.ค. แต่ละผู้ผลิตได้เท่าไหร่", expectComponent: "DataCard", expectShape: "share" },
+  { scripted: true, id: "people-team", userId: "u_anucha", prompt: "ทีมขายภาคอีสานมีใครบ้าง", expectPeople: "find_people", expectPress: "ask", forbidCarousel: true },
+  { scripted: true, id: "people-certs", userId: "u_may", prompt: "ใบอนุญาตหรือใบรับรองของใครใกล้หมดอายุบ้าง", expectPeople: "find_people" },
+  { scripted: true, id: "people-profile", userId: "u_may", prompt: "ขอดูโปรไฟล์คุณจอย ศรีประเสริฐ", expectPeople: "get_person" },
+  { scripted: true, id: "sites-overview", userId: "u_thana", prompt: "โรงงานไหนเกิดอุบัติเหตุบ้าง", expectPeople: "get_site", expectPress: "ask", forbidCarousel: true },
+  { scripted: true, id: "sites-detail", userId: "u_may", prompt: "ดูความปลอดภัยของโรงงานขอนแก่น", expectPeople: "get_site" },
+  { scripted: true, id: "candidates-khonkaen", userId: "u_may", prompt: "ผู้สมัครพนักงานขายขอนแก่น", expectPeople: "list_candidates", forbidCarousel: true },
+  { id: "candidates-manager", userId: "u_anucha", prompt: "ตำแหน่งที่ผมเปิดรับมีผู้สมัครกี่คน ใครน่าสนใจ", expectPeople: "list_candidates", forbidCarousel: true },
+  { scripted: true, id: "courses-month", userId: "u_may", prompt: "มีหลักสูตรอะไรเปิดเดือนนี้", expectPeople: "list_courses", expectPress: "enroll_course" },
+  { id: "courses-rep", userId: "u_krit", prompt: "มีอบรมอะไรที่ผมควรไปบ้าง", expectPeople: "list_courses", expectPress: "enroll_course" },
+  { scripted: true, id: "policy-leave", userId: "u_krit", prompt: "ลาพักร้อนยังไง", expectPeople: "get_policy" },
+  { id: "people-rep-scope", userId: "u_krit", prompt: "ทีมขายภาคอีสานมีใครบ้าง", expectPeople: "find_people" },
 ];
 
 /** The subset the scripted mock answers, so the card contract is checked in `bun run test` with no API key. */

@@ -1,21 +1,18 @@
 # Cop — build plan
 
-## สถานะ (updated 2026-09-23)
-ทำแล้ว: Phase 0–3 · 1.5–1.9 (`5ef3363`, `d303add`, `dd33323`) · 4A–4E (`0b19a76`) · 4F, 5A, 5B, หน่วยลิตร, `/login` เรื่องเดโม, ชื่อ product เป็น English (ยังไม่ commit) · 5C หน้าต่างเทียบของ `query_metric` (ยังไม่ commit: `lib/data/query.ts`, `lib/data/query.test.ts`, `lib/data/compare.test.ts` ใหม่) · typecheck + 371 tests ผ่าน
+## สถานะ (updated 2026-09-24)
+ทำแล้ว: Phase 0–5D committed (`2a81028`) · Phase 6 ครบ ยังไม่ commit (`git status`): entity tools คน/สถานที่/ผู้สมัคร/หลักสูตร/ใบลา + `request_leave`/`enroll_course` · โมเดลประกอบ UI เองจาก primitive ของ Vexa (Cop component เหลือ `LeaveForm`) · host tool `ask` · หลักการจัดวางกลางใน `persona.ts` · ปิดงานค้าง 6G · typecheck ผ่าน, Cop 488 tests / Vexa 215
 ค้าง:
-- ทั้งหมดข้างบนยังไม่ commit; `lib/data/query.ts` มีงานหลาย session ปนกัน (HR ถ่วงน้ำหนัก, `RISK_WHEN_LOW` ของ 4F, market share ของ 5A, หน้าต่างเทียบของ 5C) — แยก hunk ตอน commit
-- 5C ยังไม่ได้พิสูจน์กับโมเดลจริง: `bun run eval:cards -- --model=google/gemini-3.8-flash` ยังไม่มีเคส "เดือนนี้เทียบเดือนก่อน", "top 10 ยอดตก", "สต๊อกรายสัปดาห์", "เทียบปีก่อนของ AR"; แชทเก่า `/c/a629c885…` ยังโชว์ −8.4% (ผลเครื่องมือถูกเก็บตอนตอบ)
-- 5C ที่ยังไม่แก้: "−39%" ไม่มีทศนิยม (formatter ตัด .0), headcount รวมกับแยกแผนกต่าง 1 คน, สัปดาห์ริมไม่มีค่าเทียบเมื่อเดือนก่อนสั้นกว่า (ตั้งใจ)
-- restart dev server ให้ scheduler เริ่ม · Vexa `roadmap` ยังไม่ merge, ยังไม่ push ทั้งสอง repo · ของค้าง 1.9 (เอเย่นต์อันดับ 1 ซ้ำกับการ์ด alert)
+- Vexa `roadmap` ยังไม่ commit และ Cop ใช้อยู่: `Image.aspect banner`, `Carousel` children + `useVexaLabels`, `ListItem` + `trailingTone` (catalog, components, registry, host, chat/constants, prompt, examples/gallery+groups) — ต้อง commit คู่กับ Cop
+- ข้อมูลทดสอบใน `.data` ยังไม่ลบ (ผู้ใช้ขอดูก่อน): threads `7521021c` `34b70925` `96b9a0de` `626643a5` `72119e3d` (u_anucha), `527ac8ec` `86c3f2b9` `2b322a66` (u_thana), `efcd9668` (u_krit) + events ของ thread เหล่านั้น + ใบลาคุณกฤต 5–6 ต.ค. ใน `staff-requests`/`packets` (คุณอนุชารับแล้ว) + audit ของ tool ใหม่หลัง 2026-09-24T08:20Z
+- eval Gemini ครบทุกเคสยังไม่ได้รันหลังกฎ ListItem/"หนึ่งเรื่อง หนึ่งที่" (ผู้ใช้: รันเฉพาะตอนจำเป็นจริง) — ก่อน /ship ถ้าจะรัน ให้รันทีละเคส ไม่ขนาน
+- ยังไม่รู้สาเหตุ: Gemini ตอบ "An error occurred." เป็นบางครั้งในขั้นที่สองหลัง tool (3 ครั้งติดกันช่วงที่ dev server recompile แล้วลองซ้ำ 7+ ครั้งไม่เกิด) · Vexa ซ่อนข้อความ error จริง ถ้าเกิดอีกให้เปิด `onError` ของ `toUIMessageStream` ใน `agentic-ui/src/core/chat.ts` ชั่วคราวเพื่ออ่าน
 ค้นพบ:
-- ช่วงเทียบเคยขึ้นกับ `dims`/`grain` ที่โมเดลเลือก → คำถามเดียวได้ Δ ต่างกัน (−9% vs −35.5%); เทียบปีก่อนเลื่อน 364 วัน ทำให้เมตริกรายเดือนกิน 2 เดือน (AR ใต้ ส.ค. −8.4% จริง +69.8%); `limit` ตัดแถวช่วงก่อนแยกกัน → ค่าเทียบ null; สต๊อกแยกเวลาบวก snapshot (8.6 ล้าน vs 2.4 ล้านลัง); ช่วงก่อนที่เริ่มก่อน DATA_START ถูกตัดเงียบ
-- AR เก็บเป็นยอดที่เกิดรายเดือน (ขาย × lateness) ไม่ใช่ยอดคงค้าง → ช่วงหลายเดือนบวกกัน; ถ้าจะเป็น balance ต้องตัดสินที่ generator
-- `query_metric` เรียงแล้วตัดที่ limit เสมอ; Gemini ~87% ของ output เป็น reasoning tokens (22 เคส $0.65)
-ถัดไป: /go phase 5C ตาม docs/plan.md
-
-Status: **In progress** · Revision 9 · 2026-09-23 · phases 0–3 and 1.5–1.9 committed in Cop; Vexa changes committed on `roadmap`.
-
-Cop is the enterprise copilot described in the brainstorm of 2026-09-22 (four angles: executive/governance, daily user, architecture, red-team). This plan turns it into a runnable demo on Vexa with a full-lifecycle mock of a Thai beverage company, built by parallel agents. Everything here is the deliverable; the chat summary is not.
+- ปุ่ม Vexa `runTool` ใน Cop เงียบมาตลอด จน `session-chat.tsx` เรียก `host.registerChatSender` · eval `pressBound` อ่านแค่ spec จับไม่ได้ → ดูด้วยตาและกดจริงก่อน eval
+- tile ของ Cop ทำให้ Gemini แค่เติมแม่แบบ · Carousel ซ่อนแถวที่มีเรื่องเตือน · ย่อป้ายเหลือ "ใบอนุญาต" แล้วโมเดลเข้าใจผิดเป็นใบขับขี่ · ให้ตัวเลขเปล่า ("7 วัน") แล้วโมเดลแต่งคำนำเอง → tool ส่งข้อความพร้อมใช้ (`trailing.text`)
+- dark mode: ไม่เคยเลือก = ตาม `prefers-color-scheme` (เปลี่ยนตามเครื่องทันที) · เลือกแล้วเก็บใน `localStorage cop-theme`
+- eval ขนานกันโดน OpenRouter 429 · `people-certs` เคยล้มด้วย 400 "reasoning details" · Vexa `Map` ใช้ไม่ได้
+ถัดไป: /ship (Cop + Vexa `roadmap` คู่กัน) · แล้วแผนที่ (Vexa `Map` ใหม่)
 
 ## 1. What we are building
 
@@ -536,6 +533,95 @@ The user's question: "จะมั่นใจได้ไงว่า model จ
 - ตรวจ: typecheck ผ่าน (ยกเว้น `components/account/sheet.tsx` ของงาน memory ที่ทำคู่ขนาน), 441 tests · eval Gemini รายเคส: shape-* ทั้ง 7, ceo-channel/decline/trend, landing-visit, compare-top-decliners, planner-cover, marketing-campaign, rsm-agents ผ่าน · `cfo-ar` ยังไม่ได้ผล (OpenRouter rate limit) · eval เต็มชุดยังไม่ได้รัน
 - ยังไม่ทำ: ในรายการ "อะไรตก" ที่มีตัวที่โตปนอยู่ท้าย แถบของตัวที่โตยาวตามขนาดการโตด้วยสีเดียวกัน (pill บอกทิศ); ส่วนแบ่งตลาดยังแสดง Δ เป็น % สัมพัทธ์ไม่ใช่จุด; ย้าย chart ไป Vexa เป็นของกลาง (ตอนนี้อยู่ใน Cop)
 
+### Phase 6 — แชทที่ประกอบ UI เอง: คน สถานที่ หลักสูตร พร้อมรูป (user decision 2026-09-23: "ตัวอย่างที่จะได้เห็นในฝั่ง HR เยี่ยมมากผมชอบ")
+
+ที่มา: ผู้ใช้อยากเห็นแชทประกอบ UI ที่สวยและมีรูป ตัว renderer ไม่ใช่ปัญหา เพราะ catalog ของ Vexa มี `Image`, `Avatar`, `Carousel`, `Map`, `Timeline`, `Tabs`, `Accordion`, `KeyValue`, `Progress`, `Rating`, `Form`, `Checkbox`, `Callout` อยู่แล้ว สิ่งที่ขาดคือ (1) ข้อมูล: ทุก tool คืนแถว metric แบบรวม ข้อมูลรูปนี้วาดได้แค่ `DataCard` ไม่มี entity ที่มีรูป พิกัด หรือประวัติ และยังไม่มี `public/` (2) กติกา: prompt, eval และ normalizer พาทุกคำตอบไปที่ `DataCard`
+
+หลัก: **สองเส้นทาง** — คำถามเรื่องตัวเลขยังเป็น `DataCard` ที่ผูกผล tool (หลัก "โมเดลเลือก Cop วาด" ของ 1.7 ไม่เปลี่ยน) ส่วนคำถามเรื่องคนหรือสิ่งของใช้ entity tool ที่คืนข้อมูลเป็น record แล้วให้โมเดล**ประกอบ UI เอง**จาก primitive ของ Vexa โดยกฎ grounding ยังคุม: `src` ของรูป ตัวเลข วันที่ และชื่อทุกตัวต้องมาจากผล tool · entity tool คืนแถวไม่เกิน 12 แถว พร้อม label ที่จัดรูปแล้ว · ข้อมูลรายคนผ่าน `lib/access` เหมือน metric
+
+**6A ข้อมูล entity และรูป** (`lib/data/entities/people.ts` ใหม่, `lib/data/entities/sites.ts` ใหม่, `lib/data/entities/courses.ts` ใหม่, `lib/data/generator.ts`, `public/img/**` ใหม่)
+- [x] พนักงาน 40 คน รูปละหนึ่งคน (`lib/data/entities/people.ts`): ผู้ใช้ 26 คนเดิม + ทีมขายอีสาน 4 (คุณป้อง หัวหน้าทีมโคราช โอที 118 ชม. ใบอนุญาตหมดใน 16 วัน · คุณจอย ทดลองงาน 2 เดือน) + โรงงานขอนแก่น 4 + ปทุมธานี 2 + HR 4 · ตำแหน่งว่าง 3 · สัญญาณคำนวณใน `lib/engine/people-signals.ts` (ทดลองงาน/ใหม่/โอทีสูง/ใบรับรอง/เกษียณ; ความเสี่ยง = โอที ≥ 90, คนใหม่โอที ≥ 40, ไม่เลื่อนตำแหน่ง ≥ 7 ปี) — ยังไม่มีพิกัดเขต
+- [x] ผู้สมัคร 25 คนใน 4 ตำแหน่ง (เพิ่ม `op_ne_khonkaen` พนักงานขาย ขอนแก่น เขตชุมแพ) มีขั้น 5 ขั้น, คะแนนสัมภาษณ์, จุดแข็ง/ข้อกังวล, แหล่งที่มา (`lib/data/entities/recruiting.ts`) · ไม่มีรูป แสดงเป็นอักษรย่อ (ไม่ใช้รูปพนักงานซ้ำ)
+- [x] โรงงาน/คลังจาก `PLANTS` เดิมเพิ่ม `photo`, พิกัด, เหตุการณ์ความปลอดภัย 12 เดือน (ฝังเรื่อง: โรงงานขอนแก่นมีเหตุรถยกช่วงเร่งผลิตก่อนออกพรรษา) — ทำใน 6D
+- [x] หลักสูตร 10 หลักสูตรพร้อมปก วันเปิด ที่นั่ง และใบรับรองที่ต่ออายุ (`lib/data/entities/courses.ts`) · ระเบียบการลา 5 หัวข้อ + สวัสดิการ 5 หัวข้อ + วันลาที่ใช้ไปต่อคน (`lib/data/entities/policies.ts`)
+- [x] รูป Unsplash License 58 รูป 6.1 MB ใน `public/img/{people,sites,courses}` + `credits.json` (คน 40 หน้าชัด วัยทำงาน ไม่ซ้ำชุดถ่าย · โรงงาน/คลัง 8 · ปกหลักสูตร 10) ไม่ hotlink ไม่มีแบรนด์จริง · เทสต์ว่ารูปทุกคนมีจริงและไม่ซ้ำ
+
+**6B entity tools และสิทธิ์** (`lib/server/agent/tools.ts`, `lib/contracts/tools.ts`, `lib/access/policies.ts`, `lib/access/entity-scope.ts` ใหม่)
+- [x] `find_people { region, department, manager, query, flag }` + `get_person { id, name }` (`lib/server/people.ts`) คืนแถวที่จัดรูปแล้ว (badges, tenure, facts, history เป็นรูป Timeline) · ทุกบทบาทเรียกได้ · ป้ายใน admin console
+- [x] `get_site` (6D) · `list_candidates` (HR, CEO, หัวหน้าที่เปิดตำแหน่งและสายบังคับบัญชาเหนือขึ้นไป — `canSeeCandidates`; เงินเดือนที่คาดหวังตาม `canSeeSalary`; คนอื่นได้ PERMISSION_DENIED) · `list_courses` (ที่นั่งเหลือ, badge "ใบของคุณหมดใน N วัน", note ชื่อลูกทีมที่ใบใกล้หมด) · `get_policy { leave | benefits }` (วันลาคงเหลือของผู้ถาม, ฟอร์ม) · เขียน: `enroll_course`, `request_leave` (needsApproval; เซิร์ฟเวอร์นับวันทำการ ตรวจสิทธิ์และแจ้งล่วงหน้า แล้วส่ง packet เข้า Inbox หัวหน้าผ่าน `createPacket`; คำขอเก็บใน `staff-requests`)
+- [x] สิทธิ์ระดับ field (`lib/access/people-scope.ts`): directory (ชื่อ ตำแหน่ง รูป พื้นที่ หัวหน้า) < team (ตัวเอง ลูกทีมตามสายบังคับบัญชา และ CEO: อายุงาน ประวัติ ใบรับรอง โอที) < hr (HR: + อายุ + ความเสี่ยงลาออก) · เงินเดือนผูกกับสิทธิ์ `avg_salary` = full ให้ admin console คุมที่เดียว · บทบาทที่ถูกจำกัดภาคเห็นเฉพาะคนในภาค + ส่วนกลาง · `flag` ใช้แอบถามเรื่องที่ไม่มีสิทธิ์ไม่ได้
+- [x] เทสต์ scope ต่อบทบาท `lib/server/people.test.ts` (8 เทสต์)
+
+**6C โมเดลประกอบ UI** (`lib/server/agent/persona.ts`, `lib/cards/normalize.ts`, `lib/eval/cases.ts`, `lib/server/mock-script.ts`, `lib/i18n/th.ts`)
+- [x] catalog ของ Cop เพิ่ม `PersonTile` (รูป ชื่อ ตำแหน่ง พื้นที่ · อายุงาน badges กดแล้วถามโปรไฟล์ · จอแคบเป็นแถวแนวนอนด้วย container query `@md/vexa`) และ `ProfileHeader` (`components/cards/people.tsx`) · prompt: ทีม = Card → ProfileHeader หัวหน้า → Grid PersonTile → Callout ตำแหน่งว่าง; โปรไฟล์ = ProfileHeader → KeyValue → KeyValue ใบรับรอง → Timeline → Callout ความเสี่ยง → Avatar ลูกทีม (ใบรับรองเคยเป็น Progress แต่ "4%" อ่านไม่ออก จึงเปลี่ยน)
+- [x] รูปแบบของสถานที่ (6D) ผู้สมัคร หลักสูตร และระเบียบ: `CandidateTile` / `CourseTile` (ปุ่มสมัครกด `enroll_course` ผ่าน `usePress`) ใน `Carousel` ที่มี children · `LeaveForm` (ประเภท วันที่ เหตุผล → กด `request_leave`) · ใบลา = Metric ×3 → Accordion → LeaveForm (`components/cards/hr.tsx`)
+- [x] normalizer: รูป (`PersonTile`/`ProfileHeader`/`Avatar`/`Carousel`) ที่ tool ไม่ได้ส่งในเทิร์นนั้น → null (แสดงเป็นอักษรย่อ) · `Image` ที่ไม่ได้ส่ง → หายไป
+- [x] eval: `people-team`, `people-certs`, `people-profile` (scripted) + `people-rep-scope` · check `composedPeople`, `picturesGrounded` · Gemini: ผ่าน 4/4 เคส แต่ `people-certs` ล้ม 2 จาก 4 รอบด้วย OpenRouter 400 "reasoning details to be preserved" ที่ขั้นที่สอง (เป็น error ของ provider ไม่ใช่การประกอบการ์ด ยังไม่ได้สืบว่าเกิดกับเคสอื่นบ่อยแค่ไหน)
+- [x] mock turn ทีม/กรองตาม flag/โปรไฟล์ (`lib/server/mock-people.ts`) + ชิป "ทีมขายภาคอีสานมีใครบ้าง", "ใบอนุญาตของใครใกล้หมดอายุ"
+- [x] mock turn ผู้สมัคร/หลักสูตร/ใบลา (`lib/server/mock-hr.ts`) + ชิปของทั้งสาม · กดปุ่มสมัคร/ยื่นใบลาใน mock ผ่าน `PRESSED_DONE` · eval `candidates-khonkaen`, `courses-month`, `policy-leave` (scripted) + `candidates-manager`, `courses-rep` · เทสต์ `lib/server/hr.test.ts` (12)
+- ดูด้วยตา (2026-09-24, mock): ผู้สมัครในฐานะคุณเมย์ (light 1280), หลักสูตร (390px), ใบลาและยื่นใบลาถึงการ์ดอนุมัติในฐานะคุณกฤต (dark 390px), คุณกฤตถามผู้สมัครได้คำปฏิเสธไม่มีการ์ด · แก้ที่พบ: อักษรย่อไทยข้ามสระหน้า (เ แ โ ใ ไ), ป้าย "เหลือ N ที่" ซ้ำบรรทัดที่นั่ง, ฟอร์มลาส่งซ้ำได้เมื่อเปลี่ยนค่า
+
+| คำถาม | UI ที่คาด |
+|---|---|
+| "ทีมขายภาคอีสานมีใครบ้าง" | Avatar หัวหน้า → ลูกทีม, Map ปักเขตที่ดูแล, Badge คนใหม่/เสี่ยงลาออก |
+| "ขอดูโปรไฟล์คุณ…" (HR) | รูป, KeyValue, Timeline ประวัติ, Progress ใบรับรองใกล้หมดอายุ |
+| "ผู้สมัครพนักงานขายขอนแก่น" | Carousel การ์ดผู้สมัคร, Rating, ขั้นการสรรหา |
+| "โรงงานไหนเกิดอุบัติเหตุ" | Map โรงงาน, รูปโรงงาน, Timeline เหตุการณ์, Callout |
+| "มีหลักสูตรอะไรเปิดเดือนนี้" | Carousel ภาพปก → ปุ่มสมัคร |
+| "ลาพักร้อนยังไง" | Accordion สวัสดิการ → `Form` ยื่นใบลา ผ่าน approval flow เดิม |
+
+**6D โรงงานและความปลอดภัย** (`lib/data/entities/sites.ts`, `lib/engine/site-safety.ts`, `lib/server/sites.ts`, `components/cards/places.tsx`, `lib/server/mock-sites.ts`) — ทำแล้ว 2026-09-24 (user: "ทำต่อได้เลย")
+- [x] สถานที่ 6 แห่ง (โรงงาน 3, ศูนย์กระจายสินค้า 2, สำนักงานใหญ่) พร้อมรูป 16:9 ที่ตัดเองให้ไม่มีป้าย/แบรนด์ติด (site01 มีป้าย "POWERHOUSE", site04 มียี่ห้อรถยก HYSTER จึงไม่ใช้) + บันทึกเหตุ 13 รายการ 12 เดือน · เรื่องที่ฝัง: ขอนแก่นรถยกชนพนักงาน 15 ก.ย. (หยุดงาน, ยังไม่ปิด) ช่วงเร่งผลิตก่อนออกพรรษา ซ้ำกับ ต.ค. 2568 · โอทีเฉลี่ย 71 ชม./คน · หัวหน้ากะ (คุณแดง) ใบขับขี่รถยกหมดใน 8 วัน
+- [x] `lib/engine/site-safety.ts`: วันนับจากหยุดงานครั้งล่าสุด, 90 วันล่าสุดเทียบ 90 วันก่อนหน้า, เรื่องที่ยังไม่ปิด → สถานะ ต้องดูด่วน/เฝ้าดู/ปกติ · สีของตัวเลขวันผูกกับจำนวนวันเท่านั้น (< 30 แดง, ≥ 180 เขียว)
+- [x] tool `get_site { id, name }` (ทุกบทบาท ไม่ระบุชื่อผู้บาดเจ็บ): ไม่ระบุ = ทุกแห่งเรียงที่ต้องดูก่อน; ระบุ = รูป, ตัวเลข 3 ตัว, เรื่องที่ยังไม่ปิด, timeline 12 เดือน, facts, คนในพื้นที่ตามสิทธิ์ของผู้ดู (`peopleAtSite`)
+- [x] `PlaceTile` (รูป ตัวเลขวันเป็นตัวใหญ่ badges กดแล้วถามรายละเอียด จอแคบเป็นแนวนอน) · prompt: ภาพรวม = Grid PlaceTile; ที่เดียว = Image banner → Metric ×3 → Callout ยังไม่ปิด → Timeline → KeyValue → PersonTile คนในพื้นที่ · ห้ามเติมรายละเอียดที่ tool ไม่ส่ง (Gemini เคยเติม "อ.เมือง" ใน meta)
+- [x] Vexa: `Image.aspect` `banner` 21:9 (§9)
+- [x] เทสต์ `lib/server/sites.test.ts` (5) · eval `sites-overview`, `sites-detail` Gemini ผ่าน 5/5 ทั้งคู่ · ดูด้วยตา: ภาพรวมและรายละเอียดขอนแก่นในฐานะ CEO (light กว้าง, dark 390px)
+- ยังไม่ทำ: แผนที่ (Vexa `Map` ปักได้จุดเดียวและโชว์พิกัดดิบ ต้องทำใหม่ก่อนใช้), ส่งเรื่องให้ผู้รับผิดชอบจากการ์ดสถานที่
+
+**6F โมเดลออกแบบ UI เองจริง** (user decision 2026-09-24: "ลบทั้งหมด ยกเว้น LeaveForm นอกนั้นให้ Gemini ประกอบเอง") — tile ของ Cop ทำให้ Gemini แค่เติมฟิลด์ลงแม่แบบ ไม่ได้ออกแบบเอง
+- [x] ลบ `PersonTile`, `ProfileHeader`, `PlaceTile`, `CandidateTile`, `CourseTile` (catalog, registry, `components/cards/{people,places,hr}.tsx`) · เหลือ `LeaveForm` (`components/cards/leave-form.tsx`) เพราะเป็นฟอร์มที่ส่งคำขอเข้า approval ซึ่ง Cop ควรคุมเอง
+- [x] prompt เปลี่ยนจากผังตายตัวเป็นหลักการ: เลือก tool ตามเรื่อง · หนึ่ง Card ต่อคำตอบ ห้ามซ้อน · สิ่งที่ต้องตัดสินใจขึ้นก่อน · หลายรายการใช้ Grid หรือ Carousel ที่มี children เป็น Stack · เลือก Avatar/Image/Badge/Metric/Rating/Progress/Timeline/KeyValue/Accordion/Callout เอง · ปุ่มเป็น Vexa `Button` + `runTool` (`get_person`, `get_site`, `enroll_course`) ด้วย id จาก tool · ตัวเลข รูป ชื่อ วันที่ มาจาก tool
+- [x] tool ส่งตัวเลขที่ UI ต้องใช้มาให้ครบ (`stage_percent` ของผู้สมัคร) — check `grounded` จับได้ตอน mock คำนวณ Progress เอง
+- [x] eval: `composedPeople` = มี Card + component ของ Vexa และไม่มี DataCard · `picturesGrounded` นับรูปใน Carousel items ด้วย · ใหม่ `pressBound` (ทีม → `get_person`, สถานที่ → `get_site`, หลักสูตร → `enroll_course`) · mock ประกอบจาก primitive ผ่าน `lib/server/mock-compose.ts` · `grounded` เทียบตัวเลขแบบค่า (4.0 = 4)
+- ผล Gemini: 11 เคส × 2 รอบผ่านครบ (รอบแรกล้ม 4: 429 สองครั้ง, "4.0" สองครั้ง) · ดูด้วยตา: หลักสูตร (คุณกฤต) Gemini คัดมาแค่ 3 หลักสูตรที่เกี่ยวกับพนักงานขาย + Callout ใบอนุญาต + ปุ่มสมัคร ดีกว่าแบบ tile · ผู้สมัคร (คุณเมย์) เลือก Table เทียบ 9 คนพร้อมเงินเดือนคาดหวัง · ทีม (คุณอนุชา) แย่กว่าเดิม: เรียงเป็นคอลัมน์เดียวยาว และซ้ำชื่อ/ตำแหน่งใต้ Avatar · meta ยังเป็น summary ของ tool ("10 หลักสูตร") แม้ Gemini แสดงแค่ 3 · Gemini เรียบเรียงข้อความเองบ้าง ("สมัคร" → "สมัครใหม่")
+
+- [x] หลักการจัดวางกลาง (user 2026-09-24: "หลักการต้องใช้กับเรื่องอื่นๆได้ด้วย") ใน `COP_RULES` ใช้กับทุก UI ที่โมเดลประกอบเองโดยไม่ใช้ DataCard/AlertsCard ไม่ผูกกับเรื่อง: หนึ่ง Card · title = คำตอบ · meta บอกขอบเขตของสิ่งที่แสดงจริง (ถ้าคัดมาบางแถวให้บอก) · ลำดับ Callout → Metric ≤ 4 → รายการ → รายละเอียด · ข้อมูลหนึ่งอย่างอยู่ที่เดียว ห้ามซ้ำกับที่ component แสดงแล้ว · เทียบหลายช่อง = Table, 2–6 ชิ้น = Grid 2–3 คอลัมน์, เกิน 6 = Carousel, ห้ามคอลัมน์เดียวยาว · รายการละ ≤ 3 บรรทัด + Badge + ≤ 1 ปุ่ม · ข้อมูลที่เหมือนกันทุกแถวขึ้น meta · ปุ่ม primary เฉพาะการกระทำสำคัญสุด · คัดลอกข้อความจาก tool ไม่เรียบเรียงใหม่ · กฎเฉพาะเรื่องคน/สถานที่/หลักสูตร/ลา เหลือแค่ tool, component ของแต่ละชนิดข้อมูล และปุ่ม
+- ดูด้วยตาหลังปรับ (Gemini จริง): ทีม (คุณอนุชา) Callout ใบอนุญาต/โอที → Metric 2 → Carousel 7 คน ไม่ซ้ำชื่อ → Table ตำแหน่งว่าง · โรงงาน (คุณธนา) Callout → Metric 3 → Grid 3×2 ปุ่ม primary เฉพาะขอนแก่น
+
+- [x] (user 2026-09-24: "ต้องมีหลักว่า Data แบบไหนไม่ควรใช้ Carousel" · "ระบบเราไม่มีการกดดูรายละเอียด ถ้ากดก็ต้องเป็นกดส่งเข้า chat ให้ AI ไปหารายละเอียดมาเอง") · ตรวจการ์ดทีม: Carousel ผิด (เห็น 2 จาก 7 คน, ใบอนุญาตคุณกฤตกับทดลองงานคุณจอยต้องปัดถึงเห็น)
+  - หลัก Carousel: ใช้ได้เมื่อครบทุกข้อ = เป็นตัวเลือกที่ผู้ใช้จะเลือก 1–2 อย่าง, เด่นที่รูป, ไม่ต้องเทียบทีละช่อง, พลาดชิ้นท้ายได้ · ห้ามกับสมาชิกทีม ผู้สมัครที่ต้องเทียบ สถานที่ที่ต้องดูความเสี่ยง รายการเรียงลำดับ หรือชุดที่บางชิ้นมีเรื่องเตือน → Grid ให้เห็นครบ หรือ Table
+  - ปุ่มมีสองแบบ: ถามต่อ = host tool `ask { prompt }` (`lib/cards/host-tools.ts`, `components/cards/action-tool.ts`) ส่งคำถามภาษาไทยเข้าแชทเหมือนผู้ใช้พิมพ์ แล้วโมเดลเลือก tool เอง · ลงมือทำ = `runTool` ของ tool เขียน (approval) · ห้าม `runTool` tool อ่านตรง
+  - บั๊กที่พบ: ปุ่ม Vexa `runTool` ใน Cop กดแล้วเงียบมาตลอด เพราะ `session-chat.tsx` ลงทะเบียน sender กับ Cop อย่างเดียว ไม่ได้ `host.registerChatSender` → แก้แล้ว · ก่อนแก้ ปุ่มที่โมเดลวาดทุกปุ่ม (ดูโปรไฟล์/ดูรายละเอียด/สมัคร) ไม่ทำงาน แต่ eval ผ่านเพราะตรวจแค่ spec
+  - eval: ส่ง host tools แบบเดียวกับเบราว์เซอร์ (`hostToolDescriptors`) · check ใหม่ `pressAsks` (ปุ่มไม่เรียก tool อ่านตรง) และ `noCarousel` (ทีม สถานที่ ผู้สมัคร) · mock ผู้สมัครเป็น Grid
+  - ดูด้วยตา: ทีม (คุณอนุชา) Grid 2 คอลัมน์ 7 คนเห็นครบ · กด "ดูโปรไฟล์" คุณป้อง → แชทขึ้น "ขอดูโปรไฟล์คุณป้อง แสนสุข" → Gemini เรียก get_person เองและประกอบโปรไฟล์ · พบ: Gemini เติม "ณ 24 ก.ย. 2569" ใน footnote เอง
+
+- [x] (user 2026-09-24: "ดูยากแปลกๆ" → วิจารณ์แล้วทำตามแนะนำ) การ์ดทีมพูดเรื่องเดียวซ้ำ 4 ที่ (ข้อความตอบ, Callout, Metric นับแถว, ป้าย) · ปุ่ม "ดูโปรไฟล์" 7 ปุ่มดังกว่าคน · แต่ละคนไม่มีขอบเขต แถวเหลื่อม · ป้ายยาว · ผู้ถามอยู่ในรายชื่อทีมตัวเอง
+  - Vexa `ListItem` (general, 5 ที่ตาม Vexa CLAUDE.md): รูปแบบ avatar/thumb, title, subtitle, detail, badges, trailing · มี `on.press` = ทั้งแถวกดได้พร้อมลูกศร แทน Avatar + Text + Badge + Button ต่อแถว (§9)
+  - หลัก "หนึ่งเรื่อง หนึ่งที่": ข้อความตอบ = สิ่งที่ต้องทำก่อน · ป้าย = ใครเข้าเงื่อนไข · Callout เฉพาะเรื่องที่ไม่มีที่อื่นแสดง · Metric เฉพาะตัวเลขชี้ขาดที่ tool ส่ง ห้ามนับแถวที่แสดงอยู่ · ห้ามปุ่มซ้ำทุกแถว ใช้กดทั้งแถว
+  - ป้ายสั้น: "ใบอนุญาตขายสุรา 16 วัน", "โอที 118 ชม." (`TH.people.certShort`) — ย่อเหลือ "ใบอนุญาต" แล้ว Gemini เข้าใจผิดเป็น "ใบอนุญาตขับขี่" จึงคงคำว่าขายสุรา · แถวของผู้ถามมี `is_you` และไม่แสดงเป็นสมาชิก
+  - ดูด้วยตา (Gemini): ทีม = ListItem 6 แถวใน Grid 2 คอลัมน์ ไม่มี Callout/Metric ซ้ำ · โรงงาน = ListItem 6 แถวเรียงที่ต้องดูก่อน ตัวเลขวันชิดขวา · ยังเหลือ: แถวตำแหน่งว่างมีคำเติม "ตำแหน่งเปิดรับ" ซ้ำหัวข้อ, Gemini เขียน "ไร้อุบัติเหตุ N วัน" เองแทน label ของ tool และเติม "ณ 24 ก.ย. 2569" ใน footnote · eval `people-team`, `sites-overview` 1 รอบผ่าน
+
+**6G ปิดงานค้าง** (2026-09-24, /go phase 6)
+- [x] ใบลาและคำขออบรม (packet ที่มีใน `staff-requests`) หัวหน้ากดรับ/ตีกลับได้แม้สวิตช์ `handoff` ปิด (`isStaffRequestPacket` ใน `lib/server/staff-requests.ts`, `app/api/inbox/[id]/route.ts`) — สวิตช์ยังคุม handoff ของ agent เหมือนเดิม
+- [x] Vexa `ListItem.trailingTone` good/bad/neutral (§9) · ชื่อยาวไม่ถูกตัดเพราะ trailing: แถวหัวข้อ wrap ให้ trailing ลงบรรทัดใหม่เมื่อไม่พอ
+- [x] `get_site` ส่ง `trailing { text: "ไร้เหตุหยุดงาน N วัน", tone }` แทน `stat` ตัวเลขเปล่า ให้ Gemini คัดลอกได้ตรง ไม่ต้องแต่งคำเอง
+- [x] prompt: footnote = ชื่อแหล่งข้อมูลอย่างเดียว · ตำแหน่งว่าง = `ListItem { title, subtitle: open_label }` ไม่มีคำเติม · normalizer ตัด "ณ <วันที่>" ที่โมเดลเติมใน footnote ของการ์ดที่ประกอบเอง (เทสต์ 2)
+- [x] `hr.test.ts` ไม่พึ่งคำขอที่มีอยู่ใน `.data`: นับ "รออนุมัติ" ก่อน/หลัง และลบเฉพาะคำขอที่เทสต์สร้าง (เดิมเก็บคำขอทั้งหมดของคุณกฤตไปลบ)
+- ดูด้วยตา (Gemini): คุณกฤตยื่นใบลา 5–6 ต.ค. → คุณอนุชากด "รับงาน" ใน Inbox ได้ สถานะ "รับแล้ว" ขณะสวิตช์ปิด · ทีม (คุณอนุชา light 1280) ตำแหน่งว่างไม่มีคำซ้ำ footnote ไม่มีวันที่ · โรงงาน (คุณธนา dark 390) ตัวเลขวันแดง 7 วัน/เขียวที่เหลือ ชื่อแสดงเต็ม ไม่มี scroll แนวนอน · ไม่ได้รัน eval (ผู้ใช้สั่ง)
+
+**6H งานที่พบตอนตรวจ 6G** (user 2026-09-24: "ทำเลย")
+- [x] พิมพ์ขอลาพร้อมวัน → Gemini เรียก `request_leave` ทันที (คำอธิบาย `get_policy`/`request_leave` + prompt) · `LeaveForm` รับ `kind`/`from`/`to`/`reason` ที่ผู้ใช้พิมพ์มา · ค่าที่กรอกและสถานะ "ส่งแล้ว" อยู่รอดเมื่อฟอร์ม remount (ก่อนหน้านี้หลังกดยื่น ฟอร์มกลับไปเป็นค่าเริ่ม)
+- [x] กำหนดส่งใน Inbox: `dueTimeTh` ("อีก 3 วัน" / "เลยกำหนด 2 ชั่วโมง") แทน `relativeTimeTh` ที่อ่านเวลาในอนาคตเป็น "เมื่อสักครู่" — เกิดกับ handoff ทุกใบ ไม่ใช่แค่ใบลา (เทสต์ 2)
+- [x] ลิงก์ `?prompt=` (ชิปหน้าแรก, ปุ่ม Inbox) ส่งด้วย mock: dev StrictMode ยกเลิก fetch รายชื่อโมเดลครั้งแรก แต่ `.finally` ยังตั้ง `modelReady` → คำถามแรกออกไปก่อนได้ค่า default · แก้ให้ตั้งเฉพาะเมื่อไม่ถูกยกเลิก และลบ `?prompt` ด้วย `history.replaceState` แทน `router.replace` (ไม่โหลด RSC ซ้ำระหว่าง stream)
+- [x] dark mode ตามเครื่องจนกว่าผู้ใช้จะเลือกเอง (boot script + `ThemeProvider` ฟัง `matchMedia`)
+- ดูด้วยตา (Gemini): คุณกฤตพิมพ์ "ขอลาพักร้อนวันที่ 12 ถึง 13 ตุลาคม 2569 ไปงานแต่งเพื่อน" → การ์ดอนุมัติทันที ไม่มีฟอร์ม · ฟอร์มจาก "ลาพักร้อนยังไง" หลังกดยื่นยังเป็น 19–20 ต.ค. + เหตุผล + ปุ่ม "ส่งให้ Cop แล้ว" (ทั้งสองคำขอกด "ยังไม่ส่ง" ไม่มีข้อมูลเพิ่ม) · Inbox คุณอนุชา "กำหนดส่ง อีก 3 วัน" · `?prompt=ใครโอทีหนัก` ส่งด้วย Gemini · emulate dark โดยไม่มีค่าเก็บ → หน้าเป็น dark ทันทีและหลัง reload
+
+ลำดับ: 6A (คน + รูป) → 6B (`find_people`, `get_person`) → 6C เฉพาะ "ทีมขายภาคอีสาน" ให้ผู้ใช้ดูด้วยตา → ค่อยขยายไปอีก 5 แบบ
+ตรวจ: typecheck, test, `eval:cards --case=entity-*` กับ Gemini, ดูด้วยตาในเบราว์เซอร์ (light/dark, 390px) ในฐานะคุณเมย์ คุณอนุชา และคุณกฤต (บทบาทที่เห็นน้อยที่สุด)
+- ตรวจแล้ว (2026-09-23): typecheck, 462 tests, ดูด้วยตาในฐานะคุณอนุชา: การ์ดทีม (light กว้าง, dark 500px ไม่มี scroll แนวนอน) และโปรไฟล์คุณป้องที่ Gemini ประกอบเองจากการกดการ์ด · ยังไม่ได้ดูด้วยตาในฐานะคุณเมย์/คุณกฤต
+- พบ: คำสั่งตรวจ `curl /login | grep -c "เข้าสู่ระบบ"` ใน CLAUDE.md ได้ 0 ตั้งแต่ login แบบเลือกบทบาทก่อน (หน้ายังตอบ 200)
+
 ## 7. Prompt rules (used by 1B, referenced by 3B)
 
 Persona rules the handler passes as `rules` (Thai unless noted):
@@ -574,6 +660,9 @@ Ownership rule for parallel agents: a package edits only the folders listed in i
 
 Vexa is not a constraint (user decision 2026-09-22): change it when Cop needs it, prefer general features, list them here. Candidates already identified: a pluggable catalog (`createVexaHandler({ catalog })` + `SpecView registry`) so Cop can add `Provenance`, `AnomalyCard`, `HandoffCard`, `Sparkline`, `Heatmap`; `VexaChat` `initialMessages`/`id`; a headless `useVexaChat` so Cop can own the chat chrome.
 
+- [x] `ListItem` (phase 6F, uncommitted on `roadmap`) — one row of a list of people, places or things (avatar or thumb, title, subtitle, detail, badges, trailing value); with `on.press` the whole row is the press target, so a model does not stack Avatar + Text + Badge + a Button under every row. Gallery section `list-item`, prompt rule, registry passes `on("press").bound`. `trailingTone` (good/bad/neutral) colors the trailing value, and the title row wraps so a long trailing value drops below a title instead of truncating it (6G).
+- [x] `Carousel` slides from children + `useVexaLabels` (phase 6E, uncommitted on `roadmap`) — any catalog tile (Cop's `CandidateTile`, `CourseTile`) can be swiped, not only the fixed item shape; the hint and arrow labels come from `ChatLabels.carouselHint/Previous/Next` so a host's locale reaches them (was hard-coded "Swipe or drag to scroll freely").
+- [x] `Image.aspect` `banner` (21:9) (phase 6, uncommitted on `roadmap`) — a photo can head a card without pushing its numbers below the fold; `wide` 16:9 at chat width took ~360 px before the first number.
 - [x] `VexaChat` `initialMessages` / `id` props (phase 2A) — thread restore for any host; both are passed straight to `useChat`. No shop-admin scenario was added: it is a prop pass-through, not a new control path, and Cop drives its own `useChat` in `components/chat/session-chat.tsx` rather than `VexaChat`.
 - [x] `thinLabels` in `src/react/components.tsx` (phase 1.5) — the last axis label no longer crowds the one before it (`> last - step` instead of `>= last - step / 2`); long labels (Thai `สัปดาห์ 38`) overlapped in a narrow `LineChart`.
 - [x] Data-card upgrade (phase 1.6), all general, all five places per Vexa's CLAUDE.md:

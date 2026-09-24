@@ -3,6 +3,7 @@
 import { z } from "zod";
 import { defineTool, formatActionMessage } from "vexa/react";
 import { TH } from "@/lib/i18n/th";
+import { ASK_TOOL } from "@/lib/cards/host-tools";
 
 const NEW_THREAD = "/c/new";
 
@@ -37,6 +38,22 @@ export function copActionTool(send: (text: string) => boolean) {
       if (send(message)) return { ok: true as const, summary: action.label };
       window.location.assign(`${NEW_THREAD}?prompt=${encodeURIComponent(message)}`);
       return { ok: true as const, summary: action.label };
+    },
+  });
+}
+
+/**
+ * A card button that asks a follow-up in the chat, as if the user typed it: the chat has no detail pages, so pressing
+ * "more about X" is a question the model answers with its own tools.
+ */
+export function askTool(send: (text: string) => boolean) {
+  return defineTool({
+    description: ASK_TOOL.description,
+    input: ASK_TOOL.input,
+    run: ({ prompt }: z.infer<typeof ASK_TOOL.input>) => {
+      if (send(prompt)) return { ok: true as const, summary: prompt };
+      window.location.assign(`${NEW_THREAD}?prompt=${encodeURIComponent(prompt)}`);
+      return { ok: true as const, summary: prompt };
     },
   });
 }

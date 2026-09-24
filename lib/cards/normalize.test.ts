@@ -61,3 +61,40 @@ describe("normalizeCopSpec", () => {
     expect(normalizeCopSpec(spec, { toolOutputs: {} })).toBe(spec);
   });
 });
+
+describe("composed cards", () => {
+  test("a date the model added to the source line is dropped", () => {
+    const spec = specOf({ card: { type: "Card", props: { title: "ทีม", footnote: "แหล่งข้อมูล: HRIS · ณ 24 ก.ย. 2569" }, children: [] } });
+    expect(cardProps(normalizeCopSpec(spec, { toolOutputs: {} })).footnote).toBe("แหล่งข้อมูล: HRIS");
+  });
+
+  test("a source line without a date stays untouched", () => {
+    const spec = specOf({ card: { type: "Card", props: { title: "ทีม", footnote: "แหล่งข้อมูล: HRIS" }, children: [] } });
+    expect(normalizeCopSpec(spec, { toolOutputs: {} })).toBe(spec);
+  });
+});
+
+describe("pictures", () => {
+  const people = { "/tools/find_people": { ok: true, summary: "พบ 2 คน", data: [{ id: "e_joy", photo: "/img/people/p08.jpg" }] } };
+
+  function specOf(elements: Record<string, unknown>) {
+    return { root: "a", elements } as unknown as Parameters<typeof normalizeCopSpec>[0];
+  }
+
+  test("a photo a tool returned stays", () => {
+    const spec = specOf({ a: { type: "Avatar", props: { name: "คุณจอย", role: null, src: "/img/people/p08.jpg", size: "lg" }, children: [] } });
+    expect(normalizeCopSpec(spec, { toolOutputs: people })).toBe(spec);
+  });
+
+  test("a photo the model made up falls back to initials", () => {
+    const spec = specOf({ a: { type: "Avatar", props: { name: "คุณจอย", role: null, src: "/img/people/p99.jpg", size: "lg" }, children: [] } });
+    const next = normalizeCopSpec(spec, { toolOutputs: people }) as unknown as { elements: Record<string, { props: { src: unknown } }> };
+    expect(next.elements.a?.props.src).toBeNull();
+  });
+
+  test("an outside image link is dropped", () => {
+    const spec = specOf({ a: { type: "Image", props: { src: "https://example.com/x.jpg", alt: "x" }, children: [] } });
+    const next = normalizeCopSpec(spec, { toolOutputs: people }) as unknown as { elements: Record<string, { type: string }> };
+    expect(next.elements.a?.type).toBe("Text");
+  });
+});

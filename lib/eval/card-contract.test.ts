@@ -56,11 +56,13 @@ async function ask(testCase: EvalCase): Promise<Turn> {
   };
 }
 
+const SCRIPTED_TURN_TIMEOUT_MS = 20_000;
+
 describe("card contract", () => {
   for (const testCase of SCRIPTED_CASES) {
     test(`${testCase.id} passes the card contract`, async () => {
       const failures = checkTurn(await ask(testCase), testCase).filter((result) => !result.ok);
       expect(failures.map((failure) => `${failure.id}: ${failure.detail}`)).toEqual([]);
-    });
+    }, SCRIPTED_TURN_TIMEOUT_MS);
   }
 });

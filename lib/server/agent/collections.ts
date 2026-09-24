@@ -111,3 +111,9 @@ export type LayoutVersion = { id: string; userId: string; version: number; widge
 export function layoutVersions() {
   return collection<LayoutVersion>("layout-versions");
 }
+
+export type StaffRequest = { id: string; userId: string; kind: "leave" | "course"; refId: string; from: string; to: string; days: number; reason: string; packetId: string; at: string };
+
+export function staffRequests() {
+  return collection<StaffRequest>("staff-requests");
+}

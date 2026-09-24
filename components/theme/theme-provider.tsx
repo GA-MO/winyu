@@ -5,7 +5,8 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 export type ThemeMode = "light" | "dark";
 
 export const THEME_STORAGE_KEY = "cop-theme";
-export const THEME_BOOT_SCRIPT = `try{var m=localStorage.getItem("${THEME_STORAGE_KEY}");document.documentElement.classList.toggle("dark",m==="dark");}catch(e){}`;
+const DARK_QUERY = "(prefers-color-scheme: dark)";
+export const THEME_BOOT_SCRIPT = `try{var m=localStorage.getItem("${THEME_STORAGE_KEY}");var d=m?m==="dark":matchMedia("${DARK_QUERY}").matches;document.documentElement.classList.toggle("dark",d);}catch(e){}`;
 
 type ThemeValue = { mode: ThemeMode; setMode: (mode: ThemeMode) => void; toggle: () => void };
 
@@ -18,6 +19,10 @@ function storedMode(): ThemeMode | null {
   } catch {
     return null;
   }
+}
+
+function systemMode(): ThemeMode {
+  return typeof window !== "undefined" && window.matchMedia(DARK_QUERY).matches ? "dark" : "light";
 }
 
 function persist(mode: ThemeMode) {
@@ -33,7 +38,14 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const saved = storedMode();
-    if (saved) setMode(saved);
+    setMode(saved ?? systemMode());
+    if (saved) return;
+    const media = window.matchMedia(DARK_QUERY);
+    const follow = () => {
+      if (!storedMode()) setMode(systemMode());
+    };
+    media.addEventListener("change", follow);
+    return () => media.removeEventListener("change", follow);
   }, []);
 
   useEffect(() => {

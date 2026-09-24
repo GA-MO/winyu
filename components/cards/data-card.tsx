@@ -7,6 +7,7 @@ import { TH } from "@/lib/i18n/th";
 import { ActionStrip, CardPartsView } from "./card-parts";
 import { CardBodyView } from "./charts/card-body";
 import { SignalList } from "./signal-list";
+import { LeaveForm, type LeaveFormProps } from "./leave-form";
 
 export type MetricAnswer = Extract<MetricResult, { ok: true }> & { query: MetricQuery; nextActions: NextAction[] };
 
@@ -105,4 +106,5 @@ export const COP_CARD_COMPONENTS: ComponentRegistry = {
   ActionStrip: ({ element }) => <ActionStrip actions={actionStripOf(element.props)} />,
   SignalList: ({ element }) => <SignalList items={signalsOf(element.props)} />,
   CardBody: ({ element }) => <CardBodyView body={cardBodyOf(element.props)} />,
+  LeaveForm: ({ element }) => <LeaveForm props={element.props as LeaveFormProps} />,
 };

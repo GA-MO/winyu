@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ROLE_IDS, type RoleId } from "./identity";
+import { REGIONS, ROLE_IDS, type RoleId } from "./identity";
 import { widgetKindSchema } from "./dashboard";
 import { urgencySchema } from "./handoff";
 import { dimSchema, metricIdSchema, metricQuerySchema } from "./semantic";
@@ -7,6 +7,7 @@ import { watchMetricInputSchema } from "./watches";
 
 export type ToolTier = "read" | "write" | "destructive";
 export type ToolName = "query_metric" | "list_metrics" | "describe_entity" | "get_alerts" | "get_forecast" | "get_calendar" | "recall_memory"
+  | "find_people" | "get_person" | "get_site" | "list_candidates" | "list_courses" | "get_policy" | "request_leave" | "enroll_course"
   | "resolve_owner" | "create_handoff" | "send_email" | "pin_widget" | "watch_metric" | "run_job" | "set_permission";
 export type ToolSurfaceEntry = { name: ToolName; tier: ToolTier; roles: RoleId[] | "all"; input: z.ZodType };
 
@@ -25,6 +26,28 @@ export const describeEntityInputSchema = z.object({ kind: z.enum(ENTITY_KINDS), 
 export const getAlertsInputSchema = z.object({ status: z.enum(["open", "all"]), limit: z.number().int().min(1).max(MAX_ALERTS).nullable() });
 export const getForecastInputSchema = z.object({ ...metricScope, weeks: z.number().int().min(1).max(MAX_FORECAST_WEEKS) });
 export const getCalendarInputSchema = z.object({ from: z.string().regex(ISO_DATE).nullable(), to: z.string().regex(ISO_DATE).nullable() });
+export const PEOPLE_FLAGS = ["new", "risk", "cert_expiring", "overtime", "retiring"] as const;
+export type PeopleFlag = (typeof PEOPLE_FLAGS)[number];
+export const findPeopleInputSchema = z.object({
+  region: z.enum(REGIONS).nullable(),
+  department: z.string().nullable(),
+  manager: z.string().nullable(),
+  query: z.string().nullable(),
+  flag: z.enum(PEOPLE_FLAGS).nullable(),
+});
+export const getSiteInputSchema = z.object({ id: z.string().nullable(), name: z.string().nullable() });
+export const getPersonInputSchema = z.object({ id: z.string().nullable(), name: z.string().nullable() });
+export const CANDIDATE_STAGE_IDS = ["applied", "screening", "interview", "final", "offer"] as const;
+export const listCandidatesInputSchema = z.object({ position: z.string().nullable(), stage: z.enum(CANDIDATE_STAGE_IDS).nullable() });
+export const listCoursesInputSchema = z.object({ month: z.string().regex(/^\d{4}-\d{2}$/).nullable(), query: z.string().nullable() });
+export const getPolicyInputSchema = z.object({ topic: z.enum(["leave", "benefits"]) });
+export const requestLeaveInputSchema = z.object({
+  kind: z.enum(["annual", "sick", "personal"]),
+  from: z.string().regex(ISO_DATE),
+  to: z.string().regex(ISO_DATE),
+  reason: z.string().max(200),
+});
+export const enrollCourseInputSchema = z.object({ courseId: z.string().min(1) });
 export const recallMemoryInputSchema = z.object({ query: z.string().min(1) });
 export const resolveOwnerInputSchema = z.object(metricScope);
 export const createHandoffInputSchema = z.object({
@@ -55,6 +78,14 @@ export const TOOL_SURFACE: readonly ToolSurfaceEntry[] = [
   { name: "get_forecast", tier: "read", roles: "all", input: getForecastInputSchema },
   { name: "get_calendar", tier: "read", roles: "all", input: getCalendarInputSchema },
   { name: "recall_memory", tier: "read", roles: "all", input: recallMemoryInputSchema },
+  { name: "find_people", tier: "read", roles: "all", input: findPeopleInputSchema },
+  { name: "get_person", tier: "read", roles: "all", input: getPersonInputSchema },
+  { name: "get_site", tier: "read", roles: "all", input: getSiteInputSchema },
+  { name: "list_candidates", tier: "read", roles: "all", input: listCandidatesInputSchema },
+  { name: "list_courses", tier: "read", roles: "all", input: listCoursesInputSchema },
+  { name: "get_policy", tier: "read", roles: "all", input: getPolicyInputSchema },
+  { name: "request_leave", tier: "write", roles: "all", input: requestLeaveInputSchema },
+  { name: "enroll_course", tier: "write", roles: "all", input: enrollCourseInputSchema },
   { name: "resolve_owner", tier: "read", roles: "all", input: resolveOwnerInputSchema },
   { name: "create_handoff", tier: "write", roles: ALL_BUT_SALES_REP, input: createHandoffInputSchema },
   { name: "send_email", tier: "write", roles: ALL_BUT_SALES_REP, input: sendEmailInputSchema },

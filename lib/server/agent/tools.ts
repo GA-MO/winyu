@@ -8,6 +8,14 @@ import {
   TOOL_SURFACE,
   createHandoffInputSchema,
   describeEntityInputSchema,
+  findPeopleInputSchema,
+  enrollCourseInputSchema,
+  getPolicyInputSchema,
+  listCandidatesInputSchema,
+  listCoursesInputSchema,
+  requestLeaveInputSchema,
+  getPersonInputSchema,
+  getSiteInputSchema,
   getAlertsInputSchema,
   getCalendarInputSchema,
   getForecastInputSchema,
@@ -54,6 +62,11 @@ import { similarity } from "@/lib/engine/memory-match";
 import { memoryStatus } from "@/lib/engine/memory-status";
 import { runDigestJob } from "@/lib/server/digest";
 import { lessonFor } from "@/lib/server/outcomes";
+import { findPeople, personProfile } from "@/lib/server/people";
+import { siteDetail } from "@/lib/server/sites";
+import { listCandidates } from "@/lib/server/recruiting";
+import { enrollCourse, listCourses } from "@/lib/server/courses";
+import { policyFor, requestLeave } from "@/lib/server/leave";
 
 const NO_ALERTS = "ไม่พบความผิดปกติที่เปิดอยู่ในขอบเขตของผู้ใช้คนนี้";
 const NO_FORECAST = "ยังไม่มีพยากรณ์สำหรับมิติที่ขอ";
@@ -263,6 +276,57 @@ const recall_memory = tool({
   }),
 });
 
+const find_people = tool({
+  description: "List employees with their photo, title, place and status badges: a team (manager = the lead's id or name), a region, a department (dept_sales, dept_production, dept_hr, ...) or a flag (new, risk, cert_expiring, overtime, retiring). Rows come lead first, at most 12, plus the open positions in scope. Call it when the user asks who is on a team, who is new, whose licence expires, who works too much overtime. It never returns numbers to chart; use query_metric for headcount and attrition.",
+  inputSchema: findPeopleInputSchema,
+  execute: withAudit("find_people", async (input: z.infer<typeof findPeopleInputSchema>) =>
+    findPeople(currentAccess(), { region: input.region, departmentId: input.department, manager: input.manager, query: input.query, flag: input.flag })),
+});
+
+const get_person = tool({
+  description: "Read one employee's profile by id (from find_people) or name: photo, facts, career timeline, certificates with days left, direct reports. Fields outside the viewer's rights are left out by the server.",
+  inputSchema: getPersonInputSchema,
+  execute: withAudit("get_person", async ({ id, name }: z.infer<typeof getPersonInputSchema>) => personProfile(currentAccess(), id, name)),
+});
+
+const get_site = tool({
+  description: "Read the safety picture of Cop's plants, distribution centres and head office. Without id or name: every site with its photo, days since the last lost-time injury, the last 90 days and status badges, the ones that need attention first. With an id (from the list) or a name: one site's photo, three headline numbers, facts, open corrective actions, the incident timeline of the last 12 months and the people on site. Call it for questions about accidents, safety, near misses or a plant.",
+  inputSchema: getSiteInputSchema,
+  execute: withAudit("get_site", async ({ id, name }: z.infer<typeof getSiteInputSchema>) => siteDetail(currentAccess(), id, name)),
+});
+
+const list_candidates = tool({
+  description: "List job candidates for the open positions the viewer may see (HR, the CEO, the hiring manager and managers above them): stage (step of steps, stage_percent for a Progress bar), interview score out of 5, experience, strength, concern, source, badges, plus three headline numbers. position = an id or words from the title (\"พนักงานขาย ขอนแก่น\"); null = every visible opening. Anyone else gets PERMISSION_DENIED.",
+  inputSchema: listCandidatesInputSchema,
+  execute: withAudit("list_candidates", async ({ position, stage }: z.infer<typeof listCandidatesInputSchema>) => listCandidates(currentAccess(), { position, stage })),
+});
+
+const list_courses = tool({
+  description: "List upcoming training courses: cover photo, date and length, place and format, seats left, which certificate a course renews and who in the viewer's team should go (note). month = YYYY-MM for \"เดือนนี้/เดือนหน้า\" (today is in the system prompt); null = the next ones. can_enroll says whether the viewer can still ask for a seat.",
+  inputSchema: listCoursesInputSchema,
+  execute: withAudit("list_courses", async ({ month, query }: z.infer<typeof listCoursesInputSchema>) => listCourses(currentAccess(), { month, query })),
+});
+
+const get_policy = tool({
+  description: "Read company policy. topic leave: the viewer's own leave balances (annual, sick, personal) as headline numbers, the leave rules as sections, and the form options to file leave (kinds with days left, approver, earliest annual date). topic benefits: the benefit sections. Call it for วันลา / ลาพักร้อน / ลาป่วย / สวัสดิการ questions. Not when the user already asks to take leave on given dates: call request_leave directly.",
+  inputSchema: getPolicyInputSchema,
+  execute: withAudit("get_policy", async ({ topic }: z.infer<typeof getPolicyInputSchema>) => policyFor(currentAccess(), topic)),
+});
+
+const request_leave = tool({
+  description: "File a leave request in the user's own name after they filled the leave form or typed the dates (\"ขอลา… วันที่ 5–6 ต.ค.\" → call this right away, no get_policy first; a missing reason is an empty string): kind annual / sick / personal, from and to as YYYY-MM-DD, reason. The server counts working days, checks the balance and sends it to the manager's Inbox. The user approves it first.",
+  inputSchema: requestLeaveInputSchema,
+  needsApproval: true,
+  execute: withAudit("request_leave", async (input: z.infer<typeof requestLeaveInputSchema>) => requestLeave(currentAccess(), input, currentTurn().threadId)),
+});
+
+const enroll_course = tool({
+  description: "Ask the user's manager to approve a seat on one course (courseId from list_courses) when the user presses สมัคร or asks to join. The user approves it first.",
+  inputSchema: enrollCourseInputSchema,
+  needsApproval: true,
+  execute: withAudit("enroll_course", async ({ courseId }: z.infer<typeof enrollCourseInputSchema>) => enrollCourse(currentAccess(), courseId, currentTurn().threadId)),
+});
+
 const resolve_owner = tool({
   description: "Find the person accountable for a metric in a region (the RACI table) before handing work over or asking for access. Returns the user id, name, title and the reason they own it.",
   inputSchema: resolveOwnerInputSchema,
@@ -408,6 +472,14 @@ const TOOLS = {
   get_forecast,
   get_calendar,
   recall_memory,
+  find_people,
+  get_person,
+  get_site,
+  list_candidates,
+  list_courses,
+  get_policy,
+  request_leave,
+  enroll_course,
   resolve_owner,
   create_handoff,
   send_email,

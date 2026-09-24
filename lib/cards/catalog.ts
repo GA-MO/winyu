@@ -67,6 +67,30 @@ export const COP_COMPONENTS = {
     description: "The chart inside a pinned dashboard card (donut, stacked bars, heatmap, scatter, funnel). Cop fills it from the widget's query; never write one by hand, use DataCard.",
     example: { body: { kind: "none" } },
   },
+  LeaveForm: {
+    props: z.object({
+      kinds: z.array(z.object({ value: z.string(), label: z.string() })),
+      earliest: z.string().nullable(),
+      approver: z.string().nullable(),
+      note: z.string().nullable(),
+      kind: z.string().nullable(),
+      from: z.string().nullable(),
+      to: z.string().nullable(),
+      reason: z.string().nullable(),
+    }),
+    description:
+      "The leave form (kind, from, to, reason, ยื่นใบลา button). Copy get_policy(leave).data.form: kinds = form.kinds, earliest = form.earliest, approver = form.approver, note = form.note. kind / from (YYYY-MM-DD) / to / reason prefill what the user already typed, else null. Submitting presses request_leave with the filled values behind the user's approval.",
+    example: {
+      kinds: [{ value: "annual", label: "ลาพักร้อน (เหลือ 7 วัน)" }],
+      earliest: "2026-09-25",
+      approver: "คุณอนุชา พรหมศรี",
+      note: "ลาพักร้อนได้ตั้งแต่ 25 ก.ย. 2569 (ยื่นล่วงหน้า 3 วันทำการ)",
+      kind: null,
+      from: null,
+      to: null,
+      reason: null,
+    },
+  },
   AlertsCard: {
     props: z.object({
       title: z.string(),

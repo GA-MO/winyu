@@ -3,6 +3,7 @@ import { packets } from "@/lib/server/agent/collections";
 import { actOnPacket, defaultReply, type PacketAction } from "@/lib/server/handoff";
 import { TH } from "@/lib/i18n/th";
 import { handoffEnabled } from "@/lib/access/enforce";
+import { isStaffRequestPacket } from "@/lib/server/staff-requests";
 import { VERDICTS, recordOutcome, type Verdict } from "@/lib/server/outcomes";
 
 type RouteContext = { params: Promise<{ id: string }> };
@@ -27,10 +28,9 @@ export async function POST(req: Request, context: RouteContext) {
   if (!access) return unauthenticated();
   const body = await readBody<ActionBody>(req);
   if (!body || !isAction(body.action)) return badRequest();
-  if (!handoffEnabled()) return Response.json({ error: TH.inbox.handoffClosed }, { status: 403 });
-
   const packet = packets().get((await context.params).id);
   if (!packet || packet.toUserId !== access.userId) return notFound();
+  if (!handoffEnabled() && !isStaffRequestPacket(packet.id)) return Response.json({ error: TH.inbox.handoffClosed }, { status: 403 });
 
   const outcome = trimmed(body.outcome);
   if (body.action === "resolve" && !outcome) return Response.json({ error: TH.handoff.closeNeedsOutcome }, { status: 400 });

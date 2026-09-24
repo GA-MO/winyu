@@ -1,11 +1,13 @@
 "use client";
 
 import type { LucideIcon } from "lucide-react";
-import { BellRing, Check, LayoutGrid, Mail, RefreshCw, Send, ShieldCheck, X } from "lucide-react";
+import { BellRing, CalendarDays, Check, GraduationCap, LayoutGrid, Mail, RefreshCw, Send, ShieldCheck, X } from "lucide-react";
 import type { ApprovalRequest, RenderApproval } from "vexa/react";
 import { METRIC_IDS, ROLE_IDS, type MetricId, type MetricQuery, type RoleId, type Urgency, type WatchCondition } from "@/lib/contracts";
 import { conditionLabel } from "@/lib/engine/personal-watches";
 import { USERS, findUser } from "@/lib/data/entities/users";
+import { courseById } from "@/lib/data/entities/courses";
+import { formatDateTh } from "@/lib/i18n/format";
 import { metricLabel } from "@/lib/dashboard/metric-display";
 import { displayLabel } from "@/lib/semantic/dictionary";
 import { TH } from "@/lib/i18n/th";
@@ -42,6 +44,8 @@ type PinInput = { title?: string; query?: MetricQuery };
 type JobInput = { job?: string };
 type WatchInput = { title?: string; query?: MetricQuery; condition?: WatchCondition };
 type PermissionInput = { role?: string; kind?: string; key?: string; value?: string };
+type LeaveInput = { kind?: string; from?: string; to?: string; reason?: string };
+type EnrollInput = { courseId?: string };
 
 const PERMISSION_VALUE_LABEL: Record<string, string> = {
   full: TH.admin.acl.full,
@@ -196,6 +200,47 @@ function permissionDecision(input: PermissionInput): Decision {
   };
 }
 
+function leaveRange(input: LeaveInput): string | null {
+  if (!input.from || !input.to) return null;
+  return TH.leave.range(formatDateTh(input.from), formatDateTh(input.to));
+}
+
+function leaveDecision(input: LeaveInput): Decision {
+  const kind = TH.leave.kind[input.kind ?? ""] ?? input.kind ?? "";
+  return {
+    icon: CalendarDays,
+    title: TH.approve.leaveDone(kind),
+    person: null,
+    subjectLabel: TH.approve.leaveRange,
+    subject: leaveRange(input),
+    body: input.reason ? { label: TH.approve.reasonLabel, text: input.reason } : null,
+    chips: [],
+    urgency: null,
+    effect: TH.approve.effectLeave,
+    confirm: TH.approve.confirmLeave,
+    cancel: TH.approve.cancelSend,
+    done: TH.approve.doneLeave(kind),
+  };
+}
+
+function enrollDecision(input: EnrollInput): Decision {
+  const course = input.courseId ? courseById(input.courseId) : null;
+  return {
+    icon: GraduationCap,
+    title: TH.approve.enrollDone,
+    person: course ? TH.courses.when(formatDateTh(course.starts), course.days) : null,
+    subjectLabel: TH.approve.course,
+    subject: course?.titleTh ?? input.courseId ?? null,
+    body: null,
+    chips: [],
+    urgency: null,
+    effect: TH.approve.effectEnroll,
+    confirm: TH.approve.confirmEnroll,
+    cancel: TH.approve.cancelSend,
+    done: TH.approve.doneEnroll,
+  };
+}
+
 function decisionOf(tool: string, input: unknown): Decision | null {
   const value = (input ?? {}) as Record<string, unknown>;
   if (tool === "create_handoff") return handoffDecision(value);
@@ -204,6 +249,8 @@ function decisionOf(tool: string, input: unknown): Decision | null {
   if (tool === "watch_metric") return watchDecision(value);
   if (tool === "run_job") return jobDecision(value);
   if (tool === "set_permission") return permissionDecision(value);
+  if (tool === "request_leave") return leaveDecision(value);
+  if (tool === "enroll_course") return enrollDecision(value);
   return null;
 }
 

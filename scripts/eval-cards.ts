@@ -4,6 +4,7 @@ import { findUser } from "@/lib/data/entities/users";
 import { runWithAccess } from "@/lib/server/request-context";
 import { handlerFor } from "@/lib/server/agent/handler";
 import { models } from "@/lib/server/models";
+import { hostToolDescriptors } from "@/lib/cards/host-tools";
 import { EVAL_CASES, SCRIPTED_CASES, type EvalCase } from "@/lib/eval/cases";
 import { checkTurn, scoreOf, type CheckResult, type Turn } from "@/lib/eval/check-cards";
 import { emptyMeter, measure, type Metered } from "@/lib/server/usage-meter";
@@ -70,6 +71,7 @@ async function ask(testCase: EvalCase, model: string): Promise<Turn & { tools: T
     id: `eval-${testCase.id}`,
     model,
     messages: [{ id: "u1", role: "user", parts: [{ type: "text", text: testCase.prompt }] }],
+    hostTools: hostToolDescriptors(),
   };
   const request = new Request(CHAT_URL, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
   const response = await runWithAccess(access, () => handlerFor(access).POST(request));

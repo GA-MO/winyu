@@ -1,11 +1,12 @@
 import type { Spec, SpecElement } from "vexa/protocol";
-import { watchMetricInputSchema } from "@/lib/contracts";
+import { TOOL_SURFACE, watchMetricInputSchema } from "@/lib/contracts";
 import { TODAY } from "@/lib/data/dates";
 import { presentCard, type CardView, type PresentSource, type SortBy } from "@/lib/cards/present";
 import type { MetricQuery, MetricResult } from "@/lib/contracts";
 import type { EvalCase } from "./cases";
 
-export type CheckId = "calledTool" | "askedApproval" | "usedCard" | "boundToTool" | "sortedRight" | "comparedRight" | "cutRight" | "drewShape" | "titleIsAnswer" | "noSummaryProse" | "grounded";
+export type CheckId = "calledTool" | "askedApproval" | "usedCard" | "boundToTool" | "sortedRight" | "comparedRight" | "cutRight" | "drewShape" | "titleIsAnswer" | "noSummaryProse" | "grounded"
+  | "composedPeople" | "picturesGrounded" | "pressBound" | "pressAsks" | "noCarousel";
 
 export type CheckResult = { id: CheckId; ok: boolean; detail: string };
 
@@ -37,9 +38,14 @@ function propsOf(element: SpecElement | null): Record<string, unknown> {
   return (element?.props ?? {}) as Record<string, unknown>;
 }
 
+function canonicalNumber(text: string): string {
+  const value = Number(text.replace(/,/g, ""));
+  return Number.isFinite(value) ? String(value) : text;
+}
+
 function numbersIn(value: unknown, found: Set<string>) {
   if (typeof value === "number") found.add(String(value));
-  if (typeof value === "string") for (const match of value.match(NUMBER_IN_TEXT) ?? []) found.add(match.replace(/,/g, ""));
+  if (typeof value === "string") for (const match of value.match(NUMBER_IN_TEXT) ?? []) found.add(canonicalNumber(match));
   if (Array.isArray(value)) for (const item of value) numbersIn(item, found);
   if (typeof value === "object" && value !== null) for (const item of Object.values(value)) numbersIn(item, found);
 }
@@ -126,6 +132,63 @@ function shapeCheck(turn: Turn, props: Record<string, unknown>, expected: NonNul
   return check("drewShape", body.kind === expected, `วาดเป็น ${body.kind} คาดว่า ${expected} (dims ${first.query.dims.join(",") || "-"}, with ${others.length})`);
 }
 
+const COMPOSED_TYPES: ReadonlySet<string> = new Set(["ListItem", "Avatar", "Image", "Metric", "Badge", "Timeline", "KeyValue", "Accordion", "Rating", "Progress", "Carousel", "Callout", "LeaveForm"]);
+const PICTURE_PROPS = ["photo", "src", "cover"] as const;
+const PRESS_ACTION = "runTool";
+
+type PressAction = { action?: string; params?: { name?: string } };
+
+function carouselPictures(props: Record<string, unknown>): string[] {
+  const items = Array.isArray(props.items) ? (props.items as { src?: unknown }[]) : [];
+  return items.map((item) => item?.src).filter((src): src is string => typeof src === "string" && src.length > 0);
+}
+
+function picturesIn(spec: Spec | null): string[] {
+  return elements(spec).flatMap((element) => {
+    const props = propsOf(element);
+    const direct = PICTURE_PROPS.map((key) => props[key]).filter((value): value is string => typeof value === "string" && value.length > 0);
+    return [...direct, ...carouselPictures(props)];
+  });
+}
+
+function pressedTools(spec: Spec | null): string[] {
+  return elements(spec).flatMap((element) => {
+    const press = (element as { on?: { press?: PressAction | PressAction[] } }).on?.press;
+    const actions = Array.isArray(press) ? press : press ? [press] : [];
+    return actions.filter((action) => action.action === PRESS_ACTION).map((action) => action.params?.name ?? "");
+  });
+}
+
+function peopleChecks(turn: Turn, tool: NonNullable<EvalCase["expectPeople"]>): CheckResult[] {
+  const called = turn.toolInputs.some((entry) => entry.tool === tool);
+  const types = elements(turn.spec).map((element) => element.type);
+  const composed = types.includes("Card") && types.some((type) => COMPOSED_TYPES.has(type)) && !types.includes("DataCard");
+  const returned = JSON.stringify(turn.toolOutputs);
+  const invented = picturesIn(turn.spec).filter((src) => !returned.includes(JSON.stringify(src)));
+  return [
+    check("calledTool", called, called ? `เรียก ${tool}` : `ไม่ได้เรียก ${tool}`),
+    check("composedPeople", composed, `องค์ประกอบ: ${[...new Set(types)].join(", ") || "ไม่มี"}`),
+    check("picturesGrounded", invented.length === 0, invented.length === 0 ? "ทุกรูปมาจากผล tool" : `รูปที่ tool ไม่ได้ส่ง: ${invented.slice(0, 3).join(", ")}`),
+  ];
+}
+
+const READ_TOOLS: ReadonlySet<string> = new Set(TOOL_SURFACE.filter((entry) => entry.tier === "read").map((entry) => entry.name));
+
+function pressAsksCheck(turn: Turn): CheckResult {
+  const direct = pressedTools(turn.spec).filter((name) => READ_TOOLS.has(name));
+  return check("pressAsks", direct.length === 0, direct.length === 0 ? "ปุ่มถามต่อผ่าน ask หรือเป็นการลงมือทำ" : `ปุ่มเรียก tool อ่านข้อมูลตรง: ${[...new Set(direct)].join(", ")}`);
+}
+
+function carouselCheck(turn: Turn): CheckResult {
+  const used = elements(turn.spec).some((element) => element.type === "Carousel");
+  return check("noCarousel", !used, used ? "ใช้ Carousel กับชุดที่ต้องเห็นครบหรือต้องเทียบ" : "ไม่ใช้ Carousel");
+}
+
+function pressCheck(turn: Turn, tool: string): CheckResult {
+  const pressed = pressedTools(turn.spec);
+  return check("pressBound", pressed.includes(tool), pressed.length > 0 ? `ปุ่มเรียก ${[...new Set(pressed)].join(", ")}` : `ไม่มีปุ่มเรียก ${tool}`);
+}
+
 export function checkTurn(turn: Turn, testCase: EvalCase): CheckResult[] {
   const card = cardElement(turn.spec);
   const props = propsOf(card);
@@ -154,6 +217,10 @@ export function checkTurn(turn: Turn, testCase: EvalCase): CheckResult[] {
   }
   if (testCase.expectCompare) results.push(comparedCheck(turn, testCase.expectCompare));
   if (testCase.expectShape) results.push(shapeCheck(turn, props, testCase.expectShape));
+  if (testCase.expectPeople) results.push(...peopleChecks(turn, testCase.expectPeople));
+  if (testCase.expectPress) results.push(pressCheck(turn, testCase.expectPress));
+  if (testCase.expectPeople) results.push(pressAsksCheck(turn));
+  if (testCase.forbidCarousel) results.push(carouselCheck(turn));
   results.push(groundedCheck(turn.spec, turn.toolOutputs));
   return results;
 }

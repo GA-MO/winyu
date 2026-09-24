@@ -28,7 +28,7 @@ bun run eval:cards -- --model=google/gemini-3.8-flash   # the same checks agains
 bun run seed         # regenerates .data/*.json from the generator (deterministic)
 ```
 
-Verify a page without a browser: `curl -s http://localhost:3100/login | grep -c "เข้าสู่ระบบ"`.
+Verify a page without a browser: `curl -s http://localhost:3100/login | grep -c "ผู้ช่วยข้อมูลสำหรับทุกคนในองค์กร"`.
 
 ## Code rules
 

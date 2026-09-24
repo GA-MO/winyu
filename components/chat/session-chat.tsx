@@ -1,7 +1,6 @@
 "use client";
 
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, lastAssistantMessageIsCompleteWithApprovalResponses, lastAssistantMessageIsCompleteWithToolCalls } from "ai";
 import { Inbox, Sparkles } from "lucide-react";
@@ -49,7 +48,6 @@ export function SessionChat({
   preload: SessionPreload | null;
   suggestions: QuickAction[];
 }) {
-  const router = useRouter();
   const host = useVexaHostContext();
   const hostRef = useRef(host);
   hostRef.current = host;
@@ -75,7 +73,9 @@ export function SessionChat({
         if (payload?.default) setModel(payload.default);
       })
       .catch(() => undefined)
-      .finally(() => setModelReady(true));
+      .finally(() => {
+        if (!controller.signal.aborted) setModelReady(true);
+      });
     return () => controller.abort();
   }, []);
 
@@ -150,15 +150,19 @@ export function SessionChat({
 
   useEffect(() => {
     registerChatSender(send);
-    return () => registerChatSender(null);
-  }, [send]);
+    host?.registerChatSender(send);
+    return () => {
+      registerChatSender(null);
+      host?.registerChatSender(null);
+    };
+  }, [host, send]);
 
   useEffect(() => {
     if (!modelReady || sent.current || !initialPrompt) return;
     sent.current = true;
     send(initialPrompt);
-    router.replace(`/c/${threadId}`, { scroll: false });
-  }, [initialPrompt, modelReady, router, send, threadId]);
+    window.history.replaceState(null, "", `/c/${threadId}`);
+  }, [initialPrompt, modelReady, send, threadId]);
 
   return (
     <div className="relative flex h-dvh min-h-0 flex-col">

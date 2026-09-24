@@ -3,6 +3,9 @@ import type { Spec, SpecElement } from "vexa/protocol";
 import { formatDateTh, formatPercent, periodLabelTh } from "@/lib/i18n/format";
 import { TH } from "@/lib/i18n/th";
 import { resolveEntity } from "@/lib/semantic/dictionary";
+import { peopleSteps, profileSteps } from "./mock-people";
+import { siteSteps } from "./mock-sites";
+import { candidateSteps, courseSteps, policySteps } from "./mock-hr";
 
 const TODAY = "2026-09-22";
 const MONTH_START = "2026-09-01";
@@ -396,6 +399,8 @@ const PRESSED_DONE: Record<string, string> = {
   pin_widget: "ปักการ์ดไว้บน Dashboard แล้วครับ กด ⌘D เพื่อเปิดดู",
   send_email: "ส่งอีเมลแล้วครับ ในเดโมนี้จดหมายจะไปอยู่ใน Outbox",
   watch_metric: "ตั้งการเฝ้าดูแล้วครับ ผมจะแจ้งใน Inbox ครั้งแรกที่เข้าเงื่อนไข",
+  enroll_course: "ส่งคำขอเข้าอบรมให้หัวหน้าอนุมัติแล้วครับ ระบบกันที่นั่งไว้ให้หนึ่งที่",
+  request_leave: "ยื่นใบลาให้หัวหน้าอนุมัติแล้วครับ ติดตามคำตอบได้ใน Inbox",
 };
 
 type PressedAction = { tool: string; input: Record<string, unknown> };
@@ -1112,6 +1117,12 @@ export const COP_MOCK_PROMPTS = [
   "ส่งต่องานให้ผู้รับผิดชอบ",
   "เตือนฉันถ้าสต๊อกดีซีลำพูนพอขายต่ำกว่า 10 วัน",
   "เดือนหน้ามีวันไหนที่กระทบยอดขาย",
+  "ทีมขายภาคอีสานมีใครบ้าง",
+  "ใบอนุญาตของใครใกล้หมดอายุ",
+  "โรงงานไหนเกิดอุบัติเหตุบ้าง",
+  "ผู้สมัครพนักงานขายขอนแก่น",
+  "มีหลักสูตรอะไรเปิดเดือนนี้",
+  "ลาพักร้อนยังไง",
   "ส่วนแบ่งตลาดเทียบคู่แข่ง",
   "ยอดขายรายเดือนแยกภาค 6 เดือนล่าสุด",
   "ยอดเทียบเป้ารายจังหวัด",
@@ -1128,6 +1139,9 @@ export const COP_MOCK_SCRIPT: MockScript = {
     { match: WATCH_REQUEST, steps: watchSteps },
     { match: /ส่งต่อ|handoff/i, steps: pressedSteps },
     { match: /^ตรวจความผิดปกติ|^ดูประวัติ|กับพื้นที่อื่น/, steps: focusedAlertSteps },
+    { match: /ผู้สมัคร/, steps: candidateSteps },
+    { match: /หลักสูตร|อบรม/, steps: courseSteps },
+    { match: /ลาพักร้อน|ลาป่วย|ลากิจ|วันลา|ใบลา|สวัสดิการ/, steps: policySteps },
     { match: /วันห้ามขาย|วันพระ|ปฏิทิน|วันหยุด|เทศกาล|วันไหน.*กระทบ|ออกพรรษา/, steps: CALENDAR_STEPS },
     { match: /ส่วนแบ่งตลาด|market share|มาร์เก็ตแชร์|คู่แข่ง|คาราบาว|ช้าง/i, steps: marketShareSteps },
     { match: /ขายออกเบียร์.*ใน.*(ปีก่อน|ปีที่แล้ว)/, steps: beerSellOutOfPlaceSteps },
@@ -1136,6 +1150,9 @@ export const COP_MOCK_SCRIPT: MockScript = {
     { match: /รายจังหวัด|แต่ละจังหวัด/, steps: PROVINCE_ATTAINMENT_STEPS },
     { match: /ภาค.*ช่องทาง|ช่องทาง.*ภาค/, steps: REGION_CHANNEL_STEPS },
     { match: /รายเดือน.*(แยก|แต่ละ)ภาค|(แยก|แต่ละ)ภาค.*รายเดือน/, steps: REGION_MONTHLY_STEPS },
+    { match: /อุบัติเหตุ|ความปลอดภัย|เกือบเกิดเหตุ|near.?miss/i, steps: siteSteps },
+    { match: /โปรไฟล์|ประวัติ(การทำงาน)?(ของ)?คุณ/, steps: profileSteps },
+    { match: /ทีม.*(มีใคร|ใครบ้าง)|ลูกทีม|ใบอนุญาต|ใบรับรอง|ใบขับขี่|โอที|เกษียณ|พนักงานใหม่|เพิ่งเข้า|เสี่ยง.*ลาออก/, steps: peopleSteps },
     { match: /สิทธิ์|เงินเดือน|salary/i, steps: SALARY_STEPS },
     { match: /กำไรขั้นต้น|gross margin/i, steps: MARGIN_STEPS },
     { match: /ลาออก|attrition/i, steps: ATTRITION_STEPS },
