@@ -1,4 +1,5 @@
-import { METRIC_IDS, TOOL_SURFACE, type MetricId, type RoleId, type ToolName } from "@/lib/contracts";
+import { METRIC_IDS, type MetricId, type RoleId } from "@/lib/contracts";
+import { isToolName } from "@/lib/server/tools/registry";
 import type { setPermissionInputSchema } from "@/lib/contracts";
 import type { z } from "zod";
 import { isGrantable, permissionsFor, setMetricVisibility, setRoleTool, type Visibility } from "@/lib/access/role-overrides";
@@ -31,10 +32,6 @@ function isMetric(key: string): key is MetricId {
   return METRIC_IDS.includes(key as MetricId);
 }
 
-function isTool(key: string): key is ToolName {
-  return TOOL_SURFACE.some((entry) => entry.name === key);
-}
-
 function toolWord(allowed: boolean): string {
   return allowed ? TH.admin.permission.allow : TH.admin.permission.deny;
 }
@@ -49,7 +46,7 @@ function changeMetric(role: RoleId, metric: string, value: PermissionInput["valu
 }
 
 function changeTool(role: RoleId, tool: string, value: PermissionInput["value"], by: string): Applied {
-  if (!isTool(tool)) return { ok: false, error: TH.admin.permission.unknownTool(tool) };
+  if (!isToolName(tool)) return { ok: false, error: TH.admin.permission.unknownTool(tool) };
   if (value !== "allow" && value !== "deny") return { ok: false, error: TH.admin.permission.badToolValue };
   const allowed = value === "allow";
   if (allowed && !isGrantable(role, tool)) return { ok: false, error: TH.admin.overrides.notGrantable };

@@ -9,6 +9,7 @@ import { adoptionSummary } from "@/lib/server/adoption";
 import { auditEntries, usageSummary } from "@/lib/server/usage";
 import { setHandoffAction } from "@/app/(app)/admin/actions";
 import { Avatar, EmptyLine, LinkMore, Panel, Pill, Stat, SwitchButton, stamp } from "./parts";
+import { toolLabel } from "@/lib/server/tools/registry";
 
 const RECENT_LIMIT = 6;
 const COPY = TH.admin.overview;
@@ -23,7 +24,7 @@ function overrideValue(entry: RoleOverride): string {
 }
 
 function overrideSubject(entry: RoleOverride): string {
-  return entry.kind === "metric" ? metricLabel(entry.key) : TH.admin.tools[entry.key].label;
+  return entry.kind === "metric" ? metricLabel(entry.key) : toolLabel(entry.key);
 }
 
 /** The handoff switch as one row, shared by the overview and the tools tab. */
@@ -107,7 +108,7 @@ function RecentDenied() {
               <p className="truncate text-[11px] text-muted-foreground">{person ? TH.role[person.role] : ""}</p>
             </div>
             <div className="text-right">
-              <p className="text-xs">{TH.admin.tools[entry.tool as keyof typeof TH.admin.tools]?.label ?? entry.tool}</p>
+              <p className="text-xs">{toolLabel(entry.tool)}</p>
               <p className="text-[11px] text-muted-foreground">{stamp(entry.at)}</p>
             </div>
           </li>

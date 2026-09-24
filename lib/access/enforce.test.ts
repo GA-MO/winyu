@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { ROLE_IDS, TOOL_SURFACE, type RoleId } from "@/lib/contracts";
+import { ROLE_IDS, toolRolesInclude, type RoleId } from "@/lib/contracts";
+import { toolSurface } from "@/lib/server/tools/registry";
 import { findUser } from "@/lib/data/entities/users";
 import { accessFor } from "./policies";
 import { killTool, outOfScopeFilters, reviveTool, scopePredicates, toolsFor, assertToolAllowed, ToolNotAllowedError } from "./enforce";
@@ -24,7 +25,7 @@ function accessOf(role: RoleId) {
 describe("toolsFor", () => {
   test("matches the tool surface table for every role", () => {
     for (const role of ROLE_IDS) {
-      const expected = TOOL_SURFACE.filter((entry) => entry.roles === "all" || entry.roles.includes(role)).map((entry) => entry.name);
+      const expected = toolSurface().filter((entry) => toolRolesInclude(entry, role)).map((entry) => entry.name);
       expect(toolsFor(accessOf(role))).toEqual(expected);
     }
   });

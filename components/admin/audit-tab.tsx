@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { cn } from "vexa/lib/utils";
-import { TOOL_SURFACE, type AuditEntry } from "@/lib/contracts";
+import type { AuditEntry } from "@/lib/contracts";
+import { toolLabel, toolSurface } from "@/lib/server/tools/registry";
 import { USERS, findUser } from "@/lib/data/entities/users";
 import { TH } from "@/lib/i18n/th";
 import { auditEntries } from "@/lib/server/usage";
@@ -20,10 +21,6 @@ function hrefWith(filter: AuditFilterParams, decision: AuditEntry["decision"] | 
   if (filter.tool) params.set("tool", filter.tool);
   if (decision) params.set("decision", decision);
   return `/admin?${params.toString()}`;
-}
-
-function toolLabel(tool: string): string {
-  return TH.admin.tools[tool as keyof typeof TH.admin.tools]?.label ?? tool;
 }
 
 function DecisionChips({ filter, counts }: { filter: AuditFilterParams; counts: Record<AuditEntry["decision"], number> & { all: number } }) {
@@ -74,7 +71,7 @@ export function AuditTab({ filter }: { filter: AuditFilterParams }) {
           </Select>
           <Select name="tool" defaultValue={filter.tool ?? ""} aria-label={TH.admin.filters.tool}>
             <option value="">{`${TH.admin.filters.tool}: ${TH.admin.filters.all}`}</option>
-            {TOOL_SURFACE.map((entry) => (
+            {toolSurface().map((entry) => (
               <option key={entry.name} value={entry.name}>
                 {toolLabel(entry.name)}
               </option>

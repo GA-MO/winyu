@@ -1,4 +1,5 @@
-import { TOOL_SURFACE, type AccessContext, type Dim, type ToolName, type ToolTier, type User } from "@/lib/contracts";
+import { toolSurface, surfaceEntry } from "@/lib/server/tools/registry";
+import { type AccessContext, type Dim, type ToolName, type ToolTier, type User } from "@/lib/contracts";
 import { collection } from "@/lib/server/store/json-store";
 import { accessFor } from "./policies";
 import { permissionsFor } from "./role-overrides";
@@ -76,7 +77,7 @@ export function liveAccessFor(user: User): AccessContext {
 /** The tools a user may call: the surface, minus what the role policy withholds, minus the admin kill switches. */
 export function toolsFor(access: AccessContext): ToolName[] {
   const killed = closedTools();
-  return TOOL_SURFACE.filter((entry) => access.toolAllow.includes(entry.name) && !killed.has(entry.name)).map((entry) => entry.name);
+  return toolSurface().filter((entry) => access.toolAllow.includes(entry.name) && !killed.has(entry.name)).map((entry) => entry.name);
 }
 
 export function isToolAllowed(access: AccessContext, name: string): boolean {
@@ -88,7 +89,7 @@ export function assertToolAllowed(access: AccessContext, name: string): void {
 }
 
 export function tierOfTool(name: ToolName): ToolTier {
-  return TOOL_SURFACE.find((entry) => entry.name === name)?.tier ?? "read";
+  return surfaceEntry(name)?.tier ?? "read";
 }
 
 /** The dimension filters every query runs under; a dim missing here is unrestricted for this user. */

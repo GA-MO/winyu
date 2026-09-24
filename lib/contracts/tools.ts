@@ -6,15 +6,21 @@ import { dimSchema, metricIdSchema, metricQuerySchema } from "./semantic";
 import { watchMetricInputSchema } from "./watches";
 
 export type ToolTier = "read" | "write" | "destructive";
-export type ToolName = "query_metric" | "list_metrics" | "describe_entity" | "get_alerts" | "get_forecast" | "get_calendar" | "recall_memory"
+export type NativeToolName = "query_metric" | "list_metrics" | "describe_entity" | "get_alerts" | "get_forecast" | "get_calendar" | "recall_memory"
   | "find_people" | "get_person" | "get_site" | "list_candidates" | "list_courses" | "get_policy" | "request_leave" | "enroll_course"
   | "resolve_owner" | "create_handoff" | "send_email" | "pin_widget" | "watch_metric" | "run_job" | "set_permission";
-export type ToolSurfaceEntry = { name: ToolName; tier: ToolTier; roles: RoleId[] | "all"; input: z.ZodType };
+export type ConnectorToolName = `${string}__${string}`;
+export type ToolName = NativeToolName | ConnectorToolName;
+
+export const NATIVE_CONNECTORS = ["warehouse", "hris", "lms", "leave", "sites", "calendar", "mail", "cop"] as const;
+export type NativeConnectorId = (typeof NATIVE_CONNECTORS)[number];
+
+/** What the admin, the policy and the audit know about one tool; the executable lives on the server. */
+export type ToolSurfaceEntry = { name: ToolName; connector: string; tier: ToolTier; roles: readonly RoleId[] | "all"; labelTh: string; bodyTh: string };
 
 const MAX_FORECAST_WEEKS = 26;
 const MAX_ALERTS = 60;
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
-const ALL_BUT_SALES_REP: RoleId[] = ROLE_IDS.filter((role) => role !== "sales_rep");
 
 export const ENTITY_KINDS = ["agent", "sku", "dc", "campaign", "user"] as const;
 export const JOBS = ["anomaly", "forecast", "compose", "watches", "digest"] as const;
@@ -70,32 +76,7 @@ export const setPermissionInputSchema = z.object({
   value: z.enum(PERMISSION_VALUES),
 });
 
-export const TOOL_SURFACE: readonly ToolSurfaceEntry[] = [
-  { name: "query_metric", tier: "read", roles: "all", input: metricQuerySchema },
-  { name: "list_metrics", tier: "read", roles: "all", input: listMetricsInputSchema },
-  { name: "describe_entity", tier: "read", roles: "all", input: describeEntityInputSchema },
-  { name: "get_alerts", tier: "read", roles: "all", input: getAlertsInputSchema },
-  { name: "get_forecast", tier: "read", roles: "all", input: getForecastInputSchema },
-  { name: "get_calendar", tier: "read", roles: "all", input: getCalendarInputSchema },
-  { name: "recall_memory", tier: "read", roles: "all", input: recallMemoryInputSchema },
-  { name: "find_people", tier: "read", roles: "all", input: findPeopleInputSchema },
-  { name: "get_person", tier: "read", roles: "all", input: getPersonInputSchema },
-  { name: "get_site", tier: "read", roles: "all", input: getSiteInputSchema },
-  { name: "list_candidates", tier: "read", roles: "all", input: listCandidatesInputSchema },
-  { name: "list_courses", tier: "read", roles: "all", input: listCoursesInputSchema },
-  { name: "get_policy", tier: "read", roles: "all", input: getPolicyInputSchema },
-  { name: "request_leave", tier: "write", roles: "all", input: requestLeaveInputSchema },
-  { name: "enroll_course", tier: "write", roles: "all", input: enrollCourseInputSchema },
-  { name: "resolve_owner", tier: "read", roles: "all", input: resolveOwnerInputSchema },
-  { name: "create_handoff", tier: "write", roles: ALL_BUT_SALES_REP, input: createHandoffInputSchema },
-  { name: "send_email", tier: "write", roles: ALL_BUT_SALES_REP, input: sendEmailInputSchema },
-  { name: "pin_widget", tier: "write", roles: "all", input: pinWidgetInputSchema },
-  { name: "watch_metric", tier: "write", roles: "all", input: watchMetricInputSchema },
-  { name: "run_job", tier: "destructive", roles: ["it_admin"], input: runJobInputSchema },
-  { name: "set_permission", tier: "destructive", roles: ["it_admin"], input: setPermissionInputSchema },
-];
-
-/** Tool names a role may call, in surface order. */
-export function toolsAllowedFor(role: RoleId): ToolName[] {
-  return TOOL_SURFACE.filter((entry) => entry.roles === "all" || entry.roles.includes(role)).map((entry) => entry.name);
+/** Whether a surface entry is on for a role before any admin override. */
+export function toolRolesInclude(entry: Pick<ToolSurfaceEntry, "roles">, role: RoleId): boolean {
+  return entry.roles === "all" || entry.roles.includes(role);
 }

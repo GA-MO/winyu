@@ -12,7 +12,7 @@
 - tile ของ Cop ทำให้ Gemini แค่เติมแม่แบบ · Carousel ซ่อนแถวที่มีเรื่องเตือน · ย่อป้ายเหลือ "ใบอนุญาต" แล้วโมเดลเข้าใจผิดเป็นใบขับขี่ · ให้ตัวเลขเปล่า ("7 วัน") แล้วโมเดลแต่งคำนำเอง → tool ส่งข้อความพร้อมใช้ (`trailing.text`)
 - dark mode: ไม่เคยเลือก = ตาม `prefers-color-scheme` (เปลี่ยนตามเครื่องทันที) · เลือกแล้วเก็บใน `localStorage cop-theme`
 - eval ขนานกันโดน OpenRouter 429 · `people-certs` เคยล้มด้วย 400 "reasoning details" · Vexa `Map` ใช้ไม่ได้
-ถัดไป: /ship (Cop + Vexa `roadmap` คู่กัน) · แล้วแผนที่ (Vexa `Map` ใหม่)
+ถัดไป: /ship (Cop + Vexa `roadmap` คู่กัน) · แล้วแผนที่ (Vexa `Map` ใหม่) · Phase 7 connector (เขียนแผนแล้ว 2026-09-24 ยังไม่เริ่ม)
 
 ## 1. What we are building
 
@@ -622,6 +622,62 @@ The user's question: "จะมั่นใจได้ไงว่า model จ
 - ตรวจแล้ว (2026-09-23): typecheck, 462 tests, ดูด้วยตาในฐานะคุณอนุชา: การ์ดทีม (light กว้าง, dark 500px ไม่มี scroll แนวนอน) และโปรไฟล์คุณป้องที่ Gemini ประกอบเองจากการกดการ์ด · ยังไม่ได้ดูด้วยตาในฐานะคุณเมย์/คุณกฤต
 - พบ: คำสั่งตรวจ `curl /login | grep -c "เข้าสู่ระบบ"` ใน CLAUDE.md ได้ 0 ตั้งแต่ login แบบเลือกบทบาทก่อน (หน้ายังตอบ 200)
 
+### Phase 7 — ต่อระบบอื่นผ่าน connector โดยสิทธิ์ยังคุมที่ Cop ที่เดียว (user decision 2026-09-24: "เขียน work package ลง plan เลย ทุก connector ต่อกำหนดสิทธิ์ได้เหมือนเดิม")
+
+ที่มา: tool ส่วนใหญ่ของ Cop เป็นระบบภายนอกที่ตอนนี้ mock ไว้ — `query_metric`/`list_metrics`/`describe_entity` = data warehouse, `find_people`/`get_person`/`list_candidates` = HRIS/ATS, `list_courses`/`enroll_course` = LMS, `get_policy`/`request_leave` = ระบบลา, `get_site`/`get_calendar` = ข้อมูลไซต์/ปฏิทิน, `send_email` = mail · ส่วน handoff, dashboard, watch, memory, admin เป็นของ Cop เอง · ปัญหาวันนี้: (1) มีแค่ metric ที่มี port (`DataPort`) ที่เหลือ import `lib/data/entities/*` ตรงจาก logic (`lib/server/people.ts`, `sites.ts`, `courses.ts`, `leave.ts`, `recruiting.ts`, `lib/access/people-scope.ts` และแม้แต่ client `components/cards/approval-card.tsx`) (2) `DataPort` เป็น sync แต่ระบบจริงเป็น async (3) เพิ่ม tool หนึ่งตัวต้องแก้ union `ToolName`, schema, `TOOL_SURFACE`, map ใน `tools.ts` (505 บรรทัด 22 tool) (4) ถ้าส่ง `mcp` เข้า `createVexaHandler` ตรงๆ tool นั้นไม่ผ่าน `toolsFor` → ทุกบทบาทเห็น ไม่มี kill switch ไม่มี audit ของ Cop ไม่มี scope/mask และ header ตายตัวต่อบทบาท ส่งตัวตนผู้ใช้ไปปลายทางไม่ได้
+
+หลัก: **MCP (หรือ SQL/REST) เป็น adapter ที่อยู่หลัง tool ของ Cop ไม่ใช่เส้นทางแยก** · ทุก tool ไม่ว่ามาจากไหนอยู่ใน surface เดียว มี `connector`, `tier`, `roles` ที่ Cop ประกาศเอง (ไม่เชื่อ metadata ของ server) แล้วผ่าน `toolsFor` → role policy → admin override → kill switch → สวิตช์ connector → `withAudit` เหมือน tool ในบ้านทุกประการ · หน้า admin, `set_permission`, audit, simulate อ่านจาก surface นี้ จึงกำหนดสิทธิ์ tool ของ connector ใหม่ได้ทันทีโดยไม่แก้ UI · ขอบเขตข้อมูล (ภาค/แบรนด์/สายบังคับบัญชา) และการปิดค่า (masked) ทำใน Cop ก่อนผลถึงโมเดล · โมเดลเห็นชื่อ tool และรูปผลลัพธ์เดิม prompt/eval/การ์ดไม่ต้องแก้
+
+**7A tool contract เดียว: หนึ่ง tool หนึ่งไฟล์** (`lib/server/tools/**` ใหม่, `lib/server/agent/tools.ts`, `lib/contracts/tools.ts`, `lib/access/*`, `lib/server/permissions.ts`, `app/(app)/admin/actions.ts`, `components/admin/*`, `lib/eval/check-cards.ts`) — ทำแล้ว 2026-09-24
+- [x] `defineTool({ name, connector, tier, roles, description, input, execute })` ใน `lib/server/tools/define.ts` ห่อ `withAudit` ให้เอง และตั้ง `needsApproval` จาก tier (ทุกตัวที่ไม่ใช่ read) · tool ละไฟล์ `lib/server/tools/<kebab-name>.ts` export `<camelName>Tool` · helper ที่ใช้ร่วม (`now`, `recipient`, `ALL_BUT_SALES_REP`) อยู่ใน `shared.ts` · `registry.ts` มี `toolSurface()`, `surfaceEntry`, `isToolName`, `copTool`, `defaultToolsOf(role)`, `toolLabel` · `agent/tools.ts` เหลือ `toolsForAccess`, `copTools()`, `toolTiers()`
+- [x] contracts เก็บแค่ชนิด `ToolSurfaceEntry { name, connector, tier, roles, labelTh, bodyTh }` + `toolRolesInclude` · `ToolName = NativeToolName | \`${string}__${string}\`` (native ยังเป็น union ตรวจตอน compile ผ่าน `{ [Name in NativeToolName]: CopTool<Name> }` ใน registry) · `NATIVE_CONNECTORS` · `TOOL_SURFACE`/`toolsAllowedFor` ถูกลบ · admin tabs เป็น server component จึงเรียก `toolSurface()`/`toolLabel()` ตรง ไม่ต้องส่ง props
+- [x] ผู้อ่าน surface เปลี่ยนเป็น registry ทั้งหมด: `enforce.ts`, `role-overrides.ts`, `policies.ts` (`RolePolicy` ไม่มี `toolAllow` แล้ว — ค่าเริ่มคำนวณตอนเรียกผ่าน `defaultToolsOf` เพื่อไม่ให้ import วนของ access ↔ tools อ่านค่าตอนโหลด module), `permissions.ts`, admin `actions.ts`, `access-tab`, `tools-tab`, `audit-tab`, `overview-tab`, `simulate-tab`, `check-cards.ts`
+- [x] พฤติกรรมไม่เปลี่ยน: ชื่อ, description, schema, tier, roles ของ 22 tool เหมือนเดิม (description คัดลอกตรงด้วยสคริปต์) · ข้อความสรุปของ `set_permission` ยังใช้ชื่อ tool ดิบเหมือนเดิม
+- [x] `lib/access/surface.test.ts`: ตารางชื่อ/connector/tier/roles ของ native ตรงกับของเดิม · ทุก entry มี label, body, execute · approval ตรงกับ tier · ทุก tool × ทุกบทบาท: ค่าเริ่มตาม `roles`, ปิดได้, เปิดได้เฉพาะที่ tier ยอม, kill แล้วหายทุกบทบาท, เรียกแล้วมีแถว audit แม้ล้ม (probe ที่ throw ตอนอ่าน input ก่อนมีผลข้างเคียง; เทสต์คืนค่า override/kill/audit ที่ตัวเองสร้าง)
+- เพิ่ม native tool (compiler บังคับครบทั้ง 4 จุด): (1) `lib/server/tools/<kebab-name>.ts` ด้วย `defineTool` (2) ชื่อใน `NativeToolName` (`lib/contracts/tools.ts`) (3) หนึ่งบรรทัดใน map ของ `registry.ts` (ลำดับใน map = ลำดับในหน้า admin) (4) `TH.admin.tools.<name>` label + body · แล้วหน้า admin, override, kill switch, audit, `set_permission` และ `surface.test.ts` รับเอง (ต้องเพิ่มแถวในตาราง `NATIVE_SURFACE_BEFORE_CONNECTORS` ของเทสต์ด้วย เพราะเทสต์นั้นล็อกของเดิมไว้)
+- ตรวจแล้ว: typecheck, 495 tests (488 + 7) · curl `/admin` ทุกแท็บ 200 พร้อม label ไทย · แชท mock ในฐานะคุณอนุชา: `query_metric` ผ่าน registry คืนเฉพาะภาคอีสาน (ทิ้งแถว audit หนึ่งแถวใน `.data` ไม่มี thread)
+
+**7B port ต่อโดเมน และ async** (`lib/server/ports/**` ใหม่, `lib/server/{people,sites,courses,leave,recruiting,staff-requests,watches,briefing,dashboard,handoff,alerts}.ts`, `lib/access/people-scope.ts`, `lib/access/suppression.ts`, `components/cards/approval-card.tsx`, `components/admin/simulate-tab.tsx`)
+- [ ] port: `MetricsPort` (= `DataPort` เดิม), `DirectoryPort` (คน, ผังองค์กร, สายบังคับบัญชา, ข้อมูลที่ `people-signals` ใช้), `RecruitingPort`, `LearningPort`, `LeavePort` (นโยบาย, วันลาคงเหลือ, ยื่นคำขอ), `SitesPort`, `CalendarPort`, `MailPort` · ทุก port เป็น `Promise` · แต่ละ port มี adapter `generator` (ย้ายโค้ดเดิม) และ `register/reset` แบบ `DataPort`
+- [ ] logic ใน `lib/server/*` อ่านผ่าน port เท่านั้น ไม่ import `lib/data/entities/*` (ยกเว้น adapter `generator` และ seed) · มีเทสต์ grep ที่ fail ถ้ามีไฟล์นอก `lib/data/**`, `lib/server/ports/generator/**` import entity ของ HR/ไซต์/ปฏิทิน
+- [ ] engine (`anomaly`, `forecast`, `people-signals`, `site-safety`, `calendar-impact`) คงเป็นฟังก์ชันบริสุทธิ์ รับข้อมูล ไม่ fetch เอง
+- [ ] scope ที่ต้องรู้สายบังคับบัญชา (`people-scope`, `canSeeCandidates`) อ่าน snapshot ของ `DirectoryPort` ที่โหลดครั้งเดียวต่อ request ผ่าน `request-context` — การตรวจสิทธิ์ยังเป็น sync หลังโหลด
+- [ ] `approval-card.tsx` (client) เลิก import entity: ข้อมูลที่ต้องแสดงมากับผล tool หรือ props จาก server
+- [ ] caller ที่เป็น sync วันนี้ (watches, briefing, dashboard, handoff, simulate, jobs) เปลี่ยนเป็น async · เวลาต่อคำถามไม่แย่กว่าเดิม (งบ 50 ms/query ของ §11 ยังใช้กับ adapter `generator`)
+
+**7C connector registry: ประกาศสิทธิ์ครั้งเดียว ใช้ที่เดียวกับ tool ในบ้าน** (`lib/server/connectors/**` ใหม่, `lib/server/tools/registry.ts`, `lib/access/enforce.ts`, `lib/server/audit.ts`, `lib/contracts/audit.ts`)
+- [ ] `ConnectorDef { id, labelTh, sourceSystemTh, kind: "native" | "mcp" }` · native = port ของ 7B (`warehouse`, `hris`, `lms`, `leave`, `sites`, `calendar`, `mail`) + `cop` (handoff, dashboard, watch, memory, admin) · tool เดิมทุกตัวได้ `connector` ของมัน
+- [ ] MCP connector ประกาศใน `lib/server/connectors/<id>.ts` (server-only, secret อ่านจาก env): `{ id, labelTh, transport, auth: (access) => headers, timeoutMs, tools: { [remoteName]: { as?, labelTh, tier, roles, input?, scope, sensitive?, output? } } }` → ชื่อบน surface `${id}__${as ?? remoteName}` · เปิดเฉพาะ tool ที่ระบุ (ไม่มี `*`) · `tier`/`roles` มาจาก config นี้เท่านั้น · ไม่ระบุ tier = `destructive` + `needsApproval`
+- [ ] `scope` บังคับทุก tool ไม่มีค่า default (ไม่ระบุ = throw ตอนสร้าง registry แบบ allow list ของ Vexa): `{ kind: "none", reason }` สำหรับข้อมูลที่ไม่ผูกคน/ภาค (เช่น นโยบายบริษัท) · `{ kind: "inject", args: (access) => partial }` Cop เขียนทับ argument ที่ระบุขอบเขตก่อนส่ง (แบบเดียวกับที่ฉีด scope เข้า semantic query) โมเดลขยายขอบเขตเองไม่ได้ · `{ kind: "filter", rows: (rows, access) => rows }` กรองหลังได้ผล · ใช้ inject + filter คู่กันได้
+- [ ] `sensitive: [{ field, key }]` → ค่าปิดตามสิทธิ์ (`full` / `masked` / `none`) ต่อบทบาท แบบเดียวกับ metric: `role-overrides` เพิ่ม `kind: "field"` (key = `${connector}.${field}`) · `masked` แทนค่าด้วย `***` และนับใน `provenance.masked` ให้ audit บันทึก `decision: "masked"` เหมือน metric
+- [ ] `output`: adapter แปลงผลดิบเป็นรูปของ Cop `{ ok, summary, rows ≤ 60 พร้อม *_label, provenance { sourceSystem, asOf } }` · ไม่มี adapter = ย่อแบบทั่วไป (60 แถวแรก, แบน object, fence ด้วย `fenceAsData`) · description ของ server ถูก fence เสมอ
+- [ ] เชื่อม MCP เอง ไม่ใช้ option `mcp` ของ `createVexaHandler` (header ตายตัว, handler memo ต่อบทบาท): `execute` ขอ client จาก pool ต่อผู้ใช้ (`auth(access)` → header ของคนที่ถาม, หมดอายุ 10 นาที) · handler ยัง memo ต่อบทบาทได้เพราะชุด tool ขึ้นกับบทบาท ตัวตนมาจาก `request-context`
+- [ ] สวิตช์ connector: admin ปิดทั้ง connector ได้ (generalize สวิตช์ `handoff` เป็น `switches` id `connector:<id>`) · `closedTools()` รวม tool ทั้งหมดของ connector ที่ปิด → ปุ่ม next-action และ tool หายพร้อมกัน
+- [ ] ล้มเหลว: timeout/เชื่อมไม่ได้ → `{ ok: false, code: "CONNECTOR_UNAVAILABLE", error: "<labelTh> ไม่ตอบในขณะนี้" }` และมีแถว audit · ตอนเริ่ม server เทียบรายชื่อ tool ที่ server ประกาศกับ config แล้ว log ตัวที่หายหรือ schema ไม่ตรง (ไม่เปิด tool ที่ config ไม่มี)
+- [ ] `AuditEntry` เพิ่ม `connector`
+
+**7D admin: connector ในหน้าสิทธิ์เดิม** (`components/admin/*`, `app/(app)/admin/**`, `lib/server/permissions.ts`, `lib/i18n/th.ts`)
+- [ ] ตารางสิทธิ์ tool × บทบาท จัดกลุ่มตาม connector (หัวกลุ่ม: ชื่อ, แหล่งข้อมูล, สถานะเชื่อมต่อ, สวิตช์ทั้ง connector) · กดเซลล์เปิด/ปิดแบบเดิม
+- [ ] ค่าที่ปิดตามสิทธิ์ของ connector (`sensitive`) อยู่ใต้ส่วนเมตริกเดิม วนค่า full → masked → none แบบเดิม
+- [ ] แท็บ tools: คอลัมน์ connector, tier, kill · แท็บ audit: กรองตาม connector · แท็บ simulate: แสดง tool ของ connector ที่บทบาทนั้นเรียกได้
+- [ ] `set_permission` รับชื่อ tool ของ connector และ `kind: "field"` (description เพิ่มหนึ่งประโยค — แตะ description จึงรัน `eval:cards --case=admin-*` เฉพาะเคส admin)
+
+**7E connector ตัวอย่างหนึ่งตัว + red-team** (`scripts/mcp-demo-lms.ts` ใหม่, `lib/server/connectors/lms-demo.ts` ใหม่, `lib/access/redteam*.test.ts`)
+- [ ] MCP server เดโม (http บน localhost, `bun run mcp:demo`) ให้ประวัติการอบรมรายคนจากข้อมูล generator — พิสูจน์ทั้งเส้น: config → surface → ตารางสิทธิ์ใน admin → header ของผู้ถาม → scope inject + filter → field masked → audit → การ์ดในแชท
+- [ ] red-team (ต่อชุด 3A, ทำงานกับ stub adapter ไม่ต้องเปิด server): sales_rep ขอข้อมูลภาคอื่นผ่าน tool ของ connector → 0 รั่ว · โมเดลส่ง argument ขยายขอบเขต → ถูกเขียนทับ · tool ที่ server มีแต่ config ไม่มี → เรียกไม่ได้ · ปิด connector → tool และปุ่มหาย · description ของ server มีคำสั่งแทรก → ถูก fence · บทบาทที่ admin ปิด tool → `TOOL_NOT_ALLOWED` + audit `deny`
+- [ ] ดูด้วยตา: คุณกฤต (sales_rep) ถามประวัติอบรมของตัวเอง → การ์ด; ถามของคนอื่นนอกสาย → ตอบว่านอกขอบเขต · admin ปิด tool นี้ให้ sales_rep ในตาราง → คำถามถัดไปของคุณกฤตไม่มี tool นี้
+
+เกณฑ์ผ่านของ phase:
+- เพิ่ม MCP connector = ไฟล์ config หนึ่งไฟล์ (+ adapter ถ้าต้องการ) ไม่แก้ contracts, `tools.ts`, admin UI, หรือ prompt
+- เพิ่ม native tool = ไฟล์เดียวใน `lib/server/tools/`
+- ทุก tool บน surface กำหนดสิทธิ์ต่อบทบาท, kill, ปิดทั้ง connector, masked field และ audit ได้ — พิสูจน์ด้วย `surface.test.ts` ที่วนทุก entry ไม่ใช่เทสต์ราย tool
+- tool ที่ไม่มี `scope` หรือ `roles` สร้าง registry ไม่ได้
+- ของเดิมไม่เปลี่ยน: เทสต์เดิมผ่านทั้งหมด ชื่อ/description tool เดิมเหมือนเดิม
+
+ลำดับ: 7A → 7B (แตะไฟล์ชุดเดียวกัน ทำต่อกัน ไม่ขนาน) → 7C → 7D ∥ 7E
+ตรวจ: typecheck, test, curl `/admin` · eval เฉพาะเคส admin หลัง 7D (ตามหลัก "eval เมื่อจำเป็นจริง") · ดูด้วยตาใน 7E
+นอกขอบเขตของ phase นี้ (ยังอยู่ใน §10): ต่อ HRIS/ERP/LMS จริง, SSO/on-behalf-of token จริง (`auth(access)` ของเดโมคืน header ที่ลงชื่อด้วย secret ของ Cop), เขียนกลับ ERP
+
 ## 7. Prompt rules (used by 1B, referenced by 3B)
 
 Persona rules the handler passes as `rules` (Thai unless noted):
@@ -651,6 +707,11 @@ Persona rules the handler passes as `rules` (Thai unless noted):
 | 3 | 3A admin + red-team | opus | permission audit, adversarial tests | 60-question suite, 0 leaks |
 | 3 | 3B scripted demo | sonnet | mock turns from real tool output | Needs 1A numbers |
 | 3 | 3C QA/polish/docs | sonnet (haiku for README/copy sweeps) | breadth over depth | Runs last inside the phase |
+| 7 | 7A tool contract | opus | security boundary: every permission path reads the surface | Behaviour-preserving refactor; `surface.test.ts` first, then move tools one per file |
+| 7 | 7B ports + async | opus | wide async ripple, scope reads the directory | Engines stay pure; grep test forbids entity imports outside adapters |
+| 7 | 7C connector registry | opus | scope inject/filter, masking, per-user auth | Reads Vexa `core/mcp.ts` for the client and fence; does not use handler `mcp` |
+| 7 | 7D admin | sonnet | UI grouping over an existing matrix | Surface arrives as props; no registry import in client |
+| 7 | 7E demo + red-team | opus | adversarial tests | Stub adapter in tests; demo server only for the browser check |
 
 Model choice rule: opus for anything that guards data (access, red-team), needs numeric/statistical correctness, or is user-facing UI (the user wants opus on UI); sonnet for non-UI workflow/glue packages; haiku for mechanical sweeps (copy, formatting, curl checks, README). Never default to one model for everything.
 
@@ -660,6 +721,7 @@ Ownership rule for parallel agents: a package edits only the folders listed in i
 
 Vexa is not a constraint (user decision 2026-09-22): change it when Cop needs it, prefer general features, list them here. Candidates already identified: a pluggable catalog (`createVexaHandler({ catalog })` + `SpecView registry`) so Cop can add `Provenance`, `AnomalyCard`, `HandoffCard`, `Sparkline`, `Heatmap`; `VexaChat` `initialMessages`/`id`; a headless `useVexaChat` so Cop can own the chat chrome.
 
+- [ ] Candidate (phase 7C): `connectMcp` accepts `headers: () => Record<string, string>` resolved per call and exports `wrapMcpTool`, so a host that owns permission can use Vexa's client and fence without the handler's static `mcp` option. Cop builds its own pool first; move it here only if it stays general.
 - [x] `ListItem` (phase 6F, uncommitted on `roadmap`) — one row of a list of people, places or things (avatar or thumb, title, subtitle, detail, badges, trailing value); with `on.press` the whole row is the press target, so a model does not stack Avatar + Text + Badge + a Button under every row. Gallery section `list-item`, prompt rule, registry passes `on("press").bound`. `trailingTone` (good/bad/neutral) colors the trailing value, and the title row wraps so a long trailing value drops below a title instead of truncating it (6G).
 - [x] `Carousel` slides from children + `useVexaLabels` (phase 6E, uncommitted on `roadmap`) — any catalog tile (Cop's `CandidateTile`, `CourseTile`) can be swiped, not only the fixed item shape; the hint and arrow labels come from `ChatLabels.carouselHint/Previous/Next` so a host's locale reaches them (was hard-coded "Swipe or drag to scroll freely").
 - [x] `Image.aspect` `banner` (21:9) (phase 6, uncommitted on `roadmap`) — a photo can head a card without pushing its numbers below the fold; `wide` 16:9 at chat width took ~360 px before the first number.
@@ -699,3 +761,5 @@ SSO/Entra, real databases, LINE push, mobile app, text-to-SQL, write-back to ERP
 | Generator too slow or too big | typed arrays, cached per metric, budget 50 ms/query with a test |
 | Dashboard feels unstable | D3: pinned immutable, 1 suggestion/day, reasons, rollback |
 | Agents collide on shared files | §8 ownership rule; contracts frozen inside a phase |
+| A connector exposes data outside the asker's scope | tools on one surface through `toolsFor`; `scope` required per tool (inject + filter in Cop); red-team 7E; connector switch |
+| An MCP server changes its tools or schemas | Cop's config pins each tool and its zod input; startup diff logs drift; unknown tools never exposed |

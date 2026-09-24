@@ -39,7 +39,7 @@ function query(partial: Partial<MetricQuery>): MetricQuery {
 }
 
 async function ask<T>(userId: string, name: string, input: unknown): Promise<T> {
-  const definition = copTools[name] as Tool;
+  const definition = copTools()[name] as Tool;
   const execute = definition.execute as (args: unknown, options: unknown) => Promise<T>;
   return runWithAccess(access(userId), () => execute(input, {}));
 }

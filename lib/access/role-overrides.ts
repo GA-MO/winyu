@@ -1,4 +1,5 @@
-import { TOOL_SURFACE, type MetricId, type RoleId, type ToolName } from "@/lib/contracts";
+import type { MetricId, RoleId, ToolName } from "@/lib/contracts";
+import { defaultToolsOf, surfaceEntry, toolSurface } from "@/lib/server/tools/registry";
 import { collection } from "@/lib/server/store/json-store";
 import { ROLE_POLICIES } from "./policies";
 
@@ -36,27 +37,27 @@ export function overrideFor(role: RoleId, kind: RoleOverride["kind"], key: strin
 
 /** Destructive tools stay with the roles the tool surface names; an admin can only take them away. */
 export function isGrantable(role: RoleId, tool: ToolName): boolean {
-  const entry = TOOL_SURFACE.find((item) => item.name === tool);
+  const entry = surfaceEntry(tool);
   if (!entry) return false;
   if (entry.tier !== "destructive") return true;
   return entry.roles === "all" || entry.roles.includes(role);
 }
 
 function defaultToolAllowed(role: RoleId, tool: ToolName): boolean {
-  return ROLE_POLICIES[role].toolAllow.includes(tool);
+  return defaultToolsOf(role).includes(tool);
 }
 
 /** What a role may see and call right now: the code policy with the admin's overrides on top. */
 export function permissionsFor(role: RoleId): RolePermissions {
   const policy = ROLE_POLICIES[role];
   const metricAcl = { ...policy.metricAcl };
-  const tools = new Set(policy.toolAllow);
+  const tools = new Set<ToolName>(defaultToolsOf(role));
   for (const entry of store().where((item) => item.role === role)) {
     if (entry.kind === "metric") metricAcl[entry.key] = entry.visibility;
     else if (entry.allowed && isGrantable(role, entry.key)) tools.add(entry.key);
     else tools.delete(entry.key);
   }
-  return { metricAcl, toolAllow: TOOL_SURFACE.map((item) => item.name).filter((name) => tools.has(name)) };
+  return { metricAcl, toolAllow: toolSurface().map((item) => item.name).filter((name) => tools.has(name)) };
 }
 
 /** Sets one role's view of a metric; at the code default, the override is dropped so the page shows it as unchanged. */

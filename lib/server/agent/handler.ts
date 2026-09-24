@@ -24,7 +24,7 @@ function build(access: AccessContext): ChatHandler {
     },
     rules: COP_RULES,
     tools: toolsForAccess(access),
-    toolTiers,
+    toolTiers: toolTiers(),
     stopWhen: stepCountIs(MAX_STEPS),
   });
 }

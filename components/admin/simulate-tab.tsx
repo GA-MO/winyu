@@ -8,6 +8,7 @@ import { USERS, findUser } from "@/lib/data/entities/users";
 import { metricLabel } from "@/lib/dashboard/metric-display";
 import { TH } from "@/lib/i18n/th";
 import { Avatar, INK, Panel, Pill, Select, type Tone } from "./parts";
+import { toolLabel } from "@/lib/server/tools/registry";
 
 const SIMULATE_ROWS = 6;
 const SIMULATE_RANGE = { from: "2026-09-01", to: "2026-09-22" };
@@ -123,7 +124,7 @@ export function SimulateTab({ userId, metric }: { userId: string; metric: Metric
             <div className="flex flex-wrap gap-1.5">
               {access.toolAllow.map((name) => (
                 <span key={name} className="rounded-full bg-bubble px-2.5 py-1 text-xs text-accent-foreground">
-                  {TH.admin.tools[name as keyof typeof TH.admin.tools]?.label ?? name}
+                  {toolLabel(name)}
                 </span>
               ))}
             </div>

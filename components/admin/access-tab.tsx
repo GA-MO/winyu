@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { Lock, RotateCcw } from "lucide-react";
 import { cn } from "vexa/lib/utils";
-import { METRIC_IDS, ROLE_IDS, TOOL_SURFACE, type MetricId, type RoleId, type ToolName } from "@/lib/contracts";
+import { METRIC_IDS, ROLE_IDS, type MetricId, type RoleId, type ToolName } from "@/lib/contracts";
+import { toolSurface } from "@/lib/server/tools/registry";
 import { METRIC_DOMAINS, ROLE_POLICIES } from "@/lib/access/policies";
 import { killedTools } from "@/lib/access/enforce";
 import { isGrantable, overrideFor, permissionsFor, roleOverrides, type RoleOverride, type Visibility } from "@/lib/access/role-overrides";
@@ -98,7 +99,7 @@ function RoleHeader({ role }: { role: RoleId }) {
             <Pill tone="success">{`${TH.admin.aclShort.full} ${counts[0]}`}</Pill>
             <Pill tone="warning">{`${TH.admin.aclShort.masked} ${counts[1]}`}</Pill>
             <Pill>{`${TH.admin.aclShort.none} ${counts[2]}`}</Pill>
-            <Pill tone="primary">{COPY.toolCount(permissions.toolAllow.length, TOOL_SURFACE.length)}</Pill>
+            <Pill tone="primary">{COPY.toolCount(permissions.toolAllow.length, toolSurface().length)}</Pill>
           </p>
         </div>
       </div>
@@ -195,16 +196,15 @@ function ToolList({ role }: { role: RoleId }) {
   return (
     <Panel title={COPY.toolsTitle} hint={COPY.toolsHint} className="lg:col-span-2" bodyClassName="flex flex-col">
       <ul className="flex flex-col divide-y divide-border">
-        {TOOL_SURFACE.map((entry) => {
+        {toolSurface().map((entry) => {
           const on = allowed.has(entry.name);
           const locked = !on && !isGrantable(role, entry.name);
           const override = overrideFor(role, "tool", entry.name);
-          const info = TH.admin.tools[entry.name];
           return (
             <li key={entry.name} className="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0">
               <div className="min-w-0 flex-1">
                 <p className="flex flex-wrap items-center gap-1.5 text-sm">
-                  {info.label}
+                  {entry.labelTh}
                   {override ? (
                     <Pill tone="primary" title={changedTitle(override)}>
                       {COPY.changed}
@@ -223,7 +223,7 @@ function ToolList({ role }: { role: RoleId }) {
                   <input type="hidden" name="role" value={role} />
                   <input type="hidden" name="tool" value={entry.name} />
                   <input type="hidden" name="allowed" value={String(!on)} />
-                  <SwitchButton on={on} label={`${info.label}: ${on ? TH.admin.permission.allow : TH.admin.permission.deny}`} />
+                  <SwitchButton on={on} label={`${entry.labelTh}: ${on ? TH.admin.permission.allow : TH.admin.permission.deny}`} />
                 </form>
               )}
             </li>
@@ -334,9 +334,9 @@ function Matrix() {
               {COPY.toolsTitle}
             </td>
           </tr>
-          {TOOL_SURFACE.map((entry) => (
+          {toolSurface().map((entry) => (
             <tr key={entry.name} className="border-t border-border">
-              <td className="sticky left-0 z-10 whitespace-nowrap bg-card px-3 py-1">{TH.admin.tools[entry.name].label}</td>
+              <td className="sticky left-0 z-10 whitespace-nowrap bg-card px-3 py-1">{entry.labelTh}</td>
               {ROLE_IDS.map((role) => (
                 <td key={role} className="px-1 py-1 text-center">
                   <ToolMatrixCell role={role} tool={entry.name} on={permissions[role].toolAllow.includes(entry.name)} />

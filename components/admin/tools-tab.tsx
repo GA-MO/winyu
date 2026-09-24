@@ -1,5 +1,6 @@
 import { cn } from "vexa/lib/utils";
-import { ROLE_IDS, TOOL_SURFACE, type ToolTier } from "@/lib/contracts";
+import { ROLE_IDS, type ToolTier } from "@/lib/contracts";
+import { toolSurface } from "@/lib/server/tools/registry";
 import { killedTools } from "@/lib/access/enforce";
 import { permissionsFor } from "@/lib/access/role-overrides";
 import { TH } from "@/lib/i18n/th";
@@ -25,10 +26,9 @@ export function ToolsTab() {
       </div>
 
       <div className="grid gap-3 md:grid-cols-2">
-        {TOOL_SURFACE.map((entry) => {
+        {toolSurface().map((entry) => {
           const isKilled = killed.has(entry.name);
           const roles = allowedBy.filter((item) => item.tools.has(entry.name)).map((item) => item.role);
-          const info = TH.admin.tools[entry.name];
           return (
             <section
               key={entry.name}
@@ -37,7 +37,7 @@ export function ToolsTab() {
               <header className="flex items-start gap-3">
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-1.5">
-                    <h3 className={cn("text-sm font-semibold", isKilled ? "text-muted-foreground line-through" : "")}>{info.label}</h3>
+                    <h3 className={cn("text-sm font-semibold", isKilled ? "text-muted-foreground line-through" : "")}>{entry.labelTh}</h3>
                     <Pill tone={TIER_TONE[entry.tier]}>{TH.admin.tier[entry.tier]}</Pill>
                     {entry.tier !== "read" ? <Pill>{COPY.approval}</Pill> : null}
                   </div>
@@ -47,10 +47,10 @@ export function ToolsTab() {
                   <input type="hidden" name="tool" value={entry.name} />
                   <input type="hidden" name="killed" value={String(!isKilled)} />
                   <span className={cn("text-[11px] font-medium", isKilled ? "text-danger" : "text-muted-foreground")}>{isKilled ? COPY.killed : COPY.live}</span>
-                  <SwitchButton on={!isKilled} label={`${info.label}: ${isKilled ? COPY.killed : COPY.live}`} />
+                  <SwitchButton on={!isKilled} label={`${entry.labelTh}: ${isKilled ? COPY.killed : COPY.live}`} />
                 </form>
               </header>
-              <p className="text-sm leading-relaxed text-muted-foreground">{info.body}</p>
+              <p className="text-sm leading-relaxed text-muted-foreground">{entry.bodyTh}</p>
               <div className="mt-auto flex flex-wrap items-center gap-1.5 border-t border-border pt-3">
                 <span className="mr-1 text-[11px] font-medium text-muted-foreground">{COPY.roles(roles.length, ROLE_IDS.length)}</span>
                 {ROLE_IDS.map((role) => (

@@ -1,5 +1,6 @@
 import type { Spec, SpecElement } from "vexa/protocol";
-import { TOOL_SURFACE, watchMetricInputSchema } from "@/lib/contracts";
+import { watchMetricInputSchema } from "@/lib/contracts";
+import { toolSurface } from "@/lib/server/tools/registry";
 import { TODAY } from "@/lib/data/dates";
 import { presentCard, type CardView, type PresentSource, type SortBy } from "@/lib/cards/present";
 import type { MetricQuery, MetricResult } from "@/lib/contracts";
@@ -172,7 +173,7 @@ function peopleChecks(turn: Turn, tool: NonNullable<EvalCase["expectPeople"]>): 
   ];
 }
 
-const READ_TOOLS: ReadonlySet<string> = new Set(TOOL_SURFACE.filter((entry) => entry.tier === "read").map((entry) => entry.name));
+const READ_TOOLS: ReadonlySet<string> = new Set(toolSurface().filter((entry) => entry.tier === "read").map((entry) => entry.name));
 
 function pressAsksCheck(turn: Turn): CheckResult {
   const direct = pressedTools(turn.spec).filter((name) => READ_TOOLS.has(name));

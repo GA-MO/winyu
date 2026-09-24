@@ -2,7 +2,8 @@
 
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
-import { METRIC_IDS, ROLE_IDS, TOOL_SURFACE, type MetricId, type RoleId, type ToolName } from "@/lib/contracts";
+import { METRIC_IDS, ROLE_IDS, type MetricId, type RoleId, type ToolName } from "@/lib/contracts";
+import { isToolName } from "@/lib/server/tools/registry";
 import { killTool, reviveTool, setHandoffEnabled } from "@/lib/access/enforce";
 import { cycleMetricVisibility, resetOverridesOf, resetRoleOverrides, setMetricVisibility, setRoleTool, type Visibility } from "@/lib/access/role-overrides";
 import { readUser } from "@/lib/server/session";
@@ -27,7 +28,7 @@ function metricIn(formData: FormData): MetricId | null {
 
 function toolIn(formData: FormData): ToolName | null {
   const tool = String(formData.get("tool"));
-  return TOOL_SURFACE.some((entry) => entry.name === tool) ? (tool as ToolName) : null;
+  return isToolName(tool) ? tool : null;
 }
 
 export async function setMetricAction(formData: FormData) {
