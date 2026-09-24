@@ -6,6 +6,7 @@ import { memoryFacts } from "@/lib/server/agent/collections";
 import { defaultActionsFor } from "@/lib/server/quick-actions";
 import { TH } from "@/lib/i18n/th";
 import { quickActionsFrom, scoreIntents } from "./recommend";
+import { GENERATOR_DICTIONARY } from "@/lib/data/master";
 import { extractByRule, pruneMemory, rememberTurn } from "./memory";
 import { intentKeyOf, turnsOf } from "@/lib/server/threads";
 
@@ -101,7 +102,7 @@ describe("recommender", () => {
 
 describe("memory", () => {
   test("a metric synonym becomes an interest and a vocabulary fact", () => {
-    const facts = extractByRule(["ยอดขายเข้าของเอเย่นต์เดือนนี้เป็นยังไง"]);
+    const facts = extractByRule(["ยอดขายเข้าของเอเย่นต์เดือนนี้เป็นยังไง"], GENERATOR_DICTIONARY);
     expect(facts.some((fact) => fact.type === "interest")).toBe(true);
     expect(facts.length).toBeLessThanOrEqual(4);
   });

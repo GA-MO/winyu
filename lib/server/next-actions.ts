@@ -1,6 +1,7 @@
-import type { AccessContext, Alert, Dim, MetricQuery, MetricResult, NextAction, QuickAction } from "@/lib/contracts";
+import type { AccessContext, Alert, Dim, MetricQuery, MetricResult, NextAction, QuickAction, Region } from "@/lib/contracts";
 import { widgetKindFor } from "@/lib/cards/present";
-import { GEO_LEVELS, geoValueOf } from "@/lib/data/entities/geo";
+import { GEO_LEVELS, geoValueOf } from "@/lib/semantic/geo";
+import type { Dictionary } from "@/lib/semantic/dictionary";
 import { sharpestHarm } from "@/lib/cards/present";
 import { nextActionsFor } from "@/lib/engine/next-actions";
 import { followUpsFor, learnedKindShare } from "@/lib/engine/follow-ups";
@@ -33,20 +34,25 @@ function sharedGeoLevel(alert: Alert, dim: Dim): Dim | null {
   return GEO_LEVELS.indexOf(alertLevel) < GEO_LEVELS.indexOf(dim) ? alertLevel : dim;
 }
 
-function alertCovers(alert: Alert, dim: Dim, values: readonly string[]): boolean {
+function alertCovers(dictionary: Dictionary, alert: Alert, dim: Dim, values: readonly string[]): boolean {
   if (!GEO_LEVELS.includes(dim)) {
     const scope = alert.dims[dim];
     return !scope || values.includes(scope);
   }
   const level = sharedGeoLevel(alert, dim);
   if (!level) return false;
-  const alertValue = geoValueOf(alert.dims, level);
-  return values.some((value) => geoValueOf({ [dim]: value }, level) === alertValue);
+  const alertValue = geoValueOf(dictionary, alert.dims, level);
+  return values.some((value) => geoValueOf(dictionary, { [dim]: value }, level) === alertValue);
 }
 
-function matchesQuery(alert: Alert, query: MetricQuery): boolean {
+function matchesQuery(dictionary: Dictionary, alert: Alert, query: MetricQuery): boolean {
   if (alert.metric !== query.metric) return false;
-  return Object.entries(query.filters).every(([dim, values]) => !values || values.length === 0 || alertCovers(alert, dim as Dim, values));
+  return Object.entries(query.filters).every(([dim, values]) => !values || values.length === 0 || alertCovers(dictionary, alert, dim as Dim, values));
+}
+
+function regionOf(dictionary: Dictionary, query: MetricQuery): Region | null {
+  const pinned = Object.entries(query.filters).filter(([, values]) => values?.length === 1).map(([dim, values]) => [dim, (values as string[])[0]]);
+  return geoValueOf(dictionary, Object.fromEntries(pinned), "region") as Region | null;
 }
 
 function titleOf(query: MetricQuery, result: Extract<MetricResult, { ok: true }>): string {
@@ -55,9 +61,9 @@ function titleOf(query: MetricQuery, result: Extract<MetricResult, { ok: true }>
 }
 
 /** The buttons a metric card offers, decided from the result, the open alerts on that slice and how often it was asked. */
-export function actionsForMetric(access: AccessContext, query: MetricQuery, result: MetricResult): NextAction[] {
+export function actionsForMetric(access: AccessContext, query: MetricQuery, result: MetricResult, dictionary: Dictionary): NextAction[] {
   if (!result.ok) return [];
-  const alert = openAlertsFor(access).find((entry) => matchesQuery(entry, query)) ?? null;
+  const alert = openAlertsFor(access).find((entry) => matchesQuery(dictionary, entry, query)) ?? null;
   return nextActionsFor(
     access,
     {
@@ -67,8 +73,9 @@ export function actionsForMetric(access: AccessContext, query: MetricQuery, resu
       masked: result.provenance.masked,
       topLabel: sharpestHarm(query, result, HARM_MIN_PCT)?.label ?? null,
       alertIds: alert ? [alert.id] : [],
-      alertScope: alert ? alertScopeLabel(alert) : null,
+      alertScope: alert ? alertScopeLabel(alert, dictionary) : null,
       verifyStep: alert ? alert.verifySteps[0] : null,
+      region: regionOf(dictionary, query),
       drawnAs: widgetKindFor(query, result),
     },
     alreadyPinned(access.userId, query) ? 0 : repeatsOf(access.userId, query),
@@ -76,7 +83,7 @@ export function actionsForMetric(access: AccessContext, query: MetricQuery, resu
 }
 
 /** The buttons an anomaly card offers: hand the top alert to its owner, or verify it first. */
-export function actionsForAlert(access: AccessContext, alert: Alert | null): NextAction[] {
+export function actionsForAlert(access: AccessContext, alert: Alert | null, dictionary: Dictionary): NextAction[] {
   if (!alert) return [];
   const query: MetricQuery = {
     metric: alert.metric,
@@ -87,15 +94,17 @@ export function actionsForAlert(access: AccessContext, alert: Alert | null): Nex
     compare: "prev_period",
     limit: 1,
   };
+  const scope = alertScopeLabel(alert, dictionary);
   return nextActionsFor(access, {
-    title: alertScopeLabel(alert),
+    title: scope,
     query,
     deltaPercent: alert.expected === 0 ? null : ((alert.observed - alert.expected) / Math.abs(alert.expected)) * PERCENT,
     masked: [],
-    topLabel: alertScopeLabel(alert),
+    topLabel: scope,
     alertIds: [alert.id],
-    alertScope: alertScopeLabel(alert),
+    alertScope: scope,
     verifyStep: alert.verifySteps[0],
+    region: regionOf(dictionary, query),
   });
 }
 

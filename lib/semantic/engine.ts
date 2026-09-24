@@ -1,17 +1,11 @@
 import {
-  BRANDS, REGIONS,
   type AccessContext, type Brand, type Dim, type FactRequest, type FactResult, type FactRow, type LabelShift, type MetricDef, type MetricId,
   type MetricQuery, type MetricSort, type MetricHeadline, type MetricResult, type MetricRow, type Provenance, type Region,
 } from "@/lib/contracts";
 import { MONTHLY_METRICS, RATIO_METRICS, TARGET_METRICS, TIME_DIMS, metricDef } from "@/lib/semantic/metrics";
 import { MIN_CELL_SIZE, SUPPRESSED_FIELDS, SUPPRESSED_VALUE, cellScopeOf, isSmallCell } from "@/lib/access/suppression";
-import { displayLabel, resolveDimValue } from "@/lib/semantic/dictionary";
+import type { Dictionary } from "@/lib/semantic/dictionary";
 import { DAY_COUNT, ISO_OF_DAY, MONTH_COUNT, MONTH_FIRST_DAY, MONTH_OF_DAY, TODAY, formatThaiDate, toDayIndex } from "@/lib/data/dates";
-import { agentById } from "@/lib/data/entities/agents";
-import { PROVINCES } from "@/lib/data/entities/org";
-import { skuById } from "@/lib/data/entities/products";
-import { PLANTS, dcById } from "@/lib/data/entities/supply";
-import { OWN_MAKER } from "@/lib/data/entities/market";
 
 const DEFAULT_LIMIT = 60;
 const PREV_YEAR_DAYS = 364;
@@ -30,7 +24,9 @@ function fail(code: Failure["code"], error: string): Failure {
 const ALREADY_VS_TARGET: ReadonlySet<MetricId> = new Set<MetricId>(["target_attainment"]);
 
 /** Filters a metric needs to mean anything when the caller leaves the dimension out: the shares of every maker always add up to 100%. */
-const DEFAULT_FILTERS: Partial<Record<MetricId, Partial<Record<Dim, string>>>> = { market_share: { maker: OWN_MAKER } };
+function defaultFiltersOf(metric: MetricId, dictionary: Dictionary): Partial<Record<Dim, string>> {
+  return metric === "market_share" ? { maker: dictionary.master.ownMaker } : {};
+}
 
 const SNAPSHOT_METRICS: ReadonlySet<MetricId> = new Set<MetricId>(["stock_on_hand", "days_of_cover"]);
 
@@ -49,41 +45,26 @@ function scopeBrands(access: AccessContext): Brand[] | null {
   return access.brands === "all" ? null : [...access.brands];
 }
 
-function regionOfDimValue(dim: Dim, value: string): Region | null {
-  if (dim === "region") return REGIONS.includes(value as Region) ? (value as Region) : null;
-  if (dim === "province") return PROVINCES.find((province) => province.id === value)?.region ?? null;
-  if (dim === "agent") return agentById(value)?.region ?? null;
-  if (dim === "dc") return dcById(value)?.region ?? null;
-  if (dim === "plant") return PLANTS.find((plant) => plant.id === value)?.region ?? null;
-  return null;
-}
-
-function brandOfDimValue(dim: Dim, value: string): Brand | null {
-  if (dim === "brand") return BRANDS.includes(value as Brand) ? (value as Brand) : null;
-  if (dim === "sku") return skuById(value)?.brand ?? null;
-  return null;
-}
-
-function normalizeFilters(query: MetricQuery, def: MetricDef): Filters | Failure {
+function normalizeFilters(query: MetricQuery, def: MetricDef, dictionary: Dictionary): Filters | Failure {
   const filters: Filters = new Map();
   for (const [dim, values] of Object.entries(query.filters) as [Dim, string[] | undefined][]) {
     if (!values || values.length === 0) continue;
     if (!def.dims.includes(dim)) return fail("BAD_QUERY", `ตัวกรอง ${dim} ใช้กับเมตริก ${def.id} ไม่ได้`);
     const resolved = new Set<string>();
     for (const value of values) {
-      const id = resolveDimValue(dim, value);
+      const id = dictionary.resolveDimValue(dim, value);
       if (!id) return fail("BAD_QUERY", `ไม่รู้จักค่า "${value}" ของมิติ ${dim}`);
       resolved.add(id);
     }
     filters.set(dim, resolved);
   }
-  for (const [dim, value] of Object.entries(DEFAULT_FILTERS[def.id] ?? {}) as [Dim, string][]) {
+  for (const [dim, value] of Object.entries(defaultFiltersOf(def.id, dictionary)) as [Dim, string][]) {
     if (!filters.has(dim) && !query.dims.includes(dim)) filters.set(dim, new Set([value]));
   }
   return filters;
 }
 
-function applyScope(filters: Filters, def: MetricDef, access: AccessContext): { scopeApplied: Partial<Record<Dim, string[]>> } | Failure {
+function applyScope(filters: Filters, def: MetricDef, access: AccessContext, dictionary: Dictionary): { scopeApplied: Partial<Record<Dim, string[]>> } | Failure {
   const scopeApplied: Partial<Record<Dim, string[]>> = {};
   const regions = scopeRegions(access);
   if (regions) {
@@ -91,9 +72,9 @@ function applyScope(filters: Filters, def: MetricDef, access: AccessContext): { 
       const values = filters.get(dim);
       if (!values) continue;
       for (const value of values) {
-        const region = regionOfDimValue(dim, value);
+        const region = dictionary.regionOf(dim, value);
         if (region && !regions.includes(region)) {
-          return fail("PERMISSION_DENIED", `คุณไม่มีสิทธิ์ดูข้อมูลของ ${displayLabel(dim, value)} (นอกขอบเขตภาคที่รับผิดชอบ)`);
+          return fail("PERMISSION_DENIED", `คุณไม่มีสิทธิ์ดูข้อมูลของ ${dictionary.displayLabel(dim, value)} (นอกขอบเขตภาคที่รับผิดชอบ)`);
         }
       }
     }
@@ -108,9 +89,9 @@ function applyScope(filters: Filters, def: MetricDef, access: AccessContext): { 
       const values = filters.get(dim);
       if (!values) continue;
       for (const value of values) {
-        const brand = brandOfDimValue(dim, value);
+        const brand = dictionary.brandOf(dim, value);
         if (brand && !brands.includes(brand)) {
-          return fail("PERMISSION_DENIED", `คุณไม่มีสิทธิ์ดูข้อมูลของแบรนด์ ${displayLabel(dim, value)}`);
+          return fail("PERMISSION_DENIED", `คุณไม่มีสิทธิ์ดูข้อมูลของแบรนด์ ${dictionary.displayLabel(dim, value)}`);
         }
       }
     }
@@ -205,20 +186,20 @@ function allFilters(filters: Filters): Partial<Record<Dim, string[]>> {
   return out;
 }
 
-function smallCellKeys(metric: MetricId, dims: Dim[], rows: Aggregated[], filters: Filters): Set<string> {
+function smallCellKeys(dictionary: Dictionary, metric: MetricId, dims: Dim[], rows: Aggregated[], filters: Filters): Set<string> {
   const applied = allFilters(filters);
   const keys = new Set<string>();
   for (const row of rows) {
-    if (isSmallCell(metric, dims, applied, cellScopeOf(dims, row.dims))) keys.add(row.key);
+    if (isSmallCell(dictionary.master, metric, dims, applied, cellScopeOf(dims, row.dims))) keys.add(row.key);
   }
   return keys;
 }
 
-function buildRows(def: MetricDef, dims: Dim[], rows: Aggregated[], compareRows: Aggregated[] | null, masked: boolean, suppressed: Set<string>): MetricRow[] {
+function buildRows(dictionary: Dictionary, def: MetricDef, dims: Dim[], rows: Aggregated[], compareRows: Aggregated[] | null, masked: boolean, suppressed: Set<string>): MetricRow[] {
   const compareIndex = compareRows ? indexCompare(compareRows) : null;
   return rows.map((row) => {
     const out: MetricRow = {};
-    for (const dim of dims) out[dim] = TIME_DIMS.includes(dim) ? row.dims[dim] : displayLabel(dim, row.dims[dim]);
+    for (const dim of dims) out[dim] = TIME_DIMS.includes(dim) ? row.dims[dim] : dictionary.displayLabel(dim, row.dims[dim]);
     if (masked || suppressed.has(row.key)) {
       out.value = SUPPRESSED_VALUE;
       out.value_label = SUPPRESSED_VALUE;
@@ -265,20 +246,20 @@ function deltaPercentOf(def: MetricDef, all: Aggregated[], compareRows: Aggregat
   return Math.round(((current - base) / Math.abs(base)) * PERCENT * 10) / 10;
 }
 
-function topOf(def: MetricDef, query: MetricQuery, all: Aggregated[], suppressed: Set<string>): { label: string; value: string }[] {
+function topOf(dictionary: Dictionary, def: MetricDef, query: MetricQuery, all: Aggregated[], suppressed: Set<string>): { label: string; value: string }[] {
   const nonTimeDim = query.dims.find((dim) => !TIME_DIMS.includes(dim));
   if (!nonTimeDim) return [];
   return all
     .filter((row) => !suppressed.has(row.key))
     .sort((left, right) => (RISK_WHEN_LOW.has(def.id) ? left.value - right.value : right.value - left.value))
     .slice(0, TOP_IN_HEADLINE)
-    .map((row) => ({ label: displayLabel(nonTimeDim, row.dims[nonTimeDim]), value: formatForSummary(def, row.value) }));
+    .map((row) => ({ label: dictionary.displayLabel(nonTimeDim, row.dims[nonTimeDim]), value: formatForSummary(def, row.value) }));
 }
 
 /** The decision-grade numbers of a result: what a card puts in big type, before any prose. */
 /** Rows the headline stands for: when the caller split by a dimension that has a default (maker for market share), the headline is the default's row, not a blend of every maker. */
-function headlineSubset(def: MetricDef, query: MetricQuery, rows: Aggregated[]): Aggregated[] {
-  const defaults = Object.entries(DEFAULT_FILTERS[def.id] ?? {}).filter(([dim]) => query.dims.includes(dim as Dim)) as [Dim, string][];
+function headlineSubset(dictionary: Dictionary, def: MetricDef, query: MetricQuery, rows: Aggregated[]): Aggregated[] {
+  const defaults = Object.entries(defaultFiltersOf(def.id, dictionary)).filter(([dim]) => query.dims.includes(dim as Dim)) as [Dim, string][];
   const defaulted = defaults.length === 0 ? rows : rows.filter((row) => defaults.every(([dim, value]) => row.dims[dim] === value));
   return SNAPSHOT_METRICS.has(def.id) ? latestBucket(query.dims, defaulted) : defaulted;
 }
@@ -291,14 +272,14 @@ function latestBucket(dims: Dim[], rows: Aggregated[]): Aggregated[] {
   return rows.filter((row) => row.dims[timeDim] === latest);
 }
 
-function headlineOf(def: MetricDef, query: MetricQuery, rows: Aggregated[], all: Aggregated[], ratio: boolean, compareRows: Aggregated[] | null, masked: boolean, suppressed: Set<string>): MetricHeadline {
+function headlineOf(dictionary: Dictionary, def: MetricDef, query: MetricQuery, rows: Aggregated[], all: Aggregated[], ratio: boolean, compareRows: Aggregated[] | null, masked: boolean, suppressed: Set<string>): MetricHeadline {
   const periodLabel = `${formatThaiDate(query.range.from)} – ${formatThaiDate(query.range.to)}`;
   const aggregate = ratio ? "average" : "sum";
   if (masked || all.length === 0) {
     return { aggregate, value: "—", periodLabel, rowCount: rows.length, deltaPercent: null, compareLabel: null, top: [] };
   }
-  const headlineRows = headlineSubset(def, query, all);
-  const deltaPercent = deltaPercentOf(def, headlineRows, compareRows ? headlineSubset(def, query, compareRows) : null, ratio);
+  const headlineRows = headlineSubset(dictionary, def, query, all);
+  const deltaPercent = deltaPercentOf(def, headlineRows, compareRows ? headlineSubset(dictionary, def, query, compareRows) : null, ratio);
   return {
     aggregate,
     value: formatForSummary(def, combined(headlineRows, ratio)),
@@ -306,7 +287,7 @@ function headlineOf(def: MetricDef, query: MetricQuery, rows: Aggregated[], all:
     rowCount: rows.length,
     deltaPercent,
     compareLabel: deltaPercent === null ? null : COMPARE_LABELS[query.compare] ?? "เทียบช่วงก่อนหน้า",
-    top: topOf(def, query, all, suppressed),
+    top: topOf(dictionary, def, query, all, suppressed),
   };
 }
 
@@ -396,6 +377,7 @@ function comparisonOf(def: MetricDef, compare: MetricQuery["compare"], dims: Dim
 
 /** Everything Cop decides about a question before the warehouse is asked: validated, scoped, and cut into fact requests. */
 export type MetricPlan = {
+  dictionary: Dictionary;
   def: MetricDef;
   query: MetricQuery;
   dims: Dim[];
@@ -408,7 +390,7 @@ export type MetricPlan = {
 };
 
 /** Checks access and the question, injects the caller's scope, and states the facts the answer needs. */
-export function planMetric(query: MetricQuery, access: AccessContext): MetricPlan | Failure {
+export function planMetric(query: MetricQuery, access: AccessContext, dictionary: Dictionary): MetricPlan | Failure {
   const def = metricDef(query.metric);
   if (!def) return fail("UNKNOWN_METRIC", `ไม่รู้จักเมตริก "${query.metric}"`);
   const visibility = access.metricAcl[def.id] ?? "none";
@@ -418,14 +400,15 @@ export function planMetric(query: MetricQuery, access: AccessContext): MetricPla
 
   const range = rangeDays(query);
   if ("ok" in range) return range;
-  const filters = normalizeFilters(query, def);
+  const filters = normalizeFilters(query, def, dictionary);
   if ("ok" in filters) return filters;
-  const scope = applyScope(filters, def, access);
+  const scope = applyScope(filters, def, access, dictionary);
   if ("ok" in scope) return scope;
 
   const dims = dedupe(query.dims);
   const compare = query.compare === "target" && ALREADY_VS_TARGET.has(def.id) ? "none" : query.compare;
   return {
+    dictionary,
     def,
     query,
     dims,
@@ -457,15 +440,15 @@ export function finishMetric(plan: MetricPlan, current: FactResult, comparison: 
   if (!current.ok) return fail(current.code, current.error);
   if (plan.comparison && "ok" in plan.comparison) return plan.comparison;
   if (comparison && !comparison.ok) return fail(comparison.code, comparison.error);
-  const { def, query, dims, filters, masked, ratio } = plan;
+  const { dictionary, def, query, dims, filters, masked, ratio } = plan;
   const aggregated = keyRows(dims, current.rows);
   const compareRows = comparison ? keyRows(dims, comparison.rows) : null;
 
   const limit = query.limit ?? DEFAULT_LIMIT;
   const lowFirst = RISK_WHEN_LOW.has(def.id);
   const capped = query.sort && !masked && !firstTimeDim(dims) ? orderedRows(aggregated, query.sort, limit, compareRows) : sortRows(aggregated, dims, limit, masked, lowFirst);
-  const suppressed = masked ? new Set<string>() : smallCellKeys(def.id, dims, aggregated, filters);
-  const rows = buildRows(def, dims, capped, compareRows, masked, suppressed);
+  const suppressed = masked ? new Set<string>() : smallCellKeys(dictionary, def.id, dims, aggregated, filters);
+  const rows = buildRows(dictionary, def, dims, capped, compareRows, masked, suppressed);
   const provenance: Provenance = {
     metric: def.id,
     certified: def.certified,
@@ -477,7 +460,7 @@ export function finishMetric(plan: MetricPlan, current: FactResult, comparison: 
     masked: masked || suppressed.size > 0 ? [...SUPPRESSED_FIELDS] : [],
     trust: def.certified ? "verified" : "derived",
   };
-  const headline = headlineOf(def, query, capped, aggregated, averagedHeadline(def, query, ratio), compareRows, masked, suppressed);
+  const headline = headlineOf(dictionary, def, query, capped, aggregated, averagedHeadline(def, query, ratio), compareRows, masked, suppressed);
   const summary = summarize(def, query, headline, masked, aggregated.length === 0);
   return {
     ok: true,
@@ -489,8 +472,8 @@ export function finishMetric(plan: MetricPlan, current: FactResult, comparison: 
 }
 
 /** Runs one question against a synchronous fact reader: plan, read, finish. */
-export function evaluateMetric(query: MetricQuery, access: AccessContext, read: (request: FactRequest) => FactResult): MetricResult {
-  const plan = planMetric(query, access);
+export function evaluateMetric(query: MetricQuery, access: AccessContext, dictionary: Dictionary, read: (request: FactRequest) => FactResult): MetricResult {
+  const plan = planMetric(query, access, dictionary);
   if ("ok" in plan) return plan;
   const comparison = comparisonRequestOf(plan);
   return finishMetric(plan, read(plan.current), comparison ? read(comparison) : null);
@@ -499,13 +482,13 @@ export function evaluateMetric(query: MetricQuery, access: AccessContext, read: 
 export type SeriesQuery = { metric: MetricId; dims: Dim[]; filters: Partial<Record<Dim, string[]>>; range: { from: string; to: string } };
 
 /** The batch plane's request: the same resolution as a question, without access scoping, masking or the row cap. */
-export function seriesRequest(query: SeriesQuery): FactRequest | null {
+export function seriesRequest(query: SeriesQuery, dictionary: Dictionary): FactRequest | null {
   const def = metricDef(query.metric);
   if (!def) return null;
   const full: MetricQuery = { ...query, grain: "day", compare: "none", limit: null };
   const range = rangeDays(full);
   if ("ok" in range) return null;
-  const filters = normalizeFilters(full, def);
+  const filters = normalizeFilters(full, def, dictionary);
   if ("ok" in filters) return null;
   return factRequest(def, "actual", dedupe(query.dims), filters, range.from, range.to, NO_SHIFT);
 }

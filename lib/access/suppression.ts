@@ -1,6 +1,4 @@
-import type { Dim, MetricId } from "@/lib/contracts";
-import { AGENTS } from "@/lib/data/entities/agents";
-import { DEPARTMENTS } from "@/lib/data/entities/hr";
+import type { Dim, MasterData, MetricId } from "@/lib/contracts";
 
 export const MIN_CELL_SIZE = 3;
 export const SUPPRESSED_VALUE = "***";
@@ -18,8 +16,8 @@ const BASE_ENTITY: Partial<Record<MetricId, BaseEntity>> = {
 
 const AGENT_DIMS: Dim[] = ["agent", "province", "region", "dc"];
 
-function agentsMatching(scope: Partial<Record<Dim, string[]>>): number {
-  return AGENTS.filter((agent) =>
+function agentsMatching(master: MasterData, scope: Partial<Record<Dim, string[]>>): number {
+  return master.agents.filter((agent) =>
     AGENT_DIMS.every((dim) => {
       const allowed = scope[dim];
       if (!allowed || allowed.length === 0) return true;
@@ -31,17 +29,17 @@ function agentsMatching(scope: Partial<Record<Dim, string[]>>): number {
   ).length;
 }
 
-function employeesMatching(scope: Partial<Record<Dim, string[]>>): number {
+function employeesMatching(master: MasterData, scope: Partial<Record<Dim, string[]>>): number {
   const wanted = scope.department;
-  const departments = wanted && wanted.length > 0 ? DEPARTMENTS.filter((entry) => wanted.includes(entry.id)) : DEPARTMENTS;
-  return departments.reduce((sum, entry) => sum + entry.baseHeadcount, 0);
+  const departments = wanted && wanted.length > 0 ? master.departments.filter((entry) => wanted.includes(entry.id)) : master.departments;
+  return departments.reduce((sum, entry) => sum + entry.headcount, 0);
 }
 
 /** How many real agents or employees a cell aggregates; `null` when the metric does not carry person-level risk. */
-export function cohortSize(metric: MetricId, scope: Partial<Record<Dim, string[]>>): number | null {
+export function cohortSize(master: MasterData, metric: MetricId, scope: Partial<Record<Dim, string[]>>): number | null {
   const base = BASE_ENTITY[metric];
   if (!base) return null;
-  return base === "agent" ? agentsMatching(scope) : employeesMatching(scope);
+  return base === "agent" ? agentsMatching(master, scope) : employeesMatching(master, scope);
 }
 
 function namesBaseEntity(metric: MetricId, dims: Dim[], filters: Partial<Record<Dim, string[]>>): boolean {
@@ -50,9 +48,9 @@ function namesBaseEntity(metric: MetricId, dims: Dim[], filters: Partial<Record<
 }
 
 /** True when a roll-up cell hides so few agents that reading it is reading one counterparty's books. */
-export function isSmallCell(metric: MetricId, dims: Dim[], filters: Partial<Record<Dim, string[]>>, cell: Partial<Record<Dim, string[]>>): boolean {
+export function isSmallCell(master: MasterData, metric: MetricId, dims: Dim[], filters: Partial<Record<Dim, string[]>>, cell: Partial<Record<Dim, string[]>>): boolean {
   if (namesBaseEntity(metric, dims, filters)) return false;
-  const size = cohortSize(metric, { ...filters, ...cell });
+  const size = cohortSize(master, metric, { ...filters, ...cell });
   return size !== null && size < MIN_CELL_SIZE;
 }
 

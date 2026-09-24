@@ -1,12 +1,4 @@
-import { BUSINESS_UNITS, REGIONS, type Dim } from "@/lib/contracts";
-import { AGENTS, TIER_LABELS_TH } from "@/lib/data/entities/agents";
-import { CHANNELS, MODERN_TRADE_CHAINS } from "@/lib/data/entities/channels";
-import { DEPARTMENTS } from "@/lib/data/entities/hr";
-import { CAMPAIGNS } from "@/lib/data/entities/marketing";
-import { BUSINESS_UNIT_LABELS_TH, PROVINCES, REGION_LABELS_TH } from "@/lib/data/entities/org";
-import { BRAND_INFO, PACKS, PACK_LABELS_TH, SKUS } from "@/lib/data/entities/products";
-import { MAKERS } from "@/lib/data/entities/market";
-import { DISTRIBUTION_CENTERS, PLANTS } from "@/lib/data/entities/supply";
+import { REGIONS, type Brand, type Dim, type MasterData, type Region } from "@/lib/contracts";
 import { USERS } from "@/lib/data/entities/users";
 
 export type EntityKind =
@@ -82,11 +74,11 @@ const PROVINCE_ALIASES: Record<string, string[]> = {
   pv_chachoengsao: ["ฉะเชิงเทรา", "แปดริ้ว"],
 };
 
-function skuTerms(skuId: string, brandId: string, pack: string, nameTh: string, label: string): string[] {
-  const brand = BRAND_INFO.find((info) => info.id === brandId);
+function skuTerms(master: MasterData, sku: MasterData["skus"][number]): string[] {
+  const brand = master.brands.find((info) => info.id === sku.brand);
   const nicknames = brand ? [brand.nameTh, ...brand.nicknames] : [];
-  const sizes = PACK_SIZE_TOKENS[pack] ?? [];
-  const terms = [skuId, nameTh, label, PACK_LABELS_TH[pack as keyof typeof PACK_LABELS_TH] ?? pack];
+  const sizes = PACK_SIZE_TOKENS[sku.pack] ?? [];
+  const terms = [sku.id, sku.nameTh, sku.label, master.packs.find((pack) => pack.id === sku.pack)?.nameTh ?? sku.pack];
   for (const nickname of nicknames) {
     terms.push(nickname);
     for (const size of sizes) terms.push(`${nickname} ${size}`);
@@ -94,31 +86,33 @@ function skuTerms(skuId: string, brandId: string, pack: string, nameTh: string, 
   return terms;
 }
 
-const CANDIDATES: Record<EntityKind, Candidate[]> = {
-  agent: AGENTS.map((agent) => ({ id: agent.id, label: agent.nameTh, terms: [agent.id, ...agentTerms(agent.nameTh)] })),
-  sku: SKUS.map((sku) => ({ id: sku.id, label: sku.nameTh, terms: skuTerms(sku.id, sku.brand, sku.pack, sku.nameTh, sku.label) })),
-  dc: DISTRIBUTION_CENTERS.map((dc) => ({ id: dc.id, label: dc.nameTh, terms: [dc.id, dc.nameTh, dc.label, dc.nameTh.replace("ศูนย์กระจายสินค้า", "")] })),
-  campaign: CAMPAIGNS.map((campaign) => ({ id: campaign.id, label: campaign.nameTh, terms: [campaign.id, campaign.nameTh, campaign.label] })),
-  user: USERS.map((user) => ({ id: user.id, label: user.nameTh, terms: [user.id, user.name, user.nameTh, user.email, user.title] })),
-  region: REGIONS.map((region) => ({ id: region, label: REGION_LABELS_TH[region], terms: [region, REGION_LABELS_TH[region], ...(REGION_ALIASES[region] ?? [])] })),
-  province: PROVINCES.map((province) => ({ id: province.id, label: province.nameTh, terms: [province.id, province.nameTh, ...(PROVINCE_ALIASES[province.id] ?? [])] })),
-  brand: BRAND_INFO.map((info) => ({ id: info.id, label: info.nameTh, terms: [info.id, info.nameTh, info.label, ...info.nicknames] })),
-  channel: CHANNELS.map((channel) => ({ id: channel.id, label: channel.nameTh, terms: [channel.id, channel.nameTh, channel.label] })),
-  pack: PACKS.map((pack) => ({ id: pack, label: PACK_LABELS_TH[pack], terms: [pack, PACK_LABELS_TH[pack], ...(PACK_SIZE_TOKENS[pack] ?? [])] })),
-  plant: PLANTS.map((plant) => ({ id: plant.id, label: plant.nameTh, terms: [plant.id, plant.nameTh, plant.label, plant.nameTh.replace("โรงงาน", "")] })),
-  department: DEPARTMENTS.map((department) => ({ id: department.id, label: department.nameTh, terms: [department.id, department.nameTh, department.label] })),
-  business_unit: BUSINESS_UNITS.map((unit) => ({ id: unit, label: BUSINESS_UNIT_LABELS_TH[unit], terms: [unit, BUSINESS_UNIT_LABELS_TH[unit], unit.replace("_", " ")] })),
-  chain: MODERN_TRADE_CHAINS.map((chain) => ({ id: chain.id, label: chain.nameTh, terms: [chain.id, chain.nameTh, chain.label] })),
-  maker: MAKERS.map((maker) => ({ id: maker.id, label: maker.nameTh, terms: [maker.id, maker.nameTh, maker.label, ...maker.nicknames] })),
-};
+function candidatesOf(master: MasterData): Record<EntityKind, Candidate[]> {
+  return {
+    agent: master.agents.map((agent) => ({ id: agent.id, label: agent.nameTh, terms: [agent.id, ...agentTerms(agent.nameTh)] })),
+    sku: master.skus.map((sku) => ({ id: sku.id, label: sku.nameTh, terms: skuTerms(master, sku) })),
+    dc: master.dcs.map((dc) => ({ id: dc.id, label: dc.nameTh, terms: [dc.id, dc.nameTh, dc.label, dc.nameTh.replace("ศูนย์กระจายสินค้า", "")] })),
+    campaign: master.campaigns.map((campaign) => ({ id: campaign.id, label: campaign.nameTh, terms: [campaign.id, campaign.nameTh, campaign.label] })),
+    user: USERS.map((user) => ({ id: user.id, label: user.nameTh, terms: [user.id, user.name, user.nameTh, user.email, user.title] })),
+    region: master.regions.map((region) => ({ id: region.id, label: region.nameTh, terms: [region.id, region.nameTh, ...(REGION_ALIASES[region.id] ?? [])] })),
+    province: master.provinces.map((province) => ({ id: province.id, label: province.nameTh, terms: [province.id, province.nameTh, ...(PROVINCE_ALIASES[province.id] ?? [])] })),
+    brand: master.brands.map((info) => ({ id: info.id, label: info.nameTh, terms: [info.id, info.nameTh, info.label, ...info.nicknames] })),
+    channel: master.channels.map((channel) => ({ id: channel.id, label: channel.nameTh, terms: [channel.id, channel.nameTh, channel.label] })),
+    pack: master.packs.map((pack) => ({ id: pack.id, label: pack.nameTh, terms: [pack.id, pack.nameTh, ...(PACK_SIZE_TOKENS[pack.id] ?? [])] })),
+    plant: master.plants.map((plant) => ({ id: plant.id, label: plant.nameTh, terms: [plant.id, plant.nameTh, plant.label, plant.nameTh.replace("โรงงาน", "")] })),
+    department: master.departments.map((department) => ({ id: department.id, label: department.nameTh, terms: [department.id, department.nameTh, department.label] })),
+    business_unit: master.businessUnits.map((unit) => ({ id: unit.id, label: unit.nameTh, terms: [unit.id, unit.nameTh, unit.id.replace("_", " ")] })),
+    chain: master.chains.map((chain) => ({ id: chain.id, label: chain.nameTh, terms: [chain.id, chain.nameTh, chain.label] })),
+    maker: master.makers.map((maker) => ({ id: maker.id, label: maker.nameTh, terms: [maker.id, maker.nameTh, maker.label, ...maker.nicknames] })),
+  };
+}
 
-const LABELS = (() => {
+function labelsOf(candidates: Record<EntityKind, Candidate[]>): Record<EntityKind, Map<string, string>> {
   const table = {} as Record<EntityKind, Map<string, string>>;
-  for (const kind of Object.keys(CANDIDATES) as EntityKind[]) {
-    table[kind] = new Map(CANDIDATES[kind].map((entry) => [entry.id, entry.label]));
+  for (const kind of Object.keys(candidates) as EntityKind[]) {
+    table[kind] = new Map(candidates[kind].map((entry) => [entry.id, entry.label]));
   }
   return table;
-})();
+}
 
 function termScore(term: string, needle: string): number {
   const left = canon(term);
@@ -127,23 +121,6 @@ function termScore(term: string, needle: string): number {
   if (needle.includes(left) && left.length >= 3) return 40 + left.length;
   if (left.includes(needle) && needle.length >= 3) return 20 + needle.length;
   return 0;
-}
-
-/** Best entity of that kind for free text, tolerant of Thai spelling variants and nicknames. */
-export function resolveEntity(kind: EntityKind, text: string): ResolvedEntity | null {
-  return resolveEntities(kind, text)[0] ?? null;
-}
-
-export function resolveEntities(kind: EntityKind, text: string): ResolvedEntity[] {
-  const needle = canon(text);
-  if (!needle) return [];
-  const matches: ResolvedEntity[] = [];
-  for (const candidate of CANDIDATES[kind]) {
-    let best = 0;
-    for (const term of candidate.terms) best = Math.max(best, termScore(term, needle));
-    if (best > 0) matches.push({ kind, id: candidate.id, label: candidate.label, score: best });
-  }
-  return matches.sort((left, right) => right.score - left.score || left.id.localeCompare(right.id));
 }
 
 const DIM_KINDS: Partial<Record<Dim, EntityKind>> = {
@@ -156,22 +133,79 @@ export function entityKindOfDim(dim: Dim): EntityKind | null {
   return DIM_KINDS[dim] ?? null;
 }
 
-/** Turns a filter value the model typed into the canonical entity id. */
-export function resolveDimValue(dim: Dim, value: string): string | null {
-  const kind = entityKindOfDim(dim);
-  if (!kind) return value;
-  if (LABELS[kind].has(value)) return value;
-  return resolveEntity(kind, value)?.id ?? null;
-}
+/** Names, lookups and geography over one master-data snapshot: the only way Cop turns ids into words and words into ids. */
+export type Dictionary = {
+  master: MasterData;
+  /** Best entity of that kind for free text, tolerant of Thai spelling variants and nicknames. */
+  resolveEntity(kind: EntityKind, text: string): ResolvedEntity | null;
+  resolveEntities(kind: EntityKind, text: string): ResolvedEntity[];
+  /** Turns a filter value the model typed into the canonical entity id. */
+  resolveDimValue(dim: Dim, value: string): string | null;
+  displayLabel(dim: Dim, id: string): string;
+  entityLabel(kind: EntityKind, id: string): string;
+  /** The region a dimension value sits in, or null when the dimension carries no geography. */
+  regionOf(dim: Dim, value: string): Region | null;
+  /** The brand a dimension value belongs to, or null when the dimension carries no brand. */
+  brandOf(dim: Dim, value: string): Brand | null;
+};
 
-export function displayLabel(dim: Dim, id: string): string {
-  const kind = entityKindOfDim(dim);
-  if (!kind) return id;
-  return LABELS[kind].get(id) ?? id;
-}
+/** Builds the dictionary for one master-data snapshot. */
+export function createDictionary(master: MasterData): Dictionary {
+  const candidates = candidatesOf(master);
+  const labels = labelsOf(candidates);
+  const provinces = new Map(master.provinces.map((province) => [province.id, province.region]));
+  const agents = new Map(master.agents.map((agent) => [agent.id, agent.region]));
+  const dcs = new Map(master.dcs.map((dc) => [dc.id, dc.region]));
+  const plants = new Map(master.plants.map((plant) => [plant.id, plant.region]));
+  const brands = new Set<string>(master.brands.map((brand) => brand.id));
+  const skus = new Map(master.skus.map((sku) => [sku.id, sku.brand]));
 
-export function entityLabel(kind: EntityKind, id: string): string {
-  return LABELS[kind].get(id) ?? id;
-}
+  function resolveEntities(kind: EntityKind, text: string): ResolvedEntity[] {
+    const needle = canon(text);
+    if (!needle) return [];
+    const matches: ResolvedEntity[] = [];
+    for (const candidate of candidates[kind]) {
+      let best = 0;
+      for (const term of candidate.terms) best = Math.max(best, termScore(term, needle));
+      if (best > 0) matches.push({ kind, id: candidate.id, label: candidate.label, score: best });
+    }
+    return matches.sort((left, right) => right.score - left.score || left.id.localeCompare(right.id));
+  }
 
-export { TIER_LABELS_TH };
+  function resolveEntity(kind: EntityKind, text: string): ResolvedEntity | null {
+    return resolveEntities(kind, text)[0] ?? null;
+  }
+
+  return {
+    master,
+    resolveEntity,
+    resolveEntities,
+    resolveDimValue(dim, value) {
+      const kind = entityKindOfDim(dim);
+      if (!kind) return value;
+      if (labels[kind].has(value)) return value;
+      return resolveEntity(kind, value)?.id ?? null;
+    },
+    displayLabel(dim, id) {
+      const kind = entityKindOfDim(dim);
+      if (!kind) return id;
+      return labels[kind].get(id) ?? id;
+    },
+    entityLabel(kind, id) {
+      return labels[kind].get(id) ?? id;
+    },
+    regionOf(dim, value) {
+      if (dim === "region") return REGIONS.includes(value as Region) ? (value as Region) : null;
+      if (dim === "province") return provinces.get(value) ?? null;
+      if (dim === "agent") return agents.get(value) ?? null;
+      if (dim === "dc") return dcs.get(value) ?? null;
+      if (dim === "plant") return plants.get(value) ?? null;
+      return null;
+    },
+    brandOf(dim, value) {
+      if (dim === "brand") return brands.has(value) ? (value as Brand) : null;
+      if (dim === "sku") return skus.get(value) ?? null;
+      return null;
+    },
+  };
+}

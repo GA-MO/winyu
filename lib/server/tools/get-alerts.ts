@@ -4,6 +4,7 @@ import { getAlertsInputSchema } from "@/lib/contracts";
 import { allAlertsFor, openAlertsFor } from "@/lib/server/alerts";
 import { actionsForAlert } from "@/lib/server/next-actions";
 import { lessonFor } from "@/lib/server/outcomes";
+import { loadDictionary } from "@/lib/server/master-data";
 import { currentAccess } from "@/lib/server/request-context";
 import { defineTool } from "./define";
 
@@ -21,7 +22,8 @@ export const getAlertsTool = defineTool({
     const access = currentAccess();
     const found = status === "open" ? openAlertsFor(access) : allAlertsFor(access);
     const shown = found.slice(0, limit ?? DEFAULT_ALERT_LIMIT);
-    const rows = shown.map(alertRowOf);
+    const dictionary = await loadDictionary();
+    const rows = shown.map((alert) => alertRowOf(alert, dictionary));
     if (rows.length === 0) return { ok: true as const, summary: NO_ALERTS, rows: [], lessons: [], nextActions: [] };
     const lessons = shown.flatMap((alert) => {
       const lesson = lessonFor(alert);
@@ -32,7 +34,7 @@ export const getAlertsTool = defineTool({
       summary: `มีความผิดปกติที่เปิดอยู่ ${rows.length} รายการในขอบเขตของคุณ`,
       rows,
       lessons,
-      nextActions: actionsForAlert(access, found[0] ?? null),
+      nextActions: actionsForAlert(access, found[0] ?? null, dictionary),
     };
   },
 });

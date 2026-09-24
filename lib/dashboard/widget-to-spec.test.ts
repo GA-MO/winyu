@@ -8,6 +8,8 @@ import { findUser } from "@/lib/data/entities/users";
 import { runMetric as placeholderResult } from "@/lib/data/query";
 import { templateFor } from "./templates";
 import { widgetToSpec } from "./widget-to-spec";
+import { alertRowOf } from "@/lib/cards/alert-row";
+import { GENERATOR_DICTIONARY } from "@/lib/data/master";
 import { ambientCards } from "./ambient";
 
 const RSM = "u_anucha";
@@ -121,6 +123,7 @@ describe("widgetToSpec", () => {
       ownerName: () => null,
       lessonOf: () => null,
       actionsFor: () => [],
+      rowOf: (alert) => alertRowOf(alert, GENERATOR_DICTIONARY),
     });
     expect(cards.length).toBe(2);
     for (const card of cards) expect(validate(card.spec).success).toBe(true);
@@ -141,6 +144,7 @@ describe("widgetToSpec", () => {
       ownerName: () => null,
       lessonOf: () => null,
       actionsFor: () => [],
+      rowOf: (alert) => alertRowOf(alert, GENERATOR_DICTIONARY),
     });
     expect(cards.map((card) => card.alertId)).toEqual(["p1", "p2"]);
   });

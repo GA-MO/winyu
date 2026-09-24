@@ -1,9 +1,9 @@
 import type { AccessContext, Dim, MetricDef, MetricQuery, MetricResult } from "@/lib/contracts";
 import { METRIC_LIST, findMetric } from "@/lib/semantic/metrics";
-import { resolveEntities, resolveEntity } from "@/lib/semantic/dictionary";
 import { evaluateMetric, keyRows, seriesRequest, type SeriesQuery } from "@/lib/semantic/engine";
 import { INJECTED_ANOMALIES } from "./anomalies";
 import { readGeneratorFacts } from "./facts";
+import { GENERATOR_DICTIONARY } from "./master";
 import { AGENTS, agentById } from "./entities/agents";
 import { campaignById } from "./entities/marketing";
 import { BUSINESS_UNIT_LABELS_TH, PROVINCES, REGION_LABELS_TH } from "./entities/org";
@@ -15,7 +15,7 @@ const PERCENT = 100;
 
 /** Runs one certified metric query under the caller's access scope, reading facts straight from the generator. */
 export function runMetric(query: MetricQuery, access: AccessContext): MetricResult {
-  return evaluateMetric(query, access, readGeneratorFacts);
+  return evaluateMetric(query, access, GENERATOR_DICTIONARY, readGeneratorFacts);
 }
 
 /** Metric registry entries matching free text, or all of them when search is null. */
@@ -114,8 +114,8 @@ function describeUser(id: string): DescribeResult {
 
 /** Reference data for one entity, resolved from Thai free text. */
 export function describeEntity(kind: "agent" | "sku" | "dc" | "campaign" | "user", query: string): DescribeResult {
-  const matches = resolveEntities(kind, query);
-  const id = matches[0]?.id ?? resolveEntity(kind, query)?.id ?? null;
+  const matches = GENERATOR_DICTIONARY.resolveEntities(kind, query);
+  const id = matches[0]?.id ?? GENERATOR_DICTIONARY.resolveEntity(kind, query)?.id ?? null;
   if (!id) return { ok: false, error: `ไม่พบ ${kind} ที่ตรงกับ "${query}"` };
   if (kind === "agent") return describeAgent(id);
   if (kind === "sku") return describeSku(id);
@@ -131,7 +131,7 @@ export type SeriesRow = { key: string; dims: Record<Dim, string>; value: number 
 
 /** The batch plane's reader: the same aggregation as `runMetric` without access scoping, masking or the row cap. */
 export function runSeries(query: SeriesQuery): SeriesRow[] {
-  const request = seriesRequest(query);
+  const request = seriesRequest(query, GENERATOR_DICTIONARY);
   if (!request) return [];
   const facts = readGeneratorFacts(request);
   return facts.ok ? keyRows(request.dims, facts.rows) : [];

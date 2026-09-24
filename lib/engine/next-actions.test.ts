@@ -2,6 +2,8 @@ import { describe, expect, test } from "bun:test";
 import type { AccessContext, MetricQuery, NextActionContext } from "@/lib/contracts";
 import { accessFor } from "@/lib/access/policies";
 import { findUser } from "@/lib/data/entities/users";
+import { GENERATOR_DICTIONARY } from "@/lib/data/master";
+import { geoValueOf } from "@/lib/semantic/geo";
 import { nextActionsFor } from "./next-actions";
 
 const CEO = "u_thana";
@@ -25,16 +27,23 @@ function queryOf(metric: MetricQuery["metric"], region?: string): MetricQuery {
   };
 }
 
+function regionOf(query: MetricQuery): NextActionContext["region"] {
+  const pinned = Object.entries(query.filters).filter(([, values]) => values?.length === 1).map(([dim, values]) => [dim, (values as string[])[0]]);
+  return geoValueOf(GENERATOR_DICTIONARY, Object.fromEntries(pinned), "region") as NextActionContext["region"];
+}
+
 function contextOf(overrides: Partial<NextActionContext> = {}): NextActionContext {
+  const query = overrides.query ?? queryOf("net_sales_volume");
   return {
     title: "ยอดขาย",
-    query: queryOf("net_sales_volume"),
+    query,
     deltaPercent: null,
     masked: [],
     topLabel: "ภาคอีสาน",
     alertIds: [],
     alertScope: null,
     verifyStep: null,
+    region: regionOf(query),
     ...overrides,
   };
 }

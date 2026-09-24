@@ -1,9 +1,11 @@
 import type { AccessContext, Alert, User } from "@/lib/contracts";
+import type { Dictionary } from "@/lib/semantic/dictionary";
 import { liveAccessFor } from "@/lib/access/enforce";
 import { USERS } from "@/lib/data/entities/users";
 import { alertRowOf } from "@/lib/cards/alert-row";
 import { TH } from "@/lib/i18n/th";
 import { digests } from "./agent/collections";
+import { loadDictionary } from "./master-data";
 import { ports } from "./ports";
 import { openAlertsFor, openPacketsFor, relevanceOf } from "./alerts";
 import { watchesOf } from "./watches";
@@ -14,19 +16,19 @@ const SYSTEM_SENDER = "cop";
 
 export type Digest = { lines: string[]; count: number; alertIds: string[] };
 
-function alertLine(alert: Alert): string {
-  const row = alertRowOf(alert);
+function alertLine(alert: Alert, dictionary: Dictionary): string {
+  const row = alertRowOf(alert, dictionary);
   const gap = row.gapLabel ? ` ${alert.direction === "down" ? "−" : "+"}${row.gapLabel}` : "";
   return `${row.severityLabel} · ${row.metricLabel} ${row.scopeLabel}${gap}`;
 }
 
 /** What one user should hear this morning: their own serious alerts that are new since the last digest, handoffs waiting, watches over the line; empty when there is nothing. */
-export function digestFor(access: AccessContext, alreadySent: ReadonlySet<string>): Digest {
+export function digestFor(access: AccessContext, alreadySent: ReadonlySet<string>, dictionary: Dictionary): Digest {
   const serious = openAlertsFor(access).filter((alert) => DIGEST_SEVERITIES.has(alert.severity) && relevanceOf(alert, access) !== "other");
   const fresh = serious.filter((alert) => !alreadySent.has(alert.id));
   const packets = openPacketsFor(access);
   const triggered = watchesOf(access.userId).filter((watch) => watch.state === "triggered");
-  const lines: string[] = fresh.slice(0, MAX_ALERT_LINES).map(alertLine);
+  const lines: string[] = fresh.slice(0, MAX_ALERT_LINES).map((alert) => alertLine(alert, dictionary));
   if (fresh.length > MAX_ALERT_LINES) lines.push(TH.digest.moreAlerts(fresh.length - MAX_ALERT_LINES));
   if (packets.length > 0) lines.push(TH.digest.packets(packets.length));
   for (const watch of triggered) lines.push(TH.digest.watch(watch.title));
@@ -51,13 +53,14 @@ export async function runDigestJob(at = new Date()): Promise<{ sent: number; ski
   const day = at.toISOString().slice(0, 10);
   let sent = 0;
   let skipped = 0;
+  const dictionary = await loadDictionary();
   for (const user of USERS) {
     const previous = digests().get(user.id);
     if (previous?.day === day) {
       skipped += 1;
       continue;
     }
-    const digest = digestFor(liveAccessFor(user), new Set(previous?.alertIds ?? []));
+    const digest = digestFor(liveAccessFor(user), new Set(previous?.alertIds ?? []), dictionary);
     if (digest.lines.length === 0) {
       skipped += 1;
       continue;

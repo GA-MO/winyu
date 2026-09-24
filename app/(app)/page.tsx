@@ -20,7 +20,7 @@ export default async function LandingPage({ searchParams }: PageProps) {
 
   markVisit(access);
   const { draft } = await searchParams;
-  const [kpis, visits] = await Promise.all([landingKpis(access), visitsFor(access)]);
+  const [kpis, visits, ambient] = await Promise.all([landingKpis(access), visitsFor(access), ambientFor(access)]);
   const greeting = { lead: TH.landing.greeting[timeOfDay()], name: shortName(user.nameTh) };
 
   return (
@@ -30,7 +30,7 @@ export default async function LandingPage({ searchParams }: PageProps) {
       kpis={kpis}
       visits={visits}
       quickActions={quickActionsFor(access)}
-      ambient={ambientFor(access)}
+      ambient={ambient}
       draft={draft ?? ""}
     />
   );

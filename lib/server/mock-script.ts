@@ -2,7 +2,7 @@ import type { MockScript, MockStep } from "vexa/mock";
 import type { Spec, SpecElement } from "vexa/protocol";
 import { formatDateTh, formatPercent, periodLabelTh } from "@/lib/i18n/format";
 import { TH } from "@/lib/i18n/th";
-import { resolveEntity } from "@/lib/semantic/dictionary";
+import { GENERATOR_DICTIONARY } from "@/lib/data/master";
 import { peopleSteps, profileSteps } from "./mock-people";
 import { siteSteps } from "./mock-sites";
 import { candidateSteps, courseSteps, policySteps } from "./mock-hr";
@@ -965,7 +965,7 @@ const RERUN_ANOMALY_STEPS: MockStep[] = [
 ];
 
 function marketShareSteps(prompt: string): MockStep[] {
-  const province = resolveEntity("province", prompt);
+  const province = GENERATOR_DICTIONARY.resolveEntity("province", prompt);
   const dims = province ? ["maker"] : ["province"];
   const filters = province ? { province: [province.id] } : {};
   const title = province ? `ส่วนแบ่งตลาดเบียร์ใน${province.label}ทุกผู้ผลิต เทียบปีก่อน` : "ส่วนแบ่งตลาดเบียร์ของเรารายจังหวัด เทียบปีก่อน";
@@ -984,7 +984,7 @@ function marketShareSteps(prompt: string): MockStep[] {
 }
 
 function beerSellOutOfPlaceSteps(prompt: string): MockStep[] {
-  const province = resolveEntity("province", prompt);
+  const province = GENERATOR_DICTIONARY.resolveEntity("province", prompt);
   const filters = province ? { province: [province.id], business_unit: ["beer"] } : { business_unit: ["beer"] };
   const place = province?.label ?? "พื้นที่ของคุณ";
   return [
@@ -1063,8 +1063,8 @@ function watchKindOf(prompt: string, metric: WatchMetric): "below" | "above" | "
 }
 
 function watchFilters(prompt: string, metric: WatchMetric): Record<string, string[]> {
-  const dc = metric === "days_of_cover" ? resolveEntity("dc", prompt) : null;
-  const agent = metric === "net_sales_volume" ? resolveEntity("agent", prompt) : null;
+  const dc = metric === "days_of_cover" ? GENERATOR_DICTIONARY.resolveEntity("dc", prompt) : null;
+  const agent = metric === "net_sales_volume" ? GENERATOR_DICTIONARY.resolveEntity("agent", prompt) : null;
   return { ...regionFilter(prompt), ...brandFilter(prompt), ...(dc ? { dc: [dc.id] } : {}), ...(agent ? { agent: [agent.id] } : {}) };
 }
 

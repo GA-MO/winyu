@@ -1,5 +1,5 @@
 import type { Alert, AlertRow, Dim } from "@/lib/contracts";
-import { displayLabel } from "@/lib/semantic/dictionary";
+import type { Dictionary } from "@/lib/semantic/dictionary";
 import { formatMetricValue, metricFormat, metricLabel } from "@/lib/dashboard/metric-display";
 import { formatDateTh, formatNumber, formatPercent } from "@/lib/i18n/format";
 import { TH } from "@/lib/i18n/th";
@@ -9,9 +9,9 @@ const SCOPE_ORDER: readonly Dim[] = ["agent", "dc", "plant", "sku", "brand", "ch
 const PERCENT = 100;
 
 /** The Thai scope of an alert — "ส.รุ่งเรือง เทรดดิ้ง · สิงห์ · ภาคอีสาน" — never the raw dimension ids. */
-export function alertScopeLabel(alert: Alert): string {
+export function alertScopeLabel(alert: Alert, dictionary: Dictionary): string {
   const parts = SCOPE_ORDER.filter((dim) => alert.dims[dim] && !(dim === "brand" && alert.dims.sku)).map((dim) =>
-    displayLabel(dim, alert.dims[dim] as string),
+    dictionary.displayLabel(dim, alert.dims[dim] as string),
   );
   return parts.length > 0 ? parts.join(" · ") : metricLabel(alert.metric);
 }
@@ -34,7 +34,7 @@ function gapLabelOf(alert: Alert): string | null {
 }
 
 /** One anomaly with every label already formatted, so no consumer — model, card or drawer — re-derives them. */
-export function alertRowOf(alert: Alert): AlertRow {
+export function alertRowOf(alert: Alert, dictionary: Dictionary): AlertRow {
   return {
     id: alert.id,
     severity: alert.severity,
@@ -42,7 +42,7 @@ export function alertRowOf(alert: Alert): AlertRow {
     metric: alert.metric,
     metricLabel: metricLabel(alert.metric),
     scope: alert.dims,
-    scopeLabel: alertScopeLabel(alert),
+    scopeLabel: alertScopeLabel(alert, dictionary),
     window: `${formatDateTh(alert.window.from)} – ${formatDateTh(alert.window.to)}`,
     observedLabel: valueLabelOf(alert, alert.observed),
     expectedLabel: valueLabelOf(alert, alert.expected),

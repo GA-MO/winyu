@@ -8,7 +8,8 @@ import { runMetric } from "@/lib/server/metrics";
 import { ports } from "@/lib/server/ports";
 import { checkWatch, conditionLabel, nextState, rollingQuery, windowDaysOf, type WatchHit } from "@/lib/engine/personal-watches";
 import { formatMetricValue, formatDelta } from "@/lib/dashboard/metric-display";
-import { displayLabel } from "@/lib/semantic/dictionary";
+import type { Dictionary } from "@/lib/semantic/dictionary";
+import { loadDictionary } from "@/lib/server/master-data";
 import { TH } from "@/lib/i18n/th";
 import { rememberAction } from "@/lib/engine/memory";
 import { metricLabel } from "@/lib/dashboard/metric-display";
@@ -19,12 +20,12 @@ const SYSTEM_SENDER = "cop";
 
 export type WatchCreated = { ok: true; watch: PersonalWatch; now: string } | { ok: false; error: string };
 
-function hitLabel(watch: PersonalWatch, hit: WatchHit): string {
+function hitLabel(watch: PersonalWatch, hit: WatchHit, dictionary: Dictionary): string {
   const value = watch.condition.kind === "change" ? (formatDelta(hit.value) ?? "") : formatMetricValue(watch.query.metric, hit.value);
   const where = watch.query.dims
     .map((dim) => hit.row[dim])
     .filter((part): part is string => typeof part === "string" && part.length > 0)
-    .map((part, index) => displayLabel(watch.query.dims[index] ?? "region", part))
+    .map((part, index) => dictionary.displayLabel(watch.query.dims[index] ?? "region", part))
     .join(" · ");
   return where ? `${where} ${value}` : value;
 }
@@ -50,7 +51,7 @@ export async function createWatch(access: AccessContext, input: { title: string;
   };
   personalWatches().put(watch);
   rememberAction(access.userId, { type: "preference", value: TH.memory.threshold(metricLabel(input.query.metric), conditionLabel(input.query, input.condition)) });
-  const now = check.hit ? hitLabel(watch, check.hit) : TH.watch.clear;
+  const now = check.hit ? hitLabel(watch, check.hit, await loadDictionary()) : TH.watch.clear;
   return { ok: true, watch, now };
 }
 
@@ -70,7 +71,7 @@ export function removeWatch(userId: string, id: string): boolean {
 async function tell(watch: PersonalWatch, hit: WatchHit): Promise<void> {
   const user = findUser(watch.userId);
   if (!user) return;
-  const title = TH.watch.fired(watch.title, hitLabel(watch, hit));
+  const title = TH.watch.fired(watch.title, hitLabel(watch, hit, await loadDictionary()));
   const at = new Date().toISOString();
   notifications().put({ id: randomUUID(), userId: user.id, at, kind: "alert", refId: watch.id, read: false, title });
   await ports().mail.send({

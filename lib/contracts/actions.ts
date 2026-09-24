@@ -1,4 +1,5 @@
 import type { WidgetKind } from "./dashboard";
+import type { Region } from "./identity";
 import type { MetricQuery } from "./semantic";
 
 export type NextActionKind = "handoff" | "request_access" | "pin" | "verify" | "drill";
@@ -23,5 +24,7 @@ export type NextActionContext = {
   alertIds: string[];
   alertScope: string | null;
   verifyStep: string | null;
+  /** The region the question is pinned to, stated or implied by a province or agent filter; null for the whole country. */
+  region: Region | null;
   drawnAs?: WidgetKind | null;
 };

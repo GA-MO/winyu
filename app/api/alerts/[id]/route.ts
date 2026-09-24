@@ -6,6 +6,7 @@ import { recordAction } from "@/lib/server/threads";
 import { TH } from "@/lib/i18n/th";
 import { rememberAction } from "@/lib/engine/memory";
 import { alertRowOf } from "@/lib/cards/alert-row";
+import { loadDictionary } from "@/lib/server/master-data";
 
 type RouteContext = { params: Promise<{ id: string }> };
 type ActionBody = { action?: unknown };
@@ -40,7 +41,7 @@ export async function POST(req: Request, context: RouteContext) {
   }
   if (body.action === "mute") {
     const { until } = muteAlert(alert, access);
-    const row = alertRowOf(alert);
+    const row = alertRowOf(alert, await loadDictionary());
     rememberAction(access.userId, { type: "preference", value: TH.memory.notFollowing(`${row.metricLabel} ${row.scopeLabel}`) });
     recordAction(access.userId, "dismiss", intentKey, null, null, subjectOf(alert));
     return Response.json({ ok: true, until, note: TH.inbox.muted });

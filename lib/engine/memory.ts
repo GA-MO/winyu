@@ -6,7 +6,8 @@ import type { MemoryFact } from "@/lib/contracts";
 import { memoryFacts, memoryReviews } from "@/lib/server/agent/collections";
 import { findUser } from "@/lib/data/entities/users";
 import { METRIC_LIST } from "@/lib/semantic/metrics";
-import { resolveEntity, type EntityKind } from "@/lib/semantic/dictionary";
+import type { Dictionary, EntityKind } from "@/lib/semantic/dictionary";
+import { loadDictionary } from "@/lib/server/master-data";
 import { utilityModel } from "@/lib/server/models";
 import { TH } from "@/lib/i18n/th";
 import { clusterFacts, findSameFact } from "./memory-match";
@@ -70,7 +71,7 @@ function identifies(synonym: string): boolean {
 }
 
 /** What the rule-based extractor keeps when no model is configured: the metrics asked for and the entities named. */
-export function extractByRule(prompts: string[]): Extracted[] {
+export function extractByRule(prompts: string[], dictionary: Dictionary): Extracted[] {
   const found = new Map<string, Extracted>();
   for (const prompt of prompts) {
     const lower = prompt.toLowerCase();
@@ -86,7 +87,7 @@ export function extractByRule(prompts: string[]): Extracted[] {
       }
     }
     for (const kind of ENTITY_KINDS) {
-      const entity = resolveEntity(kind, prompt);
+      const entity = dictionary.resolveEntity(kind, prompt);
       if (!entity) continue;
       const fact: Extracted = { type: "responsibility", value: TH.memory.entity(entity.label) };
       found.set(keyOf(fact), fact);
@@ -290,7 +291,7 @@ export async function rememberTurn(userId: string, turns: { prompt: string }[], 
   const prompts = turns.map((turn) => turn.prompt).filter((prompt) => prompt.trim().length > 0);
   if (prompts.length === 0) return [];
   const known = factsOf(userId).sort(keepOrder);
-  const extracted = (await extractByModel(prompts, known)) ?? extractByRule(prompts);
+  const extracted = (await extractByModel(prompts, known)) ?? extractByRule(prompts, await loadDictionary());
   const saved = merge(userId, extracted, "said", threadId);
   if (reviewIsDue(userId)) void reviewMemory(userId);
   return saved;

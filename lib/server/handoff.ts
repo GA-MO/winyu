@@ -5,7 +5,8 @@ import { ports } from "@/lib/server/ports";
 import { responsibleFor } from "@/lib/access/raci";
 import { findUser } from "@/lib/data/entities/users";
 import { metricLabel } from "@/lib/dashboard/metric-display";
-import { displayLabel } from "@/lib/semantic/dictionary";
+import type { Dictionary } from "@/lib/semantic/dictionary";
+import { loadDictionary } from "@/lib/server/master-data";
 import { formatDateTh } from "@/lib/i18n/format";
 import { TH } from "@/lib/i18n/th";
 import { notifications, packetOrigins, packets } from "./agent/collections";
@@ -33,18 +34,19 @@ function now(): string {
   return new Date().toISOString();
 }
 
-function scopeOf(filters: Partial<Record<Dim, string[]>>): string {
+function scopeOf(filters: Partial<Record<Dim, string[]>>, dictionary: Dictionary): string {
   const parts = Object.entries(filters)
     .filter(([, values]) => values && values.length > 0)
-    .map(([dim, values]) => (values as string[]).map((value) => displayLabel(dim as Dim, value)).join(", "));
+    .map(([dim, values]) => (values as string[]).map((value) => dictionary.displayLabel(dim as Dim, value)).join(", "));
   return parts.join(" · ");
 }
 
 /** Re-runs the sender's queries under the reader's own scope: a packet carries references, never values. */
 export async function resolveEvidence(packet: ContextPacket, access: AccessContext): Promise<EvidenceView[]> {
+  const dictionary = await loadDictionary();
   return Promise.all(packet.evidence.map(async (query) => {
     const result = await runMetric({ ...query, limit: MAX_EVIDENCE_ROWS }, access);
-    const base = { metric: metricLabel(query.metric), scope: scopeOf(query.filters), range: `${formatDateTh(query.range.from)} – ${formatDateTh(query.range.to)}` };
+    const base = { metric: metricLabel(query.metric), scope: scopeOf(query.filters, dictionary), range: `${formatDateTh(query.range.from)} – ${formatDateTh(query.range.to)}` };
     if (!result.ok) {
       return { ...base, summary: TH.handoff.denied, rows: [], masked: false, denied: true, ownerUserId: responsibleFor(query.metric, null)?.userId ?? null };
     }
@@ -112,7 +114,7 @@ export async function createPacket(input: HandoffInput, sender: User | null, rec
   packets().put(packet);
   const first = input.evidence[0];
   if (sender && first) {
-    const scope = scopeOf(first.filters);
+    const scope = scopeOf(first.filters, await loadDictionary());
     rememberAction(sender.id, { type: "responsibility", value: TH.memory.sentTo(scope ? `${metricLabel(first.metric)} ${scope}` : metricLabel(first.metric), recipient.nameTh) });
   }
   if (input.threadId) packetOrigins().put({ id: packet.id, threadId: input.threadId, userId: packet.fromUserId });

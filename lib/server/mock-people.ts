@@ -2,7 +2,7 @@ import type { MockStep } from "vexa/mock";
 import type { Spec, SpecElement } from "vexa/protocol";
 import type { PeopleFlag, Region } from "@/lib/contracts";
 import { USERS } from "@/lib/data/entities/users";
-import { resolveEntity } from "@/lib/semantic/dictionary";
+import { GENERATOR_DICTIONARY } from "@/lib/data/master";
 import { addBadges, addPerson, element, type Elements } from "./mock-compose";
 
 type Badge = { label: string; tone: string | null };
@@ -97,7 +97,7 @@ function teamLead(output: unknown, flag: PeopleFlag | null, withLead: boolean): 
 
 /** "ทีมขายภาคอีสานมีใครบ้าง", "ใบอนุญาตใครใกล้หมด": find_people, then the composed team card. */
 export function peopleSteps(prompt: string): MockStep[] {
-  const region = resolveEntity("region", prompt);
+  const region = GENERATOR_DICTIONARY.resolveEntity("region", prompt);
   const regionId = (region?.id ?? null) as Region | null;
   const flag = flagOf(prompt);
   const manager = flag ? null : leadOf(regionId);

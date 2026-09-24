@@ -4,6 +4,7 @@ import { RECENT_LTI_DAYS, SAFE_STREAK_DAYS, safetyOf, type SafetyStatus, type Si
 import { formatDateTh } from "@/lib/i18n/format";
 import { TH } from "@/lib/i18n/th";
 import { peopleAtSite, type PersonBadge } from "./people";
+import { loadDictionary } from "@/lib/server/master-data";
 import { ports } from "./ports";
 import { directoryOf } from "./ports/directory";
 import type { SiteRecords } from "./ports/sites";
@@ -119,7 +120,7 @@ export async function siteDetail(access: AccessContext, id: string | null, name:
       ],
       open_actions: safety.open.map((incident) => ({ title: incident.titleTh, body: incident.actionTh, date: formatDateTh(incident.date) })),
       incidents: timelineOf(lastYearOf(site, records.incidents)),
-      people: peopleAtSite(access, site.id, directory),
+      people: peopleAtSite(access, site.id, directory, await loadDictionary()),
     },
   };
 }

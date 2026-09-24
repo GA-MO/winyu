@@ -1,12 +1,11 @@
 import type { AccessContext, CareerEvent, Employee, PeopleFlag, Region } from "@/lib/contracts";
 import { canSeeSalary, peopleViewOf, type PeopleView } from "@/lib/access/people-scope";
-import { departmentById } from "@/lib/data/entities/hr";
-import { provinceById, REGION_LABELS_TH } from "@/lib/data/entities/org";
-import { PLANTS } from "@/lib/data/entities/supply";
 import { TODAY, toDayIndex } from "@/lib/data/dates";
 import { signalsOf, tenureLabel, type CertificateState, type PeopleSignals } from "@/lib/engine/people-signals";
 import { formatCurrency, formatDateTh } from "@/lib/i18n/format";
 import { TH } from "@/lib/i18n/th";
+import type { Dictionary } from "@/lib/semantic/dictionary";
+import { loadDictionary } from "@/lib/server/master-data";
 import { ports } from "@/lib/server/ports";
 import { directoryOf, type Directory } from "@/lib/server/ports/directory";
 
@@ -19,16 +18,16 @@ export type PeopleQuery = { region: Region | null; departmentId: string | null; 
 
 const T = TH.people;
 
-function placeOf(employee: Employee): string {
-  const site = employee.siteId ? PLANTS.find((plant) => plant.id === employee.siteId)?.nameTh : null;
+function placeOf(employee: Employee, dictionary: Dictionary): string {
+  const site = employee.siteId ? dictionary.master.plants.find((plant) => plant.id === employee.siteId)?.nameTh : null;
   if (site) return site;
-  const province = employee.provinceId ? provinceById(employee.provinceId)?.nameTh : null;
+  const province = employee.provinceId ? dictionary.master.provinces.find((entry) => entry.id === employee.provinceId)?.nameTh : null;
   if (province) return province;
-  return employee.region ? REGION_LABELS_TH[employee.region] : T.headOffice;
+  return employee.region ? dictionary.entityLabel("region", employee.region) : T.headOffice;
 }
 
-function departmentOf(employee: Employee): string {
-  return departmentById(employee.departmentId)?.nameTh ?? employee.departmentId;
+function departmentOf(employee: Employee, dictionary: Dictionary): string {
+  return dictionary.entityLabel("department", employee.departmentId);
 }
 
 function managerName(employee: Employee, directory: Directory): string | null {
@@ -66,16 +65,16 @@ function badgesFor(employee: Employee, signals: PeopleSignals, view: PeopleView)
   return view === "hr" ? [...riskBadge(signals), ...facts] : facts;
 }
 
-function rowOf(access: AccessContext, employee: Employee, view: PeopleView, directory: Directory): PersonRow {
+function rowOf(access: AccessContext, employee: Employee, view: PeopleView, directory: Directory, dictionary: Dictionary): PersonRow {
   const signals = signalsOf(employee);
   return {
     ...(employee.id === access.userId ? { is_you: true } : {}),
     id: employee.id,
     name: employee.nameTh,
     title: employee.title,
-    place: placeOf(employee),
+    place: placeOf(employee, dictionary),
     photo: employee.photo,
-    department: departmentOf(employee),
+    department: departmentOf(employee, dictionary),
     manager: managerName(employee, directory),
     tenure: view === "directory" ? null : tenureLabel(signals.tenureDays),
     badges: badgesFor(employee, signals, view),
@@ -88,9 +87,9 @@ function matchesManager(employee: Employee, manager: string, directory: Director
   return employee.id === lead.id || directory.reportsTo(employee, lead.id);
 }
 
-function matchesText(employee: Employee, query: string): boolean {
+function matchesText(employee: Employee, query: string, dictionary: Dictionary): boolean {
   const needle = query.trim();
-  return employee.nameTh.includes(needle) || employee.title.includes(needle) || placeOf(employee).includes(needle);
+  return employee.nameTh.includes(needle) || employee.title.includes(needle) || placeOf(employee, dictionary).includes(needle);
 }
 
 function matchesFlag(signals: PeopleSignals, flag: PeopleFlag, view: PeopleView): boolean {
@@ -102,11 +101,11 @@ function matchesFlag(signals: PeopleSignals, flag: PeopleFlag, view: PeopleView)
   return view === "hr" && signals.risk !== null;
 }
 
-function matches(employee: Employee, query: PeopleQuery, view: PeopleView, directory: Directory): boolean {
+function matches(employee: Employee, query: PeopleQuery, view: PeopleView, directory: Directory, dictionary: Dictionary): boolean {
   if (query.region && employee.region !== query.region) return false;
   if (query.departmentId && employee.departmentId !== query.departmentId) return false;
   if (query.manager && !matchesManager(employee, query.manager, directory)) return false;
-  if (query.query && !matchesText(employee, query.query)) return false;
+  if (query.query && !matchesText(employee, query.query, dictionary)) return false;
   if (query.flag && !matchesFlag(signalsOf(employee), query.flag, view)) return false;
   return true;
 }
@@ -135,15 +134,16 @@ function openPositionsFor(access: AccessContext, query: PeopleQuery, directory: 
 /** The people a viewer may see that match the query, lead first, shaped for their view. */
 export async function findPeople(access: AccessContext, query: PeopleQuery) {
   const directory = directoryOf(await ports().directory.load());
+  const dictionary = await loadDictionary();
   const visible = directory.employees.flatMap((employee) => {
     const view = peopleViewOf(access, employee, directory);
-    return view && matches(employee, query, view, directory) ? [{ employee, view }] : [];
+    return view && matches(employee, query, view, directory, dictionary) ? [{ employee, view }] : [];
   });
   const byLead = leadFirst(directory);
   const rows = visible
     .sort((left, right) => byLead(left.employee, right.employee))
     .slice(0, MAX_PEOPLE_ROWS)
-    .map(({ employee, view }) => rowOf(access, employee, view, directory));
+    .map(({ employee, view }) => rowOf(access, employee, view, directory, dictionary));
   const openPositions = openPositionsFor(access, query, directory);
   const partial = visible.some(({ view }) => view === "directory");
   if (rows.length === 0) return { ok: true as const, summary: T.none, data: [], open_positions: openPositions };
@@ -156,12 +156,12 @@ export async function findPeople(access: AccessContext, query: PeopleQuery) {
 }
 
 /** The people working at one site that the viewer may see, lead first. */
-export function peopleAtSite(access: AccessContext, siteId: string, directory: Directory): PersonRow[] {
+export function peopleAtSite(access: AccessContext, siteId: string, directory: Directory, dictionary: Dictionary): PersonRow[] {
   return directory.employees.filter((employee) => employee.siteId === siteId)
     .sort(leadFirst(directory))
     .flatMap((employee) => {
       const view = peopleViewOf(access, employee, directory);
-      return view ? [rowOf(access, employee, view, directory)] : [];
+      return view ? [rowOf(access, employee, view, directory, dictionary)] : [];
     })
     .slice(0, MAX_PEOPLE_ROWS);
 }
@@ -176,10 +176,10 @@ function certificatePairs(states: CertificateState[]) {
   return states.map((state) => ({ label: state.certificate.nameTh, value: T.certDetail(formatDateTh(state.certificate.expires), state.daysLeft) }));
 }
 
-function factsOf(access: AccessContext, employee: Employee, signals: PeopleSignals, view: PeopleView, directory: Directory) {
+function factsOf(access: AccessContext, employee: Employee, signals: PeopleSignals, view: PeopleView, directory: Directory, dictionary: Dictionary) {
   const facts: { label: string; value: string }[] = [
-    { label: T.fact.department, value: departmentOf(employee) },
-    { label: T.fact.place, value: placeOf(employee) },
+    { label: T.fact.department, value: departmentOf(employee, dictionary) },
+    { label: T.fact.place, value: placeOf(employee, dictionary) },
     { label: T.fact.manager, value: managerName(employee, directory) ?? "-" },
   ];
   if (view === "directory") return facts;
@@ -222,7 +222,7 @@ export async function personProfile(access: AccessContext, id: string | null, na
       title: employee.title,
       photo: employee.photo,
       badges: badgesFor(employee, signals, view),
-      facts: factsOf(access, employee, signals, view, directory),
+      facts: factsOf(access, employee, signals, view, directory, await loadDictionary()),
       history: detailed ? timelineOf(employee.history) : [],
       certificates: detailed ? certificatePairs(signals.certificates) : [],
       risk_reasons: view === "hr" ? signals.riskReasons : [],

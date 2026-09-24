@@ -1,7 +1,7 @@
 import type { AccessContext, Dim, NextAction, NextActionContext, Region, WidgetKind } from "@/lib/contracts";
 import { responsibleFor } from "@/lib/access/raci";
 import { metricLabel, metricSource, toneOf } from "@/lib/dashboard/metric-display";
-import { GEO_LEVELS, finestGeoLevel, geoValueOf } from "@/lib/data/entities/geo";
+import { GEO_LEVELS, finestGeoLevel } from "@/lib/semantic/geo";
 import { METRICS } from "@/lib/semantic/metrics";
 import { findUser } from "@/lib/data/entities/users";
 import { shortName } from "@/lib/i18n/format";
@@ -19,10 +19,6 @@ function singleFilters(context: NextActionContext): Partial<Record<Dim, string>>
   return Object.fromEntries(entries.map(([dim, values]) => [dim, (values as string[])[0]]));
 }
 
-function regionOf(context: NextActionContext): Region | null {
-  return geoValueOf(singleFilters(context), "region") as Region | null;
-}
-
 function allows(access: AccessContext, tool: NextAction["tool"]): boolean {
   return tool === null || access.toolAllow.includes(tool);
 }
@@ -35,7 +31,7 @@ function widgetKindOf(context: NextActionContext): WidgetKind {
 }
 
 function handoffAction(access: AccessContext, context: NextActionContext): NextAction | null {
-  const owner = responsibleFor(context.query.metric, regionOf(context));
+  const owner = responsibleFor(context.query.metric, context.region);
   if (!owner || owner.userId === access.userId) return null;
   const scope = context.alertScope ?? context.topLabel ?? metricLabel(context.query.metric);
   return {

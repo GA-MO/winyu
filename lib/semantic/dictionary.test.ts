@@ -1,5 +1,8 @@
 import { describe, expect, test } from "bun:test";
-import { displayLabel, entityKindOfDim, resolveDimValue, resolveEntities, resolveEntity } from "./dictionary";
+import { GENERATOR_DICTIONARY } from "@/lib/data/master";
+import { entityKindOfDim } from "./dictionary";
+
+const { displayLabel, resolveDimValue, resolveEntities, resolveEntity } = GENERATOR_DICTIONARY;
 
 describe("resolveEntity", () => {
   test("province aliases and spelling variants", () => {

@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { readGeneratorFacts } from "@/lib/data/facts";
+import { GENERATOR_MASTER } from "@/lib/data/master";
 import { describeEntity, listMetrics } from "@/lib/data/query";
 import { ALCOHOL_BAN_DATES, FESTIVAL_WINDOWS, THAI_HOLIDAYS } from "@/lib/data/entities/calendar";
 import { COURSES } from "@/lib/data/entities/courses";
@@ -22,6 +23,7 @@ import type { Ports } from "./index";
 export const GENERATOR_PORTS: Ports = {
   metrics: {
     readFacts: async (requests) => requests.map(readGeneratorFacts),
+    masterData: async () => GENERATOR_MASTER,
     listMetrics: async (search) => listMetrics(search),
     describeEntity: async (kind, query) => describeEntity(kind, query),
   },

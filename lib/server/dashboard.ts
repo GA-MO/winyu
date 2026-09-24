@@ -8,7 +8,8 @@ import { actionsForAlert, actionsForMetric } from "@/lib/server/next-actions";
 import { composeSuggestion } from "@/lib/engine/compose";
 import { ambientCards, statusLinks, type AmbientCard, type LandingKpi, type StatusLink, type VisitStop } from "@/lib/dashboard/ambient";
 import { TODAY, addDays } from "@/lib/data/dates";
-import { displayLabel } from "@/lib/semantic/dictionary";
+import type { Dictionary } from "@/lib/semantic/dictionary";
+import { loadDictionary } from "@/lib/server/master-data";
 import { formatDelta } from "@/lib/dashboard/metric-display";
 import { presentCard, weakestRow } from "@/lib/cards/present";
 import { TH } from "@/lib/i18n/th";
@@ -102,7 +103,8 @@ async function extrasFor(widget: WidgetSpec, access: AccessContext): Promise<Wid
     const alerts = openAlertsFor(access)
       .filter((alert) => relevanceOf(alert, access) !== "other")
       .slice(0, MAX_CARD_ALERTS);
-    return { alerts: alerts.map(alertRowOf), actions: actionsForAlert(access, alerts[0] ?? null) };
+    const dictionary = await loadDictionary();
+    return { alerts: alerts.map((alert) => alertRowOf(alert, dictionary)), actions: actionsForAlert(access, alerts[0] ?? null, dictionary) };
   }
   if (widget.kind !== "line") return {};
   const pair = OVERLAY_PAIR[widget.query.metric];
@@ -117,7 +119,7 @@ async function extrasFor(widget: WidgetSpec, access: AccessContext): Promise<Wid
 
 async function viewOf(widget: WidgetSpec, access: AccessContext, relevant: readonly Alert[]): Promise<WidgetView> {
   const [result, extras] = await Promise.all([resolveWidget(widget, access), extrasFor(widget, access)]);
-  const actions = extras.actions ?? actionsForMetric(access, widget.query, result);
+  const actions = extras.actions ?? actionsForMetric(access, widget.query, result, await loadDictionary());
   const hero = presentCard({ title: widget.title, query: widget.query, result }).hero;
   return {
     widget,
@@ -186,8 +188,8 @@ export function landingStatus(access: AccessContext): StatusLink[] {
   return statusLinks(relevant, open.length - relevant.length, openPacketsFor(access).length);
 }
 
-function alertReason(alert: Alert): string {
-  const row = alertRowOf(alert);
+function alertReason(alert: Alert, dictionary: Dictionary): string {
+  const row = alertRowOf(alert, dictionary);
   const sign = alert.direction === "down" ? "−" : "+";
   return row.gapLabel ? TH.landing.visitAlert(row.metricLabel.replace(PARENTHETICAL, ""), `${sign}${row.gapLabel}`) : row.severityLabel;
 }
@@ -197,10 +199,11 @@ export async function visitsFor(access: AccessContext): Promise<VisitStop[]> {
   if (!VISIT_ROLES.has(access.role)) return [];
   const result = await runMetric({ metric: "net_sales_volume", dims: ["agent"], filters: {}, range: { from: addDays(TODAY, -VISIT_WINDOW_DAYS), to: TODAY }, grain: "month", compare: "prev_period", limit: VISIT_SCAN_LIMIT }, access);
   if (!result.ok) return [];
+  const dictionary = await loadDictionary();
   const alerted = new Map<string, Alert>();
   for (const alert of openAlertsFor(access)) {
     const agent = alert.dims.agent;
-    if (agent && !alerted.has(agent)) alerted.set(displayLabel("agent", agent), alert);
+    if (agent && !alerted.has(agent)) alerted.set(dictionary.displayLabel("agent", agent), alert);
   }
   const stops = result.rows
     .map((row) => ({ agent: String(row.agent ?? ""), delta: typeof row.delta_pct === "number" ? row.delta_pct : null }))
@@ -208,7 +211,7 @@ export async function visitsFor(access: AccessContext): Promise<VisitStop[]> {
     .map((row) => {
       const alert = alerted.get(row.agent) ?? null;
       const rank = (alert ? ALERT_FIRST : 0) + (row.delta ?? 0);
-      const reason = alert ? alertReason(alert) : TH.landing.visitDrop(formatDelta(row.delta) ?? "—");
+      const reason = alert ? alertReason(alert, dictionary) : TH.landing.visitDrop(formatDelta(row.delta) ?? "—");
       const tone: VisitStop["tone"] = alert ? (alert.severity === "P1" ? "danger" : "warning") : (row.delta ?? 0) < 0 ? "warning" : "neutral";
       return { rank, stop: { id: row.agent, agent: row.agent, reason, tone, prompt: TH.landing.visitPrompt(row.agent) } };
     })
@@ -217,14 +220,16 @@ export async function visitsFor(access: AccessContext): Promise<VisitStop[]> {
   return stops.slice(0, VISIT_LIMIT).map((entry) => entry.stop);
 }
 
-export function ambientFor(access: AccessContext): AmbientCard[] {
+export async function ambientFor(access: AccessContext): Promise<AmbientCard[]> {
+  const dictionary = await loadDictionary();
   const packet = openPacketsFor(access)[0] ?? null;
   const fromName = packet ? (findUser(packet.fromUserId)?.nameTh ?? packet.fromUserId) : "";
   return ambientCards({
     alerts: relevantAlerts(access),
     ownerName: (alert) => (alert.ownerUserId === access.userId ? null : (findUser(alert.ownerUserId)?.nameTh ?? null)),
     lessonOf: lessonFor,
-    actionsFor: (alert) => actionsForAlert(access, alert),
+    actionsFor: (alert) => actionsForAlert(access, alert, dictionary),
+    rowOf: (alert) => alertRowOf(alert, dictionary),
     packet: packet ? { id: packet.id, title: packet.title, ask: packet.ask, fromName, urgency: packet.urgency } : null,
   });
 }

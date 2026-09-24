@@ -1,7 +1,6 @@
-import type { Alert, NextAction } from "@/lib/contracts";
+import type { Alert, AlertRow, NextAction } from "@/lib/contracts";
 import type { Spec, SpecElement } from "vexa/protocol";
 import { TH } from "@/lib/i18n/th";
-import { alertRowOf } from "@/lib/cards/alert-row";
 import type { Tone } from "./metric-display";
 
 export type AmbientPacket = { id: string; title: string; ask: string; fromName: string; urgency: "low" | "medium" | "high" };
@@ -12,6 +11,7 @@ export type AmbientInput = {
   ownerName: (alert: Alert) => string | null;
   lessonOf: (alert: Alert) => string | null;
   actionsFor: (alert: Alert) => NextAction[];
+  rowOf: (alert: Alert) => AlertRow;
 };
 
 export type AmbientTone = "danger" | "warning" | "info" | "brand" | "success" | "neutral";
@@ -55,8 +55,7 @@ function signedGap(alert: Alert, gapLabel: string | null): string | null {
   return `${alert.direction === "down" ? "−" : "+"}${gapLabel}`;
 }
 
-function alertCard(alert: Alert, owner: string | null, lesson: string | null, actions: NextAction[]): AmbientCard {
-  const row = alertRowOf(alert);
+function alertCard(row: AlertRow, alert: Alert, owner: string | null, lesson: string | null, actions: NextAction[]): AmbientCard {
   const root = `ambient-alert-${alert.id}`;
   const tone = SEVERITY_TONES[alert.severity];
   const gap = signedGap(alert, row.gapLabel);
@@ -115,10 +114,10 @@ function differentStory(first: Alert, alerts: readonly Alert[]): Alert | null {
 export function ambientCards(input: AmbientInput): AmbientCard[] {
   const [first] = input.alerts;
   const cards: AmbientCard[] = [];
-  if (first) cards.push(alertCard(first, input.ownerName(first), input.lessonOf(first), input.actionsFor(first)));
+  if (first) cards.push(alertCard(input.rowOf(first), first, input.ownerName(first), input.lessonOf(first), input.actionsFor(first)));
   const second = first ? differentStory(first, input.alerts) : null;
   if (input.packet) cards.push(packetCard(input.packet));
-  else if (second) cards.push(alertCard(second, input.ownerName(second), input.lessonOf(second), input.actionsFor(second)));
+  else if (second) cards.push(alertCard(input.rowOf(second), second, input.ownerName(second), input.lessonOf(second), input.actionsFor(second)));
   return cards.slice(0, MAX_CARDS);
 }
 

@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { accessFor } from "@/lib/access/policies";
 import { findUser } from "@/lib/data/entities/users";
 import { openAlertsFor } from "./alerts";
+import { GENERATOR_DICTIONARY } from "@/lib/data/master";
 import { digestFor } from "./digest";
 
 function access(userId: string) {
@@ -12,21 +13,21 @@ function access(userId: string) {
 
 describe("the morning digest", () => {
   test("counts every item, not the lines it fits them in", () => {
-    const digest = digestFor(access("u_thana"), new Set());
+    const digest = digestFor(access("u_thana"), new Set(), GENERATOR_DICTIONARY);
     expect(digest.count).toBeGreaterThanOrEqual(digest.lines.length - 1);
     expect(digest.lines.length).toBeLessThanOrEqual(6);
   });
 
   test("an alert already sent is not news the next morning", () => {
     const ceo = access("u_thana");
-    const first = digestFor(ceo, new Set());
-    const again = digestFor(ceo, new Set(first.alertIds));
+    const first = digestFor(ceo, new Set(), GENERATOR_DICTIONARY);
+    const again = digestFor(ceo, new Set(first.alertIds), GENERATOR_DICTIONARY);
     expect(again.count).toBeLessThan(first.count || 1);
   });
 
   test("never mentions P3 or other people's alerts", () => {
     const ceo = access("u_thana");
-    const ids = new Set(digestFor(ceo, new Set()).alertIds);
+    const ids = new Set(digestFor(ceo, new Set(), GENERATOR_DICTIONARY).alertIds);
     for (const alert of openAlertsFor(ceo).filter((entry) => ids.has(entry.id))) expect(alert.severity).not.toBe("P3");
   });
 });

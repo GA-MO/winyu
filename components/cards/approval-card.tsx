@@ -9,11 +9,11 @@ import { conditionLabel } from "@/lib/engine/personal-watches";
 import { USERS, findUser } from "@/lib/data/entities/users";
 import { formatDateTh } from "@/lib/i18n/format";
 import { metricLabel } from "@/lib/dashboard/metric-display";
-import { displayLabel } from "@/lib/semantic/dictionary";
 import { TH } from "@/lib/i18n/th";
 
 const COURSES_ENDPOINT = "/api/courses";
 const PERMISSION_LABEL_ENDPOINT = "/api/permissions/label";
+const LABELS_ENDPOINT = "/api/labels";
 const MAX_EVIDENCE_LABELS = 2;
 const URGENCY_BADGE: Record<Urgency, string> = {
   high: "bg-danger/10 text-danger",
@@ -69,23 +69,29 @@ function urgencyOf(value: string | undefined): Urgency | null {
   return null;
 }
 
-function scopeOf(query: MetricQuery): string {
+type Labels = Record<string, string>;
+
+function labelKeysOf(query: MetricQuery): string[] {
+  return Object.entries(query.filters ?? {}).flatMap(([dim, values]) => (values ?? []).map((value) => `${dim}:${value}`));
+}
+
+function scopeOf(query: MetricQuery, labels: Labels): string {
   const dims = Object.entries(query.filters ?? {})
-    .flatMap(([dim, values]) => (values ?? []).map((value) => displayLabel(dim as never, value)))
+    .flatMap(([dim, values]) => (values ?? []).map((value) => labels[`${dim}:${value}`] ?? value))
     .slice(0, MAX_EVIDENCE_LABELS);
   return [metricLabel(query.metric), ...dims].join(" · ");
 }
 
-function evidenceChips(input: HandoffInput): string[] {
+function evidenceChips(input: HandoffInput, names: Labels): string[] {
   const queries = input.evidence ?? [];
   const alerts = input.alertIds ?? [];
-  const labels = queries.slice(0, MAX_EVIDENCE_LABELS).map(scopeOf);
+  const labels = queries.slice(0, MAX_EVIDENCE_LABELS).map((query) => scopeOf(query, names));
   if (queries.length > MAX_EVIDENCE_LABELS) labels.push(TH.approve.evidenceCount(queries.length));
   if (alerts.length > 0) labels.push(TH.approve.alertCount(alerts.length));
   return labels;
 }
 
-function handoffDecision(input: HandoffInput): Decision {
+function handoffDecision(input: HandoffInput, labels: Labels): Decision {
   const person = personLine(input.toUserId);
   return {
     icon: Send,
@@ -94,7 +100,7 @@ function handoffDecision(input: HandoffInput): Decision {
     subjectLabel: TH.approve.subject,
     subject: input.title ?? null,
     body: input.ask ? { label: TH.approve.askLabel, text: input.ask } : null,
-    chips: evidenceChips(input),
+    chips: evidenceChips(input, labels),
     urgency: urgencyOf(input.urgency),
     effect: TH.approve.effectHandoff(person.name),
     confirm: TH.approve.confirmHandoff,
@@ -138,8 +144,8 @@ function pinDecision(input: PinInput): Decision {
   };
 }
 
-function watchDecision(input: WatchInput): Decision {
-  const condition = input.query && input.condition ? `${scopeOf(input.query)} ${conditionLabel(input.query, input.condition)}` : null;
+function watchDecision(input: WatchInput, labels: Labels): Decision {
+  const condition = input.query && input.condition ? `${scopeOf(input.query, labels)} ${conditionLabel(input.query, input.condition)}` : null;
   return {
     icon: BellRing,
     title: TH.approve.watchDone,
@@ -246,10 +252,8 @@ function enrollDecision(input: EnrollInput, course: CourseSummary | null): Decis
 
 function decisionOf(tool: string, input: unknown): Decision | null {
   const value = (input ?? {}) as Record<string, unknown>;
-  if (tool === "create_handoff") return handoffDecision(value);
   if (tool === "send_email") return emailDecision(value);
   if (tool === "pin_widget") return pinDecision(value);
-  if (tool === "watch_metric") return watchDecision(value);
   if (tool === "run_job") return jobDecision(value);
   if (tool === "request_leave") return leaveDecision(value);
   return null;
@@ -374,6 +378,34 @@ function usePermissionLabel(kind: string | undefined, key: string | undefined): 
   return label;
 }
 
+function useLabels(queries: MetricQuery[]): Labels {
+  const [labels, setLabels] = useState<Labels>({});
+  const keys = [...new Set(queries.flatMap(labelKeysOf))].sort().join("\n");
+  useEffect(() => {
+    if (!keys) return;
+    const controller = new AbortController();
+    const query = new URLSearchParams(keys.split("\n").map((key) => ["v", key]));
+    fetch(`${LABELS_ENDPOINT}?${query.toString()}`, { signal: controller.signal })
+      .then((response) => (response.ok ? (response.json() as Promise<{ labels: Labels }>) : null))
+      .then((found) => setLabels(found?.labels ?? {}))
+      .catch(() => undefined);
+    return () => controller.abort();
+  }, [keys]);
+  return labels;
+}
+
+function HandoffApproval({ request }: { request: ApprovalRequest }) {
+  const input = (request.input ?? {}) as HandoffInput;
+  const labels = useLabels((input.evidence ?? []).slice(0, MAX_EVIDENCE_LABELS));
+  return <Approval decision={handoffDecision(input, labels)} request={request} />;
+}
+
+function WatchApproval({ request }: { request: ApprovalRequest }) {
+  const input = (request.input ?? {}) as WatchInput;
+  const labels = useLabels(input.query ? [input.query] : []);
+  return <Approval decision={watchDecision(input, labels)} request={request} />;
+}
+
 function PermissionApproval({ request }: { request: ApprovalRequest }) {
   const input = (request.input ?? {}) as PermissionInput;
   const label = usePermissionLabel(input.kind, input.key);
@@ -390,6 +422,8 @@ function CourseApproval({ request }: { request: ApprovalRequest }) {
 export const renderCopApproval: RenderApproval = (request) => {
   if (request.tool === "enroll_course") return <CourseApproval request={request} />;
   if (request.tool === "set_permission") return <PermissionApproval request={request} />;
+  if (request.tool === "create_handoff") return <HandoffApproval request={request} />;
+  if (request.tool === "watch_metric") return <WatchApproval request={request} />;
   const decision = decisionOf(request.tool, request.input);
   if (!decision) return null;
   return <Approval decision={decision} request={request} />;

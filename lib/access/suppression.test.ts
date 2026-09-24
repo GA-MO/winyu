@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { runMetric } from "@/lib/data/query";
 import { findUser } from "@/lib/data/entities/users";
 import { accessFor } from "./policies";
+import { GENERATOR_MASTER } from "@/lib/data/master";
 import { MIN_CELL_SIZE, SUPPRESSED_VALUE, cellScopeOf, cohortSize, isSmallCell } from "./suppression";
 
 const CFO = accessFor(findUser("u_siriporn")!);
@@ -10,26 +11,26 @@ const AR = { metric: "ar_overdue" as const, filters: {}, range: RANGE, grain: "m
 
 describe("cohortSize", () => {
   test("counts the agents a cell aggregates", () => {
-    expect(cohortSize("ar_overdue", { province: ["pv_lamphun"] })).toBe(2);
-    expect(cohortSize("ar_overdue", { province: ["pv_phuket"] })).toBe(1);
-    expect(cohortSize("ar_overdue", { region: ["northeast"] })).toBeGreaterThan(MIN_CELL_SIZE);
+    expect(cohortSize(GENERATOR_MASTER, "ar_overdue", { province: ["pv_lamphun"] })).toBe(2);
+    expect(cohortSize(GENERATOR_MASTER, "ar_overdue", { province: ["pv_phuket"] })).toBe(1);
+    expect(cohortSize(GENERATOR_MASTER, "ar_overdue", { region: ["northeast"] })).toBeGreaterThan(MIN_CELL_SIZE);
   });
 
   test("counts employees for person-level metrics and ignores metrics without person risk", () => {
-    expect(cohortSize("avg_salary", { department: ["dept_executive"] })).toBe(24);
-    expect(cohortSize("net_sales_volume", { province: ["pv_phuket"] })).toBeNull();
+    expect(cohortSize(GENERATOR_MASTER, "avg_salary", { department: ["dept_executive"] })).toBe(24);
+    expect(cohortSize(GENERATOR_MASTER, "net_sales_volume", { province: ["pv_phuket"] })).toBeNull();
   });
 });
 
 describe("isSmallCell", () => {
   test("a province roll-up below the minimum is a small cell", () => {
-    expect(isSmallCell("ar_overdue", ["province"], {}, cellScopeOf(["province"], { province: "pv_phuket" }))).toBe(true);
-    expect(isSmallCell("ar_overdue", ["province"], {}, cellScopeOf(["province"], { province: "pv_bangkok" }))).toBe(false);
+    expect(isSmallCell(GENERATOR_MASTER, "ar_overdue", ["province"], {}, cellScopeOf(["province"], { province: "pv_phuket" }))).toBe(true);
+    expect(isSmallCell(GENERATOR_MASTER, "ar_overdue", ["province"], {}, cellScopeOf(["province"], { province: "pv_bangkok" }))).toBe(false);
   });
 
   test("naming the agent leaves the decision to the metric ACL", () => {
-    expect(isSmallCell("ar_overdue", ["agent"], {}, { agent: ["ag_sou_01"] })).toBe(false);
-    expect(isSmallCell("ar_overdue", ["month"], { agent: ["ag_sou_01"] }, {})).toBe(false);
+    expect(isSmallCell(GENERATOR_MASTER, "ar_overdue", ["agent"], {}, { agent: ["ag_sou_01"] })).toBe(false);
+    expect(isSmallCell(GENERATOR_MASTER, "ar_overdue", ["month"], { agent: ["ag_sou_01"] }, {})).toBe(false);
   });
 });
 

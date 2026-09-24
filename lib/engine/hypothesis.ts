@@ -8,7 +8,7 @@ import { PLANTS, dcById } from "@/lib/data/entities/supply";
 import { skuById } from "@/lib/data/entities/products";
 import { ISO_OF_DAY, addDays, toDayIndex } from "@/lib/data/dates";
 import { OWN_MAKER } from "@/lib/data/entities/market";
-import { displayLabel } from "@/lib/semantic/dictionary";
+import { GENERATOR_DICTIONARY } from "@/lib/data/master";
 import { TH } from "@/lib/i18n/th";
 import { pearson } from "./stats";
 
@@ -36,13 +36,13 @@ function scopeLabel(dims: Partial<Record<Dim, string>>): string {
   const order: Dim[] = ["agent", "dc", "plant", "sku", "brand", "channel", "province", "region"];
   const parts = order
     .filter((dim) => dims[dim] && !(dim === "brand" && dims.sku))
-    .map((dim) => displayLabel(dim, dims[dim] as string));
+    .map((dim) => GENERATOR_DICTIONARY.displayLabel(dim, dims[dim] as string));
   return parts.length > 0 ? parts.join(" · ") : TH.region.all;
 }
 
 function placeLabel(dims: Partial<Record<Dim, string>>): string {
   for (const dim of ["province", "dc", "plant", "region"] as Dim[]) {
-    if (dims[dim]) return displayLabel(dim, dims[dim] as string);
+    if (dims[dim]) return GENERATOR_DICTIONARY.displayLabel(dim, dims[dim] as string);
   }
   return TH.region.all;
 }
@@ -133,7 +133,7 @@ function shareExplanation(context: Context, place: string): Explanation {
   const verifySteps = steps(TH.engine.verify.makersOfPlace(place), TH.engine.verify.sellOutLastYear(place));
   if (!own || !rival || rival.points <= 0) return { hypothesis: TH.engine.hypothesis.genericDown(TH.metric.market_share, place), verifySteps, explained: false };
   return {
-    hypothesis: TH.engine.hypothesis.rivalGain(place, displayLabel("maker", rival.maker), rival.points.toFixed(SHARE_DECIMALS), Math.abs(own.points).toFixed(SHARE_DECIMALS)),
+    hypothesis: TH.engine.hypothesis.rivalGain(place, GENERATOR_DICTIONARY.displayLabel("maker", rival.maker), rival.points.toFixed(SHARE_DECIMALS), Math.abs(own.points).toFixed(SHARE_DECIMALS)),
     verifySteps,
     explained: false,
   };
@@ -172,7 +172,7 @@ export function explain(context: Context): Explanation {
 
   if (nearlySilent(context) && context.dims.agent) {
     return {
-      hypothesis: TH.engine.hypothesis.silentAgent(displayLabel("agent", context.dims.agent)),
+      hypothesis: TH.engine.hypothesis.silentAgent(GENERATOR_DICTIONARY.displayLabel("agent", context.dims.agent)),
       verifySteps: steps(TH.engine.verify.orderHistory(scope), TH.engine.verify.arOfScope(scope)),
       explained: false,
     };

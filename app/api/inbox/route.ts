@@ -6,7 +6,8 @@ import { packetsFor, resolveEvidence, sentPackets, type EvidenceView } from "@/l
 import { canJudge, openAlertsFor } from "@/lib/server/alerts";
 import { handoffEnabled } from "@/lib/access/enforce";
 import { lessonFor } from "@/lib/server/outcomes";
-import { displayLabel } from "@/lib/semantic/dictionary";
+import type { Dictionary } from "@/lib/semantic/dictionary";
+import { loadDictionary } from "@/lib/server/master-data";
 import { formatDelta, formatMetricValue, metricLabel, toneOf } from "@/lib/dashboard/metric-display";
 import { findUser } from "@/lib/data/entities/users";
 import { formatDateTh } from "@/lib/i18n/format";
@@ -38,9 +39,9 @@ function evidenceOf(view: EvidenceView): EvidenceLine {
 const PERCENT = 100;
 const SCOPE_ORDER: Dim[] = ["agent", "dc", "plant", "sku", "brand", "channel", "province", "region"];
 
-function scopeOf(alert: Alert): string {
+function scopeOf(alert: Alert, dictionary: Dictionary): string {
   const shown = SCOPE_ORDER.filter((dim) => alert.dims[dim] && !(dim === "brand" && alert.dims.sku) && !(dim === "region" && Object.keys(alert.dims).length > 1));
-  return shown.map((dim) => displayLabel(dim, alert.dims[dim] as string)).join(" · ");
+  return shown.map((dim) => dictionary.displayLabel(dim, alert.dims[dim] as string)).join(" · ");
 }
 
 function movementOf(alert: Alert): AlertItem["movement"] {
@@ -53,9 +54,9 @@ function movementOf(alert: Alert): AlertItem["movement"] {
   };
 }
 
-function alertOf(alert: Alert, access: AccessContext, handoffOpen: boolean): AlertItem {
+function alertOf(alert: Alert, access: AccessContext, handoffOpen: boolean, dictionary: Dictionary): AlertItem {
   const owner = findUser(alert.ownerUserId);
-  const scope = scopeOf(alert);
+  const scope = scopeOf(alert, dictionary);
   return {
     id: alert.id,
     canJudge: canJudge(alert, access),
@@ -102,7 +103,8 @@ export async function GET() {
     .slice(0, MAX_ITEMS)
     .map((packet) => handoffOf(packet, access)));
 
-  const alertItems: AlertItem[] = openAlertsFor(access).slice(0, MAX_ALERT_ITEMS).map((alert) => alertOf(alert, access, handoffOpen));
+  const dictionary = await loadDictionary();
+  const alertItems: AlertItem[] = openAlertsFor(access).slice(0, MAX_ALERT_ITEMS).map((alert) => alertOf(alert, access, handoffOpen, dictionary));
 
   const replies: ReplyItem[] = sentPackets(access.userId)
     .filter((packet) => packet.thread.length > 0)
