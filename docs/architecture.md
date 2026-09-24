@@ -16,7 +16,7 @@ app/api/chat/route.ts
       persona = personaFor(access, user, ctx) role, scope, memory facts (fenced as data)
   ▼
 lib/server/agent/tools.ts        11 tools, each wrapped in withAudit
-  → lib/data/query.ts            runMetric(query, access)
+  → lib/server/metrics.ts        runMetric(query, access): plan → ports().metrics.readFacts → finish
   → lib/server/alerts.ts         alerts and forecasts the engines produced
   → lib/server/handoff.ts        context packets, notifications, outbox
   ▼
@@ -31,8 +31,8 @@ Vexa spec stream → SpecView renders the catalog components
 |---|---|---|
 | Contracts | `lib/contracts/` | Types and zod schemas shared by every package: `MetricQuery`, `MetricResult`, `Alert`, `ContextPacket`, `WidgetSpec`, `AuditEntry`, the tool surface table |
 | Access | `lib/access/` | `policies.ts` (role → regions, brands, metric ACL, tool allow list), `enforce.ts` (tool filtering, kill switch, scope predicates), `raci.ts` (metric × region → responsible person), `suppression.ts` (min-cell rule) |
-| Semantic | `lib/semantic/` | The metric registry (20 certified metrics with Thai labels, units, dims, owner, source system) and the synonym dictionary that maps Thai wording to metric and dimension ids |
-| Data | `lib/data/` | Hand-written entity tables, the seeded generator, cached typed arrays, and `runMetric` — the only way to a number |
+| Semantic | `lib/semantic/` | The metric registry (20 certified metrics with Thai labels, units, dims, owner, source system), the synonym dictionary that maps Thai wording to metric and dimension ids, and `engine.ts` — `planMetric` / `finishMetric`, everything about a number except reading it |
+| Data | `lib/data/` | Hand-written entity tables, the seeded generator, cached typed arrays, and `facts.ts` — the generator as a warehouse that answers `FactRequest`s |
 | Engine | `lib/engine/` | Deterministic analytics: anomaly detection, hypotheses, Holt-Winters forecasting, the quick-action recommender, memory extraction, the dashboard composer |
 | Server | `lib/server/` | Session, request context, the agent handler and tools, alerts and briefing jobs, handoff, threads, dashboard layouts, usage, audit, the JSON store, the mock script |
 | Presentation | `lib/dashboard/`, `components/` | Widget → Vexa spec, role templates, ambient cards, and the React surfaces |
@@ -64,12 +64,12 @@ Seven anomalies are injected on purpose (`lib/data/anomalies.ts`); the detection
 
 ## `runMetric`, the one door to a number
 
-`lib/data/query.ts` takes a `MetricQuery` and an `AccessContext` and, in order:
+`lib/server/metrics.ts` takes a `MetricQuery` and an `AccessContext`. `planMetric` (steps 1–3) and `finishMetric` (steps 5–6) live in `lib/semantic/engine.ts`; step 4 is the only one that leaves Cop: `ports().metrics.readFacts(FactRequest[])`. A request carries resolved ids already narrowed to the caller's scope and never the `AccessContext`, so a real warehouse behind the port answers aggregates and nothing else; ACL, masking, suppression and the compare window stay in Cop. `lib/data/query.ts` keeps a synchronous `runMetric` over the generator for tests and scripts. In order:
 
 1. resolves the metric definition, rejects unknown metrics and dims that the metric does not carry;
 2. resolves filter values through the dictionary (Thai names → ids);
 3. applies scope: a filter outside the caller's regions or brands is `PERMISSION_DENIED`; an unfiltered question is narrowed to the caller's scope and the narrowing is reported in `provenance.scopeApplied`;
-4. aggregates over the cube by the requested dims and grain, then applies `compare` (`prev_period`, `prev_year`, `target`);
+4. asks the warehouse for the aggregate by the requested dims, plus the comparison window (`prev_period`, `prev_year`) or the plan (`target`), with the prior window's time labels shifted onto the current one (`labelShift`);
 5. masks the value fields when the metric ACL says `masked`, and suppresses rows whose cohort is below `MIN_CELL_SIZE`;
 6. returns rows (≤ 60, pre-formatted labels), a one-sentence Thai summary, and `provenance` (source system, certified flag, as-of date, filters, scope, masked fields, trust).
 

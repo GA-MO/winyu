@@ -4,6 +4,7 @@ import { addDays, TODAY, toDayIndex } from "@/lib/data/dates";
 import { impactOf, type DailyBeer, type EventImpact } from "@/lib/engine/calendar-impact";
 import { formatDateTh } from "@/lib/i18n/format";
 import { TH } from "@/lib/i18n/th";
+import { runMetric } from "@/lib/server/metrics";
 import { ports } from "@/lib/server/ports";
 import { calendarOf } from "@/lib/server/ports/calendar";
 import { currentAccess } from "@/lib/server/request-context";
@@ -15,7 +16,7 @@ const CALENDAR_DAILY_LIMIT = 60;
 
 function beerFor(access: AccessContext): DailyBeer {
   return async (metric, from, to) => {
-    const result = await ports().metrics.runMetric(
+    const result = await runMetric(
       { metric, dims: ["date"], filters: { business_unit: ["beer"] }, range: { from, to }, grain: "day", compare: "none", limit: CALENDAR_DAILY_LIMIT },
       access,
     );

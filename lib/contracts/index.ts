@@ -1,5 +1,6 @@
 export * from "./identity";
 export * from "./semantic";
+export * from "./facts";
 export * from "./actions";
 export * from "./dashboard";
 export * from "./events";

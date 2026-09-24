@@ -103,6 +103,29 @@ export const DAY_OF_YEAR = AXIS.dayOfYear;
 export const MONTH_COUNT = AXIS.monthKeys.length;
 export const WEEK_COUNT = AXIS.weekKeys.length;
 
+/** First day index of every month in the data window. */
+export const MONTH_FIRST_DAY = (() => {
+  const table = new Int32Array(MONTH_COUNT).fill(-1);
+  for (let day = 0; day < DAY_COUNT; day += 1) {
+    const month = MONTH_OF_DAY[day];
+    if (table[month] === -1) table[month] = day;
+  }
+  return table;
+})();
+
+/** Middle day index of every week: the day that decides which month a week belongs to. */
+export const WEEK_MIDDLE_DAY = (() => {
+  const table = new Int32Array(WEEK_COUNT);
+  const counts = new Int32Array(WEEK_COUNT);
+  for (let day = 0; day < DAY_COUNT; day += 1) {
+    const week = WEEK_OF_DAY[day];
+    if (counts[week] === 0) table[week] = day;
+    counts[week] += 1;
+  }
+  for (let week = 0; week < WEEK_COUNT; week += 1) table[week] = Math.min(DAY_COUNT - 1, table[week] + Math.floor(counts[week] / 2));
+  return table;
+})();
+
 export function monthIndexOfKey(key: string): number {
   return AXIS.monthIndex.get(key) ?? -1;
 }

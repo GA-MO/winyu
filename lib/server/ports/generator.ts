@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
-import { describeEntity, listMetrics, runMetric } from "@/lib/data/query";
+import { readGeneratorFacts } from "@/lib/data/facts";
+import { describeEntity, listMetrics } from "@/lib/data/query";
 import { ALCOHOL_BAN_DATES, FESTIVAL_WINDOWS, THAI_HOLIDAYS } from "@/lib/data/entities/calendar";
 import { COURSES } from "@/lib/data/entities/courses";
 import { EMPLOYEES, OPEN_POSITIONS } from "@/lib/data/entities/people";
@@ -20,7 +21,7 @@ import type { Ports } from "./index";
 /** The demo tenant: every port answered from the deterministic generator, mail delivered to the in-app outbox. */
 export const GENERATOR_PORTS: Ports = {
   metrics: {
-    runMetric: async (query, access) => runMetric(query, access),
+    readFacts: async (requests) => requests.map(readGeneratorFacts),
     listMetrics: async (search) => listMetrics(search),
     describeEntity: async (kind, query) => describeEntity(kind, query),
   },

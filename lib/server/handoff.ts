@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import type { AccessContext, ContextPacket, Dim, MetricQuery, MetricRow, Notification, PacketReply, User } from "@/lib/contracts";
+import { runMetric } from "@/lib/server/metrics";
 import { ports } from "@/lib/server/ports";
 import { responsibleFor } from "@/lib/access/raci";
 import { findUser } from "@/lib/data/entities/users";
@@ -42,7 +43,7 @@ function scopeOf(filters: Partial<Record<Dim, string[]>>): string {
 /** Re-runs the sender's queries under the reader's own scope: a packet carries references, never values. */
 export async function resolveEvidence(packet: ContextPacket, access: AccessContext): Promise<EvidenceView[]> {
   return Promise.all(packet.evidence.map(async (query) => {
-    const result = await ports().metrics.runMetric({ ...query, limit: MAX_EVIDENCE_ROWS }, access);
+    const result = await runMetric({ ...query, limit: MAX_EVIDENCE_ROWS }, access);
     const base = { metric: metricLabel(query.metric), scope: scopeOf(query.filters), range: `${formatDateTh(query.range.from)} – ${formatDateTh(query.range.to)}` };
     if (!result.ok) {
       return { ...base, summary: TH.handoff.denied, rows: [], masked: false, denied: true, ownerUserId: responsibleFor(query.metric, null)?.userId ?? null };

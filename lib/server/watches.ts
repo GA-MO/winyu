@@ -4,6 +4,7 @@ import type { AccessContext, MetricQuery, PersonalWatch, WatchCondition } from "
 export { conditionLabel };
 import { liveAccessFor } from "@/lib/access/enforce";
 import { findUser } from "@/lib/data/entities/users";
+import { runMetric } from "@/lib/server/metrics";
 import { ports } from "@/lib/server/ports";
 import { checkWatch, conditionLabel, nextState, rollingQuery, windowDaysOf, type WatchHit } from "@/lib/engine/personal-watches";
 import { formatMetricValue, formatDelta } from "@/lib/dashboard/metric-display";
@@ -34,7 +35,7 @@ export async function createWatch(access: AccessContext, input: { title: string;
   if (mine.length >= MAX_WATCHES_PER_USER) return { ok: false, error: TH.watch.tooMany(MAX_WATCHES_PER_USER) };
   const windowDays = windowDaysOf(input.query);
   const draft = { query: input.query, windowDays, condition: input.condition };
-  const result = await ports().metrics.runMetric(rollingQuery(draft), access);
+  const result = await runMetric(rollingQuery(draft), access);
   if (!result.ok) return { ok: false, error: result.error };
   const check = checkWatch(result, input.condition);
   const watch: PersonalWatch = {
@@ -90,7 +91,7 @@ export async function runWatchJob(at = new Date()): Promise<{ checked: number; f
   for (const watch of watches) {
     const user = findUser(watch.userId);
     if (!user) continue;
-    const check = checkWatch(await ports().metrics.runMetric(rollingQuery(watch), liveAccessFor(user)), watch.condition);
+    const check = checkWatch(await runMetric(rollingQuery(watch), liveAccessFor(user)), watch.condition);
     const next = nextState(watch.state, check.breached);
     personalWatches().put({
       ...watch,

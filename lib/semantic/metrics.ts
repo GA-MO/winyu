@@ -160,6 +160,20 @@ export const METRIC_LIST: readonly MetricDef[] = METRIC_IDS.map((id) => METRICS[
 /** Metrics reported once a month after the month closes (a retail audit): a card shows the last complete month, never a partial one. */
 export const CLOSED_MONTH_METRICS: ReadonlySet<MetricId> = new Set<MetricId>(["market_share"]);
 
+/** Metrics whose value is a ratio (numerator over a weight), so rolling rows up averages by weight instead of summing. */
+export const RATIO_METRICS: ReadonlySet<MetricId> = new Set<MetricId>([
+  "target_attainment", "days_of_cover", "capacity_utilization", "forecast_mape",
+  "campaign_uplift", "share_of_voice", "sentiment_score", "gross_margin", "attrition_rate", "avg_salary", "headcount", "market_share",
+]);
+
+/** Metrics the warehouse keeps by month, so a comparison window is read in whole calendar months. */
+export const MONTHLY_METRICS: ReadonlySet<MetricId> = new Set<MetricId>([
+  "forecast_mape", "gross_margin", "trade_spend", "ar_overdue", "market_share", "headcount", "attrition_rate", "avg_salary",
+]);
+
+/** Metrics with a plan to compare against: sales targets, and production capacity for output. */
+export const TARGET_METRICS: ReadonlySet<MetricId> = new Set<MetricId>(["net_sales_volume", "sell_out_volume", "net_sales_value", "production_output"]);
+
 export function metricDef(id: string): MetricDef | null {
   return (METRICS as Record<string, MetricDef | undefined>)[id] ?? null;
 }
