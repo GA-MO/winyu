@@ -1,0 +1,73 @@
+---
+title: MCP connector
+description: ต่อระบบที่มี MCP server ด้วย config หนึ่งไฟล์ เปิดเฉพาะ tool ที่ประกาศ เรียกในนามผู้ถาม และบังคับขอบเขตทุกครั้ง
+---
+
+## ตัวอย่าง
+
+connector ของระบบอบรมที่ใช้ในเดโม
+
+```ts
+export const lmsConnector = defineMcpConnector({
+  id: "lms",
+  labelTh: "LMS (MCP)",
+  sourceSystemTh: "ระบบอบรมผ่าน MCP",
+  transport: { type: "http", url: env.LMS_MCP_URL },
+  auth: (access) => signedIdentityHeaders(access, env.LMS_SECRET),
+  timeoutMs: 4000,
+  tools: {
+    training_history: {
+      labelTh: "ดูประวัติการอบรม",
+      tier: "read",
+      roles: "all",
+      scope: [
+        { kind: "inject", args: (access) => (access.regions === "all" ? {} : { regions: access.regions.join(",") }) },
+        { kind: "filter", rows: onlyPeopleInView },
+      ],
+      sensitive: [{ field: "score", labelTh: "คะแนนสอบ", full: ["ceo", "hr_manager"], masked: ["sales_director", "sales_rsm"] }],
+    },
+  },
+});
+```
+
+tool นี้ขึ้นบนระบบเป็นชื่อ `lms__training_history` และขึ้นในตารางสิทธิ์ของหน้า admin ทันที
+
+## ค่าใน config
+
+| ค่า | ความหมาย |
+|---|---|
+| `id` | ชื่อ connector ใช้เป็นคำนำหน้าชื่อ tool |
+| `transport` | ที่อยู่ของ MCP server |
+| `auth(access)` | header ที่ส่งไปพร้อมทุกคำขอ สร้างจากตัวตนของผู้ถาม |
+| `timeoutMs` | เวลารอสูงสุด |
+| `tools` | tool ที่เปิดใช้ ประกาศทีละตัว ไม่มีการเปิดทั้งหมด |
+| `tools.*.roles` | บทบาทที่ใช้ได้ admin ปรับต่อได้ในหน้าสิทธิ์ |
+| `tools.*.tier` | `read` หรือระดับที่ต้องขออนุมัติ ถ้าไม่ระบุ Cop ถือว่าเป็นการกระทำที่ต้องอนุมัติก่อน |
+| `tools.*.scope` | บังคับทุก tool ไม่มีค่าเริ่มต้น ถ้าไม่ระบุ ระบบไม่ยอมสร้าง connector |
+| `tools.*.sensitive` | ฟิลด์ที่บางบทบาทเห็นเต็ม บางบทบาทเห็นเป็น `***` |
+| `tools.*.output` | adapter แปลงผลดิบเป็นแถวของ Cop ถ้าไม่ระบุ Cop ย่อผลให้เอง |
+
+## การบังคับขอบเขต
+
+- `{ kind: "none", reason }` สำหรับข้อมูลที่ไม่ผูกกับคนหรือภาค เช่น นโยบายบริษัท ต้องเขียนเหตุผล
+- `{ kind: "inject", args }` Cop เขียนทับ argument ที่ระบุขอบเขตก่อนส่ง ต่อให้ AI ส่ง `regions: "all"` มา ก็ถูกเขียนทับด้วยภาคของผู้ถาม
+- `{ kind: "filter", rows }` Cop กรองแถวหลังได้ผล ถ้าถูกกรองทิ้งทั้งหมด ผู้ใช้ได้คำตอบว่าอยู่นอกขอบเขตสิทธิ์
+
+ใช้ `inject` กับ `filter` คู่กันได้ และควรใช้คู่กันเมื่อระบบต้นทางกรองได้ไม่ละเอียดพอ
+
+## ตัวตนของผู้ถาม
+
+Cop เปิด client แยกต่อผู้ใช้ (อายุ 10 นาที) และส่ง header จาก `auth(access)` ทุกคำขอ ในเดโม header ถูกลงลายเซ็นด้วย HMAC ถ้าลายเซ็นไม่ถูก server ตอบ 401 ในระบบจริงให้ใช้ token แบบ on-behalf-of จาก SSO แทน
+
+## เมื่อระบบต้นทางมีปัญหา
+
+| สถานการณ์ | ผลลัพธ์ |
+|---|---|
+| server ไม่ตอบหรือเกินเวลา | `CONNECTOR_UNAVAILABLE` ผู้ใช้เห็นว่าระบบไม่ตอบในขณะนี้ |
+| server ตอบว่าผิดพลาด | `CONNECTOR_FAILED` ข้อความจาก server ถูกกั้นไว้เป็นข้อมูล |
+| admin ปิด tool หรือปิดบทบาท | `TOOL_NOT_ALLOWED` พร้อม audit `deny` |
+| server มี tool ที่ config ไม่ได้ประกาศ | เรียกไม่ได้ Cop log ไว้ตอนเริ่ม server |
+
+## ความปลอดภัยของคำอธิบาย tool
+
+คำอธิบาย tool ที่ server ส่งมาและผลลัพธ์ทุกชุดถูกกั้นไว้เป็นข้อมูลก่อนถึง AI คำสั่งที่แฝงมาในข้อความของ server จึงไม่ถูกทำตาม

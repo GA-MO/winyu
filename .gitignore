@@ -7,3 +7,7 @@ next-env.d.ts
 .DS_Store
 
 .eval-cards.json
+
+site/dist
+site/.react-router
+site/build

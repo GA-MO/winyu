@@ -13,7 +13,8 @@
     "inspect": "bun scripts/inspect-data.ts",
     "memory:tidy": "bun scripts/tidy-memory.ts",
     "eval:cards": "bun run scripts/eval-cards.ts",
-    "mcp:demo": "bun run scripts/mcp-demo-lms.ts"
+    "mcp:demo": "bun run scripts/mcp-demo-lms.ts",
+    "site:cards": "bun run scripts/site-hero-cards.ts"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^2.0.0",

@@ -1,0 +1,55 @@
+---
+title: REST connector
+description: ต่อระบบที่มี REST API ด้วย config หนึ่งไฟล์ ผ่านขั้นตอนสิทธิ์และ audit เดียวกับ MCP connector
+---
+
+<Callout title="สถานะ: อยู่ในแผน" type="warn">
+ขั้นตอนการเรียก connector ใน Cop เป็นกลางอยู่แล้ว ทั้งการใส่ขอบเขต การกรองแถว การปิดฟิลด์ การกั้นผลลัพธ์ และ audit ส่วนที่ผูกกับ MCP มีเพียงคำสั่งเรียก tool บรรทัดเดียว REST connector คือการเพิ่ม transport ชนิด `rest` ข้างขั้นตอนเดิม
+</Callout>
+
+## วันนี้ต่อ REST ได้อย่างไร
+
+REST ต่อได้แล้ววันนี้ แต่ต้องเขียนโค้ด
+- **ระบบที่ตรงกับ port ที่มีอยู่** (directory, recruiting, learning, leave, sites, calendar, mail): เขียน adapter ของ port นั้นด้วย `fetch` แล้วแปลงผลเป็น record ของ Cop
+- **ระบบใหม่**: เพิ่ม native tool หนึ่งไฟล์ แล้วเรียก REST ข้างใน tool ขึ้นในตารางสิทธิ์ของ admin มี kill switch และ audit เหมือน tool อื่น
+
+## เมื่อมี REST connector
+
+```ts
+defineRestConnector({
+  id: "hris",
+  labelTh: "ระบบ HR",
+  baseUrl: env.HRIS_URL,
+  auth: (access) => ({ Authorization: `Bearer ${tokenFor(access)}` }),
+  timeoutMs: 4000,
+  tools: {
+    leave_balance: {
+      labelTh: "วันลาคงเหลือ",
+      request: { method: "GET", path: "/employees/{employeeId}/leave-balance" },
+      input: z.object({ employeeId: z.string() }),
+      rows: "data.items",
+      roles: "all",
+      scope: [{ kind: "filter", rows: onlyMyTeam }],
+      sensitive: [{ field: "salary", labelTh: "เงินเดือน", full: ["ceo", "hr_manager"] }],
+    },
+  },
+});
+```
+
+ขั้นถัดไปคืออ่าน OpenAPI spec ของระบบเดิมเพื่อสร้าง `request` และ `input` ให้อัตโนมัติ งานที่เหลือต่อระบบคือส่วนนโยบาย ได้แก่ `roles`, `scope` และ `sensitive`
+
+## MCP กับ REST ต่างกันแค่ไหน
+
+| | MCP | REST |
+|---|---|---|
+| รายการ tool และ schema | server ประกาศเอง | ประกาศใน config หรืออ่านจาก OpenAPI |
+| วิธีเรียก | มาตรฐานเดียว | ระบุ method, path และตำแหน่งของแถวในผลลัพธ์ |
+| นโยบายสิทธิ์ | เขียนใน config | เขียนใน config เท่ากัน |
+| กลไกสิทธิ์ audit kill switch | ชุดเดียวกัน | ชุดเดียวกัน |
+
+## เรื่องที่ต้องคุยกับเจ้าของ API
+
+- **ตัวตน**: API รับได้แค่ service account หรือรับ token รายคน (OAuth on-behalf-of) ได้ด้วย ถ้าได้แค่ service account Cop จะกรองสิทธิ์เองทั้งหมด
+- **ตัวกรอง**: API กรองตามภาคหรือแบรนด์ได้ไหม ถ้าได้ Cop ส่งขอบเขตไปกรองที่ต้นทาง ถ้าไม่ได้ Cop กรองหลังได้ผล
+- **ขนาดผลลัพธ์**: มี pagination และ rate limit ไหม Cop ส่งให้ AI ไม่เกิน 60 แถว ถ้าสรุปที่ต้นทางได้จะดีกว่า
+- **ความเร็ว**: ตั้ง timeout ให้ชัด ถ้าระบบไม่ตอบ Cop แจ้งผู้ใช้ว่าระบบนั้นไม่ตอบในขณะนี้

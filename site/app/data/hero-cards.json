@@ -1,0 +1,478 @@
+[
+  {
+    "id": "exec",
+    "who": "คุณธนา วงศ์สกุล · ประธานเจ้าหน้าที่บริหาร",
+    "request": [
+      {
+        "key": "metric",
+        "value": "net_sales_value"
+      },
+      {
+        "key": "by",
+        "value": "channel"
+      }
+    ],
+    "scope": {},
+    "source": "SAP SD",
+    "view": {
+      "kind": "parts",
+      "parts": {
+        "title": "รายได้เดือนที่แล้ว แยกตามช่องทาง",
+        "meta": "1 ส.ค. 2569 – 31 ส.ค. 2569 · 4 ช่องทาง",
+        "description": null,
+        "footnote": "SAP SD · รับรองแล้ว · ณ 22 ก.ย. 2569",
+        "hero": {
+          "label": "มูลค่าขายเข้า",
+          "value": "1,719.0 ล้านบาท",
+          "delta": "+4.2%",
+          "trend": "up",
+          "tone": "good",
+          "detail": "เทียบปีก่อน"
+        },
+        "body": {
+          "kind": "share",
+          "slices": [
+            {
+              "label": "โมเดิร์นเทรด",
+              "valueText": "617.1 ล้านบาท",
+              "share": 0.3589888659330873,
+              "shareText": "35.9%",
+              "isOther": false
+            },
+            {
+              "label": "ร้านค้าปลีกดั้งเดิม",
+              "valueText": "544.2 ล้านบาท",
+              "share": 0.31658525201904253,
+              "shareText": "31.7%",
+              "isOther": false
+            },
+            {
+              "label": "ร้านอาหารและสถานบันเทิง",
+              "valueText": "509.1 ล้านบาท",
+              "share": 0.2961659903442787,
+              "shareText": "29.6%",
+              "isOther": false
+            },
+            {
+              "label": "ส่งออก",
+              "valueText": "48.6 ล้านบาท",
+              "share": 0.02825989170359141,
+              "shareText": "2.8%",
+              "isOther": false
+            }
+          ],
+          "centerValue": "35.9%",
+          "centerLabel": "โมเดิร์นเทรด"
+        },
+        "actions": [
+          {
+            "id": "drill-region",
+            "kind": "drill",
+            "label": "แยกตามภาค",
+            "reason": "ยังไม่ได้ดูแยกรายภาค",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอมูลค่าขายเข้าแยกตามภาค เรียงจากมากไปน้อย"
+          }
+        ],
+        "denied": null
+      }
+    }
+  },
+  {
+    "id": "rsm",
+    "who": "คุณณัฐยา แก้วกล้า · ผู้จัดการขายภาค ภาคเหนือ",
+    "request": [
+      {
+        "key": "metric",
+        "value": "net_sales_volume"
+      },
+      {
+        "key": "by",
+        "value": "week"
+      }
+    ],
+    "scope": {
+      "region": [
+        "north"
+      ]
+    },
+    "source": "SAP SD",
+    "view": {
+      "kind": "parts",
+      "parts": {
+        "title": "ยอดขายเข้ารายสัปดาห์",
+        "meta": "1 ก.ค. 2569 – 22 ก.ย. 2569",
+        "description": null,
+        "footnote": "SAP SD · รับรองแล้ว · ณ 22 ก.ย. 2569 · สัปดาห์ปัจจุบันยังไม่ครบ",
+        "hero": {
+          "label": "ปริมาณขายเข้า (Sell-in)",
+          "value": "11.1 ล้านลิตร",
+          "delta": "+7.8%",
+          "trend": "up",
+          "tone": "good",
+          "detail": "เทียบปีก่อน"
+        },
+        "body": {
+          "kind": "line",
+          "labels": [
+            "สัปดาห์ 27",
+            "สัปดาห์ 28",
+            "สัปดาห์ 29",
+            "สัปดาห์ 30",
+            "สัปดาห์ 31",
+            "สัปดาห์ 32",
+            "สัปดาห์ 33",
+            "สัปดาห์ 34",
+            "สัปดาห์ 35",
+            "สัปดาห์ 36",
+            "สัปดาห์ 37",
+            "สัปดาห์ 38"
+          ],
+          "series": [
+            {
+              "name": "ปริมาณขายเข้า (Sell-in)",
+              "values": [
+                840906,
+                1210504,
+                1167411,
+                1125237,
+                727899,
+                924730,
+                820333,
+                855122,
+                825381,
+                796181,
+                773327,
+                756553
+              ],
+              "style": null
+            },
+            {
+              "name": "เทียบปีก่อน",
+              "values": [
+                935016,
+                900294,
+                992646,
+                966219,
+                851381,
+                885106,
+                792421,
+                822310,
+                781337,
+                749796,
+                727847,
+                709049
+              ],
+              "style": "dashed"
+            }
+          ],
+          "format": "number"
+        },
+        "actions": [
+          {
+            "id": "handoff",
+            "kind": "handoff",
+            "label": "ส่งงานให้คุณกนก",
+            "reason": "เจ้าของตัวเลขยอดขายของพื้นที่ (ระดับประเทศ)",
+            "tool": "create_handoff",
+            "input": {
+              "toUserId": "u_kanok",
+              "title": "ปริมาณขายเข้า (Sell-in)",
+              "ask": "ช่วยตรวจล้านนาเบเวอเรจ · ลีโอ กระป๋อง 490 มล. · ภาคเหนือ แล้วบอกกลับว่าเกิดจากอะไรและจะแก้อย่างไร",
+              "urgency": "high",
+              "evidence": [
+                {
+                  "metric": "net_sales_volume",
+                  "dims": [
+                    "week"
+                  ],
+                  "filters": {},
+                  "range": {
+                    "from": "2026-07-01",
+                    "to": "2026-09-22"
+                  },
+                  "grain": "week",
+                  "compare": "prev_year",
+                  "limit": 20
+                }
+              ],
+              "alertIds": [
+                "al_755bb7962bea28ca"
+              ]
+            },
+            "prompt": null
+          },
+          {
+            "id": "verify",
+            "kind": "verify",
+            "label": "ตรวจสาเหตุ",
+            "reason": "เทียบล้านนาเบเวอเรจ · ลีโอ กระป๋อง 490 มล. · ภาคเหนือกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+            "tool": null,
+            "input": null,
+            "prompt": "เทียบล้านนาเบเวอเรจ · ลีโอ กระป๋อง 490 มล. · ภาคเหนือกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน"
+          },
+          {
+            "id": "drill-region",
+            "kind": "drill",
+            "label": "แยกตามภาค",
+            "reason": "ยังไม่ได้ดูแยกรายภาค",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอปริมาณขายเข้า (Sell-in)แยกตามภาค เรียงจากมากไปน้อย"
+          }
+        ],
+        "denied": null
+      }
+    }
+  },
+  {
+    "id": "rep",
+    "who": "คุณพลอย จันทรา · พนักงานขาย เชียงใหม่",
+    "request": [
+      {
+        "key": "metric",
+        "value": "net_sales_volume"
+      },
+      {
+        "key": "by",
+        "value": "agent"
+      }
+    ],
+    "scope": {
+      "region": [
+        "north"
+      ]
+    },
+    "source": "SAP SD",
+    "view": {
+      "kind": "parts",
+      "parts": {
+        "title": "เอเย่นต์ที่ยอดตกมากที่สุด",
+        "meta": "1 ก.ย. 2569 – 22 ก.ย. 2569 · 5 เอเย่นต์",
+        "description": null,
+        "footnote": "SAP SD · รับรองแล้ว · ณ 22 ก.ย. 2569",
+        "hero": {
+          "label": "ปริมาณขายเข้า (Sell-in)",
+          "value": "2.4 ล้านลิตร",
+          "delta": "-10.2%",
+          "trend": "down",
+          "tone": "bad",
+          "detail": "เทียบช่วงก่อนหน้า"
+        },
+        "body": {
+          "kind": "rank",
+          "rows": [
+            {
+              "label": "พิษณุโลกศรีเจริญ",
+              "value": "406,354 ลิตร",
+              "share": 1,
+              "delta": "-11.4%",
+              "trend": "down",
+              "tone": "bad",
+              "note": null
+            },
+            {
+              "label": "ล้านนาเบเวอเรจ",
+              "value": "429,471 ลิตร",
+              "share": 0.894736842105263,
+              "delta": "-10.2%",
+              "trend": "down",
+              "tone": "bad",
+              "note": null
+            },
+            {
+              "label": "เชียงรายทองคำ",
+              "value": "382,632 ลิตร",
+              "share": 0.8859649122807017,
+              "delta": "-10.1%",
+              "trend": "down",
+              "tone": "bad",
+              "note": null
+            },
+            {
+              "label": "ลำพูนรุ่งทรัพย์",
+              "value": "353,327 ลิตร",
+              "share": 0.8596491228070176,
+              "delta": "-9.8%",
+              "trend": "down",
+              "tone": "bad",
+              "note": null
+            },
+            {
+              "label": "เชียงใหม่สหพาณิชย์",
+              "value": "655,134 ลิตร",
+              "share": 0.8070175438596491,
+              "delta": "-9.2%",
+              "trend": "down",
+              "tone": "bad",
+              "note": null
+            }
+          ],
+          "showRank": true
+        },
+        "actions": [
+          {
+            "id": "verify",
+            "kind": "verify",
+            "label": "ตรวจสาเหตุ",
+            "reason": "เทียบล้านนาเบเวอเรจ · ลีโอ กระป๋อง 490 มล. · ภาคเหนือกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+            "tool": null,
+            "input": null,
+            "prompt": "เทียบล้านนาเบเวอเรจ · ลีโอ กระป๋อง 490 มล. · ภาคเหนือกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน"
+          },
+          {
+            "id": "drill-region",
+            "kind": "drill",
+            "label": "แยกตามภาค",
+            "reason": "ยังไม่ได้ดูแยกรายภาค",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอปริมาณขายเข้า (Sell-in)แยกตามภาค เรียงจากมากไปน้อย"
+          }
+        ],
+        "denied": null
+      }
+    }
+  },
+  {
+    "id": "hr",
+    "who": "คุณเมย์ กิตติศักดิ์ · ผู้จัดการฝ่ายทรัพยากรบุคคล",
+    "request": [
+      {
+        "key": "tool",
+        "value": "find_people"
+      },
+      {
+        "key": "flag",
+        "value": "risk"
+      },
+      {
+        "key": "department",
+        "value": "dept_production"
+      }
+    ],
+    "scope": {},
+    "source": "HRIS",
+    "view": {
+      "kind": "spec",
+      "spec": {
+        "root": "card",
+        "elements": {
+          "p0": {
+            "type": "ListItem",
+            "props": {
+              "title": "คุณแดง ศักดิ์ดี",
+              "subtitle": "หัวหน้ากะ สายการผลิต 2 โรงงานขอนแก่น",
+              "detail": "โรงงานขอนแก่น · 23 ปี 6 เดือน",
+              "src": "/img/people/p40.jpg",
+              "media": "avatar",
+              "badges": [
+                {
+                  "label": "เสี่ยงลาออกสูง",
+                  "tone": "danger"
+                },
+                {
+                  "label": "โอที 96 ชม.",
+                  "tone": "warning"
+                },
+                {
+                  "label": "ใบขับขี่รถยก 8 วัน",
+                  "tone": "warning"
+                }
+              ],
+              "trailing": null,
+              "trailingTone": null
+            },
+            "children": [],
+            "on": {
+              "press": {
+                "action": "runTool",
+                "params": {
+                  "name": "ask",
+                  "input": {
+                    "prompt": "ขอดูโปรไฟล์คุณแดง ศักดิ์ดี"
+                  }
+                }
+              }
+            }
+          },
+          "p1": {
+            "type": "ListItem",
+            "props": {
+              "title": "คุณชัย วงศ์ใหญ่",
+              "subtitle": "เจ้าหน้าที่ความปลอดภัย (จป.) โรงงานขอนแก่น",
+              "detail": "โรงงานขอนแก่น · 12 ปี 2 เดือน",
+              "src": "/img/people/p25.jpg",
+              "media": "avatar",
+              "badges": [
+                {
+                  "label": "ควรคุยเรื่องความก้าวหน้า",
+                  "tone": "warning"
+                }
+              ],
+              "trailing": null,
+              "trailingTone": null
+            },
+            "children": [],
+            "on": {
+              "press": {
+                "action": "runTool",
+                "params": {
+                  "name": "ask",
+                  "input": {
+                    "prompt": "ขอดูโปรไฟล์คุณชัย วงศ์ใหญ่"
+                  }
+                }
+              }
+            }
+          },
+          "grid": {
+            "type": "Grid",
+            "props": {
+              "columns": "2",
+              "gap": "sm"
+            },
+            "children": [
+              "p0",
+              "p1"
+            ]
+          },
+          "open": {
+            "type": "Callout",
+            "props": {
+              "eyebrow": "ตำแหน่งว่าง",
+              "title": "ยังขาดอีก 1 ตำแหน่ง",
+              "body": "พนักงานควบคุมคุณภาพ โรงงานขอนแก่น (เปิดรับมา 21 วัน)",
+              "tone": "warning"
+            },
+            "children": []
+          },
+          "stack": {
+            "type": "Stack",
+            "props": {
+              "direction": "vertical",
+              "gap": "lg"
+            },
+            "children": [
+              "grid",
+              "open"
+            ]
+          },
+          "card": {
+            "type": "Card",
+            "props": {
+              "title": "คนที่ควรคุยด้วยก่อนเสียไป · ฝ่ายผลิต",
+              "description": null,
+              "meta": "พบ 2 คน · ตำแหน่งว่าง 1 ตำแหน่ง",
+              "footnote": "แหล่งข้อมูล: HRIS"
+            },
+            "children": [
+              "stack"
+            ]
+          }
+        }
+      }
+    }
+  }
+]
