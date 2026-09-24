@@ -8,6 +8,7 @@ import { killTool, reviveTool, setConnectorEnabled, setHandoffEnabled } from "@/
 import {
   cycleFieldVisibility,
   cycleMetricVisibility,
+  removeOverride,
   resetOverridesOf,
   resetRoleOverrides,
   setFieldVisibility,
@@ -131,5 +132,12 @@ export async function setConnectorAction(formData: FormData) {
   const connector = connectorIn(formData);
   if (!by || !connector) return;
   setConnectorEnabled(connector, String(formData.get("enabled")) === "true", by);
+  revalidatePath(ADMIN_PATH);
+}
+
+export async function removeOverrideAction(formData: FormData) {
+  const id = String(formData.get("override"));
+  if (!(await adminId()) || !id) return;
+  removeOverride(id);
   revalidatePath(ADMIN_PATH);
 }

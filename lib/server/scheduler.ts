@@ -2,6 +2,7 @@ import { jobRuns } from "./agent/collections";
 import { runEngineJobs } from "./alerts";
 import { runDigestJob } from "./digest";
 import { runWatchJob } from "./watches";
+import { probeConnectors } from "./connectors/reconcile";
 
 const TICK_MS = 5 * 60_000;
 const HOUR_MS = 60 * 60_000;
@@ -52,5 +53,6 @@ export function startScheduler(): void {
   if (scope[STARTED]) return;
   scope[STARTED] = setInterval(() => {
     tick().catch((error: unknown) => console.error("[cop] scheduler tick failed", error));
+    probeConnectors().catch((error: unknown) => console.error("[cop] connector probe failed", error));
   }, TICK_MS);
 }

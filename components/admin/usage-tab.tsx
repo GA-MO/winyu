@@ -5,6 +5,7 @@ import { formatDateTh } from "@/lib/i18n/format";
 import { TH } from "@/lib/i18n/th";
 import { adoptionSummary, percentOf } from "@/lib/server/adoption";
 import { usageSummary, type UsageSummary } from "@/lib/server/usage";
+import { SpendStat } from "./spend-stat";
 import { EmptyLine, Panel, Stat } from "./parts";
 
 const COPY = TH.admin.usage;
@@ -115,14 +116,13 @@ function AlertFate() {
 
 export function UsageTab() {
   const summary = usageSummary();
-  const cost = summary.costUsd > 0 ? `$${summary.costUsd.toFixed(2)}` : COPY.free;
   return (
     <div className="flex flex-col gap-4">
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Stat label={COPY.questions} value={summary.questions.toLocaleString("th-TH")} tone="primary" />
         <Stat label={COPY.tools} value={summary.toolCalls.toLocaleString("th-TH")} />
         <Stat label={COPY.denied} value={summary.denied.toLocaleString("th-TH")} sub={`${COPY.masked} ${summary.masked.toLocaleString("th-TH")} · ${COPY.empty} ${summary.emptyResults.toLocaleString("th-TH")}`} tone={summary.denied > 0 ? "danger" : "neutral"} href="/admin?tab=audit&decision=deny" />
-        <Stat label={COPY.cost} value={cost} sub={summary.costUsd > 0 ? COPY.tokens(summary.inputTokens, summary.outputTokens) : COPY.freeNote} />
+        <SpendStat spend={summary.spend} />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">

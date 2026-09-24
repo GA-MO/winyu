@@ -12,19 +12,23 @@ import { GradientText } from "@/components/ui/gradient-text";
 import { readUser } from "@/lib/server/session";
 import { AccessTab } from "@/components/admin/access-tab";
 import { AuditTab } from "@/components/admin/audit-tab";
+import { AUDIT_RANGES, sinceOf, type AuditRange } from "@/lib/server/usage";
 import { OverviewTab } from "@/components/admin/overview-tab";
 import { SimulateTab } from "@/components/admin/simulate-tab";
 import { ToolsTab } from "@/components/admin/tools-tab";
 import { UsageTab } from "@/components/admin/usage-tab";
 import { Avatar, FOCUS } from "@/components/admin/parts";
 
-type SearchParams = Promise<{ tab?: string; as?: string; metric?: string; user?: string; tool?: string; connector?: string; decision?: string; role?: string; view?: string }>;
+type SearchParams = Promise<{ tab?: string; as?: string; metric?: string; user?: string; tool?: string; connector?: string; decision?: string; range?: string; limit?: string; role?: string; view?: string }>;
 
 const TABS = ["overview", "access", "tools", "audit", "usage", "simulate"] as const;
 const LEGACY_TABS: Record<string, Tab> = { users: "access" };
 const TAB_ICONS: Record<Tab, LucideIcon> = { overview: LayoutDashboard, access: ShieldCheck, tools: Wrench, audit: ScrollText, usage: ChartColumn, simulate: Eye };
 const DECISIONS: readonly AuditEntry["decision"][] = ["allow", "deny", "masked"];
 const DEFAULT_ROLE: RoleId = "sales_rep";
+const DEFAULT_AUDIT_RANGE: AuditRange = "7d";
+const AUDIT_PAGE = 60;
+const MAX_AUDIT_LIMIT = 2000;
 
 type Tab = (typeof TABS)[number];
 
@@ -45,6 +49,15 @@ function roleOf(value: string | undefined): RoleId {
 
 function decisionOf(value: string | undefined): AuditEntry["decision"] | null {
   return DECISIONS.includes(value as AuditEntry["decision"]) ? (value as AuditEntry["decision"]) : null;
+}
+
+function rangeOf(value: string | undefined): AuditRange {
+  return AUDIT_RANGES.includes(value as AuditRange) ? (value as AuditRange) : DEFAULT_AUDIT_RANGE;
+}
+
+function limitOf(value: string | undefined): number {
+  const parsed = Number(value);
+  return Number.isInteger(parsed) && parsed > 0 ? Math.min(parsed, MAX_AUDIT_LIMIT) : AUDIT_PAGE;
 }
 
 function textOf(value: string | undefined): string | null {
@@ -147,7 +160,11 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
             {current === "overview" ? <OverviewTab /> : null}
             {current === "access" ? <AccessTab role={roleOf(params.role)} view={params.view === "matrix" ? "matrix" : "role"} /> : null}
             {current === "tools" ? <ToolsTab /> : null}
-            {current === "audit" ? <AuditTab filter={{ userId: textOf(params.user), tool: textOf(params.tool), connector: textOf(params.connector), decision: decisionOf(params.decision) }} /> : null}
+            {current === "audit" ? <AuditTab
+                filter={{ userId: textOf(params.user), tool: textOf(params.tool), connector: textOf(params.connector), decision: decisionOf(params.decision), since: sinceOf(rangeOf(params.range)) }}
+                range={rangeOf(params.range)}
+                limit={limitOf(params.limit)}
+              /> : null}
             {current === "usage" ? <UsageTab /> : null}
             {current === "simulate" ? <SimulateTab userId={params.as ?? USERS[0].id} metric={metricOf(params.metric)} /> : null}
           </>

@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { cookies } from "next/headers";
 import { handlerFor } from "@/lib/server/agent/handler";
 import { runWithAccess, runWithTurn, type TurnContext } from "@/lib/server/request-context";
@@ -7,13 +8,24 @@ const UNAUTHENTICATED = { error: "กรุณาเข้าสู่ระบ�
 
 export const maxDuration = 60;
 
-type ChatBody = { context?: { threadId?: unknown; preloadPacketId?: unknown } };
+const QUESTION_MAX_CHARS = 300;
+
+type MessagePart = { type?: unknown; text?: unknown };
+type ChatBody = { context?: { threadId?: unknown; preloadPacketId?: unknown }; messages?: { role?: unknown; parts?: MessagePart[] }[] };
+
+function questionOf(body: ChatBody | null): string | null {
+  const lastUser = [...(body?.messages ?? [])].reverse().find((message) => message.role === "user");
+  const text = (lastUser?.parts ?? []).flatMap((part) => (part.type === "text" && typeof part.text === "string" ? [part.text] : [])).join(" ").trim();
+  return text ? text.slice(0, QUESTION_MAX_CHARS) : null;
+}
 
 function turnOf(body: ChatBody | null): TurnContext {
   const context = body?.context ?? {};
   return {
+    turnId: randomUUID(),
     threadId: typeof context.threadId === "string" ? context.threadId : null,
     preloadPacketId: typeof context.preloadPacketId === "string" ? context.preloadPacketId : null,
+    question: questionOf(body),
     queries: [],
   };
 }

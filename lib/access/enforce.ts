@@ -87,6 +87,17 @@ export function setConnectorEnabled(connector: string, enabled: boolean, by: str
   return setSwitch(connectorSwitchId(connector), enabled, by);
 }
 
+export type ToolClosure = "killed" | "handoff" | "connector";
+
+/** Why a tool is off for everyone regardless of role, or null when only role permissions decide. */
+export function closureOf(name: ToolName): ToolClosure | null {
+  if (killedTools().includes(name)) return "killed";
+  if (!handoffEnabled() && HANDOFF_TOOLS.includes(name)) return "handoff";
+  const connector = surfaceEntry(name)?.connector;
+  if (connector && !connectorEnabled(connector)) return "connector";
+  return null;
+}
+
 function closedTools(): Set<string> {
   const closed = new Set<string>(killedTools());
   if (!handoffEnabled()) for (const name of HANDOFF_TOOLS) closed.add(name);

@@ -1,52 +1,76 @@
+import Link from "next/link";
 import { cn } from "vexa/lib/utils";
 import { ROLE_IDS, type RoleId, type ToolSurfaceEntry, type ToolTier } from "@/lib/contracts";
 import { surfaceByConnector } from "@/lib/server/tools/registry";
-import { killedTools } from "@/lib/access/enforce";
+import { closureOf, killedTools } from "@/lib/access/enforce";
 import { permissionsFor } from "@/lib/access/role-overrides";
+import { sinceOf, toolActivity, type ToolActivity } from "@/lib/server/usage";
 import { TH } from "@/lib/i18n/th";
 import { setToolKilledAction } from "@/app/(app)/admin/actions";
 import { ConnectorHeader } from "./connector-parts";
 import { HandoffSwitchRow } from "./overview-tab";
-import { Panel, Pill, SwitchButton, type Tone } from "./parts";
+import { FOCUS, Panel, Pill, SwitchButton, type Tone } from "./parts";
 
 const COPY = TH.admin.toolsTab;
 const TIER_TONE: Record<ToolTier, Tone> = { read: "neutral", write: "primary", destructive: "warning" };
+const NO_ACTIVITY: ToolActivity = { calls: 0, failed: 0 };
+const COLUMN_COUNT = 6;
 
-function ToolCard({ entry, isKilled, roles }: { entry: ToolSurfaceEntry; isKilled: boolean; roles: RoleId[] }) {
+function systemClosure(entry: ToolSurfaceEntry) {
+  const closure = closureOf(entry.name);
+  return closure === "killed" ? null : closure;
+}
+
+function KillControl({ entry, isKilled }: { entry: ToolSurfaceEntry; isKilled: boolean }) {
   return (
-    <section
-      className={cn("flex min-w-0 flex-col gap-3 rounded-3xl border bg-card p-5 shadow-card transition", isKilled ? "border-danger/30" : "border-border")}
-    >
-      <header className="flex items-start gap-3">
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-1.5">
-            <h3 className={cn("text-sm font-semibold", isKilled ? "text-muted-foreground line-through" : "")}>{entry.labelTh}</h3>
-            <Pill tone={TIER_TONE[entry.tier]}>{TH.admin.tier[entry.tier]}</Pill>
-            {entry.tier !== "read" ? <Pill>{COPY.approval}</Pill> : null}
-          </div>
-          <p className="mt-0.5 font-mono text-[11px] text-muted-foreground">{entry.name}</p>
+    <form action={setToolKilledAction} className="flex items-center justify-end gap-2">
+      <input type="hidden" name="tool" value={entry.name} />
+      <input type="hidden" name="killed" value={String(!isKilled)} />
+      <SwitchButton on={!isKilled} label={`${entry.labelTh}: ${isKilled ? COPY.killed : COPY.live}`} />
+    </form>
+  );
+}
+
+function ToolRow({ entry, isKilled, roles, activity }: { entry: ToolSurfaceEntry; isKilled: boolean; roles: RoleId[]; activity: ToolActivity }) {
+  const closure = systemClosure(entry);
+  return (
+    <tr className="border-t border-border align-top">
+      <td className="py-3 pl-4 pr-3">
+        <p className={cn("text-sm font-medium", isKilled || closure ? "text-muted-foreground" : "", isKilled ? "line-through" : "")} title={entry.name}>
+          {entry.labelTh}
+        </p>
+        <p className="mt-0.5 max-w-md text-[12px] leading-relaxed text-muted-foreground">{entry.bodyTh}</p>
+        {closure ? (
+          <p className="mt-1">
+            <Pill tone="danger">{TH.admin.access.closure[closure]}</Pill>
+          </p>
+        ) : null}
+      </td>
+      <td className="px-3 py-3">
+        <div className="flex flex-col items-start gap-1">
+          <Pill tone={TIER_TONE[entry.tier]}>{TH.admin.tier[entry.tier]}</Pill>
+          {entry.tier !== "read" ? <span className="text-[11px] text-muted-foreground">{COPY.approval}</span> : null}
         </div>
-        <form action={setToolKilledAction} className="flex items-center gap-2">
-          <input type="hidden" name="tool" value={entry.name} />
-          <input type="hidden" name="killed" value={String(!isKilled)} />
-          <span className={cn("text-[11px] font-medium", isKilled ? "text-danger" : "text-muted-foreground")}>{isKilled ? COPY.killed : COPY.live}</span>
-          <SwitchButton on={!isKilled} label={`${entry.labelTh}: ${isKilled ? COPY.killed : COPY.live}`} />
-        </form>
-      </header>
-      <p className="text-sm leading-relaxed text-muted-foreground">{entry.bodyTh}</p>
-      <div className="mt-auto flex flex-wrap items-center gap-1.5 border-t border-border pt-3">
-        <span className="mr-1 text-[11px] font-medium text-muted-foreground">{COPY.roles(roles.length, ROLE_IDS.length)}</span>
-        {ROLE_IDS.map((role) => (
-          <span
-            key={role}
-            title={TH.role[role]}
-            className={cn("rounded-full px-2 py-0.5 text-[11px]", roles.includes(role) ? "bg-bubble text-accent-foreground" : "bg-muted text-muted-foreground/60 line-through")}
-          >
-            {TH.roleShort[role]}
-          </span>
-        ))}
-      </div>
-    </section>
+      </td>
+      <td className="px-3 py-3 text-sm tabular-nums">
+        <Link href="/admin?tab=access&view=matrix" title={roles.map((role) => TH.role[role]).join(", ")} className={cn("rounded underline-offset-2 hover:underline", FOCUS)}>
+          {COPY.roles(roles.length, ROLE_IDS.length)}
+        </Link>
+      </td>
+      <td className="px-3 py-3 text-right text-sm tabular-nums">{activity.calls.toLocaleString("th-TH")}</td>
+      <td className={cn("px-3 py-3 text-right text-sm tabular-nums", activity.failed > 0 ? "text-danger" : "text-muted-foreground")}>
+        {activity.failed > 0 ? (
+          <Link href={`/admin?tab=audit&tool=${encodeURIComponent(entry.name)}&decision=deny`} className={cn("rounded underline-offset-2 hover:underline", FOCUS)}>
+            {activity.failed.toLocaleString("th-TH")}
+          </Link>
+        ) : (
+          "0"
+        )}
+      </td>
+      <td className="py-3 pl-3 pr-4">
+        <KillControl entry={entry} isKilled={isKilled} />
+      </td>
+    </tr>
   );
 }
 
@@ -54,29 +78,39 @@ export function ToolsTab() {
   const killed = new Set(killedTools());
   const allowedBy = ROLE_IDS.map((role) => ({ role, tools: new Set(permissionsFor(role).toolAllow) }));
   const rolesOf = (name: ToolSurfaceEntry["name"]) => allowedBy.filter((item) => item.tools.has(name)).map((item) => item.role);
+  const activity = toolActivity(sinceOf("7d"));
   return (
     <div className="flex flex-col gap-4">
       <Panel>
         <HandoffSwitchRow />
       </Panel>
 
-      <div className="flex flex-col gap-1 px-1">
-        <h2 className="text-[15px] font-semibold tracking-tight">{COPY.title}</h2>
-        <p className="text-xs text-muted-foreground">{COPY.hint}</p>
-      </div>
-
-      {surfaceByConnector().map((group) => (
-        <section key={group.connector.id} className="flex flex-col gap-3">
-          <Panel>
-            <ConnectorHeader connector={group.connector} />
-          </Panel>
-          <div className="grid gap-3 md:grid-cols-2">
-            {group.tools.map((entry) => (
-              <ToolCard key={entry.name} entry={entry} isKilled={killed.has(entry.name)} roles={rolesOf(entry.name)} />
-            ))}
-          </div>
-        </section>
-      ))}
+      <Panel title={COPY.title} hint={COPY.hint} bodyClassName="overflow-x-auto pb-2">
+        <table className="w-full min-w-[820px] border-collapse">
+          <thead>
+            <tr className="text-left text-[11px] font-medium text-muted-foreground">
+              <th className="py-2 pl-4 pr-3 font-medium">{COPY.columns.tool}</th>
+              <th className="px-3 py-2 font-medium">{COPY.columns.kind}</th>
+              <th className="px-3 py-2 font-medium">{COPY.columns.roles}</th>
+              <th className="px-3 py-2 text-right font-medium">{COPY.columns.calls}</th>
+              <th className="px-3 py-2 text-right font-medium">{COPY.columns.failed}</th>
+              <th className="py-2 pl-3 pr-4" aria-label={COPY.columns.status} />
+            </tr>
+          </thead>
+          {surfaceByConnector().map((group) => (
+            <tbody key={group.connector.id}>
+              <tr className="border-t border-border bg-muted/50">
+                <td colSpan={COLUMN_COUNT} className="px-4 py-2.5">
+                  <ConnectorHeader connector={group.connector} />
+                </td>
+              </tr>
+              {group.tools.map((entry) => (
+                <ToolRow key={entry.name} entry={entry} isKilled={killed.has(entry.name)} roles={rolesOf(entry.name)} activity={activity.get(entry.name) ?? NO_ACTIVITY} />
+              ))}
+            </tbody>
+          ))}
+        </table>
+      </Panel>
     </div>
   );
 }

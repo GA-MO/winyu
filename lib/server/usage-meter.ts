@@ -1,5 +1,7 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 import type { LanguageModelMiddleware } from "ai";
+import { recordModelCall, type ModelCallSource } from "./model-ledger";
+import { accessOrNull, currentTurn } from "./request-context";
 
 const PER_MILLION = 1_000_000;
 
@@ -48,51 +50,72 @@ function billedCostOf(metadata: ProviderMetadata): number | null {
   return typeof usage?.cost === "number" ? usage.cost : null;
 }
 
-function record(modelId: string, usage: CallUsage, metadata: ProviderMetadata): void {
-  const meter = scope.getStore();
-  if (!meter) return;
+type CallContext = { meter: Metered | undefined; userId: string | null; turnId: string | null };
+
+function contextNow(): CallContext {
+  return { meter: scope.getStore(), userId: accessOrNull()?.userId ?? null, turnId: currentTurn().turnId };
+}
+
+function sourceOf(context: CallContext): ModelCallSource {
+  if (context.meter) return "eval";
+  return context.userId ? "chat" : "background";
+}
+
+function record(modelId: string, usage: CallUsage, metadata: ProviderMetadata, context: CallContext): void {
+  const { meter } = context;
   const input = usage.inputTokens.total ?? 0;
   const output = usage.outputTokens.total ?? 0;
   const rate = rateOf(modelId);
   const billed = billedCostOf(metadata);
+  const estimated = (input * rate.input + output * rate.output) / PER_MILLION;
+  recordModelCall({
+    modelId,
+    source: sourceOf(context),
+    userId: context.userId,
+    turnId: context.turnId,
+    inputTokens: input,
+    cachedTokens: usage.inputTokens.cacheRead ?? 0,
+    outputTokens: output,
+    reasoningTokens: usage.outputTokens.reasoning ?? 0,
+    billedUsd: billed,
+    estimatedUsd: estimated,
+  });
+  if (!meter) return;
   meter.calls += 1;
   meter.inputTokens += input;
   meter.cachedTokens += usage.inputTokens.cacheRead ?? 0;
   meter.outputTokens += output;
   meter.reasoningTokens += usage.outputTokens.reasoning ?? 0;
-  meter.estimatedUsd += (input * rate.input + output * rate.output) / PER_MILLION;
+  meter.estimatedUsd += estimated;
   if (billed === null) return;
   meter.billedUsd += billed;
   meter.billedCalls += 1;
 }
 
-/** Runs `work` and returns what every model call inside it used; calls outside any scope are not counted. */
+/** Runs `work` and returns what every model call inside it used; every call also lands in the model ledger, scope or not. */
 export async function measure<T>(work: () => Promise<T>): Promise<{ result: T; usage: Metered }> {
   const meter = emptyMeter();
   const result = await scope.run(meter, work);
   return { result, usage: meter };
 }
 
-/** Counts each generate and stream call of one model into the current `measure` scope. */
+/** Records each generate and stream call of one model in the ledger (who, which turn, tokens, billed cost) and counts it into the current `measure` scope. */
 export function meterMiddleware(modelId: string): LanguageModelMiddleware {
   return {
     specificationVersion: "v3",
     wrapGenerate: async ({ doGenerate }) => {
+      const context = contextNow();
       const result = await doGenerate();
-      record(modelId, result.usage, result.providerMetadata as ProviderMetadata);
+      record(modelId, result.usage, result.providerMetadata as ProviderMetadata, context);
       return result;
     },
     wrapStream: async ({ doStream }) => {
+      const context = contextNow();
       const { stream, ...rest } = await doStream();
-      const meter = scope.getStore();
       const counted = stream.pipeThrough(
         new TransformStream({
           transform(chunk, controller) {
-            if (chunk.type === "finish") {
-              const recordInScope = () => record(modelId, chunk.usage, chunk.providerMetadata as ProviderMetadata);
-              if (meter) scope.run(meter, recordInScope);
-              else recordInScope();
-            }
+            if (chunk.type === "finish") record(modelId, chunk.usage, chunk.providerMetadata as ProviderMetadata, context);
             controller.enqueue(chunk);
           },
         }),

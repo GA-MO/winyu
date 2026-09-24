@@ -13,6 +13,7 @@ import { displayLabel } from "@/lib/semantic/dictionary";
 import { TH } from "@/lib/i18n/th";
 
 const COURSES_ENDPOINT = "/api/courses";
+const PERMISSION_LABEL_ENDPOINT = "/api/permissions/label";
 const MAX_EVIDENCE_LABELS = 2;
 const URGENCY_BADGE: Record<Urgency, string> = {
   high: "bg-danger/10 text-danger",
@@ -177,12 +178,13 @@ function roleOf(value: string | undefined): RoleId | null {
   return ROLE_IDS.includes(value as RoleId) ? (value as RoleId) : null;
 }
 
-function permissionSubject(input: PermissionInput): string {
+function permissionSubject(input: PermissionInput, label: string | null): string {
   const key = input.key ?? "";
+  if (label) return label;
   return input.kind === "metric" && METRIC_IDS.includes(key as MetricId) ? metricLabel(key as MetricId) : key;
 }
 
-function permissionDecision(input: PermissionInput): Decision {
+function permissionDecision(input: PermissionInput, label: string | null): Decision {
   const role = roleOf(input.role);
   const roleLabel = role ? TH.role[role] : (input.role ?? "");
   const people = role ? USERS.filter((user) => user.role === role).length : 0;
@@ -191,7 +193,7 @@ function permissionDecision(input: PermissionInput): Decision {
     title: TH.approve.permissionDone(roleLabel),
     person: TH.approve.permissionPeople(people),
     subjectLabel: TH.approve.permissionChange,
-    subject: `${permissionSubject(input)} → ${PERMISSION_VALUE_LABEL[input.value ?? ""] ?? input.value ?? ""}`,
+    subject: `${permissionSubject(input, label)} → ${PERMISSION_VALUE_LABEL[input.value ?? ""] ?? input.value ?? ""}`,
     body: null,
     chips: [],
     urgency: null,
@@ -249,7 +251,6 @@ function decisionOf(tool: string, input: unknown): Decision | null {
   if (tool === "pin_widget") return pinDecision(value);
   if (tool === "watch_metric") return watchDecision(value);
   if (tool === "run_job") return jobDecision(value);
-  if (tool === "set_permission") return permissionDecision(value);
   if (tool === "request_leave") return leaveDecision(value);
   return null;
 }
@@ -358,6 +359,27 @@ function useCourse(courseId: string | undefined): CourseSummary | null {
   return course;
 }
 
+function usePermissionLabel(kind: string | undefined, key: string | undefined): string | null {
+  const [label, setLabel] = useState<string | null>(null);
+  useEffect(() => {
+    if (!kind || !key || kind === "metric") return;
+    const controller = new AbortController();
+    const query = new URLSearchParams({ kind, key });
+    fetch(`${PERMISSION_LABEL_ENDPOINT}?${query.toString()}`, { signal: controller.signal })
+      .then((response) => (response.ok ? (response.json() as Promise<{ label: string }>) : null))
+      .then((found) => setLabel(found?.label ?? null))
+      .catch(() => undefined);
+    return () => controller.abort();
+  }, [kind, key]);
+  return label;
+}
+
+function PermissionApproval({ request }: { request: ApprovalRequest }) {
+  const input = (request.input ?? {}) as PermissionInput;
+  const label = usePermissionLabel(input.kind, input.key);
+  return <Approval decision={permissionDecision(input, label)} request={request} />;
+}
+
 function CourseApproval({ request }: { request: ApprovalRequest }) {
   const input = (request.input ?? {}) as EnrollInput;
   const course = useCourse(input.courseId);
@@ -367,6 +389,7 @@ function CourseApproval({ request }: { request: ApprovalRequest }) {
 /** The one decision a CEO has to make, drawn by Cop: who gets the work, what it asks, what approving does. */
 export const renderCopApproval: RenderApproval = (request) => {
   if (request.tool === "enroll_course") return <CourseApproval request={request} />;
+  if (request.tool === "set_permission") return <PermissionApproval request={request} />;
   const decision = decisionOf(request.tool, request.input);
   if (!decision) return null;
   return <Approval decision={decision} request={request} />;

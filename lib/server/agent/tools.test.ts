@@ -86,6 +86,16 @@ describe("query_metric", () => {
   });
 });
 
+describe("list_metrics", () => {
+  test("lists only the metrics the caller's role can see, so HR is not shown the sales catalogue", async () => {
+    type Listed = { data: { id: string }[] };
+    const hr = await call<Listed>("u_may", "list_metrics", { search: null });
+    const ceo = await call<Listed>("u_thana", "list_metrics", { search: null });
+    expect(hr.data.map((row) => row.id).sort()).toEqual(["attrition_rate", "avg_salary", "headcount"]);
+    expect(ceo.data.length).toBeGreaterThan(hr.data.length);
+  });
+});
+
 describe("audit", () => {
   test("one entry per tool call, with the decision", async () => {
     const before = auditLog().all().length;
@@ -186,7 +196,7 @@ describe("set_permission", () => {
       value: "none",
     });
     expect(result.ok).toBe(true);
-    expect(result.data.after).toBe("ไม่เห็น");
+    expect(result.data.after).toBe("None");
     expect(result.data.affectedUsers).toBeGreaterThan(0);
     expect(liveAccessFor(findUser("u_krit")!).metricAcl.net_sales_value).toBe("none");
     resetRoleOverrides();

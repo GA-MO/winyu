@@ -1,16 +1,21 @@
 import { createHash, randomUUID } from "node:crypto";
 import type { AuditEntry } from "@/lib/contracts";
-import { currentAccess } from "@/lib/server/request-context";
+import { currentAccess, currentTurn } from "@/lib/server/request-context";
 import { collection } from "@/lib/server/store/json-store";
 
 export const AUDIT_COLLECTION = "audit";
 
 const HASH_LENGTH = 16;
+const ARGS_MAX_CHARS = 400;
+const ARG_VALUE_MAX_CHARS = 80;
+const REASON_MAX_CHARS = 300;
+const THROWN_CODE = "ERROR";
 const DENIED_CODES = ["PERMISSION_DENIED", "TOOL_NOT_ALLOWED"];
 
 type ToolOutput = {
   ok?: unknown;
   code?: unknown;
+  error?: unknown;
   rows?: unknown;
   data?: unknown;
   provenance?: { masked?: unknown };
@@ -43,8 +48,34 @@ function rowsOf(output: unknown): number {
 
 type Call = { tool: string; connector: string; userId: string; args: unknown; startedAt: number };
 
-function write(call: Call, output: unknown, decision?: AuditEntry["decision"]) {
+function shortened(value: unknown): unknown {
+  if (typeof value === "string") return value.length > ARG_VALUE_MAX_CHARS ? `${value.slice(0, ARG_VALUE_MAX_CHARS)}…` : value;
+  if (Array.isArray(value)) return value.map(shortened);
+  if (value && typeof value === "object") return Object.fromEntries(Object.entries(value).map(([key, inner]) => [key, shortened(inner)]));
+  return value;
+}
+
+/** The arguments as the admin reads them in the audit: long text cut short, the whole capped. */
+export function argsPreview(args: unknown): string {
+  try {
+    return JSON.stringify(shortened(args ?? null)).slice(0, ARGS_MAX_CHARS);
+  } catch {
+    return "";
+  }
+}
+
+type Outcome = { code?: string; reason?: string };
+
+function outcomeOf(output: unknown): Outcome {
+  const result = output as ToolOutput | null;
+  if (!result || typeof result !== "object" || result.ok !== false) return {};
+  return { code: typeof result.code === "string" ? result.code : undefined, reason: typeof result.error === "string" ? result.error.slice(0, REASON_MAX_CHARS) : undefined };
+}
+
+function write(call: Call, output: unknown, thrown?: Outcome) {
   const { tool, connector, userId, args, startedAt } = call;
+  const turn = currentTurn();
+  const outcome = thrown ?? outcomeOf(output);
   auditLog().put({
     id: randomUUID(),
     at: new Date().toISOString(),
@@ -52,9 +83,15 @@ function write(call: Call, output: unknown, decision?: AuditEntry["decision"]) {
     tool,
     connector,
     argsHash: argsHash(args),
-    decision: decision ?? decisionOf(output),
+    decision: thrown ? "deny" : decisionOf(output),
     rowsReturned: rowsOf(output),
     latencyMs: Date.now() - startedAt,
+    ...(outcome.code ? { code: outcome.code } : {}),
+    ...(outcome.reason ? { reason: outcome.reason } : {}),
+    args: argsPreview(args),
+    ...(turn.turnId ? { turnId: turn.turnId } : {}),
+    ...(turn.threadId ? { threadId: turn.threadId } : {}),
+    ...(turn.question ? { question: turn.question } : {}),
   });
 }
 
@@ -67,7 +104,7 @@ export function withAudit<Args, Result>(tool: string, connector: string, execute
       write(call, output);
       return output;
     } catch (error) {
-      write(call, null, "deny");
+      write(call, null, { code: THROWN_CODE, reason: (error instanceof Error ? error.message : String(error)).slice(0, REASON_MAX_CHARS) });
       throw error;
     }
   };

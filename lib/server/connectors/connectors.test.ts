@@ -12,7 +12,8 @@ import { forgetRemoteTools } from "./catalog";
 import { defineMcpConnector, registerConnectors, resetConnectors } from "./index";
 import { MASKED_VALUE } from "./output";
 import { registerClientFactory, resetClientPool } from "./pool";
-import { reconcileConnectors } from "./reconcile";
+import { probeConnectors, reconcileConnectors } from "./reconcile";
+import { connectorHealth } from "./catalog";
 import { STUB_CONNECTOR_ID, STUB_INJECTED_TEXT, stubConnector, stubServer, type StubServer } from "./stub";
 import type { McpConnectorConfig, McpToolConfig } from "./types";
 
@@ -201,7 +202,7 @@ describe("changing a connector's permissions from chat", () => {
   test("set_permission moves a connector field and takes a connector tool away", () => {
     const key = `${STUB_CONNECTOR_ID}.score`;
     const field = applyPermissionChange({ role: "sales_rsm", kind: "field", key, value: "full" }, ADMIN);
-    expect(field.ok && [field.data.label, field.data.before, field.data.after]).toEqual(["คะแนนสอบ", "ซ่อนตัวเลข", "เห็นทั้งหมด"]);
+    expect(field.ok && [field.data.label, field.data.before, field.data.after]).toEqual(["คะแนนสอบ", "Masked", "Full"]);
     expect(fieldVisibilityOf("sales_rsm", key)).toBe("full");
     applyPermissionChange({ role: "sales_rsm", kind: "field", key, value: "masked" }, ADMIN);
     expect(applyPermissionChange({ role: "sales_rsm", kind: "field", key: "stub_lms.salary", value: "full" }, ADMIN).ok).toBe(false);
@@ -210,6 +211,20 @@ describe("changing a connector's permissions from chat", () => {
     expect(toolsFor(accessOf("u_krit"))).not.toContain(HISTORY);
     applyPermissionChange({ role: "sales_rep", kind: "tool", key: HISTORY, value: "allow" }, ADMIN);
     expect(toolsFor(accessOf("u_krit"))).toContain(HISTORY);
+  });
+});
+
+describe("connector health", () => {
+  test("a probe marks a server online, and offline once it stops answering", async () => {
+    const server = fresh();
+    await probeConnectors();
+    expect(connectorHealth(STUB_CONNECTOR_ID)).toBe("online");
+    registerClientFactory(async () => {
+      throw new Error("down");
+    });
+    await probeConnectors();
+    expect(connectorHealth(STUB_CONNECTOR_ID)).toBe("offline");
+    expect(server.calls).toEqual([]);
   });
 });
 

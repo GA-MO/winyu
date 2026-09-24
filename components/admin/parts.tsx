@@ -120,10 +120,10 @@ export function SwitchButton({ on, label, disabled = false }: { on: boolean; lab
       className={cn(
         "relative inline-flex h-6 w-11 shrink-0 items-center rounded-full border transition disabled:cursor-not-allowed disabled:opacity-40",
         FOCUS,
-        on ? "border-transparent bg-success" : "border-border bg-muted",
+        on ? "border-transparent bg-success" : "border-muted-foreground/40 bg-muted",
       )}
     >
-      <span className={cn("inline-block size-5 rounded-full bg-card shadow-card transition", on ? "translate-x-5" : "translate-x-0.5")} />
+      <span className={cn("inline-block size-5 rounded-full shadow-card transition", on ? "translate-x-5 bg-card" : "translate-x-0.5 bg-muted-foreground")} />
     </button>
   );
 }
@@ -147,5 +147,21 @@ export function LinkMore({ href, children }: { href: string; children: React.Rea
       {children}
       <ArrowUpRight className="size-3.5" aria-hidden />
     </Link>
+  );
+}
+
+/** A switch that acts on the whole company, drawn as a labelled button so it never reads as one row's toggle. */
+export function SystemToggle({ on, onLabel, offLabel }: { on: boolean; onLabel: string; offLabel: string }) {
+  return (
+    <button
+      type="submit"
+      className={cn(
+        "inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full border px-3 text-xs font-medium transition",
+        FOCUS,
+        on ? "border-danger/40 text-danger hover:bg-danger/10" : "border-transparent bg-primary text-primary-foreground hover:opacity-90",
+      )}
+    >
+      {on ? onLabel : offLabel}
+    </button>
   );
 }

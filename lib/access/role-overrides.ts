@@ -111,6 +111,18 @@ export function toggleRoleTool(role: RoleId, tool: ToolName, by: string): boolea
   return setRoleTool(role, tool, next, by) ? next : !next;
 }
 
+/** The value a role had before this override: the code policy for a metric, the tool's declared roles, the connector's default for a field. */
+export function defaultOf(entry: RoleOverride): Visibility | boolean {
+  if (entry.kind === "metric") return ROLE_POLICIES[entry.role].metricAcl[entry.key];
+  if (entry.kind === "field") return defaultFieldVisibility(entry.role, entry.key);
+  return defaultToolAllowed(entry.role, entry.key);
+}
+
+/** Drops one override so the role is back on the default for that metric, tool or field. */
+export function removeOverride(id: string): boolean {
+  return store().remove(id);
+}
+
 export function resetOverridesOf(role: RoleId): number {
   const mine = store().where((entry) => entry.role === role);
   for (const entry of mine) store().remove(entry.id);

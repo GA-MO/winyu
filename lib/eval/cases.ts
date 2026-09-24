@@ -6,7 +6,8 @@ export type EvalCase = {
   prompt: string;
   expectSort?: "delta_asc" | "delta_desc" | "value_desc" | "value_asc";
   expectComponent?: "DataCard" | "AlertsCard";
-  expectApproval?: "watch_metric" | "create_handoff" | "pin_widget";
+  expectApproval?: "watch_metric" | "create_handoff" | "pin_widget" | "set_permission";
+  expectPermission?: { role: string; kind: "metric" | "tool" | "field"; key: string; value: string };
   expectCompare?: { compare: "prev_period" | "prev_year"; range?: { from: string; to: string } };
   expectShape?: CardBody["kind"];
   expectPeople?: "find_people" | "get_person" | "get_site" | "list_candidates" | "list_courses" | "get_policy";
@@ -59,6 +60,9 @@ export const EVAL_CASES: EvalCase[] = [
   { id: "candidates-manager", userId: "u_anucha", prompt: "ตำแหน่งที่ผมเปิดรับมีผู้สมัครกี่คน ใครน่าสนใจ", expectPeople: "list_candidates", forbidCarousel: true },
   { scripted: true, id: "courses-month", userId: "u_may", prompt: "มีหลักสูตรอะไรเปิดเดือนนี้", expectPeople: "list_courses", expectPress: "enroll_course" },
   { id: "courses-rep", userId: "u_krit", prompt: "มีอบรมอะไรที่ผมควรไปบ้าง", expectPeople: "list_courses", expectPress: "enroll_course" },
+  { id: "admin-metric", userId: "u_ton", prompt: "ให้พนักงานขายไม่เห็นมูลค่าขายเข้า", expectApproval: "set_permission", expectPermission: { role: "sales_rep", kind: "metric", key: "net_sales_value", value: "none" } },
+  { id: "admin-tool", userId: "u_ton", prompt: "ปิดเครื่องมือดูประวัติการอบรมจากระบบอบรม MCP ของพนักงานขาย", expectApproval: "set_permission", expectPermission: { role: "sales_rep", kind: "tool", key: "lms_demo__training_history", value: "deny" } },
+  { id: "admin-field", userId: "u_ton", prompt: "ให้ผู้จัดการขายภาคเห็นคะแนนสอบของหลักสูตรเต็มๆ ไม่ต้องซ่อน", expectApproval: "set_permission", expectPermission: { role: "sales_rsm", kind: "field", key: "lms_demo.score", value: "full" } },
   { scripted: true, id: "policy-leave", userId: "u_krit", prompt: "ลาพักร้อนยังไง", expectPeople: "get_policy" },
   { id: "people-rep-scope", userId: "u_krit", prompt: "ทีมขายภาคอีสานมีใครบ้าง", expectPeople: "find_people" },
 ];

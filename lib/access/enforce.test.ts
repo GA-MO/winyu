@@ -3,7 +3,7 @@ import { ROLE_IDS, toolRolesInclude, type RoleId } from "@/lib/contracts";
 import { toolSurface } from "@/lib/server/tools/registry";
 import { findUser } from "@/lib/data/entities/users";
 import { accessFor } from "./policies";
-import { killTool, outOfScopeFilters, reviveTool, scopePredicates, toolsFor, assertToolAllowed, ToolNotAllowedError } from "./enforce";
+import { closureOf, connectorEnabled, handoffEnabled, setConnectorEnabled, setHandoffEnabled, killTool, outOfScopeFilters, reviveTool, scopePredicates, toolsFor, assertToolAllowed, ToolNotAllowedError } from "./enforce";
 
 function accessOf(role: RoleId) {
   const user = findUser({
@@ -78,4 +78,23 @@ describe("scopePredicates", () => {
 
 afterEach(() => {
   reviveTool("get_alerts");
+});
+
+describe("closureOf", () => {
+  test("names the switch that closes a tool for everyone, and nothing when only roles decide", () => {
+    const handoffWas = handoffEnabled();
+    const lmsWas = connectorEnabled("lms");
+    setHandoffEnabled(true, "u_ton");
+    setConnectorEnabled("lms", true, "u_ton");
+    expect(closureOf("get_alerts")).toBeNull();
+    killTool("get_alerts", "u_ton");
+    expect(closureOf("get_alerts")).toBe("killed");
+    setHandoffEnabled(false, "u_ton");
+    expect(closureOf("send_email")).toBe("handoff");
+    setConnectorEnabled("lms", false, "u_ton");
+    expect(closureOf("list_courses")).toBe("connector");
+    expect(closureOf("find_people")).toBeNull();
+    setHandoffEnabled(handoffWas, "u_ton");
+    setConnectorEnabled("lms", lmsWas, "u_ton");
+  });
 });

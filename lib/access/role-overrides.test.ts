@@ -2,7 +2,7 @@ import { afterEach, describe, expect, test } from "bun:test";
 import { findUser } from "@/lib/data/entities/users";
 import { runMetric } from "@/lib/data/query";
 import { liveAccessFor, toolsFor } from "./enforce";
-import { cycleMetricVisibility, overrideFor, permissionsFor, resetRoleOverrides, roleOverrides, toggleRoleTool } from "./role-overrides";
+import { cycleMetricVisibility, defaultOf, overrideFor, removeOverride, setRoleTool, permissionsFor, resetRoleOverrides, roleOverrides, toggleRoleTool } from "./role-overrides";
 
 const ADMIN = "u_ton";
 const RANGE = { from: "2026-09-01", to: "2026-09-22" };
@@ -42,5 +42,16 @@ describe("role overrides", () => {
     expect(toolsFor(live("u_krit"))).not.toContain("run_job");
     expect(toggleRoleTool("it_admin", "run_job", ADMIN)).toBe(false);
     expect(toolsFor(live(ADMIN))).not.toContain("run_job");
+  });
+});
+
+describe("defaultOf and removeOverride", () => {
+  test("an override knows the value it replaced, and removing it puts the role back on that value", () => {
+    setRoleTool("sales_rep", "list_courses", false, ADMIN);
+    const entry = overrideFor("sales_rep", "tool", "list_courses");
+    if (!entry) throw new Error("override was not written");
+    expect(defaultOf(entry)).toBe(true);
+    expect(removeOverride(entry.id)).toBe(true);
+    expect(permissionsFor("sales_rep").toolAllow).toContain("list_courses");
   });
 });

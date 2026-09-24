@@ -4,14 +4,12 @@ import { actionEvents, packets } from "@/lib/server/agent/collections";
 import { threads } from "@/lib/server/threads-read";
 import { turnsOf } from "@/lib/server/threads";
 import { models } from "@/lib/server/models";
-import { rateOf } from "@/lib/server/usage-meter";
+import { modelSpend, type ModelSpend } from "@/lib/server/model-ledger";
 import { surfaceEntry } from "@/lib/server/tools/registry";
 
 const DAYS = 14;
 const TOP_INTENTS = 8;
 const UNANSWERED_LIMIT = 8;
-const CHARS_PER_TOKEN = 3;
-const PER_MILLION = 1_000_000;
 
 export type UsagePoint = { day: string; count: number };
 export type IntentCount = { intentKey: string; count: number };
@@ -31,6 +29,7 @@ export type UsageSummary = {
   inputTokens: number;
   outputTokens: number;
   costUsd: number;
+  spend: ModelSpend;
 };
 
 function dayOf(iso: string): string {
@@ -48,12 +47,12 @@ function lastDays(count: number): string[] {
   return days;
 }
 
-function tokensOf(text: string): number {
-  return Math.ceil(text.length / CHARS_PER_TOKEN);
-}
-
 function defaultModelId(): string {
   return Object.keys(models())[0] ?? "";
+}
+
+function sinceDaysAgo(days: number): string {
+  return `${lastDays(days)[0]}T00:00:00.000Z`;
 }
 
 function countsPerDay(stamps: string[]): UsagePoint[] {
@@ -84,19 +83,15 @@ export function usageSummary(): UsageSummary {
   const events = actionEvents().all();
   const questions = events.filter((event) => event.kind === "question" || event.kind === "quick_action");
   const unanswered: UnansweredQuestion[] = [];
-  let inputTokens = 0;
-  let outputTokens = 0;
 
   for (const thread of threads().all()) {
     for (const turn of turnsOf(thread.messages)) {
-      inputTokens += tokensOf(turn.prompt);
-      outputTokens += tokensOf(turn.answer);
       if (turn.metric === null) unanswered.push({ prompt: turn.prompt, at: thread.updatedAt, userId: thread.userId });
     }
   }
 
   const modelId = defaultModelId();
-  const rate = rateOf(modelId);
+  const spend = modelSpend(sinceDaysAgo(DAYS));
   return {
     modelId,
     questions: questions.length,
@@ -108,13 +103,27 @@ export function usageSummary(): UsageSummary {
     masked: decisionCount(entries, "masked"),
     emptyResults: entries.filter((entry) => entry.decision === "allow" && entry.rowsReturned === 0).length,
     packets: packets().all().length,
-    inputTokens,
-    outputTokens,
-    costUsd: (inputTokens * rate.input + outputTokens * rate.output) / PER_MILLION,
+    inputTokens: spend.inputTokens,
+    outputTokens: spend.outputTokens,
+    costUsd: spend.totalUsd,
+    spend,
   };
 }
 
-export type AuditFilter = { userId: string | null; tool: string | null; connector: string | null; decision: AuditEntry["decision"] | null };
+export type AuditFilter = { userId: string | null; tool: string | null; connector: string | null; decision: AuditEntry["decision"] | null; since: string | null };
+
+export const AUDIT_RANGES = ["today", "7d", "30d", "all"] as const;
+export type AuditRange = (typeof AUDIT_RANGES)[number];
+const RANGE_DAYS: Record<AuditRange, number | null> = { today: 0, "7d": 7, "30d": 30, all: null };
+
+/** The first instant an audit range covers, in UTC ISO; null for all time. */
+export function sinceOf(range: AuditRange, now = Date.now()): string | null {
+  const days = RANGE_DAYS[range];
+  if (days === null) return null;
+  const start = new Date(now);
+  start.setUTCHours(0, 0, 0, 0);
+  return new Date(start.getTime() - days * 24 * 60 * 60_000).toISOString();
+}
 
 /** The connector an audit row went through; rows written before connectors were recorded fall back to the tool's connector today. */
 export function auditConnector(entry: AuditEntry): string | null {
@@ -125,6 +134,7 @@ export function auditConnector(entry: AuditEntry): string | null {
 export function inAuditScope(entry: AuditEntry, filter: AuditFilter): boolean {
   if (filter.userId && entry.userId !== filter.userId) return false;
   if (filter.tool && entry.tool !== filter.tool) return false;
+  if (filter.since && entry.at < filter.since) return false;
   return !filter.connector || auditConnector(entry) === filter.connector;
 }
 
@@ -136,4 +146,19 @@ export function auditEntries(filter: AuditFilter, limit: number): AuditEntry[] {
     .filter((entry) => !filter.decision || entry.decision === filter.decision)
     .sort((left, right) => right.at.localeCompare(left.at))
     .slice(0, limit);
+}
+
+export type ToolActivity = { calls: number; failed: number };
+
+/** How often each tool was called since a moment, and how many of those calls were refused or failed. */
+export function toolActivity(since: string | null): Map<string, ToolActivity> {
+  const table = new Map<string, ToolActivity>();
+  for (const entry of auditLog().all()) {
+    if (since && entry.at < since) continue;
+    const row = table.get(entry.tool) ?? { calls: 0, failed: 0 };
+    row.calls += 1;
+    if (entry.decision === "deny" || entry.code) row.failed += 1;
+    table.set(entry.tool, row);
+  }
+  return table;
 }

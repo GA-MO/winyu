@@ -11,7 +11,7 @@ type NativeToolSpec<Name extends NativeToolName, Input extends z.ZodType> = {
   connector: NativeConnectorId;
   tier: ToolTier;
   roles: readonly RoleId[] | "all";
-  description: string;
+  description: string | (() => string);
   input: Input;
   execute: (input: z.infer<Input>) => Promise<unknown>;
 };
@@ -20,8 +20,11 @@ type NativeToolSpec<Name extends NativeToolName, Input extends z.ZodType> = {
 export function defineTool<Name extends NativeToolName, Input extends z.ZodType>(spec: NativeToolSpec<Name, Input>): CopTool<Name> {
   const copy = TH.admin.tools[spec.name];
   const entry = { name: spec.name, connector: spec.connector, tier: spec.tier, roles: spec.roles, labelTh: copy.label, bodyTh: copy.body };
+  const describe = spec.description;
   const executable = tool({
-    description: spec.description,
+    get description() {
+      return typeof describe === "string" ? describe : describe();
+    },
     inputSchema: spec.input,
     ...(spec.tier === "read" ? {} : { needsApproval: true }),
     execute: withAudit(spec.name, spec.connector, spec.execute),

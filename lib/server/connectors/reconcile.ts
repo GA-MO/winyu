@@ -52,3 +52,18 @@ export async function reconcileConnectors(): Promise<ConnectorDrift[]> {
   }
   return drifts;
 }
+
+async function probe(connector: McpConnector): Promise<void> {
+  try {
+    const client = await clientFor(connector.config, null);
+    learnRemoteTools(connector.def.id, await client.listTools());
+  } catch {
+    dropClient(connector.config, null);
+    markReachable(connector.def.id, false);
+  }
+}
+
+/** Asks every connector for its tool list so the admin's status pill follows a server that stopped or came back. */
+export async function probeConnectors(): Promise<void> {
+  await Promise.all(mcpConnectors().map(probe));
+}

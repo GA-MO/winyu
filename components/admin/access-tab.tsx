@@ -1,17 +1,17 @@
 import Link from "next/link";
-import { Lock, RotateCcw } from "lucide-react";
+import { ChevronDown, Lock, RotateCcw } from "lucide-react";
 import { cn } from "vexa/lib/utils";
-import { METRIC_IDS, ROLE_IDS, type RoleId, type ToolName, type ToolSurfaceEntry } from "@/lib/contracts";
-import { connectorFields, connectorLabel, surfaceByConnector, toolSurface } from "@/lib/server/tools/registry";
+import { METRIC_IDS, ROLE_IDS, type MetricId, type RoleId, type ToolName, type ToolSurfaceEntry } from "@/lib/contracts";
+import { METRIC_READING_TOOLS, connectorFields, connectorLabel, surfaceByConnector, toolSurface } from "@/lib/server/tools/registry";
 import { METRIC_DOMAINS, ROLE_POLICIES } from "@/lib/access/policies";
-import { killedTools } from "@/lib/access/enforce";
+import { closureOf, type ToolClosure } from "@/lib/access/enforce";
 import { fieldVisibilityOf, isGrantable, overrideFor, permissionsFor, roleOverrides, type RoleOverride, type Visibility } from "@/lib/access/role-overrides";
 import { USERS, findUser } from "@/lib/data/entities/users";
 import { metricDef } from "@/lib/semantic/metrics";
 import { metricLabel } from "@/lib/dashboard/metric-display";
 import { TH } from "@/lib/i18n/th";
 import { cycleFieldAction, cycleMetricAction, resetAllAction, resetRoleAction, setFieldAction, setMetricAction, setRoleToolAction } from "@/app/(app)/admin/actions";
-import { ConnectorHeader } from "./connector-parts";
+import { ConnectorTitle } from "./connector-parts";
 import { Avatar, FOCUS, GHOST, Panel, Pill, SwitchButton, stamp } from "./parts";
 
 const COPY = TH.admin.access;
@@ -145,8 +145,58 @@ function LevelControl({ role, subject, value }: { role: RoleId; subject: Subject
   );
 }
 
-function MetricList({ role }: { role: RoleId }) {
+type DomainView = (typeof METRIC_DOMAINS)[number] & { hidden: boolean };
+
+function visibleFirst(role: RoleId): DomainView[] {
+  const acl = permissionsFor(role).metricAcl;
+  const domains = METRIC_DOMAINS.map((domain) => ({ ...domain, hidden: domain.metrics.every((metric) => acl[metric] === "none") }));
+  return [...domains.filter((domain) => !domain.hidden), ...domains.filter((domain) => domain.hidden)];
+}
+
+function MetricRows({ role, metrics }: { role: RoleId; metrics: readonly MetricId[] }) {
   const permissions = permissionsFor(role);
+  return (
+    <ul className="flex flex-col divide-y divide-border rounded-2xl border border-border">
+      {metrics.map((metric) => {
+        const override = overrideFor(role, "metric", metric);
+        const def = metricDef(metric);
+        return (
+          <li key={metric} className="flex items-center gap-3 px-3.5 py-2.5">
+            <div className="min-w-0 flex-1">
+              <p className="flex items-center gap-2 truncate text-sm">
+                {metricLabel(metric)}
+                {override ? (
+                  <Pill tone="primary" title={changedTitle(override)}>
+                    {COPY.changed}
+                  </Pill>
+                ) : null}
+              </p>
+              {def ? <p className="truncate text-[11px] text-muted-foreground">{def.sourceSystem}</p> : null}
+              {COPY.metricNotes[metric] ? <p className="text-[11px] text-warning">{COPY.metricNotes[metric]}</p> : null}
+            </div>
+            <LevelControl role={role} subject={{ name: "metric", key: metric }} value={permissions.metricAcl[metric]} />
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+function HiddenDomain({ role, domain }: { role: RoleId; domain: DomainView }) {
+  return (
+    <details className="group rounded-2xl border border-dashed border-border">
+      <summary className={cn("flex cursor-pointer list-none items-center justify-between gap-3 px-3.5 py-2.5 text-[12px] text-muted-foreground", FOCUS)}>
+        {COPY.domainHidden(TH.admin.domain[domain.id], domain.metrics.length)}
+        <ChevronDown className="size-3.5 transition group-open:rotate-180" aria-hidden />
+      </summary>
+      <div className="px-2 pb-2">
+        <MetricRows role={role} metrics={domain.metrics} />
+      </div>
+    </details>
+  );
+}
+
+function MetricList({ role }: { role: RoleId }) {
   return (
     <Panel title={COPY.metrics} hint={COPY.metricsHint} className="lg:col-span-3" bodyClassName="flex flex-col gap-5">
       <dl className="grid gap-2 rounded-2xl bg-muted/60 p-3.5 sm:grid-cols-3" aria-label={COPY.legend}>
@@ -162,33 +212,16 @@ function MetricList({ role }: { role: RoleId }) {
           </div>
         ))}
       </dl>
-      {METRIC_DOMAINS.map((domain) => (
-        <div key={domain.id} className="flex flex-col">
-          <p className="pb-1.5 text-[11px] font-semibold tracking-wide text-muted-foreground">{TH.admin.domain[domain.id]}</p>
-          <ul className="flex flex-col divide-y divide-border rounded-2xl border border-border">
-            {domain.metrics.map((metric) => {
-              const override = overrideFor(role, "metric", metric);
-              const def = metricDef(metric);
-              return (
-                <li key={metric} className="flex items-center gap-3 px-3.5 py-2.5">
-                  <div className="min-w-0 flex-1">
-                    <p className="flex items-center gap-2 truncate text-sm">
-                      {metricLabel(metric)}
-                      {override ? (
-                        <Pill tone="primary" title={changedTitle(override)}>
-                          {COPY.changed}
-                        </Pill>
-                      ) : null}
-                    </p>
-                    {def ? <p className="truncate text-[11px] text-muted-foreground">{def.sourceSystem}</p> : null}
-                  </div>
-                  <LevelControl role={role} subject={{ name: "metric", key: metric }} value={permissions.metricAcl[metric]} />
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      ))}
+      {visibleFirst(role).map((domain) =>
+        domain.hidden ? (
+          <HiddenDomain key={domain.id} role={role} domain={domain} />
+        ) : (
+          <div key={domain.id} className="flex flex-col">
+            <p className="pb-1.5 text-[11px] font-semibold tracking-wide text-muted-foreground">{TH.admin.domain[domain.id]}</p>
+            <MetricRows role={role} metrics={domain.metrics} />
+          </div>
+        ),
+      )}
       <FieldList role={role} />
     </Panel>
   );
@@ -225,52 +258,84 @@ function FieldList({ role }: { role: RoleId }) {
   );
 }
 
-function ToolRow({ role, entry, on, killed }: { role: RoleId; entry: ToolSurfaceEntry; on: boolean; killed: boolean }) {
-  const locked = !on && !isGrantable(role, entry.name);
-  const override = overrideFor(role, "tool", entry.name);
+const METRICS_NAMED = 3;
+
+type MetricReach = { seen: MetricId[] } | null;
+
+function metricReachOf(role: RoleId, tool: ToolName): MetricReach {
+  if (!METRIC_READING_TOOLS.includes(tool)) return null;
+  const acl = permissionsFor(role).metricAcl;
+  return { seen: METRIC_IDS.filter((id) => acl[id] !== "none") };
+}
+
+function ToolNote({ closure, reach }: { closure: ToolClosure | null; reach: MetricReach }) {
+  if (closure) {
+    return (
+      <Link href="/admin?tab=tools" className={cn("mt-0.5 inline-flex rounded-full", FOCUS)}>
+        <Pill tone="danger">{`${COPY.closure[closure]} · ${COPY.closureFix}`}</Pill>
+      </Link>
+    );
+  }
+  if (!reach) return null;
+  if (reach.seen.length === 0) return <p className="text-[11px] text-warning">{COPY.readsNothing}</p>;
+  const named = reach.seen.slice(0, METRICS_NAMED).map((id) => metricLabel(id));
+  return <p className="text-[11px] text-muted-foreground">{COPY.readsMetrics(named, reach.seen.length - named.length)}</p>;
+}
+
+function ToolControl({ role, entry, on, closure }: { role: RoleId; entry: ToolSurfaceEntry; on: boolean; closure: ToolClosure | null }) {
+  if (closure) return null;
+  if (!on && !isGrantable(role, entry.name)) {
+    return (
+      <span title={TH.admin.overrides.notGrantable} className="inline-flex size-6 items-center justify-center text-muted-foreground">
+        <Lock className="size-3.5" aria-hidden />
+      </span>
+    );
+  }
   return (
-    <li className="flex items-center gap-3 py-2.5">
+    <form action={setRoleToolAction}>
+      <input type="hidden" name="role" value={role} />
+      <input type="hidden" name="tool" value={entry.name} />
+      <input type="hidden" name="allowed" value={String(!on)} />
+      <SwitchButton on={on} label={`${entry.labelTh}: ${on ? TH.admin.permission.allow : TH.admin.permission.deny}`} />
+    </form>
+  );
+}
+
+function ToolRow({ role, entry, on }: { role: RoleId; entry: ToolSurfaceEntry; on: boolean }) {
+  const override = overrideFor(role, "tool", entry.name);
+  const closure = closureOf(entry.name);
+  const reach = on ? metricReachOf(role, entry.name) : null;
+  const idle = closure !== null || reach?.seen.length === 0;
+  return (
+    <li className="flex items-center gap-3 py-2.5" title={entry.name}>
       <div className="min-w-0 flex-1">
-        <p className="flex flex-wrap items-center gap-1.5 text-sm">
+        <p className={cn("flex flex-wrap items-center gap-1.5 text-sm", idle ? "text-muted-foreground" : "")}>
           {entry.labelTh}
           {override ? (
             <Pill tone="primary" title={changedTitle(override)}>
               {COPY.changed}
             </Pill>
           ) : null}
-          {killed ? <Pill tone="danger">{COPY.killedEverywhere}</Pill> : null}
         </p>
-        <p className="truncate font-mono text-[11px] text-muted-foreground">{entry.name}</p>
+        <ToolNote closure={closure} reach={reach} />
       </div>
-      {locked ? (
-        <span title={TH.admin.overrides.notGrantable} className="inline-flex size-6 items-center justify-center text-muted-foreground">
-          <Lock className="size-3.5" aria-hidden />
-        </span>
-      ) : (
-        <form action={setRoleToolAction}>
-          <input type="hidden" name="role" value={role} />
-          <input type="hidden" name="tool" value={entry.name} />
-          <input type="hidden" name="allowed" value={String(!on)} />
-          <SwitchButton on={on} label={`${entry.labelTh}: ${on ? TH.admin.permission.allow : TH.admin.permission.deny}`} />
-        </form>
-      )}
+      <ToolControl role={role} entry={entry} on={on} closure={closure} />
     </li>
   );
 }
 
 function ToolList({ role }: { role: RoleId }) {
   const allowed = new Set(permissionsFor(role).toolAllow);
-  const killed = new Set(killedTools());
   return (
     <Panel title={COPY.toolsTitle} hint={COPY.toolsHint} className="lg:col-span-2" bodyClassName="flex flex-col gap-5">
       {surfaceByConnector().map((group) => (
         <div key={group.connector.id} className="flex flex-col">
           <div className="border-b border-border pb-2">
-            <ConnectorHeader connector={group.connector} compact />
+            <ConnectorTitle connector={group.connector} />
           </div>
           <ul className="flex flex-col divide-y divide-border">
             {group.tools.map((entry) => (
-              <ToolRow key={entry.name} role={role} entry={entry} on={allowed.has(entry.name)} killed={killed.has(entry.name)} />
+              <ToolRow key={entry.name} role={role} entry={entry} on={allowed.has(entry.name)} />
             ))}
           </ul>
         </div>
@@ -300,6 +365,14 @@ function MatrixCell({ role, subject, value }: { role: RoleId; subject: Subject; 
 
 function ToolMatrixCell({ role, tool, on }: { role: RoleId; tool: ToolName; on: boolean }) {
   const override = overrideFor(role, "tool", tool);
+  const closure = closureOf(tool);
+  if (closure) {
+    return (
+      <span title={`${COPY.closure[closure]} · ${COPY.closureFix}`} className="inline-flex size-7 items-center justify-center text-sm text-danger/60">
+        ×
+      </span>
+    );
+  }
   if (!on && !isGrantable(role, tool)) {
     return (
       <span title={TH.admin.overrides.notGrantable} className="inline-flex size-7 items-center justify-center text-muted-foreground/50">
@@ -410,7 +483,7 @@ function Matrix() {
             <tr className="border-t border-border bg-muted/40">
               <td colSpan={ROLE_IDS.length + 1} className="px-3 py-2">
                 <div className="sticky left-3 max-w-md">
-                  <ConnectorHeader connector={group.connector} compact />
+                  <ConnectorTitle connector={group.connector} />
                 </div>
               </td>
             </tr>

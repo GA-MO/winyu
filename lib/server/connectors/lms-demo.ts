@@ -23,7 +23,7 @@ async function onlyPeopleInView(rows: ConnectorRow[], access: AccessContext): Pr
 /** The demo LMS behind MCP: training history per person, asked as the signed-in user, kept to the people Cop says they may see. */
 export const lmsDemoConnector = defineMcpConnector({
   id: LMS_DEMO_ID,
-  labelTh: "ระบบอบรม (MCP)",
+  labelTh: "LMS (MCP)",
   sourceSystemTh: "LMS ภายนอกผ่าน MCP (เดโม)",
   transport: { type: "http", url: lmsDemoEnv().url },
   auth: (access) => signedIdentityHeaders(access, lmsDemoEnv().secret),

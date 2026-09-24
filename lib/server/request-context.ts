@@ -16,9 +16,14 @@ export function currentAccess(): AccessContext {
   return access;
 }
 
-export type TurnContext = { threadId: string | null; preloadPacketId: string | null; queries: MetricQuery[] };
+/** The access context when one is set, for code that also runs outside a request (background jobs, scripts). */
+export function accessOrNull(): AccessContext | null {
+  return storage.getStore() ?? null;
+}
 
-const EMPTY_TURN: TurnContext = { threadId: null, preloadPacketId: null, queries: [] };
+export type TurnContext = { turnId: string | null; threadId: string | null; preloadPacketId: string | null; question: string | null; queries: MetricQuery[] };
+
+const EMPTY_TURN: TurnContext = { turnId: null, threadId: null, preloadPacketId: null, question: null, queries: [] };
 
 const turns = new AsyncLocalStorage<TurnContext>();
 
