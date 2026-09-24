@@ -31,7 +31,7 @@ function bodyElements(id: string, body: CardBody): Elements {
   }
   if (body.kind === "table") return { [id]: element("Table", { columns: body.columns, rows: body.rows }) };
   if (body.kind === "alerts") return { [id]: element("SignalList", { items: body.items }) };
-  if (body.kind === "stacked" || body.kind === "share" || body.kind === "heatmap" || body.kind === "scatter" || body.kind === "funnel") {
+  if (body.kind === "stacked" || body.kind === "share" || body.kind === "heatmap" || body.kind === "scatter" || body.kind === "gap" || body.kind === "funnel") {
     return { [id]: element("CardBody", { body }) };
   }
   return {};

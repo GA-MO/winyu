@@ -45,7 +45,7 @@ export const EVAL_CASES: EvalCase[] = [
   { scripted: true, id: "shape-heatmap", userId: "u_thana", prompt: "ยอดขายแต่ละภาคแยกช่องทาง เทียบเดือนก่อน", expectComponent: "DataCard", expectShape: "heatmap" },
   { scripted: true, id: "shape-funnel", userId: "u_thana", prompt: "เดือน ส.ค. ผลิตเบียร์ได้เท่าไหร่ ขายเข้าเท่าไหร่ ขายออกเท่าไหร่", expectComponent: "DataCard", expectShape: "funnel" },
   { scripted: true, id: "shape-scatter", userId: "u_thana", prompt: "เอเย่นต์ที่ขายมากค้างชำระมากด้วยไหม เดือน ส.ค.", expectComponent: "DataCard", expectShape: "scatter" },
-  { scripted: true, id: "shape-sell-through", userId: "u_thana", prompt: "เทียบยอดขายเข้ากับยอดขายออกของเอเย่นต์", expectComponent: "DataCard", expectShape: "scatter" },
+  { scripted: true, id: "shape-sell-through", userId: "u_thana", prompt: "เทียบยอดขายเข้ากับยอดขายออกของเอเย่นต์", expectComponent: "DataCard", expectShape: "gap" },
   { id: "shape-share-market", userId: "u_anucha", prompt: "สัดส่วนตลาดเบียร์ในนครราชสีมาเดือน ส.ค. แต่ละผู้ผลิตได้เท่าไหร่", expectComponent: "DataCard", expectShape: "share" },
 ];
 

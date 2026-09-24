@@ -80,23 +80,29 @@ describe("scatter", () => {
       x: { label: "ขายเข้า", format: "number", median: 75, medianText: "75" },
       y: { label: "ขายออก", format: "number", median: 60, medianText: "60" },
       note: "ความสัมพันธ์ปานกลาง",
-      diagonal: null,
     });
     expect(html).toContain("ตัวแทนขาย ก");
     expect(html).toContain("มัธยฐาน");
     expect(html).toContain("ความสัมพันธ์ปานกลาง");
   });
+});
 
-  test("shares one axis range and shows the diagonal caption when units match", () => {
+describe("gap", () => {
+  test("draws a bar each way from parity and says which side is which", () => {
     const html = render({
-      kind: "scatter",
-      points: [{ label: "อุบลศรีสุข", x: 100, y: 40, xText: "100", yText: "40", named: true }],
-      x: { label: "ขายเข้า", format: "number", median: 100, medianText: "100" },
-      y: { label: "ขายออก", format: "number", median: 40, medianText: "40" },
-      note: null,
-      diagonal: "เส้นประคือขายเข้าเท่าขายออก",
+      kind: "gap",
+      rows: [
+        { label: "อุบลศรีสุข", gap: -1, gapText: "-12%", detail: "100 → 88", tone: "bad" },
+        { label: "พระราม 4", gap: 0.5, gapText: "+6%", detail: "100 → 106", tone: "good" },
+      ],
+      caption: "ตัวเลขใต้ชื่อ = ขายเข้า → ขายออก",
+      shownOf: null,
     });
-    expect(html).toContain("เส้นประคือขายเข้าเท่าขายออก");
+    expect(html).toContain("อุบลศรีสุข");
+    expect(html).toContain("-12%");
+    expect(html).toContain("ตัวเลขใต้ชื่อ");
+    expect(html).toContain("bg-danger");
+    expect(html).toContain("bg-success");
   });
 });
 
@@ -128,8 +134,8 @@ test("none of the new chart bodies render a raw hex colour", () => {
       x: { label: "X", format: "number", median: 1, medianText: "1" },
       y: { label: "Y", format: "number", median: 1, medianText: "1" },
       note: null,
-      diagonal: null,
     },
+    { kind: "gap", rows: [{ label: "A", gap: -1, gapText: "-1%", detail: "d", tone: "bad" }], caption: "c", shownOf: null },
     { kind: "funnel", stages: [{ label: "A", value: 1, valueText: "1", width: 1, dropText: null, dropTone: "neutral" }] },
   ];
   for (const body of bodies) expect(render(body)).not.toMatch(HEX_COLOR);

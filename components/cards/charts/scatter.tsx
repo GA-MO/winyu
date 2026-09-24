@@ -4,7 +4,7 @@ import type { ScatterAxis, ScatterPoint } from "@/lib/cards/present";
 import { TH } from "@/lib/i18n/th";
 import { AXIS_COLOR, ChartFrame, EmptyChart, GRID_COLOR, clipLabel, formatTick, niceRange, scaleLinear, useContainerWidth } from "./chart-kit";
 
-type ScatterProps = { points: ScatterPoint[]; x: ScatterAxis; y: ScatterAxis; note: string | null; diagonal: string | null };
+type ScatterProps = { points: ScatterPoint[]; x: ScatterAxis; y: ScatterAxis; note: string | null };
 
 const HEIGHT = 256;
 const PLOT_TOP = 22;
@@ -35,8 +35,8 @@ function domainOf(values: number[]): [number, number] {
   return [Math.min(0, ...values), Math.max(0, ...values)];
 }
 
-/** Two metrics of the same things against each other: medians split the plot, outliers are named, and — when the units match — a y = x line shows who is ahead. */
-export function Scatter({ points, x, y, note, diagonal }: ScatterProps) {
+/** Two metrics of the same things against each other: medians split the plot, outliers are named. */
+export function Scatter({ points, x, y, note }: ScatterProps) {
   const [ref, width] = useContainerWidth();
   if (points.length === 0) {
     return (
@@ -47,10 +47,8 @@ export function Scatter({ points, x, y, note, diagonal }: ScatterProps) {
   }
   const xs = points.map((point) => point.x);
   const ys = points.map((point) => point.y);
-  const shareAxes = diagonal !== null;
-  const [sharedMin, sharedMax] = domainOf([...xs, ...ys]);
-  const [xRawMin, xRawMax] = shareAxes ? [sharedMin, sharedMax] : domainOf(xs);
-  const [yRawMin, yRawMax] = shareAxes ? [sharedMin, sharedMax] : domainOf(ys);
+  const [xRawMin, xRawMax] = domainOf(xs);
+  const [yRawMin, yRawMax] = domainOf(ys);
   const xTicks = niceRange(xRawMin, xRawMax);
   const yTicks = niceRange(yRawMin, yRawMax);
   const xMin = xTicks[0] ?? 0;
@@ -87,17 +85,6 @@ export function Scatter({ points, x, y, note, diagonal }: ScatterProps) {
           <text x={width - PLOT_RIGHT} y={HEIGHT - 4} fontSize={10} fill={AXIS_COLOR} textAnchor="end">
             {x.label}
           </text>
-          {shareAxes ? (
-            <line
-              x1={xScale(xMin)}
-              y1={yScale(xMin)}
-              x2={xScale(xMax)}
-              y2={yScale(xMax)}
-              stroke={MEDIAN_STROKE}
-              strokeOpacity={0.35}
-              strokeDasharray="2 3"
-            />
-          ) : null}
           <line x1={xScale(x.median)} x2={xScale(x.median)} y1={PLOT_TOP} y2={PLOT_TOP + plotH} stroke={MEDIAN_STROKE} strokeOpacity={0.4} strokeDasharray="4 3" />
           <text x={xScale(x.median) + 3} y={PLOT_TOP + 9} fontSize={9} fill={AXIS_COLOR}>
             {TH.chart.median}
@@ -129,7 +116,6 @@ export function Scatter({ points, x, y, note, diagonal }: ScatterProps) {
           })}
         </svg>
         {note ? <p className="text-xs text-muted-foreground">{note}</p> : null}
-        {diagonal ? <p className="text-xs text-muted-foreground">{diagonal}</p> : null}
       </div>
     </ChartFrame>
   );

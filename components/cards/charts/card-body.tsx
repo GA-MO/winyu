@@ -4,6 +4,7 @@ import { BarChart, LineChart, Progress, RankList, Table } from "vexa/react";
 import type { CardBody } from "@/lib/cards/present";
 import { SignalList } from "../signal-list";
 import { Funnel } from "./funnel";
+import { GapBars } from "./gap-bars";
 import { Heatmap } from "./heatmap";
 import { Scatter } from "./scatter";
 import { ShareDonut } from "./share-donut";
@@ -26,7 +27,8 @@ export function CardBodyView({ body }: { body: CardBody }) {
   if (body.kind === "stacked") return <StackedArea labels={body.labels} series={body.series} format={body.format} />;
   if (body.kind === "share") return <ShareDonut slices={body.slices} centerValue={body.centerValue} centerLabel={body.centerLabel} />;
   if (body.kind === "heatmap") return <Heatmap rowLabels={body.rowLabels} columnLabels={body.columnLabels} cells={body.cells} scale={body.scale} legend={body.legend} />;
-  if (body.kind === "scatter") return <Scatter points={body.points} x={body.x} y={body.y} note={body.note} diagonal={body.diagonal} />;
+  if (body.kind === "scatter") return <Scatter points={body.points} x={body.x} y={body.y} note={body.note} />;
+  if (body.kind === "gap") return <GapBars rows={body.rows} caption={body.caption} shownOf={body.shownOf} />;
   if (body.kind === "funnel") return <Funnel stages={body.stages} />;
   if (body.kind === "table") return <Table props={{ columns: body.columns, rows: body.rows }} />;
   if (body.kind === "alerts") return <SignalList items={body.items} />;

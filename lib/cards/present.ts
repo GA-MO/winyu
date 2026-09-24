@@ -6,9 +6,12 @@ import { deltaPercentOf, groupDimsOf, labelOf, numericOf, timeDimOf, valueTextOf
 import {
   bucketCountOf,
   funnelBody,
+  gapBody,
+  gapHero,
   groupCountOf,
   heatmapBody,
   isIndexedOverlay,
+  isParityPair,
   joinedRows,
   overlaidLines,
   sameUnit,
@@ -55,6 +58,7 @@ export type HeatCell = { text: string; detail: string | null; intensity: number;
 export type ShareSlice = { label: string; valueText: string; share: number; shareText: string; isOther: boolean };
 export type ScatterPoint = { label: string; x: number; y: number; xText: string; yText: string; named: boolean };
 export type ScatterAxis = { label: string; format: MetricFormat; median: number; medianText: string };
+export type GapRow = { label: string; gap: number; gapText: string; detail: string; tone: Tone };
 export type FunnelStage = { label: string; value: number; valueText: string; width: number; dropText: string | null; dropTone: Tone };
 
 export type CardBody =
@@ -65,7 +69,8 @@ export type CardBody =
   | { kind: "stacked"; shape: "bar" | "area"; labels: string[]; series: ChartSeries[]; format: MetricFormat }
   | { kind: "share"; slices: ShareSlice[]; centerValue: string; centerLabel: string }
   | { kind: "heatmap"; rowLabels: string[]; columnLabels: string[]; cells: (HeatCell | null)[][]; scale: ColorScale; legend: string }
-  | { kind: "scatter"; points: ScatterPoint[]; x: ScatterAxis; y: ScatterAxis; note: string | null; diagonal: string | null }
+  | { kind: "scatter"; points: ScatterPoint[]; x: ScatterAxis; y: ScatterAxis; note: string | null }
+  | { kind: "gap"; rows: GapRow[]; caption: string; shownOf: string | null }
   | { kind: "funnel"; stages: FunnelStage[] }
   | { kind: "table"; columns: CardColumn[]; rows: Record<string, string>[] }
   | { kind: "alerts"; items: SignalItem[] };
@@ -418,7 +423,7 @@ function hiddenGroupsNote(shape: Shape, view: CardView): string | null {
   return count > MAX_LINES ? TH.dash.shownOf(MAX_LINES, count) : null;
 }
 
-type Pairing = { view: "scatter" | "funnel" | "overlay"; sources: Source[] };
+type Pairing = { view: "scatter" | "gap" | "funnel" | "overlay"; sources: Source[] };
 
 /** What a card bound to several metric results should draw, or null when they do not fit together and only the first is shown. */
 function pairingOf(first: Source, others: Source[]): Pairing | null {
@@ -431,7 +436,9 @@ function pairingOf(first: Source, others: Source[]): Pairing | null {
   const [second] = others;
   const sameGroups = groupDimsOf(first.query).join() === groupDimsOf(second.query).join() && groupDimsOf(first.query).length > 0;
   const untimed = !timeDimOf(first.query) && !timeDimOf(second.query);
-  if (sameGroups && untimed && joinedRows(first, second).length >= MIN_SCATTER_POINTS) return { view: "scatter", sources: [first, second] };
+  if (!sameGroups || !untimed) return null;
+  if (isParityPair(first, second) && joinedRows(first, second).length >= RANK_MIN_ROWS) return { view: "gap", sources: [first, second] };
+  if (joinedRows(first, second).length >= MIN_SCATTER_POINTS) return { view: "scatter", sources: [first, second] };
   return null;
 }
 
@@ -439,16 +446,26 @@ function pairedBody(pairing: Pairing): CardBody {
   const [first, ...others] = pairing.sources;
   if (pairing.view === "funnel") return funnelBody(pairing.sources);
   if (pairing.view === "scatter") return scatterBody(first, others[0]);
+  if (pairing.view === "gap") return gapBody(first, others[0]);
   return overlaidLines(first, others);
 }
 
 function pairedMeta(pairing: Pairing): string {
   const [first, ...others] = pairing.sources;
   const period = first.result.headline.periodLabel;
-  if (pairing.view !== "scatter") return TH.dash.scope(period, null);
+  if (pairing.view !== "scatter" && pairing.view !== "gap") return TH.dash.scope(period, null);
   const dim = rankDimOf(first.query);
   const count = joinedRows(first, others[0]).length;
   return TH.dash.scope(period, dim ? `${count} ${TH.dash.dimUnit[dim]}` : null);
+}
+
+function pairedHero(pairing: Pairing, indexed: boolean): CardHero | null {
+  const [first, ...others] = pairing.sources;
+  if (pairing.view === "gap") {
+    const dim = rankDimOf(first.query);
+    return gapHero(first, others[0], dim ? TH.dash.dimUnit[dim] : null);
+  }
+  return pairing.view === "overlay" && !indexed ? heroOf(first.query, first.result) : null;
 }
 
 function pairedCard(input: PresentInput, pairing: Pairing): CardParts {
@@ -459,7 +476,7 @@ function pairedCard(input: PresentInput, pairing: Pairing): CardParts {
     meta: pairedMeta(pairing),
     description: input.description ?? null,
     footnote: footnoteOf(first.result, indexed ? TH.dash.indexedNote : null),
-    hero: pairing.view === "overlay" && !indexed ? heroOf(first.query, first.result) : null,
+    hero: pairedHero(pairing, indexed),
     body: pairedBody(pairing),
     actions: input.actions ?? NO_ACTIONS,
     denied: null,

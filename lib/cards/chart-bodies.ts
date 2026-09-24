@@ -1,9 +1,9 @@
 import type { Dim, MetricId, MetricQuery, MetricResult, MetricRow } from "@/lib/contracts";
 import { TH } from "@/lib/i18n/th";
 import { formatPercent, periodLabelTh } from "@/lib/i18n/format";
-import { formatDelta, formatMetricValue, metricFormat, metricLabel, metricUnit, toneOf, type Tone } from "@/lib/dashboard/metric-display";
+import { directionOf, formatDelta, formatMetricValue, metricFormat, metricLabel, metricUnit, toneOf, type Tone } from "@/lib/dashboard/metric-display";
 import { deltaPercentOf, groupDimsOf, labelAlong, labelOf, numericOf, timeDimOf, valueTextOf } from "./rows";
-import type { CardBody, ChartSeries, ColorScale, HeatCell, ScatterAxis, ScatterPoint, ShareSlice } from "./present";
+import type { CardBody, CardHero, ChartSeries, ColorScale, GapRow, HeatCell, ScatterAxis, ScatterPoint, ShareSlice } from "./present";
 
 export type Source = { query: MetricQuery; result: Extract<MetricResult, { ok: true }> };
 
@@ -15,6 +15,9 @@ const MIN_INTENSITY = 0.15;
 const PERCENT = 100;
 const STRONG_CORRELATION = 0.5;
 const PARITY_RATIO = 3;
+const MAX_GAP_ROWS = 8;
+const WIDE_GAP_PCT = 5;
+const MIN_GAP_SCALE_PCT = 10;
 const PARENTHETICAL = /\s*\(.*\)$/;
 const PERCENT_METRIC_SHARE: ReadonlySet<MetricId> = new Set(["market_share", "share_of_voice"]);
 const WORST_WHEN_LOW: ReadonlySet<MetricId> = new Set(["target_attainment", "days_of_cover", "market_share", "gross_margin"]);
@@ -271,7 +274,14 @@ function comparableScale(left: number, right: number): boolean {
   return ratio <= PARITY_RATIO && ratio >= 1 / PARITY_RATIO;
 }
 
-/** Two metrics of the same things against each other: medians split the plot, the outliers are named, the note says how tightly they move together; in the same unit a y = x line shows who is above or below parity. */
+/** Whether two metrics measure the same things in the same unit at the same scale, so the question is the gap between them rather than how they move together. */
+export function isParityPair(first: Source, second: Source): boolean {
+  const joined = joinedRows(first, second);
+  if (!sameUnit([first, second]) || joined.length === 0) return false;
+  return comparableScale(median(joined.map((entry) => numericOf(entry.x, "value") as number)), median(joined.map((entry) => numericOf(entry.y, "value") as number)));
+}
+
+/** Two metrics of the same things against each other: medians split the plot, the outliers are named, the note says how tightly they move together. */
 export function scatterBody(first: Source, second: Source): CardBody {
   const joined = joinedRows(first, second);
   const xs = joined.map((entry) => numericOf(entry.x, "value") as number);
@@ -280,8 +290,7 @@ export function scatterBody(first: Source, second: Source): CardBody {
   const y = axisOf(second, ys);
   const xSpan = Math.max(...xs) - Math.min(...xs) || 1;
   const ySpan = Math.max(...ys) - Math.min(...ys) || 1;
-  const diagonal = sameUnit([first, second]) && comparableScale(x.median, y.median);
-  const distance = diagonal ? (index: number) => Math.abs(ys[index] - xs[index]) / Math.max(xSpan, ySpan) : (index: number) => Math.hypot((xs[index] - x.median) / xSpan, (ys[index] - y.median) / ySpan);
+  const distance = (index: number) => Math.hypot((xs[index] - x.median) / xSpan, (ys[index] - y.median) / ySpan);
   const named = new Set(
     joined
       .map((_, index) => index)
@@ -296,13 +305,62 @@ export function scatterBody(first: Source, second: Source): CardBody {
     yText: valueTextOf(second.query, entry.y),
     named: named.has(index),
   }));
+  return { kind: "scatter", points, x, y, note: correlationNote(x.label, y.label, correlation(xs, ys)) };
+}
+
+function shortLabel(source: Source): string {
+  return metricLabel(source.query.metric).replace(PARENTHETICAL, "");
+}
+
+function gapPercent(base: number, other: number): number {
+  return base === 0 ? 0 : ((other - base) / base) * PERCENT;
+}
+
+type Gap = { entry: Joined; percent: number };
+
+function gapsOf(first: Source, second: Source): Gap[] {
+  return joinedRows(first, second)
+    .map((entry) => ({ entry, percent: gapPercent(numericOf(entry.x, "value") as number, numericOf(entry.y, "value") as number) }))
+    .sort((left, right) => left.percent - right.percent);
+}
+
+/** The same things measured twice in one unit (sell-in against sell-out): one bar per thing for how far the second is from the first, the widest shortfall first. */
+export function gapBody(first: Source, second: Source): CardBody {
+  const gaps = gapsOf(first, second);
+  const shown = gaps.slice(0, MAX_GAP_ROWS);
+  const peak = Math.max(...shown.map((gap) => Math.abs(gap.percent)), MIN_GAP_SCALE_PCT);
+  const [base, other] = [shortLabel(first), shortLabel(second)];
+  const rows: GapRow[] = shown.map(({ entry, percent }) => ({
+    label: entry.label,
+    gap: percent / peak,
+    gapText: formatDelta(percent) ?? "0%",
+    detail: TH.dash.gapDetail(valueTextOf(first.query, entry.x), valueTextOf(second.query, entry.y)),
+    tone: toneOf(second.query.metric, percent),
+  }));
   return {
-    kind: "scatter",
-    points,
-    x,
-    y,
-    note: correlationNote(x.label, y.label, correlation(xs, ys)),
-    diagonal: diagonal ? TH.dash.diagonal(y.label, x.label) : null,
+    kind: "gap",
+    rows,
+    caption: TH.dash.gapCaption(base, other),
+    shownOf: gaps.length > MAX_GAP_ROWS ? TH.dash.gapShownOf(MAX_GAP_ROWS, gaps.length) : null,
+  };
+}
+
+/** The headline of a gap card: the second metric as a share of the first across everything shown, and how many fall well short. */
+export function gapHero(first: Source, second: Source, unit: string | null): CardHero | null {
+  const additive = first.result.headline.aggregate === "sum" && second.result.headline.aggregate === "sum";
+  const gaps = gapsOf(first, second);
+  if (!additive || gaps.length === 0) return null;
+  const total = (source: "x" | "y") => gaps.reduce((sum, gap) => sum + (numericOf(gap.entry[source], "value") ?? 0), 0);
+  const overall = gapPercent(total("x"), total("y"));
+  const short = gaps.filter((gap) => gap.percent <= -WIDE_GAP_PCT).length;
+  const [base, other] = [shortLabel(first), shortLabel(second)];
+  return {
+    label: TH.dash.gapHeroLabel(other, base),
+    value: formatPercent(Math.round((PERCENT + overall) * 10) / 10),
+    delta: null,
+    trend: directionOf(overall),
+    tone: toneOf(second.query.metric, overall),
+    detail: short > 0 ? TH.dash.gapShortCount(short, gaps.length, unit ?? "", other, base, WIDE_GAP_PCT) : TH.dash.gapNoneShort(unit ?? "", other, base, WIDE_GAP_PCT),
   };
 }
 

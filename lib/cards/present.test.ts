@@ -173,12 +173,19 @@ describe("two metrics on one card", () => {
     expect(body.points.filter((point) => point.named).length).toBe(4);
     expect(body.note).toMatch(/r = /);
     expect(body.x.label).not.toBe(body.y.label);
-    expect(body.diagonal).toBeNull();
   });
 
-  test("sell-in against sell-out shares a scale, so the card draws the parity line", () => {
-    const body = expectKind(bodyOf({ metric: "net_sales_volume", dims: ["agent"] }, { others: [{ metric: "sell_out_volume", dims: ["agent"] }] }), "scatter");
-    expect(body.diagonal).not.toBeNull();
+  test("sell-in against sell-out is one gap bar per agent, widest shortfall first, with the overall ratio as the headline", () => {
+    const first = answer({ metric: "net_sales_volume", dims: ["agent"] });
+    const card = presentCard({ title: "t", query: first.query, result: first.result, others: [answer({ metric: "sell_out_volume", dims: ["agent"] })] });
+    const body = expectKind(card.body, "gap");
+    expect(body.rows.length).toBeGreaterThanOrEqual(2);
+    const gaps = body.rows.map((row) => row.gap);
+    expect(gaps).toEqual([...gaps].sort((left, right) => left - right));
+    expect(Math.max(...gaps.map(Math.abs))).toBeLessThanOrEqual(1);
+    expect(body.rows[0].detail).toContain("→");
+    expect(card.hero?.value).toMatch(/%$/);
+    expect(card.hero?.detail).toMatch(/เอเย่นต์/);
   });
 
   test("produced → sold in → sold out is a funnel in the order given", () => {

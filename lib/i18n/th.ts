@@ -409,7 +409,15 @@ export const TH = {
     noCorrelation: (r: number) => `สองค่านี้ไม่ได้ขยับไปด้วยกันชัดเจน (r = ${r})`,
     positiveCorrelation: (x: string, y: string, r: number) => `ที่ไหน${x}สูง ${y}มักสูงตาม (r = ${r})`,
     negativeCorrelation: (x: string, y: string, r: number) => `ที่ไหน${x}สูง ${y}มักต่ำ (r = ${r})`,
-    diagonal: (y: string, x: string) => `เส้นทแยง = ${y}เท่ากับ${x} · เหนือเส้น = ${y}มากกว่า`,
+    gapHeroLabel: (other: string, base: string) => `${other}เทียบ${base}`,
+    gapShortCount: (count: number, total: number, unit: string, other: string, base: string, threshold: number) =>
+      `${count} จาก ${total} ${unit} ${other}ต่ำกว่า${base}เกิน ${threshold}%`,
+    gapNoneShort: (unit: string, other: string, base: string, threshold: number) => `ไม่มี${unit}ไหน${other}ต่ำกว่า${base}เกิน ${threshold}%`,
+    gapDetail: (baseText: string, otherText: string) => `${baseText} → ${otherText}`,
+    gapCaption: (base: string, other: string) => `ตัวเลขใต้ชื่อ = ${base} → ${other} · เส้นกลาง = เท่ากัน · ขวา = ${other}มากกว่า`,
+    gapLess: "← น้อยกว่า",
+    gapMore: "มากกว่า →",
+    gapShownOf: (shown: number, total: number) => `แสดง ${shown} จาก ${total} รายที่ขาดมากสุด`,
     fromPreviousStage: (delta: string) => `${delta} จากขั้นก่อน`,
     indexedNote: "หน่วยต่างกัน จึงแสดงเป็นดัชนี (งวดแรก = 100)",
   },
@@ -786,3 +794,4 @@ export const TH = {
     scatter: "กราฟกระจาย",
   },
 } as const;
+    gap: "ส่วนต่างรายตัว",
