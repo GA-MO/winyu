@@ -1,16 +1,17 @@
 import Link from "next/link";
 import { Lock, RotateCcw } from "lucide-react";
 import { cn } from "vexa/lib/utils";
-import { METRIC_IDS, ROLE_IDS, type MetricId, type RoleId, type ToolName } from "@/lib/contracts";
-import { toolSurface } from "@/lib/server/tools/registry";
+import { METRIC_IDS, ROLE_IDS, type RoleId, type ToolName, type ToolSurfaceEntry } from "@/lib/contracts";
+import { connectorFields, connectorLabel, surfaceByConnector, toolSurface } from "@/lib/server/tools/registry";
 import { METRIC_DOMAINS, ROLE_POLICIES } from "@/lib/access/policies";
 import { killedTools } from "@/lib/access/enforce";
-import { isGrantable, overrideFor, permissionsFor, roleOverrides, type RoleOverride, type Visibility } from "@/lib/access/role-overrides";
+import { fieldVisibilityOf, isGrantable, overrideFor, permissionsFor, roleOverrides, type RoleOverride, type Visibility } from "@/lib/access/role-overrides";
 import { USERS, findUser } from "@/lib/data/entities/users";
 import { metricDef } from "@/lib/semantic/metrics";
 import { metricLabel } from "@/lib/dashboard/metric-display";
 import { TH } from "@/lib/i18n/th";
-import { cycleMetricAction, resetAllAction, resetRoleAction, setMetricAction, setRoleToolAction } from "@/app/(app)/admin/actions";
+import { cycleFieldAction, cycleMetricAction, resetAllAction, resetRoleAction, setFieldAction, setMetricAction, setRoleToolAction } from "@/app/(app)/admin/actions";
+import { ConnectorHeader } from "./connector-parts";
 import { Avatar, FOCUS, GHOST, Panel, Pill, SwitchButton, stamp } from "./parts";
 
 const COPY = TH.admin.access;
@@ -116,11 +117,13 @@ function RoleHeader({ role }: { role: RoleId }) {
   );
 }
 
-function LevelControl({ role, metric, value }: { role: RoleId; metric: MetricId; value: Visibility }) {
+type Subject = { name: "metric" | "field"; key: string };
+
+function LevelControl({ role, subject, value }: { role: RoleId; subject: Subject; value: Visibility }) {
   return (
-    <form action={setMetricAction} className="flex shrink-0 rounded-full bg-muted p-0.5">
+    <form action={subject.name === "metric" ? setMetricAction : setFieldAction} className="flex shrink-0 rounded-full bg-muted p-0.5">
       <input type="hidden" name="role" value={role} />
-      <input type="hidden" name="metric" value={metric} />
+      <input type="hidden" name={subject.name} value={subject.key} />
       {LEVELS.map((level) => (
         <button
           key={level}
@@ -179,14 +182,79 @@ function MetricList({ role }: { role: RoleId }) {
                     </p>
                     {def ? <p className="truncate text-[11px] text-muted-foreground">{def.sourceSystem}</p> : null}
                   </div>
-                  <LevelControl role={role} metric={metric} value={permissions.metricAcl[metric]} />
+                  <LevelControl role={role} subject={{ name: "metric", key: metric }} value={permissions.metricAcl[metric]} />
                 </li>
               );
             })}
           </ul>
         </div>
       ))}
+      <FieldList role={role} />
     </Panel>
+  );
+}
+
+function FieldList({ role }: { role: RoleId }) {
+  const fields = connectorFields();
+  if (fields.length === 0) return null;
+  return (
+    <div className="flex flex-col">
+      <p className="pb-1.5 text-[11px] font-semibold tracking-wide text-muted-foreground">{TH.admin.connectors.fields}</p>
+      <ul className="flex flex-col divide-y divide-border rounded-2xl border border-border">
+        {fields.map((field) => {
+          const override = overrideFor(role, "field", field.key);
+          return (
+            <li key={field.key} className="flex items-center gap-3 px-3.5 py-2.5">
+              <div className="min-w-0 flex-1">
+                <p className="flex items-center gap-2 truncate text-sm">
+                  {field.labelTh}
+                  {override ? (
+                    <Pill tone="primary" title={changedTitle(override)}>
+                      {COPY.changed}
+                    </Pill>
+                  ) : null}
+                </p>
+                <p className="truncate text-[11px] text-muted-foreground">{connectorLabel(field.connector)}</p>
+              </div>
+              <LevelControl role={role} subject={{ name: "field", key: field.key }} value={fieldVisibilityOf(role, field.key)} />
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
+
+function ToolRow({ role, entry, on, killed }: { role: RoleId; entry: ToolSurfaceEntry; on: boolean; killed: boolean }) {
+  const locked = !on && !isGrantable(role, entry.name);
+  const override = overrideFor(role, "tool", entry.name);
+  return (
+    <li className="flex items-center gap-3 py-2.5">
+      <div className="min-w-0 flex-1">
+        <p className="flex flex-wrap items-center gap-1.5 text-sm">
+          {entry.labelTh}
+          {override ? (
+            <Pill tone="primary" title={changedTitle(override)}>
+              {COPY.changed}
+            </Pill>
+          ) : null}
+          {killed ? <Pill tone="danger">{COPY.killedEverywhere}</Pill> : null}
+        </p>
+        <p className="truncate font-mono text-[11px] text-muted-foreground">{entry.name}</p>
+      </div>
+      {locked ? (
+        <span title={TH.admin.overrides.notGrantable} className="inline-flex size-6 items-center justify-center text-muted-foreground">
+          <Lock className="size-3.5" aria-hidden />
+        </span>
+      ) : (
+        <form action={setRoleToolAction}>
+          <input type="hidden" name="role" value={role} />
+          <input type="hidden" name="tool" value={entry.name} />
+          <input type="hidden" name="allowed" value={String(!on)} />
+          <SwitchButton on={on} label={`${entry.labelTh}: ${on ? TH.admin.permission.allow : TH.admin.permission.deny}`} />
+        </form>
+      )}
+    </li>
   );
 }
 
@@ -194,54 +262,31 @@ function ToolList({ role }: { role: RoleId }) {
   const allowed = new Set(permissionsFor(role).toolAllow);
   const killed = new Set(killedTools());
   return (
-    <Panel title={COPY.toolsTitle} hint={COPY.toolsHint} className="lg:col-span-2" bodyClassName="flex flex-col">
-      <ul className="flex flex-col divide-y divide-border">
-        {toolSurface().map((entry) => {
-          const on = allowed.has(entry.name);
-          const locked = !on && !isGrantable(role, entry.name);
-          const override = overrideFor(role, "tool", entry.name);
-          return (
-            <li key={entry.name} className="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0">
-              <div className="min-w-0 flex-1">
-                <p className="flex flex-wrap items-center gap-1.5 text-sm">
-                  {entry.labelTh}
-                  {override ? (
-                    <Pill tone="primary" title={changedTitle(override)}>
-                      {COPY.changed}
-                    </Pill>
-                  ) : null}
-                  {killed.has(entry.name) ? <Pill tone="danger">{COPY.killedEverywhere}</Pill> : null}
-                </p>
-                <p className="truncate font-mono text-[11px] text-muted-foreground">{entry.name}</p>
-              </div>
-              {locked ? (
-                <span title={TH.admin.overrides.notGrantable} className="inline-flex size-6 items-center justify-center text-muted-foreground">
-                  <Lock className="size-3.5" aria-hidden />
-                </span>
-              ) : (
-                <form action={setRoleToolAction}>
-                  <input type="hidden" name="role" value={role} />
-                  <input type="hidden" name="tool" value={entry.name} />
-                  <input type="hidden" name="allowed" value={String(!on)} />
-                  <SwitchButton on={on} label={`${entry.labelTh}: ${on ? TH.admin.permission.allow : TH.admin.permission.deny}`} />
-                </form>
-              )}
-            </li>
-          );
-        })}
-      </ul>
-      <p className="mt-4 text-xs text-muted-foreground">{COPY.askHint}</p>
+    <Panel title={COPY.toolsTitle} hint={COPY.toolsHint} className="lg:col-span-2" bodyClassName="flex flex-col gap-5">
+      {surfaceByConnector().map((group) => (
+        <div key={group.connector.id} className="flex flex-col">
+          <div className="border-b border-border pb-2">
+            <ConnectorHeader connector={group.connector} compact />
+          </div>
+          <ul className="flex flex-col divide-y divide-border">
+            {group.tools.map((entry) => (
+              <ToolRow key={entry.name} role={role} entry={entry} on={allowed.has(entry.name)} killed={killed.has(entry.name)} />
+            ))}
+          </ul>
+        </div>
+      ))}
+      <p className="text-xs text-muted-foreground">{COPY.askHint}</p>
     </Panel>
   );
 }
 
-function MatrixCell({ role, metric, value }: { role: RoleId; metric: MetricId; value: Visibility }) {
-  const override = overrideFor(role, "metric", metric);
+function MatrixCell({ role, subject, value }: { role: RoleId; subject: Subject; value: Visibility }) {
+  const override = overrideFor(role, subject.name, subject.key);
   const mark = MARK[value];
   return (
-    <form action={cycleMetricAction}>
+    <form action={subject.name === "metric" ? cycleMetricAction : cycleFieldAction}>
       <input type="hidden" name="role" value={role} />
-      <input type="hidden" name="metric" value={metric} />
+      <input type="hidden" name={subject.name} value={subject.key} />
       <button
         type="submit"
         title={[TH.admin.acl[value], changedTitle(override)].filter(Boolean).join(" · ")}
@@ -275,6 +320,30 @@ function ToolMatrixCell({ role, tool, on }: { role: RoleId; tool: ToolName; on: 
         {on ? "✓" : "—"}
       </button>
     </form>
+  );
+}
+
+function FieldMatrixRows() {
+  const fields = connectorFields();
+  if (fields.length === 0) return null;
+  return (
+    <tbody>
+      <tr>
+        <td colSpan={ROLE_IDS.length + 1} className="px-3 pb-1 pt-4 text-[11px] font-semibold tracking-wide text-muted-foreground">
+          {TH.admin.connectors.fields}
+        </td>
+      </tr>
+      {fields.map((field) => (
+        <tr key={field.key} className="border-t border-border">
+          <td className="sticky left-0 z-10 whitespace-nowrap bg-card px-3 py-1">{field.labelTh}</td>
+          {ROLE_IDS.map((role) => (
+            <td key={role} className="px-1 py-1 text-center">
+              <MatrixCell role={role} subject={{ name: "field", key: field.key }} value={fieldVisibilityOf(role, field.key)} />
+            </td>
+          ))}
+        </tr>
+      ))}
+    </tbody>
   );
 }
 
@@ -321,30 +390,42 @@ function Matrix() {
                 <td className="sticky left-0 z-10 whitespace-nowrap bg-card px-3 py-1">{metricLabel(metric)}</td>
                 {ROLE_IDS.map((role) => (
                   <td key={role} className="px-1 py-1 text-center">
-                    <MatrixCell role={role} metric={metric} value={permissions[role].metricAcl[metric]} />
+                    <MatrixCell role={role} subject={{ name: "metric", key: metric }} value={permissions[role].metricAcl[metric]} />
                   </td>
                 ))}
               </tr>
             ))}
           </tbody>
         ))}
+        <FieldMatrixRows />
         <tbody>
           <tr>
             <td colSpan={ROLE_IDS.length + 1} className="px-3 pb-1 pt-5 text-[11px] font-semibold tracking-wide text-muted-foreground">
               {COPY.toolsTitle}
             </td>
           </tr>
-          {toolSurface().map((entry) => (
-            <tr key={entry.name} className="border-t border-border">
-              <td className="sticky left-0 z-10 whitespace-nowrap bg-card px-3 py-1">{entry.labelTh}</td>
-              {ROLE_IDS.map((role) => (
-                <td key={role} className="px-1 py-1 text-center">
-                  <ToolMatrixCell role={role} tool={entry.name} on={permissions[role].toolAllow.includes(entry.name)} />
-                </td>
-              ))}
-            </tr>
-          ))}
         </tbody>
+        {surfaceByConnector().map((group) => (
+          <tbody key={group.connector.id}>
+            <tr className="border-t border-border bg-muted/40">
+              <td colSpan={ROLE_IDS.length + 1} className="px-3 py-2">
+                <div className="sticky left-3 max-w-md">
+                  <ConnectorHeader connector={group.connector} compact />
+                </div>
+              </td>
+            </tr>
+            {group.tools.map((entry) => (
+              <tr key={entry.name} className="border-t border-border">
+                <td className="sticky left-0 z-10 whitespace-nowrap bg-card px-3 py-1">{entry.labelTh}</td>
+                {ROLE_IDS.map((role) => (
+                  <td key={role} className="px-1 py-1 text-center">
+                    <ToolMatrixCell role={role} tool={entry.name} on={permissions[role].toolAllow.includes(entry.name)} />
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        ))}
       </table>
     </Panel>
   );

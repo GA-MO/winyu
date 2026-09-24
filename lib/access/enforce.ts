@@ -1,4 +1,4 @@
-import { toolSurface, surfaceEntry } from "@/lib/server/tools/registry";
+import { toolSurface, surfaceEntry, toolsOfConnector, connectors } from "@/lib/server/tools/registry";
 import { type AccessContext, type Dim, type ToolName, type ToolTier, type User } from "@/lib/contracts";
 import { collection } from "@/lib/server/store/json-store";
 import { accessFor } from "./policies";
@@ -8,6 +8,7 @@ export const KILLED_TOOLS_COLLECTION = "killed-tools";
 export const SWITCHES_COLLECTION = "switches";
 export const HANDOFF_SWITCH_ID = "handoff";
 export const HANDOFF_TOOLS: readonly ToolName[] = ["create_handoff", "send_email"];
+export const CONNECTOR_SWITCH_PREFIX = "connector:";
 
 export type SwitchEntry = { id: string; enabled: boolean; by: string; at: string };
 
@@ -43,22 +44,56 @@ export function reviveTool(name: ToolName): boolean {
   return collection<KillSwitchEntry>(KILLED_TOOLS_COLLECTION).remove(name);
 }
 
+function switches() {
+  return collection<SwitchEntry>(SWITCHES_COLLECTION);
+}
+
+/** One admin switch by id; null until an admin first flips it. */
+export function switchEntry(id: string): SwitchEntry | null {
+  return switches().get(id);
+}
+
+function switchEnabled(id: string): boolean {
+  return switchEntry(id)?.enabled ?? true;
+}
+
+export function setSwitch(id: string, enabled: boolean, by: string): SwitchEntry {
+  return switches().put({ id, enabled, by, at: new Date().toISOString() });
+}
+
 export function handoffSwitch(): SwitchEntry | null {
-  return collection<SwitchEntry>(SWITCHES_COLLECTION).get(HANDOFF_SWITCH_ID);
+  return switchEntry(HANDOFF_SWITCH_ID);
 }
 
 /** Whether people may send work and mail to each other; on until an admin turns it off. */
 export function handoffEnabled(): boolean {
-  return handoffSwitch()?.enabled ?? true;
+  return switchEnabled(HANDOFF_SWITCH_ID);
 }
 
 export function setHandoffEnabled(enabled: boolean, by: string): SwitchEntry {
-  return collection<SwitchEntry>(SWITCHES_COLLECTION).put({ id: HANDOFF_SWITCH_ID, enabled, by, at: new Date().toISOString() });
+  return setSwitch(HANDOFF_SWITCH_ID, enabled, by);
+}
+
+export function connectorSwitchId(connector: string): string {
+  return `${CONNECTOR_SWITCH_PREFIX}${connector}`;
+}
+
+/** Whether Cop may reach a connector at all; on until an admin turns the whole connector off. */
+export function connectorEnabled(connector: string): boolean {
+  return switchEnabled(connectorSwitchId(connector));
+}
+
+export function setConnectorEnabled(connector: string, enabled: boolean, by: string): SwitchEntry {
+  return setSwitch(connectorSwitchId(connector), enabled, by);
 }
 
 function closedTools(): Set<string> {
   const closed = new Set<string>(killedTools());
   if (!handoffEnabled()) for (const name of HANDOFF_TOOLS) closed.add(name);
+  for (const connector of connectors()) {
+    if (connectorEnabled(connector.id)) continue;
+    for (const name of toolsOfConnector(connector.id)) closed.add(name);
+  }
   return closed;
 }
 

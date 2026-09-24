@@ -1,8 +1,8 @@
 import { METRIC_IDS, type MetricId, type RoleId } from "@/lib/contracts";
-import { isToolName } from "@/lib/server/tools/registry";
+import { connectorFields, isToolName } from "@/lib/server/tools/registry";
 import type { setPermissionInputSchema } from "@/lib/contracts";
 import type { z } from "zod";
-import { isGrantable, permissionsFor, setMetricVisibility, setRoleTool, type Visibility } from "@/lib/access/role-overrides";
+import { fieldVisibilityOf, isGrantable, permissionsFor, setFieldVisibility, setMetricVisibility, setRoleTool, type Visibility } from "@/lib/access/role-overrides";
 import { USERS } from "@/lib/data/entities/users";
 import { metricLabel } from "@/lib/dashboard/metric-display";
 import { TH } from "@/lib/i18n/th";
@@ -56,8 +56,19 @@ function changeTool(role: RoleId, tool: string, value: PermissionInput["value"],
   return { ok: true, summary: TH.admin.permission.done(data.roleLabel, data.label, data.before, data.after, data.affectedUsers), data };
 }
 
-/** Applies one admin permission change from chat, validated against the metric catalog and the tool surface. */
+function changeField(role: RoleId, key: string, value: PermissionInput["value"], by: string): Applied {
+  const field = connectorFields().find((item) => item.key === key);
+  if (!field) return { ok: false, error: TH.admin.permission.unknownField(key) };
+  if (!VISIBILITIES.includes(value as Visibility)) return { ok: false, error: TH.admin.permission.badMetricValue };
+  const before = fieldVisibilityOf(role, key);
+  setFieldVisibility(role, key, value as Visibility, by);
+  const data = { role, roleLabel: TH.role[role], kind: "field" as const, key, label: field.labelTh, before: TH.admin.acl[before], after: TH.admin.acl[value as Visibility], affectedUsers: membersOf(role) };
+  return { ok: true, summary: TH.admin.permission.done(data.roleLabel, data.label, data.before, data.after, data.affectedUsers), data };
+}
+
+/** Applies one admin permission change from chat, validated against the metric catalog, the tool surface and the connector fields. */
 export function applyPermissionChange(input: PermissionInput, by: string): Applied {
   if (input.kind === "metric") return changeMetric(input.role, input.key, input.value, by);
+  if (input.kind === "field") return changeField(input.role, input.key, input.value, by);
   return changeTool(input.role, input.key, input.value, by);
 }

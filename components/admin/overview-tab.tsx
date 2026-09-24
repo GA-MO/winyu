@@ -9,7 +9,7 @@ import { adoptionSummary } from "@/lib/server/adoption";
 import { auditEntries, usageSummary } from "@/lib/server/usage";
 import { setHandoffAction } from "@/app/(app)/admin/actions";
 import { Avatar, EmptyLine, LinkMore, Panel, Pill, Stat, SwitchButton, stamp } from "./parts";
-import { toolLabel } from "@/lib/server/tools/registry";
+import { fieldLabel, toolLabel } from "@/lib/server/tools/registry";
 
 const RECENT_LIMIT = 6;
 const COPY = TH.admin.overview;
@@ -19,11 +19,12 @@ function costLabel(costUsd: number): string {
 }
 
 function overrideValue(entry: RoleOverride): string {
-  if (entry.kind === "metric") return TH.admin.acl[entry.visibility];
+  if (entry.kind !== "tool") return TH.admin.acl[entry.visibility];
   return entry.allowed ? TH.admin.permission.allow : TH.admin.permission.deny;
 }
 
 function overrideSubject(entry: RoleOverride): string {
+  if (entry.kind === "field") return fieldLabel(entry.key);
   return entry.kind === "metric" ? metricLabel(entry.key) : toolLabel(entry.key);
 }
 
@@ -94,7 +95,7 @@ function RecentChanges() {
 }
 
 function RecentDenied() {
-  const denied = auditEntries({ userId: null, tool: null, decision: "deny" }, RECENT_LIMIT);
+  const denied = auditEntries({ userId: null, tool: null, connector: null, decision: "deny" }, RECENT_LIMIT);
   if (denied.length === 0) return <EmptyLine text={COPY.recentDeniedEmpty} />;
   return (
     <ul className="flex flex-col divide-y divide-border">

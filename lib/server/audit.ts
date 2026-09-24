@@ -41,12 +41,16 @@ function rowsOf(output: unknown): number {
   return result.ok === true ? 1 : 0;
 }
 
-function write(tool: string, userId: string, args: unknown, output: unknown, startedAt: number, decision?: AuditEntry["decision"]) {
+type Call = { tool: string; connector: string; userId: string; args: unknown; startedAt: number };
+
+function write(call: Call, output: unknown, decision?: AuditEntry["decision"]) {
+  const { tool, connector, userId, args, startedAt } = call;
   auditLog().put({
     id: randomUUID(),
     at: new Date().toISOString(),
     userId,
     tool,
+    connector,
     argsHash: argsHash(args),
     decision: decision ?? decisionOf(output),
     rowsReturned: rowsOf(output),
@@ -54,17 +58,16 @@ function write(tool: string, userId: string, args: unknown, output: unknown, sta
   });
 }
 
-/** Wraps a tool execute so every call leaves one `AuditEntry`: who, which tool, hashed args, decision, rows, latency. */
-export function withAudit<Args, Result>(tool: string, execute: (args: Args) => Promise<Result>): (args: Args) => Promise<Result> {
+/** Wraps a tool execute so every call leaves one `AuditEntry`: who, which tool through which connector, hashed args, decision, rows, latency. */
+export function withAudit<Args, Result>(tool: string, connector: string, execute: (args: Args) => Promise<Result>): (args: Args) => Promise<Result> {
   return async (args: Args) => {
-    const startedAt = Date.now();
-    const { userId } = currentAccess();
+    const call = { tool, connector, userId: currentAccess().userId, args, startedAt: Date.now() };
     try {
       const output = await execute(args);
-      write(tool, userId, args, output, startedAt);
+      write(call, output);
       return output;
     } catch (error) {
-      write(tool, userId, args, null, startedAt, "deny");
+      write(call, null, "deny");
       throw error;
     }
   };

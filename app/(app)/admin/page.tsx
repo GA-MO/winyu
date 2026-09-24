@@ -18,7 +18,7 @@ import { ToolsTab } from "@/components/admin/tools-tab";
 import { UsageTab } from "@/components/admin/usage-tab";
 import { Avatar, FOCUS } from "@/components/admin/parts";
 
-type SearchParams = Promise<{ tab?: string; as?: string; metric?: string; user?: string; tool?: string; decision?: string; role?: string; view?: string }>;
+type SearchParams = Promise<{ tab?: string; as?: string; metric?: string; user?: string; tool?: string; connector?: string; decision?: string; role?: string; view?: string }>;
 
 const TABS = ["overview", "access", "tools", "audit", "usage", "simulate"] as const;
 const LEGACY_TABS: Record<string, Tab> = { users: "access" };
@@ -147,7 +147,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
             {current === "overview" ? <OverviewTab /> : null}
             {current === "access" ? <AccessTab role={roleOf(params.role)} view={params.view === "matrix" ? "matrix" : "role"} /> : null}
             {current === "tools" ? <ToolsTab /> : null}
-            {current === "audit" ? <AuditTab filter={{ userId: textOf(params.user), tool: textOf(params.tool), decision: decisionOf(params.decision) }} /> : null}
+            {current === "audit" ? <AuditTab filter={{ userId: textOf(params.user), tool: textOf(params.tool), connector: textOf(params.connector), decision: decisionOf(params.decision) }} /> : null}
             {current === "usage" ? <UsageTab /> : null}
             {current === "simulate" ? <SimulateTab userId={params.as ?? USERS[0].id} metric={metricOf(params.metric)} /> : null}
           </>

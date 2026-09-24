@@ -1,10 +1,12 @@
-import { afterEach, describe, expect, test } from "bun:test";
-import { ROLE_IDS, toolRolesInclude, type AccessContext, type RoleId, type ToolSurfaceEntry } from "@/lib/contracts";
+import { afterAll, afterEach, beforeAll, describe, expect, test } from "bun:test";
+import { NATIVE_CONNECTORS, ROLE_IDS, toolRolesInclude, type AccessContext, type RoleId, type ToolSurfaceEntry } from "@/lib/contracts";
 import { USERS } from "@/lib/data/entities/users";
 import { auditLog } from "@/lib/server/audit";
 import { runWithAccess } from "@/lib/server/request-context";
 import { copTool, defaultToolsOf, toolSurface } from "@/lib/server/tools/registry";
-import { killTool, killedTools, liveAccessFor, reviveTool, toolsFor } from "./enforce";
+import { registerConnectors, resetConnectors } from "@/lib/server/connectors";
+import { stubConnector } from "@/lib/server/connectors/stub";
+import { connectorEnabled, killTool, killedTools, liveAccessFor, reviveTool, setConnectorEnabled, toolsFor } from "./enforce";
 import { isGrantable, overrideFor, permissionsFor, setRoleTool } from "./role-overrides";
 
 const ADMIN = "u_ton";
@@ -41,6 +43,13 @@ const PROBE = new Proxy({}, {
   },
 });
 
+beforeAll(() => registerConnectors([stubConnector()]));
+afterAll(() => resetConnectors());
+
+function isNative(entry: ToolSurfaceEntry): boolean {
+  return (NATIVE_CONNECTORS as readonly string[]).includes(entry.connector);
+}
+
 const touched: { role: RoleId; tool: string }[] = [];
 const killedHere: string[] = [];
 
@@ -69,8 +78,12 @@ function withoutOverride(role: RoleId, tool: ToolSurfaceEntry["name"]): boolean 
 
 describe("tool surface", () => {
   test("the native tools keep the names, connectors, tiers and roles they had before connectors", () => {
-    const actual = toolSurface().map((entry) => [entry.name, entry.connector, entry.tier, rolesLabel(entry)]);
+    const actual = toolSurface().filter(isNative).map((entry) => [entry.name, entry.connector, entry.tier, rolesLabel(entry)]);
     expect(actual).toEqual(NATIVE_SURFACE_BEFORE_CONNECTORS.map((row) => [...row]));
+  });
+
+  test("the surface carries connector tools next to the native ones", () => {
+    expect(toolSurface().filter((entry) => !isNative(entry)).length).toBeGreaterThan(0);
   });
 
   test("every entry has a Thai label, a description and an executable", () => {
@@ -130,6 +143,16 @@ describe("every tool × every role", () => {
     }
   });
 
+  test("switching its connector off takes it away from every role", () => {
+    for (const entry of toolSurface()) {
+      if (!connectorEnabled(entry.connector)) continue;
+      setConnectorEnabled(entry.connector, false, ADMIN);
+      const leaked = ROLE_IDS.filter((role) => toolsFor(liveAccessFor(memberOf(role))).includes(entry.name));
+      setConnectorEnabled(entry.connector, true, ADMIN);
+      expect({ tool: entry.name, leaked }).toEqual({ tool: entry.name, leaked: [] });
+    }
+  });
+
   test("every call leaves an audit row, even one that fails", async () => {
     const access: AccessContext = liveAccessFor(memberOf("it_admin"));
     for (const entry of toolSurface()) {
@@ -137,7 +160,7 @@ describe("every tool × every role", () => {
       const before = new Set(auditLog().all().map((row) => row.id));
       await expect(runWithAccess(access, () => execute(PROBE, {}))).rejects.toThrow("surface probe");
       const written = auditLog().all().filter((row) => !before.has(row.id));
-      expect(written.map((row) => [row.tool, row.decision])).toEqual([[entry.name, "deny"]]);
+      expect(written.map((row) => [row.tool, row.connector, row.decision])).toEqual([[entry.name, entry.connector, "deny"]]);
       for (const row of written) auditLog().remove(row.id);
     }
   });

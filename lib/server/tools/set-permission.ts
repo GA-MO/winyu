@@ -10,7 +10,7 @@ export const setPermissionTool = defineTool({
   tier: "destructive",
   roles: ["it_admin"],
   description:
-    "Change what one role may see or do, for every user in that role, effective on their next question. kind 'metric': key is a metric id from list_metrics, value 'full' (sees all), 'masked' (values shown as ***) or 'none' (cannot see it). kind 'tool': key is a tool name, value 'allow' or 'deny'. Roles: ceo, cfo, sales_director, sales_rsm (ผู้จัดการขายภาค), sales_rep (พนักงานขาย), marketing_lead, supply_planner, finance_analyst, hr_manager, it_admin. One change per call; call it once per role when the admin names several. IT administrators only; the admin approves it first.",
+    "Change what one role may see or do, for every user in that role, effective on their next question. kind 'metric': key is a metric id from list_metrics, value 'full' (sees all), 'masked' (values shown as ***) or 'none' (cannot see it). kind 'tool': key is a tool name, value 'allow' or 'deny'. kind 'field': key is a connector field '<connector>.<field>' as the admin's access page lists it, value 'full', 'masked' or 'none'. Roles: ceo, cfo, sales_director, sales_rsm (ผู้จัดการขายภาค), sales_rep (พนักงานขาย), marketing_lead, supply_planner, finance_analyst, hr_manager, it_admin. One change per call; call it once per role when the admin names several. IT administrators only; the admin approves it first.",
   input: setPermissionInputSchema,
   execute: async (input: z.infer<typeof setPermissionInputSchema>) => {
     const change = applyPermissionChange(input, currentAccess().userId);

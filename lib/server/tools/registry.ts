@@ -1,5 +1,8 @@
-import type { NativeToolName, RoleId, ToolName, ToolSurfaceEntry } from "@/lib/contracts";
+import type { ConnectorDef, NativeToolName, RoleId, ToolName, ToolSurfaceEntry } from "@/lib/contracts";
 import { toolRolesInclude } from "@/lib/contracts";
+import { mcpConnectors } from "@/lib/server/connectors";
+import { nativeConnectors } from "@/lib/server/connectors/native";
+import type { ConnectorField } from "@/lib/server/connectors/types";
 import type { CopTool } from "./define";
 import { queryMetricTool } from "./query-metric";
 import { listMetricsTool } from "./list-metrics";
@@ -50,7 +53,36 @@ const NATIVE_TOOLS: { [Name in NativeToolName]: CopTool<Name> } = {
 };
 
 function allTools(): CopTool[] {
-  return Object.values(NATIVE_TOOLS);
+  return [...Object.values(NATIVE_TOOLS), ...mcpConnectors().flatMap((connector) => connector.tools)];
+}
+
+/** Every system tools reach: Cop's own ports first, then each MCP connector, in the order the admin groups them. */
+export function connectors(): ConnectorDef[] {
+  return [...nativeConnectors(), ...mcpConnectors().map((connector) => connector.def)];
+}
+
+export type ConnectorGroup = { connector: ConnectorDef; tools: ToolSurfaceEntry[] };
+
+/** The surface grouped under the connector each tool comes through, leaving out connectors with no tools. */
+export function surfaceByConnector(): ConnectorGroup[] {
+  const surface = toolSurface();
+  return connectors()
+    .map((connector) => ({ connector, tools: surface.filter((entry) => entry.connector === connector.id) }))
+    .filter((group) => group.tools.length > 0);
+}
+
+export function connectorLabel(id: string): string {
+  return connectors().find((connector) => connector.id === id)?.labelTh ?? id;
+}
+
+/** The names of every tool one connector puts on the surface. */
+export function toolsOfConnector(connector: string): ToolName[] {
+  return toolSurface().filter((entry) => entry.connector === connector).map((entry) => entry.name);
+}
+
+/** Every connector field only some roles see in full, keyed `${connector}.${field}`. */
+export function connectorFields(): ConnectorField[] {
+  return mcpConnectors().flatMap((connector) => connector.fields);
 }
 
 /** Every tool Cop can call, in the order the admin lists them: the one list the policy, the overrides, the kill switch and the audit read. */
@@ -79,4 +111,9 @@ export function defaultToolsOf(role: RoleId): ToolName[] {
 /** The Thai label the admin and the audit show for a tool; the raw name for one no longer on the surface. */
 export function toolLabel(name: string): string {
   return surfaceEntry(name)?.labelTh ?? name;
+}
+
+/** The Thai label the admin shows for a connector field; the raw key for one no longer declared. */
+export function fieldLabel(key: string): string {
+  return connectorFields().find((field) => field.key === key)?.labelTh ?? key;
 }

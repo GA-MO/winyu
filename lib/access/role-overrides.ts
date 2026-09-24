@@ -1,5 +1,5 @@
 import type { MetricId, RoleId, ToolName } from "@/lib/contracts";
-import { defaultToolsOf, surfaceEntry, toolSurface } from "@/lib/server/tools/registry";
+import { connectorFields, defaultToolsOf, surfaceEntry, toolSurface } from "@/lib/server/tools/registry";
 import { collection } from "@/lib/server/store/json-store";
 import { ROLE_POLICIES } from "./policies";
 
@@ -9,7 +9,8 @@ export type Visibility = "full" | "masked" | "none";
 
 export type MetricOverride = { id: string; role: RoleId; kind: "metric"; key: MetricId; visibility: Visibility; by: string; at: string };
 export type ToolOverride = { id: string; role: RoleId; kind: "tool"; key: ToolName; allowed: boolean; by: string; at: string };
-export type RoleOverride = MetricOverride | ToolOverride;
+export type FieldOverride = { id: string; role: RoleId; kind: "field"; key: string; visibility: Visibility; by: string; at: string };
+export type RoleOverride = MetricOverride | ToolOverride | FieldOverride;
 
 export type RolePermissions = { metricAcl: Record<MetricId, Visibility>; toolAllow: ToolName[] };
 
@@ -53,6 +54,7 @@ export function permissionsFor(role: RoleId): RolePermissions {
   const metricAcl = { ...policy.metricAcl };
   const tools = new Set<ToolName>(defaultToolsOf(role));
   for (const entry of store().where((item) => item.role === role)) {
+    if (entry.kind === "field") continue;
     if (entry.kind === "metric") metricAcl[entry.key] = entry.visibility;
     else if (entry.allowed && isGrantable(role, entry.key)) tools.add(entry.key);
     else tools.delete(entry.key);
@@ -80,6 +82,28 @@ export function setRoleTool(role: RoleId, tool: ToolName, allowed: boolean, by: 
 /** Moves one role's view of a metric to the next level: full → masked → none → full. */
 export function cycleMetricVisibility(role: RoleId, metric: MetricId, by: string): Visibility {
   return setMetricVisibility(role, metric, NEXT_VISIBILITY[permissionsFor(role).metricAcl[metric]], by);
+}
+
+function defaultFieldVisibility(role: RoleId, key: string): Visibility {
+  return connectorFields().find((field) => field.key === key)?.defaultFor(role) ?? "none";
+}
+
+/** How a role sees one connector field (`${connector}.${field}`) right now; a field no connector declares is hidden. */
+export function fieldVisibilityOf(role: RoleId, key: string): Visibility {
+  const entry = overrideFor(role, "field", key);
+  return entry?.kind === "field" ? entry.visibility : defaultFieldVisibility(role, key);
+}
+
+/** Sets one role's view of a connector field; at the connector's default, the override is dropped. */
+export function setFieldVisibility(role: RoleId, key: string, visibility: Visibility, by: string): Visibility {
+  const id = idOf(role, "field", key);
+  if (visibility === defaultFieldVisibility(role, key)) store().remove(id);
+  else store().put({ id, role, kind: "field", key, visibility, by, at: now() });
+  return visibility;
+}
+
+export function cycleFieldVisibility(role: RoleId, key: string, by: string): Visibility {
+  return setFieldVisibility(role, key, NEXT_VISIBILITY[fieldVisibilityOf(role, key)], by);
 }
 
 export function toggleRoleTool(role: RoleId, tool: ToolName, by: string): boolean {

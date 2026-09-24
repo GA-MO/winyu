@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { cn } from "vexa/lib/utils";
 import type { AuditEntry } from "@/lib/contracts";
-import { toolLabel, toolSurface } from "@/lib/server/tools/registry";
+import { connectorLabel, connectors, toolLabel, toolSurface } from "@/lib/server/tools/registry";
 import { USERS, findUser } from "@/lib/data/entities/users";
 import { TH } from "@/lib/i18n/th";
-import { auditEntries } from "@/lib/server/usage";
+import { auditConnector, auditEntries, inAuditScope, type AuditFilter } from "@/lib/server/usage";
 import { auditLog } from "@/lib/server/audit";
 import { Avatar, EmptyLine, FOCUS, GHOST, INK, Panel, Pill, Select, stamp, type Tone } from "./parts";
 
@@ -13,12 +13,18 @@ const DECISIONS: readonly AuditEntry["decision"][] = ["allow", "deny", "masked"]
 const DECISION_TONE: Record<AuditEntry["decision"], Tone> = { allow: "success", deny: "danger", masked: "warning" };
 const COPY = TH.admin.auditTab;
 
-export type AuditFilterParams = { userId: string | null; tool: string | null; decision: AuditEntry["decision"] | null };
+export type AuditFilterParams = AuditFilter;
+
+function connectorOf(entry: AuditEntry): string | null {
+  const id = auditConnector(entry);
+  return id ? connectorLabel(id) : null;
+}
 
 function hrefWith(filter: AuditFilterParams, decision: AuditEntry["decision"] | null): string {
   const params = new URLSearchParams({ tab: "audit" });
   if (filter.userId) params.set("user", filter.userId);
   if (filter.tool) params.set("tool", filter.tool);
+  if (filter.connector) params.set("connector", filter.connector);
   if (decision) params.set("decision", decision);
   return `/admin?${params.toString()}`;
 }
@@ -50,7 +56,7 @@ function DecisionChips({ filter, counts }: { filter: AuditFilterParams; counts: 
 
 export function AuditTab({ filter }: { filter: AuditFilterParams }) {
   const all = auditLog().all();
-  const scoped = all.filter((entry) => (!filter.userId || entry.userId === filter.userId) && (!filter.tool || entry.tool === filter.tool));
+  const scoped = all.filter((entry) => inAuditScope(entry, filter));
   const counts = { all: scoped.length, allow: 0, deny: 0, masked: 0 };
   for (const entry of scoped) counts[entry.decision] += 1;
   const entries = auditEntries(filter, AUDIT_LIMIT);
@@ -69,6 +75,14 @@ export function AuditTab({ filter }: { filter: AuditFilterParams }) {
               </option>
             ))}
           </Select>
+          <Select name="connector" defaultValue={filter.connector ?? ""} aria-label={TH.admin.connectors.filter}>
+            <option value="">{`${TH.admin.connectors.filter}: ${TH.admin.filters.all}`}</option>
+            {connectors().map((connector) => (
+              <option key={connector.id} value={connector.id}>
+                {connector.labelTh}
+              </option>
+            ))}
+          </Select>
           <Select name="tool" defaultValue={filter.tool ?? ""} aria-label={TH.admin.filters.tool}>
             <option value="">{`${TH.admin.filters.tool}: ${TH.admin.filters.all}`}</option>
             {toolSurface().map((entry) => (
@@ -80,7 +94,7 @@ export function AuditTab({ filter }: { filter: AuditFilterParams }) {
           <button type="submit" className={INK}>
             {TH.admin.filters.apply}
           </button>
-          {filter.userId || filter.tool || filter.decision ? (
+          {filter.userId || filter.tool || filter.connector || filter.decision ? (
             <Link href="/admin?tab=audit" className={GHOST}>
               {TH.admin.filters.clear}
             </Link>
@@ -108,7 +122,7 @@ export function AuditTab({ filter }: { filter: AuditFilterParams }) {
                   </div>
                   <div className="hidden min-w-0 sm:block">
                     <p className="truncate text-sm">{toolLabel(entry.tool)}</p>
-                    <p className="truncate font-mono text-[11px] text-muted-foreground">{entry.tool}</p>
+                    <p className="truncate font-mono text-[11px] text-muted-foreground">{[connectorOf(entry), entry.tool].filter(Boolean).join(" · ")}</p>
                   </div>
                   <div className="hidden text-right text-[11px] tabular-nums text-muted-foreground sm:block">
                     <p>{COPY.rows(entry.rowsReturned)}</p>

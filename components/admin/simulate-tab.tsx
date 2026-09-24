@@ -8,7 +8,7 @@ import { USERS, findUser } from "@/lib/data/entities/users";
 import { metricLabel } from "@/lib/dashboard/metric-display";
 import { TH } from "@/lib/i18n/th";
 import { Avatar, INK, Panel, Pill, Select, type Tone } from "./parts";
-import { toolLabel } from "@/lib/server/tools/registry";
+import { surfaceByConnector } from "@/lib/server/tools/registry";
 
 const SIMULATE_ROWS = 6;
 const SIMULATE_RANGE = { from: "2026-09-01", to: "2026-09-22" };
@@ -120,14 +120,23 @@ export async function SimulateTab({ userId, metric }: { userId: string; metric: 
             )}
           </Panel>
 
-          <Panel title={TH.admin.simulateTools}>
-            <div className="flex flex-wrap gap-1.5">
-              {access.toolAllow.map((name) => (
-                <span key={name} className="rounded-full bg-bubble px-2.5 py-1 text-xs text-accent-foreground">
-                  {toolLabel(name)}
-                </span>
-              ))}
-            </div>
+          <Panel title={TH.admin.simulateTools} bodyClassName="flex flex-col gap-3">
+            {surfaceByConnector().map(({ connector, tools }) => {
+              const callable = tools.filter((entry) => access.toolAllow.includes(entry.name));
+              if (callable.length === 0) return null;
+              return (
+                <div key={connector.id}>
+                  <p className="pb-1.5 text-[11px] font-semibold tracking-wide text-muted-foreground">{connector.labelTh}</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {callable.map((entry) => (
+                      <span key={entry.name} className="rounded-full bg-bubble px-2.5 py-1 text-xs text-accent-foreground">
+                        {entry.labelTh}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
           </Panel>
         </div>
 

@@ -1,5 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { accessFor } from "@/lib/access/policies";
+import { liveAccessFor } from "@/lib/access/enforce";
+import { setRoleTool } from "@/lib/access/role-overrides";
 import type { AccessContext } from "@/lib/contracts";
 import { findUser } from "@/lib/data/entities/users";
 import { auditLog } from "@/lib/server/audit";
@@ -45,6 +47,17 @@ describe("handlerFor", () => {
   test("memoizes one handler per role", () => {
     expect(handlerFor(accessOf("u_anucha"))).toBe(handlerFor(accessOf("u_nattaya")));
     expect(handlerFor(accessOf("u_anucha"))).not.toBe(handlerFor(accessOf("u_thana")));
+  });
+
+  test("an admin override gives the role a handler with the new tool set on the next question", () => {
+    const krit = findUser("u_krit");
+    if (!krit) throw new Error("missing u_krit");
+    const before = handlerFor(liveAccessFor(krit));
+    setRoleTool("sales_rep", "list_courses", false, "u_ton");
+    const after = handlerFor(liveAccessFor(krit));
+    setRoleTool("sales_rep", "list_courses", true, "u_ton");
+    expect(after).not.toBe(before);
+    expect(handlerFor(liveAccessFor(krit))).toBe(before);
   });
 
   test("an RSM asking outside its region gets PERMISSION_DENIED and is told so", async () => {

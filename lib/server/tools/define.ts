@@ -24,7 +24,7 @@ export function defineTool<Name extends NativeToolName, Input extends z.ZodType>
     description: spec.description,
     inputSchema: spec.input,
     ...(spec.tier === "read" ? {} : { needsApproval: true }),
-    execute: withAudit(spec.name, spec.execute),
+    execute: withAudit(spec.name, spec.connector, spec.execute),
   } as unknown as Parameters<typeof tool>[0]) as Tool;
   return { entry, tool: executable };
 }

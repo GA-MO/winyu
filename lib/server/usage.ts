@@ -5,6 +5,7 @@ import { threads } from "@/lib/server/threads-read";
 import { turnsOf } from "@/lib/server/threads";
 import { models } from "@/lib/server/models";
 import { rateOf } from "@/lib/server/usage-meter";
+import { surfaceEntry } from "@/lib/server/tools/registry";
 
 const DAYS = 14;
 const TOP_INTENTS = 8;
@@ -113,14 +114,25 @@ export function usageSummary(): UsageSummary {
   };
 }
 
-export type AuditFilter = { userId: string | null; tool: string | null; decision: AuditEntry["decision"] | null };
+export type AuditFilter = { userId: string | null; tool: string | null; connector: string | null; decision: AuditEntry["decision"] | null };
+
+/** The connector an audit row went through; rows written before connectors were recorded fall back to the tool's connector today. */
+export function auditConnector(entry: AuditEntry): string | null {
+  return entry.connector ?? surfaceEntry(entry.tool)?.connector ?? null;
+}
+
+/** Whether an audit row matches the admin's user, tool and connector filter, before the decision is picked. */
+export function inAuditScope(entry: AuditEntry, filter: AuditFilter): boolean {
+  if (filter.userId && entry.userId !== filter.userId) return false;
+  if (filter.tool && entry.tool !== filter.tool) return false;
+  return !filter.connector || auditConnector(entry) === filter.connector;
+}
 
 /** The audit trail newest first, narrowed by the console's filters. */
 export function auditEntries(filter: AuditFilter, limit: number): AuditEntry[] {
   return auditLog()
     .all()
-    .filter((entry) => !filter.userId || entry.userId === filter.userId)
-    .filter((entry) => !filter.tool || entry.tool === filter.tool)
+    .filter((entry) => inAuditScope(entry, filter))
     .filter((entry) => !filter.decision || entry.decision === filter.decision)
     .sort((left, right) => right.at.localeCompare(left.at))
     .slice(0, limit);

@@ -1,6 +1,7 @@
 import { stepCountIs } from "ai";
 import { createVexaHandler, type PersonaContext } from "vexa/server";
-import type { AccessContext, RoleId } from "@/lib/contracts";
+import type { AccessContext } from "@/lib/contracts";
+import { toolsFor } from "@/lib/access/enforce";
 import { findUser } from "@/lib/data/entities/users";
 import { models } from "@/lib/server/models";
 import { currentAccess } from "@/lib/server/request-context";
@@ -12,7 +13,11 @@ const MAX_STEPS = 6;
 
 type ChatHandler = ReturnType<typeof createVexaHandler>;
 
-const handlers = new Map<RoleId, ChatHandler>();
+const handlers = new Map<string, ChatHandler>();
+
+function keyOf(access: AccessContext): string {
+  return `${access.role}|${toolsFor(access).join(",")}`;
+}
 
 function build(access: AccessContext): ChatHandler {
   return createVexaHandler({
@@ -29,12 +34,13 @@ function build(access: AccessContext): ChatHandler {
   });
 }
 
-/** The chat handler of one role, memoized: the tool set depends on the role, the persona on the request context. */
+/** The chat handler of one role and its live tool set, memoized: an admin override, kill or connector switch builds a new one on the next question. */
 export function handlerFor(access: AccessContext): ChatHandler {
-  const cached = handlers.get(access.role);
+  const key = keyOf(access);
+  const cached = handlers.get(key);
   if (cached) return cached;
   const handler = build(access);
-  handlers.set(access.role, handler);
+  handlers.set(key, handler);
   return handler;
 }
 

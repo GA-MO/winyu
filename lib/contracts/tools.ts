@@ -16,6 +16,11 @@ export type ToolName = NativeToolName | ConnectorToolName;
 export const NATIVE_CONNECTORS = ["warehouse", "hris", "lms", "leave", "sites", "calendar", "mail", "cop"] as const;
 export type NativeConnectorId = (typeof NATIVE_CONNECTORS)[number];
 
+export type ConnectorKind = "native" | "mcp";
+
+/** A system Cop reaches tools through: its own ports (native) or a remote MCP server; what the admin groups tools under. */
+export type ConnectorDef = { id: string; labelTh: string; sourceSystemTh: string; kind: ConnectorKind };
+
 /** What the admin, the policy and the audit know about one tool; the executable lives on the server. */
 export type ToolSurfaceEntry = { name: ToolName; connector: string; tier: ToolTier; roles: readonly RoleId[] | "all"; labelTh: string; bodyTh: string };
 
@@ -67,7 +72,7 @@ export const createHandoffInputSchema = z.object({
 export const sendEmailInputSchema = z.object({ toUserId: z.string().min(1), subject: z.string().min(1), body: z.string().min(1) });
 export const pinWidgetInputSchema = z.object({ title: z.string().min(1), kind: widgetKindSchema, query: metricQuerySchema });
 export const runJobInputSchema = z.object({ job: z.enum(JOBS) });
-export const PERMISSION_KINDS = ["metric", "tool"] as const;
+export const PERMISSION_KINDS = ["metric", "tool", "field"] as const;
 export const PERMISSION_VALUES = ["full", "masked", "none", "allow", "deny"] as const;
 export const setPermissionInputSchema = z.object({
   role: z.enum(ROLE_IDS),
