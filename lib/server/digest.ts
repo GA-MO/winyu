@@ -4,9 +4,7 @@ import { USERS } from "@/lib/data/entities/users";
 import { TH } from "@/lib/i18n/th";
 import { digests, type DigestSent } from "./agent/collections";
 import { factsFor, narrateDigest, type DigestLine, type Narrator } from "./digest-narrator";
-import { feedFor, isTask, onePerStory } from "./feed";
-
-const isGoodNews = (item: FeedItem) => item.source === "alert" && item.tone === "success";
+import { feedFor, isGoodNewsItem as isGoodNews, isTask, onePerStory } from "./feed";
 import { ports } from "./ports";
 
 const MAX_LINES = 5;

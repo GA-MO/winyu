@@ -1,13 +1,13 @@
 "use client";
 
-import { BriefcaseBusiness, Check, Clock, Eye, EyeOff, Sparkles, ListChecks, MapPin, MoreHorizontal, Send, ThumbsUp, TriangleAlert, UserRound, type LucideIcon } from "lucide-react";
+import { BriefcaseBusiness, Check, Clock, Eye, EyeOff, Megaphone, Server, Sparkles, ListChecks, MapPin, MoreHorizontal, Send, ThumbsUp, TriangleAlert, UserRound, type LucideIcon } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "vexa/ui/dropdown-menu";
 import { cn } from "vexa/lib/utils";
 import type { FeedAction, FeedItem, FeedSource, FeedTone, NextAction } from "@/lib/contracts";
 import { TH } from "@/lib/i18n/th";
 
 const FEED_ENDPOINT = "/api/feed";
-const SOURCE_ICONS: Record<FeedSource, LucideIcon> = { alert: TriangleAlert, packet: Send, visit: MapPin, person: UserRound, opening: BriefcaseBusiness, watch: Eye };
+const SOURCE_ICONS: Record<FeedSource, LucideIcon> = { alert: TriangleAlert, packet: Send, visit: MapPin, person: UserRound, opening: BriefcaseBusiness, watch: Eye, campaign: Megaphone, system: Server };
 const TONE_PILL: Record<FeedTone, string> = {
   danger: "bg-danger/10 text-danger",
   warning: "bg-warning/10 text-warning",

@@ -1,8 +1,8 @@
 import type { Dim, MetricId, Region } from "@/lib/contracts";
 import { runSeries } from "@/lib/data/query";
-import { CAMPAIGNS } from "@/lib/data/entities/marketing";
+import { CAMPAIGNS, type Campaign } from "@/lib/data/entities/marketing";
 import { NORTHERN_PROVINCE_IDS, pm25Series } from "@/lib/data/entities/external";
-import { agentById } from "@/lib/data/entities/agents";
+import { AGENTS, agentById } from "@/lib/data/entities/agents";
 import { provinceById } from "@/lib/data/entities/org";
 import { PLANTS, dcById } from "@/lib/data/entities/supply";
 import { skuById } from "@/lib/data/entities/products";
@@ -12,7 +12,8 @@ import { GENERATOR_DICTIONARY } from "@/lib/data/master";
 import { TH } from "@/lib/i18n/th";
 import { pearson } from "./stats";
 
-export type Explanation = { hypothesis: string; verifySteps: [string, string]; explained: boolean };
+/** `campaignId`: the campaign a rise was put down to, so its owner hears how it went. */
+export type Explanation = { hypothesis: string; verifySteps: [string, string]; explained: boolean; campaignId?: string };
 
 export type Context = {
   metric: MetricId;
@@ -29,6 +30,9 @@ const PM25_CORRELATION = 0.6;
 const PM25_LEAD_DAYS = 21;
 const NORMAL_WEEKS = 4;
 const DAYS_PER_WEEK = 7;
+const AR_DRIVERS = 3;
+const AR_DRIVER_MIN_PCT = 25;
+const PERCENT = 100;
 const PROMOTED_METRICS: ReadonlySet<MetricId> = new Set<MetricId>(["sell_out_volume", "net_sales_volume"]);
 const FLAT_RATIO = 0.12;
 const SILENT_SHARE = 0.25;
@@ -115,7 +119,7 @@ function pm25Match(context: Context): boolean {
 }
 
 /** The campaign that explains a rise in what it sells, in its brands, regions, channels and dates; a fall or another metric is never put down to a promotion. */
-function campaignCovering(context: Context): string | null {
+function campaignCovering(context: Context): Campaign | null {
   if (context.direction !== "up" || !PROMOTED_METRICS.has(context.metric)) return null;
   const brand = context.dims.brand ?? (context.dims.sku ? skuById(context.dims.sku)?.brand : null);
   const region = context.region;
@@ -127,7 +131,24 @@ function campaignCovering(context: Context): string | null {
     if (channel && campaign.channels !== "all" && !campaign.channels.includes(channel as never)) return false;
     return true;
   });
-  return overlap ? overlap.nameTh : null;
+  return overlap ?? null;
+}
+
+function yearBefore(iso: string): string {
+  return `${Number(iso.slice(0, 4)) - 1}${iso.slice(4)}`;
+}
+
+/** The agents in a region whose overdue balance grew most against the same period last year, strongest first, with the growth in whole percent. */
+function arDrivers(region: string, window: { from: string; to: string }): { name: string; growth: number }[] {
+  return AGENTS.filter((agent) => agent.region === region)
+    .map((agent) => {
+      const now = totalOf("ar_overdue", { agent: agent.id }, window.from, window.to);
+      const before = totalOf("ar_overdue", { agent: agent.id }, yearBefore(window.from), yearBefore(window.to));
+      return { name: agent.nameTh, growth: before > 0 ? Math.round(((now - before) / before) * PERCENT) : 0 };
+    })
+    .filter((driver) => driver.growth >= AR_DRIVER_MIN_PCT)
+    .sort((left, right) => right.growth - left.growth)
+    .slice(0, AR_DRIVERS);
 }
 
 function steps(first: string, second: string): [string, string] {
@@ -183,8 +204,9 @@ export function explain(context: Context): Explanation {
   }
 
   if (context.metric === "ar_overdue" && context.direction === "up") {
+    const drivers = context.dims.region && !context.dims.agent ? arDrivers(context.dims.region, context.window) : [];
     return {
-      hypothesis: TH.engine.hypothesis.arUp(scope),
+      hypothesis: drivers.length > 0 ? TH.engine.hypothesis.arUpDrivers(scope, drivers) : TH.engine.hypothesis.arUp(scope),
       verifySteps: steps(TH.engine.verify.arOfScope(scope), TH.engine.verify.orderHistory(scope)),
       explained: false,
     };
@@ -216,9 +238,10 @@ export function explain(context: Context): Explanation {
 
   if (promo) {
     return {
-      hypothesis: TH.engine.hypothesis.promotion(promo),
+      hypothesis: TH.engine.hypothesis.promotion(promo.nameTh),
       verifySteps: steps(TH.engine.verify.campaignEffect(scope), TH.engine.verify.lastYear(scope)),
       explained: true,
+      campaignId: promo.id,
     };
   }
 

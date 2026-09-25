@@ -250,8 +250,9 @@ describe("an alert reaches people by the line of command", () => {
       const alertIds = new Set((await feedFor(access, NOW)).flatMap((item) => (item.alertId ? [item.alertId] : [])));
       const shown = openAlertsFor(access).filter((alert) => alertIds.has(alert.id));
       const mayWarn = new Set(USERS.filter((user) => user.managerId === userId).map((user) => user.id));
-      expect(shown.filter((alert) => alert.severity !== "P1" && alert.ownerUserId !== userId && !mayWarn.has(alert.ownerUserId))).toEqual([]);
-      expect(shown.filter((alert) => alert.severity === "P3" && alert.ownerUserId !== userId)).toEqual([]);
+      const owns = (alert: (typeof shown)[number]) => alert.ownerUserId === userId || (alert.alsoOwnerIds ?? []).includes(userId);
+      expect(shown.filter((alert) => alert.severity !== "P1" && !owns(alert) && !mayWarn.has(alert.ownerUserId))).toEqual([]);
+      expect(shown.filter((alert) => alert.severity === "P3" && !owns(alert))).toEqual([]);
     }
   });
 });

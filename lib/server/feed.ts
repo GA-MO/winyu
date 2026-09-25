@@ -17,6 +17,8 @@ import { ambientFor, visitsFor } from "@/lib/server/dashboard";
 import { loadDictionary } from "@/lib/server/master-data";
 import { actionsForAlert } from "@/lib/server/next-actions";
 import { peopleFeedFor } from "@/lib/server/people-feed";
+import { campaignFeedFor } from "@/lib/server/campaign-feed";
+import { systemFeedFor } from "@/lib/server/system-feed";
 import { recordAction } from "@/lib/server/threads";
 
 const DAY_MS = 86_400_000;
@@ -38,8 +40,9 @@ function storySubject(alert: Alert): string {
   return dim ? `${dim}:${alert.dims[dim]}` : "all";
 }
 
+/** A movement put down to a campaign is that campaign's story; otherwise the metric and its main subject. */
 function storyOf(alert: Alert): string {
-  return `${alert.metric}|${storySubject(alert)}`;
+  return alert.campaignId ? `campaign:${alert.campaignId}` : `${alert.metric}|${storySubject(alert)}`;
 }
 
 /** A watch that fired on a slice an open alert already tells is the same story, so the two make one row. */
@@ -98,7 +101,7 @@ function alertItem(access: AccessContext, alert: Alert, dictionary: Dictionary, 
     rank: ALERT_RANK[alert.severity],
     tone: toneOfAlert(alert),
     label: row.scopeLabel,
-    reason: gap ?? row.severityLabel,
+    reason: alert.metric === "days_of_cover" ? TH.feed.coverLeft(alert.observed.toFixed(1)) : (gap ?? row.severityLabel),
     detail: detailOf(access, alert, dictionary, context, metric),
     prompt: TH.landing.askAbout(row.scopeLabel),
     alertId: alert.id,
@@ -200,6 +203,8 @@ export async function feedFor(access: AccessContext, now = Date.now()): Promise<
     ...openPacketsFor(access).map(packetItem),
     ...visitItems(stops, weekKeyOfIso(new Date(now).toISOString().slice(0, 10))),
     ...(await peopleFeedFor(access)),
+    ...(await campaignFeedFor(access)),
+    ...systemFeedFor(access, now),
     ...watchesOf(access.userId).filter((watch) => watch.state === "triggered").map((watch) => watchItem(watch, watchStory(watch, relevant))),
   ];
   const hidden = hiddenKeys(access.userId, now);
@@ -215,12 +220,18 @@ export async function feedFor(access: AccessContext, now = Date.now()): Promise<
 
 /** A matter to act on: everything on the feed except low-severity alerts, which are movements or good news to know about, not tasks. */
 export function isTask(item: FeedItem): boolean {
-  return item.source !== "alert" || (item.tone !== "info" && item.tone !== "success");
+  if (item.tone === "success") return false;
+  return item.source !== "alert" || item.tone !== "info";
 }
 
 /** Good news the user owns, one row per story: what went right in their patch, kept apart from what needs doing. */
 export async function goodNewsFor(access: AccessContext, now = Date.now()): Promise<FeedItem[]> {
-  return onePerStory((await feedFor(access, now)).filter((item) => item.source === "alert" && item.tone === "success"));
+  return onePerStory((await feedFor(access, now)).filter(isGoodNewsItem));
+}
+
+/** A good-news row: an alert or a campaign that went the way its owner wanted. */
+export function isGoodNewsItem(item: FeedItem): boolean {
+  return item.tone === "success" && (item.source === "alert" || item.source === "campaign");
 }
 
 /** The inbox's "to do" tab: the tasks on the feed, one row per story. */

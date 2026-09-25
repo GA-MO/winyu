@@ -119,7 +119,6 @@ const HR_SEEDS: WidgetSeed[] = [
 ];
 
 const IT_SEEDS: WidgetSeed[] = [
-  seed({ key: "alerts", title: "ความผิดปกติของระบบข้อมูล", kind: "alert_list", metric: "sell_out_volume", dims: ["region"], range: LAST_4_WEEKS, grain: "week", compare: "prev_period" }),
   seed({ key: "mape", title: "ความคลาดเคลื่อนพยากรณ์", kind: "metric", metric: "forecast_mape" }),
   seed({ key: "headcount_dept", title: "จำนวนผู้ใช้ตามฝ่าย", kind: "bar", metric: "headcount", dims: ["department"] }),
 ];

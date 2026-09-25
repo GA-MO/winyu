@@ -80,9 +80,11 @@ export function layoutFor(access: AccessContext): DashboardLayout {
   return save(seedLayout(access));
 }
 
+/** A stored layout kept in step with the role template: starter cards follow the template's current definition, and a starter card the template dropped goes with it; cards the user pinned or accepted stay. */
 function withTemplateReasons(layout: DashboardLayout, access: AccessContext): DashboardLayout {
   const seeds = new Map(templateFor(access).map((seed) => [`w_${access.userId}_${seed.key}`, seed]));
-  const widgets = layout.widgets.map((widget) => {
+  const current = layout.widgets.filter((widget) => widget.source !== "role_template" || seeds.has(widget.id));
+  const widgets = current.map((widget) => {
     const seed = widget.source === "role_template" ? seeds.get(widget.id) : undefined;
     return seed ? { ...widget, title: seed.title, kind: seed.kind, query: seed.query, sortBy: seed.sortBy, reason: seed.reason } : widget;
   });

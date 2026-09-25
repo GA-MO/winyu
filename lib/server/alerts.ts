@@ -104,7 +104,7 @@ export function unopenedDays(alert: Alert, context: RelevanceContext): number | 
  * the owner's manager hears of it when it is critical or left unopened; anyone further up, or with the metric on their dashboard, hears only of critical ones.
  */
 export function relevanceOf(alert: Alert, access: AccessContext, context: RelevanceContext = relevanceContext(access)): AlertRelevance {
-  if (alert.ownerUserId === access.userId) return "mine";
+  if (alert.ownerUserId === access.userId || alert.alsoOwnerIds?.includes(access.userId)) return "mine";
   if (context.reports.has(alert.ownerUserId) && (alert.severity === "P1" || (alert.severity === "P2" && unopenedDays(alert, context) !== null))) return "escalated";
   if (alert.severity === "P1" && (context.watched.has(alert.metric) || managesUser(access.userId, alert.ownerUserId))) return "watched";
   return "other";

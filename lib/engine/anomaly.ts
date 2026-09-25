@@ -4,6 +4,7 @@ import { responsibleFor } from "@/lib/access/raci";
 import { toneOf } from "@/lib/dashboard/metric-display";
 import { TODAY, addDays } from "@/lib/data/dates";
 import { AGENTS } from "@/lib/data/entities/agents";
+import { campaignById } from "@/lib/data/entities/marketing";
 import { explain, regionOfDims } from "./hypothesis";
 import { DAILY_SCAN, MONTHLY_SCAN, mean, scanFloor, scanSeries } from "./stats";
 import { calendarSkipFor, inLentRegime, isoOfSlot, monthEnd, seriesFor } from "./series";
@@ -47,6 +48,8 @@ export type Detection = {
   ended: boolean;
   parentId: string | null;
   relatedIds: string[];
+  campaignId: string | null;
+  alsoOwnerIds: string[];
 };
 
 export type Thresholds = Record<string, number>;
@@ -99,6 +102,14 @@ export function severityOf(watch: Pick<Watch, "metric" | "lowThreshold">, observ
 
 function ownerOf(metric: MetricId, region: Region | null): string {
   return responsibleFor(metric, region)?.userId ?? "";
+}
+
+/** Who else acts on a movement besides its metric's owner: the owner of the campaign it was put down to, and for money owed, the sales manager who talks to those agents. */
+function alsoOwnersOf(metric: MetricId, region: Region | null, campaignId: string | null): string[] {
+  const owner = ownerOf(metric, region);
+  const campaignOwner = campaignId ? campaignById(campaignId)?.ownerUserId : undefined;
+  const collector = metric === "ar_overdue" ? responsibleFor("net_sales_volume", region)?.userId : undefined;
+  return [...new Set([campaignOwner, collector].filter((id): id is string => Boolean(id) && id !== owner))];
 }
 
 function moreSpecific(candidate: Detection, other: Detection): boolean {
@@ -154,6 +165,8 @@ function mergedStory(parts: Detection[]): Detection {
     verifySteps: explanation.verifySteps,
     explained: explanation.explained,
     ended: parts.every((part) => part.ended),
+    campaignId: explanation.campaignId ?? null,
+    alsoOwnerIds: alsoOwnersOf(lead.metric, region, explanation.campaignId ?? null),
   };
 }
 
@@ -283,6 +296,8 @@ function detectWatch(watch: Watch, thresholds: Thresholds, covered: Set<string>)
       ended: watch.grain === "day" && watch.lowThreshold === null && to < addDays(TODAY, -RESOLVED_AFTER_DAYS),
       parentId: null,
       relatedIds: [],
+      campaignId: explanation.campaignId ?? null,
+      alsoOwnerIds: alsoOwnersOf(watch.metric, region, explanation.campaignId ?? null),
     });
   }
   return found;
@@ -343,5 +358,7 @@ export function toAlert(detection: Detection, previous: Alert | null): Alert {
     dismissCount: previous?.dismissCount ?? 0,
     parentId: detection.parentId,
     relatedIds: detection.relatedIds,
+    campaignId: detection.campaignId,
+    alsoOwnerIds: detection.alsoOwnerIds,
   };
 }

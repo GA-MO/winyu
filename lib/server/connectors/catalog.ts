@@ -23,6 +23,12 @@ export function markReachable(connector: string, reachable: boolean): void {
   healthLog().put({ id: connector, reachable, at: new Date().toISOString() });
 }
 
+/** When the connector was last found unreachable, while it still is; null when it answers or was never tried. */
+export function offlineSince(connector: string): string | null {
+  const entry = healthLog().get(connector);
+  return entry && !entry.reachable ? entry.at : null;
+}
+
 export function connectorHealth(connector: string): ConnectorHealth {
   const entry = healthLog().get(connector);
   if (!entry) return "unknown";
