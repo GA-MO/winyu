@@ -68,7 +68,8 @@ type Outcome = { code?: string; reason?: string };
 
 function outcomeOf(output: unknown): Outcome {
   const result = output as ToolOutput | null;
-  if (!result || typeof result !== "object" || result.ok !== false) return {};
+  if (!result || typeof result !== "object") return {};
+  if (result.ok !== false) return typeof result.code === "string" ? { code: result.code } : {};
   return { code: typeof result.code === "string" ? result.code : undefined, reason: typeof result.error === "string" ? result.error.slice(0, REASON_MAX_CHARS) : undefined };
 }
 

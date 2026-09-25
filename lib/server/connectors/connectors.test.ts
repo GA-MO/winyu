@@ -3,11 +3,11 @@ import type { AccessContext, RoleId } from "@/lib/contracts";
 import { USERS } from "@/lib/data/entities/users";
 import { connectorEnabled, liveAccessFor, setConnectorEnabled, toolsFor } from "@/lib/access/enforce";
 import { fieldVisibilityOf, setFieldVisibility } from "@/lib/access/role-overrides";
-import { auditLog } from "@/lib/server/audit";
+import { auditLog, withAudit } from "@/lib/server/audit";
 import { runWithAccess } from "@/lib/server/request-context";
 import { applyPermissionChange } from "@/lib/server/permissions";
 import { connectors, copTool, toolSurface } from "@/lib/server/tools/registry";
-import { CONNECTOR_UNAVAILABLE } from "./call";
+import { callConnectorTool, CONNECTOR_UNAVAILABLE, NONE_IN_SCOPE, SCOPE_TRIMMED } from "./call";
 import { forgetRemoteTools } from "./catalog";
 import { defineMcpConnector, registerConnectors, resetConnectors } from "./index";
 import { MASKED_VALUE } from "./output";
@@ -15,7 +15,7 @@ import { registerClientFactory, resetClientPool } from "./pool";
 import { probeConnectors, reconcileConnectors } from "./reconcile";
 import { connectorHealth } from "./catalog";
 import { STUB_CONNECTOR_ID, STUB_INJECTED_TEXT, stubConnector, stubServer, type StubServer } from "./stub";
-import type { McpConnectorConfig, McpToolConfig } from "./types";
+import type { ConnectorRow, ConnectorToolBinding, McpConnectorConfig, McpToolConfig } from "./types";
 
 const ADMIN = "u_ton";
 const HISTORY = `${STUB_CONNECTOR_ID}__training_history`;
@@ -233,5 +233,54 @@ describe("reconciling with the server", () => {
     fresh();
     const [drift] = await reconcileConnectors();
     expect(drift).toEqual({ connector: STUB_CONNECTOR_ID, missing: [], unused: ["export_everything"], mismatched: [] });
+  });
+});
+
+describe("what a scoped result tells the model and the audit", () => {
+  const OWN_REGION = "northeast";
+  const binding: ConnectorToolBinding = {
+    name: HISTORY,
+    remoteName: "training_history",
+    tier: "read",
+    fields: [],
+    config: { labelTh: "ประวัติอบรม", roles: "all", scope: [{ kind: "filter", rows: (rows) => rows.filter((row) => row.region === OWN_REGION) }] },
+  };
+  const IDENTITY = { id: STUB_CONNECTOR_ID, labelTh: "LMS", sourceSystemTh: "LMS" };
+
+  function rowsIn(region: string, count: number): ConnectorRow[] {
+    return Array.from({ length: count }, (_, index) => ({ id: `${region}_${index}`, region }));
+  }
+
+  async function answer(rows: ConnectorRow[], summary?: string) {
+    const before = new Set(auditLog().all().map((row) => row.id));
+    const audited = withAudit(HISTORY, STUB_CONNECTOR_ID, (input: unknown) => callConnectorTool(IDENTITY, binding, input, async () => ({ ok: true, output: { rows, summary } })));
+    const result = await runWithAccess(accessOf("u_krit"), () => audited({}));
+    return { result, audit: newAuditRows(before) };
+  }
+
+  test("rows the scope removed are flagged, and the server's own count is not repeated", async () => {
+    const { result } = await answer([...rowsIn(OWN_REGION, 3), ...rowsIn("bkk", 5)], "8 แถว");
+    if (!result.ok) throw new Error("expected rows");
+    expect(result.code).toBe(SCOPE_TRIMMED);
+    expect(result.summary).toBe("ประวัติอบรม 3 แถว");
+  });
+
+  test("the audit keeps the scope code on an allowed call", async () => {
+    const { audit } = await answer([...rowsIn(OWN_REGION, 1), ...rowsIn("bkk", 1)]);
+    expect(audit.map((row) => [row.decision, row.code, row.rowsReturned])).toEqual([["allow", SCOPE_TRIMMED, 1]]);
+  });
+
+  test("an empty answer inside the scope says so", async () => {
+    const { result } = await answer([]);
+    if (!result.ok) throw new Error("expected an empty answer");
+    expect(result.code).toBe(NONE_IN_SCOPE);
+  });
+
+  test("more rows than the model receives are counted as shown of total", async () => {
+    const { result } = await answer(rowsIn(OWN_REGION, 120));
+    if (!result.ok) throw new Error("expected rows");
+    expect(result.rows).toHaveLength(60);
+    expect(result.summary).toBe("ประวัติอบรม 60 จาก 120 แถว");
+    expect(result.code).toBeUndefined();
   });
 });

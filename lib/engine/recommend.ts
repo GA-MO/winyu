@@ -117,8 +117,8 @@ export function scoreIntents(access: AccessContext, now = Date.now(), events?: r
     .sort((left, right) => right.score - left.score);
 }
 
-/** Top learned chips plus the calendar-driven ones, falling back to the role defaults on a cold start. */
-export function quickActionsFrom(access: AccessContext, fallback: QuickAction[], now = Date.now(), events?: readonly ActionEvent[]): QuickAction[] {
+/** Top learned chips plus the calendar-driven ones, falling back to the role defaults on a cold start; a chip `answerable` rejects never takes a slot. */
+export function quickActionsFrom(access: AccessContext, fallback: QuickAction[], now = Date.now(), events?: readonly ActionEvent[], answerable: (action: QuickAction) => boolean = () => true): QuickAction[] {
   const seen = new Set<string>();
   const learned = scoreIntents(access, now, events)
     .filter((scored) => {
@@ -126,18 +126,20 @@ export function quickActionsFrom(access: AccessContext, fallback: QuickAction[],
       seen.add(scored.prompt);
       return true;
     })
-    .slice(0, TOP_LEARNED)
-    .map((scored, index) => ({
-      id: `qa_learned_${index}`,
+    .map((scored): QuickAction => ({
+      id: "",
       label: labelOf(scored, fallback),
       prompt: scored.prompt,
       score: Math.round(scored.score * 100) / 100,
       reason: scored.reason,
       intentKey: scored.intentKey,
-    }));
-  const seasonal = seasonalHints(access, now).slice(0, TOP_SEASONAL);
+    }))
+    .filter(answerable)
+    .slice(0, TOP_LEARNED)
+    .map((action, index) => ({ ...action, id: `qa_learned_${index}` }));
+  const seasonal = seasonalHints(access, now).filter(answerable).slice(0, TOP_SEASONAL);
   const keys = new Set([...learned, ...seasonal].map((action) => action.intentKey));
-  const filler = fallback.filter((action) => !keys.has(action.intentKey));
+  const filler = fallback.filter((action) => answerable(action) && !keys.has(action.intentKey));
   return [...learned, ...seasonal, ...filler].slice(0, TOP_LEARNED + TOP_SEASONAL);
 }
 

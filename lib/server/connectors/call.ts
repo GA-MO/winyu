@@ -14,11 +14,13 @@ export const CONNECTOR_UNAVAILABLE = "CONNECTOR_UNAVAILABLE";
 export const CONNECTOR_FAILED = "CONNECTOR_FAILED";
 export const PERMISSION_DENIED = "PERMISSION_DENIED";
 export const TOOL_NOT_ALLOWED = "TOOL_NOT_ALLOWED";
+export const NONE_IN_SCOPE = "NONE_IN_SCOPE";
+export const SCOPE_TRIMMED = "SCOPE_TRIMMED";
 
 const ANY_ARGS = z.looseObject({});
 
 export type ConnectorToolResult =
-  | { ok: true; summary: string; rows: ConnectorRow[]; provenance: { sourceSystem: string; asOf: string; masked: string[] } }
+  | { ok: true; summary: string; rows: ConnectorRow[]; code?: typeof NONE_IN_SCOPE | typeof SCOPE_TRIMMED; provenance: { sourceSystem: string; asOf: string; masked: string[] } }
   | { ok: false; code: typeof CONNECTOR_UNAVAILABLE | typeof CONNECTOR_FAILED | typeof PERMISSION_DENIED | typeof TOOL_NOT_ALLOWED; error: string };
 
 class ConnectorTimeout extends Error {}
@@ -59,18 +61,33 @@ function argsOf(binding: ConnectorToolBinding, input: unknown): Record<string, u
   return (binding.config.input ?? ANY_ARGS).parse(input) as Record<string, unknown>;
 }
 
-function summaryOf(binding: ConnectorToolBinding, summary: string | undefined, count: number): string {
-  if (count === 0 && !("kind" in binding.config.scope)) return TH.admin.connectors.noneInScope(binding.config.labelTh);
-  return summary ?? TH.admin.connectors.rows(binding.config.labelTh, count);
+function scopeApplies(binding: ConnectorToolBinding): boolean {
+  return !("kind" in binding.config.scope);
+}
+
+function summaryOf(binding: ConnectorToolBinding, output: ConnectorOutput, total: number): string {
+  const label = binding.config.labelTh;
+  if (total === 0 && scopeApplies(binding)) return TH.admin.connectors.noneInScope(label);
+  if (total > MAX_CONNECTOR_ROWS) return TH.admin.connectors.rowsCapped(label, MAX_CONNECTOR_ROWS, total);
+  if (total < output.rows.length) return TH.admin.connectors.rows(label, total);
+  return output.summary ?? TH.admin.connectors.rows(label, total);
+}
+
+function scopeCodeOf(binding: ConnectorToolBinding, received: number, kept: number): typeof NONE_IN_SCOPE | typeof SCOPE_TRIMMED | null {
+  if (!scopeApplies(binding)) return null;
+  if (kept === 0) return NONE_IN_SCOPE;
+  return kept < received ? SCOPE_TRIMMED : null;
 }
 
 async function shaped(connector: ConnectorIdentity, binding: ConnectorToolBinding, output: ConnectorOutput, access: AccessContext): Promise<ConnectorToolResult> {
   const inScope = await scopedRows(binding.config.scope, output.rows, access);
   if (output.rows.length > 0 && inScope.length === 0) return { ok: false, code: PERMISSION_DENIED, error: TH.admin.connectors.outOfScope(binding.config.labelTh) };
   const { rows, masked } = maskedRows(inScope, binding.fields, access);
+  const code = scopeCodeOf(binding, output.rows.length, inScope.length);
   return {
     ok: true,
-    summary: summaryOf(binding, output.summary, rows.length),
+    summary: summaryOf(binding, output, rows.length),
+    ...(code ? { code } : {}),
     rows: fencedRows(rows.slice(0, MAX_CONNECTOR_ROWS)),
     provenance: { sourceSystem: connector.sourceSystemTh, asOf: output.asOf ?? new Date().toISOString(), masked },
   };

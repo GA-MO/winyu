@@ -49,7 +49,6 @@ function worstOf(entries: AuditEntry[]): AuditEntry["decision"] {
 }
 
 function reasonOf(entry: AuditEntry): string | null {
-  if (entry.decision === "allow") return null;
   if (entry.decision === "masked") return COPY.maskedReason;
   if (!entry.code) return null;
   return COPY.codes[entry.code] ?? COPY.otherCode(entry.code);

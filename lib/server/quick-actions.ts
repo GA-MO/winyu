@@ -58,5 +58,5 @@ export function defaultActionsFor(access: AccessContext): QuickAction[] {
 
 /** The chips the landing shows: what this user actually asks, the calendar's suggestions, then the role defaults. */
 export function quickActionsFor(access: AccessContext): QuickAction[] {
-  return quickActionsFrom(access, defaultActionsFor(access)).filter((action) => answerable(action, access));
+  return quickActionsFrom(access, defaultActionsFor(access), Date.now(), undefined, (action) => answerable(action, access));
 }
