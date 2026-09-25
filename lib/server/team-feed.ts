@@ -5,17 +5,14 @@ import { TODAY, toDayIndex } from "@/lib/data/dates";
 import { agentById } from "@/lib/data/entities/agents";
 import { provinceById } from "@/lib/data/entities/org";
 import { findUser } from "@/lib/data/entities/users";
-import { feedIntentKey } from "@/lib/engine/feed-learning";
 import { TH } from "@/lib/i18n/th";
-import { actionEvents, alerts, packets } from "@/lib/server/agent/collections";
-import { alertIntentKey } from "@/lib/server/alerts";
+import { alerts, packets } from "@/lib/server/agent/collections";
 import type { Directory } from "@/lib/server/ports/directory";
 
 const MIN_MATTERS = 2;
 const DAY_MS = 86_400_000;
 const SALES_DEPARTMENT = "dept_sales";
 const CAPTION_MATTERS = 3;
-const OPENING_EVENTS: ReadonlySet<string> = new Set(["alert_open", "feed_open", "feed_done"]);
 const TONE_ORDER: readonly FeedTone[] = ["danger", "warning", "brand", "info", "success", "neutral"];
 const OPENING_PREFIX = "opening:";
 
@@ -77,21 +74,19 @@ function sharedRegion(members: readonly Member[]): string | null {
   return regions.size === 1 && only ? (TH.region as Record<string, string>)[only] ?? null : null;
 }
 
-/** Whether the person holding the matters has picked them up: handed them on, opened them, or left them. */
-function handlingOf(holderId: string, members: readonly Member[], now: number): string {
-  const name = findUser(holderId)?.nameTh ?? holderId;
-  const alertList = members.flatMap((member) => member.alert ?? []);
-  const ids = new Set(alertList.map((alert) => alert.id));
+/** Who the matters were handed to, when the person holding them handed them on. */
+function handedOnBy(holderId: string, members: readonly Member[]): string | null {
+  const ids = new Set(members.flatMap((member) => member.alert?.id ?? []));
   const handed = packets().all().find((packet) => packet.fromUserId === holderId && packet.alertIds.some((id) => ids.has(id)));
-  if (handed) return TH.team.handedOff(name, findUser(handed.toUserId)?.nameTh ?? handed.toUserId);
-  const intents = new Set(alertList.flatMap((alert) => [alertIntentKey(alert), feedIntentKey(`alert:${alert.metric}`, `alert:${alert.id}`)]));
-  const lastOpen = actionEvents()
-    .where((event) => event.userId === holderId && OPENING_EVENTS.has(event.kind) && intents.has(event.intentKey))
-    .reduce<string | null>((latest, event) => (latest === null || event.at > latest ? event.at : latest), null);
-  const today = new Date(now).toISOString();
-  if (lastOpen) return TH.team.opened(name, daysBetween(lastOpen, today));
-  const first = alertList.reduce<string | null>((earliest, alert) => (earliest === null || alert.at < earliest ? alert.at : earliest), null);
-  return first ? TH.team.unopened(name, daysBetween(first, today)) : TH.team.openingsOnly(name);
+  if (!handed) return null;
+  return TH.team.handedOff(findUser(holderId)?.nameTh ?? holderId, findUser(handed.toUserId)?.nameTh ?? handed.toUserId);
+}
+
+/** The card's severity tag, with the count when only some of the matters carry it, so it agrees with the status line. */
+function severityTag(members: readonly Member[], tone: FeedTone): string {
+  const label = tone === "danger" ? TH.severity.P1 : TH.severity.P2;
+  const carrying = members.filter((member) => member.item.tone === tone).length;
+  return carrying < members.length ? `${label} ${carrying}` : label;
 }
 
 function worstTone(members: readonly Member[]): FeedTone {
@@ -119,13 +114,13 @@ function askProgress(reportId: string, region: string, members: readonly Member[
   };
 }
 
-function storyOf(reportId: string, members: Member[], directory: Directory, now: number): TeamStory {
+function storyOf(reportId: string, members: Member[], directory: Directory): TeamStory {
   const report = findUser(reportId);
   const name = report?.nameTh ?? reportId;
   const region = sharedRegion(members) ?? (report?.region ? TH.region[report.region] : TH.team.team);
   const tone = worstTone(members);
   const uncovered = uncoveredProvinces(members, directory);
-  const handling = handlingOf(soleOwner(members) ?? reportId, members, now);
+  const handling = handedOnBy(soleOwner(members) ?? reportId, members);
   const coverage = uncovered.length > 0 ? TH.team.uncovered(uncovered.map((entry) => TH.team.emptySeat(entry.name, entry.days))) : null;
   const action = askProgress(reportId, region, members);
   const memberKeys = members.map((member) => member.item.key).sort();
@@ -154,7 +149,7 @@ function storyOf(reportId: string, members: Member[], directory: Directory, now:
   };
   const card: AmbientCard = {
     id: root,
-    eyebrow: TH.team.eyebrow(tone === "danger" ? TH.severity.P1 : TH.severity.P2),
+    eyebrow: TH.team.eyebrow(severityTag(members, tone)),
     tone: tone === "danger" ? "danger" : "warning",
     title: label,
     headline: { value: reason, tone: tone === "danger" ? "danger" : "warning", caption },
@@ -164,14 +159,14 @@ function storyOf(reportId: string, members: Member[], directory: Directory, now:
     packetId: null,
     alertId: null,
     feedKey: key,
-    handoff: action,
+    action,
     spec: { root, elements: { [root]: { type: "Callout", props: { eyebrow: TH.team.eyebrow(""), title: label, body: [coverage, handling].filter(Boolean).join(" · "), tone: "warning" }, children: [] } } } as unknown as Spec,
   };
   return { item, card, memberKeys };
 }
 
 /** A manager's feed with each direct report's two or more matters folded into one story; the rest of the feed is left as it was. */
-export function withTeamStories(access: AccessContext, items: readonly FeedItem[], directory: Directory, now = Date.now()): { items: FeedItem[]; stories: TeamStory[] } {
+export function withTeamStories(access: AccessContext, items: readonly FeedItem[], directory: Directory): { items: FeedItem[]; stories: TeamStory[] } {
   const groups = new Map<string, Member[]>();
   for (const item of items) {
     const found = memberOf(item, directory);
@@ -180,7 +175,7 @@ export function withTeamStories(access: AccessContext, items: readonly FeedItem[
     const report = reportOn(access.userId, found.responsible, directory);
     if (report) groups.set(report, [...(groups.get(report) ?? []), found.member]);
   }
-  const stories = [...groups].filter(([, members]) => members.length >= MIN_MATTERS).map(([report, members]) => storyOf(report, members, directory, now));
+  const stories = [...groups].filter(([, members]) => members.length >= MIN_MATTERS).map(([report, members]) => storyOf(report, members, directory));
   const folded = new Set(stories.flatMap((story) => story.memberKeys));
   const rest = items.filter((item) => !folded.has(item.key));
   return { items: [...stories.map((story) => story.item), ...rest].sort((left, right) => right.rank - left.rank), stories };

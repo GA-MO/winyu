@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import type { AccessContext } from "@/lib/contracts";
 import { liveAccessFor } from "@/lib/access/enforce";
 import { findUser } from "@/lib/data/entities/users";
-import { outbox } from "./agent/collections";
+import { digests, outbox } from "./agent/collections";
 import { isGrounded, type Narrator } from "./digest-narrator";
 import { digestFor, runDigestJob } from "./digest";
 import { feedFor } from "./feed";
@@ -77,8 +77,9 @@ describe("the morning digest reads the feed", () => {
 
   test("the job sends HR a digest with the narrator's lead", async () => {
     const lead: Narrator = async () => ({ lead: "เช้านี้เริ่มที่คุณแดง", order: [] });
+    digests().remove("u_may");
     await runDigestJob(new Date(NOW), lead);
-    const mail = outbox().all().find((entry) => entry.kind === "digest" && entry.toUserId === "u_may");
+    const mail = outbox().all().filter((entry) => entry.kind === "digest" && entry.toUserId === "u_may").at(-1);
     expect(mail?.body.startsWith("เช้านี้เริ่มที่คุณแดง")).toBe(true);
   });
 });

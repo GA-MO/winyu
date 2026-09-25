@@ -7,7 +7,7 @@ import { nextActionsFor } from "@/lib/engine/next-actions";
 import { followUpsFor, learnedKindShare } from "@/lib/engine/follow-ups";
 import { alertScopeLabel } from "@/lib/cards/alert-row";
 import { metricLabel } from "@/lib/dashboard/metric-display";
-import { openAlertsFor } from "@/lib/server/alerts";
+import { openAlertsFor, openPacketCarrying } from "@/lib/server/alerts";
 import { actionEvents, layouts } from "@/lib/server/agent/collections";
 import { isPinnedSlice } from "@/lib/engine/compose";
 import { intentKeyOf } from "@/lib/server/threads";
@@ -16,6 +16,12 @@ const PERCENT = 100;
 const HARM_MIN_PCT = 5;
 const REPEAT_DAYS = 30;
 const DAY_MS = 86_400_000;
+
+/** A handoff is offered once: when every alert it would carry is already in someone's inbox, the button goes. */
+function withoutRepeatHandoff(actions: NextAction[], alertIds: readonly string[]): NextAction[] {
+  const handed = alertIds.length > 0 && alertIds.every((id) => openPacketCarrying(id) !== null);
+  return handed ? actions.filter((action) => action.kind !== "handoff") : actions;
+}
 
 function repeatsOf(userId: string, query: MetricQuery, now = Date.now()): number {
   const key = intentKeyOf(query.metric, query.dims);
@@ -64,7 +70,7 @@ function titleOf(query: MetricQuery, result: Extract<MetricResult, { ok: true }>
 export function actionsForMetric(access: AccessContext, query: MetricQuery, result: MetricResult, dictionary: Dictionary): NextAction[] {
   if (!result.ok) return [];
   const alert = openAlertsFor(access).find((entry) => matchesQuery(dictionary, entry, query)) ?? null;
-  return nextActionsFor(
+  const actions = nextActionsFor(
     access,
     {
       title: titleOf(query, result),
@@ -80,6 +86,7 @@ export function actionsForMetric(access: AccessContext, query: MetricQuery, resu
     },
     alreadyPinned(access.userId, query) ? 0 : repeatsOf(access.userId, query),
   );
+  return withoutRepeatHandoff(actions, alert ? [alert.id] : []);
 }
 
 /** The buttons an anomaly card offers: hand the top alert to its owner, or verify it first. */
@@ -95,7 +102,7 @@ export function actionsForAlert(access: AccessContext, alert: Alert | null, dict
     limit: 1,
   };
   const scope = alertScopeLabel(alert, dictionary);
-  return nextActionsFor(access, {
+  const actions = nextActionsFor(access, {
     title: scope,
     query,
     deltaPercent: alert.expected === 0 ? null : ((alert.observed - alert.expected) / Math.abs(alert.expected)) * PERCENT,
@@ -106,6 +113,7 @@ export function actionsForAlert(access: AccessContext, alert: Alert | null, dict
     verifyStep: alert.verifySteps[0],
     region: regionOf(dictionary, query),
   });
+  return withoutRepeatHandoff(actions, [alert.id]);
 }
 
 /** The follow-up questions the chat offers under the composer after this result, minus what the card already offers. */

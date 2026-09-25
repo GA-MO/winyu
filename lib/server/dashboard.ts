@@ -2,11 +2,11 @@ import { runMetric } from "@/lib/server/metrics";
 import type { AccessContext, Alert, DashboardLayout, FeedItem, MetricQuery, MetricResult, WidgetSpec } from "@/lib/contracts";
 import type { Spec } from "vexa/protocol";
 import { layoutVersions, layouts } from "@/lib/server/agent/collections";
-import { canJudge, forecastsFor, openAlertsFor, openPacketsFor, relevantAlertsFor } from "@/lib/server/alerts";
+import { forecastsFor, openAlertsFor, relevantAlertsFor } from "@/lib/server/alerts";
 import { alertRowOf } from "@/lib/cards/alert-row";
 import { actionsForAlert, actionsForMetric } from "@/lib/server/next-actions";
 import { composeSuggestion } from "@/lib/engine/compose";
-import { ambientCards, statusLinks, type AmbientCard, type LandingKpi, type StatusLink, type VisitStop } from "@/lib/dashboard/ambient";
+import type { LandingKpi, VisitStop } from "@/lib/dashboard/ambient";
 import { TODAY, addDays } from "@/lib/data/dates";
 import type { Dictionary } from "@/lib/semantic/dictionary";
 import { loadDictionary } from "@/lib/server/master-data";
@@ -15,11 +15,9 @@ import { presentCard, sharpestHarm, weakestRow, type CardParts } from "@/lib/car
 import { TH } from "@/lib/i18n/th";
 import { templateFor } from "@/lib/dashboard/templates";
 import { widgetToSpec, type WidgetExtras } from "@/lib/dashboard/widget-to-spec";
-import { findUser } from "@/lib/data/entities/users";
 import { HARMFUL_ROW_PCT, attentionOf, byAttention, staleWidgets, withFeed, type Attention } from "@/lib/dashboard/attention";
 import { recordAction } from "@/lib/server/threads";
 import { actionEvents } from "@/lib/server/agent/collections";
-import { lessonFor } from "@/lib/server/outcomes";
 
 export type WidgetHeadline = { value: string; delta: string | null; tone: "good" | "bad" | "neutral" };
 
@@ -221,22 +219,6 @@ function withPeriodsWhereAlike(kpis: LandingKpi[]): LandingKpi[] {
   });
 }
 
-export { openAlertsFor, openPacketsFor };
-
-/** The inbox links under the greeting: open alerts per severity and the handoffs waiting for this user. */
-/** How the status line opens: when every alert belongs to someone below the viewer they are "in your team", not "waiting for you". */
-export function landingStatusLead(access: AccessContext): string {
-  const relevant = relevantAlertsFor(access);
-  const theirs = relevant.length > 0 && relevant.every((alert) => alert.ownerUserId !== access.userId && !alert.alsoOwnerIds?.includes(access.userId) && canJudge(alert, access));
-  return theirs ? TH.landing.teamStatusLead : TH.landing.statusLead;
-}
-
-/** The status line's counts; with `onFeed`, only the alerts the user has not finished, put off or disowned. */
-export function landingStatus(access: AccessContext, onFeed: readonly string[] | null = null): StatusLink[] {
-  const visible = onFeed ? new Set(onFeed) : null;
-  return statusLinks(relevantAlerts(access).filter((alert) => !visible || visible.has(alert.id)), openPacketsFor(access).length);
-}
-
 function alertReason(alert: Alert, dictionary: Dictionary): string {
   const row = alertRowOf(alert, dictionary);
   const sign = alert.direction === "down" ? "−" : "+";
@@ -267,25 +249,6 @@ export async function visitsFor(access: AccessContext): Promise<VisitStop[]> {
     .filter((entry) => entry.rank < 0)
     .sort((left, right) => left.rank - right.rank);
   return stops.slice(0, VISIT_LIMIT).map((entry) => entry.stop);
-}
-
-export type VisibleMatters = { alertIds: ReadonlySet<string>; packetIds: ReadonlySet<string> };
-
-/** The cards under the KPIs, never a low-severity alert; an alert about an agent the visit list already names is left to that row, and with `visible` only the alerts and handoffs still on the user's feed are drawn. */
-export async function ambientFor(access: AccessContext, visits: readonly VisitStop[] = [], visible: VisibleMatters | null = null): Promise<AmbientCard[]> {
-  const dictionary = await loadDictionary();
-  const packet = openPacketsFor(access).find((candidate) => !visible || visible.packetIds.has(candidate.id)) ?? null;
-  const fromName = packet ? (findUser(packet.fromUserId)?.nameTh ?? packet.fromUserId) : "";
-  const visited = new Set(visits.map((stop) => stop.agent));
-  const agentOf = (alert: Alert) => (alert.dims.agent ? dictionary.displayLabel("agent", alert.dims.agent) : null);
-  return ambientCards({
-    alerts: relevantAlerts(access).filter((alert) => alert.severity !== "P3" && !visited.has(agentOf(alert) ?? "") && (!visible || visible.alertIds.has(alert.id))),
-    ownerName: (alert) => (alert.ownerUserId === access.userId ? null : (findUser(alert.ownerUserId)?.nameTh ?? null)),
-    lessonOf: lessonFor,
-    actionsFor: (alert) => actionsForAlert(access, alert, dictionary),
-    rowOf: (alert) => alertRowOf(alert, dictionary),
-    packet: packet ? { id: packet.id, title: packet.title, ask: packet.ask, fromName, urgency: packet.urgency } : null,
-  });
 }
 
 function mutate(access: AccessContext, change: (widgets: WidgetSpec[]) => WidgetSpec[]): DashboardLayout {

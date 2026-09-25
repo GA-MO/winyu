@@ -47,15 +47,15 @@ describe("money owed reaches the people who can collect it", () => {
 });
 
 describe("the administrator's feed is about Cop itself", () => {
-  test("a connector that stopped answering and a switch left off are on IT's feed, and on no one else's", async () => {
+  test("a connector that stopped answering is on IT's feed, and on no one else's; a switch left off is policy, not a matter", async () => {
     const before = offlineSince("crm_demo");
     const handoff = handoffSwitch();
     markReachable("crm_demo", false);
     setHandoffEnabled(false, "u_ton");
     try {
-      const items = systemFeedFor(accessOf("u_ton"), NOW);
+      const items = systemFeedFor(accessOf("u_ton"));
       expect(items.some((item) => item.key.startsWith("system:offline:crm_demo"))).toBe(true);
-      expect(items.some((item) => item.key.startsWith("system:switch:handoff"))).toBe(true);
+      expect(items.some((item) => item.key.startsWith("system:switch:handoff"))).toBe(false);
       expect((await feedFor(accessOf("u_thana"), NOW)).some((item) => item.source === "system")).toBe(false);
     } finally {
       markReachable("crm_demo", before === null);

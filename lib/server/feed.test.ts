@@ -7,7 +7,6 @@ import { actionEvents, alerts, feedStates, memoryFacts, packets, personalWatches
 import { confirmMemory } from "@/lib/engine/memory";
 import { enrollCourse } from "./courses";
 import { actOnFeedItem, feedFor, goodNewsFor, landingFeedFor, todoFor } from "./feed";
-import { landingStatus } from "./dashboard";
 import { alertIntentKey, openAlertsFor } from "./alerts";
 import { quickActionsFor } from "./quick-actions";
 import { ensureFeedHistory } from "./demo-feed-history";
@@ -61,9 +60,9 @@ describe("every role gets its own feed", () => {
   });
 
   test("a sales rep keeps the agents to visit and gets nobody else's people, only their own licence", async () => {
-    const feed = await landingFeedFor(accessOf("u_krit"), NOW);
-    expect(feed.rows.some((row) => row.source === "visit")).toBe(true);
-    expect(feed.rows.some((row) => (row.source === "person" && row.kind !== "own:cert") || row.source === "opening")).toBe(false);
+    const items = await feedFor(accessOf("u_krit"), NOW);
+    expect(items.some((item) => item.source === "visit")).toBe(true);
+    expect(items.some((item) => (item.source === "person" && item.kind !== "own:cert") || item.source === "opening")).toBe(false);
   });
 });
 
@@ -190,13 +189,12 @@ describe("what Cop learns from the feed changes the feed", () => {
 });
 
 describe("the to-do list holds tasks, not movements", () => {
-  test("no low-severity alert and one row per story, for every role; the status line counts only what needs acting on", async () => {
+  test("no low-severity alert and one row per story, for every role", async () => {
     for (const user of USERS) {
       const todo = await todoFor(accessOf(user.id), NOW);
       expect(todo.filter((item) => item.source === "alert" && item.tone === "info")).toEqual([]);
       const stories = todo.flatMap((item) => item.story ?? []);
       expect(new Set(stories).size).toBe(stories.length);
-      expect(landingStatus(accessOf(user.id)).map((link) => link.id).filter((id) => id === "P3" || id === "others")).toEqual([]);
     }
   });
 
@@ -228,7 +226,7 @@ describe("the to-do list holds tasks, not movements", () => {
 });
 
 describe("an alert reaches people by the line of command", () => {
-  test("a manager hears of a report's sizeable warning only while it waits unopened, and is told whose it is; a small one stays with the report", async () => {
+  test("a manager hears of a report's sizeable warning only while it waits unopened, without being told who opened what; a small one stays with the report", async () => {
     const director = accessOf("u_prasit");
     const small = openAlertsFor(director).find((alert) => alert.severity === "P2" && alert.ownerUserId === "u_wichai");
     if (!small) throw new Error("no P2 for the east RSM");
@@ -238,7 +236,8 @@ describe("an alert reaches people by the line of command", () => {
     const opened = { id: "ev_test_wichai_open", userId: "u_wichai", at: new Date(NOW).toISOString(), kind: "alert_open" as const, intentKey: alertIntentKey(big), metric: big.metric, dims: [], prompt: null, threadId: null };
     try {
       const item = (await feedFor(director, NOW)).find((entry) => entry.alertId === big.id);
-      expect(item?.detail).toContain("คุณวิชัย");
+      expect(item).toBeDefined();
+      expect(item?.detail).not.toContain("ยังไม่ได้เปิด");
       actionEvents().put(opened);
       expect((await feedFor(director, NOW)).some((entry) => entry.alertId === big.id)).toBe(false);
       expect((await feedFor(accessOf("u_wichai"), NOW)).some((entry) => entry.alertId === big.id)).toBe(true);

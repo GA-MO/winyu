@@ -1,19 +1,20 @@
 import type { AccessContext, Alert, ContextPacket, Dim, FeedAction, FeedTone, FeedItem, FeedStateRecord, NextAction, PersonalWatch } from "@/lib/contracts";
 import { alertRowOf } from "@/lib/cards/alert-row";
-import type { AmbientCard, VisitStop } from "@/lib/dashboard/ambient";
+import { alertCard, itemCard, packetCard, type AmbientCard, type VisitStop } from "@/lib/dashboard/ambient";
 import { weekKeyOfIso } from "@/lib/data/dates";
 import { findUser } from "@/lib/data/entities/users";
 import { TH } from "@/lib/i18n/th";
 import type { Dictionary } from "@/lib/semantic/dictionary";
-import { actionEvents, alerts, feedStates, memoryFacts, visits } from "@/lib/server/agent/collections";
+import { actionEvents, alerts, feedStates, memoryFacts, packets, visits } from "@/lib/server/agent/collections";
 import { feedIntentKey, isMutableKind, learnFeed, mutesOfKind, notFollowingStatement } from "@/lib/engine/feed-learning";
 import { proposeMemory } from "@/lib/engine/memory";
 import { isTrusted } from "@/lib/engine/memory-status";
 import { conditionLabel } from "@/lib/engine/personal-watches";
 import { watchesOf } from "@/lib/server/watches";
 import { toneOf } from "@/lib/dashboard/metric-display";
-import { alertIntentKey, alertSubject, childrenOf, muteAlertForUser, openPacketsFor, relatedTo, relevanceContext, relevanceOf, relevantAlertsFor, unopenedDays, type RelevanceContext } from "@/lib/server/alerts";
-import { ambientFor, visitsFor } from "@/lib/server/dashboard";
+import { alertIntentKey, alertSubject, childrenOf, handedOffNote, muteAlertForUser, openPacketsFor, relatedTo, relevanceContext, relevantAlertsFor } from "@/lib/server/alerts";
+import { visitsFor } from "@/lib/server/dashboard";
+import { lessonFor } from "@/lib/server/outcomes";
 import { loadDictionary } from "@/lib/server/master-data";
 import { actionsForAlert } from "@/lib/server/next-actions";
 import { peopleFeedFor } from "@/lib/server/people-feed";
@@ -27,8 +28,6 @@ import { recordAction } from "@/lib/server/threads";
 const DAY_MS = 86_400_000;
 const CLEAR_MOVE_PCT = 100;
 const SNOOZE_DAYS = 7;
-const LANDING_ROWS = 5;
-const LANDING_ALERT_ROWS = 2;
 const LANDING_CARDS = 2;
 const ALERT_RANK: Record<Alert["severity"], number> = { P1: 900, P2: 600, P3: 200 };
 const PACKET_RANK: Record<ContextPacket["urgency"], number> = { high: 850, medium: 550, low: 250 };
@@ -56,14 +55,6 @@ function watchStory(watch: PersonalWatch, open: readonly Alert[]): string | null
   return alert ? storyOf(alert) : null;
 }
 
-/** What an alert escalated to a manager adds under its label: whose it is and how long it has waited. */
-function escalationNote(access: AccessContext, alert: Alert, context: RelevanceContext): string | null {
-  if (relevanceOf(alert, access, context) !== "escalated") return null;
-  const days = unopenedDays(alert, context);
-  const owner = findUser(alert.ownerUserId)?.nameTh ?? alert.ownerUserId;
-  return days === null ? null : TH.feed.unopened(owner, days);
-}
-
 function signedGap(alert: Alert, dictionary: Dictionary): string | null {
   const row = alertRowOf(alert, dictionary);
   return row.gapLabel ? `${alert.direction === "down" ? "−" : "+"}${row.gapLabel}` : null;
@@ -80,20 +71,19 @@ function toneOfAlert(alert: Alert): FeedTone {
   return isGoodNews(alert) ? "success" : "info";
 }
 
-/** What an alert's row adds under its label beyond the metric: how many more slices tell the same story, the other side of its chain of events, and who has left it waiting. */
-function detailOf(access: AccessContext, alert: Alert, dictionary: Dictionary, context: RelevanceContext, metric: string): string {
+/** What an alert's row adds under its label beyond the metric: how many more slices tell the same story, and the other side of its chain of events. */
+function detailOf(alert: Alert, dictionary: Dictionary, metric: string): string {
   const children = childrenOf(alert).filter((child) => child.status === "open").length;
   const [related] = relatedTo(alert);
   const parts = [
     metric,
     children > 0 ? TH.feed.moreSlices(children) : null,
     related ? TH.feed.relatedTo(`${alertRowOf(related, dictionary).scopeLabel} ${signedGap(related, dictionary) ?? ""}`.trim()) : null,
-    escalationNote(access, alert, context),
   ];
   return parts.filter((part): part is string => Boolean(part)).join(" · ");
 }
 
-function alertItem(access: AccessContext, alert: Alert, dictionary: Dictionary, context: RelevanceContext): FeedItem {
+function alertItem(access: AccessContext, alert: Alert, dictionary: Dictionary): FeedItem {
   const row = alertRowOf(alert, dictionary);
   const metric = row.metricLabel.replace(PARENTHETICAL, "");
   const gap = signedGap(alert, dictionary);
@@ -106,7 +96,7 @@ function alertItem(access: AccessContext, alert: Alert, dictionary: Dictionary, 
     tone: toneOfAlert(alert),
     label: row.scopeLabel,
     reason: alert.metric === "days_of_cover" ? TH.feed.coverLeft(alert.observed.toFixed(1)) : (gap ?? row.severityLabel),
-    detail: detailOf(access, alert, dictionary, context, metric),
+    detail: detailOf(alert, dictionary, metric),
     prompt: TH.landing.askAbout(row.scopeLabel),
     alertId: alert.id,
     packetId: null,
@@ -116,14 +106,20 @@ function alertItem(access: AccessContext, alert: Alert, dictionary: Dictionary, 
   };
 }
 
+function carriedAlert(packet: ContextPacket): Alert | null {
+  return packet.alertIds.map((id) => alerts().get(id)).find((candidate) => candidate?.status === "open") ?? null;
+}
+
+/** A handoff about an alert is that alert's story and leads it, so the recipient sees the ask and the alert as one matter. */
 function packetItem(packet: ContextPacket): FeedItem {
   const from = findUser(packet.fromUserId)?.nameTh ?? packet.fromUserId;
+  const alert = carriedAlert(packet);
   return {
     key: `packet:${packet.id}`,
     source: "packet",
     kind: "packet",
-    story: null,
-    rank: PACKET_RANK[packet.urgency],
+    story: alert ? storyOf(alert) : null,
+    rank: Math.max(PACKET_RANK[packet.urgency], alert ? ALERT_RANK[alert.severity] + 1 : 0),
     tone: packet.urgency === "high" ? "danger" : packet.urgency === "medium" ? "warning" : "info",
     label: packet.title,
     reason: TH.inbox.urgency[packet.urgency],
@@ -137,12 +133,12 @@ function packetItem(packet: ContextPacket): FeedItem {
   };
 }
 
-function visitItems(stops: readonly VisitStop[], week: string): FeedItem[] {
+function visitItems(stops: readonly VisitStop[], week: string, storyOfAgent: (agent: string) => string | null): FeedItem[] {
   return stops.map((stop, index) => ({
     key: `visit:${stop.agent}:${week}`,
     source: "visit",
     kind: "visit",
-    story: null,
+    story: storyOfAgent(stop.agent),
     rank: (stop.tone === "danger" ? VISIT_RANK.danger : stop.tone === "warning" ? VISIT_RANK.warning : VISIT_RANK.other) + stops.length - index,
     tone: stop.tone === "danger" ? "danger" : "warning",
     label: stop.agent,
@@ -206,14 +202,18 @@ async function feedWithStories(access: AccessContext, now: number): Promise<{ it
   const relevant = relevantAlertsFor(access, context);
   const alertItems = relevant
     .filter((alert) => !alert.dims.agent || !visited.has(dictionary.displayLabel("agent", alert.dims.agent)))
-    .map((alert) => alertItem(access, alert, dictionary, context));
+    .map((alert) => alertItem(access, alert, dictionary));
+  const storyOfAgent = (agent: string) => {
+    const alert = relevant.find((candidate) => candidate.dims.agent && dictionary.displayLabel("agent", candidate.dims.agent) === agent);
+    return alert ? storyOf(alert) : null;
+  };
   const items = [
     ...alertItems,
     ...openPacketsFor(access).map(packetItem),
-    ...visitItems(stops, weekKeyOfIso(new Date(now).toISOString().slice(0, 10))),
+    ...visitItems(stops, weekKeyOfIso(new Date(now).toISOString().slice(0, 10)), storyOfAgent),
     ...(await peopleFeedFor(access)),
     ...(await campaignFeedFor(access)),
-    ...systemFeedFor(access, now),
+    ...systemFeedFor(access),
     ...watchesOf(access.userId).filter((watch) => watch.state === "triggered").map((watch) => watchItem(watch, watchStory(watch, relevant))),
   ];
   const hidden = hiddenKeys(access.userId, now);
@@ -225,12 +225,12 @@ async function feedWithStories(access: AccessContext, now: number): Promise<{ it
     mutedKinds: mutedKindsOf(access.userId, open.map((item) => item.kind)),
     now,
   });
-  const told = withTeamStories(access, learned, directoryOf(await ports().directory.load()), now);
+  const told = withTeamStories(access, learned, directoryOf(await ports().directory.load()));
   const stories = told.stories
     .filter((story) => !hidden.has(story.item.key))
     .map((story) => {
-      const handoff = story.card.handoff && allowed(story.card.handoff) ? story.card.handoff : null;
-      return { ...story, item: { ...story.item, actions: story.item.actions.filter(allowed) }, card: { ...story.card, handoff } };
+      const action = story.card.action && allowed(story.card.action) ? story.card.action : null;
+      return { ...story, item: { ...story.item, actions: story.item.actions.filter(allowed) }, card: { ...story.card, action } };
     });
   const kept = new Set(stories.map((story) => story.item.key));
   return { items: told.items.filter((item) => item.source !== "team" || kept.has(item.key)).map((item) => stories.find((story) => story.item.key === item.key)?.item ?? item), stories };
@@ -268,40 +268,45 @@ export function onePerStory(items: readonly FeedItem[], told: Iterable<string> =
   });
 }
 
-/** The rows under the cards: one row per story, no low-severity alerts, and at most two more alerts so the matters that are not in the inbox still get room. */
-function landingRows(items: readonly FeedItem[], carded: readonly string[]): FeedItem[] {
-  const told = items.filter((item) => carded.includes(item.key)).flatMap((item) => item.story ?? []);
-  const candidates = onePerStory(items.filter((item) => !carded.includes(item.key) && isTask(item)), told);
-  const rows: FeedItem[] = [];
-  let alertRows = 0;
-  for (const item of candidates) {
-    if (rows.length >= LANDING_ROWS) break;
-    if (item.source === "alert" && alertRows >= LANDING_ALERT_ROWS) continue;
-    if (item.source === "alert") alertRows += 1;
-    rows.push(item);
+/** The landing's share of the feed: the first matters of the feed as cards, one per story, whatever they are about; `taskCount` is every matter on the feed, a team story counting the matters it folds, which the inbox holds. */
+export type LandingFeed = { cards: AmbientCard[]; taskCount: number; shownKeys: string[] };
+
+function ownerNameOf(access: AccessContext, alert: Alert): string | null {
+  return alert.ownerUserId === access.userId ? null : (findUser(alert.ownerUserId)?.nameTh ?? null);
+}
+
+/** The alert a matter stands for: its own, or for an agent to visit, the open alert that tells the same story. */
+function alertBehind(access: AccessContext, item: FeedItem): Alert | null {
+  if (item.alertId) return alerts().get(item.alertId) ?? null;
+  if (item.source !== "visit" || !item.story) return null;
+  return relevantAlertsFor(access).find((alert) => storyOf(alert) === item.story) ?? null;
+}
+
+function cardOf(access: AccessContext, item: FeedItem, stories: readonly TeamStory[], dictionary: Dictionary): AmbientCard {
+  const story = stories.find((candidate) => candidate.item.key === item.key);
+  if (story) return story.card;
+  const alert = alertBehind(access, item);
+  if (alert) {
+    const note = handedOffNote(alert.id, access.userId) ?? lessonFor(alert);
+    return { ...alertCard({ alert, row: alertRowOf(alert, dictionary), owner: ownerNameOf(access, alert), note, actions: item.actions }), feedKey: item.key };
   }
-  return rows;
+  const packet = item.packetId ? packets().get(item.packetId) ?? null : null;
+  if (packet) {
+    const carried = carriedAlert(packet);
+    const from = findUser(packet.fromUserId)?.nameTh ?? packet.fromUserId;
+    return packetCard({ id: packet.id, title: packet.title, ask: packet.ask, fromName: from, urgency: packet.urgency, carried }, carried ? alertRowOf(carried, dictionary) : null);
+  }
+  return itemCard(item);
 }
 
-/** `taskCount` is every task on the feed, one per story, not only the ones the landing has room to show; `alertIds` are the alerts still on it, folded into a team story or not, which the status line counts. */
-export type LandingFeed = { cards: AmbientCard[]; rows: FeedItem[]; shownKeys: string[]; taskCount: number; alertIds: string[] };
-
-function cardKey(card: AmbientCard): string | null {
-  if (card.feedKey) return card.feedKey;
-  return card.packetId ? `packet:${card.packetId}` : null;
-}
-
-/** The landing's share of the feed: up to two full cards for alerts and handoffs, then the next most urgent matters as rows. */
+/** The same landing for every role: the first matters on the user's feed as cards, and how many more the inbox holds. */
 export async function landingFeedFor(access: AccessContext, now = Date.now()): Promise<LandingFeed> {
   const { items, stories } = await feedWithStories(access, now);
-  const alertIds = new Set(items.flatMap((item) => (item.alertId ? [item.alertId] : [])));
-  const packetIds = new Set(items.flatMap((item) => (item.packetId ? [item.packetId] : [])));
-  const teamCards = stories.slice().sort((left, right) => right.item.rank - left.item.rank).map((story) => story.card);
-  const cards = [...teamCards, ...(await ambientFor(access, [], { alertIds, packetIds }))].slice(0, LANDING_CARDS);
-  const carded = cards.flatMap((card) => cardKey(card) ?? []);
-  const rows = landingRows(items, carded);
-  const folded = stories.flatMap((story) => story.memberKeys.filter((key) => key.startsWith("alert:")).map((key) => key.slice("alert:".length)));
-  return { cards, rows, shownKeys: [...carded, ...rows.map((row) => row.key)], taskCount: onePerStory(items.filter(isTask)).length, alertIds: [...alertIds, ...folded] };
+  const tasks = onePerStory(items.filter(isTask));
+  const shown = tasks.slice(0, LANDING_CARDS);
+  const dictionary = await loadDictionary();
+  const matters = tasks.reduce((count, item) => count + (stories.find((story) => story.item.key === item.key)?.memberKeys.length ?? 1), 0);
+  return { cards: shown.map((item) => cardOf(access, item, stories, dictionary)), taskCount: matters, shownKeys: shown.map((item) => item.key) };
 }
 
 function stateFor(action: Exclude<FeedAction, "open">, now: number): Pick<FeedStateRecord, "state" | "until"> {

@@ -1,4 +1,4 @@
-import type { RoleId } from "@/lib/contracts";
+import type { FeedSource, RoleId } from "@/lib/contracts";
 
 export const TH = {
   app: { name: "Cop", tagline: "ผู้ช่วยข้อมูลสำหรับทุกคนในองค์กร" },
@@ -138,21 +138,17 @@ export const TH = {
     coverLeft: (days: string) => `เหลือ ${days} วัน`,
     campaignDetail: (target: string, met: boolean, ended: boolean, end: string) =>
       `ยอดเพิ่มจากแคมเปญ · ${met ? "ถึง" : "ต่ำกว่า"}เป้า ${target} · ${ended ? "จบแล้ว" : "สิ้นสุด"} ${end}`,
-    campaignPrompt: (campaign: string) => `ผลแคมเปญ${campaign}เป็นอย่างไรเทียบเป้า แยกตามช่องทางและภาค`,
+    campaignPrompt: (campaign: string) => `ผลแคมเปญ${campaign} เป็นอย่างไรเทียบเป้า แยกตามช่องทางและภาค`,
     system: {
       offline: "ติดต่อไม่ได้",
       since: (date: string) => `ตั้งแต่ ${date}`,
       offlinePrompt: (connector: string) => `${connector} ติดต่อไม่ได้ ตรวจสอบอะไรได้บ้าง`,
-      handoffOff: "ปิดการส่งต่องานอยู่",
-      days: (days: number) => `${days} วัน`,
-      handoffPrompt: "ตอนนี้ใครส่งต่องานไม่ได้บ้าง ถ้าเปิดการส่งต่องานกลับจะกระทบอะไร",
       killed: "ปิดใช้งาน",
       killedDetail: "เครื่องมือถูกปิดด้วย kill switch",
       killedPrompt: (tool: string) => `เครื่องมือ ${tool} ถูกปิดอยู่ ใครได้รับผลกระทบบ้าง`,
     },
     moreSlices: (count: number) => `และอีก ${count} พื้นที่หรือช่องทาง`,
     relatedTo: (other: string) => `เกี่ยวกับ ${other}`,
-    unopened: (owner: string, days: number) => `${owner}ยังไม่ได้เปิด ${days} วัน`,
     kinds: {
       "person:cert": "ใบอนุญาตใกล้หมด",
       "person:risk": "คนที่เสี่ยงลาออก",
@@ -162,6 +158,17 @@ export const TH = {
       visit: "เอเย่นต์ที่ควรเยี่ยม",
       packet: "งานที่ส่งต่อมา",
     } as Record<string, string>,
+    sources: {
+      alert: "ความผิดปกติ",
+      packet: "งานที่ส่งต่อมา",
+      visit: "เอเย่นต์ที่ควรเยี่ยม",
+      person: "เรื่องคน",
+      opening: "ตำแหน่งที่เปิดนาน",
+      watch: "เรื่องที่คุณเฝ้าดู",
+      campaign: "แคมเปญของคุณ",
+      system: "ระบบ",
+      team: "ในทีมของคุณ",
+    } as Record<FeedSource, string>,
   },
   landing: {
     greeting: {
@@ -181,8 +188,6 @@ export const TH = {
     voice: "พูดคำถาม",
     trust: "ตัวเลขทุกตัวมาจากข้อมูลที่รับรองแล้ว ตามสิทธิ์ของคุณ",
     disclaimer: "Cop เป็นเดโม ข้อมูลทั้งหมดถูกสร้างขึ้นเพื่อการสาธิต",
-    statusLead: "รอคุณอยู่",
-    teamStatusLead: "ในทีมของคุณ",
     lastFourWeeks: "4 สัปดาห์ล่าสุด",
     visitsTitle: "ไปเยี่ยมวันนี้",
     visitDrop: (delta: string) => `ขายเข้า ${delta} เทียบช่วงก่อน`,
@@ -934,10 +939,8 @@ export const TH = {
     eyebrow: (severity: string) => (severity ? `${severity} · ในทีมของคุณ` : "ในทีมของคุณ"),
     emptySeat: (province: string, days: number) => `${province} ว่าง ${days} วัน`,
     uncovered: (seats: readonly string[]) => `ปัญหาเกิดในจังหวัดที่ตำแหน่งพนักงานขายยังว่าง (${seats.join(", ")}) อาจเป็นเพราะไม่มีคนดูแลร้านในเขต`,
-    handedOff: (owner: string, to: string) => `${owner}ส่งต่อให้${to}แล้ว`,
-    opened: (owner: string, days: number) => (days === 0 ? `${owner}เปิดดูแล้ววันนี้ ยังไม่ได้ส่งต่องาน` : `${owner}เปิดดูแล้วเมื่อ ${days} วันก่อน ยังไม่ได้ส่งต่องาน`),
-    unopened: (owner: string, days: number) => `${owner}ยังไม่ได้เปิด ${days} วัน`,
-    openingsOnly: (owner: string) => `ตำแหน่งที่ยังว่างในทีม${owner}`,
+    handedOff: (owner: string, to: string) => `${owner} ส่งต่อให้${to}แล้ว`,
+    youHandedOff: (to: string) => `คุณส่งต่อให้${to}แล้ว`,
     prompt: (region: string, name: string) => `สรุปสถานการณ์${region}ของ${name}ให้หน่อย เรื่องที่ผิดปกติ ตำแหน่งที่ว่าง และควรทำอะไรก่อน`,
     ask: (name: string) => `ถามความคืบหน้า${name}`,
     askReason: "ส่งคำถามถึงลูกทีม ระบบขออนุมัติก่อนส่ง",

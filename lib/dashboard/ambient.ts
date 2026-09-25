@@ -1,18 +1,10 @@
-import type { Alert, AlertRow, NextAction } from "@/lib/contracts";
+import type { Alert, AlertRow, FeedItem, NextAction } from "@/lib/contracts";
 import type { Spec, SpecElement } from "vexa/protocol";
 import { TH } from "@/lib/i18n/th";
 import type { Tone } from "./metric-display";
 
-export type AmbientPacket = { id: string; title: string; ask: string; fromName: string; urgency: "low" | "medium" | "high" };
-
-export type AmbientInput = {
-  alerts: readonly Alert[];
-  packet: AmbientPacket | null;
-  ownerName: (alert: Alert) => string | null;
-  lessonOf: (alert: Alert) => string | null;
-  actionsFor: (alert: Alert) => NextAction[];
-  rowOf: (alert: Alert) => AlertRow;
-};
+/** A handoff waiting for the viewer; `carried` is the open alert it is about, whose number leads its card. */
+export type AmbientPacket = { id: string; title: string; ask: string; fromName: string; urgency: "low" | "medium" | "high"; carried: Alert | null };
 
 export type AmbientTone = "danger" | "warning" | "info" | "brand" | "success" | "neutral";
 
@@ -31,7 +23,8 @@ export type AmbientCard = {
   alertId: string | null;
   /** The feed item this card stands for, which its done/snooze/not-mine menu acts on; null for a handoff, which closes in the inbox. */
   feedKey: string | null;
-  handoff: NextAction | null;
+  /** The one thing the card offers to do, decided by rules; it runs through the approval card. */
+  action: NextAction | null;
   spec: Spec;
 };
 
@@ -41,12 +34,12 @@ export type LandingKpi = { id: string; label: string; value: string; delta: stri
 /** One agent a field rep should visit today, with the one reason that put it on the list. */
 export type VisitStop = { id: string; agent: string; reason: string; tone: AmbientTone; prompt: string };
 
-export type StatusLink = { id: string; label: string; count: number; tone: AmbientTone; query: Record<string, string> };
+/** What an alert's card needs besides the alert: its display row, whose it is when not the viewer's, the line under it, and what it offers to do. */
+export type AlertCardParts = { alert: Alert; row: AlertRow; owner: string | null; note: string | null; actions: readonly NextAction[] };
 
-const MAX_CARDS = 2;
-const TASK_SEVERITIES: readonly Alert["severity"][] = ["P1", "P2"];
 const SEVERITY_TONES: Record<Alert["severity"], "danger" | "warning" | "info"> = { P1: "danger", P2: "warning", P3: "info" };
 const URGENCY_TONES: Record<AmbientPacket["urgency"], AmbientTone> = { high: "danger", medium: "warning", low: "info" };
+const TONE_SEVERITY: Partial<Record<AmbientTone, string>> = { danger: TH.severity.P1, warning: TH.severity.P2 };
 
 function element(type: string, props: Record<string, unknown>, children: string[] = []): SpecElement {
   return { type, props, children } as SpecElement;
@@ -57,25 +50,34 @@ function signedGap(alert: Alert, gapLabel: string | null): string | null {
   return `${alert.direction === "down" ? "−" : "+"}${gapLabel}`;
 }
 
-function alertCard(row: AlertRow, alert: Alert, owner: string | null, lesson: string | null, actions: NextAction[]): AmbientCard {
+function headlineOf(row: AlertRow, alert: Alert): AmbientHeadline | null {
+  const gap = signedGap(alert, row.gapLabel);
+  return gap ? { value: gap, tone: SEVERITY_TONES[alert.severity], caption: TH.landing.observedVsExpected(row.observedLabel, row.expectedLabel) } : null;
+}
+
+function actionOf(actions: readonly NextAction[]): NextAction | null {
+  return actions.find((action) => action.tool !== null) ?? null;
+}
+
+/** An alert's card: the gap against expected leads, then where it is, the hypothesis, and the note under it. */
+export function alertCard({ alert, row, owner, note, actions }: AlertCardParts): AmbientCard {
   const root = `ambient-alert-${alert.id}`;
   const tone = SEVERITY_TONES[alert.severity];
   const gap = signedGap(alert, row.gapLabel);
   const caption = TH.landing.observedVsExpected(row.observedLabel, row.expectedLabel);
-  const eyebrow = `${row.severityLabel} · ${row.metricLabel}`;
   return {
     id: root,
-    eyebrow,
+    eyebrow: `${row.severityLabel} · ${row.metricLabel}`,
     tone,
     title: row.scopeLabel,
-    headline: gap ? { value: gap, tone, caption } : null,
+    headline: headlineOf(row, alert),
     body: owner ? `${TH.inbox.owner(owner)} · ${row.hypothesis}` : row.hypothesis,
-    lesson,
+    lesson: note,
     prompt: TH.landing.askAbout(row.scopeLabel),
     packetId: null,
     alertId: alert.id,
     feedKey: `alert:${alert.id}`,
-    handoff: actions.find((action) => action.kind === "handoff" && action.tool !== null) ?? null,
+    action: actionOf(actions),
     spec: {
       root,
       elements: { [root]: element("Alert", { title: row.scopeLabel, meta: gap ? `${gap} · ${caption}` : caption, body: row.hypothesis, tone }) },
@@ -83,23 +85,23 @@ function alertCard(row: AlertRow, alert: Alert, owner: string | null, lesson: st
   };
 }
 
-function packetCard(packet: AmbientPacket): AmbientCard {
+/** A handoff's card; when it carries an alert, that alert's number leads. */
+export function packetCard(packet: AmbientPacket, row: AlertRow | null): AmbientCard {
   const root = `ambient-packet-${packet.id}`;
   const eyebrow = `${TH.inbox.tabs.handoffs} · ${TH.inbox.urgency[packet.urgency]}`;
-  const from = TH.landing.fromName(packet.fromName);
   return {
     id: root,
     eyebrow,
     tone: URGENCY_TONES[packet.urgency],
     title: packet.title,
-    headline: null,
-    body: `${from} · ${packet.ask}`,
+    headline: row && packet.carried ? headlineOf(row, packet.carried) : null,
+    body: `${TH.landing.fromName(packet.fromName)} · ${packet.ask}`,
     lesson: null,
     prompt: TH.landing.packetPrompt(packet.title),
     packetId: packet.id,
     alertId: null,
     feedKey: null,
-    handoff: null,
+    action: null,
     spec: {
       root,
       elements: { [root]: element("Callout", { eyebrow, title: packet.title, body: packet.ask, tone: "brand" }) },
@@ -107,31 +109,31 @@ function packetCard(packet: AmbientPacket): AmbientCard {
   };
 }
 
-function differentStory(first: Alert, alerts: readonly Alert[]): Alert | null {
-  const pool = alerts.filter((alert) => alert.id !== first.id && alert.severity !== "P3");
-  return pool.find((alert) => alert.dims.region !== first.dims.region || alert.metric !== first.metric) ?? pool[0] ?? null;
+function kindLabel(item: FeedItem): string {
+  return TH.feed.kinds[item.kind] ?? TH.feed.sources[item.source];
 }
 
-/** Up to two cards under the KPIs, each leading with the number that decides: the top alert, then the newest handoff or an alert from a different region or metric. */
-export function ambientCards(input: AmbientInput): AmbientCard[] {
-  const [first] = input.alerts;
-  const cards: AmbientCard[] = [];
-  if (first) cards.push(alertCard(input.rowOf(first), first, input.ownerName(first), input.lessonOf(first), input.actionsFor(first)));
-  const second = first ? differentStory(first, input.alerts) : null;
-  if (input.packet) cards.push(packetCard(input.packet));
-  else if (second) cards.push(alertCard(input.rowOf(second), second, input.ownerName(second), input.lessonOf(second), input.actionsFor(second)));
-  return cards.slice(0, MAX_CARDS);
-}
-
-/** The status line under the greeting: this user's alerts that need acting on, per severity, and waiting handoffs — each a link into the inbox; low-severity alerts and the rest of the scope are movements to know about, not counts to carry. */
-export function statusLinks(relevant: readonly Alert[], packets: number): StatusLink[] {
-  const links: StatusLink[] = TASK_SEVERITIES.map((severity) => ({
-    id: severity,
-    label: TH.severity[severity],
-    count: relevant.filter((alert) => alert.severity === severity).length,
-    tone: SEVERITY_TONES[severity],
-    query: { inbox: "alerts", severity },
-  })).filter((link) => link.count > 0);
-  if (packets > 0) links.push({ id: "handoffs", label: TH.inbox.tabs.handoffs, count: packets, tone: "brand", query: { inbox: "handoffs" } });
-  return links;
+/** Any other matter on the feed as a card: what it is about, the reason it is there as the headline, and its detail. */
+export function itemCard(item: FeedItem): AmbientCard {
+  const root = `ambient-item-${item.key}`;
+  const severity = TONE_SEVERITY[item.tone];
+  const eyebrow = severity ? `${severity} · ${kindLabel(item)}` : kindLabel(item);
+  return {
+    id: root,
+    eyebrow,
+    tone: item.tone,
+    title: item.label,
+    headline: { value: item.reason, tone: item.tone, caption: null },
+    body: item.detail,
+    lesson: item.because,
+    prompt: item.prompt,
+    packetId: item.packetId,
+    alertId: null,
+    feedKey: item.key,
+    action: actionOf(item.actions),
+    spec: {
+      root,
+      elements: { [root]: element("Callout", { eyebrow, title: item.label, body: [item.reason, item.detail].filter(Boolean).join(" · "), tone: "brand" }) },
+    },
+  };
 }

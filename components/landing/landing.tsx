@@ -1,15 +1,15 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { LayoutDashboard, Send, ShieldCheck } from "lucide-react";
+import { ArrowUpRight, LayoutDashboard, Send, ShieldCheck } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "vexa/ui/tooltip";
 import { cn } from "vexa/lib/utils";
 import { formatActionMessage } from "vexa/react";
-import type { FeedItem, NextAction, QuickAction } from "@/lib/contracts";
-import { FeedList, FeedMenu, postFeedAction, type FeedHandlers, type FeedSettle } from "@/components/feed/feed-list";
-import type { AmbientCard, AmbientTone, LandingKpi, StatusLink } from "@/lib/dashboard/ambient";
+import type { NextAction, QuickAction } from "@/lib/contracts";
+import { FeedMenu, postFeedAction, type FeedHandlers, type FeedSettle } from "@/components/feed/feed-list";
+import type { AmbientCard, AmbientTone, LandingKpi } from "@/lib/dashboard/ambient";
 import type { Tone } from "@/lib/dashboard/metric-display";
 import { TH } from "@/lib/i18n/th";
 import { CopComposer } from "@/components/composer/cop-composer";
@@ -22,11 +22,12 @@ const THREADS_ENDPOINT = "/api/threads";
 const QUICK_ACTIONS_ENDPOINT = "/api/quick-actions";
 const ALERTS_ENDPOINT = "/api/alerts";
 const DASHBOARD_PATH = "/dashboard";
+const INBOX_TODO_QUERY = { inbox: "todo" };
 const MAX_CHIPS = 4;
 const HERO = "flex w-full max-w-3xl flex-col gap-6";
 const CHIP_ROW = "-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [mask-image:linear-gradient(to_right,black_80%,transparent)] sm:mx-0 sm:[mask-image:none] sm:flex-wrap sm:justify-center sm:overflow-visible sm:px-0 sm:pb-0";
 const AMBIENT = "flex min-w-0 flex-col gap-2 rounded-2xl border border-border bg-card p-4 text-left shadow-card transition duration-200 hover:-translate-y-0.5 hover:shadow-lift focus-within:ring-2 focus-within:ring-ring";
-const HANDOFF = "inline-flex items-center gap-1.5 rounded-full bg-ink px-3 py-1.5 text-xs font-medium text-ink-foreground transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50";
+const ACT = "inline-flex items-center gap-1.5 rounded-full bg-ink px-3 py-1.5 text-xs font-medium text-ink-foreground transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50";
 const AMBIENT_COLUMNS: Record<number, string> = { 1: "sm:grid-cols-1", 2: "sm:grid-cols-2" };
 const KPI_COLUMNS: Record<number, string> = { 1: "sm:grid-cols-1", 2: "sm:grid-cols-2", 3: "sm:grid-cols-3", 4: "sm:grid-cols-4" };
 const KPI_STRIP = "grid w-full grid-cols-2 [&>*:last-child:nth-child(odd)]:col-span-2 sm:[&>*:last-child:nth-child(odd)]:col-span-1 overflow-hidden rounded-2xl border border-border bg-border gap-px shadow-card transition duration-200 hover:shadow-lift focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
@@ -53,29 +54,18 @@ const TONE_DOT: Record<AmbientTone, string> = {
 };
 export type Greeting = { lead: string; name: string };
 
-function StatusLine({ links, lead, taskCount }: { links: StatusLink[]; lead: string; taskCount: number }) {
-  if (links.length === 0) return <p className="text-sm text-muted-foreground sm:text-base">{taskCount > 0 ? TH.landing.tasksLead(taskCount) : TH.landing.quiet}</p>;
+/** One sentence under the greeting, the same for every role: how many matters the inbox holds, or that nothing needs the user. */
+function StatusLine({ taskCount }: { taskCount: number }) {
+  if (taskCount === 0) return <p className="text-sm text-muted-foreground sm:text-base">{TH.landing.quiet}</p>;
   return (
-    <p className="flex flex-wrap items-center justify-center gap-x-1 gap-y-1 text-sm">
-      <span className="mr-1 text-muted-foreground">{lead}</span>
-      {links.map((link) => (
-        <Link
-          key={link.id}
-          href={{ query: link.query }}
-          scroll={false}
-          className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 transition hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        >
-          <span aria-hidden className={cn("size-1.5 rounded-full", TONE_DOT[link.tone])} />
-          <span className="text-muted-foreground">{link.label}</span>
-          <span className="font-semibold tabular-nums">{link.count}</span>
-        </Link>
-      ))}
-    </p>
+    <Link href={{ query: INBOX_TODO_QUERY }} scroll={false} className="self-center rounded-full px-3 py-1 text-sm text-muted-foreground transition hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:text-base">
+      {TH.landing.tasksLead(taskCount)}
+    </Link>
   );
 }
 
-function AmbientCardView({ card, onOpen, onHandoff, onSettle }: { card: AmbientCard; onOpen: () => void; onHandoff: (action: NextAction) => void; onSettle: FeedHandlers["onSettle"] }) {
-  const handoff = card.handoff;
+function AmbientCardView({ card, onOpen, onAct, onSettle }: { card: AmbientCard; onOpen: () => void; onAct: (action: NextAction) => void; onSettle: FeedHandlers["onSettle"] }) {
+  const action = card.action;
   return (
     <div className={AMBIENT}>
       <div className="flex items-start gap-1">
@@ -96,11 +86,11 @@ function AmbientCardView({ card, onOpen, onHandoff, onSettle }: { card: AmbientC
         {card.body ? <span className="line-clamp-2 text-xs text-muted-foreground">{card.body}</span> : null}
         {card.lesson ? <span className="line-clamp-2 rounded-lg bg-muted px-2 py-1 text-xs text-foreground">{card.lesson}</span> : null}
       </button>
-      {handoff ? (
+      {action ? (
         <div className="mt-auto flex pt-1">
-          <button type="button" onClick={() => onHandoff(handoff)} title={handoff.reason} className={HANDOFF}>
-            <Send className="size-3" aria-hidden />
-            {handoff.label}
+          <button type="button" onClick={() => onAct(action)} title={action.reason} className={ACT}>
+            {action.kind === "handoff" ? <Send className="size-3" aria-hidden /> : <ArrowUpRight className="size-3" aria-hidden />}
+            {action.label}
           </button>
         </div>
       ) : null}
@@ -130,10 +120,7 @@ function KpiStrip({ kpis }: { kpis: LandingKpi[] }) {
 
 export function Landing({
   greeting,
-  status,
-  statusLead,
   kpis,
-  rows,
   taskCount,
   quickActions,
   ambient,
@@ -141,10 +128,7 @@ export function Landing({
   placeholder,
 }: {
   greeting: Greeting;
-  status: StatusLink[];
-  statusLead: string;
   kpis: LandingKpi[];
-  rows: FeedItem[];
   taskCount: number;
   quickActions: QuickAction[];
   ambient: AmbientCard[];
@@ -218,25 +202,12 @@ export function Landing({
   );
 
   const [hidden, setHidden] = useState<ReadonlySet<string>>(() => new Set());
-  const visibleRows = rows.filter((row) => !hidden.has(row.key));
   const visibleCards = ambient.filter((card) => !card.feedKey || !hidden.has(card.feedKey));
 
   const settle = useCallback((key: string, action: FeedSettle) => {
     setHidden((current) => new Set([...current, key]));
     postFeedAction(key, action);
   }, []);
-
-  const feedHandlers = useMemo<FeedHandlers>(
-    () => ({
-      onOpen: (row: FeedItem) => {
-        postFeedAction(row.key, "open");
-        void start(row.prompt, undefined, undefined, row.packetId ?? undefined);
-      },
-      onSettle: settle,
-      onRun: (action: NextAction) => action.tool && void start(formatActionMessage(action.tool, action.input ?? {}), undefined, action.label),
-    }),
-    [settle, start],
-  );
 
   useEffect(() => {
     function openDashboard(event: KeyboardEvent) {
@@ -258,7 +229,7 @@ export function Landing({
             <h1 className="text-balance font-display text-[1.75rem] font-semibold leading-[1.2] tracking-[-0.02em] sm:text-[3rem]">
               {greeting.lead} <GradientText className="whitespace-nowrap">{greeting.name}</GradientText>
             </h1>
-            <StatusLine links={status} lead={statusLead} taskCount={taskCount - (rows.length - visibleRows.length) - (ambient.length - visibleCards.length)} />
+            <StatusLine taskCount={taskCount - (ambient.length - visibleCards.length)} />
           </header>
 
           <CopComposer value={text} onValueChange={setText} onSubmit={start} busy={busy} autoFocus placeholder={placeholder} />
@@ -293,12 +264,11 @@ export function Landing({
                   card={card}
                   onSettle={settle}
                   onOpen={() => openAmbient(card)}
-                  onHandoff={(action) => action.tool && void start(formatActionMessage(action.tool, action.input ?? {}), undefined, action.label)}
+                  onAct={(action) => action.tool && void start(formatActionMessage(action.tool, action.input ?? {}), undefined, action.label)}
                 />
               ))}
             </div>
           ) : null}
-          {visibleRows.length > 0 ? <FeedList rows={visibleRows} handlers={feedHandlers} /> : null}
         </div>
 
         <div className="flex flex-col items-center gap-3 animate-hero-rise [animation-delay:220ms]">

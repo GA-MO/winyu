@@ -10,7 +10,7 @@ import { templateFor } from "./templates";
 import { widgetToSpec } from "./widget-to-spec";
 import { alertRowOf } from "@/lib/cards/alert-row";
 import { GENERATOR_DICTIONARY } from "@/lib/data/master";
-import { ambientCards } from "./ambient";
+import { alertCard, itemCard, packetCard } from "./ambient";
 
 const RSM = "u_anucha";
 const HR = "u_may";
@@ -111,60 +111,33 @@ describe("widgetToSpec", () => {
     expect(JSON.stringify(spec)).toContain("***");
   });
 
-  test("ambient cards are valid specs and never exceed two", () => {
-    const cards = ambientCards({
-      alerts: [{
-        id: "a1", at: "2026-09-22T01:00:00.000Z", severity: "P1", metric: "sell_out_volume", dims: { region: "northeast" },
-        window: { from: "2026-09-01", to: "2026-09-22" }, observed: 100, expected: 140, zScore: -3.1, direction: "down",
-        hypothesis: "สต๊อกค้างที่เอเย่นต์", verifySteps: ["ตรวจยอดขายออกจากร้าน", "ตรวจสต๊อกที่เอเย่นต์"],
-        ownerUserId: RSM, status: "open", dismissCount: 0,
-      }],
-      packet: { id: "p1", title: "ยอดอีสานต่ำกว่าเป้า", ask: "ช่วยตรวจเอเย่นต์ที่ยอดตก", fromName: "คุณอนุชา", urgency: "high" },
-      ownerName: () => null,
-      lessonOf: () => null,
-      actionsFor: () => [],
-      rowOf: (alert) => alertRowOf(alert, GENERATOR_DICTIONARY),
-    });
-    expect(cards.length).toBe(2);
+  test("landing cards of every kind are valid specs", () => {
+    const alert = {
+      id: "a1", at: "2026-09-22T01:00:00.000Z", severity: "P1" as const, metric: "sell_out_volume" as const, dims: { region: "northeast" },
+      window: { from: "2026-09-01", to: "2026-09-22" }, observed: 100, expected: 140, zScore: -3.1, direction: "down" as const,
+      hypothesis: "สต๊อกค้างที่เอเย่นต์", verifySteps: ["ตรวจยอดขายออกจากร้าน", "ตรวจสต๊อกที่เอเย่นต์"] as [string, string],
+      ownerUserId: RSM, status: "open" as const, dismissCount: 0,
+    };
+    const row = alertRowOf(alert, GENERATOR_DICTIONARY);
+    const cards = [
+      alertCard({ alert, row, owner: null, note: null, actions: [] }),
+      packetCard({ id: "p1", title: "ยอดอีสานต่ำกว่าเป้า", ask: "ช่วยตรวจเอเย่นต์ที่ยอดตก", fromName: "คุณอนุชา", urgency: "high", carried: alert }, row),
+      itemCard({
+        key: "person:e1:cert", source: "person", kind: "person:cert", story: null, rank: 700, tone: "danger", label: "คุณแดง ศักดิ์ดี",
+        reason: "ใบขับขี่รถยก 8 วัน", detail: "พนักงานขับรถยก", prompt: "ขอดูโปรไฟล์คุณแดง", alertId: null, packetId: null, canFinish: true, actions: [], because: null,
+      }),
+    ];
     for (const card of cards) expect(validate(card.spec).success).toBe(true);
+    expect(cards[1]?.headline?.value).toBe(cards[0]?.headline?.value);
   });
 
-  test("the second card is another serious story before an explained one", () => {
-    const base = {
-      at: "2026-09-22T01:00:00.000Z", window: { from: "2026-09-01", to: "2026-09-22" }, observed: 100, expected: 140, zScore: -3.1, direction: "down" as const,
-      hypothesis: "h", verifySteps: ["a", "b"] as [string, string], ownerUserId: RSM, status: "open" as const, dismissCount: 0,
-    };
-    const cards = ambientCards({
-      alerts: [
-        { ...base, id: "p1", severity: "P1", metric: "days_of_cover", dims: { region: "north" } },
-        { ...base, id: "p3", severity: "P3", metric: "production_output", dims: { region: "central" } },
-        { ...base, id: "p2", severity: "P2", metric: "days_of_cover", dims: { region: "north" } },
-      ],
-      packet: null,
-      ownerName: () => null,
-      lessonOf: () => null,
-      actionsFor: () => [],
-      rowOf: (alert) => alertRowOf(alert, GENERATOR_DICTIONARY),
+  test("a matter that is not an alert leads with its reason and names its kind", () => {
+    const card = itemCard({
+      key: "campaign:c1", source: "campaign", kind: "campaign", story: null, rank: 600, tone: "warning", label: "โซดาซัมเมอร์",
+      reason: "+12%", detail: "ต่ำกว่าเป้า 35%", prompt: "ผลแคมเปญ", alertId: null, packetId: null, canFinish: true, actions: [], because: null,
     });
-    expect(cards.map((card) => card.alertId)).toEqual(["p1", "p2"]);
-  });
-
-  test("with only a P3 left, the first card stands alone", () => {
-    const base = {
-      at: "2026-09-22T01:00:00.000Z", window: { from: "2026-09-01", to: "2026-09-22" }, observed: 100, expected: 140, zScore: -3.1, direction: "down" as const,
-      hypothesis: "h", verifySteps: ["a", "b"] as [string, string], ownerUserId: RSM, status: "open" as const, dismissCount: 0,
-    };
-    const cards = ambientCards({
-      alerts: [
-        { ...base, id: "p1", severity: "P1", metric: "days_of_cover", dims: { region: "north" } },
-        { ...base, id: "p3", severity: "P3", metric: "production_output", dims: { region: "central" } },
-      ],
-      packet: null,
-      ownerName: () => null,
-      lessonOf: () => null,
-      actionsFor: () => [],
-      rowOf: (alert) => alertRowOf(alert, GENERATOR_DICTIONARY),
-    });
-    expect(cards.map((card) => card.alertId)).toEqual(["p1"]);
+    expect(card.headline?.value).toBe("+12%");
+    expect(card.eyebrow).toBe(`${TH.severity.P2} · ${TH.feed.sources.campaign}`);
+    expect(card.feedKey).toBe("campaign:c1");
   });
 });

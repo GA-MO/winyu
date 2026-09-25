@@ -175,6 +175,19 @@ export function openPacketsFor(access: AccessContext): ContextPacket[] {
     .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt));
 }
 
+/** The open handoff that already carries this alert, whoever sent it: the alert is being handled and needs no second one. */
+export function openPacketCarrying(alertId: string): ContextPacket | null {
+  return packets().all().find((packet) => packet.status !== "resolved" && packet.alertIds.includes(alertId)) ?? null;
+}
+
+/** How an alert that was handed on is being handled, for everyone but its recipient: who sent it to whom, or that the viewer did. */
+export function handedOffNote(alertId: string, viewerId: string): string | null {
+  const packet = openPacketCarrying(alertId);
+  if (!packet || packet.toUserId === viewerId) return null;
+  const to = findUser(packet.toUserId)?.nameTh ?? packet.toUserId;
+  return packet.fromUserId === viewerId ? TH.team.youHandedOff(to) : TH.team.handedOff(findUser(packet.fromUserId)?.nameTh ?? packet.fromUserId, to);
+}
+
 export function forecastsFor(access: AccessContext): Forecast[] {
   ensureEngine();
   return forecasts().where((forecast) => {
