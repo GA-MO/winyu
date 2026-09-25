@@ -1,0 +1,74 @@
+[
+  {
+    "id": "u_prasit",
+    "at": "2026-09-25T16:04:11.683Z",
+    "alertIds": [
+      "al_7364476d77c8f435",
+      "al_ed6dca9e1dab4e48",
+      "al_fa3be1e7b4f9fe40"
+    ],
+    "previousAt": "2026-09-25T15:00:37.114Z",
+    "previousAlertIds": [
+      "al_7364476d77c8f435",
+      "al_ed6dca9e1dab4e48",
+      "al_fa3be1e7b4f9fe40"
+    ],
+    "shownKeys": [
+      "team:u_anucha:alert:al_7364476d77c8f435,alert:al_ed6dca9e1dab4e48,alert:al_fa3be1e7b4f9fe40,opening:op_ne_khonkaen,opening:op_ne_ubon"
+    ],
+    "seenCounts": {
+      "team:u_anucha:alert:al_7364476d77c8f435,alert:al_ed6dca9e1dab4e48,alert:al_fa3be1e7b4f9fe40,opening:op_ne_khonkaen,opening:op_ne_ubon": 4
+    }
+  },
+  {
+    "id": "u_may",
+    "at": "2026-09-25T16:06:19.636Z",
+    "alertIds": [],
+    "previousAt": "2026-09-25T14:24:19.594Z",
+    "previousAlertIds": [],
+    "shownKeys": [
+      "person:e_dang:cert-ใบขับขี่รถยก+overtime-overtime+risk-risk",
+      "person:e_pong:cert-ใบอนุญาตขายสุรา+overtime-overtime+risk-risk"
+    ],
+    "seenCounts": {
+      "person:e_dang:cert-ใบขับขี่รถยก+overtime-overtime+risk-risk": 3,
+      "person:e_pong:cert-ใบอนุญาตขายสุรา+overtime-overtime+risk-risk": 3,
+      "person:e_wan:cert-ใบขับขี่รถยก": 1,
+      "person:u_krit:cert-ใบอนุญาตขายสุรา": 1,
+      "person:e_somsri:cert-GMP": 1
+    }
+  },
+  {
+    "id": "u_siriporn",
+    "at": "2026-09-25T16:02:21.649Z",
+    "alertIds": [
+      "al_220936abb568e7c9"
+    ],
+    "previousAt": "2026-09-25T15:00:19.226Z",
+    "previousAlertIds": [
+      "al_220936abb568e7c9"
+    ],
+    "shownKeys": [
+      "alert:al_220936abb568e7c9"
+    ],
+    "seenCounts": {
+      "alert:al_220936abb568e7c9": 4
+    }
+  },
+  {
+    "id": "u_ton",
+    "at": "2026-09-25T16:05:59.503Z",
+    "alertIds": [],
+    "previousAt": "2026-09-25T14:24:57.171Z",
+    "previousAlertIds": [],
+    "shownKeys": [
+      "system:offline:lms_demo:2026-09-25T13:51:01.236Z",
+      "system:offline:crm_demo:2026-09-25T16:01:12.816Z"
+    ],
+    "seenCounts": {
+      "system:switch:handoff:2026-09-25T13:50:36.436Z": 1,
+      "system:offline:lms_demo:2026-09-25T13:51:01.236Z": 3,
+      "system:offline:crm_demo:2026-09-25T16:01:12.816Z": 1
+    }
+  }
+]

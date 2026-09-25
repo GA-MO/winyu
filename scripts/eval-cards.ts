@@ -8,6 +8,7 @@ import { hostToolDescriptors } from "@/lib/cards/host-tools";
 import { EVAL_CASES, SCRIPTED_CASES, type EvalCase } from "@/lib/eval/cases";
 import { checkTurn, scoreOf, type CheckResult, type Turn } from "@/lib/eval/check-cards";
 import { emptyMeter, measure, type Metered } from "@/lib/server/usage-meter";
+import { specOf } from "@/lib/eval/spec-of";
 
 const CHAT_URL = "http://localhost:3100/api/chat";
 const REPORT = ".eval-cards.json";
@@ -29,31 +30,6 @@ function partsOf(raw: string): Part[] {
     .split("\n")
     .filter((line) => line.startsWith(DATA_PREFIX) && !line.startsWith(DONE))
     .map((line) => JSON.parse(line.slice(DATA_PREFIX.length)) as Part);
-}
-
-function applyPatch(spec: Record<string, unknown>, patch: { op?: string; path?: string; value?: unknown }) {
-  if (patch.op !== "add" && patch.op !== "replace") return;
-  const segments = String(patch.path ?? "").split("/").filter(Boolean);
-  if (segments.length === 0) return;
-  let cursor = spec;
-  for (const segment of segments.slice(0, -1)) {
-    if (typeof cursor[segment] !== "object" || cursor[segment] === null) cursor[segment] = {};
-    cursor = cursor[segment] as Record<string, unknown>;
-  }
-  cursor[segments[segments.length - 1]] = patch.value;
-}
-
-function specOf(parts: Part[]): Spec | null {
-  const spec: Record<string, unknown> = {};
-  let seen = false;
-  for (const part of parts) {
-    if (part.type !== "data-spec") continue;
-    const data = part.data as { type?: string; patch?: { op?: string; path?: string; value?: unknown } };
-    if (data?.type !== "patch" || !data.patch) continue;
-    applyPatch(spec, data.patch);
-    seen = true;
-  }
-  return seen ? (spec as unknown as Spec) : null;
 }
 
 function toolTraceOf(parts: Part[]): ToolTrace[] {

@@ -1,0 +1,86 @@
+[
+  {
+    "id": "8679dfac-4ca5-4588-a73e-e6ac3fb41f1d",
+    "userId": "u_krit",
+    "type": "responsibility",
+    "value": "ดูแลเอเย่นต์",
+    "confidence": 0.6,
+    "sourceThreadId": "dbe3e072-58f6-4b69-964a-9f88af699c71",
+    "createdAt": "2026-09-12T16:03:50.466Z",
+    "decayAt": "2026-12-11T16:08:31.394Z",
+    "seen": 2,
+    "lastSeenAt": "2026-09-12T16:08:31.394Z"
+  },
+  {
+    "id": "13558823-d138-43f2-95d6-194aa094a216",
+    "userId": "u_anucha",
+    "type": "interest",
+    "value": "สนใจปริมาณขายออก (Sell-out)เป็นประจำ",
+    "confidence": 0.45,
+    "sourceThreadId": "eb265cce-8056-4a7f-98ef-56b4b2e63258",
+    "createdAt": "2026-09-17T16:04:32.021Z",
+    "decayAt": "2026-10-01T16:04:32.021Z",
+    "seen": 1,
+    "lastSeenAt": "2026-09-17T16:04:32.021Z"
+  },
+  {
+    "id": "5e85d154-080d-4b1c-8c54-dcca2753f06b",
+    "userId": "u_anucha",
+    "type": "vocabulary",
+    "value": "เรียกปริมาณขายออก (Sell-out)ว่า \"sell-out\"",
+    "confidence": 0.45,
+    "sourceThreadId": "eb265cce-8056-4a7f-98ef-56b4b2e63258",
+    "createdAt": "2026-09-17T16:04:32.022Z",
+    "decayAt": "2026-10-01T16:04:32.022Z",
+    "seen": 1,
+    "lastSeenAt": "2026-09-17T16:04:32.022Z"
+  },
+  {
+    "id": "3154efff-5d53-43f6-bee4-fb4557ce842f",
+    "userId": "u_anucha",
+    "type": "responsibility",
+    "value": "ติดตาม ลีโอ ขวด 320 มล. อยู่เสมอ",
+    "confidence": 0.45,
+    "sourceThreadId": "eb265cce-8056-4a7f-98ef-56b4b2e63258",
+    "createdAt": "2026-09-17T16:04:32.022Z",
+    "decayAt": "2026-10-01T16:04:32.022Z",
+    "seen": 1,
+    "lastSeenAt": "2026-09-17T16:04:32.022Z"
+  },
+  {
+    "id": "f4fce043-0c37-448e-9b85-dd373953842d",
+    "userId": "u_may",
+    "type": "interest",
+    "value": "สนใจอัตราการลาออกต่อเดือนเป็นประจำ",
+    "confidence": 0.45,
+    "sourceThreadId": "bf604b0b-37bf-4bdc-b0b6-9b66de85b0e7",
+    "createdAt": "2026-09-14T16:26:05.803Z",
+    "decayAt": "2026-09-28T16:26:05.803Z",
+    "seen": 1,
+    "lastSeenAt": "2026-09-14T16:26:05.803Z"
+  },
+  {
+    "id": "1220fca1-ce98-4248-ae2a-8eadebec550a",
+    "userId": "u_may",
+    "type": "vocabulary",
+    "value": "เรียกอัตราการลาออกต่อเดือนว่า \"ลาออก\"",
+    "confidence": 0.45,
+    "sourceThreadId": "bf604b0b-37bf-4bdc-b0b6-9b66de85b0e7",
+    "createdAt": "2026-09-14T16:26:05.804Z",
+    "decayAt": "2026-09-28T16:26:05.804Z",
+    "seen": 1,
+    "lastSeenAt": "2026-09-14T16:26:05.804Z"
+  },
+  {
+    "id": "a0181f49-3d92-4217-a492-961322147e4b",
+    "userId": "u_ton",
+    "type": "interest",
+    "value": "สนใจความคลาดเคลื่อนพยากรณ์ (MAPE)",
+    "confidence": 0.75,
+    "sourceThreadId": "d0d75eac-758c-4487-9b1d-2530b5aad34d",
+    "createdAt": "2026-09-19T16:33:03.641Z",
+    "decayAt": "2026-12-18T16:39:02.300Z",
+    "seen": 3,
+    "lastSeenAt": "2026-09-19T16:39:02.300Z"
+  }
+]

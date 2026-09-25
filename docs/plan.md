@@ -818,6 +818,43 @@ The user's question: "จะมั่นใจได้ไงว่า model จ
 - [x] ตรวจ: typecheck, 635 tests (`landing.test.ts` เขียนใหม่: ทุกคนได้ ≤ 2 การ์ดจากรายการของตัวเอง, HR ได้การ์ดทั้งที่ไม่มี alert, ตัวเลขประโยคตรงกับการ์ดทีม) · เทสต์สรุปเช้าไม่พึ่งว่าวันนี้ส่งไปแล้วหรือยัง · เบราว์เซอร์ 12 คน (CEO, CFO, ผอ., RSM 3, rep, ซัพพลาย 2, การตลาด 2, การเงิน, HR, IT) · curl
 - [x] ไม่บอกว่าใครเปิดดูแล้ว (user 2026-09-25: "ui ที่บอกว่าใครเปิดดูแล้วไม่จำเป็น") — การ์ดทีมไม่มี "<คน> เปิดดูแล้ว… / ยังไม่ได้เปิด N วัน" (เหลือเฉพาะ "ส่งต่อให้…แล้ว" ถ้ามีงานส่งต่อ) · แถวความผิดปกติที่ขึ้นถึงหัวหน้าไม่มี "<เจ้าของ>ยังไม่ได้เปิด N วัน" · กฎส่งเรื่องขึ้นตามสายที่อ่านการเปิดยังทำงานเหมือนเดิม (ตัดแค่ UI) · ตรวจ 17 คน หน้าแรก + กล่องงานไม่มีข้อความนี้
 
+**9B การ์ดที่เรียนรู้จากการใช้งานต้องเห็น** (user 2026-09-25: "ปักให้ default เยอะมาก อาจทำให้ card ที่ระบบแนะจากการใช้งานไม่เป็นที่สนใจเพราะอยู่ล่างสุด") (`components/dashboard/dashboard-view.tsx`, `app/(app)/dashboard/page.tsx`, `lib/server/dashboard.ts`, `lib/server/tools/pin-widget.ts`)
+- [x] การ์ด `ai_suggested` ที่ยังไม่ปักขึ้นเป็นแถบบนสุดของ Dashboard (ใต้ชิปการเปลี่ยนแปลง เหนือการ์ดที่ปัก): "Cop เห็นว่าคุณติดตามเรื่องนี้ · <เหตุผล>" + ชื่อการ์ด ตัวเลขหลัก delta · ปุ่ม ปักไว้ / ไม่เอา / ดูการ์ด (การ์ดเต็มพับไว้ ไม่ดันการ์ดที่ปักลงใต้จอ) · ถาดด้านล่างเหลือแต่การ์ดชุดเริ่มต้นที่ไม่ได้ปัก ("การ์ดอื่นสำหรับบทบาทคุณ") และซ่อนเมื่อว่าง · การ์ดที่ปักไม่ขยับ (D3 ยังจริง)
+- [x] `pin_widget` ผ่าน `pinNewWidget` → `layoutFor` + `mutate`/`save`: ปักจากแชตก่อนเข้าหน้าแรกครั้งแรกยังได้ชุดเริ่มต้นครบ และทุกการปักมีประวัติ (ย้อนกลับเมื่อวานไม่ทำการ์ดที่ปักจากแชตหาย) · ลบ `layoutOf`
+- [x] ลบแถว "เปลี่ยนแปลงตั้งแต่ครั้งก่อนที่คุณเปิด" บน Dashboard (user 2026-09-25: "มันทำให้ผมงง เอาออกดีกว่า") · ลบ `changesSince`, `DashboardChange`, `TH.brief.newAlerts/newReplies` · Dashboard ไม่เรียก `markVisit` แล้ว (หน้าแรกยังเรียก)
+- [x] ตรวจ: typecheck, 636 tests (`compose.test.ts` +1) · เบราว์เซอร์ RSM (คุณอนุชา) 1470px + 400px: แถบอยู่เหนือการ์ดที่ปัก, ดูการ์ด/ปักไว้ใช้ได้ การ์ดย้ายเข้ากลุ่มที่ปัก (ใส่ event คำถาม 3 ครั้งชั่วคราว แล้วคืน `.data`) · curl Dashboard 20 คนครบ 10 บทบาท 200 ไม่มี error
+
+### Phase 10 — จำลองการใช้งานจริงทุกบทบาท เพื่อวัดระบบและเห็น audit (user decision 2026-09-25: "ดูจากประวัติแชตจริงก่อน … วางแผนจำลองการ chat จริงถามจริงจากแต่ละ role ให้ได้ data มากพอที่จะประเมินความสามารถของระบบ จะได้เห็นการ audit ในระบบด้วย")
+
+ที่มา — ประวัติจริง ณ 2026-09-25: 4 thread · 4 คน · 8 คำถาม · 14 แถว audit · วันเดียว · ไม่มีเรื่องไหนถึงเกณฑ์ 3 ครั้ง จึงยังตัดสินไม่ได้ว่ากฎแนะนำการ์ดดีพอไหม แต่เห็นแล้วว่ากฎหยาบทั้งสองทาง:
+- นับรวมเกิน: `intentKey` = metric|dims ไม่ดู filter · คุณประสิทธิ์ถามยอดรายวันของ "อุบลศรีสุข" กับ "อีสานรุ่งโรจน์" นับเป็นเรื่องเดียว (`net_sales_volume|date`) · คุณธนาถาม "พยากรณ์อีสาน 8 สัปดาห์จะถึงเป้าไหม" กับ "sell-in เทียบปีก่อน" นับเป็นเรื่องเดียว (`net_sales_volume|week`) เพราะ `get_forecast` ไม่ถูกนับ ใช้ `query_metric` ตัวแรกแทน
+- ไม่นับเลย: 3 ใน 8 คำถาม (สรุปภาค, โปรไฟล์คน, ตรวจความผิดปกติ) ตอบด้วย `find_people` / `get_person` / `get_alerts` ไม่มี metric จึงไม่เป็นสัญญาณ
+- `eval:cards` ใช้ `runWithAccess` แต่ไม่ใช้ `runWithTurn` แถว audit จากการ eval จึงไม่มี thread/คำถาม
+
+หลัก: คำถามเขียนโดยคน (ไม่ใช่ LLM จำลองผู้ใช้) เพื่อให้มี **คำตอบที่ถูก** ติดทุกคำถาม (เรื่องที่ติดตาม, tool ที่ควรใช้, ควรถูกปฏิเสธไหม) · รันกับ `google/gemini-3.8-flash` จริงผ่าน handler เดียวกับแชต · ข้อมูลลง `.data` จริงให้เห็นในหน้าแอดมิน แต่ทุก id ขึ้นต้น `sim_` และลบได้ด้วยคำสั่งเดียว
+
+**10A ชุดสถานการณ์** (`lib/sim/scenarios.ts`, ข้อมูลล้วน ภาษาไทย)
+- [x] 12 คน ครบ 10 บทบาท (`lib/sim/scenarios.ts`, 273 รอบ): ธนา CEO, ศิริพร CFO, ประสิทธิ์ ผอ.ขาย, อนุชา RSM อีสาน, สรัญญา RSM ใต้, กฤต rep อีสาน, อาร์ม rep ใต้, เบญ การตลาด, วีร์ ซัพพลาย, มิ้นท์ การเงิน, เมย์ HR, ต้น IT
+- [x] ต่อคน ~22 รอบใน ~10 session กระจาย 14 วันจำลอง: **เรื่องที่ติดตาม 2–3 เรื่อง** แต่ละเรื่องถาม 4–6 ครั้งด้วยถ้อยคำ/มิติ/ตัวกรองต่างกัน (ป้ายความจริงของ "ควรได้การ์ด") · คำถามครั้งเดียว 4–5 ข้อ (ไม่ควรได้การ์ด) · ถามต่อจากปุ่มถัดไป 2 ครั้ง · ขอปักการ์ด metric 1 ครั้ง + ขอปักหลังการ์ดที่ไม่ใช่ metric 1 ครั้ง · ส่งต่องาน 1 ครั้ง (อนุมัติ/ไม่อนุมัติตามบท) · **ถามนอกสิทธิ์ 2 ครั้ง** (ภาคอื่น, เมตริกที่ถูก mask/ห้าม, tool ที่ role ใช้ไม่ได้)
+- [x] ทุกคำถามมีป้าย: `interest` | null, `expectTools`, `expectDecision` (allow/masked/deny/scoped)
+
+**10B ตัวรัน** (`scripts/simulate-chats.ts`, `bun run sim -- --users=… --concurrency=3`)
+- [x] ยิง HTTP ไป dev server ด้วย cookie จริง (route เดียวกับเบราว์เซอร์ → `runWithTurn`, audit มี thread + คำถาม) · ใช้ `AbstractChat` ของ AI SDK (ตัวเดียวกับ `useChat`: ส่งต่ออัตโนมัติหลัง approval/host tool) · host tools = `cop_action` + `ask` ของ Cop เอง (descriptor แบบเดียวกับ Vexa `toolSchemas`) · กดปุ่มถัดไป = `formatActionMessage` ของ Vexa · บันทึก thread ผ่าน `/api/threads/:id` ทุกรอบ
+- [x] เลื่อนเวลา (`sim finalize`, ตอน server ว่าง ไม่เขียนชนกับ server): เลื่อน `at` ของ thread/event/audit/model-call ไปวันจำลองของ session นั้น (14 วันถึงวันนี้) เพื่อให้หน้าต่าง 14 วันของกฎทำงานจริง
+- [x] สำรอง `.data` ก่อนรัน (`.sim-backup/<run>/`, ไม่ commit) · diff ทั้ง store ก่อน/หลัง → `sim/runs/<run>/manifest.json` (สร้างใหม่ + ค่าเดิมของที่แก้) · `bun run sim clean|restore --run=<run>` · **`bun run seed` ลบ `.data` ทั้งหมด** จึงเก็บถาวรใน git: `sim/runs/<run>/` = `transcripts.jsonl` (ทุกรอบ ทุก part ทุก tool input/output), `sessions.jsonl`, `scenarios.json`, `records/*.json` (audit, model-calls, events, threads, memory … หลังเลื่อนเวลา), `report.json` · smoke กับ mock: 24 รอบ, audit ผูก thread + คำถามครบ, clean คืน `.data` ตรงไบต์
+- [ ] ค่าใช้จ่ายประมาณ ~260 รอบ × ~$0.02–0.03 ≈ **$5–8** · ~30–45 นาทีที่ concurrency 3 · หยุดเองถ้าเกินงบ `--budget=10`
+
+**10C รายงาน** (`scripts/sim-report.ts --run=<run>` → `sim/runs/<run>/report.json`; ผล AI จัดกลุ่ม cache ใน `ai-topics.json` ไม่เสียเงินซ้ำ)
+- [x] รันจริง 2026-09-25 · `google/gemini-3.8-flash` · 273 รอบ + retry 5 · **$7.65** · p50 21 วินาที p95 55 วินาที · error ครั้งแรก 6 รอบ (429 ×4, 504 ×1, Gemini ล้มขั้นที่สอง ×1) — retry ผ่านหมด 5 เหลือ 1 ที่ไม่รู้สาเหตุ (ก่อนแก้ Vexa `streamErrorText`)
+- [x] เลือก tool ถูก 257/262 — ที่เหลือ 5 คือตอบปฏิเสธอย่างซื่อตรง (กำไรราย SKU/แบรนด์ไม่มีมิติ, rep ไม่มีสิทธิ์งบส่งเสริม) = ป้ายของบทผิด ไม่ใช่ระบบ · ปุ่มถัดไปที่บทขอแต่กฎไม่เสนอ 11 ครั้ง (เช่นขอ "ส่งต่อ" หลังผลที่ไม่แย่พอ)
+- [x] สิทธิ์ 50/52 ผ่าน · audit 426 แถว ผูก thread + คำถามครบ 426/426 · tool call ที่ไม่มี audit = 0 · allow 390 / masked 23 / deny 13 · เห็นในแท็บ Audit และการใช้งานของแอดมิน (276 คำถาม 14 วัน กราฟรายวัน)
+- [x] การ์ด 1,098/1,118 เช็กผ่าน · คำถาม metric ได้ DataCard ผูก tool ทุกครั้งที่ตอบด้วย `query_metric` อย่างเดียว · พยากรณ์ไม่มี component ผูก → model ประกอบ Card/LineChart/Metric เอง (ตัวเลขยังมาจาก `get_forecast` ครบ; "grounded" ที่ตกเป็น false positive ของตัวดึงตัวเลข)
+- [x] **แนะนำการ์ด** (30 เรื่องที่ควรได้การ์ด): กฎปัจจุบันจับได้ 18 (60%) precision 100% · AI จัดกลุ่มจับได้ 28 (93%) precision 100% แต่ 4/28 เสนอมิติที่ metric ไม่มี (กำไรตามแบรนด์/SKU, ขายออกตามแคมเปญ) · 3 ใน 4 นั้นคือเรื่องที่ผู้ใช้ถามซ้ำทั้งที่ข้อมูลไม่มี = สัญญาณช่องว่างข้อมูลให้ทีมข้อมูล ไม่ใช่การ์ด
+- [x] ช่องโหว่ปักการ์ดที่ไม่ใช่ metric เกิดจริง 2/12 (CEO, IT: ปัก `net_sales_volume|region` ที่ไม่ได้ขอ) · 10/12 ตอบถูกว่าปักได้เฉพาะเมตริก
+- [x] พบ: ใบลาของ rep (`request_leave`) สร้าง packet + อีเมล + แจ้งเตือนถึงหัวหน้า ทั้งที่สวิตช์ส่งต่องานปิด — ขัดกับ "ปิดส่งงานแล้ว"
+- [x] แก้ระหว่างทาง: Vexa `streamErrorText` ([object Object]) · ตัวรัน retry 429/5xx/timeout · ผูกระเบียนข้ามคน (packet/แจ้งเตือน) กับผู้กระทำ ไม่ใช่ผู้รับ (`sessionOf`) แล้วผูกใหม่ระเบียนของรันนี้
+- [ ] ตัดสิน: (1) ใช้ AI จัดกลุ่มคำถามเป็นด่านที่สองหลังกฎ + ตรวจมิติกับ `metricDef` (2) ปิดช่องโหว่ปักการ์ดที่ไม่ใช่ metric (3) ใบลาเมื่อสวิตช์ส่งต่องานปิด (4) component พยากรณ์ผูก `get_forecast`
+
 ## 7. Prompt rules (used by 1B, referenced by 3B)
 
 Persona rules the handler passes as `rules` (Thai unless noted):
@@ -888,7 +925,7 @@ Vexa is not a constraint (user decision 2026-09-22): change it when Cop needs it
   - `storedToolValue` keeps a server tool's own shape whole; only `{ ok, data, summary }` host-tool results are unwrapped to `data`. Before this, any server tool answering `{ ok: true, ... }` without `data` was flattened to `{ ok, summary }` and its payload was lost to specs.
 - [x] The three card-style lines Cop had added to Vexa's `SHARED_INTRO` (headline Metric first, RankList instead of BarChart, Table align/tone) moved back to Cop's `COP_RULES`: in Vexa they dropped shop-admin `eval:ui` `revenue-by-status` and `week-dashboard` from 5/5 to 2/5. `eval-ui` `labelledValues` now reads `RankList` rows and `revenue-by-status` accepts a RankList whose values match the store, since the catalog itself recommends RankList for a one-number comparison.
 - [x] A spec binds only to tool results up to its own message (2026-09-23, user reported an old card redrawn after a new question): `AssistantMessage` passed the whole chat to every `SpecView`, so `/tools/query_metric` in an earlier reply resolved to the latest call in the chat and every past DataCard redrew with the newest result. Now `AssistantMessage` passes `messages` through its own message, and `/tools/<name>.N` counts the calls within one turn (what Cop's catalog already told the model). Test: `src/chat/spec-tool-scope.test.tsx`.
-- [x] `streamAgentChat` ส่ง `onError` ให้ stream (2026-09-25, `src/core/chat.ts`): log error จริงฝั่ง server ทุกครั้ง, development ส่งข้อความจริงให้ client, production ยัง "An error occurred." — เพื่อหาสาเหตุ error ของ Gemini ขั้นที่สองที่เกิดเป็นครั้งคราว (ยังไม่ commit ใน agentic-ui)
+- [x] `streamAgentChat` ส่ง `onError` ให้ stream (2026-09-25, `src/core/chat.ts`): log error จริงฝั่ง server ทุกครั้ง, development ส่งข้อความจริงให้ client, production ยัง "An error occurred." — เพื่อหาสาเหตุ error ของ Gemini ขั้นที่สองที่เกิดเป็นครั้งคราว (ยังไม่ commit ใน agentic-ui) · error ที่ไม่ใช่ `Error` (provider โยน object มา) เดิมกลายเป็น "[object Object]" ทั้งใน log และข้อความ → ตอนนี้ JSON ≤ 600 ตัวอักษร (พบจาก Phase 10: คุณธนา session 7 ขั้นที่สองหลัง `list_metrics`)
 
 ## 10. Out of scope for this build
 

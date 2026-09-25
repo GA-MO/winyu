@@ -7,6 +7,7 @@ next-env.d.ts
 .DS_Store
 
 .eval-cards.json
+.sim-backup
 
 site/dist
 site/.react-router
