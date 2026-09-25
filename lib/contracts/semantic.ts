@@ -35,7 +35,9 @@ const MAX_ROWS = 60;
 export const metricIdSchema = z.enum(METRIC_IDS);
 export const dimSchema = z.enum(DIMS);
 export const grainSchema = z.enum(GRAINS);
-export const dimFiltersSchema = z.partialRecord(dimSchema, z.array(z.string()));
+const filterValuesSchema = z.preprocess((value) => (typeof value === "string" ? [value] : value), z.array(z.string()));
+/** Filter values per dimension; a single value the model sends as a string is read as a list of one. */
+export const dimFiltersSchema = z.partialRecord(dimSchema, filterValuesSchema);
 export const metricQuerySchema = z.object({
   metric: metricIdSchema,
   dims: z.array(dimSchema),
