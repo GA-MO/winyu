@@ -4,6 +4,7 @@ import type { AccessContext, ActionEvent, Dim, Grain, MetricId, MetricQuery, Wid
 import { actionEvents, alerts, personalWatches } from "@/lib/server/agent/collections";
 import { dimsOfFeedKind, feedIntentOf, kindLabel, metricOfFeedKind } from "@/lib/engine/feed-learning";
 import { untouchedTemplates } from "@/lib/dashboard/attention";
+import { topicOf } from "@/lib/dashboard/one-per-metric";
 import { TODAY, addDays } from "@/lib/data/dates";
 import { CLOSED_MONTH_METRICS, metricDef } from "@/lib/semantic/metrics";
 import { metricLabel } from "@/lib/dashboard/metric-display";
@@ -200,10 +201,17 @@ export async function composeSuggestion(access: AccessContext, existing: WidgetS
   const dismissed = dismissedIds(all, access.userId);
   const isNew = (candidate: Candidate) =>
     access.metricAcl[candidate.metric] === "full" && !existing.some((widget) => sameSlice(widget, candidate)) && !dismissed.has(suggestionId(access.userId, candidate));
+  const sameTopic = (candidate: Candidate) => existing.find((widget) => widget.pinned && topicOf(widget) === candidate.metric) ?? null;
   const fromFeed = feedCandidatesFrom(all, access.userId, now).find(isNew);
-  if (fromFeed) return suggestionOf(access, fromFeed, TH.compose.fromFeed(kindLabel(fromFeed.kind), fromFeed.count, CLUSTER_DAYS), null, existing.length, now);
+  if (fromFeed) {
+    const covered = sameTopic(fromFeed);
+    const reason = TH.compose.fromFeed(kindLabel(fromFeed.kind), fromFeed.count, CLUSTER_DAYS);
+    return suggestionOf(access, fromFeed, covered ? TH.compose.insteadOf(covered.title, reason) : reason, covered?.id ?? null, existing.length, now);
+  }
   const asked = candidatesFrom(all, access.userId, now).find(isNew);
   if (!asked) return null;
+  const covered = sameTopic(asked);
+  if (covered) return suggestionOf(access, asked, TH.compose.insteadOf(covered.title, TH.compose.reason(asked.count, CLUSTER_DAYS)), covered.id, existing.length, now);
   const replaced = untouchedTemplates(existing, all, access.userId, now).find((widget) => !existing.some((other) => other.replaces === widget.id));
   const reason = replaced ? TH.compose.replaces(replaced.title, asked.count, CLUSTER_DAYS) : TH.compose.reason(asked.count, CLUSTER_DAYS);
   return suggestionOf(access, asked, reason, replaced?.id ?? null, existing.length, now);

@@ -170,7 +170,7 @@ describe("layout versioning", () => {
   test("a card pinned from chat before the first visit lands after the starter cards and in the history", () => {
     const planner = access(VERSION_USER);
     const card = templateFor(planner)[0];
-    const widget = pinNewWidget(planner, { title: "การ์ดจากแชต", kind: card.kind, query: card.query });
+    const { widget } = pinNewWidget(planner, { title: "การ์ดจากแชต", kind: card.kind, query: card.query });
     const layout = layoutFor(planner);
     expect(layout.widgets).toHaveLength(templateFor(planner).length + 1);
     expect(layout.widgets.at(-1)?.id).toBe(widget.id);
@@ -226,7 +226,7 @@ describe("the dashboard learns from the feed", () => {
       .filter((entry) => entry.pinned)
       .map((entry, position) => ({ ...entry, id: `w_${entry.key}`, userId: USER, position, createdAt: "2026-09-01T00:00:00.000Z", version: 1 }) as WidgetSpec);
     const [looked, ...never] = starters;
-    seed([event("j1", "days_of_cover|dc", 1), event("j2", "days_of_cover|dc", 2), event("j3", "days_of_cover|dc", 3)]);
+    seed([event("j1", "ar_overdue|agent", 1), event("j2", "ar_overdue|agent", 2), event("j3", "ar_overdue|agent", 3)]);
     seed([widgetView(looked.id, 2)]);
     const early = await composeSuggestion(access(), starters, NOW, seeded);
     expect(early?.replaces).toBeNull();
@@ -234,6 +234,18 @@ describe("the dashboard learns from the feed", () => {
     const swap = await composeSuggestion(access(), starters, NOW, seeded);
     expect(swap?.replaces).toBe(never[0].id);
     expect(swap?.reason).toContain(never[0].title);
+  });
+
+  test("a question on a metric already pinned is offered in place of that card, so accepting it never leaves two cards on one metric", async () => {
+    const starters = templateFor(access())
+      .filter((entry) => entry.pinned)
+      .map((entry, position) => ({ ...entry, id: `w_${entry.key}`, userId: USER, position, createdAt: "2026-09-01T00:00:00.000Z", version: 1 }) as WidgetSpec);
+    const cover = starters.find((widget) => widget.query.metric === "days_of_cover");
+    if (!cover) throw new Error("the RSM template pins no days-of-cover card");
+    seed([event("k1", "days_of_cover|dc", 1), event("k2", "days_of_cover|dc", 2), event("k3", "days_of_cover|dc", 3)]);
+    const offer = await composeSuggestion(access(), starters, NOW, seeded);
+    expect(offer?.replaces).toBe(cover.id);
+    expect(offer?.reason).toContain(cover.title);
   });
 });
 

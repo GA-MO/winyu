@@ -67,7 +67,7 @@ const CFO_SEEDS: WidgetSeed[] = [
 
 const SALES_DIRECTOR_SEEDS: WidgetSeed[] = [
   seed({ key: "attainment_region", title: "ความสำเร็จต่อเป้าตามภาค", kind: "bar", metric: "target_attainment", dims: ["region"], compare: "none" }),
-  seed({ key: "volume_trend", title: "ปริมาณขายรายสัปดาห์", kind: "line", metric: "net_sales_volume", dims: ["week"], range: LAST_QUARTER, grain: "week", compare: "prev_year" }),
+  seed({ key: "volume_trend", title: "ยอดขายออกจากร้านรายสัปดาห์", kind: "line", metric: "sell_out_volume", dims: ["week"], range: LAST_QUARTER, grain: "week", compare: "prev_year" }),
   seed({ key: "agents", title: "เอเย่นต์ที่ยอดตกมากที่สุด", kind: "bar", sortBy: "delta_asc", metric: "net_sales_volume", dims: ["agent"], range: LAST_4_WEEKS, grain: "week", compare: "prev_period", limit: TOP_ROWS }),
   seed({ key: "alerts", title: "ความผิดปกติในทีมขาย", kind: "alert_list", metric: "sell_out_volume", dims: ["region"], range: LAST_4_WEEKS, grain: "week", compare: "prev_period" }),
   seed({ key: "market_share", title: "ส่วนแบ่งตลาดเบียร์ตามภาค เทียบปีก่อน", kind: "bar", metric: "market_share", dims: ["region"], range: LAST_AUDITED_MONTH, grain: "month", compare: "prev_year", pinned: false, source: "role_template", reason: "ดูว่าภาคไหนเสียส่วนแบ่งให้คู่แข่ง" }),
@@ -114,7 +114,7 @@ const FINANCE_SEEDS: WidgetSeed[] = [
 const HR_SEEDS: WidgetSeed[] = [
   seed({ key: "headcount", title: "จำนวนพนักงานทั้งหมด", kind: "metric", metric: "headcount", compare: "prev_year" }),
   seed({ key: "attrition_dept", title: "ฝ่ายที่ลาออกเพิ่มขึ้นเดือนล่าสุด", kind: "bar", metric: "attrition_rate", dims: ["department"], range: LAST_AUDITED_MONTH, compare: "prev_period", sortBy: "delta_desc" }),
-  seed({ key: "attrition", title: "อัตราการลาออกรายเดือน", kind: "line", metric: "attrition_rate", dims: ["month"], range: LAST_6_MONTHS }),
+  seed({ key: "attrition", title: "อัตราการลาออกรายเดือน", kind: "line", metric: "attrition_rate", dims: ["month"], range: LAST_6_MONTHS, pinned: false, reason: "ดูแนวโน้มการลาออก 6 เดือน" }),
   seed({ key: "salary", title: "เงินเดือนเฉลี่ยตามฝ่าย", kind: "kv", metric: "avg_salary", dims: ["department"], limit: TOP_ROWS }),
 ];
 

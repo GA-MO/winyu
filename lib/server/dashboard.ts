@@ -15,6 +15,7 @@ import { formatDelta } from "@/lib/dashboard/metric-display";
 import { presentCard, sharpestHarm, weakestRow, type CardParts } from "@/lib/cards/present";
 import { TH } from "@/lib/i18n/th";
 import { templateFor } from "@/lib/dashboard/templates";
+import { displacedBy, onePinnedPerMetric } from "@/lib/dashboard/one-per-metric";
 import { widgetToSpec, type WidgetExtras } from "@/lib/dashboard/widget-to-spec";
 import { HARMFUL_ROW_PCT, attentionOf, byAttention, staleWidgets, withFeed, type Attention } from "@/lib/dashboard/attention";
 import { recordAction } from "@/lib/server/threads";
@@ -75,11 +76,14 @@ export function rollbackToYesterday(access: AccessContext): DashboardLayout | nu
   return save({ ...layout, widgets: previous.widgets, version: layout.version + 1, updatedAt: new Date().toISOString() });
 }
 
-/** The user's dashboard layout, seeded from the role template the first time they arrive. */
+/** The user's dashboard layout, seeded from the role template the first time they arrive; a layout still holding two pinned cards on one metric is settled once and saved. */
 export function layoutFor(access: AccessContext): DashboardLayout {
   const stored = layouts().get(access.userId);
-  if (stored && stored.widgets.length > 0) return withTemplateReasons(stored, access);
-  return save(seedLayout(access));
+  if (!stored || stored.widgets.length === 0) return save(seedLayout(access));
+  const layout = withTemplateReasons(stored, access);
+  const settled = onePinnedPerMetric(layout.widgets);
+  if (settled.every((widget, index) => widget.pinned === layout.widgets[index]?.pinned)) return layout;
+  return save({ ...layout, widgets: settled, version: layout.version + 1, updatedAt: new Date().toISOString() });
 }
 
 /** A stored layout kept in step with the role template: starter cards follow the template's current definition, and a starter card the template dropped goes with it; cards the user pinned or accepted stay. */
@@ -258,23 +262,27 @@ function mutate(access: AccessContext, change: (widgets: WidgetSpec[]) => Widget
   return save({ ...layout, widgets, version: layout.version + 1, updatedAt: new Date().toISOString() });
 }
 
-/** Pins or unpins one card; accepting a suggestion made in place of a starter card moves that starter card back to the tray. */
+/** Pins or unpins one card; pinning moves any other pinned card on the same metric (and a starter card a suggestion was made in place of) back to the tray. */
 export function setWidgetPinned(access: AccessContext, widgetId: string, pinned: boolean): DashboardLayout {
   return mutate(access, (widgets) => {
     const replaces = pinned ? widgets.find((widget) => widget.id === widgetId)?.replaces ?? null : null;
-    return widgets.map((widget) => {
-      if (widget.id === widgetId) return { ...widget, pinned, source: pinned ? "user_pin" : widget.source, version: widget.version + 1 };
+    const changed = widgets.map((widget) => {
+      if (widget.id === widgetId) return { ...widget, pinned, source: pinned ? ("user_pin" as const) : widget.source, version: widget.version + 1 };
       if (widget.id === replaces) return { ...widget, pinned: false, version: widget.version + 1 };
       return widget;
     });
+    return pinned ? onePinnedPerMetric(changed, widgetId) : changed;
   });
 }
 
-/** Adds a card the user asked for in chat to the end of the pinned cards, seeding the role template first if this is their first card. */
-export function pinNewWidget(access: AccessContext, card: Pick<WidgetSpec, "title" | "kind" | "query">): WidgetSpec {
+export type PinnedCard = { widget: WidgetSpec; replaced: WidgetSpec[] };
+
+/** Adds a card the user asked for in chat to the end of the pinned cards, seeding the role template first if this is their first card; a pinned card on the same metric moves to the tray and is named in `replaced`. */
+export function pinNewWidget(access: AccessContext, card: Pick<WidgetSpec, "title" | "kind" | "query">): PinnedCard {
   const widget: WidgetSpec = { ...card, id: randomUUID(), userId: access.userId, pinned: true, position: 0, source: "user_pin", reason: null, createdAt: new Date().toISOString(), version: 1 };
-  const layout = mutate(access, (widgets) => [...widgets, widget]);
-  return layout.widgets.find((entry) => entry.id === widget.id) ?? widget;
+  const replaced = displacedBy(layoutFor(access).widgets, card);
+  const layout = mutate(access, (widgets) => onePinnedPerMetric([...widgets, widget], widget.id));
+  return { widget: layout.widgets.find((entry) => entry.id === widget.id) ?? widget, replaced };
 }
 
 /** Takes a card off the dashboard; a suggestion taken off is remembered so it is not offered again. */

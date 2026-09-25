@@ -466,6 +466,8 @@ export const TH = {
     source: { role_template: "ชุดเริ่มต้นตามบทบาท", user_pin: "คุณปักไว้เอง", ai_suggested: "ระบบเสนอจากพฤติกรรมการถาม" },
     accept: "เพิ่มลง Dashboard",
     acceptLearned: "ปักไว้",
+    pinned: (title: string) => `ปักการ์ด "${title}" บน Dashboard แล้ว`,
+    pinnedInstead: (title: string, replaced: string[]) => `ปักการ์ด "${title}" บน Dashboard แล้ว แทน ${replaced.map((name) => `"${name}"`).join(", ")} ซึ่งเป็นเรื่องเดียวกัน (ย้ายไปการ์ดอื่นแล้ว กดปักกลับได้)`,
     showCard: "ดูการ์ด",
     hideCard: "ซ่อนการ์ด",
     dismissSuggestion: "ไม่เอา",
@@ -952,6 +954,7 @@ export const TH = {
   compose: {
     reason: (count: number, days: number) => `คุณถามคำถามนี้ ${count} ครั้งใน ${days} วัน`,
     fromFeed: (kind: string, days: number, window: number) => `คุณเปิดเรื่อง${kind}จากรายการ ${days} วันใน ${window} วัน`,
+    insteadOf: (title: string, reason: string) => `${reason} · ปักแล้วจะแทน "${title}" ซึ่งเป็นเรื่องเดียวกัน`,
     replaces: (title: string, count: number, days: number) => `แทน "${title}" ที่คุณไม่เคยเปิด · คุณถามเรื่องนี้ ${count} ครั้งใน ${days} วัน`,
     titlePrompt: "ตั้งชื่อการ์ด Dashboard ภาษาไทยสั้น ๆ ไม่เกิน 6 คำ จากคำถามที่ผู้ใช้ถามบ่อย ห้ามใส่ตัวเลข",
     yesterday: "ดู layout เมื่อวาน",
