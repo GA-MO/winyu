@@ -6,7 +6,9 @@ import { USERS, findUser } from "@/lib/data/entities/users";
 import { actionEvents, feedStates, memoryFacts, packets, personalWatches, staffRequests } from "@/lib/server/agent/collections";
 import { confirmMemory } from "@/lib/engine/memory";
 import { enrollCourse } from "./courses";
-import { actOnFeedItem, feedFor, landingFeedFor } from "./feed";
+import { actOnFeedItem, feedFor, goodNewsFor, landingFeedFor, todoFor } from "./feed";
+import { landingStatus } from "./dashboard";
+import { alertIntentKey, openAlertsFor } from "./alerts";
 import { quickActionsFor } from "./quick-actions";
 import { ensureFeedHistory } from "./demo-feed-history";
 
@@ -184,6 +186,91 @@ describe("what Cop learns from the feed changes the feed", () => {
     } finally {
       personalWatches().remove(watch.id);
     }
+  });
+});
+
+describe("the to-do list holds tasks, not movements", () => {
+  test("no low-severity alert and one row per story, for every role; the status line counts only what needs acting on", async () => {
+    for (const user of USERS) {
+      const todo = await todoFor(accessOf(user.id), NOW);
+      expect(todo.filter((item) => item.source === "alert" && item.tone === "info")).toEqual([]);
+      const stories = todo.flatMap((item) => item.story ?? []);
+      expect(new Set(stories).size).toBe(stories.length);
+      expect(landingStatus(accessOf(user.id)).map((link) => link.id).filter((id) => id === "P3" || id === "others")).toEqual([]);
+    }
+  });
+
+  test("a watch that fired on the slice an open alert tells is the same story as that alert", async () => {
+    const supply = accessOf("u_wee");
+    const alert = (await feedFor(supply, NOW)).find((item) => item.source === "alert" && item.kind === "alert:days_of_cover");
+    if (!alert) throw new Error("no cover alert for supply");
+    const watch: PersonalWatch = {
+      id: "w_test_cover",
+      userId: "u_wee",
+      title: "สต๊อกดีซีทดสอบ",
+      query: { metric: "days_of_cover", dims: ["dc", "sku"], filters: { dc: ["dc_lamphun"] }, range: { from: "2026-09-16", to: "2026-09-22" }, grain: "day", compare: "none", limit: null },
+      windowDays: 6,
+      condition: { kind: "below", value: 10 },
+      createdAt: "2026-09-20T00:00:00.000Z",
+      state: "triggered",
+      lastCheckedAt: "2026-09-25T00:00:00.000Z",
+      lastTriggeredAt: "2026-09-25T00:00:00.000Z",
+    };
+    personalWatches().put(watch);
+    try {
+      const fired = (await feedFor(supply, NOW)).find((item) => item.key.startsWith("watch:w_test_cover"));
+      expect(fired?.story).toBe(alert.story);
+      expect((await todoFor(supply, NOW)).filter((item) => item.story === alert.story)).toHaveLength(1);
+    } finally {
+      personalWatches().remove(watch.id);
+    }
+  });
+});
+
+describe("an alert reaches people by the line of command", () => {
+  test("a manager hears of a report's warning only while it waits unopened, and is told whose it is", async () => {
+    const director = accessOf("u_prasit");
+    const waiting = openAlertsFor(director).find((alert) => alert.severity === "P2" && alert.ownerUserId === "u_somchai");
+    if (!waiting) throw new Error("no P2 for the central RSM");
+    const item = (await feedFor(director, NOW)).find((entry) => entry.alertId === waiting.id);
+    expect(item?.detail).toContain("คุณสมชาย");
+    const opened = { id: "ev_test_somchai_open", userId: "u_somchai", at: new Date(NOW).toISOString(), kind: "alert_open" as const, intentKey: alertIntentKey(waiting), metric: waiting.metric, dims: [], prompt: null, threadId: null };
+    actionEvents().put(opened);
+    try {
+      expect((await feedFor(director, NOW)).some((entry) => entry.alertId === waiting.id)).toBe(false);
+      expect((await feedFor(accessOf("u_somchai"), NOW)).some((entry) => entry.alertId === waiting.id)).toBe(true);
+    } finally {
+      actionEvents().remove(opened.id);
+    }
+  });
+
+  test("further up the line, or beside it, only critical alerts arrive; marketing gets no sales warnings", async () => {
+    for (const userId of ["u_thana", "u_ben", "u_pim"]) {
+      const access = accessOf(userId);
+      const alertIds = new Set((await feedFor(access, NOW)).flatMap((item) => (item.alertId ? [item.alertId] : [])));
+      const shown = openAlertsFor(access).filter((alert) => alertIds.has(alert.id));
+      const mayWarn = new Set(USERS.filter((user) => user.managerId === userId).map((user) => user.id));
+      expect(shown.filter((alert) => alert.severity !== "P1" && alert.ownerUserId !== userId && !mayWarn.has(alert.ownerUserId))).toEqual([]);
+      expect(shown.filter((alert) => alert.severity === "P3" && alert.ownerUserId !== userId)).toEqual([]);
+    }
+  });
+});
+
+describe("good news and chains of events", () => {
+  test("good news is its owner's to know, one row per story, never a task", async () => {
+    const north = accessOf("u_nattaya");
+    const good = await goodNewsFor(north, NOW);
+    const surge = good.find((item) => item.label.includes("เพอร์ร่า ขวด PET 600"));
+    expect(surge?.tone).toBe("success");
+    expect(surge?.detail).toContain("และอีก");
+    expect(good.filter((item) => item.label.includes("เพอร์ร่า ขวด PET 600"))).toHaveLength(1);
+    expect((await todoFor(north, NOW)).some((item) => item.tone === "success")).toBe(false);
+    expect(await goodNewsFor(accessOf("u_thana"), NOW)).toEqual([]);
+  });
+
+  test("the Lamphun stock alert names the sell-out surge it is part of", async () => {
+    const cover = (await feedFor(accessOf("u_oat"), NOW)).find((item) => item.kind === "alert:days_of_cover");
+    expect(cover?.detail).toContain("เกี่ยวกับ");
   });
 });
 

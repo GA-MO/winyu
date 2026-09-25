@@ -2,7 +2,7 @@ import { runMetric } from "@/lib/server/metrics";
 import type { AccessContext, Alert, DashboardLayout, FeedItem, MetricQuery, MetricResult, WidgetSpec } from "@/lib/contracts";
 import type { Spec } from "vexa/protocol";
 import { layoutVersions, layouts } from "@/lib/server/agent/collections";
-import { forecastsFor, openAlertsFor, openPacketsFor, relevanceOf } from "@/lib/server/alerts";
+import { forecastsFor, openAlertsFor, openPacketsFor, relevantAlertsFor } from "@/lib/server/alerts";
 import { alertRowOf } from "@/lib/cards/alert-row";
 import { actionsForAlert, actionsForMetric } from "@/lib/server/next-actions";
 import { composeSuggestion } from "@/lib/engine/compose";
@@ -101,9 +101,7 @@ const OVERLAY_PAIR: Partial<Record<string, { metric: WidgetSpec["query"]["metric
 
 async function extrasFor(widget: WidgetSpec, access: AccessContext): Promise<WidgetExtras> {
   if (widget.kind === "alert_list") {
-    const alerts = openAlertsFor(access)
-      .filter((alert) => relevanceOf(alert, access) !== "other")
-      .slice(0, MAX_CARD_ALERTS);
+    const alerts = relevantAlertsFor(access).slice(0, MAX_CARD_ALERTS);
     const dictionary = await loadDictionary();
     return { alerts: alerts.map((alert) => alertRowOf(alert, dictionary)), actions: actionsForAlert(access, alerts[0] ?? null, dictionary) };
   }
@@ -144,7 +142,7 @@ export async function refreshSuggestions(access: AccessContext): Promise<Dashboa
 }
 
 function relevantAlerts(access: AccessContext): Alert[] {
-  return openAlertsFor(access).filter((alert) => relevanceOf(alert, access) !== "other");
+  return relevantAlertsFor(access);
 }
 
 /** Every card on the dashboard, the most urgent first; a card about a matter still on the user's feed leads. */
@@ -206,9 +204,7 @@ export { openAlertsFor, openPacketsFor };
 
 /** The inbox links under the greeting: open alerts per severity and the handoffs waiting for this user. */
 export function landingStatus(access: AccessContext): StatusLink[] {
-  const open = openAlertsFor(access);
-  const relevant = open.filter((alert) => relevanceOf(alert, access) !== "other");
-  return statusLinks(relevant, open.length - relevant.length, openPacketsFor(access).length);
+  return statusLinks(relevantAlerts(access), openPacketsFor(access).length);
 }
 
 function alertReason(alert: Alert, dictionary: Dictionary): string {
@@ -225,8 +221,8 @@ export async function visitsFor(access: AccessContext): Promise<VisitStop[]> {
   const dictionary = await loadDictionary();
   const alerted = new Map<string, Alert>();
   for (const alert of openAlertsFor(access)) {
-    const agent = alert.dims.agent;
-    if (agent && !alerted.has(agent)) alerted.set(dictionary.displayLabel("agent", agent), alert);
+    const agent = alert.dims.agent ? dictionary.displayLabel("agent", alert.dims.agent) : null;
+    if (agent && !alerted.has(agent)) alerted.set(agent, alert);
   }
   const stops = result.rows
     .map((row) => ({ agent: String(row.agent ?? ""), delta: typeof row.delta_pct === "number" ? row.delta_pct : null }))
@@ -245,7 +241,7 @@ export async function visitsFor(access: AccessContext): Promise<VisitStop[]> {
 
 export type VisibleMatters = { alertIds: ReadonlySet<string>; packetIds: ReadonlySet<string> };
 
-/** The cards under the KPIs; an alert about an agent the visit list already names is left to that row, and with `visible` only the alerts and handoffs still on the user's feed are drawn. */
+/** The cards under the KPIs, never a low-severity alert; an alert about an agent the visit list already names is left to that row, and with `visible` only the alerts and handoffs still on the user's feed are drawn. */
 export async function ambientFor(access: AccessContext, visits: readonly VisitStop[] = [], visible: VisibleMatters | null = null): Promise<AmbientCard[]> {
   const dictionary = await loadDictionary();
   const packet = openPacketsFor(access).find((candidate) => !visible || visible.packetIds.has(candidate.id)) ?? null;
@@ -253,7 +249,7 @@ export async function ambientFor(access: AccessContext, visits: readonly VisitSt
   const visited = new Set(visits.map((stop) => stop.agent));
   const agentOf = (alert: Alert) => (alert.dims.agent ? dictionary.displayLabel("agent", alert.dims.agent) : null);
   return ambientCards({
-    alerts: relevantAlerts(access).filter((alert) => !visited.has(agentOf(alert) ?? "") && (!visible || visible.alertIds.has(alert.id))),
+    alerts: relevantAlerts(access).filter((alert) => alert.severity !== "P3" && !visited.has(agentOf(alert) ?? "") && (!visible || visible.alertIds.has(alert.id))),
     ownerName: (alert) => (alert.ownerUserId === access.userId ? null : (findUser(alert.ownerUserId)?.nameTh ?? null)),
     lessonOf: lessonFor,
     actionsFor: (alert) => actionsForAlert(access, alert, dictionary),

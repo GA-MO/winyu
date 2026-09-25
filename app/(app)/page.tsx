@@ -30,6 +30,7 @@ export default async function LandingPage({ searchParams }: PageProps) {
       status={landingStatus(access)}
       kpis={kpis}
       rows={feed.rows}
+      taskCount={feed.taskCount}
       quickActions={quickActionsFor(access)}
       ambient={feed.cards}
       draft={draft ?? ""}

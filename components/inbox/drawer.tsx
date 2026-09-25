@@ -14,7 +14,7 @@ import type { AlertItem, HandoffItem, InboxPayload, ReplyItem } from "./types";
 const INBOX_ENDPOINT = "/api/inbox";
 const ALERTS_ENDPOINT = "/api/alerts";
 const NOTIFICATIONS_ENDPOINT = "/api/notifications";
-const EMPTY: InboxPayload = { todo: [], handoffs: [], alerts: [], replies: [], unread: 0, handoffOpen: true };
+const EMPTY: InboxPayload = { todo: [], goodNews: [], handoffs: [], alerts: [], replies: [], unread: 0, handoffOpen: true };
 const TABS = ["todo", "handoffs", "alerts", "replies"] as const;
 const PANEL = "fixed right-0 top-0 z-50 flex h-dvh w-full max-w-[26rem] flex-col border-l border-border bg-card shadow-panel animate-panel-in";
 const ACTION = "rounded-full border border-border bg-card px-3 py-1.5 text-xs text-muted-foreground transition hover:border-foreground/25 hover:text-foreground";
@@ -116,7 +116,7 @@ export function InboxDrawer({ open, onClose, focus = DEFAULT_FOCUS }: { open: bo
 
   const settle = useCallback((key: string, action: FeedSettle) => {
     postFeedAction(key, action);
-    setData((current) => ({ ...current, todo: current.todo.filter((item) => item.key !== key) }));
+    setData((current) => ({ ...current, todo: current.todo.filter((item) => item.key !== key), goodNews: current.goodNews.filter((item) => item.key !== key) }));
   }, []);
 
   const feedHandlers = useMemo<FeedHandlers>(
@@ -170,6 +170,17 @@ export function InboxDrawer({ open, onClose, focus = DEFAULT_FOCUS }: { open: bo
             ) : (
               <EmptyLine text={TH.inbox.todoEmpty} />
             )
+          ) : null}
+          {loaded && tab === "todo" && data.goodNews.length > 0 ? (
+            <details className="group overflow-hidden rounded-2xl border border-border bg-card shadow-card">
+              <summary className="flex cursor-pointer list-none items-center gap-2 px-4 py-2.5 text-xs font-medium text-muted-foreground transition hover:text-foreground">
+                <span aria-hidden className="size-1.5 rounded-full bg-success" />
+                {TH.inbox.goodNews(data.goodNews.length)}
+              </summary>
+              <div className="border-t border-border">
+                <FeedList rows={data.goodNews} handlers={feedHandlers} framed={false} />
+              </div>
+            </details>
           ) : null}
           {loaded && tab === "handoffs" ? (
             <HandoffList

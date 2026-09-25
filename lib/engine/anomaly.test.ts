@@ -3,7 +3,7 @@ import type { Alert, Dim } from "@/lib/contracts";
 import { toneOf } from "@/lib/dashboard/metric-display";
 import { INJECTED_ANOMALIES } from "@/lib/data/anomalies";
 import { TH } from "@/lib/i18n/th";
-import { Z_OPEN, detectAnomalies, dropRollUps, mergeAgentStories, severityOf, thresholdFor, thresholdKey, toAlert, type Detection } from "./anomaly";
+import { Z_OPEN, absorbIntoAgentStories, detectAnomalies, dropRollUps, groupSkuStories, linkDemandToCover, mergeAgentStories, severityOf, thresholdFor, thresholdKey, toAlert, type Detection } from "./anomaly";
 import { DAILY_SCAN, scanSeries } from "./stats";
 
 const DETECTED = detectAnomalies();
@@ -131,6 +131,15 @@ describe("anomaly detection", () => {
     expect(merged[0].dims.brand).toBeUndefined();
   });
 
+  test("a product of an agent whose whole book fell is part of that story; a rise, or another agent, is not", () => {
+    const of = (id: string, dims: Partial<Record<Dim, string>>, direction: Detection["direction"] = "down"): Detection => ({ ...DETECTED[0], id, metric: "net_sales_volume", direction, dims });
+    const story = of("story", { agent: "ag_nea_02", region: "northeast" });
+    const keg = of("keg", { agent: "ag_nea_02", brand: "asahi", sku: "sku_asahi_keg30", region: "northeast" });
+    const rise = of("rise", { agent: "ag_nea_02", brand: "leo", sku: "sku_leo_can490", region: "northeast" }, "up");
+    const other = of("other", { agent: "ag_nea_07", brand: "leo", sku: "sku_leo_bottle620", region: "northeast" });
+    expect(absorbIntoAgentStories([story, keg, rise, other]).map((detection) => detection.id)).toEqual(["story", "rise", "other"]);
+  });
+
   test("three dismissals raise the bar for the same slice", () => {
     const key = thresholdKey("net_sales_volume", { region: "northeast" });
     expect(thresholdFor(key, {})).toBe(Z_OPEN);
@@ -161,10 +170,10 @@ describe("severity follows the harm, not the z-score", () => {
     expect(severityOf(overdue, 170, 100)).toBe("P1");
   });
 
-  test("good news is never critical, only big good news asks for planning", () => {
+  test("good news is never a task, however big", () => {
     expect(severityOf(sales, 114, 100)).toBe("P3");
-    expect(severityOf(sales, 130, 100)).toBe("P2");
-    expect(severityOf(overdue, 60, 100)).toBe("P2");
+    expect(severityOf(sales, 130, 100)).toBe("P3");
+    expect(severityOf(overdue, 60, 100)).toBe("P3");
   });
 
   test("cover under a week is critical, under the floor is worth a look", () => {
@@ -198,5 +207,53 @@ describe("a dismissed alert stays dismissed until it gets worse", () => {
     const rerun = toAlert({ ...detection, severity: "P1" }, dismissed);
     expect(rerun.status).toBe("open");
     expect(rerun.severity).toBe("P1");
+  });
+});
+
+describe("one story, one row", () => {
+  const slice = (id: string, dims: Partial<Record<Dim, string>>, zScore: number, severity: Detection["severity"], ended = false): Detection =>
+    ({ ...DETECTED[0], id, metric: "sell_out_volume", direction: "up", dims, zScore, severity, ended, parentId: null, relatedIds: [] }) as Detection;
+
+  test("a product moving one way in one region is one story led by its strongest live slice, at the worst severity", () => {
+    const grouped = groupSkuStories([
+      slice("old", { sku: "sku_purra_pet600", channel: "export", region: "north" }, 9, "P3", true),
+      slice("lead", { sku: "sku_purra_pet600", province: "pv_chiangmai", region: "north" }, 6, "P3"),
+      slice("child", { sku: "sku_purra_pet600", channel: "modern_trade", region: "north" }, 5, "P2"),
+      slice("alone", { sku: "sku_purra_pet600", province: "pv_nakhonpathom", region: "central" }, 5, "P2"),
+    ]);
+    const byId = new Map(grouped.map((detection) => [detection.id, detection]));
+    expect(byId.get("lead")).toMatchObject({ parentId: null, severity: "P2" });
+    expect(byId.get("child")?.parentId).toBe("lead");
+    expect(byId.get("old")?.parentId).toBe("lead");
+    expect(byId.get("alone")?.parentId).toBeNull();
+  });
+
+  test("stock running down at a DC names the sell-out rising where it delivers, and the other way round", () => {
+    const cover = { ...slice("cover", { dc: "dc_lamphun", sku: "sku_purra_pet600", region: "north" }, 5, "P1"), metric: "days_of_cover", direction: "down" } as Detection;
+    const linked = linkDemandToCover([
+      cover,
+      slice("lamphun", { sku: "sku_purra_pet600", province: "pv_lamphun", region: "north" }, 6, "P3"),
+      slice("chiangmai", { sku: "sku_purra_pet600", province: "pv_chiangmai", region: "north" }, 6, "P3"),
+      slice("bangkok", { sku: "sku_purra_pet600", province: "pv_bangkok", region: "bkk" }, 6, "P3"),
+    ]);
+    const byId = new Map(linked.map((detection) => [detection.id, detection]));
+    expect(byId.get("cover")?.relatedIds).toEqual(["lamphun"]);
+    expect(byId.get("lamphun")?.relatedIds).toEqual(["cover"]);
+    expect(byId.get("chiangmai")?.relatedIds).toEqual([]);
+    expect(byId.get("bangkok")?.relatedIds).toEqual([]);
+  });
+
+  test("on today's data the northern water surge is one story tied to the Lamphun stock alert", () => {
+    const cover = DETECTED.find((detection) => detection.metric === "days_of_cover" && detection.dims.dc === "dc_lamphun");
+    const surge = DETECTED.filter((detection) => detection.metric === "sell_out_volume" && detection.direction === "up" && detection.dims.sku === "sku_purra_pet600" && detection.dims.region === "north");
+    const leads = surge.filter((detection) => !detection.parentId);
+    expect(leads).toHaveLength(1);
+    expect(surge.length).toBeGreaterThan(1);
+    expect(cover?.relatedIds).toEqual([leads[0]?.id]);
+  });
+
+  test("an alert whose window ended days ago is resolved, not open", () => {
+    expect(toAlert({ ...(DETECTED[0] as Detection), ended: true }, null).status).toBe("resolved");
+    expect(toAlert({ ...(DETECTED[0] as Detection), ended: false }, null).status).toBe("open");
   });
 });

@@ -26,6 +26,10 @@ export type Context = {
 };
 
 const PM25_CORRELATION = 0.6;
+const PM25_LEAD_DAYS = 21;
+const NORMAL_WEEKS = 4;
+const DAYS_PER_WEEK = 7;
+const PROMOTED_METRICS: ReadonlySet<MetricId> = new Set<MetricId>(["sell_out_volume", "net_sales_volume"]);
 const FLAT_RATIO = 0.12;
 const SILENT_SHARE = 0.25;
 const COVER_DECIMALS = 1;
@@ -78,25 +82,41 @@ function nearlySilent(context: Context): boolean {
   return context.direction === "down" && context.expected > 0 && context.observed / context.expected <= SILENT_SHARE;
 }
 
+/** A day's value against the same weekday of the four weeks before it, so the weekly cycle does not hide a move. */
+function sameWeekdayRatio(byDay: ReadonlyMap<number, number>, day: number): number {
+  let sum = 0;
+  let count = 0;
+  for (let week = 1; week <= NORMAL_WEEKS; week += 1) {
+    const value = byDay.get(day - week * DAYS_PER_WEEK);
+    if (value === undefined) continue;
+    sum += value;
+    count += 1;
+  }
+  return count === 0 || sum === 0 ? 1 : (byDay.get(day) ?? 0) / (sum / count);
+}
+
 function pm25Match(context: Context): boolean {
   const province = context.dims.province;
   if (!province || !(NORTHERN_PROVINCE_IDS as readonly string[]).includes(province)) return false;
   const series = pm25Series(province);
   if (!series) return false;
-  const from = Math.max(0, toDayIndex(context.window.from) - 21);
+  const from = Math.max(0, toDayIndex(context.window.from) - PM25_LEAD_DAYS);
   const to = toDayIndex(context.window.to);
-  const rows = runSeries({ metric: context.metric, dims: ["date"], filters: filtersOf(context.dims), range: { from: ISO_OF_DAY[from] as string, to: ISO_OF_DAY[to] as string } });
-  const byDay = new Map(rows.map((row) => [row.dims.date as string, row.value]));
+  const readFrom = Math.max(0, from - NORMAL_WEEKS * DAYS_PER_WEEK);
+  const rows = runSeries({ metric: context.metric, dims: ["date"], filters: filtersOf(context.dims), range: { from: ISO_OF_DAY[readFrom] as string, to: ISO_OF_DAY[to] as string } });
+  const byDay = new Map(rows.map((row) => [toDayIndex(row.dims.date as string), row.value]));
   const left: number[] = [];
   const right: number[] = [];
   for (let day = from; day <= to; day += 1) {
-    left.push(byDay.get(ISO_OF_DAY[day] as string) ?? 0);
+    left.push(sameWeekdayRatio(byDay, day));
     right.push(series[day] ?? 0);
   }
   return pearson(left, right) >= PM25_CORRELATION;
 }
 
+/** The campaign that explains a rise in what it sells, in its brands, regions, channels and dates; a fall or another metric is never put down to a promotion. */
 function campaignCovering(context: Context): string | null {
+  if (context.direction !== "up" || !PROMOTED_METRICS.has(context.metric)) return null;
   const brand = context.dims.brand ?? (context.dims.sku ? skuById(context.dims.sku)?.brand : null);
   const region = context.region;
   const overlap = CAMPAIGNS.find((campaign) => {

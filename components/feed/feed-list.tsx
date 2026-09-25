@@ -1,6 +1,6 @@
 "use client";
 
-import { BriefcaseBusiness, Check, Clock, Eye, EyeOff, Sparkles, ListChecks, MapPin, MoreHorizontal, Send, TriangleAlert, UserRound, type LucideIcon } from "lucide-react";
+import { BriefcaseBusiness, Check, Clock, Eye, EyeOff, Sparkles, ListChecks, MapPin, MoreHorizontal, Send, ThumbsUp, TriangleAlert, UserRound, type LucideIcon } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "vexa/ui/dropdown-menu";
 import { cn } from "vexa/lib/utils";
 import type { FeedAction, FeedItem, FeedSource, FeedTone, NextAction } from "@/lib/contracts";
@@ -13,6 +13,7 @@ const TONE_PILL: Record<FeedTone, string> = {
   warning: "bg-warning/10 text-warning",
   info: "bg-info/10 text-info",
   brand: "bg-primary/10 text-primary",
+  success: "bg-success/10 text-success",
   neutral: "bg-muted text-muted-foreground",
 };
 const ROW_ACTION = "flex size-7 shrink-0 items-center justify-center rounded-full text-muted-foreground transition hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
@@ -53,7 +54,7 @@ export function FeedMenu({ feedKey, canFinish, onSettle }: { feedKey: string; ca
 }
 
 function FeedRow({ row, handlers }: { row: FeedItem; handlers: FeedHandlers }) {
-  const Icon = SOURCE_ICONS[row.source];
+  const Icon = row.tone === "success" ? ThumbsUp : SOURCE_ICONS[row.source];
   const [action] = row.actions;
   return (
     <li className="flex items-center gap-1 pr-2 transition hover:bg-muted focus-within:bg-muted">

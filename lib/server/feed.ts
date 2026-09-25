@@ -1,4 +1,4 @@
-import type { AccessContext, Alert, ContextPacket, FeedAction, FeedItem, FeedStateRecord, NextAction, PersonalWatch } from "@/lib/contracts";
+import type { AccessContext, Alert, ContextPacket, Dim, FeedAction, FeedTone, FeedItem, FeedStateRecord, NextAction, PersonalWatch } from "@/lib/contracts";
 import { alertRowOf } from "@/lib/cards/alert-row";
 import type { AmbientCard, VisitStop } from "@/lib/dashboard/ambient";
 import { weekKeyOfIso } from "@/lib/data/dates";
@@ -11,7 +11,8 @@ import { proposeMemory } from "@/lib/engine/memory";
 import { isTrusted } from "@/lib/engine/memory-status";
 import { conditionLabel } from "@/lib/engine/personal-watches";
 import { watchesOf } from "@/lib/server/watches";
-import { alertIntentKey, alertSubject, muteAlertForUser, openAlertsFor, openPacketsFor, relevanceOf } from "@/lib/server/alerts";
+import { toneOf } from "@/lib/dashboard/metric-display";
+import { alertIntentKey, alertSubject, childrenOf, muteAlertForUser, openPacketsFor, relatedTo, relevanceContext, relevanceOf, relevantAlertsFor, unopenedDays, type RelevanceContext } from "@/lib/server/alerts";
 import { ambientFor, visitsFor } from "@/lib/server/dashboard";
 import { loadDictionary } from "@/lib/server/master-data";
 import { actionsForAlert } from "@/lib/server/next-actions";
@@ -19,6 +20,7 @@ import { peopleFeedFor } from "@/lib/server/people-feed";
 import { recordAction } from "@/lib/server/threads";
 
 const DAY_MS = 86_400_000;
+const CLEAR_MOVE_PCT = 100;
 const SNOOZE_DAYS = 7;
 const LANDING_ROWS = 5;
 const LANDING_ALERT_ROWS = 2;
@@ -36,19 +38,68 @@ function storySubject(alert: Alert): string {
   return dim ? `${dim}:${alert.dims[dim]}` : "all";
 }
 
-function alertItem(access: AccessContext, alert: Alert, dictionary: Dictionary): FeedItem {
+function storyOf(alert: Alert): string {
+  return `${alert.metric}|${storySubject(alert)}`;
+}
+
+/** A watch that fired on a slice an open alert already tells is the same story, so the two make one row. */
+function watchStory(watch: PersonalWatch, open: readonly Alert[]): string | null {
+  const filters = Object.entries(watch.query.filters) as [Dim, string[] | undefined][];
+  const alert = open.find((candidate) => candidate.metric === watch.query.metric && filters.every(([dim, values]) => !values || values.length === 0 || values.includes(candidate.dims[dim] ?? "")));
+  return alert ? storyOf(alert) : null;
+}
+
+/** What an alert escalated to a manager adds under its label: whose it is and how long it has waited. */
+function escalationNote(access: AccessContext, alert: Alert, context: RelevanceContext): string | null {
+  if (relevanceOf(alert, access, context) !== "escalated") return null;
+  const days = unopenedDays(alert, context);
+  const owner = findUser(alert.ownerUserId)?.nameTh ?? alert.ownerUserId;
+  return days === null ? null : TH.feed.unopened(owner, days);
+}
+
+function signedGap(alert: Alert, dictionary: Dictionary): string | null {
   const row = alertRowOf(alert, dictionary);
-  const gap = row.gapLabel ? `${alert.direction === "down" ? "−" : "+"}${row.gapLabel}` : null;
+  return row.gapLabel ? `${alert.direction === "down" ? "−" : "+"}${row.gapLabel}` : null;
+}
+
+/** Good news: a low-severity move in the direction the metric wants; it is its owner's to know, never a task. */
+function isGoodNews(alert: Alert): boolean {
+  return alert.severity === "P3" && toneOf(alert.metric, alert.direction === "up" ? CLEAR_MOVE_PCT : -CLEAR_MOVE_PCT) === "good";
+}
+
+function toneOfAlert(alert: Alert): FeedTone {
+  if (alert.severity === "P1") return "danger";
+  if (alert.severity === "P2") return "warning";
+  return isGoodNews(alert) ? "success" : "info";
+}
+
+/** What an alert's row adds under its label beyond the metric: how many more slices tell the same story, the other side of its chain of events, and who has left it waiting. */
+function detailOf(access: AccessContext, alert: Alert, dictionary: Dictionary, context: RelevanceContext, metric: string): string {
+  const children = childrenOf(alert).filter((child) => child.status === "open").length;
+  const [related] = relatedTo(alert);
+  const parts = [
+    metric,
+    children > 0 ? TH.feed.moreSlices(children) : null,
+    related ? TH.feed.relatedTo(`${alertRowOf(related, dictionary).scopeLabel} ${signedGap(related, dictionary) ?? ""}`.trim()) : null,
+    escalationNote(access, alert, context),
+  ];
+  return parts.filter((part): part is string => Boolean(part)).join(" · ");
+}
+
+function alertItem(access: AccessContext, alert: Alert, dictionary: Dictionary, context: RelevanceContext): FeedItem {
+  const row = alertRowOf(alert, dictionary);
+  const metric = row.metricLabel.replace(PARENTHETICAL, "");
+  const gap = signedGap(alert, dictionary);
   return {
     key: `alert:${alert.id}`,
     source: "alert",
     kind: `alert:${alert.metric}`,
-    story: `${alert.metric}|${storySubject(alert)}`,
+    story: storyOf(alert),
     rank: ALERT_RANK[alert.severity],
-    tone: alert.severity === "P1" ? "danger" : alert.severity === "P2" ? "warning" : "info",
+    tone: toneOfAlert(alert),
     label: row.scopeLabel,
     reason: gap ?? row.severityLabel,
-    detail: row.metricLabel.replace(PARENTHETICAL, ""),
+    detail: detailOf(access, alert, dictionary, context, metric),
     prompt: TH.landing.askAbout(row.scopeLabel),
     alertId: alert.id,
     packetId: null,
@@ -99,12 +150,12 @@ function visitItems(stops: readonly VisitStop[], week: string): FeedItem[] {
   }));
 }
 
-function watchItem(watch: PersonalWatch): FeedItem {
+function watchItem(watch: PersonalWatch, story: string | null): FeedItem {
   return {
     key: `watch:${watch.id}:${watch.lastTriggeredAt ?? ""}`,
     source: "watch",
     kind: `watch:${watch.query.metric}`,
-    story: null,
+    story,
     rank: WATCH_RANK,
     tone: "danger",
     label: watch.title,
@@ -139,16 +190,17 @@ export async function feedFor(access: AccessContext, now = Date.now()): Promise<
   const dictionary = await loadDictionary();
   const stops = await visitsFor(access);
   const visited = new Set(stops.map((stop) => stop.agent));
-  const alertItems = openAlertsFor(access)
-    .filter((alert) => relevanceOf(alert, access) !== "other")
+  const context = relevanceContext(access, now);
+  const relevant = relevantAlertsFor(access, context);
+  const alertItems = relevant
     .filter((alert) => !alert.dims.agent || !visited.has(dictionary.displayLabel("agent", alert.dims.agent)))
-    .map((alert) => alertItem(access, alert, dictionary));
+    .map((alert) => alertItem(access, alert, dictionary, context));
   const items = [
     ...alertItems,
     ...openPacketsFor(access).map(packetItem),
     ...visitItems(stops, weekKeyOfIso(new Date(now).toISOString().slice(0, 10))),
     ...(await peopleFeedFor(access)),
-    ...watchesOf(access.userId).filter((watch) => watch.state === "triggered").map(watchItem),
+    ...watchesOf(access.userId).filter((watch) => watch.state === "triggered").map((watch) => watchItem(watch, watchStory(watch, relevant))),
   ];
   const hidden = hiddenKeys(access.userId, now);
   const allowed = (action: NextAction) => action.tool === null || access.toolAllow.includes(action.tool);
@@ -159,6 +211,21 @@ export async function feedFor(access: AccessContext, now = Date.now()): Promise<
     mutedKinds: mutedKindsOf(access.userId, open.map((item) => item.kind)),
     now,
   });
+}
+
+/** A matter to act on: everything on the feed except low-severity alerts, which are movements or good news to know about, not tasks. */
+export function isTask(item: FeedItem): boolean {
+  return item.source !== "alert" || (item.tone !== "info" && item.tone !== "success");
+}
+
+/** Good news the user owns, one row per story: what went right in their patch, kept apart from what needs doing. */
+export async function goodNewsFor(access: AccessContext, now = Date.now()): Promise<FeedItem[]> {
+  return onePerStory((await feedFor(access, now)).filter((item) => item.source === "alert" && item.tone === "success"));
+}
+
+/** The inbox's "to do" tab: the tasks on the feed, one row per story. */
+export async function todoFor(access: AccessContext, now = Date.now()): Promise<FeedItem[]> {
+  return onePerStory((await feedFor(access, now)).filter(isTask));
 }
 
 /** The first item of each story, in feed order; items with no story stand alone. */
@@ -175,7 +242,7 @@ export function onePerStory(items: readonly FeedItem[], told: Iterable<string> =
 /** The rows under the cards: one row per story, no low-severity alerts, and at most two more alerts so the matters that are not in the inbox still get room. */
 function landingRows(items: readonly FeedItem[], carded: readonly string[]): FeedItem[] {
   const told = items.filter((item) => carded.includes(item.key)).flatMap((item) => item.story ?? []);
-  const candidates = onePerStory(items.filter((item) => !carded.includes(item.key) && !(item.source === "alert" && item.tone === "info")), told);
+  const candidates = onePerStory(items.filter((item) => !carded.includes(item.key) && isTask(item)), told);
   const rows: FeedItem[] = [];
   let alertRows = 0;
   for (const item of candidates) {
@@ -187,7 +254,8 @@ function landingRows(items: readonly FeedItem[], carded: readonly string[]): Fee
   return rows;
 }
 
-export type LandingFeed = { cards: AmbientCard[]; rows: FeedItem[]; shownKeys: string[] };
+/** `taskCount` is every task on the feed, one per story, not only the ones the landing has room to show. */
+export type LandingFeed = { cards: AmbientCard[]; rows: FeedItem[]; shownKeys: string[]; taskCount: number };
 
 function cardKey(card: AmbientCard): string | null {
   if (card.alertId) return `alert:${card.alertId}`;
@@ -202,7 +270,7 @@ export async function landingFeedFor(access: AccessContext, now = Date.now()): P
   const cards = await ambientFor(access, [], { alertIds, packetIds });
   const carded = cards.flatMap((card) => cardKey(card) ?? []);
   const rows = landingRows(items, carded);
-  return { cards, rows, shownKeys: [...carded, ...rows.map((row) => row.key)] };
+  return { cards, rows, shownKeys: [...carded, ...rows.map((row) => row.key)], taskCount: onePerStory(items.filter(isTask)).length };
 }
 
 function stateFor(action: Exclude<FeedAction, "open">, now: number): Pick<FeedStateRecord, "state" | "until"> {

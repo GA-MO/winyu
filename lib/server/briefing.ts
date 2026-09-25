@@ -5,7 +5,7 @@ import { TODAY, addDays, formatThaiDate } from "@/lib/data/dates";
 import { metricLabel } from "@/lib/dashboard/metric-display";
 import { templateFor } from "@/lib/dashboard/templates";
 import { TH } from "@/lib/i18n/th";
-import { openAlertsFor, openPacketsFor, relevanceOf } from "./alerts";
+import { openAlertsFor, openPacketsFor, relevantAlertsFor } from "./alerts";
 import type { Baseline } from "./visits";
 
 const TOP_ALERTS = 3;
@@ -89,7 +89,7 @@ export type DashboardChange = { label: string; deltaPct: number | null; metric: 
 export async function changesSince(access: AccessContext, baseline: Baseline): Promise<DashboardChange[]> {
   const changes: DashboardChange[] = [];
   if (baseline) {
-    const fresh = openAlertsFor(access).filter((alert) => relevanceOf(alert, access) !== "other" && !baseline.alertIds.has(alert.id));
+    const fresh = relevantAlertsFor(access).filter((alert) => !baseline.alertIds.has(alert.id));
     const replied = openPacketsFor(access).filter((packet) => packet.thread.length > 0 && packet.updatedAt > baseline.at);
     if (fresh.length > 0) changes.push({ label: TH.brief.newAlerts(fresh.length), deltaPct: null, metric: null });
     if (replied.length > 0) changes.push({ label: TH.brief.newReplies(replied.length), deltaPct: null, metric: null });

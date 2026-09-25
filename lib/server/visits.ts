@@ -1,15 +1,13 @@
 import type { AccessContext } from "@/lib/contracts";
 import { visits, type Visit } from "@/lib/server/agent/collections";
-import { openAlertsFor, relevanceOf } from "./alerts";
+import { relevantAlertsFor } from "./alerts";
 
 const SESSION_MS = 30 * 60_000;
 
 export type Baseline = { at: string; alertIds: ReadonlySet<string> } | null;
 
 function relevantAlertIds(access: AccessContext): string[] {
-  return openAlertsFor(access)
-    .filter((alert) => relevanceOf(alert, access) !== "other")
-    .map((alert) => alert.id);
+  return relevantAlertsFor(access).map((alert) => alert.id);
 }
 
 /** How many visits each feed item has been shown in: once per visit, however often the page reloads within it. */

@@ -42,7 +42,7 @@ export type VisitStop = { id: string; agent: string; reason: string; tone: Ambie
 export type StatusLink = { id: string; label: string; count: number; tone: AmbientTone; query: Record<string, string> };
 
 const MAX_CARDS = 2;
-const SEVERITIES: readonly Alert["severity"][] = ["P1", "P2", "P3"];
+const TASK_SEVERITIES: readonly Alert["severity"][] = ["P1", "P2"];
 const SEVERITY_TONES: Record<Alert["severity"], "danger" | "warning" | "info"> = { P1: "danger", P2: "warning", P3: "info" };
 const URGENCY_TONES: Record<AmbientPacket["urgency"], AmbientTone> = { high: "danger", medium: "warning", low: "info" };
 
@@ -119,9 +119,9 @@ export function ambientCards(input: AmbientInput): AmbientCard[] {
   return cards.slice(0, MAX_CARDS);
 }
 
-/** The status line under the greeting: this user's alerts per severity, the rest of their scope, and waiting handoffs — each a link into the inbox. */
-export function statusLinks(relevant: readonly Alert[], others: number, packets: number): StatusLink[] {
-  const links: StatusLink[] = SEVERITIES.map((severity) => ({
+/** The status line under the greeting: this user's alerts that need acting on, per severity, and waiting handoffs — each a link into the inbox; low-severity alerts and the rest of the scope are movements to know about, not counts to carry. */
+export function statusLinks(relevant: readonly Alert[], packets: number): StatusLink[] {
+  const links: StatusLink[] = TASK_SEVERITIES.map((severity) => ({
     id: severity,
     label: TH.severity[severity],
     count: relevant.filter((alert) => alert.severity === severity).length,
@@ -129,6 +129,5 @@ export function statusLinks(relevant: readonly Alert[], others: number, packets:
     query: { inbox: "alerts", severity },
   })).filter((link) => link.count > 0);
   if (packets > 0) links.push({ id: "handoffs", label: TH.inbox.tabs.handoffs, count: packets, tone: "brand", query: { inbox: "handoffs" } });
-  if (others > 0) links.push({ id: "others", label: TH.landing.otherAlerts, count: others, tone: "neutral", query: { inbox: "alerts" } });
   return links;
 }

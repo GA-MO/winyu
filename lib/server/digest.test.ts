@@ -34,6 +34,24 @@ describe("the morning digest reads the feed", () => {
     expect(turned.count).toBe(1);
   });
 
+  test("a digest from before colours were recorded counts its matters as told", async () => {
+    const ceo = access("u_thana");
+    const first = await digestFor(ceo, null, NOW);
+    expect(first.keys.length).toBeGreaterThan(0);
+    const alertIds = first.keys.filter((key) => key.startsWith("alert:")).map((key) => key.slice("alert:".length));
+    const again = await digestFor(ceo, { keys: first.keys.filter((key) => !key.startsWith("alert:")), alertIds }, NOW);
+    expect(again.lines).toEqual([]);
+  });
+
+  test("good news closes the digest once, and never makes one on its own", async () => {
+    const north = access("u_nattaya");
+    const first = await digestFor(north, null, NOW);
+    expect(first.goodNews).toContain("ข่าวดี");
+    const again = await digestFor(north, { keys: first.keys, tones: first.tones }, NOW);
+    expect(again.goodNews).toBeNull();
+    expect(again.lines).toEqual([]);
+  });
+
   test("never mentions low-severity alerts", async () => {
     const ceo = access("u_thana");
     const low = new Set((await feedFor(ceo, NOW)).filter((item) => item.source === "alert" && item.tone === "info").map((item) => item.key));

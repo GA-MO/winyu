@@ -1,12 +1,13 @@
 import { existsSync } from "node:fs";
 import path from "node:path";
 import type { AccessContext, Alert, ContextPacket, Dim, Forecast, Region } from "@/lib/contracts";
-import { alertMutes, alertThresholds, alerts, forecasts, packets } from "@/lib/server/agent/collections";
+import { actionEvents, alertMutes, alertThresholds, alerts, forecasts, packets } from "@/lib/server/agent/collections";
+import { feedIntentKey } from "@/lib/engine/feed-learning";
 import { DATA_DIR } from "@/lib/server/store/json-store";
 import { detectAnomalies, thresholdKey, toAlert, type Thresholds } from "@/lib/engine/anomaly";
 import { buildForecasts } from "@/lib/engine/forecast";
 import { templateFor } from "@/lib/dashboard/templates";
-import { findUser } from "@/lib/data/entities/users";
+import { USERS, findUser } from "@/lib/data/entities/users";
 import { alertRowOf } from "@/lib/cards/alert-row";
 import { rememberAction } from "@/lib/engine/memory";
 import { TH } from "@/lib/i18n/th";
@@ -17,10 +18,16 @@ const MUTE_DAYS = 14;
 const DAY_MS = 86_400_000;
 const RAISE_EVERY = 3;
 const SEVERITY_RANK: Record<Alert["severity"], number> = { P1: 0, P2: 1, P3: 2 };
+const ESCALATE_AFTER_DAYS = 2;
+const OPENING_EVENTS: ReadonlySet<string> = new Set(["alert_open", "feed_open", "feed_done"]);
 
-export type AlertRelevance = "mine" | "watched" | "other";
+/** `escalated`: the viewer manages the owner directly and the alert is critical, or a warning the owner has left unopened; `watched`: a critical alert on the viewer's metrics or further down their line. */
+export type AlertRelevance = "mine" | "escalated" | "watched" | "other";
 
-const RELEVANCE_RANK: Record<AlertRelevance, number> = { mine: 0, watched: 1, other: 2 };
+const RELEVANCE_RANK: Record<AlertRelevance, number> = { mine: 0, escalated: 1, watched: 2, other: 3 };
+
+/** What deciding relevance needs about the viewer, read once per request rather than once per alert. */
+export type RelevanceContext = { watched: ReadonlySet<string>; reports: ReadonlySet<string>; opened: ReadonlySet<string>; now: number };
 
 let running = false;
 
@@ -76,10 +83,36 @@ function inScope(alert: Alert, access: AccessContext): boolean {
   return !region || access.regions.includes(region as Region);
 }
 
-/** Whether an alert is this user's to act on: they own it, it is on a metric their role watches, or it is only in their scope. */
-export function relevanceOf(alert: Alert, access: AccessContext, watched: ReadonlySet<string> = watchedMetrics(access)): AlertRelevance {
+/** The viewer's metrics, direct reports, and what those reports have opened. */
+export function relevanceContext(access: AccessContext, now = Date.now()): RelevanceContext {
+  const reports = new Set(USERS.filter((user) => user.managerId === access.userId).map((user) => user.id));
+  const opened = new Set(actionEvents().where((event) => reports.has(event.userId) && OPENING_EVENTS.has(event.kind)).map((event) => `${event.userId}|${event.intentKey}`));
+  return { watched: watchedMetrics(access), reports, opened, now };
+}
+
+/** Whole days the owner has left this alert unopened, once that is long enough to raise with their manager; null when they opened it or it is too new. */
+export function unopenedDays(alert: Alert, context: RelevanceContext): number | null {
+  const owner = alert.ownerUserId;
+  const opened = context.opened.has(`${owner}|${alertIntentKey(alert)}`) || context.opened.has(`${owner}|${feedIntentKey(`alert:${alert.metric}`, `alert:${alert.id}`)}`);
+  if (opened) return null;
+  const days = Math.floor((context.now - new Date(alert.at).getTime()) / DAY_MS);
+  return days >= ESCALATE_AFTER_DAYS ? days : null;
+}
+
+/**
+ * Whether an alert is this user's to act on, by the line of command rather than by what is on their dashboard: the owner acts on it;
+ * the owner's manager hears of it when it is critical or left unopened; anyone further up, or with the metric on their dashboard, hears only of critical ones.
+ */
+export function relevanceOf(alert: Alert, access: AccessContext, context: RelevanceContext = relevanceContext(access)): AlertRelevance {
   if (alert.ownerUserId === access.userId) return "mine";
-  return watched.has(alert.metric) ? "watched" : "other";
+  if (context.reports.has(alert.ownerUserId) && (alert.severity === "P1" || (alert.severity === "P2" && unopenedDays(alert, context) !== null))) return "escalated";
+  if (alert.severity === "P1" && (context.watched.has(alert.metric) || managesUser(access.userId, alert.ownerUserId))) return "watched";
+  return "other";
+}
+
+/** The open alerts that concern this user, most relevant first. */
+export function relevantAlertsFor(access: AccessContext, context: RelevanceContext = relevanceContext(access)): Alert[] {
+  return openAlertsFor(access).filter((alert) => relevanceOf(alert, access, context) !== "other");
 }
 
 function watchedMetrics(access: AccessContext): ReadonlySet<string> {
@@ -91,10 +124,10 @@ function awayFromHome(alert: Alert, home: string | null): number {
 }
 
 function rankFor(access: AccessContext): (left: Alert, right: Alert) => number {
-  const watched = watchedMetrics(access);
+  const context = relevanceContext(access);
   const home = findUser(access.userId)?.region ?? null;
   return (left, right) =>
-    RELEVANCE_RANK[relevanceOf(left, access, watched)] - RELEVANCE_RANK[relevanceOf(right, access, watched)] ||
+    RELEVANCE_RANK[relevanceOf(left, access, context)] - RELEVANCE_RANK[relevanceOf(right, access, context)] ||
     awayFromHome(left, home) - awayFromHome(right, home) ||
     SEVERITY_RANK[left.severity] - SEVERITY_RANK[right.severity] ||
     Math.abs(right.zScore) - Math.abs(left.zScore);
@@ -105,13 +138,23 @@ function mutedKeys(userId: string, now = Date.now()): ReadonlySet<string> {
   return new Set(alertMutes().where((mute) => mute.userId === userId && mute.until > at).map((mute) => mute.key));
 }
 
-/** The open alerts this user can see, minus the slices they said are not theirs, most relevant first. */
+/** The open alerts this user can see, one per story (a story's children stay with it), minus the slices they said are not theirs, most relevant first. */
 export function openAlertsFor(access: AccessContext): Alert[] {
   ensureEngine();
   const muted = mutedKeys(access.userId);
   return alerts()
-    .where((alert) => alert.status === "open" && inScope(alert, access) && !muted.has(thresholdKey(alert.metric, alert.dims)))
+    .where((alert) => alert.status === "open" && !alert.parentId && inScope(alert, access) && !muted.has(thresholdKey(alert.metric, alert.dims)))
     .sort(rankFor(access));
+}
+
+/** The other slices of the story an alert leads, strongest first. */
+export function childrenOf(alert: Alert): Alert[] {
+  return alerts().where((child) => child.parentId === alert.id).sort((left, right) => Math.abs(right.zScore) - Math.abs(left.zScore));
+}
+
+/** The alerts another owner holds on the same chain of events, such as sell-out rising where a DC's stock runs down. */
+export function relatedTo(alert: Alert): Alert[] {
+  return (alert.relatedIds ?? []).flatMap((id) => alerts().get(id) ?? []);
 }
 
 export function allAlertsFor(access: AccessContext): Alert[] {

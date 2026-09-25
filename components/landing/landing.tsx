@@ -133,6 +133,7 @@ export function Landing({
   status,
   kpis,
   rows,
+  taskCount,
   quickActions,
   ambient,
   draft,
@@ -142,6 +143,7 @@ export function Landing({
   status: StatusLink[];
   kpis: LandingKpi[];
   rows: FeedItem[];
+  taskCount: number;
   quickActions: QuickAction[];
   ambient: AmbientCard[];
   draft: string;
@@ -252,7 +254,7 @@ export function Landing({
             <h1 className="text-balance font-display text-[1.75rem] font-semibold leading-[1.2] tracking-[-0.02em] sm:text-[3rem]">
               {greeting.lead} <GradientText className="whitespace-nowrap">{greeting.name}</GradientText>
             </h1>
-            <StatusLine links={status} taskCount={visibleCards.length + visibleRows.length} />
+            <StatusLine links={status} taskCount={taskCount - (rows.length - visibleRows.length) - (ambient.length - visibleCards.length)} />
           </header>
 
           <CopComposer value={text} onValueChange={setText} onSubmit={start} busy={busy} autoFocus placeholder={placeholder} />
