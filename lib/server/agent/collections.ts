@@ -50,12 +50,6 @@ export function layouts() {
   return collection<StoredLayout>(COLLECTIONS.layouts);
 }
 
-export function layoutOf(userId: string): DashboardLayout {
-  const stored = layouts().get(userId);
-  if (stored) return stored;
-  return { id: userId, userId, version: 0, widgets: [], updatedAt: new Date().toISOString() };
-}
-
 export type AlertThreshold = { id: string; dismissals: number; updatedAt: string };
 
 export function alertThresholds() {

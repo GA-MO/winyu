@@ -3,7 +3,7 @@ import type { AccessContext, ActionEvent, WidgetSpec } from "@/lib/contracts";
 import { accessFor } from "@/lib/access/policies";
 import { findUser } from "@/lib/data/entities/users";
 import { layoutVersions, layouts } from "@/lib/server/agent/collections";
-import { layoutFor, removeWidget, rollbackToYesterday, setWidgetPinned } from "@/lib/server/dashboard";
+import { layoutFor, layoutHistory, pinNewWidget, removeWidget, rollbackToYesterday, setWidgetPinned } from "@/lib/server/dashboard";
 import { TEMPLATE_ROLES, templateFor } from "@/lib/dashboard/templates";
 import { widgetToSpec } from "@/lib/dashboard/widget-to-spec";
 import { runMetric } from "@/lib/data/query";
@@ -165,6 +165,17 @@ describe("layout versioning", () => {
     const after = setWidgetPinned(planner, target.id, false);
     expect(after.widgets.find((widget) => widget.id === target.id)?.pinned).toBe(false);
     expect(after.version).toBeGreaterThan(layout.version);
+  });
+
+  test("a card pinned from chat before the first visit lands after the starter cards and in the history", () => {
+    const planner = access(VERSION_USER);
+    const card = templateFor(planner)[0];
+    const widget = pinNewWidget(planner, { title: "การ์ดจากแชต", kind: card.kind, query: card.query });
+    const layout = layoutFor(planner);
+    expect(layout.widgets).toHaveLength(templateFor(planner).length + 1);
+    expect(layout.widgets.at(-1)?.id).toBe(widget.id);
+    expect(widget.position).toBe(templateFor(planner).length);
+    expect(layoutHistory(planner)[0].widgets.some((entry) => entry.id === widget.id)).toBe(true);
   });
 });
 

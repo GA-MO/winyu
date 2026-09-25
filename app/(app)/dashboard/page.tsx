@@ -4,10 +4,8 @@ import { DashboardView } from "@/components/dashboard/dashboard-view";
 import { GlowBackdrop } from "@/components/ui/glow-backdrop";
 import { GradientText } from "@/components/ui/gradient-text";
 import { TH } from "@/lib/i18n/th";
-import { changesSince } from "@/lib/server/briefing";
 import { layoutHistory, refreshSuggestions, staleFor, widgetViews } from "@/lib/server/dashboard";
 import { feedFor } from "@/lib/server/feed";
-import { markVisit } from "@/lib/server/visits";
 import { readAccess } from "@/lib/server/session";
 
 export const dynamic = "force-dynamic";
@@ -17,8 +15,7 @@ export default async function DashboardPage() {
   if (!access) redirect("/login");
 
   await refreshSuggestions(access);
-  const baseline = markVisit(access);
-  const [views, changes] = await Promise.all([feedFor(access).then((feed) => widgetViews(access, feed)), changesSince(access, baseline)]);
+  const views = await widgetViews(access, await feedFor(access));
   const stale = new Set(staleFor(access).map((widget) => widget.id));
   const history = layoutHistory(access);
   const restorable = history.find((entry) => entry.savedAt.slice(0, 10) < new Date().toISOString().slice(0, 10)) ?? null;
@@ -35,8 +32,8 @@ export default async function DashboardPage() {
         <DashboardView
           pinned={views.filter((view) => view.widget.pinned)}
           stale={views.filter((view) => stale.has(view.widget.id)).map((view) => view.widget)}
-          suggested={views.filter((view) => !view.widget.pinned)}
-          changes={changes}
+          learned={views.filter((view) => !view.widget.pinned && view.widget.source === "ai_suggested")}
+          suggested={views.filter((view) => !view.widget.pinned && view.widget.source !== "ai_suggested")}
           restorable={restorable ? { version: restorable.version, savedAt: restorable.savedAt } : null}
         />
       </div>

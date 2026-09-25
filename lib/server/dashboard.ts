@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { runMetric } from "@/lib/server/metrics";
 import type { AccessContext, Alert, DashboardLayout, FeedItem, MetricQuery, MetricResult, WidgetSpec } from "@/lib/contracts";
 import type { Spec } from "vexa/protocol";
@@ -267,6 +268,13 @@ export function setWidgetPinned(access: AccessContext, widgetId: string, pinned:
       return widget;
     });
   });
+}
+
+/** Adds a card the user asked for in chat to the end of the pinned cards, seeding the role template first if this is their first card. */
+export function pinNewWidget(access: AccessContext, card: Pick<WidgetSpec, "title" | "kind" | "query">): WidgetSpec {
+  const widget: WidgetSpec = { ...card, id: randomUUID(), userId: access.userId, pinned: true, position: 0, source: "user_pin", reason: null, createdAt: new Date().toISOString(), version: 1 };
+  const layout = mutate(access, (widgets) => [...widgets, widget]);
+  return layout.widgets.find((entry) => entry.id === widget.id) ?? widget;
 }
 
 /** Takes a card off the dashboard; a suggestion taken off is remembered so it is not offered again. */

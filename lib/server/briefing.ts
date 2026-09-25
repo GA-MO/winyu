@@ -5,8 +5,7 @@ import { TODAY, addDays, formatThaiDate } from "@/lib/data/dates";
 import { metricLabel } from "@/lib/dashboard/metric-display";
 import { templateFor } from "@/lib/dashboard/templates";
 import { TH } from "@/lib/i18n/th";
-import { openAlertsFor, openPacketsFor, relevantAlertsFor } from "./alerts";
-import type { Baseline } from "./visits";
+import { openAlertsFor, openPacketsFor } from "./alerts";
 
 const TOP_ALERTS = 3;
 const MOVE_THRESHOLD = 5;
@@ -83,17 +82,3 @@ export async function morningBriefFor(access: AccessContext): Promise<MorningBri
   return { line, bullets, attainment, alerts, moves, spec: specOf(bullets, line) };
 }
 
-export type DashboardChange = { label: string; deltaPct: number | null; metric: MetricId | null };
-
-/** What is different since the user last looked: alerts that were not there, replies that came in, and the metrics that moved. */
-export async function changesSince(access: AccessContext, baseline: Baseline): Promise<DashboardChange[]> {
-  const changes: DashboardChange[] = [];
-  if (baseline) {
-    const fresh = relevantAlertsFor(access).filter((alert) => !baseline.alertIds.has(alert.id));
-    const replied = openPacketsFor(access).filter((packet) => packet.thread.length > 0 && packet.updatedAt > baseline.at);
-    if (fresh.length > 0) changes.push({ label: TH.brief.newAlerts(fresh.length), deltaPct: null, metric: null });
-    if (replied.length > 0) changes.push({ label: TH.brief.newReplies(replied.length), deltaPct: null, metric: null });
-  }
-  for (const move of await movesFor(access)) changes.push({ label: move.label, deltaPct: move.deltaPct, metric: move.metric });
-  return changes;
-}
