@@ -3,18 +3,17 @@
 ## สถานะ (updated 2026-09-25)
 ทำแล้ว: Phase 0–6 (`f9f97a0`) · 7A–7E tool surface, ports, connector registry, admin, LMS MCP (`f250287`…`131abf9`) · 7F-1 warehouse ตอบแค่ `FactRequest` (`205e128`) · 7F-2 master data หลัง `MetricsPort.masterData()` + `loadDictionary()` (`7a7999d`) · 7G REST connector + CRM เดโม (`7fd2e41`) · site (`9885f4e`) · 560 tests
 ค้าง:
-- agentic-ui `src/core/chat.ts` มี `onError` ยังไม่ commit (log error จริง, dev ส่งข้อความจริงให้ client) — รอผู้ใช้ตกลง · "An error occurred." ขั้นที่สองของ Gemini ยังไม่รู้สาเหตุ เกิด 1 ใน 3 ครั้งกับคำถาม CRM
-- audit ของ connector tool ที่ scope บีบจนเหลือ 0 แถวบันทึกเป็น `allow` (ไม่รั่ว แต่ audit ไม่บอกว่าถูกบีบ) — `lib/server/connectors/call.ts` `shaped` + `withAudit`
-- ยังไม่ได้พิสูจน์ด้วยตา: การ์ดอนุมัติ `create_handoff`/`watch_metric` ที่ตอนนี้ดึงชื่อจาก `GET /api/labels` (`components/cards/approval-card.tsx`)
-- summary ของ connector นับแถวก่อนตัด 60 ("120 แถว" แต่ส่ง 60) — เป็นมาแต่ MCP
-- eval Gemini ครบทุกเคสยังไม่ได้รันตั้งแต่ Phase 6 (ผู้ใช้: เฉพาะตอนจำเป็น) · `.data` มี threads ทดสอบของคุณกฤตจากเซสชันนี้ · CRM เดโมรันด้วย `bun scripts/rest-demo-crm.ts` (ไม่มีใน package.json)
+- "An error occurred." ของ Gemini: สาเหตุคือ OpenRouter ตอบ "Corrupted thought signature" ในขั้นถัดจาก tool call ที่ SDK ตัดสินว่า input ผิด (reasoning ของ call นั้นไม่ถูกส่งกลับ) — แก้ต้นเหตุที่เจอแล้ว (filter เป็น string, `48a53cf`) · กรณี CRM 1 ใน 13 ที่ tool call ถูกต้องแต่ขั้นสองยังพัง ยังไม่รู้สาเหตุ; ตอนนี้ dev แสดงข้อความจริงและ server log ไว้ (Vexa `a100341`) รอเจออีกครั้ง
+- `.data` มี threads ทดสอบของคุณกฤต/คุณอนุชาจากเซสชันนี้ · CRM เดโมรันด้วย `bun scripts/rest-demo-crm.ts` (ไม่มีใน package.json)
+- eval Gemini ครบทุกเคสยังไม่ได้รันตั้งแต่ Phase 6 (ผู้ใช้: เฉพาะตอนจำเป็น)
 ค้นพบ:
 - `runMetric` เดิมส่ง `AccessContext` ให้ warehouse → ตอนนี้ port ไม่เห็น access เลย; ป้ายเวลาของงวดเทียบต้องเลื่อน (`labelShift`) ให้ key ตรงงวดปัจจุบัน — warehouse จริงต้องทำ date add เอง
 - `approval-card` (client) เป็นที่เดียวที่อ่าน dictionary ฝั่ง client · Next แยก module ต่อ route ค่าในหน่วยความจำไม่ข้าม route — cache dictionary จึงอยู่ต่อ port object ไม่ใช่ global ที่โหลดตอนเริ่ม
 - batch (`forecast`, `series`, `hypothesis`), mock model (`mock-script`, `mock-people`) ใช้ `GENERATOR_DICTIONARY` ตรงโดยตั้งใจ
+- 2026-09-25 ปิดแล้ว: audit ของ connector บอก `SCOPE_TRIMMED` / `NONE_IN_SCOPE` และ summary นับ "60 จาก 120 แถว" (`e9b8c40`) · การ์ดอนุมัติ watch/handoff ดูในเบราว์เซอร์กับ Gemini แล้ว ชื่อเอเย่นต์/สินค้า/ผู้รับมาจาก `/api/labels` ถูกต้อง (handoff เปิดสวิตช์ชั่วคราวแล้วคืน, ไม่ได้กดส่ง; watch ที่อนุมัติทดสอบลบแล้ว) · หน้าแรกพนักงานขายไม่ซ้ำเอเย่นต์ระหว่างรายการเยี่ยมกับการ์ด, การ์ดใบสองไม่เป็น P3 (`9e8c037`)
 - สิทธิ์ตามบทบาทพิสูจน์ในเบราว์เซอร์กับ Gemini แล้ว (2026-09-25): แอดมินตั้ง `net_sales_value` ของพนักงานขายเป็น None / ปิด `query_metric` → คุณกฤตถามแล้วถูกปฏิเสธทันที ไม่ต้อง restart หรือ login ใหม่ คืนค่าแล้วตอบได้ตามเดิม · ชิปคำถามแนะนำกรองตามเครื่องมือที่ตอบได้ด้วย (`1595d35`)
 - `.data/switches.json` มี `handoff: false` (2026-09-23) — ปุ่มส่งต่อปิดทั้งแอป ไม่ได้แตะ
-ถัดไป: /go ตรวจ การ์ดอนุมัติส่งต่องาน/เฝ้าดู (ชื่อจาก /api/labels), audit ของผล 0 แถวที่ถูก scope บีบ, สาเหตุ error ขั้นที่สองของ Gemini ตาม docs/plan.md
+ถัดไป: รอผู้ใช้เลือกงานถัดไป · ถ้าเจอ error ขั้นที่สองของ Gemini อีก อ่านข้อความจริงจาก dev/server log
 
 ## 1. What we are building
 
@@ -341,7 +340,7 @@ The user's question: "จะมั่นใจได้ไงว่า model จ
 - [x] **ปุ่มส่งต่อบนการ์ดหน้าแรก** — การ์ดความผิดปกติมีปุ่ม "ส่งงานให้<ผู้รับผิดชอบ>" จาก `actionsForAlert` (กฎเดียวกับการ์ดในแชท/แดชบอร์ด ไม่เสนอให้ส่งหาตัวเอง) กดแล้วเปิดแชทด้วยข้อความปุ่ม `⟦action⟧ runTool create_handoff …` → การ์ดอนุมัติของ phase 1.8 ไม่มีอะไรถูกส่งจนกว่าจะกดอนุมัติ; `POST /api/threads` รับ `title` เพื่อให้ชื่อแชทเป็นชื่อปุ่ม ไม่ใช่ข้อความ action ดิบ — ตรวจแล้วด้วย u_prasit → การ์ดอนุมัติส่งงานให้คุณอนุชา
 - [x] **จุดที่แย่ที่สุดบนแถบ KPI** (`weakestRow` ใน `present.ts`) — การ์ดที่ปักแบบแยกมิติของเมตริกที่ "ระดับ" ตัดสิน (ยอดเทียบเป้า / วันครอบคลุมสต๊อก ต่ำสุดคือแย่สุด; ลูกหนี้ค้าง / MAPE สูงสุดคือแย่สุด) โชว์ "ต่ำสุด ภาคอีสาน 68.4%" / "ต่ำสุด ศูนย์กระจายสินค้าสงขลา 13.5 วัน" ใต้ตัวเลข — ตอบ ผอ.ขาย (ภาคที่ห่างเป้า) และ supply planner (DC ที่ถูกค่าเฉลี่ยซ่อน) ด้วยกฎเดียว
 - [x] **"ไปเยี่ยมวันนี้" สำหรับพนักงานขาย** (`visitsFor`) — เอเย่นต์ในขอบเขตของตัวเองสูงสุด 3 ราย: มีความผิดปกติเปิดอยู่ก่อน แล้วตามด้วยขายเข้าที่ตกแรงที่สุด 27 วันเทียบช่วงก่อน เหตุผลเป็นตัวเลข ("ปริมาณขายเข้า −81%") กดแล้วถามเทียบขายเข้า/ขายออกของเอเย่นต์นั้นก่อนไปเยี่ยม
-- [ ] ค้าง: แดชบอร์ดบอก "ความผิดปกติใหม่ 44 เรื่องตั้งแต่เมื่อวาน" เพราะ engine สร้างทุกเรื่องเมื่อวาน; ใบที่สองอาจเป็นเรื่อง P3 ที่ engine อธิบายได้แล้ว; ของพนักงานขาย เอเย่นต์อันดับ 1 ในรายการเยี่ยมซ้ำกับการ์ดความผิดปกติข้างล่าง; คำตอบของ mock ตอนกดรายการเยี่ยมเป็นกราฟขายเข้า/ขายออกของเอเย่นต์ทุกราย ไม่ได้เจาะรายเดียว (โมเดลจริงกรองได้)
+- [x] (2026-09-25) ข้อความเป็น "ตั้งแต่ที่คุณเปิดครั้งก่อน" นับจาก id ที่คงที่ข้ามรอบ engine แล้ว · ใบที่สองไม่เป็น P3 · การ์ดไม่ซ้ำรายการเยี่ยม (`9e8c037`) · mock ตอนกดรายการเยี่ยมยังไม่เจาะรายเดียว (โมเดลจริงกรองได้ ไม่แก้) — เดิม: แดชบอร์ดบอก "ความผิดปกติใหม่ 44 เรื่องตั้งแต่เมื่อวาน" เพราะ engine สร้างทุกเรื่องเมื่อวาน; ใบที่สองอาจเป็นเรื่อง P3 ที่ engine อธิบายได้แล้ว; ของพนักงานขาย เอเย่นต์อันดับ 1 ในรายการเยี่ยมซ้ำกับการ์ดความผิดปกติข้างล่าง; คำตอบของ mock ตอนกดรายการเยี่ยมเป็นกราฟขายเข้า/ขายออกของเอเย่นต์ทุกราย ไม่ได้เจาะรายเดียว (โมเดลจริงกรองได้)
 - [x] ถอดแผงขาวที่ครอบคำทักทาย + ช่องพิมพ์ + ชิปออก (ผู้ใช้ถาม "ถ้าเอา panel card ออกจะสวยกว่าไหม") — พอ backdrop จางแล้ว แผงไม่ได้ช่วยเรื่อง contrast อีก กลายเป็นกล่องซ้อนกล่อง ตอนนี้ช่องพิมพ์เป็นชิ้นเดียวที่ลอยขึ้นมา ตรวจแล้วทั้ง light/dark และมือถือ
 
 ### Phase 2 — the four loops (four agents in parallel)
@@ -438,7 +437,7 @@ The user's question: "จะมั่นใจได้ไงว่า model จ
 - [x] scheduler ในโปรเซส (`instrumentation.ts` `register()` → `lib/server/scheduler.ts`, กันรันซ้อนด้วย flag บน `globalThis`): anomaly + forecast วันละครั้ง, personal watches ทุกชั่วโมง, สรุปตอนเช้า 07:00 ต่อผู้ใช้ที่มีเรื่อง (P1/P2 ของตัวเอง + งานที่รอ + watch ที่เข้าเงื่อนไข) ลง outbox — ผู้ใช้ที่ไม่มีเรื่องไม่ได้อะไร; IT รันเองได้ผ่าน `run_job` / `POST /api/jobs/run` (`watches`, `digest`, `tick`) · สรุปตอนเช้าไม่ซ้ำ alert ที่เคยส่งแล้ว (`digests` collection) · ปิดได้ด้วย `COP_SCHEDULER=off` · `/outbox` แสดงสิ่งที่ Cop ส่งถึงผู้ใช้ด้วย
 - [x] mock มี turn สำหรับ "เตือนฉันถ้า…" (การ์ดอนุมัติ `watch_metric`) และ eval case `planner-watch` (scripted) + `rsm-watch-agent` (โมเดลจริง) — eval มีเช็ก `askedApproval` ใหม่ (เรียก tool ที่ถูกและ input ผ่าน schema)
 - [x] ตรวจ: watch ของ supply planner (DC ลำพูน < 10 วัน) → `tick` รัน engine + watches + digest → กล่องงานมีแจ้งเตือน 1, `/outbox` มี "เข้าเงื่อนไขแล้ว … เพอร์ร่า ขวด PET 600 มล. 6 วัน" และสรุปตอนเช้า; รันซ้ำไม่เตือนซ้ำ; rep ภาคเหนือตั้ง watch ภาคอีสานถูกปฏิเสธ (เทสต์)
-- [ ] ค้าง: dev server ต้อง restart ครั้งหนึ่งให้ `instrumentation.ts` เริ่มจับเวลา (prompt "เตือนฉันถ้า…" กับ Gemini ผ่านแล้วใน 4F: `rsm-watch-agent` 3/3, `planner-watch` 3/3)
+- [x] (2026-09-25) scheduler ทำงานใน dev server ปัจจุบัน: `job-runs` engine เที่ยงคืน, watches รายชั่วโมง, digest 07:07 — เดิม: dev server ต้อง restart ครั้งหนึ่งให้ `instrumentation.ts` เริ่มจับเวลา (prompt "เตือนฉันถ้า…" กับ Gemini ผ่านแล้วใน 4F: `rsm-watch-agent` 3/3, `planner-watch` 3/3)
 
 **4D ความจำที่จำการตัดสินใจ และผลลัพธ์ที่ย้อนกลับมาสอน** (`lib/server/handoff.ts`, `lib/server/alerts.ts`, `lib/engine/memory.ts`, `components/inbox/drawer.tsx`, `lib/cards/alert-row.ts`)
 - [x] ปิดงาน handoff ที่แนบ alert ต้องเลือกว่า "เป็นเรื่องจริง" หรือ "ไม่ใช่ปัญหา" พร้อมสรุปผล → `alert-outcomes` (thresholdKey, verdict, outcome, ผู้ปิด, วันที่); "ไม่ใช่ปัญหา" นับเป็นการปิดแบบ "ไม่ใช่ความผิดปกติ" ของ 4A, "เป็นเรื่องจริง" = alert `resolved` — ปิดโดยไม่เลือกได้ 400 (`lib/server/outcomes.ts`, ปุ่มสองปุ่มในกล่องงาน)
@@ -472,7 +471,7 @@ The user's question: "จะมั่นใจได้ไงว่า model จ
 - [x] คะแนน = ฐานของแต่ละแบบ + บวกเพิ่มเมื่อผลแย่ (ตก ≥ 5% หรือมีแถวที่ตกแรง) + 0.3 × สัดส่วนที่ผู้ใช้คนนี้กดแบบนั้นใน 30 วัน (event ใหม่ `follow_up`, intentKey `follow|<kind>`, recommender ไม่นับเป็น intent) · เอาสูงสุด 3 · ตัดคำถามที่ปุ่มบนการ์ด (`nextActions`) มีแล้ว
 - [x] `query_metric` คืน `followUps` คู่กับ `nextActions`; chat แสดงชิปคำถามต่อของการ์ดล่าสุดก่อน แล้วเติมชิปที่เรียนรู้จากประวัติจนครบ 3 · `spaceLatinTh` เว้นวรรคระหว่างไทยกับคำอังกฤษบนชิป
 - [x] ตรวจ: เทสต์ `lib/engine/follow-ups.test.ts` + `components/chat/follow-ups.test.ts`; `POST /api/chat` (mock, คุณอนุชา "เอเย่นต์รายไหนยอดตกบ้าง") คืน ทำไมอุบลศรีสุข เทรดดิ้ง / เริ่มแย่ตั้งแต่เมื่อไร / พยากรณ์ 8 สัปดาห์
-- [ ] ยังไม่ดูด้วยตาในเบราว์เซอร์ และยังไม่รัน `eval:cards` กับ Gemini (tool output ยาวขึ้นราว 3 ชิป)
+- [x] (2026-09-25) ดูในเบราว์เซอร์กับ Gemini แล้ว: การ์ด query_metric มีชิปคำถามต่อ ไม่มี error จาก output ที่ยาวขึ้น · `eval:cards` ไม่ได้รัน (ผู้ใช้: เฉพาะตอนจำเป็น)
 
 **4H การ์ดความผิดปกติอ่านได้ในแวบเดียว** (user review 2026-09-23: "ต้องอ่านเยอะและตัวเลขก็เล็ก") (`lib/cards/present.ts`, `components/cards/signal-list.tsx`, `lib/dashboard/widget-to-spec.ts`, `lib/cards/catalog.ts`)
 - [x] แต่ละแถวเป็น `SignalItem`: ชื่อ (ตัวหนา) · ที่/เมตริก · "จริง X · คาด Y" (YoY แสดงแค่ "1.7 เท่าของปีก่อน") · % ห่างเป็นตัวเลขใหญ่ มีเครื่องหมาย สีตามว่าดีหรือแย่ต่อเมตริกนั้น (`toneOf`) · ความรุนแรงเป็นแถบสีด้านซ้ายแทนข้อความ "ต้องรีบดู" ซ้ำทุกแถว · สมมติฐานซ่อนหลัง "ทำไม" (`<details>`)
