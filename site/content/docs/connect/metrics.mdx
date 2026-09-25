@@ -5,41 +5,50 @@ description: ทางเดียวที่ตัวเลขบนการ�
 
 ## สัญญา
 
-ทุกที่ใน Cop ที่ต้องการตัวเลข ทั้งแดชบอร์ด แชท การแจ้งเตือน และสรุปตอนเช้า เรียกผ่าน port เดียวนี้
+ทุกที่ใน Cop ที่ต้องการตัวเลข ทั้งแดชบอร์ด แชท การแจ้งเตือน และสรุปตอนเช้า อ่านผ่าน port เดียวนี้
 
 ```ts
 export type MetricsPort = {
-  runMetric(query: MetricQuery, access: AccessContext): Promise<MetricResult>;
+  readFacts(requests: FactRequest[]): Promise<FactResult[]>;
+  masterData(): Promise<MasterData>;
   listMetrics(search: string | null): Promise<MetricDef[]>;
   describeEntity(kind: EntityKind, query: string): Promise<EntityDescription>;
 };
 ```
 
-- `MetricQuery` บอกว่าต้องการ metric อะไร ตัดตามมิติไหน ช่วงเวลาไหน และเทียบกับอะไร (งวดก่อน ปีก่อน หรือเป้า)
-- `AccessContext` บอกว่าใครถาม บทบาทอะไร ดูแลภาคและแบรนด์ไหน
-- `MetricResult` คืนแถวที่คำนวณแล้ว พร้อม headline และ `provenance` (ระบบต้นทาง เวลาของข้อมูล ขอบเขตที่ใส่ ฟิลด์ที่ปิดบัง)
-
-การเปลี่ยนไปใช้คลังข้อมูลจริงคือเขียน adapter ที่ทำตามสัญญานี้ แล้วลงทะเบียนตอนเริ่ม server
+คลังข้อมูลไม่รู้ว่าใครถาม Cop ตรวจ query กับนิยาม metric ใส่ขอบเขตของผู้ถาม และแตกคำถามหนึ่งข้อเป็นคำขอรวมยอดก่อน แล้วส่งให้ adapter เฉพาะคำขอที่ตัดขอบเขตแล้ว
 
 ```ts
-registerPorts({ metrics: snowflakeMetrics });
+export type FactRequest = {
+  metric: MetricId;
+  measure: "actual" | "target";
+  dims: Dim[];
+  filters: Partial<Record<Dim, string[]>>;
+  range: { from: string; to: string };
+  labelShift: { days: number; months: number };
+};
+
+export type FactRow = { dims: Partial<Record<Dim, string>>; value: number; weight: number };
+export type FactResult = { ok: true; rows: FactRow[] } | { ok: false; code: "BAD_QUERY"; error: string };
 ```
 
-หน้าจอ แชท และ logic อื่นไม่ต้องแก้
+- `filters` มีขอบเขตของผู้ถามรวมอยู่แล้ว adapter กรองตามนี้ทุกค่า ไม่ต้องรู้เรื่องสิทธิ์
+- `measure: "target"` คือขอเป้า ไม่ใช่ยอดจริง ใช้เมื่อผู้ใช้เทียบกับเป้า
+- `labelShift` ใช้กับคำขอของงวดก่อน ให้เลื่อนป้ายเวลา (`date`, `week`, `month`) ไปข้างหน้าตามจำนวนนี้ แถวของงวดก่อนจึงมี key ตรงกับงวดปัจจุบันที่ถูกเทียบ
+- metric ที่เป็นอัตราส่วน เช่น การบรรลุเป้าหรือวันครอบคลุมสต๊อก คืน `value` เป็นอัตราส่วนของกลุ่มนั้น และ `weight` เป็นตัวหาร Cop รวมต่อด้วยค่าเฉลี่ยถ่วงน้ำหนัก metric อื่นคืน `weight: 1`
+- `masterData()` คืนรายชื่อภาค จังหวัด เอเย่นต์ แบรนด์ SKU ดีซี โรงงาน และแคมเปญ Cop ใช้ตรวจสิทธิ์ (เอเย่นต์นี้อยู่ภาคไหน) และแสดงชื่อภาษาไทย และ cache ไว้ตามรอบของข้อมูล
+
+การเปลี่ยนไปใช้คลังข้อมูลจริงคือเขียน adapter ที่ทำตามสัญญานี้ ดู[ตัวอย่าง adapter ของคลังข้อมูล](/docs/connect/examples/warehouse) หน้าจอ แชท และ logic อื่นไม่ต้องแก้
 
 ## อะไรอยู่ใน adapter อะไรอยู่ใน Cop
 
 | อยู่ใน Cop (ไม่เปลี่ยน) | อยู่ใน adapter |
 |---|---|
-| ตรวจ query กับนิยาม metric | แปลง query เป็น SQL หรือคำขอไปยัง semantic layer |
-| ใส่ขอบเขตภาคและแบรนด์ | ส่งคำขอด้วยบัญชีที่ได้รับอนุญาต |
-| ซ่อนกลุ่มที่เล็กเกินไป (small-cell) | แปลงผลกลับเป็นแถว |
-| คำนวณช่วงเปรียบเทียบ จัดเรียง ตัดแถว | บอกเวลาที่ข้อมูลอัปเดตล่าสุด |
+| ตรวจ query กับนิยาม metric | แปลง `FactRequest` เป็น SQL หรือคำขอไปยัง semantic layer |
+| ใส่ขอบเขตภาคและแบรนด์ลงใน `filters` | ส่งคำขอด้วยบัญชีที่ได้รับอนุญาต |
+| ซ่อนกลุ่มที่เล็กเกินไป (small-cell) | แปลงผลกลับเป็น `FactRow` |
+| คำนวณช่วงเปรียบเทียบ จัดเรียง ตัดแถว | อ่าน master data |
 | headline, summary, provenance | |
-
-<Callout title="งานที่ต้องทำก่อนต่อคลังข้อมูลจริง" type="warn">
-ตอนนี้ขั้นตอนฝั่ง Cop กับการสร้างตัวเลขของเดโมยังอยู่ในฟังก์ชันเดียวกัน งานแรกคือแยกส่วนดึงข้อมูลออกมาเป็น interface เล็ก ๆ เพื่อให้ adapter ของคลังข้อมูลจริงทำแค่แปลง query เป็น SQL และขั้นตอนเรื่องสิทธิ์ยังเป็นชุดเดียวกับที่ผ่านเทสต์อยู่แล้ว
-</Callout>
 
 ## ต่อผ่าน semantic layer ที่มีอยู่
 
@@ -82,7 +91,6 @@ metric ที่เป็นอัตราส่วน เช่น การ�
 
 ## สิ่งที่ต้องเตรียมเพิ่ม
 
-- **Master data**: ชื่อและรหัสของภาค จังหวัด เอเย่นต์ SKU ต้องอ่านจากคลังข้อมูลด้วย เพราะ Cop ใช้ข้อมูลนี้ตรวจสิทธิ์ (เอเย่นต์นี้อยู่ภาคไหน) และแสดงชื่อภาษาไทย
 - **Cache**: การเปิดแดชบอร์ดหนึ่งครั้งส่ง query เท่าจำนวนการ์ด ควร cache ผลตาม query และขอบเขต โดยตั้งอายุตามรอบอัปเดตของข้อมูล
 - **Timeout**: ถ้าคลังข้อมูลไม่ตอบ การ์ดใบนั้นแสดงว่าไม่มีข้อมูลในขณะนี้ ส่วนอื่นของหน้ายังใช้งานได้
 - **การแจ้งเตือนและพยากรณ์**: ย้ายไปอ่านผ่าน port เดียวกัน หรือให้คลังข้อมูลคำนวณเป็น batch แล้ว Cop อ่านผลไปใช้

@@ -1,0 +1,85 @@
+---
+title: REST อ่านข้อมูล
+description: CRM เยี่ยมร้าน ใส่ขอบเขตก่อนส่ง กรองซ้ำหลังได้ผล และปิดบังยอดสั่งซื้อจากพนักงานขาย
+---
+
+ตัวอย่างนี้คือ connector ที่รันอยู่ในเดโม (`lib/server/connectors/crm-demo.ts`) เปิดเครื่อง CRM จำลองได้ด้วย `bun scripts/rest-demo-crm.ts`
+
+## ระบบต้นทาง
+
+`GET /api/visits?regions=northeast&agentId=ag_nea_01` คืน
+
+```json
+{
+  "as_of": "2026-09-24",
+  "items": [
+    {
+      "agent_id": "ag_nea_01", "agent_name": "ขอนแก่นมหาชัย",
+      "region": "northeast", "region_label": "ภาคอีสาน",
+      "visited_on": "2026-09-18", "visited_label": "18 ก.ย. 2569",
+      "rep_name": "คุณกฤต จันทร์เสน", "outcome_label": "สั่งซื้อเพิ่ม",
+      "note": null, "order_value": 64000, "order_value_label": "64,000 บาท"
+    }
+  ]
+}
+```
+
+## Config
+
+```ts
+const VISITS_BODY = z.object({ items: z.array(z.record(z.string(), z.unknown())), as_of: z.string().optional() });
+
+function visitsOutput(body: unknown): ConnectorOutput {
+  const parsed = VISITS_BODY.parse(body);
+  return { rows: parsed.items, asOf: parsed.as_of };
+}
+
+function onlyOwnRegions(rows: ConnectorRow[], access: AccessContext): ConnectorRow[] {
+  if (access.regions === "all") return rows;
+  const regions: readonly string[] = access.regions;
+  return rows.filter((row) => regions.includes(String(row.region)));
+}
+
+export const crmDemoConnector = defineRestConnector({
+  id: "crm_demo",
+  labelTh: "CRM (REST)",
+  sourceSystemTh: "CRM ภายนอกผ่าน REST (เดโม)",
+  baseUrl: crmDemoEnv().url,
+  auth: (access) => signedIdentityHeaders(access, crmDemoEnv().secret),
+  timeoutMs: 4000,
+  tools: {
+    store_visits: {
+      method: "GET",
+      path: "/visits",
+      labelTh: "ดูบันทึกการเยี่ยมร้าน",
+      description:
+        "Store visits from the CRM: one row per visit with agent, region, date, the rep who went, the outcome and the order value, all with Thai labels. agentId narrows to one agent; null lists every visit in the viewer's regions. Call it for เยี่ยมร้าน / ใครไปเยี่ยม questions. Not for sales numbers (query_metric).",
+      tier: "read",
+      roles: ["ceo", "sales_director", "sales_rsm", "sales_rep", "marketing_lead"],
+      input: z.object({ agentId: z.string().nullable(), regions: z.string().nullable() }),
+      output: visitsOutput,
+      scope: [
+        { kind: "inject", args: (access) => ({ regions: access.regions === "all" ? null : access.regions.join(",") }) },
+        { kind: "filter", rows: onlyOwnRegions },
+      ],
+      sensitive: [{ field: "order_value", labelTh: "ยอดสั่งซื้อจากการเยี่ยมร้าน", full: ["ceo", "sales_director", "sales_rsm"], masked: ["sales_rep"] }],
+    },
+  },
+});
+```
+
+## ทำไมเขียนแบบนี้
+
+- **`inject` กับ `filter` คู่กัน** `inject` เขียนทับ `regions` ด้วยภาคของผู้ถามก่อนส่ง ต่อให้ AI ส่ง `regions: "bkk"` มา CRM ก็ได้ `northeast` ส่วน `filter` กรองซ้ำหลังได้ผล เผื่อ CRM ไม่สนใจ argument นี้
+- **`description` บอกว่าไม่ใช้กับอะไร** AI เลือก tool จากคำอธิบาย การเขียนว่า "Not for sales numbers" ทำให้คำถามเรื่องยอดขายไปที่ `query_metric` ซึ่งผ่านนิยาม metric ชุดเดียวกับการ์ด
+- **`output` ตรวจรูปของ body** ถ้า CRM เปลี่ยนรูปแบบผลลัพธ์ Cop ตอบ `CONNECTOR_FAILED` แทนการส่งข้อมูลที่ไม่รู้จักให้ AI
+- **คู่ `order_value` กับ `order_value_label`** ฟิลด์อ่อนไหวถูกปิดทั้งคู่ ป้ายที่จัดรูปแล้วจึงไม่หลุดตัวเลขออกไป
+
+## ผลที่ผู้ใช้แต่ละคนเห็น
+
+| ผู้ถาม | แถวที่ได้ | `order_value` |
+|---|---|---|
+| CEO | ทุกภาค | ตัวเลขเต็ม |
+| ผู้จัดการขายภาคอีสาน | เฉพาะภาคอีสาน | ตัวเลขเต็ม |
+| พนักงานขายภาคอีสาน | เฉพาะภาคอีสาน | `***` |
+| HR | ใช้ tool ไม่ได้ (`TOOL_NOT_ALLOWED`) | |

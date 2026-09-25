@@ -30,15 +30,15 @@ export const lmsConnector = defineMcpConnector({
 });
 ```
 
-tool นี้ขึ้นบนระบบเป็นชื่อ `lms__training_history` และขึ้นในตารางสิทธิ์ของหน้า admin ทันที
+tool นี้ขึ้นบนระบบเป็นชื่อ `lms__training_history` และขึ้นในตารางสิทธิ์ของหน้า admin ทันทีที่เพิ่ม connector ลงในรายการ `CONFIGURED` ของ `lib/server/connectors/index.ts` ดูตัวอย่างอื่นได้ที่[ตัวอย่างการเชื่อมต่อ](/docs/connect/examples)
 
 ## ค่าใน config
 
 | ค่า | ความหมาย |
 |---|---|
 | `id` | ชื่อ connector ใช้เป็นคำนำหน้าชื่อ tool |
-| `transport` | ที่อยู่ของ MCP server |
-| `auth(access)` | header ที่ส่งไปพร้อมทุกคำขอ สร้างจากตัวตนของผู้ถาม |
+| `transport` | `{ type: "http", url }` หรือ `{ type: "stdio", command, args }` สำหรับ server ที่รันเป็นโปรเซสบนเครื่องเดียวกัน |
+| `auth(access)` | header ที่ส่งไปพร้อมทุกคำขอ สร้างจากตัวตนของผู้ถาม `access` เป็น `null` เมื่อ Cop เรียกเอง เช่น ตอนอ่านรายการ tool |
 | `timeoutMs` | เวลารอสูงสุด |
 | `tools` | tool ที่เปิดใช้ ประกาศทีละตัว ไม่มีการเปิดทั้งหมด |
 | `tools.*.roles` | บทบาทที่ใช้ได้ admin ปรับต่อได้ในหน้าสิทธิ์ |
@@ -46,6 +46,9 @@ tool นี้ขึ้นบนระบบเป็นชื่อ `lms__train
 | `tools.*.scope` | บังคับทุก tool ไม่มีค่าเริ่มต้น ถ้าไม่ระบุ ระบบไม่ยอมสร้าง connector |
 | `tools.*.sensitive` | ฟิลด์ที่บางบทบาทเห็นเต็ม บางบทบาทเห็นเป็น `***` |
 | `tools.*.output` | adapter แปลงผลดิบเป็นแถวของ Cop ถ้าไม่ระบุ Cop ย่อผลให้เอง |
+| `tools.*.description` | ถ้าไม่ระบุ ใช้คำอธิบายจาก server (กั้นไว้เป็นข้อมูล) ควรเขียนเองเมื่อคำอธิบายของ server ไม่บอกว่าไม่ใช้กับคำถามแบบไหน |
+| `tools.*.input` | ถ้าไม่ระบุ ใช้ schema จาก server |
+| `tools.*.as` | ชื่อที่ใช้บน Cop แทนชื่อของ server เช่น `search_handbook` เป็น `policy__handbook` |
 
 ## การบังคับขอบเขต
 

@@ -1,0 +1,55 @@
+---
+title: ตัวตนของผู้ถาม
+description: ระบบต้นทางรู้ว่าใครถามได้สองแบบ header ที่ Cop ลงลายเซ็น หรือ token ของผู้ใช้จาก SSO
+---
+
+`auth(access)` ถูกเรียกทุกครั้งที่ Cop สร้างคำขอ (REST) หรือเปิด client (MCP) และคืน header ที่ส่งไปด้วย `access` เป็น `null` เมื่อ Cop เรียกเองโดยไม่มีผู้ใช้ เช่น ตอนอ่านรายการ tool หรือตรวจว่าระบบยังตอบอยู่
+
+## แบบที่ 1: header ลงลายเซ็น (ใช้ในเดโม)
+
+ฝั่ง Cop
+
+```ts
+auth: (access) => signedIdentityHeaders(access, env.CRM_SECRET),
+```
+
+ส่ง header สี่ตัว
+
+```http
+x-cop-user: u_krit
+x-cop-role: sales_rep
+x-cop-regions: northeast
+x-cop-signature: 5f0c…  (HMAC-SHA256 ของสามค่าข้างบน ด้วย secret ที่มีแค่ Cop กับระบบนั้น)
+```
+
+ฝั่งระบบต้นทางตรวจลายเซ็นก่อนตอบ
+
+```ts
+if (!verifiedIdentity(request.headers, env.CRM_SECRET)) {
+  return Response.json({ error: "identity signature missing or wrong" }, { status: 401 });
+}
+```
+
+เมื่อ `access` เป็น `null` header จะเป็น `x-cop-user: cop`, `x-cop-role: cop`, `x-cop-regions: all` ระบบต้นทางควรให้ตัวตนนี้ทำได้แค่อ่านรายการ tool
+
+**เหมาะกับ** ระบบภายในที่ยังไม่รับ token รายคน ระบบต้นทางต้องเชื่อ Cop เรื่องตัวตน จึงควรกรองตาม `x-cop-regions` เองอีกชั้นด้วย
+
+## แบบที่ 2: token ของผู้ใช้ (on-behalf-of)
+
+ระบบต้นทางตรวจสิทธิ์ด้วยบัญชีของผู้ใช้เอง ผ่าน OAuth token ที่ Cop ขอแทนผู้ใช้จาก SSO
+
+```ts
+auth: (access) => ({ authorization: `Bearer ${cachedOboToken(access?.userId ?? "cop")}` }),
+```
+
+- `auth` เป็นฟังก์ชันแบบ sync token จึงต้องมาจาก cache ที่ต่ออายุไว้ล่วงหน้า (เช่น ตอนผู้ใช้ login และก่อนหมดอายุ) ไม่ใช่ขอใหม่ระหว่างสร้างคำขอ
+- ถ้าผู้ใช้ไม่มี token ที่ใช้ได้ ระบบต้นทางตอบ 401 ผู้ใช้เห็น `CONNECTOR_FAILED` ไม่มีข้อมูลรั่ว
+- ขอบเขตใน Cop (`inject`, `filter`) ยังทำงานเหมือนเดิม สิทธิ์จึงถูกตรวจสองชั้น
+
+**เหมาะกับ** ระบบที่มีสิทธิ์รายคนอยู่แล้ว เช่น ERP, CRM บน cloud และระบบที่ต้องมีบันทึกว่าใครอ่านอะไรในระบบต้นทางเอง
+
+## ข้อควรระวังทั้งสองแบบ
+
+- secret และค่าของ OAuth client อยู่ใน environment variable ของ server เท่านั้น ไม่อยู่ใน config ที่ commit
+- REST ห้าม redirect header ตัวตนจึงไม่ตามคำขอไปที่อื่น
+- MCP แบบ `stdio` ไม่ส่ง header ใช้กับข้อมูลที่ไม่ผูกกับใครเท่านั้น

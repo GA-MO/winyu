@@ -1,0 +1,35 @@
+---
+title: ข้อมูลที่ไม่ผูกกับใคร
+description: คู่มือพนักงานผ่าน MCP server ที่รันเป็นโปรเซสบนเครื่อง ประกาศว่าไม่มีขอบเขตพร้อมเหตุผล และเปลี่ยนชื่อ tool
+---
+
+## Config
+
+```ts
+export const policyConnector = defineMcpConnector({
+  id: "policy",
+  labelTh: "คู่มือบริษัท (MCP)",
+  sourceSystemTh: "คลังเอกสารนโยบาย",
+  transport: { type: "stdio", command: "policy-mcp", args: ["--read-only"] },
+  auth: () => ({}),
+  timeoutMs: 4000,
+  tools: {
+    search_handbook: {
+      as: "handbook",
+      labelTh: "ค้นคู่มือพนักงาน",
+      tier: "read",
+      roles: "all",
+      scope: { kind: "none", reason: "คู่มือพนักงานเปิดให้ทุกคนอ่าน ไม่ผูกกับคนหรือภาค" },
+    },
+  },
+});
+```
+
+## จุดที่ต่างจากตัวอย่างอื่น
+
+- **`scope: { kind: "none", reason }`** ใช้กับข้อมูลที่ทุกคนเห็นเหมือนกัน ต้องเขียนเหตุผลเสมอ ถ้าว่าง server ไม่ยอมเริ่ม เหตุผลนี้คือสิ่งที่คนตรวจ config อ่านเพื่อตัดสินว่าถูกไหม
+- **`transport: { type: "stdio" }`** Cop เปิด server เป็นโปรเซสลูก header จาก `auth` ไม่ถูกส่งกับ stdio จึงเหมาะกับข้อมูลที่ไม่ต้องรู้ว่าใครถามเท่านั้น (`auth` คืน `{}`) Cop เปิด client แยกต่อผู้ใช้และเก็บไว้ 10 นาที กับ stdio แปลว่าหนึ่งโปรเซสต่อผู้ใช้ที่กำลังใช้งาน ถ้าผู้ใช้พร้อมกันมาก ให้รัน server เป็น HTTP แทน
+- **`as: "handbook"`** ชื่อบน Cop เป็น `policy__handbook` แทน `policy__search_handbook` ชื่อที่สั้นและตรงความหมายช่วยให้ AI เลือกถูก
+- **ไม่เขียน `description` และ `input`** Cop ใช้คำอธิบายและ schema จาก server โดยกั้นคำอธิบายไว้เป็นข้อมูลก่อนถึง AI
+
+tool ใน server ที่ไม่ได้ประกาศใน `tools` เรียกไม่ได้ Cop log รายชื่อไว้ตอนเริ่ม server เช่น `[connectors] policy offers tools Cop leaves closed: delete_page`

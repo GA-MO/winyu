@@ -1,55 +1,101 @@
 ---
 title: REST connector
-description: ต่อระบบที่มี REST API ด้วย config หนึ่งไฟล์ ผ่านขั้นตอนสิทธิ์และ audit เดียวกับ MCP connector
+description: ต่อระบบที่มี REST API ด้วย config หนึ่งไฟล์ ผ่านขั้นตอนสิทธิ์ การปิดบัง และ audit ชุดเดียวกับ MCP connector
 ---
 
-<Callout title="สถานะ: อยู่ในแผน" type="warn">
-ขั้นตอนการเรียก connector ใน Cop เป็นกลางอยู่แล้ว ทั้งการใส่ขอบเขต การกรองแถว การปิดฟิลด์ การกั้นผลลัพธ์ และ audit ส่วนที่ผูกกับ MCP มีเพียงคำสั่งเรียก tool บรรทัดเดียว REST connector คือการเพิ่ม transport ชนิด `rest` ข้างขั้นตอนเดิม
-</Callout>
+## ตัวอย่าง
 
-## วันนี้ต่อ REST ได้อย่างไร
-
-REST ต่อได้แล้ววันนี้ แต่ต้องเขียนโค้ด
-- **ระบบที่ตรงกับ port ที่มีอยู่** (directory, recruiting, learning, leave, sites, calendar, mail): เขียน adapter ของ port นั้นด้วย `fetch` แล้วแปลงผลเป็น record ของ Cop
-- **ระบบใหม่**: เพิ่ม native tool หนึ่งไฟล์ แล้วเรียก REST ข้างใน tool ขึ้นในตารางสิทธิ์ของ admin มี kill switch และ audit เหมือน tool อื่น
-
-## เมื่อมี REST connector
+connector ของ CRM ที่ใช้ในเดโม เปิด endpoint เดียวคือบันทึกการเยี่ยมร้าน
 
 ```ts
-defineRestConnector({
-  id: "hris",
-  labelTh: "ระบบ HR",
-  baseUrl: env.HRIS_URL,
-  auth: (access) => ({ Authorization: `Bearer ${tokenFor(access)}` }),
+export const crmDemoConnector = defineRestConnector({
+  id: "crm_demo",
+  labelTh: "CRM (REST)",
+  sourceSystemTh: "CRM ภายนอกผ่าน REST (เดโม)",
+  baseUrl: env.CRM_URL,
+  auth: (access) => signedIdentityHeaders(access, env.CRM_SECRET),
   timeoutMs: 4000,
   tools: {
-    leave_balance: {
-      labelTh: "วันลาคงเหลือ",
-      request: { method: "GET", path: "/employees/{employeeId}/leave-balance" },
-      input: z.object({ employeeId: z.string() }),
-      rows: "data.items",
-      roles: "all",
-      scope: [{ kind: "filter", rows: onlyMyTeam }],
-      sensitive: [{ field: "salary", labelTh: "เงินเดือน", full: ["ceo", "hr_manager"] }],
+    store_visits: {
+      method: "GET",
+      path: "/visits",
+      labelTh: "ดูบันทึกการเยี่ยมร้าน",
+      description: "Store visits from the CRM: one row per visit with agent, region, date, the rep who went, the outcome and the order value. agentId narrows to one agent; null lists every visit in the viewer's regions.",
+      tier: "read",
+      roles: ["ceo", "sales_director", "sales_rsm", "sales_rep", "marketing_lead"],
+      input: z.object({ agentId: z.string().nullable(), regions: z.string().nullable() }),
+      output: (body) => {
+        const parsed = z.object({ items: z.array(z.record(z.string(), z.unknown())), as_of: z.string().optional() }).parse(body);
+        return { rows: parsed.items, asOf: parsed.as_of };
+      },
+      scope: [
+        { kind: "inject", args: (access) => ({ regions: access.regions === "all" ? null : access.regions.join(",") }) },
+        { kind: "filter", rows: onlyOwnRegions },
+      ],
+      sensitive: [{ field: "order_value", labelTh: "ยอดสั่งซื้อจากการเยี่ยมร้าน", full: ["ceo", "sales_director", "sales_rsm"], masked: ["sales_rep"] }],
     },
   },
 });
 ```
 
-ขั้นถัดไปคืออ่าน OpenAPI spec ของระบบเดิมเพื่อสร้าง `request` และ `input` ให้อัตโนมัติ งานที่เหลือต่อระบบคือส่วนนโยบาย ได้แก่ `roles`, `scope` และ `sensitive`
+tool นี้ขึ้นบนระบบเป็นชื่อ `crm_demo__store_visits` และขึ้นในตารางสิทธิ์ของหน้า admin ทันทีที่เพิ่ม connector ลงในรายการ `CONFIGURED` ของ `lib/server/connectors/index.ts`
+
+## ค่าใน config
+
+REST ไม่มีรายการ tool ให้อ่านแบบ MCP ดังนั้น config ต้องบอกเองว่าแต่ละ endpoint รับอะไร คืนอะไร และให้ AI ใช้เมื่อไร
+
+| ค่า | ความหมาย |
+|---|---|
+| `id` | ชื่อ connector ตัวพิมพ์เล็ก ตัวเลข และ `_` ใช้เป็นคำนำหน้าชื่อ tool |
+| `baseUrl` | ต้องเป็น `http://` หรือ `https://` เช่น API gateway ขององค์กร |
+| `auth(access)` | header ที่ส่งไปพร้อมทุกคำขอ สร้างจากตัวตนของผู้ถาม ดู[ตัวตนของผู้ถาม](/docs/connect/examples/identity) |
+| `timeoutMs` | เวลารอสูงสุด |
+| `tools.*.method` | `GET` หรือ `POST` เท่านั้น |
+| `tools.*.path` | ขึ้นต้นด้วย `/` ไม่มี query string ใส่ `{ชื่อ}` เพื่อเติมจาก argument ชื่อเดียวกัน |
+| `tools.*.description` | บอก AI ว่า tool นี้ตอบคำถามแบบไหน และไม่ใช้กับคำถามแบบไหน |
+| `tools.*.input` | schema ของ argument (zod) Cop ตรวจก่อนส่ง |
+| `tools.*.output` | adapter แปลง body ที่ได้เป็นแถวของ Cop |
+| `tools.*.tier` | `read`, `write` (ต้องอนุมัติก่อน) หรือ `destructive` ถ้าไม่ระบุ Cop ถือเป็น `destructive` |
+| `tools.*.roles` | บทบาทที่ใช้ได้ admin ปรับต่อได้ในหน้าสิทธิ์ |
+| `tools.*.scope` | บังคับทุก tool ดู[การบังคับขอบเขต](/docs/connect/mcp#การบังคับขอบเขต) |
+| `tools.*.sensitive` | ฟิลด์ที่บางบทบาทเห็นเต็ม บางบทบาทเห็นเป็น `***` ดู[ฟิลด์อ่อนไหว](/docs/connect/examples/sensitive) |
+
+ถ้า config ผิด server ไม่ยอมเริ่ม และบอกว่าผิดตรงไหน เช่น
+
+```text
+connector hr: tool leave_balance path fills {id} that its input does not declare
+connector hr: tool leave_balance says scope none without a reason
+connector hr: tool leave_balance uses method DELETE; only GET and POST
+```
+
+## Cop ส่งคำขออย่างไร
+
+- argument ที่ชื่อตรงกับ `{ชื่อ}` ใน `path` ถูกเติมลงใน path และ encode แล้ว เช่น `ag/../admin` กลายเป็น `ag%2F..%2Fadmin`
+- argument ที่เหลือเป็น query string (GET) หรือ JSON body (POST) ค่า `null` และค่าว่างไม่ถูกส่ง
+- ห้าม redirect header ที่มีตัวตนของผู้ถามจึงไม่ตามคำขอไปที่อื่น
+- ขอบเขตจาก `scope` ถูกเขียนทับลงใน argument ก่อนสร้างคำขอ ค่าที่ AI ส่งมาไม่มีผล
+
+## เมื่อระบบต้นทางมีปัญหา
+
+| สถานการณ์ | ผลลัพธ์ |
+|---|---|
+| ไม่ตอบ เกินเวลา หรือตอบ 502 503 504 | `CONNECTOR_UNAVAILABLE` ผู้ใช้เห็นว่าระบบไม่ตอบในขณะนี้ |
+| ตอบ 4xx หรือ 5xx อื่น | `CONNECTOR_FAILED` ข้อความจาก server (ไม่เกิน 400 ตัวอักษร) ถูกกั้นไว้เป็นข้อมูล |
+| body ไม่ตรงกับที่ `output` คาด | `CONNECTOR_FAILED` ไม่มีแถวไหนหลุดไปถึง AI |
+| admin ปิด tool ปิดบทบาท หรือปิดทั้ง connector | `TOOL_NOT_ALLOWED` พร้อม audit `deny` |
 
 ## MCP กับ REST ต่างกันแค่ไหน
 
 | | MCP | REST |
 |---|---|---|
-| รายการ tool และ schema | server ประกาศเอง | ประกาศใน config หรืออ่านจาก OpenAPI |
-| วิธีเรียก | มาตรฐานเดียว | ระบุ method, path และตำแหน่งของแถวในผลลัพธ์ |
+| รายการ tool และ schema | server ประกาศเอง | เขียนใน config (`description`, `input`) |
+| วิธีเรียก | มาตรฐานเดียว | `method`, `path` และ `output` ของแต่ละ endpoint |
 | นโยบายสิทธิ์ | เขียนใน config | เขียนใน config เท่ากัน |
 | กลไกสิทธิ์ audit kill switch | ชุดเดียวกัน | ชุดเดียวกัน |
 
 ## เรื่องที่ต้องคุยกับเจ้าของ API
 
 - **ตัวตน**: API รับได้แค่ service account หรือรับ token รายคน (OAuth on-behalf-of) ได้ด้วย ถ้าได้แค่ service account Cop จะกรองสิทธิ์เองทั้งหมด
-- **ตัวกรอง**: API กรองตามภาคหรือแบรนด์ได้ไหม ถ้าได้ Cop ส่งขอบเขตไปกรองที่ต้นทาง ถ้าไม่ได้ Cop กรองหลังได้ผล
-- **ขนาดผลลัพธ์**: มี pagination และ rate limit ไหม Cop ส่งให้ AI ไม่เกิน 60 แถว ถ้าสรุปที่ต้นทางได้จะดีกว่า
+- **ตัวกรอง**: API กรองตามภาคหรือแบรนด์ได้ไหม ถ้าได้ ใช้ `inject` ส่งขอบเขตไปกรองที่ต้นทาง และใช้ `filter` ซ้ำอีกชั้น ถ้าไม่ได้ ใช้ `filter` อย่างเดียว
+- **ขนาดผลลัพธ์**: มี pagination และ rate limit ไหม Cop ส่งให้ AI ไม่เกิน 60 แถว และบอกว่า "60 จาก 120 แถว" ถ้าสรุปที่ต้นทางได้จะดีกว่า
 - **ความเร็ว**: ตั้ง timeout ให้ชัด ถ้าระบบไม่ตอบ Cop แจ้งผู้ใช้ว่าระบบนั้นไม่ตอบในขณะนี้
