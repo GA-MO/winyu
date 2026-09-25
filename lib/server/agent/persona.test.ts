@@ -9,8 +9,8 @@ import { COP_RULES, personaFor } from "./persona";
 const TODAY = "2026-09-22";
 const PACKET_ID = "pkt-persona-test";
 
-function ctx(context: Record<string, unknown> = {}): PersonaContext {
-  return { today: TODAY, context, tools: { read: [], write: [], destructive: [] } };
+function ctx(context: Record<string, unknown> = {}, today = TODAY): PersonaContext {
+  return { today, context, tools: { read: [], write: [], destructive: [] } };
 }
 
 function personaOf(userId: string, context: Record<string, unknown> = {}): string[] {
@@ -84,4 +84,14 @@ describe("rules", () => {
 
 afterEach(() => {
   packets().remove(PACKET_ID);
+});
+
+describe("the day the data reaches", () => {
+  test("a calendar past the data anchors ranges to the data's last day; the same day says nothing extra", () => {
+    const user = findUser("u_thana");
+    if (!user) throw new Error("no CEO");
+    const later = personaFor(accessFor(user), user, ctx({}, "2026-09-25")).join("\n");
+    expect(later).toContain("ข้อมูลในชั้นเมตริกล่าสุดถึง 2026-09-22");
+    expect(personaFor(accessFor(user), user, ctx()).join("\n")).not.toContain("ข้อมูลในชั้นเมตริกล่าสุดถึง");
+  });
 });

@@ -6,6 +6,7 @@ import { isPinnedSlice, repeatedIntent } from "@/lib/engine/compose";
 import { metricLabel } from "@/lib/dashboard/metric-display";
 import { isTrusted } from "@/lib/engine/memory-status";
 import { handoffEnabled } from "@/lib/access/enforce";
+import { TODAY as DATA_AS_OF } from "@/lib/data/dates";
 
 const BUDDHIST_YEAR_OFFSET = 543;
 const MEMORY_CHAR_BUDGET = 2400;
@@ -125,6 +126,12 @@ function packetBlock(packet: ContextPacket): string {
 }
 
 /** The persona lines of one turn: who Cop is, who is asking, their scope, the UI rules, and fenced memory and handoff blocks. */
+/** When the calendar has moved past the data, the model anchors "today", "this week" and "this month" to the day the data reaches and says so, instead of asking for days the warehouse does not hold. */
+function dataAsOfLine(today: string): string | null {
+  if (today <= DATA_AS_OF) return null;
+  return `ข้อมูลในชั้นเมตริกล่าสุดถึง ${DATA_AS_OF} (${buddhistDate(DATA_AS_OF)} พ.ศ.): คำว่า "วันนี้ เมื่อวาน สัปดาห์นี้ เดือนนี้" ให้ตั้งช่วงวันจบที่ ${DATA_AS_OF} และบอกผู้ใช้ว่าข้อมูลล่าสุดถึงวันไหน อย่าขอช่วงวันหลังจากนั้น`;
+}
+
 export function personaFor(access: AccessContext, user: User | null, ctx: PersonaContext): string[] {
   const name = user?.nameTh ?? access.userId;
   const title = user?.title ?? access.role;
@@ -136,6 +143,7 @@ export function personaFor(access: AccessContext, user: User | null, ctx: Person
     `หน้าที่ของผู้ใช้: ${RESPONSIBILITIES[access.role]}`,
     scopeLine(access, user),
     `วันนี้คือ ${ctx.today} (ตรงกับ ${buddhistDate(ctx.today)} พ.ศ.)`,
+    ...[dataAsOfLine(ctx.today)].filter((line): line is string => line !== null),
     ...VOCABULARY,
     "รูปแบบคำตอบ: เปรียบเทียบ → BarChart แนวนอน, แนวโน้ม ≥ 10 จุด → LineChart, ≤ 8 แถว → Table, ตัวเลขเดียว → Metric, หลาย KPI → Grid ของ Metric 2–3 คอลัมน์",
     "ใต้การ์ดที่มีข้อมูลทุกใบ ใส่บรรทัดที่มาของข้อมูลจาก provenance: `แหล่งข้อมูล: <sourceSystem> · <รับรองแล้ว|คำนวณ> · ณ <asOf>`",

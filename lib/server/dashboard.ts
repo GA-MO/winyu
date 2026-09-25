@@ -16,6 +16,7 @@ import { presentCard, sharpestHarm, weakestRow, type CardParts } from "@/lib/car
 import { TH } from "@/lib/i18n/th";
 import { templateFor } from "@/lib/dashboard/templates";
 import { displacedBy, onePinnedPerMetric } from "@/lib/dashboard/one-per-metric";
+import { liveWidget } from "@/lib/dashboard/rolling";
 import { widgetToSpec, type WidgetExtras } from "@/lib/dashboard/widget-to-spec";
 import { HARMFUL_ROW_PCT, attentionOf, byAttention, staleWidgets, withFeed, type Attention } from "@/lib/dashboard/attention";
 import { recordAction } from "@/lib/server/threads";
@@ -156,7 +157,7 @@ function relevantAlerts(access: AccessContext): Alert[] {
 /** Every card on the dashboard, the most urgent first; a card about a matter still on the user's feed leads. */
 export async function widgetViews(access: AccessContext, feed: readonly FeedItem[] = []): Promise<WidgetView[]> {
   const relevant = relevantAlerts(access);
-  return byAttention(withFeed(await Promise.all(layoutFor(access).widgets.map((widget) => viewOf(widget, access, relevant))), feed));
+  return byAttention(withFeed(await Promise.all(layoutFor(access).widgets.map((widget) => viewOf(liveWidget(widget), access, relevant))), feed));
 }
 
 /** Pinned cards this user has stopped looking at, offered for removal on the dashboard. */
@@ -186,6 +187,7 @@ export async function landingKpis(access: AccessContext): Promise<LandingKpi[]> 
   const relevant = relevantAlerts(access);
   const pinned = await Promise.all(layoutFor(access).widgets
     .filter((widget) => widget.pinned && widget.kind !== "alert_list")
+    .map((widget) => liveWidget(widget))
     .map(async (widget) => {
       const result = await resolveWidget(widget, access);
       return { widget, result, attention: attentionOf({ widget, result, alerts: relevant }) };

@@ -13,6 +13,7 @@ type OkResult = Extract<MetricResult, { ok: true }>;
 const MONTHLY_METRICS: ReadonlySet<MetricId> = new Set<MetricId>([
   "gross_margin", "trade_spend", "ar_overdue", "market_share", "forecast_mape", "headcount", "attrition_rate", "avg_salary",
 ]);
+const MONTHLY_TOTALS: ReadonlySet<MetricId> = new Set<MetricId>(["trade_spend", "ar_overdue"]);
 const SPARSE_METRICS: ReadonlySet<MetricId> = new Set<MetricId>(["campaign_spend", "campaign_reach", "campaign_uplift", "sentiment_score"]);
 const COMPARES: readonly Compare[] = ["prev_period", "prev_year"];
 const RANGES: Record<string, Range> = {
@@ -31,6 +32,8 @@ const MS_PER_DAY = 86_400_000;
 const PREV_YEAR_DAYS = 364;
 const MONTHS_PER_YEAR = 12;
 const HEADLINE_DELTA_TOLERANCE = 0.15;
+const DAYS_PER_WEEK = 7;
+const WEEKDAY_ALIGN_BELOW_DAYS = 28;
 
 const CEO = contextFor("u_thana");
 const RSM_NORTHEAST = contextFor("u_anucha");
@@ -73,7 +76,7 @@ function sameDayOfMonth(value: string, back: number): string {
   return cut < end ? cut : end;
 }
 
-/** The prior window written in calendar terms, independent of the engine: whole months stay whole months, month-to-date cuts at the same day, any other window moves by its length (364 days for a year). */
+/** The prior window written in calendar terms, independent of the engine: whole months stay whole months, month-to-date cuts at the same day, any other window moves by its length, rounded up to whole weeks when shorter than four weeks (364 days for a year). */
 function expectedPrior(metric: MetricId, compare: Compare, range: Range): Range {
   const startsMonth = range.from.endsWith("-01");
   const wholeMonths = MONTHLY_METRICS.has(metric) || (startsMonth && addDays(range.to, 1).endsWith("-01"));
@@ -81,8 +84,18 @@ function expectedPrior(metric: MetricId, compare: Compare, range: Range): Range 
     const back = compare === "prev_year" ? MONTHS_PER_YEAR : monthSpan(range);
     return { from: monthStart(range.from, back), to: wholeMonths ? monthEnd(range.to, back) : sameDayOfMonth(range.to, back) };
   }
-  const days = compare === "prev_year" ? PREV_YEAR_DAYS : Math.round((Date.parse(range.to) - Date.parse(range.from)) / MS_PER_DAY) + 1;
+  const length = Math.round((Date.parse(range.to) - Date.parse(range.from)) / MS_PER_DAY) + 1;
+  const aligned = length >= WEEKDAY_ALIGN_BELOW_DAYS || length % DAYS_PER_WEEK === 0 ? length : Math.ceil(length / DAYS_PER_WEEK) * DAYS_PER_WEEK;
+  const days = compare === "prev_year" ? PREV_YEAR_DAYS : aligned;
   return { from: addDays(range.from, -days), to: addDays(range.to, -days) };
+}
+
+/** A monthly total whose window stops inside the month the data has only partly reached is compared pro rata: the prior value times the share of calendar days covered. */
+function expectedShare(metric: MetricId, range: Range): number {
+  if (!MONTHLY_TOTALS.has(metric) || range.to !== TODAY || addDays(TODAY, 1).endsWith("-01")) return 1;
+  const calendar = Math.round((Date.parse(monthEnd(range.to, 0)) - Date.parse(monthStart(range.from, 0))) / MS_PER_DAY) + 1;
+  const covered = Math.round((Date.parse(range.to) - Date.parse(monthStart(range.from, 0))) / MS_PER_DAY) + 1;
+  return covered / calendar;
 }
 
 function query(metric: MetricId, dims: Dim[], range: Range, compare: MetricQuery["compare"], extra: Partial<MetricQuery> = {}): MetricQuery {
@@ -125,15 +138,16 @@ describe("compare reads the calendar window the question means", () => {
     eachCase((metric, rangeName, range, compare) => {
       const label = `${metric} · ${rangeName} · ${compare}`;
       const prior = expectedPrior(metric, compare, range);
+      const share = expectedShare(metric, range);
       const total = run(query(metric, [], range, compare));
       if (total.rows.length === 0) return;
-      expectClose(total.rows[0]?.compare_value, Number(run(query(metric, [], prior, "none")).rows[0]?.value), label);
+      expectClose(total.rows[0]?.compare_value, Number(run(query(metric, [], prior, "none")).rows[0]?.value) * share, label);
       const group = groupDimOf(metric);
       if (!group) return;
       const truth = valuesBy(run(query(metric, [group], prior, "none")).rows, group);
       for (const row of run(query(metric, [group], range, compare)).rows) {
         const expected = truth.get(String(row[group]));
-        if (expected !== undefined) expectClose(row.compare_value, expected, `${label} · ${row[group]}`);
+        if (expected !== undefined) expectClose(row.compare_value, expected * share, `${label} · ${row[group]}`);
       }
     });
   });

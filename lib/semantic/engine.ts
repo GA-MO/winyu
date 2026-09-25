@@ -5,11 +5,13 @@ import {
 import { MONTHLY_METRICS, RATIO_METRICS, TARGET_METRICS, TIME_DIMS, metricDef } from "@/lib/semantic/metrics";
 import { MIN_CELL_SIZE, SUPPRESSED_FIELDS, SUPPRESSED_VALUE, cellScopeOf, isSmallCell } from "@/lib/access/suppression";
 import type { Dictionary } from "@/lib/semantic/dictionary";
-import { DAY_COUNT, ISO_OF_DAY, MONTH_COUNT, MONTH_FIRST_DAY, MONTH_OF_DAY, TODAY, formatThaiDate, toDayIndex } from "@/lib/data/dates";
+import { DAY_COUNT, ISO_OF_DAY, MONTH_COUNT, MONTH_FIRST_DAY, MONTH_OF_DAY, TODAY, daysInMonthIndex, formatThaiDate, toDayIndex } from "@/lib/data/dates";
 
 const DEFAULT_LIMIT = 60;
 const PREV_YEAR_DAYS = 364;
 const MONTHS_PER_YEAR = 12;
+const DAYS_PER_WEEK = 7;
+const WEEKDAY_ALIGN_BELOW_DAYS = 28;
 const PERCENT = 100;
 const NO_SHIFT: LabelShift = { days: 0, months: 0 };
 
@@ -337,12 +339,18 @@ function monthsBack(from: number, to: number, months: number, wholeLastMonth: bo
   return { from: priorFrom, to: priorTo, shift: { days: from - priorFrom, months } };
 }
 
+/** How far back a short window's comparison sits: whole weeks, so Monday–Tuesday is read against Monday–Tuesday, not the weekend before it. */
+function weekdayAlignedDays(length: number): number {
+  if (length >= WEEKDAY_ALIGN_BELOW_DAYS || length % DAYS_PER_WEEK === 0) return length;
+  return Math.ceil(length / DAYS_PER_WEEK) * DAYS_PER_WEEK;
+}
+
 function daysBack(from: number, to: number, days: number): PriorWindow | null {
   if (from - days < 0) return null;
   return { from: from - days, to: to - days, shift: { days, months: 0 } };
 }
 
-/** The window a compare reads, decided by the range alone so every breakdown of one question shares it: calendar months when the range is whole months (or month-to-date, cut at the same day), otherwise the same number of days (364 back for a year, so weekdays line up). */
+/** The window a compare reads, decided by the range alone so every breakdown of one question shares it: calendar months when the range is whole months (or month-to-date, cut at the same day), otherwise the same number of days, moved back in whole weeks when shorter than four weeks (364 back for a year), so weekdays line up. */
 function priorWindow(compare: MetricQuery["compare"], from: number, to: number, wholeMonths: boolean): PriorWindow | null {
   if (compare !== "prev_period" && compare !== "prev_year") return null;
   const monthAligned = wholeMonths || (isMonthStart(from) && (isMonthEnd(to) || to === DAY_COUNT - 1));
@@ -350,9 +358,23 @@ function priorWindow(compare: MetricQuery["compare"], from: number, to: number, 
     const months = compare === "prev_year" ? MONTHS_PER_YEAR : MONTH_OF_DAY[to] - MONTH_OF_DAY[from] + 1;
     return monthsBack(from, to, months, wholeMonths || isMonthEnd(to));
   }
-  return daysBack(from, to, compare === "prev_year" ? PREV_YEAR_DAYS : to - from + 1);
+  return daysBack(from, to, compare === "prev_year" ? PREV_YEAR_DAYS : weekdayAlignedDays(to - from + 1));
 }
 
+/** For a monthly total whose window ends in a month the data has only partly reached, the share of the window's calendar days the data covers; the comparison is scaled by it so September's 22 days are not read against a whole August. */
+function coveredShare(def: MetricDef, compare: MetricQuery["compare"], from: number, to: number): number {
+  if (!MONTHLY_METRICS.has(def.id) || RATIO_METRICS.has(def.id)) return 1;
+  if (compare !== "prev_period" && compare !== "prev_year") return 1;
+  if (to !== DAY_COUNT - 1 || isMonthEnd(to)) return 1;
+  let calendar = 0;
+  for (let month = MONTH_OF_DAY[from]; month <= MONTH_OF_DAY[to]; month += 1) calendar += daysInMonthIndex(month);
+  const covered = to - MONTH_FIRST_DAY[MONTH_OF_DAY[from]] + 1;
+  return calendar > 0 ? covered / calendar : 1;
+}
+
+function partialMonthNote(share: number, to: number): string | null {
+  return share < 1 ? `ข้อมูลเดือนล่าสุดถึง ${formatThaiDate(ISO_OF_DAY[to])} จึงเทียบกับงวดก่อนตามสัดส่วนวัน (${Math.round(share * PERCENT)}%)` : null;
+}
 
 /** Where the answer can start so its comparison exists: a year-on-year question that reaches back before the data is narrowed to the months both years hold, and every comparison the data cannot serve says why instead of vanishing. */
 function comparableStart(compare: MetricQuery["compare"], from: number, to: number, wholeMonths: boolean): { from: number; note: string | null } {
@@ -409,6 +431,7 @@ export type MetricPlan = {
   ratio: boolean;
   periodLabel: string;
   compareNote: string | null;
+  comparisonScale: number;
   current: FactRequest;
   comparison: FactRequest | Failure | null;
 };
@@ -432,6 +455,7 @@ export function planMetric(query: MetricQuery, access: AccessContext, dictionary
   const dims = dedupe(query.dims);
   const compare = query.compare === "target" && ALREADY_VS_TARGET.has(def.id) ? "none" : query.compare;
   const start = comparableStart(compare, range.from, range.to, MONTHLY_METRICS.has(def.id));
+  const share = coveredShare(def, compare, start.from, range.to);
   return {
     dictionary,
     def,
@@ -441,8 +465,9 @@ export function planMetric(query: MetricQuery, access: AccessContext, dictionary
     scopeApplied: scope.scopeApplied,
     masked: visibility === "masked",
     ratio: RATIO_METRICS.has(def.id),
-    periodLabel: `${formatThaiDate(start.from === range.from ? query.range.from : ISO_OF_DAY[start.from])} – ${formatThaiDate(query.range.to)}`,
-    compareNote: start.note,
+    periodLabel: `${formatThaiDate(ISO_OF_DAY[start.from])} – ${formatThaiDate(ISO_OF_DAY[range.to])}`,
+    compareNote: start.note ?? partialMonthNote(share, range.to),
+    comparisonScale: share,
     current: factRequest(def, "actual", dims, filters, start.from, range.to, NO_SHIFT),
     comparison: comparisonOf(def, compare, dims, filters, start.from, range.to),
   };
@@ -469,7 +494,7 @@ export function finishMetric(plan: MetricPlan, current: FactResult, comparison: 
   if (comparison && !comparison.ok) return fail(comparison.code, comparison.error);
   const { dictionary, def, query, dims, filters, masked, ratio } = plan;
   const aggregated = keyRows(dims, current.rows);
-  const compareRows = comparison ? keyRows(dims, comparison.rows) : null;
+  const compareRows = comparison ? keyRows(dims, comparison.rows).map((row) => ({ ...row, value: row.value * plan.comparisonScale })) : null;
 
   const limit = query.limit ?? DEFAULT_LIMIT;
   const lowFirst = RISK_WHEN_LOW.has(def.id);
