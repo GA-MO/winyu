@@ -1,11 +1,16 @@
-import type { AccessContext, Alert, ContextPacket, FeedAction, FeedItem, FeedStateRecord, NextAction } from "@/lib/contracts";
+import type { AccessContext, Alert, ContextPacket, FeedAction, FeedItem, FeedStateRecord, NextAction, PersonalWatch } from "@/lib/contracts";
 import { alertRowOf } from "@/lib/cards/alert-row";
 import type { AmbientCard, VisitStop } from "@/lib/dashboard/ambient";
 import { weekKeyOfIso } from "@/lib/data/dates";
 import { findUser } from "@/lib/data/entities/users";
 import { TH } from "@/lib/i18n/th";
 import type { Dictionary } from "@/lib/semantic/dictionary";
-import { alerts, feedStates } from "@/lib/server/agent/collections";
+import { actionEvents, alerts, feedStates, memoryFacts, visits } from "@/lib/server/agent/collections";
+import { feedIntentKey, isMutableKind, learnFeed, mutesOfKind, notFollowingStatement } from "@/lib/engine/feed-learning";
+import { proposeMemory } from "@/lib/engine/memory";
+import { isTrusted } from "@/lib/engine/memory-status";
+import { conditionLabel } from "@/lib/engine/personal-watches";
+import { watchesOf } from "@/lib/server/watches";
 import { alertIntentKey, alertSubject, muteAlertForUser, openAlertsFor, openPacketsFor, relevanceOf } from "@/lib/server/alerts";
 import { ambientFor, visitsFor } from "@/lib/server/dashboard";
 import { loadDictionary } from "@/lib/server/master-data";
@@ -20,6 +25,8 @@ const LANDING_ALERT_ROWS = 2;
 const ALERT_RANK: Record<Alert["severity"], number> = { P1: 900, P2: 600, P3: 200 };
 const PACKET_RANK: Record<ContextPacket["urgency"], number> = { high: 850, medium: 550, low: 250 };
 const VISIT_RANK = { danger: 800, warning: 500, other: 300 } as const;
+const WATCH_RANK = 880;
+const MUTES_BEFORE_PROPOSING = 3;
 const PARENTHETICAL = /\s*\(.*\)$/;
 
 const STORY_DIMS = ["agent", "sku", "brand", "plant", "dc", "campaign", "province", "region"] as const;
@@ -47,6 +54,7 @@ function alertItem(access: AccessContext, alert: Alert, dictionary: Dictionary):
     packetId: null,
     canFinish: true,
     actions: actionsForAlert(access, alert, dictionary).filter((action) => action.kind === "handoff" && action.tool !== null).slice(0, 1),
+    because: null,
   };
 }
 
@@ -67,6 +75,7 @@ function packetItem(packet: ContextPacket): FeedItem {
     packetId: packet.id,
     canFinish: false,
     actions: [],
+    because: null,
   };
 }
 
@@ -86,7 +95,34 @@ function visitItems(stops: readonly VisitStop[], week: string): FeedItem[] {
     packetId: null,
     canFinish: true,
     actions: [],
+    because: null,
   }));
+}
+
+function watchItem(watch: PersonalWatch): FeedItem {
+  return {
+    key: `watch:${watch.id}:${watch.lastTriggeredAt ?? ""}`,
+    source: "watch",
+    kind: `watch:${watch.query.metric}`,
+    story: null,
+    rank: WATCH_RANK,
+    tone: "danger",
+    label: watch.title,
+    reason: TH.feed.watchHit,
+    detail: conditionLabel(watch.query, watch.condition),
+    prompt: TH.landing.askAbout(watch.title),
+    alertId: null,
+    packetId: null,
+    canFinish: true,
+    actions: [],
+    because: null,
+  };
+}
+
+/** Kinds the user asked Cop to stop following, from the memory statements they confirmed or that came up again. */
+function mutedKindsOf(userId: string, kinds: Iterable<string>): Set<string> {
+  const statements = new Set(memoryFacts().where((fact) => fact.userId === userId && fact.type === "preference" && isTrusted(fact)).map((fact) => fact.value));
+  return new Set([...kinds].filter((kind) => isMutableKind(kind) && statements.has(notFollowingStatement(kind))));
 }
 
 function hiddenKeys(userId: string, now: number): Set<string> {
@@ -112,13 +148,17 @@ export async function feedFor(access: AccessContext, now = Date.now()): Promise<
     ...openPacketsFor(access).map(packetItem),
     ...visitItems(stops, weekKeyOfIso(new Date(now).toISOString().slice(0, 10))),
     ...(await peopleFeedFor(access)),
+    ...watchesOf(access.userId).filter((watch) => watch.state === "triggered").map(watchItem),
   ];
   const hidden = hiddenKeys(access.userId, now);
   const allowed = (action: NextAction) => action.tool === null || access.toolAllow.includes(action.tool);
-  return items
-    .filter((item) => !hidden.has(item.key))
-    .map((item) => ({ ...item, actions: item.actions.filter(allowed) }))
-    .sort((left, right) => right.rank - left.rank);
+  const open = items.filter((item) => !hidden.has(item.key)).map((item) => ({ ...item, actions: item.actions.filter(allowed) }));
+  return learnFeed(open, {
+    events: actionEvents().where((event) => event.userId === access.userId),
+    seenCounts: visits().get(access.userId)?.seenCounts ?? {},
+    mutedKinds: mutedKindsOf(access.userId, open.map((item) => item.kind)),
+    now,
+  });
 }
 
 /** The first item of each story, in feed order; items with no story stand alone. */
@@ -170,6 +210,13 @@ function stateFor(action: Exclude<FeedAction, "open">, now: number): Pick<FeedSt
   return { state: action === "done" ? "done" : "muted", until: null };
 }
 
+/** After the third "not mine" on the same kind within a month, Cop puts forward that the user does not follow it; it takes effect once confirmed or said again. */
+function proposeStopFollowing(userId: string, kind: string, now: number): void {
+  if (!isMutableKind(kind)) return;
+  const mutes = mutesOfKind(actionEvents().where((event) => event.userId === userId), kind, now);
+  if (mutes >= MUTES_BEFORE_PROPOSING) proposeMemory(userId, { type: "preference", value: notFollowingStatement(kind) });
+}
+
 export type FeedActionResult = { ok: true } | { ok: false; status: 400 | 404 };
 
 /** Records what the user did with one item of their own feed; an item outside it is treated as missing, and a handoff is finished only in the inbox. */
@@ -177,11 +224,12 @@ export async function actOnFeedItem(access: AccessContext, key: string, action: 
   const item = (await feedFor(access, now)).find((candidate) => candidate.key === key);
   if (!item) return { ok: false, status: 404 };
   if (action !== "open" && !item.canFinish) return { ok: false, status: 400 };
-  recordAction(access.userId, `feed_${action}`, `feed|${item.kind}`, item.prompt, null);
+  recordAction(access.userId, `feed_${action}`, feedIntentKey(item.kind, item.key), item.prompt, null);
   const alert = item.alertId ? alerts().get(item.alertId) ?? null : null;
   if (alert && action === "open") recordAction(access.userId, "alert_open", alertIntentKey(alert), null, null, alertSubject(alert));
   if (action === "open") return { ok: true };
   feedStates().put({ id: `${access.userId}|${key}`, userId: access.userId, key, ...stateFor(action, now), at: new Date(now).toISOString() });
   if (alert && action === "mute") await muteAlertForUser(alert, access, now);
+  if (action === "mute") proposeStopFollowing(access.userId, item.kind, now);
   return { ok: true };
 }

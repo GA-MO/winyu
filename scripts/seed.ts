@@ -2,6 +2,7 @@ import { existsSync, mkdirSync, readdirSync, rmSync } from "node:fs";
 import path from "node:path";
 import { DATA_DIR, resetCollections } from "../lib/server/store/json-store";
 import { ensureDemoStory } from "../lib/server/demo-story";
+import { ensureFeedHistory } from "../lib/server/demo-feed-history";
 import { SWITCHES_COLLECTION } from "../lib/access/enforce";
 import { ROLE_OVERRIDES_COLLECTION } from "../lib/access/role-overrides";
 
@@ -24,3 +25,5 @@ if (!STORY_ONLY) {
 
 const story = await ensureDemoStory();
 console.log(story ? `seed: demo story alert ${story.alertId} · packet ${story.packetId} (${story.created.packet ? "new" : "kept"}) · lesson ${story.created.outcome ? "new" : "kept"}` : "seed: demo story skipped (no alert on the story agent)");
+
+console.log(`seed: demo feed history ${await ensureFeedHistory()} events added`);

@@ -297,6 +297,12 @@ export async function rememberTurn(userId: string, turns: { prompt: string }[], 
   return saved;
 }
 
+/** Puts forward something Cop inferred about the user as still learning: it stays out of the prompt until the user confirms it in /memory or it comes up again. */
+export function proposeMemory(userId: string, fact: Extracted): MemoryFact[] {
+  pruneMemory(userId);
+  return merge(userId, [fact], "said", null);
+}
+
 /** Remembers something the user did rather than said — a line they set, where they sent a problem, what they said is not theirs. */
 export function rememberAction(userId: string, fact: Extracted): MemoryFact[] {
   pruneMemory(userId);

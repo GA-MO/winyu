@@ -1,13 +1,13 @@
 "use client";
 
-import { BriefcaseBusiness, Check, Clock, EyeOff, ListChecks, MapPin, MoreHorizontal, Send, TriangleAlert, UserRound, type LucideIcon } from "lucide-react";
+import { BriefcaseBusiness, Check, Clock, Eye, EyeOff, Sparkles, ListChecks, MapPin, MoreHorizontal, Send, TriangleAlert, UserRound, type LucideIcon } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "vexa/ui/dropdown-menu";
 import { cn } from "vexa/lib/utils";
 import type { FeedAction, FeedItem, FeedSource, FeedTone, NextAction } from "@/lib/contracts";
 import { TH } from "@/lib/i18n/th";
 
 const FEED_ENDPOINT = "/api/feed";
-const SOURCE_ICONS: Record<FeedSource, LucideIcon> = { alert: TriangleAlert, packet: Send, visit: MapPin, person: UserRound, opening: BriefcaseBusiness };
+const SOURCE_ICONS: Record<FeedSource, LucideIcon> = { alert: TriangleAlert, packet: Send, visit: MapPin, person: UserRound, opening: BriefcaseBusiness, watch: Eye };
 const TONE_PILL: Record<FeedTone, string> = {
   danger: "bg-danger/10 text-danger",
   warning: "bg-warning/10 text-warning",
@@ -62,6 +62,12 @@ function FeedRow({ row, handlers }: { row: FeedItem; handlers: FeedHandlers }) {
         <span className="flex min-w-0 flex-1 flex-col">
           <span className="truncate text-sm font-semibold tracking-tight" title={row.label}>{row.label}</span>
           {row.detail ? <span className="truncate text-xs text-muted-foreground">{row.detail}</span> : null}
+          {row.because ? (
+            <span className="flex min-w-0 items-center gap-1 text-[11px] text-primary">
+              <Sparkles className="size-3 shrink-0" aria-hidden />
+              <span className="truncate">{row.because}</span>
+            </span>
+          ) : null}
         </span>
         <span className={cn("max-w-[40%] shrink-0 truncate rounded-full px-2 py-0.5 text-[11px] font-medium tabular-nums", TONE_PILL[row.tone])}>{row.reason}</span>
       </button>

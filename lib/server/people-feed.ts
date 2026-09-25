@@ -98,6 +98,7 @@ async function personItem(access: AccessContext, employee: Employee, issues: Iss
     packetId: null,
     canFinish: true,
     actions: to ? [handoffOf(employee, first, signals, to, round)] : [],
+    because: null,
   };
 }
 
@@ -128,6 +129,7 @@ async function ownItems(self: Employee): Promise<FeedItem[]> {
       actions: bookable
         ? [{ id: `feed-enroll-${bookable.course.id}`, kind: "enroll", label: F.enroll, reason: F.enrollReason, tool: "enroll_course", input: { courseId: bookable.course.id }, prompt: null }]
         : [],
+      because: null,
     });
   }
   return items;
@@ -164,6 +166,7 @@ function openingItems(access: AccessContext, directory: Directory): FeedItem[] {
       packetId: null,
       canFinish: true,
       actions: [],
+      because: null,
     }];
   });
 }

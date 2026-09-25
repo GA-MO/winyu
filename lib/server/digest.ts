@@ -6,7 +6,6 @@ import { digests, type DigestSent } from "./agent/collections";
 import { factsFor, narrateDigest, type DigestLine, type Narrator } from "./digest-narrator";
 import { feedFor, onePerStory } from "./feed";
 import { ports } from "./ports";
-import { watchesOf } from "./watches";
 
 const MAX_LINES = 5;
 const SYSTEM_SENDER = "cop";
@@ -37,7 +36,7 @@ function ordered(lines: readonly DigestLine[], order: readonly string[]): Digest
 }
 
 /**
- * What one user should hear this morning: the matters on their feed that are new or turned red since the last digest, and the watches over the line;
+ * What one user should hear this morning: the matters on their feed (watches over the line included) that are new or turned red since the last digest;
  * a narrator may write the opening sentence and the reading order, never the lines.
  */
 export async function digestFor(access: AccessContext, previous: Previous, now = Date.now(), narrate: Narrator | null = null, who = ""): Promise<Digest> {
@@ -47,12 +46,10 @@ export async function digestFor(access: AccessContext, previous: Previous, now =
   const narration = narrate && shown.length > 0 ? await narrate(who, shown, factsFor(access.userId)) : null;
   const lines = ordered(shown, narration?.order ?? []).map((line) => line.text);
   if (fresh.length > MAX_LINES) lines.push(TH.digest.moreItems(fresh.length - MAX_LINES));
-  const triggered = watchesOf(access.userId).filter((watch) => watch.state === "triggered");
-  for (const watch of triggered) lines.push(TH.digest.watch(watch.title));
   return {
     lead: narration?.lead ?? null,
     lines,
-    count: fresh.length + triggered.length,
+    count: fresh.length,
     keys: items.map((item) => item.key),
     tones: Object.fromEntries(items.map((item) => [item.key, item.tone])),
   };

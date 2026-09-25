@@ -2,7 +2,7 @@ import type { NextAction } from "./actions";
 
 export const FEED_ACTIONS = ["open", "done", "snooze", "mute"] as const;
 export type FeedAction = (typeof FEED_ACTIONS)[number];
-export type FeedSource = "alert" | "packet" | "visit" | "person" | "opening";
+export type FeedSource = "alert" | "packet" | "visit" | "person" | "opening" | "watch";
 export type FeedTone = "danger" | "warning" | "info" | "brand" | "neutral";
 
 /** One thing a user should look at or act on today, from any source; `key` stays the same while the matter does, so a state set on it holds until the matter changes; items with the same `story` tell one story and a surface shows the first. */
@@ -21,6 +21,7 @@ export type FeedItem = {
   packetId: string | null;
   canFinish: boolean;
   actions: NextAction[];
+  because: string | null;
 };
 
 /** What one user did with one feed item: finished it, put it off until a date, or said it is not theirs. */

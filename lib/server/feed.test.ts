@@ -1,12 +1,14 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import type { AccessContext, FeedItem } from "@/lib/contracts";
+import type { AccessContext, FeedItem, PersonalWatch } from "@/lib/contracts";
 import { liveAccessFor } from "@/lib/access/enforce";
 import { EMPLOYEES } from "@/lib/data/entities/people";
 import { USERS, findUser } from "@/lib/data/entities/users";
-import { feedStates, packets, staffRequests } from "@/lib/server/agent/collections";
+import { actionEvents, feedStates, memoryFacts, packets, personalWatches, staffRequests } from "@/lib/server/agent/collections";
+import { confirmMemory } from "@/lib/engine/memory";
 import { enrollCourse } from "./courses";
 import { actOnFeedItem, feedFor, landingFeedFor } from "./feed";
 import { quickActionsFor } from "./quick-actions";
+import { ensureFeedHistory } from "./demo-feed-history";
 
 const DAY_MS = 86_400_000;
 const NOW = Date.parse("2026-09-25T09:00:00.000Z");
@@ -139,5 +141,69 @@ describe("buttons follow the tools a user may run", () => {
     const closed = { ...hr, toolAllow: hr.toolAllow.filter((name) => name !== "create_handoff") };
     const items = await feedFor(closed, NOW);
     expect(items.some((item) => item.actions.some((action) => action.tool === "create_handoff"))).toBe(false);
+  });
+});
+
+describe("what Cop learns from the feed changes the feed", () => {
+  test("three 'not mine' on licences proposes stopping them; once confirmed they are gone", async () => {
+    const hr = accessOf("u_may");
+    const factsBefore = new Set(memoryFacts().all().map((fact) => fact.id));
+    const eventsBefore = new Set(actionEvents().all().map((entry) => entry.id));
+    try {
+      const licences = (await feedFor(hr, NOW)).filter((item) => item.kind === "person:cert").slice(0, 3);
+      expect(licences).toHaveLength(3);
+      for (const licence of licences) await actOnFeedItem(hr, licence.key, "mute", NOW);
+      const proposal = memoryFacts().all().find((fact) => !factsBefore.has(fact.id) && fact.value === "ไม่ติดตามใบอนุญาตใกล้หมด");
+      expect(proposal).toBeDefined();
+      expect((await feedFor(hr, NOW)).some((item) => item.kind === "person:cert")).toBe(true);
+      confirmMemory("u_may", proposal?.id ?? "");
+      expect((await feedFor(hr, NOW)).some((item) => item.kind === "person:cert")).toBe(false);
+    } finally {
+      for (const fact of memoryFacts().all()) if (!factsBefore.has(fact.id)) memoryFacts().remove(fact.id);
+      for (const entry of actionEvents().all()) if (!eventsBefore.has(entry.id)) actionEvents().remove(entry.id);
+    }
+  });
+
+  test("a watch the user set that crossed its line is on their feed", async () => {
+    const watch: PersonalWatch = {
+      id: "w_test_attrition",
+      userId: "u_may",
+      title: "อัตราการลาออกฝ่ายขาย",
+      query: { metric: "attrition_rate", dims: [], filters: { department: ["dept_sales"] }, range: { from: "2026-08-01", to: "2026-08-31" }, grain: "month", compare: "none", limit: null },
+      windowDays: 30,
+      condition: { kind: "above", value: 1.2 },
+      createdAt: "2026-09-20T00:00:00.000Z",
+      state: "triggered",
+      lastCheckedAt: "2026-09-25T00:00:00.000Z",
+      lastTriggeredAt: "2026-09-25T00:00:00.000Z",
+    };
+    personalWatches().put(watch);
+    try {
+      const found = (await feedFor(accessOf("u_may"), NOW)).find((item) => item.source === "watch");
+      expect(found).toMatchObject({ label: "อัตราการลาออกฝ่ายขาย", tone: "danger", kind: "watch:attrition_rate" });
+    } finally {
+      personalWatches().remove(watch.id);
+    }
+  });
+});
+
+describe("the demo's reading habits", () => {
+  test("are added once, and HR's licences then lead with the reason they rose", async () => {
+    const seeded = actionEvents().all().filter((entry) => entry.id.startsWith("ev_demo_feed"));
+    for (const entry of seeded) actionEvents().remove(entry.id);
+    const eventsBefore = new Set(actionEvents().all().map((entry) => entry.id));
+    try {
+      const first = await ensureFeedHistory(NOW);
+      expect(first).toBeGreaterThan(0);
+      expect(await ensureFeedHistory(NOW)).toBe(0);
+      const [top] = await feedFor(accessOf("u_may"), NOW);
+      expect(top.kind).toBe("person:cert");
+      expect(top.because).toContain("ใบอนุญาตใกล้หมด");
+      const rsm = await feedFor(accessOf("u_anucha"), NOW);
+      expect(rsm.some((item) => item.source === "alert" && item.because !== null)).toBe(true);
+    } finally {
+      for (const entry of actionEvents().all()) if (!eventsBefore.has(entry.id)) actionEvents().remove(entry.id);
+      for (const entry of seeded) actionEvents().put(entry);
+    }
   });
 });
