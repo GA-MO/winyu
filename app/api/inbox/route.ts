@@ -6,6 +6,7 @@ import { packetsFor, resolveEvidence, sentPackets, type EvidenceView } from "@/l
 import { canJudge, openAlertsFor } from "@/lib/server/alerts";
 import { handoffEnabled } from "@/lib/access/enforce";
 import { lessonFor } from "@/lib/server/outcomes";
+import { feedFor } from "@/lib/server/feed";
 import type { Dictionary } from "@/lib/semantic/dictionary";
 import { loadDictionary } from "@/lib/server/master-data";
 import { formatDelta, formatMetricValue, metricLabel, toneOf } from "@/lib/dashboard/metric-display";
@@ -115,6 +116,7 @@ export async function GET() {
     });
 
   const unread = notifications().where((item) => item.userId === access.userId && !item.read).length;
-  const payload: InboxPayload = { handoffs, alerts: alertItems, replies, unread, handoffOpen };
+  const todo = (await feedFor(access)).slice(0, MAX_ITEMS);
+  const payload: InboxPayload = { todo, handoffs, alerts: alertItems, replies, unread, handoffOpen };
   return Response.json(payload);
 }

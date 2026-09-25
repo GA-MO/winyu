@@ -1,4 +1,4 @@
-import type { AccessContext, Alert, ContextPacket, FeedAction, FeedItem, FeedStateRecord } from "@/lib/contracts";
+import type { AccessContext, Alert, ContextPacket, FeedAction, FeedItem, FeedStateRecord, NextAction } from "@/lib/contracts";
 import { alertRowOf } from "@/lib/cards/alert-row";
 import type { AmbientCard, VisitStop } from "@/lib/dashboard/ambient";
 import { weekKeyOfIso } from "@/lib/data/dates";
@@ -9,7 +9,8 @@ import { alerts, feedStates } from "@/lib/server/agent/collections";
 import { alertIntentKey, alertSubject, muteAlertForUser, openAlertsFor, openPacketsFor, relevanceOf } from "@/lib/server/alerts";
 import { ambientFor, visitsFor } from "@/lib/server/dashboard";
 import { loadDictionary } from "@/lib/server/master-data";
-import { peopleFeedFor } from "@/lib/server/people";
+import { actionsForAlert } from "@/lib/server/next-actions";
+import { peopleFeedFor } from "@/lib/server/people-feed";
 import { recordAction } from "@/lib/server/threads";
 
 const DAY_MS = 86_400_000;
@@ -28,7 +29,7 @@ function storySubject(alert: Alert): string {
   return dim ? `${dim}:${alert.dims[dim]}` : "all";
 }
 
-function alertItem(alert: Alert, dictionary: Dictionary): FeedItem {
+function alertItem(access: AccessContext, alert: Alert, dictionary: Dictionary): FeedItem {
   const row = alertRowOf(alert, dictionary);
   const gap = row.gapLabel ? `${alert.direction === "down" ? "−" : "+"}${row.gapLabel}` : null;
   return {
@@ -45,6 +46,7 @@ function alertItem(alert: Alert, dictionary: Dictionary): FeedItem {
     alertId: alert.id,
     packetId: null,
     canFinish: true,
+    actions: actionsForAlert(access, alert, dictionary).filter((action) => action.kind === "handoff" && action.tool !== null).slice(0, 1),
   };
 }
 
@@ -64,6 +66,7 @@ function packetItem(packet: ContextPacket): FeedItem {
     alertId: null,
     packetId: packet.id,
     canFinish: false,
+    actions: [],
   };
 }
 
@@ -82,6 +85,7 @@ function visitItems(stops: readonly VisitStop[], week: string): FeedItem[] {
     alertId: null,
     packetId: null,
     canFinish: true,
+    actions: [],
   }));
 }
 
@@ -94,7 +98,7 @@ function hiddenKeys(userId: string, now: number): Set<string> {
   );
 }
 
-/** Everything this user should look at or act on, from every source in their scope, most urgent first; what they finished, put off or disowned is left out. */
+/** Everything this user should look at or act on, from every source in their scope, most urgent first; what they finished, put off or disowned is left out, and so is any button whose tool is closed to them. */
 export async function feedFor(access: AccessContext, now = Date.now()): Promise<FeedItem[]> {
   const dictionary = await loadDictionary();
   const stops = await visitsFor(access);
@@ -102,7 +106,7 @@ export async function feedFor(access: AccessContext, now = Date.now()): Promise<
   const alertItems = openAlertsFor(access)
     .filter((alert) => relevanceOf(alert, access) !== "other")
     .filter((alert) => !alert.dims.agent || !visited.has(dictionary.displayLabel("agent", alert.dims.agent)))
-    .map((alert) => alertItem(alert, dictionary));
+    .map((alert) => alertItem(access, alert, dictionary));
   const items = [
     ...alertItems,
     ...openPacketsFor(access).map(packetItem),
@@ -110,19 +114,33 @@ export async function feedFor(access: AccessContext, now = Date.now()): Promise<
     ...(await peopleFeedFor(access)),
   ];
   const hidden = hiddenKeys(access.userId, now);
-  return items.filter((item) => !hidden.has(item.key)).sort((left, right) => right.rank - left.rank);
+  const allowed = (action: NextAction) => action.tool === null || access.toolAllow.includes(action.tool);
+  return items
+    .filter((item) => !hidden.has(item.key))
+    .map((item) => ({ ...item, actions: item.actions.filter(allowed) }))
+    .sort((left, right) => right.rank - left.rank);
+}
+
+/** The first item of each story, in feed order; items with no story stand alone. */
+export function onePerStory(items: readonly FeedItem[], told: Iterable<string> = []): FeedItem[] {
+  const seen = new Set(told);
+  return items.filter((item) => {
+    if (!item.story) return true;
+    if (seen.has(item.story)) return false;
+    seen.add(item.story);
+    return true;
+  });
 }
 
 /** The rows under the cards: one row per story, no low-severity alerts, and at most two more alerts so the matters that are not in the inbox still get room. */
 function landingRows(items: readonly FeedItem[], carded: readonly string[]): FeedItem[] {
-  const told = new Set(items.filter((item) => carded.includes(item.key)).flatMap((item) => item.story ?? []));
+  const told = items.filter((item) => carded.includes(item.key)).flatMap((item) => item.story ?? []);
+  const candidates = onePerStory(items.filter((item) => !carded.includes(item.key) && !(item.source === "alert" && item.tone === "info")), told);
   const rows: FeedItem[] = [];
   let alertRows = 0;
-  for (const item of items) {
+  for (const item of candidates) {
     if (rows.length >= LANDING_ROWS) break;
-    if (carded.includes(item.key) || (item.story && told.has(item.story))) continue;
-    if (item.source === "alert" && (item.tone === "info" || alertRows >= LANDING_ALERT_ROWS)) continue;
-    if (item.story) told.add(item.story);
+    if (item.source === "alert" && alertRows >= LANDING_ALERT_ROWS) continue;
     if (item.source === "alert") alertRows += 1;
     rows.push(item);
   }

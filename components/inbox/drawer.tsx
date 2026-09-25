@@ -1,9 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRight, BellOff, X } from "lucide-react";
 import { cn } from "vexa/lib/utils";
+import { formatActionMessage } from "vexa/react";
+import type { FeedItem, NextAction } from "@/lib/contracts";
+import { FeedList, postFeedAction, type FeedHandlers, type FeedSettle } from "@/components/feed/feed-list";
 import { TH } from "@/lib/i18n/th";
 import { dueTimeTh, relativeTimeTh } from "@/lib/i18n/format";
 import type { AlertItem, HandoffItem, InboxPayload, ReplyItem } from "./types";
@@ -11,8 +14,8 @@ import type { AlertItem, HandoffItem, InboxPayload, ReplyItem } from "./types";
 const INBOX_ENDPOINT = "/api/inbox";
 const ALERTS_ENDPOINT = "/api/alerts";
 const NOTIFICATIONS_ENDPOINT = "/api/notifications";
-const EMPTY: InboxPayload = { handoffs: [], alerts: [], replies: [], unread: 0, handoffOpen: true };
-const TABS = ["handoffs", "alerts", "replies"] as const;
+const EMPTY: InboxPayload = { todo: [], handoffs: [], alerts: [], replies: [], unread: 0, handoffOpen: true };
+const TABS = ["todo", "handoffs", "alerts", "replies"] as const;
 const PANEL = "fixed right-0 top-0 z-50 flex h-dvh w-full max-w-[26rem] flex-col border-l border-border bg-card shadow-panel animate-panel-in";
 const ACTION = "rounded-full border border-border bg-card px-3 py-1.5 text-xs text-muted-foreground transition hover:border-foreground/25 hover:text-foreground";
 const ITEM = "flex flex-col gap-2 rounded-2xl border border-border bg-card p-3 shadow-card";
@@ -26,7 +29,7 @@ type SeverityFilter = AlertItem["severity"] | "all";
 
 export type InboxFocus = { tab: Tab; severity: SeverityFilter };
 
-const DEFAULT_FOCUS: InboxFocus = { tab: "handoffs", severity: "all" };
+const DEFAULT_FOCUS: InboxFocus = { tab: "todo", severity: "all" };
 
 function isTab(value: string | null): value is Tab {
   return (TABS as readonly string[]).includes(value ?? "");
@@ -111,9 +114,26 @@ export function InboxDrawer({ open, onClose, focus = DEFAULT_FOCUS }: { open: bo
     [load],
   );
 
+  const settle = useCallback((key: string, action: FeedSettle) => {
+    postFeedAction(key, action);
+    setData((current) => ({ ...current, todo: current.todo.filter((item) => item.key !== key) }));
+  }, []);
+
+  const feedHandlers = useMemo<FeedHandlers>(
+    () => ({
+      onOpen: (row: FeedItem) => {
+        postFeedAction(row.key, "open");
+        router.push(row.packetId ? `/c/new?preload=${row.packetId}` : `/c/new?prompt=${encodeURIComponent(row.prompt)}`);
+      },
+      onSettle: settle,
+      onRun: (action: NextAction) => action.tool && router.push(`/c/new?prompt=${encodeURIComponent(formatActionMessage(action.tool, action.input ?? {}))}`),
+    }),
+    [router, settle],
+  );
+
   if (!open) return null;
 
-  const counts: Record<Tab, number> = { handoffs: data.handoffs.length, alerts: data.alerts.length, replies: data.replies.length };
+  const counts: Record<Tab, number> = { todo: data.todo.length, handoffs: data.handoffs.length, alerts: data.alerts.length, replies: data.replies.length };
 
   return (
     <>
@@ -142,6 +162,15 @@ export function InboxDrawer({ open, onClose, focus = DEFAULT_FOCUS }: { open: bo
 
         <div className="vexa-scrollbar flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-3">
           {!loaded ? <p className="px-2 py-8 text-sm text-muted-foreground">{TH.common.loading}</p> : null}
+          {loaded && tab === "todo" ? (
+            data.todo.length > 0 ? (
+              <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-card">
+                <FeedList rows={data.todo} handlers={feedHandlers} framed={false} />
+              </div>
+            ) : (
+              <EmptyLine text={TH.inbox.todoEmpty} />
+            )
+          ) : null}
           {loaded && tab === "handoffs" ? (
             <HandoffList
               items={data.handoffs}

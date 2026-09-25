@@ -1,3 +1,5 @@
+import type { FeedItem } from "@/lib/contracts";
+
 export type EvidenceLine = {
   label: string;
   value: string;
@@ -43,4 +45,4 @@ export type AlertItem = {
 
 export type ReplyItem = { id: string; title: string; toName: string; text: string; at: string; status: string };
 
-export type InboxPayload = { handoffs: HandoffItem[]; alerts: AlertItem[]; replies: ReplyItem[]; unread: number; handoffOpen: boolean };
+export type InboxPayload = { todo: FeedItem[]; handoffs: HandoffItem[]; alerts: AlertItem[]; replies: ReplyItem[]; unread: number; handoffOpen: boolean };

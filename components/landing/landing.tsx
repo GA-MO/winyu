@@ -1,14 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { BriefcaseBusiness, Check, Clock, EyeOff, LayoutDashboard, ListChecks, MapPin, MoreHorizontal, Send, ShieldCheck, TriangleAlert, UserRound, type LucideIcon } from "lucide-react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "vexa/ui/dropdown-menu";
+import { LayoutDashboard, Send, ShieldCheck } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "vexa/ui/tooltip";
 import { cn } from "vexa/lib/utils";
 import { formatActionMessage } from "vexa/react";
-import type { FeedAction, FeedItem, FeedSource, NextAction, QuickAction } from "@/lib/contracts";
+import type { FeedItem, NextAction, QuickAction } from "@/lib/contracts";
+import { FeedList, FeedMenu, postFeedAction, type FeedHandlers, type FeedSettle } from "@/components/feed/feed-list";
 import type { AmbientCard, AmbientTone, LandingKpi, StatusLink } from "@/lib/dashboard/ambient";
 import type { Tone } from "@/lib/dashboard/metric-display";
 import { TH } from "@/lib/i18n/th";
@@ -21,7 +21,6 @@ import { PILL } from "@/components/ui/pill";
 const THREADS_ENDPOINT = "/api/threads";
 const QUICK_ACTIONS_ENDPOINT = "/api/quick-actions";
 const ALERTS_ENDPOINT = "/api/alerts";
-const FEED_ENDPOINT = "/api/feed";
 const DASHBOARD_PATH = "/dashboard";
 const MAX_CHIPS = 4;
 const HERO = "flex w-full max-w-3xl flex-col gap-6";
@@ -31,14 +30,6 @@ const HANDOFF = "inline-flex items-center gap-1.5 rounded-full bg-ink px-3 py-1.
 const AMBIENT_COLUMNS: Record<number, string> = { 1: "sm:grid-cols-1", 2: "sm:grid-cols-2" };
 const KPI_COLUMNS: Record<number, string> = { 1: "sm:grid-cols-1", 2: "sm:grid-cols-2", 3: "sm:grid-cols-3", 4: "sm:grid-cols-4" };
 const KPI_STRIP = "grid w-full grid-cols-2 [&>*:last-child:nth-child(odd)]:col-span-2 sm:[&>*:last-child:nth-child(odd)]:col-span-1 overflow-hidden rounded-2xl border border-border bg-border gap-px shadow-card transition duration-200 hover:shadow-lift focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
-const VISIT_TONE: Record<AmbientTone, string> = {
-  danger: "bg-danger/10 text-danger",
-  warning: "bg-warning/10 text-warning",
-  info: "bg-info/10 text-info",
-  brand: "bg-primary/10 text-primary",
-  success: "bg-success/10 text-success",
-  neutral: "bg-muted text-muted-foreground",
-};
 const DELTA_TONE: Record<Tone, string> = {
   good: "bg-success/10 text-success",
   bad: "bg-danger/10 text-danger",
@@ -83,7 +74,7 @@ function StatusLine({ links, taskCount }: { links: StatusLink[]; taskCount: numb
   );
 }
 
-function AmbientCardView({ card, onOpen, onHandoff, onAct }: { card: AmbientCard; onOpen: () => void; onHandoff: (action: NextAction) => void; onAct: FeedAct }) {
+function AmbientCardView({ card, onOpen, onHandoff, onSettle }: { card: AmbientCard; onOpen: () => void; onHandoff: (action: NextAction) => void; onSettle: FeedHandlers["onSettle"] }) {
   const handoff = card.handoff;
   return (
     <div className={AMBIENT}>
@@ -92,7 +83,7 @@ function AmbientCardView({ card, onOpen, onHandoff, onAct }: { card: AmbientCard
           <span aria-hidden className={cn("size-1.5 shrink-0 rounded-full", TONE_DOT[card.tone])} />
           <span className="truncate">{card.eyebrow}</span>
         </span>
-        {card.alertId ? <FeedMenu feedKey={`alert:${card.alertId}`} canFinish onAct={onAct} /> : null}
+        {card.alertId ? <FeedMenu feedKey={`alert:${card.alertId}`} canFinish onSettle={onSettle} /> : null}
       </div>
       <button type="button" onClick={onOpen} className="flex min-w-0 flex-col gap-1.5 text-left focus-visible:outline-none">
         {card.headline ? (
@@ -134,65 +125,6 @@ function KpiStrip({ kpis }: { kpis: LandingKpi[] }) {
         </span>
       ))}
     </Link>
-  );
-}
-
-const SOURCE_ICONS: Record<FeedSource, LucideIcon> = { alert: TriangleAlert, packet: Send, visit: MapPin, person: UserRound, opening: BriefcaseBusiness };
-const ROW_ACTION = "flex size-7 shrink-0 items-center justify-center rounded-full text-muted-foreground transition hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
-
-type FeedAct = (key: string, action: Exclude<FeedAction, "open">) => void;
-
-function FeedMenu({ feedKey, canFinish, onAct }: { feedKey: string; canFinish: boolean; onAct: FeedAct }) {
-  if (!canFinish) return null;
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger aria-label={TH.landing.feedMore} className={ROW_ACTION}>
-        <MoreHorizontal className="size-4" aria-hidden />
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-auto min-w-40">
-        <DropdownMenuItem onClick={() => onAct(feedKey, "done")}>
-          <Check aria-hidden />
-          {TH.landing.feedDone}
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => onAct(feedKey, "snooze")}>
-          <Clock aria-hidden />
-          {TH.landing.feedSnooze}
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => onAct(feedKey, "mute")}>
-          <EyeOff aria-hidden />
-          {TH.landing.feedMute}
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-}
-
-function FeedList({ rows, onOpen, onAct }: { rows: FeedItem[]; onOpen: (row: FeedItem) => void; onAct: FeedAct }) {
-  return (
-    <section aria-label={TH.landing.tasksTitle} className="overflow-hidden rounded-2xl border border-border bg-card shadow-card">
-      <h2 className="flex items-center gap-1.5 border-b border-border px-4 py-2.5 text-[11px] font-medium text-muted-foreground">
-        <ListChecks className="size-3.5 text-primary" aria-hidden />
-        {TH.landing.tasksTitle}
-      </h2>
-      <ol className="divide-y divide-border">
-        {rows.map((row) => {
-          const Icon = SOURCE_ICONS[row.source];
-          return (
-            <li key={row.key} className="flex items-center gap-1 pr-2 transition hover:bg-muted focus-within:bg-muted">
-              <button type="button" onClick={() => onOpen(row)} className="flex min-w-0 flex-1 items-center gap-3 py-2.5 pl-4 text-left focus-visible:outline-none">
-                <Icon className="size-4 shrink-0 text-muted-foreground" aria-hidden />
-                <span className="flex min-w-0 flex-1 flex-col">
-                  <span className="truncate text-sm font-semibold tracking-tight" title={row.label}>{row.label}</span>
-                  {row.detail ? <span className="truncate text-xs text-muted-foreground">{row.detail}</span> : null}
-                </span>
-                <span className={cn("max-w-[45%] shrink-0 truncate rounded-full px-2 py-0.5 text-[11px] font-medium tabular-nums", VISIT_TONE[row.tone])}>{row.reason}</span>
-              </button>
-              <FeedMenu feedKey={row.key} canFinish={row.canFinish} onAct={onAct} />
-            </li>
-          );
-        })}
-      </ol>
-    </section>
   );
 }
 
@@ -283,17 +215,21 @@ export function Landing({
   const visibleRows = rows.filter((row) => !hidden.has(row.key));
   const visibleCards = ambient.filter((card) => !card.alertId || !hidden.has(`alert:${card.alertId}`));
 
-  const act = useCallback((key: string, action: Exclude<FeedAction, "open">) => {
+  const settle = useCallback((key: string, action: FeedSettle) => {
     setHidden((current) => new Set([...current, key]));
-    void fetch(FEED_ENDPOINT, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ key, action }) }).catch(() => undefined);
+    postFeedAction(key, action);
   }, []);
 
-  const openRow = useCallback(
-    (row: FeedItem) => {
-      void fetch(FEED_ENDPOINT, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ key: row.key, action: "open" }) }).catch(() => undefined);
-      void start(row.prompt, undefined, undefined, row.packetId ?? undefined);
-    },
-    [start],
+  const feedHandlers = useMemo<FeedHandlers>(
+    () => ({
+      onOpen: (row: FeedItem) => {
+        postFeedAction(row.key, "open");
+        void start(row.prompt, undefined, undefined, row.packetId ?? undefined);
+      },
+      onSettle: settle,
+      onRun: (action: NextAction) => action.tool && void start(formatActionMessage(action.tool, action.input ?? {}), undefined, action.label),
+    }),
+    [settle, start],
   );
 
   useEffect(() => {
@@ -343,14 +279,14 @@ export function Landing({
 
         <div className="flex w-full max-w-3xl flex-col gap-3 animate-hero-rise [animation-delay:160ms]">
           {kpis.length > 0 ? <KpiStrip kpis={kpis} /> : null}
-          {visibleRows.length > 0 ? <FeedList rows={visibleRows} onOpen={openRow} onAct={act} /> : null}
+          {visibleRows.length > 0 ? <FeedList rows={visibleRows} handlers={feedHandlers} /> : null}
           {visibleCards.length > 0 ? (
             <div className={cn("grid w-full gap-3", AMBIENT_COLUMNS[visibleCards.length])}>
               {visibleCards.map((card) => (
                 <AmbientCardView
                   key={card.id}
                   card={card}
-                  onAct={act}
+                  onSettle={settle}
                   onOpen={() => openAmbient(card)}
                   onHandoff={(action) => action.tool && void start(formatActionMessage(action.tool, action.input ?? {}), undefined, action.label)}
                 />

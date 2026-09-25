@@ -2,7 +2,7 @@ import type { WidgetKind } from "./dashboard";
 import type { Region } from "./identity";
 import type { MetricQuery } from "./semantic";
 
-export type NextActionKind = "handoff" | "request_access" | "pin" | "verify" | "drill";
+export type NextActionKind = "handoff" | "request_access" | "pin" | "verify" | "drill" | "enroll";
 
 /** One thing the user can do next about a result: a tool call the card offers as a button, or a follow-up question. */
 export type NextAction = {
@@ -10,7 +10,7 @@ export type NextAction = {
   kind: NextActionKind;
   label: string;
   reason: string;
-  tool: "create_handoff" | "send_email" | "pin_widget" | null;
+  tool: "create_handoff" | "send_email" | "pin_widget" | "enroll_course" | null;
   input: Record<string, unknown> | null;
   prompt: string | null;
 };

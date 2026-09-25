@@ -1,3 +1,5 @@
+import type { NextAction } from "./actions";
+
 export const FEED_ACTIONS = ["open", "done", "snooze", "mute"] as const;
 export type FeedAction = (typeof FEED_ACTIONS)[number];
 export type FeedSource = "alert" | "packet" | "visit" | "person" | "opening";
@@ -18,6 +20,7 @@ export type FeedItem = {
   alertId: string | null;
   packetId: string | null;
   canFinish: boolean;
+  actions: NextAction[];
 };
 
 /** What one user did with one feed item: finished it, put it off until a date, or said it is not theirs. */

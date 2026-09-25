@@ -3,7 +3,8 @@ import type { AccessContext, FeedItem } from "@/lib/contracts";
 import { liveAccessFor } from "@/lib/access/enforce";
 import { EMPLOYEES } from "@/lib/data/entities/people";
 import { USERS, findUser } from "@/lib/data/entities/users";
-import { feedStates } from "@/lib/server/agent/collections";
+import { feedStates, packets, staffRequests } from "@/lib/server/agent/collections";
+import { enrollCourse } from "./courses";
 import { actOnFeedItem, feedFor, landingFeedFor } from "./feed";
 import { quickActionsFor } from "./quick-actions";
 
@@ -30,7 +31,7 @@ describe("every role gets its own feed", () => {
     for (const user of USERS) {
       const items = await feedFor(accessOf(user.id), NOW);
       expect(items.map((item) => item.rank)).toEqual([...items.map((item) => item.rank)].sort((left, right) => right - left));
-      for (const item of items.filter((candidate) => candidate.source === "person")) {
+      for (const item of items.filter((candidate) => candidate.source === "person" && candidate.kind !== "own:cert")) {
         const employee = EMPLOYEES.find((candidate) => candidate.id === personIdOf(item));
         expect(employee).toBeDefined();
         expect(employee?.id).not.toBe(user.id);
@@ -55,10 +56,10 @@ describe("every role gets its own feed", () => {
     expect(items.some((item) => item.source === "alert")).toBe(true);
   });
 
-  test("a sales rep keeps the agents to visit and gets nobody else's people", async () => {
+  test("a sales rep keeps the agents to visit and gets nobody else's people, only their own licence", async () => {
     const feed = await landingFeedFor(accessOf("u_krit"), NOW);
     expect(feed.rows.some((row) => row.source === "visit")).toBe(true);
-    expect(feed.rows.some((row) => row.source === "person" || row.source === "opening")).toBe(false);
+    expect(feed.rows.some((row) => (row.source === "person" && row.kind !== "own:cert") || row.source === "opening")).toBe(false);
   });
 });
 
@@ -96,5 +97,47 @@ describe("what a user does with an item stays theirs", () => {
     await actOnFeedItem(access, first.key, "open", NOW);
     expect(quickActionsFor(access).map((action) => action.id)).toEqual(before);
     expect((await feedFor(access, NOW)).some((item) => item.key === first.key)).toBe(true);
+  });
+});
+
+describe("each matter offers the one thing to do about it", () => {
+  test("a licence goes to the holder's manager when the manager uses Cop, else to the holder, else nowhere", async () => {
+    const hr = await feedFor(accessOf("u_may"), NOW);
+    const pong = hr.find((item) => item.label === "คุณป้อง แสนสุข");
+    expect(pong?.actions[0]).toMatchObject({ kind: "handoff", tool: "create_handoff", label: "ส่งให้คุณอนุชา พรหมศรี" });
+    expect(pong?.actions[0]?.input).toMatchObject({ toUserId: "u_anucha", urgency: "medium" });
+    expect(hr.find((item) => item.label === "คุณแดง ศักดิ์ดี")?.actions).toEqual([]);
+    const rsm = await feedFor(accessOf("u_anucha"), NOW);
+    expect(rsm.find((item) => item.label === "คุณกฤต จันทร์เสน")?.actions[0]).toMatchObject({ label: "แจ้งคุณกฤต จันทร์เสน", input: { toUserId: "u_krit" } });
+  });
+
+  test("a user's own licence is on their feed with the renewal round to book", async () => {
+    const own = (await feedFor(accessOf("u_krit"), NOW)).find((item) => item.kind === "own:cert");
+    expect(own).toMatchObject({ label: "ใบอนุญาตขายสุราของคุณ", reason: "เหลือ 23 วัน" });
+    expect(own?.actions[0]).toMatchObject({ kind: "enroll", tool: "enroll_course", input: { courseId: "crs_sales_licence" } });
+  });
+
+  test("once the holder books a renewal round, the licence leaves every feed", async () => {
+    const before = new Set(staffRequests().all().map((request) => request.id));
+    const packetsBefore = new Set(packets().all().map((packet) => packet.id));
+    const booked = await enrollCourse(accessOf("u_krit"), "crs_sales_licence", null);
+    expect(booked.ok).toBe(true);
+    try {
+      expect((await feedFor(accessOf("u_krit"), NOW)).some((item) => item.kind === "own:cert")).toBe(false);
+      expect((await feedFor(accessOf("u_anucha"), NOW)).some((item) => item.label === "คุณกฤต จันทร์เสน")).toBe(false);
+      expect((await feedFor(accessOf("u_may"), NOW)).some((item) => item.label === "คุณกฤต จันทร์เสน")).toBe(false);
+    } finally {
+      for (const request of staffRequests().all()) if (!before.has(request.id)) staffRequests().remove(request.id);
+      for (const packet of packets().all()) if (!packetsBefore.has(packet.id)) packets().remove(packet.id);
+    }
+  });
+});
+
+describe("buttons follow the tools a user may run", () => {
+  test("with handoffs switched off, no item offers to send work", async () => {
+    const hr = accessOf("u_may");
+    const closed = { ...hr, toolAllow: hr.toolAllow.filter((name) => name !== "create_handoff") };
+    const items = await feedFor(closed, NOW);
+    expect(items.some((item) => item.actions.some((action) => action.tool === "create_handoff"))).toBe(false);
   });
 });

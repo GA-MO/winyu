@@ -113,6 +113,19 @@ export async function listCourses(access: AccessContext, query: CourseQuery) {
 }
 
 /** One course by id or by words from its title, for the tool and the approval card. */
+export type RenewalRound = { course: Course; enrolled: boolean; seatsLeft: number };
+
+/** The next round that renews a certificate, and whether this user already asked for a seat in any round that renews it; null when none is scheduled. */
+export async function renewalRoundFor(certificateNameTh: string, userId: string): Promise<RenewalRound | null> {
+  const rounds = (await ports().learning.courses())
+    .filter((course) => course.renewsCertificate === certificateNameTh && course.starts >= TODAY)
+    .sort((left, right) => left.starts.localeCompare(right.starts));
+  const requested = new Set(requestsOf(userId, "course").map((request) => request.refId));
+  const next = rounds.find((course) => seatsLeft(course) > 0) ?? rounds[0];
+  if (!next) return null;
+  return { course: next, enrolled: rounds.some((course) => requested.has(course.id)), seatsLeft: seatsLeft(next) };
+}
+
 export async function findCourse(courseId: string): Promise<Course | null> {
   const catalogue = await ports().learning.courses();
   return catalogue.find((entry) => entry.id === courseId) ?? catalogue.find((entry) => entry.titleTh.includes(courseId.trim())) ?? null;

@@ -1,4 +1,4 @@
-import type { AccessContext, CareerEvent, Employee, FeedItem, PeopleFlag, Region, RoleId } from "@/lib/contracts";
+import type { AccessContext, CareerEvent, Employee, PeopleFlag, Region } from "@/lib/contracts";
 import { canSeeSalary, peopleViewOf, type PeopleView } from "@/lib/access/people-scope";
 import { TODAY, toDayIndex } from "@/lib/data/dates";
 import { signalsOf, tenureLabel, type CertificateState, type PeopleSignals } from "@/lib/engine/people-signals";
@@ -10,14 +10,6 @@ import { ports } from "@/lib/server/ports";
 import { directoryOf, type Directory } from "@/lib/server/ports/directory";
 
 const MAX_PEOPLE_ROWS = 12;
-const HR_TASK_ROLES: ReadonlySet<RoleId> = new Set<RoleId>(["hr_manager"]);
-const CERT_DUE_DAYS = 30;
-const CERT_URGENT_DAYS = 14;
-const LONG_OPEN_DAYS = 60;
-const WEIGHT = { certExpired: 100, certDue: 80, riskHigh: 50, overtime: 40 } as const;
-const RANK = { personUrgent: 700, person: 400, opening: 400 } as const;
-const RANK_SPAN = 99;
-const RANK_OPENING_FLOOR = 50;
 
 type BadgeTone = "neutral" | "success" | "warning" | "danger";
 export type PersonBadge = { label: string; tone: BadgeTone };
@@ -137,90 +129,6 @@ function openPositionsFor(access: AccessContext, query: PeopleQuery, directory: 
     manager: directory.byId(position.managerId)?.nameTh ?? null,
     open_label: T.openPosition(toDayIndex(TODAY) - toDayIndex(position.openedOn)),
   }));
-}
-
-type Issue = { kind: "cert" | "risk" | "overtime"; subject: string; label: string; weight: number; urgent: boolean };
-
-function issuesOf(employee: Employee, signals: PeopleSignals, view: PeopleView): Issue[] {
-  const issues: Issue[] = signals.certificates.flatMap((state): Issue[] => {
-    const name = T.certShort[state.certificate.nameTh] ?? state.certificate.nameTh;
-    if (state.status === "expired") return [{ kind: "cert", subject: name, label: T.badge.certExpired(name), weight: WEIGHT.certExpired, urgent: true }];
-    if (state.daysLeft > CERT_DUE_DAYS) return [];
-    return [{ kind: "cert", subject: name, label: T.badge.certExpiring(name, state.daysLeft), weight: WEIGHT.certDue - state.daysLeft, urgent: state.daysLeft <= CERT_URGENT_DAYS }];
-  });
-  if (view === "hr" && signals.risk === "high") issues.push({ kind: "risk", subject: "risk", label: T.badge.riskHigh, weight: WEIGHT.riskHigh, urgent: false });
-  if (signals.highOvertime) issues.push({ kind: "overtime", subject: "overtime", label: T.badge.overtime(employee.overtimeHours3m), weight: WEIGHT.overtime, urgent: false });
-  return issues.sort((left, right) => right.weight - left.weight);
-}
-
-function personItem(employee: Employee, issues: Issue[]): FeedItem {
-  const [first, ...rest] = issues;
-  const urgent = issues.some((issue) => issue.urgent);
-  const weight = issues.reduce((sum, issue) => sum + issue.weight, 0);
-  const signature = issues.map((issue) => `${issue.kind}-${issue.subject}`).sort().join("+");
-  return {
-    key: `person:${employee.id}:${signature}`,
-    source: "person",
-    kind: `person:${first.kind}`,
-    story: null,
-    rank: (urgent ? RANK.personUrgent : RANK.person) + Math.min(weight, RANK_SPAN),
-    tone: urgent ? "danger" : "warning",
-    label: employee.nameTh,
-    reason: first.label,
-    detail: rest.length > 0 ? rest.map((issue) => issue.label).join(" · ") : employee.title,
-    prompt: TH.landing.personPrompt(employee.nameTh),
-    alertId: null,
-    packetId: null,
-    canFinish: true,
-  };
-}
-
-/** HR answers for everyone; any other lead for the people who report to them directly. */
-function isAccountableFor(access: AccessContext, employee: Employee, view: PeopleView | null): boolean {
-  if (view === "hr") return true;
-  return employee.managerId === access.userId;
-}
-
-function ownsOpening(access: AccessContext, managerId: string, directory: Directory): boolean {
-  if (HR_TASK_ROLES.has(access.role)) return true;
-  return managerId === access.userId || directory.byId(managerId)?.managerId === access.userId;
-}
-
-function openingItems(access: AccessContext, directory: Directory): FeedItem[] {
-  return directory.openPositions.flatMap((position): FeedItem[] => {
-    if (!ownsOpening(access, position.managerId, directory)) return [];
-    const days = toDayIndex(TODAY) - toDayIndex(position.openedOn);
-    if (days < LONG_OPEN_DAYS) return [];
-    const manager = directory.byId(position.managerId)?.nameTh ?? null;
-    return [{
-      key: `opening:${position.id}`,
-      source: "opening",
-      kind: "opening",
-      story: null,
-      rank: RANK.opening + Math.min(days - LONG_OPEN_DAYS + RANK_OPENING_FLOOR, RANK_SPAN),
-      tone: "warning",
-      label: position.title,
-      reason: T.openPosition(days),
-      detail: manager && position.managerId !== access.userId ? TH.landing.hiringManager(manager) : null,
-      prompt: TH.landing.openingPrompt(position.title),
-      alertId: null,
-      packetId: null,
-      canFinish: true,
-    }];
-  });
-}
-
-/** The people matters a viewer is accountable for: a licence about to lapse, heavy overtime and (for HR) a high attrition risk, plus openings left unfilled too long. */
-export async function peopleFeedFor(access: AccessContext): Promise<FeedItem[]> {
-  const directory = directoryOf(await ports().directory.load());
-  const people = directory.employees.flatMap((employee): FeedItem[] => {
-    if (employee.id === access.userId) return [];
-    const view = peopleViewOf(access, employee, directory);
-    if (!view || view === "directory" || !isAccountableFor(access, employee, view)) return [];
-    const issues = issuesOf(employee, signalsOf(employee), view);
-    return issues.length > 0 ? [personItem(employee, issues)] : [];
-  });
-  return [...people, ...openingItems(access, directory)];
 }
 
 /** The people a viewer may see that match the query, lead first, shaped for their view. */

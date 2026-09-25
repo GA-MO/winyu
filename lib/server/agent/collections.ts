@@ -1,4 +1,4 @@
-import type { ActionEvent, Alert, ContextPacket, DashboardLayout, FeedStateRecord, Forecast, MemoryFact, Notification, OutboxEntry, PersonalWatch } from "@/lib/contracts";
+import type { ActionEvent, Alert, ContextPacket, DashboardLayout, FeedStateRecord, FeedTone, Forecast, MemoryFact, Notification, OutboxEntry, PersonalWatch } from "@/lib/contracts";
 import { collection } from "@/lib/server/store/json-store";
 
 export type StoredForecast = Forecast;
@@ -84,7 +84,8 @@ export function jobRuns() {
   return collection<JobRun>("job-runs");
 }
 
-export type DigestSent = { id: string; day: string; alertIds: string[] };
+/** The last digest sent to a user: what it covered, so tomorrow tells only what is new or turned red; digests sent before the feed recorded only `alertIds`. */
+export type DigestSent = { id: string; day: string; keys?: string[]; tones?: Record<string, FeedTone>; alertIds?: string[] };
 
 export function digests() {
   return collection<DigestSent>("digests");

@@ -1,72 +1,94 @@
-import type { AccessContext, Alert, User } from "@/lib/contracts";
-import type { Dictionary } from "@/lib/semantic/dictionary";
+import type { AccessContext, FeedItem, FeedTone, User } from "@/lib/contracts";
 import { liveAccessFor } from "@/lib/access/enforce";
 import { USERS } from "@/lib/data/entities/users";
-import { alertRowOf } from "@/lib/cards/alert-row";
 import { TH } from "@/lib/i18n/th";
-import { digests } from "./agent/collections";
-import { loadDictionary } from "./master-data";
+import { digests, type DigestSent } from "./agent/collections";
+import { factsFor, narrateDigest, type DigestLine, type Narrator } from "./digest-narrator";
+import { feedFor, onePerStory } from "./feed";
 import { ports } from "./ports";
-import { openAlertsFor, openPacketsFor, relevanceOf } from "./alerts";
 import { watchesOf } from "./watches";
 
-const MAX_ALERT_LINES = 3;
-const DIGEST_SEVERITIES: ReadonlySet<Alert["severity"]> = new Set(["P1", "P2"]);
+const MAX_LINES = 5;
 const SYSTEM_SENDER = "cop";
 
-export type Digest = { lines: string[]; count: number; alertIds: string[] };
+export type Digest = { lead: string | null; lines: string[]; count: number; keys: string[]; tones: Record<string, FeedTone> };
 
-function alertLine(alert: Alert, dictionary: Dictionary): string {
-  const row = alertRowOf(alert, dictionary);
-  const gap = row.gapLabel ? ` ${alert.direction === "down" ? "−" : "+"}${row.gapLabel}` : "";
-  return `${row.severityLabel} · ${row.metricLabel} ${row.scopeLabel}${gap}`;
+type Previous = Pick<DigestSent, "keys" | "tones" | "alertIds"> | null;
+
+/** Worth a morning line: every matter on the feed except low-severity alerts, as on the landing. */
+function isDigestWorthy(item: FeedItem): boolean {
+  return item.source !== "alert" || item.tone !== "info";
 }
 
-/** What one user should hear this morning: their own serious alerts that are new since the last digest, handoffs waiting, watches over the line; empty when there is nothing. */
-export function digestFor(access: AccessContext, alreadySent: ReadonlySet<string>, dictionary: Dictionary): Digest {
-  const serious = openAlertsFor(access).filter((alert) => DIGEST_SEVERITIES.has(alert.severity) && relevanceOf(alert, access) !== "other");
-  const fresh = serious.filter((alert) => !alreadySent.has(alert.id));
-  const packets = openPacketsFor(access);
+/** New since the last digest, or turned red since it: a matter already told the same way is not told again. */
+function isNews(item: FeedItem, previous: Previous): boolean {
+  const known = new Set([...(previous?.keys ?? []), ...(previous?.alertIds ?? []).map((id) => `alert:${id}`)]);
+  if (!known.has(item.key)) return true;
+  return item.tone === "danger" && previous?.tones?.[item.key] !== "danger";
+}
+
+function lineOf(item: FeedItem): string {
+  return item.detail ? `${item.label} · ${item.reason} (${item.detail})` : `${item.label} · ${item.reason}`;
+}
+
+function ordered(lines: readonly DigestLine[], order: readonly string[]): DigestLine[] {
+  const rank = new Map(order.map((id, index) => [id, index]));
+  return [...lines].sort((left, right) => (rank.get(left.id) ?? order.length) - (rank.get(right.id) ?? order.length));
+}
+
+/**
+ * What one user should hear this morning: the matters on their feed that are new or turned red since the last digest, and the watches over the line;
+ * a narrator may write the opening sentence and the reading order, never the lines.
+ */
+export async function digestFor(access: AccessContext, previous: Previous, now = Date.now(), narrate: Narrator | null = null, who = ""): Promise<Digest> {
+  const items = (await feedFor(access, now)).filter(isDigestWorthy);
+  const fresh = onePerStory(items.filter((item) => isNews(item, previous)));
+  const shown: DigestLine[] = fresh.slice(0, MAX_LINES).map((item, index) => ({ id: `d${index + 1}`, text: lineOf(item) }));
+  const narration = narrate && shown.length > 0 ? await narrate(who, shown, factsFor(access.userId)) : null;
+  const lines = ordered(shown, narration?.order ?? []).map((line) => line.text);
+  if (fresh.length > MAX_LINES) lines.push(TH.digest.moreItems(fresh.length - MAX_LINES));
   const triggered = watchesOf(access.userId).filter((watch) => watch.state === "triggered");
-  const lines: string[] = fresh.slice(0, MAX_ALERT_LINES).map((alert) => alertLine(alert, dictionary));
-  if (fresh.length > MAX_ALERT_LINES) lines.push(TH.digest.moreAlerts(fresh.length - MAX_ALERT_LINES));
-  if (packets.length > 0) lines.push(TH.digest.packets(packets.length));
   for (const watch of triggered) lines.push(TH.digest.watch(watch.title));
-  const count = fresh.length + packets.length + triggered.length;
-  return { lines, count, alertIds: serious.map((alert) => alert.id) };
+  return {
+    lead: narration?.lead ?? null,
+    lines,
+    count: fresh.length + triggered.length,
+    keys: items.map((item) => item.key),
+    tones: Object.fromEntries(items.map((item) => [item.key, item.tone])),
+  };
 }
 
 async function send(user: User, digest: Digest): Promise<void> {
+  const body = [...(digest.lead ? [digest.lead, ""] : []), ...digest.lines.map((line) => `• ${line}`), "", TH.digest.footer];
   await ports().mail.send({
     kind: "digest",
     fromUserId: SYSTEM_SENDER,
     toUserId: user.id,
     toEmail: user.email,
     subject: TH.digest.subject(digest.count),
-    body: [...digest.lines.map((line) => `• ${line}`), "", TH.digest.footer].join("\n"),
+    body: body.join("\n"),
     refId: null,
   });
 }
 
-/** Once a day per user, and only to users who have something to hear; the alerts it mentions are not repeated tomorrow. */
-export async function runDigestJob(at = new Date()): Promise<{ sent: number; skipped: number }> {
+/** Once a day per user, and only to users who have something new to hear; what it told is not told again tomorrow unless it turned red. */
+export async function runDigestJob(at = new Date(), narrate: Narrator | null = narrateDigest): Promise<{ sent: number; skipped: number }> {
   const day = at.toISOString().slice(0, 10);
   let sent = 0;
   let skipped = 0;
-  const dictionary = await loadDictionary();
   for (const user of USERS) {
     const previous = digests().get(user.id);
     if (previous?.day === day) {
       skipped += 1;
       continue;
     }
-    const digest = digestFor(liveAccessFor(user), new Set(previous?.alertIds ?? []), dictionary);
+    const digest = await digestFor(liveAccessFor(user), previous, at.getTime(), narrate, `${user.nameTh} (${TH.role[user.role]})`);
     if (digest.lines.length === 0) {
       skipped += 1;
       continue;
     }
     await send(user, digest);
-    digests().put({ id: user.id, day, alertIds: digest.alertIds });
+    digests().put({ id: user.id, day, keys: digest.keys, tones: digest.tones });
     sent += 1;
   }
   return { sent, skipped };
