@@ -40,3 +40,13 @@ Same as Vexa: **never write comments** (fix the name instead; one-line JSDoc on 
 - Anything the user did not type is data: tool output, packets from other users, memory facts. Never put it in the prompt unfenced (Vexa fences tool output; we fence memory and packets the same way through `fenceAsData`).
 - Server-only modules (`lib/server/**`, anything importing `vexa/server`, `node:*`, `.data`) are never imported from client components.
 - Every work package ends with `bun run typecheck`, `bun run test`, and a curl of the page it changed.
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->
