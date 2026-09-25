@@ -275,4 +275,11 @@ describe("headline delta", () => {
     if (!result.ok) throw new Error(result.error);
     expect(result.headline.deltaPercent).toBeNull();
   });
+
+  test("a month the data has only partly reached is held to a pro-rata target, not the whole month's", () => {
+    const partial = runMetric(query({ metric: "target_attainment", range: { from: "2026-09-01", to: TODAY } }), CEO);
+    const sameDaysBefore = runMetric(query({ metric: "target_attainment", range: { from: "2026-08-01", to: "2026-08-22" } }), CEO);
+    if (!partial.ok || !sameDaysBefore.ok) throw new Error("query failed");
+    expect(Math.abs(totalOf(partial) - totalOf(sameDaysBefore))).toBeLessThan(10);
+  });
 });

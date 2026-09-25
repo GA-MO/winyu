@@ -134,12 +134,12 @@ export function weekIndexOfKey(key: string): number {
   return AXIS.weekIndex.get(key) ?? -1;
 }
 
-const DAYS_PER_MONTH = (() => {
-  const counts = new Int32Array(MONTH_COUNT);
-  for (let day = 0; day < DAY_COUNT; day += 1) counts[MONTH_OF_DAY[day] as number] += 1;
-  return counts;
-})();
+const DAYS_PER_MONTH = Int32Array.from(MONTH_KEYS, (key) => {
+  const [year, month] = key.split("-").map(Number);
+  return new Date(Date.UTC(year ?? 1970, month ?? 1, 0)).getUTCDate();
+});
 
+/** Calendar days in a month, so a monthly target spread per day keeps its full-month pace in a month the data has only partly reached. */
 export function daysInMonthIndex(monthIdx: number): number {
   return DAYS_PER_MONTH[monthIdx] ?? 0;
 }
