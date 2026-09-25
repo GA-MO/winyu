@@ -21,6 +21,7 @@ const CHAT_LABELS: Partial<ChatLabels> = {
   send: TH.chat.send,
   stop: TH.chat.stop,
   thinking: TH.chat.thinking,
+  unanswered: TH.chat.unanswered,
   approve: TH.chat.approve,
   reject: TH.chat.reject,
   approved: TH.chat.approved,

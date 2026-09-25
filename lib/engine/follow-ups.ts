@@ -110,9 +110,18 @@ function drillDownDraft(facts: Facts): Draft | null {
   };
 }
 
-function splitDraft(facts: Facts): Draft | null {
+function seesOneRegion(access: AccessContext): boolean {
+  return access.regions !== "all" && access.regions.length === 1;
+}
+
+function splitDraft(facts: Facts, access: AccessContext): Draft | null {
   if (facts.rankDim) return null;
-  const dim = SPLIT_ORDER.find((entry) => supports(facts.query.metric, entry) && !facts.taken.has(spaceLatinTh(TH.next.splitPrompt(facts.metric, TH.dash.dimUnit[entry]))));
+  const dim = SPLIT_ORDER.find(
+    (entry) =>
+      supports(facts.query.metric, entry) &&
+      !(entry === "region" && seesOneRegion(access)) &&
+      !facts.taken.has(spaceLatinTh(TH.next.splitPrompt(facts.metric, TH.dash.dimUnit[entry]))),
+  );
   if (!dim) return null;
   const unit = TH.dash.dimUnit[dim];
   return { kind: "split", label: TH.next.splitBy(unit), prompt: TH.next.splitPrompt(facts.metric, unit), reason: TH.next.splitReason(unit) };
@@ -178,7 +187,7 @@ export function isFollowUpIntent(intentKey: string): boolean {
  */
 export function followUpsFor(access: AccessContext, input: FollowUpInput, learned: Partial<Record<FollowUpKind, number>> = {}): QuickAction[] {
   const facts = factsOf(input);
-  const drafts = [whyDraft(facts), drillDownDraft(facts), splitDraft(facts), trendDraft(facts), compareYearDraft(facts), forecastDraft(facts, access)];
+  const drafts = [whyDraft(facts), drillDownDraft(facts), splitDraft(facts, access), trendDraft(facts), compareYearDraft(facts), forecastDraft(facts, access)];
   return drafts
     .filter((draft): draft is Draft => draft !== null && !facts.taken.has(spaceLatinTh(draft.prompt)))
     .map((draft) => ({

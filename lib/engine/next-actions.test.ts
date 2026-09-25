@@ -129,4 +129,16 @@ describe("nextActionsFor", () => {
     expect(idsOf(actions)).toContain("verify");
     expect(idsOf(actions)).not.toContain("drill-why");
   });
+
+  test("someone who sees one region is never offered a split by region", () => {
+    const query: MetricQuery = { ...queryOf("sell_out_volume"), dims: ["sku"] };
+    const actions = nextActionsFor(accessOf("u_krit"), contextOf({ query, topLabel: null }));
+    expect(idsOf(actions)).not.toContain("drill-region");
+    expect(idsOf(actions)).toContain("drill-province");
+  });
+
+  test("a masked answer offers no drill into numbers nobody can read", () => {
+    const actions = nextActionsFor(accessOf("u_ton"), contextOf({ masked: ["value"], query: { ...queryOf("forecast_mape"), dims: ["month"] }, topLabel: null }));
+    expect(idsOf(actions).some((id) => id.startsWith("drill"))).toBe(false);
+  });
 });

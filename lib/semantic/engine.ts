@@ -405,6 +405,16 @@ function filtersToRecord(filters: Filters, scopeApplied: Partial<Record<Dim, str
   return out;
 }
 
+/** Thai names of the filters the caller narrowed to, beyond their own scope and the dimensions the rows already name. */
+function filterLabelsOf(dictionary: Dictionary, filters: Filters, dims: Dim[], scopeApplied: Partial<Record<Dim, string[]>>): string[] {
+  const labels: string[] = [];
+  for (const [dim, values] of filters) {
+    if (scopeApplied[dim] || dims.includes(dim)) continue;
+    for (const value of values) labels.push(dictionary.displayLabel(dim, value));
+  }
+  return labels;
+}
+
 function factRequest(def: MetricDef, measure: FactRequest["measure"], dims: Dim[], filters: Filters, from: number, to: number, labelShift: LabelShift): FactRequest {
   return { metric: def.id, measure, dims, filters: allFilters(filters), range: { from: ISO_OF_DAY[from], to: ISO_OF_DAY[to] }, labelShift };
 }
@@ -508,6 +518,7 @@ export function finishMetric(plan: MetricPlan, current: FactResult, comparison: 
     asOf: TODAY,
     rowCount: rows.length,
     filtersApplied: filtersToRecord(filters, plan.scopeApplied),
+    filterLabels: filterLabelsOf(dictionary, filters, dims, plan.scopeApplied),
     scopeApplied: plan.scopeApplied,
     masked: masked || suppressed.size > 0 ? [...SUPPRESSED_FIELDS] : [],
     trust: def.certified ? "verified" : "derived",

@@ -14,7 +14,7 @@ export type MetricQuery = { metric: MetricId; dims: Dim[]; filters: Partial<Reco
   range: { from: string; to: string }; grain: Grain; compare: "none" | "prev_period" | "prev_year" | "target"; limit: number | null; sort?: MetricSort | null };
 export type MetricRow = Record<string, string | number | null>;
 export type Provenance = { metric: MetricId; certified: boolean; sourceSystem: string; asOf: string; rowCount: number;
-  filtersApplied: Partial<Record<Dim, string[]>>; scopeApplied: Partial<Record<Dim, string[]>>; masked: string[]; trust: "verified" | "derived" | "estimated" };
+  filtersApplied: Partial<Record<Dim, string[]>>; filterLabels?: string[]; scopeApplied: Partial<Record<Dim, string[]>>; masked: string[]; trust: "verified" | "derived" | "estimated" };
 export type MetricHeadline = { aggregate: "sum" | "average"; value: string; periodLabel: string; rowCount: number;
   deltaPercent: number | null; compareLabel: string | null; compareNote: string | null; top: { label: string; value: string }[] };
 export type MetricResult = { ok: true; rows: MetricRow[]; summary: string; headline: MetricHeadline; provenance: Provenance } | { ok: false; error: string; code: "PERMISSION_DENIED" | "UNKNOWN_METRIC" | "BAD_QUERY" };

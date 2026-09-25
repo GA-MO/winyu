@@ -135,12 +135,13 @@ function normalizedElement(element: SpecElement, answer: Answer | null, summarie
 
 /**
  * The safety net for a card the model drew by hand: drop prose that only repeats a tool summary, fill the scope and
- * source lines from provenance, align number columns, and drop pictures no tool returned. It never moves elements.
+ * source lines from the provenance of this turn's metric call, align number columns, drop pictures no tool returned
+ * and buttons that press nothing. It never moves elements.
  */
-export function normalizeCopSpec(spec: Spec, context: { toolOutputs: Record<string, unknown> }): Spec {
+export function normalizeCopSpec(spec: Spec, context: { toolOutputs: Record<string, unknown>; turnToolOutputs?: Record<string, unknown> }): Spec {
   const elements = spec.elements as Record<string, SpecElement> | undefined;
   if (!elements) return spec;
-  const answers = answersIn(context.toolOutputs);
+  const answers = answersIn(context.turnToolOutputs ?? context.toolOutputs);
   const answer = answers.length === 1 ? answers[0] : null;
   const summaries = summariesIn(context.toolOutputs);
   const images = imagesIn(context.toolOutputs, new Set());

@@ -98,15 +98,22 @@ function verifyAction(context: NextActionContext): NextAction | null {
   };
 }
 
-function coveredByScope(context: NextActionContext, dim: Dim): boolean {
-  const level = GEO_LEVELS.indexOf(dim);
-  return level !== -1 && level <= finestGeoLevel(singleFilters(context));
+/** The geography a card is already inside: the filters the question pinned, plus the one region a user may only see. */
+function pinnedGeography(access: AccessContext, context: NextActionContext): Partial<Record<Dim, string>> {
+  const filters = singleFilters(context);
+  if (filters.region || access.regions === "all" || access.regions.length !== 1) return filters;
+  return { ...filters, region: access.regions[0] };
 }
 
-function drillDim(context: NextActionContext): Dim | null {
+function coveredByScope(access: AccessContext, context: NextActionContext, dim: Dim): boolean {
+  const level = GEO_LEVELS.indexOf(dim);
+  return level !== -1 && level <= finestGeoLevel(pinnedGeography(access, context));
+}
+
+function drillDim(access: AccessContext, context: NextActionContext): Dim | null {
   const used = new Set(context.query.dims);
   return DRILL_DIM_ORDER.find(
-    (dim) => !used.has(dim) && !coveredByScope(context, dim) && METRICS[context.query.metric].dims.includes(dim),
+    (dim) => !used.has(dim) && !coveredByScope(access, context, dim) && METRICS[context.query.metric].dims.includes(dim),
   ) ?? null;
 }
 
@@ -114,7 +121,8 @@ function shortLabel(label: string): string | null {
   return label.length <= MAX_LABEL_CHARS ? label : null;
 }
 
-function drillAction(context: NextActionContext, causeOffered: boolean): NextAction | null {
+function drillAction(access: AccessContext, context: NextActionContext, causeOffered: boolean): NextAction | null {
+  if (context.masked.length > 0) return null;
   const metric = metricLabel(context.query.metric);
   if (!causeOffered && context.topLabel && context.deltaPercent !== null) {
     const short = shortLabel(context.topLabel);
@@ -128,7 +136,7 @@ function drillAction(context: NextActionContext, causeOffered: boolean): NextAct
       prompt: TH.next.whyPrompt(metric, context.topLabel),
     };
   }
-  const dim = drillDim(context);
+  const dim = drillDim(access, context);
   if (!dim) return null;
   return {
     id: `drill-${dim}`,
@@ -158,7 +166,7 @@ export function nextActionsFor(access: AccessContext, context: NextActionContext
     needsOwner(context) ? handoffAction(access, context) : null,
     verify,
     pinAction(context, repeats),
-    drillAction(context, verify !== null),
+    drillAction(access, context, verify !== null),
   ];
   return candidates
     .filter((action): action is NextAction => action !== null && allows(access, action.tool))

@@ -85,18 +85,28 @@ describe("two groups", () => {
   });
 });
 
-describe("ranked bars follow the order", () => {
-  test("ordered by what fell, the longest bar is the biggest drop", () => {
-    const body = expectKind(bodyOf({ metric: "net_sales_volume", dims: ["agent"] }, { sortBy: "delta_asc" }), "rank");
-    expect(body.rows[0].share).toBe(1);
-    const shares = body.rows.map((row) => row.share ?? 0);
-    expect(shares).toEqual([...shares].sort((left, right) => right - left));
+function deltaOf(text: string | null): number {
+  return Number((text ?? "0").replace("−", "-").replace("%", ""));
+}
+
+describe("ranked bars measure the number beside them", () => {
+  test("ordered by what fell, the biggest drop leads and each bar is as long as its own value", () => {
+    const { query, result } = answer({ metric: "net_sales_volume", dims: ["agent"] });
+    const body = expectKind(presentCard({ title: "t", query, result, sortBy: "delta_asc" }).body, "rank");
+    const deltas = body.rows.map((row) => deltaOf(row.delta));
+    expect(deltas).toEqual([...deltas].sort((left, right) => left - right));
+    if (!result.ok) throw new Error(result.error);
+    const valueByLabel = new Map(result.rows.map((row) => [String(row.agent), Number(row.value)]));
+    const values = body.rows.map((row) => valueByLabel.get(row.label) ?? 0);
+    const peak = Math.max(...values);
+    body.rows.forEach((row, index) => expect(row.share ?? 0).toBeCloseTo(values[index] / peak, 6));
   });
 
   test("the query's own sort orders the card when the card names none, so a pinned card keeps it", () => {
     const query = { ...queryOf({ metric: "net_sales_volume", dims: ["agent"] }), limit: 5, sort: "delta_asc" as const };
     const body = expectKind(presentCard({ title: "t", query, result: runMetric(query, CEO) }).body, "rank");
-    expect(body.rows[0].share).toBe(1);
+    const deltas = body.rows.map((row) => deltaOf(row.delta));
+    expect(deltas).toEqual([...deltas].sort((left, right) => left - right));
   });
 });
 
@@ -135,7 +145,8 @@ describe("tables become ranked bars", () => {
 describe("geography", () => {
   test("provinces are ranked bars in the order the question asked", () => {
     const body = expectKind(bodyOf({ metric: "sell_out_volume", dims: ["province"] }, { sortBy: "delta_asc" }), "rank");
-    expect(body.rows[0].share).toBe(1);
+    const deltas = body.rows.map((row) => deltaOf(row.delta));
+    expect(deltas).toEqual([...deltas].sort((left, right) => left - right));
   });
 
   test("regions are ranked bars", () => {
@@ -237,5 +248,25 @@ describe("a rate over time", () => {
     expect(card.meta?.startsWith("1 เม.ย. 2569")).toBe(true);
     expect(card.footnote).toContain("เทียบปีก่อนได้ตั้งแต่");
     expect(card.hero?.delta).not.toBeNull();
+  });
+});
+
+describe("the headline says what it stands for", () => {
+  test("a capped breakdown's total is labelled as every group in scope and the scope line says how many are shown", () => {
+    const query = { ...queryOf({ metric: "net_sales_volume", dims: ["agent"] }), limit: 5, sort: "delta_asc" as const };
+    const card = presentCard({ title: "t", query, result: runMetric(query, CEO) });
+    expect(card.hero?.label).toBe("ปริมาณขายเข้า (Sell-in) รวมทุกเอเย่นต์");
+    expect(card.meta).toContain("แสดง 5 เอเย่นต์");
+  });
+
+  test("an average across provinces says it is an average", () => {
+    const card = presentCard({ title: "t", ...answer({ metric: "market_share", dims: ["province"] }) });
+    expect(card.hero?.label).toContain("เฉลี่ยทุกจังหวัด");
+  });
+
+  test("a filter the question narrowed to shows on the scope line", () => {
+    const query = { ...queryOf({ metric: "days_of_cover", dims: ["dc"] }), filters: { sku: ["sku_purra_pet600"] } };
+    const card = presentCard({ title: "t", query, result: runMetric(query, CEO) });
+    expect(card.meta).toContain("เฉพาะ เพอร์ร่า");
   });
 });

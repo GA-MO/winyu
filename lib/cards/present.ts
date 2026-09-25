@@ -244,10 +244,31 @@ function groupCountFor(query: MetricQuery, rows: MetricRow[], rowCount: number):
   return new Set(rows.map((row) => row[dim])).size;
 }
 
-function scopeOf(query: MetricQuery, rowCount: number, periodLabel: string): string {
+function isCapped(query: MetricQuery, rowCount: number): boolean {
+  return query.limit !== null && rowCount >= query.limit;
+}
+
+function rowsLineOf(query: MetricQuery, rowCount: number): string | null {
   const dim = rankDimOf(query);
   const unit = dim ? TH.dash.dimUnit[dim] : null;
-  return TH.dash.scope(periodLabel, unit && rowCount > 1 ? `${rowCount} ${unit}` : null);
+  if (!unit || rowCount <= 1) return null;
+  return isCapped(query, rowCount) ? TH.dash.shownRows(rowCount, unit) : `${rowCount} ${unit}`;
+}
+
+/** Period, what the model narrowed the question to, and how many groups the card lists. */
+function scopeOf(query: MetricQuery, rowCount: number, periodLabel: string, filterLabels: readonly string[]): string {
+  const filtered = filterLabels.length > 0 ? TH.dash.filteredTo(filterLabels.join(", ")) : null;
+  const rows = rowsLineOf(query, rowCount);
+  return TH.dash.scope(periodLabel, [filtered, rows].filter((part): part is string => part !== null).join(" · ") || null);
+}
+
+/** A breakdown's headline stands for every group in scope, not only the rows the card lists; the label says which. */
+function heroLabelOf(query: MetricQuery, result: Extract<MetricResult, { ok: true }>): string {
+  const label = metricLabel(query.metric);
+  const dim = rankDimOf(query);
+  if (!dim || timeDimOf(query) || result.rows.length <= 1) return label;
+  const unit = TH.dash.dimUnit[dim];
+  return result.headline.aggregate === "average" ? TH.dash.averageAcross(label, unit) : TH.dash.totalAcross(label, unit);
 }
 
 function footnoteOf(result: Extract<MetricResult, { ok: true }>, extraNote: string | null): string {
@@ -261,7 +282,7 @@ function footnoteOf(result: Extract<MetricResult, { ok: true }>, extraNote: stri
 function heroOf(query: MetricQuery, result: Extract<MetricResult, { ok: true }>): CardHero {
   const delta = result.headline.deltaPercent;
   return {
-    label: metricLabel(query.metric),
+    label: heroLabelOf(query, result),
     value: result.headline.value,
     delta: formatDelta(delta),
     trend: directionOf(delta),
@@ -313,11 +334,12 @@ function heroFor(query: MetricQuery, result: Extract<MetricResult, { ok: true }>
   };
 }
 
-/** Bars measure what the list is ordered by: the size of the change when the question is what fell or grew, the value otherwise. */
-function rankRowsOf(query: MetricQuery, rows: MetricRow[], sortBy: SortBy | null): RankRow[] {
-  const values = rows.map((row) => (asksAboutChange(sortBy) ? deltaPercentOf(row) : numericOf(row, "value")) ?? 0);
+/** Bars measure the number printed beside them; a list ordered by what fell keeps that order and shows the change in the pill. */
+function rankRowsOf(query: MetricQuery, rows: MetricRow[]): RankRow[] {
+  const shown = rows.slice(0, MAX_RANK_ROWS);
+  const values = shown.map((row) => numericOf(row, "value") ?? 0);
   const peak = Math.max(...values.map(Math.abs), 0);
-  return rows.slice(0, MAX_RANK_ROWS).map((row, index) => {
+  return shown.map((row, index) => {
     const delta = deltaPercentOf(row);
     return {
       label: labelOf(query, row),
@@ -455,7 +477,7 @@ function bodyFor(shape: Shape, view: CardView, extras: CardExtras): CardBody {
   if (view === "heatmap") return heatmapBody(query, rows, shape.sortBy);
   if (view === "share") return shareBody(query, rows);
   if (view === "table") return tableBody(query, rows, query.compare !== "none");
-  if (view === "bar" && rows.length >= RANK_MIN_ROWS) return { kind: "rank", rows: rankRowsOf(query, rows, shape.sortBy), showRank: rows.length > RANK_MIN_ROWS };
+  if (view === "bar" && rows.length >= RANK_MIN_ROWS) return { kind: "rank", rows: rankRowsOf(query, rows), showRank: rows.length > RANK_MIN_ROWS };
   if (view === "metric" && PROGRESS_METRICS.has(query.metric)) return progressBody(query, rows);
   if (view === "metric") return { kind: "none" };
   if (rows.length === 0) return { kind: "none" };
@@ -602,7 +624,7 @@ export function presentCard(input: PresentInput): CardParts {
   const note = [trimmed.note, hiddenGroupsNote(shape, view)].filter((line): line is string => line !== null).join(" · ");
   return {
     title,
-    meta: scopeOf(query, groupCountFor(query, result.rows, result.headline.rowCount), result.headline.periodLabel),
+    meta: scopeOf(query, groupCountFor(query, result.rows, result.headline.rowCount), result.headline.periodLabel, result.provenance.filterLabels ?? []),
     description: input.description ?? null,
     footnote: footnoteOf(result, note || null),
     hero: masked || view === "alert_list" ? null : heroFor(query, result, shape.rows),

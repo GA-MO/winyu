@@ -34,6 +34,12 @@ describe("normalizeCopSpec", () => {
     expect(props.footnote).toContain("SAP SD");
   });
 
+  test("a card drawn in a later turn takes no scope line from an earlier turn's metric call", () => {
+    const spec = specOf({ card: { type: "Card", props: { title: "นโยบายเบิกค่าเดินทาง" }, children: [] } });
+    const props = cardProps(normalizeCopSpec(spec, { toolOutputs: OUTPUTS, turnToolOutputs: { "/tools/get_policy": { ok: true } } }));
+    expect(props.meta).toBeUndefined();
+  });
+
   test("keeps a description the model wrote itself", () => {
     const spec = specOf({ card: { type: "Card", props: { title: "เอเย่นต์", description: "เรียงจากที่ตกแรงที่สุด" }, children: [] } });
     expect(cardProps(normalizeCopSpec(spec, { toolOutputs: OUTPUTS })).description).toBe("เรียงจากที่ตกแรงที่สุด");
