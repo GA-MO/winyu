@@ -2,7 +2,9 @@ import { afterEach, describe, expect, test } from "bun:test";
 import { findUser } from "@/lib/data/entities/users";
 import { runMetric } from "@/lib/data/query";
 import { liveAccessFor, toolsFor } from "./enforce";
-import { cycleMetricVisibility, defaultOf, overrideFor, removeOverride, setRoleTool, permissionsFor, resetRoleOverrides, roleOverrides, toggleRoleTool } from "./role-overrides";
+import { cycleMetricVisibility, defaultOf, overrideFor, removeOverride, setFieldVisibility, setMetricVisibility, setRoleTool, permissionsFor, resetRoleOverrides, roleOverrides, toggleRoleTool } from "./role-overrides";
+import { applyPermissionChange } from "@/lib/server/permissions";
+import { connectorFields } from "@/lib/server/tools/registry";
 
 const ADMIN = "u_ton";
 const RANGE = { from: "2026-09-01", to: "2026-09-22" };
@@ -53,5 +55,33 @@ describe("defaultOf and removeOverride", () => {
     expect(defaultOf(entry)).toBe(true);
     expect(removeOverride(entry.id)).toBe(true);
     expect(permissionsFor("sales_rep").toolAllow).toContain("list_courses");
+  });
+});
+
+describe("nobody widens their own access", () => {
+  test("an administrator cannot unmask a metric for their own role, by chat or by the admin page", () => {
+    expect(permissionsFor("it_admin").metricAcl.headcount).toBe("masked");
+    const viaChat = applyPermissionChange({ role: "it_admin", kind: "metric", key: "headcount", value: "full" }, ADMIN);
+    expect(viaChat.ok).toBe(false);
+    expect(setMetricVisibility("it_admin", "headcount", "full", ADMIN)).toBe("masked");
+    expect(cycleMetricVisibility("it_admin", "headcount", ADMIN)).toBe("none");
+    expect(cycleMetricVisibility("it_admin", "headcount", ADMIN)).toBe("none");
+    expect(live(ADMIN).metricAcl.headcount).toBe("none");
+  });
+
+  test("the same administrator still changes other roles, and may narrow their own", () => {
+    expect(applyPermissionChange({ role: "sales_rep", kind: "metric", key: "ar_overdue", value: "full" }, ADMIN).ok).toBe(true);
+    expect(live("u_krit").metricAcl.ar_overdue).toBe("full");
+    expect(applyPermissionChange({ role: "it_admin", kind: "metric", key: "headcount", value: "none" }, ADMIN).ok).toBe(true);
+    expect(applyPermissionChange({ role: "it_admin", kind: "metric", key: "headcount", value: "masked" }, ADMIN).ok).toBe(true);
+    expect(applyPermissionChange({ role: "it_admin", kind: "metric", key: "headcount", value: "full" }, ADMIN).ok).toBe(false);
+  });
+
+  test("an administrator cannot hand their own role a tool or a hidden connector field", () => {
+    const missing = permissionsFor("it_admin").toolAllow;
+    const field = connectorFields().find((entry) => entry.defaultFor("it_admin") !== "full");
+    if (field) expect(setFieldVisibility("it_admin", field.key, "full", ADMIN)).toBe(field.defaultFor("it_admin"));
+    const otherTool = (["request_leave", "enroll_course"] as const).find((tool) => !missing.includes(tool));
+    if (otherTool) expect(setRoleTool("it_admin", otherTool, true, ADMIN)).toBe(false);
   });
 });

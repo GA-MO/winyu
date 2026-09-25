@@ -2,6 +2,7 @@ import type { MetricId, RoleId, ToolName } from "@/lib/contracts";
 import { connectorFields, defaultToolsOf, surfaceEntry, toolSurface } from "@/lib/server/tools/registry";
 import { collection } from "@/lib/server/store/json-store";
 import { ROLE_POLICIES } from "./policies";
+import { findUser } from "@/lib/data/entities/users";
 
 export const ROLE_OVERRIDES_COLLECTION = "role-overrides";
 
@@ -15,6 +16,7 @@ export type RoleOverride = MetricOverride | ToolOverride | FieldOverride;
 export type RolePermissions = { metricAcl: Record<MetricId, Visibility>; toolAllow: ToolName[] };
 
 const NEXT_VISIBILITY: Record<Visibility, Visibility> = { full: "masked", masked: "none", none: "full" };
+const VISIBILITY_RANK: Record<Visibility, number> = { none: 0, masked: 1, full: 2 };
 
 function store() {
   return collection<RoleOverride>(ROLE_OVERRIDES_COLLECTION);
@@ -62,17 +64,39 @@ export function permissionsFor(role: RoleId): RolePermissions {
   return { metricAcl, toolAllow: toolSurface().map((item) => item.name).filter((name) => tools.has(name)) };
 }
 
-/** Sets one role's view of a metric; at the code default, the override is dropped so the page shows it as unchanged. */
+function isOwnRole(role: RoleId, by: string): boolean {
+  return findUser(by)?.role === role;
+}
+
+/** True when a change would let the person making it see more through their own role than the code grants it; nobody widens their own access past the default, another administrator must (undoing their own narrowing is fine). */
+export function widensOwnAccess(role: RoleId, by: string, before: Visibility, after: Visibility, fallback: Visibility): boolean {
+  return isOwnRole(role, by) && VISIBILITY_RANK[after] > VISIBILITY_RANK[before] && VISIBILITY_RANK[after] > VISIBILITY_RANK[fallback];
+}
+
+/** True when giving this tool would hand the person making the change a tool their own role does not have by default. */
+export function grantsOwnTool(role: RoleId, by: string, tool: ToolName, allowed: boolean): boolean {
+  return allowed && isOwnRole(role, by) && !permissionsFor(role).toolAllow.includes(tool) && !defaultToolAllowed(role, tool);
+}
+
+/** The code default a role sees a metric at, before any override. */
+export function defaultMetricVisibility(role: RoleId, metric: MetricId): Visibility {
+  return ROLE_POLICIES[role].metricAcl[metric];
+}
+
+/** Sets one role's view of a metric; at the code default, the override is dropped so the page shows it as unchanged. Widening the changer's own role is refused and the current view returned. */
 export function setMetricVisibility(role: RoleId, metric: MetricId, visibility: Visibility, by: string): Visibility {
+  const current = permissionsFor(role).metricAcl[metric];
+  if (widensOwnAccess(role, by, current, visibility, defaultMetricVisibility(role, metric))) return current;
   const id = idOf(role, "metric", metric);
   if (visibility === ROLE_POLICIES[role].metricAcl[metric]) store().remove(id);
   else store().put({ id, role, kind: "metric", key: metric, visibility, by, at: now() });
   return visibility;
 }
 
-/** Gives a role a tool or takes it away; returns false when the tool cannot be given to that role. */
+/** Gives a role a tool or takes it away; returns false when the tool cannot be given to that role, or would be given to the changer's own role. */
 export function setRoleTool(role: RoleId, tool: ToolName, allowed: boolean, by: string): boolean {
   if (allowed && !isGrantable(role, tool)) return false;
+  if (grantsOwnTool(role, by, tool, allowed)) return false;
   const id = idOf(role, "tool", tool);
   if (allowed === defaultToolAllowed(role, tool)) store().remove(id);
   else store().put({ id, role, kind: "tool", key: tool, allowed, by, at: now() });
@@ -84,7 +108,8 @@ export function cycleMetricVisibility(role: RoleId, metric: MetricId, by: string
   return setMetricVisibility(role, metric, NEXT_VISIBILITY[permissionsFor(role).metricAcl[metric]], by);
 }
 
-function defaultFieldVisibility(role: RoleId, key: string): Visibility {
+/** The default a connector declares for a role's view of one of its fields. */
+export function defaultFieldVisibility(role: RoleId, key: string): Visibility {
   return connectorFields().find((field) => field.key === key)?.defaultFor(role) ?? "none";
 }
 
@@ -94,8 +119,10 @@ export function fieldVisibilityOf(role: RoleId, key: string): Visibility {
   return entry?.kind === "field" ? entry.visibility : defaultFieldVisibility(role, key);
 }
 
-/** Sets one role's view of a connector field; at the connector's default, the override is dropped. */
+/** Sets one role's view of a connector field; at the connector's default, the override is dropped. Widening the changer's own role is refused and the current view returned. */
 export function setFieldVisibility(role: RoleId, key: string, visibility: Visibility, by: string): Visibility {
+  const current = fieldVisibilityOf(role, key);
+  if (widensOwnAccess(role, by, current, visibility, defaultFieldVisibility(role, key))) return current;
   const id = idOf(role, "field", key);
   if (visibility === defaultFieldVisibility(role, key)) store().remove(id);
   else store().put({ id, role, kind: "field", key, visibility, by, at: now() });

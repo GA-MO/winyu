@@ -661,6 +661,7 @@ export const TH = {
       metricNotes: { avg_salary: "คุมเงินเดือนรายคนในโปรไฟล์และเงินเดือนที่ผู้สมัครคาดหวังด้วย" } as Partial<Record<string, string>>,
     },
     permission: {
+      ownRole: (role: string) => `เพิ่มสิทธิ์ให้บทบาทของตัวเอง (${role}) ไม่ได้ ต้องให้ผู้ดูแลระบบคนอื่นเป็นผู้เปลี่ยน`,
       allow: "ใช้ได้",
       deny: "ใช้ไม่ได้",
       done: (role: string, what: string, before: string, after: string, people: number) => `${role}: ${what} ${before} → ${after} (มีผลกับ ${people} คน)`,

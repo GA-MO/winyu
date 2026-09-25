@@ -2,7 +2,7 @@ import { METRIC_IDS, type MetricId, type RoleId } from "@/lib/contracts";
 import { connectorFields, isToolName } from "@/lib/server/tools/registry";
 import type { setPermissionInputSchema } from "@/lib/contracts";
 import type { z } from "zod";
-import { fieldVisibilityOf, isGrantable, permissionsFor, setFieldVisibility, setMetricVisibility, setRoleTool, type Visibility } from "@/lib/access/role-overrides";
+import { defaultFieldVisibility, defaultMetricVisibility, fieldVisibilityOf, grantsOwnTool, isGrantable, permissionsFor, setFieldVisibility, setMetricVisibility, setRoleTool, widensOwnAccess, type Visibility } from "@/lib/access/role-overrides";
 import { USERS } from "@/lib/data/entities/users";
 import { metricLabel } from "@/lib/dashboard/metric-display";
 import { TH } from "@/lib/i18n/th";
@@ -40,6 +40,7 @@ function changeMetric(role: RoleId, metric: string, value: PermissionInput["valu
   if (!isMetric(metric)) return { ok: false, error: TH.admin.permission.unknownMetric(metric) };
   if (!VISIBILITIES.includes(value as Visibility)) return { ok: false, error: TH.admin.permission.badMetricValue };
   const before = permissionsFor(role).metricAcl[metric];
+  if (widensOwnAccess(role, by, before, value as Visibility, defaultMetricVisibility(role, metric))) return { ok: false, error: TH.admin.permission.ownRole(TH.role[role]) };
   setMetricVisibility(role, metric, value as Visibility, by);
   const data = { role, roleLabel: TH.role[role], kind: "metric" as const, key: metric, label: metricLabel(metric), before: TH.admin.acl[before], after: TH.admin.acl[value as Visibility], affectedUsers: membersOf(role) };
   return { ok: true, summary: TH.admin.permission.done(data.roleLabel, data.label, data.before, data.after, data.affectedUsers), data };
@@ -50,6 +51,7 @@ function changeTool(role: RoleId, tool: string, value: PermissionInput["value"],
   if (value !== "allow" && value !== "deny") return { ok: false, error: TH.admin.permission.badToolValue };
   const allowed = value === "allow";
   if (allowed && !isGrantable(role, tool)) return { ok: false, error: TH.admin.overrides.notGrantable };
+  if (grantsOwnTool(role, by, tool, allowed)) return { ok: false, error: TH.admin.permission.ownRole(TH.role[role]) };
   const before = permissionsFor(role).toolAllow.includes(tool);
   setRoleTool(role, tool, allowed, by);
   const data = { role, roleLabel: TH.role[role], kind: "tool" as const, key: tool, label: tool, before: toolWord(before), after: toolWord(allowed), affectedUsers: membersOf(role) };
@@ -61,6 +63,7 @@ function changeField(role: RoleId, key: string, value: PermissionInput["value"],
   if (!field) return { ok: false, error: TH.admin.permission.unknownField(key) };
   if (!VISIBILITIES.includes(value as Visibility)) return { ok: false, error: TH.admin.permission.badMetricValue };
   const before = fieldVisibilityOf(role, key);
+  if (widensOwnAccess(role, by, before, value as Visibility, defaultFieldVisibility(role, key))) return { ok: false, error: TH.admin.permission.ownRole(TH.role[role]) };
   setFieldVisibility(role, key, value as Visibility, by);
   const data = { role, roleLabel: TH.role[role], kind: "field" as const, key, label: field.labelTh, before: TH.admin.acl[before], after: TH.admin.acl[value as Visibility], affectedUsers: membersOf(role) };
   return { ok: true, summary: TH.admin.permission.done(data.roleLabel, data.label, data.before, data.after, data.affectedUsers), data };

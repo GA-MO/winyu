@@ -5,7 +5,7 @@ import { METRIC_IDS, ROLE_IDS, type MetricId, type RoleId, type ToolName, type T
 import { METRIC_READING_TOOLS, connectorFields, connectorLabel, surfaceByConnector, toolSurface } from "@/lib/server/tools/registry";
 import { METRIC_DOMAINS, ROLE_POLICIES } from "@/lib/access/policies";
 import { closureOf, type ToolClosure } from "@/lib/access/enforce";
-import { fieldVisibilityOf, isGrantable, overrideFor, permissionsFor, roleOverrides, type RoleOverride, type Visibility } from "@/lib/access/role-overrides";
+import { defaultFieldVisibility, defaultMetricVisibility, fieldVisibilityOf, isGrantable, overrideFor, permissionsFor, roleOverrides, widensOwnAccess, type RoleOverride, type Visibility } from "@/lib/access/role-overrides";
 import { USERS, findUser } from "@/lib/data/entities/users";
 import { metricDef } from "@/lib/semantic/metrics";
 import { metricLabel } from "@/lib/dashboard/metric-display";
@@ -119,7 +119,7 @@ function RoleHeader({ role }: { role: RoleId }) {
 
 type Subject = { name: "metric" | "field"; key: string };
 
-function LevelControl({ role, subject, value }: { role: RoleId; subject: Subject; value: Visibility }) {
+function LevelControl({ role, subject, value, fallback, viewer }: { role: RoleId; subject: Subject; value: Visibility; fallback: Visibility; viewer: string }) {
   return (
     <form action={subject.name === "metric" ? setMetricAction : setFieldAction} className="flex shrink-0 rounded-full bg-muted p-0.5">
       <input type="hidden" name="role" value={role} />
@@ -131,9 +131,10 @@ function LevelControl({ role, subject, value }: { role: RoleId; subject: Subject
           name="visibility"
           value={level}
           aria-pressed={level === value}
-          title={TH.admin.aclExplain[level]}
+          disabled={widensOwnAccess(role, viewer, value, level, fallback)}
+          title={widensOwnAccess(role, viewer, value, level, fallback) ? TH.admin.permission.ownRole(TH.role[role]) : TH.admin.aclExplain[level]}
           className={cn(
-            "rounded-full px-2.5 py-1 text-[11px] font-medium transition sm:px-3",
+            "rounded-full px-2.5 py-1 text-[11px] font-medium transition disabled:cursor-not-allowed disabled:opacity-40 sm:px-3",
             FOCUS,
             level === value ? LEVEL_ACTIVE[level] : "text-muted-foreground hover:text-foreground",
           )}
@@ -153,7 +154,7 @@ function visibleFirst(role: RoleId): DomainView[] {
   return [...domains.filter((domain) => !domain.hidden), ...domains.filter((domain) => domain.hidden)];
 }
 
-function MetricRows({ role, metrics }: { role: RoleId; metrics: readonly MetricId[] }) {
+function MetricRows({ role, metrics, viewer }: { role: RoleId; metrics: readonly MetricId[]; viewer: string }) {
   const permissions = permissionsFor(role);
   return (
     <ul className="flex flex-col divide-y divide-border rounded-2xl border border-border">
@@ -174,7 +175,7 @@ function MetricRows({ role, metrics }: { role: RoleId; metrics: readonly MetricI
               {def ? <p className="truncate text-[11px] text-muted-foreground">{def.sourceSystem}</p> : null}
               {COPY.metricNotes[metric] ? <p className="text-[11px] text-warning">{COPY.metricNotes[metric]}</p> : null}
             </div>
-            <LevelControl role={role} subject={{ name: "metric", key: metric }} value={permissions.metricAcl[metric]} />
+            <LevelControl role={role} subject={{ name: "metric", key: metric }} value={permissions.metricAcl[metric]} fallback={defaultMetricVisibility(role, metric)} viewer={viewer} />
           </li>
         );
       })}
@@ -182,7 +183,7 @@ function MetricRows({ role, metrics }: { role: RoleId; metrics: readonly MetricI
   );
 }
 
-function HiddenDomain({ role, domain }: { role: RoleId; domain: DomainView }) {
+function HiddenDomain({ role, domain, viewer }: { role: RoleId; domain: DomainView; viewer: string }) {
   return (
     <details className="group rounded-2xl border border-dashed border-border">
       <summary className={cn("flex cursor-pointer list-none items-center justify-between gap-3 px-3.5 py-2.5 text-[12px] text-muted-foreground", FOCUS)}>
@@ -190,13 +191,13 @@ function HiddenDomain({ role, domain }: { role: RoleId; domain: DomainView }) {
         <ChevronDown className="size-3.5 transition group-open:rotate-180" aria-hidden />
       </summary>
       <div className="px-2 pb-2">
-        <MetricRows role={role} metrics={domain.metrics} />
+        <MetricRows role={role} metrics={domain.metrics} viewer={viewer} />
       </div>
     </details>
   );
 }
 
-function MetricList({ role }: { role: RoleId }) {
+function MetricList({ role, viewer }: { role: RoleId; viewer: string }) {
   return (
     <Panel title={COPY.metrics} hint={COPY.metricsHint} className="lg:col-span-3" bodyClassName="flex flex-col gap-5">
       <dl className="grid gap-2 rounded-2xl bg-muted/60 p-3.5 sm:grid-cols-3" aria-label={COPY.legend}>
@@ -214,20 +215,20 @@ function MetricList({ role }: { role: RoleId }) {
       </dl>
       {visibleFirst(role).map((domain) =>
         domain.hidden ? (
-          <HiddenDomain key={domain.id} role={role} domain={domain} />
+          <HiddenDomain key={domain.id} role={role} domain={domain} viewer={viewer} />
         ) : (
           <div key={domain.id} className="flex flex-col">
             <p className="pb-1.5 text-[11px] font-semibold tracking-wide text-muted-foreground">{TH.admin.domain[domain.id]}</p>
-            <MetricRows role={role} metrics={domain.metrics} />
+            <MetricRows role={role} metrics={domain.metrics} viewer={viewer} />
           </div>
         ),
       )}
-      <FieldList role={role} />
+      <FieldList role={role} viewer={viewer} />
     </Panel>
   );
 }
 
-function FieldList({ role }: { role: RoleId }) {
+function FieldList({ role, viewer }: { role: RoleId; viewer: string }) {
   const fields = connectorFields();
   if (fields.length === 0) return null;
   return (
@@ -249,7 +250,7 @@ function FieldList({ role }: { role: RoleId }) {
                 </p>
                 <p className="truncate text-[11px] text-muted-foreground">{connectorLabel(field.connector)}</p>
               </div>
-              <LevelControl role={role} subject={{ name: "field", key: field.key }} value={fieldVisibilityOf(role, field.key)} />
+              <LevelControl role={role} subject={{ name: "field", key: field.key }} value={fieldVisibilityOf(role, field.key)} fallback={defaultFieldVisibility(role, field.key)} viewer={viewer} />
             </li>
           );
         })}
@@ -504,7 +505,7 @@ function Matrix() {
   );
 }
 
-export function AccessTab({ role, view }: { role: RoleId; view: "role" | "matrix" }) {
+export function AccessTab({ role, view, viewer }: { role: RoleId; view: "role" | "matrix"; viewer: string }) {
   return (
     <div className="flex flex-col gap-4">
       <RolePicker current={role} view={view} />
@@ -514,7 +515,7 @@ export function AccessTab({ role, view }: { role: RoleId; view: "role" | "matrix
         <>
           <RoleHeader role={role} />
           <div className="grid items-start gap-4 lg:grid-cols-5">
-            <MetricList role={role} />
+            <MetricList role={role} viewer={viewer} />
             <ToolList role={role} />
           </div>
         </>
