@@ -138,10 +138,22 @@ describe("compare reads the calendar window the question means", () => {
     });
   });
 
-  test("a prior window that starts before the data gives no compare instead of a clipped one", () => {
+  test("a year-on-year question that reaches before the data compares the months both years hold, never a clipped prior", () => {
     const yearToDate = run(query("net_sales_volume", [], { from: "2026-01-01", to: TODAY }, "prev_year"));
-    expect(yearToDate.headline.deltaPercent).toBeNull();
-    expect(yearToDate.rows[0]?.compare_value).toBeUndefined();
+    const comparable = run(query("net_sales_volume", [], { from: "2026-04-01", to: TODAY }, "prev_year"));
+    expect(yearToDate.headline.periodLabel.startsWith("1 เม.ย. 2569")).toBe(true);
+    expect(yearToDate.headline.value).toBe(comparable.headline.value);
+    expect(yearToDate.headline.deltaPercent).toBe(comparable.headline.deltaPercent);
+    expect(yearToDate.headline.compareNote).toContain("ข้อมูลเริ่ม 1 เม.ย. 2568");
+    expect(yearToDate.summary).toContain(yearToDate.headline.compareNote ?? "");
+    expect(comparable.headline.compareNote).toBeNull();
+  });
+
+  test("a comparison with nothing before it says so instead of vanishing", () => {
+    const firstYear = run(query("attrition_rate", ["department"], { from: DATA_START, to: "2025-08-31" }, "prev_year"));
+    expect(firstYear.headline.deltaPercent).toBeNull();
+    expect(firstYear.rows[0]?.compare_value).toBeUndefined();
+    expect(firstYear.headline.compareNote).toContain("ไม่มีข้อมูลให้เทียบปีก่อน");
   });
 });
 

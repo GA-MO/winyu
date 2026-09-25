@@ -211,3 +211,31 @@ describe("two metrics on one card", () => {
     expect(bodyOf({ metric: "net_sales_volume", dims: ["region"] }, { others: [{ metric: "headcount", dims: ["department"] }] }).kind).toBe("rank");
   });
 });
+
+describe("a rate over time", () => {
+  const TWELVE_MONTHS_TO_SEPTEMBER = { from: "2025-10-01", to: "2026-09-30" };
+
+  test("the hero is the latest full month against the one before, and the running month is cut on the day the data stops", () => {
+    const { query, result } = answer({ metric: "attrition_rate", dims: ["month"], range: TWELVE_MONTHS_TO_SEPTEMBER, compare: "none" });
+    const card = presentCard({ title: "t", query, result });
+    const line = expectKind(card.body, "line");
+    expect(line.labels).toHaveLength(11);
+    expect(card.footnote).toContain("เดือนปัจจุบันยังไม่ครบ");
+    expect(card.hero?.label).toBe(`อัตราการลาออกต่อเดือน · ${line.labels[10]}`);
+    expect(card.hero?.detail).toBe(`เทียบ ${line.labels[9]}`);
+    expect(card.hero?.delta).not.toBeNull();
+  });
+
+  test("a sum over time keeps the period total as its hero", () => {
+    const { query, result } = answer({ metric: "net_sales_volume", dims: ["month"], range: SIX_MONTHS, compare: "none" });
+    expect(presentCard({ title: "t", query, result }).hero?.value).toBe(result.ok ? result.headline.value : "");
+  });
+
+  test("a year-on-year card says why it starts later than asked", () => {
+    const { query, result } = answer({ metric: "attrition_rate", dims: ["department"], range: { from: "2026-01-01", to: "2026-08-31" }, compare: "prev_year" });
+    const card = presentCard({ title: "t", query, result });
+    expect(card.meta?.startsWith("1 เม.ย. 2569")).toBe(true);
+    expect(card.footnote).toContain("เทียบปีก่อนได้ตั้งแต่");
+    expect(card.hero?.delta).not.toBeNull();
+  });
+});

@@ -9,8 +9,11 @@ const CARD =
   "group flex w-full items-center gap-4 rounded-3xl border border-border bg-card p-4 text-left shadow-card transition duration-300 hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-lift disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 const ADMIN_HOME = "/admin";
 
+const THAI_LEADING_VOWELS = /^[เแโใไ]/;
+
+/** The first consonant of the name: เมย์ shows ม, not the vowel written before it. */
 function initialOf(user: User): string {
-  return user.nameTh.replace(/^คุณ/, "").slice(0, 1);
+  return user.nameTh.replace(/^คุณ/, "").replace(THAI_LEADING_VOWELS, "").slice(0, 1);
 }
 
 function destinationOf(user: User): string {

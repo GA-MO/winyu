@@ -31,10 +31,16 @@ function roleOf(userId: string): string {
 
 type Cluster = { intentKey: string; prompt: string; metric: MetricId | null; dims: Dim[]; count: number; last: string; buckets: number[]; dismissed: number };
 
+const FEED_EVENT_PREFIX = "feed_";
+
+function isFeedEvent(event: ActionEvent): boolean {
+  return event.kind.startsWith(FEED_EVENT_PREFIX);
+}
+
 function clusterOf(events: readonly ActionEvent[], now: number): Cluster[] {
   const clusters = new Map<string, Cluster>();
   for (const event of events) {
-    if (!event.intentKey || event.kind === "follow_up" || daysAgo(event.at, now) > WINDOW_DAYS) continue;
+    if (!event.intentKey || event.kind === "follow_up" || isFeedEvent(event) || daysAgo(event.at, now) > WINDOW_DAYS) continue;
     const found = clusters.get(event.intentKey) ?? {
       intentKey: event.intentKey,
       prompt: event.prompt ?? "",

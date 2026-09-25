@@ -3,12 +3,13 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChevronRight, LayoutDashboard, MapPin, Send, ShieldCheck } from "lucide-react";
+import { BriefcaseBusiness, Check, Clock, EyeOff, LayoutDashboard, ListChecks, MapPin, MoreHorizontal, Send, ShieldCheck, TriangleAlert, UserRound, type LucideIcon } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "vexa/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "vexa/ui/tooltip";
 import { cn } from "vexa/lib/utils";
 import { formatActionMessage } from "vexa/react";
-import type { NextAction, QuickAction } from "@/lib/contracts";
-import type { AmbientCard, AmbientTone, LandingKpi, StatusLink, VisitStop } from "@/lib/dashboard/ambient";
+import type { FeedAction, FeedItem, FeedSource, NextAction, QuickAction } from "@/lib/contracts";
+import type { AmbientCard, AmbientTone, LandingKpi, StatusLink } from "@/lib/dashboard/ambient";
 import type { Tone } from "@/lib/dashboard/metric-display";
 import { TH } from "@/lib/i18n/th";
 import { CopComposer } from "@/components/composer/cop-composer";
@@ -20,6 +21,7 @@ import { PILL } from "@/components/ui/pill";
 const THREADS_ENDPOINT = "/api/threads";
 const QUICK_ACTIONS_ENDPOINT = "/api/quick-actions";
 const ALERTS_ENDPOINT = "/api/alerts";
+const FEED_ENDPOINT = "/api/feed";
 const DASHBOARD_PATH = "/dashboard";
 const MAX_CHIPS = 4;
 const HERO = "flex w-full max-w-3xl flex-col gap-6";
@@ -60,8 +62,8 @@ const TONE_DOT: Record<AmbientTone, string> = {
 };
 export type Greeting = { lead: string; name: string };
 
-function StatusLine({ links }: { links: StatusLink[] }) {
-  if (links.length === 0) return <p className="text-sm text-muted-foreground sm:text-base">{TH.landing.quiet}</p>;
+function StatusLine({ links, taskCount }: { links: StatusLink[]; taskCount: number }) {
+  if (links.length === 0) return <p className="text-sm text-muted-foreground sm:text-base">{taskCount > 0 ? TH.landing.tasksLead(taskCount) : TH.landing.quiet}</p>;
   return (
     <p className="flex flex-wrap items-center justify-center gap-x-1 gap-y-1 text-sm">
       <span className="mr-1 text-muted-foreground">{TH.landing.statusLead}</span>
@@ -81,15 +83,18 @@ function StatusLine({ links }: { links: StatusLink[] }) {
   );
 }
 
-function AmbientCardView({ card, onOpen, onHandoff }: { card: AmbientCard; onOpen: () => void; onHandoff: (action: NextAction) => void }) {
+function AmbientCardView({ card, onOpen, onHandoff, onAct }: { card: AmbientCard; onOpen: () => void; onHandoff: (action: NextAction) => void; onAct: FeedAct }) {
   const handoff = card.handoff;
   return (
     <div className={AMBIENT}>
-      <button type="button" onClick={onOpen} className="flex min-w-0 flex-col gap-1.5 text-left focus-visible:outline-none">
-        <span className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
+      <div className="flex items-start gap-1">
+        <span className="flex min-w-0 flex-1 items-center gap-1.5 pt-1.5 text-[11px] font-medium text-muted-foreground">
           <span aria-hidden className={cn("size-1.5 shrink-0 rounded-full", TONE_DOT[card.tone])} />
           <span className="truncate">{card.eyebrow}</span>
         </span>
+        {card.alertId ? <FeedMenu feedKey={`alert:${card.alertId}`} canFinish onAct={onAct} /> : null}
+      </div>
+      <button type="button" onClick={onOpen} className="flex min-w-0 flex-col gap-1.5 text-left focus-visible:outline-none">
         {card.headline ? (
           <span className="flex flex-wrap items-baseline gap-x-2">
             <span className={cn("font-display text-2xl font-semibold tabular-nums tracking-tight", TONE_TEXT[card.headline.tone])}>{card.headline.value}</span>
@@ -132,24 +137,60 @@ function KpiStrip({ kpis }: { kpis: LandingKpi[] }) {
   );
 }
 
-function VisitList({ stops, onOpen }: { stops: VisitStop[]; onOpen: (stop: VisitStop) => void }) {
+const SOURCE_ICONS: Record<FeedSource, LucideIcon> = { alert: TriangleAlert, packet: Send, visit: MapPin, person: UserRound, opening: BriefcaseBusiness };
+const ROW_ACTION = "flex size-7 shrink-0 items-center justify-center rounded-full text-muted-foreground transition hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+
+type FeedAct = (key: string, action: Exclude<FeedAction, "open">) => void;
+
+function FeedMenu({ feedKey, canFinish, onAct }: { feedKey: string; canFinish: boolean; onAct: FeedAct }) {
+  if (!canFinish) return null;
   return (
-    <section aria-label={TH.landing.visitsTitle} className="overflow-hidden rounded-2xl border border-border bg-card shadow-card">
+    <DropdownMenu>
+      <DropdownMenuTrigger aria-label={TH.landing.feedMore} className={ROW_ACTION}>
+        <MoreHorizontal className="size-4" aria-hidden />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-auto min-w-40">
+        <DropdownMenuItem onClick={() => onAct(feedKey, "done")}>
+          <Check aria-hidden />
+          {TH.landing.feedDone}
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => onAct(feedKey, "snooze")}>
+          <Clock aria-hidden />
+          {TH.landing.feedSnooze}
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => onAct(feedKey, "mute")}>
+          <EyeOff aria-hidden />
+          {TH.landing.feedMute}
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+function FeedList({ rows, onOpen, onAct }: { rows: FeedItem[]; onOpen: (row: FeedItem) => void; onAct: FeedAct }) {
+  return (
+    <section aria-label={TH.landing.tasksTitle} className="overflow-hidden rounded-2xl border border-border bg-card shadow-card">
       <h2 className="flex items-center gap-1.5 border-b border-border px-4 py-2.5 text-[11px] font-medium text-muted-foreground">
-        <MapPin className="size-3.5 text-primary" aria-hidden />
-        {TH.landing.visitsTitle}
+        <ListChecks className="size-3.5 text-primary" aria-hidden />
+        {TH.landing.tasksTitle}
       </h2>
       <ol className="divide-y divide-border">
-        {stops.map((stop, index) => (
-          <li key={stop.id}>
-            <button type="button" onClick={() => onOpen(stop)} className="flex w-full items-center gap-3 px-4 py-2.5 text-left transition hover:bg-muted focus-visible:bg-muted focus-visible:outline-none">
-              <span className="w-4 shrink-0 text-xs tabular-nums text-muted-foreground">{index + 1}</span>
-              <span className="min-w-0 flex-1 truncate text-sm font-semibold tracking-tight" title={stop.agent}>{stop.agent}</span>
-              <span className={cn("shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium tabular-nums", VISIT_TONE[stop.tone])}>{stop.reason}</span>
-              <ChevronRight className="size-3.5 shrink-0 text-muted-foreground" aria-hidden />
-            </button>
-          </li>
-        ))}
+        {rows.map((row) => {
+          const Icon = SOURCE_ICONS[row.source];
+          return (
+            <li key={row.key} className="flex items-center gap-1 pr-2 transition hover:bg-muted focus-within:bg-muted">
+              <button type="button" onClick={() => onOpen(row)} className="flex min-w-0 flex-1 items-center gap-3 py-2.5 pl-4 text-left focus-visible:outline-none">
+                <Icon className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+                <span className="flex min-w-0 flex-1 flex-col">
+                  <span className="truncate text-sm font-semibold tracking-tight" title={row.label}>{row.label}</span>
+                  {row.detail ? <span className="truncate text-xs text-muted-foreground">{row.detail}</span> : null}
+                </span>
+                <span className={cn("max-w-[45%] shrink-0 truncate rounded-full px-2 py-0.5 text-[11px] font-medium tabular-nums", VISIT_TONE[row.tone])}>{row.reason}</span>
+              </button>
+              <FeedMenu feedKey={row.key} canFinish={row.canFinish} onAct={onAct} />
+            </li>
+          );
+        })}
       </ol>
     </section>
   );
@@ -159,18 +200,20 @@ export function Landing({
   greeting,
   status,
   kpis,
-  visits,
+  rows,
   quickActions,
   ambient,
   draft,
+  placeholder,
 }: {
   greeting: Greeting;
   status: StatusLink[];
   kpis: LandingKpi[];
-  visits: VisitStop[];
+  rows: FeedItem[];
   quickActions: QuickAction[];
   ambient: AmbientCard[];
   draft: string;
+  placeholder: string;
 }) {
   const router = useRouter();
   const [text, setText] = useState(draft);
@@ -236,6 +279,23 @@ export function Landing({
     [start],
   );
 
+  const [hidden, setHidden] = useState<ReadonlySet<string>>(() => new Set());
+  const visibleRows = rows.filter((row) => !hidden.has(row.key));
+  const visibleCards = ambient.filter((card) => !card.alertId || !hidden.has(`alert:${card.alertId}`));
+
+  const act = useCallback((key: string, action: Exclude<FeedAction, "open">) => {
+    setHidden((current) => new Set([...current, key]));
+    void fetch(FEED_ENDPOINT, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ key, action }) }).catch(() => undefined);
+  }, []);
+
+  const openRow = useCallback(
+    (row: FeedItem) => {
+      void fetch(FEED_ENDPOINT, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ key: row.key, action: "open" }) }).catch(() => undefined);
+      void start(row.prompt, undefined, undefined, row.packetId ?? undefined);
+    },
+    [start],
+  );
+
   useEffect(() => {
     function openDashboard(event: KeyboardEvent) {
       if (event.key.toLowerCase() !== "d" || !(event.metaKey || event.ctrlKey)) return;
@@ -256,10 +316,10 @@ export function Landing({
             <h1 className="text-balance font-display text-[1.75rem] font-semibold leading-[1.2] tracking-[-0.02em] sm:text-[3rem]">
               {greeting.lead} <GradientText className="whitespace-nowrap">{greeting.name}</GradientText>
             </h1>
-            <StatusLine links={status} />
+            <StatusLine links={status} taskCount={visibleCards.length + visibleRows.length} />
           </header>
 
-          <CopComposer value={text} onValueChange={setText} onSubmit={start} busy={busy} autoFocus />
+          <CopComposer value={text} onValueChange={setText} onSubmit={start} busy={busy} autoFocus placeholder={placeholder} />
           {failed ? (
             <p role="alert" className="-mt-2 text-center text-xs text-danger">
               {TH.landing.startFailed}
@@ -283,13 +343,14 @@ export function Landing({
 
         <div className="flex w-full max-w-3xl flex-col gap-3 animate-hero-rise [animation-delay:160ms]">
           {kpis.length > 0 ? <KpiStrip kpis={kpis} /> : null}
-          {visits.length > 0 ? <VisitList stops={visits} onOpen={(stop) => void start(stop.prompt)} /> : null}
-          {ambient.length > 0 ? (
-            <div className={cn("grid w-full gap-3", AMBIENT_COLUMNS[ambient.length])}>
-              {ambient.map((card) => (
+          {visibleRows.length > 0 ? <FeedList rows={visibleRows} onOpen={openRow} onAct={act} /> : null}
+          {visibleCards.length > 0 ? (
+            <div className={cn("grid w-full gap-3", AMBIENT_COLUMNS[visibleCards.length])}>
+              {visibleCards.map((card) => (
                 <AmbientCardView
                   key={card.id}
                   card={card}
+                  onAct={act}
                   onOpen={() => openAmbient(card)}
                   onHandoff={(action) => action.tool && void start(formatActionMessage(action.tool, action.input ?? {}), undefined, action.label)}
                 />

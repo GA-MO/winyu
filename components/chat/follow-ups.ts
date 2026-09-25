@@ -3,7 +3,9 @@ import type { QuickAction } from "@/lib/contracts";
 const QUERY_TOOL_PART = "tool-query_metric";
 const MAX_CHIPS = 3;
 
-type PartLike = { type?: string; output?: unknown };
+const INTENT_SEPARATOR = "|";
+
+type PartLike = { type?: string; input?: unknown; output?: unknown };
 type MessageLike = { role?: string; parts?: PartLike[] };
 
 function isQuickAction(value: unknown): value is QuickAction {
@@ -32,8 +34,22 @@ export function latestFollowUps(messages: readonly MessageLike[]): QuickAction[]
   return [];
 }
 
-/** What the chip row shows: questions that follow from the latest card first, then the user's learned chips. */
-export function chipRow(followUps: readonly QuickAction[], learned: readonly QuickAction[], limit = MAX_CHIPS): QuickAction[] {
+function metricOfPart(part: PartLike): string | null {
+  if (part.type !== QUERY_TOOL_PART || typeof part.input !== "object" || part.input === null) return null;
+  const metric = (part.input as { metric?: unknown }).metric;
+  return typeof metric === "string" ? metric : null;
+}
+
+/** The metrics the latest answer read; a learned chip on one of them would ask again what the card just showed. */
+export function answeredMetrics(messages: readonly MessageLike[]): Set<string> {
+  const last = messages[messages.length - 1] as MessageLike | undefined;
+  if (!last || last.role === "user") return new Set();
+  return new Set((last.parts ?? []).map((part) => metricOfPart(part as PartLike)).filter((metric): metric is string => metric !== null));
+}
+
+/** What the chip row shows: questions that follow from the latest card first, then the user's learned chips that do not repeat the question just answered. */
+export function chipRow(followUps: readonly QuickAction[], learned: readonly QuickAction[], limit = MAX_CHIPS, answered: ReadonlySet<string> = new Set()): QuickAction[] {
   const prompts = new Set(followUps.map((action) => action.prompt));
-  return [...followUps, ...learned.filter((action) => !prompts.has(action.prompt))].slice(0, limit);
+  const fresh = learned.filter((action) => !prompts.has(action.prompt) && !answered.has(action.intentKey.split(INTENT_SEPARATOR)[0]));
+  return [...followUps, ...fresh].slice(0, limit);
 }

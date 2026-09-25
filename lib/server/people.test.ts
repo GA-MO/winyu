@@ -82,3 +82,4 @@ describe("people access", () => {
     expect((await findPeople(accessOf("u_krit"), { ...NO_FILTER, flag: "overtime" })).data).toEqual([]);
   });
 });
+

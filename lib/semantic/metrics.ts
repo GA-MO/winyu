@@ -132,7 +132,7 @@ const SEEDS: readonly MetricSeed[] = [
     description: "จำนวนพนักงานประจำสิ้นเดือนแยกตามฝ่าย",
   },
   {
-    id: "attrition_rate", label: "Attrition rate", labelTh: "อัตราการลาออก", unit: "%", format: "percent",
+    id: "attrition_rate", label: "Attrition rate", labelTh: "อัตราการลาออกต่อเดือน", unit: "%", format: "percent",
     owner: "u_may", certified: true, dims: HR_DIMS, sourceSystem: "HRIS",
     synonyms: ["attrition", "turnover", "ลาออก", "อัตราลาออก", "คนออก"],
     description: "สัดส่วนพนักงานที่ลาออกในเดือนนั้นต่อจำนวนพนักงานทั้งหมดของฝ่าย",

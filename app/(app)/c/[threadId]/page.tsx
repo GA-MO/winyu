@@ -7,6 +7,7 @@ import { packets } from "@/lib/server/agent/collections";
 import { quickActionsFor } from "@/lib/server/quick-actions";
 import { getThread } from "@/lib/server/threads-read";
 import { readAccess } from "@/lib/server/session";
+import { TH } from "@/lib/i18n/th";
 
 type PageProps = { params: Promise<{ threadId: string }>; searchParams: Promise<{ prompt?: string; preload?: string }> };
 
@@ -37,6 +38,7 @@ export default async function SessionPage({ params, searchParams }: PageProps) {
       initialMessages={thread.messages as VexaMessage[]}
       preload={preloadOf(packetId, access.userId)}
       suggestions={quickActionsFor(access)}
+      placeholder={TH.landing.composerPlaceholderFor(access.role)}
     />
   );
 }

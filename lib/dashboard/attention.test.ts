@@ -18,7 +18,7 @@ function result(deltaPercent: number | null, rows: MetricRow[] = []): MetricResu
     ok: true,
     rows,
     summary: "",
-    headline: { aggregate: "sum", value: "1,000 ลัง", periodLabel: "ก.ย.", rowCount: rows.length, deltaPercent, compareLabel: "เทียบช่วงก่อนหน้า", top: [] },
+    headline: { aggregate: "sum", value: "1,000 ลัง", periodLabel: "ก.ย.", rowCount: rows.length, deltaPercent, compareLabel: "เทียบช่วงก่อนหน้า", compareNote: null, top: [] },
     provenance: { metric: "net_sales_volume", certified: true, sourceSystem: "SAP", asOf: "2026-09-22", rowCount: rows.length, filtersApplied: {}, scopeApplied: {}, masked: [], trust: "verified" },
   } as MetricResult;
 }
@@ -123,5 +123,21 @@ describe("cards the user stopped looking at", () => {
   test("a pinned card with no view in two weeks is offered for removal; new and tray cards are not", () => {
     const events = [view("seen", STALE_DAYS + 5), view("seen", 2)];
     expect(staleWidgets(widgets, events, "u_x", NOW).map((entry) => entry.id)).toEqual(["ignored"]);
+  });
+});
+
+describe("a rate over time", () => {
+  test("is news when its latest full month moved, the same change its hero shows", () => {
+    const monthly = query({ metric: "attrition_rate", dims: ["month"], range: { from: "2026-06-01", to: "2026-09-30" }, compare: "none" });
+    const rows: MetricRow[] = [
+      { month: "2026-06", value: 1.1 },
+      { month: "2026-07", value: 1.1 },
+      { month: "2026-08", value: 1.2 },
+      { month: "2026-09", value: 0.4 },
+    ];
+    const averaged = { ...result(null, rows), headline: { aggregate: "average", value: "1.0%", periodLabel: "", rowCount: 4, deltaPercent: null, compareLabel: null, compareNote: null, top: [] } } as MetricResult;
+    const attention = attentionOf({ widget: widget("w", { kind: "line", query: monthly }), result: averaged, alerts: [] });
+    expect(attention.level).toBe("moved");
+    expect(attention.reason).toContain("+9.1%");
   });
 });

@@ -1,3 +1,5 @@
+import type { RoleId } from "@/lib/contracts";
+
 export const TH = {
   app: { name: "Cop", tagline: "ผู้ช่วยข้อมูลสำหรับทุกคนในองค์กร" },
   nav: {
@@ -120,6 +122,7 @@ export const TH = {
       night: "สวัสดีตอนค่ำครับ",
     },
     composerPlaceholder: "ถาม Cop เรื่องยอดขาย สต๊อก แคมเปญ หรือการเงิน…",
+    composerPlaceholderFor: (role: RoleId) => `ถาม Cop เรื่อง${TH.login.roles[role]}…`,
     send: "ส่งคำถาม",
     viewDashboard: "ดู Dashboard",
     dashboardHint: "⌘D",
@@ -135,8 +138,18 @@ export const TH = {
     visitDrop: (delta: string) => `ขายเข้า ${delta} เทียบช่วงก่อน`,
     visitAlert: (metric: string, gap: string) => `${metric} ${gap}`,
     visitPrompt: (agent: string) => `เทียบยอดขายเข้ากับยอดขายออกของ ${agent} ก่อนไปเยี่ยม`,
+    sharpest: (label: string, delta: string) => `แย่ลงมากสุด ${label} ${delta}`,
     weakest: (lowIsWorst: boolean, label: string, value: string) => `${lowIsWorst ? "ต่ำสุด" : "สูงสุด"} ${label} ${value}`,
     quiet: "วันนี้ยังไม่มีอะไรผิดปกติ ถามอะไรก็ได้เลยครับ",
+    tasksTitle: "วันนี้ต้องจัดการ",
+    feedDone: "เสร็จแล้ว",
+    feedSnooze: "เลื่อนไป 7 วัน",
+    feedMute: "ไม่เกี่ยวกับฉัน",
+    feedMore: "ตัวเลือกเพิ่มเติม",
+    tasksLead: (count: number) => `วันนี้มี ${count} เรื่องที่ต้องจัดการ`,
+    personPrompt: (name: string) => `ขอดูโปรไฟล์${name}`,
+    openingPrompt: (title: string) => `ขอดูผู้สมัครตำแหน่ง${title}`,
+    hiringManager: (name: string) => `ผู้จัดการ ${name}`,
     startFailed: "เปิดบทสนทนาไม่สำเร็จ ลองส่งอีกครั้งครับ",
     observedVsExpected: (observed: string, expected: string) => `จริง ${observed} · คาด ${expected}`,
     fromName: (name: string) => `จาก ${name}`,
@@ -418,6 +431,8 @@ export const TH = {
     forecastLow: "ขอบล่างพยากรณ์",
     partialWeek: "สัปดาห์ปัจจุบันยังไม่ครบ",
     partialMonth: "เดือนปัจจุบันยังไม่ครบ",
+    atBucket: (metric: string, bucket: string) => `${metric} · ${bucket}`,
+    versusBucket: (bucket: string) => `เทียบ ${bucket}`,
     others: "อื่น ๆ",
     shownOf: (shown: number, total: number) => `แสดง ${shown} จาก ${total} กลุ่มที่ค่ารวมสูงสุด`,
     legendValue: (metric: string) => `สีเข้ม = ${metric}สูง`,

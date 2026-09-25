@@ -113,7 +113,7 @@ const FINANCE_SEEDS: WidgetSeed[] = [
 
 const HR_SEEDS: WidgetSeed[] = [
   seed({ key: "headcount", title: "จำนวนพนักงานทั้งหมด", kind: "metric", metric: "headcount", compare: "prev_year" }),
-  seed({ key: "headcount_dept", title: "จำนวนพนักงานตามฝ่าย", kind: "bar", metric: "headcount", dims: ["department"] }),
+  seed({ key: "attrition_dept", title: "ฝ่ายที่ลาออกเพิ่มขึ้นเดือนล่าสุด", kind: "bar", metric: "attrition_rate", dims: ["department"], range: LAST_AUDITED_MONTH, compare: "prev_period", sortBy: "delta_desc" }),
   seed({ key: "attrition", title: "อัตราการลาออกรายเดือน", kind: "line", metric: "attrition_rate", dims: ["month"], range: LAST_6_MONTHS }),
   seed({ key: "salary", title: "เงินเดือนเฉลี่ยตามฝ่าย", kind: "kv", metric: "avg_salary", dims: ["department"], limit: TOP_ROWS }),
 ];

@@ -19,7 +19,7 @@ import { PILL } from "@/components/ui/pill";
 import { setHostContext } from "@/components/providers/host-context";
 import { isFollowUpIntent } from "@/lib/engine/follow-ups";
 import { COP_CHAT_LABELS } from "./labels";
-import { chipRow, latestFollowUps } from "./follow-ups";
+import { answeredMetrics, chipRow, latestFollowUps } from "./follow-ups";
 
 const CHAT_ENDPOINT = "/api/chat";
 const THREADS_ENDPOINT = "/api/threads";
@@ -41,12 +41,14 @@ export function SessionChat({
   initialMessages,
   preload,
   suggestions,
+  placeholder,
 }: {
   threadId: string;
   initialPrompt: string | null;
   initialMessages: VexaMessage[];
   preload: SessionPreload | null;
   suggestions: QuickAction[];
+  placeholder: string;
 }) {
   const host = useVexaHostContext();
   const hostRef = useRef(host);
@@ -111,7 +113,8 @@ export function SessionChat({
 
   const isStreaming = status === "streaming" || status === "submitted";
   const followUps = useMemo(() => (isStreaming ? [] : latestFollowUps(messages)), [isStreaming, messages]);
-  const visibleChips = messages.length === 0 ? chips.slice(0, EMPTY_CHIPS) : chipRow(followUps, chips, ANSWER_CHIPS);
+  const answered = useMemo(() => (isStreaming ? new Set<string>() : answeredMetrics(messages)), [isStreaming, messages]);
+  const visibleChips = messages.length === 0 ? chips.slice(0, EMPTY_CHIPS) : chipRow(followUps, chips, ANSWER_CHIPS, answered);
 
   const refreshChips = useCallback(() => {
     fetch(QUICK_ACTIONS_ENDPOINT)
@@ -239,7 +242,7 @@ export function SessionChat({
               ))}
             </div>
           ) : null}
-          <CopComposer value={text} onValueChange={setText} onSubmit={send} size="docked" busy={isStreaming} />
+          <CopComposer value={text} onValueChange={setText} onSubmit={send} size="docked" busy={isStreaming} placeholder={placeholder} />
         </div>
       </div>
     </div>

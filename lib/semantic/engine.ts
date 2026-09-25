@@ -231,6 +231,8 @@ const COMPARE_LABELS: Record<MetricQuery["compare"], string | null> = {
   target: "เทียบเป้า",
 };
 const TOP_IN_HEADLINE = 3;
+const DATA_START_LABEL = formatThaiDate(ISO_OF_DAY[0]);
+const UNCOMPARABLE_LEAD = "ไม่มีข้อมูลให้";
 
 function combined(rows: Aggregated[], averaged: boolean): number {
   if (!averaged) return rows.reduce((sum, row) => sum + row.value, 0);
@@ -272,11 +274,13 @@ function latestBucket(dims: Dim[], rows: Aggregated[]): Aggregated[] {
   return rows.filter((row) => row.dims[timeDim] === latest);
 }
 
-function headlineOf(dictionary: Dictionary, def: MetricDef, query: MetricQuery, rows: Aggregated[], all: Aggregated[], ratio: boolean, compareRows: Aggregated[] | null, masked: boolean, suppressed: Set<string>): MetricHeadline {
-  const periodLabel = `${formatThaiDate(query.range.from)} – ${formatThaiDate(query.range.to)}`;
+type HeadlineContext = { periodLabel: string; compareNote: string | null };
+
+function headlineOf(dictionary: Dictionary, def: MetricDef, query: MetricQuery, rows: Aggregated[], all: Aggregated[], ratio: boolean, compareRows: Aggregated[] | null, masked: boolean, suppressed: Set<string>, context: HeadlineContext): MetricHeadline {
+  const { periodLabel, compareNote } = context;
   const aggregate = ratio ? "average" : "sum";
   if (masked || all.length === 0) {
-    return { aggregate, value: "—", periodLabel, rowCount: rows.length, deltaPercent: null, compareLabel: null, top: [] };
+    return { aggregate, value: "—", periodLabel, rowCount: rows.length, deltaPercent: null, compareLabel: null, compareNote, top: [] };
   }
   const headlineRows = headlineSubset(dictionary, def, query, all);
   const deltaPercent = deltaPercentOf(def, headlineRows, compareRows ? headlineSubset(dictionary, def, query, compareRows) : null, ratio);
@@ -287,6 +291,7 @@ function headlineOf(dictionary: Dictionary, def: MetricDef, query: MetricQuery, 
     rowCount: rows.length,
     deltaPercent,
     compareLabel: deltaPercent === null ? null : COMPARE_LABELS[query.compare] ?? "เทียบช่วงก่อนหน้า",
+    compareNote,
     top: topOf(dictionary, def, query, all, suppressed),
   };
 }
@@ -301,6 +306,7 @@ function summarize(def: MetricDef, query: MetricQuery, headline: MetricHeadline,
   if (headline.deltaPercent !== null) {
     parts.push(`${headline.compareLabel} ${headline.deltaPercent >= 0 ? "+" : ""}${formatNumber(headline.deltaPercent, 1)}%`);
   }
+  if (headline.compareNote) parts.push(headline.compareNote);
   parts.push(`(${headline.rowCount} แถว · ${def.certified ? "certified" : "derived"} · ${def.sourceSystem})`);
   return parts.join(" · ");
 }
@@ -348,6 +354,22 @@ function priorWindow(compare: MetricQuery["compare"], from: number, to: number, 
 }
 
 
+/** Where the answer can start so its comparison exists: a year-on-year question that reaches back before the data is narrowed to the months both years hold, and every comparison the data cannot serve says why instead of vanishing. */
+function comparableStart(compare: MetricQuery["compare"], from: number, to: number, wholeMonths: boolean): { from: number; note: string | null } {
+  if (compare !== "prev_period" && compare !== "prev_year") return { from, note: null };
+  if (priorWindow(compare, from, to, wholeMonths)) return { from, note: null };
+  const narrowed = compare === "prev_year" ? earliestYearOnYear(from, to, wholeMonths) : null;
+  if (narrowed === null) return { from, note: `${UNCOMPARABLE_LEAD}${COMPARE_LABELS[compare]}: ข้อมูลเริ่ม ${DATA_START_LABEL}` };
+  return { from: narrowed, note: `เทียบปีก่อนได้ตั้งแต่ ${formatThaiDate(ISO_OF_DAY[narrowed])} เพราะข้อมูลเริ่ม ${DATA_START_LABEL}` };
+}
+
+function earliestYearOnYear(from: number, to: number, wholeMonths: boolean): number | null {
+  const monthAligned = wholeMonths || (isMonthStart(from) && (isMonthEnd(to) || to === DAY_COUNT - 1));
+  const start = monthAligned ? MONTH_FIRST_DAY[MONTHS_PER_YEAR] : PREV_YEAR_DAYS;
+  if (start === undefined || start > to) return null;
+  return Math.max(from, start);
+}
+
 function dedupe(dims: Dim[]): Dim[] {
   return [...new Set(dims)];
 }
@@ -385,6 +407,8 @@ export type MetricPlan = {
   scopeApplied: Partial<Record<Dim, string[]>>;
   masked: boolean;
   ratio: boolean;
+  periodLabel: string;
+  compareNote: string | null;
   current: FactRequest;
   comparison: FactRequest | Failure | null;
 };
@@ -407,6 +431,7 @@ export function planMetric(query: MetricQuery, access: AccessContext, dictionary
 
   const dims = dedupe(query.dims);
   const compare = query.compare === "target" && ALREADY_VS_TARGET.has(def.id) ? "none" : query.compare;
+  const start = comparableStart(compare, range.from, range.to, MONTHLY_METRICS.has(def.id));
   return {
     dictionary,
     def,
@@ -416,8 +441,10 @@ export function planMetric(query: MetricQuery, access: AccessContext, dictionary
     scopeApplied: scope.scopeApplied,
     masked: visibility === "masked",
     ratio: RATIO_METRICS.has(def.id),
-    current: factRequest(def, "actual", dims, filters, range.from, range.to, NO_SHIFT),
-    comparison: comparisonOf(def, compare, dims, filters, range.from, range.to),
+    periodLabel: `${formatThaiDate(start.from === range.from ? query.range.from : ISO_OF_DAY[start.from])} – ${formatThaiDate(query.range.to)}`,
+    compareNote: start.note,
+    current: factRequest(def, "actual", dims, filters, start.from, range.to, NO_SHIFT),
+    comparison: comparisonOf(def, compare, dims, filters, start.from, range.to),
   };
 }
 
@@ -460,7 +487,7 @@ export function finishMetric(plan: MetricPlan, current: FactResult, comparison: 
     masked: masked || suppressed.size > 0 ? [...SUPPRESSED_FIELDS] : [],
     trust: def.certified ? "verified" : "derived",
   };
-  const headline = headlineOf(dictionary, def, query, capped, aggregated, averagedHeadline(def, query, ratio), compareRows, masked, suppressed);
+  const headline = headlineOf(dictionary, def, query, capped, aggregated, averagedHeadline(def, query, ratio), compareRows, masked, suppressed, { periodLabel: plan.periodLabel, compareNote: plan.compareNote });
   const summary = summarize(def, query, headline, masked, aggregated.length === 0);
   return {
     ok: true,

@@ -16,7 +16,7 @@ function resultOf(rows: Record<string, string | number>[]): MetricResult {
     ok: true,
     rows,
     summary: "",
-    headline: { aggregate: "average", value: "", periodLabel: "", rowCount: rows.length, deltaPercent: null, compareLabel: null, top: [] },
+    headline: { aggregate: "average", value: "", periodLabel: "", rowCount: rows.length, deltaPercent: null, compareLabel: null, compareNote: null, top: [] },
     provenance: { metric: "target_attainment", certified: true, sourceSystem: "SAP SD", asOf: "2026-09-22", rowCount: rows.length, filtersApplied: {}, scopeApplied: {}, masked: [], trust: "verified" },
   } as MetricResult;
 }

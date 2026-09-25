@@ -130,26 +130,28 @@ function rankDimOf(query: MetricQuery): Dim | null {
   return groupDimsOf(query)[0] ?? null;
 }
 
-function endsOnFullBucket(query: MetricQuery): boolean {
-  if (query.grain === "month") return monthKeyOfIso(addDays(query.range.to, 1)) !== monthKeyOfIso(query.range.to);
-  if (query.grain === "week") return new Date(`${query.range.to}T00:00:00Z`).getUTCDay() === SUNDAY;
+function endsOnFullBucket(grain: MetricQuery["grain"], lastDay: string): boolean {
+  if (grain === "month") return monthKeyOfIso(addDays(lastDay, 1)) !== monthKeyOfIso(lastDay);
+  if (grain === "week") return new Date(`${lastDay}T00:00:00Z`).getUTCDay() === SUNDAY;
   return true;
 }
 
-function partialBucketKey(query: MetricQuery): string | null {
-  if (endsOnFullBucket(query)) return null;
-  if (query.grain === "month") return monthKeyOfIso(query.range.to);
-  if (query.grain === "week") return weekKeyOfIso(query.range.to);
+/** The bucket still running on the last day the data holds: a range asked to the end of September is still cut on the day the data stops. */
+function partialBucketKey(query: MetricQuery, asOf: string): string | null {
+  const lastDay = query.range.to < asOf ? query.range.to : asOf;
+  if (endsOnFullBucket(query.grain, lastDay)) return null;
+  if (query.grain === "month") return monthKeyOfIso(lastDay);
+  if (query.grain === "week") return weekKeyOfIso(lastDay);
   return null;
 }
 
 const TIME_BODIES: ReadonlySet<CardView> = new Set(["line", "stacked", "area", "heatmap"]);
 
 /** A trend whose last bucket is the running week or month drops that bucket and says so, instead of falling off a cliff. */
-function withoutPartialBucket(query: MetricQuery, view: CardView, rows: MetricRow[]): { rows: MetricRow[]; note: string | null } {
+function withoutPartialBucket(query: MetricQuery, view: CardView, rows: MetricRow[], asOf: string): { rows: MetricRow[]; note: string | null } {
   if (!TIME_BODIES.has(view) || rows.length < 2) return { rows, note: null };
   const dim = timeDimOf(query);
-  const key = partialBucketKey(query);
+  const key = partialBucketKey(query, asOf);
   if (!dim || !key) return { rows, note: null };
   const kept = rows.filter((row) => String(row[dim]) !== key);
   if (kept.length === rows.length || kept.length === 0) return { rows, note: null };
@@ -251,7 +253,7 @@ function scopeOf(query: MetricQuery, rowCount: number, periodLabel: string): str
 function footnoteOf(result: Extract<MetricResult, { ok: true }>, extraNote: string | null): string {
   const trust = TH.dash.trust[result.provenance.trust];
   const masked = result.provenance.masked.length > 0 ? TH.dash.maskedNote(result.provenance.masked.length) : null;
-  return [TH.dash.provenance(result.provenance.sourceSystem, trust, formatDateTh(result.provenance.asOf)), masked, extraNote]
+  return [TH.dash.provenance(result.provenance.sourceSystem, trust, formatDateTh(result.provenance.asOf)), masked, result.headline.compareNote, extraNote]
     .filter((line): line is string => line !== null)
     .join(" · ");
 }
@@ -265,6 +267,49 @@ function heroOf(query: MetricQuery, result: Extract<MetricResult, { ok: true }>)
     trend: directionOf(delta),
     tone: toneOf(query.metric, delta),
     detail: result.headline.compareLabel,
+  };
+}
+
+type LatestBucket = { label: string; value: string; deltaPercent: number; versus: string };
+
+/** A rate over time without a comparison is read at its latest full bucket against the one before; the average of the whole line hides the turn someone asked about. */
+function latestBucketOf(query: MetricQuery, result: Extract<MetricResult, { ok: true }>, rows: MetricRow[]): LatestBucket | null {
+  if (result.headline.aggregate !== "average" || result.headline.deltaPercent !== null) return null;
+  if (!timeDimOf(query) || groupDimsOf(query).length > 0 || rows.length < 2) return null;
+  const [previous, latest] = rows.slice(-2);
+  const previousValue = numericOf(previous, "value");
+  const latestValue = numericOf(latest, "value");
+  if (previousValue === null || latestValue === null || previousValue === 0) return null;
+  return {
+    label: labelOf(query, latest),
+    value: valueTextOf(query, latest),
+    deltaPercent: ((latestValue - previousValue) / Math.abs(previousValue)) * PERCENT,
+    versus: TH.dash.versusBucket(labelOf(query, previous)),
+  };
+}
+
+function fullBucketRows(query: MetricQuery, rows: MetricRow[], asOf: string): MetricRow[] {
+  return withoutPartialBucket(query, "line", rows, asOf).rows;
+}
+
+/** The change a card leads with, the same one its hero shows: the latest full bucket for a rate over time, the headline comparison otherwise. */
+export function headlineChangeOf(query: MetricQuery, result: MetricResult): { deltaPercent: number | null; compareLabel: string | null } {
+  if (!result.ok) return { deltaPercent: null, compareLabel: null };
+  const latest = latestBucketOf(query, result, fullBucketRows(query, result.rows, result.provenance.asOf));
+  if (latest) return { deltaPercent: latest.deltaPercent, compareLabel: latest.versus };
+  return { deltaPercent: result.headline.deltaPercent, compareLabel: result.headline.compareLabel };
+}
+
+function heroFor(query: MetricQuery, result: Extract<MetricResult, { ok: true }>, rows: MetricRow[]): CardHero {
+  const latest = latestBucketOf(query, result, rows);
+  if (!latest) return heroOf(query, result);
+  return {
+    label: TH.dash.atBucket(metricLabel(query.metric), latest.label),
+    value: latest.value,
+    delta: formatDelta(latest.deltaPercent),
+    trend: directionOf(latest.deltaPercent),
+    tone: toneOf(query.metric, latest.deltaPercent),
+    detail: latest.versus,
   };
 }
 
@@ -552,7 +597,7 @@ export function presentCard(input: PresentInput): CardParts {
   const sortBy = input.sortBy ?? query.sort ?? null;
   const whole: Shape = { query, rows: result.rows, additive: result.headline.aggregate === "sum", sortBy };
   const view = viewFor(whole, input.view ?? "auto", masked, extras);
-  const trimmed = withoutPartialBucket(query, view, result.rows);
+  const trimmed = withoutPartialBucket(query, view, result.rows, result.provenance.asOf);
   const shape: Shape = { ...whole, rows: sorted(query, trimmed.rows, sortBy) };
   const note = [trimmed.note, hiddenGroupsNote(shape, view)].filter((line): line is string => line !== null).join(" · ");
   return {
@@ -560,7 +605,7 @@ export function presentCard(input: PresentInput): CardParts {
     meta: scopeOf(query, groupCountFor(query, result.rows, result.headline.rowCount), result.headline.periodLabel),
     description: input.description ?? null,
     footnote: footnoteOf(result, note || null),
-    hero: masked || view === "alert_list" ? null : heroOf(query, result),
+    hero: masked || view === "alert_list" ? null : heroFor(query, result, shape.rows),
     body: bodyFor(shape, view, extras),
     actions: input.actions ?? NO_ACTIONS,
     denied: null,

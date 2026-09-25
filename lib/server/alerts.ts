@@ -1,12 +1,17 @@
 import { existsSync } from "node:fs";
 import path from "node:path";
-import type { AccessContext, Alert, ContextPacket, Forecast, Region } from "@/lib/contracts";
+import type { AccessContext, Alert, ContextPacket, Dim, Forecast, Region } from "@/lib/contracts";
 import { alertMutes, alertThresholds, alerts, forecasts, packets } from "@/lib/server/agent/collections";
 import { DATA_DIR } from "@/lib/server/store/json-store";
 import { detectAnomalies, thresholdKey, toAlert, type Thresholds } from "@/lib/engine/anomaly";
 import { buildForecasts } from "@/lib/engine/forecast";
 import { templateFor } from "@/lib/dashboard/templates";
 import { findUser } from "@/lib/data/entities/users";
+import { alertRowOf } from "@/lib/cards/alert-row";
+import { rememberAction } from "@/lib/engine/memory";
+import { TH } from "@/lib/i18n/th";
+import { loadDictionary } from "@/lib/server/master-data";
+import { recordAction } from "@/lib/server/threads";
 
 const MUTE_DAYS = 14;
 const DAY_MS = 86_400_000;
@@ -170,4 +175,22 @@ export function dismissAlert(alert: Alert): { alert: Alert; raised: boolean } {
 
 export function alertById(id: string): Alert | null {
   return alerts().get(id);
+}
+
+/** The intent an alert's events are counted under: the slice it watches, not the one alert, so a reopened alert is the same interest. */
+export function alertIntentKey(alert: Alert): string {
+  return `alert:${thresholdKey(alert.metric, alert.dims)}`;
+}
+
+export function alertSubject(alert: Alert): { metric: Alert["metric"]; dims: Dim[] } {
+  return { metric: alert.metric, dims: Object.keys(alert.dims) as Dim[] };
+}
+
+/** "Not mine": hides the slice for this user for a while, remembers they do not follow it, and counts it as a dismissal. */
+export async function muteAlertForUser(alert: Alert, access: AccessContext, now = Date.now()): Promise<{ until: string }> {
+  const muted = muteAlert(alert, access, now);
+  const row = alertRowOf(alert, await loadDictionary());
+  rememberAction(access.userId, { type: "preference", value: TH.memory.notFollowing(`${row.metricLabel} ${row.scopeLabel}`) });
+  recordAction(access.userId, "dismiss", alertIntentKey(alert), null, null, alertSubject(alert));
+  return muted;
 }

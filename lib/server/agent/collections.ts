@@ -1,4 +1,4 @@
-import type { ActionEvent, Alert, ContextPacket, DashboardLayout, Forecast, MemoryFact, Notification, OutboxEntry, PersonalWatch } from "@/lib/contracts";
+import type { ActionEvent, Alert, ContextPacket, DashboardLayout, FeedStateRecord, Forecast, MemoryFact, Notification, OutboxEntry, PersonalWatch } from "@/lib/contracts";
 import { collection } from "@/lib/server/store/json-store";
 
 export type StoredForecast = Forecast;
@@ -68,7 +68,7 @@ export function alertMutes() {
   return collection<AlertMute>("alert-mutes");
 }
 
-export type Visit = { id: string; at: string; alertIds: string[]; previousAt: string | null; previousAlertIds: string[] | null };
+export type Visit = { id: string; at: string; alertIds: string[]; previousAt: string | null; previousAlertIds: string[] | null; shownKeys?: string[]; seenCounts?: Record<string, number> };
 
 export function visits() {
   return collection<Visit>("visits");
@@ -116,4 +116,8 @@ export type StaffRequest = { id: string; userId: string; kind: "leave" | "course
 
 export function staffRequests() {
   return collection<StaffRequest>("staff-requests");
+}
+
+export function feedStates() {
+  return collection<FeedStateRecord>("feed-states");
 }

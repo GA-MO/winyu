@@ -1,5 +1,5 @@
 import type { ActionEvent, Alert, MetricId, MetricResult, WidgetSpec } from "@/lib/contracts";
-import { sharpestHarm, weakestRow } from "@/lib/cards/present";
+import { headlineChangeOf, sharpestHarm, weakestRow } from "@/lib/cards/present";
 import { formatDelta, formatMetricValue, toneOf } from "@/lib/dashboard/metric-display";
 import { TH } from "@/lib/i18n/th";
 
@@ -54,10 +54,10 @@ export function attentionOf({ widget, result, alerts }: AttentionInput): Attenti
   if (widget.kind === "alert_list" || !result.ok) return STEADY;
   const floor = belowFloor(widget, result);
   if (floor) return floor;
-  const delta = result.headline.deltaPercent;
+  const { deltaPercent: delta, compareLabel } = headlineChangeOf(widget.query, result);
   if (delta !== null && Math.abs(delta) >= MOVED_PCT) {
     const tier = toneOf(widget.query.metric, delta) === "bad" ? TIER.harmfulHeadline : TIER.headline;
-    return { level: "moved", reason: TH.attention.headline(formatDelta(delta) ?? "", result.headline.compareLabel), score: scoreIn(tier, Math.abs(delta)) };
+    return { level: "moved", reason: TH.attention.headline(formatDelta(delta) ?? "", compareLabel), score: scoreIn(tier, Math.abs(delta)) };
   }
   const harm = sharpestHarm(widget.query, result, HARMFUL_ROW_PCT);
   if (harm) return { level: "moved", reason: TH.attention.row(harm.label, harm.delta), score: scoreIn(TIER.row, Math.abs(harm.deltaPercent)) };

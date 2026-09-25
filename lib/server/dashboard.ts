@@ -1,5 +1,5 @@
 import { runMetric } from "@/lib/server/metrics";
-import type { AccessContext, Alert, DashboardLayout, MetricResult, WidgetSpec } from "@/lib/contracts";
+import type { AccessContext, Alert, DashboardLayout, MetricQuery, MetricResult, WidgetSpec } from "@/lib/contracts";
 import type { Spec } from "vexa/protocol";
 import { layoutVersions, layouts } from "@/lib/server/agent/collections";
 import { forecastsFor, openAlertsFor, openPacketsFor, relevanceOf } from "@/lib/server/alerts";
@@ -11,12 +11,12 @@ import { TODAY, addDays } from "@/lib/data/dates";
 import type { Dictionary } from "@/lib/semantic/dictionary";
 import { loadDictionary } from "@/lib/server/master-data";
 import { formatDelta } from "@/lib/dashboard/metric-display";
-import { presentCard, weakestRow } from "@/lib/cards/present";
+import { presentCard, sharpestHarm, weakestRow, type CardParts } from "@/lib/cards/present";
 import { TH } from "@/lib/i18n/th";
 import { templateFor } from "@/lib/dashboard/templates";
 import { widgetToSpec, type WidgetExtras } from "@/lib/dashboard/widget-to-spec";
 import { findUser } from "@/lib/data/entities/users";
-import { attentionOf, byAttention, staleWidgets, type Attention } from "@/lib/dashboard/attention";
+import { HARMFUL_ROW_PCT, attentionOf, byAttention, staleWidgets, type Attention } from "@/lib/dashboard/attention";
 import { actionEvents } from "@/lib/server/agent/collections";
 import { lessonFor } from "@/lib/server/outcomes";
 
@@ -158,6 +158,22 @@ export function staleFor(access: AccessContext, now = Date.now()): WidgetSpec[] 
 }
 
 /** The headline of each pinned card, the most urgent first as on the dashboard, through the same presenter the dashboard draws with; masked or denied cards are skipped. */
+/** A second tile on a metric already shown names the group that moved instead of repeating the headline; null when no group moved enough to name. */
+function moverKpi(widget: WidgetSpec, result: MetricResult, detail: string | null): LandingKpi | null {
+  const harm = sharpestHarm(widget.query, result, HARMFUL_ROW_PCT);
+  if (!harm) return null;
+  return { id: widget.id, label: widget.title, value: harm.label, delta: harm.delta, tone: "bad", detail, note: null };
+}
+
+/** The one row that makes a breakdown worth a tile: the weakest level, the sharpest harmful move, or how far a progress card has to go. */
+function kpiNoteOf(query: MetricQuery, result: MetricResult, parts: CardParts): string | null {
+  const weakest = weakestRow(query, result);
+  if (weakest) return TH.landing.weakest(weakest.lowIsWorst, weakest.label, weakest.value);
+  const harm = sharpestHarm(query, result, HARMFUL_ROW_PCT);
+  if (harm) return TH.landing.sharpest(harm.label, harm.delta);
+  return parts.body.kind === "progress" ? parts.body.detail : null;
+}
+
 export async function landingKpis(access: AccessContext): Promise<LandingKpi[]> {
   const kpis: LandingKpi[] = [];
   const relevant = relevantAlerts(access);
@@ -167,13 +183,19 @@ export async function landingKpis(access: AccessContext): Promise<LandingKpi[]> 
       const result = await resolveWidget(widget, access);
       return { widget, result, attention: attentionOf({ widget, result, alerts: relevant }) };
     }));
+  const shownMetrics = new Set<string>();
   for (const { widget, result } of byAttention(pinned)) {
     if (kpis.length >= KPI_LIMIT) break;
     const parts = presentCard({ title: widget.title, query: widget.query, result });
     const hero = parts.hero;
     if (!hero || kpis.some((kpi) => kpi.label === hero.label && kpi.value === hero.value)) continue;
-    const weakest = weakestRow(widget.query, result);
-    const note = weakest ? TH.landing.weakest(weakest.lowIsWorst, weakest.label, weakest.value) : parts.body.kind === "progress" ? parts.body.detail : null;
+    const mover = shownMetrics.has(widget.query.metric) ? moverKpi(widget, result, hero.detail) : null;
+    if (mover) {
+      kpis.push(mover);
+      continue;
+    }
+    shownMetrics.add(widget.query.metric);
+    const note = kpiNoteOf(widget.query, result, parts);
     kpis.push({ id: widget.id, label: hero.label, value: hero.value, delta: hero.delta, tone: hero.tone, detail: hero.detail, note });
   }
   return kpis;
@@ -220,15 +242,17 @@ export async function visitsFor(access: AccessContext): Promise<VisitStop[]> {
   return stops.slice(0, VISIT_LIMIT).map((entry) => entry.stop);
 }
 
-/** The cards under the KPIs; an alert about an agent the visit list already names is left to that row. */
-export async function ambientFor(access: AccessContext, visits: readonly VisitStop[] = []): Promise<AmbientCard[]> {
+export type VisibleMatters = { alertIds: ReadonlySet<string>; packetIds: ReadonlySet<string> };
+
+/** The cards under the KPIs; an alert about an agent the visit list already names is left to that row, and with `visible` only the alerts and handoffs still on the user's feed are drawn. */
+export async function ambientFor(access: AccessContext, visits: readonly VisitStop[] = [], visible: VisibleMatters | null = null): Promise<AmbientCard[]> {
   const dictionary = await loadDictionary();
-  const packet = openPacketsFor(access)[0] ?? null;
+  const packet = openPacketsFor(access).find((candidate) => !visible || visible.packetIds.has(candidate.id)) ?? null;
   const fromName = packet ? (findUser(packet.fromUserId)?.nameTh ?? packet.fromUserId) : "";
   const visited = new Set(visits.map((stop) => stop.agent));
   const agentOf = (alert: Alert) => (alert.dims.agent ? dictionary.displayLabel("agent", alert.dims.agent) : null);
   return ambientCards({
-    alerts: relevantAlerts(access).filter((alert) => !visited.has(agentOf(alert) ?? "")),
+    alerts: relevantAlerts(access).filter((alert) => !visited.has(agentOf(alert) ?? "") && (!visible || visible.alertIds.has(alert.id))),
     ownerName: (alert) => (alert.ownerUserId === access.userId ? null : (findUser(alert.ownerUserId)?.nameTh ?? null)),
     lessonOf: lessonFor,
     actionsFor: (alert) => actionsForAlert(access, alert, dictionary),
