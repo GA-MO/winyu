@@ -1,5 +1,5 @@
 import { runMetric } from "@/lib/server/metrics";
-import type { AccessContext, Alert, DashboardLayout, MetricQuery, MetricResult, WidgetSpec } from "@/lib/contracts";
+import type { AccessContext, Alert, DashboardLayout, FeedItem, MetricQuery, MetricResult, WidgetSpec } from "@/lib/contracts";
 import type { Spec } from "vexa/protocol";
 import { layoutVersions, layouts } from "@/lib/server/agent/collections";
 import { forecastsFor, openAlertsFor, openPacketsFor, relevanceOf } from "@/lib/server/alerts";
@@ -16,7 +16,8 @@ import { TH } from "@/lib/i18n/th";
 import { templateFor } from "@/lib/dashboard/templates";
 import { widgetToSpec, type WidgetExtras } from "@/lib/dashboard/widget-to-spec";
 import { findUser } from "@/lib/data/entities/users";
-import { HARMFUL_ROW_PCT, attentionOf, byAttention, staleWidgets, type Attention } from "@/lib/dashboard/attention";
+import { HARMFUL_ROW_PCT, attentionOf, byAttention, staleWidgets, withFeed, type Attention } from "@/lib/dashboard/attention";
+import { recordAction } from "@/lib/server/threads";
 import { actionEvents } from "@/lib/server/agent/collections";
 import { lessonFor } from "@/lib/server/outcomes";
 
@@ -146,10 +147,10 @@ function relevantAlerts(access: AccessContext): Alert[] {
   return openAlertsFor(access).filter((alert) => relevanceOf(alert, access) !== "other");
 }
 
-/** Every card on the dashboard, the most urgent first. */
-export async function widgetViews(access: AccessContext): Promise<WidgetView[]> {
+/** Every card on the dashboard, the most urgent first; a card about a matter still on the user's feed leads. */
+export async function widgetViews(access: AccessContext, feed: readonly FeedItem[] = []): Promise<WidgetView[]> {
   const relevant = relevantAlerts(access);
-  return byAttention(await Promise.all(layoutFor(access).widgets.map((widget) => viewOf(widget, access, relevant))));
+  return byAttention(withFeed(await Promise.all(layoutFor(access).widgets.map((widget) => viewOf(widget, access, relevant))), feed));
 }
 
 /** Pinned cards this user has stopped looking at, offered for removal on the dashboard. */
@@ -267,10 +268,21 @@ function mutate(access: AccessContext, change: (widgets: WidgetSpec[]) => Widget
   return save({ ...layout, widgets, version: layout.version + 1, updatedAt: new Date().toISOString() });
 }
 
+/** Pins or unpins one card; accepting a suggestion made in place of a starter card moves that starter card back to the tray. */
 export function setWidgetPinned(access: AccessContext, widgetId: string, pinned: boolean): DashboardLayout {
-  return mutate(access, (widgets) => widgets.map((widget) => (widget.id === widgetId ? { ...widget, pinned, source: pinned ? "user_pin" : widget.source, version: widget.version + 1 } : widget)));
+  return mutate(access, (widgets) => {
+    const replaces = pinned ? widgets.find((widget) => widget.id === widgetId)?.replaces ?? null : null;
+    return widgets.map((widget) => {
+      if (widget.id === widgetId) return { ...widget, pinned, source: pinned ? "user_pin" : widget.source, version: widget.version + 1 };
+      if (widget.id === replaces) return { ...widget, pinned: false, version: widget.version + 1 };
+      return widget;
+    });
+  });
 }
 
+/** Takes a card off the dashboard; a suggestion taken off is remembered so it is not offered again. */
 export function removeWidget(access: AccessContext, widgetId: string): DashboardLayout {
+  const removed = layoutFor(access).widgets.find((widget) => widget.id === widgetId);
+  if (removed?.source === "ai_suggested") recordAction(access.userId, "dismiss", `widget:${widgetId}`, null, null);
   return mutate(access, (widgets) => widgets.filter((widget) => widget.id !== widgetId));
 }

@@ -1,7 +1,9 @@
 import { generateObject } from "ai";
 import { z } from "zod";
 import type { AccessContext, ActionEvent, Dim, Grain, MetricId, MetricQuery, WidgetKind, WidgetSpec } from "@/lib/contracts";
-import { actionEvents } from "@/lib/server/agent/collections";
+import { actionEvents, alerts, personalWatches } from "@/lib/server/agent/collections";
+import { dimsOfFeedKind, feedIntentOf, kindLabel, metricOfFeedKind } from "@/lib/engine/feed-learning";
+import { untouchedTemplates } from "@/lib/dashboard/attention";
 import { TODAY, addDays } from "@/lib/data/dates";
 import { CLOSED_MONTH_METRICS, metricDef } from "@/lib/semantic/metrics";
 import { metricLabel } from "@/lib/dashboard/metric-display";
@@ -17,8 +19,17 @@ const RANGE_DAYS = 27;
 const ROW_LIMIT = 8;
 const MOCK_MODEL = "mock";
 const TIME_DIMS: readonly Dim[] = ["date", "week", "month"];
+const FEED_MIN_DAYS = 3;
+const FEED_OPENS: ReadonlySet<ActionEvent["kind"]> = new Set(["feed_open", "feed_done"]);
+const STORY_DIMS: readonly Dim[] = ["agent", "sku", "brand", "plant", "dc", "campaign", "province", "region"];
+const ALERT_KEY_PREFIX = "alert:";
+const WATCH_KEY_PREFIX = "watch:";
 
 export type Candidate = { intentKey: string; metric: MetricId; dims: Dim[]; count: number; prompt: string };
+
+export type FeedCandidate = Candidate & { kind: string };
+
+type FeedDims = (kind: string, keys: readonly string[]) => Dim[];
 
 const titleSchema = z.object({ title: z.string().min(4).max(48) });
 
@@ -38,6 +49,47 @@ export function candidatesFrom(events: readonly ActionEvent[], userId: string, n
     clusters.set(event.intentKey, found);
   }
   return [...clusters.values()].filter((candidate) => candidate.count >= MIN_REPEATS).sort((left, right) => right.count - left.count);
+}
+
+/** The breakdown the matters of one kind were about: the subject of the alerts opened, the slice a watch follows, or the kind's usual breakdown. */
+function feedDims(kind: string, keys: readonly string[]): Dim[] {
+  for (const key of keys) {
+    if (key.startsWith(ALERT_KEY_PREFIX)) {
+      const alert = alerts().get(key.slice(ALERT_KEY_PREFIX.length));
+      const dim = alert ? STORY_DIMS.find((candidate) => alert.dims[candidate]) : undefined;
+      if (dim) return [dim];
+    }
+    if (key.startsWith(WATCH_KEY_PREFIX)) {
+      const watch = personalWatches().get(key.slice(WATCH_KEY_PREFIX.length).split(":")[0] ?? "");
+      if (watch) return watch.query.dims;
+    }
+  }
+  return dimsOfFeedKind(kind);
+}
+
+/** Kinds of matter the user opened from their feed on three separate days within two weeks, with the slice a card on them would show; `count` is the days, and kinds no metric tells are left out. */
+export function feedCandidatesFrom(events: readonly ActionEvent[], userId: string, now = Date.now(), dimsOf: FeedDims = feedDims): FeedCandidate[] {
+  const opened = new Map<string, { days: Set<string>; keys: Set<string>; prompt: string }>();
+  for (const event of events) {
+    if (event.userId !== userId || !FEED_OPENS.has(event.kind) || daysAgo(event.at, now) > CLUSTER_DAYS) continue;
+    const intent = feedIntentOf(event.intentKey);
+    if (!intent || !metricOfFeedKind(intent.kind)) continue;
+    const entry = opened.get(intent.kind) ?? { days: new Set<string>(), keys: new Set<string>(), prompt: "" };
+    entry.days.add(event.at.slice(0, 10));
+    if (intent.key) entry.keys.add(intent.key);
+    if (event.prompt) entry.prompt = event.prompt;
+    opened.set(intent.kind, entry);
+  }
+  return [...opened]
+    .filter(([, entry]) => entry.days.size >= FEED_MIN_DAYS)
+    .flatMap(([kind, entry]) => {
+      const metric = metricOfFeedKind(kind);
+      const def = metric ? metricDef(metric) : undefined;
+      if (!metric || !def) return [];
+      const dims = dimsOf(kind, [...entry.keys]).filter((dim) => def.dims.includes(dim));
+      return [{ intentKey: `feed|${kind}`, kind, metric, dims, count: entry.days.size, prompt: entry.prompt }];
+    })
+    .sort((left, right) => right.count - left.count);
 }
 
 export function kindFor(dims: Dim[]): WidgetKind {
@@ -111,28 +163,50 @@ export function isPinnedSlice(widgets: readonly WidgetSpec[], slice: { metric: M
   return widgets.some((widget) => widget.pinned && sameSlice(widget, { metric: slice.metric, dims: [...slice.dims] }));
 }
 
-/** At most one new suggested card a day, never one the user already has. */
-export async function composeSuggestion(access: AccessContext, existing: WidgetSpec[], now = Date.now(), events?: readonly ActionEvent[]): Promise<WidgetSpec | null> {
-  if (suggestedToday(existing, now) >= MAX_NEW_PER_DAY) return null;
-  const candidates = candidatesFrom(events ?? actionEvents().all(), access.userId, now);
-  const fresh = candidates.find(
-    (candidate) => access.metricAcl[candidate.metric] === "full" && !existing.some((widget) => sameSlice(widget, candidate)),
-  );
-  if (!fresh) return null;
-  const title = (await modelTitle(fresh)) ?? templateTitle(fresh);
+function suggestionId(userId: string, candidate: Candidate): string {
+  return `w_ai_${userId}_${candidate.intentKey.replace(/[|,:]/g, "_")}`;
+}
+
+/** Suggested cards the user took off the tray; they are not offered again. */
+function dismissedIds(events: readonly ActionEvent[], userId: string): Set<string> {
+  return new Set(events.filter((event) => event.userId === userId && event.kind === "dismiss").map((event) => event.intentKey.replace(/^widget:/, "")));
+}
+
+async function suggestionOf(access: AccessContext, candidate: Candidate, reason: string, replaces: string | null, position: number, now: number): Promise<WidgetSpec> {
+  const title = (await modelTitle(candidate)) ?? templateTitle(candidate);
   return {
-    id: `w_ai_${access.userId}_${fresh.intentKey.replace(/[|,]/g, "_")}`,
+    id: suggestionId(access.userId, candidate),
     userId: access.userId,
     title,
-    kind: kindFor(fresh.dims),
-    query: queryFor(fresh, access),
+    kind: kindFor(candidate.dims),
+    query: queryFor(candidate, access),
     pinned: false,
-    position: existing.length,
+    position,
     source: "ai_suggested",
-    reason: TH.compose.reason(fresh.count, CLUSTER_DAYS),
+    reason,
+    replaces,
     createdAt: new Date(now).toISOString(),
     version: 1,
   };
+}
+
+/**
+ * At most one new suggested card a day, never one the user already has or took off the tray: first a kind of matter they keep opening from their feed,
+ * then a question they keep asking, offered in place of a starter card they have never looked at when there is one.
+ */
+export async function composeSuggestion(access: AccessContext, existing: WidgetSpec[], now = Date.now(), events?: readonly ActionEvent[]): Promise<WidgetSpec | null> {
+  if (suggestedToday(existing, now) >= MAX_NEW_PER_DAY) return null;
+  const all = events ?? actionEvents().all();
+  const dismissed = dismissedIds(all, access.userId);
+  const isNew = (candidate: Candidate) =>
+    access.metricAcl[candidate.metric] === "full" && !existing.some((widget) => sameSlice(widget, candidate)) && !dismissed.has(suggestionId(access.userId, candidate));
+  const fromFeed = feedCandidatesFrom(all, access.userId, now).find(isNew);
+  if (fromFeed) return suggestionOf(access, fromFeed, TH.compose.fromFeed(kindLabel(fromFeed.kind), fromFeed.count, CLUSTER_DAYS), null, existing.length, now);
+  const asked = candidatesFrom(all, access.userId, now).find(isNew);
+  if (!asked) return null;
+  const replaced = untouchedTemplates(existing, all, access.userId, now).find((widget) => !existing.some((other) => other.replaces === widget.id));
+  const reason = replaced ? TH.compose.replaces(replaced.title, asked.count, CLUSTER_DAYS) : TH.compose.reason(asked.count, CLUSTER_DAYS);
+  return suggestionOf(access, asked, reason, replaced?.id ?? null, existing.length, now);
 }
 
 /** The one intent this user has repeated exactly enough times for the chat to offer a pin. */

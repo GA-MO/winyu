@@ -133,6 +133,17 @@ export const TH = {
     renewPrompt: (cert: string) => `${cert}ของผมใกล้หมด ต้องต่ออายุอย่างไร มีรอบไหนบ้าง`,
     enroll: "ลงรอบต่ออายุ",
     enrollReason: "ขอที่นั่งในรอบต่ออายุ ระบบขออนุมัติก่อนส่ง",
+    because: (kind: string, times: number, days: number) => `ขึ้นก่อนเพราะคุณเปิดเรื่อง${kind} ${times} ครั้งใน ${days} วัน`,
+    watchHit: "เข้าเงื่อนไขที่คุณตั้งไว้",
+    kinds: {
+      "person:cert": "ใบอนุญาตใกล้หมด",
+      "person:risk": "คนที่เสี่ยงลาออก",
+      "person:overtime": "โอทีเกิน",
+      "own:cert": "ใบอนุญาตของคุณ",
+      opening: "ตำแหน่งที่เปิดนาน",
+      visit: "เอเย่นต์ที่ควรเยี่ยม",
+      packet: "งานที่ส่งต่อมา",
+    } as Record<string, string>,
   },
   landing: {
     greeting: {
@@ -197,7 +208,6 @@ export const TH = {
     subject: (count: number) => `[Cop] เช้านี้มี ${count} เรื่องที่รอคุณ`,
     moreAlerts: (count: number) => `และความผิดปกติอีก ${count} เรื่อง`,
     packets: (count: number) => `งานที่ส่งต่อมารอคุณ ${count} เรื่อง`,
-    watch: (title: string) => `เรื่องที่คุณให้เฝ้าดูเข้าเงื่อนไข: ${title}`,
     footer: "เปิด Cop เพื่อดูตัวเลขและส่งต่องาน — ส่งเฉพาะวันที่มีเรื่องใหม่",
     moreItems: (count: number) => `และอีก ${count} เรื่อง`,
     worse: "แย่ลง",
@@ -220,6 +230,7 @@ export const TH = {
     row: (label: string, delta: string) => `${label} ${delta}`,
     below: (floor: string, value: string) => `ต่ำกว่าเกณฑ์ ${floor} · ตอนนี้ ${value}`,
     belowAt: (floor: string, label: string, value: string) => `ต่ำกว่าเกณฑ์ ${floor} · ${label} ${value}`,
+    onFeed: (kind: string, count: number) => `อยู่ในสิ่งที่ต้องดู: ${kind} ${count} เรื่อง`,
     steadyZone: (count: number) => `ปกติ ${count} การ์ด`,
     steadyHint: "ไม่ขยับเกิน 5% ไม่ต่ำกว่าเกณฑ์ และไม่มีความผิดปกติ กดเพื่อดูการ์ดเต็ม",
     staleZone: "การ์ดที่คุณไม่ได้เปิดดู 14 วัน",
@@ -895,6 +906,8 @@ export const TH = {
   },
   compose: {
     reason: (count: number, days: number) => `คุณถามคำถามนี้ ${count} ครั้งใน ${days} วัน`,
+    fromFeed: (kind: string, days: number, window: number) => `คุณเปิดเรื่อง${kind}จากรายการ ${days} วันใน ${window} วัน`,
+    replaces: (title: string, count: number, days: number) => `แทน "${title}" ที่คุณไม่เคยเปิด · คุณถามเรื่องนี้ ${count} ครั้งใน ${days} วัน`,
     titlePrompt: "ตั้งชื่อการ์ด Dashboard ภาษาไทยสั้น ๆ ไม่เกิน 6 คำ จากคำถามที่ผู้ใช้ถามบ่อย ห้ามใส่ตัวเลข",
     yesterday: "ดู layout เมื่อวาน",
     restore: "ย้อนกลับไปเวอร์ชันนี้",

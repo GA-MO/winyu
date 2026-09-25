@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import type { ActionEvent, Alert, MetricQuery, MetricResult, MetricRow, WidgetSpec } from "@/lib/contracts";
-import { STALE_DAYS, attentionOf, byAttention, staleWidgets } from "./attention";
+import type { ActionEvent, Alert, FeedItem, MetricQuery, MetricResult, MetricRow, WidgetSpec } from "@/lib/contracts";
+import { STALE_DAYS, attentionOf, byAttention, staleWidgets, untouchedTemplates, withFeed } from "./attention";
 
 const NOW = Date.parse("2026-10-20T09:00:00.000Z");
 const DAY_MS = 86_400_000;
@@ -123,6 +123,39 @@ describe("cards the user stopped looking at", () => {
   test("a pinned card with no view in two weeks is offered for removal; new and tray cards are not", () => {
     const events = [view("seen", STALE_DAYS + 5), view("seen", 2)];
     expect(staleWidgets(widgets, events, "u_x", NOW).map((entry) => entry.id)).toEqual(["ignored"]);
+  });
+});
+
+describe("starter cards the user never looked at", () => {
+  const widgets = [widget("seen"), widget("never"), widget("mine", { source: "user_pin" }), widget("tray", { pinned: false })];
+
+  test("none before two weeks of viewing; after, only pinned starter cards with no view ever", () => {
+    expect(untouchedTemplates(widgets, [view("seen", 3)], "u_x", NOW)).toEqual([]);
+    expect(untouchedTemplates(widgets, [view("seen", STALE_DAYS + 5)], "u_x", NOW).map((entry) => entry.id)).toEqual(["never"]);
+  });
+});
+
+function feedItem(kind: string, rank: number, source: FeedItem["source"] = "alert"): FeedItem {
+  return { key: `${kind}:${rank}`, source, kind, story: null, rank, tone: "warning", label: kind, reason: "", detail: null, prompt: "", alertId: null, packetId: null, canFinish: true, actions: [], because: null };
+}
+
+describe("cards about what is on the feed", () => {
+  const moved = { widget: widget("moved", { position: 0 }), attention: attentionOf({ widget: widget("moved"), result: result(-30), alerts: [] }) };
+  const attrition = widget("attrition", { position: 1, kind: "bar", query: query({ metric: "attrition_rate", dims: ["department"] }) });
+  const quiet = { widget: attrition, attention: attentionOf({ widget: attrition, result: result(1), alerts: [] }) };
+
+  test("a steady card about a matter on the feed leads and says which matters", () => {
+    const ordered = byAttention(withFeed([moved, quiet], [feedItem("person:risk", 500, "person"), feedItem("person:risk", 450, "person")]));
+    expect(ordered.map((entry) => entry.widget.id)).toEqual(["attrition", "moved"]);
+    expect(ordered[0].attention.reason).toContain("2 เรื่อง");
+  });
+
+  test("the more urgent matter leads, a card already moved keeps its own reason, and a card nothing on the feed is about is untouched", () => {
+    const sales = { ...moved, widget: widget("sales", { position: 2 }) };
+    const ordered = byAttention(withFeed([quiet, sales], [feedItem("person:risk", 450, "person"), feedItem("alert:net_sales_volume", 900)]));
+    expect(ordered.map((entry) => entry.widget.id)).toEqual(["sales", "attrition"]);
+    expect(ordered[0].attention.reason).toBe(moved.attention.reason);
+    expect(withFeed([quiet], [feedItem("opening", 900, "opening")])[0]).toBe(quiet);
   });
 });
 

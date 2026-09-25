@@ -1,4 +1,5 @@
-import type { ActionEvent, Alert, MetricId, MetricResult, WidgetSpec } from "@/lib/contracts";
+import type { ActionEvent, Alert, FeedItem, MetricId, MetricResult, WidgetSpec } from "@/lib/contracts";
+import { kindLabel, metricOfFeedKind } from "@/lib/engine/feed-learning";
 import { headlineChangeOf, sharpestHarm, weakestRow } from "@/lib/cards/present";
 import { formatDelta, formatMetricValue, toneOf } from "@/lib/dashboard/metric-display";
 import { TH } from "@/lib/i18n/th";
@@ -9,9 +10,10 @@ export const STALE_DAYS = 14;
 const DAY_MS = 86_400_000;
 const LEVEL_FLOORS: Partial<Record<MetricId, number>> = { target_attainment: 95, days_of_cover: 10 };
 const TIER_SPAN = 100;
-const TIER = { alert: 4, floor: 3, harmfulHeadline: 2, headline: 1, row: 0 } as const;
+const TIER = { feed: 5, alert: 4, floor: 3, harmfulHeadline: 2, headline: 1, row: 0 } as const;
 const SEVERITY_WEIGHT: Record<Alert["severity"], number> = { P1: 2, P2: 1, P3: 0 };
 const SEVERITY_SPAN = 33;
+const FEED_RANK_SCALE = 10;
 
 /** `score` ranks the moved cards against each other, most urgent first; a steady card scores 0. */
 export type Attention = { level: "moved" | "steady"; reason: string | null; score: number };
@@ -69,8 +71,30 @@ export function byAttention<T extends { widget: WidgetSpec; attention: Attention
   return views.slice().sort((left, right) => right.attention.score - left.attention.score || left.widget.position - right.widget.position);
 }
 
+function relatesTo(widget: WidgetSpec, item: FeedItem): boolean {
+  if (widget.kind === "alert_list") return item.source === "alert";
+  return metricOfFeedKind(item.kind) === widget.query.metric;
+}
+
+/** Cards about a matter still on the user's feed move to the front, the most urgent matter first, and say which matters when nothing else moved them. */
+export function withFeed<T extends { widget: WidgetSpec; attention: Attention }>(views: readonly T[], feed: readonly FeedItem[]): T[] {
+  return views.map((view) => {
+    const related = feed.filter((item) => relatesTo(view.widget, item));
+    const top = related.reduce<FeedItem | null>((best, item) => (best === null || item.rank > best.rank ? item : best), null);
+    if (!top) return view;
+    const reason = view.attention.level === "moved" ? view.attention.reason : TH.attention.onFeed(kindLabel(top.kind), related.length);
+    return { ...view, attention: { level: "moved", reason, score: scoreIn(TIER.feed, top.rank / FEED_RANK_SCALE) } };
+  });
+}
+
 function daysBetween(fromIso: string, now: number): number {
   return (now - new Date(fromIso).getTime()) / DAY_MS;
+}
+
+function widgetViewsOf(events: readonly ActionEvent[], userId: string, now: number): ActionEvent[] | null {
+  const views = events.filter((event) => event.userId === userId && event.kind === "widget_view");
+  const firstView = views.reduce<string | null>((first, event) => (first === null || event.at < first ? event.at : first), null);
+  return firstView && daysBetween(firstView, now) >= STALE_DAYS ? views : null;
 }
 
 /**
@@ -78,9 +102,16 @@ function daysBetween(fromIso: string, now: number): number {
  * the dashboard only offers to remove them, it never does.
  */
 export function staleWidgets(widgets: readonly WidgetSpec[], events: readonly ActionEvent[], userId: string, now = Date.now()): WidgetSpec[] {
-  const views = events.filter((event) => event.userId === userId && event.kind === "widget_view");
-  const firstView = views.reduce<string | null>((first, event) => (first === null || event.at < first ? event.at : first), null);
-  if (!firstView || daysBetween(firstView, now) < STALE_DAYS) return [];
+  const views = widgetViewsOf(events, userId, now);
+  if (!views) return [];
   const recent = new Set(views.filter((event) => daysBetween(event.at, now) <= STALE_DAYS).map((event) => event.intentKey));
   return widgets.filter((widget) => widget.pinned && daysBetween(widget.createdAt, now) >= STALE_DAYS && !recent.has(`widget:${widget.id}`));
+}
+
+/** Starter cards the user has never looked at, once there are two weeks of viewing to judge by; the dashboard offers what they asked for in their place, it never swaps them itself. */
+export function untouchedTemplates(widgets: readonly WidgetSpec[], events: readonly ActionEvent[], userId: string, now = Date.now()): WidgetSpec[] {
+  const views = widgetViewsOf(events, userId, now);
+  if (!views) return [];
+  const seen = new Set(views.map((event) => event.intentKey));
+  return widgets.filter((widget) => widget.pinned && widget.source === "role_template" && !seen.has(`widget:${widget.id}`));
 }
