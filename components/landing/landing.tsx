@@ -53,11 +53,11 @@ const TONE_DOT: Record<AmbientTone, string> = {
 };
 export type Greeting = { lead: string; name: string };
 
-function StatusLine({ links, taskCount }: { links: StatusLink[]; taskCount: number }) {
+function StatusLine({ links, lead, taskCount }: { links: StatusLink[]; lead: string; taskCount: number }) {
   if (links.length === 0) return <p className="text-sm text-muted-foreground sm:text-base">{taskCount > 0 ? TH.landing.tasksLead(taskCount) : TH.landing.quiet}</p>;
   return (
     <p className="flex flex-wrap items-center justify-center gap-x-1 gap-y-1 text-sm">
-      <span className="mr-1 text-muted-foreground">{TH.landing.statusLead}</span>
+      <span className="mr-1 text-muted-foreground">{lead}</span>
       {links.map((link) => (
         <Link
           key={link.id}
@@ -83,7 +83,7 @@ function AmbientCardView({ card, onOpen, onHandoff, onSettle }: { card: AmbientC
           <span aria-hidden className={cn("size-1.5 shrink-0 rounded-full", TONE_DOT[card.tone])} />
           <span className="truncate">{card.eyebrow}</span>
         </span>
-        {card.alertId ? <FeedMenu feedKey={`alert:${card.alertId}`} canFinish onSettle={onSettle} /> : null}
+        {card.feedKey ? <FeedMenu feedKey={card.feedKey} canFinish onSettle={onSettle} /> : null}
       </div>
       <button type="button" onClick={onOpen} className="flex min-w-0 flex-col gap-1.5 text-left focus-visible:outline-none">
         {card.headline ? (
@@ -131,6 +131,7 @@ function KpiStrip({ kpis }: { kpis: LandingKpi[] }) {
 export function Landing({
   greeting,
   status,
+  statusLead,
   kpis,
   rows,
   taskCount,
@@ -141,6 +142,7 @@ export function Landing({
 }: {
   greeting: Greeting;
   status: StatusLink[];
+  statusLead: string;
   kpis: LandingKpi[];
   rows: FeedItem[];
   taskCount: number;
@@ -207,6 +209,8 @@ export function Landing({
           headers: { "content-type": "application/json" },
           body: JSON.stringify({ action: "open" }),
         }).catch(() => undefined);
+      } else if (card.feedKey) {
+        postFeedAction(card.feedKey, "open");
       }
       void start(card.prompt, undefined, undefined, card.packetId ?? undefined);
     },
@@ -215,7 +219,7 @@ export function Landing({
 
   const [hidden, setHidden] = useState<ReadonlySet<string>>(() => new Set());
   const visibleRows = rows.filter((row) => !hidden.has(row.key));
-  const visibleCards = ambient.filter((card) => !card.alertId || !hidden.has(`alert:${card.alertId}`));
+  const visibleCards = ambient.filter((card) => !card.feedKey || !hidden.has(card.feedKey));
 
   const settle = useCallback((key: string, action: FeedSettle) => {
     setHidden((current) => new Set([...current, key]));
@@ -254,7 +258,7 @@ export function Landing({
             <h1 className="text-balance font-display text-[1.75rem] font-semibold leading-[1.2] tracking-[-0.02em] sm:text-[3rem]">
               {greeting.lead} <GradientText className="whitespace-nowrap">{greeting.name}</GradientText>
             </h1>
-            <StatusLine links={status} taskCount={taskCount - (rows.length - visibleRows.length) - (ambient.length - visibleCards.length)} />
+            <StatusLine links={status} lead={statusLead} taskCount={taskCount - (rows.length - visibleRows.length) - (ambient.length - visibleCards.length)} />
           </header>
 
           <CopComposer value={text} onValueChange={setText} onSubmit={start} busy={busy} autoFocus placeholder={placeholder} />
@@ -281,7 +285,6 @@ export function Landing({
 
         <div className="flex w-full max-w-3xl flex-col gap-3 animate-hero-rise [animation-delay:160ms]">
           {kpis.length > 0 ? <KpiStrip kpis={kpis} /> : null}
-          {visibleRows.length > 0 ? <FeedList rows={visibleRows} handlers={feedHandlers} /> : null}
           {visibleCards.length > 0 ? (
             <div className={cn("grid w-full gap-3", AMBIENT_COLUMNS[visibleCards.length])}>
               {visibleCards.map((card) => (
@@ -295,6 +298,7 @@ export function Landing({
               ))}
             </div>
           ) : null}
+          {visibleRows.length > 0 ? <FeedList rows={visibleRows} handlers={feedHandlers} /> : null}
         </div>
 
         <div className="flex flex-col items-center gap-3 animate-hero-rise [animation-delay:220ms]">

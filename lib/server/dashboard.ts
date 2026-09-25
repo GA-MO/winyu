@@ -2,7 +2,7 @@ import { runMetric } from "@/lib/server/metrics";
 import type { AccessContext, Alert, DashboardLayout, FeedItem, MetricQuery, MetricResult, WidgetSpec } from "@/lib/contracts";
 import type { Spec } from "vexa/protocol";
 import { layoutVersions, layouts } from "@/lib/server/agent/collections";
-import { forecastsFor, openAlertsFor, openPacketsFor, relevantAlertsFor } from "@/lib/server/alerts";
+import { canJudge, forecastsFor, openAlertsFor, openPacketsFor, relevantAlertsFor } from "@/lib/server/alerts";
 import { alertRowOf } from "@/lib/cards/alert-row";
 import { actionsForAlert, actionsForMetric } from "@/lib/server/next-actions";
 import { composeSuggestion } from "@/lib/engine/compose";
@@ -33,6 +33,9 @@ const VISIT_SCAN_LIMIT = 20;
 const VISIT_WINDOW_DAYS = 27;
 const ALERT_FIRST = -1000;
 const PARENTHETICAL = /\s*\(.*\)$/;
+const DAY_MS = 86_400_000;
+const FOUR_WEEKS_DAYS = 31;
+const MONTH_SHORT = new Intl.DateTimeFormat("th-TH", { month: "short" });
 
 function seedLayout(access: AccessContext): DashboardLayout {
   const widgets = templateFor(access).map((seed, position) => ({
@@ -197,16 +200,41 @@ export async function landingKpis(access: AccessContext): Promise<LandingKpi[]> 
     }
     shownMetrics.add(widget.query.metric);
     const note = kpiNoteOf(widget.query, result, parts);
-    kpis.push({ id: widget.id, label: hero.label, value: hero.value, delta: hero.delta, tone: hero.tone, detail: hero.detail, note });
+    kpis.push({ id: widget.id, label: hero.label, value: hero.value, delta: hero.delta, tone: hero.tone, detail: hero.detail, note, period: periodTag(widget.query.range) });
   }
-  return kpis;
+  return withPeriodsWhereAlike(kpis);
+}
+
+/** A short name for a tile's period: the month, "4 สัปดาห์ล่าสุด", or the months it spans. */
+function periodTag(range: MetricQuery["range"]): string {
+  const days = (Date.parse(range.to) - Date.parse(range.from)) / DAY_MS + 1;
+  if (range.from.slice(0, 7) === range.to.slice(0, 7)) return MONTH_SHORT.format(new Date(range.to));
+  if (days <= FOUR_WEEKS_DAYS) return TH.landing.lastFourWeeks;
+  return `${MONTH_SHORT.format(new Date(range.from))}–${MONTH_SHORT.format(new Date(range.to))}`;
+}
+
+/** Two tiles with the same name say which period each covers; a name that stands alone keeps it short. */
+function withPeriodsWhereAlike(kpis: LandingKpi[]): LandingKpi[] {
+  return kpis.map((kpi) => {
+    const alike = kpis.filter((other) => other.label === kpi.label).length > 1;
+    return alike && kpi.period ? { ...kpi, label: `${kpi.label} · ${kpi.period}` } : kpi;
+  });
 }
 
 export { openAlertsFor, openPacketsFor };
 
 /** The inbox links under the greeting: open alerts per severity and the handoffs waiting for this user. */
-export function landingStatus(access: AccessContext): StatusLink[] {
-  return statusLinks(relevantAlerts(access), openPacketsFor(access).length);
+/** How the status line opens: when every alert belongs to someone below the viewer they are "in your team", not "waiting for you". */
+export function landingStatusLead(access: AccessContext): string {
+  const relevant = relevantAlertsFor(access);
+  const theirs = relevant.length > 0 && relevant.every((alert) => alert.ownerUserId !== access.userId && !alert.alsoOwnerIds?.includes(access.userId) && canJudge(alert, access));
+  return theirs ? TH.landing.teamStatusLead : TH.landing.statusLead;
+}
+
+/** The status line's counts; with `onFeed`, only the alerts the user has not finished, put off or disowned. */
+export function landingStatus(access: AccessContext, onFeed: readonly string[] | null = null): StatusLink[] {
+  const visible = onFeed ? new Set(onFeed) : null;
+  return statusLinks(relevantAlerts(access).filter((alert) => !visible || visible.has(alert.id)), openPacketsFor(access).length);
 }
 
 function alertReason(alert: Alert, dictionary: Dictionary): string {

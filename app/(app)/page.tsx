@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { Landing } from "@/components/landing/landing";
 import { shortName, timeOfDay } from "@/lib/i18n/format";
 import { TH } from "@/lib/i18n/th";
-import { landingKpis, landingStatus } from "@/lib/server/dashboard";
+import { landingKpis, landingStatus, landingStatusLead } from "@/lib/server/dashboard";
 import { landingFeedFor } from "@/lib/server/feed";
 import { quickActionsFor } from "@/lib/server/quick-actions";
 import { readAccess, readUser } from "@/lib/server/session";
@@ -27,7 +27,8 @@ export default async function LandingPage({ searchParams }: PageProps) {
   return (
     <Landing
       greeting={greeting}
-      status={landingStatus(access)}
+      status={landingStatus(access, feed.alertIds)}
+      statusLead={landingStatusLead(access)}
       kpis={kpis}
       rows={feed.rows}
       taskCount={feed.taskCount}

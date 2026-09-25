@@ -19,6 +19,9 @@ import { actionsForAlert } from "@/lib/server/next-actions";
 import { peopleFeedFor } from "@/lib/server/people-feed";
 import { campaignFeedFor } from "@/lib/server/campaign-feed";
 import { systemFeedFor } from "@/lib/server/system-feed";
+import { withTeamStories, type TeamStory } from "@/lib/server/team-feed";
+import { ports } from "@/lib/server/ports";
+import { directoryOf } from "@/lib/server/ports/directory";
 import { recordAction } from "@/lib/server/threads";
 
 const DAY_MS = 86_400_000;
@@ -26,6 +29,7 @@ const CLEAR_MOVE_PCT = 100;
 const SNOOZE_DAYS = 7;
 const LANDING_ROWS = 5;
 const LANDING_ALERT_ROWS = 2;
+const LANDING_CARDS = 2;
 const ALERT_RANK: Record<Alert["severity"], number> = { P1: 900, P2: 600, P3: 200 };
 const PACKET_RANK: Record<ContextPacket["urgency"], number> = { high: 850, medium: 550, low: 250 };
 const VISIT_RANK = { danger: 800, warning: 500, other: 300 } as const;
@@ -190,6 +194,11 @@ function hiddenKeys(userId: string, now: number): Set<string> {
 
 /** Everything this user should look at or act on, from every source in their scope, most urgent first; what they finished, put off or disowned is left out, and so is any button whose tool is closed to them. */
 export async function feedFor(access: AccessContext, now = Date.now()): Promise<FeedItem[]> {
+  return (await feedWithStories(access, now)).items;
+}
+
+/** The feed and, for a manager, the team stories it folded: each direct report's matters told once. */
+async function feedWithStories(access: AccessContext, now: number): Promise<{ items: FeedItem[]; stories: TeamStory[] }> {
   const dictionary = await loadDictionary();
   const stops = await visitsFor(access);
   const visited = new Set(stops.map((stop) => stop.agent));
@@ -210,12 +219,21 @@ export async function feedFor(access: AccessContext, now = Date.now()): Promise<
   const hidden = hiddenKeys(access.userId, now);
   const allowed = (action: NextAction) => action.tool === null || access.toolAllow.includes(action.tool);
   const open = items.filter((item) => !hidden.has(item.key)).map((item) => ({ ...item, actions: item.actions.filter(allowed) }));
-  return learnFeed(open, {
+  const learned = learnFeed(open, {
     events: actionEvents().where((event) => event.userId === access.userId),
     seenCounts: visits().get(access.userId)?.seenCounts ?? {},
     mutedKinds: mutedKindsOf(access.userId, open.map((item) => item.kind)),
     now,
   });
+  const told = withTeamStories(access, learned, directoryOf(await ports().directory.load()), now);
+  const stories = told.stories
+    .filter((story) => !hidden.has(story.item.key))
+    .map((story) => {
+      const handoff = story.card.handoff && allowed(story.card.handoff) ? story.card.handoff : null;
+      return { ...story, item: { ...story.item, actions: story.item.actions.filter(allowed) }, card: { ...story.card, handoff } };
+    });
+  const kept = new Set(stories.map((story) => story.item.key));
+  return { items: told.items.filter((item) => item.source !== "team" || kept.has(item.key)).map((item) => stories.find((story) => story.item.key === item.key)?.item ?? item), stories };
 }
 
 /** A matter to act on: everything on the feed except low-severity alerts, which are movements or good news to know about, not tasks. */
@@ -265,23 +283,25 @@ function landingRows(items: readonly FeedItem[], carded: readonly string[]): Fee
   return rows;
 }
 
-/** `taskCount` is every task on the feed, one per story, not only the ones the landing has room to show. */
-export type LandingFeed = { cards: AmbientCard[]; rows: FeedItem[]; shownKeys: string[]; taskCount: number };
+/** `taskCount` is every task on the feed, one per story, not only the ones the landing has room to show; `alertIds` are the alerts still on it, folded into a team story or not, which the status line counts. */
+export type LandingFeed = { cards: AmbientCard[]; rows: FeedItem[]; shownKeys: string[]; taskCount: number; alertIds: string[] };
 
 function cardKey(card: AmbientCard): string | null {
-  if (card.alertId) return `alert:${card.alertId}`;
+  if (card.feedKey) return card.feedKey;
   return card.packetId ? `packet:${card.packetId}` : null;
 }
 
 /** The landing's share of the feed: up to two full cards for alerts and handoffs, then the next most urgent matters as rows. */
 export async function landingFeedFor(access: AccessContext, now = Date.now()): Promise<LandingFeed> {
-  const items = await feedFor(access, now);
+  const { items, stories } = await feedWithStories(access, now);
   const alertIds = new Set(items.flatMap((item) => (item.alertId ? [item.alertId] : [])));
   const packetIds = new Set(items.flatMap((item) => (item.packetId ? [item.packetId] : [])));
-  const cards = await ambientFor(access, [], { alertIds, packetIds });
+  const teamCards = stories.slice().sort((left, right) => right.item.rank - left.item.rank).map((story) => story.card);
+  const cards = [...teamCards, ...(await ambientFor(access, [], { alertIds, packetIds }))].slice(0, LANDING_CARDS);
   const carded = cards.flatMap((card) => cardKey(card) ?? []);
   const rows = landingRows(items, carded);
-  return { cards, rows, shownKeys: [...carded, ...rows.map((row) => row.key)], taskCount: onePerStory(items.filter(isTask)).length };
+  const folded = stories.flatMap((story) => story.memberKeys.filter((key) => key.startsWith("alert:")).map((key) => key.slice("alert:".length)));
+  return { cards, rows, shownKeys: [...carded, ...rows.map((row) => row.key)], taskCount: onePerStory(items.filter(isTask)).length, alertIds: [...alertIds, ...folded] };
 }
 
 function stateFor(action: Exclude<FeedAction, "open">, now: number): Pick<FeedStateRecord, "state" | "until"> {

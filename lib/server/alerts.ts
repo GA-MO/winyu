@@ -19,6 +19,8 @@ const DAY_MS = 86_400_000;
 const RAISE_EVERY = 3;
 const SEVERITY_RANK: Record<Alert["severity"], number> = { P1: 0, P2: 1, P3: 2 };
 const ESCALATE_AFTER_DAYS = 2;
+const VOLUME_METRICS: ReadonlySet<string> = new Set(["net_sales_volume", "sell_out_volume"]);
+const MATERIAL_GAP_LITERS = 1_000;
 const OPENING_EVENTS: ReadonlySet<string> = new Set(["alert_open", "feed_open", "feed_done"]);
 
 /** `escalated`: the viewer manages the owner directly and the alert is critical, or a warning the owner has left unopened; `watched`: a critical alert on the viewer's metrics or further down their line. */
@@ -99,13 +101,18 @@ export function unopenedDays(alert: Alert, context: RelevanceContext): number | 
   return days >= ESCALATE_AFTER_DAYS ? days : null;
 }
 
+/** Big enough for a manager to hear about when the owner has not: a volume gap of at least a thousand litres; other metrics always are. */
+function isMaterial(alert: Alert): boolean {
+  return !VOLUME_METRICS.has(alert.metric) || Math.abs(alert.observed - alert.expected) >= MATERIAL_GAP_LITERS;
+}
+
 /**
  * Whether an alert is this user's to act on, by the line of command rather than by what is on their dashboard: the owner acts on it;
  * the owner's manager hears of it when it is critical or left unopened; anyone further up, or with the metric on their dashboard, hears only of critical ones.
  */
 export function relevanceOf(alert: Alert, access: AccessContext, context: RelevanceContext = relevanceContext(access)): AlertRelevance {
   if (alert.ownerUserId === access.userId || alert.alsoOwnerIds?.includes(access.userId)) return "mine";
-  if (context.reports.has(alert.ownerUserId) && (alert.severity === "P1" || (alert.severity === "P2" && unopenedDays(alert, context) !== null))) return "escalated";
+  if (context.reports.has(alert.ownerUserId) && (alert.severity === "P1" || (alert.severity === "P2" && isMaterial(alert) && unopenedDays(alert, context) !== null))) return "escalated";
   if (alert.severity === "P1" && (context.watched.has(alert.metric) || managesUser(access.userId, alert.ownerUserId))) return "watched";
   return "other";
 }

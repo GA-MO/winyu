@@ -3,7 +3,7 @@ import type { AccessContext, FeedItem, PersonalWatch } from "@/lib/contracts";
 import { liveAccessFor } from "@/lib/access/enforce";
 import { EMPLOYEES } from "@/lib/data/entities/people";
 import { USERS, findUser } from "@/lib/data/entities/users";
-import { actionEvents, feedStates, memoryFacts, packets, personalWatches, staffRequests } from "@/lib/server/agent/collections";
+import { actionEvents, alerts, feedStates, memoryFacts, packets, personalWatches, staffRequests } from "@/lib/server/agent/collections";
 import { confirmMemory } from "@/lib/engine/memory";
 import { enrollCourse } from "./courses";
 import { actOnFeedItem, feedFor, goodNewsFor, landingFeedFor, todoFor } from "./feed";
@@ -228,19 +228,23 @@ describe("the to-do list holds tasks, not movements", () => {
 });
 
 describe("an alert reaches people by the line of command", () => {
-  test("a manager hears of a report's warning only while it waits unopened, and is told whose it is", async () => {
+  test("a manager hears of a report's sizeable warning only while it waits unopened, and is told whose it is; a small one stays with the report", async () => {
     const director = accessOf("u_prasit");
-    const waiting = openAlertsFor(director).find((alert) => alert.severity === "P2" && alert.ownerUserId === "u_somchai");
-    if (!waiting) throw new Error("no P2 for the central RSM");
-    const item = (await feedFor(director, NOW)).find((entry) => entry.alertId === waiting.id);
-    expect(item?.detail).toContain("คุณสมชาย");
-    const opened = { id: "ev_test_somchai_open", userId: "u_somchai", at: new Date(NOW).toISOString(), kind: "alert_open" as const, intentKey: alertIntentKey(waiting), metric: waiting.metric, dims: [], prompt: null, threadId: null };
-    actionEvents().put(opened);
+    const small = openAlertsFor(director).find((alert) => alert.severity === "P2" && alert.ownerUserId === "u_wichai");
+    if (!small) throw new Error("no P2 for the east RSM");
+    expect((await feedFor(director, NOW)).some((entry) => entry.alertId === small.id)).toBe(false);
+    const big = { ...small, id: "al_test_big_gap", observed: small.expected - 5_000 };
+    alerts().put(big);
+    const opened = { id: "ev_test_wichai_open", userId: "u_wichai", at: new Date(NOW).toISOString(), kind: "alert_open" as const, intentKey: alertIntentKey(big), metric: big.metric, dims: [], prompt: null, threadId: null };
     try {
-      expect((await feedFor(director, NOW)).some((entry) => entry.alertId === waiting.id)).toBe(false);
-      expect((await feedFor(accessOf("u_somchai"), NOW)).some((entry) => entry.alertId === waiting.id)).toBe(true);
+      const item = (await feedFor(director, NOW)).find((entry) => entry.alertId === big.id);
+      expect(item?.detail).toContain("คุณวิชัย");
+      actionEvents().put(opened);
+      expect((await feedFor(director, NOW)).some((entry) => entry.alertId === big.id)).toBe(false);
+      expect((await feedFor(accessOf("u_wichai"), NOW)).some((entry) => entry.alertId === big.id)).toBe(true);
     } finally {
       actionEvents().remove(opened.id);
+      alerts().remove(big.id);
     }
   });
 

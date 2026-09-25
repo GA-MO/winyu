@@ -29,12 +29,14 @@ export type AmbientCard = {
   prompt: string;
   packetId: string | null;
   alertId: string | null;
+  /** The feed item this card stands for, which its done/snooze/not-mine menu acts on; null for a handoff, which closes in the inbox. */
+  feedKey: string | null;
   handoff: NextAction | null;
   spec: Spec;
 };
 
 /** One pinned card's headline on the landing: the number the dashboard shows, readable without opening it. */
-export type LandingKpi = { id: string; label: string; value: string; delta: string | null; tone: Tone; detail: string | null; note: string | null };
+export type LandingKpi = { id: string; label: string; value: string; delta: string | null; tone: Tone; detail: string | null; note: string | null; period?: string };
 
 /** One agent a field rep should visit today, with the one reason that put it on the list. */
 export type VisitStop = { id: string; agent: string; reason: string; tone: AmbientTone; prompt: string };
@@ -72,6 +74,7 @@ function alertCard(row: AlertRow, alert: Alert, owner: string | null, lesson: st
     prompt: TH.landing.askAbout(row.scopeLabel),
     packetId: null,
     alertId: alert.id,
+    feedKey: `alert:${alert.id}`,
     handoff: actions.find((action) => action.kind === "handoff" && action.tool !== null) ?? null,
     spec: {
       root,
@@ -95,6 +98,7 @@ function packetCard(packet: AmbientPacket): AmbientCard {
     prompt: TH.landing.packetPrompt(packet.title),
     packetId: packet.id,
     alertId: null,
+    feedKey: null,
     handoff: null,
     spec: {
       root,
