@@ -148,4 +148,23 @@ describe("widgetToSpec", () => {
     });
     expect(cards.map((card) => card.alertId)).toEqual(["p1", "p2"]);
   });
+
+  test("with only a P3 left, the first card stands alone", () => {
+    const base = {
+      at: "2026-09-22T01:00:00.000Z", window: { from: "2026-09-01", to: "2026-09-22" }, observed: 100, expected: 140, zScore: -3.1, direction: "down" as const,
+      hypothesis: "h", verifySteps: ["a", "b"] as [string, string], ownerUserId: RSM, status: "open" as const, dismissCount: 0,
+    };
+    const cards = ambientCards({
+      alerts: [
+        { ...base, id: "p1", severity: "P1", metric: "days_of_cover", dims: { region: "north" } },
+        { ...base, id: "p3", severity: "P3", metric: "production_output", dims: { region: "central" } },
+      ],
+      packet: null,
+      ownerName: () => null,
+      lessonOf: () => null,
+      actionsFor: () => [],
+      rowOf: (alert) => alertRowOf(alert, GENERATOR_DICTIONARY),
+    });
+    expect(cards.map((card) => card.alertId)).toEqual(["p1"]);
+  });
 });

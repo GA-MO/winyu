@@ -104,9 +104,7 @@ function packetCard(packet: AmbientPacket): AmbientCard {
 }
 
 function differentStory(first: Alert, alerts: readonly Alert[]): Alert | null {
-  const others = alerts.filter((alert) => alert.id !== first.id);
-  const serious = others.filter((alert) => alert.severity !== "P3");
-  const pool = serious.length > 0 ? serious : others;
+  const pool = alerts.filter((alert) => alert.id !== first.id && alert.severity !== "P3");
   return pool.find((alert) => alert.dims.region !== first.dims.region || alert.metric !== first.metric) ?? pool[0] ?? null;
 }
 

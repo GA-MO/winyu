@@ -220,12 +220,15 @@ export async function visitsFor(access: AccessContext): Promise<VisitStop[]> {
   return stops.slice(0, VISIT_LIMIT).map((entry) => entry.stop);
 }
 
-export async function ambientFor(access: AccessContext): Promise<AmbientCard[]> {
+/** The cards under the KPIs; an alert about an agent the visit list already names is left to that row. */
+export async function ambientFor(access: AccessContext, visits: readonly VisitStop[] = []): Promise<AmbientCard[]> {
   const dictionary = await loadDictionary();
   const packet = openPacketsFor(access)[0] ?? null;
   const fromName = packet ? (findUser(packet.fromUserId)?.nameTh ?? packet.fromUserId) : "";
+  const visited = new Set(visits.map((stop) => stop.agent));
+  const agentOf = (alert: Alert) => (alert.dims.agent ? dictionary.displayLabel("agent", alert.dims.agent) : null);
   return ambientCards({
-    alerts: relevantAlerts(access),
+    alerts: relevantAlerts(access).filter((alert) => !visited.has(agentOf(alert) ?? "")),
     ownerName: (alert) => (alert.ownerUserId === access.userId ? null : (findUser(alert.ownerUserId)?.nameTh ?? null)),
     lessonOf: lessonFor,
     actionsFor: (alert) => actionsForAlert(access, alert, dictionary),
