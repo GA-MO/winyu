@@ -20,11 +20,14 @@ export const getForecastTool = defineTool({
   execute: async ({ metric, dims, weeks }: z.infer<typeof getForecastInputSchema>) => {
     const access = currentAccess();
     const slice = forecastSlice(forecastsFor(access), metric, dims);
-    if (!slice) return { ok: true as const, summary: NO_FORECAST, data: [] };
-    if (!slice.ok) return { ok: true as const, summary: `${NO_FORECAST} ต้องระบุ ${slice.missingDims.join(", ")} ด้วย เพราะรวมข้ามกันไม่ได้`, data: [] };
+    if (!slice) return { ok: true as const, summary: NO_FORECAST, weeks: [] };
+    if (!slice.ok) return { ok: true as const, summary: `${NO_FORECAST} ต้องระบุ ${slice.missingDims.join(", ")} ด้วย เพราะรวมข้ามกันไม่ได้`, weeks: [] };
     const points = slice.points.slice(0, weeks).map((point) => ({
       week: periodLabelTh(weekKeyOfIso(point.date)),
+      date: point.date,
       value: Math.round(point.value),
+      lo: Math.round(point.lo),
+      hi: Math.round(point.hi),
       value_label: formatMetricValue(metric, Math.round(point.value)),
       range_label: `${formatMetricValue(metric, Math.round(point.lo))} – ${formatMetricValue(metric, Math.round(point.hi))}`,
     }));
@@ -35,11 +38,12 @@ export const getForecastTool = defineTool({
     const totalLine = additive ? ` · รวม ${points.length} สัปดาห์ ${formatMetricValue(metric, total)} · เฉลี่ยสัปดาห์ละ ${formatMetricValue(metric, average)}` : "";
     return {
       ok: true as const,
+      metric,
       summary: `พยากรณ์ ${points.length} สัปดาห์ของ${metricLabel(metric)}${combined}${totalLine} (Holt-Winters · ความคลาดเคลื่อนย้อนหลัง MAPE ${slice.mape}%)`,
       total: additive ? total : null,
       weekly_average: additive ? average : null,
       mape: slice.mape,
-      data: points,
+      weeks: points,
     };
   },
 });

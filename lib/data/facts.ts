@@ -278,6 +278,17 @@ function lastDayOfBucket(dayPlan: AxisPlan, from: number, to: number): Uint8Arra
   return mask;
 }
 
+function lastMonthOfBucket(monthPlan: AxisPlan, firstMonth: number, lastMonth: number): Uint8Array {
+  const last = new Int32Array(monthPlan.size).fill(-1);
+  for (let monthIdx = firstMonth; monthIdx <= lastMonth; monthIdx += 1) {
+    if (monthPlan.allow && monthPlan.allow[monthIdx] === 0) continue;
+    last[monthPlan.codes[monthIdx]] = monthIdx;
+  }
+  const mask = new Uint8Array(MONTH_COUNT);
+  for (let code = 0; code < last.length; code += 1) if (last[code] >= 0) mask[last[code]] = 1;
+  return mask;
+}
+
 function inventoryShape(kind: "stock" | "cover", shift: Shift): Shape {
   return {
     axes: [DC_AXIS, SKU_AXIS, dayAxis(shift)],
@@ -483,11 +494,12 @@ function arShape(shift: Shift): Shape {
     const [agentPlan, monthPlan] = plans;
     const firstMonth = MONTH_OF_DAY[from];
     const lastMonth = MONTH_OF_DAY[to];
+    const closing = lastMonthOfBucket(monthPlan, firstMonth, lastMonth);
     for (let agentIdx = 0; agentIdx < AGENT_COUNT; agentIdx += 1) {
       if (agentPlan.allow && agentPlan.allow[agentIdx] === 0) continue;
       const agentCode = agentPlan.codes[agentIdx] * agentPlan.stride;
       for (let monthIdx = firstMonth; monthIdx <= lastMonth; monthIdx += 1) {
-        if (monthPlan.allow && monthPlan.allow[monthIdx] === 0) continue;
+        if (closing[monthIdx] === 0) continue;
         const code = agentCode + monthPlan.codes[monthIdx] * monthPlan.stride;
         acc.numerator[code] += tables.arOverdueThb[agentIdx * MONTH_COUNT + monthIdx];
         acc.denominator[code] += 1;

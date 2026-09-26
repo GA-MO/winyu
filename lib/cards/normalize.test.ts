@@ -128,3 +128,61 @@ describe("DataCard title against its rows", () => {
     expect(titleAfter("สิงห์ ขวด 620 มล. สต๊อกพอขายต่ำสุด")).toBe("สิงห์ ขวด 620 มล. สต๊อกพอขายต่ำสุด");
   });
 });
+
+describe("a title that states how many rows meet its threshold", () => {
+  test("is kept", () => {
+    const spec = specOf({ card: { type: "DataCard", props: { title: "1 รายการที่สต๊อกพอขายน้อยกว่า 10 วัน", source: { $state: "/tools/query_metric" } }, children: [] } });
+    const outputs = {
+      "/tools/query_metric": {
+        query: { metric: "days_of_cover", dims: ["sku"], filters: {}, range: { from: "2026-09-22", to: "2026-09-22" }, grain: "day", compare: "none", limit: 3, sort: "value_asc" },
+        rows: [{ sku: "สิงห์ ขวด 620 มล.", value: 7.2 }, { sku: "ลีโอ แพ็ก 12", value: 11.7 }, { sku: "อาซาฮี ถัง 30 ลิตร", value: 12.3 }],
+      },
+    };
+    expect(cardProps(normalizeCopSpec(spec, { toolOutputs: outputs })).title).toBe("1 รายการที่สต๊อกพอขายน้อยกว่า 10 วัน");
+  });
+});
+
+describe("a title with two claims in one clause", () => {
+  test("reads the superlative as volume when no change verb sits before it", () => {
+    const spec = specOf({ card: { type: "DataCard", props: { title: "โมเดิร์นเทรดมียอดขายออกสูงสุด ทุกช่องทางลดลงเทียบช่วงก่อนหน้า", source: { $state: "/tools/query_metric.2" } }, children: [] } });
+    const outputs = {
+      "/tools/query_metric.2": {
+        query: { metric: "sell_out_volume", dims: ["channel"], filters: {}, range: { from: "2026-08-26", to: "2026-09-22" }, grain: "week", compare: "prev_period", limit: 10, sort: "value_desc" },
+        rows: [
+          { channel: "โมเดิร์นเทรด", value: 9630722, delta_pct: -12.8 },
+          { channel: "ร้านค้าปลีกดั้งเดิม", value: 8022130, delta_pct: -13.1 },
+          { channel: "ส่งออก", value: 623251, delta_pct: -12.7 },
+        ],
+      },
+    };
+    expect(cardProps(normalizeCopSpec(spec, { toolOutputs: outputs })).title).toBe("โมเดิร์นเทรดมียอดขายออกสูงสุด ทุกช่องทางลดลงเทียบช่วงก่อนหน้า");
+  });
+});
+
+describe("a title that states how many rows moved", () => {
+  const OUTPUTS = {
+    "/tools/query_metric": {
+      query: { metric: "ar_overdue", dims: ["agent"], filters: {}, range: { from: "2026-09-01", to: "2026-09-22" }, grain: "month", compare: "prev_period", limit: 5, sort: "delta_desc" },
+      rows: [
+        { agent: "พัทยาซันไชน์ ซัพพลาย", value: 4152386, delta_pct: 11.2 },
+        { agent: "นนท์เจริญพาณิชย์", value: 3164047, delta_pct: 9.5 },
+        { agent: "สมุทรพรทวี", value: 3370648, delta_pct: -1.1 },
+        { agent: "กรุงไทยเบเวอเรจ", value: 5478090, delta_pct: -1.9 },
+        { agent: "บางพลีค้าส่ง", value: 2300000, delta_pct: -4.9 },
+      ],
+    },
+  };
+
+  function titleAfter(title: string): unknown {
+    const spec = specOf({ card: { type: "DataCard", props: { title, source: { $state: "/tools/query_metric" } }, children: [] } });
+    return cardProps(normalizeCopSpec(spec, { toolOutputs: OUTPUTS })).title;
+  }
+
+  test("is kept when the count is right", () => {
+    expect(titleAfter("2 เอเย่นต์ที่หนี้ค้างเพิ่มขึ้น")).toBe("2 เอเย่นต์ที่หนี้ค้างเพิ่มขึ้น");
+  });
+
+  test("is swapped when the count is wrong", () => {
+    expect(titleAfter("4 เอเย่นต์ที่หนี้ค้างเพิ่มขึ้น")).not.toBe("4 เอเย่นต์ที่หนี้ค้างเพิ่มขึ้น");
+  });
+});

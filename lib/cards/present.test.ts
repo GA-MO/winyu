@@ -3,7 +3,8 @@ import type { Dim, Grain, MetricId, MetricQuery, MetricResult } from "@/lib/cont
 import { accessFor } from "@/lib/access/policies";
 import { findUser } from "@/lib/data/entities/users";
 import { runMetric } from "@/lib/data/query";
-import { presentCard, type CardBody, type CardView, type SortBy } from "./present";
+import { TH } from "@/lib/i18n/th";
+import { presentCard, presentForecast, type CardBody, type CardView, type ForecastAnswer, type SortBy } from "./present";
 
 const CEO = accessFor(findUser("u_thana")!);
 const AUGUST = { from: "2026-08-01", to: "2026-08-31" };
@@ -268,5 +269,85 @@ describe("the headline says what it stands for", () => {
     const query = { ...queryOf({ metric: "days_of_cover", dims: ["dc"] }), filters: { sku: ["sku_purra_pet600"] } };
     const card = presentCard({ title: "t", query, result: runMetric(query, CEO) });
     expect(card.meta).toContain("เฉพาะ เพอร์ร่า");
+  });
+});
+
+describe("forecast card", () => {
+  const FORECAST: ForecastAnswer = {
+    metric: "net_sales_volume",
+    total: 300,
+    mape: 13.4,
+    weeks: [
+      { week: "W40", date: "2026-09-28", value: 100, lo: 90, hi: 110, value_label: "100 ลิตร" },
+      { week: "W41", date: "2026-10-05", value: 100, lo: 85, hi: 115, value_label: "100 ลิตร" },
+      { week: "W42", date: "2026-10-12", value: 100, lo: 80, hi: 120, value_label: "100 ลิตร" },
+    ],
+  };
+
+  test("the error is a caption, never a change, and the headline is the forecast total", () => {
+    const parts = presentForecast({ title: "t", forecast: FORECAST, history: null });
+    expect(parts.hero?.delta).toBeNull();
+    expect(parts.hero?.detail).toContain("MAPE");
+    expect(parts.hero?.value).toContain("300");
+  });
+
+  test("the forecast and its band start at the last actual week so the lines join", () => {
+    const history = answer({ metric: "net_sales_volume", dims: ["week"], grain: "week", range: { from: "2026-07-27", to: "2026-09-20" }, compare: "none" });
+    const body = expectKind(presentForecast({ title: "t", forecast: FORECAST, history }).body, "forecast");
+    const lastActual = body.actual.filter((value) => value !== null).length - 1;
+    expect(body.labels).toHaveLength(lastActual + 1 + FORECAST.weeks.length);
+    expect(body.forecast[lastActual]).toBe(body.actual[lastActual]);
+    expect(body.hi.slice(lastActual + 1)).toEqual([110, 115, 120]);
+    expect(body.forecast.slice(0, lastActual).every((value) => value === null)).toBe(true);
+  });
+});
+
+describe("every value masked", () => {
+  test("becomes one line instead of a card of ***", () => {
+    const query = queryOf({ metric: "avg_salary", dims: ["department"], compare: "none" });
+    const result: MetricResult = {
+      ok: true,
+      rows: [{ department: "ขาย", value: "***", value_label: "***" }, { department: "ไอที", value: "***", value_label: "***" }],
+      summary: "",
+      headline: { aggregate: "average", value: "—", periodLabel: "ส.ค. 2569", rowCount: 2, deltaPercent: null, compareLabel: null, compareNote: null, top: [] },
+      provenance: { metric: "avg_salary", certified: true, sourceSystem: "HRIS", asOf: "2026-09-22", rowCount: 2, filtersApplied: {}, scopeApplied: {}, masked: ["value"], trust: "verified" },
+    };
+    const parts = presentCard({ title: "t", query, result });
+    expect(parts.denied).toContain("ฝ่าย");
+    expect(parts.body.kind).toBe("none");
+  });
+});
+
+describe("target in a running month", () => {
+  test("says the target is counted to the last day of data and how much of the month that is", () => {
+    const { query, result } = answer({ metric: "target_attainment", dims: ["region"], range: { from: "2026-09-01", to: "2026-09-30" }, compare: "none" });
+    const parts = presentCard({ title: "t", query, result });
+    expect(parts.hero?.detail).toBe(TH.dash.paceTarget("22 ก.ย. 2569", "73%"));
+  });
+
+  test("a closed month needs no pace line", () => {
+    const { query, result } = answer({ metric: "target_attainment", dims: ["region"], compare: "none" });
+    expect(presentCard({ title: "t", query, result }).hero?.detail ?? null).toBeNull();
+  });
+});
+
+describe("rows too small to show", () => {
+  test("leave the card and are counted in the scope line instead of drawn as ***", () => {
+    const { query, result } = answer({ metric: "ar_overdue", dims: ["province"], range: { from: "2026-09-01", to: "2026-09-22" }, compare: "none" });
+    if (!result.ok) throw new Error(result.error);
+    const hidden = result.rows.filter((row) => row.value === "***").length;
+    expect(hidden).toBeGreaterThan(0);
+    const parts = presentCard({ title: "t", query, result });
+    expect(parts.meta).toContain(TH.dash.hiddenSmall(hidden, "จังหวัด", 3));
+    expect(JSON.stringify(parts.body)).not.toContain("***");
+    expect(parts.hero).toBeNull();
+  });
+
+  test("a single row left still shows its number", () => {
+    const { query, result } = answer({ metric: "ar_overdue", dims: ["province"], range: { from: "2026-09-01", to: "2026-09-22" }, compare: "none" });
+    if (!result.ok) throw new Error(result.error);
+    const lone = { ...result, rows: [result.rows.find((row) => row.value !== "***"), ...result.rows.filter((row) => row.value === "***")].filter((row) => row !== undefined) };
+    const body = presentCard({ title: "t", query, result: lone }).body;
+    expect(body.kind).toBe("table");
   });
 });

@@ -1,0 +1,1216 @@
+[
+  {
+    "id": "ev_188a2af5-3b07-405f-9979-8b760aae96cf_0",
+    "userId": "u_thana",
+    "at": "2026-09-13T17:22:47.174Z",
+    "kind": "question",
+    "intentKey": "target_attainment|region",
+    "metric": "target_attainment",
+    "dims": [
+      "region"
+    ],
+    "prompt": "เดือนนี้แต่ละภาคทำได้กี่เปอร์เซ็นต์ของเป้า",
+    "threadId": "188a2af5-3b07-405f-9979-8b760aae96cf"
+  },
+  {
+    "id": "ev_f30a02b3-f2cf-46d8-acf3-efeb04fc53a2_0",
+    "userId": "u_siriporn",
+    "at": "2026-09-18T17:22:48.302Z",
+    "kind": "question",
+    "intentKey": "avg_salary|department",
+    "metric": "avg_salary",
+    "dims": [
+      "department"
+    ],
+    "prompt": "เงินเดือนเฉลี่ยของแต่ละฝ่ายเท่าไหร่",
+    "threadId": "f30a02b3-f2cf-46d8-acf3-efeb04fc53a2"
+  },
+  {
+    "id": "ev_f30a02b3-f2cf-46d8-acf3-efeb04fc53a2_1",
+    "userId": "u_siriporn",
+    "at": "2026-09-18T17:23:04.556Z",
+    "kind": "question",
+    "intentKey": "",
+    "metric": null,
+    "dims": [],
+    "prompt": "ขอสิทธิ์ดูเงินเดือนแบบเต็มได้ไหม เปลี่ยนสิทธิ์ให้ฉันเลย",
+    "threadId": "f30a02b3-f2cf-46d8-acf3-efeb04fc53a2"
+  },
+  {
+    "id": "ev_daf57b69-0dd6-4784-a27e-0f22152d1679_0",
+    "userId": "u_prasit",
+    "at": "2026-09-14T17:23:09.573Z",
+    "kind": "question",
+    "intentKey": "net_sales_volume|date",
+    "metric": "net_sales_volume",
+    "dims": [
+      "date"
+    ],
+    "prompt": "ดูประวัติการสั่งซื้อรายวันของอุบลศรีสุข เทรดดิ้ง 30 วันล่าสุด",
+    "threadId": "daf57b69-0dd6-4784-a27e-0f22152d1679"
+  },
+  {
+    "id": "ev_188a2af5-3b07-405f-9979-8b760aae96cf_1",
+    "userId": "u_thana",
+    "at": "2026-09-13T17:23:11.376Z",
+    "kind": "question",
+    "intentKey": "target_attainment|agent",
+    "metric": "target_attainment",
+    "dims": [
+      "agent"
+    ],
+    "prompt": "ภาคไหนน่าห่วงที่สุด แล้วเพราะอะไร",
+    "threadId": "188a2af5-3b07-405f-9979-8b760aae96cf"
+  },
+  {
+    "id": "ev_3188e4eb-cbc5-48f8-8282-fc0bcf78010b_0",
+    "userId": "u_siriporn",
+    "at": "2026-09-20T17:23:32.011Z",
+    "kind": "question",
+    "intentKey": "trade_spend|month",
+    "metric": "trade_spend",
+    "dims": [
+      "month"
+    ],
+    "prompt": "งบส่งเสริมการขายไตรมาสนี้ใช้ไปเท่าไหร่แล้ว",
+    "threadId": "3188e4eb-cbc5-48f8-8282-fc0bcf78010b"
+  },
+  {
+    "id": "ev_94c6443c-9080-4160-a3f4-e832c5cb1fff_0",
+    "userId": "u_thana",
+    "at": "2026-09-18T17:23:35.237Z",
+    "kind": "question",
+    "intentKey": "",
+    "metric": null,
+    "dims": [],
+    "prompt": "มีความผิดปกติอะไรที่ผมควรรู้วันนี้",
+    "threadId": "94c6443c-9080-4160-a3f4-e832c5cb1fff"
+  },
+  {
+    "id": "ev_94c6443c-9080-4160-a3f4-e832c5cb1fff_1",
+    "userId": "u_thana",
+    "at": "2026-09-18T17:23:53.025Z",
+    "kind": "question",
+    "intentKey": "",
+    "metric": null,
+    "dims": [],
+    "prompt": "ปักการ์ดนี้ไว้บน Dashboard ด้วย",
+    "threadId": "94c6443c-9080-4160-a3f4-e832c5cb1fff"
+  },
+  {
+    "id": "ev_daf57b69-0dd6-4784-a27e-0f22152d1679_1",
+    "userId": "u_prasit",
+    "at": "2026-09-14T17:23:56.462Z",
+    "kind": "question",
+    "intentKey": "net_sales_volume|week",
+    "metric": "net_sales_volume",
+    "dims": [
+      "week"
+    ],
+    "prompt": "แล้วอีสานรุ่งโรจน์ ค้าส่งล่ะ สั่งน้อยลงไหม",
+    "threadId": "daf57b69-0dd6-4784-a27e-0f22152d1679"
+  },
+  {
+    "id": "ev_3188e4eb-cbc5-48f8-8282-fc0bcf78010b_1",
+    "userId": "u_siriporn",
+    "at": "2026-09-20T17:23:56.643Z",
+    "kind": "question",
+    "intentKey": "",
+    "metric": null,
+    "dims": [],
+    "prompt": "นโยบายเบิกค่าใช้จ่ายเดินทางเป็นยังไง",
+    "threadId": "3188e4eb-cbc5-48f8-8282-fc0bcf78010b"
+  },
+  {
+    "id": "ev_3188e4eb-cbc5-48f8-8282-fc0bcf78010b_2",
+    "userId": "u_siriporn",
+    "at": "2026-09-20T17:24:13.532Z",
+    "kind": "question",
+    "intentKey": "",
+    "metric": null,
+    "dims": [],
+    "prompt": "ปักการ์ดนี้ไว้บน Dashboard ด้วย",
+    "threadId": "3188e4eb-cbc5-48f8-8282-fc0bcf78010b"
+  },
+  {
+    "id": "ev_e6547501-e790-496e-97ce-e9a706770573_0",
+    "userId": "u_thana",
+    "at": "2026-09-24T17:24:26.330Z",
+    "kind": "question",
+    "intentKey": "net_sales_volume|brand",
+    "metric": "net_sales_volume",
+    "dims": [
+      "brand"
+    ],
+    "prompt": "sell-in อีสานแยกตามแบรนด์ เทียบเดือนก่อน",
+    "threadId": "e6547501-e790-496e-97ce-e9a706770573"
+  },
+  {
+    "id": "ev_e6547501-e790-496e-97ce-e9a706770573_1",
+    "userId": "u_thana",
+    "at": "2026-09-24T17:24:50.616Z",
+    "kind": "question",
+    "intentKey": "net_sales_volume|week",
+    "metric": "net_sales_volume",
+    "dims": [
+      "week"
+    ],
+    "prompt": "พยากรณ์อีสาน 8 สัปดาห์ข้างหน้าจะกลับมาไหม",
+    "threadId": "e6547501-e790-496e-97ce-e9a706770573"
+  },
+  {
+    "id": "ev_b4471f4a-832b-4cc4-a663-d4b9f9c23f62_0",
+    "userId": "u_siriporn",
+    "at": "2026-09-25T17:24:51.904Z",
+    "kind": "question",
+    "intentKey": "net_sales_value|region",
+    "metric": "net_sales_value",
+    "dims": [
+      "region"
+    ],
+    "prompt": "ยอดขายเป็นเงินเทียบเป้าเดือนนี้",
+    "threadId": "b4471f4a-832b-4cc4-a663-d4b9f9c23f62"
+  },
+  {
+    "id": "ev_3d1137f3-d046-4b40-8569-078cb7da8e24_0",
+    "userId": "u_prasit",
+    "at": "2026-09-15T17:25:06.084Z",
+    "kind": "question",
+    "intentKey": "sell_out_volume|channel,week",
+    "metric": "sell_out_volume",
+    "dims": [
+      "channel",
+      "week"
+    ],
+    "prompt": "ขายออกจากร้านแยกตามช่องทาง 4 สัปดาห์",
+    "threadId": "3d1137f3-d046-4b40-8569-078cb7da8e24"
+  },
+  {
+    "id": "ev_b4471f4a-832b-4cc4-a663-d4b9f9c23f62_1",
+    "userId": "u_siriporn",
+    "at": "2026-09-25T17:25:07.488Z",
+    "kind": "question",
+    "intentKey": "ar_overdue|agent",
+    "metric": "ar_overdue",
+    "dims": [
+      "agent"
+    ],
+    "prompt": "ลูกหนี้ค้างเกินกำหนดเอเย่นต์ไหนเพิ่มขึ้นบ้าง",
+    "threadId": "b4471f4a-832b-4cc4-a663-d4b9f9c23f62"
+  },
+  {
+    "id": "ev_8434dcdc-dff7-4b25-931a-eaa1513f64b5_0",
+    "userId": "u_anucha",
+    "at": "2026-09-19T17:25:18.127Z",
+    "kind": "question",
+    "intentKey": "",
+    "metric": null,
+    "dims": [],
+    "prompt": "ทีมผมใครใบอนุญาตขายเครื่องดื่มแอลกอฮอล์ใกล้หมดอายุ",
+    "threadId": "8434dcdc-dff7-4b25-931a-eaa1513f64b5"
+  },
+  {
+    "id": "ev_3d1137f3-d046-4b40-8569-078cb7da8e24_1",
+    "userId": "u_prasit",
+    "at": "2026-09-15T17:25:26.199Z",
+    "kind": "question",
+    "intentKey": "sell_out_volume|region",
+    "metric": "sell_out_volume",
+    "dims": [
+      "region"
+    ],
+    "prompt": "ขอปริมาณขายออก (Sell-out)แยกตามภาค เรียงจากมากไปน้อย",
+    "threadId": "3d1137f3-d046-4b40-8569-078cb7da8e24"
+  },
+  {
+    "id": "ev_8434dcdc-dff7-4b25-931a-eaa1513f64b5_1",
+    "userId": "u_anucha",
+    "at": "2026-09-19T17:25:29.319Z",
+    "kind": "question",
+    "intentKey": "",
+    "metric": null,
+    "dims": [],
+    "prompt": "ปักการ์ดนี้ไว้บน Dashboard ด้วย",
+    "threadId": "8434dcdc-dff7-4b25-931a-eaa1513f64b5"
+  },
+  {
+    "id": "ev_b3fa52ab-e096-4498-abdf-b2b7de9e4ecb_0",
+    "userId": "u_saranya",
+    "at": "2026-09-15T17:25:43.121Z",
+    "kind": "question",
+    "intentKey": "stock_on_hand|sku",
+    "metric": "stock_on_hand",
+    "dims": [
+      "sku"
+    ],
+    "prompt": "สต๊อกคงเหลือตาม SKU ในภาค",
+    "threadId": "b3fa52ab-e096-4498-abdf-b2b7de9e4ecb"
+  },
+  {
+    "id": "ev_d93cd9d3-1f8a-466b-b4d0-fdf9a25ff21d_0",
+    "userId": "u_anucha",
+    "at": "2026-09-22T17:25:55.358Z",
+    "kind": "question",
+    "intentKey": "net_sales_volume|sku",
+    "metric": "net_sales_volume",
+    "dims": [
+      "sku"
+    ],
+    "prompt": "ยอด sell-in รายสินค้า 4 สัปดาห์",
+    "threadId": "d93cd9d3-1f8a-466b-b4d0-fdf9a25ff21d"
+  },
+  {
+    "id": "ev_46b7efb2-1955-403c-909e-24cac0525486_0",
+    "userId": "u_prasit",
+    "at": "2026-09-16T17:25:57.497Z",
+    "kind": "question",
+    "intentKey": "",
+    "metric": null,
+    "dims": [],
+    "prompt": "ทีมคุณอนุชามีใครบ้าง แล้วใครเพิ่งเข้ามาใหม่",
+    "threadId": "46b7efb2-1955-403c-909e-24cac0525486"
+  },
+  {
+    "id": "ev_b3fa52ab-e096-4498-abdf-b2b7de9e4ecb_1",
+    "userId": "u_saranya",
+    "at": "2026-09-15T17:26:03.741Z",
+    "kind": "question",
+    "intentKey": "stock_on_hand|sku",
+    "metric": "stock_on_hand",
+    "dims": [
+      "sku"
+    ],
+    "prompt": "ตัวไหนเหลือน้อยสุด",
+    "threadId": "b3fa52ab-e096-4498-abdf-b2b7de9e4ecb"
+  },
+  {
+    "id": "ev_46b7efb2-1955-403c-909e-24cac0525486_1",
+    "userId": "u_prasit",
+    "at": "2026-09-16T17:26:07.307Z",
+    "kind": "question",
+    "intentKey": "",
+    "metric": null,
+    "dims": [],
+    "prompt": "ปักการ์ดนี้ไว้บน Dashboard ด้วย",
+    "threadId": "46b7efb2-1955-403c-909e-24cac0525486"
+  },
+  {
+    "id": "ev_640a1ca5-84e4-4b1c-b79e-796284d3fdb1_0",
+    "userId": "u_saranya",
+    "at": "2026-09-17T17:26:29.818Z",
+    "kind": "question",
+    "intentKey": "target_attainment|province",
+    "metric": "target_attainment",
+    "dims": [
+      "province"
+    ],
+    "prompt": "สงขลากับหาดใหญ่ทำได้ตามเป้าไหมเดือนนี้",
+    "threadId": "640a1ca5-84e4-4b1c-b79e-796284d3fdb1"
+  },
+  {
+    "id": "ev_d93cd9d3-1f8a-466b-b4d0-fdf9a25ff21d_1",
+    "userId": "u_anucha",
+    "at": "2026-09-22T17:26:35.345Z",
+    "kind": "question",
+    "intentKey": "ar_overdue|agent",
+    "metric": "ar_overdue",
+    "dims": [
+      "agent"
+    ],
+    "prompt": "หนี้ค้างของเอเย่นต์ในอีสานรวมแล้วเท่าไหร่ รายไหนหนักสุด",
+    "threadId": "d93cd9d3-1f8a-466b-b4d0-fdf9a25ff21d"
+  },
+  {
+    "id": "ev_7059fa6f-77f9-4cee-b379-692e1e0746ee_0",
+    "userId": "u_prasit",
+    "at": "2026-09-18T17:26:38.858Z",
+    "kind": "question",
+    "intentKey": "headcount|department,region",
+    "metric": "headcount",
+    "dims": [
+      "region",
+      "department"
+    ],
+    "prompt": "จำนวนพนักงานขายในแต่ละภาคมีกี่คน",
+    "threadId": "7059fa6f-77f9-4cee-b379-692e1e0746ee"
+  },
+  {
+    "id": "ev_640a1ca5-84e4-4b1c-b79e-796284d3fdb1_1",
+    "userId": "u_saranya",
+    "at": "2026-09-17T17:26:48.638Z",
+    "kind": "question",
+    "intentKey": "",
+    "metric": null,
+    "dims": [],
+    "prompt": "ปักการ์ดนี้ไว้บน Dashboard ด้วย",
+    "threadId": "640a1ca5-84e4-4b1c-b79e-796284d3fdb1"
+  },
+  {
+    "id": "ev_7059fa6f-77f9-4cee-b379-692e1e0746ee_1",
+    "userId": "u_prasit",
+    "at": "2026-09-18T17:26:57.987Z",
+    "kind": "question",
+    "intentKey": "attrition_rate|department",
+    "metric": "attrition_rate",
+    "dims": [
+      "department"
+    ],
+    "prompt": "อัตราลาออกทีมขายเดือนล่าสุด",
+    "threadId": "7059fa6f-77f9-4cee-b379-692e1e0746ee"
+  },
+  {
+    "id": "ev_d93cd9d3-1f8a-466b-b4d0-fdf9a25ff21d_2",
+    "userId": "u_anucha",
+    "at": "2026-09-22T17:27:03.662Z",
+    "kind": "question",
+    "intentKey": "attrition_rate|month",
+    "metric": "attrition_rate",
+    "dims": [
+      "month"
+    ],
+    "prompt": "อัตราลาออกทีมขายอีสาน",
+    "threadId": "d93cd9d3-1f8a-466b-b4d0-fdf9a25ff21d"
+  },
+  {
+    "id": "ev_f7cbbdb1-9a7a-40de-b83a-9d1db5e23931_0",
+    "userId": "u_saranya",
+    "at": "2026-09-19T17:27:20.306Z",
+    "kind": "question",
+    "intentKey": "",
+    "metric": null,
+    "dims": [],
+    "prompt": "นโยบายลาพักร้อนนับวันยังไง",
+    "threadId": "f7cbbdb1-9a7a-40de-b83a-9d1db5e23931"
+  },
+  {
+    "id": "ev_b77bb3e9-243a-40a8-bcff-bf8e6068f411_0",
+    "userId": "u_prasit",
+    "at": "2026-09-22T17:27:22.719Z",
+    "kind": "question",
+    "intentKey": "net_sales_volume|week",
+    "metric": "net_sales_volume",
+    "dims": [
+      "week"
+    ],
+    "prompt": "พยากรณ์ยอดขายทั้งประเทศ 8 สัปดาห์ จะถึงเป้าไหม",
+    "threadId": "b77bb3e9-243a-40a8-bcff-bf8e6068f411"
+  },
+  {
+    "id": "ev_f7cbbdb1-9a7a-40de-b83a-9d1db5e23931_1",
+    "userId": "u_saranya",
+    "at": "2026-09-19T17:27:32.846Z",
+    "kind": "question",
+    "intentKey": "",
+    "metric": null,
+    "dims": [],
+    "prompt": "ปักการ์ดนี้ไว้บน Dashboard ด้วย",
+    "threadId": "f7cbbdb1-9a7a-40de-b83a-9d1db5e23931"
+  },
+  {
+    "id": "ev_66bf23c1-c0ff-4f2b-a8e9-9ace4d6d55f1_0",
+    "userId": "u_krit",
+    "at": "2026-09-15T17:27:40.802Z",
+    "kind": "question",
+    "intentKey": "target_attainment|agent",
+    "metric": "target_attainment",
+    "dims": [
+      "agent"
+    ],
+    "prompt": "ยอดของผมเทียบเป้าตอนนี้",
+    "threadId": "66bf23c1-c0ff-4f2b-a8e9-9ace4d6d55f1"
+  },
+  {
+    "id": "ev_b77bb3e9-243a-40a8-bcff-bf8e6068f411_1",
+    "userId": "u_prasit",
+    "at": "2026-09-22T17:27:52.655Z",
+    "kind": "question",
+    "intentKey": "net_sales_volume|brand",
+    "metric": "net_sales_volume",
+    "dims": [
+      "brand"
+    ],
+    "prompt": "โคราชสหภัณฑ์ยอดเดือนนี้เป็นไง",
+    "threadId": "b77bb3e9-243a-40a8-bcff-bf8e6068f411"
+  },
+  {
+    "id": "ev_b3362c72-77fa-4108-abbd-4976d2705000_0",
+    "userId": "u_saranya",
+    "at": "2026-09-20T17:27:59.399Z",
+    "kind": "question",
+    "intentKey": "stock_on_hand|sku",
+    "metric": "stock_on_hand",
+    "dims": [
+      "sku"
+    ],
+    "prompt": "stock on hand รายสินค้า DC สงขลา",
+    "threadId": "b3362c72-77fa-4108-abbd-4976d2705000"
+  },
+  {
+    "id": "ev_b3362c72-77fa-4108-abbd-4976d2705000_1",
+    "userId": "u_saranya",
+    "at": "2026-09-20T17:28:20.594Z",
+    "kind": "question",
+    "intentKey": "net_sales_volume|channel",
+    "metric": "net_sales_volume",
+    "dims": [
+      "channel"
+    ],
+    "prompt": "ช่องทางไหนในภาคใต้โตสุด",
+    "threadId": "b3362c72-77fa-4108-abbd-4976d2705000"
+  },
+  {
+    "id": "ev_44cbf490-b6b8-4336-9886-755ee2b7669a_0",
+    "userId": "u_prasit",
+    "at": "2026-09-26T17:28:30.683Z",
+    "kind": "question",
+    "intentKey": "",
+    "metric": null,
+    "dims": [],
+    "prompt": "เอเย่นต์อีสานรายไหนควรไปเยี่ยมสัปดาห์นี้",
+    "threadId": "44cbf490-b6b8-4336-9886-755ee2b7669a"
+  },
+  {
+    "id": "ev_66bf23c1-c0ff-4f2b-a8e9-9ace4d6d55f1_1",
+    "userId": "u_krit",
+    "at": "2026-09-15T17:28:40.368Z",
+    "kind": "question",
+    "intentKey": "gross_margin|brand",
+    "metric": "gross_margin",
+    "dims": [
+      "brand"
+    ],
+    "prompt": "กำไรขั้นต้นของลีโอเท่าไหร่",
+    "threadId": "66bf23c1-c0ff-4f2b-a8e9-9ace4d6d55f1"
+  },
+  {
+    "id": "ev_317071ac-92ed-48bf-8ed6-bd8e1f622c30_0",
+    "userId": "u_krit",
+    "at": "2026-09-22T17:29:01.118Z",
+    "kind": "question",
+    "intentKey": "net_sales_value|region",
+    "metric": "net_sales_value",
+    "dims": [
+      "region"
+    ],
+    "prompt": "ภาคเหนือยอดเป็นไงบ้าง",
+    "threadId": "317071ac-92ed-48bf-8ed6-bd8e1f622c30"
+  },
+  {
+    "id": "ev_09ba6fff-26c8-446d-ba44-c87d460c0444_0",
+    "userId": "u_saranya",
+    "at": "2026-09-23T17:29:04.121Z",
+    "kind": "question",
+    "intentKey": "sell_out_volume|agent,province",
+    "metric": "sell_out_volume",
+    "dims": [
+      "agent",
+      "province"
+    ],
+    "prompt": "เอเย่นต์ฝั่งอันดามันกับสมุย ใครขายออกตกบ้าง",
+    "threadId": "09ba6fff-26c8-446d-ba44-c87d460c0444"
+  },
+  {
+    "id": "ev_317071ac-92ed-48bf-8ed6-bd8e1f622c30_1",
+    "userId": "u_krit",
+    "at": "2026-09-22T17:29:20.144Z",
+    "kind": "question",
+    "intentKey": "ar_overdue|agent",
+    "metric": "ar_overdue",
+    "dims": [
+      "agent"
+    ],
+    "prompt": "ลูกหนี้ค้างของเอเย่นต์ผม",
+    "threadId": "317071ac-92ed-48bf-8ed6-bd8e1f622c30"
+  },
+  {
+    "id": "ev_a6f04330-a4cd-4465-88f1-040a78e49fee_0",
+    "userId": "u_arm",
+    "at": "2026-09-13T17:29:32.953Z",
+    "kind": "question",
+    "intentKey": "days_of_cover|sku",
+    "metric": "days_of_cover",
+    "dims": [
+      "sku"
+    ],
+    "prompt": "สินค้าตัวไหนสต๊อกพอขายน้อยกว่า 10 วัน",
+    "threadId": "a6f04330-a4cd-4465-88f1-040a78e49fee"
+  },
+  {
+    "id": "ev_a6f04330-a4cd-4465-88f1-040a78e49fee_1",
+    "userId": "u_arm",
+    "at": "2026-09-13T17:29:52.389Z",
+    "kind": "question",
+    "intentKey": "days_of_cover|brand",
+    "metric": "days_of_cover",
+    "dims": [
+      "brand"
+    ],
+    "prompt": "ขอวันครอบคลุมสต๊อกแยกตามแบรนด์ เรียงจากมากไปน้อย",
+    "threadId": "a6f04330-a4cd-4465-88f1-040a78e49fee"
+  },
+  {
+    "id": "ev_3431cdac-34a7-4f67-b0aa-11345c4dcac7_0",
+    "userId": "u_krit",
+    "at": "2026-09-25T17:30:01.047Z",
+    "kind": "question",
+    "intentKey": "sell_out_volume|agent",
+    "metric": "sell_out_volume",
+    "dims": [
+      "agent"
+    ],
+    "prompt": "เอเย่นต์ไหนขายออกดีขึ้นบ้างสัปดาห์นี้",
+    "threadId": "3431cdac-34a7-4f67-b0aa-11345c4dcac7"
+  },
+  {
+    "id": "ev_3431cdac-34a7-4f67-b0aa-11345c4dcac7_1",
+    "userId": "u_krit",
+    "at": "2026-09-25T17:30:17.862Z",
+    "kind": "question",
+    "intentKey": "",
+    "metric": null,
+    "dims": [],
+    "prompt": "ขอลาพักร้อนวันศุกร์หน้าหนึ่งวัน",
+    "threadId": "3431cdac-34a7-4f67-b0aa-11345c4dcac7"
+  },
+  {
+    "id": "ev_4511c0da-c917-4228-872d-207de646f2cd_0",
+    "userId": "u_arm",
+    "at": "2026-09-17T17:30:31.667Z",
+    "kind": "question",
+    "intentKey": "sell_out_volume|pack",
+    "metric": "sell_out_volume",
+    "dims": [
+      "pack"
+    ],
+    "prompt": "ลีโอกระป๋องกับขวด อันไหนขายออกดีกว่าช่วงนี้",
+    "threadId": "4511c0da-c917-4228-872d-207de646f2cd"
+  },
+  {
+    "id": "ev_23108468-8c8d-4276-a5fd-b3d36d8f363b_0",
+    "userId": "u_krit",
+    "at": "2026-09-26T17:30:40.040Z",
+    "kind": "question",
+    "intentKey": "",
+    "metric": null,
+    "dims": [],
+    "prompt": "วันนี้ควรไปเยี่ยมเอเย่นต์ไหนก่อน",
+    "threadId": "23108468-8c8d-4276-a5fd-b3d36d8f363b"
+  },
+  {
+    "id": "ev_44cbf490-b6b8-4336-9886-755ee2b7669a_1",
+    "userId": "u_prasit",
+    "at": "2026-09-26T17:30:41.881Z",
+    "kind": "question",
+    "intentKey": "sell_out_volume|channel",
+    "metric": "sell_out_volume",
+    "dims": [
+      "channel"
+    ],
+    "prompt": "ช่องทางไหนขายออกได้ดีขึ้นบ้าง",
+    "threadId": "44cbf490-b6b8-4336-9886-755ee2b7669a"
+  },
+  {
+    "id": "ev_d6a45e05-e6bb-4741-ae84-8318bb813c3b_0",
+    "userId": "u_arm",
+    "at": "2026-09-19T17:30:56.910Z",
+    "kind": "question",
+    "intentKey": "days_of_cover|sku",
+    "metric": "days_of_cover",
+    "dims": [
+      "sku"
+    ],
+    "prompt": "สต๊อกพอขายกี่วันของน้ำดื่มสิงห์ที่ DC สงขลา",
+    "threadId": "d6a45e05-e6bb-4741-ae84-8318bb813c3b"
+  },
+  {
+    "id": "ev_23108468-8c8d-4276-a5fd-b3d36d8f363b_1",
+    "userId": "u_krit",
+    "at": "2026-09-26T17:31:02.991Z",
+    "kind": "question",
+    "intentKey": "sell_out_volume|agent",
+    "metric": "sell_out_volume",
+    "dims": [
+      "agent"
+    ],
+    "prompt": "sell-out เอเย่นต์ของผมเมื่อวาน",
+    "threadId": "23108468-8c8d-4276-a5fd-b3d36d8f363b"
+  },
+  {
+    "id": "ev_9a43a915-9346-4fae-9712-2c2cc6e073f7_0",
+    "userId": "u_ben",
+    "at": "2026-09-14T17:31:19.374Z",
+    "kind": "question",
+    "intentKey": "campaign_uplift|region",
+    "metric": "campaign_uplift",
+    "dims": [
+      "region"
+    ],
+    "prompt": "ลีโอ มิวสิค เฟสติวัล ทำให้ขายออกเพิ่มขึ้นจริงไหม",
+    "threadId": "9a43a915-9346-4fae-9712-2c2cc6e073f7"
+  },
+  {
+    "id": "ev_d6a45e05-e6bb-4741-ae84-8318bb813c3b_1",
+    "userId": "u_arm",
+    "at": "2026-09-19T17:31:22.133Z",
+    "kind": "question",
+    "intentKey": "days_of_cover|brand",
+    "metric": "days_of_cover",
+    "dims": [
+      "brand"
+    ],
+    "prompt": "ขอวันครอบคลุมสต๊อกแยกตามแบรนด์ เรียงจากมากไปน้อย",
+    "threadId": "d6a45e05-e6bb-4741-ae84-8318bb813c3b"
+  },
+  {
+    "id": "ev_0db380a4-26a2-4e98-b712-3cb6a53547f1_0",
+    "userId": "u_ben",
+    "at": "2026-09-16T17:31:49.565Z",
+    "kind": "question",
+    "intentKey": "trade_spend|region",
+    "metric": "trade_spend",
+    "dims": [
+      "region"
+    ],
+    "prompt": "งบส่งเสริมการขายรายภาคเท่าไหร่",
+    "threadId": "0db380a4-26a2-4e98-b712-3cb6a53547f1"
+  },
+  {
+    "id": "ev_553cc6ab-7427-475d-ac6e-8fb40833b684_0",
+    "userId": "u_arm",
+    "at": "2026-09-25T17:31:59.417Z",
+    "kind": "question",
+    "intentKey": "sell_out_volume|brand",
+    "metric": "sell_out_volume",
+    "dims": [
+      "brand"
+    ],
+    "prompt": "เพอร์ร่ากับโซดาสิงห์ขายออกเทียบเดือนก่อน",
+    "threadId": "553cc6ab-7427-475d-ac6e-8fb40833b684"
+  },
+  {
+    "id": "ev_0a2dc7a4-c710-4750-99f8-a7c483f9e244_0",
+    "userId": "u_wee",
+    "at": "2026-09-19T17:32:16.707Z",
+    "kind": "question",
+    "intentKey": "",
+    "metric": null,
+    "dims": [],
+    "prompt": "ข้อมูลโรงงานขอนแก่นมีอะไรบ้าง ใครดูแล",
+    "threadId": "0a2dc7a4-c710-4750-99f8-a7c483f9e244"
+  },
+  {
+    "id": "ev_553cc6ab-7427-475d-ac6e-8fb40833b684_1",
+    "userId": "u_arm",
+    "at": "2026-09-25T17:32:31.022Z",
+    "kind": "question",
+    "intentKey": "ar_overdue|agent",
+    "metric": "ar_overdue",
+    "dims": [
+      "agent"
+    ],
+    "prompt": "ลูกหนี้ค้างของเอเย่นต์ในเขตผม",
+    "threadId": "553cc6ab-7427-475d-ac6e-8fb40833b684"
+  },
+  {
+    "id": "ev_0a2dc7a4-c710-4750-99f8-a7c483f9e244_1",
+    "userId": "u_wee",
+    "at": "2026-09-19T17:32:31.724Z",
+    "kind": "question",
+    "intentKey": "",
+    "metric": null,
+    "dims": [],
+    "prompt": "ปักการ์ดนี้ไว้บน Dashboard ด้วย",
+    "threadId": "0a2dc7a4-c710-4750-99f8-a7c483f9e244"
+  },
+  {
+    "id": "ev_0db380a4-26a2-4e98-b712-3cb6a53547f1_1",
+    "userId": "u_ben",
+    "at": "2026-09-16T17:32:33.020Z",
+    "kind": "question",
+    "intentKey": "",
+    "metric": null,
+    "dims": [],
+    "prompt": "กำลังการผลิตลีโอพอสำหรับแคมเปญหน้าไหม",
+    "threadId": "0db380a4-26a2-4e98-b712-3cb6a53547f1"
+  },
+  {
+    "id": "ev_b37e8ead-2f0e-470c-8eae-0fc233b4d6f7_0",
+    "userId": "u_mint",
+    "at": "2026-09-13T17:32:49.928Z",
+    "kind": "question",
+    "intentKey": "ar_overdue|region",
+    "metric": "ar_overdue",
+    "dims": [
+      "region"
+    ],
+    "prompt": "ลูกหนี้ค้างชำระแยกตามภาค",
+    "threadId": "b37e8ead-2f0e-470c-8eae-0fc233b4d6f7"
+  },
+  {
+    "id": "ev_b37e8ead-2f0e-470c-8eae-0fc233b4d6f7_1",
+    "userId": "u_mint",
+    "at": "2026-09-13T17:33:10.741Z",
+    "kind": "question",
+    "intentKey": "ar_overdue|province",
+    "metric": "ar_overdue",
+    "dims": [
+      "province"
+    ],
+    "prompt": "ขอยอดค้างชำระเกินกำหนดแยกตามจังหวัด เรียงจากมากไปน้อย",
+    "threadId": "b37e8ead-2f0e-470c-8eae-0fc233b4d6f7"
+  },
+  {
+    "id": "ev_55959747-e4af-46d9-b8f7-1b181fda0a94_0",
+    "userId": "u_ben",
+    "at": "2026-09-18T17:33:11.315Z",
+    "kind": "question",
+    "intentKey": "share_of_voice|month",
+    "metric": "share_of_voice",
+    "dims": [
+      "month"
+    ],
+    "prompt": "ส่วนแบ่งเสียงของลีโอช่วงเฟสติวัล",
+    "threadId": "55959747-e4af-46d9-b8f7-1b181fda0a94"
+  },
+  {
+    "id": "ev_55959747-e4af-46d9-b8f7-1b181fda0a94_1",
+    "userId": "u_ben",
+    "at": "2026-09-18T17:33:30.443Z",
+    "kind": "question",
+    "intentKey": "sentiment_score|month",
+    "metric": "sentiment_score",
+    "dims": [
+      "month"
+    ],
+    "prompt": "sentiment ของลีโอหลังจัดงานเป็นไง",
+    "threadId": "55959747-e4af-46d9-b8f7-1b181fda0a94"
+  },
+  {
+    "id": "ev_532e4df1-0a93-44d5-a6bd-5c83c426a78b_0",
+    "userId": "u_wee",
+    "at": "2026-09-22T17:33:32.927Z",
+    "kind": "question",
+    "intentKey": "capacity_utilization|week",
+    "metric": "capacity_utilization",
+    "dims": [
+      "week"
+    ],
+    "prompt": "utilization ขอนแก่นรายสัปดาห์ไตรมาสนี้",
+    "threadId": "532e4df1-0a93-44d5-a6bd-5c83c426a78b"
+  },
+  {
+    "id": "ev_532e4df1-0a93-44d5-a6bd-5c83c426a78b_1",
+    "userId": "u_wee",
+    "at": "2026-09-22T17:33:47.215Z",
+    "kind": "question",
+    "intentKey": "",
+    "metric": null,
+    "dims": [],
+    "prompt": "ส่งอีเมลหาคุณอนุชาว่าลีโอกระป๋องจะเข้า DC ขอนแก่นช้า 3 วัน",
+    "threadId": "532e4df1-0a93-44d5-a6bd-5c83c426a78b"
+  },
+  {
+    "id": "ev_0a695684-3b9a-45c4-95b6-afde16d993c4_0",
+    "userId": "u_may",
+    "at": "2026-09-16T17:33:47.428Z",
+    "kind": "question",
+    "intentKey": "",
+    "metric": null,
+    "dims": [],
+    "prompt": "พนักงานที่ทำ OT เกินเกณฑ์เดือนนี้",
+    "threadId": "0a695684-3b9a-45c4-95b6-afde16d993c4"
+  },
+  {
+    "id": "ev_4349147d-b933-441b-be9e-25d26156e3f2_0",
+    "userId": "u_ben",
+    "at": "2026-09-20T17:34:59.255Z",
+    "kind": "question",
+    "intentKey": "campaign_reach|region",
+    "metric": "campaign_reach",
+    "dims": [
+      "region"
+    ],
+    "prompt": "campaign reach อีสานกับเหนือเทียบเดือนก่อน",
+    "threadId": "4349147d-b933-441b-be9e-25d26156e3f2"
+  },
+  {
+    "id": "ev_0a695684-3b9a-45c4-95b6-afde16d993c4_1",
+    "userId": "u_may",
+    "at": "2026-09-16T17:34:59.359Z",
+    "kind": "question",
+    "intentKey": "",
+    "metric": null,
+    "dims": [],
+    "prompt": "ขอดูโปรไฟล์คุณแดง ศักดิ์ดี",
+    "threadId": "0a695684-3b9a-45c4-95b6-afde16d993c4"
+  },
+  {
+    "id": "ev_7afbed90-ae54-4ce8-882e-8c6d298e6e15_0",
+    "userId": "u_wee",
+    "at": "2026-09-23T17:35:16.543Z",
+    "kind": "question",
+    "intentKey": "days_of_cover|sku",
+    "metric": "days_of_cover",
+    "dims": [
+      "sku"
+    ],
+    "prompt": "ลีโอขวดพอขายกี่วัน",
+    "threadId": "7afbed90-ae54-4ce8-882e-8c6d298e6e15"
+  },
+  {
+    "id": "ev_7afbed90-ae54-4ce8-882e-8c6d298e6e15_1",
+    "userId": "u_wee",
+    "at": "2026-09-23T17:35:33.472Z",
+    "kind": "question",
+    "intentKey": "avg_salary|department",
+    "metric": "avg_salary",
+    "dims": [
+      "department"
+    ],
+    "prompt": "เงินเดือนเฉลี่ยฝ่ายซัพพลายเชน",
+    "threadId": "7afbed90-ae54-4ce8-882e-8c6d298e6e15"
+  },
+  {
+    "id": "ev_widget_view_u_prasit_1790444133548_f6mvhq",
+    "userId": "u_prasit",
+    "at": "2026-09-23T17:35:33.548Z",
+    "kind": "widget_view",
+    "intentKey": "widget:w_u_prasit_attainment_region",
+    "metric": null,
+    "dims": [],
+    "prompt": null,
+    "threadId": null
+  },
+  {
+    "id": "ev_widget_view_u_prasit_1790444133550_xw1jg9",
+    "userId": "u_prasit",
+    "at": "2026-09-23T17:35:33.550Z",
+    "kind": "widget_view",
+    "intentKey": "widget:w_u_prasit_alerts",
+    "metric": null,
+    "dims": [],
+    "prompt": null,
+    "threadId": null
+  },
+  {
+    "id": "ev_b90144e3-44de-4189-b8e2-ff345eaa6419_0",
+    "userId": "u_ben",
+    "at": "2026-09-22T17:35:54.228Z",
+    "kind": "question",
+    "intentKey": "campaign_uplift|campaign",
+    "metric": "campaign_uplift",
+    "dims": [
+      "campaign"
+    ],
+    "prompt": "ซีสโตร์ โซดาซัมเมอร์ 1 แถม 1 ได้ uplift เท่าไหร่",
+    "threadId": "b90144e3-44de-4189-b8e2-ff345eaa6419"
+  },
+  {
+    "id": "ev_widget_view_u_prasit_1790444165315_gv5skp",
+    "userId": "u_prasit",
+    "at": "2026-09-22T17:36:05.315Z",
+    "kind": "widget_view",
+    "intentKey": "widget:7693655e-3b34-44d2-a9f7-333f56a3d671",
+    "metric": null,
+    "dims": [],
+    "prompt": null,
+    "threadId": null
+  },
+  {
+    "id": "ev_widget_view_u_prasit_1790444165322_j8ryqs",
+    "userId": "u_prasit",
+    "at": "2026-09-22T17:36:05.322Z",
+    "kind": "widget_view",
+    "intentKey": "widget:w_u_prasit_volume_trend",
+    "metric": null,
+    "dims": [],
+    "prompt": null,
+    "threadId": null
+  },
+  {
+    "id": "ev_widget_view_u_prasit_1790444168192_f66uav",
+    "userId": "u_prasit",
+    "at": "2026-09-22T17:36:08.192Z",
+    "kind": "widget_view",
+    "intentKey": "widget:w_u_prasit_agents",
+    "metric": null,
+    "dims": [],
+    "prompt": null,
+    "threadId": null
+  },
+  {
+    "id": "ev_b90144e3-44de-4189-b8e2-ff345eaa6419_1",
+    "userId": "u_ben",
+    "at": "2026-09-22T17:36:11.762Z",
+    "kind": "question",
+    "intentKey": "",
+    "metric": null,
+    "dims": [],
+    "prompt": "ส่งอีเมลหาคุณฟ้าให้เตรียมสรุปผลโซดาซัมเมอร์",
+    "threadId": "b90144e3-44de-4189-b8e2-ff345eaa6419"
+  },
+  {
+    "id": "ev_a66238cb-b4ba-42aa-8102-7c827281709a_0",
+    "userId": "u_wee",
+    "at": "2026-09-25T17:36:15.212Z",
+    "kind": "question",
+    "intentKey": "days_of_cover|dc",
+    "metric": "days_of_cover",
+    "dims": [
+      "dc"
+    ],
+    "prompt": "DC ไหนต้องโอนของไปช่วยที่อื่น",
+    "threadId": "a66238cb-b4ba-42aa-8102-7c827281709a"
+  },
+  {
+    "id": "ev_a66238cb-b4ba-42aa-8102-7c827281709a_1",
+    "userId": "u_wee",
+    "at": "2026-09-25T17:36:36.155Z",
+    "kind": "question",
+    "intentKey": "sell_out_volume|week",
+    "metric": "sell_out_volume",
+    "dims": [
+      "week"
+    ],
+    "prompt": "พยากรณ์ขายออกลีโอ 8 สัปดาห์",
+    "threadId": "a66238cb-b4ba-42aa-8102-7c827281709a"
+  },
+  {
+    "id": "ev_1e4e0c8c-2544-40d0-a180-562fd964c507_0",
+    "userId": "u_ben",
+    "at": "2026-09-23T17:36:55.571Z",
+    "kind": "question",
+    "intentKey": "sell_out_volume|week",
+    "metric": "sell_out_volume",
+    "dims": [
+      "week"
+    ],
+    "prompt": "ยอดขายออกรายสัปดาห์ช่วงลีโอเฟสติวัลเทียบปีก่อน",
+    "threadId": "1e4e0c8c-2544-40d0-a180-562fd964c507"
+  },
+  {
+    "id": "ev_dfc5ff66-445e-4735-940d-165d45b594d1_0",
+    "userId": "u_ton",
+    "at": "2026-09-13T17:36:58.729Z",
+    "kind": "question",
+    "intentKey": "forecast_mape|",
+    "metric": "forecast_mape",
+    "dims": [],
+    "prompt": "ความคลาดเคลื่อนพยากรณ์เดือนนี้เท่าไหร่",
+    "threadId": "dfc5ff66-445e-4735-940d-165d45b594d1"
+  },
+  {
+    "id": "ev_44f913c1-a847-4d65-bd73-f539dfe10615_0",
+    "userId": "u_may",
+    "at": "2026-09-13T17:37:11.461Z",
+    "kind": "question",
+    "intentKey": "",
+    "metric": null,
+    "dims": [],
+    "prompt": "ผู้สมัครตำแหน่งพนักงานขายอีสานถึงขั้นไหนแล้ว",
+    "threadId": "44f913c1-a847-4d65-bd73-f539dfe10615"
+  },
+  {
+    "id": "ev_dfc5ff66-445e-4735-940d-165d45b594d1_1",
+    "userId": "u_ton",
+    "at": "2026-09-13T17:37:16.528Z",
+    "kind": "question",
+    "intentKey": "",
+    "metric": null,
+    "dims": [],
+    "prompt": "รันงานพยากรณ์ใหม่ให้หน่อย",
+    "threadId": "dfc5ff66-445e-4735-940d-165d45b594d1"
+  },
+  {
+    "id": "ev_2144aa5f-35e3-46e8-aba4-f9306c9f023c_0",
+    "userId": "u_ben",
+    "at": "2026-09-13T17:37:19.544Z",
+    "kind": "question",
+    "intentKey": "sentiment_score|brand",
+    "metric": "sentiment_score",
+    "dims": [
+      "brand"
+    ],
+    "prompt": "คะแนนความรู้สึกต่อแบรนด์เดือนนี้",
+    "threadId": "2144aa5f-35e3-46e8-aba4-f9306c9f023c"
+  },
+  {
+    "id": "ev_d3843f52-268c-4583-8506-1379d35ef090_0",
+    "userId": "u_ton",
+    "at": "2026-09-26T17:37:42.948Z",
+    "kind": "question",
+    "intentKey": "net_sales_value|",
+    "metric": "net_sales_value",
+    "dims": [],
+    "prompt": "ยอดขายรวมทั้งประเทศเดือนนี้",
+    "threadId": "d3843f52-268c-4583-8506-1379d35ef090"
+  },
+  {
+    "id": "ev_4647c2d5-c0c4-43ea-9c19-ba61431905ab_0",
+    "userId": "u_may",
+    "at": "2026-09-20T17:39:01.373Z",
+    "kind": "question",
+    "intentKey": "",
+    "metric": null,
+    "dims": [],
+    "prompt": "หลักสูตรต่ออายุใบขับขี่รถยกรอบหน้าวันไหน",
+    "threadId": "4647c2d5-c0c4-43ea-9c19-ba61431905ab"
+  },
+  {
+    "id": "ev_59699420-1f5b-4a46-ad50-51a17e0727e6_0",
+    "userId": "u_ton",
+    "at": "2026-09-15T17:39:03.996Z",
+    "kind": "question",
+    "intentKey": "net_sales_value|",
+    "metric": "net_sales_value",
+    "dims": [],
+    "prompt": "ยอดขายรวมทั้งประเทศเดือนนี้",
+    "threadId": "59699420-1f5b-4a46-ad50-51a17e0727e6"
+  },
+  {
+    "id": "ev_d6c3166f-1976-4060-817d-d759fb041ef9_0",
+    "userId": "u_ben",
+    "at": "2026-09-25T17:39:18.820Z",
+    "kind": "question",
+    "intentKey": "campaign_reach|month",
+    "metric": "campaign_reach",
+    "dims": [
+      "month"
+    ],
+    "prompt": "การเข้าถึงแคมเปญภาคใต้ลดลงไหม",
+    "threadId": "d6c3166f-1976-4060-817d-d759fb041ef9"
+  },
+  {
+    "id": "ev_f1fea097-4b20-40cc-9256-b9a6e3c45ecc_0",
+    "userId": "u_ton",
+    "at": "2026-09-17T17:39:32.854Z",
+    "kind": "question",
+    "intentKey": "forecast_mape|month",
+    "metric": "forecast_mape",
+    "dims": [
+      "month"
+    ],
+    "prompt": "MAPE รายเดือนย้อนหลังหกเดือน",
+    "threadId": "f1fea097-4b20-40cc-9256-b9a6e3c45ecc"
+  },
+  {
+    "id": "ev_e7b96995-7322-4d48-a1d5-755fe55a9edc_0",
+    "userId": "u_may",
+    "at": "2026-09-25T17:39:44.229Z",
+    "kind": "question",
+    "intentKey": "",
+    "metric": null,
+    "dims": [],
+    "prompt": "ใครใบอนุญาตหมดอายุแล้วแต่ยังไม่ได้ลงเรียน",
+    "threadId": "e7b96995-7322-4d48-a1d5-755fe55a9edc"
+  },
+  {
+    "id": "ev_f913b582-3340-4d85-9425-94c36281201f_0",
+    "userId": "u_ton",
+    "at": "2026-09-19T17:39:52.024Z",
+    "kind": "question",
+    "intentKey": "",
+    "metric": null,
+    "dims": [],
+    "prompt": "ใครดูแลระบบ CRM บ้าง",
+    "threadId": "f913b582-3340-4d85-9425-94c36281201f"
+  },
+  {
+    "id": "ev_f31f1040-0d6c-4412-8aee-fceadbde5a00_0",
+    "userId": "u_ben",
+    "at": "2026-09-26T17:40:01.792Z",
+    "kind": "question",
+    "intentKey": "campaign_uplift|brand",
+    "metric": "campaign_uplift",
+    "dims": [
+      "brand"
+    ],
+    "prompt": "uplift แคมเปญสงกรานต์ 2569 เทียบปีก่อน",
+    "threadId": "f31f1040-0d6c-4412-8aee-fceadbde5a00"
+  },
+  {
+    "id": "ev_c0b904e5-e3f5-4da1-ae66-7855879ac5c0_0",
+    "userId": "u_ton",
+    "at": "2026-09-20T17:40:36.523Z",
+    "kind": "question",
+    "intentKey": "forecast_mape|week",
+    "metric": "forecast_mape",
+    "dims": [
+      "week"
+    ],
+    "prompt": "พยากรณ์แม่นขึ้นไหมหลังรันใหม่",
+    "threadId": "c0b904e5-e3f5-4da1-ae66-7855879ac5c0"
+  },
+  {
+    "id": "ev_d5d10a53-69c3-4876-b509-780095be8200_0",
+    "userId": "u_ben",
+    "at": "2026-09-26T17:41:06.371Z",
+    "kind": "question",
+    "intentKey": "sell_out_volume|month",
+    "metric": "sell_out_volume",
+    "dims": [
+      "month"
+    ],
+    "prompt": "ลีโอเฟสติวัลคุ้มไหมถ้าดูยอดขายออก",
+    "threadId": "d5d10a53-69c3-4876-b509-780095be8200"
+  },
+  {
+    "id": "ev_0cc5a422-3154-4b00-90f5-f4c8ccf14ff1_0",
+    "userId": "u_ton",
+    "at": "2026-09-20T17:41:27.587Z",
+    "kind": "question",
+    "intentKey": "forecast_mape|week",
+    "metric": "forecast_mape",
+    "dims": [
+      "week"
+    ],
+    "prompt": "พยากรณ์แม่นขึ้นไหมหลังรันใหม่",
+    "threadId": "0cc5a422-3154-4b00-90f5-f4c8ccf14ff1"
+  },
+  {
+    "id": "ev_ad523e4d-7e76-45f7-8c3a-e8d942a3df70_0",
+    "userId": "u_ton",
+    "at": "2026-09-25T17:42:03.306Z",
+    "kind": "question",
+    "intentKey": "",
+    "metric": null,
+    "dims": [],
+    "prompt": "metric ไหนมีข้อมูลล่าสุดถึงวันไหน",
+    "threadId": "ad523e4d-7e76-45f7-8c3a-e8d942a3df70"
+  },
+  {
+    "id": "ev_2516f380-9fee-4997-bf3f-15c0c47ae53b_0",
+    "userId": "u_ton",
+    "at": "2026-09-26T17:42:31.448Z",
+    "kind": "question",
+    "intentKey": "forecast_mape|",
+    "metric": "forecast_mape",
+    "dims": [],
+    "prompt": "พยากรณ์เดือนนี้คลาดเคลื่อนกี่เปอร์เซ็นต์",
+    "threadId": "2516f380-9fee-4997-bf3f-15c0c47ae53b"
+  },
+  {
+    "id": "ev_67b375e4-b41b-47e6-8bb6-bbaa91140f41_0",
+    "userId": "u_ton",
+    "at": "2026-09-15T17:43:08.851Z",
+    "kind": "question",
+    "intentKey": "net_sales_value|",
+    "metric": "net_sales_value",
+    "dims": [],
+    "prompt": "ยอดขายรวมทั้งประเทศเดือนนี้",
+    "threadId": "67b375e4-b41b-47e6-8bb6-bbaa91140f41"
+  },
+  {
+    "id": "ev_31ff0c8c-3d5c-47c9-b41c-69bcc63c0528_0",
+    "userId": "u_ton",
+    "at": "2026-09-19T17:43:31.284Z",
+    "kind": "question",
+    "intentKey": "headcount|department",
+    "metric": "headcount",
+    "dims": [
+      "department"
+    ],
+    "prompt": "จำนวนผู้ใช้แยกตามฝ่าย",
+    "threadId": "31ff0c8c-3d5c-47c9-b41c-69bcc63c0528"
+  }
+]

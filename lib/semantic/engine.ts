@@ -1,6 +1,6 @@
 import {
   type AccessContext, type Brand, type Dim, type FactRequest, type FactResult, type FactRow, type LabelShift, type MetricDef, type MetricId,
-  type MetricQuery, type MetricSort, type MetricHeadline, type MetricResult, type MetricRow, type Provenance, type Region,
+  type MetricQuery, type MetricSort, type MetricHeadline, type MetricResult, type MetricRow, type Provenance, type Region, type ValueFilter,
 } from "@/lib/contracts";
 import { MONTHLY_METRICS, RATIO_METRICS, TARGET_METRICS, TIME_DIMS, metricDef } from "@/lib/semantic/metrics";
 import { MIN_CELL_SIZE, SUPPRESSED_FIELDS, SUPPRESSED_VALUE, cellScopeOf, isSmallCell } from "@/lib/access/suppression";
@@ -30,7 +30,7 @@ function defaultFiltersOf(metric: MetricId, dictionary: Dictionary): Partial<Rec
   return metric === "market_share" ? { maker: dictionary.master.ownMaker } : {};
 }
 
-const SNAPSHOT_METRICS: ReadonlySet<MetricId> = new Set<MetricId>(["stock_on_hand", "days_of_cover"]);
+const SNAPSHOT_METRICS: ReadonlySet<MetricId> = new Set<MetricId>(["stock_on_hand", "days_of_cover", "ar_overdue"]);
 
 const SUMMED_ACROSS_NON_TIME: ReadonlySet<MetricId> = new Set<MetricId>(["headcount"]);
 
@@ -119,7 +119,8 @@ const WHOLE_UNITS: ReadonlySet<string> = new Set(["คน"]);
 const MILLION_UNITS: ReadonlySet<string> = new Set(["ลิตร"]);
 const MILLION = 1_000_000;
 
-function formatForSummary(def: MetricDef, value: number): string {
+/** A metric amount the way rows and summaries print it: "19.9 ล้านบาท", "353,359 ลิตร", "93.3%". */
+export function formatForSummary(def: MetricDef, value: number): string {
   if (def.format === "percent") return `${formatNumber(value, 1)}%`;
   if (def.format === "currency") {
     if (Math.abs(value) >= MILLION) return `${formatNumber(value / MILLION, 1)} ล้านบาท`;
@@ -350,9 +351,11 @@ function daysBack(from: number, to: number, days: number): PriorWindow | null {
   return { from: from - days, to: to - days, shift: { days, months: 0 } };
 }
 
-/** The window a compare reads, decided by the range alone so every breakdown of one question shares it: calendar months when the range is whole months (or month-to-date, cut at the same day), otherwise the same number of days, moved back in whole weeks when shorter than four weeks (364 back for a year), so weekdays line up. */
-function priorWindow(compare: MetricQuery["compare"], from: number, to: number, wholeMonths: boolean): PriorWindow | null {
+/** The window a compare reads, decided by the range alone so every breakdown of one question shares it: calendar months when the range is whole months (or month-to-date, cut at the same day), otherwise the same number of days, moved back in whole weeks when shorter than four weeks (364 back for a year), so weekdays line up. A balance is read against the close of the period just before, never a pro-rata or weekday-aligned slice. */
+function priorWindow(compare: MetricQuery["compare"], from: number, to: number, wholeMonths: boolean, balance: boolean): PriorWindow | null {
   if (compare !== "prev_period" && compare !== "prev_year") return null;
+  if (balance && compare === "prev_period" && !wholeMonths) return daysBack(from, to, to - from + 1);
+  if (balance && compare === "prev_period") return monthsBack(from, to, MONTH_OF_DAY[to] - MONTH_OF_DAY[from] + 1, true);
   const monthAligned = wholeMonths || (isMonthStart(from) && (isMonthEnd(to) || to === DAY_COUNT - 1));
   if (monthAligned) {
     const months = compare === "prev_year" ? MONTHS_PER_YEAR : MONTH_OF_DAY[to] - MONTH_OF_DAY[from] + 1;
@@ -363,7 +366,7 @@ function priorWindow(compare: MetricQuery["compare"], from: number, to: number, 
 
 /** For a monthly total whose window ends in a month the data has only partly reached, the share of the window's calendar days the data covers; the comparison is scaled by it so September's 22 days are not read against a whole August. */
 function coveredShare(def: MetricDef, compare: MetricQuery["compare"], from: number, to: number): number {
-  if (!MONTHLY_METRICS.has(def.id) || RATIO_METRICS.has(def.id)) return 1;
+  if (!MONTHLY_METRICS.has(def.id) || RATIO_METRICS.has(def.id) || SNAPSHOT_METRICS.has(def.id)) return 1;
   if (compare !== "prev_period" && compare !== "prev_year") return 1;
   if (to !== DAY_COUNT - 1 || isMonthEnd(to)) return 1;
   let calendar = 0;
@@ -377,9 +380,9 @@ function partialMonthNote(share: number, to: number): string | null {
 }
 
 /** Where the answer can start so its comparison exists: a year-on-year question that reaches back before the data is narrowed to the months both years hold, and every comparison the data cannot serve says why instead of vanishing. */
-function comparableStart(compare: MetricQuery["compare"], from: number, to: number, wholeMonths: boolean): { from: number; note: string | null } {
+function comparableStart(compare: MetricQuery["compare"], from: number, to: number, wholeMonths: boolean, balance: boolean): { from: number; note: string | null } {
   if (compare !== "prev_period" && compare !== "prev_year") return { from, note: null };
-  if (priorWindow(compare, from, to, wholeMonths)) return { from, note: null };
+  if (priorWindow(compare, from, to, wholeMonths, balance)) return { from, note: null };
   const narrowed = compare === "prev_year" ? earliestYearOnYear(from, to, wholeMonths) : null;
   if (narrowed === null) return { from, note: `${UNCOMPARABLE_LEAD}${COMPARE_LABELS[compare]}: ข้อมูลเริ่ม ${DATA_START_LABEL}` };
   return { from: narrowed, note: `เทียบปีก่อนได้ตั้งแต่ ${formatThaiDate(ISO_OF_DAY[narrowed])} เพราะข้อมูลเริ่ม ${DATA_START_LABEL}` };
@@ -425,7 +428,7 @@ function comparisonOf(def: MetricDef, compare: MetricQuery["compare"], dims: Dim
     if (!TARGET_METRICS.has(def.id)) return fail("BAD_QUERY", `เมตริก ${def.id} ไม่มีเป้าหมายให้เทียบ ใช้ compare "none" หรือเทียบงวดก่อนแทน`);
     return factRequest(def, "target", dims, filters, from, to, NO_SHIFT);
   }
-  const previous = priorWindow(compare, from, to, MONTHLY_METRICS.has(def.id));
+  const previous = priorWindow(compare, from, to, MONTHLY_METRICS.has(def.id), SNAPSHOT_METRICS.has(def.id));
   return previous ? factRequest(def, "actual", dims, filters, previous.from, previous.to, previous.shift) : null;
 }
 
@@ -463,8 +466,10 @@ export function planMetric(query: MetricQuery, access: AccessContext, dictionary
   if ("ok" in scope) return scope;
 
   const dims = dedupe(query.dims);
+  if (query.where && visibility === "masked") return fail("BAD_QUERY", `กรองตามค่าไม่ได้เพราะตัวเลข ${def.labelTh} ถูกปิดสำหรับบทบาทของคุณ`);
+  if (query.where && firstTimeDim(dims)) return fail("BAD_QUERY", "where กรองแถวตามค่าได้เฉพาะเมื่อไม่แยกตามเวลา");
   const compare = query.compare === "target" && ALREADY_VS_TARGET.has(def.id) ? "none" : query.compare;
-  const start = comparableStart(compare, range.from, range.to, MONTHLY_METRICS.has(def.id));
+  const start = comparableStart(compare, range.from, range.to, MONTHLY_METRICS.has(def.id), SNAPSHOT_METRICS.has(def.id));
   const share = coveredShare(def, compare, start.from, range.to);
   return {
     dictionary,
@@ -503,13 +508,15 @@ export function finishMetric(plan: MetricPlan, current: FactResult, comparison: 
   if (plan.comparison && "ok" in plan.comparison) return plan.comparison;
   if (comparison && !comparison.ok) return fail(comparison.code, comparison.error);
   const { dictionary, def, query, dims, filters, masked, ratio } = plan;
-  const aggregated = keyRows(dims, current.rows);
+  const all = keyRows(dims, current.rows);
+  const suppressed = masked ? new Set<string>() : smallCellKeys(dictionary, def.id, dims, all, filters);
+  const where = query.where;
+  const aggregated = where ? all.filter((row) => !suppressed.has(row.key) && passes(where, row.value)) : all;
   const compareRows = comparison ? keyRows(dims, comparison.rows).map((row) => ({ ...row, value: row.value * plan.comparisonScale })) : null;
 
   const limit = query.limit ?? DEFAULT_LIMIT;
   const lowFirst = RISK_WHEN_LOW.has(def.id);
   const capped = query.sort && !masked && !firstTimeDim(dims) ? orderedRows(aggregated, query.sort, limit, compareRows) : sortRows(aggregated, dims, limit, masked, lowFirst);
-  const suppressed = masked ? new Set<string>() : smallCellKeys(dictionary, def.id, dims, aggregated, filters);
   const rows = buildRows(dictionary, def, dims, capped, compareRows, masked, suppressed);
   const provenance: Provenance = {
     metric: def.id,
@@ -518,7 +525,7 @@ export function finishMetric(plan: MetricPlan, current: FactResult, comparison: 
     asOf: TODAY,
     rowCount: rows.length,
     filtersApplied: filtersToRecord(filters, plan.scopeApplied),
-    filterLabels: filterLabelsOf(dictionary, filters, dims, plan.scopeApplied),
+    filterLabels: [...filterLabelsOf(dictionary, filters, dims, plan.scopeApplied), ...(query.where ? [whereLabelOf(def, query.where)] : [])],
     scopeApplied: plan.scopeApplied,
     masked: masked || suppressed.size > 0 ? [...SUPPRESSED_FIELDS] : [],
     trust: def.certified ? "verified" : "derived",
@@ -532,6 +539,15 @@ export function finishMetric(plan: MetricPlan, current: FactResult, comparison: 
     headline,
     provenance,
   };
+}
+
+function passes(where: ValueFilter, value: number): boolean {
+  return where.op === "below" ? value < where.value : value > where.value;
+}
+
+function whereLabelOf(def: MetricDef, where: ValueFilter): string {
+  const amount = def.format === "number" && Number.isInteger(where.value) ? `${formatNumber(where.value, 0)} ${def.unit}` : formatForSummary(def, where.value);
+  return `${where.op === "below" ? "น้อยกว่า" : "มากกว่า"} ${amount}`;
 }
 
 /** Runs one question against a synchronous fact reader: plan, read, finish. */

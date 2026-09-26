@@ -6,7 +6,7 @@ import { findUser } from "@/lib/data/entities/users";
 import { askTool, copActionTool } from "@/components/cards/action-tool";
 import { SIM_PERSONAS } from "@/lib/sim/scenarios";
 import type { SimPersona, SimSession, SimTurn } from "@/lib/sim/types";
-import { buildReview, meanScores, parseWalk, titleFlags, titleLabelled, unscored, type ReviewTurn } from "@/lib/sim/card-review";
+import { buildReview, compareRuns, meanScores, parseWalk, redoTurns, titleFlags, titleLabelled, unscored, type CardReviewRow, type ReviewTurn } from "@/lib/sim/card-review";
 import { diffOf, sessionOf, shiftFor, shifted, snapshotOf, type RunDiff, type SessionWindow, type Snapshot, type StoredRecord } from "@/lib/sim/records";
 
 const BASE_URL = "http://localhost:3100";
@@ -38,7 +38,7 @@ type Manifest = {
   unshifted: Record<string, string[]>;
 };
 
-type RetrySession = SimSession & { retryOf?: { session: number; turn: number } };
+type RetrySession = SimSession & { retryOf?: { session: number; turn: number }; redoOf?: { session: number; firstTurn: number } };
 
 type ToolTrace = { name: string; state: string; input: unknown; output: unknown; approval: unknown; errorText: unknown };
 
@@ -274,7 +274,8 @@ function firstText(session: SimSession): string {
 }
 
 function sessionKey(userId: string, index: number, session: RetrySession): string {
-  return session.retryOf ? `${userId}#retry-${session.retryOf.session}-${session.retryOf.turn}` : `${userId}#${index}`;
+  if (session.retryOf) return `${userId}#retry-${session.retryOf.session}-${session.retryOf.turn}`;
+  return session.redoOf ? `${userId}#redo-${session.redoOf.session}-${session.redoOf.firstTurn}` : `${userId}#${index}`;
 }
 
 async function runPersona(persona: SimPersona, run: string, model: string, pre: Snapshot, budget: number, done: ReadonlySet<string>, sessions: RetrySession[] = sortedSessions(persona)): Promise<void> {
@@ -327,10 +328,10 @@ async function runPersona(persona: SimPersona, run: string, model: string, pre: 
         run,
         userId: persona.userId,
         role: user.role,
-        session: session.retryOf?.session ?? sessionIndex,
+        session: session.retryOf?.session ?? session.redoOf?.session ?? sessionIndex,
         daysAgo: session.daysAgo,
         threadId,
-        turn: session.retryOf?.turn ?? turnIndex,
+        turn: session.retryOf?.turn ?? (session.redoOf ? session.redoOf.firstTurn + turnIndex : turnIndex),
         labels,
         sent,
         pressed: "press" in turn ? { kind: turn.press, found: Boolean(pressed) } : null,
@@ -395,6 +396,27 @@ function retrySessions(run: string, persona: SimPersona): RetrySession[] {
     });
 }
 
+function redoSessions(from: string, run: string, persona: SimPersona, keys: ReadonlySet<string>): RetrySession[] {
+  const planned = sortedSessions(persona);
+  const ran = new Set(readTranscript(run).map((record) => `${record.userId}#${record.session}/${record.turn}`));
+  const review = readReview(from).filter((row) => row.userId === persona.userId);
+  return (keys.size > 0 ? review.filter((row) => keys.has(row.key)) : redoTurns(review))
+    .filter((row) => !ran.has(`${row.userId}#${row.session}/${row.turn}`))
+    .flatMap((row) => {
+      const session = planned[row.session];
+      const turn = session?.turns[row.turn];
+      if (!session || !turn) return [];
+      const firstTurn = "press" in turn ? Math.max(0, row.turn - 1) : row.turn;
+      return [{ daysAgo: session.daysAgo, turns: session.turns.slice(firstTurn, row.turn + 1), redoOf: { session: row.session, firstTurn } }];
+    });
+}
+
+function readReview(run: string): CardReviewRow[] {
+  const file = path.join(runDir(run), "card-review.jsonl");
+  if (!existsSync(file)) throw new Error(`no card-review.jsonl in ${runDir(run)}; run card-review first`);
+  return readFileSync(file, "utf8").split("\n").filter(Boolean).map((line) => JSON.parse(line) as CardReviewRow);
+}
+
 async function runCommand(): Promise<void> {
   const run = argOf("run", new Date().toISOString().slice(0, 10));
   const only = argOf("users", "").split(",").filter(Boolean);
@@ -427,7 +449,10 @@ async function runCommand(): Promise<void> {
   console.log(`run ${run} · model ${model} · ${personas.length} personas · budget $${budget}`);
   const done = completedSessions(run);
   const retrying = process.argv.includes("--retry-errors");
-  await pool(personas, concurrency, (persona) => runPersona(persona, run, model, pre, budget, done, retrying ? retrySessions(run, persona) : sortedSessions(persona)));
+  const redo = argOf("redo", "");
+  const turnKeys = new Set(argOf("turns", "").split(",").filter(Boolean));
+  const sessionsFor = (persona: SimPersona) => (redo ? redoSessions(redo, run, persona, turnKeys) : retrying ? retrySessions(run, persona) : sortedSessions(persona));
+  await pool(personas.filter((persona) => sessionsFor(persona).length > 0), concurrency, (persona) => runPersona(persona, run, model, pre, budget, done, sessionsFor(persona)));
   const manifest = readManifest(run);
   writeManifest({ ...manifest, finishedAt: new Date().toISOString() });
   console.log(`spent $${spentSince(pre).toFixed(4)} · ${readTranscript(run).length} turns in ${transcriptPath(run)}`);
@@ -516,6 +541,16 @@ function printTitleFlags(rows: ReturnType<typeof buildReview>): void {
   if (missed.length > 0) console.log(`  missed: ${missed.join(" ")}`);
 }
 
+function printComparison(run: string, before: CardReviewRow[], after: CardReviewRow[]): void {
+  const result = compareRuns(before, after, new Set(readTranscript(run).map((record) => `${record.userId}#${record.session}/${record.turn}`)));
+  const line = (label: string, mean: ReturnType<typeof meanScores>) => `${label} correct ${mean.correct} · fit ${mean.fit} · readable ${mean.readable} · sensible ${mean.sensible}`;
+  console.log(`compared ${result.pairs} scored turns that drew a card in both runs`);
+  console.log(`  ${line("before", result.before)}`);
+  console.log(`  ${line("after ", result.after)}`);
+  if (result.dropped.length > 0) console.log(`  drew a card before, none now (${result.dropped.length}): ${result.dropped.join(" ")}`);
+  if (result.added.length > 0) console.log(`  drew a card now, none before: ${result.added.join(" ")}`);
+}
+
 function cardReviewCommand(): void {
   const run = argOf("run", "");
   if (!run) throw new Error("card-review needs --run=YYYY-MM-DD");
@@ -527,16 +562,18 @@ function cardReviewCommand(): void {
   const mean = meanScores(rows);
   console.log(`card-review ${run}: ${rows.length} rows · mean correct ${mean.correct} · fit ${mean.fit} · readable ${mean.readable} · sensible ${mean.sensible}`);
   printTitleFlags(rows);
+  const against = argOf("against", "");
+  if (against) printComparison(run, readReview(against), rows);
   if (missing.length === 0) return;
   console.error(`unscored: ${missing.join(" ")}`);
-  process.exitCode = 1;
+  if (!against) process.exitCode = 1;
 }
 
 const COMMANDS: Record<string, () => void | Promise<void>> = { run: runCommand, finalize: finalizeCommand, clean: cleanCommand, restore: restoreCommand, "card-review": cardReviewCommand };
 
 const command = COMMANDS[process.argv[2] ?? ""];
 if (!command) {
-  console.error("usage: bun run sim <run|finalize|clean|restore|card-review> [--run=YYYY-MM-DD] [--users=a,b] [--concurrency=3] [--budget=10]");
+  console.error("usage: bun run sim <run|finalize|clean|restore|card-review> [--run=YYYY-MM-DD] [--users=a,b] [--concurrency=3] [--budget=10] [--redo=<earlier run>] [--turns=<thread/turn,…>] [--against=<earlier run>]");
   process.exit(1);
 }
 await command();

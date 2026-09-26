@@ -40,7 +40,7 @@ describe("marketing hears how its own campaigns went", () => {
 describe("money owed reaches the people who can collect it", () => {
   test("the south's overdue rise names its agents and lands with the south's sales manager too", async () => {
     const found = explain({ metric: "ar_overdue", dims: { region: "south" }, direction: "up", window: { from: "2026-08-01", to: "2026-08-31" }, observed: 1.7, expected: 1.2, region: "south", detail: null });
-    expect(found.hypothesis).toContain("สงขลาทักษิณ เทรดดิ้ง (+258%)");
+    expect(found.hypothesis).toContain("สงขลาทักษิณ เทรดดิ้ง (+303%)");
     const south = accessOf("u_saranya");
     expect((await todoFor(south, NOW)).some((item) => item.kind === "alert:ar_overdue")).toBe(true);
   });

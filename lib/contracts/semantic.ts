@@ -10,8 +10,9 @@ export type Grain = "day" | "week" | "month";
 export type MetricDef = { id: MetricId; label: string; labelTh: string; unit: string; format: "number" | "currency" | "percent";
   owner: string; certified: boolean; dims: Dim[]; aclDims: Dim[]; synonyms: string[]; description: string; sourceSystem: string };
 export type MetricSort = "value_desc" | "value_asc" | "delta_asc" | "delta_desc";
+export type ValueFilter = { op: "below" | "above"; value: number };
 export type MetricQuery = { metric: MetricId; dims: Dim[]; filters: Partial<Record<Dim, string[]>>;
-  range: { from: string; to: string }; grain: Grain; compare: "none" | "prev_period" | "prev_year" | "target"; limit: number | null; sort?: MetricSort | null };
+  range: { from: string; to: string }; grain: Grain; compare: "none" | "prev_period" | "prev_year" | "target"; limit: number | null; sort?: MetricSort | null; where?: ValueFilter | null };
 export type MetricRow = Record<string, string | number | null>;
 export type Provenance = { metric: MetricId; certified: boolean; sourceSystem: string; asOf: string; rowCount: number;
   filtersApplied: Partial<Record<Dim, string[]>>; filterLabels?: string[]; scopeApplied: Partial<Record<Dim, string[]>>; masked: string[]; trust: "verified" | "derived" | "estimated" };
@@ -47,4 +48,5 @@ export const metricQuerySchema = z.object({
   compare: z.enum(COMPARE_MODES),
   limit: z.number().int().min(1).max(MAX_ROWS).nullable(),
   sort: z.enum(METRIC_SORTS).nullable().optional(),
+  where: z.object({ op: z.enum(["below", "above"]), value: z.number() }).nullable().optional(),
 }) satisfies z.ZodType<MetricQuery>;

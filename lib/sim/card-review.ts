@@ -4,11 +4,12 @@ import { titleContradiction } from "@/lib/cards/title-claims";
 
 const WALK_COLUMNS = ["role", "user", "thread", "turn", "question", "card", "correct", "fit", "readable", "sensible", "issues", "layer", "tag", "screen", "shouldBe"] as const;
 const SCORE_KEYS = ["correct", "fit", "readable", "sensible"] as const;
-const BOUND_CARDS = new Set(["DataCard", "AlertsCard"]);
+const BOUND_CARDS = new Set(["DataCard", "AlertsCard", "ForecastCard"]);
 const SCREEN_LINK = /\]\(([^)]+)\)/;
 const NO_CARD = /^ไม่มี/;
 const BOUND_PATH = /^\/tools\/([a-z_]+)(?:\.(\d+))?$/;
 const TITLE_LAYER = "check title";
+const REDO_LAYERS = /prompt|check title|masked|empty|Forecast|ความสด|เจ้าของ|วาดเอง/;
 
 type WalkColumn = (typeof WALK_COLUMNS)[number];
 type ScoreKey = (typeof SCORE_KEYS)[number];
@@ -28,6 +29,7 @@ export type WalkLabel = {
 
 export type ReviewTurn = {
   run: string;
+  session: number;
   userId: string;
   role: string;
   threadId: string;
@@ -46,6 +48,7 @@ export type CardElement = { id: string; type: string; props: unknown; children: 
 export type CardReviewRow = {
   key: string;
   run: string;
+  session: number;
   threadId: string;
   turn: number;
   userId: string;
@@ -146,6 +149,7 @@ export function buildReview(turns: readonly ReviewTurn[], labels: ReadonlyMap<st
     rows.push({
       key,
       run: turn.run,
+      session: turn.session,
       threadId: turn.threadId,
       turn: turn.turn,
       userId: turn.userId,
@@ -216,4 +220,38 @@ export function titleFlags(rows: readonly CardReviewRow[]): TitleFlag[] {
 /** Keys a reviewer marked as a title the rows do not bear out. */
 export function titleLabelled(rows: readonly CardReviewRow[]): string[] {
   return rows.filter((row) => row.layer.includes(TITLE_LAYER)).map((row) => row.key);
+}
+
+function belowFull(row: CardReviewRow): boolean {
+  return Object.values(row.scores).some((score) => score !== null && score < 3);
+}
+
+/** Turns whose card scored below 3 for a reason this round can fix (prompt, title, masked, empty, forecast, freshness, invented owner). */
+export function redoTurns(rows: readonly CardReviewRow[]): CardReviewRow[] {
+  return rows.filter((row) => belowFull(row) && (REDO_LAYERS.test(row.layer) || REDO_LAYERS.test(row.card)));
+}
+
+function sessionTurn(row: CardReviewRow): string {
+  return `${row.userId}#${row.session}/${row.turn}`;
+}
+
+export type RunComparison = { pairs: number; before: CardScores; after: CardScores; dropped: string[]; added: string[] };
+
+function scored(row: CardReviewRow): boolean {
+  return Object.values(row.scores).some((score) => score !== null);
+}
+
+/** Scores of the same planned turns (user, session, turn) in an earlier run and a redo, over the scored turns the redo ran; `dropped` are earlier scored cards whose redo drew none. */
+export function compareRuns(before: readonly CardReviewRow[], after: readonly CardReviewRow[], redone: ReadonlySet<string>): RunComparison {
+  const earlier = new Map(before.filter((row) => redone.has(sessionTurn(row)) && scored(row)).map((row) => [sessionTurn(row), row]));
+  const later = new Map(after.filter(scored).map((row) => [sessionTurn(row), row]));
+  const drawn = new Set(after.map(sessionTurn));
+  const shared = [...later.keys()].filter((key) => earlier.has(key));
+  return {
+    pairs: shared.length,
+    before: meanScores(shared.map((key) => earlier.get(key) as CardReviewRow)),
+    after: meanScores(shared.map((key) => later.get(key) as CardReviewRow)),
+    dropped: [...earlier.values()].filter((row) => !drawn.has(sessionTurn(row))).map((row) => row.key),
+    added: [...later.keys()].filter((key) => !earlier.has(key)),
+  };
 }

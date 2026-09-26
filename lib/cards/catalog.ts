@@ -91,6 +91,22 @@ export const COP_COMPONENTS = {
       reason: null,
     },
   },
+  ForecastCard: {
+    props: z.object({
+      title: z.string(),
+      source: sourceSchema,
+      history: sourceSchema.nullable(),
+      description: z.string().nullable(),
+    }),
+    description:
+      "THE answer to a forecast question (what will happen, will stock last, next N weeks). `source` binds to { \"$state\": \"/tools/get_forecast\" }. `history` binds the weekly actuals of the same metric and slice when you queried them (query_metric with grain week and a week dim, e.g. { \"$state\": \"/tools/query_metric\" }), else null. Cop draws the actual weeks, the dashed forecast inside its expected band, the total or last week as the headline and the back-tested error (MAPE) as a caption. Never assemble a forecast out of Card + Metric + LineChart, and never show MAPE as a change.",
+    example: {
+      title: "ยอดขาย 8 สัปดาห์ข้างหน้าทรงตัว",
+      source: { $state: "/tools/get_forecast" },
+      history: { $state: "/tools/query_metric" },
+      description: null,
+    },
+  },
   AlertsCard: {
     props: z.object({
       title: z.string(),

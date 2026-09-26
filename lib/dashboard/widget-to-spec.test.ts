@@ -100,7 +100,7 @@ describe("widgetToSpec", () => {
     expect(hero.props.value).not.toBe("—");
   });
 
-  test("a masked metric keeps the card but hides the value", () => {
+  test("a metric masked in every row keeps the card as one line and shows no value", () => {
     const access = accessOf("u_siriporn");
     const widget = widgetOf("kv", access);
     const masked: WidgetSpec = { ...widget, query: { ...widget.query, metric: "avg_salary", dims: ["department"] } };
@@ -108,7 +108,8 @@ describe("widgetToSpec", () => {
     expect(result.ok).toBe(true);
     const spec = widgetToSpec(masked, result);
     expect(validate(spec).success).toBe(true);
-    expect(JSON.stringify(spec)).toContain("***");
+    expect(JSON.stringify(spec)).not.toContain("***");
+    expect(JSON.stringify(spec)).toContain("ถูกปิดตามสิทธิ์");
   });
 
   test("landing cards of every kind are valid specs", () => {

@@ -21,7 +21,7 @@ const APPROVAL_SCHEMAS: Partial<Record<string, { safeParse: (value: unknown) => 
   set_permission: setPermissionInputSchema,
 };
 
-const CARD_TYPES = new Set(["DataCard", "AlertsCard"]);
+const CARD_TYPES = new Set(["DataCard", "AlertsCard", "ForecastCard"]);
 const NUMBER_IN_TEXT = /-?\d[\d,.]{2,}/g;
 const MIN_TITLE_CHARS = 6;
 const ISO_YEAR = /\b(\d{4})-\d{2}-\d{2}/g;

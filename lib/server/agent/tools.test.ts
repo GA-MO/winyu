@@ -168,12 +168,12 @@ describe("analytics plane tools", () => {
     expect(alerts.ok).toBe(true);
     expect(alerts.rows.length).toBeGreaterThan(0);
     for (const row of alerts.rows) expect(row.hypothesis.length).toBeGreaterThan(10);
-    const forecast = await call<{ summary: string; data: unknown[] }>("u_anucha", "get_forecast", { metric: "net_sales_volume", dims: { region: "northeast", brand: "leo" }, weeks: 8 });
-    expect(forecast.data).toHaveLength(8);
+    const forecast = await call<{ summary: string; weeks: unknown[] }>("u_anucha", "get_forecast", { metric: "net_sales_volume", dims: { region: "northeast", brand: "leo" }, weeks: 8 });
+    expect(forecast.weeks).toHaveLength(8);
     expect(forecast.summary).toContain("MAPE");
-    const national = await call<{ summary: string; data: { value: number }[] }>("u_thana", "get_forecast", { metric: "net_sales_volume", dims: {}, weeks: 8 });
+    const national = await call<{ summary: string; weeks: { value: number }[] }>("u_thana", "get_forecast", { metric: "net_sales_volume", dims: {}, weeks: 8 });
     expect(national.summary).toContain("รวม 48 ชุดพยากรณ์ย่อย");
-    expect(national.data[0].value).toBeGreaterThan(NATIONAL_WEEKLY_FLOOR_HL);
+    expect(national.weeks[0].value).toBeGreaterThan(NATIONAL_WEEKLY_FLOOR_HL);
     const memory = await call<{ summary: string }>("u_anucha", "recall_memory", { query: "ไม่มีความจำไหนตรงกับคำนี้แน่นอน" });
     expect(memory.summary).toContain("ยังไม่มี");
   });

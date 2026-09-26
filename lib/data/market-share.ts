@@ -14,6 +14,9 @@ const MONTHLY_NOISE = 0.8;
 const CARABAO_FROM_US = 0.6;
 const LAST_AUDITED_MONTH = MONTH_COUNT - 2;
 
+/** The last month the retail audit covers (YYYY-MM); market share has no rows after it. */
+export const LAST_AUDITED_MONTH_KEY = MONTH_KEYS[LAST_AUDITED_MONTH];
+
 export type MarketTables = {
   /** Beer litres per maker, indexed [maker][province][month]. */
   makerLitres: Float64Array;

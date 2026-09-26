@@ -1,0 +1,3378 @@
+[
+  {
+    "userId": "u_thana",
+    "interests": [
+      {
+        "key": "attain_region",
+        "label": "ยอดเทียบเป้าแยกตามภาค",
+        "slice": {
+          "metric": "target_attainment",
+          "dims": [
+            "region"
+          ]
+        }
+      },
+      {
+        "key": "isan_volume",
+        "label": "ยอดขายภาคอีสานที่ตก",
+        "slice": {
+          "metric": "net_sales_volume",
+          "dims": [
+            "week"
+          ]
+        }
+      },
+      {
+        "key": "brand_margin",
+        "label": "กำไรขั้นต้นรายแบรนด์",
+        "slice": {
+          "metric": "gross_margin",
+          "dims": [
+            "brand"
+          ]
+        }
+      }
+    ],
+    "sessions": [
+      {
+        "daysAgo": 13,
+        "turns": [
+          {
+            "say": "เดือนนี้แต่ละภาคทำได้กี่เปอร์เซ็นต์ของเป้า",
+            "interest": "attain_region",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "ภาคไหนน่าห่วงที่สุด แล้วเพราะอะไร",
+            "interest": null,
+            "expectTools": [
+              "query_metric",
+              "get_alerts"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      },
+      {
+        "daysAgo": 12,
+        "turns": [
+          {
+            "say": "อีสานยอดขายเข้ารายสัปดาห์เป็นยังไงบ้าง ช่วงนี้ได้ยินว่าตก",
+            "interest": "isan_volume",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "press": "drill",
+            "interest": null,
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      },
+      {
+        "daysAgo": 10,
+        "turns": [
+          {
+            "say": "กำไรขั้นต้นแยกตามแบรนด์ ปีนี้",
+            "interest": "brand_margin",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "ลีโอกับสิงห์ใครกำไรต่อลิตรดีกว่า",
+            "interest": "brand_margin",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      },
+      {
+        "daysAgo": 9,
+        "turns": [
+          {
+            "say": "สรุปยอดเทียบเป้าตามภาคให้หน่อย สั้นๆ",
+            "interest": "attain_region",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "ปักการ์ดนี้ไว้บน Dashboard ด้วย",
+            "interest": "attain_region",
+            "expectTools": [
+              "pin_widget"
+            ],
+            "expectDecision": "allow",
+            "approve": true
+          }
+        ]
+      },
+      {
+        "daysAgo": 8,
+        "turns": [
+          {
+            "say": "มีความผิดปกติอะไรที่ผมควรรู้วันนี้",
+            "interest": null,
+            "expectTools": [
+              "get_alerts"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "ปักการ์ดนี้ไว้บน Dashboard ด้วย",
+            "interest": null,
+            "expectTools": [],
+            "expectDecision": "refuse",
+            "note": "non-metric pin gap"
+          }
+        ]
+      },
+      {
+        "daysAgo": 7,
+        "turns": [
+          {
+            "say": "เอเย่นต์ในอีสานรายไหนยอดหายไปมากที่สุด 4 สัปดาห์ล่าสุด",
+            "interest": "isan_volume",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "press": "handoff",
+            "interest": null,
+            "expectTools": [
+              "create_handoff"
+            ],
+            "expectDecision": "allow",
+            "approve": true
+          }
+        ]
+      },
+      {
+        "daysAgo": 6,
+        "turns": [
+          {
+            "say": "ขอเปลี่ยนสิทธิ์ให้คุณกฤตเห็นกำไรขั้นต้นได้ด้วย",
+            "interest": null,
+            "expectTools": [
+              "set_permission"
+            ],
+            "expectDecision": "deny",
+            "note": "ceo cannot set permissions"
+          },
+          {
+            "say": "รันงานพยากรณ์ใหม่ให้หน่อย",
+            "interest": null,
+            "expectTools": [
+              "run_job"
+            ],
+            "expectDecision": "deny",
+            "note": "ceo cannot run jobs"
+          }
+        ]
+      },
+      {
+        "daysAgo": 5,
+        "turns": [
+          {
+            "say": "ส่วนแบ่งตลาดเบียร์เราเทียบคู่แข่งเป็นยังไง เดือนล่าสุด",
+            "interest": null,
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "margin ของกลุ่มเบียร์เทียบปีก่อน",
+            "interest": "brand_margin",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      },
+      {
+        "daysAgo": 4,
+        "turns": [
+          {
+            "say": "ยอด achievement แต่ละภาคเทียบเป้าตอนนี้",
+            "interest": "attain_region",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "ส่งเรื่องภาคใต้ที่ห่างเป้าให้คุณประสิทธิ์ช่วยดูหน่อย",
+            "interest": "attain_region",
+            "expectTools": [
+              "create_handoff",
+              "resolve_owner"
+            ],
+            "expectDecision": "allow",
+            "approve": false
+          }
+        ]
+      },
+      {
+        "daysAgo": 2,
+        "turns": [
+          {
+            "say": "sell-in อีสานแยกตามแบรนด์ เทียบเดือนก่อน",
+            "interest": "isan_volume",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "พยากรณ์อีสาน 8 สัปดาห์ข้างหน้าจะกลับมาไหม",
+            "interest": "isan_volume",
+            "expectTools": [
+              "get_forecast"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      },
+      {
+        "daysAgo": 1,
+        "turns": [
+          {
+            "say": "ลูกหนี้ค้างชำระรวมตอนนี้เท่าไหร่",
+            "interest": null,
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "แบรนด์ไหนทำกำไรขั้นต้นได้แย่ลง",
+            "interest": "brand_margin",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      },
+      {
+        "daysAgo": 0,
+        "turns": [
+          {
+            "say": "เช้านี้ภาคไหนยังไม่ถึงเป้าบ้าง",
+            "interest": "attain_region",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "อีสานยอดตกกี่เปอร์เซ็นต์เทียบปีก่อน",
+            "interest": "isan_volume",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "userId": "u_siriporn",
+    "interests": [
+      {
+        "key": "ar_agent",
+        "label": "ลูกหนี้ค้างรายเอเย่นต์",
+        "slice": {
+          "metric": "ar_overdue",
+          "dims": [
+            "agent"
+          ]
+        }
+      },
+      {
+        "key": "margin_mix",
+        "label": "กำไรขั้นต้นที่หดลง",
+        "slice": {
+          "metric": "gross_margin",
+          "dims": [
+            "brand"
+          ]
+        }
+      },
+      {
+        "key": "value_channel",
+        "label": "มูลค่าขายตามช่องทาง",
+        "slice": {
+          "metric": "net_sales_value",
+          "dims": [
+            "channel"
+          ]
+        }
+      }
+    ],
+    "sessions": [
+      {
+        "daysAgo": 13,
+        "turns": [
+          {
+            "say": "เอเย่นต์ไหนค้างชำระเยอะสุด 10 รายแรก",
+            "interest": "ar_agent",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "press": "handoff",
+            "interest": null,
+            "expectTools": [
+              "create_handoff"
+            ],
+            "expectDecision": "allow",
+            "approve": true
+          }
+        ]
+      },
+      {
+        "daysAgo": 12,
+        "turns": [
+          {
+            "say": "มูลค่าขายเดือนนี้แยกตามช่องทางขาย",
+            "interest": "value_channel",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "ช่องทาง modern trade เทียบปีก่อนเป็นไง",
+            "interest": "value_channel",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      },
+      {
+        "daysAgo": 11,
+        "turns": [
+          {
+            "say": "กำไรขั้นต้นรายเดือนหกเดือนล่าสุด ดูว่าหดลงไหม",
+            "interest": "margin_mix",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      },
+      {
+        "daysAgo": 9,
+        "turns": [
+          {
+            "say": "ลูกหนี้ค้างรายเอเย่นต์ อัปเดตให้หน่อย",
+            "interest": "ar_agent",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "ปักการ์ดนี้ไว้บน Dashboard ด้วย",
+            "interest": "ar_agent",
+            "expectTools": [
+              "pin_widget"
+            ],
+            "expectDecision": "allow",
+            "approve": true
+          }
+        ]
+      },
+      {
+        "daysAgo": 8,
+        "turns": [
+          {
+            "say": "เงินเดือนเฉลี่ยของแต่ละฝ่ายเท่าไหร่",
+            "interest": null,
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "masked",
+            "note": "avg_salary masked for cfo"
+          },
+          {
+            "say": "ขอสิทธิ์ดูเงินเดือนแบบเต็มได้ไหม เปลี่ยนสิทธิ์ให้ฉันเลย",
+            "interest": null,
+            "expectTools": [
+              "set_permission"
+            ],
+            "expectDecision": "deny"
+          }
+        ]
+      },
+      {
+        "daysAgo": 7,
+        "turns": [
+          {
+            "say": "แบรนด์ไหนมี margin ลดลงมากที่สุดเทียบปีก่อน",
+            "interest": "margin_mix",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "press": "drill",
+            "interest": null,
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      },
+      {
+        "daysAgo": 6,
+        "turns": [
+          {
+            "say": "งบส่งเสริมการขายไตรมาสนี้ใช้ไปเท่าไหร่แล้ว",
+            "interest": null,
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "นโยบายเบิกค่าใช้จ่ายเดินทางเป็นยังไง",
+            "interest": null,
+            "expectTools": [
+              "get_policy"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "ปักการ์ดนี้ไว้บน Dashboard ด้วย",
+            "interest": null,
+            "expectTools": [],
+            "expectDecision": "refuse",
+            "note": "non-metric pin gap"
+          }
+        ]
+      },
+      {
+        "daysAgo": 5,
+        "turns": [
+          {
+            "say": "AR overdue ของอีสานรุ่งโรจน์ ค้าส่ง กับโคราชสหภัณฑ์",
+            "interest": "ar_agent",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "ส่งอีเมลถึงคุณอนุชาให้ช่วยตามหนี้สองรายนี้",
+            "interest": "ar_agent",
+            "expectTools": [
+              "send_email",
+              "resolve_owner"
+            ],
+            "expectDecision": "allow",
+            "approve": true
+          }
+        ]
+      },
+      {
+        "daysAgo": 4,
+        "turns": [
+          {
+            "say": "มูลค่าขายแยกช่องทาง สัปดาห์นี้",
+            "interest": "value_channel",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      },
+      {
+        "daysAgo": 3,
+        "turns": [
+          {
+            "say": "กำไรขั้นต้นของสินค้านอนแอลกอฮอล์เป็นยังไงบ้าง",
+            "interest": "margin_mix",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "SKU ไหนกำไรต่ำสุด",
+            "interest": "margin_mix",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      },
+      {
+        "daysAgo": 1,
+        "turns": [
+          {
+            "say": "ยอดขายเป็นเงินเทียบเป้าเดือนนี้",
+            "interest": null,
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "ลูกหนี้ค้างเกินกำหนดเอเย่นต์ไหนเพิ่มขึ้นบ้าง",
+            "interest": "ar_agent",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      },
+      {
+        "daysAgo": 0,
+        "turns": [
+          {
+            "say": "ช่องทางไหนขายได้มูลค่ามากสุดเดือนนี้",
+            "interest": "value_channel",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "margin รวมเดือนนี้เทียบเดือนก่อน",
+            "interest": "margin_mix",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "userId": "u_prasit",
+    "interests": [
+      {
+        "key": "share_province",
+        "label": "ส่วนแบ่งตลาดรายจังหวัด",
+        "slice": {
+          "metric": "market_share",
+          "dims": [
+            "province"
+          ]
+        }
+      },
+      {
+        "key": "isan_agents",
+        "label": "เอเย่นต์อีสานที่ยอดหาย",
+        "slice": {
+          "metric": "net_sales_volume",
+          "dims": [
+            "agent"
+          ]
+        }
+      },
+      {
+        "key": "sellout_channel",
+        "label": "ขายออกตามช่องทาง",
+        "slice": {
+          "metric": "sell_out_volume",
+          "dims": [
+            "channel"
+          ]
+        }
+      }
+    ],
+    "sessions": [
+      {
+        "daysAgo": 13,
+        "turns": [
+          {
+            "say": "ส่วนแบ่งตลาดเบียร์รายจังหวัด เดือนล่าสุด",
+            "interest": "share_province",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "จังหวัดไหนเสียส่วนแบ่งให้คู่แข่งมากที่สุด",
+            "interest": "share_province",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      },
+      {
+        "daysAgo": 12,
+        "turns": [
+          {
+            "say": "ดูประวัติการสั่งซื้อรายวันของอุบลศรีสุข เทรดดิ้ง 30 วันล่าสุด",
+            "interest": "isan_agents",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "แล้วอีสานรุ่งโรจน์ ค้าส่งล่ะ สั่งน้อยลงไหม",
+            "interest": "isan_agents",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      },
+      {
+        "daysAgo": 11,
+        "turns": [
+          {
+            "say": "ขายออกจากร้านแยกตามช่องทาง 4 สัปดาห์",
+            "interest": "sellout_channel",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "press": "drill",
+            "interest": null,
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      },
+      {
+        "daysAgo": 10,
+        "turns": [
+          {
+            "say": "ทีมคุณอนุชามีใครบ้าง แล้วใครเพิ่งเข้ามาใหม่",
+            "interest": null,
+            "expectTools": [
+              "find_people"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "ปักการ์ดนี้ไว้บน Dashboard ด้วย",
+            "interest": null,
+            "expectTools": [],
+            "expectDecision": "refuse",
+            "note": "non-metric pin gap"
+          }
+        ]
+      },
+      {
+        "daysAgo": 9,
+        "turns": [
+          {
+            "say": "market share นครราชสีมากับขอนแก่นเทียบปีก่อน",
+            "interest": "share_province",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "ปักการ์ดนี้ไว้บน Dashboard ด้วย",
+            "interest": "share_province",
+            "expectTools": [
+              "pin_widget"
+            ],
+            "expectDecision": "allow",
+            "approve": true
+          }
+        ]
+      },
+      {
+        "daysAgo": 8,
+        "turns": [
+          {
+            "say": "จำนวนพนักงานขายในแต่ละภาคมีกี่คน",
+            "interest": null,
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "masked",
+            "note": "headcount masked for sales director"
+          },
+          {
+            "say": "อัตราลาออกทีมขายเดือนล่าสุด",
+            "interest": null,
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "masked",
+            "note": "attrition masked for sales director"
+          }
+        ]
+      },
+      {
+        "daysAgo": 7,
+        "turns": [
+          {
+            "say": "เอเย่นต์ที่ยอดหายมากสุดในอีสาน เทียบไตรมาสก่อน",
+            "interest": "isan_agents",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "press": "handoff",
+            "interest": null,
+            "expectTools": [
+              "create_handoff"
+            ],
+            "expectDecision": "allow",
+            "approve": true
+          }
+        ]
+      },
+      {
+        "daysAgo": 6,
+        "turns": [
+          {
+            "say": "sell-out ช่องทางร้านสะดวกซื้อสัปดาห์นี้เป็นยังไง",
+            "interest": "sellout_channel",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "รัน job ตรวจความผิดปกติใหม่ให้หน่อย",
+            "interest": null,
+            "expectTools": [
+              "run_job"
+            ],
+            "expectDecision": "deny"
+          }
+        ]
+      },
+      {
+        "daysAgo": 4,
+        "turns": [
+          {
+            "say": "พยากรณ์ยอดขายทั้งประเทศ 8 สัปดาห์ จะถึงเป้าไหม",
+            "interest": null,
+            "expectTools": [
+              "get_forecast"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "โคราชสหภัณฑ์ยอดเดือนนี้เป็นไง",
+            "interest": "isan_agents",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      },
+      {
+        "daysAgo": 3,
+        "turns": [
+          {
+            "say": "ส่วนแบ่งตลาดตามจังหวัด ภาคใต้",
+            "interest": "share_province",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "ขายออกแยกช่องทาง เทียบปีก่อน",
+            "interest": "sellout_channel",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      },
+      {
+        "daysAgo": 1,
+        "turns": [
+          {
+            "say": "ตำแหน่งงานขายที่ยังว่างมีที่ไหนบ้าง",
+            "interest": null,
+            "expectTools": [
+              "list_candidates",
+              "find_people"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "ส่งอีเมลหาคุณสรัญญาให้สรุปแผนกู้ยอดภาคใต้ภายในศุกร์นี้",
+            "interest": null,
+            "expectTools": [
+              "send_email",
+              "resolve_owner"
+            ],
+            "expectDecision": "allow",
+            "approve": false
+          }
+        ]
+      },
+      {
+        "daysAgo": 0,
+        "turns": [
+          {
+            "say": "เอเย่นต์อีสานรายไหนควรไปเยี่ยมสัปดาห์นี้",
+            "interest": "isan_agents",
+            "expectTools": [
+              "query_metric",
+              "get_alerts"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "ช่องทางไหนขายออกได้ดีขึ้นบ้าง",
+            "interest": "sellout_channel",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "userId": "u_anucha",
+    "interests": [
+      {
+        "key": "sku_sellin",
+        "label": "ยอดขายเข้ารายสินค้าในอีสาน",
+        "slice": {
+          "metric": "net_sales_volume",
+          "dims": [
+            "sku"
+          ]
+        }
+      },
+      {
+        "key": "leo_isan",
+        "label": "ลีโอในอีสาน",
+        "slice": {
+          "metric": "sell_out_volume",
+          "dims": [
+            "province"
+          ]
+        }
+      },
+      {
+        "key": "ar_agents",
+        "label": "ลูกหนี้ค้างของเอเย่นต์ในภาค",
+        "slice": {
+          "metric": "ar_overdue",
+          "dims": [
+            "agent"
+          ]
+        }
+      }
+    ],
+    "sessions": [
+      {
+        "daysAgo": 13,
+        "turns": [
+          {
+            "say": "ยอดขายเข้าแยกตาม SKU เดือนนี้",
+            "interest": "sku_sellin",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "ตัวไหนตกหนักสุด",
+            "interest": "sku_sellin",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      },
+      {
+        "daysAgo": 12,
+        "turns": [
+          {
+            "say": "ลีโอขวดในอีสานขายออกเป็นไงบ้าง",
+            "interest": "leo_isan",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "press": "drill",
+            "interest": null,
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      },
+      {
+        "daysAgo": 11,
+        "turns": [
+          {
+            "say": "เอเย่นต์ไหนในภาคค้างชำระเกินกำหนดบ้าง",
+            "interest": "ar_agents",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "press": "handoff",
+            "interest": null,
+            "expectTools": [
+              "create_handoff"
+            ],
+            "expectDecision": "allow",
+            "approve": true
+          }
+        ]
+      },
+      {
+        "daysAgo": 10,
+        "turns": [
+          {
+            "say": "ภาคใต้ยอดขายเป็นยังไงบ้าง อยากเทียบกับเรา",
+            "interest": null,
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "scoped",
+            "note": "south outside rsm northeast scope"
+          }
+        ]
+      },
+      {
+        "daysAgo": 9,
+        "turns": [
+          {
+            "say": "SKU ไหนตกในอีสาน 4 สัปดาห์ล่าสุด",
+            "interest": "sku_sellin",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "ปักการ์ดนี้ไว้บน Dashboard ด้วย",
+            "interest": "sku_sellin",
+            "expectTools": [
+              "pin_widget"
+            ],
+            "expectDecision": "allow",
+            "approve": true
+          }
+        ]
+      },
+      {
+        "daysAgo": 8,
+        "turns": [
+          {
+            "say": "ลีโอ sell-out รายจังหวัดในภาค เทียบปีก่อน",
+            "interest": "leo_isan",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "งบแคมเปญที่ลงในอีสานเท่าไหร่",
+            "interest": null,
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "deny",
+            "note": "campaign_spend none for rsm"
+          }
+        ]
+      },
+      {
+        "daysAgo": 7,
+        "turns": [
+          {
+            "say": "ทีมผมใครใบอนุญาตขายเครื่องดื่มแอลกอฮอล์ใกล้หมดอายุ",
+            "interest": null,
+            "expectTools": [
+              "find_people"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "ปักการ์ดนี้ไว้บน Dashboard ด้วย",
+            "interest": null,
+            "expectTools": [],
+            "expectDecision": "refuse",
+            "note": "non-metric pin gap"
+          }
+        ]
+      },
+      {
+        "daysAgo": 6,
+        "turns": [
+          {
+            "say": "ขอดูลูกหนี้ค้างของอุบลศรีสุข เทรดดิ้ง กับวารินพาณิชย์",
+            "interest": "ar_agents",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "ลีโอกระป๋องในขอนแก่นกับโคราชเป็นยังไง",
+            "interest": "leo_isan",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      },
+      {
+        "daysAgo": 4,
+        "turns": [
+          {
+            "say": "ยอด sell-in รายสินค้า 4 สัปดาห์",
+            "interest": "sku_sellin",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "หนี้ค้างของเอเย่นต์ในอีสานรวมแล้วเท่าไหร่ รายไหนหนักสุด",
+            "interest": "ar_agents",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "อัตราลาออกทีมขายอีสาน",
+            "interest": null,
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "deny",
+            "note": "attrition none for rsm"
+          }
+        ]
+      },
+      {
+        "daysAgo": 3,
+        "turns": [
+          {
+            "say": "สต๊อกที่ DC ขอนแก่นพอขายกี่วัน",
+            "interest": null,
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "ส่งอีเมลหาคุณวีร์ว่าสต๊อกลีโอที่ขอนแก่นใกล้หมด",
+            "interest": null,
+            "expectTools": [
+              "send_email",
+              "resolve_owner"
+            ],
+            "expectDecision": "allow",
+            "approve": true
+          }
+        ]
+      },
+      {
+        "daysAgo": 1,
+        "turns": [
+          {
+            "say": "เอเย่นต์ค้างจ่ายรายไหนเพิ่มขึ้นจากเดือนก่อน",
+            "interest": "ar_agents",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "ลีโอในอีสานเดือนนี้ขายออกดีขึ้นไหม",
+            "interest": "leo_isan",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      },
+      {
+        "daysAgo": 0,
+        "turns": [
+          {
+            "say": "ยอดขายเข้ารายสินค้าวันนี้เทียบเป้า",
+            "interest": "sku_sellin",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "มีความผิดปกติอะไรในภาคบ้าง",
+            "interest": null,
+            "expectTools": [
+              "get_alerts"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "userId": "u_saranya",
+    "interests": [
+      {
+        "key": "attain_province",
+        "label": "ยอดเทียบเป้ารายจังหวัดภาคใต้",
+        "slice": {
+          "metric": "target_attainment",
+          "dims": [
+            "province"
+          ]
+        }
+      },
+      {
+        "key": "tourist_agents",
+        "label": "เอเย่นต์ฝั่งท่องเที่ยว (ภูเก็ต สมุย)",
+        "slice": {
+          "metric": "sell_out_volume",
+          "dims": [
+            "agent"
+          ]
+        }
+      },
+      {
+        "key": "stock_sku",
+        "label": "สต๊อกรายสินค้าภาคใต้",
+        "slice": {
+          "metric": "stock_on_hand",
+          "dims": [
+            "sku"
+          ]
+        }
+      }
+    ],
+    "sessions": [
+      {
+        "daysAgo": 13,
+        "turns": [
+          {
+            "say": "ยอดเทียบเป้าแยกจังหวัดในภาคใต้",
+            "interest": "attain_province",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "press": "drill",
+            "interest": null,
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      },
+      {
+        "daysAgo": 12,
+        "turns": [
+          {
+            "say": "ภูเก็ตอันดามัน ซัพพลายขายออกช่วงนี้เป็นยังไง",
+            "interest": "tourist_agents",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      },
+      {
+        "daysAgo": 11,
+        "turns": [
+          {
+            "say": "สต๊อกคงเหลือตาม SKU ในภาค",
+            "interest": "stock_sku",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "ตัวไหนเหลือน้อยสุด",
+            "interest": "stock_sku",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      },
+      {
+        "daysAgo": 10,
+        "turns": [
+          {
+            "say": "อีสานเค้าทำได้กี่เปอร์เซ็นต์ของเป้า",
+            "interest": null,
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "scoped",
+            "note": "northeast outside south scope"
+          },
+          {
+            "say": "กำลังการผลิตโรงงานขอนแก่นตอนนี้",
+            "interest": null,
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "deny",
+            "note": "production_output none for rsm"
+          }
+        ]
+      },
+      {
+        "daysAgo": 9,
+        "turns": [
+          {
+            "say": "สงขลากับหาดใหญ่ทำได้ตามเป้าไหมเดือนนี้",
+            "interest": "attain_province",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "ปักการ์ดนี้ไว้บน Dashboard ด้วย",
+            "interest": "attain_province",
+            "expectTools": [
+              "pin_widget"
+            ],
+            "expectDecision": "allow",
+            "approve": true
+          }
+        ]
+      },
+      {
+        "daysAgo": 8,
+        "turns": [
+          {
+            "say": "เกาะสมุยเบเวอเรจ sell-out เทียบปีก่อน",
+            "interest": "tourist_agents",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "press": "handoff",
+            "interest": null,
+            "expectTools": [
+              "create_handoff"
+            ],
+            "expectDecision": "allow",
+            "approve": false
+          }
+        ]
+      },
+      {
+        "daysAgo": 7,
+        "turns": [
+          {
+            "say": "นโยบายลาพักร้อนนับวันยังไง",
+            "interest": null,
+            "expectTools": [
+              "get_policy"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "ปักการ์ดนี้ไว้บน Dashboard ด้วย",
+            "interest": null,
+            "expectTools": [],
+            "expectDecision": "refuse",
+            "note": "non-metric pin gap"
+          }
+        ]
+      },
+      {
+        "daysAgo": 6,
+        "turns": [
+          {
+            "say": "stock on hand รายสินค้า DC สงขลา",
+            "interest": "stock_sku",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "ช่องทางไหนในภาคใต้โตสุด",
+            "interest": null,
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      },
+      {
+        "daysAgo": 4,
+        "turns": [
+          {
+            "say": "ภาคใต้ achievement รายจังหวัดล่าสุด",
+            "interest": "attain_province",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "ส่งเรื่องนครศรีที่ห่างเป้าให้คุณอาร์มช่วยตาม",
+            "interest": "attain_province",
+            "expectTools": [
+              "create_handoff",
+              "resolve_owner"
+            ],
+            "expectDecision": "allow",
+            "approve": true
+          }
+        ]
+      },
+      {
+        "daysAgo": 3,
+        "turns": [
+          {
+            "say": "เอเย่นต์ฝั่งอันดามันกับสมุย ใครขายออกตกบ้าง",
+            "interest": "tourist_agents",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      },
+      {
+        "daysAgo": 1,
+        "turns": [
+          {
+            "say": "สต๊อกลีโอกับสิงห์ในภาคพอถึงสิ้นเดือนไหม",
+            "interest": "stock_sku",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "ลูกหนี้ค้างในภาคใต้รวมเท่าไหร่",
+            "interest": null,
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      },
+      {
+        "daysAgo": 0,
+        "turns": [
+          {
+            "say": "จังหวัดไหนในภาคยังไม่ถึงเป้า",
+            "interest": "attain_province",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "sell-out เอเย่นต์ภูเก็ตสัปดาห์นี้",
+            "interest": "tourist_agents",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "userId": "u_krit",
+    "interests": [
+      {
+        "key": "sellout_agents",
+        "label": "ขายออกของเอเย่นต์ที่ดูแล",
+        "slice": {
+          "metric": "sell_out_volume",
+          "dims": [
+            "agent"
+          ]
+        }
+      },
+      {
+        "key": "visit_orders",
+        "label": "ยอดสั่งของเอเย่นต์ก่อนไปเยี่ยม",
+        "slice": {
+          "metric": "net_sales_volume",
+          "dims": [
+            "agent"
+          ]
+        }
+      }
+    ],
+    "sessions": [
+      {
+        "daysAgo": 13,
+        "turns": [
+          {
+            "say": "ขายออกของเอเย่นต์ที่ผมดูแลเดือนนี้",
+            "interest": "sellout_agents",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "press": "drill",
+            "interest": null,
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      },
+      {
+        "daysAgo": 12,
+        "turns": [
+          {
+            "say": "พรุ่งนี้จะไปขอนแก่นมหาชัย ช่วงนี้เค้าสั่งของเท่าไหร่",
+            "interest": "visit_orders",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      },
+      {
+        "daysAgo": 11,
+        "turns": [
+          {
+            "say": "ยอดของผมเทียบเป้าตอนนี้",
+            "interest": null,
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "กำไรขั้นต้นของลีโอเท่าไหร่",
+            "interest": null,
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "deny",
+            "note": "gross_margin none for rep"
+          }
+        ]
+      },
+      {
+        "daysAgo": 10,
+        "turns": [
+          {
+            "say": "sell-out รายเอเย่นต์ 4 สัปดาห์ล่าสุด",
+            "interest": "sellout_agents",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "ปักการ์ดนี้ไว้บน Dashboard ด้วย",
+            "interest": "sellout_agents",
+            "expectTools": [
+              "pin_widget"
+            ],
+            "expectDecision": "allow",
+            "approve": true
+          }
+        ]
+      },
+      {
+        "daysAgo": 9,
+        "turns": [
+          {
+            "say": "ช่วยส่งอีเมลหาหัวหน้าว่าสต๊อกสิงห์ขวดที่โคราชไม่พอ",
+            "interest": null,
+            "expectTools": [
+              "send_email"
+            ],
+            "expectDecision": "deny",
+            "note": "send_email not allowed for rep"
+          }
+        ]
+      },
+      {
+        "daysAgo": 8,
+        "turns": [
+          {
+            "say": "โคราชสหภัณฑ์สั่งซื้อย้อนหลังเดือนนี้",
+            "interest": "visit_orders",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "ปากช่องเบเวอเรจล่ะ",
+            "interest": "visit_orders",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      },
+      {
+        "daysAgo": 7,
+        "turns": [
+          {
+            "say": "ขายออกของเอเย่นต์ผมตัวไหนตกบ้าง",
+            "interest": "sellout_agents",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "press": "drill",
+            "interest": null,
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      },
+      {
+        "daysAgo": 6,
+        "turns": [
+          {
+            "say": "หลักสูตรการขายแบบที่ปรึกษายังรับสมัครไหม",
+            "interest": null,
+            "expectTools": [
+              "list_courses"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "ปักการ์ดนี้ไว้บน Dashboard ด้วย",
+            "interest": null,
+            "expectTools": [],
+            "expectDecision": "refuse",
+            "note": "non-metric pin gap"
+          }
+        ]
+      },
+      {
+        "daysAgo": 4,
+        "turns": [
+          {
+            "say": "ภาคเหนือยอดเป็นไงบ้าง",
+            "interest": null,
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "scoped",
+            "note": "north outside rep northeast scope"
+          },
+          {
+            "say": "ลูกหนี้ค้างของเอเย่นต์ผม",
+            "interest": null,
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "masked",
+            "note": "ar_overdue masked for rep"
+          }
+        ]
+      },
+      {
+        "daysAgo": 3,
+        "turns": [
+          {
+            "say": "อุบลศรีสุข เทรดดิ้ง ยอดสั่ง 30 วัน ก่อนเข้าไปคุย",
+            "interest": "visit_orders",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "สต๊อกสิงห์ขวด 620 มล. เหลือเท่าไหร่",
+            "interest": null,
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      },
+      {
+        "daysAgo": 1,
+        "turns": [
+          {
+            "say": "เอเย่นต์ไหนขายออกดีขึ้นบ้างสัปดาห์นี้",
+            "interest": "sellout_agents",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "ขอลาพักร้อนวันศุกร์หน้าหนึ่งวัน",
+            "interest": null,
+            "expectTools": [
+              "request_leave",
+              "get_policy"
+            ],
+            "expectDecision": "allow",
+            "approve": true
+          }
+        ]
+      },
+      {
+        "daysAgo": 0,
+        "turns": [
+          {
+            "say": "วันนี้ควรไปเยี่ยมเอเย่นต์ไหนก่อน",
+            "interest": "visit_orders",
+            "expectTools": [
+              "query_metric",
+              "get_alerts"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "sell-out เอเย่นต์ของผมเมื่อวาน",
+            "interest": "sellout_agents",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "userId": "u_arm",
+    "interests": [
+      {
+        "key": "cover_sku",
+        "label": "สินค้าที่สต๊อกพอขายน้อย",
+        "slice": {
+          "metric": "days_of_cover",
+          "dims": [
+            "sku"
+          ]
+        }
+      },
+      {
+        "key": "sku_mix",
+        "label": "สินค้าขายดีในร้านที่ดูแล",
+        "slice": {
+          "metric": "sell_out_volume",
+          "dims": [
+            "sku"
+          ]
+        }
+      }
+    ],
+    "sessions": [
+      {
+        "daysAgo": 13,
+        "turns": [
+          {
+            "say": "สินค้าตัวไหนสต๊อกพอขายน้อยกว่า 10 วัน",
+            "interest": "cover_sku",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "press": "drill",
+            "interest": null,
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      },
+      {
+        "daysAgo": 12,
+        "turns": [
+          {
+            "say": "ในหาดใหญ่ตัวไหนขายออกดีสุด",
+            "interest": "sku_mix",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      },
+      {
+        "daysAgo": 11,
+        "turns": [
+          {
+            "say": "days of cover รายสินค้าภาคใต้",
+            "interest": "cover_sku",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "ปักการ์ดนี้ไว้บน Dashboard ด้วย",
+            "interest": "cover_sku",
+            "expectTools": [
+              "pin_widget"
+            ],
+            "expectDecision": "allow",
+            "approve": true
+          }
+        ]
+      },
+      {
+        "daysAgo": 10,
+        "turns": [
+          {
+            "say": "งบส่งเสริมการขายในภาคใต้เท่าไหร่",
+            "interest": null,
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "deny",
+            "note": "trade_spend none for rep"
+          },
+          {
+            "say": "อีสานขายสิงห์ได้เท่าไหร่เดือนนี้",
+            "interest": null,
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "scoped",
+            "note": "northeast outside rep south scope"
+          }
+        ]
+      },
+      {
+        "daysAgo": 9,
+        "turns": [
+          {
+            "say": "ลีโอกระป๋องกับขวด อันไหนขายออกดีกว่าช่วงนี้",
+            "interest": "sku_mix",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      },
+      {
+        "daysAgo": 8,
+        "turns": [
+          {
+            "say": "ยอดผมเทียบเป้าเดือนนี้",
+            "interest": null,
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "ส่งอีเมลให้ฝ่ายซัพพลายเติมโซดาสิงห์ที่สงขลาด่วน",
+            "interest": null,
+            "expectTools": [
+              "send_email"
+            ],
+            "expectDecision": "deny",
+            "note": "send_email not allowed for rep"
+          }
+        ]
+      },
+      {
+        "daysAgo": 7,
+        "turns": [
+          {
+            "say": "สต๊อกพอขายกี่วันของน้ำดื่มสิงห์ที่ DC สงขลา",
+            "interest": "cover_sku",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "press": "drill",
+            "interest": null,
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      },
+      {
+        "daysAgo": 6,
+        "turns": [
+          {
+            "say": "ตารางเยี่ยมร้านของผมสัปดาห์นี้มีอะไรบ้าง",
+            "interest": null,
+            "expectTools": [
+              "get_calendar"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "ปักการ์ดนี้ไว้บน Dashboard ด้วย",
+            "interest": null,
+            "expectTools": [],
+            "expectDecision": "refuse",
+            "note": "non-metric pin gap"
+          }
+        ]
+      },
+      {
+        "daysAgo": 4,
+        "turns": [
+          {
+            "say": "ภูเก็ตขายออกรายสินค้า 4 สัปดาห์",
+            "interest": "sku_mix",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "หาดใหญ่สหมิตรสั่งของน้อยลงไหม",
+            "interest": null,
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      },
+      {
+        "daysAgo": 3,
+        "turns": [
+          {
+            "say": "ของที่ใกล้ขาดสต๊อกในภาคมีอะไรบ้าง",
+            "interest": "cover_sku",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      },
+      {
+        "daysAgo": 1,
+        "turns": [
+          {
+            "say": "เพอร์ร่ากับโซดาสิงห์ขายออกเทียบเดือนก่อน",
+            "interest": "sku_mix",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "ลูกหนี้ค้างของเอเย่นต์ในเขตผม",
+            "interest": null,
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "masked",
+            "note": "ar_overdue masked for rep"
+          }
+        ]
+      },
+      {
+        "daysAgo": 0,
+        "turns": [
+          {
+            "say": "วันนี้ SKU ไหนต้องรีบเติม",
+            "interest": "cover_sku",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "ตัวไหนขายดีสุดสัปดาห์นี้",
+            "interest": "sku_mix",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "userId": "u_ben",
+    "interests": [
+      {
+        "key": "uplift_campaign",
+        "label": "ผลยกระดับรายแคมเปญ",
+        "slice": {
+          "metric": "campaign_uplift",
+          "dims": [
+            "campaign"
+          ]
+        }
+      },
+      {
+        "key": "leo_festival",
+        "label": "ลีโอ มิวสิค เฟสติวัล ได้ผลไหม",
+        "slice": {
+          "metric": "sell_out_volume",
+          "dims": [
+            "week"
+          ]
+        }
+      },
+      {
+        "key": "reach_region",
+        "label": "การเข้าถึงแคมเปญตามภาค",
+        "slice": {
+          "metric": "campaign_reach",
+          "dims": [
+            "region"
+          ]
+        }
+      }
+    ],
+    "sessions": [
+      {
+        "daysAgo": 13,
+        "turns": [
+          {
+            "say": "uplift แยกตามแคมเปญปีนี้",
+            "interest": "uplift_campaign",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "press": "drill",
+            "interest": null,
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      },
+      {
+        "daysAgo": 12,
+        "turns": [
+          {
+            "say": "ลีโอ มิวสิค เฟสติวัล ทำให้ขายออกเพิ่มขึ้นจริงไหม",
+            "interest": "leo_festival",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      },
+      {
+        "daysAgo": 11,
+        "turns": [
+          {
+            "say": "reach ของแคมเปญแยกตามภาค",
+            "interest": "reach_region",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "ภาคไหนเข้าถึงน้อยสุด",
+            "interest": "reach_region",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      },
+      {
+        "daysAgo": 10,
+        "turns": [
+          {
+            "say": "งบส่งเสริมการขายรายภาคเท่าไหร่",
+            "interest": null,
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "masked",
+            "note": "trade_spend masked for marketing"
+          },
+          {
+            "say": "กำลังการผลิตลีโอพอสำหรับแคมเปญหน้าไหม",
+            "interest": null,
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "deny",
+            "note": "production_output none for marketing"
+          }
+        ]
+      },
+      {
+        "daysAgo": 9,
+        "turns": [
+          {
+            "say": "แคมเปญไหนยก sell-out ได้มากสุด",
+            "interest": "uplift_campaign",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "ปักการ์ดนี้ไว้บน Dashboard ด้วย",
+            "interest": "uplift_campaign",
+            "expectTools": [
+              "pin_widget"
+            ],
+            "expectDecision": "allow",
+            "approve": true
+          }
+        ]
+      },
+      {
+        "daysAgo": 8,
+        "turns": [
+          {
+            "say": "ส่วนแบ่งเสียงของลีโอช่วงเฟสติวัล",
+            "interest": "leo_festival",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "sentiment ของลีโอหลังจัดงานเป็นไง",
+            "interest": "leo_festival",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      },
+      {
+        "daysAgo": 7,
+        "turns": [
+          {
+            "say": "ใครเป็นเจ้าของข้อมูลแคมเปญฝั่ง CRM",
+            "interest": null,
+            "expectTools": [
+              "resolve_owner",
+              "find_people"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "ปักการ์ดนี้ไว้บน Dashboard ด้วย",
+            "interest": null,
+            "expectTools": [],
+            "expectDecision": "refuse",
+            "note": "non-metric pin gap"
+          }
+        ]
+      },
+      {
+        "daysAgo": 6,
+        "turns": [
+          {
+            "say": "campaign reach อีสานกับเหนือเทียบเดือนก่อน",
+            "interest": "reach_region",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "press": "handoff",
+            "interest": null,
+            "expectTools": [
+              "create_handoff"
+            ],
+            "expectDecision": "allow",
+            "approve": true
+          }
+        ]
+      },
+      {
+        "daysAgo": 4,
+        "turns": [
+          {
+            "say": "ซีสโตร์ โซดาซัมเมอร์ 1 แถม 1 ได้ uplift เท่าไหร่",
+            "interest": "uplift_campaign",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "ส่งอีเมลหาคุณฟ้าให้เตรียมสรุปผลโซดาซัมเมอร์",
+            "interest": null,
+            "expectTools": [
+              "send_email",
+              "resolve_owner"
+            ],
+            "expectDecision": "allow",
+            "approve": false
+          }
+        ]
+      },
+      {
+        "daysAgo": 3,
+        "turns": [
+          {
+            "say": "ยอดขายออกรายสัปดาห์ช่วงลีโอเฟสติวัลเทียบปีก่อน",
+            "interest": "leo_festival",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      },
+      {
+        "daysAgo": 1,
+        "turns": [
+          {
+            "say": "คะแนนความรู้สึกต่อแบรนด์เดือนนี้",
+            "interest": null,
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "การเข้าถึงแคมเปญภาคใต้ลดลงไหม",
+            "interest": "reach_region",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      },
+      {
+        "daysAgo": 0,
+        "turns": [
+          {
+            "say": "uplift แคมเปญสงกรานต์ 2569 เทียบปีก่อน",
+            "interest": "uplift_campaign",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "ลีโอเฟสติวัลคุ้มไหมถ้าดูยอดขายออก",
+            "interest": "leo_festival",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "userId": "u_wee",
+    "interests": [
+      {
+        "key": "cover_sku",
+        "label": "วันคุ้มสต๊อกรายสินค้า",
+        "slice": {
+          "metric": "days_of_cover",
+          "dims": [
+            "sku"
+          ]
+        }
+      },
+      {
+        "key": "khonkaen_capacity",
+        "label": "กำลังผลิตโรงงานขอนแก่น",
+        "slice": {
+          "metric": "capacity_utilization",
+          "dims": [
+            "plant"
+          ]
+        }
+      },
+      {
+        "key": "stock_dc",
+        "label": "สต๊อกตาม DC",
+        "slice": {
+          "metric": "stock_on_hand",
+          "dims": [
+            "dc"
+          ]
+        }
+      }
+    ],
+    "sessions": [
+      {
+        "daysAgo": 13,
+        "turns": [
+          {
+            "say": "days of cover แยกตาม SKU ทั้งประเทศ",
+            "interest": "cover_sku",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "press": "drill",
+            "interest": null,
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      },
+      {
+        "daysAgo": 12,
+        "turns": [
+          {
+            "say": "โรงงานขอนแก่นใช้กำลังผลิตกี่เปอร์เซ็นต์สัปดาห์นี้",
+            "interest": "khonkaen_capacity",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      },
+      {
+        "daysAgo": 11,
+        "turns": [
+          {
+            "say": "สต๊อกคงเหลือแต่ละ DC",
+            "interest": "stock_dc",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "DC ไหนสต๊อกเยอะเกิน",
+            "interest": "stock_dc",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      },
+      {
+        "daysAgo": 10,
+        "turns": [
+          {
+            "say": "มูลค่าขายเดือนนี้เท่าไหร่",
+            "interest": null,
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "deny",
+            "note": "net_sales_value none for supply"
+          },
+          {
+            "say": "กำไรขั้นต้นของน้ำดื่มสิงห์",
+            "interest": null,
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "deny",
+            "note": "gross_margin none for supply"
+          }
+        ]
+      },
+      {
+        "daysAgo": 9,
+        "turns": [
+          {
+            "say": "สินค้าตัวไหนสต๊อกพอขายน้อยสุด",
+            "interest": "cover_sku",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "ปักการ์ดนี้ไว้บน Dashboard ด้วย",
+            "interest": "cover_sku",
+            "expectTools": [
+              "pin_widget"
+            ],
+            "expectDecision": "allow",
+            "approve": true
+          }
+        ]
+      },
+      {
+        "daysAgo": 8,
+        "turns": [
+          {
+            "say": "สายการผลิต 1 กับ 2 ที่ขอนแก่นเดินเครื่องเต็มไหม",
+            "interest": "khonkaen_capacity",
+            "expectTools": [
+              "query_metric",
+              "get_site"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "press": "handoff",
+            "interest": null,
+            "expectTools": [
+              "create_handoff"
+            ],
+            "expectDecision": "allow",
+            "approve": true
+          }
+        ]
+      },
+      {
+        "daysAgo": 7,
+        "turns": [
+          {
+            "say": "ข้อมูลโรงงานขอนแก่นมีอะไรบ้าง ใครดูแล",
+            "interest": null,
+            "expectTools": [
+              "get_site",
+              "describe_entity"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "ปักการ์ดนี้ไว้บน Dashboard ด้วย",
+            "interest": null,
+            "expectTools": [],
+            "expectDecision": "refuse",
+            "note": "non-metric pin gap"
+          }
+        ]
+      },
+      {
+        "daysAgo": 6,
+        "turns": [
+          {
+            "say": "stock on hand DC ขอนแก่นกับนครราชสีมา",
+            "interest": "stock_dc",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "ความคลาดเคลื่อนพยากรณ์เดือนนี้",
+            "interest": null,
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      },
+      {
+        "daysAgo": 4,
+        "turns": [
+          {
+            "say": "utilization ขอนแก่นรายสัปดาห์ไตรมาสนี้",
+            "interest": "khonkaen_capacity",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "ส่งอีเมลหาคุณอนุชาว่าลีโอกระป๋องจะเข้า DC ขอนแก่นช้า 3 วัน",
+            "interest": null,
+            "expectTools": [
+              "send_email",
+              "resolve_owner"
+            ],
+            "expectDecision": "allow",
+            "approve": true
+          }
+        ]
+      },
+      {
+        "daysAgo": 3,
+        "turns": [
+          {
+            "say": "ลีโอขวดพอขายกี่วัน",
+            "interest": "cover_sku",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "เงินเดือนเฉลี่ยฝ่ายซัพพลายเชน",
+            "interest": null,
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "masked",
+            "note": "avg_salary masked for supply"
+          }
+        ]
+      },
+      {
+        "daysAgo": 1,
+        "turns": [
+          {
+            "say": "DC ไหนต้องโอนของไปช่วยที่อื่น",
+            "interest": "stock_dc",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "พยากรณ์ขายออกลีโอ 8 สัปดาห์",
+            "interest": null,
+            "expectTools": [
+              "get_forecast"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      },
+      {
+        "daysAgo": 0,
+        "turns": [
+          {
+            "say": "โรงงานขอนแก่นวันนี้ใช้กำลังผลิตเท่าไหร่ เทียบโรงอื่น",
+            "interest": "khonkaen_capacity",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "SKU ไหนต่ำกว่า 10 วันวันนี้",
+            "interest": "cover_sku",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "userId": "u_mint",
+    "interests": [
+      {
+        "key": "ar_region",
+        "label": "ลูกหนี้ค้างตามภาค",
+        "slice": {
+          "metric": "ar_overdue",
+          "dims": [
+            "region"
+          ]
+        }
+      },
+      {
+        "key": "margin_detail",
+        "label": "กำไรขั้นต้นเจาะรายละเอียด",
+        "slice": {
+          "metric": "gross_margin",
+          "dims": [
+            "sku"
+          ]
+        }
+      },
+      {
+        "key": "trade_region",
+        "label": "งบส่งเสริมการขายตามภาค",
+        "slice": {
+          "metric": "trade_spend",
+          "dims": [
+            "region"
+          ]
+        }
+      }
+    ],
+    "sessions": [
+      {
+        "daysAgo": 13,
+        "turns": [
+          {
+            "say": "ลูกหนี้ค้างชำระแยกตามภาค",
+            "interest": "ar_region",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "press": "drill",
+            "interest": null,
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      },
+      {
+        "daysAgo": 12,
+        "turns": [
+          {
+            "say": "gross margin ราย SKU เดือนนี้",
+            "interest": "margin_detail",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      },
+      {
+        "daysAgo": 11,
+        "turns": [
+          {
+            "say": "งบส่งเสริมการขายแต่ละภาคใช้ไปเท่าไหร่",
+            "interest": "trade_region",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "ภาคไหนใช้เกินงบ",
+            "interest": "trade_region",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      },
+      {
+        "daysAgo": 10,
+        "turns": [
+          {
+            "say": "จำนวนพนักงานฝ่ายการเงินมีกี่คน",
+            "interest": null,
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "deny",
+            "note": "headcount none for finance"
+          },
+          {
+            "say": "ช่วยให้สิทธิ์ฉันดูเงินเดือนได้หน่อย",
+            "interest": null,
+            "expectTools": [
+              "set_permission"
+            ],
+            "expectDecision": "deny"
+          }
+        ]
+      },
+      {
+        "daysAgo": 9,
+        "turns": [
+          {
+            "say": "AR overdue ตามภาค เทียบเดือนก่อน",
+            "interest": "ar_region",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "ปักการ์ดนี้ไว้บน Dashboard ด้วย",
+            "interest": "ar_region",
+            "expectTools": [
+              "pin_widget"
+            ],
+            "expectDecision": "allow",
+            "approve": true
+          }
+        ]
+      },
+      {
+        "daysAgo": 8,
+        "turns": [
+          {
+            "say": "กำไรขั้นต้นช่องทางไหนต่ำสุด",
+            "interest": "margin_detail",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "press": "handoff",
+            "interest": null,
+            "expectTools": [
+              "create_handoff"
+            ],
+            "expectDecision": "allow",
+            "approve": false
+          }
+        ]
+      },
+      {
+        "daysAgo": 7,
+        "turns": [
+          {
+            "say": "กองทุนสำรองเลี้ยงชีพสมทบกี่เปอร์เซ็นต์",
+            "interest": null,
+            "expectTools": [
+              "get_policy"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "ปักการ์ดนี้ไว้บน Dashboard ด้วย",
+            "interest": null,
+            "expectTools": [],
+            "expectDecision": "refuse",
+            "note": "non-metric pin gap"
+          }
+        ]
+      },
+      {
+        "daysAgo": 6,
+        "turns": [
+          {
+            "say": "trade spend ภาคตะวันออกกับภาคใต้",
+            "interest": "trade_region",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "มูลค่าขายเทียบปีก่อนเดือนนี้",
+            "interest": null,
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      },
+      {
+        "daysAgo": 4,
+        "turns": [
+          {
+            "say": "margin ของคาร์ลสเบิร์กกับอาซาฮีที่นำเข้า",
+            "interest": "margin_detail",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "ส่งอีเมลหาคุณศิริพรสรุปว่ากลุ่มนำเข้ากำไรลดลง",
+            "interest": null,
+            "expectTools": [
+              "send_email",
+              "resolve_owner"
+            ],
+            "expectDecision": "allow",
+            "approve": true
+          }
+        ]
+      },
+      {
+        "daysAgo": 3,
+        "turns": [
+          {
+            "say": "ภาคไหนมีลูกหนี้เกินกำหนดเพิ่มขึ้น",
+            "interest": "ar_region",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      },
+      {
+        "daysAgo": 1,
+        "turns": [
+          {
+            "say": "งบส่งเสริมการขายรายภาคไตรมาสนี้",
+            "interest": "trade_region",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "ลูกหนี้ค้างรายเอเย่นต์ 5 อันดับแรก",
+            "interest": null,
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      },
+      {
+        "daysAgo": 0,
+        "turns": [
+          {
+            "say": "ลูกหนี้ค้างตามภาควันนี้",
+            "interest": "ar_region",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "SKU ไหนกำไรต่อหน่วยลดลงมากสุด",
+            "interest": "margin_detail",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "userId": "u_may",
+    "interests": [
+      {
+        "key": "licence_ot",
+        "label": "ใบขับขี่/ใบอนุญาตใกล้หมดและ OT เกิน",
+        "slice": null
+      },
+      {
+        "key": "headcount_dept",
+        "label": "จำนวนพนักงานตามฝ่าย",
+        "slice": {
+          "metric": "headcount",
+          "dims": [
+            "department"
+          ]
+        }
+      },
+      {
+        "key": "attrition_trend",
+        "label": "การลาออกที่เพิ่มขึ้น",
+        "slice": {
+          "metric": "attrition_rate",
+          "dims": [
+            "month"
+          ]
+        }
+      }
+    ],
+    "sessions": [
+      {
+        "daysAgo": 13,
+        "turns": [
+          {
+            "say": "ใครใบขับขี่รถยกจะหมดอายุภายในเดือนหน้าบ้าง",
+            "interest": "licence_ot",
+            "expectTools": [
+              "find_people"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "ปักการ์ดนี้ไว้บน Dashboard ด้วย",
+            "interest": null,
+            "expectTools": [],
+            "expectDecision": "refuse",
+            "note": "non-metric pin gap"
+          }
+        ]
+      },
+      {
+        "daysAgo": 12,
+        "turns": [
+          {
+            "say": "จำนวนพนักงานแยกตามฝ่าย",
+            "interest": "headcount_dept",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "press": "drill",
+            "interest": null,
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      },
+      {
+        "daysAgo": 11,
+        "turns": [
+          {
+            "say": "อัตราลาออกช่วงหกเดือนมานี้เพิ่มขึ้นไหม",
+            "interest": "attrition_trend",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      },
+      {
+        "daysAgo": 10,
+        "turns": [
+          {
+            "say": "พนักงานที่ทำ OT เกินเกณฑ์เดือนนี้",
+            "interest": "licence_ot",
+            "expectTools": [
+              "find_people"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "ขอดูโปรไฟล์คุณแดง ศักดิ์ดี",
+            "interest": "licence_ot",
+            "expectTools": [
+              "get_person"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      },
+      {
+        "daysAgo": 9,
+        "turns": [
+          {
+            "say": "headcount ฝ่ายขายกับฝ่ายการผลิตเทียบปีก่อน",
+            "interest": "headcount_dept",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "ปักการ์ดนี้ไว้บน Dashboard ด้วย",
+            "interest": "headcount_dept",
+            "expectTools": [
+              "pin_widget"
+            ],
+            "expectDecision": "allow",
+            "approve": true
+          }
+        ]
+      },
+      {
+        "daysAgo": 8,
+        "turns": [
+          {
+            "say": "ยอดขายภาคอีสานเดือนนี้เท่าไหร่",
+            "interest": null,
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "deny",
+            "note": "net_sales_volume none for hr"
+          },
+          {
+            "say": "รันงานคำนวณพยากรณ์ใหม่ให้หน่อย",
+            "interest": null,
+            "expectTools": [
+              "run_job"
+            ],
+            "expectDecision": "deny"
+          }
+        ]
+      },
+      {
+        "daysAgo": 7,
+        "turns": [
+          {
+            "say": "ฝ่ายไหนคนลาออกเยอะสุดเดือนล่าสุด",
+            "interest": "attrition_trend",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "press": "handoff",
+            "interest": null,
+            "expectTools": [
+              "create_handoff"
+            ],
+            "expectDecision": "allow",
+            "approve": true
+          }
+        ]
+      },
+      {
+        "daysAgo": 6,
+        "turns": [
+          {
+            "say": "ผู้สมัครตำแหน่งพนักงานขายอีสานถึงขั้นไหนแล้ว",
+            "interest": null,
+            "expectTools": [
+              "list_candidates"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "หลักสูตรต่ออายุใบขับขี่รถยกรอบหน้าวันไหน",
+            "interest": "licence_ot",
+            "expectTools": [
+              "list_courses"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      },
+      {
+        "daysAgo": 4,
+        "turns": [
+          {
+            "say": "ฝ่ายไหนคนเพิ่มขึ้นมากสุดปีนี้",
+            "interest": "headcount_dept",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "ส่งอีเมลหาคุณวีร์ให้ส่งรายชื่อคนต่ออายุใบขับขี่",
+            "interest": "licence_ot",
+            "expectTools": [
+              "send_email",
+              "resolve_owner"
+            ],
+            "expectDecision": "allow",
+            "approve": true
+          }
+        ]
+      },
+      {
+        "daysAgo": 3,
+        "turns": [
+          {
+            "say": "turnover rate รายเดือนของฝ่ายการผลิต",
+            "interest": "attrition_trend",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "ใครใกล้เกษียณในปีหน้า",
+            "interest": null,
+            "expectTools": [
+              "find_people"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      },
+      {
+        "daysAgo": 1,
+        "turns": [
+          {
+            "say": "ใครใบอนุญาตหมดอายุแล้วแต่ยังไม่ได้ลงเรียน",
+            "interest": "licence_ot",
+            "expectTools": [
+              "find_people"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "จำนวนพนักงานแต่ละฝ่ายตอนนี้",
+            "interest": "headcount_dept",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      },
+      {
+        "daysAgo": 0,
+        "turns": [
+          {
+            "say": "อัตราการลาออกเดือนล่าสุดเทียบเดือนก่อน",
+            "interest": "attrition_trend",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "เงินเดือนเฉลี่ยตามฝ่าย",
+            "interest": null,
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "userId": "u_ton",
+    "interests": [
+      {
+        "key": "forecast_accuracy",
+        "label": "ความแม่นของพยากรณ์ (masked สำหรับ IT)",
+        "slice": {
+          "metric": "forecast_mape",
+          "dims": []
+        }
+      },
+      {
+        "key": "system_usage",
+        "label": "การใช้งานระบบและ connector",
+        "slice": null
+      }
+    ],
+    "sessions": [
+      {
+        "daysAgo": 13,
+        "turns": [
+          {
+            "say": "ความคลาดเคลื่อนพยากรณ์เดือนนี้เท่าไหร่",
+            "interest": "forecast_accuracy",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "masked"
+          },
+          {
+            "say": "รันงานพยากรณ์ใหม่ให้หน่อย",
+            "interest": "forecast_accuracy",
+            "expectTools": [
+              "run_job"
+            ],
+            "expectDecision": "allow",
+            "approve": true
+          }
+        ]
+      },
+      {
+        "daysAgo": 12,
+        "turns": [
+          {
+            "say": "ตอนนี้มี metric อะไรให้ถามได้บ้าง",
+            "interest": "system_usage",
+            "expectTools": [
+              "list_metrics"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      },
+      {
+        "daysAgo": 11,
+        "turns": [
+          {
+            "say": "ยอดขายรวมทั้งประเทศเดือนนี้",
+            "interest": null,
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "masked",
+            "note": "all metrics masked for it"
+          },
+          {
+            "press": "drill",
+            "interest": null,
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "masked"
+          }
+        ]
+      },
+      {
+        "daysAgo": 10,
+        "turns": [
+          {
+            "say": "ให้สิทธิ์คุณกฤตดูลูกหนี้ค้างแบบเต็ม",
+            "interest": null,
+            "expectTools": [
+              "set_permission"
+            ],
+            "expectDecision": "allow",
+            "approve": false
+          }
+        ]
+      },
+      {
+        "daysAgo": 9,
+        "turns": [
+          {
+            "say": "MAPE รายเดือนย้อนหลังหกเดือน",
+            "interest": "forecast_accuracy",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "masked"
+          },
+          {
+            "say": "ปักการ์ดนี้ไว้บน Dashboard ด้วย",
+            "interest": "forecast_accuracy",
+            "expectTools": [
+              "pin_widget"
+            ],
+            "expectDecision": "allow",
+            "approve": true
+          }
+        ]
+      },
+      {
+        "daysAgo": 8,
+        "turns": [
+          {
+            "say": "รัน job ตรวจความผิดปกติรอบใหม่",
+            "interest": null,
+            "expectTools": [
+              "run_job"
+            ],
+            "expectDecision": "allow",
+            "approve": true
+          },
+          {
+            "say": "มีความผิดปกติอะไรเปิดอยู่บ้าง",
+            "interest": null,
+            "expectTools": [
+              "get_alerts"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "ปักการ์ดนี้ไว้บน Dashboard ด้วย",
+            "interest": null,
+            "expectTools": [],
+            "expectDecision": "refuse",
+            "note": "non-metric pin gap"
+          }
+        ]
+      },
+      {
+        "daysAgo": 7,
+        "turns": [
+          {
+            "say": "จำนวนผู้ใช้แยกตามฝ่าย",
+            "interest": "system_usage",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "masked"
+          },
+          {
+            "say": "ใครดูแลระบบ CRM บ้าง",
+            "interest": "system_usage",
+            "expectTools": [
+              "find_people",
+              "resolve_owner"
+            ],
+            "expectDecision": "allow"
+          }
+        ]
+      },
+      {
+        "daysAgo": 6,
+        "turns": [
+          {
+            "say": "พยากรณ์แม่นขึ้นไหมหลังรันใหม่",
+            "interest": "forecast_accuracy",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "masked"
+          },
+          {
+            "press": "drill",
+            "interest": null,
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "masked"
+          }
+        ]
+      },
+      {
+        "daysAgo": 4,
+        "turns": [
+          {
+            "say": "ส่งอีเมลหาคุณธนาว่าคืนนี้จะรันงานประกอบ dashboard ใหม่",
+            "interest": null,
+            "expectTools": [
+              "send_email",
+              "resolve_owner"
+            ],
+            "expectDecision": "allow",
+            "approve": true
+          },
+          {
+            "say": "กำไรขั้นต้นตามแบรนด์",
+            "interest": null,
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "masked"
+          }
+        ]
+      },
+      {
+        "daysAgo": 3,
+        "turns": [
+          {
+            "say": "ความคลาดเคลื่อนพยากรณ์ตามโรงงาน",
+            "interest": "forecast_accuracy",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "masked"
+          },
+          {
+            "say": "ช่วยเปลี่ยนสิทธิ์ฝ่ายการตลาดให้เห็นงบส่งเสริมการขาย",
+            "interest": null,
+            "expectTools": [
+              "set_permission"
+            ],
+            "expectDecision": "allow",
+            "approve": false
+          }
+        ]
+      },
+      {
+        "daysAgo": 1,
+        "turns": [
+          {
+            "say": "metric ไหนมีข้อมูลล่าสุดถึงวันไหน",
+            "interest": "system_usage",
+            "expectTools": [
+              "list_metrics"
+            ],
+            "expectDecision": "allow"
+          },
+          {
+            "say": "รันงานประกอบ dashboard ให้ทุกคน",
+            "interest": null,
+            "expectTools": [
+              "run_job"
+            ],
+            "expectDecision": "allow",
+            "approve": true
+          }
+        ]
+      },
+      {
+        "daysAgo": 0,
+        "turns": [
+          {
+            "say": "พยากรณ์เดือนนี้คลาดเคลื่อนกี่เปอร์เซ็นต์",
+            "interest": "forecast_accuracy",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "masked"
+          },
+          {
+            "say": "headcount ฝ่ายไอที",
+            "interest": "system_usage",
+            "expectTools": [
+              "query_metric"
+            ],
+            "expectDecision": "masked"
+          }
+        ]
+      }
+    ]
+  }
+]

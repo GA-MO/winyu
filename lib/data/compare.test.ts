@@ -13,7 +13,8 @@ type OkResult = Extract<MetricResult, { ok: true }>;
 const MONTHLY_METRICS: ReadonlySet<MetricId> = new Set<MetricId>([
   "gross_margin", "trade_spend", "ar_overdue", "market_share", "forecast_mape", "headcount", "attrition_rate", "avg_salary",
 ]);
-const MONTHLY_TOTALS: ReadonlySet<MetricId> = new Set<MetricId>(["trade_spend", "ar_overdue"]);
+const MONTHLY_TOTALS: ReadonlySet<MetricId> = new Set<MetricId>(["trade_spend"]);
+const BALANCES: ReadonlySet<MetricId> = new Set<MetricId>(["stock_on_hand", "days_of_cover", "ar_overdue"]);
 const SPARSE_METRICS: ReadonlySet<MetricId> = new Set<MetricId>(["campaign_spend", "campaign_reach", "campaign_uplift", "sentiment_score"]);
 const COMPARES: readonly Compare[] = ["prev_period", "prev_year"];
 const RANGES: Record<string, Range> = {
@@ -76,15 +77,19 @@ function sameDayOfMonth(value: string, back: number): string {
   return cut < end ? cut : end;
 }
 
-/** The prior window written in calendar terms, independent of the engine: whole months stay whole months, month-to-date cuts at the same day, any other window moves by its length, rounded up to whole weeks when shorter than four weeks (364 days for a year). */
+/** The prior window written in calendar terms, independent of the engine: whole months stay whole months, month-to-date cuts at the same day, any other window moves by its length, rounded up to whole weeks when shorter than four weeks (364 days for a year); a balance compares with the close of the period just before. */
 function expectedPrior(metric: MetricId, compare: Compare, range: Range): Range {
   const startsMonth = range.from.endsWith("-01");
   const wholeMonths = MONTHLY_METRICS.has(metric) || (startsMonth && addDays(range.to, 1).endsWith("-01"));
+  const length = Math.round((Date.parse(range.to) - Date.parse(range.from)) / MS_PER_DAY) + 1;
+  if (BALANCES.has(metric) && compare === "prev_period") {
+    if (MONTHLY_METRICS.has(metric)) return { from: monthStart(range.from, monthSpan(range)), to: monthEnd(range.to, monthSpan(range)) };
+    return { from: addDays(range.from, -length), to: addDays(range.to, -length) };
+  }
   if (wholeMonths || (startsMonth && range.to === TODAY)) {
     const back = compare === "prev_year" ? MONTHS_PER_YEAR : monthSpan(range);
     return { from: monthStart(range.from, back), to: wholeMonths ? monthEnd(range.to, back) : sameDayOfMonth(range.to, back) };
   }
-  const length = Math.round((Date.parse(range.to) - Date.parse(range.from)) / MS_PER_DAY) + 1;
   const aligned = length >= WEEKDAY_ALIGN_BELOW_DAYS || length % DAYS_PER_WEEK === 0 ? length : Math.ceil(length / DAYS_PER_WEEK) * DAYS_PER_WEEK;
   const days = compare === "prev_year" ? PREV_YEAR_DAYS : aligned;
   return { from: addDays(range.from, -days), to: addDays(range.to, -days) };
@@ -230,5 +235,23 @@ describe("one question gives one answer however it is broken down", () => {
       const filtered = run(query(metric, [], range, compare, { filters: { region: ["northeast"] } }));
       expectClose(scoped.rows[0].compare_value, Number(filtered.rows[0]?.compare_value), `${metric} · ${rangeName} · ${compare}`);
     });
+  });
+});
+
+describe("a value threshold keeps only the rows that meet it", () => {
+  test("below keeps the rows under the line, names it, and rejects a time split", () => {
+    const range = { from: TODAY, to: TODAY };
+    const all = run(query("days_of_cover", ["sku"], range, "none"));
+    const line = Number(all.rows[Math.floor(all.rows.length / 2)]?.value);
+    const under = run(query("days_of_cover", ["sku"], range, "none", { where: { op: "below", value: line } }));
+    expect(under.rows.length).toBe(all.rows.filter((row) => Number(row.value) < line).length);
+    expect(under.rows.every((row) => Number(row.value) < line)).toBe(true);
+    expect(under.provenance.filterLabels?.some((label) => label.startsWith("น้อยกว่า"))).toBe(true);
+    expect(runMetric(query("days_of_cover", ["week"], range, "none", { where: { op: "below", value: line } }), CEO).ok).toBe(false);
+  });
+
+  test("never lets a small hidden group be found by its value", () => {
+    const over = run(query("ar_overdue", ["province"], { from: "2026-09-01", to: TODAY }, "none", { where: { op: "above", value: 0 } }));
+    expect(over.rows.some((row) => row.value === "***")).toBe(false);
   });
 });

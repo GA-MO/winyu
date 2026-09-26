@@ -1,5 +1,6 @@
 import { WIDGET_KINDS, type Alert, type AlertRow, type Dim, type Forecast, type MetricId, type MetricQuery, type MetricResult, type MetricRow, type NextAction, type WidgetKind } from "@/lib/contracts";
 import { TH } from "@/lib/i18n/th";
+import { MIN_CELL_SIZE } from "@/lib/access/suppression";
 import { addDays, monthKeyOfIso, weekKeyOfIso } from "@/lib/data/dates";
 import { formatDateTh, formatPercent, periodLabelTh } from "@/lib/i18n/format";
 import { deltaPercentOf, groupDimsOf, labelOf, numericOf, timeDimOf, valueTextOf } from "./rows";
@@ -73,7 +74,8 @@ export type CardBody =
   | { kind: "gap"; rows: GapRow[]; caption: string; shownOf: string | null }
   | { kind: "funnel"; stages: FunnelStage[] }
   | { kind: "table"; columns: CardColumn[]; rows: Record<string, string>[] }
-  | { kind: "alerts"; items: SignalItem[] };
+  | { kind: "alerts"; items: SignalItem[] }
+  | { kind: "forecast"; labels: string[]; actual: (number | null)[]; forecast: (number | null)[]; lo: (number | null)[]; hi: (number | null)[]; format: MetricFormat };
 
 export type CardParts = {
   title: string;
@@ -108,6 +110,8 @@ const WORST_WHEN_LOW: ReadonlySet<MetricId> = new Set(["target_attainment", "day
 const WORST_WHEN_HIGH: ReadonlySet<MetricId> = new Set(["ar_overdue", "forecast_mape"]);
 const MAX_RANK_ROWS = 8;
 const MAX_ALERTS = 4;
+const MAX_HISTORY_POINTS = 12;
+const MASKED = "***";
 const PARENTHETICAL = /\s*\(.*\)$/;
 const SCOPE_SEPARATOR = " · ";
 const MINUS_SIGN = "−";
@@ -255,11 +259,17 @@ function rowsLineOf(query: MetricQuery, rowCount: number): string | null {
   return isCapped(query, rowCount) ? TH.dash.shownRows(rowCount, unit) : `${rowCount} ${unit}`;
 }
 
-/** Period, what the model narrowed the question to, and how many groups the card lists. */
-function scopeOf(query: MetricQuery, rowCount: number, periodLabel: string, filterLabels: readonly string[]): string {
+function hiddenLineOf(query: MetricQuery, hidden: number): string | null {
+  if (hidden === 0) return null;
+  const dim = rankDimOf(query);
+  return TH.dash.hiddenSmall(hidden, dim ? TH.dash.dimUnit[dim] : TH.dash.item, MIN_CELL_SIZE);
+}
+
+/** Period, what the model narrowed the question to, how many groups the card lists, and how many it leaves out because they are too small to show. */
+function scopeOf(query: MetricQuery, rowCount: number, periodLabel: string, filterLabels: readonly string[], hidden: number): string {
   const filtered = filterLabels.length > 0 ? TH.dash.filteredTo(filterLabels.join(", ")) : null;
   const rows = rowsLineOf(query, rowCount);
-  return TH.dash.scope(periodLabel, [filtered, rows].filter((part): part is string => part !== null).join(" · ") || null);
+  return TH.dash.scope(periodLabel, [filtered, rows, hiddenLineOf(query, hidden)].filter((part): part is string => part !== null).join(" · ") || null);
 }
 
 /** A breakdown's headline stands for every group in scope, not only the rows the card lists; the label says which. */
@@ -271,12 +281,26 @@ function heroLabelOf(query: MetricQuery, result: Extract<MetricResult, { ok: tru
   return result.headline.aggregate === "average" ? TH.dash.averageAcross(label, unit) : TH.dash.totalAcross(label, unit);
 }
 
-function footnoteOf(result: Extract<MetricResult, { ok: true }>, extraNote: string | null): string {
+function footnoteOf(result: Extract<MetricResult, { ok: true }>, extraNote: string | null, hidden: number): string {
   const trust = TH.dash.trust[result.provenance.trust];
-  const masked = result.provenance.masked.length > 0 ? TH.dash.maskedNote(result.provenance.masked.length) : null;
+  const masked = result.provenance.masked.length > 0 && hidden === 0 ? TH.dash.maskedNote(result.provenance.masked.length) : null;
   return [TH.dash.provenance(result.provenance.sourceSystem, trust, formatDateTh(result.provenance.asOf)), masked, result.headline.compareNote, extraNote]
     .filter((line): line is string => line !== null)
     .join(" · ");
+}
+
+function lastDayOfMonth(iso: string): string {
+  return addDays(`${addDays(`${monthKeyOfIso(iso)}-28`, 4).slice(0, 7)}-01`, -1);
+}
+
+/** Against a target in a month still running, 100% means on pace to date: the line names the day the target is counted to and how much of the whole month that is. */
+function paceNoteOf(query: MetricQuery, asOf: string): string | null {
+  if (!PROGRESS_METRICS.has(query.metric) && query.compare !== "target") return null;
+  const through = query.range.to < asOf ? query.range.to : asOf;
+  const monthEnd = lastDayOfMonth(through);
+  if (through === monthEnd || query.range.from > `${monthKeyOfIso(through)}-01`) return null;
+  const share = (Number(through.slice(8)) / Number(monthEnd.slice(8))) * PERCENT;
+  return TH.dash.paceTarget(formatDateTh(through), formatPercent(Math.round(share)));
 }
 
 function heroOf(query: MetricQuery, result: Extract<MetricResult, { ok: true }>): CardHero {
@@ -287,7 +311,7 @@ function heroOf(query: MetricQuery, result: Extract<MetricResult, { ok: true }>)
     delta: formatDelta(delta),
     trend: directionOf(delta),
     tone: toneOf(query.metric, delta),
-    detail: result.headline.compareLabel,
+    detail: paceNoteOf(query, result.provenance.asOf) ?? result.headline.compareLabel,
   };
 }
 
@@ -542,7 +566,7 @@ function pairedCard(input: PresentInput, pairing: Pairing): CardParts {
     title: input.title,
     meta: pairedMeta(pairing),
     description: input.description ?? null,
-    footnote: footnoteOf(first.result, indexed ? TH.dash.indexedNote : null),
+    footnote: footnoteOf(first.result, indexed ? TH.dash.indexedNote : null, 0),
     hero: pairedHero(pairing, indexed),
     body: pairedBody(pairing),
     actions: input.actions ?? NO_ACTIONS,
@@ -603,6 +627,90 @@ export function sharpestHarm(query: MetricQuery, result: MetricResult, minPercen
   return worst;
 }
 
+function isHiddenRow(row: MetricRow): boolean {
+  return row.value === MASKED;
+}
+
+function everyValueMasked(result: Extract<MetricResult, { ok: true }>): boolean {
+  return result.provenance.masked.includes("value") && result.rows.length > 0 && result.rows.every((row) => row.value === MASKED || row.value === null);
+}
+
+function maskedCard(input: PresentInput, result: Extract<MetricResult, { ok: true }>): CardParts {
+  const dim = rankDimOf(input.query);
+  return {
+    title: input.title,
+    meta: null,
+    description: null,
+    footnote: null,
+    hero: null,
+    body: { kind: "none" },
+    actions: NO_ACTIONS,
+    denied: TH.dash.maskedAll(dim && result.rows.length > 1 ? TH.dash.dimUnit[dim] : null),
+  };
+}
+
+export type ForecastPoint = { week: string; date: string; value: number; lo: number; hi: number; value_label: string };
+export type ForecastAnswer = { metric: MetricId; total: number | null; mape: number | null; weeks: ForecastPoint[] };
+
+export type PresentForecastInput = {
+  title: string;
+  forecast: ForecastAnswer;
+  history: PresentSource | null;
+  description?: string | null;
+};
+
+function historyPoints(history: PresentSource | null): { label: string; value: number }[] {
+  if (!history || !history.result.ok || !timeDimOf(history.query) || rankDimOf(history.query)) return [];
+  const trimmed = withoutPartialBucket(history.query, "line", history.result.rows, history.result.provenance.asOf);
+  return chartPoints(history.query, trimmed.rows).slice(-MAX_HISTORY_POINTS);
+}
+
+function forecastHero(forecast: ForecastAnswer): CardHero {
+  const points = forecast.weeks;
+  const last = points[points.length - 1];
+  const detail = forecast.mape === null ? null : TH.dash.forecastError(formatPercent(forecast.mape));
+  if (forecast.total !== null) {
+    return { label: TH.dash.forecastTotal(points.length), value: formatMetricValue(forecast.metric, forecast.total), delta: null, trend: "neutral", tone: "neutral", detail };
+  }
+  return { label: TH.dash.forecastLast(last.week), value: last.value_label, delta: null, trend: "neutral", tone: "neutral", detail };
+}
+
+function afterHistory(values: number[], history: { value: number }[]): (number | null)[] {
+  if (history.length === 0) return values;
+  return [...history.slice(0, -1).map(() => null), history[history.length - 1].value, ...values];
+}
+
+function forecastBody(forecast: ForecastAnswer, history: { label: string; value: number }[]): CardBody {
+  return {
+    kind: "forecast",
+    labels: [...history.map((point) => point.label), ...forecast.weeks.map((point) => point.week)],
+    actual: [...history.map((point) => point.value), ...forecast.weeks.map(() => null)],
+    forecast: afterHistory(forecast.weeks.map((point) => point.value), history),
+    lo: afterHistory(forecast.weeks.map((point) => point.lo), history),
+    hi: afterHistory(forecast.weeks.map((point) => point.hi), history),
+    format: metricFormat(forecast.metric),
+  };
+}
+
+/** A get_forecast answer as a card: the weekly forecast with its band after the actual weeks, the total or last week as the headline, and the back-tested error as a plain caption rather than a change. */
+export function presentForecast(input: PresentForecastInput): CardParts {
+  const { forecast } = input;
+  const points = forecast.weeks;
+  if (points.length === 0) {
+    return { title: input.title, meta: null, description: input.description ?? null, footnote: null, hero: null, body: { kind: "none" }, actions: NO_ACTIONS, denied: null };
+  }
+  return {
+    title: input.title,
+    meta: TH.dash.forecastScope(points[0].week, points[points.length - 1].week, points.length),
+    description: input.description ?? null,
+    footnote: TH.dash.forecastMethod,
+    hero: forecastHero(forecast),
+    body: forecastBody(forecast, historyPoints(input.history)),
+    actions: NO_ACTIONS,
+    denied: null,
+  };
+}
+
 /**
  * The one decision table for every data card in Cop: what the headline is, which body the data shape deserves,
  * what the scope and source lines say. The dashboard renders it as a Vexa spec, the chat renders it as React.
@@ -612,22 +720,25 @@ export function presentCard(input: PresentInput): CardParts {
   if (!result.ok) {
     return { title, meta: null, description: null, footnote: null, hero: null, body: { kind: "none" }, actions: [], denied: result.error };
   }
+  if (everyValueMasked(result)) return maskedCard(input, result);
   const extras = input.extras ?? NO_EXTRAS;
-  const masked = result.provenance.masked.length > 0;
-  const pairing = masked ? null : pairingOf({ query, result }, okSources(input.others));
+  const hidden = result.rows.filter(isHiddenRow).length;
+  const visibleRows = hidden > 0 ? result.rows.filter((row) => !isHiddenRow(row)) : result.rows;
+  const masked = result.provenance.masked.length > 0 && hidden === 0;
+  const pairing = masked || hidden > 0 ? null : pairingOf({ query, result }, okSources(input.others));
   if (pairing) return pairedCard(input, pairing);
   const sortBy = input.sortBy ?? query.sort ?? null;
-  const whole: Shape = { query, rows: result.rows, additive: result.headline.aggregate === "sum", sortBy };
-  const view = viewFor(whole, input.view ?? "auto", masked, extras);
-  const trimmed = withoutPartialBucket(query, view, result.rows, result.provenance.asOf);
+  const whole: Shape = { query, rows: visibleRows, additive: result.headline.aggregate === "sum", sortBy };
+  const view = hidden > 0 && visibleRows.length < RANK_MIN_ROWS ? "table" : viewFor(whole, input.view ?? "auto", masked, extras);
+  const trimmed = withoutPartialBucket(query, view, visibleRows, result.provenance.asOf);
   const shape: Shape = { ...whole, rows: sorted(query, trimmed.rows, sortBy) };
   const note = [trimmed.note, hiddenGroupsNote(shape, view)].filter((line): line is string => line !== null).join(" · ");
   return {
     title,
-    meta: scopeOf(query, groupCountFor(query, result.rows, result.headline.rowCount), result.headline.periodLabel, result.provenance.filterLabels ?? []),
+    meta: scopeOf(query, groupCountFor(query, visibleRows, result.headline.rowCount - hidden), result.headline.periodLabel, result.provenance.filterLabels ?? [], hidden),
     description: input.description ?? null,
-    footnote: footnoteOf(result, note || null),
-    hero: masked || view === "alert_list" ? null : heroFor(query, result, shape.rows),
+    footnote: footnoteOf(result, note || null, hidden),
+    hero: masked || hidden > 0 || view === "alert_list" ? null : heroFor(query, result, shape.rows),
     body: bodyFor(shape, view, extras),
     actions: input.actions ?? NO_ACTIONS,
     denied: null,

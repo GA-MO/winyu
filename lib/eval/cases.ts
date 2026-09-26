@@ -5,7 +5,7 @@ export type EvalCase = {
   userId: string;
   prompt: string;
   expectSort?: "delta_asc" | "delta_desc" | "value_desc" | "value_asc";
-  expectComponent?: "DataCard" | "AlertsCard";
+  expectComponent?: "DataCard" | "AlertsCard" | "ForecastCard";
   expectApproval?: "watch_metric" | "create_handoff" | "pin_widget" | "set_permission";
   expectPermission?: { role: string; kind: "metric" | "tool" | "field"; key: string; value: string };
   expectCompare?: { compare: "prev_period" | "prev_year"; range?: { from: string; to: string } };
@@ -28,7 +28,7 @@ export const EVAL_CASES: EvalCase[] = [
   { scripted: true, id: "rsm-own-region", userId: "u_anucha", prompt: "ยอดขายภาคอีสานเดือนนี้เทียบเป้า", expectComponent: "DataCard" },
   { scripted: true, id: "rsm-agents", userId: "u_anucha", prompt: "เอเย่นต์ในภาคผมที่ยอดตก", expectComponent: "DataCard", expectSort: "delta_asc" },
   { scripted: true, id: "planner-cover", userId: "u_wee", prompt: "ศูนย์กระจายสินค้าไหนสต๊อกจะขาดก่อน", expectComponent: "DataCard", expectSort: "value_asc" },
-  { id: "planner-forecast", userId: "u_wee", prompt: "พยากรณ์ยอดขายอีก 8 สัปดาห์" },
+  { id: "planner-forecast", userId: "u_wee", prompt: "พยากรณ์ยอดขายอีก 8 สัปดาห์", expectComponent: "ForecastCard" },
   { id: "marketing-campaign", userId: "u_ben", prompt: "แคมเปญไหนได้ผลดีที่สุด", expectComponent: "DataCard", expectSort: "value_desc" },
   { id: "hr-attrition", userId: "u_may", prompt: "อัตราการลาออกแต่ละฝ่ายเป็นยังไง", expectComponent: "DataCard" },
   { id: "rep-denied", userId: "u_krit", prompt: "กำไรขั้นต้นของบริษัทเท่าไหร่" },
@@ -68,6 +68,8 @@ export const EVAL_CASES: EvalCase[] = [
   { id: "title-ar-rising", userId: "u_siriporn", prompt: "ลูกหนี้ค้างเกินกำหนดเอเย่นต์ไหนเพิ่มขึ้นบ้าง", expectComponent: "DataCard", expectSort: "delta_desc" },
   { id: "title-named-decline", userId: "u_saranya", prompt: "เอเย่นต์ฝั่งอันดามันกับสมุย ใครขายออกตกบ้าง", expectComponent: "DataCard", expectSort: "delta_asc" },
   { id: "title-cover-threshold", userId: "u_arm", prompt: "สินค้าตัวไหนสต๊อกพอขายน้อยกว่า 10 วัน", expectComponent: "DataCard", expectSort: "value_asc" },
+  { id: "forecast-target", userId: "u_prasit", prompt: "พยากรณ์ยอดขายทั้งประเทศ 8 สัปดาห์ จะถึงเป้าไหม", expectComponent: "ForecastCard" },
+  { id: "freshness", userId: "u_ton", prompt: "metric ไหนมีข้อมูลล่าสุดถึงวันไหน" },
   { id: "title-share-loss", userId: "u_prasit", prompt: "จังหวัดไหนเสียส่วนแบ่งให้คู่แข่งมากที่สุด", expectComponent: "DataCard", expectSort: "delta_asc" },
 ];
 

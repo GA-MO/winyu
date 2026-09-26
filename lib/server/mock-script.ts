@@ -483,7 +483,7 @@ type AlertRow = {
 };
 type AlertOutput = { ok?: boolean; summary?: string; rows?: AlertRow[] };
 type ForecastPoint = { week?: string; value?: number; lo?: number; hi?: number };
-type ForecastOutput = { ok?: boolean; summary?: string; data?: ForecastPoint[] };
+type ForecastOutput = { ok?: boolean; summary?: string; weeks?: ForecastPoint[] };
 
 const SEVERITY_TONES: Record<string, string> = { P1: "danger", P2: "warning", P3: "info" };
 
@@ -495,8 +495,8 @@ function alertRowsOf(output: unknown, focus: string | null = null): AlertRow[] {
 }
 
 function forecastPointsOf(output: unknown): ForecastPoint[] {
-  const data = (output as ForecastOutput).data;
-  return Array.isArray(data) ? data.slice(0, MAX_FORECAST_WEEKS) : [];
+  const weeks = (output as ForecastOutput).weeks;
+  return Array.isArray(weeks) ? weeks.slice(0, MAX_FORECAST_WEEKS) : [];
 }
 
 function periodLabels(rows: Row[], key: string): string[] {
@@ -555,31 +555,13 @@ function coverSpec(): Spec {
   return dataCard("จำนวนวันที่สต๊อกพอขายรายศูนย์กระจายสินค้า", { view: "bar", sortBy: "value_asc", description: `เรียงจากที่เหลือน้อยที่สุด เกณฑ์เตือนคือ ${COVER_THRESHOLD} วัน` });
 }
 
-function forecastSpec(output: unknown): Spec {
-  const points = forecastPointsOf(output);
+function forecastSpec(): Spec {
   return {
     root: "card",
     elements: {
       card: {
-        type: "Card",
-        props: { title: "พยากรณ์ 8 สัปดาห์ข้างหน้า", description: null, meta: `${points.length} สัปดาห์`, footnote: (output as ForecastOutput).summary ?? null },
-        children: ["chart"],
-      },
-      chart: {
-        type: "LineChart",
-        props: {
-          title: null,
-          labels: points.map((point) => periodLabelTh(String(point.week ?? ""))),
-          series: [
-            { name: "พยากรณ์", values: points.map((point) => point.value ?? null), style: null },
-            { name: "ขอบล่าง", values: points.map((point) => point.lo ?? null), style: "dashed" },
-            { name: "ขอบบน", values: points.map((point) => point.hi ?? null), style: "dashed" },
-          ],
-          area: false,
-          showDots: true,
-          format: "number",
-          height: "md",
-        },
+        type: "ForecastCard",
+        props: { title: "พยากรณ์ 8 สัปดาห์ข้างหน้า", source: { $state: "/tools/get_forecast" }, history: null, description: null },
         children: [],
       },
     },
@@ -712,7 +694,7 @@ const FORECAST_STEPS: MockStep[] = [
     then: (output) => {
       const points = forecastPointsOf(output);
       if (points.length === 0) return [{ text: "ยังไม่มีพยากรณ์สำหรับมิตินี้ครับ ลองให้ระบบรันงานพยากรณ์ก่อน" }];
-      return [{ text: forecastLead(points) }, { spec: forecastSpec(output) }];
+      return [{ text: forecastLead(points) }, { spec: forecastSpec() }];
     },
   },
 ];

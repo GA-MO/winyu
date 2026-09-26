@@ -573,6 +573,7 @@ export function buildFinance(cube: SalesCube): FinanceTables {
   const grossProfit = new Float64Array(size);
   const ebitda = new Float64Array(size);
   const arOverdue = new Float64Array(AGENT_COUNT * MONTH_COUNT);
+  const billing = new Float64Array(AGENT_COUNT * MONTH_COUNT);
 
   for (let skuIdx = 0; skuIdx < SKU_COUNT; skuIdx += 1) {
     const price = SKU_PRICE_PER_CASE[skuIdx];
@@ -583,7 +584,7 @@ export function buildFinance(cube: SalesCube): FinanceTables {
       for (let dayIdx = 0; dayIdx < DAY_COUNT; dayIdx += 1) {
         const value = cube.sellInCases[start + dayIdx] * price;
         revenue[financeIndex(buIdx, regionIdx, MONTH_OF_DAY[dayIdx])] += value;
-        arOverdue[agentIdx * MONTH_COUNT + MONTH_OF_DAY[dayIdx]] += value;
+        billing[agentIdx * MONTH_COUNT + MONTH_OF_DAY[dayIdx]] += value;
       }
     }
   }
@@ -621,7 +622,7 @@ export function buildFinance(cube: SalesCube): FinanceTables {
     const lateness = tierLateness[agent.tier] * (agent.creditDays / 30);
     for (let monthIdx = 0; monthIdx < MONTH_COUNT; monthIdx += 1) {
       const index = agentIdx * MONTH_COUNT + monthIdx;
-      let value = arOverdue[index] * lateness * jitter(0.28, "ar", agent.id, monthIdx);
+      let value = billing[agentIdx * MONTH_COUNT + Math.max(0, monthIdx - 1)] * lateness * jitter(0.28, "ar", agent.id, monthIdx);
       if (overdueWindow && overdueAgents.has(agentIdx) && monthOverlaps(monthIdx, overdueWindow.from, overdueWindow.to)) {
         value *= overdueFactor;
       }

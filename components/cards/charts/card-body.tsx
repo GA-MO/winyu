@@ -3,6 +3,7 @@
 import { BarChart, LineChart, Progress, RankList, Table } from "vexa/react";
 import type { CardBody } from "@/lib/cards/present";
 import { SignalList } from "../signal-list";
+import { ForecastBand } from "./forecast-band";
 import { Funnel } from "./funnel";
 import { GapBars } from "./gap-bars";
 import { Heatmap } from "./heatmap";
@@ -32,5 +33,6 @@ export function CardBodyView({ body }: { body: CardBody }) {
   if (body.kind === "funnel") return <Funnel stages={body.stages} />;
   if (body.kind === "table") return <Table props={{ columns: body.columns, rows: body.rows }} />;
   if (body.kind === "alerts") return <SignalList items={body.items} />;
+  if (body.kind === "forecast") return <ForecastBand labels={body.labels} actual={body.actual} forecast={body.forecast} lo={body.lo} hi={body.hi} format={body.format} />;
   return null;
 }

@@ -2,7 +2,7 @@
 
 import type { ComponentRegistry } from "@json-render/react";
 import type { AlertRow, MetricQuery, MetricResult, NextAction } from "@/lib/contracts";
-import { presentAlerts, presentCard, type CardBody, type CardView, type PresentSource, type SignalItem, type SortBy } from "@/lib/cards/present";
+import { presentAlerts, presentCard, presentForecast, type CardBody, type ForecastAnswer, type CardView, type PresentSource, type SignalItem, type SortBy } from "@/lib/cards/present";
 import { TH } from "@/lib/i18n/th";
 import { ActionStrip, CardPartsView } from "./card-parts";
 import { CardBodyView } from "./charts/card-body";
@@ -17,11 +17,23 @@ type DataCardProps = { title: string; source?: unknown; with?: unknown; view?: C
 
 type AlertsCardProps = { title: string; source?: unknown; description?: string | null };
 
+type ForecastCardProps = { title: string; source?: unknown; history?: unknown; description?: string | null };
+
 function metricAnswerOf(source: unknown): MetricAnswer | null {
   if (typeof source !== "object" || source === null) return null;
   const candidate = source as Partial<MetricAnswer>;
   if (candidate.ok !== true || !candidate.query || !Array.isArray(candidate.rows) || !candidate.headline) return null;
   return candidate as MetricAnswer;
+}
+
+function forecastOf(source: unknown, history: MetricAnswer | null): ForecastAnswer | null {
+  if (Array.isArray(source)) {
+    return history ? { metric: history.query.metric, total: null, mape: null, weeks: source as ForecastAnswer["weeks"] } : null;
+  }
+  if (typeof source !== "object" || source === null) return null;
+  const candidate = source as Partial<ForecastAnswer>;
+  if (!candidate.metric || !Array.isArray(candidate.weeks)) return null;
+  return { metric: candidate.metric, total: candidate.total ?? null, mape: candidate.mape ?? null, weeks: candidate.weeks };
 }
 
 function alertsOf(source: unknown): AlertRow[] {
@@ -85,6 +97,23 @@ export function AlertsCard({ props }: { props: AlertsCardProps }) {
   );
 }
 
+/** A get_forecast answer, with the weekly actuals when the model bound them; Cop draws the line, the band and the error caption. */
+export function ForecastCard({ props }: { props: ForecastCardProps }) {
+  const history = metricAnswerOf(props.history);
+  const forecast = forecastOf(props.source, history);
+  if (!forecast) return <Pending title={props.title} />;
+  return (
+    <CardPartsView
+      parts={presentForecast({
+        title: props.title,
+        forecast,
+        history: history ? { query: history.query, result: history } : null,
+        description: props.description ?? null,
+      })}
+    />
+  );
+}
+
 function signalsOf(props: unknown): SignalItem[] {
   const items = (props as { items?: unknown }).items;
   return Array.isArray(items) ? (items as SignalItem[]) : [];
@@ -103,6 +132,7 @@ function cardBodyOf(props: unknown): CardBody {
 export const COP_CARD_COMPONENTS: ComponentRegistry = {
   DataCard: ({ element }) => <DataCard props={element.props as never} />,
   AlertsCard: ({ element }) => <AlertsCard props={element.props as never} />,
+  ForecastCard: ({ element }) => <ForecastCard props={element.props as never} />,
   ActionStrip: ({ element }) => <ActionStrip actions={actionStripOf(element.props)} />,
   SignalList: ({ element }) => <SignalList items={signalsOf(element.props)} />,
   CardBody: ({ element }) => <CardBodyView body={cardBodyOf(element.props)} />,
