@@ -6,6 +6,7 @@ import { findUser } from "@/lib/data/entities/users";
 import { askTool, copActionTool } from "@/components/cards/action-tool";
 import { SIM_PERSONAS } from "@/lib/sim/scenarios";
 import type { SimPersona, SimSession, SimTurn } from "@/lib/sim/types";
+import { buildReview, meanScores, parseWalk, unscored, type ReviewTurn } from "@/lib/sim/card-review";
 import { diffOf, sessionOf, shiftFor, shifted, snapshotOf, type RunDiff, type SessionWindow, type Snapshot, type StoredRecord } from "@/lib/sim/records";
 
 const BASE_URL = "http://localhost:3100";
@@ -504,11 +505,26 @@ function restoreCommand(): void {
   console.log(`restored run ${run} into ${DATA_DIR}`);
 }
 
-const COMMANDS: Record<string, () => void | Promise<void>> = { run: runCommand, finalize: finalizeCommand, clean: cleanCommand, restore: restoreCommand };
+function cardReviewCommand(): void {
+  const run = argOf("run", "");
+  if (!run) throw new Error("card-review needs --run=YYYY-MM-DD");
+  const walkPath = path.join(runDir(run), "card-walk.md");
+  if (!existsSync(walkPath)) throw new Error(`no card-walk.md in ${runDir(run)}`);
+  const rows = buildReview(readTranscript(run) as unknown as ReviewTurn[], parseWalk(readFileSync(walkPath, "utf8")));
+  writeFileSync(path.join(runDir(run), "card-review.jsonl"), rows.map((row) => JSON.stringify(row)).join("\n") + "\n");
+  const missing = unscored(rows);
+  const mean = meanScores(rows);
+  console.log(`card-review ${run}: ${rows.length} rows · mean correct ${mean.correct} · fit ${mean.fit} · readable ${mean.readable} · sensible ${mean.sensible}`);
+  if (missing.length === 0) return;
+  console.error(`unscored: ${missing.join(" ")}`);
+  process.exitCode = 1;
+}
+
+const COMMANDS: Record<string, () => void | Promise<void>> = { run: runCommand, finalize: finalizeCommand, clean: cleanCommand, restore: restoreCommand, "card-review": cardReviewCommand };
 
 const command = COMMANDS[process.argv[2] ?? ""];
 if (!command) {
-  console.error("usage: bun run sim <run|finalize|clean|restore> [--run=YYYY-MM-DD] [--users=a,b] [--concurrency=3] [--budget=10]");
+  console.error("usage: bun run sim <run|finalize|clean|restore|card-review> [--run=YYYY-MM-DD] [--users=a,b] [--concurrency=3] [--budget=10]");
   process.exit(1);
 }
 await command();

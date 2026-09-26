@@ -4,11 +4,11 @@
 
 ## Phases
 1. [x] **เดินดูในเบราว์เซอร์** — เปิด thread จำลองในแอป ≥ 3 ต่อ role (ทุก 10 role) เป็นผู้ใช้คนนั้น (`POST /api/session {userId}` แล้ว `/c/<threadId>`), screenshot การ์ด ให้คะแนนตาม rubric: ถูก (ตัวเลข/ช่วงเวลา/การเทียบ), เหมาะ (รูปแบบการ์ดกับคำถาม), อ่านง่าย (หัวตัวเลขก่อน, ไม่ซ้ำข้อความ), รู้เรื่อง (ชื่อการ์ดตอบคำถาม, ไม่ขัดกับแถว)
-2. [ ] **ชุดข้อมูลตรวจการ์ด** — ทุกรอบที่มีการ์ด → `sim/runs/2026-09-25/card-review.jsonl` (turn key, คำถาม, component, props, ผล tool, คะแนน rubric, ข้อผิดพลาด, การ์ดที่ควรเป็น) — commit
+2. [x] **ชุดข้อมูลตรวจการ์ด** — ทุกรอบที่มีการ์ด → `sim/runs/2026-09-25/card-review.jsonl` (turn key, คำถาม, component, props, ผล tool, คะแนน rubric, ข้อผิดพลาด, การ์ดที่ควรเป็น) — commit
 3. [ ] **ตัวตรวจอัตโนมัติ** — ตรวจ title/description ของ DataCard และการ์ดวาดเองเทียบแถว (ทิศทาง เพิ่ม/ลด, อันดับ "มากสุด", ช่วงเวลา) ใน `lib/eval/check-cards.ts` + `lib/cards/normalize.ts`; เพิ่มเคสที่พลาดลง `lib/eval/cases.ts`
 4. [ ] **ปรับ AI แล้ววัดซ้ำ** — component ผูกสำหรับพยากรณ์/คน/ความสดข้อมูล, กฎ prompt จากข้อ 2, รันจำลองซ้ำเฉพาะรอบที่พลาด (`bun run sim run --run=<ใหม่> --users=…`) เทียบก่อน/หลัง
 
-## สถานะ (updated 2026-09-26)
+## สถานะ (updated 2026-09-26, หลัง Phase 2)
 ทำแล้ว: จำลอง+เก็บถาวร `9791a73` · รีวิว 278 รอบ (4 agent) + แก้ engine/Dashboard/สิทธิ์ `159a02e` `43e801e` `a7d1940` `538f39f` · สรุปใน `docs/plan.md` Phase 10D (`561f8ed`)
 ทำแล้ว: Phase 1 — `sim/runs/2026-09-25/card-walk.md` 38 thread · 74 รอบ · 10 role ให้คะแนนทีละรอบพร้อมภาพ `screens/` (เฉลี่ย ถูก 2.66 · เหมาะ 2.64 · อ่านง่าย 2.44 · รู้เรื่อง 2.59); 12 รูปแบบที่ซ้ำแยกตามชั้นที่ต้องแก้อยู่หัวไฟล์ — ใช้เป็นโครงของ Phase 2–4
 ค้าง: ไฟล์ digest ต่อคนที่รีวิวใช้อยู่ใน scratchpad (หายเมื่อจบ session) — สร้างใหม่จาก `sim/runs/2026-09-25/transcripts.jsonl` (ต่อรอบ: sent, labels, tools input/output, reply_text, cards = `data-spec` patch value type+props)
@@ -20,4 +20,6 @@
 ค้นพบ: `lib/cards/catalog.ts:18` บอกว่า `/tools/query_metric` = การเรียกแรก แต่ prompt (`persona.ts:50`) และ runtime ใช้ = การเรียกล่าสุด — แก้เอกสาร catalog ให้ตรง
 ค้นพบ (Phase 1): แท่งของ DataCard ที่เรียงตาม delta ยาวตาม |delta| แต่ตัวเลขข้างแท่งเป็นค่าจริง · headline เป็นยอดทั้ง scope ขณะการ์ดบอก "N แถว" · Card วาดเองได้ meta ช่วงเวลาของการ์ดก่อนหน้า · รอบ error ค้าง "กำลังคิด…" พร้อม reasoning ภาษาอังกฤษ · next-actions เสนอ "แยกตามภาค" ให้คนที่เห็นภาคเดียว · ลูกหนี้ถูกรวมแบบ sum ข้ามวัน
 ทำแล้ว: แก้บั๊กการ์ดจาก card-walk ข้อ 1, 2, 7, 9, 10 (present.ts, engine filterLabels, next-actions/follow-ups, normalize + Vexa §9) · ข้อ 6 "ปุ่มตาย" ตรวจแล้วเป็นข้อสรุปผิด ปุ่มผูก runTool ใช้ได้
-ถัดไป: /go phase 2 ตาม docs/plans/chat-card-quality.md (ใช้ `card-walk.md` เป็นป้าย/คะแนนของ 64 รอบที่ดูแล้ว ขยายให้ครบ 195 รอบที่มีการ์ด)
+ทำแล้ว: Phase 2 — `sim/runs/2026-09-25/card-review.jsonl` 198 แถว (195 รอบที่ model วาดการ์ด + 3 การ์ดยืนยัน) คะแนนครบทุกแถว สร้างซ้ำได้ด้วย `bun run sim card-review --run=2026-09-25` (`lib/sim/card-review.ts` อ่านตารางใน `card-walk.md` + `transcripts.jsonl`; exit 1 ถ้ามีแถวไม่มีคะแนน); 134 รอบใหม่ให้คะแนนจาก transcript ไม่ได้เปิดเบราว์เซอร์; เฉลี่ย ถูก 2.74 · เหมาะ 2.74 · อ่านง่าย 2.61 · รู้เรื่อง 2.75; รูปแบบใหม่ข้อ 13–19 อยู่หัว `card-walk.md`
+ค้นพบ (Phase 2): การ์ด *** ทั้งใบ 15 รอบ (present.ts ควรมี empty state เมื่อทุกค่าถูก mask) · ชื่ออ้างอันดับ/เกณฑ์ที่แถวไม่รองรับ 6 รอบ (โจทย์หลักของตัวตรวจ Phase 3) · IT ยังเสนอ "ปรับสิทธิ์ได้ทันที" ให้ตัวเอง 3 รอบ · ลูกหนี้เทียบวันก่อนหน้าได้ -10% ถึง -49% (engine ข้อ 11)
+ถัดไป: /go phase 3 ตาม docs/plans/chat-card-quality.md (เคสจาก `card-review.jsonl` ที่ `layer` มี "check title")
