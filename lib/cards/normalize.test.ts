@@ -104,3 +104,27 @@ describe("pictures", () => {
     expect(next.elements.a?.type).toBe("Text");
   });
 });
+
+describe("DataCard title against its rows", () => {
+  const COVER = {
+    query: { metric: "days_of_cover", dims: ["sku"], filters: {}, range: { from: "2026-09-22", to: "2026-09-22" }, grain: "day", compare: "none", limit: 3, sort: "value_asc" },
+    rows: [
+      { sku: "สิงห์ ขวด 620 มล.", value: 7.22, value_label: "7.2 วัน" },
+      { sku: "น้ำดื่มสิงห์ ขวด PET 1.5 ลิตร", value: 11.72, value_label: "11.7 วัน" },
+      { sku: "สิงห์ กระป๋อง 490 มล.", value: 12.26, value_label: "12.3 วัน" },
+    ],
+  };
+
+  function titleAfter(title: string): unknown {
+    const spec = specOf({ card: { type: "DataCard", props: { title, source: { $state: "/tools/query_metric" } }, children: [] } });
+    return cardProps(normalizeCopSpec(spec, { toolOutputs: { "/tools/query_metric": COVER } })).title;
+  }
+
+  test("swaps a threshold the rows do not meet for the plain metric name", () => {
+    expect(titleAfter("สินค้าที่สต๊อกพอขายน้อยกว่า 10 วัน")).toBe("วันครอบคลุมสต๊อก แยกตามSKU");
+  });
+
+  test("keeps a title the rows bear out", () => {
+    expect(titleAfter("สิงห์ ขวด 620 มล. สต๊อกพอขายต่ำสุด")).toBe("สิงห์ ขวด 620 มล. สต๊อกพอขายต่ำสุด");
+  });
+});

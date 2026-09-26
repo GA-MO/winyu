@@ -4,9 +4,10 @@ import { toolSurface } from "@/lib/server/tools/registry";
 import { TODAY } from "@/lib/data/dates";
 import { presentCard, type CardView, type PresentSource, type SortBy } from "@/lib/cards/present";
 import type { MetricQuery, MetricResult } from "@/lib/contracts";
+import { titleContradiction } from "@/lib/cards/title-claims";
 import type { EvalCase } from "./cases";
 
-export type CheckId = "calledTool" | "askedApproval" | "rightPermission" | "usedCard" | "boundToTool" | "sortedRight" | "comparedRight" | "cutRight" | "drewShape" | "titleIsAnswer" | "noSummaryProse" | "grounded"
+export type CheckId = "calledTool" | "askedApproval" | "rightPermission" | "usedCard" | "boundToTool" | "sortedRight" | "comparedRight" | "cutRight" | "drewShape" | "titleIsAnswer" | "titleMatchesRows" | "noSummaryProse" | "grounded"
   | "composedPeople" | "picturesGrounded" | "pressBound" | "pressAsks" | "noCarousel";
 
 export type CheckResult = { id: CheckId; ok: boolean; detail: string };
@@ -178,6 +179,13 @@ function peopleChecks(turn: Turn, tool: NonNullable<EvalCase["expectPeople"]>): 
 
 const READ_TOOLS: ReadonlySet<string> = new Set(toolSurface().filter((entry) => entry.tier === "read").map((entry) => entry.name));
 
+function titleRowsCheck(turn: Turn, title: string, source: unknown): CheckResult | null {
+  const bound = boundAnswer(source, metricAnswers(turn));
+  if (!bound || !bound.result.ok) return null;
+  const contradiction = titleContradiction({ title, query: bound.query, rows: bound.result.rows });
+  return check("titleMatchesRows", contradiction === null, contradiction ?? `title = "${title}" ตรงกับแถว`);
+}
+
 function pressAsksCheck(turn: Turn): CheckResult {
   const direct = pressedTools(turn.spec).filter((name) => READ_TOOLS.has(name));
   return check("pressAsks", direct.length === 0, direct.length === 0 ? "ปุ่มถามต่อผ่าน ask หรือเป็นการลงมือทำ" : `ปุ่มเรียก tool อ่านข้อมูลตรง: ${[...new Set(direct)].join(", ")}`);
@@ -221,6 +229,8 @@ export function checkTurn(turn: Turn, testCase: EvalCase): CheckResult[] {
       check("noSummaryProse", typeof description !== "string" || !summariesOf(turn.toolOutputs).some((summary) => description.includes(summary.slice(0, 20))), `description = ${String(description)}`),
     );
   }
+  const titleRows = card?.type === "DataCard" ? titleRowsCheck(turn, title, props.source) : null;
+  if (titleRows) results.push(titleRows);
   if (testCase.expectSort) {
     results.push(check("sortedRight", props.sortBy === testCase.expectSort, `sortBy = ${String(props.sortBy)} คาดว่า ${testCase.expectSort}`));
     results.push(cutCheck(turn, testCase.expectSort));

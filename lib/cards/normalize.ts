@@ -1,7 +1,9 @@
 import type { Spec, SpecElement } from "vexa/protocol";
-import type { MetricHeadline, MetricQuery, Provenance } from "@/lib/contracts";
+import type { MetricHeadline, MetricQuery, MetricRow, Provenance } from "@/lib/contracts";
 import { TH } from "@/lib/i18n/th";
 import { formatDateTh } from "@/lib/i18n/format";
+import { metricLabel } from "@/lib/dashboard/metric-display";
+import { titleContradiction } from "./title-claims";
 
 type Props = Record<string, unknown>;
 type Answer = { query: MetricQuery; headline: MetricHeadline; provenance: Provenance; summary?: string };
@@ -12,6 +14,7 @@ const DELTA_LABEL = /(%|เทียบ|เปลี่ยนแปลง|delta|
 const NUMERIC_LABEL = /(ยอด|จำนวน|มูลค่า|ปริมาณ|อัตรา|วัน|บาท|%|value|total|amount)/i;
 const IMAGE_PATH = /^\/img\/[\w/.-]+\.(jpg|jpeg|png|webp)$/i;
 const INVENTED_AS_OF = /\s*[·,|-]?\s*(ข้อมูล\s*)?ณ\s*(วันที่\s*)?\d.*$/;
+const TIME_DIMS: ReadonlySet<string> = new Set(["date", "week", "month"]);
 const PHOTO_PROP: Readonly<Record<string, string>> = { Avatar: "src" };
 
 function isAnswer(value: unknown): value is Answer {
@@ -61,6 +64,26 @@ function normalizedCard(props: Props, answer: Answer | null, summaries: string[]
   if (typeof next.meta !== "string" || next.meta.length === 0) next.meta = scopeOf(answer);
   if (typeof next.footnote !== "string" || next.footnote.length === 0) next.footnote = footnoteOf(answer);
   return next;
+}
+
+function boundResult(source: unknown, toolOutputs: Record<string, unknown>): { query: MetricQuery; rows: MetricRow[] } | null {
+  const path = (source as { $state?: unknown } | null)?.$state;
+  if (typeof path !== "string" || !path.startsWith(TOOL_PREFIX)) return null;
+  const output = toolOutputs[path] as { query?: MetricQuery; rows?: unknown } | undefined;
+  return output?.query && Array.isArray(output.rows) ? { query: output.query, rows: output.rows as MetricRow[] } : null;
+}
+
+function plainTitle(query: MetricQuery): string {
+  const dim = query.dims.find((entry) => !TIME_DIMS.has(entry));
+  const unit = dim ? TH.dash.dimUnit[dim] : null;
+  return unit ? `${metricLabel(query.metric)} ${TH.next.splitBy(unit)}` : metricLabel(query.metric);
+}
+
+function normalizedDataCard(props: Props, toolOutputs: Record<string, unknown>): Props {
+  const bound = boundResult(props.source, toolOutputs);
+  if (!bound || typeof props.title !== "string") return props;
+  const contradiction = titleContradiction({ title: props.title, query: bound.query, rows: bound.rows });
+  return contradiction ? { ...props, title: plainTitle(bound.query) } : props;
 }
 
 function normalizedColumn(column: Props, rows: Props[]): Props {
@@ -120,8 +143,12 @@ function groundedPictures(element: SpecElement, images: Set<string>): SpecElemen
   return element;
 }
 
-function normalizedElement(element: SpecElement, answer: Answer | null, summaries: string[]): SpecElement {
+function normalizedElement(element: SpecElement, answer: Answer | null, summaries: string[], toolOutputs: Record<string, unknown>): SpecElement {
   const props = (element.props ?? {}) as Props;
+  if (element.type === "DataCard") {
+    const next = normalizedDataCard(props, toolOutputs);
+    return next === props ? element : ({ ...element, props: next } as SpecElement);
+  }
   if (element.type === "Card") {
     const next = normalizedCard(props, answer, summaries);
     return Object.keys(next).every((key) => next[key] === props[key]) ? element : ({ ...element, props: next } as SpecElement);
@@ -136,7 +163,8 @@ function normalizedElement(element: SpecElement, answer: Answer | null, summarie
 /**
  * The safety net for a card the model drew by hand: drop prose that only repeats a tool summary, fill the scope and
  * source lines from the provenance of this turn's metric call, align number columns, drop pictures no tool returned
- * and buttons that press nothing. It never moves elements.
+ * and buttons that press nothing, and swap a DataCard title its rows contradict for the plain metric name. It never
+ * moves elements.
  */
 export function normalizeCopSpec(spec: Spec, context: { toolOutputs: Record<string, unknown>; turnToolOutputs?: Record<string, unknown> }): Spec {
   const elements = spec.elements as Record<string, SpecElement> | undefined;
@@ -149,7 +177,7 @@ export function normalizeCopSpec(spec: Spec, context: { toolOutputs: Record<stri
   let changed = false;
   for (const [id, element] of Object.entries(elements)) {
     const grounded = groundedPictures(element, images);
-    const updated = normalizedElement(grounded, answer, summaries);
+    const updated = normalizedElement(grounded, answer, summaries, context.toolOutputs);
     if (updated !== element) changed = true;
     next[id] = updated;
   }

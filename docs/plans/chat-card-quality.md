@@ -5,10 +5,10 @@
 ## Phases
 1. [x] **เดินดูในเบราว์เซอร์** — เปิด thread จำลองในแอป ≥ 3 ต่อ role (ทุก 10 role) เป็นผู้ใช้คนนั้น (`POST /api/session {userId}` แล้ว `/c/<threadId>`), screenshot การ์ด ให้คะแนนตาม rubric: ถูก (ตัวเลข/ช่วงเวลา/การเทียบ), เหมาะ (รูปแบบการ์ดกับคำถาม), อ่านง่าย (หัวตัวเลขก่อน, ไม่ซ้ำข้อความ), รู้เรื่อง (ชื่อการ์ดตอบคำถาม, ไม่ขัดกับแถว)
 2. [x] **ชุดข้อมูลตรวจการ์ด** — ทุกรอบที่มีการ์ด → `sim/runs/2026-09-25/card-review.jsonl` (turn key, คำถาม, component, props, ผล tool, คะแนน rubric, ข้อผิดพลาด, การ์ดที่ควรเป็น) — commit
-3. [ ] **ตัวตรวจอัตโนมัติ** — ตรวจ title/description ของ DataCard และการ์ดวาดเองเทียบแถว (ทิศทาง เพิ่ม/ลด, อันดับ "มากสุด", ช่วงเวลา) ใน `lib/eval/check-cards.ts` + `lib/cards/normalize.ts`; เพิ่มเคสที่พลาดลง `lib/eval/cases.ts`
+3. [x] **ตัวตรวจอัตโนมัติ** — ตรวจ title/description ของ DataCard และการ์ดวาดเองเทียบแถว (ทิศทาง เพิ่ม/ลด, อันดับ "มากสุด", ช่วงเวลา) ใน `lib/eval/check-cards.ts` + `lib/cards/normalize.ts`; เพิ่มเคสที่พลาดลง `lib/eval/cases.ts`
 4. [ ] **ปรับ AI แล้ววัดซ้ำ** — component ผูกสำหรับพยากรณ์/คน/ความสดข้อมูล, กฎ prompt จากข้อ 2, รันจำลองซ้ำเฉพาะรอบที่พลาด (`bun run sim run --run=<ใหม่> --users=…`) เทียบก่อน/หลัง
 
-## สถานะ (updated 2026-09-26, หลัง Phase 2)
+## สถานะ (updated 2026-09-26, หลัง Phase 3)
 ทำแล้ว: จำลอง+เก็บถาวร `9791a73` · รีวิว 278 รอบ (4 agent) + แก้ engine/Dashboard/สิทธิ์ `159a02e` `43e801e` `a7d1940` `538f39f` · สรุปใน `docs/plan.md` Phase 10D (`561f8ed`)
 ทำแล้ว: Phase 1 — `sim/runs/2026-09-25/card-walk.md` 38 thread · 74 รอบ · 10 role ให้คะแนนทีละรอบพร้อมภาพ `screens/` (เฉลี่ย ถูก 2.66 · เหมาะ 2.64 · อ่านง่าย 2.44 · รู้เรื่อง 2.59); 12 รูปแบบที่ซ้ำแยกตามชั้นที่ต้องแก้อยู่หัวไฟล์ — ใช้เป็นโครงของ Phase 2–4
 ค้าง: ไฟล์ digest ต่อคนที่รีวิวใช้อยู่ใน scratchpad (หายเมื่อจบ session) — สร้างใหม่จาก `sim/runs/2026-09-25/transcripts.jsonl` (ต่อรอบ: sent, labels, tools input/output, reply_text, cards = `data-spec` patch value type+props)
@@ -22,4 +22,6 @@
 ทำแล้ว: แก้บั๊กการ์ดจาก card-walk ข้อ 1, 2, 7, 9, 10 (present.ts, engine filterLabels, next-actions/follow-ups, normalize + Vexa §9) · ข้อ 6 "ปุ่มตาย" ตรวจแล้วเป็นข้อสรุปผิด ปุ่มผูก runTool ใช้ได้
 ทำแล้ว: Phase 2 — `sim/runs/2026-09-25/card-review.jsonl` 198 แถว (195 รอบที่ model วาดการ์ด + 3 การ์ดยืนยัน) คะแนนครบทุกแถว สร้างซ้ำได้ด้วย `bun run sim card-review --run=2026-09-25` (`lib/sim/card-review.ts` อ่านตารางใน `card-walk.md` + `transcripts.jsonl`; exit 1 ถ้ามีแถวไม่มีคะแนน); 134 รอบใหม่ให้คะแนนจาก transcript ไม่ได้เปิดเบราว์เซอร์; เฉลี่ย ถูก 2.74 · เหมาะ 2.74 · อ่านง่าย 2.61 · รู้เรื่อง 2.75; รูปแบบใหม่ข้อ 13–19 อยู่หัว `card-walk.md`
 ค้นพบ (Phase 2): การ์ด *** ทั้งใบ 15 รอบ (present.ts ควรมี empty state เมื่อทุกค่าถูก mask) · ชื่ออ้างอันดับ/เกณฑ์ที่แถวไม่รองรับ 6 รอบ (โจทย์หลักของตัวตรวจ Phase 3) · IT ยังเสนอ "ปรับสิทธิ์ได้ทันที" ให้ตัวเอง 3 รอบ · ลูกหนี้เทียบวันก่อนหน้าได้ -10% ถึง -49% (engine ข้อ 11)
-ถัดไป: /go phase 3 ตาม docs/plans/chat-card-quality.md (เคสจาก `card-review.jsonl` ที่ `layer` มี "check title")
+ทำแล้ว: Phase 3 — `lib/cards/title-claims.ts` ตรวจชื่อ DataCard เทียบแถว (ทิศทาง เพิ่ม/ลด/ทุก/ไม่มี, อันดับ "มากที่สุด" ของแถวที่ชื่อเอ่ยถึง, เกณฑ์ "น้อยกว่า N", "ต่อเนื่อง" บนเส้นเวลา) ใช้สองที่: check `titleMatchesRows` ใน `lib/eval/check-cards.ts` และ `lib/cards/normalize.ts` ที่เปลี่ยนชื่อที่ขัดกับแถวเป็น "ชื่อ metric แยกตาม…"; `bun run sim card-review` พิมพ์ผลเทียบชุดข้อมูล: ติดธง 3 · จับได้ 3/3 ที่คนติดป้าย · ติดธงแถวที่ รู้เรื่อง = 3 = 0; เพิ่มเคส `title-*` 4 เคสใน `lib/eval/cases.ts` (ยังไม่ได้รันกับ model จริง)
+ค้นพบ (Phase 3): ตัวตรวจพบว่าป้ายใน Phase 2 ผิด 2 แถว — b626cde5/0 และ 104cb2f6/1 ลดลงจริง 9 จาก 11 สัปดาห์ "ต่อเนื่อง" จึงถูก แก้คะแนนแล้ว · ป้าย check title ของ d6f0f688/0 (ต้องใช้เส้นตามเวลา), 6cfbeef8/1 (เน้นต่างที่ไม่มีนัย), 7d9da7a4/0 (metric derived) ย้ายเป็น prompt/pace เพราะตรวจจากแถวไม่ได้ · thread เก่า 53089f5b ในแชตขึ้นชื่อ "ยอดค้างชำระเกินกำหนด แยกตามเอเย่นต์" แทน "…เพิ่มขึ้น…"
+ถัดไป: /go phase 4 ตาม docs/plans/chat-card-quality.md

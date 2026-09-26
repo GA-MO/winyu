@@ -1,10 +1,14 @@
+import type { MetricQuery, MetricRow } from "@/lib/contracts";
 import { specOf } from "@/lib/eval/spec-of";
+import { titleContradiction } from "@/lib/cards/title-claims";
 
 const WALK_COLUMNS = ["role", "user", "thread", "turn", "question", "card", "correct", "fit", "readable", "sensible", "issues", "layer", "tag", "screen", "shouldBe"] as const;
 const SCORE_KEYS = ["correct", "fit", "readable", "sensible"] as const;
 const BOUND_CARDS = new Set(["DataCard", "AlertsCard"]);
 const SCREEN_LINK = /\]\(([^)]+)\)/;
 const NO_CARD = /^ไม่มี/;
+const BOUND_PATH = /^\/tools\/([a-z_]+)(?:\.(\d+))?$/;
+const TITLE_LAYER = "check title";
 
 type WalkColumn = (typeof WALK_COLUMNS)[number];
 type ScoreKey = (typeof SCORE_KEYS)[number];
@@ -180,4 +184,36 @@ export function meanScores(rows: readonly CardReviewRow[]): CardScores {
     means[key] = values.length === 0 ? null : Math.round((values.reduce((sum, value) => sum + value, 0) / values.length) * 100) / 100;
   }
   return means;
+}
+
+export type TitleFlag = { key: string; title: string; reason: string };
+
+function boundRows(row: CardReviewRow, source: unknown): { query: MetricQuery; rows: MetricRow[] } | null {
+  const path = (source as { $state?: unknown } | null)?.$state;
+  const match = typeof path === "string" ? BOUND_PATH.exec(path) : null;
+  if (!match) return null;
+  const calls = row.tools.filter((tool) => tool.name === match[1] && tool.state === "output-available");
+  const output = (match[2] ? calls[Number(match[2]) - 1] : calls.at(-1))?.output as { query?: MetricQuery; rows?: MetricRow[] } | undefined;
+  return output?.query && Array.isArray(output.rows) ? { query: output.query, rows: output.rows } : null;
+}
+
+/** Every bound DataCard whose title the rows contradict, with the reason. */
+export function titleFlags(rows: readonly CardReviewRow[]): TitleFlag[] {
+  const flags: TitleFlag[] = [];
+  for (const row of rows) {
+    for (const element of row.elements) {
+      if (element.type !== "DataCard") continue;
+      const props = element.props as { title?: unknown; source?: unknown };
+      const bound = boundRows(row, props.source);
+      if (!bound || typeof props.title !== "string") continue;
+      const reason = titleContradiction({ title: props.title, query: bound.query, rows: bound.rows });
+      if (reason) flags.push({ key: row.key, title: props.title, reason });
+    }
+  }
+  return flags;
+}
+
+/** Keys a reviewer marked as a title the rows do not bear out. */
+export function titleLabelled(rows: readonly CardReviewRow[]): string[] {
+  return rows.filter((row) => row.layer.includes(TITLE_LAYER)).map((row) => row.key);
 }

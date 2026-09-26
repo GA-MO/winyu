@@ -65,6 +65,10 @@ export const EVAL_CASES: EvalCase[] = [
   { id: "admin-field", userId: "u_ton", prompt: "ให้ผู้จัดการขายภาคเห็นคะแนนสอบของหลักสูตรเต็มๆ ไม่ต้องซ่อน", expectApproval: "set_permission", expectPermission: { role: "sales_rsm", kind: "field", key: "lms_demo.score", value: "full" } },
   { scripted: true, id: "policy-leave", userId: "u_krit", prompt: "ลาพักร้อนยังไง", expectPeople: "get_policy" },
   { id: "people-rep-scope", userId: "u_krit", prompt: "ทีมขายภาคอีสานมีใครบ้าง", expectPeople: "find_people" },
+  { id: "title-ar-rising", userId: "u_siriporn", prompt: "ลูกหนี้ค้างเกินกำหนดเอเย่นต์ไหนเพิ่มขึ้นบ้าง", expectComponent: "DataCard", expectSort: "delta_desc" },
+  { id: "title-named-decline", userId: "u_saranya", prompt: "เอเย่นต์ฝั่งอันดามันกับสมุย ใครขายออกตกบ้าง", expectComponent: "DataCard", expectSort: "delta_asc" },
+  { id: "title-cover-threshold", userId: "u_arm", prompt: "สินค้าตัวไหนสต๊อกพอขายน้อยกว่า 10 วัน", expectComponent: "DataCard", expectSort: "value_asc" },
+  { id: "title-share-loss", userId: "u_prasit", prompt: "จังหวัดไหนเสียส่วนแบ่งให้คู่แข่งมากที่สุด", expectComponent: "DataCard", expectSort: "delta_asc" },
 ];
 
 /** The subset the scripted mock answers, so the card contract is checked in `bun run test` with no API key. */

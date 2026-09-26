@@ -55,3 +55,39 @@ describe("compared check", () => {
     expect(result?.detail).toContain("prev_year 2026-09-01..2026-09-22");
   });
 });
+
+describe("title matches rows check", () => {
+  const AR_CASE: EvalCase = { id: "ar-rising", userId: "u_siriporn", prompt: "ลูกหนี้ค้างเอเย่นต์ไหนเพิ่มขึ้น", expectComponent: "DataCard", expectSort: "delta_desc" };
+  const QUERY = { metric: "ar_overdue", dims: ["agent"], filters: {}, range: { from: "2026-09-01", to: "2026-09-22" }, grain: "month", compare: "prev_period", limit: 3, sort: "delta_desc" };
+  const OUTPUT = {
+    ok: true,
+    query: QUERY,
+    rows: [
+      { agent: "พัทยาซันไชน์ ซัพพลาย", value: 2752113, value_label: "2.8 ล้านบาท", delta_pct: 1.9 },
+      { agent: "อยุธยาศรีทอง", value: 2517250, value_label: "2.5 ล้านบาท", delta_pct: -0.1 },
+      { agent: "กรุงไทยเบเวอเรจ", value: 3635744, value_label: "3.6 ล้านบาท", delta_pct: -10.6 },
+    ],
+    summary: "",
+    headline: {},
+    provenance: {},
+  };
+
+  function titleCheck(title: string) {
+    const spec = { root: "card", elements: { card: { type: "DataCard", props: { title, source: { $state: "/tools/query_metric" }, sortBy: "delta_desc" }, children: [] } } } as unknown as Spec;
+    return checkTurn({ text: "", spec, toolOutputs: [OUTPUT], toolInputs: [{ tool: "query_metric", input: QUERY }] }, AR_CASE).find((result) => result.id === "titleMatchesRows");
+  }
+
+  test("flags a title that says the rows rose when most fell", () => {
+    const result = titleCheck("เอเย่นต์ที่ยอดหนี้ค้างเกินกำหนดเพิ่มขึ้นเทียบเดือนก่อน");
+    expect(result?.ok).toBe(false);
+    expect(result?.detail).toContain("1 จาก 3");
+  });
+
+  test("passes a title that names the one row that rose", () => {
+    expect(titleCheck("มีแค่พัทยาซันไชน์ ซัพพลายที่หนี้ค้างเพิ่มขึ้น")?.ok).toBe(true);
+  });
+
+  test("flags a row named as the biggest riser when it is not first", () => {
+    expect(titleCheck("กรุงไทยเบเวอเรจหนี้ค้างเพิ่มขึ้นมากที่สุด")?.ok).toBe(false);
+  });
+});

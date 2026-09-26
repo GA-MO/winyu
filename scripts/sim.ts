@@ -6,7 +6,7 @@ import { findUser } from "@/lib/data/entities/users";
 import { askTool, copActionTool } from "@/components/cards/action-tool";
 import { SIM_PERSONAS } from "@/lib/sim/scenarios";
 import type { SimPersona, SimSession, SimTurn } from "@/lib/sim/types";
-import { buildReview, meanScores, parseWalk, unscored, type ReviewTurn } from "@/lib/sim/card-review";
+import { buildReview, meanScores, parseWalk, titleFlags, titleLabelled, unscored, type ReviewTurn } from "@/lib/sim/card-review";
 import { diffOf, sessionOf, shiftFor, shifted, snapshotOf, type RunDiff, type SessionWindow, type Snapshot, type StoredRecord } from "@/lib/sim/records";
 
 const BASE_URL = "http://localhost:3100";
@@ -505,6 +505,17 @@ function restoreCommand(): void {
   console.log(`restored run ${run} into ${DATA_DIR}`);
 }
 
+function printTitleFlags(rows: ReturnType<typeof buildReview>): void {
+  const flags = titleFlags(rows);
+  const flagged = new Set(flags.map((flag) => flag.key));
+  const labelled = titleLabelled(rows);
+  const sensible = new Map(rows.map((row) => [row.key, row.scores.sensible]));
+  console.log(`title check: ${flags.length} flagged · ${labelled.filter((key) => flagged.has(key)).length}/${labelled.length} reviewer-labelled caught · ${flags.filter((flag) => sensible.get(flag.key) === 3).length} flagged where sensible = 3`);
+  for (const flag of flags) console.log(`  ${flag.key} [sensible ${sensible.get(flag.key)}] "${flag.title}" — ${flag.reason}`);
+  const missed = labelled.filter((key) => !flagged.has(key));
+  if (missed.length > 0) console.log(`  missed: ${missed.join(" ")}`);
+}
+
 function cardReviewCommand(): void {
   const run = argOf("run", "");
   if (!run) throw new Error("card-review needs --run=YYYY-MM-DD");
@@ -515,6 +526,7 @@ function cardReviewCommand(): void {
   const missing = unscored(rows);
   const mean = meanScores(rows);
   console.log(`card-review ${run}: ${rows.length} rows · mean correct ${mean.correct} · fit ${mean.fit} · readable ${mean.readable} · sensible ${mean.sensible}`);
+  printTitleFlags(rows);
   if (missing.length === 0) return;
   console.error(`unscored: ${missing.join(" ")}`);
   process.exitCode = 1;
