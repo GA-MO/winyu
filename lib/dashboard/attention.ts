@@ -47,12 +47,12 @@ function belowFloor(widget: WidgetSpec, result: Extract<MetricResult, { ok: true
 }
 
 /**
- * Whether a pinned card has something to say today and how urgently, in this order: an open alert on its metric (worst severity first),
+ * Whether a pinned card has something to say today and how urgently, in this order: an open alert on its metric (worst severity first, no count line — the card already shows it),
  * a level under its floor (furthest under first), a headline that moved (the harmful direction before the good one, bigger first), one row that fell hard.
  */
 export function attentionOf({ widget, result, alerts }: AttentionInput): Attention {
   const onMetric = widget.kind === "alert_list" ? alerts : alerts.filter((alert) => alert.metric === widget.query.metric);
-  if (onMetric.length > 0) return { level: "moved", reason: TH.attention.alerts(onMetric.length), score: scoreIn(TIER.alert, alertMagnitude(onMetric)) };
+  if (onMetric.length > 0) return { level: "moved", reason: null, score: scoreIn(TIER.alert, alertMagnitude(onMetric)) };
   if (widget.kind === "alert_list" || !result.ok) return STEADY;
   const floor = belowFloor(widget, result);
   if (floor) return floor;

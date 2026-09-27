@@ -36,8 +36,10 @@ describe("which pinned cards have something to say", () => {
     expect(attention.reason).toContain("-8.2%");
   });
 
-  test("an open alert on the card's metric makes it news", () => {
-    expect(attentionOf({ widget: widget("w"), result: result(0), alerts: [ALERT] }).level).toBe("moved");
+  test("an open alert on the card's metric makes it news without a count line", () => {
+    const attention = attentionOf({ widget: widget("w"), result: result(0), alerts: [ALERT] });
+    expect(attention.level).toBe("moved");
+    expect(attention.reason).toBeNull();
     expect(attentionOf({ widget: widget("w", { query: query({ metric: "gross_margin" }) }), result: result(0), alerts: [ALERT] }).level).toBe("steady");
   });
 

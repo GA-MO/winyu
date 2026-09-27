@@ -2,7 +2,7 @@
 
 import { useCallback, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronDown, HelpCircle, Pin, PinOff, Sparkles, X } from "lucide-react";
+import { ChevronDown, CircleCheck, HelpCircle, Pin, PinOff, Sparkles, X } from "lucide-react";
 import { SpecView } from "vexa/react";
 import { cn } from "vexa/lib/utils";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "vexa/ui/hover-card";
@@ -16,15 +16,11 @@ const WIDGETS_ENDPOINT = "/api/dashboard/widgets";
 const LAYOUT_ENDPOINT = "/api/dashboard/layout";
 const ICON = "rounded-full bg-card/80 p-1.5 text-muted-foreground shadow-card backdrop-blur transition hover:bg-card hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 const TRAY = "rounded-2xl border border-dashed border-border bg-muted/30 p-4";
-const TILES = "grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4";
-const TILE = "flex h-full w-full flex-col items-start gap-1.5 rounded-2xl border border-border bg-card px-4 py-3 text-left shadow-card transition hover:border-foreground/20 hover:shadow-lift focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 const MASONRY = "gap-5 [&>*]:mb-5 [&>*]:break-inside-avoid columns-1 md:columns-2 xl:columns-3";
 const TOOLBAR = "absolute right-3 top-3 z-10 flex items-center gap-0.5 opacity-0 transition group-hover:opacity-100 group-focus-within:opacity-100";
 const DELTA_TONE = { good: "text-success", bad: "text-danger", neutral: "text-muted-foreground" } as const;
 const QUICK_ACTIONS_ENDPOINT = "/api/quick-actions";
 const PANEL = "overflow-hidden rounded-2xl border border-border bg-card shadow-card";
-const LEARNED = "flex flex-col gap-4 rounded-2xl border border-brand-violet/30 bg-brand-violet/5 px-5 py-4 shadow-card";
-const PRIMARY_BUTTON = "inline-flex items-center gap-1.5 rounded-full bg-primary px-3.5 py-1.5 text-xs font-medium text-primary-foreground transition hover:bg-primary/90 disabled:opacity-50";
 const ROW_BUTTON = "rounded-full border border-border px-3 py-1 text-xs text-muted-foreground transition hover:border-foreground/25 hover:text-foreground disabled:opacity-50";
 
 export type DashboardWidgetHeadline = { value: string; delta: string | null; tone: keyof typeof DELTA_TONE };
@@ -82,6 +78,8 @@ export function DashboardView({
     });
   }, [router]);
 
+  const tray = [...learned, ...suggested];
+
   return (
     <div className="flex flex-col gap-8">
       <section className="flex flex-col gap-3">
@@ -94,12 +92,23 @@ export function DashboardView({
           ) : null}
         </div>
         {pinned.length === 0 ? <p className="text-sm text-muted-foreground">{TH.dash.empty}</p> : null}
-        {pinned.length > 0 ? <PinnedTiles views={[...moved, ...steady]} pending={pendingChange} onUnpin={(id) => act(id, "unpin")} /> : null}
+        <div className={MASONRY}>
+          {moved.map((view, index) => (
+            <SeenTracker key={view.widget.id} widgetId={view.widget.id} className="group relative">
+              <div className="animate-hero-rise" style={{ animationDelay: `${index * 50}ms` }}>
+                <div className={TOOLBAR}>
+                  <WhyCard widget={view.widget} />
+                  <button type="button" disabled={pendingChange} onClick={() => act(view.widget.id, "unpin")} aria-label={TH.dash.unpin} className={ICON}>
+                    <PinOff className="size-3.5" aria-hidden />
+                  </button>
+                </div>
+                <SpecView spec={view.spec} showDevtools={false} />
+              </div>
+            </SeenTracker>
+          ))}
+        </div>
+        {steady.length > 0 ? <SteadyPanel views={steady} pending={pendingChange} onUnpin={(id) => act(id, "unpin")} /> : null}
       </section>
-
-      {learned.map((view) => (
-        <LearnedCard key={view.widget.id} view={view} pending={pendingChange} onPin={() => act(view.widget.id, "pin")} onDismiss={() => act(view.widget.id, "remove")} />
-      ))}
 
       {stale.length > 0 ? (
         <section className="flex flex-col gap-3">
@@ -125,24 +134,13 @@ export function DashboardView({
         </section>
       ) : null}
 
-      {suggested.length > 0 ? (
+      {tray.length > 0 ? (
         <section className="flex flex-col gap-3">
           <h2 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{TH.dash.suggestedZone}</h2>
           <div className={TRAY}>
             <div className={MASONRY}>
-              {suggested.map((view) => (
-                <div key={view.widget.id} className="group relative">
-                  <div className={TOOLBAR}>
-                    <button type="button" disabled={pendingChange} onClick={() => act(view.widget.id, "pin")} aria-label={TH.dash.accept} className={ICON}>
-                      <Pin className="size-3.5" aria-hidden />
-                    </button>
-                    <button type="button" disabled={pendingChange} onClick={() => act(view.widget.id, "remove")} aria-label={TH.dash.dismissSuggestion} className={ICON}>
-                      <X className="size-3.5" aria-hidden />
-                    </button>
-                  </div>
-                  <p className="mb-1.5 truncate text-xs text-muted-foreground">{reasonOf(view.widget)}</p>
-                  <SpecView spec={view.spec} showDevtools={false} />
-                </div>
+              {tray.map((view) => (
+                <TrayCard key={view.widget.id} view={view} pending={pendingChange} onPin={() => act(view.widget.id, "pin")} onDismiss={() => act(view.widget.id, "remove")} />
               ))}
             </div>
           </div>
@@ -152,93 +150,75 @@ export function DashboardView({
   );
 }
 
-function LearnedCard({ view, pending, onPin, onDismiss }: { view: DashboardWidgetView; pending: boolean; onPin: () => void; onDismiss: () => void }) {
-  const [open, setOpen] = useState(false);
+function TrayCard({ view, pending, onPin, onDismiss }: { view: DashboardWidgetView; pending: boolean; onPin: () => void; onDismiss: () => void }) {
+  const fromAsks = view.widget.source === "ai_suggested";
   return (
-    <article className={LEARNED}>
-      <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
-        <div className="flex min-w-0 flex-1 basis-72 flex-col gap-1">
-          <p className="flex items-center gap-1.5 text-xs font-medium text-brand-violet">
-            <Sparkles className="size-3.5" aria-hidden />
-            {TH.dash.learnedZone} · {reasonOf(view.widget)}
-          </p>
-          <p className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-            <span className="font-display text-lg font-semibold leading-snug">{view.widget.title}</span>
-            {view.headline ? <span className="text-lg font-semibold tabular-nums">{view.headline.value}</span> : null}
-            {view.headline?.delta ? <span className={cn("text-sm font-medium tabular-nums", DELTA_TONE[view.headline.tone])}>{view.headline.delta}</span> : null}
-          </p>
-          <p className="text-xs text-muted-foreground">{TH.dash.learnedHint}</p>
-        </div>
-        <div className="flex shrink-0 items-center gap-1.5">
-          <button type="button" aria-expanded={open} onClick={() => setOpen(!open)} className={cn(ROW_BUTTON, "inline-flex items-center gap-1")}>
-            {open ? TH.dash.hideCard : TH.dash.showCard}
-            <ChevronDown className={cn("size-3.5 transition", open && "rotate-180")} aria-hidden />
-          </button>
-          <button type="button" disabled={pending} onClick={onDismiss} className={ROW_BUTTON}>
-            {TH.dash.dismissSuggestion}
-          </button>
-          <button type="button" disabled={pending} onClick={onPin} className={PRIMARY_BUTTON}>
-            <Pin className="size-3.5" aria-hidden />
-            {TH.dash.acceptLearned}
-          </button>
-        </div>
+    <div className="group relative">
+      <div className={TOOLBAR}>
+        <button type="button" disabled={pending} onClick={onPin} aria-label={TH.dash.accept} className={ICON}>
+          <Pin className="size-3.5" aria-hidden />
+        </button>
+        <button type="button" disabled={pending} onClick={onDismiss} aria-label={TH.dash.dismissSuggestion} className={ICON}>
+          <X className="size-3.5" aria-hidden />
+        </button>
       </div>
-      {open ? (
-        <div className="max-w-md">
-          <SpecView spec={view.spec} showDevtools={false} />
-        </div>
-      ) : null}
-    </article>
+      {fromAsks ? (
+        <p className="mb-1.5 flex min-w-0 items-center gap-1.5 text-xs">
+          <Sparkles className="size-3.5 shrink-0 text-brand-violet" aria-hidden />
+          <span className="shrink-0 font-medium text-brand-violet">{TH.dash.fromAsks}</span>
+          {view.widget.reason ? <span className="truncate text-muted-foreground">· {view.widget.reason}</span> : null}
+        </p>
+      ) : (
+        <p className="mb-1.5 truncate text-xs text-muted-foreground">{reasonOf(view.widget)}</p>
+      )}
+      <SpecView spec={view.spec} showDevtools={false} />
+    </div>
   );
 }
 
-function PinnedTiles({ views, pending, onUnpin }: { views: DashboardWidgetView[]; pending: boolean; onUnpin: (widgetId: string) => void }) {
+function SteadyPanel({ views, pending, onUnpin }: { views: DashboardWidgetView[]; pending: boolean; onUnpin: (widgetId: string) => void }) {
   const [open, setOpen] = useState<string | null>(null);
-  const opened = views.find((view) => view.widget.id === open) ?? null;
   return (
-    <div className="flex flex-col gap-3">
-      <ul className={TILES}>
+    <section aria-label={TH.attention.steadyZone(views.length)} className={PANEL}>
+      <header className="flex items-center gap-2 border-b border-border px-4 py-2.5">
+        <CircleCheck className="size-3.5 text-success" aria-hidden />
+        <h3 className="text-xs font-medium">{TH.attention.steadyZone(views.length)}</h3>
+        <p className="hidden truncate text-xs text-muted-foreground sm:block">· {TH.attention.steadyHint}</p>
+      </header>
+      <ul className="divide-y divide-border">
         {views.map((view) => {
           const expanded = open === view.widget.id;
-          const moved = view.attention.level === "moved";
           return (
             <li key={view.widget.id}>
-              <SeenTracker widgetId={view.widget.id} className="h-full">
-                <button
-                  type="button"
-                  aria-expanded={expanded}
-                  onClick={() => setOpen(expanded ? null : view.widget.id)}
-                  className={cn(TILE, expanded && "border-foreground/30 shadow-lift")}
-                >
-                  <span className="line-clamp-2 text-xs text-muted-foreground">{view.widget.title}</span>
-                  <span className="flex flex-wrap items-baseline gap-x-2">
-                    <span className="font-display text-xl font-semibold tabular-nums tracking-tight">{view.headline?.value ?? "—"}</span>
-                    {view.headline?.delta ? <span className={cn("text-xs font-medium tabular-nums", DELTA_TONE[view.headline.tone])}>{view.headline.delta}</span> : null}
-                  </span>
-                  {moved && view.attention.reason ? (
-                    <span className="flex items-start gap-1.5 text-xs text-foreground">
-                      <span aria-hidden className="mt-1.5 size-1.5 shrink-0 rounded-full bg-warning" />
-                      <span className="line-clamp-2">{view.attention.reason}</span>
-                    </span>
-                  ) : null}
-                </button>
+              <SeenTracker widgetId={view.widget.id}>
+                <div className="flex items-center gap-3 px-4 py-2.5">
+                  <button
+                    type="button"
+                    aria-expanded={expanded}
+                    onClick={() => setOpen(expanded ? null : view.widget.id)}
+                    className="flex min-w-0 flex-1 items-center gap-3 text-left focus-visible:outline-none"
+                  >
+                    <span className="min-w-0 flex-1 truncate text-sm font-medium">{view.widget.title}</span>
+                    {view.headline ? <span className="shrink-0 text-sm font-semibold tabular-nums">{view.headline.value}</span> : null}
+                    {view.headline?.delta ? <span className={cn("shrink-0 text-xs font-medium tabular-nums", DELTA_TONE[view.headline.tone])}>{view.headline.delta}</span> : null}
+                    <ChevronDown className={cn("size-3.5 shrink-0 text-muted-foreground transition", expanded && "rotate-180")} aria-hidden />
+                    <span className="sr-only">{expanded ? TH.attention.collapse : TH.attention.expand}</span>
+                  </button>
+                  <button type="button" disabled={pending} onClick={() => onUnpin(view.widget.id)} aria-label={TH.dash.unpin} className={cn(ICON, "shadow-none")}>
+                    <PinOff className="size-3.5" aria-hidden />
+                  </button>
+                </div>
+                {expanded ? (
+                  <div className="border-t border-border bg-muted/30 p-3">
+                    <SpecView spec={view.spec} showDevtools={false} />
+                  </div>
+                ) : null}
               </SeenTracker>
             </li>
           );
         })}
       </ul>
-      {opened ? (
-        <div className="relative animate-hero-rise">
-          <div className="absolute right-3 top-3 z-10 flex items-center gap-0.5">
-            <WhyCard widget={opened.widget} />
-            <button type="button" disabled={pending} onClick={() => onUnpin(opened.widget.id)} aria-label={TH.dash.unpin} className={ICON}>
-              <PinOff className="size-3.5" aria-hidden />
-            </button>
-          </div>
-          <SpecView spec={opened.spec} showDevtools={false} />
-        </div>
-      ) : null}
-    </div>
+    </section>
   );
 }
 
