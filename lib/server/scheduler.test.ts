@@ -19,4 +19,11 @@ describe("what the scheduler runs", () => {
     const ran = { lastRunAt: new Date(AT_0715_BKK - 61 * 60_000).toISOString(), lastRunDay: "2026-10-02" };
     expect(dueJobs(AT_0715_BKK, { engine: ran, watches: ran, digest: ran })).toEqual(["watches"]);
   });
+
+  test("the morning investigation runs once a day from 06:00, only when switched on", () => {
+    const ran = { lastRunAt: new Date(AT_0715_BKK).toISOString(), lastRunDay: "2026-10-02" };
+    expect(dueJobs(AT_0715_BKK, { engine: ran, watches: ran, digest: ran })).toEqual([]);
+    expect(dueJobs(AT_0715_BKK, { engine: ran, watches: ran, digest: ran }, true)).toEqual(["investigate"]);
+    expect(dueJobs(AT_0630_BKK, {}, true)).toEqual(["engine", "watches", "investigate"]);
+  });
 });

@@ -2,10 +2,12 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { DashboardView } from "@/components/dashboard/dashboard-view";
 import { GlowBackdrop } from "@/components/ui/glow-backdrop";
-import { GradientText } from "@/components/ui/gradient-text";
-import { TH } from "@/lib/i18n/th";
+import { StoryBoard, StoryHeader } from "@/components/dashboard/story-board";
+import { TODAY } from "@/lib/data/dates";
+import { findUser } from "@/lib/data/entities/users";
 import { layoutHistory, refreshSuggestions, staleFor, widgetViews } from "@/lib/server/dashboard";
 import { feedFor } from "@/lib/server/feed";
+import { latestInvestigation } from "@/lib/server/investigate";
 import { readAccess } from "@/lib/server/session";
 
 export const dynamic = "force-dynamic";
@@ -19,16 +21,13 @@ export default async function DashboardPage() {
   const stale = new Set(staleFor(access).map((widget) => widget.id));
   const history = layoutHistory(access);
   const restorable = history.find((entry) => entry.savedAt.slice(0, 10) < new Date().toISOString().slice(0, 10)) ?? null;
+  const investigation = latestInvestigation(access.userId);
   return (
     <div className="relative min-h-dvh overflow-hidden">
       <GlowBackdrop />
-      <div className="relative mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 py-10 sm:px-8">
-        <header className="flex flex-col gap-1">
-          <h1 className="font-display text-[2rem] font-semibold leading-tight tracking-[-0.02em] sm:text-[2.75rem]">
-            <GradientText>{TH.dash.title}</GradientText>
-          </h1>
-          <p className="text-sm text-muted-foreground">{TH.dash.placeholderNote}</p>
-        </header>
+      <div className="relative mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 pb-10 pt-16 sm:px-8 sm:pt-10">
+        <StoryHeader name={findUser(access.userId)?.nameTh ?? ""} investigation={investigation} asOf={TODAY} />
+        {investigation ? <StoryBoard stories={investigation.stories} /> : null}
         <DashboardView
           pinned={views.filter((view) => view.widget.pinned)}
           stale={views.filter((view) => stale.has(view.widget.id)).map((view) => view.widget)}

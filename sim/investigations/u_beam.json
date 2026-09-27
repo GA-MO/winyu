@@ -1,0 +1,2799 @@
+{
+  "investigation": {
+    "id": "u_beam",
+    "userId": "u_beam",
+    "at": "2026-09-26T19:24:21.844Z",
+    "model": "google/gemini-3.8-flash",
+    "stories": [
+      {
+        "kind": "watch",
+        "claim": "ขายออกกรุงเทพฯ ต่ำกว่าเป้าเล็กน้อย ร้านอาหารหลุดมากสุด",
+        "scope": "กรุงเทพฯ และปริมณฑล",
+        "period": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+        "subject": {
+          "metric": "sell_out_volume",
+          "region": "bkk"
+        },
+        "headline": {
+          "label": "เทียบเป้า",
+          "value": "99.9%",
+          "tone": "bad"
+        },
+        "projection": {
+          "label": "สิ้นเดือน ถ้าขายเท่า 7 วันล่าสุด",
+          "value": "99.4%"
+        },
+        "causes": [
+          {
+            "label": "ร้านอาหารและสถานบันเทิง",
+            "detail": "ช่องทางหลักที่ยอดขายออกต่ำกว่าเป้าหมาย",
+            "value": "−5,509 ลิตร",
+            "shareOfGap": "171.5%"
+          },
+          {
+            "label": "พระราม 4 ดิสทริบิวชั่น",
+            "detail": "เอเย่นต์ที่ยอดขายออกหลุดเป้าหมายมากที่สุด",
+            "value": "−7,564 ลิตร",
+            "shareOfGap": "235.4%"
+          },
+          {
+            "label": "สิงห์",
+            "detail": "แบรนด์หลักที่ยอดขายออกต่ำกว่าเป้า",
+            "value": "−19,697 ลิตร",
+            "shareOfGap": "613.0%"
+          },
+          {
+            "label": "ลีโอ",
+            "detail": "แบรนด์ที่ยอดขายออกต่ำกว่าเป้ารองลงมา",
+            "value": "−17,336 ลิตร",
+            "shareOfGap": "539.6%"
+          }
+        ],
+        "checked": [
+          {
+            "text": "ร้านอาหารขาดเป้า 5,509 ลิตร",
+            "verdict": "confirmed",
+            "source": "explain_gap"
+          },
+          {
+            "text": "พระราม 4 ขาดเป้า 7,564 ลิตร",
+            "verdict": "confirmed",
+            "source": "explain_gap"
+          },
+          {
+            "text": "ดูบันทึกเยี่ยมร้านไม่ได้",
+            "verdict": "confirmed",
+            "source": "crm_demo__store_visits"
+          },
+          {
+            "text": "โซดาสิงห์ร้านดั้งเดิมลด 9%",
+            "verdict": "confirmed",
+            "source": "get_alerts"
+          }
+        ],
+        "recommendation": "คุยพระราม 4 ดิสทริบิวชั่น และเยี่ยมร้านอาหารกระตุ้นสิงห์และลีโอ",
+        "id": "u_beam-0",
+        "owner": {
+          "userId": "u_kanok",
+          "nameTh": "คุณกนก ศรีสุวรรณ",
+          "title": "ผู้จัดการขายภาค กรุงเทพฯ"
+        }
+      },
+      {
+        "kind": "watch",
+        "claim": "เบียร์สดและขวดบางรายการเหลือไม่ถึง 10 วัน ก่อนวันหยุดยาว",
+        "scope": "กรุงเทพฯ และปริมณฑล",
+        "period": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+        "subject": {
+          "metric": "days_of_cover",
+          "region": "bkk"
+        },
+        "headline": {
+          "label": "เฉลี่ย",
+          "value": "16.0 วัน",
+          "tone": "neutral"
+        },
+        "projection": null,
+        "causes": [
+          {
+            "label": "อาซาฮี ถัง 30 ลิตร",
+            "detail": "วันครอบคลุมสต๊อกต่ำที่สุดในพื้นที่",
+            "value": "7.4 วัน",
+            "shareOfGap": null
+          },
+          {
+            "label": "สิงห์ ขวด 320 มล.",
+            "detail": "วันครอบคลุมสต๊อกอยู่ในระดับต่ำ",
+            "value": "9.4 วัน",
+            "shareOfGap": null
+          },
+          {
+            "label": "สิงห์ ขวด 620 มล.",
+            "detail": "วันครอบคลุมสต๊อกอยู่ในระดับต่ำ",
+            "value": "9.8 วัน",
+            "shareOfGap": null
+          },
+          {
+            "label": "ลีโอ กระป๋อง 320 มล.",
+            "detail": "วันครอบคลุมสต๊อกอยู่ในระดับต่ำ",
+            "value": "9.8 วัน",
+            "shareOfGap": null
+          }
+        ],
+        "checked": [
+          {
+            "text": "อาซาฮีถัง 7.4 · สิงห์ขวด 9.4 วัน",
+            "verdict": "confirmed",
+            "source": "query_metric"
+          },
+          {
+            "text": "13 และ 23 ต.ค. ขายเพิ่ม 5–15%",
+            "verdict": "confirmed",
+            "source": "get_calendar"
+          },
+          {
+            "text": "ออกพรรษาสั่งล่วงหน้าราว 27%",
+            "verdict": "confirmed",
+            "source": "get_calendar"
+          }
+        ],
+        "recommendation": "แจ้งเอเย่นต์ให้สั่งเบียร์สดและเบียร์ขวดล่วงหน้าก่อนวันหยุด",
+        "id": "u_beam-1",
+        "owner": {
+          "userId": "u_wee",
+          "nameTh": "คุณวีร์ เจริญสุข",
+          "title": "นักวางแผนซัพพลาย"
+        }
+      },
+      {
+        "kind": "ok",
+        "claim": "กรุงเทพฯ ขายเข้าเกินเป้า 102.1% โซดาและโมเดิร์นเทรดนำ",
+        "scope": "กรุงเทพฯ และปริมณฑล",
+        "period": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+        "subject": {
+          "metric": "target_attainment",
+          "region": "bkk"
+        },
+        "headline": {
+          "label": "เทียบเป้า",
+          "value": "102.1%",
+          "tone": "good"
+        },
+        "projection": {
+          "label": "สิ้นเดือน ถ้าขายเท่า 7 วันล่าสุด",
+          "value": "101.1%"
+        },
+        "causes": [
+          {
+            "label": "โซดาสิงห์",
+            "detail": "แบรนด์ที่มียอดขายเข้าเกินเป้าหมายมากที่สุด",
+            "value": "+39,107 ลิตร",
+            "shareOfGap": "40.8%"
+          },
+          {
+            "label": "น้ำดื่มสิงห์",
+            "detail": "แบรนด์ที่มียอดขายเข้าเกินเป้าหมายอันดับรองลงมา",
+            "value": "+23,298 ลิตร",
+            "shareOfGap": "24.3%"
+          },
+          {
+            "label": "สิงห์",
+            "detail": "ยอดขายเข้าเกินเป้าหมาย",
+            "value": "+10,863 ลิตร",
+            "shareOfGap": "11.3%"
+          },
+          {
+            "label": "ลีโอ",
+            "detail": "ยอดขายเข้าเกินเป้าหมาย",
+            "value": "+10,850 ลิตร",
+            "shareOfGap": "11.3%"
+          }
+        ],
+        "checked": [
+          {
+            "text": "จริง 4.7 · เป้า 4.6 ล้านลิตร",
+            "verdict": "confirmed",
+            "source": "explain_gap"
+          },
+          {
+            "text": "โซดาสิงห์เกินเป้า 33,513 ลิตร",
+            "verdict": "confirmed",
+            "source": "explain_gap"
+          },
+          {
+            "text": "โมเดิร์นเทรดเกิน 41,850 ลิตร",
+            "verdict": "confirmed",
+            "source": "explain_gap"
+          },
+          {
+            "text": "โซดาสิงห์โปร 1 แถม 1 ขายออก +30%",
+            "verdict": "confirmed",
+            "source": "get_alerts"
+          }
+        ],
+        "recommendation": "ตามคำสั่งน้ำดื่มและโซดาต่อเนื่องให้ปิดเดือนตามคาด",
+        "id": "u_beam-2",
+        "owner": {
+          "userId": "u_kanok",
+          "nameTh": "คุณกนก ศรีสุวรรณ",
+          "title": "ผู้จัดการขายภาค กรุงเทพฯ"
+        }
+      }
+    ],
+    "checkedCount": 29,
+    "costUsd": 0.1523652
+  },
+  "notes": "",
+  "calls": [
+    {
+      "tool": "get_alerts",
+      "input": {
+        "status": "open",
+        "limit": 10
+      },
+      "output": {
+        "ok": true,
+        "summary": "มีความผิดปกติที่เปิดอยู่ 2 รายการในขอบเขตของคุณ",
+        "rows": [
+          {
+            "id": "al_a25b3f027de53c68",
+            "severity": "P3",
+            "severityLabel": "เฝ้าระวัง",
+            "metric": "sell_out_volume",
+            "metricLabel": "ปริมาณขายออก (Sell-out)",
+            "scope": {
+              "sku": "sku_singha_soda_can320",
+              "channel": "modern_trade",
+              "region": "bkk"
+            },
+            "scopeLabel": "โซดาสิงห์ กระป๋อง 320 มล. · โมเดิร์นเทรด · กรุงเทพฯ และปริมณฑล",
+            "window": "6 ก.ย. 2569 – 22 ก.ย. 2569",
+            "observedLabel": "5,099 ลิตร",
+            "expectedLabel": "3,925 ลิตร",
+            "gapLabel": "30%",
+            "yearOverYear": false,
+            "direction": "up",
+            "hypothesis": "การเปลี่ยนแปลงนี้อธิบายได้ด้วยโปรโมชัน \"ซีสโตร์ โซดาซัมเมอร์ 1 แถม 1\" ที่กำลังทำอยู่ในช่วงเวลาเดียวกัน จึงยังไม่ถือว่าผิดปกติ",
+            "verifySteps": [
+              "ดูผลแคมเปญที่ทำอยู่กับโซดาสิงห์ กระป๋อง 320 มล. · โมเดิร์นเทรด · กรุงเทพฯ และปริมณฑล เทียบก่อนและระหว่างแคมเปญ",
+              "เทียบโซดาสิงห์ กระป๋อง 320 มล. · โมเดิร์นเทรด · กรุงเทพฯ และปริมณฑลกับช่วงเดียวกันของปีที่แล้ว"
+            ],
+            "ownerUserId": "u_kanok"
+          },
+          {
+            "id": "al_8ea42b7d9f03c765",
+            "severity": "P3",
+            "severityLabel": "เฝ้าระวัง",
+            "metric": "sell_out_volume",
+            "metricLabel": "ปริมาณขายออก (Sell-out)",
+            "scope": {
+              "sku": "sku_singha_soda_can320",
+              "channel": "traditional_trade",
+              "region": "bkk"
+            },
+            "scopeLabel": "โซดาสิงห์ กระป๋อง 320 มล. · ร้านค้าปลีกดั้งเดิม · กรุงเทพฯ และปริมณฑล",
+            "window": "29 ส.ค. 2569 – 22 ก.ย. 2569",
+            "observedLabel": "2,431 ลิตร",
+            "expectedLabel": "2,668 ลิตร",
+            "gapLabel": "9%",
+            "yearOverYear": false,
+            "direction": "down",
+            "hypothesis": "ยอดขายออกจากร้านในกรุงเทพฯ และปริมณฑลต่ำผิดปกติ ยังหาสาเหตุไม่ได้จากข้อมูลที่มี",
+            "verifySteps": [
+              "เทียบโซดาสิงห์ กระป๋อง 320 มล. · ร้านค้าปลีกดั้งเดิม · กรุงเทพฯ และปริมณฑลกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+              "เทียบโซดาสิงห์ กระป๋อง 320 มล. · ร้านค้าปลีกดั้งเดิม · กรุงเทพฯ และปริมณฑลกับช่วงเดียวกันของปีที่แล้ว"
+            ],
+            "ownerUserId": "u_kanok"
+          }
+        ],
+        "lessons": [],
+        "nextActions": [
+          {
+            "id": "verify",
+            "kind": "verify",
+            "label": "ตรวจสาเหตุ",
+            "reason": "ดูผลแคมเปญที่ทำอยู่กับโซดาสิงห์ กระป๋อง 320 มล. · โมเดิร์นเทรด · กรุงเทพฯ และปริมณฑล เทียบก่อนและระหว่างแคมเปญ",
+            "tool": null,
+            "input": null,
+            "prompt": "ดูผลแคมเปญที่ทำอยู่กับโซดาสิงห์ กระป๋อง 320 มล. · โมเดิร์นเทรด · กรุงเทพฯ และปริมณฑล เทียบก่อนและระหว่างแคมเปญ"
+          },
+          {
+            "id": "drill-province",
+            "kind": "drill",
+            "label": "แยกตามจังหวัด",
+            "reason": "ยังไม่ได้ดูแยกรายจังหวัด",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอปริมาณขายออก (Sell-out)แยกตามจังหวัด เรียงจากมากไปน้อย"
+          }
+        ]
+      }
+    },
+    {
+      "tool": "recall_memory",
+      "input": {
+        "query": "บีม ปัญญารัตน์"
+      },
+      "output": {
+        "ok": true,
+        "summary": "ยังไม่มีข้อมูลที่จำไว้เกี่ยวกับผู้ใช้คนนี้",
+        "data": []
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "target_attainment",
+        "dims": [
+          "region"
+        ],
+        "filters": {
+          "region": [
+            "bkk"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "target",
+        "limit": 10,
+        "sort": "value_asc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "region": "กรุงเทพฯ และปริมณฑล",
+            "value": 102.1,
+            "value_label": "102.1%"
+          }
+        ],
+        "summary": "การบรรลุเป้าหมาย 1 ก.ย. 2569 – 22 ก.ย. 2569: เฉลี่ย 102.1% · สูงสุด: กรุงเทพฯ และปริมณฑล 102.1% · (1 แถว · certified · SAP SD)",
+        "headline": {
+          "aggregate": "average",
+          "value": "102.1%",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 1,
+          "deltaPercent": null,
+          "compareLabel": null,
+          "compareNote": null,
+          "top": [
+            {
+              "label": "กรุงเทพฯ และปริมณฑล",
+              "value": "102.1%"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "target_attainment",
+          "certified": true,
+          "sourceSystem": "SAP SD",
+          "asOf": "2026-09-22",
+          "rowCount": 1,
+          "filtersApplied": {
+            "region": [
+              "bkk"
+            ]
+          },
+          "filterLabels": [],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "target_attainment",
+          "dims": [
+            "region"
+          ],
+          "filters": {
+            "region": [
+              "bkk"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "target",
+          "limit": 10,
+          "sort": "value_asc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "drill-province",
+            "kind": "drill",
+            "label": "แยกตามจังหวัด",
+            "reason": "ยังไม่ได้ดูแยกรายจังหวัด",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอการบรรลุเป้าหมายแยกตามจังหวัด เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-forecast",
+            "label": "จะถึงเป้าไหม",
+            "prompt": "พยากรณ์ปริมาณขายเข้า 8 สัปดาห์ข้างหน้า จะถึงเป้าไหม",
+            "reason": "ดูว่าถ้าเป็นแบบนี้ต่อไปจะเกิดอะไร",
+            "intentKey": "follow|forecast",
+            "score": 0.55
+          },
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "การบรรลุเป้าหมาย รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "net_sales_volume",
+        "dims": [
+          "region"
+        ],
+        "filters": {
+          "region": [
+            "bkk"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "target",
+        "limit": 10,
+        "sort": "value_asc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "region": "กรุงเทพฯ และปริมณฑล",
+            "value": 4741930,
+            "value_label": "4.7 ล้านลิตร",
+            "compare_value": 4646057,
+            "delta_pct": 2.1
+          }
+        ],
+        "summary": "ปริมาณขายเข้า (Sell-in) 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 4.7 ล้านลิตร · สูงสุด: กรุงเทพฯ และปริมณฑล 4.7 ล้านลิตร · เทียบเป้า +2.1% · (1 แถว · certified · SAP SD)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "4.7 ล้านลิตร",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 1,
+          "deltaPercent": 2.1,
+          "compareLabel": "เทียบเป้า",
+          "compareNote": null,
+          "top": [
+            {
+              "label": "กรุงเทพฯ และปริมณฑล",
+              "value": "4.7 ล้านลิตร"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "net_sales_volume",
+          "certified": true,
+          "sourceSystem": "SAP SD",
+          "asOf": "2026-09-22",
+          "rowCount": 1,
+          "filtersApplied": {
+            "region": [
+              "bkk"
+            ]
+          },
+          "filterLabels": [],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "net_sales_volume",
+          "dims": [
+            "region"
+          ],
+          "filters": {
+            "region": [
+              "bkk"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "target",
+          "limit": 10,
+          "sort": "value_asc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "drill-province",
+            "kind": "drill",
+            "label": "แยกตามจังหวัด",
+            "reason": "ยังไม่ได้ดูแยกรายจังหวัด",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอปริมาณขายเข้า (Sell-in)แยกตามจังหวัด เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-forecast",
+            "label": "พยากรณ์ 8 สัปดาห์",
+            "prompt": "พยากรณ์ปริมาณขายเข้า 8 สัปดาห์ข้างหน้า",
+            "reason": "ดูว่าถ้าเป็นแบบนี้ต่อไปจะเกิดอะไร",
+            "intentKey": "follow|forecast",
+            "score": 0.55
+          },
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "ปริมาณขายเข้า (Sell-in) รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ขอปริมาณขายเข้า (Sell-in) แยกตามภาค เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "tool": "explain_gap",
+      "input": {
+        "metric": "net_sales_volume",
+        "split": "channel",
+        "filters": {
+          "region": [
+            "bkk"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "compare": "target"
+      },
+      "output": {
+        "ok": true,
+        "summary": "ปริมาณขายเข้า (Sell-in) 1 ก.ย. 2569 – 22 ก.ย. 2569: จริง 4.7 ล้านลิตร · เป้า 4.6 ล้านลิตร · ช่องว่าง +95,873 ลิตร",
+        "period_label": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+        "actual_label": "4.7 ล้านลิตร",
+        "compare_label": "เป้า 4.6 ล้านลิตร",
+        "gap_label": "+95,873 ลิตร",
+        "attainment_label": "102.1%",
+        "contributors": [
+          {
+            "label": "โมเดิร์นเทรด",
+            "gap_label": "+41,850 ลิตร",
+            "share_label": "43.7%"
+          },
+          {
+            "label": "ร้านค้าปลีกดั้งเดิม",
+            "gap_label": "+28,508 ลิตร",
+            "share_label": "29.7%"
+          },
+          {
+            "label": "ร้านอาหารและสถานบันเทิง",
+            "gap_label": "+21,845 ลิตร",
+            "share_label": "22.8%"
+          },
+          {
+            "label": "ส่งออก",
+            "gap_label": "+3,671 ลิตร",
+            "share_label": "3.8%"
+          }
+        ],
+        "rest": null,
+        "offsetting": [],
+        "projection": {
+          "label": "สิ้นเดือน ถ้าขายเท่า 7 วันล่าสุด",
+          "basis": "วันที่เหลือของเดือนขายเท่าค่าเฉลี่ย 7 วันล่าสุด และเป้ากระจายเท่ากันทุกวัน",
+          "projected_label": "6.4 ล้านลิตร",
+          "month_target_label": "6.3 ล้านลิตร",
+          "attainment_label": "101.1%"
+        }
+      }
+    },
+    {
+      "tool": "explain_gap",
+      "input": {
+        "metric": "net_sales_volume",
+        "split": "agent",
+        "filters": {
+          "region": [
+            "bkk"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "compare": "target"
+      },
+      "output": {
+        "ok": true,
+        "summary": "ปริมาณขายเข้า (Sell-in) 1 ก.ย. 2569 – 22 ก.ย. 2569: จริง 4.7 ล้านลิตร · เป้า 4.6 ล้านลิตร · ช่องว่าง +95,873 ลิตร",
+        "period_label": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+        "actual_label": "4.7 ล้านลิตร",
+        "compare_label": "เป้า 4.6 ล้านลิตร",
+        "gap_label": "+95,873 ลิตร",
+        "attainment_label": "102.1%",
+        "contributors": [
+          {
+            "label": "กรุงไทยเบเวอเรจ",
+            "gap_label": "+21,819 ลิตร",
+            "share_label": "22.8%"
+          },
+          {
+            "label": "นนท์เจริญพาณิชย์",
+            "gap_label": "+17,835 ลิตร",
+            "share_label": "18.6%"
+          },
+          {
+            "label": "พระราม 4 ดิสทริบิวชั่น",
+            "gap_label": "+12,937 ลิตร",
+            "share_label": "13.5%"
+          },
+          {
+            "label": "ปทุมรุ่งกิจ เทรดดิ้ง",
+            "gap_label": "+12,790 ลิตร",
+            "share_label": "13.3%"
+          },
+          {
+            "label": "สุวรรณชัย ค้าส่ง",
+            "gap_label": "+12,428 ลิตร",
+            "share_label": "13.0%"
+          }
+        ],
+        "rest": {
+          "label": "ที่เหลือรวมกัน",
+          "gap_label": "+18,064 ลิตร",
+          "share_label": "18.8%"
+        },
+        "offsetting": [],
+        "projection": {
+          "label": "สิ้นเดือน ถ้าขายเท่า 7 วันล่าสุด",
+          "basis": "วันที่เหลือของเดือนขายเท่าค่าเฉลี่ย 7 วันล่าสุด และเป้ากระจายเท่ากันทุกวัน",
+          "projected_label": "6.4 ล้านลิตร",
+          "month_target_label": "6.3 ล้านลิตร",
+          "attainment_label": "101.1%"
+        }
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "days_of_cover",
+        "dims": [
+          "agent"
+        ],
+        "filters": {
+          "region": [
+            "bkk"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "none",
+        "limit": 10,
+        "sort": "value_asc",
+        "where": null
+      },
+      "output": {
+        "ok": false,
+        "error": "มิติ agent ใช้กับเมตริก days_of_cover ไม่ได้",
+        "code": "BAD_QUERY"
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "ar_overdue",
+        "dims": [
+          "agent"
+        ],
+        "filters": {
+          "region": [
+            "bkk"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "none",
+        "limit": 10,
+        "sort": "value_desc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "agent": "กรุงไทยเบเวอเรจ",
+            "value": "***",
+            "value_label": "***"
+          },
+          {
+            "agent": "พระราม 4 ดิสทริบิวชั่น",
+            "value": "***",
+            "value_label": "***"
+          },
+          {
+            "agent": "สุวรรณชัย ค้าส่ง",
+            "value": "***",
+            "value_label": "***"
+          },
+          {
+            "agent": "นนท์เจริญพาณิชย์",
+            "value": "***",
+            "value_label": "***"
+          },
+          {
+            "agent": "ปทุมรุ่งกิจ เทรดดิ้ง",
+            "value": "***",
+            "value_label": "***"
+          },
+          {
+            "agent": "รังสิตซัพพลาย",
+            "value": "***",
+            "value_label": "***"
+          },
+          {
+            "agent": "สมุทรพรทวี",
+            "value": "***",
+            "value_label": "***"
+          },
+          {
+            "agent": "บางพลีค้าส่ง",
+            "value": "***",
+            "value_label": "***"
+          }
+        ],
+        "summary": "ยอดค้างชำระเกินกำหนด 1 ก.ย. 2569 – 22 ก.ย. 2569: ข้อมูลถูกปิดตามนโยบาย (masked) — เห็นได้เฉพาะโครงสร้างข้อมูล",
+        "headline": {
+          "aggregate": "sum",
+          "value": "—",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 8,
+          "deltaPercent": null,
+          "compareLabel": null,
+          "compareNote": null,
+          "top": []
+        },
+        "provenance": {
+          "metric": "ar_overdue",
+          "certified": true,
+          "sourceSystem": "SAP FI",
+          "asOf": "2026-09-22",
+          "rowCount": 8,
+          "filtersApplied": {
+            "region": [
+              "bkk"
+            ]
+          },
+          "filterLabels": [
+            "กรุงเทพฯ และปริมณฑล"
+          ],
+          "scopeApplied": {},
+          "masked": [
+            "value",
+            "compare_value",
+            "delta_pct"
+          ],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "ar_overdue",
+          "dims": [
+            "agent"
+          ],
+          "filters": {
+            "region": [
+              "bkk"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "none",
+          "limit": 10,
+          "sort": "value_desc",
+          "where": null
+        },
+        "nextActions": [],
+        "followUps": [
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายเดือน",
+            "prompt": "ยอดค้างชำระเกินกำหนด รายเดือนย้อนหลัง 6 เดือน",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ขอยอดค้างชำระเกินกำหนดแยกตามเอเย่นต์ เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "days_of_cover",
+        "dims": [
+          "sku"
+        ],
+        "filters": {
+          "region": [
+            "bkk"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "none",
+        "limit": 10,
+        "sort": "value_asc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "sku": "อาซาฮี ถัง 30 ลิตร",
+            "value": 7.44,
+            "value_label": "7.4 วัน"
+          },
+          {
+            "sku": "สิงห์ ขวด 320 มล.",
+            "value": 9.38,
+            "value_label": "9.4 วัน"
+          },
+          {
+            "sku": "สิงห์ ขวด 620 มล.",
+            "value": 9.77,
+            "value_label": "9.8 วัน"
+          },
+          {
+            "sku": "ลีโอ กระป๋อง 320 มล.",
+            "value": 9.77,
+            "value_label": "9.8 วัน"
+          },
+          {
+            "sku": "สิงห์ เลมอนโซดา ขวด 320 มล.",
+            "value": 9.93,
+            "value_label": "9.9 วัน"
+          },
+          {
+            "sku": "อาซาฮี กระป๋อง 320 มล.",
+            "value": 10.22,
+            "value_label": "10.2 วัน"
+          },
+          {
+            "sku": "สิงห์ เลมอนโซดา ขวด PET 600 มล.",
+            "value": 10.78,
+            "value_label": "10.8 วัน"
+          },
+          {
+            "sku": "สิงห์ กระป๋อง 490 มล.",
+            "value": 11.15,
+            "value_label": "11.2 วัน"
+          },
+          {
+            "sku": "ลีโอ กระป๋อง 490 มล.",
+            "value": 11.83,
+            "value_label": "11.8 วัน"
+          },
+          {
+            "sku": "ลีโอ ขวด 620 มล.",
+            "value": 12,
+            "value_label": "12.0 วัน"
+          }
+        ],
+        "summary": "วันครอบคลุมสต๊อก 1 ก.ย. 2569 – 22 ก.ย. 2569: เฉลี่ย 16.0 วัน · ต่ำสุด: อาซาฮี ถัง 30 ลิตร 7.4 วัน · สิงห์ ขวด 320 มล. 9.4 วัน · สิงห์ ขวด 620 มล. 9.8 วัน · (10 แถว · certified · WMS)",
+        "headline": {
+          "aggregate": "average",
+          "value": "16.0 วัน",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 10,
+          "deltaPercent": null,
+          "compareLabel": null,
+          "compareNote": null,
+          "top": [
+            {
+              "label": "อาซาฮี ถัง 30 ลิตร",
+              "value": "7.4 วัน"
+            },
+            {
+              "label": "สิงห์ ขวด 320 มล.",
+              "value": "9.4 วัน"
+            },
+            {
+              "label": "สิงห์ ขวด 620 มล.",
+              "value": "9.8 วัน"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "days_of_cover",
+          "certified": true,
+          "sourceSystem": "WMS",
+          "asOf": "2026-09-22",
+          "rowCount": 10,
+          "filtersApplied": {
+            "region": [
+              "bkk"
+            ]
+          },
+          "filterLabels": [
+            "กรุงเทพฯ และปริมณฑล"
+          ],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "days_of_cover",
+          "dims": [
+            "sku"
+          ],
+          "filters": {
+            "region": [
+              "bkk"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "none",
+          "limit": 10,
+          "sort": "value_asc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "drill-brand",
+            "kind": "drill",
+            "label": "แยกตามแบรนด์",
+            "reason": "ยังไม่ได้ดูแยกรายแบรนด์",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอวันครอบคลุมสต๊อกแยกตามแบรนด์ เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-why",
+            "label": "ทำไมอาซาฮี ถัง 30 ลิตร",
+            "prompt": "เจาะดูวันครอบคลุมสต๊อกของอาซาฮี ถัง 30 ลิตร ว่าทำไมถึงเปลี่ยนไป เทียบกับช่วงก่อนหน้าและช่วงเดียวกันปีก่อน",
+            "reason": "อาซาฮี ถัง 30 ลิตร คือแถวที่ต้องดูมากที่สุดในคำตอบนี้",
+            "intentKey": "follow|why",
+            "score": 0.6
+          },
+          {
+            "id": "fu-forecast",
+            "label": "พยากรณ์ 8 สัปดาห์",
+            "prompt": "พยากรณ์วันครอบคลุมสต๊อกของอาซาฮี ถัง 30 ลิตร 8 สัปดาห์ข้างหน้า",
+            "reason": "ดูว่าถ้าเป็นแบบนี้ต่อไปจะเกิดอะไร",
+            "intentKey": "follow|forecast",
+            "score": 0.55
+          },
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "วันครอบคลุมสต๊อก รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          }
+        ]
+      }
+    },
+    {
+      "tool": "explain_gap",
+      "input": {
+        "metric": "net_sales_volume",
+        "split": "sku",
+        "filters": {
+          "region": [
+            "bkk"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "compare": "target"
+      },
+      "output": {
+        "ok": true,
+        "summary": "ปริมาณขายเข้า (Sell-in) 1 ก.ย. 2569 – 22 ก.ย. 2569: จริง 4.7 ล้านลิตร · เป้า 4.6 ล้านลิตร · ช่องว่าง +95,873 ลิตร",
+        "period_label": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+        "actual_label": "4.7 ล้านลิตร",
+        "compare_label": "เป้า 4.6 ล้านลิตร",
+        "gap_label": "+95,873 ลิตร",
+        "attainment_label": "102.1%",
+        "contributors": [
+          {
+            "label": "โซดาสิงห์ กระป๋อง 320 มล.",
+            "gap_label": "+33,513 ลิตร",
+            "share_label": "35.0%"
+          },
+          {
+            "label": "น้ำดื่มสิงห์ ขวด PET 600 มล.",
+            "gap_label": "+12,330 ลิตร",
+            "share_label": "12.9%"
+          },
+          {
+            "label": "น้ำดื่มสิงห์ ขวด PET 1.5 ลิตร",
+            "gap_label": "+7,258 ลิตร",
+            "share_label": "7.6%"
+          },
+          {
+            "label": "ลีโอ กระป๋อง 320 มล.",
+            "gap_label": "+5,639 ลิตร",
+            "share_label": "5.9%"
+          },
+          {
+            "label": "น้ำดื่มสิงห์ แพ็ก 12",
+            "gap_label": "+3,710 ลิตร",
+            "share_label": "3.9%"
+          }
+        ],
+        "rest": {
+          "label": "ที่เหลือรวมกัน",
+          "gap_label": "+35,413 ลิตร",
+          "share_label": "36.9%"
+        },
+        "offsetting": [
+          {
+            "label": "ลีโอ แพ็ก 12",
+            "gap_label": "−1,704 ลิตร"
+          },
+          {
+            "label": "คาร์ลสเบิร์ก กระป๋อง 320 มล.",
+            "gap_label": "−285 ลิตร"
+          }
+        ],
+        "projection": {
+          "label": "สิ้นเดือน ถ้าขายเท่า 7 วันล่าสุด",
+          "basis": "วันที่เหลือของเดือนขายเท่าค่าเฉลี่ย 7 วันล่าสุด และเป้ากระจายเท่ากันทุกวัน",
+          "projected_label": "6.4 ล้านลิตร",
+          "month_target_label": "6.3 ล้านลิตร",
+          "attainment_label": "101.1%"
+        }
+      }
+    },
+    {
+      "tool": "explain_gap",
+      "input": {
+        "metric": "sell_out_volume",
+        "split": "sku",
+        "filters": {
+          "region": [
+            "bkk"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "compare": "target"
+      },
+      "output": {
+        "ok": true,
+        "summary": "ปริมาณขายออก (Sell-out) 1 ก.ย. 2569 – 22 ก.ย. 2569: จริง 4.6 ล้านลิตร · เป้า 4.6 ล้านลิตร · ช่องว่าง −3,213 ลิตร",
+        "period_label": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+        "actual_label": "4.6 ล้านลิตร",
+        "compare_label": "เป้า 4.6 ล้านลิตร",
+        "gap_label": "−3,213 ลิตร",
+        "attainment_label": "99.9%",
+        "contributors": [
+          {
+            "label": "สิงห์ ขวด 620 มล.",
+            "gap_label": "−6,626 ลิตร",
+            "share_label": "206.2%"
+          },
+          {
+            "label": "สิงห์ กระป๋อง 320 มล.",
+            "gap_label": "−6,104 ลิตร",
+            "share_label": "190.0%"
+          },
+          {
+            "label": "ลีโอ แพ็ก 12",
+            "gap_label": "−5,186 ลิตร",
+            "share_label": "161.4%"
+          },
+          {
+            "label": "ลีโอ ขวด 620 มล.",
+            "gap_label": "−4,275 ลิตร",
+            "share_label": "133.1%"
+          },
+          {
+            "label": "สิงห์ ขวด 320 มล.",
+            "gap_label": "−4,061 ลิตร",
+            "share_label": "126.4%"
+          }
+        ],
+        "rest": {
+          "label": "ที่เหลือรวมกัน",
+          "gap_label": "−15,370 ลิตร",
+          "share_label": "478.4%"
+        },
+        "offsetting": [
+          {
+            "label": "โซดาสิงห์ กระป๋อง 320 มล.",
+            "gap_label": "+20,789 ลิตร"
+          },
+          {
+            "label": "น้ำดื่มสิงห์ ขวด PET 600 มล.",
+            "gap_label": "+6,548 ลิตร"
+          },
+          {
+            "label": "น้ำดื่มสิงห์ ขวด PET 1.5 ลิตร",
+            "gap_label": "+4,214 ลิตร"
+          },
+          {
+            "label": "โซดาสิงห์ ขวด 320 มล.",
+            "gap_label": "+2,800 ลิตร"
+          },
+          {
+            "label": "เพอร์ร่า ขวด PET 600 มล.",
+            "gap_label": "+1,095 ลิตร"
+          }
+        ],
+        "projection": {
+          "label": "สิ้นเดือน ถ้าขายเท่า 7 วันล่าสุด",
+          "basis": "วันที่เหลือของเดือนขายเท่าค่าเฉลี่ย 7 วันล่าสุด และเป้ากระจายเท่ากันทุกวัน",
+          "projected_label": "6.3 ล้านลิตร",
+          "month_target_label": "6.3 ล้านลิตร",
+          "attainment_label": "99.4%"
+        }
+      }
+    },
+    {
+      "tool": "crm_demo__store_visits",
+      "input": {
+        "agentId": null,
+        "regions": "bkk"
+      },
+      "output": {
+        "ok": false,
+        "code": "CONNECTOR_UNAVAILABLE",
+        "error": "CRM (REST) ไม่ตอบในขณะนี้"
+      }
+    },
+    {
+      "tool": "get_calendar",
+      "input": {
+        "from": "2026-09-22",
+        "to": "2026-10-31"
+      },
+      "output": {
+        "ok": true,
+        "summary": "22 ก.ย. 2569 – 31 ต.ค. 2569 มี 3 วันสำคัญ ห้ามขายเครื่องดื่มแอลกอฮอล์ 1 วัน",
+        "data": [
+          {
+            "date": "2026-10-13",
+            "date_label": "13 ต.ค. 2569",
+            "when_label": "อีก 21 วัน",
+            "name": "วันคล้ายวันสวรรคต รัชกาลที่ 9",
+            "kind": "holiday",
+            "kind_label": "วันหยุด",
+            "impact_label": "ขายออกเบียร์ +5% · วัดจากวันคล้ายวันสวรรคต รัชกาลที่ 9 13 ต.ค. 2568"
+          },
+          {
+            "date": "2026-10-23",
+            "date_label": "23 ต.ค. 2569",
+            "when_label": "อีก 31 วัน",
+            "name": "วันปิยมหาราช",
+            "kind": "holiday",
+            "kind_label": "วันหยุด",
+            "impact_label": "ขายออกเบียร์ +15% · วัดจากวันปิยมหาราช 23 ต.ค. 2568"
+          },
+          {
+            "date": "2026-10-26",
+            "date_label": "26 ต.ค. 2569",
+            "when_label": "อีก 34 วัน",
+            "name": "วันออกพรรษา",
+            "kind": "alcohol_ban",
+            "kind_label": "ห้ามขายเครื่องดื่มแอลกอฮอล์",
+            "impact_label": "ขายออกเบียร์ -90% · เอเย่นต์สั่งเข้า 2 วันก่อนหน้า +27% · วัดจากวันวิสาขบูชา 31 พ.ค. 2569"
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "sell_out_volume",
+        "dims": [
+          "channel"
+        ],
+        "filters": {
+          "sku": [
+            "sku_singha_soda_can320"
+          ],
+          "region": [
+            "bkk"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "prev_year",
+        "limit": 10,
+        "sort": "value_desc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "channel": "โมเดิร์นเทรด",
+            "value": 107966,
+            "value_label": "107,966 ลิตร",
+            "compare_value": 79189,
+            "delta_pct": 36.3
+          },
+          {
+            "channel": "ร้านค้าปลีกดั้งเดิม",
+            "value": 52117,
+            "value_label": "52,117 ลิตร",
+            "compare_value": 50763,
+            "delta_pct": 2.7
+          },
+          {
+            "channel": "ร้านอาหารและสถานบันเทิง",
+            "value": 39829,
+            "value_label": "39,829 ลิตร",
+            "compare_value": 38673,
+            "delta_pct": 3
+          },
+          {
+            "channel": "ส่งออก",
+            "value": 10917,
+            "value_label": "10,917 ลิตร",
+            "compare_value": 10536,
+            "delta_pct": 3.6
+          }
+        ],
+        "summary": "ปริมาณขายออก (Sell-out) 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 210,830 ลิตร · สูงสุด: โมเดิร์นเทรด 107,966 ลิตร · ร้านค้าปลีกดั้งเดิม 52,117 ลิตร · ร้านอาหารและสถานบันเทิง 39,829 ลิตร · เทียบปีก่อน +17.7% · (4 แถว · certified · SAP SD)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "210,830 ลิตร",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 4,
+          "deltaPercent": 17.7,
+          "compareLabel": "เทียบปีก่อน",
+          "compareNote": null,
+          "top": [
+            {
+              "label": "โมเดิร์นเทรด",
+              "value": "107,966 ลิตร"
+            },
+            {
+              "label": "ร้านค้าปลีกดั้งเดิม",
+              "value": "52,117 ลิตร"
+            },
+            {
+              "label": "ร้านอาหารและสถานบันเทิง",
+              "value": "39,829 ลิตร"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "sell_out_volume",
+          "certified": true,
+          "sourceSystem": "SAP SD",
+          "asOf": "2026-09-22",
+          "rowCount": 4,
+          "filtersApplied": {
+            "sku": [
+              "sku_singha_soda_can320"
+            ],
+            "region": [
+              "bkk"
+            ]
+          },
+          "filterLabels": [
+            "โซดาสิงห์ กระป๋อง 320 มล.",
+            "กรุงเทพฯ และปริมณฑล"
+          ],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "sell_out_volume",
+          "dims": [
+            "channel"
+          ],
+          "filters": {
+            "sku": [
+              "sku_singha_soda_can320"
+            ],
+            "region": [
+              "bkk"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "prev_year",
+          "limit": 10,
+          "sort": "value_desc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "verify",
+            "kind": "verify",
+            "label": "ตรวจสาเหตุ",
+            "reason": "ดูผลแคมเปญที่ทำอยู่กับโซดาสิงห์ กระป๋อง 320 มล. · โมเดิร์นเทรด · กรุงเทพฯ และปริมณฑล เทียบก่อนและระหว่างแคมเปญ",
+            "tool": null,
+            "input": null,
+            "prompt": "ดูผลแคมเปญที่ทำอยู่กับโซดาสิงห์ กระป๋อง 320 มล. · โมเดิร์นเทรด · กรุงเทพฯ และปริมณฑล เทียบก่อนและระหว่างแคมเปญ"
+          },
+          {
+            "id": "drill-province",
+            "kind": "drill",
+            "label": "แยกตามจังหวัด",
+            "reason": "ยังไม่ได้ดูแยกรายจังหวัด",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอปริมาณขายออก (Sell-out)แยกตามจังหวัด เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "ปริมาณขายออก (Sell-out) รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "sell_out_volume",
+        "dims": [
+          "region"
+        ],
+        "filters": {
+          "channel": [
+            "traditional_trade"
+          ],
+          "sku": [
+            "sku_singha_soda_can320"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "none",
+        "limit": 10,
+        "sort": "value_desc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "region": "กรุงเทพฯ และปริมณฑล",
+            "value": 52117,
+            "value_label": "52,117 ลิตร"
+          }
+        ],
+        "summary": "ปริมาณขายออก (Sell-out) 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 52,117 ลิตร · สูงสุด: กรุงเทพฯ และปริมณฑล 52,117 ลิตร · (1 แถว · certified · SAP SD)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "52,117 ลิตร",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 1,
+          "deltaPercent": null,
+          "compareLabel": null,
+          "compareNote": null,
+          "top": [
+            {
+              "label": "กรุงเทพฯ และปริมณฑล",
+              "value": "52,117 ลิตร"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "sell_out_volume",
+          "certified": true,
+          "sourceSystem": "SAP SD",
+          "asOf": "2026-09-22",
+          "rowCount": 1,
+          "filtersApplied": {
+            "channel": [
+              "traditional_trade"
+            ],
+            "sku": [
+              "sku_singha_soda_can320"
+            ]
+          },
+          "filterLabels": [
+            "ร้านค้าปลีกดั้งเดิม",
+            "โซดาสิงห์ กระป๋อง 320 มล."
+          ],
+          "scopeApplied": {
+            "region": [
+              "bkk"
+            ]
+          },
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "sell_out_volume",
+          "dims": [
+            "region"
+          ],
+          "filters": {
+            "channel": [
+              "traditional_trade"
+            ],
+            "sku": [
+              "sku_singha_soda_can320"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "none",
+          "limit": 10,
+          "sort": "value_desc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "verify",
+            "kind": "verify",
+            "label": "ตรวจสาเหตุ",
+            "reason": "เทียบโซดาสิงห์ กระป๋อง 320 มล. · ร้านค้าปลีกดั้งเดิม · กรุงเทพฯ และปริมณฑลกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+            "tool": null,
+            "input": null,
+            "prompt": "เทียบโซดาสิงห์ กระป๋อง 320 มล. · ร้านค้าปลีกดั้งเดิม · กรุงเทพฯ และปริมณฑลกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน"
+          },
+          {
+            "id": "drill-province",
+            "kind": "drill",
+            "label": "แยกตามจังหวัด",
+            "reason": "ยังไม่ได้ดูแยกรายจังหวัด",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอปริมาณขายออก (Sell-out)แยกตามจังหวัด เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "ปริมาณขายออก (Sell-out) รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ขอปริมาณขายออก (Sell-out) แยกตามภาค เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "net_sales_volume",
+        "dims": [
+          "agent"
+        ],
+        "filters": {
+          "region": [
+            "bkk"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "prev_period",
+        "limit": 10,
+        "sort": "delta_asc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "agent": "ปทุมรุ่งกิจ เทรดดิ้ง",
+            "value": 509501,
+            "value_label": "509,501 ลิตร",
+            "compare_value": 570802,
+            "delta_pct": -10.7
+          },
+          {
+            "agent": "สมุทรพรทวี",
+            "value": 579090,
+            "value_label": "579,090 ลิตร",
+            "compare_value": 648451,
+            "delta_pct": -10.7
+          },
+          {
+            "agent": "พระราม 4 ดิสทริบิวชั่น",
+            "value": 903849,
+            "value_label": "903,849 ลิตร",
+            "compare_value": 1007249,
+            "delta_pct": -10.3
+          },
+          {
+            "agent": "กรุงไทยเบเวอเรจ",
+            "value": 1053509,
+            "value_label": "1.1 ล้านลิตร",
+            "compare_value": 1170132,
+            "delta_pct": -10
+          },
+          {
+            "agent": "สุวรรณชัย ค้าส่ง",
+            "value": 609727,
+            "value_label": "609,727 ลิตร",
+            "compare_value": 675059,
+            "delta_pct": -9.7
+          },
+          {
+            "agent": "รังสิตซัพพลาย",
+            "value": 294204,
+            "value_label": "294,204 ลิตร",
+            "compare_value": 324011,
+            "delta_pct": -9.2
+          },
+          {
+            "agent": "บางพลีค้าส่ง",
+            "value": 265937,
+            "value_label": "265,937 ลิตร",
+            "compare_value": 292737,
+            "delta_pct": -9.2
+          },
+          {
+            "agent": "นนท์เจริญพาณิชย์",
+            "value": 526113,
+            "value_label": "526,113 ลิตร",
+            "compare_value": 575347,
+            "delta_pct": -8.6
+          }
+        ],
+        "summary": "ปริมาณขายเข้า (Sell-in) 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 4.7 ล้านลิตร · สูงสุด: กรุงไทยเบเวอเรจ 1.1 ล้านลิตร · พระราม 4 ดิสทริบิวชั่น 903,849 ลิตร · สุวรรณชัย ค้าส่ง 609,727 ลิตร · เทียบช่วงก่อนหน้า -9.9% · (8 แถว · certified · SAP SD)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "4.7 ล้านลิตร",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 8,
+          "deltaPercent": -9.9,
+          "compareLabel": "เทียบช่วงก่อนหน้า",
+          "compareNote": null,
+          "top": [
+            {
+              "label": "กรุงไทยเบเวอเรจ",
+              "value": "1.1 ล้านลิตร"
+            },
+            {
+              "label": "พระราม 4 ดิสทริบิวชั่น",
+              "value": "903,849 ลิตร"
+            },
+            {
+              "label": "สุวรรณชัย ค้าส่ง",
+              "value": "609,727 ลิตร"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "net_sales_volume",
+          "certified": true,
+          "sourceSystem": "SAP SD",
+          "asOf": "2026-09-22",
+          "rowCount": 8,
+          "filtersApplied": {
+            "region": [
+              "bkk"
+            ]
+          },
+          "filterLabels": [
+            "กรุงเทพฯ และปริมณฑล"
+          ],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "net_sales_volume",
+          "dims": [
+            "agent"
+          ],
+          "filters": {
+            "region": [
+              "bkk"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "prev_period",
+          "limit": 10,
+          "sort": "delta_asc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "drill-why",
+            "kind": "drill",
+            "label": "ทำไมปทุมรุ่งกิจ เทรดดิ้งถึงเป็นแบบนี้",
+            "reason": "ปทุมรุ่งกิจ เทรดดิ้ง เปลี่ยนไปในทางที่แย่ที่สุด",
+            "tool": null,
+            "input": null,
+            "prompt": "เจาะดูปริมาณขายเข้า (Sell-in)ของปทุมรุ่งกิจ เทรดดิ้ง ว่าทำไมถึงเปลี่ยนไป เทียบกับช่วงก่อนหน้าและช่วงเดียวกันปีก่อน"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-trend",
+            "label": "เริ่มแย่ตั้งแต่เมื่อไร",
+            "prompt": "ปริมาณขายเข้า (Sell-in) ของปทุมรุ่งกิจ เทรดดิ้ง รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "ดูว่าตัวเลขเริ่มลดลงสัปดาห์ไหน",
+            "intentKey": "follow|trend",
+            "score": 0.65
+          },
+          {
+            "id": "fu-forecast",
+            "label": "พยากรณ์ 8 สัปดาห์",
+            "prompt": "พยากรณ์ปริมาณขายเข้า 8 สัปดาห์ข้างหน้า",
+            "reason": "ดูว่าถ้าเป็นแบบนี้ต่อไปจะเกิดอะไร",
+            "intentKey": "follow|forecast",
+            "score": 0.65
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ขอปริมาณขายเข้า (Sell-in) แยกตามเอเย่นต์ เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "net_sales_volume",
+        "dims": [
+          "agent"
+        ],
+        "filters": {
+          "region": [
+            "bkk"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "prev_year",
+        "limit": 10,
+        "sort": "delta_asc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "agent": "พระราม 4 ดิสทริบิวชั่น",
+            "value": 903849,
+            "value_label": "903,849 ลิตร",
+            "compare_value": 854197,
+            "delta_pct": 5.8
+          },
+          {
+            "agent": "รังสิตซัพพลาย",
+            "value": 294204,
+            "value_label": "294,204 ลิตร",
+            "compare_value": 276941,
+            "delta_pct": 6.2
+          },
+          {
+            "agent": "สมุทรพรทวี",
+            "value": 579090,
+            "value_label": "579,090 ลิตร",
+            "compare_value": 544009,
+            "delta_pct": 6.4
+          },
+          {
+            "agent": "บางพลีค้าส่ง",
+            "value": 265937,
+            "value_label": "265,937 ลิตร",
+            "compare_value": 249307,
+            "delta_pct": 6.7
+          },
+          {
+            "agent": "กรุงไทยเบเวอเรจ",
+            "value": 1053509,
+            "value_label": "1.1 ล้านลิตร",
+            "compare_value": 985645,
+            "delta_pct": 6.9
+          },
+          {
+            "agent": "สุวรรณชัย ค้าส่ง",
+            "value": 609727,
+            "value_label": "609,727 ลิตร",
+            "compare_value": 568514,
+            "delta_pct": 7.2
+          },
+          {
+            "agent": "ปทุมรุ่งกิจ เทรดดิ้ง",
+            "value": 509501,
+            "value_label": "509,501 ลิตร",
+            "compare_value": 474352,
+            "delta_pct": 7.4
+          },
+          {
+            "agent": "นนท์เจริญพาณิชย์",
+            "value": 526113,
+            "value_label": "526,113 ลิตร",
+            "compare_value": 484408,
+            "delta_pct": 8.6
+          }
+        ],
+        "summary": "ปริมาณขายเข้า (Sell-in) 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 4.7 ล้านลิตร · สูงสุด: กรุงไทยเบเวอเรจ 1.1 ล้านลิตร · พระราม 4 ดิสทริบิวชั่น 903,849 ลิตร · สุวรรณชัย ค้าส่ง 609,727 ลิตร · เทียบปีก่อน +6.9% · (8 แถว · certified · SAP SD)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "4.7 ล้านลิตร",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 8,
+          "deltaPercent": 6.9,
+          "compareLabel": "เทียบปีก่อน",
+          "compareNote": null,
+          "top": [
+            {
+              "label": "กรุงไทยเบเวอเรจ",
+              "value": "1.1 ล้านลิตร"
+            },
+            {
+              "label": "พระราม 4 ดิสทริบิวชั่น",
+              "value": "903,849 ลิตร"
+            },
+            {
+              "label": "สุวรรณชัย ค้าส่ง",
+              "value": "609,727 ลิตร"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "net_sales_volume",
+          "certified": true,
+          "sourceSystem": "SAP SD",
+          "asOf": "2026-09-22",
+          "rowCount": 8,
+          "filtersApplied": {
+            "region": [
+              "bkk"
+            ]
+          },
+          "filterLabels": [
+            "กรุงเทพฯ และปริมณฑล"
+          ],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "net_sales_volume",
+          "dims": [
+            "agent"
+          ],
+          "filters": {
+            "region": [
+              "bkk"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "prev_year",
+          "limit": 10,
+          "sort": "delta_asc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "drill-province",
+            "kind": "drill",
+            "label": "แยกตามจังหวัด",
+            "reason": "ยังไม่ได้ดูแยกรายจังหวัด",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอปริมาณขายเข้า (Sell-in)แยกตามจังหวัด เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-forecast",
+            "label": "พยากรณ์ 8 สัปดาห์",
+            "prompt": "พยากรณ์ปริมาณขายเข้า 8 สัปดาห์ข้างหน้า",
+            "reason": "ดูว่าถ้าเป็นแบบนี้ต่อไปจะเกิดอะไร",
+            "intentKey": "follow|forecast",
+            "score": 0.55
+          },
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "ปริมาณขายเข้า (Sell-in) รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          }
+        ]
+      }
+    },
+    {
+      "tool": "explain_gap",
+      "input": {
+        "metric": "net_sales_volume",
+        "split": "brand",
+        "filters": {
+          "region": [
+            "bkk"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "compare": "target"
+      },
+      "output": {
+        "ok": true,
+        "summary": "ปริมาณขายเข้า (Sell-in) 1 ก.ย. 2569 – 22 ก.ย. 2569: จริง 4.7 ล้านลิตร · เป้า 4.6 ล้านลิตร · ช่องว่าง +95,873 ลิตร",
+        "period_label": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+        "actual_label": "4.7 ล้านลิตร",
+        "compare_label": "เป้า 4.6 ล้านลิตร",
+        "gap_label": "+95,873 ลิตร",
+        "attainment_label": "102.1%",
+        "contributors": [
+          {
+            "label": "โซดาสิงห์",
+            "gap_label": "+39,107 ลิตร",
+            "share_label": "40.8%"
+          },
+          {
+            "label": "น้ำดื่มสิงห์",
+            "gap_label": "+23,298 ลิตร",
+            "share_label": "24.3%"
+          },
+          {
+            "label": "สิงห์",
+            "gap_label": "+10,863 ลิตร",
+            "share_label": "11.3%"
+          },
+          {
+            "label": "ลีโอ",
+            "gap_label": "+10,850 ลิตร",
+            "share_label": "11.3%"
+          },
+          {
+            "label": "เพอร์ร่า",
+            "gap_label": "+5,594 ลิตร",
+            "share_label": "5.8%"
+          }
+        ],
+        "rest": {
+          "label": "ที่เหลือรวมกัน",
+          "gap_label": "+6,160 ลิตร",
+          "share_label": "6.4%"
+        },
+        "offsetting": [],
+        "projection": {
+          "label": "สิ้นเดือน ถ้าขายเท่า 7 วันล่าสุด",
+          "basis": "วันที่เหลือของเดือนขายเท่าค่าเฉลี่ย 7 วันล่าสุด และเป้ากระจายเท่ากันทุกวัน",
+          "projected_label": "6.4 ล้านลิตร",
+          "month_target_label": "6.3 ล้านลิตร",
+          "attainment_label": "101.1%"
+        }
+      }
+    },
+    {
+      "tool": "explain_gap",
+      "input": {
+        "metric": "sell_out_volume",
+        "split": "brand",
+        "filters": {
+          "region": [
+            "bkk"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "compare": "target"
+      },
+      "output": {
+        "ok": true,
+        "summary": "ปริมาณขายออก (Sell-out) 1 ก.ย. 2569 – 22 ก.ย. 2569: จริง 4.6 ล้านลิตร · เป้า 4.6 ล้านลิตร · ช่องว่าง −3,213 ลิตร",
+        "period_label": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+        "actual_label": "4.6 ล้านลิตร",
+        "compare_label": "เป้า 4.6 ล้านลิตร",
+        "gap_label": "−3,213 ลิตร",
+        "attainment_label": "99.9%",
+        "contributors": [
+          {
+            "label": "สิงห์",
+            "gap_label": "−19,697 ลิตร",
+            "share_label": "613.0%"
+          },
+          {
+            "label": "ลีโอ",
+            "gap_label": "−17,336 ลิตร",
+            "share_label": "539.6%"
+          },
+          {
+            "label": "คาร์ลสเบิร์ก",
+            "gap_label": "−1,948 ลิตร",
+            "share_label": "60.6%"
+          },
+          {
+            "label": "อาซาฮี",
+            "gap_label": "−1,307 ลิตร",
+            "share_label": "40.7%"
+          },
+          {
+            "label": "สิงห์ เลมอนโซดา",
+            "gap_label": "−581 ลิตร",
+            "share_label": "18.1%"
+          }
+        ],
+        "rest": null,
+        "offsetting": [
+          {
+            "label": "โซดาสิงห์",
+            "gap_label": "+24,529 ลิตร"
+          },
+          {
+            "label": "น้ำดื่มสิงห์",
+            "gap_label": "+10,890 ลิตร"
+          },
+          {
+            "label": "เพอร์ร่า",
+            "gap_label": "+2,236 ลิตร"
+          }
+        ],
+        "projection": {
+          "label": "สิ้นเดือน ถ้าขายเท่า 7 วันล่าสุด",
+          "basis": "วันที่เหลือของเดือนขายเท่าค่าเฉลี่ย 7 วันล่าสุด และเป้ากระจายเท่ากันทุกวัน",
+          "projected_label": "6.3 ล้านลิตร",
+          "month_target_label": "6.3 ล้านลิตร",
+          "attainment_label": "99.4%"
+        }
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "sell_out_volume",
+        "dims": [
+          "brand"
+        ],
+        "filters": {
+          "region": [
+            "bkk"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "prev_year",
+        "limit": 10,
+        "sort": "delta_asc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "brand": "คาร์ลสเบิร์ก",
+            "value": 94912,
+            "value_label": "94,912 ลิตร",
+            "compare_value": 89675,
+            "delta_pct": 5.8
+          },
+          {
+            "brand": "สิงห์ เลมอนโซดา",
+            "value": 268482,
+            "value_label": "268,482 ลิตร",
+            "compare_value": 253059,
+            "delta_pct": 6.1
+          },
+          {
+            "brand": "สิงห์",
+            "value": 1241955,
+            "value_label": "1.2 ล้านลิตร",
+            "compare_value": 1170583,
+            "delta_pct": 6.1
+          },
+          {
+            "brand": "ลีโอ",
+            "value": 1077479,
+            "value_label": "1.1 ล้านลิตร",
+            "compare_value": 1015331,
+            "delta_pct": 6.1
+          },
+          {
+            "brand": "เพอร์ร่า",
+            "value": 396491,
+            "value_label": "396,491 ลิตร",
+            "compare_value": 372567,
+            "delta_pct": 6.4
+          },
+          {
+            "brand": "อาซาฮี",
+            "value": 98149,
+            "value_label": "98,149 ลิตร",
+            "compare_value": 91732,
+            "delta_pct": 7
+          },
+          {
+            "brand": "น้ำดื่มสิงห์",
+            "value": 1004547,
+            "value_label": "1.0 ล้านลิตร",
+            "compare_value": 937379,
+            "delta_pct": 7.2
+          },
+          {
+            "brand": "โซดาสิงห์",
+            "value": 460829,
+            "value_label": "460,829 ลิตร",
+            "compare_value": 412792,
+            "delta_pct": 11.6
+          }
+        ],
+        "summary": "ปริมาณขายออก (Sell-out) 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 4.6 ล้านลิตร · สูงสุด: สิงห์ 1.2 ล้านลิตร · ลีโอ 1.1 ล้านลิตร · น้ำดื่มสิงห์ 1.0 ล้านลิตร · เทียบปีก่อน +6.9% · (8 แถว · certified · SAP SD)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "4.6 ล้านลิตร",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 8,
+          "deltaPercent": 6.9,
+          "compareLabel": "เทียบปีก่อน",
+          "compareNote": null,
+          "top": [
+            {
+              "label": "สิงห์",
+              "value": "1.2 ล้านลิตร"
+            },
+            {
+              "label": "ลีโอ",
+              "value": "1.1 ล้านลิตร"
+            },
+            {
+              "label": "น้ำดื่มสิงห์",
+              "value": "1.0 ล้านลิตร"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "sell_out_volume",
+          "certified": true,
+          "sourceSystem": "SAP SD",
+          "asOf": "2026-09-22",
+          "rowCount": 8,
+          "filtersApplied": {
+            "region": [
+              "bkk"
+            ]
+          },
+          "filterLabels": [
+            "กรุงเทพฯ และปริมณฑล"
+          ],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "sell_out_volume",
+          "dims": [
+            "brand"
+          ],
+          "filters": {
+            "region": [
+              "bkk"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "prev_year",
+          "limit": 10,
+          "sort": "delta_asc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "verify",
+            "kind": "verify",
+            "label": "ตรวจสาเหตุ",
+            "reason": "ดูผลแคมเปญที่ทำอยู่กับโซดาสิงห์ กระป๋อง 320 มล. · โมเดิร์นเทรด · กรุงเทพฯ และปริมณฑล เทียบก่อนและระหว่างแคมเปญ",
+            "tool": null,
+            "input": null,
+            "prompt": "ดูผลแคมเปญที่ทำอยู่กับโซดาสิงห์ กระป๋อง 320 มล. · โมเดิร์นเทรด · กรุงเทพฯ และปริมณฑล เทียบก่อนและระหว่างแคมเปญ"
+          },
+          {
+            "id": "drill-province",
+            "kind": "drill",
+            "label": "แยกตามจังหวัด",
+            "reason": "ยังไม่ได้ดูแยกรายจังหวัด",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอปริมาณขายออก (Sell-out)แยกตามจังหวัด เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "ปริมาณขายออก (Sell-out) รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "campaign_spend",
+        "dims": [
+          "campaign"
+        ],
+        "filters": {
+          "region": [
+            "bkk"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "none",
+        "limit": 10,
+        "sort": "value_desc",
+        "where": null
+      },
+      "output": {
+        "ok": false,
+        "error": "บทบาทของคุณไม่มีสิทธิ์ดูเมตริก งบแคมเปญที่ใช้",
+        "code": "PERMISSION_DENIED"
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "campaign_uplift",
+        "dims": [
+          "campaign"
+        ],
+        "filters": {
+          "region": [
+            "bkk"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "none",
+        "limit": 10,
+        "sort": "value_desc",
+        "where": null
+      },
+      "output": {
+        "ok": false,
+        "error": "บทบาทของคุณไม่มีสิทธิ์ดูเมตริก ยอดเพิ่มจากแคมเปญ",
+        "code": "PERMISSION_DENIED"
+      }
+    },
+    {
+      "tool": "get_person",
+      "input": {
+        "id": null,
+        "name": "บีม ปัญญารัตน์"
+      },
+      "output": {
+        "ok": true,
+        "summary": "คุณบีม ปัญญารัตน์ — พนักงานขาย กรุงเทพฯ",
+        "data": {
+          "id": "u_beam",
+          "name": "คุณบีม ปัญญารัตน์",
+          "title": "พนักงานขาย กรุงเทพฯ",
+          "photo": "/img/people/p24.jpg",
+          "badges": [],
+          "facts": [
+            {
+              "label": "ฝ่าย",
+              "value": "ขาย"
+            },
+            {
+              "label": "พื้นที่",
+              "value": "กรุงเทพมหานคร"
+            },
+            {
+              "label": "หัวหน้า",
+              "value": "คุณกนก ศรีสุวรรณ"
+            },
+            {
+              "label": "อายุงาน",
+              "value": "6 ปี 3 เดือน"
+            },
+            {
+              "label": "เริ่มงาน",
+              "value": "1 มิ.ย. 2563"
+            },
+            {
+              "label": "โอที 3 เดือนล่าสุด",
+              "value": "16 ชม."
+            }
+          ],
+          "history": [
+            {
+              "title": "เริ่มงาน พนักงานขาย กรุงเทพฯ",
+              "detail": null,
+              "time": "1 มิ.ย. 2563"
+            }
+          ],
+          "certificates": [
+            {
+              "label": "ใบอนุญาตจำหน่ายสุรา (ผู้แทน)",
+              "value": "หมดอายุ 31 พ.ค. 2570 · อีก 251 วัน"
+            }
+          ],
+          "risk_reasons": [],
+          "reports": []
+        }
+      }
+    },
+    {
+      "tool": "explain_gap",
+      "input": {
+        "metric": "sell_out_volume",
+        "split": "agent",
+        "filters": {
+          "region": [
+            "bkk"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "compare": "target"
+      },
+      "output": {
+        "ok": true,
+        "summary": "ปริมาณขายออก (Sell-out) 1 ก.ย. 2569 – 22 ก.ย. 2569: จริง 4.6 ล้านลิตร · เป้า 4.6 ล้านลิตร · ช่องว่าง −3,213 ลิตร",
+        "period_label": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+        "actual_label": "4.6 ล้านลิตร",
+        "compare_label": "เป้า 4.6 ล้านลิตร",
+        "gap_label": "−3,213 ลิตร",
+        "attainment_label": "99.9%",
+        "contributors": [
+          {
+            "label": "พระราม 4 ดิสทริบิวชั่น",
+            "gap_label": "−7,564 ลิตร",
+            "share_label": "235.4%"
+          },
+          {
+            "label": "รังสิตซัพพลาย",
+            "gap_label": "−2,782 ลิตร",
+            "share_label": "86.6%"
+          },
+          {
+            "label": "กรุงไทยเบเวอเรจ",
+            "gap_label": "−2,349 ลิตร",
+            "share_label": "73.1%"
+          },
+          {
+            "label": "สุวรรณชัย ค้าส่ง",
+            "gap_label": "−631 ลิตร",
+            "share_label": "19.6%"
+          }
+        ],
+        "rest": null,
+        "offsetting": [
+          {
+            "label": "นนท์เจริญพาณิชย์",
+            "gap_label": "+6,209 ลิตร"
+          },
+          {
+            "label": "ปทุมรุ่งกิจ เทรดดิ้ง",
+            "gap_label": "+1,458 ลิตร"
+          },
+          {
+            "label": "บางพลีค้าส่ง",
+            "gap_label": "+1,248 ลิตร"
+          },
+          {
+            "label": "สมุทรพรทวี",
+            "gap_label": "+1,197 ลิตร"
+          }
+        ],
+        "projection": {
+          "label": "สิ้นเดือน ถ้าขายเท่า 7 วันล่าสุด",
+          "basis": "วันที่เหลือของเดือนขายเท่าค่าเฉลี่ย 7 วันล่าสุด และเป้ากระจายเท่ากันทุกวัน",
+          "projected_label": "6.3 ล้านลิตร",
+          "month_target_label": "6.3 ล้านลิตร",
+          "attainment_label": "99.4%"
+        }
+      }
+    },
+    {
+      "tool": "explain_gap",
+      "input": {
+        "metric": "sell_out_volume",
+        "split": "sku",
+        "filters": {
+          "agent": [
+            "พระราม 4 ดิสทริบิวชั่น"
+          ],
+          "region": [
+            "bkk"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "compare": "target"
+      },
+      "output": {
+        "ok": true,
+        "summary": "ปริมาณขายออก (Sell-out) 1 ก.ย. 2569 – 22 ก.ย. 2569: จริง 883,348 ลิตร · เป้า 890,912 ลิตร · ช่องว่าง −7,564 ลิตร",
+        "period_label": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+        "actual_label": "883,348 ลิตร",
+        "compare_label": "เป้า 890,912 ลิตร",
+        "gap_label": "−7,564 ลิตร",
+        "attainment_label": "99.2%",
+        "contributors": [
+          {
+            "label": "สิงห์ กระป๋อง 320 มล.",
+            "gap_label": "−2,041 ลิตร",
+            "share_label": "27.0%"
+          },
+          {
+            "label": "ลีโอ กระป๋อง 490 มล.",
+            "gap_label": "−1,748 ลิตร",
+            "share_label": "23.1%"
+          },
+          {
+            "label": "น้ำดื่มสิงห์ ขวด PET 600 มล.",
+            "gap_label": "−1,262 ลิตร",
+            "share_label": "16.7%"
+          },
+          {
+            "label": "น้ำดื่มสิงห์ ขวด PET 1.5 ลิตร",
+            "gap_label": "−1,085 ลิตร",
+            "share_label": "14.3%"
+          },
+          {
+            "label": "ลีโอ กระป๋อง 320 มล.",
+            "gap_label": "−987 ลิตร",
+            "share_label": "13.0%"
+          }
+        ],
+        "rest": {
+          "label": "ที่เหลือรวมกัน",
+          "gap_label": "−6,239 ลิตร",
+          "share_label": "82.5%"
+        },
+        "offsetting": [
+          {
+            "label": "โซดาสิงห์ กระป๋อง 320 มล.",
+            "gap_label": "+4,510 ลิตร"
+          },
+          {
+            "label": "น้ำดื่มสิงห์ แพ็ก 12",
+            "gap_label": "+479 ลิตร"
+          },
+          {
+            "label": "เพอร์ร่า ขวด PET 600 มล.",
+            "gap_label": "+422 ลิตร"
+          },
+          {
+            "label": "โซดาสิงห์ แพ็ก 12",
+            "gap_label": "+318 ลิตร"
+          },
+          {
+            "label": "สิงห์ ถัง 30 ลิตร",
+            "gap_label": "+72.0 ลิตร"
+          }
+        ],
+        "projection": {
+          "label": "สิ้นเดือน ถ้าขายเท่า 7 วันล่าสุด",
+          "basis": "วันที่เหลือของเดือนขายเท่าค่าเฉลี่ย 7 วันล่าสุด และเป้ากระจายเท่ากันทุกวัน",
+          "projected_label": "1.2 ล้านลิตร",
+          "month_target_label": "1.2 ล้านลิตร",
+          "attainment_label": "98.7%"
+        }
+      }
+    },
+    {
+      "tool": "explain_gap",
+      "input": {
+        "metric": "sell_out_volume",
+        "split": "sku",
+        "filters": {
+          "agent": [
+            "รังสิตซัพพลาย"
+          ],
+          "region": [
+            "bkk"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "compare": "target"
+      },
+      "output": {
+        "ok": true,
+        "summary": "ปริมาณขายออก (Sell-out) 1 ก.ย. 2569 – 22 ก.ย. 2569: จริง 287,606 ลิตร · เป้า 290,388 ลิตร · ช่องว่าง −2,782 ลิตร",
+        "period_label": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+        "actual_label": "287,606 ลิตร",
+        "compare_label": "เป้า 290,388 ลิตร",
+        "gap_label": "−2,782 ลิตร",
+        "attainment_label": "99.0%",
+        "contributors": [
+          {
+            "label": "น้ำดื่มสิงห์ ขวด PET 600 มล.",
+            "gap_label": "−643 ลิตร",
+            "share_label": "23.1%"
+          },
+          {
+            "label": "ลีโอ ขวด 620 มล.",
+            "gap_label": "−533 ลิตร",
+            "share_label": "19.2%"
+          },
+          {
+            "label": "สิงห์ ขวด 620 มล.",
+            "gap_label": "−460 ลิตร",
+            "share_label": "16.5%"
+          },
+          {
+            "label": "สิงห์ กระป๋อง 320 มล.",
+            "gap_label": "−448 ลิตร",
+            "share_label": "16.1%"
+          },
+          {
+            "label": "สิงห์ ขวด 320 มล.",
+            "gap_label": "−441 ลิตร",
+            "share_label": "15.9%"
+          }
+        ],
+        "rest": {
+          "label": "ที่เหลือรวมกัน",
+          "gap_label": "−2,060 ลิตร",
+          "share_label": "74.0%"
+        },
+        "offsetting": [
+          {
+            "label": "โซดาสิงห์ กระป๋อง 320 มล.",
+            "gap_label": "+373 ลิตร"
+          },
+          {
+            "label": "น้ำดื่มสิงห์ ขวด PET 1.5 ลิตร",
+            "gap_label": "+347 ลิตร"
+          },
+          {
+            "label": "สิงห์ เลมอนโซดา ขวด 320 มล.",
+            "gap_label": "+243 ลิตร"
+          },
+          {
+            "label": "โซดาสิงห์ ขวด 320 มล.",
+            "gap_label": "+215 ลิตร"
+          },
+          {
+            "label": "โซดาสิงห์ แพ็ก 12",
+            "gap_label": "+139 ลิตร"
+          }
+        ],
+        "projection": {
+          "label": "สิ้นเดือน ถ้าขายเท่า 7 วันล่าสุด",
+          "basis": "วันที่เหลือของเดือนขายเท่าค่าเฉลี่ย 7 วันล่าสุด และเป้ากระจายเท่ากันทุกวัน",
+          "projected_label": "389,913 ลิตร",
+          "month_target_label": "395,984 ลิตร",
+          "attainment_label": "98.5%"
+        }
+      }
+    },
+    {
+      "tool": "explain_gap",
+      "input": {
+        "metric": "sell_out_volume",
+        "split": "channel",
+        "filters": {
+          "region": [
+            "bkk"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "compare": "target"
+      },
+      "output": {
+        "ok": true,
+        "summary": "ปริมาณขายออก (Sell-out) 1 ก.ย. 2569 – 22 ก.ย. 2569: จริง 4.6 ล้านลิตร · เป้า 4.6 ล้านลิตร · ช่องว่าง −3,213 ลิตร",
+        "period_label": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+        "actual_label": "4.6 ล้านลิตร",
+        "compare_label": "เป้า 4.6 ล้านลิตร",
+        "gap_label": "−3,213 ลิตร",
+        "attainment_label": "99.9%",
+        "contributors": [
+          {
+            "label": "ร้านอาหารและสถานบันเทิง",
+            "gap_label": "−5,509 ลิตร",
+            "share_label": "171.5%"
+          },
+          {
+            "label": "ร้านค้าปลีกดั้งเดิม",
+            "gap_label": "−1,223 ลิตร",
+            "share_label": "38.1%"
+          },
+          {
+            "label": "ส่งออก",
+            "gap_label": "−72.0 ลิตร",
+            "share_label": "2.2%"
+          }
+        ],
+        "rest": null,
+        "offsetting": [
+          {
+            "label": "โมเดิร์นเทรด",
+            "gap_label": "+3,591 ลิตร"
+          }
+        ],
+        "projection": {
+          "label": "สิ้นเดือน ถ้าขายเท่า 7 วันล่าสุด",
+          "basis": "วันที่เหลือของเดือนขายเท่าค่าเฉลี่ย 7 วันล่าสุด และเป้ากระจายเท่ากันทุกวัน",
+          "projected_label": "6.3 ล้านลิตร",
+          "month_target_label": "6.3 ล้านลิตร",
+          "attainment_label": "99.4%"
+        }
+      }
+    },
+    {
+      "tool": "explain_gap",
+      "input": {
+        "metric": "sell_out_volume",
+        "split": "brand",
+        "filters": {
+          "channel": [
+            "on_premise"
+          ],
+          "region": [
+            "bkk"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "compare": "target"
+      },
+      "output": {
+        "ok": true,
+        "summary": "ปริมาณขายออก (Sell-out) 1 ก.ย. 2569 – 22 ก.ย. 2569: จริง 1.1 ล้านลิตร · เป้า 1.1 ล้านลิตร · ช่องว่าง −5,509 ลิตร",
+        "period_label": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+        "actual_label": "1.1 ล้านลิตร",
+        "compare_label": "เป้า 1.1 ล้านลิตร",
+        "gap_label": "−5,509 ลิตร",
+        "attainment_label": "99.5%",
+        "contributors": [
+          {
+            "label": "สิงห์",
+            "gap_label": "−6,070 ลิตร",
+            "share_label": "110.2%"
+          },
+          {
+            "label": "ลีโอ",
+            "gap_label": "−4,489 ลิตร",
+            "share_label": "81.5%"
+          },
+          {
+            "label": "คาร์ลสเบิร์ก",
+            "gap_label": "−719 ลิตร",
+            "share_label": "13.1%"
+          },
+          {
+            "label": "อาซาฮี",
+            "gap_label": "−494 ลิตร",
+            "share_label": "9.0%"
+          },
+          {
+            "label": "สิงห์ เลมอนโซดา",
+            "gap_label": "−61.0 ลิตร",
+            "share_label": "1.1%"
+          }
+        ],
+        "rest": null,
+        "offsetting": [
+          {
+            "label": "โซดาสิงห์",
+            "gap_label": "+4,785 ลิตร"
+          },
+          {
+            "label": "น้ำดื่มสิงห์",
+            "gap_label": "+1,302 ลิตร"
+          },
+          {
+            "label": "เพอร์ร่า",
+            "gap_label": "+237 ลิตร"
+          }
+        ],
+        "projection": {
+          "label": "สิ้นเดือน ถ้าขายเท่า 7 วันล่าสุด",
+          "basis": "วันที่เหลือของเดือนขายเท่าค่าเฉลี่ย 7 วันล่าสุด และเป้ากระจายเท่ากันทุกวัน",
+          "projected_label": "1.5 ล้านลิตร",
+          "month_target_label": "1.6 ล้านลิตร",
+          "attainment_label": "99.0%"
+        }
+      }
+    },
+    {
+      "tool": "explain_gap",
+      "input": {
+        "metric": "sell_out_volume",
+        "split": "agent",
+        "filters": {
+          "channel": [
+            "on_premise"
+          ],
+          "region": [
+            "bkk"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "compare": "target"
+      },
+      "output": {
+        "ok": true,
+        "summary": "ปริมาณขายออก (Sell-out) 1 ก.ย. 2569 – 22 ก.ย. 2569: จริง 1.1 ล้านลิตร · เป้า 1.1 ล้านลิตร · ช่องว่าง −5,509 ลิตร",
+        "period_label": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+        "actual_label": "1.1 ล้านลิตร",
+        "compare_label": "เป้า 1.1 ล้านลิตร",
+        "gap_label": "−5,509 ลิตร",
+        "attainment_label": "99.5%",
+        "contributors": [
+          {
+            "label": "พระราม 4 ดิสทริบิวชั่น",
+            "gap_label": "−2,328 ลิตร",
+            "share_label": "42.3%"
+          },
+          {
+            "label": "กรุงไทยเบเวอเรจ",
+            "gap_label": "−2,143 ลิตร",
+            "share_label": "38.9%"
+          },
+          {
+            "label": "รังสิตซัพพลาย",
+            "gap_label": "−982 ลิตร",
+            "share_label": "17.8%"
+          },
+          {
+            "label": "ปทุมรุ่งกิจ เทรดดิ้ง",
+            "gap_label": "−443 ลิตร",
+            "share_label": "8.0%"
+          },
+          {
+            "label": "บางพลีค้าส่ง",
+            "gap_label": "−285 ลิตร",
+            "share_label": "5.2%"
+          }
+        ],
+        "rest": {
+          "label": "ที่เหลือรวมกัน",
+          "gap_label": "−224 ลิตร",
+          "share_label": "4.1%"
+        },
+        "offsetting": [
+          {
+            "label": "นนท์เจริญพาณิชย์",
+            "gap_label": "+751 ลิตร"
+          },
+          {
+            "label": "สุวรรณชัย ค้าส่ง",
+            "gap_label": "+145 ลิตร"
+          }
+        ],
+        "projection": {
+          "label": "สิ้นเดือน ถ้าขายเท่า 7 วันล่าสุด",
+          "basis": "วันที่เหลือของเดือนขายเท่าค่าเฉลี่ย 7 วันล่าสุด และเป้ากระจายเท่ากันทุกวัน",
+          "projected_label": "1.5 ล้านลิตร",
+          "month_target_label": "1.6 ล้านลิตร",
+          "attainment_label": "99.0%"
+        }
+      }
+    }
+  ],
+  "dropped": []
+}

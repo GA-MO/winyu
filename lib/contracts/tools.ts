@@ -3,13 +3,13 @@ import { REGIONS, ROLE_IDS, type RoleId } from "./identity";
 import { widgetKindSchema } from "./dashboard";
 import { urgencySchema } from "./handoff";
 import { CANDIDATE_STAGES, LEAVE_KINDS } from "./records";
-import { dimSchema, metricIdSchema, metricQuerySchema } from "./semantic";
+import { dimFiltersSchema, dimSchema, metricIdSchema, metricQuerySchema } from "./semantic";
 import { watchMetricInputSchema } from "./watches";
 
 export type ToolTier = "read" | "write" | "destructive";
 export type NativeToolName = "query_metric" | "list_metrics" | "describe_entity" | "get_alerts" | "get_forecast" | "get_calendar" | "recall_memory"
   | "find_people" | "get_person" | "get_site" | "list_candidates" | "list_courses" | "get_policy" | "request_leave" | "enroll_course"
-  | "resolve_owner" | "create_handoff" | "send_email" | "pin_widget" | "watch_metric" | "run_job" | "set_permission";
+  | "resolve_owner" | "create_handoff" | "send_email" | "pin_widget" | "watch_metric" | "run_job" | "set_permission" | "explain_gap";
 export type ConnectorToolName = `${string}__${string}`;
 export type ToolName = NativeToolName | ConnectorToolName;
 
@@ -37,6 +37,13 @@ export const listMetricsInputSchema = z.object({ search: z.string().nullable() }
 export const describeEntityInputSchema = z.object({ kind: z.enum(ENTITY_KINDS), query: z.string().min(1) });
 export const getAlertsInputSchema = z.object({ status: z.enum(["open", "all"]), limit: z.number().int().min(1).max(MAX_ALERTS).nullable() });
 export const getForecastInputSchema = z.object({ ...metricScope, weeks: z.number().int().min(1).max(MAX_FORECAST_WEEKS) });
+export const explainGapInputSchema = z.object({
+  metric: metricIdSchema,
+  split: dimSchema,
+  filters: dimFiltersSchema,
+  range: z.object({ from: z.string().regex(ISO_DATE), to: z.string().regex(ISO_DATE) }),
+  compare: z.enum(["target", "prev_period", "prev_year"]),
+});
 export const getCalendarInputSchema = z.object({ from: z.string().regex(ISO_DATE).nullable(), to: z.string().regex(ISO_DATE).nullable() });
 export const PEOPLE_FLAGS = ["new", "risk", "cert_expiring", "overtime", "retiring"] as const;
 export type PeopleFlag = (typeof PEOPLE_FLAGS)[number];

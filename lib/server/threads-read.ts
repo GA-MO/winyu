@@ -36,9 +36,9 @@ export function getThread(id: string, userId: string): Thread | null {
   return thread && thread.userId === userId ? thread : null;
 }
 
-export function createThread(userId: string, firstMessage: string, preload: HandoffPreload | null = null): Thread {
+export function createThread(userId: string, firstMessage: string, preload: HandoffPreload | null = null, storyId: string | null = null): Thread {
   const now = new Date().toISOString();
-  return threads().put({ id: randomUUID(), userId, title: titleFrom(firstMessage), createdAt: now, updatedAt: now, messages: [], preload });
+  return threads().put({ id: randomUUID(), userId, title: titleFrom(firstMessage), createdAt: now, updatedAt: now, messages: [], preload, storyId });
 }
 
 export function renameThread(id: string, userId: string, title: string): Thread | null {

@@ -14,3 +14,4 @@ export * from "./tools";
 export * from "./watches";
 export * from "./records";
 export * from "./feed";
+export * from "./investigation";

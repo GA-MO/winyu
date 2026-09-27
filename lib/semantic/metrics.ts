@@ -172,7 +172,7 @@ export const MONTHLY_METRICS: ReadonlySet<MetricId> = new Set<MetricId>([
 ]);
 
 /** Metrics with a plan to compare against: sales targets, and production capacity for output. */
-export const TARGET_METRICS: ReadonlySet<MetricId> = new Set<MetricId>(["net_sales_volume", "sell_out_volume", "net_sales_value", "production_output"]);
+export const TARGET_METRICS: ReadonlySet<MetricId> = new Set<MetricId>(["net_sales_volume", "sell_out_volume", "net_sales_value"]);
 
 export function metricDef(id: string): MetricDef | null {
   return (METRICS as Record<string, MetricDef | undefined>)[id] ?? null;

@@ -1,0 +1,3693 @@
+{
+  "investigation": {
+    "id": "u_wee",
+    "userId": "u_wee",
+    "at": "2026-09-26T19:14:48.629Z",
+    "model": "google/gemini-3.8-flash",
+    "stories": [
+      {
+        "kind": "urgent",
+        "claim": "เพอร์ร่า 600 มล. ที่ DC ลำพูนเหลือ 6.0 วัน เสี่ยงขาด",
+        "scope": "ศูนย์กระจายสินค้าลำพูน · เพอร์ร่า ขวด PET 600 มล.",
+        "period": "16 ก.ย. 2569 – 22 ก.ย. 2569",
+        "subject": {
+          "metric": "days_of_cover",
+          "region": "north"
+        },
+        "headline": {
+          "label": "วันครอบคลุมสต๊อก",
+          "value": "6.0 วัน",
+          "tone": "bad"
+        },
+        "projection": null,
+        "causes": [
+          {
+            "label": "สต๊อกคงเหลืออยู่ในระดับต่ำ",
+            "detail": "เหลือ 1,653 ลัง ต่ำสุดในทุก DC",
+            "value": "1,653 ลัง",
+            "shareOfGap": null
+          }
+        ],
+        "checked": [
+          {
+            "text": "DC ลำพูนเหลือ 6.0 วัน",
+            "verdict": "confirmed",
+            "source": "query_metric"
+          },
+          {
+            "text": "สต๊อกลำพูน 1,653 ลัง",
+            "verdict": "confirmed",
+            "source": "query_metric"
+          },
+          {
+            "text": "DC เชียงใหม่ 19.6 วัน · 8,064 ลัง",
+            "verdict": "confirmed",
+            "source": "query_metric"
+          }
+        ],
+        "recommendation": "โอนเพอร์ร่า PET 600 มล. จาก DC เชียงใหม่ไปลำพูนทันที",
+        "id": "u_wee-0",
+        "owner": null
+      },
+      {
+        "kind": "urgent",
+        "claim": "ต่อใบขับรถยกให้ทีมในรอบ 26 ก.ย. ที่นั่งเหลือน้อย",
+        "scope": "โรงงานขอนแก่น",
+        "period": "26 ก.ย. 2569 · 1 วัน",
+        "subject": {
+          "metric": null,
+          "region": null
+        },
+        "headline": {
+          "label": "ที่นั่งหลักสูตรต่ออายุใบขับขี่รถยก",
+          "value": "เหลือ 3 ที่ จาก 12",
+          "tone": "bad"
+        },
+        "projection": null,
+        "causes": [
+          {
+            "label": "มาตรการความปลอดภัยจากอุบัติเหตุ",
+            "detail": "อุบัติเหตุรถยก หยุดงาน 3 วัน",
+            "value": "7 วัน",
+            "shareOfGap": null
+          },
+          {
+            "label": "ใบขับขี่ของทีมงานใกล้หมดอายุ",
+            "detail": "คุณแดง 8 วัน · คุณวันชัย 20 วัน",
+            "value": "8 วัน",
+            "shareOfGap": null
+          }
+        ],
+        "checked": [
+          {
+            "text": "ต้องทวนสอบใบขับรถยกก่อน 30 ก.ย.",
+            "verdict": "confirmed",
+            "source": "get_site"
+          },
+          {
+            "text": "รอบ 26 ก.ย. เหลือ 3 ที่ จาก 12",
+            "verdict": "confirmed",
+            "source": "list_courses"
+          },
+          {
+            "text": "ใบขับหมดใน 8 และ 20 วัน",
+            "verdict": "confirmed",
+            "source": "find_people"
+          }
+        ],
+        "recommendation": "ส่งคุณวันชัยและคุณแดงลงทะเบียนเข้าอบรมหลักสูตรต่ออายุใบขับขี่รถยกวันที่ 26 ก.ย. 2569 ทันที",
+        "id": "u_wee-1",
+        "owner": null
+      },
+      {
+        "kind": "watch",
+        "claim": "ทั้งประเทศ 99.8% ของเป้า อีสานต่ำกว่าเป้า ปรับแผนซัพพลายตาม",
+        "scope": "ภาพรวมทุกภาค",
+        "period": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+        "subject": {
+          "metric": "net_sales_volume",
+          "region": null
+        },
+        "headline": {
+          "label": "เทียบเป้า",
+          "value": "99.8%",
+          "tone": "neutral"
+        },
+        "projection": {
+          "label": "สิ้นเดือน ถ้าขายเท่า 7 วันล่าสุด",
+          "value": "98.5%"
+        },
+        "causes": [
+          {
+            "label": "ภาคอีสาน",
+            "detail": "ยอดขายเข้าต่ำกว่าเป้าหมาย −278,490 ลิตร",
+            "value": "−278,490 ลิตร",
+            "shareOfGap": "631.4%"
+          },
+          {
+            "label": "อีสานรุ่งโรจน์ ค้าส่ง",
+            "detail": "ยอดขายเข้าต่ำกว่าเป้าหมาย −150,081 ลิตร",
+            "value": "−150,081 ลิตร",
+            "shareOfGap": "53.9%"
+          },
+          {
+            "label": "อุบลศรีสุข เทรดดิ้ง",
+            "detail": "ยอดขายเข้าต่ำกว่าเป้าหมาย −147,224 ลิตร",
+            "value": "−147,224 ลิตร",
+            "shareOfGap": "52.9%"
+          }
+        ],
+        "checked": [
+          {
+            "text": "ทั้งประเทศ 18.7 ล้านลิตร · 99.8%",
+            "verdict": "confirmed",
+            "source": "explain_gap"
+          },
+          {
+            "text": "อีสานขาดเป้า −278,490 ลิตร",
+            "verdict": "confirmed",
+            "source": "explain_gap"
+          },
+          {
+            "text": "เอเย่นต์อีสานน่าจะติดวงเงิน",
+            "verdict": "likely",
+            "source": null
+          }
+        ],
+        "recommendation": "ดูคำสั่งซื้ออีสาน แล้วปรับสต๊อกและแผนผลิตโรงงานขอนแก่นให้สอดคล้อง",
+        "id": "u_wee-2",
+        "owner": null
+      }
+    ],
+    "checkedCount": 30,
+    "costUsd": 0.14350785000000005
+  },
+  "notes": "",
+  "calls": [
+    {
+      "tool": "get_alerts",
+      "input": {
+        "status": "open",
+        "limit": 10
+      },
+      "output": {
+        "ok": true,
+        "summary": "มีความผิดปกติที่เปิดอยู่ 10 รายการในขอบเขตของคุณ",
+        "rows": [
+          {
+            "id": "al_e8114d936da7141f",
+            "severity": "P1",
+            "severityLabel": "ต้องรีบดู",
+            "metric": "days_of_cover",
+            "metricLabel": "วันครอบคลุมสต๊อก",
+            "scope": {
+              "dc": "dc_lamphun",
+              "sku": "sku_purra_pet600",
+              "region": "north"
+            },
+            "scopeLabel": "ศูนย์กระจายสินค้าลำพูน · เพอร์ร่า ขวด PET 600 มล. · ภาคเหนือ",
+            "window": "16 ก.ย. 2569 – 22 ก.ย. 2569",
+            "observedLabel": "6.1 วัน",
+            "expectedLabel": "15.7 วัน",
+            "gapLabel": "61%",
+            "yearOverYear": false,
+            "direction": "down",
+            "hypothesis": "สต๊อกที่ศูนย์กระจายสินค้าลำพูนเหลือพอขายอีกประมาณ 6.1 วัน ต่ำกว่าเกณฑ์ 10 วัน เสี่ยงของขาดก่อนรอบเติมสินค้าถัดไป",
+            "verifySteps": [
+              "ดูวันครอบคลุมสต๊อกและสต๊อกคงเหลือของศูนย์กระจายสินค้าลำพูน · เพอร์ร่า ขวด PET 600 มล. · ภาคเหนือตอนนี้",
+              "ดูพยากรณ์ 8 สัปดาห์ข้างหน้าของศูนย์กระจายสินค้าลำพูน · เพอร์ร่า ขวด PET 600 มล. · ภาคเหนือ"
+            ],
+            "ownerUserId": "u_wee"
+          },
+          {
+            "id": "al_7364476d77c8f435",
+            "severity": "P1",
+            "severityLabel": "ต้องรีบดู",
+            "metric": "net_sales_volume",
+            "metricLabel": "ปริมาณขายเข้า (Sell-in)",
+            "scope": {
+              "agent": "ag_nea_05",
+              "region": "northeast"
+            },
+            "scopeLabel": "อุบลศรีสุข เทรดดิ้ง · ภาคอีสาน",
+            "window": "9 ก.ย. 2569 – 22 ก.ย. 2569",
+            "observedLabel": "2,220 ลิตร",
+            "expectedLabel": "12,928 ลิตร",
+            "gapLabel": "83%",
+            "yearOverYear": false,
+            "direction": "down",
+            "hypothesis": "อุบลศรีสุข เทรดดิ้ง แทบไม่มีคำสั่งซื้อเข้ามาในช่วงนี้ น่าจะติดปัญหาเครดิต การวางบิล หรือเปลี่ยนไปรับสินค้าจากที่อื่น",
+            "verifySteps": [
+              "ดูประวัติการสั่งซื้อรายวันของอุบลศรีสุข เทรดดิ้ง · ภาคอีสาน 30 วันล่าสุด",
+              "ดูยอดค้างชำระเกินกำหนดของอุบลศรีสุข เทรดดิ้ง · ภาคอีสานรายเดือน 6 เดือนล่าสุด"
+            ],
+            "ownerUserId": "u_anucha"
+          },
+          {
+            "id": "al_ed6dca9e1dab4e48",
+            "severity": "P1",
+            "severityLabel": "ต้องรีบดู",
+            "metric": "net_sales_volume",
+            "metricLabel": "ปริมาณขายเข้า (Sell-in)",
+            "scope": {
+              "agent": "ag_nea_02",
+              "region": "northeast"
+            },
+            "scopeLabel": "อีสานรุ่งโรจน์ ค้าส่ง · ภาคอีสาน",
+            "window": "8 ก.ย. 2569 – 22 ก.ย. 2569",
+            "observedLabel": "3,251 ลิตร",
+            "expectedLabel": "13,928 ลิตร",
+            "gapLabel": "77%",
+            "yearOverYear": false,
+            "direction": "down",
+            "hypothesis": "อีสานรุ่งโรจน์ ค้าส่ง แทบไม่มีคำสั่งซื้อเข้ามาในช่วงนี้ น่าจะติดปัญหาเครดิต การวางบิล หรือเปลี่ยนไปรับสินค้าจากที่อื่น",
+            "verifySteps": [
+              "ดูประวัติการสั่งซื้อรายวันของอีสานรุ่งโรจน์ ค้าส่ง · ภาคอีสาน 30 วันล่าสุด",
+              "ดูยอดค้างชำระเกินกำหนดของอีสานรุ่งโรจน์ ค้าส่ง · ภาคอีสานรายเดือน 6 เดือนล่าสุด"
+            ],
+            "ownerUserId": "u_anucha"
+          },
+          {
+            "id": "al_35ced4920cc14a53",
+            "severity": "P2",
+            "severityLabel": "ควรดู",
+            "metric": "net_sales_volume",
+            "metricLabel": "ปริมาณขายเข้า (Sell-in)",
+            "scope": {
+              "agent": "ag_nea_07",
+              "brand": "leo",
+              "sku": "sku_leo_bottle620",
+              "region": "northeast"
+            },
+            "scopeLabel": "ส.รุ่งเรือง เทรดดิ้ง · ลีโอ ขวด 620 มล. · ภาคอีสาน",
+            "window": "31 ส.ค. 2569 – 21 ก.ย. 2569",
+            "observedLabel": "2,002 ลิตร",
+            "expectedLabel": "2,620 ลิตร",
+            "gapLabel": "24%",
+            "yearOverYear": false,
+            "direction": "down",
+            "hypothesis": "ยอดสั่งเข้าของ ส.รุ่งเรือง เทรดดิ้ง · ลีโอ ขวด 620 มล. · ภาคอีสาน ลดลงต่อเนื่องขณะที่ยอดขายออกหน้าร้านยังทรงตัว น่าจะมีสต๊อกค้างอยู่ที่เอเย่นต์มากกว่าความต้องการที่แท้จริงลดลง",
+            "verifySteps": [
+              "เทียบยอดขายเข้ากับยอดขายออกของส.รุ่งเรือง เทรดดิ้ง · ลีโอ ขวด 620 มล. · ภาคอีสาน รายสัปดาห์ 8 สัปดาห์ล่าสุด",
+              "ดูวันครอบคลุมสต๊อกและสต๊อกคงเหลือของส.รุ่งเรือง เทรดดิ้ง · ลีโอ ขวด 620 มล. · ภาคอีสานตอนนี้"
+            ],
+            "ownerUserId": "u_anucha"
+          },
+          {
+            "id": "al_14c4da61c8ba9ac3",
+            "severity": "P2",
+            "severityLabel": "ควรดู",
+            "metric": "sell_out_volume",
+            "metricLabel": "ปริมาณขายออก (Sell-out)",
+            "scope": {
+              "sku": "sku_singha_water_pack12",
+              "province": "pv_suratthani",
+              "region": "south"
+            },
+            "scopeLabel": "น้ำดื่มสิงห์ แพ็ก 12 · สุราษฎร์ธานี · ภาคใต้",
+            "window": "27 ส.ค. 2569 – 20 ก.ย. 2569",
+            "observedLabel": "1,140 ลิตร",
+            "expectedLabel": "1,285 ลิตร",
+            "gapLabel": "11%",
+            "yearOverYear": false,
+            "direction": "down",
+            "hypothesis": "ยอดขายออกจากร้านในสุราษฎร์ธานีต่ำผิดปกติ ยังหาสาเหตุไม่ได้จากข้อมูลที่มี",
+            "verifySteps": [
+              "เทียบน้ำดื่มสิงห์ แพ็ก 12 · สุราษฎร์ธานี · ภาคใต้กับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+              "เทียบน้ำดื่มสิงห์ แพ็ก 12 · สุราษฎร์ธานี · ภาคใต้กับช่วงเดียวกันของปีที่แล้ว"
+            ],
+            "ownerUserId": "u_saranya"
+          },
+          {
+            "id": "al_f60bd19b789eb6d9",
+            "severity": "P2",
+            "severityLabel": "ควรดู",
+            "metric": "sell_out_volume",
+            "metricLabel": "ปริมาณขายออก (Sell-out)",
+            "scope": {
+              "sku": "sku_purra_pet600",
+              "province": "pv_nakhonpathom",
+              "region": "central"
+            },
+            "scopeLabel": "เพอร์ร่า ขวด PET 600 มล. · นครปฐม · ภาคกลาง",
+            "window": "29 ส.ค. 2569 – 21 ก.ย. 2569",
+            "observedLabel": "755 ลิตร",
+            "expectedLabel": "859 ลิตร",
+            "gapLabel": "12%",
+            "yearOverYear": false,
+            "direction": "down",
+            "hypothesis": "ยอดขายออกจากร้านในนครปฐมต่ำผิดปกติ ยังหาสาเหตุไม่ได้จากข้อมูลที่มี",
+            "verifySteps": [
+              "เทียบเพอร์ร่า ขวด PET 600 มล. · นครปฐม · ภาคกลางกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+              "เทียบเพอร์ร่า ขวด PET 600 มล. · นครปฐม · ภาคกลางกับช่วงเดียวกันของปีที่แล้ว"
+            ],
+            "ownerUserId": "u_somchai"
+          },
+          {
+            "id": "al_6180aee35a5d31b6",
+            "severity": "P2",
+            "severityLabel": "ควรดู",
+            "metric": "sell_out_volume",
+            "metricLabel": "ปริมาณขายออก (Sell-out)",
+            "scope": {
+              "sku": "sku_purra_pet1500",
+              "province": "pv_chachoengsao",
+              "region": "east"
+            },
+            "scopeLabel": "เพอร์ร่า ขวด PET 1.5 ลิตร · ฉะเชิงเทรา · ภาคตะวันออก",
+            "window": "26 ส.ค. 2569 – 22 ก.ย. 2569",
+            "observedLabel": "265 ลิตร",
+            "expectedLabel": "299 ลิตร",
+            "gapLabel": "11%",
+            "yearOverYear": false,
+            "direction": "down",
+            "hypothesis": "ยอดขายออกจากร้านในฉะเชิงเทราต่ำผิดปกติ ยังหาสาเหตุไม่ได้จากข้อมูลที่มี",
+            "verifySteps": [
+              "เทียบเพอร์ร่า ขวด PET 1.5 ลิตร · ฉะเชิงเทรา · ภาคตะวันออกกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+              "เทียบเพอร์ร่า ขวด PET 1.5 ลิตร · ฉะเชิงเทรา · ภาคตะวันออกกับช่วงเดียวกันของปีที่แล้ว"
+            ],
+            "ownerUserId": "u_wichai"
+          },
+          {
+            "id": "al_bb6300d2bd665b9b",
+            "severity": "P2",
+            "severityLabel": "ควรดู",
+            "metric": "sell_out_volume",
+            "metricLabel": "ปริมาณขายออก (Sell-out)",
+            "scope": {
+              "sku": "sku_singha_lemon_soda_pet600",
+              "province": "pv_saraburi",
+              "region": "central"
+            },
+            "scopeLabel": "สิงห์ เลมอนโซดา ขวด PET 600 มล. · สระบุรี · ภาคกลาง",
+            "window": "28 ส.ค. 2569 – 22 ก.ย. 2569",
+            "observedLabel": "475 ลิตร",
+            "expectedLabel": "543 ลิตร",
+            "gapLabel": "13%",
+            "yearOverYear": false,
+            "direction": "down",
+            "hypothesis": "ยอดขายออกจากร้านในสระบุรีต่ำผิดปกติ ยังหาสาเหตุไม่ได้จากข้อมูลที่มี",
+            "verifySteps": [
+              "เทียบสิงห์ เลมอนโซดา ขวด PET 600 มล. · สระบุรี · ภาคกลางกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+              "เทียบสิงห์ เลมอนโซดา ขวด PET 600 มล. · สระบุรี · ภาคกลางกับช่วงเดียวกันของปีที่แล้ว"
+            ],
+            "ownerUserId": "u_somchai"
+          },
+          {
+            "id": "al_a25b3f027de53c68",
+            "severity": "P3",
+            "severityLabel": "เฝ้าระวัง",
+            "metric": "sell_out_volume",
+            "metricLabel": "ปริมาณขายออก (Sell-out)",
+            "scope": {
+              "sku": "sku_singha_soda_can320",
+              "channel": "modern_trade",
+              "region": "bkk"
+            },
+            "scopeLabel": "โซดาสิงห์ กระป๋อง 320 มล. · โมเดิร์นเทรด · กรุงเทพฯ และปริมณฑล",
+            "window": "6 ก.ย. 2569 – 22 ก.ย. 2569",
+            "observedLabel": "5,099 ลิตร",
+            "expectedLabel": "3,925 ลิตร",
+            "gapLabel": "30%",
+            "yearOverYear": false,
+            "direction": "up",
+            "hypothesis": "การเปลี่ยนแปลงนี้อธิบายได้ด้วยโปรโมชัน \"ซีสโตร์ โซดาซัมเมอร์ 1 แถม 1\" ที่กำลังทำอยู่ในช่วงเวลาเดียวกัน จึงยังไม่ถือว่าผิดปกติ",
+            "verifySteps": [
+              "ดูผลแคมเปญที่ทำอยู่กับโซดาสิงห์ กระป๋อง 320 มล. · โมเดิร์นเทรด · กรุงเทพฯ และปริมณฑล เทียบก่อนและระหว่างแคมเปญ",
+              "เทียบโซดาสิงห์ กระป๋อง 320 มล. · โมเดิร์นเทรด · กรุงเทพฯ และปริมณฑลกับช่วงเดียวกันของปีที่แล้ว"
+            ],
+            "ownerUserId": "u_kanok"
+          },
+          {
+            "id": "al_2bced77035d90ef1",
+            "severity": "P3",
+            "severityLabel": "เฝ้าระวัง",
+            "metric": "sell_out_volume",
+            "metricLabel": "ปริมาณขายออก (Sell-out)",
+            "scope": {
+              "sku": "sku_singha_soda_can320",
+              "channel": "modern_trade",
+              "region": "central"
+            },
+            "scopeLabel": "โซดาสิงห์ กระป๋อง 320 มล. · โมเดิร์นเทรด · ภาคกลาง",
+            "window": "6 ก.ย. 2569 – 22 ก.ย. 2569",
+            "observedLabel": "2,759 ลิตร",
+            "expectedLabel": "2,143 ลิตร",
+            "gapLabel": "29%",
+            "yearOverYear": false,
+            "direction": "up",
+            "hypothesis": "การเปลี่ยนแปลงนี้อธิบายได้ด้วยโปรโมชัน \"ซีสโตร์ โซดาซัมเมอร์ 1 แถม 1\" ที่กำลังทำอยู่ในช่วงเวลาเดียวกัน จึงยังไม่ถือว่าผิดปกติ",
+            "verifySteps": [
+              "ดูผลแคมเปญที่ทำอยู่กับโซดาสิงห์ กระป๋อง 320 มล. · โมเดิร์นเทรด · ภาคกลาง เทียบก่อนและระหว่างแคมเปญ",
+              "เทียบโซดาสิงห์ กระป๋อง 320 มล. · โมเดิร์นเทรด · ภาคกลางกับช่วงเดียวกันของปีที่แล้ว"
+            ],
+            "ownerUserId": "u_somchai"
+          }
+        ],
+        "lessons": [
+          {
+            "alertId": "al_7364476d77c8f435",
+            "lesson": "ครั้งก่อน (เป็นเรื่องจริง): ติดวงเงินเครดิต ขยายวงเงินแล้วยอดกลับใน 2 สัปดาห์ — คุณกฤต จันทร์เสน, 12 มิ.ย. 2569"
+          }
+        ],
+        "nextActions": [
+          {
+            "id": "verify",
+            "kind": "verify",
+            "label": "ตรวจสาเหตุ",
+            "reason": "ดูวันครอบคลุมสต๊อกและสต๊อกคงเหลือของศูนย์กระจายสินค้าลำพูน · เพอร์ร่า ขวด PET 600 มล. · ภาคเหนือตอนนี้",
+            "tool": null,
+            "input": null,
+            "prompt": "ดูวันครอบคลุมสต๊อกและสต๊อกคงเหลือของศูนย์กระจายสินค้าลำพูน · เพอร์ร่า ขวด PET 600 มล. · ภาคเหนือตอนนี้"
+          },
+          {
+            "id": "drill-brand",
+            "kind": "drill",
+            "label": "แยกตามแบรนด์",
+            "reason": "ยังไม่ได้ดูแยกรายแบรนด์",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอวันครอบคลุมสต๊อกแยกตามแบรนด์ เรียงจากมากไปน้อย"
+          }
+        ]
+      }
+    },
+    {
+      "tool": "recall_memory",
+      "input": {
+        "query": "วีร์ ซัพพลาย วางแผนสต็อก ขอนแก่น"
+      },
+      "output": {
+        "ok": true,
+        "summary": "ยังไม่มีข้อมูลที่จำไว้เกี่ยวกับผู้ใช้คนนี้",
+        "data": []
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "days_of_cover",
+        "dims": [
+          "dc",
+          "sku"
+        ],
+        "filters": {
+          "dc": [
+            "dc_lamphun"
+          ],
+          "sku": [
+            "sku_purra_pet600"
+          ]
+        },
+        "range": {
+          "from": "2026-09-16",
+          "to": "2026-09-22"
+        },
+        "grain": "day",
+        "compare": "none",
+        "limit": 5,
+        "sort": "value_asc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "dc": "ศูนย์กระจายสินค้าลำพูน",
+            "sku": "เพอร์ร่า ขวด PET 600 มล.",
+            "value": 6.04,
+            "value_label": "6.0 วัน"
+          }
+        ],
+        "summary": "วันครอบคลุมสต๊อก 16 ก.ย. 2569 – 22 ก.ย. 2569: เฉลี่ย 6.0 วัน · ต่ำสุด: ศูนย์กระจายสินค้าลำพูน 6.0 วัน · (1 แถว · certified · WMS)",
+        "headline": {
+          "aggregate": "average",
+          "value": "6.0 วัน",
+          "periodLabel": "16 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 1,
+          "deltaPercent": null,
+          "compareLabel": null,
+          "compareNote": null,
+          "top": [
+            {
+              "label": "ศูนย์กระจายสินค้าลำพูน",
+              "value": "6.0 วัน"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "days_of_cover",
+          "certified": true,
+          "sourceSystem": "WMS",
+          "asOf": "2026-09-22",
+          "rowCount": 1,
+          "filtersApplied": {
+            "dc": [
+              "dc_lamphun"
+            ],
+            "sku": [
+              "sku_purra_pet600"
+            ]
+          },
+          "filterLabels": [],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "days_of_cover",
+          "dims": [
+            "dc",
+            "sku"
+          ],
+          "filters": {
+            "dc": [
+              "dc_lamphun"
+            ],
+            "sku": [
+              "sku_purra_pet600"
+            ]
+          },
+          "range": {
+            "from": "2026-09-16",
+            "to": "2026-09-22"
+          },
+          "grain": "day",
+          "compare": "none",
+          "limit": 5,
+          "sort": "value_asc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "verify",
+            "kind": "verify",
+            "label": "ตรวจสาเหตุ",
+            "reason": "ดูวันครอบคลุมสต๊อกและสต๊อกคงเหลือของศูนย์กระจายสินค้าลำพูน · เพอร์ร่า ขวด PET 600 มล. · ภาคเหนือตอนนี้",
+            "tool": null,
+            "input": null,
+            "prompt": "ดูวันครอบคลุมสต๊อกและสต๊อกคงเหลือของศูนย์กระจายสินค้าลำพูน · เพอร์ร่า ขวด PET 600 มล. · ภาคเหนือตอนนี้"
+          },
+          {
+            "id": "drill-region",
+            "kind": "drill",
+            "label": "แยกตามภาค",
+            "reason": "ยังไม่ได้ดูแยกรายภาค",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอวันครอบคลุมสต๊อกแยกตามภาค เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-forecast",
+            "label": "พยากรณ์ 8 สัปดาห์",
+            "prompt": "พยากรณ์วันครอบคลุมสต๊อก 8 สัปดาห์ข้างหน้า",
+            "reason": "ดูว่าถ้าเป็นแบบนี้ต่อไปจะเกิดอะไร",
+            "intentKey": "follow|forecast",
+            "score": 0.55
+          },
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "วันครอบคลุมสต๊อก รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ขอวันครอบคลุมสต๊อกแยกตามศูนย์กระจายสินค้า เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "stock_on_hand",
+        "dims": [
+          "dc",
+          "sku"
+        ],
+        "filters": {
+          "dc": [
+            "dc_lamphun"
+          ],
+          "sku": [
+            "sku_purra_pet600"
+          ]
+        },
+        "range": {
+          "from": "2026-09-16",
+          "to": "2026-09-22"
+        },
+        "grain": "day",
+        "compare": "none",
+        "limit": 5,
+        "sort": "value_asc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "dc": "ศูนย์กระจายสินค้าลำพูน",
+            "sku": "เพอร์ร่า ขวด PET 600 มล.",
+            "value": 1653,
+            "value_label": "1,653 ลัง"
+          }
+        ],
+        "summary": "สต๊อกคงเหลือ 16 ก.ย. 2569 – 22 ก.ย. 2569: รวม 1,653 ลัง · สูงสุด: ศูนย์กระจายสินค้าลำพูน 1,653 ลัง · (1 แถว · certified · WMS)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "1,653 ลัง",
+          "periodLabel": "16 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 1,
+          "deltaPercent": null,
+          "compareLabel": null,
+          "compareNote": null,
+          "top": [
+            {
+              "label": "ศูนย์กระจายสินค้าลำพูน",
+              "value": "1,653 ลัง"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "stock_on_hand",
+          "certified": true,
+          "sourceSystem": "WMS",
+          "asOf": "2026-09-22",
+          "rowCount": 1,
+          "filtersApplied": {
+            "dc": [
+              "dc_lamphun"
+            ],
+            "sku": [
+              "sku_purra_pet600"
+            ]
+          },
+          "filterLabels": [],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "stock_on_hand",
+          "dims": [
+            "dc",
+            "sku"
+          ],
+          "filters": {
+            "dc": [
+              "dc_lamphun"
+            ],
+            "sku": [
+              "sku_purra_pet600"
+            ]
+          },
+          "range": {
+            "from": "2026-09-16",
+            "to": "2026-09-22"
+          },
+          "grain": "day",
+          "compare": "none",
+          "limit": 5,
+          "sort": "value_asc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "drill-region",
+            "kind": "drill",
+            "label": "แยกตามภาค",
+            "reason": "ยังไม่ได้ดูแยกรายภาค",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอสต๊อกคงเหลือแยกตามภาค เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "สต๊อกคงเหลือ รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ขอสต๊อกคงเหลือแยกตามศูนย์กระจายสินค้า เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "tool": "get_forecast",
+      "input": {
+        "metric": "days_of_cover",
+        "dims": {
+          "dc": "dc_lamphun",
+          "sku": "sku_purra_pet600"
+        },
+        "weeks": 8
+      },
+      "output": {
+        "ok": true,
+        "metric": "days_of_cover",
+        "summary": "พยากรณ์ 8 สัปดาห์ของวันครอบคลุมสต๊อก (Holt-Winters · ความคลาดเคลื่อนย้อนหลัง MAPE 34.6%)",
+        "total": null,
+        "weekly_average": null,
+        "mape": 34.6,
+        "weeks": [
+          {
+            "week": "สัปดาห์ 39",
+            "date": "2026-09-21",
+            "value": 13,
+            "lo": 8,
+            "hi": 19,
+            "value_label": "13 วัน",
+            "range_label": "8 วัน – 19 วัน"
+          },
+          {
+            "week": "สัปดาห์ 40",
+            "date": "2026-09-28",
+            "value": 18,
+            "lo": 10,
+            "hi": 26,
+            "value_label": "18 วัน",
+            "range_label": "10 วัน – 26 วัน"
+          },
+          {
+            "week": "สัปดาห์ 41",
+            "date": "2026-10-05",
+            "value": 11,
+            "lo": 1,
+            "hi": 20,
+            "value_label": "11 วัน",
+            "range_label": "1 วัน – 20 วัน"
+          },
+          {
+            "week": "สัปดาห์ 42",
+            "date": "2026-10-12",
+            "value": 15,
+            "lo": 4,
+            "hi": 26,
+            "value_label": "15 วัน",
+            "range_label": "4 วัน – 26 วัน"
+          },
+          {
+            "week": "สัปดาห์ 43",
+            "date": "2026-10-19",
+            "value": 13,
+            "lo": 1,
+            "hi": 25,
+            "value_label": "13 วัน",
+            "range_label": "1 วัน – 25 วัน"
+          },
+          {
+            "week": "สัปดาห์ 44",
+            "date": "2026-10-26",
+            "value": 18,
+            "lo": 4,
+            "hi": 31,
+            "value_label": "18 วัน",
+            "range_label": "4 วัน – 31 วัน"
+          },
+          {
+            "week": "สัปดาห์ 45",
+            "date": "2026-11-02",
+            "value": 11,
+            "lo": 0,
+            "hi": 25,
+            "value_label": "11 วัน",
+            "range_label": "0 วัน – 25 วัน"
+          },
+          {
+            "week": "สัปดาห์ 46",
+            "date": "2026-11-09",
+            "value": 15,
+            "lo": 0,
+            "hi": 31,
+            "value_label": "15 วัน",
+            "range_label": "0 วัน – 31 วัน"
+          }
+        ]
+      }
+    },
+    {
+      "tool": "get_forecast",
+      "input": {
+        "metric": "net_sales_volume",
+        "dims": {
+          "dc": "dc_lamphun",
+          "sku": "sku_purra_pet600"
+        },
+        "weeks": 8
+      },
+      "output": {
+        "ok": true,
+        "summary": "ยังไม่มีพยากรณ์สำหรับมิติที่ขอ",
+        "weeks": []
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "production_output",
+        "dims": [
+          "plant",
+          "sku"
+        ],
+        "filters": {
+          "sku": [
+            "sku_purra_pet600"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "none",
+        "limit": 10,
+        "sort": "value_desc",
+        "where": null
+      },
+      "output": {
+        "ok": false,
+        "error": "มิติ sku ใช้กับเมตริก production_output ไม่ได้",
+        "code": "BAD_QUERY"
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "production_output",
+        "dims": [
+          "plant"
+        ],
+        "filters": {},
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "none",
+        "limit": 10,
+        "sort": "value_desc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "plant": "โรงงานปทุมธานี",
+            "value": 9434705,
+            "value_label": "9.4 ล้านลิตร"
+          },
+          {
+            "plant": "โรงงานขอนแก่น",
+            "value": 5346821,
+            "value_label": "5.3 ล้านลิตร"
+          },
+          {
+            "plant": "โรงงานสิงห์บุรี",
+            "value": 4873388,
+            "value_label": "4.9 ล้านลิตร"
+          }
+        ],
+        "summary": "ปริมาณการผลิต 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 19.7 ล้านลิตร · สูงสุด: โรงงานปทุมธานี 9.4 ล้านลิตร · โรงงานขอนแก่น 5.3 ล้านลิตร · โรงงานสิงห์บุรี 4.9 ล้านลิตร · (3 แถว · certified · MES)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "19.7 ล้านลิตร",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 3,
+          "deltaPercent": null,
+          "compareLabel": null,
+          "compareNote": null,
+          "top": [
+            {
+              "label": "โรงงานปทุมธานี",
+              "value": "9.4 ล้านลิตร"
+            },
+            {
+              "label": "โรงงานขอนแก่น",
+              "value": "5.3 ล้านลิตร"
+            },
+            {
+              "label": "โรงงานสิงห์บุรี",
+              "value": "4.9 ล้านลิตร"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "production_output",
+          "certified": true,
+          "sourceSystem": "MES",
+          "asOf": "2026-09-22",
+          "rowCount": 3,
+          "filtersApplied": {},
+          "filterLabels": [],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "production_output",
+          "dims": [
+            "plant"
+          ],
+          "filters": {},
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "none",
+          "limit": 10,
+          "sort": "value_desc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "drill-region",
+            "kind": "drill",
+            "label": "แยกตามภาค",
+            "reason": "ยังไม่ได้ดูแยกรายภาค",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอปริมาณการผลิตแยกตามภาค เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "ปริมาณการผลิต รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ขอปริมาณการผลิตแยกตามโรงงาน เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "capacity_utilization",
+        "dims": [
+          "plant"
+        ],
+        "filters": {},
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "none",
+        "limit": 10,
+        "sort": "value_asc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "plant": "โรงงานสิงห์บุรี",
+            "value": 50.3,
+            "value_label": "50.3%"
+          },
+          {
+            "plant": "โรงงานขอนแก่น",
+            "value": 50.6,
+            "value_label": "50.6%"
+          },
+          {
+            "plant": "โรงงานปทุมธานี",
+            "value": 51.1,
+            "value_label": "51.1%"
+          }
+        ],
+        "summary": "อัตราการใช้กำลังผลิต 1 ก.ย. 2569 – 22 ก.ย. 2569: เฉลี่ย 50.8% · สูงสุด: โรงงานปทุมธานี 51.1% · โรงงานขอนแก่น 50.6% · โรงงานสิงห์บุรี 50.3% · (3 แถว · certified · MES)",
+        "headline": {
+          "aggregate": "average",
+          "value": "50.8%",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 3,
+          "deltaPercent": null,
+          "compareLabel": null,
+          "compareNote": null,
+          "top": [
+            {
+              "label": "โรงงานปทุมธานี",
+              "value": "51.1%"
+            },
+            {
+              "label": "โรงงานขอนแก่น",
+              "value": "50.6%"
+            },
+            {
+              "label": "โรงงานสิงห์บุรี",
+              "value": "50.3%"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "capacity_utilization",
+          "certified": true,
+          "sourceSystem": "MES",
+          "asOf": "2026-09-22",
+          "rowCount": 3,
+          "filtersApplied": {},
+          "filterLabels": [],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "capacity_utilization",
+          "dims": [
+            "plant"
+          ],
+          "filters": {},
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "none",
+          "limit": 10,
+          "sort": "value_asc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "pin",
+            "kind": "pin",
+            "label": "ปักเป็นการ์ดบน Dashboard",
+            "reason": "คุณถามเรื่องนี้ 3 ครั้งในช่วงนี้",
+            "tool": "pin_widget",
+            "input": {
+              "title": "อัตราการใช้กำลังผลิต · โรงงานปทุมธานี",
+              "kind": "bar",
+              "query": {
+                "metric": "capacity_utilization",
+                "dims": [
+                  "plant"
+                ],
+                "filters": {},
+                "range": {
+                  "from": "2026-09-01",
+                  "to": "2026-09-22"
+                },
+                "grain": "month",
+                "compare": "none",
+                "limit": 10,
+                "sort": "value_asc",
+                "where": null
+              }
+            },
+            "prompt": null
+          },
+          {
+            "id": "drill-region",
+            "kind": "drill",
+            "label": "แยกตามภาค",
+            "reason": "ยังไม่ได้ดูแยกรายภาค",
+            "tool": null,
+            "input": null,
+            "prompt": "ขออัตราการใช้กำลังผลิตแยกตามภาค เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "อัตราการใช้กำลังผลิต รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ขออัตราการใช้กำลังผลิตแยกตามโรงงาน เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "days_of_cover",
+        "dims": [
+          "dc"
+        ],
+        "filters": {},
+        "range": {
+          "from": "2026-09-16",
+          "to": "2026-09-22"
+        },
+        "grain": "day",
+        "compare": "none",
+        "limit": 10,
+        "sort": "value_asc",
+        "where": {
+          "op": "below",
+          "value": 10
+        }
+      },
+      "output": {
+        "ok": true,
+        "rows": [],
+        "summary": "วันครอบคลุมสต๊อก 16 ก.ย. 2569 – 22 ก.ย. 2569: ไม่พบข้อมูลตามเงื่อนไขที่ขอ",
+        "headline": {
+          "aggregate": "average",
+          "value": "—",
+          "periodLabel": "16 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 0,
+          "deltaPercent": null,
+          "compareLabel": null,
+          "compareNote": null,
+          "top": []
+        },
+        "provenance": {
+          "metric": "days_of_cover",
+          "certified": true,
+          "sourceSystem": "WMS",
+          "asOf": "2026-09-22",
+          "rowCount": 0,
+          "filtersApplied": {},
+          "filterLabels": [
+            "น้อยกว่า 10 วัน"
+          ],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "days_of_cover",
+          "dims": [
+            "dc"
+          ],
+          "filters": {},
+          "range": {
+            "from": "2026-09-16",
+            "to": "2026-09-22"
+          },
+          "grain": "day",
+          "compare": "none",
+          "limit": 10,
+          "sort": "value_asc",
+          "where": {
+            "op": "below",
+            "value": 10
+          }
+        },
+        "nextActions": [
+          {
+            "id": "verify",
+            "kind": "verify",
+            "label": "ตรวจสาเหตุ",
+            "reason": "ดูวันครอบคลุมสต๊อกและสต๊อกคงเหลือของศูนย์กระจายสินค้าลำพูน · เพอร์ร่า ขวด PET 600 มล. · ภาคเหนือตอนนี้",
+            "tool": null,
+            "input": null,
+            "prompt": "ดูวันครอบคลุมสต๊อกและสต๊อกคงเหลือของศูนย์กระจายสินค้าลำพูน · เพอร์ร่า ขวด PET 600 มล. · ภาคเหนือตอนนี้"
+          },
+          {
+            "id": "pin",
+            "kind": "pin",
+            "label": "ปักเป็นการ์ดบน Dashboard",
+            "reason": "คุณถามเรื่องนี้ 3 ครั้งในช่วงนี้",
+            "tool": "pin_widget",
+            "input": {
+              "title": "วันครอบคลุมสต๊อก",
+              "kind": "metric",
+              "query": {
+                "metric": "days_of_cover",
+                "dims": [
+                  "dc"
+                ],
+                "filters": {},
+                "range": {
+                  "from": "2026-09-16",
+                  "to": "2026-09-22"
+                },
+                "grain": "day",
+                "compare": "none",
+                "limit": 10,
+                "sort": "value_asc",
+                "where": {
+                  "op": "below",
+                  "value": 10
+                }
+              }
+            },
+            "prompt": null
+          },
+          {
+            "id": "drill-region",
+            "kind": "drill",
+            "label": "แยกตามภาค",
+            "reason": "ยังไม่ได้ดูแยกรายภาค",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอวันครอบคลุมสต๊อกแยกตามภาค เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-forecast",
+            "label": "พยากรณ์ 8 สัปดาห์",
+            "prompt": "พยากรณ์วันครอบคลุมสต๊อก 8 สัปดาห์ข้างหน้า",
+            "reason": "ดูว่าถ้าเป็นแบบนี้ต่อไปจะเกิดอะไร",
+            "intentKey": "follow|forecast",
+            "score": 0.55
+          },
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "วันครอบคลุมสต๊อก รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ขอวันครอบคลุมสต๊อกแยกตามศูนย์กระจายสินค้า เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "days_of_cover",
+        "dims": [
+          "dc"
+        ],
+        "filters": {},
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "none",
+        "limit": 10,
+        "sort": "value_asc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "dc": "ศูนย์กระจายสินค้าเชียงใหม่",
+            "value": 13.89,
+            "value_label": "13.9 วัน"
+          },
+          {
+            "dc": "ศูนย์กระจายสินค้านครราชสีมา",
+            "value": 14.75,
+            "value_label": "14.7 วัน"
+          },
+          {
+            "dc": "ศูนย์กระจายสินค้าลำพูน",
+            "value": 14.86,
+            "value_label": "14.9 วัน"
+          },
+          {
+            "dc": "ศูนย์กระจายสินค้าชลบุรี",
+            "value": 14.94,
+            "value_label": "14.9 วัน"
+          },
+          {
+            "dc": "ศูนย์กระจายสินค้าสงขลา",
+            "value": 15.15,
+            "value_label": "15.2 วัน"
+          },
+          {
+            "dc": "ศูนย์กระจายสินค้าอยุธยา",
+            "value": 15.91,
+            "value_label": "15.9 วัน"
+          },
+          {
+            "dc": "ศูนย์กระจายสินค้ากรุงเทพฯ",
+            "value": 15.95,
+            "value_label": "16.0 วัน"
+          },
+          {
+            "dc": "ศูนย์กระจายสินค้าขอนแก่น",
+            "value": 16.63,
+            "value_label": "16.6 วัน"
+          }
+        ],
+        "summary": "วันครอบคลุมสต๊อก 1 ก.ย. 2569 – 22 ก.ย. 2569: เฉลี่ย 15.4 วัน · ต่ำสุด: ศูนย์กระจายสินค้าเชียงใหม่ 13.9 วัน · ศูนย์กระจายสินค้านครราชสีมา 14.7 วัน · ศูนย์กระจายสินค้าลำพูน 14.9 วัน · (8 แถว · certified · WMS)",
+        "headline": {
+          "aggregate": "average",
+          "value": "15.4 วัน",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 8,
+          "deltaPercent": null,
+          "compareLabel": null,
+          "compareNote": null,
+          "top": [
+            {
+              "label": "ศูนย์กระจายสินค้าเชียงใหม่",
+              "value": "13.9 วัน"
+            },
+            {
+              "label": "ศูนย์กระจายสินค้านครราชสีมา",
+              "value": "14.7 วัน"
+            },
+            {
+              "label": "ศูนย์กระจายสินค้าลำพูน",
+              "value": "14.9 วัน"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "days_of_cover",
+          "certified": true,
+          "sourceSystem": "WMS",
+          "asOf": "2026-09-22",
+          "rowCount": 8,
+          "filtersApplied": {},
+          "filterLabels": [],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "days_of_cover",
+          "dims": [
+            "dc"
+          ],
+          "filters": {},
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "none",
+          "limit": 10,
+          "sort": "value_asc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "verify",
+            "kind": "verify",
+            "label": "ตรวจสาเหตุ",
+            "reason": "ดูวันครอบคลุมสต๊อกและสต๊อกคงเหลือของศูนย์กระจายสินค้าลำพูน · เพอร์ร่า ขวด PET 600 มล. · ภาคเหนือตอนนี้",
+            "tool": null,
+            "input": null,
+            "prompt": "ดูวันครอบคลุมสต๊อกและสต๊อกคงเหลือของศูนย์กระจายสินค้าลำพูน · เพอร์ร่า ขวด PET 600 มล. · ภาคเหนือตอนนี้"
+          },
+          {
+            "id": "pin",
+            "kind": "pin",
+            "label": "ปักเป็นการ์ดบน Dashboard",
+            "reason": "คุณถามเรื่องนี้ 3 ครั้งในช่วงนี้",
+            "tool": "pin_widget",
+            "input": {
+              "title": "วันครอบคลุมสต๊อก · ศูนย์กระจายสินค้าเชียงใหม่",
+              "kind": "bar",
+              "query": {
+                "metric": "days_of_cover",
+                "dims": [
+                  "dc"
+                ],
+                "filters": {},
+                "range": {
+                  "from": "2026-09-01",
+                  "to": "2026-09-22"
+                },
+                "grain": "month",
+                "compare": "none",
+                "limit": 10,
+                "sort": "value_asc",
+                "where": null
+              }
+            },
+            "prompt": null
+          },
+          {
+            "id": "drill-region",
+            "kind": "drill",
+            "label": "แยกตามภาค",
+            "reason": "ยังไม่ได้ดูแยกรายภาค",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอวันครอบคลุมสต๊อกแยกตามภาค เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-drill_down",
+            "label": "ดู SKU ใน DC เชียงใหม่",
+            "prompt": "ขอวันครอบคลุมสต๊อกของ DC เชียงใหม่ แยกราย SKU เรียงจากแย่ไปดี",
+            "reason": "ลงไปอีกชั้นเพื่อหาว่าใครในDC เชียงใหม่ทำให้ตัวเลขเป็นแบบนี้",
+            "intentKey": "follow|drill_down",
+            "score": 0.7
+          },
+          {
+            "id": "fu-why",
+            "label": "ทำไม DC เชียงใหม่",
+            "prompt": "เจาะดูวันครอบคลุมสต๊อกของ DC เชียงใหม่ ว่าทำไมถึงเปลี่ยนไป เทียบกับช่วงก่อนหน้าและช่วงเดียวกันปีก่อน",
+            "reason": "DC เชียงใหม่ คือแถวที่ต้องดูมากที่สุดในคำตอบนี้",
+            "intentKey": "follow|why",
+            "score": 0.6
+          },
+          {
+            "id": "fu-forecast",
+            "label": "พยากรณ์ 8 สัปดาห์",
+            "prompt": "พยากรณ์วันครอบคลุมสต๊อกของ DC เชียงใหม่ 8 สัปดาห์ข้างหน้า",
+            "reason": "ดูว่าถ้าเป็นแบบนี้ต่อไปจะเกิดอะไร",
+            "intentKey": "follow|forecast",
+            "score": 0.55
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "days_of_cover",
+        "dims": [
+          "dc",
+          "sku"
+        ],
+        "filters": {
+          "dc": [
+            "dc_lamphun"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "none",
+        "limit": 10,
+        "sort": "value_asc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "dc": "ศูนย์กระจายสินค้าลำพูน",
+            "sku": "เพอร์ร่า ขวด PET 600 มล.",
+            "value": 6.04,
+            "value_label": "6.0 วัน"
+          },
+          {
+            "dc": "ศูนย์กระจายสินค้าลำพูน",
+            "sku": "เพอร์ร่า ขวด PET 1.5 ลิตร",
+            "value": 7.8,
+            "value_label": "7.8 วัน"
+          },
+          {
+            "dc": "ศูนย์กระจายสินค้าลำพูน",
+            "sku": "สิงห์ แพ็ก 12",
+            "value": 8.55,
+            "value_label": "8.5 วัน"
+          },
+          {
+            "dc": "ศูนย์กระจายสินค้าลำพูน",
+            "sku": "สิงห์ ถัง 30 ลิตร",
+            "value": 9.61,
+            "value_label": "9.6 วัน"
+          },
+          {
+            "dc": "ศูนย์กระจายสินค้าลำพูน",
+            "sku": "ลีโอ ขวด 320 มล.",
+            "value": 9.69,
+            "value_label": "9.7 วัน"
+          },
+          {
+            "dc": "ศูนย์กระจายสินค้าลำพูน",
+            "sku": "สิงห์ เลมอนโซดา ขวด 320 มล.",
+            "value": 10.56,
+            "value_label": "10.6 วัน"
+          },
+          {
+            "dc": "ศูนย์กระจายสินค้าลำพูน",
+            "sku": "เพอร์ร่า แพ็ก 12",
+            "value": 10.68,
+            "value_label": "10.7 วัน"
+          },
+          {
+            "dc": "ศูนย์กระจายสินค้าลำพูน",
+            "sku": "สิงห์ กระป๋อง 490 มล.",
+            "value": 10.73,
+            "value_label": "10.7 วัน"
+          },
+          {
+            "dc": "ศูนย์กระจายสินค้าลำพูน",
+            "sku": "โซดาสิงห์ ขวด 320 มล.",
+            "value": 11.07,
+            "value_label": "11.1 วัน"
+          },
+          {
+            "dc": "ศูนย์กระจายสินค้าลำพูน",
+            "sku": "สิงห์ ขวด 620 มล.",
+            "value": 11.2,
+            "value_label": "11.2 วัน"
+          }
+        ],
+        "summary": "วันครอบคลุมสต๊อก 1 ก.ย. 2569 – 22 ก.ย. 2569: เฉลี่ย 14.9 วัน · ต่ำสุด: ศูนย์กระจายสินค้าลำพูน 6.0 วัน · ศูนย์กระจายสินค้าลำพูน 7.8 วัน · ศูนย์กระจายสินค้าลำพูน 8.5 วัน · (10 แถว · certified · WMS)",
+        "headline": {
+          "aggregate": "average",
+          "value": "14.9 วัน",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 10,
+          "deltaPercent": null,
+          "compareLabel": null,
+          "compareNote": null,
+          "top": [
+            {
+              "label": "ศูนย์กระจายสินค้าลำพูน",
+              "value": "6.0 วัน"
+            },
+            {
+              "label": "ศูนย์กระจายสินค้าลำพูน",
+              "value": "7.8 วัน"
+            },
+            {
+              "label": "ศูนย์กระจายสินค้าลำพูน",
+              "value": "8.5 วัน"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "days_of_cover",
+          "certified": true,
+          "sourceSystem": "WMS",
+          "asOf": "2026-09-22",
+          "rowCount": 10,
+          "filtersApplied": {
+            "dc": [
+              "dc_lamphun"
+            ]
+          },
+          "filterLabels": [],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "days_of_cover",
+          "dims": [
+            "dc",
+            "sku"
+          ],
+          "filters": {
+            "dc": [
+              "dc_lamphun"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "none",
+          "limit": 10,
+          "sort": "value_asc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "verify",
+            "kind": "verify",
+            "label": "ตรวจสาเหตุ",
+            "reason": "ดูวันครอบคลุมสต๊อกและสต๊อกคงเหลือของศูนย์กระจายสินค้าลำพูน · เพอร์ร่า ขวด PET 600 มล. · ภาคเหนือตอนนี้",
+            "tool": null,
+            "input": null,
+            "prompt": "ดูวันครอบคลุมสต๊อกและสต๊อกคงเหลือของศูนย์กระจายสินค้าลำพูน · เพอร์ร่า ขวด PET 600 มล. · ภาคเหนือตอนนี้"
+          },
+          {
+            "id": "drill-region",
+            "kind": "drill",
+            "label": "แยกตามภาค",
+            "reason": "ยังไม่ได้ดูแยกรายภาค",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอวันครอบคลุมสต๊อกแยกตามภาค เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-why",
+            "label": "หาสาเหตุแถวที่แย่สุด",
+            "prompt": "เจาะดูวันครอบคลุมสต๊อกของ DC ลำพูน · เพอร์ร่า ขวด PET 600 มล. ว่าทำไมถึงเปลี่ยนไป เทียบกับช่วงก่อนหน้าและช่วงเดียวกันปีก่อน",
+            "reason": "DC ลำพูน · เพอร์ร่า ขวด PET 600 มล. คือแถวที่ต้องดูมากที่สุดในคำตอบนี้",
+            "intentKey": "follow|why",
+            "score": 0.6
+          },
+          {
+            "id": "fu-forecast",
+            "label": "พยากรณ์ 8 สัปดาห์",
+            "prompt": "พยากรณ์วันครอบคลุมสต๊อกของ DC ลำพูน · เพอร์ร่า ขวด PET 600 มล. 8 สัปดาห์ข้างหน้า",
+            "reason": "ดูว่าถ้าเป็นแบบนี้ต่อไปจะเกิดอะไร",
+            "intentKey": "follow|forecast",
+            "score": 0.55
+          },
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "วันครอบคลุมสต๊อก รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "days_of_cover",
+        "dims": [
+          "dc",
+          "sku"
+        ],
+        "filters": {
+          "dc": [
+            "dc_chiangmai"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "none",
+        "limit": 10,
+        "sort": "value_asc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "dc": "ศูนย์กระจายสินค้าเชียงใหม่",
+            "sku": "สิงห์ เลมอนโซดา ขวด 320 มล.",
+            "value": 9.24,
+            "value_label": "9.2 วัน"
+          },
+          {
+            "dc": "ศูนย์กระจายสินค้าเชียงใหม่",
+            "sku": "น้ำดื่มสิงห์ ขวด PET 1.5 ลิตร",
+            "value": 9.39,
+            "value_label": "9.4 วัน"
+          },
+          {
+            "dc": "ศูนย์กระจายสินค้าเชียงใหม่",
+            "sku": "น้ำดื่มสิงห์ แพ็ก 12",
+            "value": 9.46,
+            "value_label": "9.5 วัน"
+          },
+          {
+            "dc": "ศูนย์กระจายสินค้าเชียงใหม่",
+            "sku": "น้ำดื่มสิงห์ ขวด PET 600 มล.",
+            "value": 10.35,
+            "value_label": "10.3 วัน"
+          },
+          {
+            "dc": "ศูนย์กระจายสินค้าเชียงใหม่",
+            "sku": "อาซาฮี ขวด 320 มล.",
+            "value": 10.39,
+            "value_label": "10.4 วัน"
+          },
+          {
+            "dc": "ศูนย์กระจายสินค้าเชียงใหม่",
+            "sku": "โซดาสิงห์ ขวด 320 มล.",
+            "value": 10.52,
+            "value_label": "10.5 วัน"
+          },
+          {
+            "dc": "ศูนย์กระจายสินค้าเชียงใหม่",
+            "sku": "สิงห์ ขวด 620 มล.",
+            "value": 10.59,
+            "value_label": "10.6 วัน"
+          },
+          {
+            "dc": "ศูนย์กระจายสินค้าเชียงใหม่",
+            "sku": "โซดาสิงห์ แพ็ก 12",
+            "value": 11.21,
+            "value_label": "11.2 วัน"
+          },
+          {
+            "dc": "ศูนย์กระจายสินค้าเชียงใหม่",
+            "sku": "สิงห์ แพ็ก 12",
+            "value": 12.21,
+            "value_label": "12.2 วัน"
+          },
+          {
+            "dc": "ศูนย์กระจายสินค้าเชียงใหม่",
+            "sku": "สิงห์ ขวด 320 มล.",
+            "value": 12.41,
+            "value_label": "12.4 วัน"
+          }
+        ],
+        "summary": "วันครอบคลุมสต๊อก 1 ก.ย. 2569 – 22 ก.ย. 2569: เฉลี่ย 13.9 วัน · ต่ำสุด: ศูนย์กระจายสินค้าเชียงใหม่ 9.2 วัน · ศูนย์กระจายสินค้าเชียงใหม่ 9.4 วัน · ศูนย์กระจายสินค้าเชียงใหม่ 9.5 วัน · (10 แถว · certified · WMS)",
+        "headline": {
+          "aggregate": "average",
+          "value": "13.9 วัน",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 10,
+          "deltaPercent": null,
+          "compareLabel": null,
+          "compareNote": null,
+          "top": [
+            {
+              "label": "ศูนย์กระจายสินค้าเชียงใหม่",
+              "value": "9.2 วัน"
+            },
+            {
+              "label": "ศูนย์กระจายสินค้าเชียงใหม่",
+              "value": "9.4 วัน"
+            },
+            {
+              "label": "ศูนย์กระจายสินค้าเชียงใหม่",
+              "value": "9.5 วัน"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "days_of_cover",
+          "certified": true,
+          "sourceSystem": "WMS",
+          "asOf": "2026-09-22",
+          "rowCount": 10,
+          "filtersApplied": {
+            "dc": [
+              "dc_chiangmai"
+            ]
+          },
+          "filterLabels": [],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "days_of_cover",
+          "dims": [
+            "dc",
+            "sku"
+          ],
+          "filters": {
+            "dc": [
+              "dc_chiangmai"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "none",
+          "limit": 10,
+          "sort": "value_asc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "drill-region",
+            "kind": "drill",
+            "label": "แยกตามภาค",
+            "reason": "ยังไม่ได้ดูแยกรายภาค",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอวันครอบคลุมสต๊อกแยกตามภาค เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-why",
+            "label": "หาสาเหตุแถวที่แย่สุด",
+            "prompt": "เจาะดูวันครอบคลุมสต๊อกของ DC เชียงใหม่ · สิงห์ เลมอนโซดา ขวด 320 มล. ว่าทำไมถึงเปลี่ยนไป เทียบกับช่วงก่อนหน้าและช่วงเดียวกันปีก่อน",
+            "reason": "DC เชียงใหม่ · สิงห์ เลมอนโซดา ขวด 320 มล. คือแถวที่ต้องดูมากที่สุดในคำตอบนี้",
+            "intentKey": "follow|why",
+            "score": 0.6
+          },
+          {
+            "id": "fu-forecast",
+            "label": "พยากรณ์ 8 สัปดาห์",
+            "prompt": "พยากรณ์วันครอบคลุมสต๊อกของ DC เชียงใหม่ · สิงห์ เลมอนโซดา ขวด 320 มล. 8 สัปดาห์ข้างหน้า",
+            "reason": "ดูว่าถ้าเป็นแบบนี้ต่อไปจะเกิดอะไร",
+            "intentKey": "follow|forecast",
+            "score": 0.55
+          },
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "วันครอบคลุมสต๊อก รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "target_attainment",
+        "dims": [
+          "region"
+        ],
+        "filters": {},
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "target",
+        "limit": 10,
+        "sort": "value_asc",
+        "where": null
+      },
+      "output": {
+        "ok": false,
+        "error": "บทบาทของคุณไม่มีสิทธิ์ดูเมตริก การบรรลุเป้าหมาย",
+        "code": "PERMISSION_DENIED"
+      }
+    },
+    {
+      "tool": "explain_gap",
+      "input": {
+        "metric": "net_sales_volume",
+        "split": "region",
+        "filters": {},
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "compare": "target"
+      },
+      "output": {
+        "ok": true,
+        "summary": "ปริมาณขายเข้า (Sell-in) 1 ก.ย. 2569 – 22 ก.ย. 2569: จริง 18.7 ล้านลิตร · เป้า 18.7 ล้านลิตร · ช่องว่าง −44,109 ลิตร",
+        "period_label": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+        "actual_label": "18.7 ล้านลิตร",
+        "compare_label": "เป้า 18.7 ล้านลิตร",
+        "gap_label": "−44,109 ลิตร",
+        "attainment_label": "99.8%",
+        "contributors": [
+          {
+            "label": "ภาคอีสาน",
+            "gap_label": "−278,490 ลิตร",
+            "share_label": "631.4%"
+          }
+        ],
+        "rest": null,
+        "offsetting": [
+          {
+            "label": "กรุงเทพฯ และปริมณฑล",
+            "gap_label": "+95,873 ลิตร"
+          },
+          {
+            "label": "ภาคกลาง",
+            "gap_label": "+53,882 ลิตร"
+          },
+          {
+            "label": "ภาคตะวันออก",
+            "gap_label": "+30,233 ลิตร"
+          },
+          {
+            "label": "ภาคใต้",
+            "gap_label": "+28,933 ลิตร"
+          },
+          {
+            "label": "ภาคเหนือ",
+            "gap_label": "+25,462 ลิตร"
+          }
+        ],
+        "projection": {
+          "label": "สิ้นเดือน ถ้าขายเท่า 7 วันล่าสุด",
+          "basis": "วันที่เหลือของเดือนขายเท่าค่าเฉลี่ย 7 วันล่าสุด และเป้ากระจายเท่ากันทุกวัน",
+          "projected_label": "25.2 ล้านลิตร",
+          "month_target_label": "25.5 ล้านลิตร",
+          "attainment_label": "98.5%"
+        }
+      }
+    },
+    {
+      "tool": "explain_gap",
+      "input": {
+        "metric": "net_sales_volume",
+        "split": "agent",
+        "filters": {
+          "region": [
+            "northeast"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "compare": "target"
+      },
+      "output": {
+        "ok": true,
+        "summary": "ปริมาณขายเข้า (Sell-in) 1 ก.ย. 2569 – 22 ก.ย. 2569: จริง 3.9 ล้านลิตร · เป้า 4.1 ล้านลิตร · ช่องว่าง −278,490 ลิตร",
+        "period_label": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+        "actual_label": "3.9 ล้านลิตร",
+        "compare_label": "เป้า 4.1 ล้านลิตร",
+        "gap_label": "−278,490 ลิตร",
+        "attainment_label": "93.3%",
+        "contributors": [
+          {
+            "label": "อีสานรุ่งโรจน์ ค้าส่ง",
+            "gap_label": "−150,081 ลิตร",
+            "share_label": "53.9%"
+          },
+          {
+            "label": "อุบลศรีสุข เทรดดิ้ง",
+            "gap_label": "−147,224 ลิตร",
+            "share_label": "52.9%"
+          },
+          {
+            "label": "ส.รุ่งเรือง เทรดดิ้ง",
+            "gap_label": "−15,129 ลิตร",
+            "share_label": "5.4%"
+          }
+        ],
+        "rest": null,
+        "offsetting": [
+          {
+            "label": "โคราชสหภัณฑ์",
+            "gap_label": "+13,443 ลิตร"
+          },
+          {
+            "label": "วารินพาณิชย์",
+            "gap_label": "+6,658 ลิตร"
+          },
+          {
+            "label": "นางรองค้าส่ง",
+            "gap_label": "+6,309 ลิตร"
+          },
+          {
+            "label": "ปากช่องเบเวอเรจ",
+            "gap_label": "+5,647 ลิตร"
+          },
+          {
+            "label": "ขอนแก่นมหาชัย",
+            "gap_label": "+1,888 ลิตร"
+          }
+        ],
+        "projection": {
+          "label": "สิ้นเดือน ถ้าขายเท่า 7 วันล่าสุด",
+          "basis": "วันที่เหลือของเดือนขายเท่าค่าเฉลี่ย 7 วันล่าสุด และเป้ากระจายเท่ากันทุกวัน",
+          "projected_label": "5.1 ล้านลิตร",
+          "month_target_label": "5.6 ล้านลิตร",
+          "attainment_label": "90.6%"
+        }
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "stock_on_hand",
+        "dims": [
+          "dc"
+        ],
+        "filters": {
+          "sku": [
+            "sku_purra_pet600"
+          ]
+        },
+        "range": {
+          "from": "2026-09-16",
+          "to": "2026-09-22"
+        },
+        "grain": "day",
+        "compare": "none",
+        "limit": 10,
+        "sort": "value_desc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "dc": "ศูนย์กระจายสินค้ากรุงเทพฯ",
+            "value": 21609,
+            "value_label": "21,609 ลัง"
+          },
+          {
+            "dc": "ศูนย์กระจายสินค้าชลบุรี",
+            "value": 11347,
+            "value_label": "11,347 ลัง"
+          },
+          {
+            "dc": "ศูนย์กระจายสินค้าอยุธยา",
+            "value": 10041,
+            "value_label": "10,041 ลัง"
+          },
+          {
+            "dc": "ศูนย์กระจายสินค้าสงขลา",
+            "value": 9460,
+            "value_label": "9,460 ลัง"
+          },
+          {
+            "dc": "ศูนย์กระจายสินค้าเชียงใหม่",
+            "value": 8064,
+            "value_label": "8,064 ลัง"
+          },
+          {
+            "dc": "ศูนย์กระจายสินค้าขอนแก่น",
+            "value": 3486,
+            "value_label": "3,486 ลัง"
+          },
+          {
+            "dc": "ศูนย์กระจายสินค้านครราชสีมา",
+            "value": 2473,
+            "value_label": "2,473 ลัง"
+          },
+          {
+            "dc": "ศูนย์กระจายสินค้าลำพูน",
+            "value": 1653,
+            "value_label": "1,653 ลัง"
+          }
+        ],
+        "summary": "สต๊อกคงเหลือ 16 ก.ย. 2569 – 22 ก.ย. 2569: รวม 68,132 ลัง · สูงสุด: ศูนย์กระจายสินค้ากรุงเทพฯ 21,609 ลัง · ศูนย์กระจายสินค้าชลบุรี 11,347 ลัง · ศูนย์กระจายสินค้าอยุธยา 10,041 ลัง · (8 แถว · certified · WMS)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "68,132 ลัง",
+          "periodLabel": "16 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 8,
+          "deltaPercent": null,
+          "compareLabel": null,
+          "compareNote": null,
+          "top": [
+            {
+              "label": "ศูนย์กระจายสินค้ากรุงเทพฯ",
+              "value": "21,609 ลัง"
+            },
+            {
+              "label": "ศูนย์กระจายสินค้าชลบุรี",
+              "value": "11,347 ลัง"
+            },
+            {
+              "label": "ศูนย์กระจายสินค้าอยุธยา",
+              "value": "10,041 ลัง"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "stock_on_hand",
+          "certified": true,
+          "sourceSystem": "WMS",
+          "asOf": "2026-09-22",
+          "rowCount": 8,
+          "filtersApplied": {
+            "sku": [
+              "sku_purra_pet600"
+            ]
+          },
+          "filterLabels": [
+            "เพอร์ร่า ขวด PET 600 มล."
+          ],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "stock_on_hand",
+          "dims": [
+            "dc"
+          ],
+          "filters": {
+            "sku": [
+              "sku_purra_pet600"
+            ]
+          },
+          "range": {
+            "from": "2026-09-16",
+            "to": "2026-09-22"
+          },
+          "grain": "day",
+          "compare": "none",
+          "limit": 10,
+          "sort": "value_desc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "pin",
+            "kind": "pin",
+            "label": "ปักเป็นการ์ดบน Dashboard",
+            "reason": "คุณถามเรื่องนี้ 2 ครั้งในช่วงนี้",
+            "tool": "pin_widget",
+            "input": {
+              "title": "สต๊อกคงเหลือ · ศูนย์กระจายสินค้ากรุงเทพฯ",
+              "kind": "bar",
+              "query": {
+                "metric": "stock_on_hand",
+                "dims": [
+                  "dc"
+                ],
+                "filters": {
+                  "sku": [
+                    "sku_purra_pet600"
+                  ]
+                },
+                "range": {
+                  "from": "2026-09-16",
+                  "to": "2026-09-22"
+                },
+                "grain": "day",
+                "compare": "none",
+                "limit": 10,
+                "sort": "value_desc",
+                "where": null
+              }
+            },
+            "prompt": null
+          },
+          {
+            "id": "drill-region",
+            "kind": "drill",
+            "label": "แยกตามภาค",
+            "reason": "ยังไม่ได้ดูแยกรายภาค",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอสต๊อกคงเหลือแยกตามภาค เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "สต๊อกคงเหลือ รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ขอสต๊อกคงเหลือแยกตามศูนย์กระจายสินค้า เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "days_of_cover",
+        "dims": [
+          "dc"
+        ],
+        "filters": {
+          "sku": [
+            "sku_purra_pet600"
+          ]
+        },
+        "range": {
+          "from": "2026-09-16",
+          "to": "2026-09-22"
+        },
+        "grain": "day",
+        "compare": "none",
+        "limit": 10,
+        "sort": "value_desc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "dc": "ศูนย์กระจายสินค้าชลบุรี",
+            "value": 20.98,
+            "value_label": "21.0 วัน"
+          },
+          {
+            "dc": "ศูนย์กระจายสินค้าสงขลา",
+            "value": 20.78,
+            "value_label": "20.8 วัน"
+          },
+          {
+            "dc": "ศูนย์กระจายสินค้าอยุธยา",
+            "value": 19.69,
+            "value_label": "19.7 วัน"
+          },
+          {
+            "dc": "ศูนย์กระจายสินค้าเชียงใหม่",
+            "value": 19.64,
+            "value_label": "19.6 วัน"
+          },
+          {
+            "dc": "ศูนย์กระจายสินค้ากรุงเทพฯ",
+            "value": 17.8,
+            "value_label": "17.8 วัน"
+          },
+          {
+            "dc": "ศูนย์กระจายสินค้าขอนแก่น",
+            "value": 11.19,
+            "value_label": "11.2 วัน"
+          },
+          {
+            "dc": "ศูนย์กระจายสินค้านครราชสีมา",
+            "value": 8.94,
+            "value_label": "8.9 วัน"
+          },
+          {
+            "dc": "ศูนย์กระจายสินค้าลำพูน",
+            "value": 6.04,
+            "value_label": "6.0 วัน"
+          }
+        ],
+        "summary": "วันครอบคลุมสต๊อก 16 ก.ย. 2569 – 22 ก.ย. 2569: เฉลี่ย 17.1 วัน · ต่ำสุด: ศูนย์กระจายสินค้าลำพูน 6.0 วัน · ศูนย์กระจายสินค้านครราชสีมา 8.9 วัน · ศูนย์กระจายสินค้าขอนแก่น 11.2 วัน · (8 แถว · certified · WMS)",
+        "headline": {
+          "aggregate": "average",
+          "value": "17.1 วัน",
+          "periodLabel": "16 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 8,
+          "deltaPercent": null,
+          "compareLabel": null,
+          "compareNote": null,
+          "top": [
+            {
+              "label": "ศูนย์กระจายสินค้าลำพูน",
+              "value": "6.0 วัน"
+            },
+            {
+              "label": "ศูนย์กระจายสินค้านครราชสีมา",
+              "value": "8.9 วัน"
+            },
+            {
+              "label": "ศูนย์กระจายสินค้าขอนแก่น",
+              "value": "11.2 วัน"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "days_of_cover",
+          "certified": true,
+          "sourceSystem": "WMS",
+          "asOf": "2026-09-22",
+          "rowCount": 8,
+          "filtersApplied": {
+            "sku": [
+              "sku_purra_pet600"
+            ]
+          },
+          "filterLabels": [
+            "เพอร์ร่า ขวด PET 600 มล."
+          ],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "days_of_cover",
+          "dims": [
+            "dc"
+          ],
+          "filters": {
+            "sku": [
+              "sku_purra_pet600"
+            ]
+          },
+          "range": {
+            "from": "2026-09-16",
+            "to": "2026-09-22"
+          },
+          "grain": "day",
+          "compare": "none",
+          "limit": 10,
+          "sort": "value_desc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "verify",
+            "kind": "verify",
+            "label": "ตรวจสาเหตุ",
+            "reason": "ดูวันครอบคลุมสต๊อกและสต๊อกคงเหลือของศูนย์กระจายสินค้าลำพูน · เพอร์ร่า ขวด PET 600 มล. · ภาคเหนือตอนนี้",
+            "tool": null,
+            "input": null,
+            "prompt": "ดูวันครอบคลุมสต๊อกและสต๊อกคงเหลือของศูนย์กระจายสินค้าลำพูน · เพอร์ร่า ขวด PET 600 มล. · ภาคเหนือตอนนี้"
+          },
+          {
+            "id": "pin",
+            "kind": "pin",
+            "label": "ปักเป็นการ์ดบน Dashboard",
+            "reason": "คุณถามเรื่องนี้ 3 ครั้งในช่วงนี้",
+            "tool": "pin_widget",
+            "input": {
+              "title": "วันครอบคลุมสต๊อก · ศูนย์กระจายสินค้าลำพูน",
+              "kind": "bar",
+              "query": {
+                "metric": "days_of_cover",
+                "dims": [
+                  "dc"
+                ],
+                "filters": {
+                  "sku": [
+                    "sku_purra_pet600"
+                  ]
+                },
+                "range": {
+                  "from": "2026-09-16",
+                  "to": "2026-09-22"
+                },
+                "grain": "day",
+                "compare": "none",
+                "limit": 10,
+                "sort": "value_desc",
+                "where": null
+              }
+            },
+            "prompt": null
+          },
+          {
+            "id": "drill-region",
+            "kind": "drill",
+            "label": "แยกตามภาค",
+            "reason": "ยังไม่ได้ดูแยกรายภาค",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอวันครอบคลุมสต๊อกแยกตามภาค เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-drill_down",
+            "label": "ดู SKU ใน DC ลำพูน",
+            "prompt": "ขอวันครอบคลุมสต๊อกของ DC ลำพูน แยกราย SKU เรียงจากแย่ไปดี",
+            "reason": "ลงไปอีกชั้นเพื่อหาว่าใครในDC ลำพูนทำให้ตัวเลขเป็นแบบนี้",
+            "intentKey": "follow|drill_down",
+            "score": 0.7
+          },
+          {
+            "id": "fu-why",
+            "label": "ทำไม DC ลำพูน",
+            "prompt": "เจาะดูวันครอบคลุมสต๊อกของ DC ลำพูน ว่าทำไมถึงเปลี่ยนไป เทียบกับช่วงก่อนหน้าและช่วงเดียวกันปีก่อน",
+            "reason": "DC ลำพูน คือแถวที่ต้องดูมากที่สุดในคำตอบนี้",
+            "intentKey": "follow|why",
+            "score": 0.6
+          },
+          {
+            "id": "fu-forecast",
+            "label": "พยากรณ์ 8 สัปดาห์",
+            "prompt": "พยากรณ์วันครอบคลุมสต๊อกของ DC ลำพูน 8 สัปดาห์ข้างหน้า",
+            "reason": "ดูว่าถ้าเป็นแบบนี้ต่อไปจะเกิดอะไร",
+            "intentKey": "follow|forecast",
+            "score": 0.55
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "sell_out_volume",
+        "dims": [
+          "dc"
+        ],
+        "filters": {
+          "sku": [
+            "sku_purra_pet600"
+          ],
+          "dc": [
+            "dc_lamphun"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "prev_period",
+        "limit": 5,
+        "sort": "value_desc",
+        "where": null
+      },
+      "output": {
+        "ok": false,
+        "error": "มิติ dc ใช้กับเมตริก sell_out_volume ไม่ได้",
+        "code": "BAD_QUERY"
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "net_sales_volume",
+        "dims": [
+          "dc"
+        ],
+        "filters": {
+          "dc": [
+            "dc_lamphun"
+          ],
+          "sku": [
+            "sku_purra_pet600"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "prev_period",
+        "limit": 5,
+        "sort": "value_desc",
+        "where": null
+      },
+      "output": {
+        "ok": false,
+        "error": "มิติ dc ใช้กับเมตริก net_sales_volume ไม่ได้",
+        "code": "BAD_QUERY"
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "sell_out_volume",
+        "dims": [
+          "region",
+          "sku"
+        ],
+        "filters": {
+          "region": [
+            "north"
+          ],
+          "sku": [
+            "sku_purra_pet600"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "prev_period",
+        "limit": 5,
+        "sort": "value_desc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "region": "ภาคเหนือ",
+            "sku": "เพอร์ร่า ขวด PET 600 มล.",
+            "value": 110671,
+            "value_label": "110,671 ลิตร",
+            "compare_value": 130996,
+            "delta_pct": -15.5
+          }
+        ],
+        "summary": "ปริมาณขายออก (Sell-out) 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 110,671 ลิตร · สูงสุด: ภาคเหนือ 110,671 ลิตร · เทียบช่วงก่อนหน้า -15.5% · (1 แถว · certified · SAP SD)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "110,671 ลิตร",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 1,
+          "deltaPercent": -15.5,
+          "compareLabel": "เทียบช่วงก่อนหน้า",
+          "compareNote": null,
+          "top": [
+            {
+              "label": "ภาคเหนือ",
+              "value": "110,671 ลิตร"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "sell_out_volume",
+          "certified": true,
+          "sourceSystem": "SAP SD",
+          "asOf": "2026-09-22",
+          "rowCount": 1,
+          "filtersApplied": {
+            "region": [
+              "north"
+            ],
+            "sku": [
+              "sku_purra_pet600"
+            ]
+          },
+          "filterLabels": [],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "sell_out_volume",
+          "dims": [
+            "region",
+            "sku"
+          ],
+          "filters": {
+            "region": [
+              "north"
+            ],
+            "sku": [
+              "sku_purra_pet600"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "prev_period",
+          "limit": 5,
+          "sort": "value_desc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "handoff",
+            "kind": "handoff",
+            "label": "ส่งงานให้คุณณัฐยา",
+            "reason": "เจ้าของตัวเลขยอดขายของพื้นที่ (ระดับภาค)",
+            "tool": "create_handoff",
+            "input": {
+              "toUserId": "u_nattaya",
+              "title": "ปริมาณขายออก (Sell-out) · ภาคเหนือ",
+              "ask": "ช่วยตรวจเพอร์ร่า ขวด PET 600 มล. · เชียงใหม่ · ภาคเหนือ แล้วบอกกลับว่าเกิดจากอะไรและจะแก้อย่างไร",
+              "urgency": "high",
+              "evidence": [
+                {
+                  "metric": "sell_out_volume",
+                  "dims": [
+                    "region",
+                    "sku"
+                  ],
+                  "filters": {
+                    "region": [
+                      "north"
+                    ],
+                    "sku": [
+                      "sku_purra_pet600"
+                    ]
+                  },
+                  "range": {
+                    "from": "2026-09-01",
+                    "to": "2026-09-22"
+                  },
+                  "grain": "month",
+                  "compare": "prev_period",
+                  "limit": 5,
+                  "sort": "value_desc",
+                  "where": null
+                }
+              ],
+              "alertIds": [
+                "al_720464c45b4bed09"
+              ]
+            },
+            "prompt": null
+          },
+          {
+            "id": "verify",
+            "kind": "verify",
+            "label": "ตรวจสาเหตุ",
+            "reason": "ดูวันครอบคลุมสต๊อกและสต๊อกคงเหลือของเพอร์ร่า ขวด PET 600 มล. · เชียงใหม่ · ภาคเหนือตอนนี้",
+            "tool": null,
+            "input": null,
+            "prompt": "ดูวันครอบคลุมสต๊อกและสต๊อกคงเหลือของเพอร์ร่า ขวด PET 600 มล. · เชียงใหม่ · ภาคเหนือตอนนี้"
+          },
+          {
+            "id": "drill-province",
+            "kind": "drill",
+            "label": "แยกตามจังหวัด",
+            "reason": "ยังไม่ได้ดูแยกรายจังหวัด",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอปริมาณขายออก (Sell-out)แยกตามจังหวัด เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-why",
+            "label": "หาสาเหตุแถวที่แย่สุด",
+            "prompt": "เจาะดูปริมาณขายออก (Sell-out) ของภาคเหนือ · เพอร์ร่า ขวด PET 600 มล. ว่าทำไมถึงเปลี่ยนไป เทียบกับช่วงก่อนหน้าและช่วงเดียวกันปีก่อน",
+            "reason": "ภาคเหนือ · เพอร์ร่า ขวด PET 600 มล. คือแถวที่ต้องดูมากที่สุดในคำตอบนี้",
+            "intentKey": "follow|why",
+            "score": 0.95
+          },
+          {
+            "id": "fu-drill_down",
+            "label": "ดูรายเอเย่นต์",
+            "prompt": "ขอปริมาณขายออก (Sell-out) ของภาคเหนือ · เพอร์ร่า ขวด PET 600 มล. แยกรายเอเย่นต์ เรียงจากแย่ไปดี",
+            "reason": "ลงไปอีกชั้นเพื่อหาว่าใครในภาคเหนือ · เพอร์ร่า ขวด PET 600 มล.ทำให้ตัวเลขเป็นแบบนี้",
+            "intentKey": "follow|drill_down",
+            "score": 0.85
+          },
+          {
+            "id": "fu-trend",
+            "label": "เริ่มแย่ตั้งแต่เมื่อไร",
+            "prompt": "ปริมาณขายออก (Sell-out) ของภาคเหนือ · เพอร์ร่า ขวด PET 600 มล. รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "ดูว่าตัวเลขเริ่มลดลงสัปดาห์ไหน",
+            "intentKey": "follow|trend",
+            "score": 0.65
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "net_sales_volume",
+        "dims": [
+          "region",
+          "sku"
+        ],
+        "filters": {
+          "sku": [
+            "sku_purra_pet600"
+          ],
+          "region": [
+            "north"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "prev_period",
+        "limit": 5,
+        "sort": "value_desc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "region": "ภาคเหนือ",
+            "sku": "เพอร์ร่า ขวด PET 600 มล.",
+            "value": 106582,
+            "value_label": "106,582 ลิตร",
+            "compare_value": 124123,
+            "delta_pct": -14.1
+          }
+        ],
+        "summary": "ปริมาณขายเข้า (Sell-in) 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 106,582 ลิตร · สูงสุด: ภาคเหนือ 106,582 ลิตร · เทียบช่วงก่อนหน้า -14.1% · (1 แถว · certified · SAP SD)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "106,582 ลิตร",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 1,
+          "deltaPercent": -14.1,
+          "compareLabel": "เทียบช่วงก่อนหน้า",
+          "compareNote": null,
+          "top": [
+            {
+              "label": "ภาคเหนือ",
+              "value": "106,582 ลิตร"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "net_sales_volume",
+          "certified": true,
+          "sourceSystem": "SAP SD",
+          "asOf": "2026-09-22",
+          "rowCount": 1,
+          "filtersApplied": {
+            "sku": [
+              "sku_purra_pet600"
+            ],
+            "region": [
+              "north"
+            ]
+          },
+          "filterLabels": [],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "net_sales_volume",
+          "dims": [
+            "region",
+            "sku"
+          ],
+          "filters": {
+            "sku": [
+              "sku_purra_pet600"
+            ],
+            "region": [
+              "north"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "prev_period",
+          "limit": 5,
+          "sort": "value_desc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "handoff",
+            "kind": "handoff",
+            "label": "ส่งงานให้คุณณัฐยา",
+            "reason": "เจ้าของตัวเลขยอดขายของพื้นที่ (ระดับภาค)",
+            "tool": "create_handoff",
+            "input": {
+              "toUserId": "u_nattaya",
+              "title": "ปริมาณขายเข้า (Sell-in) · ภาคเหนือ",
+              "ask": "ช่วยตรวจหริภุญชัย เทรดดิ้ง · คาร์ลสเบิร์ก · ภาคเหนือ แล้วบอกกลับว่าเกิดจากอะไรและจะแก้อย่างไร",
+              "urgency": "high",
+              "evidence": [
+                {
+                  "metric": "net_sales_volume",
+                  "dims": [
+                    "region",
+                    "sku"
+                  ],
+                  "filters": {
+                    "sku": [
+                      "sku_purra_pet600"
+                    ],
+                    "region": [
+                      "north"
+                    ]
+                  },
+                  "range": {
+                    "from": "2026-09-01",
+                    "to": "2026-09-22"
+                  },
+                  "grain": "month",
+                  "compare": "prev_period",
+                  "limit": 5,
+                  "sort": "value_desc",
+                  "where": null
+                }
+              ],
+              "alertIds": [
+                "al_f63d274564054838"
+              ]
+            },
+            "prompt": null
+          },
+          {
+            "id": "verify",
+            "kind": "verify",
+            "label": "ตรวจสาเหตุ",
+            "reason": "เทียบหริภุญชัย เทรดดิ้ง · คาร์ลสเบิร์ก · ภาคเหนือกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+            "tool": null,
+            "input": null,
+            "prompt": "เทียบหริภุญชัย เทรดดิ้ง · คาร์ลสเบิร์ก · ภาคเหนือกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน"
+          },
+          {
+            "id": "drill-province",
+            "kind": "drill",
+            "label": "แยกตามจังหวัด",
+            "reason": "ยังไม่ได้ดูแยกรายจังหวัด",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอปริมาณขายเข้า (Sell-in)แยกตามจังหวัด เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-why",
+            "label": "หาสาเหตุแถวที่แย่สุด",
+            "prompt": "เจาะดูปริมาณขายเข้า (Sell-in) ของภาคเหนือ · เพอร์ร่า ขวด PET 600 มล. ว่าทำไมถึงเปลี่ยนไป เทียบกับช่วงก่อนหน้าและช่วงเดียวกันปีก่อน",
+            "reason": "ภาคเหนือ · เพอร์ร่า ขวด PET 600 มล. คือแถวที่ต้องดูมากที่สุดในคำตอบนี้",
+            "intentKey": "follow|why",
+            "score": 0.95
+          },
+          {
+            "id": "fu-drill_down",
+            "label": "ดูรายเอเย่นต์",
+            "prompt": "ขอปริมาณขายเข้า (Sell-in) ของภาคเหนือ · เพอร์ร่า ขวด PET 600 มล. แยกรายเอเย่นต์ เรียงจากแย่ไปดี",
+            "reason": "ลงไปอีกชั้นเพื่อหาว่าใครในภาคเหนือ · เพอร์ร่า ขวด PET 600 มล.ทำให้ตัวเลขเป็นแบบนี้",
+            "intentKey": "follow|drill_down",
+            "score": 0.85
+          },
+          {
+            "id": "fu-trend",
+            "label": "เริ่มแย่ตั้งแต่เมื่อไร",
+            "prompt": "ปริมาณขายเข้า (Sell-in) ของภาคเหนือ · เพอร์ร่า ขวด PET 600 มล. รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "ดูว่าตัวเลขเริ่มลดลงสัปดาห์ไหน",
+            "intentKey": "follow|trend",
+            "score": 0.65
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "forecast_mape",
+        "dims": [
+          "region"
+        ],
+        "filters": {},
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "none",
+        "limit": 10,
+        "sort": "value_desc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "region": "ภาคใต้",
+            "value": 10.2,
+            "value_label": "10.2%"
+          },
+          {
+            "region": "ภาคอีสาน",
+            "value": 10.2,
+            "value_label": "10.2%"
+          },
+          {
+            "region": "ภาคเหนือ",
+            "value": 9.5,
+            "value_label": "9.5%"
+          },
+          {
+            "region": "กรุงเทพฯ และปริมณฑล",
+            "value": 9.4,
+            "value_label": "9.4%"
+          },
+          {
+            "region": "ภาคตะวันออก",
+            "value": 9.2,
+            "value_label": "9.2%"
+          },
+          {
+            "region": "ภาคกลาง",
+            "value": 9.2,
+            "value_label": "9.2%"
+          }
+        ],
+        "summary": "ความคลาดเคลื่อนพยากรณ์ (MAPE) 1 ก.ย. 2569 – 22 ก.ย. 2569: เฉลี่ย 9.6% · สูงสุด: ภาคใต้ 10.2% · ภาคอีสาน 10.2% · ภาคเหนือ 9.5% · (6 แถว · derived · Demand planning)",
+        "headline": {
+          "aggregate": "average",
+          "value": "9.6%",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 6,
+          "deltaPercent": null,
+          "compareLabel": null,
+          "compareNote": null,
+          "top": [
+            {
+              "label": "ภาคใต้",
+              "value": "10.2%"
+            },
+            {
+              "label": "ภาคอีสาน",
+              "value": "10.2%"
+            },
+            {
+              "label": "ภาคเหนือ",
+              "value": "9.5%"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "forecast_mape",
+          "certified": false,
+          "sourceSystem": "Demand planning",
+          "asOf": "2026-09-22",
+          "rowCount": 6,
+          "filtersApplied": {},
+          "filterLabels": [],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "derived"
+        },
+        "query": {
+          "metric": "forecast_mape",
+          "dims": [
+            "region"
+          ],
+          "filters": {},
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "none",
+          "limit": 10,
+          "sort": "value_desc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "drill-brand",
+            "kind": "drill",
+            "label": "แยกตามแบรนด์",
+            "reason": "ยังไม่ได้ดูแยกรายแบรนด์",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอความคลาดเคลื่อนพยากรณ์ (MAPE)แยกตามแบรนด์ เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-why",
+            "label": "ทำไมภาคใต้",
+            "prompt": "เจาะดูความคลาดเคลื่อนพยากรณ์ (MAPE) ของภาคใต้ ว่าทำไมถึงเปลี่ยนไป เทียบกับช่วงก่อนหน้าและช่วงเดียวกันปีก่อน",
+            "reason": "ภาคใต้ คือแถวที่ต้องดูมากที่สุดในคำตอบนี้",
+            "intentKey": "follow|why",
+            "score": 0.6
+          },
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายเดือน",
+            "prompt": "ความคลาดเคลื่อนพยากรณ์ (MAPE) รายเดือนย้อนหลัง 6 เดือน",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ขอความคลาดเคลื่อนพยากรณ์ (MAPE) แยกตามภาค เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "tool": "find_people",
+      "input": {
+        "region": null,
+        "department": null,
+        "manager": "วีร์",
+        "query": null,
+        "flag": null
+      },
+      "output": {
+        "ok": true,
+        "summary": "พบ 8 คน · ตำแหน่งว่าง 1 ตำแหน่ง",
+        "data": [
+          {
+            "is_you": true,
+            "id": "u_wee",
+            "name": "คุณวีร์ เจริญสุข",
+            "title": "นักวางแผนซัพพลาย",
+            "place": "ปทุมธานี",
+            "photo": "/img/people/p26.jpg",
+            "department": "ซัพพลายเชน",
+            "manager": "คุณธนา วงศ์สกุล",
+            "tenure": "11 ปี 4 เดือน",
+            "badges": []
+          },
+          {
+            "id": "e_somsri",
+            "name": "คุณสมศรี ทองคำ",
+            "title": "หัวหน้าแผนกบรรจุ โรงงานขอนแก่น",
+            "place": "โรงงานขอนแก่น",
+            "photo": "/img/people/p18.jpg",
+            "department": "การผลิต",
+            "manager": "คุณโอ๊ต พัฒนพงศ์",
+            "tenure": "31 ปี 3 เดือน",
+            "badges": [
+              {
+                "label": "GMP 28 วัน",
+                "tone": "warning"
+              },
+              {
+                "label": "เกษียณใน 2 ปี",
+                "tone": "neutral"
+              }
+            ]
+          },
+          {
+            "id": "u_oat",
+            "name": "คุณโอ๊ต พัฒนพงศ์",
+            "title": "นักวางแผนการผลิต โรงงานขอนแก่น",
+            "place": "โรงงานขอนแก่น",
+            "photo": "/img/people/p35.jpg",
+            "department": "ซัพพลายเชน",
+            "manager": "คุณวีร์ เจริญสุข",
+            "tenure": "9 ปี",
+            "badges": []
+          },
+          {
+            "id": "e_prayoon",
+            "name": "คุณประยูร ดีมาก",
+            "title": "ช่างซ่อมบำรุงอาวุโส โรงงานปทุมธานี",
+            "place": "โรงงานปทุมธานี",
+            "photo": "/img/people/p36.jpg",
+            "department": "การผลิต",
+            "manager": "คุณวีร์ เจริญสุข",
+            "tenure": "36 ปี 8 เดือน",
+            "badges": [
+              {
+                "label": "เกษียณใน 1 ปี",
+                "tone": "neutral"
+              }
+            ]
+          },
+          {
+            "id": "e_wan",
+            "name": "คุณวันชัย เพชรดี",
+            "title": "พนักงานขับรถยก คลังปทุมธานี",
+            "place": "โรงงานปทุมธานี",
+            "photo": "/img/people/p37.jpg",
+            "department": "ซัพพลายเชน",
+            "manager": "คุณวีร์ เจริญสุข",
+            "tenure": "28 ปี 4 เดือน",
+            "badges": [
+              {
+                "label": "ใบขับขี่รถยก 20 วัน",
+                "tone": "warning"
+              }
+            ]
+          },
+          {
+            "id": "e_dang",
+            "name": "คุณแดง ศักดิ์ดี",
+            "title": "หัวหน้ากะ สายการผลิต 2 โรงงานขอนแก่น",
+            "place": "โรงงานขอนแก่น",
+            "photo": "/img/people/p40.jpg",
+            "department": "การผลิต",
+            "manager": "คุณสมศรี ทองคำ",
+            "tenure": "23 ปี 6 เดือน",
+            "badges": [
+              {
+                "label": "โอที 96 ชม.",
+                "tone": "warning"
+              },
+              {
+                "label": "ใบขับขี่รถยก 8 วัน",
+                "tone": "warning"
+              }
+            ]
+          },
+          {
+            "id": "e_chai",
+            "name": "คุณชัย วงศ์ใหญ่",
+            "title": "เจ้าหน้าที่ความปลอดภัย (จป.) โรงงานขอนแก่น",
+            "place": "โรงงานขอนแก่น",
+            "photo": "/img/people/p25.jpg",
+            "department": "การผลิต",
+            "manager": "คุณโอ๊ต พัฒนพงศ์",
+            "tenure": "12 ปี 2 เดือน",
+            "badges": []
+          },
+          {
+            "id": "e_lek",
+            "name": "คุณเล็ก มณีวงศ์",
+            "title": "พนักงานควบคุมคุณภาพ โรงงานขอนแก่น",
+            "place": "โรงงานขอนแก่น",
+            "photo": "/img/people/p04.jpg",
+            "department": "การผลิต",
+            "manager": "คุณสมศรี ทองคำ",
+            "tenure": "2 ปี 7 เดือน",
+            "badges": []
+          }
+        ],
+        "open_positions": [
+          {
+            "id": "op_kk_qc",
+            "title": "พนักงานควบคุมคุณภาพ โรงงานขอนแก่น",
+            "manager": "คุณสมศรี ทองคำ",
+            "open_label": "เปิดรับมา 21 วัน"
+          }
+        ]
+      }
+    },
+    {
+      "tool": "get_site",
+      "input": {
+        "id": null,
+        "name": null
+      },
+      "output": {
+        "ok": true,
+        "summary": "6 แห่ง · ต้องดูด่วน 2 แห่ง",
+        "data": [
+          {
+            "id": "pl_khonkaen",
+            "name": "โรงงานขอนแก่น",
+            "kind": "โรงงาน",
+            "place": "ขอนแก่น",
+            "photo": "/img/sites/site01.jpg",
+            "status": "ต้องดูด่วน",
+            "trailing": {
+              "text": "ไร้เหตุหยุดงาน 7 วัน",
+              "tone": "bad"
+            },
+            "note": "90 วันล่าสุด 4 เหตุการณ์ · หยุดงาน 1",
+            "badges": [
+              {
+                "label": "ยังไม่ปิด 1 เรื่อง",
+                "tone": "danger"
+              },
+              {
+                "label": "เหตุการณ์เพิ่มขึ้น",
+                "tone": "warning"
+              },
+              {
+                "label": "โอที 71 ชม./คน",
+                "tone": "warning"
+              }
+            ]
+          },
+          {
+            "id": "dc_khonkaen",
+            "name": "ศูนย์กระจายสินค้าขอนแก่น",
+            "kind": "ศูนย์กระจายสินค้า",
+            "place": "ขอนแก่น",
+            "photo": "/img/sites/site05.jpg",
+            "status": "ต้องดูด่วน",
+            "trailing": {
+              "text": "ไร้เหตุหยุดงาน 585 วัน",
+              "tone": "good"
+            },
+            "note": "90 วันล่าสุด 1 เหตุการณ์",
+            "badges": [
+              {
+                "label": "ยังไม่ปิด 1 เรื่อง",
+                "tone": "danger"
+              },
+              {
+                "label": "เหตุการณ์เพิ่มขึ้น",
+                "tone": "warning"
+              }
+            ]
+          },
+          {
+            "id": "dc_bangkok",
+            "name": "ศูนย์กระจายสินค้ากรุงเทพฯ",
+            "kind": "ศูนย์กระจายสินค้า",
+            "place": "กรุงเทพฯ",
+            "photo": "/img/sites/site03.jpg",
+            "status": "ปกติ",
+            "trailing": {
+              "text": "ไร้เหตุหยุดงาน 399 วัน",
+              "tone": "good"
+            },
+            "note": "90 วันล่าสุดไม่มีเหตุการณ์",
+            "badges": [
+              {
+                "label": "ไม่มีเรื่องค้าง",
+                "tone": "success"
+              }
+            ]
+          },
+          {
+            "id": "pl_pathumthani",
+            "name": "โรงงานปทุมธานี",
+            "kind": "โรงงาน",
+            "place": "ปทุมธานี",
+            "photo": "/img/sites/site06.jpg",
+            "status": "ปกติ",
+            "trailing": {
+              "text": "ไร้เหตุหยุดงาน 518 วัน",
+              "tone": "good"
+            },
+            "note": "90 วันล่าสุด 1 เหตุการณ์",
+            "badges": [
+              {
+                "label": "ไม่มีเรื่องค้าง",
+                "tone": "success"
+              }
+            ]
+          },
+          {
+            "id": "pl_singburi",
+            "name": "โรงงานสิงห์บุรี",
+            "kind": "โรงงาน",
+            "place": "สิงห์บุรี",
+            "photo": "/img/sites/site08.jpg",
+            "status": "ปกติ",
+            "trailing": {
+              "text": "ไร้เหตุหยุดงาน 686 วัน",
+              "tone": "good"
+            },
+            "note": "90 วันล่าสุดไม่มีเหตุการณ์",
+            "badges": [
+              {
+                "label": "ไม่มีเรื่องค้าง",
+                "tone": "success"
+              }
+            ]
+          },
+          {
+            "id": "hq_bangkok",
+            "name": "สำนักงานใหญ่ สามเสน",
+            "kind": "สำนักงาน",
+            "place": "กรุงเทพฯ",
+            "photo": "/img/sites/site07.jpg",
+            "status": "ปกติ",
+            "trailing": {
+              "text": "ไม่เคยมีเหตุหยุดงาน",
+              "tone": "good"
+            },
+            "note": "90 วันล่าสุดไม่มีเหตุการณ์",
+            "badges": [
+              {
+                "label": "ไม่มีเรื่องค้าง",
+                "tone": "success"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "tool": "get_site",
+      "input": {
+        "id": "pl_khonkaen",
+        "name": null
+      },
+      "output": {
+        "ok": true,
+        "summary": "โรงงานขอนแก่น — ต้องดูด่วน",
+        "data": {
+          "id": "pl_khonkaen",
+          "name": "โรงงานขอนแก่น",
+          "photo": "/img/sites/site01.jpg",
+          "badges": [
+            {
+              "label": "ยังไม่ปิด 1 เรื่อง",
+              "tone": "danger"
+            },
+            {
+              "label": "เหตุการณ์เพิ่มขึ้น",
+              "tone": "warning"
+            },
+            {
+              "label": "โอที 71 ชม./คน",
+              "tone": "warning"
+            }
+          ],
+          "metrics": [
+            {
+              "label": "ไม่มีอุบัติเหตุถึงขั้นหยุดงาน",
+              "value": "7 วัน",
+              "detail": null,
+              "tone": "bad"
+            },
+            {
+              "label": "เหตุการณ์ 90 วันล่าสุด",
+              "value": "4 ครั้ง",
+              "detail": "90 วันก่อนหน้า 0 ครั้ง",
+              "tone": "bad"
+            },
+            {
+              "label": "โอทีเฉลี่ยต่อคน 3 เดือน",
+              "value": "71 ชม.",
+              "detail": null,
+              "tone": "bad"
+            }
+          ],
+          "facts": [
+            {
+              "label": "ประเภท",
+              "value": "โรงงาน"
+            },
+            {
+              "label": "จังหวัด",
+              "value": "ขอนแก่น"
+            },
+            {
+              "label": "พนักงาน",
+              "value": "620 คน"
+            },
+            {
+              "label": "เจ้าหน้าที่ความปลอดภัย",
+              "value": "คุณชัย วงศ์ใหญ่"
+            }
+          ],
+          "open_actions": [
+            {
+              "title": "รถยกชนพนักงานขนย้ายที่ลานโหลดสายการผลิต 2",
+              "body": "แยกทางเดินรถยกกับทางคนเดินที่ลานโหลด และทวนสอบใบขับขี่รถยกทุกคนก่อน 30 ก.ย.",
+              "date": "15 ก.ย. 2569"
+            }
+          ],
+          "incidents": [
+            {
+              "title": "หยุดงาน · รถยกชนพนักงานขนย้ายที่ลานโหลดสายการผลิต 2",
+              "detail": "ข้อเท้าแพลง หยุดงาน 3 วัน · กะดึก ช่วงเร่งผลิตก่อนออกพรรษา · แก้ไข: แยกทางเดินรถยกกับทางคนเดินที่ลานโหลด และทวนสอบใบขับขี่รถยกทุกคนก่อน 30 ก.ย. (ยังไม่ปิด)",
+              "time": "15 ก.ย. 2569"
+            },
+            {
+              "title": "เกือบเกิดเหตุ · รถยกเฉี่ยวพาเลทล้มใกล้ทางเดิน",
+              "detail": "ไม่มีผู้บาดเจ็บ · มุมอับหน้าคลังวัตถุดิบ · แก้ไข: ติดกระจกโค้งที่มุมอับ",
+              "time": "9 ก.ย. 2569"
+            },
+            {
+              "title": "ปฐมพยาบาล · พนักงานลื่นบริเวณล้างถัง",
+              "detail": "ฟกช้ำ ปฐมพยาบาลแล้วกลับไปทำงาน · แก้ไข: เปลี่ยนแผ่นกันลื่นบริเวณล้างถัง",
+              "time": "3 ก.ย. 2569"
+            },
+            {
+              "title": "เกือบเกิดเหตุ · รถยกถอยโดยไม่มีสัญญาณเสียง",
+              "detail": "สัญญาณถอยเสีย 3 คัน · แก้ไข: ซ่อมสัญญาณถอยรถยก 3 คัน",
+              "time": "27 ส.ค. 2569"
+            },
+            {
+              "title": "ปฐมพยาบาล · มือถูกบาดจากขอบลังกระดาษ",
+              "detail": "ทำแผลแล้วกลับไปทำงาน · แก้ไข: แจกถุงมือกันบาดที่สายบรรจุ",
+              "time": "10 ธ.ค. 2568"
+            },
+            {
+              "title": "หยุดงาน · พนักงานตกจากบันไดถังหมัก",
+              "detail": "หยุดงาน 5 วัน · ช่วงเร่งผลิตก่อนออกพรรษา 2568 · แก้ไข: ติดราวกันตกและสายรัดตัวที่บันไดถังหมัก",
+              "time": "2 ต.ค. 2568"
+            }
+          ],
+          "people": [
+            {
+              "id": "e_somsri",
+              "name": "คุณสมศรี ทองคำ",
+              "title": "หัวหน้าแผนกบรรจุ โรงงานขอนแก่น",
+              "place": "โรงงานขอนแก่น",
+              "photo": "/img/people/p18.jpg",
+              "department": "การผลิต",
+              "manager": "คุณโอ๊ต พัฒนพงศ์",
+              "tenure": "31 ปี 3 เดือน",
+              "badges": [
+                {
+                  "label": "GMP 28 วัน",
+                  "tone": "warning"
+                },
+                {
+                  "label": "เกษียณใน 2 ปี",
+                  "tone": "neutral"
+                }
+              ]
+            },
+            {
+              "id": "u_oat",
+              "name": "คุณโอ๊ต พัฒนพงศ์",
+              "title": "นักวางแผนการผลิต โรงงานขอนแก่น",
+              "place": "โรงงานขอนแก่น",
+              "photo": "/img/people/p35.jpg",
+              "department": "ซัพพลายเชน",
+              "manager": "คุณวีร์ เจริญสุข",
+              "tenure": "9 ปี",
+              "badges": []
+            },
+            {
+              "id": "e_dang",
+              "name": "คุณแดง ศักดิ์ดี",
+              "title": "หัวหน้ากะ สายการผลิต 2 โรงงานขอนแก่น",
+              "place": "โรงงานขอนแก่น",
+              "photo": "/img/people/p40.jpg",
+              "department": "การผลิต",
+              "manager": "คุณสมศรี ทองคำ",
+              "tenure": "23 ปี 6 เดือน",
+              "badges": [
+                {
+                  "label": "โอที 96 ชม.",
+                  "tone": "warning"
+                },
+                {
+                  "label": "ใบขับขี่รถยก 8 วัน",
+                  "tone": "warning"
+                }
+              ]
+            },
+            {
+              "id": "e_chai",
+              "name": "คุณชัย วงศ์ใหญ่",
+              "title": "เจ้าหน้าที่ความปลอดภัย (จป.) โรงงานขอนแก่น",
+              "place": "โรงงานขอนแก่น",
+              "photo": "/img/people/p25.jpg",
+              "department": "การผลิต",
+              "manager": "คุณโอ๊ต พัฒนพงศ์",
+              "tenure": "12 ปี 2 เดือน",
+              "badges": []
+            },
+            {
+              "id": "e_lek",
+              "name": "คุณเล็ก มณีวงศ์",
+              "title": "พนักงานควบคุมคุณภาพ โรงงานขอนแก่น",
+              "place": "โรงงานขอนแก่น",
+              "photo": "/img/people/p04.jpg",
+              "department": "การผลิต",
+              "manager": "คุณสมศรี ทองคำ",
+              "tenure": "2 ปี 7 เดือน",
+              "badges": []
+            }
+          ]
+        }
+      }
+    },
+    {
+      "tool": "get_calendar",
+      "input": {
+        "from": "2026-09-22",
+        "to": "2026-11-22"
+      },
+      "output": {
+        "ok": true,
+        "summary": "22 ก.ย. 2569 – 22 พ.ย. 2569 มี 3 วันสำคัญ ห้ามขายเครื่องดื่มแอลกอฮอล์ 1 วัน",
+        "data": [
+          {
+            "date": "2026-10-13",
+            "date_label": "13 ต.ค. 2569",
+            "when_label": "อีก 21 วัน",
+            "name": "วันคล้ายวันสวรรคต รัชกาลที่ 9",
+            "kind": "holiday",
+            "kind_label": "วันหยุด",
+            "impact_label": "ขายออกเบียร์ +4% · วัดจากวันคล้ายวันสวรรคต รัชกาลที่ 9 13 ต.ค. 2568"
+          },
+          {
+            "date": "2026-10-23",
+            "date_label": "23 ต.ค. 2569",
+            "when_label": "อีก 31 วัน",
+            "name": "วันปิยมหาราช",
+            "kind": "holiday",
+            "kind_label": "วันหยุด",
+            "impact_label": "ขายออกเบียร์ +16% · วัดจากวันปิยมหาราช 23 ต.ค. 2568"
+          },
+          {
+            "date": "2026-10-26",
+            "date_label": "26 ต.ค. 2569",
+            "when_label": "อีก 34 วัน",
+            "name": "วันออกพรรษา",
+            "kind": "alcohol_ban",
+            "kind_label": "ห้ามขายเครื่องดื่มแอลกอฮอล์",
+            "impact_label": "ขายออกเบียร์ -90% · เอเย่นต์สั่งเข้า 2 วันก่อนหน้า +28% · วัดจากวันวิสาขบูชา 31 พ.ค. 2569"
+          }
+        ]
+      }
+    },
+    {
+      "tool": "list_courses",
+      "input": {
+        "month": null,
+        "query": "รถยก"
+      },
+      "output": {
+        "ok": true,
+        "summary": "1 หลักสูตร เริ่มหลักสูตรแรก 26 ก.ย. 2569 · 1 หลักสูตรต่ออายุใบที่ใกล้หมดของคุณหรือทีม",
+        "data": [
+          {
+            "id": "crs_forklift_kk",
+            "title": "ต่ออายุใบขับขี่รถยก (ภาคปฏิบัติ)",
+            "cover": "/img/courses/course02.jpg",
+            "category": "ความปลอดภัย",
+            "when": "26 ก.ย. 2569 · 1 วัน",
+            "place": "โรงงานขอนแก่น · ภาคปฏิบัติ",
+            "audience": "พนักงานขับรถยกและหัวหน้ากะที่ใบขับขี่ใกล้หมด",
+            "seats": {
+              "label": "เหลือ 3 ที่ จาก 12",
+              "tone": "bad"
+            },
+            "note": "ควรส่งไป: คุณแดง ศักดิ์ดี (หมดใน 8 วัน), คุณวันชัย เพชรดี (หมดใน 20 วัน)",
+            "badges": [],
+            "can_enroll": true
+          }
+        ]
+      }
+    },
+    {
+      "tool": "list_courses",
+      "input": {
+        "month": null,
+        "query": "GMP"
+      },
+      "output": {
+        "ok": true,
+        "summary": "1 หลักสูตร เริ่มหลักสูตรแรก 8 ต.ค. 2569 · 1 หลักสูตรต่ออายุใบที่ใกล้หมดของคุณหรือทีม",
+        "data": [
+          {
+            "id": "crs_gmp",
+            "title": "GMP และความปลอดภัยอาหาร รอบต่ออายุ",
+            "cover": "/img/courses/course01.jpg",
+            "category": "คุณภาพ",
+            "when": "8 ต.ค. 2569 · 1 วัน",
+            "place": "โรงงานขอนแก่น · ห้องเรียน",
+            "audience": "พนักงานสายการผลิตและควบคุมคุณภาพ",
+            "seats": {
+              "label": "เต็มแล้ว",
+              "tone": "bad"
+            },
+            "note": "ควรส่งไป: คุณสมศรี ทองคำ (หมดใน 28 วัน)",
+            "badges": [],
+            "can_enroll": false
+          }
+        ]
+      }
+    },
+    {
+      "tool": "list_candidates",
+      "input": {
+        "position": "op_kk_qc",
+        "stage": null
+      },
+      "output": {
+        "ok": true,
+        "summary": "พนักงานควบคุมคุณภาพ โรงงานขอนแก่น · ผู้สมัคร 5 คน · เปิดรับมา 21 วัน",
+        "data": {
+          "position": {
+            "id": "op_kk_qc",
+            "title": "พนักงานควบคุมคุณภาพ โรงงานขอนแก่น",
+            "manager": "คุณสมศรี ทองคำ",
+            "candidates": "5 คน",
+            "advanced": "ถึงขั้นสัมภาษณ์ 2 คน",
+            "open_label": "เปิดรับมา 21 วัน"
+          },
+          "metrics": [
+            {
+              "label": "ผู้สมัครทั้งหมด",
+              "value": "5 คน",
+              "detail": "7 วันล่าสุด +1",
+              "tone": "neutral"
+            },
+            {
+              "label": "ถึงขั้นสัมภาษณ์ขึ้นไป",
+              "value": "2 คน",
+              "detail": "ยื่นข้อเสนอแล้ว 0 คน",
+              "tone": "neutral"
+            },
+            {
+              "label": "เปิดรับมาแล้ว",
+              "value": "21 วัน",
+              "detail": null,
+              "tone": "neutral"
+            }
+          ],
+          "candidates": [
+            {
+              "id": "c_qc01",
+              "name": "คุณสุภาวดี ธรรมวงศ์",
+              "position": "พนักงานควบคุมคุณภาพ โรงงานขอนแก่น",
+              "stage": "สัมภาษณ์",
+              "step": 3,
+              "steps": 5,
+              "stage_percent": 60,
+              "score": 4,
+              "score_label": "คะแนนสัมภาษณ์ 4 / 5",
+              "applied": "สมัคร 3 ก.ย. 2569",
+              "experience": "นักวิเคราะห์คุณภาพโรงงานน้ำดื่ม 3 ปี",
+              "strength": "มีใบรับรอง GMP ยังไม่หมดอายุ",
+              "concern": null,
+              "source": "JobThai",
+              "badges": []
+            },
+            {
+              "id": "c_qc02",
+              "name": "คุณธนากร ปัญญาดี",
+              "position": "พนักงานควบคุมคุณภาพ โรงงานขอนแก่น",
+              "stage": "สัมภาษณ์",
+              "step": 3,
+              "steps": 5,
+              "stage_percent": 60,
+              "score": 3.5,
+              "score_label": "คะแนนสัมภาษณ์ 3.5 / 5",
+              "applied": "สมัคร 4 ก.ย. 2569",
+              "experience": "ผู้ช่วยห้องแล็บจุลชีววิทยา 2 ปี",
+              "strength": "ตรวจเชื้อในผลิตภัณฑ์เป็น",
+              "concern": null,
+              "source": "งานนัดพบแรงงาน ม.ขอนแก่น",
+              "badges": []
+            },
+            {
+              "id": "c_qc03",
+              "name": "คุณรัตนาภรณ์ มูลสาร",
+              "position": "พนักงานควบคุมคุณภาพ โรงงานขอนแก่น",
+              "stage": "คัดกรองประวัติ",
+              "step": 2,
+              "steps": 5,
+              "stage_percent": 40,
+              "score": null,
+              "score_label": "ยังไม่ได้ให้คะแนน",
+              "applied": "สมัคร 9 ก.ย. 2569",
+              "experience": "จบใหม่ สาขาวิทยาศาสตร์การอาหาร",
+              "strength": "ฝึกงานฝ่ายประกันคุณภาพโรงงานนม",
+              "concern": null,
+              "source": "เว็บไซต์บริษัท",
+              "badges": []
+            },
+            {
+              "id": "c_qc04",
+              "name": "คุณอนุสรณ์ ทองสุข",
+              "position": "พนักงานควบคุมคุณภาพ โรงงานขอนแก่น",
+              "stage": "คัดกรองประวัติ",
+              "step": 2,
+              "steps": 5,
+              "stage_percent": 40,
+              "score": null,
+              "score_label": "ยังไม่ได้ให้คะแนน",
+              "applied": "สมัคร 12 ก.ย. 2569",
+              "experience": "พนักงานสายการผลิต 4 ปี",
+              "strength": "อยากย้ายสายงานมาคุณภาพ",
+              "concern": "ยังไม่มีพื้นฐานห้องแล็บ",
+              "source": "เว็บไซต์บริษัท",
+              "badges": [
+                {
+                  "label": "มีเรื่องต้องคุย",
+                  "tone": "warning"
+                }
+              ]
+            },
+            {
+              "id": "c_qc05",
+              "name": "คุณพัชรินทร์ แสนคำ",
+              "position": "พนักงานควบคุมคุณภาพ โรงงานขอนแก่น",
+              "stage": "สมัคร",
+              "step": 1,
+              "steps": 5,
+              "stage_percent": 20,
+              "score": null,
+              "score_label": "ยังไม่ได้ให้คะแนน",
+              "applied": "สมัคร 17 ก.ย. 2569",
+              "experience": "เจ้าหน้าที่ QC โรงงานอาหารแช่แข็ง 1 ปี",
+              "strength": "ทำงานเป็นกะได้",
+              "concern": null,
+              "source": "JobThai",
+              "badges": []
+            }
+          ],
+          "positions": []
+        }
+      }
+    }
+  ],
+  "dropped": []
+}

@@ -7,9 +7,10 @@ import { ArrowUpRight, LayoutDashboard, Send, ShieldCheck } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "vexa/ui/tooltip";
 import { cn } from "vexa/lib/utils";
 import { formatActionMessage } from "vexa/react";
-import type { NextAction, QuickAction } from "@/lib/contracts";
+import type { NextAction, QuickAction, Story } from "@/lib/contracts";
 import { FeedMenu, postFeedAction, type FeedHandlers, type FeedSettle } from "@/components/feed/feed-list";
 import type { AmbientCard, AmbientTone, LandingKpi } from "@/lib/dashboard/ambient";
+import { StoryTeaser, countsLine, type StoryCounts } from "@/components/dashboard/story-board";
 import type { Tone } from "@/lib/dashboard/metric-display";
 import { TH } from "@/lib/i18n/th";
 import { CopComposer } from "@/components/composer/cop-composer";
@@ -60,6 +61,14 @@ function StatusLine({ taskCount }: { taskCount: number }) {
   return (
     <Link href={{ query: INBOX_TODO_QUERY }} scroll={false} className="self-center rounded-full px-3 py-1 text-sm text-muted-foreground transition hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:text-base">
       {TH.landing.tasksLead(taskCount)}
+    </Link>
+  );
+}
+
+function StoryLine({ counts }: { counts: StoryCounts }) {
+  return (
+    <Link href={DASHBOARD_PATH} className="self-center rounded-full px-3 py-1 text-sm text-muted-foreground transition hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:text-base">
+      {TH.stories.landingLead(countsLine(counts))}
     </Link>
   );
 }
@@ -124,6 +133,7 @@ export function Landing({
   taskCount,
   quickActions,
   ambient,
+  story,
   draft,
   placeholder,
 }: {
@@ -132,6 +142,7 @@ export function Landing({
   taskCount: number;
   quickActions: QuickAction[];
   ambient: AmbientCard[];
+  story: { story: Story; counts: StoryCounts } | null;
   draft: string;
   placeholder: string;
 }) {
@@ -229,7 +240,7 @@ export function Landing({
             <h1 className="text-balance font-display text-[1.75rem] font-semibold leading-[1.2] tracking-[-0.02em] sm:text-[3rem]">
               {greeting.lead} <GradientText className="whitespace-nowrap">{greeting.name}</GradientText>
             </h1>
-            <StatusLine taskCount={taskCount - (ambient.length - visibleCards.length)} />
+            {story ? <StoryLine counts={story.counts} /> : <StatusLine taskCount={taskCount - (ambient.length - visibleCards.length)} />}
           </header>
 
           <CopComposer value={text} onValueChange={setText} onSubmit={start} busy={busy} autoFocus placeholder={placeholder} />
@@ -256,7 +267,8 @@ export function Landing({
 
         <div className="flex w-full max-w-3xl flex-col gap-3 animate-hero-rise [animation-delay:160ms]">
           {kpis.length > 0 ? <KpiStrip kpis={kpis} /> : null}
-          {visibleCards.length > 0 ? (
+          {story ? <StoryTeaser story={story.story} counts={story.counts} href={DASHBOARD_PATH} /> : null}
+          {!story && visibleCards.length > 0 ? (
             <div className={cn("grid w-full gap-3", AMBIENT_COLUMNS[visibleCards.length])}>
               {visibleCards.map((card) => (
                 <AmbientCardView

@@ -904,6 +904,23 @@ Model choice rule: opus for anything that guards data (access, red-team), needs 
 
 Ownership rule for parallel agents: a package edits only the folders listed in its heading plus new files; shared files are append-only; no package changes `lib/contracts/*` (a needed change is proposed in its report and applied by the orchestrator between phases).
 
+### Phase 11 — AI สืบให้ก่อนเปิดหน้า: dashboard เป็นข้อสรุป ไม่ใช่ผนังการ์ด (user 2026-09-27: "มี AI แล้วนะถ้า dashboard ยังเหมือนเดิมจะมี AI ไปทำไม" · "UI ต้องดูง่ายตัดสินใจได้ง่ายและดูแพง" · "อย่าลืมว่ามีหลาย role ui และข้อมูลก็ต้องต่างกัน")
+
+ทุกเช้า model ใช้ read tool ตามสิทธิ์ของแต่ละคนไล่ข้อมูลเอง (alert → เจาะ → แยกช่องว่าง → ตัดสาเหตุ → คาดสิ้นเดือน) แล้วเขียน "เรื่อง" ไม่เกิน 3 เรื่อง: ข้อสรุปหนึ่งประโยค · ตัวเลขหลัก · สิ่งที่พบ พร้อม % ของช่องว่าง · ตรวจอะไรแล้ว (ยืนยัน/น่าจะใช่/ตัดทิ้ง/ยังไม่รู้) · ข้อแนะนำหนึ่งข้อตามบทบาท กรอบเดียวกันทุกคน เนื้อในต่างตามข้อมูลที่บทบาทนั้นเห็น
+
+- [x] `explain_gap` (tool ใหม่, `lib/engine/gap.ts`): แยกช่องว่างเทียบเป้า/ช่วงก่อน/ปีก่อนตามมิติ โค้ดคำนวณ share และคาดสิ้นเดือน (อัตรา 7 วันล่าสุด, เป้ากระจายเท่ากันทุกวัน) · model ห้ามคิด % เอง — ครั้งแรก model เขียน "83% ของช่องว่าง" จากค่าห่างจากคาด
+- [x] `lib/server/investigate.ts` + `scripts/investigate.ts --users=…|all --save`: สืบ → เขียนเรื่องแบบ structured → ทิ้งเรื่องที่มีตัวเลขไม่อยู่ในผล tool หรือ share ที่ไม่ได้มาจาก `explain_gap`
+- [x] เจ้าของเรื่องตัดสินในโค้ด (`lib/engine/story-owner.ts`, RACI): เรื่องที่คนอื่นเป็นเจ้าของกลายเป็น "น่าจับตา" พร้อมชื่อเจ้าของ แก้เรื่องเดียวกันเป็น "ต้องตัดสินใจ" ซ้ำ 5 คน · เรื่องระดับประเทศไม่ยกให้ RSM ภาคแรก
+- [x] `/dashboard`: หัวหน้าบอกจำนวนเรื่อง, เรื่องหลักเต็มสองคอลัมน์, เรื่องรองด้านข้าง, "ปกติดี" หนึ่งบรรทัดต่อเรื่อง, การ์ดที่ปักไว้อยู่ใต้ ข้อเสนอ "Cop เห็นว่าคุณติดตาม" ย้ายลงล่าง · ปุ่ม "ถามต่อ" เปิดแชตพร้อมเรื่องนั้น
+- [x] scheduler job `investigate` 06:00 เวลาไทย ปิดไว้ก่อน (`INVESTIGATE_DAILY=1` เพื่อเปิด ~$0.05–0.16 ต่อคนต่อวันบน Gemini)
+- [x] หน้าแรก: เรื่องหลักแทนการ์ด 2 ใบใต้ช่องพิมพ์ (รูปเดียวกันทุกคน เนื้อในตามข้อมูลของคนนั้น; ไม่มีการสืบ = การ์ดเดิม) ปุ่ม "ดูทั้ง N เรื่อง" ไป `/dashboard`
+- [x] การ์ดที่ปักไว้ย่อเป็นช่องตัวเลข (ชื่อ · ตัวเลข · delta · เหตุผลที่ขยับ) กดแล้วกางการ์ดเต็มใต้แถว
+- [x] "ยืนยันแล้ว/ตัดทิ้ง" ต้องบอก tool ที่เห็น (`source`) และ tool นั้นถูกเรียกในรอบนี้ ไม่งั้นโค้ดลดเป็น "น่าจะใช่/ยังไม่รู้" (`lib/engine/check-verdict.ts`) · ความจำไม่นับเป็นหลักฐาน · ข้อมูลเดโมตั้งใจให้เอเย่นต์อีสาน `explainedBy: null` จึงไม่แต่งสถานะเครดิตเพิ่ม
+- [x] เรื่องที่มีตัวเลขไม่อยู่ในผล tool ได้เขียนใหม่หนึ่งรอบก่อนถูกทิ้ง · share เกิน 100% บอกว่าส่วนอื่นเกินเป้าชดเชย · ห้ามโชว์ error code/tool name
+- [x] `production_output` ไม่มี "เป้า" แล้ว (เดิมเทียบกับกำลังผลิตแต่ขึ้นป้ายเป้า ทำให้ AI สรุปว่าผลิตได้ 50.8% ของเป้า) ดูกำลังผลิตที่ `capacity_utilization`
+- [x] รอบ "ใช้ง่ายกว่าเดิมจริงไหม" (user 2026-09-27): ข้อความสั้น (หัวเรื่อง ≤ 70 ตัวอักษร, ตรวจแล้ว ≤ 40, รายละเอียด ≤ 50, ข้อแนะนำ ≤ 90 — เกินได้เขียนใหม่หนึ่งรอบ) · นับเรื่องจากที่เดียว (`storyCounts`) ทั้งหน้าแรก ปุ่ม และ dashboard · ความด่วนเป็นของธุรกิจ (`urgent`/`watch`/`ok`) ไม่ลดเพราะคนอื่นเป็นเจ้าของ แค่บอก "…ดูแลเรื่องนี้" · "ถามต่อ" เปิดแชตพร้อมเรื่องนั้น (`/c/new?story=`, thread.storyId, persona ใส่เรื่องแบบ fenced) ไม่ต้องสืบซ้ำ
+- [x] เปลี่ยนการนำเสนอไม่สืบใหม่: 19 คนเขียนเรื่องใหม่จากผล tool ที่เก็บไว้ ผ่านตัวตรวจเดิม ($0) — การสืบใหม่ทั้ง 26 คนทุกครั้งที่แก้กติกาเปลืองและทำเครดิต OpenRouter หมดกลางรอบ
+
 ## 9. Changes to Vexa (agentic-ui) made for Cop
 
 Vexa is not a constraint (user decision 2026-09-22): change it when Cop needs it, prefer general features, list them here. Candidates already identified: a pluggable catalog (`createVexaHandler({ catalog })` + `SpecView registry`) so Cop can add `Provenance`, `AnomalyCard`, `HandoffCard`, `Sparkline`, `Heatmap`; `VexaChat` `initialMessages`/`id`; a headless `useVexaChat` so Cop can own the chat chrome.

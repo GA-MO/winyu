@@ -1,0 +1,2887 @@
+{
+  "investigation": {
+    "id": "u_golf",
+    "userId": "u_golf",
+    "at": "2026-09-26T19:17:07.307Z",
+    "model": "google/gemini-3.8-flash",
+    "stories": [
+      {
+        "kind": "watch",
+        "claim": "สิงห์ในชลบุรีขายออกหลุดเป้า โมเดิร์นเทรดและร้านอาหาร",
+        "scope": "ชลบุรี",
+        "period": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+        "subject": {
+          "metric": "sell_out_volume",
+          "region": "east"
+        },
+        "headline": {
+          "label": "เทียบเป้า",
+          "value": "99.0%",
+          "tone": "bad"
+        },
+        "projection": {
+          "label": "สิ้นเดือน ถ้าขายเท่า 7 วันล่าสุด",
+          "value": "98.5%"
+        },
+        "causes": [
+          {
+            "label": "สิงห์",
+            "detail": "ชลบุรีบูรพา −6,765 · พัทยา −4,041",
+            "value": "−10,806 ลิตร",
+            "shareOfGap": "78.4%"
+          },
+          {
+            "label": "ลีโอ",
+            "detail": "ยอดขายออกต่ำกว่าเป้าหมายในพื้นที่ชลบุรี",
+            "value": "−3,901 ลิตร",
+            "shareOfGap": "28.3%"
+          },
+          {
+            "label": "สิงห์ เลมอนโซดา",
+            "detail": "ยอดขายออกต่ำกว่าเป้าหมายในพื้นที่ชลบุรี",
+            "value": "−1,565 ลิตร",
+            "shareOfGap": "11.4%"
+          }
+        ],
+        "checked": [
+          {
+            "text": "โมเดิร์นเทรดและร้านอาหารขาดมากสุด",
+            "verdict": "confirmed",
+            "source": "explain_gap"
+          },
+          {
+            "text": "ขายออกชลบุรีรวมยังโต +5.6%",
+            "verdict": "confirmed",
+            "source": "query_metric"
+          }
+        ],
+        "recommendation": "คุยชลบุรีบูรพาและพัทยาซันไชน์ วางแผนดันสิงห์ในสองช่องทางนี้",
+        "id": "u_golf-0",
+        "owner": {
+          "userId": "u_wichai",
+          "nameTh": "คุณวิชัย ทองดี",
+          "title": "ผู้จัดการขายภาค ภาคตะวันออก"
+        }
+      },
+      {
+        "kind": "ok",
+        "claim": "ปริมาณขายเข้าชลบุรีบรรลุเป้าหมายได้ตามแผนทั้งสองเอเย่นต์หลัก",
+        "scope": "ชลบุรี",
+        "period": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+        "subject": {
+          "metric": "target_attainment",
+          "region": "east"
+        },
+        "headline": {
+          "label": "เทียบเป้า",
+          "value": "101.4%",
+          "tone": "good"
+        },
+        "projection": null,
+        "causes": [
+          {
+            "label": "พัทยาซันไชน์ ซัพพลาย",
+            "detail": "ทำยอดขายเข้าได้เกินเป้าหมาย",
+            "value": "101.8%",
+            "shareOfGap": null
+          },
+          {
+            "label": "ชลบุรีบูรพา เทรดดิ้ง",
+            "detail": "ทำยอดขายเข้าได้ตามเป้าหมาย",
+            "value": "101.0%",
+            "shareOfGap": null
+          }
+        ],
+        "checked": [
+          {
+            "text": "ชลบุรีขายเข้า 1.3 ล้านลิตร · +1.4%",
+            "verdict": "confirmed",
+            "source": "query_metric"
+          }
+        ],
+        "recommendation": "รักษาความต่อเนื่องในการประสานคำสั่งซื้อกับเอเย่นต์ทั้งสองรายให้ต่อเนื่องถึงสิ้นเดือน",
+        "id": "u_golf-1",
+        "owner": {
+          "userId": "u_wichai",
+          "nameTh": "คุณวิชัย ทองดี",
+          "title": "ผู้จัดการขายภาค ภาคตะวันออก"
+        }
+      },
+      {
+        "kind": "watch",
+        "claim": "บางสินค้าที่ DC ชลบุรีต่ำกว่าเกณฑ์",
+        "scope": "ศูนย์กระจายสินค้าชลบุรี",
+        "period": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+        "subject": {
+          "metric": "days_of_cover",
+          "region": "east"
+        },
+        "headline": {
+          "label": "เฉลี่ย",
+          "value": "14.9 วัน",
+          "tone": "neutral"
+        },
+        "projection": null,
+        "causes": [
+          {
+            "label": "น้ำดื่มสิงห์ แพ็ก 12",
+            "detail": "ต่ำสุดใน DC",
+            "value": "8.7 วัน",
+            "shareOfGap": null
+          },
+          {
+            "label": "โซดาสิงห์ แพ็ก 12",
+            "detail": "ต่ำสุดใน DC",
+            "value": "8.7 วัน",
+            "shareOfGap": null
+          },
+          {
+            "label": "อาซาฮี ขวด 320 มล.",
+            "detail": "วันครอบคลุมสต๊อกเหลือน้อยกว่าเกณฑ์เฉลี่ย",
+            "value": "9.0 วัน",
+            "shareOfGap": null
+          },
+          {
+            "label": "ลีโอ ถัง 30 ลิตร",
+            "detail": "วันครอบคลุมสต๊อกถังเบียร์สดอยู่ในระดับต่ำ",
+            "value": "9.2 วัน",
+            "shareOfGap": null
+          }
+        ],
+        "checked": [
+          {
+            "text": "เฉลี่ยทั้ง DC 14.9 วัน",
+            "verdict": "confirmed",
+            "source": "query_metric"
+          },
+          {
+            "text": "โซดา 12.6 · น้ำดื่ม 13.3 วัน",
+            "verdict": "confirmed",
+            "source": "query_metric"
+          }
+        ],
+        "recommendation": "ตามสต๊อกน้ำดื่มและโซดาสิงห์กับ DC ชลบุรี",
+        "id": "u_golf-2",
+        "owner": {
+          "userId": "u_wee",
+          "nameTh": "คุณวีร์ เจริญสุข",
+          "title": "นักวางแผนซัพพลาย"
+        }
+      }
+    ],
+    "checkedCount": 33,
+    "costUsd": 0.12605685
+  },
+  "notes": "",
+  "calls": [
+    {
+      "tool": "recall_memory",
+      "input": {
+        "query": "กอล์ฟ มีสุข ชลบุรี"
+      },
+      "output": {
+        "ok": true,
+        "summary": "ยังไม่มีข้อมูลที่จำไว้เกี่ยวกับผู้ใช้คนนี้",
+        "data": []
+      }
+    },
+    {
+      "tool": "get_alerts",
+      "input": {
+        "status": "open",
+        "limit": 10
+      },
+      "output": {
+        "ok": true,
+        "summary": "มีความผิดปกติที่เปิดอยู่ 2 รายการในขอบเขตของคุณ",
+        "rows": [
+          {
+            "id": "al_6180aee35a5d31b6",
+            "severity": "P2",
+            "severityLabel": "ควรดู",
+            "metric": "sell_out_volume",
+            "metricLabel": "ปริมาณขายออก (Sell-out)",
+            "scope": {
+              "sku": "sku_purra_pet1500",
+              "province": "pv_chachoengsao",
+              "region": "east"
+            },
+            "scopeLabel": "เพอร์ร่า ขวด PET 1.5 ลิตร · ฉะเชิงเทรา · ภาคตะวันออก",
+            "window": "26 ส.ค. 2569 – 22 ก.ย. 2569",
+            "observedLabel": "265 ลิตร",
+            "expectedLabel": "299 ลิตร",
+            "gapLabel": "11%",
+            "yearOverYear": false,
+            "direction": "down",
+            "hypothesis": "ยอดขายออกจากร้านในฉะเชิงเทราต่ำผิดปกติ ยังหาสาเหตุไม่ได้จากข้อมูลที่มี",
+            "verifySteps": [
+              "เทียบเพอร์ร่า ขวด PET 1.5 ลิตร · ฉะเชิงเทรา · ภาคตะวันออกกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+              "เทียบเพอร์ร่า ขวด PET 1.5 ลิตร · ฉะเชิงเทรา · ภาคตะวันออกกับช่วงเดียวกันของปีที่แล้ว"
+            ],
+            "ownerUserId": "u_wichai"
+          },
+          {
+            "id": "al_3d92631b3e62f8f1",
+            "severity": "P3",
+            "severityLabel": "เฝ้าระวัง",
+            "metric": "sell_out_volume",
+            "metricLabel": "ปริมาณขายออก (Sell-out)",
+            "scope": {
+              "sku": "sku_singha_lemon_soda_bottle320",
+              "province": "pv_rayong",
+              "region": "east"
+            },
+            "scopeLabel": "สิงห์ เลมอนโซดา ขวด 320 มล. · ระยอง · ภาคตะวันออก",
+            "window": "28 ส.ค. 2569 – 22 ก.ย. 2569",
+            "observedLabel": "316 ลิตร",
+            "expectedLabel": "349 ลิตร",
+            "gapLabel": "10%",
+            "yearOverYear": false,
+            "direction": "down",
+            "hypothesis": "ยอดขายออกจากร้านในระยองต่ำผิดปกติ ยังหาสาเหตุไม่ได้จากข้อมูลที่มี",
+            "verifySteps": [
+              "เทียบสิงห์ เลมอนโซดา ขวด 320 มล. · ระยอง · ภาคตะวันออกกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+              "เทียบสิงห์ เลมอนโซดา ขวด 320 มล. · ระยอง · ภาคตะวันออกกับช่วงเดียวกันของปีที่แล้ว"
+            ],
+            "ownerUserId": "u_wichai"
+          }
+        ],
+        "lessons": [],
+        "nextActions": [
+          {
+            "id": "verify",
+            "kind": "verify",
+            "label": "ตรวจสาเหตุ",
+            "reason": "เทียบเพอร์ร่า ขวด PET 1.5 ลิตร · ฉะเชิงเทรา · ภาคตะวันออกกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+            "tool": null,
+            "input": null,
+            "prompt": "เทียบเพอร์ร่า ขวด PET 1.5 ลิตร · ฉะเชิงเทรา · ภาคตะวันออกกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน"
+          },
+          {
+            "id": "drill-channel",
+            "kind": "drill",
+            "label": "แยกตามช่องทาง",
+            "reason": "ยังไม่ได้ดูแยกรายช่องทาง",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอปริมาณขายออก (Sell-out)แยกตามช่องทาง เรียงจากมากไปน้อย"
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "target_attainment",
+        "dims": [
+          "province"
+        ],
+        "filters": {
+          "region": [
+            "east"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "target",
+        "limit": 10,
+        "sort": "value_asc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "province": "ฉะเชิงเทรา",
+            "value": 100.3,
+            "value_label": "100.3%"
+          },
+          {
+            "province": "จันทบุรี",
+            "value": 100.5,
+            "value_label": "100.5%"
+          },
+          {
+            "province": "ชลบุรี",
+            "value": 101.4,
+            "value_label": "101.4%"
+          },
+          {
+            "province": "ระยอง",
+            "value": 101.4,
+            "value_label": "101.4%"
+          }
+        ],
+        "summary": "การบรรลุเป้าหมาย 1 ก.ย. 2569 – 22 ก.ย. 2569: เฉลี่ย 101.2% · สูงสุด: ระยอง 101.4% · ชลบุรี 101.4% · จันทบุรี 100.5% · (4 แถว · certified · SAP SD)",
+        "headline": {
+          "aggregate": "average",
+          "value": "101.2%",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 4,
+          "deltaPercent": null,
+          "compareLabel": null,
+          "compareNote": null,
+          "top": [
+            {
+              "label": "ระยอง",
+              "value": "101.4%"
+            },
+            {
+              "label": "ชลบุรี",
+              "value": "101.4%"
+            },
+            {
+              "label": "จันทบุรี",
+              "value": "100.5%"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "target_attainment",
+          "certified": true,
+          "sourceSystem": "SAP SD",
+          "asOf": "2026-09-22",
+          "rowCount": 4,
+          "filtersApplied": {
+            "region": [
+              "east"
+            ]
+          },
+          "filterLabels": [
+            "ภาคตะวันออก"
+          ],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "target_attainment",
+          "dims": [
+            "province"
+          ],
+          "filters": {
+            "region": [
+              "east"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "target",
+          "limit": 10,
+          "sort": "value_asc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "drill-channel",
+            "kind": "drill",
+            "label": "แยกตามช่องทาง",
+            "reason": "ยังไม่ได้ดูแยกรายช่องทาง",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอการบรรลุเป้าหมายแยกตามช่องทาง เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-drill_down",
+            "label": "ดูเอเย่นต์ในฉะเชิงเทรา",
+            "prompt": "ขอการบรรลุเป้าหมายของฉะเชิงเทรา แยกรายเอเย่นต์ เรียงจากแย่ไปดี",
+            "reason": "ลงไปอีกชั้นเพื่อหาว่าใครในฉะเชิงเทราทำให้ตัวเลขเป็นแบบนี้",
+            "intentKey": "follow|drill_down",
+            "score": 0.7
+          },
+          {
+            "id": "fu-why",
+            "label": "ทำไมฉะเชิงเทรา",
+            "prompt": "เจาะดูการบรรลุเป้าหมายของฉะเชิงเทรา ว่าทำไมถึงเปลี่ยนไป เทียบกับช่วงก่อนหน้าและช่วงเดียวกันปีก่อน",
+            "reason": "ฉะเชิงเทรา คือแถวที่ต้องดูมากที่สุดในคำตอบนี้",
+            "intentKey": "follow|why",
+            "score": 0.6
+          },
+          {
+            "id": "fu-forecast",
+            "label": "จะถึงเป้าไหม",
+            "prompt": "พยากรณ์ปริมาณขายเข้า 8 สัปดาห์ข้างหน้า จะถึงเป้าไหม",
+            "reason": "ดูว่าถ้าเป็นแบบนี้ต่อไปจะเกิดอะไร",
+            "intentKey": "follow|forecast",
+            "score": 0.55
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "net_sales_volume",
+        "dims": [
+          "province"
+        ],
+        "filters": {
+          "region": [
+            "east"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "target",
+        "limit": 10,
+        "sort": "delta_asc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "province": "ฉะเชิงเทรา",
+            "value": 233383,
+            "value_label": "233,383 ลิตร",
+            "compare_value": 232767,
+            "delta_pct": 0.3
+          },
+          {
+            "province": "จันทบุรี",
+            "value": 334264,
+            "value_label": "334,264 ลิตร",
+            "compare_value": 332490,
+            "delta_pct": 0.5
+          },
+          {
+            "province": "ชลบุรี",
+            "value": 1340380,
+            "value_label": "1.3 ล้านลิตร",
+            "compare_value": 1322517,
+            "delta_pct": 1.4
+          },
+          {
+            "province": "ระยอง",
+            "value": 738464,
+            "value_label": "738,464 ลิตร",
+            "compare_value": 728483,
+            "delta_pct": 1.4
+          }
+        ],
+        "summary": "ปริมาณขายเข้า (Sell-in) 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 2.6 ล้านลิตร · สูงสุด: ชลบุรี 1.3 ล้านลิตร · ระยอง 738,464 ลิตร · จันทบุรี 334,264 ลิตร · เทียบเป้า +1.2% · (4 แถว · certified · SAP SD)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "2.6 ล้านลิตร",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 4,
+          "deltaPercent": 1.2,
+          "compareLabel": "เทียบเป้า",
+          "compareNote": null,
+          "top": [
+            {
+              "label": "ชลบุรี",
+              "value": "1.3 ล้านลิตร"
+            },
+            {
+              "label": "ระยอง",
+              "value": "738,464 ลิตร"
+            },
+            {
+              "label": "จันทบุรี",
+              "value": "334,264 ลิตร"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "net_sales_volume",
+          "certified": true,
+          "sourceSystem": "SAP SD",
+          "asOf": "2026-09-22",
+          "rowCount": 4,
+          "filtersApplied": {
+            "region": [
+              "east"
+            ]
+          },
+          "filterLabels": [
+            "ภาคตะวันออก"
+          ],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "net_sales_volume",
+          "dims": [
+            "province"
+          ],
+          "filters": {
+            "region": [
+              "east"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "target",
+          "limit": 10,
+          "sort": "delta_asc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "drill-channel",
+            "kind": "drill",
+            "label": "แยกตามช่องทาง",
+            "reason": "ยังไม่ได้ดูแยกรายช่องทาง",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอปริมาณขายเข้า (Sell-in)แยกตามช่องทาง เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-forecast",
+            "label": "พยากรณ์ 8 สัปดาห์",
+            "prompt": "พยากรณ์ปริมาณขายเข้า 8 สัปดาห์ข้างหน้า",
+            "reason": "ดูว่าถ้าเป็นแบบนี้ต่อไปจะเกิดอะไร",
+            "intentKey": "follow|forecast",
+            "score": 0.55
+          },
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "ปริมาณขายเข้า (Sell-in) รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ขอปริมาณขายเข้า (Sell-in) แยกตามจังหวัด เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "net_sales_volume",
+        "dims": [
+          "agent"
+        ],
+        "filters": {
+          "province": [
+            "pv_chonburi"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "target",
+        "limit": 20,
+        "sort": "delta_asc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "agent": "ชลบุรีบูรพา เทรดดิ้ง",
+            "value": 754470,
+            "value_label": "754,470 ลิตร",
+            "compare_value": 746871,
+            "delta_pct": 1
+          },
+          {
+            "agent": "พัทยาซันไชน์ ซัพพลาย",
+            "value": 585910,
+            "value_label": "585,910 ลิตร",
+            "compare_value": 575646,
+            "delta_pct": 1.8
+          }
+        ],
+        "summary": "ปริมาณขายเข้า (Sell-in) 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 1.3 ล้านลิตร · สูงสุด: ชลบุรีบูรพา เทรดดิ้ง 754,470 ลิตร · พัทยาซันไชน์ ซัพพลาย 585,910 ลิตร · เทียบเป้า +1.4% · (2 แถว · certified · SAP SD)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "1.3 ล้านลิตร",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 2,
+          "deltaPercent": 1.4,
+          "compareLabel": "เทียบเป้า",
+          "compareNote": null,
+          "top": [
+            {
+              "label": "ชลบุรีบูรพา เทรดดิ้ง",
+              "value": "754,470 ลิตร"
+            },
+            {
+              "label": "พัทยาซันไชน์ ซัพพลาย",
+              "value": "585,910 ลิตร"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "net_sales_volume",
+          "certified": true,
+          "sourceSystem": "SAP SD",
+          "asOf": "2026-09-22",
+          "rowCount": 2,
+          "filtersApplied": {
+            "province": [
+              "pv_chonburi"
+            ]
+          },
+          "filterLabels": [
+            "ชลบุรี"
+          ],
+          "scopeApplied": {
+            "region": [
+              "east"
+            ]
+          },
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "net_sales_volume",
+          "dims": [
+            "agent"
+          ],
+          "filters": {
+            "province": [
+              "pv_chonburi"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "target",
+          "limit": 20,
+          "sort": "delta_asc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "drill-channel",
+            "kind": "drill",
+            "label": "แยกตามช่องทาง",
+            "reason": "ยังไม่ได้ดูแยกรายช่องทาง",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอปริมาณขายเข้า (Sell-in)แยกตามช่องทาง เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-forecast",
+            "label": "พยากรณ์ 8 สัปดาห์",
+            "prompt": "พยากรณ์ปริมาณขายเข้า 8 สัปดาห์ข้างหน้า",
+            "reason": "ดูว่าถ้าเป็นแบบนี้ต่อไปจะเกิดอะไร",
+            "intentKey": "follow|forecast",
+            "score": 0.55
+          },
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "ปริมาณขายเข้า (Sell-in) รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ขอปริมาณขายเข้า (Sell-in) แยกตามเอเย่นต์ เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "target_attainment",
+        "dims": [
+          "agent"
+        ],
+        "filters": {
+          "province": [
+            "pv_chonburi"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "target",
+        "limit": 20,
+        "sort": "value_asc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "agent": "ชลบุรีบูรพา เทรดดิ้ง",
+            "value": 101,
+            "value_label": "101.0%"
+          },
+          {
+            "agent": "พัทยาซันไชน์ ซัพพลาย",
+            "value": 101.8,
+            "value_label": "101.8%"
+          }
+        ],
+        "summary": "การบรรลุเป้าหมาย 1 ก.ย. 2569 – 22 ก.ย. 2569: เฉลี่ย 101.4% · สูงสุด: พัทยาซันไชน์ ซัพพลาย 101.8% · ชลบุรีบูรพา เทรดดิ้ง 101.0% · (2 แถว · certified · SAP SD)",
+        "headline": {
+          "aggregate": "average",
+          "value": "101.4%",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 2,
+          "deltaPercent": null,
+          "compareLabel": null,
+          "compareNote": null,
+          "top": [
+            {
+              "label": "พัทยาซันไชน์ ซัพพลาย",
+              "value": "101.8%"
+            },
+            {
+              "label": "ชลบุรีบูรพา เทรดดิ้ง",
+              "value": "101.0%"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "target_attainment",
+          "certified": true,
+          "sourceSystem": "SAP SD",
+          "asOf": "2026-09-22",
+          "rowCount": 2,
+          "filtersApplied": {
+            "province": [
+              "pv_chonburi"
+            ]
+          },
+          "filterLabels": [
+            "ชลบุรี"
+          ],
+          "scopeApplied": {
+            "region": [
+              "east"
+            ]
+          },
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "target_attainment",
+          "dims": [
+            "agent"
+          ],
+          "filters": {
+            "province": [
+              "pv_chonburi"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "target",
+          "limit": 20,
+          "sort": "value_asc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "drill-channel",
+            "kind": "drill",
+            "label": "แยกตามช่องทาง",
+            "reason": "ยังไม่ได้ดูแยกรายช่องทาง",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอการบรรลุเป้าหมายแยกตามช่องทาง เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-why",
+            "label": "ทำไมชลบุรีบูรพา เทรดดิ้ง",
+            "prompt": "เจาะดูการบรรลุเป้าหมายของชลบุรีบูรพา เทรดดิ้ง ว่าทำไมถึงเปลี่ยนไป เทียบกับช่วงก่อนหน้าและช่วงเดียวกันปีก่อน",
+            "reason": "ชลบุรีบูรพา เทรดดิ้ง คือแถวที่ต้องดูมากที่สุดในคำตอบนี้",
+            "intentKey": "follow|why",
+            "score": 0.6
+          },
+          {
+            "id": "fu-forecast",
+            "label": "จะถึงเป้าไหม",
+            "prompt": "พยากรณ์ปริมาณขายเข้า 8 สัปดาห์ข้างหน้า จะถึงเป้าไหม",
+            "reason": "ดูว่าถ้าเป็นแบบนี้ต่อไปจะเกิดอะไร",
+            "intentKey": "follow|forecast",
+            "score": 0.55
+          },
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "การบรรลุเป้าหมาย รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "days_of_cover",
+        "dims": [
+          "agent"
+        ],
+        "filters": {
+          "province": [
+            "pv_chonburi"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "none",
+        "limit": 20,
+        "sort": "value_asc",
+        "where": null
+      },
+      "output": {
+        "ok": false,
+        "error": "มิติ agent ใช้กับเมตริก days_of_cover ไม่ได้",
+        "code": "BAD_QUERY"
+      }
+    },
+    {
+      "tool": "crm_demo__store_visits",
+      "input": {
+        "agentId": null,
+        "regions": "east"
+      },
+      "output": {
+        "ok": false,
+        "code": "CONNECTOR_UNAVAILABLE",
+        "error": "CRM (REST) ไม่ตอบในขณะนี้"
+      }
+    },
+    {
+      "tool": "list_metrics",
+      "input": {
+        "search": null
+      },
+      "output": {
+        "ok": true,
+        "summary": "พบ 9 เมตริกที่ตรงกับคำค้น",
+        "data": [
+          {
+            "id": "net_sales_volume",
+            "labelTh": "ปริมาณขายเข้า (Sell-in)",
+            "unit": "ลิตร",
+            "dims": [
+              "date",
+              "week",
+              "month",
+              "region",
+              "province",
+              "channel",
+              "brand",
+              "sku",
+              "pack",
+              "agent",
+              "business_unit"
+            ],
+            "certified": true,
+            "source": "SAP SD",
+            "refresh": "รายวัน",
+            "latest": "22 ก.ย. 2569"
+          },
+          {
+            "id": "net_sales_value",
+            "labelTh": "มูลค่าขายเข้า",
+            "unit": "บาท",
+            "dims": [
+              "date",
+              "week",
+              "month",
+              "region",
+              "province",
+              "channel",
+              "brand",
+              "sku",
+              "pack",
+              "agent",
+              "business_unit"
+            ],
+            "certified": true,
+            "source": "SAP SD",
+            "refresh": "รายวัน",
+            "latest": "22 ก.ย. 2569"
+          },
+          {
+            "id": "sell_out_volume",
+            "labelTh": "ปริมาณขายออก (Sell-out)",
+            "unit": "ลิตร",
+            "dims": [
+              "date",
+              "week",
+              "month",
+              "region",
+              "province",
+              "channel",
+              "brand",
+              "sku",
+              "pack",
+              "agent",
+              "business_unit"
+            ],
+            "certified": true,
+            "source": "SAP SD",
+            "refresh": "รายวัน",
+            "latest": "22 ก.ย. 2569"
+          },
+          {
+            "id": "target_attainment",
+            "labelTh": "การบรรลุเป้าหมาย",
+            "unit": "%",
+            "dims": [
+              "date",
+              "week",
+              "month",
+              "region",
+              "province",
+              "channel",
+              "brand",
+              "sku",
+              "pack",
+              "agent",
+              "business_unit"
+            ],
+            "certified": true,
+            "source": "SAP SD",
+            "refresh": "รายวัน",
+            "latest": "22 ก.ย. 2569"
+          },
+          {
+            "id": "stock_on_hand",
+            "labelTh": "สต๊อกคงเหลือ",
+            "unit": "ลัง",
+            "dims": [
+              "date",
+              "week",
+              "month",
+              "region",
+              "dc",
+              "brand",
+              "sku",
+              "pack",
+              "business_unit"
+            ],
+            "certified": true,
+            "source": "WMS",
+            "refresh": "รายวัน",
+            "latest": "22 ก.ย. 2569"
+          },
+          {
+            "id": "days_of_cover",
+            "labelTh": "วันครอบคลุมสต๊อก",
+            "unit": "วัน",
+            "dims": [
+              "date",
+              "week",
+              "month",
+              "region",
+              "dc",
+              "brand",
+              "sku",
+              "pack",
+              "business_unit"
+            ],
+            "certified": true,
+            "source": "WMS",
+            "refresh": "รายวัน",
+            "latest": "22 ก.ย. 2569"
+          },
+          {
+            "id": "ar_overdue",
+            "labelTh": "ยอดค้างชำระเกินกำหนด",
+            "unit": "บาท",
+            "dims": [
+              "month",
+              "agent",
+              "province",
+              "region"
+            ],
+            "certified": true,
+            "source": "SAP FI",
+            "refresh": "รายเดือน",
+            "latest": "22 ก.ย. 2569"
+          },
+          {
+            "id": "avg_salary",
+            "labelTh": "เงินเดือนเฉลี่ย",
+            "unit": "บาท",
+            "dims": [
+              "month",
+              "department"
+            ],
+            "certified": true,
+            "source": "HRIS",
+            "refresh": "รายเดือน",
+            "latest": "22 ก.ย. 2569"
+          },
+          {
+            "id": "market_share",
+            "labelTh": "ส่วนแบ่งตลาดเบียร์",
+            "unit": "%",
+            "dims": [
+              "month",
+              "region",
+              "province",
+              "maker"
+            ],
+            "certified": false,
+            "source": "Retail audit รายเดือน",
+            "refresh": "รอบสำรวจรายเดือน",
+            "latest": "รอบ ส.ค. 69"
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "ar_overdue",
+        "dims": [
+          "agent"
+        ],
+        "filters": {
+          "province": [
+            "pv_chonburi"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "none",
+        "limit": 10,
+        "sort": "value_desc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "agent": "ชลบุรีบูรพา เทรดดิ้ง",
+            "value": "***",
+            "value_label": "***"
+          },
+          {
+            "agent": "พัทยาซันไชน์ ซัพพลาย",
+            "value": "***",
+            "value_label": "***"
+          }
+        ],
+        "summary": "ยอดค้างชำระเกินกำหนด 1 ก.ย. 2569 – 22 ก.ย. 2569: ข้อมูลถูกปิดตามนโยบาย (masked) — เห็นได้เฉพาะโครงสร้างข้อมูล",
+        "headline": {
+          "aggregate": "sum",
+          "value": "—",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 2,
+          "deltaPercent": null,
+          "compareLabel": null,
+          "compareNote": null,
+          "top": []
+        },
+        "provenance": {
+          "metric": "ar_overdue",
+          "certified": true,
+          "sourceSystem": "SAP FI",
+          "asOf": "2026-09-22",
+          "rowCount": 2,
+          "filtersApplied": {
+            "province": [
+              "pv_chonburi"
+            ]
+          },
+          "filterLabels": [
+            "ชลบุรี"
+          ],
+          "scopeApplied": {
+            "region": [
+              "east"
+            ]
+          },
+          "masked": [
+            "value",
+            "compare_value",
+            "delta_pct"
+          ],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "ar_overdue",
+          "dims": [
+            "agent"
+          ],
+          "filters": {
+            "province": [
+              "pv_chonburi"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "none",
+          "limit": 10,
+          "sort": "value_desc",
+          "where": null
+        },
+        "nextActions": [],
+        "followUps": [
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายเดือน",
+            "prompt": "ยอดค้างชำระเกินกำหนด รายเดือนย้อนหลัง 6 เดือน",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ขอยอดค้างชำระเกินกำหนดแยกตามเอเย่นต์ เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "sell_out_volume",
+        "dims": [
+          "agent"
+        ],
+        "filters": {
+          "province": [
+            "pv_chonburi"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "prev_period",
+        "limit": 10,
+        "sort": "delta_asc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "agent": "พัทยาซันไชน์ ซัพพลาย",
+            "value": 569060,
+            "value_label": "569,060 ลิตร",
+            "compare_value": 709961,
+            "delta_pct": -19.8
+          },
+          {
+            "agent": "ชลบุรีบูรพา เทรดดิ้ง",
+            "value": 739678,
+            "value_label": "739,678 ลิตร",
+            "compare_value": 913884,
+            "delta_pct": -19.1
+          }
+        ],
+        "summary": "ปริมาณขายออก (Sell-out) 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 1.3 ล้านลิตร · สูงสุด: ชลบุรีบูรพา เทรดดิ้ง 739,678 ลิตร · พัทยาซันไชน์ ซัพพลาย 569,060 ลิตร · เทียบช่วงก่อนหน้า -19.4% · (2 แถว · certified · SAP SD)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "1.3 ล้านลิตร",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 2,
+          "deltaPercent": -19.4,
+          "compareLabel": "เทียบช่วงก่อนหน้า",
+          "compareNote": null,
+          "top": [
+            {
+              "label": "ชลบุรีบูรพา เทรดดิ้ง",
+              "value": "739,678 ลิตร"
+            },
+            {
+              "label": "พัทยาซันไชน์ ซัพพลาย",
+              "value": "569,060 ลิตร"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "sell_out_volume",
+          "certified": true,
+          "sourceSystem": "SAP SD",
+          "asOf": "2026-09-22",
+          "rowCount": 2,
+          "filtersApplied": {
+            "province": [
+              "pv_chonburi"
+            ]
+          },
+          "filterLabels": [
+            "ชลบุรี"
+          ],
+          "scopeApplied": {
+            "region": [
+              "east"
+            ]
+          },
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "sell_out_volume",
+          "dims": [
+            "agent"
+          ],
+          "filters": {
+            "province": [
+              "pv_chonburi"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "prev_period",
+          "limit": 10,
+          "sort": "delta_asc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "drill-why",
+            "kind": "drill",
+            "label": "ทำไมพัทยาซันไชน์ ซัพพลายถึงเป็นแบบนี้",
+            "reason": "พัทยาซันไชน์ ซัพพลาย เปลี่ยนไปในทางที่แย่ที่สุด",
+            "tool": null,
+            "input": null,
+            "prompt": "เจาะดูปริมาณขายออก (Sell-out)ของพัทยาซันไชน์ ซัพพลาย ว่าทำไมถึงเปลี่ยนไป เทียบกับช่วงก่อนหน้าและช่วงเดียวกันปีก่อน"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-trend",
+            "label": "เริ่มแย่ตั้งแต่เมื่อไร",
+            "prompt": "ปริมาณขายออก (Sell-out) ของพัทยาซันไชน์ ซัพพลาย รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "ดูว่าตัวเลขเริ่มลดลงสัปดาห์ไหน",
+            "intentKey": "follow|trend",
+            "score": 0.65
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ขอปริมาณขายออก (Sell-out) แยกตามเอเย่นต์ เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "sell_out_volume",
+        "dims": [
+          "agent"
+        ],
+        "filters": {
+          "province": [
+            "pv_chonburi"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "target",
+        "limit": 10,
+        "sort": "delta_asc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "agent": "พัทยาซันไชน์ ซัพพลาย",
+            "value": 569060,
+            "value_label": "569,060 ลิตร",
+            "compare_value": 575646,
+            "delta_pct": -1.1
+          },
+          {
+            "agent": "ชลบุรีบูรพา เทรดดิ้ง",
+            "value": 739678,
+            "value_label": "739,678 ลิตร",
+            "compare_value": 746871,
+            "delta_pct": -1
+          }
+        ],
+        "summary": "ปริมาณขายออก (Sell-out) 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 1.3 ล้านลิตร · สูงสุด: ชลบุรีบูรพา เทรดดิ้ง 739,678 ลิตร · พัทยาซันไชน์ ซัพพลาย 569,060 ลิตร · เทียบเป้า -1.0% · (2 แถว · certified · SAP SD)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "1.3 ล้านลิตร",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 2,
+          "deltaPercent": -1,
+          "compareLabel": "เทียบเป้า",
+          "compareNote": null,
+          "top": [
+            {
+              "label": "ชลบุรีบูรพา เทรดดิ้ง",
+              "value": "739,678 ลิตร"
+            },
+            {
+              "label": "พัทยาซันไชน์ ซัพพลาย",
+              "value": "569,060 ลิตร"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "sell_out_volume",
+          "certified": true,
+          "sourceSystem": "SAP SD",
+          "asOf": "2026-09-22",
+          "rowCount": 2,
+          "filtersApplied": {
+            "province": [
+              "pv_chonburi"
+            ]
+          },
+          "filterLabels": [
+            "ชลบุรี"
+          ],
+          "scopeApplied": {
+            "region": [
+              "east"
+            ]
+          },
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "sell_out_volume",
+          "dims": [
+            "agent"
+          ],
+          "filters": {
+            "province": [
+              "pv_chonburi"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "target",
+          "limit": 10,
+          "sort": "delta_asc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "drill-channel",
+            "kind": "drill",
+            "label": "แยกตามช่องทาง",
+            "reason": "ยังไม่ได้ดูแยกรายช่องทาง",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอปริมาณขายออก (Sell-out)แยกตามช่องทาง เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "ปริมาณขายออก (Sell-out) รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ขอปริมาณขายออก (Sell-out) แยกตามเอเย่นต์ เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "days_of_cover",
+        "dims": [
+          "dc"
+        ],
+        "filters": {
+          "region": [
+            "east"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "none",
+        "limit": 10,
+        "sort": "value_asc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "dc": "ศูนย์กระจายสินค้าชลบุรี",
+            "value": 14.94,
+            "value_label": "14.9 วัน"
+          }
+        ],
+        "summary": "วันครอบคลุมสต๊อก 1 ก.ย. 2569 – 22 ก.ย. 2569: เฉลี่ย 14.9 วัน · ต่ำสุด: ศูนย์กระจายสินค้าชลบุรี 14.9 วัน · (1 แถว · certified · WMS)",
+        "headline": {
+          "aggregate": "average",
+          "value": "14.9 วัน",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 1,
+          "deltaPercent": null,
+          "compareLabel": null,
+          "compareNote": null,
+          "top": [
+            {
+              "label": "ศูนย์กระจายสินค้าชลบุรี",
+              "value": "14.9 วัน"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "days_of_cover",
+          "certified": true,
+          "sourceSystem": "WMS",
+          "asOf": "2026-09-22",
+          "rowCount": 1,
+          "filtersApplied": {
+            "region": [
+              "east"
+            ]
+          },
+          "filterLabels": [
+            "ภาคตะวันออก"
+          ],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "days_of_cover",
+          "dims": [
+            "dc"
+          ],
+          "filters": {
+            "region": [
+              "east"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "none",
+          "limit": 10,
+          "sort": "value_asc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "drill-brand",
+            "kind": "drill",
+            "label": "แยกตามแบรนด์",
+            "reason": "ยังไม่ได้ดูแยกรายแบรนด์",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอวันครอบคลุมสต๊อกแยกตามแบรนด์ เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-forecast",
+            "label": "พยากรณ์ 8 สัปดาห์",
+            "prompt": "พยากรณ์วันครอบคลุมสต๊อก 8 สัปดาห์ข้างหน้า",
+            "reason": "ดูว่าถ้าเป็นแบบนี้ต่อไปจะเกิดอะไร",
+            "intentKey": "follow|forecast",
+            "score": 0.55
+          },
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "วันครอบคลุมสต๊อก รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ขอวันครอบคลุมสต๊อกแยกตามศูนย์กระจายสินค้า เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "tool": "explain_gap",
+      "input": {
+        "metric": "sell_out_volume",
+        "split": "brand",
+        "filters": {
+          "province": [
+            "pv_chonburi"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "compare": "target"
+      },
+      "output": {
+        "ok": true,
+        "summary": "ปริมาณขายออก (Sell-out) 1 ก.ย. 2569 – 22 ก.ย. 2569: จริง 1.3 ล้านลิตร · เป้า 1.3 ล้านลิตร · ช่องว่าง −13,779 ลิตร",
+        "period_label": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+        "actual_label": "1.3 ล้านลิตร",
+        "compare_label": "เป้า 1.3 ล้านลิตร",
+        "gap_label": "−13,779 ลิตร",
+        "attainment_label": "99.0%",
+        "contributors": [
+          {
+            "label": "สิงห์",
+            "gap_label": "−10,806 ลิตร",
+            "share_label": "78.4%"
+          },
+          {
+            "label": "ลีโอ",
+            "gap_label": "−3,901 ลิตร",
+            "share_label": "28.3%"
+          },
+          {
+            "label": "สิงห์ เลมอนโซดา",
+            "gap_label": "−1,565 ลิตร",
+            "share_label": "11.4%"
+          },
+          {
+            "label": "อาซาฮี",
+            "gap_label": "−494 ลิตร",
+            "share_label": "3.6%"
+          },
+          {
+            "label": "คาร์ลสเบิร์ก",
+            "gap_label": "−272 ลิตร",
+            "share_label": "2.0%"
+          }
+        ],
+        "rest": null,
+        "offsetting": [
+          {
+            "label": "น้ำดื่มสิงห์",
+            "gap_label": "+1,983 ลิตร"
+          },
+          {
+            "label": "เพอร์ร่า",
+            "gap_label": "+664 ลิตร"
+          },
+          {
+            "label": "โซดาสิงห์",
+            "gap_label": "+610 ลิตร"
+          }
+        ],
+        "projection": {
+          "label": "สิ้นเดือน ถ้าขายเท่า 7 วันล่าสุด",
+          "basis": "วันที่เหลือของเดือนขายเท่าค่าเฉลี่ย 7 วันล่าสุด และเป้ากระจายเท่ากันทุกวัน",
+          "projected_label": "1.8 ล้านลิตร",
+          "month_target_label": "1.8 ล้านลิตร",
+          "attainment_label": "98.5%"
+        }
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "days_of_cover",
+        "dims": [
+          "brand"
+        ],
+        "filters": {
+          "dc": [
+            "dc_chonburi"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "none",
+        "limit": 20,
+        "sort": "value_asc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "brand": "โซดาสิงห์",
+            "value": 12.59,
+            "value_label": "12.6 วัน"
+          },
+          {
+            "brand": "น้ำดื่มสิงห์",
+            "value": 13.32,
+            "value_label": "13.3 วัน"
+          },
+          {
+            "brand": "อาซาฮี",
+            "value": 13.76,
+            "value_label": "13.8 วัน"
+          },
+          {
+            "brand": "ลีโอ",
+            "value": 14.49,
+            "value_label": "14.5 วัน"
+          },
+          {
+            "brand": "สิงห์ เลมอนโซดา",
+            "value": 15.33,
+            "value_label": "15.3 วัน"
+          },
+          {
+            "brand": "สิงห์",
+            "value": 15.92,
+            "value_label": "15.9 วัน"
+          },
+          {
+            "brand": "เพอร์ร่า",
+            "value": 19.22,
+            "value_label": "19.2 วัน"
+          },
+          {
+            "brand": "คาร์ลสเบิร์ก",
+            "value": 22.56,
+            "value_label": "22.6 วัน"
+          }
+        ],
+        "summary": "วันครอบคลุมสต๊อก 1 ก.ย. 2569 – 22 ก.ย. 2569: เฉลี่ย 14.9 วัน · ต่ำสุด: โซดาสิงห์ 12.6 วัน · น้ำดื่มสิงห์ 13.3 วัน · อาซาฮี 13.8 วัน · (8 แถว · certified · WMS)",
+        "headline": {
+          "aggregate": "average",
+          "value": "14.9 วัน",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 8,
+          "deltaPercent": null,
+          "compareLabel": null,
+          "compareNote": null,
+          "top": [
+            {
+              "label": "โซดาสิงห์",
+              "value": "12.6 วัน"
+            },
+            {
+              "label": "น้ำดื่มสิงห์",
+              "value": "13.3 วัน"
+            },
+            {
+              "label": "อาซาฮี",
+              "value": "13.8 วัน"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "days_of_cover",
+          "certified": true,
+          "sourceSystem": "WMS",
+          "asOf": "2026-09-22",
+          "rowCount": 8,
+          "filtersApplied": {
+            "dc": [
+              "dc_chonburi"
+            ]
+          },
+          "filterLabels": [
+            "ศูนย์กระจายสินค้าชลบุรี"
+          ],
+          "scopeApplied": {
+            "region": [
+              "east"
+            ]
+          },
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "days_of_cover",
+          "dims": [
+            "brand"
+          ],
+          "filters": {
+            "dc": [
+              "dc_chonburi"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "none",
+          "limit": 20,
+          "sort": "value_asc",
+          "where": null
+        },
+        "nextActions": [],
+        "followUps": [
+          {
+            "id": "fu-drill_down",
+            "label": "ดู SKU ในโซดาสิงห์",
+            "prompt": "ขอวันครอบคลุมสต๊อกของโซดาสิงห์ แยกราย SKU เรียงจากแย่ไปดี",
+            "reason": "ลงไปอีกชั้นเพื่อหาว่าใครในโซดาสิงห์ทำให้ตัวเลขเป็นแบบนี้",
+            "intentKey": "follow|drill_down",
+            "score": 0.7
+          },
+          {
+            "id": "fu-why",
+            "label": "ทำไมโซดาสิงห์",
+            "prompt": "เจาะดูวันครอบคลุมสต๊อกของโซดาสิงห์ ว่าทำไมถึงเปลี่ยนไป เทียบกับช่วงก่อนหน้าและช่วงเดียวกันปีก่อน",
+            "reason": "โซดาสิงห์ คือแถวที่ต้องดูมากที่สุดในคำตอบนี้",
+            "intentKey": "follow|why",
+            "score": 0.6
+          },
+          {
+            "id": "fu-forecast",
+            "label": "พยากรณ์ 8 สัปดาห์",
+            "prompt": "พยากรณ์วันครอบคลุมสต๊อก 8 สัปดาห์ข้างหน้า",
+            "reason": "ดูว่าถ้าเป็นแบบนี้ต่อไปจะเกิดอะไร",
+            "intentKey": "follow|forecast",
+            "score": 0.55
+          }
+        ]
+      }
+    },
+    {
+      "tool": "explain_gap",
+      "input": {
+        "metric": "sell_out_volume",
+        "split": "province",
+        "filters": {
+          "region": [
+            "east"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "compare": "target"
+      },
+      "output": {
+        "ok": true,
+        "summary": "ปริมาณขายออก (Sell-out) 1 ก.ย. 2569 – 22 ก.ย. 2569: จริง 2.6 ล้านลิตร · เป้า 2.6 ล้านลิตร · ช่องว่าง −26,372 ลิตร",
+        "period_label": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+        "actual_label": "2.6 ล้านลิตร",
+        "compare_label": "เป้า 2.6 ล้านลิตร",
+        "gap_label": "−26,372 ลิตร",
+        "attainment_label": "99.0%",
+        "contributors": [
+          {
+            "label": "ชลบุรี",
+            "gap_label": "−13,779 ลิตร",
+            "share_label": "52.2%"
+          },
+          {
+            "label": "จันทบุรี",
+            "gap_label": "−6,275 ลิตร",
+            "share_label": "23.8%"
+          },
+          {
+            "label": "ระยอง",
+            "gap_label": "−4,850 ลิตร",
+            "share_label": "18.4%"
+          },
+          {
+            "label": "ฉะเชิงเทรา",
+            "gap_label": "−1,467 ลิตร",
+            "share_label": "5.6%"
+          }
+        ],
+        "rest": null,
+        "offsetting": [],
+        "projection": {
+          "label": "สิ้นเดือน ถ้าขายเท่า 7 วันล่าสุด",
+          "basis": "วันที่เหลือของเดือนขายเท่าค่าเฉลี่ย 7 วันล่าสุด และเป้ากระจายเท่ากันทุกวัน",
+          "projected_label": "3.5 ล้านลิตร",
+          "month_target_label": "3.6 ล้านลิตร",
+          "attainment_label": "98.4%"
+        }
+      }
+    },
+    {
+      "tool": "get_calendar",
+      "input": {
+        "from": "2026-09-01",
+        "to": "2026-10-31"
+      },
+      "output": {
+        "ok": true,
+        "summary": "1 ก.ย. 2569 – 31 ต.ค. 2569 มี 3 วันสำคัญ ห้ามขายเครื่องดื่มแอลกอฮอล์ 1 วัน",
+        "data": [
+          {
+            "date": "2026-10-13",
+            "date_label": "13 ต.ค. 2569",
+            "when_label": "อีก 21 วัน",
+            "name": "วันคล้ายวันสวรรคต รัชกาลที่ 9",
+            "kind": "holiday",
+            "kind_label": "วันหยุด",
+            "impact_label": "ขายออกเบียร์ +4% · วัดจากวันคล้ายวันสวรรคต รัชกาลที่ 9 13 ต.ค. 2568"
+          },
+          {
+            "date": "2026-10-23",
+            "date_label": "23 ต.ค. 2569",
+            "when_label": "อีก 31 วัน",
+            "name": "วันปิยมหาราช",
+            "kind": "holiday",
+            "kind_label": "วันหยุด",
+            "impact_label": "ขายออกเบียร์ +15% · วัดจากวันปิยมหาราช 23 ต.ค. 2568"
+          },
+          {
+            "date": "2026-10-26",
+            "date_label": "26 ต.ค. 2569",
+            "when_label": "อีก 34 วัน",
+            "name": "วันออกพรรษา",
+            "kind": "alcohol_ban",
+            "kind_label": "ห้ามขายเครื่องดื่มแอลกอฮอล์",
+            "impact_label": "ขายออกเบียร์ -90% · เอเย่นต์สั่งเข้า 2 วันก่อนหน้า +27% · วัดจากวันวิสาขบูชา 31 พ.ค. 2569"
+          }
+        ]
+      }
+    },
+    {
+      "tool": "explain_gap",
+      "input": {
+        "metric": "sell_out_volume",
+        "split": "agent",
+        "filters": {
+          "brand": [
+            "brand_singha"
+          ],
+          "province": [
+            "pv_chonburi"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "compare": "target"
+      },
+      "output": {
+        "ok": true,
+        "summary": "ปริมาณขายออก (Sell-out) 1 ก.ย. 2569 – 22 ก.ย. 2569: จริง 332,171 ลิตร · เป้า 342,977 ลิตร · ช่องว่าง −10,806 ลิตร",
+        "period_label": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+        "actual_label": "332,171 ลิตร",
+        "compare_label": "เป้า 342,977 ลิตร",
+        "gap_label": "−10,806 ลิตร",
+        "attainment_label": "96.8%",
+        "contributors": [
+          {
+            "label": "ชลบุรีบูรพา เทรดดิ้ง",
+            "gap_label": "−6,765 ลิตร",
+            "share_label": "62.6%"
+          },
+          {
+            "label": "พัทยาซันไชน์ ซัพพลาย",
+            "gap_label": "−4,041 ลิตร",
+            "share_label": "37.4%"
+          }
+        ],
+        "rest": null,
+        "offsetting": [],
+        "projection": {
+          "label": "สิ้นเดือน ถ้าขายเท่า 7 วันล่าสุด",
+          "basis": "วันที่เหลือของเดือนขายเท่าค่าเฉลี่ย 7 วันล่าสุด และเป้ากระจายเท่ากันทุกวัน",
+          "projected_label": "451,714 ลิตร",
+          "month_target_label": "467,696 ลิตร",
+          "attainment_label": "96.6%"
+        }
+      }
+    },
+    {
+      "tool": "explain_gap",
+      "input": {
+        "metric": "sell_out_volume",
+        "split": "channel",
+        "filters": {
+          "province": [
+            "pv_chonburi"
+          ],
+          "brand": [
+            "brand_singha"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "compare": "target"
+      },
+      "output": {
+        "ok": true,
+        "summary": "ปริมาณขายออก (Sell-out) 1 ก.ย. 2569 – 22 ก.ย. 2569: จริง 332,171 ลิตร · เป้า 342,977 ลิตร · ช่องว่าง −10,806 ลิตร",
+        "period_label": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+        "actual_label": "332,171 ลิตร",
+        "compare_label": "เป้า 342,977 ลิตร",
+        "gap_label": "−10,806 ลิตร",
+        "attainment_label": "96.8%",
+        "contributors": [
+          {
+            "label": "โมเดิร์นเทรด",
+            "gap_label": "−3,831 ลิตร",
+            "share_label": "35.5%"
+          },
+          {
+            "label": "ร้านอาหารและสถานบันเทิง",
+            "gap_label": "−3,088 ลิตร",
+            "share_label": "28.6%"
+          },
+          {
+            "label": "ร้านค้าปลีกดั้งเดิม",
+            "gap_label": "−2,966 ลิตร",
+            "share_label": "27.4%"
+          },
+          {
+            "label": "ส่งออก",
+            "gap_label": "−920 ลิตร",
+            "share_label": "8.5%"
+          }
+        ],
+        "rest": null,
+        "offsetting": [],
+        "projection": {
+          "label": "สิ้นเดือน ถ้าขายเท่า 7 วันล่าสุด",
+          "basis": "วันที่เหลือของเดือนขายเท่าค่าเฉลี่ย 7 วันล่าสุด และเป้ากระจายเท่ากันทุกวัน",
+          "projected_label": "451,714 ลิตร",
+          "month_target_label": "467,696 ลิตร",
+          "attainment_label": "96.6%"
+        }
+      }
+    },
+    {
+      "tool": "explain_gap",
+      "input": {
+        "metric": "sell_out_volume",
+        "split": "agent",
+        "filters": {
+          "brand": [
+            "brand_leo"
+          ],
+          "province": [
+            "pv_chonburi"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "compare": "target"
+      },
+      "output": {
+        "ok": true,
+        "summary": "ปริมาณขายออก (Sell-out) 1 ก.ย. 2569 – 22 ก.ย. 2569: จริง 411,349 ลิตร · เป้า 415,250 ลิตร · ช่องว่าง −3,901 ลิตร",
+        "period_label": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+        "actual_label": "411,349 ลิตร",
+        "compare_label": "เป้า 415,250 ลิตร",
+        "gap_label": "−3,901 ลิตร",
+        "attainment_label": "99.1%",
+        "contributors": [
+          {
+            "label": "ชลบุรีบูรพา เทรดดิ้ง",
+            "gap_label": "−2,407 ลิตร",
+            "share_label": "61.7%"
+          },
+          {
+            "label": "พัทยาซันไชน์ ซัพพลาย",
+            "gap_label": "−1,494 ลิตร",
+            "share_label": "38.3%"
+          }
+        ],
+        "rest": null,
+        "offsetting": [],
+        "projection": {
+          "label": "สิ้นเดือน ถ้าขายเท่า 7 วันล่าสุด",
+          "basis": "วันที่เหลือของเดือนขายเท่าค่าเฉลี่ย 7 วันล่าสุด และเป้ากระจายเท่ากันทุกวัน",
+          "projected_label": "559,156 ลิตร",
+          "month_target_label": "566,250 ลิตร",
+          "attainment_label": "98.7%"
+        }
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "sell_out_volume",
+        "dims": [
+          "brand"
+        ],
+        "filters": {
+          "province": [
+            "pv_chonburi"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "prev_year",
+        "limit": 10,
+        "sort": "delta_asc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "brand": "สิงห์ เลมอนโซดา",
+            "value": 65415,
+            "value_label": "65,415 ลิตร",
+            "compare_value": 63224,
+            "delta_pct": 3.5
+          },
+          {
+            "brand": "สิงห์",
+            "value": 332171,
+            "value_label": "332,171 ลิตร",
+            "compare_value": 318440,
+            "delta_pct": 4.3
+          },
+          {
+            "brand": "คาร์ลสเบิร์ก",
+            "value": 25138,
+            "value_label": "25,138 ลิตร",
+            "compare_value": 24083,
+            "delta_pct": 4.4
+          },
+          {
+            "brand": "อาซาฮี",
+            "value": 24333,
+            "value_label": "24,333 ลิตร",
+            "compare_value": 23201,
+            "delta_pct": 4.9
+          },
+          {
+            "brand": "ลีโอ",
+            "value": 411349,
+            "value_label": "411,349 ลิตร",
+            "compare_value": 388946,
+            "delta_pct": 5.8
+          },
+          {
+            "brand": "โซดาสิงห์",
+            "value": 104301,
+            "value_label": "104,301 ลิตร",
+            "compare_value": 98221,
+            "delta_pct": 6.2
+          },
+          {
+            "brand": "เพอร์ร่า",
+            "value": 87043,
+            "value_label": "87,043 ลิตร",
+            "compare_value": 81869,
+            "delta_pct": 6.3
+          },
+          {
+            "brand": "น้ำดื่มสิงห์",
+            "value": 258987,
+            "value_label": "258,987 ลิตร",
+            "compare_value": 241712,
+            "delta_pct": 7.1
+          }
+        ],
+        "summary": "ปริมาณขายออก (Sell-out) 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 1.3 ล้านลิตร · สูงสุด: ลีโอ 411,349 ลิตร · สิงห์ 332,171 ลิตร · น้ำดื่มสิงห์ 258,987 ลิตร · เทียบปีก่อน +5.6% · (8 แถว · certified · SAP SD)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "1.3 ล้านลิตร",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 8,
+          "deltaPercent": 5.6,
+          "compareLabel": "เทียบปีก่อน",
+          "compareNote": null,
+          "top": [
+            {
+              "label": "ลีโอ",
+              "value": "411,349 ลิตร"
+            },
+            {
+              "label": "สิงห์",
+              "value": "332,171 ลิตร"
+            },
+            {
+              "label": "น้ำดื่มสิงห์",
+              "value": "258,987 ลิตร"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "sell_out_volume",
+          "certified": true,
+          "sourceSystem": "SAP SD",
+          "asOf": "2026-09-22",
+          "rowCount": 8,
+          "filtersApplied": {
+            "province": [
+              "pv_chonburi"
+            ]
+          },
+          "filterLabels": [
+            "ชลบุรี"
+          ],
+          "scopeApplied": {
+            "region": [
+              "east"
+            ]
+          },
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "sell_out_volume",
+          "dims": [
+            "brand"
+          ],
+          "filters": {
+            "province": [
+              "pv_chonburi"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "prev_year",
+          "limit": 10,
+          "sort": "delta_asc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "drill-channel",
+            "kind": "drill",
+            "label": "แยกตามช่องทาง",
+            "reason": "ยังไม่ได้ดูแยกรายช่องทาง",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอปริมาณขายออก (Sell-out)แยกตามช่องทาง เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "ปริมาณขายออก (Sell-out) รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "days_of_cover",
+        "dims": [
+          "sku"
+        ],
+        "filters": {
+          "dc": [
+            "dc_chonburi"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "none",
+        "limit": 20,
+        "sort": "value_asc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "sku": "น้ำดื่มสิงห์ แพ็ก 12",
+            "value": 8.72,
+            "value_label": "8.7 วัน"
+          },
+          {
+            "sku": "โซดาสิงห์ แพ็ก 12",
+            "value": 8.74,
+            "value_label": "8.7 วัน"
+          },
+          {
+            "sku": "อาซาฮี ขวด 320 มล.",
+            "value": 8.96,
+            "value_label": "9.0 วัน"
+          },
+          {
+            "sku": "ลีโอ ถัง 30 ลิตร",
+            "value": 9.17,
+            "value_label": "9.2 วัน"
+          },
+          {
+            "sku": "ลีโอ แพ็ก 12",
+            "value": 10.01,
+            "value_label": "10.0 วัน"
+          },
+          {
+            "sku": "ลีโอ กระป๋อง 490 มล.",
+            "value": 10.24,
+            "value_label": "10.2 วัน"
+          },
+          {
+            "sku": "สิงห์ เลมอนโซดา ขวด 320 มล.",
+            "value": 11.01,
+            "value_label": "11.0 วัน"
+          },
+          {
+            "sku": "ลีโอ กระป๋อง 320 มล.",
+            "value": 11.97,
+            "value_label": "12.0 วัน"
+          },
+          {
+            "sku": "โซดาสิงห์ ขวด 320 มล.",
+            "value": 12.43,
+            "value_label": "12.4 วัน"
+          },
+          {
+            "sku": "สิงห์ กระป๋อง 490 มล.",
+            "value": 12.78,
+            "value_label": "12.8 วัน"
+          },
+          {
+            "sku": "น้ำดื่มสิงห์ ขวด PET 600 มล.",
+            "value": 13.06,
+            "value_label": "13.1 วัน"
+          },
+          {
+            "sku": "สิงห์ ขวด 620 มล.",
+            "value": 14.4,
+            "value_label": "14.4 วัน"
+          },
+          {
+            "sku": "โซดาสิงห์ กระป๋อง 320 มล.",
+            "value": 14.96,
+            "value_label": "15.0 วัน"
+          },
+          {
+            "sku": "เพอร์ร่า แพ็ก 12",
+            "value": 15.08,
+            "value_label": "15.1 วัน"
+          },
+          {
+            "sku": "ลีโอ ขวด 320 มล.",
+            "value": 15.31,
+            "value_label": "15.3 วัน"
+          },
+          {
+            "sku": "สิงห์ เลมอนโซดา ขวด PET 600 มล.",
+            "value": 15.63,
+            "value_label": "15.6 วัน"
+          },
+          {
+            "sku": "อาซาฮี ถัง 30 ลิตร",
+            "value": 15.79,
+            "value_label": "15.8 วัน"
+          },
+          {
+            "sku": "สิงห์ กระป๋อง 320 มล.",
+            "value": 15.83,
+            "value_label": "15.8 วัน"
+          },
+          {
+            "sku": "คาร์ลสเบิร์ก ถัง 30 ลิตร",
+            "value": 16.08,
+            "value_label": "16.1 วัน"
+          },
+          {
+            "sku": "น้ำดื่มสิงห์ ขวด PET 1.5 ลิตร",
+            "value": 16.26,
+            "value_label": "16.3 วัน"
+          }
+        ],
+        "summary": "วันครอบคลุมสต๊อก 1 ก.ย. 2569 – 22 ก.ย. 2569: เฉลี่ย 14.9 วัน · ต่ำสุด: น้ำดื่มสิงห์ แพ็ก 12 8.7 วัน · โซดาสิงห์ แพ็ก 12 8.7 วัน · อาซาฮี ขวด 320 มล. 9.0 วัน · (20 แถว · certified · WMS)",
+        "headline": {
+          "aggregate": "average",
+          "value": "14.9 วัน",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 20,
+          "deltaPercent": null,
+          "compareLabel": null,
+          "compareNote": null,
+          "top": [
+            {
+              "label": "น้ำดื่มสิงห์ แพ็ก 12",
+              "value": "8.7 วัน"
+            },
+            {
+              "label": "โซดาสิงห์ แพ็ก 12",
+              "value": "8.7 วัน"
+            },
+            {
+              "label": "อาซาฮี ขวด 320 มล.",
+              "value": "9.0 วัน"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "days_of_cover",
+          "certified": true,
+          "sourceSystem": "WMS",
+          "asOf": "2026-09-22",
+          "rowCount": 20,
+          "filtersApplied": {
+            "dc": [
+              "dc_chonburi"
+            ]
+          },
+          "filterLabels": [
+            "ศูนย์กระจายสินค้าชลบุรี"
+          ],
+          "scopeApplied": {
+            "region": [
+              "east"
+            ]
+          },
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "days_of_cover",
+          "dims": [
+            "sku"
+          ],
+          "filters": {
+            "dc": [
+              "dc_chonburi"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "none",
+          "limit": 20,
+          "sort": "value_asc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "drill-brand",
+            "kind": "drill",
+            "label": "แยกตามแบรนด์",
+            "reason": "ยังไม่ได้ดูแยกรายแบรนด์",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอวันครอบคลุมสต๊อกแยกตามแบรนด์ เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-why",
+            "label": "ทำไมน้ำดื่มสิงห์ แพ็ก 12",
+            "prompt": "เจาะดูวันครอบคลุมสต๊อกของน้ำดื่มสิงห์ แพ็ก 12 ว่าทำไมถึงเปลี่ยนไป เทียบกับช่วงก่อนหน้าและช่วงเดียวกันปีก่อน",
+            "reason": "น้ำดื่มสิงห์ แพ็ก 12 คือแถวที่ต้องดูมากที่สุดในคำตอบนี้",
+            "intentKey": "follow|why",
+            "score": 0.6
+          },
+          {
+            "id": "fu-forecast",
+            "label": "พยากรณ์ 8 สัปดาห์",
+            "prompt": "พยากรณ์วันครอบคลุมสต๊อกของน้ำดื่มสิงห์ แพ็ก 12 8 สัปดาห์ข้างหน้า",
+            "reason": "ดูว่าถ้าเป็นแบบนี้ต่อไปจะเกิดอะไร",
+            "intentKey": "follow|forecast",
+            "score": 0.55
+          },
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "วันครอบคลุมสต๊อก รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          }
+        ]
+      }
+    },
+    {
+      "tool": "get_person",
+      "input": {
+        "id": null,
+        "name": "กอล์ฟ มีสุข"
+      },
+      "output": {
+        "ok": true,
+        "summary": "คุณกอล์ฟ มีสุข — พนักงานขาย ชลบุรี",
+        "data": {
+          "id": "u_golf",
+          "name": "คุณกอล์ฟ มีสุข",
+          "title": "พนักงานขาย ชลบุรี",
+          "photo": "/img/people/p30.jpg",
+          "badges": [],
+          "facts": [
+            {
+              "label": "ฝ่าย",
+              "value": "ขาย"
+            },
+            {
+              "label": "พื้นที่",
+              "value": "ชลบุรี"
+            },
+            {
+              "label": "หัวหน้า",
+              "value": "คุณวิชัย ทองดี"
+            },
+            {
+              "label": "อายุงาน",
+              "value": "4 ปี 4 เดือน"
+            },
+            {
+              "label": "เริ่มงาน",
+              "value": "1 พ.ค. 2565"
+            },
+            {
+              "label": "โอที 3 เดือนล่าสุด",
+              "value": "18 ชม."
+            }
+          ],
+          "history": [
+            {
+              "title": "เริ่มงาน พนักงานขาย ชลบุรี",
+              "detail": null,
+              "time": "1 พ.ค. 2565"
+            }
+          ],
+          "certificates": [
+            {
+              "label": "ใบอนุญาตจำหน่ายสุรา (ผู้แทน)",
+              "value": "หมดอายุ 30 เม.ย. 2570 · อีก 220 วัน"
+            }
+          ],
+          "risk_reasons": [],
+          "reports": []
+        }
+      }
+    },
+    {
+      "tool": "describe_entity",
+      "input": {
+        "kind": "agent",
+        "query": "ชลบุรีบูรพา เทรดดิ้ง"
+      },
+      "output": {
+        "ok": true,
+        "data": {
+          "id": "ag_est_01",
+          "ชื่อ": "ชลบุรีบูรพา เทรดดิ้ง",
+          "จังหวัด": "ชลบุรี",
+          "ภาค": "ภาคตะวันออก",
+          "เกรด": "A",
+          "เครดิต": "45 วัน",
+          "เป็นคู่ค้าตั้งแต่": 2002,
+          "ศูนย์กระจายสินค้า": "ศูนย์กระจายสินค้าชลบุรี",
+          "น้ำหนักยอดขาย": 1.41
+        },
+        "summary": "ชลบุรีบูรพา เทรดดิ้ง เอเย่นต์เกรด A จังหวัดชลบุรี ภาคตะวันออก เครดิต 45 วัน ส่งจากศูนย์กระจายสินค้าชลบุรี"
+      }
+    },
+    {
+      "tool": "describe_entity",
+      "input": {
+        "kind": "agent",
+        "query": "พัทยาซันไชน์ ซัพพลาย"
+      },
+      "output": {
+        "ok": true,
+        "data": {
+          "id": "ag_est_02",
+          "ชื่อ": "พัทยาซันไชน์ ซัพพลาย",
+          "จังหวัด": "ชลบุรี",
+          "ภาค": "ภาคตะวันออก",
+          "เกรด": "B",
+          "เครดิต": "30 วัน",
+          "เป็นคู่ค้าตั้งแต่": 2012,
+          "ศูนย์กระจายสินค้า": "ศูนย์กระจายสินค้าชลบุรี",
+          "น้ำหนักยอดขาย": 1.06
+        },
+        "summary": "พัทยาซันไชน์ ซัพพลาย เอเย่นต์เกรด B จังหวัดชลบุรี ภาคตะวันออก เครดิต 30 วัน ส่งจากศูนย์กระจายสินค้าชลบุรี"
+      }
+    },
+    {
+      "tool": "crm_demo__store_visits",
+      "input": {
+        "agentId": "ag_est_01",
+        "regions": null
+      },
+      "output": {
+        "ok": false,
+        "code": "CONNECTOR_UNAVAILABLE",
+        "error": "CRM (REST) ไม่ตอบในขณะนี้"
+      }
+    },
+    {
+      "tool": "resolve_owner",
+      "input": {
+        "metric": "net_sales_volume",
+        "dims": {
+          "region": "east",
+          "province": "pv_chonburi"
+        }
+      },
+      "output": {
+        "ok": true,
+        "summary": "ผู้รับผิดชอบคือ คุณวิชัย ทองดี",
+        "data": {
+          "userId": "u_wichai",
+          "nameTh": "คุณวิชัย ทองดี",
+          "title": "ผู้จัดการขายภาค ภาคตะวันออก",
+          "role": "sales_rsm",
+          "region": "east",
+          "reason": "เจ้าของตัวเลขยอดขายของพื้นที่ (ระดับภาค) · เคยรับงานลักษณะนี้ 0 ครั้ง · ตอนนี้มีงานค้าง 0 เรื่อง",
+          "openLoad": 0,
+          "handledBefore": 0
+        }
+      }
+    },
+    {
+      "tool": "resolve_owner",
+      "input": {
+        "metric": "sell_out_volume",
+        "dims": {
+          "region": "east",
+          "province": "pv_chachoengsao"
+        }
+      },
+      "output": {
+        "ok": true,
+        "summary": "ผู้รับผิดชอบคือ คุณวิชัย ทองดี",
+        "data": {
+          "userId": "u_wichai",
+          "nameTh": "คุณวิชัย ทองดี",
+          "title": "ผู้จัดการขายภาค ภาคตะวันออก",
+          "role": "sales_rsm",
+          "region": "east",
+          "reason": "เจ้าของตัวเลขยอดขายของพื้นที่ (ระดับภาค) · เคยรับงานลักษณะนี้ 0 ครั้ง · ตอนนี้มีงานค้าง 0 เรื่อง",
+          "openLoad": 0,
+          "handledBefore": 0
+        }
+      }
+    },
+    {
+      "tool": "find_people",
+      "input": {
+        "region": "east",
+        "department": "dept_sales",
+        "manager": "u_wichai",
+        "query": null,
+        "flag": null
+      },
+      "output": {
+        "ok": true,
+        "summary": "พบ 2 คน · บางช่องถูกปิดตามสิทธิ์ของผู้ใช้",
+        "data": [
+          {
+            "id": "u_wichai",
+            "name": "คุณวิชัย ทองดี",
+            "title": "ผู้จัดการขายภาค ภาคตะวันออก",
+            "place": "ชลบุรี",
+            "photo": "/img/people/p28.jpg",
+            "department": "ขาย",
+            "manager": "คุณประสิทธิ์ ชัยภูมิ",
+            "tenure": null,
+            "badges": []
+          },
+          {
+            "is_you": true,
+            "id": "u_golf",
+            "name": "คุณกอล์ฟ มีสุข",
+            "title": "พนักงานขาย ชลบุรี",
+            "place": "ชลบุรี",
+            "photo": "/img/people/p30.jpg",
+            "department": "ขาย",
+            "manager": "คุณวิชัย ทองดี",
+            "tenure": "4 ปี 4 เดือน",
+            "badges": []
+          }
+        ],
+        "open_positions": []
+      }
+    },
+    {
+      "tool": "find_people",
+      "input": {
+        "region": "east",
+        "department": "dept_sales",
+        "manager": null,
+        "query": null,
+        "flag": null
+      },
+      "output": {
+        "ok": true,
+        "summary": "พบ 2 คน · บางช่องถูกปิดตามสิทธิ์ของผู้ใช้",
+        "data": [
+          {
+            "id": "u_wichai",
+            "name": "คุณวิชัย ทองดี",
+            "title": "ผู้จัดการขายภาค ภาคตะวันออก",
+            "place": "ชลบุรี",
+            "photo": "/img/people/p28.jpg",
+            "department": "ขาย",
+            "manager": "คุณประสิทธิ์ ชัยภูมิ",
+            "tenure": null,
+            "badges": []
+          },
+          {
+            "is_you": true,
+            "id": "u_golf",
+            "name": "คุณกอล์ฟ มีสุข",
+            "title": "พนักงานขาย ชลบุรี",
+            "place": "ชลบุรี",
+            "photo": "/img/people/p30.jpg",
+            "department": "ขาย",
+            "manager": "คุณวิชัย ทองดี",
+            "tenure": "4 ปี 4 เดือน",
+            "badges": []
+          }
+        ],
+        "open_positions": []
+      }
+    },
+    {
+      "tool": "get_forecast",
+      "input": {
+        "metric": "net_sales_volume",
+        "dims": {
+          "province": "pv_chonburi"
+        },
+        "weeks": 8
+      },
+      "output": {
+        "ok": true,
+        "summary": "ยังไม่มีพยากรณ์สำหรับมิติที่ขอ",
+        "weeks": []
+      }
+    },
+    {
+      "tool": "get_forecast",
+      "input": {
+        "metric": "net_sales_volume",
+        "dims": {
+          "region": "east"
+        },
+        "weeks": 8
+      },
+      "output": {
+        "ok": true,
+        "metric": "net_sales_volume",
+        "summary": "พยากรณ์ 8 สัปดาห์ของปริมาณขายเข้า (Sell-in) · รวม 8 ชุดพยากรณ์ย่อย · รวม 8 สัปดาห์ 6.9 ล้านลิตร · เฉลี่ยสัปดาห์ละ 867,198 ลิตร (Holt-Winters · ความคลาดเคลื่อนย้อนหลัง MAPE 11.7%)",
+        "total": 6937587,
+        "weekly_average": 867198,
+        "mape": 11.7,
+        "weeks": [
+          {
+            "week": "สัปดาห์ 39",
+            "date": "2026-09-21",
+            "value": 808575,
+            "lo": 673999,
+            "hi": 943150,
+            "value_label": "808,575 ลิตร",
+            "range_label": "673,999 ลิตร – 943,150 ลิตร"
+          },
+          {
+            "week": "สัปดาห์ 40",
+            "date": "2026-09-28",
+            "value": 809467,
+            "lo": 619148,
+            "hi": 999785,
+            "value_label": "809,467 ลิตร",
+            "range_label": "619,148 ลิตร – 999,785 ลิตร"
+          },
+          {
+            "week": "สัปดาห์ 41",
+            "date": "2026-10-05",
+            "value": 802753,
+            "lo": 569661,
+            "hi": 1035844,
+            "value_label": "802,753 ลิตร",
+            "range_label": "569,661 ลิตร – 1 ล้านลิตร"
+          },
+          {
+            "week": "สัปดาห์ 42",
+            "date": "2026-10-12",
+            "value": 826256,
+            "lo": 557105,
+            "hi": 1095407,
+            "value_label": "826,256 ลิตร",
+            "range_label": "557,105 ลิตร – 1.1 ล้านลิตร"
+          },
+          {
+            "week": "สัปดาห์ 43",
+            "date": "2026-10-19",
+            "value": 837233,
+            "lo": 536314,
+            "hi": 1138153,
+            "value_label": "837,233 ลิตร",
+            "range_label": "536,314 ลิตร – 1.1 ล้านลิตร"
+          },
+          {
+            "week": "สัปดาห์ 44",
+            "date": "2026-10-26",
+            "value": 982814,
+            "lo": 653173,
+            "hi": 1312455,
+            "value_label": "982,814 ลิตร",
+            "range_label": "653,173 ลิตร – 1.3 ล้านลิตร"
+          },
+          {
+            "week": "สัปดาห์ 45",
+            "date": "2026-11-02",
+            "value": 927956,
+            "lo": 571903,
+            "hi": 1284009,
+            "value_label": "927,956 ลิตร",
+            "range_label": "571,903 ลิตร – 1.3 ล้านลิตร"
+          },
+          {
+            "week": "สัปดาห์ 46",
+            "date": "2026-11-09",
+            "value": 942533,
+            "lo": 561896,
+            "hi": 1323170,
+            "value_label": "942,533 ลิตร",
+            "range_label": "561,896 ลิตร – 1.3 ล้านลิตร"
+          }
+        ]
+      }
+    },
+    {
+      "tool": "list_courses",
+      "input": {
+        "month": "2026-09",
+        "query": null
+      },
+      "output": {
+        "ok": true,
+        "summary": "3 หลักสูตร เริ่มหลักสูตรแรก 26 ก.ย. 2569",
+        "data": [
+          {
+            "id": "crs_forklift_kk",
+            "title": "ต่ออายุใบขับขี่รถยก (ภาคปฏิบัติ)",
+            "cover": "/img/courses/course02.jpg",
+            "category": "ความปลอดภัย",
+            "when": "26 ก.ย. 2569 · 1 วัน",
+            "place": "โรงงานขอนแก่น · ภาคปฏิบัติ",
+            "audience": "พนักงานขับรถยกและหัวหน้ากะที่ใบขับขี่ใกล้หมด",
+            "seats": {
+              "label": "เหลือ 3 ที่ จาก 12",
+              "tone": "bad"
+            },
+            "note": null,
+            "badges": [],
+            "can_enroll": true
+          },
+          {
+            "id": "crs_first_aid",
+            "title": "ปฐมพยาบาลและ CPR",
+            "cover": "/img/courses/course04.jpg",
+            "category": "ความปลอดภัย",
+            "when": "29 ก.ย. 2569 · 1 วัน",
+            "place": "สำนักงานใหญ่ สามเสน · ห้องเรียน",
+            "audience": "พนักงานทุกฝ่าย",
+            "seats": {
+              "label": "เหลือ 12 ที่ จาก 30",
+              "tone": "neutral"
+            },
+            "note": null,
+            "badges": [],
+            "can_enroll": true
+          },
+          {
+            "id": "crs_consultative",
+            "title": "การขายแบบที่ปรึกษา รุ่น 4",
+            "cover": "/img/courses/course03.jpg",
+            "category": "การขาย",
+            "when": "30 ก.ย. 2569 · 2 วัน",
+            "place": "โรงแรมในเมืองขอนแก่น · ห้องเรียน",
+            "audience": "พนักงานขายและหัวหน้าทีมขาย",
+            "seats": {
+              "label": "เหลือ 3 ที่ จาก 24",
+              "tone": "bad"
+            },
+            "note": null,
+            "badges": [],
+            "can_enroll": true
+          }
+        ]
+      }
+    }
+  ],
+  "dropped": []
+}

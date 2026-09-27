@@ -1,0 +1,4358 @@
+{
+  "investigation": {
+    "id": "u_pim",
+    "userId": "u_pim",
+    "at": "2026-09-26T19:32:08.127Z",
+    "model": "google/gemini-3.8-flash",
+    "stories": [
+      {
+        "kind": "urgent",
+        "claim": "อีสาน 93.3% ของเป้า ช่องว่างหลักคือเบียร์ของ 2 เอเย่นต์",
+        "scope": "ภาคอีสาน",
+        "period": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+        "subject": {
+          "metric": "net_sales_volume",
+          "region": "northeast"
+        },
+        "headline": {
+          "label": "เทียบเป้า",
+          "value": "93.3%",
+          "tone": "bad"
+        },
+        "projection": {
+          "label": "สิ้นเดือน ถ้าขายเท่า 7 วันล่าสุด",
+          "value": "90.6%"
+        },
+        "causes": [
+          {
+            "label": "กลุ่มเบียร์",
+            "detail": "ช่องว่างยอดขายเข้ากลุ่มเบียร์ในภาคอีสาน",
+            "value": "−304,051 ลิตร",
+            "shareOfGap": "109.2%"
+          },
+          {
+            "label": "อีสานรุ่งโรจน์ ค้าส่ง",
+            "detail": "ช่องว่างยอดขายเข้าของเอเย่นต์ในภาคอีสาน",
+            "value": "−150,081 ลิตร",
+            "shareOfGap": "53.9%"
+          },
+          {
+            "label": "อุบลศรีสุข เทรดดิ้ง",
+            "detail": "ช่องว่างยอดขายเข้าของเอเย่นต์ในภาคอีสาน",
+            "value": "−147,224 ลิตร",
+            "shareOfGap": "52.9%"
+          },
+          {
+            "label": "กลุ่มนอนแอลกอฮอล์",
+            "detail": "ยอดขายเข้าส่วนชดเชยที่ทำได้เกินเป้าหมาย",
+            "value": "+25,310 ลิตร",
+            "shareOfGap": null
+          }
+        ],
+        "checked": [
+          {
+            "text": "เบียร์ขาดเป้า −304,051 ลิตร",
+            "verdict": "confirmed",
+            "source": "explain_gap"
+          },
+          {
+            "text": "2 เอเย่นต์ขาดเป้ามากสุด",
+            "verdict": "confirmed",
+            "source": "explain_gap"
+          },
+          {
+            "text": "น่าจะติดเครดิตหรือรอบวางบิล",
+            "verdict": "likely",
+            "source": "get_alerts"
+          },
+          {
+            "text": "ดูบันทึกเยี่ยมร้านไม่ได้",
+            "verdict": "unknown",
+            "source": "crm_demo__store_visits"
+          },
+          {
+            "text": "ดูหนี้ค้างไม่ได้ (ไม่มีสิทธิ์)",
+            "verdict": "unknown",
+            "source": "query_metric"
+          }
+        ],
+        "recommendation": "ตรวจคำสั่งซื้อและวงเงินของ 2 เอเย่นต์กับทีมขายและสินเชื่อ",
+        "id": "u_pim-0",
+        "owner": {
+          "userId": "u_anucha",
+          "nameTh": "คุณอนุชา พรหมศรี",
+          "title": "ผู้จัดการขายภาค ภาคอีสาน"
+        }
+      },
+      {
+        "kind": "ok",
+        "claim": "แคมเปญโซดา 1 แถม 1 จบวันนี้ ยอดเพิ่ม 35.3% ถึงเป้า",
+        "scope": "ซีสโตร์ โซดาซัมเมอร์ 1 แถม 1",
+        "period": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+        "subject": {
+          "metric": "campaign_uplift",
+          "region": null
+        },
+        "headline": {
+          "label": "ยอดเพิ่มจากแคมเปญ",
+          "value": "35.3%",
+          "tone": "good"
+        },
+        "projection": null,
+        "causes": [],
+        "checked": [
+          {
+            "text": "ยอดเพิ่ม 35.3% · เป้า 35%",
+            "verdict": "confirmed",
+            "source": "query_metric"
+          },
+          {
+            "text": "ใช้งบ 8.0 ล้านบาท ตามกรอบ",
+            "verdict": "confirmed",
+            "source": "query_metric"
+          },
+          {
+            "text": "โซดาในโมเดิร์นเทรดขายออกเพิ่มชัด",
+            "verdict": "confirmed",
+            "source": "get_alerts"
+          }
+        ],
+        "recommendation": "สรุปผลเสนอคุณเบญ และดูว่าจะใช้โปรนี้ในพื้นที่อื่นได้ไหม",
+        "id": "u_pim-1",
+        "owner": {
+          "userId": "u_ben",
+          "nameTh": "คุณเบญ เตชะวงศ์",
+          "title": "ผู้จัดการแบรนด์ กลุ่มนอนแอลกอฮอล์"
+        }
+      },
+      {
+        "kind": "ok",
+        "claim": "นอนแอลฯ อีสานขายเข้าเกินเป้า +1.7% ครบทุกแบรนด์",
+        "scope": "กลุ่มนอนแอลกอฮอล์ · ภาคอีสาน",
+        "period": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+        "subject": {
+          "metric": "net_sales_volume",
+          "region": "northeast"
+        },
+        "headline": {
+          "label": "เทียบเป้า",
+          "value": "+1.7%",
+          "tone": "good"
+        },
+        "projection": null,
+        "causes": [],
+        "checked": [
+          {
+            "text": "รวม 1.5 ล้านลิตร · +1.7%",
+            "verdict": "confirmed",
+            "source": "query_metric"
+          },
+          {
+            "text": "โซดา +2% · น้ำดื่ม +1.7%",
+            "verdict": "confirmed",
+            "source": "query_metric"
+          },
+          {
+            "text": "ขายออก 1.5 ล้านลิตร ตามเป้า",
+            "verdict": "confirmed",
+            "source": "query_metric"
+          },
+          {
+            "text": "DC ขอนแก่น 16.8 · โคราช 14.0 วัน",
+            "verdict": "confirmed",
+            "source": "query_metric"
+          }
+        ],
+        "recommendation": "ดูขายออกหน้าร้านและสต๊อกให้พอช่วงปลายเดือน",
+        "id": "u_pim-2",
+        "owner": {
+          "userId": "u_anucha",
+          "nameTh": "คุณอนุชา พรหมศรี",
+          "title": "ผู้จัดการขายภาค ภาคอีสาน"
+        }
+      }
+    ],
+    "checkedCount": 40,
+    "costUsd": 0.191066025
+  },
+  "notes": "",
+  "calls": [
+    {
+      "tool": "recall_memory",
+      "input": {
+        "query": "คุณพิม สุริยวงศ์ อีสาน เทรดมาร์เก็ตติ้ง"
+      },
+      "output": {
+        "ok": true,
+        "summary": "ยังไม่มีข้อมูลที่จำไว้เกี่ยวกับผู้ใช้คนนี้",
+        "data": []
+      }
+    },
+    {
+      "tool": "get_alerts",
+      "input": {
+        "status": "open",
+        "limit": 10
+      },
+      "output": {
+        "ok": true,
+        "summary": "มีความผิดปกติที่เปิดอยู่ 10 รายการในขอบเขตของคุณ",
+        "rows": [
+          {
+            "id": "al_a25b3f027de53c68",
+            "severity": "P3",
+            "severityLabel": "เฝ้าระวัง",
+            "metric": "sell_out_volume",
+            "metricLabel": "ปริมาณขายออก (Sell-out)",
+            "scope": {
+              "sku": "sku_singha_soda_can320",
+              "channel": "modern_trade",
+              "region": "bkk"
+            },
+            "scopeLabel": "โซดาสิงห์ กระป๋อง 320 มล. · โมเดิร์นเทรด · กรุงเทพฯ และปริมณฑล",
+            "window": "6 ก.ย. 2569 – 22 ก.ย. 2569",
+            "observedLabel": "5,099 ลิตร",
+            "expectedLabel": "3,925 ลิตร",
+            "gapLabel": "30%",
+            "yearOverYear": false,
+            "direction": "up",
+            "hypothesis": "การเปลี่ยนแปลงนี้อธิบายได้ด้วยโปรโมชัน \"ซีสโตร์ โซดาซัมเมอร์ 1 แถม 1\" ที่กำลังทำอยู่ในช่วงเวลาเดียวกัน จึงยังไม่ถือว่าผิดปกติ",
+            "verifySteps": [
+              "ดูผลแคมเปญที่ทำอยู่กับโซดาสิงห์ กระป๋อง 320 มล. · โมเดิร์นเทรด · กรุงเทพฯ และปริมณฑล เทียบก่อนและระหว่างแคมเปญ",
+              "เทียบโซดาสิงห์ กระป๋อง 320 มล. · โมเดิร์นเทรด · กรุงเทพฯ และปริมณฑลกับช่วงเดียวกันของปีที่แล้ว"
+            ],
+            "ownerUserId": "u_kanok"
+          },
+          {
+            "id": "al_2bced77035d90ef1",
+            "severity": "P3",
+            "severityLabel": "เฝ้าระวัง",
+            "metric": "sell_out_volume",
+            "metricLabel": "ปริมาณขายออก (Sell-out)",
+            "scope": {
+              "sku": "sku_singha_soda_can320",
+              "channel": "modern_trade",
+              "region": "central"
+            },
+            "scopeLabel": "โซดาสิงห์ กระป๋อง 320 มล. · โมเดิร์นเทรด · ภาคกลาง",
+            "window": "6 ก.ย. 2569 – 22 ก.ย. 2569",
+            "observedLabel": "2,759 ลิตร",
+            "expectedLabel": "2,143 ลิตร",
+            "gapLabel": "29%",
+            "yearOverYear": false,
+            "direction": "up",
+            "hypothesis": "การเปลี่ยนแปลงนี้อธิบายได้ด้วยโปรโมชัน \"ซีสโตร์ โซดาซัมเมอร์ 1 แถม 1\" ที่กำลังทำอยู่ในช่วงเวลาเดียวกัน จึงยังไม่ถือว่าผิดปกติ",
+            "verifySteps": [
+              "ดูผลแคมเปญที่ทำอยู่กับโซดาสิงห์ กระป๋อง 320 มล. · โมเดิร์นเทรด · ภาคกลาง เทียบก่อนและระหว่างแคมเปญ",
+              "เทียบโซดาสิงห์ กระป๋อง 320 มล. · โมเดิร์นเทรด · ภาคกลางกับช่วงเดียวกันของปีที่แล้ว"
+            ],
+            "ownerUserId": "u_somchai"
+          },
+          {
+            "id": "al_7364476d77c8f435",
+            "severity": "P1",
+            "severityLabel": "ต้องรีบดู",
+            "metric": "net_sales_volume",
+            "metricLabel": "ปริมาณขายเข้า (Sell-in)",
+            "scope": {
+              "agent": "ag_nea_05",
+              "region": "northeast"
+            },
+            "scopeLabel": "อุบลศรีสุข เทรดดิ้ง · ภาคอีสาน",
+            "window": "9 ก.ย. 2569 – 22 ก.ย. 2569",
+            "observedLabel": "2,220 ลิตร",
+            "expectedLabel": "12,928 ลิตร",
+            "gapLabel": "83%",
+            "yearOverYear": false,
+            "direction": "down",
+            "hypothesis": "อุบลศรีสุข เทรดดิ้ง แทบไม่มีคำสั่งซื้อเข้ามาในช่วงนี้ น่าจะติดปัญหาเครดิต การวางบิล หรือเปลี่ยนไปรับสินค้าจากที่อื่น",
+            "verifySteps": [
+              "ดูประวัติการสั่งซื้อรายวันของอุบลศรีสุข เทรดดิ้ง · ภาคอีสาน 30 วันล่าสุด",
+              "ดูยอดค้างชำระเกินกำหนดของอุบลศรีสุข เทรดดิ้ง · ภาคอีสานรายเดือน 6 เดือนล่าสุด"
+            ],
+            "ownerUserId": "u_anucha"
+          },
+          {
+            "id": "al_ed6dca9e1dab4e48",
+            "severity": "P1",
+            "severityLabel": "ต้องรีบดู",
+            "metric": "net_sales_volume",
+            "metricLabel": "ปริมาณขายเข้า (Sell-in)",
+            "scope": {
+              "agent": "ag_nea_02",
+              "region": "northeast"
+            },
+            "scopeLabel": "อีสานรุ่งโรจน์ ค้าส่ง · ภาคอีสาน",
+            "window": "8 ก.ย. 2569 – 22 ก.ย. 2569",
+            "observedLabel": "3,251 ลิตร",
+            "expectedLabel": "13,928 ลิตร",
+            "gapLabel": "77%",
+            "yearOverYear": false,
+            "direction": "down",
+            "hypothesis": "อีสานรุ่งโรจน์ ค้าส่ง แทบไม่มีคำสั่งซื้อเข้ามาในช่วงนี้ น่าจะติดปัญหาเครดิต การวางบิล หรือเปลี่ยนไปรับสินค้าจากที่อื่น",
+            "verifySteps": [
+              "ดูประวัติการสั่งซื้อรายวันของอีสานรุ่งโรจน์ ค้าส่ง · ภาคอีสาน 30 วันล่าสุด",
+              "ดูยอดค้างชำระเกินกำหนดของอีสานรุ่งโรจน์ ค้าส่ง · ภาคอีสานรายเดือน 6 เดือนล่าสุด"
+            ],
+            "ownerUserId": "u_anucha"
+          },
+          {
+            "id": "al_fa3be1e7b4f9fe40",
+            "severity": "P1",
+            "severityLabel": "ต้องรีบดู",
+            "metric": "market_share",
+            "metricLabel": "ส่วนแบ่งตลาดเบียร์",
+            "scope": {
+              "province": "pv_nakhonratchasima",
+              "region": "northeast"
+            },
+            "scopeLabel": "นครราชสีมา · ภาคอีสาน",
+            "window": "1 มิ.ย. 2569 – 31 ส.ค. 2569",
+            "observedLabel": "59.7%",
+            "expectedLabel": "63.2%",
+            "gapLabel": "3.5 จุด",
+            "yearOverYear": false,
+            "direction": "down",
+            "hypothesis": "ในนครราชสีมา คาราบาวได้ส่วนแบ่งตลาดเบียร์เพิ่ม 4.1 จุดในช่วงเดียวกับที่ส่วนแบ่งของเราลดลง 3.5 จุด น่าจะมีการทำตลาดหรือตั้งราคาเชิงรุกในพื้นที่นี้",
+            "verifySteps": [
+              "เทียบส่วนแบ่งตลาดของทุกผู้ผลิตในนครราชสีมา เทียบปีก่อน",
+              "ดูยอดขายออกเบียร์ของเราในนครราชสีมาเทียบปีก่อน"
+            ],
+            "ownerUserId": "u_anucha"
+          },
+          {
+            "id": "al_35ced4920cc14a53",
+            "severity": "P2",
+            "severityLabel": "ควรดู",
+            "metric": "net_sales_volume",
+            "metricLabel": "ปริมาณขายเข้า (Sell-in)",
+            "scope": {
+              "agent": "ag_nea_07",
+              "brand": "leo",
+              "sku": "sku_leo_bottle620",
+              "region": "northeast"
+            },
+            "scopeLabel": "ส.รุ่งเรือง เทรดดิ้ง · ลีโอ ขวด 620 มล. · ภาคอีสาน",
+            "window": "31 ส.ค. 2569 – 21 ก.ย. 2569",
+            "observedLabel": "2,002 ลิตร",
+            "expectedLabel": "2,620 ลิตร",
+            "gapLabel": "24%",
+            "yearOverYear": false,
+            "direction": "down",
+            "hypothesis": "ยอดสั่งเข้าของ ส.รุ่งเรือง เทรดดิ้ง · ลีโอ ขวด 620 มล. · ภาคอีสาน ลดลงต่อเนื่องขณะที่ยอดขายออกหน้าร้านยังทรงตัว น่าจะมีสต๊อกค้างอยู่ที่เอเย่นต์มากกว่าความต้องการที่แท้จริงลดลง",
+            "verifySteps": [
+              "เทียบยอดขายเข้ากับยอดขายออกของส.รุ่งเรือง เทรดดิ้ง · ลีโอ ขวด 620 มล. · ภาคอีสาน รายสัปดาห์ 8 สัปดาห์ล่าสุด",
+              "ดูวันครอบคลุมสต๊อกและสต๊อกคงเหลือของส.รุ่งเรือง เทรดดิ้ง · ลีโอ ขวด 620 มล. · ภาคอีสานตอนนี้"
+            ],
+            "ownerUserId": "u_anucha"
+          },
+          {
+            "id": "al_05e4ed13725e756a",
+            "severity": "P3",
+            "severityLabel": "เฝ้าระวัง",
+            "metric": "net_sales_volume",
+            "metricLabel": "ปริมาณขายเข้า (Sell-in)",
+            "scope": {
+              "agent": "ag_nea_06",
+              "brand": "asahi",
+              "sku": "sku_asahi_bottle320",
+              "region": "northeast"
+            },
+            "scopeLabel": "วารินพาณิชย์ · อาซาฮี ขวด 320 มล. · ภาคอีสาน",
+            "window": "30 ส.ค. 2569 – 22 ก.ย. 2569",
+            "observedLabel": "27.1 ลิตร",
+            "expectedLabel": "24 ลิตร",
+            "gapLabel": "13%",
+            "yearOverYear": false,
+            "direction": "up",
+            "hypothesis": "ปริมาณขายในภาคอีสานสูงผิดปกติ ยังหาสาเหตุไม่ได้จากข้อมูลที่มี",
+            "verifySteps": [
+              "เทียบวารินพาณิชย์ · อาซาฮี ขวด 320 มล. · ภาคอีสานกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+              "เทียบวารินพาณิชย์ · อาซาฮี ขวด 320 มล. · ภาคอีสานกับช่วงเดียวกันของปีที่แล้ว"
+            ],
+            "ownerUserId": "u_anucha"
+          },
+          {
+            "id": "al_49b503043dd5af01",
+            "severity": "P3",
+            "severityLabel": "เฝ้าระวัง",
+            "metric": "sell_out_volume",
+            "metricLabel": "ปริมาณขายออก (Sell-out)",
+            "scope": {
+              "sku": "sku_singha_water_pet600",
+              "province": "pv_khonkaen",
+              "region": "northeast"
+            },
+            "scopeLabel": "น้ำดื่มสิงห์ ขวด PET 600 มล. · ขอนแก่น · ภาคอีสาน",
+            "window": "26 ส.ค. 2569 – 22 ก.ย. 2569",
+            "observedLabel": "5,671 ลิตร",
+            "expectedLabel": "6,272 ลิตร",
+            "gapLabel": "10%",
+            "yearOverYear": false,
+            "direction": "down",
+            "hypothesis": "ยอดขายออกจากร้านในขอนแก่นต่ำผิดปกติ ยังหาสาเหตุไม่ได้จากข้อมูลที่มี",
+            "verifySteps": [
+              "เทียบน้ำดื่มสิงห์ ขวด PET 600 มล. · ขอนแก่น · ภาคอีสานกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+              "เทียบน้ำดื่มสิงห์ ขวด PET 600 มล. · ขอนแก่น · ภาคอีสานกับช่วงเดียวกันของปีที่แล้ว"
+            ],
+            "ownerUserId": "u_anucha"
+          },
+          {
+            "id": "al_e8114d936da7141f",
+            "severity": "P1",
+            "severityLabel": "ต้องรีบดู",
+            "metric": "days_of_cover",
+            "metricLabel": "วันครอบคลุมสต๊อก",
+            "scope": {
+              "dc": "dc_lamphun",
+              "sku": "sku_purra_pet600",
+              "region": "north"
+            },
+            "scopeLabel": "ศูนย์กระจายสินค้าลำพูน · เพอร์ร่า ขวด PET 600 มล. · ภาคเหนือ",
+            "window": "16 ก.ย. 2569 – 22 ก.ย. 2569",
+            "observedLabel": "6.1 วัน",
+            "expectedLabel": "15.7 วัน",
+            "gapLabel": "61%",
+            "yearOverYear": false,
+            "direction": "down",
+            "hypothesis": "สต๊อกที่ศูนย์กระจายสินค้าลำพูนเหลือพอขายอีกประมาณ 6.1 วัน ต่ำกว่าเกณฑ์ 10 วัน เสี่ยงของขาดก่อนรอบเติมสินค้าถัดไป",
+            "verifySteps": [
+              "ดูวันครอบคลุมสต๊อกและสต๊อกคงเหลือของศูนย์กระจายสินค้าลำพูน · เพอร์ร่า ขวด PET 600 มล. · ภาคเหนือตอนนี้",
+              "ดูพยากรณ์ 8 สัปดาห์ข้างหน้าของศูนย์กระจายสินค้าลำพูน · เพอร์ร่า ขวด PET 600 มล. · ภาคเหนือ"
+            ],
+            "ownerUserId": "u_wee"
+          },
+          {
+            "id": "al_14c4da61c8ba9ac3",
+            "severity": "P2",
+            "severityLabel": "ควรดู",
+            "metric": "sell_out_volume",
+            "metricLabel": "ปริมาณขายออก (Sell-out)",
+            "scope": {
+              "sku": "sku_singha_water_pack12",
+              "province": "pv_suratthani",
+              "region": "south"
+            },
+            "scopeLabel": "น้ำดื่มสิงห์ แพ็ก 12 · สุราษฎร์ธานี · ภาคใต้",
+            "window": "27 ส.ค. 2569 – 20 ก.ย. 2569",
+            "observedLabel": "1,140 ลิตร",
+            "expectedLabel": "1,285 ลิตร",
+            "gapLabel": "11%",
+            "yearOverYear": false,
+            "direction": "down",
+            "hypothesis": "ยอดขายออกจากร้านในสุราษฎร์ธานีต่ำผิดปกติ ยังหาสาเหตุไม่ได้จากข้อมูลที่มี",
+            "verifySteps": [
+              "เทียบน้ำดื่มสิงห์ แพ็ก 12 · สุราษฎร์ธานี · ภาคใต้กับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+              "เทียบน้ำดื่มสิงห์ แพ็ก 12 · สุราษฎร์ธานี · ภาคใต้กับช่วงเดียวกันของปีที่แล้ว"
+            ],
+            "ownerUserId": "u_saranya"
+          }
+        ],
+        "lessons": [
+          {
+            "alertId": "al_7364476d77c8f435",
+            "lesson": "ครั้งก่อน (เป็นเรื่องจริง): ติดวงเงินเครดิต ขยายวงเงินแล้วยอดกลับใน 2 สัปดาห์ — คุณกฤต จันทร์เสน, 12 มิ.ย. 2569"
+          }
+        ],
+        "nextActions": [
+          {
+            "id": "handoff",
+            "kind": "handoff",
+            "label": "ส่งงานให้คุณกนก",
+            "reason": "เจ้าของตัวเลขยอดขายของพื้นที่ (ระดับภาค)",
+            "tool": "create_handoff",
+            "input": {
+              "toUserId": "u_kanok",
+              "title": "โซดาสิงห์ กระป๋อง 320 มล. · โมเดิร์นเทรด · กรุงเทพฯ และปริมณฑล",
+              "ask": "ช่วยตรวจโซดาสิงห์ กระป๋อง 320 มล. · โมเดิร์นเทรด · กรุงเทพฯ และปริมณฑล แล้วบอกกลับว่าเกิดจากอะไรและจะแก้อย่างไร",
+              "urgency": "high",
+              "evidence": [
+                {
+                  "metric": "sell_out_volume",
+                  "dims": [],
+                  "filters": {
+                    "sku": [
+                      "sku_singha_soda_can320"
+                    ],
+                    "channel": [
+                      "modern_trade"
+                    ],
+                    "region": [
+                      "bkk"
+                    ]
+                  },
+                  "range": {
+                    "from": "2026-09-06",
+                    "to": "2026-09-22"
+                  },
+                  "grain": "day",
+                  "compare": "prev_period",
+                  "limit": 1
+                }
+              ],
+              "alertIds": [
+                "al_a25b3f027de53c68"
+              ]
+            },
+            "prompt": null
+          },
+          {
+            "id": "verify",
+            "kind": "verify",
+            "label": "ตรวจสาเหตุ",
+            "reason": "ดูผลแคมเปญที่ทำอยู่กับโซดาสิงห์ กระป๋อง 320 มล. · โมเดิร์นเทรด · กรุงเทพฯ และปริมณฑล เทียบก่อนและระหว่างแคมเปญ",
+            "tool": null,
+            "input": null,
+            "prompt": "ดูผลแคมเปญที่ทำอยู่กับโซดาสิงห์ กระป๋อง 320 มล. · โมเดิร์นเทรด · กรุงเทพฯ และปริมณฑล เทียบก่อนและระหว่างแคมเปญ"
+          },
+          {
+            "id": "drill-province",
+            "kind": "drill",
+            "label": "แยกตามจังหวัด",
+            "reason": "ยังไม่ได้ดูแยกรายจังหวัด",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอปริมาณขายออก (Sell-out)แยกตามจังหวัด เรียงจากมากไปน้อย"
+          }
+        ]
+      }
+    },
+    {
+      "tool": "get_calendar",
+      "input": {
+        "from": "2026-09-01",
+        "to": "2026-10-31"
+      },
+      "output": {
+        "ok": true,
+        "summary": "1 ก.ย. 2569 – 31 ต.ค. 2569 มี 3 วันสำคัญ ห้ามขายเครื่องดื่มแอลกอฮอล์ 1 วัน",
+        "data": [
+          {
+            "date": "2026-10-13",
+            "date_label": "13 ต.ค. 2569",
+            "when_label": "อีก 21 วัน",
+            "name": "วันคล้ายวันสวรรคต รัชกาลที่ 9",
+            "kind": "holiday",
+            "kind_label": "วันหยุด",
+            "impact_label": "ขายออกเบียร์ +4% · วัดจากวันคล้ายวันสวรรคต รัชกาลที่ 9 13 ต.ค. 2568"
+          },
+          {
+            "date": "2026-10-23",
+            "date_label": "23 ต.ค. 2569",
+            "when_label": "อีก 31 วัน",
+            "name": "วันปิยมหาราช",
+            "kind": "holiday",
+            "kind_label": "วันหยุด",
+            "impact_label": "ขายออกเบียร์ +16% · วัดจากวันปิยมหาราช 23 ต.ค. 2568"
+          },
+          {
+            "date": "2026-10-26",
+            "date_label": "26 ต.ค. 2569",
+            "when_label": "อีก 34 วัน",
+            "name": "วันออกพรรษา",
+            "kind": "alcohol_ban",
+            "kind_label": "ห้ามขายเครื่องดื่มแอลกอฮอล์",
+            "impact_label": "ขายออกเบียร์ -90% · เอเย่นต์สั่งเข้า 2 วันก่อนหน้า +28% · วัดจากวันวิสาขบูชา 31 พ.ค. 2569"
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "net_sales_volume",
+        "dims": [
+          "business_unit"
+        ],
+        "filters": {},
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "target",
+        "limit": 10,
+        "sort": "delta_asc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "business_unit": "กลุ่มเบียร์",
+            "value": 10254324,
+            "value_label": "10.3 ล้านลิตร",
+            "compare_value": 10484730,
+            "delta_pct": -2.2
+          },
+          {
+            "business_unit": "กลุ่มนำเข้า",
+            "value": 569342,
+            "value_label": "569,342 ลิตร",
+            "compare_value": 564610,
+            "delta_pct": 0.8
+          },
+          {
+            "business_unit": "กลุ่มนอนแอลกอฮอล์",
+            "value": 7855225,
+            "value_label": "7.9 ล้านลิตร",
+            "compare_value": 7673659,
+            "delta_pct": 2.4
+          }
+        ],
+        "summary": "ปริมาณขายเข้า (Sell-in) 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 18.7 ล้านลิตร · สูงสุด: กลุ่มเบียร์ 10.3 ล้านลิตร · กลุ่มนอนแอลกอฮอล์ 7.9 ล้านลิตร · กลุ่มนำเข้า 569,342 ลิตร · เทียบเป้า -0.2% · (3 แถว · certified · SAP SD)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "18.7 ล้านลิตร",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 3,
+          "deltaPercent": -0.2,
+          "compareLabel": "เทียบเป้า",
+          "compareNote": null,
+          "top": [
+            {
+              "label": "กลุ่มเบียร์",
+              "value": "10.3 ล้านลิตร"
+            },
+            {
+              "label": "กลุ่มนอนแอลกอฮอล์",
+              "value": "7.9 ล้านลิตร"
+            },
+            {
+              "label": "กลุ่มนำเข้า",
+              "value": "569,342 ลิตร"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "net_sales_volume",
+          "certified": true,
+          "sourceSystem": "SAP SD",
+          "asOf": "2026-09-22",
+          "rowCount": 3,
+          "filtersApplied": {},
+          "filterLabels": [],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "net_sales_volume",
+          "dims": [
+            "business_unit"
+          ],
+          "filters": {},
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "target",
+          "limit": 10,
+          "sort": "delta_asc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "handoff",
+            "kind": "handoff",
+            "label": "ส่งงานให้คุณกนก",
+            "reason": "เจ้าของตัวเลขยอดขายของพื้นที่ (ระดับประเทศ)",
+            "tool": "create_handoff",
+            "input": {
+              "toUserId": "u_kanok",
+              "title": "ปริมาณขายเข้า (Sell-in) · กลุ่มเบียร์",
+              "ask": "ช่วยตรวจอุบลศรีสุข เทรดดิ้ง · ภาคอีสาน แล้วบอกกลับว่าเกิดจากอะไรและจะแก้อย่างไร",
+              "urgency": "high",
+              "evidence": [
+                {
+                  "metric": "net_sales_volume",
+                  "dims": [
+                    "business_unit"
+                  ],
+                  "filters": {},
+                  "range": {
+                    "from": "2026-09-01",
+                    "to": "2026-09-22"
+                  },
+                  "grain": "month",
+                  "compare": "target",
+                  "limit": 10,
+                  "sort": "delta_asc",
+                  "where": null
+                }
+              ],
+              "alertIds": [
+                "al_7364476d77c8f435"
+              ]
+            },
+            "prompt": null
+          },
+          {
+            "id": "verify",
+            "kind": "verify",
+            "label": "ตรวจสาเหตุ",
+            "reason": "ดูประวัติการสั่งซื้อรายวันของอุบลศรีสุข เทรดดิ้ง · ภาคอีสาน 30 วันล่าสุด",
+            "tool": null,
+            "input": null,
+            "prompt": "ดูประวัติการสั่งซื้อรายวันของอุบลศรีสุข เทรดดิ้ง · ภาคอีสาน 30 วันล่าสุด"
+          },
+          {
+            "id": "drill-region",
+            "kind": "drill",
+            "label": "แยกตามภาค",
+            "reason": "ยังไม่ได้ดูแยกรายภาค",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอปริมาณขายเข้า (Sell-in)แยกตามภาค เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-forecast",
+            "label": "พยากรณ์ 8 สัปดาห์",
+            "prompt": "พยากรณ์ปริมาณขายเข้า 8 สัปดาห์ข้างหน้า",
+            "reason": "ดูว่าถ้าเป็นแบบนี้ต่อไปจะเกิดอะไร",
+            "intentKey": "follow|forecast",
+            "score": 0.55
+          },
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "ปริมาณขายเข้า (Sell-in) รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ขอปริมาณขายเข้า (Sell-in) แยกตามกลุ่มธุรกิจ เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "net_sales_volume",
+        "dims": [
+          "region"
+        ],
+        "filters": {},
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "target",
+        "limit": 10,
+        "sort": "delta_asc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "region": "ภาคอีสาน",
+            "value": 3859913,
+            "value_label": "3.9 ล้านลิตร",
+            "compare_value": 4138403,
+            "delta_pct": -6.7
+          },
+          {
+            "region": "ภาคเหนือ",
+            "value": 2437699,
+            "value_label": "2.4 ล้านลิตร",
+            "compare_value": 2412237,
+            "delta_pct": 1.1
+          },
+          {
+            "region": "ภาคตะวันออก",
+            "value": 2646490,
+            "value_label": "2.6 ล้านลิตร",
+            "compare_value": 2616257,
+            "delta_pct": 1.2
+          },
+          {
+            "region": "ภาคใต้",
+            "value": 2409803,
+            "value_label": "2.4 ล้านลิตร",
+            "compare_value": 2380870,
+            "delta_pct": 1.2
+          },
+          {
+            "region": "กรุงเทพฯ และปริมณฑล",
+            "value": 4741930,
+            "value_label": "4.7 ล้านลิตร",
+            "compare_value": 4646057,
+            "delta_pct": 2.1
+          },
+          {
+            "region": "ภาคกลาง",
+            "value": 2583056,
+            "value_label": "2.6 ล้านลิตร",
+            "compare_value": 2529174,
+            "delta_pct": 2.1
+          }
+        ],
+        "summary": "ปริมาณขายเข้า (Sell-in) 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 18.7 ล้านลิตร · สูงสุด: กรุงเทพฯ และปริมณฑล 4.7 ล้านลิตร · ภาคอีสาน 3.9 ล้านลิตร · ภาคตะวันออก 2.6 ล้านลิตร · เทียบเป้า -0.2% · (6 แถว · certified · SAP SD)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "18.7 ล้านลิตร",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 6,
+          "deltaPercent": -0.2,
+          "compareLabel": "เทียบเป้า",
+          "compareNote": null,
+          "top": [
+            {
+              "label": "กรุงเทพฯ และปริมณฑล",
+              "value": "4.7 ล้านลิตร"
+            },
+            {
+              "label": "ภาคอีสาน",
+              "value": "3.9 ล้านลิตร"
+            },
+            {
+              "label": "ภาคตะวันออก",
+              "value": "2.6 ล้านลิตร"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "net_sales_volume",
+          "certified": true,
+          "sourceSystem": "SAP SD",
+          "asOf": "2026-09-22",
+          "rowCount": 6,
+          "filtersApplied": {},
+          "filterLabels": [],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "net_sales_volume",
+          "dims": [
+            "region"
+          ],
+          "filters": {},
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "target",
+          "limit": 10,
+          "sort": "delta_asc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "handoff",
+            "kind": "handoff",
+            "label": "ส่งงานให้คุณกนก",
+            "reason": "เจ้าของตัวเลขยอดขายของพื้นที่ (ระดับประเทศ)",
+            "tool": "create_handoff",
+            "input": {
+              "toUserId": "u_kanok",
+              "title": "ปริมาณขายเข้า (Sell-in) · กรุงเทพฯ และปริมณฑล",
+              "ask": "ช่วยตรวจอุบลศรีสุข เทรดดิ้ง · ภาคอีสาน แล้วบอกกลับว่าเกิดจากอะไรและจะแก้อย่างไร",
+              "urgency": "high",
+              "evidence": [
+                {
+                  "metric": "net_sales_volume",
+                  "dims": [
+                    "region"
+                  ],
+                  "filters": {},
+                  "range": {
+                    "from": "2026-09-01",
+                    "to": "2026-09-22"
+                  },
+                  "grain": "month",
+                  "compare": "target",
+                  "limit": 10,
+                  "sort": "delta_asc",
+                  "where": null
+                }
+              ],
+              "alertIds": [
+                "al_7364476d77c8f435"
+              ]
+            },
+            "prompt": null
+          },
+          {
+            "id": "verify",
+            "kind": "verify",
+            "label": "ตรวจสาเหตุ",
+            "reason": "ดูประวัติการสั่งซื้อรายวันของอุบลศรีสุข เทรดดิ้ง · ภาคอีสาน 30 วันล่าสุด",
+            "tool": null,
+            "input": null,
+            "prompt": "ดูประวัติการสั่งซื้อรายวันของอุบลศรีสุข เทรดดิ้ง · ภาคอีสาน 30 วันล่าสุด"
+          },
+          {
+            "id": "drill-province",
+            "kind": "drill",
+            "label": "แยกตามจังหวัด",
+            "reason": "ยังไม่ได้ดูแยกรายจังหวัด",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอปริมาณขายเข้า (Sell-in)แยกตามจังหวัด เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-why",
+            "label": "ทำไมภาคอีสาน",
+            "prompt": "เจาะดูปริมาณขายเข้า (Sell-in) ของภาคอีสาน ว่าทำไมถึงเปลี่ยนไป เทียบกับช่วงก่อนหน้าและช่วงเดียวกันปีก่อน",
+            "reason": "ภาคอีสาน คือแถวที่ต้องดูมากที่สุดในคำตอบนี้",
+            "intentKey": "follow|why",
+            "score": 0.95
+          },
+          {
+            "id": "fu-drill_down",
+            "label": "ดูเอเย่นต์ในภาคอีสาน",
+            "prompt": "ขอปริมาณขายเข้า (Sell-in) ของภาคอีสาน แยกรายเอเย่นต์ เรียงจากแย่ไปดี",
+            "reason": "ลงไปอีกชั้นเพื่อหาว่าใครในภาคอีสานทำให้ตัวเลขเป็นแบบนี้",
+            "intentKey": "follow|drill_down",
+            "score": 0.85
+          },
+          {
+            "id": "fu-trend",
+            "label": "เริ่มแย่ตั้งแต่เมื่อไร",
+            "prompt": "ปริมาณขายเข้า (Sell-in) ของภาคอีสาน รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "ดูว่าตัวเลขเริ่มลดลงสัปดาห์ไหน",
+            "intentKey": "follow|trend",
+            "score": 0.65
+          }
+        ]
+      }
+    },
+    {
+      "tool": "explain_gap",
+      "input": {
+        "metric": "net_sales_volume",
+        "split": "region",
+        "filters": {},
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "compare": "target"
+      },
+      "output": {
+        "ok": true,
+        "summary": "ปริมาณขายเข้า (Sell-in) 1 ก.ย. 2569 – 22 ก.ย. 2569: จริง 18.7 ล้านลิตร · เป้า 18.7 ล้านลิตร · ช่องว่าง −44,109 ลิตร",
+        "period_label": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+        "actual_label": "18.7 ล้านลิตร",
+        "compare_label": "เป้า 18.7 ล้านลิตร",
+        "gap_label": "−44,109 ลิตร",
+        "attainment_label": "99.8%",
+        "contributors": [
+          {
+            "label": "ภาคอีสาน",
+            "gap_label": "−278,490 ลิตร",
+            "share_label": "631.4%"
+          }
+        ],
+        "rest": null,
+        "offsetting": [
+          {
+            "label": "กรุงเทพฯ และปริมณฑล",
+            "gap_label": "+95,873 ลิตร"
+          },
+          {
+            "label": "ภาคกลาง",
+            "gap_label": "+53,882 ลิตร"
+          },
+          {
+            "label": "ภาคตะวันออก",
+            "gap_label": "+30,233 ลิตร"
+          },
+          {
+            "label": "ภาคใต้",
+            "gap_label": "+28,933 ลิตร"
+          },
+          {
+            "label": "ภาคเหนือ",
+            "gap_label": "+25,462 ลิตร"
+          }
+        ],
+        "projection": {
+          "label": "สิ้นเดือน ถ้าขายเท่า 7 วันล่าสุด",
+          "basis": "วันที่เหลือของเดือนขายเท่าค่าเฉลี่ย 7 วันล่าสุด และเป้ากระจายเท่ากันทุกวัน",
+          "projected_label": "25.2 ล้านลิตร",
+          "month_target_label": "25.5 ล้านลิตร",
+          "attainment_label": "98.5%"
+        }
+      }
+    },
+    {
+      "tool": "explain_gap",
+      "input": {
+        "metric": "net_sales_volume",
+        "split": "business_unit",
+        "filters": {
+          "region": [
+            "northeast"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "compare": "target"
+      },
+      "output": {
+        "ok": true,
+        "summary": "ปริมาณขายเข้า (Sell-in) 1 ก.ย. 2569 – 22 ก.ย. 2569: จริง 3.9 ล้านลิตร · เป้า 4.1 ล้านลิตร · ช่องว่าง −278,490 ลิตร",
+        "period_label": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+        "actual_label": "3.9 ล้านลิตร",
+        "compare_label": "เป้า 4.1 ล้านลิตร",
+        "gap_label": "−278,490 ลิตร",
+        "attainment_label": "93.3%",
+        "contributors": [
+          {
+            "label": "กลุ่มเบียร์",
+            "gap_label": "−304,051 ลิตร",
+            "share_label": "109.2%"
+          }
+        ],
+        "rest": null,
+        "offsetting": [
+          {
+            "label": "กลุ่มนอนแอลกอฮอล์",
+            "gap_label": "+25,310 ลิตร"
+          },
+          {
+            "label": "กลุ่มนำเข้า",
+            "gap_label": "+252 ลิตร"
+          }
+        ],
+        "projection": {
+          "label": "สิ้นเดือน ถ้าขายเท่า 7 วันล่าสุด",
+          "basis": "วันที่เหลือของเดือนขายเท่าค่าเฉลี่ย 7 วันล่าสุด และเป้ากระจายเท่ากันทุกวัน",
+          "projected_label": "5.1 ล้านลิตร",
+          "month_target_label": "5.6 ล้านลิตร",
+          "attainment_label": "90.6%"
+        }
+      }
+    },
+    {
+      "tool": "explain_gap",
+      "input": {
+        "metric": "net_sales_volume",
+        "split": "agent",
+        "filters": {
+          "region": [
+            "northeast"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "compare": "target"
+      },
+      "output": {
+        "ok": true,
+        "summary": "ปริมาณขายเข้า (Sell-in) 1 ก.ย. 2569 – 22 ก.ย. 2569: จริง 3.9 ล้านลิตร · เป้า 4.1 ล้านลิตร · ช่องว่าง −278,490 ลิตร",
+        "period_label": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+        "actual_label": "3.9 ล้านลิตร",
+        "compare_label": "เป้า 4.1 ล้านลิตร",
+        "gap_label": "−278,490 ลิตร",
+        "attainment_label": "93.3%",
+        "contributors": [
+          {
+            "label": "อีสานรุ่งโรจน์ ค้าส่ง",
+            "gap_label": "−150,081 ลิตร",
+            "share_label": "53.9%"
+          },
+          {
+            "label": "อุบลศรีสุข เทรดดิ้ง",
+            "gap_label": "−147,224 ลิตร",
+            "share_label": "52.9%"
+          },
+          {
+            "label": "ส.รุ่งเรือง เทรดดิ้ง",
+            "gap_label": "−15,129 ลิตร",
+            "share_label": "5.4%"
+          }
+        ],
+        "rest": null,
+        "offsetting": [
+          {
+            "label": "โคราชสหภัณฑ์",
+            "gap_label": "+13,443 ลิตร"
+          },
+          {
+            "label": "วารินพาณิชย์",
+            "gap_label": "+6,658 ลิตร"
+          },
+          {
+            "label": "นางรองค้าส่ง",
+            "gap_label": "+6,309 ลิตร"
+          },
+          {
+            "label": "ปากช่องเบเวอเรจ",
+            "gap_label": "+5,647 ลิตร"
+          },
+          {
+            "label": "ขอนแก่นมหาชัย",
+            "gap_label": "+1,888 ลิตร"
+          }
+        ],
+        "projection": {
+          "label": "สิ้นเดือน ถ้าขายเท่า 7 วันล่าสุด",
+          "basis": "วันที่เหลือของเดือนขายเท่าค่าเฉลี่ย 7 วันล่าสุด และเป้ากระจายเท่ากันทุกวัน",
+          "projected_label": "5.1 ล้านลิตร",
+          "month_target_label": "5.6 ล้านลิตร",
+          "attainment_label": "90.6%"
+        }
+      }
+    },
+    {
+      "tool": "explain_gap",
+      "input": {
+        "metric": "net_sales_volume",
+        "split": "brand",
+        "filters": {
+          "region": [
+            "northeast"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "compare": "target"
+      },
+      "output": {
+        "ok": true,
+        "summary": "ปริมาณขายเข้า (Sell-in) 1 ก.ย. 2569 – 22 ก.ย. 2569: จริง 3.9 ล้านลิตร · เป้า 4.1 ล้านลิตร · ช่องว่าง −278,490 ลิตร",
+        "period_label": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+        "actual_label": "3.9 ล้านลิตร",
+        "compare_label": "เป้า 4.1 ล้านลิตร",
+        "gap_label": "−278,490 ลิตร",
+        "attainment_label": "93.3%",
+        "contributors": [
+          {
+            "label": "ลีโอ",
+            "gap_label": "−202,858 ลิตร",
+            "share_label": "72.8%"
+          },
+          {
+            "label": "สิงห์",
+            "gap_label": "−101,194 ลิตร",
+            "share_label": "36.3%"
+          }
+        ],
+        "rest": null,
+        "offsetting": [
+          {
+            "label": "น้ำดื่มสิงห์",
+            "gap_label": "+13,341 ลิตร"
+          },
+          {
+            "label": "โซดาสิงห์",
+            "gap_label": "+6,931 ลิตร"
+          },
+          {
+            "label": "สิงห์ เลมอนโซดา",
+            "gap_label": "+2,956 ลิตร"
+          },
+          {
+            "label": "เพอร์ร่า",
+            "gap_label": "+2,082 ลิตร"
+          },
+          {
+            "label": "อาซาฮี",
+            "gap_label": "+191 ลิตร"
+          }
+        ],
+        "projection": {
+          "label": "สิ้นเดือน ถ้าขายเท่า 7 วันล่าสุด",
+          "basis": "วันที่เหลือของเดือนขายเท่าค่าเฉลี่ย 7 วันล่าสุด และเป้ากระจายเท่ากันทุกวัน",
+          "projected_label": "5.1 ล้านลิตร",
+          "month_target_label": "5.6 ล้านลิตร",
+          "attainment_label": "90.6%"
+        }
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "net_sales_volume",
+        "dims": [
+          "region"
+        ],
+        "filters": {
+          "business_unit": [
+            "กลุ่มนอนแอลกอฮอล์"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "target",
+        "limit": 10,
+        "sort": "delta_asc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "region": "ภาคเหนือ",
+            "value": 1021372,
+            "value_label": "1.0 ล้านลิตร",
+            "compare_value": 1012656,
+            "delta_pct": 0.9
+          },
+          {
+            "region": "ภาคอีสาน",
+            "value": 1523617,
+            "value_label": "1.5 ล้านลิตร",
+            "compare_value": 1498307,
+            "delta_pct": 1.7
+          },
+          {
+            "region": "ภาคใต้",
+            "value": 995585,
+            "value_label": "995,585 ลิตร",
+            "compare_value": 976606,
+            "delta_pct": 1.9
+          },
+          {
+            "region": "ภาคตะวันออก",
+            "value": 1043589,
+            "value_label": "1.0 ล้านลิตร",
+            "compare_value": 1022189,
+            "delta_pct": 2.1
+          },
+          {
+            "region": "ภาคกลาง",
+            "value": 1105211,
+            "value_label": "1.1 ล้านลิตร",
+            "compare_value": 1070626,
+            "delta_pct": 3.2
+          },
+          {
+            "region": "กรุงเทพฯ และปริมณฑล",
+            "value": 2165851,
+            "value_label": "2.2 ล้านลิตร",
+            "compare_value": 2093275,
+            "delta_pct": 3.5
+          }
+        ],
+        "summary": "ปริมาณขายเข้า (Sell-in) 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 7.9 ล้านลิตร · สูงสุด: กรุงเทพฯ และปริมณฑล 2.2 ล้านลิตร · ภาคอีสาน 1.5 ล้านลิตร · ภาคกลาง 1.1 ล้านลิตร · เทียบเป้า +2.4% · (6 แถว · certified · SAP SD)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "7.9 ล้านลิตร",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 6,
+          "deltaPercent": 2.4,
+          "compareLabel": "เทียบเป้า",
+          "compareNote": null,
+          "top": [
+            {
+              "label": "กรุงเทพฯ และปริมณฑล",
+              "value": "2.2 ล้านลิตร"
+            },
+            {
+              "label": "ภาคอีสาน",
+              "value": "1.5 ล้านลิตร"
+            },
+            {
+              "label": "ภาคกลาง",
+              "value": "1.1 ล้านลิตร"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "net_sales_volume",
+          "certified": true,
+          "sourceSystem": "SAP SD",
+          "asOf": "2026-09-22",
+          "rowCount": 6,
+          "filtersApplied": {
+            "business_unit": [
+              "non_alcohol"
+            ]
+          },
+          "filterLabels": [
+            "กลุ่มนอนแอลกอฮอล์"
+          ],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "net_sales_volume",
+          "dims": [
+            "region"
+          ],
+          "filters": {
+            "business_unit": [
+              "กลุ่มนอนแอลกอฮอล์"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "target",
+          "limit": 10,
+          "sort": "delta_asc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "handoff",
+            "kind": "handoff",
+            "label": "ส่งงานให้คุณกนก",
+            "reason": "เจ้าของตัวเลขยอดขายของพื้นที่ (ระดับประเทศ)",
+            "tool": "create_handoff",
+            "input": {
+              "toUserId": "u_kanok",
+              "title": "ปริมาณขายเข้า (Sell-in) · กรุงเทพฯ และปริมณฑล",
+              "ask": "ช่วยตรวจอุบลศรีสุข เทรดดิ้ง · ภาคอีสาน แล้วบอกกลับว่าเกิดจากอะไรและจะแก้อย่างไร",
+              "urgency": "high",
+              "evidence": [
+                {
+                  "metric": "net_sales_volume",
+                  "dims": [
+                    "region"
+                  ],
+                  "filters": {
+                    "business_unit": [
+                      "กลุ่มนอนแอลกอฮอล์"
+                    ]
+                  },
+                  "range": {
+                    "from": "2026-09-01",
+                    "to": "2026-09-22"
+                  },
+                  "grain": "month",
+                  "compare": "target",
+                  "limit": 10,
+                  "sort": "delta_asc",
+                  "where": null
+                }
+              ],
+              "alertIds": [
+                "al_7364476d77c8f435"
+              ]
+            },
+            "prompt": null
+          },
+          {
+            "id": "verify",
+            "kind": "verify",
+            "label": "ตรวจสาเหตุ",
+            "reason": "ดูประวัติการสั่งซื้อรายวันของอุบลศรีสุข เทรดดิ้ง · ภาคอีสาน 30 วันล่าสุด",
+            "tool": null,
+            "input": null,
+            "prompt": "ดูประวัติการสั่งซื้อรายวันของอุบลศรีสุข เทรดดิ้ง · ภาคอีสาน 30 วันล่าสุด"
+          },
+          {
+            "id": "drill-province",
+            "kind": "drill",
+            "label": "แยกตามจังหวัด",
+            "reason": "ยังไม่ได้ดูแยกรายจังหวัด",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอปริมาณขายเข้า (Sell-in)แยกตามจังหวัด เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-forecast",
+            "label": "พยากรณ์ 8 สัปดาห์",
+            "prompt": "พยากรณ์ปริมาณขายเข้า 8 สัปดาห์ข้างหน้า",
+            "reason": "ดูว่าถ้าเป็นแบบนี้ต่อไปจะเกิดอะไร",
+            "intentKey": "follow|forecast",
+            "score": 0.55
+          },
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "ปริมาณขายเข้า (Sell-in) รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ขอปริมาณขายเข้า (Sell-in) แยกตามภาค เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "net_sales_volume",
+        "dims": [
+          "brand"
+        ],
+        "filters": {
+          "region": [
+            "northeast"
+          ],
+          "business_unit": [
+            "กลุ่มนอนแอลกอฮอล์"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "target",
+        "limit": 10,
+        "sort": "delta_asc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "brand": "เพอร์ร่า",
+            "value": 200132,
+            "value_label": "200,132 ลิตร",
+            "compare_value": 198050,
+            "delta_pct": 1.1
+          },
+          {
+            "brand": "สิงห์ เลมอนโซดา",
+            "value": 178152,
+            "value_label": "178,152 ลิตร",
+            "compare_value": 175196,
+            "delta_pct": 1.7
+          },
+          {
+            "brand": "น้ำดื่มสิงห์",
+            "value": 793724,
+            "value_label": "793,724 ลิตร",
+            "compare_value": 780383,
+            "delta_pct": 1.7
+          },
+          {
+            "brand": "โซดาสิงห์",
+            "value": 351609,
+            "value_label": "351,609 ลิตร",
+            "compare_value": 344678,
+            "delta_pct": 2
+          }
+        ],
+        "summary": "ปริมาณขายเข้า (Sell-in) 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 1.5 ล้านลิตร · สูงสุด: น้ำดื่มสิงห์ 793,724 ลิตร · โซดาสิงห์ 351,609 ลิตร · เพอร์ร่า 200,132 ลิตร · เทียบเป้า +1.7% · (4 แถว · certified · SAP SD)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "1.5 ล้านลิตร",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 4,
+          "deltaPercent": 1.7,
+          "compareLabel": "เทียบเป้า",
+          "compareNote": null,
+          "top": [
+            {
+              "label": "น้ำดื่มสิงห์",
+              "value": "793,724 ลิตร"
+            },
+            {
+              "label": "โซดาสิงห์",
+              "value": "351,609 ลิตร"
+            },
+            {
+              "label": "เพอร์ร่า",
+              "value": "200,132 ลิตร"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "net_sales_volume",
+          "certified": true,
+          "sourceSystem": "SAP SD",
+          "asOf": "2026-09-22",
+          "rowCount": 4,
+          "filtersApplied": {
+            "region": [
+              "northeast"
+            ],
+            "business_unit": [
+              "non_alcohol"
+            ]
+          },
+          "filterLabels": [
+            "ภาคอีสาน",
+            "กลุ่มนอนแอลกอฮอล์"
+          ],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "net_sales_volume",
+          "dims": [
+            "brand"
+          ],
+          "filters": {
+            "region": [
+              "northeast"
+            ],
+            "business_unit": [
+              "กลุ่มนอนแอลกอฮอล์"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "target",
+          "limit": 10,
+          "sort": "delta_asc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "handoff",
+            "kind": "handoff",
+            "label": "ส่งงานให้คุณอนุชา",
+            "reason": "เจ้าของตัวเลขยอดขายของพื้นที่ (ระดับภาค)",
+            "tool": "create_handoff",
+            "input": {
+              "toUserId": "u_anucha",
+              "title": "ปริมาณขายเข้า (Sell-in) · น้ำดื่มสิงห์",
+              "ask": "ช่วยตรวจอุบลศรีสุข เทรดดิ้ง · ภาคอีสาน แล้วบอกกลับว่าเกิดจากอะไรและจะแก้อย่างไร",
+              "urgency": "high",
+              "evidence": [
+                {
+                  "metric": "net_sales_volume",
+                  "dims": [
+                    "brand"
+                  ],
+                  "filters": {
+                    "region": [
+                      "northeast"
+                    ],
+                    "business_unit": [
+                      "กลุ่มนอนแอลกอฮอล์"
+                    ]
+                  },
+                  "range": {
+                    "from": "2026-09-01",
+                    "to": "2026-09-22"
+                  },
+                  "grain": "month",
+                  "compare": "target",
+                  "limit": 10,
+                  "sort": "delta_asc",
+                  "where": null
+                }
+              ],
+              "alertIds": [
+                "al_7364476d77c8f435"
+              ]
+            },
+            "prompt": null
+          },
+          {
+            "id": "verify",
+            "kind": "verify",
+            "label": "ตรวจสาเหตุ",
+            "reason": "ดูประวัติการสั่งซื้อรายวันของอุบลศรีสุข เทรดดิ้ง · ภาคอีสาน 30 วันล่าสุด",
+            "tool": null,
+            "input": null,
+            "prompt": "ดูประวัติการสั่งซื้อรายวันของอุบลศรีสุข เทรดดิ้ง · ภาคอีสาน 30 วันล่าสุด"
+          },
+          {
+            "id": "drill-province",
+            "kind": "drill",
+            "label": "แยกตามจังหวัด",
+            "reason": "ยังไม่ได้ดูแยกรายจังหวัด",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอปริมาณขายเข้า (Sell-in)แยกตามจังหวัด เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-forecast",
+            "label": "พยากรณ์ 8 สัปดาห์",
+            "prompt": "พยากรณ์ปริมาณขายเข้า 8 สัปดาห์ข้างหน้า",
+            "reason": "ดูว่าถ้าเป็นแบบนี้ต่อไปจะเกิดอะไร",
+            "intentKey": "follow|forecast",
+            "score": 0.55
+          },
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "ปริมาณขายเข้า (Sell-in) รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ขอปริมาณขายเข้า (Sell-in) แยกตามแบรนด์ เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "sell_out_volume",
+        "dims": [
+          "brand"
+        ],
+        "filters": {
+          "business_unit": [
+            "กลุ่มนอนแอลกอฮอล์"
+          ],
+          "region": [
+            "northeast"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "target",
+        "limit": 10,
+        "sort": "delta_asc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "brand": "เพอร์ร่า",
+            "value": 197089,
+            "value_label": "197,089 ลิตร",
+            "compare_value": 198050,
+            "delta_pct": -0.5
+          },
+          {
+            "brand": "น้ำดื่มสิงห์",
+            "value": 779291,
+            "value_label": "779,291 ลิตร",
+            "compare_value": 780383,
+            "delta_pct": -0.1
+          },
+          {
+            "brand": "โซดาสิงห์",
+            "value": 345709,
+            "value_label": "345,709 ลิตร",
+            "compare_value": 344678,
+            "delta_pct": 0.3
+          },
+          {
+            "brand": "สิงห์ เลมอนโซดา",
+            "value": 176597,
+            "value_label": "176,597 ลิตร",
+            "compare_value": 175196,
+            "delta_pct": 0.8
+          }
+        ],
+        "summary": "ปริมาณขายออก (Sell-out) 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 1.5 ล้านลิตร · สูงสุด: น้ำดื่มสิงห์ 779,291 ลิตร · โซดาสิงห์ 345,709 ลิตร · เพอร์ร่า 197,089 ลิตร · เทียบเป้า +0.0% · (4 แถว · certified · SAP SD)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "1.5 ล้านลิตร",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 4,
+          "deltaPercent": 0,
+          "compareLabel": "เทียบเป้า",
+          "compareNote": null,
+          "top": [
+            {
+              "label": "น้ำดื่มสิงห์",
+              "value": "779,291 ลิตร"
+            },
+            {
+              "label": "โซดาสิงห์",
+              "value": "345,709 ลิตร"
+            },
+            {
+              "label": "เพอร์ร่า",
+              "value": "197,089 ลิตร"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "sell_out_volume",
+          "certified": true,
+          "sourceSystem": "SAP SD",
+          "asOf": "2026-09-22",
+          "rowCount": 4,
+          "filtersApplied": {
+            "business_unit": [
+              "non_alcohol"
+            ],
+            "region": [
+              "northeast"
+            ]
+          },
+          "filterLabels": [
+            "กลุ่มนอนแอลกอฮอล์",
+            "ภาคอีสาน"
+          ],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "sell_out_volume",
+          "dims": [
+            "brand"
+          ],
+          "filters": {
+            "business_unit": [
+              "กลุ่มนอนแอลกอฮอล์"
+            ],
+            "region": [
+              "northeast"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "target",
+          "limit": 10,
+          "sort": "delta_asc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "handoff",
+            "kind": "handoff",
+            "label": "ส่งงานให้คุณอนุชา",
+            "reason": "เจ้าของตัวเลขยอดขายของพื้นที่ (ระดับภาค)",
+            "tool": "create_handoff",
+            "input": {
+              "toUserId": "u_anucha",
+              "title": "ปริมาณขายออก (Sell-out) · น้ำดื่มสิงห์",
+              "ask": "ช่วยตรวจน้ำดื่มสิงห์ ขวด PET 600 มล. · ขอนแก่น · ภาคอีสาน แล้วบอกกลับว่าเกิดจากอะไรและจะแก้อย่างไร",
+              "urgency": "high",
+              "evidence": [
+                {
+                  "metric": "sell_out_volume",
+                  "dims": [
+                    "brand"
+                  ],
+                  "filters": {
+                    "business_unit": [
+                      "กลุ่มนอนแอลกอฮอล์"
+                    ],
+                    "region": [
+                      "northeast"
+                    ]
+                  },
+                  "range": {
+                    "from": "2026-09-01",
+                    "to": "2026-09-22"
+                  },
+                  "grain": "month",
+                  "compare": "target",
+                  "limit": 10,
+                  "sort": "delta_asc",
+                  "where": null
+                }
+              ],
+              "alertIds": [
+                "al_49b503043dd5af01"
+              ]
+            },
+            "prompt": null
+          },
+          {
+            "id": "verify",
+            "kind": "verify",
+            "label": "ตรวจสาเหตุ",
+            "reason": "เทียบน้ำดื่มสิงห์ ขวด PET 600 มล. · ขอนแก่น · ภาคอีสานกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+            "tool": null,
+            "input": null,
+            "prompt": "เทียบน้ำดื่มสิงห์ ขวด PET 600 มล. · ขอนแก่น · ภาคอีสานกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน"
+          },
+          {
+            "id": "drill-province",
+            "kind": "drill",
+            "label": "แยกตามจังหวัด",
+            "reason": "ยังไม่ได้ดูแยกรายจังหวัด",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอปริมาณขายออก (Sell-out)แยกตามจังหวัด เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "ปริมาณขายออก (Sell-out) รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ขอปริมาณขายออก (Sell-out) แยกตามแบรนด์ เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "tool": "describe_entity",
+      "input": {
+        "kind": "agent",
+        "query": "ag_nea_05"
+      },
+      "output": {
+        "ok": true,
+        "data": {
+          "id": "ag_nea_05",
+          "ชื่อ": "อุบลศรีสุข เทรดดิ้ง",
+          "จังหวัด": "อุบลราชธานี",
+          "ภาค": "ภาคอีสาน",
+          "เกรด": "B",
+          "เครดิต": "30 วัน",
+          "เป็นคู่ค้าตั้งแต่": 2009,
+          "ศูนย์กระจายสินค้า": "ศูนย์กระจายสินค้าขอนแก่น",
+          "น้ำหนักยอดขาย": 0.87
+        },
+        "summary": "อุบลศรีสุข เทรดดิ้ง เอเย่นต์เกรด B จังหวัดอุบลราชธานี ภาคอีสาน เครดิต 30 วัน ส่งจากศูนย์กระจายสินค้าขอนแก่น"
+      }
+    },
+    {
+      "tool": "describe_entity",
+      "input": {
+        "kind": "agent",
+        "query": "ag_nea_02"
+      },
+      "output": {
+        "ok": true,
+        "data": {
+          "id": "ag_nea_02",
+          "ชื่อ": "อีสานรุ่งโรจน์ ค้าส่ง",
+          "จังหวัด": "ขอนแก่น",
+          "ภาค": "ภาคอีสาน",
+          "เกรด": "B",
+          "เครดิต": "30 วัน",
+          "เป็นคู่ค้าตั้งแต่": 2010,
+          "ศูนย์กระจายสินค้า": "ศูนย์กระจายสินค้าขอนแก่น",
+          "น้ำหนักยอดขาย": 0.92
+        },
+        "summary": "อีสานรุ่งโรจน์ ค้าส่ง เอเย่นต์เกรด B จังหวัดขอนแก่น ภาคอีสาน เครดิต 30 วัน ส่งจากศูนย์กระจายสินค้าขอนแก่น"
+      }
+    },
+    {
+      "tool": "describe_entity",
+      "input": {
+        "kind": "agent",
+        "query": "ag_nea_07"
+      },
+      "output": {
+        "ok": true,
+        "data": {
+          "id": "ag_nea_07",
+          "ชื่อ": "ส.รุ่งเรือง เทรดดิ้ง",
+          "จังหวัด": "บุรีรัมย์",
+          "ภาค": "ภาคอีสาน",
+          "เกรด": "A",
+          "เครดิต": "45 วัน",
+          "เป็นคู่ค้าตั้งแต่": 2004,
+          "ศูนย์กระจายสินค้า": "ศูนย์กระจายสินค้านครราชสีมา",
+          "น้ำหนักยอดขาย": 1.22
+        },
+        "summary": "ส.รุ่งเรือง เทรดดิ้ง เอเย่นต์เกรด A จังหวัดบุรีรัมย์ ภาคอีสาน เครดิต 45 วัน ส่งจากศูนย์กระจายสินค้านครราชสีมา"
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "ar_overdue",
+        "dims": [
+          "agent"
+        ],
+        "filters": {
+          "region": [
+            "northeast"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "none",
+        "limit": 10,
+        "sort": "value_desc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "agent": "ขอนแก่นมหาชัย",
+            "value": "***",
+            "value_label": "***"
+          },
+          {
+            "agent": "อีสานรุ่งโรจน์ ค้าส่ง",
+            "value": "***",
+            "value_label": "***"
+          },
+          {
+            "agent": "โคราชสหภัณฑ์",
+            "value": "***",
+            "value_label": "***"
+          },
+          {
+            "agent": "ปากช่องเบเวอเรจ",
+            "value": "***",
+            "value_label": "***"
+          },
+          {
+            "agent": "อุบลศรีสุข เทรดดิ้ง",
+            "value": "***",
+            "value_label": "***"
+          },
+          {
+            "agent": "วารินพาณิชย์",
+            "value": "***",
+            "value_label": "***"
+          },
+          {
+            "agent": "ส.รุ่งเรือง เทรดดิ้ง",
+            "value": "***",
+            "value_label": "***"
+          },
+          {
+            "agent": "นางรองค้าส่ง",
+            "value": "***",
+            "value_label": "***"
+          }
+        ],
+        "summary": "ยอดค้างชำระเกินกำหนด 1 ก.ย. 2569 – 22 ก.ย. 2569: ข้อมูลถูกปิดตามนโยบาย (masked) — เห็นได้เฉพาะโครงสร้างข้อมูล",
+        "headline": {
+          "aggregate": "sum",
+          "value": "—",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 8,
+          "deltaPercent": null,
+          "compareLabel": null,
+          "compareNote": null,
+          "top": []
+        },
+        "provenance": {
+          "metric": "ar_overdue",
+          "certified": true,
+          "sourceSystem": "SAP FI",
+          "asOf": "2026-09-22",
+          "rowCount": 8,
+          "filtersApplied": {
+            "region": [
+              "northeast"
+            ]
+          },
+          "filterLabels": [
+            "ภาคอีสาน"
+          ],
+          "scopeApplied": {},
+          "masked": [
+            "value",
+            "compare_value",
+            "delta_pct"
+          ],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "ar_overdue",
+          "dims": [
+            "agent"
+          ],
+          "filters": {
+            "region": [
+              "northeast"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "none",
+          "limit": 10,
+          "sort": "value_desc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "request-access",
+            "kind": "request_access",
+            "label": "ขอสิทธิ์จากคุณมิ้นท์",
+            "reason": "ยอดค้างชำระเกินกำหนด ถูกปิดบางฟิลด์ตามสิทธิ์ เจ้าของข้อมูลคือผู้ดูแล SAP FI",
+            "tool": "send_email",
+            "input": {
+              "toUserId": "u_mint",
+              "subject": "ขอสิทธิ์ดูยอดค้างชำระเกินกำหนด",
+              "body": "ขอสิทธิ์ดูยอดค้างชำระเกินกำหนดครับ ตอนนี้มี 3 ฟิลด์ถูกปิด ทำให้วิเคราะห์ต่อไม่ได้"
+            },
+            "prompt": null
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายเดือน",
+            "prompt": "ยอดค้างชำระเกินกำหนด รายเดือนย้อนหลัง 6 เดือน",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ขอยอดค้างชำระเกินกำหนดแยกตามเอเย่นต์ เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "tool": "crm_demo__store_visits",
+      "input": {
+        "agentId": "ag_nea_02",
+        "regions": "northeast"
+      },
+      "output": {
+        "ok": false,
+        "code": "CONNECTOR_UNAVAILABLE",
+        "error": "CRM (REST) ไม่ตอบในขณะนี้"
+      }
+    },
+    {
+      "tool": "crm_demo__store_visits",
+      "input": {
+        "agentId": "ag_nea_05",
+        "regions": "northeast"
+      },
+      "output": {
+        "ok": false,
+        "code": "CONNECTOR_UNAVAILABLE",
+        "error": "CRM (REST) ไม่ตอบในขณะนี้"
+      }
+    },
+    {
+      "tool": "crm_demo__store_visits",
+      "input": {
+        "agentId": "ag_nea_07",
+        "regions": "northeast"
+      },
+      "output": {
+        "ok": false,
+        "code": "CONNECTOR_UNAVAILABLE",
+        "error": "CRM (REST) ไม่ตอบในขณะนี้"
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "campaign_spend",
+        "dims": [
+          "campaign"
+        ],
+        "filters": {},
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "none",
+        "limit": 10,
+        "sort": "value_desc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "campaign": "ซีสโตร์ โซดาซัมเมอร์ 1 แถม 1",
+            "value": 8000000,
+            "value_label": "8.0 ล้านบาท"
+          }
+        ],
+        "summary": "งบแคมเปญที่ใช้ 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 8.0 ล้านบาท · สูงสุด: ซีสโตร์ โซดาซัมเมอร์ 1 แถม 1 8.0 ล้านบาท · (1 แถว · certified · SAP FI)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "8.0 ล้านบาท",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 1,
+          "deltaPercent": null,
+          "compareLabel": null,
+          "compareNote": null,
+          "top": [
+            {
+              "label": "ซีสโตร์ โซดาซัมเมอร์ 1 แถม 1",
+              "value": "8.0 ล้านบาท"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "campaign_spend",
+          "certified": true,
+          "sourceSystem": "SAP FI",
+          "asOf": "2026-09-22",
+          "rowCount": 1,
+          "filtersApplied": {},
+          "filterLabels": [],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "campaign_spend",
+          "dims": [
+            "campaign"
+          ],
+          "filters": {},
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "none",
+          "limit": 10,
+          "sort": "value_desc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "drill-region",
+            "kind": "drill",
+            "label": "แยกตามภาค",
+            "reason": "ยังไม่ได้ดูแยกรายภาค",
+            "tool": null,
+            "input": null,
+            "prompt": "ของบแคมเปญที่ใช้แยกตามภาค เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "งบแคมเปญที่ใช้ รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ของบแคมเปญที่ใช้แยกตามแคมเปญ เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "campaign_uplift",
+        "dims": [
+          "campaign"
+        ],
+        "filters": {},
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "none",
+        "limit": 10,
+        "sort": "value_desc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "campaign": "ซีสโตร์ โซดาซัมเมอร์ 1 แถม 1",
+            "value": 35.3,
+            "value_label": "35.3%"
+          }
+        ],
+        "summary": "ยอดเพิ่มจากแคมเปญ 1 ก.ย. 2569 – 22 ก.ย. 2569: เฉลี่ย 35.3% · สูงสุด: ซีสโตร์ โซดาซัมเมอร์ 1 แถม 1 35.3% · (1 แถว · derived · SAP SD)",
+        "headline": {
+          "aggregate": "average",
+          "value": "35.3%",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 1,
+          "deltaPercent": null,
+          "compareLabel": null,
+          "compareNote": null,
+          "top": [
+            {
+              "label": "ซีสโตร์ โซดาซัมเมอร์ 1 แถม 1",
+              "value": "35.3%"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "campaign_uplift",
+          "certified": false,
+          "sourceSystem": "SAP SD",
+          "asOf": "2026-09-22",
+          "rowCount": 1,
+          "filtersApplied": {},
+          "filterLabels": [],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "derived"
+        },
+        "query": {
+          "metric": "campaign_uplift",
+          "dims": [
+            "campaign"
+          ],
+          "filters": {},
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "none",
+          "limit": 10,
+          "sort": "value_desc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "drill-region",
+            "kind": "drill",
+            "label": "แยกตามภาค",
+            "reason": "ยังไม่ได้ดูแยกรายภาค",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอยอดเพิ่มจากแคมเปญแยกตามภาค เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "ยอดเพิ่มจากแคมเปญ รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ขอยอดเพิ่มจากแคมเปญแยกตามแคมเปญ เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "trade_spend",
+        "dims": [
+          "channel"
+        ],
+        "filters": {
+          "region": [
+            "northeast"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "none",
+        "limit": 10,
+        "sort": "value_desc",
+        "where": null
+      },
+      "output": {
+        "ok": false,
+        "error": "มิติ channel ใช้กับเมตริก trade_spend ไม่ได้",
+        "code": "BAD_QUERY"
+      }
+    },
+    {
+      "tool": "list_metrics",
+      "input": {
+        "search": "trade_spend"
+      },
+      "output": {
+        "ok": true,
+        "summary": "พบ 1 เมตริกที่ตรงกับคำค้น",
+        "data": [
+          {
+            "id": "trade_spend",
+            "labelTh": "งบส่งเสริมการขาย",
+            "unit": "บาท",
+            "dims": [
+              "month",
+              "business_unit",
+              "region"
+            ],
+            "certified": true,
+            "source": "SAP FI",
+            "refresh": "รายเดือน",
+            "latest": "22 ก.ย. 2569"
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "trade_spend",
+        "dims": [
+          "region"
+        ],
+        "filters": {},
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "target",
+        "limit": 10,
+        "sort": "value_desc",
+        "where": null
+      },
+      "output": {
+        "ok": false,
+        "error": "เมตริก trade_spend ไม่มีเป้าหมายให้เทียบ ใช้ compare \"none\" หรือเทียบงวดก่อนแทน",
+        "code": "BAD_QUERY"
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "trade_spend",
+        "dims": [
+          "business_unit"
+        ],
+        "filters": {
+          "region": [
+            "northeast"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "target",
+        "limit": 10,
+        "sort": "value_desc",
+        "where": null
+      },
+      "output": {
+        "ok": false,
+        "error": "เมตริก trade_spend ไม่มีเป้าหมายให้เทียบ ใช้ compare \"none\" หรือเทียบงวดก่อนแทน",
+        "code": "BAD_QUERY"
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "trade_spend",
+        "dims": [
+          "region"
+        ],
+        "filters": {},
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "prev_period",
+        "limit": 10,
+        "sort": "value_desc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "region": "กรุงเทพฯ และปริมณฑล",
+            "value": "***",
+            "value_label": "***",
+            "compare_value": "***",
+            "delta_pct": "***"
+          },
+          {
+            "region": "ภาคกลาง",
+            "value": "***",
+            "value_label": "***",
+            "compare_value": "***",
+            "delta_pct": "***"
+          },
+          {
+            "region": "ภาคตะวันออก",
+            "value": "***",
+            "value_label": "***",
+            "compare_value": "***",
+            "delta_pct": "***"
+          },
+          {
+            "region": "ภาคเหนือ",
+            "value": "***",
+            "value_label": "***",
+            "compare_value": "***",
+            "delta_pct": "***"
+          },
+          {
+            "region": "ภาคอีสาน",
+            "value": "***",
+            "value_label": "***",
+            "compare_value": "***",
+            "delta_pct": "***"
+          },
+          {
+            "region": "ภาคใต้",
+            "value": "***",
+            "value_label": "***",
+            "compare_value": "***",
+            "delta_pct": "***"
+          }
+        ],
+        "summary": "งบส่งเสริมการขาย 1 ก.ย. 2569 – 22 ก.ย. 2569: ข้อมูลถูกปิดตามนโยบาย (masked) — เห็นได้เฉพาะโครงสร้างข้อมูล",
+        "headline": {
+          "aggregate": "sum",
+          "value": "—",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 6,
+          "deltaPercent": null,
+          "compareLabel": null,
+          "compareNote": "ข้อมูลเดือนล่าสุดถึง 22 ก.ย. 2569 จึงเทียบกับงวดก่อนตามสัดส่วนวัน (73%)",
+          "top": []
+        },
+        "provenance": {
+          "metric": "trade_spend",
+          "certified": true,
+          "sourceSystem": "SAP FI",
+          "asOf": "2026-09-22",
+          "rowCount": 6,
+          "filtersApplied": {},
+          "filterLabels": [],
+          "scopeApplied": {},
+          "masked": [
+            "value",
+            "compare_value",
+            "delta_pct"
+          ],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "trade_spend",
+          "dims": [
+            "region"
+          ],
+          "filters": {},
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "prev_period",
+          "limit": 10,
+          "sort": "value_desc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "request-access",
+            "kind": "request_access",
+            "label": "ขอสิทธิ์จากคุณศิริพร",
+            "reason": "งบส่งเสริมการขาย ถูกปิดบางฟิลด์ตามสิทธิ์ เจ้าของข้อมูลคือผู้ดูแล SAP FI",
+            "tool": "send_email",
+            "input": {
+              "toUserId": "u_siriporn",
+              "subject": "ขอสิทธิ์ดูงบส่งเสริมการขาย",
+              "body": "ขอสิทธิ์ดูงบส่งเสริมการขายครับ ตอนนี้มี 3 ฟิลด์ถูกปิด ทำให้วิเคราะห์ต่อไม่ได้"
+            },
+            "prompt": null
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายเดือน",
+            "prompt": "งบส่งเสริมการขาย รายเดือนย้อนหลัง 6 เดือน",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ของบส่งเสริมการขายแยกตามภาค เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "trade_spend",
+        "dims": [
+          "business_unit"
+        ],
+        "filters": {
+          "region": [
+            "northeast"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "prev_period",
+        "limit": 10,
+        "sort": "value_desc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "business_unit": "กลุ่มเบียร์",
+            "value": "***",
+            "value_label": "***",
+            "compare_value": "***",
+            "delta_pct": "***"
+          },
+          {
+            "business_unit": "กลุ่มนำเข้า",
+            "value": "***",
+            "value_label": "***",
+            "compare_value": "***",
+            "delta_pct": "***"
+          },
+          {
+            "business_unit": "กลุ่มนอนแอลกอฮอล์",
+            "value": "***",
+            "value_label": "***",
+            "compare_value": "***",
+            "delta_pct": "***"
+          }
+        ],
+        "summary": "งบส่งเสริมการขาย 1 ก.ย. 2569 – 22 ก.ย. 2569: ข้อมูลถูกปิดตามนโยบาย (masked) — เห็นได้เฉพาะโครงสร้างข้อมูล",
+        "headline": {
+          "aggregate": "sum",
+          "value": "—",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 3,
+          "deltaPercent": null,
+          "compareLabel": null,
+          "compareNote": "ข้อมูลเดือนล่าสุดถึง 22 ก.ย. 2569 จึงเทียบกับงวดก่อนตามสัดส่วนวัน (73%)",
+          "top": []
+        },
+        "provenance": {
+          "metric": "trade_spend",
+          "certified": true,
+          "sourceSystem": "SAP FI",
+          "asOf": "2026-09-22",
+          "rowCount": 3,
+          "filtersApplied": {
+            "region": [
+              "northeast"
+            ]
+          },
+          "filterLabels": [
+            "ภาคอีสาน"
+          ],
+          "scopeApplied": {},
+          "masked": [
+            "value",
+            "compare_value",
+            "delta_pct"
+          ],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "trade_spend",
+          "dims": [
+            "business_unit"
+          ],
+          "filters": {
+            "region": [
+              "northeast"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "prev_period",
+          "limit": 10,
+          "sort": "value_desc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "request-access",
+            "kind": "request_access",
+            "label": "ขอสิทธิ์จากคุณศิริพร",
+            "reason": "งบส่งเสริมการขาย ถูกปิดบางฟิลด์ตามสิทธิ์ เจ้าของข้อมูลคือผู้ดูแล SAP FI",
+            "tool": "send_email",
+            "input": {
+              "toUserId": "u_siriporn",
+              "subject": "ขอสิทธิ์ดูงบส่งเสริมการขาย",
+              "body": "ขอสิทธิ์ดูงบส่งเสริมการขายครับ ตอนนี้มี 3 ฟิลด์ถูกปิด ทำให้วิเคราะห์ต่อไม่ได้"
+            },
+            "prompt": null
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายเดือน",
+            "prompt": "งบส่งเสริมการขาย รายเดือนย้อนหลัง 6 เดือน",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ของบส่งเสริมการขายแยกตามกลุ่มธุรกิจ เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "tool": "describe_entity",
+      "input": {
+        "kind": "campaign",
+        "query": "ซีสโตร์ โซดาซัมเมอร์ 1 แถม 1"
+      },
+      "output": {
+        "ok": true,
+        "data": {
+          "id": "cmp_cstore_soda_promo",
+          "ชื่อ": "ซีสโตร์ โซดาซัมเมอร์ 1 แถม 1",
+          "ช่วงเวลา": "2026-09-05 – 2026-09-22",
+          "แบรนด์": [
+            "โซดาสิงห์"
+          ],
+          "ภาค": [
+            "กรุงเทพฯ และปริมณฑล",
+            "ภาคกลาง"
+          ],
+          "งบประมาณ": 8000000,
+          "เป้าหมายยอดเพิ่ม": "35%",
+          "ผู้รับผิดชอบ": "คุณพิม สุริยวงศ์"
+        },
+        "summary": "ซีสโตร์ โซดาซัมเมอร์ 1 แถม 1 2026-09-05 ถึง 2026-09-22 งบ 8.0 ล้านบาท ดูแลโดย คุณพิม สุริยวงศ์"
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "days_of_cover",
+        "dims": [
+          "region"
+        ],
+        "filters": {
+          "business_unit": [
+            "กลุ่มนอนแอลกอฮอล์"
+          ],
+          "sku": [
+            "sku_singha_soda_can320"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "none",
+        "limit": 10,
+        "sort": "value_asc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "region": "ภาคตะวันออก",
+            "value": 14.96,
+            "value_label": "15.0 วัน"
+          },
+          {
+            "region": "ภาคเหนือ",
+            "value": 16.36,
+            "value_label": "16.4 วัน"
+          },
+          {
+            "region": "ภาคอีสาน",
+            "value": 17.73,
+            "value_label": "17.7 วัน"
+          },
+          {
+            "region": "ภาคกลาง",
+            "value": 17.96,
+            "value_label": "18.0 วัน"
+          },
+          {
+            "region": "ภาคใต้",
+            "value": 20.28,
+            "value_label": "20.3 วัน"
+          },
+          {
+            "region": "กรุงเทพฯ และปริมณฑล",
+            "value": 21.52,
+            "value_label": "21.5 วัน"
+          }
+        ],
+        "summary": "วันครอบคลุมสต๊อก 1 ก.ย. 2569 – 22 ก.ย. 2569: เฉลี่ย 18.7 วัน · ต่ำสุด: ภาคตะวันออก 15.0 วัน · ภาคเหนือ 16.4 วัน · ภาคอีสาน 17.7 วัน · (6 แถว · certified · WMS)",
+        "headline": {
+          "aggregate": "average",
+          "value": "18.7 วัน",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 6,
+          "deltaPercent": null,
+          "compareLabel": null,
+          "compareNote": null,
+          "top": [
+            {
+              "label": "ภาคตะวันออก",
+              "value": "15.0 วัน"
+            },
+            {
+              "label": "ภาคเหนือ",
+              "value": "16.4 วัน"
+            },
+            {
+              "label": "ภาคอีสาน",
+              "value": "17.7 วัน"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "days_of_cover",
+          "certified": true,
+          "sourceSystem": "WMS",
+          "asOf": "2026-09-22",
+          "rowCount": 6,
+          "filtersApplied": {
+            "business_unit": [
+              "non_alcohol"
+            ],
+            "sku": [
+              "sku_singha_soda_can320"
+            ]
+          },
+          "filterLabels": [
+            "กลุ่มนอนแอลกอฮอล์",
+            "โซดาสิงห์ กระป๋อง 320 มล."
+          ],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "days_of_cover",
+          "dims": [
+            "region"
+          ],
+          "filters": {
+            "business_unit": [
+              "กลุ่มนอนแอลกอฮอล์"
+            ],
+            "sku": [
+              "sku_singha_soda_can320"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "none",
+          "limit": 10,
+          "sort": "value_asc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "drill-brand",
+            "kind": "drill",
+            "label": "แยกตามแบรนด์",
+            "reason": "ยังไม่ได้ดูแยกรายแบรนด์",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอวันครอบคลุมสต๊อกแยกตามแบรนด์ เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-drill_down",
+            "label": "ดูศูนย์กระจายสินค้าในภาคตะวันออก",
+            "prompt": "ขอวันครอบคลุมสต๊อกของภาคตะวันออก แยกรายศูนย์กระจายสินค้า เรียงจากแย่ไปดี",
+            "reason": "ลงไปอีกชั้นเพื่อหาว่าใครในภาคตะวันออกทำให้ตัวเลขเป็นแบบนี้",
+            "intentKey": "follow|drill_down",
+            "score": 0.7
+          },
+          {
+            "id": "fu-why",
+            "label": "ทำไมภาคตะวันออก",
+            "prompt": "เจาะดูวันครอบคลุมสต๊อกของภาคตะวันออก ว่าทำไมถึงเปลี่ยนไป เทียบกับช่วงก่อนหน้าและช่วงเดียวกันปีก่อน",
+            "reason": "ภาคตะวันออก คือแถวที่ต้องดูมากที่สุดในคำตอบนี้",
+            "intentKey": "follow|why",
+            "score": 0.6
+          },
+          {
+            "id": "fu-forecast",
+            "label": "พยากรณ์ 8 สัปดาห์",
+            "prompt": "พยากรณ์วันครอบคลุมสต๊อก 8 สัปดาห์ข้างหน้า",
+            "reason": "ดูว่าถ้าเป็นแบบนี้ต่อไปจะเกิดอะไร",
+            "intentKey": "follow|forecast",
+            "score": 0.55
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "stock_on_hand",
+        "dims": [
+          "region"
+        ],
+        "filters": {
+          "sku": [
+            "sku_singha_soda_can320"
+          ],
+          "business_unit": [
+            "กลุ่มนอนแอลกอฮอล์"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "none",
+        "limit": 10,
+        "sort": "value_asc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "region": "ภาคเหนือ",
+            "value": 7994,
+            "value_label": "7,994 ลัง"
+          },
+          {
+            "region": "ภาคตะวันออก",
+            "value": 8488,
+            "value_label": "8,488 ลัง"
+          },
+          {
+            "region": "ภาคใต้",
+            "value": 10907,
+            "value_label": "10,907 ลัง"
+          },
+          {
+            "region": "ภาคกลาง",
+            "value": 12038,
+            "value_label": "12,038 ลัง"
+          },
+          {
+            "region": "ภาคอีสาน",
+            "value": 16244,
+            "value_label": "16,244 ลัง"
+          },
+          {
+            "region": "กรุงเทพฯ และปริมณฑล",
+            "value": 27913,
+            "value_label": "27,913 ลัง"
+          }
+        ],
+        "summary": "สต๊อกคงเหลือ 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 83,584 ลัง · สูงสุด: กรุงเทพฯ และปริมณฑล 27,913 ลัง · ภาคอีสาน 16,244 ลัง · ภาคกลาง 12,038 ลัง · (6 แถว · certified · WMS)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "83,584 ลัง",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 6,
+          "deltaPercent": null,
+          "compareLabel": null,
+          "compareNote": null,
+          "top": [
+            {
+              "label": "กรุงเทพฯ และปริมณฑล",
+              "value": "27,913 ลัง"
+            },
+            {
+              "label": "ภาคอีสาน",
+              "value": "16,244 ลัง"
+            },
+            {
+              "label": "ภาคกลาง",
+              "value": "12,038 ลัง"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "stock_on_hand",
+          "certified": true,
+          "sourceSystem": "WMS",
+          "asOf": "2026-09-22",
+          "rowCount": 6,
+          "filtersApplied": {
+            "sku": [
+              "sku_singha_soda_can320"
+            ],
+            "business_unit": [
+              "non_alcohol"
+            ]
+          },
+          "filterLabels": [
+            "โซดาสิงห์ กระป๋อง 320 มล.",
+            "กลุ่มนอนแอลกอฮอล์"
+          ],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "stock_on_hand",
+          "dims": [
+            "region"
+          ],
+          "filters": {
+            "sku": [
+              "sku_singha_soda_can320"
+            ],
+            "business_unit": [
+              "กลุ่มนอนแอลกอฮอล์"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "none",
+          "limit": 10,
+          "sort": "value_asc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "drill-brand",
+            "kind": "drill",
+            "label": "แยกตามแบรนด์",
+            "reason": "ยังไม่ได้ดูแยกรายแบรนด์",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอสต๊อกคงเหลือแยกตามแบรนด์ เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "สต๊อกคงเหลือ รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ขอสต๊อกคงเหลือแยกตามภาค เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "sell_out_volume",
+        "dims": [
+          "province"
+        ],
+        "filters": {
+          "sku": [
+            "sku_singha_water_pet600"
+          ],
+          "region": [
+            "northeast"
+          ],
+          "brand": [
+            "singha_water"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "target",
+        "limit": 10,
+        "sort": "delta_asc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "province": "อุบลราชธานี",
+            "value": 68916,
+            "value_label": "68,916 ลิตร",
+            "compare_value": 70657,
+            "delta_pct": -2.5
+          },
+          {
+            "province": "นครราชสีมา",
+            "value": 94024,
+            "value_label": "94,024 ลิตร",
+            "compare_value": 95674,
+            "delta_pct": -1.7
+          },
+          {
+            "province": "ขอนแก่น",
+            "value": 121570,
+            "value_label": "121,570 ลิตร",
+            "compare_value": 121635,
+            "delta_pct": -0.1
+          },
+          {
+            "province": "บุรีรัมย์",
+            "value": 99890,
+            "value_label": "99,890 ลิตร",
+            "compare_value": 99528,
+            "delta_pct": 0.4
+          }
+        ],
+        "summary": "ปริมาณขายออก (Sell-out) 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 384,399 ลิตร · สูงสุด: ขอนแก่น 121,570 ลิตร · บุรีรัมย์ 99,890 ลิตร · นครราชสีมา 94,024 ลิตร · เทียบเป้า -0.8% · (4 แถว · certified · SAP SD)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "384,399 ลิตร",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 4,
+          "deltaPercent": -0.8,
+          "compareLabel": "เทียบเป้า",
+          "compareNote": null,
+          "top": [
+            {
+              "label": "ขอนแก่น",
+              "value": "121,570 ลิตร"
+            },
+            {
+              "label": "บุรีรัมย์",
+              "value": "99,890 ลิตร"
+            },
+            {
+              "label": "นครราชสีมา",
+              "value": "94,024 ลิตร"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "sell_out_volume",
+          "certified": true,
+          "sourceSystem": "SAP SD",
+          "asOf": "2026-09-22",
+          "rowCount": 4,
+          "filtersApplied": {
+            "sku": [
+              "sku_singha_water_pet600"
+            ],
+            "region": [
+              "northeast"
+            ],
+            "brand": [
+              "singha_water"
+            ]
+          },
+          "filterLabels": [
+            "น้ำดื่มสิงห์ ขวด PET 600 มล.",
+            "ภาคอีสาน",
+            "น้ำดื่มสิงห์"
+          ],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "sell_out_volume",
+          "dims": [
+            "province"
+          ],
+          "filters": {
+            "sku": [
+              "sku_singha_water_pet600"
+            ],
+            "region": [
+              "northeast"
+            ],
+            "brand": [
+              "singha_water"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "target",
+          "limit": 10,
+          "sort": "delta_asc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "handoff",
+            "kind": "handoff",
+            "label": "ส่งงานให้คุณอนุชา",
+            "reason": "เจ้าของตัวเลขยอดขายของพื้นที่ (ระดับภาค)",
+            "tool": "create_handoff",
+            "input": {
+              "toUserId": "u_anucha",
+              "title": "ปริมาณขายออก (Sell-out) · ขอนแก่น",
+              "ask": "ช่วยตรวจน้ำดื่มสิงห์ ขวด PET 600 มล. · ขอนแก่น · ภาคอีสาน แล้วบอกกลับว่าเกิดจากอะไรและจะแก้อย่างไร",
+              "urgency": "high",
+              "evidence": [
+                {
+                  "metric": "sell_out_volume",
+                  "dims": [
+                    "province"
+                  ],
+                  "filters": {
+                    "sku": [
+                      "sku_singha_water_pet600"
+                    ],
+                    "region": [
+                      "northeast"
+                    ],
+                    "brand": [
+                      "singha_water"
+                    ]
+                  },
+                  "range": {
+                    "from": "2026-09-01",
+                    "to": "2026-09-22"
+                  },
+                  "grain": "month",
+                  "compare": "target",
+                  "limit": 10,
+                  "sort": "delta_asc",
+                  "where": null
+                }
+              ],
+              "alertIds": [
+                "al_49b503043dd5af01"
+              ]
+            },
+            "prompt": null
+          },
+          {
+            "id": "verify",
+            "kind": "verify",
+            "label": "ตรวจสาเหตุ",
+            "reason": "เทียบน้ำดื่มสิงห์ ขวด PET 600 มล. · ขอนแก่น · ภาคอีสานกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+            "tool": null,
+            "input": null,
+            "prompt": "เทียบน้ำดื่มสิงห์ ขวด PET 600 มล. · ขอนแก่น · ภาคอีสานกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน"
+          },
+          {
+            "id": "drill-channel",
+            "kind": "drill",
+            "label": "แยกตามช่องทาง",
+            "reason": "ยังไม่ได้ดูแยกรายช่องทาง",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอปริมาณขายออก (Sell-out)แยกตามช่องทาง เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "ปริมาณขายออก (Sell-out) รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ขอปริมาณขายออก (Sell-out) แยกตามจังหวัด เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "sell_out_volume",
+        "dims": [
+          "province"
+        ],
+        "filters": {
+          "brand": [
+            "singha_water"
+          ],
+          "sku": [
+            "sku_singha_water_pet600"
+          ],
+          "region": [
+            "northeast"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "prev_year",
+        "limit": 10,
+        "sort": "delta_asc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "province": "อุบลราชธานี",
+            "value": 68916,
+            "value_label": "68,916 ลิตร",
+            "compare_value": 68318,
+            "delta_pct": 0.9
+          },
+          {
+            "province": "นครราชสีมา",
+            "value": 94024,
+            "value_label": "94,024 ลิตร",
+            "compare_value": 90510,
+            "delta_pct": 3.9
+          },
+          {
+            "province": "บุรีรัมย์",
+            "value": 99890,
+            "value_label": "99,890 ลิตร",
+            "compare_value": 94808,
+            "delta_pct": 5.4
+          },
+          {
+            "province": "ขอนแก่น",
+            "value": 121570,
+            "value_label": "121,570 ลิตร",
+            "compare_value": 115060,
+            "delta_pct": 5.7
+          }
+        ],
+        "summary": "ปริมาณขายออก (Sell-out) 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 384,399 ลิตร · สูงสุด: ขอนแก่น 121,570 ลิตร · บุรีรัมย์ 99,890 ลิตร · นครราชสีมา 94,024 ลิตร · เทียบปีก่อน +4.3% · (4 แถว · certified · SAP SD)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "384,399 ลิตร",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 4,
+          "deltaPercent": 4.3,
+          "compareLabel": "เทียบปีก่อน",
+          "compareNote": null,
+          "top": [
+            {
+              "label": "ขอนแก่น",
+              "value": "121,570 ลิตร"
+            },
+            {
+              "label": "บุรีรัมย์",
+              "value": "99,890 ลิตร"
+            },
+            {
+              "label": "นครราชสีมา",
+              "value": "94,024 ลิตร"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "sell_out_volume",
+          "certified": true,
+          "sourceSystem": "SAP SD",
+          "asOf": "2026-09-22",
+          "rowCount": 4,
+          "filtersApplied": {
+            "brand": [
+              "singha_water"
+            ],
+            "sku": [
+              "sku_singha_water_pet600"
+            ],
+            "region": [
+              "northeast"
+            ]
+          },
+          "filterLabels": [
+            "น้ำดื่มสิงห์",
+            "น้ำดื่มสิงห์ ขวด PET 600 มล.",
+            "ภาคอีสาน"
+          ],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "sell_out_volume",
+          "dims": [
+            "province"
+          ],
+          "filters": {
+            "brand": [
+              "singha_water"
+            ],
+            "sku": [
+              "sku_singha_water_pet600"
+            ],
+            "region": [
+              "northeast"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "prev_year",
+          "limit": 10,
+          "sort": "delta_asc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "handoff",
+            "kind": "handoff",
+            "label": "ส่งงานให้คุณอนุชา",
+            "reason": "เจ้าของตัวเลขยอดขายของพื้นที่ (ระดับภาค)",
+            "tool": "create_handoff",
+            "input": {
+              "toUserId": "u_anucha",
+              "title": "ปริมาณขายออก (Sell-out) · ขอนแก่น",
+              "ask": "ช่วยตรวจน้ำดื่มสิงห์ ขวด PET 600 มล. · ขอนแก่น · ภาคอีสาน แล้วบอกกลับว่าเกิดจากอะไรและจะแก้อย่างไร",
+              "urgency": "high",
+              "evidence": [
+                {
+                  "metric": "sell_out_volume",
+                  "dims": [
+                    "province"
+                  ],
+                  "filters": {
+                    "brand": [
+                      "singha_water"
+                    ],
+                    "sku": [
+                      "sku_singha_water_pet600"
+                    ],
+                    "region": [
+                      "northeast"
+                    ]
+                  },
+                  "range": {
+                    "from": "2026-09-01",
+                    "to": "2026-09-22"
+                  },
+                  "grain": "month",
+                  "compare": "prev_year",
+                  "limit": 10,
+                  "sort": "delta_asc",
+                  "where": null
+                }
+              ],
+              "alertIds": [
+                "al_49b503043dd5af01"
+              ]
+            },
+            "prompt": null
+          },
+          {
+            "id": "verify",
+            "kind": "verify",
+            "label": "ตรวจสาเหตุ",
+            "reason": "เทียบน้ำดื่มสิงห์ ขวด PET 600 มล. · ขอนแก่น · ภาคอีสานกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+            "tool": null,
+            "input": null,
+            "prompt": "เทียบน้ำดื่มสิงห์ ขวด PET 600 มล. · ขอนแก่น · ภาคอีสานกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน"
+          },
+          {
+            "id": "drill-channel",
+            "kind": "drill",
+            "label": "แยกตามช่องทาง",
+            "reason": "ยังไม่ได้ดูแยกรายช่องทาง",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอปริมาณขายออก (Sell-out)แยกตามช่องทาง เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "ปริมาณขายออก (Sell-out) รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "net_sales_volume",
+        "dims": [
+          "agent"
+        ],
+        "filters": {
+          "region": [
+            "northeast"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "target",
+        "limit": 10,
+        "sort": "delta_asc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "agent": "อุบลศรีสุข เทรดดิ้ง",
+            "value": 330361,
+            "value_label": "330,361 ลิตร",
+            "compare_value": 477585,
+            "delta_pct": -30.8
+          },
+          {
+            "agent": "อีสานรุ่งโรจน์ ค้าส่ง",
+            "value": 353359,
+            "value_label": "353,359 ลิตร",
+            "compare_value": 503440,
+            "delta_pct": -29.8
+          },
+          {
+            "agent": "ส.รุ่งเรือง เทรดดิ้ง",
+            "value": 644944,
+            "value_label": "644,944 ลิตร",
+            "compare_value": 660073,
+            "delta_pct": -2.3
+          },
+          {
+            "agent": "ขอนแก่นมหาชัย",
+            "value": 817661,
+            "value_label": "817,661 ลิตร",
+            "compare_value": 815773,
+            "delta_pct": 0.2
+          },
+          {
+            "agent": "นางรองค้าส่ง",
+            "value": 389827,
+            "value_label": "389,827 ลิตร",
+            "compare_value": 383518,
+            "delta_pct": 1.6
+          },
+          {
+            "agent": "โคราชสหภัณฑ์",
+            "value": 758552,
+            "value_label": "758,552 ลิตร",
+            "compare_value": 745109,
+            "delta_pct": 1.8
+          },
+          {
+            "agent": "ปากช่องเบเวอเรจ",
+            "value": 268948,
+            "value_label": "268,948 ลิตร",
+            "compare_value": 263301,
+            "delta_pct": 2.1
+          },
+          {
+            "agent": "วารินพาณิชย์",
+            "value": 296261,
+            "value_label": "296,261 ลิตร",
+            "compare_value": 289603,
+            "delta_pct": 2.3
+          }
+        ],
+        "summary": "ปริมาณขายเข้า (Sell-in) 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 3.9 ล้านลิตร · สูงสุด: ขอนแก่นมหาชัย 817,661 ลิตร · โคราชสหภัณฑ์ 758,552 ลิตร · ส.รุ่งเรือง เทรดดิ้ง 644,944 ลิตร · เทียบเป้า -6.7% · (8 แถว · certified · SAP SD)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "3.9 ล้านลิตร",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 8,
+          "deltaPercent": -6.7,
+          "compareLabel": "เทียบเป้า",
+          "compareNote": null,
+          "top": [
+            {
+              "label": "ขอนแก่นมหาชัย",
+              "value": "817,661 ลิตร"
+            },
+            {
+              "label": "โคราชสหภัณฑ์",
+              "value": "758,552 ลิตร"
+            },
+            {
+              "label": "ส.รุ่งเรือง เทรดดิ้ง",
+              "value": "644,944 ลิตร"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "net_sales_volume",
+          "certified": true,
+          "sourceSystem": "SAP SD",
+          "asOf": "2026-09-22",
+          "rowCount": 8,
+          "filtersApplied": {
+            "region": [
+              "northeast"
+            ]
+          },
+          "filterLabels": [
+            "ภาคอีสาน"
+          ],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "net_sales_volume",
+          "dims": [
+            "agent"
+          ],
+          "filters": {
+            "region": [
+              "northeast"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "target",
+          "limit": 10,
+          "sort": "delta_asc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "handoff",
+            "kind": "handoff",
+            "label": "ส่งงานให้คุณอนุชา",
+            "reason": "เจ้าของตัวเลขยอดขายของพื้นที่ (ระดับภาค)",
+            "tool": "create_handoff",
+            "input": {
+              "toUserId": "u_anucha",
+              "title": "ปริมาณขายเข้า (Sell-in) · ขอนแก่นมหาชัย",
+              "ask": "ช่วยตรวจอุบลศรีสุข เทรดดิ้ง · ภาคอีสาน แล้วบอกกลับว่าเกิดจากอะไรและจะแก้อย่างไร",
+              "urgency": "high",
+              "evidence": [
+                {
+                  "metric": "net_sales_volume",
+                  "dims": [
+                    "agent"
+                  ],
+                  "filters": {
+                    "region": [
+                      "northeast"
+                    ]
+                  },
+                  "range": {
+                    "from": "2026-09-01",
+                    "to": "2026-09-22"
+                  },
+                  "grain": "month",
+                  "compare": "target",
+                  "limit": 10,
+                  "sort": "delta_asc",
+                  "where": null
+                }
+              ],
+              "alertIds": [
+                "al_7364476d77c8f435"
+              ]
+            },
+            "prompt": null
+          },
+          {
+            "id": "verify",
+            "kind": "verify",
+            "label": "ตรวจสาเหตุ",
+            "reason": "ดูประวัติการสั่งซื้อรายวันของอุบลศรีสุข เทรดดิ้ง · ภาคอีสาน 30 วันล่าสุด",
+            "tool": null,
+            "input": null,
+            "prompt": "ดูประวัติการสั่งซื้อรายวันของอุบลศรีสุข เทรดดิ้ง · ภาคอีสาน 30 วันล่าสุด"
+          },
+          {
+            "id": "drill-province",
+            "kind": "drill",
+            "label": "แยกตามจังหวัด",
+            "reason": "ยังไม่ได้ดูแยกรายจังหวัด",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอปริมาณขายเข้า (Sell-in)แยกตามจังหวัด เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-why",
+            "label": "ทำไมอุบลศรีสุข เทรดดิ้ง",
+            "prompt": "เจาะดูปริมาณขายเข้า (Sell-in) ของอุบลศรีสุข เทรดดิ้ง ว่าทำไมถึงเปลี่ยนไป เทียบกับช่วงก่อนหน้าและช่วงเดียวกันปีก่อน",
+            "reason": "อุบลศรีสุข เทรดดิ้ง คือแถวที่ต้องดูมากที่สุดในคำตอบนี้",
+            "intentKey": "follow|why",
+            "score": 0.95
+          },
+          {
+            "id": "fu-trend",
+            "label": "เริ่มแย่ตั้งแต่เมื่อไร",
+            "prompt": "ปริมาณขายเข้า (Sell-in) ของอุบลศรีสุข เทรดดิ้ง รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "ดูว่าตัวเลขเริ่มลดลงสัปดาห์ไหน",
+            "intentKey": "follow|trend",
+            "score": 0.65
+          },
+          {
+            "id": "fu-forecast",
+            "label": "พยากรณ์ 8 สัปดาห์",
+            "prompt": "พยากรณ์ปริมาณขายเข้า 8 สัปดาห์ข้างหน้า",
+            "reason": "ดูว่าถ้าเป็นแบบนี้ต่อไปจะเกิดอะไร",
+            "intentKey": "follow|forecast",
+            "score": 0.65
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "sell_out_volume",
+        "dims": [
+          "agent"
+        ],
+        "filters": {
+          "region": [
+            "northeast"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "target",
+        "limit": 10,
+        "sort": "delta_asc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "agent": "ขอนแก่นมหาชัย",
+            "value": 800828,
+            "value_label": "800,828 ลิตร",
+            "compare_value": 815773,
+            "delta_pct": -1.8
+          },
+          {
+            "agent": "อุบลศรีสุข เทรดดิ้ง",
+            "value": 469455,
+            "value_label": "469,455 ลิตร",
+            "compare_value": 477585,
+            "delta_pct": -1.7
+          },
+          {
+            "agent": "นางรองค้าส่ง",
+            "value": 379064,
+            "value_label": "379,064 ลิตร",
+            "compare_value": 383518,
+            "delta_pct": -1.2
+          },
+          {
+            "agent": "ส.รุ่งเรือง เทรดดิ้ง",
+            "value": 652444,
+            "value_label": "652,444 ลิตร",
+            "compare_value": 660073,
+            "delta_pct": -1.2
+          },
+          {
+            "agent": "อีสานรุ่งโรจน์ ค้าส่ง",
+            "value": 501167,
+            "value_label": "501,167 ลิตร",
+            "compare_value": 503440,
+            "delta_pct": -0.5
+          },
+          {
+            "agent": "โคราชสหภัณฑ์",
+            "value": 743453,
+            "value_label": "743,453 ลิตร",
+            "compare_value": 745109,
+            "delta_pct": -0.2
+          },
+          {
+            "agent": "วารินพาณิชย์",
+            "value": 289513,
+            "value_label": "289,513 ลิตร",
+            "compare_value": 289603,
+            "delta_pct": 0
+          },
+          {
+            "agent": "ปากช่องเบเวอเรจ",
+            "value": 263393,
+            "value_label": "263,393 ลิตร",
+            "compare_value": 263301,
+            "delta_pct": 0
+          }
+        ],
+        "summary": "ปริมาณขายออก (Sell-out) 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 4.1 ล้านลิตร · สูงสุด: ขอนแก่นมหาชัย 800,828 ลิตร · โคราชสหภัณฑ์ 743,453 ลิตร · ส.รุ่งเรือง เทรดดิ้ง 652,444 ลิตร · เทียบเป้า -0.9% · (8 แถว · certified · SAP SD)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "4.1 ล้านลิตร",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 8,
+          "deltaPercent": -0.9,
+          "compareLabel": "เทียบเป้า",
+          "compareNote": null,
+          "top": [
+            {
+              "label": "ขอนแก่นมหาชัย",
+              "value": "800,828 ลิตร"
+            },
+            {
+              "label": "โคราชสหภัณฑ์",
+              "value": "743,453 ลิตร"
+            },
+            {
+              "label": "ส.รุ่งเรือง เทรดดิ้ง",
+              "value": "652,444 ลิตร"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "sell_out_volume",
+          "certified": true,
+          "sourceSystem": "SAP SD",
+          "asOf": "2026-09-22",
+          "rowCount": 8,
+          "filtersApplied": {
+            "region": [
+              "northeast"
+            ]
+          },
+          "filterLabels": [
+            "ภาคอีสาน"
+          ],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "sell_out_volume",
+          "dims": [
+            "agent"
+          ],
+          "filters": {
+            "region": [
+              "northeast"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "target",
+          "limit": 10,
+          "sort": "delta_asc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "handoff",
+            "kind": "handoff",
+            "label": "ส่งงานให้คุณอนุชา",
+            "reason": "เจ้าของตัวเลขยอดขายของพื้นที่ (ระดับภาค)",
+            "tool": "create_handoff",
+            "input": {
+              "toUserId": "u_anucha",
+              "title": "ปริมาณขายออก (Sell-out) · ขอนแก่นมหาชัย",
+              "ask": "ช่วยตรวจน้ำดื่มสิงห์ ขวด PET 600 มล. · ขอนแก่น · ภาคอีสาน แล้วบอกกลับว่าเกิดจากอะไรและจะแก้อย่างไร",
+              "urgency": "high",
+              "evidence": [
+                {
+                  "metric": "sell_out_volume",
+                  "dims": [
+                    "agent"
+                  ],
+                  "filters": {
+                    "region": [
+                      "northeast"
+                    ]
+                  },
+                  "range": {
+                    "from": "2026-09-01",
+                    "to": "2026-09-22"
+                  },
+                  "grain": "month",
+                  "compare": "target",
+                  "limit": 10,
+                  "sort": "delta_asc",
+                  "where": null
+                }
+              ],
+              "alertIds": [
+                "al_49b503043dd5af01"
+              ]
+            },
+            "prompt": null
+          },
+          {
+            "id": "verify",
+            "kind": "verify",
+            "label": "ตรวจสาเหตุ",
+            "reason": "เทียบน้ำดื่มสิงห์ ขวด PET 600 มล. · ขอนแก่น · ภาคอีสานกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+            "tool": null,
+            "input": null,
+            "prompt": "เทียบน้ำดื่มสิงห์ ขวด PET 600 มล. · ขอนแก่น · ภาคอีสานกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน"
+          },
+          {
+            "id": "drill-province",
+            "kind": "drill",
+            "label": "แยกตามจังหวัด",
+            "reason": "ยังไม่ได้ดูแยกรายจังหวัด",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอปริมาณขายออก (Sell-out)แยกตามจังหวัด เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "ปริมาณขายออก (Sell-out) รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ขอปริมาณขายออก (Sell-out) แยกตามเอเย่นต์ เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "days_of_cover",
+        "dims": [
+          "agent"
+        ],
+        "filters": {
+          "agent": [
+            "ag_nea_02",
+            "ag_nea_05"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "none",
+        "limit": 10,
+        "sort": "value_asc",
+        "where": null
+      },
+      "output": {
+        "ok": false,
+        "error": "มิติ agent ใช้กับเมตริก days_of_cover ไม่ได้",
+        "code": "BAD_QUERY"
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "stock_on_hand",
+        "dims": [
+          "agent"
+        ],
+        "filters": {
+          "agent": [
+            "ag_nea_02",
+            "ag_nea_05"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "none",
+        "limit": 10,
+        "sort": "value_asc",
+        "where": null
+      },
+      "output": {
+        "ok": false,
+        "error": "มิติ agent ใช้กับเมตริก stock_on_hand ไม่ได้",
+        "code": "BAD_QUERY"
+      }
+    },
+    {
+      "tool": "list_metrics",
+      "input": {
+        "search": "cover"
+      },
+      "output": {
+        "ok": true,
+        "summary": "พบ 1 เมตริกที่ตรงกับคำค้น",
+        "data": [
+          {
+            "id": "days_of_cover",
+            "labelTh": "วันครอบคลุมสต๊อก",
+            "unit": "วัน",
+            "dims": [
+              "date",
+              "week",
+              "month",
+              "region",
+              "dc",
+              "brand",
+              "sku",
+              "pack",
+              "business_unit"
+            ],
+            "certified": true,
+            "source": "WMS",
+            "refresh": "รายวัน",
+            "latest": "22 ก.ย. 2569"
+          }
+        ]
+      }
+    },
+    {
+      "tool": "list_metrics",
+      "input": {
+        "search": "stock"
+      },
+      "output": {
+        "ok": true,
+        "summary": "พบ 1 เมตริกที่ตรงกับคำค้น",
+        "data": [
+          {
+            "id": "stock_on_hand",
+            "labelTh": "สต๊อกคงเหลือ",
+            "unit": "ลัง",
+            "dims": [
+              "date",
+              "week",
+              "month",
+              "region",
+              "dc",
+              "brand",
+              "sku",
+              "pack",
+              "business_unit"
+            ],
+            "certified": true,
+            "source": "WMS",
+            "refresh": "รายวัน",
+            "latest": "22 ก.ย. 2569"
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "days_of_cover",
+        "dims": [
+          "dc",
+          "business_unit"
+        ],
+        "filters": {
+          "region": [
+            "northeast"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "none",
+        "limit": 10,
+        "sort": "value_asc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "dc": "ศูนย์กระจายสินค้านครราชสีมา",
+            "business_unit": "กลุ่มนำเข้า",
+            "value": 12.26,
+            "value_label": "12.3 วัน"
+          },
+          {
+            "dc": "ศูนย์กระจายสินค้านครราชสีมา",
+            "business_unit": "กลุ่มนอนแอลกอฮอล์",
+            "value": 14.01,
+            "value_label": "14.0 วัน"
+          },
+          {
+            "dc": "ศูนย์กระจายสินค้าขอนแก่น",
+            "business_unit": "กลุ่มนำเข้า",
+            "value": 14.94,
+            "value_label": "14.9 วัน"
+          },
+          {
+            "dc": "ศูนย์กระจายสินค้านครราชสีมา",
+            "business_unit": "กลุ่มเบียร์",
+            "value": 15.28,
+            "value_label": "15.3 วัน"
+          },
+          {
+            "dc": "ศูนย์กระจายสินค้าขอนแก่น",
+            "business_unit": "กลุ่มเบียร์",
+            "value": 16.56,
+            "value_label": "16.6 วัน"
+          },
+          {
+            "dc": "ศูนย์กระจายสินค้าขอนแก่น",
+            "business_unit": "กลุ่มนอนแอลกอฮอล์",
+            "value": 16.78,
+            "value_label": "16.8 วัน"
+          }
+        ],
+        "summary": "วันครอบคลุมสต๊อก 1 ก.ย. 2569 – 22 ก.ย. 2569: เฉลี่ย 15.6 วัน · ต่ำสุด: ศูนย์กระจายสินค้านครราชสีมา 12.3 วัน · ศูนย์กระจายสินค้านครราชสีมา 14.0 วัน · ศูนย์กระจายสินค้าขอนแก่น 14.9 วัน · (6 แถว · certified · WMS)",
+        "headline": {
+          "aggregate": "average",
+          "value": "15.6 วัน",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 6,
+          "deltaPercent": null,
+          "compareLabel": null,
+          "compareNote": null,
+          "top": [
+            {
+              "label": "ศูนย์กระจายสินค้านครราชสีมา",
+              "value": "12.3 วัน"
+            },
+            {
+              "label": "ศูนย์กระจายสินค้านครราชสีมา",
+              "value": "14.0 วัน"
+            },
+            {
+              "label": "ศูนย์กระจายสินค้าขอนแก่น",
+              "value": "14.9 วัน"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "days_of_cover",
+          "certified": true,
+          "sourceSystem": "WMS",
+          "asOf": "2026-09-22",
+          "rowCount": 6,
+          "filtersApplied": {
+            "region": [
+              "northeast"
+            ]
+          },
+          "filterLabels": [
+            "ภาคอีสาน"
+          ],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "days_of_cover",
+          "dims": [
+            "dc",
+            "business_unit"
+          ],
+          "filters": {
+            "region": [
+              "northeast"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "none",
+          "limit": 10,
+          "sort": "value_asc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "drill-brand",
+            "kind": "drill",
+            "label": "แยกตามแบรนด์",
+            "reason": "ยังไม่ได้ดูแยกรายแบรนด์",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอวันครอบคลุมสต๊อกแยกตามแบรนด์ เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-drill_down",
+            "label": "ดูราย SKU",
+            "prompt": "ขอวันครอบคลุมสต๊อกของ DC นครราชสีมา · กลุ่มนำเข้า แยกราย SKU เรียงจากแย่ไปดี",
+            "reason": "ลงไปอีกชั้นเพื่อหาว่าใครในDC นครราชสีมา · กลุ่มนำเข้าทำให้ตัวเลขเป็นแบบนี้",
+            "intentKey": "follow|drill_down",
+            "score": 0.7
+          },
+          {
+            "id": "fu-why",
+            "label": "หาสาเหตุแถวที่แย่สุด",
+            "prompt": "เจาะดูวันครอบคลุมสต๊อกของ DC นครราชสีมา · กลุ่มนำเข้า ว่าทำไมถึงเปลี่ยนไป เทียบกับช่วงก่อนหน้าและช่วงเดียวกันปีก่อน",
+            "reason": "DC นครราชสีมา · กลุ่มนำเข้า คือแถวที่ต้องดูมากที่สุดในคำตอบนี้",
+            "intentKey": "follow|why",
+            "score": 0.6
+          },
+          {
+            "id": "fu-forecast",
+            "label": "พยากรณ์ 8 สัปดาห์",
+            "prompt": "พยากรณ์วันครอบคลุมสต๊อกของ DC นครราชสีมา · กลุ่มนำเข้า 8 สัปดาห์ข้างหน้า",
+            "reason": "ดูว่าถ้าเป็นแบบนี้ต่อไปจะเกิดอะไร",
+            "intentKey": "follow|forecast",
+            "score": 0.55
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "stock_on_hand",
+        "dims": [
+          "dc",
+          "business_unit"
+        ],
+        "filters": {
+          "region": [
+            "northeast"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "none",
+        "limit": 10,
+        "sort": "value_asc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "dc": "ศูนย์กระจายสินค้านครราชสีมา",
+            "business_unit": "กลุ่มนำเข้า",
+            "value": 1894,
+            "value_label": "1,894 ลัง"
+          },
+          {
+            "dc": "ศูนย์กระจายสินค้าขอนแก่น",
+            "business_unit": "กลุ่มนำเข้า",
+            "value": 2386,
+            "value_label": "2,386 ลัง"
+          },
+          {
+            "dc": "ศูนย์กระจายสินค้านครราชสีมา",
+            "business_unit": "กลุ่มนอนแอลกอฮอล์",
+            "value": 62254,
+            "value_label": "62,254 ลัง"
+          },
+          {
+            "dc": "ศูนย์กระจายสินค้าขอนแก่น",
+            "business_unit": "กลุ่มนอนแอลกอฮอล์",
+            "value": 76496,
+            "value_label": "76,496 ลัง"
+          },
+          {
+            "dc": "ศูนย์กระจายสินค้าขอนแก่น",
+            "business_unit": "กลุ่มเบียร์",
+            "value": 93320,
+            "value_label": "93,320 ลัง"
+          },
+          {
+            "dc": "ศูนย์กระจายสินค้านครราชสีมา",
+            "business_unit": "กลุ่มเบียร์",
+            "value": 104397,
+            "value_label": "104,397 ลัง"
+          }
+        ],
+        "summary": "สต๊อกคงเหลือ 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 340,746 ลัง · สูงสุด: ศูนย์กระจายสินค้านครราชสีมา 104,397 ลัง · ศูนย์กระจายสินค้าขอนแก่น 93,320 ลัง · ศูนย์กระจายสินค้าขอนแก่น 76,496 ลัง · (6 แถว · certified · WMS)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "340,746 ลัง",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 6,
+          "deltaPercent": null,
+          "compareLabel": null,
+          "compareNote": null,
+          "top": [
+            {
+              "label": "ศูนย์กระจายสินค้านครราชสีมา",
+              "value": "104,397 ลัง"
+            },
+            {
+              "label": "ศูนย์กระจายสินค้าขอนแก่น",
+              "value": "93,320 ลัง"
+            },
+            {
+              "label": "ศูนย์กระจายสินค้าขอนแก่น",
+              "value": "76,496 ลัง"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "stock_on_hand",
+          "certified": true,
+          "sourceSystem": "WMS",
+          "asOf": "2026-09-22",
+          "rowCount": 6,
+          "filtersApplied": {
+            "region": [
+              "northeast"
+            ]
+          },
+          "filterLabels": [
+            "ภาคอีสาน"
+          ],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "stock_on_hand",
+          "dims": [
+            "dc",
+            "business_unit"
+          ],
+          "filters": {
+            "region": [
+              "northeast"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "none",
+          "limit": 10,
+          "sort": "value_asc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "drill-brand",
+            "kind": "drill",
+            "label": "แยกตามแบรนด์",
+            "reason": "ยังไม่ได้ดูแยกรายแบรนด์",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอสต๊อกคงเหลือแยกตามแบรนด์ เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "สต๊อกคงเหลือ รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ขอสต๊อกคงเหลือแยกตามศูนย์กระจายสินค้า เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    }
+  ],
+  "dropped": []
+}

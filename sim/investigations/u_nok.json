@@ -1,0 +1,1766 @@
+{
+  "investigation": {
+    "id": "u_nok",
+    "userId": "u_nok",
+    "at": "2026-09-26T19:50:17.017Z",
+    "model": "google/gemini-3.8-flash",
+    "stories": [
+      {
+        "kind": "urgent",
+        "claim": "บุรีรัมย์เสี่ยงหลุดเป้า ส.รุ่งเรืองฯ น่าจะมีสต๊อกลีโอขวดใหญ่ค้าง",
+        "scope": "บุรีรัมย์",
+        "period": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+        "subject": {
+          "metric": "net_sales_volume",
+          "region": "northeast"
+        },
+        "headline": {
+          "label": "เทียบเป้า",
+          "value": "99.2%",
+          "tone": "bad"
+        },
+        "projection": {
+          "label": "สิ้นเดือน ถ้าขายเท่า 7 วันล่าสุด",
+          "value": "98.4%"
+        },
+        "causes": [
+          {
+            "label": "ส.รุ่งเรือง เทรดดิ้ง",
+            "detail": "ยอดสั่งเข้าต่ำกว่าเป้า ลีโอขวด 620 มล. ชะลอตัว",
+            "value": "−15,129 ลิตร",
+            "shareOfGap": "171.5%"
+          }
+        ],
+        "checked": [
+          {
+            "text": "ยอดขายออกลีโอขวด 620 มล. ยังโต +6.0%",
+            "verdict": "confirmed",
+            "source": "query_metric"
+          },
+          {
+            "text": "สินค้าขาดสต๊อกที่ศูนย์กระจายสินค้า",
+            "verdict": "ruled_out",
+            "source": "query_metric"
+          },
+          {
+            "text": "เอเย่นต์น่าจะมีสต๊อกขวดใหญ่ค้างอยู่มาก",
+            "verdict": "likely",
+            "source": "get_alerts"
+          }
+        ],
+        "recommendation": "ตรวจนับสต๊อกลีโอขวดใหญ่ที่ ส.รุ่งเรืองฯ เพื่อดูว่ามีของค้างจริงหรือไม่",
+        "id": "u_nok-0",
+        "owner": {
+          "userId": "u_anucha",
+          "nameTh": "คุณอนุชา พรหมศรี",
+          "title": "ผู้จัดการขายภาค ภาคอีสาน"
+        }
+      }
+    ],
+    "checkedCount": 19,
+    "costUsd": 0.21809085
+  },
+  "notes": "",
+  "calls": [
+    {
+      "tool": "get_alerts",
+      "input": {
+        "status": "open",
+        "limit": 10
+      },
+      "output": {
+        "ok": true,
+        "summary": "มีความผิดปกติที่เปิดอยู่ 6 รายการในขอบเขตของคุณ",
+        "rows": [
+          {
+            "id": "al_7364476d77c8f435",
+            "severity": "P1",
+            "severityLabel": "ต้องรีบดู",
+            "metric": "net_sales_volume",
+            "metricLabel": "ปริมาณขายเข้า (Sell-in)",
+            "scope": {
+              "agent": "ag_nea_05",
+              "region": "northeast"
+            },
+            "scopeLabel": "อุบลศรีสุข เทรดดิ้ง · ภาคอีสาน",
+            "window": "9 ก.ย. 2569 – 22 ก.ย. 2569",
+            "observedLabel": "2,220 ลิตร",
+            "expectedLabel": "12,928 ลิตร",
+            "gapLabel": "83%",
+            "yearOverYear": false,
+            "direction": "down",
+            "hypothesis": "อุบลศรีสุข เทรดดิ้ง แทบไม่มีคำสั่งซื้อเข้ามาในช่วงนี้ น่าจะติดปัญหาเครดิต การวางบิล หรือเปลี่ยนไปรับสินค้าจากที่อื่น",
+            "verifySteps": [
+              "ดูประวัติการสั่งซื้อรายวันของอุบลศรีสุข เทรดดิ้ง · ภาคอีสาน 30 วันล่าสุด",
+              "ดูยอดค้างชำระเกินกำหนดของอุบลศรีสุข เทรดดิ้ง · ภาคอีสานรายเดือน 6 เดือนล่าสุด"
+            ],
+            "ownerUserId": "u_anucha"
+          },
+          {
+            "id": "al_ed6dca9e1dab4e48",
+            "severity": "P1",
+            "severityLabel": "ต้องรีบดู",
+            "metric": "net_sales_volume",
+            "metricLabel": "ปริมาณขายเข้า (Sell-in)",
+            "scope": {
+              "agent": "ag_nea_02",
+              "region": "northeast"
+            },
+            "scopeLabel": "อีสานรุ่งโรจน์ ค้าส่ง · ภาคอีสาน",
+            "window": "8 ก.ย. 2569 – 22 ก.ย. 2569",
+            "observedLabel": "3,251 ลิตร",
+            "expectedLabel": "13,928 ลิตร",
+            "gapLabel": "77%",
+            "yearOverYear": false,
+            "direction": "down",
+            "hypothesis": "อีสานรุ่งโรจน์ ค้าส่ง แทบไม่มีคำสั่งซื้อเข้ามาในช่วงนี้ น่าจะติดปัญหาเครดิต การวางบิล หรือเปลี่ยนไปรับสินค้าจากที่อื่น",
+            "verifySteps": [
+              "ดูประวัติการสั่งซื้อรายวันของอีสานรุ่งโรจน์ ค้าส่ง · ภาคอีสาน 30 วันล่าสุด",
+              "ดูยอดค้างชำระเกินกำหนดของอีสานรุ่งโรจน์ ค้าส่ง · ภาคอีสานรายเดือน 6 เดือนล่าสุด"
+            ],
+            "ownerUserId": "u_anucha"
+          },
+          {
+            "id": "al_fa3be1e7b4f9fe40",
+            "severity": "P1",
+            "severityLabel": "ต้องรีบดู",
+            "metric": "market_share",
+            "metricLabel": "ส่วนแบ่งตลาดเบียร์",
+            "scope": {
+              "province": "pv_nakhonratchasima",
+              "region": "northeast"
+            },
+            "scopeLabel": "นครราชสีมา · ภาคอีสาน",
+            "window": "1 มิ.ย. 2569 – 31 ส.ค. 2569",
+            "observedLabel": "59.7%",
+            "expectedLabel": "63.2%",
+            "gapLabel": "3.5 จุด",
+            "yearOverYear": false,
+            "direction": "down",
+            "hypothesis": "ในนครราชสีมา คาราบาวได้ส่วนแบ่งตลาดเบียร์เพิ่ม 4.1 จุดในช่วงเดียวกับที่ส่วนแบ่งของเราลดลง 3.5 จุด น่าจะมีการทำตลาดหรือตั้งราคาเชิงรุกในพื้นที่นี้",
+            "verifySteps": [
+              "เทียบส่วนแบ่งตลาดของทุกผู้ผลิตในนครราชสีมา เทียบปีก่อน",
+              "ดูยอดขายออกเบียร์ของเราในนครราชสีมาเทียบปีก่อน"
+            ],
+            "ownerUserId": "u_anucha"
+          },
+          {
+            "id": "al_35ced4920cc14a53",
+            "severity": "P2",
+            "severityLabel": "ควรดู",
+            "metric": "net_sales_volume",
+            "metricLabel": "ปริมาณขายเข้า (Sell-in)",
+            "scope": {
+              "agent": "ag_nea_07",
+              "brand": "leo",
+              "sku": "sku_leo_bottle620",
+              "region": "northeast"
+            },
+            "scopeLabel": "ส.รุ่งเรือง เทรดดิ้ง · ลีโอ ขวด 620 มล. · ภาคอีสาน",
+            "window": "31 ส.ค. 2569 – 21 ก.ย. 2569",
+            "observedLabel": "2,002 ลิตร",
+            "expectedLabel": "2,620 ลิตร",
+            "gapLabel": "24%",
+            "yearOverYear": false,
+            "direction": "down",
+            "hypothesis": "ยอดสั่งเข้าของ ส.รุ่งเรือง เทรดดิ้ง · ลีโอ ขวด 620 มล. · ภาคอีสาน ลดลงต่อเนื่องขณะที่ยอดขายออกหน้าร้านยังทรงตัว น่าจะมีสต๊อกค้างอยู่ที่เอเย่นต์มากกว่าความต้องการที่แท้จริงลดลง",
+            "verifySteps": [
+              "เทียบยอดขายเข้ากับยอดขายออกของส.รุ่งเรือง เทรดดิ้ง · ลีโอ ขวด 620 มล. · ภาคอีสาน รายสัปดาห์ 8 สัปดาห์ล่าสุด",
+              "ดูวันครอบคลุมสต๊อกและสต๊อกคงเหลือของส.รุ่งเรือง เทรดดิ้ง · ลีโอ ขวด 620 มล. · ภาคอีสานตอนนี้"
+            ],
+            "ownerUserId": "u_anucha"
+          },
+          {
+            "id": "al_05e4ed13725e756a",
+            "severity": "P3",
+            "severityLabel": "เฝ้าระวัง",
+            "metric": "net_sales_volume",
+            "metricLabel": "ปริมาณขายเข้า (Sell-in)",
+            "scope": {
+              "agent": "ag_nea_06",
+              "brand": "asahi",
+              "sku": "sku_asahi_bottle320",
+              "region": "northeast"
+            },
+            "scopeLabel": "วารินพาณิชย์ · อาซาฮี ขวด 320 มล. · ภาคอีสาน",
+            "window": "30 ส.ค. 2569 – 22 ก.ย. 2569",
+            "observedLabel": "27.1 ลิตร",
+            "expectedLabel": "24 ลิตร",
+            "gapLabel": "13%",
+            "yearOverYear": false,
+            "direction": "up",
+            "hypothesis": "ปริมาณขายในภาคอีสานสูงผิดปกติ ยังหาสาเหตุไม่ได้จากข้อมูลที่มี",
+            "verifySteps": [
+              "เทียบวารินพาณิชย์ · อาซาฮี ขวด 320 มล. · ภาคอีสานกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+              "เทียบวารินพาณิชย์ · อาซาฮี ขวด 320 มล. · ภาคอีสานกับช่วงเดียวกันของปีที่แล้ว"
+            ],
+            "ownerUserId": "u_anucha"
+          },
+          {
+            "id": "al_49b503043dd5af01",
+            "severity": "P3",
+            "severityLabel": "เฝ้าระวัง",
+            "metric": "sell_out_volume",
+            "metricLabel": "ปริมาณขายออก (Sell-out)",
+            "scope": {
+              "sku": "sku_singha_water_pet600",
+              "province": "pv_khonkaen",
+              "region": "northeast"
+            },
+            "scopeLabel": "น้ำดื่มสิงห์ ขวด PET 600 มล. · ขอนแก่น · ภาคอีสาน",
+            "window": "26 ส.ค. 2569 – 22 ก.ย. 2569",
+            "observedLabel": "5,671 ลิตร",
+            "expectedLabel": "6,272 ลิตร",
+            "gapLabel": "10%",
+            "yearOverYear": false,
+            "direction": "down",
+            "hypothesis": "ยอดขายออกจากร้านในขอนแก่นต่ำผิดปกติ ยังหาสาเหตุไม่ได้จากข้อมูลที่มี",
+            "verifySteps": [
+              "เทียบน้ำดื่มสิงห์ ขวด PET 600 มล. · ขอนแก่น · ภาคอีสานกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+              "เทียบน้ำดื่มสิงห์ ขวด PET 600 มล. · ขอนแก่น · ภาคอีสานกับช่วงเดียวกันของปีที่แล้ว"
+            ],
+            "ownerUserId": "u_anucha"
+          }
+        ],
+        "lessons": [
+          {
+            "alertId": "al_7364476d77c8f435",
+            "lesson": "ครั้งก่อน (เป็นเรื่องจริง): ติดวงเงินเครดิต ขยายวงเงินแล้วยอดกลับใน 2 สัปดาห์ — คุณกฤต จันทร์เสน, 12 มิ.ย. 2569"
+          }
+        ],
+        "nextActions": [
+          {
+            "id": "verify",
+            "kind": "verify",
+            "label": "ตรวจสาเหตุ",
+            "reason": "ดูประวัติการสั่งซื้อรายวันของอุบลศรีสุข เทรดดิ้ง · ภาคอีสาน 30 วันล่าสุด",
+            "tool": null,
+            "input": null,
+            "prompt": "ดูประวัติการสั่งซื้อรายวันของอุบลศรีสุข เทรดดิ้ง · ภาคอีสาน 30 วันล่าสุด"
+          },
+          {
+            "id": "drill-channel",
+            "kind": "drill",
+            "label": "แยกตามช่องทาง",
+            "reason": "ยังไม่ได้ดูแยกรายช่องทาง",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอปริมาณขายเข้า (Sell-in)แยกตามช่องทาง เรียงจากมากไปน้อย"
+          }
+        ]
+      }
+    },
+    {
+      "tool": "recall_memory",
+      "input": {
+        "query": "คุณนก สุขสวัสดิ์ บุรีรัมย์"
+      },
+      "output": {
+        "ok": true,
+        "summary": "ยังไม่มีข้อมูลที่จำไว้เกี่ยวกับผู้ใช้คนนี้",
+        "data": []
+      }
+    },
+    {
+      "tool": "describe_entity",
+      "input": {
+        "kind": "user",
+        "query": "นก สุขสวัสดิ์"
+      },
+      "output": {
+        "ok": true,
+        "data": {
+          "id": "u_nok",
+          "ชื่อ": "คุณนก สุขสวัสดิ์",
+          "ตำแหน่ง": "พนักงานขาย บุรีรัมย์",
+          "ฝ่าย": "ขาย",
+          "บทบาท": "sales_rep",
+          "ภาค": "ภาคอีสาน",
+          "หัวหน้า": "คุณอนุชา พรหมศรี",
+          "อีเมล": "nok@boonrawd-demo.co.th"
+        },
+        "summary": "คุณนก สุขสวัสดิ์ พนักงานขาย บุรีรัมย์ ฝ่ายขาย ภาคอีสาน"
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "target_attainment",
+        "dims": [
+          "agent"
+        ],
+        "filters": {
+          "region": [
+            "northeast"
+          ],
+          "province": [
+            "pv_buriram"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "target",
+        "limit": 10,
+        "sort": "value_asc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "agent": "ส.รุ่งเรือง เทรดดิ้ง",
+            "value": 97.7,
+            "value_label": "97.7%"
+          },
+          {
+            "agent": "นางรองค้าส่ง",
+            "value": 101.6,
+            "value_label": "101.6%"
+          }
+        ],
+        "summary": "การบรรลุเป้าหมาย 1 ก.ย. 2569 – 22 ก.ย. 2569: เฉลี่ย 99.2% · สูงสุด: นางรองค้าส่ง 101.6% · ส.รุ่งเรือง เทรดดิ้ง 97.7% · (2 แถว · certified · SAP SD)",
+        "headline": {
+          "aggregate": "average",
+          "value": "99.2%",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 2,
+          "deltaPercent": null,
+          "compareLabel": null,
+          "compareNote": null,
+          "top": [
+            {
+              "label": "นางรองค้าส่ง",
+              "value": "101.6%"
+            },
+            {
+              "label": "ส.รุ่งเรือง เทรดดิ้ง",
+              "value": "97.7%"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "target_attainment",
+          "certified": true,
+          "sourceSystem": "SAP SD",
+          "asOf": "2026-09-22",
+          "rowCount": 2,
+          "filtersApplied": {
+            "region": [
+              "northeast"
+            ],
+            "province": [
+              "pv_buriram"
+            ]
+          },
+          "filterLabels": [
+            "ภาคอีสาน",
+            "บุรีรัมย์"
+          ],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "target_attainment",
+          "dims": [
+            "agent"
+          ],
+          "filters": {
+            "region": [
+              "northeast"
+            ],
+            "province": [
+              "pv_buriram"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "target",
+          "limit": 10,
+          "sort": "value_asc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "drill-channel",
+            "kind": "drill",
+            "label": "แยกตามช่องทาง",
+            "reason": "ยังไม่ได้ดูแยกรายช่องทาง",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอการบรรลุเป้าหมายแยกตามช่องทาง เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-why",
+            "label": "ทำไมส.รุ่งเรือง เทรดดิ้ง",
+            "prompt": "เจาะดูการบรรลุเป้าหมายของส.รุ่งเรือง เทรดดิ้ง ว่าทำไมถึงเปลี่ยนไป เทียบกับช่วงก่อนหน้าและช่วงเดียวกันปีก่อน",
+            "reason": "ส.รุ่งเรือง เทรดดิ้ง คือแถวที่ต้องดูมากที่สุดในคำตอบนี้",
+            "intentKey": "follow|why",
+            "score": 0.6
+          },
+          {
+            "id": "fu-forecast",
+            "label": "จะถึงเป้าไหม",
+            "prompt": "พยากรณ์ปริมาณขายเข้า 8 สัปดาห์ข้างหน้า จะถึงเป้าไหม",
+            "reason": "ดูว่าถ้าเป็นแบบนี้ต่อไปจะเกิดอะไร",
+            "intentKey": "follow|forecast",
+            "score": 0.55
+          },
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "การบรรลุเป้าหมาย รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          }
+        ]
+      }
+    },
+    {
+      "tool": "crm_demo__store_visits",
+      "input": {
+        "agentId": null,
+        "regions": "northeast"
+      },
+      "output": {
+        "ok": false,
+        "code": "CONNECTOR_UNAVAILABLE",
+        "error": "CRM (REST) ไม่ตอบในขณะนี้"
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "net_sales_volume",
+        "dims": [
+          "agent"
+        ],
+        "filters": {
+          "province": [
+            "pv_buriram"
+          ],
+          "region": [
+            "northeast"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "target",
+        "limit": 10,
+        "sort": "delta_asc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "agent": "ส.รุ่งเรือง เทรดดิ้ง",
+            "value": 644944,
+            "value_label": "644,944 ลิตร",
+            "compare_value": 660073,
+            "delta_pct": -2.3
+          },
+          {
+            "agent": "นางรองค้าส่ง",
+            "value": 389827,
+            "value_label": "389,827 ลิตร",
+            "compare_value": 383518,
+            "delta_pct": 1.6
+          }
+        ],
+        "summary": "ปริมาณขายเข้า (Sell-in) 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 1.0 ล้านลิตร · สูงสุด: ส.รุ่งเรือง เทรดดิ้ง 644,944 ลิตร · นางรองค้าส่ง 389,827 ลิตร · เทียบเป้า -0.8% · (2 แถว · certified · SAP SD)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "1.0 ล้านลิตร",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 2,
+          "deltaPercent": -0.8,
+          "compareLabel": "เทียบเป้า",
+          "compareNote": null,
+          "top": [
+            {
+              "label": "ส.รุ่งเรือง เทรดดิ้ง",
+              "value": "644,944 ลิตร"
+            },
+            {
+              "label": "นางรองค้าส่ง",
+              "value": "389,827 ลิตร"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "net_sales_volume",
+          "certified": true,
+          "sourceSystem": "SAP SD",
+          "asOf": "2026-09-22",
+          "rowCount": 2,
+          "filtersApplied": {
+            "province": [
+              "pv_buriram"
+            ],
+            "region": [
+              "northeast"
+            ]
+          },
+          "filterLabels": [
+            "บุรีรัมย์",
+            "ภาคอีสาน"
+          ],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "net_sales_volume",
+          "dims": [
+            "agent"
+          ],
+          "filters": {
+            "province": [
+              "pv_buriram"
+            ],
+            "region": [
+              "northeast"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "target",
+          "limit": 10,
+          "sort": "delta_asc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "verify",
+            "kind": "verify",
+            "label": "ตรวจสาเหตุ",
+            "reason": "เทียบยอดขายเข้ากับยอดขายออกของส.รุ่งเรือง เทรดดิ้ง · ลีโอ ขวด 620 มล. · ภาคอีสาน รายสัปดาห์ 8 สัปดาห์ล่าสุด",
+            "tool": null,
+            "input": null,
+            "prompt": "เทียบยอดขายเข้ากับยอดขายออกของส.รุ่งเรือง เทรดดิ้ง · ลีโอ ขวด 620 มล. · ภาคอีสาน รายสัปดาห์ 8 สัปดาห์ล่าสุด"
+          },
+          {
+            "id": "drill-channel",
+            "kind": "drill",
+            "label": "แยกตามช่องทาง",
+            "reason": "ยังไม่ได้ดูแยกรายช่องทาง",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอปริมาณขายเข้า (Sell-in)แยกตามช่องทาง เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-forecast",
+            "label": "พยากรณ์ 8 สัปดาห์",
+            "prompt": "พยากรณ์ปริมาณขายเข้า 8 สัปดาห์ข้างหน้า",
+            "reason": "ดูว่าถ้าเป็นแบบนี้ต่อไปจะเกิดอะไร",
+            "intentKey": "follow|forecast",
+            "score": 0.55
+          },
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "ปริมาณขายเข้า (Sell-in) รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ขอปริมาณขายเข้า (Sell-in) แยกตามเอเย่นต์ เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "tool": "explain_gap",
+      "input": {
+        "metric": "net_sales_volume",
+        "split": "agent",
+        "filters": {
+          "province": [
+            "pv_buriram"
+          ],
+          "region": [
+            "northeast"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "compare": "target"
+      },
+      "output": {
+        "ok": true,
+        "summary": "ปริมาณขายเข้า (Sell-in) 1 ก.ย. 2569 – 22 ก.ย. 2569: จริง 1.0 ล้านลิตร · เป้า 1.0 ล้านลิตร · ช่องว่าง −8,821 ลิตร",
+        "period_label": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+        "actual_label": "1.0 ล้านลิตร",
+        "compare_label": "เป้า 1.0 ล้านลิตร",
+        "gap_label": "−8,821 ลิตร",
+        "attainment_label": "99.2%",
+        "contributors": [
+          {
+            "label": "ส.รุ่งเรือง เทรดดิ้ง",
+            "gap_label": "−15,129 ลิตร",
+            "share_label": "171.5%"
+          }
+        ],
+        "rest": null,
+        "offsetting": [
+          {
+            "label": "นางรองค้าส่ง",
+            "gap_label": "+6,309 ลิตร"
+          }
+        ],
+        "projection": {
+          "label": "สิ้นเดือน ถ้าขายเท่า 7 วันล่าสุด",
+          "basis": "วันที่เหลือของเดือนขายเท่าค่าเฉลี่ย 7 วันล่าสุด และเป้ากระจายเท่ากันทุกวัน",
+          "projected_label": "1.4 ล้านลิตร",
+          "month_target_label": "1.4 ล้านลิตร",
+          "attainment_label": "98.4%"
+        }
+      }
+    },
+    {
+      "tool": "explain_gap",
+      "input": {
+        "metric": "net_sales_volume",
+        "split": "brand",
+        "filters": {
+          "region": [
+            "northeast"
+          ],
+          "province": [
+            "pv_buriram"
+          ],
+          "agent": [
+            "ag_nea_07"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "compare": "target"
+      },
+      "output": {
+        "ok": true,
+        "summary": "ปริมาณขายเข้า (Sell-in) 1 ก.ย. 2569 – 22 ก.ย. 2569: จริง 644,944 ลิตร · เป้า 660,073 ลิตร · ช่องว่าง −15,129 ลิตร",
+        "period_label": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+        "actual_label": "644,944 ลิตร",
+        "compare_label": "เป้า 660,073 ลิตร",
+        "gap_label": "−15,129 ลิตร",
+        "attainment_label": "97.7%",
+        "contributors": [
+          {
+            "label": "ลีโอ",
+            "gap_label": "−18,215 ลิตร",
+            "share_label": "120.4%"
+          },
+          {
+            "label": "สิงห์",
+            "gap_label": "−156 ลิตร",
+            "share_label": "1.0%"
+          }
+        ],
+        "rest": null,
+        "offsetting": [
+          {
+            "label": "น้ำดื่มสิงห์",
+            "gap_label": "+1,725 ลิตร"
+          },
+          {
+            "label": "โซดาสิงห์",
+            "gap_label": "+710 ลิตร"
+          },
+          {
+            "label": "สิงห์ เลมอนโซดา",
+            "gap_label": "+395 ลิตร"
+          },
+          {
+            "label": "เพอร์ร่า",
+            "gap_label": "+341 ลิตร"
+          },
+          {
+            "label": "คาร์ลสเบิร์ก",
+            "gap_label": "+57.0 ลิตร"
+          }
+        ],
+        "projection": {
+          "label": "สิ้นเดือน ถ้าขายเท่า 7 วันล่าสุด",
+          "basis": "วันที่เหลือของเดือนขายเท่าค่าเฉลี่ย 7 วันล่าสุด และเป้ากระจายเท่ากันทุกวัน",
+          "projected_label": "872,706 ลิตร",
+          "month_target_label": "900,100 ลิตร",
+          "attainment_label": "97.0%"
+        }
+      }
+    },
+    {
+      "tool": "explain_gap",
+      "input": {
+        "metric": "net_sales_volume",
+        "split": "sku",
+        "filters": {
+          "agent": [
+            "ag_nea_07"
+          ],
+          "region": [
+            "northeast"
+          ],
+          "brand": [
+            "leo"
+          ],
+          "province": [
+            "pv_buriram"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "compare": "target"
+      },
+      "output": {
+        "ok": true,
+        "summary": "ปริมาณขายเข้า (Sell-in) 1 ก.ย. 2569 – 22 ก.ย. 2569: จริง 237,842 ลิตร · เป้า 256,057 ลิตร · ช่องว่าง −18,215 ลิตร",
+        "period_label": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+        "actual_label": "237,842 ลิตร",
+        "compare_label": "เป้า 256,057 ลิตร",
+        "gap_label": "−18,215 ลิตร",
+        "attainment_label": "92.9%",
+        "contributors": [
+          {
+            "label": "ลีโอ ขวด 620 มล.",
+            "gap_label": "−18,143 ลิตร",
+            "share_label": "99.6%"
+          },
+          {
+            "label": "ลีโอ แพ็ก 12",
+            "gap_label": "−622 ลิตร",
+            "share_label": "3.4%"
+          }
+        ],
+        "rest": null,
+        "offsetting": [
+          {
+            "label": "ลีโอ กระป๋อง 490 มล.",
+            "gap_label": "+188 ลิตร"
+          },
+          {
+            "label": "ลีโอ กระป๋อง 320 มล.",
+            "gap_label": "+169 ลิตร"
+          },
+          {
+            "label": "ลีโอ ถัง 30 ลิตร",
+            "gap_label": "+140 ลิตร"
+          },
+          {
+            "label": "ลีโอ ขวด 320 มล.",
+            "gap_label": "+54.0 ลิตร"
+          }
+        ],
+        "projection": {
+          "label": "สิ้นเดือน ถ้าขายเท่า 7 วันล่าสุด",
+          "basis": "วันที่เหลือของเดือนขายเท่าค่าเฉลี่ย 7 วันล่าสุด และเป้ากระจายเท่ากันทุกวัน",
+          "projected_label": "321,290 ลิตร",
+          "month_target_label": "349,169 ลิตร",
+          "attainment_label": "92.0%"
+        }
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "sell_out_volume",
+        "dims": [
+          "sku"
+        ],
+        "filters": {
+          "sku": [
+            "sku_leo_bottle620"
+          ],
+          "agent": [
+            "ag_nea_07"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "prev_year",
+        "limit": 1,
+        "sort": null,
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "sku": "ลีโอ ขวด 620 มล.",
+            "value": 62201,
+            "value_label": "62,201 ลิตร",
+            "compare_value": 58705,
+            "delta_pct": 6
+          }
+        ],
+        "summary": "ปริมาณขายออก (Sell-out) 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 62,201 ลิตร · สูงสุด: ลีโอ ขวด 620 มล. 62,201 ลิตร · เทียบปีก่อน +6.0% · (1 แถว · certified · SAP SD)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "62,201 ลิตร",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 1,
+          "deltaPercent": 6,
+          "compareLabel": "เทียบปีก่อน",
+          "compareNote": null,
+          "top": [
+            {
+              "label": "ลีโอ ขวด 620 มล.",
+              "value": "62,201 ลิตร"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "sell_out_volume",
+          "certified": true,
+          "sourceSystem": "SAP SD",
+          "asOf": "2026-09-22",
+          "rowCount": 1,
+          "filtersApplied": {
+            "sku": [
+              "sku_leo_bottle620"
+            ],
+            "agent": [
+              "ag_nea_07"
+            ]
+          },
+          "filterLabels": [
+            "ส.รุ่งเรือง เทรดดิ้ง"
+          ],
+          "scopeApplied": {
+            "region": [
+              "northeast"
+            ]
+          },
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "sell_out_volume",
+          "dims": [
+            "sku"
+          ],
+          "filters": {
+            "sku": [
+              "sku_leo_bottle620"
+            ],
+            "agent": [
+              "ag_nea_07"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "prev_year",
+          "limit": 1,
+          "sort": null,
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "drill-channel",
+            "kind": "drill",
+            "label": "แยกตามช่องทาง",
+            "reason": "ยังไม่ได้ดูแยกรายช่องทาง",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอปริมาณขายออก (Sell-out)แยกตามช่องทาง เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "ปริมาณขายออก (Sell-out) รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "days_of_cover",
+        "dims": [
+          "agent",
+          "sku"
+        ],
+        "filters": {
+          "sku": [
+            "sku_leo_bottle620"
+          ],
+          "agent": [
+            "ag_nea_07"
+          ]
+        },
+        "range": {
+          "from": "2026-09-22",
+          "to": "2026-09-22"
+        },
+        "grain": "day",
+        "compare": "none",
+        "limit": 1,
+        "sort": null,
+        "where": null
+      },
+      "output": {
+        "ok": false,
+        "error": "มิติ agent ใช้กับเมตริก days_of_cover ไม่ได้",
+        "code": "BAD_QUERY"
+      }
+    },
+    {
+      "tool": "list_metrics",
+      "input": {
+        "search": "stock"
+      },
+      "output": {
+        "ok": true,
+        "summary": "พบ 1 เมตริกที่ตรงกับคำค้น",
+        "data": [
+          {
+            "id": "stock_on_hand",
+            "labelTh": "สต๊อกคงเหลือ",
+            "unit": "ลัง",
+            "dims": [
+              "date",
+              "week",
+              "month",
+              "region",
+              "dc",
+              "brand",
+              "sku",
+              "pack",
+              "business_unit"
+            ],
+            "certified": true,
+            "source": "WMS",
+            "refresh": "รายวัน",
+            "latest": "22 ก.ย. 2569"
+          }
+        ]
+      }
+    },
+    {
+      "tool": "list_metrics",
+      "input": {
+        "search": "cover"
+      },
+      "output": {
+        "ok": true,
+        "summary": "พบ 1 เมตริกที่ตรงกับคำค้น",
+        "data": [
+          {
+            "id": "days_of_cover",
+            "labelTh": "วันครอบคลุมสต๊อก",
+            "unit": "วัน",
+            "dims": [
+              "date",
+              "week",
+              "month",
+              "region",
+              "dc",
+              "brand",
+              "sku",
+              "pack",
+              "business_unit"
+            ],
+            "certified": true,
+            "source": "WMS",
+            "refresh": "รายวัน",
+            "latest": "22 ก.ย. 2569"
+          }
+        ]
+      }
+    },
+    {
+      "tool": "list_metrics",
+      "input": {
+        "search": "ar_overdue"
+      },
+      "output": {
+        "ok": true,
+        "summary": "พบ 1 เมตริกที่ตรงกับคำค้น",
+        "data": [
+          {
+            "id": "ar_overdue",
+            "labelTh": "ยอดค้างชำระเกินกำหนด",
+            "unit": "บาท",
+            "dims": [
+              "month",
+              "agent",
+              "province",
+              "region"
+            ],
+            "certified": true,
+            "source": "SAP FI",
+            "refresh": "รายเดือน",
+            "latest": "22 ก.ย. 2569"
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "ar_overdue",
+        "dims": [
+          "agent"
+        ],
+        "filters": {
+          "province": [
+            "pv_buriram"
+          ],
+          "region": [
+            "northeast"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "none",
+        "limit": 10,
+        "sort": "value_desc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "agent": "ส.รุ่งเรือง เทรดดิ้ง",
+            "value": "***",
+            "value_label": "***"
+          },
+          {
+            "agent": "นางรองค้าส่ง",
+            "value": "***",
+            "value_label": "***"
+          }
+        ],
+        "summary": "ยอดค้างชำระเกินกำหนด 1 ก.ย. 2569 – 22 ก.ย. 2569: ข้อมูลถูกปิดตามนโยบาย (masked) — เห็นได้เฉพาะโครงสร้างข้อมูล",
+        "headline": {
+          "aggregate": "sum",
+          "value": "—",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 2,
+          "deltaPercent": null,
+          "compareLabel": null,
+          "compareNote": null,
+          "top": []
+        },
+        "provenance": {
+          "metric": "ar_overdue",
+          "certified": true,
+          "sourceSystem": "SAP FI",
+          "asOf": "2026-09-22",
+          "rowCount": 2,
+          "filtersApplied": {
+            "province": [
+              "pv_buriram"
+            ],
+            "region": [
+              "northeast"
+            ]
+          },
+          "filterLabels": [
+            "บุรีรัมย์",
+            "ภาคอีสาน"
+          ],
+          "scopeApplied": {},
+          "masked": [
+            "value",
+            "compare_value",
+            "delta_pct"
+          ],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "ar_overdue",
+          "dims": [
+            "agent"
+          ],
+          "filters": {
+            "province": [
+              "pv_buriram"
+            ],
+            "region": [
+              "northeast"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "none",
+          "limit": 10,
+          "sort": "value_desc",
+          "where": null
+        },
+        "nextActions": [],
+        "followUps": [
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายเดือน",
+            "prompt": "ยอดค้างชำระเกินกำหนด รายเดือนย้อนหลัง 6 เดือน",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ขอยอดค้างชำระเกินกำหนดแยกตามเอเย่นต์ เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "stock_on_hand",
+        "dims": [
+          "dc"
+        ],
+        "filters": {
+          "region": [
+            "northeast"
+          ]
+        },
+        "range": {
+          "from": "2026-09-22",
+          "to": "2026-09-22"
+        },
+        "grain": "day",
+        "compare": "none",
+        "limit": 10,
+        "sort": "value_desc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "dc": "ศูนย์กระจายสินค้าขอนแก่น",
+            "value": 172201,
+            "value_label": "172,201 ลัง"
+          },
+          {
+            "dc": "ศูนย์กระจายสินค้านครราชสีมา",
+            "value": 168545,
+            "value_label": "168,545 ลัง"
+          }
+        ],
+        "summary": "สต๊อกคงเหลือ 22 ก.ย. 2569 – 22 ก.ย. 2569: รวม 340,746 ลัง · สูงสุด: ศูนย์กระจายสินค้าขอนแก่น 172,201 ลัง · ศูนย์กระจายสินค้านครราชสีมา 168,545 ลัง · (2 แถว · certified · WMS)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "340,746 ลัง",
+          "periodLabel": "22 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 2,
+          "deltaPercent": null,
+          "compareLabel": null,
+          "compareNote": null,
+          "top": [
+            {
+              "label": "ศูนย์กระจายสินค้าขอนแก่น",
+              "value": "172,201 ลัง"
+            },
+            {
+              "label": "ศูนย์กระจายสินค้านครราชสีมา",
+              "value": "168,545 ลัง"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "stock_on_hand",
+          "certified": true,
+          "sourceSystem": "WMS",
+          "asOf": "2026-09-22",
+          "rowCount": 2,
+          "filtersApplied": {
+            "region": [
+              "northeast"
+            ]
+          },
+          "filterLabels": [
+            "ภาคอีสาน"
+          ],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "stock_on_hand",
+          "dims": [
+            "dc"
+          ],
+          "filters": {
+            "region": [
+              "northeast"
+            ]
+          },
+          "range": {
+            "from": "2026-09-22",
+            "to": "2026-09-22"
+          },
+          "grain": "day",
+          "compare": "none",
+          "limit": 10,
+          "sort": "value_desc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "drill-brand",
+            "kind": "drill",
+            "label": "แยกตามแบรนด์",
+            "reason": "ยังไม่ได้ดูแยกรายแบรนด์",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอสต๊อกคงเหลือแยกตามแบรนด์ เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "สต๊อกคงเหลือ รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ขอสต๊อกคงเหลือแยกตามศูนย์กระจายสินค้า เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "days_of_cover",
+        "dims": [
+          "dc"
+        ],
+        "filters": {
+          "sku": [
+            "sku_leo_bottle620"
+          ],
+          "region": [
+            "northeast"
+          ]
+        },
+        "range": {
+          "from": "2026-09-22",
+          "to": "2026-09-22"
+        },
+        "grain": "day",
+        "compare": "none",
+        "limit": 10,
+        "sort": null,
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "dc": "ศูนย์กระจายสินค้าขอนแก่น",
+            "value": 14.42,
+            "value_label": "14.4 วัน"
+          },
+          {
+            "dc": "ศูนย์กระจายสินค้านครราชสีมา",
+            "value": 17.5,
+            "value_label": "17.5 วัน"
+          }
+        ],
+        "summary": "วันครอบคลุมสต๊อก 22 ก.ย. 2569 – 22 ก.ย. 2569: เฉลี่ย 16.0 วัน · ต่ำสุด: ศูนย์กระจายสินค้าขอนแก่น 14.4 วัน · ศูนย์กระจายสินค้านครราชสีมา 17.5 วัน · (2 แถว · certified · WMS)",
+        "headline": {
+          "aggregate": "average",
+          "value": "16.0 วัน",
+          "periodLabel": "22 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 2,
+          "deltaPercent": null,
+          "compareLabel": null,
+          "compareNote": null,
+          "top": [
+            {
+              "label": "ศูนย์กระจายสินค้าขอนแก่น",
+              "value": "14.4 วัน"
+            },
+            {
+              "label": "ศูนย์กระจายสินค้านครราชสีมา",
+              "value": "17.5 วัน"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "days_of_cover",
+          "certified": true,
+          "sourceSystem": "WMS",
+          "asOf": "2026-09-22",
+          "rowCount": 2,
+          "filtersApplied": {
+            "sku": [
+              "sku_leo_bottle620"
+            ],
+            "region": [
+              "northeast"
+            ]
+          },
+          "filterLabels": [
+            "ลีโอ ขวด 620 มล.",
+            "ภาคอีสาน"
+          ],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "days_of_cover",
+          "dims": [
+            "dc"
+          ],
+          "filters": {
+            "sku": [
+              "sku_leo_bottle620"
+            ],
+            "region": [
+              "northeast"
+            ]
+          },
+          "range": {
+            "from": "2026-09-22",
+            "to": "2026-09-22"
+          },
+          "grain": "day",
+          "compare": "none",
+          "limit": 10,
+          "sort": null,
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "drill-brand",
+            "kind": "drill",
+            "label": "แยกตามแบรนด์",
+            "reason": "ยังไม่ได้ดูแยกรายแบรนด์",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอวันครอบคลุมสต๊อกแยกตามแบรนด์ เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-drill_down",
+            "label": "ดู SKU ใน DC ขอนแก่น",
+            "prompt": "ขอวันครอบคลุมสต๊อกของ DC ขอนแก่น แยกราย SKU เรียงจากแย่ไปดี",
+            "reason": "ลงไปอีกชั้นเพื่อหาว่าใครในDC ขอนแก่นทำให้ตัวเลขเป็นแบบนี้",
+            "intentKey": "follow|drill_down",
+            "score": 0.7
+          },
+          {
+            "id": "fu-why",
+            "label": "ทำไม DC ขอนแก่น",
+            "prompt": "เจาะดูวันครอบคลุมสต๊อกของ DC ขอนแก่น ว่าทำไมถึงเปลี่ยนไป เทียบกับช่วงก่อนหน้าและช่วงเดียวกันปีก่อน",
+            "reason": "DC ขอนแก่น คือแถวที่ต้องดูมากที่สุดในคำตอบนี้",
+            "intentKey": "follow|why",
+            "score": 0.6
+          },
+          {
+            "id": "fu-forecast",
+            "label": "พยากรณ์ 8 สัปดาห์",
+            "prompt": "พยากรณ์วันครอบคลุมสต๊อกของ DC ขอนแก่น 8 สัปดาห์ข้างหน้า",
+            "reason": "ดูว่าถ้าเป็นแบบนี้ต่อไปจะเกิดอะไร",
+            "intentKey": "follow|forecast",
+            "score": 0.55
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "net_sales_volume",
+        "dims": [
+          "week"
+        ],
+        "filters": {
+          "sku": [
+            "sku_leo_bottle620"
+          ],
+          "agent": [
+            "ag_nea_07"
+          ]
+        },
+        "range": {
+          "from": "2026-07-28",
+          "to": "2026-09-22"
+        },
+        "grain": "week",
+        "compare": "none",
+        "limit": 8,
+        "sort": null,
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "week": "2026-W32",
+            "value": 24663,
+            "value_label": "24,663 ลิตร"
+          },
+          {
+            "week": "2026-W33",
+            "value": 19894,
+            "value_label": "19,894 ลิตร"
+          },
+          {
+            "week": "2026-W34",
+            "value": 19570,
+            "value_label": "19,570 ลิตร"
+          },
+          {
+            "week": "2026-W35",
+            "value": 21154,
+            "value_label": "21,154 ลิตร"
+          },
+          {
+            "week": "2026-W36",
+            "value": 16337,
+            "value_label": "16,337 ลิตร"
+          },
+          {
+            "week": "2026-W37",
+            "value": 13599,
+            "value_label": "13,599 ลิตร"
+          },
+          {
+            "week": "2026-W38",
+            "value": 12236,
+            "value_label": "12,236 ลิตร"
+          },
+          {
+            "week": "2026-W39",
+            "value": 4247,
+            "value_label": "4,247 ลิตร"
+          }
+        ],
+        "summary": "ปริมาณขายเข้า (Sell-in) 28 ก.ค. 2569 – 22 ก.ย. 2569: รวม 144,707 ลิตร · (8 แถว · certified · SAP SD)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "144,707 ลิตร",
+          "periodLabel": "28 ก.ค. 2569 – 22 ก.ย. 2569",
+          "rowCount": 8,
+          "deltaPercent": null,
+          "compareLabel": null,
+          "compareNote": null,
+          "top": []
+        },
+        "provenance": {
+          "metric": "net_sales_volume",
+          "certified": true,
+          "sourceSystem": "SAP SD",
+          "asOf": "2026-09-22",
+          "rowCount": 8,
+          "filtersApplied": {
+            "sku": [
+              "sku_leo_bottle620"
+            ],
+            "agent": [
+              "ag_nea_07"
+            ]
+          },
+          "filterLabels": [
+            "ลีโอ ขวด 620 มล.",
+            "ส.รุ่งเรือง เทรดดิ้ง"
+          ],
+          "scopeApplied": {
+            "region": [
+              "northeast"
+            ]
+          },
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "net_sales_volume",
+          "dims": [
+            "week"
+          ],
+          "filters": {
+            "sku": [
+              "sku_leo_bottle620"
+            ],
+            "agent": [
+              "ag_nea_07"
+            ]
+          },
+          "range": {
+            "from": "2026-07-28",
+            "to": "2026-09-22"
+          },
+          "grain": "week",
+          "compare": "none",
+          "limit": 8,
+          "sort": null,
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "verify",
+            "kind": "verify",
+            "label": "ตรวจสาเหตุ",
+            "reason": "เทียบยอดขายเข้ากับยอดขายออกของส.รุ่งเรือง เทรดดิ้ง · ลีโอ ขวด 620 มล. · ภาคอีสาน รายสัปดาห์ 8 สัปดาห์ล่าสุด",
+            "tool": null,
+            "input": null,
+            "prompt": "เทียบยอดขายเข้ากับยอดขายออกของส.รุ่งเรือง เทรดดิ้ง · ลีโอ ขวด 620 มล. · ภาคอีสาน รายสัปดาห์ 8 สัปดาห์ล่าสุด"
+          },
+          {
+            "id": "drill-channel",
+            "kind": "drill",
+            "label": "แยกตามช่องทาง",
+            "reason": "ยังไม่ได้ดูแยกรายช่องทาง",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอปริมาณขายเข้า (Sell-in)แยกตามช่องทาง เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-split",
+            "label": "แยกตามแบรนด์",
+            "prompt": "ขอปริมาณขายเข้า (Sell-in) แยกตามแบรนด์ เรียงจากมากไปน้อย",
+            "reason": "ยังไม่ได้ดูแยกรายแบรนด์",
+            "intentKey": "follow|split",
+            "score": 0.65
+          },
+          {
+            "id": "fu-forecast",
+            "label": "พยากรณ์ 8 สัปดาห์",
+            "prompt": "พยากรณ์ปริมาณขายเข้า 8 สัปดาห์ข้างหน้า",
+            "reason": "ดูว่าถ้าเป็นแบบนี้ต่อไปจะเกิดอะไร",
+            "intentKey": "follow|forecast",
+            "score": 0.55
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ขอปริมาณขายเข้า (Sell-in) เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "sell_out_volume",
+        "dims": [
+          "week"
+        ],
+        "filters": {
+          "agent": [
+            "ag_nea_07"
+          ],
+          "sku": [
+            "sku_leo_bottle620"
+          ]
+        },
+        "range": {
+          "from": "2026-07-28",
+          "to": "2026-09-22"
+        },
+        "grain": "week",
+        "compare": "none",
+        "limit": 8,
+        "sort": null,
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "week": "2026-W32",
+            "value": 26231,
+            "value_label": "26,231 ลิตร"
+          },
+          {
+            "week": "2026-W33",
+            "value": 23047,
+            "value_label": "23,047 ลิตร"
+          },
+          {
+            "week": "2026-W34",
+            "value": 20431,
+            "value_label": "20,431 ลิตร"
+          },
+          {
+            "week": "2026-W35",
+            "value": 19333,
+            "value_label": "19,333 ลิตร"
+          },
+          {
+            "week": "2026-W36",
+            "value": 20289,
+            "value_label": "20,289 ลิตร"
+          },
+          {
+            "week": "2026-W37",
+            "value": 20022,
+            "value_label": "20,022 ลิตร"
+          },
+          {
+            "week": "2026-W38",
+            "value": 19801,
+            "value_label": "19,801 ลิตร"
+          },
+          {
+            "week": "2026-W39",
+            "value": 4526,
+            "value_label": "4,526 ลิตร"
+          }
+        ],
+        "summary": "ปริมาณขายออก (Sell-out) 28 ก.ค. 2569 – 22 ก.ย. 2569: รวม 173,247 ลิตร · (8 แถว · certified · SAP SD)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "173,247 ลิตร",
+          "periodLabel": "28 ก.ค. 2569 – 22 ก.ย. 2569",
+          "rowCount": 8,
+          "deltaPercent": null,
+          "compareLabel": null,
+          "compareNote": null,
+          "top": []
+        },
+        "provenance": {
+          "metric": "sell_out_volume",
+          "certified": true,
+          "sourceSystem": "SAP SD",
+          "asOf": "2026-09-22",
+          "rowCount": 8,
+          "filtersApplied": {
+            "agent": [
+              "ag_nea_07"
+            ],
+            "sku": [
+              "sku_leo_bottle620"
+            ]
+          },
+          "filterLabels": [
+            "ส.รุ่งเรือง เทรดดิ้ง",
+            "ลีโอ ขวด 620 มล."
+          ],
+          "scopeApplied": {
+            "region": [
+              "northeast"
+            ]
+          },
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "sell_out_volume",
+          "dims": [
+            "week"
+          ],
+          "filters": {
+            "agent": [
+              "ag_nea_07"
+            ],
+            "sku": [
+              "sku_leo_bottle620"
+            ]
+          },
+          "range": {
+            "from": "2026-07-28",
+            "to": "2026-09-22"
+          },
+          "grain": "week",
+          "compare": "none",
+          "limit": 8,
+          "sort": null,
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "drill-channel",
+            "kind": "drill",
+            "label": "แยกตามช่องทาง",
+            "reason": "ยังไม่ได้ดูแยกรายช่องทาง",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอปริมาณขายออก (Sell-out)แยกตามช่องทาง เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-split",
+            "label": "แยกตามแบรนด์",
+            "prompt": "ขอปริมาณขายออก (Sell-out) แยกตามแบรนด์ เรียงจากมากไปน้อย",
+            "reason": "ยังไม่ได้ดูแยกรายแบรนด์",
+            "intentKey": "follow|split",
+            "score": 0.65
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ขอปริมาณขายออก (Sell-out) เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    }
+  ],
+  "dropped": []
+}

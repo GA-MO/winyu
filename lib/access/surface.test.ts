@@ -17,6 +17,7 @@ const NATIVE_SURFACE_BEFORE_CONNECTORS = [
   ["describe_entity", "warehouse", "read", "all"],
   ["get_alerts", "cop", "read", "all"],
   ["get_forecast", "cop", "read", "all"],
+  ["explain_gap", "cop", "read", "all"],
   ["get_calendar", "calendar", "read", "all"],
   ["recall_memory", "cop", "read", "all"],
   ["find_people", "hris", "read", "all"],

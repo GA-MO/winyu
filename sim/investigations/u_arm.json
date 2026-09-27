@@ -1,0 +1,2828 @@
+{
+  "investigation": {
+    "id": "u_arm",
+    "userId": "u_arm",
+    "at": "2026-09-26T19:13:41.570Z",
+    "model": "google/gemini-3.8-flash",
+    "stories": [
+      {
+        "kind": "watch",
+        "claim": "หาดใหญ่สหมิตรขายออกต่ำกว่าเป้า ลีโอในโมเดิร์นเทรดหลุด",
+        "scope": "หาดใหญ่สหมิตร",
+        "period": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+        "subject": {
+          "metric": "sell_out_volume",
+          "region": "south"
+        },
+        "headline": {
+          "label": "เทียบเป้า",
+          "value": "99.0%",
+          "tone": "bad"
+        },
+        "projection": {
+          "label": "สิ้นเดือน ถ้าขายเท่า 7 วันล่าสุด",
+          "value": "98.4%"
+        },
+        "causes": [
+          {
+            "label": "ลีโอ ขวด 620 มล.",
+            "detail": "ยอดขายออกต่ำกว่าเป้าหมาย",
+            "value": "−2,956 ลิตร",
+            "shareOfGap": "45.5%"
+          },
+          {
+            "label": "ลีโอ กระป๋อง 490 มล.",
+            "detail": "ยอดขายออกต่ำกว่าเป้าหมาย",
+            "value": "−1,072 ลิตร",
+            "shareOfGap": "16.5%"
+          },
+          {
+            "label": "สิงห์ กระป๋อง 490 มล.",
+            "detail": "ยอดขายออกต่ำกว่าเป้าหมาย",
+            "value": "−973 ลิตร",
+            "shareOfGap": "15.0%"
+          }
+        ],
+        "checked": [
+          {
+            "text": "จริง 627,082 · เป้า 633,573 ลิตร",
+            "verdict": "confirmed",
+            "source": "explain_gap"
+          },
+          {
+            "text": "ลีโอ −5,727 ลิตร · 88.2% ของช่องว่าง",
+            "verdict": "confirmed",
+            "source": "explain_gap"
+          }
+        ],
+        "recommendation": "เยี่ยมโมเดิร์นเทรดและร้านหลักในหาดใหญ่ ดันลีโอ",
+        "id": "u_arm-0",
+        "owner": {
+          "userId": "u_saranya",
+          "nameTh": "คุณสรัญญา นิลรัตน์",
+          "title": "ผู้จัดการขายภาค ภาคใต้"
+        }
+      },
+      {
+        "kind": "watch",
+        "claim": "สิงห์ขวดใหญ่ที่คลังสงขลาเหลือ 7.2 วัน เสี่ยงขาดช่วง",
+        "scope": "ศูนย์กระจายสินค้าสงขลา · สิงห์ ขวด 620 มล.",
+        "period": "22 ก.ย. 2569 – 22 ก.ย. 2569",
+        "subject": {
+          "metric": "days_of_cover",
+          "region": "south"
+        },
+        "headline": {
+          "label": "วันครอบคลุมสต๊อก",
+          "value": "7.2 วัน",
+          "tone": "bad"
+        },
+        "projection": null,
+        "causes": [
+          {
+            "label": "สต๊อกคงเหลือคลังสงขลา",
+            "detail": "สต๊อกคงเหลือลดลงเมื่อเทียบช่วงก่อนหน้า",
+            "value": "7,253 ลัง",
+            "shareOfGap": null
+          },
+          {
+            "label": "ยอดขายออกในสงขลา",
+            "detail": "ยอดขายออกสิงห์ขวดใหญ่ในสงขลายังคงทำได้เกินเป้าหมาย",
+            "value": "62,066 ลิตร",
+            "shareOfGap": null
+          }
+        ],
+        "checked": [
+          {
+            "text": "สิงห์ 620 มล. ต่ำสุดในภาคใต้ 7.2 วัน",
+            "verdict": "confirmed",
+            "source": "query_metric"
+          },
+          {
+            "text": "สต๊อกลด 13.1% จากช่วงก่อน",
+            "verdict": "confirmed",
+            "source": "query_metric"
+          }
+        ],
+        "recommendation": "ขอ DC สงขลาวางแผนเติมสิงห์ขวดใหญ่ให้พอกับคำสั่งเอเย่นต์",
+        "id": "u_arm-1",
+        "owner": {
+          "userId": "u_wee",
+          "nameTh": "คุณวีร์ เจริญสุข",
+          "title": "นักวางแผนซัพพลาย"
+        }
+      },
+      {
+        "kind": "ok",
+        "claim": "ภาคใต้และสงขลาขายเข้าเกินเป้า น่าจะปิดเดือนได้",
+        "scope": "ภาคใต้",
+        "period": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+        "subject": {
+          "metric": "target_attainment",
+          "region": "south"
+        },
+        "headline": {
+          "label": "เทียบเป้า",
+          "value": "101.2%",
+          "tone": "good"
+        },
+        "projection": {
+          "label": "สิ้นเดือน ถ้าขายเท่า 7 วันล่าสุด",
+          "value": "100.2%"
+        },
+        "causes": [
+          {
+            "label": "สงขลา",
+            "detail": "ยอดขายเข้าเกินเป้าหมายสูงสุดในภาคใต้",
+            "value": "+13,319 ลิตร",
+            "shareOfGap": "46.0%"
+          },
+          {
+            "label": "ภูเก็ต",
+            "detail": "ยอดขายเข้าเกินเป้าหมาย",
+            "value": "+9,126 ลิตร",
+            "shareOfGap": "31.5%"
+          },
+          {
+            "label": "สุราษฎร์ธานี",
+            "detail": "ยอดขายเข้าเกินเป้าหมาย",
+            "value": "+4,766 ลิตร",
+            "shareOfGap": "16.5%"
+          }
+        ],
+        "checked": [
+          {
+            "text": "ภาคใต้ 2.4 ล้านลิตร · +28,933",
+            "verdict": "confirmed",
+            "source": "explain_gap"
+          },
+          {
+            "text": "หาดใหญ่สหมิตร 642,333 ลิตร +1.4%",
+            "verdict": "confirmed",
+            "source": "query_metric"
+          }
+        ],
+        "recommendation": "ส่งของให้หาดใหญ่สหมิตรและสงขลาทักษิณต่อเนื่องจนสิ้นเดือน",
+        "id": "u_arm-2",
+        "owner": {
+          "userId": "u_saranya",
+          "nameTh": "คุณสรัญญา นิลรัตน์",
+          "title": "ผู้จัดการขายภาค ภาคใต้"
+        }
+      }
+    ],
+    "checkedCount": 30,
+    "costUsd": 0.10648889999999998
+  },
+  "notes": "",
+  "calls": [
+    {
+      "tool": "get_alerts",
+      "input": {
+        "status": "open",
+        "limit": 10
+      },
+      "output": {
+        "ok": true,
+        "summary": "มีความผิดปกติที่เปิดอยู่ 1 รายการในขอบเขตของคุณ",
+        "rows": [
+          {
+            "id": "al_14c4da61c8ba9ac3",
+            "severity": "P2",
+            "severityLabel": "ควรดู",
+            "metric": "sell_out_volume",
+            "metricLabel": "ปริมาณขายออก (Sell-out)",
+            "scope": {
+              "sku": "sku_singha_water_pack12",
+              "province": "pv_suratthani",
+              "region": "south"
+            },
+            "scopeLabel": "น้ำดื่มสิงห์ แพ็ก 12 · สุราษฎร์ธานี · ภาคใต้",
+            "window": "27 ส.ค. 2569 – 20 ก.ย. 2569",
+            "observedLabel": "1,140 ลิตร",
+            "expectedLabel": "1,285 ลิตร",
+            "gapLabel": "11%",
+            "yearOverYear": false,
+            "direction": "down",
+            "hypothesis": "ยอดขายออกจากร้านในสุราษฎร์ธานีต่ำผิดปกติ ยังหาสาเหตุไม่ได้จากข้อมูลที่มี",
+            "verifySteps": [
+              "เทียบน้ำดื่มสิงห์ แพ็ก 12 · สุราษฎร์ธานี · ภาคใต้กับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+              "เทียบน้ำดื่มสิงห์ แพ็ก 12 · สุราษฎร์ธานี · ภาคใต้กับช่วงเดียวกันของปีที่แล้ว"
+            ],
+            "ownerUserId": "u_saranya"
+          }
+        ],
+        "lessons": [],
+        "nextActions": [
+          {
+            "id": "verify",
+            "kind": "verify",
+            "label": "ตรวจสาเหตุ",
+            "reason": "เทียบน้ำดื่มสิงห์ แพ็ก 12 · สุราษฎร์ธานี · ภาคใต้กับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+            "tool": null,
+            "input": null,
+            "prompt": "เทียบน้ำดื่มสิงห์ แพ็ก 12 · สุราษฎร์ธานี · ภาคใต้กับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน"
+          },
+          {
+            "id": "drill-channel",
+            "kind": "drill",
+            "label": "แยกตามช่องทาง",
+            "reason": "ยังไม่ได้ดูแยกรายช่องทาง",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอปริมาณขายออก (Sell-out)แยกตามช่องทาง เรียงจากมากไปน้อย"
+          }
+        ]
+      }
+    },
+    {
+      "tool": "recall_memory",
+      "input": {
+        "query": "อาร์ม สิทธิชัย หาดใหญ่ ใต้"
+      },
+      "output": {
+        "ok": true,
+        "summary": "ยังไม่มีข้อมูลที่จำไว้เกี่ยวกับผู้ใช้คนนี้",
+        "data": []
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "target_attainment",
+        "dims": [
+          "region"
+        ],
+        "filters": {
+          "region": [
+            "south"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "target",
+        "limit": 10,
+        "sort": null,
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "region": "ภาคใต้",
+            "value": 101.2,
+            "value_label": "101.2%"
+          }
+        ],
+        "summary": "การบรรลุเป้าหมาย 1 ก.ย. 2569 – 22 ก.ย. 2569: เฉลี่ย 101.2% · สูงสุด: ภาคใต้ 101.2% · (1 แถว · certified · SAP SD)",
+        "headline": {
+          "aggregate": "average",
+          "value": "101.2%",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 1,
+          "deltaPercent": null,
+          "compareLabel": null,
+          "compareNote": null,
+          "top": [
+            {
+              "label": "ภาคใต้",
+              "value": "101.2%"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "target_attainment",
+          "certified": true,
+          "sourceSystem": "SAP SD",
+          "asOf": "2026-09-22",
+          "rowCount": 1,
+          "filtersApplied": {
+            "region": [
+              "south"
+            ]
+          },
+          "filterLabels": [],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "target_attainment",
+          "dims": [
+            "region"
+          ],
+          "filters": {
+            "region": [
+              "south"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "target",
+          "limit": 10,
+          "sort": null,
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "drill-province",
+            "kind": "drill",
+            "label": "แยกตามจังหวัด",
+            "reason": "ยังไม่ได้ดูแยกรายจังหวัด",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอการบรรลุเป้าหมายแยกตามจังหวัด เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-forecast",
+            "label": "จะถึงเป้าไหม",
+            "prompt": "พยากรณ์ปริมาณขายเข้า 8 สัปดาห์ข้างหน้า จะถึงเป้าไหม",
+            "reason": "ดูว่าถ้าเป็นแบบนี้ต่อไปจะเกิดอะไร",
+            "intentKey": "follow|forecast",
+            "score": 0.55
+          },
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "การบรรลุเป้าหมาย รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "net_sales_volume",
+        "dims": [
+          "region"
+        ],
+        "filters": {
+          "region": [
+            "south"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "target",
+        "limit": 10,
+        "sort": null,
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "region": "ภาคใต้",
+            "value": 2409803,
+            "value_label": "2.4 ล้านลิตร",
+            "compare_value": 2380870,
+            "delta_pct": 1.2
+          }
+        ],
+        "summary": "ปริมาณขายเข้า (Sell-in) 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 2.4 ล้านลิตร · สูงสุด: ภาคใต้ 2.4 ล้านลิตร · เทียบเป้า +1.2% · (1 แถว · certified · SAP SD)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "2.4 ล้านลิตร",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 1,
+          "deltaPercent": 1.2,
+          "compareLabel": "เทียบเป้า",
+          "compareNote": null,
+          "top": [
+            {
+              "label": "ภาคใต้",
+              "value": "2.4 ล้านลิตร"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "net_sales_volume",
+          "certified": true,
+          "sourceSystem": "SAP SD",
+          "asOf": "2026-09-22",
+          "rowCount": 1,
+          "filtersApplied": {
+            "region": [
+              "south"
+            ]
+          },
+          "filterLabels": [],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "net_sales_volume",
+          "dims": [
+            "region"
+          ],
+          "filters": {
+            "region": [
+              "south"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "target",
+          "limit": 10,
+          "sort": null,
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "drill-province",
+            "kind": "drill",
+            "label": "แยกตามจังหวัด",
+            "reason": "ยังไม่ได้ดูแยกรายจังหวัด",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอปริมาณขายเข้า (Sell-in)แยกตามจังหวัด เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-forecast",
+            "label": "พยากรณ์ 8 สัปดาห์",
+            "prompt": "พยากรณ์ปริมาณขายเข้า 8 สัปดาห์ข้างหน้า",
+            "reason": "ดูว่าถ้าเป็นแบบนี้ต่อไปจะเกิดอะไร",
+            "intentKey": "follow|forecast",
+            "score": 0.55
+          },
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "ปริมาณขายเข้า (Sell-in) รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ขอปริมาณขายเข้า (Sell-in) แยกตามภาค เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "net_sales_volume",
+        "dims": [
+          "province"
+        ],
+        "filters": {
+          "region": [
+            "south"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "target",
+        "limit": 15,
+        "sort": "delta_asc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "province": "นครศรีธรรมราช",
+            "value": 290534,
+            "value_label": "290,534 ลิตร",
+            "compare_value": 288812,
+            "delta_pct": 0.6
+          },
+          {
+            "province": "สุราษฎร์ธานี",
+            "value": 661708,
+            "value_label": "661,708 ลิตร",
+            "compare_value": 656942,
+            "delta_pct": 0.7
+          },
+          {
+            "province": "สงขลา",
+            "value": 881431,
+            "value_label": "881,431 ลิตร",
+            "compare_value": 868112,
+            "delta_pct": 1.5
+          },
+          {
+            "province": "ภูเก็ต",
+            "value": 576130,
+            "value_label": "576,130 ลิตร",
+            "compare_value": 567004,
+            "delta_pct": 1.6
+          }
+        ],
+        "summary": "ปริมาณขายเข้า (Sell-in) 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 2.4 ล้านลิตร · สูงสุด: สงขลา 881,431 ลิตร · สุราษฎร์ธานี 661,708 ลิตร · ภูเก็ต 576,130 ลิตร · เทียบเป้า +1.2% · (4 แถว · certified · SAP SD)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "2.4 ล้านลิตร",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 4,
+          "deltaPercent": 1.2,
+          "compareLabel": "เทียบเป้า",
+          "compareNote": null,
+          "top": [
+            {
+              "label": "สงขลา",
+              "value": "881,431 ลิตร"
+            },
+            {
+              "label": "สุราษฎร์ธานี",
+              "value": "661,708 ลิตร"
+            },
+            {
+              "label": "ภูเก็ต",
+              "value": "576,130 ลิตร"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "net_sales_volume",
+          "certified": true,
+          "sourceSystem": "SAP SD",
+          "asOf": "2026-09-22",
+          "rowCount": 4,
+          "filtersApplied": {
+            "region": [
+              "south"
+            ]
+          },
+          "filterLabels": [
+            "ภาคใต้"
+          ],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "net_sales_volume",
+          "dims": [
+            "province"
+          ],
+          "filters": {
+            "region": [
+              "south"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "target",
+          "limit": 15,
+          "sort": "delta_asc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "drill-channel",
+            "kind": "drill",
+            "label": "แยกตามช่องทาง",
+            "reason": "ยังไม่ได้ดูแยกรายช่องทาง",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอปริมาณขายเข้า (Sell-in)แยกตามช่องทาง เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-forecast",
+            "label": "พยากรณ์ 8 สัปดาห์",
+            "prompt": "พยากรณ์ปริมาณขายเข้า 8 สัปดาห์ข้างหน้า",
+            "reason": "ดูว่าถ้าเป็นแบบนี้ต่อไปจะเกิดอะไร",
+            "intentKey": "follow|forecast",
+            "score": 0.55
+          },
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "ปริมาณขายเข้า (Sell-in) รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ขอปริมาณขายเข้า (Sell-in) แยกตามจังหวัด เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "tool": "explain_gap",
+      "input": {
+        "metric": "net_sales_volume",
+        "split": "province",
+        "filters": {
+          "region": [
+            "south"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "compare": "target"
+      },
+      "output": {
+        "ok": true,
+        "summary": "ปริมาณขายเข้า (Sell-in) 1 ก.ย. 2569 – 22 ก.ย. 2569: จริง 2.4 ล้านลิตร · เป้า 2.4 ล้านลิตร · ช่องว่าง +28,933 ลิตร",
+        "period_label": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+        "actual_label": "2.4 ล้านลิตร",
+        "compare_label": "เป้า 2.4 ล้านลิตร",
+        "gap_label": "+28,933 ลิตร",
+        "attainment_label": "101.2%",
+        "contributors": [
+          {
+            "label": "สงขลา",
+            "gap_label": "+13,319 ลิตร",
+            "share_label": "46.0%"
+          },
+          {
+            "label": "ภูเก็ต",
+            "gap_label": "+9,126 ลิตร",
+            "share_label": "31.5%"
+          },
+          {
+            "label": "สุราษฎร์ธานี",
+            "gap_label": "+4,766 ลิตร",
+            "share_label": "16.5%"
+          },
+          {
+            "label": "นครศรีธรรมราช",
+            "gap_label": "+1,722 ลิตร",
+            "share_label": "6.0%"
+          }
+        ],
+        "rest": null,
+        "offsetting": [],
+        "projection": {
+          "label": "สิ้นเดือน ถ้าขายเท่า 7 วันล่าสุด",
+          "basis": "วันที่เหลือของเดือนขายเท่าค่าเฉลี่ย 7 วันล่าสุด และเป้ากระจายเท่ากันทุกวัน",
+          "projected_label": "3.3 ล้านลิตร",
+          "month_target_label": "3.2 ล้านลิตร",
+          "attainment_label": "100.2%"
+        }
+      }
+    },
+    {
+      "tool": "crm_demo__store_visits",
+      "input": {
+        "agentId": null,
+        "regions": "south"
+      },
+      "output": {
+        "ok": false,
+        "code": "CONNECTOR_UNAVAILABLE",
+        "error": "CRM (REST) ไม่ตอบในขณะนี้"
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "net_sales_volume",
+        "dims": [
+          "agent"
+        ],
+        "filters": {
+          "region": [
+            "south"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "target",
+        "limit": 20,
+        "sort": "delta_asc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "agent": "เกาะสมุยเบเวอเรจ",
+            "value": 261523,
+            "value_label": "261,523 ลิตร",
+            "compare_value": 260698,
+            "delta_pct": 0.3
+          },
+          {
+            "agent": "นครศรีรุ่งเจริญ",
+            "value": 290534,
+            "value_label": "290,534 ลิตร",
+            "compare_value": 288812,
+            "delta_pct": 0.6
+          },
+          {
+            "agent": "สุราษฎร์ศรีทอง",
+            "value": 400185,
+            "value_label": "400,185 ลิตร",
+            "compare_value": 396243,
+            "delta_pct": 1
+          },
+          {
+            "agent": "หาดใหญ่สหมิตร",
+            "value": 642333,
+            "value_label": "642,333 ลิตร",
+            "compare_value": 633573,
+            "delta_pct": 1.4
+          },
+          {
+            "agent": "ภูเก็ตอันดามัน ซัพพลาย",
+            "value": 576130,
+            "value_label": "576,130 ลิตร",
+            "compare_value": 567004,
+            "delta_pct": 1.6
+          },
+          {
+            "agent": "สงขลาทักษิณ เทรดดิ้ง",
+            "value": 239098,
+            "value_label": "239,098 ลิตร",
+            "compare_value": 234538,
+            "delta_pct": 1.9
+          }
+        ],
+        "summary": "ปริมาณขายเข้า (Sell-in) 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 2.4 ล้านลิตร · สูงสุด: หาดใหญ่สหมิตร 642,333 ลิตร · ภูเก็ตอันดามัน ซัพพลาย 576,130 ลิตร · สุราษฎร์ศรีทอง 400,185 ลิตร · เทียบเป้า +1.2% · (6 แถว · certified · SAP SD)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "2.4 ล้านลิตร",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 6,
+          "deltaPercent": 1.2,
+          "compareLabel": "เทียบเป้า",
+          "compareNote": null,
+          "top": [
+            {
+              "label": "หาดใหญ่สหมิตร",
+              "value": "642,333 ลิตร"
+            },
+            {
+              "label": "ภูเก็ตอันดามัน ซัพพลาย",
+              "value": "576,130 ลิตร"
+            },
+            {
+              "label": "สุราษฎร์ศรีทอง",
+              "value": "400,185 ลิตร"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "net_sales_volume",
+          "certified": true,
+          "sourceSystem": "SAP SD",
+          "asOf": "2026-09-22",
+          "rowCount": 6,
+          "filtersApplied": {
+            "region": [
+              "south"
+            ]
+          },
+          "filterLabels": [
+            "ภาคใต้"
+          ],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "net_sales_volume",
+          "dims": [
+            "agent"
+          ],
+          "filters": {
+            "region": [
+              "south"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "target",
+          "limit": 20,
+          "sort": "delta_asc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "drill-province",
+            "kind": "drill",
+            "label": "แยกตามจังหวัด",
+            "reason": "ยังไม่ได้ดูแยกรายจังหวัด",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอปริมาณขายเข้า (Sell-in)แยกตามจังหวัด เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-forecast",
+            "label": "พยากรณ์ 8 สัปดาห์",
+            "prompt": "พยากรณ์ปริมาณขายเข้า 8 สัปดาห์ข้างหน้า",
+            "reason": "ดูว่าถ้าเป็นแบบนี้ต่อไปจะเกิดอะไร",
+            "intentKey": "follow|forecast",
+            "score": 0.55
+          },
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "ปริมาณขายเข้า (Sell-in) รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ขอปริมาณขายเข้า (Sell-in) แยกตามเอเย่นต์ เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "tool": "describe_entity",
+      "input": {
+        "kind": "user",
+        "query": "อาร์ม"
+      },
+      "output": {
+        "ok": true,
+        "data": {
+          "id": "u_arm",
+          "ชื่อ": "คุณอาร์ม สิทธิชัย",
+          "ตำแหน่ง": "พนักงานขาย หาดใหญ่",
+          "ฝ่าย": "ขาย",
+          "บทบาท": "sales_rep",
+          "ภาค": "ภาคใต้",
+          "หัวหน้า": "คุณสรัญญา นิลรัตน์",
+          "อีเมล": "arm@boonrawd-demo.co.th"
+        },
+        "summary": "คุณอาร์ม สิทธิชัย พนักงานขาย หาดใหญ่ ฝ่ายขาย ภาคใต้"
+      }
+    },
+    {
+      "tool": "find_people",
+      "input": {
+        "region": "south",
+        "department": "dept_sales",
+        "manager": null,
+        "query": "อาร์ม",
+        "flag": null
+      },
+      "output": {
+        "ok": true,
+        "summary": "พบ 1 คน",
+        "data": [
+          {
+            "is_you": true,
+            "id": "u_arm",
+            "name": "คุณอาร์ม สิทธิชัย",
+            "title": "พนักงานขาย หาดใหญ่",
+            "place": "สงขลา",
+            "photo": "/img/people/p29.jpg",
+            "department": "ขาย",
+            "manager": "คุณสรัญญา นิลรัตน์",
+            "tenure": "3 ปี 8 เดือน",
+            "badges": []
+          }
+        ],
+        "open_positions": []
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "sell_out_volume",
+        "dims": [
+          "province"
+        ],
+        "filters": {
+          "region": [
+            "south"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "target",
+        "limit": 10,
+        "sort": "delta_asc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "province": "นครศรีธรรมราช",
+            "value": 285236,
+            "value_label": "285,236 ลิตร",
+            "compare_value": 288812,
+            "delta_pct": -1.2
+          },
+          {
+            "province": "สุราษฎร์ธานี",
+            "value": 648878,
+            "value_label": "648,878 ลิตร",
+            "compare_value": 656942,
+            "delta_pct": -1.2
+          },
+          {
+            "province": "สงขลา",
+            "value": 862886,
+            "value_label": "862,886 ลิตร",
+            "compare_value": 868112,
+            "delta_pct": -0.6
+          },
+          {
+            "province": "ภูเก็ต",
+            "value": 568708,
+            "value_label": "568,708 ลิตร",
+            "compare_value": 567004,
+            "delta_pct": 0.3
+          }
+        ],
+        "summary": "ปริมาณขายออก (Sell-out) 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 2.4 ล้านลิตร · สูงสุด: สงขลา 862,886 ลิตร · สุราษฎร์ธานี 648,878 ลิตร · ภูเก็ต 568,708 ลิตร · เทียบเป้า -0.6% · (4 แถว · certified · SAP SD)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "2.4 ล้านลิตร",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 4,
+          "deltaPercent": -0.6,
+          "compareLabel": "เทียบเป้า",
+          "compareNote": null,
+          "top": [
+            {
+              "label": "สงขลา",
+              "value": "862,886 ลิตร"
+            },
+            {
+              "label": "สุราษฎร์ธานี",
+              "value": "648,878 ลิตร"
+            },
+            {
+              "label": "ภูเก็ต",
+              "value": "568,708 ลิตร"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "sell_out_volume",
+          "certified": true,
+          "sourceSystem": "SAP SD",
+          "asOf": "2026-09-22",
+          "rowCount": 4,
+          "filtersApplied": {
+            "region": [
+              "south"
+            ]
+          },
+          "filterLabels": [
+            "ภาคใต้"
+          ],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "sell_out_volume",
+          "dims": [
+            "province"
+          ],
+          "filters": {
+            "region": [
+              "south"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "target",
+          "limit": 10,
+          "sort": "delta_asc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "verify",
+            "kind": "verify",
+            "label": "ตรวจสาเหตุ",
+            "reason": "เทียบน้ำดื่มสิงห์ แพ็ก 12 · สุราษฎร์ธานี · ภาคใต้กับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+            "tool": null,
+            "input": null,
+            "prompt": "เทียบน้ำดื่มสิงห์ แพ็ก 12 · สุราษฎร์ธานี · ภาคใต้กับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน"
+          },
+          {
+            "id": "drill-channel",
+            "kind": "drill",
+            "label": "แยกตามช่องทาง",
+            "reason": "ยังไม่ได้ดูแยกรายช่องทาง",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอปริมาณขายออก (Sell-out)แยกตามช่องทาง เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "ปริมาณขายออก (Sell-out) รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ขอปริมาณขายออก (Sell-out) แยกตามจังหวัด เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "days_of_cover",
+        "dims": [
+          "agent"
+        ],
+        "filters": {
+          "region": [
+            "south"
+          ]
+        },
+        "range": {
+          "from": "2026-09-22",
+          "to": "2026-09-22"
+        },
+        "grain": "day",
+        "compare": "none",
+        "limit": 10,
+        "sort": "value_asc",
+        "where": null
+      },
+      "output": {
+        "ok": false,
+        "error": "มิติ agent ใช้กับเมตริก days_of_cover ไม่ได้",
+        "code": "BAD_QUERY"
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "ar_overdue",
+        "dims": [
+          "agent"
+        ],
+        "filters": {
+          "region": [
+            "south"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "none",
+        "limit": 10,
+        "sort": "value_desc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "agent": "หาดใหญ่สหมิตร",
+            "value": "***",
+            "value_label": "***"
+          },
+          {
+            "agent": "สงขลาทักษิณ เทรดดิ้ง",
+            "value": "***",
+            "value_label": "***"
+          },
+          {
+            "agent": "ภูเก็ตอันดามัน ซัพพลาย",
+            "value": "***",
+            "value_label": "***"
+          },
+          {
+            "agent": "สุราษฎร์ศรีทอง",
+            "value": "***",
+            "value_label": "***"
+          },
+          {
+            "agent": "เกาะสมุยเบเวอเรจ",
+            "value": "***",
+            "value_label": "***"
+          },
+          {
+            "agent": "นครศรีรุ่งเจริญ",
+            "value": "***",
+            "value_label": "***"
+          }
+        ],
+        "summary": "ยอดค้างชำระเกินกำหนด 1 ก.ย. 2569 – 22 ก.ย. 2569: ข้อมูลถูกปิดตามนโยบาย (masked) — เห็นได้เฉพาะโครงสร้างข้อมูล",
+        "headline": {
+          "aggregate": "sum",
+          "value": "—",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 6,
+          "deltaPercent": null,
+          "compareLabel": null,
+          "compareNote": null,
+          "top": []
+        },
+        "provenance": {
+          "metric": "ar_overdue",
+          "certified": true,
+          "sourceSystem": "SAP FI",
+          "asOf": "2026-09-22",
+          "rowCount": 6,
+          "filtersApplied": {
+            "region": [
+              "south"
+            ]
+          },
+          "filterLabels": [
+            "ภาคใต้"
+          ],
+          "scopeApplied": {},
+          "masked": [
+            "value",
+            "compare_value",
+            "delta_pct"
+          ],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "ar_overdue",
+          "dims": [
+            "agent"
+          ],
+          "filters": {
+            "region": [
+              "south"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "none",
+          "limit": 10,
+          "sort": "value_desc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "pin",
+            "kind": "pin",
+            "label": "ปักเป็นการ์ดบน Dashboard",
+            "reason": "คุณถามเรื่องนี้ 2 ครั้งในช่วงนี้",
+            "tool": "pin_widget",
+            "input": {
+              "title": "ยอดค้างชำระเกินกำหนด",
+              "kind": "bar",
+              "query": {
+                "metric": "ar_overdue",
+                "dims": [
+                  "agent"
+                ],
+                "filters": {
+                  "region": [
+                    "south"
+                  ]
+                },
+                "range": {
+                  "from": "2026-09-01",
+                  "to": "2026-09-22"
+                },
+                "grain": "month",
+                "compare": "none",
+                "limit": 10,
+                "sort": "value_desc",
+                "where": null
+              }
+            },
+            "prompt": null
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายเดือน",
+            "prompt": "ยอดค้างชำระเกินกำหนด รายเดือนย้อนหลัง 6 เดือน",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ขอยอดค้างชำระเกินกำหนดแยกตามเอเย่นต์ เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "tool": "list_metrics",
+      "input": {
+        "search": "days_of_cover"
+      },
+      "output": {
+        "ok": true,
+        "summary": "พบ 1 เมตริกที่ตรงกับคำค้น",
+        "data": [
+          {
+            "id": "days_of_cover",
+            "labelTh": "วันครอบคลุมสต๊อก",
+            "unit": "วัน",
+            "dims": [
+              "date",
+              "week",
+              "month",
+              "region",
+              "dc",
+              "brand",
+              "sku",
+              "pack",
+              "business_unit"
+            ],
+            "certified": true,
+            "source": "WMS",
+            "refresh": "รายวัน",
+            "latest": "22 ก.ย. 2569"
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "days_of_cover",
+        "dims": [
+          "dc"
+        ],
+        "filters": {
+          "region": [
+            "south"
+          ]
+        },
+        "range": {
+          "from": "2026-09-22",
+          "to": "2026-09-22"
+        },
+        "grain": "day",
+        "compare": "none",
+        "limit": 10,
+        "sort": "value_asc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "dc": "ศูนย์กระจายสินค้าสงขลา",
+            "value": 15.15,
+            "value_label": "15.2 วัน"
+          }
+        ],
+        "summary": "วันครอบคลุมสต๊อก 22 ก.ย. 2569 – 22 ก.ย. 2569: เฉลี่ย 15.2 วัน · ต่ำสุด: ศูนย์กระจายสินค้าสงขลา 15.2 วัน · (1 แถว · certified · WMS)",
+        "headline": {
+          "aggregate": "average",
+          "value": "15.2 วัน",
+          "periodLabel": "22 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 1,
+          "deltaPercent": null,
+          "compareLabel": null,
+          "compareNote": null,
+          "top": [
+            {
+              "label": "ศูนย์กระจายสินค้าสงขลา",
+              "value": "15.2 วัน"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "days_of_cover",
+          "certified": true,
+          "sourceSystem": "WMS",
+          "asOf": "2026-09-22",
+          "rowCount": 1,
+          "filtersApplied": {
+            "region": [
+              "south"
+            ]
+          },
+          "filterLabels": [
+            "ภาคใต้"
+          ],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "days_of_cover",
+          "dims": [
+            "dc"
+          ],
+          "filters": {
+            "region": [
+              "south"
+            ]
+          },
+          "range": {
+            "from": "2026-09-22",
+            "to": "2026-09-22"
+          },
+          "grain": "day",
+          "compare": "none",
+          "limit": 10,
+          "sort": "value_asc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "drill-brand",
+            "kind": "drill",
+            "label": "แยกตามแบรนด์",
+            "reason": "ยังไม่ได้ดูแยกรายแบรนด์",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอวันครอบคลุมสต๊อกแยกตามแบรนด์ เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-forecast",
+            "label": "พยากรณ์ 8 สัปดาห์",
+            "prompt": "พยากรณ์วันครอบคลุมสต๊อก 8 สัปดาห์ข้างหน้า",
+            "reason": "ดูว่าถ้าเป็นแบบนี้ต่อไปจะเกิดอะไร",
+            "intentKey": "follow|forecast",
+            "score": 0.55
+          },
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "วันครอบคลุมสต๊อก รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ขอวันครอบคลุมสต๊อกแยกตามศูนย์กระจายสินค้า เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "days_of_cover",
+        "dims": [
+          "dc",
+          "brand"
+        ],
+        "filters": {
+          "region": [
+            "south"
+          ]
+        },
+        "range": {
+          "from": "2026-09-22",
+          "to": "2026-09-22"
+        },
+        "grain": "day",
+        "compare": "none",
+        "limit": 20,
+        "sort": "value_asc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "dc": "ศูนย์กระจายสินค้าสงขลา",
+            "brand": "สิงห์",
+            "value": 12.83,
+            "value_label": "12.8 วัน"
+          },
+          {
+            "dc": "ศูนย์กระจายสินค้าสงขลา",
+            "brand": "สิงห์ เลมอนโซดา",
+            "value": 13.59,
+            "value_label": "13.6 วัน"
+          },
+          {
+            "dc": "ศูนย์กระจายสินค้าสงขลา",
+            "brand": "น้ำดื่มสิงห์",
+            "value": 13.67,
+            "value_label": "13.7 วัน"
+          },
+          {
+            "dc": "ศูนย์กระจายสินค้าสงขลา",
+            "brand": "ลีโอ",
+            "value": 16.79,
+            "value_label": "16.8 วัน"
+          },
+          {
+            "dc": "ศูนย์กระจายสินค้าสงขลา",
+            "brand": "อาซาฮี",
+            "value": 16.81,
+            "value_label": "16.8 วัน"
+          },
+          {
+            "dc": "ศูนย์กระจายสินค้าสงขลา",
+            "brand": "เพอร์ร่า",
+            "value": 17.44,
+            "value_label": "17.4 วัน"
+          },
+          {
+            "dc": "ศูนย์กระจายสินค้าสงขลา",
+            "brand": "คาร์ลสเบิร์ก",
+            "value": 18.91,
+            "value_label": "18.9 วัน"
+          },
+          {
+            "dc": "ศูนย์กระจายสินค้าสงขลา",
+            "brand": "โซดาสิงห์",
+            "value": 18.93,
+            "value_label": "18.9 วัน"
+          }
+        ],
+        "summary": "วันครอบคลุมสต๊อก 22 ก.ย. 2569 – 22 ก.ย. 2569: เฉลี่ย 15.2 วัน · ต่ำสุด: ศูนย์กระจายสินค้าสงขลา 12.8 วัน · ศูนย์กระจายสินค้าสงขลา 13.6 วัน · ศูนย์กระจายสินค้าสงขลา 13.7 วัน · (8 แถว · certified · WMS)",
+        "headline": {
+          "aggregate": "average",
+          "value": "15.2 วัน",
+          "periodLabel": "22 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 8,
+          "deltaPercent": null,
+          "compareLabel": null,
+          "compareNote": null,
+          "top": [
+            {
+              "label": "ศูนย์กระจายสินค้าสงขลา",
+              "value": "12.8 วัน"
+            },
+            {
+              "label": "ศูนย์กระจายสินค้าสงขลา",
+              "value": "13.6 วัน"
+            },
+            {
+              "label": "ศูนย์กระจายสินค้าสงขลา",
+              "value": "13.7 วัน"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "days_of_cover",
+          "certified": true,
+          "sourceSystem": "WMS",
+          "asOf": "2026-09-22",
+          "rowCount": 8,
+          "filtersApplied": {
+            "region": [
+              "south"
+            ]
+          },
+          "filterLabels": [
+            "ภาคใต้"
+          ],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "days_of_cover",
+          "dims": [
+            "dc",
+            "brand"
+          ],
+          "filters": {
+            "region": [
+              "south"
+            ]
+          },
+          "range": {
+            "from": "2026-09-22",
+            "to": "2026-09-22"
+          },
+          "grain": "day",
+          "compare": "none",
+          "limit": 20,
+          "sort": "value_asc",
+          "where": null
+        },
+        "nextActions": [],
+        "followUps": [
+          {
+            "id": "fu-drill_down",
+            "label": "ดู SKU ใน DC สงขลา · สิงห์",
+            "prompt": "ขอวันครอบคลุมสต๊อกของ DC สงขลา · สิงห์ แยกราย SKU เรียงจากแย่ไปดี",
+            "reason": "ลงไปอีกชั้นเพื่อหาว่าใครในDC สงขลา · สิงห์ทำให้ตัวเลขเป็นแบบนี้",
+            "intentKey": "follow|drill_down",
+            "score": 0.7
+          },
+          {
+            "id": "fu-why",
+            "label": "ทำไม DC สงขลา · สิงห์",
+            "prompt": "เจาะดูวันครอบคลุมสต๊อกของ DC สงขลา · สิงห์ ว่าทำไมถึงเปลี่ยนไป เทียบกับช่วงก่อนหน้าและช่วงเดียวกันปีก่อน",
+            "reason": "DC สงขลา · สิงห์ คือแถวที่ต้องดูมากที่สุดในคำตอบนี้",
+            "intentKey": "follow|why",
+            "score": 0.6
+          },
+          {
+            "id": "fu-forecast",
+            "label": "พยากรณ์ 8 สัปดาห์",
+            "prompt": "พยากรณ์วันครอบคลุมสต๊อกของ DC สงขลา · สิงห์ 8 สัปดาห์ข้างหน้า",
+            "reason": "ดูว่าถ้าเป็นแบบนี้ต่อไปจะเกิดอะไร",
+            "intentKey": "follow|forecast",
+            "score": 0.55
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "days_of_cover",
+        "dims": [
+          "sku"
+        ],
+        "filters": {
+          "region": [
+            "south"
+          ]
+        },
+        "range": {
+          "from": "2026-09-22",
+          "to": "2026-09-22"
+        },
+        "grain": "day",
+        "compare": "none",
+        "limit": 20,
+        "sort": "value_asc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "sku": "สิงห์ ขวด 620 มล.",
+            "value": 7.22,
+            "value_label": "7.2 วัน"
+          },
+          {
+            "sku": "น้ำดื่มสิงห์ ขวด PET 1.5 ลิตร",
+            "value": 11.72,
+            "value_label": "11.7 วัน"
+          },
+          {
+            "sku": "สิงห์ เลมอนโซดา กระป๋อง 320 มล.",
+            "value": 12.03,
+            "value_label": "12.0 วัน"
+          },
+          {
+            "sku": "สิงห์ เลมอนโซดา ขวด PET 600 มล.",
+            "value": 12.08,
+            "value_label": "12.1 วัน"
+          },
+          {
+            "sku": "สิงห์ กระป๋อง 490 มล.",
+            "value": 12.26,
+            "value_label": "12.3 วัน"
+          },
+          {
+            "sku": "สิงห์ กระป๋อง 320 มล.",
+            "value": 12.57,
+            "value_label": "12.6 วัน"
+          },
+          {
+            "sku": "เพอร์ร่า ขวด PET 1.5 ลิตร",
+            "value": 12.84,
+            "value_label": "12.8 วัน"
+          },
+          {
+            "sku": "อาซาฮี กระป๋อง 320 มล.",
+            "value": 13.77,
+            "value_label": "13.8 วัน"
+          },
+          {
+            "sku": "สิงห์ ขวด 320 มล.",
+            "value": 13.83,
+            "value_label": "13.8 วัน"
+          },
+          {
+            "sku": "น้ำดื่มสิงห์ ขวด PET 600 มล.",
+            "value": 13.88,
+            "value_label": "13.9 วัน"
+          },
+          {
+            "sku": "โซดาสิงห์ ขวด 320 มล.",
+            "value": 13.94,
+            "value_label": "13.9 วัน"
+          },
+          {
+            "sku": "อาซาฮี ถัง 30 ลิตร",
+            "value": 14.86,
+            "value_label": "14.9 วัน"
+          },
+          {
+            "sku": "เพอร์ร่า แพ็ก 12",
+            "value": 15.18,
+            "value_label": "15.2 วัน"
+          },
+          {
+            "sku": "คาร์ลสเบิร์ก ถัง 30 ลิตร",
+            "value": 15.55,
+            "value_label": "15.6 วัน"
+          },
+          {
+            "sku": "ลีโอ กระป๋อง 490 มล.",
+            "value": 16.39,
+            "value_label": "16.4 วัน"
+          },
+          {
+            "sku": "น้ำดื่มสิงห์ แพ็ก 12",
+            "value": 16.49,
+            "value_label": "16.5 วัน"
+          },
+          {
+            "sku": "ลีโอ แพ็ก 12",
+            "value": 16.58,
+            "value_label": "16.6 วัน"
+          },
+          {
+            "sku": "ลีโอ ขวด 620 มล.",
+            "value": 16.71,
+            "value_label": "16.7 วัน"
+          },
+          {
+            "sku": "ลีโอ ขวด 320 มล.",
+            "value": 16.82,
+            "value_label": "16.8 วัน"
+          },
+          {
+            "sku": "ลีโอ กระป๋อง 320 มล.",
+            "value": 16.89,
+            "value_label": "16.9 วัน"
+          }
+        ],
+        "summary": "วันครอบคลุมสต๊อก 22 ก.ย. 2569 – 22 ก.ย. 2569: เฉลี่ย 15.2 วัน · ต่ำสุด: สิงห์ ขวด 620 มล. 7.2 วัน · น้ำดื่มสิงห์ ขวด PET 1.5 ลิตร 11.7 วัน · สิงห์ เลมอนโซดา กระป๋อง 320 มล. 12.0 วัน · (20 แถว · certified · WMS)",
+        "headline": {
+          "aggregate": "average",
+          "value": "15.2 วัน",
+          "periodLabel": "22 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 20,
+          "deltaPercent": null,
+          "compareLabel": null,
+          "compareNote": null,
+          "top": [
+            {
+              "label": "สิงห์ ขวด 620 มล.",
+              "value": "7.2 วัน"
+            },
+            {
+              "label": "น้ำดื่มสิงห์ ขวด PET 1.5 ลิตร",
+              "value": "11.7 วัน"
+            },
+            {
+              "label": "สิงห์ เลมอนโซดา กระป๋อง 320 มล.",
+              "value": "12.0 วัน"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "days_of_cover",
+          "certified": true,
+          "sourceSystem": "WMS",
+          "asOf": "2026-09-22",
+          "rowCount": 20,
+          "filtersApplied": {
+            "region": [
+              "south"
+            ]
+          },
+          "filterLabels": [
+            "ภาคใต้"
+          ],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "days_of_cover",
+          "dims": [
+            "sku"
+          ],
+          "filters": {
+            "region": [
+              "south"
+            ]
+          },
+          "range": {
+            "from": "2026-09-22",
+            "to": "2026-09-22"
+          },
+          "grain": "day",
+          "compare": "none",
+          "limit": 20,
+          "sort": "value_asc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "drill-brand",
+            "kind": "drill",
+            "label": "แยกตามแบรนด์",
+            "reason": "ยังไม่ได้ดูแยกรายแบรนด์",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอวันครอบคลุมสต๊อกแยกตามแบรนด์ เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-why",
+            "label": "ทำไมสิงห์ ขวด 620 มล.",
+            "prompt": "เจาะดูวันครอบคลุมสต๊อกของสิงห์ ขวด 620 มล. ว่าทำไมถึงเปลี่ยนไป เทียบกับช่วงก่อนหน้าและช่วงเดียวกันปีก่อน",
+            "reason": "สิงห์ ขวด 620 มล. คือแถวที่ต้องดูมากที่สุดในคำตอบนี้",
+            "intentKey": "follow|why",
+            "score": 0.6
+          },
+          {
+            "id": "fu-forecast",
+            "label": "พยากรณ์ 8 สัปดาห์",
+            "prompt": "พยากรณ์วันครอบคลุมสต๊อกของสิงห์ ขวด 620 มล. 8 สัปดาห์ข้างหน้า",
+            "reason": "ดูว่าถ้าเป็นแบบนี้ต่อไปจะเกิดอะไร",
+            "intentKey": "follow|forecast",
+            "score": 0.55
+          },
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "วันครอบคลุมสต๊อก รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          }
+        ]
+      }
+    },
+    {
+      "tool": "find_people",
+      "input": {
+        "region": "south",
+        "department": "ขาย",
+        "manager": "คุณสรัญญา นิลรัตน์",
+        "query": null,
+        "flag": null
+      },
+      "output": {
+        "ok": true,
+        "summary": "ไม่พบพนักงานที่ตรงเงื่อนไขในขอบเขตของคุณ",
+        "data": [],
+        "open_positions": []
+      }
+    },
+    {
+      "tool": "find_people",
+      "input": {
+        "region": "south",
+        "department": "dept_sales",
+        "manager": null,
+        "query": null,
+        "flag": null
+      },
+      "output": {
+        "ok": true,
+        "summary": "พบ 2 คน · บางช่องถูกปิดตามสิทธิ์ของผู้ใช้",
+        "data": [
+          {
+            "id": "u_saranya",
+            "name": "คุณสรัญญา นิลรัตน์",
+            "title": "ผู้จัดการขายภาค ภาคใต้",
+            "place": "สงขลา",
+            "photo": "/img/people/p09.jpg",
+            "department": "ขาย",
+            "manager": "คุณประสิทธิ์ ชัยภูมิ",
+            "tenure": null,
+            "badges": []
+          },
+          {
+            "is_you": true,
+            "id": "u_arm",
+            "name": "คุณอาร์ม สิทธิชัย",
+            "title": "พนักงานขาย หาดใหญ่",
+            "place": "สงขลา",
+            "photo": "/img/people/p29.jpg",
+            "department": "ขาย",
+            "manager": "คุณสรัญญา นิลรัตน์",
+            "tenure": "3 ปี 8 เดือน",
+            "badges": []
+          }
+        ],
+        "open_positions": []
+      }
+    },
+    {
+      "tool": "resolve_owner",
+      "input": {
+        "metric": "sell_out_volume",
+        "dims": {
+          "region": "south",
+          "province": "pv_suratthani"
+        }
+      },
+      "output": {
+        "ok": true,
+        "summary": "ผู้รับผิดชอบคือ คุณสรัญญา นิลรัตน์",
+        "data": {
+          "userId": "u_saranya",
+          "nameTh": "คุณสรัญญา นิลรัตน์",
+          "title": "ผู้จัดการขายภาค ภาคใต้",
+          "role": "sales_rsm",
+          "region": "south",
+          "reason": "เจ้าของตัวเลขยอดขายของพื้นที่ (ระดับภาค) · เคยรับงานลักษณะนี้ 0 ครั้ง · ตอนนี้มีงานค้าง 0 เรื่อง",
+          "openLoad": 0,
+          "handledBefore": 0
+        }
+      }
+    },
+    {
+      "tool": "resolve_owner",
+      "input": {
+        "metric": "sell_out_volume",
+        "dims": {
+          "region": "south",
+          "province": "pv_songkhla"
+        }
+      },
+      "output": {
+        "ok": true,
+        "summary": "ผู้รับผิดชอบคือ คุณสรัญญา นิลรัตน์",
+        "data": {
+          "userId": "u_saranya",
+          "nameTh": "คุณสรัญญา นิลรัตน์",
+          "title": "ผู้จัดการขายภาค ภาคใต้",
+          "role": "sales_rsm",
+          "region": "south",
+          "reason": "เจ้าของตัวเลขยอดขายของพื้นที่ (ระดับภาค) · เคยรับงานลักษณะนี้ 0 ครั้ง · ตอนนี้มีงานค้าง 0 เรื่อง",
+          "openLoad": 0,
+          "handledBefore": 0
+        }
+      }
+    },
+    {
+      "tool": "list_metrics",
+      "input": {
+        "search": "sell_out_volume"
+      },
+      "output": {
+        "ok": true,
+        "summary": "พบ 2 เมตริกที่ตรงกับคำค้น",
+        "data": [
+          {
+            "id": "sell_out_volume",
+            "labelTh": "ปริมาณขายออก (Sell-out)",
+            "unit": "ลิตร",
+            "dims": [
+              "date",
+              "week",
+              "month",
+              "region",
+              "province",
+              "channel",
+              "brand",
+              "sku",
+              "pack",
+              "agent",
+              "business_unit"
+            ],
+            "certified": true,
+            "source": "SAP SD",
+            "refresh": "รายวัน",
+            "latest": "22 ก.ย. 2569"
+          },
+          {
+            "id": "net_sales_volume",
+            "labelTh": "ปริมาณขายเข้า (Sell-in)",
+            "unit": "ลิตร",
+            "dims": [
+              "date",
+              "week",
+              "month",
+              "region",
+              "province",
+              "channel",
+              "brand",
+              "sku",
+              "pack",
+              "agent",
+              "business_unit"
+            ],
+            "certified": true,
+            "source": "SAP SD",
+            "refresh": "รายวัน",
+            "latest": "22 ก.ย. 2569"
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "sell_out_volume",
+        "dims": [
+          "agent"
+        ],
+        "filters": {
+          "region": [
+            "south"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "target",
+        "limit": 20,
+        "sort": "delta_asc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "agent": "เกาะสมุยเบเวอเรจ",
+            "value": 255733,
+            "value_label": "255,733 ลิตร",
+            "compare_value": 260698,
+            "delta_pct": -1.9
+          },
+          {
+            "agent": "นครศรีรุ่งเจริญ",
+            "value": 285236,
+            "value_label": "285,236 ลิตร",
+            "compare_value": 288812,
+            "delta_pct": -1.2
+          },
+          {
+            "agent": "หาดใหญ่สหมิตร",
+            "value": 627082,
+            "value_label": "627,082 ลิตร",
+            "compare_value": 633573,
+            "delta_pct": -1
+          },
+          {
+            "agent": "สุราษฎร์ศรีทอง",
+            "value": 393144,
+            "value_label": "393,144 ลิตร",
+            "compare_value": 396243,
+            "delta_pct": -0.8
+          },
+          {
+            "agent": "ภูเก็ตอันดามัน ซัพพลาย",
+            "value": 568708,
+            "value_label": "568,708 ลิตร",
+            "compare_value": 567004,
+            "delta_pct": 0.3
+          },
+          {
+            "agent": "สงขลาทักษิณ เทรดดิ้ง",
+            "value": 235804,
+            "value_label": "235,804 ลิตร",
+            "compare_value": 234538,
+            "delta_pct": 0.5
+          }
+        ],
+        "summary": "ปริมาณขายออก (Sell-out) 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 2.4 ล้านลิตร · สูงสุด: หาดใหญ่สหมิตร 627,082 ลิตร · ภูเก็ตอันดามัน ซัพพลาย 568,708 ลิตร · สุราษฎร์ศรีทอง 393,144 ลิตร · เทียบเป้า -0.6% · (6 แถว · certified · SAP SD)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "2.4 ล้านลิตร",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 6,
+          "deltaPercent": -0.6,
+          "compareLabel": "เทียบเป้า",
+          "compareNote": null,
+          "top": [
+            {
+              "label": "หาดใหญ่สหมิตร",
+              "value": "627,082 ลิตร"
+            },
+            {
+              "label": "ภูเก็ตอันดามัน ซัพพลาย",
+              "value": "568,708 ลิตร"
+            },
+            {
+              "label": "สุราษฎร์ศรีทอง",
+              "value": "393,144 ลิตร"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "sell_out_volume",
+          "certified": true,
+          "sourceSystem": "SAP SD",
+          "asOf": "2026-09-22",
+          "rowCount": 6,
+          "filtersApplied": {
+            "region": [
+              "south"
+            ]
+          },
+          "filterLabels": [
+            "ภาคใต้"
+          ],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "sell_out_volume",
+          "dims": [
+            "agent"
+          ],
+          "filters": {
+            "region": [
+              "south"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "target",
+          "limit": 20,
+          "sort": "delta_asc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "verify",
+            "kind": "verify",
+            "label": "ตรวจสาเหตุ",
+            "reason": "เทียบน้ำดื่มสิงห์ แพ็ก 12 · สุราษฎร์ธานี · ภาคใต้กับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+            "tool": null,
+            "input": null,
+            "prompt": "เทียบน้ำดื่มสิงห์ แพ็ก 12 · สุราษฎร์ธานี · ภาคใต้กับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน"
+          },
+          {
+            "id": "drill-province",
+            "kind": "drill",
+            "label": "แยกตามจังหวัด",
+            "reason": "ยังไม่ได้ดูแยกรายจังหวัด",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอปริมาณขายออก (Sell-out)แยกตามจังหวัด เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "ปริมาณขายออก (Sell-out) รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ขอปริมาณขายออก (Sell-out) แยกตามเอเย่นต์ เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "tool": "explain_gap",
+      "input": {
+        "metric": "sell_out_volume",
+        "split": "agent",
+        "filters": {
+          "region": [
+            "south"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "compare": "target"
+      },
+      "output": {
+        "ok": true,
+        "summary": "ปริมาณขายออก (Sell-out) 1 ก.ย. 2569 – 22 ก.ย. 2569: จริง 2.4 ล้านลิตร · เป้า 2.4 ล้านลิตร · ช่องว่าง −15,162 ลิตร",
+        "period_label": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+        "actual_label": "2.4 ล้านลิตร",
+        "compare_label": "เป้า 2.4 ล้านลิตร",
+        "gap_label": "−15,162 ลิตร",
+        "attainment_label": "99.4%",
+        "contributors": [
+          {
+            "label": "หาดใหญ่สหมิตร",
+            "gap_label": "−6,491 ลิตร",
+            "share_label": "42.8%"
+          },
+          {
+            "label": "เกาะสมุยเบเวอเรจ",
+            "gap_label": "−4,965 ลิตร",
+            "share_label": "32.7%"
+          },
+          {
+            "label": "นครศรีรุ่งเจริญ",
+            "gap_label": "−3,576 ลิตร",
+            "share_label": "23.6%"
+          },
+          {
+            "label": "สุราษฎร์ศรีทอง",
+            "gap_label": "−3,099 ลิตร",
+            "share_label": "20.4%"
+          }
+        ],
+        "rest": null,
+        "offsetting": [
+          {
+            "label": "ภูเก็ตอันดามัน ซัพพลาย",
+            "gap_label": "+1,704 ลิตร"
+          },
+          {
+            "label": "สงขลาทักษิณ เทรดดิ้ง",
+            "gap_label": "+1,266 ลิตร"
+          }
+        ],
+        "projection": {
+          "label": "สิ้นเดือน ถ้าขายเท่า 7 วันล่าสุด",
+          "basis": "วันที่เหลือของเดือนขายเท่าค่าเฉลี่ย 7 วันล่าสุด และเป้ากระจายเท่ากันทุกวัน",
+          "projected_label": "3.2 ล้านลิตร",
+          "month_target_label": "3.2 ล้านลิตร",
+          "attainment_label": "98.8%"
+        }
+      }
+    },
+    {
+      "tool": "explain_gap",
+      "input": {
+        "metric": "sell_out_volume",
+        "split": "brand",
+        "filters": {
+          "agent": [
+            "หาดใหญ่สหมิตร"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "compare": "target"
+      },
+      "output": {
+        "ok": true,
+        "summary": "ปริมาณขายออก (Sell-out) 1 ก.ย. 2569 – 22 ก.ย. 2569: จริง 627,082 ลิตร · เป้า 633,573 ลิตร · ช่องว่าง −6,491 ลิตร",
+        "period_label": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+        "actual_label": "627,082 ลิตร",
+        "compare_label": "เป้า 633,573 ลิตร",
+        "gap_label": "−6,491 ลิตร",
+        "attainment_label": "99.0%",
+        "contributors": [
+          {
+            "label": "ลีโอ",
+            "gap_label": "−5,727 ลิตร",
+            "share_label": "88.2%"
+          },
+          {
+            "label": "สิงห์",
+            "gap_label": "−951 ลิตร",
+            "share_label": "14.7%"
+          },
+          {
+            "label": "โซดาสิงห์",
+            "gap_label": "−683 ลิตร",
+            "share_label": "10.5%"
+          },
+          {
+            "label": "คาร์ลสเบิร์ก",
+            "gap_label": "−387 ลิตร",
+            "share_label": "6.0%"
+          },
+          {
+            "label": "น้ำดื่มสิงห์",
+            "gap_label": "−31.0 ลิตร",
+            "share_label": "0.5%"
+          }
+        ],
+        "rest": null,
+        "offsetting": [
+          {
+            "label": "เพอร์ร่า",
+            "gap_label": "+710 ลิตร"
+          },
+          {
+            "label": "สิงห์ เลมอนโซดา",
+            "gap_label": "+401 ลิตร"
+          },
+          {
+            "label": "อาซาฮี",
+            "gap_label": "+177 ลิตร"
+          }
+        ],
+        "projection": {
+          "label": "สิ้นเดือน ถ้าขายเท่า 7 วันล่าสุด",
+          "basis": "วันที่เหลือของเดือนขายเท่าค่าเฉลี่ย 7 วันล่าสุด และเป้ากระจายเท่ากันทุกวัน",
+          "projected_label": "850,336 ลิตร",
+          "month_target_label": "863,963 ลิตร",
+          "attainment_label": "98.4%"
+        }
+      }
+    },
+    {
+      "tool": "explain_gap",
+      "input": {
+        "metric": "sell_out_volume",
+        "split": "sku",
+        "filters": {
+          "agent": [
+            "หาดใหญ่สหมิตร"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "compare": "target"
+      },
+      "output": {
+        "ok": true,
+        "summary": "ปริมาณขายออก (Sell-out) 1 ก.ย. 2569 – 22 ก.ย. 2569: จริง 627,082 ลิตร · เป้า 633,573 ลิตร · ช่องว่าง −6,491 ลิตร",
+        "period_label": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+        "actual_label": "627,082 ลิตร",
+        "compare_label": "เป้า 633,573 ลิตร",
+        "gap_label": "−6,491 ลิตร",
+        "attainment_label": "99.0%",
+        "contributors": [
+          {
+            "label": "ลีโอ ขวด 620 มล.",
+            "gap_label": "−2,956 ลิตร",
+            "share_label": "45.5%"
+          },
+          {
+            "label": "ลีโอ กระป๋อง 490 มล.",
+            "gap_label": "−1,072 ลิตร",
+            "share_label": "16.5%"
+          },
+          {
+            "label": "สิงห์ กระป๋อง 490 มล.",
+            "gap_label": "−973 ลิตร",
+            "share_label": "15.0%"
+          },
+          {
+            "label": "ลีโอ กระป๋อง 320 มล.",
+            "gap_label": "−793 ลิตร",
+            "share_label": "12.2%"
+          },
+          {
+            "label": "น้ำดื่มสิงห์ ขวด PET 1.5 ลิตร",
+            "gap_label": "−706 ลิตร",
+            "share_label": "10.9%"
+          }
+        ],
+        "rest": {
+          "label": "ที่เหลือรวมกัน",
+          "gap_label": "−4,063 ลิตร",
+          "share_label": "62.6%"
+        },
+        "offsetting": [
+          {
+            "label": "สิงห์ ขวด 620 มล.",
+            "gap_label": "+1,376 ลิตร"
+          },
+          {
+            "label": "เพอร์ร่า ขวด PET 600 มล.",
+            "gap_label": "+872 ลิตร"
+          },
+          {
+            "label": "น้ำดื่มสิงห์ ขวด PET 600 มล.",
+            "gap_label": "+795 ลิตร"
+          },
+          {
+            "label": "ลีโอ ขวด 320 มล.",
+            "gap_label": "+353 ลิตร"
+          },
+          {
+            "label": "อาซาฮี กระป๋อง 320 มล.",
+            "gap_label": "+275 ลิตร"
+          }
+        ],
+        "projection": {
+          "label": "สิ้นเดือน ถ้าขายเท่า 7 วันล่าสุด",
+          "basis": "วันที่เหลือของเดือนขายเท่าค่าเฉลี่ย 7 วันล่าสุด และเป้ากระจายเท่ากันทุกวัน",
+          "projected_label": "850,336 ลิตร",
+          "month_target_label": "863,963 ลิตร",
+          "attainment_label": "98.4%"
+        }
+      }
+    },
+    {
+      "tool": "explain_gap",
+      "input": {
+        "metric": "sell_out_volume",
+        "split": "channel",
+        "filters": {
+          "agent": [
+            "หาดใหญ่สหมิตร"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "compare": "target"
+      },
+      "output": {
+        "ok": true,
+        "summary": "ปริมาณขายออก (Sell-out) 1 ก.ย. 2569 – 22 ก.ย. 2569: จริง 627,082 ลิตร · เป้า 633,573 ลิตร · ช่องว่าง −6,491 ลิตร",
+        "period_label": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+        "actual_label": "627,082 ลิตร",
+        "compare_label": "เป้า 633,573 ลิตร",
+        "gap_label": "−6,491 ลิตร",
+        "attainment_label": "99.0%",
+        "contributors": [
+          {
+            "label": "โมเดิร์นเทรด",
+            "gap_label": "−2,267 ลิตร",
+            "share_label": "34.9%"
+          },
+          {
+            "label": "ร้านอาหารและสถานบันเทิง",
+            "gap_label": "−1,913 ลิตร",
+            "share_label": "29.5%"
+          },
+          {
+            "label": "ร้านค้าปลีกดั้งเดิม",
+            "gap_label": "−1,674 ลิตร",
+            "share_label": "25.8%"
+          },
+          {
+            "label": "ส่งออก",
+            "gap_label": "−636 ลิตร",
+            "share_label": "9.8%"
+          }
+        ],
+        "rest": null,
+        "offsetting": [],
+        "projection": {
+          "label": "สิ้นเดือน ถ้าขายเท่า 7 วันล่าสุด",
+          "basis": "วันที่เหลือของเดือนขายเท่าค่าเฉลี่ย 7 วันล่าสุด และเป้ากระจายเท่ากันทุกวัน",
+          "projected_label": "850,336 ลิตร",
+          "month_target_label": "863,963 ลิตร",
+          "attainment_label": "98.4%"
+        }
+      }
+    },
+    {
+      "tool": "explain_gap",
+      "input": {
+        "metric": "sell_out_volume",
+        "split": "sku",
+        "filters": {
+          "province": [
+            "สุราษฎร์ธานี"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "compare": "target"
+      },
+      "output": {
+        "ok": true,
+        "summary": "ปริมาณขายออก (Sell-out) 1 ก.ย. 2569 – 22 ก.ย. 2569: จริง 648,878 ลิตร · เป้า 656,942 ลิตร · ช่องว่าง −8,064 ลิตร",
+        "period_label": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+        "actual_label": "648,878 ลิตร",
+        "compare_label": "เป้า 656,942 ลิตร",
+        "gap_label": "−8,064 ลิตร",
+        "attainment_label": "98.8%",
+        "contributors": [
+          {
+            "label": "น้ำดื่มสิงห์ ขวด PET 1.5 ลิตร",
+            "gap_label": "−1,371 ลิตร",
+            "share_label": "17.0%"
+          },
+          {
+            "label": "ลีโอ ขวด 620 มล.",
+            "gap_label": "−1,277 ลิตร",
+            "share_label": "15.8%"
+          },
+          {
+            "label": "สิงห์ กระป๋อง 320 มล.",
+            "gap_label": "−1,053 ลิตร",
+            "share_label": "13.1%"
+          },
+          {
+            "label": "ลีโอ ขวด 320 มล.",
+            "gap_label": "−1,012 ลิตร",
+            "share_label": "12.5%"
+          },
+          {
+            "label": "สิงห์ กระป๋อง 490 มล.",
+            "gap_label": "−944 ลิตร",
+            "share_label": "11.7%"
+          }
+        ],
+        "rest": {
+          "label": "ที่เหลือรวมกัน",
+          "gap_label": "−4,916 ลิตร",
+          "share_label": "61.0%"
+        },
+        "offsetting": [
+          {
+            "label": "เพอร์ร่า ขวด PET 600 มล.",
+            "gap_label": "+849 ลิตร"
+          },
+          {
+            "label": "สิงห์ เลมอนโซดา ขวด PET 600 มล.",
+            "gap_label": "+420 ลิตร"
+          },
+          {
+            "label": "สิงห์ เลมอนโซดา กระป๋อง 320 มล.",
+            "gap_label": "+388 ลิตร"
+          },
+          {
+            "label": "โซดาสิงห์ กระป๋อง 320 มล.",
+            "gap_label": "+275 ลิตร"
+          },
+          {
+            "label": "โซดาสิงห์ ขวด 320 มล.",
+            "gap_label": "+229 ลิตร"
+          }
+        ],
+        "projection": {
+          "label": "สิ้นเดือน ถ้าขายเท่า 7 วันล่าสุด",
+          "basis": "วันที่เหลือของเดือนขายเท่าค่าเฉลี่ย 7 วันล่าสุด และเป้ากระจายเท่ากันทุกวัน",
+          "projected_label": "880,883 ลิตร",
+          "month_target_label": "895,830 ลิตร",
+          "attainment_label": "98.3%"
+        }
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "stock_on_hand",
+        "dims": [
+          "sku"
+        ],
+        "filters": {
+          "sku": [
+            "สิงห์ ขวด 620 มล."
+          ],
+          "dc": [
+            "ศูนย์กระจายสินค้าสงขลา"
+          ]
+        },
+        "range": {
+          "from": "2026-09-22",
+          "to": "2026-09-22"
+        },
+        "grain": "day",
+        "compare": "prev_period",
+        "limit": 10,
+        "sort": null,
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "sku": "สิงห์ ขวด 620 มล.",
+            "value": 7253,
+            "value_label": "7,253 ลัง",
+            "compare_value": 8348,
+            "delta_pct": -13.1
+          }
+        ],
+        "summary": "สต๊อกคงเหลือ 22 ก.ย. 2569 – 22 ก.ย. 2569: รวม 7,253 ลัง · สูงสุด: สิงห์ ขวด 620 มล. 7,253 ลัง · เทียบช่วงก่อนหน้า -13.1% · (1 แถว · certified · WMS)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "7,253 ลัง",
+          "periodLabel": "22 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 1,
+          "deltaPercent": -13.1,
+          "compareLabel": "เทียบช่วงก่อนหน้า",
+          "compareNote": null,
+          "top": [
+            {
+              "label": "สิงห์ ขวด 620 มล.",
+              "value": "7,253 ลัง"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "stock_on_hand",
+          "certified": true,
+          "sourceSystem": "WMS",
+          "asOf": "2026-09-22",
+          "rowCount": 1,
+          "filtersApplied": {
+            "sku": [
+              "sku_singha_bottle620"
+            ],
+            "dc": [
+              "dc_songkhla"
+            ]
+          },
+          "filterLabels": [
+            "ศูนย์กระจายสินค้าสงขลา"
+          ],
+          "scopeApplied": {
+            "region": [
+              "south"
+            ]
+          },
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "stock_on_hand",
+          "dims": [
+            "sku"
+          ],
+          "filters": {
+            "sku": [
+              "สิงห์ ขวด 620 มล."
+            ],
+            "dc": [
+              "ศูนย์กระจายสินค้าสงขลา"
+            ]
+          },
+          "range": {
+            "from": "2026-09-22",
+            "to": "2026-09-22"
+          },
+          "grain": "day",
+          "compare": "prev_period",
+          "limit": 10,
+          "sort": null,
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "drill-why",
+            "kind": "drill",
+            "label": "ทำไมสิงห์ ขวด 620 มล.ถึงเป็นแบบนี้",
+            "reason": "สิงห์ ขวด 620 มล. เปลี่ยนไปในทางที่แย่ที่สุด",
+            "tool": null,
+            "input": null,
+            "prompt": "เจาะดูสต๊อกคงเหลือของสิงห์ ขวด 620 มล. ว่าทำไมถึงเปลี่ยนไป เทียบกับช่วงก่อนหน้าและช่วงเดียวกันปีก่อน"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-trend",
+            "label": "เริ่มแย่ตั้งแต่เมื่อไร",
+            "prompt": "สต๊อกคงเหลือของสิงห์ ขวด 620 มล. รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "ดูว่าตัวเลขเริ่มลดลงสัปดาห์ไหน",
+            "intentKey": "follow|trend",
+            "score": 0.65
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ขอสต๊อกคงเหลือแยกตาม SKU เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "sell_out_volume",
+        "dims": [
+          "sku"
+        ],
+        "filters": {
+          "province": [
+            "สงขลา"
+          ],
+          "sku": [
+            "สิงห์ ขวด 620 มล."
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "target",
+        "limit": 10,
+        "sort": null,
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "sku": "สิงห์ ขวด 620 มล.",
+            "value": 62066,
+            "value_label": "62,066 ลิตร",
+            "compare_value": 60709,
+            "delta_pct": 2.2
+          }
+        ],
+        "summary": "ปริมาณขายออก (Sell-out) 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 62,066 ลิตร · สูงสุด: สิงห์ ขวด 620 มล. 62,066 ลิตร · เทียบเป้า +2.2% · (1 แถว · certified · SAP SD)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "62,066 ลิตร",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 1,
+          "deltaPercent": 2.2,
+          "compareLabel": "เทียบเป้า",
+          "compareNote": null,
+          "top": [
+            {
+              "label": "สิงห์ ขวด 620 มล.",
+              "value": "62,066 ลิตร"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "sell_out_volume",
+          "certified": true,
+          "sourceSystem": "SAP SD",
+          "asOf": "2026-09-22",
+          "rowCount": 1,
+          "filtersApplied": {
+            "province": [
+              "pv_songkhla"
+            ],
+            "sku": [
+              "sku_singha_bottle620"
+            ]
+          },
+          "filterLabels": [
+            "สงขลา"
+          ],
+          "scopeApplied": {
+            "region": [
+              "south"
+            ]
+          },
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "sell_out_volume",
+          "dims": [
+            "sku"
+          ],
+          "filters": {
+            "province": [
+              "สงขลา"
+            ],
+            "sku": [
+              "สิงห์ ขวด 620 มล."
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "target",
+          "limit": 10,
+          "sort": null,
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "pin",
+            "kind": "pin",
+            "label": "ปักเป็นการ์ดบน Dashboard",
+            "reason": "คุณถามเรื่องนี้ 2 ครั้งในช่วงนี้",
+            "tool": "pin_widget",
+            "input": {
+              "title": "ปริมาณขายออก (Sell-out) · สิงห์ ขวด 620 มล.",
+              "kind": "metric",
+              "query": {
+                "metric": "sell_out_volume",
+                "dims": [
+                  "sku"
+                ],
+                "filters": {
+                  "province": [
+                    "สงขลา"
+                  ],
+                  "sku": [
+                    "สิงห์ ขวด 620 มล."
+                  ]
+                },
+                "range": {
+                  "from": "2026-09-01",
+                  "to": "2026-09-22"
+                },
+                "grain": "month",
+                "compare": "target",
+                "limit": 10,
+                "sort": null,
+                "where": null
+              }
+            },
+            "prompt": null
+          },
+          {
+            "id": "drill-channel",
+            "kind": "drill",
+            "label": "แยกตามช่องทาง",
+            "reason": "ยังไม่ได้ดูแยกรายช่องทาง",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอปริมาณขายออก (Sell-out)แยกตามช่องทาง เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "ปริมาณขายออก (Sell-out) รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ขอปริมาณขายออก (Sell-out) แยกตาม SKU เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    }
+  ],
+  "dropped": []
+}

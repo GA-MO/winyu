@@ -1,4 +1,4 @@
-import type { ActionEvent, Alert, ContextPacket, DashboardLayout, FeedStateRecord, FeedTone, Forecast, MemoryFact, Notification, OutboxEntry, PersonalWatch } from "@/lib/contracts";
+import type { ActionEvent, Alert, Investigation, ContextPacket, DashboardLayout, FeedStateRecord, FeedTone, Forecast, MemoryFact, Notification, OutboxEntry, PersonalWatch } from "@/lib/contracts";
 import { collection } from "@/lib/server/store/json-store";
 
 export type StoredForecast = Forecast;
@@ -115,4 +115,8 @@ export function staffRequests() {
 
 export function feedStates() {
   return collection<FeedStateRecord>("feed-states");
+}
+
+export function investigations() {
+  return collection<Investigation>("investigations");
 }

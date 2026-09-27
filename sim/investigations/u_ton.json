@@ -1,0 +1,1668 @@
+{
+  "investigation": {
+    "id": "u_ton",
+    "userId": "u_ton",
+    "at": "2026-09-26T19:23:43.943Z",
+    "model": "google/gemini-3.8-flash",
+    "stories": [
+      {
+        "kind": "ok",
+        "claim": "ไม่พบความผิดปกติหรือประเด็นเร่งด่วนในระบบที่ต้องดำเนินการในวันนี้",
+        "scope": "all regions · all brands",
+        "period": "22 ก.ย. 2569",
+        "subject": {
+          "metric": null,
+          "region": null
+        },
+        "headline": {
+          "label": "การแจ้งเตือนที่เปิดอยู่",
+          "value": "0 รายการ",
+          "tone": "good"
+        },
+        "projection": null,
+        "causes": [],
+        "checked": [
+          {
+            "text": "ไม่มีการแจ้งเตือนค้าง",
+            "verdict": "confirmed",
+            "source": "get_alerts"
+          },
+          {
+            "text": "ระบบการเรียนรู้เชื่อมต่อไม่ได้",
+            "verdict": "confirmed",
+            "source": "lms_demo__training_history"
+          }
+        ],
+        "recommendation": "ดูแลระบบตามปกติ และตรวจระบบการเรียนรู้ถ้ามีคนแจ้ง",
+        "id": "u_ton-0",
+        "owner": null
+      }
+    ],
+    "checkedCount": 17,
+    "costUsd": 0.062669025
+  },
+  "notes": "### สรุปผลการตรวจสอบขอบเขตงาน: คุณต้น อรุณรัตน์ (ผู้ดูแลระบบไอที)\n**วันที่ตรวจสอบ:** 22 กันยายน 2569  \n**บทบาทหน้าที่:** ผู้ดูแลระบบไอที (it_admin) | ขึ้นตรงต่อ: คุณธนา วงศ์สกุล (CEO) | ผู้ใต้บังคับบัญชา: ไม่มี\n\n---\n\n### 1. การตรวจสอบการแจ้งเตือนและความผิดปกติ (Alerts)\n* **การแจ้งเตือนในระบบ (`get_alerts`):** **0 รายการ** ไม่พบความผิดปกติหรือสัญญาณเตือนเปิดค้างอยู่ในระบบสำหรับขอบเขตของผู้ใช้ ณ วันที่ 22 ก.ย. 2569\n\n---\n\n### 2. สถานะการเข้าถึงข้อมูลและตัวชี้วัด (Data Access & Governance)\n* **การเข้าถึงตัวชี้วัดธุรกิจ (ช่วง 1 ก.ย. 2569 – 22 ก.ย. 2569):**\n  * ข้อมูลตัวเลขการดำเนินงาน เช่น ปริมาณขายเข้า (`net_sales_volume`), การบรรลุเป้าหมาย (`target_attainment`), ปริมาณการผลิต (`production_output`) และจำนวนพนักงาน (`headcount`) ถูกปิดกั้นการมองเห็นตามนโยบายความปลอดภัยของข้อมูลสำหรับบทบาท `it_admin` (**Masked fields**: `value`, `compare_value`, `delta_pct` ปรากฏเป็น `***`)\n  * ระบบกำหนดผู้ดูแลข้อมูลเฉพาะสายงาน (Data Owners) เช่น:\n    * คุณประสิทธิ์ ชัยภูมิ (ดูแลระบบ SAP SD)\n    * คุณโอ๊ต พัฒนพงศ์ (ดูแลระบบ MES)\n    * คุณเมย์ กิตติศักดิ์ (ดูแลระบบ HRIS)\n  * หากมีความจำเป็นต้องใช้ข้อมูลเชิงธุรกิจเพื่องานด้านเทคนิคหรือสิทธิ์ระบบ สามารถส่งคำขอเข้าถึงข้อมูล (Request Access) ไปยังเจ้าของระบบแต่ละส่วนได้\n\n---\n\n### 3. สถานะระบบและการดำเนินงานด้านไอที\n* **สถานะการเชื่อมต่อระบบภายนอก:** \n  * ระบบ LMS (MCP) รายงานสถานะ `CONNECTOR_UNAVAILABLE` (\"LMS (MCP) ไม่ตอบในขณะนี้\") ซึ่งเป็นจุดที่ทีมไอทีอาจต้องตรวจสอบสถานะ API/Connector หากมีการแจ้งปัญหาเข้ามา\n* **ข้อมูลสถานะบุคคลและสิทธิประโยชน์:**\n  * อายุงาน: 10 ปี 1 เดือน (เริ่มงาน 1 ส.ค. 2559)\n  * ชั่วโมงทำงานล่วงเวลา (OT) 3 เดือนล่าสุด: 26 ชม.\n  * วันลาคงเหลือ: ลาพักร้อนเหลือ 11 วัน (จากสิทธิ์ 15 วัน, ใช้ไป 4 วัน), ลาป่วยเหลือ 28 วัน, ลากิจเหลือ 5 วัน (ผู้อนุมัติ: คุณธนา วงศ์สกุล)\n\n---\n\n### 4. สรุปสิ่งที่ต้องดำเนินการในวันนี้ (What Needs Attention)\n**วันนี้ไม่มีประเด็นเร่งด่วนด้านการดำเนินงานธุรกิจที่ต้องดำเนินการ** เนื่องจากไม่มีการแจ้งเตือนความผิดปกติ และบทบาทผู้ดูแลระบบไอทีไม่มีภารกิจด้านการขาย ซัพพลายเชน หรือการจัดการกำลังคนโดยตรง\n\n---\n\n### English Summary\n* **Status:** No urgent operational issues require attention today (2026-09-22).\n* **Alerts:** 0 open anomalies were detected in the system for this scope.\n* **Data Governance:** Operational metrics for the period 2026-09-01 to 2026-09-22 (such as sell-in volume, target attainment, production output, and headcount) are masked in accordance with data governance policies for the IT administrator role (`it_admin`), with data ownership assigned to respective business functional leads.\n* **System Health & Personal Records:** The LMS connector currently reports `CONNECTOR_UNAVAILABLE`. Personal overtime over the last 3 months stands at 26 hours, with 11 days of annual leave remaining out of 15.",
+  "calls": [
+    {
+      "tool": "get_alerts",
+      "input": {
+        "status": "open",
+        "limit": 10
+      },
+      "output": {
+        "ok": true,
+        "summary": "ไม่พบความผิดปกติที่เปิดอยู่ในขอบเขตของผู้ใช้คนนี้",
+        "rows": [],
+        "lessons": [],
+        "nextActions": []
+      }
+    },
+    {
+      "tool": "recall_memory",
+      "input": {
+        "query": "ต้น อรุณรัตน์"
+      },
+      "output": {
+        "ok": true,
+        "summary": "ยังไม่มีข้อมูลที่จำไว้เกี่ยวกับผู้ใช้คนนี้",
+        "data": []
+      }
+    },
+    {
+      "tool": "list_metrics",
+      "input": {
+        "search": null
+      },
+      "output": {
+        "ok": true,
+        "summary": "พบ 21 เมตริกที่ตรงกับคำค้น",
+        "data": [
+          {
+            "id": "net_sales_volume",
+            "labelTh": "ปริมาณขายเข้า (Sell-in)",
+            "unit": "ลิตร",
+            "dims": [
+              "date",
+              "week",
+              "month",
+              "region",
+              "province",
+              "channel",
+              "brand",
+              "sku",
+              "pack",
+              "agent",
+              "business_unit"
+            ],
+            "certified": true,
+            "source": "SAP SD",
+            "refresh": "รายวัน",
+            "latest": "22 ก.ย. 2569"
+          },
+          {
+            "id": "net_sales_value",
+            "labelTh": "มูลค่าขายเข้า",
+            "unit": "บาท",
+            "dims": [
+              "date",
+              "week",
+              "month",
+              "region",
+              "province",
+              "channel",
+              "brand",
+              "sku",
+              "pack",
+              "agent",
+              "business_unit"
+            ],
+            "certified": true,
+            "source": "SAP SD",
+            "refresh": "รายวัน",
+            "latest": "22 ก.ย. 2569"
+          },
+          {
+            "id": "sell_out_volume",
+            "labelTh": "ปริมาณขายออก (Sell-out)",
+            "unit": "ลิตร",
+            "dims": [
+              "date",
+              "week",
+              "month",
+              "region",
+              "province",
+              "channel",
+              "brand",
+              "sku",
+              "pack",
+              "agent",
+              "business_unit"
+            ],
+            "certified": true,
+            "source": "SAP SD",
+            "refresh": "รายวัน",
+            "latest": "22 ก.ย. 2569"
+          },
+          {
+            "id": "target_attainment",
+            "labelTh": "การบรรลุเป้าหมาย",
+            "unit": "%",
+            "dims": [
+              "date",
+              "week",
+              "month",
+              "region",
+              "province",
+              "channel",
+              "brand",
+              "sku",
+              "pack",
+              "agent",
+              "business_unit"
+            ],
+            "certified": true,
+            "source": "SAP SD",
+            "refresh": "รายวัน",
+            "latest": "22 ก.ย. 2569"
+          },
+          {
+            "id": "stock_on_hand",
+            "labelTh": "สต๊อกคงเหลือ",
+            "unit": "ลัง",
+            "dims": [
+              "date",
+              "week",
+              "month",
+              "region",
+              "dc",
+              "brand",
+              "sku",
+              "pack",
+              "business_unit"
+            ],
+            "certified": true,
+            "source": "WMS",
+            "refresh": "รายวัน",
+            "latest": "22 ก.ย. 2569"
+          },
+          {
+            "id": "days_of_cover",
+            "labelTh": "วันครอบคลุมสต๊อก",
+            "unit": "วัน",
+            "dims": [
+              "date",
+              "week",
+              "month",
+              "region",
+              "dc",
+              "brand",
+              "sku",
+              "pack",
+              "business_unit"
+            ],
+            "certified": true,
+            "source": "WMS",
+            "refresh": "รายวัน",
+            "latest": "22 ก.ย. 2569"
+          },
+          {
+            "id": "production_output",
+            "labelTh": "ปริมาณการผลิต",
+            "unit": "ลิตร",
+            "dims": [
+              "date",
+              "week",
+              "month",
+              "region",
+              "plant",
+              "brand",
+              "business_unit"
+            ],
+            "certified": true,
+            "source": "MES",
+            "refresh": "รายวัน",
+            "latest": "22 ก.ย. 2569"
+          },
+          {
+            "id": "capacity_utilization",
+            "labelTh": "อัตราการใช้กำลังผลิต",
+            "unit": "%",
+            "dims": [
+              "date",
+              "week",
+              "month",
+              "region",
+              "plant",
+              "brand",
+              "business_unit"
+            ],
+            "certified": true,
+            "source": "MES",
+            "refresh": "รายวัน",
+            "latest": "22 ก.ย. 2569"
+          },
+          {
+            "id": "forecast_mape",
+            "labelTh": "ความคลาดเคลื่อนพยากรณ์ (MAPE)",
+            "unit": "%",
+            "dims": [
+              "month",
+              "brand",
+              "region"
+            ],
+            "certified": false,
+            "source": "Demand planning",
+            "refresh": "รายเดือน",
+            "latest": "22 ก.ย. 2569"
+          },
+          {
+            "id": "campaign_spend",
+            "labelTh": "งบแคมเปญที่ใช้",
+            "unit": "บาท",
+            "dims": [
+              "date",
+              "week",
+              "month",
+              "campaign",
+              "brand",
+              "region",
+              "business_unit"
+            ],
+            "certified": true,
+            "source": "SAP FI",
+            "refresh": "รายวัน",
+            "latest": "22 ก.ย. 2569"
+          },
+          {
+            "id": "campaign_reach",
+            "labelTh": "การเข้าถึงของแคมเปญ",
+            "unit": "คน",
+            "dims": [
+              "date",
+              "week",
+              "month",
+              "campaign",
+              "brand",
+              "region",
+              "business_unit"
+            ],
+            "certified": false,
+            "source": "Ad platform",
+            "refresh": "รายวัน",
+            "latest": "22 ก.ย. 2569"
+          },
+          {
+            "id": "campaign_uplift",
+            "labelTh": "ยอดเพิ่มจากแคมเปญ",
+            "unit": "%",
+            "dims": [
+              "date",
+              "week",
+              "month",
+              "campaign",
+              "brand",
+              "region",
+              "business_unit"
+            ],
+            "certified": false,
+            "source": "SAP SD",
+            "refresh": "รายวัน",
+            "latest": "22 ก.ย. 2569"
+          },
+          {
+            "id": "share_of_voice",
+            "labelTh": "ส่วนแบ่งการพูดถึง",
+            "unit": "%",
+            "dims": [
+              "week",
+              "month",
+              "brand"
+            ],
+            "certified": false,
+            "source": "Social listening",
+            "refresh": "รายสัปดาห์",
+            "latest": "22 ก.ย. 2569"
+          },
+          {
+            "id": "sentiment_score",
+            "labelTh": "คะแนนความรู้สึก",
+            "unit": "คะแนน",
+            "dims": [
+              "date",
+              "week",
+              "month",
+              "campaign",
+              "brand",
+              "region",
+              "business_unit"
+            ],
+            "certified": false,
+            "source": "Social listening",
+            "refresh": "รายวัน",
+            "latest": "22 ก.ย. 2569"
+          },
+          {
+            "id": "gross_margin",
+            "labelTh": "อัตรากำไรขั้นต้น",
+            "unit": "%",
+            "dims": [
+              "month",
+              "business_unit",
+              "region"
+            ],
+            "certified": true,
+            "source": "SAP FI",
+            "refresh": "รายเดือน",
+            "latest": "22 ก.ย. 2569"
+          },
+          {
+            "id": "trade_spend",
+            "labelTh": "งบส่งเสริมการขาย",
+            "unit": "บาท",
+            "dims": [
+              "month",
+              "business_unit",
+              "region"
+            ],
+            "certified": true,
+            "source": "SAP FI",
+            "refresh": "รายเดือน",
+            "latest": "22 ก.ย. 2569"
+          },
+          {
+            "id": "ar_overdue",
+            "labelTh": "ยอดค้างชำระเกินกำหนด",
+            "unit": "บาท",
+            "dims": [
+              "month",
+              "agent",
+              "province",
+              "region"
+            ],
+            "certified": true,
+            "source": "SAP FI",
+            "refresh": "รายเดือน",
+            "latest": "22 ก.ย. 2569"
+          },
+          {
+            "id": "headcount",
+            "labelTh": "จำนวนพนักงาน",
+            "unit": "คน",
+            "dims": [
+              "month",
+              "department"
+            ],
+            "certified": true,
+            "source": "HRIS",
+            "refresh": "รายเดือน",
+            "latest": "22 ก.ย. 2569"
+          },
+          {
+            "id": "attrition_rate",
+            "labelTh": "อัตราการลาออกต่อเดือน",
+            "unit": "%",
+            "dims": [
+              "month",
+              "department"
+            ],
+            "certified": true,
+            "source": "HRIS",
+            "refresh": "รายเดือน",
+            "latest": "22 ก.ย. 2569"
+          },
+          {
+            "id": "avg_salary",
+            "labelTh": "เงินเดือนเฉลี่ย",
+            "unit": "บาท",
+            "dims": [
+              "month",
+              "department"
+            ],
+            "certified": true,
+            "source": "HRIS",
+            "refresh": "รายเดือน",
+            "latest": "22 ก.ย. 2569"
+          },
+          {
+            "id": "market_share",
+            "labelTh": "ส่วนแบ่งตลาดเบียร์",
+            "unit": "%",
+            "dims": [
+              "month",
+              "region",
+              "province",
+              "maker"
+            ],
+            "certified": false,
+            "source": "Retail audit รายเดือน",
+            "refresh": "รอบสำรวจรายเดือน",
+            "latest": "รอบ ส.ค. 69"
+          }
+        ]
+      }
+    },
+    {
+      "tool": "get_person",
+      "input": {
+        "id": null,
+        "name": "ต้น อรุณรัตน์"
+      },
+      "output": {
+        "ok": true,
+        "summary": "คุณต้น อรุณรัตน์ — ผู้ดูแลระบบไอที",
+        "data": {
+          "id": "u_ton",
+          "name": "คุณต้น อรุณรัตน์",
+          "title": "ผู้ดูแลระบบไอที",
+          "photo": "/img/people/p38.jpg",
+          "badges": [],
+          "facts": [
+            {
+              "label": "ฝ่าย",
+              "value": "ไอที"
+            },
+            {
+              "label": "พื้นที่",
+              "value": "สำนักงานใหญ่"
+            },
+            {
+              "label": "หัวหน้า",
+              "value": "คุณธนา วงศ์สกุล"
+            },
+            {
+              "label": "อายุงาน",
+              "value": "10 ปี 1 เดือน"
+            },
+            {
+              "label": "เริ่มงาน",
+              "value": "1 ส.ค. 2559"
+            },
+            {
+              "label": "โอที 3 เดือนล่าสุด",
+              "value": "26 ชม."
+            }
+          ],
+          "history": [
+            {
+              "title": "ผู้ดูแลระบบไอที",
+              "detail": null,
+              "time": "1 ก.ค. 2566"
+            },
+            {
+              "title": "เริ่มงาน วิศวกรระบบ",
+              "detail": null,
+              "time": "1 ส.ค. 2559"
+            }
+          ],
+          "certificates": [],
+          "risk_reasons": [],
+          "reports": []
+        }
+      }
+    },
+    {
+      "tool": "find_people",
+      "input": {
+        "region": null,
+        "department": "dept_it",
+        "manager": null,
+        "query": null,
+        "flag": null
+      },
+      "output": {
+        "ok": true,
+        "summary": "พบ 1 คน",
+        "data": [
+          {
+            "is_you": true,
+            "id": "u_ton",
+            "name": "คุณต้น อรุณรัตน์",
+            "title": "ผู้ดูแลระบบไอที",
+            "place": "สำนักงานใหญ่",
+            "photo": "/img/people/p38.jpg",
+            "department": "ไอที",
+            "manager": "คุณธนา วงศ์สกุล",
+            "tenure": "10 ปี 1 เดือน",
+            "badges": []
+          }
+        ],
+        "open_positions": []
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "net_sales_volume",
+        "dims": [
+          "business_unit"
+        ],
+        "filters": {},
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "target",
+        "limit": 10,
+        "sort": "value_desc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "business_unit": "กลุ่มเบียร์",
+            "value": "***",
+            "value_label": "***",
+            "compare_value": "***",
+            "delta_pct": "***"
+          },
+          {
+            "business_unit": "กลุ่มนำเข้า",
+            "value": "***",
+            "value_label": "***",
+            "compare_value": "***",
+            "delta_pct": "***"
+          },
+          {
+            "business_unit": "กลุ่มนอนแอลกอฮอล์",
+            "value": "***",
+            "value_label": "***",
+            "compare_value": "***",
+            "delta_pct": "***"
+          }
+        ],
+        "summary": "ปริมาณขายเข้า (Sell-in) 1 ก.ย. 2569 – 22 ก.ย. 2569: ข้อมูลถูกปิดตามนโยบาย (masked) — เห็นได้เฉพาะโครงสร้างข้อมูล",
+        "headline": {
+          "aggregate": "sum",
+          "value": "—",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 3,
+          "deltaPercent": null,
+          "compareLabel": null,
+          "compareNote": null,
+          "top": []
+        },
+        "provenance": {
+          "metric": "net_sales_volume",
+          "certified": true,
+          "sourceSystem": "SAP SD",
+          "asOf": "2026-09-22",
+          "rowCount": 3,
+          "filtersApplied": {},
+          "filterLabels": [],
+          "scopeApplied": {},
+          "masked": [
+            "value",
+            "compare_value",
+            "delta_pct"
+          ],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "net_sales_volume",
+          "dims": [
+            "business_unit"
+          ],
+          "filters": {},
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "target",
+          "limit": 10,
+          "sort": "value_desc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "request-access",
+            "kind": "request_access",
+            "label": "ขอสิทธิ์จากคุณประสิทธิ์",
+            "reason": "ปริมาณขายเข้า (Sell-in) ถูกปิดบางฟิลด์ตามสิทธิ์ เจ้าของข้อมูลคือผู้ดูแล SAP SD",
+            "tool": "send_email",
+            "input": {
+              "toUserId": "u_prasit",
+              "subject": "ขอสิทธิ์ดูปริมาณขายเข้า (Sell-in)",
+              "body": "ขอสิทธิ์ดูปริมาณขายเข้า (Sell-in)ครับ ตอนนี้มี 3 ฟิลด์ถูกปิด ทำให้วิเคราะห์ต่อไม่ได้"
+            },
+            "prompt": null
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "ปริมาณขายเข้า (Sell-in) รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ขอปริมาณขายเข้า (Sell-in) แยกตามกลุ่มธุรกิจ เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "target_attainment",
+        "dims": [
+          "business_unit"
+        ],
+        "filters": {},
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "target",
+        "limit": 10,
+        "sort": "value_asc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "business_unit": "กลุ่มเบียร์",
+            "value": "***",
+            "value_label": "***"
+          },
+          {
+            "business_unit": "กลุ่มนำเข้า",
+            "value": "***",
+            "value_label": "***"
+          },
+          {
+            "business_unit": "กลุ่มนอนแอลกอฮอล์",
+            "value": "***",
+            "value_label": "***"
+          }
+        ],
+        "summary": "การบรรลุเป้าหมาย 1 ก.ย. 2569 – 22 ก.ย. 2569: ข้อมูลถูกปิดตามนโยบาย (masked) — เห็นได้เฉพาะโครงสร้างข้อมูล",
+        "headline": {
+          "aggregate": "average",
+          "value": "—",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 3,
+          "deltaPercent": null,
+          "compareLabel": null,
+          "compareNote": null,
+          "top": []
+        },
+        "provenance": {
+          "metric": "target_attainment",
+          "certified": true,
+          "sourceSystem": "SAP SD",
+          "asOf": "2026-09-22",
+          "rowCount": 3,
+          "filtersApplied": {},
+          "filterLabels": [],
+          "scopeApplied": {},
+          "masked": [
+            "value",
+            "compare_value",
+            "delta_pct"
+          ],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "target_attainment",
+          "dims": [
+            "business_unit"
+          ],
+          "filters": {},
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "target",
+          "limit": 10,
+          "sort": "value_asc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "request-access",
+            "kind": "request_access",
+            "label": "ขอสิทธิ์จากคุณประสิทธิ์",
+            "reason": "การบรรลุเป้าหมาย ถูกปิดบางฟิลด์ตามสิทธิ์ เจ้าของข้อมูลคือผู้ดูแล SAP SD",
+            "tool": "send_email",
+            "input": {
+              "toUserId": "u_prasit",
+              "subject": "ขอสิทธิ์ดูการบรรลุเป้าหมาย",
+              "body": "ขอสิทธิ์ดูการบรรลุเป้าหมายครับ ตอนนี้มี 3 ฟิลด์ถูกปิด ทำให้วิเคราะห์ต่อไม่ได้"
+            },
+            "prompt": null
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "การบรรลุเป้าหมาย รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "headcount",
+        "dims": [
+          "department"
+        ],
+        "filters": {},
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "none",
+        "limit": 20,
+        "sort": "value_desc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "department": "บริหาร",
+            "value": "***",
+            "value_label": "***"
+          },
+          {
+            "department": "การเงิน",
+            "value": "***",
+            "value_label": "***"
+          },
+          {
+            "department": "ทรัพยากรบุคคล",
+            "value": "***",
+            "value_label": "***"
+          },
+          {
+            "department": "ไอที",
+            "value": "***",
+            "value_label": "***"
+          },
+          {
+            "department": "การตลาด",
+            "value": "***",
+            "value_label": "***"
+          },
+          {
+            "department": "การผลิต",
+            "value": "***",
+            "value_label": "***"
+          },
+          {
+            "department": "ขาย",
+            "value": "***",
+            "value_label": "***"
+          },
+          {
+            "department": "ซัพพลายเชน",
+            "value": "***",
+            "value_label": "***"
+          }
+        ],
+        "summary": "จำนวนพนักงาน 1 ก.ย. 2569 – 22 ก.ย. 2569: ข้อมูลถูกปิดตามนโยบาย (masked) — เห็นได้เฉพาะโครงสร้างข้อมูล",
+        "headline": {
+          "aggregate": "sum",
+          "value": "—",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 8,
+          "deltaPercent": null,
+          "compareLabel": null,
+          "compareNote": null,
+          "top": []
+        },
+        "provenance": {
+          "metric": "headcount",
+          "certified": true,
+          "sourceSystem": "HRIS",
+          "asOf": "2026-09-22",
+          "rowCount": 8,
+          "filtersApplied": {},
+          "filterLabels": [],
+          "scopeApplied": {},
+          "masked": [
+            "value",
+            "compare_value",
+            "delta_pct"
+          ],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "headcount",
+          "dims": [
+            "department"
+          ],
+          "filters": {},
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "none",
+          "limit": 20,
+          "sort": "value_desc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "request-access",
+            "kind": "request_access",
+            "label": "ขอสิทธิ์จากคุณเมย์",
+            "reason": "จำนวนพนักงาน ถูกปิดบางฟิลด์ตามสิทธิ์ เจ้าของข้อมูลคือผู้ดูแล HRIS",
+            "tool": "send_email",
+            "input": {
+              "toUserId": "u_may",
+              "subject": "ขอสิทธิ์ดูจำนวนพนักงาน",
+              "body": "ขอสิทธิ์ดูจำนวนพนักงานครับ ตอนนี้มี 3 ฟิลด์ถูกปิด ทำให้วิเคราะห์ต่อไม่ได้"
+            },
+            "prompt": null
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายเดือน",
+            "prompt": "จำนวนพนักงาน รายเดือนย้อนหลัง 6 เดือน",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ขอจำนวนพนักงานแยกตามฝ่าย เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "tool": "list_courses",
+      "input": {
+        "month": null,
+        "query": null
+      },
+      "output": {
+        "ok": true,
+        "summary": "10 หลักสูตร เริ่มหลักสูตรแรก 26 ก.ย. 2569",
+        "data": [
+          {
+            "id": "crs_forklift_kk",
+            "title": "ต่ออายุใบขับขี่รถยก (ภาคปฏิบัติ)",
+            "cover": "/img/courses/course02.jpg",
+            "category": "ความปลอดภัย",
+            "when": "26 ก.ย. 2569 · 1 วัน",
+            "place": "โรงงานขอนแก่น · ภาคปฏิบัติ",
+            "audience": "พนักงานขับรถยกและหัวหน้ากะที่ใบขับขี่ใกล้หมด",
+            "seats": {
+              "label": "เหลือ 3 ที่ จาก 12",
+              "tone": "bad"
+            },
+            "note": null,
+            "badges": [],
+            "can_enroll": true
+          },
+          {
+            "id": "crs_first_aid",
+            "title": "ปฐมพยาบาลและ CPR",
+            "cover": "/img/courses/course04.jpg",
+            "category": "ความปลอดภัย",
+            "when": "29 ก.ย. 2569 · 1 วัน",
+            "place": "สำนักงานใหญ่ สามเสน · ห้องเรียน",
+            "audience": "พนักงานทุกฝ่าย",
+            "seats": {
+              "label": "เหลือ 12 ที่ จาก 30",
+              "tone": "neutral"
+            },
+            "note": null,
+            "badges": [],
+            "can_enroll": true
+          },
+          {
+            "id": "crs_consultative",
+            "title": "การขายแบบที่ปรึกษา รุ่น 4",
+            "cover": "/img/courses/course03.jpg",
+            "category": "การขาย",
+            "when": "30 ก.ย. 2569 · 2 วัน",
+            "place": "โรงแรมในเมืองขอนแก่น · ห้องเรียน",
+            "audience": "พนักงานขายและหัวหน้าทีมขาย",
+            "seats": {
+              "label": "เหลือ 3 ที่ จาก 24",
+              "tone": "bad"
+            },
+            "note": null,
+            "badges": [],
+            "can_enroll": true
+          },
+          {
+            "id": "crs_sales_licence",
+            "title": "ทบทวนกฎหมายควบคุมเครื่องดื่มแอลกอฮอล์ (ต่ออายุใบอนุญาต)",
+            "cover": "/img/courses/course05.jpg",
+            "category": "กฎหมาย",
+            "when": "3 ต.ค. 2569 · 1 วัน",
+            "place": "ออนไลน์",
+            "audience": "ผู้ถือใบอนุญาตจำหน่ายสุรา (ผู้แทน)",
+            "seats": {
+              "label": "เหลือ 39 ที่ จาก 80",
+              "tone": "neutral"
+            },
+            "note": null,
+            "badges": [],
+            "can_enroll": true
+          },
+          {
+            "id": "crs_gmp",
+            "title": "GMP และความปลอดภัยอาหาร รอบต่ออายุ",
+            "cover": "/img/courses/course01.jpg",
+            "category": "คุณภาพ",
+            "when": "8 ต.ค. 2569 · 1 วัน",
+            "place": "โรงงานขอนแก่น · ห้องเรียน",
+            "audience": "พนักงานสายการผลิตและควบคุมคุณภาพ",
+            "seats": {
+              "label": "เต็มแล้ว",
+              "tone": "bad"
+            },
+            "note": null,
+            "badges": [],
+            "can_enroll": false
+          },
+          {
+            "id": "crs_data_promo",
+            "title": "วางแผนโปรโมชันด้วยข้อมูล",
+            "cover": "/img/courses/course09.jpg",
+            "category": "ข้อมูล",
+            "when": "14 ต.ค. 2569 · 2 วัน",
+            "place": "ออนไลน์",
+            "audience": "การตลาด เทรดมาร์เก็ตติ้ง และผู้จัดการขายภาค",
+            "seats": {
+              "label": "เหลือ 28 ที่ จาก 40",
+              "tone": "neutral"
+            },
+            "note": null,
+            "badges": [],
+            "can_enroll": true
+          },
+          {
+            "id": "crs_lab",
+            "title": "การตรวจคุณภาพเบียร์ในห้องแล็บ",
+            "cover": "/img/courses/course07.jpg",
+            "category": "คุณภาพ",
+            "when": "20 ต.ค. 2569 · 3 วัน",
+            "place": "โรงงานปทุมธานี · ห้องเรียน",
+            "audience": "พนักงานควบคุมคุณภาพ",
+            "seats": {
+              "label": "เหลือ 9 ที่ จาก 16",
+              "tone": "neutral"
+            },
+            "note": null,
+            "badges": [],
+            "can_enroll": true
+          },
+          {
+            "id": "crs_leader",
+            "title": "ผู้นำทีมรุ่นใหม่",
+            "cover": "/img/courses/course06.jpg",
+            "category": "ภาวะผู้นำ",
+            "when": "27 ต.ค. 2569 · 3 วัน",
+            "place": "สำนักงานใหญ่ สามเสน · ห้องเรียน",
+            "audience": "หัวหน้าทีมและหัวหน้ากะ",
+            "seats": {
+              "label": "เหลือ 3 ที่ จาก 20",
+              "tone": "bad"
+            },
+            "note": null,
+            "badges": [],
+            "can_enroll": true
+          },
+          {
+            "id": "crs_service",
+            "title": "ดูแลร้านค้าและรับเรื่องร้องเรียน",
+            "cover": "/img/courses/course08.jpg",
+            "category": "บริการลูกค้า",
+            "when": "5 พ.ย. 2569 · 1 วัน",
+            "place": "ออนไลน์",
+            "audience": "พนักงานขายและทีมบริการลูกค้า",
+            "seats": {
+              "label": "เหลือ 38 ที่ จาก 60",
+              "tone": "neutral"
+            },
+            "note": null,
+            "badges": [],
+            "can_enroll": true
+          },
+          {
+            "id": "crs_onboarding",
+            "title": "ปฐมนิเทศพนักงานใหม่ รอบ พ.ย.",
+            "cover": "/img/courses/course10.jpg",
+            "category": "ปฐมนิเทศ",
+            "when": "9 พ.ย. 2569 · 2 วัน",
+            "place": "สำนักงานใหญ่ สามเสน · ห้องเรียน",
+            "audience": "พนักงานที่เริ่มงานไม่เกิน 3 เดือน",
+            "seats": {
+              "label": "เหลือ 26 ที่ จาก 40",
+              "tone": "neutral"
+            },
+            "note": null,
+            "badges": [],
+            "can_enroll": true
+          }
+        ]
+      }
+    },
+    {
+      "tool": "get_policy",
+      "input": {
+        "topic": "leave"
+      },
+      "output": {
+        "ok": true,
+        "summary": "ลาพักร้อนเหลือ 11 วัน · ผู้อนุมัติ คุณธนา วงศ์สกุล",
+        "data": {
+          "balances": [
+            {
+              "label": "ลาพักร้อน",
+              "value": "เหลือ 11 วัน",
+              "detail": "สิทธิ์ 15 · ใช้แล้ว 4",
+              "tone": "neutral"
+            },
+            {
+              "label": "ลาป่วย",
+              "value": "เหลือ 28 วัน",
+              "detail": "สิทธิ์ 30 · ใช้แล้ว 2",
+              "tone": "neutral"
+            },
+            {
+              "label": "ลากิจ",
+              "value": "เหลือ 5 วัน",
+              "detail": "สิทธิ์ 6 · ใช้แล้ว 1",
+              "tone": "neutral"
+            }
+          ],
+          "sections": [
+            {
+              "title": "ลาพักร้อน",
+              "content": "อายุงานไม่ถึง 1 ปีได้ 6 วัน · 1–5 ปี 10 วัน · 5–10 ปี 12 วัน · 10 ปีขึ้นไป 15 วันต่อปี ระหว่างทดลองงานยังลาพักร้อนไม่ได้ ยื่นล่วงหน้าอย่างน้อย 3 วันทำการ สะสมไปปีถัดไปได้ไม่เกิน 5 วัน"
+            },
+            {
+              "title": "ลาป่วย",
+              "content": "ลาได้ตามจริงไม่เกิน 30 วันทำการต่อปีโดยได้รับค่าจ้าง ลาตั้งแต่ 3 วันติดต่อกันขึ้นไปแนบใบรับรองแพทย์ ยื่นย้อนหลังได้ภายใน 3 วันหลังกลับมาทำงาน"
+            },
+            {
+              "title": "ลากิจ",
+              "content": "ลาได้ 6 วันทำการต่อปีเพื่อธุระจำเป็น ยื่นล่วงหน้าอย่างน้อย 1 วัน กรณีฉุกเฉินแจ้งหัวหน้าก่อนแล้วยื่นในวันที่กลับมา"
+            },
+            {
+              "title": "ขั้นตอนการอนุมัติ",
+              "content": "ใบลาเข้า Inbox ของหัวหน้าโดยตรง หัวหน้าตอบภายใน 2 วันทำการ ช่วงเร่งผลิตก่อนออกพรรษาและเทศกาลปีใหม่ ฝ่ายขายและโรงงานต้องมีคนอยู่เวรไม่น้อยกว่าครึ่งทีม"
+            },
+            {
+              "title": "นับวันลาอย่างไร",
+              "content": "นับเฉพาะวันทำการ จันทร์–ศุกร์ ไม่นับวันหยุดนักขัตฤกษ์ ลาครึ่งวันนับ 0.5 วัน"
+            }
+          ],
+          "form": {
+            "kinds": [
+              {
+                "value": "annual",
+                "label": "ลาพักร้อน (เหลือ 11 วัน)"
+              },
+              {
+                "value": "sick",
+                "label": "ลาป่วย (เหลือ 28 วัน)"
+              },
+              {
+                "value": "personal",
+                "label": "ลากิจ (เหลือ 5 วัน)"
+              }
+            ],
+            "approver": "คุณธนา วงศ์สกุล",
+            "earliest": "2026-09-25",
+            "note": "ลาพักร้อนได้ตั้งแต่ 25 ก.ย. 2569 (ยื่นล่วงหน้า 3 วันทำการ) · ใบลาเข้า Inbox ของคุณธนา วงศ์สกุล"
+          }
+        }
+      }
+    },
+    {
+      "tool": "get_site",
+      "input": {
+        "id": null,
+        "name": null
+      },
+      "output": {
+        "ok": true,
+        "summary": "6 แห่ง · ต้องดูด่วน 2 แห่ง",
+        "data": [
+          {
+            "id": "pl_khonkaen",
+            "name": "โรงงานขอนแก่น",
+            "kind": "โรงงาน",
+            "place": "ขอนแก่น",
+            "photo": "/img/sites/site01.jpg",
+            "status": "ต้องดูด่วน",
+            "trailing": {
+              "text": "ไร้เหตุหยุดงาน 7 วัน",
+              "tone": "bad"
+            },
+            "note": "90 วันล่าสุด 4 เหตุการณ์ · หยุดงาน 1",
+            "badges": [
+              {
+                "label": "ยังไม่ปิด 1 เรื่อง",
+                "tone": "danger"
+              },
+              {
+                "label": "เหตุการณ์เพิ่มขึ้น",
+                "tone": "warning"
+              },
+              {
+                "label": "โอที 71 ชม./คน",
+                "tone": "warning"
+              }
+            ]
+          },
+          {
+            "id": "dc_khonkaen",
+            "name": "ศูนย์กระจายสินค้าขอนแก่น",
+            "kind": "ศูนย์กระจายสินค้า",
+            "place": "ขอนแก่น",
+            "photo": "/img/sites/site05.jpg",
+            "status": "ต้องดูด่วน",
+            "trailing": {
+              "text": "ไร้เหตุหยุดงาน 585 วัน",
+              "tone": "good"
+            },
+            "note": "90 วันล่าสุด 1 เหตุการณ์",
+            "badges": [
+              {
+                "label": "ยังไม่ปิด 1 เรื่อง",
+                "tone": "danger"
+              },
+              {
+                "label": "เหตุการณ์เพิ่มขึ้น",
+                "tone": "warning"
+              }
+            ]
+          },
+          {
+            "id": "dc_bangkok",
+            "name": "ศูนย์กระจายสินค้ากรุงเทพฯ",
+            "kind": "ศูนย์กระจายสินค้า",
+            "place": "กรุงเทพฯ",
+            "photo": "/img/sites/site03.jpg",
+            "status": "ปกติ",
+            "trailing": {
+              "text": "ไร้เหตุหยุดงาน 399 วัน",
+              "tone": "good"
+            },
+            "note": "90 วันล่าสุดไม่มีเหตุการณ์",
+            "badges": [
+              {
+                "label": "ไม่มีเรื่องค้าง",
+                "tone": "success"
+              }
+            ]
+          },
+          {
+            "id": "pl_pathumthani",
+            "name": "โรงงานปทุมธานี",
+            "kind": "โรงงาน",
+            "place": "ปทุมธานี",
+            "photo": "/img/sites/site06.jpg",
+            "status": "ปกติ",
+            "trailing": {
+              "text": "ไร้เหตุหยุดงาน 518 วัน",
+              "tone": "good"
+            },
+            "note": "90 วันล่าสุด 1 เหตุการณ์",
+            "badges": [
+              {
+                "label": "ไม่มีเรื่องค้าง",
+                "tone": "success"
+              }
+            ]
+          },
+          {
+            "id": "pl_singburi",
+            "name": "โรงงานสิงห์บุรี",
+            "kind": "โรงงาน",
+            "place": "สิงห์บุรี",
+            "photo": "/img/sites/site08.jpg",
+            "status": "ปกติ",
+            "trailing": {
+              "text": "ไร้เหตุหยุดงาน 686 วัน",
+              "tone": "good"
+            },
+            "note": "90 วันล่าสุดไม่มีเหตุการณ์",
+            "badges": [
+              {
+                "label": "ไม่มีเรื่องค้าง",
+                "tone": "success"
+              }
+            ]
+          },
+          {
+            "id": "hq_bangkok",
+            "name": "สำนักงานใหญ่ สามเสน",
+            "kind": "สำนักงาน",
+            "place": "กรุงเทพฯ",
+            "photo": "/img/sites/site07.jpg",
+            "status": "ปกติ",
+            "trailing": {
+              "text": "ไม่เคยมีเหตุหยุดงาน",
+              "tone": "good"
+            },
+            "note": "90 วันล่าสุดไม่มีเหตุการณ์",
+            "badges": [
+              {
+                "label": "ไม่มีเรื่องค้าง",
+                "tone": "success"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "tool": "list_candidates",
+      "input": {
+        "position": null,
+        "stage": null
+      },
+      "output": {
+        "ok": false,
+        "code": "PERMISSION_DENIED",
+        "error": "ข้อมูลผู้สมัครเปิดให้เฉพาะฝ่ายทรัพยากรบุคคล ผู้บริหาร และหัวหน้าที่เปิดตำแหน่งนั้น"
+      }
+    },
+    {
+      "tool": "find_people",
+      "input": {
+        "region": null,
+        "department": null,
+        "manager": null,
+        "query": null,
+        "flag": null
+      },
+      "output": {
+        "ok": true,
+        "summary": "พบ 40 คน · ตำแหน่งว่าง 4 ตำแหน่ง · บางช่องถูกปิดตามสิทธิ์ของผู้ใช้",
+        "data": [
+          {
+            "id": "u_thana",
+            "name": "คุณธนา วงศ์สกุล",
+            "title": "ประธานเจ้าหน้าที่บริหาร",
+            "place": "กรุงเทพมหานคร",
+            "photo": "/img/people/p33.jpg",
+            "department": "บริหาร",
+            "manager": null,
+            "tenure": null,
+            "badges": []
+          },
+          {
+            "id": "u_prasit",
+            "name": "คุณประสิทธิ์ ชัยภูมิ",
+            "title": "ผู้อำนวยการฝ่ายขาย",
+            "place": "กรุงเทพมหานคร",
+            "photo": "/img/people/p39.jpg",
+            "department": "ขาย",
+            "manager": "คุณธนา วงศ์สกุล",
+            "tenure": null,
+            "badges": []
+          },
+          {
+            "id": "u_anucha",
+            "name": "คุณอนุชา พรหมศรี",
+            "title": "ผู้จัดการขายภาค ภาคอีสาน",
+            "place": "ขอนแก่น",
+            "photo": "/img/people/p32.jpg",
+            "department": "ขาย",
+            "manager": "คุณประสิทธิ์ ชัยภูมิ",
+            "tenure": null,
+            "badges": []
+          },
+          {
+            "id": "u_may",
+            "name": "คุณเมย์ กิตติศักดิ์",
+            "title": "ผู้จัดการฝ่ายทรัพยากรบุคคล",
+            "place": "สำนักงานใหญ่",
+            "photo": "/img/people/p12.jpg",
+            "department": "ทรัพยากรบุคคล",
+            "manager": "คุณธนา วงศ์สกุล",
+            "tenure": null,
+            "badges": []
+          },
+          {
+            "id": "u_ben",
+            "name": "คุณเบญ เตชะวงศ์",
+            "title": "ผู้จัดการแบรนด์ กลุ่มนอนแอลกอฮอล์",
+            "place": "สำนักงานใหญ่",
+            "photo": "/img/people/p21.jpg",
+            "department": "การตลาด",
+            "manager": "คุณธนา วงศ์สกุล",
+            "tenure": null,
+            "badges": []
+          },
+          {
+            "id": "u_wee",
+            "name": "คุณวีร์ เจริญสุข",
+            "title": "นักวางแผนซัพพลาย",
+            "place": "ปทุมธานี",
+            "photo": "/img/people/p26.jpg",
+            "department": "ซัพพลายเชน",
+            "manager": "คุณธนา วงศ์สกุล",
+            "tenure": null,
+            "badges": []
+          },
+          {
+            "id": "e_somsri",
+            "name": "คุณสมศรี ทองคำ",
+            "title": "หัวหน้าแผนกบรรจุ โรงงานขอนแก่น",
+            "place": "โรงงานขอนแก่น",
+            "photo": "/img/people/p18.jpg",
+            "department": "การผลิต",
+            "manager": "คุณโอ๊ต พัฒนพงศ์",
+            "tenure": null,
+            "badges": []
+          },
+          {
+            "id": "u_siriporn",
+            "name": "คุณศิริพร รัตนกร",
+            "title": "ประธานเจ้าหน้าที่การเงิน",
+            "place": "กรุงเทพมหานคร",
+            "photo": "/img/people/p14.jpg",
+            "department": "การเงิน",
+            "manager": "คุณธนา วงศ์สกุล",
+            "tenure": null,
+            "badges": []
+          },
+          {
+            "id": "u_oat",
+            "name": "คุณโอ๊ต พัฒนพงศ์",
+            "title": "นักวางแผนการผลิต โรงงานขอนแก่น",
+            "place": "โรงงานขอนแก่น",
+            "photo": "/img/people/p35.jpg",
+            "department": "ซัพพลายเชน",
+            "manager": "คุณวีร์ เจริญสุข",
+            "tenure": null,
+            "badges": []
+          },
+          {
+            "id": "u_saranya",
+            "name": "คุณสรัญญา นิลรัตน์",
+            "title": "ผู้จัดการขายภาค ภาคใต้",
+            "place": "สงขลา",
+            "photo": "/img/people/p09.jpg",
+            "department": "ขาย",
+            "manager": "คุณประสิทธิ์ ชัยภูมิ",
+            "tenure": null,
+            "badges": []
+          },
+          {
+            "id": "u_somchai",
+            "name": "คุณสมชาย บุญมี",
+            "title": "ผู้จัดการขายภาค ภาคกลาง",
+            "place": "พระนครศรีอยุธยา",
+            "photo": "/img/people/p23.jpg",
+            "department": "ขาย",
+            "manager": "คุณประสิทธิ์ ชัยภูมิ",
+            "tenure": null,
+            "badges": []
+          },
+          {
+            "id": "e_pong",
+            "name": "คุณป้อง แสนสุข",
+            "title": "หัวหน้าทีมขาย นครราชสีมา",
+            "place": "นครราชสีมา",
+            "photo": "/img/people/p22.jpg",
+            "department": "ขาย",
+            "manager": "คุณอนุชา พรหมศรี",
+            "tenure": null,
+            "badges": []
+          }
+        ],
+        "open_positions": [
+          {
+            "id": "op_ne_ubon",
+            "title": "พนักงานขาย อุบลราชธานี (เขตวารินฯ)",
+            "manager": "คุณอนุชา พรหมศรี",
+            "open_label": "เปิดรับมา 99 วัน"
+          },
+          {
+            "id": "op_ne_khonkaen",
+            "title": "พนักงานขาย ขอนแก่น (เขตชุมแพ)",
+            "manager": "คุณอนุชา พรหมศรี",
+            "open_label": "เปิดรับมา 64 วัน"
+          },
+          {
+            "id": "op_ne_korat",
+            "title": "พนักงานขาย นครราชสีมา (เขตปากช่อง)",
+            "manager": "คุณป้อง แสนสุข",
+            "open_label": "เปิดรับมา 49 วัน"
+          },
+          {
+            "id": "op_kk_qc",
+            "title": "พนักงานควบคุมคุณภาพ โรงงานขอนแก่น",
+            "manager": "คุณสมศรี ทองคำ",
+            "open_label": "เปิดรับมา 21 วัน"
+          }
+        ]
+      }
+    },
+    {
+      "tool": "get_alerts",
+      "input": {
+        "status": "all",
+        "limit": 10
+      },
+      "output": {
+        "ok": true,
+        "summary": "ไม่พบความผิดปกติที่เปิดอยู่ในขอบเขตของผู้ใช้คนนี้",
+        "rows": [],
+        "lessons": [],
+        "nextActions": []
+      }
+    },
+    {
+      "tool": "lms_demo__training_history",
+      "input": {
+        "employeeId": "u_ton",
+        "name": null,
+        "regions": null
+      },
+      "output": {
+        "ok": false,
+        "code": "CONNECTOR_UNAVAILABLE",
+        "error": "LMS (MCP) ไม่ตอบในขณะนี้"
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "production_output",
+        "dims": [
+          "plant"
+        ],
+        "filters": {},
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "none",
+        "limit": 5,
+        "sort": "value_desc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "plant": "โรงงานขอนแก่น",
+            "value": "***",
+            "value_label": "***"
+          },
+          {
+            "plant": "โรงงานปทุมธานี",
+            "value": "***",
+            "value_label": "***"
+          },
+          {
+            "plant": "โรงงานสิงห์บุรี",
+            "value": "***",
+            "value_label": "***"
+          }
+        ],
+        "summary": "ปริมาณการผลิต 1 ก.ย. 2569 – 22 ก.ย. 2569: ข้อมูลถูกปิดตามนโยบาย (masked) — เห็นได้เฉพาะโครงสร้างข้อมูล",
+        "headline": {
+          "aggregate": "sum",
+          "value": "—",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 3,
+          "deltaPercent": null,
+          "compareLabel": null,
+          "compareNote": null,
+          "top": []
+        },
+        "provenance": {
+          "metric": "production_output",
+          "certified": true,
+          "sourceSystem": "MES",
+          "asOf": "2026-09-22",
+          "rowCount": 3,
+          "filtersApplied": {},
+          "filterLabels": [],
+          "scopeApplied": {},
+          "masked": [
+            "value",
+            "compare_value",
+            "delta_pct"
+          ],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "production_output",
+          "dims": [
+            "plant"
+          ],
+          "filters": {},
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "none",
+          "limit": 5,
+          "sort": "value_desc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "request-access",
+            "kind": "request_access",
+            "label": "ขอสิทธิ์จากคุณโอ๊ต",
+            "reason": "ปริมาณการผลิต ถูกปิดบางฟิลด์ตามสิทธิ์ เจ้าของข้อมูลคือผู้ดูแล MES",
+            "tool": "send_email",
+            "input": {
+              "toUserId": "u_oat",
+              "subject": "ขอสิทธิ์ดูปริมาณการผลิต",
+              "body": "ขอสิทธิ์ดูปริมาณการผลิตครับ ตอนนี้มี 3 ฟิลด์ถูกปิด ทำให้วิเคราะห์ต่อไม่ได้"
+            },
+            "prompt": null
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "ปริมาณการผลิต รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ขอปริมาณการผลิตแยกตามโรงงาน เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "tool": "explain_gap",
+      "input": {
+        "metric": "net_sales_volume",
+        "split": "region",
+        "filters": {},
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "compare": "target"
+      },
+      "output": {
+        "ok": true,
+        "summary": "ปริมาณขายเข้า (Sell-in) 1 ก.ย. 2569 – 22 ก.ย. 2569: จริง NaN ลิตร · เป้า NaN ลิตร · ช่องว่าง +NaN ลิตร",
+        "period_label": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+        "actual_label": "NaN ลิตร",
+        "compare_label": "เป้า NaN ลิตร",
+        "gap_label": "+NaN ลิตร",
+        "attainment_label": null,
+        "contributors": [],
+        "rest": null,
+        "offsetting": [
+          {
+            "label": "กรุงเทพฯ และปริมณฑล",
+            "gap_label": "+NaN ลิตร"
+          },
+          {
+            "label": "ภาคกลาง",
+            "gap_label": "+NaN ลิตร"
+          },
+          {
+            "label": "ภาคตะวันออก",
+            "gap_label": "+NaN ลิตร"
+          },
+          {
+            "label": "ภาคเหนือ",
+            "gap_label": "+NaN ลิตร"
+          },
+          {
+            "label": "ภาคอีสาน",
+            "gap_label": "+NaN ลิตร"
+          }
+        ],
+        "projection": {
+          "label": "สิ้นเดือน ถ้าขายเท่า 7 วันล่าสุด",
+          "basis": "วันที่เหลือของเดือนขายเท่าค่าเฉลี่ย 7 วันล่าสุด และเป้ากระจายเท่ากันทุกวัน",
+          "projected_label": "NaN ลิตร",
+          "month_target_label": "NaN ลิตร",
+          "attainment_label": "NaN%"
+        }
+      }
+    }
+  ],
+  "dropped": []
+}

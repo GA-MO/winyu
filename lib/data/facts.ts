@@ -600,7 +600,6 @@ function shapeFor(metric: MetricId, shift: Shift): Shape {
 function targetShapeFor(metric: MetricId): Shape | null {
   if (metric === "net_sales_volume" || metric === "sell_out_volume") return salesShape("target_volume", NO_SHIFT);
   if (metric === "net_sales_value") return salesShape("target_value", NO_SHIFT);
-  if (metric === "production_output") return productionShape("capacity", NO_SHIFT);
   return null;
 }
 

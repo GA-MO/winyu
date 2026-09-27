@@ -1,0 +1,3702 @@
+{
+  "investigation": {
+    "id": "u_ploy",
+    "userId": "u_ploy",
+    "at": "2026-09-26T19:11:57.372Z",
+    "model": "google/gemini-3.8-flash",
+    "stories": [
+      {
+        "kind": "watch",
+        "claim": "น้ำดื่มสิงห์ 600 มล. เชียงใหม่ยังขาดเป้า 2,789 ลิตร",
+        "scope": "น้ำดื่มสิงห์ ขวด PET 600 มล. · เชียงใหม่",
+        "period": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+        "subject": {
+          "metric": "target_attainment",
+          "region": "north"
+        },
+        "headline": {
+          "label": "เทียบเป้า",
+          "value": "97.2%",
+          "tone": "bad"
+        },
+        "projection": {
+          "label": "สิ้นเดือน ถ้าขายเท่า 7 วันล่าสุด",
+          "value": "97.0%"
+        },
+        "causes": [
+          {
+            "label": "เชียงใหม่สหพาณิชย์",
+            "detail": "ปริมาณขายเข้าต่ำกว่าเป้าหมาย",
+            "value": "−1,856 ลิตร",
+            "shareOfGap": "66.5%"
+          },
+          {
+            "label": "ล้านนาเบเวอเรจ",
+            "detail": "ปริมาณขายเข้าต่ำกว่าเป้าหมาย",
+            "value": "−934 ลิตร",
+            "shareOfGap": "33.5%"
+          }
+        ],
+        "checked": [
+          {
+            "text": "จริง 96,237 · เป้า 99,026 ลิตร",
+            "verdict": "confirmed",
+            "source": "explain_gap"
+          },
+          {
+            "text": "DC เชียงใหม่มี 10.3 วัน",
+            "verdict": "confirmed",
+            "source": "query_metric"
+          }
+        ],
+        "recommendation": "คุยเชียงใหม่สหพาณิชย์และล้านนาเบเวอเรจให้สั่งน้ำดื่มเพิ่มก่อนสิ้นเดือน",
+        "id": "u_ploy-0",
+        "owner": {
+          "userId": "u_nattaya",
+          "nameTh": "คุณณัฐยา แก้วกล้า",
+          "title": "ผู้จัดการขายภาค ภาคเหนือ"
+        }
+      },
+      {
+        "kind": "watch",
+        "claim": "เพอร์ร่า 600 มล. ในเชียงใหม่ขายออกพุ่ง DC ยังรองรับได้",
+        "scope": "เพอร์ร่า ขวด PET 600 มล. · เชียงใหม่",
+        "period": "19 ก.ย. 2569 – 22 ก.ย. 2569",
+        "subject": {
+          "metric": "sell_out_volume",
+          "region": "north"
+        },
+        "headline": {
+          "label": "ปริมาณขายออก (Sell-out)",
+          "value": "2,689 ลิตร",
+          "tone": "good"
+        },
+        "projection": null,
+        "causes": [
+          {
+            "label": "ความต้องการน้ำดื่มเพิ่มขึ้น",
+            "detail": "ขายเร่งช่วงค่าฝุ่น PM2.5 สูง",
+            "value": "27%",
+            "shareOfGap": null
+          }
+        ],
+        "checked": [
+          {
+            "text": "ขายออก 2,689 ลิตร · คาด 2,114",
+            "verdict": "confirmed",
+            "source": "get_alerts"
+          },
+          {
+            "text": "DC เชียงใหม่ 8,064 ลัง · 19.6 วัน",
+            "verdict": "confirmed",
+            "source": "query_metric"
+          },
+          {
+            "text": "DC ลำพูนเหลือ 6.0 วัน",
+            "verdict": "confirmed",
+            "source": "query_metric"
+          }
+        ],
+        "recommendation": "ดูสต๊อกหน้าร้านของ 2 เอเย่นต์ เตรียมรับคำสั่งซื้อเติม",
+        "id": "u_ploy-1",
+        "owner": {
+          "userId": "u_nattaya",
+          "nameTh": "คุณณัฐยา แก้วกล้า",
+          "title": "ผู้จัดการขายภาค ภาคเหนือ"
+        }
+      },
+      {
+        "kind": "ok",
+        "claim": "เชียงใหม่ขายเข้าทุกแบรนด์ถึงเป้าแล้ว 100.8%",
+        "scope": "ทุกแบรนด์ · เชียงใหม่",
+        "period": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+        "subject": {
+          "metric": "target_attainment",
+          "region": "north"
+        },
+        "headline": {
+          "label": "เทียบเป้า",
+          "value": "100.8%",
+          "tone": "good"
+        },
+        "projection": {
+          "label": "สิ้นเดือน ถ้าขายเท่า 7 วันล่าสุด",
+          "value": "100.0%"
+        },
+        "causes": [
+          {
+            "label": "เชียงใหม่สหพาณิชย์",
+            "detail": "ทำยอดขายเข้าเกินเป้าหมาย",
+            "value": "+5,885 ลิตร",
+            "shareOfGap": "66.6%"
+          },
+          {
+            "label": "ล้านนาเบเวอเรจ",
+            "detail": "ทำยอดขายเข้าเกินเป้าหมาย",
+            "value": "+2,946 ลิตร",
+            "shareOfGap": "33.4%"
+          }
+        ],
+        "checked": [
+          {
+            "text": "จริง 1.1 ล้านลิตร · เกิน +8,830",
+            "verdict": "confirmed",
+            "source": "explain_gap"
+          },
+          {
+            "text": "2 เอเย่นต์ 100.9% และ 100.7%",
+            "verdict": "confirmed",
+            "source": "query_metric"
+          }
+        ],
+        "recommendation": "รักษายอดสัปดาห์สุดท้าย และเตรียมสั่งล่วงหน้าช่วงวันหยุด ต.ค.",
+        "id": "u_ploy-2",
+        "owner": {
+          "userId": "u_nattaya",
+          "nameTh": "คุณณัฐยา แก้วกล้า",
+          "title": "ผู้จัดการขายภาค ภาคเหนือ"
+        }
+      }
+    ],
+    "checkedCount": 35,
+    "costUsd": 0.11304427499999999
+  },
+  "notes": "",
+  "calls": [
+    {
+      "tool": "recall_memory",
+      "input": {
+        "query": "พลอย จันทรา เชียงใหม่"
+      },
+      "output": {
+        "ok": true,
+        "summary": "ยังไม่มีข้อมูลที่จำไว้เกี่ยวกับผู้ใช้คนนี้",
+        "data": []
+      }
+    },
+    {
+      "tool": "get_alerts",
+      "input": {
+        "status": "open",
+        "limit": 10
+      },
+      "output": {
+        "ok": true,
+        "summary": "มีความผิดปกติที่เปิดอยู่ 3 รายการในขอบเขตของคุณ",
+        "rows": [
+          {
+            "id": "al_e8114d936da7141f",
+            "severity": "P1",
+            "severityLabel": "ต้องรีบดู",
+            "metric": "days_of_cover",
+            "metricLabel": "วันครอบคลุมสต๊อก",
+            "scope": {
+              "dc": "dc_lamphun",
+              "sku": "sku_purra_pet600",
+              "region": "north"
+            },
+            "scopeLabel": "ศูนย์กระจายสินค้าลำพูน · เพอร์ร่า ขวด PET 600 มล. · ภาคเหนือ",
+            "window": "16 ก.ย. 2569 – 22 ก.ย. 2569",
+            "observedLabel": "6.1 วัน",
+            "expectedLabel": "15.7 วัน",
+            "gapLabel": "61%",
+            "yearOverYear": false,
+            "direction": "down",
+            "hypothesis": "สต๊อกที่ศูนย์กระจายสินค้าลำพูนเหลือพอขายอีกประมาณ 6.1 วัน ต่ำกว่าเกณฑ์ 10 วัน เสี่ยงของขาดก่อนรอบเติมสินค้าถัดไป",
+            "verifySteps": [
+              "ดูวันครอบคลุมสต๊อกและสต๊อกคงเหลือของศูนย์กระจายสินค้าลำพูน · เพอร์ร่า ขวด PET 600 มล. · ภาคเหนือตอนนี้",
+              "ดูพยากรณ์ 8 สัปดาห์ข้างหน้าของศูนย์กระจายสินค้าลำพูน · เพอร์ร่า ขวด PET 600 มล. · ภาคเหนือ"
+            ],
+            "ownerUserId": "u_wee"
+          },
+          {
+            "id": "al_720464c45b4bed09",
+            "severity": "P3",
+            "severityLabel": "เฝ้าระวัง",
+            "metric": "sell_out_volume",
+            "metricLabel": "ปริมาณขายออก (Sell-out)",
+            "scope": {
+              "sku": "sku_purra_pet600",
+              "province": "pv_chiangmai",
+              "region": "north"
+            },
+            "scopeLabel": "เพอร์ร่า ขวด PET 600 มล. · เชียงใหม่ · ภาคเหนือ",
+            "window": "19 ก.ย. 2569 – 22 ก.ย. 2569",
+            "observedLabel": "2,689 ลิตร",
+            "expectedLabel": "2,114 ลิตร",
+            "gapLabel": "27%",
+            "yearOverYear": false,
+            "direction": "up",
+            "hypothesis": "ยอดขายออกในเชียงใหม่พุ่งขึ้นพร้อมกับค่าฝุ่น PM2.5 ที่สูงขึ้น ความต้องการน้ำดื่มน่าจะเพิ่มตามสภาพอากาศ",
+            "verifySteps": [
+              "ดูวันครอบคลุมสต๊อกและสต๊อกคงเหลือของเพอร์ร่า ขวด PET 600 มล. · เชียงใหม่ · ภาคเหนือตอนนี้",
+              "ดูพยากรณ์ 8 สัปดาห์ข้างหน้าของเพอร์ร่า ขวด PET 600 มล. · เชียงใหม่ · ภาคเหนือ"
+            ],
+            "ownerUserId": "u_nattaya"
+          },
+          {
+            "id": "al_f63d274564054838",
+            "severity": "P3",
+            "severityLabel": "เฝ้าระวัง",
+            "metric": "net_sales_volume",
+            "metricLabel": "ปริมาณขายเข้า (Sell-in)",
+            "scope": {
+              "agent": "ag_nor_05",
+              "brand": "carlsberg",
+              "region": "north"
+            },
+            "scopeLabel": "หริภุญชัย เทรดดิ้ง · คาร์ลสเบิร์ก · ภาคเหนือ",
+            "window": "29 ส.ค. 2569 – 21 ก.ย. 2569",
+            "observedLabel": "118 ลิตร",
+            "expectedLabel": "108 ลิตร",
+            "gapLabel": "9%",
+            "yearOverYear": false,
+            "direction": "up",
+            "hypothesis": "ปริมาณขายในภาคเหนือสูงผิดปกติ ยังหาสาเหตุไม่ได้จากข้อมูลที่มี",
+            "verifySteps": [
+              "เทียบหริภุญชัย เทรดดิ้ง · คาร์ลสเบิร์ก · ภาคเหนือกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+              "เทียบหริภุญชัย เทรดดิ้ง · คาร์ลสเบิร์ก · ภาคเหนือกับช่วงเดียวกันของปีที่แล้ว"
+            ],
+            "ownerUserId": "u_nattaya"
+          }
+        ],
+        "lessons": [],
+        "nextActions": [
+          {
+            "id": "verify",
+            "kind": "verify",
+            "label": "ตรวจสาเหตุ",
+            "reason": "ดูวันครอบคลุมสต๊อกและสต๊อกคงเหลือของศูนย์กระจายสินค้าลำพูน · เพอร์ร่า ขวด PET 600 มล. · ภาคเหนือตอนนี้",
+            "tool": null,
+            "input": null,
+            "prompt": "ดูวันครอบคลุมสต๊อกและสต๊อกคงเหลือของศูนย์กระจายสินค้าลำพูน · เพอร์ร่า ขวด PET 600 มล. · ภาคเหนือตอนนี้"
+          },
+          {
+            "id": "drill-brand",
+            "kind": "drill",
+            "label": "แยกตามแบรนด์",
+            "reason": "ยังไม่ได้ดูแยกรายแบรนด์",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอวันครอบคลุมสต๊อกแยกตามแบรนด์ เรียงจากมากไปน้อย"
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "target_attainment",
+        "dims": [
+          "province"
+        ],
+        "filters": {
+          "region": [
+            "north"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "target",
+        "limit": 10,
+        "sort": "value_asc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "province": "พิษณุโลก",
+            "value": 100.8,
+            "value_label": "100.8%"
+          },
+          {
+            "province": "เชียงใหม่",
+            "value": 100.8,
+            "value_label": "100.8%"
+          },
+          {
+            "province": "เชียงราย",
+            "value": 101.3,
+            "value_label": "101.3%"
+          },
+          {
+            "province": "ลำพูน",
+            "value": 101.6,
+            "value_label": "101.6%"
+          }
+        ],
+        "summary": "การบรรลุเป้าหมาย 1 ก.ย. 2569 – 22 ก.ย. 2569: เฉลี่ย 101.1% · สูงสุด: ลำพูน 101.6% · เชียงราย 101.3% · เชียงใหม่ 100.8% · (4 แถว · certified · SAP SD)",
+        "headline": {
+          "aggregate": "average",
+          "value": "101.1%",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 4,
+          "deltaPercent": null,
+          "compareLabel": null,
+          "compareNote": null,
+          "top": [
+            {
+              "label": "ลำพูน",
+              "value": "101.6%"
+            },
+            {
+              "label": "เชียงราย",
+              "value": "101.3%"
+            },
+            {
+              "label": "เชียงใหม่",
+              "value": "100.8%"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "target_attainment",
+          "certified": true,
+          "sourceSystem": "SAP SD",
+          "asOf": "2026-09-22",
+          "rowCount": 4,
+          "filtersApplied": {
+            "region": [
+              "north"
+            ]
+          },
+          "filterLabels": [
+            "ภาคเหนือ"
+          ],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "target_attainment",
+          "dims": [
+            "province"
+          ],
+          "filters": {
+            "region": [
+              "north"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "target",
+          "limit": 10,
+          "sort": "value_asc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "drill-channel",
+            "kind": "drill",
+            "label": "แยกตามช่องทาง",
+            "reason": "ยังไม่ได้ดูแยกรายช่องทาง",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอการบรรลุเป้าหมายแยกตามช่องทาง เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-drill_down",
+            "label": "ดูเอเย่นต์ในพิษณุโลก",
+            "prompt": "ขอการบรรลุเป้าหมายของพิษณุโลก แยกรายเอเย่นต์ เรียงจากแย่ไปดี",
+            "reason": "ลงไปอีกชั้นเพื่อหาว่าใครในพิษณุโลกทำให้ตัวเลขเป็นแบบนี้",
+            "intentKey": "follow|drill_down",
+            "score": 0.7
+          },
+          {
+            "id": "fu-why",
+            "label": "ทำไมพิษณุโลก",
+            "prompt": "เจาะดูการบรรลุเป้าหมายของพิษณุโลก ว่าทำไมถึงเปลี่ยนไป เทียบกับช่วงก่อนหน้าและช่วงเดียวกันปีก่อน",
+            "reason": "พิษณุโลก คือแถวที่ต้องดูมากที่สุดในคำตอบนี้",
+            "intentKey": "follow|why",
+            "score": 0.6
+          },
+          {
+            "id": "fu-forecast",
+            "label": "จะถึงเป้าไหม",
+            "prompt": "พยากรณ์ปริมาณขายเข้า 8 สัปดาห์ข้างหน้า จะถึงเป้าไหม",
+            "reason": "ดูว่าถ้าเป็นแบบนี้ต่อไปจะเกิดอะไร",
+            "intentKey": "follow|forecast",
+            "score": 0.55
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "net_sales_volume",
+        "dims": [
+          "region"
+        ],
+        "filters": {
+          "region": [
+            "north"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "target",
+        "limit": 5,
+        "sort": null,
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "region": "ภาคเหนือ",
+            "value": 2437699,
+            "value_label": "2.4 ล้านลิตร",
+            "compare_value": 2412237,
+            "delta_pct": 1.1
+          }
+        ],
+        "summary": "ปริมาณขายเข้า (Sell-in) 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 2.4 ล้านลิตร · สูงสุด: ภาคเหนือ 2.4 ล้านลิตร · เทียบเป้า +1.1% · (1 แถว · certified · SAP SD)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "2.4 ล้านลิตร",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 1,
+          "deltaPercent": 1.1,
+          "compareLabel": "เทียบเป้า",
+          "compareNote": null,
+          "top": [
+            {
+              "label": "ภาคเหนือ",
+              "value": "2.4 ล้านลิตร"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "net_sales_volume",
+          "certified": true,
+          "sourceSystem": "SAP SD",
+          "asOf": "2026-09-22",
+          "rowCount": 1,
+          "filtersApplied": {
+            "region": [
+              "north"
+            ]
+          },
+          "filterLabels": [],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "net_sales_volume",
+          "dims": [
+            "region"
+          ],
+          "filters": {
+            "region": [
+              "north"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "target",
+          "limit": 5,
+          "sort": null,
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "verify",
+            "kind": "verify",
+            "label": "ตรวจสาเหตุ",
+            "reason": "เทียบหริภุญชัย เทรดดิ้ง · คาร์ลสเบิร์ก · ภาคเหนือกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+            "tool": null,
+            "input": null,
+            "prompt": "เทียบหริภุญชัย เทรดดิ้ง · คาร์ลสเบิร์ก · ภาคเหนือกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน"
+          },
+          {
+            "id": "drill-province",
+            "kind": "drill",
+            "label": "แยกตามจังหวัด",
+            "reason": "ยังไม่ได้ดูแยกรายจังหวัด",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอปริมาณขายเข้า (Sell-in)แยกตามจังหวัด เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-forecast",
+            "label": "พยากรณ์ 8 สัปดาห์",
+            "prompt": "พยากรณ์ปริมาณขายเข้า 8 สัปดาห์ข้างหน้า",
+            "reason": "ดูว่าถ้าเป็นแบบนี้ต่อไปจะเกิดอะไร",
+            "intentKey": "follow|forecast",
+            "score": 0.55
+          },
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "ปริมาณขายเข้า (Sell-in) รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ขอปริมาณขายเข้า (Sell-in) แยกตามภาค เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "tool": "crm_demo__store_visits",
+      "input": {
+        "agentId": null,
+        "regions": "north"
+      },
+      "output": {
+        "ok": false,
+        "code": "CONNECTOR_UNAVAILABLE",
+        "error": "CRM (REST) ไม่ตอบในขณะนี้"
+      }
+    },
+    {
+      "tool": "describe_entity",
+      "input": {
+        "kind": "user",
+        "query": "พลอย จันทรา"
+      },
+      "output": {
+        "ok": true,
+        "data": {
+          "id": "u_ploy",
+          "ชื่อ": "คุณพลอย จันทรา",
+          "ตำแหน่ง": "พนักงานขาย เชียงใหม่",
+          "ฝ่าย": "ขาย",
+          "บทบาท": "sales_rep",
+          "ภาค": "ภาคเหนือ",
+          "หัวหน้า": "คุณณัฐยา แก้วกล้า",
+          "อีเมล": "ploy@boonrawd-demo.co.th"
+        },
+        "summary": "คุณพลอย จันทรา พนักงานขาย เชียงใหม่ ฝ่ายขาย ภาคเหนือ"
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "target_attainment",
+        "dims": [
+          "agent"
+        ],
+        "filters": {
+          "province": [
+            "pv_chiangmai"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "target",
+        "limit": 10,
+        "sort": "value_asc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "agent": "ล้านนาเบเวอเรจ",
+            "value": 100.7,
+            "value_label": "100.7%"
+          },
+          {
+            "agent": "เชียงใหม่สหพาณิชย์",
+            "value": 100.9,
+            "value_label": "100.9%"
+          }
+        ],
+        "summary": "การบรรลุเป้าหมาย 1 ก.ย. 2569 – 22 ก.ย. 2569: เฉลี่ย 100.8% · สูงสุด: เชียงใหม่สหพาณิชย์ 100.9% · ล้านนาเบเวอเรจ 100.7% · (2 แถว · certified · SAP SD)",
+        "headline": {
+          "aggregate": "average",
+          "value": "100.8%",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 2,
+          "deltaPercent": null,
+          "compareLabel": null,
+          "compareNote": null,
+          "top": [
+            {
+              "label": "เชียงใหม่สหพาณิชย์",
+              "value": "100.9%"
+            },
+            {
+              "label": "ล้านนาเบเวอเรจ",
+              "value": "100.7%"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "target_attainment",
+          "certified": true,
+          "sourceSystem": "SAP SD",
+          "asOf": "2026-09-22",
+          "rowCount": 2,
+          "filtersApplied": {
+            "province": [
+              "pv_chiangmai"
+            ]
+          },
+          "filterLabels": [
+            "เชียงใหม่"
+          ],
+          "scopeApplied": {
+            "region": [
+              "north"
+            ]
+          },
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "target_attainment",
+          "dims": [
+            "agent"
+          ],
+          "filters": {
+            "province": [
+              "pv_chiangmai"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "target",
+          "limit": 10,
+          "sort": "value_asc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "drill-channel",
+            "kind": "drill",
+            "label": "แยกตามช่องทาง",
+            "reason": "ยังไม่ได้ดูแยกรายช่องทาง",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอการบรรลุเป้าหมายแยกตามช่องทาง เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-why",
+            "label": "ทำไมล้านนาเบเวอเรจ",
+            "prompt": "เจาะดูการบรรลุเป้าหมายของล้านนาเบเวอเรจ ว่าทำไมถึงเปลี่ยนไป เทียบกับช่วงก่อนหน้าและช่วงเดียวกันปีก่อน",
+            "reason": "ล้านนาเบเวอเรจ คือแถวที่ต้องดูมากที่สุดในคำตอบนี้",
+            "intentKey": "follow|why",
+            "score": 0.6
+          },
+          {
+            "id": "fu-forecast",
+            "label": "จะถึงเป้าไหม",
+            "prompt": "พยากรณ์ปริมาณขายเข้า 8 สัปดาห์ข้างหน้า จะถึงเป้าไหม",
+            "reason": "ดูว่าถ้าเป็นแบบนี้ต่อไปจะเกิดอะไร",
+            "intentKey": "follow|forecast",
+            "score": 0.55
+          },
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "การบรรลุเป้าหมาย รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "net_sales_volume",
+        "dims": [
+          "sku"
+        ],
+        "filters": {
+          "province": [
+            "pv_chiangmai"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "target",
+        "limit": 10,
+        "sort": "delta_asc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "sku": "น้ำดื่มสิงห์ ขวด PET 600 มล.",
+            "value": 96237,
+            "value_label": "96,237 ลิตร",
+            "compare_value": 99026,
+            "delta_pct": -2.8
+          },
+          {
+            "sku": "สิงห์ ถัง 30 ลิตร",
+            "value": 23447,
+            "value_label": "23,447 ลิตร",
+            "compare_value": 24002,
+            "delta_pct": -2.3
+          },
+          {
+            "sku": "สิงห์ ขวด 320 มล.",
+            "value": 36669,
+            "value_label": "36,669 ลิตร",
+            "compare_value": 37498,
+            "delta_pct": -2.2
+          },
+          {
+            "sku": "สิงห์ เลมอนโซดา ขวด 320 มล.",
+            "value": 10886,
+            "value_label": "10,886 ลิตร",
+            "compare_value": 11073,
+            "delta_pct": -1.7
+          },
+          {
+            "sku": "อาซาฮี ขวด 320 มล.",
+            "value": 5019,
+            "value_label": "5,019 ลิตร",
+            "compare_value": 5097,
+            "delta_pct": -1.5
+          },
+          {
+            "sku": "คาร์ลสเบิร์ก ถัง 30 ลิตร",
+            "value": 1974,
+            "value_label": "1,974 ลิตร",
+            "compare_value": 2002,
+            "delta_pct": -1.4
+          },
+          {
+            "sku": "โซดาสิงห์ ขวด 320 มล.",
+            "value": 26729,
+            "value_label": "26,729 ลิตร",
+            "compare_value": 27107,
+            "delta_pct": -1.4
+          },
+          {
+            "sku": "คาร์ลสเบิร์ก ขวด 620 มล.",
+            "value": 6003,
+            "value_label": "6,003 ลิตร",
+            "compare_value": 6067,
+            "delta_pct": -1.1
+          },
+          {
+            "sku": "ลีโอ ขวด 620 มล.",
+            "value": 92095,
+            "value_label": "92,095 ลิตร",
+            "compare_value": 92316,
+            "delta_pct": -0.2
+          },
+          {
+            "sku": "สิงห์ เลมอนโซดา ขวด PET 600 มล.",
+            "value": 28411,
+            "value_label": "28,411 ลิตร",
+            "compare_value": 28449,
+            "delta_pct": -0.1
+          }
+        ],
+        "summary": "ปริมาณขายเข้า (Sell-in) 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 1.1 ล้านลิตร · สูงสุด: น้ำดื่มสิงห์ ขวด PET 600 มล. 96,237 ลิตร · ลีโอ ขวด 620 มล. 92,095 ลิตร · น้ำดื่มสิงห์ ขวด PET 1.5 ลิตร 84,072 ลิตร · เทียบเป้า +0.8% · (10 แถว · certified · SAP SD)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "1.1 ล้านลิตร",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 10,
+          "deltaPercent": 0.8,
+          "compareLabel": "เทียบเป้า",
+          "compareNote": null,
+          "top": [
+            {
+              "label": "น้ำดื่มสิงห์ ขวด PET 600 มล.",
+              "value": "96,237 ลิตร"
+            },
+            {
+              "label": "ลีโอ ขวด 620 มล.",
+              "value": "92,095 ลิตร"
+            },
+            {
+              "label": "น้ำดื่มสิงห์ ขวด PET 1.5 ลิตร",
+              "value": "84,072 ลิตร"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "net_sales_volume",
+          "certified": true,
+          "sourceSystem": "SAP SD",
+          "asOf": "2026-09-22",
+          "rowCount": 10,
+          "filtersApplied": {
+            "province": [
+              "pv_chiangmai"
+            ]
+          },
+          "filterLabels": [
+            "เชียงใหม่"
+          ],
+          "scopeApplied": {
+            "region": [
+              "north"
+            ]
+          },
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "net_sales_volume",
+          "dims": [
+            "sku"
+          ],
+          "filters": {
+            "province": [
+              "pv_chiangmai"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "target",
+          "limit": 10,
+          "sort": "delta_asc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "drill-channel",
+            "kind": "drill",
+            "label": "แยกตามช่องทาง",
+            "reason": "ยังไม่ได้ดูแยกรายช่องทาง",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอปริมาณขายเข้า (Sell-in)แยกตามช่องทาง เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-forecast",
+            "label": "พยากรณ์ 8 สัปดาห์",
+            "prompt": "พยากรณ์ปริมาณขายเข้า 8 สัปดาห์ข้างหน้า",
+            "reason": "ดูว่าถ้าเป็นแบบนี้ต่อไปจะเกิดอะไร",
+            "intentKey": "follow|forecast",
+            "score": 0.55
+          },
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "ปริมาณขายเข้า (Sell-in) รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ขอปริมาณขายเข้า (Sell-in) แยกตาม SKU เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "days_of_cover",
+        "dims": [
+          "dc",
+          "sku"
+        ],
+        "filters": {
+          "dc": [
+            "dc_lamphun"
+          ],
+          "sku": [
+            "sku_purra_pet600"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "target",
+        "limit": 5,
+        "sort": null,
+        "where": null
+      },
+      "output": {
+        "ok": false,
+        "error": "เมตริก days_of_cover ไม่มีเป้าหมายให้เทียบ ใช้ compare \"none\" หรือเทียบงวดก่อนแทน",
+        "code": "BAD_QUERY"
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "stock_on_hand",
+        "dims": [
+          "dc",
+          "sku"
+        ],
+        "filters": {
+          "sku": [
+            "sku_purra_pet600"
+          ],
+          "dc": [
+            "dc_lamphun"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "target",
+        "limit": 5,
+        "sort": null,
+        "where": null
+      },
+      "output": {
+        "ok": false,
+        "error": "เมตริก stock_on_hand ไม่มีเป้าหมายให้เทียบ ใช้ compare \"none\" หรือเทียบงวดก่อนแทน",
+        "code": "BAD_QUERY"
+      }
+    },
+    {
+      "tool": "get_forecast",
+      "input": {
+        "metric": "days_of_cover",
+        "dims": {
+          "dc": "dc_lamphun",
+          "sku": "sku_purra_pet600"
+        },
+        "weeks": 8
+      },
+      "output": {
+        "ok": true,
+        "metric": "days_of_cover",
+        "summary": "พยากรณ์ 8 สัปดาห์ของวันครอบคลุมสต๊อก (Holt-Winters · ความคลาดเคลื่อนย้อนหลัง MAPE 34.6%)",
+        "total": null,
+        "weekly_average": null,
+        "mape": 34.6,
+        "weeks": [
+          {
+            "week": "สัปดาห์ 39",
+            "date": "2026-09-21",
+            "value": 13,
+            "lo": 8,
+            "hi": 19,
+            "value_label": "13 วัน",
+            "range_label": "8 วัน – 19 วัน"
+          },
+          {
+            "week": "สัปดาห์ 40",
+            "date": "2026-09-28",
+            "value": 18,
+            "lo": 10,
+            "hi": 26,
+            "value_label": "18 วัน",
+            "range_label": "10 วัน – 26 วัน"
+          },
+          {
+            "week": "สัปดาห์ 41",
+            "date": "2026-10-05",
+            "value": 11,
+            "lo": 1,
+            "hi": 20,
+            "value_label": "11 วัน",
+            "range_label": "1 วัน – 20 วัน"
+          },
+          {
+            "week": "สัปดาห์ 42",
+            "date": "2026-10-12",
+            "value": 15,
+            "lo": 4,
+            "hi": 26,
+            "value_label": "15 วัน",
+            "range_label": "4 วัน – 26 วัน"
+          },
+          {
+            "week": "สัปดาห์ 43",
+            "date": "2026-10-19",
+            "value": 13,
+            "lo": 1,
+            "hi": 25,
+            "value_label": "13 วัน",
+            "range_label": "1 วัน – 25 วัน"
+          },
+          {
+            "week": "สัปดาห์ 44",
+            "date": "2026-10-26",
+            "value": 18,
+            "lo": 4,
+            "hi": 31,
+            "value_label": "18 วัน",
+            "range_label": "4 วัน – 31 วัน"
+          },
+          {
+            "week": "สัปดาห์ 45",
+            "date": "2026-11-02",
+            "value": 11,
+            "lo": 0,
+            "hi": 25,
+            "value_label": "11 วัน",
+            "range_label": "0 วัน – 25 วัน"
+          },
+          {
+            "week": "สัปดาห์ 46",
+            "date": "2026-11-09",
+            "value": 15,
+            "lo": 0,
+            "hi": 31,
+            "value_label": "15 วัน",
+            "range_label": "0 วัน – 31 วัน"
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "sell_out_volume",
+        "dims": [
+          "date"
+        ],
+        "filters": {
+          "sku": [
+            "sku_purra_pet600"
+          ],
+          "province": [
+            "pv_chiangmai"
+          ]
+        },
+        "range": {
+          "from": "2026-09-15",
+          "to": "2026-09-22"
+        },
+        "grain": "day",
+        "compare": "prev_period",
+        "limit": 10,
+        "sort": null,
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "date": "2026-09-15",
+            "value": 1721,
+            "value_label": "1,721 ลิตร",
+            "compare_value": 1904,
+            "delta_pct": -9.6
+          },
+          {
+            "date": "2026-09-16",
+            "value": 1781,
+            "value_label": "1,781 ลิตร",
+            "compare_value": 1961,
+            "delta_pct": -9.2
+          },
+          {
+            "date": "2026-09-17",
+            "value": 1904,
+            "value_label": "1,904 ลิตร",
+            "compare_value": 2078,
+            "delta_pct": -8.4
+          },
+          {
+            "date": "2026-09-18",
+            "value": 2923,
+            "value_label": "2,923 ลิตร",
+            "compare_value": 2467,
+            "delta_pct": 18.5
+          },
+          {
+            "date": "2026-09-19",
+            "value": 3398,
+            "value_label": "3,398 ลิตร",
+            "compare_value": 2834,
+            "delta_pct": 19.9
+          },
+          {
+            "date": "2026-09-20",
+            "value": 2996,
+            "value_label": "2,996 ลิตร",
+            "compare_value": 2475,
+            "delta_pct": 21.1
+          },
+          {
+            "date": "2026-09-21",
+            "value": 2197,
+            "value_label": "2,197 ลิตร",
+            "compare_value": 1790,
+            "delta_pct": 22.8
+          },
+          {
+            "date": "2026-09-22",
+            "value": 2164,
+            "value_label": "2,164 ลิตร",
+            "compare_value": 1743,
+            "delta_pct": 24.1
+          }
+        ],
+        "summary": "ปริมาณขายออก (Sell-out) 15 ก.ย. 2569 – 22 ก.ย. 2569: รวม 19,084 ลิตร · เทียบช่วงก่อนหน้า +10.6% · (8 แถว · certified · SAP SD)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "19,084 ลิตร",
+          "periodLabel": "15 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 8,
+          "deltaPercent": 10.6,
+          "compareLabel": "เทียบช่วงก่อนหน้า",
+          "compareNote": null,
+          "top": []
+        },
+        "provenance": {
+          "metric": "sell_out_volume",
+          "certified": true,
+          "sourceSystem": "SAP SD",
+          "asOf": "2026-09-22",
+          "rowCount": 8,
+          "filtersApplied": {
+            "sku": [
+              "sku_purra_pet600"
+            ],
+            "province": [
+              "pv_chiangmai"
+            ]
+          },
+          "filterLabels": [
+            "เพอร์ร่า ขวด PET 600 มล.",
+            "เชียงใหม่"
+          ],
+          "scopeApplied": {
+            "region": [
+              "north"
+            ]
+          },
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "sell_out_volume",
+          "dims": [
+            "date"
+          ],
+          "filters": {
+            "sku": [
+              "sku_purra_pet600"
+            ],
+            "province": [
+              "pv_chiangmai"
+            ]
+          },
+          "range": {
+            "from": "2026-09-15",
+            "to": "2026-09-22"
+          },
+          "grain": "day",
+          "compare": "prev_period",
+          "limit": 10,
+          "sort": null,
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "verify",
+            "kind": "verify",
+            "label": "ตรวจสาเหตุ",
+            "reason": "ดูวันครอบคลุมสต๊อกและสต๊อกคงเหลือของเพอร์ร่า ขวด PET 600 มล. · เชียงใหม่ · ภาคเหนือตอนนี้",
+            "tool": null,
+            "input": null,
+            "prompt": "ดูวันครอบคลุมสต๊อกและสต๊อกคงเหลือของเพอร์ร่า ขวด PET 600 มล. · เชียงใหม่ · ภาคเหนือตอนนี้"
+          },
+          {
+            "id": "drill-channel",
+            "kind": "drill",
+            "label": "แยกตามช่องทาง",
+            "reason": "ยังไม่ได้ดูแยกรายช่องทาง",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอปริมาณขายออก (Sell-out)แยกตามช่องทาง เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-split",
+            "label": "แยกตามแบรนด์",
+            "prompt": "ขอปริมาณขายออก (Sell-out) แยกตามแบรนด์ เรียงจากมากไปน้อย",
+            "reason": "ยังไม่ได้ดูแยกรายแบรนด์",
+            "intentKey": "follow|split",
+            "score": 0.65
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ขอปริมาณขายออก (Sell-out) เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "days_of_cover",
+        "dims": [
+          "dc",
+          "sku"
+        ],
+        "filters": {
+          "dc": [
+            "dc_lamphun"
+          ],
+          "sku": [
+            "sku_purra_pet600"
+          ]
+        },
+        "range": {
+          "from": "2026-09-22",
+          "to": "2026-09-22"
+        },
+        "grain": "day",
+        "compare": "none",
+        "limit": 5,
+        "sort": null,
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "dc": "ศูนย์กระจายสินค้าลำพูน",
+            "sku": "เพอร์ร่า ขวด PET 600 มล.",
+            "value": 6.04,
+            "value_label": "6.0 วัน"
+          }
+        ],
+        "summary": "วันครอบคลุมสต๊อก 22 ก.ย. 2569 – 22 ก.ย. 2569: เฉลี่ย 6.0 วัน · ต่ำสุด: ศูนย์กระจายสินค้าลำพูน 6.0 วัน · (1 แถว · certified · WMS)",
+        "headline": {
+          "aggregate": "average",
+          "value": "6.0 วัน",
+          "periodLabel": "22 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 1,
+          "deltaPercent": null,
+          "compareLabel": null,
+          "compareNote": null,
+          "top": [
+            {
+              "label": "ศูนย์กระจายสินค้าลำพูน",
+              "value": "6.0 วัน"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "days_of_cover",
+          "certified": true,
+          "sourceSystem": "WMS",
+          "asOf": "2026-09-22",
+          "rowCount": 1,
+          "filtersApplied": {
+            "dc": [
+              "dc_lamphun"
+            ],
+            "sku": [
+              "sku_purra_pet600"
+            ]
+          },
+          "filterLabels": [],
+          "scopeApplied": {
+            "region": [
+              "north"
+            ]
+          },
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "days_of_cover",
+          "dims": [
+            "dc",
+            "sku"
+          ],
+          "filters": {
+            "dc": [
+              "dc_lamphun"
+            ],
+            "sku": [
+              "sku_purra_pet600"
+            ]
+          },
+          "range": {
+            "from": "2026-09-22",
+            "to": "2026-09-22"
+          },
+          "grain": "day",
+          "compare": "none",
+          "limit": 5,
+          "sort": null,
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "verify",
+            "kind": "verify",
+            "label": "ตรวจสาเหตุ",
+            "reason": "ดูวันครอบคลุมสต๊อกและสต๊อกคงเหลือของศูนย์กระจายสินค้าลำพูน · เพอร์ร่า ขวด PET 600 มล. · ภาคเหนือตอนนี้",
+            "tool": null,
+            "input": null,
+            "prompt": "ดูวันครอบคลุมสต๊อกและสต๊อกคงเหลือของศูนย์กระจายสินค้าลำพูน · เพอร์ร่า ขวด PET 600 มล. · ภาคเหนือตอนนี้"
+          },
+          {
+            "id": "drill-brand",
+            "kind": "drill",
+            "label": "แยกตามแบรนด์",
+            "reason": "ยังไม่ได้ดูแยกรายแบรนด์",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอวันครอบคลุมสต๊อกแยกตามแบรนด์ เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-forecast",
+            "label": "พยากรณ์ 8 สัปดาห์",
+            "prompt": "พยากรณ์วันครอบคลุมสต๊อก 8 สัปดาห์ข้างหน้า",
+            "reason": "ดูว่าถ้าเป็นแบบนี้ต่อไปจะเกิดอะไร",
+            "intentKey": "follow|forecast",
+            "score": 0.55
+          },
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "วันครอบคลุมสต๊อก รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ขอวันครอบคลุมสต๊อกแยกตามศูนย์กระจายสินค้า เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "stock_on_hand",
+        "dims": [
+          "dc",
+          "sku"
+        ],
+        "filters": {
+          "dc": [
+            "dc_lamphun"
+          ],
+          "sku": [
+            "sku_purra_pet600"
+          ]
+        },
+        "range": {
+          "from": "2026-09-22",
+          "to": "2026-09-22"
+        },
+        "grain": "day",
+        "compare": "none",
+        "limit": 5,
+        "sort": null,
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "dc": "ศูนย์กระจายสินค้าลำพูน",
+            "sku": "เพอร์ร่า ขวด PET 600 มล.",
+            "value": 1653,
+            "value_label": "1,653 ลัง"
+          }
+        ],
+        "summary": "สต๊อกคงเหลือ 22 ก.ย. 2569 – 22 ก.ย. 2569: รวม 1,653 ลัง · สูงสุด: ศูนย์กระจายสินค้าลำพูน 1,653 ลัง · (1 แถว · certified · WMS)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "1,653 ลัง",
+          "periodLabel": "22 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 1,
+          "deltaPercent": null,
+          "compareLabel": null,
+          "compareNote": null,
+          "top": [
+            {
+              "label": "ศูนย์กระจายสินค้าลำพูน",
+              "value": "1,653 ลัง"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "stock_on_hand",
+          "certified": true,
+          "sourceSystem": "WMS",
+          "asOf": "2026-09-22",
+          "rowCount": 1,
+          "filtersApplied": {
+            "dc": [
+              "dc_lamphun"
+            ],
+            "sku": [
+              "sku_purra_pet600"
+            ]
+          },
+          "filterLabels": [],
+          "scopeApplied": {
+            "region": [
+              "north"
+            ]
+          },
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "stock_on_hand",
+          "dims": [
+            "dc",
+            "sku"
+          ],
+          "filters": {
+            "dc": [
+              "dc_lamphun"
+            ],
+            "sku": [
+              "sku_purra_pet600"
+            ]
+          },
+          "range": {
+            "from": "2026-09-22",
+            "to": "2026-09-22"
+          },
+          "grain": "day",
+          "compare": "none",
+          "limit": 5,
+          "sort": null,
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "drill-brand",
+            "kind": "drill",
+            "label": "แยกตามแบรนด์",
+            "reason": "ยังไม่ได้ดูแยกรายแบรนด์",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอสต๊อกคงเหลือแยกตามแบรนด์ เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "สต๊อกคงเหลือ รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ขอสต๊อกคงเหลือแยกตามศูนย์กระจายสินค้า เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "days_of_cover",
+        "dims": [
+          "agent",
+          "sku"
+        ],
+        "filters": {
+          "province": [
+            "pv_chiangmai"
+          ],
+          "sku": [
+            "sku_purra_pet600"
+          ]
+        },
+        "range": {
+          "from": "2026-09-22",
+          "to": "2026-09-22"
+        },
+        "grain": "day",
+        "compare": "none",
+        "limit": 10,
+        "sort": null,
+        "where": null
+      },
+      "output": {
+        "ok": false,
+        "error": "มิติ agent ใช้กับเมตริก days_of_cover ไม่ได้",
+        "code": "BAD_QUERY"
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "stock_on_hand",
+        "dims": [
+          "agent",
+          "sku"
+        ],
+        "filters": {
+          "sku": [
+            "sku_purra_pet600"
+          ],
+          "province": [
+            "pv_chiangmai"
+          ]
+        },
+        "range": {
+          "from": "2026-09-22",
+          "to": "2026-09-22"
+        },
+        "grain": "day",
+        "compare": "none",
+        "limit": 10,
+        "sort": null,
+        "where": null
+      },
+      "output": {
+        "ok": false,
+        "error": "มิติ agent ใช้กับเมตริก stock_on_hand ไม่ได้",
+        "code": "BAD_QUERY"
+      }
+    },
+    {
+      "tool": "describe_entity",
+      "input": {
+        "kind": "agent",
+        "query": "เชียงใหม่สหพาณิชย์"
+      },
+      "output": {
+        "ok": true,
+        "data": {
+          "id": "ag_nor_01",
+          "ชื่อ": "เชียงใหม่สหพาณิชย์",
+          "จังหวัด": "เชียงใหม่",
+          "ภาค": "ภาคเหนือ",
+          "เกรด": "A",
+          "เครดิต": "45 วัน",
+          "เป็นคู่ค้าตั้งแต่": 1999,
+          "ศูนย์กระจายสินค้า": "ศูนย์กระจายสินค้าเชียงใหม่",
+          "น้ำหนักยอดขาย": 1.28
+        },
+        "summary": "เชียงใหม่สหพาณิชย์ เอเย่นต์เกรด A จังหวัดเชียงใหม่ ภาคเหนือ เครดิต 45 วัน ส่งจากศูนย์กระจายสินค้าเชียงใหม่"
+      }
+    },
+    {
+      "tool": "describe_entity",
+      "input": {
+        "kind": "agent",
+        "query": "ล้านนาเบเวอเรจ"
+      },
+      "output": {
+        "ok": true,
+        "data": {
+          "id": "ag_nor_02",
+          "ชื่อ": "ล้านนาเบเวอเรจ",
+          "จังหวัด": "เชียงใหม่",
+          "ภาค": "ภาคเหนือ",
+          "เกรด": "B",
+          "เครดิต": "30 วัน",
+          "เป็นคู่ค้าตั้งแต่": 2014,
+          "ศูนย์กระจายสินค้า": "ศูนย์กระจายสินค้าเชียงใหม่",
+          "น้ำหนักยอดขาย": 0.83
+        },
+        "summary": "ล้านนาเบเวอเรจ เอเย่นต์เกรด B จังหวัดเชียงใหม่ ภาคเหนือ เครดิต 30 วัน ส่งจากศูนย์กระจายสินค้าเชียงใหม่"
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "days_of_cover",
+        "dims": [
+          "dc"
+        ],
+        "filters": {
+          "region": [
+            "north"
+          ]
+        },
+        "range": {
+          "from": "2026-09-22",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "none",
+        "limit": 10,
+        "sort": null,
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "dc": "ศูนย์กระจายสินค้าเชียงใหม่",
+            "value": 13.89,
+            "value_label": "13.9 วัน"
+          },
+          {
+            "dc": "ศูนย์กระจายสินค้าลำพูน",
+            "value": 14.86,
+            "value_label": "14.9 วัน"
+          }
+        ],
+        "summary": "วันครอบคลุมสต๊อก 22 ก.ย. 2569 – 22 ก.ย. 2569: เฉลี่ย 14.3 วัน · ต่ำสุด: ศูนย์กระจายสินค้าเชียงใหม่ 13.9 วัน · ศูนย์กระจายสินค้าลำพูน 14.9 วัน · (2 แถว · certified · WMS)",
+        "headline": {
+          "aggregate": "average",
+          "value": "14.3 วัน",
+          "periodLabel": "22 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 2,
+          "deltaPercent": null,
+          "compareLabel": null,
+          "compareNote": null,
+          "top": [
+            {
+              "label": "ศูนย์กระจายสินค้าเชียงใหม่",
+              "value": "13.9 วัน"
+            },
+            {
+              "label": "ศูนย์กระจายสินค้าลำพูน",
+              "value": "14.9 วัน"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "days_of_cover",
+          "certified": true,
+          "sourceSystem": "WMS",
+          "asOf": "2026-09-22",
+          "rowCount": 2,
+          "filtersApplied": {
+            "region": [
+              "north"
+            ]
+          },
+          "filterLabels": [
+            "ภาคเหนือ"
+          ],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "days_of_cover",
+          "dims": [
+            "dc"
+          ],
+          "filters": {
+            "region": [
+              "north"
+            ]
+          },
+          "range": {
+            "from": "2026-09-22",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "none",
+          "limit": 10,
+          "sort": null,
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "verify",
+            "kind": "verify",
+            "label": "ตรวจสาเหตุ",
+            "reason": "ดูวันครอบคลุมสต๊อกและสต๊อกคงเหลือของศูนย์กระจายสินค้าลำพูน · เพอร์ร่า ขวด PET 600 มล. · ภาคเหนือตอนนี้",
+            "tool": null,
+            "input": null,
+            "prompt": "ดูวันครอบคลุมสต๊อกและสต๊อกคงเหลือของศูนย์กระจายสินค้าลำพูน · เพอร์ร่า ขวด PET 600 มล. · ภาคเหนือตอนนี้"
+          },
+          {
+            "id": "drill-brand",
+            "kind": "drill",
+            "label": "แยกตามแบรนด์",
+            "reason": "ยังไม่ได้ดูแยกรายแบรนด์",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอวันครอบคลุมสต๊อกแยกตามแบรนด์ เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-drill_down",
+            "label": "ดู SKU ใน DC เชียงใหม่",
+            "prompt": "ขอวันครอบคลุมสต๊อกของ DC เชียงใหม่ แยกราย SKU เรียงจากแย่ไปดี",
+            "reason": "ลงไปอีกชั้นเพื่อหาว่าใครในDC เชียงใหม่ทำให้ตัวเลขเป็นแบบนี้",
+            "intentKey": "follow|drill_down",
+            "score": 0.7
+          },
+          {
+            "id": "fu-why",
+            "label": "ทำไม DC เชียงใหม่",
+            "prompt": "เจาะดูวันครอบคลุมสต๊อกของ DC เชียงใหม่ ว่าทำไมถึงเปลี่ยนไป เทียบกับช่วงก่อนหน้าและช่วงเดียวกันปีก่อน",
+            "reason": "DC เชียงใหม่ คือแถวที่ต้องดูมากที่สุดในคำตอบนี้",
+            "intentKey": "follow|why",
+            "score": 0.6
+          },
+          {
+            "id": "fu-forecast",
+            "label": "พยากรณ์ 8 สัปดาห์",
+            "prompt": "พยากรณ์วันครอบคลุมสต๊อกของ DC เชียงใหม่ 8 สัปดาห์ข้างหน้า",
+            "reason": "ดูว่าถ้าเป็นแบบนี้ต่อไปจะเกิดอะไร",
+            "intentKey": "follow|forecast",
+            "score": 0.55
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "days_of_cover",
+        "dims": [
+          "dc",
+          "sku"
+        ],
+        "filters": {
+          "dc": [
+            "dc_chiangmai"
+          ],
+          "sku": [
+            "sku_purra_pet600"
+          ]
+        },
+        "range": {
+          "from": "2026-09-22",
+          "to": "2026-09-22"
+        },
+        "grain": "day",
+        "compare": "none",
+        "limit": 5,
+        "sort": null,
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "dc": "ศูนย์กระจายสินค้าเชียงใหม่",
+            "sku": "เพอร์ร่า ขวด PET 600 มล.",
+            "value": 19.64,
+            "value_label": "19.6 วัน"
+          }
+        ],
+        "summary": "วันครอบคลุมสต๊อก 22 ก.ย. 2569 – 22 ก.ย. 2569: เฉลี่ย 19.6 วัน · ต่ำสุด: ศูนย์กระจายสินค้าเชียงใหม่ 19.6 วัน · (1 แถว · certified · WMS)",
+        "headline": {
+          "aggregate": "average",
+          "value": "19.6 วัน",
+          "periodLabel": "22 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 1,
+          "deltaPercent": null,
+          "compareLabel": null,
+          "compareNote": null,
+          "top": [
+            {
+              "label": "ศูนย์กระจายสินค้าเชียงใหม่",
+              "value": "19.6 วัน"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "days_of_cover",
+          "certified": true,
+          "sourceSystem": "WMS",
+          "asOf": "2026-09-22",
+          "rowCount": 1,
+          "filtersApplied": {
+            "dc": [
+              "dc_chiangmai"
+            ],
+            "sku": [
+              "sku_purra_pet600"
+            ]
+          },
+          "filterLabels": [],
+          "scopeApplied": {
+            "region": [
+              "north"
+            ]
+          },
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "days_of_cover",
+          "dims": [
+            "dc",
+            "sku"
+          ],
+          "filters": {
+            "dc": [
+              "dc_chiangmai"
+            ],
+            "sku": [
+              "sku_purra_pet600"
+            ]
+          },
+          "range": {
+            "from": "2026-09-22",
+            "to": "2026-09-22"
+          },
+          "grain": "day",
+          "compare": "none",
+          "limit": 5,
+          "sort": null,
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "drill-brand",
+            "kind": "drill",
+            "label": "แยกตามแบรนด์",
+            "reason": "ยังไม่ได้ดูแยกรายแบรนด์",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอวันครอบคลุมสต๊อกแยกตามแบรนด์ เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-forecast",
+            "label": "พยากรณ์ 8 สัปดาห์",
+            "prompt": "พยากรณ์วันครอบคลุมสต๊อก 8 สัปดาห์ข้างหน้า",
+            "reason": "ดูว่าถ้าเป็นแบบนี้ต่อไปจะเกิดอะไร",
+            "intentKey": "follow|forecast",
+            "score": 0.55
+          },
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "วันครอบคลุมสต๊อก รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ขอวันครอบคลุมสต๊อกแยกตามศูนย์กระจายสินค้า เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "stock_on_hand",
+        "dims": [
+          "dc",
+          "sku"
+        ],
+        "filters": {
+          "sku": [
+            "sku_purra_pet600"
+          ],
+          "dc": [
+            "dc_chiangmai"
+          ]
+        },
+        "range": {
+          "from": "2026-09-22",
+          "to": "2026-09-22"
+        },
+        "grain": "day",
+        "compare": "none",
+        "limit": 5,
+        "sort": null,
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "dc": "ศูนย์กระจายสินค้าเชียงใหม่",
+            "sku": "เพอร์ร่า ขวด PET 600 มล.",
+            "value": 8064,
+            "value_label": "8,064 ลัง"
+          }
+        ],
+        "summary": "สต๊อกคงเหลือ 22 ก.ย. 2569 – 22 ก.ย. 2569: รวม 8,064 ลัง · สูงสุด: ศูนย์กระจายสินค้าเชียงใหม่ 8,064 ลัง · (1 แถว · certified · WMS)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "8,064 ลัง",
+          "periodLabel": "22 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 1,
+          "deltaPercent": null,
+          "compareLabel": null,
+          "compareNote": null,
+          "top": [
+            {
+              "label": "ศูนย์กระจายสินค้าเชียงใหม่",
+              "value": "8,064 ลัง"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "stock_on_hand",
+          "certified": true,
+          "sourceSystem": "WMS",
+          "asOf": "2026-09-22",
+          "rowCount": 1,
+          "filtersApplied": {
+            "sku": [
+              "sku_purra_pet600"
+            ],
+            "dc": [
+              "dc_chiangmai"
+            ]
+          },
+          "filterLabels": [],
+          "scopeApplied": {
+            "region": [
+              "north"
+            ]
+          },
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "stock_on_hand",
+          "dims": [
+            "dc",
+            "sku"
+          ],
+          "filters": {
+            "sku": [
+              "sku_purra_pet600"
+            ],
+            "dc": [
+              "dc_chiangmai"
+            ]
+          },
+          "range": {
+            "from": "2026-09-22",
+            "to": "2026-09-22"
+          },
+          "grain": "day",
+          "compare": "none",
+          "limit": 5,
+          "sort": null,
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "drill-brand",
+            "kind": "drill",
+            "label": "แยกตามแบรนด์",
+            "reason": "ยังไม่ได้ดูแยกรายแบรนด์",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอสต๊อกคงเหลือแยกตามแบรนด์ เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "สต๊อกคงเหลือ รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ขอสต๊อกคงเหลือแยกตามศูนย์กระจายสินค้า เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "tool": "explain_gap",
+      "input": {
+        "metric": "net_sales_volume",
+        "split": "agent",
+        "filters": {
+          "province": [
+            "pv_chiangmai"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "compare": "target"
+      },
+      "output": {
+        "ok": true,
+        "summary": "ปริมาณขายเข้า (Sell-in) 1 ก.ย. 2569 – 22 ก.ย. 2569: จริง 1.1 ล้านลิตร · เป้า 1.1 ล้านลิตร · ช่องว่าง +8,830 ลิตร",
+        "period_label": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+        "actual_label": "1.1 ล้านลิตร",
+        "compare_label": "เป้า 1.1 ล้านลิตร",
+        "gap_label": "+8,830 ลิตร",
+        "attainment_label": "100.8%",
+        "contributors": [
+          {
+            "label": "เชียงใหม่สหพาณิชย์",
+            "gap_label": "+5,885 ลิตร",
+            "share_label": "66.6%"
+          },
+          {
+            "label": "ล้านนาเบเวอเรจ",
+            "gap_label": "+2,946 ลิตร",
+            "share_label": "33.4%"
+          }
+        ],
+        "rest": null,
+        "offsetting": [],
+        "projection": {
+          "label": "สิ้นเดือน ถ้าขายเท่า 7 วันล่าสุด",
+          "basis": "วันที่เหลือของเดือนขายเท่าค่าเฉลี่ย 7 วันล่าสุด และเป้ากระจายเท่ากันทุกวัน",
+          "projected_label": "1.5 ล้านลิตร",
+          "month_target_label": "1.5 ล้านลิตร",
+          "attainment_label": "100.0%"
+        }
+      }
+    },
+    {
+      "tool": "explain_gap",
+      "input": {
+        "metric": "net_sales_volume",
+        "split": "brand",
+        "filters": {
+          "province": [
+            "pv_chiangmai"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "compare": "target"
+      },
+      "output": {
+        "ok": true,
+        "summary": "ปริมาณขายเข้า (Sell-in) 1 ก.ย. 2569 – 22 ก.ย. 2569: จริง 1.1 ล้านลิตร · เป้า 1.1 ล้านลิตร · ช่องว่าง +8,830 ลิตร",
+        "period_label": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+        "actual_label": "1.1 ล้านลิตร",
+        "compare_label": "เป้า 1.1 ล้านลิตร",
+        "gap_label": "+8,830 ลิตร",
+        "attainment_label": "100.8%",
+        "contributors": [
+          {
+            "label": "ลีโอ",
+            "gap_label": "+6,757 ลิตร",
+            "share_label": "76.5%"
+          },
+          {
+            "label": "สิงห์",
+            "gap_label": "+1,550 ลิตร",
+            "share_label": "17.6%"
+          },
+          {
+            "label": "สิงห์ เลมอนโซดา",
+            "gap_label": "+879 ลิตร",
+            "share_label": "10.0%"
+          },
+          {
+            "label": "เพอร์ร่า",
+            "gap_label": "+504 ลิตร",
+            "share_label": "5.7%"
+          },
+          {
+            "label": "อาซาฮี",
+            "gap_label": "+39.0 ลิตร",
+            "share_label": "0.4%"
+          }
+        ],
+        "rest": null,
+        "offsetting": [
+          {
+            "label": "น้ำดื่มสิงห์",
+            "gap_label": "−746 ลิตร"
+          },
+          {
+            "label": "โซดาสิงห์",
+            "gap_label": "−116 ลิตร"
+          },
+          {
+            "label": "คาร์ลสเบิร์ก",
+            "gap_label": "−37.0 ลิตร"
+          }
+        ],
+        "projection": {
+          "label": "สิ้นเดือน ถ้าขายเท่า 7 วันล่าสุด",
+          "basis": "วันที่เหลือของเดือนขายเท่าค่าเฉลี่ย 7 วันล่าสุด และเป้ากระจายเท่ากันทุกวัน",
+          "projected_label": "1.5 ล้านลิตร",
+          "month_target_label": "1.5 ล้านลิตร",
+          "attainment_label": "100.0%"
+        }
+      }
+    },
+    {
+      "tool": "explain_gap",
+      "input": {
+        "metric": "net_sales_volume",
+        "split": "sku",
+        "filters": {
+          "province": [
+            "pv_chiangmai"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "compare": "target"
+      },
+      "output": {
+        "ok": true,
+        "summary": "ปริมาณขายเข้า (Sell-in) 1 ก.ย. 2569 – 22 ก.ย. 2569: จริง 1.1 ล้านลิตร · เป้า 1.1 ล้านลิตร · ช่องว่าง +8,830 ลิตร",
+        "period_label": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+        "actual_label": "1.1 ล้านลิตร",
+        "compare_label": "เป้า 1.1 ล้านลิตร",
+        "gap_label": "+8,830 ลิตร",
+        "attainment_label": "100.8%",
+        "contributors": [
+          {
+            "label": "ลีโอ กระป๋อง 320 มล.",
+            "gap_label": "+3,709 ลิตร",
+            "share_label": "42.0%"
+          },
+          {
+            "label": "สิงห์ กระป๋อง 490 มล.",
+            "gap_label": "+1,342 ลิตร",
+            "share_label": "15.2%"
+          },
+          {
+            "label": "น้ำดื่มสิงห์ ขวด PET 1.5 ลิตร",
+            "gap_label": "+1,328 ลิตร",
+            "share_label": "15.0%"
+          },
+          {
+            "label": "สิงห์ แพ็ก 12",
+            "gap_label": "+1,308 ลิตร",
+            "share_label": "14.8%"
+          },
+          {
+            "label": "ลีโอ กระป๋อง 490 มล.",
+            "gap_label": "+1,148 ลิตร",
+            "share_label": "13.0%"
+          }
+        ],
+        "rest": {
+          "label": "ที่เหลือรวมกัน",
+          "gap_label": "+5,173 ลิตร",
+          "share_label": "58.6%"
+        },
+        "offsetting": [
+          {
+            "label": "น้ำดื่มสิงห์ ขวด PET 600 มล.",
+            "gap_label": "−2,789 ลิตร"
+          },
+          {
+            "label": "สิงห์ ขวด 320 มล.",
+            "gap_label": "−829 ลิตร"
+          },
+          {
+            "label": "สิงห์ ถัง 30 ลิตร",
+            "gap_label": "−555 ลิตร"
+          },
+          {
+            "label": "โซดาสิงห์ ขวด 320 มล.",
+            "gap_label": "−378 ลิตร"
+          },
+          {
+            "label": "ลีโอ ขวด 620 มล.",
+            "gap_label": "−221 ลิตร"
+          }
+        ],
+        "projection": {
+          "label": "สิ้นเดือน ถ้าขายเท่า 7 วันล่าสุด",
+          "basis": "วันที่เหลือของเดือนขายเท่าค่าเฉลี่ย 7 วันล่าสุด และเป้ากระจายเท่ากันทุกวัน",
+          "projected_label": "1.5 ล้านลิตร",
+          "month_target_label": "1.5 ล้านลิตร",
+          "attainment_label": "100.0%"
+        }
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "ar_overdue",
+        "dims": [
+          "agent"
+        ],
+        "filters": {
+          "province": [
+            "pv_chiangmai"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "none",
+        "limit": 10,
+        "sort": "value_desc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "agent": "เชียงใหม่สหพาณิชย์",
+            "value": "***",
+            "value_label": "***"
+          },
+          {
+            "agent": "ล้านนาเบเวอเรจ",
+            "value": "***",
+            "value_label": "***"
+          }
+        ],
+        "summary": "ยอดค้างชำระเกินกำหนด 1 ก.ย. 2569 – 22 ก.ย. 2569: ข้อมูลถูกปิดตามนโยบาย (masked) — เห็นได้เฉพาะโครงสร้างข้อมูล",
+        "headline": {
+          "aggregate": "sum",
+          "value": "—",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 2,
+          "deltaPercent": null,
+          "compareLabel": null,
+          "compareNote": null,
+          "top": []
+        },
+        "provenance": {
+          "metric": "ar_overdue",
+          "certified": true,
+          "sourceSystem": "SAP FI",
+          "asOf": "2026-09-22",
+          "rowCount": 2,
+          "filtersApplied": {
+            "province": [
+              "pv_chiangmai"
+            ]
+          },
+          "filterLabels": [
+            "เชียงใหม่"
+          ],
+          "scopeApplied": {
+            "region": [
+              "north"
+            ]
+          },
+          "masked": [
+            "value",
+            "compare_value",
+            "delta_pct"
+          ],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "ar_overdue",
+          "dims": [
+            "agent"
+          ],
+          "filters": {
+            "province": [
+              "pv_chiangmai"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "none",
+          "limit": 10,
+          "sort": "value_desc",
+          "where": null
+        },
+        "nextActions": [],
+        "followUps": [
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายเดือน",
+            "prompt": "ยอดค้างชำระเกินกำหนด รายเดือนย้อนหลัง 6 เดือน",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ขอยอดค้างชำระเกินกำหนดแยกตามเอเย่นต์ เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "sell_out_volume",
+        "dims": [
+          "brand"
+        ],
+        "filters": {
+          "province": [
+            "pv_chiangmai"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "prev_period",
+        "limit": 10,
+        "sort": "delta_desc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "brand": "สิงห์ เลมอนโซดา",
+            "value": 54377,
+            "value_label": "54,377 ลิตร",
+            "compare_value": 65989,
+            "delta_pct": -17.6
+          },
+          {
+            "brand": "เพอร์ร่า",
+            "value": 95097,
+            "value_label": "95,097 ลิตร",
+            "compare_value": 115799,
+            "delta_pct": -17.9
+          },
+          {
+            "brand": "น้ำดื่มสิงห์",
+            "value": 214720,
+            "value_label": "214,720 ลิตร",
+            "compare_value": 261475,
+            "delta_pct": -17.9
+          },
+          {
+            "brand": "โซดาสิงห์",
+            "value": 81452,
+            "value_label": "81,452 ลิตร",
+            "compare_value": 99282,
+            "delta_pct": -18
+          },
+          {
+            "brand": "ลีโอ",
+            "value": 336356,
+            "value_label": "336,356 ลิตร",
+            "compare_value": 412399,
+            "delta_pct": -18.4
+          },
+          {
+            "brand": "สิงห์",
+            "value": 252146,
+            "value_label": "252,146 ลิตร",
+            "compare_value": 310942,
+            "delta_pct": -18.9
+          },
+          {
+            "brand": "อาซาฮี",
+            "value": 14310,
+            "value_label": "14,310 ลิตร",
+            "compare_value": 17690,
+            "delta_pct": -19.1
+          },
+          {
+            "brand": "คาร์ลสเบิร์ก",
+            "value": 13345,
+            "value_label": "13,345 ลิตร",
+            "compare_value": 16597,
+            "delta_pct": -19.6
+          }
+        ],
+        "summary": "ปริมาณขายออก (Sell-out) 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 1.1 ล้านลิตร · สูงสุด: ลีโอ 336,356 ลิตร · สิงห์ 252,146 ลิตร · น้ำดื่มสิงห์ 214,720 ลิตร · เทียบช่วงก่อนหน้า -18.3% · (8 แถว · certified · SAP SD)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "1.1 ล้านลิตร",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 8,
+          "deltaPercent": -18.3,
+          "compareLabel": "เทียบช่วงก่อนหน้า",
+          "compareNote": null,
+          "top": [
+            {
+              "label": "ลีโอ",
+              "value": "336,356 ลิตร"
+            },
+            {
+              "label": "สิงห์",
+              "value": "252,146 ลิตร"
+            },
+            {
+              "label": "น้ำดื่มสิงห์",
+              "value": "214,720 ลิตร"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "sell_out_volume",
+          "certified": true,
+          "sourceSystem": "SAP SD",
+          "asOf": "2026-09-22",
+          "rowCount": 8,
+          "filtersApplied": {
+            "province": [
+              "pv_chiangmai"
+            ]
+          },
+          "filterLabels": [
+            "เชียงใหม่"
+          ],
+          "scopeApplied": {
+            "region": [
+              "north"
+            ]
+          },
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "sell_out_volume",
+          "dims": [
+            "brand"
+          ],
+          "filters": {
+            "province": [
+              "pv_chiangmai"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "prev_period",
+          "limit": 10,
+          "sort": "delta_desc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "verify",
+            "kind": "verify",
+            "label": "ตรวจสาเหตุ",
+            "reason": "ดูวันครอบคลุมสต๊อกและสต๊อกคงเหลือของเพอร์ร่า ขวด PET 600 มล. · เชียงใหม่ · ภาคเหนือตอนนี้",
+            "tool": null,
+            "input": null,
+            "prompt": "ดูวันครอบคลุมสต๊อกและสต๊อกคงเหลือของเพอร์ร่า ขวด PET 600 มล. · เชียงใหม่ · ภาคเหนือตอนนี้"
+          },
+          {
+            "id": "drill-channel",
+            "kind": "drill",
+            "label": "แยกตามช่องทาง",
+            "reason": "ยังไม่ได้ดูแยกรายช่องทาง",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอปริมาณขายออก (Sell-out)แยกตามช่องทาง เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-why",
+            "label": "ทำไมคาร์ลสเบิร์ก",
+            "prompt": "เจาะดูปริมาณขายออก (Sell-out) ของคาร์ลสเบิร์ก ว่าทำไมถึงเปลี่ยนไป เทียบกับช่วงก่อนหน้าและช่วงเดียวกันปีก่อน",
+            "reason": "คาร์ลสเบิร์ก คือแถวที่ต้องดูมากที่สุดในคำตอบนี้",
+            "intentKey": "follow|why",
+            "score": 0.95
+          },
+          {
+            "id": "fu-drill_down",
+            "label": "ดู SKU ในคาร์ลสเบิร์ก",
+            "prompt": "ขอปริมาณขายออก (Sell-out) ของคาร์ลสเบิร์ก แยกราย SKU เรียงจากแย่ไปดี",
+            "reason": "ลงไปอีกชั้นเพื่อหาว่าใครในคาร์ลสเบิร์กทำให้ตัวเลขเป็นแบบนี้",
+            "intentKey": "follow|drill_down",
+            "score": 0.85
+          },
+          {
+            "id": "fu-trend",
+            "label": "เริ่มแย่ตั้งแต่เมื่อไร",
+            "prompt": "ปริมาณขายออก (Sell-out) ของคาร์ลสเบิร์ก รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "ดูว่าตัวเลขเริ่มลดลงสัปดาห์ไหน",
+            "intentKey": "follow|trend",
+            "score": 0.65
+          }
+        ]
+      }
+    },
+    {
+      "tool": "get_calendar",
+      "input": {
+        "from": "2026-09-01",
+        "to": "2026-10-31"
+      },
+      "output": {
+        "ok": true,
+        "summary": "1 ก.ย. 2569 – 31 ต.ค. 2569 มี 3 วันสำคัญ ห้ามขายเครื่องดื่มแอลกอฮอล์ 1 วัน",
+        "data": [
+          {
+            "date": "2026-10-13",
+            "date_label": "13 ต.ค. 2569",
+            "when_label": "อีก 21 วัน",
+            "name": "วันคล้ายวันสวรรคต รัชกาลที่ 9",
+            "kind": "holiday",
+            "kind_label": "วันหยุด",
+            "impact_label": "ขายออกเบียร์ +5% · วัดจากวันคล้ายวันสวรรคต รัชกาลที่ 9 13 ต.ค. 2568"
+          },
+          {
+            "date": "2026-10-23",
+            "date_label": "23 ต.ค. 2569",
+            "when_label": "อีก 31 วัน",
+            "name": "วันปิยมหาราช",
+            "kind": "holiday",
+            "kind_label": "วันหยุด",
+            "impact_label": "ขายออกเบียร์ +17% · วัดจากวันปิยมหาราช 23 ต.ค. 2568"
+          },
+          {
+            "date": "2026-10-26",
+            "date_label": "26 ต.ค. 2569",
+            "when_label": "อีก 34 วัน",
+            "name": "วันออกพรรษา",
+            "kind": "alcohol_ban",
+            "kind_label": "ห้ามขายเครื่องดื่มแอลกอฮอล์",
+            "impact_label": "ขายออกเบียร์ -90% · เอเย่นต์สั่งเข้า 2 วันก่อนหน้า +26% · วัดจากวันวิสาขบูชา 31 พ.ค. 2569"
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "sell_out_volume",
+        "dims": [
+          "brand"
+        ],
+        "filters": {
+          "province": [
+            "pv_chiangmai"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "prev_year",
+        "limit": 10,
+        "sort": "delta_desc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "brand": "เพอร์ร่า",
+            "value": 95097,
+            "value_label": "95,097 ลิตร",
+            "compare_value": 87941,
+            "delta_pct": 8.1
+          },
+          {
+            "brand": "ลีโอ",
+            "value": 336356,
+            "value_label": "336,356 ลิตร",
+            "compare_value": 316273,
+            "delta_pct": 6.3
+          },
+          {
+            "brand": "สิงห์ เลมอนโซดา",
+            "value": 54377,
+            "value_label": "54,377 ลิตร",
+            "compare_value": 51185,
+            "delta_pct": 6.2
+          },
+          {
+            "brand": "โซดาสิงห์",
+            "value": 81452,
+            "value_label": "81,452 ลิตร",
+            "compare_value": 76776,
+            "delta_pct": 6.1
+          },
+          {
+            "brand": "อาซาฮี",
+            "value": 14310,
+            "value_label": "14,310 ลิตร",
+            "compare_value": 13491,
+            "delta_pct": 6.1
+          },
+          {
+            "brand": "สิงห์",
+            "value": 252146,
+            "value_label": "252,146 ลิตร",
+            "compare_value": 238207,
+            "delta_pct": 5.9
+          },
+          {
+            "brand": "คาร์ลสเบิร์ก",
+            "value": 13345,
+            "value_label": "13,345 ลิตร",
+            "compare_value": 12754,
+            "delta_pct": 4.6
+          },
+          {
+            "brand": "น้ำดื่มสิงห์",
+            "value": 214720,
+            "value_label": "214,720 ลิตร",
+            "compare_value": 211500,
+            "delta_pct": 1.5
+          }
+        ],
+        "summary": "ปริมาณขายออก (Sell-out) 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 1.1 ล้านลิตร · สูงสุด: ลีโอ 336,356 ลิตร · สิงห์ 252,146 ลิตร · น้ำดื่มสิงห์ 214,720 ลิตร · เทียบปีก่อน +5.3% · (8 แถว · certified · SAP SD)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "1.1 ล้านลิตร",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 8,
+          "deltaPercent": 5.3,
+          "compareLabel": "เทียบปีก่อน",
+          "compareNote": null,
+          "top": [
+            {
+              "label": "ลีโอ",
+              "value": "336,356 ลิตร"
+            },
+            {
+              "label": "สิงห์",
+              "value": "252,146 ลิตร"
+            },
+            {
+              "label": "น้ำดื่มสิงห์",
+              "value": "214,720 ลิตร"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "sell_out_volume",
+          "certified": true,
+          "sourceSystem": "SAP SD",
+          "asOf": "2026-09-22",
+          "rowCount": 8,
+          "filtersApplied": {
+            "province": [
+              "pv_chiangmai"
+            ]
+          },
+          "filterLabels": [
+            "เชียงใหม่"
+          ],
+          "scopeApplied": {
+            "region": [
+              "north"
+            ]
+          },
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "sell_out_volume",
+          "dims": [
+            "brand"
+          ],
+          "filters": {
+            "province": [
+              "pv_chiangmai"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "prev_year",
+          "limit": 10,
+          "sort": "delta_desc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "verify",
+            "kind": "verify",
+            "label": "ตรวจสาเหตุ",
+            "reason": "ดูวันครอบคลุมสต๊อกและสต๊อกคงเหลือของเพอร์ร่า ขวด PET 600 มล. · เชียงใหม่ · ภาคเหนือตอนนี้",
+            "tool": null,
+            "input": null,
+            "prompt": "ดูวันครอบคลุมสต๊อกและสต๊อกคงเหลือของเพอร์ร่า ขวด PET 600 มล. · เชียงใหม่ · ภาคเหนือตอนนี้"
+          },
+          {
+            "id": "drill-channel",
+            "kind": "drill",
+            "label": "แยกตามช่องทาง",
+            "reason": "ยังไม่ได้ดูแยกรายช่องทาง",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอปริมาณขายออก (Sell-out)แยกตามช่องทาง เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "ปริมาณขายออก (Sell-out) รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "net_sales_volume",
+        "dims": [
+          "agent"
+        ],
+        "filters": {
+          "province": [
+            "pv_chiangmai"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "target",
+        "limit": 5,
+        "sort": null,
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "agent": "เชียงใหม่สหพาณิชย์",
+            "value": 655134,
+            "value_label": "655,134 ลิตร",
+            "compare_value": 649249,
+            "delta_pct": 0.9
+          },
+          {
+            "agent": "ล้านนาเบเวอเรจ",
+            "value": 429471,
+            "value_label": "429,471 ลิตร",
+            "compare_value": 426525,
+            "delta_pct": 0.7
+          }
+        ],
+        "summary": "ปริมาณขายเข้า (Sell-in) 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 1.1 ล้านลิตร · สูงสุด: เชียงใหม่สหพาณิชย์ 655,134 ลิตร · ล้านนาเบเวอเรจ 429,471 ลิตร · เทียบเป้า +0.8% · (2 แถว · certified · SAP SD)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "1.1 ล้านลิตร",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 2,
+          "deltaPercent": 0.8,
+          "compareLabel": "เทียบเป้า",
+          "compareNote": null,
+          "top": [
+            {
+              "label": "เชียงใหม่สหพาณิชย์",
+              "value": "655,134 ลิตร"
+            },
+            {
+              "label": "ล้านนาเบเวอเรจ",
+              "value": "429,471 ลิตร"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "net_sales_volume",
+          "certified": true,
+          "sourceSystem": "SAP SD",
+          "asOf": "2026-09-22",
+          "rowCount": 2,
+          "filtersApplied": {
+            "province": [
+              "pv_chiangmai"
+            ]
+          },
+          "filterLabels": [
+            "เชียงใหม่"
+          ],
+          "scopeApplied": {
+            "region": [
+              "north"
+            ]
+          },
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "net_sales_volume",
+          "dims": [
+            "agent"
+          ],
+          "filters": {
+            "province": [
+              "pv_chiangmai"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "target",
+          "limit": 5,
+          "sort": null,
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "drill-channel",
+            "kind": "drill",
+            "label": "แยกตามช่องทาง",
+            "reason": "ยังไม่ได้ดูแยกรายช่องทาง",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอปริมาณขายเข้า (Sell-in)แยกตามช่องทาง เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-forecast",
+            "label": "พยากรณ์ 8 สัปดาห์",
+            "prompt": "พยากรณ์ปริมาณขายเข้า 8 สัปดาห์ข้างหน้า",
+            "reason": "ดูว่าถ้าเป็นแบบนี้ต่อไปจะเกิดอะไร",
+            "intentKey": "follow|forecast",
+            "score": 0.55
+          },
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "ปริมาณขายเข้า (Sell-in) รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ขอปริมาณขายเข้า (Sell-in) แยกตามเอเย่นต์ เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "sell_out_volume",
+        "dims": [
+          "agent"
+        ],
+        "filters": {
+          "province": [
+            "pv_chiangmai"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "prev_year",
+        "limit": 5,
+        "sort": null,
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "agent": "เชียงใหม่สหพาณิชย์",
+            "value": 641660,
+            "value_label": "641,660 ลิตร",
+            "compare_value": 607454,
+            "delta_pct": 5.6
+          },
+          {
+            "agent": "ล้านนาเบเวอเรจ",
+            "value": 420143,
+            "value_label": "420,143 ลิตร",
+            "compare_value": 400674,
+            "delta_pct": 4.9
+          }
+        ],
+        "summary": "ปริมาณขายออก (Sell-out) 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 1.1 ล้านลิตร · สูงสุด: เชียงใหม่สหพาณิชย์ 641,660 ลิตร · ล้านนาเบเวอเรจ 420,143 ลิตร · เทียบปีก่อน +5.3% · (2 แถว · certified · SAP SD)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "1.1 ล้านลิตร",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 2,
+          "deltaPercent": 5.3,
+          "compareLabel": "เทียบปีก่อน",
+          "compareNote": null,
+          "top": [
+            {
+              "label": "เชียงใหม่สหพาณิชย์",
+              "value": "641,660 ลิตร"
+            },
+            {
+              "label": "ล้านนาเบเวอเรจ",
+              "value": "420,143 ลิตร"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "sell_out_volume",
+          "certified": true,
+          "sourceSystem": "SAP SD",
+          "asOf": "2026-09-22",
+          "rowCount": 2,
+          "filtersApplied": {
+            "province": [
+              "pv_chiangmai"
+            ]
+          },
+          "filterLabels": [
+            "เชียงใหม่"
+          ],
+          "scopeApplied": {
+            "region": [
+              "north"
+            ]
+          },
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "sell_out_volume",
+          "dims": [
+            "agent"
+          ],
+          "filters": {
+            "province": [
+              "pv_chiangmai"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "prev_year",
+          "limit": 5,
+          "sort": null,
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "verify",
+            "kind": "verify",
+            "label": "ตรวจสาเหตุ",
+            "reason": "ดูวันครอบคลุมสต๊อกและสต๊อกคงเหลือของเพอร์ร่า ขวด PET 600 มล. · เชียงใหม่ · ภาคเหนือตอนนี้",
+            "tool": null,
+            "input": null,
+            "prompt": "ดูวันครอบคลุมสต๊อกและสต๊อกคงเหลือของเพอร์ร่า ขวด PET 600 มล. · เชียงใหม่ · ภาคเหนือตอนนี้"
+          },
+          {
+            "id": "drill-channel",
+            "kind": "drill",
+            "label": "แยกตามช่องทาง",
+            "reason": "ยังไม่ได้ดูแยกรายช่องทาง",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอปริมาณขายออก (Sell-out)แยกตามช่องทาง เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "ปริมาณขายออก (Sell-out) รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "sell_out_volume",
+        "dims": [
+          "agent",
+          "brand"
+        ],
+        "filters": {
+          "brand": [
+            "purra"
+          ],
+          "province": [
+            "pv_chiangmai"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "prev_year",
+        "limit": 5,
+        "sort": null,
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "agent": "เชียงใหม่สหพาณิชย์",
+            "brand": "เพอร์ร่า",
+            "value": 57408,
+            "value_label": "57,408 ลิตร",
+            "compare_value": 53594,
+            "delta_pct": 7.1
+          },
+          {
+            "agent": "ล้านนาเบเวอเรจ",
+            "brand": "เพอร์ร่า",
+            "value": 37689,
+            "value_label": "37,689 ลิตร",
+            "compare_value": 34346,
+            "delta_pct": 9.7
+          }
+        ],
+        "summary": "ปริมาณขายออก (Sell-out) 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 95,097 ลิตร · สูงสุด: เชียงใหม่สหพาณิชย์ 57,408 ลิตร · ล้านนาเบเวอเรจ 37,689 ลิตร · เทียบปีก่อน +8.1% · (2 แถว · certified · SAP SD)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "95,097 ลิตร",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 2,
+          "deltaPercent": 8.1,
+          "compareLabel": "เทียบปีก่อน",
+          "compareNote": null,
+          "top": [
+            {
+              "label": "เชียงใหม่สหพาณิชย์",
+              "value": "57,408 ลิตร"
+            },
+            {
+              "label": "ล้านนาเบเวอเรจ",
+              "value": "37,689 ลิตร"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "sell_out_volume",
+          "certified": true,
+          "sourceSystem": "SAP SD",
+          "asOf": "2026-09-22",
+          "rowCount": 2,
+          "filtersApplied": {
+            "brand": [
+              "purra"
+            ],
+            "province": [
+              "pv_chiangmai"
+            ]
+          },
+          "filterLabels": [
+            "เชียงใหม่"
+          ],
+          "scopeApplied": {
+            "region": [
+              "north"
+            ]
+          },
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "sell_out_volume",
+          "dims": [
+            "agent",
+            "brand"
+          ],
+          "filters": {
+            "brand": [
+              "purra"
+            ],
+            "province": [
+              "pv_chiangmai"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "prev_year",
+          "limit": 5,
+          "sort": null,
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "verify",
+            "kind": "verify",
+            "label": "ตรวจสาเหตุ",
+            "reason": "ดูวันครอบคลุมสต๊อกและสต๊อกคงเหลือของเพอร์ร่า ขวด PET 600 มล. · เชียงใหม่ · ภาคเหนือตอนนี้",
+            "tool": null,
+            "input": null,
+            "prompt": "ดูวันครอบคลุมสต๊อกและสต๊อกคงเหลือของเพอร์ร่า ขวด PET 600 มล. · เชียงใหม่ · ภาคเหนือตอนนี้"
+          },
+          {
+            "id": "drill-channel",
+            "kind": "drill",
+            "label": "แยกตามช่องทาง",
+            "reason": "ยังไม่ได้ดูแยกรายช่องทาง",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอปริมาณขายออก (Sell-out)แยกตามช่องทาง เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "ปริมาณขายออก (Sell-out) รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "net_sales_volume",
+        "dims": [
+          "agent",
+          "brand"
+        ],
+        "filters": {
+          "brand": [
+            "purra"
+          ],
+          "province": [
+            "pv_chiangmai"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "target",
+        "limit": 5,
+        "sort": null,
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "agent": "เชียงใหม่สหพาณิชย์",
+            "brand": "เพอร์ร่า",
+            "value": 56647,
+            "value_label": "56,647 ลิตร",
+            "compare_value": 56399,
+            "delta_pct": 0.4
+          },
+          {
+            "agent": "ล้านนาเบเวอเรจ",
+            "brand": "เพอร์ร่า",
+            "value": 37105,
+            "value_label": "37,105 ลิตร",
+            "compare_value": 36848,
+            "delta_pct": 0.7
+          }
+        ],
+        "summary": "ปริมาณขายเข้า (Sell-in) 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 93,752 ลิตร · สูงสุด: เชียงใหม่สหพาณิชย์ 56,647 ลิตร · ล้านนาเบเวอเรจ 37,105 ลิตร · เทียบเป้า +0.5% · (2 แถว · certified · SAP SD)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "93,752 ลิตร",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 2,
+          "deltaPercent": 0.5,
+          "compareLabel": "เทียบเป้า",
+          "compareNote": null,
+          "top": [
+            {
+              "label": "เชียงใหม่สหพาณิชย์",
+              "value": "56,647 ลิตร"
+            },
+            {
+              "label": "ล้านนาเบเวอเรจ",
+              "value": "37,105 ลิตร"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "net_sales_volume",
+          "certified": true,
+          "sourceSystem": "SAP SD",
+          "asOf": "2026-09-22",
+          "rowCount": 2,
+          "filtersApplied": {
+            "brand": [
+              "purra"
+            ],
+            "province": [
+              "pv_chiangmai"
+            ]
+          },
+          "filterLabels": [
+            "เชียงใหม่"
+          ],
+          "scopeApplied": {
+            "region": [
+              "north"
+            ]
+          },
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "net_sales_volume",
+          "dims": [
+            "agent",
+            "brand"
+          ],
+          "filters": {
+            "brand": [
+              "purra"
+            ],
+            "province": [
+              "pv_chiangmai"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "target",
+          "limit": 5,
+          "sort": null,
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "drill-channel",
+            "kind": "drill",
+            "label": "แยกตามช่องทาง",
+            "reason": "ยังไม่ได้ดูแยกรายช่องทาง",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอปริมาณขายเข้า (Sell-in)แยกตามช่องทาง เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-forecast",
+            "label": "พยากรณ์ 8 สัปดาห์",
+            "prompt": "พยากรณ์ปริมาณขายเข้า 8 สัปดาห์ข้างหน้า",
+            "reason": "ดูว่าถ้าเป็นแบบนี้ต่อไปจะเกิดอะไร",
+            "intentKey": "follow|forecast",
+            "score": 0.55
+          },
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "ปริมาณขายเข้า (Sell-in) รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ขอปริมาณขายเข้า (Sell-in) แยกตามเอเย่นต์ เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "tool": "explain_gap",
+      "input": {
+        "metric": "net_sales_volume",
+        "split": "agent",
+        "filters": {
+          "sku": [
+            "sku_singha_water_pet600"
+          ],
+          "province": [
+            "pv_chiangmai"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "compare": "target"
+      },
+      "output": {
+        "ok": true,
+        "summary": "ปริมาณขายเข้า (Sell-in) 1 ก.ย. 2569 – 22 ก.ย. 2569: จริง 96,237 ลิตร · เป้า 99,026 ลิตร · ช่องว่าง −2,789 ลิตร",
+        "period_label": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+        "actual_label": "96,237 ลิตร",
+        "compare_label": "เป้า 99,026 ลิตร",
+        "gap_label": "−2,789 ลิตร",
+        "attainment_label": "97.2%",
+        "contributors": [
+          {
+            "label": "เชียงใหม่สหพาณิชย์",
+            "gap_label": "−1,856 ลิตร",
+            "share_label": "66.5%"
+          },
+          {
+            "label": "ล้านนาเบเวอเรจ",
+            "gap_label": "−934 ลิตร",
+            "share_label": "33.5%"
+          }
+        ],
+        "rest": null,
+        "offsetting": [],
+        "projection": {
+          "label": "สิ้นเดือน ถ้าขายเท่า 7 วันล่าสุด",
+          "basis": "วันที่เหลือของเดือนขายเท่าค่าเฉลี่ย 7 วันล่าสุด และเป้ากระจายเท่ากันทุกวัน",
+          "projected_label": "131,020 ลิตร",
+          "month_target_label": "135,035 ลิตร",
+          "attainment_label": "97.0%"
+        }
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "sell_out_volume",
+        "dims": [
+          "sku"
+        ],
+        "filters": {
+          "sku": [
+            "sku_singha_water_pet600"
+          ],
+          "province": [
+            "pv_chiangmai"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "prev_year",
+        "limit": 5,
+        "sort": null,
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "sku": "น้ำดื่มสิงห์ ขวด PET 600 มล.",
+            "value": 93222,
+            "value_label": "93,222 ลิตร",
+            "compare_value": 93385,
+            "delta_pct": -0.2
+          }
+        ],
+        "summary": "ปริมาณขายออก (Sell-out) 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 93,222 ลิตร · สูงสุด: น้ำดื่มสิงห์ ขวด PET 600 มล. 93,222 ลิตร · เทียบปีก่อน -0.2% · (1 แถว · certified · SAP SD)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "93,222 ลิตร",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 1,
+          "deltaPercent": -0.2,
+          "compareLabel": "เทียบปีก่อน",
+          "compareNote": null,
+          "top": [
+            {
+              "label": "น้ำดื่มสิงห์ ขวด PET 600 มล.",
+              "value": "93,222 ลิตร"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "sell_out_volume",
+          "certified": true,
+          "sourceSystem": "SAP SD",
+          "asOf": "2026-09-22",
+          "rowCount": 1,
+          "filtersApplied": {
+            "sku": [
+              "sku_singha_water_pet600"
+            ],
+            "province": [
+              "pv_chiangmai"
+            ]
+          },
+          "filterLabels": [
+            "เชียงใหม่"
+          ],
+          "scopeApplied": {
+            "region": [
+              "north"
+            ]
+          },
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "sell_out_volume",
+          "dims": [
+            "sku"
+          ],
+          "filters": {
+            "sku": [
+              "sku_singha_water_pet600"
+            ],
+            "province": [
+              "pv_chiangmai"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "prev_year",
+          "limit": 5,
+          "sort": null,
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "drill-channel",
+            "kind": "drill",
+            "label": "แยกตามช่องทาง",
+            "reason": "ยังไม่ได้ดูแยกรายช่องทาง",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอปริมาณขายออก (Sell-out)แยกตามช่องทาง เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "ปริมาณขายออก (Sell-out) รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "days_of_cover",
+        "dims": [
+          "dc",
+          "sku"
+        ],
+        "filters": {
+          "sku": [
+            "sku_singha_water_pet600"
+          ],
+          "dc": [
+            "dc_chiangmai"
+          ]
+        },
+        "range": {
+          "from": "2026-09-22",
+          "to": "2026-09-22"
+        },
+        "grain": "day",
+        "compare": "none",
+        "limit": 5,
+        "sort": null,
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "dc": "ศูนย์กระจายสินค้าเชียงใหม่",
+            "sku": "น้ำดื่มสิงห์ ขวด PET 600 มล.",
+            "value": 10.35,
+            "value_label": "10.3 วัน"
+          }
+        ],
+        "summary": "วันครอบคลุมสต๊อก 22 ก.ย. 2569 – 22 ก.ย. 2569: เฉลี่ย 10.3 วัน · ต่ำสุด: ศูนย์กระจายสินค้าเชียงใหม่ 10.3 วัน · (1 แถว · certified · WMS)",
+        "headline": {
+          "aggregate": "average",
+          "value": "10.3 วัน",
+          "periodLabel": "22 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 1,
+          "deltaPercent": null,
+          "compareLabel": null,
+          "compareNote": null,
+          "top": [
+            {
+              "label": "ศูนย์กระจายสินค้าเชียงใหม่",
+              "value": "10.3 วัน"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "days_of_cover",
+          "certified": true,
+          "sourceSystem": "WMS",
+          "asOf": "2026-09-22",
+          "rowCount": 1,
+          "filtersApplied": {
+            "sku": [
+              "sku_singha_water_pet600"
+            ],
+            "dc": [
+              "dc_chiangmai"
+            ]
+          },
+          "filterLabels": [],
+          "scopeApplied": {
+            "region": [
+              "north"
+            ]
+          },
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "days_of_cover",
+          "dims": [
+            "dc",
+            "sku"
+          ],
+          "filters": {
+            "sku": [
+              "sku_singha_water_pet600"
+            ],
+            "dc": [
+              "dc_chiangmai"
+            ]
+          },
+          "range": {
+            "from": "2026-09-22",
+            "to": "2026-09-22"
+          },
+          "grain": "day",
+          "compare": "none",
+          "limit": 5,
+          "sort": null,
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "drill-brand",
+            "kind": "drill",
+            "label": "แยกตามแบรนด์",
+            "reason": "ยังไม่ได้ดูแยกรายแบรนด์",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอวันครอบคลุมสต๊อกแยกตามแบรนด์ เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-forecast",
+            "label": "พยากรณ์ 8 สัปดาห์",
+            "prompt": "พยากรณ์วันครอบคลุมสต๊อก 8 สัปดาห์ข้างหน้า",
+            "reason": "ดูว่าถ้าเป็นแบบนี้ต่อไปจะเกิดอะไร",
+            "intentKey": "follow|forecast",
+            "score": 0.55
+          },
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "วันครอบคลุมสต๊อก รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ขอวันครอบคลุมสต๊อกแยกตามศูนย์กระจายสินค้า เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    }
+  ],
+  "dropped": []
+}

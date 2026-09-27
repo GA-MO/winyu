@@ -1,0 +1,2681 @@
+{
+  "investigation": {
+    "id": "u_may",
+    "userId": "u_may",
+    "at": "2026-09-26T19:16:46.271Z",
+    "model": "google/gemini-3.8-flash",
+    "stories": [
+      {
+        "kind": "urgent",
+        "claim": "ส่งคนขับรถยกอบรมต่อใบขับรอบ 26 ก.ย. ก่อนที่นั่งเต็ม",
+        "scope": "โรงงานขอนแก่น",
+        "period": "26 ก.ย. 2569 · 1 วัน",
+        "subject": {
+          "metric": null,
+          "region": null
+        },
+        "headline": {
+          "label": "ที่นั่งหลักสูตรต่ออายุใบขับขี่รถยกคงเหลือ",
+          "value": "เหลือ 3 ที่ จาก 12",
+          "tone": "bad"
+        },
+        "projection": null,
+        "causes": [
+          {
+            "label": "มาตรการความปลอดภัยค้างส่ง",
+            "detail": "อุบัติเหตุรถยก 15 ก.ย. 2569",
+            "value": "7 วัน",
+            "shareOfGap": null
+          },
+          {
+            "label": "ใบขับขี่หัวหน้ากะใกล้หมดอายุ",
+            "detail": "หัวหน้ากะสายการผลิต 2 หมดใน 8 วัน",
+            "value": "8 วัน",
+            "shareOfGap": null
+          }
+        ],
+        "checked": [
+          {
+            "text": "รอบใบขับรถยกเหลือ 3 ที่",
+            "verdict": "confirmed",
+            "source": "list_courses"
+          },
+          {
+            "text": "ต้องทวนสอบใบขับก่อน 30 ก.ย.",
+            "verdict": "confirmed",
+            "source": "get_site"
+          },
+          {
+            "text": "คุณแดง ใบขับหมดใน 8 วัน",
+            "verdict": "confirmed",
+            "source": "get_person"
+          }
+        ],
+        "recommendation": "ลงทะเบียนคุณแดงและคุณวันชัยรอบ 26 ก.ย. และขอเพิ่มที่ GMP 8 ต.ค.",
+        "id": "u_may-0",
+        "owner": null
+      },
+      {
+        "kind": "watch",
+        "claim": "ลาออกฝ่ายผลิตขึ้นเป็น 1.5% โอทีสะสมสูง",
+        "scope": "ฝ่ายการผลิต",
+        "period": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+        "subject": {
+          "metric": "attrition_rate",
+          "region": null
+        },
+        "headline": {
+          "label": "อัตราการลาออกต่อเดือน ฝ่ายการผลิต",
+          "value": "1.5%",
+          "tone": "bad"
+        },
+        "projection": null,
+        "causes": [
+          {
+            "label": "ชั่วโมงทำงานล่วงเวลาสะสมสูง",
+            "detail": "โอทีเฉลี่ย 3 เดือนโรงงานขอนแก่นสูง",
+            "value": "71 ชม.",
+            "shareOfGap": null
+          },
+          {
+            "label": "บุคลากรหลักเสี่ยงลาออกสูง",
+            "detail": "โอทีสูง ไม่ได้เลื่อนตำแหน่ง 12 ปี",
+            "value": "96 ชม.",
+            "shareOfGap": null
+          }
+        ],
+        "checked": [
+          {
+            "text": "ลาออกฝ่ายผลิต 1.5%",
+            "verdict": "confirmed",
+            "source": "query_metric"
+          },
+          {
+            "text": "โอทีเฉลี่ย 3 เดือน 71 ชม.",
+            "verdict": "confirmed",
+            "source": "get_site"
+          },
+          {
+            "text": "คุณแดง เสี่ยงลาออก โอที 96 ชม.",
+            "verdict": "confirmed",
+            "source": "find_people"
+          }
+        ],
+        "recommendation": "คุยกับผู้จัดการฝ่ายผลิตเรื่องจัดกะลดโอที และคุยความก้าวหน้ากับหัวหน้ากะ",
+        "id": "u_may-1",
+        "owner": null
+      },
+      {
+        "kind": "watch",
+        "claim": "เซลส์อุบลฯ ว่าง 99 วัน ผู้สมัครยังไม่ตอบรับ",
+        "scope": "ฝ่ายขาย ภาคอีสาน",
+        "period": "22 ก.ย. 2569",
+        "subject": {
+          "metric": null,
+          "region": null
+        },
+        "headline": {
+          "label": "ระยะเวลาเปิดรับตำแหน่งนานที่สุด",
+          "value": "99 วัน",
+          "tone": "bad"
+        },
+        "projection": null,
+        "causes": [
+          {
+            "label": "ผู้สมัครยังไม่ตอบรับข้อเสนอ",
+            "detail": "ยื่นข้อเสนอแล้ว ยังไม่ตอบรับ",
+            "value": "12 วัน",
+            "shareOfGap": null
+          },
+          {
+            "label": "ตำแหน่งที่เปิดค้างเพิ่มภาระงานให้หัวหน้าทีม",
+            "detail": "ตำแหน่งโคราชว่าง 49 วัน",
+            "value": "49 วัน",
+            "shareOfGap": null
+          }
+        ],
+        "checked": [
+          {
+            "text": "เปิดรับมา 99 วัน",
+            "verdict": "confirmed",
+            "source": "list_candidates"
+          },
+          {
+            "text": "คุณวรรณายังไม่ตอบรับ 12 วัน",
+            "verdict": "confirmed",
+            "source": "list_candidates"
+          },
+          {
+            "text": "คุณป้อง โอทีสะสม 118 ชม.",
+            "verdict": "confirmed",
+            "source": "get_person"
+          }
+        ],
+        "recommendation": "โทรตามคุณวรรณาวันนี้ ถ้าปฏิเสธให้ยื่นข้อเสนอคุณชยพล",
+        "id": "u_may-2",
+        "owner": null
+      }
+    ],
+    "checkedCount": 23,
+    "costUsd": 0.10988399999999998
+  },
+  "notes": "จากการตรวจสอบข้อมูลรอบด้านในขอบเขตของคุณเมย์ กิตติศักดิ์ (ผู้จัดการฝ่ายทรัพยากรบุคคล) ประจำวันที่ **22 กันยายน 2569** มีประเด็นสำคัญด้านทรัพยากรบุคคล ความปลอดภัย และการสรรหาบุคลากรที่ต้องได้รับการดูแลและจัดการอย่างเร่งด่วน ดังนี้:\n\n---\n\n### 1. ความปลอดภัยและการทำงานล่วงเวลาสูงผิดปกติที่ขอนแก่น (สถานะ: ต้องดูด่วน)\nจากการตรวจสอบสถานะความปลอดภัยของสถานที่ปฏิบัติงาน 6 แห่ง พบว่าพื้นที่ขอนแก่นทั้งโรงงานและศูนย์กระจายสินค้าขึ้นสถานะ **\"ต้องดูด่วน\"** ทั้ง 2 แห่ง เนื่องจากเป็นช่วงเร่งผลิตก่อนเทศกาลออกพรรษา (26 ต.ค. 2569):\n\n* **โรงงานขอนแก่น (พนักงาน 620 คน):**\n  * **อุบัติเหตุหยุดงาน (LTI):** เกิดเหตุเมื่อ 15 ก.ย. 2569 (ผ่านมาเพียง 7 วัน) รถยกชนพนักงานขนย้ายที่ลานโหลดสายการผลิต 2 ในกะดึก ส่งผลให้พนักงานข้อเท้าแพลงและหยุดงาน 3 วัน\n  * **สถิติ 90 วันล่าสุด:** เกิดเหตุการณ์รวม **4 ครั้ง** (เทียบกับ 90 วันก่อนหน้าซึ่งเป็น 0 ครั้ง) โดยเป็นอุบัติเหตุหยุดงาน 1 ครั้ง, เกือบเกิดเหตุ 2 ครั้ง (รถยกเฉี่ยวพาเลทล้ม 9 ก.ย., รถยกสัญญาณถอยเสีย 3 คัน 27 ส.ค.), และปฐมพยาบาล 1 ครั้ง (ลื่นล้ม 3 ก.ย.)\n  * **มาตรการแก้ไขที่ยังค้างอยู่ (Open Action):** ต้องแยกทางเดินรถยกกับทางคนเดินที่ลานโหลด และ **ทวนสอบใบขับขี่รถยกทุกคนก่อนวันที่ 30 ก.ย. 2569**\n  * **ชั่วโมงการทำงานล่วงเวลา (OT):** เฉลี่ยย้อนหลัง 3 เดือนสูงถึง **71 ชั่วโมง/คน**\n* **ศูนย์กระจายสินค้าขอนแก่น (พนักงาน 95 คน):**\n  * เกิดเหตุการณ์เกือบเกิดเหตุ (12 ก.ย. 2569) รถบรรทุกเข้าท่าโหลดขณะมีคนอยู่หลังรถเนื่องจากคิวรถแน่น มีมาตรการแก้ไขค้างอยู่เรื่องการติดตั้งระบบล็อกล้อและสัญญาณไฟ OT เฉลี่ย 3 เดือนอยู่ที่ **52 ชั่วโมง/คน**\n\n---\n\n### 2. อัตราการลาออกและบุคลากรหลักที่อยู่ในเกณฑ์ \"เสี่ยงลาออกสูง\"\n* **ภาพรวมกำลังคนและอัตราการลาออก (1 – 22 ก.ย. 2569):**\n  * จำนวนพนักงานทั้งบริษัทรวม **4,511 คน** (+0.2% จากช่วงก่อนหน้า) นำโดยฝ่ายผลิต 2,189 คน และฝ่ายขาย 1,320 คน\n  * อัตราการลาออกเฉลี่ยทั้งบริษัทอยู่ที่ **1.3%** (+12.5% จากช่วงก่อนหน้า)\n  * **ฝ่ายการผลิตมีอัตราการลาออกสูงที่สุดที่ 1.5%** พุ่งขึ้นอย่างมีนัยสำคัญจากช่วงก่อนหน้าถึง **+50.4%** (จากเดิม 1.0%) ซึ่งสอดคล้องกับภาวะชั่วโมงทำงานล่วงเวลาสะสมและความเสี่ยงหน้างาน\n  * ฝ่ายทรัพยากรบุคคลมีอัตราการลาออกขยับขึ้นมาที่ **1.0%** (+31.1% จากเดิม 0.8%)\n* **บุคลากรหลักที่มีความเสี่ยงสูง (High Flight Risk & Burnout):**\n  1. **คุณแดง ศักดิ์ดี** (หัวหน้ากะ สายการผลิต 2 โรงงานขอนแก่น, อายุงาน 23 ปี 6 เดือน): สถานะ *เสี่ยงลาออกสูง* จากสาเหตุสะสม OT 3 เดือนถึง **96 ชม.** และไม่ได้รับการเลื่อนตำแหน่งมา 12 ปี อีกทั้ง **ใบขับขี่รถยกจะหมดอายุในอีก 8 วัน** (30 ก.ย. 2569) ซึ่งตรงกับเงื่อนไขมาตรการแก้ไขอุบัติเหตุของโรงงานพอดี\n  2. **คุณป้อง แสนสุข** (หัวหน้าทีมขาย นครราชสีมา, อายุงาน 17 ปี 8 เดือน): สถานะ *เสี่ยงลาออกสูง* จากสาเหตุ OT 3 เดือนสูงถึง **118 ชม.** และไม่ได้รับการเลื่อนตำแหน่งมา 10 ปี อีกทั้ง **ใบอนุญาตขายสุราจะหมดอายุในอีก 16 วัน** (8 ต.ค. 2569)\n\n---\n\n### 3. การต่ออายุใบรับรองและการฝึกอบรมที่ต้องจัดการด่วน (Certificates & Training)\nมีหลักสูตรอบรมที่จะจัดขึ้นในเร็วๆ นี้ ซึ่งผูกกับใบอนุญาตของบุคลากรที่กำลังจะหมดอายุ:\n1. **หลักสูตร \"ต่ออายุใบขับขี่รถยก (ภาคปฏิบัติ)\" (26 ก.ย. 2569 ณ โรงงานขอนแก่น):**\n   * เหลือเพียง **3 ที่นั่ง** (จาก 12 ที่นั่ง)\n   * **ต้องลงทะเบียนด่วนที่สุด:** คุณแดง ศักดิ์ดี (ใบขับขี่หมดอายุ 30 ก.ย. ในอีก 8 วัน) และคุณวันชัย เพชรดี พนักงานขับรถยกคลังปทุมธานี (หมดอายุในอีก 20 วัน)\n2. **หลักสูตร \"ทบทวนกฎหมายควบคุมเครื่องดื่มแอลกอฮอล์\" (3 ต.ค. 2569 รูปแบบออนไลน์):**\n   * เหลือ 39 ที่นั่ง (จาก 80 ที่นั่ง)\n   * บุคลากรที่ต้องเข้าอบรม: คุณป้อง แสนสุข (หมดอายุใน 16 วัน) และคุณกฤต จันทร์เสน (หมดอายุใน 23 วัน)\n3. **หลักสูตร \"GMP และความปลอดภัยอาหาร รอบต่ออายุ\" (8 ต.ค. 2569 ณ โรงงานขอนแก่น):**\n   * **สถานะปัจจุบัน: ที่นั่งเต็มแล้ว (เต็มแล้ว)**\n   * **ความเสี่ยง:** คุณสมศรี ทองคำ (หัวหน้าแผนกบรรจุ โรงงานขอนแก่น) ใบรับรอง GMP จะหมดอายุในอีก 28 วัน ฝ่ายบุคคลต้องประสานเปิดโควตาเพิ่มหรือจัดรอบพิเศษทันที\n\n---\n\n### 4. คอขวดงานสรรหาบุคลากร (Recruitment Bottlenecks)\nปัจจุบันมีตำแหน่งงานเปิดรับ 4 ตำแหน่ง รวมผู้สมัคร 25 คน เข้าสู่ขั้นตอนสัมภาษณ์ 13 คน:\n* **พนักงานขาย อุบลราชธานี (เขตวารินฯ):**\n  * เปิดรับมานานถึง **99 วัน** (นานที่สุดในบริษัท)\n  * ยื่นข้อเสนอ (Offer) ให้กับ **คุณวรรณา ศรีบุญเรือง** แล้ว แต่ **ยังไม่ตอบรับข้อเสนอผ่านมา 12 วัน** ต้องรีบติดตามหรือพิจารณาผู้สมัครสำรองในรอบสัมภาษณ์สุดท้าย (เช่น คุณชยพล แสงอรุณ คะแนน 3.5/5)\n* **พนักงานขาย ขอนแก่น (เขตชุมแพ):**\n  * เปิดรับมา **64 วัน** ยื่นข้อเสนอให้คุณณัฐพล ศรีวงศ์ (คะแนน 4.5/5) แล้ว แต่ติดเงื่อนไขขอเริ่มงาน 1 พ.ย. 2569 เนื่องจากต้องแจ้งออกล่วงหน้า 30 วัน\n* **พนักงานขาย นครราชสีมา (เขตปากช่อง):**\n  * เปิดรับมา **49 วัน** โดยมีคุณป้อง แสนสุข เป็นผู้จัดการผู้รับผิดชอบ ซึ่งกำลังแบกรับงานหนัก (OT 118 ชม.) จำเป็นต้องเร่งกระบวนการสัมภาษณ์รอบสุดท้ายเพื่อบรรเทาภาระงานให้คุณป้อง\n* **พนักงานควบคุมคุณภาพ โรงงานขอนแก่น:**\n  * เปิดรับมา 21 วัน มีผู้สมัครสัมภาษณ์ 2 คน โดยคุณสุภาวดี ธรรมวงศ์ ได้คะแนนสัมภาษณ์ 4/5 และมีใบรับรอง GMP พร้อมเริ่มงาน\n\n---\n\n### 5. การสืบทอดตำแหน่ง (Succession) และการดูแลทีมภายในฝ่ายบุคคล\n* **บุคลากรเตรียมเกษียณอายุ:**\n  * **คุณประยูร ดีมาก** (ช่างซ่อมบำรุงอาวุโส โรงงานปทุมธานี, อายุงาน 36 ปี 8 เดือน): จะเกษียณใน 1 ปี\n  * **คุณสมศรี ทองคำ** (หัวหน้าแผนกบรรจุ โรงงานขอนแก่น, อายุงาน 31 ปี 3 เดือน): จะเกษียณใน 2 ปี\n* **ทีมงานภายในฝ่ายทรัพยากรบุคคล (ลูกน้องสายตรงของคุณเมย์):**\n  * คุณขวัญ ประเสริฐวงศ์ (เจ้าหน้าที่เงินเดือน, อายุงาน 8 ปี 5 เดือน) และคุณหนิง สายทอง (เจ้าหน้าที่ฝึกอบรม, อายุงาน 7 ปี) มีป้ายเตือน *\"ควรคุยเรื่องความก้าวหน้า\"* แนะนำให้คุณเมย์จัดรอบพูดคุย Career Development 1-on-1 ภายในเดือนนี้\n\n---\n\n### แผนปฏิบัติการที่แนะนำสำหรับคุณเมย์ในวันนี้:\n1. **เร่งลงทะเบียนอบรมรถยก (ภายในวันนี้):** สำรอง 2 ที่นั่งที่เหลือในหลักสูตร 26 ก.ย. ให้คุณแดง ศักดิ์ดี และคุณวันชัย เพชรดี เพื่อให้สอดรับกับมาตรการความปลอดภัยก่อน 30 ก.ย.\n2. **ขยายที่นั่งอบรม GMP (8 ต.ค.):** ให้เจ้าหน้าที่ฝึกอบรม (คุณหนิง) ประสานวิทยากรเพื่อเพิ่มที่นั่งให้คุณสมศรี ทองคำ\n3. **แก้ปัญหาข้อเสนอตำแหน่งเซลส์อุบลฯ:** ให้เจ้าหน้าที่สรรหา (คุณบี) โทรติดตามการตัดสินใจของคุณวรรณา ศรีบุญเรือง หากปฏิเสธ ให้เรียกคุณชยพล แสงอรุณ ทันที\n4. **ประสานงานลดภาระงาน/OT ให้คุณป้อง แสนสุข (โคราช):** เร่งปิดตำแหน่งเซลส์ปากช่อง และจัดเวลาให้คุณป้องเข้าอบรมใบอนุญาตขายสุราออนไลน์ในวันที่ 3 ต.ค.\n5. **นัดคุยเรื่องความก้าวหน้าในสายงาน (Career Progression):** กับพนักงานหลักที่เสี่ยงลาออกและทีมงานภายในฝ่ายบุคคล\n\n---\n\n### Executive Summary (English)\n* **Khon Kaen Safety Escalation:** A Lost-Time Injury (LTI) occurred at Khon Kaen Plant on 2026-09-15 (forklift collision injuring an employee, 3 lost days) during night-shift production ahead of Awk Phansa. The site recorded 4 incidents in the last 90 days (vs 0 in the prior 90 days), with a mandatory corrective action due by 2026-09-30 to verify all forklift operator licences. Average 3-month OT stands at 71 hours/person.\n* **Production Attrition Surge:** Overall headcount is 4,511 (+0.2% MoM as of 2026-09-22). Company monthly attrition reached 1.3% (+12.5% MoM), driven by a sharp rise in Production attrition to 1.5% (+50.4% MoM from 1.0%).\n* **High Flight Risk Key Personnel:** Shift Supervisor Dang Sakdi (Khon Kaen Plant) has accumulated 96 hours of OT over 3 months without promotion in 12 years; his forklift licence expires on 2026-09-30 (8 days left). Sales Supervisor Pong Saensuk (Nakhon Ratchasima) has 118 hours of OT without promotion in 10 years; his liquor license expires on 2026-10-08 (16 days left).\n* **Urgent Training & Certifications:** The Forklift recertification course on 2026-09-26 has only 3 seats remaining (urgent enrollment needed for Dang Sakdi and Wanchai Phetdee). The GMP recertification course on 2026-10-08 is currently FULL, requiring seat expansion for Somsri Thongkham whose certificate expires in 28 days.\n* **Recruitment Bottlenecks:** The Sales Representative position in Ubon Ratchathani has been open for 99 days; an offer has been pending without response for 12 days (Wanna Sriboonrueang). Accelerating hiring for this role and the Nakhon Ratchasima position (open 49 days) is essential to relieve extreme overtime burdens on local leads.",
+  "calls": [
+    {
+      "tool": "get_alerts",
+      "input": {
+        "status": "open",
+        "limit": 10
+      },
+      "output": {
+        "ok": true,
+        "summary": "ไม่พบความผิดปกติที่เปิดอยู่ในขอบเขตของผู้ใช้คนนี้",
+        "rows": [],
+        "lessons": [],
+        "nextActions": []
+      }
+    },
+    {
+      "tool": "recall_memory",
+      "input": {
+        "query": "เมย์ กิตติศักดิ์ HR"
+      },
+      "output": {
+        "ok": true,
+        "summary": "ยังไม่มีข้อมูลที่จำไว้เกี่ยวกับผู้ใช้คนนี้",
+        "data": []
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "headcount",
+        "dims": [
+          "department"
+        ],
+        "filters": {},
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "prev_period",
+        "limit": 10,
+        "sort": "value_desc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "department": "การผลิต",
+            "value": 2189,
+            "value_label": "2,189 คน",
+            "compare_value": 2187,
+            "delta_pct": 0.1
+          },
+          {
+            "department": "ขาย",
+            "value": 1320,
+            "value_label": "1,320 คน",
+            "compare_value": 1316,
+            "delta_pct": 0.3
+          },
+          {
+            "department": "ซัพพลายเชน",
+            "value": 446,
+            "value_label": "446 คน",
+            "compare_value": 445,
+            "delta_pct": 0.2
+          },
+          {
+            "department": "การตลาด",
+            "value": 200,
+            "value_label": "200 คน",
+            "compare_value": 199,
+            "delta_pct": 0.5
+          },
+          {
+            "department": "การเงิน",
+            "value": 146,
+            "value_label": "146 คน",
+            "compare_value": 146,
+            "delta_pct": 0
+          },
+          {
+            "department": "ไอที",
+            "value": 107,
+            "value_label": "107 คน",
+            "compare_value": 106,
+            "delta_pct": 0.9
+          },
+          {
+            "department": "ทรัพยากรบุคคล",
+            "value": 79,
+            "value_label": "79 คน",
+            "compare_value": 79,
+            "delta_pct": 0
+          },
+          {
+            "department": "บริหาร",
+            "value": 24,
+            "value_label": "24 คน",
+            "compare_value": 24,
+            "delta_pct": 0
+          }
+        ],
+        "summary": "จำนวนพนักงาน 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 4,511 คน · สูงสุด: การผลิต 2,189 คน · ขาย 1,320 คน · ซัพพลายเชน 446 คน · เทียบช่วงก่อนหน้า +0.2% · (8 แถว · certified · HRIS)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "4,511 คน",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 8,
+          "deltaPercent": 0.2,
+          "compareLabel": "เทียบช่วงก่อนหน้า",
+          "compareNote": null,
+          "top": [
+            {
+              "label": "การผลิต",
+              "value": "2,189 คน"
+            },
+            {
+              "label": "ขาย",
+              "value": "1,320 คน"
+            },
+            {
+              "label": "ซัพพลายเชน",
+              "value": "446 คน"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "headcount",
+          "certified": true,
+          "sourceSystem": "HRIS",
+          "asOf": "2026-09-22",
+          "rowCount": 8,
+          "filtersApplied": {},
+          "filterLabels": [],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "headcount",
+          "dims": [
+            "department"
+          ],
+          "filters": {},
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "prev_period",
+          "limit": 10,
+          "sort": "value_desc",
+          "where": null
+        },
+        "nextActions": [],
+        "followUps": [
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายเดือน",
+            "prompt": "จำนวนพนักงาน รายเดือนย้อนหลัง 6 เดือน",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ขอจำนวนพนักงานแยกตามฝ่าย เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "attrition_rate",
+        "dims": [
+          "department"
+        ],
+        "filters": {},
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "prev_period",
+        "limit": 10,
+        "sort": "value_desc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "department": "การผลิต",
+            "value": 1.5,
+            "value_label": "1.5%",
+            "compare_value": 1,
+            "delta_pct": 50.4
+          },
+          {
+            "department": "การตลาด",
+            "value": 1.3,
+            "value_label": "1.3%",
+            "compare_value": 1.4,
+            "delta_pct": -3.6
+          },
+          {
+            "department": "ขาย",
+            "value": 1.3,
+            "value_label": "1.3%",
+            "compare_value": 1.5,
+            "delta_pct": -11.3
+          },
+          {
+            "department": "ไอที",
+            "value": 1.2,
+            "value_label": "1.2%",
+            "compare_value": 1.6,
+            "delta_pct": -25
+          },
+          {
+            "department": "ทรัพยากรบุคคล",
+            "value": 1,
+            "value_label": "1.0%",
+            "compare_value": 0.8,
+            "delta_pct": 31.1
+          },
+          {
+            "department": "บริหาร",
+            "value": 0.8,
+            "value_label": "0.8%",
+            "compare_value": 0.8,
+            "delta_pct": 0
+          },
+          {
+            "department": "ซัพพลายเชน",
+            "value": 0.8,
+            "value_label": "0.8%",
+            "compare_value": 1.2,
+            "delta_pct": -31.8
+          },
+          {
+            "department": "การเงิน",
+            "value": 0.8,
+            "value_label": "0.8%",
+            "compare_value": 0.8,
+            "delta_pct": 0
+          }
+        ],
+        "summary": "อัตราการลาออกต่อเดือน 1 ก.ย. 2569 – 22 ก.ย. 2569: เฉลี่ย 1.3% · สูงสุด: การผลิต 1.5% · การตลาด 1.3% · ขาย 1.3% · เทียบช่วงก่อนหน้า +12.5% · (8 แถว · certified · HRIS)",
+        "headline": {
+          "aggregate": "average",
+          "value": "1.3%",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 8,
+          "deltaPercent": 12.5,
+          "compareLabel": "เทียบช่วงก่อนหน้า",
+          "compareNote": null,
+          "top": [
+            {
+              "label": "การผลิต",
+              "value": "1.5%"
+            },
+            {
+              "label": "การตลาด",
+              "value": "1.3%"
+            },
+            {
+              "label": "ขาย",
+              "value": "1.3%"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "attrition_rate",
+          "certified": true,
+          "sourceSystem": "HRIS",
+          "asOf": "2026-09-22",
+          "rowCount": 8,
+          "filtersApplied": {},
+          "filterLabels": [],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "attrition_rate",
+          "dims": [
+            "department"
+          ],
+          "filters": {},
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "prev_period",
+          "limit": 10,
+          "sort": "value_desc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "drill-why",
+            "kind": "drill",
+            "label": "ทำไมการผลิตถึงเป็นแบบนี้",
+            "reason": "การผลิต เปลี่ยนไปในทางที่แย่ที่สุด",
+            "tool": null,
+            "input": null,
+            "prompt": "เจาะดูอัตราการลาออกต่อเดือนของการผลิต ว่าทำไมถึงเปลี่ยนไป เทียบกับช่วงก่อนหน้าและช่วงเดียวกันปีก่อน"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-trend",
+            "label": "เริ่มแย่ตั้งแต่เมื่อไร",
+            "prompt": "อัตราการลาออกต่อเดือนของการผลิต รายเดือนย้อนหลัง 6 เดือน",
+            "reason": "ดูว่าตัวเลขเริ่มลดลงสัปดาห์ไหน",
+            "intentKey": "follow|trend",
+            "score": 0.65
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ขออัตราการลาออกต่อเดือนแยกตามฝ่าย เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "tool": "list_candidates",
+      "input": {
+        "position": null,
+        "stage": null
+      },
+      "output": {
+        "ok": true,
+        "summary": "4 ตำแหน่งที่เปิดรับ · ผู้สมัครรวม 25 คน",
+        "data": {
+          "position": null,
+          "metrics": [
+            {
+              "label": "ผู้สมัครทั้งหมด",
+              "value": "25 คน",
+              "detail": "7 วันล่าสุด +5",
+              "tone": "neutral"
+            },
+            {
+              "label": "ถึงขั้นสัมภาษณ์ขึ้นไป",
+              "value": "13 คน",
+              "detail": "ยื่นข้อเสนอแล้ว 2 คน",
+              "tone": "neutral"
+            },
+            {
+              "label": "ตำแหน่งที่เปิดนานที่สุด",
+              "value": "99 วัน",
+              "detail": null,
+              "tone": "bad"
+            }
+          ],
+          "candidates": [
+            {
+              "id": "c_kk01",
+              "name": "คุณณัฐพล ศรีวงศ์",
+              "position": "พนักงานขาย ขอนแก่น (เขตชุมแพ)",
+              "stage": "ยื่นข้อเสนอ",
+              "step": 5,
+              "steps": 5,
+              "stage_percent": 100,
+              "score": 4.5,
+              "score_label": "คะแนนสัมภาษณ์ 4.5 / 5",
+              "applied": "สมัคร 24 ก.ค. 2569",
+              "experience": "ขายเครื่องดื่มให้ร้านอาหารในขอนแก่น 5 ปี",
+              "strength": "รู้จักร้านในเขตชุมแพกว่า 60 ร้าน",
+              "concern": "ขอเริ่มงาน 1 พ.ย. เพราะต้องแจ้งออกล่วงหน้า 30 วัน",
+              "source": "พนักงานแนะนำ (คุณกฤต)",
+              "badges": [
+                {
+                  "label": "ยื่นข้อเสนอแล้ว",
+                  "tone": "success"
+                },
+                {
+                  "label": "มีเรื่องต้องคุย",
+                  "tone": "warning"
+                },
+                {
+                  "label": "พนักงานแนะนำ",
+                  "tone": "neutral"
+                }
+              ],
+              "expected_salary": "36,000 บาท"
+            },
+            {
+              "id": "c_ub01",
+              "name": "คุณวรรณา ศรีบุญเรือง",
+              "position": "พนักงานขาย อุบลราชธานี (เขตวารินฯ)",
+              "stage": "ยื่นข้อเสนอ",
+              "step": 5,
+              "steps": 5,
+              "stage_percent": 100,
+              "score": 4,
+              "score_label": "คะแนนสัมภาษณ์ 4 / 5",
+              "applied": "สมัคร 22 มิ.ย. 2569",
+              "experience": "ผู้แทนขายเครื่องดื่มชูกำลัง อุบลฯ 4 ปี",
+              "strength": "ดูแลร้านค้าเขตวารินฯ มาก่อน",
+              "concern": "ยังไม่ตอบรับข้อเสนอ ผ่านมา 12 วัน",
+              "source": "JobThai",
+              "badges": [
+                {
+                  "label": "ยื่นข้อเสนอแล้ว",
+                  "tone": "success"
+                },
+                {
+                  "label": "มีเรื่องต้องคุย",
+                  "tone": "warning"
+                }
+              ],
+              "expected_salary": "33,000 บาท"
+            },
+            {
+              "id": "c_kk02",
+              "name": "คุณพิมพ์ชนก แก้วมณี",
+              "position": "พนักงานขาย ขอนแก่น (เขตชุมแพ)",
+              "stage": "สัมภาษณ์รอบสุดท้าย",
+              "step": 4,
+              "steps": 5,
+              "stage_percent": 80,
+              "score": 4.5,
+              "score_label": "คะแนนสัมภาษณ์ 4.5 / 5",
+              "applied": "สมัคร 28 ก.ค. 2569",
+              "experience": "ผู้แทนขายบริษัทสินค้าอุปโภค 4 ปี",
+              "strength": "ยอดขายเกินเป้า 8 ไตรมาสติด",
+              "concern": null,
+              "source": "JobThai",
+              "badges": [],
+              "expected_salary": "34,000 บาท"
+            },
+            {
+              "id": "c_kk03",
+              "name": "คุณธีรวัฒน์ บุญประเสริฐ",
+              "position": "พนักงานขาย ขอนแก่น (เขตชุมแพ)",
+              "stage": "สัมภาษณ์รอบสุดท้าย",
+              "step": 4,
+              "steps": 5,
+              "stage_percent": 80,
+              "score": 4,
+              "score_label": "คะแนนสัมภาษณ์ 4 / 5",
+              "applied": "สมัคร 2 ส.ค. 2569",
+              "experience": "ผู้แทนขายเบียร์คู่แข่งในภาคอีสาน 3 ปี",
+              "strength": "เคยดูแลเอเย่นต์ในอำเภอรอบขอนแก่น",
+              "concern": "ยังติดสัญญาห้ามทำงานกับคู่แข่งถึง ธ.ค. 2569",
+              "source": "LinkedIn",
+              "badges": [
+                {
+                  "label": "มีเรื่องต้องคุย",
+                  "tone": "warning"
+                }
+              ],
+              "expected_salary": "40,000 บาท"
+            },
+            {
+              "id": "c_kr01",
+              "name": "คุณจิราพร สมบูรณ์",
+              "position": "พนักงานขาย นครราชสีมา (เขตปากช่อง)",
+              "stage": "สัมภาษณ์รอบสุดท้าย",
+              "step": 4,
+              "steps": 5,
+              "stage_percent": 80,
+              "score": 4,
+              "score_label": "คะแนนสัมภาษณ์ 4 / 5",
+              "applied": "สมัคร 8 ส.ค. 2569",
+              "experience": "ผู้แทนขายขนมขบเคี้ยวนครราชสีมา 4 ปี",
+              "strength": "รู้จักร้านค้าในปากช่องและวังน้ำเขียว",
+              "concern": null,
+              "source": "JobThai",
+              "badges": [],
+              "expected_salary": "32,000 บาท"
+            },
+            {
+              "id": "c_ub02",
+              "name": "คุณชยพล แสงอรุณ",
+              "position": "พนักงานขาย อุบลราชธานี (เขตวารินฯ)",
+              "stage": "สัมภาษณ์รอบสุดท้าย",
+              "step": 4,
+              "steps": 5,
+              "stage_percent": 80,
+              "score": 3.5,
+              "score_label": "คะแนนสัมภาษณ์ 3.5 / 5",
+              "applied": "สมัคร 1 ก.ค. 2569",
+              "experience": "ขายสินค้าเกษตร 3 ปี",
+              "strength": "พูดภาษาถิ่นได้ รู้จักผู้นำชุมชน",
+              "concern": null,
+              "source": "พนักงานแนะนำ (คุณแนน)",
+              "badges": [
+                {
+                  "label": "พนักงานแนะนำ",
+                  "tone": "neutral"
+                }
+              ],
+              "expected_salary": "29,000 บาท"
+            },
+            {
+              "id": "c_qc01",
+              "name": "คุณสุภาวดี ธรรมวงศ์",
+              "position": "พนักงานควบคุมคุณภาพ โรงงานขอนแก่น",
+              "stage": "สัมภาษณ์",
+              "step": 3,
+              "steps": 5,
+              "stage_percent": 60,
+              "score": 4,
+              "score_label": "คะแนนสัมภาษณ์ 4 / 5",
+              "applied": "สมัคร 3 ก.ย. 2569",
+              "experience": "นักวิเคราะห์คุณภาพโรงงานน้ำดื่ม 3 ปี",
+              "strength": "มีใบรับรอง GMP ยังไม่หมดอายุ",
+              "concern": null,
+              "source": "JobThai",
+              "badges": [],
+              "expected_salary": "26,000 บาท"
+            },
+            {
+              "id": "c_kk04",
+              "name": "คุณศิริลักษณ์ ทองดี",
+              "position": "พนักงานขาย ขอนแก่น (เขตชุมแพ)",
+              "stage": "สัมภาษณ์",
+              "step": 3,
+              "steps": 5,
+              "stage_percent": 60,
+              "score": 3.5,
+              "score_label": "คะแนนสัมภาษณ์ 3.5 / 5",
+              "applied": "สมัคร 10 ส.ค. 2569",
+              "experience": "พนักงานขายหน้าร้านโมเดิร์นเทรด 2 ปี",
+              "strength": "สื่อสารดี ขับรถได้ มีรถส่วนตัว",
+              "concern": "ยังไม่เคยขายช่องทางร้านค้าปลีก",
+              "source": "JobThai",
+              "badges": [
+                {
+                  "label": "มีเรื่องต้องคุย",
+                  "tone": "warning"
+                }
+              ],
+              "expected_salary": "28,000 บาท"
+            },
+            {
+              "id": "c_kr02",
+              "name": "คุณสมศักดิ์ ใจดี",
+              "position": "พนักงานขาย นครราชสีมา (เขตปากช่อง)",
+              "stage": "สัมภาษณ์",
+              "step": 3,
+              "steps": 5,
+              "stage_percent": 60,
+              "score": 3.5,
+              "score_label": "คะแนนสัมภาษณ์ 3.5 / 5",
+              "applied": "สมัคร 12 ส.ค. 2569",
+              "experience": "ขายเครื่องดื่มให้รีสอร์ต 3 ปี",
+              "strength": "ดูแลลูกค้ากลุ่มรีสอร์ตเขาใหญ่",
+              "concern": null,
+              "source": "พนักงานแนะนำ (คุณป้อง)",
+              "badges": [
+                {
+                  "label": "พนักงานแนะนำ",
+                  "tone": "neutral"
+                }
+              ],
+              "expected_salary": "31,000 บาท"
+            },
+            {
+              "id": "c_qc02",
+              "name": "คุณธนากร ปัญญาดี",
+              "position": "พนักงานควบคุมคุณภาพ โรงงานขอนแก่น",
+              "stage": "สัมภาษณ์",
+              "step": 3,
+              "steps": 5,
+              "stage_percent": 60,
+              "score": 3.5,
+              "score_label": "คะแนนสัมภาษณ์ 3.5 / 5",
+              "applied": "สมัคร 4 ก.ย. 2569",
+              "experience": "ผู้ช่วยห้องแล็บจุลชีววิทยา 2 ปี",
+              "strength": "ตรวจเชื้อในผลิตภัณฑ์เป็น",
+              "concern": null,
+              "source": "งานนัดพบแรงงาน ม.ขอนแก่น",
+              "badges": [],
+              "expected_salary": "24,000 บาท"
+            },
+            {
+              "id": "c_ub03",
+              "name": "คุณปวีณา คำภู",
+              "position": "พนักงานขาย อุบลราชธานี (เขตวารินฯ)",
+              "stage": "สัมภาษณ์",
+              "step": 3,
+              "steps": 5,
+              "stage_percent": 60,
+              "score": 3,
+              "score_label": "คะแนนสัมภาษณ์ 3 / 5",
+              "applied": "สมัคร 15 ก.ค. 2569",
+              "experience": "พนักงานขายหน้าร้าน 2 ปี",
+              "strength": "ตั้งใจเรียนรู้",
+              "concern": null,
+              "source": "เว็บไซต์บริษัท",
+              "badges": [],
+              "expected_salary": "24,000 บาท"
+            },
+            {
+              "id": "c_kk05",
+              "name": "คุณอภิชาติ พลเยี่ยม",
+              "position": "พนักงานขาย ขอนแก่น (เขตชุมแพ)",
+              "stage": "สัมภาษณ์",
+              "step": 3,
+              "steps": 5,
+              "stage_percent": 60,
+              "score": 3,
+              "score_label": "คะแนนสัมภาษณ์ 3 / 5",
+              "applied": "สมัคร 14 ส.ค. 2569",
+              "experience": "ขายประกันชีวิต 3 ปี",
+              "strength": "หาลูกค้าใหม่เก่ง",
+              "concern": "ไม่มีประสบการณ์สินค้าอุปโภคบริโภค",
+              "source": "เว็บไซต์บริษัท",
+              "badges": [
+                {
+                  "label": "มีเรื่องต้องคุย",
+                  "tone": "warning"
+                }
+              ],
+              "expected_salary": "30,000 บาท"
+            }
+          ],
+          "positions": [
+            {
+              "id": "op_ne_ubon",
+              "title": "พนักงานขาย อุบลราชธานี (เขตวารินฯ)",
+              "manager": "คุณอนุชา พรหมศรี",
+              "candidates": "5 คน",
+              "advanced": "ถึงขั้นสัมภาษณ์ 3 คน",
+              "open_label": "เปิดรับมา 99 วัน"
+            },
+            {
+              "id": "op_ne_khonkaen",
+              "title": "พนักงานขาย ขอนแก่น (เขตชุมแพ)",
+              "manager": "คุณอนุชา พรหมศรี",
+              "candidates": "9 คน",
+              "advanced": "ถึงขั้นสัมภาษณ์ 5 คน",
+              "open_label": "เปิดรับมา 64 วัน"
+            },
+            {
+              "id": "op_ne_korat",
+              "title": "พนักงานขาย นครราชสีมา (เขตปากช่อง)",
+              "manager": "คุณป้อง แสนสุข",
+              "candidates": "6 คน",
+              "advanced": "ถึงขั้นสัมภาษณ์ 3 คน",
+              "open_label": "เปิดรับมา 49 วัน"
+            },
+            {
+              "id": "op_kk_qc",
+              "title": "พนักงานควบคุมคุณภาพ โรงงานขอนแก่น",
+              "manager": "คุณสมศรี ทองคำ",
+              "candidates": "5 คน",
+              "advanced": "ถึงขั้นสัมภาษณ์ 2 คน",
+              "open_label": "เปิดรับมา 21 วัน"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "tool": "find_people",
+      "input": {
+        "region": null,
+        "department": "dept_production",
+        "manager": null,
+        "query": null,
+        "flag": "risk"
+      },
+      "output": {
+        "ok": true,
+        "summary": "พบ 2 คน · ตำแหน่งว่าง 1 ตำแหน่ง",
+        "data": [
+          {
+            "id": "e_dang",
+            "name": "คุณแดง ศักดิ์ดี",
+            "title": "หัวหน้ากะ สายการผลิต 2 โรงงานขอนแก่น",
+            "place": "โรงงานขอนแก่น",
+            "photo": "/img/people/p40.jpg",
+            "department": "การผลิต",
+            "manager": "คุณสมศรี ทองคำ",
+            "tenure": "23 ปี 6 เดือน",
+            "badges": [
+              {
+                "label": "เสี่ยงลาออกสูง",
+                "tone": "danger"
+              },
+              {
+                "label": "โอที 96 ชม.",
+                "tone": "warning"
+              },
+              {
+                "label": "ใบขับขี่รถยก 8 วัน",
+                "tone": "warning"
+              }
+            ]
+          },
+          {
+            "id": "e_chai",
+            "name": "คุณชัย วงศ์ใหญ่",
+            "title": "เจ้าหน้าที่ความปลอดภัย (จป.) โรงงานขอนแก่น",
+            "place": "โรงงานขอนแก่น",
+            "photo": "/img/people/p25.jpg",
+            "department": "การผลิต",
+            "manager": "คุณโอ๊ต พัฒนพงศ์",
+            "tenure": "12 ปี 2 เดือน",
+            "badges": [
+              {
+                "label": "ควรคุยเรื่องความก้าวหน้า",
+                "tone": "warning"
+              }
+            ]
+          }
+        ],
+        "open_positions": [
+          {
+            "id": "op_kk_qc",
+            "title": "พนักงานควบคุมคุณภาพ โรงงานขอนแก่น",
+            "manager": "คุณสมศรี ทองคำ",
+            "open_label": "เปิดรับมา 21 วัน"
+          }
+        ]
+      }
+    },
+    {
+      "tool": "find_people",
+      "input": {
+        "region": null,
+        "department": null,
+        "manager": null,
+        "query": null,
+        "flag": "cert_expiring"
+      },
+      "output": {
+        "ok": true,
+        "summary": "พบ 6 คน · ตำแหน่งว่าง 4 ตำแหน่ง",
+        "data": [
+          {
+            "id": "u_anucha",
+            "name": "คุณอนุชา พรหมศรี",
+            "title": "ผู้จัดการขายภาค ภาคอีสาน",
+            "place": "ขอนแก่น",
+            "photo": "/img/people/p32.jpg",
+            "department": "ขาย",
+            "manager": "คุณประสิทธิ์ ชัยภูมิ",
+            "tenure": "16 ปี 5 เดือน",
+            "badges": [
+              {
+                "label": "ใบอนุญาตขายสุรา 39 วัน",
+                "tone": "warning"
+              }
+            ]
+          },
+          {
+            "id": "e_somsri",
+            "name": "คุณสมศรี ทองคำ",
+            "title": "หัวหน้าแผนกบรรจุ โรงงานขอนแก่น",
+            "place": "โรงงานขอนแก่น",
+            "photo": "/img/people/p18.jpg",
+            "department": "การผลิต",
+            "manager": "คุณโอ๊ต พัฒนพงศ์",
+            "tenure": "31 ปี 3 เดือน",
+            "badges": [
+              {
+                "label": "GMP 28 วัน",
+                "tone": "warning"
+              },
+              {
+                "label": "เกษียณใน 2 ปี",
+                "tone": "neutral"
+              }
+            ]
+          },
+          {
+            "id": "e_pong",
+            "name": "คุณป้อง แสนสุข",
+            "title": "หัวหน้าทีมขาย นครราชสีมา",
+            "place": "นครราชสีมา",
+            "photo": "/img/people/p22.jpg",
+            "department": "ขาย",
+            "manager": "คุณอนุชา พรหมศรี",
+            "tenure": "17 ปี 8 เดือน",
+            "badges": [
+              {
+                "label": "เสี่ยงลาออกสูง",
+                "tone": "danger"
+              },
+              {
+                "label": "โอที 118 ชม.",
+                "tone": "warning"
+              },
+              {
+                "label": "ใบอนุญาตขายสุรา 16 วัน",
+                "tone": "warning"
+              }
+            ]
+          },
+          {
+            "id": "e_wan",
+            "name": "คุณวันชัย เพชรดี",
+            "title": "พนักงานขับรถยก คลังปทุมธานี",
+            "place": "โรงงานปทุมธานี",
+            "photo": "/img/people/p37.jpg",
+            "department": "ซัพพลายเชน",
+            "manager": "คุณวีร์ เจริญสุข",
+            "tenure": "28 ปี 4 เดือน",
+            "badges": [
+              {
+                "label": "ใบขับขี่รถยก 20 วัน",
+                "tone": "warning"
+              }
+            ]
+          },
+          {
+            "id": "e_dang",
+            "name": "คุณแดง ศักดิ์ดี",
+            "title": "หัวหน้ากะ สายการผลิต 2 โรงงานขอนแก่น",
+            "place": "โรงงานขอนแก่น",
+            "photo": "/img/people/p40.jpg",
+            "department": "การผลิต",
+            "manager": "คุณสมศรี ทองคำ",
+            "tenure": "23 ปี 6 เดือน",
+            "badges": [
+              {
+                "label": "เสี่ยงลาออกสูง",
+                "tone": "danger"
+              },
+              {
+                "label": "โอที 96 ชม.",
+                "tone": "warning"
+              },
+              {
+                "label": "ใบขับขี่รถยก 8 วัน",
+                "tone": "warning"
+              }
+            ]
+          },
+          {
+            "id": "u_krit",
+            "name": "คุณกฤต จันทร์เสน",
+            "title": "พนักงานขาย ขอนแก่น",
+            "place": "ขอนแก่น",
+            "photo": "/img/people/p34.jpg",
+            "department": "ขาย",
+            "manager": "คุณอนุชา พรหมศรี",
+            "tenure": "7 ปี 6 เดือน",
+            "badges": [
+              {
+                "label": "ควรคุยเรื่องความก้าวหน้า",
+                "tone": "warning"
+              },
+              {
+                "label": "ใบอนุญาตขายสุรา 23 วัน",
+                "tone": "warning"
+              }
+            ]
+          }
+        ],
+        "open_positions": [
+          {
+            "id": "op_ne_ubon",
+            "title": "พนักงานขาย อุบลราชธานี (เขตวารินฯ)",
+            "manager": "คุณอนุชา พรหมศรี",
+            "open_label": "เปิดรับมา 99 วัน"
+          },
+          {
+            "id": "op_ne_khonkaen",
+            "title": "พนักงานขาย ขอนแก่น (เขตชุมแพ)",
+            "manager": "คุณอนุชา พรหมศรี",
+            "open_label": "เปิดรับมา 64 วัน"
+          },
+          {
+            "id": "op_ne_korat",
+            "title": "พนักงานขาย นครราชสีมา (เขตปากช่อง)",
+            "manager": "คุณป้อง แสนสุข",
+            "open_label": "เปิดรับมา 49 วัน"
+          },
+          {
+            "id": "op_kk_qc",
+            "title": "พนักงานควบคุมคุณภาพ โรงงานขอนแก่น",
+            "manager": "คุณสมศรี ทองคำ",
+            "open_label": "เปิดรับมา 21 วัน"
+          }
+        ]
+      }
+    },
+    {
+      "tool": "get_site",
+      "input": {
+        "id": null,
+        "name": null
+      },
+      "output": {
+        "ok": true,
+        "summary": "6 แห่ง · ต้องดูด่วน 2 แห่ง",
+        "data": [
+          {
+            "id": "pl_khonkaen",
+            "name": "โรงงานขอนแก่น",
+            "kind": "โรงงาน",
+            "place": "ขอนแก่น",
+            "photo": "/img/sites/site01.jpg",
+            "status": "ต้องดูด่วน",
+            "trailing": {
+              "text": "ไร้เหตุหยุดงาน 7 วัน",
+              "tone": "bad"
+            },
+            "note": "90 วันล่าสุด 4 เหตุการณ์ · หยุดงาน 1",
+            "badges": [
+              {
+                "label": "ยังไม่ปิด 1 เรื่อง",
+                "tone": "danger"
+              },
+              {
+                "label": "เหตุการณ์เพิ่มขึ้น",
+                "tone": "warning"
+              },
+              {
+                "label": "โอที 71 ชม./คน",
+                "tone": "warning"
+              }
+            ]
+          },
+          {
+            "id": "dc_khonkaen",
+            "name": "ศูนย์กระจายสินค้าขอนแก่น",
+            "kind": "ศูนย์กระจายสินค้า",
+            "place": "ขอนแก่น",
+            "photo": "/img/sites/site05.jpg",
+            "status": "ต้องดูด่วน",
+            "trailing": {
+              "text": "ไร้เหตุหยุดงาน 585 วัน",
+              "tone": "good"
+            },
+            "note": "90 วันล่าสุด 1 เหตุการณ์",
+            "badges": [
+              {
+                "label": "ยังไม่ปิด 1 เรื่อง",
+                "tone": "danger"
+              },
+              {
+                "label": "เหตุการณ์เพิ่มขึ้น",
+                "tone": "warning"
+              }
+            ]
+          },
+          {
+            "id": "dc_bangkok",
+            "name": "ศูนย์กระจายสินค้ากรุงเทพฯ",
+            "kind": "ศูนย์กระจายสินค้า",
+            "place": "กรุงเทพฯ",
+            "photo": "/img/sites/site03.jpg",
+            "status": "ปกติ",
+            "trailing": {
+              "text": "ไร้เหตุหยุดงาน 399 วัน",
+              "tone": "good"
+            },
+            "note": "90 วันล่าสุดไม่มีเหตุการณ์",
+            "badges": [
+              {
+                "label": "ไม่มีเรื่องค้าง",
+                "tone": "success"
+              }
+            ]
+          },
+          {
+            "id": "pl_pathumthani",
+            "name": "โรงงานปทุมธานี",
+            "kind": "โรงงาน",
+            "place": "ปทุมธานี",
+            "photo": "/img/sites/site06.jpg",
+            "status": "ปกติ",
+            "trailing": {
+              "text": "ไร้เหตุหยุดงาน 518 วัน",
+              "tone": "good"
+            },
+            "note": "90 วันล่าสุด 1 เหตุการณ์",
+            "badges": [
+              {
+                "label": "ไม่มีเรื่องค้าง",
+                "tone": "success"
+              }
+            ]
+          },
+          {
+            "id": "pl_singburi",
+            "name": "โรงงานสิงห์บุรี",
+            "kind": "โรงงาน",
+            "place": "สิงห์บุรี",
+            "photo": "/img/sites/site08.jpg",
+            "status": "ปกติ",
+            "trailing": {
+              "text": "ไร้เหตุหยุดงาน 686 วัน",
+              "tone": "good"
+            },
+            "note": "90 วันล่าสุดไม่มีเหตุการณ์",
+            "badges": [
+              {
+                "label": "ไม่มีเรื่องค้าง",
+                "tone": "success"
+              }
+            ]
+          },
+          {
+            "id": "hq_bangkok",
+            "name": "สำนักงานใหญ่ สามเสน",
+            "kind": "สำนักงาน",
+            "place": "กรุงเทพฯ",
+            "photo": "/img/sites/site07.jpg",
+            "status": "ปกติ",
+            "trailing": {
+              "text": "ไม่เคยมีเหตุหยุดงาน",
+              "tone": "good"
+            },
+            "note": "90 วันล่าสุดไม่มีเหตุการณ์",
+            "badges": [
+              {
+                "label": "ไม่มีเรื่องค้าง",
+                "tone": "success"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "tool": "get_site",
+      "input": {
+        "id": "pl_khonkaen",
+        "name": null
+      },
+      "output": {
+        "ok": true,
+        "summary": "โรงงานขอนแก่น — ต้องดูด่วน",
+        "data": {
+          "id": "pl_khonkaen",
+          "name": "โรงงานขอนแก่น",
+          "photo": "/img/sites/site01.jpg",
+          "badges": [
+            {
+              "label": "ยังไม่ปิด 1 เรื่อง",
+              "tone": "danger"
+            },
+            {
+              "label": "เหตุการณ์เพิ่มขึ้น",
+              "tone": "warning"
+            },
+            {
+              "label": "โอที 71 ชม./คน",
+              "tone": "warning"
+            }
+          ],
+          "metrics": [
+            {
+              "label": "ไม่มีอุบัติเหตุถึงขั้นหยุดงาน",
+              "value": "7 วัน",
+              "detail": null,
+              "tone": "bad"
+            },
+            {
+              "label": "เหตุการณ์ 90 วันล่าสุด",
+              "value": "4 ครั้ง",
+              "detail": "90 วันก่อนหน้า 0 ครั้ง",
+              "tone": "bad"
+            },
+            {
+              "label": "โอทีเฉลี่ยต่อคน 3 เดือน",
+              "value": "71 ชม.",
+              "detail": null,
+              "tone": "bad"
+            }
+          ],
+          "facts": [
+            {
+              "label": "ประเภท",
+              "value": "โรงงาน"
+            },
+            {
+              "label": "จังหวัด",
+              "value": "ขอนแก่น"
+            },
+            {
+              "label": "พนักงาน",
+              "value": "620 คน"
+            },
+            {
+              "label": "เจ้าหน้าที่ความปลอดภัย",
+              "value": "คุณชัย วงศ์ใหญ่"
+            }
+          ],
+          "open_actions": [
+            {
+              "title": "รถยกชนพนักงานขนย้ายที่ลานโหลดสายการผลิต 2",
+              "body": "แยกทางเดินรถยกกับทางคนเดินที่ลานโหลด และทวนสอบใบขับขี่รถยกทุกคนก่อน 30 ก.ย.",
+              "date": "15 ก.ย. 2569"
+            }
+          ],
+          "incidents": [
+            {
+              "title": "หยุดงาน · รถยกชนพนักงานขนย้ายที่ลานโหลดสายการผลิต 2",
+              "detail": "ข้อเท้าแพลง หยุดงาน 3 วัน · กะดึก ช่วงเร่งผลิตก่อนออกพรรษา · แก้ไข: แยกทางเดินรถยกกับทางคนเดินที่ลานโหลด และทวนสอบใบขับขี่รถยกทุกคนก่อน 30 ก.ย. (ยังไม่ปิด)",
+              "time": "15 ก.ย. 2569"
+            },
+            {
+              "title": "เกือบเกิดเหตุ · รถยกเฉี่ยวพาเลทล้มใกล้ทางเดิน",
+              "detail": "ไม่มีผู้บาดเจ็บ · มุมอับหน้าคลังวัตถุดิบ · แก้ไข: ติดกระจกโค้งที่มุมอับ",
+              "time": "9 ก.ย. 2569"
+            },
+            {
+              "title": "ปฐมพยาบาล · พนักงานลื่นบริเวณล้างถัง",
+              "detail": "ฟกช้ำ ปฐมพยาบาลแล้วกลับไปทำงาน · แก้ไข: เปลี่ยนแผ่นกันลื่นบริเวณล้างถัง",
+              "time": "3 ก.ย. 2569"
+            },
+            {
+              "title": "เกือบเกิดเหตุ · รถยกถอยโดยไม่มีสัญญาณเสียง",
+              "detail": "สัญญาณถอยเสีย 3 คัน · แก้ไข: ซ่อมสัญญาณถอยรถยก 3 คัน",
+              "time": "27 ส.ค. 2569"
+            },
+            {
+              "title": "ปฐมพยาบาล · มือถูกบาดจากขอบลังกระดาษ",
+              "detail": "ทำแผลแล้วกลับไปทำงาน · แก้ไข: แจกถุงมือกันบาดที่สายบรรจุ",
+              "time": "10 ธ.ค. 2568"
+            },
+            {
+              "title": "หยุดงาน · พนักงานตกจากบันไดถังหมัก",
+              "detail": "หยุดงาน 5 วัน · ช่วงเร่งผลิตก่อนออกพรรษา 2568 · แก้ไข: ติดราวกันตกและสายรัดตัวที่บันไดถังหมัก",
+              "time": "2 ต.ค. 2568"
+            }
+          ],
+          "people": [
+            {
+              "id": "e_somsri",
+              "name": "คุณสมศรี ทองคำ",
+              "title": "หัวหน้าแผนกบรรจุ โรงงานขอนแก่น",
+              "place": "โรงงานขอนแก่น",
+              "photo": "/img/people/p18.jpg",
+              "department": "การผลิต",
+              "manager": "คุณโอ๊ต พัฒนพงศ์",
+              "tenure": "31 ปี 3 เดือน",
+              "badges": [
+                {
+                  "label": "GMP 28 วัน",
+                  "tone": "warning"
+                },
+                {
+                  "label": "เกษียณใน 2 ปี",
+                  "tone": "neutral"
+                }
+              ]
+            },
+            {
+              "id": "u_oat",
+              "name": "คุณโอ๊ต พัฒนพงศ์",
+              "title": "นักวางแผนการผลิต โรงงานขอนแก่น",
+              "place": "โรงงานขอนแก่น",
+              "photo": "/img/people/p35.jpg",
+              "department": "ซัพพลายเชน",
+              "manager": "คุณวีร์ เจริญสุข",
+              "tenure": "9 ปี",
+              "badges": []
+            },
+            {
+              "id": "e_dang",
+              "name": "คุณแดง ศักดิ์ดี",
+              "title": "หัวหน้ากะ สายการผลิต 2 โรงงานขอนแก่น",
+              "place": "โรงงานขอนแก่น",
+              "photo": "/img/people/p40.jpg",
+              "department": "การผลิต",
+              "manager": "คุณสมศรี ทองคำ",
+              "tenure": "23 ปี 6 เดือน",
+              "badges": [
+                {
+                  "label": "เสี่ยงลาออกสูง",
+                  "tone": "danger"
+                },
+                {
+                  "label": "โอที 96 ชม.",
+                  "tone": "warning"
+                },
+                {
+                  "label": "ใบขับขี่รถยก 8 วัน",
+                  "tone": "warning"
+                }
+              ]
+            },
+            {
+              "id": "e_chai",
+              "name": "คุณชัย วงศ์ใหญ่",
+              "title": "เจ้าหน้าที่ความปลอดภัย (จป.) โรงงานขอนแก่น",
+              "place": "โรงงานขอนแก่น",
+              "photo": "/img/people/p25.jpg",
+              "department": "การผลิต",
+              "manager": "คุณโอ๊ต พัฒนพงศ์",
+              "tenure": "12 ปี 2 เดือน",
+              "badges": [
+                {
+                  "label": "ควรคุยเรื่องความก้าวหน้า",
+                  "tone": "warning"
+                }
+              ]
+            },
+            {
+              "id": "e_lek",
+              "name": "คุณเล็ก มณีวงศ์",
+              "title": "พนักงานควบคุมคุณภาพ โรงงานขอนแก่น",
+              "place": "โรงงานขอนแก่น",
+              "photo": "/img/people/p04.jpg",
+              "department": "การผลิต",
+              "manager": "คุณสมศรี ทองคำ",
+              "tenure": "2 ปี 7 เดือน",
+              "badges": []
+            }
+          ]
+        }
+      }
+    },
+    {
+      "tool": "get_site",
+      "input": {
+        "id": "dc_khonkaen",
+        "name": null
+      },
+      "output": {
+        "ok": true,
+        "summary": "ศูนย์กระจายสินค้าขอนแก่น — ต้องดูด่วน",
+        "data": {
+          "id": "dc_khonkaen",
+          "name": "ศูนย์กระจายสินค้าขอนแก่น",
+          "photo": "/img/sites/site05.jpg",
+          "badges": [
+            {
+              "label": "ยังไม่ปิด 1 เรื่อง",
+              "tone": "danger"
+            },
+            {
+              "label": "เหตุการณ์เพิ่มขึ้น",
+              "tone": "warning"
+            }
+          ],
+          "metrics": [
+            {
+              "label": "ไม่มีอุบัติเหตุถึงขั้นหยุดงาน",
+              "value": "585 วัน",
+              "detail": null,
+              "tone": "good"
+            },
+            {
+              "label": "เหตุการณ์ 90 วันล่าสุด",
+              "value": "1 ครั้ง",
+              "detail": "90 วันก่อนหน้า 0 ครั้ง",
+              "tone": "bad"
+            },
+            {
+              "label": "โอทีเฉลี่ยต่อคน 3 เดือน",
+              "value": "52 ชม.",
+              "detail": null,
+              "tone": "neutral"
+            }
+          ],
+          "facts": [
+            {
+              "label": "ประเภท",
+              "value": "ศูนย์กระจายสินค้า"
+            },
+            {
+              "label": "จังหวัด",
+              "value": "ขอนแก่น"
+            },
+            {
+              "label": "พนักงาน",
+              "value": "95 คน"
+            }
+          ],
+          "open_actions": [
+            {
+              "title": "รถบรรทุกเข้าท่าโหลดขณะมีคนอยู่หลังรถ",
+              "body": "ใช้ระบบล็อกล้อและไฟสัญญาณที่ท่าโหลด",
+              "date": "12 ก.ย. 2569"
+            }
+          ],
+          "incidents": [
+            {
+              "title": "เกือบเกิดเหตุ · รถบรรทุกเข้าท่าโหลดขณะมีคนอยู่หลังรถ",
+              "detail": "ไม่มีผู้บาดเจ็บ · รถเข้าคิวแน่นช่วงก่อนออกพรรษา · แก้ไข: ใช้ระบบล็อกล้อและไฟสัญญาณที่ท่าโหลด (ยังไม่ปิด)",
+              "time": "12 ก.ย. 2569"
+            }
+          ],
+          "people": []
+        }
+      }
+    },
+    {
+      "tool": "list_courses",
+      "input": {
+        "month": null,
+        "query": null
+      },
+      "output": {
+        "ok": true,
+        "summary": "10 หลักสูตร เริ่มหลักสูตรแรก 26 ก.ย. 2569 · 3 หลักสูตรต่ออายุใบที่ใกล้หมดของคุณหรือทีม",
+        "data": [
+          {
+            "id": "crs_forklift_kk",
+            "title": "ต่ออายุใบขับขี่รถยก (ภาคปฏิบัติ)",
+            "cover": "/img/courses/course02.jpg",
+            "category": "ความปลอดภัย",
+            "when": "26 ก.ย. 2569 · 1 วัน",
+            "place": "โรงงานขอนแก่น · ภาคปฏิบัติ",
+            "audience": "พนักงานขับรถยกและหัวหน้ากะที่ใบขับขี่ใกล้หมด",
+            "seats": {
+              "label": "เหลือ 3 ที่ จาก 12",
+              "tone": "bad"
+            },
+            "note": "ควรส่งไป: คุณแดง ศักดิ์ดี (หมดใน 8 วัน), คุณวันชัย เพชรดี (หมดใน 20 วัน)",
+            "badges": [],
+            "can_enroll": true
+          },
+          {
+            "id": "crs_sales_licence",
+            "title": "ทบทวนกฎหมายควบคุมเครื่องดื่มแอลกอฮอล์ (ต่ออายุใบอนุญาต)",
+            "cover": "/img/courses/course05.jpg",
+            "category": "กฎหมาย",
+            "when": "3 ต.ค. 2569 · 1 วัน",
+            "place": "ออนไลน์",
+            "audience": "ผู้ถือใบอนุญาตจำหน่ายสุรา (ผู้แทน)",
+            "seats": {
+              "label": "เหลือ 39 ที่ จาก 80",
+              "tone": "neutral"
+            },
+            "note": "ควรส่งไป: คุณป้อง แสนสุข (หมดใน 16 วัน), คุณกฤต จันทร์เสน (หมดใน 23 วัน)",
+            "badges": [],
+            "can_enroll": true
+          },
+          {
+            "id": "crs_gmp",
+            "title": "GMP และความปลอดภัยอาหาร รอบต่ออายุ",
+            "cover": "/img/courses/course01.jpg",
+            "category": "คุณภาพ",
+            "when": "8 ต.ค. 2569 · 1 วัน",
+            "place": "โรงงานขอนแก่น · ห้องเรียน",
+            "audience": "พนักงานสายการผลิตและควบคุมคุณภาพ",
+            "seats": {
+              "label": "เต็มแล้ว",
+              "tone": "bad"
+            },
+            "note": "ควรส่งไป: คุณสมศรี ทองคำ (หมดใน 28 วัน)",
+            "badges": [],
+            "can_enroll": false
+          },
+          {
+            "id": "crs_first_aid",
+            "title": "ปฐมพยาบาลและ CPR",
+            "cover": "/img/courses/course04.jpg",
+            "category": "ความปลอดภัย",
+            "when": "29 ก.ย. 2569 · 1 วัน",
+            "place": "สำนักงานใหญ่ สามเสน · ห้องเรียน",
+            "audience": "พนักงานทุกฝ่าย",
+            "seats": {
+              "label": "เหลือ 12 ที่ จาก 30",
+              "tone": "neutral"
+            },
+            "note": null,
+            "badges": [],
+            "can_enroll": true
+          },
+          {
+            "id": "crs_consultative",
+            "title": "การขายแบบที่ปรึกษา รุ่น 4",
+            "cover": "/img/courses/course03.jpg",
+            "category": "การขาย",
+            "when": "30 ก.ย. 2569 · 2 วัน",
+            "place": "โรงแรมในเมืองขอนแก่น · ห้องเรียน",
+            "audience": "พนักงานขายและหัวหน้าทีมขาย",
+            "seats": {
+              "label": "เหลือ 3 ที่ จาก 24",
+              "tone": "bad"
+            },
+            "note": null,
+            "badges": [],
+            "can_enroll": true
+          },
+          {
+            "id": "crs_data_promo",
+            "title": "วางแผนโปรโมชันด้วยข้อมูล",
+            "cover": "/img/courses/course09.jpg",
+            "category": "ข้อมูล",
+            "when": "14 ต.ค. 2569 · 2 วัน",
+            "place": "ออนไลน์",
+            "audience": "การตลาด เทรดมาร์เก็ตติ้ง และผู้จัดการขายภาค",
+            "seats": {
+              "label": "เหลือ 28 ที่ จาก 40",
+              "tone": "neutral"
+            },
+            "note": null,
+            "badges": [],
+            "can_enroll": true
+          },
+          {
+            "id": "crs_lab",
+            "title": "การตรวจคุณภาพเบียร์ในห้องแล็บ",
+            "cover": "/img/courses/course07.jpg",
+            "category": "คุณภาพ",
+            "when": "20 ต.ค. 2569 · 3 วัน",
+            "place": "โรงงานปทุมธานี · ห้องเรียน",
+            "audience": "พนักงานควบคุมคุณภาพ",
+            "seats": {
+              "label": "เหลือ 9 ที่ จาก 16",
+              "tone": "neutral"
+            },
+            "note": null,
+            "badges": [],
+            "can_enroll": true
+          },
+          {
+            "id": "crs_leader",
+            "title": "ผู้นำทีมรุ่นใหม่",
+            "cover": "/img/courses/course06.jpg",
+            "category": "ภาวะผู้นำ",
+            "when": "27 ต.ค. 2569 · 3 วัน",
+            "place": "สำนักงานใหญ่ สามเสน · ห้องเรียน",
+            "audience": "หัวหน้าทีมและหัวหน้ากะ",
+            "seats": {
+              "label": "เหลือ 3 ที่ จาก 20",
+              "tone": "bad"
+            },
+            "note": null,
+            "badges": [],
+            "can_enroll": true
+          },
+          {
+            "id": "crs_service",
+            "title": "ดูแลร้านค้าและรับเรื่องร้องเรียน",
+            "cover": "/img/courses/course08.jpg",
+            "category": "บริการลูกค้า",
+            "when": "5 พ.ย. 2569 · 1 วัน",
+            "place": "ออนไลน์",
+            "audience": "พนักงานขายและทีมบริการลูกค้า",
+            "seats": {
+              "label": "เหลือ 38 ที่ จาก 60",
+              "tone": "neutral"
+            },
+            "note": null,
+            "badges": [],
+            "can_enroll": true
+          },
+          {
+            "id": "crs_onboarding",
+            "title": "ปฐมนิเทศพนักงานใหม่ รอบ พ.ย.",
+            "cover": "/img/courses/course10.jpg",
+            "category": "ปฐมนิเทศ",
+            "when": "9 พ.ย. 2569 · 2 วัน",
+            "place": "สำนักงานใหญ่ สามเสน · ห้องเรียน",
+            "audience": "พนักงานที่เริ่มงานไม่เกิน 3 เดือน",
+            "seats": {
+              "label": "เหลือ 26 ที่ จาก 40",
+              "tone": "neutral"
+            },
+            "note": null,
+            "badges": [],
+            "can_enroll": true
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "attrition_rate",
+        "dims": [
+          "region"
+        ],
+        "filters": {
+          "department": [
+            "dept_production"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "prev_period",
+        "limit": 10,
+        "sort": "value_desc",
+        "where": null
+      },
+      "output": {
+        "ok": false,
+        "error": "มิติ region ใช้กับเมตริก attrition_rate ไม่ได้",
+        "code": "BAD_QUERY"
+      }
+    },
+    {
+      "tool": "list_metrics",
+      "input": {
+        "search": "attrition"
+      },
+      "output": {
+        "ok": true,
+        "summary": "พบ 1 เมตริกที่ตรงกับคำค้น",
+        "data": [
+          {
+            "id": "attrition_rate",
+            "labelTh": "อัตราการลาออกต่อเดือน",
+            "unit": "%",
+            "dims": [
+              "month",
+              "department"
+            ],
+            "certified": true,
+            "source": "HRIS",
+            "refresh": "รายเดือน",
+            "latest": "22 ก.ย. 2569"
+          }
+        ]
+      }
+    },
+    {
+      "tool": "list_metrics",
+      "input": {
+        "search": "salary"
+      },
+      "output": {
+        "ok": true,
+        "summary": "พบ 1 เมตริกที่ตรงกับคำค้น",
+        "data": [
+          {
+            "id": "avg_salary",
+            "labelTh": "เงินเดือนเฉลี่ย",
+            "unit": "บาท",
+            "dims": [
+              "month",
+              "department"
+            ],
+            "certified": true,
+            "source": "HRIS",
+            "refresh": "รายเดือน",
+            "latest": "22 ก.ย. 2569"
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "avg_salary",
+        "dims": [
+          "department"
+        ],
+        "filters": {},
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "prev_period",
+        "limit": 10,
+        "sort": "value_desc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "department": "บริหาร",
+            "value": 173439,
+            "value_label": "173,439 บาท",
+            "compare_value": 172488,
+            "delta_pct": 0.6
+          },
+          {
+            "department": "ไอที",
+            "value": 76376,
+            "value_label": "76,376 บาท",
+            "compare_value": 76745,
+            "delta_pct": -0.5
+          },
+          {
+            "department": "การเงิน",
+            "value": 64217,
+            "value_label": "64,217 บาท",
+            "compare_value": 63432,
+            "delta_pct": 1.2
+          },
+          {
+            "department": "การตลาด",
+            "value": 60577,
+            "value_label": "60,577 บาท",
+            "compare_value": 59737,
+            "delta_pct": 1.4
+          },
+          {
+            "department": "ทรัพยากรบุคคล",
+            "value": 54460,
+            "value_label": "54,460 บาท",
+            "compare_value": 54733,
+            "delta_pct": -0.5
+          },
+          {
+            "department": "ซัพพลายเชน",
+            "value": 48147,
+            "value_label": "48,147 บาท",
+            "compare_value": 48983,
+            "delta_pct": -1.7
+          },
+          {
+            "department": "ขาย",
+            "value": 43891,
+            "value_label": "43,891 บาท",
+            "compare_value": 43478,
+            "delta_pct": 0.9
+          },
+          {
+            "department": "การผลิต",
+            "value": 34765,
+            "value_label": "34,765 บาท",
+            "compare_value": 35343,
+            "delta_pct": -1.6
+          }
+        ],
+        "summary": "เงินเดือนเฉลี่ย 1 ก.ย. 2569 – 22 ก.ย. 2569: เฉลี่ย 42,926 บาท · สูงสุด: บริหาร 173,439 บาท · ไอที 76,376 บาท · การเงิน 64,217 บาท · เทียบช่วงก่อนหน้า -0.4% · (8 แถว · certified · HRIS)",
+        "headline": {
+          "aggregate": "average",
+          "value": "42,926 บาท",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 8,
+          "deltaPercent": -0.4,
+          "compareLabel": "เทียบช่วงก่อนหน้า",
+          "compareNote": null,
+          "top": [
+            {
+              "label": "บริหาร",
+              "value": "173,439 บาท"
+            },
+            {
+              "label": "ไอที",
+              "value": "76,376 บาท"
+            },
+            {
+              "label": "การเงิน",
+              "value": "64,217 บาท"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "avg_salary",
+          "certified": true,
+          "sourceSystem": "HRIS",
+          "asOf": "2026-09-22",
+          "rowCount": 8,
+          "filtersApplied": {},
+          "filterLabels": [],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "avg_salary",
+          "dims": [
+            "department"
+          ],
+          "filters": {},
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "prev_period",
+          "limit": 10,
+          "sort": "value_desc",
+          "where": null
+        },
+        "nextActions": [],
+        "followUps": [
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายเดือน",
+            "prompt": "เงินเดือนเฉลี่ย รายเดือนย้อนหลัง 6 เดือน",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ขอเงินเดือนเฉลี่ยแยกตามฝ่าย เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "tool": "find_people",
+      "input": {
+        "region": null,
+        "department": null,
+        "manager": null,
+        "query": null,
+        "flag": "overtime"
+      },
+      "output": {
+        "ok": true,
+        "summary": "พบ 2 คน · ตำแหน่งว่าง 4 ตำแหน่ง",
+        "data": [
+          {
+            "id": "e_pong",
+            "name": "คุณป้อง แสนสุข",
+            "title": "หัวหน้าทีมขาย นครราชสีมา",
+            "place": "นครราชสีมา",
+            "photo": "/img/people/p22.jpg",
+            "department": "ขาย",
+            "manager": "คุณอนุชา พรหมศรี",
+            "tenure": "17 ปี 8 เดือน",
+            "badges": [
+              {
+                "label": "เสี่ยงลาออกสูง",
+                "tone": "danger"
+              },
+              {
+                "label": "โอที 118 ชม.",
+                "tone": "warning"
+              },
+              {
+                "label": "ใบอนุญาตขายสุรา 16 วัน",
+                "tone": "warning"
+              }
+            ]
+          },
+          {
+            "id": "e_dang",
+            "name": "คุณแดง ศักดิ์ดี",
+            "title": "หัวหน้ากะ สายการผลิต 2 โรงงานขอนแก่น",
+            "place": "โรงงานขอนแก่น",
+            "photo": "/img/people/p40.jpg",
+            "department": "การผลิต",
+            "manager": "คุณสมศรี ทองคำ",
+            "tenure": "23 ปี 6 เดือน",
+            "badges": [
+              {
+                "label": "เสี่ยงลาออกสูง",
+                "tone": "danger"
+              },
+              {
+                "label": "โอที 96 ชม.",
+                "tone": "warning"
+              },
+              {
+                "label": "ใบขับขี่รถยก 8 วัน",
+                "tone": "warning"
+              }
+            ]
+          }
+        ],
+        "open_positions": [
+          {
+            "id": "op_ne_ubon",
+            "title": "พนักงานขาย อุบลราชธานี (เขตวารินฯ)",
+            "manager": "คุณอนุชา พรหมศรี",
+            "open_label": "เปิดรับมา 99 วัน"
+          },
+          {
+            "id": "op_ne_khonkaen",
+            "title": "พนักงานขาย ขอนแก่น (เขตชุมแพ)",
+            "manager": "คุณอนุชา พรหมศรี",
+            "open_label": "เปิดรับมา 64 วัน"
+          },
+          {
+            "id": "op_ne_korat",
+            "title": "พนักงานขาย นครราชสีมา (เขตปากช่อง)",
+            "manager": "คุณป้อง แสนสุข",
+            "open_label": "เปิดรับมา 49 วัน"
+          },
+          {
+            "id": "op_kk_qc",
+            "title": "พนักงานควบคุมคุณภาพ โรงงานขอนแก่น",
+            "manager": "คุณสมศรี ทองคำ",
+            "open_label": "เปิดรับมา 21 วัน"
+          }
+        ]
+      }
+    },
+    {
+      "tool": "find_people",
+      "input": {
+        "region": null,
+        "department": null,
+        "manager": null,
+        "query": null,
+        "flag": "retiring"
+      },
+      "output": {
+        "ok": true,
+        "summary": "พบ 2 คน · ตำแหน่งว่าง 4 ตำแหน่ง",
+        "data": [
+          {
+            "id": "e_somsri",
+            "name": "คุณสมศรี ทองคำ",
+            "title": "หัวหน้าแผนกบรรจุ โรงงานขอนแก่น",
+            "place": "โรงงานขอนแก่น",
+            "photo": "/img/people/p18.jpg",
+            "department": "การผลิต",
+            "manager": "คุณโอ๊ต พัฒนพงศ์",
+            "tenure": "31 ปี 3 เดือน",
+            "badges": [
+              {
+                "label": "GMP 28 วัน",
+                "tone": "warning"
+              },
+              {
+                "label": "เกษียณใน 2 ปี",
+                "tone": "neutral"
+              }
+            ]
+          },
+          {
+            "id": "e_prayoon",
+            "name": "คุณประยูร ดีมาก",
+            "title": "ช่างซ่อมบำรุงอาวุโส โรงงานปทุมธานี",
+            "place": "โรงงานปทุมธานี",
+            "photo": "/img/people/p36.jpg",
+            "department": "การผลิต",
+            "manager": "คุณวีร์ เจริญสุข",
+            "tenure": "36 ปี 8 เดือน",
+            "badges": [
+              {
+                "label": "เกษียณใน 1 ปี",
+                "tone": "neutral"
+              }
+            ]
+          }
+        ],
+        "open_positions": [
+          {
+            "id": "op_ne_ubon",
+            "title": "พนักงานขาย อุบลราชธานี (เขตวารินฯ)",
+            "manager": "คุณอนุชา พรหมศรี",
+            "open_label": "เปิดรับมา 99 วัน"
+          },
+          {
+            "id": "op_ne_khonkaen",
+            "title": "พนักงานขาย ขอนแก่น (เขตชุมแพ)",
+            "manager": "คุณอนุชา พรหมศรี",
+            "open_label": "เปิดรับมา 64 วัน"
+          },
+          {
+            "id": "op_ne_korat",
+            "title": "พนักงานขาย นครราชสีมา (เขตปากช่อง)",
+            "manager": "คุณป้อง แสนสุข",
+            "open_label": "เปิดรับมา 49 วัน"
+          },
+          {
+            "id": "op_kk_qc",
+            "title": "พนักงานควบคุมคุณภาพ โรงงานขอนแก่น",
+            "manager": "คุณสมศรี ทองคำ",
+            "open_label": "เปิดรับมา 21 วัน"
+          }
+        ]
+      }
+    },
+    {
+      "tool": "find_people",
+      "input": {
+        "region": null,
+        "department": null,
+        "manager": null,
+        "query": null,
+        "flag": "risk"
+      },
+      "output": {
+        "ok": true,
+        "summary": "พบ 12 คน · ตำแหน่งว่าง 4 ตำแหน่ง",
+        "data": [
+          {
+            "id": "u_saranya",
+            "name": "คุณสรัญญา นิลรัตน์",
+            "title": "ผู้จัดการขายภาค ภาคใต้",
+            "place": "สงขลา",
+            "photo": "/img/people/p09.jpg",
+            "department": "ขาย",
+            "manager": "คุณประสิทธิ์ ชัยภูมิ",
+            "tenure": "19 ปี 1 เดือน",
+            "badges": [
+              {
+                "label": "ควรคุยเรื่องความก้าวหน้า",
+                "tone": "warning"
+              }
+            ]
+          },
+          {
+            "id": "u_somchai",
+            "name": "คุณสมชาย บุญมี",
+            "title": "ผู้จัดการขายภาค ภาคกลาง",
+            "place": "พระนครศรีอยุธยา",
+            "photo": "/img/people/p23.jpg",
+            "department": "ขาย",
+            "manager": "คุณประสิทธิ์ ชัยภูมิ",
+            "tenure": "18 ปี",
+            "badges": [
+              {
+                "label": "ควรคุยเรื่องความก้าวหน้า",
+                "tone": "warning"
+              }
+            ]
+          },
+          {
+            "id": "e_pong",
+            "name": "คุณป้อง แสนสุข",
+            "title": "หัวหน้าทีมขาย นครราชสีมา",
+            "place": "นครราชสีมา",
+            "photo": "/img/people/p22.jpg",
+            "department": "ขาย",
+            "manager": "คุณอนุชา พรหมศรี",
+            "tenure": "17 ปี 8 เดือน",
+            "badges": [
+              {
+                "label": "เสี่ยงลาออกสูง",
+                "tone": "danger"
+              },
+              {
+                "label": "โอที 118 ชม.",
+                "tone": "warning"
+              },
+              {
+                "label": "ใบอนุญาตขายสุรา 16 วัน",
+                "tone": "warning"
+              }
+            ]
+          },
+          {
+            "id": "u_kanok",
+            "name": "คุณกนก ศรีสุวรรณ",
+            "title": "ผู้จัดการขายภาค กรุงเทพฯ",
+            "place": "กรุงเทพมหานคร",
+            "photo": "/img/people/p01.jpg",
+            "department": "ขาย",
+            "manager": "คุณประสิทธิ์ ชัยภูมิ",
+            "tenure": "15 ปี 4 เดือน",
+            "badges": [
+              {
+                "label": "ควรคุยเรื่องความก้าวหน้า",
+                "tone": "warning"
+              }
+            ]
+          },
+          {
+            "id": "e_dang",
+            "name": "คุณแดง ศักดิ์ดี",
+            "title": "หัวหน้ากะ สายการผลิต 2 โรงงานขอนแก่น",
+            "place": "โรงงานขอนแก่น",
+            "photo": "/img/people/p40.jpg",
+            "department": "การผลิต",
+            "manager": "คุณสมศรี ทองคำ",
+            "tenure": "23 ปี 6 เดือน",
+            "badges": [
+              {
+                "label": "เสี่ยงลาออกสูง",
+                "tone": "danger"
+              },
+              {
+                "label": "โอที 96 ชม.",
+                "tone": "warning"
+              },
+              {
+                "label": "ใบขับขี่รถยก 8 วัน",
+                "tone": "warning"
+              }
+            ]
+          },
+          {
+            "id": "e_chai",
+            "name": "คุณชัย วงศ์ใหญ่",
+            "title": "เจ้าหน้าที่ความปลอดภัย (จป.) โรงงานขอนแก่น",
+            "place": "โรงงานขอนแก่น",
+            "photo": "/img/people/p25.jpg",
+            "department": "การผลิต",
+            "manager": "คุณโอ๊ต พัฒนพงศ์",
+            "tenure": "12 ปี 2 เดือน",
+            "badges": [
+              {
+                "label": "ควรคุยเรื่องความก้าวหน้า",
+                "tone": "warning"
+              }
+            ]
+          },
+          {
+            "id": "e_top",
+            "name": "คุณท็อป บุญยืน",
+            "title": "พนักงานขาย ขอนแก่น",
+            "place": "ขอนแก่น",
+            "photo": "/img/people/p31.jpg",
+            "department": "ขาย",
+            "manager": "คุณอนุชา พรหมศรี",
+            "tenure": "8 ปี 7 เดือน",
+            "badges": [
+              {
+                "label": "ควรคุยเรื่องความก้าวหน้า",
+                "tone": "warning"
+              }
+            ]
+          },
+          {
+            "id": "e_kwan",
+            "name": "คุณขวัญ ประเสริฐวงศ์",
+            "title": "เจ้าหน้าที่เงินเดือน",
+            "place": "สำนักงานใหญ่",
+            "photo": "/img/people/p19.jpg",
+            "department": "ทรัพยากรบุคคล",
+            "manager": "คุณเมย์ กิตติศักดิ์",
+            "tenure": "8 ปี 5 เดือน",
+            "badges": [
+              {
+                "label": "ควรคุยเรื่องความก้าวหน้า",
+                "tone": "warning"
+              }
+            ]
+          },
+          {
+            "id": "u_pim",
+            "name": "คุณพิม สุริยวงศ์",
+            "title": "เทรดมาร์เก็ตติ้ง ภาคอีสาน",
+            "place": "ขอนแก่น",
+            "photo": "/img/people/p03.jpg",
+            "department": "การตลาด",
+            "manager": "คุณเบญ เตชะวงศ์",
+            "tenure": "8 ปี 2 เดือน",
+            "badges": [
+              {
+                "label": "ควรคุยเรื่องความก้าวหน้า",
+                "tone": "warning"
+              }
+            ]
+          },
+          {
+            "id": "u_krit",
+            "name": "คุณกฤต จันทร์เสน",
+            "title": "พนักงานขาย ขอนแก่น",
+            "place": "ขอนแก่น",
+            "photo": "/img/people/p34.jpg",
+            "department": "ขาย",
+            "manager": "คุณอนุชา พรหมศรี",
+            "tenure": "7 ปี 6 เดือน",
+            "badges": [
+              {
+                "label": "ควรคุยเรื่องความก้าวหน้า",
+                "tone": "warning"
+              },
+              {
+                "label": "ใบอนุญาตขายสุรา 23 วัน",
+                "tone": "warning"
+              }
+            ]
+          },
+          {
+            "id": "e_ning",
+            "name": "คุณหนิง สายทอง",
+            "title": "เจ้าหน้าที่ฝึกอบรม",
+            "place": "สำนักงานใหญ่",
+            "photo": "/img/people/p05.jpg",
+            "department": "ทรัพยากรบุคคล",
+            "manager": "คุณเมย์ กิตติศักดิ์",
+            "tenure": "7 ปี",
+            "badges": [
+              {
+                "label": "ควรคุยเรื่องความก้าวหน้า",
+                "tone": "warning"
+              }
+            ]
+          },
+          {
+            "id": "e_joy",
+            "name": "คุณจอย ศรีประเสริฐ",
+            "title": "พนักงานขาย นครราชสีมา",
+            "place": "นครราชสีมา",
+            "photo": "/img/people/p08.jpg",
+            "department": "ขาย",
+            "manager": "คุณป้อง แสนสุข",
+            "tenure": "2 เดือน",
+            "badges": [
+              {
+                "label": "ควรคุยเรื่องความก้าวหน้า",
+                "tone": "warning"
+              },
+              {
+                "label": "ทดลองงาน",
+                "tone": "neutral"
+              }
+            ]
+          }
+        ],
+        "open_positions": [
+          {
+            "id": "op_ne_ubon",
+            "title": "พนักงานขาย อุบลราชธานี (เขตวารินฯ)",
+            "manager": "คุณอนุชา พรหมศรี",
+            "open_label": "เปิดรับมา 99 วัน"
+          },
+          {
+            "id": "op_ne_khonkaen",
+            "title": "พนักงานขาย ขอนแก่น (เขตชุมแพ)",
+            "manager": "คุณอนุชา พรหมศรี",
+            "open_label": "เปิดรับมา 64 วัน"
+          },
+          {
+            "id": "op_ne_korat",
+            "title": "พนักงานขาย นครราชสีมา (เขตปากช่อง)",
+            "manager": "คุณป้อง แสนสุข",
+            "open_label": "เปิดรับมา 49 วัน"
+          },
+          {
+            "id": "op_kk_qc",
+            "title": "พนักงานควบคุมคุณภาพ โรงงานขอนแก่น",
+            "manager": "คุณสมศรี ทองคำ",
+            "open_label": "เปิดรับมา 21 วัน"
+          }
+        ]
+      }
+    },
+    {
+      "tool": "find_people",
+      "input": {
+        "region": null,
+        "department": null,
+        "manager": null,
+        "query": null,
+        "flag": "new"
+      },
+      "output": {
+        "ok": true,
+        "summary": "พบ 1 คน · ตำแหน่งว่าง 4 ตำแหน่ง",
+        "data": [
+          {
+            "id": "e_joy",
+            "name": "คุณจอย ศรีประเสริฐ",
+            "title": "พนักงานขาย นครราชสีมา",
+            "place": "นครราชสีมา",
+            "photo": "/img/people/p08.jpg",
+            "department": "ขาย",
+            "manager": "คุณป้อง แสนสุข",
+            "tenure": "2 เดือน",
+            "badges": [
+              {
+                "label": "ควรคุยเรื่องความก้าวหน้า",
+                "tone": "warning"
+              },
+              {
+                "label": "ทดลองงาน",
+                "tone": "neutral"
+              }
+            ]
+          }
+        ],
+        "open_positions": [
+          {
+            "id": "op_ne_ubon",
+            "title": "พนักงานขาย อุบลราชธานี (เขตวารินฯ)",
+            "manager": "คุณอนุชา พรหมศรี",
+            "open_label": "เปิดรับมา 99 วัน"
+          },
+          {
+            "id": "op_ne_khonkaen",
+            "title": "พนักงานขาย ขอนแก่น (เขตชุมแพ)",
+            "manager": "คุณอนุชา พรหมศรี",
+            "open_label": "เปิดรับมา 64 วัน"
+          },
+          {
+            "id": "op_ne_korat",
+            "title": "พนักงานขาย นครราชสีมา (เขตปากช่อง)",
+            "manager": "คุณป้อง แสนสุข",
+            "open_label": "เปิดรับมา 49 วัน"
+          },
+          {
+            "id": "op_kk_qc",
+            "title": "พนักงานควบคุมคุณภาพ โรงงานขอนแก่น",
+            "manager": "คุณสมศรี ทองคำ",
+            "open_label": "เปิดรับมา 21 วัน"
+          }
+        ]
+      }
+    },
+    {
+      "tool": "find_people",
+      "input": {
+        "region": null,
+        "department": "dept_hr",
+        "manager": null,
+        "query": null,
+        "flag": null
+      },
+      "output": {
+        "ok": true,
+        "summary": "พบ 5 คน",
+        "data": [
+          {
+            "is_you": true,
+            "id": "u_may",
+            "name": "คุณเมย์ กิตติศักดิ์",
+            "title": "ผู้จัดการฝ่ายทรัพยากรบุคคล",
+            "place": "สำนักงานใหญ่",
+            "photo": "/img/people/p12.jpg",
+            "department": "ทรัพยากรบุคคล",
+            "manager": "คุณธนา วงศ์สกุล",
+            "tenure": "13 ปี 11 เดือน",
+            "badges": []
+          },
+          {
+            "id": "e_fon",
+            "name": "คุณฝน รัตนพันธ์",
+            "title": "HR business partner สายขาย",
+            "place": "สำนักงานใหญ่",
+            "photo": "/img/people/p16.jpg",
+            "department": "ทรัพยากรบุคคล",
+            "manager": "คุณเมย์ กิตติศักดิ์",
+            "tenure": "9 ปี 6 เดือน",
+            "badges": []
+          },
+          {
+            "id": "e_kwan",
+            "name": "คุณขวัญ ประเสริฐวงศ์",
+            "title": "เจ้าหน้าที่เงินเดือน",
+            "place": "สำนักงานใหญ่",
+            "photo": "/img/people/p19.jpg",
+            "department": "ทรัพยากรบุคคล",
+            "manager": "คุณเมย์ กิตติศักดิ์",
+            "tenure": "8 ปี 5 เดือน",
+            "badges": [
+              {
+                "label": "ควรคุยเรื่องความก้าวหน้า",
+                "tone": "warning"
+              }
+            ]
+          },
+          {
+            "id": "e_ning",
+            "name": "คุณหนิง สายทอง",
+            "title": "เจ้าหน้าที่ฝึกอบรม",
+            "place": "สำนักงานใหญ่",
+            "photo": "/img/people/p05.jpg",
+            "department": "ทรัพยากรบุคคล",
+            "manager": "คุณเมย์ กิตติศักดิ์",
+            "tenure": "7 ปี",
+            "badges": [
+              {
+                "label": "ควรคุยเรื่องความก้าวหน้า",
+                "tone": "warning"
+              }
+            ]
+          },
+          {
+            "id": "e_bee",
+            "name": "คุณบี จันทร์หอม",
+            "title": "เจ้าหน้าที่สรรหา",
+            "place": "สำนักงานใหญ่",
+            "photo": "/img/people/p17.jpg",
+            "department": "ทรัพยากรบุคคล",
+            "manager": "คุณเมย์ กิตติศักดิ์",
+            "tenure": "2 ปี 3 เดือน",
+            "badges": []
+          }
+        ],
+        "open_positions": []
+      }
+    },
+    {
+      "tool": "get_person",
+      "input": {
+        "id": "e_dang",
+        "name": null
+      },
+      "output": {
+        "ok": true,
+        "summary": "คุณแดง ศักดิ์ดี — หัวหน้ากะ สายการผลิต 2 โรงงานขอนแก่น",
+        "data": {
+          "id": "e_dang",
+          "name": "คุณแดง ศักดิ์ดี",
+          "title": "หัวหน้ากะ สายการผลิต 2 โรงงานขอนแก่น",
+          "photo": "/img/people/p40.jpg",
+          "badges": [
+            {
+              "label": "เสี่ยงลาออกสูง",
+              "tone": "danger"
+            },
+            {
+              "label": "โอที 96 ชม.",
+              "tone": "warning"
+            },
+            {
+              "label": "ใบขับขี่รถยก 8 วัน",
+              "tone": "warning"
+            }
+          ],
+          "facts": [
+            {
+              "label": "ฝ่าย",
+              "value": "การผลิต"
+            },
+            {
+              "label": "พื้นที่",
+              "value": "โรงงานขอนแก่น"
+            },
+            {
+              "label": "หัวหน้า",
+              "value": "คุณสมศรี ทองคำ"
+            },
+            {
+              "label": "อายุงาน",
+              "value": "23 ปี 6 เดือน"
+            },
+            {
+              "label": "เริ่มงาน",
+              "value": "1 มี.ค. 2546"
+            },
+            {
+              "label": "โอที 3 เดือนล่าสุด",
+              "value": "96 ชม."
+            },
+            {
+              "label": "อายุ",
+              "value": "47 ปี"
+            },
+            {
+              "label": "เงินเดือน",
+              "value": "36,000 บาท"
+            }
+          ],
+          "history": [
+            {
+              "title": "หัวหน้ากะ สายการผลิต 2",
+              "detail": null,
+              "time": "1 ม.ค. 2557"
+            },
+            {
+              "title": "เริ่มงาน พนักงานสายการผลิต",
+              "detail": null,
+              "time": "1 มี.ค. 2546"
+            }
+          ],
+          "certificates": [
+            {
+              "label": "ใบขับขี่รถยก",
+              "value": "หมดอายุ 30 ก.ย. 2569 · อีก 8 วัน"
+            },
+            {
+              "label": "GMP / food safety",
+              "value": "หมดอายุ 31 มี.ค. 2570 · อีก 190 วัน"
+            }
+          ],
+          "risk_reasons": [
+            "โอที 3 เดือน 96 ชม.",
+            "ไม่ได้เลื่อนตำแหน่ง 12 ปี"
+          ],
+          "reports": []
+        }
+      }
+    },
+    {
+      "tool": "get_person",
+      "input": {
+        "id": "e_pong",
+        "name": null
+      },
+      "output": {
+        "ok": true,
+        "summary": "คุณป้อง แสนสุข — หัวหน้าทีมขาย นครราชสีมา",
+        "data": {
+          "id": "e_pong",
+          "name": "คุณป้อง แสนสุข",
+          "title": "หัวหน้าทีมขาย นครราชสีมา",
+          "photo": "/img/people/p22.jpg",
+          "badges": [
+            {
+              "label": "เสี่ยงลาออกสูง",
+              "tone": "danger"
+            },
+            {
+              "label": "โอที 118 ชม.",
+              "tone": "warning"
+            },
+            {
+              "label": "ใบอนุญาตขายสุรา 16 วัน",
+              "tone": "warning"
+            }
+          ],
+          "facts": [
+            {
+              "label": "ฝ่าย",
+              "value": "ขาย"
+            },
+            {
+              "label": "พื้นที่",
+              "value": "นครราชสีมา"
+            },
+            {
+              "label": "หัวหน้า",
+              "value": "คุณอนุชา พรหมศรี"
+            },
+            {
+              "label": "อายุงาน",
+              "value": "17 ปี 8 เดือน"
+            },
+            {
+              "label": "เริ่มงาน",
+              "value": "5 ม.ค. 2552"
+            },
+            {
+              "label": "โอที 3 เดือนล่าสุด",
+              "value": "118 ชม."
+            },
+            {
+              "label": "อายุ",
+              "value": "44 ปี"
+            },
+            {
+              "label": "เงินเดือน",
+              "value": "56,000 บาท"
+            }
+          ],
+          "history": [
+            {
+              "title": "การขายแบบที่ปรึกษา",
+              "detail": null,
+              "time": "20 พ.ค. 2562"
+            },
+            {
+              "title": "หัวหน้าทีมขาย นครราชสีมา",
+              "detail": null,
+              "time": "1 ม.ค. 2559"
+            },
+            {
+              "title": "เริ่มงาน พนักงานขาย นครราชสีมา",
+              "detail": null,
+              "time": "5 ม.ค. 2552"
+            }
+          ],
+          "certificates": [
+            {
+              "label": "ใบอนุญาตจำหน่ายสุรา (ผู้แทน)",
+              "value": "หมดอายุ 8 ต.ค. 2569 · อีก 16 วัน"
+            }
+          ],
+          "risk_reasons": [
+            "โอที 3 เดือน 118 ชม.",
+            "ไม่ได้เลื่อนตำแหน่ง 10 ปี"
+          ],
+          "reports": [
+            {
+              "id": "e_joy",
+              "name": "คุณจอย ศรีประเสริฐ",
+              "title": "พนักงานขาย นครราชสีมา",
+              "photo": "/img/people/p08.jpg"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "tool": "get_calendar",
+      "input": {
+        "from": "2026-09-01",
+        "to": "2026-11-30"
+      },
+      "output": {
+        "ok": true,
+        "summary": "1 ก.ย. 2569 – 30 พ.ย. 2569 มี 4 วันสำคัญ ห้ามขายเครื่องดื่มแอลกอฮอล์ 1 วัน",
+        "data": [
+          {
+            "date": "2026-10-13",
+            "date_label": "13 ต.ค. 2569",
+            "when_label": "อีก 21 วัน",
+            "name": "วันคล้ายวันสวรรคต รัชกาลที่ 9",
+            "kind": "holiday",
+            "kind_label": "วันหยุด",
+            "impact_label": "ยังไม่มีข้อมูลครั้งก่อนในขอบเขตของคุณ"
+          },
+          {
+            "date": "2026-10-23",
+            "date_label": "23 ต.ค. 2569",
+            "when_label": "อีก 31 วัน",
+            "name": "วันปิยมหาราช",
+            "kind": "holiday",
+            "kind_label": "วันหยุด",
+            "impact_label": "ยังไม่มีข้อมูลครั้งก่อนในขอบเขตของคุณ"
+          },
+          {
+            "date": "2026-10-26",
+            "date_label": "26 ต.ค. 2569",
+            "when_label": "อีก 34 วัน",
+            "name": "วันออกพรรษา",
+            "kind": "alcohol_ban",
+            "kind_label": "ห้ามขายเครื่องดื่มแอลกอฮอล์",
+            "impact_label": "ยังไม่มีข้อมูลครั้งก่อนในขอบเขตของคุณ"
+          },
+          {
+            "date": "2026-11-24",
+            "date_label": "24 พ.ย. 2569",
+            "when_label": "อีก 63 วัน",
+            "name": "วันลอยกระทง",
+            "kind": "holiday",
+            "kind_label": "วันหยุด",
+            "impact_label": "ยังไม่มีข้อมูลครั้งก่อนในขอบเขตของคุณ"
+          }
+        ]
+      }
+    }
+  ],
+  "dropped": []
+}

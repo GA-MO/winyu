@@ -9,6 +9,7 @@ import { listMetricsTool } from "./list-metrics";
 import { describeEntityTool } from "./describe-entity";
 import { getAlertsTool } from "./get-alerts";
 import { getForecastTool } from "./get-forecast";
+import { explainGapTool } from "./explain-gap";
 import { getCalendarTool } from "./get-calendar";
 import { recallMemoryTool } from "./recall-memory";
 import { findPeopleTool } from "./find-people";
@@ -28,7 +29,7 @@ import { runJobTool } from "./run-job";
 import { setPermissionTool } from "./set-permission";
 
 /** The tools whose answers are metric rows, so what a role may call there depends on the metrics it sees. */
-export const METRIC_READING_TOOLS: readonly ToolName[] = ["query_metric", "get_alerts", "get_forecast", "pin_widget", "watch_metric"];
+export const METRIC_READING_TOOLS: readonly ToolName[] = ["query_metric", "get_alerts", "get_forecast", "explain_gap", "pin_widget", "watch_metric"];
 
 const NATIVE_TOOLS: { [Name in NativeToolName]: CopTool<Name> } = {
   query_metric: queryMetricTool,
@@ -36,6 +37,7 @@ const NATIVE_TOOLS: { [Name in NativeToolName]: CopTool<Name> } = {
   describe_entity: describeEntityTool,
   get_alerts: getAlertsTool,
   get_forecast: getForecastTool,
+  explain_gap: explainGapTool,
   get_calendar: getCalendarTool,
   recall_memory: recallMemoryTool,
   find_people: findPeopleTool,

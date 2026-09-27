@@ -1,0 +1,3516 @@
+{
+  "investigation": {
+    "id": "u_somchai",
+    "userId": "u_somchai",
+    "at": "2026-09-26T19:47:50.996Z",
+    "model": "google/gemini-3.8-flash",
+    "stories": [
+      {
+        "kind": "urgent",
+        "claim": "อยุธยาศรีทองมียอดหนี้ค้างชำระเพิ่มขึ้นสวนทางภาพรวมภาคกลาง",
+        "scope": "อยุธยาศรีทอง · พระนครศรีอยุธยา",
+        "period": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+        "subject": {
+          "metric": "ar_overdue",
+          "region": "central"
+        },
+        "headline": {
+          "label": "ยอดค้างชำระเกินกำหนด",
+          "value": "14.8 ล้านบาท",
+          "tone": "bad"
+        },
+        "projection": null,
+        "causes": [
+          {
+            "label": "อยุธยาศรีทอง",
+            "detail": "ยอดหนี้ค้างชำระเพิ่มขึ้นเพียงรายเดียว",
+            "value": "+315,114 บาท",
+            "shareOfGap": null
+          }
+        ],
+        "checked": [
+          {
+            "text": "อยุธยาศรีทองมียอดค้างชำระ 3.8 ล้านบาท",
+            "verdict": "confirmed",
+            "source": "query_metric"
+          },
+          {
+            "text": "หนี้ค้างอยุธยาศรีทองเพิ่มขึ้น 9.1%",
+            "verdict": "confirmed",
+            "source": "query_metric"
+          },
+          {
+            "text": "อยุธยาศรีทองได้เครดิตเทอม 45 วัน",
+            "verdict": "confirmed",
+            "source": "describe_entity"
+          },
+          {
+            "text": "คุณไอซ์ รุ่งเรือง เป็นผู้ดูแลอยุธยา",
+            "verdict": "confirmed",
+            "source": "find_people"
+          }
+        ],
+        "recommendation": "มอบหมายให้คุณไอซ์เข้าพบอยุธยาศรีทองเพื่อติดตามยอดค้างชำระก่อนสิ้นเดือน",
+        "id": "u_somchai-0",
+        "owner": {
+          "userId": "u_mint",
+          "nameTh": "คุณมิ้นท์ วรกุล",
+          "title": "นักวิเคราะห์การเงิน"
+        }
+      },
+      {
+        "kind": "urgent",
+        "claim": "สต๊อกลีโอกระป๋องและสิงห์เลมอนโซดาที่ศูนย์อยุธยาต่ำกว่าเกณฑ์ 10 วัน",
+        "scope": "ศูนย์กระจายสินค้าอยุธยา",
+        "period": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+        "subject": {
+          "metric": "days_of_cover",
+          "region": "central"
+        },
+        "headline": {
+          "label": "วันครอบคลุมสต๊อก",
+          "value": "8.6 วัน",
+          "tone": "bad"
+        },
+        "projection": null,
+        "causes": [
+          {
+            "label": "ลีโอ กระป๋อง 490 มล.",
+            "detail": "สต๊อกคงเหลือ 3,762 ลัง",
+            "value": "8.4 วัน",
+            "shareOfGap": null
+          },
+          {
+            "label": "สิงห์ เลมอนโซดา ขวด PET 600 มล.",
+            "detail": "สต๊อกคงเหลือ 3,591 ลัง",
+            "value": "8.8 วัน",
+            "shareOfGap": null
+          }
+        ],
+        "checked": [
+          {
+            "text": "สต๊อกลีโอกระป๋องเหลือ 8.4 วัน",
+            "verdict": "confirmed",
+            "source": "query_metric"
+          },
+          {
+            "text": "สต๊อกเลมอนโซดาเหลือ 8.8 วัน",
+            "verdict": "confirmed",
+            "source": "query_metric"
+          },
+          {
+            "text": "ศูนย์กระจายสินค้าอยุธยาเฉลี่ย 15.9 วัน",
+            "verdict": "confirmed",
+            "source": "query_metric"
+          }
+        ],
+        "recommendation": "ประสานฝ่ายวางแผนการผลิตเพื่อเร่งเติมสต๊อกเข้าศูนย์กระจายสินค้าอยุธยา",
+        "id": "u_somchai-1",
+        "owner": {
+          "userId": "u_wee",
+          "nameTh": "คุณวีร์ เจริญสุข",
+          "title": "นักวางแผนซัพพลาย"
+        }
+      },
+      {
+        "kind": "ok",
+        "claim": "ยอดขายเข้าภาคกลางบรรลุเป้าหมาย 102.1% ผ่านเกณฑ์ครบทุกจังหวัด",
+        "scope": "ภาคกลาง",
+        "period": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+        "subject": {
+          "metric": "target_attainment",
+          "region": "central"
+        },
+        "headline": {
+          "label": "เทียบเป้า",
+          "value": "102.1%",
+          "tone": "good"
+        },
+        "projection": null,
+        "causes": [
+          {
+            "label": "ราชบุรี",
+            "detail": "ยอดขายเข้า 639,792 ลิตร",
+            "value": "102.7%",
+            "shareOfGap": null
+          },
+          {
+            "label": "พระนครศรีอยุธยา",
+            "detail": "ยอดขายเข้า 980,760 ลิตร",
+            "value": "102.4%",
+            "shareOfGap": null
+          },
+          {
+            "label": "สระบุรี",
+            "detail": "ยอดขายเข้า 464,957 ลิตร",
+            "value": "102.3%",
+            "shareOfGap": null
+          },
+          {
+            "label": "นครปฐม",
+            "detail": "ยอดขายเข้า 497,546 ลิตร",
+            "value": "100.7%",
+            "shareOfGap": null
+          }
+        ],
+        "checked": [
+          {
+            "text": "ปริมาณขายเข้าภาคกลางรวม 2.6 ล้านลิตร",
+            "verdict": "confirmed",
+            "source": "query_metric"
+          },
+          {
+            "text": "เอเย่นต์ทั้ง 6 รายทำยอดผ่านเป้าทั้งหมด",
+            "verdict": "confirmed",
+            "source": "query_metric"
+          },
+          {
+            "text": "โซดาสิงห์โต 29% จากโปร 1 แถม 1",
+            "verdict": "confirmed",
+            "source": "get_alerts"
+          }
+        ],
+        "recommendation": "ติดตามยอดขายต่อเนื่องและเตรียมคำสั่งซื้อล่วงหน้ารับช่วงวันหยุดเดือนตุลาคม",
+        "id": "u_somchai-2",
+        "owner": null
+      }
+    ],
+    "checkedCount": 30,
+    "costUsd": 0.1225986
+  },
+  "notes": "จากการตรวจสอบข้อมูลภาพรวมในพื้นที่รับผิดชอบของ **คุณสมชาย บุญมี (ผู้จัดการขายภาค ภาคกลาง)** ณ วันที่ **22 กันยายน 2569** มีประเด็นสำคัญที่ต้องติดตามและสั่งการ ดังนี้ครับ\n\n---\n\n### 1. ภาพรวมยอดขายเดือนปัจจุบัน (MTD: 1 ก.ย. – 22 ก.ย. 2569)\n* **ปริมาณขายเข้า (Sell-in / Net Sales Volume):** ทำได้ **2,583,056 ลิตร** คิดเป็นอัตราการบรรลุเป้าหมาย (**Target Attainment**) **102.1%** (สูงกว่าเป้าหมายที่ตั้งไว้ 2,529,174 ลิตร อยู่ **+2.1%**)\n* **ผลงานรายจังหวัด:** ผ่านเป้าหมายครบทั้ง 4 จังหวัด\n  * ราชบุรี: 639,792 ลิตร (102.7%, +2.7% เทียบเป้า)\n  * พระนครศรีอยุธยา: 980,760 ลิตร (102.4%, +2.4% เทียบเป้า)\n  * สระบุรี: 464,957 ลิตร (102.3%, +2.3% เทียบเป้า)\n  * นครปฐม: 497,546 ลิตร (100.7%, +0.7% เทียบเป้า)\n* **ผลงานรายเอเย่นต์ (6 ราย):** ทุกรายทำยอดขายเข้าผ่านเป้าหมาย โดยสูงสุดคือ ราชบุรีสหมิตร (+3.2%), วังน้อยเบเวอเรจ (+2.8%), สระบุรีพาณิชย์ (+2.3%), อยุธยาศรีทอง (+2.2%), บ้านโป่งค้าส่ง (+1.9%) และนครปฐมรุ่งทรัพย์ (+0.7%)\n\n---\n\n### 2. เรื่องด่วนที่ต้องดำเนินการวันนี้: หนี้ค้างชำระเกินกำหนด (AR Overdue) ของ \"อยุธยาศรีทอง\"\n* **ภาพรวมหนี้ค้างชำระภาคกลาง (1 – 22 ก.ย. 2569):** รวม **14,775,814 บาท (14.8 ล้านบาท)** ดีขึ้นจากช่วงก่อนหน้า (18.6 ล้านบาท) ลดลง **-3.9 ล้านบาท (-20.7%)** โดยเอเย่นต์ 5 จาก 6 รายลดหนี้ค้างชำระลงได้อย่างมีนัยสำคัญ\n* **จุดที่ผิดปกติและสวนทาง:** **อยุธยาศรีทอง** มียอดหนี้ค้างชำระสูงที่สุดในภาคกลางถึง **3,795,663 บาท (3.8 ล้านบาท)** และเป็นเอเย่นต์รายเดียวที่มียอดค้างชำระเพิ่มขึ้นจากช่วงก่อนหน้า (**+315,114 บาท หรือ +9.1%** จาก 3,480,549 บาท)\n* **สิ่งที่ต้องทำ:** เนื่องจากพื้นที่พระนครศรีอยุธยาอยู่ภายใต้ความรับผิดชอบของ **คุณไอซ์ รุ่งเรือง (พนักงานขาย อยุธยา)** ซึ่งเป็นผู้ใต้บังคับบัญชาโดยตรงของคุณสมชาย แนะนำให้คุณสมชายมอบหมายคุณไอซ์เข้าพบเอเย่นต์อยุธยาศรีทอง เพื่อติดตามการชำระหนี้ส่วนที่เกินกำหนด และวางแผนตัดชำระก่อนสิ้นเดือนกันยายน\n\n---\n\n### 3. ความเสี่ยงสต๊อกศูนย์กระจายสินค้าอยุธยา (DC Stock Cover)\nวันครอบคลุมสต๊อกเฉลี่ยของศูนย์กระจายสินค้าอยุธยาอยู่ที่ **15.9 วัน** แต่มี 2 SKU ที่สต๊อกต่ำกว่าเกณฑ์ 10 วัน:\n1. **ลีโอ กระป๋อง 490 มล.:** วันครอบคลุมสต๊อกเหลือเพียง **8.4 วัน** (สต๊อกคงเหลือ 3,762 ลัง)\n2. **สิงห์ เลมอนโซดา ขวด PET 600 มล.:** วันครอบคลุมสต๊อกเหลือเพียง **8.8 วัน** (สต๊อกคงเหลือ 3,591 ลัง)\n* **สิ่งที่ต้องทำ:** ประสานงานร่วมกับฝ่ายวางแผนการผลิต/คลังสินค้า เพื่อเร่งแผนเติมสินค้า (Replenishment) เข้าศูนย์กระจายสินค้าอยุธยา ป้องกันปัญหาสินค้าขาดส่งหน้าร้าน\n\n---\n\n### 4. การตรวจสอบสัญญาณเตือน (Alerts) ยอดขายออก (Sell-out)\n* **สัญญาณ P2 – เพอร์ร่า ขวด PET 600 มล. ในนครปฐม (29 ส.ค. – 21 ก.ย. 2569):** ยอดขายออกทำได้ 755 ลิตร ต่ำกว่าที่คาดการณ์ (859 ลิตร) อยู่ -12%\n  * *การตรวจสอบข้อมูล:* ปริมาณขายออกของ SKU นี้ในนครปฐมอยู่ที่ 18,123 ลิตร ลดลง **-19.1%** เทียบช่วงก่อนหน้า และลดลง **-0.4% YoY** (ปีก่อนทำได้ 18,190 ลิตร) ขณะที่จังหวัดอื่นในภาคกลางเติบโต YoY ทั้งหมด (+4.5% ถึง +6.3%) แสดงว่าการชะลอตัวเกิดขึ้นเฉพาะพื้นที่นครปฐม\n* **สัญญาณ P2 – สิงห์ เลมอนโซดา ขวด PET 600 มล. ในสระบุรี (28 ส.ค. – 22 ก.ย. 2569):** ยอดขายออกทำได้ 475 ลิตร ต่ำกว่าคาดการณ์ (543 ลิตร) อยู่ -13%\n  * *การตรวจสอบข้อมูล:* ปริมาณขายออกของ SKU นี้ในสระบุรีอยู่ที่ 12,337 ลิตร ลดลง **-20.4%** เทียบช่วงก่อนหน้า และลดลง **-0.5% YoY** (ปีก่อน 12,403 ลิตร) สวนทางกับจังหวัดอื่นที่โต +3.4% ถึง +9.8% YoY ซึ่งสัมพันธ์กับสต๊อกคงเหลือที่เริ่มตึงตัว (8.8 วัน)\n* **สัญญาณ P3 – โซดาสิงห์ กระป๋อง 320 มล. (โมเดิร์นเทรด):** ยอดขายออกเติบโตสูงผิดปกติ (+29% ที่ 2,759 ลิตร) ซึ่งตรวจสอบแล้วพบว่าเป็นผลจากแคมเปญโปรโมชัน *\"ซีสโตร์ โซดาซัมเมอร์ 1 แถม 1\"*\n\n---\n\n### 5. ปัจจัยเทศกาลและวันหยุดที่ต้องเตรียมการล่วงหน้า (ต.ค. 2569)\n* **13 ต.ค. 2569 (อีก 21 วัน):** วันคล้ายวันสวรรคต ร.9 (สถิติเดิมหนุนยอดขายออกเบียร์ +4%)\n* **23 ต.ค. 2569 (อีก 31 วัน):** วันปิยมหาราช (สถิติเดิมหนุนยอดขายออกเบียร์ +17%)\n* **26 ต.ค. 2569 (อีก 34 วัน):** **วันออกพรรษา (วันห้ามขายเครื่องดื่มแอลกอฮอล์)** ยอดขายออกจะลดลง -90% แต่เอเย่นต์มักจะสั่งสินค้าเข้าเพิ่มขึ้นล่วงหน้า 2 วันประมาณ **+30%** ควรเตรียมความพร้อมการรับคำสั่งซื้อล่วงหน้า\n\n---\n\n### Summary of Findings (English)\n\n* **Overall Sales Attainment (MTD: 2026-09-01 to 2026-09-22):** The Central region has delivered strong Sell-in results with **2,583,056 liters** sold, achieving **102.1%** of target (+2.1% above target). All 4 provinces met their targets (Ratchaburi at 102.7%, Phra Nakhon Si Ayutthaya at 102.4%, Saraburi at 102.3%, and Nakhon Pathom at 100.7%), and all 6 distributors exceeded their targets.\n* **Primary Attention Item – AR Overdue:** While total Central AR overdue improved to **14,775,814 THB** (-20.7% / -3.9M THB vs. prior period), **Ayutthaya Sri Thong** is the standout exception. It holds the highest overdue balance in the region at **3,795,663 THB** and was the only distributor whose overdue grew (+9.1% / +315,114 THB). Because Ayutthaya is managed by Khun Somchai's direct report, **Khun Ice Rungrueang**, immediate action is required to engage the distributor and secure payments.\n* **Inventory Constraints (Ayutthaya DC):** Two key SKUs have fallen below the 10-day buffer threshold: **Leo Can 490ml** at **8.4 days of cover** (3,762 cartons on hand) and **Singha Lemon Soda PET 600ml** at **8.8 days of cover** (3,591 cartons on hand). Coordination with supply planning is advised to prevent stockouts.\n* **Sell-out Alerts Investigated:** Purra PET 600ml in Nakhon Pathom (18,123 L, -0.4% YoY) and Singha Lemon Soda PET 600ml in Saraburi (12,337 L, -0.5% YoY) lag regional peer benchmarks, with the latter exacerbated by low cover. Conversely, Modern Trade Singha Soda can volume surged +29% due to the ongoing \"Soda Summer Buy 1 Get 1\" promotion.",
+  "calls": [
+    {
+      "tool": "get_alerts",
+      "input": {
+        "status": "open",
+        "limit": 10
+      },
+      "output": {
+        "ok": true,
+        "summary": "มีความผิดปกติที่เปิดอยู่ 8 รายการในขอบเขตของคุณ",
+        "rows": [
+          {
+            "id": "al_f60bd19b789eb6d9",
+            "severity": "P2",
+            "severityLabel": "ควรดู",
+            "metric": "sell_out_volume",
+            "metricLabel": "ปริมาณขายออก (Sell-out)",
+            "scope": {
+              "sku": "sku_purra_pet600",
+              "province": "pv_nakhonpathom",
+              "region": "central"
+            },
+            "scopeLabel": "เพอร์ร่า ขวด PET 600 มล. · นครปฐม · ภาคกลาง",
+            "window": "29 ส.ค. 2569 – 21 ก.ย. 2569",
+            "observedLabel": "755 ลิตร",
+            "expectedLabel": "859 ลิตร",
+            "gapLabel": "12%",
+            "yearOverYear": false,
+            "direction": "down",
+            "hypothesis": "ยอดขายออกจากร้านในนครปฐมต่ำผิดปกติ ยังหาสาเหตุไม่ได้จากข้อมูลที่มี",
+            "verifySteps": [
+              "เทียบเพอร์ร่า ขวด PET 600 มล. · นครปฐม · ภาคกลางกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+              "เทียบเพอร์ร่า ขวด PET 600 มล. · นครปฐม · ภาคกลางกับช่วงเดียวกันของปีที่แล้ว"
+            ],
+            "ownerUserId": "u_somchai"
+          },
+          {
+            "id": "al_bb6300d2bd665b9b",
+            "severity": "P2",
+            "severityLabel": "ควรดู",
+            "metric": "sell_out_volume",
+            "metricLabel": "ปริมาณขายออก (Sell-out)",
+            "scope": {
+              "sku": "sku_singha_lemon_soda_pet600",
+              "province": "pv_saraburi",
+              "region": "central"
+            },
+            "scopeLabel": "สิงห์ เลมอนโซดา ขวด PET 600 มล. · สระบุรี · ภาคกลาง",
+            "window": "28 ส.ค. 2569 – 22 ก.ย. 2569",
+            "observedLabel": "475 ลิตร",
+            "expectedLabel": "543 ลิตร",
+            "gapLabel": "13%",
+            "yearOverYear": false,
+            "direction": "down",
+            "hypothesis": "ยอดขายออกจากร้านในสระบุรีต่ำผิดปกติ ยังหาสาเหตุไม่ได้จากข้อมูลที่มี",
+            "verifySteps": [
+              "เทียบสิงห์ เลมอนโซดา ขวด PET 600 มล. · สระบุรี · ภาคกลางกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+              "เทียบสิงห์ เลมอนโซดา ขวด PET 600 มล. · สระบุรี · ภาคกลางกับช่วงเดียวกันของปีที่แล้ว"
+            ],
+            "ownerUserId": "u_somchai"
+          },
+          {
+            "id": "al_2bced77035d90ef1",
+            "severity": "P3",
+            "severityLabel": "เฝ้าระวัง",
+            "metric": "sell_out_volume",
+            "metricLabel": "ปริมาณขายออก (Sell-out)",
+            "scope": {
+              "sku": "sku_singha_soda_can320",
+              "channel": "modern_trade",
+              "region": "central"
+            },
+            "scopeLabel": "โซดาสิงห์ กระป๋อง 320 มล. · โมเดิร์นเทรด · ภาคกลาง",
+            "window": "6 ก.ย. 2569 – 22 ก.ย. 2569",
+            "observedLabel": "2,759 ลิตร",
+            "expectedLabel": "2,143 ลิตร",
+            "gapLabel": "29%",
+            "yearOverYear": false,
+            "direction": "up",
+            "hypothesis": "การเปลี่ยนแปลงนี้อธิบายได้ด้วยโปรโมชัน \"ซีสโตร์ โซดาซัมเมอร์ 1 แถม 1\" ที่กำลังทำอยู่ในช่วงเวลาเดียวกัน จึงยังไม่ถือว่าผิดปกติ",
+            "verifySteps": [
+              "ดูผลแคมเปญที่ทำอยู่กับโซดาสิงห์ กระป๋อง 320 มล. · โมเดิร์นเทรด · ภาคกลาง เทียบก่อนและระหว่างแคมเปญ",
+              "เทียบโซดาสิงห์ กระป๋อง 320 มล. · โมเดิร์นเทรด · ภาคกลางกับช่วงเดียวกันของปีที่แล้ว"
+            ],
+            "ownerUserId": "u_somchai"
+          },
+          {
+            "id": "al_61751e8e091a0f4d",
+            "severity": "P3",
+            "severityLabel": "เฝ้าระวัง",
+            "metric": "net_sales_volume",
+            "metricLabel": "ปริมาณขายเข้า (Sell-in)",
+            "scope": {
+              "agent": "ag_cen_05",
+              "brand": "singha",
+              "sku": "sku_singha_pack12",
+              "region": "central"
+            },
+            "scopeLabel": "ราชบุรีสหมิตร · สิงห์ แพ็ก 12 · ภาคกลาง",
+            "window": "26 ส.ค. 2569 – 22 ก.ย. 2569",
+            "observedLabel": "674 ลิตร",
+            "expectedLabel": "580 ลิตร",
+            "gapLabel": "16%",
+            "yearOverYear": false,
+            "direction": "up",
+            "hypothesis": "ปริมาณขายในภาคกลางสูงผิดปกติ ยังหาสาเหตุไม่ได้จากข้อมูลที่มี",
+            "verifySteps": [
+              "เทียบราชบุรีสหมิตร · สิงห์ แพ็ก 12 · ภาคกลางกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+              "เทียบราชบุรีสหมิตร · สิงห์ แพ็ก 12 · ภาคกลางกับช่วงเดียวกันของปีที่แล้ว"
+            ],
+            "ownerUserId": "u_somchai"
+          },
+          {
+            "id": "al_1cf125f69bb321d5",
+            "severity": "P3",
+            "severityLabel": "เฝ้าระวัง",
+            "metric": "net_sales_volume",
+            "metricLabel": "ปริมาณขายเข้า (Sell-in)",
+            "scope": {
+              "agent": "ag_cen_02",
+              "brand": "carlsberg",
+              "sku": "sku_carlsberg_bottle620",
+              "region": "central"
+            },
+            "scopeLabel": "วังน้อยเบเวอเรจ · คาร์ลสเบิร์ก ขวด 620 มล. · ภาคกลาง",
+            "window": "6 ก.ย. 2569 – 19 ก.ย. 2569",
+            "observedLabel": "75.4 ลิตร",
+            "expectedLabel": "63.2 ลิตร",
+            "gapLabel": "19%",
+            "yearOverYear": false,
+            "direction": "up",
+            "hypothesis": "ปริมาณขายในภาคกลางสูงผิดปกติ ยังหาสาเหตุไม่ได้จากข้อมูลที่มี",
+            "verifySteps": [
+              "เทียบวังน้อยเบเวอเรจ · คาร์ลสเบิร์ก ขวด 620 มล. · ภาคกลางกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+              "เทียบวังน้อยเบเวอเรจ · คาร์ลสเบิร์ก ขวด 620 มล. · ภาคกลางกับช่วงเดียวกันของปีที่แล้ว"
+            ],
+            "ownerUserId": "u_somchai"
+          },
+          {
+            "id": "al_9a2a33a103cc2baa",
+            "severity": "P3",
+            "severityLabel": "เฝ้าระวัง",
+            "metric": "net_sales_volume",
+            "metricLabel": "ปริมาณขายเข้า (Sell-in)",
+            "scope": {
+              "agent": "ag_cen_05",
+              "brand": "carlsberg",
+              "region": "central"
+            },
+            "scopeLabel": "ราชบุรีสหมิตร · คาร์ลสเบิร์ก · ภาคกลาง",
+            "window": "26 ส.ค. 2569 – 21 ก.ย. 2569",
+            "observedLabel": "250 ลิตร",
+            "expectedLabel": "228 ลิตร",
+            "gapLabel": "10%",
+            "yearOverYear": false,
+            "direction": "up",
+            "hypothesis": "ปริมาณขายในภาคกลางสูงผิดปกติ ยังหาสาเหตุไม่ได้จากข้อมูลที่มี",
+            "verifySteps": [
+              "เทียบราชบุรีสหมิตร · คาร์ลสเบิร์ก · ภาคกลางกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+              "เทียบราชบุรีสหมิตร · คาร์ลสเบิร์ก · ภาคกลางกับช่วงเดียวกันของปีที่แล้ว"
+            ],
+            "ownerUserId": "u_somchai"
+          },
+          {
+            "id": "al_1ee6c7eaa1f811c3",
+            "severity": "P3",
+            "severityLabel": "เฝ้าระวัง",
+            "metric": "net_sales_volume",
+            "metricLabel": "ปริมาณขายเข้า (Sell-in)",
+            "scope": {
+              "agent": "ag_cen_02",
+              "brand": "singha",
+              "sku": "sku_singha_bottle320",
+              "region": "central"
+            },
+            "scopeLabel": "วังน้อยเบเวอเรจ · สิงห์ ขวด 320 มล. · ภาคกลาง",
+            "window": "2 ก.ย. 2569 – 21 ก.ย. 2569",
+            "observedLabel": "495 ลิตร",
+            "expectedLabel": "438 ลิตร",
+            "gapLabel": "13%",
+            "yearOverYear": false,
+            "direction": "up",
+            "hypothesis": "ปริมาณขายในภาคกลางสูงผิดปกติ ยังหาสาเหตุไม่ได้จากข้อมูลที่มี",
+            "verifySteps": [
+              "เทียบวังน้อยเบเวอเรจ · สิงห์ ขวด 320 มล. · ภาคกลางกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+              "เทียบวังน้อยเบเวอเรจ · สิงห์ ขวด 320 มล. · ภาคกลางกับช่วงเดียวกันของปีที่แล้ว"
+            ],
+            "ownerUserId": "u_somchai"
+          },
+          {
+            "id": "al_1d514aceb2e16a96",
+            "severity": "P3",
+            "severityLabel": "เฝ้าระวัง",
+            "metric": "sell_out_volume",
+            "metricLabel": "ปริมาณขายออก (Sell-out)",
+            "scope": {
+              "sku": "sku_singha_soda_bottle320",
+              "channel": "modern_trade",
+              "region": "central"
+            },
+            "scopeLabel": "โซดาสิงห์ ขวด 320 มล. · โมเดิร์นเทรด · ภาคกลาง",
+            "window": "26 ส.ค. 2569 – 22 ก.ย. 2569",
+            "observedLabel": "833 ลิตร",
+            "expectedLabel": "908 ลิตร",
+            "gapLabel": "8%",
+            "yearOverYear": false,
+            "direction": "down",
+            "hypothesis": "ยอดขายออกจากร้านในภาคกลางต่ำผิดปกติ ยังหาสาเหตุไม่ได้จากข้อมูลที่มี",
+            "verifySteps": [
+              "เทียบโซดาสิงห์ ขวด 320 มล. · โมเดิร์นเทรด · ภาคกลางกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+              "เทียบโซดาสิงห์ ขวด 320 มล. · โมเดิร์นเทรด · ภาคกลางกับช่วงเดียวกันของปีที่แล้ว"
+            ],
+            "ownerUserId": "u_somchai"
+          }
+        ],
+        "lessons": [],
+        "nextActions": [
+          {
+            "id": "verify",
+            "kind": "verify",
+            "label": "ตรวจสาเหตุ",
+            "reason": "เทียบเพอร์ร่า ขวด PET 600 มล. · นครปฐม · ภาคกลางกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+            "tool": null,
+            "input": null,
+            "prompt": "เทียบเพอร์ร่า ขวด PET 600 มล. · นครปฐม · ภาคกลางกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน"
+          },
+          {
+            "id": "drill-channel",
+            "kind": "drill",
+            "label": "แยกตามช่องทาง",
+            "reason": "ยังไม่ได้ดูแยกรายช่องทาง",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอปริมาณขายออก (Sell-out)แยกตามช่องทาง เรียงจากมากไปน้อย"
+          }
+        ]
+      }
+    },
+    {
+      "tool": "recall_memory",
+      "input": {
+        "query": "สมชาย บุญมี ภาคกลาง"
+      },
+      "output": {
+        "ok": true,
+        "summary": "ยังไม่มีข้อมูลที่จำไว้เกี่ยวกับผู้ใช้คนนี้",
+        "data": []
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "target_attainment",
+        "dims": [
+          "region"
+        ],
+        "filters": {
+          "region": [
+            "central"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "target",
+        "limit": 10,
+        "sort": "value_asc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "region": "ภาคกลาง",
+            "value": 102.1,
+            "value_label": "102.1%"
+          }
+        ],
+        "summary": "การบรรลุเป้าหมาย 1 ก.ย. 2569 – 22 ก.ย. 2569: เฉลี่ย 102.1% · สูงสุด: ภาคกลาง 102.1% · (1 แถว · certified · SAP SD)",
+        "headline": {
+          "aggregate": "average",
+          "value": "102.1%",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 1,
+          "deltaPercent": null,
+          "compareLabel": null,
+          "compareNote": null,
+          "top": [
+            {
+              "label": "ภาคกลาง",
+              "value": "102.1%"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "target_attainment",
+          "certified": true,
+          "sourceSystem": "SAP SD",
+          "asOf": "2026-09-22",
+          "rowCount": 1,
+          "filtersApplied": {
+            "region": [
+              "central"
+            ]
+          },
+          "filterLabels": [],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "target_attainment",
+          "dims": [
+            "region"
+          ],
+          "filters": {
+            "region": [
+              "central"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "target",
+          "limit": 10,
+          "sort": "value_asc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "drill-province",
+            "kind": "drill",
+            "label": "แยกตามจังหวัด",
+            "reason": "ยังไม่ได้ดูแยกรายจังหวัด",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอการบรรลุเป้าหมายแยกตามจังหวัด เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-forecast",
+            "label": "จะถึงเป้าไหม",
+            "prompt": "พยากรณ์ปริมาณขายเข้า 8 สัปดาห์ข้างหน้า จะถึงเป้าไหม",
+            "reason": "ดูว่าถ้าเป็นแบบนี้ต่อไปจะเกิดอะไร",
+            "intentKey": "follow|forecast",
+            "score": 0.55
+          },
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "การบรรลุเป้าหมาย รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "net_sales_volume",
+        "dims": [
+          "region"
+        ],
+        "filters": {
+          "region": [
+            "central"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "target",
+        "limit": 10,
+        "sort": "value_asc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "region": "ภาคกลาง",
+            "value": 2583056,
+            "value_label": "2.6 ล้านลิตร",
+            "compare_value": 2529174,
+            "delta_pct": 2.1
+          }
+        ],
+        "summary": "ปริมาณขายเข้า (Sell-in) 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 2.6 ล้านลิตร · สูงสุด: ภาคกลาง 2.6 ล้านลิตร · เทียบเป้า +2.1% · (1 แถว · certified · SAP SD)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "2.6 ล้านลิตร",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 1,
+          "deltaPercent": 2.1,
+          "compareLabel": "เทียบเป้า",
+          "compareNote": null,
+          "top": [
+            {
+              "label": "ภาคกลาง",
+              "value": "2.6 ล้านลิตร"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "net_sales_volume",
+          "certified": true,
+          "sourceSystem": "SAP SD",
+          "asOf": "2026-09-22",
+          "rowCount": 1,
+          "filtersApplied": {
+            "region": [
+              "central"
+            ]
+          },
+          "filterLabels": [],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "net_sales_volume",
+          "dims": [
+            "region"
+          ],
+          "filters": {
+            "region": [
+              "central"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "target",
+          "limit": 10,
+          "sort": "value_asc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "verify",
+            "kind": "verify",
+            "label": "ตรวจสาเหตุ",
+            "reason": "เทียบราชบุรีสหมิตร · สิงห์ แพ็ก 12 · ภาคกลางกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+            "tool": null,
+            "input": null,
+            "prompt": "เทียบราชบุรีสหมิตร · สิงห์ แพ็ก 12 · ภาคกลางกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน"
+          },
+          {
+            "id": "drill-province",
+            "kind": "drill",
+            "label": "แยกตามจังหวัด",
+            "reason": "ยังไม่ได้ดูแยกรายจังหวัด",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอปริมาณขายเข้า (Sell-in)แยกตามจังหวัด เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-forecast",
+            "label": "พยากรณ์ 8 สัปดาห์",
+            "prompt": "พยากรณ์ปริมาณขายเข้า 8 สัปดาห์ข้างหน้า",
+            "reason": "ดูว่าถ้าเป็นแบบนี้ต่อไปจะเกิดอะไร",
+            "intentKey": "follow|forecast",
+            "score": 0.55
+          },
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "ปริมาณขายเข้า (Sell-in) รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ขอปริมาณขายเข้า (Sell-in) แยกตามภาค เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "net_sales_volume",
+        "dims": [
+          "province"
+        ],
+        "filters": {
+          "region": [
+            "central"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "target",
+        "limit": 20,
+        "sort": "delta_asc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "province": "นครปฐม",
+            "value": 497546,
+            "value_label": "497,546 ลิตร",
+            "compare_value": 493873,
+            "delta_pct": 0.7
+          },
+          {
+            "province": "สระบุรี",
+            "value": 464957,
+            "value_label": "464,957 ลิตร",
+            "compare_value": 454343,
+            "delta_pct": 2.3
+          },
+          {
+            "province": "พระนครศรีอยุธยา",
+            "value": 980760,
+            "value_label": "980,760 ลิตร",
+            "compare_value": 958197,
+            "delta_pct": 2.4
+          },
+          {
+            "province": "ราชบุรี",
+            "value": 639792,
+            "value_label": "639,792 ลิตร",
+            "compare_value": 622762,
+            "delta_pct": 2.7
+          }
+        ],
+        "summary": "ปริมาณขายเข้า (Sell-in) 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 2.6 ล้านลิตร · สูงสุด: พระนครศรีอยุธยา 980,760 ลิตร · ราชบุรี 639,792 ลิตร · นครปฐม 497,546 ลิตร · เทียบเป้า +2.1% · (4 แถว · certified · SAP SD)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "2.6 ล้านลิตร",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 4,
+          "deltaPercent": 2.1,
+          "compareLabel": "เทียบเป้า",
+          "compareNote": null,
+          "top": [
+            {
+              "label": "พระนครศรีอยุธยา",
+              "value": "980,760 ลิตร"
+            },
+            {
+              "label": "ราชบุรี",
+              "value": "639,792 ลิตร"
+            },
+            {
+              "label": "นครปฐม",
+              "value": "497,546 ลิตร"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "net_sales_volume",
+          "certified": true,
+          "sourceSystem": "SAP SD",
+          "asOf": "2026-09-22",
+          "rowCount": 4,
+          "filtersApplied": {
+            "region": [
+              "central"
+            ]
+          },
+          "filterLabels": [
+            "ภาคกลาง"
+          ],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "net_sales_volume",
+          "dims": [
+            "province"
+          ],
+          "filters": {
+            "region": [
+              "central"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "target",
+          "limit": 20,
+          "sort": "delta_asc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "verify",
+            "kind": "verify",
+            "label": "ตรวจสาเหตุ",
+            "reason": "เทียบราชบุรีสหมิตร · สิงห์ แพ็ก 12 · ภาคกลางกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+            "tool": null,
+            "input": null,
+            "prompt": "เทียบราชบุรีสหมิตร · สิงห์ แพ็ก 12 · ภาคกลางกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน"
+          },
+          {
+            "id": "drill-channel",
+            "kind": "drill",
+            "label": "แยกตามช่องทาง",
+            "reason": "ยังไม่ได้ดูแยกรายช่องทาง",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอปริมาณขายเข้า (Sell-in)แยกตามช่องทาง เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-forecast",
+            "label": "พยากรณ์ 8 สัปดาห์",
+            "prompt": "พยากรณ์ปริมาณขายเข้า 8 สัปดาห์ข้างหน้า",
+            "reason": "ดูว่าถ้าเป็นแบบนี้ต่อไปจะเกิดอะไร",
+            "intentKey": "follow|forecast",
+            "score": 0.55
+          },
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "ปริมาณขายเข้า (Sell-in) รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ขอปริมาณขายเข้า (Sell-in) แยกตามจังหวัด เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "target_attainment",
+        "dims": [
+          "province"
+        ],
+        "filters": {
+          "region": [
+            "central"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "target",
+        "limit": 20,
+        "sort": "value_asc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "province": "นครปฐม",
+            "value": 100.7,
+            "value_label": "100.7%"
+          },
+          {
+            "province": "สระบุรี",
+            "value": 102.3,
+            "value_label": "102.3%"
+          },
+          {
+            "province": "พระนครศรีอยุธยา",
+            "value": 102.4,
+            "value_label": "102.4%"
+          },
+          {
+            "province": "ราชบุรี",
+            "value": 102.7,
+            "value_label": "102.7%"
+          }
+        ],
+        "summary": "การบรรลุเป้าหมาย 1 ก.ย. 2569 – 22 ก.ย. 2569: เฉลี่ย 102.1% · สูงสุด: ราชบุรี 102.7% · พระนครศรีอยุธยา 102.4% · สระบุรี 102.3% · (4 แถว · certified · SAP SD)",
+        "headline": {
+          "aggregate": "average",
+          "value": "102.1%",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 4,
+          "deltaPercent": null,
+          "compareLabel": null,
+          "compareNote": null,
+          "top": [
+            {
+              "label": "ราชบุรี",
+              "value": "102.7%"
+            },
+            {
+              "label": "พระนครศรีอยุธยา",
+              "value": "102.4%"
+            },
+            {
+              "label": "สระบุรี",
+              "value": "102.3%"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "target_attainment",
+          "certified": true,
+          "sourceSystem": "SAP SD",
+          "asOf": "2026-09-22",
+          "rowCount": 4,
+          "filtersApplied": {
+            "region": [
+              "central"
+            ]
+          },
+          "filterLabels": [
+            "ภาคกลาง"
+          ],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "target_attainment",
+          "dims": [
+            "province"
+          ],
+          "filters": {
+            "region": [
+              "central"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "target",
+          "limit": 20,
+          "sort": "value_asc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "drill-channel",
+            "kind": "drill",
+            "label": "แยกตามช่องทาง",
+            "reason": "ยังไม่ได้ดูแยกรายช่องทาง",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอการบรรลุเป้าหมายแยกตามช่องทาง เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-drill_down",
+            "label": "ดูเอเย่นต์ในนครปฐม",
+            "prompt": "ขอการบรรลุเป้าหมายของนครปฐม แยกรายเอเย่นต์ เรียงจากแย่ไปดี",
+            "reason": "ลงไปอีกชั้นเพื่อหาว่าใครในนครปฐมทำให้ตัวเลขเป็นแบบนี้",
+            "intentKey": "follow|drill_down",
+            "score": 0.7
+          },
+          {
+            "id": "fu-why",
+            "label": "ทำไมนครปฐม",
+            "prompt": "เจาะดูการบรรลุเป้าหมายของนครปฐม ว่าทำไมถึงเปลี่ยนไป เทียบกับช่วงก่อนหน้าและช่วงเดียวกันปีก่อน",
+            "reason": "นครปฐม คือแถวที่ต้องดูมากที่สุดในคำตอบนี้",
+            "intentKey": "follow|why",
+            "score": 0.6
+          },
+          {
+            "id": "fu-forecast",
+            "label": "จะถึงเป้าไหม",
+            "prompt": "พยากรณ์ปริมาณขายเข้า 8 สัปดาห์ข้างหน้า จะถึงเป้าไหม",
+            "reason": "ดูว่าถ้าเป็นแบบนี้ต่อไปจะเกิดอะไร",
+            "intentKey": "follow|forecast",
+            "score": 0.55
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "sell_out_volume",
+        "dims": [
+          "region"
+        ],
+        "filters": {
+          "region": [
+            "central"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "prev_period",
+        "limit": 10,
+        "sort": "delta_asc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "region": "ภาคกลาง",
+            "value": 2523406,
+            "value_label": "2.5 ล้านลิตร",
+            "compare_value": 3110845,
+            "delta_pct": -18.9
+          }
+        ],
+        "summary": "ปริมาณขายออก (Sell-out) 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 2.5 ล้านลิตร · สูงสุด: ภาคกลาง 2.5 ล้านลิตร · เทียบช่วงก่อนหน้า -18.9% · (1 แถว · certified · SAP SD)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "2.5 ล้านลิตร",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 1,
+          "deltaPercent": -18.9,
+          "compareLabel": "เทียบช่วงก่อนหน้า",
+          "compareNote": null,
+          "top": [
+            {
+              "label": "ภาคกลาง",
+              "value": "2.5 ล้านลิตร"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "sell_out_volume",
+          "certified": true,
+          "sourceSystem": "SAP SD",
+          "asOf": "2026-09-22",
+          "rowCount": 1,
+          "filtersApplied": {
+            "region": [
+              "central"
+            ]
+          },
+          "filterLabels": [],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "sell_out_volume",
+          "dims": [
+            "region"
+          ],
+          "filters": {
+            "region": [
+              "central"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "prev_period",
+          "limit": 10,
+          "sort": "delta_asc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "verify",
+            "kind": "verify",
+            "label": "ตรวจสาเหตุ",
+            "reason": "เทียบเพอร์ร่า ขวด PET 600 มล. · นครปฐม · ภาคกลางกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+            "tool": null,
+            "input": null,
+            "prompt": "เทียบเพอร์ร่า ขวด PET 600 มล. · นครปฐม · ภาคกลางกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน"
+          },
+          {
+            "id": "drill-province",
+            "kind": "drill",
+            "label": "แยกตามจังหวัด",
+            "reason": "ยังไม่ได้ดูแยกรายจังหวัด",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอปริมาณขายออก (Sell-out)แยกตามจังหวัด เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-why",
+            "label": "ทำไมภาคกลาง",
+            "prompt": "เจาะดูปริมาณขายออก (Sell-out) ของภาคกลาง ว่าทำไมถึงเปลี่ยนไป เทียบกับช่วงก่อนหน้าและช่วงเดียวกันปีก่อน",
+            "reason": "ภาคกลาง คือแถวที่ต้องดูมากที่สุดในคำตอบนี้",
+            "intentKey": "follow|why",
+            "score": 0.95
+          },
+          {
+            "id": "fu-drill_down",
+            "label": "ดูเอเย่นต์ในภาคกลาง",
+            "prompt": "ขอปริมาณขายออก (Sell-out) ของภาคกลาง แยกรายเอเย่นต์ เรียงจากแย่ไปดี",
+            "reason": "ลงไปอีกชั้นเพื่อหาว่าใครในภาคกลางทำให้ตัวเลขเป็นแบบนี้",
+            "intentKey": "follow|drill_down",
+            "score": 0.85
+          },
+          {
+            "id": "fu-trend",
+            "label": "เริ่มแย่ตั้งแต่เมื่อไร",
+            "prompt": "ปริมาณขายออก (Sell-out) ของภาคกลาง รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "ดูว่าตัวเลขเริ่มลดลงสัปดาห์ไหน",
+            "intentKey": "follow|trend",
+            "score": 0.65
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "net_sales_volume",
+        "dims": [
+          "brand"
+        ],
+        "filters": {
+          "region": [
+            "central"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "target",
+        "limit": 20,
+        "sort": "delta_asc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "brand": "อาซาฮี",
+            "value": 28975,
+            "value_label": "28,975 ลิตร",
+            "compare_value": 28808,
+            "delta_pct": 0.6
+          },
+          {
+            "brand": "เพอร์ร่า",
+            "value": 173364,
+            "value_label": "173,364 ลิตร",
+            "compare_value": 172050,
+            "delta_pct": 0.8
+          },
+          {
+            "brand": "สิงห์",
+            "value": 653837,
+            "value_label": "653,837 ลิตร",
+            "compare_value": 648592,
+            "delta_pct": 0.8
+          },
+          {
+            "brand": "สิงห์ เลมอนโซดา",
+            "value": 131887,
+            "value_label": "131,887 ลิตร",
+            "compare_value": 130148,
+            "delta_pct": 1.3
+          },
+          {
+            "brand": "ลีโอ",
+            "value": 761659,
+            "value_label": "761,659 ลิตร",
+            "compare_value": 748564,
+            "delta_pct": 1.7
+          },
+          {
+            "brand": "น้ำดื่มสิงห์",
+            "value": 563101,
+            "value_label": "563,101 ลิตร",
+            "compare_value": 551140,
+            "delta_pct": 2.2
+          },
+          {
+            "brand": "คาร์ลสเบิร์ก",
+            "value": 33373,
+            "value_label": "33,373 ลิตร",
+            "compare_value": 32585,
+            "delta_pct": 2.4
+          },
+          {
+            "brand": "โซดาสิงห์",
+            "value": 236858,
+            "value_label": "236,858 ลิตร",
+            "compare_value": 217288,
+            "delta_pct": 9
+          }
+        ],
+        "summary": "ปริมาณขายเข้า (Sell-in) 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 2.6 ล้านลิตร · สูงสุด: ลีโอ 761,659 ลิตร · สิงห์ 653,837 ลิตร · น้ำดื่มสิงห์ 563,101 ลิตร · เทียบเป้า +2.1% · (8 แถว · certified · SAP SD)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "2.6 ล้านลิตร",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 8,
+          "deltaPercent": 2.1,
+          "compareLabel": "เทียบเป้า",
+          "compareNote": null,
+          "top": [
+            {
+              "label": "ลีโอ",
+              "value": "761,659 ลิตร"
+            },
+            {
+              "label": "สิงห์",
+              "value": "653,837 ลิตร"
+            },
+            {
+              "label": "น้ำดื่มสิงห์",
+              "value": "563,101 ลิตร"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "net_sales_volume",
+          "certified": true,
+          "sourceSystem": "SAP SD",
+          "asOf": "2026-09-22",
+          "rowCount": 8,
+          "filtersApplied": {
+            "region": [
+              "central"
+            ]
+          },
+          "filterLabels": [
+            "ภาคกลาง"
+          ],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "net_sales_volume",
+          "dims": [
+            "brand"
+          ],
+          "filters": {
+            "region": [
+              "central"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "target",
+          "limit": 20,
+          "sort": "delta_asc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "verify",
+            "kind": "verify",
+            "label": "ตรวจสาเหตุ",
+            "reason": "เทียบราชบุรีสหมิตร · สิงห์ แพ็ก 12 · ภาคกลางกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+            "tool": null,
+            "input": null,
+            "prompt": "เทียบราชบุรีสหมิตร · สิงห์ แพ็ก 12 · ภาคกลางกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน"
+          },
+          {
+            "id": "drill-province",
+            "kind": "drill",
+            "label": "แยกตามจังหวัด",
+            "reason": "ยังไม่ได้ดูแยกรายจังหวัด",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอปริมาณขายเข้า (Sell-in)แยกตามจังหวัด เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-forecast",
+            "label": "พยากรณ์ 8 สัปดาห์",
+            "prompt": "พยากรณ์ปริมาณขายเข้า 8 สัปดาห์ข้างหน้า",
+            "reason": "ดูว่าถ้าเป็นแบบนี้ต่อไปจะเกิดอะไร",
+            "intentKey": "follow|forecast",
+            "score": 0.55
+          },
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "ปริมาณขายเข้า (Sell-in) รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ขอปริมาณขายเข้า (Sell-in) แยกตามแบรนด์ เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "sell_out_volume",
+        "dims": [
+          "region"
+        ],
+        "filters": {
+          "region": [
+            "central"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "prev_year",
+        "limit": 10,
+        "sort": "delta_asc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "region": "ภาคกลาง",
+            "value": 2523406,
+            "value_label": "2.5 ล้านลิตร",
+            "compare_value": 2356346,
+            "delta_pct": 7.1
+          }
+        ],
+        "summary": "ปริมาณขายออก (Sell-out) 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 2.5 ล้านลิตร · สูงสุด: ภาคกลาง 2.5 ล้านลิตร · เทียบปีก่อน +7.1% · (1 แถว · certified · SAP SD)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "2.5 ล้านลิตร",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 1,
+          "deltaPercent": 7.1,
+          "compareLabel": "เทียบปีก่อน",
+          "compareNote": null,
+          "top": [
+            {
+              "label": "ภาคกลาง",
+              "value": "2.5 ล้านลิตร"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "sell_out_volume",
+          "certified": true,
+          "sourceSystem": "SAP SD",
+          "asOf": "2026-09-22",
+          "rowCount": 1,
+          "filtersApplied": {
+            "region": [
+              "central"
+            ]
+          },
+          "filterLabels": [],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "sell_out_volume",
+          "dims": [
+            "region"
+          ],
+          "filters": {
+            "region": [
+              "central"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "prev_year",
+          "limit": 10,
+          "sort": "delta_asc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "verify",
+            "kind": "verify",
+            "label": "ตรวจสาเหตุ",
+            "reason": "เทียบเพอร์ร่า ขวด PET 600 มล. · นครปฐม · ภาคกลางกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+            "tool": null,
+            "input": null,
+            "prompt": "เทียบเพอร์ร่า ขวด PET 600 มล. · นครปฐม · ภาคกลางกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน"
+          },
+          {
+            "id": "drill-province",
+            "kind": "drill",
+            "label": "แยกตามจังหวัด",
+            "reason": "ยังไม่ได้ดูแยกรายจังหวัด",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอปริมาณขายออก (Sell-out)แยกตามจังหวัด เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "ปริมาณขายออก (Sell-out) รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "days_of_cover",
+        "dims": [
+          "agent"
+        ],
+        "filters": {
+          "region": [
+            "central"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "none",
+        "limit": 20,
+        "sort": "value_asc",
+        "where": null
+      },
+      "output": {
+        "ok": false,
+        "error": "มิติ agent ใช้กับเมตริก days_of_cover ไม่ได้",
+        "code": "BAD_QUERY"
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "ar_overdue",
+        "dims": [
+          "agent"
+        ],
+        "filters": {
+          "region": [
+            "central"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "none",
+        "limit": 20,
+        "sort": "value_desc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "agent": "อยุธยาศรีทอง",
+            "value": 3795663,
+            "value_label": "3.8 ล้านบาท"
+          },
+          {
+            "agent": "สระบุรีพาณิชย์",
+            "value": 2957994,
+            "value_label": "3.0 ล้านบาท"
+          },
+          {
+            "agent": "นครปฐมรุ่งทรัพย์",
+            "value": 2385710,
+            "value_label": "2.4 ล้านบาท"
+          },
+          {
+            "agent": "บ้านโป่งค้าส่ง",
+            "value": 1952526,
+            "value_label": "2.0 ล้านบาท"
+          },
+          {
+            "agent": "วังน้อยเบเวอเรจ",
+            "value": 1938289,
+            "value_label": "1.9 ล้านบาท"
+          },
+          {
+            "agent": "ราชบุรีสหมิตร",
+            "value": 1745632,
+            "value_label": "1.7 ล้านบาท"
+          }
+        ],
+        "summary": "ยอดค้างชำระเกินกำหนด 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 14.8 ล้านบาท · สูงสุด: อยุธยาศรีทอง 3.8 ล้านบาท · สระบุรีพาณิชย์ 3.0 ล้านบาท · นครปฐมรุ่งทรัพย์ 2.4 ล้านบาท · (6 แถว · certified · SAP FI)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "14.8 ล้านบาท",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 6,
+          "deltaPercent": null,
+          "compareLabel": null,
+          "compareNote": null,
+          "top": [
+            {
+              "label": "อยุธยาศรีทอง",
+              "value": "3.8 ล้านบาท"
+            },
+            {
+              "label": "สระบุรีพาณิชย์",
+              "value": "3.0 ล้านบาท"
+            },
+            {
+              "label": "นครปฐมรุ่งทรัพย์",
+              "value": "2.4 ล้านบาท"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "ar_overdue",
+          "certified": true,
+          "sourceSystem": "SAP FI",
+          "asOf": "2026-09-22",
+          "rowCount": 6,
+          "filtersApplied": {
+            "region": [
+              "central"
+            ]
+          },
+          "filterLabels": [
+            "ภาคกลาง"
+          ],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "ar_overdue",
+          "dims": [
+            "agent"
+          ],
+          "filters": {
+            "region": [
+              "central"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "none",
+          "limit": 20,
+          "sort": "value_desc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "drill-province",
+            "kind": "drill",
+            "label": "แยกตามจังหวัด",
+            "reason": "ยังไม่ได้ดูแยกรายจังหวัด",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอยอดค้างชำระเกินกำหนดแยกตามจังหวัด เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-why",
+            "label": "ทำไมอยุธยาศรีทอง",
+            "prompt": "เจาะดูยอดค้างชำระเกินกำหนดของอยุธยาศรีทอง ว่าทำไมถึงเปลี่ยนไป เทียบกับช่วงก่อนหน้าและช่วงเดียวกันปีก่อน",
+            "reason": "อยุธยาศรีทอง คือแถวที่ต้องดูมากที่สุดในคำตอบนี้",
+            "intentKey": "follow|why",
+            "score": 0.6
+          },
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายเดือน",
+            "prompt": "ยอดค้างชำระเกินกำหนด รายเดือนย้อนหลัง 6 เดือน",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ขอยอดค้างชำระเกินกำหนดแยกตามเอเย่นต์ เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "tool": "explain_gap",
+      "input": {
+        "metric": "sell_out_volume",
+        "split": "province",
+        "filters": {
+          "region": [
+            "central"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "compare": "prev_period"
+      },
+      "output": {
+        "ok": true,
+        "summary": "ปริมาณขายออก (Sell-out) 1 ก.ย. 2569 – 22 ก.ย. 2569: จริง 2.5 ล้านลิตร · ช่วงก่อนหน้า 3.1 ล้านลิตร · ช่องว่าง −587,439 ลิตร",
+        "period_label": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+        "actual_label": "2.5 ล้านลิตร",
+        "compare_label": "ช่วงก่อนหน้า 3.1 ล้านลิตร",
+        "gap_label": "−587,439 ลิตร",
+        "attainment_label": null,
+        "contributors": [
+          {
+            "label": "พระนครศรีอยุธยา",
+            "gap_label": "−227,125 ลิตร",
+            "share_label": "38.7%"
+          },
+          {
+            "label": "ราชบุรี",
+            "gap_label": "−146,693 ลิตร",
+            "share_label": "25.0%"
+          },
+          {
+            "label": "นครปฐม",
+            "gap_label": "−115,550 ลิตร",
+            "share_label": "19.7%"
+          },
+          {
+            "label": "สระบุรี",
+            "gap_label": "−98,070 ลิตร",
+            "share_label": "16.7%"
+          }
+        ],
+        "rest": null,
+        "offsetting": [],
+        "projection": null
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "ar_overdue",
+        "dims": [
+          "agent"
+        ],
+        "filters": {
+          "region": [
+            "central"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "prev_period",
+        "limit": 10,
+        "sort": "delta_desc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "agent": "อยุธยาศรีทอง",
+            "value": 3795663,
+            "value_label": "3.8 ล้านบาท",
+            "compare_value": 3480549,
+            "delta_pct": 9.1
+          },
+          {
+            "agent": "วังน้อยเบเวอเรจ",
+            "value": 1938289,
+            "value_label": "1.9 ล้านบาท",
+            "compare_value": 2006037,
+            "delta_pct": -3.4
+          },
+          {
+            "agent": "บ้านโป่งค้าส่ง",
+            "value": 1952526,
+            "value_label": "2.0 ล้านบาท",
+            "compare_value": 2078257,
+            "delta_pct": -6
+          },
+          {
+            "agent": "สระบุรีพาณิชย์",
+            "value": 2957994,
+            "value_label": "3.0 ล้านบาท",
+            "compare_value": 4079968,
+            "delta_pct": -27.5
+          },
+          {
+            "agent": "ราชบุรีสหมิตร",
+            "value": 1745632,
+            "value_label": "1.7 ล้านบาท",
+            "compare_value": 2942535,
+            "delta_pct": -40.7
+          },
+          {
+            "agent": "นครปฐมรุ่งทรัพย์",
+            "value": 2385710,
+            "value_label": "2.4 ล้านบาท",
+            "compare_value": 4054600,
+            "delta_pct": -41.2
+          }
+        ],
+        "summary": "ยอดค้างชำระเกินกำหนด 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 14.8 ล้านบาท · สูงสุด: อยุธยาศรีทอง 3.8 ล้านบาท · สระบุรีพาณิชย์ 3.0 ล้านบาท · นครปฐมรุ่งทรัพย์ 2.4 ล้านบาท · เทียบช่วงก่อนหน้า -20.7% · (6 แถว · certified · SAP FI)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "14.8 ล้านบาท",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 6,
+          "deltaPercent": -20.7,
+          "compareLabel": "เทียบช่วงก่อนหน้า",
+          "compareNote": null,
+          "top": [
+            {
+              "label": "อยุธยาศรีทอง",
+              "value": "3.8 ล้านบาท"
+            },
+            {
+              "label": "สระบุรีพาณิชย์",
+              "value": "3.0 ล้านบาท"
+            },
+            {
+              "label": "นครปฐมรุ่งทรัพย์",
+              "value": "2.4 ล้านบาท"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "ar_overdue",
+          "certified": true,
+          "sourceSystem": "SAP FI",
+          "asOf": "2026-09-22",
+          "rowCount": 6,
+          "filtersApplied": {
+            "region": [
+              "central"
+            ]
+          },
+          "filterLabels": [
+            "ภาคกลาง"
+          ],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "ar_overdue",
+          "dims": [
+            "agent"
+          ],
+          "filters": {
+            "region": [
+              "central"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "prev_period",
+          "limit": 10,
+          "sort": "delta_desc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "drill-why",
+            "kind": "drill",
+            "label": "ทำไมอยุธยาศรีทองถึงเป็นแบบนี้",
+            "reason": "อยุธยาศรีทอง เปลี่ยนไปในทางที่แย่ที่สุด",
+            "tool": null,
+            "input": null,
+            "prompt": "เจาะดูยอดค้างชำระเกินกำหนดของอยุธยาศรีทอง ว่าทำไมถึงเปลี่ยนไป เทียบกับช่วงก่อนหน้าและช่วงเดียวกันปีก่อน"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-trend",
+            "label": "เริ่มแย่ตั้งแต่เมื่อไร",
+            "prompt": "ยอดค้างชำระเกินกำหนดของอยุธยาศรีทอง รายเดือนย้อนหลัง 6 เดือน",
+            "reason": "ดูว่าตัวเลขเริ่มลดลงสัปดาห์ไหน",
+            "intentKey": "follow|trend",
+            "score": 0.65
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ขอยอดค้างชำระเกินกำหนดแยกตามเอเย่นต์ เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "tool": "describe_entity",
+      "input": {
+        "kind": "agent",
+        "query": "อยุธยาศรีทอง"
+      },
+      "output": {
+        "ok": true,
+        "data": {
+          "id": "ag_cen_01",
+          "ชื่อ": "อยุธยาศรีทอง",
+          "จังหวัด": "พระนครศรีอยุธยา",
+          "ภาค": "ภาคกลาง",
+          "เกรด": "A",
+          "เครดิต": "45 วัน",
+          "เป็นคู่ค้าตั้งแต่": 2001,
+          "ศูนย์กระจายสินค้า": "ศูนย์กระจายสินค้าอยุธยา",
+          "น้ำหนักยอดขาย": 1.34
+        },
+        "summary": "อยุธยาศรีทอง เอเย่นต์เกรด A จังหวัดพระนครศรีอยุธยา ภาคกลาง เครดิต 45 วัน ส่งจากศูนย์กระจายสินค้าอยุธยา"
+      }
+    },
+    {
+      "tool": "crm_demo__store_visits",
+      "input": {
+        "agentId": null,
+        "regions": "central"
+      },
+      "output": {
+        "ok": false,
+        "code": "CONNECTOR_UNAVAILABLE",
+        "error": "CRM (REST) ไม่ตอบในขณะนี้"
+      }
+    },
+    {
+      "tool": "find_people",
+      "input": {
+        "region": "central",
+        "department": null,
+        "manager": null,
+        "query": "ไอซ์ รุ่งเรือง",
+        "flag": null
+      },
+      "output": {
+        "ok": true,
+        "summary": "พบ 1 คน",
+        "data": [
+          {
+            "id": "u_ice",
+            "name": "คุณไอซ์ รุ่งเรือง",
+            "title": "พนักงานขาย อยุธยา",
+            "place": "พระนครศรีอยุธยา",
+            "photo": "/img/people/p02.jpg",
+            "department": "ขาย",
+            "manager": "คุณสมชาย บุญมี",
+            "tenure": "4 ปี 10 เดือน",
+            "badges": []
+          }
+        ],
+        "open_positions": []
+      }
+    },
+    {
+      "tool": "explain_gap",
+      "input": {
+        "metric": "ar_overdue",
+        "split": "agent",
+        "filters": {
+          "region": [
+            "central"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "compare": "prev_period"
+      },
+      "output": {
+        "ok": true,
+        "summary": "ยอดค้างชำระเกินกำหนด 1 ก.ย. 2569 – 22 ก.ย. 2569: จริง 14.8 ล้านบาท · ช่วงก่อนหน้า 18.6 ล้านบาท · ช่องว่าง −3.9 ล้านบาท",
+        "period_label": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+        "actual_label": "14.8 ล้านบาท",
+        "compare_label": "ช่วงก่อนหน้า 18.6 ล้านบาท",
+        "gap_label": "−3.9 ล้านบาท",
+        "attainment_label": null,
+        "contributors": [
+          {
+            "label": "นครปฐมรุ่งทรัพย์",
+            "gap_label": "−1.7 ล้านบาท",
+            "share_label": "43.2%"
+          },
+          {
+            "label": "ราชบุรีสหมิตร",
+            "gap_label": "−1.2 ล้านบาท",
+            "share_label": "31.0%"
+          },
+          {
+            "label": "สระบุรีพาณิชย์",
+            "gap_label": "−1.1 ล้านบาท",
+            "share_label": "29.0%"
+          },
+          {
+            "label": "บ้านโป่งค้าส่ง",
+            "gap_label": "−125,731 บาท",
+            "share_label": "3.3%"
+          },
+          {
+            "label": "วังน้อยเบเวอเรจ",
+            "gap_label": "−67,748 บาท",
+            "share_label": "1.8%"
+          }
+        ],
+        "rest": null,
+        "offsetting": [
+          {
+            "label": "อยุธยาศรีทอง",
+            "gap_label": "+315,114 บาท"
+          }
+        ],
+        "projection": null
+      }
+    },
+    {
+      "tool": "get_person",
+      "input": {
+        "id": "u_ice",
+        "name": null
+      },
+      "output": {
+        "ok": true,
+        "summary": "คุณไอซ์ รุ่งเรือง — พนักงานขาย อยุธยา",
+        "data": {
+          "id": "u_ice",
+          "name": "คุณไอซ์ รุ่งเรือง",
+          "title": "พนักงานขาย อยุธยา",
+          "photo": "/img/people/p02.jpg",
+          "badges": [],
+          "facts": [
+            {
+              "label": "ฝ่าย",
+              "value": "ขาย"
+            },
+            {
+              "label": "พื้นที่",
+              "value": "พระนครศรีอยุธยา"
+            },
+            {
+              "label": "หัวหน้า",
+              "value": "คุณสมชาย บุญมี"
+            },
+            {
+              "label": "อายุงาน",
+              "value": "4 ปี 10 เดือน"
+            },
+            {
+              "label": "เริ่มงาน",
+              "value": "1 พ.ย. 2564"
+            },
+            {
+              "label": "โอที 3 เดือนล่าสุด",
+              "value": "15 ชม."
+            }
+          ],
+          "history": [
+            {
+              "title": "เริ่มงาน พนักงานขาย อยุธยา",
+              "detail": null,
+              "time": "1 พ.ย. 2564"
+            }
+          ],
+          "certificates": [
+            {
+              "label": "ใบอนุญาตจำหน่ายสุรา (ผู้แทน)",
+              "value": "หมดอายุ 31 ต.ค. 2570 · อีก 404 วัน"
+            }
+          ],
+          "risk_reasons": [],
+          "reports": []
+        }
+      }
+    },
+    {
+      "tool": "list_metrics",
+      "input": {
+        "search": "days_of_cover"
+      },
+      "output": {
+        "ok": true,
+        "summary": "พบ 1 เมตริกที่ตรงกับคำค้น",
+        "data": [
+          {
+            "id": "days_of_cover",
+            "labelTh": "วันครอบคลุมสต๊อก",
+            "unit": "วัน",
+            "dims": [
+              "date",
+              "week",
+              "month",
+              "region",
+              "dc",
+              "brand",
+              "sku",
+              "pack",
+              "business_unit"
+            ],
+            "certified": true,
+            "source": "WMS",
+            "refresh": "รายวัน",
+            "latest": "22 ก.ย. 2569"
+          }
+        ]
+      }
+    },
+    {
+      "tool": "list_metrics",
+      "input": {
+        "search": "stock_on_hand"
+      },
+      "output": {
+        "ok": true,
+        "summary": "พบ 1 เมตริกที่ตรงกับคำค้น",
+        "data": [
+          {
+            "id": "stock_on_hand",
+            "labelTh": "สต๊อกคงเหลือ",
+            "unit": "ลัง",
+            "dims": [
+              "date",
+              "week",
+              "month",
+              "region",
+              "dc",
+              "brand",
+              "sku",
+              "pack",
+              "business_unit"
+            ],
+            "certified": true,
+            "source": "WMS",
+            "refresh": "รายวัน",
+            "latest": "22 ก.ย. 2569"
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "days_of_cover",
+        "dims": [
+          "dc"
+        ],
+        "filters": {
+          "region": [
+            "central"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "none",
+        "limit": 10,
+        "sort": "value_asc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "dc": "ศูนย์กระจายสินค้าอยุธยา",
+            "value": 15.91,
+            "value_label": "15.9 วัน"
+          }
+        ],
+        "summary": "วันครอบคลุมสต๊อก 1 ก.ย. 2569 – 22 ก.ย. 2569: เฉลี่ย 15.9 วัน · ต่ำสุด: ศูนย์กระจายสินค้าอยุธยา 15.9 วัน · (1 แถว · certified · WMS)",
+        "headline": {
+          "aggregate": "average",
+          "value": "15.9 วัน",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 1,
+          "deltaPercent": null,
+          "compareLabel": null,
+          "compareNote": null,
+          "top": [
+            {
+              "label": "ศูนย์กระจายสินค้าอยุธยา",
+              "value": "15.9 วัน"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "days_of_cover",
+          "certified": true,
+          "sourceSystem": "WMS",
+          "asOf": "2026-09-22",
+          "rowCount": 1,
+          "filtersApplied": {
+            "region": [
+              "central"
+            ]
+          },
+          "filterLabels": [
+            "ภาคกลาง"
+          ],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "days_of_cover",
+          "dims": [
+            "dc"
+          ],
+          "filters": {
+            "region": [
+              "central"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "none",
+          "limit": 10,
+          "sort": "value_asc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "drill-brand",
+            "kind": "drill",
+            "label": "แยกตามแบรนด์",
+            "reason": "ยังไม่ได้ดูแยกรายแบรนด์",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอวันครอบคลุมสต๊อกแยกตามแบรนด์ เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-forecast",
+            "label": "พยากรณ์ 8 สัปดาห์",
+            "prompt": "พยากรณ์วันครอบคลุมสต๊อก 8 สัปดาห์ข้างหน้า",
+            "reason": "ดูว่าถ้าเป็นแบบนี้ต่อไปจะเกิดอะไร",
+            "intentKey": "follow|forecast",
+            "score": 0.55
+          },
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "วันครอบคลุมสต๊อก รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ขอวันครอบคลุมสต๊อกแยกตามศูนย์กระจายสินค้า เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "days_of_cover",
+        "dims": [
+          "brand"
+        ],
+        "filters": {
+          "region": [
+            "central"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "none",
+        "limit": 10,
+        "sort": "value_asc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "brand": "สิงห์ เลมอนโซดา",
+            "value": 11.29,
+            "value_label": "11.3 วัน"
+          },
+          {
+            "brand": "อาซาฮี",
+            "value": 12.33,
+            "value_label": "12.3 วัน"
+          },
+          {
+            "brand": "คาร์ลสเบิร์ก",
+            "value": 13.27,
+            "value_label": "13.3 วัน"
+          },
+          {
+            "brand": "ลีโอ",
+            "value": 14.03,
+            "value_label": "14.0 วัน"
+          },
+          {
+            "brand": "สิงห์",
+            "value": 16.25,
+            "value_label": "16.2 วัน"
+          },
+          {
+            "brand": "น้ำดื่มสิงห์",
+            "value": 16.97,
+            "value_label": "17.0 วัน"
+          },
+          {
+            "brand": "โซดาสิงห์",
+            "value": 18.02,
+            "value_label": "18.0 วัน"
+          },
+          {
+            "brand": "เพอร์ร่า",
+            "value": 20.59,
+            "value_label": "20.6 วัน"
+          }
+        ],
+        "summary": "วันครอบคลุมสต๊อก 1 ก.ย. 2569 – 22 ก.ย. 2569: เฉลี่ย 15.9 วัน · ต่ำสุด: สิงห์ เลมอนโซดา 11.3 วัน · อาซาฮี 12.3 วัน · คาร์ลสเบิร์ก 13.3 วัน · (8 แถว · certified · WMS)",
+        "headline": {
+          "aggregate": "average",
+          "value": "15.9 วัน",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 8,
+          "deltaPercent": null,
+          "compareLabel": null,
+          "compareNote": null,
+          "top": [
+            {
+              "label": "สิงห์ เลมอนโซดา",
+              "value": "11.3 วัน"
+            },
+            {
+              "label": "อาซาฮี",
+              "value": "12.3 วัน"
+            },
+            {
+              "label": "คาร์ลสเบิร์ก",
+              "value": "13.3 วัน"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "days_of_cover",
+          "certified": true,
+          "sourceSystem": "WMS",
+          "asOf": "2026-09-22",
+          "rowCount": 8,
+          "filtersApplied": {
+            "region": [
+              "central"
+            ]
+          },
+          "filterLabels": [
+            "ภาคกลาง"
+          ],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "days_of_cover",
+          "dims": [
+            "brand"
+          ],
+          "filters": {
+            "region": [
+              "central"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "none",
+          "limit": 10,
+          "sort": "value_asc",
+          "where": null
+        },
+        "nextActions": [],
+        "followUps": [
+          {
+            "id": "fu-drill_down",
+            "label": "ดู SKU ในสิงห์ เลมอนโซดา",
+            "prompt": "ขอวันครอบคลุมสต๊อกของสิงห์ เลมอนโซดา แยกราย SKU เรียงจากแย่ไปดี",
+            "reason": "ลงไปอีกชั้นเพื่อหาว่าใครในสิงห์ เลมอนโซดาทำให้ตัวเลขเป็นแบบนี้",
+            "intentKey": "follow|drill_down",
+            "score": 0.7
+          },
+          {
+            "id": "fu-why",
+            "label": "ทำไมสิงห์ เลมอนโซดา",
+            "prompt": "เจาะดูวันครอบคลุมสต๊อกของสิงห์ เลมอนโซดา ว่าทำไมถึงเปลี่ยนไป เทียบกับช่วงก่อนหน้าและช่วงเดียวกันปีก่อน",
+            "reason": "สิงห์ เลมอนโซดา คือแถวที่ต้องดูมากที่สุดในคำตอบนี้",
+            "intentKey": "follow|why",
+            "score": 0.6
+          },
+          {
+            "id": "fu-forecast",
+            "label": "พยากรณ์ 8 สัปดาห์",
+            "prompt": "พยากรณ์วันครอบคลุมสต๊อก 8 สัปดาห์ข้างหน้า",
+            "reason": "ดูว่าถ้าเป็นแบบนี้ต่อไปจะเกิดอะไร",
+            "intentKey": "follow|forecast",
+            "score": 0.55
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "days_of_cover",
+        "dims": [
+          "sku"
+        ],
+        "filters": {
+          "region": [
+            "central"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "none",
+        "limit": 10,
+        "sort": "value_asc",
+        "where": {
+          "op": "below",
+          "value": 10
+        }
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "sku": "ลีโอ กระป๋อง 490 มล.",
+            "value": 8.35,
+            "value_label": "8.4 วัน"
+          },
+          {
+            "sku": "สิงห์ เลมอนโซดา ขวด PET 600 มล.",
+            "value": 8.77,
+            "value_label": "8.8 วัน"
+          }
+        ],
+        "summary": "วันครอบคลุมสต๊อก 1 ก.ย. 2569 – 22 ก.ย. 2569: เฉลี่ย 8.6 วัน · ต่ำสุด: ลีโอ กระป๋อง 490 มล. 8.4 วัน · สิงห์ เลมอนโซดา ขวด PET 600 มล. 8.8 วัน · (2 แถว · certified · WMS)",
+        "headline": {
+          "aggregate": "average",
+          "value": "8.6 วัน",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 2,
+          "deltaPercent": null,
+          "compareLabel": null,
+          "compareNote": null,
+          "top": [
+            {
+              "label": "ลีโอ กระป๋อง 490 มล.",
+              "value": "8.4 วัน"
+            },
+            {
+              "label": "สิงห์ เลมอนโซดา ขวด PET 600 มล.",
+              "value": "8.8 วัน"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "days_of_cover",
+          "certified": true,
+          "sourceSystem": "WMS",
+          "asOf": "2026-09-22",
+          "rowCount": 2,
+          "filtersApplied": {
+            "region": [
+              "central"
+            ]
+          },
+          "filterLabels": [
+            "ภาคกลาง",
+            "น้อยกว่า 10 วัน"
+          ],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "days_of_cover",
+          "dims": [
+            "sku"
+          ],
+          "filters": {
+            "region": [
+              "central"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "none",
+          "limit": 10,
+          "sort": "value_asc",
+          "where": {
+            "op": "below",
+            "value": 10
+          }
+        },
+        "nextActions": [
+          {
+            "id": "drill-brand",
+            "kind": "drill",
+            "label": "แยกตามแบรนด์",
+            "reason": "ยังไม่ได้ดูแยกรายแบรนด์",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอวันครอบคลุมสต๊อกแยกตามแบรนด์ เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-why",
+            "label": "ทำไมลีโอ กระป๋อง 490 มล.",
+            "prompt": "เจาะดูวันครอบคลุมสต๊อกของลีโอ กระป๋อง 490 มล. ว่าทำไมถึงเปลี่ยนไป เทียบกับช่วงก่อนหน้าและช่วงเดียวกันปีก่อน",
+            "reason": "ลีโอ กระป๋อง 490 มล. คือแถวที่ต้องดูมากที่สุดในคำตอบนี้",
+            "intentKey": "follow|why",
+            "score": 0.6
+          },
+          {
+            "id": "fu-forecast",
+            "label": "พยากรณ์ 8 สัปดาห์",
+            "prompt": "พยากรณ์วันครอบคลุมสต๊อกของลีโอ กระป๋อง 490 มล. 8 สัปดาห์ข้างหน้า",
+            "reason": "ดูว่าถ้าเป็นแบบนี้ต่อไปจะเกิดอะไร",
+            "intentKey": "follow|forecast",
+            "score": 0.55
+          },
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "วันครอบคลุมสต๊อก รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "net_sales_volume",
+        "dims": [
+          "agent"
+        ],
+        "filters": {
+          "region": [
+            "central"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "target",
+        "limit": 10,
+        "sort": "delta_asc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "agent": "นครปฐมรุ่งทรัพย์",
+            "value": 497546,
+            "value_label": "497,546 ลิตร",
+            "compare_value": 493873,
+            "delta_pct": 0.7
+          },
+          {
+            "agent": "บ้านโป่งค้าส่ง",
+            "value": 220616,
+            "value_label": "220,616 ลิตร",
+            "compare_value": 216596,
+            "delta_pct": 1.9
+          },
+          {
+            "agent": "อยุธยาศรีทอง",
+            "value": 722390,
+            "value_label": "722,390 ลิตร",
+            "compare_value": 706824,
+            "delta_pct": 2.2
+          },
+          {
+            "agent": "สระบุรีพาณิชย์",
+            "value": 464957,
+            "value_label": "464,957 ลิตร",
+            "compare_value": 454343,
+            "delta_pct": 2.3
+          },
+          {
+            "agent": "วังน้อยเบเวอเรจ",
+            "value": 258371,
+            "value_label": "258,371 ลิตร",
+            "compare_value": 251373,
+            "delta_pct": 2.8
+          },
+          {
+            "agent": "ราชบุรีสหมิตร",
+            "value": 419176,
+            "value_label": "419,176 ลิตร",
+            "compare_value": 406165,
+            "delta_pct": 3.2
+          }
+        ],
+        "summary": "ปริมาณขายเข้า (Sell-in) 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 2.6 ล้านลิตร · สูงสุด: อยุธยาศรีทอง 722,390 ลิตร · นครปฐมรุ่งทรัพย์ 497,546 ลิตร · สระบุรีพาณิชย์ 464,957 ลิตร · เทียบเป้า +2.1% · (6 แถว · certified · SAP SD)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "2.6 ล้านลิตร",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 6,
+          "deltaPercent": 2.1,
+          "compareLabel": "เทียบเป้า",
+          "compareNote": null,
+          "top": [
+            {
+              "label": "อยุธยาศรีทอง",
+              "value": "722,390 ลิตร"
+            },
+            {
+              "label": "นครปฐมรุ่งทรัพย์",
+              "value": "497,546 ลิตร"
+            },
+            {
+              "label": "สระบุรีพาณิชย์",
+              "value": "464,957 ลิตร"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "net_sales_volume",
+          "certified": true,
+          "sourceSystem": "SAP SD",
+          "asOf": "2026-09-22",
+          "rowCount": 6,
+          "filtersApplied": {
+            "region": [
+              "central"
+            ]
+          },
+          "filterLabels": [
+            "ภาคกลาง"
+          ],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "net_sales_volume",
+          "dims": [
+            "agent"
+          ],
+          "filters": {
+            "region": [
+              "central"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "target",
+          "limit": 10,
+          "sort": "delta_asc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "verify",
+            "kind": "verify",
+            "label": "ตรวจสาเหตุ",
+            "reason": "เทียบราชบุรีสหมิตร · สิงห์ แพ็ก 12 · ภาคกลางกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+            "tool": null,
+            "input": null,
+            "prompt": "เทียบราชบุรีสหมิตร · สิงห์ แพ็ก 12 · ภาคกลางกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน"
+          },
+          {
+            "id": "drill-province",
+            "kind": "drill",
+            "label": "แยกตามจังหวัด",
+            "reason": "ยังไม่ได้ดูแยกรายจังหวัด",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอปริมาณขายเข้า (Sell-in)แยกตามจังหวัด เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-forecast",
+            "label": "พยากรณ์ 8 สัปดาห์",
+            "prompt": "พยากรณ์ปริมาณขายเข้า 8 สัปดาห์ข้างหน้า",
+            "reason": "ดูว่าถ้าเป็นแบบนี้ต่อไปจะเกิดอะไร",
+            "intentKey": "follow|forecast",
+            "score": 0.55
+          },
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "ปริมาณขายเข้า (Sell-in) รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ขอปริมาณขายเข้า (Sell-in) แยกตามเอเย่นต์ เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "stock_on_hand",
+        "dims": [
+          "sku"
+        ],
+        "filters": {
+          "sku": [
+            "sku_singha_lemon_soda_pet600",
+            "sku_leo_can490"
+          ],
+          "region": [
+            "central"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "none",
+        "limit": 10,
+        "sort": "value_asc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "sku": "สิงห์ เลมอนโซดา ขวด PET 600 มล.",
+            "value": 3591,
+            "value_label": "3,591 ลัง"
+          },
+          {
+            "sku": "ลีโอ กระป๋อง 490 มล.",
+            "value": 3762,
+            "value_label": "3,762 ลัง"
+          }
+        ],
+        "summary": "สต๊อกคงเหลือ 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 7,353 ลัง · สูงสุด: ลีโอ กระป๋อง 490 มล. 3,762 ลัง · สิงห์ เลมอนโซดา ขวด PET 600 มล. 3,591 ลัง · (2 แถว · certified · WMS)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "7,353 ลัง",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 2,
+          "deltaPercent": null,
+          "compareLabel": null,
+          "compareNote": null,
+          "top": [
+            {
+              "label": "ลีโอ กระป๋อง 490 มล.",
+              "value": "3,762 ลัง"
+            },
+            {
+              "label": "สิงห์ เลมอนโซดา ขวด PET 600 มล.",
+              "value": "3,591 ลัง"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "stock_on_hand",
+          "certified": true,
+          "sourceSystem": "WMS",
+          "asOf": "2026-09-22",
+          "rowCount": 2,
+          "filtersApplied": {
+            "sku": [
+              "sku_singha_lemon_soda_pet600",
+              "sku_leo_can490"
+            ],
+            "region": [
+              "central"
+            ]
+          },
+          "filterLabels": [
+            "ภาคกลาง"
+          ],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "stock_on_hand",
+          "dims": [
+            "sku"
+          ],
+          "filters": {
+            "sku": [
+              "sku_singha_lemon_soda_pet600",
+              "sku_leo_can490"
+            ],
+            "region": [
+              "central"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "none",
+          "limit": 10,
+          "sort": "value_asc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "drill-brand",
+            "kind": "drill",
+            "label": "แยกตามแบรนด์",
+            "reason": "ยังไม่ได้ดูแยกรายแบรนด์",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอสต๊อกคงเหลือแยกตามแบรนด์ เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "สต๊อกคงเหลือ รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ขอสต๊อกคงเหลือแยกตาม SKU เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "sell_out_volume",
+        "dims": [
+          "province"
+        ],
+        "filters": {
+          "region": [
+            "central"
+          ],
+          "sku": [
+            "sku_purra_pet600"
+          ]
+        },
+        "range": {
+          "from": "2026-08-29",
+          "to": "2026-09-21"
+        },
+        "grain": "month",
+        "compare": "prev_period",
+        "limit": 10,
+        "sort": "delta_asc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "province": "พระนครศรีอยุธยา",
+            "value": 33720,
+            "value_label": "33,720 ลิตร",
+            "compare_value": 41671,
+            "delta_pct": -19.1
+          },
+          {
+            "province": "นครปฐม",
+            "value": 18123,
+            "value_label": "18,123 ลิตร",
+            "compare_value": 22395,
+            "delta_pct": -19.1
+          },
+          {
+            "province": "ราชบุรี",
+            "value": 21421,
+            "value_label": "21,421 ลิตร",
+            "compare_value": 26104,
+            "delta_pct": -17.9
+          },
+          {
+            "province": "สระบุรี",
+            "value": 14634,
+            "value_label": "14,634 ลิตร",
+            "compare_value": 17165,
+            "delta_pct": -14.7
+          }
+        ],
+        "summary": "ปริมาณขายออก (Sell-out) 29 ส.ค. 2569 – 21 ก.ย. 2569: รวม 87,898 ลิตร · สูงสุด: พระนครศรีอยุธยา 33,720 ลิตร · ราชบุรี 21,421 ลิตร · นครปฐม 18,123 ลิตร · เทียบช่วงก่อนหน้า -18.1% · (4 แถว · certified · SAP SD)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "87,898 ลิตร",
+          "periodLabel": "29 ส.ค. 2569 – 21 ก.ย. 2569",
+          "rowCount": 4,
+          "deltaPercent": -18.1,
+          "compareLabel": "เทียบช่วงก่อนหน้า",
+          "compareNote": null,
+          "top": [
+            {
+              "label": "พระนครศรีอยุธยา",
+              "value": "33,720 ลิตร"
+            },
+            {
+              "label": "ราชบุรี",
+              "value": "21,421 ลิตร"
+            },
+            {
+              "label": "นครปฐม",
+              "value": "18,123 ลิตร"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "sell_out_volume",
+          "certified": true,
+          "sourceSystem": "SAP SD",
+          "asOf": "2026-09-22",
+          "rowCount": 4,
+          "filtersApplied": {
+            "region": [
+              "central"
+            ],
+            "sku": [
+              "sku_purra_pet600"
+            ]
+          },
+          "filterLabels": [
+            "ภาคกลาง",
+            "เพอร์ร่า ขวด PET 600 มล."
+          ],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "sell_out_volume",
+          "dims": [
+            "province"
+          ],
+          "filters": {
+            "region": [
+              "central"
+            ],
+            "sku": [
+              "sku_purra_pet600"
+            ]
+          },
+          "range": {
+            "from": "2026-08-29",
+            "to": "2026-09-21"
+          },
+          "grain": "month",
+          "compare": "prev_period",
+          "limit": 10,
+          "sort": "delta_asc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "verify",
+            "kind": "verify",
+            "label": "ตรวจสาเหตุ",
+            "reason": "เทียบเพอร์ร่า ขวด PET 600 มล. · นครปฐม · ภาคกลางกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+            "tool": null,
+            "input": null,
+            "prompt": "เทียบเพอร์ร่า ขวด PET 600 มล. · นครปฐม · ภาคกลางกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน"
+          },
+          {
+            "id": "drill-channel",
+            "kind": "drill",
+            "label": "แยกตามช่องทาง",
+            "reason": "ยังไม่ได้ดูแยกรายช่องทาง",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอปริมาณขายออก (Sell-out)แยกตามช่องทาง เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-why",
+            "label": "ทำไมพระนครศรีอยุธยา",
+            "prompt": "เจาะดูปริมาณขายออก (Sell-out) ของพระนครศรีอยุธยา ว่าทำไมถึงเปลี่ยนไป เทียบกับช่วงก่อนหน้าและช่วงเดียวกันปีก่อน",
+            "reason": "พระนครศรีอยุธยา คือแถวที่ต้องดูมากที่สุดในคำตอบนี้",
+            "intentKey": "follow|why",
+            "score": 0.95
+          },
+          {
+            "id": "fu-drill_down",
+            "label": "ดูเอเย่นต์ในพระนครศรีอยุธยา",
+            "prompt": "ขอปริมาณขายออก (Sell-out) ของพระนครศรีอยุธยา แยกรายเอเย่นต์ เรียงจากแย่ไปดี",
+            "reason": "ลงไปอีกชั้นเพื่อหาว่าใครในพระนครศรีอยุธยาทำให้ตัวเลขเป็นแบบนี้",
+            "intentKey": "follow|drill_down",
+            "score": 0.85
+          },
+          {
+            "id": "fu-trend",
+            "label": "เริ่มแย่ตั้งแต่เมื่อไร",
+            "prompt": "ปริมาณขายออก (Sell-out) ของพระนครศรีอยุธยา รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "ดูว่าตัวเลขเริ่มลดลงสัปดาห์ไหน",
+            "intentKey": "follow|trend",
+            "score": 0.65
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "sell_out_volume",
+        "dims": [
+          "province"
+        ],
+        "filters": {
+          "sku": [
+            "sku_purra_pet600"
+          ],
+          "region": [
+            "central"
+          ]
+        },
+        "range": {
+          "from": "2026-08-29",
+          "to": "2026-09-21"
+        },
+        "grain": "month",
+        "compare": "prev_year",
+        "limit": 10,
+        "sort": "delta_asc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "province": "นครปฐม",
+            "value": 18123,
+            "value_label": "18,123 ลิตร",
+            "compare_value": 18190,
+            "delta_pct": -0.4
+          },
+          {
+            "province": "พระนครศรีอยุธยา",
+            "value": 33720,
+            "value_label": "33,720 ลิตร",
+            "compare_value": 32278,
+            "delta_pct": 4.5
+          },
+          {
+            "province": "สระบุรี",
+            "value": 14634,
+            "value_label": "14,634 ลิตร",
+            "compare_value": 13961,
+            "delta_pct": 4.8
+          },
+          {
+            "province": "ราชบุรี",
+            "value": 21421,
+            "value_label": "21,421 ลิตร",
+            "compare_value": 20151,
+            "delta_pct": 6.3
+          }
+        ],
+        "summary": "ปริมาณขายออก (Sell-out) 29 ส.ค. 2569 – 21 ก.ย. 2569: รวม 87,898 ลิตร · สูงสุด: พระนครศรีอยุธยา 33,720 ลิตร · ราชบุรี 21,421 ลิตร · นครปฐม 18,123 ลิตร · เทียบปีก่อน +3.9% · (4 แถว · certified · SAP SD)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "87,898 ลิตร",
+          "periodLabel": "29 ส.ค. 2569 – 21 ก.ย. 2569",
+          "rowCount": 4,
+          "deltaPercent": 3.9,
+          "compareLabel": "เทียบปีก่อน",
+          "compareNote": null,
+          "top": [
+            {
+              "label": "พระนครศรีอยุธยา",
+              "value": "33,720 ลิตร"
+            },
+            {
+              "label": "ราชบุรี",
+              "value": "21,421 ลิตร"
+            },
+            {
+              "label": "นครปฐม",
+              "value": "18,123 ลิตร"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "sell_out_volume",
+          "certified": true,
+          "sourceSystem": "SAP SD",
+          "asOf": "2026-09-22",
+          "rowCount": 4,
+          "filtersApplied": {
+            "sku": [
+              "sku_purra_pet600"
+            ],
+            "region": [
+              "central"
+            ]
+          },
+          "filterLabels": [
+            "เพอร์ร่า ขวด PET 600 มล.",
+            "ภาคกลาง"
+          ],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "sell_out_volume",
+          "dims": [
+            "province"
+          ],
+          "filters": {
+            "sku": [
+              "sku_purra_pet600"
+            ],
+            "region": [
+              "central"
+            ]
+          },
+          "range": {
+            "from": "2026-08-29",
+            "to": "2026-09-21"
+          },
+          "grain": "month",
+          "compare": "prev_year",
+          "limit": 10,
+          "sort": "delta_asc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "verify",
+            "kind": "verify",
+            "label": "ตรวจสาเหตุ",
+            "reason": "เทียบเพอร์ร่า ขวด PET 600 มล. · นครปฐม · ภาคกลางกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+            "tool": null,
+            "input": null,
+            "prompt": "เทียบเพอร์ร่า ขวด PET 600 มล. · นครปฐม · ภาคกลางกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน"
+          },
+          {
+            "id": "drill-channel",
+            "kind": "drill",
+            "label": "แยกตามช่องทาง",
+            "reason": "ยังไม่ได้ดูแยกรายช่องทาง",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอปริมาณขายออก (Sell-out)แยกตามช่องทาง เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "ปริมาณขายออก (Sell-out) รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "sell_out_volume",
+        "dims": [
+          "province"
+        ],
+        "filters": {
+          "sku": [
+            "sku_singha_lemon_soda_pet600"
+          ],
+          "region": [
+            "central"
+          ]
+        },
+        "range": {
+          "from": "2026-08-28",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "prev_period",
+        "limit": 10,
+        "sort": "delta_asc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "province": "สระบุรี",
+            "value": 12337,
+            "value_label": "12,337 ลิตร",
+            "compare_value": 15506,
+            "delta_pct": -20.4
+          },
+          {
+            "province": "ราชบุรี",
+            "value": 20114,
+            "value_label": "20,114 ลิตร",
+            "compare_value": 24170,
+            "delta_pct": -16.8
+          },
+          {
+            "province": "พระนครศรีอยุธยา",
+            "value": 27609,
+            "value_label": "27,609 ลิตร",
+            "compare_value": 32825,
+            "delta_pct": -15.9
+          },
+          {
+            "province": "นครปฐม",
+            "value": 16379,
+            "value_label": "16,379 ลิตร",
+            "compare_value": 19163,
+            "delta_pct": -14.5
+          }
+        ],
+        "summary": "ปริมาณขายออก (Sell-out) 28 ส.ค. 2569 – 22 ก.ย. 2569: รวม 76,439 ลิตร · สูงสุด: พระนครศรีอยุธยา 27,609 ลิตร · ราชบุรี 20,114 ลิตร · นครปฐม 16,379 ลิตร · เทียบช่วงก่อนหน้า -16.6% · (4 แถว · certified · SAP SD)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "76,439 ลิตร",
+          "periodLabel": "28 ส.ค. 2569 – 22 ก.ย. 2569",
+          "rowCount": 4,
+          "deltaPercent": -16.6,
+          "compareLabel": "เทียบช่วงก่อนหน้า",
+          "compareNote": null,
+          "top": [
+            {
+              "label": "พระนครศรีอยุธยา",
+              "value": "27,609 ลิตร"
+            },
+            {
+              "label": "ราชบุรี",
+              "value": "20,114 ลิตร"
+            },
+            {
+              "label": "นครปฐม",
+              "value": "16,379 ลิตร"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "sell_out_volume",
+          "certified": true,
+          "sourceSystem": "SAP SD",
+          "asOf": "2026-09-22",
+          "rowCount": 4,
+          "filtersApplied": {
+            "sku": [
+              "sku_singha_lemon_soda_pet600"
+            ],
+            "region": [
+              "central"
+            ]
+          },
+          "filterLabels": [
+            "สิงห์ เลมอนโซดา ขวด PET 600 มล.",
+            "ภาคกลาง"
+          ],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "sell_out_volume",
+          "dims": [
+            "province"
+          ],
+          "filters": {
+            "sku": [
+              "sku_singha_lemon_soda_pet600"
+            ],
+            "region": [
+              "central"
+            ]
+          },
+          "range": {
+            "from": "2026-08-28",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "prev_period",
+          "limit": 10,
+          "sort": "delta_asc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "verify",
+            "kind": "verify",
+            "label": "ตรวจสาเหตุ",
+            "reason": "เทียบสิงห์ เลมอนโซดา ขวด PET 600 มล. · สระบุรี · ภาคกลางกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+            "tool": null,
+            "input": null,
+            "prompt": "เทียบสิงห์ เลมอนโซดา ขวด PET 600 มล. · สระบุรี · ภาคกลางกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน"
+          },
+          {
+            "id": "drill-channel",
+            "kind": "drill",
+            "label": "แยกตามช่องทาง",
+            "reason": "ยังไม่ได้ดูแยกรายช่องทาง",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอปริมาณขายออก (Sell-out)แยกตามช่องทาง เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-why",
+            "label": "ทำไมสระบุรี",
+            "prompt": "เจาะดูปริมาณขายออก (Sell-out) ของสระบุรี ว่าทำไมถึงเปลี่ยนไป เทียบกับช่วงก่อนหน้าและช่วงเดียวกันปีก่อน",
+            "reason": "สระบุรี คือแถวที่ต้องดูมากที่สุดในคำตอบนี้",
+            "intentKey": "follow|why",
+            "score": 0.95
+          },
+          {
+            "id": "fu-drill_down",
+            "label": "ดูเอเย่นต์ในสระบุรี",
+            "prompt": "ขอปริมาณขายออก (Sell-out) ของสระบุรี แยกรายเอเย่นต์ เรียงจากแย่ไปดี",
+            "reason": "ลงไปอีกชั้นเพื่อหาว่าใครในสระบุรีทำให้ตัวเลขเป็นแบบนี้",
+            "intentKey": "follow|drill_down",
+            "score": 0.85
+          },
+          {
+            "id": "fu-trend",
+            "label": "เริ่มแย่ตั้งแต่เมื่อไร",
+            "prompt": "ปริมาณขายออก (Sell-out) ของสระบุรี รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "ดูว่าตัวเลขเริ่มลดลงสัปดาห์ไหน",
+            "intentKey": "follow|trend",
+            "score": 0.65
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "sell_out_volume",
+        "dims": [
+          "province"
+        ],
+        "filters": {
+          "region": [
+            "central"
+          ],
+          "sku": [
+            "sku_singha_lemon_soda_pet600"
+          ]
+        },
+        "range": {
+          "from": "2026-08-28",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "prev_year",
+        "limit": 10,
+        "sort": "delta_asc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "province": "สระบุรี",
+            "value": 12337,
+            "value_label": "12,337 ลิตร",
+            "compare_value": 12403,
+            "delta_pct": -0.5
+          },
+          {
+            "province": "ราชบุรี",
+            "value": 20114,
+            "value_label": "20,114 ลิตร",
+            "compare_value": 19457,
+            "delta_pct": 3.4
+          },
+          {
+            "province": "นครปฐม",
+            "value": 16379,
+            "value_label": "16,379 ลิตร",
+            "compare_value": 15257,
+            "delta_pct": 7.4
+          },
+          {
+            "province": "พระนครศรีอยุธยา",
+            "value": 27609,
+            "value_label": "27,609 ลิตร",
+            "compare_value": 25153,
+            "delta_pct": 9.8
+          }
+        ],
+        "summary": "ปริมาณขายออก (Sell-out) 28 ส.ค. 2569 – 22 ก.ย. 2569: รวม 76,439 ลิตร · สูงสุด: พระนครศรีอยุธยา 27,609 ลิตร · ราชบุรี 20,114 ลิตร · นครปฐม 16,379 ลิตร · เทียบปีก่อน +5.8% · (4 แถว · certified · SAP SD)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "76,439 ลิตร",
+          "periodLabel": "28 ส.ค. 2569 – 22 ก.ย. 2569",
+          "rowCount": 4,
+          "deltaPercent": 5.8,
+          "compareLabel": "เทียบปีก่อน",
+          "compareNote": null,
+          "top": [
+            {
+              "label": "พระนครศรีอยุธยา",
+              "value": "27,609 ลิตร"
+            },
+            {
+              "label": "ราชบุรี",
+              "value": "20,114 ลิตร"
+            },
+            {
+              "label": "นครปฐม",
+              "value": "16,379 ลิตร"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "sell_out_volume",
+          "certified": true,
+          "sourceSystem": "SAP SD",
+          "asOf": "2026-09-22",
+          "rowCount": 4,
+          "filtersApplied": {
+            "region": [
+              "central"
+            ],
+            "sku": [
+              "sku_singha_lemon_soda_pet600"
+            ]
+          },
+          "filterLabels": [
+            "ภาคกลาง",
+            "สิงห์ เลมอนโซดา ขวด PET 600 มล."
+          ],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "sell_out_volume",
+          "dims": [
+            "province"
+          ],
+          "filters": {
+            "region": [
+              "central"
+            ],
+            "sku": [
+              "sku_singha_lemon_soda_pet600"
+            ]
+          },
+          "range": {
+            "from": "2026-08-28",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "prev_year",
+          "limit": 10,
+          "sort": "delta_asc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "verify",
+            "kind": "verify",
+            "label": "ตรวจสาเหตุ",
+            "reason": "เทียบสิงห์ เลมอนโซดา ขวด PET 600 มล. · สระบุรี · ภาคกลางกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+            "tool": null,
+            "input": null,
+            "prompt": "เทียบสิงห์ เลมอนโซดา ขวด PET 600 มล. · สระบุรี · ภาคกลางกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน"
+          },
+          {
+            "id": "drill-channel",
+            "kind": "drill",
+            "label": "แยกตามช่องทาง",
+            "reason": "ยังไม่ได้ดูแยกรายช่องทาง",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอปริมาณขายออก (Sell-out)แยกตามช่องทาง เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "ปริมาณขายออก (Sell-out) รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          }
+        ]
+      }
+    },
+    {
+      "tool": "get_calendar",
+      "input": {
+        "from": "2026-09-01",
+        "to": "2026-10-31"
+      },
+      "output": {
+        "ok": true,
+        "summary": "1 ก.ย. 2569 – 31 ต.ค. 2569 มี 3 วันสำคัญ ห้ามขายเครื่องดื่มแอลกอฮอล์ 1 วัน",
+        "data": [
+          {
+            "date": "2026-10-13",
+            "date_label": "13 ต.ค. 2569",
+            "when_label": "อีก 21 วัน",
+            "name": "วันคล้ายวันสวรรคต รัชกาลที่ 9",
+            "kind": "holiday",
+            "kind_label": "วันหยุด",
+            "impact_label": "ขายออกเบียร์ +4% · วัดจากวันคล้ายวันสวรรคต รัชกาลที่ 9 13 ต.ค. 2568"
+          },
+          {
+            "date": "2026-10-23",
+            "date_label": "23 ต.ค. 2569",
+            "when_label": "อีก 31 วัน",
+            "name": "วันปิยมหาราช",
+            "kind": "holiday",
+            "kind_label": "วันหยุด",
+            "impact_label": "ขายออกเบียร์ +17% · วัดจากวันปิยมหาราช 23 ต.ค. 2568"
+          },
+          {
+            "date": "2026-10-26",
+            "date_label": "26 ต.ค. 2569",
+            "when_label": "อีก 34 วัน",
+            "name": "วันออกพรรษา",
+            "kind": "alcohol_ban",
+            "kind_label": "ห้ามขายเครื่องดื่มแอลกอฮอล์",
+            "impact_label": "ขายออกเบียร์ -90% · เอเย่นต์สั่งเข้า 2 วันก่อนหน้า +30% · วัดจากวันวิสาขบูชา 31 พ.ค. 2569"
+          }
+        ]
+      }
+    }
+  ],
+  "dropped": []
+}

@@ -1,0 +1,3534 @@
+{
+  "investigation": {
+    "id": "u_mint",
+    "userId": "u_mint",
+    "at": "2026-09-26T19:29:43.606Z",
+    "model": "google/gemini-3.8-flash",
+    "stories": [
+      {
+        "kind": "urgent",
+        "claim": "หนี้ค้างภาคใต้พุ่ง กระจุกที่เอเย่นต์เกรด C 3 ราย",
+        "scope": "ภาคใต้ · ทุกตราสินค้า",
+        "period": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+        "subject": {
+          "metric": "ar_overdue",
+          "region": "south"
+        },
+        "headline": {
+          "label": "ยอดค้างชำระเกินกำหนด",
+          "value": "19.9 ล้านบาท",
+          "tone": "bad"
+        },
+        "projection": null,
+        "causes": [
+          {
+            "label": "นครศรีรุ่งเจริญ",
+            "detail": "หนี้ค้างชำระเพิ่มขึ้น 157.5% เทียบปีก่อน",
+            "value": "4.9 ล้านบาท",
+            "shareOfGap": null
+          },
+          {
+            "label": "เกาะสมุยเบเวอเรจ",
+            "detail": "หนี้ค้างชำระเพิ่มขึ้น 122.5% เทียบปีก่อน",
+            "value": "4.1 ล้านบาท",
+            "shareOfGap": null
+          },
+          {
+            "label": "สงขลาทักษิณ เทรดดิ้ง",
+            "detail": "หนี้ค้างชำระเพิ่มขึ้น 110.4% เทียบปีก่อน",
+            "value": "3.4 ล้านบาท",
+            "shareOfGap": null
+          }
+        ],
+        "checked": [
+          {
+            "text": "ภาคใต้ 19.9 ล้านบาท · +64%",
+            "verdict": "confirmed",
+            "source": "query_metric"
+          },
+          {
+            "text": "กระจุก 3 ราย",
+            "verdict": "confirmed",
+            "source": "query_metric"
+          },
+          {
+            "text": "คุณมิ้นท์ดูแลตัวเลขนี้",
+            "verdict": "confirmed",
+            "source": "resolve_owner"
+          }
+        ],
+        "recommendation": "ทำตารางอายุหนี้ 3 ราย เสนอ CFO และให้ทีมขายภาคใต้ตามการวางบิล",
+        "id": "u_mint-0",
+        "owner": null
+      },
+      {
+        "kind": "urgent",
+        "claim": "อีสานหลุดเป้าจาก 2 เอเย่นต์ที่สั่งลด อาจติดวงเงินเครดิต",
+        "scope": "ภาคอีสาน · ทุกตราสินค้า",
+        "period": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+        "subject": {
+          "metric": "net_sales_value",
+          "region": "northeast"
+        },
+        "headline": {
+          "label": "เทียบเป้า",
+          "value": "90.0%",
+          "tone": "bad"
+        },
+        "projection": {
+          "label": "สิ้นเดือน ถ้าขายเท่า 7 วันล่าสุด",
+          "value": "86.7%"
+        },
+        "causes": [
+          {
+            "label": "อีสานรุ่งโรจน์ ค้าส่ง",
+            "detail": "คำสั่งซื้อลดลงกว่า 55% ตั้งแต่วันที่ 11 ก.ย.",
+            "value": "−13.4 ล้านบาท",
+            "shareOfGap": "51.6%"
+          },
+          {
+            "label": "อุบลศรีสุข เทรดดิ้ง",
+            "detail": "คำสั่งซื้อลดลงกว่า 55% ตั้งแต่วันที่ 11 ก.ย.",
+            "value": "−12.8 ล้านบาท",
+            "shareOfGap": "49.5%"
+          }
+        ],
+        "checked": [
+          {
+            "text": "อีสานขาดเป้า −25.9 ล้านบาท",
+            "verdict": "confirmed",
+            "source": "explain_gap"
+          },
+          {
+            "text": "2 เอเย่นต์สั่งลดตั้งแต่ 11 ก.ย.",
+            "verdict": "confirmed",
+            "source": "query_metric"
+          },
+          {
+            "text": "ปลายทางหยุดทั้งหมด",
+            "verdict": "ruled_out",
+            "source": "query_metric"
+          },
+          {
+            "text": "เคยติดวงเงินแล้วฟื้นหลังขยาย",
+            "verdict": "likely",
+            "source": "get_alerts"
+          },
+          {
+            "text": "ติดวงเงินหรือชะลอเอง ยังไม่รู้",
+            "verdict": "unknown",
+            "source": null
+          }
+        ],
+        "recommendation": "ตรวจสถานะวงเงิน 2 รายกับฝ่ายสินเชื่อ แล้วเสนอเงื่อนไขชำระให้ปลดล็อกได้",
+        "id": "u_mint-1",
+        "owner": {
+          "userId": "u_anucha",
+          "nameTh": "คุณอนุชา พรหมศรี",
+          "title": "ผู้จัดการขายภาค ภาคอีสาน"
+        }
+      },
+      {
+        "kind": "watch",
+        "claim": "งบส่งเสริมการขายโต 27.3% กำไรกลุ่มนำเข้าและนอนแอลฯ ลด",
+        "scope": "ทั่วประเทศ · ทุกตราสินค้า",
+        "period": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+        "subject": {
+          "metric": "trade_spend",
+          "region": null
+        },
+        "headline": {
+          "label": "งบส่งเสริมการขาย",
+          "value": "126.8 ล้านบาท",
+          "tone": "bad"
+        },
+        "projection": null,
+        "causes": [
+          {
+            "label": "กลุ่มเบียร์",
+            "detail": "งบส่งเสริมการขายเพิ่มขึ้น 19.4% เทียบปีก่อน",
+            "value": "58.8 ล้านบาท",
+            "shareOfGap": null
+          },
+          {
+            "label": "กลุ่มนอนแอลกอฮอล์",
+            "detail": "งบ +31.6% · กำไรขั้นต้น 41.1%",
+            "value": "34.7 ล้านบาท",
+            "shareOfGap": null
+          },
+          {
+            "label": "กลุ่มนำเข้า",
+            "detail": "งบ +38.7% · กำไรขั้นต้น 23.7%",
+            "value": "33.3 ล้านบาท",
+            "shareOfGap": null
+          }
+        ],
+        "checked": [
+          {
+            "text": "งบโปรโมชัน 126.8 ล้านบาท · +27.3%",
+            "verdict": "confirmed",
+            "source": "query_metric"
+          },
+          {
+            "text": "กำไรขั้นต้น 2 กลุ่มลด 3.4%",
+            "verdict": "confirmed",
+            "source": "query_metric"
+          }
+        ],
+        "recommendation": "สรุปงบโปรโมชันเทียบกำไรกลุ่มนอนแอลฯ และนำเข้า แนบรายงาน CFO",
+        "id": "u_mint-2",
+        "owner": null
+      }
+    ],
+    "checkedCount": 34,
+    "costUsd": 0.18037732499999998
+  },
+  "notes": "### สรุปผลการตรวจสอบข้อมูลทางการเงิน (MTD: 1 – 22 กันยายน 2569)\n**สำหรับ:** คุณมิ้นท์ วรกุล (นักวิเคราะห์การเงิน)  \n**รายงานตรงต่อ:** คุณศิริพร รัตนกร (ประธานเจ้าหน้าที่การเงิน / CFO)  \n**ขอบเขต:** ทุกภาค · ทุกตราสินค้า  \n\n---\n\n### 1. ภาพรวมสถานะทางการเงินระดับประเทศ (Financial Headline)\n\n* **มูลค่าขายเข้า (Net Sales Value):** ทำได้ **1,110.2 ล้านบาท** จากเป้าหมาย **1,125.9 ล้านบาท** (บรรลุเป้าหมาย **98.6%**, เกิดช่องว่างติดลบ **−15.7 ล้านบาท**) \n  * จากแบบจำลองพยากรณ์ หากอัตราขายในช่วงวันที่เหลือยังเท่ากับค่าเฉลี่ย 7 วันล่าสุด คาดการณ์ว่าสิ้นเดือนกันยายนจะปิดยอดที่ **1,493.4 ล้านบาท** หรือ **97.3%** เทียบกับเป้าทั้งเดือนที่ **1,535.3 ล้านบาท**\n* **อัตรากำไรขั้นต้น (Gross Margin):** เฉลี่ย **27.0%** (เพิ่มขึ้นเล็กน้อย **+2.8% YoY** จาก 26.3% ในปีก่อน)\n* **งบส่งเสริมการขาย (Trade Spend):** รวม **126.8 ล้านบาท** เพิ่มขึ้นสูงถึง **+27.3% YoY** (เทียบสัดส่วนวันของปีก่อนที่ 99.6 ล้านบาท)\n* **ยอดหนี้ค้างชำระเกินกำหนด (AR Overdue):** รวม **108.8 ล้านบาท** เพิ่มขึ้น **+10.2% YoY** (จากปีก่อน 98.7 ล้านบาท)\n\n---\n\n### 2. ประเด็นเร่งด่วนที่ 1 (งานที่คุณมิ้นท์รับผิดชอบโดยตรง): หนี้ค้างชำระภาคใต้พุ่งสูงผิดปกติ (P1 Alert)\n\nแจ้งเตือนระบบระบุให้คุณมิ้นท์เป็นผู้ดูแลความผิดปกตินี้โดยตรง (`al_220936abb568e7c9`):\n* **ยอดหนี้ค้างชำระภาคใต้:** อยู่ที่ **19.9 ล้านบาท** สูงขึ้นถึง **+64.0% YoY** (ปีก่อนอยู่ที่ 12.2 ล้านบาท) ถือเป็นภาคที่มีการเติบโตของหนี้ค้างชำระรุนแรงที่สุดในประเทศ (ขณะที่ภาพรวมประเทศเพิ่มขึ้น 10.2%)\n* **จุดที่เกิดปัญหา (Agent Drill-down):** หนี้ค้างชำระกว่า 12.4 ล้านบาท (คิดเป็น 62% ของภาคใต้) กระจุกตัวอยู่ที่เอเย่นต์เกรด C (เทอมชำระเงิน 21 วัน รับสินค้าจากศูนย์กระจายสินค้าสงขลา) จำนวน 3 ราย:\n  1. **นครศรีรุ่งเจริญ (จ.นครศรีธรรมราช):** หนี้ค้างชำระ **4.9 ล้านบาท** (เพิ่มขึ้น **+157.5% YoY** จาก 1.9 ล้านบาท)\n  2. **เกาะสมุยเบเวอเรจ (จ.สุราษฎร์ธานี):** หนี้ค้างชำระ **4.1 ล้านบาท** (เพิ่มขึ้น **+122.5% YoY** จาก 1.8 ล้านบาท)\n  3. **สงขลาทักษิณ เทรดดิ้ง (จ.สงขลา):** หนี้ค้างชำระ **3.4 ล้านบาท** (เพิ่มขึ้น **+110.4% YoY** จาก 1.6 ล้านบาท)\n\n---\n\n### 3. ประเด็นเร่งด่วนที่ 2: วิเคราะห์สาเหตุยอดขายเข้าต่ำกว่าเป้า (Net Sales Value Shortfall)\n\nจากการรัน `explain_gap` เพื่อแจกแจงช่องว่างของมูลค่าขายเข้า (−15.7 ล้านบาท):\n* **ตัวฉุดหลักอยู่ที่ \"ภาคอีสาน\" เพียงภาคเดียว:** ภาคอีสานมีช่องว่างติดลบถึง **−25.9 ล้านบาท** คิดเป็นสัดส่วนฉุดภาพรวมถึง **165.0%** (ขณะที่อีก 5 ภาคบรรลุเป้าเกิน 100% ทั้งหมด ได้แก่ กรุงเทพฯ และปริมณฑล +3.8 ล้านบาท, ภาคกลาง +2.5 ล้านบาท, ภาคเหนือ +1.6 ล้านบาท, ภาคใต้ +1.3 ล้านบาท, ภาคตะวันออก +1.1 ล้านบาท)\n* **เจาะลึกภาคอีสาน (Agent Split):** ยอดขายที่หายไปเกือบทั้งหมดมาจาก 2 เอเย่นต์หลัก:\n  1. **อีสานรุ่งโรจน์ ค้าส่ง (จ.ขอนแก่น):** มีช่องว่าง **−13.4 ล้านบาท** (สัดส่วนฉุดภาคอีสาน **51.6%**)\n  2. **อุบลศรีสุข เทรดดิ้ง (จ.อุบลราชธานี):** มีช่องว่าง **−12.8 ล้านบาท** (สัดส่วนฉุดภาคอีสาน **49.5%**)\n  *(รวม 2 รายคิดเป็น −26.2 ล้านบาท ขณะที่ ส.รุ่งเรือง เทรดดิ้ง ขาดอีก −1.7 ล้านบาท คิดเป็น 6.5%)*\n* **การตรวจสอบพฤติกรรมคำสั่งซื้อ (Order Timeline):**\n  * ในช่วงวันที่ 1–10 ก.ย. ทั้งสองรายสั่งซื้อปกติประมาณ 23,000 – 30,000 ลิตร/วัน\n  * **ตั้งแต่วันที่ 11 ก.ย. เป็นต้นมา ปริมาณการสั่งซื้อลดฮวบลงทันทีกว่า 55–60%** เหลือเพียงประมาณ 9,000 – 11,000 ลิตร/วัน\n  * **สมมติฐานและการเชื่อมโยงทางการเงิน:** เอเย่นต์ทั้งสองมีหนี้ค้างชำระอยู่ในระบบ (อีสานรุ่งโรจน์ 3.2 ล้านบาท, อุบลศรีสุข 2.6 ล้านบาท) มีความเป็นไปได้สูงมากที่คำสั่งซื้อชะงักเกิดจากการติดวงเงินเครดิต (Credit Limit Lock) หรือรอบวางบิลค้าง (ในอดีตเคยมีประวัติว่าเมื่อได้รับการขยายวงเงิน ยอดคำสั่งซื้อจะกลับมาปกติภายใน 2 สัปดาห์)\n\n---\n\n### 4. ประเด็นด้านผลกำไรและการใช้งบประมาณ (Trade Spend & Margins)\n\n* **งบส่งเสริมการขายพุ่งสูง:** Trade Spend รวมเพิ่มขึ้น **+27.3% YoY** แตะ **126.8 ล้านบาท** โดยกลุ่มที่ใช้งบเพิ่มขึ้นมากที่สุดคือ:\n  * **กลุ่มนำเข้า:** 33.3 ล้านบาท (เพิ่มขึ้น **+38.7% YoY**)\n  * **กลุ่มนอนแอลกอฮอล์:** 34.7 ล้านบาท (เพิ่มขึ้น **+31.6% YoY**)\n  * **กลุ่มเบียร์:** 58.8 ล้านบาท (เพิ่มขึ้น **+19.4% YoY**)\n* **ผลกระทบต่อกำไรขั้นต้น:**\n  * แม้ Gross Margin รวมจะเพิ่มขึ้นเป็น 27.0% (จากผลของกลุ่มเบียร์ที่ขยับขึ้นเป็น 24.9%, +4.5% YoY)\n  * แต่ **กลุ่มนอนแอลกอฮอล์** มีมาร์จิ้นลดลงเหลือ **41.1%** (−3.4% YoY จาก 42.5%) และ **กลุ่มนำเข้า** ลดลงเหลือ **23.7%** (−3.4% YoY จาก 24.5%) ซึ่งสอดคล้องกับการอัดงบ Trade Spend ที่สูงขึ้นใน 2 กลุ่มนี้\n\n---\n\n### 5. ข้อสรุปที่ตัดออกได้ vs ข้อจำกัดของข้อมูล (Ruled out vs Unknown)\n\n* **ตัดประเด็นยอดขายภาพรวมระดับประเทศตกต่ำออกได้:** 5 ใน 6 ภาคของประเทศทำผลงานเกินเป้าหมาย (Attainment: กรุงเทพฯ 102.1%, ภาคกลาง 102.1%, ตะวันออก 101.2%, ภาคใต้ 101.2%, เหนือ 101.1%) ปัญหายอดขายตกต่ำจึงเป็นปัญหาเฉพาะจุด (Localized Issue) ที่ภาคอีสาน โดยเฉพาะ 2 เอเย่นต์ดังกล่าว\n* **ตัดประเด็นความต้องการสินค้าปลายทาง (Sell-out) ดับสนิทในอีสาน:** ยอดขายปลีก (Sell-out) ยังมีหมุนเวียนต่อเนื่อง แม้ชะลอตัวลงบ้าง (−19.3% เทียบงวดก่อน) แต่การที่ Sell-in ร่วงลงทันทีในวันที่ 11 ก.ย. ชี้ชัดว่าเป็นปัญหาด้านการตัดบิล/การส่งมอบคำสั่งซื้อ มากกว่าความต้องการตลาดหายไป\n* **สิ่งที่ยังไม่ยืนยัน 100% (Unknown):** ยังต้องรอการยืนยันจากฝ่ายสินเชื่อและฝ่ายขายว่า ยอดสั่งซื้อที่ตกของ อีสานรุ่งโรจน์ และ อุบลศรีสุข เกิดจากการติดเพดานเครดิตของ SAP อัตโนมัติ หรือเอเย่นต์ตั้งใจชะลอการสั่งซื้อเพื่อบริหารสภาพคล่องของตนเอง\n\n---\n\n### 6. แผนการดำเนินการสำหรับคุณมิ้นท์ (Action Plan as Financial Analyst)\n\nเนื่องจากคุณมิ้นท์ไม่มีผู้ใต้บังคับบัญชา และรายงานตรงต่อ **คุณศิริพร รัตนกร (CFO)** ข้อเสนอแนะการทำงานในวันนี้มีดังนี้:\n\n1. **เตรียมสรุปแฟ้ม AR Risk เสนอ CFO (คุณศิริพร):**\n   * จัดทำตารางอายุหนี้ (Aging Report) และวงเงินคงเหลือของ 3 เอเย่นต์ภาคใต้ (นครศรีรุ่งเจริญ, เกาะสมุยเบเวอเรจ, สงขลาทักษิณ เทรดดิ้ง)\n   * ประสานงานกับ **คุณสรัญญา นิลรัตน์ (RSM ภาคใต้)** เพื่อตรวจสอบกระบวนการวางบิล และพิจารณาความเสี่ยงหากจำเป็นต้องชะลอการส่งสินค้าเพื่อป้องกันความเสี่ยงหนี้สูญ\n2. **ประสานงานฝ่ายขายภาคอีสานเรื่อง Credit Block:**\n   * แจ้งข้อมูลวิเคราะห์ไปยัง **คุณอนุชา พรหมศรี (RSM ภาคอีสาน)** ว่ายอดขายภาคอีสานที่หลุดเป้า −25.9 ล้านบาท มาจากอีสานรุ่งโรจน์และอุบลศรีสุขที่ยอดสั่งซื้อลดลงครึ่งหนึ่งตั้งแต่วันที่ 11 ก.ย.\n   * หากติดปัญหา Credit Limit ให้ร่วมกับฝ่ายสินเชื่อพิจารณาเงื่อนไขการชำระเงินหรือวางหลักประกันชั่วคราว เพื่อปลดล็อกยอดขายก่อนสิ้นเดือน\n3. **ติดตามประสิทธิภาพ Trade Spend:**\n   * สรุปการใช้งบ Trade Spend ของกลุ่มนอนแอลกอฮอล์และกลุ่มนำเข้าที่โตเกิน 30% YoY เพื่อดูความคุ้มค่าเทียบกับ Gross Margin ที่ลดลง 3.4% ส่งเป็นบันทึกสรุปแนบรายงานประจำสัปดาห์ให้ CFO\n\n---\n\n### Summary of Findings (English)\n\n* **Sales Attainment & Revenue Gap (1–22 Sep 2026):** Month-to-date net sales value reached **1,110.2M THB** against a target of **1,125.9M THB** (**98.6%** attainment, gap of **−15.7M THB**). At the current 7-day run rate, month-end revenue is projected at **1,493.4M THB** (**97.3%** of the full-month target of 1,535.3M THB).\n* **Root Cause of Sales Gap:** The gap is entirely driven by the **Northeast region** (gap of **−25.9M THB**, representing **165.0%** of the total shortfall), while the other 5 regions are exceeding target. Within the Northeast, two distributors account for virtually the entire gap: **Isan Rungroj Wholesale** (−13.4M THB gap, **51.6%** share) and **Ubon Srisuk Trading** (−12.8M THB gap, **49.5%** share). Daily order volumes dropped by >55% starting abruptly on September 11, pointing to credit limit blocks or billing constraints.\n* **Overdue Accounts Receivable (1–22 Sep 2026):** Overdue AR stands at **108.8M THB** (+10.2% YoY nationwide). The primary hotspot is the **South region**, surging **+64.0% YoY** to **19.9M THB** (vs 12.2M THB last year). Three Grade C distributors account for 12.4M THB (62%) of the region's overdue balance: **Nakhon Si Rungcharoen** (4.9M THB, +157.5% YoY), **Koh Samui Beverage** (4.1M THB, +122.5% YoY), and **Songkhla Thaksin Trading** (3.4M THB, +110.4% YoY).\n* **Trade Spend & Profitability:** Trade spend grew **+27.3% YoY** to **126.8M THB**, led by Imported products (+38.7% YoY to 33.3M THB) and Non-Alcohol (+31.6% YoY to 34.7M THB). While overall gross margin held at **27.0%** (+2.8% YoY) supported by Beer (24.9%, +4.5% YoY), margins compressed in Non-Alcohol (down to **41.1%**, −3.4% YoY) and Imported (down to **23.7%**, −3.4% YoY).",
+  "calls": [
+    {
+      "tool": "get_alerts",
+      "input": {
+        "status": "open",
+        "limit": 10
+      },
+      "output": {
+        "ok": true,
+        "summary": "มีความผิดปกติที่เปิดอยู่ 10 รายการในขอบเขตของคุณ",
+        "rows": [
+          {
+            "id": "al_220936abb568e7c9",
+            "severity": "P1",
+            "severityLabel": "ต้องรีบดู",
+            "metric": "ar_overdue",
+            "metricLabel": "ยอดค้างชำระเกินกำหนด",
+            "scope": {
+              "region": "south"
+            },
+            "scopeLabel": "ภาคใต้",
+            "window": "1 ส.ค. 2569 – 31 ส.ค. 2569",
+            "observedLabel": "1.7 เท่าของปีก่อน",
+            "expectedLabel": "1.2 เท่าของปีก่อน",
+            "gapLabel": "42%",
+            "yearOverYear": true,
+            "direction": "up",
+            "hypothesis": "ยอดค้างชำระของภาคใต้สูงกว่าช่วงเดียวกันของปีก่อนมาก ส่วนใหญ่มาจาก สงขลาทักษิณ เทรดดิ้ง (+258%), เกาะสมุยเบเวอเรจ (+85%), นครศรีรุ่งเจริญ (+79%) ควรคุยเรื่องการวางบิลและวงเงินกับเอเย่นต์กลุ่มนี้",
+            "verifySteps": [
+              "ดูยอดค้างชำระเกินกำหนดของภาคใต้รายเดือน 6 เดือนล่าสุด",
+              "ดูประวัติการสั่งซื้อรายวันของภาคใต้ 30 วันล่าสุด"
+            ],
+            "ownerUserId": "u_mint"
+          },
+          {
+            "id": "al_7364476d77c8f435",
+            "severity": "P1",
+            "severityLabel": "ต้องรีบดู",
+            "metric": "net_sales_volume",
+            "metricLabel": "ปริมาณขายเข้า (Sell-in)",
+            "scope": {
+              "agent": "ag_nea_05",
+              "region": "northeast"
+            },
+            "scopeLabel": "อุบลศรีสุข เทรดดิ้ง · ภาคอีสาน",
+            "window": "9 ก.ย. 2569 – 22 ก.ย. 2569",
+            "observedLabel": "2,220 ลิตร",
+            "expectedLabel": "12,928 ลิตร",
+            "gapLabel": "83%",
+            "yearOverYear": false,
+            "direction": "down",
+            "hypothesis": "อุบลศรีสุข เทรดดิ้ง แทบไม่มีคำสั่งซื้อเข้ามาในช่วงนี้ น่าจะติดปัญหาเครดิต การวางบิล หรือเปลี่ยนไปรับสินค้าจากที่อื่น",
+            "verifySteps": [
+              "ดูประวัติการสั่งซื้อรายวันของอุบลศรีสุข เทรดดิ้ง · ภาคอีสาน 30 วันล่าสุด",
+              "ดูยอดค้างชำระเกินกำหนดของอุบลศรีสุข เทรดดิ้ง · ภาคอีสานรายเดือน 6 เดือนล่าสุด"
+            ],
+            "ownerUserId": "u_anucha"
+          },
+          {
+            "id": "al_ed6dca9e1dab4e48",
+            "severity": "P1",
+            "severityLabel": "ต้องรีบดู",
+            "metric": "net_sales_volume",
+            "metricLabel": "ปริมาณขายเข้า (Sell-in)",
+            "scope": {
+              "agent": "ag_nea_02",
+              "region": "northeast"
+            },
+            "scopeLabel": "อีสานรุ่งโรจน์ ค้าส่ง · ภาคอีสาน",
+            "window": "8 ก.ย. 2569 – 22 ก.ย. 2569",
+            "observedLabel": "3,251 ลิตร",
+            "expectedLabel": "13,928 ลิตร",
+            "gapLabel": "77%",
+            "yearOverYear": false,
+            "direction": "down",
+            "hypothesis": "อีสานรุ่งโรจน์ ค้าส่ง แทบไม่มีคำสั่งซื้อเข้ามาในช่วงนี้ น่าจะติดปัญหาเครดิต การวางบิล หรือเปลี่ยนไปรับสินค้าจากที่อื่น",
+            "verifySteps": [
+              "ดูประวัติการสั่งซื้อรายวันของอีสานรุ่งโรจน์ ค้าส่ง · ภาคอีสาน 30 วันล่าสุด",
+              "ดูยอดค้างชำระเกินกำหนดของอีสานรุ่งโรจน์ ค้าส่ง · ภาคอีสานรายเดือน 6 เดือนล่าสุด"
+            ],
+            "ownerUserId": "u_anucha"
+          },
+          {
+            "id": "al_fa3be1e7b4f9fe40",
+            "severity": "P1",
+            "severityLabel": "ต้องรีบดู",
+            "metric": "market_share",
+            "metricLabel": "ส่วนแบ่งตลาดเบียร์",
+            "scope": {
+              "province": "pv_nakhonratchasima",
+              "region": "northeast"
+            },
+            "scopeLabel": "นครราชสีมา · ภาคอีสาน",
+            "window": "1 มิ.ย. 2569 – 31 ส.ค. 2569",
+            "observedLabel": "59.7%",
+            "expectedLabel": "63.2%",
+            "gapLabel": "3.5 จุด",
+            "yearOverYear": false,
+            "direction": "down",
+            "hypothesis": "ในนครราชสีมา คาราบาวได้ส่วนแบ่งตลาดเบียร์เพิ่ม 4.1 จุดในช่วงเดียวกับที่ส่วนแบ่งของเราลดลง 3.5 จุด น่าจะมีการทำตลาดหรือตั้งราคาเชิงรุกในพื้นที่นี้",
+            "verifySteps": [
+              "เทียบส่วนแบ่งตลาดของทุกผู้ผลิตในนครราชสีมา เทียบปีก่อน",
+              "ดูยอดขายออกเบียร์ของเราในนครราชสีมาเทียบปีก่อน"
+            ],
+            "ownerUserId": "u_anucha"
+          },
+          {
+            "id": "al_e8114d936da7141f",
+            "severity": "P1",
+            "severityLabel": "ต้องรีบดู",
+            "metric": "days_of_cover",
+            "metricLabel": "วันครอบคลุมสต๊อก",
+            "scope": {
+              "dc": "dc_lamphun",
+              "sku": "sku_purra_pet600",
+              "region": "north"
+            },
+            "scopeLabel": "ศูนย์กระจายสินค้าลำพูน · เพอร์ร่า ขวด PET 600 มล. · ภาคเหนือ",
+            "window": "16 ก.ย. 2569 – 22 ก.ย. 2569",
+            "observedLabel": "6.1 วัน",
+            "expectedLabel": "15.7 วัน",
+            "gapLabel": "61%",
+            "yearOverYear": false,
+            "direction": "down",
+            "hypothesis": "สต๊อกที่ศูนย์กระจายสินค้าลำพูนเหลือพอขายอีกประมาณ 6.1 วัน ต่ำกว่าเกณฑ์ 10 วัน เสี่ยงของขาดก่อนรอบเติมสินค้าถัดไป",
+            "verifySteps": [
+              "ดูวันครอบคลุมสต๊อกและสต๊อกคงเหลือของศูนย์กระจายสินค้าลำพูน · เพอร์ร่า ขวด PET 600 มล. · ภาคเหนือตอนนี้",
+              "ดูพยากรณ์ 8 สัปดาห์ข้างหน้าของศูนย์กระจายสินค้าลำพูน · เพอร์ร่า ขวด PET 600 มล. · ภาคเหนือ"
+            ],
+            "ownerUserId": "u_wee"
+          },
+          {
+            "id": "al_35ced4920cc14a53",
+            "severity": "P2",
+            "severityLabel": "ควรดู",
+            "metric": "net_sales_volume",
+            "metricLabel": "ปริมาณขายเข้า (Sell-in)",
+            "scope": {
+              "agent": "ag_nea_07",
+              "brand": "leo",
+              "sku": "sku_leo_bottle620",
+              "region": "northeast"
+            },
+            "scopeLabel": "ส.รุ่งเรือง เทรดดิ้ง · ลีโอ ขวด 620 มล. · ภาคอีสาน",
+            "window": "31 ส.ค. 2569 – 21 ก.ย. 2569",
+            "observedLabel": "2,002 ลิตร",
+            "expectedLabel": "2,620 ลิตร",
+            "gapLabel": "24%",
+            "yearOverYear": false,
+            "direction": "down",
+            "hypothesis": "ยอดสั่งเข้าของ ส.รุ่งเรือง เทรดดิ้ง · ลีโอ ขวด 620 มล. · ภาคอีสาน ลดลงต่อเนื่องขณะที่ยอดขายออกหน้าร้านยังทรงตัว น่าจะมีสต๊อกค้างอยู่ที่เอเย่นต์มากกว่าความต้องการที่แท้จริงลดลง",
+            "verifySteps": [
+              "เทียบยอดขายเข้ากับยอดขายออกของส.รุ่งเรือง เทรดดิ้ง · ลีโอ ขวด 620 มล. · ภาคอีสาน รายสัปดาห์ 8 สัปดาห์ล่าสุด",
+              "ดูวันครอบคลุมสต๊อกและสต๊อกคงเหลือของส.รุ่งเรือง เทรดดิ้ง · ลีโอ ขวด 620 มล. · ภาคอีสานตอนนี้"
+            ],
+            "ownerUserId": "u_anucha"
+          },
+          {
+            "id": "al_14c4da61c8ba9ac3",
+            "severity": "P2",
+            "severityLabel": "ควรดู",
+            "metric": "sell_out_volume",
+            "metricLabel": "ปริมาณขายออก (Sell-out)",
+            "scope": {
+              "sku": "sku_singha_water_pack12",
+              "province": "pv_suratthani",
+              "region": "south"
+            },
+            "scopeLabel": "น้ำดื่มสิงห์ แพ็ก 12 · สุราษฎร์ธานี · ภาคใต้",
+            "window": "27 ส.ค. 2569 – 20 ก.ย. 2569",
+            "observedLabel": "1,140 ลิตร",
+            "expectedLabel": "1,285 ลิตร",
+            "gapLabel": "11%",
+            "yearOverYear": false,
+            "direction": "down",
+            "hypothesis": "ยอดขายออกจากร้านในสุราษฎร์ธานีต่ำผิดปกติ ยังหาสาเหตุไม่ได้จากข้อมูลที่มี",
+            "verifySteps": [
+              "เทียบน้ำดื่มสิงห์ แพ็ก 12 · สุราษฎร์ธานี · ภาคใต้กับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+              "เทียบน้ำดื่มสิงห์ แพ็ก 12 · สุราษฎร์ธานี · ภาคใต้กับช่วงเดียวกันของปีที่แล้ว"
+            ],
+            "ownerUserId": "u_saranya"
+          },
+          {
+            "id": "al_f60bd19b789eb6d9",
+            "severity": "P2",
+            "severityLabel": "ควรดู",
+            "metric": "sell_out_volume",
+            "metricLabel": "ปริมาณขายออก (Sell-out)",
+            "scope": {
+              "sku": "sku_purra_pet600",
+              "province": "pv_nakhonpathom",
+              "region": "central"
+            },
+            "scopeLabel": "เพอร์ร่า ขวด PET 600 มล. · นครปฐม · ภาคกลาง",
+            "window": "29 ส.ค. 2569 – 21 ก.ย. 2569",
+            "observedLabel": "755 ลิตร",
+            "expectedLabel": "859 ลิตร",
+            "gapLabel": "12%",
+            "yearOverYear": false,
+            "direction": "down",
+            "hypothesis": "ยอดขายออกจากร้านในนครปฐมต่ำผิดปกติ ยังหาสาเหตุไม่ได้จากข้อมูลที่มี",
+            "verifySteps": [
+              "เทียบเพอร์ร่า ขวด PET 600 มล. · นครปฐม · ภาคกลางกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+              "เทียบเพอร์ร่า ขวด PET 600 มล. · นครปฐม · ภาคกลางกับช่วงเดียวกันของปีที่แล้ว"
+            ],
+            "ownerUserId": "u_somchai"
+          },
+          {
+            "id": "al_6180aee35a5d31b6",
+            "severity": "P2",
+            "severityLabel": "ควรดู",
+            "metric": "sell_out_volume",
+            "metricLabel": "ปริมาณขายออก (Sell-out)",
+            "scope": {
+              "sku": "sku_purra_pet1500",
+              "province": "pv_chachoengsao",
+              "region": "east"
+            },
+            "scopeLabel": "เพอร์ร่า ขวด PET 1.5 ลิตร · ฉะเชิงเทรา · ภาคตะวันออก",
+            "window": "26 ส.ค. 2569 – 22 ก.ย. 2569",
+            "observedLabel": "265 ลิตร",
+            "expectedLabel": "299 ลิตร",
+            "gapLabel": "11%",
+            "yearOverYear": false,
+            "direction": "down",
+            "hypothesis": "ยอดขายออกจากร้านในฉะเชิงเทราต่ำผิดปกติ ยังหาสาเหตุไม่ได้จากข้อมูลที่มี",
+            "verifySteps": [
+              "เทียบเพอร์ร่า ขวด PET 1.5 ลิตร · ฉะเชิงเทรา · ภาคตะวันออกกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+              "เทียบเพอร์ร่า ขวด PET 1.5 ลิตร · ฉะเชิงเทรา · ภาคตะวันออกกับช่วงเดียวกันของปีที่แล้ว"
+            ],
+            "ownerUserId": "u_wichai"
+          },
+          {
+            "id": "al_bb6300d2bd665b9b",
+            "severity": "P2",
+            "severityLabel": "ควรดู",
+            "metric": "sell_out_volume",
+            "metricLabel": "ปริมาณขายออก (Sell-out)",
+            "scope": {
+              "sku": "sku_singha_lemon_soda_pet600",
+              "province": "pv_saraburi",
+              "region": "central"
+            },
+            "scopeLabel": "สิงห์ เลมอนโซดา ขวด PET 600 มล. · สระบุรี · ภาคกลาง",
+            "window": "28 ส.ค. 2569 – 22 ก.ย. 2569",
+            "observedLabel": "475 ลิตร",
+            "expectedLabel": "543 ลิตร",
+            "gapLabel": "13%",
+            "yearOverYear": false,
+            "direction": "down",
+            "hypothesis": "ยอดขายออกจากร้านในสระบุรีต่ำผิดปกติ ยังหาสาเหตุไม่ได้จากข้อมูลที่มี",
+            "verifySteps": [
+              "เทียบสิงห์ เลมอนโซดา ขวด PET 600 มล. · สระบุรี · ภาคกลางกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+              "เทียบสิงห์ เลมอนโซดา ขวด PET 600 มล. · สระบุรี · ภาคกลางกับช่วงเดียวกันของปีที่แล้ว"
+            ],
+            "ownerUserId": "u_somchai"
+          }
+        ],
+        "lessons": [
+          {
+            "alertId": "al_7364476d77c8f435",
+            "lesson": "ครั้งก่อน (เป็นเรื่องจริง): ติดวงเงินเครดิต ขยายวงเงินแล้วยอดกลับใน 2 สัปดาห์ — คุณกฤต จันทร์เสน, 12 มิ.ย. 2569"
+          }
+        ],
+        "nextActions": [
+          {
+            "id": "verify",
+            "kind": "verify",
+            "label": "ตรวจสาเหตุที่ภาคใต้",
+            "reason": "ดูยอดค้างชำระเกินกำหนดของภาคใต้รายเดือน 6 เดือนล่าสุด",
+            "tool": null,
+            "input": null,
+            "prompt": "ดูยอดค้างชำระเกินกำหนดของภาคใต้รายเดือน 6 เดือนล่าสุด"
+          },
+          {
+            "id": "drill-province",
+            "kind": "drill",
+            "label": "แยกตามจังหวัด",
+            "reason": "ยังไม่ได้ดูแยกรายจังหวัด",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอยอดค้างชำระเกินกำหนดแยกตามจังหวัด เรียงจากมากไปน้อย"
+          }
+        ]
+      }
+    },
+    {
+      "tool": "recall_memory",
+      "input": {
+        "query": "มิ้นท์ วรกุล finance"
+      },
+      "output": {
+        "ok": true,
+        "summary": "ยังไม่มีข้อมูลที่จำไว้เกี่ยวกับผู้ใช้คนนี้",
+        "data": []
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "net_sales_value",
+        "dims": [],
+        "filters": {},
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "target",
+        "limit": 10,
+        "sort": null,
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "value": 1110190360,
+            "value_label": "1,110.2 ล้านบาท",
+            "compare_value": 1125903475,
+            "delta_pct": -1.4
+          }
+        ],
+        "summary": "มูลค่าขายเข้า 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 1,110.2 ล้านบาท · เทียบเป้า -1.4% · (1 แถว · certified · SAP SD)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "1,110.2 ล้านบาท",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 1,
+          "deltaPercent": -1.4,
+          "compareLabel": "เทียบเป้า",
+          "compareNote": null,
+          "top": []
+        },
+        "provenance": {
+          "metric": "net_sales_value",
+          "certified": true,
+          "sourceSystem": "SAP SD",
+          "asOf": "2026-09-22",
+          "rowCount": 1,
+          "filtersApplied": {},
+          "filterLabels": [],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "net_sales_value",
+          "dims": [],
+          "filters": {},
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "target",
+          "limit": 10,
+          "sort": null,
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "drill-region",
+            "kind": "drill",
+            "label": "แยกตามภาค",
+            "reason": "ยังไม่ได้ดูแยกรายภาค",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอมูลค่าขายเข้าแยกตามภาค เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-split",
+            "label": "แยกตามช่องทาง",
+            "prompt": "ขอมูลค่าขายเข้าแยกตามช่องทาง เรียงจากมากไปน้อย",
+            "reason": "ยังไม่ได้ดูแยกรายช่องทาง",
+            "intentKey": "follow|split",
+            "score": 0.65
+          },
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายสัปดาห์",
+            "prompt": "มูลค่าขายเข้า รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ขอมูลค่าขายเข้า เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "gross_margin",
+        "dims": [],
+        "filters": {},
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "target",
+        "limit": 10,
+        "sort": null,
+        "where": null
+      },
+      "output": {
+        "ok": false,
+        "error": "เมตริก gross_margin ไม่มีเป้าหมายให้เทียบ ใช้ compare \"none\" หรือเทียบงวดก่อนแทน",
+        "code": "BAD_QUERY"
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "ar_overdue",
+        "dims": [],
+        "filters": {},
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "prev_year",
+        "limit": 10,
+        "sort": null,
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "value": 108842694,
+            "value_label": "108.8 ล้านบาท",
+            "compare_value": 98730846,
+            "delta_pct": 10.2
+          }
+        ],
+        "summary": "ยอดค้างชำระเกินกำหนด 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 108.8 ล้านบาท · เทียบปีก่อน +10.2% · (1 แถว · certified · SAP FI)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "108.8 ล้านบาท",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 1,
+          "deltaPercent": 10.2,
+          "compareLabel": "เทียบปีก่อน",
+          "compareNote": null,
+          "top": []
+        },
+        "provenance": {
+          "metric": "ar_overdue",
+          "certified": true,
+          "sourceSystem": "SAP FI",
+          "asOf": "2026-09-22",
+          "rowCount": 1,
+          "filtersApplied": {},
+          "filterLabels": [],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "ar_overdue",
+          "dims": [],
+          "filters": {},
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "prev_year",
+          "limit": 10,
+          "sort": null,
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "verify",
+            "kind": "verify",
+            "label": "ตรวจสาเหตุที่ภาคใต้",
+            "reason": "ดูยอดค้างชำระเกินกำหนดของภาคใต้รายเดือน 6 เดือนล่าสุด",
+            "tool": null,
+            "input": null,
+            "prompt": "ดูยอดค้างชำระเกินกำหนดของภาคใต้รายเดือน 6 เดือนล่าสุด"
+          },
+          {
+            "id": "drill-region",
+            "kind": "drill",
+            "label": "แยกตามภาค",
+            "reason": "ยังไม่ได้ดูแยกรายภาค",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอยอดค้างชำระเกินกำหนดแยกตามภาค เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-split",
+            "label": "แยกตามเอเย่นต์",
+            "prompt": "ขอยอดค้างชำระเกินกำหนดแยกตามเอเย่นต์ เรียงจากมากไปน้อย",
+            "reason": "ยังไม่ได้ดูแยกรายเอเย่นต์",
+            "intentKey": "follow|split",
+            "score": 0.65
+          },
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายเดือน",
+            "prompt": "ยอดค้างชำระเกินกำหนด รายเดือนย้อนหลัง 6 เดือน",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "trade_spend",
+        "dims": [],
+        "filters": {},
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "target",
+        "limit": 10,
+        "sort": null,
+        "where": null
+      },
+      "output": {
+        "ok": false,
+        "error": "เมตริก trade_spend ไม่มีเป้าหมายให้เทียบ ใช้ compare \"none\" หรือเทียบงวดก่อนแทน",
+        "code": "BAD_QUERY"
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "gross_margin",
+        "dims": [],
+        "filters": {},
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "prev_year",
+        "limit": 10,
+        "sort": null,
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "value": 27,
+            "value_label": "27.0%",
+            "compare_value": 26.3,
+            "delta_pct": 2.8
+          }
+        ],
+        "summary": "อัตรากำไรขั้นต้น 1 ก.ย. 2569 – 22 ก.ย. 2569: เฉลี่ย 27.0% · เทียบปีก่อน +2.8% · (1 แถว · certified · SAP FI)",
+        "headline": {
+          "aggregate": "average",
+          "value": "27.0%",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 1,
+          "deltaPercent": 2.8,
+          "compareLabel": "เทียบปีก่อน",
+          "compareNote": null,
+          "top": []
+        },
+        "provenance": {
+          "metric": "gross_margin",
+          "certified": true,
+          "sourceSystem": "SAP FI",
+          "asOf": "2026-09-22",
+          "rowCount": 1,
+          "filtersApplied": {},
+          "filterLabels": [],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "gross_margin",
+          "dims": [],
+          "filters": {},
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "prev_year",
+          "limit": 10,
+          "sort": null,
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "drill-region",
+            "kind": "drill",
+            "label": "แยกตามภาค",
+            "reason": "ยังไม่ได้ดูแยกรายภาค",
+            "tool": null,
+            "input": null,
+            "prompt": "ขออัตรากำไรขั้นต้นแยกตามภาค เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-split",
+            "label": "แยกตามกลุ่มธุรกิจ",
+            "prompt": "ขออัตรากำไรขั้นต้นแยกตามกลุ่มธุรกิจ เรียงจากมากไปน้อย",
+            "reason": "ยังไม่ได้ดูแยกรายกลุ่มธุรกิจ",
+            "intentKey": "follow|split",
+            "score": 0.65
+          },
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายเดือน",
+            "prompt": "อัตรากำไรขั้นต้น รายเดือนย้อนหลัง 6 เดือน",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "trade_spend",
+        "dims": [],
+        "filters": {},
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "prev_year",
+        "limit": 10,
+        "sort": null,
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "value": 126798817,
+            "value_label": "126.8 ล้านบาท",
+            "compare_value": 99597555,
+            "delta_pct": 27.3
+          }
+        ],
+        "summary": "งบส่งเสริมการขาย 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 126.8 ล้านบาท · เทียบปีก่อน +27.3% · ข้อมูลเดือนล่าสุดถึง 22 ก.ย. 2569 จึงเทียบกับงวดก่อนตามสัดส่วนวัน (73%) · (1 แถว · certified · SAP FI)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "126.8 ล้านบาท",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 1,
+          "deltaPercent": 27.3,
+          "compareLabel": "เทียบปีก่อน",
+          "compareNote": "ข้อมูลเดือนล่าสุดถึง 22 ก.ย. 2569 จึงเทียบกับงวดก่อนตามสัดส่วนวัน (73%)",
+          "top": []
+        },
+        "provenance": {
+          "metric": "trade_spend",
+          "certified": true,
+          "sourceSystem": "SAP FI",
+          "asOf": "2026-09-22",
+          "rowCount": 1,
+          "filtersApplied": {},
+          "filterLabels": [],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "trade_spend",
+          "dims": [],
+          "filters": {},
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "prev_year",
+          "limit": 10,
+          "sort": null,
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "drill-region",
+            "kind": "drill",
+            "label": "แยกตามภาค",
+            "reason": "ยังไม่ได้ดูแยกรายภาค",
+            "tool": null,
+            "input": null,
+            "prompt": "ของบส่งเสริมการขายแยกตามภาค เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-split",
+            "label": "แยกตามกลุ่มธุรกิจ",
+            "prompt": "ของบส่งเสริมการขายแยกตามกลุ่มธุรกิจ เรียงจากมากไปน้อย",
+            "reason": "ยังไม่ได้ดูแยกรายกลุ่มธุรกิจ",
+            "intentKey": "follow|split",
+            "score": 0.65
+          },
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายเดือน",
+            "prompt": "งบส่งเสริมการขาย รายเดือนย้อนหลัง 6 เดือน",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "ar_overdue",
+        "dims": [
+          "region"
+        ],
+        "filters": {},
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "prev_year",
+        "limit": 10,
+        "sort": "value_desc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "region": "กรุงเทพฯ และปริมณฑล",
+            "value": 24284746,
+            "value_label": "24.3 ล้านบาท",
+            "compare_value": 24201034,
+            "delta_pct": 0.3
+          },
+          {
+            "region": "ภาคอีสาน",
+            "value": 22224466,
+            "value_label": "22.2 ล้านบาท",
+            "compare_value": 20873792,
+            "delta_pct": 6.5
+          },
+          {
+            "region": "ภาคใต้",
+            "value": 19926541,
+            "value_label": "19.9 ล้านบาท",
+            "compare_value": 12152027,
+            "delta_pct": 64
+          },
+          {
+            "region": "ภาคกลาง",
+            "value": 14775813,
+            "value_label": "14.8 ล้านบาท",
+            "compare_value": 13304571,
+            "delta_pct": 11.1
+          },
+          {
+            "region": "ภาคตะวันออก",
+            "value": 14423146,
+            "value_label": "14.4 ล้านบาท",
+            "compare_value": 15186284,
+            "delta_pct": -5
+          },
+          {
+            "region": "ภาคเหนือ",
+            "value": 13207982,
+            "value_label": "13.2 ล้านบาท",
+            "compare_value": 13013137,
+            "delta_pct": 1.5
+          }
+        ],
+        "summary": "ยอดค้างชำระเกินกำหนด 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 108.8 ล้านบาท · สูงสุด: กรุงเทพฯ และปริมณฑล 24.3 ล้านบาท · ภาคอีสาน 22.2 ล้านบาท · ภาคใต้ 19.9 ล้านบาท · เทียบปีก่อน +10.2% · (6 แถว · certified · SAP FI)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "108.8 ล้านบาท",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 6,
+          "deltaPercent": 10.2,
+          "compareLabel": "เทียบปีก่อน",
+          "compareNote": null,
+          "top": [
+            {
+              "label": "กรุงเทพฯ และปริมณฑล",
+              "value": "24.3 ล้านบาท"
+            },
+            {
+              "label": "ภาคอีสาน",
+              "value": "22.2 ล้านบาท"
+            },
+            {
+              "label": "ภาคใต้",
+              "value": "19.9 ล้านบาท"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "ar_overdue",
+          "certified": true,
+          "sourceSystem": "SAP FI",
+          "asOf": "2026-09-22",
+          "rowCount": 6,
+          "filtersApplied": {},
+          "filterLabels": [],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "ar_overdue",
+          "dims": [
+            "region"
+          ],
+          "filters": {},
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "prev_year",
+          "limit": 10,
+          "sort": "value_desc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "verify",
+            "kind": "verify",
+            "label": "ตรวจสาเหตุที่ภาคใต้",
+            "reason": "ดูยอดค้างชำระเกินกำหนดของภาคใต้รายเดือน 6 เดือนล่าสุด",
+            "tool": null,
+            "input": null,
+            "prompt": "ดูยอดค้างชำระเกินกำหนดของภาคใต้รายเดือน 6 เดือนล่าสุด"
+          },
+          {
+            "id": "drill-province",
+            "kind": "drill",
+            "label": "แยกตามจังหวัด",
+            "reason": "ยังไม่ได้ดูแยกรายจังหวัด",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอยอดค้างชำระเกินกำหนดแยกตามจังหวัด เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-why",
+            "label": "ทำไมกรุงเทพฯ และปริมณฑล",
+            "prompt": "เจาะดูยอดค้างชำระเกินกำหนดของกรุงเทพฯ และปริมณฑล ว่าทำไมถึงเปลี่ยนไป เทียบกับช่วงก่อนหน้าและช่วงเดียวกันปีก่อน",
+            "reason": "กรุงเทพฯ และปริมณฑล คือแถวที่ต้องดูมากที่สุดในคำตอบนี้",
+            "intentKey": "follow|why",
+            "score": 0.95
+          },
+          {
+            "id": "fu-drill_down",
+            "label": "ดูเอเย่นต์ในกรุงเทพฯ และปริมณฑล",
+            "prompt": "ขอยอดค้างชำระเกินกำหนดของกรุงเทพฯ และปริมณฑล แยกรายเอเย่นต์ เรียงจากแย่ไปดี",
+            "reason": "ลงไปอีกชั้นเพื่อหาว่าใครในกรุงเทพฯ และปริมณฑลทำให้ตัวเลขเป็นแบบนี้",
+            "intentKey": "follow|drill_down",
+            "score": 0.85
+          },
+          {
+            "id": "fu-trend",
+            "label": "เริ่มแย่ตั้งแต่เมื่อไร",
+            "prompt": "ยอดค้างชำระเกินกำหนดของกรุงเทพฯ และปริมณฑล รายเดือนย้อนหลัง 6 เดือน",
+            "reason": "ดูว่าตัวเลขเริ่มลดลงสัปดาห์ไหน",
+            "intentKey": "follow|trend",
+            "score": 0.65
+          }
+        ]
+      }
+    },
+    {
+      "tool": "explain_gap",
+      "input": {
+        "metric": "net_sales_value",
+        "split": "region",
+        "filters": {},
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "compare": "target"
+      },
+      "output": {
+        "ok": true,
+        "summary": "มูลค่าขายเข้า 1 ก.ย. 2569 – 22 ก.ย. 2569: จริง 1,110.2 ล้านบาท · เป้า 1,125.9 ล้านบาท · ช่องว่าง −15.7 ล้านบาท",
+        "period_label": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+        "actual_label": "1,110.2 ล้านบาท",
+        "compare_label": "เป้า 1,125.9 ล้านบาท",
+        "gap_label": "−15.7 ล้านบาท",
+        "attainment_label": "98.6%",
+        "contributors": [
+          {
+            "label": "ภาคอีสาน",
+            "gap_label": "−25.9 ล้านบาท",
+            "share_label": "165.0%"
+          }
+        ],
+        "rest": null,
+        "offsetting": [
+          {
+            "label": "กรุงเทพฯ และปริมณฑล",
+            "gap_label": "+3.8 ล้านบาท"
+          },
+          {
+            "label": "ภาคกลาง",
+            "gap_label": "+2.5 ล้านบาท"
+          },
+          {
+            "label": "ภาคเหนือ",
+            "gap_label": "+1.6 ล้านบาท"
+          },
+          {
+            "label": "ภาคใต้",
+            "gap_label": "+1.3 ล้านบาท"
+          },
+          {
+            "label": "ภาคตะวันออก",
+            "gap_label": "+1.1 ล้านบาท"
+          }
+        ],
+        "projection": {
+          "label": "สิ้นเดือน ถ้าขายเท่า 7 วันล่าสุด",
+          "basis": "วันที่เหลือของเดือนขายเท่าค่าเฉลี่ย 7 วันล่าสุด และเป้ากระจายเท่ากันทุกวัน",
+          "projected_label": "1,493.4 ล้านบาท",
+          "month_target_label": "1,535.3 ล้านบาท",
+          "attainment_label": "97.3%"
+        }
+      }
+    },
+    {
+      "tool": "explain_gap",
+      "input": {
+        "metric": "net_sales_value",
+        "split": "agent",
+        "filters": {
+          "region": [
+            "northeast"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "compare": "target"
+      },
+      "output": {
+        "ok": true,
+        "summary": "มูลค่าขายเข้า 1 ก.ย. 2569 – 22 ก.ย. 2569: จริง 232.5 ล้านบาท · เป้า 258.4 ล้านบาท · ช่องว่าง −25.9 ล้านบาท",
+        "period_label": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+        "actual_label": "232.5 ล้านบาท",
+        "compare_label": "เป้า 258.4 ล้านบาท",
+        "gap_label": "−25.9 ล้านบาท",
+        "attainment_label": "90.0%",
+        "contributors": [
+          {
+            "label": "อีสานรุ่งโรจน์ ค้าส่ง",
+            "gap_label": "−13.4 ล้านบาท",
+            "share_label": "51.6%"
+          },
+          {
+            "label": "อุบลศรีสุข เทรดดิ้ง",
+            "gap_label": "−12.8 ล้านบาท",
+            "share_label": "49.5%"
+          },
+          {
+            "label": "ส.รุ่งเรือง เทรดดิ้ง",
+            "gap_label": "−1.7 ล้านบาท",
+            "share_label": "6.5%"
+          }
+        ],
+        "rest": null,
+        "offsetting": [
+          {
+            "label": "โคราชสหภัณฑ์",
+            "gap_label": "+761,878 บาท"
+          },
+          {
+            "label": "นางรองค้าส่ง",
+            "gap_label": "+537,069 บาท"
+          },
+          {
+            "label": "วารินพาณิชย์",
+            "gap_label": "+383,478 บาท"
+          },
+          {
+            "label": "ปากช่องเบเวอเรจ",
+            "gap_label": "+195,891 บาท"
+          },
+          {
+            "label": "ขอนแก่นมหาชัย",
+            "gap_label": "+82,320 บาท"
+          }
+        ],
+        "projection": {
+          "label": "สิ้นเดือน ถ้าขายเท่า 7 วันล่าสุด",
+          "basis": "วันที่เหลือของเดือนขายเท่าค่าเฉลี่ย 7 วันล่าสุด และเป้ากระจายเท่ากันทุกวัน",
+          "projected_label": "305.6 ล้านบาท",
+          "month_target_label": "352.3 ล้านบาท",
+          "attainment_label": "86.7%"
+        }
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "ar_overdue",
+        "dims": [
+          "agent"
+        ],
+        "filters": {
+          "region": [
+            "south"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "prev_year",
+        "limit": 10,
+        "sort": "delta_desc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "agent": "นครศรีรุ่งเจริญ",
+            "value": 4880566,
+            "value_label": "4.9 ล้านบาท",
+            "compare_value": 1895137,
+            "delta_pct": 157.5
+          },
+          {
+            "agent": "เกาะสมุยเบเวอเรจ",
+            "value": 4077773,
+            "value_label": "4.1 ล้านบาท",
+            "compare_value": 1833035,
+            "delta_pct": 122.5
+          },
+          {
+            "agent": "สงขลาทักษิณ เทรดดิ้ง",
+            "value": 3447006,
+            "value_label": "3.4 ล้านบาท",
+            "compare_value": 1638114,
+            "delta_pct": 110.4
+          },
+          {
+            "agent": "สุราษฎร์ศรีทอง",
+            "value": 2190241,
+            "value_label": "2.2 ล้านบาท",
+            "compare_value": 1605572,
+            "delta_pct": 36.4
+          },
+          {
+            "agent": "ภูเก็ตอันดามัน ซัพพลาย",
+            "value": 2928050,
+            "value_label": "2.9 ล้านบาท",
+            "compare_value": 2645881,
+            "delta_pct": 10.7
+          },
+          {
+            "agent": "หาดใหญ่สหมิตร",
+            "value": 2402903,
+            "value_label": "2.4 ล้านบาท",
+            "compare_value": 2534287,
+            "delta_pct": -5.2
+          }
+        ],
+        "summary": "ยอดค้างชำระเกินกำหนด 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 19.9 ล้านบาท · สูงสุด: นครศรีรุ่งเจริญ 4.9 ล้านบาท · เกาะสมุยเบเวอเรจ 4.1 ล้านบาท · สงขลาทักษิณ เทรดดิ้ง 3.4 ล้านบาท · เทียบปีก่อน +64.0% · (6 แถว · certified · SAP FI)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "19.9 ล้านบาท",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 6,
+          "deltaPercent": 64,
+          "compareLabel": "เทียบปีก่อน",
+          "compareNote": null,
+          "top": [
+            {
+              "label": "นครศรีรุ่งเจริญ",
+              "value": "4.9 ล้านบาท"
+            },
+            {
+              "label": "เกาะสมุยเบเวอเรจ",
+              "value": "4.1 ล้านบาท"
+            },
+            {
+              "label": "สงขลาทักษิณ เทรดดิ้ง",
+              "value": "3.4 ล้านบาท"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "ar_overdue",
+          "certified": true,
+          "sourceSystem": "SAP FI",
+          "asOf": "2026-09-22",
+          "rowCount": 6,
+          "filtersApplied": {
+            "region": [
+              "south"
+            ]
+          },
+          "filterLabels": [
+            "ภาคใต้"
+          ],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "ar_overdue",
+          "dims": [
+            "agent"
+          ],
+          "filters": {
+            "region": [
+              "south"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "prev_year",
+          "limit": 10,
+          "sort": "delta_desc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "verify",
+            "kind": "verify",
+            "label": "ตรวจสาเหตุที่ภาคใต้",
+            "reason": "ดูยอดค้างชำระเกินกำหนดของภาคใต้รายเดือน 6 เดือนล่าสุด",
+            "tool": null,
+            "input": null,
+            "prompt": "ดูยอดค้างชำระเกินกำหนดของภาคใต้รายเดือน 6 เดือนล่าสุด"
+          },
+          {
+            "id": "drill-province",
+            "kind": "drill",
+            "label": "แยกตามจังหวัด",
+            "reason": "ยังไม่ได้ดูแยกรายจังหวัด",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอยอดค้างชำระเกินกำหนดแยกตามจังหวัด เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-why",
+            "label": "ทำไมนครศรีรุ่งเจริญ",
+            "prompt": "เจาะดูยอดค้างชำระเกินกำหนดของนครศรีรุ่งเจริญ ว่าทำไมถึงเปลี่ยนไป เทียบกับช่วงก่อนหน้าและช่วงเดียวกันปีก่อน",
+            "reason": "นครศรีรุ่งเจริญ คือแถวที่ต้องดูมากที่สุดในคำตอบนี้",
+            "intentKey": "follow|why",
+            "score": 0.95
+          },
+          {
+            "id": "fu-trend",
+            "label": "เริ่มแย่ตั้งแต่เมื่อไร",
+            "prompt": "ยอดค้างชำระเกินกำหนดของนครศรีรุ่งเจริญ รายเดือนย้อนหลัง 6 เดือน",
+            "reason": "ดูว่าตัวเลขเริ่มลดลงสัปดาห์ไหน",
+            "intentKey": "follow|trend",
+            "score": 0.65
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "trade_spend",
+        "dims": [
+          "region"
+        ],
+        "filters": {},
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "prev_year",
+        "limit": 10,
+        "sort": "delta_desc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "region": "ภาคใต้",
+            "value": 14672980,
+            "value_label": "14.7 ล้านบาท",
+            "compare_value": 10960330,
+            "delta_pct": 33.9
+          },
+          {
+            "region": "กรุงเทพฯ และปริมณฑล",
+            "value": 35069483,
+            "value_label": "35.1 ล้านบาท",
+            "compare_value": 26229688,
+            "delta_pct": 33.7
+          },
+          {
+            "region": "ภาคกลาง",
+            "value": 18985527,
+            "value_label": "19.0 ล้านบาท",
+            "compare_value": 14861351,
+            "delta_pct": 27.8
+          },
+          {
+            "region": "ภาคตะวันออก",
+            "value": 15315344,
+            "value_label": "15.3 ล้านบาท",
+            "compare_value": 12348752,
+            "delta_pct": 24
+          },
+          {
+            "region": "ภาคเหนือ",
+            "value": 16513218,
+            "value_label": "16.5 ล้านบาท",
+            "compare_value": 13344685,
+            "delta_pct": 23.7
+          },
+          {
+            "region": "ภาคอีสาน",
+            "value": 26242266,
+            "value_label": "26.2 ล้านบาท",
+            "compare_value": 21852748,
+            "delta_pct": 20.1
+          }
+        ],
+        "summary": "งบส่งเสริมการขาย 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 126.8 ล้านบาท · สูงสุด: กรุงเทพฯ และปริมณฑล 35.1 ล้านบาท · ภาคอีสาน 26.2 ล้านบาท · ภาคกลาง 19.0 ล้านบาท · เทียบปีก่อน +27.3% · ข้อมูลเดือนล่าสุดถึง 22 ก.ย. 2569 จึงเทียบกับงวดก่อนตามสัดส่วนวัน (73%) · (6 แถว · certified · SAP FI)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "126.8 ล้านบาท",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 6,
+          "deltaPercent": 27.3,
+          "compareLabel": "เทียบปีก่อน",
+          "compareNote": "ข้อมูลเดือนล่าสุดถึง 22 ก.ย. 2569 จึงเทียบกับงวดก่อนตามสัดส่วนวัน (73%)",
+          "top": [
+            {
+              "label": "กรุงเทพฯ และปริมณฑล",
+              "value": "35.1 ล้านบาท"
+            },
+            {
+              "label": "ภาคอีสาน",
+              "value": "26.2 ล้านบาท"
+            },
+            {
+              "label": "ภาคกลาง",
+              "value": "19.0 ล้านบาท"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "trade_spend",
+          "certified": true,
+          "sourceSystem": "SAP FI",
+          "asOf": "2026-09-22",
+          "rowCount": 6,
+          "filtersApplied": {},
+          "filterLabels": [],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "trade_spend",
+          "dims": [
+            "region"
+          ],
+          "filters": {},
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "prev_year",
+          "limit": 10,
+          "sort": "delta_desc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "pin",
+            "kind": "pin",
+            "label": "ปักเป็นการ์ดบน Dashboard",
+            "reason": "คุณถามเรื่องนี้ 4 ครั้งในช่วงนี้",
+            "tool": "pin_widget",
+            "input": {
+              "title": "งบส่งเสริมการขาย · กรุงเทพฯ และปริมณฑล",
+              "kind": "bar",
+              "query": {
+                "metric": "trade_spend",
+                "dims": [
+                  "region"
+                ],
+                "filters": {},
+                "range": {
+                  "from": "2026-09-01",
+                  "to": "2026-09-22"
+                },
+                "grain": "month",
+                "compare": "prev_year",
+                "limit": 10,
+                "sort": "delta_desc",
+                "where": null
+              }
+            },
+            "prompt": null
+          },
+          {
+            "id": "drill-why",
+            "kind": "drill",
+            "label": "ทำไมภาคใต้ถึงเป็นแบบนี้",
+            "reason": "ภาคใต้ เปลี่ยนไปในทางที่แย่ที่สุด",
+            "tool": null,
+            "input": null,
+            "prompt": "เจาะดูงบส่งเสริมการขายของภาคใต้ ว่าทำไมถึงเปลี่ยนไป เทียบกับช่วงก่อนหน้าและช่วงเดียวกันปีก่อน"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-trend",
+            "label": "เริ่มแย่ตั้งแต่เมื่อไร",
+            "prompt": "งบส่งเสริมการขายของภาคใต้ รายเดือนย้อนหลัง 6 เดือน",
+            "reason": "ดูว่าตัวเลขเริ่มลดลงสัปดาห์ไหน",
+            "intentKey": "follow|trend",
+            "score": 0.65
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "ar_overdue",
+        "dims": [
+          "agent"
+        ],
+        "filters": {
+          "region": [
+            "northeast"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "prev_period",
+        "limit": 10,
+        "sort": "value_desc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "agent": "โคราชสหภัณฑ์",
+            "value": 4630224,
+            "value_label": "4.6 ล้านบาท",
+            "compare_value": 6170582,
+            "delta_pct": -25
+          },
+          {
+            "agent": "ขอนแก่นมหาชัย",
+            "value": 3804342,
+            "value_label": "3.8 ล้านบาท",
+            "compare_value": 5366139,
+            "delta_pct": -29.1
+          },
+          {
+            "agent": "อีสานรุ่งโรจน์ ค้าส่ง",
+            "value": 3238269,
+            "value_label": "3.2 ล้านบาท",
+            "compare_value": 3665250,
+            "delta_pct": -11.6
+          },
+          {
+            "agent": "ส.รุ่งเรือง เทรดดิ้ง",
+            "value": 2673028,
+            "value_label": "2.7 ล้านบาท",
+            "compare_value": 5486358,
+            "delta_pct": -51.3
+          },
+          {
+            "agent": "อุบลศรีสุข เทรดดิ้ง",
+            "value": 2580162,
+            "value_label": "2.6 ล้านบาท",
+            "compare_value": 3983776,
+            "delta_pct": -35.2
+          },
+          {
+            "agent": "นางรองค้าส่ง",
+            "value": 1894196,
+            "value_label": "1.9 ล้านบาท",
+            "compare_value": 3521890,
+            "delta_pct": -46.2
+          },
+          {
+            "agent": "วารินพาณิชย์",
+            "value": 1892088,
+            "value_label": "1.9 ล้านบาท",
+            "compare_value": 3529615,
+            "delta_pct": -46.4
+          },
+          {
+            "agent": "ปากช่องเบเวอเรจ",
+            "value": 1512158,
+            "value_label": "1.5 ล้านบาท",
+            "compare_value": 3358006,
+            "delta_pct": -55
+          }
+        ],
+        "summary": "ยอดค้างชำระเกินกำหนด 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 22.2 ล้านบาท · สูงสุด: โคราชสหภัณฑ์ 4.6 ล้านบาท · ขอนแก่นมหาชัย 3.8 ล้านบาท · อีสานรุ่งโรจน์ ค้าส่ง 3.2 ล้านบาท · เทียบช่วงก่อนหน้า -36.6% · (8 แถว · certified · SAP FI)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "22.2 ล้านบาท",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 8,
+          "deltaPercent": -36.6,
+          "compareLabel": "เทียบช่วงก่อนหน้า",
+          "compareNote": null,
+          "top": [
+            {
+              "label": "โคราชสหภัณฑ์",
+              "value": "4.6 ล้านบาท"
+            },
+            {
+              "label": "ขอนแก่นมหาชัย",
+              "value": "3.8 ล้านบาท"
+            },
+            {
+              "label": "อีสานรุ่งโรจน์ ค้าส่ง",
+              "value": "3.2 ล้านบาท"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "ar_overdue",
+          "certified": true,
+          "sourceSystem": "SAP FI",
+          "asOf": "2026-09-22",
+          "rowCount": 8,
+          "filtersApplied": {
+            "region": [
+              "northeast"
+            ]
+          },
+          "filterLabels": [
+            "ภาคอีสาน"
+          ],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "ar_overdue",
+          "dims": [
+            "agent"
+          ],
+          "filters": {
+            "region": [
+              "northeast"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "prev_period",
+          "limit": 10,
+          "sort": "value_desc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "drill-province",
+            "kind": "drill",
+            "label": "แยกตามจังหวัด",
+            "reason": "ยังไม่ได้ดูแยกรายจังหวัด",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอยอดค้างชำระเกินกำหนดแยกตามจังหวัด เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-why",
+            "label": "ทำไมโคราชสหภัณฑ์",
+            "prompt": "เจาะดูยอดค้างชำระเกินกำหนดของโคราชสหภัณฑ์ ว่าทำไมถึงเปลี่ยนไป เทียบกับช่วงก่อนหน้าและช่วงเดียวกันปีก่อน",
+            "reason": "โคราชสหภัณฑ์ คือแถวที่ต้องดูมากที่สุดในคำตอบนี้",
+            "intentKey": "follow|why",
+            "score": 0.95
+          },
+          {
+            "id": "fu-trend",
+            "label": "เริ่มแย่ตั้งแต่เมื่อไร",
+            "prompt": "ยอดค้างชำระเกินกำหนดของโคราชสหภัณฑ์ รายเดือนย้อนหลัง 6 เดือน",
+            "reason": "ดูว่าตัวเลขเริ่มลดลงสัปดาห์ไหน",
+            "intentKey": "follow|trend",
+            "score": 0.65
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ขอยอดค้างชำระเกินกำหนดแยกตามเอเย่นต์ เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "tool": "describe_entity",
+      "input": {
+        "kind": "agent",
+        "query": "อุบลศรีสุข เทรดดิ้ง"
+      },
+      "output": {
+        "ok": true,
+        "data": {
+          "id": "ag_nea_05",
+          "ชื่อ": "อุบลศรีสุข เทรดดิ้ง",
+          "จังหวัด": "อุบลราชธานี",
+          "ภาค": "ภาคอีสาน",
+          "เกรด": "B",
+          "เครดิต": "30 วัน",
+          "เป็นคู่ค้าตั้งแต่": 2009,
+          "ศูนย์กระจายสินค้า": "ศูนย์กระจายสินค้าขอนแก่น",
+          "น้ำหนักยอดขาย": 0.87
+        },
+        "summary": "อุบลศรีสุข เทรดดิ้ง เอเย่นต์เกรด B จังหวัดอุบลราชธานี ภาคอีสาน เครดิต 30 วัน ส่งจากศูนย์กระจายสินค้าขอนแก่น"
+      }
+    },
+    {
+      "tool": "describe_entity",
+      "input": {
+        "kind": "agent",
+        "query": "อีสานรุ่งโรจน์ ค้าส่ง"
+      },
+      "output": {
+        "ok": true,
+        "data": {
+          "id": "ag_nea_02",
+          "ชื่อ": "อีสานรุ่งโรจน์ ค้าส่ง",
+          "จังหวัด": "ขอนแก่น",
+          "ภาค": "ภาคอีสาน",
+          "เกรด": "B",
+          "เครดิต": "30 วัน",
+          "เป็นคู่ค้าตั้งแต่": 2010,
+          "ศูนย์กระจายสินค้า": "ศูนย์กระจายสินค้าขอนแก่น",
+          "น้ำหนักยอดขาย": 0.92
+        },
+        "summary": "อีสานรุ่งโรจน์ ค้าส่ง เอเย่นต์เกรด B จังหวัดขอนแก่น ภาคอีสาน เครดิต 30 วัน ส่งจากศูนย์กระจายสินค้าขอนแก่น"
+      }
+    },
+    {
+      "tool": "resolve_owner",
+      "input": {
+        "metric": "net_sales_value",
+        "dims": {
+          "region": "northeast"
+        }
+      },
+      "output": {
+        "ok": true,
+        "summary": "ผู้รับผิดชอบคือ คุณอนุชา พรหมศรี",
+        "data": {
+          "userId": "u_anucha",
+          "nameTh": "คุณอนุชา พรหมศรี",
+          "title": "ผู้จัดการขายภาค ภาคอีสาน",
+          "role": "sales_rsm",
+          "region": "northeast",
+          "reason": "เจ้าของตัวเลขยอดขายของพื้นที่ (ระดับภาค) · เคยรับงานลักษณะนี้ 0 ครั้ง · ตอนนี้มีงานค้าง 2 เรื่อง",
+          "openLoad": 2,
+          "handledBefore": 0
+        }
+      }
+    },
+    {
+      "tool": "resolve_owner",
+      "input": {
+        "metric": "ar_overdue",
+        "dims": {
+          "region": "south"
+        }
+      },
+      "output": {
+        "ok": true,
+        "summary": "ผู้รับผิดชอบคือ คุณมิ้นท์ วรกุล",
+        "data": {
+          "userId": "u_mint",
+          "nameTh": "คุณมิ้นท์ วรกุล",
+          "title": "นักวิเคราะห์การเงิน",
+          "role": "finance_analyst",
+          "region": null,
+          "reason": "ผู้ดูแลตัวเลขการเงิน (ระดับประเทศ) · เคยรับงานลักษณะนี้ 0 ครั้ง · ตอนนี้มีงานค้าง 0 เรื่อง",
+          "openLoad": 0,
+          "handledBefore": 0
+        }
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "trade_spend",
+        "dims": [
+          "brand"
+        ],
+        "filters": {},
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "prev_year",
+        "limit": 10,
+        "sort": "delta_desc",
+        "where": null
+      },
+      "output": {
+        "ok": false,
+        "error": "มิติ brand ใช้กับเมตริก trade_spend ไม่ได้",
+        "code": "BAD_QUERY"
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "trade_spend",
+        "dims": [
+          "channel"
+        ],
+        "filters": {},
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "prev_year",
+        "limit": 10,
+        "sort": "delta_desc",
+        "where": null
+      },
+      "output": {
+        "ok": false,
+        "error": "มิติ channel ใช้กับเมตริก trade_spend ไม่ได้",
+        "code": "BAD_QUERY"
+      }
+    },
+    {
+      "tool": "list_metrics",
+      "input": {
+        "search": "trade_spend"
+      },
+      "output": {
+        "ok": true,
+        "summary": "พบ 1 เมตริกที่ตรงกับคำค้น",
+        "data": [
+          {
+            "id": "trade_spend",
+            "labelTh": "งบส่งเสริมการขาย",
+            "unit": "บาท",
+            "dims": [
+              "month",
+              "business_unit",
+              "region"
+            ],
+            "certified": true,
+            "source": "SAP FI",
+            "refresh": "รายเดือน",
+            "latest": "22 ก.ย. 2569"
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "trade_spend",
+        "dims": [
+          "business_unit"
+        ],
+        "filters": {},
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "prev_year",
+        "limit": 10,
+        "sort": "delta_desc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "business_unit": "กลุ่มนำเข้า",
+            "value": 33289037,
+            "value_label": "33.3 ล้านบาท",
+            "compare_value": 23996655,
+            "delta_pct": 38.7
+          },
+          {
+            "business_unit": "กลุ่มนอนแอลกอฮอล์",
+            "value": 34697603,
+            "value_label": "34.7 ล้านบาท",
+            "compare_value": 26360962,
+            "delta_pct": 31.6
+          },
+          {
+            "business_unit": "กลุ่มเบียร์",
+            "value": 58812176,
+            "value_label": "58.8 ล้านบาท",
+            "compare_value": 49239938,
+            "delta_pct": 19.4
+          }
+        ],
+        "summary": "งบส่งเสริมการขาย 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 126.8 ล้านบาท · สูงสุด: กลุ่มเบียร์ 58.8 ล้านบาท · กลุ่มนอนแอลกอฮอล์ 34.7 ล้านบาท · กลุ่มนำเข้า 33.3 ล้านบาท · เทียบปีก่อน +27.3% · ข้อมูลเดือนล่าสุดถึง 22 ก.ย. 2569 จึงเทียบกับงวดก่อนตามสัดส่วนวัน (73%) · (3 แถว · certified · SAP FI)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "126.8 ล้านบาท",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 3,
+          "deltaPercent": 27.3,
+          "compareLabel": "เทียบปีก่อน",
+          "compareNote": "ข้อมูลเดือนล่าสุดถึง 22 ก.ย. 2569 จึงเทียบกับงวดก่อนตามสัดส่วนวัน (73%)",
+          "top": [
+            {
+              "label": "กลุ่มเบียร์",
+              "value": "58.8 ล้านบาท"
+            },
+            {
+              "label": "กลุ่มนอนแอลกอฮอล์",
+              "value": "34.7 ล้านบาท"
+            },
+            {
+              "label": "กลุ่มนำเข้า",
+              "value": "33.3 ล้านบาท"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "trade_spend",
+          "certified": true,
+          "sourceSystem": "SAP FI",
+          "asOf": "2026-09-22",
+          "rowCount": 3,
+          "filtersApplied": {},
+          "filterLabels": [],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "trade_spend",
+          "dims": [
+            "business_unit"
+          ],
+          "filters": {},
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "prev_year",
+          "limit": 10,
+          "sort": "delta_desc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "drill-why",
+            "kind": "drill",
+            "label": "ทำไมกลุ่มนำเข้าถึงเป็นแบบนี้",
+            "reason": "กลุ่มนำเข้า เปลี่ยนไปในทางที่แย่ที่สุด",
+            "tool": null,
+            "input": null,
+            "prompt": "เจาะดูงบส่งเสริมการขายของกลุ่มนำเข้า ว่าทำไมถึงเปลี่ยนไป เทียบกับช่วงก่อนหน้าและช่วงเดียวกันปีก่อน"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-trend",
+            "label": "เริ่มแย่ตั้งแต่เมื่อไร",
+            "prompt": "งบส่งเสริมการขายของกลุ่มนำเข้า รายเดือนย้อนหลัง 6 เดือน",
+            "reason": "ดูว่าตัวเลขเริ่มลดลงสัปดาห์ไหน",
+            "intentKey": "follow|trend",
+            "score": 0.65
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "gross_margin",
+        "dims": [
+          "business_unit"
+        ],
+        "filters": {},
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "prev_year",
+        "limit": 10,
+        "sort": null,
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "business_unit": "กลุ่มนอนแอลกอฮอล์",
+            "value": 41.1,
+            "value_label": "41.1%",
+            "compare_value": 42.5,
+            "delta_pct": -3.4
+          },
+          {
+            "business_unit": "กลุ่มเบียร์",
+            "value": 24.9,
+            "value_label": "24.9%",
+            "compare_value": 23.9,
+            "delta_pct": 4.5
+          },
+          {
+            "business_unit": "กลุ่มนำเข้า",
+            "value": 23.7,
+            "value_label": "23.7%",
+            "compare_value": 24.5,
+            "delta_pct": -3.4
+          }
+        ],
+        "summary": "อัตรากำไรขั้นต้น 1 ก.ย. 2569 – 22 ก.ย. 2569: เฉลี่ย 27.0% · สูงสุด: กลุ่มนอนแอลกอฮอล์ 41.1% · กลุ่มเบียร์ 24.9% · กลุ่มนำเข้า 23.7% · เทียบปีก่อน +2.8% · (3 แถว · certified · SAP FI)",
+        "headline": {
+          "aggregate": "average",
+          "value": "27.0%",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 3,
+          "deltaPercent": 2.8,
+          "compareLabel": "เทียบปีก่อน",
+          "compareNote": null,
+          "top": [
+            {
+              "label": "กลุ่มนอนแอลกอฮอล์",
+              "value": "41.1%"
+            },
+            {
+              "label": "กลุ่มเบียร์",
+              "value": "24.9%"
+            },
+            {
+              "label": "กลุ่มนำเข้า",
+              "value": "23.7%"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "gross_margin",
+          "certified": true,
+          "sourceSystem": "SAP FI",
+          "asOf": "2026-09-22",
+          "rowCount": 3,
+          "filtersApplied": {},
+          "filterLabels": [],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "gross_margin",
+          "dims": [
+            "business_unit"
+          ],
+          "filters": {},
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "prev_year",
+          "limit": 10,
+          "sort": null,
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "drill-region",
+            "kind": "drill",
+            "label": "แยกตามภาค",
+            "reason": "ยังไม่ได้ดูแยกรายภาค",
+            "tool": null,
+            "input": null,
+            "prompt": "ขออัตรากำไรขั้นต้นแยกตามภาค เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-trend",
+            "label": "ดูแนวโน้มรายเดือน",
+            "prompt": "อัตรากำไรขั้นต้น รายเดือนย้อนหลัง 6 เดือน",
+            "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+            "intentKey": "follow|trend",
+            "score": 0.5
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "ar_overdue",
+        "dims": [
+          "month"
+        ],
+        "filters": {
+          "region": [
+            "south"
+          ]
+        },
+        "range": {
+          "from": "2026-04-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "none",
+        "limit": 6,
+        "sort": null,
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "month": "2026-04",
+            "value": 26081114,
+            "value_label": "26.1 ล้านบาท"
+          },
+          {
+            "month": "2026-05",
+            "value": 31399441,
+            "value_label": "31.4 ล้านบาท"
+          },
+          {
+            "month": "2026-06",
+            "value": 24425099,
+            "value_label": "24.4 ล้านบาท"
+          },
+          {
+            "month": "2026-07",
+            "value": 22316300,
+            "value_label": "22.3 ล้านบาท"
+          },
+          {
+            "month": "2026-08",
+            "value": 29710011,
+            "value_label": "29.7 ล้านบาท"
+          },
+          {
+            "month": "2026-09",
+            "value": 19926541,
+            "value_label": "19.9 ล้านบาท"
+          }
+        ],
+        "summary": "ยอดค้างชำระเกินกำหนด 1 เม.ย. 2569 – 22 ก.ย. 2569: รวม 19.9 ล้านบาท · (6 แถว · certified · SAP FI)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "19.9 ล้านบาท",
+          "periodLabel": "1 เม.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 6,
+          "deltaPercent": null,
+          "compareLabel": null,
+          "compareNote": null,
+          "top": []
+        },
+        "provenance": {
+          "metric": "ar_overdue",
+          "certified": true,
+          "sourceSystem": "SAP FI",
+          "asOf": "2026-09-22",
+          "rowCount": 6,
+          "filtersApplied": {
+            "region": [
+              "south"
+            ]
+          },
+          "filterLabels": [
+            "ภาคใต้"
+          ],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "ar_overdue",
+          "dims": [
+            "month"
+          ],
+          "filters": {
+            "region": [
+              "south"
+            ]
+          },
+          "range": {
+            "from": "2026-04-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "none",
+          "limit": 6,
+          "sort": null,
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "verify",
+            "kind": "verify",
+            "label": "ตรวจสาเหตุที่ภาคใต้",
+            "reason": "ดูยอดค้างชำระเกินกำหนดของภาคใต้รายเดือน 6 เดือนล่าสุด",
+            "tool": null,
+            "input": null,
+            "prompt": "ดูยอดค้างชำระเกินกำหนดของภาคใต้รายเดือน 6 เดือนล่าสุด"
+          },
+          {
+            "id": "drill-province",
+            "kind": "drill",
+            "label": "แยกตามจังหวัด",
+            "reason": "ยังไม่ได้ดูแยกรายจังหวัด",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอยอดค้างชำระเกินกำหนดแยกตามจังหวัด เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-split",
+            "label": "แยกตามภาค",
+            "prompt": "ขอยอดค้างชำระเกินกำหนดแยกตามภาค เรียงจากมากไปน้อย",
+            "reason": "ยังไม่ได้ดูแยกรายภาค",
+            "intentKey": "follow|split",
+            "score": 0.65
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ขอยอดค้างชำระเกินกำหนด เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "ar_overdue",
+        "dims": [
+          "month"
+        ],
+        "filters": {
+          "agent": [
+            "ag_nea_02",
+            "ag_nea_05"
+          ]
+        },
+        "range": {
+          "from": "2026-04-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "none",
+        "limit": 6,
+        "sort": null,
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "month": "2026-04",
+            "value": 11114597,
+            "value_label": "11.1 ล้านบาท"
+          },
+          {
+            "month": "2026-05",
+            "value": 15207727,
+            "value_label": "15.2 ล้านบาท"
+          },
+          {
+            "month": "2026-06",
+            "value": 10313642,
+            "value_label": "10.3 ล้านบาท"
+          },
+          {
+            "month": "2026-07",
+            "value": 10167955,
+            "value_label": "10.2 ล้านบาท"
+          },
+          {
+            "month": "2026-08",
+            "value": 7649026,
+            "value_label": "7.6 ล้านบาท"
+          },
+          {
+            "month": "2026-09",
+            "value": 5818430,
+            "value_label": "5.8 ล้านบาท"
+          }
+        ],
+        "summary": "ยอดค้างชำระเกินกำหนด 1 เม.ย. 2569 – 22 ก.ย. 2569: รวม 5.8 ล้านบาท · (6 แถว · certified · SAP FI)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "5.8 ล้านบาท",
+          "periodLabel": "1 เม.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 6,
+          "deltaPercent": null,
+          "compareLabel": null,
+          "compareNote": null,
+          "top": []
+        },
+        "provenance": {
+          "metric": "ar_overdue",
+          "certified": true,
+          "sourceSystem": "SAP FI",
+          "asOf": "2026-09-22",
+          "rowCount": 6,
+          "filtersApplied": {
+            "agent": [
+              "ag_nea_02",
+              "ag_nea_05"
+            ]
+          },
+          "filterLabels": [
+            "อีสานรุ่งโรจน์ ค้าส่ง",
+            "อุบลศรีสุข เทรดดิ้ง"
+          ],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "ar_overdue",
+          "dims": [
+            "month"
+          ],
+          "filters": {
+            "agent": [
+              "ag_nea_02",
+              "ag_nea_05"
+            ]
+          },
+          "range": {
+            "from": "2026-04-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "none",
+          "limit": 6,
+          "sort": null,
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "drill-region",
+            "kind": "drill",
+            "label": "แยกตามภาค",
+            "reason": "ยังไม่ได้ดูแยกรายภาค",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอยอดค้างชำระเกินกำหนดแยกตามภาค เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-split",
+            "label": "แยกตามเอเย่นต์",
+            "prompt": "ขอยอดค้างชำระเกินกำหนดแยกตามเอเย่นต์ เรียงจากมากไปน้อย",
+            "reason": "ยังไม่ได้ดูแยกรายเอเย่นต์",
+            "intentKey": "follow|split",
+            "score": 0.65
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ขอยอดค้างชำระเกินกำหนด เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "net_sales_volume",
+        "dims": [
+          "date"
+        ],
+        "filters": {
+          "agent": [
+            "ag_nea_02"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "day",
+        "compare": "none",
+        "limit": 25,
+        "sort": null,
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "date": "2026-09-01",
+            "value": 28032,
+            "value_label": "28,032 ลิตร"
+          },
+          {
+            "date": "2026-09-02",
+            "value": 26927,
+            "value_label": "26,927 ลิตร"
+          },
+          {
+            "date": "2026-09-03",
+            "value": 26832,
+            "value_label": "26,832 ลิตร"
+          },
+          {
+            "date": "2026-09-04",
+            "value": 30686,
+            "value_label": "30,686 ลิตร"
+          },
+          {
+            "date": "2026-09-05",
+            "value": 19431,
+            "value_label": "19,431 ลิตร"
+          },
+          {
+            "date": "2026-09-06",
+            "value": 8565,
+            "value_label": "8,565 ลิตร"
+          },
+          {
+            "date": "2026-09-07",
+            "value": 27732,
+            "value_label": "27,732 ลิตร"
+          },
+          {
+            "date": "2026-09-08",
+            "value": 25512,
+            "value_label": "25,512 ลิตร"
+          },
+          {
+            "date": "2026-09-09",
+            "value": 24895,
+            "value_label": "24,895 ลิตร"
+          },
+          {
+            "date": "2026-09-10",
+            "value": 26895,
+            "value_label": "26,895 ลิตร"
+          },
+          {
+            "date": "2026-09-11",
+            "value": 11795,
+            "value_label": "11,795 ลิตร"
+          },
+          {
+            "date": "2026-09-12",
+            "value": 7682,
+            "value_label": "7,682 ลิตร"
+          },
+          {
+            "date": "2026-09-13",
+            "value": 3506,
+            "value_label": "3,506 ลิตร"
+          },
+          {
+            "date": "2026-09-14",
+            "value": 11152,
+            "value_label": "11,152 ลิตร"
+          },
+          {
+            "date": "2026-09-15",
+            "value": 10679,
+            "value_label": "10,679 ลิตร"
+          },
+          {
+            "date": "2026-09-16",
+            "value": 10017,
+            "value_label": "10,017 ลิตร"
+          },
+          {
+            "date": "2026-09-17",
+            "value": 10489,
+            "value_label": "10,489 ลิตร"
+          },
+          {
+            "date": "2026-09-18",
+            "value": 11326,
+            "value_label": "11,326 ลิตร"
+          },
+          {
+            "date": "2026-09-19",
+            "value": 7654,
+            "value_label": "7,654 ลิตร"
+          },
+          {
+            "date": "2026-09-20",
+            "value": 3373,
+            "value_label": "3,373 ลิตร"
+          },
+          {
+            "date": "2026-09-21",
+            "value": 10441,
+            "value_label": "10,441 ลิตร"
+          },
+          {
+            "date": "2026-09-22",
+            "value": 9737,
+            "value_label": "9,737 ลิตร"
+          }
+        ],
+        "summary": "ปริมาณขายเข้า (Sell-in) 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 353,359 ลิตร · (22 แถว · certified · SAP SD)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "353,359 ลิตร",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 22,
+          "deltaPercent": null,
+          "compareLabel": null,
+          "compareNote": null,
+          "top": []
+        },
+        "provenance": {
+          "metric": "net_sales_volume",
+          "certified": true,
+          "sourceSystem": "SAP SD",
+          "asOf": "2026-09-22",
+          "rowCount": 22,
+          "filtersApplied": {
+            "agent": [
+              "ag_nea_02"
+            ]
+          },
+          "filterLabels": [
+            "อีสานรุ่งโรจน์ ค้าส่ง"
+          ],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "net_sales_volume",
+          "dims": [
+            "date"
+          ],
+          "filters": {
+            "agent": [
+              "ag_nea_02"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "day",
+          "compare": "none",
+          "limit": 25,
+          "sort": null,
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "handoff",
+            "kind": "handoff",
+            "label": "ส่งงานให้คุณอนุชา",
+            "reason": "เจ้าของตัวเลขยอดขายของพื้นที่ (ระดับภาค)",
+            "tool": "create_handoff",
+            "input": {
+              "toUserId": "u_anucha",
+              "title": "ปริมาณขายเข้า (Sell-in)",
+              "ask": "ช่วยตรวจอีสานรุ่งโรจน์ ค้าส่ง · ภาคอีสาน แล้วบอกกลับว่าเกิดจากอะไรและจะแก้อย่างไร",
+              "urgency": "high",
+              "evidence": [
+                {
+                  "metric": "net_sales_volume",
+                  "dims": [
+                    "date"
+                  ],
+                  "filters": {
+                    "agent": [
+                      "ag_nea_02"
+                    ]
+                  },
+                  "range": {
+                    "from": "2026-09-01",
+                    "to": "2026-09-22"
+                  },
+                  "grain": "day",
+                  "compare": "none",
+                  "limit": 25,
+                  "sort": null,
+                  "where": null
+                }
+              ],
+              "alertIds": [
+                "al_ed6dca9e1dab4e48"
+              ]
+            },
+            "prompt": null
+          },
+          {
+            "id": "verify",
+            "kind": "verify",
+            "label": "ตรวจสาเหตุ",
+            "reason": "ดูประวัติการสั่งซื้อรายวันของอีสานรุ่งโรจน์ ค้าส่ง · ภาคอีสาน 30 วันล่าสุด",
+            "tool": null,
+            "input": null,
+            "prompt": "ดูประวัติการสั่งซื้อรายวันของอีสานรุ่งโรจน์ ค้าส่ง · ภาคอีสาน 30 วันล่าสุด"
+          },
+          {
+            "id": "drill-channel",
+            "kind": "drill",
+            "label": "แยกตามช่องทาง",
+            "reason": "ยังไม่ได้ดูแยกรายช่องทาง",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอปริมาณขายเข้า (Sell-in)แยกตามช่องทาง เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-split",
+            "label": "แยกตามภาค",
+            "prompt": "ขอปริมาณขายเข้า (Sell-in) แยกตามภาค เรียงจากมากไปน้อย",
+            "reason": "ยังไม่ได้ดูแยกรายภาค",
+            "intentKey": "follow|split",
+            "score": 0.65
+          },
+          {
+            "id": "fu-forecast",
+            "label": "พยากรณ์ 8 สัปดาห์",
+            "prompt": "พยากรณ์ปริมาณขายเข้า 8 สัปดาห์ข้างหน้า",
+            "reason": "ดูว่าถ้าเป็นแบบนี้ต่อไปจะเกิดอะไร",
+            "intentKey": "follow|forecast",
+            "score": 0.55
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ขอปริมาณขายเข้า (Sell-in) เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "net_sales_volume",
+        "dims": [
+          "date"
+        ],
+        "filters": {
+          "agent": [
+            "ag_nea_05"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "day",
+        "compare": "none",
+        "limit": 25,
+        "sort": null,
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "date": "2026-09-01",
+            "value": 26379,
+            "value_label": "26,379 ลิตร"
+          },
+          {
+            "date": "2026-09-02",
+            "value": 23684,
+            "value_label": "23,684 ลิตร"
+          },
+          {
+            "date": "2026-09-03",
+            "value": 25021,
+            "value_label": "25,021 ลิตร"
+          },
+          {
+            "date": "2026-09-04",
+            "value": 28648,
+            "value_label": "28,648 ลิตร"
+          },
+          {
+            "date": "2026-09-05",
+            "value": 18258,
+            "value_label": "18,258 ลิตร"
+          },
+          {
+            "date": "2026-09-06",
+            "value": 7863,
+            "value_label": "7,863 ลิตร"
+          },
+          {
+            "date": "2026-09-07",
+            "value": 25467,
+            "value_label": "25,467 ลิตร"
+          },
+          {
+            "date": "2026-09-08",
+            "value": 24833,
+            "value_label": "24,833 ลิตร"
+          },
+          {
+            "date": "2026-09-09",
+            "value": 23395,
+            "value_label": "23,395 ลิตร"
+          },
+          {
+            "date": "2026-09-10",
+            "value": 24736,
+            "value_label": "24,736 ลิตร"
+          },
+          {
+            "date": "2026-09-11",
+            "value": 11560,
+            "value_label": "11,560 ลิตร"
+          },
+          {
+            "date": "2026-09-12",
+            "value": 7288,
+            "value_label": "7,288 ลิตร"
+          },
+          {
+            "date": "2026-09-13",
+            "value": 3005,
+            "value_label": "3,005 ลิตร"
+          },
+          {
+            "date": "2026-09-14",
+            "value": 10709,
+            "value_label": "10,709 ลิตร"
+          },
+          {
+            "date": "2026-09-15",
+            "value": 9702,
+            "value_label": "9,702 ลิตร"
+          },
+          {
+            "date": "2026-09-16",
+            "value": 9425,
+            "value_label": "9,425 ลิตร"
+          },
+          {
+            "date": "2026-09-17",
+            "value": 9637,
+            "value_label": "9,637 ลิตร"
+          },
+          {
+            "date": "2026-09-18",
+            "value": 11360,
+            "value_label": "11,360 ลิตร"
+          },
+          {
+            "date": "2026-09-19",
+            "value": 6691,
+            "value_label": "6,691 ลิตร"
+          },
+          {
+            "date": "2026-09-20",
+            "value": 3163,
+            "value_label": "3,163 ลิตร"
+          },
+          {
+            "date": "2026-09-21",
+            "value": 10243,
+            "value_label": "10,243 ลิตร"
+          },
+          {
+            "date": "2026-09-22",
+            "value": 9295,
+            "value_label": "9,295 ลิตร"
+          }
+        ],
+        "summary": "ปริมาณขายเข้า (Sell-in) 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 330,361 ลิตร · (22 แถว · certified · SAP SD)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "330,361 ลิตร",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 22,
+          "deltaPercent": null,
+          "compareLabel": null,
+          "compareNote": null,
+          "top": []
+        },
+        "provenance": {
+          "metric": "net_sales_volume",
+          "certified": true,
+          "sourceSystem": "SAP SD",
+          "asOf": "2026-09-22",
+          "rowCount": 22,
+          "filtersApplied": {
+            "agent": [
+              "ag_nea_05"
+            ]
+          },
+          "filterLabels": [
+            "อุบลศรีสุข เทรดดิ้ง"
+          ],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "net_sales_volume",
+          "dims": [
+            "date"
+          ],
+          "filters": {
+            "agent": [
+              "ag_nea_05"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "day",
+          "compare": "none",
+          "limit": 25,
+          "sort": null,
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "handoff",
+            "kind": "handoff",
+            "label": "ส่งงานให้คุณอนุชา",
+            "reason": "เจ้าของตัวเลขยอดขายของพื้นที่ (ระดับภาค)",
+            "tool": "create_handoff",
+            "input": {
+              "toUserId": "u_anucha",
+              "title": "ปริมาณขายเข้า (Sell-in)",
+              "ask": "ช่วยตรวจอุบลศรีสุข เทรดดิ้ง · ภาคอีสาน แล้วบอกกลับว่าเกิดจากอะไรและจะแก้อย่างไร",
+              "urgency": "high",
+              "evidence": [
+                {
+                  "metric": "net_sales_volume",
+                  "dims": [
+                    "date"
+                  ],
+                  "filters": {
+                    "agent": [
+                      "ag_nea_05"
+                    ]
+                  },
+                  "range": {
+                    "from": "2026-09-01",
+                    "to": "2026-09-22"
+                  },
+                  "grain": "day",
+                  "compare": "none",
+                  "limit": 25,
+                  "sort": null,
+                  "where": null
+                }
+              ],
+              "alertIds": [
+                "al_7364476d77c8f435"
+              ]
+            },
+            "prompt": null
+          },
+          {
+            "id": "verify",
+            "kind": "verify",
+            "label": "ตรวจสาเหตุ",
+            "reason": "ดูประวัติการสั่งซื้อรายวันของอุบลศรีสุข เทรดดิ้ง · ภาคอีสาน 30 วันล่าสุด",
+            "tool": null,
+            "input": null,
+            "prompt": "ดูประวัติการสั่งซื้อรายวันของอุบลศรีสุข เทรดดิ้ง · ภาคอีสาน 30 วันล่าสุด"
+          },
+          {
+            "id": "drill-channel",
+            "kind": "drill",
+            "label": "แยกตามช่องทาง",
+            "reason": "ยังไม่ได้ดูแยกรายช่องทาง",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอปริมาณขายเข้า (Sell-in)แยกตามช่องทาง เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-split",
+            "label": "แยกตามภาค",
+            "prompt": "ขอปริมาณขายเข้า (Sell-in) แยกตามภาค เรียงจากมากไปน้อย",
+            "reason": "ยังไม่ได้ดูแยกรายภาค",
+            "intentKey": "follow|split",
+            "score": 0.65
+          },
+          {
+            "id": "fu-forecast",
+            "label": "พยากรณ์ 8 สัปดาห์",
+            "prompt": "พยากรณ์ปริมาณขายเข้า 8 สัปดาห์ข้างหน้า",
+            "reason": "ดูว่าถ้าเป็นแบบนี้ต่อไปจะเกิดอะไร",
+            "intentKey": "follow|forecast",
+            "score": 0.55
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ขอปริมาณขายเข้า (Sell-in) เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "sell_out_volume",
+        "dims": [
+          "date"
+        ],
+        "filters": {
+          "province": [
+            "pv_ubonratchathani",
+            "pv_khonkaen"
+          ]
+        },
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "day",
+        "compare": "prev_period",
+        "limit": 25,
+        "sort": null,
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "date": "2026-09-01",
+            "value": 81097,
+            "value_label": "81,097 ลิตร",
+            "compare_value": 175005,
+            "delta_pct": -53.7
+          },
+          {
+            "date": "2026-09-02",
+            "value": 84158,
+            "value_label": "84,158 ลิตร",
+            "compare_value": 152395,
+            "delta_pct": -44.8
+          },
+          {
+            "date": "2026-09-03",
+            "value": 90242,
+            "value_label": "90,242 ลิตร",
+            "compare_value": 109071,
+            "delta_pct": -17.3
+          },
+          {
+            "date": "2026-09-04",
+            "value": 108687,
+            "value_label": "108,687 ลิตร",
+            "compare_value": 103875,
+            "delta_pct": 4.6
+          },
+          {
+            "date": "2026-09-05",
+            "value": 126376,
+            "value_label": "126,376 ลิตร",
+            "compare_value": 105299,
+            "delta_pct": 20
+          },
+          {
+            "date": "2026-09-06",
+            "value": 111181,
+            "value_label": "111,181 ลิตร",
+            "compare_value": 110471,
+            "delta_pct": 0.6
+          },
+          {
+            "date": "2026-09-07",
+            "value": 80731,
+            "value_label": "80,731 ลิตร",
+            "compare_value": 130281,
+            "delta_pct": -38
+          },
+          {
+            "date": "2026-09-08",
+            "value": 78529,
+            "value_label": "78,529 ลิตร",
+            "compare_value": 148620,
+            "delta_pct": -47.2
+          },
+          {
+            "date": "2026-09-09",
+            "value": 81602,
+            "value_label": "81,602 ลิตร",
+            "compare_value": 128707,
+            "delta_pct": -36.6
+          },
+          {
+            "date": "2026-09-10",
+            "value": 87495,
+            "value_label": "87,495 ลิตร",
+            "compare_value": 93110,
+            "delta_pct": -6
+          },
+          {
+            "date": "2026-09-11",
+            "value": 105329,
+            "value_label": "105,329 ลิตร",
+            "compare_value": 90475,
+            "delta_pct": 16.4
+          },
+          {
+            "date": "2026-09-12",
+            "value": 122143,
+            "value_label": "122,143 ลิตร",
+            "compare_value": 94371,
+            "delta_pct": 29.4
+          },
+          {
+            "date": "2026-09-13",
+            "value": 107271,
+            "value_label": "107,271 ลิตร",
+            "compare_value": 101516,
+            "delta_pct": 5.7
+          },
+          {
+            "date": "2026-09-14",
+            "value": 78059,
+            "value_label": "78,059 ลิตร",
+            "compare_value": 122339,
+            "delta_pct": -36.2
+          },
+          {
+            "date": "2026-09-15",
+            "value": 76165,
+            "value_label": "76,165 ลิตร",
+            "compare_value": 141804,
+            "delta_pct": -46.3
+          },
+          {
+            "date": "2026-09-16",
+            "value": 79364,
+            "value_label": "79,364 ลิตร",
+            "compare_value": 124211,
+            "delta_pct": -36.1
+          },
+          {
+            "date": "2026-09-17",
+            "value": 85447,
+            "value_label": "85,447 ลิตร",
+            "compare_value": 90061,
+            "delta_pct": -5.1
+          },
+          {
+            "date": "2026-09-18",
+            "value": 102907,
+            "value_label": "102,907 ลิตร",
+            "compare_value": 87352,
+            "delta_pct": 17.8
+          },
+          {
+            "date": "2026-09-19",
+            "value": 119405,
+            "value_label": "119,405 ลิตร",
+            "compare_value": 90854,
+            "delta_pct": 31.4
+          },
+          {
+            "date": "2026-09-20",
+            "value": 104715,
+            "value_label": "104,715 ลิตร",
+            "compare_value": 97772,
+            "delta_pct": 7.1
+          },
+          {
+            "date": "2026-09-21",
+            "value": 75998,
+            "value_label": "75,998 ลิตร",
+            "compare_value": 118105,
+            "delta_pct": -35.7
+          },
+          {
+            "date": "2026-09-22",
+            "value": 74066,
+            "value_label": "74,066 ลิตร",
+            "compare_value": 137161,
+            "delta_pct": -46
+          }
+        ],
+        "summary": "ปริมาณขายออก (Sell-out) 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 2.1 ล้านลิตร · เทียบช่วงก่อนหน้า -19.3% · (22 แถว · certified · SAP SD)",
+        "headline": {
+          "aggregate": "sum",
+          "value": "2.1 ล้านลิตร",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 22,
+          "deltaPercent": -19.3,
+          "compareLabel": "เทียบช่วงก่อนหน้า",
+          "compareNote": null,
+          "top": []
+        },
+        "provenance": {
+          "metric": "sell_out_volume",
+          "certified": true,
+          "sourceSystem": "SAP SD",
+          "asOf": "2026-09-22",
+          "rowCount": 22,
+          "filtersApplied": {
+            "province": [
+              "pv_ubonratchathani",
+              "pv_khonkaen"
+            ]
+          },
+          "filterLabels": [
+            "อุบลราชธานี",
+            "ขอนแก่น"
+          ],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "sell_out_volume",
+          "dims": [
+            "date"
+          ],
+          "filters": {
+            "province": [
+              "pv_ubonratchathani",
+              "pv_khonkaen"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "day",
+          "compare": "prev_period",
+          "limit": 25,
+          "sort": null,
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "handoff",
+            "kind": "handoff",
+            "label": "ส่งงานให้คุณกนก",
+            "reason": "เจ้าของตัวเลขยอดขายของพื้นที่ (ระดับประเทศ)",
+            "tool": "create_handoff",
+            "input": {
+              "toUserId": "u_kanok",
+              "title": "ปริมาณขายออก (Sell-out)",
+              "ask": "ช่วยตรวจน้ำดื่มสิงห์ ขวด PET 600 มล. · ขอนแก่น · ภาคอีสาน แล้วบอกกลับว่าเกิดจากอะไรและจะแก้อย่างไร",
+              "urgency": "high",
+              "evidence": [
+                {
+                  "metric": "sell_out_volume",
+                  "dims": [
+                    "date"
+                  ],
+                  "filters": {
+                    "province": [
+                      "pv_ubonratchathani",
+                      "pv_khonkaen"
+                    ]
+                  },
+                  "range": {
+                    "from": "2026-09-01",
+                    "to": "2026-09-22"
+                  },
+                  "grain": "day",
+                  "compare": "prev_period",
+                  "limit": 25,
+                  "sort": null,
+                  "where": null
+                }
+              ],
+              "alertIds": [
+                "al_49b503043dd5af01"
+              ]
+            },
+            "prompt": null
+          },
+          {
+            "id": "verify",
+            "kind": "verify",
+            "label": "ตรวจสาเหตุ",
+            "reason": "เทียบน้ำดื่มสิงห์ ขวด PET 600 มล. · ขอนแก่น · ภาคอีสานกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+            "tool": null,
+            "input": null,
+            "prompt": "เทียบน้ำดื่มสิงห์ ขวด PET 600 มล. · ขอนแก่น · ภาคอีสานกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน"
+          },
+          {
+            "id": "drill-region",
+            "kind": "drill",
+            "label": "แยกตามภาค",
+            "reason": "ยังไม่ได้ดูแยกรายภาค",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอปริมาณขายออก (Sell-out)แยกตามภาค เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-split",
+            "label": "แยกตามช่องทาง",
+            "prompt": "ขอปริมาณขายออก (Sell-out) แยกตามช่องทาง เรียงจากมากไปน้อย",
+            "reason": "ยังไม่ได้ดูแยกรายช่องทาง",
+            "intentKey": "follow|split",
+            "score": 0.65
+          },
+          {
+            "id": "fu-compare_year",
+            "label": "เทียบปีก่อน",
+            "prompt": "ขอปริมาณขายออก (Sell-out) เทียบกับช่วงเดียวกันปีก่อน",
+            "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+            "intentKey": "follow|compare_year",
+            "score": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "tool": "query_metric",
+      "input": {
+        "metric": "target_attainment",
+        "dims": [
+          "region"
+        ],
+        "filters": {},
+        "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+        },
+        "grain": "month",
+        "compare": "none",
+        "limit": 10,
+        "sort": "value_asc",
+        "where": null
+      },
+      "output": {
+        "ok": true,
+        "rows": [
+          {
+            "region": "ภาคอีสาน",
+            "value": 93.3,
+            "value_label": "93.3%"
+          },
+          {
+            "region": "ภาคเหนือ",
+            "value": 101.1,
+            "value_label": "101.1%"
+          },
+          {
+            "region": "ภาคตะวันออก",
+            "value": 101.2,
+            "value_label": "101.2%"
+          },
+          {
+            "region": "ภาคใต้",
+            "value": 101.2,
+            "value_label": "101.2%"
+          },
+          {
+            "region": "กรุงเทพฯ และปริมณฑล",
+            "value": 102.1,
+            "value_label": "102.1%"
+          },
+          {
+            "region": "ภาคกลาง",
+            "value": 102.1,
+            "value_label": "102.1%"
+          }
+        ],
+        "summary": "การบรรลุเป้าหมาย 1 ก.ย. 2569 – 22 ก.ย. 2569: เฉลี่ย 99.8% · สูงสุด: ภาคกลาง 102.1% · กรุงเทพฯ และปริมณฑล 102.1% · ภาคใต้ 101.2% · (6 แถว · certified · SAP SD)",
+        "headline": {
+          "aggregate": "average",
+          "value": "99.8%",
+          "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+          "rowCount": 6,
+          "deltaPercent": null,
+          "compareLabel": null,
+          "compareNote": null,
+          "top": [
+            {
+              "label": "ภาคกลาง",
+              "value": "102.1%"
+            },
+            {
+              "label": "กรุงเทพฯ และปริมณฑล",
+              "value": "102.1%"
+            },
+            {
+              "label": "ภาคใต้",
+              "value": "101.2%"
+            }
+          ]
+        },
+        "provenance": {
+          "metric": "target_attainment",
+          "certified": true,
+          "sourceSystem": "SAP SD",
+          "asOf": "2026-09-22",
+          "rowCount": 6,
+          "filtersApplied": {},
+          "filterLabels": [],
+          "scopeApplied": {},
+          "masked": [],
+          "trust": "verified"
+        },
+        "query": {
+          "metric": "target_attainment",
+          "dims": [
+            "region"
+          ],
+          "filters": {},
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "none",
+          "limit": 10,
+          "sort": "value_asc",
+          "where": null
+        },
+        "nextActions": [
+          {
+            "id": "drill-province",
+            "kind": "drill",
+            "label": "แยกตามจังหวัด",
+            "reason": "ยังไม่ได้ดูแยกรายจังหวัด",
+            "tool": null,
+            "input": null,
+            "prompt": "ขอการบรรลุเป้าหมายแยกตามจังหวัด เรียงจากมากไปน้อย"
+          }
+        ],
+        "followUps": [
+          {
+            "id": "fu-drill_down",
+            "label": "ดูเอเย่นต์ในภาคอีสาน",
+            "prompt": "ขอการบรรลุเป้าหมายของภาคอีสาน แยกรายเอเย่นต์ เรียงจากแย่ไปดี",
+            "reason": "ลงไปอีกชั้นเพื่อหาว่าใครในภาคอีสานทำให้ตัวเลขเป็นแบบนี้",
+            "intentKey": "follow|drill_down",
+            "score": 0.7
+          },
+          {
+            "id": "fu-why",
+            "label": "ทำไมภาคอีสาน",
+            "prompt": "เจาะดูการบรรลุเป้าหมายของภาคอีสาน ว่าทำไมถึงเปลี่ยนไป เทียบกับช่วงก่อนหน้าและช่วงเดียวกันปีก่อน",
+            "reason": "ภาคอีสาน คือแถวที่ต้องดูมากที่สุดในคำตอบนี้",
+            "intentKey": "follow|why",
+            "score": 0.6
+          },
+          {
+            "id": "fu-forecast",
+            "label": "จะถึงเป้าไหม",
+            "prompt": "พยากรณ์ปริมาณขายเข้าของภาคอีสาน 8 สัปดาห์ข้างหน้า จะถึงเป้าไหม",
+            "reason": "ดูว่าถ้าเป็นแบบนี้ต่อไปจะเกิดอะไร",
+            "intentKey": "follow|forecast",
+            "score": 0.55
+          }
+        ]
+      }
+    },
+    {
+      "tool": "describe_entity",
+      "input": {
+        "kind": "agent",
+        "query": "นครศรีรุ่งเจริญ"
+      },
+      "output": {
+        "ok": true,
+        "data": {
+          "id": "ag_sou_06",
+          "ชื่อ": "นครศรีรุ่งเจริญ",
+          "จังหวัด": "นครศรีธรรมราช",
+          "ภาค": "ภาคใต้",
+          "เกรด": "C",
+          "เครดิต": "21 วัน",
+          "เป็นคู่ค้าตั้งแต่": 2015,
+          "ศูนย์กระจายสินค้า": "ศูนย์กระจายสินค้าสงขลา",
+          "น้ำหนักยอดขาย": 0.57
+        },
+        "summary": "นครศรีรุ่งเจริญ เอเย่นต์เกรด C จังหวัดนครศรีธรรมราช ภาคใต้ เครดิต 21 วัน ส่งจากศูนย์กระจายสินค้าสงขลา"
+      }
+    },
+    {
+      "tool": "describe_entity",
+      "input": {
+        "kind": "agent",
+        "query": "เกาะสมุยเบเวอเรจ"
+      },
+      "output": {
+        "ok": true,
+        "data": {
+          "id": "ag_sou_05",
+          "ชื่อ": "เกาะสมุยเบเวอเรจ",
+          "จังหวัด": "สุราษฎร์ธานี",
+          "ภาค": "ภาคใต้",
+          "เกรด": "C",
+          "เครดิต": "21 วัน",
+          "เป็นคู่ค้าตั้งแต่": 2021,
+          "ศูนย์กระจายสินค้า": "ศูนย์กระจายสินค้าสงขลา",
+          "น้ำหนักยอดขาย": 0.51
+        },
+        "summary": "เกาะสมุยเบเวอเรจ เอเย่นต์เกรด C จังหวัดสุราษฎร์ธานี ภาคใต้ เครดิต 21 วัน ส่งจากศูนย์กระจายสินค้าสงขลา"
+      }
+    },
+    {
+      "tool": "describe_entity",
+      "input": {
+        "kind": "agent",
+        "query": "สงขลาทักษิณ เทรดดิ้ง"
+      },
+      "output": {
+        "ok": true,
+        "data": {
+          "id": "ag_sou_02",
+          "ชื่อ": "สงขลาทักษิณ เทรดดิ้ง",
+          "จังหวัด": "สงขลา",
+          "ภาค": "ภาคใต้",
+          "เกรด": "C",
+          "เครดิต": "21 วัน",
+          "เป็นคู่ค้าตั้งแต่": 2018,
+          "ศูนย์กระจายสินค้า": "ศูนย์กระจายสินค้าสงขลา",
+          "น้ำหนักยอดขาย": 0.47
+        },
+        "summary": "สงขลาทักษิณ เทรดดิ้ง เอเย่นต์เกรด C จังหวัดสงขลา ภาคใต้ เครดิต 21 วัน ส่งจากศูนย์กระจายสินค้าสงขลา"
+      }
+    },
+    {
+      "tool": "resolve_owner",
+      "input": {
+        "metric": "net_sales_value",
+        "dims": {
+          "region": "south"
+        }
+      },
+      "output": {
+        "ok": true,
+        "summary": "ผู้รับผิดชอบคือ คุณสรัญญา นิลรัตน์",
+        "data": {
+          "userId": "u_saranya",
+          "nameTh": "คุณสรัญญา นิลรัตน์",
+          "title": "ผู้จัดการขายภาค ภาคใต้",
+          "role": "sales_rsm",
+          "region": "south",
+          "reason": "เจ้าของตัวเลขยอดขายของพื้นที่ (ระดับภาค) · เคยรับงานลักษณะนี้ 0 ครั้ง · ตอนนี้มีงานค้าง 0 เรื่อง",
+          "openLoad": 0,
+          "handledBefore": 0
+        }
+      }
+    },
+    {
+      "tool": "describe_entity",
+      "input": {
+        "kind": "user",
+        "query": "ศิริพร รัตนกร"
+      },
+      "output": {
+        "ok": true,
+        "data": {
+          "id": "u_siriporn",
+          "ชื่อ": "คุณศิริพร รัตนกร",
+          "ตำแหน่ง": "ประธานเจ้าหน้าที่การเงิน",
+          "ฝ่าย": "การเงิน",
+          "บทบาท": "cfo",
+          "ภาค": "ทั่วประเทศ",
+          "หัวหน้า": "คุณธนา วงศ์สกุล",
+          "อีเมล": "siriporn@boonrawd-demo.co.th"
+        },
+        "summary": "คุณศิริพร รัตนกร ประธานเจ้าหน้าที่การเงิน ฝ่ายการเงิน"
+      }
+    }
+  ],
+  "dropped": []
+}
