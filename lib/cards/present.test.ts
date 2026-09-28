@@ -4,6 +4,7 @@ import { accessFor } from "@/lib/access/policies";
 import { findUser } from "@/lib/data/entities/users";
 import { runMetric } from "@/lib/data/query";
 import { TH } from "@/lib/i18n/th";
+import { LOW_COVER_DAYS } from "@/lib/semantic/metrics";
 import { presentCard, presentForecast, weakestRow, type CardBody, type CardView, type ForecastAnswer, type SortBy } from "./present";
 
 const CEO = accessFor(findUser("u_thana")!);
@@ -90,24 +91,66 @@ function deltaOf(text: string | null): number {
   return Number((text ?? "0").replace("−", "-").replace("%", ""));
 }
 
-describe("ranked bars measure the number beside them", () => {
-  test("ordered by what fell, the biggest drop leads and each bar is as long as its own value", () => {
+describe("bars measure the number beside them", () => {
+  test("ordered by what fell, each bar is the change printed beside it, the biggest drop first, the level in the grey detail", () => {
     const { query, result } = answer({ metric: "net_sales_volume", dims: ["agent"] });
-    const body = expectKind(presentCard({ title: "t", query, result, sortBy: "delta_asc" }).body, "rank");
-    const deltas = body.rows.map((row) => deltaOf(row.delta));
+    const body = expectKind(presentCard({ title: "t", query, result, sortBy: "delta_asc" }).body, "gap");
+    const deltas = body.rows.map((row) => deltaOf(row.gapText));
     expect(deltas).toEqual([...deltas].sort((left, right) => left - right));
-    if (!result.ok) throw new Error(result.error);
-    const valueByLabel = new Map(result.rows.map((row) => [String(row.agent), Number(row.value)]));
-    const values = body.rows.map((row) => valueByLabel.get(row.label) ?? 0);
-    const peak = Math.max(...values);
-    body.rows.forEach((row, index) => expect(row.share ?? 0).toBeCloseTo(values[index] / peak, 6));
+    const span = Math.max(10, ...deltas.map(Math.abs));
+    body.rows.forEach((row, index) => expect(row.gap).toBeCloseTo(deltas[index] / span, 2));
+    expect(body.rows.every((row) => row.detail?.endsWith("ลิตร"))).toBe(true);
+    expect(body.ends.less).toContain("ลดลง");
   });
 
   test("the query's own sort orders the card when the card names none, so a pinned card keeps it", () => {
     const query = { ...queryOf({ metric: "net_sales_volume", dims: ["agent"] }), limit: 5, sort: "delta_asc" as const };
-    const body = expectKind(presentCard({ title: "t", query, result: runMetric(query, CEO) }).body, "rank");
-    const deltas = body.rows.map((row) => deltaOf(row.delta));
+    const body = expectKind(presentCard({ title: "t", query, result: runMetric(query, CEO) }).body, "gap");
+    const deltas = body.rows.map((row) => deltaOf(row.gapText));
     expect(deltas).toEqual([...deltas].sort((left, right) => left - right));
+  });
+
+  test("attainment is drawn from the 100% target: under it grows left and reads bad, at or over it grows right", () => {
+    const { query, result } = answer({ metric: "target_attainment", dims: ["region"] });
+    const body = expectKind(presentCard({ title: "t", query, result }).body, "gap");
+    for (const row of body.rows) {
+      const value = Number(row.gapText.replace("%", ""));
+      expect(Math.sign(row.gap)).toBe(Math.sign(value - 100));
+      if (value < 98) expect(row.tone).toBe("bad");
+      if (value >= 100) expect(row.tone).toBe("good");
+    }
+    expect(body.caption).toContain("100%");
+  });
+
+  test("days of cover is drawn from the low-cover line the detector uses", () => {
+    const { query, result } = answer({ metric: "days_of_cover", dims: ["dc"] });
+    const body = expectKind(presentCard({ title: "t", query, result }).body, "gap");
+    for (const row of body.rows) {
+      const days = Number(row.gapText.replace(/[^\d.]/g, ""));
+      expect(row.tone).toBe(days < LOW_COVER_DAYS ? "bad" : "neutral");
+    }
+    expect(body.caption).toContain(String(LOW_COVER_DAYS));
+  });
+
+  test("the scope line says so when the card draws fewer rows than the result holds", () => {
+    const query = { ...queryOf({ metric: "ar_overdue", dims: ["agent"] }), limit: 10 };
+    const card = presentCard({ title: "t", query, result: runMetric(query, CEO) });
+    expect(expectKind(card.body, "rank").rows).toHaveLength(8);
+    expect(card.meta).toContain("แสดง 8 จาก 10 เอเย่นต์");
+  });
+
+  test("attainment lists the furthest under target first, and a change sort with nothing to compare keeps that order", () => {
+    const query = queryOf({ metric: "target_attainment", dims: ["province"], compare: "none" });
+    const plain = runMetric(query, CEO);
+    const byChange = runMetric({ ...query, sort: "delta_asc" }, CEO);
+    if (!plain.ok || !byChange.ok) throw new Error("query failed");
+    const values = plain.rows.map((row) => Number(row.value));
+    expect(values).toEqual([...values].sort((left, right) => left - right));
+    expect(byChange.rows.map((row) => row.province)).toEqual(plain.rows.map((row) => row.province));
+  });
+
+  test("a level list with no deciding line keeps ranked bars from zero", () => {
+    expect(bodyOf({ metric: "ar_overdue", dims: ["region"] }).kind).toBe("rank");
   });
 });
 
@@ -130,11 +173,11 @@ describe("tables become ranked bars", () => {
     expect(bodyOf({ metric: "stock_on_hand", dims: ["sku"] }, { view: "kv" }).kind).toBe("rank");
   });
 
-  test("a sparse DC × SKU top list is ranked bars, not a mostly empty heatmap", () => {
+  test("a sparse DC × SKU top list is bars against the low-cover line, not a mostly empty heatmap", () => {
     const { query, result } = answer({ metric: "days_of_cover", dims: ["dc", "sku"] });
     const top = { ...query, limit: 8 };
     const card = presentCard({ title: "t", query: top, result: runMetric(top, CEO), view: "table" });
-    expect(card.body.kind).toBe("rank");
+    expect(card.body.kind).toBe("gap");
     expect(result.ok).toBe(true);
   });
 
@@ -144,9 +187,9 @@ describe("tables become ranked bars", () => {
 });
 
 describe("geography", () => {
-  test("provinces are ranked bars in the order the question asked", () => {
-    const body = expectKind(bodyOf({ metric: "sell_out_volume", dims: ["province"] }, { sortBy: "delta_asc" }), "rank");
-    const deltas = body.rows.map((row) => deltaOf(row.delta));
+  test("provinces asked what fell draw the change, in the order the question asked", () => {
+    const body = expectKind(bodyOf({ metric: "sell_out_volume", dims: ["province"] }, { sortBy: "delta_asc" }), "gap");
+    const deltas = body.rows.map((row) => deltaOf(row.gapText));
     expect(deltas).toEqual([...deltas].sort((left, right) => left - right));
   });
 
@@ -163,8 +206,8 @@ describe("parts of a whole", () => {
     expect(body.centerLabel).toBe(body.slices[0].label);
   });
 
-  test("a question about what dropped keeps the ranked list, a donut cannot show change", () => {
-    expect(bodyOf({ metric: "net_sales_value", dims: ["channel"] }, { sortBy: "delta_asc" }).kind).toBe("rank");
+  test("a question about what dropped draws the change, a donut cannot show change", () => {
+    expect(bodyOf({ metric: "net_sales_value", dims: ["channel"] }, { sortBy: "delta_asc" }).kind).toBe("gap");
   });
 
   test("market share by maker is a donut led by our own share", () => {
@@ -173,8 +216,8 @@ describe("parts of a whole", () => {
     expect(body.centerValue).toMatch(/%$/);
   });
 
-  test("an average cannot be a donut: attainment by channel stays ranked", () => {
-    expect(bodyOf({ metric: "target_attainment", dims: ["channel"] }, { view: "share" }).kind).toBe("rank");
+  test("an average cannot be a donut: attainment by channel is drawn against the target", () => {
+    expect(bodyOf({ metric: "target_attainment", dims: ["channel"] }, { view: "share" }).kind).toBe("gap");
   });
 });
 
@@ -364,12 +407,48 @@ describe("a target card in a month still running", () => {
 });
 
 describe("a breakdown whose level decides", () => {
-  test("the lowest cover sits under the average headline when the list does not already lead with it", () => {
+  test("cover leads with how many groups sit under the low-cover line, counted over every group before the row cap, and names the lowest", () => {
     const { query, result } = answer({ metric: "days_of_cover", dims: ["dc"], compare: "none" });
-    const worst = weakestRow(query, result);
-    expect(worst?.lowIsWorst).toBe(true);
-    expect(presentCard({ title: "t", query, result, sortBy: "value_desc" }).hero?.note).toBe(TH.dash.weakest(true, worst?.label ?? "", worst?.value ?? ""));
-    expect(presentCard({ title: "t", query, result, sortBy: "value_asc" }).hero?.note).toBeNull();
+    if (!result.ok) throw new Error(result.error);
+    const every = result.rows.map((row) => Number(row.value));
+    const top = { ...query, limit: 2 };
+    const capped = runMetric(top, CEO);
+    if (!capped.ok) throw new Error(capped.error);
+    expect(capped.rows).toHaveLength(2);
+    expect(capped.headline.underLine).toEqual({ line: LOW_COVER_DAYS, count: every.filter((days) => days < LOW_COVER_DAYS).length, of: every.length });
+    const hero = presentCard({ title: "t", query: top, result: capped }).hero;
+    expect(hero?.label).toBe(TH.dash.underCover(LOW_COVER_DAYS));
+    const under = capped.headline.underLine;
+    expect(hero?.value).toBe(under && under.count > 0 ? TH.dash.countOf(under.count, under.of, TH.dash.dimUnit.dc) : TH.dash.noneUnder);
+    const worst = weakestRow(top, capped);
+    expect(hero?.note).toContain(TH.dash.weakest(true, worst?.label ?? "", worst?.value ?? ""));
+    expect(presentCard({ title: "t", query: top, result: capped }).meta).toContain(TH.dash.shownRowsOf(2, every.length, TH.dash.dimUnit.dc));
+  });
+
+  test("asked only for the rows under the line, the count still reads against every group", () => {
+    const { query, result } = answer({ metric: "days_of_cover", dims: ["dc", "sku"], compare: "none" });
+    if (!result.ok) throw new Error(result.error);
+    const below = runMetric({ ...query, where: { op: "below", value: LOW_COVER_DAYS } }, CEO);
+    if (!below.ok) throw new Error(below.error);
+    expect(below.headline.underLine).toEqual(result.headline.underLine ?? null);
+    expect(below.headline.underLine?.of).toBeGreaterThan(below.headline.underLine?.count ?? 0);
+  });
+
+  test("attainment by region leads with the regions under target and keeps the overall level beside the lowest", () => {
+    const { query, result } = answer({ metric: "target_attainment", dims: ["region"] });
+    if (!result.ok) throw new Error(result.error);
+    const under = result.rows.filter((row) => Number(row.value) < 100).length;
+    const hero = presentCard({ title: "t", query, result }).hero;
+    expect(hero?.label).toBe(TH.dash.underTarget);
+    expect(hero?.value).toBe(under > 0 ? TH.dash.countOf(under, result.rows.length, TH.dash.dimUnit.region) : TH.dash.noneUnder);
+    expect(hero?.note).toContain(result.headline.value);
+  });
+
+  test("a trend of cover over time keeps its level headline, there is nothing to count", () => {
+    const { query, result } = answer({ metric: "days_of_cover", dims: ["week"], grain: "week", range: SIX_MONTHS });
+    if (!result.ok) throw new Error(result.error);
+    expect(result.headline.underLine ?? null).toBeNull();
+    expect(presentCard({ title: "t", query, result }).hero?.label).not.toBe(TH.dash.underCover(LOW_COVER_DAYS));
   });
 
   test("a total with no level to decide on keeps its headline alone", () => {

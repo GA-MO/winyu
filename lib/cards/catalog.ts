@@ -25,10 +25,11 @@ export const COP_COMPONENTS = {
       description: null,
     },
   },
-  ActionStrip: {
+  CardFooter: {
     props: z.object({
-      actions: z.array(
-        z.object({
+      note: z.string().nullable(),
+      action: z
+        .object({
           id: z.string(),
           kind: z.string(),
           label: z.string(),
@@ -36,11 +37,11 @@ export const COP_COMPONENTS = {
           tool: z.string().nullable(),
           input: z.record(z.string(), z.unknown()).nullable(),
           prompt: z.string().nullable(),
-        }),
-      ),
+        })
+        .nullable(),
     }),
-    description: "The next-action buttons of a card. Cop fills it from the tool result; never write one by hand.",
-    example: { actions: [] },
+    description: "The source line and the one next step of a pinned dashboard card. Cop fills it from the widget's query; never write one by hand.",
+    example: { note: null, action: null },
   },
   SignalList: {
     props: z.object({

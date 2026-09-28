@@ -3,7 +3,7 @@ import type { WidgetSpec } from "@/lib/contracts";
 import { accessFor } from "@/lib/access/policies";
 import { USERS, findUser } from "@/lib/data/entities/users";
 import { TEMPLATE_ROLES, templateFor } from "./templates";
-import { displacedBy, onePinnedPerMetric, topicOf } from "./one-per-metric";
+import { displacedBy, onePinnedPerMetric, repeatsPinned, topicOf } from "./one-per-metric";
 
 function card(id: string, metric: WidgetSpec["query"]["metric"], extra: Partial<WidgetSpec> = {}): WidgetSpec {
   return {
@@ -58,5 +58,20 @@ describe("one pinned card per metric", () => {
       const topics = templateFor(accessFor(user)).filter((seed) => seed.pinned).map(topicOf);
       expect({ role, duplicates: topics.filter((topic, index) => topics.indexOf(topic) !== index) }).toEqual({ role, duplicates: [] });
     }
+  });
+});
+
+describe("the tray does not repeat a pinned card", () => {
+  test("a second alert list is not offered while one is pinned, whatever it is called", () => {
+    const pinned = card("mine", "sell_out_volume", { kind: "alert_list", source: "user_pin" });
+    const starter = card("starter", "sell_out_volume", { kind: "alert_list", pinned: false });
+    expect(repeatsPinned(starter, [pinned, starter])).toBe(true);
+    expect(repeatsPinned(starter, [starter])).toBe(false);
+  });
+
+  test("a starter card on a pinned metric is still offered, it draws a different breakdown", () => {
+    const pinned = card("mine", "days_of_cover", { source: "user_pin" });
+    const starter = card("starter", "days_of_cover", { pinned: false });
+    expect(repeatsPinned(starter, [pinned, starter])).toBe(false);
   });
 });

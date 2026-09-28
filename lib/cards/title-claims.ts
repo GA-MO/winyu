@@ -6,6 +6,7 @@ const UP_WORDS = /เพิ่มขึ้น|ขยับขึ้น|เติ
 const DOWN_WORDS = /ลดลง|ขยับลง|ตกลง|ยอดตก|ตก|หดตัว|หด|ชะลอ|แย่ลง|ปรับลด|ต่ำลง|หายไป|หาย/;
 const MOST_HIGH = /มากที่สุด|มากสุด|สูงที่สุด|สูงสุด|แรงที่สุด|แรงสุด|ดีที่สุด|ดีสุด|หนักที่สุด|หนักสุด/;
 const MOST_LOW = /น้อยที่สุด|น้อยสุด|ต่ำที่สุด|ต่ำสุด|แย่ที่สุด|แย่สุด/;
+const SHORTFALL = /ห่าง|ขาด|ตามหลัง/;
 const CHANGE_MOST = /(เพิ่มขึ้น|เติบโต|โต|ดีขึ้น|สูงขึ้น|ขยับขึ้น|ปรับขึ้น|ลดลง|ตก|หดตัว|หด|ชะลอ|แย่ลง|ขยับลง|ปรับลด|หายไป|หาย)\s*(?:มาก|สูง|แรง|หนัก|น้อย|ต่ำ)(?:ที่)?สุด/;
 const EVERY = /ทุก(?!วัน|สัปดาห์|เดือน|ปี)/;
 const NEARLY_EVERY = /เกือบทุก/;
@@ -73,7 +74,8 @@ function rankingFor(clause: string): Ranking | null {
   const direction = change ? directionIn(change[1]) : null;
   if (direction === "down") return high ? "delta_asc" : "delta_desc";
   if (direction === "up") return high ? "delta_desc" : "delta_asc";
-  return high ? "value_desc" : "value_asc";
+  const aboutShortfall = SHORTFALL.test(clause);
+  return high !== aboutShortfall ? "value_desc" : "value_asc";
 }
 
 function rankKey(row: MetricRow, ranking: Ranking): number | null {

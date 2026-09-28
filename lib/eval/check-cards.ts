@@ -5,10 +5,11 @@ import { TODAY } from "@/lib/data/dates";
 import { presentCard, type CardView, type PresentSource, type SortBy } from "@/lib/cards/present";
 import type { MetricQuery, MetricResult } from "@/lib/contracts";
 import { titleContradiction } from "@/lib/cards/title-claims";
+import { TH } from "@/lib/i18n/th";
 import type { EvalCase } from "./cases";
 
 export type CheckId = "calledTool" | "askedApproval" | "rightPermission" | "usedCard" | "boundToTool" | "sortedRight" | "comparedRight" | "cutRight" | "drewShape" | "titleIsAnswer" | "titleMatchesRows" | "noSummaryProse" | "grounded"
-  | "composedPeople" | "picturesGrounded" | "pressBound" | "pressAsks" | "noCarousel";
+  | "composedPeople" | "picturesGrounded" | "pressBound" | "pressAsks" | "noCarousel" | "countNotRepeated";
 
 export type CheckResult = { id: CheckId; ok: boolean; detail: string };
 
@@ -186,6 +187,25 @@ function titleRowsCheck(turn: Turn, title: string, source: unknown): CheckResult
   return check("titleMatchesRows", contradiction === null, contradiction ?? `title = "${title}" ตรงกับแถว`);
 }
 
+const TIME_UNIT_DIMS: ReadonlySet<string> = new Set(["date", "week", "month"]);
+const GROUP_UNITS = Object.entries(TH.dash.dimUnit).filter(([dim]) => !TIME_UNIT_DIMS.has(dim)).map(([, unit]) => unit);
+const COUNT_UNITS = [...new Set([...GROUP_UNITS, TH.dash.item, "แห่ง", "ตัว", "ราย"])].join("|");
+const ONE_ALONE = /(รายการ|แห่ง|ภาค|ตัว|ราย|จังหวัด|แบรนด์|ช่องทาง)เดียว|หนึ่ง(รายการ|แห่ง|ภาค|ตัว|ราย)/;
+
+function repeatsCount(text: string, count: number): boolean {
+  if (new RegExp(`(^|[^\\d.,])${count}\\s*(จาก|${COUNT_UNITS})`).test(text)) return true;
+  return count === 1 && ONE_ALONE.test(text);
+}
+
+/** A card whose headline counts the groups under the metric's line already says that number: the title and the reply must not say it again. */
+function countCheck(turn: Turn, title: string, source: unknown): CheckResult | null {
+  const bound = boundAnswer(source, metricAnswers(turn));
+  const under = bound && bound.result.ok ? bound.result.headline.underLine : null;
+  if (!under || under.count === 0) return null;
+  const repeated = [title, turn.text].filter((text) => repeatsCount(text, under.count));
+  return check("countNotRepeated", repeated.length === 0, repeated.length === 0 ? `หัวการ์ด ${under.count} จาก ${under.of} ไม่ถูกทวน` : `ทวนจำนวน ${under.count}: "${repeated[0].slice(0, 80)}"`);
+}
+
 function pressAsksCheck(turn: Turn): CheckResult {
   const direct = pressedTools(turn.spec).filter((name) => READ_TOOLS.has(name));
   return check("pressAsks", direct.length === 0, direct.length === 0 ? "ปุ่มถามต่อผ่าน ask หรือเป็นการลงมือทำ" : `ปุ่มเรียก tool อ่านข้อมูลตรง: ${[...new Set(direct)].join(", ")}`);
@@ -231,6 +251,8 @@ export function checkTurn(turn: Turn, testCase: EvalCase): CheckResult[] {
   }
   const titleRows = card?.type === "DataCard" ? titleRowsCheck(turn, title, props.source) : null;
   if (titleRows) results.push(titleRows);
+  const counted = card?.type === "DataCard" ? countCheck(turn, title, props.source) : null;
+  if (counted) results.push(counted);
   if (testCase.expectSort) {
     results.push(check("sortedRight", props.sortBy === testCase.expectSort, `sortBy = ${String(props.sortBy)} คาดว่า ${testCase.expectSort}`));
     results.push(cutCheck(turn, testCase.expectSort));

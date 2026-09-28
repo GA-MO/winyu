@@ -15,7 +15,6 @@ function element(type: string, props: Record<string, unknown>, children: string[
 
 function bodyElements(id: string, body: CardBody): Elements {
   if (body.kind === "rank") return { [id]: element("RankList", { items: body.rows, showRank: body.showRank }) };
-  if (body.kind === "progress") return { [id]: element("Progress", { label: body.label, value: body.value, detail: body.detail }) };
   if (body.kind === "line") {
     return {
       [id]: element("LineChart", {
@@ -31,15 +30,16 @@ function bodyElements(id: string, body: CardBody): Elements {
   }
   if (body.kind === "table") return { [id]: element("Table", { columns: body.columns, rows: body.rows }) };
   if (body.kind === "alerts") return { [id]: element("SignalList", { items: body.items }) };
-  if (body.kind === "stacked" || body.kind === "share" || body.kind === "heatmap" || body.kind === "scatter" || body.kind === "gap" || body.kind === "funnel" || body.kind === "forecast") {
+  if (body.kind === "progress" || body.kind === "stacked" || body.kind === "share" || body.kind === "heatmap" || body.kind === "scatter" || body.kind === "gap" || body.kind === "funnel" || body.kind === "forecast") {
     return { [id]: element("CardBody", { body }) };
   }
   return {};
 }
 
-function actionElements(id: string, actions: NextAction[]): Elements {
-  if (actions.length === 0) return {};
-  return { [id]: element("ActionStrip", { actions }) };
+/** The source line with the card's first next step beside it; on the dashboard the other steps wait in the chat the link opens. */
+function footerElements(id: string, footnote: string | null, actions: NextAction[]): Elements {
+  if (!footnote && actions.length === 0) return {};
+  return { [id]: element("CardFooter", { note: footnote, action: actions[0] ?? null }) };
 }
 
 function deniedSpec(widget: WidgetSpec, title: string, message: string): Spec {
@@ -58,21 +58,21 @@ function specOf(widget: WidgetSpec, parts: CardParts): Spec {
   const root = `${widget.id}-root`;
   const heroId = `${widget.id}-hero`;
   const bodyId = `${widget.id}-body`;
-  const actionsId = `${widget.id}-actions`;
+  const footerId = `${widget.id}-footer`;
   const body = bodyElements(bodyId, parts.body);
-  const actions = actionElements(actionsId, parts.actions);
+  const footer = footerElements(footerId, parts.footnote, parts.actions);
   const children = [
     ...(parts.hero ? [heroId] : []),
     ...(body[bodyId] ? [bodyId] : []),
-    ...(actions[actionsId] ? [actionsId] : []),
+    ...(footer[footerId] ? [footerId] : []),
   ];
   return {
     root,
     elements: {
-      [root]: element("Card", { title: parts.title, description: parts.description, meta: parts.meta, footnote: parts.footnote }, children),
+      [root]: element("Card", { title: parts.title, description: parts.description, meta: parts.meta, footnote: null }, children),
       ...(parts.hero ? { [heroId]: element("Metric", { ...parts.hero, size: "lg" }) } : {}),
       ...body,
-      ...actions,
+      ...footer,
     },
   };
 }

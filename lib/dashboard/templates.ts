@@ -70,12 +70,12 @@ const SALES_DIRECTOR_SEEDS: WidgetSeed[] = [
   seed({ key: "volume_trend", title: "ยอดขายออกจากร้านรายสัปดาห์", kind: "line", metric: "sell_out_volume", dims: ["week"], range: LAST_QUARTER, grain: "week", compare: "prev_year" }),
   seed({ key: "agents", title: "เอเย่นต์ที่ยอดตกมากที่สุด", kind: "bar", sortBy: "delta_asc", metric: "net_sales_volume", dims: ["agent"], range: LAST_4_WEEKS, grain: "week", compare: "prev_period", limit: TOP_ROWS }),
   seed({ key: "alerts", title: "ความผิดปกติในทีมขาย", kind: "alert_list", metric: "sell_out_volume", dims: ["region"], range: LAST_4_WEEKS, grain: "week", compare: "prev_period" }),
-  seed({ key: "market_share", title: "ส่วนแบ่งตลาดเบียร์ตามภาค เทียบปีก่อน", kind: "bar", metric: "market_share", dims: ["region"], range: LAST_AUDITED_MONTH, grain: "month", compare: "prev_year", pinned: false, source: "role_template", reason: "ดูว่าภาคไหนเสียส่วนแบ่งให้คู่แข่ง" }),
+  seed({ key: "market_share", title: "ส่วนแบ่งตลาดเบียร์ตามภาค เทียบปีก่อน", kind: "bar", sortBy: "delta_asc", metric: "market_share", dims: ["region"], range: LAST_AUDITED_MONTH, grain: "month", compare: "prev_year", pinned: false, source: "role_template", reason: "ดูว่าภาคไหนเสียส่วนแบ่งให้คู่แข่ง" }),
 ];
 
 const SALES_RSM_SEEDS: WidgetSeed[] = [
   seed({ key: "attainment_brand", title: "ยอดขายเทียบเป้าแยกตามแบรนด์", kind: "bar", metric: "target_attainment", dims: ["brand"], compare: "none" }),
-  seed({ key: "falling_agents", title: "เอเย่นต์ที่ยอดตกเทียบไตรมาสก่อน", kind: "bar", sortBy: "delta_asc", metric: "net_sales_volume", dims: ["agent"], range: LAST_4_WEEKS, grain: "week", compare: "prev_period", limit: TOP_ROWS }),
+  seed({ key: "falling_agents", title: "เอเย่นต์ที่ยอดตก 4 สัปดาห์ล่าสุด", kind: "bar", sortBy: "delta_asc", metric: "net_sales_volume", dims: ["agent"], range: LAST_4_WEEKS, grain: "week", compare: "prev_period", limit: TOP_ROWS }),
   seed({ key: "sell_out", title: "ยอดขายออกจากร้านรายสัปดาห์", kind: "line", metric: "sell_out_volume", dims: ["week"], range: LAST_QUARTER, grain: "week", compare: "prev_year" }),
   seed({ key: "cover", title: "สินค้าที่สต๊อกพอขายน้อยที่สุด", kind: "kv", metric: "days_of_cover", dims: ["dc", "sku"], limit: TOP_ROWS }),
   seed({ key: "alerts", title: "ความผิดปกติในภาคของคุณ", kind: "alert_list", metric: "sell_out_volume", dims: ["agent"], range: LAST_4_WEEKS, grain: "week", compare: "prev_period", pinned: false, source: "role_template", reason: "ใช้ดูความผิดปกติในภาคของคุณที่เดียว" }),
@@ -118,10 +118,7 @@ const HR_SEEDS: WidgetSeed[] = [
   seed({ key: "salary", title: "เงินเดือนเฉลี่ยตามฝ่าย", kind: "kv", metric: "avg_salary", dims: ["department"], limit: TOP_ROWS }),
 ];
 
-const IT_SEEDS: WidgetSeed[] = [
-  seed({ key: "mape", title: "ความคลาดเคลื่อนพยากรณ์", kind: "metric", metric: "forecast_mape" }),
-  seed({ key: "headcount_dept", title: "จำนวนผู้ใช้ตามฝ่าย", kind: "bar", metric: "headcount", dims: ["department"] }),
-];
+const IT_SEEDS: WidgetSeed[] = [];
 
 const ROLE_TEMPLATES: Record<RoleId, WidgetSeed[]> = {
   ceo: CEO_SEEDS,

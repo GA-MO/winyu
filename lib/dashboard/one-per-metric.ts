@@ -37,3 +37,8 @@ export function displacedBy(widgets: readonly WidgetSpec[], card: Pick<WidgetSpe
   const topic = topicOf(card);
   return widgets.filter((widget) => widget.pinned && topicOf(widget) === topic);
 }
+
+/** Whether an unpinned card would repeat a pinned one line for line: every alert list shows the same open alerts, whatever its title. */
+export function repeatsPinned(widget: Pick<WidgetSpec, "kind">, widgets: readonly Pick<WidgetSpec, "kind" | "pinned">[]): boolean {
+  return widget.kind === ALERTS_TOPIC && widgets.some((other) => other.pinned && other.kind === ALERTS_TOPIC);
+}

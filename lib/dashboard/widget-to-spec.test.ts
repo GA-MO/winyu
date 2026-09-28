@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { normalizeSpec } from "vexa/core";
 import { copCatalog as catalog } from "@/lib/cards/catalog";
-import { WIDGET_KINDS, type AccessContext, type WidgetKind, type WidgetSpec } from "@/lib/contracts";
+import { WIDGET_KINDS, type AccessContext, type NextAction, type WidgetKind, type WidgetSpec } from "@/lib/contracts";
 import { accessFor } from "@/lib/access/policies";
 import { TH } from "@/lib/i18n/th";
 import { findUser } from "@/lib/data/entities/users";
@@ -43,6 +43,20 @@ function validate(spec: unknown) {
 }
 
 describe("widgetToSpec", () => {
+  test("a dashboard card offers one next step, beside its source line", () => {
+    const access = accessOf(RSM);
+    const widget = widgetOf("bar", access);
+    const actions = [
+      { id: "a", kind: "drill", label: "แยกตามจังหวัด", reason: "r", tool: null, input: null, prompt: "p" },
+      { id: "b", kind: "drill", label: "แยกตามแบรนด์", reason: "r", tool: null, input: null, prompt: "p" },
+    ] as NextAction[];
+    const spec = widgetToSpec(widget, placeholderResult(widget.query, access), { actions });
+    const footer = spec.elements[`${widget.id}-footer`] as unknown as { props: { action: NextAction | null } };
+    expect(footer.props.action?.label).toBe("แยกตามจังหวัด");
+    expect(Object.values(spec.elements).some((element) => (element as { type: string }).type === "ActionStrip")).toBe(false);
+  });
+
+
   test("every widget kind renders a spec the Cop catalog accepts", () => {
     const access = accessOf(RSM);
     for (const kind of WIDGET_KINDS) {
@@ -51,8 +65,11 @@ describe("widgetToSpec", () => {
       const result = validate(spec);
       expect(result.success).toBe(true);
       expect(spec.root).toBe(`${widget.id}-root`);
-      const card = spec.elements[`${widget.id}-root`] as unknown as { props: { footnote: string; description: string | null } };
-      expect(card.props.footnote).toContain(TH.dash.trust.verified);
+      const card = spec.elements[`${widget.id}-root`] as unknown as { props: { footnote: string | null; description: string | null } };
+      const footer = spec.elements[`${widget.id}-footer`] as unknown as { type: string; props: { note: string } } | undefined;
+      expect(card.props.footnote).toBeNull();
+      expect(footer?.type).toBe("CardFooter");
+      expect(footer?.props.note).toContain(TH.dash.trust.verified);
       expect(card.props.description).toBeNull();
     }
   });

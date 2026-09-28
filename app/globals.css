@@ -184,6 +184,17 @@ h3 {
   color: transparent;
 }
 
+.cop-suggested > div > section {
+  padding-top: 1.5rem;
+  border-color: transparent;
+  background:
+    linear-gradient(var(--card), var(--card)) padding-box,
+    linear-gradient(125deg, var(--primary), var(--brand-violet) 55%, var(--brand-coral)) border-box;
+  box-shadow:
+    0 1px 2px var(--cop-shadow-weak),
+    0 24px 48px -30px color-mix(in oklab, var(--brand-violet) 70%, transparent);
+}
+
 .cop-focus-ring {
   position: relative;
 }

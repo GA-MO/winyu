@@ -91,3 +91,30 @@ describe("title matches rows check", () => {
     expect(titleCheck("กรุงไทยเบเวอเรจหนี้ค้างเพิ่มขึ้นมากที่สุด")?.ok).toBe(false);
   });
 });
+
+describe("count not repeated check", () => {
+  const COVER_CASE: EvalCase = { id: "cover-below", userId: "u_arm", prompt: "สินค้าตัวไหนสต๊อกพอขายน้อยกว่า 10 วัน", expectComponent: "DataCard" };
+
+  function countCheck(title: string, text: string, count: number, of = 30) {
+    const output = { ok: true, query: { metric: "days_of_cover", dims: ["sku"] }, rows: [], summary: "", headline: { underLine: { line: 10, count, of } }, provenance: {} };
+    const spec = { root: "card", elements: { card: { type: "DataCard", props: { title, source: { $state: "/tools/query_metric" } }, children: [] } } } as unknown as Spec;
+    return checkTurn({ text, spec, toolOutputs: [output], toolInputs: [] }, COVER_CASE).find((result) => result.id === "countNotRepeated");
+  }
+
+  test("flags a title that says the count the headline already shows", () => {
+    expect(countCheck("1 รายการที่มีสต๊อกพอขายน้อยกว่า 10 วัน", "", 1)?.ok).toBe(false);
+    expect(countCheck("สต๊อกต่ำ 10 จาก 60 รายการ", "", 10, 60)?.ok).toBe(false);
+  });
+
+  test("flags a reply that says the one item is alone", () => {
+    expect(countCheck("สิงห์ ขวด 620 มล. ต้องเติมก่อน", "มีสินค้าที่ต่ำกว่าเกณฑ์ 10 วันเพียงรายการเดียว", 1)?.ok).toBe(false);
+  });
+
+  test("passes a title that names what, and does not mistake the 10-day line for the count", () => {
+    expect(countCheck("สิงห์ ขวด 620 มล. ต้องเติมก่อน", "เกณฑ์คือต่ำกว่า 10 วัน", 10)?.ok).toBe(true);
+  });
+
+  test("says nothing when no group is under the line", () => {
+    expect(countCheck("ไม่มี SKU ที่ต่ำกว่า 10 วัน", "", 0)).toBeUndefined();
+  });
+});

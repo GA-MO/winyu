@@ -95,14 +95,24 @@ describe("gap", () => {
         { label: "อุบลศรีสุข", gap: -1, gapText: "-12%", detail: "100 → 88", tone: "bad" },
         { label: "พระราม 4", gap: 0.5, gapText: "+6%", detail: "100 → 106", tone: "good" },
       ],
+      ends: { less: "← น้อยกว่า", more: "มากกว่า →" },
       caption: "ตัวเลขใต้ชื่อ = ขายเข้า → ขายออก",
       shownOf: null,
     });
     expect(html).toContain("อุบลศรีสุข");
+    expect(html).toContain("← น้อยกว่า");
     expect(html).toContain("-12%");
     expect(html).toContain("ตัวเลขใต้ชื่อ");
     expect(html).toContain("bg-danger");
     expect(html).toContain("bg-success");
+  });
+});
+
+describe("progress", () => {
+  test("draws the bar and the distance to go without repeating the headline number", () => {
+    const html = render({ kind: "progress", value: 93.3, detail: "เหลืออีก 6.7% ถึงเป้า" });
+    expect(html).toContain("เหลืออีก 6.7% ถึงเป้า");
+    expect(html).not.toMatch(/>[^<]*93\.3%[^<]*</);
   });
 });
 
@@ -135,7 +145,8 @@ test("none of the new chart bodies render a raw hex colour", () => {
       y: { label: "Y", format: "number", median: 1, medianText: "1" },
       note: null,
     },
-    { kind: "gap", rows: [{ label: "A", gap: -1, gapText: "-1%", detail: "d", tone: "bad" }], caption: "c", shownOf: null },
+    { kind: "gap", rows: [{ label: "A", gap: -1, gapText: "-1%", detail: "d", tone: "bad" }], ends: { less: "l", more: "m" }, caption: "c", shownOf: null },
+    { kind: "progress", value: 93, detail: "เหลืออีก 7% ถึงเป้า" },
     { kind: "funnel", stages: [{ label: "A", value: 1, valueText: "1", width: 1, dropText: null, dropTone: "neutral" }] },
   ];
   for (const body of bodies) expect(render(body)).not.toMatch(HEX_COLOR);

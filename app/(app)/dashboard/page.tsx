@@ -7,15 +7,20 @@ import { TH } from "@/lib/i18n/th";
 import { layoutHistory, refreshSuggestions, staleFor, widgetViews } from "@/lib/server/dashboard";
 import { feedFor } from "@/lib/server/feed";
 import { readAccess } from "@/lib/server/session";
+import { repeatsPinned } from "@/lib/dashboard/one-per-metric";
 
 export const dynamic = "force-dynamic";
+
+const CONSOLE_PATH = "/admin";
 
 export default async function DashboardPage() {
   const access = readAccess(await cookies());
   if (!access) redirect("/login");
+  if (access.role === "it_admin") redirect(CONSOLE_PATH);
 
   await refreshSuggestions(access);
   const views = await widgetViews(access, await feedFor(access));
+  const widgets = views.map((view) => view.widget);
   const stale = new Set(staleFor(access).map((widget) => widget.id));
   const history = layoutHistory(access);
   const restorable = history.find((entry) => entry.savedAt.slice(0, 10) < new Date().toISOString().slice(0, 10)) ?? null;
@@ -32,7 +37,7 @@ export default async function DashboardPage() {
           pinned={views.filter((view) => view.widget.pinned)}
           stale={views.filter((view) => stale.has(view.widget.id)).map((view) => view.widget)}
           learned={views.filter((view) => !view.widget.pinned && view.widget.source === "ai_suggested")}
-          suggested={views.filter((view) => !view.widget.pinned && view.widget.source !== "ai_suggested")}
+          suggested={views.filter((view) => !view.widget.pinned && view.widget.source !== "ai_suggested" && !repeatsPinned(view.widget, widgets))}
           restorable={restorable ? { version: restorable.version, savedAt: restorable.savedAt } : null}
         />
       </div>

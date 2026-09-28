@@ -7,6 +7,7 @@ import { permissionsFor } from "./role-overrides";
 export const KILLED_TOOLS_COLLECTION = "killed-tools";
 export const SWITCHES_COLLECTION = "switches";
 export const HANDOFF_SWITCH_ID = "handoff";
+export const ALERTS_INBOX_SWITCH_ID = "alerts_inbox";
 export const HANDOFF_TOOLS: readonly ToolName[] = ["create_handoff", "send_email"];
 export const CONNECTOR_SWITCH_PREFIX = "connector:";
 
@@ -72,6 +73,19 @@ export function handoffEnabled(): boolean {
 
 export function setHandoffEnabled(enabled: boolean, by: string): SwitchEntry {
   return setSwitch(HANDOFF_SWITCH_ID, enabled, by);
+}
+
+export function alertsInboxSwitch(): SwitchEntry | null {
+  return switchEntry(ALERTS_INBOX_SWITCH_ID);
+}
+
+/** Whether anomalies reach people's inbox — the to-do list and the anomalies tab — and escalate to a manager when left unopened; on until an admin turns it off. */
+export function alertsInboxEnabled(): boolean {
+  return switchEnabled(ALERTS_INBOX_SWITCH_ID);
+}
+
+export function setAlertsInboxEnabled(enabled: boolean, by: string): SwitchEntry {
+  return setSwitch(ALERTS_INBOX_SWITCH_ID, enabled, by);
 }
 
 export function connectorSwitchId(connector: string): string {

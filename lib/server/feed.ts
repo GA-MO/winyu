@@ -1,4 +1,5 @@
 import type { AccessContext, Alert, ContextPacket, Dim, FeedAction, FeedTone, FeedItem, FeedStateRecord, NextAction, PersonalWatch } from "@/lib/contracts";
+import { alertsInboxEnabled } from "@/lib/access/enforce";
 import { alertRowOf } from "@/lib/cards/alert-row";
 import { alertCard, itemCard, packetCard, type AmbientCard, type VisitStop } from "@/lib/dashboard/ambient";
 import { weekKeyOfIso } from "@/lib/data/dates";
@@ -200,9 +201,9 @@ async function feedWithStories(access: AccessContext, now: number): Promise<{ it
   const visited = new Set(stops.map((stop) => stop.agent));
   const context = relevanceContext(access, now);
   const relevant = relevantAlertsFor(access, context);
-  const alertItems = relevant
-    .filter((alert) => !alert.dims.agent || !visited.has(dictionary.displayLabel("agent", alert.dims.agent)))
-    .map((alert) => alertItem(access, alert, dictionary));
+  const alertItems = alertsInboxEnabled()
+    ? relevant.filter((alert) => !alert.dims.agent || !visited.has(dictionary.displayLabel("agent", alert.dims.agent))).map((alert) => alertItem(access, alert, dictionary))
+    : [];
   const storyOfAgent = (agent: string) => {
     const alert = relevant.find((candidate) => candidate.dims.agent && dictionary.displayLabel("agent", candidate.dims.agent) === agent);
     return alert ? storyOf(alert) : null;

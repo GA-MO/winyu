@@ -103,7 +103,8 @@ async function main() {
   const runs = Number(argOf("runs", String(DEFAULT_RUNS)));
   const only = argOf("case", "");
   const all = model === "mock" ? SCRIPTED_CASES : EVAL_CASES;
-  const cases = only ? all.filter((testCase) => testCase.id === only) : all;
+  const picked = new Set(only.split(",").filter(Boolean));
+  const cases = picked.size > 0 ? all.filter((testCase) => picked.has(testCase.id)) : all;
   const reports: CaseReport[] = [];
 
   for (let run = 1; run <= runs; run += 1) {

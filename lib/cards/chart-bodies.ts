@@ -352,6 +352,7 @@ export function gapBody(first: Source, second: Source): CardBody {
   return {
     kind: "gap",
     rows,
+    ends: { less: TH.dash.gapLess, more: TH.dash.gapMore },
     caption: TH.dash.gapCaption(base, other),
     shownOf: gaps.length > MAX_GAP_ROWS ? TH.dash.gapShownOf(MAX_GAP_ROWS, gaps.length) : null,
   };

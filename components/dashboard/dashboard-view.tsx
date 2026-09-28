@@ -22,6 +22,8 @@ const DELTA_TONE = { good: "text-success", bad: "text-danger", neutral: "text-mu
 const QUICK_ACTIONS_ENDPOINT = "/api/quick-actions";
 const PANEL = "overflow-hidden rounded-2xl border border-border bg-card shadow-card";
 const ROW_BUTTON = "rounded-full border border-border px-3 py-1 text-xs text-muted-foreground transition hover:border-foreground/25 hover:text-foreground disabled:opacity-50";
+const KEEP_BUTTON = "shrink-0 rounded-full bg-ink px-3.5 py-1.5 text-xs font-medium text-ink-foreground transition hover:opacity-90 disabled:opacity-50";
+const SUGGESTION_BADGE = "absolute left-4 top-0 z-10 inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-primary to-brand-violet px-2.5 py-1 text-[11px] font-medium text-primary-foreground shadow-card";
 
 export type DashboardWidgetHeadline = { value: string; delta: string | null; tone: keyof typeof DELTA_TONE };
 
@@ -78,7 +80,7 @@ export function DashboardView({
     });
   }, [router]);
 
-  const tray = [...learned, ...suggested];
+  const trayCount = learned.length + suggested.length;
 
   return (
     <div className="flex flex-col gap-8">
@@ -134,12 +136,15 @@ export function DashboardView({
         </section>
       ) : null}
 
-      {tray.length > 0 ? (
+      {trayCount > 0 ? (
         <section className="flex flex-col gap-3">
           <h2 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{TH.dash.suggestedZone}</h2>
           <div className={TRAY}>
             <div className={MASONRY}>
-              {tray.map((view) => (
+              {learned.map((view) => (
+                <SuggestionCard key={view.widget.id} view={view} pending={pendingChange} onPin={() => act(view.widget.id, "pin")} onDismiss={() => act(view.widget.id, "remove")} />
+              ))}
+              {suggested.map((view) => (
                 <TrayCard key={view.widget.id} view={view} pending={pendingChange} onPin={() => act(view.widget.id, "pin")} onDismiss={() => act(view.widget.id, "remove")} />
               ))}
             </div>
@@ -150,8 +155,31 @@ export function DashboardView({
   );
 }
 
-function TrayCard({ view, pending, onPin, onDismiss }: { view: DashboardWidgetView; pending: boolean; onPin: () => void; onDismiss: () => void }) {
-  const fromAsks = view.widget.source === "ai_suggested";
+type TrayCardProps = { view: DashboardWidgetView; pending: boolean; onPin: () => void; onDismiss: () => void };
+
+/** A card Cop proposes from what the user keeps asking: the same card, framed in Cop's gradient with its reason and the decision in plain sight. */
+function SuggestionCard({ view, pending, onPin, onDismiss }: TrayCardProps) {
+  return (
+    <div className="cop-suggested relative pt-3">
+      <span className={SUGGESTION_BADGE}>
+        <Sparkles className="size-3" aria-hidden />
+        {TH.dash.copSuggests}
+      </span>
+      <SpecView spec={view.spec} showDevtools={false} />
+      <div className="mt-2.5 flex items-start gap-2 px-1">
+        {view.widget.reason ? <p className="min-w-0 flex-1 pt-1 text-xs leading-relaxed text-muted-foreground">{view.widget.reason}</p> : <span className="flex-1" />}
+        <button type="button" disabled={pending} onClick={onDismiss} className={ROW_BUTTON}>
+          {TH.dash.dismissSuggestion}
+        </button>
+        <button type="button" disabled={pending} onClick={onPin} className={KEEP_BUTTON}>
+          {TH.dash.keepSuggestion}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function TrayCard({ view, pending, onPin, onDismiss }: TrayCardProps) {
   return (
     <div className="group relative">
       <div className={TOOLBAR}>
@@ -162,15 +190,7 @@ function TrayCard({ view, pending, onPin, onDismiss }: { view: DashboardWidgetVi
           <X className="size-3.5" aria-hidden />
         </button>
       </div>
-      {fromAsks ? (
-        <p className="mb-1.5 flex min-w-0 items-center gap-1.5 text-xs">
-          <Sparkles className="size-3.5 shrink-0 text-brand-violet" aria-hidden />
-          <span className="shrink-0 font-medium text-brand-violet">{TH.dash.fromAsks}</span>
-          {view.widget.reason ? <span className="truncate text-muted-foreground">· {view.widget.reason}</span> : null}
-        </p>
-      ) : (
-        <p className="mb-1.5 truncate text-xs text-muted-foreground">{reasonOf(view.widget)}</p>
-      )}
+      <p className="mb-1.5 truncate text-xs text-muted-foreground">{reasonOf(view.widget)}</p>
       <SpecView spec={view.spec} showDevtools={false} />
     </div>
   );

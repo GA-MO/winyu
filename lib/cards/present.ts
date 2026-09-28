@@ -1,7 +1,8 @@
-import { WIDGET_KINDS, type Alert, type AlertRow, type Dim, type Forecast, type MetricId, type MetricQuery, type MetricResult, type MetricRow, type NextAction, type WidgetKind } from "@/lib/contracts";
+import { WIDGET_KINDS, type Alert, type AlertRow, type Dim, type Forecast, type MetricId, type MetricQuery, type MetricResult, type MetricRow, type NextAction, type UnderLine, type WidgetKind } from "@/lib/contracts";
 import { TH } from "@/lib/i18n/th";
 import { MIN_CELL_SIZE } from "@/lib/access/suppression";
 import { addDays, monthKeyOfIso, weekKeyOfIso } from "@/lib/data/dates";
+import { DECIDING_LINES, LOW_COVER_DAYS } from "@/lib/semantic/metrics";
 import { formatDateTh, formatPercent, periodLabelTh } from "@/lib/i18n/format";
 import { deltaPercentOf, groupDimsOf, labelOf, numericOf, timeDimOf, valueTextOf } from "./rows";
 import {
@@ -59,19 +60,20 @@ export type HeatCell = { text: string; detail: string | null; intensity: number;
 export type ShareSlice = { label: string; valueText: string; share: number; shareText: string; isOther: boolean };
 export type ScatterPoint = { label: string; x: number; y: number; xText: string; yText: string; named: boolean };
 export type ScatterAxis = { label: string; format: MetricFormat; median: number; medianText: string };
-export type GapRow = { label: string; gap: number; gapText: string; detail: string; tone: Tone };
+export type GapRow = { label: string; gap: number; gapText: string; detail: string | null; tone: Tone };
+export type GapEnds = { less: string; more: string };
 export type FunnelStage = { label: string; value: number; valueText: string; width: number; dropText: string | null; dropTone: Tone };
 
 export type CardBody =
   | { kind: "none" }
   | { kind: "rank"; rows: RankRow[]; showRank: boolean }
-  | { kind: "progress"; label: string; value: number; detail: string }
+  | { kind: "progress"; value: number; detail: string }
   | { kind: "line"; labels: string[]; series: ChartSeries[]; format: MetricFormat }
   | { kind: "stacked"; shape: "bar" | "area"; labels: string[]; series: ChartSeries[]; format: MetricFormat }
   | { kind: "share"; slices: ShareSlice[]; centerValue: string; centerLabel: string }
   | { kind: "heatmap"; rowLabels: string[]; columnLabels: string[]; cells: (HeatCell | null)[][]; scale: ColorScale; legend: string }
   | { kind: "scatter"; points: ScatterPoint[]; x: ScatterAxis; y: ScatterAxis; note: string | null }
-  | { kind: "gap"; rows: GapRow[]; caption: string; shownOf: string | null }
+  | { kind: "gap"; rows: GapRow[]; ends: GapEnds; caption: string | null; shownOf: string | null }
   | { kind: "funnel"; stages: FunnelStage[] }
   | { kind: "table"; columns: CardColumn[]; rows: Record<string, string>[] }
   | { kind: "alerts"; items: SignalItem[] }
@@ -129,6 +131,31 @@ const MIN_GRID_FILL = 0.6;
 const COMPOSITION_DIMS: ReadonlySet<Dim> = new Set(["channel", "business_unit", "maker", "pack"]);
 const SHARE_METRICS: ReadonlySet<MetricId> = new Set(["market_share", "share_of_voice"]);
 const SEVERITY_TONES: Record<Alert["severity"], AlertTone> = { P1: "danger", P2: "warning", P3: "info" };
+const MIN_CHANGE_SPAN_PCT = 10;
+
+/** A level read against a line rather than from zero: how far either side still reads as a bar, which tone the good side wears, and what the headline calls the groups under the line. */
+type LevelLine = { at: number; minSpan: number; tolerance: number; aboveTone: Tone; ends: GapEnds; caption: string; underLabel: string };
+
+const LEVEL_LINES: Partial<Record<MetricId, LevelLine>> = {
+  target_attainment: {
+    at: DECIDING_LINES.target_attainment ?? PERCENT,
+    minSpan: 10,
+    tolerance: 2,
+    aboveTone: "good",
+    ends: { less: TH.dash.belowTarget, more: TH.dash.aboveTarget },
+    caption: TH.dash.targetLine,
+    underLabel: TH.dash.underTarget,
+  },
+  days_of_cover: {
+    at: LOW_COVER_DAYS,
+    minSpan: 5,
+    tolerance: 0,
+    aboveTone: "neutral",
+    ends: { less: TH.dash.belowCover(LOW_COVER_DAYS), more: TH.dash.aboveCover },
+    caption: TH.dash.coverLine(LOW_COVER_DAYS),
+    underLabel: TH.dash.underCover(LOW_COVER_DAYS),
+  },
+};
 
 function rankDimOf(query: MetricQuery): Dim | null {
   return groupDimsOf(query)[0] ?? null;
@@ -252,11 +279,19 @@ function isCapped(query: MetricQuery, rowCount: number): boolean {
   return query.limit !== null && rowCount >= query.limit;
 }
 
-function rowsLineOf(query: MetricQuery, rowCount: number): string | null {
+function rowsLineOf(query: MetricQuery, rowCount: number, drawn: number | null): string | null {
   const dim = rankDimOf(query);
   const unit = dim ? TH.dash.dimUnit[dim] : null;
   if (!unit || rowCount <= 1) return null;
+  if (drawn !== null && drawn < rowCount) return TH.dash.shownRowsOf(drawn, rowCount, unit);
   return isCapped(query, rowCount) ? TH.dash.shownRows(rowCount, unit) : `${rowCount} ${unit}`;
+}
+
+/** How many rows of a one-dimension breakdown the body draws, when it draws a list; the scope line then says it shows fewer than the result holds. */
+function drawnRowsOf(query: MetricQuery, body: CardBody): number | null {
+  if (timeDimOf(query) || groupDimsOf(query).length !== 1) return null;
+  if (body.kind === "rank" || body.kind === "gap" || body.kind === "table") return body.rows.length;
+  return null;
 }
 
 function hiddenLineOf(query: MetricQuery, hidden: number): string | null {
@@ -266,9 +301,9 @@ function hiddenLineOf(query: MetricQuery, hidden: number): string | null {
 }
 
 /** Period, what the model narrowed the question to, how many groups the card lists, and how many it leaves out because they are too small to show. */
-function scopeOf(query: MetricQuery, rowCount: number, periodLabel: string, filterLabels: readonly string[], hidden: number): string {
+function scopeOf(query: MetricQuery, rowCount: number, drawn: number | null, periodLabel: string, filterLabels: readonly string[], hidden: number): string {
   const filtered = filterLabels.length > 0 ? TH.dash.filteredTo(filterLabels.join(", ")) : null;
-  const rows = rowsLineOf(query, rowCount);
+  const rows = rowsLineOf(query, rowCount, drawn);
   return TH.dash.scope(periodLabel, [filtered, rows, hiddenLineOf(query, hidden)].filter((part): part is string => part !== null).join(" · ") || null);
 }
 
@@ -353,7 +388,32 @@ export function headlineChangeOf(query: MetricQuery, result: MetricResult): { de
   return { deltaPercent: result.headline.deltaPercent, compareLabel: result.headline.compareLabel };
 }
 
+function unitOf(query: MetricQuery): string {
+  const dim = rankDimOf(query);
+  return dim && groupDimsOf(query).length === 1 ? TH.dash.dimUnit[dim] : TH.dash.item;
+}
+
+/** A breakdown judged against a line leads with how many groups sit under it, from every group in scope, then names the worst and the overall level, so "how many days does it last" is still answered. */
+function underLineHero(query: MetricQuery, result: Extract<MetricResult, { ok: true }>, line: LevelLine, under: UnderLine): CardHero {
+  const unit = unitOf(query);
+  const weakest = weakestRow(query, result);
+  const overall = TH.dash.overall(heroLabelOf(query, result), result.headline.value);
+  const notes = [weakest ? TH.dash.weakest(weakest.lowIsWorst, weakest.label, weakest.value) : null, overall, result.headline.projection ? TH.dash.monthEnd(result.headline.projection) : null];
+  return {
+    label: line.underLabel,
+    value: under.count > 0 ? TH.dash.countOf(under.count, under.of, unit) : TH.dash.noneUnder,
+    delta: null,
+    trend: "neutral",
+    tone: "neutral",
+    detail: [under.count > 0 ? null : TH.dash.ofAll(under.of, unit), paceNoteOf(query, result.provenance.asOf)].filter((part): part is string => part !== null).join(" · ") || null,
+    note: notes.filter((note): note is string => note !== null).join(" · ") || null,
+  };
+}
+
 function heroFor(query: MetricQuery, result: Extract<MetricResult, { ok: true }>, rows: MetricRow[]): CardHero {
+  const line = LEVEL_LINES[query.metric];
+  const under = result.headline.underLine;
+  if (line && under && rankDimOf(query) && !timeDimOf(query)) return underLineHero(query, result, line, under);
   const latest = latestBucketOf(query, result, rows);
   if (!latest) return heroOf(query, result, rows);
   return {
@@ -453,16 +513,74 @@ function tableBody(query: MetricQuery, rows: MetricRow[], withCompare: boolean):
   };
 }
 
-function progressBody(query: MetricQuery, rows: MetricRow[]): CardBody {
+function progressBody(rows: MetricRow[]): CardBody {
   const value = numericOf(rows[0] ?? {}, "value");
   if (value === null) return { kind: "none" };
   const remaining = Math.round((PERCENT - value) * 10) / 10;
   return {
     kind: "progress",
-    label: metricLabel(query.metric),
     value: Math.max(0, Math.min(PERCENT, value)),
     detail: remaining > 0 ? TH.dash.toTarget(formatPercent(remaining)) : TH.dash.targetMet,
   };
+}
+
+/** A list ranked by how much each row moved draws the move: bars left for less, right for more, the level itself beside the name. */
+function changeBody(query: MetricQuery, rows: MetricRow[]): CardBody {
+  const shown = rows.slice(0, MAX_RANK_ROWS);
+  const deltas = shown.map(deltaPercentOf);
+  const span = Math.max(MIN_CHANGE_SPAN_PCT, ...deltas.map((delta) => Math.abs(delta ?? 0)));
+  return {
+    kind: "gap",
+    rows: shown.map((row, index) => ({
+      label: labelOf(query, row),
+      gap: (deltas[index] ?? 0) / span,
+      gapText: formatDelta(deltas[index]) ?? "—",
+      detail: valueTextOf(query, row),
+      tone: toneOf(query.metric, deltas[index]),
+    })),
+    ends: { less: TH.dash.changeLess, more: TH.dash.changeMore },
+    caption: TH.dash.changeCaption(TH.dash.compare[query.compare] ?? ""),
+    shownOf: null,
+  };
+}
+
+function levelToneOf(value: number, line: LevelLine): Tone {
+  if (value < line.at - line.tolerance) return "bad";
+  return value >= line.at ? line.aboveTone : "neutral";
+}
+
+/** A level judged against a line (the target, the low-cover mark) draws each row's distance from that line, so 93% and 102% no longer look like two full bars. */
+function levelBody(query: MetricQuery, rows: MetricRow[], line: LevelLine): CardBody {
+  const shown = rows.slice(0, MAX_RANK_ROWS);
+  const values = shown.map((row) => numericOf(row, "value"));
+  const span = Math.max(line.minSpan, ...values.map((value) => (value === null ? 0 : Math.abs(value - line.at))));
+  const withChange = shown.some((row) => deltaPercentOf(row) !== null);
+  return {
+    kind: "gap",
+    rows: shown.map((row, index) => {
+      const value = values[index];
+      const delta = deltaPercentOf(row);
+      return {
+        label: labelOf(query, row),
+        gap: value === null ? 0 : (value - line.at) / span,
+        gapText: valueTextOf(query, row),
+        detail: formatDelta(delta),
+        tone: value === null ? "neutral" : levelToneOf(value, line),
+      };
+    }),
+    ends: line.ends,
+    caption: withChange ? TH.dash.levelChangeCaption(line.caption, TH.dash.compare[query.compare] ?? "") : line.caption,
+    shownOf: null,
+  };
+}
+
+/** Which bars a breakdown deserves: the change when the list is ranked by it, the distance from a deciding line when the metric has one, the level from zero otherwise. */
+function barBody(shape: Shape): CardBody {
+  const { query, rows, sortBy } = shape;
+  if (asksAboutChange(sortBy) && rows.some((row) => deltaPercentOf(row) !== null)) return changeBody(query, rows);
+  const line = LEVEL_LINES[query.metric];
+  if (line) return levelBody(query, rows, line);
+  return { kind: "rank", rows: rankRowsOf(query, rows), showRank: rows.length > RANK_MIN_ROWS };
 }
 
 function signedGapOf(alert: AlertRow): string | null {
@@ -510,8 +628,8 @@ function bodyFor(shape: Shape, view: CardView, extras: CardExtras): CardBody {
   if (view === "heatmap") return heatmapBody(query, rows, shape.sortBy);
   if (view === "share") return shareBody(query, rows);
   if (view === "table") return tableBody(query, rows, query.compare !== "none");
-  if (view === "bar" && rows.length >= RANK_MIN_ROWS) return { kind: "rank", rows: rankRowsOf(query, rows), showRank: rows.length > RANK_MIN_ROWS };
-  if (view === "metric" && PROGRESS_METRICS.has(query.metric)) return progressBody(query, rows);
+  if (view === "bar" && rows.length >= RANK_MIN_ROWS) return barBody(shape);
+  if (view === "metric" && PROGRESS_METRICS.has(query.metric)) return progressBody(rows);
   if (view === "metric") return { kind: "none" };
   if (rows.length === 0) return { kind: "none" };
   return tableBody(query, rows, false);
@@ -742,13 +860,15 @@ export function presentCard(input: PresentInput): CardParts {
   const trimmed = withoutPartialBucket(query, view, visibleRows, result.provenance.asOf);
   const shape: Shape = { ...whole, rows: sorted(query, trimmed.rows, sortBy) };
   const note = [trimmed.note, hiddenGroupsNote(shape, view)].filter((line): line is string => line !== null).join(" · ");
+  const body = bodyFor(shape, view, extras);
+  const rowCount = groupDimsOf(query).length === 1 && result.headline.underLine ? result.headline.underLine.of : groupCountFor(query, visibleRows, result.headline.rowCount - hidden);
   return {
     title,
-    meta: scopeOf(query, groupCountFor(query, visibleRows, result.headline.rowCount - hidden), result.headline.periodLabel, result.provenance.filterLabels ?? [], hidden),
+    meta: scopeOf(query, rowCount, drawnRowsOf(query, body), result.headline.periodLabel, result.provenance.filterLabels ?? [], hidden),
     description: input.description ?? null,
     footnote: footnoteOf(result, note || null, hidden),
     hero: masked || hidden > 0 || view === "alert_list" ? null : heroFor(query, result, shape.rows),
-    body: bodyFor(shape, view, extras),
+    body,
     actions: input.actions ?? NO_ACTIONS,
     denied: null,
   };

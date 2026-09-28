@@ -4,7 +4,7 @@ import { requireAccess, unauthenticated } from "../_guard";
 import { notifications } from "@/lib/server/agent/collections";
 import { packetsFor, resolveEvidence, sentPackets, type EvidenceView } from "@/lib/server/handoff";
 import { canJudge, openAlertsFor } from "@/lib/server/alerts";
-import { handoffEnabled } from "@/lib/access/enforce";
+import { alertsInboxEnabled, handoffEnabled } from "@/lib/access/enforce";
 import { lessonFor } from "@/lib/server/outcomes";
 import { goodNewsFor, todoFor } from "@/lib/server/feed";
 import type { Dictionary } from "@/lib/semantic/dictionary";
@@ -105,7 +105,8 @@ export async function GET() {
     .map((packet) => handoffOf(packet, access)));
 
   const dictionary = await loadDictionary();
-  const alertItems: AlertItem[] = openAlertsFor(access).slice(0, MAX_ALERT_ITEMS).map((alert) => alertOf(alert, access, handoffOpen, dictionary));
+  const alertsOpen = alertsInboxEnabled();
+  const alertItems: AlertItem[] = alertsOpen ? openAlertsFor(access).slice(0, MAX_ALERT_ITEMS).map((alert) => alertOf(alert, access, handoffOpen, dictionary)) : [];
 
   const replies: ReplyItem[] = sentPackets(access.userId)
     .filter((packet) => packet.thread.length > 0)
@@ -118,6 +119,6 @@ export async function GET() {
   const unread = notifications().where((item) => item.userId === access.userId && !item.read).length;
   const todo = (await todoFor(access)).slice(0, MAX_ITEMS);
   const goodNews = await goodNewsFor(access);
-  const payload: InboxPayload = { todo, goodNews, handoffs, alerts: alertItems, replies, unread, handoffOpen };
+  const payload: InboxPayload = { todo, goodNews, handoffs, alerts: alertItems, replies, unread, handoffOpen, alertsOpen };
   return Response.json(payload);
 }

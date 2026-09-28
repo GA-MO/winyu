@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { METRIC_IDS, ROLE_IDS, type MetricId, type RoleId, type ToolName } from "@/lib/contracts";
 import { connectorFields, connectors, isToolName } from "@/lib/server/tools/registry";
-import { killTool, reviveTool, setConnectorEnabled, setHandoffEnabled } from "@/lib/access/enforce";
+import { killTool, reviveTool, setAlertsInboxEnabled, setConnectorEnabled, setHandoffEnabled } from "@/lib/access/enforce";
 import {
   cycleFieldVisibility,
   cycleMetricVisibility,
@@ -105,6 +105,13 @@ export async function setHandoffAction(formData: FormData) {
   const by = await adminId();
   if (!by) return;
   setHandoffEnabled(String(formData.get("enabled")) === "true", by);
+  revalidatePath(ADMIN_PATH);
+}
+
+export async function setAlertsInboxAction(formData: FormData) {
+  const by = await adminId();
+  if (!by) return;
+  setAlertsInboxEnabled(String(formData.get("enabled")) === "true", by);
   revalidatePath(ADMIN_PATH);
 }
 

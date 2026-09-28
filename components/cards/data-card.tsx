@@ -4,7 +4,7 @@ import type { ComponentRegistry } from "@json-render/react";
 import type { AlertRow, MetricQuery, MetricResult, NextAction } from "@/lib/contracts";
 import { presentAlerts, presentCard, presentForecast, type CardBody, type ForecastAnswer, type CardView, type PresentSource, type SignalItem, type SortBy } from "@/lib/cards/present";
 import { TH } from "@/lib/i18n/th";
-import { ActionStrip, CardPartsView } from "./card-parts";
+import { CardFooter, CardPartsView } from "./card-parts";
 import { CardBodyView } from "./charts/card-body";
 import { SignalList } from "./signal-list";
 import { LeaveForm, type LeaveFormProps } from "./leave-form";
@@ -119,9 +119,9 @@ function signalsOf(props: unknown): SignalItem[] {
   return Array.isArray(items) ? (items as SignalItem[]) : [];
 }
 
-function actionStripOf(props: unknown): NextAction[] {
-  const actions = (props as { actions?: unknown }).actions;
-  return Array.isArray(actions) ? (actions as NextAction[]) : [];
+function footerOf(props: unknown): { note: string | null; action: NextAction | null } {
+  const { note, action } = props as { note?: unknown; action?: unknown };
+  return { note: typeof note === "string" ? note : null, action: typeof action === "object" && action !== null ? (action as NextAction) : null };
 }
 
 function cardBodyOf(props: unknown): CardBody {
@@ -133,7 +133,7 @@ export const COP_CARD_COMPONENTS: ComponentRegistry = {
   DataCard: ({ element }) => <DataCard props={element.props as never} />,
   AlertsCard: ({ element }) => <AlertsCard props={element.props as never} />,
   ForecastCard: ({ element }) => <ForecastCard props={element.props as never} />,
-  ActionStrip: ({ element }) => <ActionStrip actions={actionStripOf(element.props)} />,
+  CardFooter: ({ element }) => <CardFooter {...footerOf(element.props)} />,
   SignalList: ({ element }) => <SignalList items={signalsOf(element.props)} />,
   CardBody: ({ element }) => <CardBodyView body={cardBodyOf(element.props)} />,
   LeaveForm: ({ element }) => <LeaveForm props={element.props as LeaveFormProps} />,

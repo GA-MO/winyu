@@ -3,12 +3,13 @@ import { kindLabel, metricOfFeedKind } from "@/lib/engine/feed-learning";
 import { headlineChangeOf, sharpestHarm, weakestRow } from "@/lib/cards/present";
 import { formatDelta, formatMetricValue, toneOf } from "@/lib/dashboard/metric-display";
 import { TH } from "@/lib/i18n/th";
+import { LOW_COVER_DAYS } from "@/lib/semantic/metrics";
 
 export const MOVED_PCT = 5;
 export const HARMFUL_ROW_PCT = 25;
 export const STALE_DAYS = 14;
 const DAY_MS = 86_400_000;
-const LEVEL_FLOORS: Partial<Record<MetricId, number>> = { target_attainment: 95, days_of_cover: 10 };
+const LEVEL_FLOORS: Partial<Record<MetricId, number>> = { target_attainment: 95, days_of_cover: LOW_COVER_DAYS };
 const TIER_SPAN = 100;
 const TIER = { feed: 5, alert: 4, floor: 3, harmfulHeadline: 2, headline: 1, row: 0 } as const;
 const SEVERITY_WEIGHT: Record<Alert["severity"], number> = { P1: 2, P2: 1, P3: 0 };

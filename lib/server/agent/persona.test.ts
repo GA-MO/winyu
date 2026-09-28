@@ -49,7 +49,13 @@ describe("personaFor", () => {
     expect(lines).toContain(TODAY);
     expect(lines).toContain("2569");
     expect(lines).toContain("เอเย่นต์ = ผู้แทนจำหน่าย");
-    expect(lines).toContain("แหล่งข้อมูล");
+  });
+
+  test("the persona carries only what differs per user; how cards look lives in the shared rules", () => {
+    const lines = personaOf("u_anucha").join("\n");
+    expect(lines).not.toContain("BarChart");
+    expect(lines).not.toContain("แหล่งข้อมูล:");
+    expect(COP_RULES.some((rule) => rule.includes("`footnote` เป็นแหล่งข้อมูล"))).toBe(true);
   });
 
   test("memory is fenced as data", () => {

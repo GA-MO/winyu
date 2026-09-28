@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { runMetric } from "@/lib/server/metrics";
-import type { AccessContext, Alert, DashboardLayout, FeedItem, MetricQuery, MetricResult, WidgetSpec } from "@/lib/contracts";
+import type { AccessContext, Alert, DashboardLayout, FeedItem, MetricQuery, MetricResult, NextAction, WidgetSpec } from "@/lib/contracts";
 import type { Spec } from "vexa/protocol";
 import { layoutVersions, layouts } from "@/lib/server/agent/collections";
 import { forecastsFor, openAlertsFor, relevantAlertsFor } from "@/lib/server/alerts";
@@ -125,9 +125,14 @@ async function extrasFor(widget: WidgetSpec, access: AccessContext): Promise<Wid
   return { forecast: forecast ?? null };
 }
 
+/** A card already on the dashboard is pinned or carries its own pin button, so its next steps never offer pinning it again. */
+function withoutPin(actions: NextAction[]): NextAction[] {
+  return actions.filter((action) => action.kind !== "pin");
+}
+
 async function viewOf(widget: WidgetSpec, access: AccessContext, relevant: readonly Alert[]): Promise<WidgetView> {
   const [result, extras] = await Promise.all([resolveWidget(widget, access), extrasFor(widget, access)]);
-  const actions = extras.actions ?? actionsForMetric(access, widget.query, result, await loadDictionary());
+  const actions = withoutPin(extras.actions ?? actionsForMetric(access, widget.query, result, await loadDictionary()));
   const hero = presentCard({ title: widget.title, query: widget.query, result }).hero;
   return {
     widget,

@@ -24,7 +24,7 @@ bun install
 bun run dev          # http://localhost:3100
 bun run typecheck    # must pass before any task is considered done
 bun run test         # bun test (happy-dom preload like Vexa); includes the card contract against the scripted mock
-bun run eval:cards -- --model=google/gemini-3.8-flash   # the same checks against the real model (needs OPENROUTER_API_KEY); --runs=N, --case=<id>; --model=mock runs the scripted subset; prints tokens and the cost OpenRouter billed per case (~$0.03/case)
+bun run eval:cards -- --model=google/gemini-3.8-flash   # the same checks against the real model (needs OPENROUTER_API_KEY); --runs=N, --case=<id>[,<id>…]; --model=mock runs the scripted subset; prints tokens and the cost OpenRouter billed per case (~$0.03/case)
 bun run seed         # regenerates .data/*.json from the generator (deterministic)
 ```
 

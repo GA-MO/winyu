@@ -1,8 +1,8 @@
 import {
   type AccessContext, type Brand, type Dim, type FactRequest, type FactResult, type FactRow, type LabelShift, type MetricDef, type MetricId,
-  type MetricQuery, type MetricSort, type MetricHeadline, type MetricResult, type MetricRow, type Provenance, type Region, type ValueFilter,
+  type MetricQuery, type MetricSort, type MetricHeadline, type MetricResult, type MetricRow, type Provenance, type Region, type UnderLine, type ValueFilter,
 } from "@/lib/contracts";
-import { MONTHLY_METRICS, RATIO_METRICS, TARGET_METRICS, TIME_DIMS, metricDef } from "@/lib/semantic/metrics";
+import { DECIDING_LINES, MONTHLY_METRICS, RATIO_METRICS, TARGET_METRICS, TIME_DIMS, metricDef } from "@/lib/semantic/metrics";
 import { MIN_CELL_SIZE, SUPPRESSED_FIELDS, SUPPRESSED_VALUE, cellScopeOf, isSmallCell } from "@/lib/access/suppression";
 import type { Dictionary } from "@/lib/semantic/dictionary";
 import { DAY_COUNT, ISO_OF_DAY, MONTH_COUNT, MONTH_FIRST_DAY, MONTH_OF_DAY, TODAY, daysInMonthIndex, formatThaiDate, toDayIndex } from "@/lib/data/dates";
@@ -135,7 +135,7 @@ function firstTimeDim(dims: Dim[]): Dim | null {
   return dims.find((dim) => TIME_DIMS.includes(dim)) ?? null;
 }
 
-const RISK_WHEN_LOW: ReadonlySet<MetricId> = new Set<MetricId>(["days_of_cover"]);
+const RISK_WHEN_LOW: ReadonlySet<MetricId> = new Set<MetricId>(["days_of_cover", "target_attainment"]);
 
 function changeOf(row: Aggregated, previous: Map<string, number> | null): number | null {
   const before = previous?.get(row.key);
@@ -153,6 +153,13 @@ function orderedRows(rows: Aggregated[], sort: MetricSort, limit: number, compar
   const known = scored.filter((entry) => entry.change !== null).sort((left, right) => sign * ((left.change as number) - (right.change as number)));
   const unknown = scored.filter((entry) => entry.change === null).sort((left, right) => right.row.value - left.row.value);
   return [...known, ...unknown].slice(0, limit).map((entry) => entry.row);
+}
+
+/** A change sort needs something to compare with; without one it would keep rows in arbitrary order, so the metric's own default order applies. */
+function effectiveSort(sort: MetricSort | null, compareRows: Aggregated[] | null): MetricSort | null {
+  if (!sort) return null;
+  const byChange = sort === "delta_asc" || sort === "delta_desc";
+  return byChange && !compareRows ? null : sort;
 }
 
 function sortRows(rows: Aggregated[], dims: Dim[], limit: number, masked: boolean, lowFirst: boolean): Aggregated[] {
@@ -278,6 +285,15 @@ function latestBucket(dims: Dim[], rows: Aggregated[]): Aggregated[] {
 }
 
 type HeadlineContext = { periodLabel: string; compareNote: string | null };
+
+/** How many groups of a breakdown fall under the metric's deciding line, over every group the caller may see: before the row cap and before a `where` filter, so "10 of 60" never shrinks to "10 of 10". */
+function underLineOf(def: MetricDef, dims: Dim[], all: Aggregated[], suppressed: Set<string>): UnderLine | null {
+  const line = DECIDING_LINES[def.id];
+  if (line === undefined || dims.length === 0 || firstTimeDim(dims)) return null;
+  const visible = all.filter((row) => !suppressed.has(row.key));
+  if (visible.length < 2) return null;
+  return { line, count: visible.filter((row) => roundValue(def.format, row.value) < line).length, of: visible.length };
+}
 
 function headlineOf(dictionary: Dictionary, def: MetricDef, query: MetricQuery, rows: Aggregated[], all: Aggregated[], ratio: boolean, compareRows: Aggregated[] | null, masked: boolean, suppressed: Set<string>, context: HeadlineContext): MetricHeadline {
   const { periodLabel, compareNote } = context;
@@ -520,7 +536,8 @@ export function finishMetric(plan: MetricPlan, current: FactResult, comparison: 
 
   const limit = query.limit ?? DEFAULT_LIMIT;
   const lowFirst = RISK_WHEN_LOW.has(def.id);
-  const capped = query.sort && !masked && !firstTimeDim(dims) ? orderedRows(aggregated, query.sort, limit, compareRows) : sortRows(aggregated, dims, limit, masked, lowFirst);
+  const sort = effectiveSort(query.sort ?? null, compareRows);
+  const capped = sort && !masked && !firstTimeDim(dims) ? orderedRows(aggregated, sort, limit, compareRows) : sortRows(aggregated, dims, limit, masked, lowFirst);
   const rows = buildRows(dictionary, def, dims, capped, compareRows, masked, suppressed);
   const provenance: Provenance = {
     metric: def.id,
@@ -534,7 +551,10 @@ export function finishMetric(plan: MetricPlan, current: FactResult, comparison: 
     masked: masked || suppressed.size > 0 ? [...SUPPRESSED_FIELDS] : [],
     trust: def.certified ? "verified" : "derived",
   };
-  const headline = headlineOf(dictionary, def, query, capped, aggregated, averagedHeadline(def, query, ratio), compareRows, masked, suppressed, { periodLabel: plan.periodLabel, compareNote: plan.compareNote });
+  const headline = {
+    ...headlineOf(dictionary, def, query, capped, aggregated, averagedHeadline(def, query, ratio), compareRows, masked, suppressed, { periodLabel: plan.periodLabel, compareNote: plan.compareNote }),
+    underLine: masked ? null : underLineOf(def, query.dims, all, suppressed),
+  };
   const summary = summarize(def, query, headline, masked, aggregated.length === 0);
   return {
     ok: true,

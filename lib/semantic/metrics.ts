@@ -171,6 +171,12 @@ export const MONTHLY_METRICS: ReadonlySet<MetricId> = new Set<MetricId>([
   "forecast_mape", "gross_margin", "trade_spend", "ar_overdue", "market_share", "headcount", "attrition_rate", "avg_salary",
 ]);
 
+/** Days of cover under which stock is flagged, by the detector and on every card that draws cover. */
+export const LOW_COVER_DAYS = 10;
+
+/** The level a metric is judged against where one exists: the target for attainment, the low-cover mark for stock; the engine counts the groups under it and cards draw it. */
+export const DECIDING_LINES: Partial<Record<MetricId, number>> = { target_attainment: 100, days_of_cover: LOW_COVER_DAYS };
+
 /** Metrics with a plan to compare against: sales targets, and production capacity for output. */
 export const TARGET_METRICS: ReadonlySet<MetricId> = new Set<MetricId>(["net_sales_volume", "sell_out_volume", "net_sales_value"]);
 

@@ -14,7 +14,7 @@ import type { AlertItem, HandoffItem, InboxPayload, ReplyItem } from "./types";
 const INBOX_ENDPOINT = "/api/inbox";
 const ALERTS_ENDPOINT = "/api/alerts";
 const NOTIFICATIONS_ENDPOINT = "/api/notifications";
-const EMPTY: InboxPayload = { todo: [], goodNews: [], handoffs: [], alerts: [], replies: [], unread: 0, handoffOpen: true };
+const EMPTY: InboxPayload = { todo: [], goodNews: [], handoffs: [], alerts: [], replies: [], unread: 0, handoffOpen: true, alertsOpen: true };
 const TABS = ["todo", "handoffs", "alerts", "replies"] as const;
 const PANEL = "fixed right-0 top-0 z-50 flex h-dvh w-full max-w-[26rem] flex-col border-l border-border bg-card shadow-panel animate-panel-in";
 const ACTION = "rounded-full border border-border bg-card px-3 py-1.5 text-xs text-muted-foreground transition hover:border-foreground/25 hover:text-foreground";
@@ -134,6 +134,8 @@ export function InboxDrawer({ open, onClose, focus = DEFAULT_FOCUS }: { open: bo
   if (!open) return null;
 
   const counts: Record<Tab, number> = { todo: data.todo.length, handoffs: data.handoffs.length, alerts: data.alerts.length, replies: data.replies.length };
+  const tabs: readonly Tab[] = data.alertsOpen ? TABS : TABS.filter((item) => item !== "alerts");
+  const shown: Tab = tabs.includes(tab) ? tab : "todo";
 
   return (
     <>
@@ -147,12 +149,12 @@ export function InboxDrawer({ open, onClose, focus = DEFAULT_FOCUS }: { open: bo
         </header>
 
         <nav className="flex gap-1 border-b border-border px-2 py-2">
-          {TABS.map((item) => (
+          {tabs.map((item) => (
             <button
               key={item}
               type="button"
               onClick={() => setTab(item)}
-              className={cn("rounded-full px-3 py-1.5 text-xs transition", tab === item ? "bg-bubble font-medium text-foreground" : "text-muted-foreground hover:text-foreground")}
+              className={cn("rounded-full px-3 py-1.5 text-xs transition", shown === item ? "bg-bubble font-medium text-foreground" : "text-muted-foreground hover:text-foreground")}
             >
               {TH.inbox.tabs[item]}
               {counts[item] > 0 ? <span className="ml-1.5 text-muted-foreground">{counts[item]}</span> : null}
@@ -162,7 +164,7 @@ export function InboxDrawer({ open, onClose, focus = DEFAULT_FOCUS }: { open: bo
 
         <div className="vexa-scrollbar flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-3">
           {!loaded ? <p className="px-2 py-8 text-sm text-muted-foreground">{TH.common.loading}</p> : null}
-          {loaded && tab === "todo" ? (
+          {loaded && shown === "todo" ? (
             data.todo.length > 0 ? (
               <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-card">
                 <FeedList rows={data.todo} handlers={feedHandlers} framed={false} />
@@ -171,7 +173,7 @@ export function InboxDrawer({ open, onClose, focus = DEFAULT_FOCUS }: { open: bo
               <EmptyLine text={TH.inbox.todoEmpty} />
             )
           ) : null}
-          {loaded && tab === "todo" && data.goodNews.length > 0 ? (
+          {loaded && shown === "todo" && data.goodNews.length > 0 ? (
             <details className="group overflow-hidden rounded-2xl border border-border bg-card shadow-card">
               <summary className="flex cursor-pointer list-none items-center gap-2 px-4 py-2.5 text-xs font-medium text-muted-foreground transition hover:text-foreground">
                 <span aria-hidden className="size-1.5 rounded-full bg-success" />
@@ -182,7 +184,7 @@ export function InboxDrawer({ open, onClose, focus = DEFAULT_FOCUS }: { open: bo
               </div>
             </details>
           ) : null}
-          {loaded && tab === "handoffs" ? (
+          {loaded && shown === "handoffs" ? (
             <HandoffList
               items={data.handoffs}
               open={data.handoffOpen}
@@ -192,7 +194,7 @@ export function InboxDrawer({ open, onClose, focus = DEFAULT_FOCUS }: { open: bo
               onAsk={(prompt) => router.push(`/c/new?prompt=${encodeURIComponent(prompt)}`)}
             />
           ) : null}
-          {loaded && tab === "alerts" ? (
+          {loaded && shown === "alerts" ? (
             <AlertList
               key={focus.severity}
               items={data.alerts}
@@ -202,7 +204,7 @@ export function InboxDrawer({ open, onClose, focus = DEFAULT_FOCUS }: { open: bo
               onAsk={(prompt) => router.push(`/c/new?prompt=${encodeURIComponent(prompt)}`)}
             />
           ) : null}
-          {loaded && tab === "replies" ? <ReplyList items={data.replies} open={data.handoffOpen} /> : null}
+          {loaded && shown === "replies" ? <ReplyList items={data.replies} open={data.handoffOpen} /> : null}
         </div>
       </aside>
     </>

@@ -1,6 +1,7 @@
 import { existsSync } from "node:fs";
 import path from "node:path";
 import type { AccessContext, Alert, ContextPacket, Dim, Forecast, Region } from "@/lib/contracts";
+import { alertsInboxEnabled } from "@/lib/access/enforce";
 import { actionEvents, alertMutes, alertThresholds, alerts, forecasts, packets } from "@/lib/server/agent/collections";
 import { feedIntentKey } from "@/lib/engine/feed-learning";
 import { DATA_DIR } from "@/lib/server/store/json-store";
@@ -101,6 +102,11 @@ export function unopenedDays(alert: Alert, context: RelevanceContext): number | 
   return days >= ESCALATE_AFTER_DAYS ? days : null;
 }
 
+/** An owner can only leave an alert unopened while alerts reach their inbox; with the inbox switch off, nothing escalates for going unopened. */
+function leftUnopened(alert: Alert, context: RelevanceContext): boolean {
+  return alertsInboxEnabled() && unopenedDays(alert, context) !== null;
+}
+
 /** Big enough for a manager to hear about when the owner has not: a volume gap of at least a thousand litres; other metrics always are. */
 function isMaterial(alert: Alert): boolean {
   return !VOLUME_METRICS.has(alert.metric) || Math.abs(alert.observed - alert.expected) >= MATERIAL_GAP_LITERS;
@@ -112,7 +118,7 @@ function isMaterial(alert: Alert): boolean {
  */
 export function relevanceOf(alert: Alert, access: AccessContext, context: RelevanceContext = relevanceContext(access)): AlertRelevance {
   if (alert.ownerUserId === access.userId || alert.alsoOwnerIds?.includes(access.userId)) return "mine";
-  if (context.reports.has(alert.ownerUserId) && (alert.severity === "P1" || (alert.severity === "P2" && isMaterial(alert) && unopenedDays(alert, context) !== null))) return "escalated";
+  if (context.reports.has(alert.ownerUserId) && (alert.severity === "P1" || (alert.severity === "P2" && isMaterial(alert) && leftUnopened(alert, context)))) return "escalated";
   if (alert.severity === "P1" && (context.watched.has(alert.metric) || managesUser(access.userId, alert.ownerUserId))) return "watched";
   return "other";
 }

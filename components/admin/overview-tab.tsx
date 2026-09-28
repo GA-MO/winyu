@@ -1,6 +1,6 @@
-import { Lock, PlugZap, RotateCcw, Send } from "lucide-react";
+import { BellRing, Lock, PlugZap, RotateCcw, Send } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { connectorEnabled, handoffEnabled, handoffSwitch, killedTools } from "@/lib/access/enforce";
+import { alertsInboxEnabled, alertsInboxSwitch, connectorEnabled, handoffEnabled, handoffSwitch, killedTools, type SwitchEntry } from "@/lib/access/enforce";
 import { defaultOf, roleOverrides, type RoleOverride, type Visibility } from "@/lib/access/role-overrides";
 import { findUser } from "@/lib/data/entities/users";
 import { metricLabel } from "@/lib/dashboard/metric-display";
@@ -10,7 +10,7 @@ import { auditEntries, inAuditScope, sinceOf, usageSummary, type AuditFilter } f
 import { auditLog } from "@/lib/server/audit";
 import { connectorHealth } from "@/lib/server/connectors/catalog";
 import { connectors, fieldLabel, toolLabel } from "@/lib/server/tools/registry";
-import { removeOverrideAction, resetAllAction, setHandoffAction } from "@/app/(app)/admin/actions";
+import { removeOverrideAction, resetAllAction, setAlertsInboxAction, setHandoffAction } from "@/app/(app)/admin/actions";
 import { SpendStat } from "./spend-stat";
 import { Avatar, EmptyLine, GHOST, LinkMore, Panel, Pill, Stat, SystemToggle, stamp } from "./parts";
 
@@ -38,15 +38,24 @@ function deniedReason(code: string | undefined): string | null {
   return TH.admin.auditTab.codes[code] ?? TH.admin.auditTab.otherCode(code);
 }
 
+type SwitchCopy = { title: string; body: string; on: string; off: string; changed: (name: string, at: string) => string };
+type SwitchRowProps = { icon: LucideIcon; enabled: boolean; entry: SwitchEntry | null; copy: SwitchCopy; action: (formData: FormData) => Promise<void> };
+
 /** The handoff switch as one row, shared by the overview and the tools tab. */
 export function HandoffSwitchRow() {
-  const enabled = handoffEnabled();
-  const entry = handoffSwitch();
-  const copy = TH.admin.handoffSwitch;
+  return <SwitchRow icon={Send} enabled={handoffEnabled()} entry={handoffSwitch()} copy={TH.admin.handoffSwitch} action={setHandoffAction} />;
+}
+
+/** Whether anomalies reach people's inbox, as one row of the system panel. */
+function AlertsInboxSwitchRow() {
+  return <SwitchRow icon={BellRing} enabled={alertsInboxEnabled()} entry={alertsInboxSwitch()} copy={TH.admin.alertsInboxSwitch} action={setAlertsInboxAction} />;
+}
+
+function SwitchRow({ icon, enabled, entry, copy, action }: SwitchRowProps) {
   return (
-    <form action={setHandoffAction} className="flex items-center gap-4">
+    <form action={action} className="flex items-center gap-4">
       <input type="hidden" name="enabled" value={String(!enabled)} />
-      <SystemIcon icon={Send} tone={enabled ? "on" : "off"} />
+      <SystemIcon icon={icon} tone={enabled ? "on" : "off"} />
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
           <p className="text-sm font-medium">{copy.title}</p>
@@ -219,6 +228,7 @@ export function OverviewTab() {
 
       <Panel title={COPY.system} hint={COPY.systemHint} bodyClassName="flex flex-col gap-4">
         <HandoffSwitchRow />
+        <AlertsInboxSwitchRow />
         <div className="h-px bg-border" />
         <SystemRow
           icon={Lock}

@@ -13,6 +13,14 @@ const OPENROUTER_APP_URL = "http://localhost:3100";
 const DEFAULT_OPENROUTER_MODEL = "google/gemini-3.8-flash";
 const OPENROUTER_CONTEXT_TOKENS = 1_000_000;
 const MODEL_NAMES: Record<string, string> = { "google/gemini-3.8-flash": "Gemini 3.8 Flash" };
+const PROVIDER_ORDER: Record<string, string[]> = { "google/gemini-3.8-flash": ["google-ai-studio/flex", "google-ai-studio"] };
+
+/** Where OpenRouter sends a model first: one provider keeps the prompt cache shared across users, the flex tier halves the price, fallbacks stay allowed; OPENROUTER_PROVIDER_ORDER (comma list, e.g. "google-ai-studio") overrides it. */
+function providerOrderOf(modelId: string): string[] | null {
+  const override = (process.env.OPENROUTER_PROVIDER_ORDER ?? "").split(",").map((slug) => slug.trim()).filter(Boolean);
+  if (override.length > 0) return override;
+  return PROVIDER_ORDER[modelId] ?? null;
+}
 
 const MOCK: ModelRegistry = {
   [MOCK_MODEL_ID]: { model: () => createScriptedModel(COP_MOCK_SCRIPT), name: "Mock (scripted, ฟรี)", provider: "vexa-mock", maxTokens: 8_000 },
@@ -32,7 +40,9 @@ function anthropicModels(apiKey: string): ModelRegistry {
 
 function openRouterModels(apiKey: string, modelId: string): ModelRegistry {
   const client = createOpenRouter({ apiKey, compatibility: "strict", appName: process.env.OPENROUTER_APP_TITLE ?? "Cop", appUrl: OPENROUTER_APP_URL });
-  return { [modelId]: { model: () => metered(modelId, client(modelId, { usage: { include: true } })), name: MODEL_NAMES[modelId] ?? modelId, provider: "openrouter", maxTokens: OPENROUTER_CONTEXT_TOKENS } };
+  const order = providerOrderOf(modelId);
+  const settings = { usage: { include: true }, ...(order ? { provider: { order, allow_fallbacks: true } } : {}) };
+  return { [modelId]: { model: () => metered(modelId, client(modelId, settings)), name: MODEL_NAMES[modelId] ?? modelId, provider: "openrouter", maxTokens: OPENROUTER_CONTEXT_TOKENS } };
 }
 
 /** The registry GET /api/chat publishes; the first entry is the default: one OpenRouter model (AGENT_MODEL, else Gemini 3.8 Flash) when its key is set, then the scripted mock. */

@@ -18,8 +18,10 @@ export type Provenance = { metric: MetricId; certified: boolean; sourceSystem: s
   filtersApplied: Partial<Record<Dim, string[]>>; filterLabels?: string[]; scopeApplied: Partial<Record<Dim, string[]>>; masked: string[]; trust: "verified" | "derived" | "estimated" };
 /** Where a month still running ends against its target at the recent pace, formatted for the card and the model. */
 export type MonthEndProjection = { recentDays: number; projected: string; monthTarget: string; attainment: string };
+/** How many groups of a breakdown sit under the metric's deciding line, counted over every group in scope before the row cap. */
+export type UnderLine = { line: number; count: number; of: number };
 export type MetricHeadline = { aggregate: "sum" | "average"; value: string; periodLabel: string; rowCount: number;
-  deltaPercent: number | null; compareLabel: string | null; compareNote: string | null; top: { label: string; value: string }[]; projection?: MonthEndProjection | null };
+  deltaPercent: number | null; compareLabel: string | null; compareNote: string | null; top: { label: string; value: string }[]; projection?: MonthEndProjection | null; underLine?: UnderLine | null };
 export type MetricResult = { ok: true; rows: MetricRow[]; summary: string; headline: MetricHeadline; provenance: Provenance } | { ok: false; error: string; code: "PERMISSION_DENIED" | "UNKNOWN_METRIC" | "BAD_QUERY" };
 
 export const METRIC_IDS = ["net_sales_volume", "net_sales_value", "sell_out_volume", "target_attainment",
