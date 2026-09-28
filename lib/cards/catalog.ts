@@ -3,8 +3,8 @@ import { extendCatalog } from "vexa/core";
 
 const sourceSchema = z.record(z.string(), z.unknown());
 
-/** Cop's own catalog components, on top of Vexa's. The model picks and names a card; Cop's presenter draws it. */
-export const COP_COMPONENTS = {
+/** Winyu's own catalog components, on top of Vexa's. The model picks and names a card; Winyu's presenter draws it. */
+export const WINYU_COMPONENTS = {
   DataCard: {
     props: z.object({
       title: z.string(),
@@ -15,7 +15,7 @@ export const COP_COMPONENTS = {
       description: z.string().nullable(),
     }),
     description:
-      "THE default answer to any question about a metric. `source` is bound to the tool result — { \"$state\": \"/tools/query_metric\" }, or \"/tools/query_metric.1\", \".2\" for the first and second call of the same turn. Cop renders the headline number, the rows or the chart, the source line and the next-action buttons from that result; never assemble those out of Card + Metric + RankList yourself. `with` binds the other query_metric calls of the same turn (\"/tools/query_metric.2\", \".3\") when one card should show several metrics together: the same things measured two ways (scatter), stages of one flow in the same unit (funnel), or the same months (lines together); otherwise null. `view` auto picks the body from the data shape — donut, stacked bars, heatmap and multi-line included; override only when the user asked for a specific one (a view the data cannot fill falls back to auto). `sortBy` orders the rows — delta_asc for a question about what dropped.",
+      "THE default answer to any question about a metric. `source` is bound to the tool result — { \"$state\": \"/tools/query_metric\" }, or \"/tools/query_metric.1\", \".2\" for the first and second call of the same turn. Winyu renders the headline number, the rows or the chart, the source line and the next-action buttons from that result; never assemble those out of Card + Metric + RankList yourself. `with` binds the other query_metric calls of the same turn (\"/tools/query_metric.2\", \".3\") when one card should show several metrics together: the same things measured two ways (scatter), stages of one flow in the same unit (funnel), or the same months (lines together); otherwise null. `view` auto picks the body from the data shape — donut, stacked bars, heatmap and multi-line included; override only when the user asked for a specific one (a view the data cannot fill falls back to auto). `sortBy` orders the rows — delta_asc for a question about what dropped.",
     example: {
       title: "เอเย่นต์ที่ยอดตกเทียบงวดก่อน",
       source: { $state: "/tools/query_metric" },
@@ -40,7 +40,7 @@ export const COP_COMPONENTS = {
         })
         .nullable(),
     }),
-    description: "The source line and the one next step of a pinned dashboard card. Cop fills it from the widget's query; never write one by hand.",
+    description: "The source line and the one next step of a pinned dashboard card. Winyu fills it from the widget's query; never write one by hand.",
     example: { note: null, action: null },
   },
   SignalList: {
@@ -60,12 +60,12 @@ export const COP_COMPONENTS = {
         }),
       ),
     }),
-    description: "The anomaly rows inside an alert card. Cop fills it from get_alerts; never write one by hand, use AlertsCard.",
+    description: "The anomaly rows inside an alert card. Winyu fills it from get_alerts; never write one by hand, use AlertsCard.",
     example: { items: [] },
   },
   CardBody: {
     props: z.object({ body: z.record(z.string(), z.unknown()) }),
-    description: "The chart inside a pinned dashboard card (donut, stacked bars, heatmap, scatter, funnel). Cop fills it from the widget's query; never write one by hand, use DataCard.",
+    description: "The chart inside a pinned dashboard card (donut, stacked bars, heatmap, scatter, funnel). Winyu fills it from the widget's query; never write one by hand, use DataCard.",
     example: { body: { kind: "none" } },
   },
   LeaveForm: {
@@ -100,7 +100,7 @@ export const COP_COMPONENTS = {
       description: z.string().nullable(),
     }),
     description:
-      "THE answer to a forecast question (what will happen, will stock last, next N weeks). `source` binds to { \"$state\": \"/tools/get_forecast\" }. `history` binds the weekly actuals of the same metric and slice when you queried them (query_metric with grain week and a week dim, e.g. { \"$state\": \"/tools/query_metric\" }), else null. Cop draws the actual weeks, the dashed forecast inside its expected band, the total or last week as the headline and the back-tested error (MAPE) as a caption. Never assemble a forecast out of Card + Metric + LineChart, and never show MAPE as a change.",
+      "THE answer to a forecast question (what will happen, will stock last, next N weeks). `source` binds to { \"$state\": \"/tools/get_forecast\" }. `history` binds the weekly actuals of the same metric and slice when you queried them (query_metric with grain week and a week dim, e.g. { \"$state\": \"/tools/query_metric\" }), else null. Winyu draws the actual weeks, the dashed forecast inside its expected band, the total or last week as the headline and the back-tested error (MAPE) as a caption. Never assemble a forecast out of Card + Metric + LineChart, and never show MAPE as a change.",
     example: {
       title: "ยอดขาย 8 สัปดาห์ข้างหน้าทรงตัว",
       source: { $state: "/tools/get_forecast" },
@@ -124,4 +124,4 @@ export const COP_COMPONENTS = {
   },
 };
 
-export const copCatalog = extendCatalog({ components: COP_COMPONENTS });
+export const winyuCatalog = extendCatalog({ components: WINYU_COMPONENTS });

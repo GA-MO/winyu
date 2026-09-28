@@ -1,13 +1,13 @@
 "use client";
 
-export type CopHostContext = { threadId: string | null; preloadPacketId: string | null };
+export type WinyuHostContext = { threadId: string | null; preloadPacketId: string | null };
 
-const state: CopHostContext = { threadId: null, preloadPacketId: null };
+const state: WinyuHostContext = { threadId: null, preloadPacketId: null };
 
-export function setHostContext(next: Partial<CopHostContext>) {
+export function setHostContext(next: Partial<WinyuHostContext>) {
   Object.assign(state, next);
 }
 
-export function readHostContext(): CopHostContext {
+export function readHostContext(): WinyuHostContext {
   return { ...state };
 }

@@ -418,8 +418,8 @@ function CourseApproval({ request }: { request: ApprovalRequest }) {
   return <Approval decision={enrollDecision(input, course)} request={request} />;
 }
 
-/** The one decision a CEO has to make, drawn by Cop: who gets the work, what it asks, what approving does. */
-export const renderCopApproval: RenderApproval = (request) => {
+/** The one decision a CEO has to make, drawn by Winyu: who gets the work, what it asks, what approving does. */
+export const renderWinyuApproval: RenderApproval = (request) => {
   if (request.tool === "enroll_course") return <CourseApproval request={request} />;
   if (request.tool === "set_permission") return <PermissionApproval request={request} />;
   if (request.tool === "create_handoff") return <HandoffApproval request={request} />;

@@ -8,7 +8,7 @@ import { TEMPLATE_ROLES, templateFor } from "@/lib/dashboard/templates";
 import { widgetToSpec } from "@/lib/dashboard/widget-to-spec";
 import { runMetric } from "@/lib/data/query";
 import { normalizeSpec } from "vexa/core";
-import { copCatalog as catalog } from "@/lib/cards/catalog";
+import { winyuCatalog as catalog } from "@/lib/cards/catalog";
 import { CLUSTER_DAYS, MIN_REPEATS, candidatesFrom, composeSuggestion, feedCandidatesFrom, isPinnedSlice, kindFor, queryFor, shouldOfferPin } from "./compose";
 import { feedIntentKey } from "./feed-learning";
 

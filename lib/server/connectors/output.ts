@@ -57,7 +57,7 @@ function flatRow(item: unknown): ConnectorRow {
   return row;
 }
 
-/** The raw result of a server Cop has no adapter for, as flat rows. */
+/** The raw result of a server Winyu has no adapter for, as flat rows. */
 export function genericOutput(raw: McpCallResult): ConnectorOutput {
   return { rows: itemsOf(payloadOf(raw)).map(flatRow) };
 }

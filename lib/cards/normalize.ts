@@ -166,7 +166,7 @@ function normalizedElement(element: SpecElement, answer: Answer | null, summarie
  * and buttons that press nothing, and swap a DataCard title its rows contradict for the plain metric name. It never
  * moves elements.
  */
-export function normalizeCopSpec(spec: Spec, context: { toolOutputs: Record<string, unknown>; turnToolOutputs?: Record<string, unknown> }): Spec {
+export function normalizeWinyuSpec(spec: Spec, context: { toolOutputs: Record<string, unknown>; turnToolOutputs?: Record<string, unknown> }): Spec {
   const elements = spec.elements as Record<string, SpecElement> | undefined;
   if (!elements) return spec;
   const answers = answersIn(context.turnToolOutputs ?? context.toolOutputs);

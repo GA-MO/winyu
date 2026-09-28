@@ -12,7 +12,7 @@ import { USERS, findUser } from "@/lib/data/entities/users";
 import { TH } from "@/lib/i18n/th";
 import { investigations } from "@/lib/server/agent/collections";
 import { runMetric } from "@/lib/server/metrics";
-import { copTools, toolsForAccess, toolTiers } from "@/lib/server/agent/tools";
+import { winyuTools, toolsForAccess, toolTiers } from "@/lib/server/agent/tools";
 import { MOCK_MODEL_ID } from "vexa/mock";
 import { models } from "@/lib/server/models";
 import { runWithAccess } from "@/lib/server/request-context";
@@ -36,7 +36,7 @@ const BARE_NAME_MIN_LENGTH = 4;
 const JOB_CONCURRENCY = 3;
 
 const INVESTIGATE_SYSTEM = [
-  "You are Cop, the analyst of a Thai beverage company. Before this person opens Cop today, explain the open anomalies listed in the prompt. Those anomalies are the only matters.",
+  "You are Winyu, the analyst of a Thai beverage company. Before this person opens Winyu today, explain the open anomalies listed in the prompt. Those anomalies are the only matters.",
   "Work like a senior analyst: pick the anomalies that most need this person, then drill down (region → agent/province/channel/SKU) until you know WHERE each problem sits. Do not investigate a topic that is not one of those anomalies.",
   "For any shortfall against target or a prior period, call explain_gap: it returns each part's share of the gap and, for month-to-date against target, where the month ends. Never compute a share or a projection yourself.",
   "Test explanations with data (season vs prior year, stock/cover, campaigns, other regions, sell-in vs sell-out). Say what you ruled out and what is still unknown. A precedent or a memory note makes a cause likely, not confirmed.",
@@ -48,10 +48,10 @@ const INVESTIGATE_SYSTEM = [
 ].join("\n");
 
 const STORY_SYSTEM = [
-  "Turn an analyst's investigation into at most three stories for one person's Cop home page, written in Thai.",
+  "Turn an analyst's investigation into at most three stories for one person's Winyu home page, written in Thai.",
   "A story has three parts and each says something the others do not:",
   "- `finding`: what is happening, where, and what it means for this person, in one or two short sentences.",
-  "- `evidence`: the one query_metric or explain_gap call that proves the finding, by its `index` in the tool results. Cop draws it as a card: a query_metric result as it is, an explain_gap call as the same metric split the same way against the same comparison, biggest shortfall first. The card shows the number, the comparison, the pace to target and where the month ends. `evidence.title` names the card: what and where, no numbers. A matter no such call shows (an incident, a licence, a vacancy) has evidence null.",
+  "- `evidence`: the one query_metric or explain_gap call that proves the finding, by its `index` in the tool results. Winyu draws it as a card: a query_metric result as it is, an explain_gap call as the same metric split the same way against the same comparison, biggest shortfall first. The card shows the number, the comparison, the pace to target and where the month ends. `evidence.title` names the card: what and where, no numbers. A matter no such call shows (an incident, a licence, a vacancy) has evidence null.",
   "- `action`: the one thing THIS person does next in their role. The owner acts; a manager asks the role that owns it a specific question; someone who only follows gets null. It never repeats the finding.",
   "The card shows the numbers, so the finding never repeats the card's headline number or its month-end projection: it says what they mean (\"จะปิดเดือนต่ำกว่าเป้า\", \"ของจะหมดก่อนรอบเติม\"). A number the card does not show (a date, a count, a share from explain_gap) may appear, copied exactly as the tool wrote it.",
   "Pick as evidence the call whose rows show where the problem sits, in the same scope as the finding. A card must agree with its finding: a story about one agent is not proven by a whole region's total.",
@@ -76,7 +76,7 @@ type MetricAnswer = Extract<MetricResult, { ok: true }> & { query: MetricQuery }
 
 /** The open anomalies this person would get from get_alerts, read before the model runs so a story cannot start without them. */
 export async function openAnomalies(access: AccessContext): Promise<ToolCall> {
-  const definition = copTools()[ALERTS_TOOL] as Tool;
+  const definition = winyuTools()[ALERTS_TOOL] as Tool;
   const execute = definition.execute as (args: unknown, options: unknown) => Promise<unknown>;
   const output = await runWithAccess(access, () => execute(ALERT_INPUT, {}));
   return { tool: ALERTS_TOOL, input: ALERT_INPUT, output };
@@ -233,7 +233,7 @@ function namePatternsOf(user: User): string[] {
   return first.length >= BARE_NAME_MIN_LENGTH ? [`${HONORIFIC}${first}`, first] : [`${HONORIFIC}${first}`];
 }
 
-/** Names of people who hold a role in Cop, found in a story's words; a story names roles, since who holds one changes. */
+/** Names of people who hold a role in Winyu, found in a story's words; a story names roles, since who holds one changes. */
 export function roleHoldersNamedIn(draft: DraftStory): string[] {
   const text = textsOf(draft).join(" ");
   return [...new Set(USERS.flatMap((user) => (namePatternsOf(user).some((pattern) => text.includes(pattern)) ? [user.nameTh] : [])))];
@@ -264,7 +264,7 @@ function storyOf(entry: ReviewedDraft, calls: readonly ToolCall[], evidenceIndex
   return { ...entry.draft, id, evidence, ruledOut };
 }
 
-/** The stories kept from reviewed drafts: a blocked draft is dropped, a ruled-out claim stands only on a data tool this run called, and the evidence becomes the query Cop draws again. */
+/** The stories kept from reviewed drafts: a blocked draft is dropped, a ruled-out claim stands only on a data tool this run called, and the evidence becomes the query Winyu draws again. */
 export function storiesFrom(userId: string, reviewed: readonly ReviewedDraft[], calls: readonly ToolCall[], evidence: EvidenceIndex): { stories: Story[]; dropped: InvestigationRun["dropped"] } {
   const kept = reviewed.filter((entry) => !isBlocked(entry));
   const dropped = reviewed.filter(isBlocked).map((entry) => ({ finding: entry.draft.finding, ungrounded: entry.ungrounded, names: entry.names }));
@@ -328,7 +328,7 @@ export async function runInvestigateJob(): Promise<number> {
   const workers = Array.from({ length: JOB_CONCURRENCY }, async () => {
     for (let userId = queue.shift(); userId; userId = queue.shift()) {
       const run = await investigate(userId, model, modelId).catch((error: unknown) => {
-        console.error(`[cop] investigation for ${userId} failed`, error);
+        console.error(`[winyu] investigation for ${userId} failed`, error);
         return null;
       });
       if (!run) continue;

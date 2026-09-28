@@ -56,7 +56,7 @@ async function outputOf(tool: RestToolConfig, response: Response): Promise<Remot
   }
 }
 
-/** How a REST endpoint is asked: one request as the person asking, 502–504 and timeouts as unavailable, other errors in the server's own (fenced) words, the body through Cop's adapter. */
+/** How a REST endpoint is asked: one request as the person asking, 502–504 and timeouts as unavailable, other errors in the server's own (fenced) words, the body through Winyu's adapter. */
 export function restCaller(connector: RestConnectorConfig, binding: ConnectorToolBinding<RestToolConfig>): RemoteCaller {
   return async (args, access) => {
     let response: Response;

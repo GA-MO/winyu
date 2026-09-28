@@ -6,7 +6,7 @@ import { fieldVisibilityOf, setFieldVisibility } from "@/lib/access/role-overrid
 import { auditLog, withAudit } from "@/lib/server/audit";
 import { runWithAccess } from "@/lib/server/request-context";
 import { applyPermissionChange } from "@/lib/server/permissions";
-import { connectors, copTool, toolSurface } from "@/lib/server/tools/registry";
+import { connectors, winyuTool, toolSurface } from "@/lib/server/tools/registry";
 import { callConnectorTool, CONNECTOR_UNAVAILABLE, NONE_IN_SCOPE, SCOPE_TRIMMED } from "./call";
 import { forgetRemoteTools } from "./catalog";
 import { defineMcpConnector, registerConnectors, resetConnectors } from "./index";
@@ -57,7 +57,7 @@ function accessOf(id: string): AccessContext {
 }
 
 async function call(name: string, access: AccessContext, input: unknown): Promise<unknown> {
-  const execute = copTool(name)?.tool.execute as (input: unknown, options: unknown) => Promise<unknown>;
+  const execute = winyuTool(name)?.tool.execute as (input: unknown, options: unknown) => Promise<unknown>;
   return runWithAccess(access, () => execute(input, {}));
 }
 
@@ -85,7 +85,7 @@ describe("declaring a connector", () => {
     const names = toolSurface().filter((entry) => entry.connector === STUB_CONNECTOR_ID).map((entry) => [entry.name, entry.tier]);
     expect(names).toEqual([[HISTORY, "read"], [WIPE, "destructive"]]);
     expect(toolSurface().some((entry) => entry.name.includes("export_everything"))).toBe(false);
-    expect(copTool(WIPE)?.tool.needsApproval).toBe(true);
+    expect(winyuTool(WIPE)?.tool.needsApproval).toBe(true);
     expect(connectors().map((item) => [item.id, item.kind]).at(-1)).toEqual([STUB_CONNECTOR_ID, "mcp"]);
   });
 
@@ -101,7 +101,7 @@ describe("calling a connector tool", () => {
   test("the server hears who is asking, and the model cannot widen the region", async () => {
     fresh();
     const result = (await call(HISTORY, accessOf("u_krit"), { employeeId: null, region: "bkk" })) as Rows;
-    expect(server.calls[0].headers["x-cop-user"]).toBe("u_krit");
+    expect(server.calls[0].headers["x-winyu-user"]).toBe("u_krit");
     expect(server.calls[0].args.region).toBe("northeast");
     expect(result.rows.every((row) => row.region === "northeast")).toBe(true);
   });
@@ -116,7 +116,7 @@ describe("calling a connector tool", () => {
     fresh();
     await call(HISTORY, accessOf("u_krit"), { employeeId: null, region: null });
     await call(HISTORY, accessOf(userId("ceo")), { employeeId: null, region: null });
-    expect(server.calls.map((item) => item.headers["x-cop-user"])).toEqual(["u_krit", userId("ceo")]);
+    expect(server.calls.map((item) => item.headers["x-winyu-user"])).toEqual(["u_krit", userId("ceo")]);
   });
 
   test("a sensitive field is full, masked or gone by role, and the audit says masked", async () => {
@@ -152,7 +152,7 @@ describe("calling a connector tool", () => {
     fresh();
     const result = (await call(HISTORY, accessOf(userId("ceo")), { employeeId: null, region: null })) as Rows;
     await reconcileConnectors();
-    const description = copTool(HISTORY)?.tool.description ?? "";
+    const description = winyuTool(HISTORY)?.tool.description ?? "";
     expect(description).toContain(STUB_INJECTED_TEXT);
     expect(description).not.toContain("<system>");
     expect(result.rows.some((row) => String(row.course).includes(STUB_INJECTED_TEXT))).toBe(true);
@@ -167,7 +167,7 @@ describe("calling a connector tool", () => {
     expect(newAuditRows(before).map((row) => [row.tool, row.connector])).toEqual([[HISTORY, STUB_CONNECTOR_ID]]);
   });
 
-  test("inputs are checked by Cop's schema before anything reaches the server", async () => {
+  test("inputs are checked by Winyu's schema before anything reaches the server", async () => {
     fresh();
     const before = new Set(auditLog().all().map((row) => row.id));
     await expect(call(HISTORY, accessOf("u_krit"), { employeeId: 7, region: null })).rejects.toThrow();
@@ -229,7 +229,7 @@ describe("connector health", () => {
 });
 
 describe("reconciling with the server", () => {
-  test("reports declared tools the server lacks and server tools Cop leaves closed", async () => {
+  test("reports declared tools the server lacks and server tools Winyu leaves closed", async () => {
     fresh();
     const [drift] = await reconcileConnectors();
     expect(drift).toEqual({ connector: STUB_CONNECTOR_ID, missing: [], unused: ["export_everything"], mismatched: [] });

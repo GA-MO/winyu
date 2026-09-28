@@ -38,7 +38,7 @@ function suggestedActionsFor(ask: string): string[] {
 
 export const createHandoffTool = defineTool({
   name: "create_handoff",
-  connector: "cop",
+  connector: "winyu",
   tier: "write",
   roles: ALL_BUT_SALES_REP,
   description: "Hand this question over to the responsible person as a context packet: the ask, the urgency and the queries as evidence (references, re-run under their own scope). The user approves it first. Resolve the owner before calling.",

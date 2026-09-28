@@ -5,16 +5,17 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Check, History, Inbox, LayoutDashboard, Menu, MessageSquarePlus, Pencil, Search, Trash2, X } from "lucide-react";
 import { cn } from "vexa/lib/utils";
+import { BrandMark } from "@/components/chrome/brand-mark";
 import { TH } from "@/lib/i18n/th";
 import { threadGroupOf, type ThreadGroup } from "@/lib/i18n/format";
 
 const THREADS_ENDPOINT = "/api/threads";
-const STORAGE_KEY = "cop-rail-open";
+const STORAGE_KEY = "winyu-rail-open";
 const GROUP_ORDER: ThreadGroup[] = ["today", "yesterday", "week", "older"];
 const ICON_BUTTON = "flex size-10 items-center justify-center rounded-xl text-muted-foreground transition hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 const ROW = "group flex items-center gap-2 rounded-full px-3 py-1.5 text-sm text-muted-foreground transition hover:bg-muted hover:text-foreground";
 const ROW_ACTIVE = "bg-bubble text-foreground";
-const BRAND_MARK = "flex size-8 shrink-0 items-center justify-center rounded-xl bg-ink text-sm font-bold text-ink-foreground";
+const BRAND_MARK = "flex size-8 shrink-0 items-center justify-center rounded-[10px] bg-linear-135 from-primary via-brand-violet to-brand-coral text-white shadow-sm";
 
 type ThreadSummary = { id: string; title: string; createdAt: string; updatedAt: string; packetId: string | null };
 
@@ -47,7 +48,7 @@ export function ThreadRail() {
   useEffect(() => setOpen(storedOpen()), []);
 
   useEffect(() => {
-    document.documentElement.style.setProperty("--cop-rail-offset", open ? "var(--cop-rail-expanded)" : "var(--cop-rail-collapsed)");
+    document.documentElement.style.setProperty("--winyu-rail-offset", open ? "var(--winyu-rail-expanded)" : "var(--winyu-rail-collapsed)");
   }, [open]);
 
   const load = useCallback(() => {
@@ -111,7 +112,9 @@ export function ThreadRail() {
       >
         <div className={cn("flex items-center gap-2", expanded ? "justify-between" : "flex-col")}>
           <Link href="/" aria-label={TH.app.name} className="flex items-center gap-2 px-1">
-            <span className={BRAND_MARK}>C</span>
+            <span className={BRAND_MARK}>
+              <BrandMark className="size-5" />
+            </span>
             {expanded ? <span className="text-base font-semibold tracking-tight">{TH.app.name}</span> : null}
           </Link>
           <button type="button" onClick={toggle} aria-label={expanded ? TH.rail.collapse : TH.rail.expand} className={cn(ICON_BUTTON, "hidden md:flex")}>

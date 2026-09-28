@@ -12,12 +12,12 @@ function assertUniqueTools(connectors: RemoteConnector[]): void {
   if (repeated) throw new Error(`connector tool ${repeated} is declared twice`);
 }
 
-/** The connectors to other systems on Cop's surface, MCP and REST alike: the configured ones, or the ones a test registered. */
+/** The connectors to other systems on Winyu's surface, MCP and REST alike: the configured ones, or the ones a test registered. */
 export function remoteConnectors(): RemoteConnector[] {
   return registered ?? CONFIGURED;
 }
 
-/** The MCP ones among them, whose tool catalogs Cop reads and reconciles. */
+/** The MCP ones among them, whose tool catalogs Winyu reads and reconciles. */
 export function mcpConnectors(): McpConnector[] {
   return remoteConnectors().filter((connector): connector is McpConnector => connector.def.kind === "mcp");
 }

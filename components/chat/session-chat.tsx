@@ -10,7 +10,7 @@ import { Conversation, ConversationContent, ConversationScrollButton } from "vex
 import { useVexaHostContext } from "vexa/react";
 import type { QuickAction } from "@/lib/contracts";
 import { TH } from "@/lib/i18n/th";
-import { CopComposer } from "@/components/composer/cop-composer";
+import { WinyuComposer } from "@/components/composer/winyu-composer";
 import { GlassPanel } from "@/components/ui/glass-panel";
 import { GlowBackdrop } from "@/components/ui/glow-backdrop";
 import { ChipIcon } from "@/components/ui/chip-icon";
@@ -18,7 +18,7 @@ import { registerChatSender } from "@/components/providers/chat-sender";
 import { PILL } from "@/components/ui/pill";
 import { setHostContext } from "@/components/providers/host-context";
 import { isFollowUpIntent } from "@/lib/engine/follow-ups";
-import { COP_CHAT_LABELS } from "./labels";
+import { WINYU_CHAT_LABELS } from "./labels";
 import { answeredMetrics, chipRow, latestFollowUps } from "./follow-ups";
 
 const CHAT_ENDPOINT = "/api/chat";
@@ -171,7 +171,7 @@ export function SessionChat({
     <div className="relative flex h-dvh min-h-0 flex-col">
       <GlowBackdrop className="opacity-70" />
       <Conversation className="relative z-10 min-h-0 flex-1" initial="instant">
-        <ConversationContent className={`cop-chat flex flex-col gap-6 pb-6 pt-16 ${COLUMN}`}>
+        <ConversationContent className={`winyu-chat flex flex-col gap-6 pb-6 pt-16 ${COLUMN}`}>
           {preload ? (
             <GlassPanel className="flex items-start gap-3 p-4 animate-hero-rise">
               <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-xl bg-ink text-ink-foreground">
@@ -197,12 +197,12 @@ export function SessionChat({
           {messages.map((message, index) => (
             <Fragment key={message.id}>
               {message.role === "user" ? (
-                <UserMessage labels={COP_CHAT_LABELS} message={message} />
+                <UserMessage labels={WINYU_CHAT_LABELS} message={message} />
               ) : (
                 <AssistantMessage
                   isLast={index === messages.length - 1}
                   isStreaming={isStreaming}
-                  labels={COP_CHAT_LABELS}
+                  labels={WINYU_CHAT_LABELS}
                   message={message}
                   messages={messages}
                   steps="collapsible"
@@ -242,7 +242,7 @@ export function SessionChat({
               ))}
             </div>
           ) : null}
-          <CopComposer value={text} onValueChange={setText} onSubmit={send} size="docked" busy={isStreaming} placeholder={placeholder} />
+          <WinyuComposer value={text} onValueChange={setText} onSubmit={send} size="docked" busy={isStreaming} placeholder={placeholder} />
         </div>
       </div>
     </div>

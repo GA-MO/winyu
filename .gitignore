@@ -12,3 +12,4 @@ next-env.d.ts
 site/dist
 site/.react-router
 site/build
+site/out

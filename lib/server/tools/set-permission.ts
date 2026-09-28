@@ -15,7 +15,7 @@ function describeSetPermission(): string {
 
 export const setPermissionTool = defineTool({
   name: "set_permission",
-  connector: "cop",
+  connector: "winyu",
   tier: "destructive",
   roles: ["it_admin"],
   description: describeSetPermission,

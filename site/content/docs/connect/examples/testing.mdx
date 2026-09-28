@@ -11,7 +11,7 @@ import type { AccessContext } from "@/lib/contracts";
 import { USERS } from "@/lib/data/entities/users";
 import { liveAccessFor } from "@/lib/access/enforce";
 import { runWithAccess } from "@/lib/server/request-context";
-import { copTool } from "@/lib/server/tools/registry";
+import { winyuTool } from "@/lib/server/tools/registry";
 import { registerConnectors, resetConnectors } from "@/lib/server/connectors";
 import { registerRestTransport, resetRestTransport } from "@/lib/server/connectors/rest";
 import { hrConnector } from "./hr";
@@ -43,7 +43,7 @@ function accessOf(userId: string): AccessContext {
 }
 
 async function ask(userId: string, tool: string, input: Record<string, unknown>) {
-  const execute = copTool(tool)?.tool.execute as (input: unknown, options: unknown) => Promise<Record<string, unknown>>;
+  const execute = winyuTool(tool)?.tool.execute as (input: unknown, options: unknown) => Promise<Record<string, unknown>>;
   return runWithAccess(accessOf(userId), () => execute(input, {}));
 }
 

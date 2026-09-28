@@ -3,7 +3,7 @@ import type { AccessContext } from "@/lib/contracts";
 import { USERS } from "@/lib/data/entities/users";
 import { auditLog } from "@/lib/server/audit";
 import { runWithAccess } from "@/lib/server/request-context";
-import { connectors, copTool, toolSurface } from "@/lib/server/tools/registry";
+import { connectors, winyuTool, toolSurface } from "@/lib/server/tools/registry";
 import { registerConnectors, resetConnectors } from "@/lib/server/connectors";
 import { CONNECTOR_FAILED, CONNECTOR_UNAVAILABLE } from "@/lib/server/connectors/call";
 import { connectorHealth, forgetRemoteTools } from "@/lib/server/connectors/catalog";
@@ -52,7 +52,7 @@ function accessOf(id: string): AccessContext {
 }
 
 async function ask(userId: string, input: Record<string, unknown> = {}): Promise<Result> {
-  const execute = copTool(TOOL)?.tool.execute as (input: unknown, options: unknown) => Promise<Result>;
+  const execute = winyuTool(TOOL)?.tool.execute as (input: unknown, options: unknown) => Promise<Result>;
   return runWithAccess(accessOf(userId), () => execute({ agentId: null, regions: null, ...input }, {}));
 }
 
@@ -77,12 +77,12 @@ describe("red team: REST connector scope", () => {
 
   test("the request carries the asker's signed identity and never follows a redirect", async () => {
     await ask(REP);
-    expect(sent[0]?.headers.get("x-cop-user")).toBe(REP);
-    expect(sent[0]?.headers.get("x-cop-signature")).toBeTruthy();
+    expect(sent[0]?.headers.get("x-winyu-user")).toBe(REP);
+    expect(sent[0]?.headers.get("x-winyu-signature")).toBeTruthy();
     expect(sent[0]?.redirect).toBe("error");
   });
 
-  test("a server that ignores the region still leaks nothing: Cop filters the rows", async () => {
+  test("a server that ignores the region still leaks nothing: Winyu filters the rows", async () => {
     answer = () => everything();
     const result = await ask(REP);
     expect(new Set((result.rows ?? []).map((row) => row.region))).toEqual(new Set(["northeast"]));
@@ -114,8 +114,8 @@ describe("red team: REST connector scope", () => {
     expect(notes[0]).not.toContain("<system>");
   });
 
-  test("the demo server refuses a caller whose identity Cop did not sign", async () => {
-    const response = await crmDemoFetch(new Request(`${crmDemoEnv().url}/visits`, { headers: { "x-cop-user": ADMIN, "x-cop-role": "it_admin", "x-cop-regions": "all" } }));
+  test("the demo server refuses a caller whose identity Winyu did not sign", async () => {
+    const response = await crmDemoFetch(new Request(`${crmDemoEnv().url}/visits`, { headers: { "x-winyu-user": ADMIN, "x-winyu-role": "it_admin", "x-winyu-regions": "all" } }));
     expect(response.status).toBe(401);
   });
 });

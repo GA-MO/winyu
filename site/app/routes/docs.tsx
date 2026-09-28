@@ -24,7 +24,7 @@ function ContentPage({ path }: { path: string }) {
   const Mdx = page.body;
   return (
     <DocsPage toc={page.toc} tableOfContent={{ style: "clerk" }}>
-      <title>{`${page.title} | Cop`}</title>
+      <title>{`${page.title} | Winyu`}</title>
       <meta name="description" content={page.description} />
       <DocsTitle>{page.title}</DocsTitle>
       <DocsDescription>{page.description}</DocsDescription>

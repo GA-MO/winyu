@@ -51,7 +51,7 @@ async function issuesOf(employee: Employee, signals: PeopleSignals, view: People
   return issues.sort((left, right) => right.weight - left.weight);
 }
 
-/** Who a matter about this employee goes to: their manager when the manager uses Cop and is not the viewer, else the employee when they use Cop. */
+/** Who a matter about this employee goes to: their manager when the manager uses Winyu and is not the viewer, else the employee when they use Winyu. */
 function recipientOf(access: AccessContext, employee: Employee, directory: Directory): Employee | null {
   const manager = employee.managerId ? directory.byId(employee.managerId) : null;
   if (manager && manager.id !== access.userId && findUser(manager.id)) return manager;

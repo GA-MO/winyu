@@ -19,7 +19,7 @@ export type LeaveFormProps = {
 
 type LeaveDraft = { kind: string; from: string; to: string; reason: string; sentKey: string | null };
 
-const ACTION_TOOL = "cop_action";
+const ACTION_TOOL = "winyu_action";
 const DRAFTS = new Map<string, LeaveDraft>();
 const FIELD =
   "w-full rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
@@ -60,7 +60,7 @@ function useLeaveDraft(props: LeaveFormProps, kinds: LeaveKindOption[]) {
   return [draft, update] as const;
 }
 
-/** The leave form: kind, dates and reason. Submitting asks Cop to file it, which then asks the user to approve. */
+/** The leave form: kind, dates and reason. Submitting asks Winyu to file it, which then asks the user to approve. */
 export function LeaveForm({ props }: { props: LeaveFormProps }) {
   const kinds = props.kinds ?? [];
   const [draft, update] = useLeaveDraft(props, kinds);

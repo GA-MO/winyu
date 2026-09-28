@@ -9,7 +9,7 @@ export const findPeopleTool = defineTool({
   connector: "hris",
   tier: "read",
   roles: "all",
-  description: "List employees with their photo, title, place and status badges: a team (manager = the lead's id or name), a region, a department (dept_sales, dept_production, dept_hr, ...) or a flag (new, risk, cert_expiring, overtime, retiring). Rows come lead first, at most 12, plus the open positions in scope. Call it when the user asks who is on a team, who is new, whose licence expires, who works too much overtime. It lists current employees only: Cop keeps no record of people who have left. It never returns numbers to chart; use query_metric for headcount and attrition.",
+  description: "List employees with their photo, title, place and status badges: a team (manager = the lead's id or name), a region, a department (dept_sales, dept_production, dept_hr, ...) or a flag (new, risk, cert_expiring, overtime, retiring). Rows come lead first, at most 12, plus the open positions in scope. Call it when the user asks who is on a team, who is new, whose licence expires, who works too much overtime. It lists current employees only: Winyu keeps no record of people who have left. It never returns numbers to chart; use query_metric for headcount and attrition.",
   input: findPeopleInputSchema,
   execute: async (input: z.infer<typeof findPeopleInputSchema>) =>
     findPeople(currentAccess(), { region: input.region, departmentId: input.department, manager: input.manager, query: input.query, flag: input.flag }),

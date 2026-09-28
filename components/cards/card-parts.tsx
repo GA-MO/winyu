@@ -8,7 +8,7 @@ import type { CardParts } from "@/lib/cards/present";
 import { TH } from "@/lib/i18n/th";
 import { CardBodyView } from "./charts/card-body";
 
-const ACTION_TOOL = "cop_action";
+const ACTION_TOOL = "winyu_action";
 const PRIMARY = "inline-flex items-center rounded-full bg-ink px-3.5 py-2 text-xs font-medium text-ink-foreground transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 const SECONDARY = "inline-flex items-center rounded-full border border-border bg-card px-3.5 py-2 text-xs font-medium text-muted-foreground transition hover:border-foreground/25 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 

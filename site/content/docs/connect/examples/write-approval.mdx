@@ -11,7 +11,7 @@ export const itsmConnector = defineRestConnector({
   labelTh: "ระบบแจ้งซ่อม IT",
   sourceSystemTh: "ITSM",
   baseUrl: env.ITSM_URL,
-  auth: (access) => ({ authorization: `Bearer ${cachedOboToken(access?.userId ?? "cop")}` }),
+  auth: (access) => ({ authorization: `Bearer ${cachedOboToken(access?.userId ?? "winyu")}` }),
   timeoutMs: 6000,
   tools: {
     open_ticket: {
@@ -35,8 +35,8 @@ export const itsmConnector = defineRestConnector({
 ## สิ่งที่เกิดขึ้น
 
 1. ผู้ใช้พิมพ์ "แจ้งซ่อมเครื่องพิมพ์ชั้น 3 เปิดไม่ติด"
-2. AI เรียก `itsm__open_ticket` Cop หยุดไว้และแสดงการ์ดอนุมัติ ยังไม่มีคำขอไปที่ ITSM
-3. ผู้ใช้กดอนุมัติ Cop เขียนทับ `requester` ด้วยรหัสของผู้ถาม แล้วส่ง `POST /tickets`
+2. AI เรียก `itsm__open_ticket` Winyu หยุดไว้และแสดงการ์ดอนุมัติ ยังไม่มีคำขอไปที่ ITSM
+3. ผู้ใช้กดอนุมัติ Winyu เขียนทับ `requester` ด้วยรหัสของผู้ถาม แล้วส่ง `POST /tickets`
 4. `summary` จาก `output` กลายเป็นข้อความยืนยัน audit บันทึกการเรียกพร้อม argument ย่อ
 
 `requester` มาจาก `inject` เสมอ AI จึงเปิดใบแจ้งซ่อมในนามคนอื่นไม่ได้ ค่านี้ใส่ตอนส่งคำขอหลังอนุมัติ การ์ดจึงแสดงเฉพาะ argument ที่ AI ส่งมา
@@ -49,7 +49,7 @@ export const itsmConnector = defineRestConnector({
 | `write` | การ์ดอนุมัติ | บทบาทใน `roles` และบทบาทที่ admin เพิ่มให้ |
 | `destructive` | การ์ดอนุมัติ | เฉพาะบทบาทใน `roles` admin ถอดได้แต่ให้บทบาทอื่นเพิ่มไม่ได้ |
 
-ถ้าไม่ระบุ `tier` Cop ถือเป็น `destructive` tool ที่ลืมระบุจึงปลอดภัยไว้ก่อน
+ถ้าไม่ระบุ `tier` Winyu ถือเป็น `destructive` tool ที่ลืมระบุจึงปลอดภัยไว้ก่อน
 
 ## การ์ดอนุมัติ
 

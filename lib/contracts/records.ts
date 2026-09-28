@@ -111,5 +111,5 @@ export type LeavePolicy = {
   annualNoticeWorkdays: number;
 };
 
-/** One mail as Cop hands it to the mail system; the system gives it an id and a time. */
+/** One mail as Winyu hands it to the mail system; the system gives it an id and a time. */
 export type MailMessage = Omit<OutboxEntry, "id" | "at">;

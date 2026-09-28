@@ -11,7 +11,7 @@ const TOOL_STATES: Record<ChatToolState, string> = {
   "output-error": "เกิดข้อผิดพลาด",
 };
 
-export const COP_CHAT_LABELS: ChatLabels = {
+export const WINYU_CHAT_LABELS: ChatLabels = {
   ...DEFAULT_LABELS,
   emptyTitle: TH.chat.emptyTitle,
   emptyDescription: TH.chat.emptyDescription,
@@ -33,8 +33,8 @@ export const COP_CHAT_LABELS: ChatLabels = {
   restoreTooltip: "ย้อนบทสนทนากลับมาที่จุดนี้",
   startOver: TH.chat.startOver,
   closeChat: TH.common.close,
-  openAssistant: "เปิด Cop",
-  closeAssistant: "ปิด Cop",
+  openAssistant: "เปิด Winyu",
+  closeAssistant: "ปิด Winyu",
   queued: "รอส่ง",
   removeQueued: "เอาออกจากคิว",
   sentWithAttachments: "ส่งพร้อมไฟล์แนบ",

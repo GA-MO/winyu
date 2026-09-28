@@ -10,7 +10,7 @@ const HOUR_MS = 60 * 60_000;
 const BANGKOK_OFFSET_MS = 7 * HOUR_MS;
 const DIGEST_HOUR = 7;
 const INVESTIGATE_HOUR = 6;
-const STARTED = Symbol.for("cop.scheduler.started");
+const STARTED = Symbol.for("winyu.scheduler.started");
 
 type Due = "engine" | "watches" | "digest" | "investigate";
 
@@ -56,7 +56,7 @@ export function startScheduler(): void {
   const scope = globalThis as SchedulerGlobal;
   if (scope[STARTED]) return;
   scope[STARTED] = setInterval(() => {
-    tick().catch((error: unknown) => console.error("[cop] scheduler tick failed", error));
-    probeConnectors().catch((error: unknown) => console.error("[cop] connector probe failed", error));
+    tick().catch((error: unknown) => console.error("[winyu] scheduler tick failed", error));
+    probeConnectors().catch((error: unknown) => console.error("[winyu] connector probe failed", error));
   }, TICK_MS);
 }

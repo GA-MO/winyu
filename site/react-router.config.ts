@@ -15,7 +15,7 @@ async function docsPaths() {
 
 export default {
   ssr: false,
-  basename: process.env.COP_SITE_BASE_PATH ?? "/",
+  basename: process.env.WINYU_SITE_BASE_PATH ?? "/",
   async prerender({ getStaticPaths }) {
     return [...new Set([...getStaticPaths(), ...(await docsPaths())])];
   },

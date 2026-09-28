@@ -16,7 +16,7 @@ export type EvalCase = {
   scripted?: boolean;
 };
 
-/** The questions a Cop demo actually gets asked, one per card shape and per persona scope. */
+/** The questions a Winyu demo actually gets asked, one per card shape and per persona scope. */
 export const EVAL_CASES: EvalCase[] = [
   { scripted: true, id: "ceo-attainment", userId: "u_thana", prompt: "ยอดขายทั้งประเทศเทียบเป้าตอนนี้เท่าไหร่", expectComponent: "DataCard" },
   { scripted: true, id: "ceo-by-region", userId: "u_thana", prompt: "ยอดขายแยกตามภาคเดือนนี้", expectComponent: "DataCard", expectSort: "value_desc" },

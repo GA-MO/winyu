@@ -8,7 +8,7 @@ import { feedFor, isGoodNewsItem as isGoodNews, isTask, onePerStory } from "./fe
 import { ports } from "./ports";
 
 const MAX_LINES = 5;
-const SYSTEM_SENDER = "cop";
+const SYSTEM_SENDER = "winyu";
 
 /** `goodNews` closes the digest with the best new thing in the user's patch; it never makes a digest worth sending on its own. */
 export type Digest = { lead: string | null; lines: string[]; goodNews: string | null; count: number; keys: string[]; tones: Record<string, FeedTone> };

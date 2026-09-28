@@ -23,7 +23,7 @@ function changedLine(connector: ConnectorDef): string | null {
   return entry ? COPY.changed(findUser(entry.by)?.nameTh ?? entry.by, stamp(entry.at)) : null;
 }
 
-/** One connector as a group header: its name, the system behind it, whether Cop reaches it, and the switch that closes all of its tools. */
+/** One connector as a group header: its name, the system behind it, whether Winyu reaches it, and the switch that closes all of its tools. */
 export function ConnectorHeader({ connector }: { connector: ConnectorDef }) {
   const enabled = connectorEnabled(connector.id);
   const health = healthOf(connector);

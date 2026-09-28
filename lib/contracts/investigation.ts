@@ -17,7 +17,7 @@ export const storySchema = z.object({
 
 export type StoryKind = (typeof STORY_KINDS)[number];
 export type DraftStory = z.infer<typeof storySchema>;
-/** The query a story's card draws: Cop runs it again for whoever opens the story, so the card follows their scope and today's data. */
+/** The query a story's card draws: Winyu runs it again for whoever opens the story, so the card follows their scope and today's data. */
 export type StoryEvidence = { title: string; query: MetricQuery };
 /** A story as it is kept: the model's words, and the query it chose as evidence resolved from its tool calls. */
 export type Story = Omit<DraftStory, "evidence"> & { id: string; evidence: StoryEvidence | null };
@@ -25,5 +25,5 @@ export type Investigation = { id: string; userId: string; at: string; model: str
 /** A story's evidence as the viewer's card draws it: the query's result, run again under the viewer's scope. */
 export type EvidenceAnswer = Extract<MetricResult, { ok: true }> & { query: MetricQuery; nextActions: NextAction[] };
 export type StoryCard = { story: Story; evidence: EvidenceAnswer | null };
-/** What the stories drawer opens on: when Cop investigated, how much it looked at, and each story with its card. */
+/** What the stories drawer opens on: when Winyu investigated, how much it looked at, and each story with its card. */
 export type MorningBrief = { at: string; checkedCount: number; cards: StoryCard[] };

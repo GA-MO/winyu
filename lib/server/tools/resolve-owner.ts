@@ -11,7 +11,7 @@ function regionOf(dims: Partial<Record<Dim, string>>): Region | null {
 
 export const resolveOwnerTool = defineTool({
   name: "resolve_owner",
-  connector: "cop",
+  connector: "winyu",
   tier: "read",
   roles: "all",
   description: "Find the person accountable for a metric in a region (the RACI table) before handing work over or asking for access. Returns the user id, name, title and the reason they own it.",

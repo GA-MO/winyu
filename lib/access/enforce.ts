@@ -92,7 +92,7 @@ export function connectorSwitchId(connector: string): string {
   return `${CONNECTOR_SWITCH_PREFIX}${connector}`;
 }
 
-/** Whether Cop may reach a connector at all; on until an admin turns the whole connector off. */
+/** Whether Winyu may reach a connector at all; on until an admin turns the whole connector off. */
 export function connectorEnabled(connector: string): boolean {
   return switchEnabled(connectorSwitchId(connector));
 }

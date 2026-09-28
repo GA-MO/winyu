@@ -9,7 +9,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const user = readUser(await cookies());
   if (!user) redirect("/login");
   return (
-    <div className="cop-main relative min-h-dvh">
+    <div className="winyu-main relative min-h-dvh">
       <ThreadRail />
       <AppChrome user={user} users={USERS} />
       <main className="relative min-h-dvh">{children}</main>

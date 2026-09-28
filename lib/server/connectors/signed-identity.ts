@@ -1,9 +1,9 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import type { AccessContext } from "@/lib/contracts";
 
-export const IDENTITY_HEADERS = { user: "x-cop-user", role: "x-cop-role", regions: "x-cop-regions", signature: "x-cop-signature" } as const;
+export const IDENTITY_HEADERS = { user: "x-winyu-user", role: "x-winyu-role", regions: "x-winyu-regions", signature: "x-winyu-signature" } as const;
 
-const COP_ITSELF = "cop";
+const WINYU_ITSELF = "winyu";
 const ALL = "all";
 
 export type SignedIdentity = { userId: string; role: string; regions: string };
@@ -16,11 +16,11 @@ function signatureOf(identity: SignedIdentity, secret: string): string {
   return createHmac("sha256", secret).update(payloadOf(identity)).digest("hex");
 }
 
-/** Headers that tell a connector who is asking, signed with a secret only Cop and that server hold; null access means Cop itself. */
+/** Headers that tell a connector who is asking, signed with a secret only Winyu and that server hold; null access means Winyu itself. */
 export function signedIdentityHeaders(access: AccessContext | null, secret: string): Record<string, string> {
   const identity: SignedIdentity = access
     ? { userId: access.userId, role: access.role, regions: access.regions === ALL ? ALL : access.regions.join(",") }
-    : { userId: COP_ITSELF, role: COP_ITSELF, regions: ALL };
+    : { userId: WINYU_ITSELF, role: WINYU_ITSELF, regions: ALL };
   return {
     [IDENTITY_HEADERS.user]: identity.userId,
     [IDENTITY_HEADERS.role]: identity.role,

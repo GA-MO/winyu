@@ -5,7 +5,7 @@ import { USERS } from "@/lib/data/entities/users";
 import { ports } from "@/lib/server/ports";
 import { auditLog } from "@/lib/server/audit";
 import { runWithAccess } from "@/lib/server/request-context";
-import { copTool, toolSurface } from "@/lib/server/tools/registry";
+import { winyuTool, toolSurface } from "@/lib/server/tools/registry";
 import { registerConnectors, resetConnectors } from "@/lib/server/connectors";
 import { lmsDemoConnector } from "@/lib/server/connectors/lms-demo";
 import { LMS_DEMO_ID, lmsDemoEnv } from "@/lib/server/connectors/lms-demo-config";
@@ -36,7 +36,7 @@ function inProcessClient(transport: McpTransportConfig): ConnectorClient {
   };
   return {
     callTool: async ({ name, arguments: args }) => {
-      seen.push({ args: args ?? {}, user: headers["x-cop-user"] ?? null });
+      seen.push({ args: args ?? {}, user: headers["x-winyu-user"] ?? null });
       return rpc("tools/call", { name, arguments: args });
     },
     listTools: () => rpc("tools/list", {}),
@@ -67,7 +67,7 @@ function accessOf(id: string): AccessContext {
 }
 
 async function ask(userId: string, input: Record<string, unknown>): Promise<Result> {
-  const execute = copTool(TOOL)?.tool.execute as (input: unknown, options: unknown) => Promise<Result>;
+  const execute = winyuTool(TOOL)?.tool.execute as (input: unknown, options: unknown) => Promise<Result>;
   return runWithAccess(accessOf(userId), () => execute({ employeeId: null, name: null, regions: null, ...input }, {}));
 }
 
@@ -123,8 +123,8 @@ describe("red team: connector scope", () => {
     expect(scored(hr.rows).every((row) => typeof row.score === "number")).toBe(true);
   });
 
-  test("the demo server refuses a caller whose identity Cop did not sign", async () => {
-    const response = await lmsDemoFetch(new Request(lmsDemoEnv().url, { method: "POST", headers: { "x-cop-user": "u_ton", "x-cop-role": "it_admin", "x-cop-regions": "all" }, body: "{}" }));
+  test("the demo server refuses a caller whose identity Winyu did not sign", async () => {
+    const response = await lmsDemoFetch(new Request(lmsDemoEnv().url, { method: "POST", headers: { "x-winyu-user": "u_ton", "x-winyu-role": "it_admin", "x-winyu-regions": "all" }, body: "{}" }));
     expect(response.status).toBe(401);
   });
 });

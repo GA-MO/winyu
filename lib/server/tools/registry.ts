@@ -3,7 +3,7 @@ import { toolRolesInclude } from "@/lib/contracts";
 import { remoteConnectors } from "@/lib/server/connectors";
 import { nativeConnectors } from "@/lib/server/connectors/native";
 import type { ConnectorField } from "@/lib/server/connectors/types";
-import type { CopTool } from "./define";
+import type { WinyuTool } from "./define";
 import { queryMetricTool } from "./query-metric";
 import { listMetricsTool } from "./list-metrics";
 import { describeEntityTool } from "./describe-entity";
@@ -31,7 +31,7 @@ import { setPermissionTool } from "./set-permission";
 /** The tools whose answers are metric rows, so what a role may call there depends on the metrics it sees. */
 export const METRIC_READING_TOOLS: readonly ToolName[] = ["query_metric", "get_alerts", "get_forecast", "explain_gap", "pin_widget", "watch_metric"];
 
-const NATIVE_TOOLS: { [Name in NativeToolName]: CopTool<Name> } = {
+const NATIVE_TOOLS: { [Name in NativeToolName]: WinyuTool<Name> } = {
   query_metric: queryMetricTool,
   list_metrics: listMetricsTool,
   describe_entity: describeEntityTool,
@@ -57,11 +57,11 @@ const NATIVE_TOOLS: { [Name in NativeToolName]: CopTool<Name> } = {
   set_permission: setPermissionTool,
 };
 
-function allTools(): CopTool[] {
+function allTools(): WinyuTool[] {
   return [...Object.values(NATIVE_TOOLS), ...remoteConnectors().flatMap((connector) => connector.tools)];
 }
 
-/** Every system tools reach: Cop's own ports first, then each MCP connector, in the order the admin groups them. */
+/** Every system tools reach: Winyu's own ports first, then each MCP connector, in the order the admin groups them. */
 export function connectors(): ConnectorDef[] {
   return [...nativeConnectors(), ...remoteConnectors().map((connector) => connector.def)];
 }
@@ -90,7 +90,7 @@ export function connectorFields(): ConnectorField[] {
   return remoteConnectors().flatMap((connector) => connector.fields);
 }
 
-/** Every tool Cop can call, in the order the admin lists them: the one list the policy, the overrides, the kill switch and the audit read. */
+/** Every tool Winyu can call, in the order the admin lists them: the one list the policy, the overrides, the kill switch and the audit read. */
 export function toolSurface(): ToolSurfaceEntry[] {
   return allTools().map((item) => item.entry);
 }
@@ -104,7 +104,7 @@ export function isToolName(name: string): name is ToolName {
 }
 
 /** The executable of one tool on the surface, or null for a name that is not on it. */
-export function copTool(name: string): CopTool | null {
+export function winyuTool(name: string): WinyuTool | null {
   return allTools().find((item) => item.entry.name === name) ?? null;
 }
 

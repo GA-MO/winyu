@@ -118,7 +118,7 @@ function adjusted(item: FeedItem, tally: Tally, seenCounts: Readonly<Record<stri
 
 /**
  * The feed as this user has shown they read it: kinds they open rise, kinds they put off sink, an item seen on three visits
- * and never opened drops below the rest, and a kind they asked Cop to stop following is gone. A rise says why, once per kind; nothing else does.
+ * and never opened drops below the rest, and a kind they asked Winyu to stop following is gone. A rise says why, once per kind; nothing else does.
  */
 export function learnFeed(items: readonly FeedItem[], signals: FeedSignals): FeedItem[] {
   const tally = tallyOf(signals.events, signals.now);

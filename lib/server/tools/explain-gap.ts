@@ -58,11 +58,11 @@ function isFailure(result: MetricResult): result is Extract<MetricResult, { ok: 
 
 export const explainGapTool = defineTool({
   name: "explain_gap",
-  connector: "cop",
+  connector: "winyu",
   tier: "read",
   roles: "all",
   description:
-    "Split the gap between actual and target (or a prior period) of an additive metric by one dimension: each part's own gap and its share of the whole gap, computed by Cop, plus the parts pulling the other way. With compare=target over month-to-date it also projects where the month ends at the recent pace. Call it before saying who or what caused a shortfall; copy share_label as is, never compute a share yourself.",
+    "Split the gap between actual and target (or a prior period) of an additive metric by one dimension: each part's own gap and its share of the whole gap, computed by Winyu, plus the parts pulling the other way. With compare=target over month-to-date it also projects where the month ends at the recent pace. Call it before saying who or what caused a shortfall; copy share_label as is, never compute a share yourself.",
   input: explainGapInputSchema,
   execute: async (input: Input) => {
     const access = currentAccess();

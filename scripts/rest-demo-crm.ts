@@ -60,7 +60,7 @@ function visits(params: URLSearchParams) {
     .flatMap(visitsOf);
 }
 
-/** One HTTP request to the demo CRM: GET /api/visits for callers whose identity Cop signed. */
+/** One HTTP request to the demo CRM: GET /api/visits for callers whose identity Winyu signed. */
 export async function crmDemoFetch(request: Request): Promise<Response> {
   const url = new URL(request.url);
   if (url.pathname !== `${API_PREFIX}${VISITS_PATH}`) return Response.json({ error: "not found" }, { status: 404 });

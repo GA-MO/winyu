@@ -46,7 +46,7 @@ describe("money owed reaches the people who can collect it", () => {
   });
 });
 
-describe("the administrator's feed is about Cop itself", () => {
+describe("the administrator's feed is about Winyu itself", () => {
   test("a connector that stopped answering is on IT's feed, and on no one else's; a switch left off is policy, not a matter", async () => {
     const before = offlineSince("crm_demo");
     const handoff = handoffSwitch();

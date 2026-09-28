@@ -28,8 +28,8 @@ export const policyConnector = defineMcpConnector({
 ## จุดที่ต่างจากตัวอย่างอื่น
 
 - **`scope: { kind: "none", reason }`** ใช้กับข้อมูลที่ทุกคนเห็นเหมือนกัน ต้องเขียนเหตุผลเสมอ ถ้าว่าง server ไม่ยอมเริ่ม เหตุผลนี้คือสิ่งที่คนตรวจ config อ่านเพื่อตัดสินว่าถูกไหม
-- **`transport: { type: "stdio" }`** Cop เปิด server เป็นโปรเซสลูก header จาก `auth` ไม่ถูกส่งกับ stdio จึงเหมาะกับข้อมูลที่ไม่ต้องรู้ว่าใครถามเท่านั้น (`auth` คืน `{}`) Cop เปิด client แยกต่อผู้ใช้และเก็บไว้ 10 นาที กับ stdio แปลว่าหนึ่งโปรเซสต่อผู้ใช้ที่กำลังใช้งาน ถ้าผู้ใช้พร้อมกันมาก ให้รัน server เป็น HTTP แทน
-- **`as: "handbook"`** ชื่อบน Cop เป็น `policy__handbook` แทน `policy__search_handbook` ชื่อที่สั้นและตรงความหมายช่วยให้ AI เลือกถูก
-- **ไม่เขียน `description` และ `input`** Cop ใช้คำอธิบายและ schema จาก server โดยกั้นคำอธิบายไว้เป็นข้อมูลก่อนถึง AI
+- **`transport: { type: "stdio" }`** Winyu เปิด server เป็นโปรเซสลูก header จาก `auth` ไม่ถูกส่งกับ stdio จึงเหมาะกับข้อมูลที่ไม่ต้องรู้ว่าใครถามเท่านั้น (`auth` คืน `{}`) Winyu เปิด client แยกต่อผู้ใช้และเก็บไว้ 10 นาที กับ stdio แปลว่าหนึ่งโปรเซสต่อผู้ใช้ที่กำลังใช้งาน ถ้าผู้ใช้พร้อมกันมาก ให้รัน server เป็น HTTP แทน
+- **`as: "handbook"`** ชื่อบน Winyu เป็น `policy__handbook` แทน `policy__search_handbook` ชื่อที่สั้นและตรงความหมายช่วยให้ AI เลือกถูก
+- **ไม่เขียน `description` และ `input`** Winyu ใช้คำอธิบายและ schema จาก server โดยกั้นคำอธิบายไว้เป็นข้อมูลก่อนถึง AI
 
-tool ใน server ที่ไม่ได้ประกาศใน `tools` เรียกไม่ได้ Cop log รายชื่อไว้ตอนเริ่ม server เช่น `[connectors] policy offers tools Cop leaves closed: delete_page`
+tool ใน server ที่ไม่ได้ประกาศใน `tools` เรียกไม่ได้ Winyu log รายชื่อไว้ตอนเริ่ม server เช่น `[connectors] policy offers tools Winyu leaves closed: delete_page`

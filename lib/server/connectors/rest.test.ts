@@ -18,7 +18,7 @@ const TOOL: RestToolConfig = {
 };
 
 function config(tools: Record<string, RestToolConfig>, overrides: Partial<RestConnectorConfig> = {}): RestConnectorConfig {
-  return { id: "crm_test", labelTh: "CRM", sourceSystemTh: "CRM", baseUrl: "https://crm.example.com/api/", auth: () => ({ "x-cop-user": "u_test" }), timeoutMs: 1000, tools, ...overrides };
+  return { id: "crm_test", labelTh: "CRM", sourceSystemTh: "CRM", baseUrl: "https://crm.example.com/api/", auth: () => ({ "x-winyu-user": "u_test" }), timeoutMs: 1000, tools, ...overrides };
 }
 
 const ACCESS = { userId: "u_test" } as AccessContext;
@@ -49,7 +49,7 @@ describe("restRequestOf", () => {
     expect(url.origin).toBe("https://crm.example.com");
     expect(url.pathname).toBe("/api/agents/ag%2F..%2Fadmin/visits");
     expect([...url.searchParams.entries()]).toEqual([["regions", "northeast"]]);
-    expect(request.headers.get("x-cop-user")).toBe("u_test");
+    expect(request.headers.get("x-winyu-user")).toBe("u_test");
     expect(request.redirect).toBe("error");
   });
 

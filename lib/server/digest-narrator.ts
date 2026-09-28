@@ -27,7 +27,7 @@ export function isGrounded(lead: string, lines: readonly DigestLine[]): boolean 
   return (lead.match(NUMBER) ?? []).every((number) => source.includes(number));
 }
 
-/** What Cop has come to trust about the user, strongest first, as plain statements the narrator may lean on. */
+/** What Winyu has come to trust about the user, strongest first, as plain statements the narrator may lean on. */
 export function factsFor(userId: string): string[] {
   return memoryFacts()
     .where((fact) => fact.userId === userId && isTrusted(fact))

@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import type { Spec } from "vexa/protocol";
-import { normalizeCopSpec } from "./normalize";
+import { normalizeWinyuSpec } from "./normalize";
 
 const SUMMARY = "ปริมาณขายเข้า (Sell-in) 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 18.7 ล้านลิตร · เทียบช่วงก่อนหน้า -7.6%";
 
@@ -21,28 +21,28 @@ function cardProps(spec: Spec): Record<string, unknown> {
   return (spec.elements as Record<string, { props: Record<string, unknown> }>).card.props;
 }
 
-describe("normalizeCopSpec", () => {
+describe("normalizeWinyuSpec", () => {
   test("drops a description that only repeats the tool summary", () => {
     const spec = specOf({ card: { type: "Card", props: { title: "เอเย่นต์", description: SUMMARY }, children: [] } });
-    expect(cardProps(normalizeCopSpec(spec, { toolOutputs: OUTPUTS })).description).toBeNull();
+    expect(cardProps(normalizeWinyuSpec(spec, { toolOutputs: OUTPUTS })).description).toBeNull();
   });
 
   test("fills the scope and source lines a hand-drawn card left out", () => {
     const spec = specOf({ card: { type: "Card", props: { title: "เอเย่นต์" }, children: [] } });
-    const props = cardProps(normalizeCopSpec(spec, { toolOutputs: OUTPUTS }));
+    const props = cardProps(normalizeWinyuSpec(spec, { toolOutputs: OUTPUTS }));
     expect(props.meta).toBe("1 ก.ย. 2569 – 22 ก.ย. 2569 · 10 เอเย่นต์");
     expect(props.footnote).toContain("SAP SD");
   });
 
   test("a card drawn in a later turn takes no scope line from an earlier turn's metric call", () => {
     const spec = specOf({ card: { type: "Card", props: { title: "นโยบายเบิกค่าเดินทาง" }, children: [] } });
-    const props = cardProps(normalizeCopSpec(spec, { toolOutputs: OUTPUTS, turnToolOutputs: { "/tools/get_policy": { ok: true } } }));
+    const props = cardProps(normalizeWinyuSpec(spec, { toolOutputs: OUTPUTS, turnToolOutputs: { "/tools/get_policy": { ok: true } } }));
     expect(props.meta).toBeUndefined();
   });
 
   test("keeps a description the model wrote itself", () => {
     const spec = specOf({ card: { type: "Card", props: { title: "เอเย่นต์", description: "เรียงจากที่ตกแรงที่สุด" }, children: [] } });
-    expect(cardProps(normalizeCopSpec(spec, { toolOutputs: OUTPUTS })).description).toBe("เรียงจากที่ตกแรงที่สุด");
+    expect(cardProps(normalizeWinyuSpec(spec, { toolOutputs: OUTPUTS })).description).toBe("เรียงจากที่ตกแรงที่สุด");
   });
 
   test("right-aligns number columns and colours a signed percentage column", () => {
@@ -56,7 +56,7 @@ describe("normalizeCopSpec", () => {
         children: [],
       },
     });
-    const columns = cardProps(normalizeCopSpec(spec, { toolOutputs: OUTPUTS })).columns as Record<string, unknown>[];
+    const columns = cardProps(normalizeWinyuSpec(spec, { toolOutputs: OUTPUTS })).columns as Record<string, unknown>[];
     expect(columns[0].align).toBeNull();
     expect(columns[1].align).toBe("end");
     expect(columns[2].tone).toBe("delta");
@@ -64,19 +64,19 @@ describe("normalizeCopSpec", () => {
 
   test("leaves a spec alone when no tool answered", () => {
     const spec = specOf({ card: { type: "Card", props: { title: "ว่าง" }, children: [] } });
-    expect(normalizeCopSpec(spec, { toolOutputs: {} })).toBe(spec);
+    expect(normalizeWinyuSpec(spec, { toolOutputs: {} })).toBe(spec);
   });
 });
 
 describe("composed cards", () => {
   test("a date the model added to the source line is dropped", () => {
     const spec = specOf({ card: { type: "Card", props: { title: "ทีม", footnote: "แหล่งข้อมูล: HRIS · ณ 24 ก.ย. 2569" }, children: [] } });
-    expect(cardProps(normalizeCopSpec(spec, { toolOutputs: {} })).footnote).toBe("แหล่งข้อมูล: HRIS");
+    expect(cardProps(normalizeWinyuSpec(spec, { toolOutputs: {} })).footnote).toBe("แหล่งข้อมูล: HRIS");
   });
 
   test("a source line without a date stays untouched", () => {
     const spec = specOf({ card: { type: "Card", props: { title: "ทีม", footnote: "แหล่งข้อมูล: HRIS" }, children: [] } });
-    expect(normalizeCopSpec(spec, { toolOutputs: {} })).toBe(spec);
+    expect(normalizeWinyuSpec(spec, { toolOutputs: {} })).toBe(spec);
   });
 });
 
@@ -84,23 +84,23 @@ describe("pictures", () => {
   const people = { "/tools/find_people": { ok: true, summary: "พบ 2 คน", data: [{ id: "e_joy", photo: "/img/people/p08.jpg" }] } };
 
   function specOf(elements: Record<string, unknown>) {
-    return { root: "a", elements } as unknown as Parameters<typeof normalizeCopSpec>[0];
+    return { root: "a", elements } as unknown as Parameters<typeof normalizeWinyuSpec>[0];
   }
 
   test("a photo a tool returned stays", () => {
     const spec = specOf({ a: { type: "Avatar", props: { name: "คุณจอย", role: null, src: "/img/people/p08.jpg", size: "lg" }, children: [] } });
-    expect(normalizeCopSpec(spec, { toolOutputs: people })).toBe(spec);
+    expect(normalizeWinyuSpec(spec, { toolOutputs: people })).toBe(spec);
   });
 
   test("a photo the model made up falls back to initials", () => {
     const spec = specOf({ a: { type: "Avatar", props: { name: "คุณจอย", role: null, src: "/img/people/p99.jpg", size: "lg" }, children: [] } });
-    const next = normalizeCopSpec(spec, { toolOutputs: people }) as unknown as { elements: Record<string, { props: { src: unknown } }> };
+    const next = normalizeWinyuSpec(spec, { toolOutputs: people }) as unknown as { elements: Record<string, { props: { src: unknown } }> };
     expect(next.elements.a?.props.src).toBeNull();
   });
 
   test("an outside image link is dropped", () => {
     const spec = specOf({ a: { type: "Image", props: { src: "https://example.com/x.jpg", alt: "x" }, children: [] } });
-    const next = normalizeCopSpec(spec, { toolOutputs: people }) as unknown as { elements: Record<string, { type: string }> };
+    const next = normalizeWinyuSpec(spec, { toolOutputs: people }) as unknown as { elements: Record<string, { type: string }> };
     expect(next.elements.a?.type).toBe("Text");
   });
 });
@@ -117,7 +117,7 @@ describe("DataCard title against its rows", () => {
 
   function titleAfter(title: string): unknown {
     const spec = specOf({ card: { type: "DataCard", props: { title, source: { $state: "/tools/query_metric" } }, children: [] } });
-    return cardProps(normalizeCopSpec(spec, { toolOutputs: { "/tools/query_metric": COVER } })).title;
+    return cardProps(normalizeWinyuSpec(spec, { toolOutputs: { "/tools/query_metric": COVER } })).title;
   }
 
   test("swaps a threshold the rows do not meet for the plain metric name", () => {
@@ -138,7 +138,7 @@ describe("a title that states how many rows meet its threshold", () => {
         rows: [{ sku: "สิงห์ ขวด 620 มล.", value: 7.2 }, { sku: "ลีโอ แพ็ก 12", value: 11.7 }, { sku: "อาซาฮี ถัง 30 ลิตร", value: 12.3 }],
       },
     };
-    expect(cardProps(normalizeCopSpec(spec, { toolOutputs: outputs })).title).toBe("1 รายการที่สต๊อกพอขายน้อยกว่า 10 วัน");
+    expect(cardProps(normalizeWinyuSpec(spec, { toolOutputs: outputs })).title).toBe("1 รายการที่สต๊อกพอขายน้อยกว่า 10 วัน");
   });
 });
 
@@ -155,7 +155,7 @@ describe("a title with two claims in one clause", () => {
         ],
       },
     };
-    expect(cardProps(normalizeCopSpec(spec, { toolOutputs: outputs })).title).toBe("โมเดิร์นเทรดมียอดขายออกสูงสุด ทุกช่องทางลดลงเทียบช่วงก่อนหน้า");
+    expect(cardProps(normalizeWinyuSpec(spec, { toolOutputs: outputs })).title).toBe("โมเดิร์นเทรดมียอดขายออกสูงสุด ทุกช่องทางลดลงเทียบช่วงก่อนหน้า");
   });
 });
 
@@ -175,7 +175,7 @@ describe("a title that states how many rows moved", () => {
 
   function titleAfter(title: string): unknown {
     const spec = specOf({ card: { type: "DataCard", props: { title, source: { $state: "/tools/query_metric" } }, children: [] } });
-    return cardProps(normalizeCopSpec(spec, { toolOutputs: OUTPUTS })).title;
+    return cardProps(normalizeWinyuSpec(spec, { toolOutputs: OUTPUTS })).title;
   }
 
   test("is kept when the count is right", () => {

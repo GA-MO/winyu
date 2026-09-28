@@ -20,7 +20,7 @@ function onlyOwnRegions(rows: ConnectorRow[], access: AccessContext): ConnectorR
   return rows.filter((row) => regions.includes(String(row.region)));
 }
 
-/** The demo CRM behind REST: store visits per agent, asked as the signed-in user, kept to the regions Cop says they cover. */
+/** The demo CRM behind REST: store visits per agent, asked as the signed-in user, kept to the regions Winyu says they cover. */
 export const crmDemoConnector = defineRestConnector({
   id: CRM_DEMO_ID,
   labelTh: "CRM (REST)",

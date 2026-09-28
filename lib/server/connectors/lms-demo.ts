@@ -20,7 +20,7 @@ async function onlyPeopleInView(rows: ConnectorRow[], access: AccessContext): Pr
   });
 }
 
-/** The demo LMS behind MCP: training history per person, asked as the signed-in user, kept to the people Cop says they may see. */
+/** The demo LMS behind MCP: training history per person, asked as the signed-in user, kept to the people Winyu says they may see. */
 export const lmsDemoConnector = defineMcpConnector({
   id: LMS_DEMO_ID,
   labelTh: "LMS (MCP)",

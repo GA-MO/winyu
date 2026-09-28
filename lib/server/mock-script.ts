@@ -279,7 +279,7 @@ function trendOf(row: Row): "up" | "down" | "neutral" {
 const SOURCE = { $state: "/tools/query_metric" };
 const ALERT_SOURCE = { $state: "/tools/get_alerts" };
 
-/** The model's whole job for a data answer: name the card and point it at the tool result. Cop's presenter draws it. */
+/** The model's whole job for a data answer: name the card and point it at the tool result. Winyu's presenter draws it. */
 function dataCard(title: string, options: { view?: string; sortBy?: string; description?: string; source?: string; with?: string[] } = {}): Spec {
   return {
     root: "card",
@@ -1084,7 +1084,7 @@ function watchSteps(prompt: string): MockStep[] {
   ];
 }
 
-export const COP_MOCK_PROMPTS = [
+export const WINYU_MOCK_PROMPTS = [
   "ยอดขายเดือนนี้เทียบเป้าแยกตามภาค",
   "ยอดขายภาคอีสานเทียบเป้า",
   "เอเย่นต์รายไหนยอดตกบ้าง top 10",
@@ -1114,7 +1114,7 @@ export const COP_MOCK_PROMPTS = [
 ];
 
 /** Scripted turns that drive the real tools: the mock calls a tool, the handler executes it, the continuation renders the output. */
-export const COP_MOCK_SCRIPT: MockScript = {
+export const WINYU_MOCK_SCRIPT: MockScript = {
   turns: [
     { match: /งานที่ส่งต่อมา|เปิดในเอเจนต์|เปิดใน Agent/, steps: PRELOAD_STEPS },
     { match: /⟦action⟧ runTool/, steps: pressedSteps },
@@ -1155,5 +1155,5 @@ export const COP_MOCK_SCRIPT: MockScript = {
     { match: /เอเย่นต์.*ตก|top ?10|เอเย่นต์รายไหน/i, steps: AGENT_STEPS },
     { match: /ยอดขาย|ยอดรวม/, steps: salesSteps },
   ],
-  prompts: COP_MOCK_PROMPTS,
+  prompts: WINYU_MOCK_PROMPTS,
 };

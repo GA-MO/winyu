@@ -278,7 +278,7 @@ export function editMemory(userId: string, id: string, value: string): MemoryFac
   return memoryFacts().put({ ...fact, value: wording, confidence: MAX_CONFIDENCE, decayAt: null });
 }
 
-/** Forgets everything Cop remembers about this user. */
+/** Forgets everything Winyu remembers about this user. */
 export function forgetAll(userId: string): number {
   const facts = factsOf(userId);
   for (const fact of facts) memoryFacts().remove(fact.id);
@@ -297,7 +297,7 @@ export async function rememberTurn(userId: string, turns: { prompt: string }[], 
   return saved;
 }
 
-/** Puts forward something Cop inferred about the user as still learning: it stays out of the prompt until the user confirms it in /memory or it comes up again. */
+/** Puts forward something Winyu inferred about the user as still learning: it stays out of the prompt until the user confirms it in /memory or it comes up again. */
 export function proposeMemory(userId: string, fact: Extracted): MemoryFact[] {
   pruneMemory(userId);
   return merge(userId, [fact], "said", null);

@@ -93,7 +93,7 @@ async function shaped(connector: ConnectorIdentity, binding: ConnectorToolBindin
   };
 }
 
-/** One call to a connector tool as the person asking, whatever the transport: Cop's scope on the way in, the other system as that person, then Cop's scope, masking and fence on the way out. */
+/** One call to a connector tool as the person asking, whatever the transport: Winyu's scope on the way in, the other system as that person, then Winyu's scope, masking and fence on the way out. */
 export async function callConnectorTool(connector: ConnectorIdentity, binding: ConnectorToolBinding, input: unknown, call: RemoteCaller): Promise<ConnectorToolResult> {
   const access = currentAccess();
   if (!isToolAllowed(withAdminSwitches(access), binding.name)) return { ok: false, code: TOOL_NOT_ALLOWED, error: TH.admin.connectors.notAllowed(binding.config.labelTh) };
@@ -116,7 +116,7 @@ function inputSchemaOf(connector: ConnectorIdentity, binding: ConnectorToolBindi
   return remote ? jsonSchema(remote) : ANY_ARGS;
 }
 
-/** The AI SDK tool the handler hands the model; description and schema follow what the server last said, unless Cop wrote its own. */
+/** The AI SDK tool the handler hands the model; description and schema follow what the server last said, unless Winyu wrote its own. */
 export function executableOf(connector: ConnectorIdentity, binding: ConnectorToolBinding, execute: (input: unknown) => Promise<ConnectorToolResult>): Tool {
   return {
     get description() {

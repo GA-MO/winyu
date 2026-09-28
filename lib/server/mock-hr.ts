@@ -161,7 +161,7 @@ export function courseSteps(prompt: string): MockStep[] {
   ];
 }
 
-/** One way the model may compose the leave answer: balances, the rules to expand, then Cop's leave form. */
+/** One way the model may compose the leave answer: balances, the rules to expand, then Winyu's leave form. */
 export function policySpec(output: unknown): Spec {
   const data = dataOf<PolicyData>(output);
   if (!data) return { root: "card", elements: { card: element("Card", { title: "ไม่พบระเบียบ", description: null, meta: null, footnote: null }) } } as Spec;

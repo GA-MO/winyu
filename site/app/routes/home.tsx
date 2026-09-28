@@ -4,8 +4,8 @@ import { Architecture, Capabilities, Connect, Footer, Journey, Prepare, Principl
 
 export function meta() {
   return [
-    { title: "Cop · ผู้ช่วยข้อมูลสำหรับทุกคนในองค์กร" },
-    { name: "description", content: "Cop อ่านข้อมูลจากระบบเดิมขององค์กร ณ วินาทีที่ถาม ตามสิทธิ์ของแต่ละคน โดยไม่ย้ายข้อมูลออกมาเก็บเอง" },
+    { title: "Winyu · ผู้ช่วยข้อมูลสำหรับทุกคนในองค์กร" },
+    { name: "description", content: "Winyu อ่านข้อมูลจากระบบเดิมขององค์กร ณ วินาทีที่ถาม ตามสิทธิ์ของแต่ละคน โดยไม่ย้ายข้อมูลออกมาเก็บเอง" },
   ];
 }
 

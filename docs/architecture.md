@@ -1,12 +1,12 @@
-# Cop — architecture
+# Winyu — architecture
 
-Cop is one Next.js app (App Router, Tailwind v4, Vexa tokens) with a demo cookie for identity. Everything a user sees comes from a request that carries an `AccessContext`; everything that produces a number goes through one semantic layer. This document is the map; `docs/plan.md` holds the phase plan and the acceptance criteria, `docs/demo.md` the demo script.
+Winyu is one Next.js app (App Router, Tailwind v4, Vexa tokens) with a demo cookie for identity. Everything a user sees comes from a request that carries an `AccessContext`; everything that produces a number goes through one semantic layer. This document is the map; `docs/plan.md` holds the phase plan and the acceptance criteria, `docs/demo.md` the demo script.
 
 ## The request path
 
 ```
-Browser (Vexa react/chat + Cop chrome)
-  │  cookie: cop_session=<userId>
+Browser (Vexa react/chat + Winyu chrome)
+  │  cookie: winyu_session=<userId>
   ▼
 app/api/chat/route.ts
   → lib/server/session.ts        readAccess(cookies) → AccessContext
@@ -64,7 +64,7 @@ Seven anomalies are injected on purpose (`lib/data/anomalies.ts`); the detection
 
 ## `runMetric`, the one door to a number
 
-`lib/server/metrics.ts` takes a `MetricQuery` and an `AccessContext`. `planMetric` (steps 1–3) and `finishMetric` (steps 5–6) live in `lib/semantic/engine.ts`; step 4 is the only one that leaves Cop: `ports().metrics.readFacts(FactRequest[])`. A request carries resolved ids already narrowed to the caller's scope and never the `AccessContext`, so a real warehouse behind the port answers aggregates and nothing else; ACL, masking, suppression and the compare window stay in Cop. `lib/data/query.ts` keeps a synchronous `runMetric` over the generator for tests and scripts. Names and geography come from the same port: `ports().metrics.masterData()` returns the dimension tables, `loadDictionary()` (`lib/server/master-data.ts`) builds the dictionary from them and keeps it ten minutes, and every label, filter resolution and region-of-a-value check reads that dictionary, so scope follows the warehouse's own master data. In order:
+`lib/server/metrics.ts` takes a `MetricQuery` and an `AccessContext`. `planMetric` (steps 1–3) and `finishMetric` (steps 5–6) live in `lib/semantic/engine.ts`; step 4 is the only one that leaves Winyu: `ports().metrics.readFacts(FactRequest[])`. A request carries resolved ids already narrowed to the caller's scope and never the `AccessContext`, so a real warehouse behind the port answers aggregates and nothing else; ACL, masking, suppression and the compare window stay in Winyu. `lib/data/query.ts` keeps a synchronous `runMetric` over the generator for tests and scripts. Names and geography come from the same port: `ports().metrics.masterData()` returns the dimension tables, `loadDictionary()` (`lib/server/master-data.ts`) builds the dictionary from them and keeps it ten minutes, and every label, filter resolution and region-of-a-value check reads that dictionary, so scope follows the warehouse's own master data. In order:
 
 1. resolves the metric definition, rejects unknown metrics and dims that the metric does not carry;
 2. resolves filter values through the dictionary (Thai names → ids);

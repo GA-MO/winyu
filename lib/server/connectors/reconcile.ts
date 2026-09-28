@@ -33,10 +33,10 @@ async function driftOf(connector: McpConnector): Promise<ConnectorDrift> {
 function report(drift: ConnectorDrift): void {
   if (drift.missing.length > 0) console.warn(`[connectors] ${drift.connector} does not offer declared tools: ${drift.missing.join(", ")}`);
   if (drift.mismatched.length > 0) console.warn(`[connectors] ${drift.connector} input schema differs from the config for: ${drift.mismatched.join(", ")}`);
-  if (drift.unused.length > 0) console.info(`[connectors] ${drift.connector} offers tools Cop leaves closed: ${drift.unused.join(", ")}`);
+  if (drift.unused.length > 0) console.info(`[connectors] ${drift.connector} offers tools Winyu leaves closed: ${drift.unused.join(", ")}`);
 }
 
-/** Compares what each server offers with what Cop declares and logs the difference; never opens a tool the config does not name. */
+/** Compares what each server offers with what Winyu declares and logs the difference; never opens a tool the config does not name. */
 export async function reconcileConnectors(): Promise<ConnectorDrift[]> {
   const drifts: ConnectorDrift[] = [];
   for (const connector of mcpConnectors()) {

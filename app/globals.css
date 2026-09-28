@@ -55,15 +55,15 @@
 @theme inline {
   --font-sans: var(--font-noto-sans-thai), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--font-inter), var(--font-noto-sans-thai), ui-sans-serif, system-ui, sans-serif;
-  --color-ink: var(--cop-ink);
-  --color-ink-foreground: var(--cop-ink-foreground);
-  --color-panel: var(--cop-panel);
-  --color-bubble: var(--cop-bubble);
-  --color-hairline: var(--cop-hairline);
+  --color-ink: var(--winyu-ink);
+  --color-ink-foreground: var(--winyu-ink-foreground);
+  --color-panel: var(--winyu-panel);
+  --color-bubble: var(--winyu-bubble);
+  --color-hairline: var(--winyu-hairline);
   --color-brand-coral: var(--brand-coral);
-  --shadow-card: 0 1px 2px var(--cop-shadow-weak), 0 10px 30px -24px var(--cop-shadow-soft);
-  --shadow-lift: 0 2px 6px var(--cop-shadow-weak), 0 22px 46px -28px var(--cop-shadow-soft);
-  --shadow-panel: 0 1px 3px var(--cop-shadow-weak), 0 44px 96px -58px var(--cop-shadow-soft);
+  --shadow-card: 0 1px 2px var(--winyu-shadow-weak), 0 10px 30px -24px var(--winyu-shadow-soft);
+  --shadow-lift: 0 2px 6px var(--winyu-shadow-weak), 0 22px 46px -28px var(--winyu-shadow-soft);
+  --shadow-panel: 0 1px 3px var(--winyu-shadow-weak), 0 44px 96px -58px var(--winyu-shadow-soft);
 }
 
 :root {
@@ -88,20 +88,20 @@
   --brand-violet: #7c3aed;
   --brand-coral: #fb7185;
   --radius: 0.85rem;
-  --cop-ink: #0b0c0f;
-  --cop-ink-foreground: #ffffff;
-  --cop-hairline: #e6e9ef;
-  --cop-panel: rgb(255 255 255 / 72%);
-  --cop-bubble: #eeecfe;
-  --cop-ring-from: #6366f1;
-  --cop-ring-to: #22d3ee;
-  --cop-shadow-weak: rgb(11 12 15 / 6%);
-  --cop-shadow-soft: rgb(11 12 15 / 16%);
-  --cop-rail-collapsed: 3.5rem;
-  --cop-rail-expanded: 18rem;
-  --cop-blob-violet: rgb(139 92 246 / 8%);
-  --cop-blob-blue: rgb(59 130 246 / 7%);
-  --cop-blob-pink: rgb(244 114 182 / 6%);
+  --winyu-ink: #0b0c0f;
+  --winyu-ink-foreground: #ffffff;
+  --winyu-hairline: #e6e9ef;
+  --winyu-panel: rgb(255 255 255 / 72%);
+  --winyu-bubble: #eeecfe;
+  --winyu-ring-from: #6366f1;
+  --winyu-ring-to: #22d3ee;
+  --winyu-shadow-weak: rgb(11 12 15 / 6%);
+  --winyu-shadow-soft: rgb(11 12 15 / 16%);
+  --winyu-rail-collapsed: 3.5rem;
+  --winyu-rail-expanded: 18rem;
+  --winyu-blob-violet: rgb(139 92 246 / 8%);
+  --winyu-blob-blue: rgb(59 130 246 / 7%);
+  --winyu-blob-pink: rgb(244 114 182 / 6%);
 }
 
 .dark {
@@ -125,18 +125,18 @@
   --ring: #818cf8;
   --brand-violet: #a78bfa;
   --brand-coral: #fb7185;
-  --cop-ink: #f8fafc;
-  --cop-ink-foreground: #0b1020;
-  --cop-hairline: rgb(255 255 255 / 12%);
-  --cop-panel: rgb(17 26 46 / 72%);
-  --cop-bubble: #241f52;
-  --cop-ring-from: #818cf8;
-  --cop-ring-to: #22d3ee;
-  --cop-shadow-weak: rgb(0 0 0 / 40%);
-  --cop-shadow-soft: rgb(0 0 0 / 60%);
-  --cop-blob-violet: rgb(139 92 246 / 22%);
-  --cop-blob-blue: rgb(59 130 246 / 18%);
-  --cop-blob-pink: rgb(244 114 182 / 14%);
+  --winyu-ink: #f8fafc;
+  --winyu-ink-foreground: #0b1020;
+  --winyu-hairline: rgb(255 255 255 / 12%);
+  --winyu-panel: rgb(17 26 46 / 72%);
+  --winyu-bubble: #241f52;
+  --winyu-ring-from: #818cf8;
+  --winyu-ring-to: #22d3ee;
+  --winyu-shadow-weak: rgb(0 0 0 / 40%);
+  --winyu-shadow-soft: rgb(0 0 0 / 60%);
+  --winyu-blob-violet: rgb(139 92 246 / 22%);
+  --winyu-blob-blue: rgb(59 130 246 / 18%);
+  --winyu-blob-pink: rgb(244 114 182 / 14%);
 }
 
 @layer base {
@@ -177,56 +177,56 @@ h3 {
   letter-spacing: -0.015em;
 }
 
-.cop-gradient-text {
+.winyu-gradient-text {
   background-image: linear-gradient(96deg, var(--primary) 0%, var(--brand-violet) 46%, var(--brand-coral) 100%);
   background-clip: text;
   -webkit-background-clip: text;
   color: transparent;
 }
 
-.cop-suggested > div > section {
+.winyu-suggested > div > section {
   padding-top: 1.5rem;
   border-color: transparent;
   background:
     linear-gradient(var(--card), var(--card)) padding-box,
     linear-gradient(125deg, var(--primary), var(--brand-violet) 55%, var(--brand-coral)) border-box;
   box-shadow:
-    0 1px 2px var(--cop-shadow-weak),
+    0 1px 2px var(--winyu-shadow-weak),
     0 24px 48px -30px color-mix(in oklab, var(--brand-violet) 70%, transparent);
 }
 
-.cop-focus-ring {
+.winyu-focus-ring {
   position: relative;
 }
 
-.cop-focus-ring::before {
+.winyu-focus-ring::before {
   content: "";
   position: absolute;
   inset: -2px;
   z-index: -1;
   border-radius: inherit;
-  background: linear-gradient(118deg, var(--cop-ring-from), var(--cop-ring-to));
+  background: linear-gradient(118deg, var(--winyu-ring-from), var(--winyu-ring-to));
   opacity: 0;
   transition: opacity 0.18s ease-out;
 }
 
-.cop-focus-ring:focus-within::before {
+.winyu-focus-ring:focus-within::before {
   opacity: 1;
 }
 
-.cop-chat .is-user > div {
-  background-color: var(--cop-bubble);
+.winyu-chat .is-user > div {
+  background-color: var(--winyu-bubble);
   color: var(--foreground);
 }
 
-.cop-main {
+.winyu-main {
   padding-left: 0;
   transition: padding-left 0.3s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @media (min-width: 768px) {
-  .cop-main {
-    padding-left: var(--cop-rail-offset, var(--cop-rail-collapsed));
+  .winyu-main {
+    padding-left: var(--winyu-rail-offset, var(--winyu-rail-collapsed));
   }
 }
 

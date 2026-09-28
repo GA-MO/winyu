@@ -33,7 +33,7 @@ export function stubConnector(): McpConnector {
     labelTh: "ระบบอบรมทดสอบ",
     sourceSystemTh: "LMS ทดสอบ",
     transport: { type: "http", url: "http://127.0.0.1:1/mcp" },
-    auth: (access) => ({ "x-cop-user": access?.userId ?? "cop", "x-cop-regions": regionOf(access) }),
+    auth: (access) => ({ "x-winyu-user": access?.userId ?? "winyu", "x-winyu-regions": regionOf(access) }),
     timeoutMs: 200,
     tools: {
       training_history: {

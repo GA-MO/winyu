@@ -73,7 +73,7 @@ function NextStep({ story }: { story: Story }) {
   );
 }
 
-/** One matter: the finding in a sentence; opened, what was ruled out, the evidence card Cop draws from the query the model chose, and the next step. */
+/** One matter: the finding in a sentence; opened, what was ruled out, the evidence card Winyu draws from the query the model chose, and the next step. */
 export function StoryItem({ card, defaultOpen }: { card: StoryCard; defaultOpen: boolean }) {
   const [open, setOpen] = useState(defaultOpen);
   const { story, evidence } = card;

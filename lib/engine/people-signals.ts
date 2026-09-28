@@ -51,7 +51,7 @@ function riskReasonsOf(employee: Employee, tenureDays: number, age: number, toda
   return reasons;
 }
 
-/** The facts and the attrition judgement Cop derives for one employee on a given day. */
+/** The facts and the attrition judgement Winyu derives for one employee on a given day. */
 export function signalsOf(employee: Employee, today: string = TODAY): PeopleSignals {
   const tenureDays = daysBetween(employee.hiredOn, today);
   const age = Number(today.slice(0, 4)) - employee.birthYear;

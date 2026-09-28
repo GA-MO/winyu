@@ -11,14 +11,14 @@ import { readAccess } from "@/lib/server/session";
 
 export const dynamic = "force-dynamic";
 
-const FROM_COP: ReadonlySet<string> = new Set(["watch", "digest"]);
+const FROM_WINYU: ReadonlySet<string> = new Set(["watch", "digest"]);
 
 export default async function OutboxPage() {
   const access = readAccess(await cookies());
   if (!access) redirect("/login");
 
   const entries = outbox()
-    .where((entry) => entry.fromUserId === access.userId || (entry.toUserId === access.userId && FROM_COP.has(entry.kind)))
+    .where((entry) => entry.fromUserId === access.userId || (entry.toUserId === access.userId && FROM_WINYU.has(entry.kind)))
     .sort((left, right) => right.at.localeCompare(left.at));
 
   return (
@@ -36,7 +36,7 @@ export default async function OutboxPage() {
           <ElevatedCard
             key={entry.id}
             title={entry.subject}
-            description={`${FROM_COP.has(entry.kind) ? TH.outbox.fromCop : `${TH.outbox.to} ${findUser(entry.toUserId)?.nameTh ?? entry.toEmail}`} · ${formatDateTh(entry.at)} ${formatTimeTh(entry.at)}`}
+            description={`${FROM_WINYU.has(entry.kind) ? TH.outbox.fromWinyu : `${TH.outbox.to} ${findUser(entry.toUserId)?.nameTh ?? entry.toEmail}`} · ${formatDateTh(entry.at)} ${formatTimeTh(entry.at)}`}
           >
             <p className="whitespace-pre-wrap text-sm text-muted-foreground">{entry.body}</p>
           </ElevatedCard>

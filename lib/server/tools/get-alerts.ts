@@ -13,7 +13,7 @@ const DEFAULT_ALERT_LIMIT = 10;
 
 export const getAlertsTool = defineTool({
   name: "get_alerts",
-  connector: "cop",
+  connector: "winyu",
   tier: "read",
   roles: "all",
   description: "Read the anomalies the detection engine raised for this user's scope, newest first, each with a hypothesis and two verify steps. Call it when the user asks what is wrong, what changed, or what needs attention.",

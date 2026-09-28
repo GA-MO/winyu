@@ -30,7 +30,7 @@ function sentence(title: string, question: string): ToolCallDescription {
  * What a button press reads as in the user's own bubble: one sentence, no payload — the decision card that follows
  * carries the subject, the ask and what approving does, so repeating them here would say everything twice.
  */
-export const describeCopToolCall: DescribeToolCall = (name, input) => {
+export const describeWinyuToolCall: DescribeToolCall = (name, input) => {
   const value = (input ?? {}) as Record<string, unknown>;
   const to = nameOf((value as Recipient).toUserId);
   if (name === "create_handoff") return sentence(TH.approve.handoffDone(to), TH.approve.handoff(to));

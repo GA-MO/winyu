@@ -53,9 +53,9 @@ REST ไม่มีรายการ tool ให้อ่านแบบ MCP �
 | `tools.*.method` | `GET` หรือ `POST` เท่านั้น |
 | `tools.*.path` | ขึ้นต้นด้วย `/` ไม่มี query string ใส่ `{ชื่อ}` เพื่อเติมจาก argument ชื่อเดียวกัน |
 | `tools.*.description` | บอก AI ว่า tool นี้ตอบคำถามแบบไหน และไม่ใช้กับคำถามแบบไหน |
-| `tools.*.input` | schema ของ argument (zod) Cop ตรวจก่อนส่ง |
-| `tools.*.output` | adapter แปลง body ที่ได้เป็นแถวของ Cop |
-| `tools.*.tier` | `read`, `write` (ต้องอนุมัติก่อน) หรือ `destructive` ถ้าไม่ระบุ Cop ถือเป็น `destructive` |
+| `tools.*.input` | schema ของ argument (zod) Winyu ตรวจก่อนส่ง |
+| `tools.*.output` | adapter แปลง body ที่ได้เป็นแถวของ Winyu |
+| `tools.*.tier` | `read`, `write` (ต้องอนุมัติก่อน) หรือ `destructive` ถ้าไม่ระบุ Winyu ถือเป็น `destructive` |
 | `tools.*.roles` | บทบาทที่ใช้ได้ admin ปรับต่อได้ในหน้าสิทธิ์ |
 | `tools.*.scope` | บังคับทุก tool ดู[การบังคับขอบเขต](/docs/connect/mcp#การบังคับขอบเขต) |
 | `tools.*.sensitive` | ฟิลด์ที่บางบทบาทเห็นเต็ม บางบทบาทเห็นเป็น `***` ดู[ฟิลด์อ่อนไหว](/docs/connect/examples/sensitive) |
@@ -68,7 +68,7 @@ connector hr: tool leave_balance says scope none without a reason
 connector hr: tool leave_balance uses method DELETE; only GET and POST
 ```
 
-## Cop ส่งคำขออย่างไร
+## Winyu ส่งคำขออย่างไร
 
 - argument ที่ชื่อตรงกับ `{ชื่อ}` ใน `path` ถูกเติมลงใน path และ encode แล้ว เช่น `ag/../admin` กลายเป็น `ag%2F..%2Fadmin`
 - argument ที่เหลือเป็น query string (GET) หรือ JSON body (POST) ค่า `null` และค่าว่างไม่ถูกส่ง
@@ -95,7 +95,7 @@ connector hr: tool leave_balance uses method DELETE; only GET and POST
 
 ## เรื่องที่ต้องคุยกับเจ้าของ API
 
-- **ตัวตน**: API รับได้แค่ service account หรือรับ token รายคน (OAuth on-behalf-of) ได้ด้วย ถ้าได้แค่ service account Cop จะกรองสิทธิ์เองทั้งหมด
+- **ตัวตน**: API รับได้แค่ service account หรือรับ token รายคน (OAuth on-behalf-of) ได้ด้วย ถ้าได้แค่ service account Winyu จะกรองสิทธิ์เองทั้งหมด
 - **ตัวกรอง**: API กรองตามภาคหรือแบรนด์ได้ไหม ถ้าได้ ใช้ `inject` ส่งขอบเขตไปกรองที่ต้นทาง และใช้ `filter` ซ้ำอีกชั้น ถ้าไม่ได้ ใช้ `filter` อย่างเดียว
-- **ขนาดผลลัพธ์**: มี pagination และ rate limit ไหม Cop ส่งให้ AI ไม่เกิน 60 แถว และบอกว่า "60 จาก 120 แถว" ถ้าสรุปที่ต้นทางได้จะดีกว่า
-- **ความเร็ว**: ตั้ง timeout ให้ชัด ถ้าระบบไม่ตอบ Cop แจ้งผู้ใช้ว่าระบบนั้นไม่ตอบในขณะนี้
+- **ขนาดผลลัพธ์**: มี pagination และ rate limit ไหม Winyu ส่งให้ AI ไม่เกิน 60 แถว และบอกว่า "60 จาก 120 แถว" ถ้าสรุปที่ต้นทางได้จะดีกว่า
+- **ความเร็ว**: ตั้ง timeout ให้ชัด ถ้าระบบไม่ตอบ Winyu แจ้งผู้ใช้ว่าระบบนั้นไม่ตอบในขณะนี้

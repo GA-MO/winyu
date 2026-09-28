@@ -24,7 +24,7 @@ export function scaleLinear(d0: number, d1: number, r0: number, r1: number): (va
   return (value: number) => r0 + ((value - d0) / span) * (r1 - r0);
 }
 
-/** Round tick step over [0, max], the same rule Vexa's charts use so axes read alike across Cop. */
+/** Round tick step over [0, max], the same rule Vexa's charts use so axes read alike across Winyu. */
 export function niceTicks(max: number, count = 4): number[] {
   if (!(max > 0)) return [0];
   const rough = max / count;
@@ -108,7 +108,7 @@ export function ChartLegend({ items }: { items: { name: string; color: string }[
   );
 }
 
-/** An axis tick the way the rest of Cop already formats a metric value — no separate compact formatter to keep in sync. */
+/** An axis tick the way the rest of Winyu already formats a metric value — no separate compact formatter to keep in sync. */
 export function formatTick(value: number, format: MetricFormat): string {
   if (format === "currency") return formatCurrency(value);
   if (format === "percent") return formatPercent(value);

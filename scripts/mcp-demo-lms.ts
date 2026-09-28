@@ -5,7 +5,7 @@ import { verifiedIdentity } from "@/lib/server/connectors/signed-identity";
 import { formatDateTh } from "@/lib/i18n/format";
 
 const MCP_PATH = "/mcp";
-const SERVER_INFO = { name: "cop-lms-demo", version: "0.1.0" };
+const SERVER_INFO = { name: "winyu-lms-demo", version: "0.1.0" };
 const MIN_SCORE = 60;
 const SCORE_SPREAD = 40;
 const ALL = "all";
@@ -85,7 +85,7 @@ async function answer(request: JsonRpcRequest, viewerId: string): Promise<Respon
   return failure(request.id, -32601, `method ${request.method} not found`);
 }
 
-/** One HTTP request to the demo LMS: JSON-RPC over POST, only for callers whose identity Cop signed. */
+/** One HTTP request to the demo LMS: JSON-RPC over POST, only for callers whose identity Winyu signed. */
 export async function lmsDemoFetch(request: Request): Promise<Response> {
   if (new URL(request.url).pathname !== MCP_PATH) return new Response("not found", { status: 404 });
   if (request.method !== "POST") return new Response(null, { status: 405 });

@@ -2,7 +2,7 @@ import type { Brand, BusinessUnit, Region } from "./identity";
 
 type Named = { id: string; nameTh: string; label: string };
 
-/** The warehouse's dimension tables: every entity a metric can be split or filtered by, with just what Cop reads from it. */
+/** The warehouse's dimension tables: every entity a metric can be split or filtered by, with just what Winyu reads from it. */
 export type MasterData = {
   regions: { id: Region; nameTh: string }[];
   businessUnits: { id: BusinessUnit; nameTh: string }[];

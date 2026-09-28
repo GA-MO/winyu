@@ -7,7 +7,7 @@ import type { AccessContext, MetricQuery, MetricResult, Region, RoleId } from "@
 import { findUser } from "@/lib/data/entities/users";
 import { REGION_LABELS_TH } from "@/lib/data/entities/org";
 import { memoryFacts, packets } from "@/lib/server/agent/collections";
-import { copTools, toolsForAccess } from "@/lib/server/agent/tools";
+import { winyuTools, toolsForAccess } from "@/lib/server/agent/tools";
 import { createPacket, packetsFor, resolveEvidence } from "@/lib/server/handoff";
 import { runWithAccess } from "@/lib/server/request-context";
 
@@ -39,7 +39,7 @@ function query(partial: Partial<MetricQuery>): MetricQuery {
 }
 
 async function ask<T>(userId: string, name: string, input: unknown): Promise<T> {
-  const definition = copTools()[name] as Tool;
+  const definition = winyuTools()[name] as Tool;
   const execute = definition.execute as (args: unknown, options: unknown) => Promise<T>;
   return runWithAccess(access(userId), () => execute(input, {}));
 }

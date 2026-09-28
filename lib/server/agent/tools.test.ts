@@ -8,7 +8,7 @@ import { findUser } from "@/lib/data/entities/users";
 import { auditLog } from "@/lib/server/audit";
 import { runWithAccess } from "@/lib/server/request-context";
 import { notifications, outbox, packets } from "./collections";
-import { copTools, toolsForAccess } from "./tools";
+import { winyuTools, toolsForAccess } from "./tools";
 
 const TODAY = "2026-09-22";
 const MONTH_START = "2026-09-01";
@@ -34,7 +34,7 @@ function query(partial: Partial<MetricQuery>): MetricQuery {
 
 async function call<T>(userId: string, name: string, input: unknown): Promise<T> {
   const access = accessOf(userId);
-  const definition = copTools()[name] as Tool;
+  const definition = winyuTools()[name] as Tool;
   const execute = definition.execute as (args: unknown, options: unknown) => Promise<T>;
   return runWithAccess(access, () => execute(input, {}));
 }

@@ -13,10 +13,10 @@ const SYSTEMS = [
   "MuleSoft",
 ];
 
-/** A slow marquee of the kinds of systems Cop is designed to read from; names only, no logos or claims of partnership. */
+/** A slow marquee of the kinds of systems Winyu is designed to read from; names only, no logos or claims of partnership. */
 export function WorksWith() {
   return (
-    <section aria-label="ระบบที่ Cop ออกแบบมาให้อ่านได้" className="bg-paper px-4 pb-6 sm:px-8">
+    <section aria-label="ระบบที่ Winyu ออกแบบมาให้อ่านได้" className="bg-paper px-4 pb-6 sm:px-8">
       <div className="mx-auto flex w-full max-w-6xl flex-col items-center gap-6">
         <p className="font-mono text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground">Designed to read from the systems you already run</p>
         <div className="relative w-full overflow-hidden [mask-image:linear-gradient(90deg,transparent,black_12%,black_88%,transparent)]">

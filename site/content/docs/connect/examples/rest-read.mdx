@@ -72,7 +72,7 @@ export const crmDemoConnector = defineRestConnector({
 
 - **`inject` กับ `filter` คู่กัน** `inject` เขียนทับ `regions` ด้วยภาคของผู้ถามก่อนส่ง ต่อให้ AI ส่ง `regions: "bkk"` มา CRM ก็ได้ `northeast` ส่วน `filter` กรองซ้ำหลังได้ผล เผื่อ CRM ไม่สนใจ argument นี้
 - **`description` บอกว่าไม่ใช้กับอะไร** AI เลือก tool จากคำอธิบาย การเขียนว่า "Not for sales numbers" ทำให้คำถามเรื่องยอดขายไปที่ `query_metric` ซึ่งผ่านนิยาม metric ชุดเดียวกับการ์ด
-- **`output` ตรวจรูปของ body** ถ้า CRM เปลี่ยนรูปแบบผลลัพธ์ Cop ตอบ `CONNECTOR_FAILED` แทนการส่งข้อมูลที่ไม่รู้จักให้ AI
+- **`output` ตรวจรูปของ body** ถ้า CRM เปลี่ยนรูปแบบผลลัพธ์ Winyu ตอบ `CONNECTOR_FAILED` แทนการส่งข้อมูลที่ไม่รู้จักให้ AI
 - **คู่ `order_value` กับ `order_value_label`** ฟิลด์อ่อนไหวถูกปิดทั้งคู่ ป้ายที่จัดรูปแล้วจึงไม่หลุดตัวเลขออกไป
 
 ## ผลที่ผู้ใช้แต่ละคนเห็น

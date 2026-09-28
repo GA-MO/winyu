@@ -157,13 +157,13 @@ export function DashboardView({
 
 type TrayCardProps = { view: DashboardWidgetView; pending: boolean; onPin: () => void; onDismiss: () => void };
 
-/** A card Cop proposes from what the user keeps asking: the same card, framed in Cop's gradient with its reason and the decision in plain sight. */
+/** A card Winyu proposes from what the user keeps asking: the same card, framed in Winyu's gradient with its reason and the decision in plain sight. */
 function SuggestionCard({ view, pending, onPin, onDismiss }: TrayCardProps) {
   return (
-    <div className="cop-suggested relative pt-3">
+    <div className="winyu-suggested relative pt-3">
       <span className={SUGGESTION_BADGE}>
         <Sparkles className="size-3" aria-hidden />
-        {TH.dash.copSuggests}
+        {TH.dash.winyuSuggests}
       </span>
       <SpecView spec={view.spec} showDevtools={false} />
       <div className="mt-2.5 flex items-start gap-2 px-1">

@@ -43,8 +43,8 @@ export function Principle() {
     <Section id="principle" tone="light" className="pt-0 sm:pt-0">
       <SectionHeader
         eyebrow="Principle"
-        title={<>Cop never keeps <span className="gradient-text">your business data.</span></>}
-        lead="ตัวเลขทุกตัวถูกอ่านจากระบบต้นทาง ณ วินาทีที่มีคนถามหรือเปิดแดชบอร์ด ข้อมูลอยู่ที่เดิม เจ้าของเดิม นโยบายเดิม Cop เก็บแค่สิ่งที่เป็นของ Cop เอง"
+        title={<>Winyu never keeps <span className="gradient-text">your business data.</span></>}
+        lead="ตัวเลขทุกตัวถูกอ่านจากระบบต้นทาง ณ วินาทีที่มีคนถามหรือเปิดแดชบอร์ด ข้อมูลอยู่ที่เดิม เจ้าของเดิม นโยบายเดิม Winyu เก็บแค่สิ่งที่เป็นของ Winyu เอง"
       />
       <div className="mt-14 grid items-stretch gap-5 lg:grid-cols-[1fr_auto_1fr]">
         <div className="rounded-[28px] border border-hairline bg-surface p-7 shadow-lift">
@@ -76,7 +76,7 @@ export function Principle() {
           <span className="hidden h-16 w-px bg-[linear-gradient(to_bottom,#f9a8d4,transparent)] lg:block" />
         </div>
         <div className="flex flex-col rounded-[28px] border border-primary/15 bg-[linear-gradient(160deg,#eef0ff,#f6efff_60%,#fff1f3)] p-7 shadow-lift">
-          <p className="font-mono text-[11px] font-medium uppercase tracking-[0.16em] text-violet">Kept by Cop · app state only</p>
+          <p className="font-mono text-[11px] font-medium uppercase tracking-[0.16em] text-violet">Kept by Winyu · app state only</p>
           <ul className="mt-6 flex flex-col gap-4">
             {STORES.map((item) => (
               <li key={item} className="flex items-center gap-3 leading-6">
@@ -85,7 +85,7 @@ export function Principle() {
               </li>
             ))}
           </ul>
-          <p className="mt-8 border-t border-violet/15 pt-5 text-sm leading-6 text-muted-foreground">ไม่มีตัวเลขธุรกิจสักแถว ถ้าวันหนึ่งเลิกใช้ Cop ข้อมูลขององค์กรยังอยู่ที่เดิมครบ</p>
+          <p className="mt-8 border-t border-violet/15 pt-5 text-sm leading-6 text-muted-foreground">ไม่มีตัวเลขธุรกิจสักแถว ถ้าวันหนึ่งเลิกใช้ Winyu ข้อมูลขององค์กรยังอยู่ที่เดิมครบ</p>
         </div>
       </div>
     </Section>
@@ -101,14 +101,14 @@ export function Architecture() {
         dark
         eyebrow="Architecture"
         title={<>Between your people <span className="gradient-text-night">and the systems you already run.</span></>}
-        lead="ตัวตนเข้ามาจาก SSO คำถามผ่านชั้นสิทธิ์และ semantic layer ของ Cop แล้วออกไปหาระบบเดิมผ่านสามทางเท่านั้น ทุกทางใช้กลไกสิทธิ์และ audit ชุดเดียวกัน"
+        lead="ตัวตนเข้ามาจาก SSO คำถามผ่านชั้นสิทธิ์และ semantic layer ของ Winyu แล้วออกไปหาระบบเดิมผ่านสามทางเท่านั้น ทุกทางใช้กลไกสิทธิ์และ audit ชุดเดียวกัน"
       />
       <div className="mt-14">
         <ArchitectureDiagram tone="dark" />
       </div>
       <div className="mt-20 grid items-center gap-10 lg:grid-cols-[0.8fr_1.2fr]">
         <div className="flex flex-col gap-4">
-          <p className="font-mono text-[11px] font-medium uppercase tracking-[0.16em] text-indigo-300">Real code from Cop</p>
+          <p className="font-mono text-[11px] font-medium uppercase tracking-[0.16em] text-indigo-300">Real code from Winyu</p>
           <h3 className="font-display text-3xl font-medium leading-snug tracking-[-0.02em]">
             One new system. <span className="gradient-text-night">One config file.</span>
           </h3>
@@ -140,8 +140,8 @@ export function Connect() {
     <Section id="connect" tone="light">
       <SectionHeader
         eyebrow="Connections"
-        title={<>MCP, REST or plain SQL. <span className="gradient-text">Cop meets your systems where they are.</span></>}
-        lead="เลือกทางตามสิ่งที่ระบบเดิมมีอยู่ ไม่ต้องให้ระบบเดิมเปลี่ยนเพื่อ Cop งานที่เหลือต่อระบบคือการกำหนดสิทธิ์ ซึ่งเป็นการตัดสินใจทางธุรกิจ ไม่ใช่งานเชื่อมต่อ"
+        title={<>MCP, REST or plain SQL. <span className="gradient-text">Winyu meets your systems where they are.</span></>}
+        lead="เลือกทางตามสิ่งที่ระบบเดิมมีอยู่ ไม่ต้องให้ระบบเดิมเปลี่ยนเพื่อ Winyu งานที่เหลือต่อระบบคือการกำหนดสิทธิ์ ซึ่งเป็นการตัดสินใจทางธุรกิจ ไม่ใช่งานเชื่อมต่อ"
       />
       <div className="mt-14 grid gap-5 lg:grid-cols-3">
         {DOORS.map((door, index) => {
@@ -214,7 +214,7 @@ export function Security() {
           <SectionHeader
             eyebrow="Security"
             title={<>Permissions enforced in code, <span className="gradient-text">not left to the AI.</span></>}
-            lead="ขอบเขตของแต่ละคนถูกเขียนลงใน query ก่อนออกจาก Cop ต่อให้มีคนพยายามสั่ง AI ให้ดูข้อมูลภาคอื่น คำขอนั้นก็ไม่เคยออกไปถึงระบบต้นทาง"
+            lead="ขอบเขตของแต่ละคนถูกเขียนลงใน query ก่อนออกจาก Winyu ต่อให้มีคนพยายามสั่ง AI ให้ดูข้อมูลภาคอื่น คำขอนั้นก็ไม่เคยออกไปถึงระบบต้นทาง"
           />
           <div className="rounded-2xl border border-hairline bg-surface p-6 shadow-lift">
             <p className="gradient-text w-fit font-display text-5xl font-semibold tracking-tight">0 แถว</p>
@@ -248,7 +248,7 @@ export function Prepare() {
       <SectionHeader
         eyebrow="What you prepare"
         title={<>Almost nothing changes. <span className="gradient-text">Just open a read path.</span></>}
-        lead="สิ่งเดียวที่ต้องมีเพิ่มจริงคือข้อมูลว่าใครดูแลภาคหรือแบรนด์ไหน เพราะ Cop ตัดสินสิทธิ์จากตรงนี้"
+        lead="สิ่งเดียวที่ต้องมีเพิ่มจริงคือข้อมูลว่าใครดูแลภาคหรือแบรนด์ไหน เพราะ Winyu ตัดสินสิทธิ์จากตรงนี้"
       />
       <div className="mt-14 overflow-hidden rounded-[28px] border border-hairline bg-surface shadow-lift">
         <div className="hidden grid-cols-[1fr_1.6fr_1.2fr] border-b border-hairline bg-paper/60 px-7 py-4 font-mono text-[11px] uppercase tracking-[0.14em] md:grid">
@@ -286,7 +286,7 @@ export function Prepare() {
       <div className="mt-20 grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-start">
         <div className="flex flex-col gap-3">
           <p className="font-mono text-[11px] font-medium uppercase tracking-[0.16em] text-primary">Typical landscape</p>
-          <h3 className="font-display text-3xl font-medium tracking-[-0.03em]">The enterprise stack <span className="gradient-text">Cop is built for.</span></h3>
+          <h3 className="font-display text-3xl font-medium tracking-[-0.03em]">The enterprise stack <span className="gradient-text">Winyu is built for.</span></h3>
           <p className="leading-7 text-muted-foreground">สมมติฐานสำหรับเริ่มคุย เรายืนยันกับทีมของคุณในวันแรก ตัวเลขอ่านผ่านคลังข้อมูลเสมอ เพื่อให้ตรงกับรายงานที่ผู้บริหารใช้อยู่</p>
         </div>
         <ul className="grid gap-3 sm:grid-cols-2">

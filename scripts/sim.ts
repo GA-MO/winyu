@@ -3,7 +3,7 @@ import path from "node:path";
 import { AbstractChat, asSchema, DefaultChatTransport, isToolUIPart, getToolName, lastAssistantMessageIsCompleteWithApprovalResponses, lastAssistantMessageIsCompleteWithToolCalls, type ChatState, type ChatStatus, type UIMessage } from "ai";
 import { formatActionMessage } from "vexa/react";
 import { findUser } from "@/lib/data/entities/users";
-import { askTool, copActionTool } from "@/components/cards/action-tool";
+import { askTool, winyuActionTool } from "@/components/cards/action-tool";
 import { SIM_PERSONAS } from "@/lib/sim/scenarios";
 import type { SimPersona, SimSession, SimTurn } from "@/lib/sim/types";
 import { buildReview, compareRuns, meanScores, parseWalk, redoTurns, titleFlags, titleLabelled, unscored, type CardReviewRow, type ReviewTurn } from "@/lib/sim/card-review";
@@ -170,14 +170,14 @@ async function idle(chat: SimChat, deadline: number): Promise<void> {
   }
 }
 
-type HostTools = { cop_action: ReturnType<typeof copActionTool>; ask: ReturnType<typeof askTool> };
+type HostTools = { winyu_action: ReturnType<typeof winyuActionTool>; ask: ReturnType<typeof askTool> };
 
 function hostToolsFor(queued: string[]): HostTools {
   const send = (text: string) => {
     queued.push(text);
     return true;
   };
-  return { cop_action: copActionTool(send), ask: askTool(send) };
+  return { winyu_action: winyuActionTool(send), ask: askTool(send) };
 }
 
 async function descriptorsOf(tools: HostTools): Promise<{ name: string; description: string; inputSchema: Record<string, unknown> }[]> {

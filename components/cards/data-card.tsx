@@ -65,7 +65,7 @@ function Pending({ title }: { title: string }) {
   );
 }
 
-/** The model names a card and points it at a tool result; Cop's presenter decides everything else. */
+/** The model names a card and points it at a tool result; Winyu's presenter decides everything else. */
 export function DataCard({ props }: { props: DataCardProps }) {
   const answer = metricAnswerOf(props.source);
   if (!answer) return <Pending title={props.title} />;
@@ -97,7 +97,7 @@ export function AlertsCard({ props }: { props: AlertsCardProps }) {
   );
 }
 
-/** A get_forecast answer, with the weekly actuals when the model bound them; Cop draws the line, the band and the error caption. */
+/** A get_forecast answer, with the weekly actuals when the model bound them; Winyu draws the line, the band and the error caption. */
 export function ForecastCard({ props }: { props: ForecastCardProps }) {
   const history = metricAnswerOf(props.history);
   const forecast = forecastOf(props.source, history);
@@ -129,7 +129,7 @@ function cardBodyOf(props: unknown): CardBody {
   return body ?? { kind: "none" };
 }
 
-export const COP_CARD_COMPONENTS: ComponentRegistry = {
+export const WINYU_CARD_COMPONENTS: ComponentRegistry = {
   DataCard: ({ element }) => <DataCard props={element.props as never} />,
   AlertsCard: ({ element }) => <AlertsCard props={element.props as never} />,
   ForecastCard: ({ element }) => <ForecastCard props={element.props as never} />,

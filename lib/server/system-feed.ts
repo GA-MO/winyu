@@ -12,7 +12,7 @@ function systemItem(key: string, tone: FeedTone, rank: number, label: string, re
   return { key, source: "system", kind: "system", story: null, rank, tone, label, reason, detail, prompt, alertId: null, packetId: null, canFinish: true, actions: [], because: null };
 }
 
-/** What in Cop itself needs the administrator: a connector that stopped answering, a tool taken out of service. Switches are policy, not matters. */
+/** What in Winyu itself needs the administrator: a connector that stopped answering, a tool taken out of service. Switches are policy, not matters. */
 export function systemFeedFor(access: AccessContext): FeedItem[] {
   if (!SYSTEM_ROLES.has(access.role)) return [];
   const offline = remoteConnectors().flatMap(({ def }) => {

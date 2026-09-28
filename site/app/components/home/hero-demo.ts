@@ -52,8 +52,12 @@ export function scopeLabel(role: DemoRole): string {
   return regions.includes("north") ? "ภาคเหนือ" : regions.join(", ");
 }
 
-export function stepsOf(role: DemoRole): string[] {
+export function roleTitleOf(role: DemoRole): string {
+  return role.card.who.split(" · ").at(-1) ?? role.card.who;
+}
+
+export function stepsOf(role: DemoRole, who: string = role.card.who): string[] {
   const source = role.card.source;
   const read = WAREHOUSE_SOURCES.has(source) ? `อ่านจาก ${source} ผ่านคลังข้อมูล` : `อ่านจาก ${source}`;
-  return [`รู้ว่าเป็น ${role.card.who}`, `ใส่ขอบเขต: ${scopeLabel(role)}`, read, "ซ่อนกลุ่มเล็ก · บันทึก audit"];
+  return [`รู้ว่าเป็น ${who}`, `ใส่ขอบเขต: ${scopeLabel(role)}`, read, "ซ่อนกลุ่มเล็ก · บันทึก audit"];
 }

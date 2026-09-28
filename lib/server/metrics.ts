@@ -56,7 +56,7 @@ export async function monthEndProjection(query: MetricQuery, access: AccessConte
   };
 }
 
-/** Runs one certified metric query under the caller's access scope: Cop plans and finishes, the metrics port only reads facts; a month-to-date total against target also says where the month ends. */
+/** Runs one certified metric query under the caller's access scope: Winyu plans and finishes, the metrics port only reads facts; a month-to-date total against target also says where the month ends. */
 export async function runMetric(query: MetricQuery, access: AccessContext): Promise<MetricResult> {
   const result = await runPlain(query, access);
   if (!result.ok) return result;

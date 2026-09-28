@@ -5,8 +5,8 @@ import { toolsFor } from "@/lib/access/enforce";
 import { findUser } from "@/lib/data/entities/users";
 import { models } from "@/lib/server/models";
 import { currentAccess } from "@/lib/server/request-context";
-import { copCatalog } from "@/lib/cards/catalog";
-import { COP_RULES, personaFor } from "./persona";
+import { winyuCatalog } from "@/lib/cards/catalog";
+import { WINYU_RULES, personaFor } from "./persona";
 import { toolTiers, toolsForAccess } from "./tools";
 
 const MAX_STEPS = 6;
@@ -21,13 +21,13 @@ function keyOf(access: AccessContext): string {
 
 function build(access: AccessContext): ChatHandler {
   return createVexaHandler({
-    catalog: copCatalog,
+    catalog: winyuCatalog,
     models,
     persona: (ctx: PersonaContext) => {
       const current = currentAccess();
       return personaFor(current, findUser(current.userId), ctx);
     },
-    rules: COP_RULES,
+    rules: WINYU_RULES,
     tools: toolsForAccess(access),
     toolTiers: toolTiers(),
     stopWhen: stepCountIs(MAX_STEPS),

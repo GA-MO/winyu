@@ -5,7 +5,7 @@ export type FactMeasure = "actual" | "target";
 /** How far a row's time labels move forward, so a prior window's rows carry the labels of the window they are compared with. */
 export type LabelShift = { days: number; months: number };
 
-/** One aggregate asked of the warehouse: Cop has already resolved, scoped and bounded it; the warehouse never sees who asked. */
+/** One aggregate asked of the warehouse: Winyu has already resolved, scoped and bounded it; the warehouse never sees who asked. */
 export type FactRequest = {
   metric: MetricId;
   measure: FactMeasure;

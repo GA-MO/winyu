@@ -7,8 +7,8 @@ export type ConnectorClient = Pick<MCPClient, "callTool" | "listTools" | "close"
 export type ConnectorClientFactory = (connector: string, transport: McpTransportConfig) => Promise<ConnectorClient>;
 
 const CLIENT_TTL_MS = 10 * 60 * 1000;
-const COP_ITSELF = "cop";
-const CLIENT_NAME = "cop";
+const WINYU_ITSELF = "winyu";
+const CLIENT_NAME = "winyu";
 
 type Pooled = { client: Promise<ConnectorClient>; expiresAt: number };
 
@@ -18,7 +18,7 @@ let factory: ConnectorClientFactory = openClient;
 const pool = new Map<string, Pooled>();
 
 function keyOf(connector: McpConnectorConfig, access: AccessContext | null): string {
-  return `${connector.id}:${access?.userId ?? COP_ITSELF}`;
+  return `${connector.id}:${access?.userId ?? WINYU_ITSELF}`;
 }
 
 function withHeaders(transport: McpTransportConfig, headers: Record<string, string>): McpTransportConfig {
@@ -36,7 +36,7 @@ function open(connector: McpConnectorConfig, access: AccessContext | null): Prom
   return client;
 }
 
-/** A client that speaks to the connector as the person asking (or as Cop itself for null), reused for ten minutes. */
+/** A client that speaks to the connector as the person asking (or as Winyu itself for null), reused for ten minutes. */
 export function clientFor(connector: McpConnectorConfig, access: AccessContext | null): Promise<ConnectorClient> {
   const key = keyOf(connector, access);
   const pooled = pool.get(key);

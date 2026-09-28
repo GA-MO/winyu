@@ -1,5 +1,6 @@
 import { ArrowRight, Check } from "lucide-react";
 import { CardPartsView } from "@/components/cards/card-parts";
+import { BrandMark } from "@/components/chrome/brand-mark";
 import { SpecView } from "vexa/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { NAV } from "./content";
@@ -10,7 +11,7 @@ export function TopNav() {
   return (
     <nav className="pointer-events-none sticky top-[calc(env(safe-area-inset-top,0px)+12px)] z-30 -mb-[76px] px-4 sm:px-8">
       <div className="pointer-events-auto mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-6 rounded-full border border-white/70 bg-white/80 pl-5 pr-2.5 text-foreground shadow-[0_10px_40px_-18px_rgb(17_18_24/35%)] backdrop-blur-xl">
-        <a href="#top" aria-label="Cop หน้าแรก">
+        <a href="#top" aria-label="Winyu หน้าแรก">
           <Logo />
         </a>
         <div className="hidden items-center gap-7 text-sm text-muted-foreground md:flex">
@@ -117,7 +118,7 @@ function RoleTabs({ active, onChoose }: { active: number; onChoose: (index: numb
 function SystemPills({ role, reading }: { role: DemoRole; reading: boolean }) {
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <span className="mr-1 text-xs font-medium text-white/80">Cop อ่านสดจาก</span>
+      <span className="mr-1 text-xs font-medium text-white/80">Winyu อ่านสดจาก</span>
       {SYSTEMS.map((system) => {
         const live = reading && system === role.card.source;
         return (
@@ -145,9 +146,9 @@ function Conversation({ role, state }: { role: DemoRole; state: DemoState }) {
       <div className="flex flex-col gap-3">
         <p className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
           <span className="grid size-5 place-items-center rounded-md bg-[linear-gradient(135deg,var(--color-primary),var(--color-violet)_55%,var(--color-coral))]">
-            <span className="size-2 rounded-full border-2 border-white" />
+            <BrandMark compact className="size-3.5 text-white" />
           </span>
-          Cop กำลังตรวจก่อนตอบ
+          Winyu กำลังตรวจก่อนตอบ
         </p>
         <ol className="flex flex-col gap-2.5">
           {stepsOf(role).map((step, index) => {
@@ -164,13 +165,13 @@ function Conversation({ role, state }: { role: DemoRole; state: DemoState }) {
         </ol>
       </div>
       <div className={`overflow-hidden rounded-xl bg-foreground p-4 font-mono text-[12px] leading-6 text-white/75 transition-all duration-500 ${state.steps >= 2 ? "opacity-100" : "opacity-0"}`}>
-        <p className="mb-1 font-sans text-[11px] font-medium text-white/50">query ที่ Cop ส่งออกไป</p>
+        <p className="mb-1 font-sans text-[11px] font-medium text-white/50">query ที่ Winyu ส่งออกไป</p>
         {role.card.request.map((line) => (
           <p key={line.key}>{line.key}: <span className="text-white">{line.value}</span></p>
         ))}
         <p className="-mx-2 flex flex-wrap items-center justify-between gap-x-3 rounded-md bg-white/10 px-2">
           <span>scope: <span className="text-emerald-300">{scopeText(role)}</span></span>
-          <span className="font-sans text-[11px] text-emerald-300">ใส่โดย Cop</span>
+          <span className="font-sans text-[11px] text-emerald-300">ใส่โดย Winyu</span>
         </p>
       </div>
     </div>
@@ -206,7 +207,7 @@ function Stage({ state, onChoose }: { state: DemoState; onChoose: (index: number
               <span className="size-2.5 rounded-full bg-[#febc2e]" />
               <span className="size-2.5 rounded-full bg-[#28c840]" />
             </span>
-            <span className="font-mono text-xs text-muted-foreground">cop.app</span>
+            <span className="font-mono text-xs text-muted-foreground">winyu.app</span>
             <span className="ml-auto truncate rounded-full bg-primary/8 px-3 py-1 text-xs font-medium text-primary">{role.card.who}</span>
           </div>
           <div className="grid md:grid-cols-[0.9fr_1.1fr]">
@@ -259,7 +260,7 @@ export function Hero() {
           <span className="gradient-text"><span className="inline-block">The right answer</span> <span className="inline-block">for every role.</span></span>
         </h1>
         <p className="max-w-2xl text-lg leading-8 text-muted-foreground">
-          ตั้งแต่ CEO ถึงพนักงานขาย Cop ตอบจากระบบเดิมขององค์กรตามขอบเขตที่แต่ละคนดูแล อ่านสด ณ วินาทีที่ถาม โดยไม่ย้ายข้อมูลออกมาเก็บเอง
+          ตั้งแต่ CEO ถึงพนักงานขาย Winyu ตอบจากระบบเดิมขององค์กรตามขอบเขตที่แต่ละคนดูแล อ่านสด ณ วินาทีที่ถาม โดยไม่ย้ายข้อมูลออกมาเก็บเอง
         </p>
         <div className="flex flex-wrap justify-center gap-3">
           <a href="#connect" className="inline-flex items-center gap-2 rounded-full bg-foreground px-6 py-3.5 text-sm font-semibold text-white shadow-lift transition-transform hover:-translate-y-0.5">
@@ -276,7 +277,7 @@ export function Hero() {
         </div>
         <dl className="mt-6 grid w-full max-w-3xl grid-cols-1 divide-y divide-hairline rounded-2xl border border-hairline bg-white/70 backdrop-blur sm:grid-cols-3 sm:divide-x sm:divide-y-0">
           <div className="px-6 py-5">
-            <dt className="text-xs text-muted-foreground">ข้อมูลธุรกิจที่ Cop เก็บ</dt>
+            <dt className="text-xs text-muted-foreground">ข้อมูลธุรกิจที่ Winyu เก็บ</dt>
             <dd className="mt-1 font-display text-2xl font-medium">0 แถว</dd>
           </div>
           <div className="px-6 py-5">

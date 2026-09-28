@@ -16,7 +16,7 @@ export type HandoffFlow = { total: number; resolved: number; returned: number; m
 export type CardUse = { pinned: number; viewed: number; judged: boolean };
 export type WatchUse = { active: number; triggered: number; notified: number; digests: number };
 
-/** Whether Cop is actually used: who came back, what happened to the alerts, whether handoffs got answered, which cards are read, what runs on its own. */
+/** Whether Winyu is actually used: who came back, what happened to the alerts, whether handoffs got answered, which cards are read, what runs on its own. */
 export type AdoptionSummary = { activeByRole: RoleActivity[]; alerts: AlertFate; handoffs: HandoffFlow; cards: CardUse; watches: WatchUse };
 
 export type AdoptionInput = {

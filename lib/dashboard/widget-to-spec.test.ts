@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { normalizeSpec } from "vexa/core";
-import { copCatalog as catalog } from "@/lib/cards/catalog";
+import { winyuCatalog as catalog } from "@/lib/cards/catalog";
 import { WIDGET_KINDS, type AccessContext, type NextAction, type WidgetKind, type WidgetSpec } from "@/lib/contracts";
 import { accessFor } from "@/lib/access/policies";
 import { TH } from "@/lib/i18n/th";
@@ -57,7 +57,7 @@ describe("widgetToSpec", () => {
   });
 
 
-  test("every widget kind renders a spec the Cop catalog accepts", () => {
+  test("every widget kind renders a spec the Winyu catalog accepts", () => {
     const access = accessOf(RSM);
     for (const kind of WIDGET_KINDS) {
       const widget = widgetOf(kind, access);

@@ -7,7 +7,7 @@ import { defineTool } from "./define";
 
 export const runJobTool = defineTool({
   name: "run_job",
-  connector: "cop",
+  connector: "winyu",
   tier: "destructive",
   roles: ["it_admin"],
   description: "Run one batch job of the analytics plane: anomaly detection, forecasting or dashboard composition. IT administrators only; the user approves it first.",

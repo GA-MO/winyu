@@ -7,14 +7,14 @@ import { existsSync } from "node:fs";
 import { defineConfig, type Plugin } from "vite";
 
 const root = path.dirname(fileURLToPath(import.meta.url));
-const copRoot = path.resolve(root, "..");
-const vexaSource = path.resolve(copRoot, "../agentic-ui/src");
+const winyuRoot = path.resolve(root, "..");
+const vexaSource = path.resolve(winyuRoot, "../agentic-ui/src");
 
 const CLIENT_BUILD = path.join(root, "build", "client");
 
 function prerenderedIndex(): Plugin {
   return {
-    name: "cop-site-prerendered-index",
+    name: "winyu-site-prerendered-index",
     configurePreviewServer(server) {
       server.middlewares.use((request, _response, next) => {
         const [pathname, search = ""] = (request.url ?? "/").split("?");
@@ -29,7 +29,7 @@ function prerenderedIndex(): Plugin {
 const VEXA_ENTRIES = ["protocol", "core", "server", "mock", "admin", "react", "chat"];
 
 export default defineConfig(({ command }) => ({
-  base: process.env.COP_SITE_BASE_PATH ?? "/",
+  base: process.env.WINYU_SITE_BASE_PATH ?? "/",
   plugins: [fumadocsMdx(), tailwindcss(), reactRouter(), prerenderedIndex()],
   css: { postcss: {} },
   ssr: { noExternal: command === "build" ? true : [/^vexa/] },
@@ -38,7 +38,7 @@ export default defineConfig(({ command }) => ({
     dedupe: ["react", "react-dom"],
     alias: [
       { find: /^~\//, replacement: `${path.join(root, "app")}/` },
-      { find: /^@\//, replacement: `${copRoot}/` },
+      { find: /^@\//, replacement: `${winyuRoot}/` },
       { find: /^vexa$/, replacement: path.join(vexaSource, "index.ts") },
       ...VEXA_ENTRIES.map((entry) => ({ find: new RegExp(`^vexa/${entry}$`), replacement: path.join(vexaSource, entry, "index.ts") })),
       { find: /^vexa\/lib\//, replacement: `${path.join(vexaSource, "lib")}/` },

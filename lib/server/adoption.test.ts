@@ -16,7 +16,7 @@ function event(userId: string, kind: ActionEvent["kind"], intentKey: string, day
 const ALERTS = [alert("a1", "open", "north"), alert("a2", "dismissed", "south"), alert("a3", "open", "east"), alert("a4", "open", "bkk")];
 const PACKET = { alertIds: ["a1"], status: "resolved", toUserId: "u_pim", createdAt: "2026-09-30T09:00:00.000Z", thread: [{ userId: "u_pim", at: "2026-09-30T12:00:00.000Z", text: "รับ" }] } as unknown as ContextPacket;
 
-describe("whether Cop is used", () => {
+describe("whether Winyu is used", () => {
   const summary = adoptionOf(
     {
       events: [event("u_anucha", "question", "x", 2), event("u_krit", "question", "x", 20), event("u_anucha", "alert_open", `alert:${thresholdKey("net_sales_volume", { region: "east" })}`, 1)],

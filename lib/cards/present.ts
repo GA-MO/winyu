@@ -839,7 +839,7 @@ export function presentForecast(input: PresentForecastInput): CardParts {
 }
 
 /**
- * The one decision table for every data card in Cop: what the headline is, which body the data shape deserves,
+ * The one decision table for every data card in Winyu: what the headline is, which body the data shape deserves,
  * what the scope and source lines say. The dashboard renders it as a Vexa spec, the chat renders it as React.
  */
 export function presentCard(input: PresentInput): CardParts {

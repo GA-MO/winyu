@@ -17,9 +17,9 @@ const actionSchema = z.object({
   prompt: z.string().nullable(),
 });
 
-type CopAction = z.infer<typeof actionSchema>;
+type WinyuAction = z.infer<typeof actionSchema>;
 
-function messageOf(action: CopAction): string | null {
+function messageOf(action: WinyuAction): string | null {
   if (action.tool) return formatActionMessage(action.tool, action.input ?? {});
   return action.prompt;
 }
@@ -28,11 +28,11 @@ function messageOf(action: CopAction): string | null {
  * The one host tool every next-action button presses. A tool action becomes the same button-press message the chat
  * already understands, so the model still runs it behind an approval card; a question is simply asked.
  */
-export function copActionTool(send: (text: string) => boolean) {
+export function winyuActionTool(send: (text: string) => boolean) {
   return defineTool({
-    description: "Run the next action a Cop card offers: hand off to the owner, request access, pin the card, verify an alert, or drill in.",
+    description: "Run the next action a Winyu card offers: hand off to the owner, request access, pin the card, verify an alert, or drill in.",
     input: actionSchema,
-    run: (action: CopAction) => {
+    run: (action: WinyuAction) => {
       const message = messageOf(action);
       if (!message) return { ok: false as const, error: TH.next.noAction };
       if (send(message)) return { ok: true as const, summary: action.label };

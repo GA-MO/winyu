@@ -93,30 +93,30 @@ function Edge({ d, base }: { d: string; base: string }) {
   return (
     <>
       <path d={d} fill="none" stroke={base} strokeWidth={2} />
-      <path d={d} fill="none" stroke="url(#cop-edge)" strokeWidth={2} strokeDasharray="6 6" className="animate-flow" />
+      <path d={d} fill="none" stroke="url(#winyu-edge)" strokeWidth={2} strokeDasharray="6 6" className="animate-flow" />
     </>
   );
 }
 
-/** How Cop sits between people and the systems of record: identity in, three doors out, nothing stored. */
+/** How Winyu sits between people and the systems of record: identity in, three doors out, nothing stored. */
 export function ArchitectureDiagram({ tone = "light" }: { tone?: "light" | "dark" }) {
   const p = PALETTES[tone];
   return (
     <figure className={`not-prose overflow-x-auto rounded-3xl p-3 sm:p-5 ${p.frame}`}>
-      <svg viewBox="0 0 1200 600" role="img" aria-labelledby="cop-arch-title" className="w-full min-w-[720px] font-sans">
-        <title id="cop-arch-title">สถาปัตยกรรม Cop: ผู้ใช้ถามผ่าน Cop ซึ่งตรวจสิทธิ์แล้วอ่านข้อมูลจากระบบเดิมผ่านสามทาง</title>
+      <svg viewBox="0 0 1200 600" role="img" aria-labelledby="winyu-arch-title" className="w-full min-w-[720px] font-sans">
+        <title id="winyu-arch-title">สถาปัตยกรรม Winyu: ผู้ใช้ถามผ่าน Winyu ซึ่งตรวจสิทธิ์แล้วอ่านข้อมูลจากระบบเดิมผ่านสามทาง</title>
         <defs>
-          <linearGradient id="cop-edge" x1="0" x2="1">
+          <linearGradient id="winyu-edge" x1="0" x2="1">
             <stop offset="0" stopColor="#818cf8" />
             <stop offset="0.6" stopColor="#c084fc" />
             <stop offset="1" stopColor="#fb7185" />
           </linearGradient>
-          <linearGradient id="cop-core" x1="0" y1="0" x2="1" y2="1">
+          <linearGradient id="winyu-core" x1="0" y1="0" x2="1" y2="1">
             <stop offset="0" stopColor="#6366f1" />
             <stop offset="0.5" stopColor="#8b5cf6" />
             <stop offset="1" stopColor="#fb7185" />
           </linearGradient>
-          <radialGradient id="cop-core-glow" cx="0.5" cy="0.45" r="0.6">
+          <radialGradient id="winyu-core-glow" cx="0.5" cy="0.45" r="0.6">
             <stop offset="0" stopColor="#7c3aed" stopOpacity={p.coreGlow} />
             <stop offset="1" stopColor="#7c3aed" stopOpacity="0" />
           </radialGradient>
@@ -151,19 +151,19 @@ export function ArchitectureDiagram({ tone = "light" }: { tone?: "light" | "dark
         <text x="236" y="292" fill={p.body} fontSize="11">ถามเป็นภาษาไทย</text>
 
         <g>
-          <rect x="300" y="20" width="440" height="560" rx="40" fill="url(#cop-core-glow)" />
-          <rect x="320" y="40" width="400" height="520" rx="28" fill={p.core} stroke="url(#cop-core)" strokeWidth="1.5" />
-          <text x="344" y="86" fill={p.title} fontSize="26" fontWeight="700" fontFamily="Inter, sans-serif">Cop</text>
+          <rect x="300" y="20" width="440" height="560" rx="40" fill="url(#winyu-core-glow)" />
+          <rect x="320" y="40" width="400" height="520" rx="28" fill={p.core} stroke="url(#winyu-core)" strokeWidth="1.5" />
+          <text x="344" y="86" fill={p.title} fontSize="26" fontWeight="700" fontFamily="Inter, sans-serif">Winyu</text>
           <text x="410" y="86" fill={p.body} fontSize="13">ไม่เก็บข้อมูลธุรกิจ อ่านสดทุกครั้ง</text>
           {LAYERS.map((layer, index) => (
             <g key={layer.title}>
               <rect x="344" y={LAYER_Y[index]} width="352" height="76" rx="16" fill={p.inset} stroke={p.insetLine} />
-              <circle cx="368" cy={LAYER_Y[index] + 38} r="5" fill="url(#cop-core)" />
+              <circle cx="368" cy={LAYER_Y[index] + 38} r="5" fill="url(#winyu-core)" />
               <text x="386" y={LAYER_Y[index] + 33} fill={p.title} fontSize="15" fontWeight="600">{layer.title}</text>
               <text x="386" y={LAYER_Y[index] + 55} fill={p.body} fontSize="12">{layer.sub}</text>
             </g>
           ))}
-          <text x="520" y="530" fill={p.note} fontSize="13" textAnchor="middle">AI เลือกคำถาม · Cop วาดตัวเลขจากผลจริง</text>
+          <text x="520" y="530" fill={p.note} fontSize="13" textAnchor="middle">AI เลือกคำถาม · Winyu วาดตัวเลขจากผลจริง</text>
         </g>
 
         {DOORS.map((door, index) => (

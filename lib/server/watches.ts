@@ -16,7 +16,7 @@ import { metricLabel } from "@/lib/dashboard/metric-display";
 import { notifications, personalWatches } from "./agent/collections";
 
 const MAX_WATCHES_PER_USER = 12;
-const SYSTEM_SENDER = "cop";
+const SYSTEM_SENDER = "winyu";
 
 export type WatchCreated = { ok: true; watch: PersonalWatch; now: string } | { ok: false; error: string };
 

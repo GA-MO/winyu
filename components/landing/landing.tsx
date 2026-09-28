@@ -12,7 +12,7 @@ import { countsLine, storyCounts, type StoryCounts } from "@/components/stories/
 import { StoriesDrawer } from "@/components/stories/drawer";
 import type { Tone } from "@/lib/dashboard/metric-display";
 import { TH } from "@/lib/i18n/th";
-import { CopComposer } from "@/components/composer/cop-composer";
+import { WinyuComposer } from "@/components/composer/winyu-composer";
 import { ChipIcon } from "@/components/ui/chip-icon";
 import { GlowBackdrop } from "@/components/ui/glow-backdrop";
 import { GradientText } from "@/components/ui/gradient-text";
@@ -157,7 +157,7 @@ export function Landing({
             )}
           </header>
 
-          <CopComposer value={text} onValueChange={setText} onSubmit={start} busy={busy} autoFocus placeholder={placeholder} />
+          <WinyuComposer value={text} onValueChange={setText} onSubmit={start} busy={busy} autoFocus placeholder={placeholder} />
           {failed ? (
             <p role="alert" className="-mt-2 text-center text-xs text-danger">
               {TH.landing.startFailed}

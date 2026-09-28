@@ -3,7 +3,7 @@ import { NATIVE_CONNECTORS, ROLE_IDS, toolRolesInclude, type AccessContext, type
 import { USERS } from "@/lib/data/entities/users";
 import { auditLog } from "@/lib/server/audit";
 import { runWithAccess } from "@/lib/server/request-context";
-import { copTool, defaultToolsOf, toolSurface } from "@/lib/server/tools/registry";
+import { winyuTool, defaultToolsOf, toolSurface } from "@/lib/server/tools/registry";
 import { registerConnectors, resetConnectors } from "@/lib/server/connectors";
 import { stubConnector } from "@/lib/server/connectors/stub";
 import { connectorEnabled, killTool, killedTools, liveAccessFor, reviveTool, setConnectorEnabled, toolsFor } from "./enforce";
@@ -15,11 +15,11 @@ const NATIVE_SURFACE_BEFORE_CONNECTORS = [
   ["query_metric", "warehouse", "read", "all"],
   ["list_metrics", "warehouse", "read", "all"],
   ["describe_entity", "warehouse", "read", "all"],
-  ["get_alerts", "cop", "read", "all"],
-  ["get_forecast", "cop", "read", "all"],
-  ["explain_gap", "cop", "read", "all"],
+  ["get_alerts", "winyu", "read", "all"],
+  ["get_forecast", "winyu", "read", "all"],
+  ["explain_gap", "winyu", "read", "all"],
   ["get_calendar", "calendar", "read", "all"],
-  ["recall_memory", "cop", "read", "all"],
+  ["recall_memory", "winyu", "read", "all"],
   ["find_people", "hris", "read", "all"],
   ["get_person", "hris", "read", "all"],
   ["get_site", "sites", "read", "all"],
@@ -28,13 +28,13 @@ const NATIVE_SURFACE_BEFORE_CONNECTORS = [
   ["get_policy", "leave", "read", "all"],
   ["request_leave", "leave", "write", "all"],
   ["enroll_course", "lms", "write", "all"],
-  ["resolve_owner", "cop", "read", "all"],
-  ["create_handoff", "cop", "write", "all_but_sales_rep"],
+  ["resolve_owner", "winyu", "read", "all"],
+  ["create_handoff", "winyu", "write", "all_but_sales_rep"],
   ["send_email", "mail", "write", "all_but_sales_rep"],
-  ["pin_widget", "cop", "write", "all"],
-  ["watch_metric", "cop", "write", "all"],
-  ["run_job", "cop", "destructive", "it_admin"],
-  ["set_permission", "cop", "destructive", "it_admin"],
+  ["pin_widget", "winyu", "write", "all"],
+  ["watch_metric", "winyu", "write", "all"],
+  ["run_job", "winyu", "destructive", "it_admin"],
+  ["set_permission", "winyu", "destructive", "it_admin"],
 ] as const;
 
 const PROBE = new Proxy({}, {
@@ -91,13 +91,13 @@ describe("tool surface", () => {
     for (const entry of toolSurface()) {
       expect(entry.labelTh.length).toBeGreaterThan(0);
       expect(entry.bodyTh.length).toBeGreaterThan(0);
-      expect(copTool(entry.name)?.tool.execute).toBeDefined();
+      expect(winyuTool(entry.name)?.tool.execute).toBeDefined();
     }
   });
 
   test("every tool above read asks the user first, every read tool does not", () => {
     for (const entry of toolSurface()) {
-      const needsApproval = copTool(entry.name)?.tool.needsApproval === true;
+      const needsApproval = winyuTool(entry.name)?.tool.needsApproval === true;
       expect({ tool: entry.name, needsApproval }).toEqual({ tool: entry.name, needsApproval: entry.tier !== "read" });
     }
   });
@@ -157,7 +157,7 @@ describe("every tool × every role", () => {
   test("every call leaves an audit row, even one that fails", async () => {
     const access: AccessContext = liveAccessFor(memberOf("it_admin"));
     for (const entry of toolSurface()) {
-      const execute = copTool(entry.name)?.tool.execute as (input: unknown, options: unknown) => Promise<unknown>;
+      const execute = winyuTool(entry.name)?.tool.execute as (input: unknown, options: unknown) => Promise<unknown>;
       const before = new Set(auditLog().all().map((row) => row.id));
       await expect(runWithAccess(access, () => execute(PROBE, {}))).rejects.toThrow("surface probe");
       const written = auditLog().all().filter((row) => !before.has(row.id));

@@ -174,7 +174,7 @@ function watchItem(watch: PersonalWatch, story: string | null): FeedItem {
   };
 }
 
-/** Kinds the user asked Cop to stop following, from the memory statements they confirmed or that came up again. */
+/** Kinds the user asked Winyu to stop following, from the memory statements they confirmed or that came up again. */
 function mutedKindsOf(userId: string, kinds: Iterable<string>): Set<string> {
   const statements = new Set(memoryFacts().where((fact) => fact.userId === userId && fact.type === "preference" && isTrusted(fact)).map((fact) => fact.value));
   return new Set([...kinds].filter((kind) => isMutableKind(kind) && statements.has(notFollowingStatement(kind))));
@@ -315,7 +315,7 @@ function stateFor(action: Exclude<FeedAction, "open">, now: number): Pick<FeedSt
   return { state: action === "done" ? "done" : "muted", until: null };
 }
 
-/** After the third "not mine" on the same kind within a month, Cop puts forward that the user does not follow it; it takes effect once confirmed or said again. */
+/** After the third "not mine" on the same kind within a month, Winyu puts forward that the user does not follow it; it takes effect once confirmed or said again. */
 function proposeStopFollowing(userId: string, kind: string, now: number): void {
   if (!isMutableKind(kind)) return;
   const mutes = mutesOfKind(actionEvents().where((event) => event.userId === userId), kind, now);

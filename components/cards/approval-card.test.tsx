@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { renderToStaticMarkup } from "react-dom/server";
 import type { ApprovalRequest } from "vexa/react";
 import { TH } from "@/lib/i18n/th";
-import { renderCopApproval } from "./approval-card";
+import { renderWinyuApproval } from "./approval-card";
 
 const HANDOFF = {
   toUserId: "u_anucha",
@@ -18,7 +18,7 @@ function request(tool: string, input: unknown, overrides: Partial<ApprovalReques
 }
 
 function render(tool: string, input: unknown, overrides: Partial<ApprovalRequest> = {}): string {
-  return renderToStaticMarkup(renderCopApproval(request(tool, input, overrides)));
+  return renderToStaticMarkup(renderWinyuApproval(request(tool, input, overrides)));
 }
 
 describe("the approval card", () => {
@@ -64,7 +64,7 @@ describe("the approval card", () => {
     expect(html).toContain(TH.approve.jobs.forecast);
   });
 
-  test("a tool Cop has no decision for falls back to Vexa's own card", () => {
-    expect(renderCopApproval(request("query_metric", {}))).toBeNull();
+  test("a tool Winyu has no decision for falls back to Vexa's own card", () => {
+    expect(renderWinyuApproval(request("query_metric", {}))).toBeNull();
   });
 });

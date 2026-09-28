@@ -8,7 +8,7 @@ async function evidenceFor(story: Story, access: AccessContext): Promise<Evidenc
   return result.ok ? { ...result, query: story.evidence.query, nextActions: [] } : null;
 }
 
-/** The last investigation for this viewer with every story's evidence drawn from today's data under their own scope; null before Cop has investigated for them. */
+/** The last investigation for this viewer with every story's evidence drawn from today's data under their own scope; null before Winyu has investigated for them. */
 export async function morningBriefFor(access: AccessContext): Promise<MorningBrief | null> {
   const investigation = latestInvestigation(access.userId);
   if (!investigation) return null;

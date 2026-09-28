@@ -3,7 +3,7 @@ import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 import { wrapLanguageModel, type LanguageModel } from "ai";
 import { createScriptedModel, MOCK_MODEL_ID } from "vexa/mock";
 import type { ModelRegistry } from "vexa/server";
-import { COP_MOCK_SCRIPT } from "./mock-script";
+import { WINYU_MOCK_SCRIPT } from "./mock-script";
 import { meterMiddleware } from "./usage-meter";
 
 const SONNET_ID = "claude-sonnet-5";
@@ -23,7 +23,7 @@ function providerOrderOf(modelId: string): string[] | null {
 }
 
 const MOCK: ModelRegistry = {
-  [MOCK_MODEL_ID]: { model: () => createScriptedModel(COP_MOCK_SCRIPT), name: "Mock (scripted, ฟรี)", provider: "vexa-mock", maxTokens: 8_000 },
+  [MOCK_MODEL_ID]: { model: () => createScriptedModel(WINYU_MOCK_SCRIPT), name: "Mock (scripted, ฟรี)", provider: "vexa-mock", maxTokens: 8_000 },
 };
 
 function metered(modelId: string, model: Exclude<LanguageModel, string>) {
@@ -39,7 +39,7 @@ function anthropicModels(apiKey: string): ModelRegistry {
 }
 
 function openRouterModels(apiKey: string, modelId: string): ModelRegistry {
-  const client = createOpenRouter({ apiKey, compatibility: "strict", appName: process.env.OPENROUTER_APP_TITLE ?? "Cop", appUrl: OPENROUTER_APP_URL });
+  const client = createOpenRouter({ apiKey, compatibility: "strict", appName: process.env.OPENROUTER_APP_TITLE ?? "Winyu", appUrl: OPENROUTER_APP_URL });
   const order = providerOrderOf(modelId);
   const settings = { usage: { include: true }, ...(order ? { provider: { order, allow_fallbacks: true } } : {}) };
   return { [modelId]: { model: () => metered(modelId, client(modelId, settings)), name: MODEL_NAMES[modelId] ?? modelId, provider: "openrouter", maxTokens: OPENROUTER_CONTEXT_TOKENS } };

@@ -133,7 +133,7 @@ export function entityKindOfDim(dim: Dim): EntityKind | null {
   return DIM_KINDS[dim] ?? null;
 }
 
-/** Names, lookups and geography over one master-data snapshot: the only way Cop turns ids into words and words into ids. */
+/** Names, lookups and geography over one master-data snapshot: the only way Winyu turns ids into words and words into ids. */
 export type Dictionary = {
   master: MasterData;
   /** Best entity of that kind for free text, tolerant of Thai spelling variants and nicknames. */

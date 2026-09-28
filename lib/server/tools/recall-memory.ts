@@ -12,7 +12,7 @@ const RECALL_MIN_SIMILARITY = 0.25;
 
 export const recallMemoryTool = defineTool({
   name: "recall_memory",
-  connector: "cop",
+  connector: "winyu",
   tier: "read",
   roles: "all",
   description: "Search what the assistant remembers about the current user: interests, vocabulary, responsibilities, preferences. Call it when the user refers to something from an earlier session or asks what you remember.",

@@ -148,7 +148,7 @@ export function CapabilitiesBento() {
     <div className="flex flex-col items-center gap-14">
       <div className="flex flex-col items-center text-center [&_header]:items-center">
         <SectionHeader
-          eyebrow="What Cop does"
+          eyebrow="What Winyu does"
           title={<>Answers you can act on,<br /> <span className="gradient-text">not reports to read.</span></>}
           lead="ทุกคนตั้งแต่ CEO ถึงพนักงานขายเข้ามาด้วยบัญชีของตัวเอง เห็นข้อมูลเฉพาะขอบเขตที่ดูแล และได้คำตอบเป็นการ์ดที่บอกว่าควรทำอะไรต่อ"
         />
@@ -163,7 +163,7 @@ export function CapabilitiesBento() {
         <Tile className="lg:col-span-2" title="See anomalies first" body="จับยอดที่หลุดจากแนวโน้ม พยากรณ์สัปดาห์ถัดไป และบอกว่าใครเป็นเจ้าของเรื่อง">
           <AnomalyVisual />
         </Tile>
-        <Tile className="lg:col-span-3" title="Hand work to the right person" body="ส่งบริบททั้งหมดไปถึงคนถัดไปใน Inbox ของ Cop ไม่ต้องอธิบายซ้ำทางไลน์หรืออีเมล">
+        <Tile className="lg:col-span-3" title="Hand work to the right person" body="ส่งบริบททั้งหมดไปถึงคนถัดไปใน Inbox ของ Winyu ไม่ต้องอธิบายซ้ำทางไลน์หรืออีเมล">
           <HandoffVisual />
         </Tile>
       </div>

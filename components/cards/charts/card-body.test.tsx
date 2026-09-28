@@ -16,7 +16,7 @@ describe("stacked", () => {
     { name: "โซดา", values: [5, 8, 6], style: null },
   ];
 
-  test("shape area draws Cop's own stacked area with a legend", () => {
+  test("shape area draws Winyu's own stacked area with a legend", () => {
     const html = render({ kind: "stacked", shape: "area", labels, series, format: "number" });
     expect(html).toContain("เบียร์");
     expect(html).toContain("โซดา");

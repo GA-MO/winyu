@@ -4,7 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 
 export type ThemeMode = "light" | "dark";
 
-export const THEME_STORAGE_KEY = "cop-theme";
+export const THEME_STORAGE_KEY = "winyu-theme";
 const DARK_QUERY = "(prefers-color-scheme: dark)";
 export const THEME_BOOT_SCRIPT = `try{var m=localStorage.getItem("${THEME_STORAGE_KEY}");var d=m?m==="dark":matchMedia("${DARK_QUERY}").matches;document.documentElement.classList.toggle("dark",d);}catch(e){}`;
 

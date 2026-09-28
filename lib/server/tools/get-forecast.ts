@@ -12,7 +12,7 @@ const NO_FORECAST = "ยังไม่มีพยากรณ์สำหร�
 
 export const getForecastTool = defineTool({
   name: "get_forecast",
-  connector: "cop",
+  connector: "winyu",
   tier: "read",
   roles: "all",
   description: "Read the deterministic forecast for a metric and dimension slice over the next weeks, with its confidence band and MAPE. Call it when the user asks what will happen, whether stock lasts, or about a plan for coming weeks.",

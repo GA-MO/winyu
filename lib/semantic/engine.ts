@@ -448,7 +448,7 @@ function comparisonOf(def: MetricDef, compare: MetricQuery["compare"], dims: Dim
   return previous ? factRequest(def, "actual", dims, filters, previous.from, previous.to, previous.shift) : null;
 }
 
-/** Everything Cop decides about a question before the warehouse is asked: validated, scoped, and cut into fact requests. */
+/** Everything Winyu decides about a question before the warehouse is asked: validated, scoped, and cut into fact requests. */
 export type MetricPlan = {
   dictionary: Dictionary;
   def: MetricDef;
@@ -514,7 +514,7 @@ export function comparisonRequestOf(plan: MetricPlan): FactRequest | null {
   return plan.comparison;
 }
 
-/** Warehouse rows with the key Cop matches current and prior rows by. */
+/** Warehouse rows with the key Winyu matches current and prior rows by. */
 export function keyRows(dims: Dim[], rows: FactRow[]): Aggregated[] {
   return rows.map((row) => {
     const values = row.dims as Record<Dim, string>;

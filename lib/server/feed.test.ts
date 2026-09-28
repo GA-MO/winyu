@@ -104,7 +104,7 @@ describe("what a user does with an item stays theirs", () => {
 });
 
 describe("each matter offers the one thing to do about it", () => {
-  test("a licence goes to the holder's manager when the manager uses Cop, else to the holder, else nowhere", async () => {
+  test("a licence goes to the holder's manager when the manager uses Winyu, else to the holder, else nowhere", async () => {
     const hr = await feedFor(accessOf("u_may"), NOW);
     const pong = hr.find((item) => item.label === "คุณป้อง แสนสุข");
     expect(pong?.actions[0]).toMatchObject({ kind: "handoff", tool: "create_handoff", label: "ส่งให้คุณอนุชา พรหมศรี" });
@@ -145,7 +145,7 @@ describe("buttons follow the tools a user may run", () => {
   });
 });
 
-describe("what Cop learns from the feed changes the feed", () => {
+describe("what Winyu learns from the feed changes the feed", () => {
   test("three 'not mine' on licences proposes stopping them; once confirmed they are gone", async () => {
     const hr = accessOf("u_may");
     const factsBefore = new Set(memoryFacts().all().map((fact) => fact.id));

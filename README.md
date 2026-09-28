@@ -1,4 +1,4 @@
-# Cop
+# Winyu
 
 Enterprise copilot on Vexa for a fictional Thai beverage company. Every user signs in as a persona; the agent answers with generative UI scoped to that persona's data.
 
@@ -16,13 +16,13 @@ bun run seed         # clears .data/*.json (user state: threads, memory, packets
 `docs/demo.md` is the three-scene demo script (who to sign in as, what to type, what should appear).
 `docs/architecture.md` explains the layers; `docs/plan.md` is the build plan with its acceptance criteria.
 
-Vexa is consumed from the sibling checkout `../agentic-ui` (see `docs/plan.md` §3): tsconfig `paths` and `app/globals.css` point at `../agentic-ui/src`, `next.config.ts` allows that tree through `outputFileTracingRoot` and aliases `ai`, `ai/test` and `@ai-sdk/react` to Cop's copies so both trees share one module instance. Keep `ai`, `@ai-sdk/react` and `zod` pinned to the versions `../agentic-ui/node_modules` resolves.
+Vexa is consumed from the sibling checkout `../agentic-ui` (see `docs/plan.md` §3): tsconfig `paths` and `app/globals.css` point at `../agentic-ui/src`, `next.config.ts` allows that tree through `outputFileTracingRoot` and aliases `ai`, `ai/test` and `@ai-sdk/react` to Winyu's copies so both trees share one module instance. Keep `ai`, `@ai-sdk/react` and `zod` pinned to the versions `../agentic-ui/node_modules` resolves.
 
 Without `ANTHROPIC_API_KEY` in `.env.local` the model picker offers only `mock` (scripted replies, free). With the key set, `claude-sonnet-5` becomes the default and `claude-haiku-4-5-20251001` is also listed. Copy `.env.example` to `.env.local`.
 
 ## Personas
 
-Pick one on `/login`; the top bar switches personas without signing out. Session cookie: `cop_session=<userId>` (httpOnly), set by `POST /api/session { userId }`, cleared by `DELETE /api/session`.
+Pick one on `/login`; the top bar switches personas without signing out. Session cookie: `winyu_session=<userId>` (httpOnly), set by `POST /api/session { userId }`, cleared by `DELETE /api/session`.
 
 | User id | Name | Role | Scope |
 |---|---|---|---|
@@ -65,7 +65,7 @@ Four loops run behind those surfaces: anomaly detection and forecasting (`lib/en
 
 | Port | What |
 |---|---|
-| 3100 | Cop (`bun run dev`) |
+| 3100 | Winyu (`bun run dev`) |
 | 3001 | Vexa shop-admin reference host (`bun run dev` inside `../agentic-ui`) |
 
 ## Layout

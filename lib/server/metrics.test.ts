@@ -60,7 +60,7 @@ describe("runMetric over the metrics port", () => {
     expect(result.headline.value).toBe("—");
   });
 
-  test("small cells from any warehouse are suppressed by Cop", async () => {
+  test("small cells from any warehouse are suppressed by Winyu", async () => {
     recordingWarehouse(() => ({
       ok: true,
       rows: [

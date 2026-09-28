@@ -7,7 +7,7 @@ import { TH } from "@/lib/i18n/th";
 
 export const pinWidgetTool = defineTool({
   name: "pin_widget",
-  connector: "cop",
+  connector: "winyu",
   tier: "write",
   roles: "all",
   description: "Pin the answer to the user's dashboard as a widget that re-runs its query on every load. Call it when the user asks to keep or pin a view. The user approves it first.",

@@ -107,7 +107,7 @@ function groundedCheck(spec: Spec | null, outputs: Record<string, unknown>[]): C
   return check("grounded", invented.length === 0, invented.length === 0 ? "ทุกตัวเลขอยู่ในผลลัพธ์ tool" : `ตัวเลขที่ไม่มีใน tool: ${invented.slice(0, 5).join(", ")}`);
 }
 
-/** What a good Cop answer must be true of, checked without a model in the loop. */
+/** What a good Winyu answer must be true of, checked without a model in the loop. */
 function metricAnswers(turn: Turn): Record<string, unknown>[] {
   return turn.toolOutputs.filter((output) => "query" in output || (output.ok === false && "code" in output));
 }

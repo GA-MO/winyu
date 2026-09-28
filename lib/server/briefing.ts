@@ -64,7 +64,7 @@ function specOf(bullets: string[], line: string): Spec {
   return { root: "brief", elements };
 }
 
-/** What Cop opens with: the alerts it found, what moved, and what is waiting for this user. */
+/** What Winyu opens with: the alerts it found, what moved, and what is waiting for this user. */
 export async function morningBriefFor(access: AccessContext): Promise<MorningBrief> {
   const alerts = openAlertsFor(access).slice(0, TOP_ALERTS);
   const packets = openPacketsFor(access);

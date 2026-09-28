@@ -1,3 +1,4 @@
+import { BrandMark } from "@/components/chrome/brand-mark";
 import { Fragment, type ReactNode } from "react";
 import { STATUS_LABEL, type Status } from "./content";
 
@@ -82,9 +83,9 @@ export function Logo({ className = "" }: { className?: string }) {
   return (
     <span className={`inline-flex items-center gap-2.5 ${className}`}>
       <span className="grid size-8 place-items-center rounded-[10px] bg-[linear-gradient(135deg,var(--color-primary),var(--color-violet)_55%,var(--color-coral))] shadow-[0_8px_24px_-8px_rgb(124_58_237/70%)]">
-        <span className="size-3.5 rounded-full border-[3px] border-white" />
+        <BrandMark className="size-5 text-white" />
       </span>
-      <span className="font-display text-lg font-bold tracking-tight">Cop</span>
+      <span className="font-display text-lg font-bold tracking-tight">Winyu</span>
     </span>
   );
 }

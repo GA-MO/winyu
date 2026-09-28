@@ -6,13 +6,13 @@ import type { ChatLabels } from "vexa/chat";
 import { TH } from "@/lib/i18n/th";
 import { ThemeProvider, useTheme } from "@/components/theme/theme-provider";
 import { readHostContext } from "@/components/providers/host-context";
-import { COP_CARD_COMPONENTS } from "@/components/cards/data-card";
-import { askTool, copActionTool } from "@/components/cards/action-tool";
+import { WINYU_CARD_COMPONENTS } from "@/components/cards/data-card";
+import { askTool, winyuActionTool } from "@/components/cards/action-tool";
 import { ASK_TOOL } from "@/lib/cards/host-tools";
 import { sendToChat } from "@/components/providers/chat-sender";
-import { normalizeCopSpec } from "@/lib/cards/normalize";
-import { describeCopToolCall } from "@/components/cards/describe-tool";
-import { renderCopApproval } from "@/components/cards/approval-card";
+import { normalizeWinyuSpec } from "@/lib/cards/normalize";
+import { describeWinyuToolCall } from "@/components/cards/describe-tool";
+import { renderWinyuApproval } from "@/components/cards/approval-card";
 
 const CHAT_LABELS: Partial<ChatLabels> = {
   emptyTitle: TH.chat.emptyTitle,
@@ -37,16 +37,16 @@ const CHAT_LABELS: Partial<ChatLabels> = {
 };
 
 const contextSchema = z.object({ threadId: z.string().nullable(), preloadPacketId: z.string().nullable() });
-const HOST_TOOLS = { cop_action: copActionTool(sendToChat), [ASK_TOOL.name]: askTool(sendToChat) };
+const HOST_TOOLS = { winyu_action: winyuActionTool(sendToChat), [ASK_TOOL.name]: askTool(sendToChat) };
 
 function VexaLayer({ children }: { children: React.ReactNode }) {
   const { mode } = useTheme();
   return (
     <VexaProvider
-      components={COP_CARD_COMPONENTS}
-      normalizeSpec={normalizeCopSpec}
-      describeToolCall={describeCopToolCall}
-      renderApproval={renderCopApproval}
+      components={WINYU_CARD_COMPONENTS}
+      normalizeSpec={normalizeWinyuSpec}
+      describeToolCall={describeWinyuToolCall}
+      renderApproval={renderWinyuApproval}
       format={{ locale: "th-TH", currency: "THB" }}
       theme={{ mode }}
       chat={{ title: TH.session.title, subtitle: TH.chat.subtitle, labels: CHAT_LABELS }}

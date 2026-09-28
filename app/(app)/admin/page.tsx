@@ -64,7 +64,7 @@ function textOf(value: string | undefined): string | null {
   return value && value.length > 0 ? value : null;
 }
 
-function AskCop() {
+function AskWinyu() {
   const copy = TH.admin.ask;
   return (
     <div className="flex flex-col gap-2.5">
@@ -155,7 +155,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
 
         {isAdmin ? (
           <>
-            <AskCop />
+            <AskWinyu />
             <TabBar current={current} />
             {current === "overview" ? <OverviewTab /> : null}
             {current === "access" ? <AccessTab role={roleOf(params.role)} view={params.view === "matrix" ? "matrix" : "role"} viewer={user.id} /> : null}

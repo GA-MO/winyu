@@ -8,7 +8,7 @@ import { now } from "./shared";
 
 export const watchMetricTool = defineTool({
   name: "watch_metric",
-  connector: "cop",
+  connector: "winyu",
   tier: "write",
   roles: "all",
   description:

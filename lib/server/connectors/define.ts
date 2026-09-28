@@ -3,7 +3,7 @@ import { prefixedToolName } from "vexa/server";
 import { NATIVE_CONNECTORS, type ConnectorDef, type RoleId, type ToolTier } from "@/lib/contracts";
 import type { Visibility } from "@/lib/access/role-overrides";
 import { withAudit } from "@/lib/server/audit";
-import type { CopTool } from "@/lib/server/tools/define";
+import type { WinyuTool } from "@/lib/server/tools/define";
 import { TH } from "@/lib/i18n/th";
 import { callConnectorTool, executableOf, mcpCaller } from "./call";
 import { placeholdersOf, restCaller } from "./rest";
@@ -63,9 +63,9 @@ function bindingOf<Config extends ConnectorToolConfig>(connector: string, remote
   return { name: prefixedToolName(connector, as ?? remoteName), remoteName, tier: tool.tier ?? UNDECLARED_TIER, config: tool, fields };
 }
 
-function copToolOf(connector: ConnectorIdentity, binding: ConnectorToolBinding, call: RemoteCaller): CopTool {
+function winyuToolOf(connector: ConnectorIdentity, binding: ConnectorToolBinding, call: RemoteCaller): WinyuTool {
   const entry = {
-    name: binding.name as CopTool["entry"]["name"],
+    name: binding.name as WinyuTool["entry"]["name"],
     connector: connector.id,
     tier: binding.tier,
     roles: binding.config.roles,
@@ -80,16 +80,16 @@ function uniqueFields(fields: ConnectorField[]): ConnectorField[] {
   return [...new Map(fields.map((field) => [field.key, field])).values()];
 }
 
-/** One remote MCP server on Cop's surface: only the tools named here, each with the tier, roles, scope and sensitive fields Cop declares; throws on anything left undeclared. */
+/** One remote MCP server on Winyu's surface: only the tools named here, each with the tier, roles, scope and sensitive fields Winyu declares; throws on anything left undeclared. */
 export function defineMcpConnector(config: McpConnectorConfig): McpConnector {
   assertConnector(config);
   const bindings = Object.entries(config.tools).map(([remoteName, tool]) => bindingOf<McpToolConfig>(config.id, remoteName, tool, tool.as));
   const def: ConnectorDef & { kind: "mcp" } = { id: config.id, labelTh: config.labelTh, sourceSystemTh: config.sourceSystemTh, kind: "mcp" };
-  const tools = bindings.map((binding) => copToolOf(config, binding, mcpCaller(config, binding)));
+  const tools = bindings.map((binding) => winyuToolOf(config, binding, mcpCaller(config, binding)));
   return { def, config, tools, fields: uniqueFields(bindings.flatMap((binding) => binding.fields)) };
 }
 
-/** One REST API on Cop's surface through the same pipeline as MCP: only the endpoints named here, each with Cop's own description, input schema, adapter, tier, roles, scope and sensitive fields. */
+/** One REST API on Winyu's surface through the same pipeline as MCP: only the endpoints named here, each with Winyu's own description, input schema, adapter, tier, roles, scope and sensitive fields. */
 export function defineRestConnector(config: RestConnectorConfig): RestConnector {
   assertConnector(config);
   if (!HTTP_URL.test(config.baseUrl)) fail(config.id, "baseUrl must be an http(s) URL");
@@ -98,6 +98,6 @@ export function defineRestConnector(config: RestConnectorConfig): RestConnector 
     return bindingOf<RestToolConfig>(config.id, name, tool, undefined);
   });
   const def: ConnectorDef & { kind: "rest" } = { id: config.id, labelTh: config.labelTh, sourceSystemTh: config.sourceSystemTh, kind: "rest" };
-  const tools = bindings.map((binding) => copToolOf(config, binding, restCaller(config, binding)));
+  const tools = bindings.map((binding) => winyuToolOf(config, binding, restCaller(config, binding)));
   return { def, config, tools, fields: uniqueFields(bindings.flatMap((binding) => binding.fields)) };
 }

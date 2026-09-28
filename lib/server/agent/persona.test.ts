@@ -5,7 +5,7 @@ import type { ContextPacket, Story } from "@/lib/contracts";
 import { threads } from "@/lib/server/threads-read";
 import { findUser } from "@/lib/data/entities/users";
 import { investigations, packets } from "./collections";
-import { COP_RULES, personaFor } from "./persona";
+import { WINYU_RULES, personaFor } from "./persona";
 
 const TODAY = "2026-09-22";
 const PACKET_ID = "pkt-persona-test";
@@ -55,7 +55,7 @@ describe("personaFor", () => {
     const lines = personaOf("u_anucha").join("\n");
     expect(lines).not.toContain("BarChart");
     expect(lines).not.toContain("แหล่งข้อมูล:");
-    expect(COP_RULES.some((rule) => rule.includes("`footnote` เป็นแหล่งข้อมูล"))).toBe(true);
+    expect(WINYU_RULES.some((rule) => rule.includes("`footnote` เป็นแหล่งข้อมูล"))).toBe(true);
   });
 
   test("memory is fenced as data", () => {
@@ -81,11 +81,11 @@ describe("personaFor", () => {
 
 describe("rules", () => {
   test("carry the prompt rules of the plan", () => {
-    expect(COP_RULES.length).toBeGreaterThanOrEqual(9);
-    expect(COP_RULES[0]).toContain("ตอบเป็นภาษาไทย");
-    expect(COP_RULES.some((rule) => rule.includes("PERMISSION_DENIED"))).toBe(true);
-    expect(COP_RULES.some((rule) => rule.includes("RankList"))).toBe(true);
-    expect(COP_RULES.some((rule) => rule.includes("footnote"))).toBe(true);
+    expect(WINYU_RULES.length).toBeGreaterThanOrEqual(9);
+    expect(WINYU_RULES[0]).toContain("ตอบเป็นภาษาไทย");
+    expect(WINYU_RULES.some((rule) => rule.includes("PERMISSION_DENIED"))).toBe(true);
+    expect(WINYU_RULES.some((rule) => rule.includes("RankList"))).toBe(true);
+    expect(WINYU_RULES.some((rule) => rule.includes("footnote"))).toBe(true);
   });
 });
 
