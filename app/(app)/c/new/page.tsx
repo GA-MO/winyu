@@ -17,7 +17,7 @@ export default async function NewThreadPage({ searchParams }: { searchParams: Se
   const story = storyId ? investigations().get(access.userId)?.stories.find((entry) => entry.id === storyId) ?? null : null;
   const packet = preload ? packets().get(preload) : null;
   const preloadNote = packet && packet.toUserId === access.userId ? { packetId: packet.id, systemNote: `${packet.title} — ${packet.ask}` } : null;
-  const opening = prompt ?? (story ? TH.stories.askPrompt(story.claim) : null) ?? (packet && preloadNote ? TH.handoff.preloadPrompt(packet.title, packet.ask) : null);
+  const opening = prompt ?? (story ? TH.stories.askPrompt(story.finding) : null) ?? (packet && preloadNote ? TH.handoff.preloadPrompt(packet.title, packet.ask) : null);
   const thread = createThread(access.userId, opening ?? "", preloadNote, story?.id ?? null);
   redirect(opening ? `/c/${thread.id}?prompt=${encodeURIComponent(opening)}` : `/c/${thread.id}`);
 }

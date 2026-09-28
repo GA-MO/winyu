@@ -5,7 +5,7 @@ import { shortName, timeOfDay } from "@/lib/i18n/format";
 import { TH } from "@/lib/i18n/th";
 import { TODAY } from "@/lib/data/dates";
 import { landingKpis } from "@/lib/server/dashboard";
-import { latestInvestigation } from "@/lib/server/investigate";
+import { morningBriefFor } from "@/lib/server/morning-brief";
 import { quickActionsFor } from "@/lib/server/quick-actions";
 import { readAccess, readUser } from "@/lib/server/session";
 import { markVisit } from "@/lib/server/visits";
@@ -29,7 +29,7 @@ export default async function LandingPage({ searchParams }: PageProps) {
       greeting={greeting}
       kpis={kpis}
       quickActions={quickActionsFor(access)}
-      investigation={latestInvestigation(access.userId)}
+      brief={await morningBriefFor(access)}
       asOf={TODAY}
       draft={draft ?? ""}
       placeholder={TH.landing.composerPlaceholderFor(access.role)}

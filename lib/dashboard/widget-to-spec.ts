@@ -70,7 +70,7 @@ function specOf(widget: WidgetSpec, parts: CardParts): Spec {
     root,
     elements: {
       [root]: element("Card", { title: parts.title, description: parts.description, meta: parts.meta, footnote: parts.footnote }, children),
-      ...(parts.hero ? { [heroId]: element("Metric", { ...parts.hero, note: null, size: "lg" }) } : {}),
+      ...(parts.hero ? { [heroId]: element("Metric", { ...parts.hero, size: "lg" }) } : {}),
       ...body,
       ...actions,
     },

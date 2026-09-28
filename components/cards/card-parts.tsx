@@ -45,7 +45,7 @@ export function CardPartsView({ parts }: { parts: CardParts }) {
   }
   return (
     <Card props={{ title: parts.title, description: parts.description, meta: parts.meta, footnote: parts.footnote }}>
-      {parts.hero ? <Metric props={{ ...parts.hero, note: null, size: "lg" }} /> : null}
+      {parts.hero ? <Metric props={{ ...parts.hero, size: "lg" }} /> : null}
       <CardBodyView body={parts.body} />
       <ActionStrip actions={parts.actions} />
     </Card>

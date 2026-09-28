@@ -7,35 +7,16 @@
     "stories": [
       {
         "kind": "ok",
-        "claim": "ไม่พบความผิดปกติหรือประเด็นเร่งด่วนในระบบที่ต้องดำเนินการในวันนี้",
-        "scope": "all regions · all brands",
-        "period": "22 ก.ย. 2569",
+        "finding": "ไม่มีความผิดปกติเปิดอยู่ในขอบเขตของคุณ",
+        "scope": "ทั้งบริษัท",
         "subject": {
           "metric": null,
           "region": null
         },
-        "headline": {
-          "label": "การแจ้งเตือนที่เปิดอยู่",
-          "value": "0 รายการ",
-          "tone": "good"
-        },
-        "projection": null,
-        "causes": [],
-        "checked": [
-          {
-            "text": "ไม่มีการแจ้งเตือนค้าง",
-            "verdict": "confirmed",
-            "source": "get_alerts"
-          },
-          {
-            "text": "ระบบการเรียนรู้เชื่อมต่อไม่ได้",
-            "verdict": "confirmed",
-            "source": "lms_demo__training_history"
-          }
-        ],
-        "recommendation": "ดูแลระบบตามปกติ และตรวจระบบการเรียนรู้ถ้ามีคนแจ้ง",
-        "id": "u_ton-0",
-        "owner": null
+        "evidence": null,
+        "ruledOut": [],
+        "action": null,
+        "id": "u_ton-0"
       }
     ],
     "checkedCount": 17,
@@ -1654,15 +1635,24 @@
             "gap_label": "+NaN ลิตร"
           }
         ],
-        "projection": {
-          "label": "สิ้นเดือน ถ้าขายเท่า 7 วันล่าสุด",
-          "basis": "วันที่เหลือของเดือนขายเท่าค่าเฉลี่ย 7 วันล่าสุด และเป้ากระจายเท่ากันทุกวัน",
-          "projected_label": "NaN ลิตร",
-          "month_target_label": "NaN ลิตร",
-          "attainment_label": "NaN%"
-        }
+        "projection": null
       }
     }
   ],
-  "dropped": []
+  "dropped": [],
+  "replayedAt": "2026-09-28T09:16:44.126Z",
+  "drafts": [
+    {
+      "kind": "ok",
+      "finding": "ไม่มีความผิดปกติเปิดอยู่ในขอบเขตของคุณ",
+      "scope": "ทั้งบริษัท",
+      "subject": {
+        "metric": null,
+        "region": null
+      },
+      "evidence": null,
+      "ruledOut": [],
+      "action": null
+    }
+  ]
 }

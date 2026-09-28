@@ -37,7 +37,7 @@ export type AlertTone = "info" | "success" | "warning" | "danger";
 export type SortBy = "value_desc" | "value_asc" | "delta_asc" | "delta_desc";
 export type CardView = WidgetKind | "auto" | "scatter" | "funnel";
 
-export type CardHero = { label: string; value: string; delta: string | null; trend: Direction; tone: Tone; detail: string | null };
+export type CardHero = { label: string; value: string; delta: string | null; trend: Direction; tone: Tone; detail: string | null; note: string | null };
 export type RankRow = { label: string; value: string; share: number | null; delta: string | null; trend: Direction; tone: Tone; note: string | null };
 export type CardColumn = { key: string; label: string; align: "start" | "end" | null; tone: "default" | "muted" | "delta" | null };
 export type ChartSeries = { name: string; values: (number | null)[]; style: "solid" | "dashed" | null };
@@ -303,7 +303,14 @@ function paceNoteOf(query: MetricQuery, asOf: string): string | null {
   return TH.dash.paceTarget(formatDateTh(through), formatPercent(Math.round(share)));
 }
 
-function heroOf(query: MetricQuery, result: Extract<MetricResult, { ok: true }>): CardHero {
+function heroNoteOf(query: MetricQuery, result: Extract<MetricResult, { ok: true }>, rows: MetricRow[]): string | null {
+  const weakest = weakestRow(query, result);
+  const listedFirst = rows[0] ? labelOf(query, rows[0]) : null;
+  const lines = [weakest && weakest.label !== listedFirst ? TH.dash.weakest(weakest.lowIsWorst, weakest.label, weakest.value) : null, result.headline.projection ? TH.dash.monthEnd(result.headline.projection) : null];
+  return lines.filter((line): line is string => line !== null).join(" · ") || null;
+}
+
+function heroOf(query: MetricQuery, result: Extract<MetricResult, { ok: true }>, rows: MetricRow[]): CardHero {
   const delta = result.headline.deltaPercent;
   return {
     label: heroLabelOf(query, result),
@@ -312,6 +319,7 @@ function heroOf(query: MetricQuery, result: Extract<MetricResult, { ok: true }>)
     trend: directionOf(delta),
     tone: toneOf(query.metric, delta),
     detail: paceNoteOf(query, result.provenance.asOf) ?? result.headline.compareLabel,
+    note: heroNoteOf(query, result, rows),
   };
 }
 
@@ -347,7 +355,7 @@ export function headlineChangeOf(query: MetricQuery, result: MetricResult): { de
 
 function heroFor(query: MetricQuery, result: Extract<MetricResult, { ok: true }>, rows: MetricRow[]): CardHero {
   const latest = latestBucketOf(query, result, rows);
-  if (!latest) return heroOf(query, result);
+  if (!latest) return heroOf(query, result, rows);
   return {
     label: TH.dash.atBucket(metricLabel(query.metric), latest.label),
     value: latest.value,
@@ -355,6 +363,7 @@ function heroFor(query: MetricQuery, result: Extract<MetricResult, { ok: true }>
     trend: directionOf(latest.deltaPercent),
     tone: toneOf(query.metric, latest.deltaPercent),
     detail: latest.versus,
+    note: null,
   };
 }
 
@@ -556,7 +565,7 @@ function pairedHero(pairing: Pairing, indexed: boolean): CardHero | null {
     const dim = rankDimOf(first.query);
     return gapHero(first, others[0], dim ? TH.dash.dimUnit[dim] : null);
   }
-  return pairing.view === "overlay" && !indexed ? heroOf(first.query, first.result) : null;
+  return pairing.view === "overlay" && !indexed ? heroOf(first.query, first.result, first.result.rows) : null;
 }
 
 function pairedCard(input: PresentInput, pairing: Pairing): CardParts {
@@ -670,9 +679,9 @@ function forecastHero(forecast: ForecastAnswer): CardHero {
   const last = points[points.length - 1];
   const detail = forecast.mape === null ? null : TH.dash.forecastError(formatPercent(forecast.mape));
   if (forecast.total !== null) {
-    return { label: TH.dash.forecastTotal(points.length), value: formatMetricValue(forecast.metric, forecast.total), delta: null, trend: "neutral", tone: "neutral", detail };
+    return { label: TH.dash.forecastTotal(points.length), value: formatMetricValue(forecast.metric, forecast.total), delta: null, trend: "neutral", tone: "neutral", detail, note: null };
   }
-  return { label: TH.dash.forecastLast(last.week), value: last.value_label, delta: null, trend: "neutral", tone: "neutral", detail };
+  return { label: TH.dash.forecastLast(last.week), value: last.value_label, delta: null, trend: "neutral", tone: "neutral", detail, note: null };
 }
 
 function afterHistory(values: number[], history: { value: number }[]): (number | null)[] {

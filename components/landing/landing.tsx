@@ -6,9 +6,9 @@ import { useRouter } from "next/navigation";
 import { LayoutDashboard, ShieldCheck, Sparkles } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "vexa/ui/tooltip";
 import { cn } from "vexa/lib/utils";
-import type { Investigation, QuickAction } from "@/lib/contracts";
+import type { MorningBrief, QuickAction } from "@/lib/contracts";
 import type { LandingKpi } from "@/lib/dashboard/ambient";
-import { countsLine, storyCounts, type StoryCounts } from "@/components/dashboard/story-board";
+import { countsLine, storyCounts, type StoryCounts } from "@/components/stories/story-list";
 import { StoriesDrawer } from "@/components/stories/drawer";
 import type { Tone } from "@/lib/dashboard/metric-display";
 import { TH } from "@/lib/i18n/th";
@@ -66,7 +66,7 @@ export function Landing({
   greeting,
   kpis,
   quickActions,
-  investigation,
+  brief,
   asOf,
   draft,
   placeholder,
@@ -74,7 +74,7 @@ export function Landing({
   greeting: Greeting;
   kpis: LandingKpi[];
   quickActions: QuickAction[];
-  investigation: Investigation | null;
+  brief: MorningBrief | null;
   asOf: string;
   draft: string;
   placeholder: string;
@@ -150,8 +150,8 @@ export function Landing({
             <h1 className="text-balance font-display text-[1.75rem] font-semibold leading-[1.2] tracking-[-0.02em] sm:text-[3rem]">
               {greeting.lead} <GradientText className="whitespace-nowrap">{greeting.name}</GradientText>
             </h1>
-            {investigation ? (
-              <StoryLine counts={storyCounts(investigation.stories)} onOpen={() => setStoriesOpen(true)} />
+            {brief ? (
+              <StoryLine counts={storyCounts(brief.cards.map((card) => card.story))} onOpen={() => setStoriesOpen(true)} />
             ) : (
               <p className="text-sm text-muted-foreground sm:text-base">{TH.stories.notYet}</p>
             )}
@@ -197,7 +197,7 @@ export function Landing({
           </p>
         </div>
       </div>
-      <StoriesDrawer investigation={investigation} asOf={asOf} open={storiesOpen} onClose={() => setStoriesOpen(false)} />
+      <StoriesDrawer brief={brief} asOf={asOf} open={storiesOpen} onClose={() => setStoriesOpen(false)} />
     </div>
   );
 }

@@ -373,6 +373,7 @@ export function gapHero(first: Source, second: Source, unit: string | null): Car
     trend: directionOf(overall),
     tone: toneOf(second.query.metric, overall),
     detail: short > 0 ? TH.dash.gapShortCount(short, gaps.length, unit ?? "", other, base, WIDE_GAP_PCT) : TH.dash.gapNoneShort(unit ?? "", other, base, WIDE_GAP_PCT),
+    note: null,
   };
 }
 

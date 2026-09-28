@@ -85,3 +85,38 @@ describe("runMetric over the metrics port", () => {
     expect(await runMetric(asked, REP)).toEqual(runOnGenerator(asked, REP));
   });
 });
+
+describe("where the month ends", () => {
+  const DIRECTOR = accessFor(findUser("u_prasit")!);
+  const MONTH_TO_DATE = { from: "2026-09-01", to: "2026-09-22" };
+  const northeastByAgent = question({ metric: "net_sales_volume", dims: ["agent"], filters: { region: ["northeast"] }, range: MONTH_TO_DATE, compare: "target" });
+
+  test("a month-to-date total against target carries the month-end projection, and the model reads it in the summary", async () => {
+    const result = await runMetric(northeastByAgent, DIRECTOR);
+    if (!result.ok) throw new Error(result.error);
+    const projection = result.headline.projection;
+    expect(projection?.recentDays).toBe(7);
+    expect(projection?.attainment).toMatch(/^\d+\.\d%$/);
+    expect(result.summary).toContain(`≈ ${projection?.attainment} ของเป้า`);
+  });
+
+  test("a role that sees the metric masked learns nothing about the month end", async () => {
+    const result = await runMetric(question({ metric: "net_sales_volume", range: MONTH_TO_DATE, compare: "target" }), accessFor(findUser("u_ton")!));
+    expect(result.ok && result.headline.projection).toBeFalsy();
+    expect(result.ok ? result.summary : "").not.toContain("สิ้นเดือน");
+  });
+
+  test("a one-day window is labelled with one date, not a range from a day to itself", async () => {
+    const result = await runMetric(question({ metric: "days_of_cover", range: { from: "2026-09-22", to: "2026-09-22" }, grain: "day" }), DIRECTOR);
+    expect(result.ok && result.headline.periodLabel).toBe("22 ก.ย. 2569");
+  });
+
+  test("another window, another comparison or a split over time says nothing about the month end", async () => {
+    const answers = await Promise.all([
+      runMetric({ ...northeastByAgent, range: { from: "2026-09-01", to: "2026-09-15" } }, DIRECTOR),
+      runMetric({ ...northeastByAgent, compare: "prev_year" }, DIRECTOR),
+      runMetric({ ...northeastByAgent, dims: ["week"], grain: "week" }, DIRECTOR),
+    ]);
+    for (const result of answers) expect(result.ok && result.headline.projection).toBeFalsy();
+  });
+});

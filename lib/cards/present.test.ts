@@ -4,7 +4,7 @@ import { accessFor } from "@/lib/access/policies";
 import { findUser } from "@/lib/data/entities/users";
 import { runMetric } from "@/lib/data/query";
 import { TH } from "@/lib/i18n/th";
-import { presentCard, presentForecast, type CardBody, type CardView, type ForecastAnswer, type SortBy } from "./present";
+import { presentCard, presentForecast, weakestRow, type CardBody, type CardView, type ForecastAnswer, type SortBy } from "./present";
 
 const CEO = accessFor(findUser("u_thana")!);
 const AUGUST = { from: "2026-08-01", to: "2026-08-31" };
@@ -349,5 +349,31 @@ describe("rows too small to show", () => {
     const lone = { ...result, rows: [result.rows.find((row) => row.value !== "***"), ...result.rows.filter((row) => row.value === "***")].filter((row) => row !== undefined) };
     const body = presentCard({ title: "t", query, result: lone }).body;
     expect(body.kind).toBe("table");
+  });
+});
+
+describe("a target card in a month still running", () => {
+  test("under the headline, its own line says where the month ends when the result carries a projection", () => {
+    const { query, result } = answer({ metric: "net_sales_volume", dims: ["region"], range: { from: "2026-09-01", to: "2026-09-22" }, compare: "target" });
+    if (!result.ok) throw new Error(result.error);
+    const projection = { recentDays: 7, projected: "10.2 ล้านลิตร", monthTarget: "11.3 ล้านลิตร", attainment: "90.6%" };
+    const hero = presentCard({ title: "t", query, result: { ...result, headline: { ...result.headline, projection } } }).hero;
+    expect(hero?.detail).toBe(TH.dash.paceTarget("22 ก.ย. 2569", "73%"));
+    expect(hero?.note).toBe(TH.dash.monthEnd(projection));
+  });
+});
+
+describe("a breakdown whose level decides", () => {
+  test("the lowest cover sits under the average headline when the list does not already lead with it", () => {
+    const { query, result } = answer({ metric: "days_of_cover", dims: ["dc"], compare: "none" });
+    const worst = weakestRow(query, result);
+    expect(worst?.lowIsWorst).toBe(true);
+    expect(presentCard({ title: "t", query, result, sortBy: "value_desc" }).hero?.note).toBe(TH.dash.weakest(true, worst?.label ?? "", worst?.value ?? ""));
+    expect(presentCard({ title: "t", query, result, sortBy: "value_asc" }).hero?.note).toBeNull();
+  });
+
+  test("a total with no level to decide on keeps its headline alone", () => {
+    const { query, result } = answer({ metric: "net_sales_volume", dims: ["region"] });
+    expect(presentCard({ title: "t", query, result }).hero?.note).toBeNull();
   });
 });

@@ -449,6 +449,10 @@ export type MetricPlan = {
   comparison: FactRequest | Failure | null;
 };
 
+function periodLabelOf(from: number, to: number): string {
+  return from === to ? formatThaiDate(ISO_OF_DAY[to]) : `${formatThaiDate(ISO_OF_DAY[from])} – ${formatThaiDate(ISO_OF_DAY[to])}`;
+}
+
 /** Checks access and the question, injects the caller's scope, and states the facts the answer needs. */
 export function planMetric(query: MetricQuery, access: AccessContext, dictionary: Dictionary): MetricPlan | Failure {
   const def = metricDef(query.metric);
@@ -480,7 +484,7 @@ export function planMetric(query: MetricQuery, access: AccessContext, dictionary
     scopeApplied: scope.scopeApplied,
     masked: visibility === "masked",
     ratio: RATIO_METRICS.has(def.id),
-    periodLabel: `${formatThaiDate(ISO_OF_DAY[start.from])} – ${formatThaiDate(ISO_OF_DAY[range.to])}`,
+    periodLabel: periodLabelOf(start.from, range.to),
     compareNote: start.note ?? partialMonthNote(share, range.to),
     comparisonScale: share,
     current: factRequest(def, "actual", dims, filters, start.from, range.to, NO_SHIFT),

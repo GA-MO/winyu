@@ -3,13 +3,11 @@ import { explainGapInputSchema, type MetricQuery, type MetricResult, type Metric
 import { metricLabel } from "@/lib/dashboard/metric-display";
 import { formatForSummary } from "@/lib/semantic/engine";
 import { metricDef } from "@/lib/semantic/metrics";
-import { MONTH_OF_DAY, TODAY, addDays, daysInMonthIndex, toDayIndex } from "@/lib/data/dates";
-import { breakDownGap, formatShare, projectMonthEnd, type Contribution, type GapPart } from "@/lib/engine/gap";
+import { breakDownGap, formatShare, type Contribution, type GapPart } from "@/lib/engine/gap";
 import { runMetric } from "@/lib/server/metrics";
 import { currentAccess } from "@/lib/server/request-context";
 import { defineTool } from "./define";
 
-const RECENT_DAYS = 7;
 const OTHERS = "ที่เหลือรวมกัน";
 const NOT_ADDITIVE = "แยกช่องว่างได้เฉพาะเมตริกที่รวมยอดได้ (ปริมาณ มูลค่า ยอดค้าง) ถ้าเป็นสัดส่วนหรือ % ให้ใช้เมตริกยอดที่อยู่เบื้องหลังแทน";
 const COMPARE_LABELS = { target: "เป้า", prev_period: "ช่วงก่อนหน้า", prev_year: "ปีก่อน" } as const;
@@ -21,8 +19,8 @@ function amountOf(input: Input, value: number): string {
   return def ? formatForSummary(def, value) : String(value);
 }
 
-function queryOf(input: Input, dims: MetricQuery["dims"], range = input.range, compare: MetricQuery["compare"] = input.compare): MetricQuery {
-  return { metric: input.metric, dims, filters: input.filters, range, grain: "day", compare, limit: null, sort: null };
+function queryOf(input: Input, dims: MetricQuery["dims"]): MetricQuery {
+  return { metric: input.metric, dims, filters: input.filters, range: input.range, grain: "day", compare: input.compare, limit: null, sort: null };
 }
 
 function partOf(row: MetricRow, label: string): GapPart {
@@ -42,25 +40,15 @@ function offsettingRow(input: Input, contribution: Contribution) {
   return { label: contribution.label, gap_label: signed(input, contribution.gap) };
 }
 
-async function projectionOf(input: Input, total: GapPart) {
-  const monthStart = addDays(TODAY, 1 - Number(TODAY.slice(8, 10)));
-  if (input.compare !== "target" || input.range.to !== TODAY || input.range.from !== monthStart) return null;
-  const recent = await runMetric(queryOf(input, [], { from: addDays(TODAY, 1 - RECENT_DAYS), to: TODAY }, "none"), currentAccess());
-  if (!recent.ok || recent.rows.length === 0) return null;
-  const projection = projectMonthEnd({
-    actual: total.value,
-    targetSoFar: total.compare,
-    elapsedDays: toDayIndex(TODAY) - toDayIndex(monthStart) + 1,
-    monthDays: daysInMonthIndex(MONTH_OF_DAY[toDayIndex(TODAY)]),
-    recentDailyAverage: Number(recent.rows[0].value ?? 0) / RECENT_DAYS,
-  });
+function projectionOf(total: Extract<MetricResult, { ok: true }>) {
+  const projection = total.headline.projection;
   if (!projection) return null;
   return {
-    label: `สิ้นเดือน ถ้าขายเท่า ${RECENT_DAYS} วันล่าสุด`,
-    basis: `วันที่เหลือของเดือนขายเท่าค่าเฉลี่ย ${RECENT_DAYS} วันล่าสุด และเป้ากระจายเท่ากันทุกวัน`,
-    projected_label: amountOf(input, Math.round(projection.projected)),
-    month_target_label: amountOf(input, Math.round(projection.monthTarget)),
-    attainment_label: `${projection.attainment.toFixed(1)}%`,
+    label: `สิ้นเดือน ถ้าขายเท่า ${projection.recentDays} วันล่าสุด`,
+    basis: `วันที่เหลือของเดือนขายเท่าค่าเฉลี่ย ${projection.recentDays} วันล่าสุด และเป้ากระจายเท่ากันทุกวัน`,
+    projected_label: projection.projected,
+    month_target_label: projection.monthTarget,
+    attainment_label: projection.attainment,
   };
 }
 
@@ -96,7 +84,7 @@ export const explainGapTool = defineTool({
       contributors: breakdown.contributors.map((contribution) => contributionRow(input, contribution)),
       rest: breakdown.rest ? contributionRow(input, { ...breakdown.rest, label: OTHERS }) : null,
       offsetting: breakdown.offsetting.map((contribution) => offsettingRow(input, contribution)),
-      projection: await projectionOf(input, whole),
+      projection: projectionOf(total),
     };
   },
 });

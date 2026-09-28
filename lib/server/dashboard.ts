@@ -176,7 +176,7 @@ function moverKpi(widget: WidgetSpec, result: MetricResult, detail: string | nul
 /** The one row that makes a breakdown worth a tile: the weakest level, the sharpest harmful move, or how far a progress card has to go. */
 function kpiNoteOf(query: MetricQuery, result: MetricResult, parts: CardParts): string | null {
   const weakest = weakestRow(query, result);
-  if (weakest) return TH.landing.weakest(weakest.lowIsWorst, weakest.label, weakest.value);
+  if (weakest) return TH.dash.weakest(weakest.lowIsWorst, weakest.label, weakest.value);
   const harm = sharpestHarm(query, result, HARMFUL_ROW_PCT);
   if (harm) return TH.landing.sharpest(harm.label, harm.delta);
   return parts.body.kind === "progress" ? parts.body.detail : null;
