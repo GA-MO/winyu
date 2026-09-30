@@ -16,7 +16,10 @@
     "sim": "bun run scripts/sim.ts",
     "mcp:demo": "bun run scripts/mcp-demo-lms.ts",
     "site:cards": "bun run scripts/site-hero-cards.ts",
-    "site:booth": "bun run scripts/site-booth-video.ts"
+    "site:booth": "bun run scripts/site-booth-video.ts",
+    "site:booth-shots": "bun run scripts/site-booth-shots.ts",
+    "site:booth-facts": "bun run scripts/site-booth-facts.ts",
+    "site:booth-frames": "bun run scripts/site-booth-frames.ts"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^2.0.0",
