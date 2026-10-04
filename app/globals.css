@@ -195,23 +195,53 @@ h3 {
     0 24px 48px -30px color-mix(in oklab, var(--brand-violet) 70%, transparent);
 }
 
+@property --winyu-ring-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@keyframes winyu-ring-spin {
+  to {
+    --winyu-ring-angle: 360deg;
+  }
+}
+
 .winyu-focus-ring {
   position: relative;
 }
 
-.winyu-focus-ring::before {
+.winyu-focus-ring::before,
+.winyu-focus-ring::after {
   content: "";
   position: absolute;
   inset: -2px;
   z-index: -1;
   border-radius: inherit;
-  background: linear-gradient(118deg, var(--winyu-ring-from), var(--winyu-ring-to));
-  opacity: 0;
+  background: conic-gradient(
+    from var(--winyu-ring-angle),
+    var(--winyu-ring-from),
+    var(--brand-violet),
+    var(--winyu-ring-to),
+    var(--winyu-ring-from)
+  );
+  animation: winyu-ring-spin 4s linear infinite;
   transition: opacity 0.18s ease-out;
 }
 
-.winyu-focus-ring:focus-within::before {
-  opacity: 1;
+.winyu-focus-ring::after {
+  filter: blur(14px);
+  opacity: 0.2;
+}
+
+.winyu-focus-ring:focus-within::after,
+.winyu-focus-ring[data-busy]::after {
+  opacity: 0.4;
+}
+
+.winyu-focus-ring[data-busy]::before,
+.winyu-focus-ring[data-busy]::after {
+  animation-duration: 1.6s;
 }
 
 .winyu-chat .is-user > div {

@@ -10,7 +10,7 @@ const SIZES = {
   docked: { frame: "rounded-[1.5rem] px-3 py-2.5", field: "min-h-10 text-sm", button: "size-9" },
 } as const;
 
-const FRAME = "winyu-focus-ring flex items-end gap-2 border border-border bg-card shadow-card transition";
+const FRAME = "winyu-focus-ring flex items-end gap-2 border border-transparent bg-card bg-clip-padding shadow-card transition";
 const FIELD = "w-full flex-1 resize-none bg-transparent leading-relaxed text-foreground outline-none placeholder:text-muted-foreground";
 const SEND = "inline-flex shrink-0 items-center justify-center rounded-full bg-ink text-ink-foreground transition hover:opacity-90 disabled:bg-muted disabled:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 const MAX_HEIGHT_PX = 220;
@@ -73,7 +73,7 @@ export function WinyuComposer({
 
   return (
     <div className={cn("flex w-full flex-col gap-2", className)}>
-      <div className={cn(FRAME, style.frame)}>
+      <div data-busy={busy || undefined} className={cn(FRAME, style.frame)}>
         <textarea
           ref={field}
           rows={1}
