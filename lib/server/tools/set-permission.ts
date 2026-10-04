@@ -3,6 +3,7 @@ import { setPermissionInputSchema } from "@/lib/contracts";
 import { applyPermissionChange } from "@/lib/server/permissions";
 import { currentAccess } from "@/lib/server/request-context";
 import { defineTool } from "./define";
+import { permissionHolds } from "./verify";
 import { connectorFields } from "./registry";
 
 const BASE_DESCRIPTION =
@@ -20,6 +21,7 @@ export const setPermissionTool = defineTool({
   roles: ["it_admin"],
   description: describeSetPermission,
   input: setPermissionInputSchema,
+  verify: permissionHolds,
   execute: async (input: z.infer<typeof setPermissionInputSchema>) => {
     const change = applyPermissionChange(input, currentAccess().userId);
     if (!change.ok) return { ok: false as const, error: change.error };

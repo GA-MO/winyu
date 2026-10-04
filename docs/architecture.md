@@ -9,19 +9,23 @@ Browser (Vexa react/chat + Winyu chrome)
   │  cookie: winyu_session=<userId>
   ▼
 app/api/chat/route.ts
-  → lib/server/session.ts        readAccess(cookies) → AccessContext
-  → lib/server/request-context   runWithAccess / runWithTurn (AsyncLocalStorage)
-  → lib/server/agent/handler.ts  createVexaHandler({ models, persona, rules, tools, toolTiers })
+  → lib/server/session.ts                  readAccess(cookies) → AccessContext
+  → lib/harness/adapters/vexa/agent.ts     serveChat: one run per request (run id = turn id), goal, ui.action / approval events,
+                                           transcript window, AsyncLocalStorage for access, turn and run; trace saved when the reply ends
+  → lib/server/agent/handler.ts            vexaEngine({ catalog, models, persona, rules, tools, toolTiers }, approvalSecret)
       tools = toolsForAccess(access)          the surface minus policy minus kill switch
-      persona = personaFor(access, user, ctx) role, scope, memory facts (fenced as data)
+      persona = personaFor(access, user, ctx) context items (source, priority, scope) under a budget; memory ranked by the question
   ▼
-lib/server/agent/tools.ts        11 tools, each wrapped in withAudit
-  → lib/server/metrics.ts        runMetric(query, access): plan → ports().metrics.readFacts → finish
-  → lib/server/alerts.ts         alerts and forecasts the engines produced
-  → lib/server/handoff.ts        context packets, notifications, outbox
+lib/harness/gateway.ts                   every tool call: policy → tool under a timeout → observation → verification → recovery → one audit row
+  → lib/server/tools/*.ts                each tool's execute and its post-condition (lib/server/tools/verify.ts)
+  → lib/server/metrics.ts                runMetric(query, access): plan → ports().metrics.readFacts → finish
+  → lib/server/alerts.ts                 alerts and forecasts the engines produced
+  → lib/server/handoff.ts                context packets, notifications, outbox
   ▼
 Vexa spec stream → SpecView renders the catalog components
 ```
+
+`docs/harness.md` describes the harness: run state, events, the gateway, verification, recovery and the Vexa boundary. `bun run trace [runId]` prints one run.
 
 `AccessContext` is derived on the server from the cookie alone. No tool input can widen it: tools read it from the async context, never from their arguments.
 
@@ -88,10 +92,10 @@ The dashboard composer (`lib/engine/compose.ts`) sits beside them: it clusters r
 
 ## Governance
 
-- **Permission is code.** Tool filtering happens before the handler sees the tool set; scope predicates are injected inside `runMetric`. Prompt text carries none of it.
+- **Permission is code.** Tool filtering happens before the handler sees the tool set, and the harness gateway authorizes every call again when it executes, whoever calls it; scope predicates are injected inside `runMetric`, and `query_metric` answers are checked for out-of-scope rows before the model sees them. Approvals are signed by the server. Prompt text carries none of it.
 - **Min-cell suppression.** `lib/access/suppression.ts` closes any roll-up of `ar_overdue`, `gross_margin` or `trade_spend` that aggregates fewer than three agents, so a one-distributor province cannot be read as that distributor's books. Naming the agent explicitly is a different question, governed by the metric ACL.
 - **Everything that is not typed by the user is data.** Tool output, packets from other users and memory facts are fenced before they reach the prompt (`fenceAsData`).
-- **Audit.** `withAudit` writes one entry per tool call: who, which tool, hashed arguments, decision (`allow` / `deny` / `masked`), rows returned, latency. `/admin` filters them; `lib/server/usage.ts` aggregates questions per day, top intents, unanswered questions and an estimated cost.
+- **Audit.** The harness gateway writes one entry per tool call from what it observed: who, which tool, hashed arguments, decision (`allow` / `deny` / `masked`), rows returned, latency, tool call id and run id. Each run's full event trace (goal, context, model steps, policy, approvals, observations, verification, recovery, completion) is kept in `.data/runs.json`. `/admin` filters them; `lib/server/usage.ts` aggregates questions per day, top intents, unanswered questions and an estimated cost.
 - **Red team.** `tests/red-team.test.ts` runs 60+ cross-scope probes per role as direct tool calls and fails on any leaked number.
 
 ## Models

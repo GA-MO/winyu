@@ -1,7 +1,9 @@
 import { describe, expect, test } from "bun:test";
 import { findUser } from "@/lib/data/entities/users";
 import { liveAccessFor } from "@/lib/access/enforce";
-import { auditLog, withAudit } from "./audit";
+import { gated } from "@/lib/harness/gateway";
+import { winyuTool } from "@/lib/server/tools/registry";
+import { auditLog } from "./audit";
 import { runWithAccess, runWithTurn } from "./request-context";
 import { sinceOf, toolActivity } from "./usage";
 
@@ -13,15 +15,18 @@ function krit() {
   return liveAccessFor(user);
 }
 
+const QUERY_METRIC = winyuTool("query_metric")?.capability;
+
 async function audited(execute: (args: unknown) => Promise<unknown>, args: unknown) {
+  if (!QUERY_METRIC) throw new Error("query_metric is off the surface");
   const before = new Set(auditLog().all().map((row) => row.id));
-  await runWithAccess(krit(), () => runWithTurn(TURN, () => withAudit("query_metric", "warehouse", execute)(args))).catch(() => undefined);
+  await runWithAccess(krit(), () => runWithTurn(TURN, () => gated(QUERY_METRIC, execute)(args))).catch(() => undefined);
   const rows = auditLog().all().filter((row) => !before.has(row.id));
   for (const row of rows) auditLog().remove(row.id);
   return rows;
 }
 
-describe("withAudit", () => {
+describe("the gateway audit", () => {
   test("a refusal keeps its code, its reason, the question and the turn it came from", async () => {
     const [row] = await audited(async () => ({ ok: false, code: "PERMISSION_DENIED", error: "บทบาทของคุณไม่มีสิทธิ์ดูภาคใต้" }), { region: "south" });
     expect([row.decision, row.code, row.reason, row.question, row.turnId, row.threadId]).toEqual([

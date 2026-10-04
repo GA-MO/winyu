@@ -1,11 +1,13 @@
-import type { Tool } from "ai";
-import { prefixedToolName } from "vexa/server";
+import { prefixedToolName } from "@/lib/harness/adapters/vexa/server";
 import { NATIVE_CONNECTORS, type ConnectorDef, type RoleId, type ToolTier } from "@/lib/contracts";
 import type { Visibility } from "@/lib/access/role-overrides";
-import { withAudit } from "@/lib/server/audit";
+import { engineTool } from "@/lib/harness/adapters/vexa/tools";
+import { gated } from "@/lib/harness/gateway";
+import { LIMITS } from "@/lib/harness/limits";
+import type { Capability } from "@/lib/harness/types";
 import type { WinyuTool } from "@/lib/server/tools/define";
 import { TH } from "@/lib/i18n/th";
-import { callConnectorTool, executableOf, mcpCaller } from "./call";
+import { callConnectorTool, descriptionOf, inputSchemaOf, mcpCaller } from "./call";
 import { placeholdersOf, restCaller } from "./rest";
 import type {
   ConnectorField, ConnectorIdentity, ConnectorToolBinding, ConnectorToolConfig, McpConnector, McpConnectorConfig, McpToolConfig,
@@ -63,7 +65,7 @@ function bindingOf<Config extends ConnectorToolConfig>(connector: string, remote
   return { name: prefixedToolName(connector, as ?? remoteName), remoteName, tier: tool.tier ?? UNDECLARED_TIER, config: tool, fields };
 }
 
-function winyuToolOf(connector: ConnectorIdentity, binding: ConnectorToolBinding, call: RemoteCaller): WinyuTool {
+function winyuToolOf(connector: ConnectorIdentity & { timeoutMs: number }, binding: ConnectorToolBinding, call: RemoteCaller): WinyuTool {
   const entry = {
     name: binding.name as WinyuTool["entry"]["name"],
     connector: connector.id,
@@ -72,8 +74,14 @@ function winyuToolOf(connector: ConnectorIdentity, binding: ConnectorToolBinding
     labelTh: binding.config.labelTh,
     bodyTh: binding.config.bodyTh ?? TH.admin.connectors.toolBody(connector.sourceSystemTh),
   };
-  const tool: Tool = executableOf(connector, binding, withAudit(binding.name, connector.id, (input: unknown) => callConnectorTool(connector, binding, input, call)));
-  return { entry, tool };
+  const capability: Capability = { ...entry, timeoutMs: connector.timeoutMs + LIMITS.toolTimeoutMs, verify: null, correct: null, redact: [] };
+  const tool = engineTool({
+    capability,
+    description: () => descriptionOf(connector, binding),
+    inputSchema: () => inputSchemaOf(connector, binding),
+    execute: gated(capability, (input: unknown) => callConnectorTool(connector, binding, input, call)),
+  });
+  return { entry, capability, tool };
 }
 
 function uniqueFields(fields: ConnectorField[]): ConnectorField[] {

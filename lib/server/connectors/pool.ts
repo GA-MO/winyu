@@ -1,4 +1,4 @@
-import { openMcpClient, type MCPClient, type McpTransportConfig } from "vexa/server";
+import { openMcpClient, type MCPClient, type McpTransportConfig } from "@/lib/harness/adapters/vexa/server";
 import type { AccessContext } from "@/lib/contracts";
 import { learnRemoteTools, markReachable } from "./catalog";
 import type { McpConnectorConfig } from "./types";

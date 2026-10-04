@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { McpTransportConfig } from "vexa/server";
+import type { McpTransportConfig } from "@/lib/harness/adapters/vexa/server";
 import type { AccessContext, Region } from "@/lib/contracts";
 import { defineMcpConnector } from "./define";
 import type { ConnectorClient, ConnectorClientFactory } from "./pool";

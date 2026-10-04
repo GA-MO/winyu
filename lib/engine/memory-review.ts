@@ -1,5 +1,5 @@
 import { generateObject } from "ai";
-import { fenceAsData } from "vexa/server";
+import { fenceAsData } from "@/lib/harness/adapters/vexa/server";
 import { z } from "zod";
 import type { MemoryFact } from "@/lib/contracts";
 import { utilityModel } from "@/lib/server/models";

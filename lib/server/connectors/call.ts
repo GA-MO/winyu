@@ -1,9 +1,8 @@
-import { jsonSchema, type Tool } from "ai";
+import { jsonSchema } from "ai";
 import { z } from "zod";
-import { fence } from "vexa/server";
+import { fence } from "@/lib/harness/adapters/vexa/server";
 import type { AccessContext } from "@/lib/contracts";
 import { currentAccess } from "@/lib/server/request-context";
-import { isToolAllowed, withAdminSwitches } from "@/lib/access/enforce";
 import { TH } from "@/lib/i18n/th";
 import { markReachable, remoteTool } from "./catalog";
 import { clientFor, dropClient } from "./pool";
@@ -13,7 +12,6 @@ import type { ConnectorIdentity, ConnectorOutput, ConnectorRow, ConnectorToolBin
 export const CONNECTOR_UNAVAILABLE = "CONNECTOR_UNAVAILABLE";
 export const CONNECTOR_FAILED = "CONNECTOR_FAILED";
 export const PERMISSION_DENIED = "PERMISSION_DENIED";
-export const TOOL_NOT_ALLOWED = "TOOL_NOT_ALLOWED";
 export const NONE_IN_SCOPE = "NONE_IN_SCOPE";
 export const SCOPE_TRIMMED = "SCOPE_TRIMMED";
 
@@ -21,7 +19,7 @@ const ANY_ARGS = z.looseObject({});
 
 export type ConnectorToolResult =
   | { ok: true; summary: string; rows: ConnectorRow[]; code?: typeof NONE_IN_SCOPE | typeof SCOPE_TRIMMED; provenance: { sourceSystem: string; asOf: string; masked: string[] } }
-  | { ok: false; code: typeof CONNECTOR_UNAVAILABLE | typeof CONNECTOR_FAILED | typeof PERMISSION_DENIED | typeof TOOL_NOT_ALLOWED; error: string };
+  | { ok: false; code: typeof CONNECTOR_UNAVAILABLE | typeof CONNECTOR_FAILED | typeof PERMISSION_DENIED; error: string };
 
 class ConnectorTimeout extends Error {}
 
@@ -93,10 +91,9 @@ async function shaped(connector: ConnectorIdentity, binding: ConnectorToolBindin
   };
 }
 
-/** One call to a connector tool as the person asking, whatever the transport: Winyu's scope on the way in, the other system as that person, then Winyu's scope, masking and fence on the way out. */
+/** One call to a connector tool as the person asking, whatever the transport, once the gateway allowed it: Winyu's scope on the way in, the other system as that person, then Winyu's scope, masking and fence on the way out. */
 export async function callConnectorTool(connector: ConnectorIdentity, binding: ConnectorToolBinding, input: unknown, call: RemoteCaller): Promise<ConnectorToolResult> {
   const access = currentAccess();
-  if (!isToolAllowed(withAdminSwitches(access), binding.name)) return { ok: false, code: TOOL_NOT_ALLOWED, error: TH.admin.connectors.notAllowed(binding.config.labelTh) };
   const args = scopedArgs(binding.config.scope, argsOf(binding, input), access);
   const outcome = await call(args, access);
   if (outcome.ok) return shaped(connector, binding, outcome.output, access);
@@ -104,28 +101,16 @@ export async function callConnectorTool(connector: ConnectorIdentity, binding: C
   return { ok: false, code: CONNECTOR_FAILED, error: `${TH.admin.connectors.failed(connector.labelTh)}: ${outcome.text}` };
 }
 
-function descriptionOf(connector: ConnectorIdentity, binding: ConnectorToolBinding): string {
+/** The description the model reads: Winyu's own when written, else the server's last word, fenced. */
+export function descriptionOf(connector: ConnectorIdentity, binding: ConnectorToolBinding): string {
   if (binding.config.description) return binding.config.description;
   const remote = remoteTool(connector.id, binding.remoteName)?.description;
   return remote ? fence(remote) : binding.config.labelTh;
 }
 
-function inputSchemaOf(connector: ConnectorIdentity, binding: ConnectorToolBinding) {
+/** The input schema the model fills: Winyu's own when written, else what the server last listed. */
+export function inputSchemaOf(connector: ConnectorIdentity, binding: ConnectorToolBinding) {
   if (binding.config.input) return binding.config.input;
   const remote = remoteTool(connector.id, binding.remoteName)?.inputSchema;
   return remote ? jsonSchema(remote) : ANY_ARGS;
-}
-
-/** The AI SDK tool the handler hands the model; description and schema follow what the server last said, unless Winyu wrote its own. */
-export function executableOf(connector: ConnectorIdentity, binding: ConnectorToolBinding, execute: (input: unknown) => Promise<ConnectorToolResult>): Tool {
-  return {
-    get description() {
-      return descriptionOf(connector, binding);
-    },
-    get inputSchema() {
-      return inputSchemaOf(connector, binding);
-    },
-    ...(binding.tier === "read" ? {} : { needsApproval: true }),
-    execute,
-  } as unknown as Tool;
 }

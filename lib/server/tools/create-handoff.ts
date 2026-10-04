@@ -6,6 +6,7 @@ import { createPacket, digestOf } from "@/lib/server/handoff";
 import { currentAccess, currentTurn } from "@/lib/server/request-context";
 import { threads } from "@/lib/server/threads-read";
 import { defineTool } from "./define";
+import { handoffHolds } from "./verify";
 import { ALL_BUT_SALES_REP, recipient } from "./shared";
 
 const MAX_EVIDENCE = 4;
@@ -43,6 +44,8 @@ export const createHandoffTool = defineTool({
   roles: ALL_BUT_SALES_REP,
   description: "Hand this question over to the responsible person as a context packet: the ask, the urgency and the queries as evidence (references, re-run under their own scope). The user approves it first. Resolve the owner before calling.",
   input: createHandoffInputSchema,
+  redact: ["ask"],
+  verify: handoffHolds,
   execute: async (input: z.infer<typeof createHandoffInputSchema>) => {
     const access = currentAccess();
     const target = recipient(input.toUserId);

@@ -1,8 +1,9 @@
 import { createAnthropic } from "@ai-sdk/anthropic";
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 import { wrapLanguageModel, type LanguageModel } from "ai";
-import { createScriptedModel, MOCK_MODEL_ID } from "vexa/mock";
-import type { ModelRegistry } from "vexa/server";
+import { createScriptedModel, MOCK_MODEL_ID } from "@/lib/harness/adapters/vexa/server";
+import type { ModelRegistry } from "@/lib/harness/adapters/vexa/server";
+import { traceMiddleware } from "@/lib/harness/adapters/vexa/agent";
 import { WINYU_MOCK_SCRIPT } from "./mock-script";
 import { meterMiddleware } from "./usage-meter";
 
@@ -23,11 +24,17 @@ function providerOrderOf(modelId: string): string[] | null {
 }
 
 const MOCK: ModelRegistry = {
-  [MOCK_MODEL_ID]: { model: () => createScriptedModel(WINYU_MOCK_SCRIPT), name: "Mock (scripted, ฟรี)", provider: "vexa-mock", maxTokens: 8_000 },
+  [MOCK_MODEL_ID]: { model: () => traced(createScriptedModel(WINYU_MOCK_SCRIPT)), name: "Mock (scripted, ฟรี)", provider: "vexa-mock", maxTokens: 8_000 },
 };
 
+type WrappableModel = Parameters<typeof wrapLanguageModel>[0]["model"];
+
+function traced(model: Exclude<LanguageModel, string>) {
+  return wrapLanguageModel({ model: model as WrappableModel, middleware: traceMiddleware() });
+}
+
 function metered(modelId: string, model: Exclude<LanguageModel, string>) {
-  return wrapLanguageModel({ model: model as Parameters<typeof wrapLanguageModel>[0]["model"], middleware: meterMiddleware(modelId) });
+  return wrapLanguageModel({ model: model as WrappableModel, middleware: [traceMiddleware(), meterMiddleware(modelId)] });
 }
 
 function anthropicModels(apiKey: string): ModelRegistry {

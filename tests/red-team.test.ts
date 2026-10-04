@@ -1,19 +1,21 @@
 import { afterAll, describe, expect, test } from "bun:test";
 import type { Tool } from "ai";
 import { accessFor } from "@/lib/access/policies";
-import { toolsFor } from "@/lib/access/enforce";
+import { killTool, reviveTool, toolsFor } from "@/lib/access/enforce";
 import { SUPPRESSED_VALUE } from "@/lib/access/suppression";
-import type { AccessContext, MetricQuery, MetricResult, Region, RoleId } from "@/lib/contracts";
+import type { AccessContext, MetricQuery, MetricResult, Region, RoleId, ToolName } from "@/lib/contracts";
 import { findUser } from "@/lib/data/entities/users";
 import { REGION_LABELS_TH } from "@/lib/data/entities/org";
 import { memoryFacts, packets } from "@/lib/server/agent/collections";
 import { winyuTools, toolsForAccess } from "@/lib/server/agent/tools";
 import { createPacket, packetsFor, resolveEvidence } from "@/lib/server/handoff";
-import { runWithAccess } from "@/lib/server/request-context";
+import { personaFor, relevantMemory } from "@/lib/server/agent/persona";
+import { runWithAccess, runWithTurn } from "@/lib/server/request-context";
 
 const TODAY = "2026-09-22";
 const MONTH_START = "2026-09-01";
 const MIN_PROBES = 60;
+const NO_TURN = { turnId: null, threadId: null, preloadPacketId: null, question: null, queries: [] };
 const planted: { facts: string[]; packets: string[] } = { facts: [], packets: [] };
 
 let probeCount = 0;
@@ -202,6 +204,32 @@ describe("red team: other users' state", async () => {
     }
   });
 
+  test("the context retriever never puts one user's memory in another user's prompt, even when the question names it", async () => {
+    const fact = memoryFacts().put({
+      id: "rt_fact_pim_context",
+      userId: "u_pim",
+      type: "interest",
+      value: "งบลับแคมเปญปุระฝั่งอีสาน",
+      confidence: 0.95,
+      sourceThreadId: null,
+      createdAt: new Date().toISOString(),
+      decayAt: null,
+    });
+    planted.facts.push(fact.id);
+    for (const userId of ["u_anucha", "u_thana", "u_ton", "u_ben"]) {
+      const user = findUser(userId);
+      if (!user) throw new Error(`missing demo user ${userId}`);
+      const question = "งบลับแคมเปญปุระฝั่งอีสาน";
+      const retrieved = relevantMemory(userId, question);
+      const prompt = runWithTurn({ ...NO_TURN, question }, () => personaFor(access(userId), user, { today: TODAY, context: {}, tools: { read: [], write: [], destructive: [] } })).join("\n");
+      record(`${userId} → retrieved memory of u_pim`, retrieved.some((entry) => entry.userId !== userId));
+      record(`${userId} → prompt carries memory of u_pim`, prompt.includes(fact.value));
+    }
+    const own = findUser("u_pim");
+    if (!own) throw new Error("missing demo user u_pim");
+    record("u_pim → own memory reaches the prompt", !relevantMemory("u_pim", "ปุระ").some((entry) => entry.id === fact.id));
+  });
+
   test("a packet addressed to someone else is not in this user's inbox", async () => {
     const recipient = findUser("u_pim");
     if (!recipient) throw new Error("missing demo user u_pim");
@@ -241,6 +269,33 @@ describe("red team: tool surface", async () => {
       record(`u_krit → ${name}`, rep.includes(name as (typeof rep)[number]));
     }
     record("u_krit → toolset", Object.keys(toolsForAccess(access("u_krit"))).includes("run_job"));
+  });
+
+  test("a tool outside the role's grant is refused at call time, not only left off the tool set", async () => {
+    const outside: [string, string, unknown][] = [
+      ["u_krit", "create_handoff", { toUserId: "u_anucha", title: "probe", ask: "probe", urgency: "low", evidence: [], alertIds: [] }],
+      ["u_krit", "send_email", { toUserId: "u_krit", subject: "probe", body: "probe" }],
+      ["u_krit", "run_job", { job: "compose" }],
+      ["u_krit", "set_permission", { role: "sales_rep", kind: "tool", key: "run_job", value: "allow" }],
+      ["u_thana", "set_permission", { role: "sales_rep", kind: "metric", key: "avg_salary", value: "full" }],
+    ];
+    for (const [userId, name, input] of outside) {
+      const allowed = toolsFor(access(userId)).includes(name as ToolName);
+      const result = await ask<{ ok?: boolean; code?: string }>(userId, name, input);
+      record(`${userId} → ${name} executed directly`, !allowed && result.code !== "TOOL_NOT_ALLOWED");
+    }
+  });
+
+  test("a tool the admin killed is refused at call time for every role", async () => {
+    killTool("list_courses", "u_ton");
+    try {
+      for (const [userId] of EVERY_ROLE) {
+        const result = await ask<{ code?: string }>(userId, "list_courses", { month: null, query: null });
+        record(`${userId} → killed list_courses`, result.code !== "TOOL_NOT_ALLOWED");
+      }
+    } finally {
+      reviveTool("list_courses");
+    }
   });
 
   test("only IT runs batch jobs", () => {

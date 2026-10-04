@@ -1,4 +1,4 @@
-import type { MockStep } from "vexa/mock";
+import type { MockStep } from "@/lib/harness/adapters/vexa/server";
 import type { Spec, SpecElement } from "vexa/protocol";
 import type { PeopleFlag, Region } from "@/lib/contracts";
 import { USERS } from "@/lib/data/entities/users";

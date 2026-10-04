@@ -1,5 +1,5 @@
 import { generateObject, generateText, stepCountIs, type LanguageModel, type Tool, type ToolSet } from "ai";
-import { fenceAsData } from "vexa/server";
+import { fenceAsData } from "@/lib/harness/adapters/vexa/server";
 import { z } from "zod";
 import { accessFor } from "@/lib/access/policies";
 import { managerOf } from "@/lib/access/raci";
@@ -13,8 +13,9 @@ import { TH } from "@/lib/i18n/th";
 import { investigations } from "@/lib/server/agent/collections";
 import { runMetric } from "@/lib/server/metrics";
 import { winyuTools, toolsForAccess, toolTiers } from "@/lib/server/agent/tools";
-import { MOCK_MODEL_ID } from "vexa/mock";
+import { MOCK_MODEL_ID } from "@/lib/harness/adapters/vexa/server";
 import { models } from "@/lib/server/models";
+import { tracedRun } from "@/lib/harness/runtime";
 import { runWithAccess } from "@/lib/server/request-context";
 import { measure } from "@/lib/server/usage-meter";
 
@@ -34,6 +35,8 @@ const REMEMBERED = new Set(["recall_memory"]);
 const HONORIFIC = "คุณ";
 const BARE_NAME_MIN_LENGTH = 4;
 const JOB_CONCURRENCY = 3;
+const INVESTIGATE_TOOL_BUDGET = 80;
+const INVESTIGATE_GOAL = "Explain this person's open anomalies before they open Winyu";
 
 const INVESTIGATE_SYSTEM = [
   "You are Winyu, the analyst of a Thai beverage company. Before this person opens Winyu today, explain the open anomalies listed in the prompt. Those anomalies are the only matters.",
@@ -286,8 +289,12 @@ async function draftStories(model: LanguageModel, who: string, notes: string, ca
   return object.stories;
 }
 
-/** One person's morning investigation: read their open anomalies first, then the model drills into those with the read tools of their role and writes stories that point at their evidence; a story that fails a check gets one rewrite, and one with a number no tool returned or a role holder's name is dropped. No anomalies means one quiet story and no model call. */
+/** One person's morning investigation, traced as a run of its own: read their open anomalies first, then the model drills into those with the read tools of their role and writes stories that point at their evidence; a story that fails a check gets one rewrite, and one with a number no tool returned or a role holder's name is dropped. No anomalies means one quiet story and no model call. */
 export async function investigate(userId: string, model: LanguageModel, modelId: string): Promise<InvestigationRun> {
+  return tracedRun(userId, { userMessage: INVESTIGATE_GOAL, intent: "job:investigate" }, INVESTIGATE_TOOL_BUDGET, () => investigateNow(userId, model, modelId));
+}
+
+async function investigateNow(userId: string, model: LanguageModel, modelId: string): Promise<InvestigationRun> {
   const user = findUser(userId);
   if (!user) throw new Error(`no user ${userId}`);
   const access = accessFor(user);

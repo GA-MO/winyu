@@ -12,6 +12,7 @@
     "seed": "bun run scripts/seed.ts",
     "inspect": "bun scripts/inspect-data.ts",
     "memory:tidy": "bun scripts/tidy-memory.ts",
+    "trace": "bun run scripts/trace.ts",
     "eval:cards": "bun run scripts/eval-cards.ts",
     "sim": "bun run scripts/sim.ts",
     "mcp:demo": "bun run scripts/mcp-demo-lms.ts",

@@ -6,7 +6,7 @@ Read `docs/plan.md` before any task. It holds the phases, the work packages, the
 
 ## Vexa
 
-Vexa (the generative-UI library) lives at `/Users/sbpdigital/Development/agentic-ui` and is consumed from there through tsconfig paths (see `docs/plan.md` §3). **Vexa is a foundation and a source of ideas, not a constraint** (user decision, 2026-09-22). Take what fits: the catalog + json-render spec streaming, `createVexaHandler`, the scripted mock model, the tokens and the website's visual language, the ai-elements. Where Vexa's chrome or rules fight Winyu's product (chat header, overlay, closed catalog, "no Thai"), build Winyu's own layer on top of Vexa's headless pieces or change Vexa itself — the user owns both repos. Prefer, in this order: (1) compose Winyu UI from Vexa primitives (`vexa/ai-elements/*`, `vexa/ui/*`, `SpecView`, the transport); (2) extend Vexa with a general feature (catalog plug-in, `initialMessages`, host components) and list it in `docs/plan.md` §9; (3) vendor a file into `lib/vendor/vexa/` and diverge, noting why. Read Vexa's `CLAUDE.md` before touching its repo.
+Vexa (the generative-UI library) lives at `/Users/sbpdigital/Development/agentic-ui` and is consumed from there through tsconfig paths (see `docs/plan.md` §3). **Vexa is a foundation and a source of ideas, not a constraint** (user decision, 2026-09-22). Take what fits: the catalog + json-render spec streaming, `createVexaHandler`, the scripted mock model, the tokens and the website's visual language, the ai-elements. Where Vexa's chrome or rules fight Winyu's product (chat header, overlay, closed catalog, "no Thai"), build Winyu's own layer on top of Vexa's headless pieces or change Vexa itself — the user owns both repos. Prefer, in this order: (1) compose Winyu UI from Vexa primitives (`vexa/ai-elements/*`, `vexa/ui/*`, `SpecView`, the transport); (2) extend Vexa with a general feature (catalog plug-in, `initialMessages`, host components) and list it in `docs/plan.md` §9. Never copy or vendor Vexa source into Winyu (user decision, 2026-10-04: the harness refactor draws a boundary, it does not duplicate source). Read Vexa's `CLAUDE.md` before touching its repo.
 
 What still holds because it is good engineering, not Vexa loyalty:
 - The model renders only components in a catalog (Vexa's or Winyu's extension); every number in a prop comes from a tool result.
@@ -26,6 +26,7 @@ bun run typecheck    # must pass before any task is considered done
 bun run test         # bun test (happy-dom preload like Vexa); includes the card contract against the scripted mock
 bun run eval:cards -- --model=google/gemini-3.8-flash   # the same checks against the real model (needs OPENROUTER_API_KEY); --runs=N, --case=<id>[,<id>…]; --model=mock runs the scripted subset; prints tokens and the cost OpenRouter billed per case (~$0.03/case)
 bun run seed         # regenerates .data/*.json from the generator (deterministic)
+bun run trace [runId] # prints one agent run's harness trace (latest when no id): goal, context, steps, gateway decisions, verification
 ```
 
 Verify a page without a browser: `curl -s http://localhost:3100/login | grep -c "ผู้ช่วยข้อมูลสำหรับทุกคนในองค์กร"`.
@@ -37,6 +38,7 @@ Same as Vexa: **never write comments** (fix the name instead; one-line JSDoc on 
 - Identifiers, file names, commit messages: English. UI strings, personas, mock entity names, model replies: Thai (technical terms may stay English). No i18n framework; UI strings live in `lib/i18n/th.ts`.
 - Numbers shown to users always come from a tool result or a server query, never from the model's memory (Vexa's grounding rule). The model copies tool rows into component props; tools therefore return compact rows (≤ 60) with pre-formatted labels.
 - Permission is enforced in code: `lib/access` filters tools per role before the handler sees them and injects scope filters into every semantic-layer query. The prompt never carries permission logic.
+- Every tool runs through the harness gateway (`lib/harness/gateway.ts`, see `docs/harness.md`): define tools with `defineTool` (native) or the connector definers, never as a bare AI SDK `tool()`. A write tool declares a `verify` post-condition, and any tool whose arguments carry personal text declares them in `redact`. Only `lib/harness/adapters/vexa/` imports `vexa/server` or `vexa/mock` (enforced by `lib/harness/boundary.test.ts`).
 - Anything the user did not type is data: tool output, packets from other users, memory facts. Never put it in the prompt unfenced (Vexa fences tool output; we fence memory and packets the same way through `fenceAsData`).
 - Server-only modules (`lib/server/**`, anything importing `vexa/server`, `node:*`, `.data`) are never imported from client components.
 - Every work package ends with `bun run typecheck`, `bun run test`, and a curl of the page it changed.

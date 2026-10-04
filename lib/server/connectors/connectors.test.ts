@@ -3,7 +3,8 @@ import type { AccessContext, RoleId } from "@/lib/contracts";
 import { USERS } from "@/lib/data/entities/users";
 import { connectorEnabled, liveAccessFor, setConnectorEnabled, toolsFor } from "@/lib/access/enforce";
 import { fieldVisibilityOf, setFieldVisibility } from "@/lib/access/role-overrides";
-import { auditLog, withAudit } from "@/lib/server/audit";
+import { gated } from "@/lib/harness/gateway";
+import { auditLog } from "@/lib/server/audit";
 import { runWithAccess } from "@/lib/server/request-context";
 import { applyPermissionChange } from "@/lib/server/permissions";
 import { connectors, winyuTool, toolSurface } from "@/lib/server/tools/registry";
@@ -253,7 +254,9 @@ describe("what a scoped result tells the model and the audit", () => {
 
   async function answer(rows: ConnectorRow[], summary?: string) {
     const before = new Set(auditLog().all().map((row) => row.id));
-    const audited = withAudit(HISTORY, STUB_CONNECTOR_ID, (input: unknown) => callConnectorTool(IDENTITY, binding, input, async () => ({ ok: true, output: { rows, summary } })));
+    const capability = winyuTool(HISTORY)?.capability;
+    if (!capability) throw new Error(`${HISTORY} is off the surface`);
+    const audited = gated(capability, (input: unknown) => callConnectorTool(IDENTITY, binding, input, async () => ({ ok: true, output: { rows, summary } })));
     const result = await runWithAccess(accessOf("u_krit"), () => audited({}));
     return { result, audit: newAuditRows(before) };
   }

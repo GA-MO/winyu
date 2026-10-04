@@ -5,6 +5,7 @@ import { notifications } from "@/lib/server/agent/collections";
 import { ports } from "@/lib/server/ports";
 import { currentAccess } from "@/lib/server/request-context";
 import { defineTool } from "./define";
+import { emailHolds } from "./verify";
 import { ALL_BUT_SALES_REP, now, recipient } from "./shared";
 
 function notify(notification: Omit<Notification, "id" | "at" | "read">): Notification {
@@ -18,6 +19,8 @@ export const sendEmailTool = defineTool({
   roles: ALL_BUT_SALES_REP,
   description: "Send an internal email to one colleague, for example to request access to a masked metric. It lands in the demo outbox and notifies the recipient. The user approves it first.",
   input: sendEmailInputSchema,
+  redact: ["subject", "body"],
+  verify: emailHolds,
   execute: async ({ toUserId, subject, body }: z.infer<typeof sendEmailInputSchema>) => {
     const access = currentAccess();
     const target = recipient(toUserId);

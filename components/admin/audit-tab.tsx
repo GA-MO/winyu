@@ -6,7 +6,9 @@ import { connectorLabel, connectors, toolLabel, toolSurface } from "@/lib/server
 import { USERS, findUser } from "@/lib/data/entities/users";
 import { TH } from "@/lib/i18n/th";
 import { AUDIT_RANGES, auditConnector, auditEntries, inAuditScope, type AuditFilter, type AuditRange } from "@/lib/server/usage";
+import { runStore } from "@/lib/harness/runtime";
 import { auditLog } from "@/lib/server/audit";
+import { RunTrace } from "./run-trace";
 import { AutoSubmitForm } from "./auto-submit-form";
 import { Avatar, EmptyLine, FOCUS, GHOST, Panel, Pill, Select, stamp, type Tone } from "./parts";
 
@@ -154,15 +156,32 @@ function CallRow({ entry }: { entry: AuditEntry }) {
   );
 }
 
-function TurnRow({ group }: { group: TurnGroup }) {
+function TurnDetail({ group }: { group: TurnGroup }) {
+  const record = group.entries[0].turnId ? runStore().get(group.entries[0].turnId) : null;
+  if (record) return <RunTrace record={record} audit={group.entries} />;
+  return (
+    <>
+      <p className="text-[12px] text-muted-foreground">{TH.admin.trace.none}</p>
+      <ul className="flex flex-col gap-1.5">
+        {group.entries.map((entry) => (
+          <CallRow key={entry.id} entry={entry} />
+        ))}
+      </ul>
+    </>
+  );
+}
+
+function TurnRow({ group, open }: { group: TurnGroup; open: boolean }) {
   const first = group.entries[0];
   const person = findUser(first.userId);
   const worst = worstOf(group.entries);
   const tools = [...new Set(group.entries.map((entry) => toolLabel(entry.tool)))];
+  const byJob = first.initiator === "job";
+  const headline = first.question ? `“${first.question}”` : byJob ? COPY.jobTitle : tools.join(" · ");
   const reason = worst === "allow" ? null : (group.entries.map(reasonOf).find((text) => text !== null) ?? null);
   return (
     <li>
-      <details className="group rounded-2xl transition open:bg-muted/40 hover:bg-muted/40">
+      <details open={open} id={`run-${group.key}`} className="group scroll-mt-20 rounded-2xl transition open:bg-muted/40 hover:bg-muted/40">
         <summary className={cn("grid cursor-pointer list-none grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-3 rounded-2xl px-3 py-2.5", FOCUS)}>
           <Avatar name={person?.nameTh ?? first.userId} />
           <div className="min-w-0">
@@ -170,28 +189,25 @@ function TurnRow({ group }: { group: TurnGroup }) {
               {person?.nameTh ?? first.userId}
               <span className="font-normal text-muted-foreground">{` · ${person ? TH.role[person.role] : ""} · ${stamp(first.at)}`}</span>
             </p>
-            <p className={cn("line-clamp-2 text-[13px]", first.question ? "text-foreground" : "text-muted-foreground")}>{first.question ? `“${first.question}”` : tools.join(" · ")}</p>
-            {first.question ? <p className="mt-0.5 truncate text-[11px] text-muted-foreground">{`${COPY.calls(group.entries.length)} · ${tools.join(" · ")}`}</p> : null}
+            <p className={cn("line-clamp-2 text-[13px]", first.question || byJob ? "text-foreground" : "text-muted-foreground")}>{headline}</p>
+            {first.question || byJob ? <p className="mt-0.5 truncate text-[11px] text-muted-foreground">{`${COPY.calls(group.entries.length)} · ${tools.join(" · ")}`}</p> : null}
             {reason ? <p className={cn("mt-0.5 text-[12px]", worst === "deny" ? "text-danger" : "text-warning")}>{reason}</p> : null}
           </div>
           <span className="flex items-center gap-2">
+            {byJob ? <Pill tone="primary">{COPY.byJob}</Pill> : null}
             <Pill tone={DECISION_TONE[worst]}>{TH.admin.decision[worst]}</Pill>
             <ChevronDown className="size-3.5 text-muted-foreground transition group-open:rotate-180" aria-hidden />
           </span>
         </summary>
         <div className="flex flex-col gap-2 px-3 pb-3 sm:pl-14">
-          <ul className="flex flex-col gap-1.5">
-            {group.entries.map((entry) => (
-              <CallRow key={entry.id} entry={entry} />
-            ))}
-          </ul>
+          <TurnDetail group={group} />
         </div>
       </details>
     </li>
   );
 }
 
-export function AuditTab({ filter, range, limit }: { filter: AuditFilter; range: AuditRange; limit: number }) {
+export function AuditTab({ filter, range, limit, openRun }: { filter: AuditFilter; range: AuditRange; limit: number; openRun: string | null }) {
   const view: View = { filter, range, limit };
   const scoped = auditLog().all().filter((entry) => inAuditScope(entry, filter));
   const counts = { all: scoped.length, allow: 0, deny: 0, masked: 0 };
@@ -213,7 +229,7 @@ export function AuditTab({ filter, range, limit }: { filter: AuditFilter; range:
         ) : (
           <ul className="flex flex-col gap-0.5">
             {groupsOf(entries).map((group) => (
-              <TurnRow key={group.key} group={group} />
+              <TurnRow key={group.key} group={group} open={group.key === openRun} />
             ))}
           </ul>
         )}

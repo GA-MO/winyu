@@ -1,5 +1,5 @@
 import type { z } from "zod";
-import type { McpTransportConfig, MCPClient } from "vexa/server";
+import type { McpTransportConfig, MCPClient } from "@/lib/harness/adapters/vexa/server";
 import type { AccessContext, ConnectorDef, RoleId, ToolTier } from "@/lib/contracts";
 import type { Visibility } from "@/lib/access/role-overrides";
 import type { WinyuTool } from "@/lib/server/tools/define";

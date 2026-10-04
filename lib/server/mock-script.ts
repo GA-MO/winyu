@@ -1,4 +1,4 @@
-import type { MockScript, MockStep } from "vexa/mock";
+import type { MockScript, MockStep } from "@/lib/harness/adapters/vexa/server";
 import type { Spec, SpecElement } from "vexa/protocol";
 import { formatDateTh, formatPercent, periodLabelTh } from "@/lib/i18n/format";
 import { TH } from "@/lib/i18n/th";

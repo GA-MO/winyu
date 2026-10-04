@@ -1,11 +1,11 @@
 import { randomUUID } from "node:crypto";
 import { generateObject } from "ai";
-import { fenceAsData } from "vexa/server";
+import { fenceAsData } from "@/lib/harness/adapters/vexa/server";
 import { z } from "zod";
-import type { MemoryFact } from "@/lib/contracts";
+import type { Dim, MemoryFact, MetricId } from "@/lib/contracts";
 import { memoryFacts, memoryReviews } from "@/lib/server/agent/collections";
 import { findUser } from "@/lib/data/entities/users";
-import { METRIC_LIST } from "@/lib/semantic/metrics";
+import { METRIC_LIST, METRICS } from "@/lib/semantic/metrics";
 import type { Dictionary, EntityKind } from "@/lib/semantic/dictionary";
 import { loadDictionary } from "@/lib/server/master-data";
 import { utilityModel } from "@/lib/server/models";
@@ -30,6 +30,9 @@ const KNOWN_ID_PREFIX = "k";
 const ENTITY_KINDS: EntityKind[] = ["agent", "sku", "dc", "campaign", "brand"];
 
 export type Extracted = { type: MemoryFact["type"]; value: string; sameAs?: string | null };
+
+/** A question to learn from, with the metric slice the answer was built from when there was one. */
+export type HeardTurn = { prompt: string; metric?: MetricId | null; dims?: Dim[] };
 
 type Origin = "said" | "did";
 
@@ -106,7 +109,17 @@ function knownBlock(known: MemoryFact[]): { text: string; idOf: Map<string, stri
   return { text: lines.join("\n") || TH.memory.nothingKnown, idOf };
 }
 
-async function extractByModel(prompts: string[], known: MemoryFact[]): Promise<Extracted[] | null> {
+function whoOf(userId: string): string {
+  const user = findUser(userId);
+  return user ? `${user.title} (${user.role})` : userId;
+}
+
+function questionLine(turn: HeardTurn): string {
+  if (!turn.metric) return turn.prompt;
+  return TH.memory.answeredWith(turn.prompt, METRICS[turn.metric].labelTh, (turn.dims ?? []).map((dim) => TH.dim[dim] ?? dim));
+}
+
+async function extractByModel(userId: string, turns: HeardTurn[], known: MemoryFact[]): Promise<Extracted[] | null> {
   const model = utilityModel();
   if (!model) return null;
   const { text, idOf } = knownBlock(known.slice(0, MAX_KNOWN_SHOWN_TO_MODEL));
@@ -115,7 +128,13 @@ async function extractByModel(prompts: string[], known: MemoryFact[]): Promise<E
       model,
       schema: factSchema,
       system: TH.memory.systemPrompt,
-      prompt: [TH.memory.knownHeading, fenceAsData(text), TH.memory.questionsHeading, fenceAsData(prompts.join("\n"))].join("\n"),
+      prompt: [
+        TH.memory.reviewWho(whoOf(userId)),
+        TH.memory.knownHeading,
+        fenceAsData(text),
+        TH.memory.questionsHeading,
+        fenceAsData(turns.map(questionLine).join("\n")),
+      ].join("\n"),
     });
     return result.object.facts.map((fact) => ({ ...fact, sameAs: fact.sameAs ? (idOf.get(fact.sameAs) ?? null) : null }));
   } catch {
@@ -233,8 +252,7 @@ export function consolidateMemory(userId: string): { before: number; after: numb
 export async function reviewMemory(userId: string): Promise<{ before: number; after: number } | null> {
   const { before } = consolidateMemory(userId);
   const facts = factsOf(userId).sort(keepOrder);
-  const user = findUser(userId);
-  const plan = await planReview(facts, user ? `${user.title} (${user.role})` : userId);
+  const plan = await planReview(facts, whoOf(userId));
   if (!plan) return null;
   const byId = new Map(facts.map((fact) => [fact.id, fact]));
   for (const id of plan.drop) {
@@ -286,12 +304,12 @@ export function forgetAll(userId: string): number {
 }
 
 /** After a save: learn from the questions that are new in it, matching them against what is already known so a repeat strengthens a fact instead of adding one. */
-export async function rememberTurn(userId: string, turns: { prompt: string }[], threadId: string | null): Promise<MemoryFact[]> {
+export async function rememberTurn(userId: string, turns: HeardTurn[], threadId: string | null): Promise<MemoryFact[]> {
   pruneMemory(userId);
-  const prompts = turns.map((turn) => turn.prompt).filter((prompt) => prompt.trim().length > 0);
-  if (prompts.length === 0) return [];
+  const heard = turns.filter((turn) => turn.prompt.trim().length > 0);
+  if (heard.length === 0) return [];
   const known = factsOf(userId).sort(keepOrder);
-  const extracted = (await extractByModel(prompts, known)) ?? extractByRule(prompts, await loadDictionary());
+  const extracted = (await extractByModel(userId, heard, known)) ?? extractByRule(heard.map((turn) => turn.prompt), await loadDictionary());
   const saved = merge(userId, extracted, "said", threadId);
   if (reviewIsDue(userId)) void reviewMemory(userId);
   return saved;

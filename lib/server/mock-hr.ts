@@ -1,4 +1,4 @@
-import type { MockStep } from "vexa/mock";
+import type { MockStep } from "@/lib/harness/adapters/vexa/server";
 import type { Spec, SpecElement } from "vexa/protocol";
 import { addBadges, element, toolButton, type Elements } from "./mock-compose";
 

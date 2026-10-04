@@ -8,6 +8,10 @@ import { SIM_PERSONAS } from "@/lib/sim/scenarios";
 import type { SimPersona, SimSession, SimTurn } from "@/lib/sim/types";
 import { buildReview, compareRuns, meanScores, parseWalk, redoTurns, titleFlags, titleLabelled, unscored, type CardReviewRow, type ReviewTurn } from "@/lib/sim/card-review";
 import { diffOf, sessionOf, shiftFor, shifted, snapshotOf, type RunDiff, type SessionWindow, type Snapshot, type StoredRecord } from "@/lib/sim/records";
+import { APPROVALS_COLLECTION } from "../lib/harness/approvals";
+import { SECRETS_COLLECTION } from "../lib/server/approval-secret";
+
+const UNRECORDED_COLLECTIONS: ReadonlySet<string> = new Set([SECRETS_COLLECTION, APPROVALS_COLLECTION]);
 
 const BASE_URL = "http://localhost:3100";
 const DATA_DIR = path.join(process.cwd(), ".data");
@@ -474,6 +478,7 @@ function finalizeCommand(): void {
   const unshifted: Record<string, string[]> = {};
   const records: Record<string, Record<string, StoredRecord>> = {};
   for (const [collection, ids] of Object.entries(diff.created)) {
+    if (UNRECORDED_COLLECTIONS.has(collection)) continue;
     const rows = now[collection] ?? {};
     for (const id of ids) {
       const row = rows[id];
@@ -488,6 +493,7 @@ function finalizeCommand(): void {
     writeCollection(collection, rows);
   }
   for (const [collection, earlier] of Object.entries(diff.modified)) {
+    if (UNRECORDED_COLLECTIONS.has(collection)) continue;
     for (const id of Object.keys(earlier)) {
       const row = now[collection]?.[id];
       if (row) (records[collection] ??= {})[id] = row;

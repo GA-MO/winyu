@@ -1,5 +1,5 @@
 import { afterAll, afterEach, beforeAll, describe, expect, test } from "bun:test";
-import type { McpTransportConfig } from "vexa/server";
+import type { McpTransportConfig } from "@/lib/harness/adapters/vexa/server";
 import type { AccessContext } from "@/lib/contracts";
 import { USERS } from "@/lib/data/entities/users";
 import { ports } from "@/lib/server/ports";

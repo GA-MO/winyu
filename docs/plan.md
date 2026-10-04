@@ -448,6 +448,7 @@ The user's question: "จะมั่นใจได้ไงว่า model จ
 - [x] เรียนรู้ก่อนเชื่อ: ได้ยินครั้งเดียว = กำลังเรียนรู้ (0.45, หายใน 14 วัน, ไม่เข้า prompt); ได้ยินซ้ำหรือมาจากการกระทำ = รู้แล้ว (≥ 0.6, 90 วัน); ผู้ใช้กด "ใช่ จำไว้" = ยืนยัน (ไม่หมดอายุ) · เพดานต่อคน: เชื่อแล้ว 30 ข้อ (ตามความแน่ใจ) + กำลังเรียนรู้ 10 ข้อ (ตามที่เห็นล่าสุด)
 - [x] จัดระเบียบ: `consolidateMemory` (กฎ, นับหลักฐานเฉพาะบทสนทนาอื่น) และ `reviewMemory` (โมเดลรวมถ้อยคำ + ทิ้งหน้าที่ที่เดาและเรื่องของตัวระบบ; ไม่แตะข้อที่ยืนยันหรือมาจากการกระทำ) — รันเองเมื่อที่เชื่อแล้วเต็ม วันละครั้ง, หรือ `bun run memory:tidy [-- --review]` · ข้อมูลจริง: คุณธนา 247 → 27, คุณอนุชา 44 → 9
 - [x] `recall_memory` ค้นด้วยความคล้าย ไม่ใช่ substring และบอกสถานะ; บัญชีแสดงกลุ่ม "กำลังเรียนรู้" แยก พร้อมปุ่มยืนยัน (`PATCH /api/memory/:id`) · เทสต์ `lib/engine/memory.test.ts` (8)
+- [x] ตัวดึงที่เรียนรู้ได้จริง (user 2026-10-02 "ทำไมมีน้อยจัง"): แชตจำลอง 273 คำถามได้ความจำ 7 ข้อ (รู้แล้ว 2) เพราะ prompt สั่ง "ส่วนใหญ่ไม่มี" และ model เห็นแค่คำถาม → prompt ใหม่ให้จดทุกคำถามธุรกิจ (ด่านกันผิดคือสถานะกำลังเรียนรู้) + ส่งตำแหน่งผู้ใช้ + เมตริก/มิติที่ใช้ตอบ (`HeardTurn`, `TH.memory.answeredWith`) · replay 267 คำถามเดิม: 111 ข้อ รู้แล้ว 43, เรื่องที่ติดป้าย ~31/33 กลายเป็นรู้แล้ว (เดิม ~2/33), ไม่มีหน้าที่ที่เดา, $0.29 · flow และตัวเลขทั้งหมดใน `docs/memory.md` · หน้าลูกค้า `site/content/docs/memory.mdx` (จำอะไร ไม่จำอะไร สถานะ การควบคุม ความเป็นส่วนตัว) · ผล replay (112 ข้อหลังรวมกับของเดิม 2 ข้อด้วย `memory:tidy`, รู้แล้ว 44) แทน `sim/runs/2026-09-25/records/memory.json` และ `manifest.diff.created.memory` ลงวันที่ 2026-10-02 ไม่เลื่อนเวลา จึงหมดอายุตามนาฬิกาจริง (กำลังเรียนรู้ราว 16 ต.ค., รู้แล้วราว 31 ธ.ค.)
 
 - [x] หน้า `/memory` แยกจากแผงบัญชี (user decision 2026-09-23: แผงยาวเกินไป): เรื่องที่กำลังเรียนรู้เป็นการ์ด "ใช่ จำไว้ / ไม่ใช่" ด้านบน · เรื่องที่รู้แล้วค้นหาได้ กรองตามประเภท แสดงเต็มข้อความ + "เห็น N ครั้ง · ล่าสุด…" / "คุณยืนยันแล้ว" / "จากสิ่งที่คุณทำ" + ลิงก์ไปบทสนทนาต้นทาง · แก้ถ้อยคำเอง (= ยืนยัน) และลบ · ล้างทั้งหมดยืนยันในหน้า (`DELETE /api/memory`, `PATCH /api/memory/:id { value }`) · แผงบัญชีเหลือสรุป 1 บรรทัด + 3 เรื่องล่าสุด + "มี N เรื่องรอให้คุณยืนยัน" · `MemoryFact` เพิ่ม `seen`, `lastSeenAt` (ข้อมูลเก่าประมาณจากความแน่ใจ)
 
@@ -974,6 +975,25 @@ Ownership rule for parallel agents: a package edits only the folders listed in i
 - [x] เทสต์ไม่เรียก model ที่เสียเงิน: Bun โหลด `OPENROUTER_API_KEY` จาก `.env.local` ในเทสต์ด้วย งานเบื้องหลังหลังแต่ละเทิร์นแชต (ดึงความจำ, เขียนสรุป) จึงเรียก Gemini จริงระหว่าง `bun run test` (ค่าไปลงบัญชีในโฟลเดอร์ชั่วคราว ไม่เห็นใน `model-calls.json`) และทำให้ card contract ค้าง 591 วินาทีเมื่อ flex เข้าคิว · preload ลบ key (`withoutPaidModels` ใน `scripts/test-data.ts`) ตาม D7
 - [x] ถาดของซัพพลายมีการ์ดวันครอบคลุม 3 ใบ: ปล่อยไว้ (ผู้ใช้เลือก) — หลัง 12G หัวการ์ดบอกความต่างเอง (SKU ทั้งประเทศ "ไม่มี" · DC "ไม่มี" · DC×SKU "30 จาก 240") และการปักเป็นของผู้ใช้ (D3)
 
+### Phase 13 — Winyu harness: plan → act → observe → verify → recover (user brief 2026-10-04: "Vexa + Harness Architecture Refactor")
+
+Vexa stays the agent and UI engine; Winyu's harness (`lib/harness/`) owns the run, policy on every tool call, observation, verification, recovery and the audit trail. Map, decisions and what differs from the brief: `docs/harness.md`.
+
+- [x] 0 Baseline: typecheck, 723 tests, build green before any change
+- [x] 1 Interfaces: `types.ts`, `events.ts`, `state.ts` (event union, reducer-derived `AgentState`)
+- [x] 2 Gateway: `gateway.ts` + `policy.ts` replace `withAudit`; native and connector tools re-authorize at call time (red team +2 probes: direct execution, killed tool)
+- [x] 3 Runtime: run id = turn id, step ids from the model middleware, tool call ids from the SDK, trace in `.data/runs.json`, `bun run trace`
+- [x] 4 Observation, verification, recovery: one observation feeds the audit; `query_metric` answers checked for scope, masking and the row cap; retry table (reads once, writes never), per-call timeout, tool budget per run
+- [x] 5 Context: persona as `ContextItem`s (source, priority, scope) under a budget, byte-identical prompt for all 26 users; memory ranked by the question; transcript window
+- [x] 6 Vexa adapter: `vexa/server` and `vexa/mock` imported only in `lib/harness/adapters/vexa/` (boundary test)
+- [x] 7 UI events: pressed buttons and approval answers are run events; approvals signed with a server secret (forged approval test)
+- [x] 8 Writes: post-conditions on `pin_widget`, `watch_metric`, `create_handoff`, `send_email`, `request_leave`, `enroll_course`, `set_permission`
+- [x] 9 Scenarios: `tests/harness-scenarios.test.ts`, one expected trace per scenario
+- [x] 13 Audit: personal arguments (`redact` on `send_email`, `request_leave`, `create_handoff`) never reach the audit; every row says who started the work (`initiator`: person, job, system) and links its run, so background jobs show as "งานอัตโนมัติ" with their trace
+- [x] 12 Correction: refused `query_metric` calls (`BAD_QUERY`) come back with the dimensions and comparisons the metric has, at most two hints per tool per run (`correct` hook beside `verify`); replay of the 5 failed real questions: `list_metrics` 19 → 1, model calls 40 → 27, data drawn 2/10 → 5/10, cost −19%
+- [x] 11 Wrap up at the limit: รอบ model สุดท้าย (ที่ 6) หรือเมื่อครบงบเครื่องมือ AI ไม่ได้รับเครื่องมือและถูกสั่งให้สรุปจากที่ได้ บอกสิ่งที่ขาด แล้วถามผู้ใช้ (`wrapUpAtLimit` ผ่าน `prepareStep` ของ Vexa); เดิมคำถามที่ใช้ครบ 6 รอบจบโดยไม่มีคำตอบ
+- [x] 10 Admin trace: each question in `/admin?tab=audit` opens "AI ทำอะไรในคำถามนี้" (context, steps, gateway decision, outcome, checks, recovery); `?run=<id>` links one question
+
 ## 9. Changes to Vexa (agentic-ui) made for Winyu
 
 Vexa is not a constraint (user decision 2026-09-22): change it when Winyu needs it, prefer general features, list them here. Candidates already identified: a pluggable catalog (`createVexaHandler({ catalog })` + `SpecView registry`) so Winyu can add `Provenance`, `AnomalyCard`, `HandoffCard`, `Sparkline`, `Heatmap`; `VexaChat` `initialMessages`/`id`; a headless `useVexaChat` so Winyu can own the chat chrome.
@@ -1010,6 +1030,8 @@ Vexa is not a constraint (user decision 2026-09-22): change it when Winyu needs 
   - `detachedSpecParts` (`src/chat/spec-continuation.ts`): json-render `buildSpecFromParts` เขียนแถวลงใน array ที่ patch `add` ส่งมา การ rebuild จาก part เดิมจึงซ้อนแถวทุกครั้ง (ตาราง 21 metric แสดง 84 แถว) — `AssistantMessage` ส่ง copy ของ part ให้ `useJsonRenderMessage` แทน
   - `normalizeSpec` ได้ `turnToolOutputs` (ผล tool ตั้งแต่ผู้ใช้พูดครั้งล่าสุด) เพิ่มจาก `toolOutputs` — Winyu ใช้เติมบรรทัด scope ของการ์ดวาดเองเฉพาะจาก metric ของรอบนั้น เดิมการ์ดนโยบายได้ช่วงเวลาของการ์ดงบจากรอบก่อน
   - reasoning ที่ค้าง state `streaming` ในข้อความที่จบแล้วไม่ขึ้น "กำลังคิด" อีก และคำตอบที่ไม่มีข้อความ/spec/approval แสดง `labels.unanswered` (รอบ 429/504 เดิมค้างว่างหรือโชว์ reasoning)
+
+- [x] `createVexaHandler({ prepareStep })` (2026-10-04, `src/core/chat.ts`, `src/core/handler.ts`; ยังไม่ commit ใน agentic-ui): host ส่ง hook ที่รันก่อนเรียก model ทุกรอบ ได้ step arguments ของ AI SDK พร้อม `system` ที่ Vexa ประกอบแล้ว คืนค่า `toolChoice` / `activeTools` / `system` ได้ guard กัน injection ทำงานหลัง hook และทำได้แค่บีบเครื่องมือให้แคบลง Winyu ใช้สั่งให้ AI สรุปเมื่อถึงรอบสุดท้ายหรือครบงบเครื่องมือ Test: `src/core/prepare-step.test.ts`; docs: `website/content/docs/server/handler.mdx`
 
 ## 10. Out of scope for this build
 

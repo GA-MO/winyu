@@ -1,4 +1,4 @@
-import { fence } from "vexa/server";
+import { fence } from "@/lib/harness/adapters/vexa/server";
 import type { AccessContext } from "@/lib/contracts";
 import { fieldVisibilityOf } from "@/lib/access/role-overrides";
 import type { ConnectorField, ConnectorOutput, ConnectorRow, ConnectorScope, McpCallResult } from "./types";
