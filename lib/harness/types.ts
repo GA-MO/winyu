@@ -1,4 +1,4 @@
-import type { AccessContext, ToolSurfaceEntry } from "@/lib/contracts";
+import type { AccessContext, RuleRef, ToolSurfaceEntry } from "@/lib/contracts";
 
 export type GoalStatus = "active" | "completed" | "failed" | "cancelled";
 
@@ -30,9 +30,12 @@ export type Corrector = (check: CorrectInput) => string | null;
 /** One tool as the harness governs it: its surface entry (connector, tier = risk, roles) plus how long a read may take, what must hold afterwards, how the model can fix a failed call, and which arguments are personal text the audit never keeps. */
 export type Capability = ToolSurfaceEntry & { timeoutMs: number; verify: Verifier | null; correct: Corrector | null; redact: readonly string[] };
 
-export type DenyCode = "TOOL_NOT_ALLOWED" | "RUN_LIMIT";
+export type DenyCode = "TOOL_NOT_ALLOWED" | "POLICY_RULE" | "RUN_LIMIT";
 
-export type PolicyDecision = { decision: "allow" } | { decision: "require_approval" } | { decision: "deny"; code: DenyCode; reason: string };
+/** A refusal: its code, the reason the model is told, and the admin rule when one refused. */
+export type Denial = { decision: "deny"; code: Exclude<DenyCode, "POLICY_RULE">; reason: string } | { decision: "deny"; code: "POLICY_RULE"; reason: string; rule: RuleRef };
+
+export type PolicyDecision = { decision: "allow" } | { decision: "require_approval" } | Denial;
 
 export type FailureKind = "thrown" | "timeout" | "unavailable" | "denied" | "rejected" | "unverified" | "retryable_verification";
 

@@ -45,6 +45,17 @@ describe("RunTrace", () => {
     expect(html).toContain(COPY.phase.failed);
   });
 
+  test("a call an admin rule refused names the rule and links to where rules are edited", () => {
+    const record = recordOf((run) => {
+      emitTo(run, "runtime", { type: "agent.started", payload: { goal: GOAL, userId: "u_thana", threadId: "t" } });
+      emitTo(run, "gateway", { type: "tool.denied", payload: { toolCallId: "c3", tool: "send_email", code: "POLICY_RULE", reason: "ปฏิเสธตามกฎ", rule: { id: "r1", name: "ห้ามส่งเรื่องเงินเดือนทางอีเมล" } } });
+      emitTo(run, "runtime", { type: "agent.completed", payload: { finishReason: "stop" } });
+    });
+    const html = renderToStaticMarkup(<RunTrace record={record} audit={[]} />);
+    expect(html).toContain(COPY.rule("ห้ามส่งเรื่องเงินเดือนทางอีเมล"));
+    expect(html).toContain('href="/admin?tab=rules"');
+  });
+
   test("a run that reached its step limit says the AI was told to sum up", () => {
     const record = recordOf((run) => {
       emitTo(run, "runtime", { type: "agent.started", payload: { goal: GOAL, userId: "u_thana", threadId: "t" } });

@@ -7,7 +7,7 @@ import { observe, type Attempt } from "./observation";
 import { authorize } from "./policy";
 import { failureOf, recover } from "./recovery";
 import { currentRun, emit } from "./runtime";
-import type { Capability, DenyCode, Observation, Verdict } from "./types";
+import type { Capability, Denial, DenyCode, Observation, Verdict } from "./types";
 import type { Run } from "./runtime";
 
 const MS_PER_SECOND = 1000;
@@ -87,10 +87,11 @@ function spendCorrection(owner: Run | null, tool: string): void {
   if (owner) owner.corrections[tool] = (owner.corrections[tool] ?? 0) + 1;
 }
 
-function refused(call: AuditedCall, ref: Ref, code: DenyCode, reason: string): Refusal {
-  emit("gateway", { type: "tool.denied", payload: { ...ref, code, reason } });
-  const refusal: Refusal = { ok: false, code, error: reason };
-  recordToolCall(call, observe(ref.toolCallId, ref.tool, { returned: refusal }));
+function refused(call: AuditedCall, ref: Ref, denial: Denial): Refusal {
+  const rule = denial.code === "POLICY_RULE" ? denial.rule : undefined;
+  emit("gateway", { type: "tool.denied", payload: { ...ref, code: denial.code, reason: denial.reason, ...(rule ? { rule } : {}) } });
+  const refusal: Refusal = { ok: false, code: denial.code, error: denial.reason };
+  recordToolCall({ ...call, ...(rule ? { rule } : {}) }, observe(ref.toolCallId, ref.tool, { returned: refusal }));
   return refusal;
 }
 
@@ -100,10 +101,11 @@ export function gated<Input, Output>(capability: Capability, run: (input: Input)
     const access = currentAccess();
     const ref = { toolCallId: options?.toolCallId ?? randomUUID(), tool: capability.name };
     const owner = currentRun();
-    const call = { tool: capability.name, connector: capability.connector, userId: access.userId, args: input, redact: capability.redact, startedAt: Date.now(), toolCallId: ref.toolCallId, runId: owner?.id ?? null, initiator: owner?.initiator ?? "system" };
-    const decision = authorize(access, capability, { used: owner?.toolCalls ?? 0, limit: owner?.toolBudget ?? Number.POSITIVE_INFINITY });
+    const initiator = owner?.initiator ?? "system";
+    const call = { tool: capability.name, connector: capability.connector, userId: access.userId, args: input, redact: capability.redact, startedAt: Date.now(), toolCallId: ref.toolCallId, runId: owner?.id ?? null, initiator };
+    const decision = authorize(access, capability, { input, initiator, used: owner?.toolCalls ?? 0, limit: owner?.toolBudget ?? Number.POSITIVE_INFINITY });
     if (owner) owner.toolCalls += 1;
-    if (decision.decision === "deny") return refused(call, ref, decision.code, decision.reason);
+    if (decision.decision === "deny") return refused(call, ref, decision);
     emit("gateway", { type: "tool.authorized", payload: { ...ref, approval: decision.decision === "require_approval" ? "required" : "never" } });
     for (let attempt = 1; ; attempt += 1) {
       emit("gateway", { type: "tool.started", payload: { ...ref, attempt } });

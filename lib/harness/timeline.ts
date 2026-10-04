@@ -1,3 +1,4 @@
+import type { RuleRef } from "@/lib/contracts";
 import type { ContextRef, HarnessEvent, RunLimit } from "./events";
 import type { ApprovalRule, Evidence, Goal, ObservationStatus, RecoveryAction } from "./types";
 
@@ -10,7 +11,7 @@ export type ToolStory = {
   toolCallId: string;
   tool: string;
   approval: ApprovalRule | null;
-  denied: { code: string; reason: string } | null;
+  denied: { code: string; reason: string; rule: RuleRef | null } | null;
   attempts: number;
   latencyMs: number;
   outcome: { status: ObservationStatus; evidence: Evidence } | null;
@@ -93,7 +94,7 @@ export function timelineOf(events: readonly HarnessEvent[]): TimelineEntry[] {
         toolOf(event.at, event.payload.toolCallId, event.payload.tool).approval = event.payload.approval;
         break;
       case "tool.denied":
-        toolOf(event.at, event.payload.toolCallId, event.payload.tool).denied = { code: event.payload.code, reason: event.payload.reason };
+        toolOf(event.at, event.payload.toolCallId, event.payload.tool).denied = { code: event.payload.code, reason: event.payload.reason, rule: event.payload.rule ?? null };
         break;
       case "tool.started":
         toolOf(event.at, event.payload.toolCallId, event.payload.tool).attempts = event.payload.attempt;

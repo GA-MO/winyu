@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
 import { CircleCheck, CircleX, Flag, Gauge, Hand, Layers, LayoutTemplate, MousePointerClick, Scissors, Sparkles, Wrench } from "lucide-react";
 import { cn } from "vexa/lib/utils";
@@ -8,7 +9,7 @@ import { stateOf } from "@/lib/harness/state";
 import { timelineOf, type TimelineEntry, type ToolStory } from "@/lib/harness/timeline";
 import { TH } from "@/lib/i18n/th";
 import { toolLabel } from "@/lib/server/tools/registry";
-import { Pill, type Tone } from "./parts";
+import { FOCUS, Pill, type Tone } from "./parts";
 
 const COPY = TH.admin.trace;
 const CODES = TH.admin.auditTab.codes;
@@ -56,6 +57,11 @@ function ToolDetail({ story, args }: { story: ToolStory; args: string | null }) 
     <div className="flex flex-col gap-1.5">
       <div className="flex flex-wrap items-center gap-1.5">
         {story.denied ? <Pill tone="danger">{`${COPY.gate.denied} · ${codeText(story.denied.code)}`}</Pill> : null}
+        {story.denied?.rule ? (
+          <Link href="/admin?tab=rules" className={cn("rounded-full", FOCUS)}>
+            <Pill tone="danger" title={story.denied.rule.id}>{COPY.rule(story.denied.rule.name)}</Pill>
+          </Link>
+        ) : null}
         {story.approval ? <Pill tone={story.approval === "required" ? "primary" : "success"}>{COPY.gate[story.approval]}</Pill> : null}
         {story.outcome ? (
           <Pill tone={story.outcome.status === "success" ? "success" : "warning"}>

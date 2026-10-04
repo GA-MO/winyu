@@ -1,4 +1,5 @@
-import { describe, expect, test } from "bun:test";
+import { afterEach, describe, expect, test } from "bun:test";
+import { addRule, policyRules, resetPolicyRules } from "@/lib/access/policy-rules";
 import { accessFor } from "@/lib/access/policies";
 import type { AccessContext } from "@/lib/contracts";
 import { findUser } from "@/lib/data/entities/users";
@@ -18,6 +19,7 @@ import { auditLog } from "@/lib/server/audit";
 import { runWithAccess } from "@/lib/server/request-context";
 import { winyuTool } from "@/lib/server/tools/registry";
 import { stateOf, type AgentState } from "@/lib/harness/state";
+import { timelineOf } from "@/lib/harness/timeline";
 import { handlerFor } from "@/lib/server/agent/handler";
 
 const CHAT_URL = "http://localhost:3100/api/chat";
@@ -506,5 +508,73 @@ describe("harness scenarios: what the audit keeps", () => {
     const list = winyuTool("list_metrics")?.tool.execute as (input: unknown, options: unknown) => Promise<unknown>;
     await runWithAccess(accessOf("u_thana"), () => list({ search: null }, { toolCallId: "by-system" }));
     expect(auditRowOf("by-system").initiator).toBe("system");
+  });
+});
+
+describe("harness scenarios: admin rules only take away", () => {
+  const ADMIN = "u_ton";
+  const SALARY_EMAIL = 'tool.name == "send_email" && args.subject.contains("เงินเดือน")';
+
+  function spied(name: string) {
+    const calls: unknown[] = [];
+    const tool = gated(capabilityOf(name), async (input: unknown) => {
+      calls.push(input);
+      return { ok: true };
+    });
+    return { tool, calls };
+  }
+
+  afterEach(() => {
+    resetPolicyRules();
+  });
+
+  test("a matching rule refuses the call before the tool runs, names the rule to the model, and the trace and audit carry it", async () => {
+    addRule("ห้ามส่งเรื่องเงินเดือนทางอีเมล", SALARY_EMAIL, ADMIN);
+    const [rule] = policyRules();
+    const { tool, calls } = spied("send_email");
+    const { run, result } = await inRun("u_thana", () => tool({ toUserId: "u_siriporn", subject: "เงินเดือนปีหน้า", body: "x" }, { toolCallId: "rule-1" }));
+    expect(result).toEqual({ ok: false, code: "POLICY_RULE", error: TH.harness.policyRule(rule.name) });
+    expect(calls).toHaveLength(0);
+    expect(typesOf(run.events)).toEqual(["tool.denied"]);
+    expect(eventOf(run.events, "tool.denied")?.payload).toMatchObject({ code: "POLICY_RULE", rule: { id: rule.id, name: rule.name } });
+    expect(timelineOf(run.events).find((entry) => entry.kind === "tool")).toMatchObject({ denied: { code: "POLICY_RULE", rule: { id: rule.id, name: rule.name } } });
+    expect(auditRowOf("rule-1")).toMatchObject({ decision: "deny", code: "POLICY_RULE", rule: { id: rule.id, name: rule.name } });
+  });
+
+  test("a call the rule does not match goes through, and a rule about send_email leaves query_metric alone", async () => {
+    addRule("ห้ามส่งเรื่องเงินเดือนทางอีเมล", SALARY_EMAIL, ADMIN);
+    const email = spied("send_email");
+    const query = spied("query_metric");
+    const sent = await inRun("u_thana", () => email.tool({ toUserId: "u_siriporn", subject: "ประชุมพรุ่งนี้", body: "x" }, { toolCallId: "rule-2" }));
+    const asked = await inRun("u_thana", () => query.tool({ metric: "net_sales_volume" }, { toolCallId: "rule-3" }));
+    expect([email.calls.length, query.calls.length]).toEqual([1, 1]);
+    expect(eventOf(sent.run.events, "tool.denied")).toBeUndefined();
+    expect(eventOf(asked.run.events, "tool.denied")).toBeUndefined();
+  });
+
+  test("a rule that cannot be evaluated refuses the call and says so", async () => {
+    addRule("พังตอนตรวจ", 'tool.name == "query_metric" && args.subject == "x"', ADMIN);
+    const { tool, calls } = spied("query_metric");
+    const { result } = await inRun("u_thana", () => tool({ metric: "net_sales_volume" }, { toolCallId: "rule-4" }));
+    expect(result).toMatchObject({ ok: false, code: "POLICY_RULE", error: TH.harness.policyRuleBroken("พังตอนตรวจ") });
+    expect(calls).toHaveLength(0);
+  });
+
+  test("a rule that never matches cannot give a sales rep create_handoff: the code grant still refuses it", async () => {
+    addRule("ไม่เคยจริง", "false", ADMIN);
+    const { tool, calls } = spied("create_handoff");
+    const { result } = await inRun("u_krit", () => tool({ toUserId: "u_anucha", title: "x", ask: "x", urgency: "low", evidence: [], alertIds: [] }, { toolCallId: "rule-5" }));
+    expect(result).toMatchObject({ ok: false, code: "TOOL_NOT_ALLOWED" });
+    expect(calls).toHaveLength(0);
+  });
+
+  test("initiator == \"job\" refuses a background job's call while the same call from a person goes through", async () => {
+    addRule("งานเบื้องหลังห้ามดูรายการเมตริก", 'initiator == "job" && tool.name == "list_metrics"', ADMIN);
+    const list = winyuTool("list_metrics")?.tool.execute as (input: unknown, options: unknown) => Promise<unknown>;
+    const byJob = await runWithAccess(accessOf("u_anucha"), () => tracedRun("u_anucha", { userMessage: "job", intent: "job:test" }, 5, () => list({ search: null }, { toolCallId: "rule-job" })));
+    const byPerson = await inRun("u_anucha", () => list({ search: null }, { toolCallId: "rule-person" }));
+    expect(byJob).toMatchObject({ ok: false, code: "POLICY_RULE" });
+    expect(byPerson.result).not.toMatchObject({ code: "POLICY_RULE" });
+    expect([auditRowOf("rule-job").initiator, auditRowOf("rule-job").code]).toEqual(["job", "POLICY_RULE"]);
   });
 });

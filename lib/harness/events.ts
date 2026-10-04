@@ -1,3 +1,4 @@
+import type { RuleRef } from "@/lib/contracts";
 import type { ApprovalRule, ContextKind, Evidence, Goal, ObservationStatus, RecoveryAction } from "./types";
 
 export type EventSource = "runtime" | "model" | "gateway" | "ui";
@@ -24,7 +25,7 @@ export type HarnessEventBody =
   | { type: "agent.limited"; payload: { limit: RunLimit; step: number } }
   | { type: "ui.rendered"; payload: { stepId: string; components: string[] } }
   | { type: "tool.authorized"; payload: ToolRef & { approval: ApprovalRule } }
-  | { type: "tool.denied"; payload: ToolRef & { code: string; reason: string } }
+  | { type: "tool.denied"; payload: ToolRef & { code: string; reason: string; rule?: RuleRef } }
   | { type: "tool.started"; payload: ToolRef & { attempt: number } }
   | { type: "tool.completed"; payload: ToolRef & { attempt: number; latencyMs: number } }
   | { type: "tool.failed"; payload: ToolRef & { attempt: number; code: string; latencyMs: number } }

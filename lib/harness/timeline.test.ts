@@ -31,6 +31,6 @@ describe("timelineOf", () => {
   test("a refused call is one line with the refusal and no outcome", () => {
     const run = newRun("u_krit", null);
     emitTo(run, "gateway", { type: "tool.denied", payload: { toolCallId: "c2", tool: "create_handoff", code: "TOOL_NOT_ALLOWED", reason: "ไม่มีสิทธิ์" } });
-    expect(timelineOf(run.events)).toEqual([expect.objectContaining({ kind: "tool", denied: { code: "TOOL_NOT_ALLOWED", reason: "ไม่มีสิทธิ์" }, outcome: null, attempts: 0 })]);
+    expect(timelineOf(run.events)).toEqual([expect.objectContaining({ kind: "tool", denied: { code: "TOOL_NOT_ALLOWED", reason: "ไม่มีสิทธิ์", rule: null }, outcome: null, attempts: 0 })]);
   });
 });
