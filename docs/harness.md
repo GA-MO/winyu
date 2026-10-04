@@ -81,6 +81,28 @@ A tool that the model can call wrongly declares `correct` next to `verify`. When
 
 Measured 2026-10-04 on the five chat questions in the audit that never recovered from `BAD_QUERY` (two runs each on Gemini 3.8 Flash, $0.24 in all): without the hint the model browsed `list_metrics` 19 times over 40 model calls and drew data in 2 of 10 runs; with it, 1 `list_metrics` call over 27 model calls and data in 5 of 10, at 19% lower cost. Where the metric truly cannot be split that way (gross margin by SKU or channel), it now says so in two model calls instead of four or five.
 
+## Admin rules
+
+An IT admin can add deny rules on `/admin?tab=rules`. A rule is a CEL expression (`@marcbachmann/cel-js`) over the facts of one tool call. When an enabled rule is true, the gateway refuses the call. `lib/access/policy-rules.ts` owns the rules (collection `policy-rules`), the validation and the evaluation.
+
+A rule can read these facts:
+
+| Variable | Holds |
+|---|---|
+| `tool` | `name`, `connector`, `tier` (`read` / `write` / `destructive`) |
+| `args` | The tool input as the model sent it (`dyn`) |
+| `user` | `id`, `role`, `regions`, `brands` from the caller's access context (`all` expands to every value) |
+| `initiator` | `"person"`, `"job"` or `"system"` |
+| `now` | `hour` (0 to 23) and `weekday` (0 = Sunday), Bangkok time |
+
+`authorize` checks in this order: the code grant (role policy, overrides, kill switches), the rules, the run budget, approval. Rules are deny-only. There is no allow rule and no approval effect, so a rule can never let through a call the code grant refuses. Permission stays in code, and a mistyped rule can only take access away.
+
+Rules run in stored order, and the first enabled rule that matches decides. A rule that throws or returns something other than `true` or `false` also refuses the call (fail closed), with a reason that says the rule could not be evaluated. A disabled rule is skipped. CEL's `&&` absorbs errors, so `tool.name == "send_email" && args.subject.contains("เงินเดือน")` never reads `args.subject` on another tool. Saving parses and type-checks the expression against the declared variables, so a syntax error, an unknown variable or a non-boolean result is refused with a Thai reason and the parser's message. Each expression is compiled once and cached by its text.
+
+A refusal returns `POLICY_RULE` with the rule's name in Thai and no fix hint. The `tool.denied` event and the audit row carry `rule: { id, name }`, and the run trace shows a "กฎ: <name>" pill that links to the rules tab. The rules tab also shows a dry run: how many of the last 500 audit rows each rule would have refused. The dry run rebuilds facts from the audit, where personal text is hidden and long arguments are cut, so it can differ from what the gateway sees.
+
+A rule-refused write still shows its approval card first, because the approval comes from the tool's tier before the gateway runs.
+
 ## How to read a run
 
 In the app: `/admin?tab=audit` (IT only), open a question. The row shows "AI ทำอะไรในคำถามนี้": the question, the context items by kind (hover for source, priority and scope), each model step and what it asked for, and one line per tool call with the gateway's decision, the outcome, the checks, the recovery and the arguments. `/admin?tab=audit&run=<runId>` opens one question directly. `lib/harness/timeline.ts` folds the events into those lines; `components/admin/run-trace.tsx` draws them.

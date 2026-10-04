@@ -993,6 +993,7 @@ Vexa stays the agent and UI engine; Winyu's harness (`lib/harness/`) owns the ru
 - [x] 12 Correction: refused `query_metric` calls (`BAD_QUERY`) come back with the dimensions and comparisons the metric has, at most two hints per tool per run (`correct` hook beside `verify`); replay of the 5 failed real questions: `list_metrics` 19 → 1, model calls 40 → 27, data drawn 2/10 → 5/10, cost −19%
 - [x] 11 Wrap up at the limit: รอบ model สุดท้าย (ที่ 6) หรือเมื่อครบงบเครื่องมือ AI ไม่ได้รับเครื่องมือและถูกสั่งให้สรุปจากที่ได้ บอกสิ่งที่ขาด แล้วถามผู้ใช้ (`wrapUpAtLimit` ผ่าน `prepareStep` ของ Vexa); เดิมคำถามที่ใช้ครบ 6 รอบจบโดยไม่มีคำตอบ
 - [x] 10 Admin trace: each question in `/admin?tab=audit` opens "AI ทำอะไรในคำถามนี้" (context, steps, gateway decision, outcome, checks, recovery); `?run=<id>` links one question
+- [x] 14 Admin rules: IT admins write deny-only CEL rules on `/admin?tab=rules` (`lib/access/policy-rules.ts`, new dependency `@marcbachmann/cel-js`); checked after the code grant, fail closed, validated on save, refusals carry `POLICY_RULE` and the rule's name in the trace and audit; dry run over the last 500 audit rows
 
 ## 9. Changes to Vexa (agentic-ui) made for Winyu
 
