@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 
 const SOURCE_DIR = path.join(process.cwd(), ".data");
-const ADMIN_FILES = new Set(["switches.json", "role-overrides.json", "killed-tools.json"]);
+const ADMIN_FILES = new Set(["switches.json", "role-overrides.json", "killed-tools.json", "policy-rules.json"]);
 const PAID_MODEL_KEYS = ["OPENROUTER_API_KEY", "ANTHROPIC_API_KEY"];
 
 /** Drops the keys Bun loads from `.env.local`, so no test (nor the memory or digest job a chat turn starts) ever calls a paid model. */
