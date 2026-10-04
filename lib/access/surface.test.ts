@@ -97,7 +97,7 @@ describe("tool surface", () => {
 
   test("every tool above read asks the user first, every read tool does not", () => {
     for (const entry of toolSurface()) {
-      const needsApproval = winyuTool(entry.name)?.tool.needsApproval === true;
+      const needsApproval = Boolean(winyuTool(entry.name)?.tool.needsApproval);
       expect({ tool: entry.name, needsApproval }).toEqual({ tool: entry.name, needsApproval: entry.tier !== "read" });
     }
   });

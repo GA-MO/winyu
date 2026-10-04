@@ -101,7 +101,7 @@ Rules run in stored order, and the first enabled rule that matches decides. A ru
 
 A refusal returns `POLICY_RULE` with the rule's name in Thai and no fix hint. The `tool.denied` event and the audit row carry `rule: { id, name }`, and the run trace shows a "กฎ: <name>" pill that links to the rules tab. The rules tab also shows a dry run: how many of the last 500 audit rows each rule would have refused. The dry run rebuilds facts from the audit, where personal text is hidden and long arguments are cut, so it can differ from what the gateway sees.
 
-A rule-refused write still shows its approval card first, because the approval comes from the tool's tier before the gateway runs.
+The engine asks for approval only on a call the policy would let through. `needsApproval` on a write tool runs `asksApproval` (`gateway.ts`), which is `authorize` on the same facts. A write that a rule, the code grant or the run budget refuses gets no approval card. It goes straight to the gateway and comes back as a refusal.
 
 ## How to read a run
 

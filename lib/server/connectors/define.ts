@@ -2,7 +2,7 @@ import { prefixedToolName } from "@/lib/harness/adapters/vexa/server";
 import { NATIVE_CONNECTORS, type ConnectorDef, type RoleId, type ToolTier } from "@/lib/contracts";
 import type { Visibility } from "@/lib/access/role-overrides";
 import { engineTool } from "@/lib/harness/adapters/vexa/tools";
-import { gated } from "@/lib/harness/gateway";
+import { asksApproval, gated } from "@/lib/harness/gateway";
 import { LIMITS } from "@/lib/harness/limits";
 import type { Capability } from "@/lib/harness/types";
 import type { WinyuTool } from "@/lib/server/tools/define";
@@ -79,6 +79,7 @@ function winyuToolOf(connector: ConnectorIdentity & { timeoutMs: number }, bindi
     capability,
     description: () => descriptionOf(connector, binding),
     inputSchema: () => inputSchemaOf(connector, binding),
+    asksApproval: (input) => asksApproval(capability, input),
     execute: gated(capability, (input: unknown) => callConnectorTool(connector, binding, input, call)),
   });
   return { entry, capability, tool };

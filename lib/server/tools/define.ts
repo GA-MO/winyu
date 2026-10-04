@@ -2,7 +2,7 @@ import type { Tool } from "ai";
 import type { z } from "zod";
 import type { NativeConnectorId, NativeToolName, RoleId, ToolSurfaceEntry, ToolTier } from "@/lib/contracts";
 import { engineTool } from "@/lib/harness/adapters/vexa/tools";
-import { gated } from "@/lib/harness/gateway";
+import { asksApproval, gated } from "@/lib/harness/gateway";
 import { LIMITS } from "@/lib/harness/limits";
 import type { Capability, Corrector, Verifier } from "@/lib/harness/types";
 import { TH } from "@/lib/i18n/th";
@@ -34,6 +34,7 @@ export function defineTool<Name extends NativeToolName, Input extends z.ZodType>
     description: () => (typeof describe === "string" ? describe : describe()),
     inputSchema: () => spec.input,
     execute: gated(capability, spec.execute),
+    asksApproval: (input: z.output<Input>) => asksApproval(capability, input),
   });
   return { entry, capability, tool };
 }

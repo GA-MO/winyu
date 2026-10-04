@@ -4,7 +4,7 @@ import { TH } from "@/lib/i18n/th";
 import { recordToolCall, type AuditedCall } from "@/lib/server/audit";
 import { currentAccess } from "@/lib/server/request-context";
 import { observe, type Attempt } from "./observation";
-import { authorize } from "./policy";
+import { authorize, type CallContext } from "./policy";
 import { failureOf, recover } from "./recovery";
 import { currentRun, emit } from "./runtime";
 import type { Capability, Denial, DenyCode, Observation, Verdict } from "./types";
@@ -95,15 +95,24 @@ function refused(call: AuditedCall, ref: Ref, denial: Denial): Refusal {
   return refusal;
 }
 
+function callContextOf(owner: Run | null, input: unknown): CallContext {
+  return { input, initiator: owner?.initiator ?? "system", used: owner?.toolCalls ?? 0, limit: owner?.toolBudget ?? Number.POSITIVE_INFINITY };
+}
+
+/** Whether the person is asked before this call: only when its risk needs a yes and the policy would let it through, so nobody approves a call the gateway then refuses. */
+export function asksApproval(capability: Capability, input: unknown): boolean {
+  return authorize(currentAccess(), capability, callContextOf(currentRun(), input)).decision === "require_approval";
+}
+
 /** The one door every tool call goes through, whoever asks (the model, a pressed button, server code): policy, the tool under a timeout, what it showed, whether that holds, and what to do when it does not; one audit row per call. */
 export function gated<Input, Output>(capability: Capability, run: (input: Input) => Promise<Output>): GatedTool<Input, Output> {
   return async (input, options) => {
     const access = currentAccess();
     const ref = { toolCallId: options?.toolCallId ?? randomUUID(), tool: capability.name };
     const owner = currentRun();
-    const initiator = owner?.initiator ?? "system";
-    const call = { tool: capability.name, connector: capability.connector, userId: access.userId, args: input, redact: capability.redact, startedAt: Date.now(), toolCallId: ref.toolCallId, runId: owner?.id ?? null, initiator };
-    const decision = authorize(access, capability, { input, initiator, used: owner?.toolCalls ?? 0, limit: owner?.toolBudget ?? Number.POSITIVE_INFINITY });
+    const context = callContextOf(owner, input);
+    const call = { tool: capability.name, connector: capability.connector, userId: access.userId, args: input, redact: capability.redact, startedAt: Date.now(), toolCallId: ref.toolCallId, runId: owner?.id ?? null, initiator: context.initiator };
+    const decision = authorize(access, capability, context);
     if (owner) owner.toolCalls += 1;
     if (decision.decision === "deny") return refused(call, ref, decision);
     emit("gateway", { type: "tool.authorized", payload: { ...ref, approval: decision.decision === "require_approval" ? "required" : "never" } });

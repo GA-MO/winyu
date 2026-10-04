@@ -541,6 +541,15 @@ describe("harness scenarios: admin rules only take away", () => {
     expect(auditRowOf("rule-1")).toMatchObject({ decision: "deny", code: "POLICY_RULE", rule: { id: rule.id, name: rule.name } });
   });
 
+  test("a write the rule refuses never asks the person first, and one it does not refuse still does", async () => {
+    addRule("ห้ามส่งเรื่องเงินเดือนทางอีเมล", SALARY_EMAIL, ADMIN);
+    const asks = winyuTool("send_email")?.tool.needsApproval;
+    if (typeof asks !== "function") throw new Error("send_email declares no approval check");
+    const options = { toolCallId: "rule-approval", messages: [] };
+    const asked = (subject: string) => runWithAccess(accessOf("u_thana"), () => asks({ toUserId: "u_siriporn", subject, body: "x" }, options));
+    expect([await asked("เงินเดือนปีหน้า"), await asked("ประชุมพรุ่งนี้")]).toEqual([false, true]);
+  });
+
   test("a call the rule does not match goes through, and a rule about send_email leaves query_metric alone", async () => {
     addRule("ห้ามส่งเรื่องเงินเดือนทางอีเมล", SALARY_EMAIL, ADMIN);
     const email = spied("send_email");

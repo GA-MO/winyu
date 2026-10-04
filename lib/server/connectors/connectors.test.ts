@@ -86,7 +86,7 @@ describe("declaring a connector", () => {
     const names = toolSurface().filter((entry) => entry.connector === STUB_CONNECTOR_ID).map((entry) => [entry.name, entry.tier]);
     expect(names).toEqual([[HISTORY, "read"], [WIPE, "destructive"]]);
     expect(toolSurface().some((entry) => entry.name.includes("export_everything"))).toBe(false);
-    expect(winyuTool(WIPE)?.tool.needsApproval).toBe(true);
+    expect(winyuTool(WIPE)?.tool.needsApproval).toBeDefined();
     expect(connectors().map((item) => [item.id, item.kind]).at(-1)).toEqual([STUB_CONNECTOR_ID, "mcp"]);
   });
 
