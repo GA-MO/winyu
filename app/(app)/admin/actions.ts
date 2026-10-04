@@ -16,6 +16,7 @@ import {
   setRoleTool,
   type Visibility,
 } from "@/lib/access/role-overrides";
+import { addRule, moveRule, removeRule, setRuleEnabled, updateRule, type RuleCheck } from "@/lib/access/policy-rules";
 import { readUser } from "@/lib/server/session";
 
 const ADMIN_PATH = "/admin";
@@ -146,5 +147,52 @@ export async function removeOverrideAction(formData: FormData) {
   const id = String(formData.get("override"));
   if (!(await adminId()) || !id) return;
   removeOverride(id);
+  revalidatePath(ADMIN_PATH);
+}
+
+/** What saving a rule came back with: nothing yet, saved, or why the expression was refused. */
+export type RuleFormState = RuleCheck | null;
+
+function ruleFieldsOf(formData: FormData): { id: string; name: string; when: string } {
+  return { id: String(formData.get("rule") ?? ""), name: String(formData.get("name") ?? ""), when: String(formData.get("when") ?? "") };
+}
+
+export async function addRuleAction(_previous: RuleFormState, formData: FormData): Promise<RuleFormState> {
+  const by = await adminId();
+  if (!by) return null;
+  const { name, when } = ruleFieldsOf(formData);
+  const check = addRule(name, when, by);
+  if (check.ok) revalidatePath(ADMIN_PATH);
+  return check;
+}
+
+export async function updateRuleAction(_previous: RuleFormState, formData: FormData): Promise<RuleFormState> {
+  const by = await adminId();
+  if (!by) return null;
+  const { id, name, when } = ruleFieldsOf(formData);
+  const check = updateRule(id, name, when, by);
+  if (check.ok) revalidatePath(ADMIN_PATH);
+  return check;
+}
+
+export async function setRuleEnabledAction(formData: FormData) {
+  const by = await adminId();
+  const { id } = ruleFieldsOf(formData);
+  if (!by || !id) return;
+  setRuleEnabled(id, String(formData.get("enabled")) === "true", by);
+  revalidatePath(ADMIN_PATH);
+}
+
+export async function moveRuleAction(formData: FormData) {
+  const { id } = ruleFieldsOf(formData);
+  if (!(await adminId()) || !id) return;
+  moveRule(id, String(formData.get("step")) === "up" ? -1 : 1);
+  revalidatePath(ADMIN_PATH);
+}
+
+export async function removeRuleAction(formData: FormData) {
+  const { id } = ruleFieldsOf(formData);
+  if (!(await adminId()) || !id) return;
+  removeRule(id);
   revalidatePath(ADMIN_PATH);
 }

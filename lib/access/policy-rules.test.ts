@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import type { AuditEntry } from "@/lib/contracts";
+import type { AuditEntry, ToolSurfaceEntry } from "@/lib/contracts";
 import { findUser } from "@/lib/data/entities/users";
 import { TH } from "@/lib/i18n/th";
 import { accessFor } from "./policies";
@@ -16,7 +16,7 @@ function rule(when: string, overrides: Partial<PolicyRule> = {}): PolicyRule {
   return { id: "r1", name: "กฎทดสอบ", when, enabled: true, by: ADMIN, at: "2026-10-04T00:00:00Z", ...overrides };
 }
 
-function facts(tool: CallFacts["tool"], args: unknown, at = new Date("2026-10-04T05:00:00Z")): CallFacts {
+function facts(tool: Pick<ToolSurfaceEntry, "name" | "connector" | "tier">, args: unknown, at = new Date("2026-10-04T05:00:00Z")): CallFacts {
   const user = findUser("u_thana");
   if (!user) throw new Error("missing u_thana");
   return factsOf(accessFor(user), tool, args, "person", at);

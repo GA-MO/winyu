@@ -805,6 +805,7 @@ export const TH = {
         { name: "now", body: "เวลากรุงเทพ: now.hour (0–23), now.weekday (0 = อาทิตย์)" },
       ],
       examplesTitle: "ตัวอย่างที่คัดลอกไปใช้ได้",
+      useExample: "ใช้ตัวอย่างนี้",
       examples: [
         { name: "ห้ามส่งเรื่องเงินเดือนทางอีเมล", when: 'tool.name == "send_email" && args.subject.contains("เงินเดือน")' },
         { name: "งานเบื้องหลังห้ามเขียนข้อมูล", when: 'initiator == "job" && tool.tier != "read"' },

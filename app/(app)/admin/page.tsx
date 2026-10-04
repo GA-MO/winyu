@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
-import { ChartColumn, Eye, LayoutDashboard, Lock, ScrollText, ShieldCheck, Sparkles, Wrench } from "lucide-react";
+import { ChartColumn, Eye, LayoutDashboard, Lock, Scale, ScrollText, ShieldCheck, Sparkles, Wrench } from "lucide-react";
 import { cn } from "vexa/lib/utils";
 import { METRIC_IDS, ROLE_IDS, type AuditEntry, type MetricId, type RoleId } from "@/lib/contracts";
 import { USERS } from "@/lib/data/entities/users";
@@ -15,15 +15,16 @@ import { AuditTab } from "@/components/admin/audit-tab";
 import { AUDIT_RANGES, sinceOf, type AuditRange } from "@/lib/server/usage";
 import { OverviewTab } from "@/components/admin/overview-tab";
 import { SimulateTab } from "@/components/admin/simulate-tab";
+import { RulesTab } from "@/components/admin/rules-tab";
 import { ToolsTab } from "@/components/admin/tools-tab";
 import { UsageTab } from "@/components/admin/usage-tab";
 import { Avatar, FOCUS } from "@/components/admin/parts";
 
 type SearchParams = Promise<{ tab?: string; run?: string; as?: string; metric?: string; user?: string; tool?: string; connector?: string; decision?: string; range?: string; limit?: string; role?: string; view?: string }>;
 
-const TABS = ["overview", "access", "tools", "audit", "usage", "simulate"] as const;
+const TABS = ["overview", "access", "tools", "rules", "audit", "usage", "simulate"] as const;
 const LEGACY_TABS: Record<string, Tab> = { users: "access" };
-const TAB_ICONS: Record<Tab, LucideIcon> = { overview: LayoutDashboard, access: ShieldCheck, tools: Wrench, audit: ScrollText, usage: ChartColumn, simulate: Eye };
+const TAB_ICONS: Record<Tab, LucideIcon> = { overview: LayoutDashboard, access: ShieldCheck, tools: Wrench, rules: Scale, audit: ScrollText, usage: ChartColumn, simulate: Eye };
 const DECISIONS: readonly AuditEntry["decision"][] = ["allow", "deny", "masked"];
 const DEFAULT_ROLE: RoleId = "sales_rep";
 const DEFAULT_AUDIT_RANGE: AuditRange = "7d";
@@ -160,6 +161,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
             {current === "overview" ? <OverviewTab /> : null}
             {current === "access" ? <AccessTab role={roleOf(params.role)} view={params.view === "matrix" ? "matrix" : "role"} viewer={user.id} /> : null}
             {current === "tools" ? <ToolsTab /> : null}
+            {current === "rules" ? <RulesTab /> : null}
             {current === "audit" ? <AuditTab
                 filter={{ userId: textOf(params.user), tool: textOf(params.tool), connector: textOf(params.connector), decision: decisionOf(params.decision), since: sinceOf(rangeOf(params.range)) }}
                 range={rangeOf(params.range)}
