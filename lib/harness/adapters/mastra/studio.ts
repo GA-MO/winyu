@@ -1,10 +1,10 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { MastraServer, type HonoBindings, type HonoVariables } from "@mastra/hono";
-import { mascopMastra } from "./agent";
+import { winyuMastra } from "./agent";
 
 const PRODUCTION = "production";
-const SERVER_NAME = "mascop Mastra API (development only)";
+const SERVER_NAME = "Winyu Mastra API (development only)";
 
 type StudioEnv = { Bindings: HonoBindings; Variables: HonoVariables };
 
@@ -14,6 +14,6 @@ export async function studioApi(studioOrigin: string): Promise<Hono<StudioEnv>> 
   const app = new Hono<StudioEnv>();
   app.use("*", cors({ origin: studioOrigin, credentials: true }));
   app.get("/", (c) => c.text(SERVER_NAME));
-  await new MastraServer({ app, mastra: mascopMastra() }).init();
+  await new MastraServer({ app, mastra: winyuMastra() }).init();
   return app;
 }

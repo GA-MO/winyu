@@ -14,7 +14,7 @@ const TENANT = "11111111-2222-4333-8444-555555555555";
 const CLIENT = "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee";
 const SECRET = "mock-client-secret";
 const APP = "http://localhost:3213";
-const ENV_KEYS = ["MASCOP_AUTH", "ENTRA_TENANT_ID", "ENTRA_CLIENT_ID", "ENTRA_CLIENT_SECRET", "ENTRA_REDIRECT_URI", "ENTRA_AUTHORITY"] as const;
+const ENV_KEYS = ["WINYU_AUTH", "ENTRA_TENANT_ID", "ENTRA_CLIENT_ID", "ENTRA_CLIENT_SECRET", "ENTRA_REDIRECT_URI", "ENTRA_AUTHORITY"] as const;
 const ORIGINAL = Object.fromEntries(ENV_KEYS.map((key) => [key, process.env[key]]));
 
 const mock = startEntraMock({ port: 0, tenantId: TENANT, clientId: CLIENT, clientSecret: SECRET });
@@ -53,11 +53,11 @@ async function signInAs(account: MockAccount) {
 }
 
 beforeAll(() => {
-  Object.assign(process.env, { MASCOP_AUTH: "entra", ENTRA_TENANT_ID: TENANT, ENTRA_CLIENT_ID: CLIENT, ENTRA_CLIENT_SECRET: SECRET, ENTRA_REDIRECT_URI: `${APP}/api/auth/entra/callback`, ENTRA_AUTHORITY: mock.authority });
+  Object.assign(process.env, { WINYU_AUTH: "entra", ENTRA_TENANT_ID: TENANT, ENTRA_CLIENT_ID: CLIENT, ENTRA_CLIENT_SECRET: SECRET, ENTRA_REDIRECT_URI: `${APP}/api/auth/entra/callback`, ENTRA_AUTHORITY: mock.authority });
 });
 
 afterEach(() => {
-  process.env.MASCOP_AUTH = "entra";
+  process.env.WINYU_AUTH = "entra";
 });
 
 afterAll(() => {
@@ -132,7 +132,7 @@ describe("signing in through an Entra-shaped issuer", () => {
   });
 
   test("the Entra routes do not exist in demo mode", async () => {
-    process.env.MASCOP_AUTH = "demo";
+    process.env.WINYU_AUTH = "demo";
     expect((await login(new NextRequest(`${APP}/api/auth/entra/login`))).status).toBe(404);
     expect((await callback(new NextRequest(`${APP}/api/auth/entra/callback?code=x&state=y`))).status).toBe(404);
   });

@@ -5,7 +5,7 @@ import { studioApi } from "@/lib/harness/adapters/mastra/studio";
 import { STUDIO_PORT } from "@/lib/harness/trace-link";
 import { DATA_DIR } from "@/lib/server/store/json-store";
 
-const API_PORT = Number(process.env.MASCOP_STUDIO_API_PORT ?? 3214);
+const API_PORT = Number(process.env.WINYU_STUDIO_API_PORT ?? 3214);
 const PRESETS_FILE = path.join(DATA_DIR, "studio-presets.json");
 
 function writePersonaPresets(): void {

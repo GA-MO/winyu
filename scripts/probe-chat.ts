@@ -5,8 +5,8 @@ import { runStore } from "@/lib/harness/runtime";
 import { modelCalls } from "@/lib/server/model-ledger";
 import { sessionCookie } from "@/lib/server/auth/session-token";
 
-const BASE_URL = process.env.PROBE_URL ?? "http://localhost:3200";
-const RUN_PATH = "/api/copilotkit/agent/mascop/run";
+const BASE_URL = process.env.PROBE_URL ?? "http://localhost:3100";
+const RUN_PATH = "/api/copilotkit/agent/winyu/run";
 const CEO = "u_thana";
 const SALES_REP = "u_krit";
 const SALES_BY_REGION = "ยอดขายเดือนนี้แยกตามภาค";

@@ -1,7 +1,7 @@
 import { Client, StreamableHTTPClientTransport } from "@modelcontextprotocol/client";
 
-const USAGE = "usage: bun run mcp:probe <token> [--url=http://localhost:3200/api/mcp] [--legacy]";
-const DEFAULT_URL = "http://localhost:3200/api/mcp";
+const USAGE = "usage: bun run mcp:probe <token> [--url=http://localhost:3100/api/mcp] [--legacy]";
+const DEFAULT_URL = "http://localhost:3100/api/mcp";
 const BY_REGION = { metric: "net_sales_volume", dims: ["region"], filters: {}, range: { from: "2026-07-01", to: "2026-09-30" }, grain: "month", compare: "none", limit: 10 };
 
 type Row = { region?: string; value_label?: string };
@@ -16,7 +16,7 @@ if (!token) {
 }
 
 const transport = new StreamableHTTPClientTransport(new URL(url), { requestInit: { headers: { Authorization: `Bearer ${token}` } } });
-const client = new Client({ name: "mascop-mcp-probe", version: "1.0.0" }, { versionNegotiation: { mode } });
+const client = new Client({ name: "winyu-mcp-probe", version: "1.0.0" }, { versionNegotiation: { mode } });
 try {
   await client.connect(transport);
 } catch (error) {

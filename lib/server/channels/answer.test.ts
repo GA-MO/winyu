@@ -12,7 +12,7 @@ const { threads } = await import("@/lib/server/threads-read");
 const { watchesOf } = await import("@/lib/server/watches");
 
 const TENANT = "11111111-2222-4333-8444-555555555555";
-const WEB = "https://mascop.example.com";
+const WEB = "https://winyu.example.com";
 const BY_REGION = { metric: "net_sales_value", dims: ["region"], grain: "month", range: { from: "2026-09-01", to: "2026-09-22" }, compare: "target", filters: {}, sort: "value_desc", limit: 10 };
 const WATCH = {
   condition: { kind: "below", value: 10 },

@@ -22,7 +22,7 @@ const steps = JSON.parse(readFileSync(SOURCE, "utf8")) as Step[];
 const bubbles = steps.flatMap(bubblesOf);
 for (const bubble of bubbles) if (bubble.kind === "teams-card" || bubble.kind === "line-flex") writeFileSync(path.join(SHOTS, `f11-${bubble.step}.json`), JSON.stringify(bubble.payload, null, 2));
 
-const html = `<!doctype html><meta charset="utf-8"><title>mascop channels</title>
+const html = `<!doctype html><meta charset="utf-8"><title>Winyu channels</title>
 <script src="${ADAPTIVE_CARDS_JS}"></script>
 <style>
 body{margin:0;font:14px "Segoe UI",system-ui,sans-serif;background:#f5f5f5;color:#242424}

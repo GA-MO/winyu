@@ -11,7 +11,7 @@ const SIGN_OUT_PATH = "/api/auth/entra/logout";
 /** Why the last attempt did not sign the person in, each explained in TH.sso.errors. */
 export type SignInProblem = keyof typeof TH.sso.errors;
 
-/** The sign-in page when MASCOP_AUTH is entra: one Microsoft button, no persona picker. */
+/** The sign-in page when WINYU_AUTH is entra: one Microsoft button, no persona picker. */
 export function EntraSignIn({ next, signedOut, problem }: { next: string; signedOut: boolean; problem: SignInProblem | null }) {
   const href = next === "/" ? SIGN_IN_PATH : `${SIGN_IN_PATH}?next=${encodeURIComponent(next)}`;
   return (

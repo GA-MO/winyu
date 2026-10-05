@@ -8,7 +8,7 @@ import { recordGuardFinding } from "@/lib/server/audit";
 import { TH } from "@/lib/i18n/th";
 import { toolTiers } from "@/lib/server/agent/tools";
 import type { SpokenTurn } from "@/lib/server/request-context";
-import { mascopAgent } from "./agent";
+import { winyuAgent } from "./agent";
 import { ReplyCards, type StreamEvent } from "./card-stream";
 
 const RESULT_SUFFIX = ":result";
@@ -142,7 +142,7 @@ export function agUiMessagesOf(stored: readonly StoredMessage[]): Message[] {
 }
 
 async function memory() {
-  const found = await mascopAgent().getMemory();
+  const found = await winyuAgent().getMemory();
   if (!found) throw new Error("the chat agent has no memory");
   return found;
 }

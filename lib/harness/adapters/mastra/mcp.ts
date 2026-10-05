@@ -6,7 +6,7 @@ import { createTool } from "@mastra/core/tools";
 import { Server, createMcpHandler, isLegacyRequest } from "@modelcontextprotocol/server";
 import type { WinyuTool } from "@/lib/server/tools/define";
 
-const SERVER_ID = "mascop";
+const SERVER_ID = "winyu";
 const SERVER_VERSION = "0.1.0";
 const CONTINUATION_KEY = randomBytes(32);
 const NULL_BODY_STATUSES: ReadonlySet<number> = new Set([101, 204, 205, 304]);

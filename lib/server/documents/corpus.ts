@@ -6,7 +6,7 @@ import { DocumentFormatError, parseDocument } from "./chunk";
 const DOCUMENT_EXTENSION = ".md";
 
 /** Where the company documents live: one Markdown file per document, committed with the code. */
-export const DOCUMENTS_DIR = process.env.MASCOP_DOCUMENTS_DIR ?? path.join(process.cwd(), "data", "documents");
+export const DOCUMENTS_DIR = process.env.WINYU_DOCUMENTS_DIR ?? path.join(process.cwd(), "data", "documents");
 
 /** A document file that could not be read, and why. */
 export type BrokenDocument = { file: string; reason: string };

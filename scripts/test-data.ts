@@ -18,8 +18,8 @@ export async function withoutEmbeddingModel(): Promise<void> {
 
 /** Points the JSON store at a fresh seeded data folder, so tests never read what a walk left in `.data` nor write to real personas. */
 export async function isolateTestData(): Promise<string> {
-  const dir = mkdtempSync(path.join(tmpdir(), "mascop-test-data-"));
-  process.env.MASCOP_DATA_DIR = dir;
+  const dir = mkdtempSync(path.join(tmpdir(), "winyu-test-data-"));
+  process.env.WINYU_DATA_DIR = dir;
   process.on("exit", () => rmSync(dir, { recursive: true, force: true }));
   const { ensureDemoStory } = await import("../lib/server/demo-story");
   const { ensureFeedHistory } = await import("../lib/server/demo-feed-history");

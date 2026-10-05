@@ -92,7 +92,7 @@ function altTextOf(reply: Extract<ChannelReply, { kind: "answer" }>): string {
   return summary.slice(0, ALT_TEXT_MAX);
 }
 
-/** One mascop answer as a LINE Flex bubble: the words, each card with its headline and coloured change first, the approval with approve and reject postback buttons, and the way to the thread in the web. */
+/** One Winyu answer as a LINE Flex bubble: the words, each card with its headline and coloured change first, the approval with approve and reject postback buttons, and the way to the thread in the web. */
 export function flexOf(reply: Extract<ChannelReply, { kind: "answer" }>): LineMessage {
   const sections: FlexNode[][] = [...(reply.text ? [[text(reply.text, { size: "md" })]] : []), ...reply.cards.map(cardBox), ...(reply.approval ? [approvalBox(reply.approval)] : [])];
   const body = sections.flatMap((section, index) => (index === 0 ? section : [separator(), ...section]));

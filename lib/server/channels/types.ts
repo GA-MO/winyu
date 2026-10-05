@@ -3,13 +3,13 @@ import type { ExternalIdentity } from "@/lib/server/identity";
 
 export const CHANNELS = ["teams", "line"] as const;
 
-/** A chat app people reach mascop from; also the initiator their tool calls are audited under. */
+/** A chat app people reach Winyu from; also the initiator their tool calls are audited under. */
 export type Channel = (typeof CHANNELS)[number];
 
 /** Where a message was written: its conversation in the chat app, and whether only the sender and the bot read it. */
 export type ChannelPlace = { conversation: string; private: boolean };
 
-/** One verified thing a person did in a chat app: asked a question, or pressed approve or reject on an approval mascop posted. */
+/** One verified thing a person did in a chat app: asked a question, or pressed approve or reject on an approval Winyu posted. */
 export type ChannelInbound =
   | { kind: "ask"; channel: Channel; sender: ExternalIdentity; place: ChannelPlace; text: string }
   | { kind: "decide"; channel: Channel; sender: ExternalIdentity; place: ChannelPlace; approvalId: string; approved: boolean };
@@ -24,7 +24,7 @@ export type ChannelCard = { title: string; meta: string | null; hero: ChannelHer
 /** A write the agent wants to make, waiting for the person's yes or no in the chat app. */
 export type ApprovalPrompt = { id: string; question: string; effect: string | null };
 
-/** What mascop says back to one inbound, before a chat app draws it. `unlinked`: the sender maps to no mascop user, so the channel tells them how to get linked and nothing else. */
+/** What Winyu says back to one inbound, before a chat app draws it. `unlinked`: the sender maps to no Winyu user, so the channel tells them how to get linked and nothing else. */
 export type ChannelReply =
   | { kind: "answer"; text: string; cards: ChannelCard[]; approval: ApprovalPrompt | null; webUrl: string }
   | { kind: "notice"; text: string }

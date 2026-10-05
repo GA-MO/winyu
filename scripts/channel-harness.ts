@@ -6,10 +6,10 @@ import { handleTeamsWebhook } from "@/lib/server/channels/teams";
 export const SIMULATED = {
   teams: { appId: "00000000-aaaa-4bbb-8ccc-000000000001", tenantId: "11111111-2222-4333-8444-555555555555" },
   line: { channelId: "2000000001", channelSecret: "simulated-line-channel-secret", accessToken: "simulated-line-access-token", botUserId: "Ubot0000000000000000000000000001" },
-  web: "https://mascop.example.com",
+  web: "https://winyu.example.com",
 } as const;
 
-/** The environment that points mascop's channels at a simulator. */
+/** The environment that points Winyu's channels at a simulator. */
 export function simulatedEnv(simulatorOrigin: string): Record<string, string> {
   return {
     TEAMS_APP_ID: SIMULATED.teams.appId,
@@ -23,7 +23,7 @@ export function simulatedEnv(simulatorOrigin: string): Record<string, string> {
   };
 }
 
-/** For tests: serves mascop's two webhooks in-process (holding each response until the work it started has finished, so a test reads the replies right after) and a simulator posting to them. */
+/** For tests: serves Winyu's two webhooks in-process (holding each response until the work it started has finished, so a test reads the replies right after) and a simulator posting to them. */
 export function startChannelHarness() {
   const pending: Promise<unknown>[] = [];
   const waitUntil = (task: Promise<unknown>) => void pending.push(task);
@@ -31,7 +31,7 @@ export function startChannelHarness() {
     while (pending.length > 0) await Promise.allSettled(pending.splice(0));
     return response;
   };
-  const mascop = Bun.serve({
+  const winyu = Bun.serve({
     port: 0,
     idleTimeout: 0,
     fetch: async (request) => {
@@ -41,15 +41,15 @@ export function startChannelHarness() {
       return new Response("not found", { status: 404 });
     },
   });
-  const mascopOrigin = `http://localhost:${mascop.port}`;
-  const simulator = startChannelSimulator({ port: 0, mascop: mascopOrigin, replyWaitMs: 0, teams: SIMULATED.teams, line: SIMULATED.line });
-  Object.assign(process.env, simulatedEnv(simulator.origin), { MASCOP_PUBLIC_URL: SIMULATED.web });
+  const winyuOrigin = `http://localhost:${winyu.port}`;
+  const simulator = startChannelSimulator({ port: 0, winyu: winyuOrigin, replyWaitMs: 0, teams: SIMULATED.teams, line: SIMULATED.line });
+  Object.assign(process.env, simulatedEnv(simulator.origin), { WINYU_PUBLIC_URL: SIMULATED.web });
   return {
     simulator,
-    mascopOrigin,
+    winyuOrigin,
     stop: () => {
       simulator.stop();
-      mascop.stop(true);
+      winyu.stop(true);
     },
   };
 }

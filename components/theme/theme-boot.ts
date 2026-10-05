@@ -1,4 +1,4 @@
-export const THEME_STORAGE_KEY = "mascop-theme";
+export const THEME_STORAGE_KEY = "winyu-theme";
 export const DARK_QUERY = "(prefers-color-scheme: dark)";
 
 /** Runs before first paint so a saved dark choice never flashes light. */

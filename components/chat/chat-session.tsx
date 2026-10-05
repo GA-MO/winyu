@@ -22,7 +22,7 @@ const CHIP =
   "inline-flex max-w-full items-center gap-1.5 truncate rounded-full border border-border bg-card px-3.5 py-1.5 text-sm text-foreground shadow-card transition hover:border-foreground/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
 /** The window event the chat fires when a reply ends, so the thread rail can pick up a new or retitled thread. */
-export const THREADS_CHANGED = "mascop:threads-changed";
+export const THREADS_CHANGED = "winyu:threads-changed";
 
 /** A handoff packet this thread was opened from, and who sent it. */
 export type SessionPreload = { packetId: string; fromName: string };

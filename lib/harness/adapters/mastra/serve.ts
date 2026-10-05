@@ -10,7 +10,7 @@ import { toolTiers } from "@/lib/server/agent/tools";
 import { recordComposedCard, recordGuardFinding } from "@/lib/server/audit";
 import { currentAccess, runWithAccess, runWithTurn, type TurnContext } from "@/lib/server/request-context";
 import { threadForRun, threads } from "@/lib/server/threads-read";
-import { AGENT_ID, USER_ID_KEY, mascopAgent } from "./agent";
+import { AGENT_ID, USER_ID_KEY, winyuAgent } from "./agent";
 import { HARNESS_RUN_KEY, tracingOptionsOf } from "./observability";
 import { asBridgeAgent } from "./durable";
 import { ReplyCards, withComposedCards, type ComposedCardRecord } from "./card-stream";
@@ -42,9 +42,9 @@ function bridgeFor(userId: string): MastraAgent {
   const requestContext = new RequestContext();
   requestContext.set(USER_ID_KEY, userId);
   const run = currentRun();
-  if (!run) return new MastraAgent({ agentId: AGENT_ID, agent: asBridgeAgent(mascopAgent()), resourceId: userId, requestContext });
+  if (!run) return new MastraAgent({ agentId: AGENT_ID, agent: asBridgeAgent(winyuAgent()), resourceId: userId, requestContext });
   requestContext.set(HARNESS_RUN_KEY, run.id);
-  return new MastraAgent({ agentId: AGENT_ID, agent: asBridgeAgent(mascopAgent()), resourceId: userId, requestContext, tracingOptions: tracingOptionsOf(run.id) });
+  return new MastraAgent({ agentId: AGENT_ID, agent: asBridgeAgent(winyuAgent()), resourceId: userId, requestContext, tracingOptions: tracingOptionsOf(run.id) });
 }
 
 let copilotHandler: Handler | null = null;
@@ -154,7 +154,7 @@ async function serveRun(access: AccessContext, req: Request, turn: ChatTurn, gua
   return streamRun(access, req, run, turn, options, guarded);
 }
 
-/** The only runtime routes mascop serves; debug, inspector, memory, thread and single-route endpoints would bypass the harness run, so they answer 404. */
+/** The only runtime routes Winyu serves; debug, inspector, memory, thread and single-route endpoints would bypass the harness run, so they answer 404. */
 export function routeOf(method: string, pathname: string): Route | null {
   if (method === "GET") return pathname === INFO_PATH ? { kind: "info" } : null;
   if (method !== "POST") return null;

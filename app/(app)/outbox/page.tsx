@@ -38,7 +38,7 @@ export default async function OutboxPage() {
             <header className="min-w-0">
               <h2 className="truncate text-sm font-semibold tracking-tight">{entry.subject}</h2>
               <p className="mt-0.5 text-xs text-muted-foreground">
-                {FROM_AGENT.has(entry.kind) ? TH.outbox.frommascop : `${TH.outbox.to} ${findUser(entry.toUserId)?.nameTh ?? entry.toEmail}`} · {formatDateTh(entry.at)} {formatTimeTh(entry.at)}
+                {FROM_AGENT.has(entry.kind) ? TH.outbox.fromWinyu : `${TH.outbox.to} ${findUser(entry.toUserId)?.nameTh ?? entry.toEmail}`} · {formatDateTh(entry.at)} {formatTimeTh(entry.at)}
               </p>
             </header>
             <p className="whitespace-pre-wrap text-sm text-muted-foreground">{entry.body}</p>

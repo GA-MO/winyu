@@ -8,7 +8,7 @@ export type ConnectorClientFactory = (connector: string, transport: McpTransport
 
 const CLIENT_TTL_MS = 10 * 60 * 1000;
 const WINYU_ITSELF = "winyu";
-const CLIENT_NAME = "mascop";
+const CLIENT_NAME = "winyu";
 
 type Pooled = { client: Promise<ConnectorClient>; expiresAt: number };
 

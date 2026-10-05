@@ -11,7 +11,7 @@ function entraPerson(email: string | null = null): ExternalIdentity {
   return { provider: "entra", tenant: TENANT, subject: `oid-${serial}-${Date.now()}`, email, name: "Somebody" };
 }
 
-describe("an outside identity reaches mascop only through a link IT made", () => {
+describe("an outside identity reaches Winyu only through a link IT made", () => {
   test("an unlinked identity resolves to nobody, and linking it resolves to exactly that user", () => {
     const person = entraPerson();
     expect(linkedUser(person)).toBeNull();

@@ -6,7 +6,7 @@ import { CopilotKitProvider } from "@copilotkit/react-core/v2";
 const RUNTIME_URL = "/api/copilotkit";
 
 /** The chat agent's name on the runtime (the Mastra agent id). */
-export const CHAT_AGENT_ID = "mascop";
+export const CHAT_AGENT_ID = "winyu";
 
 type Filterable = { role: string };
 

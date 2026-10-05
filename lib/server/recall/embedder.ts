@@ -7,7 +7,7 @@ const MODEL_DTYPE = "q8";
 const DIMENSION = 768;
 const QUERY_PREFIX = "query: ";
 const PASSAGE_PREFIX = "passage: ";
-const MODEL_CACHE_DIR = path.join(os.homedir(), ".cache", "mascop", "models");
+const MODEL_CACHE_DIR = path.join(os.homedir(), ".cache", "winyu", "models");
 const POOLING = { pooling: "mean", normalize: true } as const;
 
 type Extract = (texts: string[], options: typeof POOLING) => Promise<{ tolist(): unknown }>;

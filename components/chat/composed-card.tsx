@@ -161,7 +161,7 @@ function Surface({ surface }: { surface: ComposedSurface }) {
   return <A2UIRenderer surfaceId={surface.surfaceId} className="w-full" />;
 }
 
-/** A card the model composed from this turn's tool results, drawn by CopilotKit's A2UI renderer with mascop's own components as each checked line arrives; a button press goes to the chat like any card button. */
+/** A card the model composed from this turn's tool results, drawn by CopilotKit's A2UI renderer with Winyu's own components as each checked line arrives; a button press goes to the chat like any card button. */
 export function ComposedCardView({ surface }: { surface: ComposedSurface }) {
   const run = useRunAction();
   if (surface.components.length === 0) return null;

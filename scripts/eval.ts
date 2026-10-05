@@ -42,9 +42,9 @@ if (args.help) {
   process.exit(0);
 }
 
-const dataDir = mkdtempSync(path.join(tmpdir(), "mascop-eval-"));
-process.env.MASCOP_DATA_DIR = dataDir;
-process.env.MASCOP_SCHEDULER = "off";
+const dataDir = mkdtempSync(path.join(tmpdir(), "winyu-eval-"));
+process.env.WINYU_DATA_DIR = dataDir;
+process.env.WINYU_SCHEDULER = "off";
 process.on("exit", () => rmSync(dataDir, { recursive: true, force: true }));
 
 const { ensureDemoStory } = await import("../lib/server/demo-story");

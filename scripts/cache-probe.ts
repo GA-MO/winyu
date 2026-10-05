@@ -37,9 +37,9 @@ if (!mode) {
   process.exit(2);
 }
 
-const dataDir = mkdtempSync(path.join(tmpdir(), "mascop-cache-probe-"));
-process.env.MASCOP_DATA_DIR = dataDir;
-process.env.MASCOP_SCHEDULER = "off";
+const dataDir = mkdtempSync(path.join(tmpdir(), "winyu-cache-probe-"));
+process.env.WINYU_DATA_DIR = dataDir;
+process.env.WINYU_SCHEDULER = "off";
 if (mode === "dump") process.env.OPENROUTER_API_KEY = "probe-no-spend";
 process.on("exit", () => rmSync(dataDir, { recursive: true, force: true }));
 
@@ -100,7 +100,7 @@ async function ask(userId: string, prompt: string): Promise<void> {
   const user = findUser(userId);
   if (!user) throw new Error(`no user ${userId}`);
   const body = { threadId: `probe-${randomUUID()}`, runId: randomUUID(), state: {}, messages: [{ id: randomUUID(), role: "user", content: prompt }], tools: [], context: [], forwardedProps: {} };
-  const request = new Request("http://localhost/api/copilotkit/agent/mascop/run", { method: "POST", headers: { "content-type": "application/json", accept: "text/event-stream" }, body: JSON.stringify(body) });
+  const request = new Request("http://localhost/api/copilotkit/agent/winyu/run", { method: "POST", headers: { "content-type": "application/json", accept: "text/event-stream" }, body: JSON.stringify(body) });
   const response = await serveCopilot(liveAccessFor(user), request, { learn: false });
   await response.text();
 }

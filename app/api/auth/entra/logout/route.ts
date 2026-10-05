@@ -7,7 +7,7 @@ const NOT_FOUND = { error: "ไม่พบหน้านี้" };
 
 export const runtime = "nodejs";
 
-/** Ends the mascop session and the Microsoft one, then Microsoft returns the browser to the sign-in page. */
+/** Ends the Winyu session and the Microsoft one, then Microsoft returns the browser to the sign-in page. */
 export async function GET(req: NextRequest) {
   if (authMode() !== "entra") return NextResponse.json(NOT_FOUND, { status: 404 });
   const config = entraConfig();

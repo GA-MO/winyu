@@ -1,6 +1,6 @@
 # Company documents (RAG)
 
-People ask mascop about rules that no structured tool holds: how long a grade B agent's credit runs, whether beer may be sold on ออกพรรษา, who approves a 7% discount. `search_documents` answers these from the company's own documents. It searches only the documents the asker's role may read, returns the passages with their source, and the model answers from those passages and names the document and section it used. When no passage answers, the reply says the documents the person can read do not cover it.
+People ask Winyu about rules that no structured tool holds: how long a grade B agent's credit runs, whether beer may be sold on ออกพรรษา, who approves a 7% discount. `search_documents` answers these from the company's own documents. It searches only the documents the asker's role may read, returns the passages with their source, and the model answers from those passages and names the document and section it used. When no passage answers, the reply says the documents the person can read do not cover it.
 
 ## The corpus
 
@@ -38,7 +38,7 @@ Each document is versioned twice. The header's `version` and `effective` date ar
 
 `parseDocument` (`lib/server/documents/chunk.ts`) cuts a document into one chunk per `###` subsection. A `##` section without subsections is one chunk, and so is the text of a section that comes before its first subsection. A chunk keeps its headings as its section, for example `ระดับเอเย่นต์และเครดิต › ระยะเวลาเครดิตตามระดับ`, with the numbering removed. A section longer than 1,200 characters is split at paragraph breaks under the same headings. The 8 documents give 126 chunks of 215 to 432 characters each, so none is split today.
 
-A chunk is embedded as the document title, its headings and its text. The embedder is the one conversation recall uses (`lib/server/recall/embedder.ts`): `Xenova/multilingual-e5-base` (8-bit) on the server's CPU, with no text leaving the machine. The vectors go into a `LibSQLVector` index named `mascop_documents` in `.data/mastra.db`. Each vector carries the document id, title, section, version, effective date, owner, readers, a hash of everything the chunk was built from, the embedder id and the time it was indexed.
+A chunk is embedded as the document title, its headings and its text. The embedder is the one conversation recall uses (`lib/server/recall/embedder.ts`): `Xenova/multilingual-e5-base` (8-bit) on the server's CPU, with no text leaving the machine. The vectors go into a `LibSQLVector` index named `winyu_documents` in `.data/mastra.db`. Each vector carries the document id, title, section, version, effective date, owner, readers, a hash of everything the chunk was built from, the embedder id and the time it was indexed.
 
 Search compares the question with every chunk. LibSQL also builds an approximate DiskANN index beside the table, and after rows are deleted it returns only some of them: a re-index that removed sections made the HR reader's nearest sections and the removed chunks disappear from queries and from the listing the sync reads. The store therefore drops that index when it opens (`reopenExact` in `lib/harness/adapters/mastra/exact-vector-store.ts`).
 

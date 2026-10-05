@@ -5,11 +5,11 @@ import { openToken, sealToken } from "./signed-token";
 
 const DEFAULT_AUTHORITY = "https://login.microsoftonline.com";
 const SCOPES = "openid profile email";
-const TRANSACTION_COOKIE = "mascop_oidc";
+const TRANSACTION_COOKIE = "winyu_oidc";
 const TRANSACTION_PURPOSE = "oidc";
 const TRANSACTION_PATH = "/api/auth/entra";
 const TRANSACTION_MAX_AGE_SECONDS = 10 * 60;
-const DENIED_COOKIE = "mascop_denied";
+const DENIED_COOKIE = "winyu_denied";
 const DENIED_PURPOSE = "denied";
 const DENIED_MAX_AGE_SECONDS = 15 * 60;
 const MS_PER_SECOND = 1000;
@@ -18,7 +18,7 @@ const AFTER_MICROSOFT_SIGN_OUT_PATH = "/login";
 
 export const ENTRA_SETTINGS = ["ENTRA_TENANT_ID", "ENTRA_CLIENT_ID", "ENTRA_CLIENT_SECRET", "ENTRA_REDIRECT_URI"] as const;
 
-/** The app registration mascop signs people in with; `authority` is Microsoft's login host, or a local mock in development. */
+/** The app registration Winyu signs people in with; `authority` is Microsoft's login host, or a local mock in development. */
 export type EntraConfig = { tenantId: string; clientId: string; clientSecret: string; redirectUri: URL; authority: URL };
 
 /** What the browser carries between leaving for Microsoft and coming back: the CSRF state, the ID token nonce, the PKCE verifier, and where to land. */
@@ -105,7 +105,7 @@ export async function finishSignIn(config: EntraConfig, transaction: SignInTrans
   return { provider: "entra", tenant: config.tenantId, subject: objectId, email: claimText(claims, "email") ?? claimText(claims, "preferred_username"), name: claimText(claims, "name") };
 }
 
-/** Microsoft's sign-out URL, which returns the browser to mascop's sign-in page. */
+/** Microsoft's sign-out URL, which returns the browser to Winyu's sign-in page. */
 export async function entraSignOutUrl(config: EntraConfig): Promise<URL> {
   const configuration = await discover(config);
   return oidc.buildEndSessionUrl(configuration, { post_logout_redirect_uri: new URL(AFTER_MICROSOFT_SIGN_OUT_PATH, config.redirectUri).href });

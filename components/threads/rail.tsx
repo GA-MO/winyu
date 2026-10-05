@@ -11,7 +11,7 @@ import { threadGroupOf, type ThreadGroup } from "@/lib/i18n/format";
 import { TH } from "@/lib/i18n/th";
 
 const THREADS_ENDPOINT = "/api/threads";
-const STORAGE_KEY = "mascop-rail-open";
+const STORAGE_KEY = "winyu-rail-open";
 const GROUP_ORDER: ThreadGroup[] = ["today", "yesterday", "week", "older"];
 const ICON_BUTTON =
   "flex size-10 shrink-0 items-center justify-center rounded-xl text-muted-foreground transition hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";

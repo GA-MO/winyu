@@ -4,7 +4,7 @@ import { COMPOSED_CARD_ACTIVITY, type ComposedSurface } from "@/lib/compose/cata
 import { serveCopilot } from "@/lib/harness/adapters/mastra/serve";
 import type { Channel } from "./types";
 
-const RUN_URL = "http://localhost/api/copilotkit/agent/mascop/run";
+const RUN_URL = "http://localhost/api/copilotkit/agent/winyu/run";
 const SSE_DATA = "data:";
 const SPENT_STATUS = 409;
 const PARAGRAPH = "\n\n";

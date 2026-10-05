@@ -19,7 +19,7 @@ const CHANNELS: readonly Channel[] = ["mcp", "a2a"];
 type McpTokenFormProps = { action: (previous: McpTokenFormState, formData: FormData) => Promise<McpTokenFormState>; users: readonly Option[]; endpoint: string; cardUrl: string };
 
 function claudeCommand(endpoint: string, token: string): string {
-  return `claude mcp add --transport http mascop ${endpoint} --header "Authorization: Bearer ${token}"`;
+  return `claude mcp add --transport http winyu ${endpoint} --header "Authorization: Bearer ${token}"`;
 }
 
 function a2aEndpointOf(cardUrl: string): string {

@@ -16,7 +16,7 @@ export type ExternalIdentity = { provider: IdentityProvider; tenant: string; sub
 /** One outside identity, as `provider:tenant:subject`; the only key a link or an attempt is stored under. */
 export type IdentityKey = string & { readonly __brand: "IdentityKey" };
 
-/** An outside identity IT has granted a mascop user; permission then comes from that user's role, never from the provider. */
+/** An outside identity IT has granted a Winyu user; permission then comes from that user's role, never from the provider. */
 export type IdentityLink = ExternalIdentity & { id: IdentityKey; userId: string; linkedBy: string; linkedAt: string };
 
 /** Someone the provider vouched for whom no link maps yet; IT sees these and grants or dismisses them. */
@@ -33,12 +33,12 @@ export function identityKey(identity: Pick<ExternalIdentity, "provider" | "tenan
   return `${identity.provider}:${identity.tenant}:${identity.subject}` as IdentityKey;
 }
 
-/** The mascop user an identity is linked to, or null when nobody granted it or the user no longer exists. */
+/** The Winyu user an identity is linked to, or null when nobody granted it or the user no longer exists. */
 export function linkedUser(identity: Pick<ExternalIdentity, "provider" | "tenant" | "subject">): User | null {
   return linkedUserOfKey(identityKey(identity));
 }
 
-/** The mascop user behind a stored identity key; a session re-checks this on every request so unlinking takes effect at once. */
+/** The Winyu user behind a stored identity key; a session re-checks this on every request so unlinking takes effect at once. */
 export function linkedUserOfKey(key: IdentityKey): User | null {
   const link = links().get(key);
   return link ? findUser(link.userId) : null;
@@ -51,7 +51,7 @@ export function noteUnlinkedAttempt(identity: ExternalIdentity, at: string): Sig
   return attempts().put({ ...identity, id, firstAt: previous?.firstAt ?? at, lastAt: at, count: (previous?.count ?? 0) + 1 });
 }
 
-/** Grants an identity to a mascop user (replacing any earlier link of that identity) and clears its pending attempt; null when the user does not exist. */
+/** Grants an identity to a Winyu user (replacing any earlier link of that identity) and clears its pending attempt; null when the user does not exist. */
 export function linkIdentity(identity: ExternalIdentity, userId: string, linkedBy: string, at: string): IdentityLink | null {
   if (!findUser(userId)) return null;
   const id = identityKey(identity);

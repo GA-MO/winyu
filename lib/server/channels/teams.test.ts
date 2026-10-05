@@ -117,7 +117,7 @@ describe("Teams channel (Bot Framework simulator)", () => {
   test("an activity whose token does not match it is refused before anything runs", async () => {
     const before = sim.sent.length;
     const { activity, token } = sim.signedTeams(CEO, { text: "ยอดขาย" });
-    const post = (headers: Record<string, string>, body: unknown) => fetch(`${harness.mascopOrigin}/api/channels/teams`, { method: "POST", headers: { "content-type": "application/json", ...headers }, body: JSON.stringify(body) });
+    const post = (headers: Record<string, string>, body: unknown) => fetch(`${harness.winyuOrigin}/api/channels/teams`, { method: "POST", headers: { "content-type": "application/json", ...headers }, body: JSON.stringify(body) });
     expect((await post({}, activity)).status).toBe(401);
     expect((await post({ authorization: `Bearer ${token}` }, { ...activity, serviceUrl: "https://evil.example.com/" })).status).toBe(401);
     expect((await post({ authorization: `Bearer ${token.slice(0, -4)}AAAA` }, activity)).status).toBe(401);
@@ -129,7 +129,7 @@ describe("Teams channel (Bot Framework simulator)", () => {
     delete process.env.TEAMS_SIMULATOR_URL;
     try {
       const { activity } = sim.signedTeams(CEO, { text: "ยอดขาย" });
-      const response = await fetch(`${harness.mascopOrigin}/api/channels/teams`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(activity) });
+      const response = await fetch(`${harness.winyuOrigin}/api/channels/teams`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(activity) });
       expect(response.status).toBe(401);
     } finally {
       process.env.TEAMS_SIMULATOR_URL = simulator;

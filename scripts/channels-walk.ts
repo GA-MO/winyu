@@ -12,7 +12,7 @@ const QUESTION = "ยอดขายแยกตามภาคเดือน�
 const WATCH_QUESTION = "เตือนฉันถ้าสต๊อกดีซีลำพูนพอขายต่ำกว่า 10 วัน";
 const STEPS = (process.env.WALK_STEPS ?? "teams-ceo,teams-krit,teams-stranger,teams-group,line-link,line-krit,line-approval").split(",");
 
-const sim = startChannelSimulator({ port: SIMULATOR_PORT, mascop: APP, teams: SIMULATED.teams, line: SIMULATED.line });
+const sim = startChannelSimulator({ port: SIMULATOR_PORT, winyu: APP, teams: SIMULATED.teams, line: SIMULATED.line });
 const transcript: { step: string; channel: string; sent: Sent[] }[] = [];
 
 function person(userId: string, name: string): TeamsPerson {
@@ -60,8 +60,8 @@ const SCENARIOS: Record<string, () => Promise<void>> = {
     const wee = person("u_wee", "วีระ");
     const asking = await sim.teamsSay(wee, WATCH_QUESTION);
     save("teams-approval", "teams", asking.sent);
-    const value = JSON.stringify(asking.sent).match(/"actionId":"mascop.approve","value":"([^"]+)"/)?.[1] ?? "";
-    save("teams-approved", "teams", (await sim.teamsPress(wee, "mascop.approve", value)).sent);
+    const value = JSON.stringify(asking.sent).match(/"actionId":"winyu.approve","value":"([^"]+)"/)?.[1] ?? "";
+    save("teams-approved", "teams", (await sim.teamsPress(wee, "winyu.approve", value)).sent);
   },
   "line-prompt": async () => {
     const prompt = await sim.lineSay("U000000000000000000000000000nok1", "สวัสดี", "Nok (LINE)");

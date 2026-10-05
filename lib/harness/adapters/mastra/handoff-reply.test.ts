@@ -5,7 +5,7 @@ import type { User } from "@/lib/contracts";
 import { findUser } from "@/lib/data/entities/users";
 import { UNTRUSTED_CLOSE, UNTRUSTED_OPEN } from "@/lib/harness/fence";
 import { actOnPacket, createPacket } from "@/lib/server/handoff";
-import { mascopAgent } from "./agent";
+import { winyuAgent } from "./agent";
 import { threadHistory } from "./history";
 
 const SENDER = "u_prasit";
@@ -20,7 +20,7 @@ function user(id: string): User {
 }
 
 async function memory() {
-  const found = await mascopAgent().getMemory();
+  const found = await winyuAgent().getMemory();
   if (!found) throw new Error("no memory");
   return found;
 }

@@ -7,7 +7,7 @@ const NOT_FOUND = { error: "ไม่พบหน้านี้" };
 
 export const runtime = "nodejs";
 
-/** Sends the browser to Microsoft to sign in; absent (404) unless MASCOP_AUTH is entra. */
+/** Sends the browser to Microsoft to sign in; absent (404) unless WINYU_AUTH is entra. */
 export async function GET(req: NextRequest) {
   if (authMode() !== "entra") return NextResponse.json(NOT_FOUND, { status: 404 });
   const config = entraConfig();

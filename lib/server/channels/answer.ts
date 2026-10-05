@@ -27,7 +27,7 @@ function replyOf(turn: ChannelTurn, channel: Channel, user: User, threadId: stri
   return { kind: "answer", text: turn.text, cards: channelCardsOf(turn.calls, turn.composed), approval, webUrl: threadUrl(webOrigin, threadId) };
 }
 
-/** Answers one verified chat app event as the mascop user its sender is linked to, through the same harness as the web chat; a sender nobody linked gets only the way to get linked (and IT sees the attempt), and a shared conversation gets no data at all. */
+/** Answers one verified chat app event as the Winyu user its sender is linked to, through the same harness as the web chat; a sender nobody linked gets only the way to get linked (and IT sees the attempt), and a shared conversation gets no data at all. */
 export async function answerChannel(inbound: ChannelInbound, webOrigin: string): Promise<ChannelReply> {
   if (!inbound.place.private) return notice(TH.channels.privateOnly);
   const user = linkedUser(inbound.sender);

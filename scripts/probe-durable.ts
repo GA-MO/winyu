@@ -5,9 +5,9 @@ import { storedMessages } from "@/lib/harness/adapters/mastra/history";
 import { modelCalls } from "@/lib/server/model-ledger";
 import { SESSION_COOKIE } from "@/lib/server/session-cookie";
 
-const BASE_URL = process.env.PROBE_URL ?? "http://localhost:3200";
-const RUN_PATH = "/api/copilotkit/agent/mascop/run";
-const CONNECT_PATH = "/api/copilotkit/agent/mascop/connect";
+const BASE_URL = process.env.PROBE_URL ?? "http://localhost:3100";
+const RUN_PATH = "/api/copilotkit/agent/winyu/run";
+const CONNECT_PATH = "/api/copilotkit/agent/winyu/connect";
 const CEO = "u_thana";
 const QUESTION = "ยอดขายเดือนนี้แยกตามภาค";
 const SETTLE_MS = Number(process.env.PROBE_SETTLE_MS ?? 45_000);

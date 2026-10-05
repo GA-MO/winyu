@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "mascop",
+      "name": "winyu",
       "dependencies": {
         "@ag-ui/client": "1.0.1",
         "@ag-ui/core": "1.0.1",

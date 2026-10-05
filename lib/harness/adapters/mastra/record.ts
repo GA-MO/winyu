@@ -14,7 +14,7 @@ import { learnFromTurn } from "./learn";
 import { forgetConversations } from "./recall";
 import { serveCopilot } from "./serve";
 
-const RUN_URL = "http://localhost/api/copilotkit/agent/mascop/run";
+const RUN_URL = "http://localhost/api/copilotkit/agent/winyu/run";
 const SSE_DATA = "data:";
 const RESULT_STATE = "result";
 const METRIC_TOOL = "query_metric";

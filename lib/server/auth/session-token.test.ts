@@ -8,7 +8,7 @@ import { openToken, sealToken } from "./signed-token";
 const SECRET = "a".repeat(32);
 const NOW = Date.parse("2026-10-05T09:00:00Z");
 const HOUR = 60 * 60 * 1000;
-const ORIGINAL_MODE = process.env.MASCOP_AUTH;
+const ORIGINAL_MODE = process.env.WINYU_AUTH;
 
 function jar(value: string) {
   return { get: (name: string) => (name === SESSION_COOKIE ? { value } : undefined) };
@@ -19,8 +19,8 @@ function flipLastCharacter(token: string): string {
 }
 
 afterEach(() => {
-  if (ORIGINAL_MODE === undefined) delete process.env.MASCOP_AUTH;
-  else process.env.MASCOP_AUTH = ORIGINAL_MODE;
+  if (ORIGINAL_MODE === undefined) delete process.env.WINYU_AUTH;
+  else process.env.WINYU_AUTH = ORIGINAL_MODE;
 });
 
 describe("a signed token opens only as it was sealed", () => {
@@ -42,23 +42,23 @@ describe("a signed token opens only as it was sealed", () => {
 
 describe("the session cookie", () => {
   test("the old unsigned cookie, a bare user id, is refused in both modes", () => {
-    process.env.MASCOP_AUTH = "demo";
+    process.env.WINYU_AUTH = "demo";
     expect(readUser(jar("u_thana"))).toBeNull();
-    process.env.MASCOP_AUTH = "entra";
+    process.env.WINYU_AUTH = "entra";
     expect(readUser(jar("u_thana"))).toBeNull();
   });
 
   test("a demo session works in demo mode and is refused once SSO is on", () => {
-    process.env.MASCOP_AUTH = "demo";
+    process.env.WINYU_AUTH = "demo";
     const cookie = sessionCookie({ via: "demo", userId: "u_thana" });
     expect(cookie.httpOnly).toBe(true);
     expect(readUser(jar(cookie.value))?.id).toBe("u_thana");
-    process.env.MASCOP_AUTH = "entra";
+    process.env.WINYU_AUTH = "entra";
     expect(readUser(jar(cookie.value))).toBeNull();
   });
 
   test("an Entra session holds while the link holds and ends the moment IT unlinks the identity", () => {
-    process.env.MASCOP_AUTH = "entra";
+    process.env.WINYU_AUTH = "entra";
     const person: ExternalIdentity = { provider: "entra", tenant: "t1", subject: `oid-session-${Date.now()}`, email: null, name: null };
     linkIdentity(person, "u_kanok", "u_ton", "2026-10-05T09:00:00Z");
     const cookie = sessionCookie({ via: "entra", userId: "u_kanok", identity: identityKey(person) });
@@ -68,7 +68,7 @@ describe("the session cookie", () => {
   });
 
   test("an Entra session whose identity IT moved to another user is refused", () => {
-    process.env.MASCOP_AUTH = "entra";
+    process.env.WINYU_AUTH = "entra";
     const person: ExternalIdentity = { provider: "entra", tenant: "t1", subject: `oid-moved-${Date.now()}`, email: null, name: null };
     linkIdentity(person, "u_kanok", "u_ton", "2026-10-05T09:00:00Z");
     const cookie = sessionCookie({ via: "entra", userId: "u_kanok", identity: identityKey(person) });
@@ -77,7 +77,7 @@ describe("the session cookie", () => {
   });
 
   test("an expired session is refused", () => {
-    process.env.MASCOP_AUTH = "demo";
+    process.env.WINYU_AUTH = "demo";
     const cookie = sessionCookie({ via: "demo", userId: "u_thana" }, NOW - 31 * 24 * HOUR);
     expect(sessionFromCookie(cookie.value, NOW)).toBeNull();
   });

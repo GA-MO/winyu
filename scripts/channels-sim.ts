@@ -11,10 +11,10 @@ const MEMBER = /^\/teams\/v3\/conversations\/([^/]+)\/members\/([^/]+)$/;
 const LINE_PROFILE = /^\/v2\/bot\/profile\/([^/]+)$/;
 const LINE_LINK_TOKEN = /^\/v2\/bot\/user\/([^/]+)\/linkToken$/;
 
-/** Who the simulator stands in for: the Teams bot (app id, tenant) and the LINE channel (secret, the bot's own user id), where mascop's webhooks are, and how long to wait for a reply after a webhook answered (0 when mascop finishes before it answers, as in tests). */
-export type ChannelSimulatorOptions = { port: number; mascop: string; replyWaitMs?: number; teams: { appId: string; tenantId: string }; line: { channelSecret: string; botUserId: string } };
+/** Who the simulator stands in for: the Teams bot (app id, tenant) and the LINE channel (secret, the bot's own user id), where Winyu's webhooks are, and how long to wait for a reply after a webhook answered (0 when Winyu finishes before it answers, as in tests). */
+export type ChannelSimulatorOptions = { port: number; winyu: string; replyWaitMs?: number; teams: { appId: string; tenantId: string }; line: { channelSecret: string; botUserId: string } };
 
-/** One thing mascop sent to a chat app, as the simulator received it. */
+/** One thing Winyu sent to a chat app, as the simulator received it. */
 export type Sent = { seq: number; channel: "teams" | "line"; to: string; kind: string; body: unknown };
 
 /** A Teams person the simulator writes as: their Entra object id and name, and whether they write in a private chat with the bot or in a group chat. */
@@ -49,7 +49,7 @@ function withCors(response: Response): Response {
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-/** A local stand-in for both chat apps, for tests and the live walk: it signs Teams activities as the Bot Framework would (RS256 JWT, published keys) and LINE webhooks with the channel secret, posts them to mascop, and records every reply mascop sends to the Bot Connector API and the LINE Messaging API. It also plays LINE's account-link dialog. */
+/** A local stand-in for both chat apps, for tests and the live walk: it signs Teams activities as the Bot Framework would (RS256 JWT, published keys) and LINE webhooks with the channel secret, posts them to Winyu, and records every reply Winyu sends to the Bot Connector API and the LINE Messaging API. It also plays LINE's account-link dialog. */
 export function startChannelSimulator(options: ChannelSimulatorOptions) {
   const { privateKey, publicKey } = generateKeyPairSync("rsa", { modulusLength: 2048 });
   const jwk = { ...publicKey.export({ format: "jwk" }), kid: KEY_ID, use: "sig", alg: "RS256" };
@@ -136,7 +136,7 @@ export function startChannelSimulator(options: ChannelSimulatorOptions) {
       serviceUrl,
       from: { id: `29:${person.oid}`, name: person.name, aadObjectId: person.oid },
       conversation: { id: teamsConversation(person), conversationType: person.group ? "groupChat" : "personal", tenantId: options.teams.tenantId, ...(person.group ? { isGroup: true } : {}) },
-      recipient: { id: `28:${options.teams.appId}`, name: "mascop" },
+      recipient: { id: `28:${options.teams.appId}`, name: "Winyu" },
       channelData: { tenant: { id: options.teams.tenantId } },
       locale: "th-TH",
       ...extra,
@@ -150,7 +150,7 @@ export function startChannelSimulator(options: ChannelSimulatorOptions) {
     const { activity, token } = signedTeams(person, extra);
     const conversation = teamsConversation(person);
     const before = sent.length;
-    const response = await fetch(`${options.mascop}/api/channels/teams`, { method: "POST", headers: { "content-type": "application/json", authorization: `Bearer ${token}` }, body: JSON.stringify(activity) });
+    const response = await fetch(`${options.winyu}/api/channels/teams`, { method: "POST", headers: { "content-type": "application/json", authorization: `Bearer ${token}` }, body: JSON.stringify(activity) });
     const replies = response.ok ? await settle("teams", conversation, before, (fresh) => fresh.some((entry) => entry.kind === "message")) : [];
     return { status: response.status, sent: replies };
   }
@@ -161,7 +161,7 @@ export function startChannelSimulator(options: ChannelSimulatorOptions) {
       events: [{ mode: "active", timestamp: Date.now(), webhookEventId: randomUUID(), deliveryContext: { isRedelivery: false }, source: sourceOverride ?? { type: "user", userId }, ...event }],
     });
     const before = sent.length;
-    const response = await fetch(`${options.mascop}/api/channels/line`, { method: "POST", headers: { "content-type": "application/json", "x-line-signature": lineSignature(body, options.line.channelSecret) }, body });
+    const response = await fetch(`${options.winyu}/api/channels/line`, { method: "POST", headers: { "content-type": "application/json", "x-line-signature": lineSignature(body, options.line.channelSecret) }, body });
     const replyToken = typeof event.replyToken === "string" ? event.replyToken : "";
     const replies = response.ok ? await settle("line", replyToken, before, (fresh) => fresh.some((entry) => entry.kind === "reply")) : [];
     return { status: response.status, sent: replies };
@@ -171,8 +171,8 @@ export function startChannelSimulator(options: ChannelSimulatorOptions) {
     origin,
     serviceUrl,
     sent,
-    /** A person writes `text` to the bot in Teams; resolves with the webhook status and what mascop posted back. */
-    teamsSay: (person: TeamsPerson, text: string) => postTeams(person, { text, textFormat: "plain", ...(person.group ? { text: `<at>mascop</at> ${text}`, entities: [{ type: "mention", text: "<at>mascop</at>", mentioned: { id: `28:${options.teams.appId}`, name: "mascop" } }] } : {}) }),
+    /** A person writes `text` to the bot in Teams; resolves with the webhook status and what Winyu posted back. */
+    teamsSay: (person: TeamsPerson, text: string) => postTeams(person, { text, textFormat: "plain", ...(person.group ? { text: `<at>Winyu</at> ${text}`, entities: [{ type: "mention", text: "<at>Winyu</at>", mentioned: { id: `28:${options.teams.appId}`, name: "Winyu" } }] } : {}) }),
     /** A person presses an Adaptive Card Action.Submit button (`actionId` and `value` as the card set them). */
     teamsPress: (person: TeamsPerson, actionId: string, value: string) => postTeams(person, { value: { actionId, value }, replyToId: randomUUID() }),
     /** A LINE user writes `text` to the bot in a 1:1 chat. */
@@ -189,7 +189,7 @@ export function startChannelSimulator(options: ChannelSimulatorOptions) {
     linePress: (userId: string, data: string) => postLine(userId, { type: "postback", replyToken: randomUUID(), postback: { data } }),
     /** A signed Teams activity and its Bearer token, for tests that tamper with one of them. */
     signedTeams,
-    /** The JWKS URL mascop's simulator verifier reads. */
+    /** The JWKS URL Winyu's simulator verifier reads. */
     keysUrl: `${origin}/botframework/keys`,
     stop: () => server.stop(true),
   };

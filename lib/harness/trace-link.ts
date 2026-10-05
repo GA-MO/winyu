@@ -3,7 +3,7 @@ import { createHash } from "node:crypto";
 const TRACE_ID_HEX_CHARS = 32;
 
 /** The local Studio's port (`bun run studio`). */
-export const STUDIO_PORT = Number(process.env.MASCOP_STUDIO_PORT ?? 3213);
+export const STUDIO_PORT = Number(process.env.WINYU_STUDIO_PORT ?? 3213);
 
 /** The Mastra trace id a harness run is recorded under: derived from the run id, so either side finds the other without a lookup table. */
 export function traceIdOfRun(runId: string): string {

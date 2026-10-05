@@ -1,7 +1,7 @@
 import { A2AAgent } from "@mastra/core/a2a";
 import type { Message, Part, Task } from "@mastra/core/a2a";
 
-/** Where a remote agent lives and how mascop presents itself to it. */
+/** Where a remote agent lives and how Winyu presents itself to it. */
 export type RemoteAgent = { cardUrl: string; headers: Record<string, string>; timeoutMs: number };
 
 /** What a remote agent said: its text and the structured rows it attached, both untrusted until the caller fences them. */

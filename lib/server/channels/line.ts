@@ -142,7 +142,7 @@ function eventsOf(body: string): LineEvent[] | null {
   }
 }
 
-/** Answers one LINE webhook: a body whose X-Line-Signature is not the channel secret's HMAC is refused before anything is read; each event then runs after the 200 (LINE wants a quick answer), as the mascop user its LINE account is linked to. */
+/** Answers one LINE webhook: a body whose X-Line-Signature is not the channel secret's HMAC is refused before anything is read; each event then runs after the 200 (LINE wants a quick answer), as the Winyu user its LINE account is linked to. */
 export async function handleLineWebhook(request: Request, waitUntil: (task: Promise<unknown>) => void): Promise<Response> {
   const settings = lineSettings();
   if (!settings) return Response.json({ error: "LINE channel is not configured" }, { status: 503 });

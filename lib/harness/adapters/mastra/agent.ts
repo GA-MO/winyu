@@ -19,12 +19,12 @@ import { currentTurn } from "@/lib/server/request-context";
 import { DATA_DIR } from "@/lib/server/store/json-store";
 import { ToolResultInjectionGuard, replyPersonalDataGuard } from "./guardrails";
 import { ChatDurableAgent, persistsSnapshot } from "./durable";
-import { mascopWorkflows, schedulerEnabled } from "./jobs";
-import { mascopObservability } from "./observability";
+import { winyuWorkflows, schedulerEnabled } from "./jobs";
+import { winyuObservability } from "./observability";
 import { mastraTools } from "./tools";
 
 /** The one chat agent's id: the Mastra registry key and the CopilotKit agent name. */
-export const AGENT_ID = "mascop";
+export const AGENT_ID = "winyu";
 
 /** The request-context key that carries the signed-in user's id into instructions and tools. */
 export const USER_ID_KEY = "userId";
@@ -89,20 +89,20 @@ function buildMastra(): Mastra {
     defaultOptions: { maxSteps: LIMITS.maxSteps, prepareStep: wrapUpAtLimit },
   });
   const durable = new ChatDurableAgent({ agent, shouldPersistSnapshot: persistsSnapshot });
-  return new Mastra({ agents: { [AGENT_ID]: durable }, workflows: mascopWorkflows(), scheduler: { enabled: schedulerEnabled() }, storage, observability: mascopObservability(USER_ID_KEY) });
+  return new Mastra({ agents: { [AGENT_ID]: durable }, workflows: winyuWorkflows(), scheduler: { enabled: schedulerEnabled() }, storage, observability: winyuObservability(USER_ID_KEY) });
 }
 
 let mastra: Mastra | null = null;
 
 /** The one Mastra instance of this process: the chat agent, its storage and its tracing. */
-export function mascopMastra(): Mastra {
+export function winyuMastra(): Mastra {
   mastra ??= buildMastra();
   return mastra;
 }
 
 /** The chat agent, built once per server as a durable agent: instructions and tools are resolved per request from the user in its request context (D3, D9), and its run state is checkpointed so a run outlives the connection and the process. */
-export function mascopAgent(): ChatDurableAgent {
-  const agent = mascopMastra().getAgent(AGENT_ID);
+export function winyuAgent(): ChatDurableAgent {
+  const agent = winyuMastra().getAgent(AGENT_ID);
   if (!(agent instanceof ChatDurableAgent)) throw new Error(`agent ${AGENT_ID} is not the durable chat agent`);
   return agent;
 }

@@ -15,7 +15,7 @@ type PartnerResult = { ok: boolean; code?: string; summary?: string; answer?: st
 
 let server: ReturnType<typeof Bun.serve>;
 let requests = 0;
-const env = { url: process.env.MASCOP_A2A_PARTNER_URL, token: process.env.MASCOP_A2A_PARTNER_TOKEN };
+const env = { url: process.env.WINYU_A2A_PARTNER_URL, token: process.env.WINYU_A2A_PARTNER_TOKEN };
 const auditBefore = new Set(auditLog().all().map((row) => row.id));
 
 beforeAll(() => {
@@ -28,18 +28,18 @@ beforeAll(() => {
       return partner(request);
     },
   });
-  process.env.MASCOP_A2A_PARTNER_URL = `${server.url}.well-known/agent-card.json`;
-  process.env.MASCOP_A2A_PARTNER_TOKEN = TOKEN;
+  process.env.WINYU_A2A_PARTNER_URL = `${server.url}.well-known/agent-card.json`;
+  process.env.WINYU_A2A_PARTNER_TOKEN = TOKEN;
 });
 
 afterAll(() => {
   server.stop(true);
-  process.env.MASCOP_A2A_PARTNER_URL = env.url;
-  process.env.MASCOP_A2A_PARTNER_TOKEN = env.token;
+  process.env.WINYU_A2A_PARTNER_URL = env.url;
+  process.env.WINYU_A2A_PARTNER_TOKEN = env.token;
 });
 
 afterEach(() => {
-  process.env.MASCOP_A2A_PARTNER_TOKEN = TOKEN;
+  process.env.WINYU_A2A_PARTNER_TOKEN = TOKEN;
   for (const row of auditLog().all()) if (!auditBefore.has(row.id)) auditLog().remove(row.id);
 });
 
@@ -68,7 +68,7 @@ describe("ask_logistics_partner", () => {
     expect(result.answer?.split(UNTRUSTED_CLOSE).length).toBe(2);
   });
 
-  test("a DC outside the person's regions is refused before anything leaves mascop", async () => {
+  test("a DC outside the person's regions is refused before anything leaves Winyu", async () => {
     const before = requests;
     const result = await asked("u_krit", "dc_lamphun");
     expect([result.ok, result.code]).toEqual([false, "PERMISSION_DENIED"]);
@@ -76,8 +76,8 @@ describe("ask_logistics_partner", () => {
     expect((await asked("u_krit", "dc_khonkaen")).rows?.map((row) => row.shipment)).toEqual(["SF-4388", "SF-4391"]);
   });
 
-  test("a partner that refuses mascop's token comes back as unavailable, not as an error the model retries", async () => {
-    process.env.MASCOP_A2A_PARTNER_TOKEN = "wrong";
+  test("a partner that refuses Winyu's token comes back as unavailable, not as an error the model retries", async () => {
+    process.env.WINYU_A2A_PARTNER_TOKEN = "wrong";
     const result = await asked("u_wee", "dc_lamphun");
     expect([result.ok, result.code]).toEqual([false, "UNAVAILABLE"]);
   });

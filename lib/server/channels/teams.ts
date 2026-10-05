@@ -9,11 +9,11 @@ import { adaptiveCardOf, TEAMS_APPROVE, TEAMS_REJECT, type AdaptiveCard } from "
 import { botFrameworkVerifier } from "./teams-simulator-auth";
 import type { ChannelInbound, ChannelReply } from "./types";
 
-const BOT_NAME = "mascop";
+const BOT_NAME = "Winyu";
 const ADAPTIVE_CARD = "application/vnd.microsoft.card.adaptive";
 const SIMULATOR_TOKEN_SECONDS = 3600;
 
-/** The parts of a Teams activity mascop reads to know who wrote: the Entra object id and tenant of the sender. */
+/** The parts of a Teams activity Winyu reads to know who wrote: the Entra object id and tenant of the sender. */
 type TeamsActivity = {
   from?: { id?: string; name?: string; aadObjectId?: string };
   conversation?: { id?: string; tenantId?: string };
@@ -31,8 +31,8 @@ export function teamsSettings(env: NodeJS.ProcessEnv = process.env): TeamsSettin
   return { appId, appPassword: env.TEAMS_APP_PASSWORD ?? null, tenantId: env.TEAMS_APP_TENANT_ID ?? null, simulator };
 }
 
-/** The official Chat SDK Teams adapter, plus posting mascop's own Adaptive Card as it is (the SDK's card model has no colour, and the change must show red or green). */
-class MascopTeamsAdapter extends TeamsAdapter {
+/** The official Chat SDK Teams adapter, plus posting Winyu's own Adaptive Card as it is (the SDK's card model has no colour, and the change must show red or green). */
+class WinyuTeamsAdapter extends TeamsAdapter {
   async postAdaptiveCard(threadId: string, card: AdaptiveCard): Promise<void> {
     await this.app.sendTo(this.decodeThreadId(threadId), { type: "message", attachments: [{ contentType: ADAPTIVE_CARD, content: card }] });
   }
@@ -63,17 +63,17 @@ function conversationOf(raw: unknown, threadId: string): string {
   return ((raw ?? {}) as TeamsActivity).conversation?.id ?? threadId;
 }
 
-async function post(adapter: MascopTeamsAdapter, threadId: string, reply: ChannelReply): Promise<void> {
+async function post(adapter: WinyuTeamsAdapter, threadId: string, reply: ChannelReply): Promise<void> {
   if (reply.kind === "answer") return adapter.postAdaptiveCard(threadId, adaptiveCardOf(reply));
   await adapter.postMessage(threadId, { markdown: reply.kind === "notice" ? reply.text : TH.channels.teamsUnlinked });
 }
 
-async function answerAndPost(adapter: MascopTeamsAdapter, threadId: string, inbound: ChannelInbound | null): Promise<void> {
+async function answerAndPost(adapter: WinyuTeamsAdapter, threadId: string, inbound: ChannelInbound | null): Promise<void> {
   const reply = inbound ? await answerChannel(inbound, channelWebOrigin()) : ({ kind: "unlinked" } as const);
   await post(adapter, threadId, reply);
 }
 
-function onMessage(adapter: MascopTeamsAdapter) {
+function onMessage(adapter: WinyuTeamsAdapter) {
   return async (thread: Thread, message: Message) => {
     await thread.startTyping().catch(() => undefined);
     const sender = teamsSenderOf(message.raw, message.author.email ?? null);
@@ -83,7 +83,7 @@ function onMessage(adapter: MascopTeamsAdapter) {
 }
 
 function buildBot(settings: TeamsSettings) {
-  const adapter = new MascopTeamsAdapter(adapterConfig(settings));
+  const adapter = new WinyuTeamsAdapter(adapterConfig(settings));
   const chat = new Chat({ userName: BOT_NAME, adapters: { teams: adapter }, state: createMemoryState(), concurrency: "queue", logger: new ConsoleLogger("warn", "chat") });
   chat.onDirectMessage(onMessage(adapter));
   chat.onNewMention(onMessage(adapter));
@@ -104,7 +104,7 @@ function teamsBot(settings: TeamsSettings) {
   return bot.chat;
 }
 
-/** Answers one Bot Framework request at the Teams messaging endpoint: the adapter verifies it (Microsoft's JWT, or the simulator's in development), and each private message or approval press is answered as the linked mascop user. `waitUntil` keeps the answer running after the response. */
+/** Answers one Bot Framework request at the Teams messaging endpoint: the adapter verifies it (Microsoft's JWT, or the simulator's in development), and each private message or approval press is answered as the linked Winyu user. `waitUntil` keeps the answer running after the response. */
 export async function handleTeamsWebhook(request: Request, waitUntil: (task: Promise<unknown>) => void): Promise<Response> {
   const settings = teamsSettings();
   if (!settings) return Response.json({ error: "Teams channel is not configured" }, { status: 503 });

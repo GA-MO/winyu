@@ -19,8 +19,8 @@ const CARD = {
   note: null,
   denied: null,
 };
-const ANSWER: Answer = { kind: "answer", text: "**ภาคอีสาน** ต่ำกว่าเป้า", cards: [CARD], approval: null, webUrl: "https://mascop.example.com/c/teams-1" };
-const ASKING: Answer = { kind: "answer", text: "", cards: [], approval: { id: "ap1", question: "ให้ mascop เฝ้าดูเรื่องนี้ใช่ไหมครับ", effect: "ตรวจทุกชั่วโมง" }, webUrl: "https://mascop.example.com/c/line-1" };
+const ANSWER: Answer = { kind: "answer", text: "**ภาคอีสาน** ต่ำกว่าเป้า", cards: [CARD], approval: null, webUrl: "https://winyu.example.com/c/teams-1" };
+const ASKING: Answer = { kind: "answer", text: "", cards: [], approval: { id: "ap1", question: "ให้ Winyu เฝ้าดูเรื่องนี้ใช่ไหมครับ", effect: "ตรวจทุกชั่วโมง" }, webUrl: "https://winyu.example.com/c/line-1" };
 
 describe("Teams Adaptive Card", () => {
   test("draws the headline with its change in the tone's colour, each row's change coloured, and the rest left for the web", () => {
@@ -52,7 +52,7 @@ describe("LINE Flex", () => {
     const first = asking.type === "flex" && asking.contents.type === "bubble" ? asking.contents.body?.contents[0] : null;
     expect(first?.type).toBe("text");
     const answer = flexOf({ ...ANSWER, text: "" });
-    expect(answer.type === "flex" ? answer.altText : null).toBe("mascop: มูลค่าขายเข้า 1,110.2 ล้านบาท");
+    expect(answer.type === "flex" ? answer.altText : null).toBe("Winyu: มูลค่าขายเข้า 1,110.2 ล้านบาท");
   });
 
   test("markdown marks are dropped for LINE, which shows them literally", () => {

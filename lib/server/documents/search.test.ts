@@ -43,7 +43,7 @@ function accessOf(userId: string) {
 }
 
 beforeAll(async () => {
-  dir = mkdtempSync(path.join(tmpdir(), "mascop-documents-"));
+  dir = mkdtempSync(path.join(tmpdir(), "winyu-documents-"));
   writeFileSync(path.join(dir, `${HR_DOC}.md`), document(HR_DOC, "hr_manager, ceo", PAY_SECTIONS));
   writeFileSync(path.join(dir, `${PUBLIC_DOC}.md`), document(PUBLIC_DOC, "all", PUBLIC_SECTIONS));
   useDocumentsDir(dir);

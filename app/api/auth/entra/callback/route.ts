@@ -44,7 +44,7 @@ function responseFor(outcome: Outcome, base: URL): NextResponse {
   return response;
 }
 
-/** Where Microsoft returns the browser: a linked person gets a mascop session, anyone else the no-access page and a row for IT. */
+/** Where Microsoft returns the browser: a linked person gets a Winyu session, anyone else the no-access page and a row for IT. */
 export async function GET(req: NextRequest) {
   if (authMode() !== "entra") return NextResponse.json(NOT_FOUND, { status: 404 });
   const response = responseFor(await outcomeOf(req), entraConfig()?.redirectUri ?? new URL(req.url));

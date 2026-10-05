@@ -3,8 +3,8 @@ import { TH } from "@/lib/i18n/th";
 import type { ApprovalPrompt, ChannelCard, ChannelReply, ChannelRow } from "./types";
 
 /** The action ids an approval card's buttons submit; the value is the held approval's id. */
-export const TEAMS_APPROVE = "mascop.approve";
-export const TEAMS_REJECT = "mascop.reject";
+export const TEAMS_APPROVE = "winyu.approve";
+export const TEAMS_REJECT = "winyu.reject";
 
 const SCHEMA = "http://adaptivecards.io/schemas/adaptive-card.json";
 const VERSION = "1.5";
@@ -62,7 +62,7 @@ function approvalActions(approval: ApprovalPrompt): Element[] {
   ];
 }
 
-/** One mascop answer as a single Adaptive Card: the words, each card with its headline and coloured change first, the approval with approve and reject buttons, and the way to the thread in the web. */
+/** One Winyu answer as a single Adaptive Card: the words, each card with its headline and coloured change first, the approval with approve and reject buttons, and the way to the thread in the web. */
 export function adaptiveCardOf(reply: Extract<ChannelReply, { kind: "answer" }>): AdaptiveCard {
   const body: Element[] = [];
   if (reply.text) body.push(textBlock(reply.text));

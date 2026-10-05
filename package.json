@@ -1,12 +1,12 @@
 {
-  "name": "mascop",
+  "name": "winyu",
   "version": "0.1.0",
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "next dev --port 3200",
+    "dev": "next dev --port 3100",
     "build": "next build",
-    "start": "next start --port 3200",
+    "start": "next start --port 3100",
     "typecheck": "tsc --noEmit",
     "test": "bun test",
     "seed": "bun run scripts/seed.ts",

@@ -1,8 +1,8 @@
-# mascop — enterprise copilot on Mastra + CopilotKit
+# Winyu — enterprise copilot on Mastra + CopilotKit
 
-mascop is the Winyu copilot rebuilt on Mastra (the agent) and CopilotKit (the chat UI over AG-UI). It serves the same 26 personas of a large Thai beverage company (demo tenant: Boon Rawd Brewery, all data fictional and generated) with the same tools, permissions, harness gateway and audit. The UI may differ from Winyu.
+Winyu is an AI agent for a large Thai beverage company (demo tenant: Boon Rawd Brewery, all data fictional and generated), built on Mastra (the agent) and CopilotKit (the chat UI over AG-UI). Every user (CEO to sales rep) signs in as one of 26 personas with its own data scope; the agent answers with cards drawn from tool results, keeps a personal dashboard, raises anomalies and forecasts, and hands work to the responsible person.
 
-mascop is a standalone project. It has no dependency on the Winyu or Vexa repositories: no path aliases, imports, relative paths or runtime reads into them. Code that came from them was copied in and is owned here.
+Until 2026-10-05 Winyu ran on Vexa (generative UI with json-render specs). This codebase replaced that build and kept its domain, tools, permissions, harness gateway and audit; docs call the old one "Winyu (Vexa build, before 2026-10-05)". Winyu has no dependency on the Vexa repository: no path aliases, imports, relative paths or runtime reads into it. Code that came from it was copied in and is owned here.
 
 Read `docs/plan.md` before any task. It holds the phases, the contracts and the acceptance criteria. Mark checkboxes there as you finish them.
 
@@ -10,7 +10,7 @@ Read `docs/plan.md` before any task. It holds the phases, the contracts and the 
 
 ```bash
 bun install
-bun run dev          # http://localhost:3200
+bun run dev          # http://localhost:3100
 bun run typecheck    # must pass before any task is considered done
 bun run test         # bun test (happy-dom preload)
 bun run seed         # regenerates .data/*.json from the generator (deterministic)
@@ -25,15 +25,15 @@ bun run studio       # development only: Mastra API on :3214 over the app's own 
 bun run eval         # scores the recorded eval cases with code-only scorers, $0 (see Evals)
 ```
 
-Mastra tracing is always on and stays on this machine: every agent run writes its spans to `.data/mastra.db`, and a chat run's Mastra trace id is derived from its harness run id (`traceIdOfRun` in `lib/harness/trace-link.ts`; the run id is also on the trace as `harnessRunId`). `bun run trace` and the admin run trace print or link the Studio trace in development. Set `MASCOP_OTEL_ENDPOINT` (an OTLP/HTTP traces URL such as `http://localhost:4318/v1/traces`) to also export spans to an OpenTelemetry collector; spans carry prompts, tool arguments and results, so point it only at a collector you control. Studio runs the agent with the persona from its request context: tools still pass the gateway (scope, policy, audit with initiator `system`), and a request without a persona is granted no instructions and no tools.
+Mastra tracing is always on and stays on this machine: every agent run writes its spans to `.data/mastra.db`, and a chat run's Mastra trace id is derived from its harness run id (`traceIdOfRun` in `lib/harness/trace-link.ts`; the run id is also on the trace as `harnessRunId`). `bun run trace` and the admin run trace print or link the Studio trace in development. Set `WINYU_OTEL_ENDPOINT` (an OTLP/HTTP traces URL such as `http://localhost:4318/v1/traces`) to also export spans to an OpenTelemetry collector; spans carry prompts, tool arguments and results, so point it only at a collector you control. Studio runs the agent with the persona from its request context: tools still pass the gateway (scope, policy, audit with initiator `system`), and a request without a persona is granted no instructions and no tools.
 
-Set `MASCOP_SCHEDULER=off` before `bun run dev` when you do not want the background jobs (anomaly, forecast, watches, digest) to start and spend model calls. The jobs are Mastra scheduled workflows on Bangkok cron (`lib/harness/adapters/mastra/jobs.ts`); the morning investigation is a workflow started in the background (`POST /api/jobs/run {"job":"investigate","user":…}` returns a run id, `GET /api/jobs/run?run=<id>` its progress). The chat agent is a Mastra durable agent: a run survives a closed tab, and a run cut off by a restart is finished on the next boot with its whole trace (`docs/harness-mastra.md`).
+Set `WINYU_SCHEDULER=off` before `bun run dev` when you do not want the background jobs (anomaly, forecast, watches, digest) to start and spend model calls. The jobs are Mastra scheduled workflows on Bangkok cron (`lib/harness/adapters/mastra/jobs.ts`); the morning investigation is a workflow started in the background (`POST /api/jobs/run {"job":"investigate","user":…}` returns a run id, `GET /api/jobs/run?run=<id>` its progress). The chat agent is a Mastra durable agent: a run survives a closed tab, and a run cut off by a restart is finished on the next boot with its whole trace (`docs/harness-mastra.md`).
 
-Check the domain inside Next without a browser: `curl -s 'http://localhost:3200/api/health?user=<id>'`.
+Check the domain inside Next without a browser: `curl -s 'http://localhost:3100/api/health?user=<id>'`.
 
 ## Evals
 
-`bun run eval` grades the chat against 58 cases ported from Winyu's `eval:cards` (`lib/eval/cases.ts`). Each case has one recording in `evals/recordings/<case>.json`: the question, the model's reply as ordered steps (text with its card block, tool calls with arguments and results), the approvals it raised, its cost, and hashes of the prompt and the tool surface. Scoring replays the recording through the live card stream (`ReplyCards`, `present.ts`, the composer) and runs code-only Mastra scorers (`lib/harness/adapters/mastra/scorers.ts`, checks in `lib/eval/checks.ts`). No judge model, no call, $0.
+`bun run eval` grades the chat against 58 cases ported from the Vexa build's `eval:cards` (`lib/eval/cases.ts`). Each case has one recording in `evals/recordings/<case>.json`: the question, the model's reply as ordered steps (text with its card block, tool calls with arguments and results), the approvals it raised, its cost, and hashes of the prompt and the tool surface. Scoring replays the recording through the live card stream (`ReplyCards`, `present.ts`, the composer) and runs code-only Mastra scorers (`lib/harness/adapters/mastra/scorers.ts`, checks in `lib/eval/checks.ts`). No judge model, no call, $0.
 
 ```bash
 bun run eval                                   # score every recording, print the table, exit 1 on a failure not in evals/known-failures.json

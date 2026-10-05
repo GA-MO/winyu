@@ -34,10 +34,10 @@ const REMEMBERED = new Set(["recall_memory"]);
 const HONORIFIC = "คุณ";
 const BARE_NAME_MIN_LENGTH = 4;
 const INVESTIGATE_TOOL_BUDGET = 80;
-const INVESTIGATE_GOAL = "Explain this person's open anomalies before they open mascop";
+const INVESTIGATE_GOAL = "Explain this person's open anomalies before they open Winyu";
 
 const INVESTIGATE_SYSTEM = [
-  "You are mascop, the analyst of a Thai beverage company. Before this person opens mascop today, explain the open anomalies listed in the prompt. Those anomalies are the only matters.",
+  "You are Winyu, the analyst of a Thai beverage company. Before this person opens Winyu today, explain the open anomalies listed in the prompt. Those anomalies are the only matters.",
   "Work like a senior analyst: pick the anomalies that most need this person, then drill down (region → agent/province/channel/SKU) until you know WHERE each problem sits. Do not investigate a topic that is not one of those anomalies.",
   "For any shortfall against target or a prior period, call explain_gap: it returns each part's share of the gap and, for month-to-date against target, where the month ends. Never compute a share or a projection yourself.",
   "Test explanations with data (season vs prior year, stock/cover, campaigns, other regions, sell-in vs sell-out). Say what you ruled out and what is still unknown. A precedent or a memory note makes a cause likely, not confirmed.",
@@ -49,10 +49,10 @@ const INVESTIGATE_SYSTEM = [
 ].join("\n");
 
 const STORY_SYSTEM = [
-  "Turn an analyst's investigation into at most three stories for one person's mascop home page, written in Thai.",
+  "Turn an analyst's investigation into at most three stories for one person's Winyu home page, written in Thai.",
   "A story has three parts and each says something the others do not:",
   "- `finding`: what is happening, where, and what it means for this person, in one or two short sentences.",
-  "- `evidence`: the one query_metric or explain_gap call that proves the finding, by its `index` in the tool results. mascop draws it as a card: a query_metric result as it is, an explain_gap call as the same metric split the same way against the same comparison, biggest shortfall first. The card shows the number, the comparison, the pace to target and where the month ends. `evidence.title` names the card: what and where, no numbers. A matter no such call shows (an incident, a licence, a vacancy) has evidence null.",
+  "- `evidence`: the one query_metric or explain_gap call that proves the finding, by its `index` in the tool results. Winyu draws it as a card: a query_metric result as it is, an explain_gap call as the same metric split the same way against the same comparison, biggest shortfall first. The card shows the number, the comparison, the pace to target and where the month ends. `evidence.title` names the card: what and where, no numbers. A matter no such call shows (an incident, a licence, a vacancy) has evidence null.",
   "- `action`: the one thing THIS person does next in their role. The owner acts; a manager asks the role that owns it a specific question; someone who only follows gets null. It never repeats the finding.",
   "The card shows the numbers, so the finding never repeats the card's headline number or its month-end projection: it says what they mean (\"จะปิดเดือนต่ำกว่าเป้า\", \"ของจะหมดก่อนรอบเติม\"). A number the card does not show (a date, a count, a share from explain_gap) may appear, copied exactly as the tool wrote it.",
   "Pick as evidence the call whose rows show where the problem sits, in the same scope as the finding. A card must agree with its finding: a story about one agent is not proven by a whole region's total.",
@@ -232,7 +232,7 @@ function namePatternsOf(user: User): string[] {
   return first.length >= BARE_NAME_MIN_LENGTH ? [`${HONORIFIC}${first}`, first] : [`${HONORIFIC}${first}`];
 }
 
-/** Names of people who hold a role in mascop, found in a story's words; a story names roles, since who holds one changes. */
+/** Names of people who hold a role in Winyu, found in a story's words; a story names roles, since who holds one changes. */
 export function roleHoldersNamedIn(draft: DraftStory): string[] {
   const text = textsOf(draft).join(" ");
   return [...new Set(USERS.flatMap((user) => (namePatternsOf(user).some((pattern) => text.includes(pattern)) ? [user.nameTh] : [])))];
@@ -263,7 +263,7 @@ function storyOf(entry: ReviewedDraft, calls: readonly ToolCall[], evidenceIndex
   return { ...entry.draft, id, evidence, ruledOut };
 }
 
-/** The stories kept from reviewed drafts: a blocked draft is dropped, a ruled-out claim stands only on a data tool this run called, and the evidence becomes the query mascop draws again. */
+/** The stories kept from reviewed drafts: a blocked draft is dropped, a ruled-out claim stands only on a data tool this run called, and the evidence becomes the query Winyu draws again. */
 export function storiesFrom(userId: string, reviewed: readonly ReviewedDraft[], calls: readonly ToolCall[], evidence: EvidenceIndex): { stories: Story[]; dropped: InvestigationRun["dropped"] } {
   const kept = reviewed.filter((entry) => !isBlocked(entry));
   const dropped = reviewed.filter(isBlocked).map((entry) => ({ finding: entry.draft.finding, ungrounded: entry.ungrounded, names: entry.names }));

@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { mascopMastra } from "./agent";
+import { winyuMastra } from "./agent";
 import { investigationProgress, startInvestigation, type InvestigationProgress } from "./jobs";
 
 const POLL_MS = 50;
@@ -17,7 +17,7 @@ async function settled(runId: string): Promise<InvestigationProgress | null> {
 
 describe("scheduled jobs", () => {
   test("the jobs workflow a schedule fires runs the job it names", async () => {
-    const run = await mascopMastra().getWorkflow("mascop-jobs").createRun();
+    const run = await winyuMastra().getWorkflow("winyu-jobs").createRun();
     const result = await run.start({ inputData: { job: "engine" } });
     expect(result.status).toBe("success");
     const output = result.status === "success" ? (result.result as { job: string; result: { alerts: number; forecasts: number } }) : null;

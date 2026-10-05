@@ -5,7 +5,7 @@ import type { RemoteTool } from "./catalog";
 import type { McpConnector, McpToolConfig } from "./types";
 
 const PROBE_EVERY_MS = 5 * 60_000;
-const PROBE_STARTED = Symbol.for("mascop.connectorProbe.started");
+const PROBE_STARTED = Symbol.for("winyu.connectorProbe.started");
 
 type ProbeGlobal = typeof globalThis & { [PROBE_STARTED]?: ReturnType<typeof setInterval> };
 
@@ -78,6 +78,6 @@ export function startConnectorProbe(): void {
   const scope = globalThis as ProbeGlobal;
   if (scope[PROBE_STARTED]) return;
   scope[PROBE_STARTED] = setInterval(() => {
-    probeConnectors().catch((error: unknown) => console.error("[mascop] connector probe failed", error));
+    probeConnectors().catch((error: unknown) => console.error("[Winyu] connector probe failed", error));
   }, PROBE_EVERY_MS);
 }

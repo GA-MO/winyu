@@ -1,6 +1,6 @@
 # Model-composed cards with A2UI
 
-mascop draws most tool results with a fixed card per tool (`TOOL_CARDS`). For every answer that shows people, sites, courses, candidates, policies, entities or connector rows, even from one read, the model composes one card instead, selecting the rows and facts that answer the question, written inside its reply and checked line by line on the server. The card is an A2UI v0.9 surface, drawn by CopilotKit's A2UI renderer with mascop's own components. This page records how A2UI works in the installed versions and how mascop uses it.
+Winyu draws most tool results with a fixed card per tool (`TOOL_CARDS`). For every answer that shows people, sites, courses, candidates, policies, entities or connector rows, even from one read, the model composes one card instead, selecting the rows and facts that answer the question, written inside its reply and checked line by line on the server. The card is an A2UI v0.9 surface, drawn by CopilotKit's A2UI renderer with Winyu's own components. This page records how A2UI works in the installed versions and how Winyu uses it.
 
 ## How A2UI works in the installed versions
 
@@ -11,16 +11,16 @@ Versions: `@copilotkit/runtime`, `@copilotkit/react-core` and `@copilotkit/a2ui-
 - **The client.** `createCatalog(definitions, renderers)` from `@copilotkit/a2ui-renderer` registers React components under a catalog id. `A2UIProvider` holds the surface store, `A2UIRenderer { surfaceId }` draws a surface, and `useA2UIActions().processMessages` feeds it. No Lit. Prop binding is driven by the zod schema: the binder (`GenericBinder`) reads zod v3 internals, so catalog schemas must be built with `zod/v3`.
 - **History.** Mastra memory keeps assistant, user and tool messages only. AG-UI activity messages are not stored, so a reloaded thread loses any surface that existed only as an activity.
 
-## Why mascop does not use the runtime path
+## Why Winyu does not use the runtime path
 
 - `render_a2ui` carries `data` that the model writes itself, so the model would type every number and name into the card. That breaks the grounding rule.
 - `render_a2ui` is a client tool and `generate_a2ui` runs outside the harness, so neither passes the gateway (policy, audit, kill switch). `generate_a2ui` also adds a second model call per card.
 - Activities are not in Mastra memory, so history restore would need a second store.
-- A whole-card tool call (`compose_card`, mascop's first design) was refused whole for one malformed part, and the model never retried. In the baseline benchmark it composed 5 of 8 people answers against Winyu's 8 of 8. It also cost one more model call per question.
+- A whole-card tool call (`compose_card`, Winyu's first design) was refused whole for one malformed part, and the model never retried. In the baseline benchmark it composed 5 of 8 people answers against the Vexa build's 8 of 8. It also cost one more model call per question.
 
-## What mascop does instead
+## What Winyu does instead
 
-The model writes the card inside its reply, the way Winyu writes a json-render spec, and the server checks it line by line before any of it reaches the browser.
+The model writes the card inside its reply, the way Winyu (Vexa build, before 2026-10-05) writes a json-render spec, and the server checks it line by line before any of it reaches the browser.
 
 - **The block.** After the read tools return, the model writes one or two sentences and then a fenced block that opens with ```` ```a2ui ````. Each line inside is one flat A2UI v0.9 component, `{ id, component, ...props }`. Text props bind with `{ path }` into the data model. The data model is the run's read results keyed by tool name in call order (`/get_person/data/name`, a repeat call is `get_person_2`). Inside a template, paths are relative to the item. The rule and one example are in `CARD_BLOCK_RULE` (`lib/server/agent/persona.ts`).
 - **The stream.** `withComposedCards` (`lib/harness/adapters/mastra/card-stream.ts`) rewrites the AG-UI event stream that CopilotKit's runtime returns. `ReplyCards` collects each `TOOL_CALL_RESULT` of a read tool, and `BlockReader` (`lib/compose/block.ts`) splits each `TEXT_MESSAGE_CONTENT` delta into the words the person reads and the finished block lines. A fence or a line split across deltas is held back until it is complete. The block never reaches the browser as text.
@@ -30,8 +30,8 @@ The model writes the card inside its reply, the way Winyu writes a json-render s
   - An optional prop that fails (a `detail` path that does not exist, a `meta` that types a number as literal text) is dropped from its line, and the line stays. A line left with no content prop is dropped whole.
   - A group whose children have not arrived or did not hold is left out until one does, so no empty section label shows.
   - Results of `query_metric`, `get_alerts`, `get_forecast`, `explain_gap` and `search_documents` are not in the data model, so a metric or a cited document passage can never be composed (see `docs/rag.md`). The data model sent with the card is pruned to the paths the card reads.
-- **To the chat.** After each line that holds, the card as it stands goes out as an AG-UI `ACTIVITY_SNAPSHOT` (`activityType: "mascop-card"`, content `{ surfaceId, components, dataModel, done }`). The last snapshot has `done: true`. When nothing beyond the root held, that last snapshot carries no components, and the chat falls back to the fixed cards.
-- **Drawing** (`components/chat/composed-card.tsx`). mascop's `components/ui` primitives are the A2UI catalog. Each composed card gets its own `A2UIProvider`. Each new snapshot is fed to the same surface as `updateDataModel` then `updateComponents`, so the card grows in place. An `ask` action sends the question to the chat, and an `enroll_course` action runs the write behind its approval card.
+- **To the chat.** After each line that holds, the card as it stands goes out as an AG-UI `ACTIVITY_SNAPSHOT` (`activityType: "winyu-card"`, content `{ surfaceId, components, dataModel, done }`). The last snapshot has `done: true`. When nothing beyond the root held, that last snapshot carries no components, and the chat falls back to the fixed cards.
+- **Drawing** (`components/chat/composed-card.tsx`). Winyu's `components/ui` primitives are the A2UI catalog. Each composed card gets its own `A2UIProvider`. Each new snapshot is fed to the same surface as `updateDataModel` then `updateComponents`, so the card grows in place. An `ask` action sends the question to the chat, and an `enroll_course` action runs the write behind its approval card.
 - **Fallback.** Once an exchange holds a composed card, the fixed cards of composable reads in that exchange are not drawn, and the metric cards stay. While a reply streams, those fixed cards wait, so none flashes up and then disappears. A reply with no block, or a block where nothing held, leaves the fixed cards as the answer.
 - **History.** Mastra memory stores the reply text with the block in it, and the tool results beside it. `agUiMessagesOf` (`lib/harness/adapters/mastra/history.ts`) replays each stored turn through the same `ReplyCards`: the stored tool results first, then the stored text. A reloaded card therefore comes from the same code, lines and results as the live one, with no second store. `card-stream.test.ts` checks that the restored components and data model equal the live final snapshot. The runtime's `connect` route replays stored run events, so it passes through the same stream, and each `RUN_STARTED` starts a fresh set of results.
 - **Observability.** Each finished block adds a `ui.composed` event to the run trace (accepted lines, dropped lines, reasons), a line in the admin run trace, and an audit row named `composed_card` that reads like a tool call. The row is allowed when any line held, and its reason lists the dropped lines.

@@ -8,8 +8,8 @@ import { DATA_DIR } from "@/lib/server/store/json-store";
 import { reopenExact } from "./exact-vector-store";
 
 const STORAGE_FILE = "mastra.db";
-const VECTOR_STORE_ID = "mascop-documents";
-const INDEX_NAME = "mascop_documents";
+const VECTOR_STORE_ID = "winyu-documents";
+const INDEX_NAME = "winyu_documents";
 const EMBED_BATCH = 16;
 const LISTING_TOP_K = 5000;
 

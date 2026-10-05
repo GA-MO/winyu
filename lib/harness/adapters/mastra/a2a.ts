@@ -7,13 +7,13 @@ import { getAgentExecutionHandler } from "@mastra/server/handlers/a2a";
 import type { AccessContext } from "@/lib/contracts";
 import { LIMITS } from "@/lib/harness/limits";
 import type { WinyuTool } from "@/lib/server/tools/define";
-import { USER_ID_KEY, mascopMastra, wrapUpAtLimit } from "./agent";
+import { USER_ID_KEY, winyuMastra, wrapUpAtLimit } from "./agent";
 import { ToolResultInjectionGuard, replyPersonalDataGuard } from "./guardrails";
 import { HARNESS_RUN_KEY } from "./observability";
 import { mastraTools } from "./tools";
 
-/** The agent other agents talk to: mascop's own chat agent minus the cards, built per caller from the surface the server hands it. */
-export const A2A_AGENT_ID = "mascop-a2a";
+/** The agent other agents talk to: Winyu's own chat agent minus the cards, built per caller from the surface the server hands it. */
+export const A2A_AGENT_ID = "winyu-a2a";
 
 const SURFACE_KEY = "a2aSurface";
 const TOOL_DATA_ARTIFACT = "tool-data";
@@ -22,12 +22,12 @@ const TOOL_DATA_NAME = "tool-data.json";
 /** What one A2A caller gets: the person it acts as, the tools it may call, the prompt, and the model that answers. */
 export type A2aSurface = { userId: string; access: AccessContext; tools: readonly WinyuTool[]; instructions: string; model: MastraModelConfig };
 
-/** The A2A v0.3 JSON-RPC methods mascop serves: one question at a time, then reading or cancelling that task. */
+/** The A2A v0.3 JSON-RPC methods Winyu serves: one question at a time, then reading or cancelling that task. */
 export const A2A_METHODS = ["message/send", "tasks/get", "tasks/cancel"] as const;
 
 export type A2aMethod = (typeof A2A_METHODS)[number];
 
-/** One JSON-RPC call from another agent, already checked to be a method mascop serves. */
+/** One JSON-RPC call from another agent, already checked to be a method Winyu serves. */
 export type A2aCall = { id: string | number; method: A2aMethod; params: unknown };
 
 /** A JSON-RPC answer as A2A clients read it: a task or an error. */
@@ -63,7 +63,7 @@ function buildA2aAgent() {
 let registered = false;
 
 function a2aMastra() {
-  const mastra = mascopMastra();
+  const mastra = winyuMastra();
   if (registered) return mastra;
   mastra.addAgent(buildA2aAgent());
   registered = true;

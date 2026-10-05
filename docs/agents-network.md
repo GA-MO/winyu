@@ -1,16 +1,16 @@
 # Agent networks and subagents (F8)
 
-Decision: **rejected**. mascop keeps one chat agent per person. Routing each question to a smaller specialist agent cut input tokens per call by about a third, but it added a model call to every question. The net result was 8% cheaper, about 2 seconds slower per question, and no more accurate. It also added a new kind of failure.
+Decision: **rejected**. Winyu keeps one chat agent per person. Routing each question to a smaller specialist agent cut input tokens per call by about a third, but it added a model call to every question. The net result was 8% cheaper, about 2 seconds slower per question, and no more accurate. It also added a new kind of failure.
 
 Measured on 2026-10-05 with Gemini 3.8 Flash through OpenRouter. The live spend was $0.3118 across 75 model calls, from the worktree ledger. The prototype is kept as tag `f8-network-prototype` (8ba0c29) and is not on the branch.
 
 ## The question
 
-mascop's chat agent offers each person 22 to 24 tools and one prompt. Each call to the model sends about 10,000 input tokens. The tool schemas are 70% of the instruction text: 23,100 of 33,000 characters for the CEO. The persona and rules are the other 30%. The hypothesis was that specialists with fewer tools and shorter prompts would choose tools better and send fewer tokens, and that delegation would add calls and latency.
+Winyu's chat agent offers each person 22 to 24 tools and one prompt. Each call to the model sends about 10,000 input tokens. The tool schemas are 70% of the instruction text: 23,100 of 33,000 characters for the CEO. The persona and rules are the other 30%. The hypothesis was that specialists with fewer tools and shorter prompts would choose tools better and send fewer tokens, and that delegation would add calls and latency.
 
 ## Which shape was built, and why
 
-Mastra offers three multi-agent shapes. Two of them could not keep mascop's contracts.
+Mastra offers three multi-agent shapes. Two of them could not keep Winyu's contracts.
 
 - **`Agent.network()`** is deprecated in `@mastra/core` 1.74. Mastra's docs point to supervisor agents instead.
 - **A supervisor with subagents** (`agents: {…}` on a parent agent) runs each subagent as a tool call. The subagent's chunks reach the parent stream as `tool-output` chunks, and `@ag-ui/mastra` 1.1.6 drops those chunks. The chat would see one `agent-…` call and no `query_metric` result, so no fixed card and no composed card would be drawn. The supervisor also has a floor of four sequential model calls (delegate, specialist tool call, specialist answer, supervisor answer), and it writes the answer twice. Two of those calls are the floor of today's single agent. This floor is inferred from the shape and was not measured live.

@@ -217,7 +217,7 @@ function readEnd(to: string | undefined): string | undefined {
   return to !== undefined && to > TODAY ? TODAY : to;
 }
 
-/** Every check a recorded turn is scored with: Winyu's `eval:cards` checks translated to what mascop draws (the fixed card from `present.ts`, the A2UI card the model composes, the approval it asks), plus mascop's own grounding, composition and scope checks. */
+/** Every check a recorded turn is scored with: the Vexa build's `eval:cards` checks translated to what Winyu draws (the fixed card from `present.ts`, the A2UI card the model composes, the approval it asks), plus Winyu's own grounding, composition and scope checks. */
 export const EVAL_CHECKS: readonly EvalCheck[] = [
   {
     id: "calledTool",

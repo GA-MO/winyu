@@ -33,7 +33,7 @@ function inScope(access: AccessContext, region: string): boolean {
   return access.regions === "all" || access.regions.some((allowed) => allowed === region);
 }
 
-/** Asks the logistics partner's agent over A2A about trucks heading to one distribution centre: only the DC's name leaves mascop, a DC outside the person's regions is refused before the call, and everything the partner says comes back fenced as data. */
+/** Asks the logistics partner's agent over A2A about trucks heading to one distribution centre: only the DC's name leaves Winyu, a DC outside the person's regions is refused before the call, and everything the partner says comes back fenced as data. */
 export async function askLogisticsPartner(access: AccessContext, dcId: string) {
   const center = DISTRIBUTION_CENTERS.find((candidate) => candidate.id === dcId);
   if (!center) return { ok: false, code: "BAD_QUERY", error: `unknown distribution centre ${dcId}` };

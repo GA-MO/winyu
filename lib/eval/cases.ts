@@ -7,7 +7,7 @@ export type MetricCardTool = "query_metric" | "get_alerts" | "get_forecast";
 /** The reads whose answer the model composes as one card. */
 export type ComposedTool = "find_people" | "get_person" | "get_site" | "list_candidates" | "list_courses" | "get_policy";
 
-/** One question a demo actually gets, who asks it, and what a good answer must be true of. Ported from Winyu's `eval:cards` cases. */
+/** One question a demo actually gets, who asks it, and what a good answer must be true of. Ported from the `eval:cards` cases of the Vexa build. */
 export type EvalCase = {
   id: string;
   userId: string;
@@ -28,7 +28,7 @@ export type EvalCase = {
   expectDocuments?: { cite: string } | { notFound: true; hidden?: string };
 };
 
-/** The questions a Winyu demo actually gets asked, one per card shape and per persona scope. Winyu's funnel, scatter and sell-through cases drew one card from several bound results (`with`); mascop draws one card per `query_metric`, so they check that every metric was asked with the same dims and range instead. */
+/** The questions a demo actually gets asked, one per card shape and per persona scope. The Vexa build's funnel, scatter and sell-through cases drew one card from several bound results (`with`); Winyu draws one card per `query_metric`, so they check that every metric was asked with the same dims and range instead. */
 export const EVAL_CASES: EvalCase[] = [
   { id: "ceo-attainment", userId: "u_thana", prompt: "ยอดขายทั้งประเทศเทียบเป้าตอนนี้เท่าไหร่", expectCard: "query_metric" },
   { id: "ceo-by-region", userId: "u_thana", prompt: "ยอดขายแยกตามภาคเดือนนี้", expectCard: "query_metric", expectSort: "value_desc" },

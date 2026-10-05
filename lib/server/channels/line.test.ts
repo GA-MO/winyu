@@ -74,7 +74,7 @@ async function linkThroughWeb(lineUserId: string, displayName: string, userId: s
 
 async function post(body: string, signature: string | null): Promise<number> {
   const headers: Record<string, string> = { "content-type": "application/json", ...(signature ? { "x-line-signature": signature } : {}) };
-  return (await fetch(`${harness.mascopOrigin}/api/channels/line`, { method: "POST", headers, body })).status;
+  return (await fetch(`${harness.winyuOrigin}/api/channels/line`, { method: "POST", headers, body })).status;
 }
 
 describe("LINE channel (Messaging API simulator)", () => {
@@ -150,7 +150,7 @@ describe("LINE channel (Messaging API simulator)", () => {
 
   test("in a group the bot answers a mention with the pointer to a private chat and stays quiet otherwise", async () => {
     const before = auditLog().all().length;
-    const pointed = replied((await sim.lineSayInGroup(KRIT_LINE, "@mascop ยอดขาย")).sent);
+    const pointed = replied((await sim.lineSayInGroup(KRIT_LINE, "@winyu ยอดขาย")).sent);
     expect(pointed.text).toContain("แชทส่วนตัว");
     const quiet = await sim.lineSayInGroup(KRIT_LINE, "ใครว่างบ้าง", false);
     expect(quiet.sent).toHaveLength(0);

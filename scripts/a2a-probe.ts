@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 
-const USAGE = 'usage: bun run a2a:probe <token> ["question"] [--card=http://localhost:3200/.well-known/agent-card.json]';
-const DEFAULT_CARD = "http://localhost:3200/.well-known/agent-card.json";
+const USAGE = 'usage: bun run a2a:probe <token> ["question"] [--card=http://localhost:3100/.well-known/agent-card.json]';
+const DEFAULT_CARD = "http://localhost:3100/.well-known/agent-card.json";
 const DEFAULT_QUESTION = "ยอดขายเข้าแยกตามภาคไตรมาสนี้";
 
 type Part = { kind: string; text?: string; data?: { tools?: { tool: string; result?: { rows?: Record<string, unknown>[] } }[] } };

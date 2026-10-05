@@ -22,8 +22,8 @@ if (process.argv.includes("--help")) {
   process.exit(0);
 }
 
-const dataDir = mkdtempSync(path.join(tmpdir(), "mascop-docs-bench-"));
-process.env.MASCOP_DATA_DIR = dataDir;
+const dataDir = mkdtempSync(path.join(tmpdir(), "winyu-docs-bench-"));
+process.env.WINYU_DATA_DIR = dataDir;
 process.on("exit", () => rmSync(dataDir, { recursive: true, force: true }));
 
 const { useEmbedder } = await import("@/lib/server/recall/embedder");

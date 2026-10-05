@@ -6,8 +6,8 @@ import { collection } from "@/lib/server/store/json-store";
 import { McpTab } from "./mcp-tab";
 
 const COPY = TH.admin.mcpTab;
-const ENDPOINT = "http://localhost:3200/api/mcp";
-const CARD_URL = "http://localhost:3200/.well-known/agent-card.json";
+const ENDPOINT = "http://localhost:3100/api/mcp";
+const CARD_URL = "http://localhost:3100/.well-known/agent-card.json";
 const issued: IssuedToken[] = [];
 
 afterEach(() => {

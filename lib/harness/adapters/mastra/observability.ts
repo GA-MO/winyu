@@ -8,8 +8,8 @@ import { winyuTool } from "@/lib/server/tools/registry";
 /** The request-context key that carries the harness run id onto the Mastra trace as metadata. */
 export const HARNESS_RUN_KEY = "harnessRunId";
 
-const SERVICE_NAME = "mascop";
-const OTEL_ENDPOINT_ENV = "MASCOP_OTEL_ENDPOINT";
+const SERVICE_NAME = "winyu";
+const OTEL_ENDPOINT_ENV = "WINYU_OTEL_ENDPOINT";
 
 function otelExporters(): ObservabilityExporter[] {
   const endpoint = process.env[OTEL_ENDPOINT_ENV];
@@ -19,7 +19,7 @@ function otelExporters(): ObservabilityExporter[] {
 
 /** Hides a tool's personal fields (its `redact` list) in the tool call's span input, as the audit hides them in its args. */
 export const personalFieldsHidden: SpanOutputProcessor = {
-  name: "mascop-personal-fields-hidden",
+  name: "winyu-personal-fields-hidden",
   process(span?: AnySpan) {
     if (!span || span.type !== SpanType.TOOL_CALL) return span;
     const redact = winyuTool(span.entityName ?? "")?.capability.redact ?? [];
@@ -29,8 +29,8 @@ export const personalFieldsHidden: SpanOutputProcessor = {
   shutdown: async () => undefined,
 };
 
-/** Mastra tracing kept on this machine: spans go to the agent's own LibSQL store for Studio, and to an OpenTelemetry collector only when `MASCOP_OTEL_ENDPOINT` names one. Nothing goes to a hosted platform. */
-export function mascopObservability(userIdKey: string): Observability {
+/** Mastra tracing kept on this machine: spans go to the agent's own LibSQL store for Studio, and to an OpenTelemetry collector only when `WINYU_OTEL_ENDPOINT` names one. Nothing goes to a hosted platform. */
+export function winyuObservability(userIdKey: string): Observability {
   return new Observability({
     configs: {
       default: {

@@ -12,7 +12,7 @@ async function userIdOf(req: Request): Promise<string | null> {
   return typeof body?.userId === "string" ? body.userId : null;
 }
 
-/** Demo sign-in as any persona; absent (404) unless MASCOP_AUTH is demo. */
+/** Demo sign-in as any persona; absent (404) unless WINYU_AUTH is demo. */
 export async function POST(req: Request) {
   if (authMode() !== "demo") return NextResponse.json(NOT_FOUND, { status: 404 });
   const userId = await userIdOf(req);

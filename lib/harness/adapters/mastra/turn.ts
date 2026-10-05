@@ -9,7 +9,7 @@ const SSE_DATA = "data:";
 type InputMessage = { id?: unknown; role?: unknown; content?: unknown };
 type ResumeEntry = { interruptId?: unknown; status?: unknown; payload?: unknown };
 
-/** An AG-UI run request as mascop reads it; the browser sent all of it, so every field is checked. */
+/** An AG-UI run request as Winyu reads it; the browser sent all of it, so every field is checked. */
 export type RunInput = { threadId?: unknown; runId?: unknown; messages?: InputMessage[]; resume?: ResumeEntry[]; forwardedProps?: { preloadPacketId?: unknown } } | null;
 
 /** The person's yes or no to one approval interrupt, and the tool call it covers. */

@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { studioApi } from "./studio";
 
 const STUDIO_ORIGIN = "http://localhost:3213";
-const EXECUTE = "http://studio.test/api/agents/mascop/tools/query_metric/execute";
+const EXECUTE = "http://studio.test/api/agents/winyu/tools/query_metric/execute";
 const SALES_BY_REGION = { metric: "net_sales_volume", dims: ["region"], filters: {}, range: { from: "2026-09-01", to: "2026-09-30" }, grain: "month", compare: "none", limit: 10 };
 
 type ToolAnswer = { ok?: boolean; provenance?: { scopeApplied?: { region?: string[] } }; error?: unknown };

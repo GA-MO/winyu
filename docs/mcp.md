@@ -1,6 +1,6 @@
 # MCP server
 
-mascop serves its governed tools to MCP clients (Claude Code, Claude Desktop, Copilot, other agents) at `/api/mcp`. Each client acts as one mascop user, chosen by the token it presents. No model runs on the mascop side: the client's own model calls the tools.
+Winyu serves its governed tools to MCP clients (Claude Code, Claude Desktop, Copilot, other agents) at `/api/mcp`. Each client acts as one Winyu user, chosen by the token it presents. No model runs on the Winyu side: the client's own model calls the tools.
 
 ## What a client gets
 
@@ -13,7 +13,7 @@ mascop serves its governed tools to MCP clients (Claude Code, Claude Desktop, Co
 
 An IT admin issues and revokes tokens on **/admin → MCP**. The plain token shows once, beside the endpoint and a ready Claude Code command. `.data/mcp-tokens.json` keeps only its SHA-256 hash and last four characters. A missing, unknown or revoked token gets HTTP 401 with `WWW-Authenticate: Bearer`.
 
-The bearer token is checked at the route, not through OAuth. Mastra's `createOAuthMiddleware` fits an external authorization server. These tokens are opaque per-user credentials that mascop issues itself, so the route maps the token to the user and the gateway enforces the rest.
+The bearer token is checked at the route, not through OAuth. Mastra's `createOAuthMiddleware` fits an external authorization server. These tokens are opaque per-user credentials that Winyu issues itself, so the route maps the token to the user and the gateway enforces the rest.
 
 ## Protocol versions
 
@@ -27,7 +27,7 @@ The bearer token is checked at the route, not through OAuth. Mastra's `createOAu
    **Claude Code**
 
    ```bash
-   claude mcp add --transport http mascop http://localhost:3200/api/mcp --header "Authorization: Bearer mcp_..."
+   claude mcp add --transport http winyu http://localhost:3100/api/mcp --header "Authorization: Bearer mcp_..."
    ```
 
    **Claude Desktop** (Settings → Developer → Edit Config, `claude_desktop_config.json`)
@@ -35,9 +35,9 @@ The bearer token is checked at the route, not through OAuth. Mastra's `createOAu
    ```json
    {
      "mcpServers": {
-       "mascop": {
+       "winyu": {
          "command": "npx",
-         "args": ["-y", "mcp-remote", "http://localhost:3200/api/mcp", "--header", "Authorization: Bearer mcp_..."]
+         "args": ["-y", "mcp-remote", "http://localhost:3100/api/mcp", "--header", "Authorization: Bearer mcp_..."]
        }
      }
    }
@@ -45,4 +45,4 @@ The bearer token is checked at the route, not through OAuth. Mastra's `createOAu
 
 3. Ask, for example, "ยอดขายเข้าแยกตามภาคไตรมาสนี้". The answer holds only the rows that person may see.
 
-Replace `localhost:3200` with the deployed host. To check a token without a model, run `bun run mcp:probe mcp_... --url=http://localhost:3200/api/mcp`. Add `--legacy` to connect the way a 2025-era client does.
+Replace `localhost:3100` with the deployed host. To check a token without a model, run `bun run mcp:probe mcp_... --url=http://localhost:3100/api/mcp`. Add `--legacy` to connect the way a 2025-era client does.

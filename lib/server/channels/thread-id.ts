@@ -4,7 +4,7 @@ import { CHANNELS, type Channel } from "./types";
 const THREAD_HASH_CHARS = 32;
 const SEPARATOR = "-";
 
-/** The mascop thread one person's private chat with the bot lives in: stable per chat app conversation and person, so the web rail shows it and the next message continues it. */
+/** The Winyu thread one person's private chat with the bot lives in: stable per chat app conversation and person, so the web rail shows it and the next message continues it. */
 export function channelThreadId(channel: Channel, conversation: string, userId: string): string {
   return `${channel}${SEPARATOR}${createHash("sha256").update(`${conversation}\n${userId}`).digest("hex").slice(0, THREAD_HASH_CHARS)}`;
 }

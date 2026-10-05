@@ -12,7 +12,7 @@ const NONCE_BYTES = 24;
 /** A LINE user who asked to be linked: the link token LINE issued for them, who they are on LINE, and when it stops counting. */
 export type LineLinkRequest = { id: string; identity: ExternalIdentity; issuedAt: string };
 
-/** The signed-in mascop user who confirmed a link request; LINE echoes the nonce back in the accountLink event of the LINE user who finished. */
+/** The signed-in Winyu user who confirmed a link request; LINE echoes the nonce back in the accountLink event of the LINE user who finished. */
 type LineLinkNonce = { id: string; userId: string; lineSubject: string; identity: ExternalIdentity; issuedAt: string };
 
 const requests = () => collection<LineLinkRequest>(REQUESTS_COLLECTION);
@@ -33,7 +33,7 @@ export function linkRequest(linkToken: string, now: Date = new Date()): LineLink
   return request && fresh(request.issuedAt, now) ? request : null;
 }
 
-/** The signed-in user confirms the request: it is spent, and a one-time nonce now binds the LINE user to this mascop user until LINE reports the finish. Null when the token is unknown, stale or already used. */
+/** The signed-in user confirms the request: it is spent, and a one-time nonce now binds the LINE user to this Winyu user until LINE reports the finish. Null when the token is unknown, stale or already used. */
 export function confirmLinkRequest(linkToken: string, user: User, now: Date = new Date()): string | null {
   const request = linkRequest(linkToken, now);
   if (!request) return null;

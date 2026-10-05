@@ -2,7 +2,7 @@ import { liveAccessFor } from "@/lib/access/enforce";
 import { findUser } from "@/lib/data/entities/users";
 import { emitTo, inflightRuns, resumedRun, saveRun, type RunRecord } from "@/lib/harness/runtime";
 import { threads } from "@/lib/server/threads-read";
-import { mascopAgent } from "./agent";
+import { winyuAgent } from "./agent";
 import { recoverOnNextStream } from "./durable";
 import { LEARNING, RUN_PATH, streamRun } from "./serve";
 import type { ChatTurn } from "./turn";
@@ -51,7 +51,7 @@ async function resume(record: RunRecord, turn: ChatTurn): Promise<Recovered> {
 export async function recoverChatRuns(): Promise<Recovered[]> {
   const records = inflightRuns().all();
   if (records.length === 0) return [];
-  const { runs } = await mascopAgent().listActiveRuns();
+  const { runs } = await winyuAgent().listActiveRuns();
   const active = new Set(runs.map((entry) => entry.runId));
   const recovered: Recovered[] = [];
   for (const record of records) {

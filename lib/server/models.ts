@@ -3,7 +3,7 @@ import { wrapLanguageModel, type LanguageModel } from "ai";
 import { traceMiddleware } from "@/lib/harness/trace";
 import { meterMiddleware } from "./usage-meter";
 
-const OPENROUTER_APP_URL = "http://localhost:3200";
+const OPENROUTER_APP_URL = "http://localhost:3100";
 const DEFAULT_OPENROUTER_MODEL = "google/gemini-3.8-flash";
 const MODEL_NAMES: Record<string, string> = { "google/gemini-3.8-flash": "Gemini 3.8 Flash" };
 const PROVIDER_ORDER: Record<string, string[]> = { "google/gemini-3.8-flash": ["google-ai-studio/flex", "google-ai-studio"] };
@@ -34,7 +34,7 @@ export function agentModel(): AgentModel | null {
   const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey) return null;
   const id = process.env.AGENT_MODEL || DEFAULT_OPENROUTER_MODEL;
-  const client = createOpenRouter({ apiKey, compatibility: "strict", appName: process.env.OPENROUTER_APP_TITLE ?? "mascop", appUrl: OPENROUTER_APP_URL });
+  const client = createOpenRouter({ apiKey, compatibility: "strict", appName: process.env.OPENROUTER_APP_TITLE ?? "Winyu", appUrl: OPENROUTER_APP_URL });
   const order = providerOrderOf(id);
   const settings = { usage: { include: true }, ...(order ? { provider: { order, allow_fallbacks: true } } : {}) };
   return { id, name: MODEL_NAMES[id] ?? id, model: () => metered(id, client(id, settings)) };

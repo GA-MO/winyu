@@ -4,11 +4,11 @@ export async function register() {
   void reconcileConnectors();
   const { recoverChatRuns } = await import("./lib/harness/adapters/mastra/recover");
   recoverChatRuns()
-    .then((recovered) => recovered.forEach((entry) => console.info(`[mascop] chat run ${entry.runId} after restart: ${entry.outcome}`)))
-    .catch((error: unknown) => console.error("[mascop] chat run recovery failed", error));
+    .then((recovered) => recovered.forEach((entry) => console.info(`[Winyu] chat run ${entry.runId} after restart: ${entry.outcome}`)))
+    .catch((error: unknown) => console.error("[Winyu] chat run recovery failed", error));
   const { schedulerEnabled } = await import("./lib/harness/adapters/mastra/jobs");
   if (!schedulerEnabled()) return;
   startConnectorProbe();
-  const { mascopMastra } = await import("./lib/harness/adapters/mastra/agent");
-  await mascopMastra().startWorkers();
+  const { winyuMastra } = await import("./lib/harness/adapters/mastra/agent");
+  await winyuMastra().startWorkers();
 }

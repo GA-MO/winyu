@@ -73,7 +73,7 @@ const CARD_BLOCK_RULE = [
   `ตัวอย่าง:\n${CARD_BLOCK_EXAMPLE}`,
 ].join("\n");
 
-/** The prompt rules the agent runs under, between what every user is told and what is personal: pick the right tool, then say the conclusion and what to do; mascop draws every tool result as a card itself. */
+/** The prompt rules the agent runs under, between what every user is told and what is personal: pick the right tool, then say the conclusion and what to do; Winyu draws every tool result as a card itself. */
 export const WINYU_RULES: string[] = [
   "ตอบเป็นภาษาไทย กระชับ 1–3 ประโยค: บอกข้อสรุปและสิ่งที่ควรทำต่อ ระบบวาดผลของ tool เมตริกเป็นการ์ดให้เองจากผลลัพธ์ (หัวเลข แถว กราฟ แหล่งข้อมูล ปุ่มขั้นถัดไป) ห้ามพิมพ์ตาราง รายการแถว หรือไล่ตัวเลขซ้ำใน markdown",
   CARD_BLOCK_RULE,

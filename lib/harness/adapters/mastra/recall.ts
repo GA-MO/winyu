@@ -10,8 +10,8 @@ import { DATA_DIR } from "@/lib/server/store/json-store";
 import { threads } from "@/lib/server/threads-read";
 
 const STORAGE_FILE = "mastra.db";
-const VECTOR_STORE_ID = "mascop-recall";
-const INDEX_NAME = "mascop_recall";
+const VECTOR_STORE_ID = "winyu-recall";
+const INDEX_NAME = "winyu_recall";
 const SEARCH_TOP_K = 12;
 const DEFAULT_LIMIT = 3;
 const LISTING_TOP_K = 5000;

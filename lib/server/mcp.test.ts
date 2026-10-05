@@ -104,9 +104,9 @@ describe("the MCP endpoint", () => {
       }),
     );
     expect(statuses).toEqual([
-      [401, 'Bearer realm="mascop"'],
-      [401, 'Bearer realm="mascop"'],
-      [401, 'Bearer realm="mascop"'],
+      [401, 'Bearer realm="winyu"'],
+      [401, 'Bearer realm="winyu"'],
+      [401, 'Bearer realm="winyu"'],
     ]);
     expect(connected(token)).rejects.toThrow();
   });

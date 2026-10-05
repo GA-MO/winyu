@@ -6,7 +6,7 @@ export const ACCESS_TOKENS_COLLECTION = "mcp-tokens";
 
 export const TOKEN_CHANNELS = ["mcp", "a2a"] as const;
 
-/** Where a token works: `mcp` for an MCP client's tool calls, `a2a` for another agent asking mascop's agent; a token of one channel is refused on the other. */
+/** Where a token works: `mcp` for an MCP client's tool calls, `a2a` for another agent asking Winyu's agent; a token of one channel is refused on the other. */
 export type TokenChannel = (typeof TOKEN_CHANNELS)[number];
 
 const TOKEN_BYTES = 32;
@@ -19,7 +19,7 @@ export type AccessToken = { id: string; userId: string; channel: TokenChannel; c
 /** A token just issued: the plain token, shown to the admin once, and the record that keeps only its hash. */
 export type IssuedToken = { token: string; record: AccessToken };
 
-/** Who a presented token acts as: the mascop user whose role and scope every call runs under, and the agent IT issued it to. */
+/** Who a presented token acts as: the Winyu user whose role and scope every call runs under, and the agent IT issued it to. */
 export type TokenHolder = { userId: string; caller: string | null; tokenId: string };
 
 type StoredToken = Omit<AccessToken, "channel" | "caller"> & Partial<Pick<AccessToken, "channel" | "caller">>;

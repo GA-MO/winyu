@@ -12,7 +12,7 @@ import { agentModel } from "@/lib/server/models";
 import { runWithAccess, runWithTurn, type TurnContext } from "@/lib/server/request-context";
 import type { WinyuTool } from "@/lib/server/tools/define";
 
-/** The one switch for what another agent may make mascop do: reads only, because writes wait for the person's yes in the chat and an A2A caller has no one to ask (see docs/a2a.md before widening it). */
+/** The one switch for what another agent may make Winyu do: reads only, because writes wait for the person's yes in the chat and an A2A caller has no one to ask (see docs/a2a.md before widening it). */
 export const A2A_TOOL_TIERS: readonly ToolTier[] = ["read"];
 
 /** Where the agent card and the JSON-RPC endpoint are served. */
@@ -31,7 +31,7 @@ const A2A_RULES = (caller: string): string[] => [
   `คำถามนี้มาจาก agent อื่นของบริษัท (${caller}) ผ่าน A2A ในนามผู้ใช้ข้างบน ไม่มีหน้าจอและไม่มีการ์ด: ตอบเป็นข้อความล้วนภาษาไทย 2–5 ประโยค ใส่ตัวเลขชี้ขาด หน่วย และช่วงเวลาที่ใช้ ห้ามเขียนบล็อก a2ui, JSON หรือตาราง markdown ผู้เรียกได้แถวข้อมูลจาก tool แนบไปเป็น data แยกต่างหากแล้ว`,
   "ทุกตัวเลขต้องมาจากผลลัพธ์ tool ในคำถามนี้ ถ้าไม่มีข้อมูล ให้บอกว่าไม่มี ห้ามประมาณเอง · ชื่อ ตัวเลข วันที่ และป้ายคัดลอกจากผล tool ตรง ๆ",
   "คำถามเรื่องตัวเลข = `query_metric` (ถ้ากำกวมระหว่างปริมาณกับมูลค่า เลือก certified metric ที่ตรงที่สุดแล้วบอกในประโยคเดียวว่าใช้ตัวไหน) · `sort` = `delta_asc` เมื่อถามว่าอะไรตก, `delta_desc` เมื่อถามว่าอะไรโต, `value_desc` เมื่อถามว่าใครมากสุด · ใช้ tool ไม่เกิน 3 ครั้ง",
-  "ช่องทางนี้อ่านได้อย่างเดียว: ไม่มี tool ที่เขียนข้อมูล ส่งงาน หรือขออนุมัติ ถ้าถูกขอให้ทำ ให้ตอบว่าต้องให้ผู้ใช้ทำเองในแชท mascop",
+  "ช่องทางนี้อ่านได้อย่างเดียว: ไม่มี tool ที่เขียนข้อมูล ส่งงาน หรือขออนุมัติ ถ้าถูกขอให้ทำ ให้ตอบว่าต้องให้ผู้ใช้ทำเองในแชท Winyu",
   "ผลว่าง, `PERMISSION_DENIED` หรือช่องที่ถูกปิด = บอกตรง ๆ ว่าข้อมูลนั้นอยู่นอกขอบเขตของผู้ใช้ที่ token นี้ทำงานในนาม ห้ามเดาค่า",
 ];
 
@@ -52,7 +52,7 @@ function rpcError(id: string | number | null, code: number, message: string): A2
 }
 
 function unauthorized(): Response {
-  return Response.json(rpcError(null, ERROR.unauthorized, "A valid mascop A2A token is required"), { status: 401, headers: { "WWW-Authenticate": 'Bearer realm="mascop"' } });
+  return Response.json(rpcError(null, ERROR.unauthorized, "A valid Winyu A2A token is required"), { status: 401, headers: { "WWW-Authenticate": 'Bearer realm="winyu"' } });
 }
 
 function bearerOf(request: Request): string | null {
@@ -66,18 +66,18 @@ function publicOrigin(request: Request): string {
   return `${protocol}://${host}`;
 }
 
-/** mascop's public A2A agent card: who it is, where to send JSON-RPC, that a bearer token is required, and what kinds of questions it answers. What each caller may actually see depends on the person its token acts as. */
+/** Winyu's public A2A agent card: who it is, where to send JSON-RPC, that a bearer token is required, and what kinds of questions it answers. What each caller may actually see depends on the person its token acts as. */
 export function agentCard(origin: string) {
   return {
     protocolVersion: PROTOCOL_VERSION,
-    name: "mascop",
+    name: "Winyu",
     description: "Boon Rawd Brewery's business copilot (fictional demo data). Answers questions about sales, stock, production, campaigns, people, sites and HR policy in Thai, as one employee: the person the presented token acts as, within their role and data scope. Read-only.",
     url: `${origin}${A2A_ENDPOINT_PATH}`,
     preferredTransport: "JSONRPC",
     version: "0.1.0",
     provider: { organization: "Boon Rawd Brewery IT (demo)", url: origin },
     capabilities: { streaming: false, pushNotifications: false, stateTransitionHistory: false },
-    securitySchemes: { bearer: { type: "http", scheme: "bearer", description: "An A2A token an IT admin issues on /admin → MCP · A2A, acting as one mascop user." } },
+    securitySchemes: { bearer: { type: "http", scheme: "bearer", description: "An A2A token an IT admin issues on /admin → MCP · A2A, acting as one Winyu user." } },
     security: [{ bearer: [] }],
     defaultInputModes: ["text/plain"],
     defaultOutputModes: ["text/plain", "application/json"],
@@ -104,7 +104,7 @@ function callOf(body: unknown): A2aCall | A2aResponse {
   const envelope = body as RpcEnvelope;
   const id = typeof envelope.id === "string" || typeof envelope.id === "number" ? envelope.id : null;
   if (id === null || typeof envelope.method !== "string") return rpcError(id, ERROR.invalidRequest, "Invalid JSON-RPC request");
-  if (STREAMING_METHODS.has(envelope.method)) return rpcError(id, ERROR.unsupported, "mascop does not stream over A2A; use message/send");
+  if (STREAMING_METHODS.has(envelope.method)) return rpcError(id, ERROR.unsupported, "Winyu does not stream over A2A; use message/send");
   if (!A2A_METHODS.includes(envelope.method as A2aMethod)) return rpcError(id, ERROR.methodNotFound, `Method ${envelope.method} is not served`);
   return { id, method: envelope.method as A2aMethod, params: envelope.params };
 }
@@ -129,7 +129,7 @@ function findingsOf(masked: ReadonlySet<PersonalKind>, injection: readonly Injec
   ];
 }
 
-/** The question another agent sent, as mascop lets the model read it: text parts only, personal data masked like a person's typed message, instructions aimed at the model recorded but passed on (permission is code). */
+/** The question another agent sent, as Winyu lets the model read it: text parts only, personal data masked like a person's typed message, instructions aimed at the model recorded but passed on (permission is code). */
 export function guardedMessage(params: unknown): GuardedMessage | null {
   const message = (params as { message?: IncomingMessage } | null)?.message;
   if (!message || typeof message !== "object") return null;
@@ -158,7 +158,7 @@ async function asked(call: A2aCall, user: User, holder: TokenHolder, model: Mode
   const guarded = guardedMessage(call.params);
   if (!guarded) return rpcError(call.id, ERROR.invalidParams, "message/send needs a message with a text part");
   const chosen = model();
-  if (!chosen) return rpcError(call.id, ERROR.internal, "mascop has no model configured");
+  if (!chosen) return rpcError(call.id, ERROR.internal, "Winyu has no model configured");
   const caller = holder.caller ?? "A2A agent";
   const access = liveAccessFor(user);
   const run: Run = newRun(user.id, null, { initiator: "a2a" });
@@ -180,7 +180,7 @@ async function asked(call: A2aCall, user: User, holder: TokenHolder, model: Mode
     return response;
   } catch (error) {
     emitTo(run, "runtime", { type: "agent.failed", payload: { reason: error instanceof Error ? error.message : String(error) } });
-    return rpcError(call.id, ERROR.internal, "mascop could not answer");
+    return rpcError(call.id, ERROR.internal, "Winyu could not answer");
   } finally {
     saveRun(run);
   }
@@ -205,7 +205,7 @@ export async function handleA2aRequest(request: Request, model: ModelOf = defaul
   if (body === undefined) return Response.json(rpcError(null, ERROR.parse, "Parse error"));
   const call = callOf(body);
   if (!isCall(call)) return Response.json(call);
-  if (!SUPPORTED_VERSION_HEADER.has(version)) return Response.json(rpcError(call.id, ERROR.version, `A2A version ${version} is not supported; mascop speaks 0.3`));
+  if (!SUPPORTED_VERSION_HEADER.has(version)) return Response.json(rpcError(call.id, ERROR.version, `A2A version ${version} is not supported; Winyu speaks 0.3`));
   if (call.method === "message/send") return Response.json(await asked(call, user, holder, model));
   return Response.json(await runWithAccess(liveAccessFor(user), () => answerA2a(call, user.id, null, null)));
 }

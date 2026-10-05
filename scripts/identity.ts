@@ -3,7 +3,7 @@ import { identityKey, identityLinks, linkIdentity, unlinkedAttempts, unlinkIdent
 
 const USAGE = `usage:
   bun run identity list
-  bun run identity link <objectId> <userId> [--email=<address>]   links an Entra object id in ENTRA_TENANT_ID to a mascop user
+  bun run identity link <objectId> <userId> [--email=<address>]   links an Entra object id in ENTRA_TENANT_ID to a Winyu user
   bun run identity unlink <objectId>`;
 const CLI_ACTOR = "cli";
 
@@ -22,7 +22,7 @@ function list() {
 function link(objectId: string | undefined, userId: string | undefined, flags: string[]) {
   if (!objectId || !userId) return console.error(USAGE);
   const user = findUser(userId);
-  if (!user) return console.error(`no mascop user ${userId}`);
+  if (!user) return console.error(`no Winyu user ${userId}`);
   const email = flags.find((flag) => flag.startsWith("--email="))?.slice("--email=".length) ?? null;
   linkIdentity({ provider: "entra", tenant: tenantOrExit(), subject: objectId.toLowerCase(), email, name: null }, user.id, CLI_ACTOR, new Date().toISOString());
   console.log(`linked ${objectId} -> ${user.id} (${user.nameTh}, ${user.role})`);

@@ -108,7 +108,7 @@ export function ChartLegend({ items }: { items: { name: string; color: string }[
   );
 }
 
-/** An axis tick the way the rest of mascop already formats a metric value — no separate compact formatter to keep in sync. */
+/** An axis tick the way the rest of Winyu already formats a metric value — no separate compact formatter to keep in sync. */
 export function formatTick(value: number, format: MetricFormat): string {
   if (format === "currency") return formatCurrency(value);
   if (format === "percent") return formatPercent(value);

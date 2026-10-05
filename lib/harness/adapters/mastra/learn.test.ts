@@ -4,7 +4,7 @@ import type { MetricQuery } from "@/lib/contracts";
 import { actionEvents, memoryFacts } from "@/lib/server/agent/collections";
 import { auditLog } from "@/lib/server/audit";
 import { threadForRun, threads } from "@/lib/server/threads-read";
-import { mascopAgent } from "./agent";
+import { winyuAgent } from "./agent";
 import { forgetThread } from "./history";
 import { latestReplyText, learnFromTurn } from "./learn";
 import { forgetConversations, searchConversations } from "./recall";
@@ -17,14 +17,14 @@ const REPLY = "ฝ่ายขายลาออกสูงสุดในเ�
 const ATTRITION: MetricQuery = { metric: "attrition_rate", dims: ["department"], filters: {}, range: { from: "2026-09-01", to: "2026-09-22" }, grain: "month", compare: "prev_period", limit: null };
 
 async function say(role: "user" | "assistant", text: string): Promise<void> {
-  const memory = await mascopAgent().getMemory();
+  const memory = await winyuAgent().getMemory();
   if (!memory) throw new Error("the chat agent has no memory");
   const content = { format: 2 as const, parts: [{ type: "text" as const, text }] };
   await memory.saveMessages({ messages: [{ id: randomUUID(), role, createdAt: new Date(), threadId: THREAD, resourceId: USER, type: "text", content }] });
 }
 
 async function openThread(): Promise<void> {
-  const memory = await mascopAgent().getMemory();
+  const memory = await winyuAgent().getMemory();
   if (!memory) throw new Error("the chat agent has no memory");
   const now = new Date();
   await memory.saveThread({ thread: { id: THREAD, resourceId: USER, title: QUESTION, createdAt: now, updatedAt: now } });

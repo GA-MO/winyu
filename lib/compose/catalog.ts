@@ -4,12 +4,12 @@ import { z } from "zod/v3";
 export const CARD_FENCE = "```a2ui";
 
 /** The AG-UI activity type a composed card travels as, live and restored. */
-export const COMPOSED_CARD_ACTIVITY = "mascop-card";
+export const COMPOSED_CARD_ACTIVITY = "winyu-card";
 
-/** The catalog id every composed surface names; the chat registers mascop's renderers under it. */
-export const COMPOSE_CATALOG_ID = "mascop";
+/** The catalog id every composed surface names; the chat registers Winyu's renderers under it. */
+export const COMPOSE_CATALOG_ID = "winyu";
 
-/** The A2UI protocol version mascop writes and CopilotKit's renderer reads. */
+/** The A2UI protocol version Winyu writes and CopilotKit's renderer reads. */
 export const A2UI_VERSION = "v0.9";
 
 /** The id A2UI draws a surface from; the composed card's root is sent under it whatever id the model gave it. */
