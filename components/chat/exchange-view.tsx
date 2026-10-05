@@ -13,6 +13,7 @@ import { ComposedCardView } from "./composed-card";
 import { Markdown } from "./markdown";
 import type { Exchange, Question, ReplyStep, ToolStep } from "./timeline";
 import { cardPlanOf, composedCalls, toolViewOf, type CardPlan } from "./tool-view";
+import { withRequestedCourses } from "./requested-courses";
 import type { PendingApproval } from "./use-chat-session";
 
 const CARDS: Record<string, ToolCard> = TOOL_CARDS;
@@ -25,7 +26,7 @@ const STATUS_TONE: Record<ContextPacket["status"], "neutral" | "success" | "warn
   resolved: "success",
 };
 
-/** What one exchange needs from the live chat: whether it is the newest, whether a reply streams, the approvals asked and answered, and how it ended. */
+/** What one exchange needs from the live chat: whether it is the newest, whether a reply streams, the approvals asked and answered, how it ended, and the course seats the conversation has requested since. */
 export type ExchangeLive = {
   isLast: boolean;
   running: boolean;
@@ -35,6 +36,7 @@ export type ExchangeLive = {
   decide: (toolCallId: string, approved: boolean) => void;
   stopped: boolean;
   error: string | null;
+  requestedCourses: ReadonlySet<string>;
 };
 
 function UserBubble({ question }: { question: Question }) {
@@ -139,7 +141,7 @@ function StepView({ step, live, plan, reply }: { step: ReplyStep; live: Exchange
   if (step.kind === "composed")
     return (
       <CardBoundary>
-        <ComposedCardView surface={step.surface} />
+        <ComposedCardView surface={withRequestedCourses(step.surface, live.requestedCourses)} />
       </CardBoundary>
     );
   return (
