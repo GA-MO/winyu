@@ -1,4 +1,5 @@
 import type { RuleRef } from "@/lib/contracts";
+import type { GuardFinding } from "./guard";
 import type { ApprovalRule, ContextKind, Evidence, Goal, ObservationStatus, RecoveryAction } from "./types";
 
 export type EventSource = "runtime" | "model" | "gateway" | "ui";
@@ -34,6 +35,7 @@ export type HarnessEventBody =
   | { type: "verification.passed"; payload: ToolRef & { checks: string[] } }
   | { type: "verification.failed"; payload: ToolRef & { reason: string; retry: boolean } }
   | { type: "recovery.decided"; payload: ToolRef & { action: RecoveryAction; reason: string; fix?: string } }
+  | { type: "guard.flagged"; payload: GuardFinding }
   | { type: "agent.completed"; payload: { finishReason: string } }
   | { type: "agent.failed"; payload: { reason: string } };
 

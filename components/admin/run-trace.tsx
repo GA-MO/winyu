@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
-import { CircleCheck, CircleX, Flag, Gauge, Hand, Layers, LayoutTemplate, MousePointerClick, Scissors, Sparkles, Wrench } from "lucide-react";
+import { CircleCheck, CircleX, Flag, Gauge, Hand, Layers, LayoutTemplate, MousePointerClick, Scissors, ShieldAlert, Sparkles, Wrench } from "lucide-react";
 import { cn } from "@/components/ui/cn";
 import type { AuditEntry } from "@/lib/contracts";
 import type { ContextRef } from "@/lib/harness/events";
@@ -134,6 +134,20 @@ function lineOf(entry: TimelineEntry, argsOf: (toolCallId: string) => string | n
       return { icon: LayoutTemplate, tone: "success", title: COPY.rendered(entry.components.join(", ")) };
     case "composed":
       return { icon: LayoutTemplate, tone: entry.rejected > 0 ? "warning" : "success", title: COPY.composed(entry.accepted, entry.rejected), detail: entry.problems.length > 0 ? entry.problems.join(" · ") : null };
+    case "guarded":
+      return {
+        icon: ShieldAlert,
+        tone: entry.action === "warned" ? "warning" : "primary",
+        title: TH.guard.flagged(entry.check, TH.guard.source[entry.source] ?? entry.source),
+        detail: (
+          <div className="flex flex-wrap gap-1">
+            {entry.kinds.map((kind) => (
+              <Pill key={kind} tone="warning">{TH.guard.kind[kind] ?? kind}</Pill>
+            ))}
+            <Pill tone={entry.action === "warned" ? "neutral" : "success"}>{TH.guard.action[entry.action] ?? entry.action}</Pill>
+          </div>
+        ),
+      };
     case "end":
       return entry.ok ? { icon: CircleCheck, tone: "success", title: COPY.completed } : { icon: CircleX, tone: "danger", title: COPY.failed(entry.reason) };
   }

@@ -1,7 +1,9 @@
 import { createHash, randomUUID } from "node:crypto";
 import type { AuditEntry, Initiator, RuleRef } from "@/lib/contracts";
 import { TH } from "@/lib/i18n/th";
+import type { GuardFinding } from "@/lib/harness/guard";
 import { THROWN_CODE } from "@/lib/harness/observation";
+import { currentRun, emit } from "@/lib/harness/runtime";
 import type { Observation } from "@/lib/harness/types";
 import { currentTurn } from "@/lib/server/request-context";
 import { collection } from "@/lib/server/store/json-store";
@@ -108,5 +110,37 @@ export function recordComposedCard(card: AuditedCard): void {
     turnId: card.runId,
     ...(card.threadId ? { threadId: card.threadId } : {}),
     ...(card.question ? { question: card.question } : {}),
+  });
+}
+
+/** The name a guard decision goes by in the audit, beside the tool calls of the same run. */
+export const GUARD_AUDIT_TOOL = "guardrail";
+
+const GUARD_CONNECTOR = "winyu";
+
+/** Records one guard decision: an event on the current run's trace and an audit row naming its source, check, kinds and action, never the text it guarded. */
+export function recordGuardFinding(finding: GuardFinding, userId: string): void {
+  emit("runtime", { type: "guard.flagged", payload: finding });
+  const run = currentRun();
+  const turn = currentTurn();
+  const turnId = run?.id ?? turn.turnId;
+  const kinds = finding.kinds.map((kind) => TH.guard.kind[kind] ?? kind).join(", ");
+  auditLog().put({
+    id: randomUUID(),
+    at: new Date().toISOString(),
+    userId,
+    tool: GUARD_AUDIT_TOOL,
+    connector: GUARD_CONNECTOR,
+    argsHash: argsHash(finding),
+    decision: finding.action === "warned" ? "allow" : "masked",
+    rowsReturned: 0,
+    latencyMs: 0,
+    reason: `${TH.guard.flagged(finding.check, TH.guard.source[finding.source] ?? finding.source)}: ${kinds} · ${TH.guard.action[finding.action] ?? finding.action}`,
+    args: argsPreview(finding),
+    toolCallId: randomUUID(),
+    initiator: run?.initiator ?? "person",
+    ...(turnId ? { turnId } : {}),
+    ...(turn.threadId ? { threadId: turn.threadId } : {}),
+    ...(turn.question ? { question: turn.question } : {}),
   });
 }

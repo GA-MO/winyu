@@ -33,4 +33,10 @@ describe("timelineOf", () => {
     emitTo(run, "gateway", { type: "tool.denied", payload: { toolCallId: "c2", tool: "create_handoff", code: "TOOL_NOT_ALLOWED", reason: "ไม่มีสิทธิ์" } });
     expect(timelineOf(run.events)).toEqual([expect.objectContaining({ kind: "tool", denied: { code: "TOOL_NOT_ALLOWED", reason: "ไม่มีสิทธิ์", rule: null }, outcome: null, attempts: 0 })]);
   });
+
+  test("a guard decision is its own line with its source, kinds and action", () => {
+    const run = newRun("u_krit", null);
+    emitTo(run, "runtime", { type: "guard.flagged", payload: { source: "user_input", check: "personal_data", kinds: ["phone"], action: "masked" } });
+    expect(timelineOf(run.events)).toEqual([expect.objectContaining({ kind: "guarded", source: "user_input", check: "personal_data", kinds: ["phone"], action: "masked" })]);
+  });
 });
