@@ -77,6 +77,10 @@ function auditOf(runId: string, tool: string) {
   return auditLog().where((entry) => entry.turnId === runId && entry.tool === tool);
 }
 
+function traceHas(runId: string, type: string): boolean {
+  return runStore().get(runId)?.events.some((event) => event.type === type) ?? false;
+}
+
 function widgetIds(userId: string): string[] {
   return (layouts().get(userId)?.widgets ?? []).map((widget) => widget.id);
 }
@@ -129,6 +133,7 @@ async function askToPin(label: string): Promise<{ thread: Thread; asking: Reply;
   check(interrupt !== null, `run ends with a pin_widget approval interrupt (${interruptsOf(asking).map((entry) => entry.id).join(", ") || "none"})`);
   check(JSON.stringify(widgetIds(CEO)) === JSON.stringify(before), "no widget written before the answer");
   check(auditOf(asking.runId, "pin_widget").length === 0, "no pin_widget audit row before the answer");
+  check(traceHas(asking.runId, "approval.requested"), "the asking run's trace records approval.requested");
   return { thread, asking, interrupt, before };
 }
 
@@ -143,6 +148,10 @@ async function pinApproved(): Promise<string[]> {
   check(result?.ok === true && widgetId !== null, `pin_widget executed (widget ${widgetId})`);
   check(widgetId !== null && widgetIds(CEO).includes(widgetId) && !before.includes(widgetId), "the widget exists in the CEO's layout");
   check(auditOf(answer.runId, "pin_widget").some((entry) => entry.initiator === "person"), "pin_widget audit row on the answering run");
+  check(traceHas(answer.runId, "approval.granted"), "the answering run's trace starts with approval.granted");
+  const pinned = widgetIds(CEO);
+  const replayed = await run(thread, [{ interruptId: interrupt.id, status: "resolved", payload: { approved: true } }]);
+  check(replayed.status === 409 && JSON.stringify(widgetIds(CEO)) === JSON.stringify(pinned), `replaying the spent answer is refused (HTTP ${replayed.status}), nothing pinned twice`);
   const goals = [asking.runId, answer.runId].map((runId) => runStore().get(runId)?.events.find((event) => event.type === "agent.started"));
   const goalIds = goals.map((event) => (event?.type === "agent.started" ? event.payload.goal.id : null));
   check(goalIds[0] !== null && goalIds[0] === goalIds[1], `the two runs share one goal (${goalIds[0]})`);
@@ -157,8 +166,7 @@ async function pinDeclined(): Promise<string[]> {
   console.log(`  answer ${summary(answer)}`);
   check(JSON.stringify(widgetIds(CEO)) === JSON.stringify(before), "no widget written after the decline");
   check(auditOf(answer.runId, "pin_widget").length === 0, "no pin_widget audit row after the decline");
-  const denied = runStore().get(answer.runId)?.events.some((event) => event.type === "approval.denied") ?? false;
-  check(denied, "the answering run's trace starts with approval.denied");
+  check(traceHas(answer.runId, "approval.denied"), "the answering run's trace starts with approval.denied");
   return [asking.runId, answer.runId];
 }
 
