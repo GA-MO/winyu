@@ -1,5 +1,6 @@
 import path from "node:path";
 import { LibSQLVector } from "@mastra/libsql";
+import { reopenExact } from "./exact-vector-store";
 import { z } from "zod";
 import type { MetricQuery } from "@/lib/contracts";
 import { currentEmbedder } from "@/lib/server/recall/embedder";
@@ -42,9 +43,10 @@ let ready: Promise<LibSQLVector> | null = null;
 
 function vectorStore(): Promise<LibSQLVector> {
   ready ??= (async () => {
-    const store = new LibSQLVector({ id: VECTOR_STORE_ID, url: `file:${path.join(DATA_DIR, STORAGE_FILE)}` });
-    await store.createIndex({ indexName: INDEX_NAME, dimension: currentEmbedder().dimension });
-    return store;
+    const url = `file:${path.join(DATA_DIR, STORAGE_FILE)}`;
+    const setup = new LibSQLVector({ id: VECTOR_STORE_ID, url });
+    await setup.createIndex({ indexName: INDEX_NAME, dimension: currentEmbedder().dimension });
+    return reopenExact(setup, { id: VECTOR_STORE_ID, url, indexName: INDEX_NAME });
   })();
   return ready;
 }
