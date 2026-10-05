@@ -1,11 +1,14 @@
 import { randomUUID } from "node:crypto";
 import type { Message } from "@ag-ui/core";
+import { newestCardOf } from "@/components/chat/card-to-share";
+import { exchangesOf } from "@/components/chat/timeline";
 import { HANDOFF_REPLY_ACTIVITY, handoffReplyNoteSchema, type HandoffReplyNote } from "@/lib/contracts";
 import { openApprovalsFor } from "@/lib/harness/approvals";
 import { fenceAsData } from "@/lib/harness/fence";
 import { injectionIn, withoutInjection } from "@/lib/harness/guard";
 import { recordGuardFinding } from "@/lib/server/audit";
 import { TH } from "@/lib/i18n/th";
+import type { ShareTarget } from "@/lib/share/card";
 import { toolTiers } from "@/lib/server/agent/tools";
 import type { SpokenTurn } from "@/lib/server/request-context";
 import { winyuAgent } from "./agent";
@@ -165,6 +168,19 @@ export async function threadHistory(threadId: string, userId: string): Promise<M
 export async function threadTranscript(threadId: string, userId: string): Promise<SpokenTurn[]> {
   const messages = await threadHistory(threadId, userId);
   return messages.flatMap((message) => ((message.role === "user" || message.role === "assistant") && typeof message.content === "string" ? [{ role: message.role, text: message.content }] : []));
+}
+
+function readTools(): ReadonlySet<string> {
+  const tiers = toolTiers();
+  return new Set(Object.keys(tiers).filter((tool) => tiers[tool] === "read"));
+}
+
+/** The card "ส่งการ์ดนี้" means on this thread: the newest card drawn before the question being answered, whether or not memory has stored that question yet. */
+export async function cardBeforeQuestion(threadId: string, userId: string, question: string | null): Promise<ShareTarget | null> {
+  const exchanges = exchangesOf(await threadHistory(threadId, userId));
+  const last = exchanges.at(-1)?.question;
+  const asking = last?.kind === "typed" && question !== null && last.text.trim().startsWith(question);
+  return newestCardOf(asking ? exchanges.slice(0, -1) : exchanges, readTools());
 }
 
 /** What the model reads for a handoff reply: a labelled system note with the colleague's words fenced as data. */

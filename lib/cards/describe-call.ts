@@ -12,6 +12,12 @@ function nameOf(userId: string | undefined): string {
   return findUser(userId)?.nameTh ?? userId;
 }
 
+/** The people a share names, as the person reads them: a user id becomes the name, a typed name stays as typed. */
+export function sharedWith(to: unknown): string {
+  const names = Array.isArray(to) ? to.filter((name): name is string => typeof name === "string") : [];
+  return names.map((name) => findUser(name)?.nameTh ?? name).join(", ");
+}
+
 function jobOf(input: Job): string {
   const job = String(input.job ?? "");
   return TH.approve.jobs[job] ?? job;
@@ -33,6 +39,7 @@ export function describeToolCall(name: string, input: unknown): ToolCallDescript
   const value = (input ?? {}) as Record<string, unknown>;
   const to = nameOf((value as Recipient).toUserId);
   if (name === "create_handoff") return sentence(TH.approve.handoffDone(to), TH.approve.handoff(to));
+  if (name === "share_card") return sentence(TH.approve.shareDone(sharedWith(value.to)), TH.approve.share(sharedWith(value.to)));
   if (name === "send_email") return sentence(TH.approve.emailDone(to), TH.approve.email(to));
   if (name === "pin_widget") return sentence(TH.approve.pinDone, TH.approve.pin);
   if (name === "watch_metric") return sentence(TH.approve.watchDone, TH.approve.watch);

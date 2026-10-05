@@ -3,13 +3,14 @@
 import { useCallback, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronDown, CircleCheck, HelpCircle, Pin, PinOff, Sparkles, X } from "lucide-react";
-import { ShareChrome, ShareProvider, type ShareTarget } from "@/components/share/share-sheet";
+import { ShareChrome, ShareProvider } from "@/components/share/share-sheet";
 import { cn } from "@/components/ui/cn";
 import type { WidgetSpec } from "@/lib/contracts";
 import type { CardParts } from "@/lib/cards/present";
 import { CardPartsView } from "@/components/cards/card-parts";
 import { ChatLinkActions } from "@/components/landing/chat-link-actions";
 import { TH } from "@/lib/i18n/th";
+import type { ShareTarget } from "@/lib/share/card";
 import type { Attention } from "@/lib/dashboard/attention";
 import { SeenTracker } from "./seen-tracker";
 

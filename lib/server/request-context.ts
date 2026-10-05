@@ -1,5 +1,6 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 import type { AccessContext, MetricQuery } from "@/lib/contracts";
+import type { ShareTarget } from "@/lib/share/card";
 
 const NO_ACCESS = "currentAccess() called outside runWithAccess()";
 
@@ -24,8 +25,8 @@ export function accessOrNull(): AccessContext | null {
 /** One line of a saved conversation: who spoke and what they said. */
 export type SpokenTurn = { role: string; text: string };
 
-/** The chat turn being served; `transcript` reads the thread's saved conversation and is absent outside a chat run. */
-export type TurnContext = { turnId: string | null; threadId: string | null; preloadPacketId: string | null; question: string | null; queries: MetricQuery[]; transcript?: () => Promise<SpokenTurn[]> };
+/** The chat turn being served; `transcript` reads the thread's saved conversation and `cardOnScreen` the card the person last saw on it, both absent outside a chat run. */
+export type TurnContext = { turnId: string | null; threadId: string | null; preloadPacketId: string | null; question: string | null; queries: MetricQuery[]; transcript?: () => Promise<SpokenTurn[]>; cardOnScreen?: () => Promise<ShareTarget | null> };
 
 const EMPTY_TURN: TurnContext = { turnId: null, threadId: null, preloadPacketId: null, question: null, queries: [] };
 

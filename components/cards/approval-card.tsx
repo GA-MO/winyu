@@ -2,13 +2,17 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
-import { BellRing, CalendarDays, Check, GraduationCap, LayoutGrid, Mail, RefreshCw, Send, ShieldCheck, X } from "lucide-react";
+import { BellRing, CalendarDays, Check, Forward, GraduationCap, LayoutGrid, Mail, RefreshCw, Send, ShieldCheck, X } from "lucide-react";
+import { CHANNEL_ICON, useShareContacts } from "@/components/share/share-sheet";
 import { METRIC_IDS, ROLE_IDS, type MetricId, type MetricQuery, type RoleId, type Urgency, type WatchCondition } from "@/lib/contracts";
 import { conditionLabel } from "@/lib/engine/personal-watches";
 import { USERS, findUser } from "@/lib/data/entities/users";
+import { sharedWith } from "@/lib/cards/describe-call";
 import { formatDateTh } from "@/lib/i18n/format";
 import { metricLabel } from "@/lib/dashboard/metric-display";
 import { TH } from "@/lib/i18n/th";
+import { channelFor, SHARE_CHANNELS, type ShareChannel, type ShareContact } from "@/lib/share/card";
+import { matchRecipients, type RecipientMatch } from "@/lib/share/recipients";
 
 const COURSES_ENDPOINT = "/api/courses";
 const PERMISSION_LABEL_ENDPOINT = "/api/permissions/label";
@@ -24,13 +28,14 @@ const CONFIRM =
 const CANCEL =
   "inline-flex items-center rounded-full border border-border bg-card px-4 py-2.5 text-sm font-medium text-muted-foreground transition hover:border-foreground/25 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
-/** A write tool call waiting for the user: `approved` is null until they decide. */
+/** A write tool call waiting for the user: `approved` is null until they decide; `shareTitle` names the card a share_card call would send (null when the conversation has none yet, absent where nobody knows). */
 export type ApprovalRequest = {
   tool: string;
   input: unknown;
   approved: boolean | null;
   approve: () => void;
   reject: () => void;
+  shareTitle?: string | null;
 };
 
 type Decision = {
@@ -46,6 +51,8 @@ type Decision = {
   confirm: string;
   cancel: string;
   done: string;
+  extra?: ReactNode;
+  blocked?: string;
 };
 
 type HandoffInput = { toUserId?: string; title?: string; ask?: string; urgency?: string; evidence?: MetricQuery[]; alertIds?: string[] };
@@ -56,6 +63,8 @@ type WatchInput = { title?: string; query?: MetricQuery; condition?: WatchCondit
 type PermissionInput = { role?: string; kind?: string; key?: string; value?: string };
 type LeaveInput = { kind?: string; from?: string; to?: string; reason?: string };
 type EnrollInput = { courseId?: string };
+type ShareInput = { to?: unknown; channel?: unknown; note?: unknown };
+type PlannedRecipient = { contact: ShareContact; via: ShareChannel; fellBack: boolean };
 type CourseSummary = { id: string; title: string; starts: string; days: number };
 
 const PERMISSION_VALUE_LABEL: Record<string, string> = {
@@ -258,6 +267,88 @@ function enrollDecision(input: EnrollInput, course: CourseSummary | null): Decis
   };
 }
 
+function askedChannel(value: unknown): ShareChannel | null {
+  return SHARE_CHANNELS.find((channel) => channel === value) ?? null;
+}
+
+function typedNames(input: ShareInput): string[] {
+  return Array.isArray(input.to) ? input.to.filter((name): name is string => typeof name === "string") : [];
+}
+
+function plannedOf(match: RecipientMatch<ShareContact>, asked: ShareChannel | null): PlannedRecipient | null {
+  if (match.kind !== "found") return null;
+  const via = channelFor(match.person.channels, asked);
+  return { contact: match.person, via, fellBack: asked !== null && via !== asked };
+}
+
+function RecipientRow({ planned }: { planned: PlannedRecipient }) {
+  const Icon = CHANNEL_ICON[planned.via];
+  return (
+    <li className="flex items-center justify-between gap-3">
+      <div className="min-w-0">
+        <p className="truncate text-sm font-medium">{planned.contact.nameTh}</p>
+        <p className="truncate text-xs text-muted-foreground">{planned.contact.title}</p>
+      </div>
+      <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-border px-2.5 py-1 text-[11px] text-muted-foreground">
+        <Icon className="size-3.5" aria-hidden />
+        {planned.fellBack ? TH.approve.shareFallback : TH.share.channel[planned.via]}
+      </span>
+    </li>
+  );
+}
+
+function SharePreview({ recipients, title, note }: { recipients: PlannedRecipient[]; title: string | null; note: string | null }) {
+  return (
+    <div className="flex min-w-0 flex-col gap-3">
+      {recipients.length > 0 ? (
+        <div className="min-w-0">
+          <p className="text-[11px] text-muted-foreground">{TH.approve.shareRecipients}</p>
+          <ul className="mt-1.5 flex flex-col gap-2">
+            {recipients.map((planned) => (
+              <RecipientRow key={planned.contact.id} planned={planned} />
+            ))}
+          </ul>
+        </div>
+      ) : null}
+      {title ? (
+        <div className="min-w-0">
+          <p className="text-[11px] text-muted-foreground">{TH.approve.sharePreview}</p>
+          <div className="mt-1.5 rounded-xl border border-border bg-muted/40 px-3.5 py-3">
+            <p className="text-sm font-semibold wrap-anywhere">{title}</p>
+            {note ? <p className="mt-1.5 border-l-2 border-border pl-2.5 text-sm leading-relaxed wrap-anywhere">{note}</p> : null}
+            <span className="mt-3 inline-flex rounded-full bg-primary px-3.5 py-1.5 text-xs font-semibold text-primary-foreground">{TH.share.open}</span>
+            <p className="mt-2 text-[11px] text-muted-foreground">{TH.share.scopeNote}</p>
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function shareDecision(input: ShareInput, contacts: ShareContact[] | null, title: string | null | undefined): Decision {
+  const asked = askedChannel(input.channel);
+  const matches = contacts ? matchRecipients(typedNames(input), contacts) : [];
+  const recipients = matches.flatMap((match) => plannedOf(match, asked) ?? []);
+  const names = recipients.length > 0 ? recipients.map((planned) => planned.contact.nameTh).join(", ") : sharedWith(input.to);
+  const note = typeof input.note === "string" && input.note.trim() ? input.note.trim() : null;
+  return {
+    icon: Forward,
+    title: TH.approve.shareDone(names),
+    person: null,
+    subjectLabel: TH.approve.card,
+    subject: null,
+    body: null,
+    chips: [],
+    urgency: null,
+    effect: TH.approve.effectShare(names),
+    confirm: TH.approve.confirmShare,
+    cancel: TH.approve.cancelSend,
+    done: TH.approve.doneShare(names),
+    extra: <SharePreview recipients={recipients} title={title ?? null} note={note} />,
+    blocked: title === null ? TH.approve.shareNoCard : undefined,
+  };
+}
+
 function decisionOf(tool: string, input: unknown): Decision | null {
   const value = (input ?? {}) as Record<string, unknown>;
   if (tool === "send_email") return emailDecision(value);
@@ -332,7 +423,9 @@ function DecisionCard({ decision, request }: { decision: Decision; request: Appr
           </div>
         ) : null}
 
-        <p className="text-xs leading-relaxed text-muted-foreground">{decision.effect}</p>
+        {decision.extra}
+
+        {decision.blocked ? <p className="text-xs leading-relaxed text-warning">{decision.blocked}</p> : <p className="text-xs leading-relaxed text-muted-foreground">{decision.effect}</p>}
       </div>
 
       <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-border px-4 py-3">
@@ -341,10 +434,12 @@ function DecisionCard({ decision, request }: { decision: Decision; request: Appr
           <button type="button" className={CANCEL} onClick={request.reject}>
             {decision.cancel}
           </button>
-          <button type="button" className={CONFIRM} onClick={request.approve}>
-            <Check className="size-4" aria-hidden />
-            {decision.confirm}
-          </button>
+          {decision.blocked ? null : (
+            <button type="button" className={CONFIRM} onClick={request.approve}>
+              <Check className="size-4" aria-hidden />
+              {decision.confirm}
+            </button>
+          )}
         </div>
       </footer>
     </section>
@@ -425,8 +520,14 @@ function CourseApproval({ request }: { request: ApprovalRequest }) {
   return <Approval decision={enrollDecision(input, course)} request={request} />;
 }
 
+function ShareApproval({ request }: { request: ApprovalRequest }) {
+  const contacts = useShareContacts();
+  return <Approval decision={shareDecision((request.input ?? {}) as ShareInput, contacts, request.shareTitle)} request={request} />;
+}
+
 /** The one decision the user has to make: who gets the work, what it asks, what approving does. Null for a tool that needs no approval. */
 export function renderApproval(request: ApprovalRequest): ReactNode {
+  if (request.tool === "share_card") return <ShareApproval request={request} />;
   if (request.tool === "enroll_course") return <CourseApproval request={request} />;
   if (request.tool === "set_permission") return <PermissionApproval request={request} />;
   if (request.tool === "create_handoff") return <HandoffApproval request={request} />;

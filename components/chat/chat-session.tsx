@@ -6,15 +6,18 @@ import type { QuickAction } from "@/lib/contracts";
 import { TH } from "@/lib/i18n/th";
 import { isFollowUpIntent } from "@/lib/engine/follow-ups";
 import { CardActionsProvider } from "@/components/cards/card-actions";
+import { TOOL_CARDS } from "@/components/cards/registry";
 import { ShareProvider } from "@/components/share/share-sheet";
 import { Composer } from "@/components/composer/composer";
 import { GlowBackdrop } from "@/components/ui/glow-backdrop";
+import { cardsBeforeEach } from "./card-to-share";
 import { ExchangeView, type ExchangeLive } from "./exchange-view";
 import { answeredMetrics, chipRow, latestFollowUps } from "./follow-ups";
 import { requestedCoursesOf } from "./requested-courses";
 import { useChatSession, type AgentMessage, type PendingApproval } from "./use-chat-session";
 
 const COLUMN = "mx-auto w-full max-w-3xl px-4 sm:px-6";
+const CARD_TOOLS: ReadonlySet<string> = new Set(Object.keys(TOOL_CARDS));
 const EMPTY_CHIPS = 4;
 const ANSWER_CHIPS = 3;
 const PINNED_SLACK_PX = 120;
@@ -128,6 +131,7 @@ export function ChatSession({ threadId, initialPrompt, initialMessages, initialA
   };
 
   const requestedCourses = useMemo(() => requestedCoursesOf(exchanges), [exchanges]);
+  const cardsBefore = useMemo(() => cardsBeforeEach(exchanges, CARD_TOOLS), [exchanges]);
 
   const live = (index: number): ExchangeLive => {
     const isLast = index === exchanges.length - 1;
@@ -141,6 +145,7 @@ export function ChatSession({ threadId, initialPrompt, initialMessages, initialA
       stopped: isLast && session.stoppedExchangeId === exchanges[index].id,
       error: isLast ? session.error : null,
       requestedCourses,
+      cardBefore: cardsBefore[index] ?? null,
     };
   };
 

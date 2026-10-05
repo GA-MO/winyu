@@ -28,8 +28,11 @@ export type CorrectInput = { input: unknown; observation: Observation; verdict: 
 /** How the model can fix a call the tool refused or the harness did not trust: one instruction with the values that would work, or null when the model cannot fix it. */
 export type Corrector = (check: CorrectInput) => string | null;
 
-/** One tool as the harness governs it: its surface entry (connector, tier = risk, roles) plus how long a read may take, what must hold afterwards, how the model can fix a failed call, and which arguments are personal text the audit never keeps. */
-export type Capability = ToolSurfaceEntry & { timeoutMs: number; verify: Verifier | null; correct: Corrector | null; redact: readonly string[] };
+/** Whether a write call names everything it needs (its people, its subject) so the person can be asked; a call that does not runs at once, does nothing and returns the fix. It reads the input alone, so the call that runs unasked fails the same check and can never act. */
+export type Readiness = (input: unknown) => boolean;
+
+/** One tool as the harness governs it: its surface entry (connector, tier = risk, roles) plus how long a read may take, whether a write is complete enough to ask about, what must hold afterwards, how the model can fix a failed call, and which arguments are personal text the audit never keeps. */
+export type Capability = ToolSurfaceEntry & { timeoutMs: number; ready: Readiness | null; verify: Verifier | null; correct: Corrector | null; redact: readonly string[] };
 
 export type DenyCode = "TOOL_NOT_ALLOWED" | "POLICY_RULE" | "RUN_LIMIT";
 

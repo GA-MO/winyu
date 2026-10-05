@@ -3,13 +3,13 @@
 import { Component, type ReactNode } from "react";
 import { AlertCircle, CircleSlash, MessageSquareReply, MousePointerClick, ShieldCheck, Sparkles } from "lucide-react";
 import { renderApproval } from "@/components/cards/approval-card";
-import { ShareChrome, type ShareTarget } from "@/components/share/share-sheet";
+import { ShareChrome } from "@/components/share/share-sheet";
 import { describeToolCall } from "@/lib/cards/describe-call";
 import { TOOL_CARDS, type ReplyText, type ToolCard } from "@/components/cards/registry";
 import { Badge } from "@/components/ui/primitives";
 import type { ContextPacket, HandoffReplyNote } from "@/lib/contracts";
 import { maskPersonalData } from "@/lib/harness/guard";
-import { sharedComposedCard, sharedToolCard, type ExchangeRead } from "@/lib/share/card";
+import { sharedComposedCard, sharedToolCard, shareTitle, type ExchangeRead, type ShareTarget } from "@/lib/share/card";
 import { TH } from "@/lib/i18n/th";
 import { ComposedCardView } from "./composed-card";
 import { Markdown } from "./markdown";
@@ -28,7 +28,7 @@ const STATUS_TONE: Record<ContextPacket["status"], "neutral" | "success" | "warn
   resolved: "success",
 };
 
-/** What one exchange needs from the live chat: whether it is the newest, whether a reply streams, the approvals asked and answered, how it ended, and the course seats the conversation has requested since. */
+/** What one exchange needs from the live chat: whether it is the newest, whether a reply streams, the approvals asked and answered, how it ended, the course seats the conversation has requested since, and the card an earlier exchange left on screen (what "ส่งการ์ดนี้" asked here would send). */
 export type ExchangeLive = {
   isLast: boolean;
   running: boolean;
@@ -39,6 +39,7 @@ export type ExchangeLive = {
   stopped: boolean;
   error: string | null;
   requestedCourses: ReadonlySet<string>;
+  cardBefore: ShareTarget | null;
 };
 
 function UserBubble({ question }: { question: Question }) {
@@ -148,6 +149,7 @@ function ToolStepView({ step, live, plan, reply, sharing }: { step: ToolStep; li
         approved: view.approved,
         approve: () => live.decide(step.toolCallId, true),
         reject: () => live.decide(step.toolCallId, false),
+        shareTitle: live.cardBefore ? shareTitle(live.cardBefore.card) : null,
       })}
     </div>
   );

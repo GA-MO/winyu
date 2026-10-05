@@ -99,9 +99,10 @@ function callContextOf(owner: Run | null, input: unknown): CallContext {
   return { input, initiator: owner?.initiator ?? "system", used: owner?.toolCalls ?? 0, limit: owner?.toolBudget ?? Number.POSITIVE_INFINITY };
 }
 
-/** Whether the person is asked before this call: only when its risk needs a yes and the policy would let it through, so nobody approves a call the gateway then refuses. */
+/** Whether the person is asked before this call: only when its risk needs a yes, the policy would let it through and the call names everything it needs, so nobody approves a call the gateway then refuses or the tool cannot carry out. */
 export function asksApproval(capability: Capability, input: unknown): boolean {
-  return authorize(currentAccess(), capability, callContextOf(currentRun(), input)).decision === "require_approval";
+  if (authorize(currentAccess(), capability, callContextOf(currentRun(), input)).decision !== "require_approval") return false;
+  return capability.ready ? capability.ready(input) : true;
 }
 
 /** The one door every tool call goes through, whoever asks (the model, a pressed button, server code): policy, the tool under a timeout, what it showed, whether that holds, and what to do when it does not; one audit row per call. */

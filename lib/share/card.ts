@@ -16,6 +16,10 @@ export const SHARE_NOTE_MAX = 300;
 const READS_MAX = 12;
 const COMPONENTS_MAX = 80;
 const DOCUMENTS_TOOL = "search_documents";
+const CHANNEL_PREFERENCE: readonly ShareChannel[] = ["teams", "line", "email"];
+
+/** Reads that cannot be shared: the person's own memory, and the metric catalog the model browses on the way to an answer. */
+export const UNSHAREABLE_TOOLS: ReadonlySet<string> = new Set(["recall_memory", "list_metrics"]);
 
 /** One read behind a shared card: the tool and the exact input it was called with. Never its result. */
 export type SharedRead = { tool: string; input: Record<string, unknown> };
@@ -26,8 +30,11 @@ export type SharedCard = { kind: "tool"; reads: SharedRead[] } | { kind: "compos
 /** One channel the sheet offers for a person: `ready` false means Teams is linked but the person never wrote to the bot, so the share goes by email. */
 export type ChannelOption = { channel: ShareChannel; ready: boolean };
 
-/** A colleague the share sheet lists, with the channels that reach them. */
-export type ShareContact = Persona & { channels: ChannelOption[] };
+/** A colleague the share sheet lists, with their English name and the channels that reach them. */
+export type ShareContact = Persona & { name: string; channels: ChannelOption[] };
+
+/** A card someone is about to share: the reads behind it and the question that drew it. */
+export type ShareTarget = { card: SharedCard; question: string | null };
 
 /** Why one recipient got the share on another channel than the one picked. */
 export type FallbackReason = "no-teams-conversation" | "send-failed";
@@ -56,6 +63,26 @@ export const shareRequestSchema = z.object({
 });
 
 export type ShareRequest = z.infer<typeof shareRequestSchema>;
+
+/** What the chat agent passes to share the card on screen: who it goes to (names as the person typed them, or user ids), the channel when the person named one, and a note. */
+export const shareCardInputSchema = z.object({
+  to: z.array(z.string().min(1).max(80)).min(1).max(SHARE_RECIPIENTS_MAX),
+  channel: z.enum(SHARE_CHANNELS).optional(),
+  note: z.string().max(SHARE_NOTE_MAX).optional(),
+});
+
+export type ShareCardInput = z.infer<typeof shareCardInputSchema>;
+
+/** The channel a share goes by when nobody picked one: Teams once the person writes to the bot there, then LINE, then email. */
+export function preferredChannel(options: readonly ChannelOption[]): ShareChannel {
+  return CHANNEL_PREFERENCE.find((channel) => options.some((option) => option.channel === channel && option.ready)) ?? "email";
+}
+
+/** The channel a share will actually go by: the one asked for when it reaches the person now, email when it does not, and the preferred one when none was asked. */
+export function channelFor(options: readonly ChannelOption[], asked: ShareChannel | null): ShareChannel {
+  if (!asked) return preferredChannel(options);
+  return options.some((option) => option.channel === asked && option.ready) ? asked : "email";
+}
 
 function inputOf(args: unknown): Record<string, unknown> {
   return typeof args === "object" && args !== null && !Array.isArray(args) ? (args as Record<string, unknown>) : {};

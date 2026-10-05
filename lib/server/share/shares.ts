@@ -1,7 +1,8 @@
 import { randomBytes } from "node:crypto";
 import type { User } from "@/lib/contracts";
-import type { FallbackReason, SentShare, ShareChannel, SharedCard, ShareReceipt } from "@/lib/share/card";
-import { findUser } from "@/lib/data/entities/users";
+import { UNSHAREABLE_TOOLS, type FallbackReason, type SentShare, type ShareChannel, type SharedCard, type ShareReceipt } from "@/lib/share/card";
+import { findUser, USERS } from "@/lib/data/entities/users";
+import { matchRecipients, type RecipientMatch } from "@/lib/share/recipients";
 import { winyuTools } from "@/lib/server/agent/tools";
 import { collection } from "@/lib/server/store/json-store";
 
@@ -11,7 +12,6 @@ export const SHARES_COLLECTION = "shares";
 export const SHARE_CODE_LENGTH = 12;
 const CODE_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 const UNBIASED_BYTE_LIMIT = 248;
-const UNSHAREABLE_TOOLS: ReadonlySet<string> = new Set(["recall_memory", "list_metrics"]);
 
 /** How one recipient was reached: the channel the sender picked, the one that carried it, and why they differ. */
 export type ShareDelivery = { userId: string; asked: ShareChannel; via: ShareChannel; fallback: FallbackReason | null };
@@ -44,6 +44,11 @@ export function shareableProblem(card: SharedCard): string | null {
     if (!tool.inputSchema().safeParse(read.input).success) return `${read.tool} input does not parse`;
   }
   return null;
+}
+
+/** How each typed name resolves among everyone the sender can share with; a name that fits several people stays unresolved. */
+export function recipientMatches(names: readonly string[], senderId: string): RecipientMatch<User>[] {
+  return matchRecipients(names, USERS.filter((user) => user.id !== senderId));
 }
 
 /** Only the sender and the people it was sent to may open a share. */

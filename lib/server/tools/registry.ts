@@ -24,6 +24,7 @@ import { enrollCourseTool } from "./enroll-course";
 import { resolveOwnerTool } from "./resolve-owner";
 import { createHandoffTool } from "./create-handoff";
 import { sendEmailTool } from "./send-email";
+import { shareCardTool } from "./share-card";
 import { pinWidgetTool } from "./pin-widget";
 import { watchMetricTool } from "./watch-metric";
 import { runJobTool } from "./run-job";
@@ -55,6 +56,7 @@ const NATIVE_TOOLS: { [Name in NativeToolName]: WinyuTool<Name> } = {
   resolve_owner: resolveOwnerTool,
   create_handoff: createHandoffTool,
   send_email: sendEmailTool,
+  share_card: shareCardTool,
   pin_widget: pinWidgetTool,
   watch_metric: watchMetricTool,
   run_job: runJobTool,

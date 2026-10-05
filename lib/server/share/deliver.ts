@@ -37,7 +37,7 @@ export function channelsFor(userId: string): ChannelOption[] {
 
 /** Everyone a person can share with: every other user, with the channels that reach them. */
 export function shareContacts(senderId: string): ShareContact[] {
-  return USERS.filter((user) => user.id !== senderId).map((user) => ({ ...personaOf(user), channels: channelsFor(user.id) }));
+  return USERS.filter((user) => user.id !== senderId).map((user) => ({ ...personaOf(user), name: user.name, channels: channelsFor(user.id) }));
 }
 
 function emailed(message: ShareMessage, sender: User, recipient: User, code: string): Promise<unknown> {
