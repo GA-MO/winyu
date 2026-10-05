@@ -19,7 +19,10 @@ bun run trace [runId] # prints one agent run's harness trace (latest when no id)
 bun run call-tool <userId> <tool> [json]   # runs one tool through the gateway as that user and prints the audit decision (no model call)
 bun run connectors:demo   # serves the demo connectors: LMS over MCP on :3299, CRM over REST on :3298
 bun run investigate -- --users=<id>[,<id>…]|all [--save] [--show] [--replay]   # the morning investigation per person against the real model (~7 calls each); --show and --replay read saved runs without calling the model
+bun run studio       # development only: Mastra API on :3214 over the app's own Mastra instance and Studio on http://localhost:3213; pick a persona preset (u_thana, u_krit, …) in the agent's Request context before chatting
 ```
+
+Mastra tracing is always on and stays on this machine: every agent run writes its spans to `.data/mastra.db`, and a chat run's Mastra trace id is derived from its harness run id (`traceIdOfRun` in `lib/harness/trace-link.ts`; the run id is also on the trace as `harnessRunId`). `bun run trace` and the admin run trace print or link the Studio trace in development. Set `MASCOP_OTEL_ENDPOINT` (an OTLP/HTTP traces URL such as `http://localhost:4318/v1/traces`) to also export spans to an OpenTelemetry collector; spans carry prompts, tool arguments and results, so point it only at a collector you control. Studio runs the agent with the persona from its request context: tools still pass the gateway (scope, policy, audit with initiator `system`), and a request without a persona is granted no instructions and no tools.
 
 Set `MASCOP_SCHEDULER=off` before `bun run dev` when you do not want the background jobs (anomaly, forecast, watches, digest) to start and spend model calls.
 
