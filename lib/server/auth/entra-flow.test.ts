@@ -127,7 +127,7 @@ describe("signing in through an Entra-shaped issuer", () => {
     const response = await logout(new NextRequest(`${APP}/api/auth/entra/logout`));
     const target = new URL(response.headers.get("location") ?? "");
     expect(target.href.startsWith(`${mock.authority}/${TENANT}/oauth2/v2.0/logout`)).toBe(true);
-    expect(target.searchParams.get("post_logout_redirect_uri")).toBe(`${APP}/login?signedOut=1`);
+    expect(target.searchParams.get("post_logout_redirect_uri")).toBe(`${APP}/login`);
     expect(response.headers.get("set-cookie")).toContain(`${SESSION_COOKIE}=;`);
   });
 

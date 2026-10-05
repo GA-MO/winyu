@@ -14,7 +14,7 @@ const DENIED_PURPOSE = "denied";
 const DENIED_MAX_AGE_SECONDS = 15 * 60;
 const MS_PER_SECOND = 1000;
 const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1"]);
-const SIGNED_OUT_PATH = "/login?signedOut=1";
+const AFTER_MICROSOFT_SIGN_OUT_PATH = "/login";
 
 export const ENTRA_SETTINGS = ["ENTRA_TENANT_ID", "ENTRA_CLIENT_ID", "ENTRA_CLIENT_SECRET", "ENTRA_REDIRECT_URI"] as const;
 
@@ -108,7 +108,7 @@ export async function finishSignIn(config: EntraConfig, transaction: SignInTrans
 /** Microsoft's sign-out URL, which returns the browser to mascop's sign-in page. */
 export async function entraSignOutUrl(config: EntraConfig): Promise<URL> {
   const configuration = await discover(config);
-  return oidc.buildEndSessionUrl(configuration, { post_logout_redirect_uri: new URL(SIGNED_OUT_PATH, config.redirectUri).href });
+  return oidc.buildEndSessionUrl(configuration, { post_logout_redirect_uri: new URL(AFTER_MICROSOFT_SIGN_OUT_PATH, config.redirectUri).href });
 }
 
 function transactionOf(data: unknown): SignInTransaction | null {

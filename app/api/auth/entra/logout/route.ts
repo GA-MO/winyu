@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
   if (authMode() !== "entra") return NextResponse.json(NOT_FOUND, { status: 404 });
   const config = entraConfig();
   const target = config ? await entraSignOutUrl(config).catch(() => null) : null;
-  const response = NextResponse.redirect(target ?? new URL("/login?signedOut=1", req.url));
+  const response = NextResponse.redirect(target ?? new URL("/login", req.url));
   response.cookies.set(clearedSessionCookie());
   return response;
 }
