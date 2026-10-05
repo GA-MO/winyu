@@ -1,66 +1,15 @@
 "use client";
 
-import type { AlertRow, MetricQuery, MetricResult, NextAction } from "@/lib/contracts";
-import { presentAlerts, presentCard, presentForecast, type CardParts, type ForecastAnswer, type CardView, type PresentSource, type SortBy } from "@/lib/cards/present";
+import { presentAlerts, presentCard, presentForecast, type CardView, type SortBy } from "@/lib/cards/present";
+import { actionsOf, alertsOf, deniedParts, forecastOf, metricAnswerOf, othersOf, refusalOf } from "@/lib/cards/tool-answers";
 import { TH } from "@/lib/i18n/th";
 import { CardPartsView } from "./card-parts";
-
-export type MetricAnswer = Extract<MetricResult, { ok: true }> & { query: MetricQuery; nextActions: NextAction[] };
-
-type AlertAnswer = { ok?: boolean; rows?: AlertRow[]; nextActions?: NextAction[] };
 
 type DataCardProps = { title: string; source: unknown; with?: unknown; view?: CardView | null; sortBy?: SortBy | null; description?: string | null };
 
 type AlertsCardProps = { title: string; source: unknown; description?: string | null };
 
 type ForecastCardProps = { title: string; source: unknown; history?: unknown; description?: string | null };
-
-function metricAnswerOf(source: unknown): MetricAnswer | null {
-  if (typeof source !== "object" || source === null) return null;
-  const candidate = source as Partial<MetricAnswer>;
-  if (candidate.ok !== true || !candidate.query || !Array.isArray(candidate.rows) || !candidate.headline) return null;
-  return candidate as MetricAnswer;
-}
-
-function refusalOf(source: unknown): string | null {
-  if (typeof source !== "object" || source === null) return null;
-  const { ok, error } = source as { ok?: unknown; error?: unknown };
-  return ok === false && typeof error === "string" ? error : null;
-}
-
-function deniedParts(title: string, denied: string): CardParts {
-  return { title, meta: null, description: null, footnote: null, hero: null, body: { kind: "none" }, actions: [], denied };
-}
-
-function forecastOf(source: unknown, history: MetricAnswer | null): ForecastAnswer | null {
-  if (Array.isArray(source)) {
-    return history ? { metric: history.query.metric, total: null, mape: null, weeks: source as ForecastAnswer["weeks"] } : null;
-  }
-  if (typeof source !== "object" || source === null) return null;
-  const candidate = source as Partial<ForecastAnswer>;
-  if (!candidate.metric || !Array.isArray(candidate.weeks)) return null;
-  return { metric: candidate.metric, total: candidate.total ?? null, mape: candidate.mape ?? null, weeks: candidate.weeks };
-}
-
-function alertsOf(source: unknown): AlertRow[] {
-  if (typeof source !== "object" || source === null) return [];
-  const rows = (source as AlertAnswer).rows;
-  return Array.isArray(rows) ? rows : [];
-}
-
-function actionsOf(source: unknown): NextAction[] {
-  if (typeof source !== "object" || source === null) return [];
-  const actions = (source as AlertAnswer).nextActions;
-  return Array.isArray(actions) ? actions : [];
-}
-
-function othersOf(bindings: unknown): PresentSource[] {
-  if (!Array.isArray(bindings)) return [];
-  return bindings.flatMap((binding) => {
-    const answer = metricAnswerOf(binding);
-    return answer ? [{ query: answer.query, result: answer }] : [];
-  });
-}
 
 function Pending({ title }: { title: string }) {
   return (

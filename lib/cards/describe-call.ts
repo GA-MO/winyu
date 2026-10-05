@@ -1,5 +1,3 @@
-"use client";
-
 export type ToolCallDescription = { title: string; question: string; details: Array<{ label: string; value: string }> };
 
 import { ROLE_IDS, type RoleId } from "@/lib/contracts";

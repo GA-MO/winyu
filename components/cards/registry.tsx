@@ -1,8 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { METRIC_IDS, type MetricId } from "@/lib/contracts";
-import { metricLabel } from "@/lib/dashboard/metric-display";
+import { forecastTitle, metricTitle } from "@/lib/cards/tool-answers";
 import { TH } from "@/lib/i18n/th";
 import { AlertsCard, DataCard, ForecastCard } from "./data-card";
 import { CandidatesCard, CoursesCard, PolicyCard } from "./entity/hr";
@@ -15,21 +14,6 @@ export type ToolCard = (result: unknown, args: unknown) => ReactNode;
 
 const CrmVisitsCard = connectorCard("store_visits");
 const LmsTrainingCard = connectorCard("training_history");
-
-function metricOf(value: unknown): MetricId | null {
-  const metric = typeof value === "object" && value !== null ? (value as { metric?: unknown }).metric : null;
-  return METRIC_IDS.includes(metric as MetricId) ? (metric as MetricId) : null;
-}
-
-function metricTitle(result: unknown, args: unknown): string {
-  const metric = metricOf((result as { query?: unknown } | null)?.query) ?? metricOf(args);
-  return metric ? metricLabel(metric) : TH.cards.unreadable;
-}
-
-function forecastTitle(result: unknown, args: unknown): string {
-  const metric = metricOf(result) ?? metricOf(args);
-  return metric ? TH.cards.forecastTitle(metricLabel(metric)) : TH.cards.unreadable;
-}
 
 /** Every read tool's card, keyed by tool name: the model picks the tool, the card is drawn from its result. */
 export const TOOL_CARDS = {
