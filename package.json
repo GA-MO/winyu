@@ -11,7 +11,9 @@
     "test": "bun test",
     "seed": "bun run scripts/seed.ts",
     "probe:chat": "bun run scripts/probe-chat.ts",
-    "trace": "bun run scripts/trace.ts"
+    "trace": "bun run scripts/trace.ts",
+    "connectors:demo": "bun run scripts/connectors-demo.ts",
+    "investigate": "bun run scripts/investigate.ts"
   },
   "dependencies": {
     "@ag-ui/client": "1.0.1",
