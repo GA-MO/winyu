@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { chatTurnOf, seenOf, type RunInput } from "./turn";
+import { chatTurnOf, observeReply, seenOf, type ReplySeen, type RunInput } from "./turn";
 
 const THREAD = "t-1";
 const QUESTION = { id: "m-1", role: "user", content: "ปักการ์ดยอดขายรายภาคไว้ที่แดชบอร์ด" };
@@ -51,5 +51,35 @@ describe("seenOf", () => {
 
   test("a run error ends the reply as failed", () => {
     expect(seenOf([{ type: "RUN_ERROR", message: "boom" }]).error).toBe("boom");
+  });
+});
+
+function sse(events: readonly object[]): Uint8Array {
+  return new TextEncoder().encode(events.map((event) => `data: ${JSON.stringify(event)}\n\n`).join(""));
+}
+
+describe("observeReply", () => {
+  test("a client that leaves after the first event does not end the reply: the harness still sees the result and the finish that came later", async () => {
+    let finish: () => void = () => undefined;
+    const later = new Promise<void>((resolve) => {
+      finish = resolve;
+    });
+    const source = new ReadableStream<Uint8Array>({
+      async start(controller) {
+        controller.enqueue(sse([{ type: "TOOL_CALL_START", toolCallId: "c1", toolCallName: "query_metric" }]));
+        await later;
+        controller.enqueue(sse([{ type: "TOOL_CALL_RESULT", toolCallId: "c1" }, { type: "TEXT_MESSAGE_CONTENT" }, { type: "RUN_FINISHED" }]));
+        controller.close();
+      },
+    });
+    const ended = new Promise<ReplySeen>((resolve) => {
+      const reply = observeReply(new Response(source), resolve);
+      const reader = reply.body?.getReader();
+      void reader?.read().then(() => {
+        void reader.cancel();
+        finish();
+      });
+    });
+    expect(await ended).toEqual({ results: ["query_metric"], asked: [], text: true, error: null });
   });
 });
