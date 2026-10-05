@@ -6,8 +6,8 @@ import { winyuTools } from "@/lib/server/agent/tools";
 import { runWithAccess, runWithTurn } from "@/lib/server/request-context";
 import type { ReadSample } from "./samples";
 
-/** A read sample with what the tool returned for this user; JSON-safe so it can cross to the client gallery. */
-export type SampleResult = ReadSample & { result: unknown };
+/** A read sample with what the tool returned for this user, and the model's reply when it comes from a recording; JSON-safe so it can cross to the client gallery. */
+export type SampleResult = ReadSample & { result: unknown; reply?: string };
 
 function refusal(error: string) {
   return { ok: false, error };

@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { readUser } from "@/lib/server/session";
 import { TH } from "@/lib/i18n/th";
 import { Gallery } from "./gallery";
+import { recordedSamples } from "./recorded-samples";
 import { runSamples } from "./run-samples";
 import { READ_SAMPLES, WRITE_SAMPLES } from "./samples";
 
@@ -13,7 +14,7 @@ export default async function DevCardsPage() {
   if (process.env.NODE_ENV === "production") notFound();
   const user = readUser(await cookies());
   if (!user) redirect("/login?next=/dev/cards");
-  const reads = await runSamples(user, READ_SAMPLES);
+  const reads = [...(await runSamples(user, READ_SAMPLES)), ...recordedSamples()];
   return (
     <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
       <header className="mb-6 flex flex-col gap-1">
