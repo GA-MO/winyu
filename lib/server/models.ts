@@ -8,6 +8,9 @@ const DEFAULT_OPENROUTER_MODEL = "google/gemini-3.8-flash";
 const MODEL_NAMES: Record<string, string> = { "google/gemini-3.8-flash": "Gemini 3.8 Flash" };
 const PROVIDER_ORDER: Record<string, string[]> = { "google/gemini-3.8-flash": ["google-ai-studio/flex", "google-ai-studio"] };
 
+/** Provider options that mark a system message for OpenRouter's explicit prompt cache: Gemini's implicit cache missed byte-identical repeats, the marked prompt is read back at a quarter of the input price; the cache holds the tool definitions and the whole system prompt. */
+export const CACHED_SYSTEM_PROMPT = { openrouter: { cacheControl: { type: "ephemeral" } } };
+
 /** The one real model the agent runs on, with the id it is billed and traced under. */
 export type AgentModel = { id: string; name: string; model: () => MeteredModel };
 

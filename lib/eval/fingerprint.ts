@@ -3,7 +3,7 @@ import { z } from "zod";
 import { liveAccessFor } from "@/lib/access/enforce";
 import { findUser } from "@/lib/data/entities/users";
 import type { ContextKind } from "@/lib/harness/types";
-import { WINYU_RULES, contextFor } from "@/lib/server/agent/persona";
+import { WINYU_RULES, contextFor, promptLines } from "@/lib/server/agent/persona";
 import { toolsForAccess } from "@/lib/server/agent/tools";
 
 const HASH_CHARS = 16;
@@ -25,8 +25,8 @@ function accessOf(userId: string) {
 /** The prompt one person's agent runs under on a fixed day, minus the parts that move with use: the rules and the persona lines the code writes. */
 export function promptHash(userId: string): string {
   const { user, access } = accessOf(userId);
-  const persona = contextFor(access, user, { today: ANY_DAY, context: {} }, null).filter((item) => !VOLATILE_KINDS.has(item.kind)).map((item) => item.content);
-  return hashOf([WINYU_RULES, persona]);
+  const steady = contextFor(access, user, { today: ANY_DAY, context: {} }, null).filter((item) => !VOLATILE_KINDS.has(item.kind));
+  return hashOf(promptLines(steady, WINYU_RULES));
 }
 
 /** The tools one person's agent is offered: names, descriptions and input schemas, as the model reads them. */

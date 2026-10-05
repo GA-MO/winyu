@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { z } from "zod";
 import { accessFor } from "@/lib/access/policies";
 import { liveAccessFor, setHandoffEnabled, withAdminSwitches } from "@/lib/access/enforce";
 import { resetRoleOverrides } from "@/lib/access/role-overrides";
@@ -9,6 +10,7 @@ import { TH } from "@/lib/i18n/th";
 import { runWithAccess, runWithTurn } from "@/lib/server/request-context";
 import { notifications, outbox, packets } from "./collections";
 import type { WinyuTool } from "@/lib/server/tools/define";
+import { toolSurface } from "@/lib/server/tools/registry";
 import { winyuTools, toolsForAccess } from "./tools";
 
 const TODAY = "2026-09-22";
@@ -247,5 +249,17 @@ describe("toolsForAccess", () => {
     expect(withAdminSwitches(accessOf("u_anucha")).toolAllow).not.toContain("create_handoff");
     setHandoffEnabled(true, "u_ton");
     expect(toolNamesOf(toolsForAccess(accessOf("u_anucha")))).toContain("create_handoff");
+  });
+});
+
+describe("tool definitions for the prompt cache", () => {
+  function surfaceOf(userId: string): string {
+    return JSON.stringify(toolsForAccess(accessOf(userId)).map((tool) => ({ name: tool.entry.name, description: tool.description(), input: z.toJSONSchema(tool.inputSchema(), { unrepresentable: "any", io: "input" }) })));
+  }
+
+  test("come in surface order, byte for byte the same for two users of one role", () => {
+    expect(surfaceOf("u_ploy")).toBe(surfaceOf("u_krit"));
+    const names = toolsForAccess(accessOf("u_krit")).map((tool) => tool.entry.name);
+    expect(names).toEqual(toolSurface().map((entry) => entry.name).filter((name) => names.includes(name)));
   });
 });

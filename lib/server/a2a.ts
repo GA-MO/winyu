@@ -145,8 +145,7 @@ export function guardedMessage(params: unknown): GuardedMessage | null {
 }
 
 function instructionsFor(access: AccessContext, user: User, caller: string): string {
-  const persona = personaFor(access, user, { today: new Date().toISOString().slice(0, 10), context: { threadId: null, preloadPacketId: null } });
-  return [...persona, ...A2A_RULES(caller)].join("\n\n");
+  return personaFor(access, user, { today: new Date().toISOString().slice(0, 10), context: { threadId: null, preloadPacketId: null } }, A2A_RULES(caller)).join("\n\n");
 }
 
 function outcomeOf(response: A2aResponse): { failed: string | null; finishReason: string } {

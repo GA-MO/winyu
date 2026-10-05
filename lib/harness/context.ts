@@ -4,10 +4,10 @@ import type { ContextItem } from "./types";
 /** Items at or above this priority are what the model must always know (who is asking, their scope, today); the budget never drops them. */
 export const REQUIRED_PRIORITY = 100;
 
-export type Composed = { kept: ContextItem[]; dropped: ContextItem[] };
+export type Composed<Item extends ContextItem = ContextItem> = { kept: Item[]; dropped: Item[] };
 
 /** Fits the items into a character budget: the required ones always, then the rest by priority, highest first; kept items stay in their given order because prompt order matters. */
-export function withinBudget(items: readonly ContextItem[], maxChars: number): Composed {
+export function withinBudget<Item extends ContextItem>(items: readonly Item[], maxChars: number): Composed<Item> {
   const byPriority = [...items].sort((left, right) => right.priority - left.priority);
   const keptIds = new Set<string>();
   let used = 0;

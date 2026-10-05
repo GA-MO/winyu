@@ -2,6 +2,7 @@ import path from "node:path";
 import { Agent, type AgentExecutionOptions, type ToolsInput } from "@mastra/core/agent";
 import { Mastra } from "@mastra/core";
 import type { RequestContext } from "@mastra/core/request-context";
+import type { CoreSystemMessage } from "@mastra/core/llm";
 import { LibSQLStore } from "@mastra/libsql";
 import { Memory } from "@mastra/memory";
 import { liveAccessFor } from "@/lib/access/enforce";
@@ -13,7 +14,7 @@ import { currentRun, emitTo, type Run } from "@/lib/harness/runtime";
 import { TH } from "@/lib/i18n/th";
 import { WINYU_RULES, personaFor } from "@/lib/server/agent/persona";
 import { toolsForAccess } from "@/lib/server/agent/tools";
-import { agentModel } from "@/lib/server/models";
+import { CACHED_SYSTEM_PROMPT, agentModel } from "@/lib/server/models";
 import { currentTurn } from "@/lib/server/request-context";
 import { DATA_DIR } from "@/lib/server/store/json-store";
 import { ToolResultInjectionGuard, replyPersonalDataGuard } from "./guardrails";
@@ -44,11 +45,11 @@ function accessOf(requestContext: RequestContext<UserContext>): AccessContext {
   return liveAccessFor(user);
 }
 
-function instructionsFor(access: AccessContext): string {
+function instructionsFor(access: AccessContext): CoreSystemMessage {
   const turn = currentTurn();
   const context = { threadId: turn.threadId, preloadPacketId: turn.preloadPacketId };
-  const persona = personaFor(access, findUser(access.userId), { today: new Date().toISOString().slice(0, 10), context });
-  return [...persona, ...WINYU_RULES].join(PROMPT_SEPARATOR);
+  const lines = personaFor(access, findUser(access.userId), { today: new Date().toISOString().slice(0, 10), context }, WINYU_RULES);
+  return { role: "system", content: lines.join(PROMPT_SEPARATOR), providerOptions: CACHED_SYSTEM_PROMPT };
 }
 
 function limitReached(run: Run | null, stepNumber: number): RunLimit | null {
