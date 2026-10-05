@@ -103,6 +103,12 @@ describe("a composed card holds line by line, only what this turn's tools return
     expect(ids(outcome)).toEqual(FULL_CARD);
   });
 
+  test("a line left with nothing to show once its failed props are dropped is dropped whole", () => {
+    const outcome = composed(lines(withComponent({ id: "leader_facts", component: "KeyValue", from: { path: "/get_person/data/salary_history" } })));
+    expect(outcome.problems.join("\n")).toContain("leader_facts: nothing left to show");
+    expect(ids(outcome)).toEqual(FULL_CARD.filter((id) => id !== "leader_facts"));
+  });
+
   test("a number copied exactly from a result may stay literal", () => {
     const outcome = composed(lines(withComponent({ ...GEMINI_TEAM_CARD[0], meta: "ตำแหน่งว่างเปิดรับมา 99 วัน" })));
     expect(drawn(outcome, "root")?.meta).toBe("ตำแหน่งว่างเปิดรับมา 99 วัน");

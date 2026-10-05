@@ -4,6 +4,7 @@ import { checkProp, isRecord, isTemplate, prunedModel, sourcesOf, templateScope,
 
 const CONTAINERS: ReadonlySet<ComponentName> = new Set(["Card", "Section", "Grid", "Carousel"]);
 const MIN_DRAWN_COMPONENTS = 2;
+const STRUCTURAL_PROPS: ReadonlySet<string> = new Set(["id", "component", "children"]);
 
 /** What a composed card shows at one moment: its components from the root down, children cut to those that hold, and the data model cut to what they read. */
 export type CardSurface = { components: ComposedComponent[]; dataModel: Record<string, unknown> };
@@ -30,6 +31,10 @@ function withChildList(props: Record<string, unknown>): Record<string, unknown> 
 function isOptionalProp(name: ComponentName, prop: string): boolean {
   const shape = COMPOSE_CATALOG[name].props.shape as Record<string, z.ZodTypeAny>;
   return shape[prop]?.isOptional() ?? true;
+}
+
+function hasContent(component: ComposedComponent): boolean {
+  return Object.keys(component).some((prop) => !STRUCTURAL_PROPS.has(prop));
 }
 
 function hasChildren(component: ComposedComponent): boolean {
@@ -145,6 +150,7 @@ export class CardComposer {
       if (!isOptionalProp(component.component, prop)) return this.reject(check.problems.join("; "));
       this.problems.push(...check.problems.map((problem) => `${problem} (dropped)`));
       delete kept[prop];
+      if (!hasContent(kept)) return this.reject(`${component.id}: nothing left to show`);
     }
     const { ids, template } = childrenOf(component);
     let childScope = scope;
