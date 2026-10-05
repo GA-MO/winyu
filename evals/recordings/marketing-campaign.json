@@ -1,0 +1,230 @@
+{
+ "version": 1,
+ "caseId": "marketing-campaign",
+ "userId": "u_ben",
+ "prompt": "แคมเปญไหนได้ผลดีที่สุด",
+ "model": "google/gemini-3.8-flash",
+ "promptHash": "71f06cb1fb5bc9ba",
+ "toolsHash": "22f7ecc4e30f3b8c",
+ "today": "2026-10-05",
+ "recordedAt": "2026-10-05T13:00:17.227Z",
+ "steps": [
+  {
+   "kind": "call",
+   "tool": "list_metrics",
+   "args": {
+    "search": "campaign"
+   },
+   "result": {
+    "ok": true,
+    "summary": "พบ 3 เมตริกที่ตรงกับคำค้น",
+    "data": [
+     {
+      "id": "campaign_spend",
+      "labelTh": "งบแคมเปญที่ใช้",
+      "unit": "บาท",
+      "dims": [
+       "date",
+       "week",
+       "month",
+       "campaign",
+       "brand",
+       "region",
+       "business_unit"
+      ],
+      "certified": true,
+      "source": "SAP FI",
+      "refresh": "รายวัน",
+      "latest": "22 ก.ย. 2569"
+     },
+     {
+      "id": "campaign_reach",
+      "labelTh": "การเข้าถึงของแคมเปญ",
+      "unit": "คน",
+      "dims": [
+       "date",
+       "week",
+       "month",
+       "campaign",
+       "brand",
+       "region",
+       "business_unit"
+      ],
+      "certified": false,
+      "source": "Ad platform",
+      "refresh": "รายวัน",
+      "latest": "22 ก.ย. 2569"
+     },
+     {
+      "id": "campaign_uplift",
+      "labelTh": "ยอดเพิ่มจากแคมเปญ",
+      "unit": "%",
+      "dims": [
+       "date",
+       "week",
+       "month",
+       "campaign",
+       "brand",
+       "region",
+       "business_unit"
+      ],
+      "certified": false,
+      "source": "SAP SD",
+      "refresh": "รายวัน",
+      "latest": "22 ก.ย. 2569"
+     }
+    ]
+   }
+  },
+  {
+   "kind": "call",
+   "tool": "query_metric",
+   "args": {
+    "sort": "value_desc",
+    "filters": {},
+    "range": {
+     "to": "2026-09-22",
+     "from": "2026-01-01"
+    },
+    "dims": [
+     "campaign"
+    ],
+    "grain": "month",
+    "limit": 10,
+    "metric": "campaign_uplift",
+    "compare": "none"
+   },
+   "result": {
+    "ok": true,
+    "rows": [
+     {
+      "campaign": "ซีสโตร์ โซดาซัมเมอร์ 1 แถม 1",
+      "value": 35.3,
+      "value_label": "35.3%"
+     },
+     {
+      "campaign": "สงกรานต์ 2569 สิงห์-ลีโอ",
+      "value": 25.2,
+      "value_label": "25.2%"
+     },
+     {
+      "campaign": "โซดาสิงห์ ซัมเมอร์ 2569",
+      "value": 18.2,
+      "value_label": "18.2%"
+     },
+     {
+      "campaign": "ส่งท้ายปีเก่า 2568",
+      "value": 17.9,
+      "value_label": "17.9%"
+     },
+     {
+      "campaign": "เพอร์ร่า อากาศสะอาด ภาคเหนือ",
+      "value": 16,
+      "value_label": "16.0%"
+     }
+    ],
+    "summary": "ยอดเพิ่มจากแคมเปญ 1 ม.ค. 2569 – 22 ก.ย. 2569: เฉลี่ย 19.1% · สูงสุด: ซีสโตร์ โซดาซัมเมอร์ 1 แถม 1 35.3% · สงกรานต์ 2569 สิงห์-ลีโอ 25.2% · โซดาสิงห์ ซัมเมอร์ 2569 18.2% · (5 แถว · derived · SAP SD)",
+    "headline": {
+     "aggregate": "average",
+     "value": "19.1%",
+     "periodLabel": "1 ม.ค. 2569 – 22 ก.ย. 2569",
+     "rowCount": 5,
+     "deltaPercent": null,
+     "compareLabel": null,
+     "compareNote": null,
+     "top": [
+      {
+       "label": "ซีสโตร์ โซดาซัมเมอร์ 1 แถม 1",
+       "value": "35.3%"
+      },
+      {
+       "label": "สงกรานต์ 2569 สิงห์-ลีโอ",
+       "value": "25.2%"
+      },
+      {
+       "label": "โซดาสิงห์ ซัมเมอร์ 2569",
+       "value": "18.2%"
+      }
+     ],
+     "underLine": null
+    },
+    "provenance": {
+     "metric": "campaign_uplift",
+     "certified": false,
+     "sourceSystem": "SAP SD",
+     "asOf": "2026-09-22",
+     "rowCount": 5,
+     "filtersApplied": {},
+     "filterLabels": [],
+     "scopeApplied": {},
+     "masked": [],
+     "trust": "derived"
+    },
+    "query": {
+     "metric": "campaign_uplift",
+     "dims": [
+      "campaign"
+     ],
+     "filters": {},
+     "range": {
+      "from": "2026-01-01",
+      "to": "2026-09-22"
+     },
+     "grain": "month",
+     "compare": "none",
+     "limit": 10,
+     "sort": "value_desc"
+    },
+    "nextActions": [
+     {
+      "id": "drill-region",
+      "kind": "drill",
+      "label": "แยกตามภาค",
+      "reason": "ยังไม่ได้ดูแยกรายภาค",
+      "tool": null,
+      "input": null,
+      "prompt": "ขอยอดเพิ่มจากแคมเปญแยกตามภาค เรียงจากมากไปน้อย"
+     }
+    ],
+    "followUps": [
+     {
+      "id": "fu-trend",
+      "label": "ดูแนวโน้มรายสัปดาห์",
+      "prompt": "ยอดเพิ่มจากแคมเปญ รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+      "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+      "intentKey": "follow|trend",
+      "score": 0.5
+     },
+     {
+      "id": "fu-compare_year",
+      "label": "เทียบปีก่อน",
+      "prompt": "ขอยอดเพิ่มจากแคมเปญแยกตามแคมเปญ เทียบกับช่วงเดียวกันปีก่อน",
+      "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+      "intentKey": "follow|compare_year",
+      "score": 0.45
+     }
+    ]
+   }
+  },
+  {
+   "kind": "text",
+   "text": "ประเมินผลจากเมตริกยอดเพิ่มจากแคมเปญ (Campaign Uplift) ข้อมูลล่าสุดถึง 22 ก.ย. 2569 โดยแคมเปญโปรโมชันระยะสั้นในช่องทางร้านสะดวกซื้อสร้างยอดขายเพิ่มได้สูงที่สุด ควรพิจารณานำโครงสร้างโปรโมชัน 1 แถม 1 ไปปรับใช้กับกลุ่มเครื่องดื่มนอนแอลกอฮอล์รายการอื่นในช่องทางโมเดิร์นเทรดช่วงไฮซีซันถัดไป"
+  }
+ ],
+ "asked": [],
+ "error": null,
+ "usage": {
+  "calls": 3,
+  "inputTokens": 31264,
+  "outputTokens": 1293,
+  "reasoningTokens": 1079,
+  "usd": 0.014148375000000001
+ },
+ "drawn": {
+  "cards": [
+   "list_metrics",
+   "query_metric"
+  ],
+  "composed": null
+ }
+}

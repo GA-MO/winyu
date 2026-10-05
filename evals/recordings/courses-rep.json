@@ -1,0 +1,282 @@
+{
+ "version": 1,
+ "caseId": "courses-rep",
+ "userId": "u_krit",
+ "prompt": "มีอบรมอะไรที่ผมควรไปบ้าง",
+ "model": "google/gemini-3.8-flash",
+ "promptHash": "019699fbec6f4ebd",
+ "toolsHash": "7ba0f807fddc10bb",
+ "today": "2026-10-05",
+ "recordedAt": "2026-10-05T13:07:59.414Z",
+ "steps": [
+  {
+   "kind": "call",
+   "tool": "list_courses",
+   "args": {
+    "month": null,
+    "query": null
+   },
+   "result": {
+    "ok": true,
+    "summary": "10 หลักสูตร เริ่มหลักสูตรแรก 26 ก.ย. 2569 · 1 หลักสูตรต่ออายุใบที่ใกล้หมดของคุณหรือทีม",
+    "data": [
+     {
+      "id": "crs_sales_licence",
+      "title": "ทบทวนกฎหมายควบคุมเครื่องดื่มแอลกอฮอล์ (ต่ออายุใบอนุญาต)",
+      "cover": "/img/courses/course05.jpg",
+      "category": "กฎหมาย",
+      "when": "3 ต.ค. 2569 · 1 วัน",
+      "place": "Online",
+      "audience": "ผู้ถือใบอนุญาตจำหน่ายสุรา (ผู้แทน)",
+      "seats": {
+       "label": "เหลือ 39 ที่ จาก 80",
+       "tone": "neutral"
+      },
+      "note": null,
+      "badges": [
+       {
+        "label": "ใบของคุณหมดใน 23 วัน",
+        "tone": "danger"
+       }
+      ],
+      "can_enroll": true
+     },
+     {
+      "id": "crs_forklift_kk",
+      "title": "ต่ออายุใบขับขี่รถยก (ภาคปฏิบัติ)",
+      "cover": "/img/courses/course02.jpg",
+      "category": "ความปลอดภัย",
+      "when": "26 ก.ย. 2569 · 1 วัน",
+      "place": "โรงงานขอนแก่น · ภาคปฏิบัติ",
+      "audience": "พนักงานขับรถยกและหัวหน้ากะที่ใบขับขี่ใกล้หมด",
+      "seats": {
+       "label": "เหลือ 3 ที่ จาก 12",
+       "tone": "bad"
+      },
+      "note": null,
+      "badges": [],
+      "can_enroll": true
+     },
+     {
+      "id": "crs_first_aid",
+      "title": "ปฐมพยาบาลและ CPR",
+      "cover": "/img/courses/course04.jpg",
+      "category": "ความปลอดภัย",
+      "when": "29 ก.ย. 2569 · 1 วัน",
+      "place": "สำนักงานใหญ่ สามเสน · ห้องเรียน",
+      "audience": "พนักงานทุกฝ่าย",
+      "seats": {
+       "label": "เหลือ 12 ที่ จาก 30",
+       "tone": "neutral"
+      },
+      "note": null,
+      "badges": [],
+      "can_enroll": true
+     },
+     {
+      "id": "crs_consultative",
+      "title": "การขายแบบที่ปรึกษา รุ่น 4",
+      "cover": "/img/courses/course03.jpg",
+      "category": "การขาย",
+      "when": "30 ก.ย. 2569 · 2 วัน",
+      "place": "โรงแรมในเมืองขอนแก่น · ห้องเรียน",
+      "audience": "พนักงานขายและหัวหน้าทีมขาย",
+      "seats": {
+       "label": "เหลือ 3 ที่ จาก 24",
+       "tone": "bad"
+      },
+      "note": null,
+      "badges": [],
+      "can_enroll": true
+     },
+     {
+      "id": "crs_gmp",
+      "title": "GMP และความปลอดภัยอาหาร รอบต่ออายุ",
+      "cover": "/img/courses/course01.jpg",
+      "category": "คุณภาพ",
+      "when": "8 ต.ค. 2569 · 1 วัน",
+      "place": "โรงงานขอนแก่น · ห้องเรียน",
+      "audience": "พนักงานสายการผลิตและควบคุมคุณภาพ",
+      "seats": {
+       "label": "เต็มแล้ว",
+       "tone": "bad"
+      },
+      "note": null,
+      "badges": [],
+      "can_enroll": false
+     },
+     {
+      "id": "crs_data_promo",
+      "title": "วางแผนโปรโมชันด้วยข้อมูล",
+      "cover": "/img/courses/course09.jpg",
+      "category": "ข้อมูล",
+      "when": "14 ต.ค. 2569 · 2 วัน",
+      "place": "Online",
+      "audience": "การตลาด เทรดมาร์เก็ตติ้ง และผู้จัดการขายภาค",
+      "seats": {
+       "label": "เหลือ 28 ที่ จาก 40",
+       "tone": "neutral"
+      },
+      "note": null,
+      "badges": [],
+      "can_enroll": true
+     },
+     {
+      "id": "crs_lab",
+      "title": "การตรวจคุณภาพเบียร์ในห้องแล็บ",
+      "cover": "/img/courses/course07.jpg",
+      "category": "คุณภาพ",
+      "when": "20 ต.ค. 2569 · 3 วัน",
+      "place": "โรงงานปทุมธานี · ห้องเรียน",
+      "audience": "พนักงานควบคุมคุณภาพ",
+      "seats": {
+       "label": "เหลือ 9 ที่ จาก 16",
+       "tone": "neutral"
+      },
+      "note": null,
+      "badges": [],
+      "can_enroll": true
+     },
+     {
+      "id": "crs_leader",
+      "title": "ผู้นำทีมรุ่นใหม่",
+      "cover": "/img/courses/course06.jpg",
+      "category": "ภาวะผู้นำ",
+      "when": "27 ต.ค. 2569 · 3 วัน",
+      "place": "สำนักงานใหญ่ สามเสน · ห้องเรียน",
+      "audience": "หัวหน้าทีมและหัวหน้ากะ",
+      "seats": {
+       "label": "เหลือ 3 ที่ จาก 20",
+       "tone": "bad"
+      },
+      "note": null,
+      "badges": [],
+      "can_enroll": true
+     },
+     {
+      "id": "crs_service",
+      "title": "ดูแลร้านค้าและรับเรื่องร้องเรียน",
+      "cover": "/img/courses/course08.jpg",
+      "category": "บริการลูกค้า",
+      "when": "5 พ.ย. 2569 · 1 วัน",
+      "place": "Online",
+      "audience": "พนักงานขายและทีมบริการลูกค้า",
+      "seats": {
+       "label": "เหลือ 38 ที่ จาก 60",
+       "tone": "neutral"
+      },
+      "note": null,
+      "badges": [],
+      "can_enroll": true
+     },
+     {
+      "id": "crs_onboarding",
+      "title": "ปฐมนิเทศพนักงานใหม่ รอบ พ.ย.",
+      "cover": "/img/courses/course10.jpg",
+      "category": "ปฐมนิเทศ",
+      "when": "9 พ.ย. 2569 · 2 วัน",
+      "place": "สำนักงานใหญ่ สามเสน · ห้องเรียน",
+      "audience": "พนักงานที่เริ่มงานไม่เกิน 3 เดือน",
+      "seats": {
+       "label": "เหลือ 26 ที่ จาก 40",
+       "tone": "neutral"
+      },
+      "note": null,
+      "badges": [],
+      "can_enroll": true
+     }
+    ]
+   }
+  },
+  {
+   "kind": "text",
+   "text": "หลักสูตรสำคัญเร่งด่วนคือการทบทวนกฎหมายควบคุมเครื่องดื่มแอลกอฮอล์เนื่องจากใบอนุญาตใกล้หมดอายุ และมีหลักสูตรการดูแลร้านค้าสำหรับสายงานขายที่เปิดรับสมัครอยู่ครับ\n\n```a2ui\n{\"id\":\"root\",\"component\":\"Card\",\"title\":\"หลักสูตรอบรมที่แนะนำสำหรับคุณ\",\"footnote\":\"ระบบจัดการการเรียนรู้ (LMS)\",\"children\":[\"licence\",\"service\"]}\n{\"id\":\"licence\",\"component\":\"ListItem\",\"title\":{\"path\":\"/list_courses/data/0/title\"},\"subtitle\":{\"path\":\"/list_courses/data/0/when\"},\"detail\":{\"path\":\"/list_courses/data/0/place\"},\"src\":{\"path\":\"/list_courses/data/0/cover\"},\"media\":\"thumb\",\"badges\":{\"path\":\"/list_courses/data/0/badges\"},\"action\":{\"event\":{\"name\":\"enroll_course\",\"context\":{\"courseId\":{\"path\":\"/list_courses/data/0/id\"}}}}}\n{\"id\":\"service\",\"component\":\"ListItem\",\"title\":{\"path\":\"/list_courses/data/8/title\"},\"subtitle\":{\"path\":\"/list_courses/data/8/when\"},\"detail\":{\"path\":\"/list_courses/data/8/place\"},\"src\":{\"path\":\"/list_courses/data/8/cover\"},\"media\":\"thumb\",\"action\":{\"event\":{\"name\":\"enroll_course\",\"context\":{\"courseId\":{\"path\":\"/list_courses/data/8/id\"}}}}}\n```"
+  }
+ ],
+ "asked": [],
+ "error": null,
+ "usage": {
+  "calls": 2,
+  "inputTokens": 19286,
+  "outputTokens": 4618,
+  "reasoningTokens": 4269,
+  "usd": 0.015891000000000002
+ },
+ "drawn": {
+  "cards": [],
+  "composed": {
+   "accepted": 3,
+   "rejected": 0,
+   "problems": [],
+   "components": [
+    {
+     "id": "root",
+     "component": "Card",
+     "title": "หลักสูตรอบรมที่แนะนำสำหรับคุณ",
+     "footnote": "ระบบจัดการการเรียนรู้ (LMS)",
+     "children": [
+      "licence",
+      "service"
+     ]
+    },
+    {
+     "id": "licence",
+     "component": "ListItem",
+     "title": {
+      "path": "/list_courses/data/0/title"
+     },
+     "subtitle": {
+      "path": "/list_courses/data/0/when"
+     },
+     "detail": {
+      "path": "/list_courses/data/0/place"
+     },
+     "src": {
+      "path": "/list_courses/data/0/cover"
+     },
+     "media": "thumb",
+     "badges": {
+      "path": "/list_courses/data/0/badges"
+     },
+     "action": {
+      "event": {
+       "name": "enroll_course",
+       "context": {
+        "courseId": {
+         "path": "/list_courses/data/0/id"
+        }
+       }
+      }
+     }
+    },
+    {
+     "id": "service",
+     "component": "ListItem",
+     "title": {
+      "path": "/list_courses/data/8/title"
+     },
+     "subtitle": {
+      "path": "/list_courses/data/8/when"
+     },
+     "detail": {
+      "path": "/list_courses/data/8/place"
+     },
+     "src": {
+      "path": "/list_courses/data/8/cover"
+     },
+     "media": "thumb",
+     "action": {
+      "event": {
+       "name": "enroll_course",
+       "context": {
+        "courseId": {
+         "path": "/list_courses/data/8/id"
+        }
+       }
+      }
+     }
+    }
+   ]
+  }
+ }
+}

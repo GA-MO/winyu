@@ -1,0 +1,181 @@
+{
+ "version": 1,
+ "caseId": "rsm-watch-agent",
+ "userId": "u_anucha",
+ "prompt": "ถ้ายอดขายเข้าของ ส.รุ่งเรือง เทรดดิ้ง เปลี่ยนเกิน 15% ให้เตือนผมด้วย",
+ "model": "google/gemini-3.8-flash",
+ "promptHash": "20386bc6c3b08846",
+ "toolsHash": "22f7ecc4e30f3b8c",
+ "today": "2026-10-05",
+ "recordedAt": "2026-10-05T13:04:09.687Z",
+ "steps": [
+  {
+   "kind": "call",
+   "tool": "describe_entity",
+   "args": {
+    "query": "ส.รุ่งเรือง เทรดดิ้ง",
+    "kind": "agent"
+   },
+   "result": {
+    "ok": true,
+    "data": {
+     "id": "ag_nea_07",
+     "ชื่อ": "ส.รุ่งเรือง เทรดดิ้ง",
+     "จังหวัด": "บุรีรัมย์",
+     "ภาค": "ภาคอีสาน",
+     "เกรด": "A",
+     "เครดิต": "45 วัน",
+     "เป็นคู่ค้าตั้งแต่": 2004,
+     "ศูนย์กระจายสินค้า": "ศูนย์กระจายสินค้านครราชสีมา"
+    },
+    "summary": "ส.รุ่งเรือง เทรดดิ้ง เอเย่นต์เกรด A จังหวัดบุรีรัมย์ ภาคอีสาน เครดิต 45 วัน ส่งจากศูนย์กระจายสินค้านครราชสีมา"
+   }
+  },
+  {
+   "kind": "call",
+   "tool": "list_metrics",
+   "args": {
+    "search": "ขายเข้า"
+   },
+   "result": {
+    "ok": true,
+    "summary": "พบ 4 เมตริกที่ตรงกับคำค้น",
+    "data": [
+     {
+      "id": "net_sales_volume",
+      "labelTh": "ปริมาณขายเข้า (Sell-in)",
+      "unit": "ลิตร",
+      "dims": [
+       "date",
+       "week",
+       "month",
+       "region",
+       "province",
+       "channel",
+       "brand",
+       "sku",
+       "pack",
+       "agent",
+       "business_unit"
+      ],
+      "certified": true,
+      "source": "SAP SD",
+      "refresh": "รายวัน",
+      "latest": "22 ก.ย. 2569"
+     },
+     {
+      "id": "net_sales_value",
+      "labelTh": "มูลค่าขายเข้า",
+      "unit": "บาท",
+      "dims": [
+       "date",
+       "week",
+       "month",
+       "region",
+       "province",
+       "channel",
+       "brand",
+       "sku",
+       "pack",
+       "agent",
+       "business_unit"
+      ],
+      "certified": true,
+      "source": "SAP SD",
+      "refresh": "รายวัน",
+      "latest": "22 ก.ย. 2569"
+     },
+     {
+      "id": "sell_out_volume",
+      "labelTh": "ปริมาณขายออก (Sell-out)",
+      "unit": "ลิตร",
+      "dims": [
+       "date",
+       "week",
+       "month",
+       "region",
+       "province",
+       "channel",
+       "brand",
+       "sku",
+       "pack",
+       "agent",
+       "business_unit"
+      ],
+      "certified": true,
+      "source": "SAP SD",
+      "refresh": "รายวัน",
+      "latest": "22 ก.ย. 2569"
+     },
+     {
+      "id": "target_attainment",
+      "labelTh": "การบรรลุเป้าหมาย",
+      "unit": "%",
+      "dims": [
+       "date",
+       "week",
+       "month",
+       "region",
+       "province",
+       "channel",
+       "brand",
+       "sku",
+       "pack",
+       "agent",
+       "business_unit"
+      ],
+      "certified": true,
+      "source": "SAP SD",
+      "refresh": "รายวัน",
+      "latest": "22 ก.ย. 2569"
+     }
+    ]
+   }
+  },
+  {
+   "kind": "call",
+   "tool": "watch_metric",
+   "args": {
+    "title": "แจ้งเตือนเมื่อปริมาณขายเข้า ส.รุ่งเรือง เทรดดิ้ง เปลี่ยนเกิน 15%",
+    "query": {
+     "compare": "prev_period",
+     "dims": [
+      "agent"
+     ],
+     "filters": {
+      "agent": "ag_nea_07"
+     },
+     "grain": "month",
+     "metric": "net_sales_volume",
+     "range": {
+      "from": "2026-09-01",
+      "to": "2026-09-22"
+     },
+     "limit": 1
+    },
+    "condition": {
+     "kind": "change",
+     "value": 15
+    }
+   }
+  }
+ ],
+ "asked": [
+  "watch_metric"
+ ],
+ "error": null,
+ "usage": {
+  "calls": 3,
+  "inputTokens": 31605,
+  "outputTokens": 2118,
+  "reasoningTokens": 1935,
+  "usd": 0.0117295875
+ },
+ "drawn": {
+  "cards": [
+   "describe_entity",
+   "list_metrics"
+  ],
+  "composed": null
+ }
+}

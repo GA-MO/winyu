@@ -1,0 +1,204 @@
+{
+ "version": 1,
+ "caseId": "ceo-decline",
+ "userId": "u_thana",
+ "prompt": "เอเย่นต์ไหนยอดตกแรงที่สุดเทียบงวดก่อน",
+ "model": "google/gemini-3.8-flash",
+ "promptHash": "469b58c58286c9a9",
+ "toolsHash": "22f7ecc4e30f3b8c",
+ "today": "2026-10-05",
+ "recordedAt": "2026-10-05T12:58:38.832Z",
+ "steps": [
+  {
+   "kind": "call",
+   "tool": "query_metric",
+   "args": {
+    "filters": {},
+    "compare": "prev_period",
+    "grain": "month",
+    "metric": "net_sales_value",
+    "sort": "delta_asc",
+    "limit": 5,
+    "range": {
+     "from": "2026-09-01",
+     "to": "2026-09-22"
+    },
+    "dims": [
+     "agent"
+    ]
+   },
+   "result": {
+    "ok": true,
+    "rows": [
+     {
+      "agent": "อีสานรุ่งโรจน์ ค้าส่ง",
+      "value": 17907700,
+      "value_label": "17.9 ล้านบาท",
+      "compare_value": 35018632,
+      "delta_pct": -48.9
+     },
+     {
+      "agent": "อุบลศรีสุข เทรดดิ้ง",
+      "value": 16860939,
+      "value_label": "16.9 ล้านบาท",
+      "compare_value": 32772109,
+      "delta_pct": -48.6
+     },
+     {
+      "agent": "ส.รุ่งเรือง เทรดดิ้ง",
+      "value": 39684467,
+      "value_label": "39.7 ล้านบาท",
+      "compare_value": 45583997,
+      "delta_pct": -12.9
+     },
+     {
+      "agent": "เกาะสมุยเบเวอเรจ",
+      "value": 15923270,
+      "value_label": "15.9 ล้านบาท",
+      "compare_value": 17863539,
+      "delta_pct": -10.9
+     },
+     {
+      "agent": "ปทุมรุ่งกิจ เทรดดิ้ง",
+      "value": 29998976,
+      "value_label": "30.0 ล้านบาท",
+      "compare_value": 33631001,
+      "delta_pct": -10.8
+     }
+    ],
+    "summary": "มูลค่าขายเข้า 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 1,110.2 ล้านบาท · สูงสุด: กรุงไทยเบเวอเรจ 60.3 ล้านบาท · พระราม 4 ดิสทริบิวชั่น 52.4 ล้านบาท · ขอนแก่นมหาชัย 50.8 ล้านบาท · เทียบช่วงก่อนหน้า -11.5% · (5 แถว · certified · SAP SD)",
+    "headline": {
+     "aggregate": "sum",
+     "value": "1,110.2 ล้านบาท",
+     "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+     "rowCount": 5,
+     "deltaPercent": -11.5,
+     "compareLabel": "เทียบช่วงก่อนหน้า",
+     "compareNote": null,
+     "top": [
+      {
+       "label": "กรุงไทยเบเวอเรจ",
+       "value": "60.3 ล้านบาท"
+      },
+      {
+       "label": "พระราม 4 ดิสทริบิวชั่น",
+       "value": "52.4 ล้านบาท"
+      },
+      {
+       "label": "ขอนแก่นมหาชัย",
+       "value": "50.8 ล้านบาท"
+      }
+     ],
+     "underLine": null
+    },
+    "provenance": {
+     "metric": "net_sales_value",
+     "certified": true,
+     "sourceSystem": "SAP SD",
+     "asOf": "2026-09-22",
+     "rowCount": 5,
+     "filtersApplied": {},
+     "filterLabels": [],
+     "scopeApplied": {},
+     "masked": [],
+     "trust": "verified"
+    },
+    "query": {
+     "metric": "net_sales_value",
+     "dims": [
+      "agent"
+     ],
+     "filters": {},
+     "range": {
+      "from": "2026-09-01",
+      "to": "2026-09-22"
+     },
+     "grain": "month",
+     "compare": "prev_period",
+     "limit": 5,
+     "sort": "delta_asc"
+    },
+    "nextActions": [
+     {
+      "id": "handoff",
+      "kind": "handoff",
+      "label": "ส่งงานให้คุณกนก",
+      "reason": "เจ้าของตัวเลขยอดขายของพื้นที่ (ระดับประเทศ)",
+      "tool": "create_handoff",
+      "input": {
+       "toUserId": "u_kanok",
+       "title": "มูลค่าขายเข้า · กรุงไทยเบเวอเรจ",
+       "ask": "ช่วยตรวจอีสานรุ่งโรจน์ ค้าส่ง แล้วบอกกลับว่าเกิดจากอะไรและจะแก้อย่างไร",
+       "urgency": "medium",
+       "evidence": [
+        {
+         "metric": "net_sales_value",
+         "dims": [
+          "agent"
+         ],
+         "filters": {},
+         "range": {
+          "from": "2026-09-01",
+          "to": "2026-09-22"
+         },
+         "grain": "month",
+         "compare": "prev_period",
+         "limit": 5,
+         "sort": "delta_asc"
+        }
+       ],
+       "alertIds": []
+      },
+      "prompt": null
+     },
+     {
+      "id": "drill-why",
+      "kind": "drill",
+      "label": "ทำไมอีสานรุ่งโรจน์ ค้าส่งถึงเป็นแบบนี้",
+      "reason": "อีสานรุ่งโรจน์ ค้าส่ง เปลี่ยนไปในทางที่แย่ที่สุด",
+      "tool": null,
+      "input": null,
+      "prompt": "เจาะดูมูลค่าขายเข้าของอีสานรุ่งโรจน์ ค้าส่ง ว่าทำไมถึงเปลี่ยนไป เทียบกับช่วงก่อนหน้าและช่วงเดียวกันปีก่อน"
+     }
+    ],
+    "followUps": [
+     {
+      "id": "fu-trend",
+      "label": "เริ่มแย่ตั้งแต่เมื่อไร",
+      "prompt": "มูลค่าขายเข้าของอีสานรุ่งโรจน์ ค้าส่ง รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+      "reason": "ดูว่าตัวเลขเริ่มลดลงสัปดาห์ไหน",
+      "intentKey": "follow|trend",
+      "score": 0.65
+     },
+     {
+      "id": "fu-compare_year",
+      "label": "เทียบปีก่อน",
+      "prompt": "ขอมูลค่าขายเข้าแยกตามเอเย่นต์ เทียบกับช่วงเดียวกันปีก่อน",
+      "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+      "intentKey": "follow|compare_year",
+      "score": 0.45
+     }
+    ]
+   }
+  },
+  {
+   "kind": "text",
+   "text": "ใช้เมตริกมูลค่ายอดขายสุทธิ (net sales value) โดยข้อมูลล่าสุดถึง 22 ก.ย. 2569 เทียบกับช่วงเวลาเดียวกันของเดือนก่อนหน้า พบว่าเอเย่นต์ในภาคอีสานมียอดลดลงชัดเจนที่สุด\n\nสมมติฐานเบื้องต้นคือเอเย่นต์อาจชะลอคำสั่งซื้อเพื่อระบายสต๊อกเดิม หรือมีปัญหาการส่งสินค้าจากศูนย์กระจายสินค้า ซึ่งสามารถตรวจสอบได้จากวันครอบคลุมสต๊อก (Days of Cover) และยอดขายออกหน้าร้าน (Sell-out) เพื่อดูว่าความต้องการของผู้บริโภคยังคงเดิมหรือไม่"
+  }
+ ],
+ "asked": [],
+ "error": null,
+ "usage": {
+  "calls": 2,
+  "inputTokens": 21597,
+  "outputTokens": 2142,
+  "reasoningTokens": 1912,
+  "usd": 0.012115125000000001
+ },
+ "drawn": {
+  "cards": [
+   "query_metric"
+  ],
+  "composed": null
+ }
+}

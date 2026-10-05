@@ -1,0 +1,146 @@
+{
+ "version": 1,
+ "caseId": "people-profile",
+ "userId": "u_may",
+ "prompt": "ขอดูโปรไฟล์คุณจอย ศรีประเสริฐ",
+ "model": "google/gemini-3.8-flash",
+ "promptHash": "2f484d85b0bbd7ac",
+ "toolsHash": "017d9696205cf478",
+ "today": "2026-10-05",
+ "recordedAt": "2026-10-05T13:05:43.600Z",
+ "steps": [
+  {
+   "kind": "call",
+   "tool": "get_person",
+   "args": {
+    "name": "จอย ศรีประเสริฐ",
+    "id": null
+   },
+   "result": {
+    "ok": true,
+    "summary": "คุณจอย ศรีประเสริฐ — พนักงานขาย นครราชสีมา",
+    "data": {
+     "id": "e_joy",
+     "name": "คุณจอย ศรีประเสริฐ",
+     "title": "พนักงานขาย นครราชสีมา",
+     "photo": "/img/people/p08.jpg",
+     "badges": [
+      {
+       "label": "ควรคุยเรื่องความก้าวหน้า",
+       "tone": "warning"
+      },
+      {
+       "label": "ทดลองงาน",
+       "tone": "neutral"
+      }
+     ],
+     "facts": [
+      {
+       "label": "ฝ่าย",
+       "value": "ขาย"
+      },
+      {
+       "label": "พื้นที่",
+       "value": "นครราชสีมา"
+      },
+      {
+       "label": "หัวหน้า",
+       "value": "คุณป้อง แสนสุข"
+      },
+      {
+       "label": "อายุงาน",
+       "value": "2 เดือน"
+      },
+      {
+       "label": "เริ่มงาน",
+       "value": "13 ก.ค. 2569"
+      },
+      {
+       "label": "โอที 3 เดือนล่าสุด",
+       "value": "46 ชม."
+      },
+      {
+       "label": "อายุ",
+       "value": "26 ปี"
+      },
+      {
+       "label": "เงินเดือน",
+       "value": "27,000 บาท"
+      }
+     ],
+     "history": [
+      {
+       "title": "ปฐมนิเทศพนักงานขายใหม่",
+       "detail": null,
+       "time": "20 ก.ค. 2569"
+      },
+      {
+       "title": "เริ่มงาน พนักงานขาย นครราชสีมา (ทดลองงาน 119 วัน)",
+       "detail": null,
+       "time": "13 ก.ค. 2569"
+      }
+     ],
+     "certificates": [],
+     "risk_reasons": [
+      "คนใหม่แต่ทำโอทีหนัก"
+     ],
+     "reports": [],
+     "reports_count": null
+    }
+   }
+  },
+  {
+   "kind": "text",
+   "text": "คุณจอย ศรีประเสริฐ อยู่ระหว่างช่วงทดลองงานและมีชั่วโมงการทำงานล่วงเวลาสะสมต่อเนื่อง แนะนำให้ประสานงานร่วมกับหัวหน้างานเพื่อติดตามภาระงานและแผนพัฒนาความก้าวหน้า\n\n```a2ui\n{\"id\":\"root\",\"component\":\"Card\",\"title\":\"โปรไฟล์พนักงาน\",\"footnote\":\"ระบบ HR\",\"children\":[\"person_info\",\"facts_info\"]}\n{\"id\":\"person_info\",\"component\":\"Person\",\"name\":{\"path\":\"/get_person/data/name\"},\"role\":{\"path\":\"/get_person/data/title\"},\"src\":{\"path\":\"/get_person/data/photo\"}}\n{\"id\":\"facts_info\",\"component\":\"KeyValue\",\"from\":{\"path\":\"/get_person/data/facts\"}}\n```"
+  }
+ ],
+ "asked": [],
+ "error": null,
+ "usage": {
+  "calls": 2,
+  "inputTokens": 19500,
+  "outputTokens": 1951,
+  "reasoningTokens": 1757,
+  "usd": 0.010970625000000001
+ },
+ "drawn": {
+  "cards": [],
+  "composed": {
+   "accepted": 3,
+   "rejected": 0,
+   "problems": [],
+   "components": [
+    {
+     "id": "root",
+     "component": "Card",
+     "title": "โปรไฟล์พนักงาน",
+     "footnote": "ระบบ HR",
+     "children": [
+      "person_info",
+      "facts_info"
+     ]
+    },
+    {
+     "id": "person_info",
+     "component": "Person",
+     "name": {
+      "path": "/get_person/data/name"
+     },
+     "role": {
+      "path": "/get_person/data/title"
+     },
+     "src": {
+      "path": "/get_person/data/photo"
+     }
+    },
+    {
+     "id": "facts_info",
+     "component": "KeyValue",
+     "from": {
+      "path": "/get_person/data/facts"
+     }
+    }
+   ]
+  }
+ }
+}

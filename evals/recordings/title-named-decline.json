@@ -1,0 +1,335 @@
+{
+ "version": 1,
+ "caseId": "title-named-decline",
+ "userId": "u_saranya",
+ "prompt": "เอเย่นต์ฝั่งอันดามันกับสมุย ใครขายออกตกบ้าง",
+ "model": "google/gemini-3.8-flash",
+ "promptHash": "66ee029a61b36bd0",
+ "toolsHash": "22f7ecc4e30f3b8c",
+ "today": "2026-10-05",
+ "recordedAt": "2026-10-05T13:09:41.725Z",
+ "steps": [
+  {
+   "kind": "call",
+   "tool": "query_metric",
+   "args": {
+    "grain": "month",
+    "range": {
+     "to": "2026-09-22",
+     "from": "2026-09-01"
+    },
+    "compare": "prev_period",
+    "metric": "sell_out_volume",
+    "sort": "delta_asc",
+    "dims": [
+     "province",
+     "agent"
+    ],
+    "filters": {
+     "region": "south"
+    },
+    "limit": 20
+   },
+   "result": {
+    "ok": true,
+    "rows": [
+     {
+      "province": "สุราษฎร์ธานี",
+      "agent": "เกาะสมุยเบเวอเรจ",
+      "value": 255733,
+      "value_label": "255,733 ลิตร",
+      "compare_value": 317775,
+      "delta_pct": -19.5
+     },
+     {
+      "province": "สุราษฎร์ธานี",
+      "agent": "สุราษฎร์ศรีทอง",
+      "value": 393144,
+      "value_label": "393,144 ลิตร",
+      "compare_value": 484699,
+      "delta_pct": -18.9
+     },
+     {
+      "province": "สงขลา",
+      "agent": "หาดใหญ่สหมิตร",
+      "value": 627082,
+      "value_label": "627,082 ลิตร",
+      "compare_value": 772928,
+      "delta_pct": -18.9
+     },
+     {
+      "province": "นครศรีธรรมราช",
+      "agent": "นครศรีรุ่งเจริญ",
+      "value": 285236,
+      "value_label": "285,236 ลิตร",
+      "compare_value": 350592,
+      "delta_pct": -18.6
+     },
+     {
+      "province": "ภูเก็ต",
+      "agent": "ภูเก็ตอันดามัน ซัพพลาย",
+      "value": 568708,
+      "value_label": "568,708 ลิตร",
+      "compare_value": 694172,
+      "delta_pct": -18.1
+     },
+     {
+      "province": "สงขลา",
+      "agent": "สงขลาทักษิณ เทรดดิ้ง",
+      "value": 235804,
+      "value_label": "235,804 ลิตร",
+      "compare_value": 285994,
+      "delta_pct": -17.5
+     }
+    ],
+    "summary": "ปริมาณขายออก (Sell-out) 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 2.4 ล้านลิตร · สูงสุด: สงขลา 627,082 ลิตร · ภูเก็ต 568,708 ลิตร · สุราษฎร์ธานี 393,144 ลิตร · เทียบช่วงก่อนหน้า -18.6% · (6 แถว · certified · SAP SD)",
+    "headline": {
+     "aggregate": "sum",
+     "value": "2.4 ล้านลิตร",
+     "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+     "rowCount": 6,
+     "deltaPercent": -18.6,
+     "compareLabel": "เทียบช่วงก่อนหน้า",
+     "compareNote": null,
+     "top": [
+      {
+       "label": "สงขลา",
+       "value": "627,082 ลิตร"
+      },
+      {
+       "label": "ภูเก็ต",
+       "value": "568,708 ลิตร"
+      },
+      {
+       "label": "สุราษฎร์ธานี",
+       "value": "393,144 ลิตร"
+      }
+     ],
+     "underLine": null
+    },
+    "provenance": {
+     "metric": "sell_out_volume",
+     "certified": true,
+     "sourceSystem": "SAP SD",
+     "asOf": "2026-09-22",
+     "rowCount": 6,
+     "filtersApplied": {
+      "region": [
+       "south"
+      ]
+     },
+     "filterLabels": [
+      "ภาคใต้"
+     ],
+     "scopeApplied": {},
+     "masked": [],
+     "trust": "verified"
+    },
+    "query": {
+     "metric": "sell_out_volume",
+     "dims": [
+      "province",
+      "agent"
+     ],
+     "filters": {
+      "region": [
+       "south"
+      ]
+     },
+     "range": {
+      "from": "2026-09-01",
+      "to": "2026-09-22"
+     },
+     "grain": "month",
+     "compare": "prev_period",
+     "limit": 20,
+     "sort": "delta_asc"
+    },
+    "nextActions": [
+     {
+      "id": "verify",
+      "kind": "verify",
+      "label": "ตรวจสาเหตุ",
+      "reason": "เทียบน้ำดื่มสิงห์ แพ็ก 12 · สุราษฎร์ธานี · ภาคใต้กับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+      "tool": null,
+      "input": null,
+      "prompt": "เทียบน้ำดื่มสิงห์ แพ็ก 12 · สุราษฎร์ธานี · ภาคใต้กับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน"
+     },
+     {
+      "id": "drill-channel",
+      "kind": "drill",
+      "label": "แยกตามช่องทาง",
+      "reason": "ยังไม่ได้ดูแยกรายช่องทาง",
+      "tool": null,
+      "input": null,
+      "prompt": "ขอปริมาณขายออก (Sell-out)แยกตามช่องทาง เรียงจากมากไปน้อย"
+     }
+    ],
+    "followUps": [
+     {
+      "id": "fu-why",
+      "label": "หาสาเหตุแถวที่แย่สุด",
+      "prompt": "เจาะดูปริมาณขายออก (Sell-out) ของสุราษฎร์ธานี · เกาะสมุยเบเวอเรจ ว่าทำไมถึงเปลี่ยนไป เทียบกับช่วงก่อนหน้าและช่วงเดียวกันปีก่อน",
+      "reason": "สุราษฎร์ธานี · เกาะสมุยเบเวอเรจ คือแถวที่ต้องดูมากที่สุดในคำตอบนี้",
+      "intentKey": "follow|why",
+      "score": 0.95
+     },
+     {
+      "id": "fu-trend",
+      "label": "เริ่มแย่ตั้งแต่เมื่อไร",
+      "prompt": "ปริมาณขายออก (Sell-out) ของสุราษฎร์ธานี · เกาะสมุยเบเวอเรจ รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+      "reason": "ดูว่าตัวเลขเริ่มลดลงสัปดาห์ไหน",
+      "intentKey": "follow|trend",
+      "score": 0.65
+     },
+     {
+      "id": "fu-compare_year",
+      "label": "เทียบปีก่อน",
+      "prompt": "ขอปริมาณขายออก (Sell-out) แยกตามจังหวัด เทียบกับช่วงเดียวกันปีก่อน",
+      "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+      "intentKey": "follow|compare_year",
+      "score": 0.45
+     }
+    ]
+   }
+  },
+  {
+   "kind": "call",
+   "tool": "get_alerts",
+   "args": {
+    "status": "open",
+    "limit": 5
+   },
+   "result": {
+    "ok": true,
+    "summary": "มีความผิดปกติที่เปิดอยู่ 2 รายการในขอบเขตของคุณ",
+    "rows": [
+     {
+      "id": "al_220936abb568e7c9",
+      "severity": "P1",
+      "severityLabel": "ต้องรีบดู",
+      "metric": "ar_overdue",
+      "metricLabel": "ยอดค้างชำระเกินกำหนด",
+      "scope": {
+       "region": "south"
+      },
+      "scopeLabel": "ภาคใต้",
+      "window": "1 ส.ค. 2569 – 31 ส.ค. 2569",
+      "observedLabel": "1.9 เท่าของปีก่อน",
+      "expectedLabel": "1.1 เท่าของปีก่อน",
+      "gapLabel": "73%",
+      "yearOverYear": true,
+      "direction": "up",
+      "hypothesis": "ยอดค้างชำระของภาคใต้สูงกว่าช่วงเดียวกันของปีก่อนมาก ส่วนใหญ่มาจาก สงขลาทักษิณ เทรดดิ้ง (+303%), เกาะสมุยเบเวอเรจ (+108%), นครศรีรุ่งเจริญ (+101%) ควรคุยเรื่องการวางบิลและวงเงินกับเอเย่นต์กลุ่มนี้",
+      "verifySteps": [
+       "ดูยอดค้างชำระเกินกำหนดของภาคใต้รายเดือน 6 เดือนล่าสุด",
+       "ดูประวัติการสั่งซื้อรายวันของภาคใต้ 30 วันล่าสุด"
+      ],
+      "ownerUserId": "u_mint"
+     },
+     {
+      "id": "al_14c4da61c8ba9ac3",
+      "severity": "P2",
+      "severityLabel": "ควรดู",
+      "metric": "sell_out_volume",
+      "metricLabel": "ปริมาณขายออก (Sell-out)",
+      "scope": {
+       "sku": "sku_singha_water_pack12",
+       "province": "pv_suratthani",
+       "region": "south"
+      },
+      "scopeLabel": "น้ำดื่มสิงห์ แพ็ก 12 · สุราษฎร์ธานี · ภาคใต้",
+      "window": "27 ส.ค. 2569 – 20 ก.ย. 2569",
+      "observedLabel": "1,140 ลิตร",
+      "expectedLabel": "1,285 ลิตร",
+      "gapLabel": "11%",
+      "yearOverYear": false,
+      "direction": "down",
+      "hypothesis": "ยอดขายออกจากร้านในสุราษฎร์ธานีต่ำผิดปกติ ยังหาสาเหตุไม่ได้จากข้อมูลที่มี",
+      "verifySteps": [
+       "เทียบน้ำดื่มสิงห์ แพ็ก 12 · สุราษฎร์ธานี · ภาคใต้กับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+       "เทียบน้ำดื่มสิงห์ แพ็ก 12 · สุราษฎร์ธานี · ภาคใต้กับช่วงเดียวกันของปีที่แล้ว"
+      ],
+      "ownerUserId": "u_saranya"
+     }
+    ],
+    "lessons": [],
+    "nextActions": [
+     {
+      "id": "handoff",
+      "kind": "handoff",
+      "label": "ส่งงานให้คุณมิ้นท์",
+      "reason": "ผู้ดูแลตัวเลขการเงิน (ระดับประเทศ)",
+      "tool": "create_handoff",
+      "input": {
+       "toUserId": "u_mint",
+       "title": "ภาคใต้",
+       "ask": "ช่วยตรวจภาคใต้ แล้วบอกกลับว่าเกิดจากอะไรและจะแก้อย่างไร",
+       "urgency": "high",
+       "evidence": [
+        {
+         "metric": "ar_overdue",
+         "dims": [],
+         "filters": {
+          "region": [
+           "south"
+          ]
+         },
+         "range": {
+          "from": "2026-08-01",
+          "to": "2026-08-31"
+         },
+         "grain": "day",
+         "compare": "prev_period",
+         "limit": 1
+        }
+       ],
+       "alertIds": [
+        "al_220936abb568e7c9"
+       ]
+      },
+      "prompt": null
+     },
+     {
+      "id": "verify",
+      "kind": "verify",
+      "label": "ตรวจสาเหตุที่ภาคใต้",
+      "reason": "ดูยอดค้างชำระเกินกำหนดของภาคใต้รายเดือน 6 เดือนล่าสุด",
+      "tool": null,
+      "input": null,
+      "prompt": "ดูยอดค้างชำระเกินกำหนดของภาคใต้รายเดือน 6 เดือนล่าสุด"
+     },
+     {
+      "id": "drill-province",
+      "kind": "drill",
+      "label": "แยกตามจังหวัด",
+      "reason": "ยังไม่ได้ดูแยกรายจังหวัด",
+      "tool": null,
+      "input": null,
+      "prompt": "ขอยอดค้างชำระเกินกำหนดแยกตามจังหวัด เรียงจากมากไปน้อย"
+     }
+    ]
+   }
+  },
+  {
+   "kind": "text",
+   "text": "ข้อมูลปริมาณขายออก (Sell-out) เดือนกันยายนล่าสุดถึงวันที่ 22 ก.ย. 2569 พบว่าทั้งเกาะสมุยเบเวอเรจและภูเก็ตอันดามัน ซัพพลาย ชะลอตัวลงเมื่อเทียบกับช่วงก่อนหน้า โดยฝั่งสมุยปรับลดลงมากที่สุดในภาคใต้\n\nสมมติฐานเบื้องต้นคือกลุ่มน้ำดื่มในพื้นที่สุราษฎร์ธานีขายออกต่ำกว่าปกติ ประกอบกับผลกระทบตามฤดูกาลท่องเที่ยวของพื้นที่เกาะ\n\nแนวทางตรวจสอบแนะนำให้เทียบยอดขายแยกรายสินค้ากับพื้นที่อื่นในภาคใต้ช่วงเวลาเดียวกัน และเทียบกับช่วงเดียวกันของปีก่อนเพื่อแยกผลของฤดูกาลออกจากอุปสงค์จริง"
+  }
+ ],
+ "asked": [],
+ "error": null,
+ "usage": {
+  "calls": 3,
+  "inputTokens": 35055,
+  "outputTokens": 4476,
+  "reasoningTokens": 4200,
+  "usd": 0.0201709125
+ },
+ "drawn": {
+  "cards": [
+   "query_metric",
+   "get_alerts"
+  ],
+  "composed": null
+ }
+}

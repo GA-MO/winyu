@@ -1,0 +1,220 @@
+{
+ "version": 1,
+ "caseId": "line-drop-agents",
+ "userId": "u_prasit",
+ "prompt": "เอเย่นต์ที่ยอดหายมากสุดในอีสาน เทียบ 4 สัปดาห์ก่อน",
+ "model": "google/gemini-3.8-flash",
+ "promptHash": "a7c8c0bdb435cd61",
+ "toolsHash": "22f7ecc4e30f3b8c",
+ "today": "2026-10-05",
+ "recordedAt": "2026-10-05T13:03:07.132Z",
+ "steps": [
+  {
+   "kind": "call",
+   "tool": "query_metric",
+   "args": {
+    "grain": "week",
+    "range": {
+     "to": "2026-09-22",
+     "from": "2026-08-26"
+    },
+    "metric": "net_sales_value",
+    "dims": [
+     "agent"
+    ],
+    "filters": {
+     "region": "northeast"
+    },
+    "sort": "delta_asc",
+    "compare": "prev_period",
+    "limit": 5
+   },
+   "result": {
+    "ok": true,
+    "rows": [
+     {
+      "agent": "อีสานรุ่งโรจน์ ค้าส่ง",
+      "value": 26736471,
+      "value_label": "26.7 ล้านบาท",
+      "compare_value": 41997129,
+      "delta_pct": -36.3
+     },
+     {
+      "agent": "อุบลศรีสุข เทรดดิ้ง",
+      "value": 25141247,
+      "value_label": "25.1 ล้านบาท",
+      "compare_value": 39298016,
+      "delta_pct": -36
+     },
+     {
+      "agent": "ส.รุ่งเรือง เทรดดิ้ง",
+      "value": 51356882,
+      "value_label": "51.4 ล้านบาท",
+      "compare_value": 54506523,
+      "delta_pct": -5.8
+     },
+     {
+      "agent": "วารินพาณิชย์",
+      "value": 23649588,
+      "value_label": "23.6 ล้านบาท",
+      "compare_value": 24529530,
+      "delta_pct": -3.6
+     },
+     {
+      "agent": "ขอนแก่นมหาชัย",
+      "value": 64980448,
+      "value_label": "65.0 ล้านบาท",
+      "compare_value": 66922318,
+      "delta_pct": -2.9
+     }
+    ],
+    "summary": "มูลค่าขายเข้า 26 ส.ค. 2569 – 22 ก.ย. 2569: รวม 305.3 ล้านบาท · สูงสุด: ขอนแก่นมหาชัย 65.0 ล้านบาท · โคราชสหภัณฑ์ 60.6 ล้านบาท · ส.รุ่งเรือง เทรดดิ้ง 51.4 ล้านบาท · เทียบช่วงก่อนหน้า -11.0% · (5 แถว · certified · SAP SD)",
+    "headline": {
+     "aggregate": "sum",
+     "value": "305.3 ล้านบาท",
+     "periodLabel": "26 ส.ค. 2569 – 22 ก.ย. 2569",
+     "rowCount": 5,
+     "deltaPercent": -11,
+     "compareLabel": "เทียบช่วงก่อนหน้า",
+     "compareNote": null,
+     "top": [
+      {
+       "label": "ขอนแก่นมหาชัย",
+       "value": "65.0 ล้านบาท"
+      },
+      {
+       "label": "โคราชสหภัณฑ์",
+       "value": "60.6 ล้านบาท"
+      },
+      {
+       "label": "ส.รุ่งเรือง เทรดดิ้ง",
+       "value": "51.4 ล้านบาท"
+      }
+     ],
+     "underLine": null
+    },
+    "provenance": {
+     "metric": "net_sales_value",
+     "certified": true,
+     "sourceSystem": "SAP SD",
+     "asOf": "2026-09-22",
+     "rowCount": 5,
+     "filtersApplied": {
+      "region": [
+       "northeast"
+      ]
+     },
+     "filterLabels": [
+      "ภาคอีสาน"
+     ],
+     "scopeApplied": {},
+     "masked": [],
+     "trust": "verified"
+    },
+    "query": {
+     "metric": "net_sales_value",
+     "dims": [
+      "agent"
+     ],
+     "filters": {
+      "region": [
+       "northeast"
+      ]
+     },
+     "range": {
+      "from": "2026-08-26",
+      "to": "2026-09-22"
+     },
+     "grain": "week",
+     "compare": "prev_period",
+     "limit": 5,
+     "sort": "delta_asc"
+    },
+    "nextActions": [
+     {
+      "id": "handoff",
+      "kind": "handoff",
+      "label": "ส่งงานให้คุณอนุชา",
+      "reason": "เจ้าของตัวเลขยอดขายของพื้นที่ (ระดับภาค)",
+      "tool": "create_handoff",
+      "input": {
+       "toUserId": "u_anucha",
+       "title": "มูลค่าขายเข้า · ขอนแก่นมหาชัย",
+       "ask": "ช่วยตรวจอีสานรุ่งโรจน์ ค้าส่ง แล้วบอกกลับว่าเกิดจากอะไรและจะแก้อย่างไร",
+       "urgency": "medium",
+       "evidence": [
+        {
+         "metric": "net_sales_value",
+         "dims": [
+          "agent"
+         ],
+         "filters": {
+          "region": [
+           "northeast"
+          ]
+         },
+         "range": {
+          "from": "2026-08-26",
+          "to": "2026-09-22"
+         },
+         "grain": "week",
+         "compare": "prev_period",
+         "limit": 5,
+         "sort": "delta_asc"
+        }
+       ],
+       "alertIds": []
+      },
+      "prompt": null
+     },
+     {
+      "id": "drill-why",
+      "kind": "drill",
+      "label": "ทำไมอีสานรุ่งโรจน์ ค้าส่งถึงเป็นแบบนี้",
+      "reason": "อีสานรุ่งโรจน์ ค้าส่ง เปลี่ยนไปในทางที่แย่ที่สุด",
+      "tool": null,
+      "input": null,
+      "prompt": "เจาะดูมูลค่าขายเข้าของอีสานรุ่งโรจน์ ค้าส่ง ว่าทำไมถึงเปลี่ยนไป เทียบกับช่วงก่อนหน้าและช่วงเดียวกันปีก่อน"
+     }
+    ],
+    "followUps": [
+     {
+      "id": "fu-trend",
+      "label": "เริ่มแย่ตั้งแต่เมื่อไร",
+      "prompt": "มูลค่าขายเข้าของอีสานรุ่งโรจน์ ค้าส่ง รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+      "reason": "ดูว่าตัวเลขเริ่มลดลงสัปดาห์ไหน",
+      "intentKey": "follow|trend",
+      "score": 0.65
+     },
+     {
+      "id": "fu-compare_year",
+      "label": "เทียบปีก่อน",
+      "prompt": "ขอมูลค่าขายเข้าแยกตามเอเย่นต์ เทียบกับช่วงเดียวกันปีก่อน",
+      "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+      "intentKey": "follow|compare_year",
+      "score": 0.45
+     }
+    ]
+   }
+  },
+  {
+   "kind": "text",
+   "text": "ใช้ตัวชี้วัดมูลค่าขายเข้า (net_sales_value) ย้อนหลัง 4 สัปดาห์จนถึง 22 ก.ย. 2569 (ข้อมูลล่าสุดในระบบ) เทียบกับ 4 สัปดาห์ก่อนหน้า พบว่าอีสานรุ่งโรจน์ ค้าส่ง มียอดลดลงมากที่สุด ตามด้วยอุบลศรีสุข เทรดดิ้ง \n\nข้อสังเกตเบื้องต้นอาจเกิดจากการชะลอสั่งซื้อเพื่อบริหารวงเงินสินเชื่อ หรือปัญหาสินค้าหลักขาดสต๊อก แนะนำตรวจสอบระดับยอดขายออกหน้าร้าน (sell-out) เทียบกับสต๊อกคงคลัง และตรวจยอดหนี้ค้างชำระ (AR overdue) เพิ่มเติมเพื่อพิจารณาส่งต่อให้ผู้ดูแลพื้นที่ประสานงานต่อ"
+  }
+ ],
+ "asked": [],
+ "error": null,
+ "usage": {
+  "calls": 2,
+  "inputTokens": 21300,
+  "outputTokens": 1768,
+  "reasoningTokens": 1497,
+  "usd": 0.0113025
+ },
+ "drawn": {
+  "cards": [
+   "query_metric"
+  ],
+  "composed": null
+ }
+}

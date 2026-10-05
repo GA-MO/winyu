@@ -1,0 +1,248 @@
+{
+ "version": 1,
+ "caseId": "sites-overview",
+ "userId": "u_thana",
+ "prompt": "โรงงานไหนเกิดอุบัติเหตุบ้าง",
+ "model": "google/gemini-3.8-flash",
+ "promptHash": "469b58c58286c9a9",
+ "toolsHash": "22f7ecc4e30f3b8c",
+ "today": "2026-10-05",
+ "recordedAt": "2026-10-05T13:05:58.556Z",
+ "steps": [
+  {
+   "kind": "call",
+   "tool": "get_site",
+   "args": {
+    "name": null,
+    "id": null
+   },
+   "result": {
+    "ok": true,
+    "summary": "6 แห่ง · ต้องดูด่วน 2 แห่ง",
+    "data": [
+     {
+      "id": "pl_khonkaen",
+      "name": "โรงงานขอนแก่น",
+      "kind": "โรงงาน",
+      "place": "ขอนแก่น",
+      "photo": "/img/sites/site01.jpg",
+      "status": "ต้องดูด่วน",
+      "trailing": {
+       "text": "ไร้เหตุหยุดงาน 7 วัน",
+       "tone": "bad"
+      },
+      "note": "90 วันล่าสุด 4 เหตุการณ์ · หยุดงาน 1",
+      "badges": [
+       {
+        "label": "ยังไม่ปิด 1 เรื่อง",
+        "tone": "danger"
+       },
+       {
+        "label": "เหตุการณ์เพิ่มขึ้น",
+        "tone": "warning"
+       },
+       {
+        "label": "โอที 71 ชม./คน",
+        "tone": "warning"
+       }
+      ]
+     },
+     {
+      "id": "dc_khonkaen",
+      "name": "ศูนย์กระจายสินค้าขอนแก่น",
+      "kind": "ศูนย์กระจายสินค้า",
+      "place": "ขอนแก่น",
+      "photo": "/img/sites/site05.jpg",
+      "status": "ต้องดูด่วน",
+      "trailing": {
+       "text": "ไร้เหตุหยุดงาน 585 วัน",
+       "tone": "good"
+      },
+      "note": "90 วันล่าสุด 1 เหตุการณ์",
+      "badges": [
+       {
+        "label": "ยังไม่ปิด 1 เรื่อง",
+        "tone": "danger"
+       },
+       {
+        "label": "เหตุการณ์เพิ่มขึ้น",
+        "tone": "warning"
+       }
+      ]
+     },
+     {
+      "id": "dc_bangkok",
+      "name": "ศูนย์กระจายสินค้ากรุงเทพฯ",
+      "kind": "ศูนย์กระจายสินค้า",
+      "place": "กรุงเทพฯ",
+      "photo": "/img/sites/site03.jpg",
+      "status": "ปกติ",
+      "trailing": {
+       "text": "ไร้เหตุหยุดงาน 399 วัน",
+       "tone": "good"
+      },
+      "note": "90 วันล่าสุดไม่มีเหตุการณ์",
+      "badges": [
+       {
+        "label": "ไม่มีเรื่องค้าง",
+        "tone": "success"
+       }
+      ]
+     },
+     {
+      "id": "pl_pathumthani",
+      "name": "โรงงานปทุมธานี",
+      "kind": "โรงงาน",
+      "place": "ปทุมธานี",
+      "photo": "/img/sites/site06.jpg",
+      "status": "ปกติ",
+      "trailing": {
+       "text": "ไร้เหตุหยุดงาน 518 วัน",
+       "tone": "good"
+      },
+      "note": "90 วันล่าสุด 1 เหตุการณ์",
+      "badges": [
+       {
+        "label": "ไม่มีเรื่องค้าง",
+        "tone": "success"
+       }
+      ]
+     },
+     {
+      "id": "pl_singburi",
+      "name": "โรงงานสิงห์บุรี",
+      "kind": "โรงงาน",
+      "place": "สิงห์บุรี",
+      "photo": "/img/sites/site08.jpg",
+      "status": "ปกติ",
+      "trailing": {
+       "text": "ไร้เหตุหยุดงาน 686 วัน",
+       "tone": "good"
+      },
+      "note": "90 วันล่าสุดไม่มีเหตุการณ์",
+      "badges": [
+       {
+        "label": "ไม่มีเรื่องค้าง",
+        "tone": "success"
+       }
+      ]
+     },
+     {
+      "id": "hq_bangkok",
+      "name": "สำนักงานใหญ่ สามเสน",
+      "kind": "สำนักงาน",
+      "place": "กรุงเทพฯ",
+      "photo": "/img/sites/site07.jpg",
+      "status": "ปกติ",
+      "trailing": {
+       "text": "ไม่เคยมีเหตุหยุดงาน",
+       "tone": "good"
+      },
+      "note": "90 วันล่าสุดไม่มีเหตุการณ์",
+      "badges": [
+       {
+        "label": "ไม่มีเรื่องค้าง",
+        "tone": "success"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "kind": "text",
+   "text": "โรงงานที่มีบันทึกอุบัติเหตุและเหตุการณ์ความปลอดภัยคือโรงงานขอนแก่นและโรงงานปทุมธานี โดยโรงงานขอนแก่นมีสถานะต้องติดตามเร่งด่วนเนื่องจากมีเหตุหยุดงานและมีมาตรการแก้ไขที่ยังค้างอยู่ ควรตรวจสอบชั่วโมงการทำงานล่วงเวลาควบคู่กับมาตรฐานความปลอดภัยในสายการผลิตเพิ่มเติม\n\n```a2ui\n{\"id\":\"root\",\"component\":\"Card\",\"title\":\"โรงงานที่เกิดอุบัติเหตุและเหตุการณ์ความปลอดภัย\",\"footnote\":\"ระบบความปลอดภัยและอาชีวอนามัย\",\"children\":[\"site_kk\",\"site_pt\"]}\n{\"id\":\"site_kk\",\"component\":\"ListItem\",\"title\":{\"path\":\"/get_site/data/0/name\"},\"subtitle\":{\"path\":\"/get_site/data/0/note\"},\"badges\":{\"path\":\"/get_site/data/0/badges\"},\"trailing\":{\"path\":\"/get_site/data/0/trailing/text\"},\"src\":{\"path\":\"/get_site/data/0/photo\"},\"media\":\"thumb\",\"action\":{\"event\":{\"name\":\"ask\",\"context\":{\"prompt\":\"ขอดูรายละเอียดความปลอดภัย\",\"about\":{\"path\":\"/get_site/data/0/name\"}}}}}\n{\"id\":\"site_pt\",\"component\":\"ListItem\",\"title\":{\"path\":\"/get_site/data/3/name\"},\"subtitle\":{\"path\":\"/get_site/data/3/note\"},\"badges\":{\"path\":\"/get_site/data/3/badges\"},\"trailing\":{\"path\":\"/get_site/data/3/trailing/text\"},\"src\":{\"path\":\"/get_site/data/3/photo\"},\"media\":\"thumb\",\"action\":{\"event\":{\"name\":\"ask\",\"context\":{\"prompt\":\"ขอดูรายละเอียดความปลอดภัย\",\"about\":{\"path\":\"/get_site/data/3/name\"}}}}}\n```"
+  }
+ ],
+ "asked": [],
+ "error": null,
+ "usage": {
+  "calls": 2,
+  "inputTokens": 20278,
+  "outputTokens": 3366,
+  "reasoningTokens": 2946,
+  "usd": 0.0139155
+ },
+ "drawn": {
+  "cards": [],
+  "composed": {
+   "accepted": 3,
+   "rejected": 0,
+   "problems": [],
+   "components": [
+    {
+     "id": "root",
+     "component": "Card",
+     "title": "โรงงานที่เกิดอุบัติเหตุและเหตุการณ์ความปลอดภัย",
+     "footnote": "ระบบความปลอดภัยและอาชีวอนามัย",
+     "children": [
+      "site_kk",
+      "site_pt"
+     ]
+    },
+    {
+     "id": "site_kk",
+     "component": "ListItem",
+     "title": {
+      "path": "/get_site/data/0/name"
+     },
+     "subtitle": {
+      "path": "/get_site/data/0/note"
+     },
+     "src": {
+      "path": "/get_site/data/0/photo"
+     },
+     "media": "thumb",
+     "badges": {
+      "path": "/get_site/data/0/badges"
+     },
+     "trailing": {
+      "path": "/get_site/data/0/trailing/text"
+     },
+     "action": {
+      "event": {
+       "name": "ask",
+       "context": {
+        "prompt": "ขอดูรายละเอียดความปลอดภัย",
+        "about": {
+         "path": "/get_site/data/0/name"
+        }
+       }
+      }
+     }
+    },
+    {
+     "id": "site_pt",
+     "component": "ListItem",
+     "title": {
+      "path": "/get_site/data/3/name"
+     },
+     "subtitle": {
+      "path": "/get_site/data/3/note"
+     },
+     "src": {
+      "path": "/get_site/data/3/photo"
+     },
+     "media": "thumb",
+     "badges": {
+      "path": "/get_site/data/3/badges"
+     },
+     "trailing": {
+      "path": "/get_site/data/3/trailing/text"
+     },
+     "action": {
+      "event": {
+       "name": "ask",
+       "context": {
+        "prompt": "ขอดูรายละเอียดความปลอดภัย",
+        "about": {
+         "path": "/get_site/data/3/name"
+        }
+       }
+      }
+     }
+    }
+   ]
+  }
+ }
+}

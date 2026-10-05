@@ -1,0 +1,198 @@
+{
+ "version": 1,
+ "caseId": "planner-cover",
+ "userId": "u_wee",
+ "prompt": "ศูนย์กระจายสินค้าไหนสต๊อกจะขาดก่อน",
+ "model": "google/gemini-3.8-flash",
+ "promptHash": "ba09ccfc1ba110ff",
+ "toolsHash": "017d9696205cf478",
+ "today": "2026-10-05",
+ "recordedAt": "2026-10-05T12:59:53.642Z",
+ "steps": [
+  {
+   "kind": "call",
+   "tool": "query_metric",
+   "args": {
+    "range": {
+     "to": "2026-09-22",
+     "from": "2026-09-22"
+    },
+    "filters": {},
+    "grain": "day",
+    "sort": "value_asc",
+    "compare": "none",
+    "limit": 10,
+    "dims": [
+     "dc"
+    ],
+    "metric": "days_of_cover"
+   },
+   "result": {
+    "ok": true,
+    "rows": [
+     {
+      "dc": "ศูนย์กระจายสินค้าเชียงใหม่",
+      "value": 13.89,
+      "value_label": "13.9 วัน"
+     },
+     {
+      "dc": "ศูนย์กระจายสินค้านครราชสีมา",
+      "value": 14.75,
+      "value_label": "14.7 วัน"
+     },
+     {
+      "dc": "ศูนย์กระจายสินค้าลำพูน",
+      "value": 14.86,
+      "value_label": "14.9 วัน"
+     },
+     {
+      "dc": "ศูนย์กระจายสินค้าชลบุรี",
+      "value": 14.94,
+      "value_label": "14.9 วัน"
+     },
+     {
+      "dc": "ศูนย์กระจายสินค้าสงขลา",
+      "value": 15.15,
+      "value_label": "15.2 วัน"
+     },
+     {
+      "dc": "ศูนย์กระจายสินค้าอยุธยา",
+      "value": 15.91,
+      "value_label": "15.9 วัน"
+     },
+     {
+      "dc": "ศูนย์กระจายสินค้ากรุงเทพฯ",
+      "value": 15.95,
+      "value_label": "16.0 วัน"
+     },
+     {
+      "dc": "ศูนย์กระจายสินค้าขอนแก่น",
+      "value": 16.63,
+      "value_label": "16.6 วัน"
+     }
+    ],
+    "summary": "วันครอบคลุมสต๊อก 22 ก.ย. 2569: เฉลี่ย 15.4 วัน · ต่ำสุด: ศูนย์กระจายสินค้าเชียงใหม่ 13.9 วัน · ศูนย์กระจายสินค้านครราชสีมา 14.7 วัน · ศูนย์กระจายสินค้าลำพูน 14.9 วัน · (8 แถว · certified · WMS)",
+    "headline": {
+     "aggregate": "average",
+     "value": "15.4 วัน",
+     "periodLabel": "22 ก.ย. 2569",
+     "rowCount": 8,
+     "deltaPercent": null,
+     "compareLabel": null,
+     "compareNote": null,
+     "top": [
+      {
+       "label": "ศูนย์กระจายสินค้าเชียงใหม่",
+       "value": "13.9 วัน"
+      },
+      {
+       "label": "ศูนย์กระจายสินค้านครราชสีมา",
+       "value": "14.7 วัน"
+      },
+      {
+       "label": "ศูนย์กระจายสินค้าลำพูน",
+       "value": "14.9 วัน"
+      }
+     ],
+     "underLine": {
+      "line": 10,
+      "count": 0,
+      "of": 8
+     }
+    },
+    "provenance": {
+     "metric": "days_of_cover",
+     "certified": true,
+     "sourceSystem": "WMS",
+     "asOf": "2026-09-22",
+     "rowCount": 8,
+     "filtersApplied": {},
+     "filterLabels": [],
+     "scopeApplied": {},
+     "masked": [],
+     "trust": "verified"
+    },
+    "query": {
+     "metric": "days_of_cover",
+     "dims": [
+      "dc"
+     ],
+     "filters": {},
+     "range": {
+      "from": "2026-09-22",
+      "to": "2026-09-22"
+     },
+     "grain": "day",
+     "compare": "none",
+     "limit": 10,
+     "sort": "value_asc"
+    },
+    "nextActions": [
+     {
+      "id": "verify",
+      "kind": "verify",
+      "label": "ตรวจสาเหตุ",
+      "reason": "ดูวันครอบคลุมสต๊อกและสต๊อกคงเหลือของศูนย์กระจายสินค้าลำพูน · เพอร์ร่า ขวด PET 600 มล. · ภาคเหนือตอนนี้",
+      "tool": null,
+      "input": null,
+      "prompt": "ดูวันครอบคลุมสต๊อกและสต๊อกคงเหลือของศูนย์กระจายสินค้าลำพูน · เพอร์ร่า ขวด PET 600 มล. · ภาคเหนือตอนนี้"
+     },
+     {
+      "id": "drill-region",
+      "kind": "drill",
+      "label": "แยกตามภาค",
+      "reason": "ยังไม่ได้ดูแยกรายภาค",
+      "tool": null,
+      "input": null,
+      "prompt": "ขอวันครอบคลุมสต๊อกแยกตามภาค เรียงจากมากไปน้อย"
+     }
+    ],
+    "followUps": [
+     {
+      "id": "fu-drill_down",
+      "label": "ดู SKU ใน DC เชียงใหม่",
+      "prompt": "ขอวันครอบคลุมสต๊อกของ DC เชียงใหม่ แยกราย SKU เรียงจากแย่ไปดี",
+      "reason": "ลงไปอีกชั้นเพื่อหาว่าใครในDC เชียงใหม่ทำให้ตัวเลขเป็นแบบนี้",
+      "intentKey": "follow|drill_down",
+      "score": 0.7
+     },
+     {
+      "id": "fu-why",
+      "label": "ทำไม DC เชียงใหม่",
+      "prompt": "เจาะดูวันครอบคลุมสต๊อกของ DC เชียงใหม่ ว่าทำไมถึงเปลี่ยนไป เทียบกับช่วงก่อนหน้าและช่วงเดียวกันปีก่อน",
+      "reason": "DC เชียงใหม่ คือแถวที่ต้องดูมากที่สุดในคำตอบนี้",
+      "intentKey": "follow|why",
+      "score": 0.6
+     },
+     {
+      "id": "fu-forecast",
+      "label": "พยากรณ์ 8 สัปดาห์",
+      "prompt": "พยากรณ์วันครอบคลุมสต๊อกของ DC เชียงใหม่ 8 สัปดาห์ข้างหน้า",
+      "reason": "ดูว่าถ้าเป็นแบบนี้ต่อไปจะเกิดอะไร",
+      "intentKey": "follow|forecast",
+      "score": 0.55
+     }
+    ]
+   }
+  },
+  {
+   "kind": "text",
+   "text": "ประเมินจากเมตริกวันครอบคลุมสต๊อก (Days of Cover) ล่าสุด ณ วันที่ 22 ก.ย. 2569 ศูนย์กระจายสินค้าเชียงใหม่มีสต๊อกเหลือสำหรับจ่ายได้สั้นที่สุดในเครือข่าย แม้ภาพรวมทุกศูนย์จะยังอยู่เหนือเกณฑ์ 10 วัน ควรเจาะดูราย SKU ภายใน DC เชียงใหม่เพื่อตรวจสอบสินค้าตัวที่อัตราการหมุนเวียนสูงและเร่งจัดสรรการเติมสต๊อกล่วงหน้า"
+  }
+ ],
+ "asked": [],
+ "error": null,
+ "usage": {
+  "calls": 2,
+  "inputTokens": 20522,
+  "outputTokens": 1239,
+  "reasoningTokens": 1038,
+  "usd": 0.010018875
+ },
+ "drawn": {
+  "cards": [
+   "query_metric"
+  ],
+  "composed": null
+ }
+}

@@ -1,0 +1,167 @@
+{
+ "version": 1,
+ "caseId": "title-cover-threshold",
+ "userId": "u_arm",
+ "prompt": "สินค้าตัวไหนสต๊อกพอขายน้อยกว่า 10 วัน",
+ "model": "google/gemini-3.8-flash",
+ "promptHash": "eb0f29418c876797",
+ "toolsHash": "7ba0f807fddc10bb",
+ "today": "2026-10-05",
+ "recordedAt": "2026-10-05T13:09:51.845Z",
+ "steps": [
+  {
+   "kind": "call",
+   "tool": "query_metric",
+   "args": {
+    "grain": "day",
+    "metric": "days_of_cover",
+    "dims": [
+     "sku"
+    ],
+    "range": {
+     "to": "2026-09-22",
+     "from": "2026-09-22"
+    },
+    "filters": {
+     "region": "south"
+    },
+    "limit": 20,
+    "sort": "value_asc",
+    "compare": "none",
+    "where": {
+     "op": "below",
+     "value": 10
+    }
+   },
+   "result": {
+    "ok": true,
+    "rows": [
+     {
+      "sku": "สิงห์ ขวด 620 มล.",
+      "value": 7.22,
+      "value_label": "7.2 วัน"
+     }
+    ],
+    "summary": "วันครอบคลุมสต๊อก 22 ก.ย. 2569: เฉลี่ย 7.2 วัน · ต่ำสุด: สิงห์ ขวด 620 มล. 7.2 วัน · (1 แถว · certified · WMS)",
+    "headline": {
+     "aggregate": "average",
+     "value": "7.2 วัน",
+     "periodLabel": "22 ก.ย. 2569",
+     "rowCount": 1,
+     "deltaPercent": null,
+     "compareLabel": null,
+     "compareNote": null,
+     "top": [
+      {
+       "label": "สิงห์ ขวด 620 มล.",
+       "value": "7.2 วัน"
+      }
+     ],
+     "underLine": {
+      "line": 10,
+      "count": 1,
+      "of": 30
+     }
+    },
+    "provenance": {
+     "metric": "days_of_cover",
+     "certified": true,
+     "sourceSystem": "WMS",
+     "asOf": "2026-09-22",
+     "rowCount": 1,
+     "filtersApplied": {
+      "region": [
+       "south"
+      ]
+     },
+     "filterLabels": [
+      "ภาคใต้",
+      "น้อยกว่า 10 วัน"
+     ],
+     "scopeApplied": {},
+     "masked": [],
+     "trust": "verified"
+    },
+    "query": {
+     "metric": "days_of_cover",
+     "dims": [
+      "sku"
+     ],
+     "filters": {
+      "region": [
+       "south"
+      ]
+     },
+     "range": {
+      "from": "2026-09-22",
+      "to": "2026-09-22"
+     },
+     "grain": "day",
+     "compare": "none",
+     "limit": 20,
+     "sort": "value_asc",
+     "where": {
+      "op": "below",
+      "value": 10
+     }
+    },
+    "nextActions": [
+     {
+      "id": "drill-brand",
+      "kind": "drill",
+      "label": "แยกตามแบรนด์",
+      "reason": "ยังไม่ได้ดูแยกรายแบรนด์",
+      "tool": null,
+      "input": null,
+      "prompt": "ขอวันครอบคลุมสต๊อกแยกตามแบรนด์ เรียงจากมากไปน้อย"
+     }
+    ],
+    "followUps": [
+     {
+      "id": "fu-forecast",
+      "label": "พยากรณ์ 8 สัปดาห์",
+      "prompt": "พยากรณ์วันครอบคลุมสต๊อก 8 สัปดาห์ข้างหน้า",
+      "reason": "ดูว่าถ้าเป็นแบบนี้ต่อไปจะเกิดอะไร",
+      "intentKey": "follow|forecast",
+      "score": 0.55
+     },
+     {
+      "id": "fu-trend",
+      "label": "ดูแนวโน้มรายสัปดาห์",
+      "prompt": "วันครอบคลุมสต๊อก รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+      "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+      "intentKey": "follow|trend",
+      "score": 0.5
+     },
+     {
+      "id": "fu-compare_year",
+      "label": "เทียบปีก่อน",
+      "prompt": "ขอวันครอบคลุมสต๊อกแยกตาม SKU เทียบกับช่วงเดียวกันปีก่อน",
+      "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+      "intentKey": "follow|compare_year",
+      "score": 0.45
+     }
+    ]
+   }
+  },
+  {
+   "kind": "text",
+   "text": "ประเมินจากเมตริกวันครอบคลุมสต๊อก (Days of Cover) ในพื้นที่ภาคใต้ ข้อมูลล่าสุด ณ วันที่ 22 ก.ย. 2569 พบ สิงห์ ขวด 620 มล. อยู่ในระดับที่ต้องเฝ้าระวัง ควรเร่งตรวจสอบรอบจัดส่งและสต๊อกของศูนย์กระจายสินค้าในพื้นที่เพื่อป้องกันสินค้าขาดตลาดก่อนรอบสั่งซื้อถัดไป"
+  }
+ ],
+ "asked": [],
+ "error": null,
+ "usage": {
+  "calls": 2,
+  "inputTokens": 18893,
+  "outputTokens": 1927,
+  "reasoningTokens": 1730,
+  "usd": 0.010698
+ },
+ "drawn": {
+  "cards": [
+   "query_metric"
+  ],
+  "composed": null
+ }
+}

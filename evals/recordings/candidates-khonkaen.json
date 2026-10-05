@@ -1,0 +1,363 @@
+{
+ "version": 1,
+ "caseId": "candidates-khonkaen",
+ "userId": "u_may",
+ "prompt": "ผู้สมัครพนักงานขายขอนแก่น",
+ "model": "google/gemini-3.8-flash",
+ "promptHash": "2f484d85b0bbd7ac",
+ "toolsHash": "017d9696205cf478",
+ "today": "2026-10-05",
+ "recordedAt": "2026-10-05T13:06:29.932Z",
+ "steps": [
+  {
+   "kind": "call",
+   "tool": "list_candidates",
+   "args": {
+    "position": "พนักงานขาย ขอนแก่น",
+    "stage": null
+   },
+   "result": {
+    "ok": true,
+    "summary": "พนักงานขาย ขอนแก่น (เขตชุมแพ) · ผู้สมัคร 9 คน · เปิดรับมา 64 วัน",
+    "data": {
+     "position": {
+      "id": "op_ne_khonkaen",
+      "title": "พนักงานขาย ขอนแก่น (เขตชุมแพ)",
+      "manager": "คุณอนุชา พรหมศรี",
+      "candidates": "9 คน",
+      "advanced": "ถึงขั้นสัมภาษณ์ 5 คน",
+      "open_label": "เปิดรับมา 64 วัน"
+     },
+     "metrics": [
+      {
+       "label": "ผู้สมัครทั้งหมด",
+       "value": "9 คน",
+       "detail": "7 วันล่าสุด +2",
+       "tone": "neutral"
+      },
+      {
+       "label": "ถึงขั้นสัมภาษณ์ขึ้นไป",
+       "value": "5 คน",
+       "detail": "ยื่นข้อเสนอแล้ว 1 คน",
+       "tone": "neutral"
+      },
+      {
+       "label": "เปิดรับมาแล้ว",
+       "value": "64 วัน",
+       "detail": null,
+       "tone": "bad"
+      }
+     ],
+     "candidates": [
+      {
+       "id": "c_kk01",
+       "name": "คุณณัฐพล ศรีวงศ์",
+       "position": "พนักงานขาย ขอนแก่น (เขตชุมแพ)",
+       "stage": "ยื่นข้อเสนอ",
+       "step": 5,
+       "steps": 5,
+       "stage_percent": 100,
+       "score": 4.5,
+       "score_label": "คะแนนสัมภาษณ์ 4.5 / 5",
+       "applied": "สมัคร 24 ก.ค. 2569",
+       "experience": "ขายเครื่องดื่มให้ร้านอาหารในขอนแก่น 5 ปี",
+       "strength": "รู้จักร้านในเขตชุมแพกว่า 60 ร้าน",
+       "concern": "ขอเริ่มงาน 1 พ.ย. เพราะต้องแจ้งออกล่วงหน้า 30 วัน",
+       "source": "พนักงานแนะนำ (คุณกฤต)",
+       "badges": [
+        {
+         "label": "ยื่นข้อเสนอแล้ว",
+         "tone": "success"
+        },
+        {
+         "label": "มีเรื่องต้องคุย",
+         "tone": "warning"
+        },
+        {
+         "label": "พนักงานแนะนำ",
+         "tone": "neutral"
+        }
+       ],
+       "expected_salary": "36,000 บาท"
+      },
+      {
+       "id": "c_kk02",
+       "name": "คุณพิมพ์ชนก แก้วมณี",
+       "position": "พนักงานขาย ขอนแก่น (เขตชุมแพ)",
+       "stage": "สัมภาษณ์รอบสุดท้าย",
+       "step": 4,
+       "steps": 5,
+       "stage_percent": 80,
+       "score": 4.5,
+       "score_label": "คะแนนสัมภาษณ์ 4.5 / 5",
+       "applied": "สมัคร 28 ก.ค. 2569",
+       "experience": "ผู้แทนขายบริษัทสินค้าอุปโภค 4 ปี",
+       "strength": "ยอดขายเกินเป้า 8 ไตรมาสติด",
+       "concern": null,
+       "source": "JobThai",
+       "badges": [],
+       "expected_salary": "34,000 บาท"
+      },
+      {
+       "id": "c_kk03",
+       "name": "คุณธีรวัฒน์ บุญประเสริฐ",
+       "position": "พนักงานขาย ขอนแก่น (เขตชุมแพ)",
+       "stage": "สัมภาษณ์รอบสุดท้าย",
+       "step": 4,
+       "steps": 5,
+       "stage_percent": 80,
+       "score": 4,
+       "score_label": "คะแนนสัมภาษณ์ 4 / 5",
+       "applied": "สมัคร 2 ส.ค. 2569",
+       "experience": "ผู้แทนขายเบียร์คู่แข่งในภาคอีสาน 3 ปี",
+       "strength": "เคยดูแลเอเย่นต์ในอำเภอรอบขอนแก่น",
+       "concern": "ยังติดสัญญาห้ามทำงานกับคู่แข่งถึง ธ.ค. 2569",
+       "source": "LinkedIn",
+       "badges": [
+        {
+         "label": "มีเรื่องต้องคุย",
+         "tone": "warning"
+        }
+       ],
+       "expected_salary": "40,000 บาท"
+      },
+      {
+       "id": "c_kk04",
+       "name": "คุณศิริลักษณ์ ทองดี",
+       "position": "พนักงานขาย ขอนแก่น (เขตชุมแพ)",
+       "stage": "สัมภาษณ์",
+       "step": 3,
+       "steps": 5,
+       "stage_percent": 60,
+       "score": 3.5,
+       "score_label": "คะแนนสัมภาษณ์ 3.5 / 5",
+       "applied": "สมัคร 10 ส.ค. 2569",
+       "experience": "พนักงานขายหน้าร้านโมเดิร์นเทรด 2 ปี",
+       "strength": "สื่อสารดี ขับรถได้ มีรถส่วนตัว",
+       "concern": "ยังไม่เคยขายช่องทางร้านค้าปลีก",
+       "source": "JobThai",
+       "badges": [
+        {
+         "label": "มีเรื่องต้องคุย",
+         "tone": "warning"
+        }
+       ],
+       "expected_salary": "28,000 บาท"
+      },
+      {
+       "id": "c_kk05",
+       "name": "คุณอภิชาติ พลเยี่ยม",
+       "position": "พนักงานขาย ขอนแก่น (เขตชุมแพ)",
+       "stage": "สัมภาษณ์",
+       "step": 3,
+       "steps": 5,
+       "stage_percent": 60,
+       "score": 3,
+       "score_label": "คะแนนสัมภาษณ์ 3 / 5",
+       "applied": "สมัคร 14 ส.ค. 2569",
+       "experience": "ขายประกันชีวิต 3 ปี",
+       "strength": "หาลูกค้าใหม่เก่ง",
+       "concern": "ไม่มีประสบการณ์สินค้าอุปโภคบริโภค",
+       "source": "เว็บไซต์บริษัท",
+       "badges": [
+        {
+         "label": "มีเรื่องต้องคุย",
+         "tone": "warning"
+        }
+       ],
+       "expected_salary": "30,000 บาท"
+      },
+      {
+       "id": "c_kk06",
+       "name": "คุณกมลวรรณ ศรีสุข",
+       "position": "พนักงานขาย ขอนแก่น (เขตชุมแพ)",
+       "stage": "คัดกรองประวัติ",
+       "step": 2,
+       "steps": 5,
+       "stage_percent": 40,
+       "score": null,
+       "score_label": "ยังไม่ได้ให้คะแนน",
+       "applied": "สมัคร 2 ก.ย. 2569",
+       "experience": "เทรดมาร์เก็ตติ้งร้านสะดวกซื้อ 2 ปี",
+       "strength": "ทำโปรโมชันหน้าร้านเป็น",
+       "concern": null,
+       "source": "JobThai",
+       "badges": [],
+       "expected_salary": "29,000 บาท"
+      },
+      {
+       "id": "c_kk07",
+       "name": "คุณวีระพงษ์ จันทร์แก้ว",
+       "position": "พนักงานขาย ขอนแก่น (เขตชุมแพ)",
+       "stage": "คัดกรองประวัติ",
+       "step": 2,
+       "steps": 5,
+       "stage_percent": 40,
+       "score": null,
+       "score_label": "ยังไม่ได้ให้คะแนน",
+       "applied": "สมัคร 8 ก.ย. 2569",
+       "experience": "ผู้แทนขายยา 1 ปี",
+       "strength": "จบบริหารธุรกิจ ม.ขอนแก่น",
+       "concern": null,
+       "source": "งานนัดพบแรงงาน ม.ขอนแก่น",
+       "badges": [],
+       "expected_salary": "26,000 บาท"
+      },
+      {
+       "id": "c_kk08",
+       "name": "คุณสุดารัตน์ ภูผาใจ",
+       "position": "พนักงานขาย ขอนแก่น (เขตชุมแพ)",
+       "stage": "สมัคร",
+       "step": 1,
+       "steps": 5,
+       "stage_percent": 20,
+       "score": null,
+       "score_label": "ยังไม่ได้ให้คะแนน",
+       "applied": "สมัคร 15 ก.ย. 2569",
+       "experience": "พนักงานขายรถจักรยานยนต์ 2 ปี",
+       "strength": "อยู่ อ.ชุมแพ",
+       "concern": null,
+       "source": "เว็บไซต์บริษัท",
+       "badges": [],
+       "expected_salary": "25,000 บาท"
+      },
+      {
+       "id": "c_kk09",
+       "name": "คุณเอกชัย นามวงศ์",
+       "position": "พนักงานขาย ขอนแก่น (เขตชุมแพ)",
+       "stage": "สมัคร",
+       "step": 1,
+       "steps": 5,
+       "stage_percent": 20,
+       "score": null,
+       "score_label": "ยังไม่ได้ให้คะแนน",
+       "applied": "สมัคร 19 ก.ย. 2569",
+       "experience": "จบใหม่ สาขาการตลาด",
+       "strength": "ฝึกงานฝ่ายขายเครื่องดื่ม 4 เดือน",
+       "concern": null,
+       "source": "งานนัดพบแรงงาน ม.ขอนแก่น",
+       "badges": [],
+       "expected_salary": "22,000 บาท"
+      }
+     ],
+     "positions": []
+    }
+   }
+  },
+  {
+   "kind": "text",
+   "text": "ตำแหน่งนี้มีผู้สมัครที่ผ่านการคัดเลือกจนถึงขั้นยื่นข้อเสนอแล้ว ควรเร่งติดตามการตอบรับข้อเสนอและกำหนดวันเริ่มงานเพื่อปิดการสรรหาตามแผนงาน\n\n```a2ui\n{\"id\":\"root\",\"component\":\"Card\",\"title\":\"ผู้สมัครพนักงานขาย ขอนแก่น\",\"meta\":\"เขตชุมแพ\",\"footnote\":\"ระบบสรรหาบุคลากร\",\"children\":[\"metrics_grid\",\"candidates_grid\"]}\n{\"id\":\"metrics_grid\",\"component\":\"Grid\",\"children\":[\"m1\",\"m2\",\"m3\"]}\n{\"id\":\"m1\",\"component\":\"Metric\",\"label\":{\"path\":\"/list_candidates/data/metrics/0/label\"},\"value\":{\"path\":\"/list_candidates/data/metrics/0/value\"},\"detail\":{\"path\":\"/list_candidates/data/metrics/0/detail\"}}\n{\"id\":\"m2\",\"component\":\"Metric\",\"label\":{\"path\":\"/list_candidates/data/metrics/1/label\"},\"value\":{\"path\":\"/list_candidates/data/metrics/1/value\"},\"detail\":{\"path\":\"/list_candidates/data/metrics/1/detail\"}}\n{\"id\":\"m3\",\"component\":\"Metric\",\"label\":{\"path\":\"/list_candidates/data/metrics/2/label\"},\"value\":{\"path\":\"/list_candidates/data/metrics/2/value\"}}\n{\"id\":\"candidates_grid\",\"component\":\"Grid\",\"children\":{\"componentId\":\"candidate_item\",\"path\":\"/list_candidates/data/candidates\"}}\n{\"id\":\"candidate_item\",\"component\":\"ListItem\",\"title\":{\"path\":\"name\"},\"subtitle\":{\"path\":\"stage\"},\"detail\":{\"path\":\"experience\"},\"badges\":{\"path\":\"badges\"},\"media\":\"none\",\"action\":{\"event\":{\"name\":\"ask\",\"context\":{\"prompt\":\"ขอดูรายละเอียดผู้สมัคร\",\"about\":{\"path\":\"name\"}}}}}\n```"
+  }
+ ],
+ "asked": [],
+ "error": null,
+ "usage": {
+  "calls": 2,
+  "inputTokens": 21092,
+  "outputTokens": 3274,
+  "reasoningTokens": 2855,
+  "usd": 0.014048249999999998
+ },
+ "drawn": {
+  "cards": [],
+  "composed": {
+   "accepted": 7,
+   "rejected": 0,
+   "problems": [],
+   "components": [
+    {
+     "id": "root",
+     "component": "Card",
+     "title": "ผู้สมัครพนักงานขาย ขอนแก่น",
+     "meta": "เขตชุมแพ",
+     "footnote": "ระบบสรรหาบุคลากร",
+     "children": [
+      "metrics_grid",
+      "candidates_grid"
+     ]
+    },
+    {
+     "id": "metrics_grid",
+     "component": "Grid",
+     "children": [
+      "m1",
+      "m2",
+      "m3"
+     ]
+    },
+    {
+     "id": "m1",
+     "component": "Metric",
+     "label": {
+      "path": "/list_candidates/data/metrics/0/label"
+     },
+     "value": {
+      "path": "/list_candidates/data/metrics/0/value"
+     },
+     "detail": {
+      "path": "/list_candidates/data/metrics/0/detail"
+     }
+    },
+    {
+     "id": "m2",
+     "component": "Metric",
+     "label": {
+      "path": "/list_candidates/data/metrics/1/label"
+     },
+     "value": {
+      "path": "/list_candidates/data/metrics/1/value"
+     },
+     "detail": {
+      "path": "/list_candidates/data/metrics/1/detail"
+     }
+    },
+    {
+     "id": "m3",
+     "component": "Metric",
+     "label": {
+      "path": "/list_candidates/data/metrics/2/label"
+     },
+     "value": {
+      "path": "/list_candidates/data/metrics/2/value"
+     }
+    },
+    {
+     "id": "candidates_grid",
+     "component": "Grid",
+     "children": {
+      "componentId": "candidate_item",
+      "path": "/list_candidates/data/candidates"
+     }
+    },
+    {
+     "id": "candidate_item",
+     "component": "ListItem",
+     "title": {
+      "path": "name"
+     },
+     "subtitle": {
+      "path": "stage"
+     },
+     "detail": {
+      "path": "experience"
+     },
+     "media": "none",
+     "badges": {
+      "path": "badges"
+     },
+     "action": {
+      "event": {
+       "name": "ask",
+       "context": {
+        "prompt": "ขอดูรายละเอียดผู้สมัคร",
+        "about": {
+         "path": "name"
+        }
+       }
+      }
+     }
+    }
+   ]
+  }
+ }
+}

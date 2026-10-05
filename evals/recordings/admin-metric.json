@@ -1,0 +1,38 @@
+{
+ "version": 1,
+ "caseId": "admin-metric",
+ "userId": "u_ton",
+ "prompt": "ให้พนักงานขายไม่เห็นมูลค่าขายเข้า",
+ "model": "google/gemini-3.8-flash",
+ "promptHash": "865c61255df8c0b2",
+ "toolsHash": "d83b73cde60f979a",
+ "today": "2026-10-05",
+ "recordedAt": "2026-10-05T13:08:10.125Z",
+ "steps": [
+  {
+   "kind": "call",
+   "tool": "set_permission",
+   "args": {
+    "value": "none",
+    "kind": "metric",
+    "role": "sales_rep",
+    "key": "net_sales_value"
+   }
+  }
+ ],
+ "asked": [
+  "set_permission"
+ ],
+ "error": null,
+ "usage": {
+  "calls": 1,
+  "inputTokens": 9999,
+  "outputTokens": 497,
+  "reasoningTokens": 457,
+  "usd": 0.003317325
+ },
+ "drawn": {
+  "cards": [],
+  "composed": null
+ }
+}
