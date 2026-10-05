@@ -307,10 +307,10 @@ export const EVAL_CHECKS: readonly EvalCheck[] = [
   },
   {
     id: "composed",
-    description: "An answer that shows people, sites, courses, candidates, policies, owners, entities or connector rows is one composed card (a lookup behind a metric card is not such an answer).",
+    description: "An answer that shows people, sites, courses, candidates, policies, owners, entities or connector rows is one composed card (a lookup behind a metric card or an approval is not such an answer).",
     verdict: (turn, expected) => {
       const reads = composableReads(turn);
-      if (!expected.expectPeople && (expected.expectCard || reads.length === 0)) return null;
+      if (!expected.expectPeople && (expected.expectCard || expected.expectApproval || reads.length === 0)) return null;
       const held = components(turn).length > 0;
       return verdict(held, held ? `การ์ดประกอบ ${components(turn).length} ชิ้นจาก ${reads.map((read) => read.tool).join(", ")}` : `ไม่มีการ์ดประกอบ (อ่าน ${reads.map((read) => read.tool).join(", ") || "ไม่มี"}) · การ์ดตายตัว ${turn.cards.map((card) => card.tool).join(", ") || "ไม่มี"}`);
     },
