@@ -227,6 +227,7 @@ export async function personProfile(access: AccessContext, id: string | null, na
       certificates: detailed ? certificatePairs(signals.certificates) : [],
       risk_reasons: view === "hr" ? signals.riskReasons : [],
       reports: reports.map((report) => ({ id: report.id, name: report.nameTh, title: report.title, photo: report.photo })),
+      reports_count: reports.length > 0 ? T.reportsCount(reports.length) : null,
     },
   };
 }
