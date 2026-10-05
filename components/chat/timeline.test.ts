@@ -1,3 +1,4 @@
+import { COMPOSED_CARD_ACTIVITY } from "@/lib/compose/catalog";
 import { describe, expect, test } from "bun:test";
 import { pressedText } from "./pressed";
 import { exchangesOf, type ChatMessage } from "./timeline";
@@ -63,25 +64,26 @@ describe("toolViewOf", () => {
 });
 
 describe("composedCalls", () => {
-  function peopleTurn(composed: unknown): ChatMessage[] {
+  function peopleTurn(components: unknown[]): ChatMessage[] {
     return [
       { id: "u1", role: "user", content: "ใครดูแลภาคอีสาน" },
       { id: "a1", role: "assistant", content: "", toolCalls: [call("p1", "find_people"), call("p2", "get_person"), call("m1", "query_metric")] },
       { id: "t1", role: "tool", toolCallId: "p1", content: JSON.stringify({ ok: true, data: [] }) },
       { id: "t2", role: "tool", toolCallId: "p2", content: JSON.stringify({ ok: true, data: {} }) },
       { id: "t3", role: "tool", toolCallId: "m1", content: JSON.stringify({ ok: true, rows: [] }) },
-      { id: "a2", role: "assistant", content: "", toolCalls: [call("k1", "compose_card")] },
-      { id: "t4", role: "tool", toolCallId: "k1", content: JSON.stringify(composed) },
+      { id: "a2", role: "assistant", content: "คุณอนุชาดูแลภาคอีสาน" },
+      { id: "a2:card:1", role: "activity", activityType: COMPOSED_CARD_ACTIVITY, content: { surfaceId: "a2:card:1", components, dataModel: {}, done: true } },
     ];
   }
 
   test("a composed card is the answer: no fixed card of a composable read beside it, the metric card stays", () => {
-    const [exchange] = exchangesOf(peopleTurn({ ok: true, summary: "", a2ui_operations: [] }));
+    const [exchange] = exchangesOf(peopleTurn([{ id: "root", component: "Card", title: "ทีมภาคอีสาน", children: ["p"] }, { id: "p", component: "Person", name: "คุณอนุชา" }]));
+    expect(exchange.steps.at(-1)).toMatchObject({ kind: "composed", id: "a2:card:1" });
     expect([...composedCalls(exchange.steps, false)].sort()).toEqual(["p1", "p2"]);
   });
 
-  test("a refused composition leaves every fixed card as the fallback, and a streaming reply holds them back until it ends", () => {
-    const [exchange] = exchangesOf(peopleTurn({ ok: false, error: "การ์ดนี้ใช้ไม่ได้" }));
+  test("a block where nothing held leaves every fixed card as the fallback, and a streaming reply holds them back until it ends", () => {
+    const [exchange] = exchangesOf(peopleTurn([]));
     expect([...composedCalls(exchange.steps, false)]).toEqual([]);
     expect([...composedCalls(exchange.steps, true)].sort()).toEqual(["p1", "p2"]);
   });

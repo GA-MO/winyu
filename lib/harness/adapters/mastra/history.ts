@@ -4,8 +4,10 @@ import { HANDOFF_REPLY_ACTIVITY, handoffReplyNoteSchema, type HandoffReplyNote }
 import { openApprovalsFor } from "@/lib/harness/approvals";
 import { fenceAsData } from "@/lib/harness/fence";
 import { TH } from "@/lib/i18n/th";
+import { toolTiers } from "@/lib/server/agent/tools";
 import type { SpokenTurn } from "@/lib/server/request-context";
 import { mascopAgent } from "./agent";
+import { ReplyCards, type StreamEvent } from "./card-stream";
 
 const RESULT_SUFFIX = ":result";
 const SEGMENT_SEPARATOR = ":";
@@ -19,7 +21,7 @@ type StoredPart = { type?: unknown; text?: unknown; toolInvocation?: StoredInvoc
 export type StoredMessage = { id: string; role: string; content: unknown };
 
 type ToolCall = { id: string; type: "function"; function: { name: string; arguments: string } };
-type Segment = { texts: string[]; calls: ToolCall[]; results: Message[] };
+type Segment = { texts: string[]; calls: ToolCall[]; results: Message[]; cards: Message[] };
 
 function partsOf(content: unknown): StoredPart[] {
   if (typeof content !== "object" || content === null) return [];
@@ -36,18 +38,41 @@ function plainTextOf(content: unknown): string {
 }
 
 function emptySegment(): Segment {
-  return { texts: [], calls: [], results: [] };
+  return { texts: [], calls: [], results: [], cards: [] };
+}
+
+function readTool(tiers: Record<string, string>): (tool: string) => boolean {
+  return (tool) => tiers[tool] === "read";
+}
+
+/** A new turn's card reader: the same one the live stream uses, so a restored card is checked line by line against the same results as the live one. */
+function turnCards(): ReplyCards {
+  return new ReplyCards(readTool(toolTiers()), () => undefined);
+}
+
+function cardMessage(event: StreamEvent): Message[] {
+  const content = event.content as { components?: unknown[] } | undefined;
+  if (typeof event.messageId !== "string" || !content?.components?.length) return [];
+  return [{ id: event.messageId, role: "activity", activityType: String(event.activityType), content: content as Record<string, unknown> }];
+}
+
+/** One stored reply text read the way the live stream read it: the words without the card block, and the card the block left. */
+function readStoredText(cards: ReplyCards, messageId: string, text: string): { text: string; cards: Message[] } {
+  const out = [...cards.next({ type: "TEXT_MESSAGE_CONTENT", messageId, delta: text }), ...cards.next({ type: "TEXT_MESSAGE_END", messageId })];
+  const shown = out.flatMap((event) => (event.type === "TEXT_MESSAGE_CONTENT" && typeof event.delta === "string" ? [event.delta] : [])).join("");
+  const finals = new Map(out.filter((event) => event.type === "ACTIVITY_SNAPSHOT").map((event) => [String(event.messageId), event]));
+  return { text: shown, cards: [...finals.values()].flatMap(cardMessage) };
 }
 
 function segmentMessages(id: string, segment: Segment): Message[] {
-  if (segment.texts.length === 0 && segment.calls.length === 0) return [];
+  if (segment.texts.length === 0 && segment.calls.length === 0) return segment.cards;
   const assistant: Message = {
     id,
     role: "assistant",
     content: segment.texts.join("\n\n"),
     ...(segment.calls.length > 0 ? { toolCalls: segment.calls } : {}),
   };
-  return [assistant, ...segment.results];
+  return [assistant, ...segment.results, ...segment.cards];
 }
 
 function invocationOf(part: StoredPart): { call: ToolCall; result: Message | null } | null {
@@ -60,26 +85,32 @@ function invocationOf(part: StoredPart): { call: ToolCall; result: Message | nul
   return { call, result: { id: `${invocation.toolCallId}${RESULT_SUFFIX}`, role: "tool", toolCallId: invocation.toolCallId, content: JSON.stringify(outcome) } };
 }
 
-/** One stored assistant message as the AG-UI messages a live run would have produced: a sentence written after a tool call starts a new message, so the reply reads in the order it was written. */
-function assistantMessagesOf(message: StoredMessage): Message[] {
+/** One stored assistant message as the AG-UI messages a live run would have produced: a sentence written after a tool call starts a new message, so the reply reads in the order it was written, and a card block in the text comes back as the card the live stream drew. */
+function assistantMessagesOf(message: StoredMessage, cards: ReplyCards): Message[] {
   const out: Message[] = [];
   let segment = emptySegment();
   let index = 0;
+  const segmentId = () => (index === 0 ? message.id : `${message.id}${SEGMENT_SEPARATOR}${index}`);
   const flush = () => {
-    out.push(...segmentMessages(index === 0 ? message.id : `${message.id}${SEGMENT_SEPARATOR}${index}`, segment));
+    out.push(...segmentMessages(segmentId(), segment));
     if (segment.texts.length > 0 || segment.calls.length > 0) index += 1;
     segment = emptySegment();
   };
   for (const part of partsOf(message.content)) {
     if (part.type === "text" && typeof part.text === "string" && part.text.trim()) {
       if (segment.calls.length > 0) flush();
-      segment.texts.push(part.text);
+      const read = readStoredText(cards, segmentId(), part.text);
+      if (read.text.trim()) segment.texts.push(read.text);
+      segment.cards.push(...read.cards);
       continue;
     }
     const invocation = invocationOf(part);
     if (!invocation) continue;
     segment.calls.push(invocation.call);
-    if (invocation.result) segment.results.push(invocation.result);
+    if (!invocation.result) continue;
+    segment.results.push(invocation.result);
+    cards.next({ type: "TOOL_CALL_START", toolCallId: invocation.call.id, toolCallName: invocation.call.function.name });
+    cards.next({ type: "TOOL_CALL_RESULT", toolCallId: invocation.call.id, content: part.toolInvocation?.result });
   }
   flush();
   return out;
@@ -95,11 +126,15 @@ function handoffReplyOf(content: unknown): HandoffReplyNote | null {
 
 /** Mastra memory's stored messages as the AG-UI transcript the chat draws: user questions, reply text, tool calls and their results, and a colleague's handoff reply as an activity, never as a question or as the agent's words. */
 export function agUiMessagesOf(stored: readonly StoredMessage[]): Message[] {
+  let cards = turnCards();
   return stored.flatMap((message): Message[] => {
     const reply = message.role === "user" ? handoffReplyOf(message.content) : null;
     if (reply) return [{ id: message.id, role: "activity", activityType: HANDOFF_REPLY_ACTIVITY, content: reply }];
-    if (message.role === "user") return [{ id: message.id, role: "user", content: plainTextOf(message.content) }];
-    if (message.role === "assistant") return assistantMessagesOf(message);
+    if (message.role === "user") {
+      cards = turnCards();
+      return [{ id: message.id, role: "user", content: plainTextOf(message.content) }];
+    }
+    if (message.role === "assistant") return assistantMessagesOf(message, cards);
     return [];
   });
 }

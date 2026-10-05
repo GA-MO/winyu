@@ -1,4 +1,3 @@
-import { COMPOSE_TOOL } from "@/lib/compose/catalog";
 import { UNCOMPOSABLE_TOOLS } from "@/lib/compose/ground";
 import type { ReplyStep, ToolStep } from "./timeline";
 
@@ -58,13 +57,12 @@ export function toolViewOf(step: ToolStep, live: ToolLive, cardTools: ReadonlySe
   return cardTools.has(step.name) ? cardView(step, live) : writeView(step, live);
 }
 
-function composedCard(step: ReplyStep): boolean {
-  if (step.kind !== "tool" || step.name !== COMPOSE_TOOL || step.outcome.state !== "returned") return false;
-  return (step.outcome.result as { ok?: unknown } | null)?.ok === true;
+function holdsCard(step: ReplyStep): boolean {
+  return step.kind === "composed" && step.surface.components.length > 0;
 }
 
-/** The read calls of one exchange whose fixed card is not drawn: once the model composed the answer's card, it is the answer and every composable result stays inside it; while the reply still streams, a card composed next may cover them, so none flashes up first. A refused composition leaves the fixed cards as the fallback. */
+/** The read calls of one exchange whose fixed card is not drawn: once a composed card holds, it is the answer and every composable result stays inside it; while the reply still streams, a card block may yet come, so none flashes up first. A block where nothing held leaves the fixed cards as the fallback. */
 export function composedCalls(steps: readonly ReplyStep[], streaming: boolean): ReadonlySet<string> {
-  if (!streaming && !steps.some(composedCard)) return new Set();
+  if (!streaming && !steps.some(holdsCard)) return new Set();
   return new Set(steps.flatMap((step) => (step.kind === "tool" && !UNCOMPOSABLE_TOOLS.includes(step.name) ? [step.toolCallId] : [])));
 }
