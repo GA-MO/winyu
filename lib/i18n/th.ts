@@ -898,6 +898,7 @@ export const TH = {
       stepAnswers: "เขียนคำตอบ",
       asked: (tool: string) => `ขอให้ผู้ใช้อนุมัติ ${tool} ก่อนทำ`,
       rendered: (components: string) => `แสดง ${components}`,
+      composed: (accepted: number, rejected: number) => `AI ประกอบการ์ด: ผ่าน ${accepted} ส่วน${rejected > 0 ? ` · ตัดทิ้ง ${rejected} ส่วน` : ""}`,
       limited: { steps: "ครบจำนวนรอบที่ AI คิดได้ จึงให้สรุปจากที่ได้มา", tool_calls: "ครบงบเรียกเครื่องมือ จึงให้สรุปจากที่ได้มา" },
       limitedDetail: (step: number) => `รอบที่ ${step} ปิดเครื่องมือ ให้ AI สรุปและถามผู้ใช้ว่าจะทำต่ออย่างไร`,
       completed: "จบ",

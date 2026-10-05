@@ -124,6 +124,8 @@ function lineOf(entry: TimelineEntry, argsOf: (toolCallId: string) => string | n
       return { icon: Gauge, tone: "warning", title: COPY.limited[entry.limit], detail: COPY.limitedDetail(entry.step) };
     case "rendered":
       return { icon: LayoutTemplate, tone: "success", title: COPY.rendered(entry.components.join(", ")) };
+    case "composed":
+      return { icon: LayoutTemplate, tone: entry.rejected > 0 ? "warning" : "success", title: COPY.composed(entry.accepted, entry.rejected), detail: entry.problems.length > 0 ? entry.problems.join(" · ") : null };
     case "end":
       return entry.ok ? { icon: CircleCheck, tone: "success", title: COPY.completed } : { icon: CircleX, tone: "danger", title: COPY.failed(entry.reason) };
   }

@@ -24,6 +24,7 @@ export type HarnessEventBody =
   | { type: "agent.decided"; payload: { stepId: string; finishReason: string; toolCalls: string[] } }
   | { type: "agent.limited"; payload: { limit: RunLimit; step: number } }
   | { type: "ui.rendered"; payload: { stepId: string; components: string[] } }
+  | { type: "ui.composed"; payload: { surfaceId: string; accepted: number; rejected: number; problems: string[] } }
   | { type: "tool.authorized"; payload: ToolRef & { approval: ApprovalRule } }
   | { type: "tool.denied"; payload: ToolRef & { code: string; reason: string; rule?: RuleRef } }
   | { type: "tool.started"; payload: ToolRef & { attempt: number } }

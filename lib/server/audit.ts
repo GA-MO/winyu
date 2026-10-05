@@ -78,3 +78,34 @@ export function recordToolCall(call: AuditedCall, observation: Observation): voi
     ...(rule ? { rule } : {}),
   });
 }
+
+/** The name a composed card goes by in the audit, beside the tool calls whose results it shows. */
+export const COMPOSED_CARD_AUDIT_TOOL = "composed_card";
+
+const COMPOSED_CARD_CONNECTOR = "winyu";
+
+/** One composed card as the audit needs it: who, in which run and thread, which card, and how many of its lines held. */
+export type AuditedCard = { userId: string; runId: string; threadId: string | null; question: string | null; surfaceId: string; accepted: number; rejected: number; problems: readonly string[] };
+
+/** Writes the audit row a composed card leaves, read like a tool call's: allowed when any line held, its dropped lines' reasons, and the number of lines it drew. */
+export function recordComposedCard(card: AuditedCard): void {
+  const counts = { accepted: card.accepted, rejected: card.rejected };
+  auditLog().put({
+    id: randomUUID(),
+    at: new Date().toISOString(),
+    userId: card.userId,
+    tool: COMPOSED_CARD_AUDIT_TOOL,
+    connector: COMPOSED_CARD_CONNECTOR,
+    argsHash: argsHash(counts),
+    decision: card.accepted > 0 ? "allow" : "deny",
+    rowsReturned: card.accepted,
+    latencyMs: 0,
+    ...(card.problems.length > 0 ? { reason: argsPreview(card.problems) } : {}),
+    args: argsPreview(counts),
+    toolCallId: card.surfaceId,
+    initiator: "person",
+    turnId: card.runId,
+    ...(card.threadId ? { threadId: card.threadId } : {}),
+    ...(card.question ? { question: card.question } : {}),
+  });
+}
