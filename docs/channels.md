@@ -102,7 +102,15 @@ Interactive approval beats a read-only channel with a link to the web. The ledge
 
 ## Notifications
 
-Channels never message anyone unprompted. A handoff notice in Teams or LINE would ask the person to come back to the web inbox to act, which the handoff-closed product rule rules out. Notifications are therefore not built. Adding them later needs a message that is complete in the chat app, and a setting that is off by default.
+Channels never message anyone unprompted, except a card a colleague shared with them (see Shared cards). A handoff notice in Teams or LINE would ask the person to come back to the web inbox to act, which the handoff-closed product rule rules out. Notifications are therefore not built. Adding them later needs a message that is complete in the chat app, and a setting that is off by default.
+
+## Shared cards
+
+A person who presses ส่งต่อ under a card can send it to a colleague in Teams or LINE (`lib/server/share/`). This is the one message a channel sends without being asked, and a person starts it, not Winyu. The message carries the card's title, who shared it, their note and a **เปิดดูใน Winyu** button to `https://<winyu host>/s/<code>`. It carries no value from the card. Opening the link re-runs the card's reads as the person who opens it.
+
+- Teams posts an Adaptive Card with `Action.OpenUrl` into the person's 1:1 conversation with the bot. Winyu keeps that conversation (`.data/teams-conversations.json`) from the last private message the person sent the bot, so a person who never wrote to the bot gets the share by email, and the share sheet says so before sending.
+- LINE pushes a Flex bubble with a URI button to the linked LINE user. The notification text (`altText`) carries the short link for clients that cannot draw the bubble.
+- Email always works and is the fallback for both. A failed Teams or LINE send also falls back to email.
 
 ## Choices
 
