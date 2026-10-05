@@ -95,11 +95,11 @@ export function ThreadRail() {
   const remove = useCallback(
     async (id: string) => {
       setMode({ kind: "view" });
-      await fetch(`${THREADS_ENDPOINT}/${id}`, { method: "DELETE" });
+      const response = await fetch(`${THREADS_ENDPOINT}/${id}`, { method: "DELETE" }).catch(() => null);
       load();
-      if (pathname === `/c/${id}`) router.push("/");
+      if (response?.ok && window.location.pathname === `/c/${id}`) router.push("/");
     },
-    [load, pathname, router],
+    [load, router],
   );
 
   const expanded = open || mobileOpen;

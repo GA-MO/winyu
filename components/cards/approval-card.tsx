@@ -80,12 +80,12 @@ function urgencyOf(value: string | undefined): Urgency | null {
 type Labels = Record<string, string>;
 
 function labelKeysOf(query: MetricQuery): string[] {
-  return Object.entries(query.filters ?? {}).flatMap(([dim, values]) => (values ?? []).map((value) => `${dim}:${value}`));
+  return Object.entries(query.filters ?? {}).flatMap(([dim, values]) => [values ?? []].flat().map((value) => `${dim}:${value}`));
 }
 
 function scopeOf(query: MetricQuery, labels: Labels): string {
   const dims = Object.entries(query.filters ?? {})
-    .flatMap(([dim, values]) => (values ?? []).map((value) => labels[`${dim}:${value}`] ?? value))
+    .flatMap(([dim, values]) => [values ?? []].flat().map((value) => labels[`${dim}:${value}`] ?? value))
     .slice(0, MAX_EVIDENCE_LABELS);
   return [metricLabel(query.metric), ...dims].join(" · ");
 }

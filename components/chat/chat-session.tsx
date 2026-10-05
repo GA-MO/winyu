@@ -99,10 +99,10 @@ export function ChatSession({ threadId, initialPrompt, initialMessages, initialA
   const { scroller, onScroll } = useStickToBottom(`${exchanges.length}:${lastSteps}:${running}:${session.asked.length}:${session.waiting.size}`);
 
   const chips = useMemo(() => {
-    if (running || session.waiting.size > 0) return [];
+    if (!ready || running || session.waiting.size > 0) return [];
     if (exchanges.length === 0) return suggestions.slice(0, EMPTY_CHIPS);
     return chipRow(latestFollowUps(exchanges), suggestions, ANSWER_CHIPS, answeredMetrics(exchanges));
-  }, [exchanges, running, session.waiting.size, suggestions]);
+  }, [exchanges, ready, running, session.waiting.size, suggestions]);
 
   const submit = (value: string) => {
     setText("");

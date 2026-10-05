@@ -1,5 +1,6 @@
 "use client";
 
+import { Component, type ReactNode } from "react";
 import { AlertCircle, CircleSlash, MousePointerClick, Sparkles } from "lucide-react";
 import { renderApproval } from "@/components/cards/approval-card";
 import { describeToolCall } from "@/components/cards/describe-tool";
@@ -63,6 +64,19 @@ function Note({ text, tone }: { text: string; tone: "muted" | "danger" }) {
   );
 }
 
+/** Keeps one card that throws from taking the whole conversation down; the rest of the reply still reads. */
+class CardBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
+  state = { failed: false };
+
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+
+  render() {
+    return this.state.failed ? <Note text={TH.cards.unreadable} tone="muted" /> : this.props.children;
+  }
+}
+
 function ToolStepView({ step, live }: { step: ToolStep; live: ExchangeLive }) {
   const asking = live.waiting.has(step.toolCallId);
   const view = toolViewOf(step, { running: live.running && live.isLast, asking, decided: live.decisions[step.toolCallId] }, CARD_TOOLS);
@@ -85,7 +99,11 @@ function ToolStepView({ step, live }: { step: ToolStep; live: ExchangeLive }) {
 
 function StepView({ step, live }: { step: ReplyStep; live: ExchangeLive }) {
   if (step.kind === "text") return <Markdown text={step.text} />;
-  return <ToolStepView step={step} live={live} />;
+  return (
+    <CardBoundary>
+      <ToolStepView step={step} live={live} />
+    </CardBoundary>
+  );
 }
 
 function shows(step: ReplyStep): boolean {
