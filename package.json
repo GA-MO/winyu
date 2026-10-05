@@ -14,6 +14,7 @@
     "trace": "bun run scripts/trace.ts",
     "connectors:demo": "bun run scripts/connectors-demo.ts",
     "a2a:demo": "bun run scripts/a2a-demo.ts",
+    "a2a:probe": "bun run scripts/a2a-probe.ts",
     "investigate": "bun run scripts/investigate.ts",
     "call-tool": "bun run scripts/call-tool.ts",
     "mcp:probe": "bun run scripts/mcp-probe.ts",

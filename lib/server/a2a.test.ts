@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { MockLanguageModelV3 } from "ai/test";
 import { liveAccessFor } from "@/lib/access/enforce";
+import { addRule, policyRules, removeRule } from "@/lib/access/policy-rules";
 import { findUser } from "@/lib/data/entities/users";
 import { runStore } from "@/lib/harness/runtime";
 import { TH } from "@/lib/i18n/th";
@@ -126,6 +127,20 @@ describe("the A2A endpoint", () => {
     const start = run?.events.find((event) => event.type === "agent.started");
     expect(start?.type === "agent.started" ? start.payload.goal.intent : null).toBe(`a2a:${CALLER}`);
     expect(run?.events.at(-1)?.type).toBe("agent.completed");
+  });
+
+  test("an admin rule on the A2A channel refuses the call, and the audit names the rule", async () => {
+    addRule("ห้ามดึงยอดขายผ่าน A2A", 'initiator == "a2a" && tool.name == "query_metric"', ADMIN);
+    const rule = policyRules().find((candidate) => candidate.name === "ห้ามดึงยอดขายผ่าน A2A");
+    if (!rule) throw new Error("rule not saved");
+    try {
+      const answer = await asked(tokenFor(SALES_REP).token, "ยอดขายเข้าแยกตามภาค");
+      expect(toolDataOf(answer)[0]?.result).toMatchObject({ ok: false, code: "POLICY_RULE" });
+      const row = auditLog().all().find((entry) => !auditBefore.has(entry.id) && entry.tool === "query_metric");
+      expect([row?.initiator, row?.decision, row?.rule?.name]).toEqual(["a2a", "deny", "ห้ามดึงยอดขายผ่าน A2A"]);
+    } finally {
+      removeRule(rule.id);
+    }
   });
 
   test("offers only read tools, so no call can wait on an approval nobody can give", () => {
