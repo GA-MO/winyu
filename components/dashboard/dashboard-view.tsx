@@ -3,6 +3,7 @@
 import { useCallback, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronDown, CircleCheck, HelpCircle, Pin, PinOff, Sparkles, X } from "lucide-react";
+import { ShareChrome, ShareProvider, type ShareTarget } from "@/components/share/share-sheet";
 import { cn } from "@/components/ui/cn";
 import type { WidgetSpec } from "@/lib/contracts";
 import type { CardParts } from "@/lib/cards/present";
@@ -17,7 +18,7 @@ const LAYOUT_ENDPOINT = "/api/dashboard/layout";
 const ICON = "rounded-full bg-card/80 p-1.5 text-muted-foreground shadow-card backdrop-blur transition hover:bg-card hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 const TRAY = "rounded-2xl border border-dashed border-border bg-muted/30 p-4";
 const MASONRY = "gap-5 [&>*]:mb-5 [&>*]:break-inside-avoid columns-1 md:columns-2 xl:columns-3";
-const TOOLBAR = "absolute right-3 top-3 z-10 flex items-center gap-0.5 opacity-0 transition group-hover:opacity-100 group-focus-within:opacity-100";
+const TOOLBAR = "absolute right-3 top-3 z-10 flex items-center gap-0.5 transition [@media(hover:hover)]:opacity-0 group-hover:opacity-100 group-focus-within:opacity-100";
 const DELTA_TONE = { good: "text-success", bad: "text-danger", neutral: "text-muted-foreground" } as const;
 const QUICK_ACTIONS_ENDPOINT = "/api/quick-actions";
 const PANEL = "overflow-hidden rounded-2xl border border-border bg-card shadow-card";
@@ -83,6 +84,7 @@ export function DashboardView({
   const trayCount = learned.length + suggested.length;
 
   return (
+    <ShareProvider>
     <ChatLinkActions>
     <div className="flex flex-col gap-8">
       <section className="flex flex-col gap-3">
@@ -105,7 +107,9 @@ export function DashboardView({
                     <PinOff className="size-3.5" aria-hidden />
                   </button>
                 </div>
-                <CardPartsView parts={view.card} />
+                <ShareChrome target={widgetShare(view.widget)}>
+                  <CardPartsView parts={view.card} />
+                </ShareChrome>
               </div>
             </SeenTracker>
           ))}
@@ -154,6 +158,7 @@ export function DashboardView({
       ) : null}
     </div>
     </ChatLinkActions>
+    </ShareProvider>
   );
 }
 
@@ -232,7 +237,9 @@ function SteadyPanel({ views, pending, onUnpin }: { views: DashboardWidgetView[]
                 </div>
                 {expanded ? (
                   <div className="border-t border-border bg-muted/30 p-3">
-                    <CardPartsView parts={view.card} />
+                    <ShareChrome target={widgetShare(view.widget)}>
+                      <CardPartsView parts={view.card} />
+                    </ShareChrome>
                   </div>
                 ) : null}
               </SeenTracker>
@@ -242,6 +249,11 @@ function SteadyPanel({ views, pending, onUnpin }: { views: DashboardWidgetView[]
       </ul>
     </section>
   );
+}
+
+/** A pinned widget shares as its stored query: the recipient's Winyu re-runs it in their own scope. */
+function widgetShare(widget: WidgetSpec): ShareTarget {
+  return { card: { kind: "tool", reads: [{ tool: "query_metric", input: widget.query }] }, question: null };
 }
 
 function reasonOf(widget: WidgetSpec): string {

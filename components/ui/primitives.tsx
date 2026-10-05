@@ -1,6 +1,7 @@
 import { Children, type ReactNode } from "react";
 import { ArrowDownRight, ArrowUpRight, ChevronRight, Minus } from "lucide-react";
 import { cn } from "./cn";
+import { CardFootnote, CardShareProvider } from "./card-share";
 
 type CardProps = {
   title?: string | null;
@@ -36,14 +37,12 @@ export function Card({
           ) : null}
         </header>
       ) : null}
-      {hasChildren ? (
-        <div className="flex w-full min-w-0 flex-col gap-3 [&>*]:min-w-0">{children}</div>
-      ) : null}
-      {props.footnote ? (
-        <p className="mt-3 border-t border-border/60 pt-2.5 text-[11px] leading-normal text-muted-foreground/80">
-          {props.footnote}
-        </p>
-      ) : null}
+      <CardShareProvider value={null}>
+        {hasChildren ? (
+          <div className="flex w-full min-w-0 flex-col gap-3 [&>*]:min-w-0">{children}</div>
+        ) : null}
+      </CardShareProvider>
+      <CardFootnote footnote={props.footnote} />
     </section>
     </div>
   );

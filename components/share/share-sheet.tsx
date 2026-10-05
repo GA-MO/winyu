@@ -3,6 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { Check, Forward, Link2, Mail, MessageCircle, Search, Users, X } from "lucide-react";
 import { cn } from "@/components/ui/cn";
+import { CardShareProvider } from "@/components/ui/card-share";
 import { Portrait } from "@/components/ui/portrait";
 import { TH } from "@/lib/i18n/th";
 import { SHARE_NOTE_MAX, SHARE_RECIPIENTS_MAX, shareTitle, type ChannelOption, type ShareChannel, type ShareContact, type SharedCard, type ShareReceipt } from "@/lib/share/card";
@@ -205,16 +206,9 @@ export function ShareProvider({ children }: { children: ReactNode }) {
   );
 }
 
-/** The quiet ส่งต่อ action under a card; nothing outside a surface that can share. */
-export function ShareButton({ target }: { target: ShareTarget | null }) {
+/** Hands the outermost card inside its ส่งต่อ pill; nothing outside a surface that can share. */
+export function ShareChrome({ target, children }: { target: ShareTarget | null; children: ReactNode }) {
   const share = useShareCard();
-  if (!share || !target) return null;
-  return (
-    <div className="-mt-2 flex justify-end">
-      <button type="button" onClick={() => share(target)} aria-label={TH.share.buttonLabel(shareTitle(target.card))} className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs text-muted-foreground transition hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-        <Forward className="size-3.5" aria-hidden />
-        {TH.share.button}
-      </button>
-    </div>
-  );
+  const value = share && target ? { share: () => share(target), label: TH.share.buttonLabel(shareTitle(target.card)) } : null;
+  return <CardShareProvider value={value}>{children}</CardShareProvider>;
 }
