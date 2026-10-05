@@ -3,12 +3,11 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { Check, Forward, Link2, Mail, MessageCircle, Search, Users, X } from "lucide-react";
 import { cn } from "@/components/ui/cn";
-import { CardChromeProvider, type CardChrome } from "@/components/ui/card-chrome";
+import { CardShareProvider } from "@/components/ui/card-share";
 import { Portrait } from "@/components/ui/portrait";
 import { TH } from "@/lib/i18n/th";
 import { SHARE_NOTE_MAX, SHARE_RECIPIENTS_MAX, shareTitle, type ChannelOption, type ShareChannel, type ShareContact, type SharedCard, type ShareReceipt } from "@/lib/share/card";
 
-const NO_EXTRA: Omit<CardChrome, "share" | "shareLabel"> = { actions: [], note: null };
 const CONTACTS_ENDPOINT = "/api/shares/contacts";
 const SHARES_ENDPOINT = "/api/shares";
 const PANEL = "fixed right-0 top-0 z-50 flex h-dvh w-full max-w-[26rem] flex-col border-l border-border bg-card shadow-panel animate-panel-in";
@@ -207,19 +206,9 @@ export function ShareProvider({ children }: { children: ReactNode }) {
   );
 }
 
-/** The card chrome that offers ส่งต่อ for one card, plus any other card actions; null outside a surface that can share and with nothing to offer. */
-export function useShareChrome(target: ShareTarget | null, extra: Omit<CardChrome, "share" | "shareLabel"> = NO_EXTRA): CardChrome | null {
+/** Hands the outermost card inside its ส่งต่อ pill; nothing outside a surface that can share. */
+export function ShareChrome({ target, children }: { target: ShareTarget | null; children: ReactNode }) {
   const share = useShareCard();
-  const canShare = share !== null && target !== null;
-  if (!canShare && extra.actions.length === 0 && !extra.note) return null;
-  return {
-    share: canShare ? () => share(target) : null,
-    shareLabel: target ? TH.share.buttonLabel(shareTitle(target.card)) : TH.share.button,
-    ...extra,
-  };
-}
-
-/** Hands the card inside its ส่งต่อ (and any other actions) as chrome the card draws in its own header or footer. */
-export function ShareChrome({ target, extra, children }: { target: ShareTarget | null; extra?: Omit<CardChrome, "share" | "shareLabel">; children: ReactNode }) {
-  return <CardChromeProvider value={useShareChrome(target, extra)}>{children}</CardChromeProvider>;
+  const value = share && target ? { share: () => share(target), label: TH.share.buttonLabel(shareTitle(target.card)) } : null;
+  return <CardShareProvider value={value}>{children}</CardShareProvider>;
 }

@@ -1,7 +1,7 @@
 import { Children, type ReactNode } from "react";
 import { ArrowDownRight, ArrowUpRight, ChevronRight, Minus } from "lucide-react";
 import { cn } from "./cn";
-import { CardChromeProvider, CardFootnote, CardHeaderChrome } from "./card-chrome";
+import { CardFootnote, CardShareProvider } from "./card-share";
 
 type CardProps = {
   title?: string | null;
@@ -21,32 +21,27 @@ export function Card({
   const hasHeader = Boolean(props.title || props.description || props.meta);
   return (
     <div className="@container/ui w-full min-w-0">
-    <section className="group/card flex w-full min-w-0 flex-col rounded-2xl border border-border/70 bg-card p-3.5 shadow-[0_1px_2px_var(--ui-card-edge),0_14px_34px_-22px_var(--ui-glow-soft)] transition duration-300 hover:border-border hover:shadow-[0_1px_2px_var(--ui-card-edge),0_22px_46px_-24px_var(--ui-glow)] @md/ui:p-4">
-      <div className={cn("flex items-start gap-2", hasHeader && hasChildren && "mb-3")}>
-        {hasHeader ? (
-          <header className="flex min-w-0 flex-1 flex-col gap-0.5">
-            {props.title ? (
-              <h3 className="text-[15px] font-semibold leading-snug tracking-tight text-foreground">
-                {props.title}
-              </h3>
-            ) : null}
-            {props.meta ? (
-              <p className="text-xs tabular-nums text-muted-foreground/90">{props.meta}</p>
-            ) : null}
-            {props.description ? (
-              <p className="text-[13px] leading-relaxed text-muted-foreground">{props.description}</p>
-            ) : null}
-          </header>
-        ) : (
-          <span className="flex-1" />
-        )}
-        <CardHeaderChrome />
-      </div>
-      <CardChromeProvider value={null}>
+    <section className="flex w-full min-w-0 flex-col rounded-2xl border border-border/70 bg-card p-3.5 shadow-[0_1px_2px_var(--ui-card-edge),0_14px_34px_-22px_var(--ui-glow-soft)] transition duration-300 hover:border-border hover:shadow-[0_1px_2px_var(--ui-card-edge),0_22px_46px_-24px_var(--ui-glow)] @md/ui:p-4">
+      {hasHeader ? (
+        <header className={cn("flex flex-col gap-0.5", hasChildren && "mb-3")}>
+          {props.title ? (
+            <h3 className="text-[15px] font-semibold leading-snug tracking-tight text-foreground">
+              {props.title}
+            </h3>
+          ) : null}
+          {props.meta ? (
+            <p className="text-xs tabular-nums text-muted-foreground/90">{props.meta}</p>
+          ) : null}
+          {props.description ? (
+            <p className="text-[13px] leading-relaxed text-muted-foreground">{props.description}</p>
+          ) : null}
+        </header>
+      ) : null}
+      <CardShareProvider value={null}>
         {hasChildren ? (
           <div className="flex w-full min-w-0 flex-col gap-3 [&>*]:min-w-0">{children}</div>
         ) : null}
-      </CardChromeProvider>
+      </CardShareProvider>
       <CardFootnote footnote={props.footnote} />
     </section>
     </div>
