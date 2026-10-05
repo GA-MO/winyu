@@ -5,7 +5,7 @@ import { serveMcp } from "@/lib/harness/adapters/mastra/mcp";
 import { fenceAsData } from "@/lib/harness/fence";
 import { emitTo, newRun, runWithRun, saveRun, type Run } from "@/lib/harness/runtime";
 import { toolsForAccess } from "@/lib/server/agent/tools";
-import { userIdForMcpToken } from "@/lib/server/mcp-tokens";
+import { holderOfToken } from "@/lib/server/access-tokens";
 import { runWithAccess, runWithTurn } from "@/lib/server/request-context";
 import type { WinyuTool } from "@/lib/server/tools/define";
 
@@ -72,7 +72,7 @@ function kept(run: Run, finished: Promise<void>): void {
 /** The MCP endpoint: the bearer token names the person, and each request runs as them (role policy, scope, masking, admin rules, kill switches, audit with initiator "mcp"); a tool call is one traced run. */
 export async function handleMcpRequest(request: Request): Promise<Response> {
   const token = bearerOf(request);
-  const userId = token ? userIdForMcpToken(token) : null;
+  const userId = token ? holderOfToken(token, "mcp")?.userId : null;
   const user = userId ? findUser(userId) : null;
   if (!user) return refused(401, "A valid mascop MCP token is required", { "WWW-Authenticate": 'Bearer realm="mascop"' });
   const body = await bodyOf(request);

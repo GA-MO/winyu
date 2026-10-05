@@ -6,7 +6,7 @@ import { overrideFor, removeOverride, setRoleTool } from "@/lib/access/role-over
 import { runStore } from "@/lib/harness/runtime";
 import { auditLog } from "./audit";
 import { handleMcpRequest } from "./mcp";
-import { MCP_TOKENS_COLLECTION, issueMcpToken, mcpTokens, revokeMcpToken } from "./mcp-tokens";
+import { ACCESS_TOKENS_COLLECTION, issueToken, accessTokens, revokeToken } from "./access-tokens";
 import { collection } from "./store/json-store";
 
 const ADMIN = "u_ton";
@@ -27,9 +27,9 @@ afterEach(() => {
 });
 
 function tokenFor(userId: string): string {
-  const issued = issueMcpToken(userId, ADMIN);
+  const issued = issueToken(userId, ADMIN);
   if (!issued) throw new Error(`no user ${userId}`);
-  cleanups.push(() => collection(MCP_TOKENS_COLLECTION).remove(issued.record.id));
+  cleanups.push(() => collection(ACCESS_TOKENS_COLLECTION).remove(issued.record.id));
   return issued.token;
 }
 
@@ -93,9 +93,9 @@ describe("the MCP endpoint", () => {
 
   test("a missing, unknown or revoked token is refused before any tool is listed", async () => {
     const token = tokenFor(SALES_REP);
-    const issued = mcpTokens().find((record) => token.endsWith(record.hint));
+    const issued = accessTokens().find((record) => token.endsWith(record.hint));
     if (!issued) throw new Error("token not stored");
-    revokeMcpToken(issued.id);
+    revokeToken(issued.id);
     const list = JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/list", params: {} });
     const statuses = await Promise.all(
       [undefined, "Bearer mcp_not-a-real-token", `Bearer ${token}`].map(async (authorization) => {

@@ -18,7 +18,7 @@ import {
 } from "@/lib/access/role-overrides";
 import { addRule, moveRule, removeRule, setRuleEnabled, updateRule, type RuleCheck } from "@/lib/access/policy-rules";
 import { readUser } from "@/lib/server/session";
-import { issueMcpToken, revokeMcpToken } from "@/lib/server/mcp-tokens";
+import { issueToken, revokeToken } from "@/lib/server/access-tokens";
 import { TH } from "@/lib/i18n/th";
 
 const ADMIN_PATH = "/admin";
@@ -205,7 +205,7 @@ export type McpTokenFormState = { ok: true; token: string; userId: string } | { 
 export async function issueMcpTokenAction(_previous: McpTokenFormState, formData: FormData): Promise<McpTokenFormState> {
   const by = await adminId();
   if (!by) return null;
-  const issued = issueMcpToken(String(formData.get("user") ?? ""), by);
+  const issued = issueToken(String(formData.get("user") ?? ""), by);
   if (!issued) return { ok: false, error: TH.admin.mcpTab.errors.user };
   revalidatePath(ADMIN_PATH);
   return { ok: true, token: issued.token, userId: issued.record.userId };
@@ -214,6 +214,6 @@ export async function issueMcpTokenAction(_previous: McpTokenFormState, formData
 export async function revokeMcpTokenAction(formData: FormData) {
   const id = String(formData.get("token") ?? "");
   if (!(await adminId()) || !id) return;
-  revokeMcpToken(id);
+  revokeToken(id);
   revalidatePath(ADMIN_PATH);
 }
