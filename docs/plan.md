@@ -175,3 +175,27 @@ Every unit runs in its own worktree, ends with typecheck, test and a browser or 
 | F13 | Tool providers (Composio, Arcade) wrapped by the gateway | a provider API key | $0 |
 
 Order: F1 alone; then F2 to F9 in parallel waves of three; F10 to F13 are built to the point where only the credential is missing, then wait for the user.
+
+### F5. Observability and Studio for developers
+
+- [x] F5 (commits 21c3345, bbc36fc, 2ce0b27; model spend $0.050 from the meter: two probe runs, two Studio questions, one memory extraction). Mastra tracing writes every agent run to `.data/mastra.db` (MastraStorageExporter); OpenTelemetry export only when `MASCOP_OTEL_ENDPOINT` is set (checked against a local OTLP receiver). A chat run's trace id is `traceIdOfRun(harnessRunId)` and the run id rides on the trace as `harnessRunId`; `bun run trace` and the admin run trace link to Studio in development (`.shots/f5-admin-trace-link.png`, `.shots/f5-studio-trace-run-id.png`). Each tool span carries the gateway's events for that call (`.shots/f5-studio-gateway-on-span.png`) and hides the tool's `redact` fields in its input (`observability.test.ts`). `bun run studio` serves the app's own Mastra instance to Studio with a preset per persona; a u_krit question returns only ภาคอีสาน rows (`.shots/f5-studio-krit-scope.png`); without a persona the agent resolves no tools (`studio.test.ts`).
+
+Ours against Mastra's, measured on the same runs:
+
+| Need | mascop (admin trace, audit, usage, ledger, `bun run trace`) | Mastra (traces in Studio) |
+|---|---|---|
+| Step timeline | goal, context kinds, steps, tools, cards, end, in Thai | full span tree with timings per processor, step, inference, chunk, tool |
+| Tool args and results | args redacted, rows and masking pills | full input and output; `redact` fields now hidden in tool spans |
+| Gateway decisions (allow, deny, CEL rule, masking, verify, recovery) | first-class, linked to the rule | only as the metadata we write onto the tool span (F5) |
+| Model calls, tokens, cost | billed USD from OpenRouter per run and per day | tokens per call (same numbers); dollar cost needs a metrics store |
+| Search and filter | range, user, system, tool, allowed/denied/masked | time, entity, status, user, metadata, tags |
+| Aggregates and dashboards | usage tab | Metrics needs ClickHouse, DuckDB or Postgres; not on LibSQL (`.shots/f5-studio-metrics.png`) |
+| Prompt per run | context kinds and sizes only | the whole system prompt per run |
+| Memory and threads | /memory facts | thread browser per resource |
+| Scores and feedback | none per run | score a trace; ties into F1 scorers |
+| Alerting | none | none locally |
+| Export and retention | last 300 runs, audit log | OTLP export, trace JSON download |
+| Who sees it | IT admin in the app, role-gated | developers; production needs `server.auth`, and read-only roles are RBAC in `@mastra/core/auth/ee` (licensed) |
+| Personal data | args redacted | LLM spans hold the full prompt and messages, so typed personal text stays visible there |
+
+Decision (b): keep mascop's trace, audit and usage as the one view for IT admins and users; Mastra traces and Studio are the developer view, linked both ways by run id and enriched with the gateway's decisions. Not adopted: (a) replacing the admin trace with Studio, because it needs auth plus licensed RBAC to be read-only, has no dollar cost or metrics on LibSQL, and shows full prompts to whoever opens it; (c) moving the admin UI onto Mastra spans, because it would rewrite the 488 lines of trace, timeline and state over a store that has no context, approval or card events unless we write them there anyway, for one store instead of two and no new capability. Also not adopted: the Mastra platform exporter and hosted Studio (data leaves the machine), `@mastra/editor` (prompt text stays in code), `mastra dev` (it rebundles the agent outside the app; `bun run studio` serves the live instance), and Studio in production builds.
