@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { clearedSessionCookie, sessionFromCookie } from "@/lib/server/auth/session-token";
 import { SESSION_COOKIE } from "@/lib/server/session-cookie";
 
-const PUBLIC_PATHS = ["/login", "/api/session", "/api/auth", "/api/health", "/api/mcp"];
+const PUBLIC_PATHS = ["/login", "/api/session", "/api/auth", "/api/health", "/api/mcp", "/api/a2a", "/.well-known/agent-card.json"];
 
 function isPublic(pathname: string) {
   return PUBLIC_PATHS.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
