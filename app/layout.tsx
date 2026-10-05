@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Inter, Noto_Sans_Thai } from "next/font/google";
 import { TH } from "@/lib/i18n/th";
+import { THEME_BOOT_SCRIPT } from "@/components/theme/theme-boot";
+import { Providers } from "./providers";
 import "./globals.css";
 
 const notoSansThai = Noto_Sans_Thai({ subsets: ["thai", "latin"], variable: "--font-noto-sans-thai", display: "swap" });
@@ -13,8 +15,13 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="th" className={`${notoSansThai.variable} ${inter.variable}`} suppressHydrationWarning>
-      <body className="min-h-dvh bg-background text-foreground antialiased">{children}</body>
+    <html lang="th" className={`ui-scrollbar ${notoSansThai.variable} ${inter.variable}`} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_BOOT_SCRIPT }} />
+      </head>
+      <body className="min-h-dvh bg-background text-foreground antialiased">
+        <Providers>{children}</Providers>
+      </body>
     </html>
   );
 }
