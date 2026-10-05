@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
-import { ChartColumn, Eye, LayoutDashboard, Scale, ScrollText, ShieldCheck, Sparkles, Wrench } from "lucide-react";
+import { ChartColumn, Eye, KeyRound, LayoutDashboard, Scale, ScrollText, ShieldCheck, Sparkles, Wrench } from "lucide-react";
 import { cn } from "@/components/ui/cn";
 import { METRIC_IDS, ROLE_IDS, type AuditEntry, type MetricId, type RoleId } from "@/lib/contracts";
 import { USERS } from "@/lib/data/entities/users";
@@ -18,13 +18,14 @@ import { SimulateTab } from "@/components/admin/simulate-tab";
 import { RulesTab } from "@/components/admin/rules-tab";
 import { ToolsTab } from "@/components/admin/tools-tab";
 import { UsageTab } from "@/components/admin/usage-tab";
+import { SignInTab } from "@/components/admin/sign-in-tab";
 import { Avatar, FOCUS } from "@/components/admin/parts";
 
 type SearchParams = Promise<{ tab?: string; run?: string; as?: string; metric?: string; user?: string; tool?: string; connector?: string; decision?: string; range?: string; limit?: string; role?: string; view?: string }>;
 
-const TABS = ["overview", "access", "tools", "rules", "audit", "usage", "simulate"] as const;
+const TABS = ["overview", "access", "tools", "rules", "audit", "usage", "simulate", "signin"] as const;
 const LEGACY_TABS: Record<string, Tab> = { users: "access" };
-const TAB_ICONS: Record<Tab, LucideIcon> = { overview: LayoutDashboard, access: ShieldCheck, tools: Wrench, rules: Scale, audit: ScrollText, usage: ChartColumn, simulate: Eye };
+const TAB_ICONS: Record<Tab, LucideIcon> = { overview: LayoutDashboard, access: ShieldCheck, tools: Wrench, rules: Scale, audit: ScrollText, usage: ChartColumn, simulate: Eye, signin: KeyRound };
 const DECISIONS: readonly AuditEntry["decision"][] = ["allow", "deny", "masked"];
 const DEFAULT_ROLE: RoleId = "sales_rep";
 const DEFAULT_AUDIT_RANGE: AuditRange = "7d";
@@ -156,6 +157,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
             openRun={textOf(params.run)}
           /> : null}
         {current === "usage" ? <UsageTab /> : null}
+        {current === "signin" ? <SignInTab /> : null}
         {current === "simulate" ? <SimulateTab userId={params.as ?? USERS[0].id} metric={metricOf(params.metric)} /> : null}
       </div>
     </div>

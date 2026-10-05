@@ -33,6 +33,11 @@ export function missingEntraSettings(): string[] {
   return ENTRA_SETTINGS.filter((name) => !process.env[name]);
 }
 
+/** The directory people sign in from, which a pre-made link needs even before the rest of the registration is set. */
+export function configuredTenantId(): string | null {
+  return process.env.ENTRA_TENANT_ID || null;
+}
+
 /** The registration from the environment, or null while any ENTRA_* setting is missing or ENTRA_REDIRECT_URI is not a URL. */
 export function entraConfig(): EntraConfig | null {
   const { ENTRA_TENANT_ID, ENTRA_CLIENT_ID, ENTRA_CLIENT_SECRET, ENTRA_REDIRECT_URI, ENTRA_AUTHORITY } = process.env;
