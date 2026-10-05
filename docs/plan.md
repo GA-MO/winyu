@@ -153,3 +153,25 @@ M0, then M1, in sequence: every later phase builds on the neutral tools and the 
 - Mastra changes tool approval often (1.72 changed it). Pin exact versions.
 - Winyu's registry, enforce and connectors import cycle shows only under `next dev`. M0's health route checks it.
 - Mastra memory holds the messages and `.data/threads.json` only the metadata; any feature that reads or writes a conversation goes through the Mastra adapter (`threadHistory`, `threadTranscript`, `appendHandoffReply`).
+
+## Phase F. Use the rest of Mastra (user decision 2026-10-05: "ทำทุกอันยกเว้น sandbox, browser, coding agent และ ACP", budget $4 of model spend)
+
+Every unit runs in its own worktree, ends with typecheck, test and a browser or curl check, and checks the shared spend meter (`bun <scratchpad>/spend.ts`) before any live model call. Evals land first so every later unit is graded from recorded outputs at no cost.
+
+| # | Unit | Needs from the user | Model budget |
+|---|---|---|---|
+| F1 | Evals: record once, score with code scorers from the recording, live runs only with `--live`, a cost estimate and a cap; port Winyu's 64 `eval:cards` cases | none | $1.30 |
+| F2 | MCPServer: expose the governed tools (gateway, scope, audit) to MCP clients per signed-in user | none | $0 |
+| F3 | Harness: durable runs, background tasks, schedules and signals replace the copied scheduler and morning investigation | none | $0.30 |
+| F4 | Processors: PII and prompt-injection guardrails beside `fenceAsData` and `redact` | none | $0.10 |
+| F5 | Observability and Studio for developers | none | $0 |
+| F6 | Memory: working memory, semantic recall, observational memory measured against the copied memory extraction | local embeddings | $0.30 |
+| F7 | RAG over policy documents | local embeddings | $0.20 |
+| F8 | Agent networks and subagents | none | $0.30 |
+| F9 | A2A: call and expose agents | none | $0.10 |
+| F10 | Auth / SSO | an identity provider tenant | $0 |
+| F11 | Channels (Teams, Slack, or another) | an app registration | $0.20 |
+| F12 | Voice | a speech provider key | $0.10 |
+| F13 | Tool providers (Composio, Arcade) wrapped by the gateway | a provider API key | $0 |
+
+Order: F1 alone; then F2 to F9 in parallel waves of three; F10 to F13 are built to the point where only the credential is missing, then wait for the user.
