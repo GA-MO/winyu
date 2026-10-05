@@ -16,9 +16,12 @@
     "@marcbachmann/cel-js": "^8.0.0",
     "@openrouter/ai-sdk-provider": "^2.10.0",
     "ai": "6.0.300",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.563.0",
     "next": "^16.3.6",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
+    "tailwind-merge": "^3.4.0",
     "zod": "4.6.2"
   },
   "devDependencies": {
