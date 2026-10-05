@@ -169,9 +169,9 @@ Every unit runs in its own worktree, ends with typecheck, test and a browser or 
 | F7 | RAG over policy documents | local embeddings | $0.20 |
 | F8 | Agent networks and subagents | none | $0.30 |
 | F9 | A2A: call and expose agents | none | $0.10 |
-| F10 | Auth / SSO | an identity provider tenant | $0 |
-| F11 | Channels (Teams, Slack, or another) | an app registration | $0.20 |
-| F12 | Voice | a speech provider key | $0.10 |
-| F13 | Tool providers (Composio, Arcade) wrapped by the gateway | a provider API key | $0 |
+| F10 | Auth / SSO with Microsoft Entra ID (user, 2026-10-05: the company uses Teams); external identity mapped to a mascop user, demo persona login kept for development | an Entra app registration (tenant id, client id, secret) | $0 |
+| F11 | Channels: Microsoft Teams and LINE (user, 2026-10-05), identities resolved through F10's mapping | a Teams bot registration; a LINE Messaging API channel | $0.20 |
+| F12 | Voice: skipped for now (user, 2026-10-05) | - | - |
+| F13 | Tool providers (Composio, Arcade): skipped for now (user, 2026-10-05) | - | - |
 
-Order: F1 alone; then F2 to F9 in parallel waves of three; F10 to F13 are built to the point where only the credential is missing, then wait for the user.
+Order: F1 first; F2 and F5 (no model behaviour change) beside it; F3, F4, F6 to F9 after F1 so the evals grade them; F10 before F11 because both resolve people through the same identity mapping. F10 and F11 are built and tested against local simulations until the user supplies the registrations.
