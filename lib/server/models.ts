@@ -1,20 +1,17 @@
-import { createAnthropic } from "@ai-sdk/anthropic";
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 import { wrapLanguageModel, type LanguageModel } from "ai";
-import { createScriptedModel, MOCK_MODEL_ID } from "@/lib/harness/adapters/vexa/server";
-import type { ModelRegistry } from "@/lib/harness/adapters/vexa/server";
-import { traceMiddleware } from "@/lib/harness/adapters/vexa/agent";
-import { WINYU_MOCK_SCRIPT } from "./mock-script";
+import { traceMiddleware } from "@/lib/harness/trace";
 import { meterMiddleware } from "./usage-meter";
 
-const SONNET_ID = "claude-sonnet-5";
-const HAIKU_ID = "claude-haiku-4-5-20251001";
-const ANTHROPIC_CONTEXT_TOKENS = 200_000;
-const OPENROUTER_APP_URL = "http://localhost:3100";
+const OPENROUTER_APP_URL = "http://localhost:3200";
 const DEFAULT_OPENROUTER_MODEL = "google/gemini-3.8-flash";
-const OPENROUTER_CONTEXT_TOKENS = 1_000_000;
 const MODEL_NAMES: Record<string, string> = { "google/gemini-3.8-flash": "Gemini 3.8 Flash" };
 const PROVIDER_ORDER: Record<string, string[]> = { "google/gemini-3.8-flash": ["google-ai-studio/flex", "google-ai-studio"] };
+
+/** The one real model the agent runs on, with the id it is billed and traced under. */
+export type AgentModel = { id: string; name: string; model: () => LanguageModel };
+
+type WrappableModel = Parameters<typeof wrapLanguageModel>[0]["model"];
 
 /** Where OpenRouter sends a model first: one provider keeps the prompt cache shared across users, the flex tier halves the price, fallbacks stay allowed; OPENROUTER_PROVIDER_ORDER (comma list, e.g. "google-ai-studio") overrides it. */
 function providerOrderOf(modelId: string): string[] | null {
@@ -23,50 +20,22 @@ function providerOrderOf(modelId: string): string[] | null {
   return PROVIDER_ORDER[modelId] ?? null;
 }
 
-const MOCK: ModelRegistry = {
-  [MOCK_MODEL_ID]: { model: () => traced(createScriptedModel(WINYU_MOCK_SCRIPT)), name: "Mock (scripted, ฟรี)", provider: "vexa-mock", maxTokens: 8_000 },
-};
-
-type WrappableModel = Parameters<typeof wrapLanguageModel>[0]["model"];
-
-function traced(model: Exclude<LanguageModel, string>) {
-  return wrapLanguageModel({ model: model as WrappableModel, middleware: traceMiddleware() });
-}
-
 function metered(modelId: string, model: Exclude<LanguageModel, string>) {
   return wrapLanguageModel({ model: model as WrappableModel, middleware: [traceMiddleware(), meterMiddleware(modelId)] });
 }
 
-function anthropicModels(apiKey: string): ModelRegistry {
-  const anthropic = createAnthropic({ apiKey });
-  return {
-    [SONNET_ID]: { model: () => metered(SONNET_ID, anthropic(SONNET_ID)), name: "Claude Sonnet 5", maxTokens: ANTHROPIC_CONTEXT_TOKENS },
-    [HAIKU_ID]: { model: () => metered(HAIKU_ID, anthropic(HAIKU_ID)), name: "Claude Haiku 4.5", maxTokens: ANTHROPIC_CONTEXT_TOKENS },
-  };
-}
-
-function openRouterModels(apiKey: string, modelId: string): ModelRegistry {
-  const client = createOpenRouter({ apiKey, compatibility: "strict", appName: process.env.OPENROUTER_APP_TITLE ?? "Winyu", appUrl: OPENROUTER_APP_URL });
-  const order = providerOrderOf(modelId);
+/** The OpenRouter model (AGENT_MODEL, else Gemini 3.8 Flash), traced and metered; null when no OPENROUTER_API_KEY is set. */
+export function agentModel(): AgentModel | null {
+  const apiKey = process.env.OPENROUTER_API_KEY;
+  if (!apiKey) return null;
+  const id = process.env.AGENT_MODEL || DEFAULT_OPENROUTER_MODEL;
+  const client = createOpenRouter({ apiKey, compatibility: "strict", appName: process.env.OPENROUTER_APP_TITLE ?? "mascop", appUrl: OPENROUTER_APP_URL });
+  const order = providerOrderOf(id);
   const settings = { usage: { include: true }, ...(order ? { provider: { order, allow_fallbacks: true } } : {}) };
-  return { [modelId]: { model: () => metered(modelId, client(modelId, settings)), name: MODEL_NAMES[modelId] ?? modelId, provider: "openrouter", maxTokens: OPENROUTER_CONTEXT_TOKENS } };
+  return { id, name: MODEL_NAMES[id] ?? id, model: () => metered(id, client(id, settings)) };
 }
 
-/** The registry GET /api/chat publishes; the first entry is the default: one OpenRouter model (AGENT_MODEL, else Gemini 3.8 Flash) when its key is set, then the scripted mock. */
-export function models(): ModelRegistry {
-  const anthropicKey = process.env.ANTHROPIC_API_KEY;
-  const openRouterKey = process.env.OPENROUTER_API_KEY;
-  const modelId = process.env.AGENT_MODEL || DEFAULT_OPENROUTER_MODEL;
-  return {
-    ...(openRouterKey ? openRouterModels(openRouterKey, modelId) : {}),
-    ...(anthropicKey ? anthropicModels(anthropicKey) : {}),
-    ...MOCK,
-  };
-}
-
-/** The model background jobs (memory extraction and review) run on: the default real model, or null when only the scripted mock is configured. */
+/** The model background jobs (memory extraction and review, digest, titles) run on, or null when no real model is configured. */
 export function utilityModel(): LanguageModel | null {
-  const [id, entry] = Object.entries(models())[0] ?? [];
-  if (!id || id === MOCK_MODEL_ID || !entry || typeof entry !== "object" || !("model" in entry)) return null;
-  return typeof entry.model === "function" ? entry.model() : entry.model;
+  return agentModel()?.model() ?? null;
 }

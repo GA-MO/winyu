@@ -3,7 +3,7 @@ import { auditLog } from "@/lib/server/audit";
 import { actionEvents, packets } from "@/lib/server/agent/collections";
 import { threads } from "@/lib/server/threads-read";
 import { turnsOf } from "@/lib/server/threads";
-import { models } from "@/lib/server/models";
+import { agentModel } from "@/lib/server/models";
 import { modelSpend, type ModelSpend } from "@/lib/server/model-ledger";
 import { surfaceEntry } from "@/lib/server/tools/registry";
 
@@ -48,7 +48,7 @@ function lastDays(count: number): string[] {
 }
 
 function defaultModelId(): string {
-  return Object.keys(models())[0] ?? "";
+  return agentModel()?.id ?? "";
 }
 
 function sinceDaysAgo(days: number): string {

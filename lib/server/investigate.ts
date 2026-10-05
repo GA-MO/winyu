@@ -14,8 +14,7 @@ import { investigations } from "@/lib/server/agent/collections";
 import { runMetric } from "@/lib/server/metrics";
 import { aiSdkTools } from "@/lib/server/agent/ai-sdk-tools";
 import { winyuTools, toolsForAccess } from "@/lib/server/agent/tools";
-import { MOCK_MODEL_ID } from "@/lib/harness/adapters/vexa/server";
-import { models } from "@/lib/server/models";
+import { agentModel } from "@/lib/server/models";
 import { tracedRun } from "@/lib/harness/runtime";
 import { runWithAccess } from "@/lib/server/request-context";
 import { measure } from "@/lib/server/usage-meter";
@@ -324,11 +323,12 @@ export function saveInvestigation(investigation: Investigation): void {
   investigations().put(investigation);
 }
 
-/** The morning job: investigate for every user on the default real model and keep the result; does nothing when only the mock is configured. */
+/** The morning job: investigate for every user on the default real model and keep the result; does nothing when no real model is configured. */
 export async function runInvestigateJob(): Promise<number> {
-  const [modelId, entry] = Object.entries(models())[0] ?? [];
-  if (!modelId || modelId === MOCK_MODEL_ID || !entry || typeof entry !== "object" || !("model" in entry)) return 0;
-  const model = typeof entry.model === "function" ? entry.model() : entry.model;
+  const configured = agentModel();
+  if (!configured) return 0;
+  const modelId = configured.id;
+  const model = configured.model();
   const queue = USERS.map((user) => user.id);
   let saved = 0;
   const workers = Array.from({ length: JOB_CONCURRENCY }, async () => {
