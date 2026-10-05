@@ -9,6 +9,8 @@ import { WINYU_RULES, personaFor } from "./persona";
 
 const TODAY = "2026-09-22";
 const PACKET_ID = "pkt-persona-test";
+const DRAWING_VOCABULARY = ["DataCard", "AlertsCard", "ForecastCard", "$state", "runTool", "⟦action⟧", "RankList", "ListItem", "Carousel", "footnote", "/tools/"];
+const DOMAIN_MARKERS = ["ห้ามประมาณเอง", "certified metric", "PERMISSION_DENIED", "resolve_owner", "`masked`", "watch_metric", "pin_widget", "find_people", "request_leave", "describe_entity"];
 
 function ctx(context: Record<string, unknown> = {}, today = TODAY): PersonaContext {
   return { today, context };
@@ -51,11 +53,11 @@ describe("personaFor", () => {
     expect(lines).toContain("เอเย่นต์ = ผู้แทนจำหน่าย");
   });
 
-  test("the persona carries only what differs per user; how cards look lives in the shared rules", () => {
+  test("the persona carries only what differs per user and never tells the model how to draw", () => {
     const lines = personaOf("u_anucha").join("\n");
     expect(lines).not.toContain("BarChart");
     expect(lines).not.toContain("แหล่งข้อมูล:");
-    expect(WINYU_RULES.some((rule) => rule.includes("`footnote` เป็นแหล่งข้อมูล"))).toBe(true);
+    expect(DRAWING_VOCABULARY.filter((word) => lines.includes(word))).toEqual([]);
   });
 
   test("memory is fenced as data", () => {
@@ -80,12 +82,15 @@ describe("personaFor", () => {
 });
 
 describe("rules", () => {
-  test("carry the prompt rules of the plan", () => {
-    expect(WINYU_RULES.length).toBeGreaterThanOrEqual(9);
+  test("keep every domain rule: Thai, grounding, metric choice, refusals, masking, watch and pin", () => {
+    const rules = WINYU_RULES.join("\n");
     expect(WINYU_RULES[0]).toContain("ตอบเป็นภาษาไทย");
-    expect(WINYU_RULES.some((rule) => rule.includes("PERMISSION_DENIED"))).toBe(true);
-    expect(WINYU_RULES.some((rule) => rule.includes("RankList"))).toBe(true);
-    expect(WINYU_RULES.some((rule) => rule.includes("footnote"))).toBe(true);
+    for (const rule of DOMAIN_MARKERS) expect(rules).toContain(rule);
+  });
+
+  test("never ask the model to draw: mascop renders every tool result itself", () => {
+    const rules = WINYU_RULES.join("\n");
+    expect(DRAWING_VOCABULARY.filter((word) => rules.includes(word))).toEqual([]);
   });
 });
 
@@ -130,6 +135,6 @@ describe("asking on from a morning story", () => {
     expect(lines).toContain(`ข้อสรุป: ${story.finding}`);
     expect(lines).toContain(`หลักฐาน: การ์ด "${story.evidence?.title}" จาก query_metric ${JSON.stringify(story.evidence?.query)}`);
     expect(lines).toContain("ตัดทิ้งแล้ว: DC ขอนแก่นมีสต๊อกพอ");
-    expect(lines).toContain("query เดิมแล้วตอบด้วย DataCard");
+    expect(lines).toContain("query เดิมก่อน");
   });
 });
