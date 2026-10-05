@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import type { ComposedSurface } from "@/lib/compose/catalog";
-import { readRecordings, turnOf } from "@/lib/eval/recording";
+import { readFixture, turnOf } from "@/lib/eval/recording";
 import { TH } from "@/lib/i18n/th";
 import { requestedCoursesOf, withRequestedCourses } from "./requested-courses";
 import type { Exchange, ToolStep } from "./timeline";
@@ -8,8 +8,7 @@ import type { Exchange, ToolStep } from "./timeline";
 const REQUESTED = TH.courses.badge.requested;
 
 function recordedSurface(): ComposedSurface {
-  const recording = readRecordings().get("courses-rep");
-  const composed = recording ? turnOf(recording).composed : null;
+  const composed = turnOf(readFixture("courses-rep")).composed;
   if (!composed) throw new Error("courses-rep has no composed card");
   return { surfaceId: "s1", components: composed.components, dataModel: composed.dataModel, done: true };
 }

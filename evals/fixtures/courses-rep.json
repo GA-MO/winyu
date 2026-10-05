@@ -1,0 +1,165 @@
+{
+ "version": 1,
+ "caseId": "courses-rep",
+ "userId": "u_krit",
+ "prompt": "มีอบรมอะไรที่ผมควรไปบ้าง",
+ "model": "google/gemini-3.8-flash",
+ "promptHash": "e19b55ac9c542b7b",
+ "toolsHash": "3a1e2faaa57dde17",
+ "today": "2026-10-05",
+ "recordedAt": "2026-10-05T15:52:53.513Z",
+ "steps": [
+  {
+   "kind": "call",
+   "tool": "list_courses",
+   "args": {
+    "query": "ขาย",
+    "month": null
+   },
+   "result": {
+    "ok": true,
+    "summary": "4 หลักสูตร เริ่มหลักสูตรแรก 30 ก.ย. 2569 · 1 หลักสูตรต่ออายุใบที่ใกล้หมดของคุณหรือทีม",
+    "data": [
+     {
+      "id": "crs_sales_licence",
+      "title": "ทบทวนกฎหมายควบคุมเครื่องดื่มแอลกอฮอล์ (ต่ออายุใบอนุญาต)",
+      "cover": "/img/courses/course05.jpg",
+      "category": "กฎหมาย",
+      "when": "3 ต.ค. 2569 · 1 วัน",
+      "place": "Online",
+      "audience": "ผู้ถือใบอนุญาตจำหน่ายสุรา (ผู้แทน)",
+      "seats": {
+       "label": "เหลือ 39 ที่ จาก 80",
+       "tone": "neutral"
+      },
+      "note": null,
+      "badges": [
+       {
+        "label": "ใบของคุณหมดใน 23 วัน",
+        "tone": "danger"
+       }
+      ],
+      "can_enroll": true
+     },
+     {
+      "id": "crs_consultative",
+      "title": "การขายแบบที่ปรึกษา รุ่น 4",
+      "cover": "/img/courses/course03.jpg",
+      "category": "การขาย",
+      "when": "30 ก.ย. 2569 · 2 วัน",
+      "place": "โรงแรมในเมืองขอนแก่น · ห้องเรียน",
+      "audience": "พนักงานขายและหัวหน้าทีมขาย",
+      "seats": {
+       "label": "เหลือ 3 ที่ จาก 24",
+       "tone": "bad"
+      },
+      "note": null,
+      "badges": [],
+      "can_enroll": true
+     },
+     {
+      "id": "crs_data_promo",
+      "title": "วางแผนโปรโมชันด้วยข้อมูล",
+      "cover": "/img/courses/course09.jpg",
+      "category": "ข้อมูล",
+      "when": "14 ต.ค. 2569 · 2 วัน",
+      "place": "Online",
+      "audience": "การตลาด เทรดมาร์เก็ตติ้ง และผู้จัดการขายภาค",
+      "seats": {
+       "label": "เหลือ 28 ที่ จาก 40",
+       "tone": "neutral"
+      },
+      "note": null,
+      "badges": [],
+      "can_enroll": true
+     },
+     {
+      "id": "crs_service",
+      "title": "ดูแลร้านค้าและรับเรื่องร้องเรียน",
+      "cover": "/img/courses/course08.jpg",
+      "category": "บริการลูกค้า",
+      "when": "5 พ.ย. 2569 · 1 วัน",
+      "place": "Online",
+      "audience": "พนักงานขายและทีมบริการลูกค้า",
+      "seats": {
+       "label": "เหลือ 38 ที่ จาก 60",
+       "tone": "neutral"
+      },
+      "note": null,
+      "badges": [],
+      "can_enroll": true
+     }
+    ]
+   }
+  },
+  {
+   "kind": "text",
+   "text": "แนะนำให้ลงทะเบียนหลักสูตรทบทวนกฎหมายควบคุมเครื่องดื่มแอลกอฮอล์เป็นลำดับแรกเนื่องจากใบอนุญาตใกล้ครบกำหนดต่ออายุ และยังมีหลักสูตรด้านการขายและบริการลูกค้าที่เปิดให้ลงทะเบียนได้โดยตรง\n\n```a2ui\n{\"id\":\"root\",\"component\":\"Card\",\"title\":\"หลักสูตรอบรมสำหรับทีมขาย\",\"children\":[\"courses\"]}\n{\"id\":\"courses\",\"component\":\"Grid\",\"children\":{\"componentId\":\"item\",\"path\":\"/list_courses/data\"}}\n{\"id\":\"item\",\"component\":\"ListItem\",\"title\":{\"path\":\"title\"},\"subtitle\":{\"path\":\"when\"},\"detail\":{\"path\":\"place\"},\"src\":{\"path\":\"cover\"},\"media\":\"thumb\",\"badges\":{\"path\":\"badges\"},\"action\":{\"event\":{\"name\":\"enroll_course\",\"context\":{\"courseId\":{\"path\":\"id\"}}}}}\n```"
+  }
+ ],
+ "asked": [],
+ "error": null,
+ "usage": {
+  "calls": 2,
+  "inputTokens": 20716,
+  "outputTokens": 2649,
+  "reasoningTokens": 2447,
+  "usd": 0.006387341666666667
+ },
+ "drawn": {
+  "cards": [],
+  "composed": {
+   "accepted": 3,
+   "rejected": 0,
+   "problems": [],
+   "components": [
+    {
+     "id": "root",
+     "component": "Card",
+     "title": "หลักสูตรอบรมสำหรับทีมขาย",
+     "children": [
+      "courses"
+     ]
+    },
+    {
+     "id": "courses",
+     "component": "Grid",
+     "children": {
+      "componentId": "item",
+      "path": "/list_courses/data"
+     }
+    },
+    {
+     "id": "item",
+     "component": "ListItem",
+     "title": {
+      "path": "title"
+     },
+     "subtitle": {
+      "path": "when"
+     },
+     "detail": {
+      "path": "place"
+     },
+     "src": {
+      "path": "cover"
+     },
+     "media": "thumb",
+     "badges": {
+      "path": "badges"
+     },
+     "action": {
+      "event": {
+       "name": "enroll_course",
+       "context": {
+        "courseId": {
+         "path": "id"
+        }
+       }
+      }
+     }
+    }
+   ]
+  }
+ }
+}

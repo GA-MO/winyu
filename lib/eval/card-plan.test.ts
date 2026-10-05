@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { readRecordings, turnOf } from "./recording";
+import { readFixture, readRecordings, turnOf } from "./recording";
 
 const recordings = readRecordings();
 
@@ -15,11 +15,11 @@ function passagesOf(result: unknown): { section: string; text: string }[] {
 
 describe("one card per question, from the recorded replies", () => {
   test("two document searches in one reply draw one documents card holding every passage once", () => {
-    const recording = recordings.get("docs-hr-hidden");
+    const recording = readFixture("docs-hr-hidden");
     const searched = (recording?.steps ?? []).flatMap((step) => (step.kind === "call" && step.tool === "search_documents" ? passagesOf(step.result) : []));
     const distinct = new Set(searched.map((passage) => `${passage.section}|${passage.text}`));
     expect(searched.length).toBeGreaterThan(distinct.size);
-    const cards = cardsOf("docs-hr-hidden");
+    const cards = turnOf(recording).cards;
     expect(cards.map((card) => card.tool)).toEqual(["search_documents"]);
     expect(passagesOf(cards[0].result)).toHaveLength(distinct.size);
   });
@@ -33,7 +33,7 @@ describe("one card per question, from the recorded replies", () => {
   });
 
   test("a refused call the model corrected in the same reply draws no card, only the answer that followed", () => {
-    const cards = cardsOf("finance-budget").filter((card) => card.tool === "query_metric");
+    const cards = turnOf(readFixture("finance-budget")).cards.filter((card) => card.tool === "query_metric");
     expect(cards).toHaveLength(1);
     expect((cards[0].result as { ok: unknown }).ok).toBe(true);
   });
