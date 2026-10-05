@@ -66,28 +66,30 @@ function FeedRow({ row, handlers }: { row: FeedItem; handlers: FeedHandlers }) {
   const Icon = row.tone === "success" ? ThumbsUp : SOURCE_ICONS[row.source];
   const [action] = row.actions;
   return (
-    <li className="flex items-center gap-1 pr-2 transition hover:bg-muted focus-within:bg-muted">
-      <button type="button" onClick={() => handlers.onOpen(row)} className="flex min-w-0 flex-1 items-center gap-3 py-2.5 pl-4 text-left focus-visible:outline-none">
-        <Icon className="size-4 shrink-0 text-muted-foreground" aria-hidden />
-        <span className="flex min-w-0 flex-1 flex-col">
-          <span className="truncate text-sm font-semibold tracking-tight" title={row.label}>{row.label}</span>
-          {row.detail ? <span className="truncate text-xs text-muted-foreground">{row.detail}</span> : null}
-          {row.because ? (
-            <span className="flex min-w-0 items-center gap-1 text-[11px] text-primary">
-              <Sparkles className="size-3 shrink-0" aria-hidden />
-              <span className="truncate">{row.because}</span>
-            </span>
-          ) : null}
-        </span>
-        <span className={cn("max-w-[40%] shrink-0 truncate rounded-full px-2 py-0.5 text-[11px] font-medium tabular-nums", TONE_PILL[row.tone])}>{row.reason}</span>
-      </button>
+    <li className="flex flex-col gap-1.5 py-2.5 pl-4 pr-2 transition hover:bg-muted focus-within:bg-muted">
+      <div className="flex items-start gap-1">
+        <button type="button" onClick={() => handlers.onOpen(row)} className="flex min-w-0 flex-1 items-start gap-3 text-left focus-visible:outline-none">
+          <Icon className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden />
+          <span className="flex min-w-0 flex-1 flex-col">
+            <span className="line-clamp-2 text-sm font-semibold tracking-tight" title={row.label}>{row.label}</span>
+            {row.detail ? <span className="truncate text-xs text-muted-foreground">{row.detail}</span> : null}
+            {row.because ? (
+              <span className="flex min-w-0 items-center gap-1 text-[11px] text-primary">
+                <Sparkles className="size-3 shrink-0" aria-hidden />
+                <span className="truncate">{row.because}</span>
+              </span>
+            ) : null}
+          </span>
+          <span className={cn("max-w-[40%] shrink-0 truncate rounded-full px-2 py-0.5 text-[11px] font-medium tabular-nums", TONE_PILL[row.tone])}>{row.reason}</span>
+        </button>
+        <FeedMenu feedKey={row.key} canFinish={row.canFinish} onSettle={handlers.onSettle} />
+      </div>
       {action ? (
-        <button type="button" onClick={() => handlers.onRun(action)} title={action.reason} className={cn(RUN_ACTION, "hidden sm:inline-flex")}>
-          <Send className="size-3" aria-hidden />
-          {action.label}
+        <button type="button" onClick={() => handlers.onRun(action)} title={action.reason} className={cn(RUN_ACTION, "ml-7 max-w-[calc(100%-1.75rem)] self-start")}>
+          <Send className="size-3 shrink-0" aria-hidden />
+          <span className="truncate">{action.label}</span>
         </button>
       ) : null}
-      <FeedMenu feedKey={row.key} canFinish={row.canFinish} onSettle={handlers.onSettle} />
     </li>
   );
 }
