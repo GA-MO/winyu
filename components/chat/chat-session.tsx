@@ -144,7 +144,7 @@ export function ChatSession({ threadId, initialPrompt, initialMessages, initialA
       <div className="relative flex h-full min-h-0 flex-1 flex-col">
         <GlowBackdrop className="opacity-60" />
         <div ref={scroller} onScroll={onScroll} className="relative z-10 min-h-0 flex-1 overflow-y-auto">
-          <div ref={content} className={`flex flex-col gap-8 pb-8 pt-8 ${COLUMN}`}>
+          <div ref={content} className={`flex flex-col gap-8 pb-8 pt-16 ${COLUMN}`}>
             {preload ? <PreloadBanner preload={preload} /> : null}
             {exchanges.length === 0 && !running && !initialPrompt ? <EmptyState /> : null}
             {exchanges.map((exchange, index) => (

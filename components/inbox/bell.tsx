@@ -10,7 +10,7 @@ import { InboxDrawer, focusFromParams } from "./drawer";
 const NOTIFICATIONS_ENDPOINT = "/api/notifications";
 const INBOX_PARAM = "inbox";
 
-/** The bell in the top bar: the unread count, and the inbox drawer it opens; `?inbox=<tab>` opens it from any link. */
+/** The floating bell: the unread count, and the inbox drawer it opens; `?inbox=<tab>` opens it from any link. */
 export function InboxBell({ className }: { className: string }) {
   const params = useSearchParams();
   const pathname = usePathname();
