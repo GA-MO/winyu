@@ -25,6 +25,7 @@ export type EvalCase = {
   forbidCarousel?: boolean;
   expectFilter?: { dim: Dim; values: string[] };
   expectRecall?: true;
+  expectDocuments?: { cite: string } | { notFound: true; hidden?: string };
 };
 
 /** The questions a Winyu demo actually gets asked, one per card shape and per persona scope. Winyu's funnel, scatter and sell-through cases drew one card from several bound results (`with`); mascop draws one card per `query_metric`, so they check that every metric was asked with the same dims and range instead. */
@@ -89,11 +90,16 @@ export const EVAL_CASES: EvalCase[] = [
   { id: "title-share-loss", userId: "u_prasit", prompt: "จังหวัดไหนเสียส่วนแบ่งให้คู่แข่งมากที่สุด", expectCard: "query_metric", expectSort: "delta_asc" },
   { id: "memory-remember-region", userId: "u_thana", before: ["จำไว้นะว่าผมดูแลภาคอีสานเป็นหลัก เวลาถามยอดขายให้ดูภาคอีสาน"], prompt: "ยอดขายเดือนนี้เทียบเป้าเป็นยังไง", expectCard: "query_metric", expectFilter: { dim: "region", values: ["northeast"] } },
   { id: "memory-recall-thread", userId: "u_may", before: ["อัตราการลาออกแต่ละฝ่ายเป็นยังไง"], prompt: "ครั้งก่อนที่เราคุยเรื่องคนลาออก ฝ่ายไหนน่าห่วงที่สุดนะ", expectRecall: true },
+  { id: "docs-credit-terms", userId: "u_krit", prompt: "เอเย่นต์เกรด B ได้เครดิตกี่วัน", expectDocuments: { cite: "sales-policy" } },
+  { id: "docs-ban-holiday", userId: "u_anucha", prompt: "วันออกพรรษาปีนี้ร้านค้าขายเบียร์ได้ไหม", expectDocuments: { cite: "alcohol-compliance-guide" } },
+  { id: "docs-hr-hidden", userId: "u_krit", prompt: "กระบอกเงินเดือนพนักงานแต่ละระดับเท่าไหร่", expectDocuments: { notFound: true, hidden: "hr-compensation-discipline" } },
+  { id: "docs-unanswerable", userId: "u_wee", prompt: "บริษัทอนุญาตให้พาสัตว์เลี้ยงมาที่ทำงานไหม", expectDocuments: { notFound: true } },
 ];
 
-/** The group a case reports under, from what it expects: memory across conversations, approvals, composed answers, card shapes, period comparisons, alerts and forecasts, other metric cards, and the rest. */
+/** The group a case reports under, from what it expects: memory across conversations, company documents, approvals, composed answers, card shapes, period comparisons, alerts and forecasts, other metric cards, and the rest. */
 export function groupOf(testCase: EvalCase): string {
   if (testCase.before) return "memory";
+  if (testCase.expectDocuments) return "documents";
   if (testCase.expectApproval) return "approval";
   if (testCase.expectPeople) return "composed";
   if (testCase.expectShape || testCase.expectMetrics) return "shape";

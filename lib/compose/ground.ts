@@ -1,8 +1,8 @@
 import type { z } from "zod/v3";
 import { ASK_EVENT, COMPOSE_ACTION_TOOLS, COMPOSE_CATALOG, type ComponentName, type ComposedComponent } from "./catalog";
 
-/** Tools whose results keep their own bound card (DataCard and friends); a composed card may not show them. */
-export const UNCOMPOSABLE_TOOLS: readonly string[] = ["query_metric", "get_alerts", "get_forecast", "explain_gap"];
+/** Tools whose results keep their own bound card (DataCard and friends, and the document passages an answer cites); a composed card may not show them. */
+export const UNCOMPOSABLE_TOOLS: readonly string[] = ["query_metric", "get_alerts", "get_forecast", "explain_gap", "search_documents"];
 
 const DIGIT = /[0-9๐-๙]/;
 const NAME_TOKEN = /คุณ[^\s·,()]+/g;

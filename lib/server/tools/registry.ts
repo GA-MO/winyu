@@ -29,6 +29,7 @@ import { watchMetricTool } from "./watch-metric";
 import { runJobTool } from "./run-job";
 import { setPermissionTool } from "./set-permission";
 import { askLogisticsPartnerTool } from "./ask-logistics-partner";
+import { searchDocumentsTool } from "./search-documents";
 
 /** The tools whose answers are metric rows, so what a role may call there depends on the metrics it sees. */
 export const METRIC_READING_TOOLS: readonly ToolName[] = ["query_metric", "get_alerts", "get_forecast", "explain_gap", "pin_widget", "watch_metric"];
@@ -48,6 +49,7 @@ const NATIVE_TOOLS: { [Name in NativeToolName]: WinyuTool<Name> } = {
   list_candidates: listCandidatesTool,
   list_courses: listCoursesTool,
   get_policy: getPolicyTool,
+  search_documents: searchDocumentsTool,
   request_leave: requestLeaveTool,
   enroll_course: enrollCourseTool,
   resolve_owner: resolveOwnerTool,
