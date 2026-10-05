@@ -13,8 +13,14 @@ import { AGENT_ID, USER_ID_KEY, mascopAgent } from "./agent";
 import { chatTurnOf, observeReply, type ChatTurn, type ReplySeen, type RunInput } from "./turn";
 
 const BASE_PATH = "/api/copilotkit";
+const INFO_PATH = `${BASE_PATH}/info`;
 const RUN_PATH = `${BASE_PATH}/agent/${AGENT_ID}/run`;
+const CONNECT_PATH = `${BASE_PATH}/agent/${AGENT_ID}/connect`;
+const STOP_PREFIX = `${BASE_PATH}/agent/${AGENT_ID}/stop/`;
 const NOT_YOUR_THREAD = { error: "ไม่พบบทสนทนานี้" };
+const NOT_SERVED = { error: "Not found" };
+
+type Route = { kind: "info" } | { kind: "run" } | { kind: "connect" } | { kind: "stop"; threadId: string };
 
 type Handler = (request: Request) => Promise<Response>;
 
@@ -99,6 +105,16 @@ async function serveRun(access: AccessContext, req: Request, turn: ChatTurn): Pr
   }
 }
 
+/** The only runtime routes mascop serves; debug, inspector, memory, thread and single-route endpoints would bypass the harness run, so they answer 404. */
+export function routeOf(method: string, pathname: string): Route | null {
+  if (method === "GET") return pathname === INFO_PATH ? { kind: "info" } : null;
+  if (method !== "POST") return null;
+  if (pathname === RUN_PATH) return { kind: "run" };
+  if (pathname === CONNECT_PATH) return { kind: "connect" };
+  if (pathname.startsWith(STOP_PREFIX)) return { kind: "stop", threadId: decodeURIComponent(pathname.slice(STOP_PREFIX.length)) };
+  return null;
+}
+
 function isOthersThread(threadId: string | null, userId: string): boolean {
   const owner = threadId ? threads().get(threadId)?.userId : undefined;
   return owner !== undefined && owner !== userId;
@@ -106,11 +122,14 @@ function isOthersThread(threadId: string | null, userId: string): boolean {
 
 /** Serves one CopilotKit request for a signed-in person; no request reaches another person's thread. A run request is one harness run: started with its goal, the agent inside the person's access, turn and run, its trace saved when the reply ends. An approval splits a question into two runs that share the goal: the first ends asking, the second starts with the answer. */
 export async function serveCopilot(access: AccessContext, req: Request): Promise<Response> {
-  if (req.method !== "POST") return runWithAccess(access, () => handler()(req));
+  const route = routeOf(req.method, new URL(req.url).pathname);
+  if (!route) return Response.json(NOT_SERVED, { status: 404 });
+  if (route.kind === "info") return runWithAccess(access, () => handler()(req));
   const body = await req.text();
   const turn = chatTurnOf(readInput(body), randomUUID());
-  if (isOthersThread(turn.threadId, access.userId)) return Response.json(NOT_YOUR_THREAD, { status: 404 });
+  const threadId = route.kind === "stop" ? route.threadId : turn.threadId;
+  if (isOthersThread(threadId, access.userId)) return Response.json(NOT_YOUR_THREAD, { status: 404 });
   const replayed = new Request(req.url, { method: "POST", headers: req.headers, body });
-  if (new URL(req.url).pathname === RUN_PATH) return serveRun(access, replayed, turn);
+  if (route.kind === "run") return serveRun(access, replayed, turn);
   return runWithAccess(access, () => handler()(replayed));
 }
