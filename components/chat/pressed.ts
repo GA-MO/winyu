@@ -21,3 +21,23 @@ export function parsePressed(text: string): PressedTool | null {
     return null;
   }
 }
+
+/** A pressed tool button carried in a link from outside the chat (`/c/new?press=`): the tool, its input, and the button's label for the thread title. */
+export type PressCarrier = PressedTool & { label: string };
+
+/** Encodes a pressed tool button for the `press` parameter of `/c/new`. */
+export function pressParam(carrier: PressCarrier): string {
+  return JSON.stringify(carrier);
+}
+
+/** Reads the `press` parameter back; null when it is not a tool button the chat can send. */
+export function pressFromParam(value: string): PressCarrier | null {
+  try {
+    const carrier = JSON.parse(value) as Partial<PressCarrier>;
+    if (typeof carrier.tool !== "string" || typeof carrier.label !== "string") return null;
+    if (typeof carrier.input !== "object" || carrier.input === null || Array.isArray(carrier.input)) return null;
+    return { tool: carrier.tool, input: carrier.input, label: carrier.label };
+  } catch {
+    return null;
+  }
+}
