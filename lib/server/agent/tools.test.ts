@@ -5,6 +5,7 @@ import { resetRoleOverrides } from "@/lib/access/role-overrides";
 import type { AccessContext, MetricQuery, MetricResult } from "@/lib/contracts";
 import { findUser } from "@/lib/data/entities/users";
 import { auditLog } from "@/lib/server/audit";
+import { TH } from "@/lib/i18n/th";
 import { runWithAccess, runWithTurn } from "@/lib/server/request-context";
 import { notifications, outbox, packets } from "./collections";
 import type { WinyuTool } from "@/lib/server/tools/define";
@@ -213,7 +214,7 @@ describe("set_permission", () => {
       value: "none",
     });
     expect(result.ok).toBe(true);
-    expect(result.data.after).toBe("None");
+    expect(result.data.after).toBe(TH.admin.acl.none);
     expect(result.data.affectedUsers).toBeGreaterThan(0);
     expect(liveAccessFor(findUser("u_krit")!).metricAcl.net_sales_value).toBe("none");
     resetRoleOverrides();
