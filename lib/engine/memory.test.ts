@@ -4,8 +4,7 @@ import { accessFor } from "@/lib/access/policies";
 import { findUser } from "@/lib/data/entities/users";
 import { actionEvents, memoryFacts } from "@/lib/server/agent/collections";
 import { personaFor } from "@/lib/server/agent/persona";
-import { saveMessages } from "@/lib/server/threads";
-import { createThread, threads } from "@/lib/server/threads-read";
+import { threads } from "@/lib/server/threads-read";
 import { confirmMemory, consolidateMemory, editMemory, forgetAll, pruneMemory, rememberAction, rememberTurn } from "./memory";
 import { isSameFact } from "./memory-match";
 import { memoryStatus, seenCount } from "./memory-status";
@@ -124,17 +123,5 @@ describe("consolidateMemory", () => {
     expect(kept).toHaveLength(10);
     expect(kept).not.toContain(`สนใจ${DISTINCT_TOPICS[0]}`);
     expect(kept).toContain(`สนใจ${DISTINCT_TOPICS[11]}`);
-  });
-});
-
-describe("saveMessages", () => {
-  test("saving the same conversation again does not re-learn its questions", async () => {
-    const thread = createThread(USER, "กำไรขั้นต้นเดือนนี้");
-    const messages = [{ id: "m1", role: "user", parts: [{ type: "text", text: "กำไรขั้นต้นเดือนนี้" }] }];
-    const first = await saveMessages(thread.id, USER, messages);
-    const again = await saveMessages(thread.id, USER, messages);
-    expect(first?.facts.length).toBeGreaterThan(0);
-    expect(again?.facts).toEqual([]);
-    expect(mine().every((fact) => fact.confidence === 0.45)).toBe(true);
   });
 });

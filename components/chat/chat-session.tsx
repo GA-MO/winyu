@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Inbox, Sparkles } from "lucide-react";
 import type { QuickAction } from "@/lib/contracts";
 import { TH } from "@/lib/i18n/th";
+import { isFollowUpIntent } from "@/lib/engine/follow-ups";
 import { CardActionsProvider } from "@/components/cards/card-actions";
 import { Composer } from "@/components/composer/composer";
 import { GlowBackdrop } from "@/components/ui/glow-backdrop";
@@ -15,6 +16,7 @@ const COLUMN = "mx-auto w-full max-w-3xl px-4 sm:px-6";
 const EMPTY_CHIPS = 4;
 const ANSWER_CHIPS = 3;
 const PINNED_SLACK_PX = 120;
+const QUICK_ACTIONS_ENDPOINT = "/api/quick-actions";
 const CHIP =
   "inline-flex max-w-full items-center gap-1.5 truncate rounded-full border border-border bg-card px-3.5 py-1.5 text-sm text-foreground shadow-card transition hover:border-foreground/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
@@ -33,6 +35,15 @@ export type ChatSessionProps = {
   suggestions: QuickAction[];
   placeholder: string;
 };
+
+function notePressed(action: QuickAction): void {
+  const kind = isFollowUpIntent(action.intentKey) ? "follow_up" : "quick_action";
+  void fetch(QUICK_ACTIONS_ENDPOINT, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ intentKey: action.intentKey, prompt: action.prompt, kind }),
+  }).catch(() => undefined);
+}
 
 function useStickToBottom(content: unknown) {
   const scroller = useRef<HTMLDivElement>(null);
@@ -142,7 +153,10 @@ export function ChatSession({ threadId, initialPrompt, initialMessages, initialA
             {chips.length > 0 ? (
               <div className="flex flex-wrap gap-2">
                 {chips.map((action) => (
-                  <button key={action.id} type="button" title={action.reason} onClick={() => send(action.prompt)} className={CHIP}>
+                  <button key={action.id} type="button" title={action.reason} onClick={() => {
+                      notePressed(action);
+                      send(action.prompt);
+                    }} className={CHIP}>
                     {action.label}
                   </button>
                 ))}
