@@ -8,13 +8,13 @@ import type { Parsed } from "./shapes";
 
 type Stat = { label: string; value: string; detail: string | null; tone: "good" | "bad" | "neutral" | null };
 
-/** Draws a parsed tool result, or the refusal in the server's own words, or an honest "could not read". */
+/** Draws a parsed tool result, or the refusal as the person reads it, or an honest "could not read". */
 export function ParsedCard<T>({ parsed, title, children }: { parsed: Parsed<T>; title: string; children: (data: T) => ReactNode }) {
   if (parsed.kind === "ok") return children(parsed.data);
-  const body = parsed.kind === "refused" ? parsed.error : TH.cards.unreadable;
+  const notice = parsed.kind === "refused" ? parsed.notice : { title: TH.cards.refused, body: TH.cards.unreadable };
   return (
     <Card props={{ title }}>
-      <Alert props={{ title: TH.cards.refused, body, tone: "warning" }} />
+      <Alert props={{ title: notice.title, body: notice.body, tone: "warning" }} />
     </Card>
   );
 }

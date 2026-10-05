@@ -92,14 +92,27 @@ function mergedDocuments(results: readonly DocumentsResult[]): DocumentsResult {
   return { ...last, data: { ...last.data, passages: [...passages.values()] } };
 }
 
+function answered(step: ToolStep): boolean {
+  if (step.outcome.state !== "returned") return false;
+  const result = step.outcome.result;
+  return typeof result !== "object" || result === null || (result as { ok?: unknown }).ok !== false;
+}
+
+function recoveredFailures(steps: readonly ToolStep[]): string[] {
+  return steps.flatMap((step, index) => {
+    if (answered(step) || step.outcome.state === "pending") return [];
+    return steps.slice(index + 1).some((later) => later.name === step.name && answered(later)) ? [step.toolCallId] : [];
+  });
+}
+
 function drawsAnswer(step: ToolStep, hidden: ReadonlySet<string>, cardTools: ReadonlySet<string>): boolean {
   if (step.name === CATALOG_TOOL || !cardTools.has(step.name) || hidden.has(step.toolCallId)) return false;
   return step.outcome.state === "returned" && !isEmptyAnswer(step.outcome.result);
 }
 
-/** One card per question: every documents search of the exchange draws as one card at the first search (passages merged, duplicates dropped, so citations count over all of them), and the metric catalog the model browsed on the way is left out once another card answers; `composed` are the calls a composed card already holds. */
+/** One card per question: a refused or failed call the model corrected later in the exchange (the same tool answered after it) is left out, every documents search of the exchange draws as one card at the first search (passages merged, duplicates dropped, so citations count over all of them), and the metric catalog the model browsed on the way is left out once another card answers; `composed` are the calls a composed card already holds. */
 export function cardPlanOf(steps: readonly ToolStep[], composed: ReadonlySet<string>, cardTools: ReadonlySet<string>): CardPlan {
-  const hidden = new Set(composed);
+  const hidden = new Set([...composed, ...recoveredFailures(steps)]);
   const results = new Map<string, unknown>();
   const searches = steps.flatMap((step) => {
     const documents = documentsOf(step);

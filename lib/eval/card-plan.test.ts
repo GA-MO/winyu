@@ -32,6 +32,12 @@ describe("one card per question, from the recorded replies", () => {
     }
   });
 
+  test("a refused call the model corrected in the same reply draws no card, only the answer that followed", () => {
+    const cards = cardsOf("finance-budget").filter((card) => card.tool === "query_metric");
+    expect(cards).toHaveLength(1);
+    expect((cards[0].result as { ok: unknown }).ok).toBe(true);
+  });
+
   test("the catalog stays when it is the answer", () => {
     expect(cardsOf("freshness").map((card) => card.tool)).toEqual(["list_metrics"]);
   });

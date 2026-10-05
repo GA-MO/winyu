@@ -58,7 +58,7 @@ export function CardPartsView({ parts }: { parts: CardParts }) {
   if (parts.denied) {
     return (
       <Card props={{ title: parts.title, description: null, meta: null, footnote: null }}>
-        <Alert props={{ title: TH.dash.denied, body: parts.denied, tone: "warning", meta: null }} />
+        <Alert props={{ title: parts.denied.title, body: parts.denied.body, tone: "warning", meta: null }} />
       </Card>
     );
   }
