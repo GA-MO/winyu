@@ -1,0 +1,313 @@
+{
+ "version": 1,
+ "caseId": "sites-detail",
+ "userId": "u_may",
+ "prompt": "ดูความปลอดภัยของโรงงานขอนแก่น",
+ "model": "google/gemini-3.8-flash",
+ "promptHash": "2f484d85b0bbd7ac",
+ "toolsHash": "017d9696205cf478",
+ "today": "2026-10-05",
+ "recordedAt": "2026-10-05T13:06:16.881Z",
+ "steps": [
+  {
+   "kind": "call",
+   "tool": "get_site",
+   "args": {
+    "name": "ขอนแก่น",
+    "id": null
+   },
+   "result": {
+    "ok": true,
+    "summary": "โรงงานขอนแก่น — ต้องดูด่วน",
+    "data": {
+     "id": "pl_khonkaen",
+     "name": "โรงงานขอนแก่น",
+     "photo": "/img/sites/site01.jpg",
+     "badges": [
+      {
+       "label": "ยังไม่ปิด 1 เรื่อง",
+       "tone": "danger"
+      },
+      {
+       "label": "เหตุการณ์เพิ่มขึ้น",
+       "tone": "warning"
+      },
+      {
+       "label": "โอที 71 ชม./คน",
+       "tone": "warning"
+      }
+     ],
+     "metrics": [
+      {
+       "label": "ไม่มีอุบัติเหตุถึงขั้นหยุดงาน",
+       "value": "7 วัน",
+       "detail": null,
+       "tone": "bad"
+      },
+      {
+       "label": "เหตุการณ์ 90 วันล่าสุด",
+       "value": "4 ครั้ง",
+       "detail": "90 วันก่อนหน้า 0 ครั้ง",
+       "tone": "bad"
+      },
+      {
+       "label": "โอทีเฉลี่ยต่อคน 3 เดือน",
+       "value": "71 ชม.",
+       "detail": null,
+       "tone": "bad"
+      }
+     ],
+     "facts": [
+      {
+       "label": "Type",
+       "value": "โรงงาน"
+      },
+      {
+       "label": "จังหวัด",
+       "value": "ขอนแก่น"
+      },
+      {
+       "label": "พนักงาน",
+       "value": "620 คน"
+      },
+      {
+       "label": "เจ้าหน้าที่ความปลอดภัย",
+       "value": "คุณชัย วงศ์ใหญ่"
+      }
+     ],
+     "open_actions": [
+      {
+       "title": "รถยกชนพนักงานขนย้ายที่ลานโหลดสายการผลิต 2",
+       "body": "แยกทางเดินรถยกกับทางคนเดินที่ลานโหลด และทวนสอบใบขับขี่รถยกทุกคนก่อน 30 ก.ย.",
+       "date": "15 ก.ย. 2569"
+      }
+     ],
+     "incidents": [
+      {
+       "title": "หยุดงาน · รถยกชนพนักงานขนย้ายที่ลานโหลดสายการผลิต 2",
+       "detail": "ข้อเท้าแพลง หยุดงาน 3 วัน · กะดึก ช่วงเร่งผลิตก่อนออกพรรษา · แก้ไข: แยกทางเดินรถยกกับทางคนเดินที่ลานโหลด และทวนสอบใบขับขี่รถยกทุกคนก่อน 30 ก.ย. (ยังไม่ปิด)",
+       "time": "15 ก.ย. 2569"
+      },
+      {
+       "title": "เกือบเกิดเหตุ · รถยกเฉี่ยวพาเลทล้มใกล้ทางเดิน",
+       "detail": "ไม่มีผู้บาดเจ็บ · มุมอับหน้าคลังวัตถุดิบ · แก้ไข: ติดกระจกโค้งที่มุมอับ",
+       "time": "9 ก.ย. 2569"
+      },
+      {
+       "title": "ปฐมพยาบาล · พนักงานลื่นบริเวณล้างถัง",
+       "detail": "ฟกช้ำ ปฐมพยาบาลแล้วกลับไปทำงาน · แก้ไข: เปลี่ยนแผ่นกันลื่นบริเวณล้างถัง",
+       "time": "3 ก.ย. 2569"
+      },
+      {
+       "title": "เกือบเกิดเหตุ · รถยกถอยโดยไม่มีสัญญาณเสียง",
+       "detail": "สัญญาณถอยเสีย 3 คัน · แก้ไข: ซ่อมสัญญาณถอยรถยก 3 คัน",
+       "time": "27 ส.ค. 2569"
+      },
+      {
+       "title": "ปฐมพยาบาล · มือถูกบาดจากขอบลังกระดาษ",
+       "detail": "ทำแผลแล้วกลับไปทำงาน · แก้ไข: แจกถุงมือกันบาดที่สายบรรจุ",
+       "time": "10 ธ.ค. 2568"
+      },
+      {
+       "title": "หยุดงาน · พนักงานตกจากบันไดถังหมัก",
+       "detail": "หยุดงาน 5 วัน · ช่วงเร่งผลิตก่อนออกพรรษา 2568 · แก้ไข: ติดราวกันตกและสายรัดตัวที่บันไดถังหมัก",
+       "time": "2 ต.ค. 2568"
+      }
+     ],
+     "people": [
+      {
+       "id": "e_somsri",
+       "name": "คุณสมศรี ทองคำ",
+       "title": "หัวหน้าแผนกบรรจุ โรงงานขอนแก่น",
+       "place": "โรงงานขอนแก่น",
+       "photo": "/img/people/p18.jpg",
+       "department": "การผลิต",
+       "manager": "คุณโอ๊ต พัฒนพงศ์",
+       "tenure": "31 ปี 3 เดือน",
+       "badges": [
+        {
+         "label": "GMP 28 วัน",
+         "tone": "warning"
+        },
+        {
+         "label": "เกษียณใน 2 ปี",
+         "tone": "neutral"
+        }
+       ]
+      },
+      {
+       "id": "u_oat",
+       "name": "คุณโอ๊ต พัฒนพงศ์",
+       "title": "นักวางแผนการผลิต โรงงานขอนแก่น",
+       "place": "โรงงานขอนแก่น",
+       "photo": "/img/people/p35.jpg",
+       "department": "ซัพพลายเชน",
+       "manager": "คุณวีร์ เจริญสุข",
+       "tenure": "9 ปี",
+       "badges": []
+      },
+      {
+       "id": "e_dang",
+       "name": "คุณแดง ศักดิ์ดี",
+       "title": "หัวหน้ากะ สายการผลิต 2 โรงงานขอนแก่น",
+       "place": "โรงงานขอนแก่น",
+       "photo": "/img/people/p40.jpg",
+       "department": "การผลิต",
+       "manager": "คุณสมศรี ทองคำ",
+       "tenure": "23 ปี 6 เดือน",
+       "badges": [
+        {
+         "label": "เสี่ยงลาออกสูง",
+         "tone": "danger"
+        },
+        {
+         "label": "โอที 96 ชม.",
+         "tone": "warning"
+        },
+        {
+         "label": "ใบขับขี่รถยก 8 วัน",
+         "tone": "warning"
+        }
+       ]
+      },
+      {
+       "id": "e_chai",
+       "name": "คุณชัย วงศ์ใหญ่",
+       "title": "เจ้าหน้าที่ความปลอดภัย (จป.) โรงงานขอนแก่น",
+       "place": "โรงงานขอนแก่น",
+       "photo": "/img/people/p25.jpg",
+       "department": "การผลิต",
+       "manager": "คุณโอ๊ต พัฒนพงศ์",
+       "tenure": "12 ปี 2 เดือน",
+       "badges": [
+        {
+         "label": "ควรคุยเรื่องความก้าวหน้า",
+         "tone": "warning"
+        }
+       ]
+      },
+      {
+       "id": "e_lek",
+       "name": "คุณเล็ก มณีวงศ์",
+       "title": "พนักงานควบคุมคุณภาพ โรงงานขอนแก่น",
+       "place": "โรงงานขอนแก่น",
+       "photo": "/img/people/p04.jpg",
+       "department": "การผลิต",
+       "manager": "คุณสมศรี ทองคำ",
+       "tenure": "2 ปี 7 เดือน",
+       "badges": []
+      }
+     ]
+    }
+   }
+  },
+  {
+   "kind": "text",
+   "text": "โรงงานขอนแก่นอยู่ในเกณฑ์ต้องติดตามเร่งด่วน เนื่องจากมีอุบัติเหตุหยุดงานและมาตรการแก้ไขเรื่องการแยกทางเดินรถยกยังค้างอยู่ สมมติฐานคือชั่วโมงทำงานล่วงเวลาที่สูงช่วงเร่งการผลิตส่งผลต่อความเหนื่อยล้า ควรตรวจสอบตารางกะการทำงานของพนักงานขับรถยก และติดตามความคืบหน้าการปรับปรุงพื้นที่ร่วมกับเจ้าหน้าที่ความปลอดภัย ต้องการส่งเรื่องต่อให้ผู้รับผิดชอบหรือไม่\n\n```a2ui\n{\"id\":\"root\",\"component\":\"Card\",\"title\":\"สถานะความปลอดภัยโรงงานขอนแก่น\",\"meta\":\"ต้องเฝ้าระวังด่วน\",\"footnote\":\"ระบบความปลอดภัยและอาชีวอนามัย\",\"children\":[\"metrics_grid\",\"facts\",\"sec_actions\",\"sec_incidents\"]}\n{\"id\":\"metrics_grid\",\"component\":\"Grid\",\"children\":{\"componentId\":\"m_item\",\"path\":\"/get_site/data/metrics\"}}\n{\"id\":\"m_item\",\"component\":\"Metric\",\"label\":{\"path\":\"label\"},\"value\":{\"path\":\"value\"},\"detail\":{\"path\":\"detail\"}}\n{\"id\":\"facts\",\"component\":\"KeyValue\",\"from\":{\"path\":\"/get_site/data/facts\"}}\n{\"id\":\"sec_actions\",\"component\":\"Section\",\"label\":\"มาตรการแก้ไขที่ยังไม่ปิด\",\"children\":{\"componentId\":\"action_item\",\"path\":\"/get_site/data/open_actions\"}}\n{\"id\":\"action_item\",\"component\":\"ListItem\",\"title\":{\"path\":\"title\"},\"subtitle\":{\"path\":\"body\"},\"trailing\":{\"path\":\"date\"}}\n{\"id\":\"sec_incidents\",\"component\":\"Section\",\"label\":\"ประวัติเหตุการณ์ย้อนหลัง\",\"children\":{\"componentId\":\"inc_item\",\"path\":\"/get_site/data/incidents\"}}\n{\"id\":\"inc_item\",\"component\":\"ListItem\",\"title\":{\"path\":\"title\"},\"subtitle\":{\"path\":\"detail\"},\"trailing\":{\"path\":\"time\"}}\n```"
+  }
+ ],
+ "asked": [],
+ "error": null,
+ "usage": {
+  "calls": 2,
+  "inputTokens": 20657,
+  "outputTokens": 4746,
+  "reasoningTokens": 4307,
+  "usd": 0.01391475
+ },
+ "drawn": {
+  "cards": [],
+  "composed": {
+   "accepted": 8,
+   "rejected": 0,
+   "problems": [],
+   "components": [
+    {
+     "id": "root",
+     "component": "Card",
+     "title": "สถานะความปลอดภัยโรงงานขอนแก่น",
+     "meta": "ต้องเฝ้าระวังด่วน",
+     "footnote": "ระบบความปลอดภัยและอาชีวอนามัย",
+     "children": [
+      "metrics_grid",
+      "facts",
+      "sec_actions",
+      "sec_incidents"
+     ]
+    },
+    {
+     "id": "metrics_grid",
+     "component": "Grid",
+     "children": {
+      "componentId": "m_item",
+      "path": "/get_site/data/metrics"
+     }
+    },
+    {
+     "id": "m_item",
+     "component": "Metric",
+     "label": {
+      "path": "label"
+     },
+     "value": {
+      "path": "value"
+     },
+     "detail": {
+      "path": "detail"
+     }
+    },
+    {
+     "id": "facts",
+     "component": "KeyValue",
+     "from": {
+      "path": "/get_site/data/facts"
+     }
+    },
+    {
+     "id": "sec_actions",
+     "component": "Section",
+     "label": "มาตรการแก้ไขที่ยังไม่ปิด",
+     "children": {
+      "componentId": "action_item",
+      "path": "/get_site/data/open_actions"
+     }
+    },
+    {
+     "id": "action_item",
+     "component": "ListItem",
+     "title": {
+      "path": "title"
+     },
+     "subtitle": {
+      "path": "body"
+     },
+     "trailing": {
+      "path": "date"
+     }
+    },
+    {
+     "id": "sec_incidents",
+     "component": "Section",
+     "label": "ประวัติเหตุการณ์ย้อนหลัง",
+     "children": {
+      "componentId": "inc_item",
+      "path": "/get_site/data/incidents"
+     }
+    },
+    {
+     "id": "inc_item",
+     "component": "ListItem",
+     "title": {
+      "path": "title"
+     },
+     "subtitle": {
+      "path": "detail"
+     },
+     "trailing": {
+      "path": "time"
+     }
+    }
+   ]
+  }
+ }
+}

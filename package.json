@@ -16,7 +16,8 @@
     "investigate": "bun run scripts/investigate.ts",
     "call-tool": "bun run scripts/call-tool.ts",
     "mcp:probe": "bun run scripts/mcp-probe.ts",
-    "studio": "bun run scripts/studio.ts"
+    "studio": "bun run scripts/studio.ts",
+    "eval": "bun run scripts/eval.ts"
   },
   "dependencies": {
     "@ag-ui/client": "1.0.1",

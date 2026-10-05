@@ -1,0 +1,83 @@
+{
+ "version": 1,
+ "caseId": "planner-watch",
+ "userId": "u_wee",
+ "prompt": "เตือนฉันถ้าสต๊อกดีซีลำพูนพอขายต่ำกว่า 10 วัน",
+ "model": "google/gemini-3.8-flash",
+ "promptHash": "ba09ccfc1ba110ff",
+ "toolsHash": "017d9696205cf478",
+ "today": "2026-10-05",
+ "recordedAt": "2026-10-05T12:58:02.691Z",
+ "steps": [
+  {
+   "kind": "call",
+   "tool": "describe_entity",
+   "args": {
+    "query": "ลำพูน",
+    "kind": "dc"
+   },
+   "result": {
+    "ok": true,
+    "data": {
+     "id": "dc_lamphun",
+     "ชื่อ": "ศูนย์กระจายสินค้าลำพูน",
+     "ภาค": "ภาคเหนือ",
+     "ความจุ": "120,000 ลัง",
+     "จำนวนเอเย่นต์ที่ให้บริการ": 3,
+     "เอเย่นต์": [
+      "ลำพูนรุ่งทรัพย์",
+      "หริภุญชัย เทรดดิ้ง",
+      "พิษณุโลกศรีเจริญ"
+     ]
+    },
+    "summary": "ศูนย์กระจายสินค้าลำพูน ภาคเหนือ ความจุ 120,000 ลัง ให้บริการเอเย่นต์ 3 ราย"
+   }
+  },
+  {
+   "kind": "call",
+   "tool": "watch_metric",
+   "args": {
+    "condition": {
+     "kind": "below",
+     "value": 10
+    },
+    "query": {
+     "where": null,
+     "filters": {
+      "dc": "dc_lamphun"
+     },
+     "range": {
+      "to": "2026-09-22",
+      "from": "2026-09-22"
+     },
+     "metric": "days_of_cover",
+     "sort": "value_asc",
+     "grain": "day",
+     "limit": 10,
+     "dims": [
+      "dc"
+     ],
+     "compare": "none"
+    },
+    "title": "สต๊อกพอขาย ศูนย์กระจายสินค้าลำพูน ต่ำกว่า 10 วัน"
+   }
+  }
+ ],
+ "asked": [
+  "watch_metric"
+ ],
+ "error": null,
+ "usage": {
+  "calls": 2,
+  "inputTokens": 19558,
+  "outputTokens": 1479,
+  "reasoningTokens": 1316,
+  "usd": 0.010107375
+ },
+ "drawn": {
+  "cards": [
+   "describe_entity"
+  ],
+  "composed": null
+ }
+}

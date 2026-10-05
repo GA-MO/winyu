@@ -1,0 +1,38 @@
+{
+ "version": 1,
+ "caseId": "admin-tool",
+ "userId": "u_ton",
+ "prompt": "ปิดเครื่องมือดูประวัติการอบรมจากระบบอบรม MCP ของพนักงานขาย",
+ "model": "google/gemini-3.8-flash",
+ "promptHash": "865c61255df8c0b2",
+ "toolsHash": "d83b73cde60f979a",
+ "today": "2026-10-05",
+ "recordedAt": "2026-10-05T13:08:14.741Z",
+ "steps": [
+  {
+   "kind": "call",
+   "tool": "set_permission",
+   "args": {
+    "key": "lms_demo__training_history",
+    "value": "deny",
+    "kind": "tool",
+    "role": "sales_rep"
+   }
+  }
+ ],
+ "asked": [
+  "set_permission"
+ ],
+ "error": null,
+ "usage": {
+  "calls": 1,
+  "inputTokens": 10007,
+  "outputTokens": 457,
+  "reasoningTokens": 414,
+  "usd": 0.0046095
+ },
+ "drawn": {
+  "cards": [],
+  "composed": null
+ }
+}

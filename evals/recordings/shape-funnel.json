@@ -1,0 +1,412 @@
+{
+ "version": 1,
+ "caseId": "shape-funnel",
+ "userId": "u_thana",
+ "prompt": "เดือน ส.ค. ผลิตเบียร์ได้เท่าไหร่ ขายเข้าเท่าไหร่ ขายออกเท่าไหร่",
+ "model": "google/gemini-3.8-flash",
+ "promptHash": "469b58c58286c9a9",
+ "toolsHash": "22f7ecc4e30f3b8c",
+ "today": "2026-10-05",
+ "recordedAt": "2026-10-05T13:04:50.333Z",
+ "steps": [
+  {
+   "kind": "call",
+   "tool": "query_metric",
+   "args": {
+    "metric": "production_output",
+    "limit": 1,
+    "compare": "prev_period",
+    "range": {
+     "to": "2026-08-31",
+     "from": "2026-08-01"
+    },
+    "filters": {},
+    "grain": "month",
+    "dims": []
+   },
+   "result": {
+    "ok": true,
+    "rows": [
+     {
+      "value": 29827282,
+      "value_label": "29.8 ล้านลิตร",
+      "compare_value": 35824890,
+      "delta_pct": -16.7
+     }
+    ],
+    "summary": "ปริมาณการผลิต 1 ส.ค. 2569 – 31 ส.ค. 2569: รวม 29.8 ล้านลิตร · เทียบช่วงก่อนหน้า -16.7% · (1 แถว · certified · MES)",
+    "headline": {
+     "aggregate": "sum",
+     "value": "29.8 ล้านลิตร",
+     "periodLabel": "1 ส.ค. 2569 – 31 ส.ค. 2569",
+     "rowCount": 1,
+     "deltaPercent": -16.7,
+     "compareLabel": "เทียบช่วงก่อนหน้า",
+     "compareNote": null,
+     "top": [],
+     "underLine": null
+    },
+    "provenance": {
+     "metric": "production_output",
+     "certified": true,
+     "sourceSystem": "MES",
+     "asOf": "2026-09-22",
+     "rowCount": 1,
+     "filtersApplied": {},
+     "filterLabels": [],
+     "scopeApplied": {},
+     "masked": [],
+     "trust": "verified"
+    },
+    "query": {
+     "metric": "production_output",
+     "dims": [],
+     "filters": {},
+     "range": {
+      "from": "2026-08-01",
+      "to": "2026-08-31"
+     },
+     "grain": "month",
+     "compare": "prev_period",
+     "limit": 1
+    },
+    "nextActions": [
+     {
+      "id": "handoff",
+      "kind": "handoff",
+      "label": "ส่งงานให้คุณวีร์",
+      "reason": "ผู้วางแผนซัพพลายของพื้นที่ (ระดับประเทศ)",
+      "tool": "create_handoff",
+      "input": {
+       "toUserId": "u_wee",
+       "title": "ปริมาณการผลิต",
+       "ask": "ช่วยตรวจปริมาณการผลิต แล้วบอกกลับว่าเกิดจากอะไรและจะแก้อย่างไร",
+       "urgency": "medium",
+       "evidence": [
+        {
+         "metric": "production_output",
+         "dims": [],
+         "filters": {},
+         "range": {
+          "from": "2026-08-01",
+          "to": "2026-08-31"
+         },
+         "grain": "month",
+         "compare": "prev_period",
+         "limit": 1
+        }
+       ],
+       "alertIds": []
+      },
+      "prompt": null
+     },
+     {
+      "id": "drill-region",
+      "kind": "drill",
+      "label": "แยกตามภาค",
+      "reason": "ยังไม่ได้ดูแยกรายภาค",
+      "tool": null,
+      "input": null,
+      "prompt": "ขอปริมาณการผลิตแยกตามภาค เรียงจากมากไปน้อย"
+     }
+    ],
+    "followUps": [
+     {
+      "id": "fu-split",
+      "label": "แยกตามแบรนด์",
+      "prompt": "ขอปริมาณการผลิตแยกตามแบรนด์ เรียงจากมากไปน้อย",
+      "reason": "ยังไม่ได้ดูแยกรายแบรนด์",
+      "intentKey": "follow|split",
+      "score": 0.65
+     },
+     {
+      "id": "fu-trend",
+      "label": "เริ่มแย่ตั้งแต่เมื่อไร",
+      "prompt": "ปริมาณการผลิต รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+      "reason": "ดูว่าตัวเลขเริ่มลดลงสัปดาห์ไหน",
+      "intentKey": "follow|trend",
+      "score": 0.65
+     },
+     {
+      "id": "fu-compare_year",
+      "label": "เทียบปีก่อน",
+      "prompt": "ขอปริมาณการผลิต เทียบกับช่วงเดียวกันปีก่อน",
+      "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+      "intentKey": "follow|compare_year",
+      "score": 0.45
+     }
+    ]
+   }
+  },
+  {
+   "kind": "call",
+   "tool": "query_metric",
+   "args": {
+    "metric": "net_sales_volume",
+    "dims": [],
+    "compare": "prev_period",
+    "grain": "month",
+    "limit": 1,
+    "range": {
+     "to": "2026-08-31",
+     "from": "2026-08-01"
+    },
+    "filters": {}
+   },
+   "result": {
+    "ok": true,
+    "rows": [
+     {
+      "value": 28960485,
+      "value_label": "29.0 ล้านลิตร",
+      "compare_value": 38244536,
+      "delta_pct": -24.3
+     }
+    ],
+    "summary": "ปริมาณขายเข้า (Sell-in) 1 ส.ค. 2569 – 31 ส.ค. 2569: รวม 29.0 ล้านลิตร · เทียบช่วงก่อนหน้า -24.3% · (1 แถว · certified · SAP SD)",
+    "headline": {
+     "aggregate": "sum",
+     "value": "29.0 ล้านลิตร",
+     "periodLabel": "1 ส.ค. 2569 – 31 ส.ค. 2569",
+     "rowCount": 1,
+     "deltaPercent": -24.3,
+     "compareLabel": "เทียบช่วงก่อนหน้า",
+     "compareNote": null,
+     "top": [],
+     "underLine": null
+    },
+    "provenance": {
+     "metric": "net_sales_volume",
+     "certified": true,
+     "sourceSystem": "SAP SD",
+     "asOf": "2026-09-22",
+     "rowCount": 1,
+     "filtersApplied": {},
+     "filterLabels": [],
+     "scopeApplied": {},
+     "masked": [],
+     "trust": "verified"
+    },
+    "query": {
+     "metric": "net_sales_volume",
+     "dims": [],
+     "filters": {},
+     "range": {
+      "from": "2026-08-01",
+      "to": "2026-08-31"
+     },
+     "grain": "month",
+     "compare": "prev_period",
+     "limit": 1
+    },
+    "nextActions": [
+     {
+      "id": "verify",
+      "kind": "verify",
+      "label": "ตรวจสาเหตุ",
+      "reason": "ดูประวัติการสั่งซื้อรายวันของอุบลศรีสุข เทรดดิ้ง · ภาคอีสาน 30 วันล่าสุด",
+      "tool": null,
+      "input": null,
+      "prompt": "ดูประวัติการสั่งซื้อรายวันของอุบลศรีสุข เทรดดิ้ง · ภาคอีสาน 30 วันล่าสุด"
+     },
+     {
+      "id": "drill-region",
+      "kind": "drill",
+      "label": "แยกตามภาค",
+      "reason": "ยังไม่ได้ดูแยกรายภาค",
+      "tool": null,
+      "input": null,
+      "prompt": "ขอปริมาณขายเข้า (Sell-in)แยกตามภาค เรียงจากมากไปน้อย"
+     }
+    ],
+    "followUps": [
+     {
+      "id": "fu-split",
+      "label": "แยกตามช่องทาง",
+      "prompt": "ขอปริมาณขายเข้า (Sell-in) แยกตามช่องทาง เรียงจากมากไปน้อย",
+      "reason": "ยังไม่ได้ดูแยกรายช่องทาง",
+      "intentKey": "follow|split",
+      "score": 0.65
+     },
+     {
+      "id": "fu-trend",
+      "label": "เริ่มแย่ตั้งแต่เมื่อไร",
+      "prompt": "ปริมาณขายเข้า (Sell-in) รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+      "reason": "ดูว่าตัวเลขเริ่มลดลงสัปดาห์ไหน",
+      "intentKey": "follow|trend",
+      "score": 0.65
+     },
+     {
+      "id": "fu-forecast",
+      "label": "พยากรณ์ 8 สัปดาห์",
+      "prompt": "พยากรณ์ปริมาณขายเข้า 8 สัปดาห์ข้างหน้า",
+      "reason": "ดูว่าถ้าเป็นแบบนี้ต่อไปจะเกิดอะไร",
+      "intentKey": "follow|forecast",
+      "score": 0.65
+     }
+    ]
+   }
+  },
+  {
+   "kind": "call",
+   "tool": "query_metric",
+   "args": {
+    "metric": "sell_out_volume",
+    "dims": [],
+    "grain": "month",
+    "compare": "prev_period",
+    "limit": 1,
+    "filters": {},
+    "range": {
+     "to": "2026-08-31",
+     "from": "2026-08-01"
+    }
+   },
+   "result": {
+    "ok": true,
+    "rows": [
+     {
+      "value": 31149840,
+      "value_label": "31.1 ล้านลิตร",
+      "compare_value": 39066250,
+      "delta_pct": -20.3
+     }
+    ],
+    "summary": "ปริมาณขายออก (Sell-out) 1 ส.ค. 2569 – 31 ส.ค. 2569: รวม 31.1 ล้านลิตร · เทียบช่วงก่อนหน้า -20.3% · (1 แถว · certified · SAP SD)",
+    "headline": {
+     "aggregate": "sum",
+     "value": "31.1 ล้านลิตร",
+     "periodLabel": "1 ส.ค. 2569 – 31 ส.ค. 2569",
+     "rowCount": 1,
+     "deltaPercent": -20.3,
+     "compareLabel": "เทียบช่วงก่อนหน้า",
+     "compareNote": null,
+     "top": [],
+     "underLine": null
+    },
+    "provenance": {
+     "metric": "sell_out_volume",
+     "certified": true,
+     "sourceSystem": "SAP SD",
+     "asOf": "2026-09-22",
+     "rowCount": 1,
+     "filtersApplied": {},
+     "filterLabels": [],
+     "scopeApplied": {},
+     "masked": [],
+     "trust": "verified"
+    },
+    "query": {
+     "metric": "sell_out_volume",
+     "dims": [],
+     "filters": {},
+     "range": {
+      "from": "2026-08-01",
+      "to": "2026-08-31"
+     },
+     "grain": "month",
+     "compare": "prev_period",
+     "limit": 1
+    },
+    "nextActions": [
+     {
+      "id": "handoff",
+      "kind": "handoff",
+      "label": "ส่งงานให้คุณกนก",
+      "reason": "เจ้าของตัวเลขยอดขายของพื้นที่ (ระดับประเทศ)",
+      "tool": "create_handoff",
+      "input": {
+       "toUserId": "u_kanok",
+       "title": "ปริมาณขายออก (Sell-out)",
+       "ask": "ช่วยตรวจน้ำดื่มสิงห์ แพ็ก 12 · สุราษฎร์ธานี · ภาคใต้ แล้วบอกกลับว่าเกิดจากอะไรและจะแก้อย่างไร",
+       "urgency": "high",
+       "evidence": [
+        {
+         "metric": "sell_out_volume",
+         "dims": [],
+         "filters": {},
+         "range": {
+          "from": "2026-08-01",
+          "to": "2026-08-31"
+         },
+         "grain": "month",
+         "compare": "prev_period",
+         "limit": 1
+        }
+       ],
+       "alertIds": [
+        "al_14c4da61c8ba9ac3"
+       ]
+      },
+      "prompt": null
+     },
+     {
+      "id": "verify",
+      "kind": "verify",
+      "label": "ตรวจสาเหตุ",
+      "reason": "เทียบน้ำดื่มสิงห์ แพ็ก 12 · สุราษฎร์ธานี · ภาคใต้กับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+      "tool": null,
+      "input": null,
+      "prompt": "เทียบน้ำดื่มสิงห์ แพ็ก 12 · สุราษฎร์ธานี · ภาคใต้กับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน"
+     },
+     {
+      "id": "drill-region",
+      "kind": "drill",
+      "label": "แยกตามภาค",
+      "reason": "ยังไม่ได้ดูแยกรายภาค",
+      "tool": null,
+      "input": null,
+      "prompt": "ขอปริมาณขายออก (Sell-out)แยกตามภาค เรียงจากมากไปน้อย"
+     }
+    ],
+    "followUps": [
+     {
+      "id": "fu-split",
+      "label": "แยกตามช่องทาง",
+      "prompt": "ขอปริมาณขายออก (Sell-out) แยกตามช่องทาง เรียงจากมากไปน้อย",
+      "reason": "ยังไม่ได้ดูแยกรายช่องทาง",
+      "intentKey": "follow|split",
+      "score": 0.65
+     },
+     {
+      "id": "fu-trend",
+      "label": "เริ่มแย่ตั้งแต่เมื่อไร",
+      "prompt": "ปริมาณขายออก (Sell-out) รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+      "reason": "ดูว่าตัวเลขเริ่มลดลงสัปดาห์ไหน",
+      "intentKey": "follow|trend",
+      "score": 0.65
+     },
+     {
+      "id": "fu-compare_year",
+      "label": "เทียบปีก่อน",
+      "prompt": "ขอปริมาณขายออก (Sell-out) เทียบกับช่วงเดียวกันปีก่อน",
+      "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+      "intentKey": "follow|compare_year",
+      "score": 0.45
+     }
+    ]
+   }
+  },
+  {
+   "kind": "text",
+   "text": "ในเดือนสิงหาคม ปริมาณขายออกหน้าร้านสูงกว่าปริมาณขายเข้าเอเย่นต์ ส่งผลให้สต๊อกฝั่งผู้แทนจำหน่ายถูกดึงไปหมุนเวียน ในขณะที่ทั้งการผลิตและการขายชะลอตัวลงเมื่อเทียบกับเดือนก่อนหน้า แนะนำตรวจสอบวันครอบคลุมสต๊อก (Days of Cover) ของเอเย่นต์รายภาคเพื่อเฝ้าระวังความเสี่ยงสินค้าขาดสต๊อก"
+  }
+ ],
+ "asked": [],
+ "error": null,
+ "usage": {
+  "calls": 2,
+  "inputTokens": 23046,
+  "outputTokens": 2149,
+  "reasoningTokens": 1824,
+  "usd": 0.012671624999999999
+ },
+ "drawn": {
+  "cards": [
+   "query_metric",
+   "query_metric",
+   "query_metric"
+  ],
+  "composed": null
+ }
+}

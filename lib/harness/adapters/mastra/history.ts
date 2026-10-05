@@ -145,13 +145,18 @@ async function memory() {
   return found;
 }
 
-/** The person's saved conversation on one thread, read from Mastra memory; empty for a thread that never ran. */
-export async function threadHistory(threadId: string, userId: string): Promise<Message[]> {
+/** One thread's messages exactly as Mastra memory stored them, card blocks and tool invocations included; empty for another person's thread or one that never ran. */
+export async function storedMessages(threadId: string, userId: string): Promise<StoredMessage[]> {
   const store = await memory();
   const thread = await store.getThreadById({ threadId });
   if (!thread || thread.resourceId !== userId) return [];
   const { messages } = await store.recall({ threadId, resourceId: userId, perPage: false });
-  return agUiMessagesOf(messages);
+  return messages;
+}
+
+/** The person's saved conversation on one thread, read from Mastra memory; empty for a thread that never ran. */
+export async function threadHistory(threadId: string, userId: string): Promise<Message[]> {
+  return agUiMessagesOf(await storedMessages(threadId, userId));
 }
 
 /** The thread's questions and reply text as plain lines, for a handoff to summarise. */

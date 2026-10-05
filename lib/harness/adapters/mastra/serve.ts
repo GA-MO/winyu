@@ -29,6 +29,11 @@ type Route = { kind: "info" } | { kind: "run" } | { kind: "connect" } | { kind: 
 
 type Handler = (request: Request) => Promise<Response>;
 
+/** How one served run ends: `learn` runs memory extraction and logs the question after a finished turn; an eval recording turns it off so a case costs no extra model call and leaves no memory behind for the next case. */
+export type ServeOptions = { learn: boolean };
+
+const LEARNING: ServeOptions = { learn: true };
+
 function bridgeFor(userId: string): MastraAgent {
   const requestContext = new RequestContext();
   requestContext.set(USER_ID_KEY, userId);
@@ -81,7 +86,7 @@ function composed(run: Run, turn: ChatTurn, cards: readonly ComposedCardRecord[]
   }
 }
 
-function ended(run: Run, turn: ChatTurn, context: TurnContext, seen: ReplySeen, cards: readonly ComposedCardRecord[]): void {
+function ended(run: Run, turn: ChatTurn, context: TurnContext, seen: ReplySeen, cards: readonly ComposedCardRecord[], options: ServeOptions): void {
   if (seen.results.length > 0) emitTo(run, "ui", { type: "ui.rendered", payload: { stepId: lastDecision(run).stepId, components: seen.results } });
   composed(run, turn, cards);
   for (const asked of seen.asked) {
@@ -91,7 +96,7 @@ function ended(run: Run, turn: ChatTurn, context: TurnContext, seen: ReplySeen, 
   if (seen.error) emitTo(run, "runtime", { type: "agent.failed", payload: { reason: seen.error } });
   else emitTo(run, "runtime", { type: "agent.completed", payload: { finishReason: seen.asked.length > 0 ? "awaiting_approval" : lastDecision(run).finishReason } });
   saveRun(run);
-  if (!seen.error && seen.asked.length === 0) learnFrom(run, turn, context);
+  if (options.learn && !seen.error && seen.asked.length === 0) learnFrom(run, turn, context);
 }
 
 function refused(run: Run, interruptId: string, problem: string): Response {
@@ -108,7 +113,7 @@ function readInput(body: string): RunInput {
   }
 }
 
-async function serveRun(access: AccessContext, req: Request, turn: ChatTurn): Promise<Response> {
+async function serveRun(access: AccessContext, req: Request, turn: ChatTurn, options: ServeOptions): Promise<Response> {
   const run = newRun(access.userId, turn.threadId, { id: turn.runId });
   started(run, turn);
   if (turn.answers.length > 1) return refused(run, turn.answers.map((answer) => answer.interruptId).join(", "), "more than one answer in one run");
@@ -123,7 +128,7 @@ async function serveRun(access: AccessContext, req: Request, turn: ChatTurn): Pr
   const cards = replyCards((record) => records.push(record));
   try {
     const response = await runWithAccess(access, () => runWithTurn(context, () => runWithRun(run, () => handler()(req))));
-    return observeReply(withComposedCards(response, cards), (seen) => ended(run, turn, context, seen, records));
+    return observeReply(withComposedCards(response, cards), (seen) => ended(run, turn, context, seen, records, options));
   } catch (error) {
     emitTo(run, "runtime", { type: "agent.failed", payload: { reason: error instanceof Error ? error.message : String(error) } });
     saveRun(run);
@@ -147,7 +152,7 @@ function isOthersThread(threadId: string | null, userId: string): boolean {
 }
 
 /** Serves one CopilotKit request for a signed-in person; no request reaches another person's thread. A run request is one harness run: started with its goal, the agent inside the person's access, turn and run, its trace saved when the reply ends. An approval splits a question into two runs that share the goal: the first ends asking, the second starts with the answer. */
-export async function serveCopilot(access: AccessContext, req: Request): Promise<Response> {
+export async function serveCopilot(access: AccessContext, req: Request, options: ServeOptions = LEARNING): Promise<Response> {
   const route = routeOf(req.method, new URL(req.url).pathname);
   if (!route) return Response.json(NOT_SERVED, { status: 404 });
   if (route.kind === "info") return runWithAccess(access, () => handler()(req));
@@ -156,7 +161,7 @@ export async function serveCopilot(access: AccessContext, req: Request): Promise
   const threadId = route.kind === "stop" ? route.threadId : turn.threadId;
   if (isOthersThread(threadId, access.userId)) return Response.json(NOT_YOUR_THREAD, { status: 404 });
   const replayed = new Request(req.url, { method: "POST", headers: req.headers, body });
-  if (route.kind === "run") return serveRun(access, replayed, turn);
+  if (route.kind === "run") return serveRun(access, replayed, turn, options);
   const response = await runWithAccess(access, () => handler()(replayed));
   return route.kind === "connect" ? withComposedCards(response, replyCards(() => undefined)) : response;
 }

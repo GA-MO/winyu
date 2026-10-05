@@ -1,0 +1,507 @@
+{
+ "version": 1,
+ "caseId": "candidates-manager",
+ "userId": "u_anucha",
+ "prompt": "ตำแหน่งที่ผมเปิดรับมีผู้สมัครกี่คน ใครน่าสนใจ",
+ "model": "google/gemini-3.8-flash",
+ "promptHash": "20386bc6c3b08846",
+ "toolsHash": "22f7ecc4e30f3b8c",
+ "today": "2026-10-05",
+ "recordedAt": "2026-10-05T13:06:54.832Z",
+ "steps": [
+  {
+   "kind": "call",
+   "tool": "list_candidates",
+   "args": {
+    "position": null,
+    "stage": null
+   },
+   "result": {
+    "ok": true,
+    "summary": "3 ตำแหน่งที่เปิดรับ · ผู้สมัครรวม 20 คน",
+    "data": {
+     "position": null,
+     "metrics": [
+      {
+       "label": "ผู้สมัครทั้งหมด",
+       "value": "20 คน",
+       "detail": "7 วันล่าสุด +4",
+       "tone": "neutral"
+      },
+      {
+       "label": "ถึงขั้นสัมภาษณ์ขึ้นไป",
+       "value": "11 คน",
+       "detail": "ยื่นข้อเสนอแล้ว 2 คน",
+       "tone": "neutral"
+      },
+      {
+       "label": "ตำแหน่งที่เปิดนานที่สุด",
+       "value": "99 วัน",
+       "detail": null,
+       "tone": "bad"
+      }
+     ],
+     "candidates": [
+      {
+       "id": "c_kk01",
+       "name": "คุณณัฐพล ศรีวงศ์",
+       "position": "พนักงานขาย ขอนแก่น (เขตชุมแพ)",
+       "stage": "ยื่นข้อเสนอ",
+       "step": 5,
+       "steps": 5,
+       "stage_percent": 100,
+       "score": 4.5,
+       "score_label": "คะแนนสัมภาษณ์ 4.5 / 5",
+       "applied": "สมัคร 24 ก.ค. 2569",
+       "experience": "ขายเครื่องดื่มให้ร้านอาหารในขอนแก่น 5 ปี",
+       "strength": "รู้จักร้านในเขตชุมแพกว่า 60 ร้าน",
+       "concern": "ขอเริ่มงาน 1 พ.ย. เพราะต้องแจ้งออกล่วงหน้า 30 วัน",
+       "source": "พนักงานแนะนำ (คุณกฤต)",
+       "badges": [
+        {
+         "label": "ยื่นข้อเสนอแล้ว",
+         "tone": "success"
+        },
+        {
+         "label": "มีเรื่องต้องคุย",
+         "tone": "warning"
+        },
+        {
+         "label": "พนักงานแนะนำ",
+         "tone": "neutral"
+        }
+       ]
+      },
+      {
+       "id": "c_ub01",
+       "name": "คุณวรรณา ศรีบุญเรือง",
+       "position": "พนักงานขาย อุบลราชธานี (เขตวารินฯ)",
+       "stage": "ยื่นข้อเสนอ",
+       "step": 5,
+       "steps": 5,
+       "stage_percent": 100,
+       "score": 4,
+       "score_label": "คะแนนสัมภาษณ์ 4 / 5",
+       "applied": "สมัคร 22 มิ.ย. 2569",
+       "experience": "ผู้แทนขายเครื่องดื่มชูกำลัง อุบลฯ 4 ปี",
+       "strength": "ดูแลร้านค้าเขตวารินฯ มาก่อน",
+       "concern": "ยังไม่ตอบรับข้อเสนอ ผ่านมา 12 วัน",
+       "source": "JobThai",
+       "badges": [
+        {
+         "label": "ยื่นข้อเสนอแล้ว",
+         "tone": "success"
+        },
+        {
+         "label": "มีเรื่องต้องคุย",
+         "tone": "warning"
+        }
+       ]
+      },
+      {
+       "id": "c_kk02",
+       "name": "คุณพิมพ์ชนก แก้วมณี",
+       "position": "พนักงานขาย ขอนแก่น (เขตชุมแพ)",
+       "stage": "สัมภาษณ์รอบสุดท้าย",
+       "step": 4,
+       "steps": 5,
+       "stage_percent": 80,
+       "score": 4.5,
+       "score_label": "คะแนนสัมภาษณ์ 4.5 / 5",
+       "applied": "สมัคร 28 ก.ค. 2569",
+       "experience": "ผู้แทนขายบริษัทสินค้าอุปโภค 4 ปี",
+       "strength": "ยอดขายเกินเป้า 8 ไตรมาสติด",
+       "concern": null,
+       "source": "JobThai",
+       "badges": []
+      },
+      {
+       "id": "c_kk03",
+       "name": "คุณธีรวัฒน์ บุญประเสริฐ",
+       "position": "พนักงานขาย ขอนแก่น (เขตชุมแพ)",
+       "stage": "สัมภาษณ์รอบสุดท้าย",
+       "step": 4,
+       "steps": 5,
+       "stage_percent": 80,
+       "score": 4,
+       "score_label": "คะแนนสัมภาษณ์ 4 / 5",
+       "applied": "สมัคร 2 ส.ค. 2569",
+       "experience": "ผู้แทนขายเบียร์คู่แข่งในภาคอีสาน 3 ปี",
+       "strength": "เคยดูแลเอเย่นต์ในอำเภอรอบขอนแก่น",
+       "concern": "ยังติดสัญญาห้ามทำงานกับคู่แข่งถึง ธ.ค. 2569",
+       "source": "LinkedIn",
+       "badges": [
+        {
+         "label": "มีเรื่องต้องคุย",
+         "tone": "warning"
+        }
+       ]
+      },
+      {
+       "id": "c_kr01",
+       "name": "คุณจิราพร สมบูรณ์",
+       "position": "พนักงานขาย นครราชสีมา (เขตปากช่อง)",
+       "stage": "สัมภาษณ์รอบสุดท้าย",
+       "step": 4,
+       "steps": 5,
+       "stage_percent": 80,
+       "score": 4,
+       "score_label": "คะแนนสัมภาษณ์ 4 / 5",
+       "applied": "สมัคร 8 ส.ค. 2569",
+       "experience": "ผู้แทนขายขนมขบเคี้ยวนครราชสีมา 4 ปี",
+       "strength": "รู้จักร้านค้าในปากช่องและวังน้ำเขียว",
+       "concern": null,
+       "source": "JobThai",
+       "badges": []
+      },
+      {
+       "id": "c_ub02",
+       "name": "คุณชยพล แสงอรุณ",
+       "position": "พนักงานขาย อุบลราชธานี (เขตวารินฯ)",
+       "stage": "สัมภาษณ์รอบสุดท้าย",
+       "step": 4,
+       "steps": 5,
+       "stage_percent": 80,
+       "score": 3.5,
+       "score_label": "คะแนนสัมภาษณ์ 3.5 / 5",
+       "applied": "สมัคร 1 ก.ค. 2569",
+       "experience": "ขายสินค้าเกษตร 3 ปี",
+       "strength": "พูดภาษาถิ่นได้ รู้จักผู้นำชุมชน",
+       "concern": null,
+       "source": "พนักงานแนะนำ (คุณแนน)",
+       "badges": [
+        {
+         "label": "พนักงานแนะนำ",
+         "tone": "neutral"
+        }
+       ]
+      },
+      {
+       "id": "c_kk04",
+       "name": "คุณศิริลักษณ์ ทองดี",
+       "position": "พนักงานขาย ขอนแก่น (เขตชุมแพ)",
+       "stage": "สัมภาษณ์",
+       "step": 3,
+       "steps": 5,
+       "stage_percent": 60,
+       "score": 3.5,
+       "score_label": "คะแนนสัมภาษณ์ 3.5 / 5",
+       "applied": "สมัคร 10 ส.ค. 2569",
+       "experience": "พนักงานขายหน้าร้านโมเดิร์นเทรด 2 ปี",
+       "strength": "สื่อสารดี ขับรถได้ มีรถส่วนตัว",
+       "concern": "ยังไม่เคยขายช่องทางร้านค้าปลีก",
+       "source": "JobThai",
+       "badges": [
+        {
+         "label": "มีเรื่องต้องคุย",
+         "tone": "warning"
+        }
+       ]
+      },
+      {
+       "id": "c_kr02",
+       "name": "คุณสมศักดิ์ ใจดี",
+       "position": "พนักงานขาย นครราชสีมา (เขตปากช่อง)",
+       "stage": "สัมภาษณ์",
+       "step": 3,
+       "steps": 5,
+       "stage_percent": 60,
+       "score": 3.5,
+       "score_label": "คะแนนสัมภาษณ์ 3.5 / 5",
+       "applied": "สมัคร 12 ส.ค. 2569",
+       "experience": "ขายเครื่องดื่มให้รีสอร์ต 3 ปี",
+       "strength": "ดูแลลูกค้ากลุ่มรีสอร์ตเขาใหญ่",
+       "concern": null,
+       "source": "พนักงานแนะนำ (คุณป้อง)",
+       "badges": [
+        {
+         "label": "พนักงานแนะนำ",
+         "tone": "neutral"
+        }
+       ]
+      },
+      {
+       "id": "c_ub03",
+       "name": "คุณปวีณา คำภู",
+       "position": "พนักงานขาย อุบลราชธานี (เขตวารินฯ)",
+       "stage": "สัมภาษณ์",
+       "step": 3,
+       "steps": 5,
+       "stage_percent": 60,
+       "score": 3,
+       "score_label": "คะแนนสัมภาษณ์ 3 / 5",
+       "applied": "สมัคร 15 ก.ค. 2569",
+       "experience": "พนักงานขายหน้าร้าน 2 ปี",
+       "strength": "ตั้งใจเรียนรู้",
+       "concern": null,
+       "source": "เว็บไซต์บริษัท",
+       "badges": []
+      },
+      {
+       "id": "c_kk05",
+       "name": "คุณอภิชาติ พลเยี่ยม",
+       "position": "พนักงานขาย ขอนแก่น (เขตชุมแพ)",
+       "stage": "สัมภาษณ์",
+       "step": 3,
+       "steps": 5,
+       "stage_percent": 60,
+       "score": 3,
+       "score_label": "คะแนนสัมภาษณ์ 3 / 5",
+       "applied": "สมัคร 14 ส.ค. 2569",
+       "experience": "ขายประกันชีวิต 3 ปี",
+       "strength": "หาลูกค้าใหม่เก่ง",
+       "concern": "ไม่มีประสบการณ์สินค้าอุปโภคบริโภค",
+       "source": "เว็บไซต์บริษัท",
+       "badges": [
+        {
+         "label": "มีเรื่องต้องคุย",
+         "tone": "warning"
+        }
+       ]
+      },
+      {
+       "id": "c_kr03",
+       "name": "คุณนภัสสร วงษ์ใหญ่",
+       "position": "พนักงานขาย นครราชสีมา (เขตปากช่อง)",
+       "stage": "สัมภาษณ์",
+       "step": 3,
+       "steps": 5,
+       "stage_percent": 60,
+       "score": 3,
+       "score_label": "คะแนนสัมภาษณ์ 3 / 5",
+       "applied": "สมัคร 20 ส.ค. 2569",
+       "experience": "พนักงานขายโมเดิร์นเทรด 1 ปี",
+       "strength": "กระตือรือร้น",
+       "concern": "ประสบการณ์น้อยสำหรับเขตที่ไม่มีหัวหน้าประจำ",
+       "source": "เว็บไซต์บริษัท",
+       "badges": [
+        {
+         "label": "มีเรื่องต้องคุย",
+         "tone": "warning"
+        }
+       ]
+      },
+      {
+       "id": "c_ub04",
+       "name": "คุณณรงค์ ศักดิ์สิทธิ์",
+       "position": "พนักงานขาย อุบลราชธานี (เขตวารินฯ)",
+       "stage": "คัดกรองประวัติ",
+       "step": 2,
+       "steps": 5,
+       "stage_percent": 40,
+       "score": null,
+       "score_label": "ยังไม่ได้ให้คะแนน",
+       "applied": "สมัคร 25 ส.ค. 2569",
+       "experience": "ผู้แทนขายยา 6 ปี",
+       "strength": "ประสบการณ์สูง",
+       "concern": "เงินเดือนที่คาดหวังสูงกว่ากรอบ",
+       "source": "LinkedIn",
+       "badges": [
+        {
+         "label": "มีเรื่องต้องคุย",
+         "tone": "warning"
+        }
+       ]
+      }
+     ],
+     "positions": [
+      {
+       "id": "op_ne_ubon",
+       "title": "พนักงานขาย อุบลราชธานี (เขตวารินฯ)",
+       "manager": "คุณอนุชา พรหมศรี",
+       "candidates": "5 คน",
+       "advanced": "ถึงขั้นสัมภาษณ์ 3 คน",
+       "open_label": "เปิดรับมา 99 วัน"
+      },
+      {
+       "id": "op_ne_khonkaen",
+       "title": "พนักงานขาย ขอนแก่น (เขตชุมแพ)",
+       "manager": "คุณอนุชา พรหมศรี",
+       "candidates": "9 คน",
+       "advanced": "ถึงขั้นสัมภาษณ์ 5 คน",
+       "open_label": "เปิดรับมา 64 วัน"
+      },
+      {
+       "id": "op_ne_korat",
+       "title": "พนักงานขาย นครราชสีมา (เขตปากช่อง)",
+       "manager": "คุณป้อง แสนสุข",
+       "candidates": "6 คน",
+       "advanced": "ถึงขั้นสัมภาษณ์ 3 คน",
+       "open_label": "เปิดรับมา 49 วัน"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "kind": "text",
+   "text": "ผู้สมัครที่มีผลประเมินโดดเด่นมีทั้งผู้ที่มีความเชี่ยวชาญเครือข่ายร้านค้าในพื้นที่และมีประวัติทำยอดขายเติบโตต่อเนื่อง สำหรับตำแหน่งในเขตวารินฯ ควรเร่งติดตามการตอบรับข้อเสนอที่ส่งไปเพื่อไม่ให้กระทบต่อแผนงานในพื้นที่\n\n```a2ui\n{\"id\":\"root\",\"component\":\"Card\",\"title\":\"ผู้สมัครที่น่าสนใจในตำแหน่งเปิดรับ\",\"meta\":\"คัดกรองจากคะแนนสัมภาษณ์และจุดเด่นการทำงาน\",\"footnote\":\"ระบบสรรหาบุคลากร\",\"children\":[\"metric_grid\",\"candidates_grid\"]}\n{\"id\":\"metric_grid\",\"component\":\"Grid\",\"children\":[\"m0\",\"m1\"]}\n{\"id\":\"m0\",\"component\":\"Metric\",\"label\":{\"path\":\"/list_candidates/data/metrics/0/label\"},\"value\":{\"path\":\"/list_candidates/data/metrics/0/value\"},\"detail\":{\"path\":\"/list_candidates/data/metrics/0/detail\"}}\n{\"id\":\"m1\",\"component\":\"Metric\",\"label\":{\"path\":\"/list_candidates/data/metrics/1/label\"},\"value\":{\"path\":\"/list_candidates/data/metrics/1/value\"},\"detail\":{\"path\":\"/list_candidates/data/metrics/1/detail\"}}\n{\"id\":\"candidates_grid\",\"component\":\"Grid\",\"children\":[\"c0\",\"c2\",\"c1\"]}\n{\"id\":\"c0\",\"component\":\"ListItem\",\"title\":{\"path\":\"/list_candidates/data/candidates/0/name\"},\"subtitle\":{\"path\":\"/list_candidates/data/candidates/0/position\"},\"detail\":{\"path\":\"/list_candidates/data/candidates/0/strength\"},\"trailing\":{\"path\":\"/list_candidates/data/candidates/0/score_label\"},\"badges\":{\"path\":\"/list_candidates/data/candidates/0/badges\"},\"media\":\"none\",\"action\":{\"event\":{\"name\":\"ask\",\"context\":{\"prompt\":\"ขอดูรายละเอียดผู้สมัคร\",\"about\":{\"path\":\"/list_candidates/data/candidates/0/name\"}}}}}\n{\"id\":\"c2\",\"component\":\"ListItem\",\"title\":{\"path\":\"/list_candidates/data/candidates/2/name\"},\"subtitle\":{\"path\":\"/list_candidates/data/candidates/2/position\"},\"detail\":{\"path\":\"/list_candidates/data/candidates/2/strength\"},\"trailing\":{\"path\":\"/list_candidates/data/candidates/2/score_label\"},\"badges\":{\"path\":\"/list_candidates/data/candidates/2/badges\"},\"media\":\"none\",\"action\":{\"event\":{\"name\":\"ask\",\"context\":{\"prompt\":\"ขอดูรายละเอียดผู้สมัคร\",\"about\":{\"path\":\"/list_candidates/data/candidates/2/name\"}}}}}\n{\"id\":\"c1\",\"component\":\"ListItem\",\"title\":{\"path\":\"/list_candidates/data/candidates/1/name\"},\"subtitle\":{\"path\":\"/list_candidates/data/candidates/1/position\"},\"detail\":{\"path\":\"/list_candidates/data/candidates/1/strength\"},\"trailing\":{\"path\":\"/list_candidates/data/candidates/1/score_label\"},\"badges\":{\"path\":\"/list_candidates/data/candidates/1/badges\"},\"media\":\"none\",\"action\":{\"event\":{\"name\":\"ask\",\"context\":{\"prompt\":\"ขอดูรายละเอียดผู้สมัคร\",\"about\":{\"path\":\"/list_candidates/data/candidates/1/name\"}}}}}\n```"
+  }
+ ],
+ "asked": [],
+ "error": null,
+ "usage": {
+  "calls": 2,
+  "inputTokens": 22130,
+  "outputTokens": 7028,
+  "reasoningTokens": 6274,
+  "usd": 0.021476250000000002
+ },
+ "drawn": {
+  "cards": [],
+  "composed": {
+   "accepted": 8,
+   "rejected": 0,
+   "problems": [],
+   "components": [
+    {
+     "id": "root",
+     "component": "Card",
+     "title": "ผู้สมัครที่น่าสนใจในตำแหน่งเปิดรับ",
+     "meta": "คัดกรองจากคะแนนสัมภาษณ์และจุดเด่นการทำงาน",
+     "footnote": "ระบบสรรหาบุคลากร",
+     "children": [
+      "metric_grid",
+      "candidates_grid"
+     ]
+    },
+    {
+     "id": "metric_grid",
+     "component": "Grid",
+     "children": [
+      "m0",
+      "m1"
+     ]
+    },
+    {
+     "id": "m0",
+     "component": "Metric",
+     "label": {
+      "path": "/list_candidates/data/metrics/0/label"
+     },
+     "value": {
+      "path": "/list_candidates/data/metrics/0/value"
+     },
+     "detail": {
+      "path": "/list_candidates/data/metrics/0/detail"
+     }
+    },
+    {
+     "id": "m1",
+     "component": "Metric",
+     "label": {
+      "path": "/list_candidates/data/metrics/1/label"
+     },
+     "value": {
+      "path": "/list_candidates/data/metrics/1/value"
+     },
+     "detail": {
+      "path": "/list_candidates/data/metrics/1/detail"
+     }
+    },
+    {
+     "id": "candidates_grid",
+     "component": "Grid",
+     "children": [
+      "c0",
+      "c2",
+      "c1"
+     ]
+    },
+    {
+     "id": "c0",
+     "component": "ListItem",
+     "title": {
+      "path": "/list_candidates/data/candidates/0/name"
+     },
+     "subtitle": {
+      "path": "/list_candidates/data/candidates/0/position"
+     },
+     "detail": {
+      "path": "/list_candidates/data/candidates/0/strength"
+     },
+     "media": "none",
+     "badges": {
+      "path": "/list_candidates/data/candidates/0/badges"
+     },
+     "trailing": {
+      "path": "/list_candidates/data/candidates/0/score_label"
+     },
+     "action": {
+      "event": {
+       "name": "ask",
+       "context": {
+        "prompt": "ขอดูรายละเอียดผู้สมัคร",
+        "about": {
+         "path": "/list_candidates/data/candidates/0/name"
+        }
+       }
+      }
+     }
+    },
+    {
+     "id": "c2",
+     "component": "ListItem",
+     "title": {
+      "path": "/list_candidates/data/candidates/2/name"
+     },
+     "subtitle": {
+      "path": "/list_candidates/data/candidates/2/position"
+     },
+     "detail": {
+      "path": "/list_candidates/data/candidates/2/strength"
+     },
+     "media": "none",
+     "badges": {
+      "path": "/list_candidates/data/candidates/2/badges"
+     },
+     "trailing": {
+      "path": "/list_candidates/data/candidates/2/score_label"
+     },
+     "action": {
+      "event": {
+       "name": "ask",
+       "context": {
+        "prompt": "ขอดูรายละเอียดผู้สมัคร",
+        "about": {
+         "path": "/list_candidates/data/candidates/2/name"
+        }
+       }
+      }
+     }
+    },
+    {
+     "id": "c1",
+     "component": "ListItem",
+     "title": {
+      "path": "/list_candidates/data/candidates/1/name"
+     },
+     "subtitle": {
+      "path": "/list_candidates/data/candidates/1/position"
+     },
+     "detail": {
+      "path": "/list_candidates/data/candidates/1/strength"
+     },
+     "media": "none",
+     "badges": {
+      "path": "/list_candidates/data/candidates/1/badges"
+     },
+     "trailing": {
+      "path": "/list_candidates/data/candidates/1/score_label"
+     },
+     "action": {
+      "event": {
+       "name": "ask",
+       "context": {
+        "prompt": "ขอดูรายละเอียดผู้สมัคร",
+        "about": {
+         "path": "/list_candidates/data/candidates/1/name"
+        }
+       }
+      }
+     }
+    }
+   ]
+  }
+ }
+}

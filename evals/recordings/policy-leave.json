@@ -1,0 +1,156 @@
+{
+ "version": 1,
+ "caseId": "policy-leave",
+ "userId": "u_krit",
+ "prompt": "ลาพักร้อนยังไง",
+ "model": "google/gemini-3.8-flash",
+ "promptHash": "019699fbec6f4ebd",
+ "toolsHash": "7ba0f807fddc10bb",
+ "today": "2026-10-05",
+ "recordedAt": "2026-10-05T13:08:52.063Z",
+ "steps": [
+  {
+   "kind": "call",
+   "tool": "get_policy",
+   "args": {
+    "topic": "leave"
+   },
+   "result": {
+    "ok": true,
+    "summary": "ลาพักร้อนเหลือ 9 วัน · ผู้อนุมัติ คุณอนุชา พรหมศรี",
+    "data": {
+     "balances": [
+      {
+       "label": "ลาพักร้อน",
+       "value": "เหลือ 9 วัน",
+       "detail": "สิทธิ์ 12 · ใช้แล้ว 3",
+       "tone": "neutral"
+      },
+      {
+       "label": "ลาป่วย",
+       "value": "เหลือ 28 วัน",
+       "detail": "สิทธิ์ 30 · ใช้แล้ว 2",
+       "tone": "neutral"
+      },
+      {
+       "label": "ลากิจ",
+       "value": "เหลือ 5 วัน",
+       "detail": "สิทธิ์ 6 · ใช้แล้ว 1",
+       "tone": "neutral"
+      }
+     ],
+     "sections": [
+      {
+       "title": "ลาพักร้อน",
+       "content": "อายุงานไม่ถึง 1 ปีได้ 6 วัน · 1–5 ปี 10 วัน · 5–10 ปี 12 วัน · 10 ปีขึ้นไป 15 วันต่อปี ระหว่างทดลองงานยังลาพักร้อนไม่ได้ ยื่นล่วงหน้าอย่างน้อย 3 วันทำการ สะสมไปปีถัดไปได้ไม่เกิน 5 วัน"
+      },
+      {
+       "title": "ลาป่วย",
+       "content": "ลาได้ตามจริงไม่เกิน 30 วันทำการต่อปีโดยได้รับค่าจ้าง ลาตั้งแต่ 3 วันติดต่อกันขึ้นไปแนบใบรับรองแพทย์ ยื่นย้อนหลังได้ภายใน 3 วันหลังกลับมาทำงาน"
+      },
+      {
+       "title": "ลากิจ",
+       "content": "ลาได้ 6 วันทำการต่อปีเพื่อธุระจำเป็น ยื่นล่วงหน้าอย่างน้อย 1 วัน กรณีฉุกเฉินแจ้งหัวหน้าก่อนแล้วยื่นในวันที่กลับมา"
+      },
+      {
+       "title": "ขั้นตอนการอนุมัติ",
+       "content": "ใบลาเข้า Inbox ของหัวหน้าโดยตรง หัวหน้าตอบภายใน 2 วันทำการ ช่วงเร่งผลิตก่อนออกพรรษาและเทศกาลปีใหม่ ฝ่ายขายและโรงงานต้องมีคนอยู่เวรไม่น้อยกว่าครึ่งทีม"
+      },
+      {
+       "title": "นับวันลาอย่างไร",
+       "content": "นับเฉพาะวันทำการ จันทร์–ศุกร์ ไม่นับวันหยุดนักขัตฤกษ์ ลาครึ่งวันนับ 0.5 วัน"
+      }
+     ],
+     "form": {
+      "kinds": [
+       {
+        "value": "annual",
+        "label": "ลาพักร้อน (เหลือ 9 วัน)"
+       },
+       {
+        "value": "sick",
+        "label": "ลาป่วย (เหลือ 28 วัน)"
+       },
+       {
+        "value": "personal",
+        "label": "ลากิจ (เหลือ 5 วัน)"
+       }
+      ],
+      "approver": "คุณอนุชา พรหมศรี",
+      "earliest": "2026-09-25",
+      "note": "ลาพักร้อนได้ตั้งแต่ 25 ก.ย. 2569 (ยื่นล่วงหน้า 3 วันทำการ) · ใบลาเข้า Inbox ของคุณอนุชา พรหมศรี"
+     }
+    }
+   }
+  },
+  {
+   "kind": "text",
+   "text": "การลาพักร้อนต้องยื่นล่วงหน้าตามระเบียบของบริษัท โดยคำขอจะส่งตรงไปยังหัวหน้างานเพื่อพิจารณาอนุมัติ ทั้งนี้ในช่วงเร่งผลิตและเทศกาลทีมขายต้องจัดสรรกำลังคนให้พร้อมปฏิบัติงานตามสัดส่วนที่กำหนด\n\n```a2ui\n{\"id\":\"root\",\"component\":\"Card\",\"title\":\"ระเบียบและสิทธิการลาพักร้อน\",\"footnote\":\"ระบบ HR\",\"children\":[\"leave_metric\",\"rule_callout\",\"approval_callout\"]}\n{\"id\":\"leave_metric\",\"component\":\"Metric\",\"label\":{\"path\":\"/get_policy/data/balances/0/label\"},\"value\":{\"path\":\"/get_policy/data/balances/0/value\"},\"detail\":{\"path\":\"/get_policy/data/balances/0/detail\"}}\n{\"id\":\"rule_callout\",\"component\":\"Callout\",\"title\":{\"path\":\"/get_policy/data/sections/0/title\"},\"body\":{\"path\":\"/get_policy/data/sections/0/content\"},\"tone\":\"info\"}\n{\"id\":\"approval_callout\",\"component\":\"Callout\",\"title\":{\"path\":\"/get_policy/data/sections/3/title\"},\"body\":{\"path\":\"/get_policy/data/sections/3/content\"},\"tone\":\"info\"}\n```"
+  }
+ ],
+ "asked": [],
+ "error": null,
+ "usage": {
+  "calls": 2,
+  "inputTokens": 18306,
+  "outputTokens": 6442,
+  "reasoningTokens": 6142,
+  "usd": 0.018943500000000002
+ },
+ "drawn": {
+  "cards": [],
+  "composed": {
+   "accepted": 4,
+   "rejected": 0,
+   "problems": [],
+   "components": [
+    {
+     "id": "root",
+     "component": "Card",
+     "title": "ระเบียบและสิทธิการลาพักร้อน",
+     "footnote": "ระบบ HR",
+     "children": [
+      "leave_metric",
+      "rule_callout",
+      "approval_callout"
+     ]
+    },
+    {
+     "id": "leave_metric",
+     "component": "Metric",
+     "label": {
+      "path": "/get_policy/data/balances/0/label"
+     },
+     "value": {
+      "path": "/get_policy/data/balances/0/value"
+     },
+     "detail": {
+      "path": "/get_policy/data/balances/0/detail"
+     }
+    },
+    {
+     "id": "rule_callout",
+     "component": "Callout",
+     "title": {
+      "path": "/get_policy/data/sections/0/title"
+     },
+     "body": {
+      "path": "/get_policy/data/sections/0/content"
+     },
+     "tone": "info"
+    },
+    {
+     "id": "approval_callout",
+     "component": "Callout",
+     "title": {
+      "path": "/get_policy/data/sections/3/title"
+     },
+     "body": {
+      "path": "/get_policy/data/sections/3/content"
+     },
+     "tone": "info"
+    }
+   ]
+  }
+ }
+}

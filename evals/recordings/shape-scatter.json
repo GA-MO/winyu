@@ -1,0 +1,594 @@
+{
+ "version": 1,
+ "caseId": "shape-scatter",
+ "userId": "u_thana",
+ "prompt": "เอเย่นต์ที่ขายมากค้างชำระมากด้วยไหม เดือน ส.ค.",
+ "model": "google/gemini-3.8-flash",
+ "promptHash": "469b58c58286c9a9",
+ "toolsHash": "22f7ecc4e30f3b8c",
+ "today": "2026-10-05",
+ "recordedAt": "2026-10-05T13:05:02.909Z",
+ "steps": [
+  {
+   "kind": "call",
+   "tool": "query_metric",
+   "args": {
+    "compare": "none",
+    "sort": "value_desc",
+    "dims": [
+     "agent"
+    ],
+    "range": {
+     "from": "2026-08-01",
+     "to": "2026-08-31"
+    },
+    "filters": {},
+    "metric": "net_sales_value",
+    "grain": "month",
+    "limit": 30
+   },
+   "result": {
+    "ok": true,
+    "rows": [
+     {
+      "agent": "กรุงไทยเบเวอเรจ",
+      "value": 90808499,
+      "value_label": "90.8 ล้านบาท"
+     },
+     {
+      "agent": "พระราม 4 ดิสทริบิวชั่น",
+      "value": 79044763,
+      "value_label": "79.0 ล้านบาท"
+     },
+     {
+      "agent": "ขอนแก่นมหาชัย",
+      "value": 76636554,
+      "value_label": "76.6 ล้านบาท"
+     },
+     {
+      "agent": "โคราชสหภัณฑ์",
+      "value": 71158512,
+      "value_label": "71.2 ล้านบาท"
+     },
+     {
+      "agent": "ชลบุรีบูรพา เทรดดิ้ง",
+      "value": 70893718,
+      "value_label": "70.9 ล้านบาท"
+     },
+     {
+      "agent": "อยุธยาศรีทอง",
+      "value": 64057438,
+      "value_label": "64.1 ล้านบาท"
+     },
+     {
+      "agent": "ส.รุ่งเรือง เทรดดิ้ง",
+      "value": 62538810,
+      "value_label": "62.5 ล้านบาท"
+     },
+     {
+      "agent": "เชียงใหม่สหพาณิชย์",
+      "value": 58218531,
+      "value_label": "58.2 ล้านบาท"
+     },
+     {
+      "agent": "หาดใหญ่สหมิตร",
+      "value": 58064664,
+      "value_label": "58.1 ล้านบาท"
+     },
+     {
+      "agent": "พัทยาซันไชน์ ซัพพลาย",
+      "value": 54654387,
+      "value_label": "54.7 ล้านบาท"
+     },
+     {
+      "agent": "ภูเก็ตอันดามัน ซัพพลาย",
+      "value": 52910430,
+      "value_label": "52.9 ล้านบาท"
+     },
+     {
+      "agent": "สุวรรณชัย ค้าส่ง",
+      "value": 52321814,
+      "value_label": "52.3 ล้านบาท"
+     },
+     {
+      "agent": "สมุทรพรทวี",
+      "value": 50448774,
+      "value_label": "50.4 ล้านบาท"
+     },
+     {
+      "agent": "อีสานรุ่งโรจน์ ค้าส่ง",
+      "value": 47926018,
+      "value_label": "47.9 ล้านบาท"
+     },
+     {
+      "agent": "ปทุมรุ่งกิจ เทรดดิ้ง",
+      "value": 45999879,
+      "value_label": "46.0 ล้านบาท"
+     },
+     {
+      "agent": "นนท์เจริญพาณิชย์",
+      "value": 45468720,
+      "value_label": "45.5 ล้านบาท"
+     },
+     {
+      "agent": "ระยองศรีทวี",
+      "value": 45283120,
+      "value_label": "45.3 ล้านบาท"
+     },
+     {
+      "agent": "อุบลศรีสุข เทรดดิ้ง",
+      "value": 44975395,
+      "value_label": "45.0 ล้านบาท"
+     },
+     {
+      "agent": "นครปฐมรุ่งทรัพย์",
+      "value": 44246637,
+      "value_label": "44.2 ล้านบาท"
+     },
+     {
+      "agent": "สระบุรีพาณิชย์",
+      "value": 41025059,
+      "value_label": "41.0 ล้านบาท"
+     },
+     {
+      "agent": "ล้านนาเบเวอเรจ",
+      "value": 38347643,
+      "value_label": "38.3 ล้านบาท"
+     },
+     {
+      "agent": "ราชบุรีสหมิตร",
+      "value": 36925345,
+      "value_label": "36.9 ล้านบาท"
+     },
+     {
+      "agent": "พิษณุโลกศรีเจริญ",
+      "value": 36889689,
+      "value_label": "36.9 ล้านบาท"
+     },
+     {
+      "agent": "นางรองค้าส่ง",
+      "value": 36300699,
+      "value_label": "36.3 ล้านบาท"
+     },
+     {
+      "agent": "สุราษฎร์ศรีทอง",
+      "value": 35451411,
+      "value_label": "35.5 ล้านบาท"
+     },
+     {
+      "agent": "เชียงรายทองคำ",
+      "value": 34247882,
+      "value_label": "34.2 ล้านบาท"
+     },
+     {
+      "agent": "ลำพูนรุ่งทรัพย์",
+      "value": 31473604,
+      "value_label": "31.5 ล้านบาท"
+     },
+     {
+      "agent": "จันทบูรพาณิชย์",
+      "value": 31189261,
+      "value_label": "31.2 ล้านบาท"
+     },
+     {
+      "agent": "วารินพาณิชย์",
+      "value": 28053352,
+      "value_label": "28.1 ล้านบาท"
+     },
+     {
+      "agent": "นครศรีรุ่งเจริญ",
+      "value": 26620181,
+      "value_label": "26.6 ล้านบาท"
+     }
+    ],
+    "summary": "มูลค่าขายเข้า 1 ส.ค. 2569 – 31 ส.ค. 2569: รวม 1,719.0 ล้านบาท · สูงสุด: กรุงไทยเบเวอเรจ 90.8 ล้านบาท · พระราม 4 ดิสทริบิวชั่น 79.0 ล้านบาท · ขอนแก่นมหาชัย 76.6 ล้านบาท · (30 แถว · certified · SAP SD)",
+    "headline": {
+     "aggregate": "sum",
+     "value": "1,719.0 ล้านบาท",
+     "periodLabel": "1 ส.ค. 2569 – 31 ส.ค. 2569",
+     "rowCount": 30,
+     "deltaPercent": null,
+     "compareLabel": null,
+     "compareNote": null,
+     "top": [
+      {
+       "label": "กรุงไทยเบเวอเรจ",
+       "value": "90.8 ล้านบาท"
+      },
+      {
+       "label": "พระราม 4 ดิสทริบิวชั่น",
+       "value": "79.0 ล้านบาท"
+      },
+      {
+       "label": "ขอนแก่นมหาชัย",
+       "value": "76.6 ล้านบาท"
+      }
+     ],
+     "underLine": null
+    },
+    "provenance": {
+     "metric": "net_sales_value",
+     "certified": true,
+     "sourceSystem": "SAP SD",
+     "asOf": "2026-09-22",
+     "rowCount": 30,
+     "filtersApplied": {},
+     "filterLabels": [],
+     "scopeApplied": {},
+     "masked": [],
+     "trust": "verified"
+    },
+    "query": {
+     "metric": "net_sales_value",
+     "dims": [
+      "agent"
+     ],
+     "filters": {},
+     "range": {
+      "from": "2026-08-01",
+      "to": "2026-08-31"
+     },
+     "grain": "month",
+     "compare": "none",
+     "limit": 30,
+     "sort": "value_desc"
+    },
+    "nextActions": [
+     {
+      "id": "drill-region",
+      "kind": "drill",
+      "label": "แยกตามภาค",
+      "reason": "ยังไม่ได้ดูแยกรายภาค",
+      "tool": null,
+      "input": null,
+      "prompt": "ขอมูลค่าขายเข้าแยกตามภาค เรียงจากมากไปน้อย"
+     }
+    ],
+    "followUps": [
+     {
+      "id": "fu-trend",
+      "label": "ดูแนวโน้มรายสัปดาห์",
+      "prompt": "มูลค่าขายเข้า รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+      "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+      "intentKey": "follow|trend",
+      "score": 0.5
+     },
+     {
+      "id": "fu-compare_year",
+      "label": "เทียบปีก่อน",
+      "prompt": "ขอมูลค่าขายเข้าแยกตามเอเย่นต์ เทียบกับช่วงเดียวกันปีก่อน",
+      "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+      "intentKey": "follow|compare_year",
+      "score": 0.45
+     }
+    ]
+   }
+  },
+  {
+   "kind": "call",
+   "tool": "query_metric",
+   "args": {
+    "range": {
+     "from": "2026-08-01",
+     "to": "2026-08-31"
+    },
+    "compare": "none",
+    "metric": "ar_overdue",
+    "limit": 30,
+    "dims": [
+     "agent"
+    ],
+    "sort": "value_desc",
+    "grain": "month",
+    "filters": {}
+   },
+   "result": {
+    "ok": true,
+    "rows": [
+     {
+      "agent": "โคราชสหภัณฑ์",
+      "value": 6170582,
+      "value_label": "6.2 ล้านบาท"
+     },
+     {
+      "agent": "สงขลาทักษิณ เทรดดิ้ง",
+      "value": 6166758,
+      "value_label": "6.2 ล้านบาท"
+     },
+     {
+      "agent": "เกาะสมุยเบเวอเรจ",
+      "value": 5998284,
+      "value_label": "6.0 ล้านบาท"
+     },
+     {
+      "agent": "ชลบุรีบูรพา เทรดดิ้ง",
+      "value": 5919806,
+      "value_label": "5.9 ล้านบาท"
+     },
+     {
+      "agent": "กรุงไทยเบเวอเรจ",
+      "value": 5584796,
+      "value_label": "5.6 ล้านบาท"
+     },
+     {
+      "agent": "นครศรีรุ่งเจริญ",
+      "value": 5488204,
+      "value_label": "5.5 ล้านบาท"
+     },
+     {
+      "agent": "ส.รุ่งเรือง เทรดดิ้ง",
+      "value": 5486358,
+      "value_label": "5.5 ล้านบาท"
+     },
+     {
+      "agent": "ขอนแก่นมหาชัย",
+      "value": 5366139,
+      "value_label": "5.4 ล้านบาท"
+     },
+     {
+      "agent": "หาดใหญ่สหมิตร",
+      "value": 5007717,
+      "value_label": "5.0 ล้านบาท"
+     },
+     {
+      "agent": "เชียงใหม่สหพาณิชย์",
+      "value": 4606710,
+      "value_label": "4.6 ล้านบาท"
+     },
+     {
+      "agent": "พระราม 4 ดิสทริบิวชั่น",
+      "value": 4468957,
+      "value_label": "4.5 ล้านบาท"
+     },
+     {
+      "agent": "สุวรรณชัย ค้าส่ง",
+      "value": 4382334,
+      "value_label": "4.4 ล้านบาท"
+     },
+     {
+      "agent": "สระบุรีพาณิชย์",
+      "value": 4079968,
+      "value_label": "4.1 ล้านบาท"
+     },
+     {
+      "agent": "นครปฐมรุ่งทรัพย์",
+      "value": 4054600,
+      "value_label": "4.1 ล้านบาท"
+     },
+     {
+      "agent": "อุบลศรีสุข เทรดดิ้ง",
+      "value": 3983776,
+      "value_label": "4.0 ล้านบาท"
+     },
+     {
+      "agent": "ภูเก็ตอันดามัน ซัพพลาย",
+      "value": 3807923,
+      "value_label": "3.8 ล้านบาท"
+     },
+     {
+      "agent": "พิษณุโลกศรีเจริญ",
+      "value": 3748010,
+      "value_label": "3.7 ล้านบาท"
+     },
+     {
+      "agent": "พัทยาซันไชน์ ซัพพลาย",
+      "value": 3733239,
+      "value_label": "3.7 ล้านบาท"
+     },
+     {
+      "agent": "ปทุมรุ่งกิจ เทรดดิ้ง",
+      "value": 3676583,
+      "value_label": "3.7 ล้านบาท"
+     },
+     {
+      "agent": "ระยองศรีทวี",
+      "value": 3667569,
+      "value_label": "3.7 ล้านบาท"
+     },
+     {
+      "agent": "อีสานรุ่งโรจน์ ค้าส่ง",
+      "value": 3665250,
+      "value_label": "3.7 ล้านบาท"
+     },
+     {
+      "agent": "วารินพาณิชย์",
+      "value": 3529615,
+      "value_label": "3.5 ล้านบาท"
+     },
+     {
+      "agent": "นางรองค้าส่ง",
+      "value": 3521890,
+      "value_label": "3.5 ล้านบาท"
+     },
+     {
+      "agent": "อยุธยาศรีทอง",
+      "value": 3480549,
+      "value_label": "3.5 ล้านบาท"
+     },
+     {
+      "agent": "สมุทรพรทวี",
+      "value": 3408630,
+      "value_label": "3.4 ล้านบาท"
+     },
+     {
+      "agent": "ปากช่องเบเวอเรจ",
+      "value": 3358006,
+      "value_label": "3.4 ล้านบาท"
+     },
+     {
+      "agent": "ล้านนาเบเวอเรจ",
+      "value": 3318639,
+      "value_label": "3.3 ล้านบาท"
+     },
+     {
+      "agent": "เชียงรายทองคำ",
+      "value": 3287391,
+      "value_label": "3.3 ล้านบาท"
+     },
+     {
+      "agent": "สุราษฎร์ศรีทอง",
+      "value": 3241125,
+      "value_label": "3.2 ล้านบาท"
+     },
+     {
+      "agent": "มาบตาพุดค้าส่ง",
+      "value": 3029407,
+      "value_label": "3.0 ล้านบาท"
+     }
+    ],
+    "summary": "ยอดค้างชำระเกินกำหนด 1 ส.ค. 2569 – 31 ส.ค. 2569: รวม 153.9 ล้านบาท · สูงสุด: โคราชสหภัณฑ์ 6.2 ล้านบาท · สงขลาทักษิณ เทรดดิ้ง 6.2 ล้านบาท · เกาะสมุยเบเวอเรจ 6.0 ล้านบาท · (30 แถว · certified · SAP FI)",
+    "headline": {
+     "aggregate": "sum",
+     "value": "153.9 ล้านบาท",
+     "periodLabel": "1 ส.ค. 2569 – 31 ส.ค. 2569",
+     "rowCount": 30,
+     "deltaPercent": null,
+     "compareLabel": null,
+     "compareNote": null,
+     "top": [
+      {
+       "label": "โคราชสหภัณฑ์",
+       "value": "6.2 ล้านบาท"
+      },
+      {
+       "label": "สงขลาทักษิณ เทรดดิ้ง",
+       "value": "6.2 ล้านบาท"
+      },
+      {
+       "label": "เกาะสมุยเบเวอเรจ",
+       "value": "6.0 ล้านบาท"
+      }
+     ],
+     "underLine": null
+    },
+    "provenance": {
+     "metric": "ar_overdue",
+     "certified": true,
+     "sourceSystem": "SAP FI",
+     "asOf": "2026-09-22",
+     "rowCount": 30,
+     "filtersApplied": {},
+     "filterLabels": [],
+     "scopeApplied": {},
+     "masked": [],
+     "trust": "verified"
+    },
+    "query": {
+     "metric": "ar_overdue",
+     "dims": [
+      "agent"
+     ],
+     "filters": {},
+     "range": {
+      "from": "2026-08-01",
+      "to": "2026-08-31"
+     },
+     "grain": "month",
+     "compare": "none",
+     "limit": 30,
+     "sort": "value_desc"
+    },
+    "nextActions": [
+     {
+      "id": "handoff",
+      "kind": "handoff",
+      "label": "ส่งงานให้คุณมิ้นท์",
+      "reason": "ผู้ดูแลตัวเลขการเงิน (ระดับประเทศ)",
+      "tool": "create_handoff",
+      "input": {
+       "toUserId": "u_mint",
+       "title": "ยอดค้างชำระเกินกำหนด · โคราชสหภัณฑ์",
+       "ask": "ช่วยตรวจภาคใต้ แล้วบอกกลับว่าเกิดจากอะไรและจะแก้อย่างไร",
+       "urgency": "high",
+       "evidence": [
+        {
+         "metric": "ar_overdue",
+         "dims": [
+          "agent"
+         ],
+         "filters": {},
+         "range": {
+          "from": "2026-08-01",
+          "to": "2026-08-31"
+         },
+         "grain": "month",
+         "compare": "none",
+         "limit": 30,
+         "sort": "value_desc"
+        }
+       ],
+       "alertIds": [
+        "al_220936abb568e7c9"
+       ]
+      },
+      "prompt": null
+     },
+     {
+      "id": "verify",
+      "kind": "verify",
+      "label": "ตรวจสาเหตุที่ภาคใต้",
+      "reason": "ดูยอดค้างชำระเกินกำหนดของภาคใต้รายเดือน 6 เดือนล่าสุด",
+      "tool": null,
+      "input": null,
+      "prompt": "ดูยอดค้างชำระเกินกำหนดของภาคใต้รายเดือน 6 เดือนล่าสุด"
+     },
+     {
+      "id": "drill-region",
+      "kind": "drill",
+      "label": "แยกตามภาค",
+      "reason": "ยังไม่ได้ดูแยกรายภาค",
+      "tool": null,
+      "input": null,
+      "prompt": "ขอยอดค้างชำระเกินกำหนดแยกตามภาค เรียงจากมากไปน้อย"
+     }
+    ],
+    "followUps": [
+     {
+      "id": "fu-why",
+      "label": "ทำไมโคราชสหภัณฑ์",
+      "prompt": "เจาะดูยอดค้างชำระเกินกำหนดของโคราชสหภัณฑ์ ว่าทำไมถึงเปลี่ยนไป เทียบกับช่วงก่อนหน้าและช่วงเดียวกันปีก่อน",
+      "reason": "โคราชสหภัณฑ์ คือแถวที่ต้องดูมากที่สุดในคำตอบนี้",
+      "intentKey": "follow|why",
+      "score": 0.6
+     },
+     {
+      "id": "fu-trend",
+      "label": "ดูแนวโน้มรายเดือน",
+      "prompt": "ยอดค้างชำระเกินกำหนด รายเดือนย้อนหลัง 6 เดือน",
+      "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+      "intentKey": "follow|trend",
+      "score": 0.5
+     },
+     {
+      "id": "fu-compare_year",
+      "label": "เทียบปีก่อน",
+      "prompt": "ขอยอดค้างชำระเกินกำหนดแยกตามเอเย่นต์ เทียบกับช่วงเดียวกันปีก่อน",
+      "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+      "intentKey": "follow|compare_year",
+      "score": 0.45
+     }
+    ]
+   }
+  },
+  {
+   "kind": "text",
+   "text": "เปรียบเทียบด้วยมูลค่าขายเข้าคู่กับยอดค้างชำระเกินกำหนด พบว่าเอเย่นต์ที่ขายมากไม่ได้มียอดค้างชำระสูงตามเสมอไป โดยกลุ่มที่ค้างชำระสูงสุด เช่น สงขลาทักษิณ เทรดดิ้ง และเกาะสมุยเบเวอเรจ ไม่ได้อยู่ในกลุ่มยอดขายนำ ขณะที่บางรายอย่างโคราชสหภัณฑ์มียอดขายสูงควบคู่กับยอดค้างชำระสะสม จึงควรติดตามการชำระเงินของเอเย่นต์ในพื้นที่ภาคใต้เพิ่มเติม"
+  }
+ ],
+ "asked": [],
+ "error": null,
+ "usage": {
+  "calls": 2,
+  "inputTokens": 24229,
+  "outputTokens": 2161,
+  "reasoningTokens": 1866,
+  "usd": 0.011773575000000001
+ },
+ "drawn": {
+  "cards": [
+   "query_metric",
+   "query_metric"
+  ],
+  "composed": null
+ }
+}

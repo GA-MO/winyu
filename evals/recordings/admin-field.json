@@ -1,0 +1,38 @@
+{
+ "version": 1,
+ "caseId": "admin-field",
+ "userId": "u_ton",
+ "prompt": "ให้ผู้จัดการขายภาคเห็นคะแนนสอบของหลักสูตรเต็มๆ ไม่ต้องซ่อน",
+ "model": "google/gemini-3.8-flash",
+ "promptHash": "865c61255df8c0b2",
+ "toolsHash": "d83b73cde60f979a",
+ "today": "2026-10-05",
+ "recordedAt": "2026-10-05T13:08:23.937Z",
+ "steps": [
+  {
+   "kind": "call",
+   "tool": "set_permission",
+   "args": {
+    "key": "lms_demo.score",
+    "kind": "field",
+    "value": "full",
+    "role": "sales_rsm"
+   }
+  }
+ ],
+ "asked": [
+  "set_permission"
+ ],
+ "error": null,
+ "usage": {
+  "calls": 1,
+  "inputTokens": 10008,
+  "outputTokens": 333,
+  "reasoningTokens": 291,
+  "usd": 0.004377375
+ },
+ "drawn": {
+  "cards": [],
+  "composed": null
+ }
+}
