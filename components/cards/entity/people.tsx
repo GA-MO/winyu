@@ -133,7 +133,6 @@ export function OwnerCard({ result }: { result: unknown }) {
       {({ data }) => (
         <Card props={{ title: TH.cards.owner.title(data.nameTh), description: data.reason, footnote: TH.cards.source.routing }}>
           <Avatar props={{ name: data.nameTh, role: data.title, size: "md" }} />
-          <p className="text-xs text-muted-foreground">{TH.cards.owner.load(data.openLoad, data.handledBefore)}</p>
           <OwnerAsk name={data.nameTh} />
         </Card>
       )}

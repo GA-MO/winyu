@@ -29,7 +29,7 @@ export default async function HomePage() {
   if (!user) redirect("/login");
   const scope = ROLE_POLICIES[user.role].regions === "own" ? TH.login.scopeOwn : TH.login.scopeAll;
   return (
-    <section className="relative isolate overflow-hidden">
+    <section className="relative isolate min-h-[calc(100dvh-3.75rem)] overflow-hidden">
       <GlowBackdrop />
       <div className="relative mx-auto flex min-h-[70dvh] max-w-3xl flex-col justify-center gap-5 px-4 py-16 sm:px-8">
         <p className="text-sm text-muted-foreground">{TH.landing.greeting[partOfDay(new Date())]}</p>

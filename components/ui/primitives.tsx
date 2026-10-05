@@ -237,6 +237,7 @@ export type TableColumn = {
 export type TableProps = {
   columns?: TableColumn[] | null;
   rows?: Array<Record<string, string | number>> | null;
+  nowrap?: boolean | null;
 };
 
 const columnToneClass = {
@@ -288,6 +289,7 @@ export function Table({ props }: { props: TableProps }) {
                   key={column.key}
                   className={cn(
                     "px-3 py-2 align-middle",
+                    props.nowrap && "whitespace-nowrap",
                     column.align === "end" && "text-right tabular-nums",
                     cellClass(column, row[column.key] ?? ""),
                   )}

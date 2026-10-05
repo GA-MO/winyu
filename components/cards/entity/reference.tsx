@@ -1,6 +1,7 @@
 "use client";
 
 import { Badge, Card, KeyValue, ListItem, Metric, Table } from "@/components/ui/primitives";
+import { formatDateTh } from "@/lib/i18n/format";
 import { TH } from "@/lib/i18n/th";
 import { ParsedCard, SectionTitle } from "./frame";
 import { calendarResult, connectorResult, entityResult, gapResult, memoryResult, metricsResult, parseResult } from "./shapes";
@@ -9,6 +10,8 @@ const ALCOHOL_BAN = "alcohol_ban";
 const NEGATIVE = /^[−-]/;
 const ENTITY_NAME_KEY = "ชื่อ";
 const HIDDEN_ENTITY_KEYS = new Set(["id", ENTITY_NAME_KEY]);
+const MAX_CONNECTOR_ROWS_SHOWN = 12;
+const GROUPED_FROM = 10_000;
 const HIDDEN_CONNECTOR_KEY = /(^|_)id$|^region$|^visited_on$|^date$|^order_value$|^score$/;
 
 /** get_calendar: the next day that moves sales on top, every day as a row with what it did last year. */
@@ -102,7 +105,7 @@ export function GapCard({ result }: { result: unknown }) {
 
 function entityValue(value: unknown): string {
   if (Array.isArray(value)) return value.map(String).join(", ");
-  if (typeof value === "number") return value.toLocaleString("th-TH");
+  if (typeof value === "number" && Math.abs(value) >= GROUPED_FROM) return value.toLocaleString("th-TH");
   return String(value ?? "");
 }
 
@@ -160,12 +163,11 @@ export function MetricsListCard({ result }: { result: unknown }) {
             props={{
               columns: [
                 { key: "label", label: columns.label },
-                { key: "unit", label: columns.unit, tone: "muted" },
                 { key: "source", label: columns.source, tone: "muted" },
-                { key: "refresh", label: columns.refresh, tone: "muted" },
                 { key: "latest", label: columns.latest, align: "end" },
               ],
-              rows: data.map((metric) => ({ label: metric.labelTh, unit: metric.unit, source: metric.source, refresh: metric.refresh, latest: metric.latest ?? "" })),
+              rows: data.map((metric) => ({ label: `${metric.labelTh} (${metric.unit})`, source: `${metric.source} · ${metric.refresh}`, latest: metric.latest ?? "" })),
+              nowrap: true,
             }}
           />
         </Card>
@@ -198,13 +200,17 @@ export function connectorCard(tool: string) {
           const keys = shownKeys(rows);
           const masked = provenance.masked.length > 0 ? TH.cards.connectorMasked(provenance.masked.map(columnLabel).join(", ")) : null;
           return (
-            <Card props={{ title, meta: summary, description: masked, footnote: TH.cards.source.connector(provenance.sourceSystem, provenance.asOf) }}>
-              <Table
-                props={{
-                  columns: keys.map((key) => ({ key, label: columnLabel(key) })),
-                  rows: rows.map((row) => Object.fromEntries(keys.map((key) => [key, cellOf(row[key])]))),
-                }}
-              />
+            <Card props={{ title, meta: summary, description: masked, footnote: TH.cards.source.connector(provenance.sourceSystem, formatDateTh(provenance.asOf)) }}>
+              {rows.length > 0 ? (
+                <Table
+                  props={{
+                    columns: keys.map((key) => ({ key, label: columnLabel(key) })),
+                    rows: rows.slice(0, MAX_CONNECTOR_ROWS_SHOWN).map((row) => Object.fromEntries(keys.map((key) => [key, cellOf(row[key])]))),
+                    nowrap: true,
+                  }}
+                />
+              ) : null}
+              {rows.length > MAX_CONNECTOR_ROWS_SHOWN ? <p className="text-[11px] text-muted-foreground">{TH.cards.connectorShown(MAX_CONNECTOR_ROWS_SHOWN, rows.length)}</p> : null}
             </Card>
           );
         }}

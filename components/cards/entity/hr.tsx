@@ -1,6 +1,7 @@
 "use client";
 
-import { Badge, Card, KeyValue, ListItem } from "@/components/ui/primitives";
+import { ChevronDown } from "lucide-react";
+import { Badge, Card, ListItem } from "@/components/ui/primitives";
 import { Carousel } from "@/components/ui/carousel";
 import { TH } from "@/lib/i18n/th";
 import { useRunAction } from "../card-actions";
@@ -41,7 +42,11 @@ export function CandidatesCard({ result }: { result: unknown }) {
             {data.positions.length > 0 ? (
               <>
                 <SectionTitle>{TH.cards.positions}</SectionTitle>
-                <KeyValue props={{ pairs: data.positions.map((position) => ({ label: position.title, value: TH.cards.positionLine(position.candidates, position.advanced, position.open_label) })) }} />
+                <div className="flex flex-col gap-2">
+                  {data.positions.map((position) => (
+                    <ListItem key={position.id} props={{ title: position.title, subtitle: TH.cards.positionLine(position.candidates, position.advanced), media: "none", trailing: position.open_label }} />
+                  ))}
+                </div>
               </>
             ) : null}
           </Card>
@@ -124,7 +129,10 @@ export function PolicyCard({ result }: { result: unknown }) {
               {data.sections.map((section) => (
                 <li key={section.title}>
                   <details className="group">
-                    <summary className="cursor-pointer list-none px-3 py-2.5 text-[13px] font-medium text-foreground [&::-webkit-details-marker]:hidden">{section.title}</summary>
+                    <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-3 py-2.5 text-[13px] font-medium text-foreground [&::-webkit-details-marker]:hidden">
+                      {section.title}
+                      <ChevronDown aria-hidden className="size-3.5 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" />
+                    </summary>
                     <p className="px-3 pb-3 text-[13px] leading-relaxed text-muted-foreground">{section.content}</p>
                   </details>
                 </li>

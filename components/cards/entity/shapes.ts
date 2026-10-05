@@ -148,7 +148,7 @@ export const entityResult = z.object({ summary: z.string(), data: z.record(z.str
 
 export const ownerResult = z.object({
   summary: z.string(),
-  data: z.object({ userId: z.string(), nameTh: z.string(), title: z.string(), reason: z.string(), openLoad: z.number(), handledBefore: z.number() }),
+  data: z.object({ userId: z.string(), nameTh: z.string(), title: z.string(), reason: z.string() }),
 });
 
 export const memoryResult = z.object({
