@@ -19,17 +19,11 @@ const JOB_NAMES = ["engine", "watches", "digest"] as const;
 /** A batch job the schedule runs. */
 export type JobName = (typeof JOB_NAMES)[number];
 
-const RUNNERS: Record<JobName, () => Promise<unknown>> = {
-  engine: async () => runEngineJobs(),
-  watches: () => runWatchJob(new Date()),
-  digest: () => runDigestJob(new Date()),
+const JOBS: Record<JobName, { cron: string; run: () => Promise<unknown> }> = {
+  engine: { cron: "0 0 * * *", run: async () => runEngineJobs() },
+  watches: { cron: "0 * * * *", run: () => runWatchJob(new Date()) },
+  digest: { cron: "0 7 * * *", run: () => runDigestJob(new Date()) },
 };
-
-const JOB_SCHEDULES: readonly { id: JobName; cron: string }[] = [
-  { id: "engine", cron: "0 0 * * *" },
-  { id: "watches", cron: "0 * * * *" },
-  { id: "digest", cron: "0 7 * * *" },
-];
 
 const jobInput = z.object({ job: z.enum(JOB_NAMES) });
 const personInput = z.object({ userId: z.string() });
@@ -39,7 +33,7 @@ const runJob = createStep({
   id: "run-job",
   inputSchema: jobInput,
   outputSchema: z.object({ job: z.enum(JOB_NAMES), result: z.unknown() }),
-  execute: async ({ inputData }) => ({ job: inputData.job, result: await RUNNERS[inputData.job]() }),
+  execute: async ({ inputData }) => ({ job: inputData.job, result: await JOBS[inputData.job].run() }),
 });
 
 const investigatePerson = createStep({
@@ -64,7 +58,7 @@ function jobsWorkflow() {
     id: JOBS_WORKFLOW,
     inputSchema: jobInput,
     outputSchema: z.object({ job: z.enum(JOB_NAMES), result: z.unknown() }),
-    schedule: JOB_SCHEDULES.map(({ id, cron }) => ({ id, cron, timezone: TIMEZONE, inputData: { job: id } })),
+    schedule: JOB_NAMES.map((job) => ({ id: job, cron: JOBS[job].cron, timezone: TIMEZONE, inputData: { job } })),
   })
     .then(runJob)
     .commit();
@@ -110,6 +104,12 @@ export async function startInvestigation(userIds: readonly string[]): Promise<st
   return runId;
 }
 
+function personInputs(payload: unknown): string[] {
+  const parsed = z.object({ userIds: z.array(z.string()).optional() }).safeParse(payload);
+  if (!parsed.success) return [];
+  return parsed.data.userIds ?? USERS.map((user) => user.id);
+}
+
 /** How far an investigation run has got, or null for a run id Mastra does not know. */
 export async function investigationProgress(runId: string): Promise<InvestigationProgress | null> {
   const state = await investigationRuns().getWorkflowRunById(runId);
@@ -122,10 +122,4 @@ export async function investigationProgress(runId: string): Promise<Investigatio
     return { userId, done, stories: done ? saved.stories.length : 0 };
   });
   return { runId, status: state.status, startedAt, people };
-}
-
-function personInputs(payload: unknown): string[] {
-  const parsed = z.object({ userIds: z.array(z.string()).optional() }).safeParse(payload);
-  if (!parsed.success) return [];
-  return parsed.data.userIds ?? USERS.map((user) => user.id);
 }
