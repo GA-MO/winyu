@@ -169,6 +169,13 @@ class Grounding {
   }
 }
 
+/** A2UI's single `child`, or one id written where a list belongs, read as a one-item children list. */
+function withChildList(props: Record<string, unknown>): Record<string, unknown> {
+  const { child, ...rest } = props;
+  const single = typeof rest.children === "string" ? rest.children : typeof child === "string" && rest.children === undefined ? child : null;
+  return single === null ? rest : { ...rest, children: [single] };
+}
+
 function parsedComponents(raw: readonly unknown[], problems: string[]): Map<string, ComposedComponent> {
   const byId = new Map<string, ComposedComponent>();
   raw.forEach((entry, index) => {
@@ -177,7 +184,7 @@ function parsedComponents(raw: readonly unknown[], problems: string[]): Map<stri
       return;
     }
     const { id, component, ...props } = entry as ComposedComponent;
-    const parsed = COMPOSE_CATALOG[component].props.safeParse(props);
+    const parsed = COMPOSE_CATALOG[component].props.safeParse(withChildList(props));
     if (!parsed.success) {
       problems.push(...parsed.error.issues.map((issue) => `${id} (${component}).${issue.path.join(".")}: ${issue.message}`));
       return;

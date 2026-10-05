@@ -82,6 +82,11 @@ describe("a composed card holds only what this turn's tools returned", () => {
     expect(problemsOf(metric, turn)).toContain('"/query_metric/headline/value" is not in this turn');
   });
 
+  test("one child id written where a list belongs is read as a one-item list, as Gemini wrote for u_krit", () => {
+    const single = withComponent({ id: "root", component: "Card", title: "ทีม", children: "sec_team" });
+    expect(problemsOf(single)).toBe("");
+  });
+
   test("a component outside the catalog or a root that is not a Card is refused", () => {
     expect(problemsOf([{ id: "root", component: "Html", html: "<b>x</b>" }])).toContain("component one of");
     expect(problemsOf([{ id: "root", component: "Badge", label: "x" }])).toContain("be a Card");
