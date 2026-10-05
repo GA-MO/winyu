@@ -82,10 +82,10 @@ Each row is one Winyu feature. The phase column says where mascop builds it. The
 
 ### U. UI foundation (parallel with M1)
 
-- [ ] Copy Vexa's presentational primitives into `components/ui/`; port the card components with a local action callback in place of Vexa's host `runTool`.
-- [ ] Login page, session API, app chrome, account sheet, theme.
-- [ ] `/dev/cards` renders every card kind from real tool results for review.
-- [ ] Evidence: typecheck, test, browser screenshots of login and `/dev/cards`.
+- [x] Copy Vexa's presentational primitives into `components/ui/`; port the card components with a local action callback in place of Vexa's host `runTool`. `CardActionsProvider` takes `runAction(CardAction)` (a `NextAction`, an `ask` row press, or a `form` write call); `actionRequest` turns it into a tool call or a question; `TOOL_CARDS` in `components/cards/registry.tsx` draws every read tool; `renderApproval` draws every write tool.
+- [x] Login page, session API, app chrome, account sheet, theme.
+- [x] `/dev/cards` renders every card kind from real tool results for review.
+- [x] Evidence: typecheck passes; `bun test` 548 pass, 0 fail across 56 files (includes the DataCard grounding test and the registry coverage test); headless Chrome walk on :3201 (login → CEO home → persona switch to u_krit → `/dev/cards` light and dark for both, 30 cards each, no broken images); screenshots `.shots/u-*.png` (gitignored). Commits 462331b..HEAD on `u-ui-foundation`.
 
 ### M2. Chat
 
