@@ -19,7 +19,7 @@ export type ChannelResume = { interruptId: string; approved: boolean };
 export type TurnCall = { toolCallId: string; tool: string; args: unknown; result: unknown; done: boolean };
 
 /** An approval the turn ended on: the interrupt to quote back and the call it pauses. */
-export type TurnAsked = { interruptId: string; toolCallId: string; tool: string };
+export type TurnAsked = { interruptId: string; toolCallId: string; tool: string; args: unknown };
 
 /** What one agent turn produced for a chat app: the words, the tool calls with their results, the composed cards that held, the approval it stopped at, and how it failed. `spent`: the approvals ledger refused the answer before any run started. */
 export type ChannelTurn = { text: string; calls: TurnCall[]; composed: ComposedSurface[]; asked: TurnAsked[]; error: string | null; spent: boolean };
@@ -33,7 +33,7 @@ type AgUiEvent = {
   content?: unknown;
   activityType?: unknown;
   message?: unknown;
-  outcome?: { type?: unknown; interrupts?: { id?: unknown; toolCallId?: unknown; metadata?: { mastra?: { toolName?: unknown } } }[] };
+  outcome?: { type?: unknown; interrupts?: { id?: unknown; toolCallId?: unknown; metadata?: { mastra?: { toolName?: unknown; args?: unknown } } }[] };
 };
 
 function stringOr(value: unknown): string | null {
@@ -61,7 +61,7 @@ function askedOf(event: AgUiEvent): TurnAsked[] {
   return (event.outcome.interrupts ?? []).flatMap((interrupt) => {
     const interruptId = stringOr(interrupt.id);
     const toolCallId = stringOr(interrupt.toolCallId);
-    return interruptId && toolCallId ? [{ interruptId, toolCallId, tool: stringOr(interrupt.metadata?.mastra?.toolName) ?? "unknown" }] : [];
+    return interruptId && toolCallId ? [{ interruptId, toolCallId, tool: stringOr(interrupt.metadata?.mastra?.toolName) ?? "unknown", args: interrupt.metadata?.mastra?.args ?? null }] : [];
   });
 }
 

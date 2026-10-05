@@ -22,7 +22,7 @@ function replyOf(turn: ChannelTurn, channel: Channel, user: User, threadId: stri
   if (turn.spent) return notice(TH.harness.approvalSpent);
   if (turn.error && !turn.text) return notice(TH.channels.failed);
   const asked = turn.asked[0];
-  const askedArgs = asked ? turn.calls.find((call) => call.toolCallId === asked.toolCallId)?.args : undefined;
+  const askedArgs = asked ? (asked.args ?? turn.calls.find((call) => call.toolCallId === asked.toolCallId)?.args) : undefined;
   const approval = asked ? promptOf(holdApproval(channel, user.id, threadId, message, asked, askedArgs ?? {})) : null;
   return { kind: "answer", text: turn.text, cards: channelCardsOf(turn.calls, turn.composed), approval, webUrl: threadUrl(webOrigin, threadId) };
 }
