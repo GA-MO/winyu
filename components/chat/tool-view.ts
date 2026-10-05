@@ -1,10 +1,12 @@
 import { UNCOMPOSABLE_TOOLS } from "@/lib/compose/ground";
+import { namesPerson, type Named } from "@/lib/share/recipients";
 import type { ReplyStep, ToolStep } from "./timeline";
 
 const DECLINED_TEXT = /not approved|declined|rejected|denied/i;
 const ANSWER_LISTS = ["rows", "weeks"] as const;
 const DOCUMENTS_TOOL = "search_documents";
 const CATALOG_TOOL = "list_metrics";
+const PEOPLE_LOOKUPS: ReadonlySet<string> = new Set(["find_people", "get_person", "resolve_owner"]);
 
 /** How one tool call shows in a reply: its card, the decision it waits on or its receipt, a working line, a quiet note, or nothing. */
 export type ToolView =
@@ -110,9 +112,41 @@ function drawsAnswer(step: ToolStep, hidden: ReadonlySet<string>, cardTools: Rea
   return step.outcome.state === "returned" && !isEmptyAnswer(step.outcome.result);
 }
 
-/** One card per question: a refused or failed call the model corrected later in the exchange (the same tool answered after it) is left out, every documents search of the exchange draws as one card at the first search (passages merged, duplicates dropped, so citations count over all of them), and the metric catalog the model browsed on the way is left out once another card answers; `composed` are the calls a composed card already holds. */
+function recipientsAskedFor(step: ToolStep): string[] {
+  const args = step.args as { toUserId?: unknown; to?: unknown } | null;
+  if (typeof args !== "object" || args === null) return [];
+  if (typeof args.toUserId === "string") return [args.toUserId];
+  return Array.isArray(args.to) ? args.to.filter((name): name is string => typeof name === "string") : [];
+}
+
+function namedOf(row: unknown): Named | null {
+  if (typeof row !== "object" || row === null) return null;
+  const person = row as { id?: unknown; userId?: unknown; name?: unknown; nameTh?: unknown; title?: unknown };
+  const id = typeof person.id === "string" ? person.id : typeof person.userId === "string" ? person.userId : null;
+  const nameTh = typeof person.nameTh === "string" ? person.nameTh : typeof person.name === "string" ? person.name : null;
+  if (!id || !nameTh) return null;
+  return { id, nameTh, ...(typeof person.title === "string" ? { title: person.title } : {}) };
+}
+
+function peopleFound(step: ToolStep): Named[] {
+  if (!PEOPLE_LOOKUPS.has(step.name) || step.outcome.state !== "returned") return [];
+  const data = (step.outcome.result as { data?: unknown } | null)?.data;
+  return (Array.isArray(data) ? data : [data]).flatMap((row) => namedOf(row) ?? []);
+}
+
+/** People lookups that found whom a later call of the exchange sends something to (a share, a handoff, an email): the lookup was the way to the action, so its card is not the answer. */
+function recipientLookups(steps: readonly ToolStep[]): string[] {
+  return steps.flatMap((step, index) => {
+    const found = peopleFound(step);
+    if (found.length === 0) return [];
+    const asked = steps.slice(index + 1).flatMap(recipientsAskedFor);
+    return asked.some((name) => found.some((person) => namesPerson(name, person))) ? [step.toolCallId] : [];
+  });
+}
+
+/** One card per question: a people lookup that found the recipient of a later share, handoff or email in the exchange is left out, a refused or failed call the model corrected later in the exchange (the same tool answered after it) is left out, every documents search of the exchange draws as one card at the first search (passages merged, duplicates dropped, so citations count over all of them), and the metric catalog the model browsed on the way is left out once another card answers; `composed` are the calls a composed card already holds. */
 export function cardPlanOf(steps: readonly ToolStep[], composed: ReadonlySet<string>, cardTools: ReadonlySet<string>): CardPlan {
-  const hidden = new Set([...composed, ...recoveredFailures(steps)]);
+  const hidden = new Set([...composed, ...recoveredFailures(steps), ...recipientLookups(steps)]);
   const results = new Map<string, unknown>();
   const searches = steps.flatMap((step) => {
     const documents = documentsOf(step);
