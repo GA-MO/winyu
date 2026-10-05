@@ -3,28 +3,24 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Inbox, LayoutDashboard, ShieldCheck, Sparkles } from "lucide-react";
+import { LayoutDashboard, ShieldCheck, Sparkles } from "lucide-react";
 import type { MorningBrief, QuickAction } from "@/lib/contracts";
-import type { AmbientCard as AmbientCardData, LandingKpi } from "@/lib/dashboard/ambient";
+import type { LandingKpi } from "@/lib/dashboard/ambient";
 import type { Tone } from "@/lib/dashboard/metric-display";
 import { TH } from "@/lib/i18n/th";
 import { cn } from "@/components/ui/cn";
 import { GlowBackdrop } from "@/components/ui/glow-backdrop";
 import { GradientText } from "@/components/ui/gradient-text";
-import { postFeedAction, type FeedSettle } from "@/components/feed/feed-list";
 import { countsLine, storyCounts, type StoryCounts } from "@/components/stories/story-list";
 import { StoriesDrawer } from "@/components/stories/drawer";
-import { AmbientCard, type AmbientHandlers } from "./ambient-card";
-import { actionHref, chatHref } from "./chat-entry";
+import { chatHref } from "./chat-entry";
 import { ChatLinkActions } from "./chat-link-actions";
 import { ChipIcon } from "./chip-icon";
 import { LandingComposer } from "./composer";
 import { PILL } from "./pill";
 
 const QUICK_ACTIONS_ENDPOINT = "/api/quick-actions";
-const ALERTS_ENDPOINT = "/api/alerts";
 const DASHBOARD_PATH = "/dashboard";
-const INBOX_TODO = "?inbox=todo";
 const MAX_CHIPS = 4;
 const HERO = "flex w-full max-w-3xl flex-col gap-6";
 const CHIP_ROW = "-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [mask-image:linear-gradient(to_right,black_80%,transparent)] sm:mx-0 sm:[mask-image:none] sm:flex-wrap sm:justify-center sm:overflow-visible sm:px-0 sm:pb-0";
@@ -37,9 +33,6 @@ const DELTA_TONE: Record<Tone, string> = {
 };
 
 export type Greeting = { lead: string; name: string };
-
-/** The landing's share of the user's feed: up to two matters as cards, and how many the inbox holds in all. */
-export type LandingMatters = { cards: AmbientCardData[]; taskCount: number };
 
 function StoryLine({ counts, onOpen }: { counts: StoryCounts; onOpen: () => void }) {
   return (
@@ -70,37 +63,13 @@ function KpiStrip({ kpis }: { kpis: LandingKpi[] }) {
   );
 }
 
-function Matters({ matters, handlers }: { matters: LandingMatters; handlers: AmbientHandlers }) {
-  if (matters.cards.length === 0) return null;
-  const more = matters.taskCount - matters.cards.length;
-  return (
-    <section aria-label={TH.pages.waiting} className="flex w-full max-w-3xl flex-col gap-3 animate-hero-rise [animation-delay:120ms]">
-      <div className="flex items-center justify-between gap-2 px-1">
-        <h2 className="text-xs font-medium text-muted-foreground">{TH.pages.waiting}</h2>
-        {more > 0 ? (
-          <Link href={INBOX_TODO} scroll={false} className="inline-flex items-center gap-1 text-xs text-muted-foreground transition hover:text-foreground">
-            <Inbox className="size-3.5" aria-hidden />
-            {TH.pages.moreInInbox(more)}
-          </Link>
-        ) : null}
-      </div>
-      <div className={cn("grid gap-3", matters.cards.length > 1 && "sm:grid-cols-2")}>
-        {matters.cards.map((card) => (
-          <AmbientCard key={card.id} card={card} handlers={handlers} />
-        ))}
-      </div>
-    </section>
-  );
-}
-
-/** The same landing for every role: the agent speaks first (the morning investigation), the question box, chips learned from use, the matters waiting, the pinned numbers. */
+/** The same landing for every role: the agent speaks first (the morning investigation), the question box, chips learned from use, the pinned numbers. */
 export function Landing({
   greeting,
   kpis,
   quickActions,
   brief,
   asOf,
-  matters,
   placeholder,
 }: {
   greeting: Greeting;
@@ -108,13 +77,11 @@ export function Landing({
   quickActions: QuickAction[];
   brief: MorningBrief | null;
   asOf: string;
-  matters: LandingMatters;
   placeholder: string;
 }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [storiesOpen, setStoriesOpen] = useState(false);
-  const [cards, setCards] = useState(matters.cards);
 
   const start = useCallback(
     (prompt: string, intentKey?: string) => {
@@ -131,22 +98,6 @@ export function Landing({
     },
     [busy, router],
   );
-
-  const handlers: AmbientHandlers = {
-    onOpen: (card) => {
-      if (card.feedKey) postFeedAction(card.feedKey, "open");
-      if (card.alertId) void fetch(`${ALERTS_ENDPOINT}/${card.alertId}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "open" }) }).catch(() => undefined);
-      router.push(chatHref(card.packetId ? { preload: card.packetId } : { prompt: card.prompt }));
-    },
-    onAction: (card) => {
-      const href = card.action ? actionHref(card.action) : null;
-      if (href) router.push(href);
-    },
-    onSettle: (key: string, action: FeedSettle) => {
-      postFeedAction(key, action);
-      setCards((current) => current.filter((card) => card.feedKey !== key));
-    },
-  };
 
   useEffect(() => {
     function openDashboard(event: KeyboardEvent) {
@@ -187,7 +138,6 @@ export function Landing({
           </div>
         </div>
 
-        <Matters matters={{ cards, taskCount: matters.taskCount - (matters.cards.length - cards.length) }} handlers={handlers} />
 
         {kpis.length > 0 ? (
           <div className="flex w-full max-w-3xl flex-col gap-3 animate-hero-rise [animation-delay:160ms]">
