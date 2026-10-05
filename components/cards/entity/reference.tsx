@@ -179,6 +179,10 @@ function shownKeys(rows: Record<string, unknown>[]): string[] {
   return keys.filter((key) => !HIDDEN_CONNECTOR_KEY.test(key) && !keys.includes(`${key}_label`));
 }
 
+function columnLabel(key: string): string {
+  return TH.cards.connectorColumns[key] ?? TH.cards.connectorColumns[`${key}_label`] ?? key;
+}
+
 function cellOf(value: unknown): string {
   if (value === null || value === undefined) return "";
   return String(value);
@@ -192,12 +196,12 @@ export function connectorCard(tool: string) {
       <ParsedCard parsed={parseResult(connectorResult, result)} title={title}>
         {({ summary, rows, provenance }) => {
           const keys = shownKeys(rows);
-          const masked = provenance.masked.length > 0 ? TH.cards.connectorMasked(provenance.masked.join(", ")) : null;
+          const masked = provenance.masked.length > 0 ? TH.cards.connectorMasked(provenance.masked.map(columnLabel).join(", ")) : null;
           return (
             <Card props={{ title, meta: summary, description: masked, footnote: TH.cards.source.connector(provenance.sourceSystem, provenance.asOf) }}>
               <Table
                 props={{
-                  columns: keys.map((key) => ({ key, label: TH.cards.connectorColumns[key] ?? key })),
+                  columns: keys.map((key) => ({ key, label: columnLabel(key) })),
                   rows: rows.map((row) => Object.fromEntries(keys.map((key) => [key, cellOf(row[key])]))),
                 }}
               />
