@@ -19,7 +19,9 @@
     "studio": "bun run scripts/studio.ts",
     "eval": "bun run scripts/eval.ts",
     "identity": "bun run scripts/identity.ts",
-    "entra:mock": "bun run scripts/entra-mock.ts"
+    "entra:mock": "bun run scripts/entra-mock.ts",
+    "channels:walk": "bun run scripts/channels-walk.ts",
+    "channels:view": "bun run scripts/channels-view.ts"
   },
   "dependencies": {
     "@ag-ui/client": "1.0.1",
