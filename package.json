@@ -15,7 +15,8 @@
     "connectors:demo": "bun run scripts/connectors-demo.ts",
     "investigate": "bun run scripts/investigate.ts",
     "call-tool": "bun run scripts/call-tool.ts",
-    "mcp:probe": "bun run scripts/mcp-probe.ts"
+    "mcp:probe": "bun run scripts/mcp-probe.ts",
+    "studio": "bun run scripts/studio.ts"
   },
   "dependencies": {
     "@ag-ui/client": "1.0.1",
@@ -31,7 +32,10 @@
     "@mastra/mcp": "2.1.2",
     "@mastra/memory": "1.35.0",
     "@modelcontextprotocol/server": "2.0.0",
+    "@mastra/observability": "1.18.3",
+    "@mastra/otel-exporter": "1.4.4",
     "@openrouter/ai-sdk-provider": "^2.10.0",
+    "@opentelemetry/exporter-trace-otlp-http": "^0.222.0",
     "ai": "6.0.300",
     "clsx": "^2.1.1",
     "lucide-react": "^0.563.0",
@@ -44,12 +48,15 @@
   "devDependencies": {
     "@happy-dom/global-registrator": "^20.14.5",
     "@modelcontextprotocol/client": "2.0.0",
+    "@mastra/hono": "1.7.16",
     "@tailwindcss/postcss": "^4.1.18",
     "@types/bun": "^1.4.2",
     "@types/node": "^22.10.0",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "happy-dom": "^20.14.5",
+    "hono": "^4.13.13",
+    "mastra": "1.32.1",
     "tailwindcss": "^4.1.18",
     "typescript": "^5.7.2"
   }

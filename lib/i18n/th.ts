@@ -909,6 +909,7 @@ export const TH = {
     },
     trace: {
       heading: "AI ทำอะไรในคำถามนี้",
+      studioTrace: "Mastra trace (dev)",
       none: "คำถามนี้เกิดก่อนเปิดระบบติดตามการทำงานของ AI จึงมีแค่บันทึกการเรียกเครื่องมือ",
       summary: (steps: number, tools: number, seconds: string) => `คิด ${steps} รอบ · เรียกเครื่องมือ ${tools} ครั้ง · ${seconds} วินาที`,
       spend: (calls: number, tokens: string, usd: string) => `เรียกโมเดล ${calls} ครั้ง · ${tokens} tokens · $${usd}`,

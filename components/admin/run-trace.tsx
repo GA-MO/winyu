@@ -8,6 +8,7 @@ import type { RunRecord } from "@/lib/harness/runtime";
 import type { RunSpend } from "@/lib/server/model-ledger";
 import { stateOf } from "@/lib/harness/state";
 import { timelineOf, type TimelineEntry, type ToolStory } from "@/lib/harness/timeline";
+import { studioTraceUrl } from "@/lib/harness/trace-link";
 import { TH } from "@/lib/i18n/th";
 import { toolLabel } from "@/lib/server/tools/registry";
 import { FOCUS, Pill, type Tone } from "./parts";
@@ -145,6 +146,7 @@ export function RunTrace({ record, audit, spend }: { record: RunRecord; audit: r
   const duration = Date.parse(record.endedAt) - startedAt;
   const argsOf = (toolCallId: string) => audit.find((entry) => entry.toolCallId === toolCallId)?.args ?? null;
   const tone: Tone = state.phase === "failed" ? "danger" : state.phase === "awaiting_approval" ? "warning" : "success";
+  const studioUrl = studioTraceUrl(record.id);
   return (
     <section className="flex flex-col gap-3 rounded-2xl border border-border bg-card px-3.5 py-3 shadow-card">
       <header className="flex flex-wrap items-center justify-between gap-2">
@@ -153,6 +155,11 @@ export function RunTrace({ record, audit, spend }: { record: RunRecord; audit: r
           {COPY.summary(state.step, Object.keys(state.toolCalls).length, seconds(duration))}
           {spend && spend.calls > 0 ? <span>{COPY.spend(spend.calls, (spend.inputTokens + spend.outputTokens).toLocaleString("th-TH"), spend.usd.toFixed(4))}</span> : null}
           <Pill tone={tone}>{COPY.phase[state.phase]}</Pill>
+          {studioUrl ? (
+            <a href={studioUrl} target="_blank" rel="noreferrer" className={cn("rounded-full underline-offset-2 hover:underline", FOCUS)}>
+              {COPY.studioTrace}
+            </a>
+          ) : null}
         </span>
       </header>
       <ol className="relative flex flex-col gap-3 before:absolute before:bottom-2 before:left-[13px] before:top-2 before:w-px before:bg-border">
