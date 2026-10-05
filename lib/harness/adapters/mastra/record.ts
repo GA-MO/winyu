@@ -40,7 +40,7 @@ function eventsOf(sse: string): AgUiEvent[] {
 function askedOf(events: readonly AgUiEvent[]): string[] {
   const finished = events.find((event) => event.type === "RUN_FINISHED");
   if (finished?.outcome?.type !== "interrupt") return [];
-  return (finished.outcome.interrupts ?? []).map((interrupt) => interrupt.metadata?.mastra?.toolName ?? "unknown");
+  return (finished.outcome.interrupts ?? []).flatMap((interrupt) => (interrupt.metadata?.mastra?.toolName ? [interrupt.metadata.mastra.toolName] : []));
 }
 
 function errorOf(events: readonly AgUiEvent[], status: number): string | null {

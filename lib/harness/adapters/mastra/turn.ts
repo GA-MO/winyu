@@ -92,31 +92,37 @@ function eventsOf(lines: readonly string[]): AgUiEvent[] {
   });
 }
 
-function askedOf(event: AgUiEvent): AskedApproval[] {
+/** Tool names of calls an earlier run started, keyed by tool call id: the run that answers an approval streams the result of a call it never started. */
+export type KnownCalls = ReadonlyMap<string, string>;
+
+function askedOf(event: AgUiEvent, names: KnownCalls): AskedApproval[] {
   if (event.type !== "RUN_FINISHED" || event.outcome?.type !== "interrupt") return [];
   return (event.outcome.interrupts ?? []).flatMap((interrupt) => {
     const interruptId = stringOr(interrupt.id);
     const toolCallId = stringOr(interrupt.toolCallId);
     if (!interruptId || !toolCallId) return [];
-    return [{ interruptId, toolCallId, tool: stringOr(interrupt.metadata?.mastra?.toolName) ?? "unknown" }];
+    const tool = stringOr(interrupt.metadata?.mastra?.toolName) ?? names.get(toolCallId);
+    return tool ? [{ interruptId, toolCallId, tool }] : [];
   });
 }
 
-/** Folds the AG-UI events of one reply into what the harness records about it. */
-export function seenOf(events: readonly AgUiEvent[]): ReplySeen {
-  const names = new Map<string, string>();
+/** Folds the AG-UI events of one reply into what the harness records about it; a result is named by the call that started it in this reply or in `known`, and a result no one can name is left out rather than recorded as a guess. */
+export function seenOf(events: readonly AgUiEvent[], known: KnownCalls = new Map()): ReplySeen {
+  const names = new Map(known);
   const results: string[] = [];
   let error: string | null = null;
   for (const event of events) {
     const toolCallId = stringOr(event.toolCallId);
-    if (event.type === "TOOL_CALL_START" && toolCallId) names.set(toolCallId, stringOr(event.toolCallName) ?? "unknown");
-    if (event.type === "TOOL_CALL_RESULT" && toolCallId) results.push(names.get(toolCallId) ?? "unknown");
+    const toolName = stringOr(event.toolCallName);
+    if (event.type === "TOOL_CALL_START" && toolCallId && toolName) names.set(toolCallId, toolName);
+    const shown = toolCallId ? names.get(toolCallId) : undefined;
+    if (event.type === "TOOL_CALL_RESULT" && shown) results.push(shown);
     if (event.type === "RUN_ERROR") error = stringOr(event.message) ?? "run error";
   }
-  return { results, asked: events.flatMap(askedOf), text: events.some((event) => event.type === "TEXT_MESSAGE_CONTENT"), error };
+  return { results, asked: events.flatMap((event) => askedOf(event, names)), text: events.some((event) => event.type === "TEXT_MESSAGE_CONTENT"), error };
 }
 
-async function readToEnd(body: ReadableStream<Uint8Array>, onEnd: (seen: ReplySeen) => void): Promise<void> {
+async function readToEnd(body: ReadableStream<Uint8Array>, known: KnownCalls, onEnd: (seen: ReplySeen) => void): Promise<void> {
   const decoder = new TextDecoder();
   const events: AgUiEvent[] = [];
   const reader = body.getReader();
@@ -133,17 +139,17 @@ async function readToEnd(body: ReadableStream<Uint8Array>, onEnd: (seen: ReplySe
   } catch (error) {
     failure = error instanceof Error ? error.message : String(error);
   }
-  const seen = seenOf(events);
+  const seen = seenOf(events, known);
   onEnd(failure && !seen.error ? { ...seen, error: failure } : seen);
 }
 
-/** Passes an AG-UI event stream to the client untouched and reads its own copy to the end, so `onEnd` runs once with what the reply showed even when the client leaves mid-run: the run, not the connection, decides when the reply is over. */
-export function observeReply(response: Response, onEnd: (seen: ReplySeen) => void): Response {
+/** Passes an AG-UI event stream to the client untouched and reads its own copy to the end (naming results by `known` when this reply did not start their call), so `onEnd` runs once with what the reply showed even when the client leaves mid-run: the run, not the connection, decides when the reply is over. */
+export function observeReply(response: Response, known: KnownCalls, onEnd: (seen: ReplySeen) => void): Response {
   if (!response.body) {
     onEnd({ results: [], asked: [], text: false, error: response.ok ? null : `HTTP ${response.status}` });
     return response;
   }
   const [toClient, toHarness] = response.body.tee();
-  void readToEnd(toHarness, onEnd);
+  void readToEnd(toHarness, known, onEnd);
   return new Response(toClient, { status: response.status, statusText: response.statusText, headers: response.headers });
 }

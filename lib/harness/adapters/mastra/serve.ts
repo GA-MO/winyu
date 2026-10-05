@@ -17,7 +17,7 @@ import { ReplyCards, withComposedCards, type ComposedCardRecord } from "./card-s
 import { threadTranscript } from "./history";
 import { guardedRunInput, inputFindings, type GuardedInput } from "./guardrails";
 import { learnFromTurn } from "./learn";
-import { chatTurnOf, observeReply, type ChatTurn, type ReplySeen, type RunInput } from "./turn";
+import { chatTurnOf, observeReply, type ChatTurn, type KnownCalls, type ReplySeen, type RunInput } from "./turn";
 
 const BASE_PATH = "/api/copilotkit";
 const INFO_PATH = `${BASE_PATH}/info`;
@@ -63,11 +63,18 @@ function replyCards(onCard: (record: ComposedCardRecord) => void): ReplyCards {
   return new ReplyCards((tool) => tiers[tool] === "read", onCard);
 }
 
+function answeredCalls(turn: ChatTurn): KnownCalls {
+  return new Map(turn.answers.flatMap((answer) => {
+    const tool = askedTool(answer.interruptId);
+    return tool ? [[answer.toolCallId, tool] as const] : [];
+  }));
+}
+
 function started(run: Run, turn: ChatTurn): void {
   emitTo(run, "runtime", { type: "agent.started", payload: { goal: turn.goal, userId: run.userId, threadId: run.threadId } });
-  for (const answer of turn.answers) {
-    const ref = { toolCallId: answer.toolCallId, tool: askedTool(answer.interruptId) ?? "unknown" };
-    emitTo(run, "ui", { type: answer.approved ? "approval.granted" : "approval.denied", payload: ref });
+  for (const [toolCallId, tool] of answeredCalls(turn)) {
+    const approved = turn.answers.some((answer) => answer.toolCallId === toolCallId && answer.approved);
+    emitTo(run, "ui", { type: approved ? "approval.granted" : "approval.denied", payload: { toolCallId, tool } });
   }
 }
 
@@ -129,7 +136,7 @@ export async function streamRun(access: AccessContext, req: Request, run: Run, t
   checkpointRun(run);
   try {
     const response = await runWithAccess(access, () => runWithTurn(context, () => runWithRun(run, () => handler()(req))));
-    return observeReply(withComposedCards(response, cards), (seen) => ended(run, turn, context, seen, records, options));
+    return observeReply(withComposedCards(response, cards), answeredCalls(turn), (seen) => ended(run, turn, context, seen, records, options));
   } catch (error) {
     emitTo(run, "runtime", { type: "agent.failed", payload: { reason: error instanceof Error ? error.message : String(error) } });
     saveRun(run);

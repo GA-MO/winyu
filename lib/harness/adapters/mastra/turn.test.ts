@@ -49,6 +49,21 @@ describe("seenOf", () => {
     expect(seen).toEqual({ results: ["query_metric"], asked: [{ interruptId: INTERRUPT_ID, toolCallId: "c2", tool: "pin_widget" }], text: true, error: null });
   });
 
+  test("the run that answers an approval names the receipt by the asked call, and a result no one started is left out instead of called unknown", () => {
+    const seen = seenOf(
+      [
+        { type: "TOOL_CALL_RESULT", toolCallId: "asked" },
+        { type: "TOOL_CALL_RESULT", toolCallId: "stranger" },
+        { type: "TOOL_CALL_START", toolCallId: "c3", toolCallName: "query_metric" },
+        { type: "RUN_FINISHED", outcome: { type: "interrupt", interrupts: [{ id: INTERRUPT_ID, toolCallId: "c3" }] } },
+      ],
+      new Map([["asked", "enroll_course"]]),
+    );
+    expect(seen.results).toEqual(["enroll_course"]);
+    expect(seen.asked).toEqual([{ interruptId: INTERRUPT_ID, toolCallId: "c3", tool: "query_metric" }]);
+    expect(JSON.stringify(seen)).not.toContain("unknown");
+  });
+
   test("a run error ends the reply as failed", () => {
     expect(seenOf([{ type: "RUN_ERROR", message: "boom" }]).error).toBe("boom");
   });
@@ -73,7 +88,7 @@ describe("observeReply", () => {
       },
     });
     const ended = new Promise<ReplySeen>((resolve) => {
-      const reply = observeReply(new Response(source), resolve);
+      const reply = observeReply(new Response(source), new Map(), resolve);
       const reader = reply.body?.getReader();
       void reader?.read().then(() => {
         void reader.cancel();
