@@ -45,19 +45,25 @@ function notePressed(action: QuickAction): void {
   }).catch(() => undefined);
 }
 
-function useStickToBottom(content: unknown) {
+function useStickToBottom() {
   const scroller = useRef<HTMLDivElement>(null);
+  const content = useRef<HTMLDivElement>(null);
   const pinned = useRef(true);
   useEffect(() => {
     const node = scroller.current;
-    if (!node || !pinned.current) return;
-    node.scrollTo({ top: node.scrollHeight });
-  }, [content]);
+    const inner = content.current;
+    if (!node || !inner) return;
+    const follow = new ResizeObserver(() => {
+      if (pinned.current) node.scrollTo({ top: node.scrollHeight });
+    });
+    follow.observe(inner);
+    return () => follow.disconnect();
+  }, []);
   const onScroll = () => {
     const node = scroller.current;
     if (node) pinned.current = node.scrollHeight - node.scrollTop - node.clientHeight < PINNED_SLACK_PX;
   };
-  return { scroller, onScroll };
+  return { scroller, content, onScroll };
 }
 
 function EmptyState() {
@@ -106,8 +112,7 @@ export function ChatSession({ threadId, initialPrompt, initialMessages, initialA
     wasRunning.current = running;
   }, [running]);
 
-  const lastSteps = exchanges[exchanges.length - 1]?.steps.length ?? 0;
-  const { scroller, onScroll } = useStickToBottom(`${exchanges.length}:${lastSteps}:${running}:${session.asked.length}:${session.waiting.size}`);
+  const { scroller, content, onScroll } = useStickToBottom();
 
   const chips = useMemo(() => {
     if (!ready || running || session.waiting.size > 0) return [];
@@ -139,7 +144,7 @@ export function ChatSession({ threadId, initialPrompt, initialMessages, initialA
       <div className="relative flex h-full min-h-0 flex-1 flex-col">
         <GlowBackdrop className="opacity-60" />
         <div ref={scroller} onScroll={onScroll} className="relative z-10 min-h-0 flex-1 overflow-y-auto">
-          <div className={`flex flex-col gap-8 pb-8 pt-8 ${COLUMN}`}>
+          <div ref={content} className={`flex flex-col gap-8 pb-8 pt-8 ${COLUMN}`}>
             {preload ? <PreloadBanner preload={preload} /> : null}
             {exchanges.length === 0 && !running && !initialPrompt ? <EmptyState /> : null}
             {exchanges.map((exchange, index) => (
