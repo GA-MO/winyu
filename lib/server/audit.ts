@@ -113,6 +113,35 @@ export function recordComposedCard(card: AuditedCard): void {
   });
 }
 
+/** The name a shared card goes by in the audit, beside the tool calls a recipient's opening re-runs. */
+export const SHARE_AUDIT_TOOL = "share";
+
+const SHARE_CONNECTOR = "winyu";
+
+/** One share as the audit needs it: who sent which card (its code, title and the tools behind it) to whom on which channel; never a value from the card nor the sender's note. */
+export type AuditedShare = { userId: string; code: string; title: string; reads: readonly string[]; deliveries: ReadonlyArray<{ userId: string; asked: string; via: string; fallback: string | null }> };
+
+/** Writes the audit row a share leaves, read like a tool call the person made: the recipients and channels as its arguments, one row per recipient as its rows. */
+export function recordShare(share: AuditedShare): void {
+  const args = { code: share.code, title: share.title, reads: share.reads, to: share.deliveries.map((delivery) => `${delivery.userId}:${delivery.via}`) };
+  const fallbacks = share.deliveries.filter((delivery) => delivery.fallback !== null);
+  auditLog().put({
+    id: randomUUID(),
+    at: new Date().toISOString(),
+    userId: share.userId,
+    tool: SHARE_AUDIT_TOOL,
+    connector: SHARE_CONNECTOR,
+    argsHash: argsHash(args),
+    decision: "allow",
+    rowsReturned: share.deliveries.length,
+    latencyMs: 0,
+    reason: TH.share.auditReason([...new Set(share.deliveries.map((delivery) => TH.share.channel[delivery.via] ?? delivery.via))].join(", ")) + (fallbacks.length > 0 ? ` · ${fallbacks.map((delivery) => TH.share.auditFallback(delivery.userId, TH.share.channel[delivery.asked] ?? delivery.asked)).join(", ")}` : ""),
+    args: argsPreview(args),
+    toolCallId: share.code,
+    initiator: "person",
+  });
+}
+
 /** The name a guard decision goes by in the audit, beside the tool calls of the same run. */
 export const GUARD_AUDIT_TOOL = "guardrail";
 

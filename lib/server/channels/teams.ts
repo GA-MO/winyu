@@ -2,10 +2,11 @@ import { createMemoryState } from "@chat-adapter/state-memory";
 import { TeamsAdapter, type TeamsAdapterConfig } from "@chat-adapter/teams";
 import { Chat, ConsoleLogger, type Message, type Thread } from "chat";
 import { TH } from "@/lib/i18n/th";
-import type { ExternalIdentity } from "@/lib/server/identity";
+import { linkedUser, type ExternalIdentity } from "@/lib/server/identity";
 import { answerChannel } from "./answer";
 import { channelWebOrigin } from "./config";
 import { adaptiveCardOf, TEAMS_APPROVE, TEAMS_REJECT, type AdaptiveCard } from "./teams-card";
+import { rememberTeamsConversation } from "./teams-conversations";
 import { botFrameworkVerifier } from "./teams-simulator-auth";
 import type { ChannelInbound, ChannelReply } from "./types";
 
@@ -78,6 +79,8 @@ function onMessage(adapter: WinyuTeamsAdapter) {
     await thread.startTyping().catch(() => undefined);
     const sender = teamsSenderOf(message.raw, message.author.email ?? null);
     const place = { conversation: conversationOf(message.raw, thread.id), private: adapter.isDM(thread.id) };
+    const user = sender && place.private ? linkedUser(sender) : null;
+    if (user) rememberTeamsConversation(user.id, thread.id, new Date().toISOString());
     await answerAndPost(adapter, thread.id, sender ? { kind: "ask", channel: "teams", sender, place, text: message.text } : null);
   };
 }
@@ -102,6 +105,16 @@ function teamsBot(settings: TeamsSettings) {
   const key = JSON.stringify(settings);
   if (bot?.key !== key) bot = { key, chat: buildBot(settings) };
   return bot.chat;
+}
+
+/** Posts an Adaptive Card into a Teams conversation Winyu was not asked in (a share), through the same official adapter; false when no bot is configured. */
+export async function postTeamsCard(threadId: string, card: AdaptiveCard): Promise<boolean> {
+  const settings = teamsSettings();
+  if (!settings) return false;
+  const chat = teamsBot(settings);
+  await chat.initialize();
+  await (chat.getAdapter("teams") as WinyuTeamsAdapter).postAdaptiveCard(threadId, card);
+  return true;
 }
 
 /** Answers one Bot Framework request at the Teams messaging endpoint: the adapter verifies it (Microsoft's JWT, or the simulator's in development), and each private message or approval press is answered as the linked Winyu user. `waitUntil` keeps the answer running after the response. */

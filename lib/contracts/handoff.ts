@@ -33,7 +33,8 @@ export const contextPacketSchema = z.object({
   updatedAt: z.string(),
 }) satisfies z.ZodType<ContextPacket>;
 
-export type OutboxEntry = { id: string; at: string; kind: "handoff" | "email" | "watch" | "digest"; fromUserId: string; toUserId: string; toEmail: string; subject: string; body: string; refId: string | null };
+/** One mail the demo kept instead of sending: plain `body` always, and `html` when the mail carries a button (a shared card). */
+export type OutboxEntry = { id: string; at: string; kind: "handoff" | "email" | "watch" | "digest" | "share"; fromUserId: string; toUserId: string; toEmail: string; subject: string; body: string; html?: string; refId: string | null };
 
 /** A colleague's answer to a handoff as it lands in the sender's conversation: who answered, where the packet stands, and what they wrote. */
 export type HandoffReplyNote = { packetId: string; packetTitle: string; fromName: string; fromTitle: string; status: ContextPacket["status"]; text: string; at: string };

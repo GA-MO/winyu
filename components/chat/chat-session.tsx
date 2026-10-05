@@ -6,6 +6,7 @@ import type { QuickAction } from "@/lib/contracts";
 import { TH } from "@/lib/i18n/th";
 import { isFollowUpIntent } from "@/lib/engine/follow-ups";
 import { CardActionsProvider } from "@/components/cards/card-actions";
+import { ShareProvider } from "@/components/share/share-sheet";
 import { Composer } from "@/components/composer/composer";
 import { GlowBackdrop } from "@/components/ui/glow-backdrop";
 import { ExchangeView, type ExchangeLive } from "./exchange-view";
@@ -145,36 +146,38 @@ export function ChatSession({ threadId, initialPrompt, initialMessages, initialA
 
   return (
     <CardActionsProvider value={{ runAction: session.runAction }}>
-      <div className="relative flex h-full min-h-0 flex-1 flex-col">
-        <GlowBackdrop className="opacity-60" />
-        <div ref={scroller} onScroll={onScroll} className="relative z-10 min-h-0 flex-1 overflow-y-auto">
-          <div ref={content} className={`flex flex-col gap-8 pb-8 pt-16 ${COLUMN}`}>
-            {preload ? <PreloadBanner preload={preload} /> : null}
-            {exchanges.length === 0 && !running && !initialPrompt ? <EmptyState /> : null}
-            {exchanges.map((exchange, index) => (
-              <ExchangeView key={exchange.id} exchange={exchange} live={live(index)} />
-            ))}
-            {exchanges.length === 0 && session.error ? <p className="text-sm text-danger" role="alert">{session.error}</p> : null}
+      <ShareProvider>
+        <div className="relative flex h-full min-h-0 flex-1 flex-col">
+          <GlowBackdrop className="opacity-60" />
+          <div ref={scroller} onScroll={onScroll} className="relative z-10 min-h-0 flex-1 overflow-y-auto">
+            <div ref={content} className={`flex flex-col gap-8 pb-8 pt-16 ${COLUMN}`}>
+              {preload ? <PreloadBanner preload={preload} /> : null}
+              {exchanges.length === 0 && !running && !initialPrompt ? <EmptyState /> : null}
+              {exchanges.map((exchange, index) => (
+                <ExchangeView key={exchange.id} exchange={exchange} live={live(index)} />
+              ))}
+              {exchanges.length === 0 && session.error ? <p className="text-sm text-danger" role="alert">{session.error}</p> : null}
+            </div>
+          </div>
+          <div className="relative z-10 shrink-0 border-t border-border bg-background/90 pb-4 pt-3 backdrop-blur">
+            <div className={`flex flex-col gap-3 ${COLUMN}`}>
+              {chips.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {chips.map((action) => (
+                    <button key={action.id} type="button" title={action.reason} onClick={() => {
+                        notePressed(action);
+                        send(action.prompt);
+                      }} className={CHIP}>
+                      {action.label}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+              <Composer value={text} onValueChange={setText} onSubmit={submit} size="docked" busy={running || !ready} onStop={running ? session.stop : undefined} placeholder={placeholder} />
+            </div>
           </div>
         </div>
-        <div className="relative z-10 shrink-0 border-t border-border bg-background/90 pb-4 pt-3 backdrop-blur">
-          <div className={`flex flex-col gap-3 ${COLUMN}`}>
-            {chips.length > 0 ? (
-              <div className="flex flex-wrap gap-2">
-                {chips.map((action) => (
-                  <button key={action.id} type="button" title={action.reason} onClick={() => {
-                      notePressed(action);
-                      send(action.prompt);
-                    }} className={CHIP}>
-                    {action.label}
-                  </button>
-                ))}
-              </div>
-            ) : null}
-            <Composer value={text} onValueChange={setText} onSubmit={submit} size="docked" busy={running || !ready} onStop={running ? session.stop : undefined} placeholder={placeholder} />
-          </div>
-        </div>
-      </div>
+      </ShareProvider>
     </CardActionsProvider>
   );
 }

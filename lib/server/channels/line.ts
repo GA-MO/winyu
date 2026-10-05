@@ -59,6 +59,14 @@ export function plainText(markdown: string): string {
   return markdown.replace(MARKDOWN_EMPHASIS, "").replace(MARKDOWN_HEADING, "").replace(MARKDOWN_BULLET, "• ");
 }
 
+/** Pushes messages to a LINE user Winyu was not asked by (a share); false when no LINE channel is configured. */
+export async function pushLineMessages(to: string, messages: LineMessage[]): Promise<boolean> {
+  const settings = lineSettings();
+  if (!settings) return false;
+  await clientOf(settings).pushMessage({ to, messages });
+  return true;
+}
+
 const profileNames = new Map<string, string | null>();
 
 async function displayName(client: messagingApi.MessagingApiClient, userId: string): Promise<string | null> {
