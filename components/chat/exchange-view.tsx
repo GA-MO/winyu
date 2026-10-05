@@ -8,13 +8,15 @@ import { TOOL_CARDS, type ToolCard } from "@/components/cards/registry";
 import { Badge } from "@/components/ui/primitives";
 import type { ContextPacket, HandoffReplyNote } from "@/lib/contracts";
 import { TH } from "@/lib/i18n/th";
+import { COMPOSE_TOOL } from "@/lib/compose/catalog";
+import { ComposedCardView, isComposedCard } from "./composed-card";
 import { Markdown } from "./markdown";
 import type { Exchange, Question, ReplyStep, ToolStep } from "./timeline";
-import { toolViewOf } from "./tool-view";
+import { composedCalls, toolViewOf } from "./tool-view";
 import type { PendingApproval } from "./use-chat-session";
 
-const CARD_TOOLS: ReadonlySet<string> = new Set(Object.keys(TOOL_CARDS));
-const CARDS: Record<string, ToolCard> = TOOL_CARDS;
+const CARDS: Record<string, ToolCard> = { ...TOOL_CARDS, [COMPOSE_TOOL]: (result) => (isComposedCard(result) ? <ComposedCardView result={result} /> : null) };
+const CARD_TOOLS: ReadonlySet<string> = new Set(Object.keys(CARDS));
 const STATUS_TONE: Record<ContextPacket["status"], "neutral" | "success" | "warning" | "danger"> = {
   open: "neutral",
   accepted: "success",
@@ -86,9 +88,9 @@ class CardBoundary extends Component<{ children: ReactNode }, { failed: boolean 
   }
 }
 
-function ToolStepView({ step, live }: { step: ToolStep; live: ExchangeLive }) {
+function ToolStepView({ step, live, composed }: { step: ToolStep; live: ExchangeLive; composed: boolean }) {
   const asking = live.waiting.has(step.toolCallId);
-  const view = toolViewOf(step, { running: live.running && live.isLast, asking, decided: live.decisions[step.toolCallId] }, CARD_TOOLS);
+  const view = toolViewOf(step, { running: live.running && live.isLast, asking, decided: live.decisions[step.toolCallId], composed }, CARD_TOOLS);
   if (view.kind === "card") return <div className="w-full animate-hero-rise">{CARDS[view.name](view.result, view.args)}</div>;
   if (view.kind === "working") return <Working label={TH.conversation.working} />;
   if (view.kind === "not-run") return <Note text={TH.conversation.notRun} tone="muted" />;
@@ -120,12 +122,12 @@ function HandoffReplyView({ note }: { note: HandoffReplyNote }) {
   );
 }
 
-function StepView({ step, live }: { step: ReplyStep; live: ExchangeLive }) {
+function StepView({ step, live, composed }: { step: ReplyStep; live: ExchangeLive; composed: ReadonlySet<string> }) {
   if (step.kind === "text") return <Markdown text={step.text} />;
   if (step.kind === "handoff-reply") return <HandoffReplyView note={step.note} />;
   return (
     <CardBoundary>
-      <ToolStepView step={step} live={live} />
+      <ToolStepView step={step} live={live} composed={composed.has(step.toolCallId)} />
     </CardBoundary>
   );
 }
@@ -158,11 +160,12 @@ function stepsWithApprovals(exchange: Exchange, asked: readonly PendingApproval[
 
 /** One question and its answer: the question bubble, then reply sentences, cards and decisions in the order the agent produced them; an approval the stream asked for without showing its call still gets its card. */
 export function ExchangeView({ exchange, live }: { exchange: Exchange; live: ExchangeLive }) {
+  const composed = composedCalls(exchange.steps, live.running && live.isLast);
   return (
     <article className="flex flex-col gap-4">
       {exchange.question ? <UserBubble question={exchange.question} /> : null}
       {stepsWithApprovals(exchange, live.asked).map((step) => (
-        <StepView key={step.kind === "tool" ? step.toolCallId : `${step.kind}-${step.id}`} step={step} live={live} />
+        <StepView key={step.kind === "tool" ? step.toolCallId : `${step.kind}-${step.id}`} step={step} live={live} composed={composed} />
       ))}
       <Ending exchange={exchange} live={live} />
     </article>
