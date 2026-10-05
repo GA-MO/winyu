@@ -1143,6 +1143,8 @@ export const TH = {
     questionsHeading: "คำถามใหม่ของผู้ใช้:",
     answeredWith: (prompt: string, metric: string, dims: string[]) => `${prompt} (ระบบตอบด้วย ${metric}${dims.length > 0 ? ` แยกตาม${dims.join(" ")}` : ""})`,
     nothingKnown: "ยังไม่มี",
+    maskedNumber: "[ตัวเลข]",
+    truncated: "…",
   },
   quick: {
     metricBy: (metric: string, dim: string) => `${metric}ตาม${dim}`,
