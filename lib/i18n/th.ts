@@ -1403,4 +1403,9 @@ export const TH = {
     gap: "ส่วนต่างรายตัว",
     forecast: "กราฟพยากรณ์พร้อมช่วงที่คาด",
   },
+  pages: {
+    waiting: "เรื่องที่รอคุณ",
+    moreInInbox: (count: number) => `อีก ${count} เรื่องใน Inbox`,
+    outboxLink: "อีเมลที่ส่งออก (Outbox)",
+  },
 } as const;
