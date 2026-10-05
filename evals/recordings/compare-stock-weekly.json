@@ -4,124 +4,96 @@
  "userId": "u_wee",
  "prompt": "สต๊อกคงเหลือรายสัปดาห์ เทียบกับช่วงก่อนหน้า",
  "model": "google/gemini-3.8-flash",
- "promptHash": "113c7dfa0cf1af01",
- "toolsHash": "a3e6c0a4da3d953c",
+ "promptHash": "d9f6b6f99d4d8e64",
+ "toolsHash": "75f19be13436420a",
  "today": "2026-10-05",
- "recordedAt": "2026-10-05T15:48:10.014Z",
+ "recordedAt": "2026-10-05T18:56:56.629Z",
  "steps": [
   {
    "kind": "call",
    "tool": "query_metric",
    "args": {
     "grain": "week",
-    "limit": 12,
+    "sort": null,
+    "compare": "prev_period",
+    "metric": "stock_on_hand",
+    "limit": 8,
+    "filters": {},
+    "range": {
+     "from": "2026-08-01",
+     "to": "2026-09-22"
+    },
     "dims": [
      "week"
-    ],
-    "compare": "prev_period",
-    "filters": {},
-    "metric": "stock_on_hand",
-    "sort": null,
-    "range": {
-     "to": "2026-09-22",
-     "from": "2026-07-01"
-    }
+    ]
    },
    "result": {
     "ok": true,
     "rows": [
      {
-      "week": "2026-W28",
-      "value": 2497347,
-      "value_label": "2,497,347 ลัง",
-      "compare_value": 3183051,
-      "delta_pct": -21.5
-     },
-     {
-      "week": "2026-W29",
-      "value": 2435405,
-      "value_label": "2,435,405 ลัง",
-      "compare_value": 3451055,
-      "delta_pct": -29.4
-     },
-     {
-      "week": "2026-W30",
-      "value": 2327858,
-      "value_label": "2,327,858 ลัง",
-      "compare_value": 3219999,
-      "delta_pct": -27.7
-     },
-     {
-      "week": "2026-W31",
-      "value": 2115361,
-      "value_label": "2,115,361 ลัง",
-      "compare_value": 3037547,
-      "delta_pct": -30.4
-     },
-     {
       "week": "2026-W32",
       "value": 2075232,
       "value_label": "2,075,232 ลัง",
-      "compare_value": 2890649,
-      "delta_pct": -28.2
+      "compare_value": 2644788,
+      "delta_pct": -21.5
      },
      {
       "week": "2026-W33",
       "value": 1684767,
       "value_label": "1,684,767 ลัง",
-      "compare_value": 2934578,
-      "delta_pct": -42.6
+      "compare_value": 2820733,
+      "delta_pct": -40.3
      },
      {
       "week": "2026-W34",
       "value": 1748680,
       "value_label": "1,748,680 ลัง",
-      "compare_value": 2920366,
-      "delta_pct": -40.1
+      "compare_value": 2492323,
+      "delta_pct": -29.8
      },
      {
       "week": "2026-W35",
       "value": 1651291,
       "value_label": "1,651,291 ลัง",
-      "compare_value": 2922594,
-      "delta_pct": -43.5
+      "compare_value": 2641719,
+      "delta_pct": -37.5
      },
      {
       "week": "2026-W36",
       "value": 1723026,
       "value_label": "1,723,026 ลัง",
-      "compare_value": 2744989,
-      "delta_pct": -37.2
+      "compare_value": 2329445,
+      "delta_pct": -26
      },
      {
       "week": "2026-W37",
       "value": 1614222,
       "value_label": "1,614,222 ลัง",
-      "compare_value": 2687049,
-      "delta_pct": -39.9
+      "compare_value": 2459106,
+      "delta_pct": -34.4
      },
      {
       "week": "2026-W38",
       "value": 1542259,
       "value_label": "1,542,259 ลัง",
-      "compare_value": 2598269,
-      "delta_pct": -40.6
+      "compare_value": 2298769,
+      "delta_pct": -32.9
      },
      {
       "week": "2026-W39",
       "value": 1607647,
       "value_label": "1,607,647 ลัง",
-      "compare_value": 2443797,
-      "delta_pct": -34.2
+      "compare_value": 2138041,
+      "delta_pct": -24.8
      }
     ],
-    "summary": "สต๊อกคงเหลือ 1 ก.ค. 2569 – 22 ก.ย. 2569: รวม 1,607,647 ลัง · เทียบช่วงก่อนหน้า -34.2% · (12 แถว · certified · WMS)",
+    "summary": "สต๊อกคงเหลือ 1 ส.ค. 2569 – 22 ก.ย. 2569: รวม 1,607,647 ลัง · เทียบช่วงก่อนหน้า -24.8% · (8 แถว · certified · WMS)",
     "headline": {
      "aggregate": "sum",
      "value": "1,607,647 ลัง",
-     "periodLabel": "1 ก.ค. 2569 – 22 ก.ย. 2569",
-     "rowCount": 12,
-     "deltaPercent": -34.2,
+     "periodLabel": "1 ส.ค. 2569 – 22 ก.ย. 2569",
+     "rowCount": 8,
+     "deltaPercent": -24.8,
      "compareLabel": "เทียบช่วงก่อนหน้า",
      "compareNote": null,
      "top": [],
@@ -132,7 +104,7 @@
      "certified": true,
      "sourceSystem": "WMS",
      "asOf": "2026-09-22",
-     "rowCount": 12,
+     "rowCount": 8,
      "filtersApplied": {},
      "filterLabels": [],
      "scopeApplied": {},
@@ -146,12 +118,12 @@
      ],
      "filters": {},
      "range": {
-      "from": "2026-07-01",
+      "from": "2026-08-01",
       "to": "2026-09-22"
      },
      "grain": "week",
      "compare": "prev_period",
-     "limit": 12,
+     "limit": 8,
      "sort": null
     },
     "nextActions": [
@@ -187,17 +159,17 @@
   },
   {
    "kind": "text",
-   "text": "ข้อมูลสต๊อกคงเหลือล่าสุดถึงวันที่ 22 ก.ย. 2569 โดยภาพรวมสต๊อกรายสัปดาห์มีแนวโน้มลดลงต่อเนื่องเมื่อเทียบกับช่วงก่อนหน้า แนะนำให้ตรวจสอบวันครอบคลุมสต๊อก (Days of Cover) แยกตามศูนย์กระจายสินค้าหรือเจาะดูรายแบรนด์เพิ่มเติม เพื่อประเมินความเสี่ยงสินค้าขาดคลัง"
+   "text": "ข้อมูลสต๊อกคงเหลือ (stock_on_hand) รายสัปดาห์แสดงย้อนหลัง 8 สัปดาห์จนถึงวันที่ 22 ก.ย. 2569 พบว่าสต๊อกลดลงเมื่อเทียบกับช่วงก่อนหน้าต่อเนื่องทุกสัปดาห์ แนะนำให้ตรวจสอบวันครอบคลุมสต๊อก (Days of Cover) หรือแยกดูรายศูนย์กระจายสินค้าเพื่อระวังความเสี่ยงสินค้าขาดคลัง"
   }
  ],
  "asked": [],
  "error": null,
  "usage": {
   "calls": 2,
-  "inputTokens": 22988,
-  "outputTokens": 1311,
-  "reasoningTokens": 1140,
-  "usd": 0.00426875
+  "inputTokens": 23458,
+  "outputTokens": 1540,
+  "reasoningTokens": 1361,
+  "usd": 0.0044705249999999995
  },
  "drawn": {
   "cards": [

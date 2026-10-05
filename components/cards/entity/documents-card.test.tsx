@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { readRecordings, turnOf } from "@/lib/eval/recording";
+import { readFixture, readRecordings, turnOf, type Recording } from "@/lib/eval/recording";
 import { TH } from "@/lib/i18n/th";
 import type { z } from "zod";
 import { DocumentsCard } from "./documents";
@@ -18,6 +18,11 @@ let host: HTMLElement | null = null;
 function recorded(caseId: string): Recorded {
   const recording = RECORDINGS.get(caseId);
   if (!recording) throw new Error(`no recording ${caseId}`);
+  return searchOf(recording);
+}
+
+function searchOf(recording: Recording): Recorded {
+  const caseId = recording.caseId;
   const turn = turnOf(recording);
   const call = turn.calls.find((step) => step.tool === "search_documents");
   if (!call) throw new Error(`no search_documents in ${caseId}`);
@@ -43,8 +48,8 @@ afterEach(() => {
 
 describe("DocumentsCard", () => {
   test("a reply that cites no passage folds the search behind one not-found line", async () => {
-    for (const caseId of ["docs-hr-hidden", "docs-unanswerable"]) {
-      const { result, words } = recorded(caseId);
+    for (const reply of [searchOf(readFixture("docs-hr-hidden")), recorded("docs-unanswerable")]) {
+      const { result, words } = reply;
       const card = await draw(result, words);
       expect(card.textContent).toContain(COPY.notFound);
       expect(card.textContent).toContain(COPY.searched(result.data.passages.length));

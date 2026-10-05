@@ -4,101 +4,122 @@
  "userId": "u_prasit",
  "prompt": "เอเย่นต์ที่ยอดหายมากสุดในอีสาน เทียบ 4 สัปดาห์ก่อน",
  "model": "google/gemini-3.8-flash",
- "promptHash": "d8375ddb2e030dc5",
- "toolsHash": "5639642b6a430a27",
+ "promptHash": "82948723a2ab8974",
+ "toolsHash": "8bdfd8d8fb9656cf",
  "today": "2026-10-05",
- "recordedAt": "2026-10-05T15:47:24.249Z",
+ "recordedAt": "2026-10-05T18:56:12.562Z",
  "steps": [
   {
    "kind": "call",
    "tool": "query_metric",
    "args": {
-    "sort": "delta_asc",
     "filters": {
      "region": "northeast"
     },
-    "grain": "week",
-    "metric": "net_sales_volume",
     "dims": [
      "agent"
     ],
-    "limit": 5,
+    "limit": 10,
     "compare": "prev_period",
+    "metric": "net_sales_value",
     "range": {
      "to": "2026-09-22",
      "from": "2026-08-26"
-    }
+    },
+    "grain": "week",
+    "sort": "delta_asc"
    },
    "result": {
     "ok": true,
     "rows": [
      {
-      "agent": "อุบลศรีสุข เทรดดิ้ง",
-      "value": 463871,
-      "value_label": "463,871 ลิตร",
-      "compare_value": 649123,
-      "delta_pct": -28.5
+      "agent": "อีสานรุ่งโรจน์ ค้าส่ง",
+      "value": 26736471,
+      "value_label": "26.7 ล้านบาท",
+      "compare_value": 41997129,
+      "delta_pct": -36.3
      },
      {
-      "agent": "อีสานรุ่งโรจน์ ค้าส่ง",
-      "value": 497420,
-      "value_label": "497,420 ลิตร",
-      "compare_value": 693658,
-      "delta_pct": -28.3
+      "agent": "อุบลศรีสุข เทรดดิ้ง",
+      "value": 25141247,
+      "value_label": "25.1 ล้านบาท",
+      "compare_value": 39298016,
+      "delta_pct": -36
      },
      {
       "agent": "ส.รุ่งเรือง เทรดดิ้ง",
-      "value": 834075,
-      "value_label": "834,075 ลิตร",
-      "compare_value": 897193,
-      "delta_pct": -7
-     },
-     {
-      "agent": "ขอนแก่นมหาชัย",
-      "value": 1044415,
-      "value_label": "1.0 ล้านลิตร",
-      "compare_value": 1103875,
-      "delta_pct": -5.4
+      "value": 51356882,
+      "value_label": "51.4 ล้านบาท",
+      "compare_value": 54506523,
+      "delta_pct": -5.8
      },
      {
       "agent": "วารินพาณิชย์",
-      "value": 378848,
-      "value_label": "378,848 ลิตร",
-      "compare_value": 400399,
-      "delta_pct": -5.4
+      "value": 23649588,
+      "value_label": "23.6 ล้านบาท",
+      "compare_value": 24529530,
+      "delta_pct": -3.6
+     },
+     {
+      "agent": "ขอนแก่นมหาชัย",
+      "value": 64980448,
+      "value_label": "65.0 ล้านบาท",
+      "compare_value": 66922318,
+      "delta_pct": -2.9
+     },
+     {
+      "agent": "โคราชสหภัณฑ์",
+      "value": 60610700,
+      "value_label": "60.6 ล้านบาท",
+      "compare_value": 62097460,
+      "delta_pct": -2.4
+     },
+     {
+      "agent": "ปากช่องเบเวอเรจ",
+      "value": 21504500,
+      "value_label": "21.5 ล้านบาท",
+      "compare_value": 22025998,
+      "delta_pct": -2.4
+     },
+     {
+      "agent": "นางรองค้าส่ง",
+      "value": 31296709,
+      "value_label": "31.3 ล้านบาท",
+      "compare_value": 31680370,
+      "delta_pct": -1.2
      }
     ],
-    "summary": "ปริมาณขายเข้า (Sell-in) 26 ส.ค. 2569 – 22 ก.ย. 2569: รวม 5.0 ล้านลิตร · สูงสุด: ขอนแก่นมหาชัย 1.0 ล้านลิตร · โคราชสหภัณฑ์ 970,038 ลิตร · ส.รุ่งเรือง เทรดดิ้ง 834,075 ลิตร · เทียบช่วงก่อนหน้า -10.7% · (5 แถว · certified · SAP SD)",
+    "summary": "มูลค่าขายเข้า 26 ส.ค. 2569 – 22 ก.ย. 2569: รวม 305.3 ล้านบาท · สูงสุด: ขอนแก่นมหาชัย 65.0 ล้านบาท · โคราชสหภัณฑ์ 60.6 ล้านบาท · ส.รุ่งเรือง เทรดดิ้ง 51.4 ล้านบาท · เทียบช่วงก่อนหน้า -11.0% · (8 แถว · certified · SAP SD)",
     "headline": {
      "aggregate": "sum",
-     "value": "5.0 ล้านลิตร",
+     "value": "305.3 ล้านบาท",
      "periodLabel": "26 ส.ค. 2569 – 22 ก.ย. 2569",
-     "rowCount": 5,
-     "deltaPercent": -10.7,
+     "rowCount": 8,
+     "deltaPercent": -11,
      "compareLabel": "เทียบช่วงก่อนหน้า",
      "compareNote": null,
      "top": [
       {
        "label": "ขอนแก่นมหาชัย",
-       "value": "1.0 ล้านลิตร"
+       "value": "65.0 ล้านบาท"
       },
       {
        "label": "โคราชสหภัณฑ์",
-       "value": "970,038 ลิตร"
+       "value": "60.6 ล้านบาท"
       },
       {
        "label": "ส.รุ่งเรือง เทรดดิ้ง",
-       "value": "834,075 ลิตร"
+       "value": "51.4 ล้านบาท"
       }
      ],
      "underLine": null
     },
     "provenance": {
-     "metric": "net_sales_volume",
+     "metric": "net_sales_value",
      "certified": true,
      "sourceSystem": "SAP SD",
      "asOf": "2026-09-22",
-     "rowCount": 5,
+     "rowCount": 8,
      "filtersApplied": {
       "region": [
        "northeast"
@@ -112,7 +133,7 @@
      "trust": "verified"
     },
     "query": {
-     "metric": "net_sales_volume",
+     "metric": "net_sales_value",
      "dims": [
       "agent"
      ],
@@ -127,9 +148,214 @@
      },
      "grain": "week",
      "compare": "prev_period",
-     "limit": 5,
+     "limit": 10,
      "sort": "delta_asc"
     },
+    "nextActions": [
+     {
+      "id": "handoff",
+      "kind": "handoff",
+      "label": "ส่งงานให้คุณอนุชา",
+      "reason": "เจ้าของตัวเลขยอดขายของพื้นที่ (ระดับภาค)",
+      "tool": "create_handoff",
+      "input": {
+       "toUserId": "u_anucha",
+       "title": "มูลค่าขายเข้า · ขอนแก่นมหาชัย",
+       "ask": "ช่วยตรวจอีสานรุ่งโรจน์ ค้าส่ง แล้วบอกกลับว่าเกิดจากอะไรและจะแก้อย่างไร",
+       "urgency": "medium",
+       "evidence": [
+        {
+         "metric": "net_sales_value",
+         "dims": [
+          "agent"
+         ],
+         "filters": {
+          "region": [
+           "northeast"
+          ]
+         },
+         "range": {
+          "from": "2026-08-26",
+          "to": "2026-09-22"
+         },
+         "grain": "week",
+         "compare": "prev_period",
+         "limit": 10,
+         "sort": "delta_asc"
+        }
+       ],
+       "alertIds": []
+      },
+      "prompt": null
+     },
+     {
+      "id": "drill-why",
+      "kind": "drill",
+      "label": "ทำไมอีสานรุ่งโรจน์ ค้าส่งถึงเป็นแบบนี้",
+      "reason": "อีสานรุ่งโรจน์ ค้าส่ง เปลี่ยนไปในทางที่แย่ที่สุด",
+      "tool": null,
+      "input": null,
+      "prompt": "เจาะดูมูลค่าขายเข้าของอีสานรุ่งโรจน์ ค้าส่ง ว่าทำไมถึงเปลี่ยนไป เทียบกับช่วงก่อนหน้าและช่วงเดียวกันปีก่อน"
+     }
+    ],
+    "followUps": [
+     {
+      "id": "fu-trend",
+      "label": "เริ่มแย่ตั้งแต่เมื่อไร",
+      "prompt": "มูลค่าขายเข้าของอีสานรุ่งโรจน์ ค้าส่ง รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+      "reason": "ดูว่าตัวเลขเริ่มลดลงสัปดาห์ไหน",
+      "intentKey": "follow|trend",
+      "score": 0.65
+     },
+     {
+      "id": "fu-compare_year",
+      "label": "เทียบปีก่อน",
+      "prompt": "ขอมูลค่าขายเข้าแยกตามเอเย่นต์ เทียบกับช่วงเดียวกันปีก่อน",
+      "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+      "intentKey": "follow|compare_year",
+      "score": 0.45
+     }
+    ]
+   }
+  },
+  {
+   "kind": "call",
+   "tool": "get_alerts",
+   "args": {
+    "status": "open",
+    "limit": 5
+   },
+   "result": {
+    "ok": true,
+    "summary": "มีความผิดปกติที่เปิดอยู่ 5 รายการในขอบเขตของคุณ",
+    "rows": [
+     {
+      "id": "al_7364476d77c8f435",
+      "severity": "P1",
+      "severityLabel": "ต้องรีบดู",
+      "metric": "net_sales_volume",
+      "metricLabel": "ปริมาณขายเข้า (Sell-in)",
+      "scope": {
+       "agent": "ag_nea_05",
+       "region": "northeast"
+      },
+      "scopeLabel": "อุบลศรีสุข เทรดดิ้ง · ภาคอีสาน",
+      "window": "9 ก.ย. 2569 – 22 ก.ย. 2569",
+      "observedLabel": "2,220 ลิตร",
+      "expectedLabel": "12,928 ลิตร",
+      "gapLabel": "83%",
+      "yearOverYear": false,
+      "direction": "down",
+      "hypothesis": "อุบลศรีสุข เทรดดิ้ง แทบไม่มีคำสั่งซื้อเข้ามาในช่วงนี้ น่าจะติดปัญหาเครดิต การวางบิล หรือเปลี่ยนไปรับสินค้าจากที่อื่น",
+      "verifySteps": [
+       "ดูประวัติการสั่งซื้อรายวันของอุบลศรีสุข เทรดดิ้ง · ภาคอีสาน 30 วันล่าสุด",
+       "ดูยอดค้างชำระเกินกำหนดของอุบลศรีสุข เทรดดิ้ง · ภาคอีสานรายเดือน 6 เดือนล่าสุด"
+      ],
+      "ownerUserId": "u_anucha"
+     },
+     {
+      "id": "al_ed6dca9e1dab4e48",
+      "severity": "P1",
+      "severityLabel": "ต้องรีบดู",
+      "metric": "net_sales_volume",
+      "metricLabel": "ปริมาณขายเข้า (Sell-in)",
+      "scope": {
+       "agent": "ag_nea_02",
+       "region": "northeast"
+      },
+      "scopeLabel": "อีสานรุ่งโรจน์ ค้าส่ง · ภาคอีสาน",
+      "window": "8 ก.ย. 2569 – 22 ก.ย. 2569",
+      "observedLabel": "3,251 ลิตร",
+      "expectedLabel": "13,928 ลิตร",
+      "gapLabel": "77%",
+      "yearOverYear": false,
+      "direction": "down",
+      "hypothesis": "อีสานรุ่งโรจน์ ค้าส่ง แทบไม่มีคำสั่งซื้อเข้ามาในช่วงนี้ น่าจะติดปัญหาเครดิต การวางบิล หรือเปลี่ยนไปรับสินค้าจากที่อื่น",
+      "verifySteps": [
+       "ดูประวัติการสั่งซื้อรายวันของอีสานรุ่งโรจน์ ค้าส่ง · ภาคอีสาน 30 วันล่าสุด",
+       "ดูยอดค้างชำระเกินกำหนดของอีสานรุ่งโรจน์ ค้าส่ง · ภาคอีสานรายเดือน 6 เดือนล่าสุด"
+      ],
+      "ownerUserId": "u_anucha"
+     },
+     {
+      "id": "al_fa3be1e7b4f9fe40",
+      "severity": "P1",
+      "severityLabel": "ต้องรีบดู",
+      "metric": "market_share",
+      "metricLabel": "ส่วนแบ่งตลาดเบียร์",
+      "scope": {
+       "province": "pv_nakhonratchasima",
+       "region": "northeast"
+      },
+      "scopeLabel": "นครราชสีมา · ภาคอีสาน",
+      "window": "1 มิ.ย. 2569 – 31 ส.ค. 2569",
+      "observedLabel": "59.7%",
+      "expectedLabel": "63.2%",
+      "gapLabel": "3.5 จุด",
+      "yearOverYear": false,
+      "direction": "down",
+      "hypothesis": "ในนครราชสีมา คาราบาวได้ส่วนแบ่งตลาดเบียร์เพิ่ม 4.1 จุดในช่วงเดียวกับที่ส่วนแบ่งของเราลดลง 3.5 จุด น่าจะมีการทำตลาดหรือตั้งราคาเชิงรุกในพื้นที่นี้",
+      "verifySteps": [
+       "เทียบส่วนแบ่งตลาดของทุกผู้ผลิตในนครราชสีมา เทียบปีก่อน",
+       "ดูยอดขายออกเบียร์ของเราในนครราชสีมาเทียบปีก่อน"
+      ],
+      "ownerUserId": "u_anucha"
+     },
+     {
+      "id": "al_220936abb568e7c9",
+      "severity": "P1",
+      "severityLabel": "ต้องรีบดู",
+      "metric": "ar_overdue",
+      "metricLabel": "ยอดค้างชำระเกินกำหนด",
+      "scope": {
+       "region": "south"
+      },
+      "scopeLabel": "ภาคใต้",
+      "window": "1 ส.ค. 2569 – 31 ส.ค. 2569",
+      "observedLabel": "1.9 เท่าของปีก่อน",
+      "expectedLabel": "1.1 เท่าของปีก่อน",
+      "gapLabel": "73%",
+      "yearOverYear": true,
+      "direction": "up",
+      "hypothesis": "ยอดค้างชำระของภาคใต้สูงกว่าช่วงเดียวกันของปีก่อนมาก ส่วนใหญ่มาจาก สงขลาทักษิณ เทรดดิ้ง (+303%), เกาะสมุยเบเวอเรจ (+108%), นครศรีรุ่งเจริญ (+101%) ควรคุยเรื่องการวางบิลและวงเงินกับเอเย่นต์กลุ่มนี้",
+      "verifySteps": [
+       "ดูยอดค้างชำระเกินกำหนดของภาคใต้รายเดือน 6 เดือนล่าสุด",
+       "ดูประวัติการสั่งซื้อรายวันของภาคใต้ 30 วันล่าสุด"
+      ],
+      "ownerUserId": "u_mint"
+     },
+     {
+      "id": "al_e8114d936da7141f",
+      "severity": "P1",
+      "severityLabel": "ต้องรีบดู",
+      "metric": "days_of_cover",
+      "metricLabel": "วันครอบคลุมสต๊อก",
+      "scope": {
+       "dc": "dc_lamphun",
+       "sku": "sku_purra_pet600",
+       "region": "north"
+      },
+      "scopeLabel": "ศูนย์กระจายสินค้าลำพูน · เพอร์ร่า ขวด PET 600 มล. · ภาคเหนือ",
+      "window": "16 ก.ย. 2569 – 22 ก.ย. 2569",
+      "observedLabel": "6.1 วัน",
+      "expectedLabel": "15.7 วัน",
+      "gapLabel": "61%",
+      "yearOverYear": false,
+      "direction": "down",
+      "hypothesis": "สต๊อกที่ศูนย์กระจายสินค้าลำพูนเหลือพอขายอีกประมาณ 6.1 วัน ต่ำกว่าเกณฑ์ 10 วัน เสี่ยงของขาดก่อนรอบเติมสินค้าถัดไป",
+      "verifySteps": [
+       "ดูวันครอบคลุมสต๊อกและสต๊อกคงเหลือของศูนย์กระจายสินค้าลำพูน · เพอร์ร่า ขวด PET 600 มล. · ภาคเหนือตอนนี้",
+       "ดูพยากรณ์ 8 สัปดาห์ข้างหน้าของศูนย์กระจายสินค้าลำพูน · เพอร์ร่า ขวด PET 600 มล. · ภาคเหนือ"
+      ],
+      "ownerUserId": "u_wee"
+     }
+    ],
+    "lessons": [
+     {
+      "alertId": "al_7364476d77c8f435",
+      "lesson": "ครั้งก่อน (เป็นเรื่องจริง): ติดวงเงินเครดิต ขยายวงเงินแล้วยอดกลับใน 2 สัปดาห์ — คุณกฤต จันทร์เสน, 12 มิ.ย. 2569"
+     }
+    ],
     "nextActions": [
      {
       "id": "verify",
@@ -141,60 +367,35 @@
       "prompt": "ดูประวัติการสั่งซื้อรายวันของอุบลศรีสุข เทรดดิ้ง · ภาคอีสาน 30 วันล่าสุด"
      },
      {
-      "id": "drill-province",
+      "id": "drill-channel",
       "kind": "drill",
-      "label": "แยกตามจังหวัด",
-      "reason": "ยังไม่ได้ดูแยกรายจังหวัด",
+      "label": "แยกตามช่องทาง",
+      "reason": "ยังไม่ได้ดูแยกรายช่องทาง",
       "tool": null,
       "input": null,
-      "prompt": "ขอปริมาณขายเข้า (Sell-in)แยกตามจังหวัด เรียงจากมากไปน้อย"
-     }
-    ],
-    "followUps": [
-     {
-      "id": "fu-why",
-      "label": "ทำไมอุบลศรีสุข เทรดดิ้ง",
-      "prompt": "เจาะดูปริมาณขายเข้า (Sell-in) ของอุบลศรีสุข เทรดดิ้ง ว่าทำไมถึงเปลี่ยนไป เทียบกับช่วงก่อนหน้าและช่วงเดียวกันปีก่อน",
-      "reason": "อุบลศรีสุข เทรดดิ้ง คือแถวที่ต้องดูมากที่สุดในคำตอบนี้",
-      "intentKey": "follow|why",
-      "score": 0.95
-     },
-     {
-      "id": "fu-trend",
-      "label": "เริ่มแย่ตั้งแต่เมื่อไร",
-      "prompt": "ปริมาณขายเข้า (Sell-in) ของอุบลศรีสุข เทรดดิ้ง รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
-      "reason": "ดูว่าตัวเลขเริ่มลดลงสัปดาห์ไหน",
-      "intentKey": "follow|trend",
-      "score": 0.65
-     },
-     {
-      "id": "fu-forecast",
-      "label": "พยากรณ์ 8 สัปดาห์",
-      "prompt": "พยากรณ์ปริมาณขายเข้า 8 สัปดาห์ข้างหน้า",
-      "reason": "ดูว่าถ้าเป็นแบบนี้ต่อไปจะเกิดอะไร",
-      "intentKey": "follow|forecast",
-      "score": 0.65
+      "prompt": "ขอปริมาณขายเข้า (Sell-in)แยกตามช่องทาง เรียงจากมากไปน้อย"
      }
     ]
    }
   },
   {
    "kind": "text",
-   "text": "ใช้ปริมาณขายเข้าสุทธิ (Sell-in) ช่วง 4 สัปดาห์ล่าสุด (26 ส.ค. – 22 ก.ย. 2569) เทียบกับ 4 สัปดาห์ก่อนหน้า โดยอุบลศรีสุข เทรดดิ้ง มียอดลดลงมากที่สุด\n\n**ข้อสังเกตและแนวทางตรวจสอบ:**\n- **สมมติฐาน:** เอเย่นต์อาจชะลอคำสั่งซื้อเนื่องจากยังมีสต๊อกคงเหลือหน้าร้านในระดับสูง หรือเกิดปัญหาการกระจายสินค้าไปยังร้านค้าย่อยในพื้นที่\n- **วิธีตรวจ 2 ทาง:**\n  1. ตรวจสอบวันครอบคลุมสต๊อก (Days of Cover) และอัตราขายออกหน้าร้าน (Sell-out) ของอุบลศรีสุข เทรดดิ้ง\n  2. ตรวจสอบบันทึกการเข้าเยี่ยมและสถานะคำสั่งซื้อล่าสุดของทีมขายในพื้นที่\n\nต้องการให้จัดทำ context packet ส่งต่อให้ผู้รับผิดชอบพื้นที่ภาคอีสานตรวจสอบทันทีหรือไม่ครับ"
+   "text": "รายงานด้วยมูลค่าขายเข้าสุทธิ (net_sales_value) เทียบ 4 สัปดาห์ก่อนหน้า โดยเอเย่นต์ที่ยอดลดลงมากที่สุดมีสมมติฐานว่าอาจติดปัญหาเรื่องวงเงินเครดิต การวางบิล หรือหันไปรับสินค้าจากแหล่งอื่น แนะนำให้ตรวจสอบประวัติการสั่งซื้อรายวัน 30 วันล่าสุดควบคู่กับยอดหนี้ค้างชำระเกินกำหนด 6 เดือนล่าสุด ทั้งนี้ต้องการให้ส่งเรื่องให้คุณอนุชาติดตามปัญหาต่อหรือไม่"
   }
  ],
  "asked": [],
  "error": null,
  "usage": {
-  "calls": 2,
-  "inputTokens": 23498,
-  "outputTokens": 2059,
-  "reasoningTokens": 1739,
-  "usd": 0.005751291666666667
+  "calls": 3,
+  "inputTokens": 44009,
+  "outputTokens": 5232,
+  "reasoningTokens": 5006,
+  "usd": 0.015546850000000001
  },
  "drawn": {
   "cards": [
-   "query_metric"
+   "query_metric",
+   "get_alerts"
   ],
   "composed": null
  }

@@ -1,5 +1,5 @@
 import { randomBytes } from "node:crypto";
-import { describeToolCall } from "@/lib/cards/describe-call";
+import { describeToolCall, sharedWith } from "@/lib/cards/describe-call";
 import { findUser } from "@/lib/data/entities/users";
 import { TH } from "@/lib/i18n/th";
 import { collection } from "@/lib/server/store/json-store";
@@ -22,6 +22,7 @@ function recipientName(args: unknown): string {
 const EFFECTS: Record<string, (args: unknown) => string> = {
   create_handoff: (args) => TH.approve.effectHandoff(recipientName(args)),
   send_email: (args) => TH.approve.effectEmail(recipientName(args)),
+  share_card: (args) => TH.approve.effectShare(sharedWith(typeof args === "object" && args !== null ? (args as { to?: unknown }).to : undefined)),
   pin_widget: () => TH.approve.effectPin,
   watch_metric: () => TH.approve.effectWatch,
   run_job: () => TH.approve.effectJob,

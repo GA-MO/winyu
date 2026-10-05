@@ -6,17 +6,14 @@ import { cn } from "@/components/ui/cn";
 import { CardShareProvider } from "@/components/ui/card-share";
 import { Portrait } from "@/components/ui/portrait";
 import { TH } from "@/lib/i18n/th";
-import { SHARE_NOTE_MAX, SHARE_RECIPIENTS_MAX, shareTitle, type ChannelOption, type ShareChannel, type ShareContact, type SharedCard, type ShareReceipt } from "@/lib/share/card";
+import { SHARE_NOTE_MAX, SHARE_RECIPIENTS_MAX, preferredChannel, shareTitle, type ChannelOption, type ShareChannel, type ShareContact, type SharedCard, type ShareReceipt, type ShareTarget } from "@/lib/share/card";
 
 const CONTACTS_ENDPOINT = "/api/shares/contacts";
 const SHARES_ENDPOINT = "/api/shares";
 const PANEL = "fixed right-0 top-0 z-50 flex h-dvh w-full max-w-[26rem] flex-col border-l border-border bg-card shadow-panel animate-panel-in";
 const CHIP = "inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
-const CHANNEL_ICON: Record<ShareChannel, typeof Mail> = { email: Mail, teams: Users, line: MessageCircle };
-const CHANNEL_PREFERENCE: readonly ShareChannel[] = ["teams", "line", "email"];
-
-/** What one press of ส่งต่อ hands the sheet: the card's reads and the question the exchange asked. */
-export type ShareTarget = { card: SharedCard; question: string | null };
+/** The icon each share channel shows with. */
+export const CHANNEL_ICON: Record<ShareChannel, typeof Mail> = { email: Mail, teams: Users, line: MessageCircle };
 
 type Phase = { kind: "picking" } | { kind: "sending" } | { kind: "sent"; receipts: ShareReceipt[]; path: string } | { kind: "failed" };
 
@@ -25,10 +22,6 @@ const ShareContext = createContext<((target: ShareTarget) => void) | null>(null)
 /** The share action cards offer, or null outside a surface that can share (the button then hides). */
 export function useShareCard(): ((target: ShareTarget) => void) | null {
   return useContext(ShareContext);
-}
-
-function preferredChannel(options: readonly ChannelOption[]): ShareChannel {
-  return CHANNEL_PREFERENCE.find((channel) => options.some((option) => option.channel === channel && option.ready)) ?? "email";
 }
 
 function matches(contact: ShareContact, query: string): boolean {
@@ -108,18 +101,26 @@ function Sent({ receipts, path, close }: { receipts: ShareReceipt[]; path: strin
   );
 }
 
+/** Everyone the signed-in person can share with and the channels that reach them; null until loaded. */
+export function useShareContacts(): ShareContact[] | null {
+  const [contacts, setContacts] = useState<ShareContact[] | null>(null);
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch(CONTACTS_ENDPOINT, { signal: controller.signal })
+      .then((response) => (response.ok ? (response.json() as Promise<{ contacts?: ShareContact[] }>) : null))
+      .then((payload) => setContacts(payload?.contacts ?? []))
+      .catch(() => undefined);
+    return () => controller.abort();
+  }, []);
+  return contacts;
+}
+
 function Sheet({ target, close }: { target: ShareTarget; close: () => void }) {
-  const [contacts, setContacts] = useState<ShareContact[]>([]);
+  const contacts = useShareContacts() ?? [];
   const [query, setQuery] = useState("");
   const [note, setNote] = useState("");
   const [chosen, setChosen] = useState<ReadonlyMap<string, ShareChannel>>(new Map());
   const [phase, setPhase] = useState<Phase>({ kind: "picking" });
-
-  useEffect(() => {
-    void fetch(CONTACTS_ENDPOINT)
-      .then((response) => (response.ok ? response.json() : null))
-      .then((payload: { contacts?: ShareContact[] } | null) => setContacts(payload?.contacts ?? []));
-  }, []);
 
   const toggle = (contact: ShareContact) =>
     setChosen((current) => {

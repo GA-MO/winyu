@@ -4,27 +4,27 @@
  "userId": "u_thana",
  "prompt": "เดือน ส.ค. ผลิตเบียร์ได้เท่าไหร่ ขายเข้าเท่าไหร่ ขายออกเท่าไหร่",
  "model": "google/gemini-3.8-flash",
- "promptHash": "b147f95e8a6c891a",
- "toolsHash": "5639642b6a430a27",
+ "promptHash": "0e40d01dd957aebf",
+ "toolsHash": "8bdfd8d8fb9656cf",
  "today": "2026-10-05",
- "recordedAt": "2026-10-05T15:49:15.910Z",
+ "recordedAt": "2026-10-05T18:57:58.938Z",
  "steps": [
   {
    "kind": "call",
    "tool": "query_metric",
    "args": {
+    "grain": "month",
+    "compare": "none",
+    "filters": {},
+    "metric": "production_output",
     "dims": [
      "month"
     ],
-    "metric": "production_output",
+    "limit": 1,
     "range": {
-     "to": "2026-08-31",
-     "from": "2026-08-01"
-    },
-    "compare": "none",
-    "filters": {},
-    "grain": "month",
-    "limit": 10
+     "from": "2026-08-01",
+     "to": "2026-08-31"
+    }
    },
    "result": {
     "ok": true,
@@ -71,7 +71,7 @@
      },
      "grain": "month",
      "compare": "none",
-     "limit": 10
+     "limit": 1
     },
     "nextActions": [
      {
@@ -108,18 +108,18 @@
    "kind": "call",
    "tool": "query_metric",
    "args": {
-    "limit": 10,
-    "compare": "none",
     "grain": "month",
+    "metric": "net_sales_volume",
+    "filters": {},
+    "compare": "none",
     "dims": [
      "month"
     ],
-    "filters": {},
-    "metric": "net_sales_volume",
     "range": {
      "from": "2026-08-01",
      "to": "2026-08-31"
-    }
+    },
+    "limit": 1
    },
    "result": {
     "ok": true,
@@ -166,7 +166,7 @@
      },
      "grain": "month",
      "compare": "none",
-     "limit": 10
+     "limit": 1
     },
     "nextActions": [
      {
@@ -223,15 +223,15 @@
     "dims": [
      "month"
     ],
-    "filters": {},
-    "grain": "month",
-    "metric": "sell_out_volume",
-    "limit": 10,
     "compare": "none",
+    "grain": "month",
+    "filters": {},
+    "limit": 1,
     "range": {
      "from": "2026-08-01",
      "to": "2026-08-31"
-    }
+    },
+    "metric": "sell_out_volume"
    },
    "result": {
     "ok": true,
@@ -278,7 +278,7 @@
      },
      "grain": "month",
      "compare": "none",
-     "limit": 10
+     "limit": 1
     },
     "nextActions": [
      {
@@ -305,7 +305,7 @@
          },
          "grain": "month",
          "compare": "none",
-         "limit": 10
+         "limit": 1
         }
        ],
        "alertIds": [
@@ -355,17 +355,17 @@
   },
   {
    "kind": "text",
-   "text": "ในเดือนสิงหาคม 2569 ปริมาณขายออกหน้าร้าน (Sell-out) สูงกว่าทั้งปริมาณการผลิตและยอดขายเข้าเอเย่นต์ (Sell-in) สะท้อนว่าตลาดกำลังดึงสต๊อกคงค้างเดิมออกไปจำหน่าย แนะนำให้ตรวจสอบวันครอบคลุมสต๊อก (Days of Cover) รายภาคเพิ่มเติมเพื่อเฝ้าระวังความเสี่ยงสินค้าขาดสต๊อกในช่องทางจัดจำหน่าย"
+   "text": "ในเดือนสิงหาคม 2569 ปริมาณขายออกหน้าร้านสูงกว่าทั้งยอดผลิตและยอดขายเข้าเอเย่นต์ สะท้อนว่าสินค้าถูกดึงออกจากสต๊อกในช่องทางจัดจำหน่ายอย่างต่อเนื่อง แนะนำให้ตรวจสอบวันครอบคลุมสต๊อก (Days of Cover) ในแต่ละภูมิภาคเพื่อวางแผนผลิตและเติมสินค้าไม่ให้ขาดช่วง"
   }
  ],
  "asked": [],
  "error": null,
  "usage": {
   "calls": 2,
-  "inputTokens": 24543,
-  "outputTokens": 2023,
-  "reasoningTokens": 1689,
-  "usd": 0.005855249999999999
+  "inputTokens": 25001,
+  "outputTokens": 1737,
+  "reasoningTokens": 1426,
+  "usd": 0.005303775
  },
  "drawn": {
   "cards": [

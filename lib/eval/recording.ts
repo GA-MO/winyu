@@ -10,6 +10,9 @@ import { toolTiers } from "@/lib/server/agent/tools";
 /** Where recorded cases live: one committed JSON file per case, the fixtures every scorer reads. */
 export const RECORDINGS_DIR = path.join(process.cwd(), "evals", "recordings");
 
+/** Replies frozen as unit-test fixtures: a test that needs one exact model behaviour (a refused call, two searches, a card with a given row) reads it here, so re-recording the eval never changes what the test proves. */
+export const FIXTURES_DIR = path.join(process.cwd(), "evals", "fixtures");
+
 const RECORDING_VERSION = 1;
 const READ_TIER = "read";
 
@@ -72,6 +75,11 @@ export function readRecordings(): Map<string, Recording> {
     const recording = JSON.parse(readFileSync(path.join(RECORDINGS_DIR, file), "utf8")) as Recording;
     return [recording.caseId, recording];
   }));
+}
+
+/** One frozen reply from evals/fixtures. */
+export function readFixture(caseId: string): Recording {
+  return JSON.parse(readFileSync(path.join(FIXTURES_DIR, `${caseId}.json`), "utf8")) as Recording;
 }
 
 /** Writes one recording as its committed fixture. */

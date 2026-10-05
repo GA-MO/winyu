@@ -6,6 +6,8 @@ import type { Dictionary } from "@/lib/semantic/dictionary";
 import { layouts, outbox, packets, staffRequests } from "@/lib/server/agent/collections";
 import { loadDictionary } from "@/lib/server/master-data";
 import { watchesOf } from "@/lib/server/watches";
+import { resolvedPeople } from "@/lib/share/recipients";
+import { recipientMatches, shares } from "@/lib/server/share/shares";
 
 type Row = Record<string, unknown>;
 type MetricOutput = { ok?: unknown; rows?: unknown; provenance?: { masked?: unknown } };
@@ -95,6 +97,18 @@ export const handoffHolds: Verifier = (verify) => {
     check("packet_exists", packet !== null, "no packet was stored"),
     check("packet_from_caller", packet?.fromUserId === verify.access.userId, "the packet is not from the caller"),
     check("packet_to_recipient", packet?.toUserId === (verify.input as { toUserId: string }).toUserId, "the packet went to someone else"),
+  ]);
+};
+
+/** A share holds when it is stored under the code returned, comes from the caller, and reached every person the call named. */
+export const shareHolds: Verifier = (verify) => {
+  const share = shares().get(dataOf<{ code: string }>(verify).code ?? "");
+  const named = resolvedPeople(recipientMatches((verify.input as { to: string[] }).to, verify.access.userId)) ?? [];
+  const reached = new Set(share?.deliveries.map((delivery) => delivery.userId));
+  return verdictOf([
+    check("share_exists", share !== null, "no share was stored"),
+    check("share_from_caller", share?.senderId === verify.access.userId, "the share is not from the caller"),
+    check("share_reached_everyone", named.length > 0 && named.every((user) => reached.has(user.id)), "the share did not reach everyone the call named"),
   ]);
 };
 

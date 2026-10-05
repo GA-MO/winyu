@@ -4,43 +4,39 @@
  "userId": "u_anucha",
  "prompt": "ยอดเทียบเป้ารายจังหวัดในภาคผมเดือนนี้",
  "model": "google/gemini-3.8-flash",
- "promptHash": "5cf727ed51a6d1b3",
- "toolsHash": "5639642b6a430a27",
+ "promptHash": "086aa018642e611e",
+ "toolsHash": "8bdfd8d8fb9656cf",
  "today": "2026-10-05",
- "recordedAt": "2026-10-05T15:47:10.823Z",
+ "recordedAt": "2026-10-05T18:55:47.023Z",
  "steps": [
   {
    "kind": "call",
    "tool": "query_metric",
    "args": {
+    "where": null,
     "metric": "target_attainment",
-    "dims": [
-     "province"
-    ],
+    "sort": "value_desc",
+    "compare": "target",
     "range": {
      "from": "2026-09-01",
      "to": "2026-09-22"
     },
+    "limit": 20,
     "grain": "month",
-    "sort": "value_asc",
+    "dims": [
+     "province"
+    ],
     "filters": {
      "region": "northeast"
-    },
-    "limit": 20,
-    "compare": "none"
+    }
    },
    "result": {
     "ok": true,
     "rows": [
      {
-      "province": "อุบลราชธานี",
-      "value": 81.7,
-      "value_label": "81.7%"
-     },
-     {
-      "province": "ขอนแก่น",
-      "value": 88.8,
-      "value_label": "88.8%"
+      "province": "นครราชสีมา",
+      "value": 101.9,
+      "value_label": "101.9%"
      },
      {
       "province": "บุรีรัมย์",
@@ -48,9 +44,14 @@
       "value_label": "99.2%"
      },
      {
-      "province": "นครราชสีมา",
-      "value": 101.9,
-      "value_label": "101.9%"
+      "province": "ขอนแก่น",
+      "value": 88.8,
+      "value_label": "88.8%"
+     },
+     {
+      "province": "อุบลราชธานี",
+      "value": 81.7,
+      "value_label": "81.7%"
      }
     ],
     "summary": "การบรรลุเป้าหมาย 1 ก.ย. 2569 – 22 ก.ย. 2569: เฉลี่ย 93.3% · ต่ำสุด: อุบลราชธานี 81.7% · ขอนแก่น 88.8% · บุรีรัมย์ 99.2% · (4 แถว · certified · SAP SD)",
@@ -115,9 +116,10 @@
       "to": "2026-09-22"
      },
      "grain": "month",
-     "compare": "none",
+     "compare": "target",
      "limit": 20,
-     "sort": "value_asc"
+     "sort": "value_desc",
+     "where": null
     },
     "nextActions": [
      {
@@ -160,17 +162,17 @@
   },
   {
    "kind": "text",
-   "text": "ยอดเทียบเป้ารายจังหวัดใช้เมตริกการบรรลุเป้าหมาย (Target Attainment) ของภาคอีสานในเดือนนี้ โดยข้อมูลล่าสุดถึงวันที่ 22 ก.ย. 2569 ครับ \n\nภาพรวมส่วนใหญ่ยังไม่ถึงเป้าหมายโดยอุบลราชธานีตามหลังมากที่สุด แนะนำให้เจาะดูผลการดำเนินงานแยกรายเอเย่นต์ในพื้นที่อุบลราชธานีเพื่อหาสาเหตุและวางแผนเร่งยอดขายครับ"
+   "text": "แสดงข้อมูลการบรรลุเป้าหมาย (Target Attainment) รายจังหวัดในภาคอีสาน ข้อมูลล่าสุดถึงวันที่ 22 ก.ย. 2569\n\nนครราชสีมาทำยอดทะลุเป้าหมายเพียงจังหวัดเดียว ขณะที่อุบลราชธานียังตามหลังมากที่สุด ควรเจาะดูยอดขายรายเอเย่นต์ในอุบลราชธานีเพื่อหาสาเหตุและเร่งผลักดันยอดขายในช่วงที่เหลือของเดือน"
   }
  ],
  "asked": [],
  "error": null,
  "usage": {
   "calls": 2,
-  "inputTokens": 24072,
-  "outputTokens": 2920,
-  "reasoningTokens": 2723,
-  "usd": 0.0073348499999999995
+  "inputTokens": 23163,
+  "outputTokens": 1171,
+  "reasoningTokens": 976,
+  "usd": 0.0035276250000000004
  },
  "drawn": {
   "cards": [

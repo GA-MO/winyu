@@ -115,7 +115,12 @@ function leadFirst(directory: Directory) {
   return (left: Employee, right: Employee) => reportCount(right) - reportCount(left) || left.hiredOn.localeCompare(right.hiredOn);
 }
 
+function asksAboutTeam(query: PeopleQuery): boolean {
+  return query.region !== null || query.departmentId !== null || query.manager !== null;
+}
+
 function openPositionsFor(access: AccessContext, query: PeopleQuery, directory: Directory) {
+  if (!asksAboutTeam(query)) return [];
   return directory.openPositions.filter((position) => {
     if (access.regions !== "all" && position.region && !access.regions.includes(position.region)) return false;
     if (query.region && position.region !== query.region) return false;

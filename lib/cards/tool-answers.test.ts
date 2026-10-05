@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { parseResult } from "@/components/cards/entity/shapes";
-import { readRecordings } from "@/lib/eval/recording";
+import { readFixture } from "@/lib/eval/recording";
 import { TH } from "@/lib/i18n/th";
 import { z } from "zod";
 import { toolCardParts } from "./tool-answers";
@@ -14,9 +14,8 @@ function deniedOf(result: unknown) {
 }
 
 function recordedRefusal(): { error: string; fix: string } {
-  const step = readRecordings()
-    .get("finance-budget")
-    ?.steps.find((candidate) => candidate.kind === "call" && candidate.tool === "query_metric" && (candidate.result as { ok?: unknown }).ok === false);
+  const step = readFixture("finance-budget")
+    .steps.find((candidate) => candidate.kind === "call" && candidate.tool === "query_metric" && (candidate.result as { ok?: unknown }).ok === false);
   if (!step || step.kind !== "call") throw new Error("finance-budget has no refused query_metric");
   return step.result as { error: string; fix: string };
 }

@@ -4,29 +4,30 @@
  "userId": "u_thana",
  "prompt": "ยอดขายแต่ละภาคแยกช่องทาง เทียบเดือนก่อน",
  "model": "google/gemini-3.8-flash",
- "promptHash": "b147f95e8a6c891a",
- "toolsHash": "5639642b6a430a27",
+ "promptHash": "0e40d01dd957aebf",
+ "toolsHash": "8bdfd8d8fb9656cf",
  "today": "2026-10-05",
- "recordedAt": "2026-10-05T15:49:05.660Z",
+ "recordedAt": "2026-10-05T18:57:50.193Z",
  "steps": [
   {
    "kind": "call",
    "tool": "query_metric",
    "args": {
+    "limit": 60,
     "grain": "month",
     "range": {
      "from": "2026-09-01",
      "to": "2026-09-22"
     },
-    "compare": "prev_period",
-    "filters": {},
-    "sort": "value_desc",
-    "limit": 60,
     "dims": [
      "region",
      "channel"
     ],
-    "metric": "net_sales_value"
+    "sort": "value_desc",
+    "metric": "net_sales_value",
+    "filters": {},
+    "where": null,
+    "compare": "prev_period"
    },
    "result": {
     "ok": true,
@@ -275,7 +276,8 @@
      "grain": "month",
      "compare": "prev_period",
      "limit": 60,
-     "sort": "value_desc"
+     "sort": "value_desc",
+     "where": null
     },
     "nextActions": [
      {
@@ -304,7 +306,8 @@
          "grain": "month",
          "compare": "prev_period",
          "limit": 60,
-         "sort": "value_desc"
+         "sort": "value_desc",
+         "where": null
         }
        ],
        "alertIds": []
@@ -351,17 +354,17 @@
   },
   {
    "kind": "text",
-   "text": "รายงานนี้ใช้มูลค่ายอดขายสุทธิ (Net Sales Value) ข้อมูลล่าสุดถึงวันที่ 22 ก.ย. 2569 โดยเปรียบเทียบกับช่วงเวลาเดียวกันของเดือนก่อนหน้า (1–22 ส.ค. 2569)\n\nภาพรวมยอดขายชะลอตัวลงทุกภาคและทุกช่องทาง โดยภาคอีสานปรับตัวลดลงแรงที่สุดในกลุ่มช่องทางหลักและส่งออก จึงควรเจาะดูสาเหตุการหดตัวของช่องทางจำหน่ายในภาคอีสานเป็นลำดับแรก"
+   "text": "แสดงข้อมูลเป็นมูลค่าขายเข้าสุทธิ (Net Sales Value) ช่วงวันที่ 1–22 ก.ย. 2569 เทียบกับช่วงเดียวกันของเดือนก่อนหน้า\n\nยอดขายชะลอตัวลงในทุกภาค โดยภาคอีสานปรับตัวลดลงแรงที่สุดในทุกช่องทาง (ลดลงประมาณ 18% ถึง 20%) ขณะที่ภาคอื่นลดลงเฉลี่ย 8% ถึง 10% แนะนำเจาะดูรายเอเย่นต์ในภาคอีสานเพิ่มเติมเพื่อหาสาเหตุของคำสั่งซื้อที่ลดลงผิดปกตินี้ครับ"
   }
  ],
  "asked": [],
  "error": null,
  "usage": {
   "calls": 2,
-  "inputTokens": 24500,
-  "outputTokens": 1464,
-  "reasoningTokens": 1253,
-  "usd": 0.004791
+  "inputTokens": 25558,
+  "outputTokens": 1987,
+  "reasoningTokens": 1763,
+  "usd": 0.0059813999999999996
  },
  "drawn": {
   "cards": [

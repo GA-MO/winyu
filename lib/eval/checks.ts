@@ -2,10 +2,12 @@ import { liveAccessFor } from "@/lib/access/enforce";
 import { citedName } from "@/lib/cards/citations";
 import { presentCard } from "@/lib/cards/present";
 import { ASK_EVENT, COMPOSE_ACTION_TOOLS, type ComposedComponent } from "@/lib/compose/catalog";
-import { REGIONS, setPermissionInputSchema, watchMetricInputSchema, type MetricQuery, type MetricResult, type Region } from "@/lib/contracts";
+import { createHandoffInputSchema, REGIONS, setPermissionInputSchema, watchMetricInputSchema, type MetricQuery, type MetricResult, type Region } from "@/lib/contracts";
 import { metricLabel } from "@/lib/dashboard/metric-display";
 import { TODAY } from "@/lib/data/dates";
-import { findUser } from "@/lib/data/entities/users";
+import { findUser, USERS } from "@/lib/data/entities/users";
+import { shareCardInputSchema } from "@/lib/share/card";
+import { matchRecipients, resolvedPeople } from "@/lib/share/recipients";
 import { TH } from "@/lib/i18n/th";
 import { maskNumbers } from "@/lib/server/recall/mask";
 import type { EvalCase } from "./cases";
@@ -34,7 +36,10 @@ const NON_TEXT_PROPS: ReadonlySet<string> = new Set(["id", "component", "childre
 const FIELD_NAME_PROPS: Partial<Record<string, readonly string[]>> = { RankList: ["label", "value", "note"], Table: ["columns"] };
 const PICTURE_PROPS = ["src"] as const;
 const PRESS_EVENTS: ReadonlySet<string> = new Set([ASK_EVENT, ...COMPOSE_ACTION_TOOLS]);
-const APPROVAL_SCHEMAS: Partial<Record<string, { safeParse: (value: unknown) => { success: boolean } }>> = { watch_metric: watchMetricInputSchema, set_permission: setPermissionInputSchema };
+const APPROVAL_SCHEMAS: Partial<Record<string, { safeParse: (value: unknown) => { success: boolean } }>> = { watch_metric: watchMetricInputSchema, set_permission: setPermissionInputSchema, share_card: shareCardInputSchema, create_handoff: createHandoffInputSchema };
+const SENDING_TOOLS: ReadonlySet<string> = new Set(["share_card", "create_handoff", "send_email"]);
+const PEOPLE_LOOKUPS: ReadonlySet<string> = new Set(["find_people", "get_person", "resolve_owner"]);
+const TEAM_FILTERS = ["manager", "region", "department"] as const;
 const REGION_IDS: ReadonlySet<string> = new Set(REGIONS);
 const TIME_UNIT_DIMS: ReadonlySet<string> = new Set(["date", "week", "month"]);
 const GROUP_UNITS = Object.entries(TH.dash.dimUnit).filter(([dim]) => !TIME_UNIT_DIMS.has(dim)).map(([, unit]) => unit);
@@ -95,6 +100,17 @@ function passagesOf(turn: EvalTurn): Passage[] {
     .filter((call) => call.tool === DOCUMENTS_TOOL && isRecord(call.result) && isRecord(call.result.data) && Array.isArray(call.result.data.passages))
     .flatMap((call) => ((call.result as { data: { passages: unknown[] } }).data.passages))
     .flatMap((passage) => (isRecord(passage) && typeof passage.doc_id === "string" && typeof passage.title === "string" && typeof passage.section === "string" ? [{ doc_id: passage.doc_id, title: passage.title, section: passage.section }] : []));
+}
+
+function recipientsOf(call: DrawnCard, askerId: string): string[] {
+  const args = isRecord(call.args) ? call.args : {};
+  if (typeof args.toUserId === "string") return [args.toUserId];
+  const names = Array.isArray(args.to) ? args.to.filter((name): name is string => typeof name === "string") : [];
+  return (resolvedPeople(matchRecipients(names, USERS.filter((user) => user.id !== askerId))) ?? []).map((user) => user.id);
+}
+
+function isNameLookup(call: DrawnCard): boolean {
+  return call.tool === "find_people" && isRecord(call.args) && TEAM_FILTERS.every((filter) => !(isRecord(call.args) && call.args[filter]));
 }
 
 function expectedTool(expected: EvalCase): string | null {
@@ -244,6 +260,26 @@ export const EVAL_CHECKS: readonly EvalCheck[] = [
       const valid = asked !== undefined && (!schema || schema.safeParse(asked.args).success);
       const paused = turn.recording.asked.includes(expected.expectApproval);
       return verdict(valid && paused, asked ? `input ${valid ? "ถูกต้อง" : "ไม่ผ่าน schema"} · ${paused ? "รออนุมัติ" : "ไม่ได้ขออนุมัติ"}` : `ไม่ได้เรียก ${expected.expectApproval}`);
+    },
+  },
+  {
+    id: "rightRecipient",
+    description: "The share or handoff goes to the one colleague the person named, resolved without a guess.",
+    verdict: (turn, expected) => {
+      if (!expected.expectRecipient || !expected.expectApproval) return null;
+      const call = turn.calls.find((candidate) => candidate.tool === expected.expectApproval);
+      const recipients = call ? recipientsOf({ tool: call.tool, args: call.args, result: null }, turn.recording.userId) : [];
+      return verdict(recipients.length === 1 && recipients[0] === expected.expectRecipient, `ผู้รับ ${recipients.join(", ") || "ไม่มี"} คาดว่า ${expected.expectRecipient} · ${JSON.stringify(call?.args ?? null).slice(0, 80)}`);
+    },
+  },
+  {
+    id: "sendDrawsNoPeople",
+    description: "A reply that ends in a share, a handoff or an email draws no people card for the lookup that found the recipient.",
+    verdict: (turn) => {
+      if (!turn.calls.some((call) => SENDING_TOOLS.has(call.tool))) return null;
+      const drawn = turn.cards.filter((card) => PEOPLE_LOOKUPS.has(card.tool) || (card.tool === "describe_entity" && isRecord(card.args) && card.args.kind === "user")).map((card) => card.tool);
+      const composed = components(turn).length > 0;
+      return verdict(drawn.length === 0 && !composed, drawn.length === 0 && !composed ? "ไม่มีการ์ดคนจากการค้นผู้รับ" : `วาด ${[...drawn, ...(composed ? ["การ์ดประกอบ"] : [])].join(", ")}`);
     },
   },
   {
@@ -459,6 +495,16 @@ export const EVAL_CHECKS: readonly EvalCheck[] = [
       if (leaked > 0) return verdict(false, `ได้ ${leaked} ตอนจาก ${wanted.hidden} ที่ผู้ถามไม่มีสิทธิ์อ่าน`);
       const said = NOT_FOUND.test(turn.words);
       return verdict(said, said ? "บอกว่าไม่พบในเอกสาร" : `ไม่ได้บอกว่าไม่พบ: "${turn.words.slice(0, 80)}"`);
+    },
+  },
+  {
+    id: "noVacanciesForName",
+    description: "A people lookup by name or flag lists no open positions; vacancies belong to a team, region or department question.",
+    verdict: (turn) => {
+      const lookups = returned(turn).filter(isNameLookup);
+      if (lookups.length === 0) return null;
+      const listed = lookups.reduce((count, call) => count + (isRecord(call.result) && Array.isArray(call.result.open_positions) ? call.result.open_positions.length : 0), 0);
+      return verdict(listed === 0, listed === 0 ? "ไม่มีตำแหน่งว่างในการค้นตามชื่อ" : `การค้นตามชื่อได้ตำแหน่งว่าง ${listed} ตำแหน่ง`);
     },
   },
   {

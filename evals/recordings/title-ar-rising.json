@@ -4,28 +4,57 @@
  "userId": "u_siriporn",
  "prompt": "ลูกหนี้ค้างเกินกำหนดเอเย่นต์ไหนเพิ่มขึ้นบ้าง",
  "model": "google/gemini-3.8-flash",
- "promptHash": "b392a33b084b048a",
- "toolsHash": "3542bb7c8b47d7ed",
+ "promptHash": "f4a422047d7fd331",
+ "toolsHash": "dbd92ac157880cce",
  "today": "2026-10-05",
- "recordedAt": "2026-10-05T15:53:46.281Z",
+ "recordedAt": "2026-10-05T19:02:13.443Z",
  "steps": [
+  {
+   "kind": "call",
+   "tool": "list_metrics",
+   "args": {
+    "search": "ลูกหนี้"
+   },
+   "result": {
+    "ok": true,
+    "summary": "พบ 1 เมตริกที่ตรงกับคำค้น",
+    "data": [
+     {
+      "id": "ar_overdue",
+      "labelTh": "ยอดค้างชำระเกินกำหนด",
+      "unit": "บาท",
+      "dims": [
+       "month",
+       "agent",
+       "province",
+       "region"
+      ],
+      "certified": true,
+      "source": "SAP FI",
+      "refresh": "รายเดือน",
+      "latest": "22 ก.ย. 2569"
+     }
+    ]
+   }
+  },
   {
    "kind": "call",
    "tool": "query_metric",
    "args": {
-    "limit": 10,
-    "sort": "delta_desc",
-    "compare": "prev_period",
-    "filters": {},
+    "where": null,
     "range": {
      "to": "2026-09-22",
      "from": "2026-09-01"
     },
     "metric": "ar_overdue",
+    "sort": "delta_desc",
+    "compare": "prev_period",
+    "grain": "month",
+    "limit": 10,
     "dims": [
      "agent"
     ],
-    "grain": "month"
+    "filters": {}
    },
    "result": {
     "ok": true,
@@ -151,7 +180,8 @@
      "grain": "month",
      "compare": "prev_period",
      "limit": 10,
-     "sort": "delta_desc"
+     "sort": "delta_desc",
+     "where": null
     },
     "nextActions": [
      {
@@ -179,7 +209,8 @@
          "grain": "month",
          "compare": "prev_period",
          "limit": 10,
-         "sort": "delta_desc"
+         "sort": "delta_desc",
+         "where": null
         }
        ],
        "alertIds": [
@@ -237,17 +268,17 @@
   },
   {
    "kind": "text",
-   "text": "ข้อมูลลูกหนี้ค้างชำระเกินกำหนด (AR Overdue) ล่าสุดถึงวันที่ 22 กันยายน 2569 พบเอเย่นต์ที่มียอดค้างชำระเพิ่มขึ้นจากช่วงก่อนหน้า 3 ราย โดยพัทยาซันไชน์ ซัพพลาย มียอดเพิ่มขึ้นมากที่สุด ตามด้วยนนท์เจริญพาณิชย์ และอยุธยาศรีทอง ควรตรวจสอบเงื่อนไขรอบการวางบิลและจำกัดวงเงินเครดิตสำหรับการสั่งซื้อรอบถัดไปของทั้งสามรายเพื่อควบคุมความเสี่ยงกระแสเงินสด"
+   "text": "ข้อมูลยอดค้างชำระเกินกำหนดล่าสุดถึงวันที่ 22 ก.ย. 2569 พบเอเย่นต์ที่มียอดค้างเพิ่มขึ้นเทียบกับช่วงก่อนหน้า 3 ราย นำโดยพัทยาซันไชน์ ซัพพลาย, นนท์เจริญพาณิชย์ และอยุธยาศรีทอง \n\nสมมติฐานเบื้องต้นอาจเกิดจากรอบการวางบิลล่าช้าหรือสภาพคล่องหน้าร้านชะลอตัว แนะนำตรวจสอบประวัติการตัดรอบชำระใน SAP FI ควบคู่กับยอดขาย sell-out หน้าร้าน หรือสามารถกดส่งงานให้ผู้รับผิดชอบติดตามหนี้ต่อจากการ์ดได้เลยครับ"
   }
  ],
  "asked": [],
  "error": null,
  "usage": {
-  "calls": 2,
-  "inputTokens": 22454,
-  "outputTokens": 1593,
-  "reasoningTokens": 1376,
-  "usd": 0.0048072375
+  "calls": 3,
+  "inputTokens": 33865,
+  "outputTokens": 1464,
+  "reasoningTokens": 1199,
+  "usd": 0.005164758333333333
  },
  "drawn": {
   "cards": [

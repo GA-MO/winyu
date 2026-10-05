@@ -4,10 +4,10 @@
  "userId": "u_thana",
  "prompt": "เช้านี้ภาคไหนยังไม่ถึงเป้าบ้าง",
  "model": "google/gemini-3.8-flash",
- "promptHash": "b147f95e8a6c891a",
- "toolsHash": "5639642b6a430a27",
+ "promptHash": "0e40d01dd957aebf",
+ "toolsHash": "8bdfd8d8fb9656cf",
  "today": "2026-10-05",
- "recordedAt": "2026-10-05T15:46:56.552Z",
+ "recordedAt": "2026-10-05T18:55:39.243Z",
  "steps": [
   {
    "kind": "call",
@@ -48,23 +48,23 @@
    "kind": "call",
    "tool": "query_metric",
    "args": {
-    "grain": "month",
-    "limit": 10,
-    "dims": [
-     "region"
-    ],
-    "compare": "none",
-    "filters": {},
-    "where": {
-     "value": 100,
-     "op": "below"
-    },
-    "sort": "value_asc",
-    "metric": "target_attainment",
     "range": {
      "from": "2026-09-01",
      "to": "2026-09-22"
-    }
+    },
+    "where": {
+     "op": "below",
+     "value": 100
+    },
+    "compare": "none",
+    "dims": [
+     "region"
+    ],
+    "filters": {},
+    "limit": 10,
+    "grain": "month",
+    "metric": "target_attainment",
+    "sort": "value_asc"
    },
    "result": {
     "ok": true,
@@ -162,21 +162,20 @@
   },
   {
    "kind": "text",
-   "text": "ข้อมูลล่าสุดในระบบถึงวันที่ 22 กันยายน 2569 โดยประเมินจากเมตริกการบรรลุเป้าหมายยอดขาย (Target Attainment) ในเดือนนี้ พบว่ามีเพียงภาคอีสานที่ยังไม่ถึงเป้าหมาย ควรเจาะดูรายละเอียดแยกรายจังหวัดหรือตัวแทนจำหน่ายในภาคอีสานเพื่อหาสาเหตุที่ยอดขายยังตามหลังอยู่ครับ"
+   "text": "ข้อมูลล่าสุดในระบบถึงวันที่ 22 กันยายน 2569 โดยพิจารณาจากอัตราการบรรลุเป้าหมาย (Target Attainment) สะสมเดือนกันยายน แนะนำให้เจาะดูรายจังหวัดและผู้แทนจำหน่ายในพื้นที่ที่ยังไม่ถึงเป้าหมาย เพื่อเร่งแก้ปัญหาการกระจายสินค้าและกระตุ้นยอดขายช่วงปลายเดือน"
   }
  ],
  "asked": [],
  "error": null,
  "usage": {
   "calls": 3,
-  "inputTokens": 34956,
-  "outputTokens": 2198,
-  "reasoningTokens": 1996,
-  "usd": 0.006737916666666666
+  "inputTokens": 36901,
+  "outputTokens": 3384,
+  "reasoningTokens": 3188,
+  "usd": 0.009190162500000001
  },
  "drawn": {
   "cards": [
-   "list_metrics",
    "query_metric"
   ],
   "composed": null

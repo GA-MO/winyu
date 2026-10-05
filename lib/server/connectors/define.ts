@@ -76,7 +76,7 @@ function winyuToolOf(connector: ConnectorIdentity & { timeoutMs: number }, bindi
     labelTh: binding.config.labelTh,
     bodyTh: binding.config.bodyTh ?? TH.admin.connectors.toolBody(connector.sourceSystemTh),
   };
-  const capability: Capability = { ...entry, timeoutMs: connector.timeoutMs + LIMITS.toolTimeoutMs, verify: null, correct: null, redact: [] };
+  const capability: Capability = { ...entry, timeoutMs: connector.timeoutMs + LIMITS.toolTimeoutMs, ready: null, verify: null, correct: null, redact: [] };
   return {
     entry,
     capability,

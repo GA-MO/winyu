@@ -4,29 +4,28 @@
  "userId": "u_thana",
  "prompt": "ยอดขายแยกตามภาคเดือนนี้",
  "model": "google/gemini-3.8-flash",
- "promptHash": "b147f95e8a6c891a",
- "toolsHash": "5639642b6a430a27",
+ "promptHash": "0e40d01dd957aebf",
+ "toolsHash": "8bdfd8d8fb9656cf",
  "today": "2026-10-05",
- "recordedAt": "2026-10-05T15:41:56.266Z",
+ "recordedAt": "2026-10-05T18:51:12.986Z",
  "steps": [
   {
    "kind": "call",
    "tool": "query_metric",
    "args": {
+    "sort": "value_desc",
+    "dims": [
+     "region"
+    ],
+    "limit": 10,
     "range": {
      "to": "2026-09-22",
      "from": "2026-09-01"
     },
-    "compare": "target",
     "filters": {},
-    "where": null,
-    "sort": "value_desc",
-    "metric": "net_sales_value",
-    "limit": 10,
-    "dims": [
-     "region"
-    ],
-    "grain": "month"
+    "compare": "target",
+    "grain": "month",
+    "metric": "net_sales_value"
    },
    "result": {
     "ok": true,
@@ -130,8 +129,7 @@
      "grain": "month",
      "compare": "target",
      "limit": 10,
-     "sort": "value_desc",
-     "where": null
+     "sort": "value_desc"
     },
     "nextActions": [
      {
@@ -174,17 +172,17 @@
   },
   {
    "kind": "text",
-   "text": "รายงานด้วยมูลค่าขายเข้าสุทธิ (Net Sales Value) ประจำเดือนนี้ช่วงวันที่ 1–22 ก.ย. 2569 (ข้อมูลล่าสุดถึง 22 ก.ย. 2569) โดยภาพรวมส่วนใหญ่ทำได้ตามเป้าหมาย ยกเว้นภาคอีสานที่เป็นภูมิภาคเดียวที่ยังต่ำกว่าเป้าและฉุดยอดรวม ควรเจาะดูข้อมูลระดับเอเย่นต์ในภาคอีสานเพื่อหาสาเหตุของยอดขายที่ชะลอตัว"
+   "text": "รายงานเป็นมูลค่าขายสุทธิ (net_sales_value) ข้อมูลล่าสุดถึงวันที่ 22 ก.ย. 2569 ภาพรวมยอดขายตามเป้าเกือบทุกภาค ยกเว้นภาคอีสานที่ยังต่ำกว่าเป้าหมายมากที่สุด แนะนำให้เจาะดูยอดขายรายเอเย่นต์ในภาคอีสานเพื่อหาสาเหตุของส่วนต่างดังกล่าว"
   }
  ],
  "asked": [],
  "error": null,
  "usage": {
   "calls": 2,
-  "inputTokens": 23261,
-  "outputTokens": 2092,
-  "reasoningTokens": 1892,
-  "usd": 0.005503875
+  "inputTokens": 23996,
+  "outputTokens": 1645,
+  "reasoningTokens": 1476,
+  "usd": 0.0047544
  },
  "drawn": {
   "cards": [

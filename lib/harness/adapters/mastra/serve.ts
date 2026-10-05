@@ -14,7 +14,7 @@ import { AGENT_ID, USER_ID_KEY, winyuAgent } from "./agent";
 import { HARNESS_RUN_KEY, tracingOptionsOf } from "./observability";
 import { asBridgeAgent } from "./durable";
 import { ReplyCards, withComposedCards, type ComposedCardRecord } from "./card-stream";
-import { threadTranscript } from "./history";
+import { cardBeforeQuestion, threadTranscript } from "./history";
 import { guardedRunInput, inputFindings, type GuardedInput } from "./guardrails";
 import { learnFromTurn } from "./learn";
 import { chatTurnOf, observeReply, type ChatTurn, type KnownCalls, type ReplySeen, type RunInput } from "./turn";
@@ -129,7 +129,8 @@ export async function streamRun(access: AccessContext, req: Request, run: Run, t
   if (turn.threadId) threadForRun(turn.threadId, access.userId, turn.question ?? "");
   const threadId = turn.threadId;
   const transcript = threadId ? () => threadTranscript(threadId, access.userId) : undefined;
-  const context: TurnContext = { turnId: run.id, threadId, preloadPacketId: turn.preloadPacketId, question: turn.question, queries: [], transcript };
+  const cardOnScreen = threadId ? () => cardBeforeQuestion(threadId, access.userId, turn.question) : undefined;
+  const context: TurnContext = { turnId: run.id, threadId, preloadPacketId: turn.preloadPacketId, question: turn.question, queries: [], transcript, cardOnScreen };
   if (guarded) runWithTurn(context, () => runWithRun(run, () => inputFindings(guarded).forEach((finding) => recordGuardFinding(finding, access.userId))));
   const records: ComposedCardRecord[] = [];
   const cards = replyCards((record) => records.push(record));

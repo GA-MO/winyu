@@ -4,29 +4,28 @@
  "userId": "u_may",
  "prompt": "จำนวนพนักงานแต่ละฝ่ายเทียบปีที่แล้ว",
  "model": "google/gemini-3.8-flash",
- "promptHash": "2bfadd00013f7c5d",
- "toolsHash": "3542bb7c8b47d7ed",
+ "promptHash": "dd0dfe3d93273af0",
+ "toolsHash": "dbd92ac157880cce",
  "today": "2026-10-05",
- "recordedAt": "2026-10-05T15:45:04.545Z",
+ "recordedAt": "2026-10-05T18:53:51.265Z",
  "steps": [
   {
    "kind": "call",
    "tool": "query_metric",
    "args": {
+    "grain": "month",
+    "limit": 60,
+    "metric": "headcount",
+    "sort": "value_desc",
     "dims": [
      "department"
     ],
-    "where": null,
+    "compare": "prev_year",
+    "filters": {},
     "range": {
      "from": "2026-09-01",
      "to": "2026-09-22"
-    },
-    "grain": "month",
-    "metric": "headcount",
-    "sort": "value_desc",
-    "limit": 20,
-    "compare": "prev_year",
-    "filters": {}
+    }
    },
    "result": {
     "ok": true,
@@ -137,9 +136,8 @@
      },
      "grain": "month",
      "compare": "prev_year",
-     "limit": 20,
-     "sort": "value_desc",
-     "where": null
+     "limit": 60,
+     "sort": "value_desc"
     },
     "nextActions": [],
     "followUps": [
@@ -156,17 +154,17 @@
   },
   {
    "kind": "text",
-   "text": "ข้อมูลจำนวนพนักงานล่าสุด ณ วันที่ 22 กันยายน 2569 ทุกฝ่ายมีกำลังคนเพิ่มขึ้นหรือทรงตัวเมื่อเทียบกับช่วงเดียวกันของปีก่อน โดยฝ่ายที่มีอัตราการเติบโตของกำลังคนสูงสุดคือฝ่ายไอทีและฝ่ายการตลาด หากต้องการประเมินความต่อเนื่องของกำลังคน สามารถเจาะดูอัตราการลาออก (Attrition Rate) หรือตำแหน่งที่ยังเปิดรับสมัครในแต่ละฝ่ายเพิ่มเติมได้ครับ"
+   "text": "ข้อมูลจำนวนพนักงานล่าสุด ณ วันที่ 22 กันยายน 2569 ทุกฝ่ายมีกำลังคนเพิ่มขึ้นหรือทรงตัวเมื่อเทียบกับช่วงเดียวกันของปีก่อน โดยฝ่ายไอทีและฝ่ายการตลาดมีอัตราการเติบโตของบุคลากรสูงที่สุด หากต้องการวางแผนอัตรากำลังเชิงลึก สามารถตรวจสอบแนวโน้มรายเดือนหรืออัตราการลาออกเพิ่มเติมในแต่ละฝ่ายได้ครับ"
   }
  ],
  "asked": [],
  "error": null,
  "usage": {
   "calls": 2,
-  "inputTokens": 21761,
-  "outputTokens": 1296,
-  "reasoningTokens": 1113,
-  "usd": 0.00377355
+  "inputTokens": 22091,
+  "outputTokens": 1086,
+  "reasoningTokens": 914,
+  "usd": 0.003316575
  },
  "drawn": {
   "cards": [

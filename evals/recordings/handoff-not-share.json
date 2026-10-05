@@ -1,0 +1,570 @@
+{
+ "version": 1,
+ "caseId": "handoff-not-share",
+ "userId": "u_thana",
+ "prompt": "ฝากคุณอนุชาช่วยดูต่อเรื่องภาคอีสานที่ต่ำกว่าเป้าหน่อย",
+ "model": "google/gemini-3.8-flash",
+ "promptHash": "0e40d01dd957aebf",
+ "toolsHash": "8bdfd8d8fb9656cf",
+ "today": "2026-10-05",
+ "recordedAt": "2026-10-05T18:49:34.805Z",
+ "steps": [
+  {
+   "kind": "call",
+   "tool": "describe_entity",
+   "args": {
+    "kind": "user",
+    "query": "อนุชา"
+   },
+   "result": {
+    "ok": true,
+    "data": {
+     "id": "u_anucha",
+     "ชื่อ": "คุณอนุชา พรหมศรี",
+     "ตำแหน่ง": "ผู้จัดการขายภาค ภาคอีสาน",
+     "ฝ่าย": "ขาย",
+     "บทบาท": "ผู้จัดการขายภาค",
+     "ภาค": "ภาคอีสาน",
+     "หัวหน้า": "คุณประสิทธิ์ ชัยภูมิ",
+     "อีเมล": "anucha@boonrawd-demo.co.th"
+    },
+    "summary": "คุณอนุชา พรหมศรี ผู้จัดการขายภาค ภาคอีสาน ฝ่ายขาย ภาคอีสาน"
+   }
+  },
+  {
+   "kind": "call",
+   "tool": "query_metric",
+   "args": {
+    "limit": 10,
+    "compare": "target",
+    "metric": "target_attainment",
+    "grain": "month",
+    "filters": {
+     "region": "northeast"
+    },
+    "range": {
+     "to": "2026-09-22",
+     "from": "2026-09-01"
+    },
+    "dims": [
+     "region"
+    ]
+   },
+   "result": {
+    "ok": true,
+    "rows": [
+     {
+      "region": "ภาคอีสาน",
+      "value": 93.3,
+      "value_label": "93.3%"
+     }
+    ],
+    "summary": "การบรรลุเป้าหมาย 1 ก.ย. 2569 – 22 ก.ย. 2569: เฉลี่ย 93.3% · ต่ำสุด: ภาคอีสาน 93.3% · (1 แถว · certified · SAP SD)",
+    "headline": {
+     "aggregate": "average",
+     "value": "93.3%",
+     "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+     "rowCount": 1,
+     "deltaPercent": null,
+     "compareLabel": null,
+     "compareNote": null,
+     "top": [
+      {
+       "label": "ภาคอีสาน",
+       "value": "93.3%"
+      }
+     ],
+     "underLine": null
+    },
+    "provenance": {
+     "metric": "target_attainment",
+     "certified": true,
+     "sourceSystem": "SAP SD",
+     "asOf": "2026-09-22",
+     "rowCount": 1,
+     "filtersApplied": {
+      "region": [
+       "northeast"
+      ]
+     },
+     "filterLabels": [],
+     "scopeApplied": {},
+     "masked": [],
+     "trust": "verified"
+    },
+    "query": {
+     "metric": "target_attainment",
+     "dims": [
+      "region"
+     ],
+     "filters": {
+      "region": [
+       "northeast"
+      ]
+     },
+     "range": {
+      "from": "2026-09-01",
+      "to": "2026-09-22"
+     },
+     "grain": "month",
+     "compare": "target",
+     "limit": 10
+    },
+    "nextActions": [
+     {
+      "id": "drill-province",
+      "kind": "drill",
+      "label": "แยกตามจังหวัด",
+      "reason": "ยังไม่ได้ดูแยกรายจังหวัด",
+      "tool": null,
+      "input": null,
+      "prompt": "ขอการบรรลุเป้าหมายแยกตามจังหวัด เรียงจากมากไปน้อย"
+     }
+    ],
+    "followUps": [
+     {
+      "id": "fu-forecast",
+      "label": "จะถึงเป้าไหม",
+      "prompt": "พยากรณ์ปริมาณขายเข้า 8 สัปดาห์ข้างหน้า จะถึงเป้าไหม",
+      "reason": "ดูว่าถ้าเป็นแบบนี้ต่อไปจะเกิดอะไร",
+      "intentKey": "follow|forecast",
+      "score": 0.55
+     },
+     {
+      "id": "fu-trend",
+      "label": "ดูแนวโน้มรายสัปดาห์",
+      "prompt": "การบรรลุเป้าหมาย รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+      "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+      "intentKey": "follow|trend",
+      "score": 0.5
+     }
+    ]
+   }
+  },
+  {
+   "kind": "call",
+   "tool": "get_alerts",
+   "args": {
+    "status": "open",
+    "limit": 5
+   },
+   "result": {
+    "ok": true,
+    "summary": "มีความผิดปกติที่เปิดอยู่ 5 รายการในขอบเขตของคุณ",
+    "rows": [
+     {
+      "id": "al_e8114d936da7141f",
+      "severity": "P1",
+      "severityLabel": "ต้องรีบดู",
+      "metric": "days_of_cover",
+      "metricLabel": "วันครอบคลุมสต๊อก",
+      "scope": {
+       "dc": "dc_lamphun",
+       "sku": "sku_purra_pet600",
+       "region": "north"
+      },
+      "scopeLabel": "ศูนย์กระจายสินค้าลำพูน · เพอร์ร่า ขวด PET 600 มล. · ภาคเหนือ",
+      "window": "16 ก.ย. 2569 – 22 ก.ย. 2569",
+      "observedLabel": "6.1 วัน",
+      "expectedLabel": "15.7 วัน",
+      "gapLabel": "61%",
+      "yearOverYear": false,
+      "direction": "down",
+      "hypothesis": "สต๊อกที่ศูนย์กระจายสินค้าลำพูนเหลือพอขายอีกประมาณ 6.1 วัน ต่ำกว่าเกณฑ์ 10 วัน เสี่ยงของขาดก่อนรอบเติมสินค้าถัดไป",
+      "verifySteps": [
+       "ดูวันครอบคลุมสต๊อกและสต๊อกคงเหลือของศูนย์กระจายสินค้าลำพูน · เพอร์ร่า ขวด PET 600 มล. · ภาคเหนือตอนนี้",
+       "ดูพยากรณ์ 8 สัปดาห์ข้างหน้าของศูนย์กระจายสินค้าลำพูน · เพอร์ร่า ขวด PET 600 มล. · ภาคเหนือ"
+      ],
+      "ownerUserId": "u_wee"
+     },
+     {
+      "id": "al_7364476d77c8f435",
+      "severity": "P1",
+      "severityLabel": "ต้องรีบดู",
+      "metric": "net_sales_volume",
+      "metricLabel": "ปริมาณขายเข้า (Sell-in)",
+      "scope": {
+       "agent": "ag_nea_05",
+       "region": "northeast"
+      },
+      "scopeLabel": "อุบลศรีสุข เทรดดิ้ง · ภาคอีสาน",
+      "window": "9 ก.ย. 2569 – 22 ก.ย. 2569",
+      "observedLabel": "2,220 ลิตร",
+      "expectedLabel": "12,928 ลิตร",
+      "gapLabel": "83%",
+      "yearOverYear": false,
+      "direction": "down",
+      "hypothesis": "อุบลศรีสุข เทรดดิ้ง แทบไม่มีคำสั่งซื้อเข้ามาในช่วงนี้ น่าจะติดปัญหาเครดิต การวางบิล หรือเปลี่ยนไปรับสินค้าจากที่อื่น",
+      "verifySteps": [
+       "ดูประวัติการสั่งซื้อรายวันของอุบลศรีสุข เทรดดิ้ง · ภาคอีสาน 30 วันล่าสุด",
+       "ดูยอดค้างชำระเกินกำหนดของอุบลศรีสุข เทรดดิ้ง · ภาคอีสานรายเดือน 6 เดือนล่าสุด"
+      ],
+      "ownerUserId": "u_anucha"
+     },
+     {
+      "id": "al_ed6dca9e1dab4e48",
+      "severity": "P1",
+      "severityLabel": "ต้องรีบดู",
+      "metric": "net_sales_volume",
+      "metricLabel": "ปริมาณขายเข้า (Sell-in)",
+      "scope": {
+       "agent": "ag_nea_02",
+       "region": "northeast"
+      },
+      "scopeLabel": "อีสานรุ่งโรจน์ ค้าส่ง · ภาคอีสาน",
+      "window": "8 ก.ย. 2569 – 22 ก.ย. 2569",
+      "observedLabel": "3,251 ลิตร",
+      "expectedLabel": "13,928 ลิตร",
+      "gapLabel": "77%",
+      "yearOverYear": false,
+      "direction": "down",
+      "hypothesis": "อีสานรุ่งโรจน์ ค้าส่ง แทบไม่มีคำสั่งซื้อเข้ามาในช่วงนี้ น่าจะติดปัญหาเครดิต การวางบิล หรือเปลี่ยนไปรับสินค้าจากที่อื่น",
+      "verifySteps": [
+       "ดูประวัติการสั่งซื้อรายวันของอีสานรุ่งโรจน์ ค้าส่ง · ภาคอีสาน 30 วันล่าสุด",
+       "ดูยอดค้างชำระเกินกำหนดของอีสานรุ่งโรจน์ ค้าส่ง · ภาคอีสานรายเดือน 6 เดือนล่าสุด"
+      ],
+      "ownerUserId": "u_anucha"
+     },
+     {
+      "id": "al_fa3be1e7b4f9fe40",
+      "severity": "P1",
+      "severityLabel": "ต้องรีบดู",
+      "metric": "market_share",
+      "metricLabel": "ส่วนแบ่งตลาดเบียร์",
+      "scope": {
+       "province": "pv_nakhonratchasima",
+       "region": "northeast"
+      },
+      "scopeLabel": "นครราชสีมา · ภาคอีสาน",
+      "window": "1 มิ.ย. 2569 – 31 ส.ค. 2569",
+      "observedLabel": "59.7%",
+      "expectedLabel": "63.2%",
+      "gapLabel": "3.5 จุด",
+      "yearOverYear": false,
+      "direction": "down",
+      "hypothesis": "ในนครราชสีมา คาราบาวได้ส่วนแบ่งตลาดเบียร์เพิ่ม 4.1 จุดในช่วงเดียวกับที่ส่วนแบ่งของเราลดลง 3.5 จุด น่าจะมีการทำตลาดหรือตั้งราคาเชิงรุกในพื้นที่นี้",
+      "verifySteps": [
+       "เทียบส่วนแบ่งตลาดของทุกผู้ผลิตในนครราชสีมา เทียบปีก่อน",
+       "ดูยอดขายออกเบียร์ของเราในนครราชสีมาเทียบปีก่อน"
+      ],
+      "ownerUserId": "u_anucha"
+     },
+     {
+      "id": "al_220936abb568e7c9",
+      "severity": "P1",
+      "severityLabel": "ต้องรีบดู",
+      "metric": "ar_overdue",
+      "metricLabel": "ยอดค้างชำระเกินกำหนด",
+      "scope": {
+       "region": "south"
+      },
+      "scopeLabel": "ภาคใต้",
+      "window": "1 ส.ค. 2569 – 31 ส.ค. 2569",
+      "observedLabel": "1.9 เท่าของปีก่อน",
+      "expectedLabel": "1.1 เท่าของปีก่อน",
+      "gapLabel": "73%",
+      "yearOverYear": true,
+      "direction": "up",
+      "hypothesis": "ยอดค้างชำระของภาคใต้สูงกว่าช่วงเดียวกันของปีก่อนมาก ส่วนใหญ่มาจาก สงขลาทักษิณ เทรดดิ้ง (+303%), เกาะสมุยเบเวอเรจ (+108%), นครศรีรุ่งเจริญ (+101%) ควรคุยเรื่องการวางบิลและวงเงินกับเอเย่นต์กลุ่มนี้",
+      "verifySteps": [
+       "ดูยอดค้างชำระเกินกำหนดของภาคใต้รายเดือน 6 เดือนล่าสุด",
+       "ดูประวัติการสั่งซื้อรายวันของภาคใต้ 30 วันล่าสุด"
+      ],
+      "ownerUserId": "u_mint"
+     }
+    ],
+    "lessons": [
+     {
+      "alertId": "al_7364476d77c8f435",
+      "lesson": "ครั้งก่อน (เป็นเรื่องจริง): ติดวงเงินเครดิต ขยายวงเงินแล้วยอดกลับใน 2 สัปดาห์ — คุณกฤต จันทร์เสน, 12 มิ.ย. 2569"
+     }
+    ],
+    "nextActions": [
+     {
+      "id": "handoff",
+      "kind": "handoff",
+      "label": "ส่งงานให้คุณวีร์",
+      "reason": "ผู้วางแผนซัพพลายของพื้นที่ (ระดับประเทศ)",
+      "tool": "create_handoff",
+      "input": {
+       "toUserId": "u_wee",
+       "title": "ศูนย์กระจายสินค้าลำพูน · เพอร์ร่า ขวด PET 600 มล. · ภาคเหนือ",
+       "ask": "ช่วยตรวจศูนย์กระจายสินค้าลำพูน · เพอร์ร่า ขวด PET 600 มล. · ภาคเหนือ แล้วบอกกลับว่าเกิดจากอะไรและจะแก้อย่างไร",
+       "urgency": "high",
+       "evidence": [
+        {
+         "metric": "days_of_cover",
+         "dims": [],
+         "filters": {
+          "dc": [
+           "dc_lamphun"
+          ],
+          "sku": [
+           "sku_purra_pet600"
+          ],
+          "region": [
+           "north"
+          ]
+         },
+         "range": {
+          "from": "2026-09-16",
+          "to": "2026-09-22"
+         },
+         "grain": "day",
+         "compare": "prev_period",
+         "limit": 1
+        }
+       ],
+       "alertIds": [
+        "al_e8114d936da7141f"
+       ]
+      },
+      "prompt": null
+     },
+     {
+      "id": "verify",
+      "kind": "verify",
+      "label": "ตรวจสาเหตุ",
+      "reason": "ดูวันครอบคลุมสต๊อกและสต๊อกคงเหลือของศูนย์กระจายสินค้าลำพูน · เพอร์ร่า ขวด PET 600 มล. · ภาคเหนือตอนนี้",
+      "tool": null,
+      "input": null,
+      "prompt": "ดูวันครอบคลุมสต๊อกและสต๊อกคงเหลือของศูนย์กระจายสินค้าลำพูน · เพอร์ร่า ขวด PET 600 มล. · ภาคเหนือตอนนี้"
+     },
+     {
+      "id": "drill-brand",
+      "kind": "drill",
+      "label": "แยกตามแบรนด์",
+      "reason": "ยังไม่ได้ดูแยกรายแบรนด์",
+      "tool": null,
+      "input": null,
+      "prompt": "ขอวันครอบคลุมสต๊อกแยกตามแบรนด์ เรียงจากมากไปน้อย"
+     }
+    ]
+   }
+  },
+  {
+   "kind": "call",
+   "tool": "create_handoff",
+   "args": {
+    "alertIds": [
+     "al_7364476d77c8f435",
+     "al_ed6dca9e1dab4e48"
+    ],
+    "evidence": [
+     {
+      "range": {
+       "to": "2026-09-22",
+       "from": "2026-09-01"
+      },
+      "limit": 10,
+      "dims": [
+       "region"
+      ],
+      "filters": {
+       "region": "northeast"
+      },
+      "grain": "month",
+      "compare": "target",
+      "metric": "target_attainment"
+     }
+    ],
+    "title": "ติดตามยอดขายภาคอีสานต่ำกว่าเป้าหมาย",
+    "ask": "ช่วยตรวจสอบสาเหตุที่ยอดขายภาคอีสานต่ำกว่าเป้าหมาย (การบรรลุเป้า 93.3%) โดยเฉพาะคำสั่งซื้อของเอเย่นต์หลักอย่างอุบลศรีสุข เทรดดิ้ง และอีสานรุ่งโรจน์ ค้าส่ง พร้อมวางแนวทางแก้ไข",
+    "toUserId": "u_anucha",
+    "urgency": "high"
+   }
+  }
+ ],
+ "asked": [
+  "create_handoff"
+ ],
+ "error": null,
+ "usage": {
+  "calls": 5,
+  "inputTokens": 49649,
+  "outputTokens": 3643,
+  "reasoningTokens": 3021,
+  "usd": 0.010792050000000001
+ },
+ "drawn": {
+  "cards": [
+   "describe_entity",
+   "query_metric",
+   "get_alerts"
+  ],
+  "composed": null
+ },
+ "before": [
+  {
+   "prompt": "ยอดขายแยกตามภาคเดือนนี้",
+   "steps": [
+    {
+     "kind": "call",
+     "tool": "query_metric",
+     "args": {
+      "dims": [
+       "region"
+      ],
+      "limit": 10,
+      "compare": "target",
+      "filters": {},
+      "grain": "month",
+      "sort": "value_desc",
+      "metric": "net_sales_value",
+      "range": {
+       "to": "2026-09-22",
+       "from": "2026-09-01"
+      }
+     },
+     "result": {
+      "ok": true,
+      "rows": [
+       {
+        "region": "กรุงเทพฯ และปริมณฑล",
+        "value": 274079269,
+        "value_label": "274.1 ล้านบาท",
+        "compare_value": 270325149,
+        "delta_pct": 1.4
+       },
+       {
+        "region": "ภาคอีสาน",
+        "value": 232465481,
+        "value_label": "232.5 ล้านบาท",
+        "compare_value": 258385255,
+        "delta_pct": -10
+       },
+       {
+        "region": "ภาคตะวันออก",
+        "value": 162722781,
+        "value_label": "162.7 ล้านบาท",
+        "compare_value": 161595855,
+        "delta_pct": 0.7
+       },
+       {
+        "region": "ภาคกลาง",
+        "value": 151878814,
+        "value_label": "151.9 ล้านบาท",
+        "compare_value": 149413573,
+        "delta_pct": 1.6
+       },
+       {
+        "region": "ภาคใต้",
+        "value": 144718885,
+        "value_label": "144.7 ล้านบาท",
+        "compare_value": 143423684,
+        "delta_pct": 0.9
+       },
+       {
+        "region": "ภาคเหนือ",
+        "value": 144325131,
+        "value_label": "144.3 ล้านบาท",
+        "compare_value": 142759959,
+        "delta_pct": 1.1
+       }
+      ],
+      "summary": "มูลค่าขายเข้า 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 1,110.2 ล้านบาท · สูงสุด: กรุงเทพฯ และปริมณฑล 274.1 ล้านบาท · ภาคอีสาน 232.5 ล้านบาท · ภาคตะวันออก 162.7 ล้านบาท · เทียบเป้า -1.4% · (6 แถว · certified · SAP SD) · สิ้นเดือนถ้าขายเท่า 7 วันล่าสุด ≈ 97.3% ของเป้า",
+      "headline": {
+       "aggregate": "sum",
+       "value": "1,110.2 ล้านบาท",
+       "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+       "rowCount": 6,
+       "deltaPercent": -1.4,
+       "compareLabel": "เทียบเป้า",
+       "compareNote": null,
+       "top": [
+        {
+         "label": "กรุงเทพฯ และปริมณฑล",
+         "value": "274.1 ล้านบาท"
+        },
+        {
+         "label": "ภาคอีสาน",
+         "value": "232.5 ล้านบาท"
+        },
+        {
+         "label": "ภาคตะวันออก",
+         "value": "162.7 ล้านบาท"
+        }
+       ],
+       "underLine": null,
+       "projection": {
+        "recentDays": 7,
+        "projected": "1,493.4 ล้านบาท",
+        "monthTarget": "1,535.3 ล้านบาท",
+        "attainment": "97.3%"
+       }
+      },
+      "provenance": {
+       "metric": "net_sales_value",
+       "certified": true,
+       "sourceSystem": "SAP SD",
+       "asOf": "2026-09-22",
+       "rowCount": 6,
+       "filtersApplied": {},
+       "filterLabels": [],
+       "scopeApplied": {},
+       "masked": [],
+       "trust": "verified"
+      },
+      "query": {
+       "metric": "net_sales_value",
+       "dims": [
+        "region"
+       ],
+       "filters": {},
+       "range": {
+        "from": "2026-09-01",
+        "to": "2026-09-22"
+       },
+       "grain": "month",
+       "compare": "target",
+       "limit": 10,
+       "sort": "value_desc"
+      },
+      "nextActions": [
+       {
+        "id": "drill-why",
+        "kind": "drill",
+        "label": "ทำไมภาคอีสานถึงเป็นแบบนี้",
+        "reason": "ภาคอีสาน เปลี่ยนไปในทางที่แย่ที่สุด",
+        "tool": null,
+        "input": null,
+        "prompt": "เจาะดูมูลค่าขายเข้าของภาคอีสาน ว่าทำไมถึงเปลี่ยนไป เทียบกับช่วงก่อนหน้าและช่วงเดียวกันปีก่อน"
+       }
+      ],
+      "followUps": [
+       {
+        "id": "fu-drill_down",
+        "label": "ดูเอเย่นต์ในภาคอีสาน",
+        "prompt": "ขอมูลค่าขายเข้าของภาคอีสาน แยกรายเอเย่นต์ เรียงจากแย่ไปดี",
+        "reason": "ลงไปอีกชั้นเพื่อหาว่าใครในภาคอีสานทำให้ตัวเลขเป็นแบบนี้",
+        "intentKey": "follow|drill_down",
+        "score": 0.85
+       },
+       {
+        "id": "fu-trend",
+        "label": "เริ่มแย่ตั้งแต่เมื่อไร",
+        "prompt": "มูลค่าขายเข้าของภาคอีสาน รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+        "reason": "ดูว่าตัวเลขเริ่มลดลงสัปดาห์ไหน",
+        "intentKey": "follow|trend",
+        "score": 0.65
+       },
+       {
+        "id": "fu-compare_year",
+        "label": "เทียบปีก่อน",
+        "prompt": "ขอมูลค่าขายเข้าแยกตามภาค เทียบกับช่วงเดียวกันปีก่อน",
+        "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+        "intentKey": "follow|compare_year",
+        "score": 0.45
+       }
+      ]
+     }
+    },
+    {
+     "kind": "text",
+     "text": "ใช้ข้อมูลมูลค่าขายสุทธิ (ข้อมูลล่าสุดถึง 22 ก.ย. 2569) พบว่าเกือบทุกภาคทำได้ตามเป้าหมาย มีเพียงภาคอีสานที่ต่ำกว่าเป้าอย่างชัดเจน \n\nเบื้องต้นสันนิษฐานว่าเอเย่นต์หลักในพื้นที่อาจชะลอคำสั่งซื้อ ซึ่งสามารถตรวจสอบต่อได้จากยอดขายแยกรายเอเย่นต์ในภาคอีสาน และระดับสต๊อกคงคลังที่ศูนย์กระจายสินค้าขอนแก่นและนครราชสีมาเพื่อหาสาเหตุที่แน่ชัดครับ"
+    }
+   ]
+  }
+ ],
+ "remembered": []
+}

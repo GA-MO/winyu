@@ -4,17 +4,17 @@
  "userId": "u_thana",
  "prompt": "โรงงานไหนเกิดอุบัติเหตุบ้าง",
  "model": "google/gemini-3.8-flash",
- "promptHash": "b147f95e8a6c891a",
- "toolsHash": "5639642b6a430a27",
+ "promptHash": "0e40d01dd957aebf",
+ "toolsHash": "8bdfd8d8fb9656cf",
  "today": "2026-10-05",
- "recordedAt": "2026-10-05T15:50:43.462Z",
+ "recordedAt": "2026-10-05T18:59:22.834Z",
  "steps": [
   {
    "kind": "call",
    "tool": "get_site",
    "args": {
-    "id": null,
-    "name": null
+    "name": null,
+    "id": null
    },
    "result": {
     "ok": true,
@@ -151,29 +151,31 @@
   },
   {
    "kind": "text",
-   "text": "ในช่วง 90 วันล่าสุดพบเหตุการณ์ความปลอดภัยที่โรงงานขอนแก่นและโรงงานปทุมธานี โดยโรงงานขอนแก่นเป็นแห่งเดียวที่มีอุบัติเหตุถึงขั้นหยุดงานและยังมีรายการแก้ไขที่ยังไม่ปิด จึงควรตรวจสอบมาตรการความปลอดภัยและชั่วโมงการทำงานล่วงหน้าอย่างใกล้ชิด\n\n```a2ui\n{\"id\":\"root\",\"component\":\"Card\",\"title\":\"โรงงานที่พบเหตุการณ์ความปลอดภัย\",\"footnote\":\"ระบบความปลอดภัยและอาชีวอนามัย\",\"children\":[\"grid\"]}\n{\"id\":\"grid\",\"component\":\"Grid\",\"children\":[\"site_0\",\"site_3\"]}\n{\"id\":\"site_0\",\"component\":\"ListItem\",\"title\":{\"path\":\"/get_site/data/0/name\"},\"subtitle\":{\"path\":\"/get_site/data/0/note\"},\"detail\":{\"path\":\"/get_site/data/0/trailing/text\"},\"src\":{\"path\":\"/get_site/data/0/photo\"},\"media\":\"thumb\",\"badges\":{\"path\":\"/get_site/data/0/badges\"},\"action\":{\"event\":{\"name\":\"ask\",\"context\":{\"prompt\":\"ขอดูรายละเอียดความปลอดภัย\",\"about\":{\"path\":\"/get_site/data/0/name\"}}}}}\n{\"id\":\"site_3\",\"component\":\"ListItem\",\"title\":{\"path\":\"/get_site/data/3/name\"},\"subtitle\":{\"path\":\"/get_site/data/3/note\"},\"detail\":{\"path\":\"/get_site/data/3/trailing/text\"},\"src\":{\"path\":\"/get_site/data/3/photo\"},\"media\":\"thumb\",\"badges\":{\"path\":\"/get_site/data/3/badges\"},\"action\":{\"event\":{\"name\":\"ask\",\"context\":{\"prompt\":\"ขอดูรายละเอียดความปลอดภัย\",\"about\":{\"path\":\"/get_site/data/3/name\"}}}}}\n```"
+   "text": "โรงงานขอนแก่นอยู่ในสถานะต้องติดตามด่วนเนื่องจากมีเหตุหยุดงานและมีรายการแก้ไขความปลอดภัยที่ยังค้างอยู่ ขณะที่โรงงานปทุมธานีจัดการเรื่องเสร็จสิ้นแล้ว ทั้งนี้ควรเร่งติดตามแผนแก้ไขร่วมกับฝ่ายความปลอดภัยของโรงงานขอนแก่น\n\n```a2ui\n{\"id\":\"root\",\"component\":\"Card\",\"title\":\"สถานที่ที่พบอุบัติเหตุในรอบ 90 วัน\",\"footnote\":\"ระบบความปลอดภัยและอาชีวอนามัย\",\"children\":[\"grid\"]}\n{\"id\":\"grid\",\"component\":\"Grid\",\"children\":[\"site_0\",\"site_1\",\"site_3\"]}\n{\"id\":\"site_0\",\"component\":\"ListItem\",\"title\":{\"path\":\"/get_site/data/0/name\"},\"subtitle\":{\"path\":\"/get_site/data/0/note\"},\"src\":{\"path\":\"/get_site/data/0/photo\"},\"media\":\"thumb\",\"badges\":{\"path\":\"/get_site/data/0/badges\"},\"trailing\":{\"path\":\"/get_site/data/0/trailing/text\"},\"action\":{\"event\":{\"name\":\"ask\",\"context\":{\"prompt\":\"ดูรายละเอียดความปลอดภัย\",\"about\":{\"path\":\"/get_site/data/0/name\"}}}}}\n{\"id\":\"site_1\",\"component\":\"ListItem\",\"title\":{\"path\":\"/get_site/data/1/name\"},\"subtitle\":{\"path\":\"/get_site/data/1/note\"},\"src\":{\"path\":\"/get_site/data/1/photo\"},\"media\":\"thumb\",\"badges\":{\"path\":\"/get_site/data/1/badges\"},\"trailing\":{\"path\":\"/get_site/data/1/trailing/text\"},\"action\":{\"event\":{\"name\":\"ask\",\"context\":{\"prompt\":\"ดูรายละเอียดความปลอดภัย\",\"about\":{\"path\":\"/get_site/data/1/name\"}}}}}\n{\"id\":\"site_3\",\"component\":\"ListItem\",\"title\":{\"path\":\"/get_site/data/3/name\"},\"subtitle\":{\"path\":\"/get_site/data/3/note\"},\"src\":{\"path\":\"/get_site/data/3/photo\"},\"media\":\"thumb\",\"badges\":{\"path\":\"/get_site/data/3/badges\"},\"trailing\":{\"path\":\"/get_site/data/3/trailing/text\"},\"action\":{\"event\":{\"name\":\"ask\",\"context\":{\"prompt\":\"ดูรายละเอียดความปลอดภัย\",\"about\":{\"path\":\"/get_site/data/3/name\"}}}}}\n```"
   }
  ],
  "asked": [],
  "error": null,
  "usage": {
   "calls": 2,
-  "inputTokens": 22136,
-  "outputTokens": 4070,
-  "reasoningTokens": 3651,
-  "usd": 0.00879075
+  "inputTokens": 22739,
+  "outputTokens": 5534,
+  "reasoningTokens": 4985,
+  "usd": 0.0115749
  },
  "drawn": {
   "cards": [],
   "composed": {
-   "accepted": 4,
+   "accepted": 5,
    "rejected": 0,
-   "problems": [],
+   "problems": [
+    "root.title: numbers taken out of \"สถานที่ที่พบอุบัติเหตุในรอบ 90 วัน\" (kept \"สถานที่ที่พบอุบัติเหตุในรอบ วัน\")"
+   ],
    "components": [
     {
      "id": "root",
      "component": "Card",
-     "title": "โรงงานที่พบเหตุการณ์ความปลอดภัย",
+     "title": "สถานที่ที่พบอุบัติเหตุในรอบ วัน",
      "footnote": "ระบบความปลอดภัยและอาชีวอนามัย",
      "children": [
       "grid"
@@ -184,6 +186,7 @@
      "component": "Grid",
      "children": [
       "site_0",
+      "site_1",
       "site_3"
      ]
     },
@@ -196,9 +199,6 @@
      "subtitle": {
       "path": "/get_site/data/0/note"
      },
-     "detail": {
-      "path": "/get_site/data/0/trailing/text"
-     },
      "src": {
       "path": "/get_site/data/0/photo"
      },
@@ -206,13 +206,47 @@
      "badges": {
       "path": "/get_site/data/0/badges"
      },
+     "trailing": {
+      "path": "/get_site/data/0/trailing/text"
+     },
      "action": {
       "event": {
        "name": "ask",
        "context": {
-        "prompt": "ขอดูรายละเอียดความปลอดภัย",
+        "prompt": "ดูรายละเอียดความปลอดภัย",
         "about": {
          "path": "/get_site/data/0/name"
+        }
+       }
+      }
+     }
+    },
+    {
+     "id": "site_1",
+     "component": "ListItem",
+     "title": {
+      "path": "/get_site/data/1/name"
+     },
+     "subtitle": {
+      "path": "/get_site/data/1/note"
+     },
+     "src": {
+      "path": "/get_site/data/1/photo"
+     },
+     "media": "thumb",
+     "badges": {
+      "path": "/get_site/data/1/badges"
+     },
+     "trailing": {
+      "path": "/get_site/data/1/trailing/text"
+     },
+     "action": {
+      "event": {
+       "name": "ask",
+       "context": {
+        "prompt": "ดูรายละเอียดความปลอดภัย",
+        "about": {
+         "path": "/get_site/data/1/name"
         }
        }
       }
@@ -227,9 +261,6 @@
      "subtitle": {
       "path": "/get_site/data/3/note"
      },
-     "detail": {
-      "path": "/get_site/data/3/trailing/text"
-     },
      "src": {
       "path": "/get_site/data/3/photo"
      },
@@ -237,11 +268,14 @@
      "badges": {
       "path": "/get_site/data/3/badges"
      },
+     "trailing": {
+      "path": "/get_site/data/3/trailing/text"
+     },
      "action": {
       "event": {
        "name": "ask",
        "context": {
-        "prompt": "ขอดูรายละเอียดความปลอดภัย",
+        "prompt": "ดูรายละเอียดความปลอดภัย",
         "about": {
          "path": "/get_site/data/3/name"
         }
