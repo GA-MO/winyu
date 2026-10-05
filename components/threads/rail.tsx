@@ -117,7 +117,7 @@ export function ThreadRail() {
         className={cn(
           "z-40 flex shrink-0 flex-col gap-2 border-r border-border bg-card/80 py-3 backdrop-blur transition-[width] duration-300",
           expanded ? "w-72 px-3" : "w-14 px-2",
-          mobileOpen ? "fixed inset-y-0 left-0 bg-card" : "hidden md:flex",
+          mobileOpen ? "fixed inset-y-0 left-0 bg-card" : "sticky top-0 hidden h-dvh md:flex",
         )}
       >
         <div className={cn("flex items-center gap-1", expanded ? "justify-between" : "flex-col")}>
