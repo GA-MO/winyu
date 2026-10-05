@@ -91,15 +91,15 @@ describe("a composed card holds line by line, only what this turn's tools return
 
   test("an optional prop that fails is dropped from its line, the line stays", () => {
     const outcome = composed(lines(withComponent({ ...GEMINI_TEAM_CARD[0], meta: "ทีม 4821 คน" })));
-    expect(outcome.problems.join("\n")).toContain('number "4821"');
+    expect(outcome.problems.join("\n")).toContain('"ทีม 4821 คน" carries a number');
     expect(drawn(outcome, "root")?.meta).toBeUndefined();
     expect(ids(outcome)).toEqual(FULL_CARD);
   });
 
-  test("an invented number in a required prop drops the line, and nothing on the card carries it", () => {
-    const outcome = composed([...lines(GEMINI_TEAM_CARD), JSON.stringify({ id: "headcount", component: "Badge", label: "ทีม 4821 คน" })].map((line) => line.replace('"sec_vacancies"]', '"sec_vacancies","headcount"]')));
-    expect(outcome.problems.join("\n")).toContain('number "4821"');
-    expect(JSON.stringify(outcome.surface)).not.toContain("4821");
+  test("a literal count in a required prop drops the line, and nothing on the card carries it", () => {
+    const outcome = composed([...lines(GEMINI_TEAM_CARD), JSON.stringify({ id: "headcount", component: "Badge", label: "ทีม 5 คน" })].map((line) => line.replace('"sec_vacancies"]', '"sec_vacancies","headcount"]')));
+    expect(outcome.problems.join("\n")).toContain('"ทีม 5 คน" carries a number');
+    expect(JSON.stringify(outcome.surface)).not.toContain("ทีม 5 คน");
     expect(ids(outcome)).toEqual(FULL_CARD);
   });
 
@@ -109,9 +109,27 @@ describe("a composed card holds line by line, only what this turn's tools return
     expect(ids(outcome)).toEqual(FULL_CARD.filter((id) => id !== "leader_facts"));
   });
 
-  test("a number copied exactly from a result may stay literal", () => {
-    const outcome = composed(lines(withComponent({ ...GEMINI_TEAM_CARD[0], meta: "ตำแหน่งว่างเปิดรับมา 99 วัน" })));
-    expect(drawn(outcome, "root")?.meta).toBe("ตำแหน่งว่างเปิดรับมา 99 วัน");
+  test("a count typed as literal text is refused even when the same digit is somewhere in the turn's results", () => {
+    expect(JSON.stringify(results)).toContain("16 ปี 5 เดือน");
+    const outcome = composed(lines(withComponent({ ...GEMINI_TEAM_CARD[0], meta: "ทีม 5 คน" })));
+    expect(outcome.problems.join("\n")).toContain('"ทีม 5 คน"');
+    expect(drawn(outcome, "root")?.meta).toBeUndefined();
+    expect(JSON.stringify(outcome.surface)).not.toContain("ทีม 5 คน");
+    expect(ids(outcome)).toEqual(FULL_CARD);
+  });
+
+  test("a number copied exactly from a result, or written in Thai digits, is still refused as literal text", () => {
+    expect(drawn(composed(lines(withComponent({ ...GEMINI_TEAM_CARD[0], meta: "ตำแหน่งว่างเปิดรับมา 99 วัน" }))), "root")?.meta).toBeUndefined();
+    expect(drawn(composed(lines(withComponent({ ...GEMINI_TEAM_CARD[0], meta: "ทีม ๕ คน" }))), "root")?.meta).toBeUndefined();
+  });
+
+  test("a count bound with { path } shows, and so does the tenure the card binds", () => {
+    const outcome = composed(lines(withComponent({ ...GEMINI_TEAM_CARD[0], meta: { path: "/get_person/data/reports_count" } })));
+    expect(outcome.rejected).toBe(0);
+    expect(drawn(outcome, "root")?.meta).toEqual({ path: "/get_person/data/reports_count" });
+    const model = outcome.surface?.dataModel as { get_person: { data: { reports_count: string; facts: { value: string }[] } } };
+    expect(model.get_person.data.reports_count).toBe("ลูกทีมโดยตรง 5 คน");
+    expect(model.get_person.data.facts.map((fact) => fact.value)).toContain("16 ปี 5 เดือน");
   });
 
   test("a person's name or a picture no tool returned is refused", () => {

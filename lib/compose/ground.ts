@@ -4,7 +4,7 @@ import { ASK_EVENT, COMPOSE_ACTION_TOOLS, COMPOSE_CATALOG, type ComponentName, t
 /** Tools whose results keep their own bound card (DataCard and friends); a composed card may not show them. */
 export const UNCOMPOSABLE_TOOLS: readonly string[] = ["query_metric", "get_alerts", "get_forecast", "explain_gap"];
 
-const NUMBER_TOKEN = /\d[\d,]*(?:\.\d+)?/g;
+const DIGIT = /[0-9๐-๙]/;
 const NAME_TOKEN = /คุณ[^\s·,()]+/g;
 const PICTURE_PROPS = new Set(["src"]);
 const TOOL_KEY_ORDINAL = "_";
@@ -19,8 +19,8 @@ export type Scope = { base: string | null; items: string[] };
 /** The scope of the card's root and every component outside a template. */
 export const TOP_SCOPE: Scope = { base: null, items: [] };
 
-/** This turn's composable results as the card's data model, with every text and number in them for the literal guard. */
-export type Sources = { model: Record<string, unknown>; numbers: Set<string>; strings: Set<string>; text: string };
+/** This turn's composable results as the card's data model, with every text in them for the literal guard. */
+export type Sources = { model: Record<string, unknown>; strings: Set<string>; text: string };
 
 /** One prop checked against the turn's results: what is wrong with it and the paths it reads. */
 export type PropCheck = { problems: string[]; used: string[] };
@@ -41,10 +41,6 @@ export function isTemplate(value: unknown): value is Template {
   return isRecord(value) && typeof value.componentId === "string" && typeof value.path === "string";
 }
 
-function normalizedNumber(token: string): string {
-  return token.replaceAll(",", "").replace(/\.0+$/, "");
-}
-
 function collectStrings(value: unknown, into: Set<string>): void {
   if (typeof value === "string") into.add(value);
   else if (typeof value === "number") into.add(String(value));
@@ -52,7 +48,7 @@ function collectStrings(value: unknown, into: Set<string>): void {
   else if (isRecord(value)) Object.values(value).forEach((item) => collectStrings(item, into));
 }
 
-/** The turn's composable results keyed by tool name in call order (a repeat call of a tool is `<tool>_2`), with every text and number they hold. */
+/** The turn's composable results keyed by tool name in call order (a repeat call of a tool is `<tool>_2`), with every text they hold. */
 export function sourcesOf(results: readonly TurnResult[]): Sources {
   const model: Record<string, unknown> = {};
   const seen = new Map<string, number>();
@@ -65,9 +61,7 @@ export function sourcesOf(results: readonly TurnResult[]): Sources {
   }
   const strings = new Set<string>();
   collectStrings(model, strings);
-  const text = [...strings].join("\n");
-  const numbers = new Set((text.match(NUMBER_TOKEN) ?? []).map(normalizedNumber));
-  return { model, numbers, strings, text };
+  return { model, strings, text: [...strings].join("\n") };
 }
 
 function segmentsOf(path: string): string[] {
@@ -135,10 +129,11 @@ class Grounding {
   constructor(private readonly sources: Sources) {}
 
   literal(text: string, where: string, isPicture: boolean): void {
-    if (isPicture && text && !this.sources.strings.has(text)) this.problems.push(`${where}: picture "${text}" is not in this turn's tool results; bind it with { path }`);
-    for (const token of text.match(NUMBER_TOKEN) ?? []) {
-      if (!this.sources.numbers.has(normalizedNumber(token))) this.problems.push(`${where}: number "${token}" in "${text}" is not in this turn's tool results; bind it with { path } or leave it out`);
+    if (isPicture) {
+      if (text && !this.sources.strings.has(text)) this.problems.push(`${where}: picture "${text}" is not in this turn's tool results; bind it with { path }`);
+      return;
     }
+    if (DIGIT.test(text)) this.problems.push(`${where}: literal "${text}" carries a number; numbers show only through { path } to a value a tool returned`);
     for (const name of text.match(NAME_TOKEN) ?? []) {
       if (!this.sources.text.includes(name)) this.problems.push(`${where}: name "${name}" is not in this turn's tool results; bind it with { path }`);
     }
@@ -180,7 +175,7 @@ class Grounding {
   }
 }
 
-/** Checks one prop of a component against the turn's results: every `{ path }` points at a value a tool returned (in at least one item of a template), and no literal carries a number, a person's name or a picture no tool returned. */
+/** Checks one prop of a component against the turn's results: every `{ path }` points at a value a tool returned (in at least one item of a template), no literal text carries a digit (a number shows only through `{ path }`), and no literal carries a person's name or a picture no tool returned. */
 export function checkProp(component: ComposedComponent, prop: string, scope: Scope, sources: Sources): PropCheck {
   const grounding = new Grounding(sources);
   const where = `${component.id}.${prop}`;

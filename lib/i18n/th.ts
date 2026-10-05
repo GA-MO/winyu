@@ -1197,6 +1197,7 @@ export const TH = {
     hours: (hours: number) => `${hours} ชม.`,
     certDetail: (date: string, days: number) => (days < 0 ? `หมดอายุ ${date}` : `หมดอายุ ${date} · อีก ${days} วัน`),
     openPosition: (days: number) => `เปิดรับมา ${days} วัน`,
+    reportsCount: (count: number) => `ลูกทีมโดยตรง ${count} คน`,
     summary: (count: number, open: number) => `พบ ${count} คน${open > 0 ? ` · ตำแหน่งว่าง ${open} ตำแหน่ง` : ""}`,
     none: "ไม่พบพนักงานที่ตรงเงื่อนไขในขอบเขตของคุณ",
     notFound: (query: string) => `ไม่พบพนักงาน "${query}" ในขอบเขตของคุณ`,
