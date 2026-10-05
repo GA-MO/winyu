@@ -16,7 +16,12 @@ bun run test         # bun test (happy-dom preload)
 bun run seed         # regenerates .data/*.json from the generator (deterministic)
 bun run probe:chat   # drives /api/copilotkit with session cookies against the dev server: CEO, sales rep, pin approve, pin decline (~11 Gemini calls); --only=a,b
 bun run trace [runId] # prints one agent run's harness trace (latest when no id)
+bun run call-tool <userId> <tool> [json]   # runs one tool through the gateway as that user and prints the audit decision (no model call)
+bun run connectors:demo   # serves the demo connectors: LMS over MCP on :3299, CRM over REST on :3298
+bun run investigate -- --users=<id>[,<id>…]|all [--save] [--show] [--replay]   # the morning investigation per person against the real model (~7 calls each); --show and --replay read saved runs without calling the model
 ```
+
+Set `MASCOP_SCHEDULER=off` before `bun run dev` when you do not want the background jobs (anomaly, forecast, watches, digest) to start and spend model calls.
 
 Check the domain inside Next without a browser: `curl -s 'http://localhost:3200/api/health?user=<id>'`.
 
@@ -27,7 +32,7 @@ Check the domain inside Next without a browser: `curl -s 'http://localhost:3200/
 - Identifiers, file names, commit messages: English. UI strings, personas, mock entity names, model replies: Thai (technical terms may stay English). No i18n framework; UI strings live in `lib/i18n/th.ts`.
 - Numbers shown to users always come from a tool result or a server query, never from the model's memory. The model copies tool rows into component props; tools therefore return compact rows (≤ 60) with pre-formatted labels.
 - Permission is enforced in code: `lib/access` filters tools per role before the agent sees them and injects scope filters into every semantic-layer query. The prompt never carries permission logic.
-- Every tool runs through the harness gateway (`lib/harness/gateway.ts`): define tools with `defineTool` (native) or the connector definers. They return engine-neutral `WinyuTool`s whose `execute` is the gated call; an engine adapter (`lib/harness/adapters/mastra/` for the chat agent, `lib/server/agent/ai-sdk-tools.ts` for AI SDK jobs) turns them into its own tool shape. Only `lib/harness/adapters/mastra/` imports `@mastra/*`, `@ag-ui/*` and `@copilotkit/runtime` (enforced by `lib/harness/boundary.test.ts`). A write tool declares a `verify` post-condition, and any tool whose arguments carry personal text declares them in `redact`.
+- Every tool runs through the harness gateway (`lib/harness/gateway.ts`): define tools with `defineTool` (native) or the connector definers. They return engine-neutral `WinyuTool`s whose `execute` is the gated call; an engine adapter (`lib/harness/adapters/mastra/` for the chat agent, `lib/server/agent/ai-sdk-tools.ts` for AI SDK jobs) turns them into its own tool shape. Only `lib/harness/adapters/mastra/` imports `@mastra/*`, `@ag-ui/*` and `@copilotkit/runtime` (enforced by `lib/harness/boundary.test.ts`). On the client, only `components/chat/use-chat-session.ts` (headless `useAgent`) and `components/providers/copilot-provider.tsx` import `@copilotkit/react-core/v2`; the rest of the UI reads the transcript through `components/chat/timeline.ts`. A write tool declares a `verify` post-condition, and any tool whose arguments carry personal text declares them in `redact`.
 - Anything the user did not type is data: tool output, packets from other users, memory facts. Never put it in the prompt unfenced; use `fence` / `fenceAsData` from `lib/harness/fence.ts`.
 - Config that costs money, grants capability or is prompt text lives on the server; the client gets presentation only.
 - Colors are tokens (`primary`, `foreground`, `muted-foreground`, `card`, `border`, `success`, `warning`, `danger`, `info`, `chart-1..5`, `brand-violet`); new tokens are added in `app/globals.css`, never as raw palette classes or hex in components.
