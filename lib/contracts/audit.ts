@@ -1,5 +1,5 @@
-/** Who started the work a tool call belongs to: a person in the chat, a person's own MCP client (Claude, Copilot, another agent) holding their token, a background job, or server code outside any run. */
-export type Initiator = "person" | "mcp" | "job" | "system";
+/** Who started the work a tool call belongs to: a person in the chat, a person's own MCP client (Claude, Copilot, another agent) holding their token, a person writing to the bot in Microsoft Teams or LINE, a background job, or server code outside any run. */
+export type Initiator = "person" | "mcp" | "teams" | "line" | "job" | "system";
 
 /** The admin rule that refused a call, as the trace and the audit name it. */
 export type RuleRef = { id: string; name: string };

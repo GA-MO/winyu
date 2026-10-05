@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ChevronDown } from "lucide-react";
 import { cn } from "@/components/ui/cn";
-import type { AuditEntry } from "@/lib/contracts";
+import type { AuditEntry, Initiator } from "@/lib/contracts";
 import { connectorLabel, connectors, toolLabel, toolSurface } from "@/lib/server/tools/registry";
 import { USERS, findUser } from "@/lib/data/entities/users";
 import { TH } from "@/lib/i18n/th";
@@ -18,6 +18,7 @@ const DECISIONS: readonly AuditEntry["decision"][] = ["allow", "deny", "masked"]
 const DECISION_TONE: Record<AuditEntry["decision"], Tone> = { allow: "success", deny: "danger", masked: "warning" };
 const DECISION_WEIGHT: Record<AuditEntry["decision"], number> = { allow: 0, masked: 1, deny: 2 };
 const COPY = TH.admin.auditTab;
+const VIA_LABELS: Partial<Record<Initiator, string>> = { mcp: COPY.viaMcp, teams: COPY.viaTeams, line: COPY.viaLine };
 
 export type AuditFilterParams = AuditFilter;
 
@@ -178,7 +179,7 @@ function TurnRow({ group, open }: { group: TurnGroup; open: boolean }) {
   const worst = worstOf(group.entries);
   const tools = [...new Set(group.entries.map((entry) => toolLabel(entry.tool)))];
   const byJob = first.initiator === "job";
-  const viaMcp = first.initiator === "mcp";
+  const via = first.initiator ? VIA_LABELS[first.initiator] : undefined;
   const headline = first.question ? `“${first.question}”` : byJob ? COPY.jobTitle : tools.join(" · ");
   const reason = worst === "allow" ? null : (group.entries.map(reasonOf).find((text) => text !== null) ?? null);
   return (
@@ -197,7 +198,7 @@ function TurnRow({ group, open }: { group: TurnGroup; open: boolean }) {
           </div>
           <span className="flex items-center gap-2">
             {byJob ? <Pill tone="primary">{COPY.byJob}</Pill> : null}
-            {viaMcp ? <Pill tone="primary">{COPY.viaMcp}</Pill> : null}
+            {via ? <Pill tone="primary">{via}</Pill> : null}
             <Pill tone={DECISION_TONE[worst]}>{TH.admin.decision[worst]}</Pill>
             <ChevronDown className="size-3.5 text-muted-foreground transition group-open:rotate-180" aria-hidden />
           </span>

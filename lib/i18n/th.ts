@@ -888,7 +888,7 @@ export const TH = {
         { name: "tool", body: "เครื่องมือที่ถูกเรียก: tool.name, tool.connector, tool.tier (read / write / destructive)" },
         { name: "args", body: "ข้อมูลที่ AI ส่งให้เครื่องมือ เช่น args.toUserId, args.subject" },
         { name: "user", body: "ผู้ใช้: user.id, user.role, user.regions, user.brands" },
-        { name: "initiator", body: "ใครเริ่มงาน: \"person\" ผู้ใช้ในแชท, \"mcp\" ผู้ใช้ผ่าน MCP client เช่น Claude, \"job\" งานเบื้องหลัง, \"system\" โค้ดของระบบ" },
+        { name: "initiator", body: "ใครเริ่มงาน: \"person\" ผู้ใช้ในแชท, \"mcp\" ผู้ใช้ผ่าน MCP client เช่น Claude, \"teams\" ผู้ใช้ผ่าน Microsoft Teams, \"line\" ผู้ใช้ผ่าน LINE, \"job\" งานเบื้องหลัง, \"system\" โค้ดของระบบ" },
         { name: "now", body: "เวลากรุงเทพ: now.hour (0–23), now.weekday (0 = อาทิตย์)" },
       ],
       examplesTitle: "ตัวอย่างที่คัดลอกไปใช้ได้",
@@ -967,6 +967,8 @@ export const TH = {
       byJob: "งานอัตโนมัติ",
       jobTitle: "mascop สืบให้ก่อนผู้ใช้เปิดหน้า",
       viaMcp: "ผ่าน MCP",
+      viaTeams: "ผ่าน Teams",
+      viaLine: "ผ่าน LINE",
     },
     trace: {
       heading: "AI ทำอะไรในคำถามนี้",
