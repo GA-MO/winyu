@@ -1,5 +1,6 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 import type { AccessContext, MetricQuery } from "@/lib/contracts";
+import type { TurnResult } from "@/lib/compose/ground";
 
 const NO_ACCESS = "currentAccess() called outside runWithAccess()";
 
@@ -25,7 +26,7 @@ export function accessOrNull(): AccessContext | null {
 export type SpokenTurn = { role: string; text: string };
 
 /** The chat turn being served; `transcript` reads the thread's saved conversation and is absent outside a chat run. */
-export type TurnContext = { turnId: string | null; threadId: string | null; preloadPacketId: string | null; question: string | null; queries: MetricQuery[]; transcript?: () => Promise<SpokenTurn[]> };
+export type TurnContext = { turnId: string | null; threadId: string | null; preloadPacketId: string | null; question: string | null; queries: MetricQuery[]; results?: TurnResult[]; transcript?: () => Promise<SpokenTurn[]> };
 
 const EMPTY_TURN: TurnContext = { turnId: null, threadId: null, preloadPacketId: null, question: null, queries: [] };
 
@@ -43,4 +44,17 @@ export function currentTurn(): TurnContext {
 /** Remembers a query the turn ran so a handoff can carry it as evidence. */
 export function recordQuery(query: MetricQuery): void {
   turns.getStore()?.queries.push(query);
+}
+
+/** Remembers a read tool's result so a card composed later in the turn can only show what a tool returned. */
+export function recordResult(result: TurnResult): void {
+  const turn = turns.getStore();
+  if (!turn) return;
+  turn.results ??= [];
+  turn.results.push(result);
+}
+
+/** The read results this chat turn has so far, oldest first. */
+export function turnResults(): readonly TurnResult[] {
+  return turns.getStore()?.results ?? [];
 }
