@@ -1,6 +1,6 @@
 import { GlobalRegistrator } from "@happy-dom/global-registrator";
 
-const PAGE_URL = "http://localhost:3100/";
+const PAGE_URL = "http://localhost:3200/";
 const NATIVE_GLOBALS = [
   "fetch",
   "Request",

@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import path from "node:path";
 
-export const DATA_DIR = process.env.WINYU_DATA_DIR ?? path.join(process.cwd(), ".data");
+export const DATA_DIR = process.env.MASCOP_DATA_DIR ?? path.join(process.cwd(), ".data");
 
 type Identified = { id: string };
 

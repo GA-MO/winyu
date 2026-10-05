@@ -13,9 +13,9 @@ export function withoutPaidModels(): void {
 
 /** Points the JSON store at a throwaway copy of `.data`, so tests never write packets or notifications to real personas. */
 export function isolateTestData(): string {
-  const dir = mkdtempSync(path.join(tmpdir(), "winyu-test-data-"));
+  const dir = mkdtempSync(path.join(tmpdir(), "mascop-test-data-"));
   if (existsSync(SOURCE_DIR)) cpSync(SOURCE_DIR, dir, { recursive: true, filter: (source) => !ADMIN_FILES.has(path.basename(source)) });
-  process.env.WINYU_DATA_DIR = dir;
+  process.env.MASCOP_DATA_DIR = dir;
   process.on("exit", () => rmSync(dir, { recursive: true, force: true }));
   return dir;
 }
