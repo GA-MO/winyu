@@ -1,6 +1,7 @@
 import type { AccessContext, Course, Employee } from "@/lib/contracts";
 import { peopleViewOf } from "@/lib/access/people-scope";
 import { TODAY, addDays } from "@/lib/data/dates";
+import { departmentById } from "@/lib/data/entities/hr";
 import { signalsOf } from "@/lib/engine/people-signals";
 import { formatDateTh } from "@/lib/i18n/format";
 import { TH } from "@/lib/i18n/th";
@@ -14,9 +15,14 @@ const T = TH.courses;
 const MAX_COURSE_ROWS = 12;
 const MAX_SUGGESTED = 2;
 const FEW_SEATS = 3;
+const ROLE_SEPARATOR = " ";
+const GROUP_WORDS = /^(ทีม|ฝ่าย|แผนก)/;
 
 type Tone = "good" | "bad" | "neutral";
 type Expiring = { employee: Employee; daysLeft: number };
+
+/** Who a course is for, in the words a search may use: its own text, and the groups it serves (its departments, and the roles and departments of the people holding the certificate it renews). */
+type CoursePurpose = { texts: string[]; groups: string[] };
 
 export type CourseQuery = { month: string | null; query: string | null };
 
@@ -79,9 +85,25 @@ function placeOf(course: Course): string {
   return course.format === "online" ? T.format.online : `${course.placeTh} · ${T.format[course.format]}`;
 }
 
-function matchesQuery(course: Course, query: string): boolean {
-  const needle = query.trim();
-  return course.titleTh.includes(needle) || course.categoryTh.includes(needle) || course.audienceTh.includes(needle) || (course.renewsCertificate ?? "").includes(needle);
+function roleOf(title: string): string {
+  return title.split(ROLE_SEPARATOR)[0] ?? title;
+}
+
+function purposeOf(course: Course, employees: readonly Employee[]): CoursePurpose {
+  const holders = course.renewsCertificate ? employees.filter((employee) => employee.certificates.some((certificate) => certificate.nameTh === course.renewsCertificate)) : [];
+  const departmentIds = new Set([...(course.departmentIds ?? []), ...holders.map((holder) => holder.departmentId)]);
+  const departments = [...departmentIds].flatMap((id) => {
+    const department = departmentById(id);
+    return department ? [department.nameTh, department.label] : [];
+  });
+  const texts = [course.titleTh, course.categoryTh, course.audienceTh, course.renewsCertificate ?? ""];
+  return { texts, groups: [...departments, ...holders.map((holder) => roleOf(holder.title))].map((group) => group.toLowerCase()) };
+}
+
+function matchesQuery(purpose: CoursePurpose, query: string): boolean {
+  const words = query.trim().toLowerCase();
+  const needle = words.replace(GROUP_WORDS, "") || words;
+  return [...purpose.texts.map((text) => text.toLowerCase()), ...purpose.groups].some((term) => term.includes(needle)) || purpose.groups.some((group) => needle.includes(group));
 }
 
 function inWindow(course: Course, month: string | null): boolean {
@@ -96,11 +118,11 @@ function relevance(access: AccessContext, course: Course, directory: Directory):
   return 2;
 }
 
-/** Upcoming courses (one month, or the next ones): the ones renewing the viewer's or their team's expiring certificate first, then soonest, with seats left and whose certificate each one renews. */
+/** Upcoming courses (one month, or the next ones), searched by what each course is for: the ones renewing the viewer's or their team's expiring certificate first, then soonest, with seats left and whose certificate each one renews. */
 export async function listCourses(access: AccessContext, query: CourseQuery) {
   const [catalogue, records] = await Promise.all([ports().learning.courses(), ports().directory.load()]);
   const directory = directoryOf(records);
-  const courses = catalogue.filter((course) => inWindow(course, query.month) && (!query.query || matchesQuery(course, query.query)))
+  const courses = catalogue.filter((course) => inWindow(course, query.month) && (!query.query || matchesQuery(purposeOf(course, directory.employees), query.query)))
     .sort((left, right) => relevance(access, left, directory) - relevance(access, right, directory) || left.starts.localeCompare(right.starts))
     .slice(0, MAX_COURSE_ROWS);
   if (courses.length === 0) return { ok: true as const, summary: T.none, data: [] };

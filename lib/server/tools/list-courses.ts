@@ -9,7 +9,7 @@ export const listCoursesTool = defineTool({
   connector: "lms",
   tier: "read",
   roles: "all",
-  description: "List upcoming training courses: cover photo, date and length, place and format, seats left, which certificate a course renews and who in the viewer's team should go (note). month = YYYY-MM for \"เดือนนี้/เดือนหน้า\" (today is in the system prompt); null = the next ones. can_enroll says whether the viewer can still ask for a seat.",
+  description: "List upcoming training courses: cover photo, date and length, place and format, seats left, which certificate a course renews and who in the viewer's team should go (note). month = YYYY-MM for \"เดือนนี้/เดือนหน้า\" (today is in the system prompt); null = the next ones. query = words for the course or the team or role it is for (\"ขาย\", \"ทีมผลิต\"); it matches title, category, audience, the departments a course serves and the roles holding the certificate it renews. can_enroll says whether the viewer can still ask for a seat.",
   input: listCoursesInputSchema,
   execute: async ({ month, query }: z.infer<typeof listCoursesInputSchema>) => listCourses(currentAccess(), { month, query }),
 });
