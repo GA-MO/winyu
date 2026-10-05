@@ -932,6 +932,8 @@ export const TH = {
       composed: (accepted: number, rejected: number) => `AI ประกอบการ์ด: ผ่าน ${accepted} ส่วน${rejected > 0 ? ` · ตัดทิ้ง ${rejected} ส่วน` : ""}`,
       limited: { steps: "ครบจำนวนรอบที่ AI คิดได้ จึงให้สรุปจากที่ได้มา", tool_calls: "ครบงบเรียกเครื่องมือ จึงให้สรุปจากที่ได้มา" },
       limitedDetail: (step: number) => `รอบที่ ${step} ปิดเครื่องมือ ให้ AI สรุปและถามผู้ใช้ว่าจะทำต่ออย่างไร`,
+      resumed: "เซิร์ฟเวอร์เริ่มใหม่ระหว่างตอบ จึงทำต่อจากขั้นที่บันทึกไว้",
+      resumedDetail: "ขั้นที่ค้างอยู่ตอนเซิร์ฟเวอร์หยุดอาจถูกทำซ้ำ",
       completed: "จบ",
       failed: (reason: string) => `ล้มเหลว: ${reason}`,
       gate: { never: "ระบบอนุญาต", required: "อนุญาตหลังผู้ใช้อนุมัติ", denied: "ระบบปฏิเสธ" },
