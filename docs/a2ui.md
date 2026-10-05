@@ -1,6 +1,6 @@
 # Model-composed cards with A2UI
 
-mascop draws most tool results with a fixed card per tool (`TOOL_CARDS`). For answers that combine or select from several reads (a regional lead and his team, open positions and courses), the model composes one card instead, written inside its reply and checked line by line on the server. The card is an A2UI v0.9 surface, drawn by CopilotKit's A2UI renderer with mascop's own components. This page records how A2UI works in the installed versions and how mascop uses it.
+mascop draws most tool results with a fixed card per tool (`TOOL_CARDS`). For every answer that shows people, sites, courses, candidates, policies, entities or connector rows, even from one read, the model composes one card instead, selecting the rows and facts that answer the question, written inside its reply and checked line by line on the server. The card is an A2UI v0.9 surface, drawn by CopilotKit's A2UI renderer with mascop's own components. This page records how A2UI works in the installed versions and how mascop uses it.
 
 ## How A2UI works in the installed versions
 

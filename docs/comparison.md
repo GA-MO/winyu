@@ -51,27 +51,31 @@ The frameworks do not cover the product rules, so these came across from Winyu o
 
 ## Composed cards benchmark
 
-The harness asks 5 people and HR questions (CEO team, HR candidates and courses, supply site, CEO licences, RSM team training) 2 times each, against `google/gemini-3.8-flash`, and scores each card against facts derived from the tool functions. The `baseline` tag ran Winyu (JSONL spec in the reply) and mascop with the `compose_card` tool on 2026-10-05. The `hybrid` tag ran mascop with the streamed, line-checked block the same day. Each cell is the median of 10 runs, with the range.
+The harness asks 5 people and HR questions (CEO team, HR candidates and courses, supply site, CEO licences, RSM team training) 2 times each, against `google/gemini-3.8-flash`, and scores each card against facts derived from the tool functions. The `baseline` tag ran Winyu (JSONL spec in the reply) and mascop with the `compose_card` tool on 2026-10-05. The `hybrid` tag ran mascop with the streamed, line-checked block the same day, when the prompt asked for a composed card only for answers that combine several reads. The `compose-all` tag ran the same block with the prompt asking for a composed card on every people, place and entity answer, even from one read. Each cell is the median of 10 runs, with the range.
 
-| Metric | Winyu | mascop, `compose_card` | mascop, streamed block |
-|---|---|---|---|
-| First card | 21.0 s (13.6–44.5) | 16.5 s (5.7–28.7) | 12.1 s (7.8–19.6) |
-| Composed card shows | 23.5 s (15.8–44.5) | 16.8 s (13.3–28.7) | 15.1 s (11.7–19.6) |
-| Reply ends | 24.6 s (13.7–47.7) | 19.8 s (11.8–31.4) | 14.6 s (7.8–20.2) |
-| Model calls | 2 (2–3) | 3 (2–4) | 2 (2–3) |
-| Input tokens per question | 44,654 | 38,370 | 22,575 |
-| Reasoning tokens per question | 5,409 | 3,605 | 2,865 |
-| Cost per question | $0.0183 | $0.0222 | $0.0146 |
-| Composed, all cases | 8/10 | 5/10 | 6/10 |
-| Composed, people cases | 8/8 | 5/8 | 6/8 |
-| Whole cards refused | 0 | 2 | 0 |
-| Fact recall | 100% (38–100) | 100% (63–100) | 100% (33–100) |
-| Entity precision | 100% (100–100) | 100% (50–100) | 100% (50–100) |
-| Errors | 0 | 0 | 0 |
+| Metric | Winyu | mascop, `compose_card` | mascop, streamed block | mascop, compose all |
+|---|---|---|---|---|
+| First card | 21.0 s (13.6–44.5) | 16.5 s (5.7–28.7) | 12.1 s (7.8–19.6) | 15.8 s (4.4–26.3) |
+| Composed card shows | 23.5 s (15.8–44.5) | 16.8 s (13.3–28.7) | 15.1 s (11.7–19.6) | 16.3 s (8.9–26.3) |
+| Reply ends | 24.6 s (13.7–47.7) | 19.8 s (11.8–31.4) | 14.6 s (7.8–20.2) | 16.9 s (9.2–26.6) |
+| Model calls | 2 (2–3) | 3 (2–4) | 2 (2–3) | 2 (2–3) |
+| Input tokens per question | 44,654 | 38,370 | 22,575 | 22,205 |
+| Reasoning tokens per question | 5,409 | 3,605 | 2,865 | 3,801 |
+| Cost per question | $0.0183 | $0.0222 | $0.0146 | $0.0162 |
+| Composed, all cases | 8/10 | 5/10 | 6/10 | 8/10 |
+| Composed, people cases | 8/8 | 5/8 | 6/8 | 8/8 |
+| Whole cards refused | 0 | 2 | 0 | 0 |
+| Fact recall | 100% (38–100) | 100% (63–100) | 100% (33–100) | 87% (33–100) |
+| Entity precision | 100% (100–100) | 100% (50–100) | 100% (50–100) | 100% (50–100) |
+| Errors | 0 | 0 | 0 | 0 |
 
 - The streamed block saves one model call per composed answer. With `compose_card`, the model called the tool, read back that the card was up, and then wrote its sentence in another call. Now the sentence and the card come from the same call. That one call accounts for most of the drop in input tokens, cost and end time. The call counts are structural. The time ranges overlap: supply-site, which composes in neither design, varied from 11.8 s to 19.7 s within the baseline alone.
 - The model wrote 41 block lines across the 6 composed cards, and the server dropped none. The per-line tolerance never fired in these runs; the tests cover it.
-- The CEO licences question was not composed in either run. The model drew the fixed `find_people` card, because the prompt asks for a composed card only when an answer combines or selects from several reads. Winyu composes every answer.
+- With the streamed block and the old rule, the CEO licences question was not composed in either run: the model drew the fixed `find_people` card, which also showed a province the question did not ask about (precision 88%). With compose all, both runs composed one card with the three people and their licence badges, at 100% recall and precision (`.shots/compose-all-licences.png`, after a reload). mascop now composes the 4 people cases 8 of 8 times, as Winyu does.
+- The rule change did not grow the prompt. The first call's input tokens were 9,551 to 9,555 for the licences question, against 9,555 before.
+- Compose all cost $0.0016 more per question and took longer at the median (16.9 s against 14.6 s to the end). The licences answer now comes from the same 2 calls, so the extra time is the model's reasoning before the block (median 3,801 reasoning tokens against 2,865). With 2 runs per case, treat the time difference as noise until more runs agree.
+- Recall dropped to 87% at the median because both HR runs asked `list_courses` with `query: "ขาย"`, which leaves out the alcohol-law course and the people it should go to (33%). The hybrid run 2 made the same call. The card showed every row the tool returned.
+- The supply-site question is still not composed. Both runs answered with `describe_entity`, `get_site` and metric tools, and the model left the site rows on their fixed cards.
 - HR run 2 scored 33% recall because the model asked `list_courses` for a filter that left out the alcohol-law course, not because a line was dropped.
 - The baseline and hybrid runs were not interleaved. They ran an hour apart on separate dev servers (`:3200` and `:3206`).
 
