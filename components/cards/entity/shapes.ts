@@ -154,6 +154,7 @@ export const ownerResult = z.object({
 export const memoryResult = z.object({
   summary: z.string(),
   data: z.array(z.object({ id: z.string(), type: z.string(), value: z.string(), status: z.string() })),
+  conversations: z.array(z.object({ threadId: z.string(), title: z.string(), at: z.string(), question: z.string() })).default([]),
 });
 
 export const metricsResult = z.object({

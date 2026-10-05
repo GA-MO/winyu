@@ -611,6 +611,10 @@ export const TH = {
     clearAsk: (count: number) => `ลืมทั้ง ${count} เรื่อง? ย้อนกลับไม่ได้`,
     clearConfirm: "ล้างทั้งหมด",
     editTooShort: "ต้องมีอย่างน้อย 3 ตัวอักษร",
+    recallTitle: (count: number) => `บทสนทนาที่ค้นย้อนได้ ${count} เรื่อง`,
+    recallNote: "เมื่อคุณถามถึงเรื่องที่เคยคุย mascop ค้นจากบทสนทนาเหล่านี้ โดยไม่นำตัวเลขเก่ามาใช้ เอาออกแล้วบทสนทนายังอยู่ในประวัติแชต",
+    recallTurns: (turns: number, when: string) => `${turns} คำถาม · ล่าสุด${when}`,
+    recallRemove: "เอาออกจากการค้นย้อน",
   },
   account: {
     open: "บัญชีของฉัน",
@@ -1144,6 +1148,7 @@ export const TH = {
     answeredWith: (prompt: string, metric: string, dims: string[]) => `${prompt} (ระบบตอบด้วย ${metric}${dims.length > 0 ? ` แยกตาม${dims.join(" ")}` : ""})`,
     nothingKnown: "ยังไม่มี",
     maskedNumber: "[ตัวเลข]",
+    conversationsHeading: "บทสนทนาที่เคยคุย",
     recalledSummary: (facts: number, conversations: number) => [facts > 0 ? `จำได้ ${facts} เรื่องที่เกี่ยวข้อง` : "", conversations > 0 ? `เคยคุยเรื่องใกล้เคียง ${conversations} บทสนทนา` : ""].filter(Boolean).join(" · "),
     truncated: "…",
   },
