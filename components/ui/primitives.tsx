@@ -483,12 +483,12 @@ const LIST_ITEM_BADGE_TONE: Record<NonNullable<ListItemBadge["tone"]>, string> =
   danger: "bg-danger/10 text-danger",
 };
 
-function initialsOf(name: string) {
-  return name
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() ?? "")
-    .join("");
+const HONORIFIC = /^คุณ/;
+const THAI_LEADING_VOWELS = /^[เแโใไ]/;
+
+/** One letter for a portrait placeholder: the first consonant of a Thai name (เมย์ shows ม), the first letter otherwise. */
+export function initialOf(name: string): string {
+  return name.trim().replace(HONORIFIC, "").replace(THAI_LEADING_VOWELS, "").slice(0, 1).toUpperCase();
 }
 
 function ListItemMedia({ props }: { props: ListItemProps }) {
@@ -498,7 +498,7 @@ function ListItemMedia({ props }: { props: ListItemProps }) {
   if (props.src) return <img src={props.src} alt={props.title} className={cn("shrink-0 object-cover", shape)} />;
   return (
     <div className={cn("flex shrink-0 items-center justify-center bg-gradient-to-br from-primary to-brand-violet text-sm font-semibold text-white", shape)}>
-      {initialsOf(props.title) || "?"}
+      {initialOf(props.title) || "?"}
     </div>
   );
 }
@@ -547,11 +547,7 @@ export function ListItem({ props, onPress }: { props: ListItemProps; onPress?: (
 
 export function Avatar({ props }: { props: AvatarProps }) {
   const size = props.size ?? "md";
-  const initials = props.name
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() ?? "")
-    .join("");
+  const initials = initialOf(props.name);
 
   return (
     <div className="flex items-center gap-3">
