@@ -5,7 +5,7 @@ import type { ContextPacket, Story } from "@/lib/contracts";
 import { threads } from "@/lib/server/threads-read";
 import { findUser } from "@/lib/data/entities/users";
 import { investigations, packets } from "./collections";
-import { WINYU_RULES, personaFor } from "./persona";
+import { WINYU_RULES, periodsAsOf, personaFor } from "./persona";
 
 const TODAY = "2026-09-22";
 const PACKET_ID = "pkt-persona-test";
@@ -104,7 +104,26 @@ describe("the day the data reaches", () => {
     if (!user) throw new Error("no CEO");
     const later = personaFor(accessFor(user), user, ctx({}, "2026-09-25")).join("\n");
     expect(later).toContain("ข้อมูลในชั้นเมตริกล่าสุดถึง 2026-09-22");
+    expect(later).toContain("เดือนที่แล้ว / เดือนก่อน = 2026-08-01 ถึง 2026-08-31");
+    expect(later).toContain("ปีที่แล้ว / ปีก่อน = 2025-01-01 ถึง 2025-12-31");
     expect(personaFor(accessFor(user), user, ctx()).join("\n")).not.toContain("ข้อมูลในชั้นเมตริกล่าสุดถึง");
+  });
+});
+
+describe("periodsAsOf", () => {
+  test("names each relative period from the data's last day, across month and year edges", () => {
+    expect(periodsAsOf("2026-09-22")).toEqual({
+      yesterday: { from: "2026-09-21", to: "2026-09-21" },
+      thisWeek: { from: "2026-09-21", to: "2026-09-22" },
+      lastWeek: { from: "2026-09-14", to: "2026-09-20" },
+      thisMonth: { from: "2026-09-01", to: "2026-09-22" },
+      lastMonth: { from: "2026-08-01", to: "2026-08-31" },
+      thisYear: { from: "2026-01-01", to: "2026-09-22" },
+      lastYear: { from: "2025-01-01", to: "2025-12-31" },
+    });
+    expect(periodsAsOf("2026-01-04").lastMonth).toEqual({ from: "2025-12-01", to: "2025-12-31" });
+    expect(periodsAsOf("2026-03-01").lastMonth).toEqual({ from: "2026-02-01", to: "2026-02-28" });
+    expect(periodsAsOf("2026-03-01").thisWeek).toEqual({ from: "2026-02-23", to: "2026-03-01" });
   });
 });
 
