@@ -14,7 +14,6 @@ import { investigations } from "@/lib/server/agent/collections";
 import { runMetric } from "@/lib/server/metrics";
 import { aiSdkTools } from "@/lib/server/agent/ai-sdk-tools";
 import { winyuTools, toolsForAccess } from "@/lib/server/agent/tools";
-import { agentModel } from "@/lib/server/models";
 import { tracedRun } from "@/lib/harness/runtime";
 import { runWithAccess } from "@/lib/server/request-context";
 import { measure } from "@/lib/server/usage-meter";
