@@ -323,18 +323,18 @@ export function saveInvestigation(investigation: Investigation): void {
   investigations().put(investigation);
 }
 
-/** The morning job: investigate for every user on the default real model and keep the result; does nothing when no real model is configured. */
-export async function runInvestigateJob(): Promise<number> {
+/** The morning job: investigate for each given user (everyone by default) on the default real model and keep the result; does nothing when no real model is configured. */
+export async function runInvestigateJob(userIds: readonly string[] = USERS.map((user) => user.id)): Promise<number> {
   const configured = agentModel();
   if (!configured) return 0;
   const modelId = configured.id;
   const model = configured.model();
-  const queue = USERS.map((user) => user.id);
+  const queue = [...userIds];
   let saved = 0;
   const workers = Array.from({ length: JOB_CONCURRENCY }, async () => {
     for (let userId = queue.shift(); userId; userId = queue.shift()) {
       const run = await investigate(userId, model, modelId).catch((error: unknown) => {
-        console.error(`[winyu] investigation for ${userId} failed`, error);
+        console.error(`[mascop] investigation for ${userId} failed`, error);
         return null;
       });
       if (!run) continue;
