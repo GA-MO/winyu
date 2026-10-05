@@ -1658,7 +1658,7 @@ export const TH = {
     send: "ส่งต่อ",
     sending: "กำลังส่ง…",
     sentTitle: "ส่งต่อแล้ว",
-    sentVia: (name: string, channel: string) => `${name} ทาง${channel}`,
+    sentVia: (name: string, channel: string) => `${name} ทาง ${channel}`,
     fellBack: (name: string) => `${name} ทางอีเมลแทน (ยังไม่เคยทัก Winyu ใน Teams)`,
     failedSend: (name: string) => `${name} ทางอีเมลแทน (ส่งทางช่องทางที่เลือกไม่สำเร็จ)`,
     failed: "ส่งต่อไม่สำเร็จ ลองใหม่อีกครั้ง",
@@ -1695,5 +1695,6 @@ export const TH = {
     } as Record<string, string>,
     defaultTitle: "การ์ดจาก Winyu",
     auditReason: (channels: string) => `ส่งต่อทาง ${channels}`,
+    auditFallback: (userId: string, asked: string) => `${userId} ส่งทางอีเมลแทน ${asked}`,
   },
 } as const;

@@ -135,7 +135,7 @@ export function recordShare(share: AuditedShare): void {
     decision: "allow",
     rowsReturned: share.deliveries.length,
     latencyMs: 0,
-    reason: TH.share.auditReason([...new Set(share.deliveries.map((delivery) => delivery.via))].join(", ")) + (fallbacks.length > 0 ? ` · ${fallbacks.map((delivery) => `${delivery.userId} ${delivery.asked}→${delivery.via}`).join(", ")}` : ""),
+    reason: TH.share.auditReason([...new Set(share.deliveries.map((delivery) => TH.share.channel[delivery.via] ?? delivery.via))].join(", ")) + (fallbacks.length > 0 ? ` · ${fallbacks.map((delivery) => TH.share.auditFallback(delivery.userId, TH.share.channel[delivery.asked] ?? delivery.asked)).join(", ")}` : ""),
     args: argsPreview(args),
     toolCallId: share.code,
     initiator: "person",

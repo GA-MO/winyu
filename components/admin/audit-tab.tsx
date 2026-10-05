@@ -147,7 +147,7 @@ function CallRow({ entry }: { entry: AuditEntry }) {
         </p>
         <Pill tone={DECISION_TONE[entry.decision]}>{TH.admin.decision[entry.decision]}</Pill>
       </div>
-      {reason ? <p className="text-[12px] text-foreground/80">{entry.reason ? `${reason} — ${entry.reason}` : reason}</p> : null}
+      {reason ? <p className="text-[12px] text-foreground/80">{entry.reason && entry.reason !== reason ? `${reason} — ${entry.reason}` : reason}</p> : null}
       {entry.args ? (
         <p className="break-all font-mono text-[11px] text-muted-foreground">
           <span className="font-sans">{`${COPY.args}: `}</span>
