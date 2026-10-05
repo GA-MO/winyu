@@ -20,6 +20,8 @@ type MetricAnswer = { query: MetricQuery; result: Extract<MetricResult, { ok: tr
 
 const METRIC_TOOL = "query_metric";
 const RECALL_TOOL = "recall_memory";
+const DOCUMENTS_TOOL = "search_documents";
+const NOT_FOUND = /ไม่พบ|ไม่มี(?:ข้อมูล|เรื่อง|ระบุ|ใน)|ไม่ได้(?:ระบุ|กำหนด|กล่าวถึง)/;
 const ENGINE_DEFAULT_SORT = "value_desc";
 const CONNECTOR_SEPARATOR = "__";
 const COMPOSED_READS: ReadonlySet<string> = new Set(["find_people", "get_person", "get_site", "list_candidates", "list_courses", "get_policy", "resolve_owner", "describe_entity"]);
@@ -85,7 +87,21 @@ function recalledQuestions(turn: EvalTurn): string[] {
     .flatMap((conversation) => (isRecord(conversation) && typeof conversation.question === "string" ? [conversation.question] : []));
 }
 
+type Passage = { doc_id: string; title: string; section: string };
+
+function passagesOf(turn: EvalTurn): Passage[] {
+  return returned(turn)
+    .filter((call) => call.tool === DOCUMENTS_TOOL && isRecord(call.result) && isRecord(call.result.data) && Array.isArray(call.result.data.passages))
+    .flatMap((call) => ((call.result as { data: { passages: unknown[] } }).data.passages))
+    .flatMap((passage) => (isRecord(passage) && typeof passage.doc_id === "string" && typeof passage.title === "string" && typeof passage.section === "string" ? [{ doc_id: passage.doc_id, title: passage.title, section: passage.section }] : []));
+}
+
+function names(passage: Passage): string[] {
+  return [passage.title, ...passage.section.split(" › ")];
+}
+
 function expectedTool(expected: EvalCase): string | null {
+  if (expected.expectDocuments) return DOCUMENTS_TOOL;
   if (expected.expectApproval) return expected.expectApproval;
   if (expected.expectPeople) return expected.expectPeople;
   return expected.expectCard ?? null;
@@ -422,6 +438,30 @@ export const EVAL_CHECKS: readonly EvalCheck[] = [
       const hit = found.some((question) => earlier.includes(question));
       const called = turn.calls.some((call) => call.tool === RECALL_TOOL);
       return verdict(hit, hit ? "พบบทสนทนาก่อนหน้า" : called ? `ได้ ${found.join(" · ") || "ไม่มีบทสนทนา"}` : `ไม่ได้เรียก ${RECALL_TOOL}`);
+    },
+  },
+  {
+    id: "citedDocument",
+    description: "search_documents returned a passage of the document that answers, and the reply names that document or its section.",
+    verdict: (turn, expected) => {
+      const wanted = expected.expectDocuments;
+      if (!wanted || !("cite" in wanted)) return null;
+      const passages = passagesOf(turn).filter((passage) => passage.doc_id === wanted.cite);
+      if (passages.length === 0) return verdict(false, `ไม่ได้ตอนจาก ${wanted.cite} · ได้ ${[...new Set(passagesOf(turn).map((passage) => passage.doc_id))].join(", ") || "ไม่มี"}`);
+      const cited = passages.flatMap(names).find((name) => turn.words.includes(name));
+      return verdict(cited !== undefined, cited ? `อ้าง "${cited}"` : `ไม่ได้อ้างชื่อเอกสารหรือหมวด: "${turn.words.slice(0, 80)}"`);
+    },
+  },
+  {
+    id: "saidNotFound",
+    description: "A question the person's documents do not answer is answered as not found, with no passage from a document the person may not read.",
+    verdict: (turn, expected) => {
+      const wanted = expected.expectDocuments;
+      if (!wanted || !("notFound" in wanted)) return null;
+      const leaked = wanted.hidden ? passagesOf(turn).filter((passage) => passage.doc_id === wanted.hidden).length : 0;
+      if (leaked > 0) return verdict(false, `ได้ ${leaked} ตอนจาก ${wanted.hidden} ที่ผู้ถามไม่มีสิทธิ์อ่าน`);
+      const said = NOT_FOUND.test(turn.words);
+      return verdict(said, said ? "บอกว่าไม่พบในเอกสาร" : `ไม่ได้บอกว่าไม่พบ: "${turn.words.slice(0, 80)}"`);
     },
   },
   {
