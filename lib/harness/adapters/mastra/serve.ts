@@ -4,7 +4,7 @@ import { CopilotRuntime, createCopilotRuntimeHandler } from "@copilotkit/runtime
 import { RequestContext } from "@mastra/core/request-context";
 import type { AccessContext } from "@/lib/contracts";
 import { askedTool, markAnswered, problemOf, recordAsked } from "@/lib/harness/approvals";
-import { emitTo, newRun, runWithRun, saveRun, type Run } from "@/lib/harness/runtime";
+import { currentRun, emitTo, newRun, runWithRun, saveRun, type Run } from "@/lib/harness/runtime";
 import { TH } from "@/lib/i18n/th";
 import { toolTiers } from "@/lib/server/agent/tools";
 import { recordComposedCard } from "@/lib/server/audit";
@@ -12,6 +12,7 @@ import { currentAccess, runWithAccess, runWithTurn, type TurnContext } from "@/l
 import { finishTurn } from "@/lib/server/threads";
 import { threadForRun, threads } from "@/lib/server/threads-read";
 import { AGENT_ID, USER_ID_KEY, mascopAgent } from "./agent";
+import { HARNESS_RUN_KEY, tracingOptionsOf } from "./observability";
 import { ReplyCards, withComposedCards, type ComposedCardRecord } from "./card-stream";
 import { threadTranscript } from "./history";
 import { chatTurnOf, observeReply, type ChatTurn, type ReplySeen, type RunInput } from "./turn";
@@ -31,7 +32,10 @@ type Handler = (request: Request) => Promise<Response>;
 function bridgeFor(userId: string): MastraAgent {
   const requestContext = new RequestContext();
   requestContext.set(USER_ID_KEY, userId);
-  return new MastraAgent({ agentId: AGENT_ID, agent: mascopAgent(), resourceId: userId, requestContext });
+  const run = currentRun();
+  if (!run) return new MastraAgent({ agentId: AGENT_ID, agent: mascopAgent(), resourceId: userId, requestContext });
+  requestContext.set(HARNESS_RUN_KEY, run.id);
+  return new MastraAgent({ agentId: AGENT_ID, agent: mascopAgent(), resourceId: userId, requestContext, tracingOptions: tracingOptionsOf(run.id) });
 }
 
 let copilotHandler: Handler | null = null;

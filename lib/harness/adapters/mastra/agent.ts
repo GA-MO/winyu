@@ -16,6 +16,7 @@ import { toolsForAccess } from "@/lib/server/agent/tools";
 import { agentModel } from "@/lib/server/models";
 import { currentTurn } from "@/lib/server/request-context";
 import { DATA_DIR } from "@/lib/server/store/json-store";
+import { mascopObservability } from "./observability";
 import { mastraTools } from "./tools";
 
 /** The one chat agent's id: the Mastra registry key and the CopilotKit agent name. */
@@ -75,17 +76,25 @@ function buildMastra(): Mastra {
     name: AGENT_ID,
     instructions: ({ requestContext }) => instructionsFor(accessOf(requestContext)),
     model: chatModel,
-    tools: ({ requestContext }) => mastraTools(toolsForAccess(accessOf(requestContext))),
+    tools: ({ requestContext }) => {
+      const access = accessOf(requestContext);
+      return mastraTools(toolsForAccess(access), access);
+    },
     memory: new Memory({ options: { lastMessages: REMEMBERED_MESSAGES, semanticRecall: false, generateTitle: false } }),
     defaultOptions: { maxSteps: LIMITS.maxSteps, prepareStep: wrapUpAtLimit },
   });
-  return new Mastra({ agents: { [AGENT_ID]: agent }, storage });
+  return new Mastra({ agents: { [AGENT_ID]: agent }, storage, observability: mascopObservability(USER_ID_KEY) });
 }
 
 let mastra: Mastra | null = null;
 
+/** The one Mastra instance of this process: the chat agent, its storage and its tracing. */
+export function mascopMastra(): Mastra {
+  mastra ??= buildMastra();
+  return mastra;
+}
+
 /** The chat agent, built once per server: instructions and tools are resolved per request from the user in its request context (D3, D9). */
 export function mascopAgent() {
-  mastra ??= buildMastra();
-  return mastra.getAgent(AGENT_ID);
+  return mascopMastra().getAgent(AGENT_ID);
 }
