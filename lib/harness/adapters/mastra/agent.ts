@@ -16,6 +16,7 @@ import { toolsForAccess } from "@/lib/server/agent/tools";
 import { agentModel } from "@/lib/server/models";
 import { currentTurn } from "@/lib/server/request-context";
 import { DATA_DIR } from "@/lib/server/store/json-store";
+import { ToolResultInjectionGuard, replyPersonalDataGuard } from "./guardrails";
 import { mascopObservability } from "./observability";
 import { mastraTools } from "./tools";
 
@@ -81,6 +82,7 @@ function buildMastra(): Mastra {
       return mastraTools(toolsForAccess(access), access);
     },
     memory: new Memory({ options: { lastMessages: REMEMBERED_MESSAGES, semanticRecall: false, generateTitle: false } }),
+    outputProcessors: [new ToolResultInjectionGuard(), replyPersonalDataGuard()],
     defaultOptions: { maxSteps: LIMITS.maxSteps, prepareStep: wrapUpAtLimit },
   });
   return new Mastra({ agents: { [AGENT_ID]: agent }, storage, observability: mascopObservability(USER_ID_KEY) });

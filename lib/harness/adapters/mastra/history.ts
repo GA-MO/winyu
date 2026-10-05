@@ -3,6 +3,8 @@ import type { Message } from "@ag-ui/core";
 import { HANDOFF_REPLY_ACTIVITY, handoffReplyNoteSchema, type HandoffReplyNote } from "@/lib/contracts";
 import { openApprovalsFor } from "@/lib/harness/approvals";
 import { fenceAsData } from "@/lib/harness/fence";
+import { injectionIn, withoutInjection } from "@/lib/harness/guard";
+import { recordGuardFinding } from "@/lib/server/audit";
 import { TH } from "@/lib/i18n/th";
 import { toolTiers } from "@/lib/server/agent/tools";
 import type { SpokenTurn } from "@/lib/server/request-context";
@@ -167,7 +169,7 @@ export async function threadTranscript(threadId: string, userId: string): Promis
 
 /** What the model reads for a handoff reply: a labelled system note with the colleague's words fenced as data. */
 export function handoffReplyForModel(note: HandoffReplyNote): string {
-  const words = fenceAsData(`${TH.handoff.replyAbout(note.packetTitle)}\n${note.text}`);
+  const words = fenceAsData(`${TH.handoff.replyAbout(note.packetTitle)}\n${withoutInjection(note.text).text}`);
   return TH.handoff.replyForModel(note.fromName, note.fromTitle, TH.inbox.status[note.status], words);
 }
 
@@ -177,6 +179,8 @@ export async function appendHandoffReply(threadId: string, userId: string, note:
   const thread = await store.getThreadById({ threadId });
   if (!thread || thread.resourceId !== userId) return false;
   const content = { format: 2 as const, parts: [{ type: "text" as const, text: handoffReplyForModel(note) }], metadata: { [HANDOFF_REPLY_ACTIVITY]: note } };
+  const injection = injectionIn(note.text);
+  if (injection.length > 0) recordGuardFinding({ source: "handoff_reply", check: "injection", kinds: injection, action: "neutralized" }, userId);
   await store.saveMessages({ messages: [{ id: randomUUID(), role: "user", createdAt: new Date(note.at), threadId, resourceId: userId, type: "text", content }] });
   return true;
 }
