@@ -40,6 +40,8 @@ Each document is versioned twice. The header's `version` and `effective` date ar
 
 A chunk is embedded as the document title, its headings and its text. The embedder is the one conversation recall uses (`lib/server/recall/embedder.ts`): `Xenova/multilingual-e5-base` (8-bit) on the server's CPU, with no text leaving the machine. The vectors go into a `LibSQLVector` index named `mascop_documents` in `.data/mastra.db`. Each vector carries the document id, title, section, version, effective date, owner, readers, a hash of everything the chunk was built from, the embedder id and the time it was indexed.
 
+Search compares the question with every chunk. LibSQL also builds an approximate DiskANN index beside the table, and after rows are deleted it returns only some of them: a re-index that removed sections made the HR reader's nearest sections and the removed chunks disappear from queries and from the listing the sync reads. The store therefore drops that index when it opens (`reopenExact` in `lib/harness/adapters/mastra/exact-vector-store.ts`).
+
 ```bash
 bun run docs:index    # read data/documents again and bring the index to match it
 ```
