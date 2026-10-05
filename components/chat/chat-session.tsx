@@ -10,6 +10,7 @@ import { Composer } from "@/components/composer/composer";
 import { GlowBackdrop } from "@/components/ui/glow-backdrop";
 import { ExchangeView, type ExchangeLive } from "./exchange-view";
 import { answeredMetrics, chipRow, latestFollowUps } from "./follow-ups";
+import { requestedCoursesOf } from "./requested-courses";
 import { useChatSession, type AgentMessage, type PendingApproval } from "./use-chat-session";
 
 const COLUMN = "mx-auto w-full max-w-3xl px-4 sm:px-6";
@@ -125,6 +126,8 @@ export function ChatSession({ threadId, initialPrompt, initialMessages, initialA
     send(value);
   };
 
+  const requestedCourses = useMemo(() => requestedCoursesOf(exchanges), [exchanges]);
+
   const live = (index: number): ExchangeLive => {
     const isLast = index === exchanges.length - 1;
     return {
@@ -136,6 +139,7 @@ export function ChatSession({ threadId, initialPrompt, initialMessages, initialA
       decide: session.decide,
       stopped: isLast && session.stoppedExchangeId === exchanges[index].id,
       error: isLast ? session.error : null,
+      requestedCourses,
     };
   };
 

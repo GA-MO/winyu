@@ -3,6 +3,8 @@ import type { ReplyStep, ToolStep } from "./timeline";
 
 const DECLINED_TEXT = /not approved|declined|rejected|denied/i;
 const ANSWER_LISTS = ["rows", "weeks"] as const;
+const DOCUMENTS_TOOL = "search_documents";
+const CATALOG_TOOL = "list_metrics";
 
 /** How one tool call shows in a reply: its card, the decision it waits on or its receipt, a working line, a quiet note, or nothing. */
 export type ToolView =
@@ -12,8 +14,8 @@ export type ToolView =
   | { kind: "not-run" }
   | { kind: "none" };
 
-/** What the live chat knows about one call beyond the transcript: whether a reply is streaming, whether this call waits for the person, what they chose, and whether a composed card shows (or may yet show) its result. */
-export type ToolLive = { running: boolean; asking: boolean; decided: boolean | undefined; composed: boolean };
+/** What the live chat knows about one call beyond the transcript: whether a reply is streaming, whether this call waits for the person, what they chose, and whether its card is left out (a composed card shows or may yet show its result, or another card of the exchange draws it). */
+export type ToolLive = { running: boolean; asking: boolean; decided: boolean | undefined; hidden: boolean };
 
 /** A write tool's result that says the person declined it rather than that it ran. */
 export function isDeclined(result: unknown): boolean {
@@ -34,7 +36,7 @@ export function isEmptyAnswer(result: unknown): boolean {
 }
 
 function cardView(step: ToolStep, live: ToolLive): ToolView {
-  if (live.composed) return { kind: "none" };
+  if (live.hidden) return { kind: "none" };
   if (step.outcome.state === "returned" && isEmptyAnswer(step.outcome.result)) return { kind: "none" };
   if (step.outcome.state === "returned") return { kind: "card", name: step.name, result: step.outcome.result, args: step.args };
   if (step.outcome.state === "pending" && live.running) return { kind: "working" };
@@ -65,4 +67,49 @@ function holdsCard(step: ReplyStep): boolean {
 export function composedCalls(steps: readonly ReplyStep[], streaming: boolean): ReadonlySet<string> {
   if (!streaming && !steps.some(holdsCard)) return new Set();
   return new Set(steps.flatMap((step) => (step.kind === "tool" && !UNCOMPOSABLE_TOOLS.includes(step.name) ? [step.toolCallId] : [])));
+}
+
+/** How the fixed cards of one exchange are drawn: the calls whose card is left out, and the results a card draws in place of its own call's. */
+export type CardPlan = { hidden: ReadonlySet<string>; results: ReadonlyMap<string, unknown> };
+
+type Passage = { doc_id?: unknown; section?: unknown; text?: unknown };
+type DocumentsResult = { data: { passages: Passage[] } };
+
+function documentsOf(step: ToolStep): DocumentsResult | null {
+  if (step.name !== DOCUMENTS_TOOL || step.outcome.state !== "returned") return null;
+  const result = step.outcome.result as { data?: { passages?: unknown } } | null;
+  return typeof result === "object" && result !== null && Array.isArray(result.data?.passages) ? (result as DocumentsResult) : null;
+}
+
+function passageKey(passage: Passage): string {
+  return JSON.stringify([passage.doc_id, passage.section, passage.text]);
+}
+
+function mergedDocuments(results: readonly DocumentsResult[]): DocumentsResult {
+  const passages = new Map<string, Passage>();
+  for (const passage of results.flatMap((result) => result.data.passages)) if (!passages.has(passageKey(passage))) passages.set(passageKey(passage), passage);
+  const last = results[results.length - 1];
+  return { ...last, data: { ...last.data, passages: [...passages.values()] } };
+}
+
+function drawsAnswer(step: ToolStep, hidden: ReadonlySet<string>, cardTools: ReadonlySet<string>): boolean {
+  if (step.name === CATALOG_TOOL || !cardTools.has(step.name) || hidden.has(step.toolCallId)) return false;
+  return step.outcome.state === "returned" && !isEmptyAnswer(step.outcome.result);
+}
+
+/** One card per question: every documents search of the exchange draws as one card at the first search (passages merged, duplicates dropped, so citations count over all of them), and the metric catalog the model browsed on the way is left out once another card answers; `composed` are the calls a composed card already holds. */
+export function cardPlanOf(steps: readonly ToolStep[], composed: ReadonlySet<string>, cardTools: ReadonlySet<string>): CardPlan {
+  const hidden = new Set(composed);
+  const results = new Map<string, unknown>();
+  const searches = steps.flatMap((step) => {
+    const documents = documentsOf(step);
+    return documents ? [{ step, documents }] : [];
+  });
+  if (searches.length > 1) {
+    results.set(searches[0].step.toolCallId, mergedDocuments(searches.map((search) => search.documents)));
+    for (const search of searches.slice(1)) hidden.add(search.step.toolCallId);
+  }
+  if (!steps.some((step) => drawsAnswer(step, hidden, cardTools))) return { hidden, results };
+  for (const step of steps) if (step.name === CATALOG_TOOL) hidden.add(step.toolCallId);
+  return { hidden, results };
 }

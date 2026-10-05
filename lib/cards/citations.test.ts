@@ -14,6 +14,11 @@ describe("splitByCitation", () => {
     expect(splitByCitation([GRADING, SHIFTS, CREDIT_DAYS], "ตามนโยบายการขายและเครดิตเอเย่นต์ ได้ 30 วัน")).toEqual({ cited: [GRADING, CREDIT_DAYS], searched: [SHIFTS] });
   });
 
+  test("a not-found reply that names the document it looked in cites nothing, but one that names a section still cites it", () => {
+    expect(splitByCitation([SHIFTS, CREDIT_DAYS], "ไม่พบเรื่องสัตว์เลี้ยงในคู่มือพนักงาน")).toEqual({ cited: [], searched: [SHIFTS, CREDIT_DAYS] });
+    expect(splitByCitation([SHIFTS, CREDIT_DAYS], "ไม่พบเรื่องค่าล่วงเวลา แต่หมวดกะการทำงานโรงงานและศูนย์กระจายสินค้าบอกค่ากะ")).toEqual({ cited: [SHIFTS], searched: [CREDIT_DAYS] });
+  });
+
   test("a reply naming nothing cites nothing", () => {
     expect(splitByCitation([CREDIT_DAYS, SHIFTS], "ไม่พบในเอกสาร")).toEqual({ cited: [], searched: [CREDIT_DAYS, SHIFTS] });
     expect(citedName(CREDIT_DAYS, "ได้ 30 วันครับ")).toBeNull();
