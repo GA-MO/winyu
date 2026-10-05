@@ -18,7 +18,7 @@ import {
 } from "@/lib/access/role-overrides";
 import { addRule, moveRule, removeRule, setRuleEnabled, updateRule, type RuleCheck } from "@/lib/access/policy-rules";
 import { readUser } from "@/lib/server/session";
-import { issueToken, revokeToken } from "@/lib/server/access-tokens";
+import { TOKEN_CHANNELS, issueToken, revokeToken, type TokenChannel } from "@/lib/server/access-tokens";
 import { TH } from "@/lib/i18n/th";
 
 const ADMIN_PATH = "/admin";
@@ -199,16 +199,22 @@ export async function removeRuleAction(formData: FormData) {
   revalidatePath(ADMIN_PATH);
 }
 
-/** What issuing an MCP token came back with: nothing yet, the plain token to show once, or why it was not issued. */
-export type McpTokenFormState = { ok: true; token: string; userId: string } | { ok: false; error: string } | null;
+/** What issuing a token came back with: nothing yet, the plain token and its channel to show once, or why it was not issued. */
+export type McpTokenFormState = { ok: true; token: string; userId: string; channel: TokenChannel } | { ok: false; error: string } | null;
+
+function channelOf(value: FormDataEntryValue | null): TokenChannel {
+  return TOKEN_CHANNELS.find((channel) => channel === value) ?? "mcp";
+}
 
 export async function issueMcpTokenAction(_previous: McpTokenFormState, formData: FormData): Promise<McpTokenFormState> {
   const by = await adminId();
   if (!by) return null;
-  const issued = issueToken(String(formData.get("user") ?? ""), by);
-  if (!issued) return { ok: false, error: TH.admin.mcpTab.errors.user };
+  const channel = channelOf(formData.get("channel"));
+  const caller = String(formData.get("caller") ?? "");
+  const issued = issueToken(String(formData.get("user") ?? ""), by, channel, caller);
+  if (!issued) return { ok: false, error: channel === "a2a" && !caller.trim() ? TH.admin.mcpTab.errors.caller : TH.admin.mcpTab.errors.user };
   revalidatePath(ADMIN_PATH);
-  return { ok: true, token: issued.token, userId: issued.record.userId };
+  return { ok: true, token: issued.token, userId: issued.record.userId, channel };
 }
 
 export async function revokeMcpTokenAction(formData: FormData) {

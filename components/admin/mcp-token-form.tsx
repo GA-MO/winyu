@@ -5,17 +5,49 @@ import { Check, Copy, KeyRound } from "lucide-react";
 import { cn } from "@/components/ui/cn";
 import { TH } from "@/lib/i18n/th";
 import type { McpTokenFormState } from "@/app/(app)/admin/actions";
-import { FOCUS, INK, Select } from "./parts";
+import { FIELD, FOCUS, INK, Select } from "./parts";
 
 const COPY = TH.admin.mcpTab;
 const COPIED_MS = 1500;
 
 type Option = { id: string; label: string };
 
-type McpTokenFormProps = { action: (previous: McpTokenFormState, formData: FormData) => Promise<McpTokenFormState>; users: readonly Option[]; endpoint: string };
+type Channel = "mcp" | "a2a";
+
+const CHANNELS: readonly Channel[] = ["mcp", "a2a"];
+
+type McpTokenFormProps = { action: (previous: McpTokenFormState, formData: FormData) => Promise<McpTokenFormState>; users: readonly Option[]; endpoint: string; cardUrl: string };
 
 function claudeCommand(endpoint: string, token: string): string {
   return `claude mcp add --transport http mascop ${endpoint} --header "Authorization: Bearer ${token}"`;
+}
+
+function a2aEndpointOf(cardUrl: string): string {
+  return new URL("/api/a2a", cardUrl).toString();
+}
+
+function curlCommand(cardUrl: string, token: string): string {
+  const body = JSON.stringify({ jsonrpc: "2.0", id: 1, method: "message/send", params: { message: { kind: "message", role: "user", messageId: "m1", parts: [{ kind: "text", text: "ยอดขายเข้าแยกตามภาคไตรมาสนี้" }] } } });
+  return `curl -s ${a2aEndpointOf(cardUrl)} -H "Authorization: Bearer ${token}" -H "Content-Type: application/json" -d '${body}'`;
+}
+
+function IssuedLines({ channel, token, endpoint, cardUrl }: { channel: Channel; token: string; endpoint: string; cardUrl: string }) {
+  if (channel === "a2a") {
+    return (
+      <>
+        <CopyLine label={COPY.agentCard} value={cardUrl} />
+        <CopyLine label={COPY.token} value={token} />
+        <CopyLine label={COPY.curl} value={curlCommand(cardUrl, token)} />
+      </>
+    );
+  }
+  return (
+    <>
+      <CopyLine label={COPY.endpoint} value={endpoint} />
+      <CopyLine label={COPY.token} value={token} />
+      <CopyLine label={COPY.claudeCode} value={claudeCommand(endpoint, token)} />
+    </>
+  );
 }
 
 function CopyLine({ label, value }: { label: string; value: string }) {
@@ -38,9 +70,10 @@ function CopyLine({ label, value }: { label: string; value: string }) {
   );
 }
 
-/** Picks a user and issues them an MCP token; the plain token, the endpoint and a ready Claude Code command show once, right here. */
-export function McpTokenForm({ action, users, endpoint }: McpTokenFormProps) {
+/** Picks a user and a channel and issues a token in their name: for MCP the endpoint and a ready Claude Code command, for A2A the agent card and a ready curl call, shown once, right here. */
+export function McpTokenForm({ action, users, endpoint, cardUrl }: McpTokenFormProps) {
   const [state, dispatch, pending] = useActionState(action, null);
+  const [channel, setChannel] = useState<Channel>("mcp");
   const issuedTo = state?.ok ? users.find((user) => user.id === state.userId)?.label ?? state.userId : null;
   return (
     <div className="flex flex-col gap-3">
@@ -58,6 +91,22 @@ export function McpTokenForm({ action, users, endpoint }: McpTokenFormProps) {
             ))}
           </Select>
         </label>
+        <label className="flex min-w-[12rem] flex-col gap-1 text-xs text-muted-foreground">
+          {COPY.channel}
+          <Select name="channel" value={channel} onChange={(event) => setChannel(event.target.value === "a2a" ? "a2a" : "mcp")}>
+            {CHANNELS.map((option) => (
+              <option key={option} value={option}>
+                {COPY.channels[option]}
+              </option>
+            ))}
+          </Select>
+        </label>
+        {channel === "a2a" ? (
+          <label className="flex min-w-[14rem] flex-1 flex-col gap-1 text-xs text-muted-foreground sm:max-w-xs">
+            {COPY.caller}
+            <input name="caller" required maxLength={80} placeholder={COPY.callerPlaceholder} className={FIELD} />
+          </label>
+        ) : null}
         <button type="submit" disabled={pending} className={cn(INK, "disabled:opacity-60")}>
           <KeyRound className="size-4" aria-hidden />
           {pending ? COPY.issuing : COPY.issue}
@@ -67,9 +116,7 @@ export function McpTokenForm({ action, users, endpoint }: McpTokenFormProps) {
       {state?.ok && issuedTo ? (
         <div role="status" className="flex flex-col gap-2.5 rounded-2xl border border-success/30 bg-success/5 px-4 py-3">
           <p className="text-sm text-foreground">{COPY.issued(issuedTo)}</p>
-          <CopyLine label={COPY.endpoint} value={endpoint} />
-          <CopyLine label={COPY.token} value={state.token} />
-          <CopyLine label={COPY.claudeCode} value={claudeCommand(endpoint, state.token)} />
+          <IssuedLines channel={state.channel} token={state.token} endpoint={endpoint} cardUrl={cardUrl} />
         </div>
       ) : null}
     </div>

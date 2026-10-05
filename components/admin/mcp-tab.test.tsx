@@ -7,6 +7,7 @@ import { McpTab } from "./mcp-tab";
 
 const COPY = TH.admin.mcpTab;
 const ENDPOINT = "http://localhost:3200/api/mcp";
+const CARD_URL = "http://localhost:3200/.well-known/agent-card.json";
 const issued: IssuedToken[] = [];
 
 afterEach(() => {
@@ -25,7 +26,7 @@ describe("McpTab", () => {
     const active = issue("u_thana");
     const revoked = issue("u_krit");
     revokeToken(revoked.record.id);
-    const html = renderToStaticMarkup(<McpTab endpoint={ENDPOINT} />);
+    const html = renderToStaticMarkup(<McpTab endpoint={ENDPOINT} cardUrl={CARD_URL} />);
     expect(html).toContain(`mcp_…${active.record.hint}`);
     expect(html).toContain(`mcp_…${revoked.record.hint}`);
     expect(html).not.toContain(active.token);
@@ -33,5 +34,15 @@ describe("McpTab", () => {
     expect(html.match(new RegExp(`>${COPY.revoke}<`, "g"))?.length).toBe(1);
     expect(html).toContain(COPY.revoked);
     expect(html).toMatch(/\d+ tools/);
+  });
+
+  test("an A2A token shows its channel prefix and the agent IT issued it to", () => {
+    const token = issueToken("u_krit", "u_ton", "a2a", "Finance agent");
+    if (!token) throw new Error("not issued");
+    issued.push(token);
+    const html = renderToStaticMarkup(<McpTab endpoint={ENDPOINT} cardUrl={CARD_URL} />);
+    expect(html).toContain(`a2a_…${token.record.hint}`);
+    expect(html).toContain("A2A · Finance agent");
+    expect(html).not.toContain(token.token);
   });
 });

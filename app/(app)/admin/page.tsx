@@ -19,6 +19,7 @@ import { RulesTab } from "@/components/admin/rules-tab";
 import { ToolsTab } from "@/components/admin/tools-tab";
 import { UsageTab } from "@/components/admin/usage-tab";
 import { McpTab } from "@/components/admin/mcp-tab";
+import { A2A_CARD_PATH } from "@/lib/server/a2a";
 import { SignInTab } from "@/components/admin/sign-in-tab";
 import { Avatar, FOCUS } from "@/components/admin/parts";
 
@@ -68,11 +69,16 @@ function textOf(value: string | undefined): string | null {
   return value && value.length > 0 ? value : null;
 }
 
-async function mcpEndpoint(): Promise<string> {
+async function accessTokensTab() {
+  const origin = await publicOrigin();
+  return <McpTab endpoint={`${origin}${MCP_PATH}`} cardUrl={`${origin}${A2A_CARD_PATH}`} />;
+}
+
+async function publicOrigin(): Promise<string> {
   const incoming = await headers();
   const host = incoming.get("x-forwarded-host") ?? incoming.get("host") ?? "localhost";
   const protocol = incoming.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
-  return `${protocol}://${host}${MCP_PATH}`;
+  return `${protocol}://${host}`;
 }
 
 function AskAgent() {
@@ -168,7 +174,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
         {current === "usage" ? <UsageTab /> : null}
         {current === "signin" ? <SignInTab /> : null}
         {current === "simulate" ? <SimulateTab userId={params.as ?? USERS[0].id} metric={metricOf(params.metric)} /> : null}
-        {current === "mcp" ? <McpTab endpoint={await mcpEndpoint()} /> : null}
+        {current === "mcp" ? await accessTokensTab() : null}
       </div>
     </div>
   );
