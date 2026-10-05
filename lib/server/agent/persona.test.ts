@@ -9,7 +9,7 @@ import { WINYU_RULES, personaFor } from "./persona";
 
 const TODAY = "2026-09-22";
 const PACKET_ID = "pkt-persona-test";
-const DRAWING_VOCABULARY = ["DataCard", "AlertsCard", "ForecastCard", "$state", "runTool", "⟦action⟧", "RankList", "ListItem", "Carousel", "footnote", "/tools/"];
+const DRAWING_VOCABULARY = ["DataCard", "AlertsCard", "ForecastCard", "$state", "runTool", "⟦action⟧", "/tools/"];
 const DOMAIN_MARKERS = ["ห้ามประมาณเอง", "certified metric", "PERMISSION_DENIED", "resolve_owner", "`masked`", "watch_metric", "pin_widget", "find_people", "request_leave", "describe_entity"];
 
 function ctx(context: Record<string, unknown> = {}, today = TODAY): PersonaContext {
@@ -88,7 +88,7 @@ describe("rules", () => {
     for (const rule of DOMAIN_MARKERS) expect(rules).toContain(rule);
   });
 
-  test("never ask the model to draw: mascop renders every tool result itself", () => {
+  test("never ask the model to draw a metric card or a json-render spec: metric results draw their own card, composition goes through compose_card", () => {
     const rules = WINYU_RULES.join("\n");
     expect(DRAWING_VOCABULARY.filter((word) => rules.includes(word))).toEqual([]);
   });

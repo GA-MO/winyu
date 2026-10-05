@@ -12,6 +12,7 @@ export type WinyuTool<Name extends string = string> = {
   description: () => string;
   inputSchema: () => z.ZodType;
   execute: GatedTool<unknown>;
+  modelOutput?: (output: unknown) => unknown;
 };
 
 type NativeToolSpec<Name extends NativeToolName, Input extends z.ZodType> = {
@@ -26,6 +27,7 @@ type NativeToolSpec<Name extends NativeToolName, Input extends z.ZodType> = {
   correct?: Corrector;
   redact?: readonly string[];
   timeoutMs?: number;
+  modelOutput?: (output: unknown) => unknown;
 };
 
 /** One tool of Winyu's own: its place on the surface (connector, tier, roles), its post-condition, and an execute that only runs through the harness gateway. */
@@ -40,5 +42,6 @@ export function defineTool<Name extends NativeToolName, Input extends z.ZodType>
     description: () => (typeof describe === "string" ? describe : describe()),
     inputSchema: () => spec.input,
     execute: gated(capability, spec.execute) as GatedTool<unknown>,
+    ...(spec.modelOutput ? { modelOutput: spec.modelOutput } : {}),
   };
 }

@@ -21,6 +21,7 @@
     "@ag-ui/core": "1.0.1",
     "@ag-ui/mastra": "1.1.6",
     "@ai-sdk/mcp": "2.0.48",
+    "@copilotkit/a2ui-renderer": "1.77.0",
     "@copilotkit/react-core": "1.77.0",
     "@copilotkit/runtime": "1.77.0",
     "@marcbachmann/cel-js": "^8.0.0",
