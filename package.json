@@ -14,7 +14,9 @@
     "trace": "bun run scripts/trace.ts",
     "connectors:demo": "bun run scripts/connectors-demo.ts",
     "investigate": "bun run scripts/investigate.ts",
-    "call-tool": "bun run scripts/call-tool.ts"
+    "call-tool": "bun run scripts/call-tool.ts",
+    "identity": "bun run scripts/identity.ts",
+    "entra:mock": "bun run scripts/entra-mock.ts"
   },
   "dependencies": {
     "@ag-ui/client": "1.0.1",
