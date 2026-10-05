@@ -1,4 +1,5 @@
 import { liveAccessFor } from "@/lib/access/enforce";
+import { citedName } from "@/lib/cards/citations";
 import { presentCard } from "@/lib/cards/present";
 import { ASK_EVENT, COMPOSE_ACTION_TOOLS, type ComposedComponent } from "@/lib/compose/catalog";
 import { REGIONS, setPermissionInputSchema, watchMetricInputSchema, type MetricQuery, type MetricResult, type Region } from "@/lib/contracts";
@@ -94,10 +95,6 @@ function passagesOf(turn: EvalTurn): Passage[] {
     .filter((call) => call.tool === DOCUMENTS_TOOL && isRecord(call.result) && isRecord(call.result.data) && Array.isArray(call.result.data.passages))
     .flatMap((call) => ((call.result as { data: { passages: unknown[] } }).data.passages))
     .flatMap((passage) => (isRecord(passage) && typeof passage.doc_id === "string" && typeof passage.title === "string" && typeof passage.section === "string" ? [{ doc_id: passage.doc_id, title: passage.title, section: passage.section }] : []));
-}
-
-function names(passage: Passage): string[] {
-  return [passage.title, ...passage.section.split(" › ")];
 }
 
 function expectedTool(expected: EvalCase): string | null {
@@ -448,7 +445,7 @@ export const EVAL_CHECKS: readonly EvalCheck[] = [
       if (!wanted || !("cite" in wanted)) return null;
       const passages = passagesOf(turn).filter((passage) => passage.doc_id === wanted.cite);
       if (passages.length === 0) return verdict(false, `ไม่ได้ตอนจาก ${wanted.cite} · ได้ ${[...new Set(passagesOf(turn).map((passage) => passage.doc_id))].join(", ") || "ไม่มี"}`);
-      const cited = passages.flatMap(names).find((name) => turn.words.includes(name));
+      const cited = passages.map((passage) => citedName(passage, turn.words)).find((name) => name !== null);
       return verdict(cited !== undefined, cited ? `อ้าง "${cited}"` : `ไม่ได้อ้างชื่อเอกสารหรือหมวด: "${turn.words.slice(0, 80)}"`);
     },
   },

@@ -48,7 +48,7 @@ export function Gallery({ reads, writes }: { reads: SampleResult[]; writes: Writ
         {reads.map((sample, index) => (
           <figure key={`${sample.tool}-${index}`} className="mb-4 flex break-inside-avoid flex-col gap-1.5" data-tool={sample.tool}>
             <Caption tool={sample.caption} detail={sample.question} />
-            {isCardTool(sample.tool) ? TOOL_CARDS[sample.tool](sample.result, sample.input) : null}
+            {isCardTool(sample.tool) ? TOOL_CARDS[sample.tool](sample.result, sample.input, { text: sample.reply ?? "", streaming: sample.reply === undefined }) : null}
           </figure>
         ))}
       </div>

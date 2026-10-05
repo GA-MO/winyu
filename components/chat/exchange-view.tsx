@@ -4,7 +4,7 @@ import { Component, type ReactNode } from "react";
 import { AlertCircle, CircleSlash, MessageSquareReply, MousePointerClick, ShieldCheck, Sparkles } from "lucide-react";
 import { renderApproval } from "@/components/cards/approval-card";
 import { describeToolCall } from "@/lib/cards/describe-call";
-import { TOOL_CARDS, type ToolCard } from "@/components/cards/registry";
+import { TOOL_CARDS, type ReplyText, type ToolCard } from "@/components/cards/registry";
 import { Badge } from "@/components/ui/primitives";
 import type { ContextPacket, HandoffReplyNote } from "@/lib/contracts";
 import { maskPersonalData } from "@/lib/harness/guard";
@@ -95,10 +95,10 @@ class CardBoundary extends Component<{ children: ReactNode }, { failed: boolean 
   }
 }
 
-function ToolStepView({ step, live, composed }: { step: ToolStep; live: ExchangeLive; composed: boolean }) {
+function ToolStepView({ step, live, composed, reply }: { step: ToolStep; live: ExchangeLive; composed: boolean; reply: ReplyText }) {
   const asking = live.waiting.has(step.toolCallId);
-  const view = toolViewOf(step, { running: live.running && live.isLast, asking, decided: live.decisions[step.toolCallId], composed }, CARD_TOOLS);
-  if (view.kind === "card") return <div className="w-full animate-hero-rise">{CARDS[view.name](view.result, view.args)}</div>;
+  const view = toolViewOf(step, { running: reply.streaming, asking, decided: live.decisions[step.toolCallId], composed }, CARD_TOOLS);
+  if (view.kind === "card") return <div className="w-full animate-hero-rise">{CARDS[view.name](view.result, view.args, reply)}</div>;
   if (view.kind === "working") return <Working label={TH.conversation.working} />;
   if (view.kind === "not-run") return <Note text={TH.conversation.notRun} tone="muted" />;
   if (view.kind === "none") return null;
@@ -129,7 +129,7 @@ function HandoffReplyView({ note }: { note: HandoffReplyNote }) {
   );
 }
 
-function StepView({ step, live, composed }: { step: ReplyStep; live: ExchangeLive; composed: ReadonlySet<string> }) {
+function StepView({ step, live, composed, reply }: { step: ReplyStep; live: ExchangeLive; composed: ReadonlySet<string>; reply: ReplyText }) {
   if (step.kind === "text") return <Markdown text={step.text} />;
   if (step.kind === "handoff-reply") return <HandoffReplyView note={step.note} />;
   if (step.kind === "composed")
@@ -140,9 +140,13 @@ function StepView({ step, live, composed }: { step: ReplyStep; live: ExchangeLiv
     );
   return (
     <CardBoundary>
-      <ToolStepView step={step} live={live} composed={composed.has(step.toolCallId)} />
+      <ToolStepView step={step} live={live} composed={composed.has(step.toolCallId)} reply={reply} />
     </CardBoundary>
   );
+}
+
+function replyOf(exchange: Exchange, streaming: boolean): ReplyText {
+  return { text: exchange.steps.flatMap((step) => (step.kind === "text" ? [step.text] : [])).join("\n"), streaming };
 }
 
 function shows(step: ReplyStep): boolean {
@@ -173,12 +177,14 @@ function stepsWithApprovals(exchange: Exchange, asked: readonly PendingApproval[
 
 /** One question and its answer: the question bubble, then reply sentences, cards and decisions in the order the agent produced them; an approval the stream asked for without showing its call still gets its card. */
 export function ExchangeView({ exchange, live }: { exchange: Exchange; live: ExchangeLive }) {
-  const composed = composedCalls(exchange.steps, live.running && live.isLast);
+  const streaming = live.running && live.isLast;
+  const composed = composedCalls(exchange.steps, streaming);
+  const reply = replyOf(exchange, streaming);
   return (
     <article className="flex flex-col gap-4">
       {exchange.question ? <UserBubble question={exchange.question} /> : null}
       {stepsWithApprovals(exchange, live.asked).map((step) => (
-        <StepView key={step.kind === "tool" ? step.toolCallId : `${step.kind}-${step.id}`} step={step} live={live} composed={composed} />
+        <StepView key={step.kind === "tool" ? step.toolCallId : `${step.kind}-${step.id}`} step={step} live={live} composed={composed} reply={reply} />
       ))}
       <Ending exchange={exchange} live={live} />
     </article>

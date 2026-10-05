@@ -1,10 +1,13 @@
 "use client";
 
-import { ChevronDown, FileText } from "lucide-react";
+import { ChevronDown, FileSearch, FileText } from "lucide-react";
 import { Card } from "@/components/ui/primitives";
+import { splitByCitation } from "@/lib/cards/citations";
 import { TH } from "@/lib/i18n/th";
+import type { ReplyText } from "../registry";
 import { ParsedCard } from "./frame";
 import { documentsResult, parseResult } from "./shapes";
+import type { ReactNode } from "react";
 import type { z } from "zod";
 
 type Passage = z.infer<typeof documentsResult>["data"]["passages"][number];
@@ -30,19 +33,62 @@ function PassageRow({ passage, open }: { passage: Passage; open: boolean }) {
   );
 }
 
-/** search_documents: the passages the answer rests on, best first and open, each with its document, section, version and effective date. */
-export function DocumentsCard({ result }: { result: unknown }) {
+function PassageList({ passages, openFirst }: { passages: readonly Passage[]; openFirst: boolean }) {
+  return (
+    <ul className="divide-y divide-border/60 rounded-xl border border-border">
+      {passages.map((passage, index) => (
+        <PassageRow key={`${passage.doc_id}:${passage.section}:${index}`} passage={passage} open={openFirst && index === 0} />
+      ))}
+    </ul>
+  );
+}
+
+function Expandable({ label, children }: { label: ReactNode; children: ReactNode }) {
+  return (
+    <details className="group/expand">
+      <summary className="flex cursor-pointer list-none items-center gap-2 text-[12.5px] text-muted-foreground transition-colors hover:text-foreground [&::-webkit-details-marker]:hidden">
+        {label}
+        <ChevronDown aria-hidden className="size-3.5 shrink-0 transition-transform group-open/expand:rotate-180" />
+      </summary>
+      <div className="mt-2">{children}</div>
+    </details>
+  );
+}
+
+function SearchedOnly({ headline, passages }: { headline: string; passages: readonly Passage[] }) {
+  return (
+    <section className="w-full rounded-2xl border border-border/70 bg-card px-3.5 py-2.5">
+      <Expandable
+        label={
+          <>
+            <FileSearch aria-hidden className="size-4 shrink-0 text-muted-foreground" />
+            <span className="flex-1 text-[13.5px] text-foreground">{headline}</span>
+            <span className="text-[11.5px]">{COPY.searched(passages.length)}</span>
+          </>
+        }
+      >
+        <PassageList passages={passages} openFirst={false} />
+      </Expandable>
+    </section>
+  );
+}
+
+/** search_documents: the passages the reply cites, first and open, each with its document, section, version and effective date; passages it searched but did not cite stay folded, and a reply that cites none shows one not-found line. */
+export function DocumentsCard({ result, reply }: { result: unknown; reply: ReplyText }) {
   return (
     <ParsedCard parsed={parseResult(documentsResult, result)} title={COPY.cardTitle}>
       {({ data }) => {
         if (data.passages.length === 0) return <Card props={{ title: COPY.cardTitle, description: COPY.empty, footnote: COPY.footnote }} />;
+        const { cited, searched } = splitByCitation(data.passages, reply.text);
+        if (cited.length === 0) return <SearchedOnly headline={reply.streaming ? COPY.searching : COPY.notFound} passages={searched} />;
         return (
-          <Card props={{ title: COPY.cardTitle, meta: COPY.cardMeta(data.passages.length), footnote: COPY.footnote }}>
-            <ul className="divide-y divide-border/60 rounded-xl border border-border">
-              {data.passages.map((passage, index) => (
-                <PassageRow key={`${passage.doc_id}:${passage.section}:${index}`} passage={passage} open={index === 0} />
-              ))}
-            </ul>
+          <Card props={{ title: COPY.cardTitle, meta: COPY.cited(cited.length), footnote: COPY.footnote }}>
+            <PassageList passages={cited} openFirst />
+            {searched.length > 0 ? (
+              <Expandable label={COPY.otherPassages(searched.length)}>
+                <PassageList passages={searched} openFirst={false} />
+              </Expandable>
+            ) : null}
           </Card>
         );
       }}
