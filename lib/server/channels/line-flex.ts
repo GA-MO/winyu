@@ -42,14 +42,19 @@ function rowBox(row: ChannelRow): messagingApi.FlexBox {
   return { type: "box", layout: "horizontal", spacing: "md", margin: "sm", contents: [{ ...text(row.label), flex: 3 }, { type: "box", layout: "vertical", flex: 2, contents: value }] };
 }
 
+function separator(): messagingApi.FlexSeparator {
+  return { type: "separator", margin: "lg", color: LIGHT_THEME_TOKENS.border };
+}
+
 function cardBox(card: ChannelCard): FlexNode[] {
-  const contents: FlexNode[] = [{ type: "separator", margin: "lg", color: LIGHT_THEME_TOKENS.border }, text(card.title, { weight: "bold", size: "md", margin: "lg" })];
+  const contents: FlexNode[] = [text(card.title, { weight: "bold", size: "md", margin: "lg" })];
   if (card.meta) contents.push(text(card.meta, { size: "xxs", color: LIGHT_THEME_TOKENS.mutedForeground }));
   if (card.denied) contents.push(text(card.denied, { color: LIGHT_THEME_TOKENS.danger, margin: "sm" }));
   if (card.hero) {
-    contents.push(text(card.hero.value, { size: "xxl", weight: "bold", margin: "md" }));
-    const change = [card.hero.delta, card.hero.label].filter(Boolean).join(" ");
-    if (change) contents.push(text(change, { size: "sm", color: TONE_COLOR[card.hero.tone] }));
+    contents.push(text(card.hero.label, { size: "xs", color: LIGHT_THEME_TOKENS.mutedForeground, margin: "md" }));
+    contents.push(text(card.hero.value, { size: "xxl", weight: "bold" }));
+    if (card.hero.delta) contents.push(text(card.hero.delta, { size: "sm", weight: "bold", color: TONE_COLOR[card.hero.tone] }));
+    if (card.hero.detail) contents.push(text(card.hero.detail, { size: "xs", color: LIGHT_THEME_TOKENS.mutedForeground }));
   }
   contents.push(...card.rows.map(rowBox));
   if (card.more > 0) contents.push(text(TH.channels.more(card.more), { size: "xs", color: LIGHT_THEME_TOKENS.mutedForeground, margin: "md" }));
@@ -59,7 +64,6 @@ function cardBox(card: ChannelCard): FlexNode[] {
 
 function approvalBox(approval: ApprovalPrompt): FlexNode[] {
   const contents: FlexNode[] = [
-    { type: "separator", margin: "lg", color: LIGHT_THEME_TOKENS.border },
     text(TH.channels.waiting, { size: "xs", weight: "bold", color: LIGHT_THEME_TOKENS.warning, margin: "lg" }),
     text(approval.question, { weight: "bold" }),
   ];
@@ -90,10 +94,8 @@ function altTextOf(reply: Extract<ChannelReply, { kind: "answer" }>): string {
 
 /** One mascop answer as a LINE Flex bubble: the words, each card with its headline and coloured change first, the approval with approve and reject postback buttons, and the way to the thread in the web. */
 export function flexOf(reply: Extract<ChannelReply, { kind: "answer" }>): LineMessage {
-  const body: FlexNode[] = [];
-  if (reply.text) body.push(text(reply.text, { size: "md" }));
-  body.push(...reply.cards.flatMap(cardBox));
-  if (reply.approval) body.push(...approvalBox(reply.approval));
+  const sections: FlexNode[][] = [...(reply.text ? [[text(reply.text, { size: "md" })]] : []), ...reply.cards.map(cardBox), ...(reply.approval ? [approvalBox(reply.approval)] : [])];
+  const body = sections.flatMap((section, index) => (index === 0 ? section : [separator(), ...section]));
   const footer: FlexNode[] = [];
   if (reply.approval) footer.push(postbackButton(TH.channels.approve, reply.approval.id, true), postbackButton(TH.channels.reject, reply.approval.id, false));
   footer.push(linkButton(TH.channels.openWeb, reply.webUrl));

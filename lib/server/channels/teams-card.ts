@@ -38,9 +38,10 @@ function cardContainer(card: ChannelCard): Element {
   if (card.meta) items.push(textBlock(card.meta, { isSubtle: true, size: "Small", spacing: "None" }));
   if (card.denied) items.push(textBlock(card.denied, { color: "Attention" }));
   if (card.hero) {
-    items.push(textBlock(card.hero.value, { size: "ExtraLarge", weight: "Bolder", spacing: "Small" }));
-    const change = [card.hero.delta, card.hero.label].filter(Boolean).join(" ");
-    if (change) items.push(textBlock(change, { color: TONE_COLOR[card.hero.tone], spacing: "None" }));
+    items.push(textBlock(card.hero.label, { isSubtle: true, size: "Small", spacing: "Small" }));
+    items.push(textBlock(card.hero.value, { size: "ExtraLarge", weight: "Bolder", spacing: "None" }));
+    if (card.hero.delta) items.push(textBlock(card.hero.delta, { color: TONE_COLOR[card.hero.tone], weight: "Bolder", spacing: "None" }));
+    if (card.hero.detail) items.push(textBlock(card.hero.detail, { isSubtle: true, size: "Small", spacing: "None" }));
   }
   items.push(...card.rows.map(rowLine));
   if (card.more > 0) items.push(textBlock(TH.channels.more(card.more), { isSubtle: true, size: "Small" }));

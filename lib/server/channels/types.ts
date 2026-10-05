@@ -16,7 +16,7 @@ export type ChannelInbound =
 
 export type ChannelRow = { label: string; value: string; delta: string | null; tone: Tone };
 
-export type ChannelHero = { label: string; value: string; delta: string | null; tone: Tone };
+export type ChannelHero = { label: string; value: string; delta: string | null; detail: string | null; tone: Tone };
 
 /** A card squeezed for a chat app: the headline and its coloured change first, a few rows, how many rows the web shows beyond them, and a refusal in place of data when the tool refused. */
 export type ChannelCard = { title: string; meta: string | null; hero: ChannelHero | null; rows: ChannelRow[]; more: number; note: string | null; denied: string | null };

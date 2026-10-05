@@ -41,7 +41,7 @@ function rowsOfBody(body: CardBody): ChannelRow[] {
 /** A bound card's parts (the same decision table the chat card draws) squeezed for a chat app: headline and change first, the first rows, the count left for the web. */
 export function channelCardOfParts(parts: CardParts): ChannelCard {
   const rows = rowsOfBody(parts.body);
-  const hero = parts.hero ? { label: parts.hero.label, value: parts.hero.value, delta: parts.hero.delta, tone: parts.hero.tone } : null;
+  const hero = parts.hero ? { label: parts.hero.label, value: parts.hero.value, delta: parts.hero.delta, detail: parts.hero.detail, tone: parts.hero.tone } : null;
   return { title: parts.title, meta: parts.meta, hero, rows: rows.slice(0, CHANNEL_ROWS), more: Math.max(0, rows.length - CHANNEL_ROWS), note: parts.footnote, denied: parts.denied };
 }
 
