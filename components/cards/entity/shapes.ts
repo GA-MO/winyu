@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { refusalNoticeOf, type RefusalNotice } from "@/lib/cards/present";
 
 const tone = z.enum(["good", "bad", "neutral"]);
 const badgeTone = z.enum(["neutral", "success", "warning", "danger"]);
@@ -178,14 +179,14 @@ export const connectorResult = z.object({
 });
 
 /** What a tool result turned out to be once parsed at the card boundary. */
-export type Parsed<T> = { kind: "ok"; data: T } | { kind: "refused"; error: string } | { kind: "unreadable" };
+export type Parsed<T> = { kind: "ok"; data: T } | { kind: "refused"; notice: RefusalNotice } | { kind: "unreadable" };
 
-const refusal = z.object({ ok: z.literal(false), error: z.string() });
+const refusal = z.object({ ok: z.literal(false), error: z.string(), code: z.unknown().optional() });
 
-/** Reads an untyped tool result against the shape its card draws; a refusal keeps the server's own words. */
+/** Reads an untyped tool result against the shape its card draws; a refusal becomes the notice the person reads. */
 export function parseResult<T>(schema: z.ZodType<T>, result: unknown): Parsed<T> {
   const refused = refusal.safeParse(result);
-  if (refused.success) return { kind: "refused", error: refused.data.error };
+  if (refused.success) return { kind: "refused", notice: refusalNoticeOf(refused.data.code, refused.data.error) };
   const parsed = schema.safeParse(result);
   return parsed.success ? { kind: "ok", data: parsed.data } : { kind: "unreadable" };
 }

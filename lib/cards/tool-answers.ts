@@ -1,7 +1,7 @@
 import { METRIC_IDS, type AlertRow, type MetricId, type MetricQuery, type MetricResult, type NextAction } from "@/lib/contracts";
 import { metricLabel } from "@/lib/dashboard/metric-display";
 import { TH } from "@/lib/i18n/th";
-import { presentAlerts, presentCard, presentForecast, type CardParts, type ForecastAnswer, type PresentSource } from "./present";
+import { presentAlerts, presentCard, presentForecast, type CardParts, type ForecastAnswer, type PresentSource, type RefusalNotice, refusalNoticeOf } from "./present";
 
 /** A query_metric result as its card reads it: the rows and headline, the query that made them, and what the card offers next. */
 export type MetricAnswer = Extract<MetricResult, { ok: true }> & { query: MetricQuery; nextActions: NextAction[] };
@@ -15,14 +15,14 @@ export function metricAnswerOf(source: unknown): MetricAnswer | null {
   return candidate as MetricAnswer;
 }
 
-/** The refusal a tool returned (`ok: false` with its reason), or null when it answered. */
-export function refusalOf(source: unknown): string | null {
+/** The refusal a tool returned (`ok: false` with its reason) as the person reads it, or null when it answered. */
+export function refusalOf(source: unknown): RefusalNotice | null {
   if (typeof source !== "object" || source === null) return null;
-  const { ok, error } = source as { ok?: unknown; error?: unknown };
-  return ok === false && typeof error === "string" ? error : null;
+  const { ok, error, code } = source as { ok?: unknown; error?: unknown; code?: unknown };
+  return ok === false && typeof error === "string" ? refusalNoticeOf(code, error) : null;
 }
 
-export function deniedParts(title: string, denied: string): CardParts {
+export function deniedParts(title: string, denied: RefusalNotice): CardParts {
   return { title, meta: null, description: null, footnote: null, hero: null, body: { kind: "none" }, actions: [], denied };
 }
 
