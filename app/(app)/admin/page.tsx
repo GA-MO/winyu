@@ -11,6 +11,7 @@ import { GlowBackdrop } from "@/components/ui/glow-backdrop";
 import { GradientText } from "@/components/ui/gradient-text";
 import { readUser } from "@/lib/server/session";
 import { AccessTab } from "@/components/admin/access-tab";
+import { ActiveTabInView } from "@/components/admin/active-tab-in-view";
 import { AuditTab } from "@/components/admin/audit-tab";
 import { AUDIT_RANGES, sinceOf, type AuditRange } from "@/lib/server/usage";
 import { OverviewTab } from "@/components/admin/overview-tab";
@@ -121,7 +122,7 @@ function TabBar({ current }: { current: Tab }) {
               href={`/admin?tab=${item}`}
               aria-current={active ? "page" : undefined}
               className={cn(
-                "inline-flex h-9 shrink-0 items-center gap-2 rounded-full px-3.5 text-sm transition",
+                "inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full px-3 text-sm transition",
                 FOCUS,
                 active ? "bg-ink font-medium text-ink-foreground shadow-card" : "text-muted-foreground hover:bg-muted hover:text-foreground",
               )}
@@ -132,6 +133,7 @@ function TabBar({ current }: { current: Tab }) {
           );
         })}
       </div>
+      <ActiveTabInView />
     </nav>
   );
 }
