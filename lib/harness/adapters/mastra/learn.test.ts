@@ -1,6 +1,8 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { randomUUID } from "node:crypto";
+import type { MetricQuery } from "@/lib/contracts";
 import { actionEvents, memoryFacts } from "@/lib/server/agent/collections";
+import { auditLog } from "@/lib/server/audit";
 import { threadForRun, threads } from "@/lib/server/threads-read";
 import { mascopAgent } from "./agent";
 import { forgetThread } from "./history";
@@ -12,6 +14,7 @@ const THREAD = "t_learn_test";
 const OLD_QUESTION = "สต๊อกดีซีลำพูนเป็นยังไง";
 const QUESTION = "อัตราการลาออกแต่ละฝ่ายเป็นยังไง";
 const REPLY = "ฝ่ายขายลาออกสูงสุดในเดือนนี้";
+const ATTRITION: MetricQuery = { metric: "attrition_rate", dims: ["department"], filters: {}, range: { from: "2026-09-01", to: "2026-09-22" }, grain: "month", compare: "prev_period", limit: null };
 
 async function say(role: "user" | "assistant", text: string): Promise<void> {
   const memory = await mascopAgent().getMemory();
@@ -61,5 +64,16 @@ describe("learnFromTurn", () => {
     await say("user", QUESTION);
     await learnFromTurn({ userId: USER, threadId: THREAD, turnId: "run_learn_2", question: QUESTION, queries: [] });
     expect(await searchConversations(USER, QUESTION)).toEqual([]);
+  });
+
+  test("learning from a finished turn reuses the queries it ran and calls no tool", async () => {
+    await openThread();
+    await say("user", QUESTION);
+    await say("assistant", REPLY);
+    const audited = auditLog().all().length;
+    await learnFromTurn({ userId: USER, threadId: THREAD, turnId: "run_learn_3", question: QUESTION, queries: [ATTRITION] });
+    expect(auditLog().all().length).toBe(audited);
+    const [found] = await searchConversations(USER, "เรื่องคนลาออกครั้งก่อน");
+    expect(found?.queries).toEqual([ATTRITION]);
   });
 });

@@ -46,7 +46,7 @@ afterEach(() => {
 async function asked(userId: string, dc: string): Promise<PartnerResult> {
   const user = findUser(userId);
   if (!user) throw new Error(userId);
-  return runWithAccess(liveAccessFor(user), () => runWithRun(newRun(userId, null), () => askLogisticsPartnerTool.execute({ dc }))) as Promise<PartnerResult>;
+  return runWithAccess(liveAccessFor(user), () => runWithRun(newRun(userId, null, { initiator: "person" }), () => askLogisticsPartnerTool.execute({ dc }))) as Promise<PartnerResult>;
 }
 
 describe("ask_logistics_partner", () => {
