@@ -24,7 +24,7 @@ export function EntraSignIn({ next, signedOut, problem }: { next: string; signed
             {TH.app.name} · {TH.app.tagline}
           </p>
           <h1 className="font-display text-[2.25rem] font-semibold leading-[1.15] tracking-[-0.03em] sm:text-[3rem]">
-            {TH.sso.heading} <GradientText>{TH.sso.headingAccent}</GradientText>
+            {TH.sso.heading} <GradientText className="whitespace-nowrap">{TH.sso.headingAccent}</GradientText>
           </h1>
           <p className="text-sm text-muted-foreground sm:text-base">{TH.sso.subtitle}</p>
         </header>
