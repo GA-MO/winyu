@@ -1,20 +1,22 @@
+import { actionRequest } from "@/components/cards/action-tool";
 import type { CardAction } from "@/components/cards/card-actions";
+import { pressParam } from "@/components/chat/pressed";
 
 const CHAT_ENTRY = "/c/new";
 
-/** What a new chat opens on: a question to send, a handoff packet to load, or a morning-investigation story to continue. */
-export type ChatEntry = { prompt: string } | { preload: string } | { story: string };
+/** What a new chat opens on: a question to send, a handoff packet to load, a morning-investigation story to continue, or a pressed tool button. */
+export type ChatEntry = { prompt: string } | { preload: string } | { story: string } | { press: string };
 
-/** The chat entry contract: `/c/new?prompt=…`, `?preload=<packetId>` or `?story=<storyId>`. */
+/** The chat entry contract: `/c/new?prompt=…`, `?preload=<packetId>`, `?story=<storyId>` or `?press=<tool button>`. */
 export function chatHref(entry: ChatEntry): string {
   const [key, value] = Object.entries(entry)[0] as [string, string];
   return `${CHAT_ENTRY}?${key}=${encodeURIComponent(value)}`;
 }
 
-/** Where a card button outside the chat goes: the question it asks, or for a tool button its label as the request (the chat still asks for approval before any write). */
+/** Where a card button outside the chat goes: the same request the in-chat button sends, a question as `prompt` and a tool button as `press` (the chat still asks for approval before any write). */
 export function actionHref(action: CardAction): string | null {
-  if (action.kind === "ask") return chatHref({ prompt: action.prompt });
-  if (action.kind === "form") return chatHref({ prompt: action.label });
-  const prompt = action.prompt ?? (action.tool ? action.label : null);
-  return prompt ? chatHref({ prompt }) : null;
+  const request = actionRequest(action);
+  if (!request) return null;
+  if (request.kind === "ask") return chatHref({ prompt: request.prompt });
+  return chatHref({ press: pressParam({ tool: request.tool, input: request.input, label: request.label }) });
 }

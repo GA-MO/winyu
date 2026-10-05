@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import type { NextAction } from "@/lib/contracts";
 import { askAction } from "@/components/cards/card-actions";
+import { parsePressed, pressFromParam, pressedText } from "@/components/chat/pressed";
 import { actionHref, chatHref } from "./chat-entry";
 
 const PIN: NextAction = { id: "pin", kind: "pin", label: "ปักไว้บน Dashboard", reason: "", tool: "pin_widget", input: { title: "x" }, prompt: null };
@@ -14,9 +15,11 @@ describe("chat entry links", () => {
     expect(chatHref({ story: "s1" })).toBe("/c/new?story=s1");
   });
 
-  test("a card button outside the chat asks its question, or names its tool action as the request", () => {
+  test("a card button outside the chat asks its question, or carries its tool and exact input as the in-chat button sends them", () => {
     expect(actionHref(DRILL)).toBe(chatHref({ prompt: "ยอดขายแยกตามภาค" }));
-    expect(actionHref(PIN)).toBe(chatHref({ prompt: "ปักไว้บน Dashboard" }));
+    const press = pressFromParam(new URL(actionHref(PIN) ?? "", "http://x").searchParams.get("press") ?? "");
+    expect(press).toEqual({ tool: "pin_widget", input: { title: "x" }, label: "ปักไว้บน Dashboard" });
+    expect(parsePressed(pressedText(press ?? { tool: "", input: {} }))).toEqual({ tool: "pin_widget", input: { title: "x" } });
     expect(actionHref(askAction("ใครดูแลอีสาน"))).toBe(chatHref({ prompt: "ใครดูแลอีสาน" }));
     expect(actionHref(EMPTY)).toBeNull();
   });
