@@ -56,3 +56,18 @@ export function modelSpend(since: string | null): ModelSpend {
   }
   return spend;
 }
+
+export type RunSpend = { calls: number; inputTokens: number; outputTokens: number; usd: number };
+
+/** What the model calls of one harness run cost: the ledger keys each call by the run it served. */
+export function runSpend(runId: string): RunSpend {
+  const spend: RunSpend = { calls: 0, inputTokens: 0, outputTokens: 0, usd: 0 };
+  for (const call of modelCalls().all()) {
+    if (call.turnId !== runId) continue;
+    spend.calls += 1;
+    spend.inputTokens += call.inputTokens;
+    spend.outputTokens += call.outputTokens;
+    spend.usd += call.billedUsd ?? call.estimatedUsd;
+  }
+  return spend;
+}

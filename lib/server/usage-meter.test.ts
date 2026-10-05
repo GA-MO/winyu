@@ -3,7 +3,8 @@ import { generateText, streamText, wrapLanguageModel } from "ai";
 import { MockLanguageModelV3, simulateReadableStream } from "ai/test";
 import { findUser } from "@/lib/data/entities/users";
 import { liveAccessFor } from "@/lib/access/enforce";
-import { modelCalls, modelSpend } from "./model-ledger";
+import { currentRun, tracedRun } from "@/lib/harness/runtime";
+import { modelCalls, modelSpend, runSpend } from "./model-ledger";
 import { runWithAccess, runWithTurn } from "./request-context";
 import { measure, meterMiddleware } from "./usage-meter";
 
@@ -29,6 +30,10 @@ function model(providerMetadata: typeof BILLED | undefined) {
     }),
   });
   return wrapLanguageModel({ model: mock, middleware: meterMiddleware(MODEL_ID) });
+}
+
+function currentRunId(): string {
+  return currentRun()?.id ?? "";
 }
 
 describe("usage meter", () => {
@@ -91,5 +96,22 @@ describe("model ledger", () => {
     expect(calls.map((call) => call.source).sort()).toEqual(["background", "eval"]);
     expect(spend.billedCalls).toBe(1);
     expect(spend.totalUsd).toBeCloseTo(0.0123 + 0.75 + 0.2 * 3.75);
+  });
+
+  test("a job's measured calls are background spend kept on the job's run", async () => {
+    const user = findUser("u_prasit");
+    if (!user) throw new Error("missing u_prasit");
+    const before = new Set(modelCalls().all().map((call) => call.id));
+    let runId = "";
+    await tracedRun(user.id, { userMessage: "investigate", intent: "job:investigate" }, 5, () =>
+      runWithAccess(liveAccessFor(user), async () => {
+        runId = currentRunId();
+        await measure(() => generateText({ model: model(BILLED), prompt: "hi" }));
+      }),
+    );
+    const spend = runSpend(runId);
+    const [call] = newCalls(before);
+    expect([call.source, call.turnId]).toEqual(["background", runId]);
+    expect(spend).toEqual({ calls: 1, inputTokens: 1_000_000, outputTokens: 200_000, usd: 0.0123 });
   });
 });

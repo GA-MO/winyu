@@ -1,8 +1,6 @@
 import type { AuditEntry } from "@/lib/contracts";
 import { auditLog } from "@/lib/server/audit";
 import { actionEvents, packets } from "@/lib/server/agent/collections";
-import { threads } from "@/lib/server/threads-read";
-import { turnsOf } from "@/lib/server/threads";
 import { agentModel } from "@/lib/server/models";
 import { modelSpend, type ModelSpend } from "@/lib/server/model-ledger";
 import { surfaceEntry } from "@/lib/server/tools/registry";
@@ -82,13 +80,9 @@ export function usageSummary(): UsageSummary {
   const entries = auditLog().all();
   const events = actionEvents().all();
   const questions = events.filter((event) => event.kind === "question" || event.kind === "quick_action");
-  const unanswered: UnansweredQuestion[] = [];
-
-  for (const thread of threads().all()) {
-    for (const turn of turnsOf(thread.messages)) {
-      if (turn.metric === null) unanswered.push({ prompt: turn.prompt, at: thread.updatedAt, userId: thread.userId });
-    }
-  }
+  const unanswered: UnansweredQuestion[] = events
+    .filter((event) => event.kind === "question" && event.metric === null && event.prompt)
+    .map((event) => ({ prompt: event.prompt ?? "", at: event.at, userId: event.userId }));
 
   const modelId = defaultModelId();
   const spend = modelSpend(sinceDaysAgo(DAYS));

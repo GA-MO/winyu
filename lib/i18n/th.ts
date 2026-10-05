@@ -881,6 +881,7 @@ export const TH = {
       heading: "AI ทำอะไรในคำถามนี้",
       none: "คำถามนี้เกิดก่อนเปิดระบบติดตามการทำงานของ AI จึงมีแค่บันทึกการเรียกเครื่องมือ",
       summary: (steps: number, tools: number, seconds: string) => `คิด ${steps} รอบ · เรียกเครื่องมือ ${tools} ครั้ง · ${seconds} วินาที`,
+      spend: (calls: number, tokens: string, usd: string) => `เรียกโมเดล ${calls} ครั้ง · ${tokens} tokens · $${usd}`,
       phase: { composing: "กำลังเตรียม", thinking: "กำลังคิด", acting: "กำลังทำ", awaiting_approval: "รอผู้ใช้อนุมัติ", completed: "ตอบเสร็จ", failed: "ล้มเหลว" },
       at: (seconds: string) => `+${seconds} วิ`,
       start: "ผู้ใช้ถาม",
@@ -1427,5 +1428,10 @@ export const TH = {
     scatter: "กราฟกระจาย",
     gap: "ส่วนต่างรายตัว",
     forecast: "กราฟพยากรณ์พร้อมช่วงที่คาด",
+  },
+  pages: {
+    waiting: "เรื่องที่รอคุณ",
+    moreInInbox: (count: number) => `อีก ${count} เรื่องใน Inbox`,
+    outboxLink: "อีเมลที่ส่งออก (Outbox)",
   },
 } as const;

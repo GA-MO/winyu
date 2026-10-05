@@ -56,7 +56,7 @@ export function startScheduler(): void {
   const scope = globalThis as SchedulerGlobal;
   if (scope[STARTED]) return;
   scope[STARTED] = setInterval(() => {
-    tick().catch((error: unknown) => console.error("[winyu] scheduler tick failed", error));
-    probeConnectors().catch((error: unknown) => console.error("[winyu] connector probe failed", error));
+    tick().catch((error: unknown) => console.error("[mascop] scheduler tick failed", error));
+    probeConnectors().catch((error: unknown) => console.error("[mascop] connector probe failed", error));
   }, TICK_MS);
 }

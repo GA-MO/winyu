@@ -1,0 +1,215 @@
+"use client";
+
+import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { Inbox, LayoutDashboard, ShieldCheck, Sparkles } from "lucide-react";
+import type { MorningBrief, QuickAction } from "@/lib/contracts";
+import type { AmbientCard as AmbientCardData, LandingKpi } from "@/lib/dashboard/ambient";
+import type { Tone } from "@/lib/dashboard/metric-display";
+import { TH } from "@/lib/i18n/th";
+import { cn } from "@/components/ui/cn";
+import { GlowBackdrop } from "@/components/ui/glow-backdrop";
+import { GradientText } from "@/components/ui/gradient-text";
+import { postFeedAction, type FeedSettle } from "@/components/feed/feed-list";
+import { countsLine, storyCounts, type StoryCounts } from "@/components/stories/story-list";
+import { StoriesDrawer } from "@/components/stories/drawer";
+import { AmbientCard, type AmbientHandlers } from "./ambient-card";
+import { actionHref, chatHref } from "./chat-entry";
+import { ChatLinkActions } from "./chat-link-actions";
+import { ChipIcon } from "./chip-icon";
+import { LandingComposer } from "./composer";
+import { PILL } from "./pill";
+
+const QUICK_ACTIONS_ENDPOINT = "/api/quick-actions";
+const ALERTS_ENDPOINT = "/api/alerts";
+const DASHBOARD_PATH = "/dashboard";
+const INBOX_TODO = "?inbox=todo";
+const MAX_CHIPS = 4;
+const HERO = "flex w-full max-w-3xl flex-col gap-6";
+const CHIP_ROW = "-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [mask-image:linear-gradient(to_right,black_80%,transparent)] sm:mx-0 sm:[mask-image:none] sm:flex-wrap sm:justify-center sm:overflow-visible sm:px-0 sm:pb-0";
+const KPI_COLUMNS: Record<number, string> = { 1: "sm:grid-cols-1", 2: "sm:grid-cols-2", 3: "sm:grid-cols-3", 4: "sm:grid-cols-4" };
+const KPI_STRIP = "grid w-full grid-cols-2 [&>*:last-child:nth-child(odd)]:col-span-2 sm:[&>*:last-child:nth-child(odd)]:col-span-1 overflow-hidden rounded-2xl border border-border bg-border gap-px shadow-card transition duration-200 hover:shadow-lift focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+const DELTA_TONE: Record<Tone, string> = {
+  good: "bg-success/10 text-success",
+  bad: "bg-danger/10 text-danger",
+  neutral: "bg-muted text-muted-foreground",
+};
+
+export type Greeting = { lead: string; name: string };
+
+/** The landing's share of the user's feed: up to two matters as cards, and how many the inbox holds in all. */
+export type LandingMatters = { cards: AmbientCardData[]; taskCount: number };
+
+function StoryLine({ counts, onOpen }: { counts: StoryCounts; onOpen: () => void }) {
+  return (
+    <button type="button" onClick={onOpen} className={cn(PILL, "self-center")}>
+      <Sparkles className="size-3.5 text-brand-violet" aria-hidden />
+      {TH.stories.landingLead(countsLine(counts))}
+    </button>
+  );
+}
+
+function KpiStrip({ kpis }: { kpis: LandingKpi[] }) {
+  return (
+    <Link href={DASHBOARD_PATH} aria-label={TH.landing.kpiOpen} className={cn(KPI_STRIP, KPI_COLUMNS[kpis.length])}>
+      {kpis.map((kpi) => (
+        <span key={kpi.id} className="flex min-w-0 flex-col gap-1 bg-card px-4 py-3 text-left">
+          <span className="truncate text-[11px] font-medium text-muted-foreground">{kpi.label}</span>
+          <span className="font-display text-lg font-semibold leading-tight tabular-nums tracking-tight sm:text-xl">{kpi.value}</span>
+          {kpi.note ? <span className="line-clamp-2 text-[11px] font-medium text-warning">{kpi.note}</span> : null}
+          {kpi.delta ? (
+            <span className="flex min-w-0 items-center gap-1.5 text-[11px]">
+              <span className={cn("shrink-0 rounded-full px-1.5 py-0.5 font-medium tabular-nums", DELTA_TONE[kpi.tone])}>{kpi.delta}</span>
+              {kpi.detail ? <span className="truncate text-muted-foreground">{kpi.detail}</span> : null}
+            </span>
+          ) : null}
+        </span>
+      ))}
+    </Link>
+  );
+}
+
+function Matters({ matters, handlers }: { matters: LandingMatters; handlers: AmbientHandlers }) {
+  if (matters.cards.length === 0) return null;
+  const more = matters.taskCount - matters.cards.length;
+  return (
+    <section aria-label={TH.pages.waiting} className="flex w-full max-w-3xl flex-col gap-3 animate-hero-rise [animation-delay:120ms]">
+      <div className="flex items-center justify-between gap-2 px-1">
+        <h2 className="text-xs font-medium text-muted-foreground">{TH.pages.waiting}</h2>
+        {more > 0 ? (
+          <Link href={INBOX_TODO} scroll={false} className="inline-flex items-center gap-1 text-xs text-muted-foreground transition hover:text-foreground">
+            <Inbox className="size-3.5" aria-hidden />
+            {TH.pages.moreInInbox(more)}
+          </Link>
+        ) : null}
+      </div>
+      <div className={cn("grid gap-3", matters.cards.length > 1 && "sm:grid-cols-2")}>
+        {matters.cards.map((card) => (
+          <AmbientCard key={card.id} card={card} handlers={handlers} />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+/** The same landing for every role: the agent speaks first (the morning investigation), the question box, chips learned from use, the matters waiting, the pinned numbers. */
+export function Landing({
+  greeting,
+  kpis,
+  quickActions,
+  brief,
+  asOf,
+  matters,
+  placeholder,
+}: {
+  greeting: Greeting;
+  kpis: LandingKpi[];
+  quickActions: QuickAction[];
+  brief: MorningBrief | null;
+  asOf: string;
+  matters: LandingMatters;
+  placeholder: string;
+}) {
+  const router = useRouter();
+  const [busy, setBusy] = useState(false);
+  const [storiesOpen, setStoriesOpen] = useState(false);
+  const [cards, setCards] = useState(matters.cards);
+
+  const start = useCallback(
+    (prompt: string, intentKey?: string) => {
+      if (busy) return;
+      setBusy(true);
+      if (intentKey) {
+        void fetch(QUICK_ACTIONS_ENDPOINT, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ intentKey, prompt, kind: "quick_action" }),
+        }).catch(() => undefined);
+      }
+      router.push(chatHref({ prompt }));
+    },
+    [busy, router],
+  );
+
+  const handlers: AmbientHandlers = {
+    onOpen: (card) => {
+      if (card.feedKey) postFeedAction(card.feedKey, "open");
+      if (card.alertId) void fetch(`${ALERTS_ENDPOINT}/${card.alertId}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "open" }) }).catch(() => undefined);
+      router.push(chatHref(card.packetId ? { preload: card.packetId } : { prompt: card.prompt }));
+    },
+    onAction: (card) => {
+      const href = card.action ? actionHref(card.action) : null;
+      if (href) router.push(href);
+    },
+    onSettle: (key: string, action: FeedSettle) => {
+      postFeedAction(key, action);
+      setCards((current) => current.filter((card) => card.feedKey !== key));
+    },
+  };
+
+  useEffect(() => {
+    function openDashboard(event: KeyboardEvent) {
+      if (event.key.toLowerCase() !== "d" || !(event.metaKey || event.ctrlKey)) return;
+      event.preventDefault();
+      router.push(DASHBOARD_PATH);
+    }
+    window.addEventListener("keydown", openDashboard);
+    return () => window.removeEventListener("keydown", openDashboard);
+  }, [router]);
+
+  return (
+    <div className="relative min-h-[calc(100dvh-3.75rem)] overflow-x-hidden">
+      <GlowBackdrop />
+
+      <div className="relative flex min-h-[calc(100dvh-3.75rem)] flex-col items-center justify-center gap-8 px-4 pb-16 pt-10 sm:px-6">
+        <div className={cn(HERO, "animate-hero-rise")}>
+          <header className="flex flex-col gap-2 text-center">
+            <h1 className="text-balance font-display text-[1.75rem] font-semibold leading-[1.2] tracking-[-0.02em] sm:text-[3rem]">
+              {greeting.lead} <GradientText className="whitespace-nowrap">{greeting.name}</GradientText>
+            </h1>
+            {brief ? (
+              <StoryLine counts={storyCounts(brief.cards.map((card) => card.story))} onOpen={() => setStoriesOpen(true)} />
+            ) : (
+              <p className="text-sm text-muted-foreground sm:text-base">{TH.stories.notYet}</p>
+            )}
+          </header>
+
+          <LandingComposer placeholder={placeholder} busy={busy} onSubmit={(prompt) => start(prompt)} />
+
+          <div className={CHIP_ROW} aria-label={TH.landing.quickActions}>
+            {quickActions.slice(0, MAX_CHIPS).map((action) => (
+              <button key={action.id} type="button" title={action.reason} className={cn(PILL, "shrink-0 whitespace-nowrap")} disabled={busy} onClick={() => start(action.prompt, action.intentKey)}>
+                <ChipIcon text={`${action.label} ${action.prompt}`} />
+                {action.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <Matters matters={{ cards, taskCount: matters.taskCount - (matters.cards.length - cards.length) }} handlers={handlers} />
+
+        {kpis.length > 0 ? (
+          <div className="flex w-full max-w-3xl flex-col gap-3 animate-hero-rise [animation-delay:160ms]">
+            <KpiStrip kpis={kpis} />
+          </div>
+        ) : null}
+
+        <div className="flex flex-col items-center gap-3 animate-hero-rise [animation-delay:220ms]">
+          <Link href={DASHBOARD_PATH} className={PILL}>
+            <LayoutDashboard className="size-3.5" aria-hidden />
+            {TH.landing.viewDashboard}
+            <span className="hidden text-muted-foreground/70 sm:inline">{TH.landing.dashboardHint}</span>
+          </Link>
+          <p className="flex flex-wrap items-center justify-center gap-x-1.5 text-center text-xs text-muted-foreground/80">
+            <ShieldCheck className="size-3.5 shrink-0 text-primary" aria-hidden />
+            {TH.landing.trust} · {TH.landing.disclaimer}
+          </p>
+        </div>
+      </div>
+      <ChatLinkActions>
+        <StoriesDrawer brief={brief} asOf={asOf} open={storiesOpen} onClose={() => setStoriesOpen(false)} />
+      </ChatLinkActions>
+    </div>
+  );
+}

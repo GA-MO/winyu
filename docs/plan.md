@@ -39,24 +39,24 @@ Each row is one Winyu feature. The phase column says where mascop builds it. The
 
 | # | Feature | Phase | Check |
 |---|---|---|---|
-| F1 | Persona login (role, then person), session cookie, redirect to `/login` | M3 | Every role signs in; `/` without a cookie redirects |
+| F1 | Persona login (role, then person), session cookie, redirect to `/login` | M3 | Every role signs in; `/` without a cookie redirects. Done (M3): IT admin signs in to `/admin` and `/dashboard` sends IT there, as in Winyu; walk `.shots/m3-walk.ts` PASS lines, `m3-landing-itadmin.png` |
 | F2 | Access: role policy, region/brand scope, metric ACL masking, tool allow-list, kill switches, role overrides | M0 | Copied tests pass; health route shows different tools and rows for CEO and a sales rep |
 | F3 | Chat agent: persona context, memory ranked by the question, 6 model steps with wrap-up, tool budget, fix hints | M1 | Probe question per role; trace shows context items, steps, gateway decisions |
 | F4 | Read tools drawn as cards: `query_metric` (DataCard views from `present.ts`), alerts, forecast, gap, calendar, people, person, site, candidates, courses, policy, entity, owner, memory, metrics list, connector tools | M2 | One question per tool in the browser; card numbers match the tool result |
 | F5 | Next actions on cards (rules from `next-actions.ts`) run the follow-up | M2 | Pressing a button starts the next tool call |
 | F6 | Write tools with approval: `request_leave`, `enroll_course`, `create_handoff`, `send_email`, `pin_widget`, `watch_metric`, `run_job`, `set_permission`; approval card; post-condition verify | M2 | Approve and reject each in the browser; audit row and record exist after approve, none after reject |
 | F7 | Threads: new, list rail grouped by date, restore, rename, delete, search | M2 | Reload a thread and see the same cards |
-| F8 | Memory: extraction after a turn, memory page (list, delete), review | M2, M3 | A stated preference appears on `/memory`; delete removes it |
-| F9 | Landing: greeting, morning brief, quick actions learned from use, ambient cards, stories, feed, visits | M3 | Same landing for every role, content scoped per role |
-| F10 | Dashboard: pinned widgets, suggested tray with reasons, pin and unpin, layout versions, seen tracker | M3 | Pin from chat shows on `/dashboard` |
-| F11 | Inbox and notifications: handoffs (accept, need info, return, open in my agent), alert actions (hypothesis, verify, dismiss), replies, bell | M3 | Handoff from one role arrives in another role's inbox |
-| F12 | Personal watches: create from chat, list, delete | M3 | `watch_metric` result appears in watches |
+| F8 | Memory: extraction after a turn, memory page (list, delete), review | M2, M3 | A stated preference appears on `/memory`; delete removes it. M3 part done: `/memory` lists learning and known facts, delete removes one (6 → 5 after reload), `m3-memory-ceo.png` |
+| F9 | Landing: greeting, morning brief, quick actions learned from use, ambient cards, stories, feed, visits | M3 | Same landing for every role, content scoped per role. Done (M3): CEO and u_krit (northeast: 3.9 ล้านลิตร, 93.3%) `m3-landing-ceo.png`, `m3-landing-krit.png`, `m3-stories-evidence-ceo.png`, `m3-landing-ceo-phone.png`, `m3-landing-ceo-dark.png` |
+| F10 | Dashboard: pinned widgets, suggested tray with reasons, pin and unpin, layout versions, seen tracker | M3 | Pin from chat shows on `/dashboard`. Done (M3) for the page: pin a suggestion and unpin both survive reload (4 → 5 → 4), `m3-dashboard-ceo.png`, `m3-dashboard-pinned-ceo.png`; pin from chat waits on M2 |
+| F11 | Inbox and notifications: handoffs (accept, need info, return, open in my agent), alert actions (hypothesis, verify, dismiss), replies, bell | M3 | Handoff from one role arrives in another role's inbox. Done (M3): CEO → u_krit packets accepted, need info, returned in the drawer; CEO bell shows 3 unread and the replies tab; mute and dismiss; `m3-inbox-*.png` |
+| F12 | Personal watches: create from chat, list, delete | M3 | `watch_metric` result appears in watches. Done (M3) for list and delete: a watch made through `createWatch` shows in the account sheet and its delete removes it, `m3-account-ceo.png`; create from chat waits on M2 |
 | F13 | Engine jobs: anomaly, forecast, digest, scheduler, `POST /api/jobs/run`, morning investigation | M4 | Job run writes alerts and an investigation run with its trace |
-| F14 | Outbox page | M3 | `send_email` approved shows in `/outbox` |
+| F14 | Outbox page | M3 | `send_email` approved shows in `/outbox`. Done (M3): three handoff mails on `/outbox`, `m3-outbox-ceo.png`; `send_email` from chat waits on M2 |
 | F15 | Admin console (IT only): overview, access matrix, tool kill switch, audit with run trace, usage and spend, view-as-role simulator, CEL deny rules with dry run, connectors | M4 | Each tab renders; a deny rule refuses a call in chat |
 | F16 | Connectors (MCP and REST) with per-user scope: `crm_demo`, `lms_demo` | M4 | Connector tool answers in chat, scoped per user |
 | F17 | Audit: redact, initiator, run link; `bun run trace` | M1 | Audit row per tool call; trace script prints the latest run |
-| F18 | Account sheet: memory link, theme, persona switch, admin link for IT | M3 | Switch persona without logging out |
+| F18 | Account sheet: memory link, theme, persona switch, admin link for IT | M3 | Switch persona without logging out. Done (M3): sheet has watches, memory preview, outbox link, theme, persona switch, admin link for IT, `m3-account-ceo.png` |
 | F19 | HR flows: leave form, course enrolment, candidates | M2 | Leave request approved appears in HR records |
 | F20 | Thai UI strings in `lib/i18n/th.ts` | M0 | Copied as is |
 | F21 | Usage meter and model ledger (tokens, cost) | M1 | Admin usage tab shows the probe's cost |
@@ -96,14 +96,14 @@ Each row is one Winyu feature. The phase column says where mascop builds it. The
 
 ### M3. Pages
 
-- [ ] Copy the domain-only API routes; build login, landing, dashboard, inbox drawer, memory, outbox, account sheet, watches, notifications (F1, F8 to F12, F14, F18).
-- [ ] Evidence: browser walk per role, screenshots.
+- [x] Copy the domain-only API routes (alerts, dashboard layout and widgets, feed, inbox, memory, notifications, quick actions, watches); build landing, dashboard, inbox drawer and bell, stories drawer, memory, outbox, account sheet (F1, F8 to F12, F14, F18). Widgets draw `WidgetView.card` through `CardPartsView`; stories draw evidence through `DataCard`. Everything that starts a chat links to `/c/new?prompt|preload|story` (`components/landing/chat-entry.ts`, tested); card buttons outside the chat go through `ChatLinkActions`.
+- [x] Evidence: typecheck passes; `bun test` 563 pass, 0 fail across 61 files on a fresh seed (`lib/server/team-feed.test.ts` reads `.data`, so it fails after a walk has dismissed alerts; reseed first). Headless Chrome walk `.shots/m3-walk.ts` after `bun run seed`, `.shots/m3-setup.ts` (three CEO → u_krit packets, a watch, memory facts through the domain modules) and Winyu's saved `investigations.json` copied into `.data` (no model calls; without it the landing shows the not-yet line, `m3-landing-ceo-no-brief.png`): 19 PASS, 0 FAIL, the only 4xx are `/c/new` (M2) and `/admin` (M4). Screenshots `.shots/m3-*.png` (gitignored). Commits 8ed9920..HEAD on `m3-pages`.
 
 ### M4. Admin, jobs, connectors
 
-- [ ] Admin console with every tab, run trace view (F15, F17, F21).
-- [ ] Scheduler, jobs route, morning investigation (F13); connectors with demo servers (F16).
-- [ ] Evidence: IT admin walk; a deny rule refuses a chat call; a job run writes alerts and an investigation trace.
+- [x] Admin console with every tab, run trace view (F15, F17, F21). `/admin` for `it_admin` only (any other role gets a 404, no session redirects to `/login`): overview, access matrix, tools with kill switches, CEL deny rules with dry run, audit with "AI ทำอะไรในคำถามนี้" run trace, usage and spend, view-as-role simulator; connector health on overview, access and tools. The run trace header shows that run's model calls, tokens and cost (`runSpend` in `lib/server/model-ledger.ts`, keyed by run id). Unanswered questions come from the question events `finishTurn` logs, since threads no longer hold messages. A job's model calls are `background` spend kept on the job's run (`lib/server/usage-meter.ts`; test "a job's measured calls are background spend kept on the job's run", which fails without the fix).
+- [x] Scheduler, jobs route, morning investigation (F13); connectors with demo servers (F16). `instrumentation.ts` reconciles connectors and starts the scheduler (`MASCOP_SCHEDULER=off` skips it; `INVESTIGATE_DAILY=1` adds the morning investigation). `POST /api/jobs/run` (IT only, 403 otherwise) runs `all`, `anomaly`, `forecast`, `watches`, `digest`, `tick`, and `{ job: "investigate", user }` for one person. `bun run connectors:demo` serves the LMS (MCP, :3299) and CRM (REST, :3298); `bun run call-tool <user> <tool> [json]` runs one tool through the gateway and prints the audit decision.
+- [x] Evidence: IT admin walk over CDP on :3204 (`.shots/m4-tab-*.png`, `m4-kill-switch.png`, `m4-rule-dry-run.png`, `m4-audit-deny-trace.png`, `m4-investigation-trace.png`, `m4-audit-connector-crm.png`, `m4-usage.png`, `m4-overview-after.png`, `m4-ceo-404.png`). Kill switch: `get_forecast` gone from `/api/health?user=u_thana` after the flip, back after the revive. Rule `tool.name == "send_email" && user.role.startsWith("sales_")`: dry run 1 of 16 rows, then `call-tool u_anucha send_email` denied `POLICY_RULE`, and one chat run as u_anucha called `send_email`, was refused by the rule without an approval, and answered with the rule's name (3 model calls, $0.0116; trace and cost on the audit row). Jobs: `anomaly` rewrote 46 alerts from an empty file, identical to the seed; `investigate` for u_prasit saved 3 stories after 20 tool calls (7 model calls, $0.0617), traced on the audit tab. Connectors: `crm_demo__store_visits` gives the CEO 120 rows across regions and u_krit 24 northeast rows with order value masked; `lms_demo__training_history` gives u_krit his own 2 rows, u_anucha himself and u_krit, the CEO none in scope. Typecheck passes; `bun test` 568 pass, 0 fail across 62 files. Commits 6fd9bc8..HEAD on `m4-admin`.
 
 ### M5. Parity walk
 

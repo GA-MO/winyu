@@ -8,8 +8,14 @@ import { useSignIn } from "./use-sign-in";
 
 const CARD =
   "group flex w-full items-center gap-4 rounded-3xl border border-border bg-card p-4 text-left shadow-card transition duration-300 hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-lift disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+const HOME = "/";
+const ADMIN_HOME = "/admin";
 
-/** The people of one role as sign-in cards; picking one signs in and lands on the home page. */
+function destinationOf(person: Persona, next: string): string {
+  return person.role === "it_admin" && next === HOME ? ADMIN_HOME : next;
+}
+
+/** The people of one role as sign-in cards; picking one signs in and lands where that role starts (IT on the admin console). */
 export function PersonList({ people, next }: { people: readonly Persona[]; next: string }) {
   const { signIn, pending, chosen, error } = useSignIn();
   return (
@@ -20,7 +26,7 @@ export function PersonList({ people, next }: { people: readonly Persona[]; next:
           const busy = pending && chosen === person.id;
           return (
             <li key={person.id} className="animate-hero-rise" style={{ animationDelay: `${Math.min(index, 12) * 40}ms` }}>
-              <button type="button" onClick={() => signIn(person.id, next)} disabled={pending} aria-label={`${TH.login.pick} ${person.nameTh}`} className={CARD}>
+              <button type="button" onClick={() => signIn(person.id, destinationOf(person, next))} disabled={pending} aria-label={`${TH.login.pick} ${person.nameTh}`} className={CARD}>
                 <Portrait name={person.nameTh} src={person.photo} className="size-12 text-lg" />
                 <span className="min-w-0 flex-1">
                   <span className="block truncate font-medium">{person.nameTh}</span>
