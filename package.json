@@ -27,7 +27,9 @@
     "@marcbachmann/cel-js": "^8.0.0",
     "@mastra/core": "1.74.0",
     "@mastra/libsql": "1.25.0",
+    "@mastra/mcp": "2.1.2",
     "@mastra/memory": "1.35.0",
+    "@modelcontextprotocol/server": "2.0.0",
     "@openrouter/ai-sdk-provider": "^2.10.0",
     "ai": "6.0.300",
     "clsx": "^2.1.1",
@@ -40,6 +42,7 @@
   },
   "devDependencies": {
     "@happy-dom/global-registrator": "^20.14.5",
+    "@modelcontextprotocol/client": "2.0.0",
     "@tailwindcss/postcss": "^4.1.18",
     "@types/bun": "^1.4.2",
     "@types/node": "^22.10.0",

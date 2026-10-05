@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { SESSION_COOKIE } from "@/lib/server/session-cookie";
 
-const PUBLIC_PATHS = ["/login", "/api/session", "/api/health"];
+const PUBLIC_PATHS = ["/login", "/api/session", "/api/health", "/api/mcp"];
 
 function isPublic(pathname: string) {
   return PUBLIC_PATHS.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
