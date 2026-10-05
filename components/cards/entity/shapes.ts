@@ -122,6 +122,13 @@ export const policyResult = z.object({
   }),
 });
 
+export const documentsResult = z.object({
+  summary: z.string(),
+  data: z.object({
+    passages: z.array(z.object({ doc_id: z.string(), title: z.string(), section: z.string(), version: z.string(), effective: z.string(), owner: z.string(), text: z.string() })),
+  }),
+});
+
 export const calendarResult = z.object({
   summary: z.string(),
   data: z.array(
