@@ -9,7 +9,7 @@ import { Composer } from "@/components/composer/composer";
 import { GlowBackdrop } from "@/components/ui/glow-backdrop";
 import { ExchangeView, type ExchangeLive } from "./exchange-view";
 import { answeredMetrics, chipRow, latestFollowUps } from "./follow-ups";
-import { useChatSession, type AgentMessage } from "./use-chat-session";
+import { useChatSession, type AgentMessage, type PendingApproval } from "./use-chat-session";
 
 const COLUMN = "mx-auto w-full max-w-3xl px-4 sm:px-6";
 const EMPTY_CHIPS = 4;
@@ -28,6 +28,7 @@ export type ChatSessionProps = {
   threadId: string;
   initialPrompt: string | null;
   initialMessages: AgentMessage[];
+  initialApprovals: PendingApproval[];
   preload: SessionPreload | null;
   suggestions: QuickAction[];
   placeholder: string;
@@ -75,8 +76,8 @@ function PreloadBanner({ preload }: { preload: SessionPreload }) {
 }
 
 /** The chat column for one thread: the transcript with its cards and decisions, follow-up chips, and the composer docked at the bottom. */
-export function ChatSession({ threadId, initialPrompt, initialMessages, preload, suggestions, placeholder }: ChatSessionProps) {
-  const session = useChatSession({ threadId, initialMessages, preloadPacketId: preload?.packetId ?? null });
+export function ChatSession({ threadId, initialPrompt, initialMessages, initialApprovals, preload, suggestions, placeholder }: ChatSessionProps) {
+  const session = useChatSession({ threadId, initialMessages, initialApprovals, preloadPacketId: preload?.packetId ?? null });
   const { exchanges, running, ready, send } = session;
   const [text, setText] = useState("");
   const sentInitial = useRef(false);
@@ -94,15 +95,14 @@ export function ChatSession({ threadId, initialPrompt, initialMessages, preload,
     wasRunning.current = running;
   }, [running]);
 
-  const approvals = useMemo(() => new Map(session.approvals.map((approval) => [approval.toolCallId, approval])), [session.approvals]);
   const lastSteps = exchanges[exchanges.length - 1]?.steps.length ?? 0;
-  const { scroller, onScroll } = useStickToBottom(`${exchanges.length}:${lastSteps}:${running}:${session.approvals.length}`);
+  const { scroller, onScroll } = useStickToBottom(`${exchanges.length}:${lastSteps}:${running}:${session.asked.length}:${session.waiting.size}`);
 
   const chips = useMemo(() => {
-    if (running || session.approvals.length > 0) return [];
+    if (running || session.waiting.size > 0) return [];
     if (exchanges.length === 0) return suggestions.slice(0, EMPTY_CHIPS);
     return chipRow(latestFollowUps(exchanges), suggestions, ANSWER_CHIPS, answeredMetrics(exchanges));
-  }, [exchanges, running, session.approvals.length, suggestions]);
+  }, [exchanges, running, session.waiting.size, suggestions]);
 
   const submit = (value: string) => {
     setText("");
@@ -114,7 +114,8 @@ export function ChatSession({ threadId, initialPrompt, initialMessages, preload,
     return {
       isLast,
       running,
-      approvals,
+      asked: session.asked.filter((approval) => approval.exchangeId === exchanges[index].id),
+      waiting: session.waiting,
       decisions: session.decisions,
       decide: session.decide,
       stopped: isLast && session.stoppedExchangeId === exchanges[index].id,

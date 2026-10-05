@@ -14,15 +14,16 @@ const THROTTLE_MS = 50;
 const SIGNED_OUT = /\b401\b/;
 const SPENT = /\b409\b/;
 
-/** A write tool call paused for the person: the interrupt the answer must quote, the call it pauses, and what it would do. */
-export type PendingApproval = { interruptId: string; toolCallId: string; tool: string; input: unknown };
+/** A write tool call the agent paused for the person: the interrupt the answer must quote, the call it pauses, what it would do, the exchange that asked, and how many reply steps came before it. */
+export type PendingApproval = { interruptId: string; toolCallId: string; tool: string; input: unknown; exchangeId: string | null; position: number };
 
 /** Everything the chat column draws and can do for one thread. */
 export type ChatSession = {
   ready: boolean;
   exchanges: Exchange[];
   running: boolean;
-  approvals: PendingApproval[];
+  asked: PendingApproval[];
+  waiting: ReadonlySet<string>;
   decisions: Readonly<Record<string, boolean>>;
   error: string | null;
   stoppedExchangeId: string | null;
@@ -37,10 +38,14 @@ export type AgentMessage = ReturnType<typeof useAgent>["agent"]["messages"][numb
 
 type MastraInterruptMetadata = { mastra?: { toolName?: unknown; args?: unknown } };
 
-function approvalOf(interrupt: Interrupt): PendingApproval | null {
+function approvalOf(interrupt: Interrupt, exchangeId: string | null, position: number): PendingApproval | null {
   if (!interrupt.toolCallId) return null;
   const mastra = (interrupt.metadata as MastraInterruptMetadata | undefined)?.mastra;
-  return { interruptId: interrupt.id, toolCallId: interrupt.toolCallId, tool: typeof mastra?.toolName === "string" ? mastra.toolName : "", input: mastra?.args ?? {} };
+  return { interruptId: interrupt.id, toolCallId: interrupt.toolCallId, tool: typeof mastra?.toolName === "string" ? mastra.toolName : "", input: mastra?.args ?? {}, exchangeId, position };
+}
+
+function lastQuestionId(messages: readonly AgentMessage[]): string | null {
+  return messages.findLast((message) => message.role === "user")?.id ?? null;
 }
 
 function messageOfError(error: unknown): string {
@@ -55,16 +60,17 @@ function newId(): string {
 }
 
 /** One thread's chat over the CopilotKit runtime: restores the saved transcript, sends questions and pressed buttons, answers approval interrupts, and stops a reply. */
-export function useChatSession({ threadId, initialMessages, preloadPacketId }: { threadId: string; initialMessages: readonly AgentMessage[]; preloadPacketId: string | null }): ChatSession {
+export function useChatSession({ threadId, initialMessages, initialApprovals, preloadPacketId }: { threadId: string; initialMessages: readonly AgentMessage[]; initialApprovals: readonly PendingApproval[]; preloadPacketId: string | null }): ChatSession {
   const { copilotkit } = useCopilotKit();
   const { agent, isReady } = useAgent({ agentId: `${CHAT_AGENT_ID}:${threadId}`, runtimeAgentId: CHAT_AGENT_ID, threadId, updates: UPDATES, throttleMs: THROTTLE_MS });
   const [restored, setRestored] = useState(false);
-  const [approvals, setApprovals] = useState<PendingApproval[]>([]);
+  const [asked, setAsked] = useState<PendingApproval[]>(() => [...initialApprovals]);
+  const [batch, setBatch] = useState<PendingApproval[]>(() => [...initialApprovals]);
   const [decisions, setDecisions] = useState<Record<string, boolean>>({});
   const [error, setError] = useState<string | null>(null);
   const [stoppedExchangeId, setStoppedExchangeId] = useState<string | null>(null);
-  const approvalsRef = useRef(approvals);
-  approvalsRef.current = approvals;
+  const batchRef = useRef(batch);
+  batchRef.current = batch;
   const decisionsRef = useRef(decisions);
   decisionsRef.current = decisions;
 
@@ -75,18 +81,24 @@ export function useChatSession({ threadId, initialMessages, preloadPacketId }: {
   }, [agent, initialMessages, isReady, restored]);
 
   useEffect(() => {
-    let asked: PendingApproval[] = [];
+    let raised: PendingApproval[] = [];
     const subscription = agent.subscribe({
       onRunStartedEvent: () => {
-        asked = [];
-        setApprovals([]);
+        raised = [];
+        setBatch([]);
       },
       onRunFinishedEvent: (params) => {
-        if (params.outcome === "interrupt") asked = params.interrupts.flatMap((interrupt) => approvalOf(interrupt) ?? []);
+        if (params.outcome !== "interrupt") return;
+        const exchangeId = lastQuestionId(agent.messages);
+        const position = exchangesOf(agent.messages).at(-1)?.steps.length ?? 0;
+        raised = params.interrupts.flatMap((interrupt) => approvalOf(interrupt, exchangeId, position) ?? []);
       },
       onRunFinalized: () => {
-        if (asked.length > 0) setApprovals(asked);
-        asked = [];
+        const fresh = raised;
+        raised = [];
+        if (fresh.length === 0) return;
+        setAsked((current) => [...current.filter((approval) => !fresh.some((entry) => entry.toolCallId === approval.toolCallId)), ...fresh]);
+        setBatch(fresh);
       },
       onRunErrorEvent: ({ event }) => setError(messageOfError(event.message)),
       onRunFailed: ({ error: failure }) => setError(messageOfError(failure)),
@@ -128,20 +140,21 @@ export function useChatSession({ threadId, initialMessages, preloadPacketId }: {
     (toolCallId: string, approved: boolean) => {
       const next = { ...decisionsRef.current, [toolCallId]: approved };
       setDecisions(next);
-      const open = approvalsRef.current;
-      if (!open.every((approval) => approval.toolCallId in next)) return;
-      setApprovals([]);
+      const open = batchRef.current;
+      if (open.length === 0 || !open.every((approval) => approval.toolCallId in next)) return;
+      setBatch([]);
       run(open.map((approval) => ({ interruptId: approval.interruptId, status: "resolved", payload: { approved: next[approval.toolCallId] } })));
     },
     [run],
   );
 
   const exchanges = exchangesOf(agent.messages);
+  const waiting = useMemo(() => new Set(batch.filter((approval) => !(approval.toolCallId in decisions)).map((approval) => approval.toolCallId)), [batch, decisions]);
 
   const stop = useCallback(() => {
     setStoppedExchangeId(exchanges[exchanges.length - 1]?.id ?? null);
     copilotkit.stopAgent({ agent });
   }, [agent, copilotkit, exchanges]);
 
-  return { ready: isReady && restored, exchanges, running: agent.isRunning, approvals, decisions, error, stoppedExchangeId, send, runAction, decide, stop };
+  return { ready: isReady && restored, exchanges, running: agent.isRunning, asked, waiting, decisions, error, stoppedExchangeId, send, runAction, decide, stop };
 }

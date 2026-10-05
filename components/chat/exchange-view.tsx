@@ -17,7 +17,8 @@ const CARDS: Record<string, ToolCard> = TOOL_CARDS;
 export type ExchangeLive = {
   isLast: boolean;
   running: boolean;
-  approvals: ReadonlyMap<string, PendingApproval>;
+  asked: readonly PendingApproval[];
+  waiting: ReadonlySet<string>;
   decisions: Readonly<Record<string, boolean>>;
   decide: (toolCallId: string, approved: boolean) => void;
   stopped: boolean;
@@ -63,7 +64,7 @@ function Note({ text, tone }: { text: string; tone: "muted" | "danger" }) {
 }
 
 function ToolStepView({ step, live }: { step: ToolStep; live: ExchangeLive }) {
-  const asking = live.approvals.has(step.toolCallId);
+  const asking = live.waiting.has(step.toolCallId);
   const view = toolViewOf(step, { running: live.running && live.isLast, asking, decided: live.decisions[step.toolCallId] }, CARD_TOOLS);
   if (view.kind === "card") return <div className="w-full animate-hero-rise">{CARDS[view.name](view.result, view.args)}</div>;
   if (view.kind === "working") return <Working label={TH.conversation.working} />;
@@ -88,7 +89,7 @@ function StepView({ step, live }: { step: ReplyStep; live: ExchangeLive }) {
 }
 
 function shows(step: ReplyStep): boolean {
-  return step.kind === "text" || step.outcome.state === "returned";
+  return step.kind === "text" || step.outcome.state !== "failed";
 }
 
 function Ending({ exchange, live }: { exchange: Exchange; live: ExchangeLive }) {
@@ -97,16 +98,28 @@ function Ending({ exchange, live }: { exchange: Exchange; live: ExchangeLive }) 
   if (live.running) return !last || (last.kind === "tool" && last.outcome.state === "returned") ? <Working label={TH.chat.thinking} /> : null;
   if (live.error) return <Note text={live.error} tone="danger" />;
   if (live.stopped) return <Note text={TH.conversation.stopped} tone="muted" />;
-  if (live.approvals.size > 0 || exchange.steps.some(shows)) return null;
+  if (live.asked.length > 0 || exchange.steps.some(shows)) return null;
   return <Note text={TH.chat.unanswered} tone="muted" />;
 }
 
-/** One question and its answer: the question bubble, then reply sentences, cards and decisions in the order the agent produced them. */
+/** The reply steps with each approval the stream never showed as a tool call put back where it was asked, so its decision or receipt reads before the sentence that followed it. */
+function stepsWithApprovals(exchange: Exchange, asked: readonly PendingApproval[]): ReplyStep[] {
+  const seen = new Set(exchange.steps.flatMap((step) => (step.kind === "tool" ? [step.toolCallId] : [])));
+  const steps = [...exchange.steps];
+  const unseen = asked.filter((approval) => !seen.has(approval.toolCallId)).sort((left, right) => right.position - left.position);
+  for (const approval of unseen) {
+    const step: ToolStep = { kind: "tool", toolCallId: approval.toolCallId, name: approval.tool, args: approval.input, outcome: { state: "pending" } };
+    steps.splice(Math.min(approval.position, steps.length), 0, step);
+  }
+  return steps;
+}
+
+/** One question and its answer: the question bubble, then reply sentences, cards and decisions in the order the agent produced them; an approval the stream asked for without showing its call still gets its card. */
 export function ExchangeView({ exchange, live }: { exchange: Exchange; live: ExchangeLive }) {
   return (
     <article className="flex flex-col gap-4">
       {exchange.question ? <UserBubble question={exchange.question} /> : null}
-      {exchange.steps.map((step) => (
+      {stepsWithApprovals(exchange, live.asked).map((step) => (
         <StepView key={step.kind === "text" ? `text-${step.id}` : step.toolCallId} step={step} live={live} />
       ))}
       <Ending exchange={exchange} live={live} />

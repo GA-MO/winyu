@@ -1,8 +1,11 @@
 import type { Message } from "@ag-ui/core";
+import { openApprovalsFor } from "@/lib/harness/approvals";
 import { mascopAgent } from "./agent";
 
 const RESULT_SUFFIX = ":result";
 const SEGMENT_SEPARATOR = ":";
+const DENIED = "output-denied";
+const DECLINED = { approved: false };
 
 type StoredInvocation = { state?: unknown; toolCallId?: unknown; toolName?: unknown; args?: unknown; result?: unknown };
 type StoredPart = { type?: unknown; text?: unknown; toolInvocation?: StoredInvocation };
@@ -47,9 +50,9 @@ function invocationOf(part: StoredPart): { call: ToolCall; result: Message | nul
   if (part.type !== "tool-invocation" || !invocation) return null;
   if (typeof invocation.toolCallId !== "string" || typeof invocation.toolName !== "string") return null;
   const call: ToolCall = { id: invocation.toolCallId, type: "function", function: { name: invocation.toolName, arguments: JSON.stringify(invocation.args ?? {}) } };
-  if (invocation.state !== "result") return { call, result: null };
-  const result: Message = { id: `${invocation.toolCallId}${RESULT_SUFFIX}`, role: "tool", toolCallId: invocation.toolCallId, content: JSON.stringify(invocation.result ?? null) };
-  return { call, result };
+  const outcome = invocation.state === "result" ? (invocation.result ?? null) : invocation.state === DENIED ? DECLINED : undefined;
+  if (outcome === undefined) return { call, result: null };
+  return { call, result: { id: `${invocation.toolCallId}${RESULT_SUFFIX}`, role: "tool", toolCallId: invocation.toolCallId, content: JSON.stringify(outcome) } };
 }
 
 /** One stored assistant message as the AG-UI messages a live run would have produced: a sentence written after a tool call starts a new message, so the reply reads in the order it was written. */
@@ -107,4 +110,33 @@ export async function forgetThread(threadId: string, userId: string): Promise<vo
   const thread = await store.getThreadById({ threadId });
   if (!thread || thread.resourceId !== userId) return;
   await store.deleteThread(threadId);
+}
+
+/** An approval the agent asked on this thread that the person has not answered yet: enough for the chat to draw the decision again and resume the paused run. */
+export type OpenApproval = { interruptId: string; toolCallId: string; tool: string; input: unknown; exchangeId: string | null; position: number };
+
+function argsOf(text: string): unknown {
+  try {
+    return JSON.parse(text);
+  } catch {
+    return {};
+  }
+}
+
+/** The tool calls in a restored transcript that are still paused for the person's answer. */
+export function openApprovalsOf(messages: readonly Message[], userId: string): OpenApproval[] {
+  const answered = new Set(messages.flatMap((message) => (message.role === "tool" ? [message.toolCallId] : [])));
+  const waiting = new Map<string, { tool: string; input: unknown; exchangeId: string | null; position: number }>();
+  let exchangeId: string | null = null;
+  for (const message of messages) {
+    if (message.role === "user") exchangeId = message.id;
+    if (message.role !== "assistant") continue;
+    for (const call of message.toolCalls ?? []) {
+      if (!answered.has(call.id)) waiting.set(call.id, { tool: call.function.name, input: argsOf(call.function.arguments), exchangeId, position: Number.MAX_SAFE_INTEGER });
+    }
+  }
+  return openApprovalsFor(userId, [...waiting.keys()]).flatMap((record) => {
+    const call = waiting.get(record.toolCallId);
+    return call ? [{ interruptId: record.id, toolCallId: record.toolCallId, ...call }] : [];
+  });
 }
