@@ -1,5 +1,5 @@
 import type { CardBody } from "@/lib/cards/present";
-import type { MetricId, MetricSort } from "@/lib/contracts";
+import type { Dim, MetricId, MetricSort } from "@/lib/contracts";
 
 /** The read tools whose fixed card answers a metric question. */
 export type MetricCardTool = "query_metric" | "get_alerts" | "get_forecast";
@@ -12,6 +12,7 @@ export type EvalCase = {
   id: string;
   userId: string;
   prompt: string;
+  before?: string[];
   expectCard?: MetricCardTool;
   expectSort?: MetricSort;
   expectApproval?: "watch_metric" | "create_handoff" | "pin_widget" | "set_permission";
@@ -22,6 +23,8 @@ export type EvalCase = {
   expectPeople?: ComposedTool;
   expectPress?: "ask" | "enroll_course";
   forbidCarousel?: boolean;
+  expectFilter?: { dim: Dim; values: string[] };
+  expectRecall?: true;
 };
 
 /** The questions a Winyu demo actually gets asked, one per card shape and per persona scope. Winyu's funnel, scatter and sell-through cases drew one card from several bound results (`with`); mascop draws one card per `query_metric`, so they check that every metric was asked with the same dims and range instead. */
@@ -84,10 +87,13 @@ export const EVAL_CASES: EvalCase[] = [
   { id: "forecast-target", userId: "u_prasit", prompt: "พยากรณ์ยอดขายทั้งประเทศ 8 สัปดาห์ จะถึงเป้าไหม", expectCard: "get_forecast" },
   { id: "freshness", userId: "u_ton", prompt: "metric ไหนมีข้อมูลล่าสุดถึงวันไหน" },
   { id: "title-share-loss", userId: "u_prasit", prompt: "จังหวัดไหนเสียส่วนแบ่งให้คู่แข่งมากที่สุด", expectCard: "query_metric", expectSort: "delta_asc" },
+  { id: "memory-remember-region", userId: "u_thana", before: ["จำไว้นะว่าผมดูแลภาคอีสานเป็นหลัก เวลาถามยอดขายให้ดูภาคอีสาน"], prompt: "ยอดขายเดือนนี้เทียบเป้าเป็นยังไง", expectCard: "query_metric", expectFilter: { dim: "region", values: ["northeast"] } },
+  { id: "memory-recall-thread", userId: "u_may", before: ["อัตราการลาออกแต่ละฝ่ายเป็นยังไง"], prompt: "ครั้งก่อนที่เราคุยเรื่องคนลาออก ฝ่ายไหนน่าห่วงที่สุดนะ", expectRecall: true },
 ];
 
-/** The group a case reports under, from what it expects: approvals, composed answers, card shapes, period comparisons, alerts and forecasts, other metric cards, and the rest. */
+/** The group a case reports under, from what it expects: memory across conversations, approvals, composed answers, card shapes, period comparisons, alerts and forecasts, other metric cards, and the rest. */
 export function groupOf(testCase: EvalCase): string {
+  if (testCase.before) return "memory";
   if (testCase.expectApproval) return "approval";
   if (testCase.expectPeople) return "composed";
   if (testCase.expectShape || testCase.expectMetrics) return "shape";
