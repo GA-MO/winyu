@@ -5,7 +5,7 @@ import { resetRoleOverrides } from "@/lib/access/role-overrides";
 import type { AccessContext, MetricQuery, MetricResult } from "@/lib/contracts";
 import { findUser } from "@/lib/data/entities/users";
 import { auditLog } from "@/lib/server/audit";
-import { runWithAccess } from "@/lib/server/request-context";
+import { runWithAccess, runWithTurn } from "@/lib/server/request-context";
 import { notifications, outbox, packets } from "./collections";
 import type { WinyuTool } from "@/lib/server/tools/define";
 import { winyuTools, toolsForAccess } from "./tools";
@@ -149,6 +149,20 @@ describe("create_handoff", () => {
     expect(packet?.evidence.length).toBe(1);
     expect(notifications().where((item) => item.refId === result.data.packetId).length).toBe(1);
     expect(outbox().where((item) => item.refId === result.data.packetId).length).toBe(1);
+  });
+
+  test("the packet carries the sender's conversation, so the recipient's agent reads what was asked before the handoff", async () => {
+    const transcript = async () => [
+      { role: "user", text: "ยอดขายภาคอีสานเดือนนี้เทียบเป้า" },
+      { role: "assistant", text: "ภาคอีสานต่ำกว่าเป้า 10%" },
+    ];
+    const turn = { turnId: "turn-handoff-digest", threadId: "thread-handoff-digest", preloadPacketId: null, question: "ส่งงานให้ผู้รับผิดชอบ", queries: [], transcript };
+    const input = { toUserId: "u_pim", title: "ยอดอีสานต่ำกว่าเป้า", ask: "ช่วยตรวจสอบ", urgency: "medium", evidence: [], alertIds: [] };
+    const { execute } = winyuTools().create_handoff;
+    const result = (await runWithAccess(accessOf("u_anucha"), () => runWithTurn(turn, () => execute(input)))) as { ok: boolean; data: { packetId: string } };
+    const digest = packets().get(result.data.packetId)?.conversationDigest ?? "";
+    expect(digest).toContain("ยอดขายภาคอีสานเดือนนี้เทียบเป้า");
+    expect(digest).toContain("ต่ำกว่าเป้า 10%");
   });
 
   test("an unknown recipient is rejected", async () => {

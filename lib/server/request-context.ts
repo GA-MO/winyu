@@ -21,7 +21,11 @@ export function accessOrNull(): AccessContext | null {
   return storage.getStore() ?? null;
 }
 
-export type TurnContext = { turnId: string | null; threadId: string | null; preloadPacketId: string | null; question: string | null; queries: MetricQuery[] };
+/** One line of a saved conversation: who spoke and what they said. */
+export type SpokenTurn = { role: string; text: string };
+
+/** The chat turn being served; `transcript` reads the thread's saved conversation and is absent outside a chat run. */
+export type TurnContext = { turnId: string | null; threadId: string | null; preloadPacketId: string | null; question: string | null; queries: MetricQuery[]; transcript?: () => Promise<SpokenTurn[]> };
 
 const EMPTY_TURN: TurnContext = { turnId: null, threadId: null, preloadPacketId: null, question: null, queries: [] };
 

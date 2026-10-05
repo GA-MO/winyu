@@ -4,7 +4,6 @@ import { findUser } from "@/lib/data/entities/users";
 import { TH } from "@/lib/i18n/th";
 import { createPacket, digestOf } from "@/lib/server/handoff";
 import { currentAccess, currentTurn } from "@/lib/server/request-context";
-import { threads } from "@/lib/server/threads-read";
 import { defineTool } from "./define";
 import { handoffHolds } from "./verify";
 import { ALL_BUT_SALES_REP, recipient } from "./shared";
@@ -19,18 +18,6 @@ function mergeEvidence(explicit: MetricQuery[], ran: MetricQuery[]): MetricQuery
   const merged = new Map<string, MetricQuery>();
   for (const query of [...explicit, ...ran]) merged.set(evidenceKey(query), query);
   return [...merged.values()].slice(0, MAX_EVIDENCE);
-}
-
-function textOf(message: unknown): string {
-  const parts = (message as { parts?: { type?: string; text?: string }[] })?.parts ?? [];
-  return parts.filter((part) => part.type === "text").map((part) => part.text ?? "").join(" ").trim();
-}
-
-function digestOfThread(threadId: string | null): string {
-  if (!threadId) return "";
-  const thread = threads().get(threadId);
-  if (!thread) return "";
-  return digestOf(thread.messages.map((message) => ({ role: (message as { role?: string }).role ?? "assistant", text: textOf(message) })));
 }
 
 function suggestedActionsFor(ask: string): string[] {
@@ -59,7 +46,7 @@ export const createHandoffTool = defineTool({
         urgency: input.urgency,
         evidence: mergeEvidence(input.evidence, turn.queries),
         alertIds: input.alertIds,
-        digest: digestOfThread(turn.threadId),
+        digest: digestOf((await turn.transcript?.()) ?? []),
         suggestedActions: suggestedActionsFor(input.ask),
         threadId: turn.threadId,
       },

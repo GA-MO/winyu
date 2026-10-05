@@ -10,6 +10,7 @@ import { currentAccess, runWithAccess, runWithTurn, type TurnContext } from "@/l
 import { finishTurn } from "@/lib/server/threads";
 import { threadForRun, threads } from "@/lib/server/threads-read";
 import { AGENT_ID, USER_ID_KEY, mascopAgent } from "./agent";
+import { threadTranscript } from "./history";
 import { chatTurnOf, observeReply, type ChatTurn, type ReplySeen, type RunInput } from "./turn";
 
 const BASE_PATH = "/api/copilotkit";
@@ -95,7 +96,9 @@ async function serveRun(access: AccessContext, req: Request, turn: ChatTurn): Pr
   if (spent) return refused(run, spent.answer.interruptId, spent.problem ?? "unknown");
   for (const answer of turn.answers) markAnswered(answer.interruptId);
   if (turn.threadId) threadForRun(turn.threadId, access.userId, turn.question ?? "");
-  const context: TurnContext = { turnId: run.id, threadId: turn.threadId, preloadPacketId: turn.preloadPacketId, question: turn.question, queries: [] };
+  const threadId = turn.threadId;
+  const transcript = threadId ? () => threadTranscript(threadId, access.userId) : undefined;
+  const context: TurnContext = { turnId: run.id, threadId, preloadPacketId: turn.preloadPacketId, question: turn.question, queries: [], transcript };
   try {
     const response = await runWithAccess(access, () => runWithTurn(context, () => runWithRun(run, () => handler()(req))));
     return observeReply(response, (seen) => ended(run, turn, context, seen));

@@ -1,5 +1,6 @@
 import type { Message } from "@ag-ui/core";
 import { openApprovalsFor } from "@/lib/harness/approvals";
+import type { SpokenTurn } from "@/lib/server/request-context";
 import { mascopAgent } from "./agent";
 
 const RESULT_SUFFIX = ":result";
@@ -102,6 +103,12 @@ export async function threadHistory(threadId: string, userId: string): Promise<M
   if (!thread || thread.resourceId !== userId) return [];
   const { messages } = await store.recall({ threadId, resourceId: userId, perPage: false });
   return agUiMessagesOf(messages);
+}
+
+/** The thread's questions and reply text as plain lines, for a handoff to summarise. */
+export async function threadTranscript(threadId: string, userId: string): Promise<SpokenTurn[]> {
+  const messages = await threadHistory(threadId, userId);
+  return messages.flatMap((message) => ((message.role === "user" || message.role === "assistant") && typeof message.content === "string" ? [{ role: message.role, text: message.content }] : []));
 }
 
 /** Removes a thread and its messages from Mastra memory; a thread that never ran has nothing to remove. */
