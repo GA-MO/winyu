@@ -1,0 +1,619 @@
+[
+  {
+    "q": "ลาพักร้อนได้กี่วัน",
+    "role": "sales_rep",
+    "expect": [
+      {
+        "doc": "employee-handbook",
+        "section": "ลาพักร้อน"
+      }
+    ],
+    "kind": "everyday"
+  },
+  {
+    "q": "ป่วย 3 วันต้องมีใบแพทย์ไหม",
+    "role": "supply_planner",
+    "expect": [
+      {
+        "doc": "employee-handbook",
+        "section": "ลาป่วย"
+      }
+    ],
+    "kind": "everyday"
+  },
+  {
+    "q": "ลากิจต้องยื่นล่วงหน้ากี่วัน",
+    "role": "it_admin",
+    "expect": [
+      {
+        "doc": "employee-handbook",
+        "section": "ลากิจ"
+      }
+    ],
+    "kind": "everyday"
+  },
+  {
+    "q": "OT วันหยุดได้กี่เท่า",
+    "role": "supply_planner",
+    "expect": [
+      {
+        "doc": "employee-handbook",
+        "section": "อัตราค่าล่วงเวลา"
+      }
+    ],
+    "kind": "everyday"
+  },
+  {
+    "q": "ทำ OT ต้องขออนุมัติก่อนไหม",
+    "role": "finance_analyst",
+    "expect": [
+      {
+        "doc": "employee-handbook",
+        "section": "การขออนุมัติล่วงเวลาล่วงหน้า"
+      }
+    ],
+    "kind": "everyday"
+  },
+  {
+    "q": "เบี้ยเลี้ยงต่างจังหวัดวันละเท่าไหร่",
+    "role": "sales_rep",
+    "expect": [
+      {
+        "doc": "employee-handbook",
+        "section": "เบี้ยเลี้ยงเดินทางต่างจังหวัด"
+      }
+    ],
+    "kind": "everyday"
+  },
+  {
+    "q": "ค่าน้ำมันเบิกกิโลละกี่บาท ต้องแนบอะไร",
+    "role": "sales_rep",
+    "expect": [
+      {
+        "doc": "employee-handbook",
+        "section": "ค่าน้ำมันรถส่วนตัว"
+      },
+      {
+        "doc": "expense-procurement-policy",
+        "section": "การเบิกค่าน้ำมันและระยะทาง"
+      }
+    ],
+    "kind": "everyday"
+  },
+  {
+    "q": "เครดิตเอเย่นต์เกรด B กี่วัน",
+    "role": "sales_rsm",
+    "expect": [
+      {
+        "doc": "sales-policy",
+        "section": "ระยะเวลาเครดิตตามระดับ"
+      }
+    ],
+    "kind": "everyday"
+  },
+  {
+    "q": "ให้ส่วนลดลูกค้าได้เองกี่เปอร์เซ็นต์",
+    "role": "sales_rep",
+    "expect": [
+      {
+        "doc": "sales-policy",
+        "section": "อำนาจอนุมัติส่วนลด"
+      }
+    ],
+    "kind": "everyday"
+  },
+  {
+    "q": "ขอเพิ่มวงเงินเครดิตเอเย่นต์ต้องทำยังไง",
+    "role": "sales_rsm",
+    "expect": [
+      {
+        "doc": "sales-policy",
+        "section": "การขอเพิ่มวงเงินเครดิต"
+      }
+    ],
+    "kind": "everyday"
+  },
+  {
+    "q": "เอเย่นต์ค้างจ่ายเกิน 15 วันจะเป็นยังไง",
+    "role": "finance_analyst",
+    "expect": [
+      {
+        "doc": "sales-policy",
+        "section": "หนี้เกินกำหนดและการระงับส่งสินค้า"
+      }
+    ],
+    "kind": "everyday"
+  },
+  {
+    "q": "รับคืนสินค้าหมดอายุได้ไหม",
+    "role": "sales_rep",
+    "expect": [
+      {
+        "doc": "sales-policy",
+        "section": "สินค้าใกล้หมดอายุและหมดอายุ"
+      }
+    ],
+    "kind": "everyday"
+  },
+  {
+    "q": "ปีนี้วันไหนบ้างที่ห้ามขายเหล้าเบียร์",
+    "role": "sales_rep",
+    "expect": [
+      {
+        "doc": "alcohol-compliance-guide",
+        "section": "วันพระและวันสำคัญทางศาสนาที่ห้ามขาย ปี 2569"
+      }
+    ],
+    "kind": "everyday"
+  },
+  {
+    "q": "ขายเบียร์ได้กี่โมงถึงกี่โมง",
+    "role": "marketing_lead",
+    "expect": [
+      {
+        "doc": "alcohol-compliance-guide",
+        "section": "ช่วงเวลาที่ขายได้ในแต่ละวัน"
+      }
+    ],
+    "kind": "everyday"
+  },
+  {
+    "q": "ใบอนุญาตขายสุราของเอเย่นต์ต้องต่อเมื่อไหร่",
+    "role": "sales_rsm",
+    "expect": [
+      {
+        "doc": "alcohol-compliance-guide",
+        "section": "การต่ออายุใบอนุญาตของเอเย่นต์"
+      }
+    ],
+    "kind": "everyday"
+  },
+  {
+    "q": "โฆษณาเบียร์ห้ามทำอะไรบ้าง",
+    "role": "marketing_lead",
+    "expect": [
+      {
+        "doc": "alcohol-compliance-guide",
+        "section": "ข้อห้ามด้านเนื้อหาโฆษณา"
+      }
+    ],
+    "kind": "everyday"
+  },
+  {
+    "q": "บัตรขับรถยกอายุกี่ปี",
+    "role": "supply_planner",
+    "expect": [
+      {
+        "doc": "safety-manual",
+        "section": "ใบอนุญาตขับรถยก"
+      }
+    ],
+    "kind": "everyday"
+  },
+  {
+    "q": "เกิดอุบัติเหตุต้องรายงานภายในกี่ชั่วโมง",
+    "role": "hr_manager",
+    "expect": [
+      {
+        "doc": "safety-manual",
+        "section": "การรายงานอุบัติเหตุภายใน 24 ชั่วโมง"
+      }
+    ],
+    "kind": "everyday"
+  },
+  {
+    "q": "ซ้อมหนีไฟปีละกี่ครั้ง",
+    "role": "ceo",
+    "expect": [
+      {
+        "doc": "safety-manual",
+        "section": "การซ้อมดับเพลิงและอพยพ"
+      }
+    ],
+    "kind": "everyday"
+  },
+  {
+    "q": "เบิกค่าใช้จ่ายต้องยื่นภายในกี่วัน",
+    "role": "marketing_lead",
+    "expect": [
+      {
+        "doc": "expense-procurement-policy",
+        "section": "กำหนดเวลายื่นเบิก"
+      }
+    ],
+    "kind": "everyday"
+  },
+  {
+    "q": "ซื้อของกี่บาทต้องขอใบเสนอราคา 3 เจ้า",
+    "role": "it_admin",
+    "expect": [
+      {
+        "doc": "expense-procurement-policy",
+        "section": "เกณฑ์การขอใบเสนอราคา"
+      }
+    ],
+    "kind": "everyday"
+  },
+  {
+    "q": "ผู้จัดการแผนกอนุมัติค่าใช้จ่ายได้ถึงเท่าไหร่",
+    "role": "finance_analyst",
+    "expect": [
+      {
+        "doc": "expense-procurement-policy",
+        "section": "วงเงินอนุมัติตามตำแหน่ง"
+      }
+    ],
+    "kind": "everyday"
+  },
+  {
+    "q": "บัตรเครดิตบริษัทต้องเคลียร์ใบเสร็จภายในวันไหน",
+    "role": "cfo",
+    "expect": [
+      {
+        "doc": "expense-procurement-policy",
+        "section": "การกระทบยอดบัตรเครดิต"
+      }
+    ],
+    "kind": "everyday"
+  },
+  {
+    "q": "รหัสผ่านต้องยาวกี่ตัว",
+    "role": "sales_rep",
+    "expect": [
+      {
+        "doc": "data-security-policy",
+        "section": "รหัสผ่าน"
+      }
+    ],
+    "kind": "everyday"
+  },
+  {
+    "q": "โน้ตบุ๊กหายต้องทำยังไง",
+    "role": "sales_rsm",
+    "expect": [
+      {
+        "doc": "data-security-policy",
+        "section": "อุปกรณ์สูญหายหรือถูกขโมย"
+      }
+    ],
+    "kind": "everyday"
+  },
+  {
+    "q": "เอาข้อมูลยอดขายไปใส่ ChatGPT ได้ไหม",
+    "role": "finance_analyst",
+    "expect": [
+      {
+        "doc": "data-security-policy",
+        "section": "การใช้เครื่องมือ AI ภายนอก"
+      }
+    ],
+    "kind": "everyday"
+  },
+  {
+    "q": "รับของขวัญจากซัพพลายเออร์ได้ไม่เกินเท่าไหร่",
+    "role": "supply_planner",
+    "expect": [
+      {
+        "doc": "employee-handbook",
+        "section": "การรับของขวัญและการเลี้ยงรับรอง"
+      }
+    ],
+    "kind": "everyday"
+  },
+  {
+    "q": "หนังสือเตือนมีผลกี่ปี",
+    "role": "hr_manager",
+    "expect": [
+      {
+        "doc": "hr-compensation-discipline",
+        "section": "ขั้นตอนลงโทษทางวินัย"
+      }
+    ],
+    "kind": "everyday"
+  },
+  {
+    "q": "สต็อกปลอดภัยสินค้ากลุ่ม A เก็บกี่วัน",
+    "role": "supply_planner",
+    "expect": [
+      {
+        "doc": "supply-planning-sop",
+        "section": "สต็อกปลอดภัยตามกลุ่มสินค้า"
+      }
+    ],
+    "kind": "everyday"
+  },
+  {
+    "q": "เยี่ยมร้านแล้วต้องบันทึกผลภายในกี่โมง",
+    "role": "sales_rep",
+    "expect": [
+      {
+        "doc": "sales-policy",
+        "section": "การบันทึกผลการเยี่ยม"
+      }
+    ],
+    "kind": "everyday"
+  },
+  {
+    "q": "อยากหยุดยาวไปเที่ยวญี่ปุ่น ทำงานมา 6 ปีได้กี่วัน",
+    "role": "sales_rep",
+    "expect": [
+      {
+        "doc": "employee-handbook",
+        "section": "ลาพักร้อน"
+      }
+    ],
+    "kind": "reworded"
+  },
+  {
+    "q": "ขายเบียร์วันพระได้ไหม",
+    "role": "sales_rep",
+    "expect": [
+      {
+        "doc": "alcohol-compliance-guide",
+        "section": "วันพระและวันสำคัญทางศาสนาที่ห้ามขาย ปี 2569"
+      },
+      {
+        "doc": "alcohol-compliance-guide",
+        "section": "สิ่งที่พนักงานขายทำในวันห้ามขาย"
+      }
+    ],
+    "kind": "reworded"
+  },
+  {
+    "q": "เงินเก็บไว้ใช้ตอนเกษียณที่หักจากเงินเดือน บริษัทใส่ให้เท่าไหร่",
+    "role": "it_admin",
+    "expect": [
+      {
+        "doc": "employee-handbook",
+        "section": "กองทุนสำรองเลี้ยงชีพ"
+      }
+    ],
+    "kind": "reworded"
+  },
+  {
+    "q": "จะเข้าไลน์บรรจุต้องใส่อะไรบ้าง",
+    "role": "supply_planner",
+    "expect": [
+      {
+        "doc": "safety-manual",
+        "section": "PPE ในสายการผลิตและบรรจุ"
+      }
+    ],
+    "kind": "reworded"
+  },
+  {
+    "q": "ขวดติดในเครื่อง จะมุดเข้าไปแกะต้องทำไงก่อน",
+    "role": "supply_planner",
+    "expect": [
+      {
+        "doc": "safety-manual",
+        "section": "การตัดแยกพลังงาน Lockout/Tagout"
+      }
+    ],
+    "kind": "reworded"
+  },
+  {
+    "q": "ยี่ปั๊วเอาของไปเทขายจังหวัดอื่น โดนอะไรบ้าง",
+    "role": "sales_director",
+    "expect": [
+      {
+        "doc": "sales-policy",
+        "section": "เขตการขายและการขายข้ามเขต"
+      }
+    ],
+    "kind": "reworded"
+  },
+  {
+    "q": "ของล็อตส่งนอกที่ไหลกลับมา ยี่ปั๊วรับมาขายได้ป่ะ",
+    "role": "sales_rep",
+    "expect": [
+      {
+        "doc": "sales-policy",
+        "section": "ห้ามนำเข้าสินค้าคู่ขนาน"
+      }
+    ],
+    "kind": "reworded"
+  },
+  {
+    "q": "ลูกค้าขอดีลพิเศษ หักให้ 7% ต้องให้ใครเซ็น",
+    "role": "sales_rsm",
+    "expect": [
+      {
+        "doc": "sales-policy",
+        "section": "อำนาจอนุมัติส่วนลด"
+      }
+    ],
+    "kind": "reworded"
+  },
+  {
+    "q": "ลงไอจีรูปตัวเองชนแก้วกับเพื่อนได้ไหม",
+    "role": "marketing_lead",
+    "expect": [
+      {
+        "doc": "alcohol-compliance-guide",
+        "section": "สื่อสังคมออนไลน์ของพนักงาน"
+      }
+    ],
+    "kind": "reworded"
+  },
+  {
+    "q": "มีเมลแปลกๆ ขอเปลี่ยนเลขบัญชีโอนเงินของคู่ค้า ทำไงดี",
+    "role": "finance_analyst",
+    "expect": [
+      {
+        "doc": "data-security-policy",
+        "section": "อีเมลหลอกลวงและฟิชชิง"
+      }
+    ],
+    "kind": "reworded"
+  },
+  {
+    "q": "ไม่มีบิลค่าวินมอไซค์ เคลมได้มั้ย",
+    "role": "sales_rep",
+    "expect": [
+      {
+        "doc": "expense-procurement-policy",
+        "section": "ใบเสร็จและหลักฐานประกอบ"
+      }
+    ],
+    "kind": "reworded"
+  },
+  {
+    "q": "WFH ได้กี่วันต่อวีค",
+    "role": "it_admin",
+    "expect": [
+      {
+        "doc": "employee-handbook",
+        "section": "การทำงานนอกสถานที่และ Work from Home"
+      }
+    ],
+    "kind": "reworded"
+  },
+  {
+    "q": "ได้กลิ่นฉุนแสบจมูกแถวห้องเครื่องทำเย็น ต้องทำยังไง",
+    "role": "ceo",
+    "expect": [
+      {
+        "doc": "safety-manual",
+        "section": "ระบบทำความเย็นแอมโมเนีย"
+      }
+    ],
+    "kind": "reworded"
+  },
+  {
+    "q": "เด็ก ม.5 มาขอชิมที่บูธ ให้ได้ไหม",
+    "role": "marketing_lead",
+    "expect": [
+      {
+        "doc": "alcohol-compliance-guide",
+        "section": "อายุผู้ซื้อ"
+      }
+    ],
+    "kind": "reworded"
+  },
+  {
+    "q": "ช่วงงดเหล้าสามเดือน ต้องลดของในคลังก่อนกี่อาทิตย์",
+    "role": "supply_planner",
+    "expect": [
+      {
+        "doc": "supply-planning-sop",
+        "section": "ฤดูกาลเข้าพรรษา"
+      }
+    ],
+    "kind": "reworded"
+  },
+  {
+    "q": "ที่จอดรถสำนักงานใหญ่ต้องจองล่วงหน้าไหม",
+    "role": "sales_rep",
+    "expect": [],
+    "kind": "unanswerable"
+  },
+  {
+    "q": "งานเลี้ยงปีใหม่ปีนี้จัดวันไหน",
+    "role": "it_admin",
+    "expect": [],
+    "kind": "unanswerable"
+  },
+  {
+    "q": "ลาบวชได้กี่วัน",
+    "role": "supply_planner",
+    "expect": [],
+    "kind": "unanswerable"
+  },
+  {
+    "q": "เบิกค่าสมาชิกฟิตเนสได้ไหม",
+    "role": "finance_analyst",
+    "expect": [],
+    "kind": "unanswerable"
+  },
+  {
+    "q": "ราคาหุ้นบริษัทวันนี้เท่าไหร่",
+    "role": "ceo",
+    "expect": [],
+    "kind": "unanswerable"
+  },
+  {
+    "q": "ส่งเบียร์ไปขายลาวต้องใช้เอกสารอะไรบ้าง",
+    "role": "sales_director",
+    "expect": [],
+    "kind": "unanswerable"
+  },
+  {
+    "q": "รถรับส่งพนักงานโรงงานขอนแก่นออกกี่โมง",
+    "role": "hr_manager",
+    "expect": [],
+    "kind": "unanswerable"
+  },
+  {
+    "q": "เปลี่ยนรูปในบัตรพนักงานต้องติดต่อใคร",
+    "role": "marketing_lead",
+    "expect": [],
+    "kind": "unanswerable"
+  },
+  {
+    "q": "เงินเดือนระดับ 3 ได้สูงสุดเท่าไหร่",
+    "role": "sales_rep",
+    "expect": [
+      {
+        "doc": "hr-compensation-discipline",
+        "section": "กระบอกเงินเดือนตามระดับงาน"
+      }
+    ],
+    "kind": "forbidden"
+  },
+  {
+    "q": "ค่าคอมเริ่มจ่ายตอนทำยอดได้กี่เปอร์เซ็นต์ของเป้า",
+    "role": "sales_rep",
+    "expect": [
+      {
+        "doc": "hr-compensation-discipline",
+        "section": "ค่าคอมมิชชั่นฝ่ายขาย"
+      }
+    ],
+    "kind": "forbidden"
+  },
+  {
+    "q": "โบนัสปีนี้ได้กี่เดือน",
+    "role": "finance_analyst",
+    "expect": [
+      {
+        "doc": "hr-compensation-discipline",
+        "section": "โบนัสประจำปี"
+      }
+    ],
+    "kind": "forbidden"
+  },
+  {
+    "q": "ลูกทีมทำผิดซ้ำ จะพักงานต้องให้ใครอนุมัติ",
+    "role": "sales_rsm",
+    "expect": [
+      {
+        "doc": "hr-compensation-discipline",
+        "section": "ผู้มีอำนาจลงโทษ"
+      }
+    ],
+    "kind": "forbidden"
+  },
+  {
+    "q": "ใครดูข้อมูลการสอบสวนพนักงานได้บ้าง",
+    "role": "it_admin",
+    "expect": [
+      {
+        "doc": "hr-compensation-discipline",
+        "section": "การรักษาความลับของการสอบสวน"
+      }
+    ],
+    "kind": "forbidden"
+  },
+  {
+    "q": "ผลงานเกรด A ขึ้นเงินเดือนกี่เปอร์เซ็นต์",
+    "role": "cfo",
+    "expect": [
+      {
+        "doc": "hr-compensation-discipline",
+        "section": "ตารางขึ้นเงินเดือนตามผลงาน"
+      }
+    ],
+    "kind": "forbidden"
+  }
+]
