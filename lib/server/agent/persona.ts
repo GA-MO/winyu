@@ -1,5 +1,4 @@
 import { fenceAsData } from "@/lib/harness/fence";
-import type { PersonaContext } from "@/lib/harness/adapters/vexa/server";
 import type { AccessContext, ContextPacket, MemoryFact, RoleId, Story, User } from "@/lib/contracts";
 import { investigations, layouts, memoryFacts, packets } from "./collections";
 import { threads } from "@/lib/server/threads-read";
@@ -181,6 +180,9 @@ const PRIORITY: Record<ContextKind, number> = {
   memory: 50,
   suggestion: 20,
 };
+
+/** What one turn tells the persona: today's date and the client's context (a preloaded packet or story id). */
+export type PersonaContext = { today: string; context: Record<string, unknown> };
 
 function item(id: string, kind: ContextKind, content: string, source: string, scope: string | null): ContextItem {
   return { id, kind, content, priority: PRIORITY[kind], source, scope };

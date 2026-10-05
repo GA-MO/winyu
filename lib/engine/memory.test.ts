@@ -36,7 +36,7 @@ function plant(value: string, overrides: Partial<MemoryFact> = {}): MemoryFact {
 function personaMemory(): string {
   const host = findUser(HOST);
   if (!host) throw new Error(`missing demo user ${HOST}`);
-  return personaFor({ ...accessFor(host), userId: USER }, host, { today: "2026-09-23", context: {}, tools: { read: [], write: [], destructive: [] } }).join("\n");
+  return personaFor({ ...accessFor(host), userId: USER }, host, { today: "2026-09-23", context: {} }).join("\n");
 }
 
 afterEach(() => {

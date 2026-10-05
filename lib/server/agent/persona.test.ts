@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import type { PersonaContext } from "@/lib/harness/adapters/vexa/server";
+import type { PersonaContext } from "./persona";
 import { accessFor } from "@/lib/access/policies";
 import type { ContextPacket, Story } from "@/lib/contracts";
 import { threads } from "@/lib/server/threads-read";
@@ -11,7 +11,7 @@ const TODAY = "2026-09-22";
 const PACKET_ID = "pkt-persona-test";
 
 function ctx(context: Record<string, unknown> = {}, today = TODAY): PersonaContext {
-  return { today, context, tools: { read: [], write: [], destructive: [] } };
+  return { today, context };
 }
 
 function personaOf(userId: string, context: Record<string, unknown> = {}): string[] {
