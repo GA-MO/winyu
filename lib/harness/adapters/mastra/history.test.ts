@@ -46,5 +46,7 @@ describe("openApprovalsOf", () => {
     expect(openApprovalsOf(messages, "u_thana")).toEqual([
       { interruptId: "mastra-approval::r::c-open", toolCallId: "c-open", tool: "pin_widget", input: { metric: "net_sales_value" }, exchangeId: "u1", position: Number.MAX_SAFE_INTEGER },
     ]);
+    const movedOn = [...messages, { id: "u2", role: "user" as const, content: "เรื่องอื่น" }];
+    expect(openApprovalsOf(movedOn, "u_thana")).toEqual([]);
   });
 });

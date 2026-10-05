@@ -123,12 +123,13 @@ function argsOf(text: string): unknown {
   }
 }
 
-/** The tool calls in a restored transcript that are still paused for the person's answer. */
+/** The tool calls of the latest question that are still paused for the person's answer; asking something new leaves an older approval behind for good. */
 export function openApprovalsOf(messages: readonly Message[], userId: string): OpenApproval[] {
   const answered = new Set(messages.flatMap((message) => (message.role === "tool" ? [message.toolCallId] : [])));
   const waiting = new Map<string, { tool: string; input: unknown; exchangeId: string | null; position: number }>();
+  const latest = messages.findLastIndex((message) => message.role === "user");
   let exchangeId: string | null = null;
-  for (const message of messages) {
+  for (const message of messages.slice(Math.max(latest, 0))) {
     if (message.role === "user") exchangeId = message.id;
     if (message.role !== "assistant") continue;
     for (const call of message.toolCalls ?? []) {

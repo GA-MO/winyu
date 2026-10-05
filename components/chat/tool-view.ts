@@ -47,7 +47,6 @@ function writeView(step: ToolStep, live: ToolLive): ToolView {
     return isDone(step.outcome.result) ? { ...decision, approved: true } : { kind: "none" };
   }
   if (step.outcome.state === "failed") return { kind: "none" };
-  if (live.decided !== undefined) return { ...decision, approved: live.decided };
   return live.running ? { kind: "working" } : { kind: "not-run" };
 }
 

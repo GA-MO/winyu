@@ -44,9 +44,10 @@ describe("toolViewOf", () => {
     expect(toolViewOf({ ...read, outcome: { state: "returned", result: { ok: true, weeks: [] } } }, IDLE, CARD_TOOLS)).toEqual({ kind: "none" });
   });
 
-  test("a write waits on the person, shows their choice at once, then the receipt its result earns", () => {
+  test("a write waits on the person, works while the answer runs, and shows a receipt only for the result it earned", () => {
     expect(toolViewOf(write, { ...IDLE, asking: true }, CARD_TOOLS)).toMatchObject({ kind: "decision", approved: null });
-    expect(toolViewOf(write, { ...IDLE, running: true, decided: true }, CARD_TOOLS)).toMatchObject({ kind: "decision", approved: true });
+    expect(toolViewOf(write, { ...IDLE, running: true, decided: true }, CARD_TOOLS)).toEqual({ kind: "working" });
+    expect(toolViewOf(write, { ...IDLE, decided: true }, CARD_TOOLS)).toEqual({ kind: "not-run" });
     expect(toolViewOf({ ...write, outcome: { state: "returned", result: { ok: true } } }, IDLE, CARD_TOOLS)).toMatchObject({ kind: "decision", approved: true });
     expect(toolViewOf({ ...write, outcome: { state: "returned", result: { approved: false } } }, IDLE, CARD_TOOLS)).toMatchObject({ kind: "decision", approved: false });
     expect(toolViewOf({ ...write, outcome: { state: "returned", result: { ok: false, error: "x" } } }, IDLE, CARD_TOOLS)).toEqual({ kind: "none" });

@@ -138,14 +138,13 @@ export function useChatSession({ threadId, initialMessages, initialApprovals, pr
 
   const decide = useCallback(
     (toolCallId: string, approved: boolean) => {
-      const next = { ...decisionsRef.current, [toolCallId]: approved };
-      setDecisions(next);
-      const open = batchRef.current;
-      if (open.length === 0 || !open.every((approval) => approval.toolCallId in next)) return;
+      const answered = batchRef.current.find((approval) => approval.toolCallId === toolCallId);
+      if (!answered || agent.isRunning) return;
+      setDecisions({ ...decisionsRef.current, [toolCallId]: approved });
       setBatch([]);
-      run(open.map((approval) => ({ interruptId: approval.interruptId, status: "resolved", payload: { approved: next[approval.toolCallId] } })));
+      run([{ interruptId: answered.interruptId, status: "resolved", payload: { approved } }]);
     },
-    [run],
+    [agent, run],
   );
 
   const exchanges = exchangesOf(agent.messages);
