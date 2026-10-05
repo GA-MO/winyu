@@ -165,7 +165,7 @@ Every unit runs in its own worktree, ends with typecheck, test and a browser or 
 | F3 | Harness: durable runs, background tasks, schedules and signals replace the copied scheduler and morning investigation | none | $0.30 |
 | F4 | Processors: PII and prompt-injection guardrails beside `fenceAsData` and `redact` | none | $0.10 |
 | F5 | Observability and Studio for developers | none | $0 |
-| F6 ✓ | Memory: working memory, semantic recall, observational memory measured against the copied memory extraction | local embeddings | $0.30 |
+| F6 | Memory: working memory, semantic recall, observational memory measured against the copied memory extraction | local embeddings | $0.30 |
 | F7 | RAG over policy documents | local embeddings | $0.20 |
 | F8 | Agent networks and subagents | none | $0.30 |
 | F9 | A2A: call and expose agents | none | $0.10 |
