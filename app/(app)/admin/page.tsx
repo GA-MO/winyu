@@ -1,8 +1,8 @@
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
-import { ChartColumn, Eye, LayoutDashboard, Scale, ScrollText, ShieldCheck, Sparkles, Wrench } from "lucide-react";
+import { ChartColumn, Eye, LayoutDashboard, Plug, Scale, ScrollText, ShieldCheck, Sparkles, Wrench } from "lucide-react";
 import { cn } from "@/components/ui/cn";
 import { METRIC_IDS, ROLE_IDS, type AuditEntry, type MetricId, type RoleId } from "@/lib/contracts";
 import { USERS } from "@/lib/data/entities/users";
@@ -18,17 +18,19 @@ import { SimulateTab } from "@/components/admin/simulate-tab";
 import { RulesTab } from "@/components/admin/rules-tab";
 import { ToolsTab } from "@/components/admin/tools-tab";
 import { UsageTab } from "@/components/admin/usage-tab";
+import { McpTab } from "@/components/admin/mcp-tab";
 import { Avatar, FOCUS } from "@/components/admin/parts";
 
 type SearchParams = Promise<{ tab?: string; run?: string; as?: string; metric?: string; user?: string; tool?: string; connector?: string; decision?: string; range?: string; limit?: string; role?: string; view?: string }>;
 
-const TABS = ["overview", "access", "tools", "rules", "audit", "usage", "simulate"] as const;
+const TABS = ["overview", "access", "tools", "rules", "audit", "usage", "simulate", "mcp"] as const;
 const LEGACY_TABS: Record<string, Tab> = { users: "access" };
-const TAB_ICONS: Record<Tab, LucideIcon> = { overview: LayoutDashboard, access: ShieldCheck, tools: Wrench, rules: Scale, audit: ScrollText, usage: ChartColumn, simulate: Eye };
+const TAB_ICONS: Record<Tab, LucideIcon> = { overview: LayoutDashboard, access: ShieldCheck, tools: Wrench, rules: Scale, audit: ScrollText, usage: ChartColumn, simulate: Eye, mcp: Plug };
 const DECISIONS: readonly AuditEntry["decision"][] = ["allow", "deny", "masked"];
 const DEFAULT_ROLE: RoleId = "sales_rep";
 const DEFAULT_AUDIT_RANGE: AuditRange = "7d";
 const AUDIT_PAGE = 60;
+const MCP_PATH = "/api/mcp";
 const MAX_AUDIT_LIMIT = 2000;
 
 type Tab = (typeof TABS)[number];
@@ -63,6 +65,13 @@ function limitOf(value: string | undefined): number {
 
 function textOf(value: string | undefined): string | null {
   return value && value.length > 0 ? value : null;
+}
+
+async function mcpEndpoint(): Promise<string> {
+  const incoming = await headers();
+  const host = incoming.get("x-forwarded-host") ?? incoming.get("host") ?? "localhost";
+  const protocol = incoming.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
+  return `${protocol}://${host}${MCP_PATH}`;
 }
 
 function AskAgent() {
@@ -157,6 +166,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
           /> : null}
         {current === "usage" ? <UsageTab /> : null}
         {current === "simulate" ? <SimulateTab userId={params.as ?? USERS[0].id} metric={metricOf(params.metric)} /> : null}
+        {current === "mcp" ? <McpTab endpoint={await mcpEndpoint()} /> : null}
       </div>
     </div>
   );

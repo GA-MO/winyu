@@ -178,6 +178,7 @@ function TurnRow({ group, open }: { group: TurnGroup; open: boolean }) {
   const worst = worstOf(group.entries);
   const tools = [...new Set(group.entries.map((entry) => toolLabel(entry.tool)))];
   const byJob = first.initiator === "job";
+  const viaMcp = first.initiator === "mcp";
   const headline = first.question ? `“${first.question}”` : byJob ? COPY.jobTitle : tools.join(" · ");
   const reason = worst === "allow" ? null : (group.entries.map(reasonOf).find((text) => text !== null) ?? null);
   return (
@@ -196,6 +197,7 @@ function TurnRow({ group, open }: { group: TurnGroup; open: boolean }) {
           </div>
           <span className="flex items-center gap-2">
             {byJob ? <Pill tone="primary">{COPY.byJob}</Pill> : null}
+            {viaMcp ? <Pill tone="primary">{COPY.viaMcp}</Pill> : null}
             <Pill tone={DECISION_TONE[worst]}>{TH.admin.decision[worst]}</Pill>
             <ChevronDown className="size-3.5 text-muted-foreground transition group-open:rotate-180" aria-hidden />
           </span>

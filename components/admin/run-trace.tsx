@@ -16,6 +16,7 @@ const COPY = TH.admin.trace;
 const CODES = TH.admin.auditTab.codes;
 const MS_PER_SECOND = 1000;
 const JOB_INTENT_PREFIX = "job:";
+const MCP_INTENT_PREFIX = "mcp:";
 
 const ICON_TONE: Record<Tone, string> = {
   neutral: "bg-muted text-muted-foreground",
@@ -88,10 +89,16 @@ function ToolDetail({ story, args }: { story: ToolStory; args: string | null }) 
   );
 }
 
+function startTitle(intent: string | null): string {
+  if (intent?.startsWith(JOB_INTENT_PREFIX)) return COPY.startJob;
+  if (intent?.startsWith(MCP_INTENT_PREFIX)) return COPY.startMcp;
+  return COPY.start;
+}
+
 function lineOf(entry: TimelineEntry, argsOf: (toolCallId: string) => string | null): Line {
   switch (entry.kind) {
     case "start":
-      return { icon: Flag, tone: "primary", title: entry.goal.intent?.startsWith(JOB_INTENT_PREFIX) ? COPY.startJob : COPY.start, detail: entry.goal.userMessage ? `“${entry.goal.userMessage}”` : null };
+      return { icon: Flag, tone: "primary", title: startTitle(entry.goal.intent), detail: entry.goal.userMessage ? `“${entry.goal.userMessage}”` : null };
     case "pressed":
       return { icon: MousePointerClick, tone: "primary", title: COPY.pressed(toolLabel(entry.tool)) };
     case "answered":
