@@ -12,6 +12,11 @@ import { WINYU_RULES, periodsAsOf, personaFor } from "./persona";
 const TODAY = "2026-09-22";
 const PACKET_ID = "pkt-persona-test";
 const DRAWING_VOCABULARY = ["DataCard", "AlertsCard", "ForecastCard", "$state", "runTool", "⟦action⟧", "/tools/"];
+const LATER_DAY = "2026-10-05";
+const DAY_AFTER = "2026-10-06";
+const FIRST_PERSONAL_LINE = "กำลังคุยกับ";
+const DAY_LINE = "วันนี้คือ";
+const MIN_SHARED_SHARE = 0.9;
 const DOMAIN_MARKERS = ["ห้ามประมาณเอง", "certified metric", "PERMISSION_DENIED", "resolve_owner", "`masked`", "watch_metric", "pin_widget", "find_people", "request_leave", "describe_entity"];
 
 function ctx(context: Record<string, unknown> = {}, today = TODAY): PersonaContext {
@@ -166,5 +171,31 @@ describe("asking on from a morning story", () => {
     expect(lines).toContain(`หลักฐาน: การ์ด "${story.evidence?.title}" จาก query_metric ${JSON.stringify(story.evidence?.query)}`);
     expect(lines).toContain("ตัดทิ้งแล้ว: DC ขอนแก่นมีสต๊อกพอ");
     expect(lines).toContain("query เดิมก่อน");
+  });
+});
+
+describe("the prompt is laid out for the provider's prompt cache", () => {
+  function systemPrompt(userId: string, today: string): string {
+    const user = findUser(userId);
+    if (!user) throw new Error(`no user ${userId}`);
+    return personaFor(accessFor(user), user, ctx({}, today), WINYU_RULES).join("\n\n");
+  }
+
+  test("two users of one role share the system prompt byte for byte up to the first line about the person", () => {
+    const krit = systemPrompt("u_krit", LATER_DAY);
+    const ploy = systemPrompt("u_ploy", LATER_DAY);
+    const personal = krit.indexOf(FIRST_PERSONAL_LINE);
+    expect(personal).toBeGreaterThan(krit.length * MIN_SHARED_SHARE);
+    expect(ploy.slice(0, personal)).toBe(krit.slice(0, personal));
+    expect(ploy).not.toBe(krit);
+  });
+
+  test("one user on two days shares the system prompt byte for byte up to the date line", () => {
+    const today = systemPrompt("u_krit", LATER_DAY);
+    const tomorrow = systemPrompt("u_krit", DAY_AFTER);
+    const dated = today.indexOf(DAY_LINE);
+    expect(dated).toBeGreaterThan(today.indexOf(FIRST_PERSONAL_LINE));
+    expect(tomorrow.slice(0, dated)).toBe(today.slice(0, dated));
+    expect(tomorrow).not.toBe(today);
   });
 });
