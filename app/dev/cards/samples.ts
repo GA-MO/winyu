@@ -61,6 +61,7 @@ export const READ_SAMPLES: ReadSample[] = [
   { tool: "list_courses", caption: "list_courses", question: "มีหลักสูตรอะไรเปิดบ้าง", input: { month: null, query: null } },
   { tool: "get_policy", caption: "get_policy · การลา", question: "ฉันเหลือวันลาเท่าไร", input: { topic: "leave" } },
   { tool: "get_policy", caption: "get_policy · สวัสดิการ", question: "สวัสดิการมีอะไรบ้าง", input: { topic: "benefits" } },
+  { tool: "search_documents", caption: "search_documents", question: "เอเย่นต์เกรด B ได้เครดิตกี่วัน", input: { query: "เครดิตเทอมเอเย่นต์เกรด B" } },
   { tool: "describe_entity", caption: "describe_entity", question: "อุบลศรีสุข เทรดดิ้ง คือใคร", input: { kind: "agent", query: "อุบลศรีสุข" } },
   { tool: "resolve_owner", caption: "resolve_owner", question: "ใครดูแลยอดขายภาคอีสาน", input: { metric: "net_sales_value", dims: { region: "northeast" } } },
   { tool: "recall_memory", caption: "recall_memory", question: "จำอะไรเกี่ยวกับฉันได้บ้าง", input: { query: "ยอดขาย" } },
