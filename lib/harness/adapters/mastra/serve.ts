@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { MastraAgent } from "@ag-ui/mastra";
 import { CopilotRuntime, createCopilotRuntimeHandler } from "@copilotkit/runtime/v2";
 import { RequestContext } from "@mastra/core/request-context";
-import type { AccessContext } from "@/lib/contracts";
+import type { AccessContext, Initiator } from "@/lib/contracts";
 import { askedTool, markAnswered, problemOf, recordAsked } from "@/lib/harness/approvals";
 import { currentRun, emitTo, newRun, runWithRun, saveRun, type Run } from "@/lib/harness/runtime";
 import { TH } from "@/lib/i18n/th";
@@ -30,8 +30,8 @@ type Route = { kind: "info" } | { kind: "run" } | { kind: "connect" } | { kind: 
 
 type Handler = (request: Request) => Promise<Response>;
 
-/** How one served run ends: `learn` runs memory extraction and logs the question after a finished turn; an eval recording turns it off so a case costs no extra model call and leaves no memory behind for the next case. */
-export type ServeOptions = { learn: boolean };
+/** How one served run ends: `learn` runs memory extraction and logs the question after a finished turn; an eval recording turns it off so a case costs no extra model call and leaves no memory behind for the next case. `initiator` names the surface the person asked from (the web chat unless a channel says otherwise), for the audit and admin rules. */
+export type ServeOptions = { learn: boolean; initiator?: Initiator };
 
 const LEARNING: ServeOptions = { learn: true };
 
@@ -115,7 +115,7 @@ function readInput(body: string): RunInput {
 }
 
 async function serveRun(access: AccessContext, req: Request, turn: ChatTurn, guarded: GuardedInput, options: ServeOptions): Promise<Response> {
-  const run = newRun(access.userId, turn.threadId, { id: turn.runId });
+  const run = newRun(access.userId, turn.threadId, { id: turn.runId, initiator: options.initiator });
   started(run, turn);
   if (turn.answers.length > 1) return refused(run, turn.answers.map((answer) => answer.interruptId).join(", "), "more than one answer in one run");
   const spent = turn.answers.map((answer) => ({ answer, problem: problemOf(answer.interruptId, access.userId, answer.toolCallId) })).find((entry) => entry.problem !== null);

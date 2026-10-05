@@ -3,7 +3,7 @@
 import { Component, type ReactNode } from "react";
 import { AlertCircle, CircleSlash, MessageSquareReply, MousePointerClick, ShieldCheck, Sparkles } from "lucide-react";
 import { renderApproval } from "@/components/cards/approval-card";
-import { describeToolCall } from "@/components/cards/describe-tool";
+import { describeToolCall } from "@/lib/cards/describe-call";
 import { TOOL_CARDS, type ToolCard } from "@/components/cards/registry";
 import { Badge } from "@/components/ui/primitives";
 import type { ContextPacket, HandoffReplyNote } from "@/lib/contracts";

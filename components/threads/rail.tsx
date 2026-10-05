@@ -22,7 +22,7 @@ const BRAND_MARK = "flex size-8 shrink-0 items-center justify-center rounded-[10
 const RAIL_OFFSET = "--winyu-rail-offset";
 const TEXT = TH.conversation.rail;
 
-type ThreadSummary = { id: string; title: string; createdAt: string; updatedAt: string; packetId: string | null };
+type ThreadSummary = { id: string; title: string; createdAt: string; updatedAt: string; packetId: string | null; channel: "teams" | "line" | null };
 
 type RowMode = { kind: "view" } | { kind: "rename"; id: string; draft: string } | { kind: "confirm-delete"; id: string };
 
@@ -239,6 +239,7 @@ function ThreadRow({ thread, active, mode, setMode, rename, remove }: RowProps) 
       <Link href={`/c/${thread.id}`} className="min-w-0 flex-1 truncate" title={thread.title}>
         {thread.title}
       </Link>
+      {thread.channel ? <span className="shrink-0 rounded-full bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">{TH.channels.via[thread.channel]}</span> : null}
       <button type="button" onClick={() => setMode({ kind: "rename", id: thread.id, draft: thread.title })} aria-label={TEXT.rename} title={TEXT.rename} className={ROW_ACTION}>
         <Pencil className="size-3.5" aria-hidden />
       </button>
