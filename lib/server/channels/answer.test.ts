@@ -85,33 +85,36 @@ describe("answerChannel", () => {
   });
 
   test("a write waits for approve in the chat app, runs once through the approvals ledger, and refuses a second press and another person's press", async () => {
+    const before = watchesOf("u_wee").length;
+    const startedAt = new Date().toISOString();
     scripted.script([{ call: "watch_metric", args: WATCH }]);
     const asking = answerOf(await answerChannel(ask("oid-wee", "เตือนฉันถ้าสต๊อกดีซีลำพูนพอขายต่ำกว่า 10 วัน"), WEB));
     expect(asking.approval?.question).toContain("เฝ้าดู");
-    expect(watchesOf("u_wee")).toHaveLength(0);
+    expect(watchesOf("u_wee")).toHaveLength(before);
     const approvalId = asking.approval?.id ?? "";
 
     expect(await answerChannel(decide("oid-ceo", approvalId, true), WEB)).toEqual({ kind: "notice", text: expect.stringContaining("ไม่พบคำขออนุมัติ") });
-    expect(watchesOf("u_wee")).toHaveLength(0);
+    expect(watchesOf("u_wee")).toHaveLength(before);
 
     scripted.script([{ text: "ตั้งการเฝ้าดูแล้ว" }]);
     const approved = answerOf(await answerChannel(decide("oid-wee", approvalId, true), WEB));
     expect(approved.text).toBe("ตั้งการเฝ้าดูแล้ว");
-    expect(watchesOf("u_wee")).toHaveLength(1);
-    const audited = auditLog().where((entry) => entry.userId === "u_wee" && entry.tool === "watch_metric");
+    expect(watchesOf("u_wee")).toHaveLength(before + 1);
+    const audited = auditLog().where((entry) => entry.userId === "u_wee" && entry.tool === "watch_metric" && entry.at >= startedAt);
     expect(audited.map((entry) => [entry.decision, entry.initiator])).toEqual([["allow", "teams"]]);
 
     const replayed = await answerChannel(decide("oid-wee", approvalId, true), WEB);
     expect(replayed).toEqual({ kind: "notice", text: expect.stringContaining("ใช้ไปแล้ว") });
-    expect(watchesOf("u_wee")).toHaveLength(1);
+    expect(watchesOf("u_wee")).toHaveLength(before + 1);
   });
 
   test("reject answers the approval without running the write", async () => {
+    const before = watchesOf("u_wee").length;
     scripted.script([{ call: "watch_metric", args: { ...WATCH, title: "อีกรายการ" } }]);
     const asking = answerOf(await answerChannel(ask("oid-wee", "เตือนอีกเรื่อง"), WEB));
     scripted.script([{ text: "ไม่ตั้งให้ครับ" }]);
     const rejected = answerOf(await answerChannel(decide("oid-wee", asking.approval?.id ?? "", false), WEB));
     expect(rejected.text).toBe("ไม่ตั้งให้ครับ");
-    expect(watchesOf("u_wee")).toHaveLength(1);
+    expect(watchesOf("u_wee")).toHaveLength(before);
   });
 });
