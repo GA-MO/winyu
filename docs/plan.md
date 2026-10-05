@@ -19,7 +19,7 @@ One box is one unit of work. Check a box only when its evidence exists: a test r
 | D5 | Write and destructive tools pause for approval (Mastra tool approval, surfaced by CopilotKit human-in-the-loop). `asksApproval` from the gateway decides | Same rule as Winyu: approval only for a call the policy would let through |
 | D6 | One real model, `google/gemini-3.8-flash` through OpenRouter | Same as Winyu, so the two stacks compare on equal terms |
 | D7 | Presentational primitives (Card, Metric, charts, RankList, Table, Alert) are copied from Vexa into `components/ui/` | Fastest route to complete cards; the look may then diverge freely |
-| D8 | Mastra memory (LibSQL storage) holds the chat messages; `.data/threads.json` keeps thread metadata (title, dates, rename, delete). Memory extraction reads turns from Mastra memory | The AG-UI bridge diffs against Mastra memory and tool approval needs Mastra storage anyway; one message store, not two |
+| D8 | Mastra memory (LibSQL storage at `.data/mastra.db`) holds the chat messages; `.data/threads.json` keeps thread metadata (title, dates, rename, delete). Memory extraction reads the finished turn from the run (question and recorded queries) | The AG-UI bridge diffs against Mastra memory and tool approval needs Mastra storage anyway; one message store, not two |
 | D9 | The Mastra agent is built once; a fresh `MastraAgent` bridge is built per request with `resourceId = userId` and a `RequestContext` carrying the user | The bridge writes request state into itself, so a shared bridge leaks between users |
 
 ## Stack facts (probed 2026-10-05, `/private/tmp/claude-501/mastra-probe`)
@@ -73,12 +73,13 @@ Each row is one Winyu feature. The phase column says where mascop builds it. The
 
 ### M1. Agent on Mastra
 
-- [ ] Mastra agent with dynamic instructions (`personaFor`) and dynamic tools (`toolsFor(access)` mapped to Mastra tools around `WinyuTool.execute`), OpenRouter Gemini, 6 steps, wrap-up on the last step.
-- [ ] Request context carries the access context; tool execute runs inside `runWithAccess`, `runWithTurn`, `runWithRun`, so audit rows carry `initiator: person` and the run id.
-- [ ] Approval for write and destructive tools decided by `asksApproval`.
-- [ ] CopilotKit runtime route serving the agent over AG-UI.
-- [ ] `WINYU_RULES` rewritten for tool renderers: no json-render rules, the domain rules kept.
-- [ ] Evidence: a probe script sends one question as CEO and one as a sales rep through the route, asserts a `query_metric` call, an audit row, and different scope; `bun run trace` prints the run.
+- [x] Mastra agent with dynamic instructions (`personaFor`) and dynamic tools (`toolsFor(access)` mapped to Mastra tools around `WinyuTool.execute`), OpenRouter Gemini, 6 steps, wrap-up on the last step. `lib/harness/adapters/mastra/agent.ts`: the model is the AI SDK instance from `agentModel()` (trace and usage-meter middleware keep working), `defaultOptions: { maxSteps: 6, prepareStep: wrapUpAtLimit }`.
+- [x] Request context carries the user id; tool execute runs inside `runWithAccess`, `runWithTurn`, `runWithRun` (the ALS survives into Mastra's tools), so audit rows carry `initiator: person` and the run id. The AG-UI `runId` is the harness run id and Mastra's run id.
+- [x] Approval for write and destructive tools decided by `asksApproval`. An approval splits a question into two runs sharing the goal id `<threadId>:<messageId>`; the interrupt id is recorded in the approval ledger for the person asked and spent by the resume that answers it, so a replayed or forged answer gets 409.
+- [x] CopilotKit runtime route serving the agent over AG-UI (`app/api/copilotkit/[[...slug]]/route.ts` → `serveCopilot`); 401 without the session cookie, 404 on another person's thread.
+- [x] `WINYU_RULES` rewritten for tool renderers: no json-render rules, the domain rules kept.
+- [x] Threads and memory: a run on a new thread id creates its `.data/threads.json` record (first question as title). After a finished turn (no pending approval) `finishTurn` logs the question with the slice it queried and runs memory extraction. Turns come from the run (its question and the `query_metric` queries the turn recorded), not from Mastra memory: the run already holds both, and reading memory back would cost a storage round trip for the same facts. D8's "reads turns from Mastra memory" is replaced by this.
+- [x] Evidence: `bun run probe:chat` (POST `/api/copilotkit/agent/mascop/run` with a session cookie) passes four scenarios: CEO query with audit row and saved trace; sales rep scoped to northeast; pin approved (widget in layout, replayed answer refused); pin declined (nothing written). 11 model calls, $0.044 for the whole probe. `bun run trace` prints the run with steps and gateway decisions. Typecheck passes; `bun test` 540 pass, 0 fail across 55 files. Commits 3363c48..a67753d.
 
 ### U. UI foundation (parallel with M1)
 

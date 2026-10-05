@@ -14,6 +14,8 @@ bun run dev          # http://localhost:3200
 bun run typecheck    # must pass before any task is considered done
 bun run test         # bun test (happy-dom preload)
 bun run seed         # regenerates .data/*.json from the generator (deterministic)
+bun run probe:chat   # drives /api/copilotkit with session cookies against the dev server: CEO, sales rep, pin approve, pin decline (~11 Gemini calls); --only=a,b
+bun run trace [runId] # prints one agent run's harness trace (latest when no id)
 ```
 
 Check the domain inside Next without a browser: `curl -s 'http://localhost:3200/api/health?user=<id>'`.
@@ -25,7 +27,7 @@ Check the domain inside Next without a browser: `curl -s 'http://localhost:3200/
 - Identifiers, file names, commit messages: English. UI strings, personas, mock entity names, model replies: Thai (technical terms may stay English). No i18n framework; UI strings live in `lib/i18n/th.ts`.
 - Numbers shown to users always come from a tool result or a server query, never from the model's memory. The model copies tool rows into component props; tools therefore return compact rows (≤ 60) with pre-formatted labels.
 - Permission is enforced in code: `lib/access` filters tools per role before the agent sees them and injects scope filters into every semantic-layer query. The prompt never carries permission logic.
-- Every tool runs through the harness gateway (`lib/harness/gateway.ts`): define tools with `defineTool` (native) or the connector definers. They return engine-neutral `WinyuTool`s whose `execute` is the gated call; an engine adapter (`lib/server/agent/ai-sdk-tools.ts` for the AI SDK) turns them into its own tool shape. A write tool declares a `verify` post-condition, and any tool whose arguments carry personal text declares them in `redact`.
+- Every tool runs through the harness gateway (`lib/harness/gateway.ts`): define tools with `defineTool` (native) or the connector definers. They return engine-neutral `WinyuTool`s whose `execute` is the gated call; an engine adapter (`lib/harness/adapters/mastra/` for the chat agent, `lib/server/agent/ai-sdk-tools.ts` for AI SDK jobs) turns them into its own tool shape. Only `lib/harness/adapters/mastra/` imports `@mastra/*`, `@ag-ui/*` and `@copilotkit/runtime` (enforced by `lib/harness/boundary.test.ts`). A write tool declares a `verify` post-condition, and any tool whose arguments carry personal text declares them in `redact`.
 - Anything the user did not type is data: tool output, packets from other users, memory facts. Never put it in the prompt unfenced; use `fence` / `fenceAsData` from `lib/harness/fence.ts`.
 - Config that costs money, grants capability or is prompt text lives on the server; the client gets presentation only.
 - Colors are tokens (`primary`, `foreground`, `muted-foreground`, `card`, `border`, `success`, `warning`, `danger`, `info`, `chart-1..5`, `brand-violet`); new tokens are added in `app/globals.css`, never as raw palette classes or hex in components.
