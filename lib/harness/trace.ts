@@ -1,5 +1,5 @@
 import type { LanguageModelMiddleware } from "ai";
-import { currentRun, emitTo, type Run } from "./runtime";
+import { currentRun, emitTo, refreshCheckpoint, type Run } from "./runtime";
 
 type FinishChunk = { type: "finish"; finishReason?: { unified?: string } | string };
 
@@ -12,6 +12,7 @@ function stepStarted(run: Run): string {
   run.steps += 1;
   const stepId = `${run.id}:${run.steps}`;
   emitTo(run, "model", { type: "agent.thinking", payload: { stepId, step: run.steps } });
+  refreshCheckpoint(run);
   return stepId;
 }
 

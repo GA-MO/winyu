@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
-import { CircleCheck, CircleX, Flag, Gauge, Hand, Layers, LayoutTemplate, MousePointerClick, Scissors, ShieldAlert, Sparkles, Wrench } from "lucide-react";
+import { CircleCheck, CircleX, Flag, Gauge, Hand, Layers, LayoutTemplate, MousePointerClick, RotateCw, Scissors, ShieldAlert, Sparkles, Wrench } from "lucide-react";
 import { cn } from "@/components/ui/cn";
 import type { AuditEntry } from "@/lib/contracts";
 import type { ContextRef } from "@/lib/harness/events";
@@ -130,6 +130,8 @@ function lineOf(entry: TimelineEntry, argsOf: (toolCallId: string) => string | n
       return { icon: Wrench, tone: toolTone(entry), title: toolLabel(entry.tool), detail: <ToolDetail story={entry} args={argsOf(entry.toolCallId)} /> };
     case "asked":
       return { icon: Hand, tone: "warning", title: COPY.asked(toolLabel(entry.tool)) };
+    case "resumed":
+      return { icon: RotateCw, tone: "warning", title: COPY.resumed, detail: COPY.resumedDetail };
     case "limited":
       return { icon: Gauge, tone: "warning", title: COPY.limited[entry.limit], detail: COPY.limitedDetail(entry.step) };
     case "rendered":

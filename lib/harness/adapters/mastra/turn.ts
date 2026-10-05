@@ -116,27 +116,34 @@ export function seenOf(events: readonly AgUiEvent[]): ReplySeen {
   return { results, asked: events.flatMap(askedOf), text: events.some((event) => event.type === "TEXT_MESSAGE_CONTENT"), error };
 }
 
-/** Passes an AG-UI event stream through untouched and calls `onEnd` once with what it showed when the stream closes. */
+async function readToEnd(body: ReadableStream<Uint8Array>, onEnd: (seen: ReplySeen) => void): Promise<void> {
+  const decoder = new TextDecoder();
+  const events: AgUiEvent[] = [];
+  const reader = body.getReader();
+  let pending = "";
+  let failure: string | null = null;
+  try {
+    for (let chunk = await reader.read(); !chunk.done; chunk = await reader.read()) {
+      pending += decoder.decode(chunk.value, { stream: true });
+      const lines = pending.split("\n");
+      pending = lines.pop() ?? "";
+      events.push(...eventsOf(lines));
+    }
+    events.push(...eventsOf([pending]));
+  } catch (error) {
+    failure = error instanceof Error ? error.message : String(error);
+  }
+  const seen = seenOf(events);
+  onEnd(failure && !seen.error ? { ...seen, error: failure } : seen);
+}
+
+/** Passes an AG-UI event stream to the client untouched and reads its own copy to the end, so `onEnd` runs once with what the reply showed even when the client leaves mid-run: the run, not the connection, decides when the reply is over. */
 export function observeReply(response: Response, onEnd: (seen: ReplySeen) => void): Response {
   if (!response.body) {
     onEnd({ results: [], asked: [], text: false, error: response.ok ? null : `HTTP ${response.status}` });
     return response;
   }
-  const decoder = new TextDecoder();
-  const events: AgUiEvent[] = [];
-  let pending = "";
-  const tap = new TransformStream<Uint8Array, Uint8Array>({
-    transform(chunk, controller) {
-      pending += decoder.decode(chunk, { stream: true });
-      const lines = pending.split("\n");
-      pending = lines.pop() ?? "";
-      events.push(...eventsOf(lines));
-      controller.enqueue(chunk);
-    },
-    flush() {
-      events.push(...eventsOf([pending]));
-      onEnd(seenOf(events));
-    },
-  });
-  return new Response(response.body.pipeThrough(tap), { status: response.status, statusText: response.statusText, headers: response.headers });
+  const [toClient, toHarness] = response.body.tee();
+  void readToEnd(toHarness, onEnd);
+  return new Response(toClient, { status: response.status, statusText: response.statusText, headers: response.headers });
 }

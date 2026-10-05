@@ -4,7 +4,7 @@ import { CopilotRuntime, createCopilotRuntimeHandler } from "@copilotkit/runtime
 import { RequestContext } from "@mastra/core/request-context";
 import type { AccessContext, Initiator } from "@/lib/contracts";
 import { askedTool, markAnswered, problemOf, recordAsked } from "@/lib/harness/approvals";
-import { currentRun, emitTo, newRun, runWithRun, saveRun, type Run } from "@/lib/harness/runtime";
+import { checkpointRun, currentRun, emitTo, newRun, runWithRun, saveRun, type Run } from "@/lib/harness/runtime";
 import { TH } from "@/lib/i18n/th";
 import { toolTiers } from "@/lib/server/agent/tools";
 import { recordComposedCard, recordGuardFinding } from "@/lib/server/audit";
@@ -12,6 +12,7 @@ import { currentAccess, runWithAccess, runWithTurn, type TurnContext } from "@/l
 import { threadForRun, threads } from "@/lib/server/threads-read";
 import { AGENT_ID, USER_ID_KEY, mascopAgent } from "./agent";
 import { HARNESS_RUN_KEY, tracingOptionsOf } from "./observability";
+import { asBridgeAgent } from "./durable";
 import { ReplyCards, withComposedCards, type ComposedCardRecord } from "./card-stream";
 import { threadTranscript } from "./history";
 import { guardedRunInput, inputFindings, type GuardedInput } from "./guardrails";
@@ -20,7 +21,8 @@ import { chatTurnOf, observeReply, type ChatTurn, type ReplySeen, type RunInput 
 
 const BASE_PATH = "/api/copilotkit";
 const INFO_PATH = `${BASE_PATH}/info`;
-const RUN_PATH = `${BASE_PATH}/agent/${AGENT_ID}/run`;
+/** The one run route of the chat agent. */
+export const RUN_PATH = `${BASE_PATH}/agent/${AGENT_ID}/run`;
 const CONNECT_PATH = `${BASE_PATH}/agent/${AGENT_ID}/connect`;
 const STOP_PREFIX = `${BASE_PATH}/agent/${AGENT_ID}/stop/`;
 const NOT_YOUR_THREAD = { error: "ไม่พบบทสนทนานี้" };
@@ -33,15 +35,16 @@ type Handler = (request: Request) => Promise<Response>;
 /** How one served run ends: `learn` runs memory extraction and logs the question after a finished turn; an eval recording turns it off so a case costs no extra model call and leaves no memory behind for the next case. `initiator` names the surface the person asked from (the web chat unless a channel says otherwise), for the audit and admin rules. */
 export type ServeOptions = { learn: boolean; initiator?: Initiator };
 
-const LEARNING: ServeOptions = { learn: true };
+/** A served run learns from its finished turn. */
+export const LEARNING: ServeOptions = { learn: true };
 
 function bridgeFor(userId: string): MastraAgent {
   const requestContext = new RequestContext();
   requestContext.set(USER_ID_KEY, userId);
   const run = currentRun();
-  if (!run) return new MastraAgent({ agentId: AGENT_ID, agent: mascopAgent(), resourceId: userId, requestContext });
+  if (!run) return new MastraAgent({ agentId: AGENT_ID, agent: asBridgeAgent(mascopAgent()), resourceId: userId, requestContext });
   requestContext.set(HARNESS_RUN_KEY, run.id);
-  return new MastraAgent({ agentId: AGENT_ID, agent: mascopAgent(), resourceId: userId, requestContext, tracingOptions: tracingOptionsOf(run.id) });
+  return new MastraAgent({ agentId: AGENT_ID, agent: asBridgeAgent(mascopAgent()), resourceId: userId, requestContext, tracingOptions: tracingOptionsOf(run.id) });
 }
 
 let copilotHandler: Handler | null = null;
@@ -114,20 +117,16 @@ function readInput(body: string): RunInput {
   }
 }
 
-async function serveRun(access: AccessContext, req: Request, turn: ChatTurn, guarded: GuardedInput, options: ServeOptions): Promise<Response> {
-  const run = newRun(access.userId, turn.threadId, { id: turn.runId, initiator: options.initiator ?? "person" });
-  started(run, turn);
-  if (turn.answers.length > 1) return refused(run, turn.answers.map((answer) => answer.interruptId).join(", "), "more than one answer in one run");
-  const spent = turn.answers.map((answer) => ({ answer, problem: problemOf(answer.interruptId, access.userId, answer.toolCallId) })).find((entry) => entry.problem !== null);
-  if (spent) return refused(run, spent.answer.interruptId, spent.problem ?? "unknown");
-  for (const answer of turn.answers) markAnswered(answer.interruptId);
+/** Streams one harness run through the agent inside the person's access, turn and run, and ends the run (trace, approvals asked, composed cards, learning) when the reply ends, whether or not anyone is still reading it. */
+export async function streamRun(access: AccessContext, req: Request, run: Run, turn: ChatTurn, options: ServeOptions, guarded?: GuardedInput): Promise<Response> {
   if (turn.threadId) threadForRun(turn.threadId, access.userId, turn.question ?? "");
   const threadId = turn.threadId;
   const transcript = threadId ? () => threadTranscript(threadId, access.userId) : undefined;
   const context: TurnContext = { turnId: run.id, threadId, preloadPacketId: turn.preloadPacketId, question: turn.question, queries: [], transcript };
-  runWithTurn(context, () => runWithRun(run, () => inputFindings(guarded).forEach((finding) => recordGuardFinding(finding, access.userId))));
+  if (guarded) runWithTurn(context, () => runWithRun(run, () => inputFindings(guarded).forEach((finding) => recordGuardFinding(finding, access.userId))));
   const records: ComposedCardRecord[] = [];
   const cards = replyCards((record) => records.push(record));
+  checkpointRun(run);
   try {
     const response = await runWithAccess(access, () => runWithTurn(context, () => runWithRun(run, () => handler()(req))));
     return observeReply(withComposedCards(response, cards), (seen) => ended(run, turn, context, seen, records, options));
@@ -136,6 +135,16 @@ async function serveRun(access: AccessContext, req: Request, turn: ChatTurn, gua
     saveRun(run);
     throw error;
   }
+}
+
+async function serveRun(access: AccessContext, req: Request, turn: ChatTurn, guarded: GuardedInput, options: ServeOptions): Promise<Response> {
+  const run = newRun(access.userId, turn.threadId, { id: turn.runId, initiator: options.initiator ?? "person" });
+  started(run, turn);
+  if (turn.answers.length > 1) return refused(run, turn.answers.map((answer) => answer.interruptId).join(", "), "more than one answer in one run");
+  const spent = turn.answers.map((answer) => ({ answer, problem: problemOf(answer.interruptId, access.userId, answer.toolCallId) })).find((entry) => entry.problem !== null);
+  if (spent) return refused(run, spent.answer.interruptId, spent.problem ?? "unknown");
+  for (const answer of turn.answers) markAnswered(answer.interruptId);
+  return streamRun(access, req, run, turn, options, guarded);
 }
 
 /** The only runtime routes mascop serves; debug, inspector, memory, thread and single-route endpoints would bypass the harness run, so they answer 404. */

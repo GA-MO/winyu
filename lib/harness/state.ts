@@ -58,6 +58,7 @@ export function reduce(state: AgentState, event: HarnessEvent): AgentState {
       return withCall({ ...state, pendingApprovals: [...state.pendingApprovals, event.payload.toolCallId] }, event.payload.toolCallId, event.payload.tool, { status: "awaiting_approval" });
     case "agent.decided":
     case "agent.limited":
+    case "agent.resumed":
       return state;
     case "ui.composed":
     case "guard.flagged":

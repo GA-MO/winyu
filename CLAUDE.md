@@ -15,6 +15,7 @@ bun run typecheck    # must pass before any task is considered done
 bun run test         # bun test (happy-dom preload)
 bun run seed         # regenerates .data/*.json from the generator (deterministic)
 bun run probe:chat   # drives /api/copilotkit with session cookies against the dev server: CEO, sales rep, pin approve, pin decline (~11 Gemini calls); --only=a,b
+bun run probe:durable --disconnect   # cuts a live chat run at its first tool call and checks trace, memory and the connect replay (~2 Gemini calls); --start, restart the server, then --check for the restart test
 bun run trace [runId] # prints one agent run's harness trace (latest when no id)
 bun run call-tool <userId> <tool> [json]   # runs one tool through the gateway as that user and prints the audit decision (no model call)
 bun run mcp:probe <token> [--url=…/api/mcp] [--legacy]   # connects the official MCP client with an admin-issued token, lists tools and calls query_metric (no model call); see docs/mcp.md
@@ -26,7 +27,7 @@ bun run eval         # scores the recorded eval cases with code-only scorers, $0
 
 Mastra tracing is always on and stays on this machine: every agent run writes its spans to `.data/mastra.db`, and a chat run's Mastra trace id is derived from its harness run id (`traceIdOfRun` in `lib/harness/trace-link.ts`; the run id is also on the trace as `harnessRunId`). `bun run trace` and the admin run trace print or link the Studio trace in development. Set `MASCOP_OTEL_ENDPOINT` (an OTLP/HTTP traces URL such as `http://localhost:4318/v1/traces`) to also export spans to an OpenTelemetry collector; spans carry prompts, tool arguments and results, so point it only at a collector you control. Studio runs the agent with the persona from its request context: tools still pass the gateway (scope, policy, audit with initiator `system`), and a request without a persona is granted no instructions and no tools.
 
-Set `MASCOP_SCHEDULER=off` before `bun run dev` when you do not want the background jobs (anomaly, forecast, watches, digest) to start and spend model calls.
+Set `MASCOP_SCHEDULER=off` before `bun run dev` when you do not want the background jobs (anomaly, forecast, watches, digest) to start and spend model calls. The jobs are Mastra scheduled workflows on Bangkok cron (`lib/harness/adapters/mastra/jobs.ts`); the morning investigation is a workflow started in the background (`POST /api/jobs/run {"job":"investigate","user":…}` returns a run id, `GET /api/jobs/run?run=<id>` its progress). The chat agent is a Mastra durable agent: a run survives a closed tab, and a run cut off by a restart is finished on the next boot with its whole trace (`docs/harness-mastra.md`).
 
 Check the domain inside Next without a browser: `curl -s 'http://localhost:3200/api/health?user=<id>'`.
 

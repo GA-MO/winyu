@@ -11,6 +11,7 @@
     "test": "bun test",
     "seed": "bun run scripts/seed.ts",
     "probe:chat": "bun run scripts/probe-chat.ts",
+    "probe:durable": "bun run scripts/probe-durable.ts",
     "trace": "bun run scripts/trace.ts",
     "connectors:demo": "bun run scripts/connectors-demo.ts",
     "a2a:demo": "bun run scripts/a2a-demo.ts",
