@@ -19,7 +19,7 @@ async function runSample(user: User, sample: ReadSample): Promise<SampleResult> 
   const parsed = tool.inputSchema().safeParse(sample.input);
   if (!parsed.success) return { ...sample, result: refusal(parsed.error.message) };
   const access = liveAccessFor(user);
-  const run = newRun(access.userId, null);
+  const run = newRun(access.userId, null, { initiator: "system" });
   const turn = { turnId: run.id, threadId: null, preloadPacketId: null, question: sample.question, queries: [] };
   const output = await runWithAccess(access, () => runWithTurn(turn, () => runWithRun(run, () => tool.execute(parsed.data, { toolCallId: randomUUID() }))));
   saveRun(run);

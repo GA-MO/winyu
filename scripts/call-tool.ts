@@ -23,7 +23,7 @@ if (!tool) {
   process.exit(2);
 }
 
-const run = newRun(access.userId, null);
+const run = newRun(access.userId, null, { initiator: "system" });
 const turn = { turnId: run.id, threadId: null, preloadPacketId: null, question: `call-tool ${toolName}`, queries: [] };
 const input = tool.inputSchema().parse(JSON.parse(rawArgs));
 const output = await runWithAccess(access, () => runWithTurn(turn, () => runWithRun(run, () => tool.execute(input, { toolCallId: randomUUID() }))));

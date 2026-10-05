@@ -115,7 +115,7 @@ function readInput(body: string): RunInput {
 }
 
 async function serveRun(access: AccessContext, req: Request, turn: ChatTurn, guarded: GuardedInput, options: ServeOptions): Promise<Response> {
-  const run = newRun(access.userId, turn.threadId, { id: turn.runId, initiator: options.initiator });
+  const run = newRun(access.userId, turn.threadId, { id: turn.runId, initiator: options.initiator ?? "person" });
   started(run, turn);
   if (turn.answers.length > 1) return refused(run, turn.answers.map((answer) => answer.interruptId).join(", "), "more than one answer in one run");
   const spent = turn.answers.map((answer) => ({ answer, problem: problemOf(answer.interruptId, access.userId, answer.toolCallId) })).find((entry) => entry.problem !== null);

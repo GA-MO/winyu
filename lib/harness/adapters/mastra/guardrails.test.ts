@@ -90,7 +90,7 @@ describe("guardedRunInput", () => {
 
 describe("guardrail processors on a real Mastra agent", () => {
   test("a national ID split across streamed chunks reaches the reader masked, and the run trace and audit say so without the number", async () => {
-    const run = newRun("u_thana", null);
+    const run = newRun("u_thana", null, { initiator: "person" });
     const { text } = await streamed(run, guardedAgent(scriptedModel([textStep(["เลขบัตรคือ 3-1005-00", "123-45-8 ส่วนยอดขาย 1,110.2 ล้านบาท ", "บัญชี 123-4-56789-0"])])));
     expect(text).toBe(`เลขบัตรคือ ${TH.guard.mask.national_id} ส่วนยอดขาย 1,110.2 ล้านบาท บัญชี ${TH.guard.mask.bank_account}`);
     const findings = guardEvents(run);
@@ -103,7 +103,7 @@ describe("guardrail processors on a real Mastra agent", () => {
   });
 
   test("an instruction inside a tool result is cut before the model and the card read it, and the trace records it", async () => {
-    const run = newRun("u_thana", null);
+    const run = newRun("u_thana", null, { initiator: "person" });
     const toolStep = [{ type: "stream-start", warnings: [] }, { type: "tool-call", toolCallId: "c1", toolName: "store_note", input: "{}" }, { type: "finish", finishReason: TOOL_CALLS, usage: USAGE }];
     const { toolResults } = await streamed(run, guardedAgent(scriptedModel([toolStep, textStep(["สรุปแล้ว"])])));
     expect(toolResults).toEqual([{ ok: true, rows: [{ store: "ส.รุ่งเรือง", note: `ร้านปิดซ่อม 2 วัน\n${TH.guard.cut}.` }] }]);
@@ -111,7 +111,7 @@ describe("guardrail processors on a real Mastra agent", () => {
   });
 
   test("a clean reply and a clean tool result leave no finding", async () => {
-    const run = newRun("u_thana", null);
+    const run = newRun("u_thana", null, { initiator: "person" });
     const { text } = await streamed(run, guardedAgent(scriptedModel([textStep(["ยอดขายเดือนนี้ ", "1,110.2 ล้านบาท ช่วง 2026-09-01 ถึง 2026-09-22"])])));
     expect(text).toBe("ยอดขายเดือนนี้ 1,110.2 ล้านบาท ช่วง 2026-09-01 ถึง 2026-09-22");
     expect(guardEvents(run)).toEqual([]);

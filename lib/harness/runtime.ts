@@ -14,11 +14,12 @@ const MAX_KEPT_RUNS = 300;
 /** One agent execution: a person's message in, a reply out; its events are the trace and fold into its state. */
 export type Run = { id: string; userId: string; threadId: string | null; initiator: Initiator; startedAt: number; events: HarnessEvent[]; toolCalls: number; toolBudget: number; steps: number; corrections: Record<string, number> };
 
-type RunOptions = { id?: string; toolBudget?: number; initiator?: Initiator };
+type RunOptions = { initiator: Initiator; id?: string; toolBudget?: number };
 
 const runs = new AsyncLocalStorage<Run>();
 
-export function newRun(userId: string, threadId: string | null, { id = randomUUID(), toolBudget = LIMITS.maxToolCalls, initiator = "person" }: RunOptions = {}): Run {
+/** A run for one surface; the initiator is always named, so no caller is audited as the person by default. */
+export function newRun(userId: string, threadId: string | null, { initiator, id = randomUUID(), toolBudget = LIMITS.maxToolCalls }: RunOptions): Run {
   return { id, userId, threadId, initiator, startedAt: Date.now(), events: [], toolCalls: 0, toolBudget, steps: 0, corrections: {} };
 }
 
