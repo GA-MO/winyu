@@ -13,7 +13,8 @@
     "probe:chat": "bun run scripts/probe-chat.ts",
     "trace": "bun run scripts/trace.ts",
     "connectors:demo": "bun run scripts/connectors-demo.ts",
-    "investigate": "bun run scripts/investigate.ts"
+    "investigate": "bun run scripts/investigate.ts",
+    "call-tool": "bun run scripts/call-tool.ts"
   },
   "dependencies": {
     "@ag-ui/client": "1.0.1",
