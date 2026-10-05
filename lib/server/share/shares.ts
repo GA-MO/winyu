@@ -1,9 +1,7 @@
 import { randomBytes } from "node:crypto";
 import type { User } from "@/lib/contracts";
-import { headingWithoutNumbers } from "@/lib/compose/composer";
-import { forecastTitle, metricTitle } from "@/lib/cards/tool-answers";
-import { TH } from "@/lib/i18n/th";
-import type { ShareChannel, SharedCard } from "@/lib/share/card";
+import type { FallbackReason, SentShare, ShareChannel, SharedCard, ShareReceipt } from "@/lib/share/card";
+import { findUser } from "@/lib/data/entities/users";
 import { winyuTools } from "@/lib/server/agent/tools";
 import { collection } from "@/lib/server/store/json-store";
 
@@ -14,9 +12,6 @@ export const SHARE_CODE_LENGTH = 12;
 const CODE_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 const UNBIASED_BYTE_LIMIT = 248;
 const UNSHAREABLE_TOOLS: ReadonlySet<string> = new Set(["recall_memory", "list_metrics"]);
-
-/** Why one recipient got the share on another channel than the one picked. */
-export type FallbackReason = "no-teams-conversation" | "send-failed";
 
 /** How one recipient was reached: the channel the sender picked, the one that carried it, and why they differ. */
 export type ShareDelivery = { userId: string; asked: ShareChannel; via: ShareChannel; fallback: FallbackReason | null };
@@ -51,23 +46,6 @@ export function shareableProblem(card: SharedCard): string | null {
   return null;
 }
 
-function rootTitle(card: SharedCard): string | null {
-  if (card.kind !== "composed") return null;
-  const title = card.components[0]?.title;
-  return typeof title === "string" ? headingWithoutNumbers(title) : null;
-}
-
-/** The card's name as the message shows it, from what was asked and never from what came back: the metric's name, the composed card's heading without numbers, or the tool's kind of card. */
-export function shareTitle(card: SharedCard): string {
-  const composed = rootTitle(card);
-  if (composed) return composed;
-  const [first] = card.reads;
-  if (first.tool === "query_metric") return metricTitle(null, first.input);
-  if (first.tool === "get_forecast") return forecastTitle(null, first.input);
-  if (first.tool === "get_alerts") return TH.cards.alertsTitle;
-  return TH.share.titles[first.tool] ?? TH.share.defaultTitle;
-}
-
 /** Only the sender and the people it was sent to may open a share. */
 export function mayOpen(share: Share, user: Pick<User, "id">): boolean {
   return share.senderId === user.id || share.deliveries.some((delivery) => delivery.userId === user.id);
@@ -79,9 +57,20 @@ export function noteView(share: Share, viewerId: string, at: string): Share {
   return shares().put({ ...share, views: share.views + 1, lastViewedAt: at });
 }
 
+/** Where a share opens inside Winyu. */
+export function sharePath(code: string): string {
+  return `/s/${code}`;
+}
+
+/** Each delivery with the recipient's name, for the sheet and the account sheet. */
+export function receiptsOf(share: Share): ShareReceipt[] {
+  return share.deliveries.map((delivery) => ({ ...delivery, name: findUser(delivery.userId)?.nameTh ?? delivery.userId }));
+}
+
 /** The shares one person sent, newest first. */
-export function sharesSentBy(userId: string): Share[] {
+export function sharesSentBy(userId: string): SentShare[] {
   return shares()
     .where((share) => share.senderId === userId)
-    .sort((left, right) => right.at.localeCompare(left.at));
+    .sort((left, right) => right.at.localeCompare(left.at))
+    .map((share) => ({ code: share.id, path: sharePath(share.id), title: share.title, at: share.at, receipts: receiptsOf(share), views: share.views }));
 }

@@ -1,6 +1,10 @@
 import { z } from "zod";
 import { COMPONENT_NAMES, type ComposedComponent, type ComposedSurface } from "@/lib/compose/catalog";
+import { headingWithoutNumbers } from "@/lib/compose/composer";
 import { UNCOMPOSABLE_TOOLS } from "@/lib/compose/ground";
+import { forecastTitle, metricTitle } from "@/lib/cards/tool-answers";
+import { TH } from "@/lib/i18n/th";
+import type { Persona } from "@/lib/contracts/persona";
 
 export const SHARE_CHANNELS = ["email", "teams", "line"] as const;
 
@@ -18,6 +22,21 @@ export type SharedRead = { tool: string; input: Record<string, unknown> };
 
 /** What a share stores instead of numbers: the reads that drew the card, and for a composed card the checked block that arranged them. Opening the share re-runs the reads as the viewer. */
 export type SharedCard = { kind: "tool"; reads: SharedRead[] } | { kind: "composed"; reads: SharedRead[]; components: ComposedComponent[] };
+
+/** One channel the sheet offers for a person: `ready` false means Teams is linked but the person never wrote to the bot, so the share goes by email. */
+export type ChannelOption = { channel: ShareChannel; ready: boolean };
+
+/** A colleague the share sheet lists, with the channels that reach them. */
+export type ShareContact = Persona & { channels: ChannelOption[] };
+
+/** Why one recipient got the share on another channel than the one picked. */
+export type FallbackReason = "no-teams-conversation" | "send-failed";
+
+/** How one recipient was reached, as the sheet and the account sheet show it. */
+export type ShareReceipt = { userId: string; name: string; asked: ShareChannel; via: ShareChannel; fallback: FallbackReason | null };
+
+/** A share the person sent, as their account sheet lists it. */
+export type SentShare = { code: string; path: string; title: string; at: string; receipts: ShareReceipt[]; views: number };
 
 /** One read call of an exchange as the chat knows it. */
 export type ExchangeRead = { toolCallId: string; tool: string; args: unknown; returned: boolean };
@@ -59,4 +78,21 @@ export function sharedComposedCard(calls: readonly ExchangeRead[], surface: Comp
   const reads = calls.filter((call) => call.returned && !UNCOMPOSABLE_TOOLS.includes(call.tool)).map(readOf);
   if (reads.length === 0 || surface.components.length === 0) return null;
   return { kind: "composed", reads, components: surface.components };
+}
+
+function rootTitle(card: SharedCard): string | null {
+  if (card.kind !== "composed") return null;
+  const title = card.components[0]?.title;
+  return typeof title === "string" ? headingWithoutNumbers(title) : null;
+}
+
+/** The card's name as the message shows it, from what was asked and never from what came back: the metric's name, the composed card's heading without numbers, or the tool's kind of card. */
+export function shareTitle(card: SharedCard): string {
+  const composed = rootTitle(card);
+  if (composed) return composed;
+  const [first] = card.reads;
+  if (first.tool === "query_metric") return metricTitle(null, first.input);
+  if (first.tool === "get_forecast") return forecastTitle(null, first.input);
+  if (first.tool === "get_alerts") return TH.cards.alertsTitle;
+  return TH.share.titles[first.tool] ?? TH.share.defaultTitle;
 }

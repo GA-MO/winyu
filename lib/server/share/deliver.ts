@@ -1,7 +1,6 @@
 import type { User } from "@/lib/contracts";
-import type { Persona } from "@/lib/contracts/persona";
 import { findUser, USERS } from "@/lib/data/entities/users";
-import type { ShareChannel, ShareRequest } from "@/lib/share/card";
+import { shareTitle, type ChannelOption, type ShareChannel, type ShareContact, type ShareRequest } from "@/lib/share/card";
 import { recordShare } from "@/lib/server/audit";
 import { lineSettings, pushLineMessages } from "@/lib/server/channels/line";
 import { postTeamsCard, teamsSettings } from "@/lib/server/channels/teams";
@@ -10,13 +9,8 @@ import { identityLinks } from "@/lib/server/identity";
 import { personaOf } from "@/lib/server/portraits";
 import { ports } from "@/lib/server/ports";
 import { shareAdaptiveCard, shareEmail, shareFlex, shareUrl, type ShareMessage } from "./message";
-import { shareableProblem, shareCode, shares, shareTitle, type FallbackReason, type Share, type ShareDelivery } from "./shares";
-
-/** One channel the sheet offers for a person: `ready` false means Teams is linked but the person never wrote to the bot, so the share goes by email. */
-export type ChannelOption = { channel: ShareChannel; ready: boolean };
-
-/** A colleague the sheet lists, with the channels that reach them. */
-export type ShareContact = Persona & { channels: ChannelOption[] };
+import type { FallbackReason } from "@/lib/share/card";
+import { shareableProblem, shareCode, shares, type Share, type ShareDelivery } from "./shares";
 
 /** What creating a share returns: the record, or why nothing was sent. */
 export type ShareOutcome = { ok: true; share: Share } | { ok: false; error: string };

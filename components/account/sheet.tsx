@@ -3,11 +3,12 @@
 import { useCallback, useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, BellRing, LogOut, Mail, Moon, Shield, Sun, Trash2, X } from "lucide-react";
+import { ArrowRight, BellRing, Eye, Forward, LogOut, Mail, Moon, Shield, Sun, Trash2, X } from "lucide-react";
 import { ROLE_IDS, type MemoryFact, type WatchItem } from "@/lib/contracts";
 import { isTrusted, lastSeenAt } from "@/lib/engine/memory-status";
 import type { Persona } from "@/lib/contracts/persona";
 import { TH } from "@/lib/i18n/th";
+import type { SentShare } from "@/lib/share/card";
 import { cn } from "@/components/ui/cn";
 import { Portrait } from "@/components/ui/portrait";
 import { useTheme } from "@/components/theme/theme-provider";
@@ -16,6 +17,8 @@ const MEMORY_PAGE = "/memory";
 const OUTBOX_PAGE = "/outbox";
 const MEMORY_ENDPOINT = "/api/memory";
 const WATCHES_ENDPOINT = "/api/watches";
+const SHARES_ENDPOINT = "/api/shares";
+const RECENT_SHARES = 5;
 const RECENT_FACTS = 3;
 const ADMIN_PAGE = "/admin";
 const ADMIN_ROLE = "it_admin";
@@ -32,6 +35,7 @@ export function AccountSheet({ open, onClose, user, people }: { open: boolean; o
   const [pending, startTransition] = useTransition();
   const [facts, setFacts] = useState<MemoryFact[]>([]);
   const [watches, setWatches] = useState<WatchItem[]>([]);
+  const [sent, setSent] = useState<SentShare[]>([]);
   const [loaded, setLoaded] = useState(false);
 
   const load = useCallback(() => {
@@ -41,7 +45,10 @@ export function AccountSheet({ open, onClose, user, people }: { open: boolean; o
     const watching = fetch(WATCHES_ENDPOINT)
       .then((response) => (response.ok ? response.json() : null))
       .then((payload: { watches?: WatchItem[] } | null) => setWatches(payload?.watches ?? []));
-    void Promise.allSettled([memory, watching]).then(() => setLoaded(true));
+    const sharing = fetch(SHARES_ENDPOINT)
+      .then((response) => (response.ok ? response.json() : null))
+      .then((payload: { shares?: SentShare[] } | null) => setSent(payload?.shares ?? []));
+    void Promise.allSettled([memory, watching, sharing]).then(() => setLoaded(true));
   }, []);
 
   useEffect(() => {
@@ -123,6 +130,25 @@ export function AccountSheet({ open, onClose, user, people }: { open: boolean; o
                   <Trash2 className="size-3.5" aria-hidden />
                 </button>
               </div>
+            ))}
+          </section>
+
+          <section className={SECTION} data-sent-shares>
+            <h3 className="flex items-center gap-1.5 text-xs font-medium tracking-wide text-muted-foreground">
+              <Forward className="size-3.5" aria-hidden />
+              {TH.share.section}
+            </h3>
+            {loaded && sent.length === 0 ? <p className="text-sm text-muted-foreground">{TH.share.sectionEmpty}</p> : null}
+            {sent.slice(0, RECENT_SHARES).map((share) => (
+              <Link key={share.code} href={share.path} onClick={onClose} className="flex flex-col gap-0.5 rounded-xl bg-muted px-2.5 py-1.5 transition hover:bg-bubble">
+                <span className="truncate text-sm">{share.title}</span>
+                <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <span className="truncate">{TH.share.to(share.receipts.map((receipt) => receipt.name).join(", "))}</span>
+                  <span aria-hidden>·</span>
+                  <Eye className="size-3 shrink-0" aria-hidden />
+                  <span className="shrink-0 tabular-nums">{TH.share.views(share.views)}</span>
+                </span>
+              </Link>
             ))}
           </section>
 

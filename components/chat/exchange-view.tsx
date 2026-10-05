@@ -3,11 +3,13 @@
 import { Component, type ReactNode } from "react";
 import { AlertCircle, CircleSlash, MessageSquareReply, MousePointerClick, ShieldCheck, Sparkles } from "lucide-react";
 import { renderApproval } from "@/components/cards/approval-card";
+import { ShareButton, type ShareTarget } from "@/components/share/share-sheet";
 import { describeToolCall } from "@/lib/cards/describe-call";
 import { TOOL_CARDS, type ReplyText, type ToolCard } from "@/components/cards/registry";
 import { Badge } from "@/components/ui/primitives";
 import type { ContextPacket, HandoffReplyNote } from "@/lib/contracts";
 import { maskPersonalData } from "@/lib/harness/guard";
+import { sharedComposedCard, sharedToolCard, type ExchangeRead } from "@/lib/share/card";
 import { TH } from "@/lib/i18n/th";
 import { ComposedCardView } from "./composed-card";
 import { Markdown } from "./markdown";
@@ -97,14 +99,45 @@ class CardBoundary extends Component<{ children: ReactNode }, { failed: boolean 
   }
 }
 
+/** What a card in this exchange needs to offer ส่งต่อ: the exchange's read calls and the question it asked; null while the reply streams. */
+type Sharing = { calls: ExchangeRead[]; question: string | null } | null;
+
+function isRefusal(result: unknown): boolean {
+  return typeof result === "object" && result !== null && (result as { ok?: unknown }).ok === false;
+}
+
+function toolShare(sharing: Sharing, toolCallId: string, result: unknown): ShareTarget | null {
+  if (!sharing || isRefusal(result)) return null;
+  const card = sharedToolCard(sharing.calls, toolCallId);
+  return card ? { card, question: sharing.question } : null;
+}
+
+function composedShare(sharing: Sharing, step: Extract<ReplyStep, { kind: "composed" }>): ShareTarget | null {
+  if (!sharing || !step.surface.done) return null;
+  const card = sharedComposedCard(sharing.calls, step.surface);
+  return card ? { card, question: sharing.question } : null;
+}
+
+function sharingOf(exchange: Exchange, toolSteps: readonly ToolStep[], streaming: boolean): Sharing {
+  if (streaming) return null;
+  const calls = toolSteps.filter((step) => CARD_TOOLS.has(step.name)).map((step) => ({ toolCallId: step.toolCallId, tool: step.name, args: step.args, returned: step.outcome.state === "returned" }));
+  return { calls, question: exchange.question?.kind === "typed" ? exchange.question.text : null };
+}
+
 function drawnStep(step: ToolStep, plan: CardPlan): ToolStep {
   return plan.results.has(step.toolCallId) ? { ...step, outcome: { state: "returned", result: plan.results.get(step.toolCallId) } } : step;
 }
 
-function ToolStepView({ step, live, plan, reply }: { step: ToolStep; live: ExchangeLive; plan: CardPlan; reply: ReplyText }) {
+function ToolStepView({ step, live, plan, reply, sharing }: { step: ToolStep; live: ExchangeLive; plan: CardPlan; reply: ReplyText; sharing: Sharing }) {
   const asking = live.waiting.has(step.toolCallId);
   const view = toolViewOf(drawnStep(step, plan), { running: reply.streaming, asking, decided: live.decisions[step.toolCallId], hidden: plan.hidden.has(step.toolCallId) }, CARD_TOOLS);
-  if (view.kind === "card") return <div className="w-full animate-hero-rise">{CARDS[view.name](view.result, view.args, reply)}</div>;
+  if (view.kind === "card")
+    return (
+      <div className="flex w-full animate-hero-rise flex-col gap-1">
+        {CARDS[view.name](view.result, view.args, reply)}
+        <ShareButton target={toolShare(sharing, step.toolCallId, view.result)} />
+      </div>
+    );
   if (view.kind === "working") return <Working label={TH.conversation.working} />;
   if (view.kind === "not-run") return <Note text={TH.conversation.notRun} tone="muted" />;
   if (view.kind === "none") return null;
@@ -135,18 +168,21 @@ function HandoffReplyView({ note }: { note: HandoffReplyNote }) {
   );
 }
 
-function StepView({ step, live, plan, reply }: { step: ReplyStep; live: ExchangeLive; plan: CardPlan; reply: ReplyText }) {
+function StepView({ step, live, plan, reply, sharing }: { step: ReplyStep; live: ExchangeLive; plan: CardPlan; reply: ReplyText; sharing: Sharing }) {
   if (step.kind === "text") return <Markdown text={step.text} />;
   if (step.kind === "handoff-reply") return <HandoffReplyView note={step.note} />;
   if (step.kind === "composed")
     return (
       <CardBoundary>
-        <ComposedCardView surface={withRequestedCourses(step.surface, live.requestedCourses)} />
+        <div className="flex w-full flex-col gap-1">
+          <ComposedCardView surface={withRequestedCourses(step.surface, live.requestedCourses)} />
+          <ShareButton target={composedShare(sharing, step)} />
+        </div>
       </CardBoundary>
     );
   return (
     <CardBoundary>
-      <ToolStepView step={step} live={live} plan={plan} reply={reply} />
+      <ToolStepView step={step} live={live} plan={plan} reply={reply} sharing={sharing} />
     </CardBoundary>
   );
 }
@@ -187,11 +223,12 @@ export function ExchangeView({ exchange, live }: { exchange: Exchange; live: Exc
   const toolSteps = exchange.steps.filter((step): step is ToolStep => step.kind === "tool");
   const plan = cardPlanOf(toolSteps, composedCalls(exchange.steps, streaming), CARD_TOOLS);
   const reply = replyOf(exchange, streaming);
+  const sharing = sharingOf(exchange, toolSteps, streaming);
   return (
     <article className="flex flex-col gap-4">
       {exchange.question ? <UserBubble question={exchange.question} /> : null}
       {stepsWithApprovals(exchange, live.asked).map((step) => (
-        <StepView key={step.kind === "tool" ? step.toolCallId : `${step.kind}-${step.id}`} step={step} live={live} plan={plan} reply={reply} />
+        <StepView key={step.kind === "tool" ? step.toolCallId : `${step.kind}-${step.id}`} step={step} live={live} plan={plan} reply={reply} sharing={sharing} />
       ))}
       <Ending exchange={exchange} live={live} />
     </article>

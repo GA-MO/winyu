@@ -7,7 +7,7 @@ import { USERS, findUser } from "@/lib/data/entities/users";
 import { TH } from "@/lib/i18n/th";
 import { AUDIT_RANGES, auditConnector, auditEntries, inAuditScope, type AuditFilter, type AuditRange } from "@/lib/server/usage";
 import { runStore } from "@/lib/harness/runtime";
-import { GUARD_AUDIT_TOOL, auditLog } from "@/lib/server/audit";
+import { GUARD_AUDIT_TOOL, SHARE_AUDIT_TOOL, auditLog } from "@/lib/server/audit";
 import { runSpend } from "@/lib/server/model-ledger";
 import { RunTrace } from "./run-trace";
 import { AutoSubmitForm } from "./auto-submit-form";
@@ -53,7 +53,7 @@ function worstOf(entries: AuditEntry[]): AuditEntry["decision"] {
 }
 
 function reasonOf(entry: AuditEntry): string | null {
-  if (entry.tool === GUARD_AUDIT_TOOL) return entry.reason ?? null;
+  if (entry.tool === GUARD_AUDIT_TOOL || entry.tool === SHARE_AUDIT_TOOL) return entry.reason ?? null;
   if (entry.decision === "masked") return COPY.maskedReason;
   if (!entry.code) return null;
   return COPY.codes[entry.code] ?? COPY.otherCode(entry.code);
