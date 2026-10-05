@@ -4,10 +4,10 @@
  "userId": "u_may",
  "prompt": "ดูความปลอดภัยของโรงงานขอนแก่น",
  "model": "google/gemini-3.8-flash",
- "promptHash": "2bfadd00013f7c5d",
- "toolsHash": "3542bb7c8b47d7ed",
+ "promptHash": "dd0dfe3d93273af0",
+ "toolsHash": "dbd92ac157880cce",
  "today": "2026-10-05",
- "recordedAt": "2026-10-05T15:51:14.282Z",
+ "recordedAt": "2026-10-05T18:59:46.053Z",
  "steps": [
   {
    "kind": "call",
@@ -203,40 +203,48 @@
   },
   {
    "kind": "text",
-   "text": "โรงงานขอนแก่นอยู่ในสถานะต้องติดตามเร่งด่วนเนื่องจากอุบัติเหตุเกี่ยวกับรถยกเพิ่มขึ้นและมีมาตรการแก้ไขที่ค้างท่อเกินกำหนดเวลา สมมติฐานคือชั่วโมงทำงานล่วงเวลาที่สูงช่วงเร่งผลิตส่งผลต่อความเหนื่อยล้า จึงควรตรวจสอบการกั้นเส้นทางเดินรถยกและทบทวนการจัดกะทำงานร่วมกับแผนกผลิต หากต้องการ สามารถทำเรื่องส่งต่อให้คุณชัย วงศ์ใหญ่ เจ้าหน้าที่ความปลอดภัยประจำโรงงานเข้าดำเนินการต่อได้ทันทีครับ\n\n```a2ui\n{\"id\":\"root\",\"component\":\"Card\",\"title\":\"ความปลอดภัยโรงงานขอนแก่น\",\"meta\":{\"path\":\"/get_site/data/name\"},\"footnote\":\"ระบบความปลอดภัยและอาชีวอนามัย\",\"children\":[\"m1\",\"m2\",\"m3\",\"facts\",\"open_action\",\"incident_sec\"]}\n{\"id\":\"m1\",\"component\":\"Metric\",\"label\":{\"path\":\"/get_site/data/metrics/0/label\"},\"value\":{\"path\":\"/get_site/data/metrics/0/value\"}}\n{\"id\":\"m2\",\"component\":\"Metric\",\"label\":{\"path\":\"/get_site/data/metrics/1/label\"},\"value\":{\"path\":\"/get_site/data/metrics/1/value\"},\"detail\":{\"path\":\"/get_site/data/metrics/1/detail\"}}\n{\"id\":\"m3\",\"component\":\"Metric\",\"label\":{\"path\":\"/get_site/data/metrics/2/label\"},\"value\":{\"path\":\"/get_site/data/metrics/2/value\"}}\n{\"id\":\"facts\",\"component\":\"KeyValue\",\"from\":{\"path\":\"/get_site/data/facts\"}}\n{\"id\":\"open_action\",\"component\":\"Callout\",\"title\":{\"path\":\"/get_site/data/open_actions/0/title\"},\"body\":{\"path\":\"/get_site/data/open_actions/0/body\"},\"tone\":\"danger\"}\n{\"id\":\"incident_sec\",\"component\":\"Section\",\"label\":\"ประวัติอุบัติเหตุและเหตุการณ์\",\"children\":{\"componentId\":\"inc_item\",\"path\":\"/get_site/data/incidents\"}}\n{\"id\":\"inc_item\",\"component\":\"ListItem\",\"title\":{\"path\":\"title\"},\"subtitle\":{\"path\":\"detail\"},\"trailing\":{\"path\":\"time\"},\"media\":\"none\"}\n```"
+   "text": "โรงงานขอนแก่นอยู่ในสถานะต้องดูแลเร่งด่วนจากอุบัติเหตุรถยกและมาตรการแก้ไขที่ยังค้างส่งมอบ โดยตั้งสมมติฐานว่าความเหนื่อยล้าจากชั่วโมงทำงานล่วงเวลาสะสมช่วงเร่งผลิตเป็นปัจจัยกระตุ้นความเสี่ยง แนะนำให้ตรวจสอบรอบการจัดกะพักผ่อนของฝ่ายผลิตร่วมกับติดตามการปิดมาตรการกั้นทางเดินรถและใบอนุญาตขับขี่กับ จป. โรงงาน ทั้งนี้ต้องการให้เปิดงานส่งต่อ (handoff) ไปยังผู้รับผิดชอบดูแลหรือไม่ครับ\n\n```a2ui\n{\"id\":\"root\",\"component\":\"Card\",\"title\":\"ภาพรวมความปลอดภัย\",\"meta\":{\"path\":\"/get_site/data/name\"},\"footnote\":\"ระบบความปลอดภัยและอาชีวอนามัย\",\"children\":[\"metrics_grid\",\"callout_action\",\"facts_sec\",\"incidents_sec\",\"people_sec\"]}\n{\"id\":\"metrics_grid\",\"component\":\"Grid\",\"children\":[\"m1\",\"m2\",\"m3\"]}\n{\"id\":\"m1\",\"component\":\"Metric\",\"label\":{\"path\":\"/get_site/data/metrics/0/label\"},\"value\":{\"path\":\"/get_site/data/metrics/0/value\"}}\n{\"id\":\"m2\",\"component\":\"Metric\",\"label\":{\"path\":\"/get_site/data/metrics/1/label\"},\"value\":{\"path\":\"/get_site/data/metrics/1/value\"},\"detail\":{\"path\":\"/get_site/data/metrics/1/detail\"}}\n{\"id\":\"m3\",\"component\":\"Metric\",\"label\":{\"path\":\"/get_site/data/metrics/2/label\"},\"value\":{\"path\":\"/get_site/data/metrics/2/value\"}}\n{\"id\":\"callout_action\",\"component\":\"Callout\",\"title\":{\"path\":\"/get_site/data/open_actions/0/title\"},\"body\":{\"path\":\"/get_site/data/open_actions/0/body\"},\"tone\":\"danger\"}\n{\"id\":\"facts_sec\",\"component\":\"KeyValue\",\"from\":{\"path\":\"/get_site/data/facts\"}}\n{\"id\":\"incidents_sec\",\"component\":\"Section\",\"label\":\"ประวัติเหตุการณ์\",\"children\":{\"componentId\":\"inc_item\",\"path\":\"/get_site/data/incidents\"}}\n{\"id\":\"inc_item\",\"component\":\"ListItem\",\"title\":{\"path\":\"title\"},\"subtitle\":{\"path\":\"time\"},\"detail\":{\"path\":\"detail\"},\"media\":\"none\"}\n{\"id\":\"people_sec\",\"component\":\"Section\",\"label\":\"ทีมงานและเจ้าหน้าที่\",\"children\":{\"componentId\":\"person_item\",\"path\":\"/get_site/data/people\"}}\n{\"id\":\"person_item\",\"component\":\"ListItem\",\"title\":{\"path\":\"name\"},\"subtitle\":{\"path\":\"title\"},\"src\":{\"path\":\"photo\"},\"media\":\"avatar\",\"badges\":{\"path\":\"badges\"},\"action\":{\"event\":{\"name\":\"ask\",\"context\":{\"prompt\":\"ขอดูโปรไฟล์\",\"about\":{\"path\":\"name\"}}}}}\n```"
   }
  ],
  "asked": [],
  "error": null,
  "usage": {
   "calls": 2,
-  "inputTokens": 21935,
-  "outputTokens": 7855,
-  "reasoningTokens": 7322,
-  "usd": 0.016136925
+  "inputTokens": 22455,
+  "outputTokens": 6614,
+  "reasoningTokens": 5940,
+  "usd": 0.013818074999999999
  },
  "drawn": {
   "cards": [],
   "composed": {
-   "accepted": 8,
+   "accepted": 11,
    "rejected": 0,
    "problems": [],
    "components": [
     {
      "id": "root",
      "component": "Card",
-     "title": "ความปลอดภัยโรงงานขอนแก่น",
+     "title": "ภาพรวมความปลอดภัย",
      "meta": {
       "path": "/get_site/data/name"
      },
      "footnote": "ระบบความปลอดภัยและอาชีวอนามัย",
      "children": [
+      "metrics_grid",
+      "callout_action",
+      "facts_sec",
+      "incidents_sec",
+      "people_sec"
+     ]
+    },
+    {
+     "id": "metrics_grid",
+     "component": "Grid",
+     "children": [
       "m1",
       "m2",
-      "m3",
-      "facts",
-      "open_action",
-      "incident_sec"
+      "m3"
      ]
     },
     {
@@ -273,14 +281,7 @@
      }
     },
     {
-     "id": "facts",
-     "component": "KeyValue",
-     "from": {
-      "path": "/get_site/data/facts"
-     }
-    },
-    {
-     "id": "open_action",
+     "id": "callout_action",
      "component": "Callout",
      "title": {
       "path": "/get_site/data/open_actions/0/title"
@@ -291,9 +292,16 @@
      "tone": "danger"
     },
     {
-     "id": "incident_sec",
+     "id": "facts_sec",
+     "component": "KeyValue",
+     "from": {
+      "path": "/get_site/data/facts"
+     }
+    },
+    {
+     "id": "incidents_sec",
      "component": "Section",
-     "label": "ประวัติอุบัติเหตุและเหตุการณ์",
+     "label": "ประวัติเหตุการณ์",
      "children": {
       "componentId": "inc_item",
       "path": "/get_site/data/incidents"
@@ -306,11 +314,48 @@
       "path": "title"
      },
      "subtitle": {
+      "path": "time"
+     },
+     "detail": {
       "path": "detail"
      },
-     "media": "none",
-     "trailing": {
-      "path": "time"
+     "media": "none"
+    },
+    {
+     "id": "people_sec",
+     "component": "Section",
+     "label": "ทีมงานและเจ้าหน้าที่",
+     "children": {
+      "componentId": "person_item",
+      "path": "/get_site/data/people"
+     }
+    },
+    {
+     "id": "person_item",
+     "component": "ListItem",
+     "title": {
+      "path": "name"
+     },
+     "subtitle": {
+      "path": "title"
+     },
+     "src": {
+      "path": "photo"
+     },
+     "media": "avatar",
+     "badges": {
+      "path": "badges"
+     },
+     "action": {
+      "event": {
+       "name": "ask",
+       "context": {
+        "prompt": "ขอดูโปรไฟล์",
+        "about": {
+         "path": "name"
+        }
+       }
+      }
      }
     }
    ]

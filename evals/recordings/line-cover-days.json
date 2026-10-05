@@ -4,10 +4,10 @@
  "userId": "u_saranya",
  "prompt": "สต๊อกน้ำดื่มสิงห์ที่ DC สงขลาพอขายกี่วัน",
  "model": "google/gemini-3.8-flash",
- "promptHash": "dbb8d8ec86285340",
- "toolsHash": "5639642b6a430a27",
+ "promptHash": "36491b91825dccf6",
+ "toolsHash": "8bdfd8d8fb9656cf",
  "today": "2026-10-05",
- "recordedAt": "2026-10-05T15:46:40.026Z",
+ "recordedAt": "2026-10-05T18:55:21.529Z",
  "steps": [
   {
    "kind": "call",
@@ -38,82 +38,104 @@
   },
   {
    "kind": "call",
-   "tool": "describe_entity",
-   "args": {
-    "query": "น้ำดื่มสิงห์",
-    "kind": "sku"
-   },
-   "result": {
-    "ok": true,
-    "data": {
-     "id": "sku_singha_water_pack12",
-     "ชื่อ": "น้ำดื่มสิงห์ แพ็ก 12",
-     "แบรนด์": "น้ำดื่มสิงห์",
-     "หน่วยธุรกิจ": "กลุ่มนอนแอลกอฮอล์",
-     "บรรจุภัณฑ์": "แพ็ก 12",
-     "ลิตรต่อลัง": 7.68,
-     "ราคาต่อลัง": "85 บาท",
-     "ภาษีสรรพสามิต": "ไม่มี"
-    },
-    "summary": "น้ำดื่มสิงห์ แพ็ก 12 แบรนด์น้ำดื่มสิงห์ 7.68 ลิตรต่อลัง ราคา 85 บาทต่อลัง"
-   }
-  },
-  {
-   "kind": "call",
    "tool": "query_metric",
    "args": {
+    "compare": "none",
+    "grain": "day",
+    "limit": 10,
     "dims": [
      "brand"
     ],
-    "grain": "day",
-    "compare": "none",
-    "metric": "days_of_cover",
-    "filters": {
-     "brand": "น้ำดื่มสิงห์",
-     "dc": "dc_songkhla"
-    },
-    "limit": 10,
     "range": {
      "to": "2026-09-22",
      "from": "2026-09-22"
+    },
+    "sort": "value_desc",
+    "metric": "days_of_cover",
+    "filters": {
+     "dc": "dc_songkhla"
     }
    },
    "result": {
     "ok": true,
     "rows": [
      {
+      "brand": "โซดาสิงห์",
+      "value": 18.93,
+      "value_label": "18.9 วัน"
+     },
+     {
+      "brand": "คาร์ลสเบิร์ก",
+      "value": 18.91,
+      "value_label": "18.9 วัน"
+     },
+     {
+      "brand": "เพอร์ร่า",
+      "value": 17.44,
+      "value_label": "17.4 วัน"
+     },
+     {
+      "brand": "อาซาฮี",
+      "value": 16.81,
+      "value_label": "16.8 วัน"
+     },
+     {
+      "brand": "ลีโอ",
+      "value": 16.79,
+      "value_label": "16.8 วัน"
+     },
+     {
       "brand": "น้ำดื่มสิงห์",
       "value": 13.67,
       "value_label": "13.7 วัน"
+     },
+     {
+      "brand": "สิงห์ เลมอนโซดา",
+      "value": 13.59,
+      "value_label": "13.6 วัน"
+     },
+     {
+      "brand": "สิงห์",
+      "value": 12.83,
+      "value_label": "12.8 วัน"
      }
     ],
-    "summary": "วันครอบคลุมสต๊อก 22 ก.ย. 2569: เฉลี่ย 13.7 วัน · ต่ำสุด: น้ำดื่มสิงห์ 13.7 วัน · (1 แถว · certified · WMS)",
+    "summary": "วันครอบคลุมสต๊อก 22 ก.ย. 2569: เฉลี่ย 15.2 วัน · ต่ำสุด: สิงห์ 12.8 วัน · สิงห์ เลมอนโซดา 13.6 วัน · น้ำดื่มสิงห์ 13.7 วัน · (8 แถว · certified · WMS)",
     "headline": {
      "aggregate": "average",
-     "value": "13.7 วัน",
+     "value": "15.2 วัน",
      "periodLabel": "22 ก.ย. 2569",
-     "rowCount": 1,
+     "rowCount": 8,
      "deltaPercent": null,
      "compareLabel": null,
      "compareNote": null,
      "top": [
       {
+       "label": "สิงห์",
+       "value": "12.8 วัน"
+      },
+      {
+       "label": "สิงห์ เลมอนโซดา",
+       "value": "13.6 วัน"
+      },
+      {
        "label": "น้ำดื่มสิงห์",
        "value": "13.7 วัน"
       }
      ],
-     "underLine": null
+     "underLine": {
+      "line": 10,
+      "count": 0,
+      "of": 8
+     }
     },
     "provenance": {
      "metric": "days_of_cover",
      "certified": true,
      "sourceSystem": "WMS",
      "asOf": "2026-09-22",
-     "rowCount": 1,
+     "rowCount": 8,
      "filtersApplied": {
-      "brand": [
-       "singha_water"
-      ],
       "dc": [
        "dc_songkhla"
       ]
@@ -135,9 +157,6 @@
       "brand"
      ],
      "filters": {
-      "brand": [
-       "น้ำดื่มสิงห์"
-      ],
       "dc": [
        "dc_songkhla"
       ]
@@ -148,14 +167,179 @@
      },
      "grain": "day",
      "compare": "none",
-     "limit": 10
+     "limit": 10,
+     "sort": "value_desc"
     },
     "nextActions": [],
     "followUps": [
      {
+      "id": "fu-drill_down",
+      "label": "ดู SKU ในสิงห์",
+      "prompt": "ขอวันครอบคลุมสต๊อกของสิงห์ แยกราย SKU เรียงจากแย่ไปดี",
+      "reason": "ลงไปอีกชั้นเพื่อหาว่าใครในสิงห์ทำให้ตัวเลขเป็นแบบนี้",
+      "intentKey": "follow|drill_down",
+      "score": 0.7
+     },
+     {
+      "id": "fu-why",
+      "label": "ทำไมสิงห์",
+      "prompt": "เจาะดูวันครอบคลุมสต๊อกของสิงห์ ว่าทำไมถึงเปลี่ยนไป เทียบกับช่วงก่อนหน้าและช่วงเดียวกันปีก่อน",
+      "reason": "สิงห์ คือแถวที่ต้องดูมากที่สุดในคำตอบนี้",
+      "intentKey": "follow|why",
+      "score": 0.6
+     },
+     {
       "id": "fu-forecast",
       "label": "พยากรณ์ 8 สัปดาห์",
       "prompt": "พยากรณ์วันครอบคลุมสต๊อก 8 สัปดาห์ข้างหน้า",
+      "reason": "ดูว่าถ้าเป็นแบบนี้ต่อไปจะเกิดอะไร",
+      "intentKey": "follow|forecast",
+      "score": 0.55
+     }
+    ]
+   }
+  },
+  {
+   "kind": "call",
+   "tool": "query_metric",
+   "args": {
+    "filters": {
+     "dc": "dc_songkhla",
+     "brand": "น้ำดื่มสิงห์"
+    },
+    "sort": "value_desc",
+    "range": {
+     "from": "2026-09-22",
+     "to": "2026-09-22"
+    },
+    "grain": "day",
+    "metric": "days_of_cover",
+    "dims": [
+     "sku"
+    ],
+    "limit": 10,
+    "compare": "none"
+   },
+   "result": {
+    "ok": true,
+    "rows": [
+     {
+      "sku": "น้ำดื่มสิงห์ แพ็ก 12",
+      "value": 16.49,
+      "value_label": "16.5 วัน"
+     },
+     {
+      "sku": "น้ำดื่มสิงห์ ขวด PET 600 มล.",
+      "value": 13.88,
+      "value_label": "13.9 วัน"
+     },
+     {
+      "sku": "น้ำดื่มสิงห์ ขวด PET 1.5 ลิตร",
+      "value": 11.72,
+      "value_label": "11.7 วัน"
+     }
+    ],
+    "summary": "วันครอบคลุมสต๊อก 22 ก.ย. 2569: เฉลี่ย 13.7 วัน · ต่ำสุด: น้ำดื่มสิงห์ ขวด PET 1.5 ลิตร 11.7 วัน · น้ำดื่มสิงห์ ขวด PET 600 มล. 13.9 วัน · น้ำดื่มสิงห์ แพ็ก 12 16.5 วัน · (3 แถว · certified · WMS)",
+    "headline": {
+     "aggregate": "average",
+     "value": "13.7 วัน",
+     "periodLabel": "22 ก.ย. 2569",
+     "rowCount": 3,
+     "deltaPercent": null,
+     "compareLabel": null,
+     "compareNote": null,
+     "top": [
+      {
+       "label": "น้ำดื่มสิงห์ ขวด PET 1.5 ลิตร",
+       "value": "11.7 วัน"
+      },
+      {
+       "label": "น้ำดื่มสิงห์ ขวด PET 600 มล.",
+       "value": "13.9 วัน"
+      },
+      {
+       "label": "น้ำดื่มสิงห์ แพ็ก 12",
+       "value": "16.5 วัน"
+      }
+     ],
+     "underLine": {
+      "line": 10,
+      "count": 0,
+      "of": 3
+     }
+    },
+    "provenance": {
+     "metric": "days_of_cover",
+     "certified": true,
+     "sourceSystem": "WMS",
+     "asOf": "2026-09-22",
+     "rowCount": 3,
+     "filtersApplied": {
+      "dc": [
+       "dc_songkhla"
+      ],
+      "brand": [
+       "singha_water"
+      ]
+     },
+     "filterLabels": [
+      "ศูนย์กระจายสินค้าสงขลา",
+      "น้ำดื่มสิงห์"
+     ],
+     "scopeApplied": {
+      "region": [
+       "south"
+      ]
+     },
+     "masked": [],
+     "trust": "verified"
+    },
+    "query": {
+     "metric": "days_of_cover",
+     "dims": [
+      "sku"
+     ],
+     "filters": {
+      "dc": [
+       "dc_songkhla"
+      ],
+      "brand": [
+       "น้ำดื่มสิงห์"
+      ]
+     },
+     "range": {
+      "from": "2026-09-22",
+      "to": "2026-09-22"
+     },
+     "grain": "day",
+     "compare": "none",
+     "limit": 10,
+     "sort": "value_desc"
+    },
+    "nextActions": [
+     {
+      "id": "drill-brand",
+      "kind": "drill",
+      "label": "แยกตามแบรนด์",
+      "reason": "ยังไม่ได้ดูแยกรายแบรนด์",
+      "tool": null,
+      "input": null,
+      "prompt": "ขอวันครอบคลุมสต๊อกแยกตามแบรนด์ เรียงจากมากไปน้อย"
+     }
+    ],
+    "followUps": [
+     {
+      "id": "fu-why",
+      "label": "หาสาเหตุแถวที่แย่สุด",
+      "prompt": "เจาะดูวันครอบคลุมสต๊อกของน้ำดื่มสิงห์ ขวด PET 1.5 ลิตร ว่าทำไมถึงเปลี่ยนไป เทียบกับช่วงก่อนหน้าและช่วงเดียวกันปีก่อน",
+      "reason": "น้ำดื่มสิงห์ ขวด PET 1.5 ลิตร คือแถวที่ต้องดูมากที่สุดในคำตอบนี้",
+      "intentKey": "follow|why",
+      "score": 0.6
+     },
+     {
+      "id": "fu-forecast",
+      "label": "พยากรณ์ 8 สัปดาห์",
+      "prompt": "พยากรณ์วันครอบคลุมสต๊อกของน้ำดื่มสิงห์ ขวด PET 1.5 ลิตร 8 สัปดาห์ข้างหน้า",
       "reason": "ดูว่าถ้าเป็นแบบนี้ต่อไปจะเกิดอะไร",
       "intentKey": "follow|forecast",
       "score": 0.55
@@ -167,36 +351,28 @@
       "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
       "intentKey": "follow|trend",
       "score": 0.5
-     },
-     {
-      "id": "fu-compare_year",
-      "label": "เทียบปีก่อน",
-      "prompt": "ขอวันครอบคลุมสต๊อกแยกตามแบรนด์ เทียบกับช่วงเดียวกันปีก่อน",
-      "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
-      "intentKey": "follow|compare_year",
-      "score": 0.45
      }
     ]
    }
   },
   {
    "kind": "text",
-   "text": "ข้อมูลสต๊อกล่าสุด ณ วันที่ 22 กันยายน 2569 ระดับวันครอบคลุมสต๊อกของน้ำดื่มสิงห์ที่ศูนย์กระจายสินค้าสงขลายังอยู่ในเกณฑ์หมุนเวียนปกติ หากต้องการตรวจสอบแผนรถขนส่งสินค้าเข้าศูนย์เพิ่มเติมเพื่อรองรับคำสั่งซื้อล่วงหน้าสามารถเช็กสถานะการจัดส่งได้ครับ"
+   "text": "ข้อมูลในระบบล่าสุดถึงวันที่ 22 ก.ย. 2569 ที่ศูนย์กระจายสินค้าสงขลา ทุก SKU ของน้ำดื่มสิงห์ยังมีสต๊อกครอบคลุมเกินเกณฑ์ปลอดภัย 10 วัน โดยขวด PET 1.5 ลิตรมีสต๊อกเหลือสำหรับขายน้อยที่สุดเมื่อเทียบกับขนาดอื่น จึงควรติดตามแผนรับโอนสินค้าเข้า DC เพื่อป้องกันความเสี่ยงขาดสต๊อกในระยะถัดไป"
   }
  ],
  "asked": [],
  "error": null,
  "usage": {
-  "calls": 3,
-  "inputTokens": 34613,
-  "outputTokens": 1422,
-  "reasoningTokens": 1195,
-  "usd": 0.005139416666666667
+  "calls": 4,
+  "inputTokens": 50127,
+  "outputTokens": 2716,
+  "reasoningTokens": 2394,
+  "usd": 0.009439425000000001
  },
  "drawn": {
   "cards": [
    "describe_entity",
-   "describe_entity",
+   "query_metric",
    "query_metric"
   ],
   "composed": null

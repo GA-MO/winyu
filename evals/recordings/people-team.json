@@ -4,19 +4,19 @@
  "userId": "u_anucha",
  "prompt": "ทีมขายภาคอีสานมีใครบ้าง",
  "model": "google/gemini-3.8-flash",
- "promptHash": "5cf727ed51a6d1b3",
- "toolsHash": "5639642b6a430a27",
+ "promptHash": "086aa018642e611e",
+ "toolsHash": "8bdfd8d8fb9656cf",
  "today": "2026-10-05",
- "recordedAt": "2026-10-05T15:49:58.004Z",
+ "recordedAt": "2026-10-05T18:58:43.312Z",
  "steps": [
   {
    "kind": "call",
    "tool": "find_people",
    "args": {
-    "department": "dept_sales",
-    "query": null,
-    "region": "northeast",
     "manager": null,
+    "region": "northeast",
+    "query": null,
+    "department": "dept_sales",
     "flag": null
    },
    "result": {
@@ -150,17 +150,17 @@
   },
   {
    "kind": "text",
-   "text": "ทีมขายภาคอีสานมีบุคลากรปฏิบัติงานครอบคลุมพื้นที่ขอนแก่น นครราชสีมา บุรีรัมย์ และอุบลราชธานี โดยมีสมาชิกในทีมรวมถึงตัวคุณที่มีใบอนุญาตขายสุราใกล้หมดอายุที่ควรวางแผนต่ออายุล่วงหน้า\n\n```a2ui\n{\"id\":\"root\",\"component\":\"Card\",\"title\":\"ทีมขายภาคอีสาน\",\"footnote\":\"ระบบ HR\",\"children\":[\"team_section\",\"open_section\"]}\n{\"id\":\"team_section\",\"component\":\"Section\",\"label\":\"พนักงานปัจจุบัน\",\"children\":[\"team_grid\"]}\n{\"id\":\"team_grid\",\"component\":\"Grid\",\"children\":{\"componentId\":\"member\",\"path\":\"/find_people/data\"}}\n{\"id\":\"member\",\"component\":\"ListItem\",\"title\":{\"path\":\"name\"},\"subtitle\":{\"path\":\"title\"},\"detail\":{\"path\":\"place\"},\"src\":{\"path\":\"photo\"},\"media\":\"avatar\",\"badges\":{\"path\":\"badges\"},\"action\":{\"event\":{\"name\":\"ask\",\"context\":{\"prompt\":\"ขอดูโปรไฟล์\",\"about\":{\"path\":\"name\"}}}}}\n{\"id\":\"open_section\",\"component\":\"Section\",\"label\":\"ตำแหน่งว่าง\",\"children\":[\"open_grid\"]}\n{\"id\":\"open_grid\",\"component\":\"Grid\",\"children\":{\"componentId\":\"vacant\",\"path\":\"/find_people/open_positions\"}}\n{\"id\":\"vacant\",\"component\":\"ListItem\",\"title\":{\"path\":\"title\"},\"subtitle\":{\"path\":\"open_label\"},\"media\":\"none\"}\n```"
+   "text": "ทีมขายภาคอีสานมีบุคลากรประจำพื้นที่ครอบคลุมขอนแก่น นครราชสีมา บุรีรัมย์ และอุบลราชธานี พร้อมตำแหน่งที่ยังเปิดรับสมัครอยู่ โดยมีสมาชิกในทีมที่ใบอนุญาตขายสุราใกล้ครบกำหนดและชั่วโมงทำงานล่วงเวลาสะสมสูงที่ควรติดตาม\n\n```a2ui\n{\"id\":\"root\",\"component\":\"Card\",\"title\":\"ทีมขายภาคอีสาน\",\"footnote\":\"ระบบ HR\",\"children\":[\"team_section\",\"open_section\"]}\n{\"id\":\"team_section\",\"component\":\"Section\",\"label\":\"พนักงานปัจจุบัน\",\"children\":[\"team_grid\"]}\n{\"id\":\"team_grid\",\"component\":\"Grid\",\"children\":{\"componentId\":\"member\",\"path\":\"/find_people/data\"}}\n{\"id\":\"member\",\"component\":\"ListItem\",\"title\":{\"path\":\"name\"},\"subtitle\":{\"path\":\"title\"},\"detail\":{\"path\":\"place\"},\"src\":{\"path\":\"photo\"},\"media\":\"avatar\",\"badges\":{\"path\":\"badges\"},\"action\":{\"event\":{\"name\":\"ask\",\"context\":{\"prompt\":\"ขอดูโปรไฟล์\",\"about\":{\"path\":\"name\"}}}}}\n{\"id\":\"open_section\",\"component\":\"Section\",\"label\":\"ตำแหน่งเปิดรับสมัคร\",\"children\":[\"open_grid\"]}\n{\"id\":\"open_grid\",\"component\":\"Grid\",\"children\":{\"componentId\":\"open_item\",\"path\":\"/find_people/open_positions\"}}\n{\"id\":\"open_item\",\"component\":\"ListItem\",\"title\":{\"path\":\"title\"},\"subtitle\":{\"path\":\"open_label\"},\"media\":\"none\"}\n```"
   }
  ],
  "asked": [],
  "error": null,
  "usage": {
   "calls": 2,
-  "inputTokens": 22333,
-  "outputTokens": 2495,
-  "reasoningTokens": 2145,
-  "usd": 0.00588585
+  "inputTokens": 23027,
+  "outputTokens": 2622,
+  "reasoningTokens": 2261,
+  "usd": 0.0061972500000000005
  },
  "drawn": {
   "cards": [],
@@ -229,7 +229,7 @@
     {
      "id": "open_section",
      "component": "Section",
-     "label": "ตำแหน่งว่าง",
+     "label": "ตำแหน่งเปิดรับสมัคร",
      "children": [
       "open_grid"
      ]
@@ -238,12 +238,12 @@
      "id": "open_grid",
      "component": "Grid",
      "children": {
-      "componentId": "vacant",
+      "componentId": "open_item",
       "path": "/find_people/open_positions"
      }
     },
     {
-     "id": "vacant",
+     "id": "open_item",
      "component": "ListItem",
      "title": {
       "path": "title"

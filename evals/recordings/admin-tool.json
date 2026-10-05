@@ -4,19 +4,19 @@
  "userId": "u_ton",
  "prompt": "ปิดเครื่องมือดูประวัติการอบรมจากระบบอบรม MCP ของพนักงานขาย",
  "model": "google/gemini-3.8-flash",
- "promptHash": "efd4732ee93bef98",
- "toolsHash": "a9845adcdd929393",
+ "promptHash": "c25a484a33780f9a",
+ "toolsHash": "d507f8b7d854b994",
  "today": "2026-10-05",
- "recordedAt": "2026-10-05T15:53:03.162Z",
+ "recordedAt": "2026-10-05T19:01:08.302Z",
  "steps": [
   {
    "kind": "call",
    "tool": "set_permission",
    "args": {
     "value": "deny",
+    "key": "lms_demo__training_history",
     "role": "sales_rep",
-    "kind": "tool",
-    "key": "lms_demo__training_history"
+    "kind": "tool"
    }
   }
  ],
@@ -26,10 +26,10 @@
  "error": null,
  "usage": {
   "calls": 1,
-  "inputTokens": 10654,
-  "outputTokens": 602,
-  "reasoningTokens": 559,
-  "usd": 0.0015346875
+  "inputTokens": 10931,
+  "outputTokens": 741,
+  "reasoningTokens": 698,
+  "usd": 0.0018057
  },
  "drawn": {
   "cards": [],

@@ -4,19 +4,19 @@
  "userId": "u_ton",
  "prompt": "ให้ผู้จัดการขายภาคเห็นคะแนนสอบของหลักสูตรเต็มๆ ไม่ต้องซ่อน",
  "model": "google/gemini-3.8-flash",
- "promptHash": "efd4732ee93bef98",
- "toolsHash": "a9845adcdd929393",
+ "promptHash": "c25a484a33780f9a",
+ "toolsHash": "d507f8b7d854b994",
  "today": "2026-10-05",
- "recordedAt": "2026-10-05T15:53:05.999Z",
+ "recordedAt": "2026-10-05T19:01:11.333Z",
  "steps": [
   {
    "kind": "call",
    "tool": "set_permission",
    "args": {
+    "value": "full",
     "key": "lms_demo.score",
-    "role": "sales_rsm",
     "kind": "field",
-    "value": "full"
+    "role": "sales_rsm"
    }
   }
  ],
@@ -26,10 +26,10 @@
  "error": null,
  "usage": {
   "calls": 1,
-  "inputTokens": 10655,
-  "outputTokens": 453,
-  "reasoningTokens": 411,
-  "usd": 0.0012556875
+  "inputTokens": 10932,
+  "outputTokens": 423,
+  "reasoningTokens": 381,
+  "usd": 0.001209825
  },
  "drawn": {
   "cards": [],

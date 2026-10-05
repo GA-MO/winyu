@@ -4,28 +4,29 @@
  "userId": "u_thana",
  "prompt": "เอเย่นต์ไหนยอดตกแรงที่สุดเทียบงวดก่อน",
  "model": "google/gemini-3.8-flash",
- "promptHash": "b147f95e8a6c891a",
- "toolsHash": "5639642b6a430a27",
+ "promptHash": "0e40d01dd957aebf",
+ "toolsHash": "8bdfd8d8fb9656cf",
  "today": "2026-10-05",
- "recordedAt": "2026-10-05T15:42:09.123Z",
+ "recordedAt": "2026-10-05T18:51:25.316Z",
  "steps": [
   {
    "kind": "call",
    "tool": "query_metric",
    "args": {
     "sort": "delta_asc",
-    "limit": 10,
+    "limit": 5,
+    "grain": "month",
+    "filters": {},
     "metric": "net_sales_value",
-    "range": {
-     "from": "2026-09-01",
-     "to": "2026-09-22"
-    },
+    "where": null,
+    "compare": "prev_period",
     "dims": [
      "agent"
     ],
-    "filters": {},
-    "compare": "prev_period",
-    "grain": "month"
+    "range": {
+     "to": "2026-09-22",
+     "from": "2026-09-01"
+    }
    },
    "result": {
     "ok": true,
@@ -64,49 +65,14 @@
       "value_label": "30.0 ล้านบาท",
       "compare_value": 33631001,
       "delta_pct": -10.8
-     },
-     {
-      "agent": "พิษณุโลกศรีเจริญ",
-      "value": 24070898,
-      "value_label": "24.1 ล้านบาท",
-      "compare_value": 26930155,
-      "delta_pct": -10.6
-     },
-     {
-      "agent": "นครศรีรุ่งเจริญ",
-      "value": 17366708,
-      "value_label": "17.4 ล้านบาท",
-      "compare_value": 19388926,
-      "delta_pct": -10.4
-     },
-     {
-      "agent": "ชลบุรีบูรพา เทรดดิ้ง",
-      "value": 46549008,
-      "value_label": "46.5 ล้านบาท",
-      "compare_value": 51788584,
-      "delta_pct": -10.1
-     },
-     {
-      "agent": "หริภุญชัย เทรดดิ้ง",
-      "value": 12424350,
-      "value_label": "12.4 ล้านบาท",
-      "compare_value": 13797204,
-      "delta_pct": -10
-     },
-     {
-      "agent": "บ้านโป่งค้าส่ง",
-      "value": 13034856,
-      "value_label": "13.0 ล้านบาท",
-      "compare_value": 14459050,
-      "delta_pct": -9.8
      }
     ],
-    "summary": "มูลค่าขายเข้า 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 1,110.2 ล้านบาท · สูงสุด: กรุงไทยเบเวอเรจ 60.3 ล้านบาท · พระราม 4 ดิสทริบิวชั่น 52.4 ล้านบาท · ขอนแก่นมหาชัย 50.8 ล้านบาท · เทียบช่วงก่อนหน้า -11.5% · (10 แถว · certified · SAP SD)",
+    "summary": "มูลค่าขายเข้า 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 1,110.2 ล้านบาท · สูงสุด: กรุงไทยเบเวอเรจ 60.3 ล้านบาท · พระราม 4 ดิสทริบิวชั่น 52.4 ล้านบาท · ขอนแก่นมหาชัย 50.8 ล้านบาท · เทียบช่วงก่อนหน้า -11.5% · (5 แถว · certified · SAP SD)",
     "headline": {
      "aggregate": "sum",
      "value": "1,110.2 ล้านบาท",
      "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
-     "rowCount": 10,
+     "rowCount": 5,
      "deltaPercent": -11.5,
      "compareLabel": "เทียบช่วงก่อนหน้า",
      "compareNote": null,
@@ -131,7 +97,7 @@
      "certified": true,
      "sourceSystem": "SAP SD",
      "asOf": "2026-09-22",
-     "rowCount": 10,
+     "rowCount": 5,
      "filtersApplied": {},
      "filterLabels": [],
      "scopeApplied": {},
@@ -150,8 +116,9 @@
      },
      "grain": "month",
      "compare": "prev_period",
-     "limit": 10,
-     "sort": "delta_asc"
+     "limit": 5,
+     "sort": "delta_asc",
+     "where": null
     },
     "nextActions": [
      {
@@ -178,8 +145,9 @@
          },
          "grain": "month",
          "compare": "prev_period",
-         "limit": 10,
-         "sort": "delta_asc"
+         "limit": 5,
+         "sort": "delta_asc",
+         "where": null
         }
        ],
        "alertIds": []
@@ -218,17 +186,17 @@
   },
   {
    "kind": "text",
-   "text": "ใช้มูลค่ายอดขายสุทธิ (Net Sales Value) วันที่ 1–22 ก.ย. 2569 เทียบกับช่วงเดียวกันของเดือนก่อนหน้า (ข้อมูลล่าสุดถึง 22 ก.ย. 2569) โดยเอเย่นต์ที่ยอดลดลงรุนแรงที่สุดคือกลุ่มภาคอีสาน นำโดย **อีสานรุ่งโรจน์ ค้าส่ง** และ **อุบลศรีสุข เทรดดิ้ง**\n\n**สมมติฐานเบื้องต้น:** อาจเกิดจากสต๊อกหน้าร้านยังคงค้างสูงหลังการเร่งซื้อในงวดก่อน หรือมีการชะลอคำสั่งซื้อเนื่องจากติดเพดานวงเงินสินเชื่อ  \n**แนวทางตรวจสอบ:**  \n1. ตรวจสอบระดับวันครอบคลุมสต๊อก (Days of Cover) และอัตราขายออกหน้าร้าน (Sell-out) ของเอเย่นต์ทั้งสองราย  \n2. ตรวจสอบสถานะหนี้ค้างชำระ (AR Overdue) และประวัติการเข้าเยี่ยมร้านของทีมขายในพื้นที่  \n\nต้องการให้สร้างบันทึกส่งต่อ (Handoff) ถึงคุณกนกเพื่อตรวจสอบหาสาเหตุในพื้นที่หรือไม่ครับ"
+   "text": "รายงานด้วยมูลค่ายอดขายสุทธิ (Net Sales Value) เดือนนี้ (1–22 ก.ย. 2569) เทียบกับช่วงก่อนหน้า พบว่า **อีสานรุ่งโรจน์ ค้าส่ง** มียอดตกแรงที่สุด และกลุ่มเอเย่นต์ในภาคอีสานมีแนวโน้มชะลอตัวอย่างเห็นได้ชัด ควรเจาะหาสาเหตุของคำสั่งซื้อที่ลดลงและตรวจสอบระดับสต๊อกหน้าร้านในพื้นที่เพื่อป้องกันสินค้าขาดตลาด"
   }
  ],
  "asked": [],
  "error": null,
  "usage": {
   "calls": 2,
-  "inputTokens": 23866,
-  "outputTokens": 2429,
-  "reasoningTokens": 2078,
-  "usd": 0.006362625
+  "inputTokens": 24634,
+  "outputTokens": 2829,
+  "reasoningTokens": 2628,
+  "usd": 0.00721365
  },
  "drawn": {
   "cards": [

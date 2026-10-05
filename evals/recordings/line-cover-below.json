@@ -4,34 +4,34 @@
  "userId": "u_arm",
  "prompt": "สินค้าตัวไหนสต๊อกพอขายน้อยกว่า 10 วัน",
  "model": "google/gemini-3.8-flash",
- "promptHash": "3366b49ab39693a3",
- "toolsHash": "3a1e2faaa57dde17",
+ "promptHash": "8898690078bbf372",
+ "toolsHash": "e80f152112971efa",
  "today": "2026-10-05",
- "recordedAt": "2026-10-05T15:46:23.935Z",
+ "recordedAt": "2026-10-05T18:55:03.161Z",
  "steps": [
   {
    "kind": "call",
    "tool": "query_metric",
    "args": {
-    "metric": "days_of_cover",
-    "limit": 20,
-    "range": {
-     "from": "2026-09-22",
-     "to": "2026-09-22"
-    },
-    "dims": [
-     "sku"
-    ],
+    "sort": "value_asc",
+    "compare": "none",
     "filters": {
      "region": "south"
     },
-    "sort": "value_asc",
+    "metric": "days_of_cover",
+    "range": {
+     "to": "2026-09-22",
+     "from": "2026-09-22"
+    },
+    "limit": 20,
     "grain": "day",
     "where": {
-     "value": 10,
-     "op": "below"
+     "op": "below",
+     "value": 10
     },
-    "compare": "none"
+    "dims": [
+     "sku"
+    ]
    },
    "result": {
     "ok": true,
@@ -146,17 +146,17 @@
   },
   {
    "kind": "text",
-   "text": "อ้างอิงข้อมูลวันครอบคลุมสต๊อกในพื้นที่ภาคใต้ ณ วันที่ 22 ก.ย. 2569 มีสินค้าที่ระดับสต๊อกต่ำกว่าเกณฑ์ความปลอดภัยและเสี่ยงต่อการขาดจำหน่ายหน้าร้าน ควรเร่งตรวจสอบรอบการจัดส่งเข้าศูนย์กระจายสินค้าหรือประสานงานเติมสต๊อกเพื่อรองรับยอดขายในพื้นที่ทันที"
+   "text": "ข้อมูลวันครอบคลุมสต๊อกล่าสุด ณ วันที่ 22 ก.ย. 2569 ในพื้นที่ภาคใต้พบสินค้าที่ต่ำกว่าเกณฑ์ 10 วัน ควรตรวจสอบรอบรถจัดส่งเข้าศูนย์กระจายสินค้าหรือประสานงานเติมสต๊อกเพื่อป้องกันสินค้าขาดหน้าร้าน"
   }
  ],
  "asked": [],
  "error": null,
  "usage": {
   "calls": 2,
-  "inputTokens": 20671,
-  "outputTokens": 1644,
-  "reasoningTokens": 1455,
-  "usd": 0.004488054166666667
+  "inputTokens": 21384,
+  "outputTokens": 1801,
+  "reasoningTokens": 1631,
+  "usd": 0.0048686
  },
  "drawn": {
   "cards": [

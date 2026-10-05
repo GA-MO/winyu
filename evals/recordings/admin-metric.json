@@ -4,18 +4,18 @@
  "userId": "u_ton",
  "prompt": "ให้พนักงานขายไม่เห็นมูลค่าขายเข้า",
  "model": "google/gemini-3.8-flash",
- "promptHash": "efd4732ee93bef98",
- "toolsHash": "a9845adcdd929393",
+ "promptHash": "c25a484a33780f9a",
+ "toolsHash": "d507f8b7d854b994",
  "today": "2026-10-05",
- "recordedAt": "2026-10-05T15:52:59.387Z",
+ "recordedAt": "2026-10-05T19:01:04.136Z",
  "steps": [
   {
    "kind": "call",
    "tool": "set_permission",
    "args": {
+    "role": "sales_rep",
     "key": "net_sales_value",
     "value": "none",
-    "role": "sales_rep",
     "kind": "metric"
    }
   }
@@ -26,10 +26,10 @@
  "error": null,
  "usage": {
   "calls": 1,
-  "inputTokens": 10646,
-  "outputTokens": 685,
-  "reasoningTokens": 645,
-  "usd": 0.001908875
+  "inputTokens": 10923,
+  "outputTokens": 798,
+  "reasoningTokens": 758,
+  "usd": 0.0021369083333333335
  },
  "drawn": {
   "cards": [],

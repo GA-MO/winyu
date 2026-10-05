@@ -4,21 +4,21 @@
  "userId": "u_mint",
  "prompt": "ตรวจความผิดปกติของ ภาคใต้ ให้หน่อย",
  "model": "google/gemini-3.8-flash",
- "promptHash": "51cad1e6a5e31940",
- "toolsHash": "3542bb7c8b47d7ed",
+ "promptHash": "7f4455f5d484f0c8",
+ "toolsHash": "dbd92ac157880cce",
  "today": "2026-10-05",
- "recordedAt": "2026-10-05T15:45:55.800Z",
+ "recordedAt": "2026-10-05T18:54:31.411Z",
  "steps": [
   {
    "kind": "call",
    "tool": "get_alerts",
    "args": {
-    "limit": 10,
-    "status": "open"
+    "status": "open",
+    "limit": 20
    },
    "result": {
     "ok": true,
-    "summary": "มีความผิดปกติที่เปิดอยู่ 10 รายการในขอบเขตของคุณ",
+    "summary": "มีความผิดปกติที่เปิดอยู่ 20 รายการในขอบเขตของคุณ",
     "rows": [
      {
       "id": "al_220936abb568e7c9",
@@ -263,6 +263,260 @@
        "เทียบเพอร์ร่า ขวด PET 1.5 ลิตร · ฉะเชิงเทรา · ภาคตะวันออกกับช่วงเดียวกันของปีที่แล้ว"
       ],
       "ownerUserId": "u_wichai"
+     },
+     {
+      "id": "al_bb6300d2bd665b9b",
+      "severity": "P2",
+      "severityLabel": "ควรดู",
+      "metric": "sell_out_volume",
+      "metricLabel": "ปริมาณขายออก (Sell-out)",
+      "scope": {
+       "sku": "sku_singha_lemon_soda_pet600",
+       "province": "pv_saraburi",
+       "region": "central"
+      },
+      "scopeLabel": "สิงห์ เลมอนโซดา ขวด PET 600 มล. · สระบุรี · ภาคกลาง",
+      "window": "28 ส.ค. 2569 – 22 ก.ย. 2569",
+      "observedLabel": "475 ลิตร",
+      "expectedLabel": "543 ลิตร",
+      "gapLabel": "13%",
+      "yearOverYear": false,
+      "direction": "down",
+      "hypothesis": "ยอดขายออกจากร้านในสระบุรีต่ำผิดปกติ ยังหาสาเหตุไม่ได้จากข้อมูลที่มี",
+      "verifySteps": [
+       "เทียบสิงห์ เลมอนโซดา ขวด PET 600 มล. · สระบุรี · ภาคกลางกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+       "เทียบสิงห์ เลมอนโซดา ขวด PET 600 มล. · สระบุรี · ภาคกลางกับช่วงเดียวกันของปีที่แล้ว"
+      ],
+      "ownerUserId": "u_somchai"
+     },
+     {
+      "id": "al_a25b3f027de53c68",
+      "severity": "P3",
+      "severityLabel": "เฝ้าระวัง",
+      "metric": "sell_out_volume",
+      "metricLabel": "ปริมาณขายออก (Sell-out)",
+      "scope": {
+       "sku": "sku_singha_soda_can320",
+       "channel": "modern_trade",
+       "region": "bkk"
+      },
+      "scopeLabel": "โซดาสิงห์ กระป๋อง 320 มล. · โมเดิร์นเทรด · กรุงเทพฯ และปริมณฑล",
+      "window": "6 ก.ย. 2569 – 22 ก.ย. 2569",
+      "observedLabel": "5,099 ลิตร",
+      "expectedLabel": "3,925 ลิตร",
+      "gapLabel": "30%",
+      "yearOverYear": false,
+      "direction": "up",
+      "hypothesis": "การเปลี่ยนแปลงนี้อธิบายได้ด้วยโปรโมชัน \"ซีสโตร์ โซดาซัมเมอร์ 1 แถม 1\" ที่กำลังทำอยู่ในช่วงเวลาเดียวกัน จึงยังไม่ถือว่าผิดปกติ",
+      "verifySteps": [
+       "ดูผลแคมเปญที่ทำอยู่กับโซดาสิงห์ กระป๋อง 320 มล. · โมเดิร์นเทรด · กรุงเทพฯ และปริมณฑล เทียบก่อนและระหว่างแคมเปญ",
+       "เทียบโซดาสิงห์ กระป๋อง 320 มล. · โมเดิร์นเทรด · กรุงเทพฯ และปริมณฑลกับช่วงเดียวกันของปีที่แล้ว"
+      ],
+      "ownerUserId": "u_kanok"
+     },
+     {
+      "id": "al_2bced77035d90ef1",
+      "severity": "P3",
+      "severityLabel": "เฝ้าระวัง",
+      "metric": "sell_out_volume",
+      "metricLabel": "ปริมาณขายออก (Sell-out)",
+      "scope": {
+       "sku": "sku_singha_soda_can320",
+       "channel": "modern_trade",
+       "region": "central"
+      },
+      "scopeLabel": "โซดาสิงห์ กระป๋อง 320 มล. · โมเดิร์นเทรด · ภาคกลาง",
+      "window": "6 ก.ย. 2569 – 22 ก.ย. 2569",
+      "observedLabel": "2,759 ลิตร",
+      "expectedLabel": "2,143 ลิตร",
+      "gapLabel": "29%",
+      "yearOverYear": false,
+      "direction": "up",
+      "hypothesis": "การเปลี่ยนแปลงนี้อธิบายได้ด้วยโปรโมชัน \"ซีสโตร์ โซดาซัมเมอร์ 1 แถม 1\" ที่กำลังทำอยู่ในช่วงเวลาเดียวกัน จึงยังไม่ถือว่าผิดปกติ",
+      "verifySteps": [
+       "ดูผลแคมเปญที่ทำอยู่กับโซดาสิงห์ กระป๋อง 320 มล. · โมเดิร์นเทรด · ภาคกลาง เทียบก่อนและระหว่างแคมเปญ",
+       "เทียบโซดาสิงห์ กระป๋อง 320 มล. · โมเดิร์นเทรด · ภาคกลางกับช่วงเดียวกันของปีที่แล้ว"
+      ],
+      "ownerUserId": "u_somchai"
+     },
+     {
+      "id": "al_720464c45b4bed09",
+      "severity": "P3",
+      "severityLabel": "เฝ้าระวัง",
+      "metric": "sell_out_volume",
+      "metricLabel": "ปริมาณขายออก (Sell-out)",
+      "scope": {
+       "sku": "sku_purra_pet600",
+       "province": "pv_chiangmai",
+       "region": "north"
+      },
+      "scopeLabel": "เพอร์ร่า ขวด PET 600 มล. · เชียงใหม่ · ภาคเหนือ",
+      "window": "19 ก.ย. 2569 – 22 ก.ย. 2569",
+      "observedLabel": "2,689 ลิตร",
+      "expectedLabel": "2,114 ลิตร",
+      "gapLabel": "27%",
+      "yearOverYear": false,
+      "direction": "up",
+      "hypothesis": "ยอดขายออกในเชียงใหม่พุ่งขึ้นพร้อมกับค่าฝุ่น PM2.5 ที่สูงขึ้น ความต้องการน้ำดื่มน่าจะเพิ่มตามสภาพอากาศ",
+      "verifySteps": [
+       "ดูวันครอบคลุมสต๊อกและสต๊อกคงเหลือของเพอร์ร่า ขวด PET 600 มล. · เชียงใหม่ · ภาคเหนือตอนนี้",
+       "ดูพยากรณ์ 8 สัปดาห์ข้างหน้าของเพอร์ร่า ขวด PET 600 มล. · เชียงใหม่ · ภาคเหนือ"
+      ],
+      "ownerUserId": "u_nattaya"
+     },
+     {
+      "id": "al_8ea42b7d9f03c765",
+      "severity": "P3",
+      "severityLabel": "เฝ้าระวัง",
+      "metric": "sell_out_volume",
+      "metricLabel": "ปริมาณขายออก (Sell-out)",
+      "scope": {
+       "sku": "sku_singha_soda_can320",
+       "channel": "traditional_trade",
+       "region": "bkk"
+      },
+      "scopeLabel": "โซดาสิงห์ กระป๋อง 320 มล. · ร้านค้าปลีกดั้งเดิม · กรุงเทพฯ และปริมณฑล",
+      "window": "29 ส.ค. 2569 – 22 ก.ย. 2569",
+      "observedLabel": "2,431 ลิตร",
+      "expectedLabel": "2,668 ลิตร",
+      "gapLabel": "9%",
+      "yearOverYear": false,
+      "direction": "down",
+      "hypothesis": "ยอดขายออกจากร้านในกรุงเทพฯ และปริมณฑลต่ำผิดปกติ ยังหาสาเหตุไม่ได้จากข้อมูลที่มี",
+      "verifySteps": [
+       "เทียบโซดาสิงห์ กระป๋อง 320 มล. · ร้านค้าปลีกดั้งเดิม · กรุงเทพฯ และปริมณฑลกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+       "เทียบโซดาสิงห์ กระป๋อง 320 มล. · ร้านค้าปลีกดั้งเดิม · กรุงเทพฯ และปริมณฑลกับช่วงเดียวกันของปีที่แล้ว"
+      ],
+      "ownerUserId": "u_kanok"
+     },
+     {
+      "id": "al_61751e8e091a0f4d",
+      "severity": "P3",
+      "severityLabel": "เฝ้าระวัง",
+      "metric": "net_sales_volume",
+      "metricLabel": "ปริมาณขายเข้า (Sell-in)",
+      "scope": {
+       "agent": "ag_cen_05",
+       "brand": "singha",
+       "sku": "sku_singha_pack12",
+       "region": "central"
+      },
+      "scopeLabel": "ราชบุรีสหมิตร · สิงห์ แพ็ก 12 · ภาคกลาง",
+      "window": "26 ส.ค. 2569 – 22 ก.ย. 2569",
+      "observedLabel": "674 ลิตร",
+      "expectedLabel": "580 ลิตร",
+      "gapLabel": "16%",
+      "yearOverYear": false,
+      "direction": "up",
+      "hypothesis": "ปริมาณขายในภาคกลางสูงผิดปกติ ยังหาสาเหตุไม่ได้จากข้อมูลที่มี",
+      "verifySteps": [
+       "เทียบราชบุรีสหมิตร · สิงห์ แพ็ก 12 · ภาคกลางกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+       "เทียบราชบุรีสหมิตร · สิงห์ แพ็ก 12 · ภาคกลางกับช่วงเดียวกันของปีที่แล้ว"
+      ],
+      "ownerUserId": "u_somchai"
+     },
+     {
+      "id": "al_05e4ed13725e756a",
+      "severity": "P3",
+      "severityLabel": "เฝ้าระวัง",
+      "metric": "net_sales_volume",
+      "metricLabel": "ปริมาณขายเข้า (Sell-in)",
+      "scope": {
+       "agent": "ag_nea_06",
+       "brand": "asahi",
+       "sku": "sku_asahi_bottle320",
+       "region": "northeast"
+      },
+      "scopeLabel": "วารินพาณิชย์ · อาซาฮี ขวด 320 มล. · ภาคอีสาน",
+      "window": "30 ส.ค. 2569 – 22 ก.ย. 2569",
+      "observedLabel": "27.1 ลิตร",
+      "expectedLabel": "24 ลิตร",
+      "gapLabel": "13%",
+      "yearOverYear": false,
+      "direction": "up",
+      "hypothesis": "ปริมาณขายในภาคอีสานสูงผิดปกติ ยังหาสาเหตุไม่ได้จากข้อมูลที่มี",
+      "verifySteps": [
+       "เทียบวารินพาณิชย์ · อาซาฮี ขวด 320 มล. · ภาคอีสานกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+       "เทียบวารินพาณิชย์ · อาซาฮี ขวด 320 มล. · ภาคอีสานกับช่วงเดียวกันของปีที่แล้ว"
+      ],
+      "ownerUserId": "u_anucha"
+     },
+     {
+      "id": "al_1cf125f69bb321d5",
+      "severity": "P3",
+      "severityLabel": "เฝ้าระวัง",
+      "metric": "net_sales_volume",
+      "metricLabel": "ปริมาณขายเข้า (Sell-in)",
+      "scope": {
+       "agent": "ag_cen_02",
+       "brand": "carlsberg",
+       "sku": "sku_carlsberg_bottle620",
+       "region": "central"
+      },
+      "scopeLabel": "วังน้อยเบเวอเรจ · คาร์ลสเบิร์ก ขวด 620 มล. · ภาคกลาง",
+      "window": "6 ก.ย. 2569 – 19 ก.ย. 2569",
+      "observedLabel": "75.4 ลิตร",
+      "expectedLabel": "63.2 ลิตร",
+      "gapLabel": "19%",
+      "yearOverYear": false,
+      "direction": "up",
+      "hypothesis": "ปริมาณขายในภาคกลางสูงผิดปกติ ยังหาสาเหตุไม่ได้จากข้อมูลที่มี",
+      "verifySteps": [
+       "เทียบวังน้อยเบเวอเรจ · คาร์ลสเบิร์ก ขวด 620 มล. · ภาคกลางกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+       "เทียบวังน้อยเบเวอเรจ · คาร์ลสเบิร์ก ขวด 620 มล. · ภาคกลางกับช่วงเดียวกันของปีที่แล้ว"
+      ],
+      "ownerUserId": "u_somchai"
+     },
+     {
+      "id": "al_9a2a33a103cc2baa",
+      "severity": "P3",
+      "severityLabel": "เฝ้าระวัง",
+      "metric": "net_sales_volume",
+      "metricLabel": "ปริมาณขายเข้า (Sell-in)",
+      "scope": {
+       "agent": "ag_cen_05",
+       "brand": "carlsberg",
+       "region": "central"
+      },
+      "scopeLabel": "ราชบุรีสหมิตร · คาร์ลสเบิร์ก · ภาคกลาง",
+      "window": "26 ส.ค. 2569 – 21 ก.ย. 2569",
+      "observedLabel": "250 ลิตร",
+      "expectedLabel": "228 ลิตร",
+      "gapLabel": "10%",
+      "yearOverYear": false,
+      "direction": "up",
+      "hypothesis": "ปริมาณขายในภาคกลางสูงผิดปกติ ยังหาสาเหตุไม่ได้จากข้อมูลที่มี",
+      "verifySteps": [
+       "เทียบราชบุรีสหมิตร · คาร์ลสเบิร์ก · ภาคกลางกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+       "เทียบราชบุรีสหมิตร · คาร์ลสเบิร์ก · ภาคกลางกับช่วงเดียวกันของปีที่แล้ว"
+      ],
+      "ownerUserId": "u_somchai"
+     },
+     {
+      "id": "al_1ee6c7eaa1f811c3",
+      "severity": "P3",
+      "severityLabel": "เฝ้าระวัง",
+      "metric": "net_sales_volume",
+      "metricLabel": "ปริมาณขายเข้า (Sell-in)",
+      "scope": {
+       "agent": "ag_cen_02",
+       "brand": "singha",
+       "sku": "sku_singha_bottle320",
+       "region": "central"
+      },
+      "scopeLabel": "วังน้อยเบเวอเรจ · สิงห์ ขวด 320 มล. · ภาคกลาง",
+      "window": "2 ก.ย. 2569 – 21 ก.ย. 2569",
+      "observedLabel": "495 ลิตร",
+      "expectedLabel": "438 ลิตร",
+      "gapLabel": "13%",
+      "yearOverYear": false,
+      "direction": "up",
+      "hypothesis": "ปริมาณขายในภาคกลางสูงผิดปกติ ยังหาสาเหตุไม่ได้จากข้อมูลที่มี",
+      "verifySteps": [
+       "เทียบวังน้อยเบเวอเรจ · สิงห์ ขวด 320 มล. · ภาคกลางกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+       "เทียบวังน้อยเบเวอเรจ · สิงห์ ขวด 320 มล. · ภาคกลางกับช่วงเดียวกันของปีที่แล้ว"
+      ],
+      "ownerUserId": "u_somchai"
      }
     ],
     "lessons": [
@@ -295,17 +549,17 @@
   },
   {
    "kind": "text",
-   "text": "ภาคใต้พบความผิดปกติระดับเร่งด่วนที่ยอดค้างชำระเกินกำหนด โดยมีสมมติฐานว่าเอเย่นต์หลักอย่างสงขลาทักษิณ เทรดดิ้ง, เกาะสมุยเบเวอเรจ และนครศรีรุ่งเจริญ อาจติดปัญหาการวางบิลหรือชนเพดานวงเงินเครดิต สามารถตรวจยืนยันได้จากการดูยอดค้างชำระรายเดือน 6 เดือนล่าสุด และดูประวัติการสั่งซื้อรายวัน 30 วันล่าสุด ทั้งนี้ต้องการให้ส่งต่องานให้ผู้รับผิดชอบในพื้นที่เพื่อติดตามต่อหรือไม่"
+   "text": "ภาคใต้พบความผิดปกติระดับต้องรีบดู (P1) เรื่องยอดค้างชำระเกินกำหนด โดยสันนิษฐานว่าเกิดจากปัญหาการวางบิลและวงเงินของ สงขลาทักษิณ เทรดดิ้ง, เกาะสมุยเบเวอเรจ และนครศรีรุ่งเจริญ\n\nแนวทางตรวจสอบแนะนำให้ดูยอดค้างชำระเกินกำหนดย้อนหลัง 6 เดือน ควบคู่กับประวัติการสั่งซื้อรายวัน 30 วันล่าสุด และต้องการให้ส่งต่องานให้ผู้รับผิดชอบในพื้นที่ประสานงานต่อหรือไม่"
   }
  ],
  "asked": [],
  "error": null,
  "usage": {
   "calls": 2,
-  "inputTokens": 23855,
-  "outputTokens": 2979,
-  "reasoningTokens": 2826,
-  "usd": 0.007722525
+  "inputTokens": 27621,
+  "outputTokens": 3283,
+  "reasoningTokens": 3135,
+  "usd": 0.0095178
  },
  "drawn": {
   "cards": [

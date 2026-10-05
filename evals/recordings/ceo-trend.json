@@ -4,28 +4,29 @@
  "userId": "u_thana",
  "prompt": "แนวโน้มยอดขายรายเดือนปีนี้เป็นยังไง",
  "model": "google/gemini-3.8-flash",
- "promptHash": "b147f95e8a6c891a",
- "toolsHash": "5639642b6a430a27",
+ "promptHash": "0e40d01dd957aebf",
+ "toolsHash": "8bdfd8d8fb9656cf",
  "today": "2026-10-05",
- "recordedAt": "2026-10-05T15:42:19.683Z",
+ "recordedAt": "2026-10-05T18:51:37.453Z",
  "steps": [
   {
    "kind": "call",
    "tool": "query_metric",
    "args": {
+    "sort": null,
+    "compare": "prev_year",
+    "metric": "net_sales_value",
+    "grain": "month",
+    "where": null,
     "dims": [
      "month"
     ],
-    "filters": {},
-    "grain": "month",
-    "sort": null,
     "limit": 12,
+    "filters": {},
     "range": {
      "from": "2026-01-01",
      "to": "2026-09-22"
-    },
-    "compare": "prev_year",
-    "metric": "net_sales_value"
+    }
    },
    "result": {
     "ok": true,
@@ -110,7 +111,8 @@
      "grain": "month",
      "compare": "prev_year",
      "limit": 12,
-     "sort": null
+     "sort": null,
+     "where": null
     },
     "nextActions": [
      {
@@ -137,17 +139,17 @@
   },
   {
    "kind": "text",
-   "text": "แสดงข้อมูลเป็นมูลค่าขายเข้าสุทธิ (Net Sales Value) ซึ่งระบบเริ่มมีข้อมูลเปรียบเทียบปีก่อนได้ตั้งแต่เดือนเมษายน 2569 เป็นต้นมา โดยมีข้อมูลล่าสุดถึงวันที่ 22 กันยายน 2569 ภาพรวมยอดขายยังคงเติบโตเป็นบวกเมื่อเทียบกับช่วงเดียวกันของปีก่อนในทุกเดือน แม้จะมีแนวโน้มชะลอตัวลงตามปัจจัยฤดูกาลหลังผ่านช่วงพีค แนะนำให้เจาะดูแยกตามช่องทางจำหน่ายหรือรายภาคเพื่อประเมินกลุ่มที่เป็นตัวขับเคลื่อนหลักในช่วงนี้ต่อครับ"
+   "text": "รายงานแนวโน้มด้วยมูลค่าขายเข้าสุทธิ (net sales value) ซึ่งระบบมีข้อมูลเปรียบเทียบปีก่อนตั้งแต่ 1 เมษายน 2569 และเดือนกันยายนบันทึกข้อมูลถึงวันที่ 22\n\nภาพรวมยอดขายเติบโตเป็นบวกเมื่อเทียบปีก่อนอย่างต่อเนื่องในทุกเดือน โดยมีอัตราการเติบโตสูงสุดในเดือนกรกฎาคม แนะนำเจาะดูตามช่องทางจัดจำหน่ายหรือรายภาคเพิ่มเติมเพื่อดูปัจจัยขับเคลื่อนการเติบโตหลัก"
   }
  ],
  "asked": [],
  "error": null,
  "usage": {
   "calls": 2,
-  "inputTokens": 23013,
-  "outputTokens": 1930,
-  "reasoningTokens": 1714,
-  "usd": 0.0051071250000000006
+  "inputTokens": 23440,
+  "outputTokens": 1663,
+  "reasoningTokens": 1462,
+  "usd": 0.0048058375
  },
  "drawn": {
   "cards": [

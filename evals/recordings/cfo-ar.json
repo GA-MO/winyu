@@ -4,29 +4,57 @@
  "userId": "u_siriporn",
  "prompt": "ลูกหนี้ค้างชำระตอนนี้แยกตามภาค",
  "model": "google/gemini-3.8-flash",
- "promptHash": "b392a33b084b048a",
- "toolsHash": "3542bb7c8b47d7ed",
+ "promptHash": "f4a422047d7fd331",
+ "toolsHash": "dbd92ac157880cce",
  "today": "2026-10-05",
- "recordedAt": "2026-10-05T15:42:35.338Z",
+ "recordedAt": "2026-10-05T18:52:05.679Z",
  "steps": [
+  {
+   "kind": "call",
+   "tool": "list_metrics",
+   "args": {
+    "search": "ar_overdue"
+   },
+   "result": {
+    "ok": true,
+    "summary": "พบ 1 เมตริกที่ตรงกับคำค้น",
+    "data": [
+     {
+      "id": "ar_overdue",
+      "labelTh": "ยอดค้างชำระเกินกำหนด",
+      "unit": "บาท",
+      "dims": [
+       "month",
+       "agent",
+       "province",
+       "region"
+      ],
+      "certified": true,
+      "source": "SAP FI",
+      "refresh": "รายเดือน",
+      "latest": "22 ก.ย. 2569"
+     }
+    ]
+   }
+  },
   {
    "kind": "call",
    "tool": "query_metric",
    "args": {
     "compare": "prev_period",
-    "metric": "ar_overdue",
-    "filters": {},
-    "grain": "day",
     "range": {
-     "from": "2026-09-22",
+     "from": "2026-09-01",
      "to": "2026-09-22"
     },
+    "where": null,
     "limit": 10,
+    "filters": {},
+    "metric": "ar_overdue",
+    "grain": "month",
+    "sort": "value_desc",
     "dims": [
      "region"
-    ],
-    "sort": "value_desc",
-    "where": null
+    ]
    },
    "result": {
     "ok": true,
@@ -74,11 +102,11 @@
       "delta_pct": -32.8
      }
     ],
-    "summary": "ยอดค้างชำระเกินกำหนด 22 ก.ย. 2569: รวม 108.8 ล้านบาท · สูงสุด: กรุงเทพฯ และปริมณฑล 24.3 ล้านบาท · ภาคอีสาน 22.2 ล้านบาท · ภาคใต้ 19.9 ล้านบาท · เทียบช่วงก่อนหน้า -29.3% · (6 แถว · certified · SAP FI)",
+    "summary": "ยอดค้างชำระเกินกำหนด 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 108.8 ล้านบาท · สูงสุด: กรุงเทพฯ และปริมณฑล 24.3 ล้านบาท · ภาคอีสาน 22.2 ล้านบาท · ภาคใต้ 19.9 ล้านบาท · เทียบช่วงก่อนหน้า -29.3% · (6 แถว · certified · SAP FI)",
     "headline": {
      "aggregate": "sum",
      "value": "108.8 ล้านบาท",
-     "periodLabel": "22 ก.ย. 2569",
+     "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
      "rowCount": 6,
      "deltaPercent": -29.3,
      "compareLabel": "เทียบช่วงก่อนหน้า",
@@ -118,10 +146,10 @@
      ],
      "filters": {},
      "range": {
-      "from": "2026-09-22",
+      "from": "2026-09-01",
       "to": "2026-09-22"
      },
-     "grain": "day",
+     "grain": "month",
      "compare": "prev_period",
      "limit": 10,
      "sort": "value_desc",
@@ -147,10 +175,10 @@
          ],
          "filters": {},
          "range": {
-          "from": "2026-09-22",
+          "from": "2026-09-01",
           "to": "2026-09-22"
          },
-         "grain": "day",
+         "grain": "month",
          "compare": "prev_period",
          "limit": 10,
          "sort": "value_desc",
@@ -212,17 +240,17 @@
   },
   {
    "kind": "text",
-   "text": "ข้อมูลลูกหนี้ค้างชำระเกินกำหนดล่าสุด ณ วันที่ 22 ก.ย. 2569 มีทิศทางลดลงจากช่วงก่อนหน้าในทุกภาค โดยกรุงเทพฯ และปริมณฑลยังคงมียอดค้างสูงสุด แนะนำให้เจาะดูรายชื่อเอเย่นต์ในพื้นที่ดังกล่าวเพื่อติดตามการชำระเงินตามรอบเครดิตเทอม"
+   "text": "ข้อมูลยอดค้างชำระเกินกำหนดจากระบบ SAP FI ล่าสุดถึงวันที่ 22 กันยายน 2569 โดยแสดงข้อมูลครบทั้ง 6 ภาค\n\nภาพรวมทุกภาคมียอดค้างชำระลดลงเมื่อเทียบกับช่วงก่อนหน้า โดยกรุงเทพฯ และปริมณฑลยังคงมียอดค้างชำระสูงสุด ควรเจาะดูรายชื่อเอเย่นต์ในพื้นที่นี้เพิ่มเติมเพื่อเร่งรัดการเก็บเงินตามรอบเครดิตเทอม"
   }
  ],
  "asked": [],
  "error": null,
  "usage": {
-  "calls": 2,
-  "inputTokens": 22141,
-  "outputTokens": 986,
-  "reasoningTokens": 809,
-  "usd": 0.0035517375
+  "calls": 3,
+  "inputTokens": 35007,
+  "outputTokens": 2224,
+  "reasoningTokens": 2007,
+  "usd": 0.007018008333333333
  },
  "drawn": {
   "cards": [

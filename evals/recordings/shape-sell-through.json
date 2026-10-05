@@ -4,29 +4,85 @@
  "userId": "u_thana",
  "prompt": "เทียบยอดขายเข้ากับยอดขายออกของเอเย่นต์",
  "model": "google/gemini-3.8-flash",
- "promptHash": "b147f95e8a6c891a",
- "toolsHash": "5639642b6a430a27",
+ "promptHash": "0e40d01dd957aebf",
+ "toolsHash": "8bdfd8d8fb9656cf",
  "today": "2026-10-05",
- "recordedAt": "2026-10-05T15:49:38.541Z",
+ "recordedAt": "2026-10-05T18:58:23.785Z",
  "steps": [
+  {
+   "kind": "call",
+   "tool": "list_metrics",
+   "args": {
+    "search": "sell"
+   },
+   "result": {
+    "ok": true,
+    "summary": "พบ 2 เมตริกที่ตรงกับคำค้น",
+    "data": [
+     {
+      "id": "sell_out_volume",
+      "labelTh": "ปริมาณขายออก (Sell-out)",
+      "unit": "ลิตร",
+      "dims": [
+       "date",
+       "week",
+       "month",
+       "region",
+       "province",
+       "channel",
+       "brand",
+       "sku",
+       "pack",
+       "agent",
+       "business_unit"
+      ],
+      "certified": true,
+      "source": "SAP SD",
+      "refresh": "รายวัน",
+      "latest": "22 ก.ย. 2569"
+     },
+     {
+      "id": "net_sales_volume",
+      "labelTh": "ปริมาณขายเข้า (Sell-in)",
+      "unit": "ลิตร",
+      "dims": [
+       "date",
+       "week",
+       "month",
+       "region",
+       "province",
+       "channel",
+       "brand",
+       "sku",
+       "pack",
+       "agent",
+       "business_unit"
+      ],
+      "certified": true,
+      "source": "SAP SD",
+      "refresh": "รายวัน",
+      "latest": "22 ก.ย. 2569"
+     }
+    ]
+   }
+  },
   {
    "kind": "call",
    "tool": "query_metric",
    "args": {
-    "filters": {},
+    "grain": "month",
     "dims": [
      "agent"
     ],
+    "filters": {},
     "metric": "net_sales_volume",
-    "sort": "value_desc",
-    "where": null,
+    "compare": "none",
     "range": {
      "from": "2026-09-01",
      "to": "2026-09-22"
     },
     "limit": 10,
-    "grain": "month",
-    "compare": "none"
+    "sort": "value_desc"
    },
    "result": {
     "ok": true,
@@ -132,8 +188,7 @@
      "grain": "month",
      "compare": "none",
      "limit": 10,
-     "sort": "value_desc",
-     "where": null
+     "sort": "value_desc"
     },
     "nextActions": [
      {
@@ -187,19 +242,18 @@
    "kind": "call",
    "tool": "query_metric",
    "args": {
-    "grain": "month",
-    "metric": "sell_out_volume",
     "range": {
-     "to": "2026-09-22",
-     "from": "2026-09-01"
+     "from": "2026-09-01",
+     "to": "2026-09-22"
     },
     "limit": 10,
-    "compare": "none",
     "dims": [
      "agent"
     ],
-    "where": null,
     "filters": {},
+    "grain": "month",
+    "compare": "none",
+    "metric": "sell_out_volume",
     "sort": "value_desc"
    },
    "result": {
@@ -306,8 +360,7 @@
      "grain": "month",
      "compare": "none",
      "limit": 10,
-     "sort": "value_desc",
-     "where": null
+     "sort": "value_desc"
     },
     "nextActions": [
      {
@@ -335,8 +388,7 @@
          "grain": "month",
          "compare": "none",
          "limit": 10,
-         "sort": "value_desc",
-         "where": null
+         "sort": "value_desc"
         }
        ],
        "alertIds": [
@@ -386,17 +438,17 @@
   },
   {
    "kind": "text",
-   "text": "รายงานนี้ใช้เมตริกปริมาณขายเข้า (Sell-in Volume) เทียบกับปริมาณขายออก (Sell-out Volume) หน่วยเป็นลิตร ข้อมูลเดือนนี้ล่าสุดถึงวันที่ 22 ก.ย. 2569 \n\nในภาพรวมเอเย่นต์หลักมีปริมาณขายเข้าและขายออกสมดุลใกล้เคียงกัน โดยส่วนใหญ่ขายเข้าสูงกว่าขายออกเล็กน้อย ยกเว้น ส.รุ่งเรือง เทรดดิ้ง ที่ขายออกสูงกว่าขายเข้า แนะนำตรวจสอบวันครอบคลุมสต๊อก (Days of Cover) เพิ่มเติมเพื่อดูความเสี่ยงสินค้าขาดหน้าร้านหรือสต๊อกสะสม"
+   "text": "เทียบปริมาณขายเข้า (Sell-in) กับปริมาณขายออก (Sell-out) ในหน่วยลิตรของเอเย่นต์ 10 อันดับแรก ช่วง 1–22 ก.ย. 2569 ให้ตามข้อมูลล่าสุด\n\nภาพรวมเอเย่นต์หลักส่วนใหญ่มียอดขายเข้าสูงกว่ายอดขายออกหน้าร้านเล็กน้อย สะท้อนการหมุนเวียนสต๊อกที่ยังสมดุล ยกเว้นบางราย เช่น ส.รุ่งเรือง เทรดดิ้ง ที่ยอดขายออกเริ่มแซงยอดขายเข้า แนะนำตรวจสอบวันครอบคลุมสต๊อก (Days of Cover) เพิ่มเติมเพื่อวางแผนเติมสินค้าไม่ให้ขาดช่วง"
   }
  ],
  "asked": [],
  "error": null,
  "usage": {
-  "calls": 2,
-  "inputTokens": 25137,
-  "outputTokens": 2225,
-  "reasoningTokens": 1902,
-  "usd": 0.00645675
+  "calls": 3,
+  "inputTokens": 37564,
+  "outputTokens": 2190,
+  "reasoningTokens": 1854,
+  "usd": 0.0072000375
  },
  "drawn": {
   "cards": [

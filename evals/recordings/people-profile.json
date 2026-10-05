@@ -4,10 +4,10 @@
  "userId": "u_may",
  "prompt": "ขอดูโปรไฟล์คุณจอย ศรีประเสริฐ",
  "model": "google/gemini-3.8-flash",
- "promptHash": "2bfadd00013f7c5d",
- "toolsHash": "3542bb7c8b47d7ed",
+ "promptHash": "dd0dfe3d93273af0",
+ "toolsHash": "dbd92ac157880cce",
  "today": "2026-10-05",
- "recordedAt": "2026-10-05T15:50:25.927Z",
+ "recordedAt": "2026-10-05T18:59:02.700Z",
  "steps": [
   {
    "kind": "call",
@@ -91,17 +91,17 @@
   },
   {
    "kind": "text",
-   "text": "คุณจอยยังอยู่ในช่วงทดลองงานและมีชั่วโมงทำงานล่วงเวลาสะสมค่อนข้างสูง ควรนัดพูดคุยติดตามภาระงานร่วมกับหัวหน้างานและวางแผนเส้นทางความก้าวหน้า\n\n```a2ui\n{\"id\":\"root\",\"component\":\"Card\",\"title\":\"โปรไฟล์พนักงาน\",\"meta\":\"ข้อมูลบุคลากร\",\"footnote\":\"ระบบ HR\",\"children\":[\"person\",\"facts\"]}\n{\"id\":\"person\",\"component\":\"Person\",\"name\":{\"path\":\"/get_person/data/name\"},\"role\":{\"path\":\"/get_person/data/title\"},\"src\":{\"path\":\"/get_person/data/photo\"}}\n{\"id\":\"facts\",\"component\":\"KeyValue\",\"from\":{\"path\":\"/get_person/data/facts\"}}\n```"
+   "text": "คุณจอยอยู่ในช่วงทดลองงานและมีชั่วโมงการทำงานล่วงเวลาสะสมค่อนข้างสูง แนะนำให้ประสานงานกับหัวหน้างานเพื่อติดตามการจัดสรรภาระงานและพูดคุยเรื่องแนวทางความก้าวหน้า\n\n```a2ui\n{\"id\":\"root\",\"component\":\"Card\",\"title\":\"ข้อมูลพนักงาน\",\"footnote\":\"ระบบ HR\",\"children\":[\"profile\",\"facts\"]}\n{\"id\":\"profile\",\"component\":\"Person\",\"name\":{\"path\":\"/get_person/data/name\"},\"role\":{\"path\":\"/get_person/data/title\"},\"src\":{\"path\":\"/get_person/data/photo\"}}\n{\"id\":\"facts\",\"component\":\"KeyValue\",\"from\":{\"path\":\"/get_person/data/facts\"}}\n```"
   }
  ],
  "asked": [],
  "error": null,
  "usage": {
   "calls": 2,
-  "inputTokens": 20734,
-  "outputTokens": 2499,
-  "reasoningTokens": 2309,
-  "usd": 0.00564405
+  "inputTokens": 21298,
+  "outputTokens": 1273,
+  "reasoningTokens": 1086,
+  "usd": 0.003369825
  },
  "drawn": {
   "cards": [],
@@ -113,16 +113,15 @@
     {
      "id": "root",
      "component": "Card",
-     "title": "โปรไฟล์พนักงาน",
-     "meta": "ข้อมูลบุคลากร",
+     "title": "ข้อมูลพนักงาน",
      "footnote": "ระบบ HR",
      "children": [
-      "person",
+      "profile",
       "facts"
      ]
     },
     {
-     "id": "person",
+     "id": "profile",
      "component": "Person",
      "name": {
       "path": "/get_person/data/name"

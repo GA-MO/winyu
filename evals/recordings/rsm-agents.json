@@ -4,30 +4,29 @@
  "userId": "u_anucha",
  "prompt": "เอเย่นต์ในภาคผมที่ยอดตก",
  "model": "google/gemini-3.8-flash",
- "promptHash": "5cf727ed51a6d1b3",
- "toolsHash": "5639642b6a430a27",
+ "promptHash": "086aa018642e611e",
+ "toolsHash": "8bdfd8d8fb9656cf",
  "today": "2026-10-05",
- "recordedAt": "2026-10-05T15:43:11.319Z",
+ "recordedAt": "2026-10-05T18:52:36.934Z",
  "steps": [
   {
    "kind": "call",
    "tool": "query_metric",
    "args": {
-    "sort": "delta_asc",
-    "compare": "prev_period",
-    "dims": [
-     "agent"
-    ],
     "filters": {
      "region": "northeast"
     },
-    "where": null,
-    "grain": "month",
+    "sort": "delta_asc",
+    "dims": [
+     "agent"
+    ],
     "range": {
-     "from": "2026-09-01",
-     "to": "2026-09-22"
+     "to": "2026-09-22",
+     "from": "2026-09-01"
     },
     "metric": "net_sales_value",
+    "grain": "month",
+    "compare": "prev_period",
     "limit": 10
    },
    "result": {
@@ -150,8 +149,7 @@
      "grain": "month",
      "compare": "prev_period",
      "limit": 10,
-     "sort": "delta_asc",
-     "where": null
+     "sort": "delta_asc"
     },
     "nextActions": [
      {
@@ -186,17 +184,17 @@
   },
   {
    "kind": "text",
-   "text": "ใช้ข้อมูลมูลค่าขายเข้า (Net Sales Value) วันที่ 1–22 ก.ย. 2569 (ข้อมูลล่าสุดในระบบ) เทียบกับช่วงก่อนหน้า โดยพบว่ายอดของ อีสานรุ่งโรจน์ ค้าส่ง และ อุบลศรีสุข เทรดดิ้ง ตกลงรุนแรงที่สุดเกือบครึ่งหนึ่ง \n\nเบื้องต้นสันนิษฐานว่าอาจเกิดจากสต๊อกปลายทางยังคงค้างสูงจนชะลอการสั่งซื้อ หรือติดปัญหาเรื่องวงเงินสินเชื่อ แนะนำให้ตรวจสอบระดับวันครอบคลุมสต๊อก (Days of Cover) ควบคู่กับยอดหนี้ค้างชำระ (AR Overdue) และหากต้องการ สามารถส่งต่อข้อมูลนี้ให้ผู้รับผิดชอบในพื้นที่เข้าไปดูแลต่อได้ครับ"
+   "text": "รายงานจากมูลค่าขายสุทธิ (net_sales_value) ในภาคอีสาน ช่วงวันที่ 1–22 ก.ย. 2569 เทียบกับช่วงก่อนหน้า (ข้อมูลล่าสุดถึง 22 ก.ย. 2569) พบว่ายอดขายลดลงในทุกเอเย่นต์ โดยเฉพาะอีสานรุ่งโรจน์ ค้าส่ง และอุบลศรีสุข เทรดดิ้ง ที่ลดลงมากที่สุดเกือบครึ่งหนึ่ง แนะนำให้เจาะดูยอดขายออก (Sell-out) และระดับสต๊อกคงเหลือของสองรายนี้เพื่อตรวจสอบว่าเกิดจากปัญหาสินค้าค้างสต๊อกหรือดีมานด์หน้าร้านชะลอตัว"
   }
  ],
  "asked": [],
  "error": null,
  "usage": {
   "calls": 2,
-  "inputTokens": 23792,
-  "outputTokens": 3034,
-  "reasoningTokens": 2767,
-  "usd": 0.0074436
+  "inputTokens": 24335,
+  "outputTokens": 1946,
+  "reasoningTokens": 1698,
+  "usd": 0.00542025
  },
  "drawn": {
   "cards": [

@@ -4,34 +4,34 @@
  "userId": "u_arm",
  "prompt": "สินค้าตัวไหนสต๊อกพอขายน้อยกว่า 10 วัน",
  "model": "google/gemini-3.8-flash",
- "promptHash": "3366b49ab39693a3",
- "toolsHash": "3a1e2faaa57dde17",
+ "promptHash": "8898690078bbf372",
+ "toolsHash": "e80f152112971efa",
  "today": "2026-10-05",
- "recordedAt": "2026-10-05T15:54:19.161Z",
+ "recordedAt": "2026-10-05T19:02:44.485Z",
  "steps": [
   {
    "kind": "call",
    "tool": "query_metric",
    "args": {
-    "compare": "none",
-    "filters": {
-     "region": "south"
-    },
-    "limit": 20,
-    "range": {
-     "from": "2026-09-22",
-     "to": "2026-09-22"
-    },
-    "metric": "days_of_cover",
-    "grain": "day",
     "where": {
      "op": "below",
      "value": 10
     },
+    "range": {
+     "to": "2026-09-22",
+     "from": "2026-09-22"
+    },
+    "filters": {
+     "region": "south"
+    },
+    "grain": "day",
+    "sort": "value_asc",
+    "limit": 20,
+    "metric": "days_of_cover",
+    "compare": "none",
     "dims": [
      "sku"
-    ],
-    "sort": "value_asc"
+    ]
    },
    "result": {
     "ok": true,
@@ -146,17 +146,17 @@
   },
   {
    "kind": "text",
-   "text": "จากข้อมูลล่าสุดในระบบ ณ วันที่ 22 ก.ย. 2569 ในพื้นที่ภาคใต้ พบสินค้าที่มีวันครอบคลุมสต๊อกต่ำกว่าเกณฑ์ความปลอดภัยที่กำหนดไว้ ควรเร่งประสานงานศูนย์กระจายสินค้าเพื่อตรวจสอบรอบการจัดส่งหรือพิจารณาแผนเร่งเติมสต๊อกก่อนสินค้าจะขาดมือ"
+   "text": "ข้อมูลวันครอบคลุมสต๊อกล่าสุด ณ วันที่ 22 ก.ย. 2569 ในพื้นที่ภาคใต้ พบสินค้าที่มีสต๊อกต่ำกว่าเกณฑ์ความปลอดภัย 10 วัน แนะนำให้ตรวจสอบรอบการจัดส่งเข้าศูนย์กระจายสินค้าหรือติดตามการเติมสต๊อกเพื่อป้องกันสินค้าขาดหน้าร้าน"
   }
  ],
  "asked": [],
  "error": null,
  "usage": {
   "calls": 2,
-  "inputTokens": 20935,
-  "outputTokens": 1576,
-  "reasoningTokens": 1397,
-  "usd": 0.004459554166666667
+  "inputTokens": 21404,
+  "outputTokens": 1408,
+  "reasoningTokens": 1233,
+  "usd": 0.004139225
  },
  "drawn": {
   "cards": [

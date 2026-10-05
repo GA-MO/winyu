@@ -4,10 +4,10 @@
  "userId": "u_may",
  "prompt": "ครั้งก่อนที่เราคุยเรื่องคนลาออก ฝ่ายไหนน่าห่วงที่สุดนะ",
  "model": "google/gemini-3.8-flash",
- "promptHash": "2bfadd00013f7c5d",
- "toolsHash": "3542bb7c8b47d7ed",
+ "promptHash": "dd0dfe3d93273af0",
+ "toolsHash": "dbd92ac157880cce",
  "today": "2026-10-05",
- "recordedAt": "2026-10-05T15:55:43.745Z",
+ "recordedAt": "2026-10-05T19:04:13.643Z",
  "steps": [
   {
    "kind": "call",
@@ -21,11 +21,11 @@
     "data": [],
     "conversations": [
      {
-      "threadId": "eval-memory-recall-thread-before-7ad4b6f0-a96d-4103-8465-1516d55325cc",
+      "threadId": "eval-memory-recall-thread-before-6be0197b-4521-4fe7-84a1-6e99f30326a6",
       "title": "อัตราการลาออกแต่ละฝ่ายเป็นยังไง",
-      "at": "2026-10-05T15:55:33.835Z",
+      "at": "2026-10-05T19:04:04.497Z",
       "question": "อัตราการลาออกแต่ละฝ่ายเป็นยังไง",
-      "reply": "อัตราการลาออกเฉลี่ยต่อเดือนตั้งแต่ต้นปี [ตัวเลข] (ข้อมูลล่าสุดถึง [ตัวเลข] ก.ย. [ตัวเลข]) ฝ่ายไอทีและฝ่ายขายอยู่ในระดับสูงกว่าฝ่ายอื่นอย่างเห็นได้ชัด แนะนำให้ตรวจสอบแนวโน้มรายเดือนหรือดูรายชื่อพนักงานในกลุ่มเสี่ยงเพื่อวางแผนรักษาบุคลากรเชิงรุก",
+      "reply": "ข้อมูลอัตราการลาออกต่อเดือนล่าสุดถึงวันที่ [ตัวเลข] กันยายน [ตัวเลข] โดยภาพรวมเฉลี่ยขยับขึ้นจากช่วงก่อนหน้า นำโดยฝ่ายการผลิตที่มีอัตราเพิ่มขึ้นสวนทางกับฝ่ายอื่นที่ส่วนใหญ่ทรงตัวหรือลดลง จึงควรเจาะดูแนวโน้มรายตำแหน่งและสาเหตุการลาออกของฝ่ายการผลิตเพิ่มเติมเพื่อเตรียมแผนสรรหาทดแทน…",
       "queries": [
        {
         "metric": "attrition_rate",
@@ -34,17 +34,17 @@
         ],
         "filters": {},
         "range": {
-         "from": "2026-01-01",
+         "from": "2026-09-01",
          "to": "2026-09-22"
         },
         "grain": "month",
-        "compare": "none",
+        "compare": "prev_period",
         "limit": 10,
         "sort": "value_desc",
         "where": null
        }
       ],
-      "score": 0.8305871337652206
+      "score": 0.8333474844694138
      }
     ]
    }
@@ -53,72 +53,58 @@
    "kind": "call",
    "tool": "query_metric",
    "args": {
+    "compare": "prev_period",
+    "filters": {},
+    "metric": "attrition_rate",
+    "range": {
+     "to": "2026-09-22",
+     "from": "2026-09-01"
+    },
+    "limit": 10,
+    "where": null,
+    "grain": "month",
     "dims": [
      "department"
     ],
-    "sort": "value_desc",
-    "limit": 10,
-    "range": {
-     "to": "2026-09-22",
-     "from": "2026-01-01"
-    },
-    "grain": "month",
-    "filters": {},
-    "metric": "attrition_rate",
-    "compare": "prev_year",
-    "where": null
+    "sort": "value_desc"
    },
    "result": {
     "ok": true,
     "rows": [
      {
-      "department": "ไอที",
-      "value": 1.4,
-      "value_label": "1.4%",
-      "compare_value": 1.4,
-      "delta_pct": 2.3
-     },
-     {
-      "department": "ขาย",
-      "value": 1.4,
-      "value_label": "1.4%",
-      "compare_value": 1.4,
-      "delta_pct": -2.2
+      "department": "การผลิต",
+      "value": 1.5,
+      "value_label": "1.5%",
+      "compare_value": 1,
+      "delta_pct": 50.4
      },
      {
       "department": "การตลาด",
+      "value": 1.3,
+      "value_label": "1.3%",
+      "compare_value": 1.4,
+      "delta_pct": -3.6
+     },
+     {
+      "department": "ขาย",
+      "value": 1.3,
+      "value_label": "1.3%",
+      "compare_value": 1.5,
+      "delta_pct": -11.3
+     },
+     {
+      "department": "ไอที",
       "value": 1.2,
       "value_label": "1.2%",
-      "compare_value": 1.4,
-      "delta_pct": -16.3
-     },
-     {
-      "department": "การผลิต",
-      "value": 1.1,
-      "value_label": "1.1%",
-      "compare_value": 1.1,
-      "delta_pct": -6.2
-     },
-     {
-      "department": "ซัพพลายเชน",
-      "value": 0.9,
-      "value_label": "0.9%",
-      "compare_value": 0.8,
-      "delta_pct": 11.4
+      "compare_value": 1.6,
+      "delta_pct": -25
      },
      {
       "department": "ทรัพยากรบุคคล",
-      "value": 0.8,
-      "value_label": "0.8%",
+      "value": 1,
+      "value_label": "1.0%",
       "compare_value": 0.8,
-      "delta_pct": 1.9
-     },
-     {
-      "department": "การเงิน",
-      "value": 0.8,
-      "value_label": "0.8%",
-      "compare_value": 0.8,
-      "delta_pct": -2
+      "delta_pct": 31.1
      },
      {
       "department": "บริหาร",
@@ -126,29 +112,43 @@
       "value_label": "0.8%",
       "compare_value": 0.8,
       "delta_pct": 0
+     },
+     {
+      "department": "ซัพพลายเชน",
+      "value": 0.8,
+      "value_label": "0.8%",
+      "compare_value": 1.2,
+      "delta_pct": -31.8
+     },
+     {
+      "department": "การเงิน",
+      "value": 0.8,
+      "value_label": "0.8%",
+      "compare_value": 0.8,
+      "delta_pct": 0
      }
     ],
-    "summary": "อัตราการลาออกต่อเดือน 1 เม.ย. 2569 – 22 ก.ย. 2569: เฉลี่ย 1.1% · สูงสุด: ไอที 1.4% · ขาย 1.4% · การตลาด 1.2% · เทียบปีก่อน -3.4% · เทียบปีก่อนได้ตั้งแต่ 1 เม.ย. 2569 เพราะข้อมูลเริ่ม 1 เม.ย. 2568 · (8 แถว · certified · HRIS)",
+    "summary": "อัตราการลาออกต่อเดือน 1 ก.ย. 2569 – 22 ก.ย. 2569: เฉลี่ย 1.3% · สูงสุด: การผลิต 1.5% · การตลาด 1.3% · ขาย 1.3% · เทียบช่วงก่อนหน้า +12.5% · (8 แถว · certified · HRIS)",
     "headline": {
      "aggregate": "average",
-     "value": "1.1%",
-     "periodLabel": "1 เม.ย. 2569 – 22 ก.ย. 2569",
+     "value": "1.3%",
+     "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
      "rowCount": 8,
-     "deltaPercent": -3.4,
-     "compareLabel": "เทียบปีก่อน",
-     "compareNote": "เทียบปีก่อนได้ตั้งแต่ 1 เม.ย. 2569 เพราะข้อมูลเริ่ม 1 เม.ย. 2568",
+     "deltaPercent": 12.5,
+     "compareLabel": "เทียบช่วงก่อนหน้า",
+     "compareNote": null,
      "top": [
       {
-       "label": "ไอที",
-       "value": "1.4%"
-      },
-      {
-       "label": "ขาย",
-       "value": "1.4%"
+       "label": "การผลิต",
+       "value": "1.5%"
       },
       {
        "label": "การตลาด",
-       "value": "1.2%"
+       "value": "1.3%"
+      },
+      {
+       "label": "ขาย",
+       "value": "1.3%"
       }
      ],
      "underLine": null
@@ -172,11 +172,11 @@
      ],
      "filters": {},
      "range": {
-      "from": "2026-01-01",
+      "from": "2026-09-01",
       "to": "2026-09-22"
      },
      "grain": "month",
-     "compare": "prev_year",
+     "compare": "prev_period",
      "limit": 10,
      "sort": "value_desc",
      "where": null
@@ -185,21 +185,29 @@
      {
       "id": "drill-why",
       "kind": "drill",
-      "label": "ทำไมซัพพลายเชนถึงเป็นแบบนี้",
-      "reason": "ซัพพลายเชน เปลี่ยนไปในทางที่แย่ที่สุด",
+      "label": "ทำไมการผลิตถึงเป็นแบบนี้",
+      "reason": "การผลิต เปลี่ยนไปในทางที่แย่ที่สุด",
       "tool": null,
       "input": null,
-      "prompt": "เจาะดูอัตราการลาออกต่อเดือนของซัพพลายเชน ว่าทำไมถึงเปลี่ยนไป เทียบกับช่วงก่อนหน้าและช่วงเดียวกันปีก่อน"
+      "prompt": "เจาะดูอัตราการลาออกต่อเดือนของการผลิต ว่าทำไมถึงเปลี่ยนไป เทียบกับช่วงก่อนหน้าและช่วงเดียวกันปีก่อน"
      }
     ],
     "followUps": [
      {
       "id": "fu-trend",
       "label": "เริ่มแย่ตั้งแต่เมื่อไร",
-      "prompt": "อัตราการลาออกต่อเดือนของซัพพลายเชน รายเดือนย้อนหลัง 6 เดือน",
+      "prompt": "อัตราการลาออกต่อเดือนของการผลิต รายเดือนย้อนหลัง 6 เดือน",
       "reason": "ดูว่าตัวเลขเริ่มลดลงสัปดาห์ไหน",
       "intentKey": "follow|trend",
       "score": 0.65
+     },
+     {
+      "id": "fu-compare_year",
+      "label": "เทียบปีก่อน",
+      "prompt": "ขออัตราการลาออกต่อเดือนแยกตามฝ่าย เทียบกับช่วงเดียวกันปีก่อน",
+      "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+      "intentKey": "follow|compare_year",
+      "score": 0.45
      }
     ]
    }
@@ -208,7 +216,7 @@
    "kind": "call",
    "tool": "get_alerts",
    "args": {
-    "limit": 5,
+    "limit": 10,
     "status": "open"
    },
    "result": {
@@ -221,17 +229,17 @@
   },
   {
    "kind": "text",
-   "text": "ครั้งก่อนที่เราคุยกัน ฝ่ายที่น่าห่วงที่สุดคือฝ่ายไอทีและฝ่ายขายเนื่องจากมีอัตราการลาออกสูงกว่าฝ่ายอื่น (โดยข้อมูลสามารถเปรียบเทียบกับปีก่อนได้ตั้งแต่ 1 เม.ย. 2569) แนะนำให้ตรวจสอบพนักงานกลุ่มเสี่ยงในสองฝ่ายนี้เพื่อวางแนวทางรักษาบุคลากรเชิงรุกครับ"
+   "text": "ครั้งก่อนที่เราคุยกัน ฝ่ายที่น่าห่วงที่สุดคือ**ฝ่ายการผลิต**ครับ เนื่องจากมีอัตราการลาออกเพิ่มขึ้นสวนทางกับฝ่ายอื่นและยังคงอยู่ในระดับสูงสุดของเดือนล่าสุด จึงควรเจาะดูแนวโน้มรายตำแหน่งและปัจจัยการลาออกของฝ่ายการผลิตเพื่อเตรียมแผนสรรหาและรักษาบุคลากรทดแทนครับ"
   }
  ],
  "asked": [],
  "error": null,
  "usage": {
-  "calls": 5,
-  "inputTokens": 44526,
-  "outputTokens": 3860,
-  "reasoningTokens": 3444,
-  "usd": 0.010511495833333334
+  "calls": 6,
+  "inputTokens": 59019,
+  "outputTokens": 4007,
+  "reasoningTokens": 3566,
+  "usd": 0.012351916666666667
  },
  "drawn": {
   "cards": [
@@ -249,85 +257,101 @@
      "tool": "query_metric",
      "args": {
       "grain": "month",
+      "where": null,
+      "metric": "attrition_rate",
       "sort": "value_desc",
-      "range": {
-       "to": "2026-09-22",
-       "from": "2026-01-01"
-      },
       "dims": [
        "department"
       ],
-      "limit": 10,
       "filters": {},
-      "compare": "none",
-      "metric": "attrition_rate",
-      "where": null
+      "range": {
+       "from": "2026-09-01",
+       "to": "2026-09-22"
+      },
+      "limit": 10,
+      "compare": "prev_period"
      },
      "result": {
       "ok": true,
       "rows": [
        {
-        "department": "ไอที",
+        "department": "การผลิต",
         "value": 1.5,
-        "value_label": "1.5%"
+        "value_label": "1.5%",
+        "compare_value": 1,
+        "delta_pct": 50.4
+       },
+       {
+        "department": "การตลาด",
+        "value": 1.3,
+        "value_label": "1.3%",
+        "compare_value": 1.4,
+        "delta_pct": -3.6
        },
        {
         "department": "ขาย",
         "value": 1.3,
-        "value_label": "1.3%"
+        "value_label": "1.3%",
+        "compare_value": 1.5,
+        "delta_pct": -11.3
        },
        {
-        "department": "การตลาด",
+        "department": "ไอที",
         "value": 1.2,
-        "value_label": "1.2%"
-       },
-       {
-        "department": "การผลิต",
-        "value": 1,
-        "value_label": "1.0%"
-       },
-       {
-        "department": "ซัพพลายเชน",
-        "value": 1,
-        "value_label": "1.0%"
+        "value_label": "1.2%",
+        "compare_value": 1.6,
+        "delta_pct": -25
        },
        {
         "department": "ทรัพยากรบุคคล",
-        "value": 0.9,
-        "value_label": "0.9%"
-       },
-       {
-        "department": "การเงิน",
-        "value": 0.8,
-        "value_label": "0.8%"
+        "value": 1,
+        "value_label": "1.0%",
+        "compare_value": 0.8,
+        "delta_pct": 31.1
        },
        {
         "department": "บริหาร",
         "value": 0.8,
-        "value_label": "0.8%"
+        "value_label": "0.8%",
+        "compare_value": 0.8,
+        "delta_pct": 0
+       },
+       {
+        "department": "ซัพพลายเชน",
+        "value": 0.8,
+        "value_label": "0.8%",
+        "compare_value": 1.2,
+        "delta_pct": -31.8
+       },
+       {
+        "department": "การเงิน",
+        "value": 0.8,
+        "value_label": "0.8%",
+        "compare_value": 0.8,
+        "delta_pct": 0
        }
       ],
-      "summary": "อัตราการลาออกต่อเดือน 1 ม.ค. 2569 – 22 ก.ย. 2569: เฉลี่ย 1.1% · สูงสุด: ไอที 1.5% · ขาย 1.3% · การตลาด 1.2% · (8 แถว · certified · HRIS)",
+      "summary": "อัตราการลาออกต่อเดือน 1 ก.ย. 2569 – 22 ก.ย. 2569: เฉลี่ย 1.3% · สูงสุด: การผลิต 1.5% · การตลาด 1.3% · ขาย 1.3% · เทียบช่วงก่อนหน้า +12.5% · (8 แถว · certified · HRIS)",
       "headline": {
        "aggregate": "average",
-       "value": "1.1%",
-       "periodLabel": "1 ม.ค. 2569 – 22 ก.ย. 2569",
+       "value": "1.3%",
+       "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
        "rowCount": 8,
-       "deltaPercent": null,
-       "compareLabel": null,
+       "deltaPercent": 12.5,
+       "compareLabel": "เทียบช่วงก่อนหน้า",
        "compareNote": null,
        "top": [
         {
-         "label": "ไอที",
+         "label": "การผลิต",
          "value": "1.5%"
+        },
+        {
+         "label": "การตลาด",
+         "value": "1.3%"
         },
         {
          "label": "ขาย",
          "value": "1.3%"
-        },
-        {
-         "label": "การตลาด",
-         "value": "1.2%"
         }
        ],
        "underLine": null
@@ -351,24 +375,34 @@
        ],
        "filters": {},
        "range": {
-        "from": "2026-01-01",
+        "from": "2026-09-01",
         "to": "2026-09-22"
        },
        "grain": "month",
-       "compare": "none",
+       "compare": "prev_period",
        "limit": 10,
        "sort": "value_desc",
        "where": null
       },
-      "nextActions": [],
+      "nextActions": [
+       {
+        "id": "drill-why",
+        "kind": "drill",
+        "label": "ทำไมการผลิตถึงเป็นแบบนี้",
+        "reason": "การผลิต เปลี่ยนไปในทางที่แย่ที่สุด",
+        "tool": null,
+        "input": null,
+        "prompt": "เจาะดูอัตราการลาออกต่อเดือนของการผลิต ว่าทำไมถึงเปลี่ยนไป เทียบกับช่วงก่อนหน้าและช่วงเดียวกันปีก่อน"
+       }
+      ],
       "followUps": [
        {
         "id": "fu-trend",
-        "label": "ดูแนวโน้มรายเดือน",
-        "prompt": "อัตราการลาออกต่อเดือน รายเดือนย้อนหลัง 6 เดือน",
-        "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+        "label": "เริ่มแย่ตั้งแต่เมื่อไร",
+        "prompt": "อัตราการลาออกต่อเดือนของการผลิต รายเดือนย้อนหลัง 6 เดือน",
+        "reason": "ดูว่าตัวเลขเริ่มลดลงสัปดาห์ไหน",
         "intentKey": "follow|trend",
-        "score": 0.5
+        "score": 0.65
        },
        {
         "id": "fu-compare_year",
@@ -382,8 +416,23 @@
      }
     },
     {
+     "kind": "call",
+     "tool": "get_alerts",
+     "args": {
+      "limit": 5,
+      "status": "open"
+     },
+     "result": {
+      "ok": true,
+      "summary": "ไม่พบความผิดปกติที่เปิดอยู่ในขอบเขตของผู้ใช้คนนี้",
+      "rows": [],
+      "lessons": [],
+      "nextActions": []
+     }
+    },
+    {
      "kind": "text",
-     "text": "อัตราการลาออกเฉลี่ยต่อเดือนตั้งแต่ต้นปี 2569 (ข้อมูลล่าสุดถึง 22 ก.ย. 2569) ฝ่ายไอทีและฝ่ายขายอยู่ในระดับสูงกว่าฝ่ายอื่นอย่างเห็นได้ชัด แนะนำให้ตรวจสอบแนวโน้มรายเดือนหรือดูรายชื่อพนักงานในกลุ่มเสี่ยงเพื่อวางแผนรักษาบุคลากรเชิงรุก"
+     "text": "ข้อมูลอัตราการลาออกต่อเดือนล่าสุดถึงวันที่ 22 กันยายน 2569 โดยภาพรวมเฉลี่ยขยับขึ้นจากช่วงก่อนหน้า นำโดยฝ่ายการผลิตที่มีอัตราเพิ่มขึ้นสวนทางกับฝ่ายอื่นที่ส่วนใหญ่ทรงตัวหรือลดลง จึงควรเจาะดูแนวโน้มรายตำแหน่งและสาเหตุการลาออกของฝ่ายการผลิตเพิ่มเติมเพื่อเตรียมแผนสรรหาทดแทนได้ทันเวลา"
     }
    ]
   }

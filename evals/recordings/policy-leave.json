@@ -4,10 +4,10 @@
  "userId": "u_krit",
  "prompt": "ลาพักร้อนยังไง",
  "model": "google/gemini-3.8-flash",
- "promptHash": "e19b55ac9c542b7b",
- "toolsHash": "3a1e2faaa57dde17",
+ "promptHash": "7bbc19edc6ac2251",
+ "toolsHash": "e80f152112971efa",
  "today": "2026-10-05",
- "recordedAt": "2026-10-05T15:53:26.260Z",
+ "recordedAt": "2026-10-05T19:01:50.046Z",
  "steps": [
   {
    "kind": "call",
@@ -85,17 +85,17 @@
   },
   {
    "kind": "text",
-   "text": "การลาพักร้อนต้องยื่นคำขอล่วงหน้าผ่านระบบเพื่อให้หัวหน้างานพิจารณาอนุมัติทาง Inbox หากมีวันที่ต้องการลาแน่นอนแล้ว สามารถระบุช่วงวันเริ่มต้นและวันสิ้นสุดเพื่อดำเนินการส่งคำขออนุมัติได้ทันที\n\n```a2ui\n{\"id\":\"root\",\"component\":\"Card\",\"title\":\"ระเบียบและสิทธิ์การลาพักร้อน\",\"meta\":{\"path\":\"/get_policy/data/summary\"},\"footnote\":\"ระบบ HR\",\"children\":[\"bal\",\"rule\",\"approval\"]}\n{\"id\":\"bal\",\"component\":\"Metric\",\"label\":{\"path\":\"/get_policy/data/balances/0/label\"},\"value\":{\"path\":\"/get_policy/data/balances/0/value\"},\"detail\":{\"path\":\"/get_policy/data/balances/0/detail\"}}\n{\"id\":\"rule\",\"component\":\"Callout\",\"title\":{\"path\":\"/get_policy/data/sections/0/title\"},\"body\":{\"path\":\"/get_policy/data/sections/0/content\"},\"tone\":\"info\"}\n{\"id\":\"approval\",\"component\":\"Callout\",\"title\":{\"path\":\"/get_policy/data/sections/3/title\"},\"body\":{\"path\":\"/get_policy/data/sections/3/content\"},\"tone\":\"neutral\"}\n```"
+   "text": "สามารถแจ้งช่วงวันที่ต้องการลาพักร้อนพร้อมเหตุผล เพื่อให้ระบบทำรายการส่งใบลาเข้า Inbox ของหัวหน้างานเพื่ออนุมัติได้ทันทีครับ\n\n```a2ui\n{\"id\":\"root\",\"component\":\"Card\",\"title\":\"ระเบียบและสิทธิ์การลาพักร้อน\",\"footnote\":\"ระบบ HR\",\"children\":[\"bal\",\"rule\",\"approval\"]}\n{\"id\":\"bal\",\"component\":\"Metric\",\"label\":{\"path\":\"/get_policy/data/balances/0/label\"},\"value\":{\"path\":\"/get_policy/data/balances/0/value\"},\"detail\":{\"path\":\"/get_policy/data/balances/0/detail\"}}\n{\"id\":\"rule\",\"component\":\"Callout\",\"title\":{\"path\":\"/get_policy/data/sections/0/title\"},\"body\":{\"path\":\"/get_policy/data/sections/0/content\"},\"tone\":\"info\"}\n{\"id\":\"approval\",\"component\":\"Callout\",\"title\":{\"path\":\"/get_policy/data/sections/3/title\"},\"body\":{\"path\":\"/get_policy/data/sections/3/content\"},\"tone\":\"neutral\"}\n```"
   }
  ],
  "asked": [],
  "error": null,
  "usage": {
   "calls": 2,
-  "inputTokens": 20868,
-  "outputTokens": 5505,
-  "reasoningTokens": 5213,
-  "usd": 0.011597175
+  "inputTokens": 21258,
+  "outputTokens": 10782,
+  "reasoningTokens": 10525,
+  "usd": 0.021450825
  },
  "drawn": {
   "cards": [],
@@ -103,7 +103,6 @@
    "accepted": 4,
    "rejected": 0,
    "problems": [
-    "root.meta: path \"/get_policy/data/summary\" is not in this turn's tool results (keys: get_policy) (dropped)",
     "approval.tone: Invalid enum value. Expected 'info' | 'success' | 'warning' | 'danger', received 'neutral' (dropped)"
    ],
    "components": [

@@ -4,29 +4,28 @@
  "userId": "u_thana",
  "prompt": "10 เอเย่นต์ที่ยอดขายเดือนที่แล้วตกมากที่สุดเทียบเดือนก่อนหน้า",
  "model": "google/gemini-3.8-flash",
- "promptHash": "b147f95e8a6c891a",
- "toolsHash": "5639642b6a430a27",
+ "promptHash": "0e40d01dd957aebf",
+ "toolsHash": "8bdfd8d8fb9656cf",
  "today": "2026-10-05",
- "recordedAt": "2026-10-05T15:47:58.962Z",
+ "recordedAt": "2026-10-05T18:56:48.372Z",
  "steps": [
   {
    "kind": "call",
    "tool": "query_metric",
    "args": {
+    "grain": "month",
+    "limit": 10,
     "sort": "delta_asc",
-    "compare": "prev_period",
     "range": {
-     "to": "2026-08-31",
-     "from": "2026-08-01"
+     "from": "2026-08-01",
+     "to": "2026-08-31"
     },
-    "metric": "net_sales_value",
-    "where": null,
+    "filters": {},
+    "compare": "prev_period",
     "dims": [
      "agent"
     ],
-    "limit": 10,
-    "grain": "month",
-    "filters": {}
+    "metric": "net_sales_value"
    },
    "result": {
     "ok": true,
@@ -152,8 +151,7 @@
      "grain": "month",
      "compare": "prev_period",
      "limit": 10,
-     "sort": "delta_asc",
-     "where": null
+     "sort": "delta_asc"
     },
     "nextActions": [
      {
@@ -181,8 +179,7 @@
          "grain": "month",
          "compare": "prev_period",
          "limit": 10,
-         "sort": "delta_asc",
-         "where": null
+         "sort": "delta_asc"
         }
        ],
        "alertIds": []
@@ -221,17 +218,17 @@
   },
   {
    "kind": "text",
-   "text": "รายงานด้วยมูลค่าขายสุทธิ (net_sales_value) ประจำเดือนสิงหาคม 2569 เทียบกับเดือนกรกฎาคม 2569 ข้อมูลล่าสุดถึงวันที่ 22 กันยายน 2569\n\nเอเย่นต์ทั้ง 10 รายมียอดขายลดลงในระดับใกล้เคียงกันประมาณ 27–28% โดยปากช่องเบเวอเรจลดลงมากที่สุด ควรตรวจสอบว่าการลดลงพร้อมกันในหลายพื้นที่เกิดจากปัจจัยฤดูกาล วันหยุดทางศาสนา หรือการสต๊อกสินค้าล่วงหน้าในเดือนก่อนหน้า"
+   "text": "รายงานด้วยมูลค่าขายเข้า (net_sales_value) ของเดือนสิงหาคมเทียบกับกรกฎาคม 2569 (ข้อมูลระบบล่าสุดถึง 22 ก.ย. 2569) ซึ่งเอเย่นต์ทั้ง 10 รายมียอดลดลงในอัตราใกล้เคียงกันราว 28% \n\nสมมติฐานเบื้องต้นคืออาจได้รับผลกระทบจากเทศกาลเข้าพรรษาหรือเอเย่นต์มีสต๊อกคงค้างสูง โดยสิ่งที่ควรตรวจต่อคือวันครอบคลุมสต๊อก (Days of Cover) ควบคู่กับยอดขายออก (Sell-out) และเปรียบเทียบกับช่วงเดียวกันของปีก่อนหน้าเพื่อแยกผลกระทบตามฤดูกาล"
   }
  ],
  "asked": [],
  "error": null,
  "usage": {
   "calls": 2,
-  "inputTokens": 23600,
-  "outputTokens": 1342,
-  "reasoningTokens": 1119,
-  "usd": 0.00422475
+  "inputTokens": 24112,
+  "outputTokens": 2630,
+  "reasoningTokens": 2380,
+  "usd": 0.006644775
  },
  "drawn": {
   "cards": [

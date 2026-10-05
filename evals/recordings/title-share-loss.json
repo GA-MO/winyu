@@ -4,139 +4,50 @@
  "userId": "u_prasit",
  "prompt": "จังหวัดไหนเสียส่วนแบ่งให้คู่แข่งมากที่สุด",
  "model": "google/gemini-3.8-flash",
- "promptHash": "d8375ddb2e030dc5",
- "toolsHash": "5639642b6a430a27",
+ "promptHash": "82948723a2ab8974",
+ "toolsHash": "8bdfd8d8fb9656cf",
  "today": "2026-10-05",
- "recordedAt": "2026-10-05T15:54:52.500Z",
+ "recordedAt": "2026-10-05T19:03:14.588Z",
  "steps": [
   {
    "kind": "call",
-   "tool": "query_metric",
+   "tool": "list_metrics",
    "args": {
-    "grain": "month",
-    "filters": {},
-    "range": {
-     "to": "2026-09-22",
-     "from": "2026-09-01"
-    },
-    "sort": "delta_asc",
-    "limit": 5,
-    "dims": [
-     "province"
-    ],
-    "compare": "prev_year",
-    "metric": "market_share"
+    "search": "market_share"
    },
    "result": {
     "ok": true,
-    "rows": [],
-    "summary": "ส่วนแบ่งตลาดเบียร์ 1 ก.ย. 2569 – 22 ก.ย. 2569: ไม่พบข้อมูลตามเงื่อนไขที่ขอ",
-    "headline": {
-     "aggregate": "average",
-     "value": "—",
-     "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
-     "rowCount": 0,
-     "deltaPercent": null,
-     "compareLabel": null,
-     "compareNote": null,
-     "top": [],
-     "underLine": null
-    },
-    "provenance": {
-     "metric": "market_share",
-     "certified": false,
-     "sourceSystem": "Retail audit รายเดือน",
-     "asOf": "2026-09-22",
-     "rowCount": 0,
-     "filtersApplied": {
-      "maker": [
-       "mk_boonrawd"
-      ]
-     },
-     "filterLabels": [
-      "บุญรอดบริวเวอรี่"
-     ],
-     "scopeApplied": {},
-     "masked": [],
-     "trust": "derived"
-    },
-    "query": {
-     "metric": "market_share",
-     "dims": [
-      "province"
-     ],
-     "filters": {},
-     "range": {
-      "from": "2026-09-01",
-      "to": "2026-09-22"
-     },
-     "grain": "month",
-     "compare": "prev_year",
-     "limit": 5,
-     "sort": "delta_asc"
-    },
-    "nextActions": [
+    "summary": "พบ 2 เมตริกที่ตรงกับคำค้น",
+    "data": [
      {
-      "id": "handoff",
-      "kind": "handoff",
-      "label": "ส่งงานให้คุณกนก",
-      "reason": "เจ้าของตัวเลขยอดขายของพื้นที่ (ระดับประเทศ)",
-      "tool": "create_handoff",
-      "input": {
-       "toUserId": "u_kanok",
-       "title": "ส่วนแบ่งตลาดเบียร์",
-       "ask": "ช่วยตรวจนครราชสีมา · ภาคอีสาน แล้วบอกกลับว่าเกิดจากอะไรและจะแก้อย่างไร",
-       "urgency": "high",
-       "evidence": [
-        {
-         "metric": "market_share",
-         "dims": [
-          "province"
-         ],
-         "filters": {},
-         "range": {
-          "from": "2026-09-01",
-          "to": "2026-09-22"
-         },
-         "grain": "month",
-         "compare": "prev_year",
-         "limit": 5,
-         "sort": "delta_asc"
-        }
-       ],
-       "alertIds": [
-        "al_fa3be1e7b4f9fe40"
-       ]
-      },
-      "prompt": null
+      "id": "market_share",
+      "labelTh": "ส่วนแบ่งตลาดเบียร์",
+      "unit": "%",
+      "dims": [
+       "month",
+       "region",
+       "province",
+       "maker"
+      ],
+      "certified": false,
+      "source": "Retail audit รายเดือน",
+      "refresh": "รอบสำรวจรายเดือน",
+      "latest": "รอบ ส.ค. 69"
      },
      {
-      "id": "verify",
-      "kind": "verify",
-      "label": "ตรวจสาเหตุ",
-      "reason": "เทียบส่วนแบ่งตลาดของทุกผู้ผลิตในนครราชสีมา เทียบปีก่อน",
-      "tool": null,
-      "input": null,
-      "prompt": "เทียบส่วนแบ่งตลาดของทุกผู้ผลิตในนครราชสีมา เทียบปีก่อน"
-     },
-     {
-      "id": "drill-region",
-      "kind": "drill",
-      "label": "แยกตามภาค",
-      "reason": "ยังไม่ได้ดูแยกรายภาค",
-      "tool": null,
-      "input": null,
-      "prompt": "ขอส่วนแบ่งตลาดเบียร์แยกตามภาค เรียงจากมากไปน้อย"
-     }
-    ],
-    "followUps": [
-     {
-      "id": "fu-trend",
-      "label": "ดูแนวโน้มรายเดือน",
-      "prompt": "ส่วนแบ่งตลาดเบียร์ รายเดือนย้อนหลัง 6 เดือน",
-      "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
-      "intentKey": "follow|trend",
-      "score": 0.5
+      "id": "ar_overdue",
+      "labelTh": "ยอดค้างชำระเกินกำหนด",
+      "unit": "บาท",
+      "dims": [
+       "month",
+       "agent",
+       "province",
+       "region"
+      ],
+      "certified": true,
+      "source": "SAP FI",
+      "refresh": "รายเดือน",
+      "latest": "22 ก.ย. 2569"
      }
     ]
    }
@@ -145,19 +56,19 @@
    "kind": "call",
    "tool": "query_metric",
    "args": {
+    "filters": {},
     "range": {
      "from": "2026-08-01",
      "to": "2026-08-31"
     },
-    "limit": 5,
+    "compare": "prev_year",
+    "sort": "delta_asc",
+    "limit": 10,
+    "metric": "market_share",
     "dims": [
      "province"
     ],
-    "compare": "prev_year",
-    "grain": "month",
-    "filters": {},
-    "sort": "delta_asc",
-    "metric": "market_share"
+    "grain": "month"
    },
    "result": {
     "ok": true,
@@ -196,14 +107,49 @@
       "value_label": "52.5%",
       "compare_value": 53.5,
       "delta_pct": -2
+     },
+     {
+      "province": "ภูเก็ต",
+      "value": 58.3,
+      "value_label": "58.3%",
+      "compare_value": 59.2,
+      "delta_pct": -1.7
+     },
+     {
+      "province": "ฉะเชิงเทรา",
+      "value": 59.4,
+      "value_label": "59.4%",
+      "compare_value": 60.4,
+      "delta_pct": -1.6
+     },
+     {
+      "province": "สมุทรปราการ",
+      "value": 58,
+      "value_label": "58.0%",
+      "compare_value": 59,
+      "delta_pct": -1.6
+     },
+     {
+      "province": "นครศรีธรรมราช",
+      "value": 59.1,
+      "value_label": "59.1%",
+      "compare_value": 60.1,
+      "delta_pct": -1.5
+     },
+     {
+      "province": "จันทบุรี",
+      "value": 57.6,
+      "value_label": "57.6%",
+      "compare_value": 58.5,
+      "delta_pct": -1.5
      }
     ],
-    "summary": "ส่วนแบ่งตลาดเบียร์ 1 ส.ค. 2569 – 31 ส.ค. 2569: เฉลี่ย 59.3% · สูงสุด: อุบลราชธานี 66.5% · ขอนแก่น 64.4% · บุรีรัมย์ 63.4% · เทียบปีก่อน -1.8% · (5 แถว · derived · Retail audit รายเดือน)",
+    "summary": "ส่วนแบ่งตลาดเบียร์ 1 ส.ค. 2569 – 31 ส.ค. 2569: เฉลี่ย 59.3% · สูงสุด: อุบลราชธานี 66.5% · ขอนแก่น 64.4% · บุรีรัมย์ 63.4% · เทียบปีก่อน -1.8% · (10 แถว · derived · Retail audit รายเดือน)",
     "headline": {
      "aggregate": "average",
      "value": "59.3%",
      "periodLabel": "1 ส.ค. 2569 – 31 ส.ค. 2569",
-     "rowCount": 5,
+     "rowCount": 10,
      "deltaPercent": -1.8,
      "compareLabel": "เทียบปีก่อน",
      "compareNote": null,
@@ -228,7 +174,7 @@
      "certified": false,
      "sourceSystem": "Retail audit รายเดือน",
      "asOf": "2026-09-22",
-     "rowCount": 5,
+     "rowCount": 10,
      "filtersApplied": {
       "maker": [
        "mk_boonrawd"
@@ -253,7 +199,7 @@
      },
      "grain": "month",
      "compare": "prev_year",
-     "limit": 5,
+     "limit": 10,
      "sort": "delta_asc"
     },
     "nextActions": [
@@ -281,7 +227,7 @@
          },
          "grain": "month",
          "compare": "prev_year",
-         "limit": 5,
+         "limit": 10,
          "sort": "delta_asc"
         }
        ],
@@ -331,22 +277,183 @@
    }
   },
   {
+   "kind": "call",
+   "tool": "get_alerts",
+   "args": {
+    "limit": 5,
+    "status": "open"
+   },
+   "result": {
+    "ok": true,
+    "summary": "มีความผิดปกติที่เปิดอยู่ 5 รายการในขอบเขตของคุณ",
+    "rows": [
+     {
+      "id": "al_7364476d77c8f435",
+      "severity": "P1",
+      "severityLabel": "ต้องรีบดู",
+      "metric": "net_sales_volume",
+      "metricLabel": "ปริมาณขายเข้า (Sell-in)",
+      "scope": {
+       "agent": "ag_nea_05",
+       "region": "northeast"
+      },
+      "scopeLabel": "อุบลศรีสุข เทรดดิ้ง · ภาคอีสาน",
+      "window": "9 ก.ย. 2569 – 22 ก.ย. 2569",
+      "observedLabel": "2,220 ลิตร",
+      "expectedLabel": "12,928 ลิตร",
+      "gapLabel": "83%",
+      "yearOverYear": false,
+      "direction": "down",
+      "hypothesis": "อุบลศรีสุข เทรดดิ้ง แทบไม่มีคำสั่งซื้อเข้ามาในช่วงนี้ น่าจะติดปัญหาเครดิต การวางบิล หรือเปลี่ยนไปรับสินค้าจากที่อื่น",
+      "verifySteps": [
+       "ดูประวัติการสั่งซื้อรายวันของอุบลศรีสุข เทรดดิ้ง · ภาคอีสาน 30 วันล่าสุด",
+       "ดูยอดค้างชำระเกินกำหนดของอุบลศรีสุข เทรดดิ้ง · ภาคอีสานรายเดือน 6 เดือนล่าสุด"
+      ],
+      "ownerUserId": "u_anucha"
+     },
+     {
+      "id": "al_ed6dca9e1dab4e48",
+      "severity": "P1",
+      "severityLabel": "ต้องรีบดู",
+      "metric": "net_sales_volume",
+      "metricLabel": "ปริมาณขายเข้า (Sell-in)",
+      "scope": {
+       "agent": "ag_nea_02",
+       "region": "northeast"
+      },
+      "scopeLabel": "อีสานรุ่งโรจน์ ค้าส่ง · ภาคอีสาน",
+      "window": "8 ก.ย. 2569 – 22 ก.ย. 2569",
+      "observedLabel": "3,251 ลิตร",
+      "expectedLabel": "13,928 ลิตร",
+      "gapLabel": "77%",
+      "yearOverYear": false,
+      "direction": "down",
+      "hypothesis": "อีสานรุ่งโรจน์ ค้าส่ง แทบไม่มีคำสั่งซื้อเข้ามาในช่วงนี้ น่าจะติดปัญหาเครดิต การวางบิล หรือเปลี่ยนไปรับสินค้าจากที่อื่น",
+      "verifySteps": [
+       "ดูประวัติการสั่งซื้อรายวันของอีสานรุ่งโรจน์ ค้าส่ง · ภาคอีสาน 30 วันล่าสุด",
+       "ดูยอดค้างชำระเกินกำหนดของอีสานรุ่งโรจน์ ค้าส่ง · ภาคอีสานรายเดือน 6 เดือนล่าสุด"
+      ],
+      "ownerUserId": "u_anucha"
+     },
+     {
+      "id": "al_fa3be1e7b4f9fe40",
+      "severity": "P1",
+      "severityLabel": "ต้องรีบดู",
+      "metric": "market_share",
+      "metricLabel": "ส่วนแบ่งตลาดเบียร์",
+      "scope": {
+       "province": "pv_nakhonratchasima",
+       "region": "northeast"
+      },
+      "scopeLabel": "นครราชสีมา · ภาคอีสาน",
+      "window": "1 มิ.ย. 2569 – 31 ส.ค. 2569",
+      "observedLabel": "59.7%",
+      "expectedLabel": "63.2%",
+      "gapLabel": "3.5 จุด",
+      "yearOverYear": false,
+      "direction": "down",
+      "hypothesis": "ในนครราชสีมา คาราบาวได้ส่วนแบ่งตลาดเบียร์เพิ่ม 4.1 จุดในช่วงเดียวกับที่ส่วนแบ่งของเราลดลง 3.5 จุด น่าจะมีการทำตลาดหรือตั้งราคาเชิงรุกในพื้นที่นี้",
+      "verifySteps": [
+       "เทียบส่วนแบ่งตลาดของทุกผู้ผลิตในนครราชสีมา เทียบปีก่อน",
+       "ดูยอดขายออกเบียร์ของเราในนครราชสีมาเทียบปีก่อน"
+      ],
+      "ownerUserId": "u_anucha"
+     },
+     {
+      "id": "al_220936abb568e7c9",
+      "severity": "P1",
+      "severityLabel": "ต้องรีบดู",
+      "metric": "ar_overdue",
+      "metricLabel": "ยอดค้างชำระเกินกำหนด",
+      "scope": {
+       "region": "south"
+      },
+      "scopeLabel": "ภาคใต้",
+      "window": "1 ส.ค. 2569 – 31 ส.ค. 2569",
+      "observedLabel": "1.9 เท่าของปีก่อน",
+      "expectedLabel": "1.1 เท่าของปีก่อน",
+      "gapLabel": "73%",
+      "yearOverYear": true,
+      "direction": "up",
+      "hypothesis": "ยอดค้างชำระของภาคใต้สูงกว่าช่วงเดียวกันของปีก่อนมาก ส่วนใหญ่มาจาก สงขลาทักษิณ เทรดดิ้ง (+303%), เกาะสมุยเบเวอเรจ (+108%), นครศรีรุ่งเจริญ (+101%) ควรคุยเรื่องการวางบิลและวงเงินกับเอเย่นต์กลุ่มนี้",
+      "verifySteps": [
+       "ดูยอดค้างชำระเกินกำหนดของภาคใต้รายเดือน 6 เดือนล่าสุด",
+       "ดูประวัติการสั่งซื้อรายวันของภาคใต้ 30 วันล่าสุด"
+      ],
+      "ownerUserId": "u_mint"
+     },
+     {
+      "id": "al_e8114d936da7141f",
+      "severity": "P1",
+      "severityLabel": "ต้องรีบดู",
+      "metric": "days_of_cover",
+      "metricLabel": "วันครอบคลุมสต๊อก",
+      "scope": {
+       "dc": "dc_lamphun",
+       "sku": "sku_purra_pet600",
+       "region": "north"
+      },
+      "scopeLabel": "ศูนย์กระจายสินค้าลำพูน · เพอร์ร่า ขวด PET 600 มล. · ภาคเหนือ",
+      "window": "16 ก.ย. 2569 – 22 ก.ย. 2569",
+      "observedLabel": "6.1 วัน",
+      "expectedLabel": "15.7 วัน",
+      "gapLabel": "61%",
+      "yearOverYear": false,
+      "direction": "down",
+      "hypothesis": "สต๊อกที่ศูนย์กระจายสินค้าลำพูนเหลือพอขายอีกประมาณ 6.1 วัน ต่ำกว่าเกณฑ์ 10 วัน เสี่ยงของขาดก่อนรอบเติมสินค้าถัดไป",
+      "verifySteps": [
+       "ดูวันครอบคลุมสต๊อกและสต๊อกคงเหลือของศูนย์กระจายสินค้าลำพูน · เพอร์ร่า ขวด PET 600 มล. · ภาคเหนือตอนนี้",
+       "ดูพยากรณ์ 8 สัปดาห์ข้างหน้าของศูนย์กระจายสินค้าลำพูน · เพอร์ร่า ขวด PET 600 มล. · ภาคเหนือ"
+      ],
+      "ownerUserId": "u_wee"
+     }
+    ],
+    "lessons": [
+     {
+      "alertId": "al_7364476d77c8f435",
+      "lesson": "ครั้งก่อน (เป็นเรื่องจริง): ติดวงเงินเครดิต ขยายวงเงินแล้วยอดกลับใน 2 สัปดาห์ — คุณกฤต จันทร์เสน, 12 มิ.ย. 2569"
+     }
+    ],
+    "nextActions": [
+     {
+      "id": "verify",
+      "kind": "verify",
+      "label": "ตรวจสาเหตุ",
+      "reason": "ดูประวัติการสั่งซื้อรายวันของอุบลศรีสุข เทรดดิ้ง · ภาคอีสาน 30 วันล่าสุด",
+      "tool": null,
+      "input": null,
+      "prompt": "ดูประวัติการสั่งซื้อรายวันของอุบลศรีสุข เทรดดิ้ง · ภาคอีสาน 30 วันล่าสุด"
+     },
+     {
+      "id": "drill-channel",
+      "kind": "drill",
+      "label": "แยกตามช่องทาง",
+      "reason": "ยังไม่ได้ดูแยกรายช่องทาง",
+      "tool": null,
+      "input": null,
+      "prompt": "ขอปริมาณขายเข้า (Sell-in)แยกตามช่องทาง เรียงจากมากไปน้อย"
+     }
+    ]
+   }
+  },
+  {
    "kind": "text",
-   "text": "จากข้อมูลส่วนแบ่งตลาดเบียร์ (Retail audit) รอบสำรวจล่าสุดเดือนสิงหาคม 2569 จังหวัดที่เสียส่วนแบ่งให้คู่แข่งลดลงมากที่สุดเมื่อเทียบกับปีก่อนคือ **นครราชสีมา**\n\nเบื้องต้นสันนิษฐานว่าอาจเกิดจากคู่แข่งจัดรายการส่งเสริมการขายเชิงรุกหรือขยายพื้นที่วางจำหน่ายหน้าร้านในพื้นที่ แนะนำให้ตรวจสอบ 2 ทาง คือ เทียบส่วนแบ่งตลาดของคู่แข่งแต่ละรายในนครราชสีมา และตรวจบันทึกการเยี่ยมร้านค้าในพื้นที่ ต้องการให้ส่งเรื่องให้คุณกนกตรวจสอบสาเหตุต่อเลยหรือไม่ครับ"
+   "text": "จากข้อมูลส่วนแบ่งตลาดเบียร์ (Retail audit รายเดือน) รอบ ส.ค. 2569 เทียบปีก่อน นครราชสีมาเสียส่วนแบ่งมากที่สุด โดยมีสมมติฐานว่าคู่แข่ง (คาราบาว) ทำตลาดหรือตั้งราคาเชิงรุกในพื้นที่จนได้ส่วนแบ่งเพิ่มขึ้น\n\nแนวทางตรวจเบื้องต้นแนะนำให้เทียบส่วนแบ่งตลาดของทุกผู้ผลิตในนครราชสีมาเทียบปีก่อน และตรวจยอดขายออก (Sell-out) ของเราในพื้นที่เพิ่มเติม ต้องการส่งต่อเรื่องนี้ให้ผู้ดูแลพื้นที่ตรวจสอบต่อหรือไม่"
   }
  ],
  "asked": [],
  "error": null,
  "usage": {
-  "calls": 3,
-  "inputTokens": 36809,
-  "outputTokens": 2382,
-  "reasoningTokens": 2078,
-  "usd": 0.007557375
+  "calls": 4,
+  "inputTokens": 50728,
+  "outputTokens": 2243,
+  "reasoningTokens": 1997,
+  "usd": 0.008571675
  },
  "drawn": {
   "cards": [
-   "query_metric"
+   "query_metric",
+   "get_alerts"
   ],
   "composed": null
  }

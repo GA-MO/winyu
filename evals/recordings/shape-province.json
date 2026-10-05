@@ -4,10 +4,10 @@
  "userId": "u_thana",
  "prompt": "ยอดเทียบเป้ารายจังหวัดเดือนนี้",
  "model": "google/gemini-3.8-flash",
- "promptHash": "b147f95e8a6c891a",
- "toolsHash": "5639642b6a430a27",
+ "promptHash": "0e40d01dd957aebf",
+ "toolsHash": "8bdfd8d8fb9656cf",
  "today": "2026-10-05",
- "recordedAt": "2026-10-05T15:48:56.485Z",
+ "recordedAt": "2026-10-05T18:57:39.898Z",
  "steps": [
   {
    "kind": "call",
@@ -48,133 +48,28 @@
    "kind": "call",
    "tool": "query_metric",
    "args": {
-    "where": null,
     "filters": {},
+    "grain": "month",
+    "limit": 60,
+    "metric": "target_attainment",
+    "sort": "value_desc",
     "dims": [
      "province"
     ],
     "compare": "none",
-    "sort": "value_asc",
     "range": {
      "from": "2026-09-01",
      "to": "2026-09-22"
     },
-    "grain": "month",
-    "limit": 60,
-    "metric": "target_attainment"
+    "where": null
    },
    "result": {
     "ok": true,
     "rows": [
      {
-      "province": "อุบลราชธานี",
-      "value": 81.7,
-      "value_label": "81.7%"
-     },
-     {
-      "province": "ขอนแก่น",
-      "value": 88.8,
-      "value_label": "88.8%"
-     },
-     {
-      "province": "บุรีรัมย์",
-      "value": 99.2,
-      "value_label": "99.2%"
-     },
-     {
-      "province": "ฉะเชิงเทรา",
-      "value": 100.3,
-      "value_label": "100.3%"
-     },
-     {
-      "province": "จันทบุรี",
-      "value": 100.5,
-      "value_label": "100.5%"
-     },
-     {
-      "province": "นครศรีธรรมราช",
-      "value": 100.6,
-      "value_label": "100.6%"
-     },
-     {
-      "province": "สุราษฎร์ธานี",
-      "value": 100.7,
-      "value_label": "100.7%"
-     },
-     {
-      "province": "นครปฐม",
-      "value": 100.7,
-      "value_label": "100.7%"
-     },
-     {
-      "province": "พิษณุโลก",
-      "value": 100.8,
-      "value_label": "100.8%"
-     },
-     {
-      "province": "เชียงใหม่",
-      "value": 100.8,
-      "value_label": "100.8%"
-     },
-     {
-      "province": "เชียงราย",
-      "value": 101.3,
-      "value_label": "101.3%"
-     },
-     {
-      "province": "ชลบุรี",
-      "value": 101.4,
-      "value_label": "101.4%"
-     },
-     {
-      "province": "ระยอง",
-      "value": 101.4,
-      "value_label": "101.4%"
-     },
-     {
-      "province": "สงขลา",
-      "value": 101.5,
-      "value_label": "101.5%"
-     },
-     {
-      "province": "ลำพูน",
-      "value": 101.6,
-      "value_label": "101.6%"
-     },
-     {
-      "province": "ภูเก็ต",
-      "value": 101.6,
-      "value_label": "101.6%"
-     },
-     {
-      "province": "สมุทรปราการ",
-      "value": 101.7,
-      "value_label": "101.7%"
-     },
-     {
-      "province": "กรุงเทพมหานคร",
-      "value": 101.9,
-      "value_label": "101.9%"
-     },
-     {
-      "province": "นครราชสีมา",
-      "value": 101.9,
-      "value_label": "101.9%"
-     },
-     {
-      "province": "ปทุมธานี",
-      "value": 102.1,
-      "value_label": "102.1%"
-     },
-     {
-      "province": "สระบุรี",
-      "value": 102.3,
-      "value_label": "102.3%"
-     },
-     {
-      "province": "พระนครศรีอยุธยา",
-      "value": 102.4,
-      "value_label": "102.4%"
+      "province": "นนทบุรี",
+      "value": 103.5,
+      "value_label": "103.5%"
      },
      {
       "province": "ราชบุรี",
@@ -182,9 +77,114 @@
       "value_label": "102.7%"
      },
      {
-      "province": "นนทบุรี",
-      "value": 103.5,
-      "value_label": "103.5%"
+      "province": "พระนครศรีอยุธยา",
+      "value": 102.4,
+      "value_label": "102.4%"
+     },
+     {
+      "province": "สระบุรี",
+      "value": 102.3,
+      "value_label": "102.3%"
+     },
+     {
+      "province": "ปทุมธานี",
+      "value": 102.1,
+      "value_label": "102.1%"
+     },
+     {
+      "province": "นครราชสีมา",
+      "value": 101.9,
+      "value_label": "101.9%"
+     },
+     {
+      "province": "กรุงเทพมหานคร",
+      "value": 101.9,
+      "value_label": "101.9%"
+     },
+     {
+      "province": "สมุทรปราการ",
+      "value": 101.7,
+      "value_label": "101.7%"
+     },
+     {
+      "province": "ภูเก็ต",
+      "value": 101.6,
+      "value_label": "101.6%"
+     },
+     {
+      "province": "ลำพูน",
+      "value": 101.6,
+      "value_label": "101.6%"
+     },
+     {
+      "province": "สงขลา",
+      "value": 101.5,
+      "value_label": "101.5%"
+     },
+     {
+      "province": "ระยอง",
+      "value": 101.4,
+      "value_label": "101.4%"
+     },
+     {
+      "province": "ชลบุรี",
+      "value": 101.4,
+      "value_label": "101.4%"
+     },
+     {
+      "province": "เชียงราย",
+      "value": 101.3,
+      "value_label": "101.3%"
+     },
+     {
+      "province": "เชียงใหม่",
+      "value": 100.8,
+      "value_label": "100.8%"
+     },
+     {
+      "province": "พิษณุโลก",
+      "value": 100.8,
+      "value_label": "100.8%"
+     },
+     {
+      "province": "นครปฐม",
+      "value": 100.7,
+      "value_label": "100.7%"
+     },
+     {
+      "province": "สุราษฎร์ธานี",
+      "value": 100.7,
+      "value_label": "100.7%"
+     },
+     {
+      "province": "นครศรีธรรมราช",
+      "value": 100.6,
+      "value_label": "100.6%"
+     },
+     {
+      "province": "จันทบุรี",
+      "value": 100.5,
+      "value_label": "100.5%"
+     },
+     {
+      "province": "ฉะเชิงเทรา",
+      "value": 100.3,
+      "value_label": "100.3%"
+     },
+     {
+      "province": "บุรีรัมย์",
+      "value": 99.2,
+      "value_label": "99.2%"
+     },
+     {
+      "province": "ขอนแก่น",
+      "value": 88.8,
+      "value_label": "88.8%"
+     },
+     {
+      "province": "อุบลราชธานี",
+      "value": 81.7,
+      "value_label": "81.7%"
      }
     ],
     "summary": "การบรรลุเป้าหมาย 1 ก.ย. 2569 – 22 ก.ย. 2569: เฉลี่ย 99.8% · ต่ำสุด: อุบลราชธานี 81.7% · ขอนแก่น 88.8% · บุรีรัมย์ 99.2% · (24 แถว · certified · SAP SD)",
@@ -241,7 +241,7 @@
      "grain": "month",
      "compare": "none",
      "limit": 60,
-     "sort": "value_asc",
+     "sort": "value_desc",
      "where": null
     },
     "nextActions": [
@@ -285,21 +285,20 @@
   },
   {
    "kind": "text",
-   "text": "รายงานด้วยเมตริกการบรรลุเป้าหมาย (Target Attainment) สำหรับเดือนกันยายน ข้อมูลล่าสุดถึงวันที่ 22 ก.ย. 2569 ครับ\n\nภาพรวมจังหวัดส่วนใหญ่ทำได้ตามเป้าหมาย แต่พบพื้นที่ในภาคตะวันออกเฉียงเหนือที่ยังต่ำกว่าเกณฑ์ แนะนำให้เจาะดูผลการดำเนินงานรายเอเย่นต์ในอุบลราชธานีและขอนแก่นเพื่อตรวจสอบสาเหตุและผลักดันยอดก่อนปิดสิ้นเดือนครับ"
+   "text": "แสดงข้อมูลการบรรลุเป้าหมาย (Target Attainment) เดือนนี้ตามข้อมูลล่าสุดถึง 22 ก.ย. 2569 โดยภาพรวมจังหวัดส่วนใหญ่ทำได้ตามเป้าหมาย แต่มีพื้นที่ในภาคอีสานโดยเฉพาะอุบลราชธานีและขอนแก่นที่ยังหลุดเป้าอยู่พอสมควร แนะนำให้เจาะดูรายเอเย่นต์ในอุบลราชธานีเพื่อตรวจหาสาเหตุของยอดขายที่ยังตามหลังครับ"
   }
  ],
  "asked": [],
  "error": null,
  "usage": {
   "calls": 3,
-  "inputTokens": 35912,
-  "outputTokens": 2365,
-  "reasoningTokens": 2150,
-  "usd": 0.007189125
+  "inputTokens": 36541,
+  "outputTokens": 2243,
+  "reasoningTokens": 2033,
+  "usd": 0.0069157875
  },
  "drawn": {
   "cards": [
-   "list_metrics",
    "query_metric"
   ],
   "composed": null
