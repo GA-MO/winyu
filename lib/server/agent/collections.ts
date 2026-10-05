@@ -72,12 +72,6 @@ export function personalWatches() {
   return collection<PersonalWatch>("watches");
 }
 
-export type JobRun = { id: string; lastRunAt: string; lastRunDay: string };
-
-export function jobRuns() {
-  return collection<JobRun>("job-runs");
-}
-
 /** The last digest sent to a user: what it covered, so tomorrow tells only what is new or turned red; digests sent before the feed recorded only `alertIds`. */
 export type DigestSent = { id: string; day: string; keys?: string[]; tones?: Record<string, FeedTone>; alertIds?: string[] };
 

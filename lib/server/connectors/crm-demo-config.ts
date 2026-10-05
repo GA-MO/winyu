@@ -1,5 +1,5 @@
 export const CRM_DEMO_ID = "crm_demo";
-export const CRM_DEMO_PORT = 3198;
+export const CRM_DEMO_PORT = 3298;
 export const CRM_DEMO_TOOL = "store_visits";
 
 /** Where the demo CRM listens and the secret Winyu signs identities with; both from env, with a local default for the demo only. */

@@ -1,8 +1,8 @@
 "use client";
 
 import { BriefcaseBusiness, Check, Clock, Eye, EyeOff, Megaphone, Server, Sparkles, ListChecks, MapPin, MoreHorizontal, Send, ThumbsUp, TriangleAlert, UserRound, UsersRound, type LucideIcon } from "lucide-react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "vexa/ui/dropdown-menu";
-import { cn } from "vexa/lib/utils";
+import { useState } from "react";
+import { cn } from "@/components/ui/cn";
 import type { FeedAction, FeedItem, FeedSource, FeedTone, NextAction } from "@/lib/contracts";
 import { TH } from "@/lib/i18n/th";
 
@@ -27,29 +27,38 @@ export function postFeedAction(key: string, action: FeedAction): void {
   void fetch(FEED_ENDPOINT, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ key, action }) }).catch(() => undefined);
 }
 
+const MENU_ITEM = "flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-xs text-foreground transition hover:bg-muted [&>svg]:size-3.5 [&>svg]:text-muted-foreground";
+
 /** Done, put off a week, or not mine; handoffs have none of these because they close in the inbox. */
 export function FeedMenu({ feedKey, canFinish, onSettle }: { feedKey: string; canFinish: boolean; onSettle: FeedHandlers["onSettle"] }) {
+  const [open, setOpen] = useState(false);
   if (!canFinish) return null;
+  const settle = (action: FeedSettle) => {
+    setOpen(false);
+    onSettle(feedKey, action);
+  };
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger aria-label={TH.landing.feedMore} className={ROW_ACTION}>
+    <div className="relative">
+      <button type="button" aria-label={TH.landing.feedMore} aria-expanded={open} onClick={() => setOpen((value) => !value)} className={ROW_ACTION}>
         <MoreHorizontal className="size-4" aria-hidden />
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-auto min-w-40">
-        <DropdownMenuItem onClick={() => onSettle(feedKey, "done")}>
-          <Check aria-hidden />
-          {TH.landing.feedDone}
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => onSettle(feedKey, "snooze")}>
-          <Clock aria-hidden />
-          {TH.landing.feedSnooze}
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => onSettle(feedKey, "mute")}>
-          <EyeOff aria-hidden />
-          {TH.landing.feedMute}
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+      </button>
+      {open ? (
+        <div role="menu" className="absolute right-0 top-8 z-20 flex min-w-40 flex-col rounded-xl border border-border bg-card p-1 shadow-lift">
+          <button type="button" role="menuitem" onClick={() => settle("done")} className={MENU_ITEM}>
+            <Check aria-hidden />
+            {TH.landing.feedDone}
+          </button>
+          <button type="button" role="menuitem" onClick={() => settle("snooze")} className={MENU_ITEM}>
+            <Clock aria-hidden />
+            {TH.landing.feedSnooze}
+          </button>
+          <button type="button" role="menuitem" onClick={() => settle("mute")} className={MENU_ITEM}>
+            <EyeOff aria-hidden />
+            {TH.landing.feedMute}
+          </button>
+        </div>
+      ) : null}
+    </div>
   );
 }
 
@@ -57,28 +66,30 @@ function FeedRow({ row, handlers }: { row: FeedItem; handlers: FeedHandlers }) {
   const Icon = row.tone === "success" ? ThumbsUp : SOURCE_ICONS[row.source];
   const [action] = row.actions;
   return (
-    <li className="flex items-center gap-1 pr-2 transition hover:bg-muted focus-within:bg-muted">
-      <button type="button" onClick={() => handlers.onOpen(row)} className="flex min-w-0 flex-1 items-center gap-3 py-2.5 pl-4 text-left focus-visible:outline-none">
-        <Icon className="size-4 shrink-0 text-muted-foreground" aria-hidden />
-        <span className="flex min-w-0 flex-1 flex-col">
-          <span className="truncate text-sm font-semibold tracking-tight" title={row.label}>{row.label}</span>
-          {row.detail ? <span className="truncate text-xs text-muted-foreground">{row.detail}</span> : null}
-          {row.because ? (
-            <span className="flex min-w-0 items-center gap-1 text-[11px] text-primary">
-              <Sparkles className="size-3 shrink-0" aria-hidden />
-              <span className="truncate">{row.because}</span>
-            </span>
-          ) : null}
-        </span>
-        <span className={cn("max-w-[40%] shrink-0 truncate rounded-full px-2 py-0.5 text-[11px] font-medium tabular-nums", TONE_PILL[row.tone])}>{row.reason}</span>
-      </button>
+    <li className="flex flex-col gap-1.5 py-2.5 pl-4 pr-2 transition hover:bg-muted focus-within:bg-muted">
+      <div className="flex items-start gap-1">
+        <button type="button" onClick={() => handlers.onOpen(row)} className="flex min-w-0 flex-1 items-start gap-3 text-left focus-visible:outline-none">
+          <Icon className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden />
+          <span className="flex min-w-0 flex-1 flex-col">
+            <span className="line-clamp-2 text-sm font-semibold tracking-tight" title={row.label}>{row.label}</span>
+            {row.detail ? <span className="truncate text-xs text-muted-foreground">{row.detail}</span> : null}
+            {row.because ? (
+              <span className="flex min-w-0 items-center gap-1 text-[11px] text-primary">
+                <Sparkles className="size-3 shrink-0" aria-hidden />
+                <span className="truncate">{row.because}</span>
+              </span>
+            ) : null}
+          </span>
+          <span className={cn("max-w-[40%] shrink-0 truncate rounded-full px-2 py-0.5 text-[11px] font-medium tabular-nums", TONE_PILL[row.tone])}>{row.reason}</span>
+        </button>
+        <FeedMenu feedKey={row.key} canFinish={row.canFinish} onSettle={handlers.onSettle} />
+      </div>
       {action ? (
-        <button type="button" onClick={() => handlers.onRun(action)} title={action.reason} className={cn(RUN_ACTION, "hidden sm:inline-flex")}>
-          <Send className="size-3" aria-hidden />
-          {action.label}
+        <button type="button" onClick={() => handlers.onRun(action)} title={action.reason} className={cn(RUN_ACTION, "ml-7 max-w-[calc(100%-1.75rem)] self-start")}>
+          <Send className="size-3 shrink-0" aria-hidden />
+          <span className="truncate">{action.label}</span>
         </button>
       ) : null}
-      <FeedMenu feedKey={row.key} canFinish={row.canFinish} onSettle={handlers.onSettle} />
     </li>
   );
 }

@@ -356,7 +356,7 @@ describe("every value masked", () => {
       provenance: { metric: "avg_salary", certified: true, sourceSystem: "HRIS", asOf: "2026-09-22", rowCount: 2, filtersApplied: {}, scopeApplied: {}, masked: ["value"], trust: "verified" },
     };
     const parts = presentCard({ title: "t", query, result });
-    expect(parts.denied).toContain("ฝ่าย");
+    expect(parts.denied?.body).toContain("ฝ่าย");
     expect(parts.body.kind).toBe("none");
   });
 });

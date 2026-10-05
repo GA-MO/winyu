@@ -39,5 +39,5 @@ export async function POST(req: Request, context: RouteContext) {
   if (judged && isVerdict(body.verdict) && outcome) recordOutcome(packet, access.userId, body.verdict, outcome);
 
   const text = trimmed(body.text) ?? (body.action === "resolve" ? (outcome as string) : defaultReply(body.action));
-  return Response.json({ packet: actOnPacket(packet, access, body.action, text, outcome) });
+  return Response.json({ packet: await actOnPacket(packet, access, body.action, text, outcome) });
 }

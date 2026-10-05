@@ -1,6 +1,7 @@
 "use client";
 
-import { BarChart, LineChart, RankList, Table } from "vexa/react";
+import { BarChart, LineChart } from "@/components/ui/charts";
+import { RankList, Table } from "@/components/ui/primitives";
 import type { CardBody } from "@/lib/cards/present";
 import { SignalList } from "../signal-list";
 import { ForecastBand } from "./forecast-band";

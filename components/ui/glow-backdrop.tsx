@@ -1,8 +1,8 @@
-import { cn } from "vexa/lib/utils";
+import { cn } from "./cn";
 
 const BLOB = "absolute rounded-full blur-3xl";
 
-/** The soft pastel blobs behind every Winyu surface, faded into the page background. */
+/** Soft pastel blobs behind a full-page surface, faded into the page background. */
 export function GlowBackdrop({ className }: { className?: string }) {
   return (
     <div aria-hidden className={cn("pointer-events-none absolute inset-0 overflow-hidden", className)}>

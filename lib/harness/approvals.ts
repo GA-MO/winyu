@@ -41,3 +41,14 @@ export function markAnswered(approvalId: string): void {
   const record = approvals().get(approvalId);
   if (record) approvals().put({ ...record, status: "answered", at: new Date().toISOString() });
 }
+
+/** The tool an approval was asked for, or null for an id the server never asked. */
+export function askedTool(approvalId: string): string | null {
+  return approvals().get(approvalId)?.tool ?? null;
+}
+
+/** The approvals still waiting on this person's answer for any of these tool calls, so a reloaded chat can ask again. */
+export function openApprovalsFor(userId: string, toolCallIds: readonly string[]): ApprovalRecord[] {
+  const wanted = new Set(toolCallIds);
+  return approvals().where((record) => record.userId === userId && record.status === "asked" && wanted.has(record.toolCallId));
+}

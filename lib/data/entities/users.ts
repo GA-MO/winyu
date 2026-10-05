@@ -1,6 +1,7 @@
 import type { Region, RoleId, User } from "@/lib/contracts";
 
-const EMAIL_DOMAIN = "boonrawd-demo.co.th";
+/** The company mail domain every colleague's work address uses. */
+export const EMAIL_DOMAIN = "boonrawd-demo.co.th";
 
 type UserSeed = { id: string; name: string; nameTh: string; title: string; role: RoleId; department: string; region: Region | null; managerId: string | null };
 

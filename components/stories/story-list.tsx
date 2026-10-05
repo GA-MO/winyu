@@ -3,10 +3,11 @@
 import { useState } from "react";
 import Link from "next/link";
 import { ArrowRight, ChevronDown, Sparkles, X } from "lucide-react";
-import { cn } from "vexa/lib/utils";
+import { cn } from "@/components/ui/cn";
 import type { Story, StoryCard, StoryKind } from "@/lib/contracts";
 import { TH } from "@/lib/i18n/th";
 import { DataCard } from "@/components/cards/data-card";
+import { chatHref } from "@/components/landing/chat-entry";
 
 const KIND_BADGE: Record<StoryKind, string> = {
   urgent: "bg-danger/10 text-danger",
@@ -39,7 +40,7 @@ export function orderCards(cards: readonly StoryCard[]): { ranked: StoryCard[]; 
 }
 
 function askHref(story: Story): string {
-  return `/c/new?story=${encodeURIComponent(story.id)}`;
+  return chatHref({ story: story.id });
 }
 
 function RuledOut({ story }: { story: Story }) {
@@ -92,7 +93,7 @@ export function StoryItem({ card, defaultOpen }: { card: StoryCard; defaultOpen:
       {open ? (
         <div className="flex flex-col gap-3">
           <RuledOut story={story} />
-          {evidence && story.evidence ? <DataCard props={{ title: story.evidence.title, source: evidence }} /> : null}
+          {evidence && story.evidence ? <DataCard title={story.evidence.title} source={evidence} /> : null}
           <NextStep story={story} />
         </div>
       ) : null}

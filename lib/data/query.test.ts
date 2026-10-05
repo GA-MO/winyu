@@ -245,6 +245,7 @@ describe("metric and entity lookup", () => {
     const sku = describeEntity("sku", "ลีโอ 620");
     expect(sku.ok).toBe(true);
     if (sku.ok) expect(sku.data.id).toBe("sku_leo_bottle620");
+    if (sku.ok) expect(sku.data["บรรจุภัณฑ์"]).toBe("ขวด 620 มล.");
     const dc = describeEntity("dc", "ลำพูน");
     expect(dc.ok).toBe(true);
     if (dc.ok) expect(dc.data.id).toBe("dc_lamphun");

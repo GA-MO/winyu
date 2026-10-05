@@ -7,11 +7,17 @@ import { GENERATOR_DICTIONARY } from "./master";
 import { AGENTS, agentById } from "./entities/agents";
 import { campaignById } from "./entities/marketing";
 import { BUSINESS_UNIT_LABELS_TH, PROVINCES, REGION_LABELS_TH } from "./entities/org";
-import { BRAND_INFO, LITRES_PER_HL, skuById } from "./entities/products";
+import { BRAND_INFO, LITRES_PER_HL, PACK_LABELS_TH, skuById } from "./entities/products";
+import { TH } from "@/lib/i18n/th";
 import { dcById } from "./entities/supply";
 import { findUser } from "./entities/users";
 
 const PERCENT = 100;
+const MILLION = 1_000_000;
+
+function baht(amount: number): string {
+  return `${amount.toLocaleString("th-TH")} บาท`;
+}
 
 /** Runs one certified metric query under the caller's access scope, reading facts straight from the generator. */
 export function runMetric(query: MetricQuery, access: AccessContext): MetricResult {
@@ -40,7 +46,6 @@ function describeAgent(id: string): DescribeResult {
     เครดิต: `${agent.creditDays} วัน`,
     เป็นคู่ค้าตั้งแต่: agent.sinceYear,
     ศูนย์กระจายสินค้า: dc?.nameTh ?? agent.servingDc,
-    น้ำหนักยอดขาย: agent.weight,
   };
   return { ok: true, data, summary: `${agent.nameTh} เอเย่นต์เกรด ${agent.tier} จังหวัด${province?.nameTh ?? ""} ${REGION_LABELS_TH[agent.region]} เครดิต ${agent.creditDays} วัน ส่งจาก${dc?.nameTh ?? ""}` };
 }
@@ -55,9 +60,9 @@ function describeSku(id: string): DescribeResult {
     ชื่อ: sku.nameTh,
     แบรนด์: brand?.nameTh ?? sku.brand,
     หน่วยธุรกิจ: BUSINESS_UNIT_LABELS_TH[brand?.businessUnit ?? "beer"],
-    บรรจุภัณฑ์: sku.pack,
+    บรรจุภัณฑ์: PACK_LABELS_TH[sku.pack],
     ลิตรต่อลัง: litresPerCase,
-    ราคาต่อลัง: sku.pricePerCase,
+    ราคาต่อลัง: baht(sku.pricePerCase),
     ภาษีสรรพสามิต: sku.excise ? "มี" : "ไม่มี",
   };
   return { ok: true, data, summary: `${sku.nameTh} แบรนด์${brand?.nameTh ?? sku.brand} ${litresPerCase} ลิตรต่อลัง ราคา ${sku.pricePerCase} บาทต่อลัง` };
@@ -88,11 +93,11 @@ function describeCampaign(id: string): DescribeResult {
     ช่วงเวลา: `${campaign.from} – ${campaign.to}`,
     แบรนด์: campaign.brands.map((brand) => BRAND_INFO.find((info) => info.id === brand)?.nameTh ?? brand),
     ภาค: campaign.regions === "all" ? "ทั่วประเทศ" : campaign.regions.map((region) => REGION_LABELS_TH[region]),
-    งบประมาณ: campaign.spendThb,
+    งบประมาณ: `${(campaign.spendThb / MILLION).toFixed(1)} ล้านบาท`,
     เป้าหมายยอดเพิ่ม: `${Math.round(campaign.upliftTarget * PERCENT)}%`,
     ผู้รับผิดชอบ: owner?.nameTh ?? campaign.ownerUserId,
   };
-  return { ok: true, data, summary: `${campaign.nameTh} ${campaign.from} ถึง ${campaign.to} งบ ${(campaign.spendThb / 1_000_000).toFixed(1)} ล้านบาท ดูแลโดย ${owner?.nameTh ?? campaign.ownerUserId}` };
+  return { ok: true, data, summary: `${campaign.nameTh} ${campaign.from} ถึง ${campaign.to} งบ ${(campaign.spendThb / MILLION).toFixed(1)} ล้านบาท ดูแลโดย ${owner?.nameTh ?? campaign.ownerUserId}` };
 }
 
 function describeUser(id: string): DescribeResult {
@@ -104,7 +109,7 @@ function describeUser(id: string): DescribeResult {
     ชื่อ: user.nameTh,
     ตำแหน่ง: user.title,
     ฝ่าย: user.department,
-    บทบาท: user.role,
+    บทบาท: TH.role[user.role],
     ภาค: user.region ? REGION_LABELS_TH[user.region] : "ทั่วประเทศ",
     หัวหน้า: manager?.nameTh ?? "-",
     อีเมล: user.email,

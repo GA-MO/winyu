@@ -49,7 +49,7 @@ function known(values: (number | null)[]): number[] {
   return values.filter((value): value is number => value !== null);
 }
 
-/** Actual weeks as a solid line, then the forecast as a dashed line inside its shaded band — the range the forecast expects, which Vexa's LineChart cannot draw. */
+/** Actual weeks as a solid line, then the forecast as a dashed line inside its shaded band — the range the forecast expects, which the plain LineChart cannot draw. */
 export function ForecastBand({ labels, actual, forecast, lo, hi, format }: ForecastBandProps) {
   const [ref, width] = useContainerWidth();
   const n = labels.length;

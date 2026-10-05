@@ -3,8 +3,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRight, BellOff, X } from "lucide-react";
-import { cn } from "vexa/lib/utils";
-import { formatActionMessage } from "vexa/react";
+import { cn } from "@/components/ui/cn";
+import { actionHref, chatHref } from "@/components/landing/chat-entry";
 import type { FeedItem, NextAction } from "@/lib/contracts";
 import { FeedList, postFeedAction, type FeedHandlers, type FeedSettle } from "@/components/feed/feed-list";
 import { TH } from "@/lib/i18n/th";
@@ -123,10 +123,13 @@ export function InboxDrawer({ open, onClose, focus = DEFAULT_FOCUS }: { open: bo
     () => ({
       onOpen: (row: FeedItem) => {
         postFeedAction(row.key, "open");
-        router.push(row.packetId ? `/c/new?preload=${row.packetId}` : `/c/new?prompt=${encodeURIComponent(row.prompt)}`);
+        router.push(chatHref(row.packetId ? { preload: row.packetId } : { prompt: row.prompt }));
       },
       onSettle: settle,
-      onRun: (action: NextAction) => action.tool && router.push(`/c/new?prompt=${encodeURIComponent(formatActionMessage(action.tool, action.input ?? {}))}`),
+      onRun: (action: NextAction) => {
+        const href = actionHref(action);
+        if (href) router.push(href);
+      },
     }),
     [router, settle],
   );
@@ -162,7 +165,7 @@ export function InboxDrawer({ open, onClose, focus = DEFAULT_FOCUS }: { open: bo
           ))}
         </nav>
 
-        <div className="vexa-scrollbar flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-3">
+        <div className="ui-scrollbar flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-3">
           {!loaded ? <p className="px-2 py-8 text-sm text-muted-foreground">{TH.common.loading}</p> : null}
           {loaded && shown === "todo" ? (
             data.todo.length > 0 ? (
@@ -190,8 +193,8 @@ export function InboxDrawer({ open, onClose, focus = DEFAULT_FOCUS }: { open: bo
               open={data.handoffOpen}
               note={note}
               onAct={act}
-              onOpen={(id) => router.push(`/c/new?preload=${id}`)}
-              onAsk={(prompt) => router.push(`/c/new?prompt=${encodeURIComponent(prompt)}`)}
+              onOpen={(id) => router.push(chatHref({ preload: id }))}
+              onAsk={(prompt) => router.push(chatHref({ prompt }))}
             />
           ) : null}
           {loaded && shown === "alerts" ? (
@@ -201,7 +204,7 @@ export function InboxDrawer({ open, onClose, focus = DEFAULT_FOCUS }: { open: bo
               note={note}
               initialSeverity={focus.severity}
               onAct={actOnAlert}
-              onAsk={(prompt) => router.push(`/c/new?prompt=${encodeURIComponent(prompt)}`)}
+              onAsk={(prompt) => router.push(chatHref({ prompt }))}
             />
           ) : null}
           {loaded && shown === "replies" ? <ReplyList items={data.replies} open={data.handoffOpen} /> : null}

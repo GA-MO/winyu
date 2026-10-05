@@ -1,0 +1,406 @@
+{
+ "version": 1,
+ "caseId": "freshness",
+ "userId": "u_ton",
+ "prompt": "metric ไหนมีข้อมูลล่าสุดถึงวันไหน",
+ "model": "google/gemini-3.8-flash",
+ "promptHash": "efd4732ee93bef98",
+ "toolsHash": "a9845adcdd929393",
+ "today": "2026-10-05",
+ "recordedAt": "2026-10-05T15:54:38.754Z",
+ "steps": [
+  {
+   "kind": "call",
+   "tool": "list_metrics",
+   "args": {
+    "search": null
+   },
+   "result": {
+    "ok": true,
+    "summary": "พบ 21 เมตริกที่ตรงกับคำค้น",
+    "data": [
+     {
+      "id": "net_sales_volume",
+      "labelTh": "ปริมาณขายเข้า (Sell-in)",
+      "unit": "ลิตร",
+      "dims": [
+       "date",
+       "week",
+       "month",
+       "region",
+       "province",
+       "channel",
+       "brand",
+       "sku",
+       "pack",
+       "agent",
+       "business_unit"
+      ],
+      "certified": true,
+      "source": "SAP SD",
+      "refresh": "รายวัน",
+      "latest": "22 ก.ย. 2569"
+     },
+     {
+      "id": "net_sales_value",
+      "labelTh": "มูลค่าขายเข้า",
+      "unit": "บาท",
+      "dims": [
+       "date",
+       "week",
+       "month",
+       "region",
+       "province",
+       "channel",
+       "brand",
+       "sku",
+       "pack",
+       "agent",
+       "business_unit"
+      ],
+      "certified": true,
+      "source": "SAP SD",
+      "refresh": "รายวัน",
+      "latest": "22 ก.ย. 2569"
+     },
+     {
+      "id": "sell_out_volume",
+      "labelTh": "ปริมาณขายออก (Sell-out)",
+      "unit": "ลิตร",
+      "dims": [
+       "date",
+       "week",
+       "month",
+       "region",
+       "province",
+       "channel",
+       "brand",
+       "sku",
+       "pack",
+       "agent",
+       "business_unit"
+      ],
+      "certified": true,
+      "source": "SAP SD",
+      "refresh": "รายวัน",
+      "latest": "22 ก.ย. 2569"
+     },
+     {
+      "id": "target_attainment",
+      "labelTh": "การบรรลุเป้าหมาย",
+      "unit": "%",
+      "dims": [
+       "date",
+       "week",
+       "month",
+       "region",
+       "province",
+       "channel",
+       "brand",
+       "sku",
+       "pack",
+       "agent",
+       "business_unit"
+      ],
+      "certified": true,
+      "source": "SAP SD",
+      "refresh": "รายวัน",
+      "latest": "22 ก.ย. 2569"
+     },
+     {
+      "id": "stock_on_hand",
+      "labelTh": "สต๊อกคงเหลือ",
+      "unit": "ลัง",
+      "dims": [
+       "date",
+       "week",
+       "month",
+       "region",
+       "dc",
+       "brand",
+       "sku",
+       "pack",
+       "business_unit"
+      ],
+      "certified": true,
+      "source": "WMS",
+      "refresh": "รายวัน",
+      "latest": "22 ก.ย. 2569"
+     },
+     {
+      "id": "days_of_cover",
+      "labelTh": "วันครอบคลุมสต๊อก",
+      "unit": "วัน",
+      "dims": [
+       "date",
+       "week",
+       "month",
+       "region",
+       "dc",
+       "brand",
+       "sku",
+       "pack",
+       "business_unit"
+      ],
+      "certified": true,
+      "source": "WMS",
+      "refresh": "รายวัน",
+      "latest": "22 ก.ย. 2569"
+     },
+     {
+      "id": "production_output",
+      "labelTh": "ปริมาณการผลิต",
+      "unit": "ลิตร",
+      "dims": [
+       "date",
+       "week",
+       "month",
+       "region",
+       "plant",
+       "brand",
+       "business_unit"
+      ],
+      "certified": true,
+      "source": "MES",
+      "refresh": "รายวัน",
+      "latest": "22 ก.ย. 2569"
+     },
+     {
+      "id": "capacity_utilization",
+      "labelTh": "อัตราการใช้กำลังผลิต",
+      "unit": "%",
+      "dims": [
+       "date",
+       "week",
+       "month",
+       "region",
+       "plant",
+       "brand",
+       "business_unit"
+      ],
+      "certified": true,
+      "source": "MES",
+      "refresh": "รายวัน",
+      "latest": "22 ก.ย. 2569"
+     },
+     {
+      "id": "forecast_mape",
+      "labelTh": "ความคลาดเคลื่อนพยากรณ์ (MAPE)",
+      "unit": "%",
+      "dims": [
+       "month",
+       "brand",
+       "region"
+      ],
+      "certified": false,
+      "source": "Demand planning",
+      "refresh": "รายเดือน",
+      "latest": "22 ก.ย. 2569"
+     },
+     {
+      "id": "campaign_spend",
+      "labelTh": "งบแคมเปญที่ใช้",
+      "unit": "บาท",
+      "dims": [
+       "date",
+       "week",
+       "month",
+       "campaign",
+       "brand",
+       "region",
+       "business_unit"
+      ],
+      "certified": true,
+      "source": "SAP FI",
+      "refresh": "รายวัน",
+      "latest": "22 ก.ย. 2569"
+     },
+     {
+      "id": "campaign_reach",
+      "labelTh": "การเข้าถึงของแคมเปญ",
+      "unit": "คน",
+      "dims": [
+       "date",
+       "week",
+       "month",
+       "campaign",
+       "brand",
+       "region",
+       "business_unit"
+      ],
+      "certified": false,
+      "source": "Ad platform",
+      "refresh": "รายวัน",
+      "latest": "22 ก.ย. 2569"
+     },
+     {
+      "id": "campaign_uplift",
+      "labelTh": "ยอดเพิ่มจากแคมเปญ",
+      "unit": "%",
+      "dims": [
+       "date",
+       "week",
+       "month",
+       "campaign",
+       "brand",
+       "region",
+       "business_unit"
+      ],
+      "certified": false,
+      "source": "SAP SD",
+      "refresh": "รายวัน",
+      "latest": "22 ก.ย. 2569"
+     },
+     {
+      "id": "share_of_voice",
+      "labelTh": "ส่วนแบ่งการพูดถึง",
+      "unit": "%",
+      "dims": [
+       "week",
+       "month",
+       "brand"
+      ],
+      "certified": false,
+      "source": "Social listening",
+      "refresh": "รายสัปดาห์",
+      "latest": "22 ก.ย. 2569"
+     },
+     {
+      "id": "sentiment_score",
+      "labelTh": "คะแนนความรู้สึก",
+      "unit": "คะแนน",
+      "dims": [
+       "date",
+       "week",
+       "month",
+       "campaign",
+       "brand",
+       "region",
+       "business_unit"
+      ],
+      "certified": false,
+      "source": "Social listening",
+      "refresh": "รายวัน",
+      "latest": "22 ก.ย. 2569"
+     },
+     {
+      "id": "gross_margin",
+      "labelTh": "อัตรากำไรขั้นต้น",
+      "unit": "%",
+      "dims": [
+       "month",
+       "business_unit",
+       "region"
+      ],
+      "certified": true,
+      "source": "SAP FI",
+      "refresh": "รายเดือน",
+      "latest": "22 ก.ย. 2569"
+     },
+     {
+      "id": "trade_spend",
+      "labelTh": "งบส่งเสริมการขาย",
+      "unit": "บาท",
+      "dims": [
+       "month",
+       "business_unit",
+       "region"
+      ],
+      "certified": true,
+      "source": "SAP FI",
+      "refresh": "รายเดือน",
+      "latest": "22 ก.ย. 2569"
+     },
+     {
+      "id": "ar_overdue",
+      "labelTh": "ยอดค้างชำระเกินกำหนด",
+      "unit": "บาท",
+      "dims": [
+       "month",
+       "agent",
+       "province",
+       "region"
+      ],
+      "certified": true,
+      "source": "SAP FI",
+      "refresh": "รายเดือน",
+      "latest": "22 ก.ย. 2569"
+     },
+     {
+      "id": "headcount",
+      "labelTh": "จำนวนพนักงาน",
+      "unit": "คน",
+      "dims": [
+       "month",
+       "department"
+      ],
+      "certified": true,
+      "source": "HRIS",
+      "refresh": "รายเดือน",
+      "latest": "22 ก.ย. 2569"
+     },
+     {
+      "id": "attrition_rate",
+      "labelTh": "อัตราการลาออกต่อเดือน",
+      "unit": "%",
+      "dims": [
+       "month",
+       "department"
+      ],
+      "certified": true,
+      "source": "HRIS",
+      "refresh": "รายเดือน",
+      "latest": "22 ก.ย. 2569"
+     },
+     {
+      "id": "avg_salary",
+      "labelTh": "เงินเดือนเฉลี่ย",
+      "unit": "บาท",
+      "dims": [
+       "month",
+       "department"
+      ],
+      "certified": true,
+      "source": "HRIS",
+      "refresh": "รายเดือน",
+      "latest": "22 ก.ย. 2569"
+     },
+     {
+      "id": "market_share",
+      "labelTh": "ส่วนแบ่งตลาดเบียร์",
+      "unit": "%",
+      "dims": [
+       "month",
+       "region",
+       "province",
+       "maker"
+      ],
+      "certified": false,
+      "source": "Retail audit รายเดือน",
+      "refresh": "รอบสำรวจรายเดือน",
+      "latest": "รอบ ส.ค. 69"
+     }
+    ]
+   }
+  },
+  {
+   "kind": "text",
+   "text": "เมตริกส่วนใหญ่ของระบบ (เช่น ปริมาณและมูลค่าขายเข้า–ออก สต๊อก การผลิต งบแคมเปญ การเงิน และข้อมูลบุคคล) มีข้อมูลล่าสุดถึงวันที่ 22 ก.ย. 2569 โดยอัปเดตตามรอบรายวัน รายสัปดาห์ หรือรายเดือน\n\nมีเพียงส่วนแบ่งตลาดเบียร์ (market_share) ที่ข้อมูลล่าสุดอยู่ที่รอบ ส.ค. 2569 ตามรอบสำรวจ Retail audit ครับ"
+  }
+ ],
+ "asked": [],
+ "error": null,
+ "usage": {
+  "calls": 2,
+  "inputTokens": 23299,
+  "outputTokens": 679,
+  "reasoningTokens": 560,
+  "usd": 0.002831625
+ },
+ "drawn": {
+  "cards": [
+   "list_metrics"
+  ],
+  "composed": null
+ }
+}

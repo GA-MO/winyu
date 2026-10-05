@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowUpRight, ChevronDown } from "lucide-react";
-import { cn } from "vexa/lib/utils";
+import { cn } from "@/components/ui/cn";
 import { formatDateTh, formatTimeTh } from "@/lib/i18n/format";
 
 export const FOCUS = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";

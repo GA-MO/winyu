@@ -1,0 +1,147 @@
+{
+ "version": 1,
+ "caseId": "people-profile",
+ "userId": "u_may",
+ "prompt": "ขอดูโปรไฟล์คุณจอย ศรีประเสริฐ",
+ "model": "google/gemini-3.8-flash",
+ "promptHash": "2bfadd00013f7c5d",
+ "toolsHash": "3542bb7c8b47d7ed",
+ "today": "2026-10-05",
+ "recordedAt": "2026-10-05T15:50:25.927Z",
+ "steps": [
+  {
+   "kind": "call",
+   "tool": "get_person",
+   "args": {
+    "id": null,
+    "name": "จอย ศรีประเสริฐ"
+   },
+   "result": {
+    "ok": true,
+    "summary": "คุณจอย ศรีประเสริฐ — พนักงานขาย นครราชสีมา",
+    "data": {
+     "id": "e_joy",
+     "name": "คุณจอย ศรีประเสริฐ",
+     "title": "พนักงานขาย นครราชสีมา",
+     "photo": "/img/people/p08.jpg",
+     "badges": [
+      {
+       "label": "ควรคุยเรื่องความก้าวหน้า",
+       "tone": "warning"
+      },
+      {
+       "label": "ทดลองงาน",
+       "tone": "neutral"
+      }
+     ],
+     "facts": [
+      {
+       "label": "ฝ่าย",
+       "value": "ขาย"
+      },
+      {
+       "label": "พื้นที่",
+       "value": "นครราชสีมา"
+      },
+      {
+       "label": "หัวหน้า",
+       "value": "คุณป้อง แสนสุข"
+      },
+      {
+       "label": "อายุงาน",
+       "value": "2 เดือน"
+      },
+      {
+       "label": "เริ่มงาน",
+       "value": "13 ก.ค. 2569"
+      },
+      {
+       "label": "โอที 3 เดือนล่าสุด",
+       "value": "46 ชม."
+      },
+      {
+       "label": "อายุ",
+       "value": "26 ปี"
+      },
+      {
+       "label": "เงินเดือน",
+       "value": "27,000 บาท"
+      }
+     ],
+     "history": [
+      {
+       "title": "ปฐมนิเทศพนักงานขายใหม่",
+       "detail": null,
+       "time": "20 ก.ค. 2569"
+      },
+      {
+       "title": "เริ่มงาน พนักงานขาย นครราชสีมา (ทดลองงาน 119 วัน)",
+       "detail": null,
+       "time": "13 ก.ค. 2569"
+      }
+     ],
+     "certificates": [],
+     "risk_reasons": [
+      "คนใหม่แต่ทำโอทีหนัก"
+     ],
+     "reports": [],
+     "reports_count": null
+    }
+   }
+  },
+  {
+   "kind": "text",
+   "text": "คุณจอยยังอยู่ในช่วงทดลองงานและมีชั่วโมงทำงานล่วงเวลาสะสมค่อนข้างสูง ควรนัดพูดคุยติดตามภาระงานร่วมกับหัวหน้างานและวางแผนเส้นทางความก้าวหน้า\n\n```a2ui\n{\"id\":\"root\",\"component\":\"Card\",\"title\":\"โปรไฟล์พนักงาน\",\"meta\":\"ข้อมูลบุคลากร\",\"footnote\":\"ระบบ HR\",\"children\":[\"person\",\"facts\"]}\n{\"id\":\"person\",\"component\":\"Person\",\"name\":{\"path\":\"/get_person/data/name\"},\"role\":{\"path\":\"/get_person/data/title\"},\"src\":{\"path\":\"/get_person/data/photo\"}}\n{\"id\":\"facts\",\"component\":\"KeyValue\",\"from\":{\"path\":\"/get_person/data/facts\"}}\n```"
+  }
+ ],
+ "asked": [],
+ "error": null,
+ "usage": {
+  "calls": 2,
+  "inputTokens": 20734,
+  "outputTokens": 2499,
+  "reasoningTokens": 2309,
+  "usd": 0.00564405
+ },
+ "drawn": {
+  "cards": [],
+  "composed": {
+   "accepted": 3,
+   "rejected": 0,
+   "problems": [],
+   "components": [
+    {
+     "id": "root",
+     "component": "Card",
+     "title": "โปรไฟล์พนักงาน",
+     "meta": "ข้อมูลบุคลากร",
+     "footnote": "ระบบ HR",
+     "children": [
+      "person",
+      "facts"
+     ]
+    },
+    {
+     "id": "person",
+     "component": "Person",
+     "name": {
+      "path": "/get_person/data/name"
+     },
+     "role": {
+      "path": "/get_person/data/title"
+     },
+     "src": {
+      "path": "/get_person/data/photo"
+     }
+    },
+    {
+     "id": "facts",
+     "component": "KeyValue",
+     "from": {
+      "path": "/get_person/data/facts"
+     }
+    }
+   ]
+  }
+ }
+}

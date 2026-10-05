@@ -1,4 +1,5 @@
 import type { RuleRef } from "@/lib/contracts";
+import type { GuardFinding } from "./guard";
 import type { ApprovalRule, ContextKind, Evidence, Goal, ObservationStatus, RecoveryAction } from "./types";
 
 export type EventSource = "runtime" | "model" | "gateway" | "ui";
@@ -23,7 +24,9 @@ export type HarnessEventBody =
   | { type: "approval.requested"; payload: ToolRef }
   | { type: "agent.decided"; payload: { stepId: string; finishReason: string; toolCalls: string[] } }
   | { type: "agent.limited"; payload: { limit: RunLimit; step: number } }
+  | { type: "agent.resumed"; payload: { reason: "restart" } }
   | { type: "ui.rendered"; payload: { stepId: string; components: string[] } }
+  | { type: "ui.composed"; payload: { surfaceId: string; accepted: number; rejected: number; problems: string[] } }
   | { type: "tool.authorized"; payload: ToolRef & { approval: ApprovalRule } }
   | { type: "tool.denied"; payload: ToolRef & { code: string; reason: string; rule?: RuleRef } }
   | { type: "tool.started"; payload: ToolRef & { attempt: number } }
@@ -33,6 +36,7 @@ export type HarnessEventBody =
   | { type: "verification.passed"; payload: ToolRef & { checks: string[] } }
   | { type: "verification.failed"; payload: ToolRef & { reason: string; retry: boolean } }
   | { type: "recovery.decided"; payload: ToolRef & { action: RecoveryAction; reason: string; fix?: string } }
+  | { type: "guard.flagged"; payload: GuardFinding }
   | { type: "agent.completed"; payload: { finishReason: string } }
   | { type: "agent.failed"; payload: { reason: string } };
 

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Noto_Sans_Thai } from "next/font/google";
 import { TH } from "@/lib/i18n/th";
-import { THEME_BOOT_SCRIPT } from "@/components/theme/theme-provider";
+import { ThemeBootScript } from "@/components/theme/theme-boot-script";
 import { Providers } from "./providers";
 import "./globals.css";
 
@@ -15,9 +15,9 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="th" className={`vexa-scrollbar ${notoSansThai.variable} ${inter.variable}`} suppressHydrationWarning>
+    <html lang="th" className={`ui-scrollbar ${notoSansThai.variable} ${inter.variable}`} suppressHydrationWarning>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: THEME_BOOT_SCRIPT }} />
+        <ThemeBootScript />
       </head>
       <body className="min-h-dvh bg-background text-foreground antialiased">
         <Providers>{children}</Providers>

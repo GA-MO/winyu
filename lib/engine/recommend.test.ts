@@ -1,16 +1,17 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import type { AccessContext, ActionEvent } from "@/lib/contracts";
+import type { AccessContext, ActionEvent, MetricQuery } from "@/lib/contracts";
 import { accessFor } from "@/lib/access/policies";
 import { findUser } from "@/lib/data/entities/users";
-import { memoryFacts } from "@/lib/server/agent/collections";
+import { actionEvents, memoryFacts } from "@/lib/server/agent/collections";
 import { defaultActionsFor } from "@/lib/server/quick-actions";
 import { TH } from "@/lib/i18n/th";
 import { quickActionsFrom, scoreIntents } from "./recommend";
 import { GENERATOR_DICTIONARY } from "@/lib/data/master";
 import { extractByRule, pruneMemory, rememberTurn } from "./memory";
-import { intentKeyOf, turnsOf } from "@/lib/server/threads";
+import { finishTurn, intentKeyOf } from "@/lib/server/threads";
 
 const USER = "u_anucha";
+const QUERIED: MetricQuery = { metric: "target_attainment", dims: ["region"], filters: {}, range: { from: "2026-09-01", to: "2026-09-30" }, grain: "month", compare: "target", limit: null };
 const NOW = Date.parse("2026-09-22T09:00:00.000Z");
 const DAY_MS = 86_400_000;
 
@@ -125,28 +126,21 @@ describe("memory", () => {
 });
 
 describe("threads", () => {
-  test("a saved conversation becomes one turn with the metric the answer used", () => {
-    const messages = [
-      { id: "m1", role: "user", parts: [{ type: "text", text: "ยอดอีสานเทียบเป้า" }] },
-      {
-        id: "m2",
-        role: "assistant",
-        parts: [
-          { type: "tool-query_metric", input: { metric: "target_attainment", dims: ["region"] } },
-          { type: "text", text: "ยอดอีสานอยู่ที่ 92%" },
-        ],
-      },
-    ];
-    const [turn] = turnsOf(messages);
-    expect(turn.prompt).toBe("ยอดอีสานเทียบเป้า");
-    expect(turn.intentKey).toBe("target_attainment|region");
-    expect(turn.answer).toContain("92%");
-  });
-
-  test("a turn without a query has no intent key", () => {
-    const [turn] = turnsOf([{ id: "m1", role: "user", parts: [{ type: "text", text: "สวัสดี" }] }]);
-    expect(turn.intentKey).toBe("");
-    expect(intentKeyOf(null, [])).toBe("");
+  test("a finished chat turn becomes a learned chip keyed by the slice it queried", async () => {
+    const userId = "u_recommend_turn_test";
+    const learner = { ...access(), userId };
+    const prompt = "ยอดอีสานเทียบเป้าเดือนนี้";
+    try {
+      await finishTurn(userId, null, prompt, [QUERIED]);
+      const [learned] = scoreIntents(learner, Date.now(), actionEvents().all());
+      expect(learned?.intentKey).toBe("target_attainment|region");
+      expect(learned?.prompt).toBe(prompt);
+      await finishTurn(userId, null, "สวัสดี", []);
+      expect(actionEvents().where((item) => item.userId === userId && item.prompt === "สวัสดี")[0]?.intentKey).toBe("");
+    } finally {
+      for (const item of actionEvents().where((entry) => entry.userId === userId)) actionEvents().remove(item.id);
+      for (const fact of memoryFacts().where((entry) => entry.userId === userId)) memoryFacts().remove(fact.id);
+    }
   });
 
   test("dims are sorted so the same slice always gets the same key", () => {

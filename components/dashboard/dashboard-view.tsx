@@ -3,11 +3,11 @@
 import { useCallback, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronDown, CircleCheck, HelpCircle, Pin, PinOff, Sparkles, X } from "lucide-react";
-import { SpecView } from "vexa/react";
-import { cn } from "vexa/lib/utils";
-import { HoverCard, HoverCardContent, HoverCardTrigger } from "vexa/ui/hover-card";
-import type { Spec } from "vexa/protocol";
+import { cn } from "@/components/ui/cn";
 import type { WidgetSpec } from "@/lib/contracts";
+import type { CardParts } from "@/lib/cards/present";
+import { CardPartsView } from "@/components/cards/card-parts";
+import { ChatLinkActions } from "@/components/landing/chat-link-actions";
 import { TH } from "@/lib/i18n/th";
 import type { Attention } from "@/lib/dashboard/attention";
 import { SeenTracker } from "./seen-tracker";
@@ -27,7 +27,7 @@ const SUGGESTION_BADGE = "absolute left-4 top-0 z-10 inline-flex items-center ga
 
 export type DashboardWidgetHeadline = { value: string; delta: string | null; tone: keyof typeof DELTA_TONE };
 
-export type DashboardWidgetView = { widget: WidgetSpec; spec: Spec; attention: Attention; headline: DashboardWidgetHeadline | null };
+export type DashboardWidgetView = { widget: WidgetSpec; card: CardParts; attention: Attention; headline: DashboardWidgetHeadline | null };
 
 export type RestorableLayout = { version: number; savedAt: string };
 
@@ -83,6 +83,7 @@ export function DashboardView({
   const trayCount = learned.length + suggested.length;
 
   return (
+    <ChatLinkActions>
     <div className="flex flex-col gap-8">
       <section className="flex flex-col gap-3">
         <div className="flex items-center justify-between gap-2">
@@ -104,7 +105,7 @@ export function DashboardView({
                     <PinOff className="size-3.5" aria-hidden />
                   </button>
                 </div>
-                <SpecView spec={view.spec} showDevtools={false} />
+                <CardPartsView parts={view.card} />
               </div>
             </SeenTracker>
           ))}
@@ -152,6 +153,7 @@ export function DashboardView({
         </section>
       ) : null}
     </div>
+    </ChatLinkActions>
   );
 }
 
@@ -165,7 +167,7 @@ function SuggestionCard({ view, pending, onPin, onDismiss }: TrayCardProps) {
         <Sparkles className="size-3" aria-hidden />
         {TH.dash.winyuSuggests}
       </span>
-      <SpecView spec={view.spec} showDevtools={false} />
+      <CardPartsView parts={view.card} />
       <div className="mt-2.5 flex items-start gap-2 px-1">
         {view.widget.reason ? <p className="min-w-0 flex-1 pt-1 text-xs leading-relaxed text-muted-foreground">{view.widget.reason}</p> : <span className="flex-1" />}
         <button type="button" disabled={pending} onClick={onDismiss} className={ROW_BUTTON}>
@@ -191,7 +193,7 @@ function TrayCard({ view, pending, onPin, onDismiss }: TrayCardProps) {
         </button>
       </div>
       <p className="mb-1.5 truncate text-xs text-muted-foreground">{reasonOf(view.widget)}</p>
-      <SpecView spec={view.spec} showDevtools={false} />
+      <CardPartsView parts={view.card} />
     </div>
   );
 }
@@ -230,7 +232,7 @@ function SteadyPanel({ views, pending, onUnpin }: { views: DashboardWidgetView[]
                 </div>
                 {expanded ? (
                   <div className="border-t border-border bg-muted/30 p-3">
-                    <SpecView spec={view.spec} showDevtools={false} />
+                    <CardPartsView parts={view.card} />
                   </div>
                 ) : null}
               </SeenTracker>
@@ -248,16 +250,19 @@ function reasonOf(widget: WidgetSpec): string {
 }
 
 function WhyCard({ widget }: { widget: WidgetSpec }) {
+  const [open, setOpen] = useState(false);
   return (
-    <HoverCard>
-      <HoverCardTrigger render={<button type="button" aria-label={TH.dash.why} className={ICON} />}>
+    <span className="relative">
+      <button type="button" aria-label={TH.dash.why} aria-expanded={open} onClick={() => setOpen((value) => !value)} onBlur={() => setOpen(false)} className={ICON}>
         <HelpCircle className="size-3.5" aria-hidden />
-      </HoverCardTrigger>
-      <HoverCardContent className="w-64 text-xs">
-        <p className="font-medium">{TH.dash.why}</p>
-        <p className="mt-1 text-muted-foreground">{reasonOf(widget)}</p>
-        <p className="mt-1 text-muted-foreground">{TH.dash.source[widget.source]}</p>
-      </HoverCardContent>
-    </HoverCard>
+      </button>
+      {open ? (
+        <span role="tooltip" className="absolute right-0 top-9 z-20 flex w-64 flex-col gap-1 rounded-xl border border-border bg-card p-3 text-xs shadow-lift">
+          <span className="font-medium">{TH.dash.why}</span>
+          <span className="text-muted-foreground">{reasonOf(widget)}</span>
+          <span className="text-muted-foreground">{TH.dash.source[widget.source]}</span>
+        </span>
+      ) : null}
+    </span>
   );
 }

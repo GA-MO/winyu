@@ -1,12 +1,14 @@
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
-import { CircleCheck, CircleX, Flag, Gauge, Hand, Layers, LayoutTemplate, MousePointerClick, Scissors, Sparkles, Wrench } from "lucide-react";
-import { cn } from "vexa/lib/utils";
+import { CircleCheck, CircleX, Flag, Gauge, Hand, Layers, LayoutTemplate, MousePointerClick, RotateCw, Scissors, ShieldAlert, Sparkles, Wrench } from "lucide-react";
+import { cn } from "@/components/ui/cn";
 import type { AuditEntry } from "@/lib/contracts";
 import type { ContextRef } from "@/lib/harness/events";
 import type { RunRecord } from "@/lib/harness/runtime";
+import type { RunSpend } from "@/lib/server/model-ledger";
 import { stateOf } from "@/lib/harness/state";
 import { timelineOf, type TimelineEntry, type ToolStory } from "@/lib/harness/timeline";
+import { studioTraceUrl } from "@/lib/harness/trace-link";
 import { TH } from "@/lib/i18n/th";
 import { toolLabel } from "@/lib/server/tools/registry";
 import { FOCUS, Pill, type Tone } from "./parts";
@@ -15,6 +17,8 @@ const COPY = TH.admin.trace;
 const CODES = TH.admin.auditTab.codes;
 const MS_PER_SECOND = 1000;
 const JOB_INTENT_PREFIX = "job:";
+const MCP_INTENT_PREFIX = "mcp:";
+const A2A_INTENT_PREFIX = "a2a:";
 
 const ICON_TONE: Record<Tone, string> = {
   neutral: "bg-muted text-muted-foreground",
@@ -87,10 +91,17 @@ function ToolDetail({ story, args }: { story: ToolStory; args: string | null }) 
   );
 }
 
+function startTitle(intent: string | null): string {
+  if (intent?.startsWith(JOB_INTENT_PREFIX)) return COPY.startJob;
+  if (intent?.startsWith(MCP_INTENT_PREFIX)) return COPY.startMcp;
+  if (intent?.startsWith(A2A_INTENT_PREFIX)) return COPY.startA2a(intent.slice(A2A_INTENT_PREFIX.length));
+  return COPY.start;
+}
+
 function lineOf(entry: TimelineEntry, argsOf: (toolCallId: string) => string | null): Line {
   switch (entry.kind) {
     case "start":
-      return { icon: Flag, tone: "primary", title: entry.goal.intent?.startsWith(JOB_INTENT_PREFIX) ? COPY.startJob : COPY.start, detail: entry.goal.userMessage ? `“${entry.goal.userMessage}”` : null };
+      return { icon: Flag, tone: "primary", title: startTitle(entry.goal.intent), detail: entry.goal.userMessage ? `“${entry.goal.userMessage}”` : null };
     case "pressed":
       return { icon: MousePointerClick, tone: "primary", title: COPY.pressed(toolLabel(entry.tool)) };
     case "answered":
@@ -119,29 +130,54 @@ function lineOf(entry: TimelineEntry, argsOf: (toolCallId: string) => string | n
       return { icon: Wrench, tone: toolTone(entry), title: toolLabel(entry.tool), detail: <ToolDetail story={entry} args={argsOf(entry.toolCallId)} /> };
     case "asked":
       return { icon: Hand, tone: "warning", title: COPY.asked(toolLabel(entry.tool)) };
+    case "resumed":
+      return { icon: RotateCw, tone: "warning", title: COPY.resumed, detail: COPY.resumedDetail };
     case "limited":
       return { icon: Gauge, tone: "warning", title: COPY.limited[entry.limit], detail: COPY.limitedDetail(entry.step) };
     case "rendered":
       return { icon: LayoutTemplate, tone: "success", title: COPY.rendered(entry.components.join(", ")) };
+    case "composed":
+      return { icon: LayoutTemplate, tone: entry.rejected > 0 ? "warning" : "success", title: COPY.composed(entry.accepted, entry.rejected), detail: entry.problems.length > 0 ? entry.problems.join(" · ") : null };
+    case "guarded":
+      return {
+        icon: ShieldAlert,
+        tone: entry.action === "warned" ? "warning" : "primary",
+        title: TH.guard.flagged(entry.check, TH.guard.source[entry.source] ?? entry.source),
+        detail: (
+          <div className="flex flex-wrap gap-1">
+            {entry.kinds.map((kind) => (
+              <Pill key={kind} tone="warning">{TH.guard.kind[kind] ?? kind}</Pill>
+            ))}
+            <Pill tone={entry.action === "warned" ? "neutral" : "success"}>{TH.guard.action[entry.action] ?? entry.action}</Pill>
+          </div>
+        ),
+      };
     case "end":
       return entry.ok ? { icon: CircleCheck, tone: "success", title: COPY.completed } : { icon: CircleX, tone: "danger", title: COPY.failed(entry.reason) };
   }
 }
 
 /** The run behind one question in the audit, as the steps the AI took: what it was told, what it asked for, what the harness allowed, observed, checked and did next. */
-export function RunTrace({ record, audit }: { record: RunRecord; audit: readonly AuditEntry[] }) {
+export function RunTrace({ record, audit, spend }: { record: RunRecord; audit: readonly AuditEntry[]; spend?: RunSpend }) {
   const state = stateOf(record.id, record.events);
   const startedAt = Date.parse(record.startedAt);
   const duration = Date.parse(record.endedAt) - startedAt;
   const argsOf = (toolCallId: string) => audit.find((entry) => entry.toolCallId === toolCallId)?.args ?? null;
   const tone: Tone = state.phase === "failed" ? "danger" : state.phase === "awaiting_approval" ? "warning" : "success";
+  const studioUrl = studioTraceUrl(record.id);
   return (
     <section className="flex flex-col gap-3 rounded-2xl border border-border bg-card px-3.5 py-3 shadow-card">
       <header className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm font-medium">{COPY.heading}</p>
         <span className="flex items-center gap-2 text-[11px] tabular-nums text-muted-foreground">
           {COPY.summary(state.step, Object.keys(state.toolCalls).length, seconds(duration))}
+          {spend && spend.calls > 0 ? <span>{COPY.spend(spend.calls, (spend.inputTokens + spend.outputTokens).toLocaleString("th-TH"), spend.usd.toFixed(4))}</span> : null}
           <Pill tone={tone}>{COPY.phase[state.phase]}</Pill>
+          {studioUrl ? (
+            <a href={studioUrl} target="_blank" rel="noreferrer" className={cn("rounded-full underline-offset-2 hover:underline", FOCUS)}>
+              {COPY.studioTrace}
+            </a>
+          ) : null}
         </span>
       </header>
       <ol className="relative flex flex-col gap-3 before:absolute before:bottom-2 before:left-[13px] before:top-2 before:w-px before:bg-border">

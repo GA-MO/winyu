@@ -8,7 +8,7 @@ const COPY = TH.admin.trace;
 const GOAL = { id: "g", userMessage: "ยอดขายภาคใต้", intent: null, status: "active" as const };
 
 function recordOf(build: (run: ReturnType<typeof newRun>) => void): RunRecord {
-  const run = newRun("u_anucha", "t");
+  const run = newRun("u_anucha", "t", { initiator: "person" });
   build(run);
   return { id: run.id, userId: run.userId, threadId: run.threadId, startedAt: run.events[0].at, endedAt: run.events.at(-1)?.at ?? run.events[0].at, events: run.events };
 }

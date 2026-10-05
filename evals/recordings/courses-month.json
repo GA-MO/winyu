@@ -1,0 +1,178 @@
+{
+ "version": 1,
+ "caseId": "courses-month",
+ "userId": "u_may",
+ "prompt": "มีหลักสูตรอะไรเปิดเดือนนี้",
+ "model": "google/gemini-3.8-flash",
+ "promptHash": "2bfadd00013f7c5d",
+ "toolsHash": "3542bb7c8b47d7ed",
+ "today": "2026-10-05",
+ "recordedAt": "2026-10-05T15:52:36.709Z",
+ "steps": [
+  {
+   "kind": "call",
+   "tool": "list_courses",
+   "args": {
+    "month": "2026-10",
+    "query": null
+   },
+   "result": {
+    "ok": true,
+    "summary": "5 หลักสูตร เริ่มหลักสูตรแรก 3 ต.ค. 2569 · 2 หลักสูตรต่ออายุใบที่ใกล้หมดของคุณหรือทีม",
+    "data": [
+     {
+      "id": "crs_sales_licence",
+      "title": "ทบทวนกฎหมายควบคุมเครื่องดื่มแอลกอฮอล์ (ต่ออายุใบอนุญาต)",
+      "cover": "/img/courses/course05.jpg",
+      "category": "กฎหมาย",
+      "when": "3 ต.ค. 2569 · 1 วัน",
+      "place": "Online",
+      "audience": "ผู้ถือใบอนุญาตจำหน่ายสุรา (ผู้แทน)",
+      "seats": {
+       "label": "เหลือ 39 ที่ จาก 80",
+       "tone": "neutral"
+      },
+      "note": "ควรส่งไป: คุณป้อง แสนสุข (หมดใน 16 วัน), คุณกฤต จันทร์เสน (หมดใน 23 วัน)",
+      "badges": [],
+      "can_enroll": true
+     },
+     {
+      "id": "crs_gmp",
+      "title": "GMP และความปลอดภัยอาหาร รอบต่ออายุ",
+      "cover": "/img/courses/course01.jpg",
+      "category": "คุณภาพ",
+      "when": "8 ต.ค. 2569 · 1 วัน",
+      "place": "โรงงานขอนแก่น · ห้องเรียน",
+      "audience": "พนักงานสายการผลิตและควบคุมคุณภาพ",
+      "seats": {
+       "label": "เต็มแล้ว",
+       "tone": "bad"
+      },
+      "note": "ควรส่งไป: คุณสมศรี ทองคำ (หมดใน 28 วัน)",
+      "badges": [],
+      "can_enroll": false
+     },
+     {
+      "id": "crs_data_promo",
+      "title": "วางแผนโปรโมชันด้วยข้อมูล",
+      "cover": "/img/courses/course09.jpg",
+      "category": "ข้อมูล",
+      "when": "14 ต.ค. 2569 · 2 วัน",
+      "place": "Online",
+      "audience": "การตลาด เทรดมาร์เก็ตติ้ง และผู้จัดการขายภาค",
+      "seats": {
+       "label": "เหลือ 28 ที่ จาก 40",
+       "tone": "neutral"
+      },
+      "note": null,
+      "badges": [],
+      "can_enroll": true
+     },
+     {
+      "id": "crs_lab",
+      "title": "การตรวจคุณภาพเบียร์ในห้องแล็บ",
+      "cover": "/img/courses/course07.jpg",
+      "category": "คุณภาพ",
+      "when": "20 ต.ค. 2569 · 3 วัน",
+      "place": "โรงงานปทุมธานี · ห้องเรียน",
+      "audience": "พนักงานควบคุมคุณภาพ",
+      "seats": {
+       "label": "เหลือ 9 ที่ จาก 16",
+       "tone": "neutral"
+      },
+      "note": null,
+      "badges": [],
+      "can_enroll": true
+     },
+     {
+      "id": "crs_leader",
+      "title": "ผู้นำทีมรุ่นใหม่",
+      "cover": "/img/courses/course06.jpg",
+      "category": "ภาวะผู้นำ",
+      "when": "27 ต.ค. 2569 · 3 วัน",
+      "place": "สำนักงานใหญ่ สามเสน · ห้องเรียน",
+      "audience": "หัวหน้าทีมและหัวหน้ากะ",
+      "seats": {
+       "label": "เหลือ 3 ที่ จาก 20",
+       "tone": "bad"
+      },
+      "note": null,
+      "badges": [],
+      "can_enroll": true
+     }
+    ]
+   }
+  },
+  {
+   "kind": "text",
+   "text": "ในเดือนตุลาคม 2569 มีหลักสูตรสำหรับต่ออายุใบอนุญาตของสมาชิกในทีมที่ใกล้หมดอายุ และมีบางหลักสูตรที่ที่นั่งเต็มแล้ว สามารถกดสมัครหลักสูตรที่ยังเปิดรับผ่านการ์ดเพื่อส่งขออนุมัติได้ทันที\n\n```a2ui\n{\"id\":\"root\",\"component\":\"Card\",\"title\":\"หลักสูตรอบรมประจำเดือนนี้\",\"meta\":\"ตุลาคม\",\"footnote\":\"ระบบพัฒนาบุคลากร\",\"children\":[\"courses\"]}\n{\"id\":\"courses\",\"component\":\"Grid\",\"children\":{\"componentId\":\"course_item\",\"path\":\"/list_courses/data\"}}\n{\"id\":\"course_item\",\"component\":\"ListItem\",\"title\":{\"path\":\"title\"},\"subtitle\":{\"path\":\"when\"},\"detail\":{\"path\":\"place\"},\"src\":{\"path\":\"cover\"},\"media\":\"thumb\",\"trailing\":{\"path\":\"seats/label\"},\"action\":{\"event\":{\"name\":\"enroll_course\",\"context\":{\"courseId\":{\"path\":\"id\"}}}}}\n```"
+  }
+ ],
+ "asked": [],
+ "error": null,
+ "usage": {
+  "calls": 2,
+  "inputTokens": 21152,
+  "outputTokens": 4740,
+  "reasoningTokens": 4507,
+  "usd": 0.010002675
+ },
+ "drawn": {
+  "cards": [],
+  "composed": {
+   "accepted": 3,
+   "rejected": 0,
+   "problems": [],
+   "components": [
+    {
+     "id": "root",
+     "component": "Card",
+     "title": "หลักสูตรอบรมประจำเดือนนี้",
+     "meta": "ตุลาคม",
+     "footnote": "ระบบพัฒนาบุคลากร",
+     "children": [
+      "courses"
+     ]
+    },
+    {
+     "id": "courses",
+     "component": "Grid",
+     "children": {
+      "componentId": "course_item",
+      "path": "/list_courses/data"
+     }
+    },
+    {
+     "id": "course_item",
+     "component": "ListItem",
+     "title": {
+      "path": "title"
+     },
+     "subtitle": {
+      "path": "when"
+     },
+     "detail": {
+      "path": "place"
+     },
+     "src": {
+      "path": "cover"
+     },
+     "media": "thumb",
+     "trailing": {
+      "path": "seats/label"
+     },
+     "action": {
+      "event": {
+       "name": "enroll_course",
+       "context": {
+        "courseId": {
+         "path": "id"
+        }
+       }
+      }
+     }
+    }
+   ]
+  }
+ }
+}

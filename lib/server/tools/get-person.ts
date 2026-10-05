@@ -9,7 +9,7 @@ export const getPersonTool = defineTool({
   connector: "hris",
   tier: "read",
   roles: "all",
-  description: "Read one employee's profile by id (from find_people) or name: photo, facts, career timeline, certificates with days left, direct reports. Fields outside the viewer's rights are left out by the server.",
+  description: "Read one employee's profile by id (from find_people) or name: photo, facts, career timeline, certificates with days left, direct reports and their count (reports_count). Fields outside the viewer's rights are left out by the server.",
   input: getPersonInputSchema,
   execute: async ({ id, name }: z.infer<typeof getPersonInputSchema>) => personProfile(currentAccess(), id, name),
 });

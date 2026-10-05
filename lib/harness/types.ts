@@ -1,3 +1,4 @@
+import type { GuardFinding } from "./guard";
 import type { AccessContext, RuleRef, ToolSurfaceEntry } from "@/lib/contracts";
 
 export type GoalStatus = "active" | "completed" | "failed" | "cancelled";
@@ -44,4 +45,4 @@ export type RecoveryAction = "retry" | "correct" | "return" | "withhold";
 export type ContextKind = "identity" | "role" | "scope" | "date" | "vocabulary" | "memory" | "switch" | "packet" | "story" | "suggestion";
 
 /** One piece of what the model is told, with where it came from, how much it matters, and whose data it is. */
-export type ContextItem = { id: string; kind: ContextKind; content: string; priority: number; source: string; scope: string | null };
+export type ContextItem = { id: string; kind: ContextKind; content: string; priority: number; source: string; scope: string | null; guarded?: GuardFinding };

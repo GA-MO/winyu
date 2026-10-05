@@ -5,18 +5,12 @@ import { findUser } from "@/lib/data/entities/users";
 import { layoutVersions, layouts } from "@/lib/server/agent/collections";
 import { layoutFor, layoutHistory, pinNewWidget, removeWidget, rollbackToYesterday, setWidgetPinned } from "@/lib/server/dashboard";
 import { TEMPLATE_ROLES, templateFor } from "@/lib/dashboard/templates";
-import { widgetToSpec } from "@/lib/dashboard/widget-to-spec";
+import { widgetCard } from "@/lib/dashboard/widget-card";
 import { runMetric } from "@/lib/data/query";
-import { normalizeSpec } from "vexa/core";
-import { winyuCatalog as catalog } from "@/lib/cards/catalog";
 import { CLUSTER_DAYS, MIN_REPEATS, candidatesFrom, composeSuggestion, feedCandidatesFrom, isPinnedSlice, kindFor, queryFor, shouldOfferPin } from "./compose";
 import { feedIntentKey } from "./feed-learning";
 
 const USER = "u_anucha";
-
-function validate(spec: unknown) {
-  return catalog.validate(normalizeSpec(spec as never));
-}
 
 const NOW = Date.parse("2026-09-22T09:00:00.000Z");
 const DAY_MS = 86_400_000;
@@ -110,7 +104,7 @@ describe("dashboard composer", () => {
 
 describe("role templates", () => {
   for (const role of TEMPLATE_ROLES) {
-    test(`${role} renders valid specs for every seeded widget`, () => {
+    test(`${role} resolves every seeded widget to a card with numbers or a refusal`, () => {
       const user = findUser(USER);
       if (!user) throw new Error("missing demo user");
       const roleAccess = { ...accessFor(user), role };
@@ -128,8 +122,9 @@ describe("role templates", () => {
           createdAt: "2026-09-22T00:00:00.000Z",
           version: 1,
         };
-        const spec = widgetToSpec(widget, runMetric(widget.query, roleAccess));
-        expect(validate(spec).success).toBe(true);
+        const card = widgetCard(widget, runMetric(widget.query, roleAccess));
+        expect(card.title).toBe(seed.title);
+        expect(card.denied !== null || card.hero !== null || card.body.kind !== "none").toBe(true);
       }
     });
   }

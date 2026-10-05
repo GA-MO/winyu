@@ -7,7 +7,7 @@ import type { AccessContext, DraftStory, Investigation, Story } from "@/lib/cont
 import { USERS, findUser } from "@/lib/data/entities/users";
 import { toolsForAccess } from "@/lib/server/agent/tools";
 import { evidenceIndexOf, investigate, reviewDrafts, saveInvestigation, storiesFrom, type EvidenceIndex, type InvestigationRun, type ReviewedDraft, type ToolCall } from "@/lib/server/investigate";
-import { models } from "@/lib/server/models";
+import { agentModel } from "@/lib/server/models";
 import { runWithAccess } from "@/lib/server/request-context";
 
 const DEFAULT_USERS = "u_prasit";
@@ -39,9 +39,9 @@ function writeRun(userId: string, run: SavedRun): void {
 }
 
 function realModel(): { id: string; model: LanguageModel } {
-  const [id, entry] = Object.entries(models())[0] ?? [];
-  if (!id || id === "mock" || !entry || typeof entry !== "object" || !("model" in entry)) throw new Error("no real model configured (set OPENROUTER_API_KEY)");
-  return { id, model: typeof entry.model === "function" ? entry.model() : entry.model };
+  const configured = agentModel();
+  if (!configured) throw new Error("no real model configured (set OPENROUTER_API_KEY)");
+  return { id: configured.id, model: configured.model() };
 }
 
 function storyLines(story: Story): string[] {
@@ -80,10 +80,9 @@ async function runModel(users: string[], save: boolean): Promise<void> {
 
 async function replayCall(userId: string, call: ToolCall): Promise<{ call: ToolCall; replayed: boolean }> {
   const access = accessOf(userId);
-  const definition = toolsForAccess(access)[call.tool] as { execute?: (args: unknown, options: unknown) => Promise<unknown> } | undefined;
-  if (!definition?.execute) return { call, replayed: false };
-  const execute = definition.execute;
-  const output = await runWithAccess(access, () => execute(call.input, {})).catch(() => null);
+  const definition = toolsForAccess(access).find((tool) => tool.entry.name === call.tool);
+  if (!definition) return { call, replayed: false };
+  const output = await runWithAccess(access, () => definition.execute(call.input)).catch(() => null);
   return output === null ? { call, replayed: false } : { call: { ...call, output }, replayed: true };
 }
 

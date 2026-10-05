@@ -84,9 +84,9 @@ describe("handoff packets", () => {
 
   test("the lifecycle runs open to accepted to resolved and tells the sender each time", async () => {
     const packet = await makePacket("u_wee", [query("days_of_cover")]);
-    const accepted = actOnPacket(packet, access("u_wee"), "accept", TH.handoff.replies.accept, null);
+    const accepted = await actOnPacket(packet, access("u_wee"), "accept", TH.handoff.replies.accept, null);
     expect(accepted.status).toBe("accepted");
-    const resolved = actOnPacket(accepted, access("u_wee"), "resolve", "เติมสต๊อกแล้ว", "เติมสต๊อกแล้ว");
+    const resolved = await actOnPacket(accepted, access("u_wee"), "resolve", "เติมสต๊อกแล้ว", "เติมสต๊อกแล้ว");
     expect(resolved.status).toBe("resolved");
     expect(resolved.outcome).toBe("เติมสต๊อกแล้ว");
     expect(resolved.thread).toHaveLength(2);

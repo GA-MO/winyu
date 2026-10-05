@@ -1,0 +1,79 @@
+{
+ "version": 1,
+ "caseId": "rsm-watch-agent",
+ "userId": "u_anucha",
+ "prompt": "ถ้ายอดขายเข้าของ ส.รุ่งเรือง เทรดดิ้ง เปลี่ยนเกิน 15% ให้เตือนผมด้วย",
+ "model": "google/gemini-3.8-flash",
+ "promptHash": "5cf727ed51a6d1b3",
+ "toolsHash": "5639642b6a430a27",
+ "today": "2026-10-05",
+ "recordedAt": "2026-10-05T15:48:34.686Z",
+ "steps": [
+  {
+   "kind": "call",
+   "tool": "describe_entity",
+   "args": {
+    "kind": "agent",
+    "query": "ส.รุ่งเรือง เทรดดิ้ง"
+   },
+   "result": {
+    "ok": true,
+    "data": {
+     "id": "ag_nea_07",
+     "ชื่อ": "ส.รุ่งเรือง เทรดดิ้ง",
+     "จังหวัด": "บุรีรัมย์",
+     "ภาค": "ภาคอีสาน",
+     "เกรด": "A",
+     "เครดิต": "45 วัน",
+     "เป็นคู่ค้าตั้งแต่": 2004,
+     "ศูนย์กระจายสินค้า": "ศูนย์กระจายสินค้านครราชสีมา"
+    },
+    "summary": "ส.รุ่งเรือง เทรดดิ้ง เอเย่นต์เกรด A จังหวัดบุรีรัมย์ ภาคอีสาน เครดิต 45 วัน ส่งจากศูนย์กระจายสินค้านครราชสีมา"
+   }
+  },
+  {
+   "kind": "call",
+   "tool": "watch_metric",
+   "args": {
+    "query": {
+     "filters": {
+      "agent": "ag_nea_07"
+     },
+     "metric": "net_sales_volume",
+     "compare": "prev_period",
+     "range": {
+      "to": "2026-09-22",
+      "from": "2026-09-01"
+     },
+     "dims": [
+      "agent"
+     ],
+     "limit": 1,
+     "grain": "month"
+    },
+    "condition": {
+     "kind": "change",
+     "value": 15
+    },
+    "title": "แจ้งเตือนเมื่อปริมาณขายเข้า ส.รุ่งเรือง เทรดดิ้ง เปลี่ยนแปลงเกิน 15%"
+   }
+  }
+ ],
+ "asked": [
+  "watch_metric"
+ ],
+ "error": null,
+ "usage": {
+  "calls": 2,
+  "inputTokens": 21975,
+  "outputTokens": 1580,
+  "reasoningTokens": 1413,
+  "usd": 0.0042571833333333335
+ },
+ "drawn": {
+  "cards": [
+   "describe_entity"
+  ],
+  "composed": null
+ }
+}

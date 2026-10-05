@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 import { BellRing, CalendarDays, Check, GraduationCap, LayoutGrid, Mail, RefreshCw, Send, ShieldCheck, X } from "lucide-react";
-import type { ApprovalRequest, RenderApproval } from "vexa/react";
 import { METRIC_IDS, ROLE_IDS, type MetricId, type MetricQuery, type RoleId, type Urgency, type WatchCondition } from "@/lib/contracts";
 import { conditionLabel } from "@/lib/engine/personal-watches";
 import { USERS, findUser } from "@/lib/data/entities/users";
@@ -24,6 +23,15 @@ const CONFIRM =
   "inline-flex items-center gap-2 rounded-full bg-ink px-4 py-2.5 text-sm font-medium text-ink-foreground transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 const CANCEL =
   "inline-flex items-center rounded-full border border-border bg-card px-4 py-2.5 text-sm font-medium text-muted-foreground transition hover:border-foreground/25 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+
+/** A write tool call waiting for the user: `approved` is null until they decide. */
+export type ApprovalRequest = {
+  tool: string;
+  input: unknown;
+  approved: boolean | null;
+  approve: () => void;
+  reject: () => void;
+};
 
 type Decision = {
   icon: LucideIcon;
@@ -72,12 +80,12 @@ function urgencyOf(value: string | undefined): Urgency | null {
 type Labels = Record<string, string>;
 
 function labelKeysOf(query: MetricQuery): string[] {
-  return Object.entries(query.filters ?? {}).flatMap(([dim, values]) => (values ?? []).map((value) => `${dim}:${value}`));
+  return Object.entries(query.filters ?? {}).flatMap(([dim, values]) => [values ?? []].flat().map((value) => `${dim}:${value}`));
 }
 
 function scopeOf(query: MetricQuery, labels: Labels): string {
   const dims = Object.entries(query.filters ?? {})
-    .flatMap(([dim, values]) => (values ?? []).map((value) => labels[`${dim}:${value}`] ?? value))
+    .flatMap(([dim, values]) => [values ?? []].flat().map((value) => labels[`${dim}:${value}`] ?? value))
     .slice(0, MAX_EVIDENCE_LABELS);
   return [metricLabel(query.metric), ...dims].join(" · ");
 }
@@ -345,7 +353,6 @@ function DecisionCard({ decision, request }: { decision: Decision; request: Appr
 
 function Approval({ decision, request }: { decision: Decision; request: ApprovalRequest }) {
   if (request.approved !== null) return <Receipt approved={request.approved} decision={decision} />;
-  if (request.state !== "approval-requested") return null;
   return <DecisionCard decision={decision} request={request} />;
 }
 
@@ -418,8 +425,8 @@ function CourseApproval({ request }: { request: ApprovalRequest }) {
   return <Approval decision={enrollDecision(input, course)} request={request} />;
 }
 
-/** The one decision a CEO has to make, drawn by Winyu: who gets the work, what it asks, what approving does. */
-export const renderWinyuApproval: RenderApproval = (request) => {
+/** The one decision the user has to make: who gets the work, what it asks, what approving does. Null for a tool that needs no approval. */
+export function renderApproval(request: ApprovalRequest): ReactNode {
   if (request.tool === "enroll_course") return <CourseApproval request={request} />;
   if (request.tool === "set_permission") return <PermissionApproval request={request} />;
   if (request.tool === "create_handoff") return <HandoffApproval request={request} />;
@@ -427,4 +434,4 @@ export const renderWinyuApproval: RenderApproval = (request) => {
   const decision = decisionOf(request.tool, request.input);
   if (!decision) return null;
   return <Approval decision={decision} request={request} />;
-};
+}

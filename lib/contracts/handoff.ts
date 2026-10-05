@@ -34,3 +34,19 @@ export const contextPacketSchema = z.object({
 }) satisfies z.ZodType<ContextPacket>;
 
 export type OutboxEntry = { id: string; at: string; kind: "handoff" | "email" | "watch" | "digest"; fromUserId: string; toUserId: string; toEmail: string; subject: string; body: string; refId: string | null };
+
+/** A colleague's answer to a handoff as it lands in the sender's conversation: who answered, where the packet stands, and what they wrote. */
+export type HandoffReplyNote = { packetId: string; packetTitle: string; fromName: string; fromTitle: string; status: ContextPacket["status"]; text: string; at: string };
+
+/** The transcript activity type a handoff reply is drawn as, between the server that restores it and the chat that draws it. */
+export const HANDOFF_REPLY_ACTIVITY = "handoff-reply";
+
+export const handoffReplyNoteSchema = z.object({
+  packetId: z.string().min(1),
+  packetTitle: z.string(),
+  fromName: z.string().min(1),
+  fromTitle: z.string(),
+  status: z.enum(PACKET_STATUSES),
+  text: z.string(),
+  at: z.string(),
+}) satisfies z.ZodType<HandoffReplyNote>;

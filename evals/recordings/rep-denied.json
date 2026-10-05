@@ -1,0 +1,99 @@
+{
+ "version": 1,
+ "caseId": "rep-denied",
+ "userId": "u_krit",
+ "prompt": "กำไรขั้นต้นของบริษัทเท่าไหร่",
+ "model": "google/gemini-3.8-flash",
+ "promptHash": "e19b55ac9c542b7b",
+ "toolsHash": "3a1e2faaa57dde17",
+ "today": "2026-10-05",
+ "recordedAt": "2026-10-05T15:56:58.040Z",
+ "steps": [
+  {
+   "kind": "call",
+   "tool": "query_metric",
+   "args": {
+    "metric": "gross_margin",
+    "dims": [],
+    "grain": "month",
+    "limit": 30,
+    "range": {
+     "from": "2026-01-01",
+     "to": "2026-09-22"
+    },
+    "compare": "none",
+    "filters": {}
+   },
+   "result": {
+    "ok": false,
+    "error": "บทบาทของคุณไม่มีสิทธิ์ดูเมตริก อัตรากำไรขั้นต้น",
+    "code": "PERMISSION_DENIED"
+   }
+  },
+  {
+   "kind": "call",
+   "tool": "resolve_owner",
+   "args": {
+    "dims": {},
+    "metric": "gross_margin"
+   },
+   "result": {
+    "ok": true,
+    "summary": "ผู้รับผิดชอบคือ คุณมิ้นท์ วรกุล",
+    "data": {
+     "userId": "u_mint",
+     "nameTh": "คุณมิ้นท์ วรกุล",
+     "title": "นักวิเคราะห์การเงิน",
+     "role": "finance_analyst",
+     "region": null,
+     "reason": "ผู้ดูแลตัวเลขการเงิน (ระดับประเทศ) · เคยรับงานลักษณะนี้ 0 ครั้ง · ตอนนี้มีงานค้าง 0 เรื่อง",
+     "openLoad": 0,
+     "handledBefore": 0
+    }
+   }
+  },
+  {
+   "kind": "text",
+   "text": "ข้อมูลอัตรากำไรขั้นต้นของบริษัทอยู่นอกเหนือขอบเขตสิทธิ์การเข้าถึงของคุณ หากต้องการข้อมูลนี้สามารถประสานงานหรือส่งคำขอไปยังผู้รับผิดชอบโดยตรงได้ครับ\n\n```a2ui\n{\"id\":\"root\",\"component\":\"Card\",\"title\":\"ผู้รับผิดชอบอัตรากำไรขั้นต้น\",\"children\":[\"owner\"]}\n{\"id\":\"owner\",\"component\":\"Person\",\"name\":{\"path\":\"/resolve_owner/data/nameTh\"},\"role\":{\"path\":\"/resolve_owner/data/title\"}}\n```"
+  }
+ ],
+ "asked": [],
+ "error": null,
+ "usage": {
+  "calls": 3,
+  "inputTokens": 31346,
+  "outputTokens": 3248,
+  "reasoningTokens": 3038,
+  "usd": 0.008019450000000001
+ },
+ "drawn": {
+  "cards": [
+   "query_metric"
+  ],
+  "composed": {
+   "accepted": 2,
+   "rejected": 0,
+   "problems": [],
+   "components": [
+    {
+     "id": "root",
+     "component": "Card",
+     "title": "ผู้รับผิดชอบอัตรากำไรขั้นต้น",
+     "children": [
+      "owner"
+     ]
+    },
+    {
+     "id": "owner",
+     "component": "Person",
+     "name": {
+      "path": "/resolve_owner/data/nameTh"
+     },
+     "role": {
+      "path": "/resolve_owner/data/title"
+     }
+    }
+   ]
+  }
+ }
+}

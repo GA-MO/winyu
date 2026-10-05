@@ -1,59 +1,15 @@
-"use client";
+import type { CardAction } from "./card-actions";
 
-import { z } from "zod";
-import { defineTool, formatActionMessage } from "vexa/react";
-import { TH } from "@/lib/i18n/th";
-import { ASK_TOOL } from "@/lib/cards/host-tools";
+/** What the chat does with a pressed card button: call a write tool (behind approval) or ask a question. */
+export type ActionRequest =
+  | { kind: "tool"; tool: string; input: Record<string, unknown>; label: string }
+  | { kind: "ask"; prompt: string; label: string };
 
-const NEW_THREAD = "/c/new";
-
-const actionSchema = z.object({
-  id: z.string(),
-  kind: z.string(),
-  label: z.string(),
-  reason: z.string(),
-  tool: z.string().nullable(),
-  input: z.record(z.string(), z.unknown()).nullable(),
-  prompt: z.string().nullable(),
-});
-
-type WinyuAction = z.infer<typeof actionSchema>;
-
-function messageOf(action: WinyuAction): string | null {
-  if (action.tool) return formatActionMessage(action.tool, action.input ?? {});
-  return action.prompt;
-}
-
-/**
- * The one host tool every next-action button presses. A tool action becomes the same button-press message the chat
- * already understands, so the model still runs it behind an approval card; a question is simply asked.
- */
-export function winyuActionTool(send: (text: string) => boolean) {
-  return defineTool({
-    description: "Run the next action a Winyu card offers: hand off to the owner, request access, pin the card, verify an alert, or drill in.",
-    input: actionSchema,
-    run: (action: WinyuAction) => {
-      const message = messageOf(action);
-      if (!message) return { ok: false as const, error: TH.next.noAction };
-      if (send(message)) return { ok: true as const, summary: action.label };
-      window.location.assign(`${NEW_THREAD}?prompt=${encodeURIComponent(message)}`);
-      return { ok: true as const, summary: action.label };
-    },
-  });
-}
-
-/**
- * A card button that asks a follow-up in the chat, as if the user typed it: the chat has no detail pages, so pressing
- * "more about X" is a question the model answers with its own tools.
- */
-export function askTool(send: (text: string) => boolean) {
-  return defineTool({
-    description: ASK_TOOL.description,
-    input: ASK_TOOL.input,
-    run: ({ prompt }: z.infer<typeof ASK_TOOL.input>) => {
-      if (send(prompt)) return { ok: true as const, summary: prompt };
-      window.location.assign(`${NEW_THREAD}?prompt=${encodeURIComponent(prompt)}`);
-      return { ok: true as const, summary: prompt };
-    },
-  });
+/** Turns any card button into the one request the chat runs; null when the action carries neither a tool nor a question. */
+export function actionRequest(action: CardAction): ActionRequest | null {
+  if (action.kind === "ask") return { kind: "ask", prompt: action.prompt, label: action.label };
+  if (action.kind === "form") return { kind: "tool", tool: action.tool, input: action.input, label: action.label };
+  if (action.tool) return { kind: "tool", tool: action.tool, input: action.input ?? {}, label: action.label };
+  if (action.prompt) return { kind: "ask", prompt: action.prompt, label: action.label };
+  return null;
 }

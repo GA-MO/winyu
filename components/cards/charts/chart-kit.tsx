@@ -24,7 +24,7 @@ export function scaleLinear(d0: number, d1: number, r0: number, r1: number): (va
   return (value: number) => r0 + ((value - d0) / span) * (r1 - r0);
 }
 
-/** Round tick step over [0, max], the same rule Vexa's charts use so axes read alike across Winyu. */
+/** Round tick step over [0, max], the same rule components/ui/charts uses so axes read alike. */
 export function niceTicks(max: number, count = 4): number[] {
   if (!(max > 0)) return [0];
   const rough = max / count;
@@ -115,7 +115,7 @@ export function formatTick(value: number, format: MetricFormat): string {
   return formatNumber(value);
 }
 
-/** A donut/pie wedge path; copied from Vexa's private helper since it isn't exported. */
+/** A donut/pie wedge path; the same arc the donut and pie share. */
 export function arcPath(cx: number, cy: number, rOuter: number, rInner: number, a0: number, a1: number): string {
   const full = a1 - a0 >= Math.PI * 2 - 1e-6;
   const end = full ? a0 + Math.PI * 2 - 1e-4 : a1;

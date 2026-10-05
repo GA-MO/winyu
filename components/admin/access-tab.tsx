@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ChevronDown, Lock, RotateCcw } from "lucide-react";
-import { cn } from "vexa/lib/utils";
+import { cn } from "@/components/ui/cn";
 import { METRIC_IDS, ROLE_IDS, type MetricId, type RoleId, type ToolName, type ToolSurfaceEntry } from "@/lib/contracts";
 import { METRIC_READING_TOOLS, connectorFields, connectorLabel, surfaceByConnector, toolSurface } from "@/lib/server/tools/registry";
 import { METRIC_DOMAINS, ROLE_POLICIES } from "@/lib/access/policies";

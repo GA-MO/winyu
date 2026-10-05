@@ -8,7 +8,7 @@ const EVIDENCE = { code: null, reason: null, rows: 6, masked: [] };
 
 describe("timelineOf", () => {
   test("a step keeps the tools it asked for, and every event of one tool call folds into one line", () => {
-    const run = newRun("u_anucha", "t");
+    const run = newRun("u_anucha", "t", { initiator: "person" });
     emitTo(run, "runtime", { type: "agent.started", payload: { goal: GOAL, userId: "u_anucha", threadId: "t" } });
     emitTo(run, "model", { type: "agent.thinking", payload: { stepId: "s1", step: 1 } });
     emitTo(run, "model", { type: "agent.tool.requested", payload: { ...REF, stepId: "s1" } });
@@ -29,8 +29,14 @@ describe("timelineOf", () => {
   });
 
   test("a refused call is one line with the refusal and no outcome", () => {
-    const run = newRun("u_krit", null);
+    const run = newRun("u_krit", null, { initiator: "person" });
     emitTo(run, "gateway", { type: "tool.denied", payload: { toolCallId: "c2", tool: "create_handoff", code: "TOOL_NOT_ALLOWED", reason: "ไม่มีสิทธิ์" } });
     expect(timelineOf(run.events)).toEqual([expect.objectContaining({ kind: "tool", denied: { code: "TOOL_NOT_ALLOWED", reason: "ไม่มีสิทธิ์", rule: null }, outcome: null, attempts: 0 })]);
+  });
+
+  test("a guard decision is its own line with its source, kinds and action", () => {
+    const run = newRun("u_krit", null, { initiator: "person" });
+    emitTo(run, "runtime", { type: "guard.flagged", payload: { source: "user_input", check: "personal_data", kinds: ["phone"], action: "masked" } });
+    expect(timelineOf(run.events)).toEqual([expect.objectContaining({ kind: "guarded", source: "user_input", check: "personal_data", kinds: ["phone"], action: "masked" })]);
   });
 });

@@ -1,9 +1,9 @@
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
+import { cookies, headers } from "next/headers";
+import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
-import { ChartColumn, Eye, LayoutDashboard, Lock, Scale, ScrollText, ShieldCheck, Sparkles, Wrench } from "lucide-react";
-import { cn } from "vexa/lib/utils";
+import { ChartColumn, Eye, FileText, KeyRound, LayoutDashboard, Plug, Scale, ScrollText, ShieldCheck, Sparkles, Wrench } from "lucide-react";
+import { cn } from "@/components/ui/cn";
 import { METRIC_IDS, ROLE_IDS, type AuditEntry, type MetricId, type RoleId } from "@/lib/contracts";
 import { USERS } from "@/lib/data/entities/users";
 import { TH } from "@/lib/i18n/th";
@@ -11,6 +11,7 @@ import { GlowBackdrop } from "@/components/ui/glow-backdrop";
 import { GradientText } from "@/components/ui/gradient-text";
 import { readUser } from "@/lib/server/session";
 import { AccessTab } from "@/components/admin/access-tab";
+import { ActiveTabInView } from "@/components/admin/active-tab-in-view";
 import { AuditTab } from "@/components/admin/audit-tab";
 import { AUDIT_RANGES, sinceOf, type AuditRange } from "@/lib/server/usage";
 import { OverviewTab } from "@/components/admin/overview-tab";
@@ -18,17 +19,22 @@ import { SimulateTab } from "@/components/admin/simulate-tab";
 import { RulesTab } from "@/components/admin/rules-tab";
 import { ToolsTab } from "@/components/admin/tools-tab";
 import { UsageTab } from "@/components/admin/usage-tab";
+import { McpTab } from "@/components/admin/mcp-tab";
+import { A2A_CARD_PATH } from "@/lib/server/a2a";
+import { SignInTab } from "@/components/admin/sign-in-tab";
+import { DocumentsTab } from "@/components/admin/documents-tab";
 import { Avatar, FOCUS } from "@/components/admin/parts";
 
 type SearchParams = Promise<{ tab?: string; run?: string; as?: string; metric?: string; user?: string; tool?: string; connector?: string; decision?: string; range?: string; limit?: string; role?: string; view?: string }>;
 
-const TABS = ["overview", "access", "tools", "rules", "audit", "usage", "simulate"] as const;
+const TABS = ["overview", "access", "tools", "rules", "audit", "usage", "simulate", "mcp", "signin", "documents"] as const;
 const LEGACY_TABS: Record<string, Tab> = { users: "access" };
-const TAB_ICONS: Record<Tab, LucideIcon> = { overview: LayoutDashboard, access: ShieldCheck, tools: Wrench, rules: Scale, audit: ScrollText, usage: ChartColumn, simulate: Eye };
+const TAB_ICONS: Record<Tab, LucideIcon> = { overview: LayoutDashboard, access: ShieldCheck, tools: Wrench, rules: Scale, audit: ScrollText, usage: ChartColumn, simulate: Eye, mcp: Plug, signin: KeyRound, documents: FileText };
 const DECISIONS: readonly AuditEntry["decision"][] = ["allow", "deny", "masked"];
 const DEFAULT_ROLE: RoleId = "sales_rep";
 const DEFAULT_AUDIT_RANGE: AuditRange = "7d";
 const AUDIT_PAGE = 60;
+const MCP_PATH = "/api/mcp";
 const MAX_AUDIT_LIMIT = 2000;
 
 type Tab = (typeof TABS)[number];
@@ -65,7 +71,19 @@ function textOf(value: string | undefined): string | null {
   return value && value.length > 0 ? value : null;
 }
 
-function AskWinyu() {
+async function accessTokensTab() {
+  const origin = await publicOrigin();
+  return <McpTab endpoint={`${origin}${MCP_PATH}`} cardUrl={`${origin}${A2A_CARD_PATH}`} />;
+}
+
+async function publicOrigin(): Promise<string> {
+  const incoming = await headers();
+  const host = incoming.get("x-forwarded-host") ?? incoming.get("host") ?? "localhost";
+  const protocol = incoming.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
+  return `${protocol}://${host}`;
+}
+
+function AskAgent() {
   const copy = TH.admin.ask;
   return (
     <div className="flex flex-col gap-2.5">
@@ -104,7 +122,7 @@ function TabBar({ current }: { current: Tab }) {
               href={`/admin?tab=${item}`}
               aria-current={active ? "page" : undefined}
               className={cn(
-                "inline-flex h-9 shrink-0 items-center gap-2 rounded-full px-3.5 text-sm transition",
+                "inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full px-3 text-sm transition",
                 FOCUS,
                 active ? "bg-ink font-medium text-ink-foreground shadow-card" : "text-muted-foreground hover:bg-muted hover:text-foreground",
               )}
@@ -115,18 +133,8 @@ function TabBar({ current }: { current: Tab }) {
           );
         })}
       </div>
+      <ActiveTabInView />
     </nav>
-  );
-}
-
-function Denied() {
-  return (
-    <div className="flex flex-col items-center gap-3 rounded-3xl border border-border bg-card px-6 py-16 text-center shadow-card">
-      <span className="flex size-11 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
-        <Lock className="size-5" aria-hidden />
-      </span>
-      <p className="text-sm text-muted-foreground">{TH.admin.denied}</p>
-    </div>
   );
 }
 
@@ -134,8 +142,8 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
   const user = readUser(await cookies());
   if (!user) redirect("/login");
   const params = await searchParams;
+  if (user.role !== "it_admin") notFound();
   const current = tabOf(params.tab);
-  const isAdmin = user.role === "it_admin";
 
   return (
     <div className="relative min-h-dvh overflow-hidden">
@@ -154,26 +162,23 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
           </div>
         </header>
 
-        {isAdmin ? (
-          <>
-            <AskWinyu />
-            <TabBar current={current} />
-            {current === "overview" ? <OverviewTab /> : null}
-            {current === "access" ? <AccessTab role={roleOf(params.role)} view={params.view === "matrix" ? "matrix" : "role"} viewer={user.id} /> : null}
-            {current === "tools" ? <ToolsTab /> : null}
-            {current === "rules" ? <RulesTab /> : null}
-            {current === "audit" ? <AuditTab
-                filter={{ userId: textOf(params.user), tool: textOf(params.tool), connector: textOf(params.connector), decision: decisionOf(params.decision), since: sinceOf(rangeOf(params.range)) }}
-                range={rangeOf(params.range)}
-                limit={limitOf(params.limit)}
-                openRun={textOf(params.run)}
-              /> : null}
-            {current === "usage" ? <UsageTab /> : null}
-            {current === "simulate" ? <SimulateTab userId={params.as ?? USERS[0].id} metric={metricOf(params.metric)} /> : null}
-          </>
-        ) : (
-          <Denied />
-        )}
+        <AskAgent />
+        <TabBar current={current} />
+        {current === "overview" ? <OverviewTab /> : null}
+        {current === "access" ? <AccessTab role={roleOf(params.role)} view={params.view === "matrix" ? "matrix" : "role"} viewer={user.id} /> : null}
+        {current === "tools" ? <ToolsTab /> : null}
+        {current === "rules" ? <RulesTab /> : null}
+        {current === "audit" ? <AuditTab
+            filter={{ userId: textOf(params.user), tool: textOf(params.tool), connector: textOf(params.connector), decision: decisionOf(params.decision), since: sinceOf(rangeOf(params.range)) }}
+            range={rangeOf(params.range)}
+            limit={limitOf(params.limit)}
+            openRun={textOf(params.run)}
+          /> : null}
+        {current === "usage" ? <UsageTab /> : null}
+        {current === "signin" ? <SignInTab /> : null}
+        {current === "simulate" ? <SimulateTab userId={params.as ?? USERS[0].id} metric={metricOf(params.metric)} /> : null}
+        {current === "mcp" ? await accessTokensTab() : null}
+        {current === "documents" ? <DocumentsTab /> : null}
       </div>
     </div>
   );

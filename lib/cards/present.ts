@@ -79,6 +79,16 @@ export type CardBody =
   | { kind: "alerts"; items: SignalItem[] }
   | { kind: "forecast"; labels: string[]; actual: (number | null)[]; forecast: (number | null)[]; lo: (number | null)[]; hi: (number | null)[]; format: MetricFormat };
 
+/** The warning a card shows in place of its data: a heading and one line, both written for the person. */
+export type RefusalNotice = { title: string; body: string };
+
+/** What a refusal tells the person. The server's own words show only where they are written for people: a scope denial, an admin rule, or a domain refusal without a code (not found, already enrolled). Every other code (BAD_QUERY, TIMEOUT, RUN_LIMIT, …) carries text written for the model, so the person gets a neutral line instead. */
+export function refusalNoticeOf(code: unknown, error: string): RefusalNotice {
+  if (typeof code === "string" && SCOPE_CODES.has(code)) return { title: TH.dash.denied, body: error };
+  if (code === RULE_CODE || code === undefined || code === null) return { title: TH.cards.refused, body: error };
+  return { title: TH.cards.failed.title, body: (typeof code === "string" ? FAILED_LINES[code] : undefined) ?? TH.cards.failed.other };
+}
+
 export type CardParts = {
   title: string;
   meta: string | null;
@@ -87,7 +97,7 @@ export type CardParts = {
   hero: CardHero | null;
   body: CardBody;
   actions: NextAction[];
-  denied: string | null;
+  denied: RefusalNotice | null;
 };
 
 export type CardExtras = { alerts?: AlertRow[]; forecast?: Forecast | null; overlay?: { name: string; result: MetricResult } | null };
@@ -105,6 +115,16 @@ export type PresentInput = {
 };
 
 export type PresentSource = { query: MetricQuery; result: MetricResult };
+
+const SCOPE_CODES: ReadonlySet<string> = new Set(["PERMISSION_DENIED", "TOOL_NOT_ALLOWED"]);
+const RULE_CODE = "POLICY_RULE";
+const FAILED_LINES: Record<string, string> = {
+  TIMEOUT: TH.cards.failed.timeout,
+  UNAVAILABLE: TH.cards.failed.unavailable,
+  CONNECTOR_UNAVAILABLE: TH.cards.failed.unavailable,
+  RUN_LIMIT: TH.cards.failed.runLimit,
+  VERIFICATION_FAILED: TH.cards.failed.withheld,
+};
 
 const MAX_TABLE_ROWS = 8;
 const PROGRESS_METRICS: ReadonlySet<MetricId> = new Set(["target_attainment"]);
@@ -772,7 +792,7 @@ function maskedCard(input: PresentInput, result: Extract<MetricResult, { ok: tru
     hero: null,
     body: { kind: "none" },
     actions: NO_ACTIONS,
-    denied: TH.dash.maskedAll(dim && result.rows.length > 1 ? TH.dash.dimUnit[dim] : null),
+    denied: { title: TH.dash.denied, body: TH.dash.maskedAll(dim && result.rows.length > 1 ? TH.dash.dimUnit[dim] : null) },
   };
 }
 
@@ -840,12 +860,12 @@ export function presentForecast(input: PresentForecastInput): CardParts {
 
 /**
  * The one decision table for every data card in Winyu: what the headline is, which body the data shape deserves,
- * what the scope and source lines say. The dashboard renders it as a Vexa spec, the chat renders it as React.
+ * what the scope and source lines say. The dashboard and the chat both draw it.
  */
 export function presentCard(input: PresentInput): CardParts {
   const { query, result, title } = input;
   if (!result.ok) {
-    return { title, meta: null, description: null, footnote: null, hero: null, body: { kind: "none" }, actions: [], denied: result.error };
+    return { title, meta: null, description: null, footnote: null, hero: null, body: { kind: "none" }, actions: [], denied: refusalNoticeOf(result.code, result.error) };
   }
   if (everyValueMasked(result)) return maskedCard(input, result);
   const extras = input.extras ?? NO_EXTRAS;

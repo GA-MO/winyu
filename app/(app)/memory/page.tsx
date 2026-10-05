@@ -5,12 +5,14 @@ import { GradientText } from "@/components/ui/gradient-text";
 import { MemoryManager, type MemoryRow } from "@/components/memory/memory-manager";
 import { lastSeenAt, memoryStatus, seenCount } from "@/lib/engine/memory-status";
 import { pruneMemory } from "@/lib/engine/memory";
+import { recallableThreads } from "@/lib/harness/adapters/mastra/recall";
 import { TH } from "@/lib/i18n/th";
 import { memoryFacts } from "@/lib/server/agent/collections";
 import { readAccess } from "@/lib/server/session";
 import { getThread } from "@/lib/server/threads-read";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 export default async function MemoryPage() {
   const access = readAccess(await cookies());
@@ -41,7 +43,7 @@ export default async function MemoryPage() {
           </h1>
           <p className="text-sm text-muted-foreground">{TH.memoryPage.note}</p>
         </header>
-        <MemoryManager initial={rows} />
+        <MemoryManager initial={rows} conversations={await recallableThreads(access.userId)} />
       </div>
     </div>
   );

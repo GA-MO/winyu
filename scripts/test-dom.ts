@@ -1,6 +1,7 @@
 import { registerDom } from "./dom";
-import { isolateTestData, withoutPaidModels } from "./test-data";
+import { isolateTestData, withoutEmbeddingModel, withoutPaidModels } from "./test-data";
 
 withoutPaidModels();
-isolateTestData();
+await isolateTestData();
+await withoutEmbeddingModel();
 registerDom({ actEnvironment: true });

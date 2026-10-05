@@ -1,0 +1,195 @@
+{
+ "version": 1,
+ "caseId": "ceo-by-region",
+ "userId": "u_thana",
+ "prompt": "ยอดขายแยกตามภาคเดือนนี้",
+ "model": "google/gemini-3.8-flash",
+ "promptHash": "b147f95e8a6c891a",
+ "toolsHash": "5639642b6a430a27",
+ "today": "2026-10-05",
+ "recordedAt": "2026-10-05T15:41:56.266Z",
+ "steps": [
+  {
+   "kind": "call",
+   "tool": "query_metric",
+   "args": {
+    "range": {
+     "to": "2026-09-22",
+     "from": "2026-09-01"
+    },
+    "compare": "target",
+    "filters": {},
+    "where": null,
+    "sort": "value_desc",
+    "metric": "net_sales_value",
+    "limit": 10,
+    "dims": [
+     "region"
+    ],
+    "grain": "month"
+   },
+   "result": {
+    "ok": true,
+    "rows": [
+     {
+      "region": "กรุงเทพฯ และปริมณฑล",
+      "value": 274079269,
+      "value_label": "274.1 ล้านบาท",
+      "compare_value": 270325149,
+      "delta_pct": 1.4
+     },
+     {
+      "region": "ภาคอีสาน",
+      "value": 232465481,
+      "value_label": "232.5 ล้านบาท",
+      "compare_value": 258385255,
+      "delta_pct": -10
+     },
+     {
+      "region": "ภาคตะวันออก",
+      "value": 162722781,
+      "value_label": "162.7 ล้านบาท",
+      "compare_value": 161595855,
+      "delta_pct": 0.7
+     },
+     {
+      "region": "ภาคกลาง",
+      "value": 151878814,
+      "value_label": "151.9 ล้านบาท",
+      "compare_value": 149413573,
+      "delta_pct": 1.6
+     },
+     {
+      "region": "ภาคใต้",
+      "value": 144718885,
+      "value_label": "144.7 ล้านบาท",
+      "compare_value": 143423684,
+      "delta_pct": 0.9
+     },
+     {
+      "region": "ภาคเหนือ",
+      "value": 144325131,
+      "value_label": "144.3 ล้านบาท",
+      "compare_value": 142759959,
+      "delta_pct": 1.1
+     }
+    ],
+    "summary": "มูลค่าขายเข้า 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 1,110.2 ล้านบาท · สูงสุด: กรุงเทพฯ และปริมณฑล 274.1 ล้านบาท · ภาคอีสาน 232.5 ล้านบาท · ภาคตะวันออก 162.7 ล้านบาท · เทียบเป้า -1.4% · (6 แถว · certified · SAP SD) · สิ้นเดือนถ้าขายเท่า 7 วันล่าสุด ≈ 97.3% ของเป้า",
+    "headline": {
+     "aggregate": "sum",
+     "value": "1,110.2 ล้านบาท",
+     "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
+     "rowCount": 6,
+     "deltaPercent": -1.4,
+     "compareLabel": "เทียบเป้า",
+     "compareNote": null,
+     "top": [
+      {
+       "label": "กรุงเทพฯ และปริมณฑล",
+       "value": "274.1 ล้านบาท"
+      },
+      {
+       "label": "ภาคอีสาน",
+       "value": "232.5 ล้านบาท"
+      },
+      {
+       "label": "ภาคตะวันออก",
+       "value": "162.7 ล้านบาท"
+      }
+     ],
+     "underLine": null,
+     "projection": {
+      "recentDays": 7,
+      "projected": "1,493.4 ล้านบาท",
+      "monthTarget": "1,535.3 ล้านบาท",
+      "attainment": "97.3%"
+     }
+    },
+    "provenance": {
+     "metric": "net_sales_value",
+     "certified": true,
+     "sourceSystem": "SAP SD",
+     "asOf": "2026-09-22",
+     "rowCount": 6,
+     "filtersApplied": {},
+     "filterLabels": [],
+     "scopeApplied": {},
+     "masked": [],
+     "trust": "verified"
+    },
+    "query": {
+     "metric": "net_sales_value",
+     "dims": [
+      "region"
+     ],
+     "filters": {},
+     "range": {
+      "from": "2026-09-01",
+      "to": "2026-09-22"
+     },
+     "grain": "month",
+     "compare": "target",
+     "limit": 10,
+     "sort": "value_desc",
+     "where": null
+    },
+    "nextActions": [
+     {
+      "id": "drill-why",
+      "kind": "drill",
+      "label": "ทำไมภาคอีสานถึงเป็นแบบนี้",
+      "reason": "ภาคอีสาน เปลี่ยนไปในทางที่แย่ที่สุด",
+      "tool": null,
+      "input": null,
+      "prompt": "เจาะดูมูลค่าขายเข้าของภาคอีสาน ว่าทำไมถึงเปลี่ยนไป เทียบกับช่วงก่อนหน้าและช่วงเดียวกันปีก่อน"
+     }
+    ],
+    "followUps": [
+     {
+      "id": "fu-drill_down",
+      "label": "ดูเอเย่นต์ในภาคอีสาน",
+      "prompt": "ขอมูลค่าขายเข้าของภาคอีสาน แยกรายเอเย่นต์ เรียงจากแย่ไปดี",
+      "reason": "ลงไปอีกชั้นเพื่อหาว่าใครในภาคอีสานทำให้ตัวเลขเป็นแบบนี้",
+      "intentKey": "follow|drill_down",
+      "score": 0.85
+     },
+     {
+      "id": "fu-trend",
+      "label": "เริ่มแย่ตั้งแต่เมื่อไร",
+      "prompt": "มูลค่าขายเข้าของภาคอีสาน รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+      "reason": "ดูว่าตัวเลขเริ่มลดลงสัปดาห์ไหน",
+      "intentKey": "follow|trend",
+      "score": 0.65
+     },
+     {
+      "id": "fu-compare_year",
+      "label": "เทียบปีก่อน",
+      "prompt": "ขอมูลค่าขายเข้าแยกตามภาค เทียบกับช่วงเดียวกันปีก่อน",
+      "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+      "intentKey": "follow|compare_year",
+      "score": 0.45
+     }
+    ]
+   }
+  },
+  {
+   "kind": "text",
+   "text": "รายงานด้วยมูลค่าขายเข้าสุทธิ (Net Sales Value) ประจำเดือนนี้ช่วงวันที่ 1–22 ก.ย. 2569 (ข้อมูลล่าสุดถึง 22 ก.ย. 2569) โดยภาพรวมส่วนใหญ่ทำได้ตามเป้าหมาย ยกเว้นภาคอีสานที่เป็นภูมิภาคเดียวที่ยังต่ำกว่าเป้าและฉุดยอดรวม ควรเจาะดูข้อมูลระดับเอเย่นต์ในภาคอีสานเพื่อหาสาเหตุของยอดขายที่ชะลอตัว"
+  }
+ ],
+ "asked": [],
+ "error": null,
+ "usage": {
+  "calls": 2,
+  "inputTokens": 23261,
+  "outputTokens": 2092,
+  "reasoningTokens": 1892,
+  "usd": 0.005503875
+ },
+ "drawn": {
+  "cards": [
+   "query_metric"
+  ],
+  "composed": null
+ }
+}

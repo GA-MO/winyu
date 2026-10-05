@@ -1,12 +1,9 @@
 import type { QuickAction } from "@/lib/contracts";
+import type { Exchange, ToolStep } from "./timeline";
 
-const QUERY_TOOL_PART = "tool-query_metric";
-const MAX_CHIPS = 3;
-
+const QUERY_TOOL = "query_metric";
 const INTENT_SEPARATOR = "|";
-
-type PartLike = { type?: string; input?: unknown; output?: unknown };
-type MessageLike = { role?: string; parts?: PartLike[] };
+const ANSWER_CHIPS = 3;
 
 function isQuickAction(value: unknown): value is QuickAction {
   if (typeof value !== "object" || value === null) return false;
@@ -14,41 +11,38 @@ function isQuickAction(value: unknown): value is QuickAction {
   return typeof candidate.id === "string" && typeof candidate.label === "string" && typeof candidate.prompt === "string" && typeof candidate.intentKey === "string";
 }
 
-function followUpsOfPart(part: PartLike): QuickAction[] {
-  if (part.type !== QUERY_TOOL_PART || typeof part.output !== "object" || part.output === null) return [];
-  const followUps = (part.output as { followUps?: unknown }).followUps;
+function queryStepsOf(exchange: Exchange | undefined): ToolStep[] {
+  return (exchange?.steps ?? []).filter((step): step is ToolStep => step.kind === "tool" && step.name === QUERY_TOOL);
+}
+
+function followUpsOfStep(step: ToolStep): QuickAction[] {
+  if (step.outcome.state !== "returned" || typeof step.outcome.result !== "object" || step.outcome.result === null) return [];
+  const followUps = (step.outcome.result as { followUps?: unknown }).followUps;
   return Array.isArray(followUps) ? followUps.filter(isQuickAction) : [];
 }
 
-/** The follow-ups of the newest card in the latest answer; empty until an answer that queried a metric has arrived. */
-export function latestFollowUps(messages: readonly MessageLike[]): QuickAction[] {
-  for (let index = messages.length - 1; index >= 0; index -= 1) {
-    const message = messages[index] as MessageLike;
-    if (message.role === "user") return [];
-    const parts = message.parts ?? [];
-    for (let partIndex = parts.length - 1; partIndex >= 0; partIndex -= 1) {
-      const found = followUpsOfPart(parts[partIndex] as PartLike);
-      if (found.length > 0) return found;
-    }
+/** The follow-ups of the newest metric card in the latest answer; empty until an answer that queried a metric has arrived. */
+export function latestFollowUps(exchanges: readonly Exchange[]): QuickAction[] {
+  const steps = queryStepsOf(exchanges[exchanges.length - 1]);
+  for (let index = steps.length - 1; index >= 0; index -= 1) {
+    const found = followUpsOfStep(steps[index]);
+    if (found.length > 0) return found;
   }
   return [];
 }
 
-function metricOfPart(part: PartLike): string | null {
-  if (part.type !== QUERY_TOOL_PART || typeof part.input !== "object" || part.input === null) return null;
-  const metric = (part.input as { metric?: unknown }).metric;
-  return typeof metric === "string" ? metric : null;
-}
-
 /** The metrics the latest answer read; a learned chip on one of them would ask again what the card just showed. */
-export function answeredMetrics(messages: readonly MessageLike[]): Set<string> {
-  const last = messages[messages.length - 1] as MessageLike | undefined;
-  if (!last || last.role === "user") return new Set();
-  return new Set((last.parts ?? []).map((part) => metricOfPart(part as PartLike)).filter((metric): metric is string => metric !== null));
+export function answeredMetrics(exchanges: readonly Exchange[]): Set<string> {
+  return new Set(
+    queryStepsOf(exchanges[exchanges.length - 1]).flatMap((step) => {
+      const metric = typeof step.args === "object" && step.args !== null ? (step.args as { metric?: unknown }).metric : null;
+      return typeof metric === "string" ? [metric] : [];
+    }),
+  );
 }
 
 /** What the chip row shows: questions that follow from the latest card first, then the user's learned chips that do not repeat the question just answered. */
-export function chipRow(followUps: readonly QuickAction[], learned: readonly QuickAction[], limit = MAX_CHIPS, answered: ReadonlySet<string> = new Set()): QuickAction[] {
+export function chipRow(followUps: readonly QuickAction[], learned: readonly QuickAction[], limit = ANSWER_CHIPS, answered: ReadonlySet<string> = new Set()): QuickAction[] {
   const prompts = new Set(followUps.map((action) => action.prompt));
   const fresh = learned.filter((action) => !prompts.has(action.prompt) && !answered.has(action.intentKey.split(INTENT_SEPARATOR)[0]));
   return [...followUps, ...fresh].slice(0, limit);

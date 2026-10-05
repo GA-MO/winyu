@@ -4,6 +4,11 @@ import { mcpConnectors } from "./index";
 import type { RemoteTool } from "./catalog";
 import type { McpConnector, McpToolConfig } from "./types";
 
+const PROBE_EVERY_MS = 5 * 60_000;
+const PROBE_STARTED = Symbol.for("winyu.connectorProbe.started");
+
+type ProbeGlobal = typeof globalThis & { [PROBE_STARTED]?: ReturnType<typeof setInterval> };
+
 export type ConnectorDrift = { connector: string; missing: string[]; unused: string[]; mismatched: string[] };
 
 function remoteProperties(tool: RemoteTool): string[] {
@@ -66,4 +71,13 @@ async function probe(connector: McpConnector): Promise<void> {
 /** Asks every connector for its tool list so the admin's status pill follows a server that stopped or came back. */
 export async function probeConnectors(): Promise<void> {
   await Promise.all(mcpConnectors().map(probe));
+}
+
+/** Probes the connectors every few minutes, once per server process however many module copies load this file. */
+export function startConnectorProbe(): void {
+  const scope = globalThis as ProbeGlobal;
+  if (scope[PROBE_STARTED]) return;
+  scope[PROBE_STARTED] = setInterval(() => {
+    probeConnectors().catch((error: unknown) => console.error("[Winyu] connector probe failed", error));
+  }, PROBE_EVERY_MS);
 }

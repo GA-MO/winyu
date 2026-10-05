@@ -3,7 +3,7 @@
 import { ChevronDown } from "lucide-react";
 import type { SignalItem } from "@/lib/cards/present";
 import { TH } from "@/lib/i18n/th";
-import { cn } from "vexa/lib/utils";
+import { cn } from "@/components/ui/cn";
 
 const ACCENT: Record<SignalItem["severity"], string> = {
   danger: "bg-danger",

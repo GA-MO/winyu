@@ -1,8 +1,6 @@
-import { prefixedToolName } from "@/lib/harness/adapters/vexa/server";
 import { NATIVE_CONNECTORS, type ConnectorDef, type RoleId, type ToolTier } from "@/lib/contracts";
 import type { Visibility } from "@/lib/access/role-overrides";
-import { engineTool } from "@/lib/harness/adapters/vexa/tools";
-import { asksApproval, gated } from "@/lib/harness/gateway";
+import { gated } from "@/lib/harness/gateway";
 import { LIMITS } from "@/lib/harness/limits";
 import type { Capability } from "@/lib/harness/types";
 import type { WinyuTool } from "@/lib/server/tools/define";
@@ -20,6 +18,10 @@ const UNDECLARED_TIER: ToolTier = "destructive";
 const REST_METHODS = ["GET", "POST"];
 const HTTP_URL = /^https?:\/\/[^/]+/;
 const REST_PATH = /^\/(?!\/)[^?#]*$/;
+
+function prefixedToolName(connector: string, tool: string): string {
+  return `${connector}__${tool.replace(/[^A-Za-z0-9_]/g, "_")}`;
+}
 
 function fail(connector: string, message: string): never {
   throw new Error(`connector ${connector}: ${message}`);
@@ -75,14 +77,13 @@ function winyuToolOf(connector: ConnectorIdentity & { timeoutMs: number }, bindi
     bodyTh: binding.config.bodyTh ?? TH.admin.connectors.toolBody(connector.sourceSystemTh),
   };
   const capability: Capability = { ...entry, timeoutMs: connector.timeoutMs + LIMITS.toolTimeoutMs, verify: null, correct: null, redact: [] };
-  const tool = engineTool({
+  return {
+    entry,
     capability,
     description: () => descriptionOf(connector, binding),
     inputSchema: () => inputSchemaOf(connector, binding),
-    asksApproval: (input) => asksApproval(capability, input),
     execute: gated(capability, (input: unknown) => callConnectorTool(connector, binding, input, call)),
-  });
-  return { entry, capability, tool };
+  };
 }
 
 function uniqueFields(fields: ConnectorField[]): ConnectorField[] {

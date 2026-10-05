@@ -1,4 +1,4 @@
-import { fence } from "@/lib/harness/adapters/vexa/server";
+import { fence } from "@/lib/harness/fence";
 import type { AccessContext } from "@/lib/contracts";
 import { markReachable } from "./catalog";
 import { withinTimeout } from "./call";

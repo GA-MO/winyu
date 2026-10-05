@@ -1,4 +1,4 @@
-import type { MCPClient } from "@/lib/harness/adapters/vexa/server";
+import type { MCPClient } from "./mcp-client";
 import { collection } from "@/lib/server/store/json-store";
 
 export type RemoteTool = { name: string; description?: string; inputSchema: Record<string, unknown> };

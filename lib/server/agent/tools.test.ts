@@ -1,13 +1,16 @@
 import { describe, expect, test } from "bun:test";
-import type { Tool } from "ai";
+import { z } from "zod";
 import { accessFor } from "@/lib/access/policies";
 import { liveAccessFor, setHandoffEnabled, withAdminSwitches } from "@/lib/access/enforce";
 import { resetRoleOverrides } from "@/lib/access/role-overrides";
 import type { AccessContext, MetricQuery, MetricResult } from "@/lib/contracts";
 import { findUser } from "@/lib/data/entities/users";
 import { auditLog } from "@/lib/server/audit";
-import { runWithAccess } from "@/lib/server/request-context";
+import { TH } from "@/lib/i18n/th";
+import { runWithAccess, runWithTurn } from "@/lib/server/request-context";
 import { notifications, outbox, packets } from "./collections";
+import type { WinyuTool } from "@/lib/server/tools/define";
+import { toolSurface } from "@/lib/server/tools/registry";
 import { winyuTools, toolsForAccess } from "./tools";
 
 const TODAY = "2026-09-22";
@@ -32,11 +35,14 @@ function query(partial: Partial<MetricQuery>): MetricQuery {
   };
 }
 
+function toolNamesOf(tools: WinyuTool[]): string[] {
+  return tools.map((tool) => tool.entry.name);
+}
+
 async function call<T>(userId: string, name: string, input: unknown): Promise<T> {
   const access = accessOf(userId);
-  const definition = winyuTools()[name] as Tool;
-  const execute = definition.execute as (args: unknown, options: unknown) => Promise<T>;
-  return runWithAccess(access, () => execute(input, {}));
+  const { execute } = winyuTools()[name];
+  return runWithAccess(access, () => execute(input) as Promise<T>);
 }
 
 const NATIONAL_WEEKLY_FLOOR_HL = 30_000;
@@ -148,6 +154,20 @@ describe("create_handoff", () => {
     expect(outbox().where((item) => item.refId === result.data.packetId).length).toBe(1);
   });
 
+  test("the packet carries the sender's conversation, so the recipient's agent reads what was asked before the handoff", async () => {
+    const transcript = async () => [
+      { role: "user", text: "ยอดขายภาคอีสานเดือนนี้เทียบเป้า" },
+      { role: "assistant", text: "ภาคอีสานต่ำกว่าเป้า 10%" },
+    ];
+    const turn = { turnId: "turn-handoff-digest", threadId: "thread-handoff-digest", preloadPacketId: null, question: "ส่งงานให้ผู้รับผิดชอบ", queries: [], transcript };
+    const input = { toUserId: "u_pim", title: "ยอดอีสานต่ำกว่าเป้า", ask: "ช่วยตรวจสอบ", urgency: "medium", evidence: [], alertIds: [] };
+    const { execute } = winyuTools().create_handoff;
+    const result = (await runWithAccess(accessOf("u_anucha"), () => runWithTurn(turn, () => execute(input)))) as { ok: boolean; data: { packetId: string } };
+    const digest = packets().get(result.data.packetId)?.conversationDigest ?? "";
+    expect(digest).toContain("ยอดขายภาคอีสานเดือนนี้เทียบเป้า");
+    expect(digest).toContain("ต่ำกว่าเป้า 10%");
+  });
+
   test("an unknown recipient is rejected", async () => {
     const result = await call<{ ok: boolean; error: string }>("u_anucha", "create_handoff", {
       toUserId: "u_nobody",
@@ -196,7 +216,7 @@ describe("set_permission", () => {
       value: "none",
     });
     expect(result.ok).toBe(true);
-    expect(result.data.after).toBe("None");
+    expect(result.data.after).toBe(TH.admin.acl.none);
     expect(result.data.affectedUsers).toBeGreaterThan(0);
     expect(liveAccessFor(findUser("u_krit")!).metricAcl.net_sales_value).toBe("none");
     resetRoleOverrides();
@@ -210,24 +230,36 @@ describe("set_permission", () => {
   });
 
   test("only IT reaches the tool", () => {
-    expect(Object.keys(toolsForAccess(accessOf("u_ton")))).toContain("set_permission");
-    expect(Object.keys(toolsForAccess(accessOf("u_thana")))).not.toContain("set_permission");
+    expect(toolNamesOf(toolsForAccess(accessOf("u_ton")))).toContain("set_permission");
+    expect(toolNamesOf(toolsForAccess(accessOf("u_thana")))).not.toContain("set_permission");
   });
 });
 
 describe("toolsForAccess", () => {
   test("returns only the allowed subset", () => {
-    expect(Object.keys(toolsForAccess(accessOf("u_krit")))).not.toContain("create_handoff");
-    expect(Object.keys(toolsForAccess(accessOf("u_ton")))).toContain("run_job");
-    expect(Object.keys(toolsForAccess(accessOf("u_thana")))).not.toContain("run_job");
+    expect(toolNamesOf(toolsForAccess(accessOf("u_krit")))).not.toContain("create_handoff");
+    expect(toolNamesOf(toolsForAccess(accessOf("u_ton")))).toContain("run_job");
+    expect(toolNamesOf(toolsForAccess(accessOf("u_thana")))).not.toContain("run_job");
   });
 
   test("the admin handoff switch takes handoff and mail away from everyone, then gives them back", () => {
     setHandoffEnabled(false, "u_ton");
-    expect(Object.keys(toolsForAccess(accessOf("u_anucha")))).not.toContain("create_handoff");
-    expect(Object.keys(toolsForAccess(accessOf("u_anucha")))).not.toContain("send_email");
+    expect(toolNamesOf(toolsForAccess(accessOf("u_anucha")))).not.toContain("create_handoff");
+    expect(toolNamesOf(toolsForAccess(accessOf("u_anucha")))).not.toContain("send_email");
     expect(withAdminSwitches(accessOf("u_anucha")).toolAllow).not.toContain("create_handoff");
     setHandoffEnabled(true, "u_ton");
-    expect(Object.keys(toolsForAccess(accessOf("u_anucha")))).toContain("create_handoff");
+    expect(toolNamesOf(toolsForAccess(accessOf("u_anucha")))).toContain("create_handoff");
+  });
+});
+
+describe("tool definitions for the prompt cache", () => {
+  function surfaceOf(userId: string): string {
+    return JSON.stringify(toolsForAccess(accessOf(userId)).map((tool) => ({ name: tool.entry.name, description: tool.description(), input: z.toJSONSchema(tool.inputSchema(), { unrepresentable: "any", io: "input" }) })));
+  }
+
+  test("come in surface order, byte for byte the same for two users of one role", () => {
+    expect(surfaceOf("u_ploy")).toBe(surfaceOf("u_krit"));
+    const names = toolsForAccess(accessOf("u_krit")).map((tool) => tool.entry.name);
+    expect(names).toEqual(toolSurface().map((entry) => entry.name).filter((name) => names.includes(name)));
   });
 });

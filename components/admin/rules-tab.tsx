@@ -1,5 +1,5 @@
 import { ArrowDown, ArrowUp, Trash2 } from "lucide-react";
-import { cn } from "vexa/lib/utils";
+import { cn } from "@/components/ui/cn";
 import type { AuditEntry } from "@/lib/contracts";
 import { findUser } from "@/lib/data/entities/users";
 import { dryRun, policyRules, type PolicyRule } from "@/lib/access/policy-rules";

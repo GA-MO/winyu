@@ -1,17 +1,23 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { cn } from "vexa/lib/utils";
+import { cn } from "@/components/ui/cn";
 import { METRIC_IDS, ROLE_IDS, type RoleId } from "@/lib/contracts";
 import { ROLE_POLICIES } from "@/lib/access/policies";
 import { permissionsFor } from "@/lib/access/role-overrides";
 import { USERS } from "@/lib/data/entities/users";
+import { personaOf } from "@/lib/server/portraits";
 import { TH } from "@/lib/i18n/th";
 import { PersonList } from "@/components/login/person-list";
 import { ROLE_ICONS } from "@/components/login/role-icon";
 import { GlowBackdrop } from "@/components/ui/glow-backdrop";
 import { GradientText } from "@/components/ui/gradient-text";
+import { EntraSignIn, type SignInProblem } from "@/components/login/entra-sign-in";
+import { authMode } from "@/lib/server/auth/mode";
+import { safeNextPath } from "@/lib/server/auth/next-path";
 
-type SearchParams = Promise<{ role?: string; next?: string }>;
+type SearchParams = Promise<{ role?: string; next?: string; signedOut?: string; error?: string }>;
+
+const HOME = "/";
 
 const FOCUS = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
@@ -19,6 +25,10 @@ export const dynamic = "force-dynamic";
 
 function roleOf(value: string | undefined): RoleId | null {
   return ROLE_IDS.includes(value as RoleId) ? (value as RoleId) : null;
+}
+
+function problemOf(value: string | undefined): SignInProblem | null {
+  return value && Object.hasOwn(TH.sso.errors, value) ? (value as SignInProblem) : null;
 }
 
 function membersOf(role: RoleId) {
@@ -63,7 +73,7 @@ function Steps({ current }: { current: 1 | 2 }) {
   );
 }
 
-function RoleGrid() {
+function RoleGrid({ next }: { next: string }) {
   return (
     <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
       {ROLE_IDS.map((role, index) => {
@@ -72,7 +82,7 @@ function RoleGrid() {
         return (
           <li key={role} className="animate-hero-rise" style={{ animationDelay: `${index * 35}ms` }}>
             <Link
-              href={`/login?role=${role}`}
+              href={`/login?role=${role}${next === HOME ? "" : `&next=${encodeURIComponent(next)}`}`}
               className={cn(
                 "group flex h-full flex-col gap-3 rounded-3xl border border-border bg-card p-5 shadow-card transition duration-300 hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-lift",
                 FOCUS,
@@ -130,7 +140,10 @@ function RoleSummary({ role }: { role: RoleId }) {
 }
 
 export default async function LoginPage({ searchParams }: { searchParams: SearchParams }) {
-  const role = roleOf((await searchParams).role);
+  const params = await searchParams;
+  const next = safeNextPath(params.next);
+  if (authMode() === "entra") return <EntraSignIn next={next} signedOut={params.signedOut === "1"} problem={problemOf(params.error)} />;
+  const role = roleOf(params.role);
   return (
     <main className="relative min-h-dvh overflow-hidden">
       <GlowBackdrop />
@@ -157,10 +170,10 @@ export default async function LoginPage({ searchParams }: { searchParams: Search
               <h2 className="text-[15px] font-semibold tracking-tight">{TH.login.whoTitle(TH.role[role])}</h2>
               <p className="text-xs text-muted-foreground">{TH.login.whoHint}</p>
             </div>
-            <PersonList users={membersOf(role)} />
+            <PersonList people={membersOf(role).map(personaOf)} next={next} />
           </section>
         ) : (
-          <RoleGrid />
+          <RoleGrid next={next} />
         )}
       </div>
     </main>

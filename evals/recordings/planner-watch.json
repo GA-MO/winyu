@@ -1,0 +1,55 @@
+{
+ "version": 1,
+ "caseId": "planner-watch",
+ "userId": "u_wee",
+ "prompt": "เตือนฉันถ้าสต๊อกดีซีลำพูนพอขายต่ำกว่า 10 วัน",
+ "model": "google/gemini-3.8-flash",
+ "promptHash": "113c7dfa0cf1af01",
+ "toolsHash": "a3e6c0a4da3d953c",
+ "today": "2026-10-05",
+ "recordedAt": "2026-10-05T15:47:37.873Z",
+ "steps": [
+  {
+   "kind": "call",
+   "tool": "watch_metric",
+   "args": {
+    "title": "วันครอบคลุมสต๊อก DC ลำพูน ต่ำกว่า 10 วัน",
+    "condition": {
+     "kind": "below",
+     "value": 10
+    },
+    "query": {
+     "dims": [
+      "dc"
+     ],
+     "filters": {
+      "dc": "dc_lamphun"
+     },
+     "metric": "days_of_cover",
+     "compare": "none",
+     "grain": "day",
+     "range": {
+      "from": "2026-09-22",
+      "to": "2026-09-22"
+     },
+     "limit": 1
+    }
+   }
+  }
+ ],
+ "asked": [
+  "watch_metric"
+ ],
+ "error": null,
+ "usage": {
+  "calls": 1,
+  "inputTokens": 10431,
+  "outputTokens": 1417,
+  "reasoningTokens": 1291,
+  "usd": 0.003055125
+ },
+ "drawn": {
+  "cards": [],
+  "composed": null
+ }
+}

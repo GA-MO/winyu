@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { useVexaHostContext } from "vexa/react";
+import { useRunAction } from "./card-actions";
 import { TH } from "@/lib/i18n/th";
 
 export type LeaveKindOption = { value: string; label: string };
@@ -19,18 +19,15 @@ export type LeaveFormProps = {
 
 type LeaveDraft = { kind: string; from: string; to: string; reason: string; sentKey: string | null };
 
-const ACTION_TOOL = "winyu_action";
 const DRAFTS = new Map<string, LeaveDraft>();
 const FIELD =
   "w-full rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 const PRIMARY =
   "inline-flex items-center justify-center rounded-full bg-ink px-4 py-2 text-sm font-medium text-ink-foreground transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50";
 
-function usePress(key: string, label: string, tool: string, input: Record<string, unknown>) {
-  const host = useVexaHostContext();
-  if (!host) return null;
-  const action = { id: `press-${key}`, kind: "tool", label, reason: label, tool, input, prompt: null };
-  return () => void host.runTool(ACTION_TOOL, action, { source: "button", toolCallId: `${ACTION_TOOL}-press-${key}` });
+function usePress(key: string, label: string, input: Record<string, unknown>) {
+  const run = useRunAction();
+  return () => run({ id: `press-${key}`, kind: "form", label, tool: "request_leave", input });
 }
 
 function kindLabel(kinds: LeaveKindOption[], value: string): string {
@@ -60,21 +57,21 @@ function useLeaveDraft(props: LeaveFormProps, kinds: LeaveKindOption[]) {
   return [draft, update] as const;
 }
 
-/** The leave form: kind, dates and reason. Submitting asks Winyu to file it, which then asks the user to approve. */
+/** The leave form: kind, dates and reason. Submitting asks the agent to file it, which then asks the user to approve. */
 export function LeaveForm({ props }: { props: LeaveFormProps }) {
   const kinds = props.kinds ?? [];
   const [draft, update] = useLeaveDraft(props, kinds);
   const { kind, from, to, reason, sentKey } = draft;
   const label = TH.leave.form.prompt(kindLabel(kinds, kind), from, to);
   const requestKey = `leave-${kind}-${from}-${to}-${reason.trim()}`;
-  const submit = usePress(requestKey, label, "request_leave", { kind, from, to, reason: reason.trim() });
+  const submit = usePress(requestKey, label, { kind, from, to, reason: reason.trim() });
   const sent = sentKey === requestKey;
-  const ready = Boolean(submit) && from.length > 0 && to.length > 0 && to >= from && !sent;
+  const ready = from.length > 0 && to.length > 0 && to >= from && !sent;
   const T = TH.leave.form;
 
   function onSubmit(event: FormEvent) {
     event.preventDefault();
-    if (!ready || !submit) return;
+    if (!ready) return;
     submit();
     update({ sentKey: requestKey });
   }
@@ -91,7 +88,7 @@ export function LeaveForm({ props }: { props: LeaveFormProps }) {
           ))}
         </select>
       </label>
-      <div className="grid grid-cols-1 gap-3 @md/vexa:grid-cols-2">
+      <div className="grid grid-cols-1 gap-3 @md/ui:grid-cols-2">
         <label className="flex flex-col gap-1 text-xs text-muted-foreground">
           {T.from}
           <input type="date" value={from} onChange={(event) => update({ from: event.target.value })} className={FIELD} />

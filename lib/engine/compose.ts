@@ -8,7 +8,7 @@ import { topicOf } from "@/lib/dashboard/one-per-metric";
 import { TODAY, addDays } from "@/lib/data/dates";
 import { CLOSED_MONTH_METRICS, metricDef } from "@/lib/semantic/metrics";
 import { metricLabel } from "@/lib/dashboard/metric-display";
-import { models } from "@/lib/server/models";
+import { utilityModel } from "@/lib/server/models";
 import { TH } from "@/lib/i18n/th";
 
 const CLUSTER_DAYS = 14;
@@ -18,7 +18,6 @@ const MAX_NEW_PER_DAY = 1;
 const DAY_MS = 86_400_000;
 const RANGE_DAYS = 27;
 const ROW_LIMIT = 8;
-const MOCK_MODEL = "mock";
 const TIME_DIMS: readonly Dim[] = ["date", "week", "month"];
 const FEED_MIN_DAYS = 3;
 const FEED_OPENS: ReadonlySet<ActionEvent["kind"]> = new Set(["feed_open", "feed_done"]);
@@ -133,13 +132,11 @@ function templateTitle(candidate: Candidate): string {
 }
 
 async function modelTitle(candidate: Candidate): Promise<string | null> {
-  const registry = models();
-  const [id] = Object.keys(registry);
-  const entry = id ? registry[id] : undefined;
-  if (!id || id === MOCK_MODEL || !entry || typeof entry !== "object" || !("model" in entry)) return null;
+  const model = utilityModel();
+  if (!model) return null;
   try {
     const result = await generateObject({
-      model: typeof entry.model === "function" ? entry.model() : entry.model,
+      model,
       schema: titleSchema,
       system: TH.compose.titlePrompt,
       prompt: `${candidate.prompt}\n${metricLabel(candidate.metric)}`,

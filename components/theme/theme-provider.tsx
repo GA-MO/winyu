@@ -1,12 +1,9 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { DARK_QUERY, THEME_STORAGE_KEY } from "./theme-boot";
 
 export type ThemeMode = "light" | "dark";
-
-export const THEME_STORAGE_KEY = "winyu-theme";
-const DARK_QUERY = "(prefers-color-scheme: dark)";
-export const THEME_BOOT_SCRIPT = `try{var m=localStorage.getItem("${THEME_STORAGE_KEY}");var d=m?m==="dark":matchMedia("${DARK_QUERY}").matches;document.documentElement.classList.toggle("dark",d);}catch(e){}`;
 
 type ThemeValue = { mode: ThemeMode; setMode: (mode: ThemeMode) => void; toggle: () => void };
 

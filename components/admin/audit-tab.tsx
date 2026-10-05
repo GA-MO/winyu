@@ -1,13 +1,14 @@
 import Link from "next/link";
 import { ChevronDown } from "lucide-react";
-import { cn } from "vexa/lib/utils";
-import type { AuditEntry } from "@/lib/contracts";
+import { cn } from "@/components/ui/cn";
+import type { AuditEntry, Initiator } from "@/lib/contracts";
 import { connectorLabel, connectors, toolLabel, toolSurface } from "@/lib/server/tools/registry";
 import { USERS, findUser } from "@/lib/data/entities/users";
 import { TH } from "@/lib/i18n/th";
 import { AUDIT_RANGES, auditConnector, auditEntries, inAuditScope, type AuditFilter, type AuditRange } from "@/lib/server/usage";
 import { runStore } from "@/lib/harness/runtime";
-import { auditLog } from "@/lib/server/audit";
+import { GUARD_AUDIT_TOOL, auditLog } from "@/lib/server/audit";
+import { runSpend } from "@/lib/server/model-ledger";
 import { RunTrace } from "./run-trace";
 import { AutoSubmitForm } from "./auto-submit-form";
 import { Avatar, EmptyLine, FOCUS, GHOST, Panel, Pill, Select, stamp, type Tone } from "./parts";
@@ -17,6 +18,7 @@ const DECISIONS: readonly AuditEntry["decision"][] = ["allow", "deny", "masked"]
 const DECISION_TONE: Record<AuditEntry["decision"], Tone> = { allow: "success", deny: "danger", masked: "warning" };
 const DECISION_WEIGHT: Record<AuditEntry["decision"], number> = { allow: 0, masked: 1, deny: 2 };
 const COPY = TH.admin.auditTab;
+const VIA_LABELS: Partial<Record<Initiator, string>> = { mcp: COPY.viaMcp, a2a: COPY.viaA2a, teams: COPY.viaTeams, line: COPY.viaLine };
 
 export type AuditFilterParams = AuditFilter;
 
@@ -51,6 +53,7 @@ function worstOf(entries: AuditEntry[]): AuditEntry["decision"] {
 }
 
 function reasonOf(entry: AuditEntry): string | null {
+  if (entry.tool === GUARD_AUDIT_TOOL) return entry.reason ?? null;
   if (entry.decision === "masked") return COPY.maskedReason;
   if (!entry.code) return null;
   return COPY.codes[entry.code] ?? COPY.otherCode(entry.code);
@@ -158,7 +161,7 @@ function CallRow({ entry }: { entry: AuditEntry }) {
 
 function TurnDetail({ group }: { group: TurnGroup }) {
   const record = group.entries[0].turnId ? runStore().get(group.entries[0].turnId) : null;
-  if (record) return <RunTrace record={record} audit={group.entries} />;
+  if (record) return <RunTrace record={record} audit={group.entries} spend={runSpend(record.id)} />;
   return (
     <>
       <p className="text-[12px] text-muted-foreground">{TH.admin.trace.none}</p>
@@ -177,6 +180,7 @@ function TurnRow({ group, open }: { group: TurnGroup; open: boolean }) {
   const worst = worstOf(group.entries);
   const tools = [...new Set(group.entries.map((entry) => toolLabel(entry.tool)))];
   const byJob = first.initiator === "job";
+  const via = first.initiator ? VIA_LABELS[first.initiator] : undefined;
   const headline = first.question ? `“${first.question}”` : byJob ? COPY.jobTitle : tools.join(" · ");
   const reason = worst === "allow" ? null : (group.entries.map(reasonOf).find((text) => text !== null) ?? null);
   return (
@@ -190,11 +194,12 @@ function TurnRow({ group, open }: { group: TurnGroup; open: boolean }) {
               <span className="font-normal text-muted-foreground">{` · ${person ? TH.role[person.role] : ""} · ${stamp(first.at)}`}</span>
             </p>
             <p className={cn("line-clamp-2 text-[13px]", first.question || byJob ? "text-foreground" : "text-muted-foreground")}>{headline}</p>
-            {first.question || byJob ? <p className="mt-0.5 truncate text-[11px] text-muted-foreground">{`${COPY.calls(group.entries.length)} · ${tools.join(" · ")}`}</p> : null}
+            {first.question || byJob ? <p className="mt-0.5 truncate text-[11px] text-muted-foreground">{`${COPY.calls(group.entries.filter((entry) => entry.tool !== GUARD_AUDIT_TOOL).length)} · ${tools.join(" · ")}`}</p> : null}
             {reason ? <p className={cn("mt-0.5 text-[12px]", worst === "deny" ? "text-danger" : "text-warning")}>{reason}</p> : null}
           </div>
           <span className="flex items-center gap-2">
             {byJob ? <Pill tone="primary">{COPY.byJob}</Pill> : null}
+            {via ? <Pill tone="primary">{via}</Pill> : null}
             <Pill tone={DECISION_TONE[worst]}>{TH.admin.decision[worst]}</Pill>
             <ChevronDown className="size-3.5 text-muted-foreground transition group-open:rotate-180" aria-hidden />
           </span>

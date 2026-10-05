@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { cn } from "vexa/lib/utils";
+import { cn } from "@/components/ui/cn";
 import { ROLE_IDS, type RoleId, type ToolSurfaceEntry, type ToolTier } from "@/lib/contracts";
 import { surfaceByConnector } from "@/lib/server/tools/registry";
 import { closureOf, killedTools } from "@/lib/access/enforce";

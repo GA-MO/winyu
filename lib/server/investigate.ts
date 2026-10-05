@@ -1,5 +1,5 @@
-import { generateObject, generateText, stepCountIs, type LanguageModel, type Tool, type ToolSet } from "ai";
-import { fenceAsData } from "@/lib/harness/adapters/vexa/server";
+import { generateObject, generateText, stepCountIs, type LanguageModel, type ToolSet } from "ai";
+import { fenceAsData } from "@/lib/harness/fence";
 import { z } from "zod";
 import { accessFor } from "@/lib/access/policies";
 import { managerOf } from "@/lib/access/raci";
@@ -12,9 +12,8 @@ import { USERS, findUser } from "@/lib/data/entities/users";
 import { TH } from "@/lib/i18n/th";
 import { investigations } from "@/lib/server/agent/collections";
 import { runMetric } from "@/lib/server/metrics";
-import { winyuTools, toolsForAccess, toolTiers } from "@/lib/server/agent/tools";
-import { MOCK_MODEL_ID } from "@/lib/harness/adapters/vexa/server";
-import { models } from "@/lib/server/models";
+import { aiSdkTools } from "@/lib/server/agent/ai-sdk-tools";
+import { winyuTools, toolsForAccess } from "@/lib/server/agent/tools";
 import { tracedRun } from "@/lib/harness/runtime";
 import { runWithAccess } from "@/lib/server/request-context";
 import { measure } from "@/lib/server/usage-meter";
@@ -34,7 +33,6 @@ const LIMITS = { finding: 100, scope: 40, ruledOut: 40, evidenceTitle: 60, actio
 const REMEMBERED = new Set(["recall_memory"]);
 const HONORIFIC = "คุณ";
 const BARE_NAME_MIN_LENGTH = 4;
-const JOB_CONCURRENCY = 3;
 const INVESTIGATE_TOOL_BUDGET = 80;
 const INVESTIGATE_GOAL = "Explain this person's open anomalies before they open Winyu";
 
@@ -79,9 +77,8 @@ type MetricAnswer = Extract<MetricResult, { ok: true }> & { query: MetricQuery }
 
 /** The open anomalies this person would get from get_alerts, read before the model runs so a story cannot start without them. */
 export async function openAnomalies(access: AccessContext): Promise<ToolCall> {
-  const definition = winyuTools()[ALERTS_TOOL] as Tool;
-  const execute = definition.execute as (args: unknown, options: unknown) => Promise<unknown>;
-  const output = await runWithAccess(access, () => execute(ALERT_INPUT, {}));
+  const { execute } = winyuTools()[ALERTS_TOOL];
+  const output = await runWithAccess(access, () => execute(ALERT_INPUT));
   return { tool: ALERTS_TOOL, input: ALERT_INPUT, output };
 }
 
@@ -107,8 +104,7 @@ function quietRun(userId: string, modelId: string, anomalies: ToolCall): Investi
 }
 
 function readTools(access: AccessContext): ToolSet {
-  const tiers = toolTiers();
-  return Object.fromEntries(Object.entries(toolsForAccess(access)).filter(([name]) => tiers[name] === "read"));
+  return aiSdkTools(toolsForAccess(access).filter((tool) => tool.entry.tier === "read"));
 }
 
 function scopeLine(access: AccessContext): string {
@@ -323,26 +319,4 @@ export function latestInvestigation(userId: string): Investigation | null {
 
 export function saveInvestigation(investigation: Investigation): void {
   investigations().put(investigation);
-}
-
-/** The morning job: investigate for every user on the default real model and keep the result; does nothing when only the mock is configured. */
-export async function runInvestigateJob(): Promise<number> {
-  const [modelId, entry] = Object.entries(models())[0] ?? [];
-  if (!modelId || modelId === MOCK_MODEL_ID || !entry || typeof entry !== "object" || !("model" in entry)) return 0;
-  const model = typeof entry.model === "function" ? entry.model() : entry.model;
-  const queue = USERS.map((user) => user.id);
-  let saved = 0;
-  const workers = Array.from({ length: JOB_CONCURRENCY }, async () => {
-    for (let userId = queue.shift(); userId; userId = queue.shift()) {
-      const run = await investigate(userId, model, modelId).catch((error: unknown) => {
-        console.error(`[winyu] investigation for ${userId} failed`, error);
-        return null;
-      });
-      if (!run) continue;
-      saveInvestigation(run.investigation);
-      saved += 1;
-    }
-  });
-  await Promise.all(workers);
-  return saved;
 }

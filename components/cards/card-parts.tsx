@@ -1,23 +1,17 @@
 "use client";
 
 import { ArrowRight } from "lucide-react";
-import { Alert, Card, Metric } from "vexa/react";
-import { useVexaHostContext } from "vexa/react";
+import { Alert, Card, Metric } from "@/components/ui/primitives";
 import type { NextAction } from "@/lib/contracts";
 import type { CardParts } from "@/lib/cards/present";
 import { TH } from "@/lib/i18n/th";
+import { useRunAction } from "./card-actions";
 import { CardBodyView } from "./charts/card-body";
 
-const ACTION_TOOL = "winyu_action";
 const PRIMARY = "inline-flex items-center rounded-full bg-ink px-3.5 py-2 text-xs font-medium text-ink-foreground transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 const SECONDARY = "inline-flex items-center rounded-full border border-border bg-card px-3.5 py-2 text-xs font-medium text-muted-foreground transition hover:border-foreground/25 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
 const FOOTER_LINK = "inline-flex max-w-[55%] shrink-0 items-center gap-1 text-xs font-medium text-foreground/75 transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
-
-function useRunAction(): (action: NextAction) => void {
-  const host = useVexaHostContext();
-  return (action) => void host?.runTool(ACTION_TOOL, action, { source: "button", toolCallId: `${ACTION_TOOL}-${action.id}` });
-}
 
 export function ActionStrip({ actions }: { actions: NextAction[] }) {
   const run = useRunAction();
@@ -59,12 +53,12 @@ export function CardFooter({ note, action }: { note: string | null; action: Next
   );
 }
 
-/** One `CardParts` rendered as React — the same card the dashboard renders as a Vexa spec. */
+/** One `CardParts` rendered as React, in the chat and on the dashboard alike. */
 export function CardPartsView({ parts }: { parts: CardParts }) {
   if (parts.denied) {
     return (
       <Card props={{ title: parts.title, description: null, meta: null, footnote: null }}>
-        <Alert props={{ title: TH.dash.denied, body: parts.denied, tone: "warning", meta: null }} />
+        <Alert props={{ title: parts.denied.title, body: parts.denied.body, tone: "warning", meta: null }} />
       </Card>
     );
   }

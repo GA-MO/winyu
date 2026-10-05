@@ -1,0 +1,247 @@
+{
+ "version": 1,
+ "caseId": "people-certs",
+ "userId": "u_may",
+ "prompt": "ใบอนุญาตหรือใบรับรองของใครใกล้หมดอายุบ้าง",
+ "model": "google/gemini-3.8-flash",
+ "promptHash": "2bfadd00013f7c5d",
+ "toolsHash": "3542bb7c8b47d7ed",
+ "today": "2026-10-05",
+ "recordedAt": "2026-10-05T15:50:14.365Z",
+ "steps": [
+  {
+   "kind": "call",
+   "tool": "find_people",
+   "args": {
+    "department": null,
+    "manager": null,
+    "query": null,
+    "flag": "cert_expiring",
+    "region": null
+   },
+   "result": {
+    "ok": true,
+    "summary": "พบ 6 คน · ตำแหน่งว่าง 4 ตำแหน่ง",
+    "data": [
+     {
+      "id": "u_anucha",
+      "name": "คุณอนุชา พรหมศรี",
+      "title": "ผู้จัดการขายภาค ภาคอีสาน",
+      "place": "ขอนแก่น",
+      "photo": "/img/people/p32.jpg",
+      "department": "ขาย",
+      "manager": "คุณประสิทธิ์ ชัยภูมิ",
+      "tenure": "16 ปี 5 เดือน",
+      "badges": [
+       {
+        "label": "ใบอนุญาตขายสุรา 39 วัน",
+        "tone": "warning"
+       }
+      ]
+     },
+     {
+      "id": "e_somsri",
+      "name": "คุณสมศรี ทองคำ",
+      "title": "หัวหน้าแผนกบรรจุ โรงงานขอนแก่น",
+      "place": "โรงงานขอนแก่น",
+      "photo": "/img/people/p18.jpg",
+      "department": "การผลิต",
+      "manager": "คุณโอ๊ต พัฒนพงศ์",
+      "tenure": "31 ปี 3 เดือน",
+      "badges": [
+       {
+        "label": "GMP 28 วัน",
+        "tone": "warning"
+       },
+       {
+        "label": "เกษียณใน 2 ปี",
+        "tone": "neutral"
+       }
+      ]
+     },
+     {
+      "id": "e_pong",
+      "name": "คุณป้อง แสนสุข",
+      "title": "หัวหน้าทีมขาย นครราชสีมา",
+      "place": "นครราชสีมา",
+      "photo": "/img/people/p22.jpg",
+      "department": "ขาย",
+      "manager": "คุณอนุชา พรหมศรี",
+      "tenure": "17 ปี 8 เดือน",
+      "badges": [
+       {
+        "label": "เสี่ยงลาออกสูง",
+        "tone": "danger"
+       },
+       {
+        "label": "โอที 118 ชม.",
+        "tone": "warning"
+       },
+       {
+        "label": "ใบอนุญาตขายสุรา 16 วัน",
+        "tone": "warning"
+       }
+      ]
+     },
+     {
+      "id": "e_wan",
+      "name": "คุณวันชัย เพชรดี",
+      "title": "พนักงานขับรถยก คลังปทุมธานี",
+      "place": "โรงงานปทุมธานี",
+      "photo": "/img/people/p37.jpg",
+      "department": "ซัพพลายเชน",
+      "manager": "คุณวีร์ เจริญสุข",
+      "tenure": "28 ปี 4 เดือน",
+      "badges": [
+       {
+        "label": "ใบขับขี่รถยก 20 วัน",
+        "tone": "warning"
+       }
+      ]
+     },
+     {
+      "id": "e_dang",
+      "name": "คุณแดง ศักดิ์ดี",
+      "title": "หัวหน้ากะ สายการผลิต 2 โรงงานขอนแก่น",
+      "place": "โรงงานขอนแก่น",
+      "photo": "/img/people/p40.jpg",
+      "department": "การผลิต",
+      "manager": "คุณสมศรี ทองคำ",
+      "tenure": "23 ปี 6 เดือน",
+      "badges": [
+       {
+        "label": "เสี่ยงลาออกสูง",
+        "tone": "danger"
+       },
+       {
+        "label": "โอที 96 ชม.",
+        "tone": "warning"
+       },
+       {
+        "label": "ใบขับขี่รถยก 8 วัน",
+        "tone": "warning"
+       }
+      ]
+     },
+     {
+      "id": "u_krit",
+      "name": "คุณกฤต จันทร์เสน",
+      "title": "พนักงานขาย ขอนแก่น",
+      "place": "ขอนแก่น",
+      "photo": "/img/people/p34.jpg",
+      "department": "ขาย",
+      "manager": "คุณอนุชา พรหมศรี",
+      "tenure": "7 ปี 6 เดือน",
+      "badges": [
+       {
+        "label": "ควรคุยเรื่องความก้าวหน้า",
+        "tone": "warning"
+       },
+       {
+        "label": "ใบอนุญาตขายสุรา 23 วัน",
+        "tone": "warning"
+       }
+      ]
+     }
+    ],
+    "open_positions": [
+     {
+      "id": "op_ne_ubon",
+      "title": "พนักงานขาย อุบลราชธานี (เขตวารินฯ)",
+      "manager": "คุณอนุชา พรหมศรี",
+      "open_label": "เปิดรับมา 99 วัน"
+     },
+     {
+      "id": "op_ne_khonkaen",
+      "title": "พนักงานขาย ขอนแก่น (เขตชุมแพ)",
+      "manager": "คุณอนุชา พรหมศรี",
+      "open_label": "เปิดรับมา 64 วัน"
+     },
+     {
+      "id": "op_ne_korat",
+      "title": "พนักงานขาย นครราชสีมา (เขตปากช่อง)",
+      "manager": "คุณป้อง แสนสุข",
+      "open_label": "เปิดรับมา 49 วัน"
+     },
+     {
+      "id": "op_kk_qc",
+      "title": "พนักงานควบคุมคุณภาพ โรงงานขอนแก่น",
+      "manager": "คุณสมศรี ทองคำ",
+      "open_label": "เปิดรับมา 21 วัน"
+     }
+    ]
+   }
+  },
+  {
+   "kind": "text",
+   "text": "พบพนักงานที่มีใบอนุญาตขายสุรา ใบขับขี่รถยก และการรับรองมาตรฐาน GMP ใกล้ครบกำหนดในฝ่ายขาย การผลิต และซัพพลายเชน โดยบางท่านมีสถานะความเสี่ยงอื่นร่วมด้วย ฝ่ายทรัพยากรบุคคลควรเร่งประสานงานหัวหน้างานเพื่อส่งเข้ารับการอบรมและดำเนินการต่ออายุเอกสารก่อนหมดอายุเพื่อไม่ให้กระทบการปฏิบัติงาน\n\n```a2ui\n{\"id\":\"root\",\"component\":\"Card\",\"title\":\"พนักงานที่ใบอนุญาตหรือใบรับรองใกล้หมดอายุ\",\"footnote\":\"ระบบ HR\",\"children\":[\"people_grid\"]}\n{\"id\":\"people_grid\",\"component\":\"Grid\",\"children\":{\"componentId\":\"person_item\",\"path\":\"/find_people/data\"}}\n{\"id\":\"person_item\",\"component\":\"ListItem\",\"title\":{\"path\":\"name\"},\"subtitle\":{\"path\":\"title\"},\"detail\":{\"path\":\"place\"},\"src\":{\"path\":\"photo\"},\"media\":\"avatar\",\"badges\":{\"path\":\"badges\"},\"action\":{\"event\":{\"name\":\"ask\",\"context\":{\"prompt\":\"ขอดูโปรไฟล์\",\"about\":{\"path\":\"name\"}}}}}\n```"
+  }
+ ],
+ "asked": [],
+ "error": null,
+ "usage": {
+  "calls": 2,
+  "inputTokens": 21606,
+  "outputTokens": 3153,
+  "reasoningTokens": 2879,
+  "usd": 0.0074076958333333335
+ },
+ "drawn": {
+  "cards": [],
+  "composed": {
+   "accepted": 3,
+   "rejected": 0,
+   "problems": [],
+   "components": [
+    {
+     "id": "root",
+     "component": "Card",
+     "title": "พนักงานที่ใบอนุญาตหรือใบรับรองใกล้หมดอายุ",
+     "footnote": "ระบบ HR",
+     "children": [
+      "people_grid"
+     ]
+    },
+    {
+     "id": "people_grid",
+     "component": "Grid",
+     "children": {
+      "componentId": "person_item",
+      "path": "/find_people/data"
+     }
+    },
+    {
+     "id": "person_item",
+     "component": "ListItem",
+     "title": {
+      "path": "name"
+     },
+     "subtitle": {
+      "path": "title"
+     },
+     "detail": {
+      "path": "place"
+     },
+     "src": {
+      "path": "photo"
+     },
+     "media": "avatar",
+     "badges": {
+      "path": "badges"
+     },
+     "action": {
+      "event": {
+       "name": "ask",
+       "context": {
+        "prompt": "ขอดูโปรไฟล์",
+        "about": {
+         "path": "name"
+        }
+       }
+      }
+     }
+    }
+   ]
+  }
+ }
+}

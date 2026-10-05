@@ -1,5 +1,5 @@
 import { generateObject, type LanguageModel } from "ai";
-import { fenceAsData } from "@/lib/harness/adapters/vexa/server";
+import { fenceAsData } from "@/lib/harness/fence";
 import { z } from "zod";
 import { isTrusted } from "@/lib/engine/memory-status";
 import { TH } from "@/lib/i18n/th";

@@ -1,22 +1,29 @@
 import { describe, expect, test } from "bun:test";
-import { existsSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 
-const ADAPTER_DIR = "lib/harness/adapters/vexa/";
-const ENGINE_IMPORT = /from "vexa\/(server|mock)"/;
+const ADAPTER_DIR = "lib/harness/adapters/mastra/";
+const ENGINE_IMPORT = /from "(@mastra\/[^"]+|@ag-ui\/[^"]+|@copilotkit\/runtime[^"]*)"/;
+const CLIENT_DIRS = ["components/providers/", "components/chat/"];
+const CLIENT_IMPORT = /from "(@copilotkit\/react-core[^"]*|@copilotkit\/a2ui-renderer|@a2ui\/[^"]+)"/;
 const SOURCE_GLOB = new Bun.Glob("{app,components,lib,scripts,tests}/**/*.{ts,tsx}");
-const FORBIDDEN_COPIES = ["lib/vexa", "lib/vendor/vexa", "vendor/vexa"];
 
 function sources(): string[] {
   return [...SOURCE_GLOB.scanSync({ cwd: process.cwd() })];
 }
 
-describe("the Vexa boundary", () => {
-  test("only the Vexa adapter imports Vexa's engine packages (vexa/server, vexa/mock)", () => {
+describe("the agent engine boundary", () => {
+  test("only the Mastra adapter imports Mastra, AG-UI and the CopilotKit runtime", () => {
     const outside = sources().filter((file) => !file.startsWith(ADAPTER_DIR) && ENGINE_IMPORT.test(readFileSync(file, "utf8")));
     expect(outside).toEqual([]);
   });
 
-  test("Vexa is consumed from its sibling checkout, never copied into Winyu", () => {
-    expect(FORBIDDEN_COPIES.filter((dir) => existsSync(dir))).toEqual([]);
+  test("only the chat and its provider import the CopilotKit client and its A2UI renderer", () => {
+    const outside = sources().filter((file) => !CLIENT_DIRS.some((dir) => file.startsWith(dir)) && CLIENT_IMPORT.test(readFileSync(file, "utf8")));
+    expect(outside).toEqual([]);
+  });
+
+  test("the adapter is where the engine lives", () => {
+    const inside = sources().filter((file) => file.startsWith(ADAPTER_DIR) && ENGINE_IMPORT.test(readFileSync(file, "utf8")));
+    expect(inside.length).toBeGreaterThan(0);
   });
 });

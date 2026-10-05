@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { cn } from "vexa/lib/utils";
+import { cn } from "@/components/ui/cn";
 import type { ConnectorDef } from "@/lib/contracts";
 import { connectorEnabled, connectorSwitchId, switchEntry } from "@/lib/access/enforce";
 import { connectorHealth } from "@/lib/server/connectors/catalog";

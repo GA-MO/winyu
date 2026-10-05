@@ -1,63 +1,29 @@
 "use client";
 
-import { Suspense, useCallback, useEffect, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Bell, UserRound } from "lucide-react";
-import type { User } from "@/lib/contracts";
+import { Suspense, useState } from "react";
+import type { Persona } from "@/lib/contracts/persona";
 import { TH } from "@/lib/i18n/th";
-import { InboxDrawer, focusFromParams } from "@/components/inbox/drawer";
 import { AccountSheet } from "@/components/account/sheet";
+import { InboxBell } from "@/components/inbox/bell";
+import { Portrait } from "@/components/ui/portrait";
 
-const NOTIFICATIONS_ENDPOINT = "/api/notifications";
-const BUTTON = "flex size-9 items-center justify-center rounded-full border border-border bg-card text-muted-foreground shadow-card transition hover:-translate-y-0.5 hover:border-foreground/25 hover:text-foreground hover:shadow-lift focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+const ROUND =
+  "flex size-9 items-center justify-center rounded-full border border-border bg-card text-muted-foreground shadow-card transition hover:-translate-y-0.5 hover:border-foreground/25 hover:text-foreground hover:shadow-lift focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
-function ChromeInner({ user, users }: { user: User; users: readonly User[] }) {
-  const params = useSearchParams();
-  const pathname = usePathname();
-  const router = useRouter();
-  const [inboxOpen, setInboxOpen] = useState(false);
+/** No bar: the inbox bell and the person (opening the account sheet, which holds the theme) float at the top right. */
+export function AppChrome({ user, people }: { user: Persona; people: readonly Persona[] }) {
   const [accountOpen, setAccountOpen] = useState(false);
-  const [unread, setUnread] = useState(0);
-
-  useEffect(() => {
-    if (params.has("inbox")) setInboxOpen(true);
-  }, [params]);
-
-  useEffect(() => {
-    fetch(NOTIFICATIONS_ENDPOINT)
-      .then((response) => (response.ok ? response.json() : null))
-      .then((payload: { unread?: number } | null) => setUnread(payload?.unread ?? 0))
-      .catch(() => undefined);
-  }, [inboxOpen]);
-
-  const closeInbox = useCallback(() => {
-    setInboxOpen(false);
-    if (params.has("inbox")) router.replace(pathname, { scroll: false });
-  }, [params, pathname, router]);
-
   return (
     <>
       <div className="fixed right-4 top-4 z-30 flex items-center gap-2">
-        <button type="button" onClick={() => setInboxOpen(true)} aria-label={TH.inbox.open} className={`relative ${BUTTON}`}>
-          <Bell className="size-4" aria-hidden />
-          {unread > 0 ? (
-            <span className="absolute -right-1 -top-1 flex size-4 items-center justify-center rounded-full bg-danger text-[10px] font-semibold text-card">{unread}</span>
-          ) : null}
-        </button>
-        <button type="button" onClick={() => setAccountOpen(true)} aria-label={TH.account.open} className={BUTTON}>
-          <UserRound className="size-4" aria-hidden />
+        <Suspense fallback={null}>
+          <InboxBell className={ROUND} />
+        </Suspense>
+        <button type="button" onClick={() => setAccountOpen(true)} aria-label={TH.account.open} title={user.nameTh} className="rounded-full shadow-card transition hover:-translate-y-0.5 hover:shadow-lift focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+          <Portrait name={user.nameTh} src={user.photo} className="size-9 text-sm ring-2 ring-card" />
         </button>
       </div>
-      <InboxDrawer open={inboxOpen} onClose={closeInbox} focus={focusFromParams(params)} />
-      <AccountSheet open={accountOpen} onClose={() => setAccountOpen(false)} user={user} users={users} />
+      <AccountSheet open={accountOpen} onClose={() => setAccountOpen(false)} user={user} people={people} />
     </>
-  );
-}
-
-export function AppChrome({ user, users }: { user: User; users: readonly User[] }) {
-  return (
-    <Suspense fallback={null}>
-      <ChromeInner user={user} users={users} />
-    </Suspense>
   );
 }

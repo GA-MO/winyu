@@ -1,7 +1,7 @@
 "use client";
 
 import { startTransition, useActionState, useState, type FormEvent } from "react";
-import { cn } from "vexa/lib/utils";
+import { cn } from "@/components/ui/cn";
 import { TH } from "@/lib/i18n/th";
 import type { RuleFormState } from "@/app/(app)/admin/actions";
 import { FIELD, FOCUS, GHOST, INK } from "./parts";

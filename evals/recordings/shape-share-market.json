@@ -1,0 +1,165 @@
+{
+ "version": 1,
+ "caseId": "shape-share-market",
+ "userId": "u_anucha",
+ "prompt": "สัดส่วนตลาดเบียร์ในนครราชสีมาเดือน ส.ค. แต่ละผู้ผลิตได้เท่าไหร่",
+ "model": "google/gemini-3.8-flash",
+ "promptHash": "5cf727ed51a6d1b3",
+ "toolsHash": "5639642b6a430a27",
+ "today": "2026-10-05",
+ "recordedAt": "2026-10-05T15:49:46.829Z",
+ "steps": [
+  {
+   "kind": "call",
+   "tool": "query_metric",
+   "args": {
+    "range": {
+     "from": "2026-08-01",
+     "to": "2026-08-31"
+    },
+    "dims": [
+     "maker"
+    ],
+    "filters": {
+     "province": "นครราชสีมา"
+    },
+    "metric": "market_share",
+    "where": null,
+    "grain": "month",
+    "limit": 10,
+    "compare": "none",
+    "sort": "value_desc"
+   },
+   "result": {
+    "ok": true,
+    "rows": [
+     {
+      "maker": "บุญรอดบริวเวอรี่",
+      "value": 57.7,
+      "value_label": "57.7%"
+     },
+     {
+      "maker": "ไทยเบฟเวอเรจ",
+      "value": 26.9,
+      "value_label": "26.9%"
+     },
+     {
+      "maker": "คาราบาว",
+      "value": 13.1,
+      "value_label": "13.1%"
+     },
+     {
+      "maker": "รายอื่น",
+      "value": 2.3,
+      "value_label": "2.3%"
+     }
+    ],
+    "summary": "ส่วนแบ่งตลาดเบียร์ 1 ส.ค. 2569 – 31 ส.ค. 2569: เฉลี่ย 57.7% · สูงสุด: บุญรอดบริวเวอรี่ 57.7% · ไทยเบฟเวอเรจ 26.9% · คาราบาว 13.1% · (4 แถว · derived · Retail audit รายเดือน)",
+    "headline": {
+     "aggregate": "average",
+     "value": "57.7%",
+     "periodLabel": "1 ส.ค. 2569 – 31 ส.ค. 2569",
+     "rowCount": 4,
+     "deltaPercent": null,
+     "compareLabel": null,
+     "compareNote": null,
+     "top": [
+      {
+       "label": "บุญรอดบริวเวอรี่",
+       "value": "57.7%"
+      },
+      {
+       "label": "ไทยเบฟเวอเรจ",
+       "value": "26.9%"
+      },
+      {
+       "label": "คาราบาว",
+       "value": "13.1%"
+      }
+     ],
+     "underLine": null
+    },
+    "provenance": {
+     "metric": "market_share",
+     "certified": false,
+     "sourceSystem": "Retail audit รายเดือน",
+     "asOf": "2026-09-22",
+     "rowCount": 4,
+     "filtersApplied": {
+      "province": [
+       "pv_nakhonratchasima"
+      ]
+     },
+     "filterLabels": [
+      "นครราชสีมา"
+     ],
+     "scopeApplied": {
+      "region": [
+       "northeast"
+      ]
+     },
+     "masked": [],
+     "trust": "derived"
+    },
+    "query": {
+     "metric": "market_share",
+     "dims": [
+      "maker"
+     ],
+     "filters": {
+      "province": [
+       "นครราชสีมา"
+      ]
+     },
+     "range": {
+      "from": "2026-08-01",
+      "to": "2026-08-31"
+     },
+     "grain": "month",
+     "compare": "none",
+     "limit": 10,
+     "sort": "value_desc",
+     "where": null
+    },
+    "nextActions": [],
+    "followUps": [
+     {
+      "id": "fu-trend",
+      "label": "ดูแนวโน้มรายเดือน",
+      "prompt": "ส่วนแบ่งตลาดเบียร์ รายเดือนย้อนหลัง 6 เดือน",
+      "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+      "intentKey": "follow|trend",
+      "score": 0.5
+     },
+     {
+      "id": "fu-compare_year",
+      "label": "เทียบปีก่อน",
+      "prompt": "ขอส่วนแบ่งตลาดเบียร์แยกตามผู้ผลิต เทียบกับช่วงเดียวกันปีก่อน",
+      "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+      "intentKey": "follow|compare_year",
+      "score": 0.45
+     }
+    ]
+   }
+  },
+  {
+   "kind": "text",
+   "text": "ในเดือนสิงหาคม 2569 บุญรอดบริวเวอรี่ยังคงเป็นผู้นำตลาดเบียร์ในจังหวัดนครราชสีมาอย่างเด่นชัด โดยมีไทยเบฟเวอเรจและคาราบาวเป็นคู่แข่งสำคัญลำดับถัดมา แนะนำให้ติดตามแนวโน้มเปรียบเทียบกับช่วงเดียวกันของปีก่อนเพื่อประเมินการเปลี่ยนแปลงของส่วนแบ่งตลาดในพื้นที่อย่างต่อเนื่อง"
+  }
+ ],
+ "asked": [],
+ "error": null,
+ "usage": {
+  "calls": 2,
+  "inputTokens": 22667,
+  "outputTokens": 1522,
+  "reasoningTokens": 1333,
+  "usd": 0.0041867250000000005
+ },
+ "drawn": {
+  "cards": [
+   "query_metric"
+  ],
+  "composed": null
+ }
+}

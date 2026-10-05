@@ -1,5 +1,6 @@
 import type { RuleRef } from "@/lib/contracts";
 import type { ContextRef, HarnessEvent, RunLimit } from "./events";
+import type { GuardFinding } from "./guard";
 import type { ApprovalRule, Evidence, Goal, ObservationStatus, RecoveryAction } from "./types";
 
 export type ToolVerdict = { passed: true; checks: string[] } | { passed: false; reason: string };
@@ -30,7 +31,10 @@ export type TimelineEntry =
   | ToolStory
   | { kind: "asked"; at: string; tool: string }
   | { kind: "rendered"; at: string; components: string[] }
+  | { kind: "composed"; at: string; accepted: number; rejected: number; problems: string[] }
   | { kind: "limited"; at: string; limit: RunLimit; step: number }
+  | ({ kind: "guarded"; at: string } & GuardFinding)
+  | { kind: "resumed"; at: string }
   | { kind: "end"; at: string; ok: boolean; reason: string };
 
 function emptyTool(at: string, toolCallId: string, tool: string): ToolStory {
@@ -84,11 +88,17 @@ export function timelineOf(events: readonly HarnessEvent[]): TimelineEntry[] {
       case "agent.limited":
         entries.push({ kind: "limited", at: event.at, limit: event.payload.limit, step: event.payload.step });
         break;
+      case "agent.resumed":
+        entries.push({ kind: "resumed", at: event.at });
+        break;
       case "approval.requested":
         entries.push({ kind: "asked", at: event.at, tool: event.payload.tool });
         break;
       case "ui.rendered":
         entries.push({ kind: "rendered", at: event.at, components: event.payload.components });
+        break;
+      case "ui.composed":
+        entries.push({ kind: "composed", at: event.at, accepted: event.payload.accepted, rejected: event.payload.rejected, problems: event.payload.problems });
         break;
       case "tool.authorized":
         toolOf(event.at, event.payload.toolCallId, event.payload.tool).approval = event.payload.approval;
@@ -114,6 +124,9 @@ export function timelineOf(events: readonly HarnessEvent[]): TimelineEntry[] {
         break;
       case "recovery.decided":
         toolOf(event.at, event.payload.toolCallId, event.payload.tool).recovery.push({ action: event.payload.action, reason: event.payload.reason, fix: event.payload.fix ?? null });
+        break;
+      case "guard.flagged":
+        entries.push({ kind: "guarded", at: event.at, ...event.payload });
         break;
       case "agent.completed":
         entries.push({ kind: "end", at: event.at, ok: true, reason: event.payload.finishReason });

@@ -1,5 +1,5 @@
 export const LMS_DEMO_ID = "lms_demo";
-export const LMS_DEMO_PORT = 3199;
+export const LMS_DEMO_PORT = 3299;
 export const LMS_DEMO_TOOL = "training_history";
 
 /** Where the demo LMS listens and the secret Winyu signs identities with; both from env, with a local default for the demo only. */

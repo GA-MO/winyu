@@ -1,0 +1,167 @@
+{
+ "version": 1,
+ "caseId": "title-cover-threshold",
+ "userId": "u_arm",
+ "prompt": "สินค้าตัวไหนสต๊อกพอขายน้อยกว่า 10 วัน",
+ "model": "google/gemini-3.8-flash",
+ "promptHash": "3366b49ab39693a3",
+ "toolsHash": "3a1e2faaa57dde17",
+ "today": "2026-10-05",
+ "recordedAt": "2026-10-05T15:54:19.161Z",
+ "steps": [
+  {
+   "kind": "call",
+   "tool": "query_metric",
+   "args": {
+    "compare": "none",
+    "filters": {
+     "region": "south"
+    },
+    "limit": 20,
+    "range": {
+     "from": "2026-09-22",
+     "to": "2026-09-22"
+    },
+    "metric": "days_of_cover",
+    "grain": "day",
+    "where": {
+     "op": "below",
+     "value": 10
+    },
+    "dims": [
+     "sku"
+    ],
+    "sort": "value_asc"
+   },
+   "result": {
+    "ok": true,
+    "rows": [
+     {
+      "sku": "สิงห์ ขวด 620 มล.",
+      "value": 7.22,
+      "value_label": "7.2 วัน"
+     }
+    ],
+    "summary": "วันครอบคลุมสต๊อก 22 ก.ย. 2569: เฉลี่ย 7.2 วัน · ต่ำสุด: สิงห์ ขวด 620 มล. 7.2 วัน · (1 แถว · certified · WMS)",
+    "headline": {
+     "aggregate": "average",
+     "value": "7.2 วัน",
+     "periodLabel": "22 ก.ย. 2569",
+     "rowCount": 1,
+     "deltaPercent": null,
+     "compareLabel": null,
+     "compareNote": null,
+     "top": [
+      {
+       "label": "สิงห์ ขวด 620 มล.",
+       "value": "7.2 วัน"
+      }
+     ],
+     "underLine": {
+      "line": 10,
+      "count": 1,
+      "of": 30
+     }
+    },
+    "provenance": {
+     "metric": "days_of_cover",
+     "certified": true,
+     "sourceSystem": "WMS",
+     "asOf": "2026-09-22",
+     "rowCount": 1,
+     "filtersApplied": {
+      "region": [
+       "south"
+      ]
+     },
+     "filterLabels": [
+      "ภาคใต้",
+      "น้อยกว่า 10 วัน"
+     ],
+     "scopeApplied": {},
+     "masked": [],
+     "trust": "verified"
+    },
+    "query": {
+     "metric": "days_of_cover",
+     "dims": [
+      "sku"
+     ],
+     "filters": {
+      "region": [
+       "south"
+      ]
+     },
+     "range": {
+      "from": "2026-09-22",
+      "to": "2026-09-22"
+     },
+     "grain": "day",
+     "compare": "none",
+     "limit": 20,
+     "sort": "value_asc",
+     "where": {
+      "op": "below",
+      "value": 10
+     }
+    },
+    "nextActions": [
+     {
+      "id": "drill-brand",
+      "kind": "drill",
+      "label": "แยกตามแบรนด์",
+      "reason": "ยังไม่ได้ดูแยกรายแบรนด์",
+      "tool": null,
+      "input": null,
+      "prompt": "ขอวันครอบคลุมสต๊อกแยกตามแบรนด์ เรียงจากมากไปน้อย"
+     }
+    ],
+    "followUps": [
+     {
+      "id": "fu-forecast",
+      "label": "พยากรณ์ 8 สัปดาห์",
+      "prompt": "พยากรณ์วันครอบคลุมสต๊อก 8 สัปดาห์ข้างหน้า",
+      "reason": "ดูว่าถ้าเป็นแบบนี้ต่อไปจะเกิดอะไร",
+      "intentKey": "follow|forecast",
+      "score": 0.55
+     },
+     {
+      "id": "fu-trend",
+      "label": "ดูแนวโน้มรายสัปดาห์",
+      "prompt": "วันครอบคลุมสต๊อก รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+      "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+      "intentKey": "follow|trend",
+      "score": 0.5
+     },
+     {
+      "id": "fu-compare_year",
+      "label": "เทียบปีก่อน",
+      "prompt": "ขอวันครอบคลุมสต๊อกแยกตาม SKU เทียบกับช่วงเดียวกันปีก่อน",
+      "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+      "intentKey": "follow|compare_year",
+      "score": 0.45
+     }
+    ]
+   }
+  },
+  {
+   "kind": "text",
+   "text": "จากข้อมูลล่าสุดในระบบ ณ วันที่ 22 ก.ย. 2569 ในพื้นที่ภาคใต้ พบสินค้าที่มีวันครอบคลุมสต๊อกต่ำกว่าเกณฑ์ความปลอดภัยที่กำหนดไว้ ควรเร่งประสานงานศูนย์กระจายสินค้าเพื่อตรวจสอบรอบการจัดส่งหรือพิจารณาแผนเร่งเติมสต๊อกก่อนสินค้าจะขาดมือ"
+  }
+ ],
+ "asked": [],
+ "error": null,
+ "usage": {
+  "calls": 2,
+  "inputTokens": 20935,
+  "outputTokens": 1576,
+  "reasoningTokens": 1397,
+  "usd": 0.004459554166666667
+ },
+ "drawn": {
+  "cards": [
+   "query_metric"
+  ],
+  "composed": null
+ }
+}

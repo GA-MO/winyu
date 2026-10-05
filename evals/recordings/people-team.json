@@ -1,0 +1,259 @@
+{
+ "version": 1,
+ "caseId": "people-team",
+ "userId": "u_anucha",
+ "prompt": "ทีมขายภาคอีสานมีใครบ้าง",
+ "model": "google/gemini-3.8-flash",
+ "promptHash": "5cf727ed51a6d1b3",
+ "toolsHash": "5639642b6a430a27",
+ "today": "2026-10-05",
+ "recordedAt": "2026-10-05T15:49:58.004Z",
+ "steps": [
+  {
+   "kind": "call",
+   "tool": "find_people",
+   "args": {
+    "department": "dept_sales",
+    "query": null,
+    "region": "northeast",
+    "manager": null,
+    "flag": null
+   },
+   "result": {
+    "ok": true,
+    "summary": "พบ 7 คน · ตำแหน่งว่าง 3 ตำแหน่ง",
+    "data": [
+     {
+      "is_you": true,
+      "id": "u_anucha",
+      "name": "คุณอนุชา พรหมศรี",
+      "title": "ผู้จัดการขายภาค ภาคอีสาน",
+      "place": "ขอนแก่น",
+      "photo": "/img/people/p32.jpg",
+      "department": "ขาย",
+      "manager": "คุณประสิทธิ์ ชัยภูมิ",
+      "tenure": "16 ปี 5 เดือน",
+      "badges": [
+       {
+        "label": "ใบอนุญาตขายสุรา 39 วัน",
+        "tone": "warning"
+       }
+      ]
+     },
+     {
+      "id": "e_pong",
+      "name": "คุณป้อง แสนสุข",
+      "title": "หัวหน้าทีมขาย นครราชสีมา",
+      "place": "นครราชสีมา",
+      "photo": "/img/people/p22.jpg",
+      "department": "ขาย",
+      "manager": "คุณอนุชา พรหมศรี",
+      "tenure": "17 ปี 8 เดือน",
+      "badges": [
+       {
+        "label": "โอที 118 ชม.",
+        "tone": "warning"
+       },
+       {
+        "label": "ใบอนุญาตขายสุรา 16 วัน",
+        "tone": "warning"
+       }
+      ]
+     },
+     {
+      "id": "e_top",
+      "name": "คุณท็อป บุญยืน",
+      "title": "พนักงานขาย ขอนแก่น",
+      "place": "ขอนแก่น",
+      "photo": "/img/people/p31.jpg",
+      "department": "ขาย",
+      "manager": "คุณอนุชา พรหมศรี",
+      "tenure": "8 ปี 7 เดือน",
+      "badges": []
+     },
+     {
+      "id": "u_krit",
+      "name": "คุณกฤต จันทร์เสน",
+      "title": "พนักงานขาย ขอนแก่น",
+      "place": "ขอนแก่น",
+      "photo": "/img/people/p34.jpg",
+      "department": "ขาย",
+      "manager": "คุณอนุชา พรหมศรี",
+      "tenure": "7 ปี 6 เดือน",
+      "badges": [
+       {
+        "label": "ใบอนุญาตขายสุรา 23 วัน",
+        "tone": "warning"
+       }
+      ]
+     },
+     {
+      "id": "u_nok",
+      "name": "คุณนก สุขสวัสดิ์",
+      "title": "พนักงานขาย บุรีรัมย์",
+      "place": "บุรีรัมย์",
+      "photo": "/img/people/p06.jpg",
+      "department": "ขาย",
+      "manager": "คุณอนุชา พรหมศรี",
+      "tenure": "5 ปี 1 เดือน",
+      "badges": []
+     },
+     {
+      "id": "e_nan",
+      "name": "คุณแนน ภูมิพัฒน์",
+      "title": "พนักงานขาย อุบลราชธานี",
+      "place": "อุบลราชธานี",
+      "photo": "/img/people/p20.jpg",
+      "department": "ขาย",
+      "manager": "คุณอนุชา พรหมศรี",
+      "tenure": "3 ปี 5 เดือน",
+      "badges": []
+     },
+     {
+      "id": "e_joy",
+      "name": "คุณจอย ศรีประเสริฐ",
+      "title": "พนักงานขาย นครราชสีมา",
+      "place": "นครราชสีมา",
+      "photo": "/img/people/p08.jpg",
+      "department": "ขาย",
+      "manager": "คุณป้อง แสนสุข",
+      "tenure": "2 เดือน",
+      "badges": [
+       {
+        "label": "ทดลองงาน",
+        "tone": "neutral"
+       }
+      ]
+     }
+    ],
+    "open_positions": [
+     {
+      "id": "op_ne_ubon",
+      "title": "พนักงานขาย อุบลราชธานี (เขตวารินฯ)",
+      "manager": "คุณอนุชา พรหมศรี",
+      "open_label": "เปิดรับมา 99 วัน"
+     },
+     {
+      "id": "op_ne_khonkaen",
+      "title": "พนักงานขาย ขอนแก่น (เขตชุมแพ)",
+      "manager": "คุณอนุชา พรหมศรี",
+      "open_label": "เปิดรับมา 64 วัน"
+     },
+     {
+      "id": "op_ne_korat",
+      "title": "พนักงานขาย นครราชสีมา (เขตปากช่อง)",
+      "manager": "คุณป้อง แสนสุข",
+      "open_label": "เปิดรับมา 49 วัน"
+     }
+    ]
+   }
+  },
+  {
+   "kind": "text",
+   "text": "ทีมขายภาคอีสานมีบุคลากรปฏิบัติงานครอบคลุมพื้นที่ขอนแก่น นครราชสีมา บุรีรัมย์ และอุบลราชธานี โดยมีสมาชิกในทีมรวมถึงตัวคุณที่มีใบอนุญาตขายสุราใกล้หมดอายุที่ควรวางแผนต่ออายุล่วงหน้า\n\n```a2ui\n{\"id\":\"root\",\"component\":\"Card\",\"title\":\"ทีมขายภาคอีสาน\",\"footnote\":\"ระบบ HR\",\"children\":[\"team_section\",\"open_section\"]}\n{\"id\":\"team_section\",\"component\":\"Section\",\"label\":\"พนักงานปัจจุบัน\",\"children\":[\"team_grid\"]}\n{\"id\":\"team_grid\",\"component\":\"Grid\",\"children\":{\"componentId\":\"member\",\"path\":\"/find_people/data\"}}\n{\"id\":\"member\",\"component\":\"ListItem\",\"title\":{\"path\":\"name\"},\"subtitle\":{\"path\":\"title\"},\"detail\":{\"path\":\"place\"},\"src\":{\"path\":\"photo\"},\"media\":\"avatar\",\"badges\":{\"path\":\"badges\"},\"action\":{\"event\":{\"name\":\"ask\",\"context\":{\"prompt\":\"ขอดูโปรไฟล์\",\"about\":{\"path\":\"name\"}}}}}\n{\"id\":\"open_section\",\"component\":\"Section\",\"label\":\"ตำแหน่งว่าง\",\"children\":[\"open_grid\"]}\n{\"id\":\"open_grid\",\"component\":\"Grid\",\"children\":{\"componentId\":\"vacant\",\"path\":\"/find_people/open_positions\"}}\n{\"id\":\"vacant\",\"component\":\"ListItem\",\"title\":{\"path\":\"title\"},\"subtitle\":{\"path\":\"open_label\"},\"media\":\"none\"}\n```"
+  }
+ ],
+ "asked": [],
+ "error": null,
+ "usage": {
+  "calls": 2,
+  "inputTokens": 22333,
+  "outputTokens": 2495,
+  "reasoningTokens": 2145,
+  "usd": 0.00588585
+ },
+ "drawn": {
+  "cards": [],
+  "composed": {
+   "accepted": 7,
+   "rejected": 0,
+   "problems": [],
+   "components": [
+    {
+     "id": "root",
+     "component": "Card",
+     "title": "ทีมขายภาคอีสาน",
+     "footnote": "ระบบ HR",
+     "children": [
+      "team_section",
+      "open_section"
+     ]
+    },
+    {
+     "id": "team_section",
+     "component": "Section",
+     "label": "พนักงานปัจจุบัน",
+     "children": [
+      "team_grid"
+     ]
+    },
+    {
+     "id": "team_grid",
+     "component": "Grid",
+     "children": {
+      "componentId": "member",
+      "path": "/find_people/data"
+     }
+    },
+    {
+     "id": "member",
+     "component": "ListItem",
+     "title": {
+      "path": "name"
+     },
+     "subtitle": {
+      "path": "title"
+     },
+     "detail": {
+      "path": "place"
+     },
+     "src": {
+      "path": "photo"
+     },
+     "media": "avatar",
+     "badges": {
+      "path": "badges"
+     },
+     "action": {
+      "event": {
+       "name": "ask",
+       "context": {
+        "prompt": "ขอดูโปรไฟล์",
+        "about": {
+         "path": "name"
+        }
+       }
+      }
+     }
+    },
+    {
+     "id": "open_section",
+     "component": "Section",
+     "label": "ตำแหน่งว่าง",
+     "children": [
+      "open_grid"
+     ]
+    },
+    {
+     "id": "open_grid",
+     "component": "Grid",
+     "children": {
+      "componentId": "vacant",
+      "path": "/find_people/open_positions"
+     }
+    },
+    {
+     "id": "vacant",
+     "component": "ListItem",
+     "title": {
+      "path": "title"
+     },
+     "subtitle": {
+      "path": "open_label"
+     },
+     "media": "none"
+    }
+   ]
+  }
+ }
+}

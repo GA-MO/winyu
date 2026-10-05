@@ -1,8 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { renderToStaticMarkup } from "react-dom/server";
-import type { ApprovalRequest } from "vexa/react";
 import { TH } from "@/lib/i18n/th";
-import { renderWinyuApproval } from "./approval-card";
+import { renderApproval, type ApprovalRequest } from "./approval-card";
 
 const HANDOFF = {
   toUserId: "u_anucha",
@@ -14,11 +13,11 @@ const HANDOFF = {
 };
 
 function request(tool: string, input: unknown, overrides: Partial<ApprovalRequest> = {}): ApprovalRequest {
-  return { tool, input, state: "approval-requested", approved: null, approve: () => undefined, reject: () => undefined, ...overrides };
+  return { tool, input, approved: null, approve: () => undefined, reject: () => undefined, ...overrides };
 }
 
 function render(tool: string, input: unknown, overrides: Partial<ApprovalRequest> = {}): string {
-  return renderToStaticMarkup(renderWinyuApproval(request(tool, input, overrides)));
+  return renderToStaticMarkup(renderApproval(request(tool, input, overrides)));
 }
 
 describe("the approval card", () => {
@@ -39,11 +38,11 @@ describe("the approval card", () => {
   });
 
   test("an answered decision becomes a receipt with no buttons left", () => {
-    const approved = render("create_handoff", HANDOFF, { state: "output-available", approved: true });
+    const approved = render("create_handoff", HANDOFF, { approved: true });
     expect(approved).toContain(TH.approve.doneHandoff("คุณอนุชา พรหมศรี"));
     expect(approved).not.toContain(TH.approve.confirmHandoff);
 
-    const rejected = render("create_handoff", HANDOFF, { state: "output-denied", approved: false });
+    const rejected = render("create_handoff", HANDOFF, { approved: false });
     expect(rejected).toContain(TH.approve.notDone);
   });
 
@@ -64,7 +63,7 @@ describe("the approval card", () => {
     expect(html).toContain(TH.approve.jobs.forecast);
   });
 
-  test("a tool Winyu has no decision for falls back to Vexa's own card", () => {
-    expect(renderWinyuApproval(request("query_metric", {}))).toBeNull();
+  test("a tool that needs no approval draws no decision", () => {
+    expect(renderApproval(request("query_metric", {}))).toBeNull();
   });
 });

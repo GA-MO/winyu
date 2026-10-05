@@ -1,7 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { runMetric } from "@/lib/server/metrics";
 import type { AccessContext, Alert, DashboardLayout, FeedItem, MetricQuery, MetricResult, NextAction, WidgetSpec } from "@/lib/contracts";
-import type { Spec } from "vexa/protocol";
 import { layoutVersions, layouts } from "@/lib/server/agent/collections";
 import { forecastsFor, openAlertsFor, relevantAlertsFor } from "@/lib/server/alerts";
 import { alertRowOf } from "@/lib/cards/alert-row";
@@ -17,14 +16,14 @@ import { TH } from "@/lib/i18n/th";
 import { templateFor } from "@/lib/dashboard/templates";
 import { displacedBy, onePinnedPerMetric } from "@/lib/dashboard/one-per-metric";
 import { liveWidget } from "@/lib/dashboard/rolling";
-import { widgetToSpec, type WidgetExtras } from "@/lib/dashboard/widget-to-spec";
+import { widgetCard, type WidgetExtras } from "@/lib/dashboard/widget-card";
 import { HARMFUL_ROW_PCT, attentionOf, byAttention, staleWidgets, withFeed, type Attention } from "@/lib/dashboard/attention";
 import { recordAction } from "@/lib/server/threads";
 import { actionEvents } from "@/lib/server/agent/collections";
 
 export type WidgetHeadline = { value: string; delta: string | null; tone: "good" | "bad" | "neutral" };
 
-export type WidgetView = { widget: WidgetSpec; spec: Spec; attention: Attention; headline: WidgetHeadline | null };
+export type WidgetView = { widget: WidgetSpec; card: CardParts; attention: Attention; headline: WidgetHeadline | null };
 
 const CREATED_AT = "2026-09-22T00:00:00.000Z";
 const KPI_LIMIT = 4;
@@ -136,7 +135,7 @@ async function viewOf(widget: WidgetSpec, access: AccessContext, relevant: reado
   const hero = presentCard({ title: widget.title, query: widget.query, result }).hero;
   return {
     widget,
-    spec: widgetToSpec(widget, result, { sortBy: widget.sortBy ?? null, ...extras, actions }),
+    card: widgetCard(widget, result, { sortBy: widget.sortBy ?? null, ...extras, actions }),
     attention: attentionOf({ widget, result, alerts: relevant }),
     headline: hero ? { value: hero.value, delta: hero.delta, tone: hero.tone } : null,
   };

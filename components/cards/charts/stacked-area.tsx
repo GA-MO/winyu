@@ -36,7 +36,7 @@ function pathOf(points: { x: number; y: number }[]): string {
   return points.map((point, i) => `${i === 0 ? "M" : "L"} ${point.x.toFixed(1)} ${point.y.toFixed(1)}`).join(" ");
 }
 
-/** Composition over time Vexa's LineChart cannot draw: bands stacked bottom-up, each series a translucent fill under its own stroke. */
+/** Composition over time the plain LineChart cannot draw: bands stacked bottom-up, each series a translucent fill under its own stroke. */
 export function StackedArea({ labels, series, format }: StackedAreaProps) {
   const [ref, width] = useContainerWidth();
   const n = labels.length;

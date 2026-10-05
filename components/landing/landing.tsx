@@ -4,21 +4,21 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { LayoutDashboard, ShieldCheck, Sparkles } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "vexa/ui/tooltip";
-import { cn } from "vexa/lib/utils";
 import type { MorningBrief, QuickAction } from "@/lib/contracts";
 import type { LandingKpi } from "@/lib/dashboard/ambient";
-import { countsLine, storyCounts, type StoryCounts } from "@/components/stories/story-list";
-import { StoriesDrawer } from "@/components/stories/drawer";
 import type { Tone } from "@/lib/dashboard/metric-display";
 import { TH } from "@/lib/i18n/th";
-import { WinyuComposer } from "@/components/composer/winyu-composer";
-import { ChipIcon } from "@/components/ui/chip-icon";
+import { cn } from "@/components/ui/cn";
 import { GlowBackdrop } from "@/components/ui/glow-backdrop";
 import { GradientText } from "@/components/ui/gradient-text";
-import { PILL } from "@/components/ui/pill";
+import { countsLine, storyCounts, type StoryCounts } from "@/components/stories/story-list";
+import { StoriesDrawer } from "@/components/stories/drawer";
+import { chatHref } from "./chat-entry";
+import { ChatLinkActions } from "./chat-link-actions";
+import { ChipIcon } from "./chip-icon";
+import { LandingComposer } from "./composer";
+import { PILL } from "./pill";
 
-const THREADS_ENDPOINT = "/api/threads";
 const QUICK_ACTIONS_ENDPOINT = "/api/quick-actions";
 const DASHBOARD_PATH = "/dashboard";
 const MAX_CHIPS = 4;
@@ -31,6 +31,7 @@ const DELTA_TONE: Record<Tone, string> = {
   bad: "bg-danger/10 text-danger",
   neutral: "bg-muted text-muted-foreground",
 };
+
 export type Greeting = { lead: string; name: string };
 
 function StoryLine({ counts, onOpen }: { counts: StoryCounts; onOpen: () => void }) {
@@ -62,13 +63,13 @@ function KpiStrip({ kpis }: { kpis: LandingKpi[] }) {
   );
 }
 
+/** The same landing for every role: the agent speaks first (the morning investigation), the question box, chips learned from use, the pinned numbers. */
 export function Landing({
   greeting,
   kpis,
   quickActions,
   brief,
   asOf,
-  draft,
   placeholder,
 }: {
   greeting: Greeting;
@@ -76,37 +77,16 @@ export function Landing({
   quickActions: QuickAction[];
   brief: MorningBrief | null;
   asOf: string;
-  draft: string;
   placeholder: string;
 }) {
   const router = useRouter();
-  const [text, setText] = useState(draft);
   const [busy, setBusy] = useState(false);
-  const [failed, setFailed] = useState(false);
   const [storiesOpen, setStoriesOpen] = useState(false);
-  const [actions, setActions] = useState(quickActions);
-
-  useEffect(() => {
-    if (draft) router.replace("/", { scroll: false });
-  }, [draft, router]);
-
-  useEffect(() => {
-    const controller = new AbortController();
-    fetch(QUICK_ACTIONS_ENDPOINT, { signal: controller.signal })
-      .then((response) => (response.ok ? response.json() : null))
-      .then((payload: { actions?: QuickAction[] } | null) => {
-        if (payload?.actions?.length) setActions(payload.actions);
-      })
-      .catch(() => undefined);
-    return () => controller.abort();
-  }, []);
 
   const start = useCallback(
-    async (prompt: string, intentKey?: string, title?: string) => {
+    (prompt: string, intentKey?: string) => {
       if (busy) return;
       setBusy(true);
-      setFailed(false);
-      if (!title) setText(prompt);
       if (intentKey) {
         void fetch(QUICK_ACTIONS_ENDPOINT, {
           method: "POST",
@@ -114,18 +94,7 @@ export function Landing({
           body: JSON.stringify({ intentKey, prompt, kind: "quick_action" }),
         }).catch(() => undefined);
       }
-      const response = await fetch(THREADS_ENDPOINT, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ firstMessage: prompt, title }),
-      }).catch(() => null);
-      if (!response?.ok) {
-        setBusy(false);
-        setFailed(true);
-        return;
-      }
-      const { id } = (await response.json()) as { id: string };
-      router.push(`/c/${id}?prompt=${encodeURIComponent(prompt)}`);
+      router.push(chatHref({ prompt }));
     },
     [busy, router],
   );
@@ -157,27 +126,18 @@ export function Landing({
             )}
           </header>
 
-          <WinyuComposer value={text} onValueChange={setText} onSubmit={start} busy={busy} autoFocus placeholder={placeholder} />
-          {failed ? (
-            <p role="alert" className="-mt-2 text-center text-xs text-danger">
-              {TH.landing.startFailed}
-            </p>
-          ) : null}
+          <LandingComposer placeholder={placeholder} busy={busy} onSubmit={(prompt) => start(prompt)} />
 
-          <TooltipProvider delay={200}>
-            <div className={CHIP_ROW}>
-              {actions.slice(0, MAX_CHIPS).map((action) => (
-                <Tooltip key={action.id}>
-                  <TooltipTrigger className={cn(PILL, "shrink-0 whitespace-nowrap")} disabled={busy} onClick={() => void start(action.prompt, action.intentKey)}>
-                    <ChipIcon text={`${action.label} ${action.prompt}`} />
-                    {action.label}
-                  </TooltipTrigger>
-                  <TooltipContent>{action.reason}</TooltipContent>
-                </Tooltip>
-              ))}
-            </div>
-          </TooltipProvider>
+          <div className={CHIP_ROW} aria-label={TH.landing.quickActions}>
+            {quickActions.slice(0, MAX_CHIPS).map((action) => (
+              <button key={action.id} type="button" title={action.reason} className={cn(PILL, "shrink-0 whitespace-nowrap")} disabled={busy} onClick={() => start(action.prompt, action.intentKey)}>
+                <ChipIcon text={`${action.label} ${action.prompt}`} />
+                {action.label}
+              </button>
+            ))}
+          </div>
         </div>
+
 
         {kpis.length > 0 ? (
           <div className="flex w-full max-w-3xl flex-col gap-3 animate-hero-rise [animation-delay:160ms]">
@@ -197,7 +157,9 @@ export function Landing({
           </p>
         </div>
       </div>
-      <StoriesDrawer brief={brief} asOf={asOf} open={storiesOpen} onClose={() => setStoriesOpen(false)} />
+      <ChatLinkActions>
+        <StoriesDrawer brief={brief} asOf={asOf} open={storiesOpen} onClose={() => setStoriesOpen(false)} />
+      </ChatLinkActions>
     </div>
   );
 }

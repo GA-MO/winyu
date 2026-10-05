@@ -1,13 +1,13 @@
 import { cookies } from "next/headers";
-import type { VexaMessage } from "vexa/protocol";
 import { redirect } from "next/navigation";
-import { SessionChat, type SessionPreload } from "@/components/chat/session-chat";
+import { ChatSession, type SessionPreload } from "@/components/chat/chat-session";
 import { findUser } from "@/lib/data/entities/users";
+import { openApprovalsOf, threadHistory } from "@/lib/harness/adapters/mastra/history";
+import { TH } from "@/lib/i18n/th";
 import { packets } from "@/lib/server/agent/collections";
 import { quickActionsFor } from "@/lib/server/quick-actions";
-import { getThread } from "@/lib/server/threads-read";
 import { readAccess } from "@/lib/server/session";
-import { TH } from "@/lib/i18n/th";
+import { getThread } from "@/lib/server/threads-read";
 
 type PageProps = { params: Promise<{ threadId: string }>; searchParams: Promise<{ prompt?: string; preload?: string }> };
 
@@ -20,23 +20,25 @@ function preloadOf(packetId: string | null, userId: string): SessionPreload | nu
   return { packetId, fromName: findUser(packet.fromUserId)?.nameTh ?? packet.fromUserId };
 }
 
-export default async function SessionPage({ params, searchParams }: PageProps) {
+/** One of the person's threads: its saved conversation restored from Mastra memory, with the chips and placeholder for their role. */
+export default async function ThreadPage({ params, searchParams }: PageProps) {
   const access = readAccess(await cookies());
   if (!access) redirect("/login");
 
   const { threadId } = await params;
   const thread = getThread(threadId, access.userId);
-  if (!thread) redirect("/");
+  if (!thread) redirect("/c/new");
 
   const { prompt, preload } = await searchParams;
-  const packetId = preload ?? thread.preload?.packetId ?? null;
-
+  const messages = await threadHistory(thread.id, access.userId);
   return (
-    <SessionChat
+    <ChatSession
+      key={thread.id}
       threadId={thread.id}
       initialPrompt={prompt ?? null}
-      initialMessages={thread.messages as VexaMessage[]}
-      preload={preloadOf(packetId, access.userId)}
+      initialMessages={messages}
+      initialApprovals={openApprovalsOf(messages, access.userId)}
+      preload={preloadOf(preload ?? thread.preload?.packetId ?? null, access.userId)}
       suggestions={quickActionsFor(access)}
       placeholder={TH.landing.composerPlaceholderFor(access.role)}
     />
