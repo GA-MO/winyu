@@ -1,6 +1,6 @@
 import { jsonSchema } from "ai";
 import { z } from "zod";
-import { fence } from "@/lib/harness/adapters/vexa/server";
+import { fence } from "@/lib/harness/fence";
 import type { AccessContext } from "@/lib/contracts";
 import { currentAccess } from "@/lib/server/request-context";
 import { TH } from "@/lib/i18n/th";

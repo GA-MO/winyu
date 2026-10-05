@@ -1,4 +1,4 @@
-import { fenceAsData } from "@/lib/harness/adapters/vexa/server";
+import { fenceAsData } from "@/lib/harness/fence";
 import type { PersonaContext } from "@/lib/harness/adapters/vexa/server";
 import type { AccessContext, ContextPacket, MemoryFact, RoleId, Story, User } from "@/lib/contracts";
 import { investigations, layouts, memoryFacts, packets } from "./collections";

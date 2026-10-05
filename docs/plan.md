@@ -19,6 +19,19 @@ One box is one unit of work. Check a box only when its evidence exists: a test r
 | D5 | Write and destructive tools pause for approval (Mastra tool approval, surfaced by CopilotKit human-in-the-loop). `asksApproval` from the gateway decides | Same rule as Winyu: approval only for a call the policy would let through |
 | D6 | One real model, `google/gemini-3.8-flash` through OpenRouter | Same as Winyu, so the two stacks compare on equal terms |
 | D7 | Presentational primitives (Card, Metric, charts, RankList, Table, Alert) are copied from Vexa into `components/ui/` | Fastest route to complete cards; the look may then diverge freely |
+| D8 | Mastra memory (LibSQL storage) holds the chat messages; `.data/threads.json` keeps thread metadata (title, dates, rename, delete). Memory extraction reads turns from Mastra memory | The AG-UI bridge diffs against Mastra memory and tool approval needs Mastra storage anyway; one message store, not two |
+| D9 | The Mastra agent is built once; a fresh `MastraAgent` bridge is built per request with `resourceId = userId` and a `RequestContext` carrying the user | The bridge writes request state into itself, so a shared bridge leaks between users |
+
+## Stack facts (probed 2026-10-05, `/private/tmp/claude-501/mastra-probe`)
+
+| Piece | Version and use |
+|---|---|
+| `@mastra/core` 1.74.0, `@mastra/memory` 1.35.0, `@mastra/libsql` 1.25.0 | Agent with `instructions` and `tools` as functions of `{ requestContext }` (annotate tools `ToolsInput`); `createTool({ requireApproval: (input, ctx) => boolean })`; `stopWhen: stepCountIs(6)` |
+| `@ag-ui/mastra` 1.1.6, `@ag-ui/client` 1.0.1 | `new MastraAgent({ agentId, agent, resourceId, requestContext })`; approval arrives as `RUN_FINISHED.outcome.interrupts` with reason `mastra:tool_approval`, resumed with `{ approved }` |
+| `@copilotkit/runtime` 1.77.0 (`/v2`) | `new CopilotRuntime({ agents: async ({ request }) => ... })`, `createCopilotRuntimeHandler({ runtime, basePath: "/api/copilotkit" })` at `app/api/copilotkit/[[...slug]]/route.ts` |
+| `@copilotkit/react-core` 1.77.0 (`/v2`) | `CopilotKit`, `CopilotChat`, `useRenderTool({ name, render })`, `useInterrupt({ render })`, headless `useAgent`. `@copilotkit/react-ui` is the deprecated v1; not used. Thread drawers need the paid Intelligence tier; mascop builds its own rail |
+| Model | `openrouter/google/gemini-3.8-flash` model-router string works. `@openrouter/ai-sdk-provider` 3.x needs `ai@7` and conflicts with CopilotKit's `ai@6`; keep provider 2.x if an AI SDK model instance is needed for metering |
+| Telemetry | `COPILOTKIT_TELEMETRY_DISABLED=true` |
 
 ## Parity matrix
 

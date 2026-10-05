@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { generateObject } from "ai";
-import { fenceAsData } from "@/lib/harness/adapters/vexa/server";
+import { fenceAsData } from "@/lib/harness/fence";
 import { z } from "zod";
 import type { Dim, MemoryFact, MetricId } from "@/lib/contracts";
 import { memoryFacts, memoryReviews } from "@/lib/server/agent/collections";

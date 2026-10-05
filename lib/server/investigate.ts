@@ -1,5 +1,5 @@
 import { generateObject, generateText, stepCountIs, type LanguageModel, type Tool, type ToolSet } from "ai";
-import { fenceAsData } from "@/lib/harness/adapters/vexa/server";
+import { fenceAsData } from "@/lib/harness/fence";
 import { z } from "zod";
 import { accessFor } from "@/lib/access/policies";
 import { managerOf } from "@/lib/access/raci";
