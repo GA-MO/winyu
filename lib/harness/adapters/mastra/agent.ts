@@ -54,7 +54,7 @@ function limitReached(run: Run | null, stepNumber: number): RunLimit | null {
 }
 
 /** Before each model call: on the last call a run may make, or once its tool budget is spent, the model gets no tools and is told to sum up what it has, say what is missing and ask how to go on. */
-const wrapUpAtLimit: PrepareStep = ({ stepNumber, systemMessages }) => {
+export const wrapUpAtLimit: PrepareStep = ({ stepNumber, systemMessages }) => {
   const run = currentRun();
   const limit = limitReached(run, stepNumber);
   if (!limit) return undefined;
