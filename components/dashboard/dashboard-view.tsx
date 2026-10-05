@@ -2,7 +2,9 @@
 
 import { useCallback, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronDown, CircleCheck, HelpCircle, Pin, PinOff, Sparkles, X } from "lucide-react";
+import { ChevronDown, CircleCheck, HelpCircle, MessageSquarePlus, Pin, PinOff, Sparkles, X } from "lucide-react";
+import { ShareChrome, ShareProvider, type ShareTarget } from "@/components/share/share-sheet";
+import { useFloatingCardActions, type CardChrome } from "@/components/ui/card-chrome";
 import { cn } from "@/components/ui/cn";
 import type { WidgetSpec } from "@/lib/contracts";
 import type { CardParts } from "@/lib/cards/present";
@@ -81,8 +83,10 @@ export function DashboardView({
   }, [router]);
 
   const trayCount = learned.length + suggested.length;
+  const floating = useFloatingCardActions();
 
   return (
+    <ShareProvider>
     <ChatLinkActions>
     <div className="flex flex-col gap-8">
       <section className="flex flex-col gap-3">
@@ -99,13 +103,17 @@ export function DashboardView({
           {moved.map((view, index) => (
             <SeenTracker key={view.widget.id} widgetId={view.widget.id} className="group relative">
               <div className="animate-hero-rise" style={{ animationDelay: `${index * 50}ms` }}>
-                <div className={TOOLBAR}>
-                  <WhyCard widget={view.widget} />
-                  <button type="button" disabled={pendingChange} onClick={() => act(view.widget.id, "unpin")} aria-label={TH.dash.unpin} className={ICON}>
-                    <PinOff className="size-3.5" aria-hidden />
-                  </button>
-                </div>
-                <CardPartsView parts={view.card} />
+                {floating ? (
+                  <div className={TOOLBAR}>
+                    <WhyCard widget={view.widget} />
+                    <button type="button" disabled={pendingChange} onClick={() => act(view.widget.id, "unpin")} aria-label={TH.dash.unpin} className={ICON}>
+                      <PinOff className="size-3.5" aria-hidden />
+                    </button>
+                  </div>
+                ) : null}
+                <ShareChrome target={widgetShare(view.widget)} extra={floating ? undefined : widgetChrome(view.widget, router.push, () => act(view.widget.id, "unpin"))}>
+                  <CardPartsView parts={view.card} />
+                </ShareChrome>
               </div>
             </SeenTracker>
           ))}
@@ -154,6 +162,7 @@ export function DashboardView({
       ) : null}
     </div>
     </ChatLinkActions>
+    </ShareProvider>
   );
 }
 
@@ -200,6 +209,7 @@ function TrayCard({ view, pending, onPin, onDismiss }: TrayCardProps) {
 
 function SteadyPanel({ views, pending, onUnpin }: { views: DashboardWidgetView[]; pending: boolean; onUnpin: (widgetId: string) => void }) {
   const [open, setOpen] = useState<string | null>(null);
+  const router = useRouter();
   return (
     <section aria-label={TH.attention.steadyZone(views.length)} className={PANEL}>
       <header className="flex items-center gap-2 border-b border-border px-4 py-2.5">
@@ -232,7 +242,9 @@ function SteadyPanel({ views, pending, onUnpin }: { views: DashboardWidgetView[]
                 </div>
                 {expanded ? (
                   <div className="border-t border-border bg-muted/30 p-3">
-                    <CardPartsView parts={view.card} />
+                    <ShareChrome target={widgetShare(view.widget)} extra={{ actions: [askAction(view.widget, router.push)], note: null }}>
+                      <CardPartsView parts={view.card} />
+                    </ShareChrome>
                   </div>
                 ) : null}
               </SeenTracker>
@@ -242,6 +254,22 @@ function SteadyPanel({ views, pending, onUnpin }: { views: DashboardWidgetView[]
       </ul>
     </section>
   );
+}
+
+/** A pinned widget shares as its stored query: the recipient's Winyu re-runs it in their own scope. */
+function widgetShare(widget: WidgetSpec): ShareTarget {
+  return { card: { kind: "tool", reads: [{ tool: "query_metric", input: widget.query }] }, question: null };
+}
+
+function askAction(widget: WidgetSpec, go: (href: string) => void): CardChrome["actions"][number] {
+  return { id: "ask", label: TH.share.askInChat, icon: MessageSquarePlus, run: () => go(`/c/new?prompt=${encodeURIComponent(widget.title)}`), menuOnly: true };
+}
+
+function widgetChrome(widget: WidgetSpec, go: (href: string) => void, unpin: () => void): Omit<CardChrome, "share" | "shareLabel"> {
+  return {
+    actions: [askAction(widget, go), { id: "unpin", label: TH.dash.unpin, icon: PinOff, run: unpin }],
+    note: `${reasonOf(widget)} · ${TH.dash.source[widget.source]}`,
+  };
 }
 
 function reasonOf(widget: WidgetSpec): string {

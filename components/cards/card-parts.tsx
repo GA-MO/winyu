@@ -1,6 +1,7 @@
 "use client";
 
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Pin } from "lucide-react";
+import { CardChromeProvider, useCardChrome, type CardChrome } from "@/components/ui/card-chrome";
 import { Alert, Card, Metric } from "@/components/ui/primitives";
 import type { NextAction } from "@/lib/contracts";
 import type { CardParts } from "@/lib/cards/present";
@@ -53,8 +54,24 @@ export function CardFooter({ note, action }: { note: string | null; action: Next
   );
 }
 
+function withPinAction(chrome: CardChrome | null, actions: readonly NextAction[], run: (action: NextAction) => void): CardChrome | null {
+  const pin = actions.find((action) => action.kind === "pin");
+  if (!chrome || !pin) return chrome;
+  return { ...chrome, actions: [...chrome.actions, { id: pin.id, label: pin.label, icon: Pin, run: () => run(pin), menuOnly: true }] };
+}
+
 /** One `CardParts` rendered as React, in the chat and on the dashboard alike. */
 export function CardPartsView({ parts }: { parts: CardParts }) {
+  const chrome = useCardChrome();
+  const run = useRunAction();
+  return (
+    <CardChromeProvider value={withPinAction(chrome, parts.actions, run)}>
+      <CardPartsBody parts={parts} />
+    </CardChromeProvider>
+  );
+}
+
+function CardPartsBody({ parts }: { parts: CardParts }) {
   if (parts.denied) {
     return (
       <Card props={{ title: parts.title, description: null, meta: null, footnote: null }}>

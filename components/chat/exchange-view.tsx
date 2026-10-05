@@ -3,7 +3,7 @@
 import { Component, type ReactNode } from "react";
 import { AlertCircle, CircleSlash, MessageSquareReply, MousePointerClick, ShieldCheck, Sparkles } from "lucide-react";
 import { renderApproval } from "@/components/cards/approval-card";
-import { ShareButton, type ShareTarget } from "@/components/share/share-sheet";
+import { ShareChrome, type ShareTarget } from "@/components/share/share-sheet";
 import { describeToolCall } from "@/lib/cards/describe-call";
 import { TOOL_CARDS, type ReplyText, type ToolCard } from "@/components/cards/registry";
 import { Badge } from "@/components/ui/primitives";
@@ -134,8 +134,7 @@ function ToolStepView({ step, live, plan, reply, sharing }: { step: ToolStep; li
   if (view.kind === "card")
     return (
       <div className="flex w-full animate-hero-rise flex-col gap-1">
-        {CARDS[view.name](view.result, view.args, reply)}
-        <ShareButton target={toolShare(sharing, step.toolCallId, view.result)} />
+        <ShareChrome target={toolShare(sharing, step.toolCallId, view.result)}>{CARDS[view.name](view.result, view.args, reply)}</ShareChrome>
       </div>
     );
   if (view.kind === "working") return <Working label={TH.conversation.working} />;
@@ -175,8 +174,9 @@ function StepView({ step, live, plan, reply, sharing }: { step: ReplyStep; live:
     return (
       <CardBoundary>
         <div className="flex w-full flex-col gap-1">
-          <ComposedCardView surface={withRequestedCourses(step.surface, live.requestedCourses)} />
-          <ShareButton target={composedShare(sharing, step)} />
+          <ShareChrome target={composedShare(sharing, step)}>
+            <ComposedCardView surface={withRequestedCourses(step.surface, live.requestedCourses)} />
+          </ShareChrome>
         </div>
       </CardBoundary>
     );
