@@ -4,10 +4,10 @@
  "userId": "u_thana",
  "prompt": "ยอดเทียบเป้ารายจังหวัดเดือนนี้",
  "model": "google/gemini-3.8-flash",
- "promptHash": "469b58c58286c9a9",
- "toolsHash": "22f7ecc4e30f3b8c",
+ "promptHash": "b147f95e8a6c891a",
+ "toolsHash": "5639642b6a430a27",
  "today": "2026-10-05",
- "recordedAt": "2026-10-05T13:04:31.619Z",
+ "recordedAt": "2026-10-05T15:48:56.485Z",
  "steps": [
   {
    "kind": "call",
@@ -48,19 +48,20 @@
    "kind": "call",
    "tool": "query_metric",
    "args": {
-    "grain": "month",
-    "metric": "target_attainment",
+    "where": null,
+    "filters": {},
     "dims": [
      "province"
     ],
-    "range": {
-     "to": "2026-09-22",
-     "from": "2026-09-01"
-    },
-    "limit": 60,
+    "compare": "none",
     "sort": "value_asc",
-    "filters": {},
-    "compare": "none"
+    "range": {
+     "from": "2026-09-01",
+     "to": "2026-09-22"
+    },
+    "grain": "month",
+    "limit": 60,
+    "metric": "target_attainment"
    },
    "result": {
     "ok": true,
@@ -240,7 +241,8 @@
      "grain": "month",
      "compare": "none",
      "limit": 60,
-     "sort": "value_asc"
+     "sort": "value_asc",
+     "where": null
     },
     "nextActions": [
      {
@@ -283,17 +285,17 @@
   },
   {
    "kind": "text",
-   "text": "รายงานยอดเทียบเป้าด้วยเมตริกการบรรลุเป้าหมาย โดยข้อมูลเดือนนี้มีบันทึกล่าสุดถึงวันที่ 22 ก.ย. 2569 \n\nภาพรวมส่วนใหญ่บรรลุตามแผน แต่พื้นที่ภาคตะวันออกเฉียงเหนือโดยเฉพาะอุบลราชธานีและขอนแก่นยังคงตามหลังเป้าหมาย แนะนำให้เจาะดูผลการดำเนินงานแยกรายเอเย่นต์ในอุบลราชธานีเพื่อตรวจสอบสาเหตุของการกระจายสินค้าและวางมาตรการผลักดันยอดขายร่วมกับทีมพื้นที่ครับ"
+   "text": "รายงานด้วยเมตริกการบรรลุเป้าหมาย (Target Attainment) สำหรับเดือนกันยายน ข้อมูลล่าสุดถึงวันที่ 22 ก.ย. 2569 ครับ\n\nภาพรวมจังหวัดส่วนใหญ่ทำได้ตามเป้าหมาย แต่พบพื้นที่ในภาคตะวันออกเฉียงเหนือที่ยังต่ำกว่าเกณฑ์ แนะนำให้เจาะดูผลการดำเนินงานรายเอเย่นต์ในอุบลราชธานีและขอนแก่นเพื่อตรวจสอบสาเหตุและผลักดันยอดก่อนปิดสิ้นเดือนครับ"
   }
  ],
  "asked": [],
  "error": null,
  "usage": {
   "calls": 3,
-  "inputTokens": 32695,
-  "outputTokens": 2275,
-  "reasoningTokens": 2047,
-  "usd": 0.015162075
+  "inputTokens": 35912,
+  "outputTokens": 2365,
+  "reasoningTokens": 2150,
+  "usd": 0.007189125
  },
  "drawn": {
   "cards": [

@@ -4,10 +4,10 @@
  "userId": "u_thana",
  "prompt": "เทียบยอดขายเข้ากับยอดขายออกของเอเย่นต์",
  "model": "google/gemini-3.8-flash",
- "promptHash": "469b58c58286c9a9",
- "toolsHash": "22f7ecc4e30f3b8c",
+ "promptHash": "b147f95e8a6c891a",
+ "toolsHash": "5639642b6a430a27",
  "today": "2026-10-05",
- "recordedAt": "2026-10-05T13:05:13.941Z",
+ "recordedAt": "2026-10-05T15:49:38.541Z",
  "steps": [
   {
    "kind": "call",
@@ -18,13 +18,14 @@
      "agent"
     ],
     "metric": "net_sales_volume",
-    "limit": 10,
     "sort": "value_desc",
-    "grain": "month",
+    "where": null,
     "range": {
-     "to": "2026-09-22",
-     "from": "2026-09-01"
+     "from": "2026-09-01",
+     "to": "2026-09-22"
     },
+    "limit": 10,
+    "grain": "month",
     "compare": "none"
    },
    "result": {
@@ -131,7 +132,8 @@
      "grain": "month",
      "compare": "none",
      "limit": 10,
-     "sort": "value_desc"
+     "sort": "value_desc",
+     "where": null
     },
     "nextActions": [
      {
@@ -186,18 +188,19 @@
    "tool": "query_metric",
    "args": {
     "grain": "month",
+    "metric": "sell_out_volume",
+    "range": {
+     "to": "2026-09-22",
+     "from": "2026-09-01"
+    },
+    "limit": 10,
+    "compare": "none",
     "dims": [
      "agent"
     ],
-    "range": {
-     "from": "2026-09-01",
-     "to": "2026-09-22"
-    },
-    "compare": "none",
-    "sort": "value_desc",
-    "metric": "sell_out_volume",
+    "where": null,
     "filters": {},
-    "limit": 10
+    "sort": "value_desc"
    },
    "result": {
     "ok": true,
@@ -303,7 +306,8 @@
      "grain": "month",
      "compare": "none",
      "limit": 10,
-     "sort": "value_desc"
+     "sort": "value_desc",
+     "where": null
     },
     "nextActions": [
      {
@@ -331,7 +335,8 @@
          "grain": "month",
          "compare": "none",
          "limit": 10,
-         "sort": "value_desc"
+         "sort": "value_desc",
+         "where": null
         }
        ],
        "alertIds": [
@@ -381,17 +386,17 @@
   },
   {
    "kind": "text",
-   "text": "เปรียบเทียบด้วยปริมาณขายเข้า (Sell-in) และปริมาณขายออก (Sell-out) ในหน่วยลิตรของ 10 เอเย่นต์หลัก ข้อมูลเดือนกันยายนล่าสุดถึงวันที่ 22 ก.ย. 2569\n\nภาพรวมปริมาณขายเข้าและขายออกอยู่ในระดับใกล้เคียงกันสอดคล้องกับความต้องการหน้าร้าน โดยมี ส.รุ่งเรือง เทรดดิ้ง ที่ขายออกมากกว่ารับเข้า แนะนำให้ตรวจสอบวันครอบคลุมสต๊อก (Days of Cover) เพิ่มเติมเพื่อป้องกันความเสี่ยงสินค้าขาดสต๊อก"
+   "text": "รายงานนี้ใช้เมตริกปริมาณขายเข้า (Sell-in Volume) เทียบกับปริมาณขายออก (Sell-out Volume) หน่วยเป็นลิตร ข้อมูลเดือนนี้ล่าสุดถึงวันที่ 22 ก.ย. 2569 \n\nในภาพรวมเอเย่นต์หลักมีปริมาณขายเข้าและขายออกสมดุลใกล้เคียงกัน โดยส่วนใหญ่ขายเข้าสูงกว่าขายออกเล็กน้อย ยกเว้น ส.รุ่งเรือง เทรดดิ้ง ที่ขายออกสูงกว่าขายเข้า แนะนำตรวจสอบวันครอบคลุมสต๊อก (Days of Cover) เพิ่มเติมเพื่อดูความเสี่ยงสินค้าขาดหน้าร้านหรือสต๊อกสะสม"
   }
  ],
  "asked": [],
  "error": null,
  "usage": {
   "calls": 2,
-  "inputTokens": 23157,
-  "outputTokens": 2344,
-  "reasoningTokens": 2042,
-  "usd": 0.010343775
+  "inputTokens": 25137,
+  "outputTokens": 2225,
+  "reasoningTokens": 1902,
+  "usd": 0.00645675
  },
  "drawn": {
   "cards": [

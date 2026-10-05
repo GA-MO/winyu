@@ -4,10 +4,10 @@
  "userId": "u_anucha",
  "prompt": "ตำแหน่งที่ผมเปิดรับมีผู้สมัครกี่คน ใครน่าสนใจ",
  "model": "google/gemini-3.8-flash",
- "promptHash": "20386bc6c3b08846",
- "toolsHash": "22f7ecc4e30f3b8c",
+ "promptHash": "5cf727ed51a6d1b3",
+ "toolsHash": "5639642b6a430a27",
  "today": "2026-10-05",
- "recordedAt": "2026-10-05T13:06:54.832Z",
+ "recordedAt": "2026-10-05T15:52:15.366Z",
  "steps": [
   {
    "kind": "call",
@@ -335,46 +335,41 @@
   },
   {
    "kind": "text",
-   "text": "ผู้สมัครที่มีผลประเมินโดดเด่นมีทั้งผู้ที่มีความเชี่ยวชาญเครือข่ายร้านค้าในพื้นที่และมีประวัติทำยอดขายเติบโตต่อเนื่อง สำหรับตำแหน่งในเขตวารินฯ ควรเร่งติดตามการตอบรับข้อเสนอที่ส่งไปเพื่อไม่ให้กระทบต่อแผนงานในพื้นที่\n\n```a2ui\n{\"id\":\"root\",\"component\":\"Card\",\"title\":\"ผู้สมัครที่น่าสนใจในตำแหน่งเปิดรับ\",\"meta\":\"คัดกรองจากคะแนนสัมภาษณ์และจุดเด่นการทำงาน\",\"footnote\":\"ระบบสรรหาบุคลากร\",\"children\":[\"metric_grid\",\"candidates_grid\"]}\n{\"id\":\"metric_grid\",\"component\":\"Grid\",\"children\":[\"m0\",\"m1\"]}\n{\"id\":\"m0\",\"component\":\"Metric\",\"label\":{\"path\":\"/list_candidates/data/metrics/0/label\"},\"value\":{\"path\":\"/list_candidates/data/metrics/0/value\"},\"detail\":{\"path\":\"/list_candidates/data/metrics/0/detail\"}}\n{\"id\":\"m1\",\"component\":\"Metric\",\"label\":{\"path\":\"/list_candidates/data/metrics/1/label\"},\"value\":{\"path\":\"/list_candidates/data/metrics/1/value\"},\"detail\":{\"path\":\"/list_candidates/data/metrics/1/detail\"}}\n{\"id\":\"candidates_grid\",\"component\":\"Grid\",\"children\":[\"c0\",\"c2\",\"c1\"]}\n{\"id\":\"c0\",\"component\":\"ListItem\",\"title\":{\"path\":\"/list_candidates/data/candidates/0/name\"},\"subtitle\":{\"path\":\"/list_candidates/data/candidates/0/position\"},\"detail\":{\"path\":\"/list_candidates/data/candidates/0/strength\"},\"trailing\":{\"path\":\"/list_candidates/data/candidates/0/score_label\"},\"badges\":{\"path\":\"/list_candidates/data/candidates/0/badges\"},\"media\":\"none\",\"action\":{\"event\":{\"name\":\"ask\",\"context\":{\"prompt\":\"ขอดูรายละเอียดผู้สมัคร\",\"about\":{\"path\":\"/list_candidates/data/candidates/0/name\"}}}}}\n{\"id\":\"c2\",\"component\":\"ListItem\",\"title\":{\"path\":\"/list_candidates/data/candidates/2/name\"},\"subtitle\":{\"path\":\"/list_candidates/data/candidates/2/position\"},\"detail\":{\"path\":\"/list_candidates/data/candidates/2/strength\"},\"trailing\":{\"path\":\"/list_candidates/data/candidates/2/score_label\"},\"badges\":{\"path\":\"/list_candidates/data/candidates/2/badges\"},\"media\":\"none\",\"action\":{\"event\":{\"name\":\"ask\",\"context\":{\"prompt\":\"ขอดูรายละเอียดผู้สมัคร\",\"about\":{\"path\":\"/list_candidates/data/candidates/2/name\"}}}}}\n{\"id\":\"c1\",\"component\":\"ListItem\",\"title\":{\"path\":\"/list_candidates/data/candidates/1/name\"},\"subtitle\":{\"path\":\"/list_candidates/data/candidates/1/position\"},\"detail\":{\"path\":\"/list_candidates/data/candidates/1/strength\"},\"trailing\":{\"path\":\"/list_candidates/data/candidates/1/score_label\"},\"badges\":{\"path\":\"/list_candidates/data/candidates/1/badges\"},\"media\":\"none\",\"action\":{\"event\":{\"name\":\"ask\",\"context\":{\"prompt\":\"ขอดูรายละเอียดผู้สมัคร\",\"about\":{\"path\":\"/list_candidates/data/candidates/1/name\"}}}}}\n```"
+   "text": "ตำแหน่งงานขายในความดูแลของคุณอนุชามีผู้สมัครที่ผ่านเข้าสู่รอบสัมภาษณ์และยื่นข้อเสนอที่มีคะแนนประเมินสูง โดยมีผู้สมัครที่โดดเด่นทั้งด้านเครือข่ายร้านค้าและประวัติยอดขาย ควรเร่งติดตามการตอบรับข้อเสนอของเขตอุบลราชธานีที่เปิดรับมานานที่สุด และพิจารณาคัดเลือกรอบสุดท้ายสำหรับเขตขอนแก่น\n\n```a2ui\n{\"id\":\"root\",\"component\":\"Card\",\"title\":\"ผู้สมัครตำแหน่งงานขายที่เปิดรับ\",\"meta\":{\"path\":\"/list_candidates/data/summary\"},\"footnote\":\"ระบบรับสมัครงาน HR\",\"children\":[\"m_all\",\"m_interview\",\"m_longest\",\"candidates_grid\"]}\n{\"id\":\"m_all\",\"component\":\"Metric\",\"label\":{\"path\":\"/list_candidates/data/metrics/0/label\"},\"value\":{\"path\":\"/list_candidates/data/metrics/0/value\"},\"detail\":{\"path\":\"/list_candidates/data/metrics/0/detail\"}}\n{\"id\":\"m_interview\",\"component\":\"Metric\",\"label\":{\"path\":\"/list_candidates/data/metrics/1/label\"},\"value\":{\"path\":\"/list_candidates/data/metrics/1/value\"},\"detail\":{\"path\":\"/list_candidates/data/metrics/1/detail\"}}\n{\"id\":\"m_longest\",\"component\":\"Metric\",\"label\":{\"path\":\"/list_candidates/data/metrics/2/label\"},\"value\":{\"path\":\"/list_candidates/data/metrics/2/value\"}}\n{\"id\":\"candidates_grid\",\"component\":\"Grid\",\"children\":[\"cand_zero\",\"cand_two\",\"cand_one\"]}\n{\"id\":\"cand_zero\",\"component\":\"ListItem\",\"title\":{\"path\":\"/list_candidates/data/candidates/0/name\"},\"subtitle\":{\"path\":\"/list_candidates/data/candidates/0/position\"},\"detail\":{\"path\":\"/list_candidates/data/candidates/0/strength\"},\"trailing\":{\"path\":\"/list_candidates/data/candidates/0/score_label\"},\"badges\":{\"path\":\"/list_candidates/data/candidates/0/badges\"},\"media\":\"none\",\"action\":{\"event\":{\"name\":\"ask\",\"context\":{\"prompt\":\"ขอดูรายละเอียดผู้สมัคร\",\"about\":{\"path\":\"/list_candidates/data/candidates/0/name\"}}}}}\n{\"id\":\"cand_two\",\"component\":\"ListItem\",\"title\":{\"path\":\"/list_candidates/data/candidates/2/name\"},\"subtitle\":{\"path\":\"/list_candidates/data/candidates/2/position\"},\"detail\":{\"path\":\"/list_candidates/data/candidates/2/strength\"},\"trailing\":{\"path\":\"/list_candidates/data/candidates/2/score_label\"},\"badges\":{\"path\":\"/list_candidates/data/candidates/2/badges\"},\"media\":\"none\",\"action\":{\"event\":{\"name\":\"ask\",\"context\":{\"prompt\":\"ขอดูรายละเอียดผู้สมัคร\",\"about\":{\"path\":\"/list_candidates/data/candidates/2/name\"}}}}}\n{\"id\":\"cand_one\",\"component\":\"ListItem\",\"title\":{\"path\":\"/list_candidates/data/candidates/1/name\"},\"subtitle\":{\"path\":\"/list_candidates/data/candidates/1/position\"},\"detail\":{\"path\":\"/list_candidates/data/candidates/1/strength\"},\"trailing\":{\"path\":\"/list_candidates/data/candidates/1/score_label\"},\"badges\":{\"path\":\"/list_candidates/data/candidates/1/badges\"},\"media\":\"none\",\"action\":{\"event\":{\"name\":\"ask\",\"context\":{\"prompt\":\"ขอดูรายละเอียดผู้สมัคร\",\"about\":{\"path\":\"/list_candidates/data/candidates/1/name\"}}}}}\n```"
   }
  ],
  "asked": [],
  "error": null,
  "usage": {
   "calls": 2,
-  "inputTokens": 22130,
-  "outputTokens": 7028,
-  "reasoningTokens": 6274,
-  "usd": 0.021476250000000002
+  "inputTokens": 24036,
+  "outputTokens": 13045,
+  "reasoningTokens": 12230,
+  "usd": 0.026305725000000002
  },
  "drawn": {
   "cards": [],
   "composed": {
    "accepted": 8,
    "rejected": 0,
-   "problems": [],
+   "problems": [
+    "root.meta: path \"/list_candidates/data/summary\" is not in this turn's tool results (keys: list_candidates) (dropped)"
+   ],
    "components": [
     {
      "id": "root",
      "component": "Card",
-     "title": "ผู้สมัครที่น่าสนใจในตำแหน่งเปิดรับ",
-     "meta": "คัดกรองจากคะแนนสัมภาษณ์และจุดเด่นการทำงาน",
-     "footnote": "ระบบสรรหาบุคลากร",
+     "title": "ผู้สมัครตำแหน่งงานขายที่เปิดรับ",
+     "footnote": "ระบบรับสมัครงาน HR",
      "children": [
-      "metric_grid",
+      "m_all",
+      "m_interview",
+      "m_longest",
       "candidates_grid"
      ]
     },
     {
-     "id": "metric_grid",
-     "component": "Grid",
-     "children": [
-      "m0",
-      "m1"
-     ]
-    },
-    {
-     "id": "m0",
+     "id": "m_all",
      "component": "Metric",
      "label": {
       "path": "/list_candidates/data/metrics/0/label"
@@ -387,7 +382,7 @@
      }
     },
     {
-     "id": "m1",
+     "id": "m_interview",
      "component": "Metric",
      "label": {
       "path": "/list_candidates/data/metrics/1/label"
@@ -400,16 +395,26 @@
      }
     },
     {
+     "id": "m_longest",
+     "component": "Metric",
+     "label": {
+      "path": "/list_candidates/data/metrics/2/label"
+     },
+     "value": {
+      "path": "/list_candidates/data/metrics/2/value"
+     }
+    },
+    {
      "id": "candidates_grid",
      "component": "Grid",
      "children": [
-      "c0",
-      "c2",
-      "c1"
+      "cand_zero",
+      "cand_two",
+      "cand_one"
      ]
     },
     {
-     "id": "c0",
+     "id": "cand_zero",
      "component": "ListItem",
      "title": {
       "path": "/list_candidates/data/candidates/0/name"
@@ -440,7 +445,7 @@
      }
     },
     {
-     "id": "c2",
+     "id": "cand_two",
      "component": "ListItem",
      "title": {
       "path": "/list_candidates/data/candidates/2/name"
@@ -471,7 +476,7 @@
      }
     },
     {
-     "id": "c1",
+     "id": "cand_one",
      "component": "ListItem",
      "title": {
       "path": "/list_candidates/data/candidates/1/name"

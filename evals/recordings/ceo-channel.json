@@ -4,29 +4,29 @@
  "userId": "u_thana",
  "prompt": "ขอยอดขายแยกตามช่องทางหน่อย",
  "model": "google/gemini-3.8-flash",
- "promptHash": "469b58c58286c9a9",
- "toolsHash": "22f7ecc4e30f3b8c",
+ "promptHash": "b147f95e8a6c891a",
+ "toolsHash": "5639642b6a430a27",
  "today": "2026-10-05",
- "recordedAt": "2026-10-05T13:03:16.456Z",
+ "recordedAt": "2026-10-05T15:47:31.713Z",
  "steps": [
   {
    "kind": "call",
    "tool": "query_metric",
    "args": {
-    "range": {
-     "from": "2026-09-01",
-     "to": "2026-09-22"
-    },
-    "compare": "prev_period",
-    "filters": {},
-    "sort": "value_desc",
+    "metric": "net_sales_value",
+    "grain": "month",
+    "compare": "target",
     "where": null,
     "dims": [
      "channel"
     ],
+    "sort": "value_desc",
     "limit": 10,
-    "metric": "net_sales_value",
-    "grain": "month"
+    "range": {
+     "to": "2026-09-22",
+     "from": "2026-09-01"
+    },
+    "filters": {}
    },
    "result": {
     "ok": true,
@@ -35,39 +35,39 @@
       "channel": "โมเดิร์นเทรด",
       "value": 399026595,
       "value_label": "399.0 ล้านบาท",
-      "compare_value": 450052599,
-      "delta_pct": -11.3
+      "compare_value": 404059400,
+      "delta_pct": -1.2
      },
      {
       "channel": "ร้านค้าปลีกดั้งเดิม",
       "value": 350754581,
       "value_label": "350.8 ล้านบาท",
-      "compare_value": 397025004,
-      "delta_pct": -11.7
+      "compare_value": 355957503,
+      "delta_pct": -1.5
      },
      {
       "channel": "ร้านอาหารและสถานบันเทิง",
       "value": 328479154,
       "value_label": "328.5 ล้านบาท",
-      "compare_value": 371366524,
-      "delta_pct": -11.5
+      "compare_value": 334110037,
+      "delta_pct": -1.7
      },
      {
       "channel": "ส่งออก",
       "value": 31930031,
       "value_label": "31.9 ล้านบาท",
-      "compare_value": 35429977,
-      "delta_pct": -9.9
+      "compare_value": 31776535,
+      "delta_pct": 0.5
      }
     ],
-    "summary": "มูลค่าขายเข้า 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 1,110.2 ล้านบาท · สูงสุด: โมเดิร์นเทรด 399.0 ล้านบาท · ร้านค้าปลีกดั้งเดิม 350.8 ล้านบาท · ร้านอาหารและสถานบันเทิง 328.5 ล้านบาท · เทียบช่วงก่อนหน้า -11.5% · (4 แถว · certified · SAP SD)",
+    "summary": "มูลค่าขายเข้า 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 1,110.2 ล้านบาท · สูงสุด: โมเดิร์นเทรด 399.0 ล้านบาท · ร้านค้าปลีกดั้งเดิม 350.8 ล้านบาท · ร้านอาหารและสถานบันเทิง 328.5 ล้านบาท · เทียบเป้า -1.4% · (4 แถว · certified · SAP SD) · สิ้นเดือนถ้าขายเท่า 7 วันล่าสุด ≈ 97.3% ของเป้า",
     "headline": {
      "aggregate": "sum",
      "value": "1,110.2 ล้านบาท",
      "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
      "rowCount": 4,
-     "deltaPercent": -11.5,
-     "compareLabel": "เทียบช่วงก่อนหน้า",
+     "deltaPercent": -1.4,
+     "compareLabel": "เทียบเป้า",
      "compareNote": null,
      "top": [
       {
@@ -83,7 +83,13 @@
        "value": "328.5 ล้านบาท"
       }
      ],
-     "underLine": null
+     "underLine": null,
+     "projection": {
+      "recentDays": 7,
+      "projected": "1,493.4 ล้านบาท",
+      "monthTarget": "1,535.3 ล้านบาท",
+      "attainment": "97.3%"
+     }
     },
     "provenance": {
      "metric": "net_sales_value",
@@ -108,71 +114,30 @@
       "to": "2026-09-22"
      },
      "grain": "month",
-     "compare": "prev_period",
+     "compare": "target",
      "limit": 10,
      "sort": "value_desc",
      "where": null
     },
     "nextActions": [
      {
-      "id": "handoff",
-      "kind": "handoff",
-      "label": "ส่งงานให้คุณกนก",
-      "reason": "เจ้าของตัวเลขยอดขายของพื้นที่ (ระดับประเทศ)",
-      "tool": "create_handoff",
-      "input": {
-       "toUserId": "u_kanok",
-       "title": "มูลค่าขายเข้า · โมเดิร์นเทรด",
-       "ask": "ช่วยตรวจร้านค้าปลีกดั้งเดิม แล้วบอกกลับว่าเกิดจากอะไรและจะแก้อย่างไร",
-       "urgency": "medium",
-       "evidence": [
-        {
-         "metric": "net_sales_value",
-         "dims": [
-          "channel"
-         ],
-         "filters": {},
-         "range": {
-          "from": "2026-09-01",
-          "to": "2026-09-22"
-         },
-         "grain": "month",
-         "compare": "prev_period",
-         "limit": 10,
-         "sort": "value_desc",
-         "where": null
-        }
-       ],
-       "alertIds": []
-      },
-      "prompt": null
-     },
-     {
-      "id": "drill-why",
+      "id": "drill-region",
       "kind": "drill",
-      "label": "ทำไมร้านค้าปลีกดั้งเดิมถึงเป็นแบบนี้",
-      "reason": "ร้านค้าปลีกดั้งเดิม เปลี่ยนไปในทางที่แย่ที่สุด",
+      "label": "แยกตามภาค",
+      "reason": "ยังไม่ได้ดูแยกรายภาค",
       "tool": null,
       "input": null,
-      "prompt": "เจาะดูมูลค่าขายเข้าของร้านค้าปลีกดั้งเดิม ว่าทำไมถึงเปลี่ยนไป เทียบกับช่วงก่อนหน้าและช่วงเดียวกันปีก่อน"
+      "prompt": "ขอมูลค่าขายเข้าแยกตามภาค เรียงจากมากไปน้อย"
      }
     ],
     "followUps": [
      {
-      "id": "fu-drill_down",
-      "label": "ดูเอเย่นต์ในร้านค้าปลีกดั้งเดิม",
-      "prompt": "ขอมูลค่าขายเข้าของร้านค้าปลีกดั้งเดิม แยกรายเอเย่นต์ เรียงจากแย่ไปดี",
-      "reason": "ลงไปอีกชั้นเพื่อหาว่าใครในร้านค้าปลีกดั้งเดิมทำให้ตัวเลขเป็นแบบนี้",
-      "intentKey": "follow|drill_down",
-      "score": 0.85
-     },
-     {
       "id": "fu-trend",
-      "label": "เริ่มแย่ตั้งแต่เมื่อไร",
-      "prompt": "มูลค่าขายเข้าของร้านค้าปลีกดั้งเดิม รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
-      "reason": "ดูว่าตัวเลขเริ่มลดลงสัปดาห์ไหน",
+      "label": "ดูแนวโน้มรายสัปดาห์",
+      "prompt": "มูลค่าขายเข้า รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+      "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
       "intentKey": "follow|trend",
-      "score": 0.65
+      "score": 0.5
      },
      {
       "id": "fu-compare_year",
@@ -187,17 +152,17 @@
   },
   {
    "kind": "text",
-   "text": "รายงานยอดขายด้วยเมตริกมูลค่าขายเข้าสุทธิ (Net Sales Value) ประจำเดือนกันยายน โดยข้อมูลล่าสุดในระบบถึงวันที่ 22 ก.ย. 2569\n\nยอดขายปรับลดลงในทุกช่องทางเมื่อเทียบกับช่วงก่อนหน้า โดยเฉพาะช่องทางร้านค้าปลีกดั้งเดิมที่ชะลอตัวลงมากที่สุด ควรเจาะดูรายละเอียดระดับเอเย่นต์เพื่อระบุกลุ่มที่ฉุดยอดขายและวางมาตรการฟื้นฟูต่อไป"
+   "text": "รายงานเป็นมูลค่าขายสุทธิ (Net Sales Value) เทียบเป้าหมายประจำเดือน ข้อมูลล่าสุดถึงวันที่ 22 กันยายน 2569\n\nภาพรวมยอดขายในประเทศยังตามหลังเป้าหมายเล็กน้อยในทุกช่องทางหลัก ขณะที่ช่องทางส่งออกเป็นช่องทางเดียวที่ทำได้สูงกว่าเป้า หากรักษาระดับการขายตาม 7 วันล่าสุดคาดว่าจะปิดสิ้นเดือนได้ประมาณ 97.3% ของเป้าหมาย จึงควรพิจารณาเร่งการกระจายสินค้าในช่องทางร้านค้าปลีกดั้งเดิมและร้านอาหารเพิ่มเติม"
   }
  ],
  "asked": [],
  "error": null,
  "usage": {
   "calls": 2,
-  "inputTokens": 21458,
-  "outputTokens": 1508,
-  "reasoningTokens": 1308,
-  "usd": 0.009510075
+  "inputTokens": 22854,
+  "outputTokens": 1262,
+  "reasoningTokens": 1046,
+  "usd": 0.003795
  },
  "drawn": {
   "cards": [

@@ -4,62 +4,30 @@
  "userId": "u_anucha",
  "prompt": "ยอดเทียบเป้ารายจังหวัดในภาคผมเดือนนี้",
  "model": "google/gemini-3.8-flash",
- "promptHash": "20386bc6c3b08846",
- "toolsHash": "22f7ecc4e30f3b8c",
+ "promptHash": "5cf727ed51a6d1b3",
+ "toolsHash": "5639642b6a430a27",
  "today": "2026-10-05",
- "recordedAt": "2026-10-05T13:02:57.321Z",
+ "recordedAt": "2026-10-05T15:47:10.823Z",
  "steps": [
-  {
-   "kind": "call",
-   "tool": "list_metrics",
-   "args": {
-    "search": "เป้า"
-   },
-   "result": {
-    "ok": true,
-    "summary": "พบ 1 เมตริกที่ตรงกับคำค้น",
-    "data": [
-     {
-      "id": "target_attainment",
-      "labelTh": "การบรรลุเป้าหมาย",
-      "unit": "%",
-      "dims": [
-       "date",
-       "week",
-       "month",
-       "region",
-       "province",
-       "channel",
-       "brand",
-       "sku",
-       "pack",
-       "agent",
-       "business_unit"
-      ],
-      "certified": true,
-      "source": "SAP SD",
-      "refresh": "รายวัน",
-      "latest": "22 ก.ย. 2569"
-     }
-    ]
-   }
-  },
   {
    "kind": "call",
    "tool": "query_metric",
    "args": {
+    "metric": "target_attainment",
     "dims": [
      "province"
     ],
-    "metric": "target_attainment",
     "range": {
      "from": "2026-09-01",
      "to": "2026-09-22"
     },
-    "compare": "none",
     "grain": "month",
+    "sort": "value_asc",
+    "filters": {
+     "region": "northeast"
+    },
     "limit": 20,
-    "filters": {}
+    "compare": "none"
    },
    "result": {
     "ok": true,
@@ -120,13 +88,15 @@
      "sourceSystem": "SAP SD",
      "asOf": "2026-09-22",
      "rowCount": 4,
-     "filtersApplied": {},
-     "filterLabels": [],
-     "scopeApplied": {
+     "filtersApplied": {
       "region": [
        "northeast"
       ]
      },
+     "filterLabels": [
+      "ภาคอีสาน"
+     ],
+     "scopeApplied": {},
      "masked": [],
      "trust": "verified"
     },
@@ -135,14 +105,19 @@
      "dims": [
       "province"
      ],
-     "filters": {},
+     "filters": {
+      "region": [
+       "northeast"
+      ]
+     },
      "range": {
       "from": "2026-09-01",
       "to": "2026-09-22"
      },
      "grain": "month",
      "compare": "none",
-     "limit": 20
+     "limit": 20,
+     "sort": "value_asc"
     },
     "nextActions": [
      {
@@ -185,21 +160,20 @@
   },
   {
    "kind": "text",
-   "text": "รายงานด้วยเมตริกการบรรลุเป้าหมาย (Target Attainment) โดยข้อมูลล่าสุดในระบบมีถึงวันที่ 22 กันยายน 2569 \n\nภาพรวมมีเพียงนครราชสีมาที่ทำยอดทะลุเป้าหมายได้สำเร็จ ขณะที่อุบลราชธานียังตามหลังเป้ามากที่สุดในภาคอีสาน แนะนำให้เจาะดูยอดขายแยกรายเอเย่นต์ในจังหวัดอุบลราชธานีเพื่อตรวจหาสาเหตุและวางแผนเร่งยอดขายต่อไป"
+   "text": "ยอดเทียบเป้ารายจังหวัดใช้เมตริกการบรรลุเป้าหมาย (Target Attainment) ของภาคอีสานในเดือนนี้ โดยข้อมูลล่าสุดถึงวันที่ 22 ก.ย. 2569 ครับ \n\nภาพรวมส่วนใหญ่ยังไม่ถึงเป้าหมายโดยอุบลราชธานีตามหลังมากที่สุด แนะนำให้เจาะดูผลการดำเนินงานแยกรายเอเย่นต์ในพื้นที่อุบลราชธานีเพื่อหาสาเหตุและวางแผนเร่งยอดขายครับ"
   }
  ],
  "asked": [],
  "error": null,
  "usage": {
-  "calls": 3,
-  "inputTokens": 32588,
-  "outputTokens": 3078,
-  "reasoningTokens": 2874,
-  "usd": 0.01799175
+  "calls": 2,
+  "inputTokens": 24072,
+  "outputTokens": 2920,
+  "reasoningTokens": 2723,
+  "usd": 0.0073348499999999995
  },
  "drawn": {
   "cards": [
-   "list_metrics",
    "query_metric"
   ],
   "composed": null

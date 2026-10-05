@@ -4,10 +4,10 @@
  "userId": "u_may",
  "prompt": "ดูความปลอดภัยของโรงงานขอนแก่น",
  "model": "google/gemini-3.8-flash",
- "promptHash": "2f484d85b0bbd7ac",
- "toolsHash": "017d9696205cf478",
+ "promptHash": "2bfadd00013f7c5d",
+ "toolsHash": "3542bb7c8b47d7ed",
  "today": "2026-10-05",
- "recordedAt": "2026-10-05T13:06:16.881Z",
+ "recordedAt": "2026-10-05T15:51:14.282Z",
  "steps": [
   {
    "kind": "call",
@@ -203,17 +203,17 @@
   },
   {
    "kind": "text",
-   "text": "โรงงานขอนแก่นอยู่ในเกณฑ์ต้องติดตามเร่งด่วน เนื่องจากมีอุบัติเหตุหยุดงานและมาตรการแก้ไขเรื่องการแยกทางเดินรถยกยังค้างอยู่ สมมติฐานคือชั่วโมงทำงานล่วงเวลาที่สูงช่วงเร่งการผลิตส่งผลต่อความเหนื่อยล้า ควรตรวจสอบตารางกะการทำงานของพนักงานขับรถยก และติดตามความคืบหน้าการปรับปรุงพื้นที่ร่วมกับเจ้าหน้าที่ความปลอดภัย ต้องการส่งเรื่องต่อให้ผู้รับผิดชอบหรือไม่\n\n```a2ui\n{\"id\":\"root\",\"component\":\"Card\",\"title\":\"สถานะความปลอดภัยโรงงานขอนแก่น\",\"meta\":\"ต้องเฝ้าระวังด่วน\",\"footnote\":\"ระบบความปลอดภัยและอาชีวอนามัย\",\"children\":[\"metrics_grid\",\"facts\",\"sec_actions\",\"sec_incidents\"]}\n{\"id\":\"metrics_grid\",\"component\":\"Grid\",\"children\":{\"componentId\":\"m_item\",\"path\":\"/get_site/data/metrics\"}}\n{\"id\":\"m_item\",\"component\":\"Metric\",\"label\":{\"path\":\"label\"},\"value\":{\"path\":\"value\"},\"detail\":{\"path\":\"detail\"}}\n{\"id\":\"facts\",\"component\":\"KeyValue\",\"from\":{\"path\":\"/get_site/data/facts\"}}\n{\"id\":\"sec_actions\",\"component\":\"Section\",\"label\":\"มาตรการแก้ไขที่ยังไม่ปิด\",\"children\":{\"componentId\":\"action_item\",\"path\":\"/get_site/data/open_actions\"}}\n{\"id\":\"action_item\",\"component\":\"ListItem\",\"title\":{\"path\":\"title\"},\"subtitle\":{\"path\":\"body\"},\"trailing\":{\"path\":\"date\"}}\n{\"id\":\"sec_incidents\",\"component\":\"Section\",\"label\":\"ประวัติเหตุการณ์ย้อนหลัง\",\"children\":{\"componentId\":\"inc_item\",\"path\":\"/get_site/data/incidents\"}}\n{\"id\":\"inc_item\",\"component\":\"ListItem\",\"title\":{\"path\":\"title\"},\"subtitle\":{\"path\":\"detail\"},\"trailing\":{\"path\":\"time\"}}\n```"
+   "text": "โรงงานขอนแก่นอยู่ในสถานะต้องติดตามเร่งด่วนเนื่องจากอุบัติเหตุเกี่ยวกับรถยกเพิ่มขึ้นและมีมาตรการแก้ไขที่ค้างท่อเกินกำหนดเวลา สมมติฐานคือชั่วโมงทำงานล่วงเวลาที่สูงช่วงเร่งผลิตส่งผลต่อความเหนื่อยล้า จึงควรตรวจสอบการกั้นเส้นทางเดินรถยกและทบทวนการจัดกะทำงานร่วมกับแผนกผลิต หากต้องการ สามารถทำเรื่องส่งต่อให้คุณชัย วงศ์ใหญ่ เจ้าหน้าที่ความปลอดภัยประจำโรงงานเข้าดำเนินการต่อได้ทันทีครับ\n\n```a2ui\n{\"id\":\"root\",\"component\":\"Card\",\"title\":\"ความปลอดภัยโรงงานขอนแก่น\",\"meta\":{\"path\":\"/get_site/data/name\"},\"footnote\":\"ระบบความปลอดภัยและอาชีวอนามัย\",\"children\":[\"m1\",\"m2\",\"m3\",\"facts\",\"open_action\",\"incident_sec\"]}\n{\"id\":\"m1\",\"component\":\"Metric\",\"label\":{\"path\":\"/get_site/data/metrics/0/label\"},\"value\":{\"path\":\"/get_site/data/metrics/0/value\"}}\n{\"id\":\"m2\",\"component\":\"Metric\",\"label\":{\"path\":\"/get_site/data/metrics/1/label\"},\"value\":{\"path\":\"/get_site/data/metrics/1/value\"},\"detail\":{\"path\":\"/get_site/data/metrics/1/detail\"}}\n{\"id\":\"m3\",\"component\":\"Metric\",\"label\":{\"path\":\"/get_site/data/metrics/2/label\"},\"value\":{\"path\":\"/get_site/data/metrics/2/value\"}}\n{\"id\":\"facts\",\"component\":\"KeyValue\",\"from\":{\"path\":\"/get_site/data/facts\"}}\n{\"id\":\"open_action\",\"component\":\"Callout\",\"title\":{\"path\":\"/get_site/data/open_actions/0/title\"},\"body\":{\"path\":\"/get_site/data/open_actions/0/body\"},\"tone\":\"danger\"}\n{\"id\":\"incident_sec\",\"component\":\"Section\",\"label\":\"ประวัติอุบัติเหตุและเหตุการณ์\",\"children\":{\"componentId\":\"inc_item\",\"path\":\"/get_site/data/incidents\"}}\n{\"id\":\"inc_item\",\"component\":\"ListItem\",\"title\":{\"path\":\"title\"},\"subtitle\":{\"path\":\"detail\"},\"trailing\":{\"path\":\"time\"},\"media\":\"none\"}\n```"
   }
  ],
  "asked": [],
  "error": null,
  "usage": {
   "calls": 2,
-  "inputTokens": 20657,
-  "outputTokens": 4746,
-  "reasoningTokens": 4307,
-  "usd": 0.01391475
+  "inputTokens": 21935,
+  "outputTokens": 7855,
+  "reasoningTokens": 7322,
+  "usd": 0.016136925
  },
  "drawn": {
   "cards": [],
@@ -225,35 +225,51 @@
     {
      "id": "root",
      "component": "Card",
-     "title": "สถานะความปลอดภัยโรงงานขอนแก่น",
-     "meta": "ต้องเฝ้าระวังด่วน",
+     "title": "ความปลอดภัยโรงงานขอนแก่น",
+     "meta": {
+      "path": "/get_site/data/name"
+     },
      "footnote": "ระบบความปลอดภัยและอาชีวอนามัย",
      "children": [
-      "metrics_grid",
+      "m1",
+      "m2",
+      "m3",
       "facts",
-      "sec_actions",
-      "sec_incidents"
+      "open_action",
+      "incident_sec"
      ]
     },
     {
-     "id": "metrics_grid",
-     "component": "Grid",
-     "children": {
-      "componentId": "m_item",
-      "path": "/get_site/data/metrics"
+     "id": "m1",
+     "component": "Metric",
+     "label": {
+      "path": "/get_site/data/metrics/0/label"
+     },
+     "value": {
+      "path": "/get_site/data/metrics/0/value"
      }
     },
     {
-     "id": "m_item",
+     "id": "m2",
      "component": "Metric",
      "label": {
-      "path": "label"
+      "path": "/get_site/data/metrics/1/label"
      },
      "value": {
-      "path": "value"
+      "path": "/get_site/data/metrics/1/value"
      },
      "detail": {
-      "path": "detail"
+      "path": "/get_site/data/metrics/1/detail"
+     }
+    },
+    {
+     "id": "m3",
+     "component": "Metric",
+     "label": {
+      "path": "/get_site/data/metrics/2/label"
+     },
+     "value": {
+      "path": "/get_site/data/metrics/2/value"
      }
     },
     {
@@ -264,31 +280,20 @@
      }
     },
     {
-     "id": "sec_actions",
-     "component": "Section",
-     "label": "มาตรการแก้ไขที่ยังไม่ปิด",
-     "children": {
-      "componentId": "action_item",
-      "path": "/get_site/data/open_actions"
-     }
-    },
-    {
-     "id": "action_item",
-     "component": "ListItem",
+     "id": "open_action",
+     "component": "Callout",
      "title": {
-      "path": "title"
+      "path": "/get_site/data/open_actions/0/title"
      },
-     "subtitle": {
-      "path": "body"
+     "body": {
+      "path": "/get_site/data/open_actions/0/body"
      },
-     "trailing": {
-      "path": "date"
-     }
+     "tone": "danger"
     },
     {
-     "id": "sec_incidents",
+     "id": "incident_sec",
      "component": "Section",
-     "label": "ประวัติเหตุการณ์ย้อนหลัง",
+     "label": "ประวัติอุบัติเหตุและเหตุการณ์",
      "children": {
       "componentId": "inc_item",
       "path": "/get_site/data/incidents"
@@ -303,6 +308,7 @@
      "subtitle": {
       "path": "detail"
      },
+     "media": "none",
      "trailing": {
       "path": "time"
      }

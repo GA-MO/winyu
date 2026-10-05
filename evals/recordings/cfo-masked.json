@@ -4,10 +4,10 @@
  "userId": "u_siriporn",
  "prompt": "เงินเดือนเฉลี่ยแต่ละฝ่ายเท่าไหร่",
  "model": "google/gemini-3.8-flash",
- "promptHash": "789b7aac90502ae7",
- "toolsHash": "017d9696205cf478",
+ "promptHash": "b392a33b084b048a",
+ "toolsHash": "3542bb7c8b47d7ed",
  "today": "2026-10-05",
- "recordedAt": "2026-10-05T12:59:17.376Z",
+ "recordedAt": "2026-10-05T15:42:45.091Z",
  "steps": [
   {
    "kind": "call",
@@ -15,17 +15,17 @@
    "args": {
     "metric": "avg_salary",
     "sort": "value_desc",
-    "grain": "month",
     "filters": {},
+    "compare": "none",
+    "dims": [
+     "department"
+    ],
+    "grain": "month",
     "range": {
      "from": "2026-09-01",
      "to": "2026-09-22"
     },
-    "dims": [
-     "department"
-    ],
-    "limit": 20,
-    "compare": "none"
+    "limit": 60
    },
    "result": {
     "ok": true,
@@ -111,7 +111,7 @@
      },
      "grain": "month",
      "compare": "none",
-     "limit": 20,
+     "limit": 60,
      "sort": "value_desc"
     },
     "nextActions": [
@@ -151,17 +151,17 @@
   },
   {
    "kind": "text",
-   "text": "ข้อมูลเงินเดือนเฉลี่ยรายฝ่าย (ข้อมูลล่าสุดถึง 22 ก.ย. 2569) มี 3 ฟิลด์ถูกปิดตามสิทธิ์ ทำให้ไม่สามารถแสดงตัวเลขของแต่ละฝ่ายได้ครับ แนะนำให้ติดต่อเจ้าของ metric (ผู้ดูแลระบบ HRIS) เพื่อขออนุมัติสิทธิ์เข้าถึงข้อมูลส่วนนี้"
+   "text": "ข้อมูลเงินเดือนเฉลี่ยมี 3 ฟิลด์ถูกปิดตามสิทธิ์ (ตัวเลขถูกปิดทุกฝ่าย) จึงไม่สามารถแสดงมูลค่าได้ครับ หากจำเป็นต้องใช้งาน แนะนำให้ติดต่อเจ้าของ metric เพื่อขออนุมัติสิทธิ์เข้าถึงข้อมูล HRIS ครับ"
   }
  ],
  "asked": [],
  "error": null,
  "usage": {
   "calls": 2,
-  "inputTokens": 20298,
-  "outputTokens": 1898,
-  "reasoningTokens": 1741,
-  "usd": 0.0111705
+  "inputTokens": 21457,
+  "outputTokens": 1933,
+  "reasoningTokens": 1792,
+  "usd": 0.004860675
  },
  "drawn": {
   "cards": [

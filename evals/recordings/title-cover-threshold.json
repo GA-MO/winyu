@@ -4,34 +4,34 @@
  "userId": "u_arm",
  "prompt": "สินค้าตัวไหนสต๊อกพอขายน้อยกว่า 10 วัน",
  "model": "google/gemini-3.8-flash",
- "promptHash": "eb0f29418c876797",
- "toolsHash": "7ba0f807fddc10bb",
+ "promptHash": "3366b49ab39693a3",
+ "toolsHash": "3a1e2faaa57dde17",
  "today": "2026-10-05",
- "recordedAt": "2026-10-05T13:09:51.845Z",
+ "recordedAt": "2026-10-05T15:54:19.161Z",
  "steps": [
   {
    "kind": "call",
    "tool": "query_metric",
    "args": {
-    "grain": "day",
-    "metric": "days_of_cover",
-    "dims": [
-     "sku"
-    ],
-    "range": {
-     "to": "2026-09-22",
-     "from": "2026-09-22"
-    },
+    "compare": "none",
     "filters": {
      "region": "south"
     },
     "limit": 20,
-    "sort": "value_asc",
-    "compare": "none",
+    "range": {
+     "from": "2026-09-22",
+     "to": "2026-09-22"
+    },
+    "metric": "days_of_cover",
+    "grain": "day",
     "where": {
      "op": "below",
      "value": 10
-    }
+    },
+    "dims": [
+     "sku"
+    ],
+    "sort": "value_asc"
    },
    "result": {
     "ok": true,
@@ -146,17 +146,17 @@
   },
   {
    "kind": "text",
-   "text": "ประเมินจากเมตริกวันครอบคลุมสต๊อก (Days of Cover) ในพื้นที่ภาคใต้ ข้อมูลล่าสุด ณ วันที่ 22 ก.ย. 2569 พบ สิงห์ ขวด 620 มล. อยู่ในระดับที่ต้องเฝ้าระวัง ควรเร่งตรวจสอบรอบจัดส่งและสต๊อกของศูนย์กระจายสินค้าในพื้นที่เพื่อป้องกันสินค้าขาดตลาดก่อนรอบสั่งซื้อถัดไป"
+   "text": "จากข้อมูลล่าสุดในระบบ ณ วันที่ 22 ก.ย. 2569 ในพื้นที่ภาคใต้ พบสินค้าที่มีวันครอบคลุมสต๊อกต่ำกว่าเกณฑ์ความปลอดภัยที่กำหนดไว้ ควรเร่งประสานงานศูนย์กระจายสินค้าเพื่อตรวจสอบรอบการจัดส่งหรือพิจารณาแผนเร่งเติมสต๊อกก่อนสินค้าจะขาดมือ"
   }
  ],
  "asked": [],
  "error": null,
  "usage": {
   "calls": 2,
-  "inputTokens": 18893,
-  "outputTokens": 1927,
-  "reasoningTokens": 1730,
-  "usd": 0.010698
+  "inputTokens": 20935,
+  "outputTokens": 1576,
+  "reasoningTokens": 1397,
+  "usd": 0.004459554166666667
  },
  "drawn": {
   "cards": [

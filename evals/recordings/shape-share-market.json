@@ -4,30 +4,31 @@
  "userId": "u_anucha",
  "prompt": "สัดส่วนตลาดเบียร์ในนครราชสีมาเดือน ส.ค. แต่ละผู้ผลิตได้เท่าไหร่",
  "model": "google/gemini-3.8-flash",
- "promptHash": "20386bc6c3b08846",
- "toolsHash": "22f7ecc4e30f3b8c",
+ "promptHash": "5cf727ed51a6d1b3",
+ "toolsHash": "5639642b6a430a27",
  "today": "2026-10-05",
- "recordedAt": "2026-10-05T13:05:20.722Z",
+ "recordedAt": "2026-10-05T15:49:46.829Z",
  "steps": [
   {
    "kind": "call",
    "tool": "query_metric",
    "args": {
-    "metric": "market_share",
-    "sort": "value_desc",
-    "compare": "none",
-    "limit": 10,
-    "filters": {
-     "province": "นครราชสีมา"
-    },
-    "grain": "month",
     "range": {
      "from": "2026-08-01",
      "to": "2026-08-31"
     },
     "dims": [
      "maker"
-    ]
+    ],
+    "filters": {
+     "province": "นครราชสีมา"
+    },
+    "metric": "market_share",
+    "where": null,
+    "grain": "month",
+    "limit": 10,
+    "compare": "none",
+    "sort": "value_desc"
    },
    "result": {
     "ok": true,
@@ -117,7 +118,8 @@
      "grain": "month",
      "compare": "none",
      "limit": 10,
-     "sort": "value_desc"
+     "sort": "value_desc",
+     "where": null
     },
     "nextActions": [],
     "followUps": [
@@ -142,17 +144,17 @@
   },
   {
    "kind": "text",
-   "text": "ส่วนแบ่งตลาดเบียร์ในจังหวัดนครราชสีมาประจำเดือนสิงหาคม 2569 คำนวณจากข้อมูล Retail audit รายเดือน โดยผู้ผลิตหลักยังคงครองส่วนแบ่งตลาดส่วนใหญ่ของพื้นที่ แนะนำให้ตรวจสอบแนวโน้มย้อนหลังเพิ่มเติมเพื่อประเมินการขยับตัวของคู่แข่งในแต่ละช่องทางจำหน่าย"
+   "text": "ในเดือนสิงหาคม 2569 บุญรอดบริวเวอรี่ยังคงเป็นผู้นำตลาดเบียร์ในจังหวัดนครราชสีมาอย่างเด่นชัด โดยมีไทยเบฟเวอเรจและคาราบาวเป็นคู่แข่งสำคัญลำดับถัดมา แนะนำให้ติดตามแนวโน้มเปรียบเทียบกับช่วงเดียวกันของปีก่อนเพื่อประเมินการเปลี่ยนแปลงของส่วนแบ่งตลาดในพื้นที่อย่างต่อเนื่อง"
   }
  ],
  "asked": [],
  "error": null,
  "usage": {
   "calls": 2,
-  "inputTokens": 20541,
-  "outputTokens": 1059,
-  "reasoningTokens": 893,
-  "usd": 0.008324325
+  "inputTokens": 22667,
+  "outputTokens": 1522,
+  "reasoningTokens": 1333,
+  "usd": 0.0041867250000000005
  },
  "drawn": {
   "cards": [

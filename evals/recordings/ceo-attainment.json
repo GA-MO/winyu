@@ -4,27 +4,122 @@
  "userId": "u_thana",
  "prompt": "ยอดขายทั้งประเทศเทียบเป้าตอนนี้เท่าไหร่",
  "model": "google/gemini-3.8-flash",
- "promptHash": "469b58c58286c9a9",
- "toolsHash": "22f7ecc4e30f3b8c",
+ "promptHash": "b147f95e8a6c891a",
+ "toolsHash": "5639642b6a430a27",
  "today": "2026-10-05",
- "recordedAt": "2026-10-05T12:58:26.288Z",
+ "recordedAt": "2026-10-05T15:41:46.608Z",
  "steps": [
+  {
+   "kind": "call",
+   "tool": "list_metrics",
+   "args": {
+    "search": "ยอดขาย"
+   },
+   "result": {
+    "ok": true,
+    "summary": "พบ 4 เมตริกที่ตรงกับคำค้น",
+    "data": [
+     {
+      "id": "sell_out_volume",
+      "labelTh": "ปริมาณขายออก (Sell-out)",
+      "unit": "ลิตร",
+      "dims": [
+       "date",
+       "week",
+       "month",
+       "region",
+       "province",
+       "channel",
+       "brand",
+       "sku",
+       "pack",
+       "agent",
+       "business_unit"
+      ],
+      "certified": true,
+      "source": "SAP SD",
+      "refresh": "รายวัน",
+      "latest": "22 ก.ย. 2569"
+     },
+     {
+      "id": "net_sales_value",
+      "labelTh": "มูลค่าขายเข้า",
+      "unit": "บาท",
+      "dims": [
+       "date",
+       "week",
+       "month",
+       "region",
+       "province",
+       "channel",
+       "brand",
+       "sku",
+       "pack",
+       "agent",
+       "business_unit"
+      ],
+      "certified": true,
+      "source": "SAP SD",
+      "refresh": "รายวัน",
+      "latest": "22 ก.ย. 2569"
+     },
+     {
+      "id": "net_sales_volume",
+      "labelTh": "ปริมาณขายเข้า (Sell-in)",
+      "unit": "ลิตร",
+      "dims": [
+       "date",
+       "week",
+       "month",
+       "region",
+       "province",
+       "channel",
+       "brand",
+       "sku",
+       "pack",
+       "agent",
+       "business_unit"
+      ],
+      "certified": true,
+      "source": "SAP SD",
+      "refresh": "รายวัน",
+      "latest": "22 ก.ย. 2569"
+     },
+     {
+      "id": "campaign_uplift",
+      "labelTh": "ยอดเพิ่มจากแคมเปญ",
+      "unit": "%",
+      "dims": [
+       "date",
+       "week",
+       "month",
+       "campaign",
+       "brand",
+       "region",
+       "business_unit"
+      ],
+      "certified": false,
+      "source": "SAP SD",
+      "refresh": "รายวัน",
+      "latest": "22 ก.ย. 2569"
+     }
+    ]
+   }
+  },
   {
    "kind": "call",
    "tool": "query_metric",
    "args": {
-    "filters": {},
-    "metric": "net_sales_value",
-    "grain": "month",
-    "compare": "target",
     "dims": [],
-    "where": null,
-    "limit": 1,
-    "sort": null,
+    "compare": "target",
     "range": {
      "from": "2026-09-01",
      "to": "2026-09-22"
-    }
+    },
+    "metric": "net_sales_value",
+    "filters": {},
+    "grain": "month",
+    "limit": 1
    },
    "result": {
     "ok": true,
@@ -76,9 +171,7 @@
      },
      "grain": "month",
      "compare": "target",
-     "limit": 1,
-     "sort": null,
-     "where": null
+     "limit": 1
     },
     "nextActions": [
      {
@@ -121,20 +214,21 @@
   },
   {
    "kind": "text",
-   "text": "รายงานยอดขายเป็นมูลค่าขายสุทธิ (Net Sales Value) ข้อมูลเดือนกันยายนล่าสุดถึงวันที่ 22 กันยายน 2569\n\nภาพรวมทั้งประเทศยังต่ำกว่าเป้าหมายเล็กน้อย และแนวโน้มจากการขายช่วง 7 วันล่าสุดชี้ว่าสิ้นเดือนอาจยังไม่ถึงเป้า แนะนำเจาะดูรายภาคหรือช่องทางจำหน่ายเพื่อค้นหาจุดที่หลุดเป้าและเร่งผลักดันยอดขายก่อนปิดเดือน"
+   "text": "รายงานด้วยเมตริกมูลค่าขายเข้า (net_sales_value) เดือนกันยายน ซึ่งมีข้อมูลล่าสุดถึงวันที่ 22 ก.ย. 2569 ครับ ยอดขายภาพรวมทั้งประเทศยังคงตามหลังเป้าหมายเล็กน้อย และหากคงระดับยอดขายตามอัตราเฉลี่ย 7 วันล่าสุด คาดว่าจะปิดสิ้นเดือนได้ต่ำกว่าเป้า แนะนำให้เจาะดูแยกตามรายภาคหรือช่องทางจำหน่ายเพื่อระบุพื้นที่ที่ต้องเร่งผลักดันยอดครับ"
   }
  ],
  "asked": [],
  "error": null,
  "usage": {
   "calls": 2,
-  "inputTokens": 21282,
-  "outputTokens": 2085,
-  "reasoningTokens": 1904,
-  "usd": 0.011890125000000001
+  "inputTokens": 23414,
+  "outputTokens": 1997,
+  "reasoningTokens": 1796,
+  "usd": 0.005603541666666666
  },
  "drawn": {
   "cards": [
+   "list_metrics",
    "query_metric"
   ],
   "composed": null

@@ -4,46 +4,98 @@
  "userId": "u_thana",
  "prompt": "ยอดขายเดือนนี้เทียบเดือนก่อนเป็นยังไง",
  "model": "google/gemini-3.8-flash",
- "promptHash": "469b58c58286c9a9",
- "toolsHash": "22f7ecc4e30f3b8c",
+ "promptHash": "b147f95e8a6c891a",
+ "toolsHash": "5639642b6a430a27",
  "today": "2026-10-05",
- "recordedAt": "2026-10-05T13:03:25.893Z",
+ "recordedAt": "2026-10-05T15:47:51.189Z",
  "steps": [
   {
    "kind": "call",
    "tool": "query_metric",
    "args": {
-    "limit": 10,
-    "dims": [],
-    "compare": "prev_period",
     "metric": "net_sales_value",
     "filters": {},
+    "compare": "prev_period",
     "range": {
      "to": "2026-09-22",
      "from": "2026-09-01"
     },
-    "grain": "month"
+    "grain": "month",
+    "dims": [
+     "region"
+    ],
+    "limit": 10,
+    "sort": "value_desc"
    },
    "result": {
     "ok": true,
     "rows": [
      {
-      "value": 1110190360,
-      "value_label": "1,110.2 ล้านบาท",
-      "compare_value": 1253874103,
-      "delta_pct": -11.5
+      "region": "กรุงเทพฯ และปริมณฑล",
+      "value": 274079269,
+      "value_label": "274.1 ล้านบาท",
+      "compare_value": 301610071,
+      "delta_pct": -9.1
+     },
+     {
+      "region": "ภาคอีสาน",
+      "value": 232465481,
+      "value_label": "232.5 ล้านบาท",
+      "compare_value": 286258728,
+      "delta_pct": -18.8
+     },
+     {
+      "region": "ภาคตะวันออก",
+      "value": 162722781,
+      "value_label": "162.7 ล้านบาท",
+      "compare_value": 179897814,
+      "delta_pct": -9.5
+     },
+     {
+      "region": "ภาคกลาง",
+      "value": 151878814,
+      "value_label": "151.9 ล้านบาท",
+      "compare_value": 166916085,
+      "delta_pct": -9
+     },
+     {
+      "region": "ภาคใต้",
+      "value": 144718885,
+      "value_label": "144.7 ล้านบาท",
+      "compare_value": 160123080,
+      "delta_pct": -9.6
+     },
+     {
+      "region": "ภาคเหนือ",
+      "value": 144325131,
+      "value_label": "144.3 ล้านบาท",
+      "compare_value": 159068326,
+      "delta_pct": -9.3
      }
     ],
-    "summary": "มูลค่าขายเข้า 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 1,110.2 ล้านบาท · เทียบช่วงก่อนหน้า -11.5% · (1 แถว · certified · SAP SD)",
+    "summary": "มูลค่าขายเข้า 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 1,110.2 ล้านบาท · สูงสุด: กรุงเทพฯ และปริมณฑล 274.1 ล้านบาท · ภาคอีสาน 232.5 ล้านบาท · ภาคตะวันออก 162.7 ล้านบาท · เทียบช่วงก่อนหน้า -11.5% · (6 แถว · certified · SAP SD)",
     "headline": {
      "aggregate": "sum",
      "value": "1,110.2 ล้านบาท",
      "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
-     "rowCount": 1,
+     "rowCount": 6,
      "deltaPercent": -11.5,
      "compareLabel": "เทียบช่วงก่อนหน้า",
      "compareNote": null,
-     "top": [],
+     "top": [
+      {
+       "label": "กรุงเทพฯ และปริมณฑล",
+       "value": "274.1 ล้านบาท"
+      },
+      {
+       "label": "ภาคอีสาน",
+       "value": "232.5 ล้านบาท"
+      },
+      {
+       "label": "ภาคตะวันออก",
+       "value": "162.7 ล้านบาท"
+      }
+     ],
      "underLine": null
     },
     "provenance": {
@@ -51,7 +103,7 @@
      "certified": true,
      "sourceSystem": "SAP SD",
      "asOf": "2026-09-22",
-     "rowCount": 1,
+     "rowCount": 6,
      "filtersApplied": {},
      "filterLabels": [],
      "scopeApplied": {},
@@ -60,7 +112,9 @@
     },
     "query": {
      "metric": "net_sales_value",
-     "dims": [],
+     "dims": [
+      "region"
+     ],
      "filters": {},
      "range": {
       "from": "2026-09-01",
@@ -68,7 +122,8 @@
      },
      "grain": "month",
      "compare": "prev_period",
-     "limit": 10
+     "limit": 10,
+     "sort": "value_desc"
     },
     "nextActions": [
      {
@@ -79,13 +134,15 @@
       "tool": "create_handoff",
       "input": {
        "toUserId": "u_kanok",
-       "title": "มูลค่าขายเข้า",
-       "ask": "ช่วยตรวจมูลค่าขายเข้า แล้วบอกกลับว่าเกิดจากอะไรและจะแก้อย่างไร",
+       "title": "มูลค่าขายเข้า · กรุงเทพฯ และปริมณฑล",
+       "ask": "ช่วยตรวจภาคอีสาน แล้วบอกกลับว่าเกิดจากอะไรและจะแก้อย่างไร",
        "urgency": "medium",
        "evidence": [
         {
          "metric": "net_sales_value",
-         "dims": [],
+         "dims": [
+          "region"
+         ],
          "filters": {},
          "range": {
           "from": "2026-09-01",
@@ -93,7 +150,8 @@
          },
          "grain": "month",
          "compare": "prev_period",
-         "limit": 10
+         "limit": 10,
+         "sort": "value_desc"
         }
        ],
        "alertIds": []
@@ -101,28 +159,28 @@
       "prompt": null
      },
      {
-      "id": "drill-region",
+      "id": "drill-why",
       "kind": "drill",
-      "label": "แยกตามภาค",
-      "reason": "ยังไม่ได้ดูแยกรายภาค",
+      "label": "ทำไมภาคอีสานถึงเป็นแบบนี้",
+      "reason": "ภาคอีสาน เปลี่ยนไปในทางที่แย่ที่สุด",
       "tool": null,
       "input": null,
-      "prompt": "ขอมูลค่าขายเข้าแยกตามภาค เรียงจากมากไปน้อย"
+      "prompt": "เจาะดูมูลค่าขายเข้าของภาคอีสาน ว่าทำไมถึงเปลี่ยนไป เทียบกับช่วงก่อนหน้าและช่วงเดียวกันปีก่อน"
      }
     ],
     "followUps": [
      {
-      "id": "fu-split",
-      "label": "แยกตามช่องทาง",
-      "prompt": "ขอมูลค่าขายเข้าแยกตามช่องทาง เรียงจากมากไปน้อย",
-      "reason": "ยังไม่ได้ดูแยกรายช่องทาง",
-      "intentKey": "follow|split",
-      "score": 0.65
+      "id": "fu-drill_down",
+      "label": "ดูเอเย่นต์ในภาคอีสาน",
+      "prompt": "ขอมูลค่าขายเข้าของภาคอีสาน แยกรายเอเย่นต์ เรียงจากแย่ไปดี",
+      "reason": "ลงไปอีกชั้นเพื่อหาว่าใครในภาคอีสานทำให้ตัวเลขเป็นแบบนี้",
+      "intentKey": "follow|drill_down",
+      "score": 0.85
      },
      {
       "id": "fu-trend",
       "label": "เริ่มแย่ตั้งแต่เมื่อไร",
-      "prompt": "มูลค่าขายเข้า รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+      "prompt": "มูลค่าขายเข้าของภาคอีสาน รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
       "reason": "ดูว่าตัวเลขเริ่มลดลงสัปดาห์ไหน",
       "intentKey": "follow|trend",
       "score": 0.65
@@ -130,7 +188,7 @@
      {
       "id": "fu-compare_year",
       "label": "เทียบปีก่อน",
-      "prompt": "ขอมูลค่าขายเข้า เทียบกับช่วงเดียวกันปีก่อน",
+      "prompt": "ขอมูลค่าขายเข้าแยกตามภาค เทียบกับช่วงเดียวกันปีก่อน",
       "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
       "intentKey": "follow|compare_year",
       "score": 0.45
@@ -140,17 +198,17 @@
   },
   {
    "kind": "text",
-   "text": "รายงานด้วยมูลค่าขายสุทธิ (Net Sales Value) โดยข้อมูลในระบบล่าสุดถึงวันที่ 22 กันยายน 2569 จึงเป็นการเทียบช่วง 1–22 กันยายน กับช่วงเดียวกันของเดือนก่อนหน้า\n\nภาพรวมยอดขายมีทิศทางชะลอตัวลงจากเดือนก่อน ควรพิจารณาเจาะลึกแยกตามช่องทางจำหน่ายหรือรายภาคเพื่อดูพื้นที่ที่ดึงยอดลงมากที่สุด"
+   "text": "รายงานด้วย**มูลค่าขายสุทธิ** (ข้อมูลล่าสุดถึงวันที่ 22 ก.ย. 2569 เทียบกับช่วงเดียวกันของเดือนก่อนหน้า) โดยภาพรวมชะลอตัวลงในทุกภูมิภาค และภาคอีสานปรับลดลงมากที่สุด\n\nเบื้องต้นสันนิษฐานว่าเอเย่นต์หลักในภาคอีสานอาจชะลอการสั่งซื้อเพื่อเร่งระบายสต๊อกคงค้างหน้าร้าน แนะนำให้ตรวจสอบยอดขายแยกรายเอเย่นต์และดูระดับวันครอบคลุมสต๊อก (Days of Cover) เพิ่มเติม หรือต้องการให้ส่งเรื่องให้คุณกนกเพื่อตรวจสอบหาสาเหตุทันทีครับ"
   }
  ],
  "asked": [],
  "error": null,
  "usage": {
   "calls": 2,
-  "inputTokens": 21104,
-  "outputTokens": 1687,
-  "reasoningTokens": 1518,
-  "usd": 0.011077125
+  "inputTokens": 23918,
+  "outputTokens": 2758,
+  "reasoningTokens": 2524,
+  "usd": 0.006999
  },
  "drawn": {
   "cards": [

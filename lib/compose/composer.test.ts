@@ -4,7 +4,7 @@ import { findUser } from "@/lib/data/entities/users";
 import { winyuTools } from "@/lib/server/agent/tools";
 import { runWithAccess } from "@/lib/server/request-context";
 import type { ComposedComponent } from "./catalog";
-import { CardComposer, type CardOutcome } from "./composer";
+import { CardComposer, headingWithoutNumbers, type CardOutcome } from "./composer";
 import { GEMINI_TEAM_CARD } from "./gemini-team-card";
 import type { TurnResult } from "./ground";
 
@@ -174,5 +174,13 @@ describe("a composed card holds line by line, only what this turn's tools return
 
   test("a block where nothing under the root holds draws no card, so the fixed cards stay", () => {
     expect(composed([JSON.stringify(GEMINI_TEAM_CARD[0])]).surface).toBeNull();
+  });
+});
+
+describe("headingWithoutNumbers", () => {
+  test("keeps a readable heading once the typed numbers are out", () => {
+    expect(headingWithoutNumbers("หลักสูตรอบรมประจำเดือนตุลาคม 2569")).toBe("หลักสูตรอบรมประจำเดือนตุลาคม");
+    expect(headingWithoutNumbers("ทีมขาย (5 คน) · 2569")).toBe("ทีมขาย");
+    expect(headingWithoutNumbers("2569")).toBeNull();
   });
 });

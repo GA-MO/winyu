@@ -4,10 +4,10 @@
  "userId": "u_may",
  "prompt": "จำนวนพนักงานแต่ละฝ่ายเทียบปีที่แล้ว",
  "model": "google/gemini-3.8-flash",
- "promptHash": "2f484d85b0bbd7ac",
- "toolsHash": "017d9696205cf478",
+ "promptHash": "2bfadd00013f7c5d",
+ "toolsHash": "3542bb7c8b47d7ed",
  "today": "2026-10-05",
- "recordedAt": "2026-10-05T13:01:07.480Z",
+ "recordedAt": "2026-10-05T15:45:04.545Z",
  "steps": [
   {
    "kind": "call",
@@ -16,16 +16,17 @@
     "dims": [
      "department"
     ],
-    "compare": "prev_year",
-    "metric": "headcount",
-    "sort": "value_desc",
+    "where": null,
     "range": {
      "from": "2026-09-01",
      "to": "2026-09-22"
     },
-    "filters": {},
+    "grain": "month",
+    "metric": "headcount",
+    "sort": "value_desc",
     "limit": 20,
-    "grain": "month"
+    "compare": "prev_year",
+    "filters": {}
    },
    "result": {
     "ok": true,
@@ -137,7 +138,8 @@
      "grain": "month",
      "compare": "prev_year",
      "limit": 20,
-     "sort": "value_desc"
+     "sort": "value_desc",
+     "where": null
     },
     "nextActions": [],
     "followUps": [
@@ -154,17 +156,17 @@
   },
   {
    "kind": "text",
-   "text": "ข้อมูลล่าสุดถึงวันที่ 22 ก.ย. 2569 ทุกฝ่ายมีกำลังคนเพิ่มขึ้นหรือทรงตัวเมื่อเทียบกับช่วงเดียวกันของปีก่อน โดยฝ่ายไอทีมีอัตราการเติบโตของพนักงานสูงสุด สามารถเจาะดูอัตราการลาออกหรือแนวโน้มการรับคนเพิ่มเติมในแต่ละฝ่ายเพื่อวางแผนอัตรากำลังได้ครับ"
+   "text": "ข้อมูลจำนวนพนักงานล่าสุด ณ วันที่ 22 กันยายน 2569 ทุกฝ่ายมีกำลังคนเพิ่มขึ้นหรือทรงตัวเมื่อเทียบกับช่วงเดียวกันของปีก่อน โดยฝ่ายที่มีอัตราการเติบโตของกำลังคนสูงสุดคือฝ่ายไอทีและฝ่ายการตลาด หากต้องการประเมินความต่อเนื่องของกำลังคน สามารถเจาะดูอัตราการลาออก (Attrition Rate) หรือตำแหน่งที่ยังเปิดรับสมัครในแต่ละฝ่ายเพิ่มเติมได้ครับ"
   }
  ],
  "asked": [],
  "error": null,
  "usage": {
   "calls": 2,
-  "inputTokens": 20183,
-  "outputTokens": 1019,
-  "reasoningTokens": 856,
-  "usd": 0.00947925
+  "inputTokens": 21761,
+  "outputTokens": 1296,
+  "reasoningTokens": 1113,
+  "usd": 0.00377355
  },
  "drawn": {
   "cards": [

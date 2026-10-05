@@ -4,10 +4,10 @@
  "userId": "u_may",
  "prompt": "มีหลักสูตรอะไรเปิดเดือนนี้",
  "model": "google/gemini-3.8-flash",
- "promptHash": "2f484d85b0bbd7ac",
- "toolsHash": "017d9696205cf478",
+ "promptHash": "2bfadd00013f7c5d",
+ "toolsHash": "3542bb7c8b47d7ed",
  "today": "2026-10-05",
- "recordedAt": "2026-10-05T13:07:18.145Z",
+ "recordedAt": "2026-10-05T15:52:36.709Z",
  "steps": [
   {
    "kind": "call",
@@ -105,17 +105,17 @@
   },
   {
    "kind": "text",
-   "text": "เดือนนี้มีหลักสูตรที่เกี่ยวข้องกับการต่ออายุใบอนุญาตและใบรับรองของพนักงานในทีมที่ใกล้หมดอายุ แนะนำให้พิจารณาส่งพนักงานเข้าร่วมหลักสูตรทบทวนกฎหมายควบคุมเครื่องดื่มแอลกอฮอล์ก่อนที่นั่งจะเต็ม ส่วนหลักสูตร GMP ขณะนี้ที่นั่งเต็มแล้วอาจต้องรอเปิดรอบถัดไป\n\n```a2ui\n{\"id\":\"root\",\"component\":\"Card\",\"title\":\"หลักสูตรเปิดอบรมเดือนนี้\",\"footnote\":\"ระบบพัฒนาบุคลากร\",\"children\":[\"courses\"]}\n{\"id\":\"courses\",\"component\":\"Grid\",\"children\":{\"componentId\":\"course_item\",\"path\":\"/list_courses/data\"}}\n{\"id\":\"course_item\",\"component\":\"ListItem\",\"title\":{\"path\":\"title\"},\"subtitle\":{\"path\":\"when\"},\"detail\":{\"path\":\"place\"},\"src\":{\"path\":\"cover\"},\"media\":\"thumb\",\"trailing\":{\"path\":\"seats/label\"},\"action\":{\"event\":{\"name\":\"enroll_course\",\"context\":{\"courseId\":{\"path\":\"id\"}}}}}\n```"
+   "text": "ในเดือนตุลาคม 2569 มีหลักสูตรสำหรับต่ออายุใบอนุญาตของสมาชิกในทีมที่ใกล้หมดอายุ และมีบางหลักสูตรที่ที่นั่งเต็มแล้ว สามารถกดสมัครหลักสูตรที่ยังเปิดรับผ่านการ์ดเพื่อส่งขออนุมัติได้ทันที\n\n```a2ui\n{\"id\":\"root\",\"component\":\"Card\",\"title\":\"หลักสูตรอบรมประจำเดือนนี้\",\"meta\":\"ตุลาคม\",\"footnote\":\"ระบบพัฒนาบุคลากร\",\"children\":[\"courses\"]}\n{\"id\":\"courses\",\"component\":\"Grid\",\"children\":{\"componentId\":\"course_item\",\"path\":\"/list_courses/data\"}}\n{\"id\":\"course_item\",\"component\":\"ListItem\",\"title\":{\"path\":\"title\"},\"subtitle\":{\"path\":\"when\"},\"detail\":{\"path\":\"place\"},\"src\":{\"path\":\"cover\"},\"media\":\"thumb\",\"trailing\":{\"path\":\"seats/label\"},\"action\":{\"event\":{\"name\":\"enroll_course\",\"context\":{\"courseId\":{\"path\":\"id\"}}}}}\n```"
   }
  ],
  "asked": [],
  "error": null,
  "usage": {
   "calls": 2,
-  "inputTokens": 19860,
-  "outputTokens": 4362,
-  "reasoningTokens": 4113,
-  "usd": 0.01562625
+  "inputTokens": 21152,
+  "outputTokens": 4740,
+  "reasoningTokens": 4507,
+  "usd": 0.010002675
  },
  "drawn": {
   "cards": [],
@@ -127,7 +127,8 @@
     {
      "id": "root",
      "component": "Card",
-     "title": "หลักสูตรเปิดอบรมเดือนนี้",
+     "title": "หลักสูตรอบรมประจำเดือนนี้",
+     "meta": "ตุลาคม",
      "footnote": "ระบบพัฒนาบุคลากร",
      "children": [
       "courses"

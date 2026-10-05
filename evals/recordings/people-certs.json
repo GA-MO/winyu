@@ -4,20 +4,20 @@
  "userId": "u_may",
  "prompt": "ใบอนุญาตหรือใบรับรองของใครใกล้หมดอายุบ้าง",
  "model": "google/gemini-3.8-flash",
- "promptHash": "2f484d85b0bbd7ac",
- "toolsHash": "017d9696205cf478",
+ "promptHash": "2bfadd00013f7c5d",
+ "toolsHash": "3542bb7c8b47d7ed",
  "today": "2026-10-05",
- "recordedAt": "2026-10-05T13:05:33.739Z",
+ "recordedAt": "2026-10-05T15:50:14.365Z",
  "steps": [
   {
    "kind": "call",
    "tool": "find_people",
    "args": {
-    "query": null,
     "department": null,
-    "region": null,
+    "manager": null,
+    "query": null,
     "flag": "cert_expiring",
-    "manager": null
+    "region": null
    },
    "result": {
     "ok": true,
@@ -174,17 +174,17 @@
   },
   {
    "kind": "text",
-   "text": "พนักงานที่มีใบอนุญาตหรือใบรับรองใกล้หมดอายุอยู่ในฝ่ายขาย ฝ่ายผลิต และฝ่ายซัพพลายเชน โดยเฉพาะใบขับขี่รถยกและใบอนุญาตขายสุรา แนะนำให้ประสานงานกับหัวหน้างานเพื่อวางแผนส่งต่ออายุล่วงหน้าก่อนใบอนุญาตสิ้นผลบังคับใช้\n\n```a2ui\n{\"id\":\"root\",\"component\":\"Card\",\"title\":\"พนักงานที่ใบอนุญาตหรือใบรับรองใกล้หมดอายุ\",\"footnote\":\"ระบบ HR\",\"children\":[\"people_grid\"]}\n{\"id\":\"people_grid\",\"component\":\"Grid\",\"children\":{\"componentId\":\"person_item\",\"path\":\"/find_people/data\"}}\n{\"id\":\"person_item\",\"component\":\"ListItem\",\"title\":{\"path\":\"name\"},\"subtitle\":{\"path\":\"title\"},\"detail\":{\"path\":\"place\"},\"src\":{\"path\":\"photo\"},\"media\":\"avatar\",\"badges\":{\"path\":\"badges\"},\"action\":{\"event\":{\"name\":\"ask\",\"context\":{\"prompt\":\"ขอดูโปรไฟล์\",\"about\":{\"path\":\"name\"}}}}}\n```"
+   "text": "พบพนักงานที่มีใบอนุญาตขายสุรา ใบขับขี่รถยก และการรับรองมาตรฐาน GMP ใกล้ครบกำหนดในฝ่ายขาย การผลิต และซัพพลายเชน โดยบางท่านมีสถานะความเสี่ยงอื่นร่วมด้วย ฝ่ายทรัพยากรบุคคลควรเร่งประสานงานหัวหน้างานเพื่อส่งเข้ารับการอบรมและดำเนินการต่ออายุเอกสารก่อนหมดอายุเพื่อไม่ให้กระทบการปฏิบัติงาน\n\n```a2ui\n{\"id\":\"root\",\"component\":\"Card\",\"title\":\"พนักงานที่ใบอนุญาตหรือใบรับรองใกล้หมดอายุ\",\"footnote\":\"ระบบ HR\",\"children\":[\"people_grid\"]}\n{\"id\":\"people_grid\",\"component\":\"Grid\",\"children\":{\"componentId\":\"person_item\",\"path\":\"/find_people/data\"}}\n{\"id\":\"person_item\",\"component\":\"ListItem\",\"title\":{\"path\":\"name\"},\"subtitle\":{\"path\":\"title\"},\"detail\":{\"path\":\"place\"},\"src\":{\"path\":\"photo\"},\"media\":\"avatar\",\"badges\":{\"path\":\"badges\"},\"action\":{\"event\":{\"name\":\"ask\",\"context\":{\"prompt\":\"ขอดูโปรไฟล์\",\"about\":{\"path\":\"name\"}}}}}\n```"
   }
  ],
  "asked": [],
  "error": null,
  "usage": {
   "calls": 2,
-  "inputTokens": 20413,
-  "outputTokens": 3073,
-  "reasoningTokens": 2819,
-  "usd": 0.012051224999999999
+  "inputTokens": 21606,
+  "outputTokens": 3153,
+  "reasoningTokens": 2879,
+  "usd": 0.0074076958333333335
  },
  "drawn": {
   "cards": [],

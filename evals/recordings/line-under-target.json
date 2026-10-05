@@ -4,36 +4,21 @@
  "userId": "u_thana",
  "prompt": "เช้านี้ภาคไหนยังไม่ถึงเป้าบ้าง",
  "model": "google/gemini-3.8-flash",
- "promptHash": "469b58c58286c9a9",
- "toolsHash": "22f7ecc4e30f3b8c",
+ "promptHash": "b147f95e8a6c891a",
+ "toolsHash": "5639642b6a430a27",
  "today": "2026-10-05",
- "recordedAt": "2026-10-05T13:02:40.665Z",
+ "recordedAt": "2026-10-05T15:46:56.552Z",
  "steps": [
   {
    "kind": "call",
    "tool": "list_metrics",
    "args": {
-    "search": "target"
+    "search": "เป้า"
    },
    "result": {
     "ok": true,
-    "summary": "พบ 2 เมตริกที่ตรงกับคำค้น",
+    "summary": "พบ 1 เมตริกที่ตรงกับคำค้น",
     "data": [
-     {
-      "id": "ar_overdue",
-      "labelTh": "ยอดค้างชำระเกินกำหนด",
-      "unit": "บาท",
-      "dims": [
-       "month",
-       "agent",
-       "province",
-       "region"
-      ],
-      "certified": true,
-      "source": "SAP FI",
-      "refresh": "รายเดือน",
-      "latest": "22 ก.ย. 2569"
-     },
      {
       "id": "target_attainment",
       "labelTh": "การบรรลุเป้าหมาย",
@@ -63,23 +48,23 @@
    "kind": "call",
    "tool": "query_metric",
    "args": {
-    "where": {
-     "op": "below",
-     "value": 100
-    },
-    "sort": "value_asc",
-    "metric": "target_attainment",
-    "compare": "none",
-    "filters": {},
-    "range": {
-     "to": "2026-09-22",
-     "from": "2026-09-01"
-    },
+    "grain": "month",
     "limit": 10,
     "dims": [
      "region"
     ],
-    "grain": "month"
+    "compare": "none",
+    "filters": {},
+    "where": {
+     "value": 100,
+     "op": "below"
+    },
+    "sort": "value_asc",
+    "metric": "target_attainment",
+    "range": {
+     "from": "2026-09-01",
+     "to": "2026-09-22"
+    }
    },
    "result": {
     "ok": true,
@@ -177,17 +162,17 @@
   },
   {
    "kind": "text",
-   "text": "ข้อมูลล่าสุดในระบบถึงวันที่ 22 ก.ย. 2569 โดยอิงตามเมตริกการบรรลุเป้าหมาย (Target Attainment) ของเดือนกันยายน พบว่ามีภาคอีสานที่ยังไม่ถึงเป้าหมาย แนะนำให้เจาะดูรายจังหวัดหรือวิเคราะห์ส่วนต่างยอดขายของภาคอีสานเพื่อหาปัจจัยฉุดและปรับแผนการกระจายสินค้าครับ"
+   "text": "ข้อมูลล่าสุดในระบบถึงวันที่ 22 กันยายน 2569 โดยประเมินจากเมตริกการบรรลุเป้าหมายยอดขาย (Target Attainment) ในเดือนนี้ พบว่ามีเพียงภาคอีสานที่ยังไม่ถึงเป้าหมาย ควรเจาะดูรายละเอียดแยกรายจังหวัดหรือตัวแทนจำหน่ายในภาคอีสานเพื่อหาสาเหตุที่ยอดขายยังตามหลังอยู่ครับ"
   }
  ],
  "asked": [],
  "error": null,
  "usage": {
   "calls": 3,
-  "inputTokens": 32546,
-  "outputTokens": 2492,
-  "reasoningTokens": 2289,
-  "usd": 0.014147549999999998
+  "inputTokens": 34956,
+  "outputTokens": 2198,
+  "reasoningTokens": 1996,
+  "usd": 0.006737916666666666
  },
  "drawn": {
   "cards": [

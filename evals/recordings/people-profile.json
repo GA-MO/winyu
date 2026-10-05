@@ -4,17 +4,17 @@
  "userId": "u_may",
  "prompt": "ขอดูโปรไฟล์คุณจอย ศรีประเสริฐ",
  "model": "google/gemini-3.8-flash",
- "promptHash": "2f484d85b0bbd7ac",
- "toolsHash": "017d9696205cf478",
+ "promptHash": "2bfadd00013f7c5d",
+ "toolsHash": "3542bb7c8b47d7ed",
  "today": "2026-10-05",
- "recordedAt": "2026-10-05T13:05:43.600Z",
+ "recordedAt": "2026-10-05T15:50:25.927Z",
  "steps": [
   {
    "kind": "call",
    "tool": "get_person",
    "args": {
-    "name": "จอย ศรีประเสริฐ",
-    "id": null
+    "id": null,
+    "name": "จอย ศรีประเสริฐ"
    },
    "result": {
     "ok": true,
@@ -91,17 +91,17 @@
   },
   {
    "kind": "text",
-   "text": "คุณจอย ศรีประเสริฐ อยู่ระหว่างช่วงทดลองงานและมีชั่วโมงการทำงานล่วงเวลาสะสมต่อเนื่อง แนะนำให้ประสานงานร่วมกับหัวหน้างานเพื่อติดตามภาระงานและแผนพัฒนาความก้าวหน้า\n\n```a2ui\n{\"id\":\"root\",\"component\":\"Card\",\"title\":\"โปรไฟล์พนักงาน\",\"footnote\":\"ระบบ HR\",\"children\":[\"person_info\",\"facts_info\"]}\n{\"id\":\"person_info\",\"component\":\"Person\",\"name\":{\"path\":\"/get_person/data/name\"},\"role\":{\"path\":\"/get_person/data/title\"},\"src\":{\"path\":\"/get_person/data/photo\"}}\n{\"id\":\"facts_info\",\"component\":\"KeyValue\",\"from\":{\"path\":\"/get_person/data/facts\"}}\n```"
+   "text": "คุณจอยยังอยู่ในช่วงทดลองงานและมีชั่วโมงทำงานล่วงเวลาสะสมค่อนข้างสูง ควรนัดพูดคุยติดตามภาระงานร่วมกับหัวหน้างานและวางแผนเส้นทางความก้าวหน้า\n\n```a2ui\n{\"id\":\"root\",\"component\":\"Card\",\"title\":\"โปรไฟล์พนักงาน\",\"meta\":\"ข้อมูลบุคลากร\",\"footnote\":\"ระบบ HR\",\"children\":[\"person\",\"facts\"]}\n{\"id\":\"person\",\"component\":\"Person\",\"name\":{\"path\":\"/get_person/data/name\"},\"role\":{\"path\":\"/get_person/data/title\"},\"src\":{\"path\":\"/get_person/data/photo\"}}\n{\"id\":\"facts\",\"component\":\"KeyValue\",\"from\":{\"path\":\"/get_person/data/facts\"}}\n```"
   }
  ],
  "asked": [],
  "error": null,
  "usage": {
   "calls": 2,
-  "inputTokens": 19500,
-  "outputTokens": 1951,
-  "reasoningTokens": 1757,
-  "usd": 0.010970625000000001
+  "inputTokens": 20734,
+  "outputTokens": 2499,
+  "reasoningTokens": 2309,
+  "usd": 0.00564405
  },
  "drawn": {
   "cards": [],
@@ -114,14 +114,15 @@
      "id": "root",
      "component": "Card",
      "title": "โปรไฟล์พนักงาน",
+     "meta": "ข้อมูลบุคลากร",
      "footnote": "ระบบ HR",
      "children": [
-      "person_info",
-      "facts_info"
+      "person",
+      "facts"
      ]
     },
     {
-     "id": "person_info",
+     "id": "person",
      "component": "Person",
      "name": {
       "path": "/get_person/data/name"
@@ -134,7 +135,7 @@
      }
     },
     {
-     "id": "facts_info",
+     "id": "facts",
      "component": "KeyValue",
      "from": {
       "path": "/get_person/data/facts"

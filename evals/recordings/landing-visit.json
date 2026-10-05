@@ -4,10 +4,10 @@
  "userId": "u_krit",
  "prompt": "เทียบยอดขายเข้ากับยอดขายออกของ อุบลศรีสุข เทรดดิ้ง ก่อนไปเยี่ยม",
  "model": "google/gemini-3.8-flash",
- "promptHash": "019699fbec6f4ebd",
- "toolsHash": "7ba0f807fddc10bb",
+ "promptHash": "e19b55ac9c542b7b",
+ "toolsHash": "3a1e2faaa57dde17",
  "today": "2026-10-05",
- "recordedAt": "2026-10-05T13:01:55.762Z",
+ "recordedAt": "2026-10-05T15:46:11.801Z",
  "steps": [
   {
    "kind": "call",
@@ -35,22 +35,20 @@
    "kind": "call",
    "tool": "query_metric",
    "args": {
-    "sort": null,
-    "compare": "none",
-    "grain": "month",
-    "filters": {
-     "agent": "ag_nea_05"
-    },
     "dims": [
      "month"
     ],
-    "limit": 12,
+    "grain": "month",
     "metric": "net_sales_volume",
-    "where": null,
+    "filters": {
+     "agent": "ag_nea_05"
+    },
     "range": {
-     "to": "2026-09-22",
-     "from": "2026-01-01"
-    }
+     "from": "2026-01-01",
+     "to": "2026-09-22"
+    },
+    "compare": "none",
+    "limit": 30
    },
    "result": {
     "ok": true,
@@ -151,9 +149,7 @@
      },
      "grain": "month",
      "compare": "none",
-     "limit": 12,
-     "sort": null,
-     "where": null
+     "limit": 30
     },
     "nextActions": [
      {
@@ -210,19 +206,17 @@
     "filters": {
      "agent": "ag_nea_05"
     },
-    "grain": "month",
-    "limit": 12,
     "compare": "none",
+    "grain": "month",
+    "limit": 30,
+    "dims": [
+     "month"
+    ],
     "range": {
      "to": "2026-09-22",
      "from": "2026-01-01"
     },
-    "sort": null,
-    "where": null,
-    "metric": "sell_out_volume",
-    "dims": [
-     "month"
-    ]
+    "metric": "sell_out_volume"
    },
    "result": {
     "ok": true,
@@ -323,9 +317,7 @@
      },
      "grain": "month",
      "compare": "none",
-     "limit": 12,
-     "sort": null,
-     "where": null
+     "limit": 30
     },
     "nextActions": [
      {
@@ -360,17 +352,17 @@
   },
   {
    "kind": "text",
-   "text": "เปรียบเทียบด้วยปริมาณขายเข้า (Sell-in) และปริมาณขายออก (Sell-out) ข้อมูลล่าสุดถึงวันที่ 22 ก.ย. 2569 พบว่าในช่วง 3 เดือนล่าสุดยอดขายออกสูงกว่ายอดขายเข้าอย่างต่อเนื่อง ซึ่งบ่งชี้ว่าสต๊อกหน้าร้านกำลังถูกระบายออกอย่างรวดเร็ว แนะนำให้ตรวจนับสต๊อกคงเหลือจริงและเสนอให้สั่งเติมสินค้าเพื่อป้องกันการขาดสต๊อกในการเข้าเยี่ยมรอบนี้"
+   "text": "เปรียบเทียบจากปริมาณขายเข้า (Sell-in) และปริมาณขายออก (Sell-out) ของอุบลศรีสุข เทรดดิ้ง ซึ่งข้อมูลล่าสุดถึงวันที่ 22 กันยายน 2569 พบว่าในช่วงเดือนสิงหาคมถึงกันยายน ยอดขายออกหน้าร้านสูงกว่ายอดสั่งซื้อเข้าต่อเนื่อง ชี้ให้เห็นว่าสต๊อกของเอเย่นต์กำลังพร่องตัวลงอย่างรวดเร็ว ในการเข้าเยี่ยมรอบนี้จึงควรตรวจนับสต๊อกคงเหลือจริงและเสนอเปิดคำสั่งซื้อเพื่อเติมสต๊อกป้องกันสินค้าขาดหน้าร้าน"
   }
  ],
  "asked": [],
  "error": null,
  "usage": {
   "calls": 3,
-  "inputTokens": 30465,
-  "outputTokens": 3050,
-  "reasoningTokens": 2720,
-  "usd": 0.017143125
+  "inputTokens": 33662,
+  "outputTokens": 3265,
+  "reasoningTokens": 2930,
+  "usd": 0.008919825
  },
  "drawn": {
   "cards": [

@@ -5,6 +5,15 @@ import { checkProp, isRecord, isTemplate, prunedModel, sourcesOf, templateScope,
 const CONTAINERS: ReadonlySet<ComponentName> = new Set(["Card", "Section", "Grid", "Carousel"]);
 const MIN_DRAWN_COMPONENTS = 2;
 const STRUCTURAL_PROPS: ReadonlySet<string> = new Set(["id", "component", "children"]);
+const NUMBER_TOKEN = /[0-9๐-๙][0-9๐-๙,.:/-]*/g;
+const BRACKETED_NUMBER = /\([^)]*[0-9๐-๙][^)]*\)/g;
+const LOOSE_EDGES = /^[\s·,:()-]+|[\s·,:()-]+$/g;
+
+/** A card heading the model typed with a number in it ("หลักสูตรเดือนตุลาคม 2569"), the number taken out, or null when nothing readable is left: a heading names the card, the numbers belong in bound parts. */
+export function headingWithoutNumbers(text: string): string | null {
+  const stripped = text.replace(BRACKETED_NUMBER, " ").replace(NUMBER_TOKEN, " ").replace(/\s+/g, " ").replace(LOOSE_EDGES, "").trim();
+  return stripped.length > 0 ? stripped : null;
+}
 
 /** What a composed card shows at one moment: its components from the root down, children cut to those that hold, and the data model cut to what they read. */
 export type CardSurface = { components: ComposedComponent[]; dataModel: Record<string, unknown> };
@@ -145,6 +154,12 @@ export class CardComposer {
       const check = checkProp(component, prop, scope, this.sources);
       if (check.problems.length === 0) {
         used.push(...check.used);
+        continue;
+      }
+      const heading = component.component === "Card" && prop === "title" && typeof component.title === "string" ? headingWithoutNumbers(component.title) : null;
+      if (heading && heading !== component.title && checkProp({ ...component, title: heading }, prop, scope, this.sources).problems.length === 0) {
+        this.problems.push(`${component.id}.title: numbers taken out of "${component.title}" (kept "${heading}")`);
+        kept.title = heading;
         continue;
       }
       if (!isOptionalProp(component.component, prop)) return this.reject(check.problems.join("; "));

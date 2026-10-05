@@ -4,28 +4,29 @@
  "userId": "u_thana",
  "prompt": "10 เอเย่นต์ที่ยอดขายเดือนที่แล้วตกมากที่สุดเทียบเดือนก่อนหน้า",
  "model": "google/gemini-3.8-flash",
- "promptHash": "469b58c58286c9a9",
- "toolsHash": "22f7ecc4e30f3b8c",
+ "promptHash": "b147f95e8a6c891a",
+ "toolsHash": "5639642b6a430a27",
  "today": "2026-10-05",
- "recordedAt": "2026-10-05T13:33:48.828Z",
+ "recordedAt": "2026-10-05T15:47:58.962Z",
  "steps": [
   {
    "kind": "call",
    "tool": "query_metric",
    "args": {
-    "limit": 10,
+    "sort": "delta_asc",
+    "compare": "prev_period",
+    "range": {
+     "to": "2026-08-31",
+     "from": "2026-08-01"
+    },
+    "metric": "net_sales_value",
+    "where": null,
     "dims": [
      "agent"
     ],
-    "filters": {},
-    "sort": "delta_asc",
-    "compare": "prev_period",
-    "metric": "net_sales_value",
+    "limit": 10,
     "grain": "month",
-    "range": {
-     "from": "2026-08-01",
-     "to": "2026-08-31"
-    }
+    "filters": {}
    },
    "result": {
     "ok": true,
@@ -151,7 +152,8 @@
      "grain": "month",
      "compare": "prev_period",
      "limit": 10,
-     "sort": "delta_asc"
+     "sort": "delta_asc",
+     "where": null
     },
     "nextActions": [
      {
@@ -179,7 +181,8 @@
          "grain": "month",
          "compare": "prev_period",
          "limit": 10,
-         "sort": "delta_asc"
+         "sort": "delta_asc",
+         "where": null
         }
        ],
        "alertIds": []
@@ -218,17 +221,17 @@
   },
   {
    "kind": "text",
-   "text": "รายงานด้วยมูลค่าขายสุทธิ (Net Sales Value) ประจำเดือนสิงหาคม 2569 เทียบกับเดือนก่อนหน้า (กรกฎาคม 2569) พบว่าทั้ง 10 เอเย่นต์มียอดขายลดลงในสัดส่วนใกล้เคียงกัน โดย ปากช่องเบเวอเรจ ปรับตัวลดลงมากที่สุด ควรเจาะดูยอดขายออกหน้าร้าน (Sell-out) และวันครอบคลุมสต๊อกของกลุ่มนี้เพิ่มเติม เพื่อตรวจสอบว่าเป็นผลจากการชะลอคำสั่งซื้อเพื่อระบายสินค้าคงคลังหรือไม่"
+   "text": "รายงานด้วยมูลค่าขายสุทธิ (net_sales_value) ประจำเดือนสิงหาคม 2569 เทียบกับเดือนกรกฎาคม 2569 ข้อมูลล่าสุดถึงวันที่ 22 กันยายน 2569\n\nเอเย่นต์ทั้ง 10 รายมียอดขายลดลงในระดับใกล้เคียงกันประมาณ 27–28% โดยปากช่องเบเวอเรจลดลงมากที่สุด ควรตรวจสอบว่าการลดลงพร้อมกันในหลายพื้นที่เกิดจากปัจจัยฤดูกาล วันหยุดทางศาสนา หรือการสต๊อกสินค้าล่วงหน้าในเดือนก่อนหน้า"
   }
  ],
  "asked": [],
  "error": null,
  "usage": {
   "calls": 2,
-  "inputTokens": 21750,
-  "outputTokens": 1316,
-  "reasoningTokens": 1101,
-  "usd": 0.010623750000000001
+  "inputTokens": 23600,
+  "outputTokens": 1342,
+  "reasoningTokens": 1119,
+  "usd": 0.00422475
  },
  "drawn": {
   "cards": [

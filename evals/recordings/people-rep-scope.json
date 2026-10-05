@@ -4,20 +4,20 @@
  "userId": "u_krit",
  "prompt": "ทีมขายภาคอีสานมีใครบ้าง",
  "model": "google/gemini-3.8-flash",
- "promptHash": "019699fbec6f4ebd",
- "toolsHash": "7ba0f807fddc10bb",
+ "promptHash": "e19b55ac9c542b7b",
+ "toolsHash": "3a1e2faaa57dde17",
  "today": "2026-10-05",
- "recordedAt": "2026-10-05T13:09:08.870Z",
+ "recordedAt": "2026-10-05T15:53:35.173Z",
  "steps": [
   {
    "kind": "call",
    "tool": "find_people",
    "args": {
-    "query": null,
     "flag": null,
+    "query": null,
+    "department": "dept_sales",
     "manager": null,
-    "region": "northeast",
-    "department": "dept_sales"
+    "region": "northeast"
    },
    "result": {
     "ok": true,
@@ -131,22 +131,22 @@
   },
   {
    "kind": "text",
-   "text": "ทีมขายภาคอีสานนำโดยคุณอนุชา พรหมศรี และมีข้อมูลอายุงานบางส่วนถูกปิดตามสิทธิ์การเข้าถึง ทั้งนี้ ใบอนุญาตขายสุราของคุณกฤตเหลือระยะเวลาตามป้ายเตือน ควรเตรียมดำเนินการต่ออายุล่วงหน้า\n\n```a2ui\n{\"id\":\"root\",\"component\":\"Card\",\"title\":\"ทีมขายภาคอีสาน\",\"footnote\":\"ระบบ HR\",\"children\":[\"team_section\",\"open_section\"]}\n{\"id\":\"team_section\",\"component\":\"Section\",\"label\":\"สมาชิกในทีม\",\"children\":[\"team_grid\"]}\n{\"id\":\"team_grid\",\"component\":\"Grid\",\"children\":{\"componentId\":\"member\",\"path\":\"/find_people/data\"}}\n{\"id\":\"member\",\"component\":\"ListItem\",\"title\":{\"path\":\"name\"},\"subtitle\":{\"path\":\"title\"},\"detail\":{\"path\":\"place\"},\"src\":{\"path\":\"photo\"},\"media\":\"avatar\",\"badges\":{\"path\":\"badges\"},\"action\":{\"event\":{\"name\":\"ask\",\"context\":{\"prompt\":\"ขอดูโปรไฟล์\",\"about\":{\"path\":\"name\"}}}}}\n{\"id\":\"open_section\",\"component\":\"Section\",\"label\":\"ตำแหน่งเปิดรับ\",\"children\":[\"open_grid\"]}\n{\"id\":\"open_grid\",\"component\":\"Grid\",\"children\":{\"componentId\":\"open_pos\",\"path\":\"/find_people/open_positions\"}}\n{\"id\":\"open_pos\",\"component\":\"ListItem\",\"title\":{\"path\":\"title\"},\"subtitle\":{\"path\":\"open_label\"},\"media\":\"none\"}\n```"
+   "text": "ทีมขายภาคอีสานอยู่ภายใต้การบริหารของคุณอนุชา พรหมศรี โดยมีบางข้อมูลถูกปิดตามสิทธิ์การเข้าถึง ทั้งนี้ใบอนุญาตขายสุราของคุณกฤตใกล้หมดอายุ ควรเตรียมดำเนินการต่ออายุล่วงหน้า\n\n```a2ui\n{\"id\":\"root\",\"component\":\"Card\",\"title\":\"ทีมขายภาคอีสาน\",\"footnote\":\"ระบบ HR\",\"children\":[\"members\",\"openings\"]}\n{\"id\":\"members\",\"component\":\"Grid\",\"children\":{\"componentId\":\"person_item\",\"path\":\"/find_people/data\"}}\n{\"id\":\"person_item\",\"component\":\"ListItem\",\"title\":{\"path\":\"name\"},\"subtitle\":{\"path\":\"title\"},\"detail\":{\"path\":\"place\"},\"src\":{\"path\":\"photo\"},\"media\":\"avatar\",\"badges\":{\"path\":\"badges\"},\"action\":{\"event\":{\"name\":\"ask\",\"context\":{\"prompt\":\"ขอดูโปรไฟล์\",\"about\":{\"path\":\"name\"}}}}}\n{\"id\":\"openings\",\"component\":\"Grid\",\"children\":{\"componentId\":\"open_item\",\"path\":\"/find_people/open_positions\"}}\n{\"id\":\"open_item\",\"component\":\"ListItem\",\"title\":{\"path\":\"title\"},\"subtitle\":{\"path\":\"open_label\"},\"media\":\"none\"}\n```"
   }
  ],
  "asked": [],
  "error": null,
  "usage": {
   "calls": 2,
-  "inputTokens": 18655,
-  "outputTokens": 4008,
-  "reasoningTokens": 3661,
-  "usd": 0.014510625000000001
+  "inputTokens": 20573,
+  "outputTokens": 1825,
+  "reasoningTokens": 1533,
+  "usd": 0.00458655
  },
  "drawn": {
   "cards": [],
   "composed": {
-   "accepted": 7,
+   "accepted": 5,
    "rejected": 0,
    "problems": [],
    "components": [
@@ -156,28 +156,20 @@
      "title": "ทีมขายภาคอีสาน",
      "footnote": "ระบบ HR",
      "children": [
-      "team_section",
-      "open_section"
+      "members",
+      "openings"
      ]
     },
     {
-     "id": "team_section",
-     "component": "Section",
-     "label": "สมาชิกในทีม",
-     "children": [
-      "team_grid"
-     ]
-    },
-    {
-     "id": "team_grid",
+     "id": "members",
      "component": "Grid",
      "children": {
-      "componentId": "member",
+      "componentId": "person_item",
       "path": "/find_people/data"
      }
     },
     {
-     "id": "member",
+     "id": "person_item",
      "component": "ListItem",
      "title": {
       "path": "name"
@@ -208,23 +200,15 @@
      }
     },
     {
-     "id": "open_section",
-     "component": "Section",
-     "label": "ตำแหน่งเปิดรับ",
-     "children": [
-      "open_grid"
-     ]
-    },
-    {
-     "id": "open_grid",
+     "id": "openings",
      "component": "Grid",
      "children": {
-      "componentId": "open_pos",
+      "componentId": "open_item",
       "path": "/find_people/open_positions"
      }
     },
     {
-     "id": "open_pos",
+     "id": "open_item",
      "component": "ListItem",
      "title": {
       "path": "title"

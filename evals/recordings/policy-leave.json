@@ -4,10 +4,10 @@
  "userId": "u_krit",
  "prompt": "ลาพักร้อนยังไง",
  "model": "google/gemini-3.8-flash",
- "promptHash": "019699fbec6f4ebd",
- "toolsHash": "7ba0f807fddc10bb",
+ "promptHash": "e19b55ac9c542b7b",
+ "toolsHash": "3a1e2faaa57dde17",
  "today": "2026-10-05",
- "recordedAt": "2026-10-05T13:08:52.063Z",
+ "recordedAt": "2026-10-05T15:53:26.260Z",
  "steps": [
   {
    "kind": "call",
@@ -85,38 +85,41 @@
   },
   {
    "kind": "text",
-   "text": "การลาพักร้อนต้องยื่นล่วงหน้าตามระเบียบของบริษัท โดยคำขอจะส่งตรงไปยังหัวหน้างานเพื่อพิจารณาอนุมัติ ทั้งนี้ในช่วงเร่งผลิตและเทศกาลทีมขายต้องจัดสรรกำลังคนให้พร้อมปฏิบัติงานตามสัดส่วนที่กำหนด\n\n```a2ui\n{\"id\":\"root\",\"component\":\"Card\",\"title\":\"ระเบียบและสิทธิการลาพักร้อน\",\"footnote\":\"ระบบ HR\",\"children\":[\"leave_metric\",\"rule_callout\",\"approval_callout\"]}\n{\"id\":\"leave_metric\",\"component\":\"Metric\",\"label\":{\"path\":\"/get_policy/data/balances/0/label\"},\"value\":{\"path\":\"/get_policy/data/balances/0/value\"},\"detail\":{\"path\":\"/get_policy/data/balances/0/detail\"}}\n{\"id\":\"rule_callout\",\"component\":\"Callout\",\"title\":{\"path\":\"/get_policy/data/sections/0/title\"},\"body\":{\"path\":\"/get_policy/data/sections/0/content\"},\"tone\":\"info\"}\n{\"id\":\"approval_callout\",\"component\":\"Callout\",\"title\":{\"path\":\"/get_policy/data/sections/3/title\"},\"body\":{\"path\":\"/get_policy/data/sections/3/content\"},\"tone\":\"info\"}\n```"
+   "text": "การลาพักร้อนต้องยื่นคำขอล่วงหน้าผ่านระบบเพื่อให้หัวหน้างานพิจารณาอนุมัติทาง Inbox หากมีวันที่ต้องการลาแน่นอนแล้ว สามารถระบุช่วงวันเริ่มต้นและวันสิ้นสุดเพื่อดำเนินการส่งคำขออนุมัติได้ทันที\n\n```a2ui\n{\"id\":\"root\",\"component\":\"Card\",\"title\":\"ระเบียบและสิทธิ์การลาพักร้อน\",\"meta\":{\"path\":\"/get_policy/data/summary\"},\"footnote\":\"ระบบ HR\",\"children\":[\"bal\",\"rule\",\"approval\"]}\n{\"id\":\"bal\",\"component\":\"Metric\",\"label\":{\"path\":\"/get_policy/data/balances/0/label\"},\"value\":{\"path\":\"/get_policy/data/balances/0/value\"},\"detail\":{\"path\":\"/get_policy/data/balances/0/detail\"}}\n{\"id\":\"rule\",\"component\":\"Callout\",\"title\":{\"path\":\"/get_policy/data/sections/0/title\"},\"body\":{\"path\":\"/get_policy/data/sections/0/content\"},\"tone\":\"info\"}\n{\"id\":\"approval\",\"component\":\"Callout\",\"title\":{\"path\":\"/get_policy/data/sections/3/title\"},\"body\":{\"path\":\"/get_policy/data/sections/3/content\"},\"tone\":\"neutral\"}\n```"
   }
  ],
  "asked": [],
  "error": null,
  "usage": {
   "calls": 2,
-  "inputTokens": 18306,
-  "outputTokens": 6442,
-  "reasoningTokens": 6142,
-  "usd": 0.018943500000000002
+  "inputTokens": 20868,
+  "outputTokens": 5505,
+  "reasoningTokens": 5213,
+  "usd": 0.011597175
  },
  "drawn": {
   "cards": [],
   "composed": {
    "accepted": 4,
    "rejected": 0,
-   "problems": [],
+   "problems": [
+    "root.meta: path \"/get_policy/data/summary\" is not in this turn's tool results (keys: get_policy) (dropped)",
+    "approval.tone: Invalid enum value. Expected 'info' | 'success' | 'warning' | 'danger', received 'neutral' (dropped)"
+   ],
    "components": [
     {
      "id": "root",
      "component": "Card",
-     "title": "ระเบียบและสิทธิการลาพักร้อน",
+     "title": "ระเบียบและสิทธิ์การลาพักร้อน",
      "footnote": "ระบบ HR",
      "children": [
-      "leave_metric",
-      "rule_callout",
-      "approval_callout"
+      "bal",
+      "rule",
+      "approval"
      ]
     },
     {
-     "id": "leave_metric",
+     "id": "bal",
      "component": "Metric",
      "label": {
       "path": "/get_policy/data/balances/0/label"
@@ -129,7 +132,7 @@
      }
     },
     {
-     "id": "rule_callout",
+     "id": "rule",
      "component": "Callout",
      "title": {
       "path": "/get_policy/data/sections/0/title"
@@ -140,15 +143,14 @@
      "tone": "info"
     },
     {
-     "id": "approval_callout",
+     "id": "approval",
      "component": "Callout",
      "title": {
       "path": "/get_policy/data/sections/3/title"
      },
      "body": {
       "path": "/get_policy/data/sections/3/content"
-     },
-     "tone": "info"
+     }
     }
    ]
   }

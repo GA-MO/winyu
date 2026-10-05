@@ -4,28 +4,30 @@
  "userId": "u_anucha",
  "prompt": "ยอดขายภาคอีสานเดือนนี้เทียบเป้า",
  "model": "google/gemini-3.8-flash",
- "promptHash": "20386bc6c3b08846",
- "toolsHash": "22f7ecc4e30f3b8c",
+ "promptHash": "5cf727ed51a6d1b3",
+ "toolsHash": "5639642b6a430a27",
  "today": "2026-10-05",
- "recordedAt": "2026-10-05T12:59:30.071Z",
+ "recordedAt": "2026-10-05T15:42:57.871Z",
  "steps": [
   {
    "kind": "call",
    "tool": "query_metric",
    "args": {
+    "compare": "target",
+    "where": null,
     "dims": [
      "region"
     ],
-    "grain": "month",
-    "filters": {
-     "region": "northeast"
-    },
     "metric": "net_sales_volume",
-    "compare": "target",
+    "grain": "month",
     "limit": 10,
     "range": {
-     "from": "2026-09-01",
-     "to": "2026-09-22"
+     "to": "2026-09-22",
+     "from": "2026-09-01"
+    },
+    "sort": "value_desc",
+    "filters": {
+     "region": "northeast"
     }
    },
    "result": {
@@ -94,7 +96,9 @@
      },
      "grain": "month",
      "compare": "target",
-     "limit": 10
+     "limit": 10,
+     "sort": "value_desc",
+     "where": null
     },
     "nextActions": [
      {
@@ -146,17 +150,17 @@
   },
   {
    "kind": "text",
-   "text": "รายงานด้วยปริมาณขายเข้าสุทธิ (Sell-in) โดยข้อมูลในระบบล่าสุดถึงวันที่ 22 ก.ย. 2569 \n\nภาพรวมภาคอีสานช่วงที่ผ่านมายังทำได้ต่ำกว่าเป้าหมาย และหากประเมินจากอัตราการขายช่วงสัปดาห์ล่าสุดมีแนวโน้มจะปิดสิ้นเดือนไม่ถึงเป้า แนะนำให้เจาะดูผลงานแยกรายเอเย่นต์หรือรายจังหวัดเพื่อหาสาเหตุและเร่งผลักดันคำสั่งซื้อครับ"
+   "text": "รายงานยอดขายด้วยปริมาณขายเข้า (Sell-in) โดยข้อมูลล่าสุดในระบบถึงวันที่ 22 กันยายน 2569 ภาพรวมภาคอีสานยังทำผลงานต่ำกว่าเป้าหมายช่วงเดียวกัน และแนวโน้มสิ้นเดือนยังมีความเสี่ยงไม่ถึงเป้า แนะนำให้เจาะดูยอดขายแยกรายเอเย่นต์หรือจังหวัดเพื่อหาสาเหตุที่ยอดชะลอตัวและวางแผนกระตุ้นยอดขายช่วงท้ายเดือนครับ"
   }
  ],
  "asked": [],
  "error": null,
  "usage": {
   "calls": 2,
-  "inputTokens": 21294,
-  "outputTokens": 1860,
-  "reasoningTokens": 1666,
-  "usd": 0.01147275
+  "inputTokens": 23284,
+  "outputTokens": 1876,
+  "reasoningTokens": 1680,
+  "usd": 0.005303058333333333
  },
  "drawn": {
   "cards": [

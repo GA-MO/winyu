@@ -4,28 +4,29 @@
  "userId": "u_thana",
  "prompt": "ยอดขายแยกตามภาคเดือนนี้",
  "model": "google/gemini-3.8-flash",
- "promptHash": "469b58c58286c9a9",
- "toolsHash": "22f7ecc4e30f3b8c",
+ "promptHash": "b147f95e8a6c891a",
+ "toolsHash": "5639642b6a430a27",
  "today": "2026-10-05",
- "recordedAt": "2026-10-05T12:57:53.503Z",
+ "recordedAt": "2026-10-05T15:41:56.266Z",
  "steps": [
   {
    "kind": "call",
    "tool": "query_metric",
    "args": {
-    "compare": "target",
-    "limit": 10,
-    "sort": "value_desc",
     "range": {
      "to": "2026-09-22",
      "from": "2026-09-01"
     },
+    "compare": "target",
+    "filters": {},
+    "where": null,
+    "sort": "value_desc",
     "metric": "net_sales_value",
-    "grain": "month",
+    "limit": 10,
     "dims": [
      "region"
     ],
-    "filters": {}
+    "grain": "month"
    },
    "result": {
     "ok": true,
@@ -129,7 +130,8 @@
      "grain": "month",
      "compare": "target",
      "limit": 10,
-     "sort": "value_desc"
+     "sort": "value_desc",
+     "where": null
     },
     "nextActions": [
      {
@@ -172,17 +174,17 @@
   },
   {
    "kind": "text",
-   "text": "รายงานด้วยมูลค่ายอดขายสุทธิเทียบเป้าหมาย (ข้อมูลล่าสุดถึง 22 ก.ย. 2569) พบว่าทุกภาคทำได้ตามเป้าหมาย ยกเว้นภาคอีสานที่ต่ำกว่าเป้าอย่างเห็นได้ชัด สันนิษฐานเบื้องต้นว่าเอเย่นต์หลักในพื้นที่อาจชะลอคำสั่งซื้อ ซึ่งสามารถตรวจยืนยันได้จากการเจาะดูยอดขายรายเอเย่นต์และตรวจสอบวันครอบคลุมสต๊อกในพื้นที่เพิ่มเติม ทั้งนี้ต้องการให้ส่งเรื่องให้ผู้รับผิดชอบภาคอีสานเข้าไปตรวจสอบหรือไม่ครับ"
+   "text": "รายงานด้วยมูลค่าขายเข้าสุทธิ (Net Sales Value) ประจำเดือนนี้ช่วงวันที่ 1–22 ก.ย. 2569 (ข้อมูลล่าสุดถึง 22 ก.ย. 2569) โดยภาพรวมส่วนใหญ่ทำได้ตามเป้าหมาย ยกเว้นภาคอีสานที่เป็นภูมิภาคเดียวที่ยังต่ำกว่าเป้าและฉุดยอดรวม ควรเจาะดูข้อมูลระดับเอเย่นต์ในภาคอีสานเพื่อหาสาเหตุของยอดขายที่ชะลอตัว"
   }
  ],
  "asked": [],
  "error": null,
  "usage": {
   "calls": 2,
-  "inputTokens": 21611,
-  "outputTokens": 3344,
-  "reasoningTokens": 3131,
-  "usd": 0.014374124999999998
+  "inputTokens": 23261,
+  "outputTokens": 2092,
+  "reasoningTokens": 1892,
+  "usd": 0.005503875
  },
  "drawn": {
   "cards": [

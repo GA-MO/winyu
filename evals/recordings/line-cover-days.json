@@ -4,10 +4,10 @@
  "userId": "u_saranya",
  "prompt": "สต๊อกน้ำดื่มสิงห์ที่ DC สงขลาพอขายกี่วัน",
  "model": "google/gemini-3.8-flash",
- "promptHash": "66ee029a61b36bd0",
- "toolsHash": "22f7ecc4e30f3b8c",
+ "promptHash": "dbb8d8ec86285340",
+ "toolsHash": "5639642b6a430a27",
  "today": "2026-10-05",
- "recordedAt": "2026-10-05T13:02:26.491Z",
+ "recordedAt": "2026-10-05T15:46:40.026Z",
  "steps": [
   {
    "kind": "call",
@@ -62,18 +62,17 @@
    "kind": "call",
    "tool": "query_metric",
    "args": {
-    "compare": "none",
-    "limit": 10,
-    "filters": {
-     "dc": "dc_songkhla",
-     "brand": "น้ำดื่มสิงห์"
-    },
-    "grain": "day",
-    "metric": "days_of_cover",
     "dims": [
-     "dc",
      "brand"
     ],
+    "grain": "day",
+    "compare": "none",
+    "metric": "days_of_cover",
+    "filters": {
+     "brand": "น้ำดื่มสิงห์",
+     "dc": "dc_songkhla"
+    },
+    "limit": 10,
     "range": {
      "to": "2026-09-22",
      "from": "2026-09-22"
@@ -83,13 +82,12 @@
     "ok": true,
     "rows": [
      {
-      "dc": "ศูนย์กระจายสินค้าสงขลา",
       "brand": "น้ำดื่มสิงห์",
       "value": 13.67,
       "value_label": "13.7 วัน"
      }
     ],
-    "summary": "วันครอบคลุมสต๊อก 22 ก.ย. 2569: เฉลี่ย 13.7 วัน · ต่ำสุด: ศูนย์กระจายสินค้าสงขลา 13.7 วัน · (1 แถว · certified · WMS)",
+    "summary": "วันครอบคลุมสต๊อก 22 ก.ย. 2569: เฉลี่ย 13.7 วัน · ต่ำสุด: น้ำดื่มสิงห์ 13.7 วัน · (1 แถว · certified · WMS)",
     "headline": {
      "aggregate": "average",
      "value": "13.7 วัน",
@@ -100,7 +98,7 @@
      "compareNote": null,
      "top": [
       {
-       "label": "ศูนย์กระจายสินค้าสงขลา",
+       "label": "น้ำดื่มสิงห์",
        "value": "13.7 วัน"
       }
      ],
@@ -113,14 +111,16 @@
      "asOf": "2026-09-22",
      "rowCount": 1,
      "filtersApplied": {
-      "dc": [
-       "dc_songkhla"
-      ],
       "brand": [
        "singha_water"
+      ],
+      "dc": [
+       "dc_songkhla"
       ]
      },
-     "filterLabels": [],
+     "filterLabels": [
+      "ศูนย์กระจายสินค้าสงขลา"
+     ],
      "scopeApplied": {
       "region": [
        "south"
@@ -132,15 +132,14 @@
     "query": {
      "metric": "days_of_cover",
      "dims": [
-      "dc",
       "brand"
      ],
      "filters": {
-      "dc": [
-       "dc_songkhla"
-      ],
       "brand": [
        "น้ำดื่มสิงห์"
+      ],
+      "dc": [
+       "dc_songkhla"
       ]
      },
      "range": {
@@ -172,7 +171,7 @@
      {
       "id": "fu-compare_year",
       "label": "เทียบปีก่อน",
-      "prompt": "ขอวันครอบคลุมสต๊อกแยกตามศูนย์กระจายสินค้า เทียบกับช่วงเดียวกันปีก่อน",
+      "prompt": "ขอวันครอบคลุมสต๊อกแยกตามแบรนด์ เทียบกับช่วงเดียวกันปีก่อน",
       "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
       "intentKey": "follow|compare_year",
       "score": 0.45
@@ -182,17 +181,17 @@
   },
   {
    "kind": "text",
-   "text": "ระบบดึงข้อมูลจากเมตริกวันครอบคลุมสต๊อก (Days of Cover) ล่าสุด ณ วันที่ 22 ก.ย. 2569 ระดับสต๊อกปัจจุบันเพียงพอรองรับการจ่ายสินค้าประมาณสองสัปดาห์ แนะนำให้ติดตามแนวโน้มยอดขายออกและรอบการเติมสินค้าเข้าศูนย์กระจายสินค้าเพื่อป้องกันความเสี่ยงของขาดช่วง"
+   "text": "ข้อมูลสต๊อกล่าสุด ณ วันที่ 22 กันยายน 2569 ระดับวันครอบคลุมสต๊อกของน้ำดื่มสิงห์ที่ศูนย์กระจายสินค้าสงขลายังอยู่ในเกณฑ์หมุนเวียนปกติ หากต้องการตรวจสอบแผนรถขนส่งสินค้าเข้าศูนย์เพิ่มเติมเพื่อรองรับคำสั่งซื้อล่วงหน้าสามารถเช็กสถานะการจัดส่งได้ครับ"
   }
  ],
  "asked": [],
  "error": null,
  "usage": {
   "calls": 3,
-  "inputTokens": 31452,
-  "outputTokens": 1927,
-  "reasoningTokens": 1690,
-  "usd": 0.015407624999999998
+  "inputTokens": 34613,
+  "outputTokens": 1422,
+  "reasoningTokens": 1195,
+  "usd": 0.005139416666666667
  },
  "drawn": {
   "cards": [

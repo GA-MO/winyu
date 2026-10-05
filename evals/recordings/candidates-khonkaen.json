@@ -4,10 +4,10 @@
  "userId": "u_may",
  "prompt": "ผู้สมัครพนักงานขายขอนแก่น",
  "model": "google/gemini-3.8-flash",
- "promptHash": "2f484d85b0bbd7ac",
- "toolsHash": "017d9696205cf478",
+ "promptHash": "2bfadd00013f7c5d",
+ "toolsHash": "3542bb7c8b47d7ed",
  "today": "2026-10-05",
- "recordedAt": "2026-10-05T13:06:29.932Z",
+ "recordedAt": "2026-10-05T15:51:31.360Z",
  "steps": [
   {
    "kind": "call",
@@ -246,43 +246,38 @@
   },
   {
    "kind": "text",
-   "text": "ตำแหน่งนี้มีผู้สมัครที่ผ่านการคัดเลือกจนถึงขั้นยื่นข้อเสนอแล้ว ควรเร่งติดตามการตอบรับข้อเสนอและกำหนดวันเริ่มงานเพื่อปิดการสรรหาตามแผนงาน\n\n```a2ui\n{\"id\":\"root\",\"component\":\"Card\",\"title\":\"ผู้สมัครพนักงานขาย ขอนแก่น\",\"meta\":\"เขตชุมแพ\",\"footnote\":\"ระบบสรรหาบุคลากร\",\"children\":[\"metrics_grid\",\"candidates_grid\"]}\n{\"id\":\"metrics_grid\",\"component\":\"Grid\",\"children\":[\"m1\",\"m2\",\"m3\"]}\n{\"id\":\"m1\",\"component\":\"Metric\",\"label\":{\"path\":\"/list_candidates/data/metrics/0/label\"},\"value\":{\"path\":\"/list_candidates/data/metrics/0/value\"},\"detail\":{\"path\":\"/list_candidates/data/metrics/0/detail\"}}\n{\"id\":\"m2\",\"component\":\"Metric\",\"label\":{\"path\":\"/list_candidates/data/metrics/1/label\"},\"value\":{\"path\":\"/list_candidates/data/metrics/1/value\"},\"detail\":{\"path\":\"/list_candidates/data/metrics/1/detail\"}}\n{\"id\":\"m3\",\"component\":\"Metric\",\"label\":{\"path\":\"/list_candidates/data/metrics/2/label\"},\"value\":{\"path\":\"/list_candidates/data/metrics/2/value\"}}\n{\"id\":\"candidates_grid\",\"component\":\"Grid\",\"children\":{\"componentId\":\"candidate_item\",\"path\":\"/list_candidates/data/candidates\"}}\n{\"id\":\"candidate_item\",\"component\":\"ListItem\",\"title\":{\"path\":\"name\"},\"subtitle\":{\"path\":\"stage\"},\"detail\":{\"path\":\"experience\"},\"badges\":{\"path\":\"badges\"},\"media\":\"none\",\"action\":{\"event\":{\"name\":\"ask\",\"context\":{\"prompt\":\"ขอดูรายละเอียดผู้สมัคร\",\"about\":{\"path\":\"name\"}}}}}\n```"
+   "text": "ตำแหน่งนี้เปิดรับมานานกว่าเกณฑ์ปกติ โดยมีผู้สมัครที่เข้าสู่ขั้นตอนยื่นข้อเสนอและรอบสัมภาษณ์สุดท้ายแล้ว ควรเร่งติดตามการตอบรับข้อเสนอและตรวจสอบเงื่อนไขเริ่มงานเพื่อสรุปการบรรจุคนเข้าพื้นที่\n\n```a2ui\n{\"id\":\"root\",\"component\":\"Card\",\"title\":\"ผู้สมัครตำแหน่งพนักงานขาย ขอนแก่น\",\"meta\":{\"path\":\"/list_candidates/data/position/title\"},\"footnote\":\"ระบบสรรหาบุคลากร\",\"children\":[\"m1\",\"m2\",\"m3\",\"candidates_grid\"]}\n{\"id\":\"m1\",\"component\":\"Metric\",\"label\":{\"path\":\"/list_candidates/data/metrics/0/label\"},\"value\":{\"path\":\"/list_candidates/data/metrics/0/value\"},\"detail\":{\"path\":\"/list_candidates/data/metrics/0/detail\"}}\n{\"id\":\"m2\",\"component\":\"Metric\",\"label\":{\"path\":\"/list_candidates/data/metrics/1/label\"},\"value\":{\"path\":\"/list_candidates/data/metrics/1/value\"},\"detail\":{\"path\":\"/list_candidates/data/metrics/1/detail\"}}\n{\"id\":\"m3\",\"component\":\"Metric\",\"label\":{\"path\":\"/list_candidates/data/metrics/2/label\"},\"value\":{\"path\":\"/list_candidates/data/metrics/2/value\"}}\n{\"id\":\"candidates_grid\",\"component\":\"Grid\",\"children\":{\"componentId\":\"candidate_item\",\"path\":\"/list_candidates/data/candidates\"}}\n{\"id\":\"candidate_item\",\"component\":\"ListItem\",\"title\":{\"path\":\"name\"},\"subtitle\":{\"path\":\"stage\"},\"detail\":{\"path\":\"experience\"},\"badges\":{\"path\":\"badges\"},\"media\":\"none\",\"action\":{\"event\":{\"name\":\"ask\",\"context\":{\"prompt\":\"ขอดูประวัติผู้สมัคร\",\"about\":{\"path\":\"name\"}}}}}\n```"
   }
  ],
  "asked": [],
  "error": null,
  "usage": {
   "calls": 2,
-  "inputTokens": 21092,
-  "outputTokens": 3274,
-  "reasoningTokens": 2855,
-  "usd": 0.014048249999999998
+  "inputTokens": 22230,
+  "outputTokens": 4403,
+  "reasoningTokens": 3977,
+  "usd": 0.00977505
  },
  "drawn": {
   "cards": [],
   "composed": {
-   "accepted": 7,
+   "accepted": 6,
    "rejected": 0,
    "problems": [],
    "components": [
     {
      "id": "root",
      "component": "Card",
-     "title": "ผู้สมัครพนักงานขาย ขอนแก่น",
-     "meta": "เขตชุมแพ",
+     "title": "ผู้สมัครตำแหน่งพนักงานขาย ขอนแก่น",
+     "meta": {
+      "path": "/list_candidates/data/position/title"
+     },
      "footnote": "ระบบสรรหาบุคลากร",
-     "children": [
-      "metrics_grid",
-      "candidates_grid"
-     ]
-    },
-    {
-     "id": "metrics_grid",
-     "component": "Grid",
      "children": [
       "m1",
       "m2",
-      "m3"
+      "m3",
+      "candidates_grid"
      ]
     },
     {
@@ -349,7 +344,7 @@
       "event": {
        "name": "ask",
        "context": {
-        "prompt": "ขอดูรายละเอียดผู้สมัคร",
+        "prompt": "ขอดูประวัติผู้สมัคร",
         "about": {
          "path": "name"
         }

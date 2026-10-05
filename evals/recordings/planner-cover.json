@@ -4,28 +4,29 @@
  "userId": "u_wee",
  "prompt": "ศูนย์กระจายสินค้าไหนสต๊อกจะขาดก่อน",
  "model": "google/gemini-3.8-flash",
- "promptHash": "ba09ccfc1ba110ff",
- "toolsHash": "017d9696205cf478",
+ "promptHash": "113c7dfa0cf1af01",
+ "toolsHash": "a3e6c0a4da3d953c",
  "today": "2026-10-05",
- "recordedAt": "2026-10-05T12:59:53.642Z",
+ "recordedAt": "2026-10-05T15:43:21.029Z",
  "steps": [
   {
    "kind": "call",
    "tool": "query_metric",
    "args": {
-    "range": {
-     "to": "2026-09-22",
-     "from": "2026-09-22"
-    },
-    "filters": {},
-    "grain": "day",
-    "sort": "value_asc",
-    "compare": "none",
-    "limit": 10,
     "dims": [
      "dc"
     ],
-    "metric": "days_of_cover"
+    "sort": "value_asc",
+    "where": null,
+    "range": {
+     "from": "2026-09-22",
+     "to": "2026-09-22"
+    },
+    "metric": "days_of_cover",
+    "compare": "none",
+    "limit": 10,
+    "filters": {},
+    "grain": "day"
    },
    "result": {
     "ok": true,
@@ -125,7 +126,8 @@
      "grain": "day",
      "compare": "none",
      "limit": 10,
-     "sort": "value_asc"
+     "sort": "value_asc",
+     "where": null
     },
     "nextActions": [
      {
@@ -177,17 +179,17 @@
   },
   {
    "kind": "text",
-   "text": "ประเมินจากเมตริกวันครอบคลุมสต๊อก (Days of Cover) ล่าสุด ณ วันที่ 22 ก.ย. 2569 ศูนย์กระจายสินค้าเชียงใหม่มีสต๊อกเหลือสำหรับจ่ายได้สั้นที่สุดในเครือข่าย แม้ภาพรวมทุกศูนย์จะยังอยู่เหนือเกณฑ์ 10 วัน ควรเจาะดูราย SKU ภายใน DC เชียงใหม่เพื่อตรวจสอบสินค้าตัวที่อัตราการหมุนเวียนสูงและเร่งจัดสรรการเติมสต๊อกล่วงหน้า"
+   "text": "จากข้อมูลวันครอบคลุมสต๊อกล่าสุด ณ วันที่ 22 ก.ย. 2569 ศูนย์กระจายสินค้าเชียงใหม่มีระดับสต๊อกคงเหลือต่ำที่สุดและมีความเสี่ยงจะขาดก่อนศูนย์อื่น ควรเจาะดูสต๊อกราย SKU ที่ศูนย์กระจายสินค้าเชียงใหม่เพื่อจัดสรรแผนการเติมสินค้าล่วงหน้าครับ"
   }
  ],
  "asked": [],
  "error": null,
  "usage": {
   "calls": 2,
-  "inputTokens": 20522,
-  "outputTokens": 1239,
-  "reasoningTokens": 1038,
-  "usd": 0.010018875
+  "inputTokens": 22473,
+  "outputTokens": 935,
+  "reasoningTokens": 767,
+  "usd": 0.003370625
  },
  "drawn": {
   "cards": [

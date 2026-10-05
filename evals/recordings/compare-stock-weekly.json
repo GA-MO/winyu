@@ -4,29 +4,28 @@
  "userId": "u_wee",
  "prompt": "สต๊อกคงเหลือรายสัปดาห์ เทียบกับช่วงก่อนหน้า",
  "model": "google/gemini-3.8-flash",
- "promptHash": "ba09ccfc1ba110ff",
- "toolsHash": "017d9696205cf478",
+ "promptHash": "113c7dfa0cf1af01",
+ "toolsHash": "a3e6c0a4da3d953c",
  "today": "2026-10-05",
- "recordedAt": "2026-10-05T13:03:44.506Z",
+ "recordedAt": "2026-10-05T15:48:10.014Z",
  "steps": [
   {
    "kind": "call",
    "tool": "query_metric",
    "args": {
-    "metric": "stock_on_hand",
-    "where": null,
     "grain": "week",
-    "filters": {},
-    "range": {
-     "to": "2026-09-22",
-     "from": "2026-07-01"
-    },
-    "compare": "prev_period",
-    "sort": null,
+    "limit": 12,
     "dims": [
      "week"
     ],
-    "limit": 12
+    "compare": "prev_period",
+    "filters": {},
+    "metric": "stock_on_hand",
+    "sort": null,
+    "range": {
+     "to": "2026-09-22",
+     "from": "2026-07-01"
+    }
    },
    "result": {
     "ok": true,
@@ -153,8 +152,7 @@
      "grain": "week",
      "compare": "prev_period",
      "limit": 12,
-     "sort": null,
-     "where": null
+     "sort": null
     },
     "nextActions": [
      {
@@ -189,17 +187,17 @@
   },
   {
    "kind": "text",
-   "text": "ข้อมูลสต๊อกคงเหลือล่าสุดถึงวันที่ 22 กันยายน 2569 โดยปริมาณสต๊อกมีแนวโน้มปรับตัวลดลงต่ำกว่าช่วงก่อนหน้าอย่างต่อเนื่องในทุกสัปดาห์ แนะนำให้ตรวจสอบวันครอบคลุมสต๊อก (Days of Cover) ควบคู่รายศูนย์กระจายสินค้าเพื่อประเมินความเสี่ยงสต๊อกขาดมือ"
+   "text": "ข้อมูลสต๊อกคงเหลือล่าสุดถึงวันที่ 22 ก.ย. 2569 โดยภาพรวมสต๊อกรายสัปดาห์มีแนวโน้มลดลงต่อเนื่องเมื่อเทียบกับช่วงก่อนหน้า แนะนำให้ตรวจสอบวันครอบคลุมสต๊อก (Days of Cover) แยกตามศูนย์กระจายสินค้าหรือเจาะดูรายแบรนด์เพิ่มเติม เพื่อประเมินความเสี่ยงสินค้าขาดคลัง"
   }
  ],
  "asked": [],
  "error": null,
  "usage": {
   "calls": 2,
-  "inputTokens": 20919,
-  "outputTokens": 1364,
-  "reasoningTokens": 1194,
-  "usd": 0.010402125
+  "inputTokens": 22988,
+  "outputTokens": 1311,
+  "reasoningTokens": 1140,
+  "usd": 0.00426875
  },
  "drawn": {
   "cards": [

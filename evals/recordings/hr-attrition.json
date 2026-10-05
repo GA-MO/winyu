@@ -4,29 +4,55 @@
  "userId": "u_may",
  "prompt": "อัตราการลาออกแต่ละฝ่ายเป็นยังไง",
  "model": "google/gemini-3.8-flash",
- "promptHash": "2f484d85b0bbd7ac",
- "toolsHash": "017d9696205cf478",
+ "promptHash": "2bfadd00013f7c5d",
+ "toolsHash": "3542bb7c8b47d7ed",
  "today": "2026-10-05",
- "recordedAt": "2026-10-05T13:00:31.780Z",
+ "recordedAt": "2026-10-05T15:44:07.091Z",
  "steps": [
+  {
+   "kind": "call",
+   "tool": "list_metrics",
+   "args": {
+    "search": "attrition_rate"
+   },
+   "result": {
+    "ok": true,
+    "summary": "พบ 1 เมตริกที่ตรงกับคำค้น",
+    "data": [
+     {
+      "id": "attrition_rate",
+      "labelTh": "อัตราการลาออกต่อเดือน",
+      "unit": "%",
+      "dims": [
+       "month",
+       "department"
+      ],
+      "certified": true,
+      "source": "HRIS",
+      "refresh": "รายเดือน",
+      "latest": "22 ก.ย. 2569"
+     }
+    ]
+   }
+  },
   {
    "kind": "call",
    "tool": "query_metric",
    "args": {
-    "compare": "prev_period",
     "grain": "month",
     "where": null,
+    "sort": "value_desc",
+    "filters": {},
+    "limit": 10,
     "range": {
      "from": "2026-09-01",
      "to": "2026-09-22"
     },
-    "limit": 10,
     "metric": "attrition_rate",
-    "filters": {},
+    "compare": "prev_period",
     "dims": [
      "department"
-    ],
-    "sort": "value_desc"
+    ]
    },
    "result": {
     "ok": true,
@@ -173,21 +199,37 @@
    }
   },
   {
+   "kind": "call",
+   "tool": "get_alerts",
+   "args": {
+    "status": "open",
+    "limit": 5
+   },
+   "result": {
+    "ok": true,
+    "summary": "ไม่พบความผิดปกติที่เปิดอยู่ในขอบเขตของผู้ใช้คนนี้",
+    "rows": [],
+    "lessons": [],
+    "nextActions": []
+   }
+  },
+  {
    "kind": "text",
-   "text": "ข้อมูลอัตราการลาออกต่อเดือนล่าสุดถึงวันที่ 22/09/2569 พบว่าฝ่ายการผลิตมีแนวโน้มเพิ่มสูงขึ้นมากที่สุดเมื่อเทียบกับช่วงก่อนหน้า สมมติฐานเบื้องต้นอาจเกิดจากภาระงานล่วงเวลาที่สูงขึ้นหรือสภาพแวดล้อมหน้างาน ซึ่งสามารถตรวจสอบได้จากการดูชั่วโมงทำงานล่วงเวลาสะสมของพนักงานฝ่ายผลิต และการแยกดูอัตราการลาออกตามแต่ละโรงงาน หากต้องการติดตามปัญหาเชิงลึก สามารถส่งต่อเรื่องนี้ให้ผู้รับผิดชอบฝ่ายผลิตได้"
+   "text": "อัตราการลาออกต่อเดือนในเดือนกันยายน (ข้อมูลล่าสุดถึง 22 ก.ย. 2569) พบว่าฝ่ายการผลิตมีอัตราการลาออกสูงที่สุดและเพิ่มขึ้นมากที่สุดเมื่อเทียบกับช่วงก่อนหน้า\n\nข้อสังเกตนี้มีสมมติฐานว่าอาจเกิดจากภาระงานกะผลิตหรือชั่วโมงการทำงานล่วงเวลาสะสม โดยสามารถตรวจสอบยืนยันได้จากสถิติโอทีรายโรงงานและผลสัมภาษณ์การลาออก (Exit Interview) ของฝ่ายผลิต\n\nต้องการให้เตรียมข้อมูลส่งต่อ (handoff) ให้ผู้รับผิดชอบของฝ่ายผลิตตรวจสอบร่วมกันหรือไม่ครับ"
   }
  ],
  "asked": [],
  "error": null,
  "usage": {
-  "calls": 2,
-  "inputTokens": 20502,
-  "outputTokens": 2259,
-  "reasoningTokens": 2047,
-  "usd": 0.011923875
+  "calls": 4,
+  "inputTokens": 45453,
+  "outputTokens": 3589,
+  "reasoningTokens": 3321,
+  "usd": 0.010350995833333333
  },
  "drawn": {
   "cards": [
+   "list_metrics",
    "query_metric"
   ],
   "composed": null

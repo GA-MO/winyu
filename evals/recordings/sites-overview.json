@@ -4,17 +4,17 @@
  "userId": "u_thana",
  "prompt": "โรงงานไหนเกิดอุบัติเหตุบ้าง",
  "model": "google/gemini-3.8-flash",
- "promptHash": "469b58c58286c9a9",
- "toolsHash": "22f7ecc4e30f3b8c",
+ "promptHash": "b147f95e8a6c891a",
+ "toolsHash": "5639642b6a430a27",
  "today": "2026-10-05",
- "recordedAt": "2026-10-05T13:05:58.556Z",
+ "recordedAt": "2026-10-05T15:50:43.462Z",
  "steps": [
   {
    "kind": "call",
    "tool": "get_site",
    "args": {
-    "name": null,
-    "id": null
+    "id": null,
+    "name": null
    },
    "result": {
     "ok": true,
@@ -151,37 +151,44 @@
   },
   {
    "kind": "text",
-   "text": "โรงงานที่มีบันทึกอุบัติเหตุและเหตุการณ์ความปลอดภัยคือโรงงานขอนแก่นและโรงงานปทุมธานี โดยโรงงานขอนแก่นมีสถานะต้องติดตามเร่งด่วนเนื่องจากมีเหตุหยุดงานและมีมาตรการแก้ไขที่ยังค้างอยู่ ควรตรวจสอบชั่วโมงการทำงานล่วงเวลาควบคู่กับมาตรฐานความปลอดภัยในสายการผลิตเพิ่มเติม\n\n```a2ui\n{\"id\":\"root\",\"component\":\"Card\",\"title\":\"โรงงานที่เกิดอุบัติเหตุและเหตุการณ์ความปลอดภัย\",\"footnote\":\"ระบบความปลอดภัยและอาชีวอนามัย\",\"children\":[\"site_kk\",\"site_pt\"]}\n{\"id\":\"site_kk\",\"component\":\"ListItem\",\"title\":{\"path\":\"/get_site/data/0/name\"},\"subtitle\":{\"path\":\"/get_site/data/0/note\"},\"badges\":{\"path\":\"/get_site/data/0/badges\"},\"trailing\":{\"path\":\"/get_site/data/0/trailing/text\"},\"src\":{\"path\":\"/get_site/data/0/photo\"},\"media\":\"thumb\",\"action\":{\"event\":{\"name\":\"ask\",\"context\":{\"prompt\":\"ขอดูรายละเอียดความปลอดภัย\",\"about\":{\"path\":\"/get_site/data/0/name\"}}}}}\n{\"id\":\"site_pt\",\"component\":\"ListItem\",\"title\":{\"path\":\"/get_site/data/3/name\"},\"subtitle\":{\"path\":\"/get_site/data/3/note\"},\"badges\":{\"path\":\"/get_site/data/3/badges\"},\"trailing\":{\"path\":\"/get_site/data/3/trailing/text\"},\"src\":{\"path\":\"/get_site/data/3/photo\"},\"media\":\"thumb\",\"action\":{\"event\":{\"name\":\"ask\",\"context\":{\"prompt\":\"ขอดูรายละเอียดความปลอดภัย\",\"about\":{\"path\":\"/get_site/data/3/name\"}}}}}\n```"
+   "text": "ในช่วง 90 วันล่าสุดพบเหตุการณ์ความปลอดภัยที่โรงงานขอนแก่นและโรงงานปทุมธานี โดยโรงงานขอนแก่นเป็นแห่งเดียวที่มีอุบัติเหตุถึงขั้นหยุดงานและยังมีรายการแก้ไขที่ยังไม่ปิด จึงควรตรวจสอบมาตรการความปลอดภัยและชั่วโมงการทำงานล่วงหน้าอย่างใกล้ชิด\n\n```a2ui\n{\"id\":\"root\",\"component\":\"Card\",\"title\":\"โรงงานที่พบเหตุการณ์ความปลอดภัย\",\"footnote\":\"ระบบความปลอดภัยและอาชีวอนามัย\",\"children\":[\"grid\"]}\n{\"id\":\"grid\",\"component\":\"Grid\",\"children\":[\"site_0\",\"site_3\"]}\n{\"id\":\"site_0\",\"component\":\"ListItem\",\"title\":{\"path\":\"/get_site/data/0/name\"},\"subtitle\":{\"path\":\"/get_site/data/0/note\"},\"detail\":{\"path\":\"/get_site/data/0/trailing/text\"},\"src\":{\"path\":\"/get_site/data/0/photo\"},\"media\":\"thumb\",\"badges\":{\"path\":\"/get_site/data/0/badges\"},\"action\":{\"event\":{\"name\":\"ask\",\"context\":{\"prompt\":\"ขอดูรายละเอียดความปลอดภัย\",\"about\":{\"path\":\"/get_site/data/0/name\"}}}}}\n{\"id\":\"site_3\",\"component\":\"ListItem\",\"title\":{\"path\":\"/get_site/data/3/name\"},\"subtitle\":{\"path\":\"/get_site/data/3/note\"},\"detail\":{\"path\":\"/get_site/data/3/trailing/text\"},\"src\":{\"path\":\"/get_site/data/3/photo\"},\"media\":\"thumb\",\"badges\":{\"path\":\"/get_site/data/3/badges\"},\"action\":{\"event\":{\"name\":\"ask\",\"context\":{\"prompt\":\"ขอดูรายละเอียดความปลอดภัย\",\"about\":{\"path\":\"/get_site/data/3/name\"}}}}}\n```"
   }
  ],
  "asked": [],
  "error": null,
  "usage": {
   "calls": 2,
-  "inputTokens": 20278,
-  "outputTokens": 3366,
-  "reasoningTokens": 2946,
-  "usd": 0.0139155
+  "inputTokens": 22136,
+  "outputTokens": 4070,
+  "reasoningTokens": 3651,
+  "usd": 0.00879075
  },
  "drawn": {
   "cards": [],
   "composed": {
-   "accepted": 3,
+   "accepted": 4,
    "rejected": 0,
    "problems": [],
    "components": [
     {
      "id": "root",
      "component": "Card",
-     "title": "โรงงานที่เกิดอุบัติเหตุและเหตุการณ์ความปลอดภัย",
+     "title": "โรงงานที่พบเหตุการณ์ความปลอดภัย",
      "footnote": "ระบบความปลอดภัยและอาชีวอนามัย",
      "children": [
-      "site_kk",
-      "site_pt"
+      "grid"
      ]
     },
     {
-     "id": "site_kk",
+     "id": "grid",
+     "component": "Grid",
+     "children": [
+      "site_0",
+      "site_3"
+     ]
+    },
+    {
+     "id": "site_0",
      "component": "ListItem",
      "title": {
       "path": "/get_site/data/0/name"
@@ -189,15 +196,15 @@
      "subtitle": {
       "path": "/get_site/data/0/note"
      },
+     "detail": {
+      "path": "/get_site/data/0/trailing/text"
+     },
      "src": {
       "path": "/get_site/data/0/photo"
      },
      "media": "thumb",
      "badges": {
       "path": "/get_site/data/0/badges"
-     },
-     "trailing": {
-      "path": "/get_site/data/0/trailing/text"
      },
      "action": {
       "event": {
@@ -212,7 +219,7 @@
      }
     },
     {
-     "id": "site_pt",
+     "id": "site_3",
      "component": "ListItem",
      "title": {
       "path": "/get_site/data/3/name"
@@ -220,15 +227,15 @@
      "subtitle": {
       "path": "/get_site/data/3/note"
      },
+     "detail": {
+      "path": "/get_site/data/3/trailing/text"
+     },
      "src": {
       "path": "/get_site/data/3/photo"
      },
      "media": "thumb",
      "badges": {
       "path": "/get_site/data/3/badges"
-     },
-     "trailing": {
-      "path": "/get_site/data/3/trailing/text"
      },
      "action": {
       "event": {

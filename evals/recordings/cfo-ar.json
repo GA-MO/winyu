@@ -4,29 +4,29 @@
  "userId": "u_siriporn",
  "prompt": "ลูกหนี้ค้างชำระตอนนี้แยกตามภาค",
  "model": "google/gemini-3.8-flash",
- "promptHash": "789b7aac90502ae7",
- "toolsHash": "017d9696205cf478",
+ "promptHash": "b392a33b084b048a",
+ "toolsHash": "3542bb7c8b47d7ed",
  "today": "2026-10-05",
- "recordedAt": "2026-10-05T12:59:05.627Z",
+ "recordedAt": "2026-10-05T15:42:35.338Z",
  "steps": [
   {
    "kind": "call",
    "tool": "query_metric",
    "args": {
-    "where": null,
+    "compare": "prev_period",
     "metric": "ar_overdue",
-    "limit": 10,
-    "sort": "value_desc",
-    "grain": "day",
     "filters": {},
+    "grain": "day",
     "range": {
      "from": "2026-09-22",
      "to": "2026-09-22"
     },
+    "limit": 10,
     "dims": [
      "region"
     ],
-    "compare": "prev_period"
+    "sort": "value_desc",
+    "where": null
    },
    "result": {
     "ok": true,
@@ -212,17 +212,17 @@
   },
   {
    "kind": "text",
-   "text": "ข้อมูลลูกหนี้ค้างชำระเกินกำหนดล่าสุด ณ วันที่ 22 ก.ย. 2569 ปรับตัวลดลงในทุกภาคเมื่อเทียบกับช่วงก่อนหน้า โดยกรุงเทพฯ และปริมณฑลยังคงมียอดค้างชำระสูงที่สุด ควรเจาะดูรายเอเย่นต์ในเขตกรุงเทพฯ และปริมณฑลเพื่อติดตามสถานะการชำระของกลุ่มที่มีมูลค่าค้างหลัก"
+   "text": "ข้อมูลลูกหนี้ค้างชำระเกินกำหนดล่าสุด ณ วันที่ 22 ก.ย. 2569 มีทิศทางลดลงจากช่วงก่อนหน้าในทุกภาค โดยกรุงเทพฯ และปริมณฑลยังคงมียอดค้างสูงสุด แนะนำให้เจาะดูรายชื่อเอเย่นต์ในพื้นที่ดังกล่าวเพื่อติดตามการชำระเงินตามรอบเครดิตเทอม"
   }
  ],
  "asked": [],
  "error": null,
  "usage": {
   "calls": 2,
-  "inputTokens": 20880,
-  "outputTokens": 1420,
-  "reasoningTokens": 1232,
-  "usd": 0.0104925
+  "inputTokens": 22141,
+  "outputTokens": 986,
+  "reasoningTokens": 809,
+  "usd": 0.0035517375
  },
  "drawn": {
   "cards": [

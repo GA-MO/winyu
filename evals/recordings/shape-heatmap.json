@@ -4,29 +4,29 @@
  "userId": "u_thana",
  "prompt": "ยอดขายแต่ละภาคแยกช่องทาง เทียบเดือนก่อน",
  "model": "google/gemini-3.8-flash",
- "promptHash": "469b58c58286c9a9",
- "toolsHash": "22f7ecc4e30f3b8c",
+ "promptHash": "b147f95e8a6c891a",
+ "toolsHash": "5639642b6a430a27",
  "today": "2026-10-05",
- "recordedAt": "2026-10-05T13:04:40.010Z",
+ "recordedAt": "2026-10-05T15:49:05.660Z",
  "steps": [
   {
    "kind": "call",
    "tool": "query_metric",
    "args": {
-    "limit": 60,
     "grain": "month",
-    "sort": "value_desc",
+    "range": {
+     "from": "2026-09-01",
+     "to": "2026-09-22"
+    },
     "compare": "prev_period",
+    "filters": {},
+    "sort": "value_desc",
+    "limit": 60,
     "dims": [
      "region",
      "channel"
     ],
-    "range": {
-     "to": "2026-09-22",
-     "from": "2026-09-01"
-    },
-    "metric": "net_sales_value",
-    "filters": {}
+    "metric": "net_sales_value"
    },
    "result": {
     "ok": true,
@@ -351,17 +351,17 @@
   },
   {
    "kind": "text",
-   "text": "ใช้ข้อมูลมูลค่าขายสุทธิ (Net Sales Value) ล่าสุดถึงวันที่ 22 ก.ย. 2569 โดยเทียบช่วง 1–22 ก.ย. กับช่วง 22 วันก่อนหน้า พบว่าชะลอตัวลงทั่วประเทศ แต่ภาคอีสานปรับตัวลดลงแรงที่สุดในทุกช่องทาง แนะนำให้เจาะดูผลการดำเนินงานรายเอเย่นต์ในภาคอีสานเพื่อหาสาเหตุและวางมาตรการฟื้นฟูยอดขายครับ"
+   "text": "รายงานนี้ใช้มูลค่ายอดขายสุทธิ (Net Sales Value) ข้อมูลล่าสุดถึงวันที่ 22 ก.ย. 2569 โดยเปรียบเทียบกับช่วงเวลาเดียวกันของเดือนก่อนหน้า (1–22 ส.ค. 2569)\n\nภาพรวมยอดขายชะลอตัวลงทุกภาคและทุกช่องทาง โดยภาคอีสานปรับตัวลดลงแรงที่สุดในกลุ่มช่องทางหลักและส่งออก จึงควรเจาะดูสาเหตุการหดตัวของช่องทางจำหน่ายในภาคอีสานเป็นลำดับแรก"
   }
  ],
  "asked": [],
  "error": null,
  "usage": {
   "calls": 2,
-  "inputTokens": 22605,
-  "outputTokens": 1431,
-  "reasoningTokens": 1230,
-  "usd": 0.01116
+  "inputTokens": 24500,
+  "outputTokens": 1464,
+  "reasoningTokens": 1253,
+  "usd": 0.004791
  },
  "drawn": {
   "cards": [

@@ -4,24 +4,24 @@
  "userId": "u_krit",
  "prompt": "กำไรขั้นต้นของบริษัทเท่าไหร่",
  "model": "google/gemini-3.8-flash",
- "promptHash": "019699fbec6f4ebd",
- "toolsHash": "7ba0f807fddc10bb",
+ "promptHash": "e19b55ac9c542b7b",
+ "toolsHash": "3a1e2faaa57dde17",
  "today": "2026-10-05",
- "recordedAt": "2026-10-05T13:00:59.005Z",
+ "recordedAt": "2026-10-05T15:56:58.040Z",
  "steps": [
   {
    "kind": "call",
    "tool": "query_metric",
    "args": {
-    "grain": "month",
-    "range": {
-     "to": "2026-09-22",
-     "from": "2026-09-01"
-    },
-    "dims": [],
-    "limit": 1,
-    "compare": "prev_period",
     "metric": "gross_margin",
+    "dims": [],
+    "grain": "month",
+    "limit": 30,
+    "range": {
+     "from": "2026-01-01",
+     "to": "2026-09-22"
+    },
+    "compare": "none",
     "filters": {}
    },
    "result": {
@@ -34,8 +34,8 @@
    "kind": "call",
    "tool": "resolve_owner",
    "args": {
-    "metric": "gross_margin",
-    "dims": {}
+    "dims": {},
+    "metric": "gross_margin"
    },
    "result": {
     "ok": true,
@@ -54,71 +54,43 @@
   },
   {
    "kind": "text",
-   "text": "ข้อมูลอัตรากำไรขั้นต้นอยู่นอกเหนือขอบเขตสิทธิ์การเข้าถึงของบทบาทพนักงานขาย สามารถส่งเรื่องประสานงานไปยังผู้ดูแลตัวเลขการเงินระดับประเทศเพื่อขอข้อมูลได้ครับ\n\n```a2ui\n{\"id\":\"root\",\"component\":\"Card\",\"title\":\"ผู้รับผิดชอบเมตริกกำไรขั้นต้น\",\"footnote\":\"ตาราง RACI\",\"children\":[\"person\",\"reason\",\"btn\"]}\n{\"id\":\"person\",\"component\":\"Person\",\"name\":{\"path\":\"/resolve_owner/data/nameTh\"},\"role\":{\"path\":\"/resolve_owner/data/title\"}}\n{\"id\":\"reason\",\"component\":\"Callout\",\"title\":\"บทบาทหน้าที่\",\"body\":{\"path\":\"/resolve_owner/data/reason\"},\"tone\":\"info\"}\n{\"id\":\"btn\",\"component\":\"Button\",\"label\":\"ส่งเรื่องขอข้อมูล\",\"action\":{\"event\":{\"name\":\"ask\",\"context\":{\"prompt\":\"ขอข้อมูลกำไรขั้นต้น\",\"about\":{\"path\":\"/resolve_owner/data/nameTh\"}}}}}\n```"
+   "text": "ข้อมูลอัตรากำไรขั้นต้นของบริษัทอยู่นอกเหนือขอบเขตสิทธิ์การเข้าถึงของคุณ หากต้องการข้อมูลนี้สามารถประสานงานหรือส่งคำขอไปยังผู้รับผิดชอบโดยตรงได้ครับ\n\n```a2ui\n{\"id\":\"root\",\"component\":\"Card\",\"title\":\"ผู้รับผิดชอบอัตรากำไรขั้นต้น\",\"children\":[\"owner\"]}\n{\"id\":\"owner\",\"component\":\"Person\",\"name\":{\"path\":\"/resolve_owner/data/nameTh\"},\"role\":{\"path\":\"/resolve_owner/data/title\"}}\n```"
   }
  ],
  "asked": [],
  "error": null,
  "usage": {
   "calls": 3,
-  "inputTokens": 28065,
-  "outputTokens": 5007,
-  "reasoningTokens": 4695,
-  "usd": 0.0199125
+  "inputTokens": 31346,
+  "outputTokens": 3248,
+  "reasoningTokens": 3038,
+  "usd": 0.008019450000000001
  },
  "drawn": {
   "cards": [
    "query_metric"
   ],
   "composed": {
-   "accepted": 4,
+   "accepted": 2,
    "rejected": 0,
    "problems": [],
    "components": [
     {
      "id": "root",
      "component": "Card",
-     "title": "ผู้รับผิดชอบเมตริกกำไรขั้นต้น",
-     "footnote": "ตาราง RACI",
+     "title": "ผู้รับผิดชอบอัตรากำไรขั้นต้น",
      "children": [
-      "person",
-      "reason",
-      "btn"
+      "owner"
      ]
     },
     {
-     "id": "person",
+     "id": "owner",
      "component": "Person",
      "name": {
       "path": "/resolve_owner/data/nameTh"
      },
      "role": {
       "path": "/resolve_owner/data/title"
-     }
-    },
-    {
-     "id": "reason",
-     "component": "Callout",
-     "title": "บทบาทหน้าที่",
-     "body": {
-      "path": "/resolve_owner/data/reason"
-     },
-     "tone": "info"
-    },
-    {
-     "id": "btn",
-     "component": "Button",
-     "label": "ส่งเรื่องขอข้อมูล",
-     "action": {
-      "event": {
-       "name": "ask",
-       "context": {
-        "prompt": "ขอข้อมูลกำไรขั้นต้น",
-        "about": {
-         "path": "/resolve_owner/data/nameTh"
-        }
-       }
-      }
      }
     }
    ]

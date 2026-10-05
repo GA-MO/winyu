@@ -4,20 +4,20 @@
  "userId": "u_anucha",
  "prompt": "ทีมขายภาคอีสานมีใครบ้าง",
  "model": "google/gemini-3.8-flash",
- "promptHash": "20386bc6c3b08846",
- "toolsHash": "22f7ecc4e30f3b8c",
+ "promptHash": "5cf727ed51a6d1b3",
+ "toolsHash": "5639642b6a430a27",
  "today": "2026-10-05",
- "recordedAt": "2026-10-05T12:52:03.798Z",
+ "recordedAt": "2026-10-05T15:49:58.004Z",
  "steps": [
   {
    "kind": "call",
    "tool": "find_people",
    "args": {
+    "department": "dept_sales",
     "query": null,
-    "flag": null,
-    "manager": null,
     "region": "northeast",
-    "department": "dept_sales"
+    "manager": null,
+    "flag": null
    },
    "result": {
     "ok": true,
@@ -150,17 +150,17 @@
   },
   {
    "kind": "text",
-   "text": "ทีมขายภาคอีสานมีบุคลากรประจำการและตำแหน่งที่อยู่ระหว่างเปิดรับสมัครในพื้นที่สำคัญ โดยมีเรื่องที่ต้องติดตามคือการต่ออายุใบอนุญาตขายสุราของตัวท่านและทีมงาน รวมถึงการบริหารชั่วโมงการทำงานล่วงเวลา\n\n```a2ui\n{\"id\":\"root\",\"component\":\"Card\",\"title\":\"ทีมขายภาคอีสาน\",\"meta\":\"ภาคอีสาน\",\"footnote\":\"ระบบ HR\",\"children\":[\"team_section\",\"open_section\"]}\n{\"id\":\"team_section\",\"component\":\"Section\",\"label\":\"พนักงานในทีม\",\"children\":[\"team\"]}\n{\"id\":\"team\",\"component\":\"Grid\",\"children\":{\"componentId\":\"member\",\"path\":\"/find_people/data\"}}\n{\"id\":\"member\",\"component\":\"ListItem\",\"title\":{\"path\":\"name\"},\"subtitle\":{\"path\":\"title\"},\"detail\":{\"path\":\"place\"},\"src\":{\"path\":\"photo\"},\"media\":\"avatar\",\"badges\":{\"path\":\"badges\"},\"action\":{\"event\":{\"name\":\"ask\",\"context\":{\"prompt\":\"ขอดูโปรไฟล์\",\"about\":{\"path\":\"name\"}}}}}\n{\"id\":\"open_section\",\"component\":\"Section\",\"label\":\"ตำแหน่งเปิดรับสมัคร\",\"children\":[\"open_grid\"]}\n{\"id\":\"open_grid\",\"component\":\"Grid\",\"children\":{\"componentId\":\"open_pos\",\"path\":\"/find_people/open_positions\"}}\n{\"id\":\"open_pos\",\"component\":\"ListItem\",\"title\":{\"path\":\"title\"},\"subtitle\":{\"path\":\"open_label\"},\"media\":\"none\"}\n```"
+   "text": "ทีมขายภาคอีสานมีบุคลากรปฏิบัติงานครอบคลุมพื้นที่ขอนแก่น นครราชสีมา บุรีรัมย์ และอุบลราชธานี โดยมีสมาชิกในทีมรวมถึงตัวคุณที่มีใบอนุญาตขายสุราใกล้หมดอายุที่ควรวางแผนต่ออายุล่วงหน้า\n\n```a2ui\n{\"id\":\"root\",\"component\":\"Card\",\"title\":\"ทีมขายภาคอีสาน\",\"footnote\":\"ระบบ HR\",\"children\":[\"team_section\",\"open_section\"]}\n{\"id\":\"team_section\",\"component\":\"Section\",\"label\":\"พนักงานปัจจุบัน\",\"children\":[\"team_grid\"]}\n{\"id\":\"team_grid\",\"component\":\"Grid\",\"children\":{\"componentId\":\"member\",\"path\":\"/find_people/data\"}}\n{\"id\":\"member\",\"component\":\"ListItem\",\"title\":{\"path\":\"name\"},\"subtitle\":{\"path\":\"title\"},\"detail\":{\"path\":\"place\"},\"src\":{\"path\":\"photo\"},\"media\":\"avatar\",\"badges\":{\"path\":\"badges\"},\"action\":{\"event\":{\"name\":\"ask\",\"context\":{\"prompt\":\"ขอดูโปรไฟล์\",\"about\":{\"path\":\"name\"}}}}}\n{\"id\":\"open_section\",\"component\":\"Section\",\"label\":\"ตำแหน่งว่าง\",\"children\":[\"open_grid\"]}\n{\"id\":\"open_grid\",\"component\":\"Grid\",\"children\":{\"componentId\":\"vacant\",\"path\":\"/find_people/open_positions\"}}\n{\"id\":\"vacant\",\"component\":\"ListItem\",\"title\":{\"path\":\"title\"},\"subtitle\":{\"path\":\"open_label\"},\"media\":\"none\"}\n```"
   }
  ],
  "asked": [],
  "error": null,
  "usage": {
   "calls": 2,
-  "inputTokens": 20651,
-  "outputTokens": 4490,
-  "reasoningTokens": 4142,
-  "usd": 0.016162875
+  "inputTokens": 22333,
+  "outputTokens": 2495,
+  "reasoningTokens": 2145,
+  "usd": 0.00588585
  },
  "drawn": {
   "cards": [],
@@ -173,7 +173,6 @@
      "id": "root",
      "component": "Card",
      "title": "ทีมขายภาคอีสาน",
-     "meta": "ภาคอีสาน",
      "footnote": "ระบบ HR",
      "children": [
       "team_section",
@@ -183,13 +182,13 @@
     {
      "id": "team_section",
      "component": "Section",
-     "label": "พนักงานในทีม",
+     "label": "พนักงานปัจจุบัน",
      "children": [
-      "team"
+      "team_grid"
      ]
     },
     {
-     "id": "team",
+     "id": "team_grid",
      "component": "Grid",
      "children": {
       "componentId": "member",
@@ -230,7 +229,7 @@
     {
      "id": "open_section",
      "component": "Section",
-     "label": "ตำแหน่งเปิดรับสมัคร",
+     "label": "ตำแหน่งว่าง",
      "children": [
       "open_grid"
      ]
@@ -239,12 +238,12 @@
      "id": "open_grid",
      "component": "Grid",
      "children": {
-      "componentId": "open_pos",
+      "componentId": "vacant",
       "path": "/find_people/open_positions"
      }
     },
     {
-     "id": "open_pos",
+     "id": "vacant",
      "component": "ListItem",
      "title": {
       "path": "title"

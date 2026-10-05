@@ -4,10 +4,10 @@
  "userId": "u_ben",
  "prompt": "แคมเปญไหนได้ผลดีที่สุด",
  "model": "google/gemini-3.8-flash",
- "promptHash": "71f06cb1fb5bc9ba",
- "toolsHash": "22f7ecc4e30f3b8c",
+ "promptHash": "7ae5b467e36f3eb2",
+ "toolsHash": "256226ce23bf3c58",
  "today": "2026-10-05",
- "recordedAt": "2026-10-05T13:00:17.227Z",
+ "recordedAt": "2026-10-05T15:43:44.735Z",
  "steps": [
   {
    "kind": "call",
@@ -80,19 +80,20 @@
    "kind": "call",
    "tool": "query_metric",
    "args": {
-    "sort": "value_desc",
+    "where": null,
     "filters": {},
-    "range": {
-     "to": "2026-09-22",
-     "from": "2026-01-01"
-    },
+    "metric": "campaign_uplift",
+    "sort": "value_desc",
+    "limit": 10,
     "dims": [
      "campaign"
     ],
+    "compare": "none",
     "grain": "month",
-    "limit": 10,
-    "metric": "campaign_uplift",
-    "compare": "none"
+    "range": {
+     "to": "2026-09-22",
+     "from": "2026-01-01"
+    }
    },
    "result": {
     "ok": true,
@@ -173,7 +174,298 @@
      "grain": "month",
      "compare": "none",
      "limit": 10,
-     "sort": "value_desc"
+     "sort": "value_desc",
+     "where": null
+    },
+    "nextActions": [
+     {
+      "id": "drill-region",
+      "kind": "drill",
+      "label": "แยกตามภาค",
+      "reason": "ยังไม่ได้ดูแยกรายภาค",
+      "tool": null,
+      "input": null,
+      "prompt": "ขอยอดเพิ่มจากแคมเปญแยกตามภาค เรียงจากมากไปน้อย"
+     }
+    ],
+    "followUps": [
+     {
+      "id": "fu-trend",
+      "label": "ดูแนวโน้มรายสัปดาห์",
+      "prompt": "ยอดเพิ่มจากแคมเปญ รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+      "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+      "intentKey": "follow|trend",
+      "score": 0.5
+     },
+     {
+      "id": "fu-compare_year",
+      "label": "เทียบปีก่อน",
+      "prompt": "ขอยอดเพิ่มจากแคมเปญแยกตามแคมเปญ เทียบกับช่วงเดียวกันปีก่อน",
+      "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+      "intentKey": "follow|compare_year",
+      "score": 0.45
+     }
+    ]
+   }
+  },
+  {
+   "kind": "call",
+   "tool": "query_metric",
+   "args": {
+    "filters": {},
+    "range": {
+     "from": "2026-01-01",
+     "to": "2026-09-22"
+    },
+    "sort": "value_desc",
+    "limit": 10,
+    "grain": "month",
+    "metric": "campaign_uplift",
+    "dims": [
+     "business_unit",
+     "campaign"
+    ],
+    "where": null,
+    "compare": "none"
+   },
+   "result": {
+    "ok": true,
+    "rows": [
+     {
+      "business_unit": "กลุ่มนอนแอลกอฮอล์",
+      "campaign": "ซีสโตร์ โซดาซัมเมอร์ 1 แถม 1",
+      "value": 35.3,
+      "value_label": "35.3%"
+     },
+     {
+      "business_unit": "กลุ่มเบียร์",
+      "campaign": "สงกรานต์ 2569 สิงห์-ลีโอ",
+      "value": 25.2,
+      "value_label": "25.2%"
+     },
+     {
+      "business_unit": "กลุ่มนอนแอลกอฮอล์",
+      "campaign": "โซดาสิงห์ ซัมเมอร์ 2569",
+      "value": 18.2,
+      "value_label": "18.2%"
+     },
+     {
+      "business_unit": "กลุ่มเบียร์",
+      "campaign": "ส่งท้ายปีเก่า 2568",
+      "value": 17.9,
+      "value_label": "17.9%"
+     },
+     {
+      "business_unit": "กลุ่มนำเข้า",
+      "campaign": "ส่งท้ายปีเก่า 2568",
+      "value": 17.9,
+      "value_label": "17.9%"
+     },
+     {
+      "business_unit": "กลุ่มนอนแอลกอฮอล์",
+      "campaign": "ส่งท้ายปีเก่า 2568",
+      "value": 17.9,
+      "value_label": "17.9%"
+     },
+     {
+      "business_unit": "กลุ่มนอนแอลกอฮอล์",
+      "campaign": "เพอร์ร่า อากาศสะอาด ภาคเหนือ",
+      "value": 16,
+      "value_label": "16.0%"
+     }
+    ],
+    "summary": "ยอดเพิ่มจากแคมเปญ 1 ม.ค. 2569 – 22 ก.ย. 2569: เฉลี่ย 19.1% · สูงสุด: กลุ่มนอนแอลกอฮอล์ 35.3% · กลุ่มเบียร์ 25.2% · กลุ่มนอนแอลกอฮอล์ 18.2% · (7 แถว · derived · SAP SD)",
+    "headline": {
+     "aggregate": "average",
+     "value": "19.1%",
+     "periodLabel": "1 ม.ค. 2569 – 22 ก.ย. 2569",
+     "rowCount": 7,
+     "deltaPercent": null,
+     "compareLabel": null,
+     "compareNote": null,
+     "top": [
+      {
+       "label": "กลุ่มนอนแอลกอฮอล์",
+       "value": "35.3%"
+      },
+      {
+       "label": "กลุ่มเบียร์",
+       "value": "25.2%"
+      },
+      {
+       "label": "กลุ่มนอนแอลกอฮอล์",
+       "value": "18.2%"
+      }
+     ],
+     "underLine": null
+    },
+    "provenance": {
+     "metric": "campaign_uplift",
+     "certified": false,
+     "sourceSystem": "SAP SD",
+     "asOf": "2026-09-22",
+     "rowCount": 7,
+     "filtersApplied": {},
+     "filterLabels": [],
+     "scopeApplied": {},
+     "masked": [],
+     "trust": "derived"
+    },
+    "query": {
+     "metric": "campaign_uplift",
+     "dims": [
+      "business_unit",
+      "campaign"
+     ],
+     "filters": {},
+     "range": {
+      "from": "2026-01-01",
+      "to": "2026-09-22"
+     },
+     "grain": "month",
+     "compare": "none",
+     "limit": 10,
+     "sort": "value_desc",
+     "where": null
+    },
+    "nextActions": [
+     {
+      "id": "drill-region",
+      "kind": "drill",
+      "label": "แยกตามภาค",
+      "reason": "ยังไม่ได้ดูแยกรายภาค",
+      "tool": null,
+      "input": null,
+      "prompt": "ขอยอดเพิ่มจากแคมเปญแยกตามภาค เรียงจากมากไปน้อย"
+     }
+    ],
+    "followUps": [
+     {
+      "id": "fu-trend",
+      "label": "ดูแนวโน้มรายสัปดาห์",
+      "prompt": "ยอดเพิ่มจากแคมเปญ รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+      "reason": "คำตอบนี้เป็นภาพช่วงเดียว ยังไม่เห็นทิศทาง",
+      "intentKey": "follow|trend",
+      "score": 0.5
+     },
+     {
+      "id": "fu-compare_year",
+      "label": "เทียบปีก่อน",
+      "prompt": "ขอยอดเพิ่มจากแคมเปญแยกตามกลุ่มธุรกิจ เทียบกับช่วงเดียวกันปีก่อน",
+      "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
+      "intentKey": "follow|compare_year",
+      "score": 0.45
+     }
+    ]
+   }
+  },
+  {
+   "kind": "call",
+   "tool": "query_metric",
+   "args": {
+    "compare": "none",
+    "dims": [
+     "campaign"
+    ],
+    "limit": 10,
+    "range": {
+     "to": "2026-09-22",
+     "from": "2026-01-01"
+    },
+    "filters": {
+     "business_unit": "กลุ่มนอนแอลกอฮอล์"
+    },
+    "metric": "campaign_uplift",
+    "grain": "month",
+    "where": null,
+    "sort": "value_desc"
+   },
+   "result": {
+    "ok": true,
+    "rows": [
+     {
+      "campaign": "ซีสโตร์ โซดาซัมเมอร์ 1 แถม 1",
+      "value": 35.3,
+      "value_label": "35.3%"
+     },
+     {
+      "campaign": "โซดาสิงห์ ซัมเมอร์ 2569",
+      "value": 18.2,
+      "value_label": "18.2%"
+     },
+     {
+      "campaign": "ส่งท้ายปีเก่า 2568",
+      "value": 17.9,
+      "value_label": "17.9%"
+     },
+     {
+      "campaign": "เพอร์ร่า อากาศสะอาด ภาคเหนือ",
+      "value": 16,
+      "value_label": "16.0%"
+     }
+    ],
+    "summary": "ยอดเพิ่มจากแคมเปญ 1 ม.ค. 2569 – 22 ก.ย. 2569: เฉลี่ย 18.3% · สูงสุด: ซีสโตร์ โซดาซัมเมอร์ 1 แถม 1 35.3% · โซดาสิงห์ ซัมเมอร์ 2569 18.2% · ส่งท้ายปีเก่า 2568 17.9% · (4 แถว · derived · SAP SD)",
+    "headline": {
+     "aggregate": "average",
+     "value": "18.3%",
+     "periodLabel": "1 ม.ค. 2569 – 22 ก.ย. 2569",
+     "rowCount": 4,
+     "deltaPercent": null,
+     "compareLabel": null,
+     "compareNote": null,
+     "top": [
+      {
+       "label": "ซีสโตร์ โซดาซัมเมอร์ 1 แถม 1",
+       "value": "35.3%"
+      },
+      {
+       "label": "โซดาสิงห์ ซัมเมอร์ 2569",
+       "value": "18.2%"
+      },
+      {
+       "label": "ส่งท้ายปีเก่า 2568",
+       "value": "17.9%"
+      }
+     ],
+     "underLine": null
+    },
+    "provenance": {
+     "metric": "campaign_uplift",
+     "certified": false,
+     "sourceSystem": "SAP SD",
+     "asOf": "2026-09-22",
+     "rowCount": 4,
+     "filtersApplied": {
+      "business_unit": [
+       "non_alcohol"
+      ]
+     },
+     "filterLabels": [
+      "กลุ่มนอนแอลกอฮอล์"
+     ],
+     "scopeApplied": {},
+     "masked": [],
+     "trust": "derived"
+    },
+    "query": {
+     "metric": "campaign_uplift",
+     "dims": [
+      "campaign"
+     ],
+     "filters": {
+      "business_unit": [
+       "กลุ่มนอนแอลกอฮอล์"
+      ]
+     },
+     "range": {
+      "from": "2026-01-01",
+      "to": "2026-09-22"
+     },
+     "grain": "month",
+     "compare": "none",
+     "limit": 10,
+     "sort": "value_desc",
+     "where": null
     },
     "nextActions": [
      {
@@ -208,21 +500,23 @@
   },
   {
    "kind": "text",
-   "text": "ประเมินผลจากเมตริกยอดเพิ่มจากแคมเปญ (Campaign Uplift) ข้อมูลล่าสุดถึง 22 ก.ย. 2569 โดยแคมเปญโปรโมชันระยะสั้นในช่องทางร้านสะดวกซื้อสร้างยอดขายเพิ่มได้สูงที่สุด ควรพิจารณานำโครงสร้างโปรโมชัน 1 แถม 1 ไปปรับใช้กับกลุ่มเครื่องดื่มนอนแอลกอฮอล์รายการอื่นในช่องทางโมเดิร์นเทรดช่วงไฮซีซันถัดไป"
+   "text": "วัดผลจากเมตริกยอดเพิ่มจากแคมเปญ (campaign_uplift) ในกลุ่มนอนแอลกอฮอล์ที่คุณเบญดูแล ตั้งแต่วันที่ 1 ม.ค. ถึง 22 ก.ย. 2569 พบว่าแคมเปญซีสโตร์ โซดาซัมเมอร์ 1 แถม 1 สร้างยอดขายเพิ่มได้สูงที่สุด แนะนำให้นำรูปแบบโปรโมชันช่องทางร้านสะดวกซื้อนี้ไปต่อยอดกับกลุ่มน้ำดื่มเพอร์ร่าและโซดาในแคมเปญช่วงไฮซีซันปลายปีต่อไปครับ"
   }
  ],
  "asked": [],
  "error": null,
  "usage": {
-  "calls": 3,
-  "inputTokens": 31264,
-  "outputTokens": 1293,
-  "reasoningTokens": 1079,
-  "usd": 0.014148375000000001
+  "calls": 5,
+  "inputTokens": 61221,
+  "outputTokens": 2004,
+  "reasoningTokens": 1571,
+  "usd": 0.009587041666666666
  },
  "drawn": {
   "cards": [
    "list_metrics",
+   "query_metric",
+   "query_metric",
    "query_metric"
   ],
   "composed": null
