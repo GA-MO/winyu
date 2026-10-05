@@ -1,0 +1,119 @@
+{
+ "version": 1,
+ "caseId": "people-name-lookup",
+ "userId": "u_thana",
+ "prompt": "ค้นหาพนักงานชื่อกฤตให้หน่อย",
+ "model": "google/gemini-3.8-flash",
+ "promptHash": "0e40d01dd957aebf",
+ "toolsHash": "8bdfd8d8fb9656cf",
+ "today": "2026-10-05",
+ "recordedAt": "2026-10-05T18:49:49.086Z",
+ "steps": [
+  {
+   "kind": "call",
+   "tool": "find_people",
+   "args": {
+    "region": null,
+    "manager": null,
+    "flag": null,
+    "query": "กฤต",
+    "department": null
+   },
+   "result": {
+    "ok": true,
+    "summary": "พบ 1 คน",
+    "data": [
+     {
+      "id": "u_krit",
+      "name": "คุณกฤต จันทร์เสน",
+      "title": "พนักงานขาย ขอนแก่น",
+      "place": "ขอนแก่น",
+      "photo": "/img/people/p34.jpg",
+      "department": "ขาย",
+      "manager": "คุณอนุชา พรหมศรี",
+      "tenure": "7 ปี 6 เดือน",
+      "badges": [
+       {
+        "label": "ใบอนุญาตขายสุรา 23 วัน",
+        "tone": "warning"
+       }
+      ]
+     }
+    ],
+    "open_positions": []
+   }
+  },
+  {
+   "kind": "text",
+   "text": "พบข้อมูลคุณกฤต จันทร์เสน ประจำพื้นที่ขอนแก่น โดยปัจจุบันมีรายการแจ้งเตือนเกี่ยวกับใบอนุญาตขายสุราที่ใกล้ครบกำหนดต่ออายุ\n\n```a2ui\n{\"id\":\"root\",\"component\":\"Card\",\"title\":\"ผลการค้นหาพนักงาน\",\"meta\":\"ฝ่ายขาย\",\"footnote\":\"ระบบ HR\",\"children\":[\"grid\"]}\n{\"id\":\"grid\",\"component\":\"Grid\",\"children\":{\"componentId\":\"person\",\"path\":\"/find_people/data\"}}\n{\"id\":\"person\",\"component\":\"ListItem\",\"title\":{\"path\":\"name\"},\"subtitle\":{\"path\":\"title\"},\"detail\":{\"path\":\"place\"},\"src\":{\"path\":\"photo\"},\"media\":\"avatar\",\"badges\":{\"path\":\"badges\"},\"action\":{\"event\":{\"name\":\"ask\",\"context\":{\"prompt\":\"ขอดูโปรไฟล์\",\"about\":{\"path\":\"name\"}}}}}\n```"
+  }
+ ],
+ "asked": [],
+ "error": null,
+ "usage": {
+  "calls": 2,
+  "inputTokens": 22053,
+  "outputTokens": 3624,
+  "reasoningTokens": 3415,
+  "usd": 0.0077364
+ },
+ "drawn": {
+  "cards": [],
+  "composed": {
+   "accepted": 3,
+   "rejected": 0,
+   "problems": [],
+   "components": [
+    {
+     "id": "root",
+     "component": "Card",
+     "title": "ผลการค้นหาพนักงาน",
+     "meta": "ฝ่ายขาย",
+     "footnote": "ระบบ HR",
+     "children": [
+      "grid"
+     ]
+    },
+    {
+     "id": "grid",
+     "component": "Grid",
+     "children": {
+      "componentId": "person",
+      "path": "/find_people/data"
+     }
+    },
+    {
+     "id": "person",
+     "component": "ListItem",
+     "title": {
+      "path": "name"
+     },
+     "subtitle": {
+      "path": "title"
+     },
+     "detail": {
+      "path": "place"
+     },
+     "src": {
+      "path": "photo"
+     },
+     "media": "avatar",
+     "badges": {
+      "path": "badges"
+     },
+     "action": {
+      "event": {
+       "name": "ask",
+       "context": {
+        "prompt": "ขอดูโปรไฟล์",
+        "about": {
+         "path": "name"
+        }
+       }
+      }
+     }
+    }
+   ]
+  }
+ }
+}

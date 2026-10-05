@@ -15,7 +15,8 @@ export type EvalCase = {
   before?: string[];
   expectCard?: MetricCardTool;
   expectSort?: MetricSort;
-  expectApproval?: "watch_metric" | "create_handoff" | "pin_widget" | "set_permission";
+  expectApproval?: "watch_metric" | "create_handoff" | "pin_widget" | "set_permission" | "share_card";
+  expectRecipient?: string;
   expectPermission?: { role: string; kind: "metric" | "tool" | "field"; key: string; value: string };
   expectCompare?: { compare: "prev_period" | "prev_year"; range?: { from: string; to: string } };
   expectShape?: CardBody["kind"];
@@ -93,14 +94,17 @@ export const EVAL_CASES: EvalCase[] = [
   { id: "docs-credit-terms", userId: "u_krit", prompt: "เอเย่นต์เกรด B ได้เครดิตกี่วัน", expectDocuments: { cite: "sales-policy" } },
   { id: "docs-ban-holiday", userId: "u_anucha", prompt: "วันออกพรรษาปีนี้ร้านค้าขายเบียร์ได้ไหม", expectDocuments: { cite: "alcohol-compliance-guide" } },
   { id: "docs-hr-hidden", userId: "u_krit", prompt: "กระบอกเงินเดือนพนักงานแต่ละระดับเท่าไหร่", expectDocuments: { notFound: true, hidden: "hr-compensation-discipline" } },
+  { id: "share-card-chat", userId: "u_thana", before: ["ยอดขายแยกตามภาคเดือนนี้"], prompt: "ส่งการ์ดนี้ให้คุณกฤตดูหน่อย", expectApproval: "share_card", expectRecipient: "u_krit" },
+  { id: "handoff-not-share", userId: "u_thana", before: ["ยอดขายแยกตามภาคเดือนนี้"], prompt: "ฝากคุณอนุชาช่วยดูต่อเรื่องภาคอีสานที่ต่ำกว่าเป้าหน่อย", expectApproval: "create_handoff", expectRecipient: "u_anucha" },
+  { id: "people-name-lookup", userId: "u_thana", prompt: "ค้นหาพนักงานชื่อกฤตให้หน่อย", expectPeople: "find_people" },
   { id: "docs-unanswerable", userId: "u_wee", prompt: "บริษัทอนุญาตให้พาสัตว์เลี้ยงมาที่ทำงานไหม", expectDocuments: { notFound: true } },
 ];
 
-/** The group a case reports under, from what it expects: memory across conversations, company documents, approvals, composed answers, card shapes, period comparisons, alerts and forecasts, other metric cards, and the rest. */
+/** The group a case reports under, from what it expects: approvals, memory across conversations, company documents, composed answers, card shapes, period comparisons, alerts and forecasts, other metric cards, and the rest. */
 export function groupOf(testCase: EvalCase): string {
+  if (testCase.expectApproval) return "approval";
   if (testCase.before) return "memory";
   if (testCase.expectDocuments) return "documents";
-  if (testCase.expectApproval) return "approval";
   if (testCase.expectPeople) return "composed";
   if (testCase.expectShape || testCase.expectMetrics) return "shape";
   if (testCase.expectCompare) return "compare";

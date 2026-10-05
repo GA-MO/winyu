@@ -1,4 +1,5 @@
 import { UNCOMPOSABLE_TOOLS } from "@/lib/compose/ground";
+import { findUser } from "@/lib/data/entities/users";
 import { namesPerson, type Named } from "@/lib/share/recipients";
 import type { ReplyStep, ToolStep } from "./timeline";
 
@@ -7,6 +8,8 @@ const ANSWER_LISTS = ["rows", "weeks"] as const;
 const DOCUMENTS_TOOL = "search_documents";
 const CATALOG_TOOL = "list_metrics";
 const PEOPLE_LOOKUPS: ReadonlySet<string> = new Set(["find_people", "get_person", "resolve_owner"]);
+const ENTITY_LOOKUP = "describe_entity";
+const USER_ENTITY = "user";
 
 /** How one tool call shows in a reply: its card, the decision it waits on or its receipt, a working line, a quiet note, or nothing. */
 export type ToolView =
@@ -123,18 +126,24 @@ function namedOf(row: unknown): Named | null {
   if (typeof row !== "object" || row === null) return null;
   const person = row as { id?: unknown; userId?: unknown; name?: unknown; nameTh?: unknown; title?: unknown };
   const id = typeof person.id === "string" ? person.id : typeof person.userId === "string" ? person.userId : null;
-  const nameTh = typeof person.nameTh === "string" ? person.nameTh : typeof person.name === "string" ? person.name : null;
-  if (!id || !nameTh) return null;
+  if (!id) return null;
+  const nameTh = typeof person.nameTh === "string" ? person.nameTh : typeof person.name === "string" ? person.name : findUser(id)?.nameTh;
+  if (!nameTh) return null;
   return { id, nameTh, ...(typeof person.title === "string" ? { title: person.title } : {}) };
 }
 
+function looksUpPeople(step: ToolStep): boolean {
+  if (PEOPLE_LOOKUPS.has(step.name)) return true;
+  return step.name === ENTITY_LOOKUP && (step.args as { kind?: unknown } | null)?.kind === USER_ENTITY;
+}
+
 function peopleFound(step: ToolStep): Named[] {
-  if (!PEOPLE_LOOKUPS.has(step.name) || step.outcome.state !== "returned") return [];
+  if (!looksUpPeople(step) || step.outcome.state !== "returned") return [];
   const data = (step.outcome.result as { data?: unknown } | null)?.data;
   return (Array.isArray(data) ? data : [data]).flatMap((row) => namedOf(row) ?? []);
 }
 
-/** People lookups that found whom a later call of the exchange sends something to (a share, a handoff, an email): the lookup was the way to the action, so its card is not the answer. */
+/** People lookups (a colleague found by name, team, owner or user record) that found whom a later call of the exchange sends something to (a share, a handoff, an email): the lookup was the way to the action, so its card is not the answer. */
 function recipientLookups(steps: readonly ToolStep[]): string[] {
   return steps.flatMap((step, index) => {
     const found = peopleFound(step);
