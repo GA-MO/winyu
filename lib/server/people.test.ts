@@ -39,6 +39,16 @@ describe("people directory", () => {
     expect(result.open_positions.length).toBe(3);
   });
 
+  test("a lookup by name or by flag lists people, never the open positions in scope", async () => {
+    const byName = await findPeople(accessOf("u_thana"), { ...NO_FILTER, query: "กฤต" });
+    expect(byName.data.map((row) => row.id)).toEqual(["u_krit"]);
+    expect(byName.open_positions).toEqual([]);
+    expect(byName.summary).not.toContain("ตำแหน่งว่าง");
+    expect((await findPeople(accessOf("u_may"), { ...NO_FILTER, flag: "new" })).open_positions).toEqual([]);
+    expect((await findPeople(accessOf("u_thana"), { ...NO_FILTER, region: "northeast" })).open_positions.length).toBeGreaterThan(0);
+    expect((await findPeople(accessOf("u_thana"), { ...NO_FILTER, departmentId: "dept_sales", query: "กฤต" })).open_positions.length).toBeGreaterThan(0);
+  });
+
   test("the new Korat rep is on probation and doing heavy overtime for a new hire", () => {
     const joy = EMPLOYEES.find((employee) => employee.id === "e_joy");
     if (!joy) throw new Error("missing e_joy");
