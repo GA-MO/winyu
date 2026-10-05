@@ -1,4 +1,3 @@
-import { prefixedToolName } from "@/lib/harness/adapters/vexa/server";
 import { NATIVE_CONNECTORS, type ConnectorDef, type RoleId, type ToolTier } from "@/lib/contracts";
 import type { Visibility } from "@/lib/access/role-overrides";
 import { engineTool } from "@/lib/harness/adapters/vexa/tools";
@@ -20,6 +19,10 @@ const UNDECLARED_TIER: ToolTier = "destructive";
 const REST_METHODS = ["GET", "POST"];
 const HTTP_URL = /^https?:\/\/[^/]+/;
 const REST_PATH = /^\/(?!\/)[^?#]*$/;
+
+function prefixedToolName(connector: string, tool: string): string {
+  return `${connector}__${tool.replace(/[^A-Za-z0-9_]/g, "_")}`;
+}
 
 function fail(connector: string, message: string): never {
   throw new Error(`connector ${connector}: ${message}`);

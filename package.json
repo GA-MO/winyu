@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^2.0.0",
-    "@ai-sdk/mcp": "1.0.90",
+    "@ai-sdk/mcp": "2.0.48",
     "@marcbachmann/cel-js": "^8.0.0",
     "@openrouter/ai-sdk-provider": "^2.10.0",
     "ai": "6.0.300",

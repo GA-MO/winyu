@@ -1,4 +1,4 @@
-import { openMcpClient, type MCPClient, type McpTransportConfig } from "@/lib/harness/adapters/vexa/server";
+import { openMcpClient, type MCPClient, type McpTransportConfig } from "./mcp-client";
 import type { AccessContext } from "@/lib/contracts";
 import { learnRemoteTools, markReachable } from "./catalog";
 import type { McpConnectorConfig } from "./types";
@@ -8,7 +8,7 @@ export type ConnectorClientFactory = (connector: string, transport: McpTransport
 
 const CLIENT_TTL_MS = 10 * 60 * 1000;
 const WINYU_ITSELF = "winyu";
-const CLIENT_NAME = "winyu";
+const CLIENT_NAME = "mascop";
 
 type Pooled = { client: Promise<ConnectorClient>; expiresAt: number };
 
