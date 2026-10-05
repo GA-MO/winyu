@@ -1,3 +1,4 @@
+import { TH } from "@/lib/i18n/th";
 import type { ConnectorDef, NativeToolName, RoleId, ToolName, ToolSurfaceEntry } from "@/lib/contracts";
 import { toolRolesInclude } from "@/lib/contracts";
 import { remoteConnectors } from "@/lib/server/connectors";
@@ -115,7 +116,7 @@ export function defaultToolsOf(role: RoleId): ToolName[] {
 
 /** The Thai label the admin and the audit show for a tool; the raw name for one no longer on the surface. */
 export function toolLabel(name: string): string {
-  return surfaceEntry(name)?.labelTh ?? name;
+  return surfaceEntry(name)?.labelTh ?? TH.admin.auditOnlyTools[name] ?? name;
 }
 
 /** The Thai label the admin shows for a connector field; the raw key for one no longer declared. */
