@@ -88,7 +88,7 @@ describe("rules", () => {
     for (const rule of DOMAIN_MARKERS) expect(rules).toContain(rule);
   });
 
-  test("never ask the model to draw a metric card or a json-render spec: metric results draw their own card, composition goes through compose_card", () => {
+  test("never ask the model to draw a metric card or a json-render spec: metric results draw their own card, composition goes through the checked card block", () => {
     const rules = WINYU_RULES.join("\n");
     expect(DRAWING_VOCABULARY.filter((word) => rules.includes(word))).toEqual([]);
   });

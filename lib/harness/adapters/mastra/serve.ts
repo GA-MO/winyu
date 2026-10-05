@@ -6,10 +6,13 @@ import type { AccessContext } from "@/lib/contracts";
 import { askedTool, markAnswered, problemOf, recordAsked } from "@/lib/harness/approvals";
 import { emitTo, newRun, runWithRun, saveRun, type Run } from "@/lib/harness/runtime";
 import { TH } from "@/lib/i18n/th";
+import { toolTiers } from "@/lib/server/agent/tools";
+import { recordComposedCard } from "@/lib/server/audit";
 import { currentAccess, runWithAccess, runWithTurn, type TurnContext } from "@/lib/server/request-context";
 import { finishTurn } from "@/lib/server/threads";
 import { threadForRun, threads } from "@/lib/server/threads-read";
 import { AGENT_ID, USER_ID_KEY, mascopAgent } from "./agent";
+import { ReplyCards, withComposedCards, type ComposedCardRecord } from "./card-stream";
 import { threadTranscript } from "./history";
 import { chatTurnOf, observeReply, type ChatTurn, type ReplySeen, type RunInput } from "./turn";
 
@@ -42,6 +45,11 @@ function handler(): Handler {
   return copilotHandler;
 }
 
+function replyCards(onCard: (record: ComposedCardRecord) => void): ReplyCards {
+  const tiers = toolTiers();
+  return new ReplyCards((tool) => tiers[tool] === "read", onCard);
+}
+
 function started(run: Run, turn: ChatTurn): void {
   emitTo(run, "runtime", { type: "agent.started", payload: { goal: turn.goal, userId: run.userId, threadId: run.threadId } });
   for (const answer of turn.answers) {
@@ -62,8 +70,16 @@ function learnFrom(run: Run, turn: ChatTurn, context: TurnContext): void {
   });
 }
 
-function ended(run: Run, turn: ChatTurn, context: TurnContext, seen: ReplySeen): void {
+function composed(run: Run, turn: ChatTurn, cards: readonly ComposedCardRecord[]): void {
+  for (const card of cards) {
+    emitTo(run, "ui", { type: "ui.composed", payload: card });
+    recordComposedCard({ ...card, userId: run.userId, runId: run.id, threadId: turn.threadId, question: turn.question });
+  }
+}
+
+function ended(run: Run, turn: ChatTurn, context: TurnContext, seen: ReplySeen, cards: readonly ComposedCardRecord[]): void {
   if (seen.results.length > 0) emitTo(run, "ui", { type: "ui.rendered", payload: { stepId: lastDecision(run).stepId, components: seen.results } });
+  composed(run, turn, cards);
   for (const asked of seen.asked) {
     recordAsked(asked.interruptId, run.userId, asked.toolCallId, asked.tool);
     emitTo(run, "runtime", { type: "approval.requested", payload: { toolCallId: asked.toolCallId, tool: asked.tool } });
@@ -99,9 +115,11 @@ async function serveRun(access: AccessContext, req: Request, turn: ChatTurn): Pr
   const threadId = turn.threadId;
   const transcript = threadId ? () => threadTranscript(threadId, access.userId) : undefined;
   const context: TurnContext = { turnId: run.id, threadId, preloadPacketId: turn.preloadPacketId, question: turn.question, queries: [], transcript };
+  const records: ComposedCardRecord[] = [];
+  const cards = replyCards((record) => records.push(record));
   try {
     const response = await runWithAccess(access, () => runWithTurn(context, () => runWithRun(run, () => handler()(req))));
-    return observeReply(response, (seen) => ended(run, turn, context, seen));
+    return observeReply(withComposedCards(response, cards), (seen) => ended(run, turn, context, seen, records));
   } catch (error) {
     emitTo(run, "runtime", { type: "agent.failed", payload: { reason: error instanceof Error ? error.message : String(error) } });
     saveRun(run);
@@ -135,5 +153,6 @@ export async function serveCopilot(access: AccessContext, req: Request): Promise
   if (isOthersThread(threadId, access.userId)) return Response.json(NOT_YOUR_THREAD, { status: 404 });
   const replayed = new Request(req.url, { method: "POST", headers: req.headers, body });
   if (route.kind === "run") return serveRun(access, replayed, turn);
-  return runWithAccess(access, () => handler()(replayed));
+  const response = await runWithAccess(access, () => handler()(replayed));
+  return route.kind === "connect" ? withComposedCards(response, replyCards(() => undefined)) : response;
 }

@@ -59,6 +59,8 @@ export function reduce(state: AgentState, event: HarnessEvent): AgentState {
     case "agent.decided":
     case "agent.limited":
       return state;
+    case "ui.composed":
+      return state;
     case "ui.rendered":
       return { ...state, uiState: { ...state.uiState, components: [...state.uiState.components, ...event.payload.components] } };
     case "tool.authorized":

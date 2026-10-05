@@ -106,7 +106,7 @@ function quietRun(userId: string, modelId: string, anomalies: ToolCall): Investi
 }
 
 function readTools(access: AccessContext): ToolSet {
-  return aiSdkTools(toolsForAccess(access).filter((tool) => tool.entry.tier === "read" && tool.entry.name !== "compose_card"));
+  return aiSdkTools(toolsForAccess(access).filter((tool) => tool.entry.tier === "read"));
 }
 
 function scopeLine(access: AccessContext): string {

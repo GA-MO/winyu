@@ -1,10 +1,11 @@
+import { COMPOSED_CARD_ACTIVITY, type ComposedSurface } from "@/lib/compose/catalog";
 import { HANDOFF_REPLY_ACTIVITY, handoffReplyNoteSchema, type HandoffReplyNote } from "@/lib/contracts/handoff";
 import { parsePressed, type PressedTool } from "./pressed";
 
 /** A tool call inside an assistant message, as the agent's transcript carries it. */
 export type ChatToolCall = { id: string; function: { name: string; arguments: string } };
 
-/** One transcript message as the chat reads it; roles other than user, assistant, tool and a handoff-reply activity are skipped. */
+/** One transcript message as the chat reads it; roles other than user, assistant, tool and a handoff-reply or composed-card activity are skipped. */
 export type ChatMessage = { id: string; role: string; content?: unknown; toolCalls?: ChatToolCall[]; toolCallId?: string; error?: string; activityType?: string };
 
 /** What opened an exchange: a question the person typed, or a card button that runs a tool. */
@@ -17,7 +18,9 @@ export type TextStep = { kind: "text"; id: string; text: string };
 export type ToolStep = { kind: "tool"; toolCallId: string; name: string; args: unknown; outcome: ToolOutcome };
 /** A colleague's answer to a handoff this conversation sent, drawn where it arrived. */
 export type HandoffReplyStep = { kind: "handoff-reply"; id: string; note: HandoffReplyNote };
-export type ReplyStep = TextStep | ToolStep | HandoffReplyStep;
+/** A card the model composed and the server checked line by line; while the reply streams it grows with each line that holds. */
+export type ComposedStep = { kind: "composed"; id: string; surface: ComposedSurface };
+export type ReplyStep = TextStep | ToolStep | HandoffReplyStep | ComposedStep;
 
 /** One question and everything the agent did to answer it, in the order it happened. */
 export type Exchange = { id: string; question: Question | null; steps: ReplyStep[] };
@@ -61,8 +64,16 @@ function assistantSteps(message: ChatMessage, outcomes: Map<string, ToolOutcome>
   return steps;
 }
 
-function handoffReplySteps(message: ChatMessage): HandoffReplyStep[] {
-  if (message.role !== "activity" || message.activityType !== HANDOFF_REPLY_ACTIVITY) return [];
+function isComposedSurface(content: unknown): content is ComposedSurface {
+  if (typeof content !== "object" || content === null) return false;
+  const surface = content as Partial<ComposedSurface>;
+  return typeof surface.surfaceId === "string" && Array.isArray(surface.components) && typeof surface.dataModel === "object" && surface.dataModel !== null && typeof surface.done === "boolean";
+}
+
+function activitySteps(message: ChatMessage): ReplyStep[] {
+  if (message.role !== "activity") return [];
+  if (message.activityType === COMPOSED_CARD_ACTIVITY) return isComposedSurface(message.content) ? [{ kind: "composed", id: message.id, surface: message.content }] : [];
+  if (message.activityType !== HANDOFF_REPLY_ACTIVITY) return [];
   const parsed = handoffReplyNoteSchema.safeParse(message.content);
   return parsed.success ? [{ kind: "handoff-reply", id: message.id, note: parsed.data }] : [];
 }
@@ -76,7 +87,7 @@ export function exchangesOf(messages: readonly ChatMessage[]): Exchange[] {
       exchanges.push({ id: message.id, question: questionOf(message), steps: [] });
       continue;
     }
-    const steps = message.role === "assistant" ? assistantSteps(message, outcomes) : handoffReplySteps(message);
+    const steps = message.role === "assistant" ? assistantSteps(message, outcomes) : activitySteps(message);
     if (steps.length === 0) continue;
     if (exchanges.length === 0) exchanges.push({ id: message.id, question: null, steps: [] });
     exchanges[exchanges.length - 1].steps.push(...steps);

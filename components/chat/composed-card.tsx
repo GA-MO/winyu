@@ -6,8 +6,7 @@ import { askAction, useRunAction, type CardAction } from "@/components/cards/car
 import { RowGrid } from "@/components/cards/entity/frame";
 import { Carousel } from "@/components/ui/carousel";
 import { Avatar, Badge, Button, Callout, Card, Image, KeyValue, ListItem, Metric, RankList, Table, type ListItemBadge } from "@/components/ui/primitives";
-import { ASK_EVENT, COMPOSE_ACTION_TOOLS, COMPOSE_CATALOG, COMPOSE_CATALOG_ID, type A2uiMessage, type ComposedCard } from "@/lib/compose/catalog";
-import { TH } from "@/lib/i18n/th";
+import { A2UI_VERSION, ASK_EVENT, COMPOSE_ACTION_TOOLS, COMPOSE_CATALOG, COMPOSE_CATALOG_ID, type A2uiMessage, type ComposedSurface } from "@/lib/compose/catalog";
 
 type Child = string | { id: string; basePath: string };
 type BuildChild = (id: string, basePath?: string) => ReactNode;
@@ -140,39 +139,39 @@ export function cardActionOf(message: UserAction): CardAction | null {
   return null;
 }
 
-/** Whether a tool result is a card the model composed and the server grounded. */
-export function isComposedCard(result: unknown): result is ComposedCard {
-  return typeof result === "object" && result !== null && (result as { ok?: unknown }).ok === true && Array.isArray((result as { a2ui_operations?: unknown }).a2ui_operations);
+/** The A2UI messages that bring a drawn surface up to a new snapshot: open it the first time, then its data model before the components that read it. */
+export function operationsOf(surface: ComposedSurface, opened: boolean): A2uiMessage[] {
+  const { surfaceId } = surface;
+  const updates: A2uiMessage[] = [
+    { version: A2UI_VERSION, updateDataModel: { surfaceId, path: "/", value: surface.dataModel } },
+    { version: A2UI_VERSION, updateComponents: { surfaceId, components: surface.components } },
+  ];
+  return opened ? updates : [{ version: A2UI_VERSION, createSurface: { surfaceId, catalogId: COMPOSE_CATALOG_ID } }, ...updates];
 }
 
-function surfaceIdOf(operations: readonly A2uiMessage[]): string | null {
-  for (const operation of operations) if ("createSurface" in operation) return operation.createSurface.surfaceId;
-  return null;
-}
-
-function Surface({ operations }: { operations: A2uiMessage[] }) {
+function Surface({ surface }: { surface: ComposedSurface }) {
   const { processMessages } = useA2UIActions();
-  const fed = useRef(false);
-  const surfaceId = useMemo(() => surfaceIdOf(operations), [operations]);
+  const fed = useRef<string | null>(null);
+  const snapshot = useMemo(() => JSON.stringify(surface), [surface]);
   useEffect(() => {
-    if (fed.current) return;
-    fed.current = true;
-    processMessages(operations as never);
-  }, [operations, processMessages]);
-  return surfaceId ? <A2UIRenderer surfaceId={surfaceId} className="w-full" /> : null;
+    if (fed.current === snapshot) return;
+    processMessages(operationsOf(surface, fed.current !== null) as never);
+    fed.current = snapshot;
+  }, [processMessages, snapshot, surface]);
+  return <A2UIRenderer surfaceId={surface.surfaceId} className="w-full" />;
 }
 
-/** A card the model composed from this turn's tool results, drawn by CopilotKit's A2UI renderer with mascop's own components; a button press goes to the chat like any card button. */
-export function ComposedCardView({ result }: { result: unknown }) {
+/** A card the model composed from this turn's tool results, drawn by CopilotKit's A2UI renderer with mascop's own components as each checked line arrives; a button press goes to the chat like any card button. */
+export function ComposedCardView({ surface }: { surface: ComposedSurface }) {
   const run = useRunAction();
-  if (!isComposedCard(result)) return <p className="text-sm text-muted-foreground">{TH.cards.unreadable}</p>;
+  if (surface.components.length === 0) return null;
   const onAction = (message: UserAction) => {
     const action = cardActionOf(message);
     if (action) run(action);
   };
   return (
     <A2UIProvider catalog={CATALOG} onAction={onAction as never}>
-      <Surface operations={result.a2ui_operations} />
+      <Surface surface={surface} />
     </A2UIProvider>
   );
 }

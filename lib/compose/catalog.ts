@@ -1,7 +1,10 @@
 import { z } from "zod/v3";
 
-/** The tool the model composes a card with. */
-export const COMPOSE_TOOL = "compose_card";
+/** The fence that opens a composed card in the model's reply; one A2UI component per line follows until the closing fence. */
+export const CARD_FENCE = "```a2ui";
+
+/** The AG-UI activity type a composed card travels as, live and restored. */
+export const COMPOSED_CARD_ACTIVITY = "mascop-card";
 
 /** The catalog id every composed surface names; the chat registers mascop's renderers under it. */
 export const COMPOSE_CATALOG_ID = "mascop";
@@ -9,7 +12,7 @@ export const COMPOSE_CATALOG_ID = "mascop";
 /** The A2UI protocol version mascop writes and CopilotKit's renderer reads. */
 export const A2UI_VERSION = "v0.9";
 
-/** The id A2UI gives the component a surface starts from. */
+/** The id A2UI draws a surface from; the composed card's root is sent under it whatever id the model gave it. */
 export const ROOT_ID = "root";
 
 /** The write tools a composed button may start, each still behind its approval card; every other button asks a question. */
@@ -72,5 +75,5 @@ export type A2uiMessage =
   | { version: typeof A2UI_VERSION; updateComponents: { surfaceId: string; components: ComposedComponent[] } }
   | { version: typeof A2UI_VERSION; updateDataModel: { surfaceId: string; path: string; value: unknown } };
 
-/** What `compose_card` returns when the card holds: the A2UI surface to draw. */
-export type ComposedCard = { ok: true; summary: string; a2ui_operations: A2uiMessage[] };
+/** A composed card as the chat receives it: the components that hold so far (root first), the data model they read, and whether the model has finished writing it. */
+export type ComposedSurface = { surfaceId: string; components: ComposedComponent[]; dataModel: Record<string, unknown>; done: boolean };

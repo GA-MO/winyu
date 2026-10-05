@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import type { AccessContext } from "@/lib/contracts";
 import { TH } from "@/lib/i18n/th";
 import { recordToolCall, type AuditedCall } from "@/lib/server/audit";
-import { currentAccess, recordResult } from "@/lib/server/request-context";
+import { currentAccess } from "@/lib/server/request-context";
 import { observe, type Attempt } from "./observation";
 import { authorize, type CallContext } from "./policy";
 import { failureOf, recover } from "./recovery";
@@ -127,7 +127,6 @@ export function gated<Input, Output>(capability: Capability, run: (input: Input)
       const failure = failureOf(observation, verdict);
       if (!failure) {
         recordToolCall(call, observation);
-        if (capability.tier === "read") recordResult({ tool: capability.name, output: observation.data });
         return observation.data as Output;
       }
       const fix = fixOf(capability, input, observation, verdict, access);

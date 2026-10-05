@@ -30,6 +30,7 @@ export type TimelineEntry =
   | ToolStory
   | { kind: "asked"; at: string; tool: string }
   | { kind: "rendered"; at: string; components: string[] }
+  | { kind: "composed"; at: string; accepted: number; rejected: number; problems: string[] }
   | { kind: "limited"; at: string; limit: RunLimit; step: number }
   | { kind: "end"; at: string; ok: boolean; reason: string };
 
@@ -89,6 +90,9 @@ export function timelineOf(events: readonly HarnessEvent[]): TimelineEntry[] {
         break;
       case "ui.rendered":
         entries.push({ kind: "rendered", at: event.at, components: event.payload.components });
+        break;
+      case "ui.composed":
+        entries.push({ kind: "composed", at: event.at, accepted: event.payload.accepted, rejected: event.payload.rejected, problems: event.payload.problems });
         break;
       case "tool.authorized":
         toolOf(event.at, event.payload.toolCallId, event.payload.tool).approval = event.payload.approval;

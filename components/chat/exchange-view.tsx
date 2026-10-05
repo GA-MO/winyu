@@ -8,14 +8,13 @@ import { TOOL_CARDS, type ToolCard } from "@/components/cards/registry";
 import { Badge } from "@/components/ui/primitives";
 import type { ContextPacket, HandoffReplyNote } from "@/lib/contracts";
 import { TH } from "@/lib/i18n/th";
-import { COMPOSE_TOOL } from "@/lib/compose/catalog";
-import { ComposedCardView, isComposedCard } from "./composed-card";
+import { ComposedCardView } from "./composed-card";
 import { Markdown } from "./markdown";
 import type { Exchange, Question, ReplyStep, ToolStep } from "./timeline";
 import { composedCalls, toolViewOf } from "./tool-view";
 import type { PendingApproval } from "./use-chat-session";
 
-const CARDS: Record<string, ToolCard> = { ...TOOL_CARDS, [COMPOSE_TOOL]: (result) => (isComposedCard(result) ? <ComposedCardView result={result} /> : null) };
+const CARDS: Record<string, ToolCard> = TOOL_CARDS;
 const CARD_TOOLS: ReadonlySet<string> = new Set(Object.keys(CARDS));
 const STATUS_TONE: Record<ContextPacket["status"], "neutral" | "success" | "warning" | "danger"> = {
   open: "neutral",
@@ -125,6 +124,12 @@ function HandoffReplyView({ note }: { note: HandoffReplyNote }) {
 function StepView({ step, live, composed }: { step: ReplyStep; live: ExchangeLive; composed: ReadonlySet<string> }) {
   if (step.kind === "text") return <Markdown text={step.text} />;
   if (step.kind === "handoff-reply") return <HandoffReplyView note={step.note} />;
+  if (step.kind === "composed")
+    return (
+      <CardBoundary>
+        <ComposedCardView surface={step.surface} />
+      </CardBoundary>
+    );
   return (
     <CardBoundary>
       <ToolStepView step={step} live={live} composed={composed.has(step.toolCallId)} />

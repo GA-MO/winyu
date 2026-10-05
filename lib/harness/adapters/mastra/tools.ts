@@ -5,14 +5,13 @@ import { asksApproval } from "@/lib/harness/gateway";
 import type { WinyuTool } from "@/lib/server/tools/define";
 
 function mastraToolOf(winyuTool: WinyuTool) {
-  const { capability, execute, modelOutput } = winyuTool;
+  const { capability, execute } = winyuTool;
   const approval = approvalOf(capability.tier) === "required" ? { requireApproval: (input: unknown) => asksApproval(capability, input) } : {};
   return createTool({
     id: winyuTool.entry.name,
     description: winyuTool.description(),
     inputSchema: winyuTool.inputSchema(),
     ...approval,
-    ...(modelOutput ? { toModelOutput: modelOutput } : {}),
     execute: (input: unknown, context) => execute(input, { toolCallId: context.agent?.toolCallId }),
   });
 }
