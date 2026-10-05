@@ -5,8 +5,6 @@ import { EVAL_CASES, evalCase } from "./cases";
 import { EVAL_CHECKS } from "./checks";
 import { readRecordings, turnOf, type EvalTurn, type Recording } from "./recording";
 
-const AWAITING_FIRST_RECORDING: ReadonlySet<string> = new Set(["memory-remember-region", "memory-recall-thread"]);
-
 const recordings = readRecordings();
 const known = readKnownFailures();
 
@@ -24,8 +22,8 @@ function verdictOf(checkId: string, turn: EvalTurn, caseId: string) {
 }
 
 describe("recorded evals", () => {
-  test("every case has a committed recording, except the memory cases waiting for their first live recording", () => {
-    expect(EVAL_CASES.filter((testCase) => !recordings.has(testCase.id) && !AWAITING_FIRST_RECORDING.has(testCase.id)).map((testCase) => testCase.id)).toEqual([]);
+  test("every case has a committed recording", () => {
+    expect(EVAL_CASES.filter((testCase) => !recordings.has(testCase.id)).map((testCase) => testCase.id)).toEqual([]);
   });
 
   test("every recording scores with no failure outside evals/known-failures.json", async () => {
