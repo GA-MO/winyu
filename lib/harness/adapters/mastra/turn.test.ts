@@ -3,7 +3,7 @@ import { chatTurnOf, seenOf, type RunInput } from "./turn";
 
 const THREAD = "t-1";
 const QUESTION = { id: "m-1", role: "user", content: "ปักการ์ดยอดขายรายภาคไว้ที่แดชบอร์ด" };
-const INTERRUPT_ID = "approval:run-ask::call-9";
+const INTERRUPT_ID = "mastra-approval::run-ask::call_130458";
 
 function input(runId: string, resume?: NonNullable<RunInput>["resume"]): RunInput {
   return { threadId: THREAD, runId, messages: [QUESTION], ...(resume ? { resume } : {}) };
@@ -17,16 +17,16 @@ describe("chatTurnOf", () => {
     expect(answering.runId).toBe("run-answer");
     expect(answering.goal.id).toBe(asking.goal.id);
     expect(asking.answers).toEqual([]);
-    expect(answering.answers).toEqual([{ interruptId: INTERRUPT_ID, toolCallId: "call-9", approved: true }]);
+    expect(answering.answers).toEqual([{ interruptId: INTERRUPT_ID, toolCallId: "call_130458", approved: true }]);
   });
 
-  test("a declined or cancelled answer never reads as approved, and only approval interrupts count", () => {
+  test("a declined or cancelled answer never reads as approved, and an id the server never raised is still an answer for the ledger to refuse", () => {
     const declined = chatTurnOf(input("r", [{ interruptId: INTERRUPT_ID, status: "resolved", payload: { approved: false } }]), "f");
     const cancelled = chatTurnOf(input("r", [{ interruptId: INTERRUPT_ID, status: "cancelled", payload: { approved: true } }]), "f");
-    const suspend = chatTurnOf(input("r", [{ interruptId: "run-ask::call-9", status: "resolved", payload: true }]), "f");
+    const suspend = chatTurnOf(input("r", [{ interruptId: "run-ask::call_130458", status: "resolved", payload: true }]), "f");
     expect(declined.answers[0]?.approved).toBe(false);
     expect(cancelled.answers[0]?.approved).toBe(false);
-    expect(suspend.answers).toEqual([]);
+    expect(suspend.answers).toEqual([{ interruptId: "run-ask::call_130458", toolCallId: "call_130458", approved: true }]);
   });
 
   test("a body that is not a run request still yields a run id and no question", () => {

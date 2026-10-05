@@ -2,7 +2,7 @@ import type { Goal } from "@/lib/harness/types";
 
 const QUESTION_MAX_CHARS = 300;
 const UNTHREADED = "unthreaded";
-const APPROVAL_PREFIX = "approval:";
+const APPROVAL_PREFIX = "mastra-approval::";
 const SNAPSHOT_SEPARATOR = "::";
 const SSE_DATA = "data:";
 
@@ -29,8 +29,9 @@ function textOf(content: unknown): string {
 }
 
 function toolCallIdOf(interruptId: string): string {
-  const separator = interruptId.indexOf(SNAPSHOT_SEPARATOR);
-  return separator >= 0 ? interruptId.slice(separator + SNAPSHOT_SEPARATOR.length) : interruptId;
+  const snapshotAndCall = interruptId.startsWith(APPROVAL_PREFIX) ? interruptId.slice(APPROVAL_PREFIX.length) : interruptId;
+  const separator = snapshotAndCall.indexOf(SNAPSHOT_SEPARATOR);
+  return separator >= 0 ? snapshotAndCall.slice(separator + SNAPSHOT_SEPARATOR.length) : snapshotAndCall;
 }
 
 function approvedOf(entry: ResumeEntry): boolean {
@@ -39,11 +40,11 @@ function approvedOf(entry: ResumeEntry): boolean {
   return typeof entry.payload === "object" && entry.payload !== null && (entry.payload as { approved?: unknown }).approved === true;
 }
 
-/** The approvals this request answers: resume entries for interrupts the agent raised to ask the person. */
+/** Every resume entry of this request read as an approval answer; the server only ever raises approval interrupts, so an entry it never asked for is still an answer the approval ledger then refuses. */
 export function answersOf(input: RunInput): ApprovalAnswer[] {
   return (input?.resume ?? []).flatMap((entry) => {
     const interruptId = stringOr(entry?.interruptId);
-    if (!interruptId?.startsWith(APPROVAL_PREFIX)) return [];
+    if (!interruptId) return [];
     return [{ interruptId, toolCallId: toolCallIdOf(interruptId), approved: approvedOf(entry) }];
   });
 }
