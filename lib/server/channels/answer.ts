@@ -1,19 +1,13 @@
-import { createHash, randomUUID } from "node:crypto";
+import { randomUUID } from "node:crypto";
 import { liveAccessFor } from "@/lib/access/enforce";
 import type { User } from "@/lib/contracts";
 import { TH } from "@/lib/i18n/th";
 import { linkedUser, noteUnlinkedAttempt } from "@/lib/server/identity";
 import { heldApproval, holdApproval, promptOf } from "./approvals";
 import { channelCardsOf } from "./cards";
+import { channelThreadId } from "./thread-id";
 import { converse, type ChannelMessage, type ChannelTurn } from "./turn";
 import type { Channel, ChannelInbound, ChannelReply } from "./types";
-
-const THREAD_HASH_CHARS = 32;
-
-/** The mascop thread one person's private chat with the bot lives in: stable per chat app conversation and person, so the web rail shows it and the next message continues it. */
-export function channelThreadId(channel: Channel, conversation: string, userId: string): string {
-  return `${channel}-${createHash("sha256").update(`${conversation}\n${userId}`).digest("hex").slice(0, THREAD_HASH_CHARS)}`;
-}
 
 /** Where the person continues a thread in the web app. */
 export function threadUrl(webOrigin: string, threadId: string): string {

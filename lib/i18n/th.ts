@@ -1547,6 +1547,7 @@ export const TH = {
     more: (count: number) => `และอีก ${count} รายการ ดูต่อในเว็บ`,
     altText: (title: string) => `mascop: ${title}`,
     answerAlt: "คำตอบจาก mascop",
+    via: { teams: "Teams", line: "LINE" },
     approvalAlt: "mascop ขอให้คุณอนุมัติ",
     link: {
       title: "เชื่อมบัญชี LINE กับ mascop",

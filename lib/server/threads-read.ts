@@ -2,12 +2,14 @@ import { randomUUID } from "node:crypto";
 import type { HandoffPreload, Thread } from "@/lib/contracts";
 import { collection } from "@/lib/server/store/json-store";
 import { TH } from "@/lib/i18n/th";
+import { channelOfThread } from "@/lib/server/channels/thread-id";
+import type { Channel } from "@/lib/server/channels/types";
 
 export const THREADS_COLLECTION = "threads";
 
 const TITLE_LENGTH = 40;
 
-export type ThreadSummary = { id: string; title: string; createdAt: string; updatedAt: string; packetId: string | null };
+export type ThreadSummary = { id: string; title: string; createdAt: string; updatedAt: string; packetId: string | null; channel: Channel | null };
 
 export function threads() {
   return collection<Thread>(THREADS_COLLECTION);
@@ -20,7 +22,7 @@ export function titleFrom(firstMessage: string): string {
 }
 
 function summaryOf(thread: Thread): ThreadSummary {
-  return { id: thread.id, title: thread.title, createdAt: thread.createdAt, updatedAt: thread.updatedAt, packetId: thread.preload?.packetId ?? null };
+  return { id: thread.id, title: thread.title, createdAt: thread.createdAt, updatedAt: thread.updatedAt, packetId: thread.preload?.packetId ?? null, channel: channelOfThread(thread.id) };
 }
 
 /** Every thread of one user, newest first, without the message bodies. */

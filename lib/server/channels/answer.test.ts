@@ -4,7 +4,8 @@ import { ScriptedModel } from "@/scripts/scripted-model";
 const scripted = new ScriptedModel();
 mock.module("@/lib/server/models", () => scripted.modelsModule());
 
-const { answerChannel, channelThreadId } = await import("./answer");
+const { answerChannel } = await import("./answer");
+const { channelThreadId } = await import("./thread-id");
 const { linkIdentity, pendingAttempt, identityKey } = await import("@/lib/server/identity");
 const { auditLog } = await import("@/lib/server/audit");
 const { threads } = await import("@/lib/server/threads-read");
