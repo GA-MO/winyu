@@ -1,6 +1,7 @@
 import type { ToolStep } from "./timeline";
 
 const DECLINED_TEXT = /not approved|declined|rejected|denied/i;
+const ANSWER_LISTS = ["rows", "weeks"] as const;
 
 /** How one tool call shows in a reply: its card, the decision it waits on or its receipt, a working line, a quiet note, or nothing. */
 export type ToolView =
@@ -24,7 +25,15 @@ function isDone(result: unknown): boolean {
   return typeof result === "object" && result !== null && (result as { ok?: unknown }).ok === true;
 }
 
+/** A successful read that found nothing (no rows, no forecast weeks): the reply says so in words, as the prompt asks, so no empty card is drawn. */
+export function isEmptyAnswer(result: unknown): boolean {
+  if (typeof result !== "object" || result === null || (result as { ok?: unknown }).ok !== true) return false;
+  const lists = ANSWER_LISTS.map((key) => (result as Record<string, unknown>)[key]).filter(Array.isArray);
+  return lists.length > 0 && lists.every((list) => list.length === 0);
+}
+
 function cardView(step: ToolStep, live: ToolLive): ToolView {
+  if (step.outcome.state === "returned" && isEmptyAnswer(step.outcome.result)) return { kind: "none" };
   if (step.outcome.state === "returned") return { kind: "card", name: step.name, result: step.outcome.result, args: step.args };
   if (step.outcome.state === "pending" && live.running) return { kind: "working" };
   return { kind: "none" };

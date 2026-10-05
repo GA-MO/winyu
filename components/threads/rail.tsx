@@ -107,7 +107,7 @@ export function ThreadRail() {
 
   return (
     <>
-      <button type="button" onClick={() => setMobileOpen(true)} aria-label={TEXT.expand} className={cn(ICON_BUTTON, "fixed bottom-24 left-3 z-30 border border-border bg-card shadow-card md:hidden")}>
+      <button type="button" onClick={() => setMobileOpen(true)} aria-label={TEXT.expand} className={cn(ICON_BUTTON, "fixed left-3 top-[4.5rem] z-30 border border-border bg-card shadow-card md:hidden")}>
         <Menu className="size-5" aria-hidden />
       </button>
       {mobileOpen ? <button type="button" aria-label={TH.common.close} onClick={() => setMobileOpen(false)} className="fixed inset-0 z-30 bg-foreground/10 backdrop-blur-sm md:hidden" /> : null}

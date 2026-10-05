@@ -14,7 +14,12 @@ function inline(text: string): ReactNode[] {
 }
 
 function lines(block: string): ReactNode[] {
-  return block.split("\n").flatMap((line, index) => (index === 0 ? inline(line) : [<br key={`br-${index}`} />, ...inline(line)]));
+  return block.split("\n").map((line, index) => (
+    <Fragment key={index}>
+      {index > 0 ? <br /> : null}
+      {inline(line)}
+    </Fragment>
+  ));
 }
 
 function Block({ block }: { block: string }) {

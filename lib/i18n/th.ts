@@ -298,7 +298,7 @@ export const TH = {
   },
   session: {
     title: "mascop",
-    newThreadTitle: "New chat",
+    newThreadTitle: "แชตใหม่",
     preloadBanner: (name: string) => `งานที่ส่งต่อมาจาก ${name}`,
     preloadOpen: "ดูรายละเอียดใน Inbox",
     notFound: "ไม่พบบทสนทนานี้",
