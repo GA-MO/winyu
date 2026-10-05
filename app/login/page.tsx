@@ -11,8 +11,11 @@ import { PersonList } from "@/components/login/person-list";
 import { ROLE_ICONS } from "@/components/login/role-icon";
 import { GlowBackdrop } from "@/components/ui/glow-backdrop";
 import { GradientText } from "@/components/ui/gradient-text";
+import { EntraSignIn, type SignInProblem } from "@/components/login/entra-sign-in";
+import { authMode } from "@/lib/server/auth/mode";
+import { safeNextPath } from "@/lib/server/auth/next-path";
 
-type SearchParams = Promise<{ role?: string; next?: string }>;
+type SearchParams = Promise<{ role?: string; next?: string; signedOut?: string; error?: string }>;
 
 const HOME = "/";
 
@@ -24,9 +27,8 @@ function roleOf(value: string | undefined): RoleId | null {
   return ROLE_IDS.includes(value as RoleId) ? (value as RoleId) : null;
 }
 
-/** Only a path inside the app may follow sign-in, so a crafted link cannot send the user elsewhere. */
-function nextOf(value: string | undefined): string {
-  return value && value.startsWith("/") && !value.startsWith("//") ? value : HOME;
+function problemOf(value: string | undefined): SignInProblem | null {
+  return value && Object.hasOwn(TH.sso.errors, value) ? (value as SignInProblem) : null;
 }
 
 function membersOf(role: RoleId) {
@@ -139,8 +141,9 @@ function RoleSummary({ role }: { role: RoleId }) {
 
 export default async function LoginPage({ searchParams }: { searchParams: SearchParams }) {
   const params = await searchParams;
+  const next = safeNextPath(params.next);
+  if (authMode() === "entra") return <EntraSignIn next={next} signedOut={params.signedOut === "1"} problem={problemOf(params.error)} />;
   const role = roleOf(params.role);
-  const next = nextOf(params.next);
   return (
     <main className="relative min-h-dvh overflow-hidden">
       <GlowBackdrop />

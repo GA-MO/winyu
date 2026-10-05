@@ -3,7 +3,7 @@ import { auditLog } from "@/lib/server/audit";
 import { layouts } from "@/lib/server/agent/collections";
 import { runStore } from "@/lib/harness/runtime";
 import { modelCalls } from "@/lib/server/model-ledger";
-import { SESSION_COOKIE } from "@/lib/server/session-cookie";
+import { sessionCookie } from "@/lib/server/auth/session-token";
 
 const BASE_URL = process.env.PROBE_URL ?? "http://localhost:3200";
 const RUN_PATH = "/api/copilotkit/agent/mascop/run";
@@ -40,6 +40,11 @@ function eventsOf(sse: string): AgUiEvent[] {
   });
 }
 
+function cookieOf(userId: string): string {
+  const cookie = sessionCookie({ via: "demo", userId });
+  return `${cookie.name}=${cookie.value}`;
+}
+
 function threadOf(userId: string, question: string): Thread {
   return { id: `probe-${randomUUID()}`, userId, messages: [{ id: randomUUID(), role: "user", content: question }] };
 }
@@ -49,7 +54,7 @@ async function run(thread: Thread, resume: unknown[] | null = null): Promise<Rep
   const body = { threadId: thread.id, runId, state: {}, messages: thread.messages, tools: [], context: [], forwardedProps: {}, ...(resume ? { resume } : {}) };
   const response = await fetch(`${BASE_URL}${RUN_PATH}`, {
     method: "POST",
-    headers: { "content-type": "application/json", accept: "text/event-stream", cookie: `${SESSION_COOKIE}=${thread.userId}` },
+    headers: { "content-type": "application/json", accept: "text/event-stream", cookie: cookieOf(thread.userId) },
     body: JSON.stringify(body),
   });
   const events = eventsOf(await response.text());

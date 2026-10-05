@@ -25,7 +25,7 @@ const SECTION = "flex flex-col gap-2 border-b border-border px-4 py-4";
 const CHOICE = "flex items-center gap-2 rounded-full border border-border px-3.5 py-1.5 text-xs transition hover:border-foreground/25";
 const LINK = "flex items-center justify-between gap-2 rounded-xl px-2.5 py-2 text-sm text-foreground transition hover:bg-muted";
 
-/** The account sheet: what the agent watches for the person, what it remembers, outbox, theme, the demo persona switch, admin for IT, sign out. */
+/** The account sheet: what the agent watches for the person, what it remembers, outbox, theme, the persona switch (demo mode passes `people`; SSO passes none), admin for IT, sign out. */
 export function AccountSheet({ open, onClose, user, people }: { open: boolean; onClose: () => void; user: Persona; people: readonly Persona[] }) {
   const router = useRouter();
   const { mode, setMode } = useTheme();
@@ -72,7 +72,7 @@ export function AccountSheet({ open, onClose, user, people }: { open: boolean; o
   const signOut = useCallback(() => {
     startTransition(async () => {
       await fetch(SESSION_ENDPOINT, { method: "DELETE" });
-      router.push("/login");
+      router.push("/login?signedOut=1");
     });
   }, [router]);
 
@@ -182,7 +182,7 @@ export function AccountSheet({ open, onClose, user, people }: { open: boolean; o
             </div>
           </section>
 
-          <section className={SECTION}>
+          {byRole.length > 0 ? <section className={SECTION}>
             <h3 className="text-xs font-medium tracking-wide text-muted-foreground">{TH.account.persona}</h3>
             {byRole.map((group) => (
               <details key={group.role} className="group" open={group.role === user.role}>
@@ -210,7 +210,7 @@ export function AccountSheet({ open, onClose, user, people }: { open: boolean; o
                 </div>
               </details>
             ))}
-          </section>
+          </section> : null}
 
           <section className={SECTION}>
             <button type="button" onClick={signOut} disabled={pending} className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-danger hover:bg-muted">
