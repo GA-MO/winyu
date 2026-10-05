@@ -29,12 +29,19 @@ const REVIEW_INTERVAL_MS = DAY_MS;
 const KNOWN_ID_PREFIX = "k";
 const ENTITY_KINDS: EntityKind[] = ["agent", "sku", "dc", "campaign", "brand"];
 
-export type Extracted = { type: MemoryFact["type"]; value: string; sameAs?: string | null };
+/** A fact the extractor heard: `asked` when the user asked for it to be remembered or stated it as a standing fact about themselves. */
+export type Extracted = { type: MemoryFact["type"]; value: string; sameAs?: string | null; asked?: boolean };
 
 /** A question to learn from, with the metric slice the answer was built from when there was one. */
 export type HeardTurn = { prompt: string; metric?: MetricId | null; dims?: Dim[] };
 
-type Origin = "said" | "did";
+type Origin = "said" | "asked" | "did";
+
+const ORIGIN: Record<Origin, { start: number; floor: number }> = {
+  said: { start: SAID_CONFIDENCE, floor: 0 },
+  asked: { start: DID_CONFIDENCE, floor: DID_CONFIDENCE },
+  did: { start: DID_CONFIDENCE, floor: DID_CONFIDENCE },
+};
 
 const factSchema = z.object({
   facts: z
@@ -43,6 +50,7 @@ const factSchema = z.object({
         type: z.enum(["interest", "vocabulary", "responsibility", "preference", "seasonal"]),
         value: z.string().min(MIN_VALUE_LENGTH).max(80),
         sameAs: z.string().nullable(),
+        asked: z.boolean(),
       }),
     )
     .max(MAX_FACTS_PER_TURN),
@@ -144,13 +152,12 @@ async function extractByModel(userId: string, turns: HeardTurn[], known: MemoryF
 
 function reinforce(fact: MemoryFact, origin: Origin): MemoryFact {
   if (fact.decayAt === null) return fact;
-  const floor = origin === "did" ? DID_CONFIDENCE : 0;
-  const confidence = Math.min(MAX_CONFIDENCE, Math.max(floor, fact.confidence + CONFIDENCE_STEP));
+  const confidence = Math.min(MAX_CONFIDENCE, Math.max(ORIGIN[origin].floor, fact.confidence + CONFIDENCE_STEP));
   return memoryFacts().put({ ...fact, confidence, decayAt: decayAt(confidence), seen: seenCount(fact) + 1, lastSeenAt: new Date().toISOString() });
 }
 
 function add(userId: string, fact: Extracted, origin: Origin, threadId: string | null): MemoryFact {
-  const confidence = origin === "did" ? DID_CONFIDENCE : SAID_CONFIDENCE;
+  const confidence = ORIGIN[origin].start;
   return memoryFacts().put({
     id: randomUUID(),
     userId,
@@ -165,11 +172,12 @@ function add(userId: string, fact: Extracted, origin: Origin, threadId: string |
   });
 }
 
-function merge(userId: string, extracted: Extracted[], origin: Origin, threadId: string | null): MemoryFact[] {
+function merge(userId: string, extracted: Extracted[], heardAs: Origin, threadId: string | null): MemoryFact[] {
   const mine = factsOf(userId);
   const touched = new Set<string>();
   const saved: MemoryFact[] = [];
   for (const fact of extracted) {
+    const origin: Origin = fact.asked ? "asked" : heardAs;
     const named = fact.sameAs ? mine.find((candidate) => candidate.id === fact.sameAs && candidate.type === fact.type) : undefined;
     const existing = named ?? findSameFact(mine, fact);
     if (existing && touched.has(existing.id)) continue;
@@ -310,6 +318,11 @@ export async function rememberTurn(userId: string, turns: HeardTurn[], threadId:
   if (heard.length === 0) return [];
   const known = factsOf(userId).sort(keepOrder);
   const extracted = (await extractByModel(userId, heard, known)) ?? extractByRule(heard.map((turn) => turn.prompt), await loadDictionary());
+  return learnExtracted(userId, extracted, threadId);
+}
+
+/** Saves what the extractor heard in one turn: a fact the user asked to be remembered is trusted at once, the rest waits to be heard again. */
+export function learnExtracted(userId: string, extracted: Extracted[], threadId: string | null): MemoryFact[] {
   const saved = merge(userId, extracted, "said", threadId);
   if (reviewIsDue(userId)) void reviewMemory(userId);
   return saved;
