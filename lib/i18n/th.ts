@@ -1144,6 +1144,7 @@ export const TH = {
     answeredWith: (prompt: string, metric: string, dims: string[]) => `${prompt} (ระบบตอบด้วย ${metric}${dims.length > 0 ? ` แยกตาม${dims.join(" ")}` : ""})`,
     nothingKnown: "ยังไม่มี",
     maskedNumber: "[ตัวเลข]",
+    recalledSummary: (facts: number, conversations: number) => [facts > 0 ? `จำได้ ${facts} เรื่องที่เกี่ยวข้อง` : "", conversations > 0 ? `เคยคุยเรื่องใกล้เคียง ${conversations} บทสนทนา` : ""].filter(Boolean).join(" · "),
     truncated: "…",
   },
   quick: {
