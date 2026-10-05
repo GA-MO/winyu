@@ -41,3 +41,8 @@ export function markAnswered(approvalId: string): void {
   const record = approvals().get(approvalId);
   if (record) approvals().put({ ...record, status: "answered", at: new Date().toISOString() });
 }
+
+/** The tool an approval was asked for, or null for an id the server never asked. */
+export function askedTool(approvalId: string): string | null {
+  return approvals().get(approvalId)?.tool ?? null;
+}

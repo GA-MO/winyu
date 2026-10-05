@@ -1,0 +1,114 @@
+import { randomUUID } from "node:crypto";
+import { MastraAgent } from "@ag-ui/mastra";
+import { CopilotRuntime, createCopilotRuntimeHandler } from "@copilotkit/runtime/v2";
+import { RequestContext } from "@mastra/core/request-context";
+import type { AccessContext } from "@/lib/contracts";
+import { askedTool, markAnswered, problemOf, recordAsked } from "@/lib/harness/approvals";
+import { emitTo, newRun, runWithRun, saveRun, type Run } from "@/lib/harness/runtime";
+import { TH } from "@/lib/i18n/th";
+import { currentAccess, runWithAccess, runWithTurn, type TurnContext } from "@/lib/server/request-context";
+import { finishTurn } from "@/lib/server/threads";
+import { threadForRun } from "@/lib/server/threads-read";
+import { AGENT_ID, USER_ID_KEY, mascopAgent } from "./agent";
+import { chatTurnOf, observeReply, type ChatTurn, type ReplySeen, type RunInput } from "./turn";
+
+const BASE_PATH = "/api/copilotkit";
+const RUN_PATH = `${BASE_PATH}/agent/${AGENT_ID}/run`;
+const NOT_YOUR_THREAD = { error: "ไม่พบบทสนทนานี้" };
+
+type Handler = (request: Request) => Promise<Response>;
+
+function bridgeFor(userId: string): MastraAgent {
+  const requestContext = new RequestContext();
+  requestContext.set(USER_ID_KEY, userId);
+  return new MastraAgent({ agentId: AGENT_ID, agent: mascopAgent(), resourceId: userId, requestContext });
+}
+
+let copilotHandler: Handler | null = null;
+
+/** CopilotKit's runtime over the one Mastra agent; each request gets a fresh bridge for the person being served, so no request state is shared between users (D9). */
+function handler(): Handler {
+  copilotHandler ??= createCopilotRuntimeHandler({
+    runtime: new CopilotRuntime({ agents: () => ({ [AGENT_ID]: bridgeFor(currentAccess().userId) }) }),
+    basePath: BASE_PATH,
+  });
+  return copilotHandler;
+}
+
+function started(run: Run, turn: ChatTurn): void {
+  emitTo(run, "runtime", { type: "agent.started", payload: { goal: turn.goal, userId: run.userId, threadId: run.threadId } });
+  for (const answer of turn.answers) {
+    const ref = { toolCallId: answer.toolCallId, tool: askedTool(answer.interruptId) ?? "unknown" };
+    emitTo(run, "ui", { type: answer.approved ? "approval.granted" : "approval.denied", payload: ref });
+  }
+}
+
+function lastStepId(run: Run): string {
+  const decision = [...run.events].reverse().find((event) => event.type === "agent.decided");
+  return decision?.type === "agent.decided" ? decision.payload.stepId : `${run.id}:${run.steps}`;
+}
+
+function lastFinishReason(run: Run): string {
+  const decision = [...run.events].reverse().find((event) => event.type === "agent.decided");
+  return decision?.type === "agent.decided" ? decision.payload.finishReason : "none";
+}
+
+function learnFrom(run: Run, turn: ChatTurn, context: TurnContext): void {
+  if (!turn.question) return;
+  finishTurn(run.userId, turn.threadId, turn.question, context.queries).catch((error: unknown) => {
+    console.error(`memory extraction after run ${run.id} failed`, error);
+  });
+}
+
+function ended(run: Run, turn: ChatTurn, context: TurnContext, seen: ReplySeen): void {
+  if (seen.results.length > 0) emitTo(run, "ui", { type: "ui.rendered", payload: { stepId: lastStepId(run), components: seen.results } });
+  for (const asked of seen.asked) {
+    recordAsked(asked.interruptId, run.userId, asked.toolCallId, asked.tool);
+    emitTo(run, "runtime", { type: "approval.requested", payload: { toolCallId: asked.toolCallId, tool: asked.tool } });
+  }
+  if (seen.error) emitTo(run, "runtime", { type: "agent.failed", payload: { reason: seen.error } });
+  else emitTo(run, "runtime", { type: "agent.completed", payload: { finishReason: seen.asked.length > 0 ? "awaiting_approval" : lastFinishReason(run) } });
+  saveRun(run);
+  if (!seen.error && seen.asked.length === 0) learnFrom(run, turn, context);
+}
+
+function refused(run: Run, interruptId: string, problem: string): Response {
+  emitTo(run, "runtime", { type: "agent.failed", payload: { reason: `approval ${interruptId} refused: ${problem}` } });
+  saveRun(run);
+  return Response.json({ error: TH.harness.approvalSpent }, { status: 409 });
+}
+
+function readInput(body: string): RunInput {
+  try {
+    return JSON.parse(body) as RunInput;
+  } catch {
+    return null;
+  }
+}
+
+async function serveRun(access: AccessContext, req: Request): Promise<Response> {
+  const body = await req.text();
+  const turn = chatTurnOf(readInput(body), randomUUID());
+  if (turn.threadId && !threadForRun(turn.threadId, access.userId, turn.question ?? "")) return Response.json(NOT_YOUR_THREAD, { status: 404 });
+  const run = newRun(access.userId, turn.threadId, { id: turn.runId });
+  started(run, turn);
+  const spent = turn.answers.map((answer) => ({ answer, problem: problemOf(answer.interruptId, access.userId, answer.toolCallId) })).find((entry) => entry.problem !== null);
+  if (spent) return refused(run, spent.answer.interruptId, spent.problem ?? "unknown");
+  for (const answer of turn.answers) markAnswered(answer.interruptId);
+  const context: TurnContext = { turnId: run.id, threadId: turn.threadId, preloadPacketId: turn.preloadPacketId, question: turn.question, queries: [] };
+  const replayed = new Request(req.url, { method: "POST", headers: req.headers, body });
+  try {
+    const response = await runWithAccess(access, () => runWithTurn(context, () => runWithRun(run, () => handler()(replayed))));
+    return observeReply(response, (seen) => ended(run, turn, context, seen));
+  } catch (error) {
+    emitTo(run, "runtime", { type: "agent.failed", payload: { reason: error instanceof Error ? error.message : String(error) } });
+    saveRun(run);
+    throw error;
+  }
+}
+
+/** Serves one CopilotKit request for a signed-in person. A run request is one harness run: started with its goal, the agent inside the person's access, turn and run, its trace saved when the reply ends. An approval splits a question into two runs that share the goal: the first ends asking, the second starts with the answer. */
+export function serveCopilot(access: AccessContext, req: Request): Promise<Response> {
+  if (req.method === "POST" && new URL(req.url).pathname === RUN_PATH) return serveRun(access, req);
+  return runWithAccess(access, () => handler()(req));
+}

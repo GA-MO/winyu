@@ -41,6 +41,14 @@ export function createThread(userId: string, firstMessage: string, preload: Hand
   return threads().put({ id: randomUUID(), userId, title: titleFrom(firstMessage), createdAt: now, updatedAt: now, messages: [], preload, storyId });
 }
 
+/** The thread a chat run belongs to: the person's own, created under the client's id with the first question as its title when the id is new; null when the id is another person's. */
+export function threadForRun(id: string, userId: string, firstQuestion: string): Thread | null {
+  const existing = threads().get(id);
+  if (existing) return existing.userId === userId ? existing : null;
+  const now = new Date().toISOString();
+  return threads().put({ id, userId, title: titleFrom(firstQuestion), createdAt: now, updatedAt: now, messages: [], preload: null, storyId: null });
+}
+
 export function renameThread(id: string, userId: string, title: string): Thread | null {
   const thread = getThread(id, userId);
   if (!thread) return null;

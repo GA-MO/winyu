@@ -1,4 +1,4 @@
-import type { ActionEvent, Dim, MemoryFact, MetricId, Thread } from "@/lib/contracts";
+import type { ActionEvent, Dim, MemoryFact, MetricId, MetricQuery, Thread } from "@/lib/contracts";
 import { actionEvents } from "@/lib/server/agent/collections";
 import { getThread, threads, titleFrom } from "./threads-read";
 import { rememberTurn } from "@/lib/engine/memory";
@@ -129,4 +129,14 @@ export async function saveMessages(threadId: string, userId: string, messages: u
 
 export function toolsUsed(messages: unknown[]): string[] {
   return [...new Set((messages as MessageLike[]).flatMap(toolsOf))];
+}
+
+/** After a chat turn the agent finished: the thread is touched, the question joins the behaviour log with the slice it queried first, and memory learns from it. */
+export async function finishTurn(userId: string, threadId: string | null, question: string, queries: readonly MetricQuery[]): Promise<MemoryFact[]> {
+  const thread = threadId ? getThread(threadId, userId) : null;
+  if (thread) threads().put({ ...thread, updatedAt: new Date().toISOString() });
+  const metric = queries[0]?.metric ?? null;
+  const dims = queries[0]?.dims ?? [];
+  recordAction(userId, "question", intentKeyOf(metric, dims), question, threadId, { metric, dims });
+  return rememberTurn(userId, [{ prompt: question, metric, dims }], threadId);
 }
