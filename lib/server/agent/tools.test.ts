@@ -1,5 +1,4 @@
 import { describe, expect, test } from "bun:test";
-import type { Tool } from "ai";
 import { accessFor } from "@/lib/access/policies";
 import { liveAccessFor, setHandoffEnabled, withAdminSwitches } from "@/lib/access/enforce";
 import { resetRoleOverrides } from "@/lib/access/role-overrides";
@@ -8,6 +7,7 @@ import { findUser } from "@/lib/data/entities/users";
 import { auditLog } from "@/lib/server/audit";
 import { runWithAccess } from "@/lib/server/request-context";
 import { notifications, outbox, packets } from "./collections";
+import type { WinyuTool } from "@/lib/server/tools/define";
 import { winyuTools, toolsForAccess } from "./tools";
 
 const TODAY = "2026-09-22";
@@ -32,11 +32,14 @@ function query(partial: Partial<MetricQuery>): MetricQuery {
   };
 }
 
+function toolNamesOf(tools: WinyuTool[]): string[] {
+  return tools.map((tool) => tool.entry.name);
+}
+
 async function call<T>(userId: string, name: string, input: unknown): Promise<T> {
   const access = accessOf(userId);
-  const definition = winyuTools()[name] as Tool;
-  const execute = definition.execute as (args: unknown, options: unknown) => Promise<T>;
-  return runWithAccess(access, () => execute(input, {}));
+  const { execute } = winyuTools()[name];
+  return runWithAccess(access, () => execute(input) as Promise<T>);
 }
 
 const NATIONAL_WEEKLY_FLOOR_HL = 30_000;
@@ -210,24 +213,24 @@ describe("set_permission", () => {
   });
 
   test("only IT reaches the tool", () => {
-    expect(Object.keys(toolsForAccess(accessOf("u_ton")))).toContain("set_permission");
-    expect(Object.keys(toolsForAccess(accessOf("u_thana")))).not.toContain("set_permission");
+    expect(toolNamesOf(toolsForAccess(accessOf("u_ton")))).toContain("set_permission");
+    expect(toolNamesOf(toolsForAccess(accessOf("u_thana")))).not.toContain("set_permission");
   });
 });
 
 describe("toolsForAccess", () => {
   test("returns only the allowed subset", () => {
-    expect(Object.keys(toolsForAccess(accessOf("u_krit")))).not.toContain("create_handoff");
-    expect(Object.keys(toolsForAccess(accessOf("u_ton")))).toContain("run_job");
-    expect(Object.keys(toolsForAccess(accessOf("u_thana")))).not.toContain("run_job");
+    expect(toolNamesOf(toolsForAccess(accessOf("u_krit")))).not.toContain("create_handoff");
+    expect(toolNamesOf(toolsForAccess(accessOf("u_ton")))).toContain("run_job");
+    expect(toolNamesOf(toolsForAccess(accessOf("u_thana")))).not.toContain("run_job");
   });
 
   test("the admin handoff switch takes handoff and mail away from everyone, then gives them back", () => {
     setHandoffEnabled(false, "u_ton");
-    expect(Object.keys(toolsForAccess(accessOf("u_anucha")))).not.toContain("create_handoff");
-    expect(Object.keys(toolsForAccess(accessOf("u_anucha")))).not.toContain("send_email");
+    expect(toolNamesOf(toolsForAccess(accessOf("u_anucha")))).not.toContain("create_handoff");
+    expect(toolNamesOf(toolsForAccess(accessOf("u_anucha")))).not.toContain("send_email");
     expect(withAdminSwitches(accessOf("u_anucha")).toolAllow).not.toContain("create_handoff");
     setHandoffEnabled(true, "u_ton");
-    expect(Object.keys(toolsForAccess(accessOf("u_anucha")))).toContain("create_handoff");
+    expect(toolNamesOf(toolsForAccess(accessOf("u_anucha")))).toContain("create_handoff");
   });
 });

@@ -1,4 +1,4 @@
-import { generateObject, generateText, stepCountIs, type LanguageModel, type Tool, type ToolSet } from "ai";
+import { generateObject, generateText, stepCountIs, type LanguageModel, type ToolSet } from "ai";
 import { fenceAsData } from "@/lib/harness/fence";
 import { z } from "zod";
 import { accessFor } from "@/lib/access/policies";
@@ -12,7 +12,8 @@ import { USERS, findUser } from "@/lib/data/entities/users";
 import { TH } from "@/lib/i18n/th";
 import { investigations } from "@/lib/server/agent/collections";
 import { runMetric } from "@/lib/server/metrics";
-import { winyuTools, toolsForAccess, toolTiers } from "@/lib/server/agent/tools";
+import { aiSdkTools } from "@/lib/server/agent/ai-sdk-tools";
+import { winyuTools, toolsForAccess } from "@/lib/server/agent/tools";
 import { MOCK_MODEL_ID } from "@/lib/harness/adapters/vexa/server";
 import { models } from "@/lib/server/models";
 import { tracedRun } from "@/lib/harness/runtime";
@@ -79,9 +80,8 @@ type MetricAnswer = Extract<MetricResult, { ok: true }> & { query: MetricQuery }
 
 /** The open anomalies this person would get from get_alerts, read before the model runs so a story cannot start without them. */
 export async function openAnomalies(access: AccessContext): Promise<ToolCall> {
-  const definition = winyuTools()[ALERTS_TOOL] as Tool;
-  const execute = definition.execute as (args: unknown, options: unknown) => Promise<unknown>;
-  const output = await runWithAccess(access, () => execute(ALERT_INPUT, {}));
+  const { execute } = winyuTools()[ALERTS_TOOL];
+  const output = await runWithAccess(access, () => execute(ALERT_INPUT));
   return { tool: ALERTS_TOOL, input: ALERT_INPUT, output };
 }
 
@@ -107,8 +107,7 @@ function quietRun(userId: string, modelId: string, anomalies: ToolCall): Investi
 }
 
 function readTools(access: AccessContext): ToolSet {
-  const tiers = toolTiers();
-  return Object.fromEntries(Object.entries(toolsForAccess(access)).filter(([name]) => tiers[name] === "read"));
+  return aiSdkTools(toolsForAccess(access).filter((tool) => tool.entry.tier === "read"));
 }
 
 function scopeLine(access: AccessContext): string {

@@ -1,4 +1,3 @@
-import { jsonSchema } from "ai";
 import { z } from "zod";
 import { fence } from "@/lib/harness/fence";
 import type { AccessContext } from "@/lib/contracts";
@@ -109,8 +108,16 @@ export function descriptionOf(connector: ConnectorIdentity, binding: ConnectorTo
 }
 
 /** The input schema the model fills: Winyu's own when written, else what the server last listed. */
-export function inputSchemaOf(connector: ConnectorIdentity, binding: ConnectorToolBinding) {
+export function inputSchemaOf(connector: ConnectorIdentity, binding: ConnectorToolBinding): z.ZodType {
   if (binding.config.input) return binding.config.input;
   const remote = remoteTool(connector.id, binding.remoteName)?.inputSchema;
-  return remote ? jsonSchema(remote) : ANY_ARGS;
+  return remote ? zodOfRemote(remote) : ANY_ARGS;
+}
+
+function zodOfRemote(schema: Record<string, unknown>): z.ZodType {
+  try {
+    return z.fromJSONSchema(schema);
+  } catch {
+    return ANY_ARGS;
+  }
 }

@@ -1,13 +1,18 @@
-import type { Tool } from "ai";
 import type { z } from "zod";
 import type { NativeConnectorId, NativeToolName, RoleId, ToolSurfaceEntry, ToolTier } from "@/lib/contracts";
-import { engineTool } from "@/lib/harness/adapters/vexa/tools";
-import { asksApproval, gated } from "@/lib/harness/gateway";
+import { gated, type GatedTool } from "@/lib/harness/gateway";
 import { LIMITS } from "@/lib/harness/limits";
 import type { Capability, Corrector, Verifier } from "@/lib/harness/types";
 import { TH } from "@/lib/i18n/th";
 
-export type WinyuTool<Name extends string = string> = { entry: ToolSurfaceEntry & { name: Name }; capability: Capability; tool: Tool };
+/** A tool as every engine sees it: its place on the surface, its capability, a description and a zod input read on demand, and the gateway as its only execute. */
+export type WinyuTool<Name extends string = string> = {
+  entry: ToolSurfaceEntry & { name: Name };
+  capability: Capability;
+  description: () => string;
+  inputSchema: () => z.ZodType;
+  execute: GatedTool<unknown>;
+};
 
 type NativeToolSpec<Name extends NativeToolName, Input extends z.ZodType> = {
   name: Name;
@@ -29,12 +34,11 @@ export function defineTool<Name extends NativeToolName, Input extends z.ZodType>
   const entry = { name: spec.name, connector: spec.connector, tier: spec.tier, roles: spec.roles, labelTh: copy.label, bodyTh: copy.body };
   const capability: Capability = { ...entry, timeoutMs: spec.timeoutMs ?? LIMITS.toolTimeoutMs, verify: spec.verify ?? null, correct: spec.correct ?? null, redact: spec.redact ?? [] };
   const describe = spec.description;
-  const tool = engineTool({
+  return {
+    entry,
     capability,
     description: () => (typeof describe === "string" ? describe : describe()),
     inputSchema: () => spec.input,
-    execute: gated(capability, spec.execute),
-    asksApproval: (input: z.output<Input>) => asksApproval(capability, input),
-  });
-  return { entry, capability, tool };
+    execute: gated(capability, spec.execute) as GatedTool<unknown>,
+  };
 }
