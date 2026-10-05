@@ -1,6 +1,7 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 import type { LanguageModelMiddleware } from "ai";
 import { recordModelCall, type ModelCallSource } from "./model-ledger";
+import { currentRun } from "@/lib/harness/runtime";
 import { accessOrNull, currentTurn } from "./request-context";
 
 const PER_MILLION = 1_000_000;
@@ -50,13 +51,15 @@ function billedCostOf(metadata: ProviderMetadata): number | null {
   return typeof usage?.cost === "number" ? usage.cost : null;
 }
 
-type CallContext = { meter: Metered | undefined; userId: string | null; turnId: string | null };
+type CallContext = { meter: Metered | undefined; userId: string | null; turnId: string | null; byJob: boolean };
 
 function contextNow(): CallContext {
-  return { meter: scope.getStore(), userId: accessOrNull()?.userId ?? null, turnId: currentTurn().turnId };
+  const run = currentRun();
+  return { meter: scope.getStore(), userId: accessOrNull()?.userId ?? null, turnId: currentTurn().turnId ?? run?.id ?? null, byJob: run?.initiator === "job" };
 }
 
 function sourceOf(context: CallContext): ModelCallSource {
+  if (context.byJob) return "background";
   if (context.meter) return "eval";
   return context.userId ? "chat" : "background";
 }
