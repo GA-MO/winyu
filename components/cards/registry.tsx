@@ -15,6 +15,7 @@ export type ToolCard = (result: unknown, args: unknown) => ReactNode;
 
 const CrmVisitsCard = connectorCard("store_visits");
 const LmsTrainingCard = connectorCard("training_history");
+const LogisticsPartnerCard = connectorCard("ask_logistics_partner");
 
 function metricOf(value: unknown): MetricId | null {
   const metric = typeof value === "object" && value !== null ? (value as { metric?: unknown }).metric : null;
@@ -50,6 +51,7 @@ export const TOOL_CARDS = {
   list_metrics: (result) => <MetricsListCard result={result} />,
   crm_demo__store_visits: (result) => <CrmVisitsCard result={result} />,
   lms_demo__training_history: (result) => <LmsTrainingCard result={result} />,
+  ask_logistics_partner: (result) => <LogisticsPartnerCard result={result} />,
 } satisfies Record<string, ToolCard>;
 
 export type CardToolName = keyof typeof TOOL_CARDS;
