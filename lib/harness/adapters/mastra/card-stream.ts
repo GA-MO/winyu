@@ -51,6 +51,7 @@ export class ReplyCards {
   next(event: StreamEvent): StreamEvent[] {
     const messageId = typeof event.messageId === "string" ? event.messageId : null;
     const toolCallId = typeof event.toolCallId === "string" ? event.toolCallId : null;
+    if (event.type === "RUN_STARTED") this.startRun();
     if (event.type === "TOOL_CALL_START" && toolCallId) this.calls.set(toolCallId, String(event.toolCallName ?? ""));
     if (event.type === "TOOL_CALL_RESULT" && toolCallId) this.outputs.set(toolCallId, parsedContent(event.content));
     if (event.type === "TEXT_MESSAGE_CONTENT" && messageId && typeof event.delta === "string") return this.unchangedOr(event, this.read(messageId, this.stateOf(messageId).reader.push(event.delta)));
@@ -62,6 +63,12 @@ export class ReplyCards {
   /** The read results the run has returned so far, in the order the agent called them. */
   results(): TurnResult[] {
     return [...this.calls].flatMap(([id, tool]) => (this.outputs.has(id) && this.composable(tool) ? [{ tool, output: this.outputs.get(id) }] : []));
+  }
+
+  private startRun(): void {
+    this.calls.clear();
+    this.outputs.clear();
+    this.texts.clear();
   }
 
   private unchangedOr(event: StreamEvent, out: StreamEvent[]): StreamEvent[] {

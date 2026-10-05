@@ -114,6 +114,21 @@ describe("a card block streamed in the reply", () => {
     expect(restored.find((message) => message.role === "assistant" && message.id === "a1:1")).toMatchObject({ content: `${INTRO}${OUTRO}` });
   });
 
+  test("a replayed thread checks each run's block against that run's results only", () => {
+    const cards = new ReplyCards(readTool, () => undefined);
+    const firstRun = liveEvents().flatMap((event) => cards.next(event));
+    const laterRun = [
+      { type: "RUN_STARTED" },
+      { type: "TEXT_MESSAGE_START", messageId: "m-later", role: "assistant" },
+      { type: "TEXT_MESSAGE_CONTENT", messageId: "m-later", delta: REPLY },
+      { type: "TEXT_MESSAGE_END", messageId: "m-later" },
+      { type: "RUN_FINISHED" },
+    ].flatMap((event) => cards.next(event));
+    expect(snapshots(firstRun).at(-1)?.components.length).toBeGreaterThan(1);
+    expect(snapshots(laterRun).filter((card) => card.components.length > 1)).toEqual([]);
+    expect(shownText(laterRun)).toBe(`${INTRO}${OUTRO}`);
+  });
+
   test("a reply with no block passes through untouched, byte for byte", async () => {
     const frames = ['data: {"type":"RUN_STARTED"}', 'data: {"type":"TEXT_MESSAGE_START","messageId":"m","role":"assistant"}', 'data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"m","delta":"สวัสดี"}', 'data: {"type":"TEXT_MESSAGE_END","messageId":"m"}', 'data: {"type":"RUN_FINISHED"}'].map((frame) => `${frame}\n\n`).join("");
     const response = new Response(frames);

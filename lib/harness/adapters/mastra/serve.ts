@@ -45,6 +45,11 @@ function handler(): Handler {
   return copilotHandler;
 }
 
+function replyCards(onCard: (record: ComposedCardRecord) => void): ReplyCards {
+  const tiers = toolTiers();
+  return new ReplyCards((tool) => tiers[tool] === "read", onCard);
+}
+
 function started(run: Run, turn: ChatTurn): void {
   emitTo(run, "runtime", { type: "agent.started", payload: { goal: turn.goal, userId: run.userId, threadId: run.threadId } });
   for (const answer of turn.answers) {
@@ -111,8 +116,7 @@ async function serveRun(access: AccessContext, req: Request, turn: ChatTurn): Pr
   const transcript = threadId ? () => threadTranscript(threadId, access.userId) : undefined;
   const context: TurnContext = { turnId: run.id, threadId, preloadPacketId: turn.preloadPacketId, question: turn.question, queries: [], transcript };
   const records: ComposedCardRecord[] = [];
-  const tiers = toolTiers();
-  const cards = new ReplyCards((tool) => tiers[tool] === "read", (record) => records.push(record));
+  const cards = replyCards((record) => records.push(record));
   try {
     const response = await runWithAccess(access, () => runWithTurn(context, () => runWithRun(run, () => handler()(req))));
     return observeReply(withComposedCards(response, cards), (seen) => ended(run, turn, context, seen, records));
@@ -149,5 +153,6 @@ export async function serveCopilot(access: AccessContext, req: Request): Promise
   if (isOthersThread(threadId, access.userId)) return Response.json(NOT_YOUR_THREAD, { status: 404 });
   const replayed = new Request(req.url, { method: "POST", headers: req.headers, body });
   if (route.kind === "run") return serveRun(access, replayed, turn);
-  return runWithAccess(access, () => handler()(replayed));
+  const response = await runWithAccess(access, () => handler()(replayed));
+  return route.kind === "connect" ? withComposedCards(response, replyCards(() => undefined)) : response;
 }
