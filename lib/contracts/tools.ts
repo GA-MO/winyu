@@ -9,11 +9,12 @@ import { watchMetricInputSchema } from "./watches";
 export type ToolTier = "read" | "write" | "destructive";
 export type NativeToolName = "query_metric" | "list_metrics" | "describe_entity" | "get_alerts" | "get_forecast" | "get_calendar" | "recall_memory"
   | "find_people" | "get_person" | "get_site" | "list_candidates" | "list_courses" | "get_policy" | "request_leave" | "enroll_course"
-  | "resolve_owner" | "create_handoff" | "send_email" | "pin_widget" | "watch_metric" | "run_job" | "set_permission" | "explain_gap";
+  | "resolve_owner" | "create_handoff" | "send_email" | "pin_widget" | "watch_metric" | "run_job" | "set_permission" | "explain_gap"
+  | "ask_logistics_partner";
 export type ConnectorToolName = `${string}__${string}`;
 export type ToolName = NativeToolName | ConnectorToolName;
 
-export const NATIVE_CONNECTORS = ["warehouse", "hris", "lms", "leave", "sites", "calendar", "mail", "winyu"] as const;
+export const NATIVE_CONNECTORS = ["warehouse", "hris", "lms", "leave", "sites", "calendar", "mail", "winyu", "logistics"] as const;
 export type NativeConnectorId = (typeof NATIVE_CONNECTORS)[number];
 
 export type ConnectorKind = "native" | "mcp" | "rest";

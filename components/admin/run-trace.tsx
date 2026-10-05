@@ -18,6 +18,7 @@ const CODES = TH.admin.auditTab.codes;
 const MS_PER_SECOND = 1000;
 const JOB_INTENT_PREFIX = "job:";
 const MCP_INTENT_PREFIX = "mcp:";
+const A2A_INTENT_PREFIX = "a2a:";
 
 const ICON_TONE: Record<Tone, string> = {
   neutral: "bg-muted text-muted-foreground",
@@ -93,6 +94,7 @@ function ToolDetail({ story, args }: { story: ToolStory; args: string | null }) 
 function startTitle(intent: string | null): string {
   if (intent?.startsWith(JOB_INTENT_PREFIX)) return COPY.startJob;
   if (intent?.startsWith(MCP_INTENT_PREFIX)) return COPY.startMcp;
+  if (intent?.startsWith(A2A_INTENT_PREFIX)) return COPY.startA2a(intent.slice(A2A_INTENT_PREFIX.length));
   return COPY.start;
 }
 
