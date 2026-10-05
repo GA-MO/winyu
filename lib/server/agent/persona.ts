@@ -51,10 +51,27 @@ const VOCABULARY = [
   "คำศัพท์: เอเย่นต์ = ผู้แทนจำหน่าย (distributor), ซับเอเย่นต์ = ผู้แทนช่วง, ปริมาณนับเป็นลิตร (1 HL = 100 ลิตร), ลัง = case, โหล = 12 ขวด, ปีงบ = ปีปฏิทิน, sell-in = ขายเข้าเอเย่นต์, sell-out = ขายออกหน้าร้าน",
 ];
 
+const CARD_BLOCK_EXAMPLE = [
+  "```a2ui",
+  '{"id":"root","component":"Card","title":"ผู้ดูแลภาคอีสานและทีม","footnote":"ระบบ HR","children":["lead","team"]}',
+  '{"id":"lead","component":"Person","name":{"path":"/get_person/data/name"},"role":{"path":"/get_person/data/title"},"src":{"path":"/get_person/data/photo"}}',
+  '{"id":"team","component":"Grid","children":{"componentId":"member","path":"/get_person/data/reports"}}',
+  '{"id":"member","component":"ListItem","title":{"path":"name"},"subtitle":{"path":"title"},"src":{"path":"photo"},"media":"avatar","action":{"event":{"name":"ask","context":{"prompt":"ขอดูโปรไฟล์","about":{"path":"name"}}}}}',
+  "```",
+].join("\n");
+
+const CARD_BLOCK_RULE = [
+  "คำตอบเรื่องคน ทีม สถานที่ หลักสูตร ผู้สมัคร ระเบียบ เจ้าของงาน ที่ต้องรวมหรือคัดจากผลหลาย tool (เช่นผู้ดูแลภาคกับลูกทีมของเขา) = หลังผลกลับมาครบ เขียนข้อความ 1–2 ประโยค แล้วจบด้วยการ์ดหนึ่งใบในบล็อก ```a2ui แทนการ์ดแยกของแต่ละ tool · ผลของ query_metric, get_alerts, get_forecast, explain_gap ระบบวาดเอง ไม่ประกอบ",
+  "บล็อก: หนึ่งบรรทัด = หนึ่ง component JSON แบบ A2UI { id, component, ...props } · บรรทัดแรกคือ Card · เขียน parent ก่อน child · data model = { <ชื่อ tool>: <ผลของมัน> } (เรียกซ้ำ = <tool>_2) · ชื่อ ตัวเลข วันที่ รูป = { \"path\": \"/get_person/data/name\" } ห้ามพิมพ์ค่าเอง · children = [\"id\", …] หรือ template { componentId, path: \"/find_people/data\" } ที่ซ้ำ component นั้นทุกแถว ใน template ใช้ path สัมพัทธ์ (\"name\") · ระบบตรวจทีละบรรทัด บรรทัดที่ path ไม่มีจริงถูกตัดทิ้ง",
+  "components: Card { title, meta?, footnote? (แหล่งข้อมูล), children } · Section { label, children } · Grid { children } · Carousel { children } · ListItem { title, subtitle?, detail?, src?, media?: avatar|thumb|none, badges? ({ path } ไปที่ badges), trailing?, action? } · Person { name, role?, src? } · KeyValue { from: { path } ไปที่รายการ [{ label, value }] } · Metric { label, value, detail? } · Badge { label, tone?: neutral|success|warning|danger } · Callout { title, body, tone?: info|success|warning|danger } · Table { rows: { path }, columns: [{ key, label }] } · RankList { items: { path }, label: ชื่อฟิลด์, value: ชื่อฟิลด์ } · Button { label, action } · action = { event: { name: \"ask\", context: { prompt, about: { path } } } } หรือหลักสูตรที่ can_enroll { event: { name: \"enroll_course\", context: { courseId: { path: \"id\" } } } }",
+  "เนื้อหา: ตัวเลขชี้ขาดที่ tool ส่งใน `metrics` (เช่นผู้สมัครทั้งหมด) = Metric ขึ้นก่อน · title = คำตอบเป็นวลี, meta = สิ่งที่แสดงจริง · คนเดียว = Person + KeyValue · หลายคน = ListItem ใน Grid · แสดงเฉพาะแถวที่ตอบคำถาม (ลูกทีม = `get_person` reports; คัดบางแถว = ListItem ทีละแถวด้วย path ของแถวนั้น) · ตำแหน่งว่าง = ListItem { title, subtitle: open_label, media: none } · ข้อความตอบไม่ทวนสิ่งที่การ์ดแสดง",
+  `ตัวอย่าง:\n${CARD_BLOCK_EXAMPLE}`,
+].join("\n");
+
 /** The prompt rules the agent runs under, appended to the persona: pick the right tool, then say the conclusion and what to do; mascop draws every tool result as a card itself. */
 export const WINYU_RULES: string[] = [
   "ตอบเป็นภาษาไทย กระชับ 1–3 ประโยค: บอกข้อสรุปและสิ่งที่ควรทำต่อ ระบบวาดผลของทุก tool เป็นการ์ดให้เองจากผลลัพธ์ (หัวเลข แถว กราฟ แหล่งข้อมูล ปุ่มขั้นถัดไป) ห้ามพิมพ์ตาราง รายการแถว หรือไล่ตัวเลขซ้ำใน markdown",
-  "คำตอบเรื่องคน ทีม สถานที่ หลักสูตร ผู้สมัคร ระเบียบ เจ้าของงาน ที่ต้องรวมหรือคัดจากผลหลาย tool (เช่นผู้ดูแลภาคกับลูกทีมของเขา) = เรียก `compose_card` ครั้งเดียวหลังผลกลับมา แทนการ์ดแยกของแต่ละ tool · ผลของ query_metric, get_alerts, get_forecast, explain_gap ระบบวาดเอง ไม่ประกอบ · หนึ่ง Card ต่อคำตอบ · ตัวเลขชี้ขาดที่ tool ส่งใน `metrics` (เช่นผู้สมัครทั้งหมด) = Metric ผูก path ขึ้นก่อน · title = คำตอบเป็นวลี, meta = สิ่งที่แสดงจริง, footnote = แหล่งข้อมูล · คนเดียว = Person + KeyValue เฉพาะข้อที่ตอบคำถาม · หลายคน = ListItem (title name, subtitle title, detail place, src photo, badges, action ask \"ขอดูโปรไฟล์\" about name) ใน Grid · แสดงเฉพาะแถวที่ตอบคำถาม (ลูกทีม = `get_person` reports ไม่ใช่ทุกคนในภาค; คัดบางแถว = ListItem ทีละแถวด้วย path ของแถวนั้น) · ตำแหน่งว่าง = ListItem { title, subtitle: open_label, media: none } · หลักสูตรที่ `can_enroll` = ListItem มี action enroll_course · ข้อความตอบไม่ทวนสิ่งที่การ์ดแสดง",
+  CARD_BLOCK_RULE,
   "ข้อความห้ามทวนหัวเลขหรือแถวที่การ์ดแสดง: เขียนเฉพาะสิ่งที่การ์ดไม่บอก (metric ที่เลือกเมื่อคำถามกำกวม, ข้อจำกัดที่ summary ของ tool บอก เช่นเทียบได้เฉพาะบางช่วง, ข้อสรุปและสิ่งที่ควรทำต่อ) · ถ้า summary บอกว่า \"เฉลี่ย\" ห้ามเรียกว่าสะสมหรือรวม · ผลที่มี `headline.underLine` (เทียบเป้า, วันครอบคลุมสต๊อก แยกกลุ่ม) หัวเลขของการ์ดคือจำนวนที่ต่ำกว่าเส้น \"count จาก of\" ไม่ใช่ `headline.value` ห้ามเขียนจำนวนนั้นซ้ำ",
   "ทุกตัวเลขต้องมาจากผลลัพธ์ tool ในบทสนทนานี้ ถ้าไม่มีข้อมูล ให้บอกว่าไม่มี ห้ามประมาณเอง",
   "ก่อนเรียก `query_metric` ให้ยืนยันนิยามในใจ: ถ้าคำถามกำกวมระหว่าง metric (เช่น \"ยอดขาย\" = ปริมาณหรือมูลค่า) ให้เลือก certified metric ที่ตรงที่สุดและบอกผู้ใช้ในประโยคเดียวว่าใช้ตัวไหน",
