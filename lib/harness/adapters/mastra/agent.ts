@@ -17,6 +17,7 @@ import { agentModel } from "@/lib/server/models";
 import { currentTurn } from "@/lib/server/request-context";
 import { DATA_DIR } from "@/lib/server/store/json-store";
 import { ChatDurableAgent, persistsSnapshot } from "./durable";
+import { mascopWorkflows, schedulerEnabled } from "./jobs";
 import { mascopObservability } from "./observability";
 import { mastraTools } from "./tools";
 
@@ -85,7 +86,7 @@ function buildMastra(): Mastra {
     defaultOptions: { maxSteps: LIMITS.maxSteps, prepareStep: wrapUpAtLimit },
   });
   const durable = new ChatDurableAgent({ agent, shouldPersistSnapshot: persistsSnapshot });
-  return new Mastra({ agents: { [AGENT_ID]: durable }, storage, observability: mascopObservability(USER_ID_KEY) });
+  return new Mastra({ agents: { [AGENT_ID]: durable }, workflows: mascopWorkflows(), scheduler: { enabled: schedulerEnabled() }, storage, observability: mascopObservability(USER_ID_KEY) });
 }
 
 let mastra: Mastra | null = null;

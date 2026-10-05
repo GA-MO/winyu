@@ -34,7 +34,6 @@ const LIMITS = { finding: 100, scope: 40, ruledOut: 40, evidenceTitle: 60, actio
 const REMEMBERED = new Set(["recall_memory"]);
 const HONORIFIC = "คุณ";
 const BARE_NAME_MIN_LENGTH = 4;
-const JOB_CONCURRENCY = 3;
 const INVESTIGATE_TOOL_BUDGET = 80;
 const INVESTIGATE_GOAL = "Explain this person's open anomalies before they open mascop";
 
@@ -321,27 +320,4 @@ export function latestInvestigation(userId: string): Investigation | null {
 
 export function saveInvestigation(investigation: Investigation): void {
   investigations().put(investigation);
-}
-
-/** The morning job: investigate for each given user (everyone by default) on the default real model and keep the result; does nothing when no real model is configured. */
-export async function runInvestigateJob(userIds: readonly string[] = USERS.map((user) => user.id)): Promise<number> {
-  const configured = agentModel();
-  if (!configured) return 0;
-  const modelId = configured.id;
-  const model = configured.model();
-  const queue = [...userIds];
-  let saved = 0;
-  const workers = Array.from({ length: JOB_CONCURRENCY }, async () => {
-    for (let userId = queue.shift(); userId; userId = queue.shift()) {
-      const run = await investigate(userId, model, modelId).catch((error: unknown) => {
-        console.error(`[mascop] investigation for ${userId} failed`, error);
-        return null;
-      });
-      if (!run) continue;
-      saveInvestigation(run.investigation);
-      saved += 1;
-    }
-  });
-  await Promise.all(workers);
-  return saved;
 }
