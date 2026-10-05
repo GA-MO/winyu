@@ -12,7 +12,7 @@ import { TH } from "@/lib/i18n/th";
 import { ComposedCardView } from "./composed-card";
 import { Markdown } from "./markdown";
 import type { Exchange, Question, ReplyStep, ToolStep } from "./timeline";
-import { composedCalls, toolViewOf } from "./tool-view";
+import { cardPlanOf, composedCalls, toolViewOf, type CardPlan } from "./tool-view";
 import type { PendingApproval } from "./use-chat-session";
 
 const CARDS: Record<string, ToolCard> = TOOL_CARDS;
@@ -95,9 +95,13 @@ class CardBoundary extends Component<{ children: ReactNode }, { failed: boolean 
   }
 }
 
-function ToolStepView({ step, live, composed, reply }: { step: ToolStep; live: ExchangeLive; composed: boolean; reply: ReplyText }) {
+function drawnStep(step: ToolStep, plan: CardPlan): ToolStep {
+  return plan.results.has(step.toolCallId) ? { ...step, outcome: { state: "returned", result: plan.results.get(step.toolCallId) } } : step;
+}
+
+function ToolStepView({ step, live, plan, reply }: { step: ToolStep; live: ExchangeLive; plan: CardPlan; reply: ReplyText }) {
   const asking = live.waiting.has(step.toolCallId);
-  const view = toolViewOf(step, { running: reply.streaming, asking, decided: live.decisions[step.toolCallId], composed }, CARD_TOOLS);
+  const view = toolViewOf(drawnStep(step, plan), { running: reply.streaming, asking, decided: live.decisions[step.toolCallId], hidden: plan.hidden.has(step.toolCallId) }, CARD_TOOLS);
   if (view.kind === "card") return <div className="w-full animate-hero-rise">{CARDS[view.name](view.result, view.args, reply)}</div>;
   if (view.kind === "working") return <Working label={TH.conversation.working} />;
   if (view.kind === "not-run") return <Note text={TH.conversation.notRun} tone="muted" />;
@@ -129,7 +133,7 @@ function HandoffReplyView({ note }: { note: HandoffReplyNote }) {
   );
 }
 
-function StepView({ step, live, composed, reply }: { step: ReplyStep; live: ExchangeLive; composed: ReadonlySet<string>; reply: ReplyText }) {
+function StepView({ step, live, plan, reply }: { step: ReplyStep; live: ExchangeLive; plan: CardPlan; reply: ReplyText }) {
   if (step.kind === "text") return <Markdown text={step.text} />;
   if (step.kind === "handoff-reply") return <HandoffReplyView note={step.note} />;
   if (step.kind === "composed")
@@ -140,7 +144,7 @@ function StepView({ step, live, composed, reply }: { step: ReplyStep; live: Exch
     );
   return (
     <CardBoundary>
-      <ToolStepView step={step} live={live} composed={composed.has(step.toolCallId)} reply={reply} />
+      <ToolStepView step={step} live={live} plan={plan} reply={reply} />
     </CardBoundary>
   );
 }
@@ -178,13 +182,14 @@ function stepsWithApprovals(exchange: Exchange, asked: readonly PendingApproval[
 /** One question and its answer: the question bubble, then reply sentences, cards and decisions in the order the agent produced them; an approval the stream asked for without showing its call still gets its card. */
 export function ExchangeView({ exchange, live }: { exchange: Exchange; live: ExchangeLive }) {
   const streaming = live.running && live.isLast;
-  const composed = composedCalls(exchange.steps, streaming);
+  const toolSteps = exchange.steps.filter((step): step is ToolStep => step.kind === "tool");
+  const plan = cardPlanOf(toolSteps, composedCalls(exchange.steps, streaming), CARD_TOOLS);
   const reply = replyOf(exchange, streaming);
   return (
     <article className="flex flex-col gap-4">
       {exchange.question ? <UserBubble question={exchange.question} /> : null}
       {stepsWithApprovals(exchange, live.asked).map((step) => (
-        <StepView key={step.kind === "tool" ? step.toolCallId : `${step.kind}-${step.id}`} step={step} live={live} composed={composed} reply={reply} />
+        <StepView key={step.kind === "tool" ? step.toolCallId : `${step.kind}-${step.id}`} step={step} live={live} plan={plan} reply={reply} />
       ))}
       <Ending exchange={exchange} live={live} />
     </article>

@@ -6,7 +6,7 @@ import { composedCalls, isEmptyAnswer, toolViewOf, type ToolLive } from "./tool-
 import { sinceLastQuestion } from "@/components/providers/copilot-provider";
 
 const CARD_TOOLS = new Set(["query_metric"]);
-const IDLE: ToolLive = { running: false, asking: false, decided: undefined, composed: false };
+const IDLE: ToolLive = { running: false, asking: false, decided: undefined, hidden: false };
 
 function call(id: string, name: string, args: unknown = {}) {
   return { id, type: "function", function: { name, arguments: JSON.stringify(args) } };

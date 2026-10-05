@@ -2,7 +2,8 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 
 import path from "node:path";
 import type { ComposedComponent } from "@/lib/compose/catalog";
 import { UNCOMPOSABLE_TOOLS } from "@/lib/compose/ground";
-import { isEmptyAnswer } from "@/components/chat/tool-view";
+import type { ToolStep } from "@/components/chat/timeline";
+import { cardPlanOf, isEmptyAnswer } from "@/components/chat/tool-view";
 import { ReplyCards, type ComposedCardRecord, type StreamEvent } from "@/lib/harness/adapters/mastra/card-stream";
 import { toolTiers } from "@/lib/server/agent/tools";
 
@@ -92,13 +93,21 @@ function eventsOf(steps: readonly RecordedStep[]): StreamEvent[] {
   return [{ type: "RUN_STARTED" }, ...steps.flatMap((step, index) => (step.kind === "text" ? textEvents(`text-${index}`, step.text) : callEvents(`call-${index}`, step))), { type: "RUN_FINISHED" }];
 }
 
+function toolStepOf(call: EvalTurn["calls"][number], index: number): ToolStep {
+  return { kind: "tool", toolCallId: `call-${index}`, name: call.tool, args: call.args, outcome: "result" in call ? { state: "returned", result: call.result } : { state: "pending" } };
+}
+
 function fixedCards(calls: EvalTurn["calls"], composedHolds: boolean): DrawnCard[] {
   const tiers = toolTiers();
-  return calls.flatMap((call) => {
-    if (!("result" in call) || tiers[call.tool] !== READ_TIER) return [];
-    if (composedHolds && !UNCOMPOSABLE_TOOLS.includes(call.tool)) return [];
-    if (isEmptyAnswer(call.result)) return [];
-    return [{ tool: call.tool, args: call.args, result: call.result }];
+  const readTools = new Set(Object.keys(tiers).filter((tool) => tiers[tool] === READ_TIER));
+  const steps = calls.map(toolStepOf);
+  const composed = new Set(composedHolds ? steps.flatMap((step) => (UNCOMPOSABLE_TOOLS.includes(step.name) ? [] : [step.toolCallId])) : []);
+  const plan = cardPlanOf(steps, composed, readTools);
+  return steps.flatMap((step) => {
+    if (step.outcome.state !== "returned" || !readTools.has(step.name) || plan.hidden.has(step.toolCallId)) return [];
+    const result = plan.results.has(step.toolCallId) ? plan.results.get(step.toolCallId) : step.outcome.result;
+    if (isEmptyAnswer(result)) return [];
+    return [{ tool: step.name, args: step.args, result }];
   });
 }
 
