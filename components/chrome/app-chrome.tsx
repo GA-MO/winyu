@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
 import { Moon, Sun } from "lucide-react";
 import type { Persona } from "@/lib/contracts/persona";
 import { TH } from "@/lib/i18n/th";
 import { AccountSheet } from "@/components/account/sheet";
+import { InboxBell } from "@/components/inbox/bell";
 import { Portrait } from "@/components/ui/portrait";
 import { useTheme } from "@/components/theme/theme-provider";
 import { BrandMark } from "./brand-mark";
@@ -24,6 +25,9 @@ export function AppChrome({ user, people }: { user: Persona; people: readonly Pe
           <BrandMark className="flex items-center gap-2" />
         </Link>
         <div className="flex items-center gap-2">
+          <Suspense fallback={null}>
+            <InboxBell className={ROUND} />
+          </Suspense>
           <button type="button" onClick={toggle} aria-label={mode === "dark" ? TH.shell.themeToLight : TH.shell.themeToDark} className={ROUND}>
             {mode === "dark" ? <Sun className="size-4" aria-hidden /> : <Moon className="size-4" aria-hidden />}
           </button>

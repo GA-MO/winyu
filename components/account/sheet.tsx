@@ -1,10 +1,11 @@
 "use client";
 
-import { useCallback, useTransition } from "react";
+import { useCallback, useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, LogOut, Moon, Shield, Sun, X } from "lucide-react";
-import { ROLE_IDS } from "@/lib/contracts";
+import { ArrowRight, BellRing, LogOut, Mail, Moon, Shield, Sun, Trash2, X } from "lucide-react";
+import { ROLE_IDS, type MemoryFact, type WatchItem } from "@/lib/contracts";
+import { isTrusted, lastSeenAt } from "@/lib/engine/memory-status";
 import type { Persona } from "@/lib/contracts/persona";
 import { TH } from "@/lib/i18n/th";
 import { cn } from "@/components/ui/cn";
@@ -12,6 +13,10 @@ import { Portrait } from "@/components/ui/portrait";
 import { useTheme } from "@/components/theme/theme-provider";
 
 const MEMORY_PAGE = "/memory";
+const OUTBOX_PAGE = "/outbox";
+const MEMORY_ENDPOINT = "/api/memory";
+const WATCHES_ENDPOINT = "/api/watches";
+const RECENT_FACTS = 3;
 const ADMIN_PAGE = "/admin";
 const ADMIN_ROLE = "it_admin";
 const SESSION_ENDPOINT = "/api/session";
@@ -20,11 +25,37 @@ const SECTION = "flex flex-col gap-2 border-b border-border px-4 py-4";
 const CHOICE = "flex items-center gap-2 rounded-full border border-border px-3.5 py-1.5 text-xs transition hover:border-foreground/25";
 const LINK = "flex items-center justify-between gap-2 rounded-xl px-2.5 py-2 text-sm text-foreground transition hover:bg-muted";
 
-/** The account sheet: theme, memory, the demo persona switch, admin for IT, sign out. */
+/** The account sheet: what the agent watches for the person, what it remembers, outbox, theme, the demo persona switch, admin for IT, sign out. */
 export function AccountSheet({ open, onClose, user, people }: { open: boolean; onClose: () => void; user: Persona; people: readonly Persona[] }) {
   const router = useRouter();
   const { mode, setMode } = useTheme();
   const [pending, startTransition] = useTransition();
+  const [facts, setFacts] = useState<MemoryFact[]>([]);
+  const [watches, setWatches] = useState<WatchItem[]>([]);
+  const [loaded, setLoaded] = useState(false);
+
+  const load = useCallback(() => {
+    const memory = fetch(MEMORY_ENDPOINT)
+      .then((response) => (response.ok ? response.json() : null))
+      .then((payload: { facts?: MemoryFact[] } | null) => setFacts(payload?.facts ?? []));
+    const watching = fetch(WATCHES_ENDPOINT)
+      .then((response) => (response.ok ? response.json() : null))
+      .then((payload: { watches?: WatchItem[] } | null) => setWatches(payload?.watches ?? []));
+    void Promise.allSettled([memory, watching]).then(() => setLoaded(true));
+  }, []);
+
+  useEffect(() => {
+    if (open) load();
+  }, [load, open]);
+
+  const unwatch = useCallback(
+    async (id: string) => {
+      setWatches((current) => current.filter((watch) => watch.id !== id));
+      await fetch(`${WATCHES_ENDPOINT}/${id}`, { method: "DELETE" });
+      load();
+    },
+    [load],
+  );
 
   const switchTo = useCallback(
     (userId: string) => {
@@ -47,6 +78,9 @@ export function AccountSheet({ open, onClose, user, people }: { open: boolean; o
 
   if (!open) return null;
 
+  const trusted = facts.filter(isTrusted);
+  const learningCount = facts.length - trusted.length;
+  const recent = [...trusted].sort((left, right) => lastSeenAt(right).localeCompare(lastSeenAt(left))).slice(0, RECENT_FACTS);
   const byRole = ROLE_IDS.map((role) => ({ role, people: people.filter((person) => person.role === role) })).filter((group) => group.people.length > 0);
 
   return (
@@ -68,8 +102,59 @@ export function AccountSheet({ open, onClose, user, people }: { open: boolean; o
 
         <div className="ui-scrollbar flex min-h-0 flex-1 flex-col overflow-y-auto">
           <section className={SECTION}>
-            <Link href={MEMORY_PAGE} onClick={onClose} className={LINK}>
-              {TH.account.memory}
+            <h3 className="flex items-center gap-1.5 text-xs font-medium tracking-wide text-muted-foreground">
+              <BellRing className="size-3.5" aria-hidden />
+              {TH.watch.section}
+            </h3>
+            <p className="text-xs text-muted-foreground">{TH.watch.sectionNote}</p>
+            {loaded && watches.length === 0 ? <p className="text-sm text-muted-foreground">{TH.watch.empty}</p> : null}
+            {watches.map((watch) => (
+              <div key={watch.id} className="flex items-center justify-between gap-2 rounded-xl bg-muted px-2.5 py-1.5">
+                <span className="flex min-w-0 flex-col">
+                  <span className="truncate text-sm">{watch.title}</span>
+                  <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <span aria-hidden className={cn("size-1.5 shrink-0 rounded-full", watch.state === "triggered" ? "bg-warning" : "bg-success")} />
+                    <span className="truncate">
+                      {watch.state === "triggered" ? TH.watch.triggered : TH.watch.ok} · {watch.condition}
+                    </span>
+                  </span>
+                </span>
+                <button type="button" onClick={() => void unwatch(watch.id)} aria-label={TH.watch.remove} className="rounded-lg p-1 text-muted-foreground hover:text-danger">
+                  <Trash2 className="size-3.5" aria-hidden />
+                </button>
+              </div>
+            ))}
+          </section>
+
+          <section className={SECTION}>
+            <div className="flex items-center justify-between gap-2">
+              <h3 className="text-xs font-medium tracking-wide text-muted-foreground">{TH.account.memory}</h3>
+              <Link href={MEMORY_PAGE} onClick={onClose} className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
+                {TH.account.memoryManage}
+                <ArrowRight className="size-3" aria-hidden />
+              </Link>
+            </div>
+            {loaded && facts.length === 0 ? <p className="text-sm text-muted-foreground">{TH.account.memoryEmpty}</p> : null}
+            {facts.length > 0 ? <p className="text-sm">{TH.account.memorySummary(trusted.length, learningCount)}</p> : null}
+            {recent.map((fact) => (
+              <p key={fact.id} className="truncate rounded-xl bg-muted px-2.5 py-1.5 text-sm" title={fact.value}>
+                {fact.value}
+              </p>
+            ))}
+            {learningCount > 0 ? (
+              <Link href={MEMORY_PAGE} onClick={onClose} className="flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-xs text-foreground hover:bg-muted">
+                <span aria-hidden className="size-1.5 rounded-full bg-warning" />
+                {TH.account.memoryWaiting(learningCount)}
+              </Link>
+            ) : null}
+          </section>
+
+          <section className={SECTION}>
+            <Link href={OUTBOX_PAGE} onClick={onClose} className={LINK}>
+              <span className="flex items-center gap-2">
+                <Mail className="size-4 text-muted-foreground" aria-hidden />
+                {TH.pages.outboxLink}
+              </span>
               <ArrowRight className="size-3.5 text-muted-foreground" aria-hidden />
             </Link>
             {user.role === ADMIN_ROLE ? (

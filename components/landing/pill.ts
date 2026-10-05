@@ -1,0 +1,2 @@
+/** The white pill every chip and secondary action uses: 1px border, soft shadow, lift on hover. */
+export const PILL = "inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3.5 py-2 text-xs font-medium text-muted-foreground shadow-card transition duration-200 hover:-translate-y-0.5 hover:border-foreground/25 hover:text-foreground hover:shadow-lift focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50";
