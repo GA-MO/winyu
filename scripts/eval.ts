@@ -112,7 +112,7 @@ function lineOf(result: CaseResult, known: Known): string {
   const failed = result.scores.filter((score) => !score.ok);
   const accepted = known[result.testCase.id] ?? [];
   const fresh = unexpectedFailures(result.testCase.id, failuresOf(result), known);
-  const mark = failed.length === 0 ? "ok   " : fresh.length === 0 ? "known" : "FAIL ";
+  const mark = result.missing ? "miss " : failed.length === 0 ? "ok   " : fresh.length === 0 ? "known" : "FAIL ";
   const passed = result.scores.length - failed.length;
   const drift = result.drift ? " (drawn differently than recorded)" : "";
   const detail = failed.map((score) => `${accepted.includes(score.id) ? "~" : ""}${score.id}: ${score.detail}`).join(" · ");
@@ -140,14 +140,16 @@ async function scoreAll(cases: readonly EvalCase[]): Promise<number> {
     results.push(result);
     console.log(lineOf(result, known));
   }
-  const fresh = results.filter((result) => unexpectedFailures(result.testCase.id, failuresOf(result), known).length > 0);
+  const missing = results.filter((result) => result.missing);
+  const fresh = results.filter((result) => !result.missing && unexpectedFailures(result.testCase.id, failuresOf(result), known).length > 0);
   const clean = results.filter((result) => failuresOf(result).length === 0).length;
   const fixed = results.filter((result) => (known[result.testCase.id] ?? []).some((id) => !failuresOf(result).includes(id)));
   console.log(`\nby group:\n${groupTable(results).join("\n")}`);
   console.log(`\n${clean}/${results.length} cases clean · ${fresh.length} with failures not in evals/known-failures.json · scored from recordings in ${Math.round(performance.now() - started)} ms · 0 model calls, $0`);
+  if (missing.length > 0) console.log(`not recorded yet (not scored, record with --live --changed): ${missing.map((result) => result.testCase.id).join(", ")}`);
   if (fixed.length > 0) console.log(`known failures that now pass (run --accept to drop them): ${fixed.map((result) => result.testCase.id).join(", ")}`);
   if (args.accept) {
-    const baseline = Object.fromEntries(results.flatMap((result) => (failuresOf(result).length > 0 ? [[result.testCase.id, failuresOf(result)]] : [])));
+    const baseline = Object.fromEntries(results.flatMap((result) => (!result.missing && failuresOf(result).length > 0 ? [[result.testCase.id, failuresOf(result)]] : [])));
     writeKnownFailures(baseline);
     console.log(`accepted ${Object.keys(baseline).length} cases' failures into ${path.relative(process.cwd(), KNOWN_FAILURES_FILE)}`);
     return 0;
@@ -212,7 +214,7 @@ async function recordLive(cases: readonly EvalCase[]): Promise<number> {
       console.log(`stopped before ${testCase.id}: the shared spend meter is at its cap`);
       break;
     }
-    const recording = await recordCase({ caseId: testCase.id, userId: testCase.userId, prompt: testCase.prompt });
+    const recording = await recordCase({ caseId: testCase.id, userId: testCase.userId, prompt: testCase.prompt, before: testCase.before });
     copied = copyNewCalls(copied);
     spent += recording.usage.usd;
     recorded += 1;

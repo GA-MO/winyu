@@ -3,11 +3,11 @@ import type { MemoryFact } from "@/lib/contracts";
 import { accessFor } from "@/lib/access/policies";
 import { findUser } from "@/lib/data/entities/users";
 import { actionEvents, memoryFacts } from "@/lib/server/agent/collections";
-import { personaFor } from "@/lib/server/agent/persona";
+import { personaFor, relevantMemory } from "@/lib/server/agent/persona";
 import { threads } from "@/lib/server/threads-read";
-import { confirmMemory, consolidateMemory, editMemory, forgetAll, pruneMemory, rememberAction, rememberTurn } from "./memory";
+import { confirmMemory, consolidateMemory, editMemory, forgetAll, learnExtracted, pruneMemory, rememberAction, rememberTurn } from "./memory";
 import { isSameFact } from "./memory-match";
-import { memoryStatus, seenCount } from "./memory-status";
+import { isTrusted, memoryStatus, seenCount } from "./memory-status";
 
 const USER = "u_memory_test";
 const HOST = "u_anucha";
@@ -80,6 +80,31 @@ describe("learning before trusting", () => {
     expect(memoryStatus(memoryFacts().get(fact.id) as MemoryFact)).toBe("confirmed");
     expect(pruneMemory(USER)).toBe(0);
     expect(confirmMemory("u_pim", fact.id)).toBeNull();
+  });
+});
+
+describe("asked to remember", () => {
+  const REGION_FACT = "ดูแลภาคอีสานเป็นหลัก";
+
+  test("a fact the user asked to be remembered is trusted at once and reaches the next question", () => {
+    const [fact] = learnExtracted(USER, [{ type: "responsibility", value: REGION_FACT, asked: true }], "thread_a");
+    expect(fact && isTrusted(fact)).toBe(true);
+    expect(relevantMemory(USER, "ยอดขายเดือนนี้เทียบเป้าเป็นยังไง").map((item) => item.value)).toContain(REGION_FACT);
+  });
+
+  test("the same fact only said in passing still waits to be heard again", () => {
+    const [fact] = learnExtracted(USER, [{ type: "responsibility", value: REGION_FACT, asked: false }], "thread_a");
+    expect(fact && isTrusted(fact)).toBe(false);
+    expect(relevantMemory(USER, "ยอดขายเดือนนี้เทียบเป้าเป็นยังไง").map((item) => item.value)).not.toContain(REGION_FACT);
+  });
+
+  test("asking to remember a fact still being learned lifts it to trusted and never lowers it", () => {
+    const learning = plant(REGION_FACT, { type: "responsibility", confidence: 0.3 });
+    const [lifted] = learnExtracted(USER, [{ type: "responsibility", value: REGION_FACT, sameAs: learning.id, asked: true }], "thread_b");
+    expect(lifted?.id).toBe(learning.id);
+    expect(lifted && isTrusted(lifted)).toBe(true);
+    const [again] = learnExtracted(USER, [{ type: "responsibility", value: REGION_FACT, sameAs: learning.id, asked: true }], "thread_c");
+    expect(again?.confidence).toBeGreaterThanOrEqual(lifted?.confidence ?? 1);
   });
 });
 

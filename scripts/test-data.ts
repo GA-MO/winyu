@@ -9,6 +9,13 @@ export function withoutPaidModels(): void {
   for (const key of PAID_MODEL_KEYS) delete process.env[key];
 }
 
+/** Swaps the local embedding model for the trigram embedder, so no test loads or downloads a model. */
+export async function withoutEmbeddingModel(): Promise<void> {
+  const { useEmbedder } = await import("../lib/server/recall/embedder");
+  const { TRIGRAM_EMBEDDER } = await import("../lib/server/recall/trigram-embedder");
+  useEmbedder(TRIGRAM_EMBEDDER);
+}
+
 /** Points the JSON store at a fresh seeded data folder, so tests never read what a walk left in `.data` nor write to real personas. */
 export async function isolateTestData(): Promise<string> {
   const dir = mkdtempSync(path.join(tmpdir(), "mascop-test-data-"));

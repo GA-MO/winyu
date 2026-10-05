@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Badge, Card, KeyValue, ListItem, Metric, Table } from "@/components/ui/primitives";
 import { formatDateTh } from "@/lib/i18n/format";
 import { TH } from "@/lib/i18n/th";
@@ -132,9 +133,9 @@ export function EntityCard({ result }: { result: unknown }) {
 export function MemoryCard({ result }: { result: unknown }) {
   return (
     <ParsedCard parsed={parseResult(memoryResult, result)} title={TH.cards.memoryTitle}>
-      {({ summary, data }) => (
+      {({ summary, data, conversations }) => (
         <Card props={{ title: TH.cards.memoryTitle, meta: summary, footnote: TH.cards.source.memory }}>
-          {data.length === 0 ? <p className="text-sm text-muted-foreground">{TH.cards.memoryEmpty}</p> : null}
+          {data.length === 0 && conversations.length === 0 ? <p className="text-sm text-muted-foreground">{TH.cards.memoryEmpty}</p> : null}
           <ul className="flex flex-col gap-2">
             {data.map((fact) => (
               <li key={fact.id} className="flex items-start justify-between gap-3 rounded-xl border border-border px-3 py-2.5">
@@ -146,6 +147,21 @@ export function MemoryCard({ result }: { result: unknown }) {
               </li>
             ))}
           </ul>
+          {conversations.length > 0 ? (
+            <div className="mt-3 flex flex-col gap-2">
+              <SectionTitle>{TH.memory.conversationsHeading}</SectionTitle>
+              <ul className="flex flex-col gap-2">
+                {conversations.map((conversation) => (
+                  <li key={conversation.threadId}>
+                    <Link href={`/c/${conversation.threadId}`} className="flex flex-col gap-0.5 rounded-xl border border-border px-3 py-2.5 transition hover:border-foreground/25">
+                      <span className="text-[11px] text-muted-foreground">{`${conversation.title} · ${formatDateTh(conversation.at)}`}</span>
+                      <span className="text-sm text-foreground">{conversation.question}</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
         </Card>
       )}
     </ParsedCard>

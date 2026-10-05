@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { BadgeCheck, Check, MessageSquare, MousePointerClick, Pencil, Search, Trash2, X } from "lucide-react";
+import { BadgeCheck, Check, History, MessageSquare, MousePointerClick, Pencil, Search, Trash2, X } from "lucide-react";
 import { cn } from "@/components/ui/cn";
 import type { MemoryFact } from "@/lib/contracts";
 import type { MemoryStatus } from "@/lib/engine/memory-status";
@@ -11,6 +11,7 @@ import { TH } from "@/lib/i18n/th";
 import { PILL } from "@/components/landing/pill";
 
 const MEMORY_ENDPOINT = "/api/memory";
+const CONVERSATIONS_ENDPOINT = `${MEMORY_ENDPOINT}/conversations`;
 const MIN_VALUE_LENGTH = 3;
 const TYPE_ORDER: MemoryFact["type"][] = ["interest", "vocabulary", "preference", "responsibility", "seasonal"];
 const ICON_BUTTON = "rounded-lg p-1.5 text-muted-foreground transition hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
@@ -27,6 +28,9 @@ export type MemoryRow = {
   fromAction: boolean;
 };
 
+/** A conversation recall can search, as the memory page lists it. */
+export type RecallRow = { threadId: string; title: string; turns: number; lastAt: string };
+
 type TypeFilter = MemoryFact["type"] | "all";
 
 function typeLabel(type: MemoryFact["type"]): string {
@@ -38,9 +42,10 @@ function matches(row: MemoryRow, query: string, type: TypeFilter): boolean {
   return query.length === 0 || row.value.toLowerCase().includes(query);
 }
 
-/** The memory page body: facts still being learned asked one by one, known facts searchable and editable, and a clear-all that confirms in place. */
-export function MemoryManager({ initial }: { initial: MemoryRow[] }) {
+/** The memory page body: facts still being learned asked one by one, known facts searchable and editable, the conversations recall can search each removable, and a clear-all that confirms in place. */
+export function MemoryManager({ initial, conversations: initialConversations }: { initial: MemoryRow[]; conversations: RecallRow[] }) {
   const [rows, setRows] = useState(initial);
+  const [conversations, setConversations] = useState(initialConversations);
   const [query, setQuery] = useState("");
   const [type, setType] = useState<TypeFilter>("all");
   const [clearing, setClearing] = useState(false);
@@ -70,13 +75,19 @@ export function MemoryManager({ initial }: { initial: MemoryRow[] }) {
     await fetch(`${MEMORY_ENDPOINT}/${row.id}`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ value }) });
   };
 
+  const unrecall = async (threadId: string) => {
+    setConversations((current) => current.filter((row) => row.threadId !== threadId));
+    await fetch(`${CONVERSATIONS_ENDPOINT}/${encodeURIComponent(threadId)}`, { method: "DELETE" });
+  };
+
   const clearAll = async () => {
     setRows([]);
+    setConversations([]);
     setClearing(false);
     await fetch(MEMORY_ENDPOINT, { method: "DELETE" });
   };
 
-  if (rows.length === 0) return <p className="text-sm text-muted-foreground">{TH.memoryPage.empty}</p>;
+  if (rows.length === 0 && conversations.length === 0) return <p className="text-sm text-muted-foreground">{TH.memoryPage.empty}</p>;
 
   return (
     <div className="flex flex-col gap-8">
@@ -134,10 +145,24 @@ export function MemoryManager({ initial }: { initial: MemoryRow[] }) {
         </section>
       ) : null}
 
+      {conversations.length > 0 ? (
+        <section className="flex flex-col gap-3" aria-labelledby="memory-recall">
+          <div className="flex flex-col gap-0.5">
+            <h2 id="memory-recall" className="text-sm font-semibold tracking-tight">{TH.memoryPage.recallTitle(conversations.length)}</h2>
+            <p className="text-xs text-muted-foreground">{TH.memoryPage.recallNote}</p>
+          </div>
+          <ul className={cn(CARD, "divide-y divide-border")}>
+            {conversations.map((row) => (
+              <RecallItem key={row.threadId} row={row} onRemove={() => void unrecall(row.threadId)} />
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
       <footer className="flex flex-wrap items-center gap-2 border-t border-border pt-4">
         {clearing ? (
           <>
-            <span className="text-sm text-danger">{TH.memoryPage.clearAsk(rows.length)}</span>
+            <span className="text-sm text-danger">{TH.memoryPage.clearAsk(rows.length + conversations.length)}</span>
             <button type="button" onClick={() => void clearAll()} className={cn(PILL, "border-danger/40 text-danger hover:border-danger hover:text-danger")}>
               {TH.memoryPage.clearConfirm}
             </button>
@@ -152,6 +177,23 @@ export function MemoryManager({ initial }: { initial: MemoryRow[] }) {
         )}
       </footer>
     </div>
+  );
+}
+
+function RecallItem({ row, onRemove }: { row: RecallRow; onRemove: () => void }) {
+  return (
+    <li className="group flex items-start gap-3 px-4 py-3">
+      <History className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden />
+      <div className="flex min-w-0 flex-1 flex-col gap-1">
+        <Link href={`/c/${row.threadId}`} className="truncate text-sm leading-relaxed hover:underline">
+          {row.title}
+        </Link>
+        <span className="text-xs text-muted-foreground">{TH.memoryPage.recallTurns(row.turns, relativeTimeTh(row.lastAt))}</span>
+      </div>
+      <button type="button" onClick={onRemove} aria-label={TH.memoryPage.recallRemove} title={TH.memoryPage.recallRemove} className={cn(ICON_BUTTON, "shrink-0 hover:text-danger")}>
+        <X className="size-3.5" aria-hidden />
+      </button>
+    </li>
   );
 }
 

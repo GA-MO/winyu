@@ -6,6 +6,7 @@ import { metricLabel } from "@/lib/dashboard/metric-display";
 import { TODAY } from "@/lib/data/dates";
 import { findUser } from "@/lib/data/entities/users";
 import { TH } from "@/lib/i18n/th";
+import { maskNumbers } from "@/lib/server/recall/mask";
 import type { EvalCase } from "./cases";
 import type { DrawnCard, EvalTurn } from "./recording";
 
@@ -18,6 +19,7 @@ export type EvalCheck = { id: string; description: string; verdict: (turn: EvalT
 type MetricAnswer = { query: MetricQuery; result: Extract<MetricResult, { ok: true }> };
 
 const METRIC_TOOL = "query_metric";
+const RECALL_TOOL = "recall_memory";
 const ENGINE_DEFAULT_SORT = "value_desc";
 const CONNECTOR_SEPARATOR = "__";
 const COMPOSED_READS: ReadonlySet<string> = new Set(["find_people", "get_person", "get_site", "list_candidates", "list_courses", "get_policy", "resolve_owner", "describe_entity"]);
@@ -68,6 +70,19 @@ function metricQueries(turn: EvalTurn): MetricQuery[] {
     const resolved = "result" in call && isRecord(call.result) && isRecord(call.result.query) ? call.result.query : call.args;
     return resolved as MetricQuery;
   });
+}
+
+function filterValues(query: MetricQuery, dim: string): string[] {
+  const value: unknown = isRecord(query.filters) ? query.filters[dim as keyof MetricQuery["filters"]] : undefined;
+  if (typeof value === "string") return [value];
+  return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
+}
+
+function recalledQuestions(turn: EvalTurn): string[] {
+  return returned(turn)
+    .filter((call) => call.tool === RECALL_TOOL && isRecord(call.result) && Array.isArray(call.result.conversations))
+    .flatMap((call) => (call.result as { conversations: unknown[] }).conversations)
+    .flatMap((conversation) => (isRecord(conversation) && typeof conversation.question === "string" ? [conversation.question] : []));
 }
 
 function expectedTool(expected: EvalCase): string | null {
@@ -380,6 +395,33 @@ export const EVAL_CHECKS: readonly EvalCheck[] = [
       if (!expected.forbidCarousel) return null;
       const used = components(turn).some((part) => part.component === "Carousel");
       return verdict(!used, used ? "ใช้ Carousel กับชุดที่ต้องเห็นครบหรือต้องเทียบ" : "ไม่ใช้ Carousel");
+    },
+  },
+  {
+    id: "usedMemory",
+    description: "A metric query carries the filter the person asked to be remembered in an earlier conversation.",
+    verdict: (turn, expected) => {
+      const wanted = expected.expectFilter;
+      if (!wanted) return null;
+      const queries = metricQueries(turn);
+      const used = queries.some((query) => {
+        const values = filterValues(query, wanted.dim);
+        return wanted.values.every((value) => values.includes(value));
+      });
+      const got = queries.map((query) => filterValues(query, wanted.dim).join(",") || "-").join(" · ") || "ไม่ได้ query";
+      return verdict(used, `${wanted.dim} = ${got} คาดว่า ${wanted.values.join(",")}`);
+    },
+  },
+  {
+    id: "recalledConversation",
+    description: "recall_memory brought back the earlier conversation the person refers to.",
+    verdict: (turn, expected) => {
+      if (!expected.expectRecall) return null;
+      const earlier = (expected.before ?? []).map(maskNumbers);
+      const found = recalledQuestions(turn);
+      const hit = found.some((question) => earlier.includes(question));
+      const called = turn.calls.some((call) => call.tool === RECALL_TOOL);
+      return verdict(hit, hit ? "พบบทสนทนาก่อนหน้า" : called ? `ได้ ${found.join(" · ") || "ไม่มีบทสนทนา"}` : `ไม่ได้เรียก ${RECALL_TOOL}`);
     },
   },
   {

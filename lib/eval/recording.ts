@@ -21,7 +21,7 @@ export type RecordedUsage = { calls: number; inputTokens: number; outputTokens: 
 /** What the person saw when the case was recorded: the fixed cards by tool, and the composed card's verdict and components. Kept for reading a diff; scorers derive both again from the steps. */
 export type RecordedDrawing = { cards: string[]; composed: { accepted: number; rejected: number; problems: string[]; components: ComposedComponent[] } | null };
 
-/** Everything needed to score one case without the model: who asked what, the model's reply as steps, the approvals it raised, what it cost, and the fingerprints that tell when the prompt or the tools have changed since. */
+/** Everything needed to score one case without the model: who asked what, the model's reply as steps, the approvals it raised, what it cost (earlier questions included), the earlier questions and the trusted facts memory held when the case was asked, and the fingerprints that tell when the prompt or the tools have changed since. */
 export type Recording = {
   version: typeof RECORDING_VERSION;
   caseId: string;
@@ -37,7 +37,12 @@ export type Recording = {
   error: string | null;
   usage: RecordedUsage;
   drawn: RecordedDrawing;
+  before?: RecordedBefore[];
+  remembered?: string[];
 };
+
+/** A question the same person asked earlier in its own thread, and the reply it got, recorded before the case question. */
+export type RecordedBefore = { prompt: string; steps: RecordedStep[] };
 
 /** A fixed card the chat draws for one read call. */
 export type DrawnCard = { tool: string; args: unknown; result: unknown };

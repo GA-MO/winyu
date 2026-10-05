@@ -9,13 +9,13 @@ import { TH } from "@/lib/i18n/th";
 import { toolTiers } from "@/lib/server/agent/tools";
 import { recordComposedCard, recordGuardFinding } from "@/lib/server/audit";
 import { currentAccess, runWithAccess, runWithTurn, type TurnContext } from "@/lib/server/request-context";
-import { finishTurn } from "@/lib/server/threads";
 import { threadForRun, threads } from "@/lib/server/threads-read";
 import { AGENT_ID, USER_ID_KEY, mascopAgent } from "./agent";
 import { HARNESS_RUN_KEY, tracingOptionsOf } from "./observability";
 import { ReplyCards, withComposedCards, type ComposedCardRecord } from "./card-stream";
 import { threadTranscript } from "./history";
 import { guardedRunInput, inputFindings, type GuardedInput } from "./guardrails";
+import { learnFromTurn } from "./learn";
 import { chatTurnOf, observeReply, type ChatTurn, type ReplySeen, type RunInput } from "./turn";
 
 const BASE_PATH = "/api/copilotkit";
@@ -75,7 +75,7 @@ function lastDecision(run: Run): { stepId: string; finishReason: string } {
 
 function learnFrom(run: Run, turn: ChatTurn, context: TurnContext): void {
   if (!turn.question) return;
-  finishTurn(run.userId, turn.threadId, turn.question, context.queries).catch((error: unknown) => {
+  learnFromTurn({ userId: run.userId, threadId: turn.threadId, turnId: run.id, question: turn.question, queries: context.queries }).catch((error: unknown) => {
     console.error(`memory extraction after run ${run.id} failed`, error);
   });
 }
