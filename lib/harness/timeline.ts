@@ -1,5 +1,6 @@
 import type { RuleRef } from "@/lib/contracts";
 import type { ContextRef, HarnessEvent, RunLimit } from "./events";
+import type { GuardFinding } from "./guard";
 import type { ApprovalRule, Evidence, Goal, ObservationStatus, RecoveryAction } from "./types";
 
 export type ToolVerdict = { passed: true; checks: string[] } | { passed: false; reason: string };
@@ -32,6 +33,7 @@ export type TimelineEntry =
   | { kind: "rendered"; at: string; components: string[] }
   | { kind: "composed"; at: string; accepted: number; rejected: number; problems: string[] }
   | { kind: "limited"; at: string; limit: RunLimit; step: number }
+  | ({ kind: "guarded"; at: string } & GuardFinding)
   | { kind: "end"; at: string; ok: boolean; reason: string };
 
 function emptyTool(at: string, toolCallId: string, tool: string): ToolStory {
@@ -118,6 +120,9 @@ export function timelineOf(events: readonly HarnessEvent[]): TimelineEntry[] {
         break;
       case "recovery.decided":
         toolOf(event.at, event.payload.toolCallId, event.payload.tool).recovery.push({ action: event.payload.action, reason: event.payload.reason, fix: event.payload.fix ?? null });
+        break;
+      case "guard.flagged":
+        entries.push({ kind: "guarded", at: event.at, ...event.payload });
         break;
       case "agent.completed":
         entries.push({ kind: "end", at: event.at, ok: true, reason: event.payload.finishReason });

@@ -60,6 +60,7 @@ export function reduce(state: AgentState, event: HarnessEvent): AgentState {
     case "agent.limited":
       return state;
     case "ui.composed":
+    case "guard.flagged":
       return state;
     case "ui.rendered":
       return { ...state, uiState: { ...state.uiState, components: [...state.uiState.components, ...event.payload.components] } };

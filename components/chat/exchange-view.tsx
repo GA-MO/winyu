@@ -1,12 +1,13 @@
 "use client";
 
 import { Component, type ReactNode } from "react";
-import { AlertCircle, CircleSlash, MessageSquareReply, MousePointerClick, Sparkles } from "lucide-react";
+import { AlertCircle, CircleSlash, MessageSquareReply, MousePointerClick, ShieldCheck, Sparkles } from "lucide-react";
 import { renderApproval } from "@/components/cards/approval-card";
 import { describeToolCall } from "@/components/cards/describe-tool";
 import { TOOL_CARDS, type ToolCard } from "@/components/cards/registry";
 import { Badge } from "@/components/ui/primitives";
 import type { ContextPacket, HandoffReplyNote } from "@/lib/contracts";
+import { maskPersonalData } from "@/lib/harness/guard";
 import { TH } from "@/lib/i18n/th";
 import { ComposedCardView } from "./composed-card";
 import { Markdown } from "./markdown";
@@ -48,9 +49,16 @@ function UserBubble({ question }: { question: Question }) {
       </div>
     );
   }
+  const masked = maskPersonalData(question.text);
   return (
-    <div className="flex justify-end">
-      <p className="max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-br-md bg-bubble px-4 py-2.5 text-[15px] leading-relaxed text-foreground">{question.text}</p>
+    <div className="flex flex-col items-end gap-1">
+      <p className="max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-br-md bg-bubble px-4 py-2.5 text-[15px] leading-relaxed text-foreground">{masked.text}</p>
+      {masked.kinds.length > 0 ? (
+        <p className="inline-flex max-w-[85%] items-center gap-1.5 text-xs text-muted-foreground">
+          <ShieldCheck className="size-3.5 shrink-0 text-success" aria-hidden />
+          {TH.guard.typedNotice(masked.kinds.map((kind) => TH.guard.kind[kind] ?? kind).join(" และ "))}
+        </p>
+      ) : null}
     </div>
   );
 }

@@ -709,7 +709,7 @@ export const TH = {
     },
     domain: { sales: "ขาย", supply: "ซัพพลายและการผลิต", marketing: "การตลาด", finance: "การเงิน", hr: "ทรัพยากรบุคคล" },
     tier: { read: "Read", write: "Write", destructive: "Critical" },
-    auditOnlyTools: { composed_card: "ประกอบการ์ดเอง", compose_card: "ประกอบการ์ดเอง" } as Record<string, string>,
+    auditOnlyTools: { composed_card: "ประกอบการ์ดเอง", compose_card: "ประกอบการ์ดเอง", guardrail: "ด่านกันข้อมูล" } as Record<string, string>,
     tools: {
       query_metric: { label: "ถามตัวเลข", body: "อ่านเมตริกที่รับรองแล้วจาก semantic layer ตามสิทธิ์ของผู้ถาม" },
       list_metrics: { label: "ดูรายการเมตริก", body: "ให้ mascop รู้ว่ามีเมตริกอะไรและนิยามอย่างไร" },
@@ -1526,5 +1526,14 @@ export const TH = {
   },
   pages: {
     outboxLink: "อีเมลที่ส่งออก (Outbox)",
+  },
+  guard: {
+    mask: { national_id: "[เลขบัตรประชาชนถูกซ่อน]", phone: "[เบอร์โทรถูกซ่อน]", email: "[อีเมลถูกซ่อน]", bank_account: "[เลขบัญชีถูกซ่อน]" },
+    kind: { national_id: "เลขบัตรประชาชน", phone: "เบอร์โทร", email: "อีเมล", bank_account: "เลขบัญชี", override: "สั่งให้ลืมกฎ", persona: "สั่งให้เปลี่ยนบทบาท", prompt_leak: "ขอดูคำสั่งระบบ", bypass: "สั่งให้ข้ามสิทธิ์" } as Record<string, string>,
+    cut: "[ตัดข้อความที่สั่งให้ AI ทำตามออก]",
+    typedNotice: (kinds: string) => `ซ่อน${kinds}ที่พิมพ์ไว้แล้ว ทั้ง AI และบันทึกการใช้งานจะไม่เห็น`,
+    source: { user_input: "สิ่งที่ผู้ใช้พิมพ์", model_output: "คำตอบของ AI", tool_result: "ผลจากเครื่องมือ", memory: "ความจำ", packet: "งานส่งต่อ", handoff_reply: "คำตอบงานส่งต่อ" } as Record<string, string>,
+    action: { masked: "ซ่อนแล้ว", neutralized: "ตัดออกแล้ว", warned: "บันทึกไว้ ส่งต่อตามเดิม" } as Record<string, string>,
+    flagged: (check: "personal_data" | "injection", source: string) => (check === "personal_data" ? `พบข้อมูลส่วนตัวใน${source}` : `พบข้อความที่พยายามสั่ง AI ใน${source}`),
   },
 } as const;

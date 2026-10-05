@@ -7,7 +7,7 @@ import { askedTool, markAnswered, problemOf, recordAsked } from "@/lib/harness/a
 import { currentRun, emitTo, newRun, runWithRun, saveRun, type Run } from "@/lib/harness/runtime";
 import { TH } from "@/lib/i18n/th";
 import { toolTiers } from "@/lib/server/agent/tools";
-import { recordComposedCard } from "@/lib/server/audit";
+import { recordComposedCard, recordGuardFinding } from "@/lib/server/audit";
 import { currentAccess, runWithAccess, runWithTurn, type TurnContext } from "@/lib/server/request-context";
 import { finishTurn } from "@/lib/server/threads";
 import { threadForRun, threads } from "@/lib/server/threads-read";
@@ -15,6 +15,7 @@ import { AGENT_ID, USER_ID_KEY, mascopAgent } from "./agent";
 import { HARNESS_RUN_KEY, tracingOptionsOf } from "./observability";
 import { ReplyCards, withComposedCards, type ComposedCardRecord } from "./card-stream";
 import { threadTranscript } from "./history";
+import { guardedRunInput, inputFindings, type GuardedInput } from "./guardrails";
 import { chatTurnOf, observeReply, type ChatTurn, type ReplySeen, type RunInput } from "./turn";
 
 const BASE_PATH = "/api/copilotkit";
@@ -113,7 +114,7 @@ function readInput(body: string): RunInput {
   }
 }
 
-async function serveRun(access: AccessContext, req: Request, turn: ChatTurn, options: ServeOptions): Promise<Response> {
+async function serveRun(access: AccessContext, req: Request, turn: ChatTurn, guarded: GuardedInput, options: ServeOptions): Promise<Response> {
   const run = newRun(access.userId, turn.threadId, { id: turn.runId });
   started(run, turn);
   if (turn.answers.length > 1) return refused(run, turn.answers.map((answer) => answer.interruptId).join(", "), "more than one answer in one run");
@@ -124,6 +125,7 @@ async function serveRun(access: AccessContext, req: Request, turn: ChatTurn, opt
   const threadId = turn.threadId;
   const transcript = threadId ? () => threadTranscript(threadId, access.userId) : undefined;
   const context: TurnContext = { turnId: run.id, threadId, preloadPacketId: turn.preloadPacketId, question: turn.question, queries: [], transcript };
+  runWithTurn(context, () => runWithRun(run, () => inputFindings(guarded).forEach((finding) => recordGuardFinding(finding, access.userId))));
   const records: ComposedCardRecord[] = [];
   const cards = replyCards((record) => records.push(record));
   try {
@@ -156,12 +158,14 @@ export async function serveCopilot(access: AccessContext, req: Request, options:
   const route = routeOf(req.method, new URL(req.url).pathname);
   if (!route) return Response.json(NOT_SERVED, { status: 404 });
   if (route.kind === "info") return runWithAccess(access, () => handler()(req));
-  const body = await req.text();
-  const turn = chatTurnOf(readInput(body), randomUUID());
+  const raw = await req.text();
+  const guarded = guardedRunInput(readInput(raw));
+  const body = guarded.input ? JSON.stringify(guarded.input) : raw;
+  const turn = chatTurnOf(guarded.input, randomUUID());
   const threadId = route.kind === "stop" ? route.threadId : turn.threadId;
   if (isOthersThread(threadId, access.userId)) return Response.json(NOT_YOUR_THREAD, { status: 404 });
   const replayed = new Request(req.url, { method: "POST", headers: req.headers, body });
-  if (route.kind === "run") return serveRun(access, replayed, turn, options);
+  if (route.kind === "run") return serveRun(access, replayed, turn, guarded, options);
   const response = await runWithAccess(access, () => handler()(replayed));
   return route.kind === "connect" ? withComposedCards(response, replyCards(() => undefined)) : response;
 }

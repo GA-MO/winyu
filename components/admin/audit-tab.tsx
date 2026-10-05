@@ -7,7 +7,7 @@ import { USERS, findUser } from "@/lib/data/entities/users";
 import { TH } from "@/lib/i18n/th";
 import { AUDIT_RANGES, auditConnector, auditEntries, inAuditScope, type AuditFilter, type AuditRange } from "@/lib/server/usage";
 import { runStore } from "@/lib/harness/runtime";
-import { auditLog } from "@/lib/server/audit";
+import { GUARD_AUDIT_TOOL, auditLog } from "@/lib/server/audit";
 import { runSpend } from "@/lib/server/model-ledger";
 import { RunTrace } from "./run-trace";
 import { AutoSubmitForm } from "./auto-submit-form";
@@ -52,6 +52,7 @@ function worstOf(entries: AuditEntry[]): AuditEntry["decision"] {
 }
 
 function reasonOf(entry: AuditEntry): string | null {
+  if (entry.tool === GUARD_AUDIT_TOOL) return entry.reason ?? null;
   if (entry.decision === "masked") return COPY.maskedReason;
   if (!entry.code) return null;
   return COPY.codes[entry.code] ?? COPY.otherCode(entry.code);
@@ -192,7 +193,7 @@ function TurnRow({ group, open }: { group: TurnGroup; open: boolean }) {
               <span className="font-normal text-muted-foreground">{` · ${person ? TH.role[person.role] : ""} · ${stamp(first.at)}`}</span>
             </p>
             <p className={cn("line-clamp-2 text-[13px]", first.question || byJob ? "text-foreground" : "text-muted-foreground")}>{headline}</p>
-            {first.question || byJob ? <p className="mt-0.5 truncate text-[11px] text-muted-foreground">{`${COPY.calls(group.entries.length)} · ${tools.join(" · ")}`}</p> : null}
+            {first.question || byJob ? <p className="mt-0.5 truncate text-[11px] text-muted-foreground">{`${COPY.calls(group.entries.filter((entry) => entry.tool !== GUARD_AUDIT_TOOL).length)} · ${tools.join(" · ")}`}</p> : null}
             {reason ? <p className={cn("mt-0.5 text-[12px]", worst === "deny" ? "text-danger" : "text-warning")}>{reason}</p> : null}
           </div>
           <span className="flex items-center gap-2">
