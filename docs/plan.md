@@ -111,9 +111,12 @@ Each row is one Winyu feature. The phase column says where mascop builds it. The
 - [x] Write `docs/comparison.md`: what Mastra and CopilotKit gave for free, what had to be rebuilt, what is worse or better than Winyu, cost per question measured on the same probe questions.
 - [x] Evidence: typecheck passes; `bun test` 580 pass, 0 fail across 66 files, on a freshly seeded temp data folder (4e70904). Headless Chrome over CDP on :3200 with `MASCOP_SCHEDULER=off` and `bun run connectors:demo`; driver and scripts in `.shots/m5/` (gitignored), screenshots `.shots/m5-*.png` (84). Console clean on `/login`, `/`, `/c/…`, `/dashboard`, `/admin`, `/outbox`, `/memory` except Lit's dev-mode warning on chat pages (see Open). Model ledger for the walk: 51 calls, $0.1975 (36 chat, 15 background memory extraction). Comparison uses the walk ledger, not a new `probe:chat` run (budget). Commits 9f0050d..HEAD.
 
+### Closed after M5
+
+- [x] A recipient's handoff reply lands in the sender's chat thread (commit 511aa52). `appendHandoffReply` in the Mastra adapter saves it to the sender's Mastra thread as a user-role note: a labelled system line with the colleague's words inside `fenceAsData`, and the note itself in the message metadata. The restored transcript turns it into an AG-UI `activity` message (`handoff-reply`) that the chat draws as "ตอบกลับจาก <name> · <title>" with the packet status, never as a question or as the agent's words. `Thread.messages` and `appendSystemMessage` are gone. Tests: `lib/harness/adapters/mastra/handoff-reply.test.ts` (fails on the old code), `components/chat/timeline.test.ts` "a colleague's handoff reply joins the exchange…". Live: u_prasit handed off to u_anucha and approved (`fix-handoff-sender-approved.png`), u_anucha accepted from the inbox (`fix-handoff-recipient-acted.png`), u_prasit reopened the thread after reload and saw the reply (`fix-handoff-reopened.png`), then asked "คุณอนุชาตอบกลับเรื่องนี้ว่าอย่างไรบ้าง" and the agent quoted the reply with no tool call (`fix-handoff-followup-reload.png`). 6 Gemini calls, $0.025.
+
 ### Open
 
-- A recipient's handoff reply is not appended to the sender's chat thread. Winyu wrote a note into `Thread.messages`; mascop's messages live in Mastra memory, so `appendSystemMessage` in `lib/server/handoff.ts` writes to a field nothing reads. The sender sees the reply in Inbox › การตอบกลับ (`m5-director-replies.png`). Fix: write the note through the Mastra adapter, then drop `Thread.messages`.
 - CopilotKit's client bundle loads Lit, which logs "Lit is in dev mode" on chat pages under `next dev` (`enableInspector={false}` does not stop it). Production builds use the production Lit.
 - `/dev/cards` runs every read tool as the signed-in person through the gateway, so a visit adds audit rows and question counts to `/admin`.
 - Candidate cards wrap the interview score under the name for long names (`m5-hr-candidates-courses-top.png`). Cosmetic.
@@ -128,4 +131,4 @@ M0, then M1, in sequence: every later phase builds on the neutral tools and the 
 - Mastra, CopilotKit and AG-UI versions may not agree with Next 16, React 19 and zod 4. M1 proves the stack before any UI work.
 - Mastra changes tool approval often (1.72 changed it). Pin exact versions.
 - Winyu's registry, enforce and connectors import cycle shows only under `next dev`. M0's health route checks it.
-- Mastra memory holds the messages and `.data/threads.json` only the metadata; any feature that reads a conversation goes through the Mastra adapter (`threadHistory`, `threadTranscript`), not `Thread.messages`.
+- Mastra memory holds the messages and `.data/threads.json` only the metadata; any feature that reads or writes a conversation goes through the Mastra adapter (`threadHistory`, `threadTranscript`, `appendHandoffReply`).

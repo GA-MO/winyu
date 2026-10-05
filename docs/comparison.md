@@ -37,12 +37,13 @@ The frameworks do not cover the product rules, so these came across from Winyu o
 - Cheaper questions. In the M5 walk, 15 questions (7 of them with an approval and a resume run) cost 36 chat calls and $0.1828: 2.4 calls and $0.0122 per question. Winyu's ledger holds 413 chat runs at 2.40 calls and $0.0268 per run (measured over 2026-09-25 to 2026-10-04). The question mix differs and Winyu's runs are not the same questions, so treat the ratio as indicative.
 - A card cannot be drawn wrong by the model, because the model never writes card markup. Winyu needed `normalize.ts` and an eval to keep specs honest.
 - The wire format is AG-UI, a public protocol, instead of Vexa's own message parts.
+- A handoff reply in the sender's thread reads as the colleague's note, and the model gets the colleague's words fenced as data. Winyu stored the reply as assistant text, so its model could take the colleague's words for its own.
 
 ## Worse than Winyu
 
 - The model cannot compose a new layout. Every tool has one fixed card. Winyu's model could compose primitives for people and entity answers.
 - An approval splits one question into two runs, two model round trips and two traces that share a goal id.
-- Two stores hold a conversation: Mastra memory has the messages, `.data/threads.json` has the metadata. A recipient's reply to a handoff is no longer appended to the sender's thread (listed as Open in the plan).
+- Two stores hold a conversation: Mastra memory has the messages, `.data/threads.json` has the metadata.
 - Far more dependencies. mascop resolves 1,479 packages (1.4 GB `node_modules`). Winyu resolves 156 of its own on top of Vexa's 1,285.
 - Version coupling. `@openrouter/ai-sdk-provider` 3.x needs `ai@7`, which conflicts with CopilotKit's `ai@6`, so mascop stays on provider 2.x.
 - CopilotKit's client bundle loads Lit, which logs a dev-mode warning on chat pages under `next dev`. Production builds load the production Lit.
@@ -78,4 +79,4 @@ mascop's chat client is about twice Winyu's because Vexa's `ai-elements` and cha
 - Mastra breaking changes. Tool approval changed in 1.72, two minor versions before the one mascop pins. mascop pins exact versions of `@mastra/*`, `@ag-ui/*` and `@copilotkit/*`, and only `lib/harness/adapters/mastra/` imports them (enforced by `lib/harness/boundary.test.ts`), so an upgrade touches one folder.
 - Paid CopilotKit features. Thread history, the thread drawer and other Intelligence features are paid. mascop builds its own rail and history restore and does not call them.
 - AG-UI bridge drift. `@ag-ui/mastra` maps Mastra's stream to AG-UI. A change in either side shows up as missing tool calls or interrupts in the chat. `bun run probe:chat` covers the approval path and should run after every upgrade.
-- Two message stores. Any feature that reads a conversation must read Mastra memory through the adapter, not `Thread.messages`, which stays empty.
+- Two message stores. Any feature that reads or writes a conversation goes through the Mastra adapter; a handoff reply is written there with `appendHandoffReply`.
