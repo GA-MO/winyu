@@ -15,6 +15,7 @@
         "@copilotkit/react-core": "1.77.0",
         "@copilotkit/runtime": "1.77.0",
         "@huggingface/transformers": "^4.3.0",
+        "@libsql/client": "0.18.0",
         "@line/bot-sdk": "11.3.0",
         "@marcbachmann/cel-js": "^8.0.0",
         "@mastra/core": "1.74.0",
