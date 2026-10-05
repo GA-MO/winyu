@@ -9,13 +9,14 @@ import { INVISIBLE_CHARS } from "@/lib/harness/fence";
 import { winyuTools } from "@/lib/server/agent/tools";
 import { runWithAccess } from "@/lib/server/request-context";
 import { readableChunks, useDocumentsDir } from "./corpus";
-import { indexDocuments } from "./index-documents";
+import { corpusStatus, indexDocuments } from "./index-documents";
 import { PASSAGE_LIMIT, searchDocuments } from "./search";
 
 const SALARY_QUESTION = "กระบอกเงินเดือนของพนักงานระดับ 5 เท่าไหร่";
 const HR_DOC = "pay-rules";
 const PUBLIC_DOC = "staff-guide";
 const VECTOR_K = 6;
+const CORPUS_SWAPS = 4;
 
 function document(id: string, audience: string, sections: [string, string][]): string {
   const body = sections.map(([heading, text], index) => `### ${index + 1}. ${heading}\n${text}`).join("\n\n");
@@ -107,5 +108,20 @@ describe("search_documents through the gateway", () => {
     const result = (await runWithAccess(accessOf("u_krit"), () => execute({ query: SALARY_QUESTION }))) as Result;
     expect(result.data.passages.length).toBeGreaterThan(0);
     expect(result.data.passages.some((passage) => passage.doc_id === HR_DOC)).toBe(false);
+  });
+});
+
+describe("an index whose documents were replaced", () => {
+  test("after the company folder and the fixture folder take turns, the index holds exactly the fixture sections and the HR reader's nearest are still the HR-only ones", async () => {
+    for (let swap = 0; swap < CORPUS_SWAPS; swap++) {
+      useDocumentsDir(null);
+      await indexDocuments();
+      useDocumentsDir(dir);
+      await indexDocuments();
+      const status = await corpusStatus();
+      expect({ swap, indexed: status.indexedChunks, orphaned: status.orphaned }).toEqual({ swap, indexed: status.chunks, orphaned: [] });
+      const hits = await documentVectorSearch("hr_manager", SALARY_QUESTION, VECTOR_K);
+      expect({ swap, hits: hits.map((hit) => hit.id.split("#")[0]) }).toEqual({ swap, hits: Array(VECTOR_K).fill(HR_DOC) });
+    }
   });
 });

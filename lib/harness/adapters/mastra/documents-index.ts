@@ -5,6 +5,7 @@ import { ROLE_IDS, type DocumentChunk, type RoleId } from "@/lib/contracts";
 import { searchableText } from "@/lib/server/documents/chunk";
 import { currentEmbedder } from "@/lib/server/recall/embedder";
 import { DATA_DIR } from "@/lib/server/store/json-store";
+import { reopenExact } from "./exact-vector-store";
 
 const STORAGE_FILE = "mastra.db";
 const VECTOR_STORE_ID = "mascop-documents";
@@ -40,12 +41,13 @@ export type ChunkFacts = { version: string; effective: string; owner: string };
 let ready: Promise<LibSQLVector> | null = null;
 
 async function openStore(): Promise<LibSQLVector> {
-  const store = new LibSQLVector({ id: VECTOR_STORE_ID, url: `file:${path.join(DATA_DIR, STORAGE_FILE)}` });
+  const url = `file:${path.join(DATA_DIR, STORAGE_FILE)}`;
+  const setup = new LibSQLVector({ id: VECTOR_STORE_ID, url });
   const dimension = currentEmbedder().dimension;
-  const existing = await store.listIndexes();
-  if (existing.includes(INDEX_NAME) && (await store.describeIndex({ indexName: INDEX_NAME })).dimension !== dimension) await store.deleteIndex({ indexName: INDEX_NAME });
-  await store.createIndex({ indexName: INDEX_NAME, dimension });
-  return store;
+  const existing = await setup.listIndexes();
+  if (existing.includes(INDEX_NAME) && (await setup.describeIndex({ indexName: INDEX_NAME })).dimension !== dimension) await setup.deleteIndex({ indexName: INDEX_NAME });
+  await setup.createIndex({ indexName: INDEX_NAME, dimension });
+  return reopenExact(setup, { id: VECTOR_STORE_ID, url, indexName: INDEX_NAME });
 }
 
 function vectorStore(): Promise<LibSQLVector> {
