@@ -1,10 +1,11 @@
+import { HANDOFF_REPLY_ACTIVITY, handoffReplyNoteSchema, type HandoffReplyNote } from "@/lib/contracts/handoff";
 import { parsePressed, type PressedTool } from "./pressed";
 
 /** A tool call inside an assistant message, as the agent's transcript carries it. */
 export type ChatToolCall = { id: string; function: { name: string; arguments: string } };
 
-/** One transcript message as the chat reads it; roles other than user, assistant and tool are skipped. */
-export type ChatMessage = { id: string; role: string; content?: unknown; toolCalls?: ChatToolCall[]; toolCallId?: string; error?: string };
+/** One transcript message as the chat reads it; roles other than user, assistant, tool and a handoff-reply activity are skipped. */
+export type ChatMessage = { id: string; role: string; content?: unknown; toolCalls?: ChatToolCall[]; toolCallId?: string; error?: string; activityType?: string };
 
 /** What opened an exchange: a question the person typed, or a card button that runs a tool. */
 export type Question = { kind: "typed"; text: string } | ({ kind: "pressed" } & PressedTool);
@@ -14,7 +15,9 @@ export type ToolOutcome = { state: "pending" } | { state: "returned"; result: un
 
 export type TextStep = { kind: "text"; id: string; text: string };
 export type ToolStep = { kind: "tool"; toolCallId: string; name: string; args: unknown; outcome: ToolOutcome };
-export type ReplyStep = TextStep | ToolStep;
+/** A colleague's answer to a handoff this conversation sent, drawn where it arrived. */
+export type HandoffReplyStep = { kind: "handoff-reply"; id: string; note: HandoffReplyNote };
+export type ReplyStep = TextStep | ToolStep | HandoffReplyStep;
 
 /** One question and everything the agent did to answer it, in the order it happened. */
 export type Exchange = { id: string; question: Question | null; steps: ReplyStep[] };
@@ -58,6 +61,12 @@ function assistantSteps(message: ChatMessage, outcomes: Map<string, ToolOutcome>
   return steps;
 }
 
+function handoffReplySteps(message: ChatMessage): HandoffReplyStep[] {
+  if (message.role !== "activity" || message.activityType !== HANDOFF_REPLY_ACTIVITY) return [];
+  const parsed = handoffReplyNoteSchema.safeParse(message.content);
+  return parsed.success ? [{ kind: "handoff-reply", id: message.id, note: parsed.data }] : [];
+}
+
 /** The transcript grouped into exchanges: each question with the reply text and tool calls that followed it, tool results joined to their calls. */
 export function exchangesOf(messages: readonly ChatMessage[]): Exchange[] {
   const outcomes = outcomesOf(messages);
@@ -67,9 +76,10 @@ export function exchangesOf(messages: readonly ChatMessage[]): Exchange[] {
       exchanges.push({ id: message.id, question: questionOf(message), steps: [] });
       continue;
     }
-    if (message.role !== "assistant") continue;
+    const steps = message.role === "assistant" ? assistantSteps(message, outcomes) : handoffReplySteps(message);
+    if (steps.length === 0) continue;
     if (exchanges.length === 0) exchanges.push({ id: message.id, question: null, steps: [] });
-    exchanges[exchanges.length - 1].steps.push(...assistantSteps(message, outcomes));
+    exchanges[exchanges.length - 1].steps.push(...steps);
   }
   return exchanges;
 }

@@ -29,6 +29,13 @@ describe("exchangesOf", () => {
     expect(exchanges[1].question).toEqual({ kind: "pressed", tool: "pin_widget", input: { title: "ยอดขาย" } });
     expect(exchanges[1].steps[0]).toMatchObject({ toolCallId: "c2", outcome: { state: "pending" } });
   });
+
+  test("a colleague's handoff reply joins the exchange it followed as a reply step, never as a new question", () => {
+    const note = { packetId: "p1", packetTitle: "ตรวจยอดขาย", fromName: "อนุชา", fromTitle: "RSM ภาคเหนือ", status: "accepted" as const, text: "รับแล้วครับ", at: "2026-10-05T03:00:00.000Z" };
+    const exchanges = exchangesOf([...TRANSCRIPT, { id: "r1", role: "activity", activityType: "handoff-reply", content: note }]);
+    expect(exchanges.map((exchange) => exchange.id)).toEqual(["u1", "u2"]);
+    expect(exchanges[1].steps.at(-1)).toEqual({ kind: "handoff-reply", id: "r1", note });
+  });
 });
 
 describe("toolViewOf", () => {

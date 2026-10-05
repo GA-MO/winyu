@@ -129,7 +129,7 @@ describe("asking on from a morning story", () => {
   test("the chat starts from the story's finding and its evidence query, fenced as data", () => {
     const saved = investigations().get("u_krit");
     investigations().put({ id: "u_krit", userId: "u_krit", at: TODAY, model: "test", stories: [story], checkedCount: 1, costUsd: 0 });
-    threads().put({ id: THREAD_ID, userId: "u_krit", title: "t", createdAt: TODAY, updatedAt: TODAY, messages: [], preload: null, storyId: STORY_ID });
+    threads().put({ id: THREAD_ID, userId: "u_krit", title: "t", createdAt: TODAY, updatedAt: TODAY, preload: null, storyId: STORY_ID });
     const lines = personaOf("u_krit", { threadId: THREAD_ID }).join("\n");
     if (saved) investigations().put(saved);
     expect(lines).toContain(`ข้อสรุป: ${story.finding}`);

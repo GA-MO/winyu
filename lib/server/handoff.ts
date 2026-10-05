@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
-import type { AccessContext, ContextPacket, Dim, MetricQuery, MetricRow, Notification, PacketReply, User } from "@/lib/contracts";
+import type { AccessContext, ContextPacket, Dim, HandoffReplyNote, MetricQuery, MetricRow, Notification, PacketReply, User } from "@/lib/contracts";
+import { appendHandoffReply } from "@/lib/harness/adapters/mastra/history";
 import { runMetric } from "@/lib/server/metrics";
 import { ports } from "@/lib/server/ports";
 import { responsibleFor } from "@/lib/access/raci";
@@ -131,14 +132,21 @@ export async function createPacket(input: HandoffInput, sender: User | null, rec
   return packet;
 }
 
-function appendSystemMessage(packet: ContextPacket, text: string): void {
+async function tellSenderThread(packet: ContextPacket, responder: User | null, text: string, at: string): Promise<void> {
   const origin = packetOrigins().get(packet.id);
   if (!origin) return;
-  const store = threads();
-  const thread = store.get(origin.threadId);
-  if (!thread) return;
-  const message = { id: randomUUID(), role: "assistant", parts: [{ type: "text", text }] };
-  store.put({ ...thread, messages: [...thread.messages, message], updatedAt: now() });
+  const note: HandoffReplyNote = {
+    packetId: packet.id,
+    packetTitle: packet.title,
+    fromName: responder?.nameTh ?? packet.toUserId,
+    fromTitle: responder?.title ?? "",
+    status: packet.status,
+    text,
+    at,
+  };
+  const written = await appendHandoffReply(origin.threadId, origin.userId, note);
+  const thread = written ? threads().get(origin.threadId) : undefined;
+  if (thread) threads().put({ ...thread, updatedAt: at });
 }
 
 export type PacketAction = "accept" | "need_info" | "return" | "resolve";
@@ -154,8 +162,8 @@ export function defaultReply(action: PacketAction): string {
   return TH.handoff.replies[action];
 }
 
-/** Moves a packet on, tells the sender, and drops a line into the chat the packet came from. */
-export function actOnPacket(packet: ContextPacket, access: AccessContext, action: PacketAction, text: string, outcome: string | null): ContextPacket {
+/** Moves a packet on, tells the sender, and adds the reply to the conversation the packet came from. */
+export async function actOnPacket(packet: ContextPacket, access: AccessContext, action: PacketAction, text: string, outcome: string | null): Promise<ContextPacket> {
   const at = now();
   const reply: PacketReply = { userId: access.userId, at, text };
   const updated = packets().put({
@@ -165,9 +173,11 @@ export function actOnPacket(packet: ContextPacket, access: AccessContext, action
     thread: [...packet.thread, reply],
     updatedAt: at,
   });
-  const responder = findUser(access.userId)?.nameTh ?? access.userId;
-  notify({ userId: packet.fromUserId, kind: "reply", refId: packet.id, title: `${responder}: ${text}` });
-  appendSystemMessage(updated, TH.handoff.threadNote(responder, TH.inbox.status[updated.status], text));
+  const responder = findUser(access.userId);
+  notify({ userId: packet.fromUserId, kind: "reply", refId: packet.id, title: `${responder?.nameTh ?? access.userId}: ${text}` });
+  await tellSenderThread(updated, responder, text, at).catch((error: unknown) => {
+    console.error(`handoff reply ${packet.id} did not reach the sender's conversation`, error);
+  });
   return updated;
 }
 

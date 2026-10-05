@@ -1,10 +1,12 @@
 "use client";
 
 import { Component, type ReactNode } from "react";
-import { AlertCircle, CircleSlash, MousePointerClick, Sparkles } from "lucide-react";
+import { AlertCircle, CircleSlash, MessageSquareReply, MousePointerClick, Sparkles } from "lucide-react";
 import { renderApproval } from "@/components/cards/approval-card";
 import { describeToolCall } from "@/components/cards/describe-tool";
 import { TOOL_CARDS, type ToolCard } from "@/components/cards/registry";
+import { Badge } from "@/components/ui/primitives";
+import type { ContextPacket, HandoffReplyNote } from "@/lib/contracts";
 import { TH } from "@/lib/i18n/th";
 import { Markdown } from "./markdown";
 import type { Exchange, Question, ReplyStep, ToolStep } from "./timeline";
@@ -13,6 +15,13 @@ import type { PendingApproval } from "./use-chat-session";
 
 const CARD_TOOLS: ReadonlySet<string> = new Set(Object.keys(TOOL_CARDS));
 const CARDS: Record<string, ToolCard> = TOOL_CARDS;
+const STATUS_TONE: Record<ContextPacket["status"], "neutral" | "success" | "warning" | "danger"> = {
+  open: "neutral",
+  accepted: "success",
+  need_info: "warning",
+  returned: "danger",
+  resolved: "success",
+};
 
 /** What one exchange needs from the live chat: whether it is the newest, whether a reply streams, the approvals asked and answered, and how it ended. */
 export type ExchangeLive = {
@@ -97,8 +106,23 @@ function ToolStepView({ step, live }: { step: ToolStep; live: ExchangeLive }) {
   );
 }
 
+function HandoffReplyView({ note }: { note: HandoffReplyNote }) {
+  return (
+    <aside className="w-full animate-hero-rise rounded-2xl border border-border bg-card px-4 py-3" aria-label={TH.handoff.replyFrom(note.fromName, note.fromTitle)}>
+      <header className="flex flex-wrap items-center gap-2 text-sm">
+        <MessageSquareReply className="size-4 shrink-0 text-primary" aria-hidden />
+        <span className="font-medium text-foreground">{TH.handoff.replyFrom(note.fromName, note.fromTitle)}</span>
+        <Badge props={{ label: TH.inbox.status[note.status], tone: STATUS_TONE[note.status] }} />
+      </header>
+      <p className="mt-2 whitespace-pre-wrap text-[15px] leading-relaxed text-foreground">{note.text}</p>
+      <p className="mt-1 text-xs text-muted-foreground">{TH.handoff.replyAbout(note.packetTitle)}</p>
+    </aside>
+  );
+}
+
 function StepView({ step, live }: { step: ReplyStep; live: ExchangeLive }) {
   if (step.kind === "text") return <Markdown text={step.text} />;
+  if (step.kind === "handoff-reply") return <HandoffReplyView note={step.note} />;
   return (
     <CardBoundary>
       <ToolStepView step={step} live={live} />
@@ -107,7 +131,7 @@ function StepView({ step, live }: { step: ReplyStep; live: ExchangeLive }) {
 }
 
 function shows(step: ReplyStep): boolean {
-  return step.kind === "text" || step.outcome.state !== "failed";
+  return step.kind !== "tool" || step.outcome.state !== "failed";
 }
 
 function Ending({ exchange, live }: { exchange: Exchange; live: ExchangeLive }) {
@@ -138,7 +162,7 @@ export function ExchangeView({ exchange, live }: { exchange: Exchange; live: Exc
     <article className="flex flex-col gap-4">
       {exchange.question ? <UserBubble question={exchange.question} /> : null}
       {stepsWithApprovals(exchange, live.asked).map((step) => (
-        <StepView key={step.kind === "text" ? `text-${step.id}` : step.toolCallId} step={step} live={live} />
+        <StepView key={step.kind === "tool" ? step.toolCallId : `${step.kind}-${step.id}`} step={step} live={live} />
       ))}
       <Ending exchange={exchange} live={live} />
     </article>

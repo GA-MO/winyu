@@ -1,5 +1,9 @@
+import { randomUUID } from "node:crypto";
 import type { Message } from "@ag-ui/core";
+import { HANDOFF_REPLY_ACTIVITY, handoffReplyNoteSchema, type HandoffReplyNote } from "@/lib/contracts";
 import { openApprovalsFor } from "@/lib/harness/approvals";
+import { fenceAsData } from "@/lib/harness/fence";
+import { TH } from "@/lib/i18n/th";
 import type { SpokenTurn } from "@/lib/server/request-context";
 import { mascopAgent } from "./agent";
 
@@ -81,9 +85,19 @@ function assistantMessagesOf(message: StoredMessage): Message[] {
   return out;
 }
 
-/** Mastra memory's stored messages as the AG-UI transcript the chat draws: user questions, reply text, tool calls and their results. */
+function handoffReplyOf(content: unknown): HandoffReplyNote | null {
+  if (typeof content !== "object" || content === null) return null;
+  const metadata = (content as { metadata?: unknown }).metadata;
+  if (typeof metadata !== "object" || metadata === null) return null;
+  const parsed = handoffReplyNoteSchema.safeParse((metadata as Record<string, unknown>)[HANDOFF_REPLY_ACTIVITY]);
+  return parsed.success ? parsed.data : null;
+}
+
+/** Mastra memory's stored messages as the AG-UI transcript the chat draws: user questions, reply text, tool calls and their results, and a colleague's handoff reply as an activity, never as a question or as the agent's words. */
 export function agUiMessagesOf(stored: readonly StoredMessage[]): Message[] {
   return stored.flatMap((message): Message[] => {
+    const reply = message.role === "user" ? handoffReplyOf(message.content) : null;
+    if (reply) return [{ id: message.id, role: "activity", activityType: HANDOFF_REPLY_ACTIVITY, content: reply }];
     if (message.role === "user") return [{ id: message.id, role: "user", content: plainTextOf(message.content) }];
     if (message.role === "assistant") return assistantMessagesOf(message);
     return [];
@@ -109,6 +123,22 @@ export async function threadHistory(threadId: string, userId: string): Promise<M
 export async function threadTranscript(threadId: string, userId: string): Promise<SpokenTurn[]> {
   const messages = await threadHistory(threadId, userId);
   return messages.flatMap((message) => ((message.role === "user" || message.role === "assistant") && typeof message.content === "string" ? [{ role: message.role, text: message.content }] : []));
+}
+
+/** What the model reads for a handoff reply: a labelled system note with the colleague's words fenced as data. */
+export function handoffReplyForModel(note: HandoffReplyNote): string {
+  const words = fenceAsData(`${TH.handoff.replyAbout(note.packetTitle)}\n${note.text}`);
+  return TH.handoff.replyForModel(note.fromName, note.fromTitle, TH.inbox.status[note.status], words);
+}
+
+/** Appends a colleague's handoff reply to the sender's conversation in Mastra memory, so it is in the restored thread and in what the agent remembers; a thread that never ran or is someone else's is left alone. Returns whether it was written. */
+export async function appendHandoffReply(threadId: string, userId: string, note: HandoffReplyNote): Promise<boolean> {
+  const store = await memory();
+  const thread = await store.getThreadById({ threadId });
+  if (!thread || thread.resourceId !== userId) return false;
+  const content = { format: 2 as const, parts: [{ type: "text" as const, text: handoffReplyForModel(note) }], metadata: { [HANDOFF_REPLY_ACTIVITY]: note } };
+  await store.saveMessages({ messages: [{ id: randomUUID(), role: "user", createdAt: new Date(note.at), threadId, resourceId: userId, type: "text", content }] });
+  return true;
 }
 
 /** Removes a thread and its messages from Mastra memory; a thread that never ran has nothing to remove. */
