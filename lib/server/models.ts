@@ -9,7 +9,9 @@ const MODEL_NAMES: Record<string, string> = { "google/gemini-3.8-flash": "Gemini
 const PROVIDER_ORDER: Record<string, string[]> = { "google/gemini-3.8-flash": ["google-ai-studio/flex", "google-ai-studio"] };
 
 /** The one real model the agent runs on, with the id it is billed and traced under. */
-export type AgentModel = { id: string; name: string; model: () => LanguageModel };
+export type AgentModel = { id: string; name: string; model: () => MeteredModel };
+
+type MeteredModel = ReturnType<typeof wrapLanguageModel>;
 
 type WrappableModel = Parameters<typeof wrapLanguageModel>[0]["model"];
 
@@ -20,7 +22,7 @@ function providerOrderOf(modelId: string): string[] | null {
   return PROVIDER_ORDER[modelId] ?? null;
 }
 
-function metered(modelId: string, model: Exclude<LanguageModel, string>) {
+function metered(modelId: string, model: Exclude<LanguageModel, string>): MeteredModel {
   return wrapLanguageModel({ model: model as WrappableModel, middleware: [traceMiddleware(), meterMiddleware(modelId)] });
 }
 
