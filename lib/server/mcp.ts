@@ -9,16 +9,10 @@ import { userIdForMcpToken } from "@/lib/server/mcp-tokens";
 import { runWithAccess, runWithTurn } from "@/lib/server/request-context";
 import type { WinyuTool } from "@/lib/server/tools/define";
 
-/**
- * The one switch for what MCP clients may call. Reads only: an MCP client has no approval prompt, and every write or destructive
- * tool waits for the person's yes in the chat. Adding "write" here would let those tools run with no one approving them; the
- * gateway would still apply the role policy, admin rules, verification and audit.
- */
+/** The one switch for what MCP clients may call: reads only, because writes wait for the person's yes in the chat and an MCP client has no approval prompt (see docs/mcp.md before widening it). */
 export const MCP_TOOL_TIERS: readonly ToolTier[] = ["read"];
 
-/** The JSON-RPC method whose call runs a tool, and so a traced run. */
-export const MCP_CALL_METHOD = "tools/call";
-
+const MCP_CALL_METHOD = "tools/call";
 const MCP_INTENT_PREFIX = "mcp:";
 const MAX_RESULT_CHARS = 24_000;
 const BEARER = /^Bearer\s+(\S+)$/i;
