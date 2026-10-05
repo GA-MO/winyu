@@ -33,15 +33,16 @@ The frameworks do not cover the product rules, so these came across from Winyu o
 
 ## Better than Winyu
 
-- Smaller prompts. A chat model call in mascop averaged 10,454 input tokens, against 18,972 in Winyu's ledger. mascop sends no component catalog or spec rules, because the model chooses a tool and mascop draws the card from the result (inferred from the prompt contents; not isolated by an experiment).
+- Smaller prompts. A chat model call in mascop averaged 10,454 input tokens, against 18,972 in Winyu's ledger. `compose_card` and its rule add about 930 tokens per call (the CEO's metric question's first call: 8,745 on main, 9,679 with composition). mascop sends no component catalog or spec rules, because the model chooses a tool and mascop draws the card from the result (inferred from the prompt contents; not isolated by an experiment).
 - Cheaper questions. In the M5 walk, 15 questions (7 of them with an approval and a resume run) cost 36 chat calls and $0.1828: 2.4 calls and $0.0122 per question. Winyu's ledger holds 413 chat runs at 2.40 calls and $0.0268 per run (measured over 2026-09-25 to 2026-10-04). The question mix differs and Winyu's runs are not the same questions, so treat the ratio as indicative.
-- A card cannot be drawn wrong by the model, because the model never writes card markup. Winyu needed `normalize.ts` and an eval to keep specs honest.
+- A metric card cannot be drawn wrong by the model, because the model never writes its markup. Winyu needed `normalize.ts` and an eval to keep specs honest.
 - The wire format is AG-UI, a public protocol, instead of Vexa's own message parts.
+- The model composes people and entity answers (`compose_card`, A2UI v0.9 drawn by CopilotKit's A2UI renderer with mascop's components; see `docs/a2ui.md`), and the composition cannot invent data: text binds to `{ path }` in this turn's read results, the server refuses a literal number, name or picture no tool returned, metric results cannot be composed at all, and the client receives only the paths the card shows. Winyu's composed specs carried literal values that `normalize.ts` and the card eval checked after the fact. The CEO's team question gives one card with the lead and his 5 reports, like Winyu (`.shots/a2ui-ceo-people-reload-top.png`).
 - A handoff reply in the sender's thread reads as the colleague's note, and the model gets the colleague's words fenced as data. Winyu stored the reply as assistant text, so its model could take the colleague's words for its own.
 
 ## Worse than Winyu
 
-- The model cannot compose a new layout. Every tool has one fixed card. Winyu's model could compose primitives for people and entity answers.
+- A composed card costs more than a fixed one. The CEO's "ใครดูแลภาคอีสาน ขอข้อมูลคนนั้นและทีมของเขาหน่อย" took 4 chat calls and $0.032 with `compose_card` (the compose step alone spent 4,517 reasoning tokens and 18 s), against 3 calls and $0.015 with fixed cards on main. The card appears only when the grounded result returns; Winyu streamed its spec as the model wrote it.
 - An approval splits one question into two runs, two model round trips and two traces that share a goal id.
 - Two stores hold a conversation: Mastra memory has the messages, `.data/threads.json` has the metadata.
 - Far more dependencies. mascop resolves 1,479 packages (1.4 GB `node_modules`). Winyu resolves 156 of its own on top of Vexa's 1,285.
