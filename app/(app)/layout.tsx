@@ -10,12 +10,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const user = readUser(await cookies());
   if (!user) redirect("/login");
   return (
-    <div className="relative flex min-h-dvh">
+    <div className="winyu-main relative min-h-dvh">
       <ThreadRail />
-      <div className="min-w-0 flex-1">
-        <AppChrome user={personaOf(user)} people={USERS.map(personaOf)} />
-        <main className="relative">{children}</main>
-      </div>
+      <AppChrome user={personaOf(user)} people={USERS.map(personaOf)} />
+      <main className="relative min-h-dvh">{children}</main>
     </div>
   );
 }

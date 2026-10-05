@@ -110,10 +110,10 @@ export function Landing({
   }, [router]);
 
   return (
-    <div className="relative min-h-[calc(100dvh-3.75rem)] overflow-x-hidden">
+    <div className="relative min-h-dvh overflow-x-hidden">
       <GlowBackdrop />
 
-      <div className="relative flex min-h-[calc(100dvh-3.75rem)] flex-col items-center justify-center gap-8 px-4 pb-16 pt-10 sm:px-6">
+      <div className="relative flex min-h-dvh flex-col items-center justify-center gap-8 px-4 pb-16 pt-20 sm:px-6">
         <div className={cn(HERO, "animate-hero-rise")}>
           <header className="flex flex-col gap-2 text-center">
             <h1 className="text-balance font-display text-[1.75rem] font-semibold leading-[1.2] tracking-[-0.02em] sm:text-[3rem]">
