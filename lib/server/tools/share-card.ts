@@ -11,14 +11,22 @@ import { shareHolds } from "./verify";
 const UNRESOLVED = "UNRESOLVED_RECIPIENT";
 const NO_CARD = "NO_CARD";
 const NOT_SHAREABLE = "NOT_SHAREABLE";
+const NOTE_NUMBERS = "NOTE_CARRIES_NUMBERS";
+const NUMBER = /[0-9๐-๙]+/g;
 
 function channelDelivery() {
   return import("@/lib/server/share/deliver");
 }
 
+/** A note carries no number the person did not type themselves: the card's values reach each recipient only through their own access, never through the message. */
+function noteFromPerson(note: string | undefined): boolean {
+  const question = currentTurn().question ?? "";
+  return (note?.match(NUMBER) ?? []).every((number) => question.includes(number));
+}
+
 function isReady(input: unknown): boolean {
   const parsed = shareCardInputSchema.safeParse(input);
-  return parsed.success && resolvedPeople(recipientMatches(parsed.data.to, currentAccess().userId)) !== null;
+  return parsed.success && noteFromPerson(parsed.data.note) && resolvedPeople(recipientMatches(parsed.data.to, currentAccess().userId)) !== null;
 }
 
 function unresolvedLine(match: RecipientMatch<User>): string | null {
@@ -32,7 +40,7 @@ export const shareCardTool = defineTool({
   connector: "winyu",
   tier: "write",
   roles: "all",
-  description: "Share the newest card of this conversation with colleagues for their information: they get its title, the note and a link into Winyu, and see the numbers under their own access. `to` = each colleague as the user named them (\"คุณกฤต\") or a user id, no lookup first. `channel` only when the user names one. The user approves it first.",
+  description: "Share the newest card of this conversation with colleagues for their information: they get its title, the note and a link into Winyu, and see the numbers under their own access. `to` = each colleague as the user named them (\"คุณกฤต\") or a user id, no lookup first. `channel` only when the user names one; `note` only when the user gives a message to pass on, in their words. The user approves it first.",
   input: shareCardInputSchema,
   ready: isReady,
   redact: ["note"],
@@ -40,6 +48,7 @@ export const shareCardTool = defineTool({
   execute: async (input: ShareCardInput) => {
     const sender = findUser(currentAccess().userId);
     if (!sender) return { ok: false as const, code: UNRESOLVED, error: TH.share.chat.unknown(currentAccess().userId) };
+    if (!noteFromPerson(input.note)) return { ok: false as const, code: NOTE_NUMBERS, error: TH.share.chat.noteNumbers };
     const matches = recipientMatches(input.to, sender.id);
     const people = resolvedPeople(matches);
     if (!people) return { ok: false as const, code: UNRESOLVED, error: matches.flatMap((match) => unresolvedLine(match) ?? []).join(" · ") };

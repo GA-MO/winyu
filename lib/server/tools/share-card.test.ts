@@ -14,7 +14,7 @@ const { findUser } = await import("@/lib/data/entities/users");
 const { liveAccessFor } = await import("@/lib/access/enforce");
 const { winyuTools } = await import("@/lib/server/agent/tools");
 const { asksApproval } = await import("@/lib/harness/gateway");
-const { runWithAccess } = await import("@/lib/server/request-context");
+const { runWithAccess, runWithTurn } = await import("@/lib/server/request-context");
 const { shares } = await import("@/lib/server/share/shares");
 const { openShare } = await import("@/lib/server/share/view");
 
@@ -78,6 +78,19 @@ describe("share_card", () => {
     expect(asCeo(() => asksApproval(capability, { to: ["u_krit"] }))).toBe(true);
     expect(asCeo(() => asksApproval(capability, { to: ["จันทร"] }))).toBe(false);
     expect(asCeo(() => asksApproval(capability, { to: ["คุณกฤต", "คุณสมศรี"] }))).toBe(false);
+  });
+
+  test("a note carries no number the person did not type, so no value from the card travels in the message", async () => {
+    const capability = winyuTools().share_card.capability;
+    const turn = (question: string) => ({ turnId: null, threadId: null, preloadPacketId: null, question, queries: [] });
+    const asked = (question: string, note: string) => asCeo(() => runWithTurn(turn(question), () => asksApproval(capability, { to: ["คุณกฤต"], note })));
+    expect(asked("ส่งการ์ดนี้ให้คุณกฤตดู", "ยอดอีสาน 232.5 ล้านบาท ต่ำกว่าเป้า")).toBe(false);
+    expect(asked("ส่งให้คุณกฤตดู บอกว่าคุยกันตอน 10 โมง", "คุยกันตอน 10 โมง")).toBe(true);
+    expect(asked("ส่งให้คุณกฤตดู", "ช่วยดูภาคอีสานหน่อย")).toBe(true);
+    const before = sharesByCeo().length;
+    const result = (await asCeo(() => runWithTurn(turn("ส่งการ์ดนี้ให้คุณกฤตดู"), () => winyuTools().share_card.execute({ to: ["คุณกฤต"], note: "ยอด 232.5 ล้าน" })))) as { ok: boolean };
+    expect(result.ok).toBe(false);
+    expect(sharesByCeo()).toHaveLength(before);
   });
 
   test("an ambiguous name sends nothing and hands the model the candidates to ask about", async () => {
