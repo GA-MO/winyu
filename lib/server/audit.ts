@@ -29,10 +29,11 @@ function decisionOf(observation: Observation): AuditEntry["decision"] {
 /** One tool call as the audit needs it: who, which tool through which connector, the arguments and which of them to hide, when it started, its call id, the run and initiator it belongs to, and the admin rule that refused it. */
 export type AuditedCall = { tool: string; connector: string; userId: string; args: unknown; redact: readonly string[]; startedAt: number; toolCallId: string; runId: string | null; initiator: Initiator; rule?: RuleRef };
 
-function hidden(value: unknown, redact: ReadonlySet<string>): unknown {
-  if (Array.isArray(value)) return value.map((inner) => hidden(inner, redact));
+/** A tool's arguments with its personal fields replaced by the redaction mark, at any depth. */
+export function withoutPersonalFields(value: unknown, redact: ReadonlySet<string>): unknown {
+  if (Array.isArray(value)) return value.map((inner) => withoutPersonalFields(inner, redact));
   if (!value || typeof value !== "object") return value;
-  return Object.fromEntries(Object.entries(value).map(([key, inner]) => [key, redact.has(key) && inner !== null && inner !== "" ? TH.admin.auditTab.redacted : hidden(inner, redact)]));
+  return Object.fromEntries(Object.entries(value).map(([key, inner]) => [key, redact.has(key) && inner !== null && inner !== "" ? TH.admin.auditTab.redacted : withoutPersonalFields(inner, redact)]));
 }
 
 function shortened(value: unknown): unknown {
@@ -45,7 +46,7 @@ function shortened(value: unknown): unknown {
 /** The arguments as the admin reads them in the audit: the tool's personal fields hidden, long text cut short, the whole capped. */
 export function argsPreview(args: unknown, redact: readonly string[] = []): string {
   try {
-    return JSON.stringify(shortened(hidden(args ?? null, new Set(redact)))).slice(0, ARGS_MAX_CHARS);
+    return JSON.stringify(shortened(withoutPersonalFields(args ?? null, new Set(redact)))).slice(0, ARGS_MAX_CHARS);
   } catch {
     return "";
   }
