@@ -1,4 +1,3 @@
-import type { Spec } from "vexa/protocol";
 import type { AccessContext, Alert, FeedItem, FeedTone, NextAction } from "@/lib/contracts";
 import type { AmbientCard } from "@/lib/dashboard/ambient";
 import { TODAY, toDayIndex } from "@/lib/data/dates";
@@ -160,7 +159,6 @@ function storyOf(reportId: string, members: Member[], directory: Directory): Tea
     alertId: null,
     feedKey: key,
     action,
-    spec: { root, elements: { [root]: { type: "Callout", props: { eyebrow: TH.team.eyebrow(""), title: label, body: [coverage, handling].filter(Boolean).join(" · "), tone: "warning" }, children: [] } } } as unknown as Spec,
   };
   return { item, card, memberKeys };
 }

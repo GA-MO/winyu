@@ -1,13 +1,11 @@
 import { describe, expect, test } from "bun:test";
-import { normalizeSpec } from "vexa/core";
-import { winyuCatalog as catalog } from "@/lib/cards/catalog";
 import { WIDGET_KINDS, type AccessContext, type NextAction, type WidgetKind, type WidgetSpec } from "@/lib/contracts";
 import { accessFor } from "@/lib/access/policies";
 import { TH } from "@/lib/i18n/th";
 import { findUser } from "@/lib/data/entities/users";
 import { runMetric as placeholderResult } from "@/lib/data/query";
 import { templateFor } from "./templates";
-import { widgetToSpec } from "./widget-to-spec";
+import { widgetCard } from "./widget-card";
 import { alertRowOf } from "@/lib/cards/alert-row";
 import { GENERATOR_DICTIONARY } from "@/lib/data/master";
 import { alertCard, itemCard, packetCard } from "./ambient";
@@ -38,11 +36,7 @@ function widgetOf(kind: WidgetKind, access: AccessContext): WidgetSpec {
   };
 }
 
-function validate(spec: unknown) {
-  return catalog.validate(normalizeSpec(spec as never));
-}
-
-describe("widgetToSpec", () => {
+describe("widgetCard", () => {
   test("a dashboard card offers one next step, beside its source line", () => {
     const access = accessOf(RSM);
     const widget = widgetOf("bar", access);
@@ -50,31 +44,23 @@ describe("widgetToSpec", () => {
       { id: "a", kind: "drill", label: "แยกตามจังหวัด", reason: "r", tool: null, input: null, prompt: "p" },
       { id: "b", kind: "drill", label: "แยกตามแบรนด์", reason: "r", tool: null, input: null, prompt: "p" },
     ] as NextAction[];
-    const spec = widgetToSpec(widget, placeholderResult(widget.query, access), { actions });
-    const footer = spec.elements[`${widget.id}-footer`] as unknown as { props: { action: NextAction | null } };
-    expect(footer.props.action?.label).toBe("แยกตามจังหวัด");
-    expect(Object.values(spec.elements).some((element) => (element as { type: string }).type === "ActionStrip")).toBe(false);
+    const card = widgetCard(widget, placeholderResult(widget.query, access), { actions });
+    expect(card.actions[0]?.label).toBe("แยกตามจังหวัด");
   });
 
 
-  test("every widget kind renders a spec the Winyu catalog accepts", () => {
+  test("every widget kind resolves to a card with numbers and a verified source line", () => {
     const access = accessOf(RSM);
     for (const kind of WIDGET_KINDS) {
       const widget = widgetOf(kind, access);
-      const spec = widgetToSpec(widget, placeholderResult(widget.query, access));
-      const result = validate(spec);
-      expect(result.success).toBe(true);
-      expect(spec.root).toBe(`${widget.id}-root`);
-      const card = spec.elements[`${widget.id}-root`] as unknown as { props: { footnote: string | null; description: string | null } };
-      const footer = spec.elements[`${widget.id}-footer`] as unknown as { type: string; props: { note: string } } | undefined;
-      expect(card.props.footnote).toBeNull();
-      expect(footer?.type).toBe("CardFooter");
-      expect(footer?.props.note).toContain(TH.dash.trust.verified);
-      expect(card.props.description).toBeNull();
+      const card = widgetCard(widget, placeholderResult(widget.query, access));
+      expect(card.denied).toBeNull();
+      expect(card.footnote).toContain(TH.dash.trust.verified);
+      expect(card.description).toBeNull();
     }
   });
 
-  test("role templates resolve to valid specs for every role", () => {
+  test("role templates resolve to readable cards for every role", () => {
     for (const userId of ["u_thana", "u_siriporn", "u_prasit", RSM, "u_krit", "u_ben", "u_wee", "u_mint", HR, "u_ton"]) {
       const access = accessOf(userId);
       for (const [index, seed] of templateFor(access).entries()) {
@@ -91,7 +77,7 @@ describe("widgetToSpec", () => {
           createdAt: "2026-09-22T00:00:00.000Z",
           version: 1,
         };
-        expect(validate(widgetToSpec(widget, placeholderResult(widget.query, access))).success).toBe(true);
+        expect(widgetCard(widget, placeholderResult(widget.query, access)).denied).toBeNull();
       }
     }
   });
@@ -102,19 +88,18 @@ describe("widgetToSpec", () => {
     const denied: WidgetSpec = { ...widget, query: { ...widget.query, metric: "headcount" } };
     const result = placeholderResult(denied.query, access);
     expect(result.ok).toBe(false);
-    const spec = widgetToSpec(denied, result);
-    expect(validate(spec).success).toBe(true);
-    expect(JSON.stringify(spec)).not.toContain("1,840");
+    const card = widgetCard(denied, result);
+    expect(card.denied).toBeTruthy();
+    expect(card.hero).toBeNull();
+    expect(JSON.stringify(card)).not.toContain("1,840");
   });
 
   test("a card leads with the headline number, not a paragraph", () => {
     const access = accessOf(RSM);
     const widget = widgetOf("bar", access);
-    const spec = widgetToSpec(widget, placeholderResult(widget.query, access));
-    const hero = spec.elements[`${widget.id}-hero`] as unknown as { type: string; props: { size: string; value: string } };
-    expect(hero.type).toBe("Metric");
-    expect(hero.props.size).toBe("lg");
-    expect(hero.props.value).not.toBe("—");
+    const card = widgetCard(widget, placeholderResult(widget.query, access));
+    expect(card.hero?.value).toBeDefined();
+    expect(card.hero?.value).not.toBe("—");
   });
 
   test("a metric masked in every row keeps the card as one line and shows no value", () => {
@@ -123,13 +108,12 @@ describe("widgetToSpec", () => {
     const masked: WidgetSpec = { ...widget, query: { ...widget.query, metric: "avg_salary", dims: ["department"] } };
     const result = placeholderResult(masked.query, access);
     expect(result.ok).toBe(true);
-    const spec = widgetToSpec(masked, result);
-    expect(validate(spec).success).toBe(true);
-    expect(JSON.stringify(spec)).not.toContain("***");
-    expect(JSON.stringify(spec)).toContain("ถูกปิดตามสิทธิ์");
+    const card = widgetCard(masked, result);
+    expect(JSON.stringify(card)).not.toContain("***");
+    expect(JSON.stringify(card)).toContain("ถูกปิดตามสิทธิ์");
   });
 
-  test("landing cards of every kind are valid specs", () => {
+  test("a handoff carrying an alert leads with the same number as the alert's card", () => {
     const alert = {
       id: "a1", at: "2026-09-22T01:00:00.000Z", severity: "P1" as const, metric: "sell_out_volume" as const, dims: { region: "northeast" },
       window: { from: "2026-09-01", to: "2026-09-22" }, observed: 100, expected: 140, zScore: -3.1, direction: "down" as const,
@@ -145,7 +129,6 @@ describe("widgetToSpec", () => {
         reason: "ใบขับขี่รถยก 8 วัน", detail: "พนักงานขับรถยก", prompt: "ขอดูโปรไฟล์คุณแดง", alertId: null, packetId: null, canFinish: true, actions: [], because: null,
       }),
     ];
-    for (const card of cards) expect(validate(card.spec).success).toBe(true);
     expect(cards[1]?.headline?.value).toBe(cards[0]?.headline?.value);
   });
 

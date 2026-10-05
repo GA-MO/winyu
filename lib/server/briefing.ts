@@ -1,7 +1,6 @@
 import type { AccessContext, Alert, MetricId, MetricQuery } from "@/lib/contracts";
-import type { Spec, SpecElement } from "vexa/protocol";
 import { runMetric } from "@/lib/server/metrics";
-import { TODAY, addDays, formatThaiDate } from "@/lib/data/dates";
+import { TODAY, addDays } from "@/lib/data/dates";
 import { metricLabel } from "@/lib/dashboard/metric-display";
 import { templateFor } from "@/lib/dashboard/templates";
 import { TH } from "@/lib/i18n/th";
@@ -13,7 +12,7 @@ const MAX_MOVES = 3;
 const ATTAINMENT_DAYS = 27;
 
 export type BriefMove = { label: string; deltaPct: number; metric: MetricId };
-export type MorningBrief = { line: string; bullets: string[]; attainment: number | null; alerts: Alert[]; moves: BriefMove[]; spec: Spec };
+export type MorningBrief = { line: string; bullets: string[]; attainment: number | null; alerts: Alert[]; moves: BriefMove[] };
 
 function attainmentQuery(): MetricQuery {
   return {
@@ -48,22 +47,6 @@ async function movesFor(access: AccessContext): Promise<BriefMove[]> {
   return moves;
 }
 
-function element(type: string, props: Record<string, unknown>, children: string[] = []): SpecElement {
-  return { type, props, children } as SpecElement;
-}
-
-function specOf(bullets: string[], line: string): Spec {
-  const elements: Record<string, SpecElement> = {
-    brief: element(
-      "Card",
-      { title: TH.brief.title, meta: formatThaiDate(TODAY), description: line, footnote: null },
-      ["brief-list"],
-    ),
-    "brief-list": element("List", { items: bullets, ordered: true }),
-  };
-  return { root: "brief", elements };
-}
-
 /** What Winyu opens with: the alerts it found, what moved, and what is waiting for this user. */
 export async function morningBriefFor(access: AccessContext): Promise<MorningBrief> {
   const alerts = openAlertsFor(access).slice(0, TOP_ALERTS);
@@ -79,6 +62,6 @@ export async function morningBriefFor(access: AccessContext): Promise<MorningBri
   if (alerts.length > 0) parts.push(TH.brief.alerts(openAlertsFor(access).length));
   if (packets.length > 0) parts.push(TH.brief.packets(packets.length));
   const line = parts.length === 0 ? TH.brief.quiet : `${parts.join(TH.brief.join)}${TH.brief.suffix}`;
-  return { line, bullets, attainment, alerts, moves, spec: specOf(bullets, line) };
+  return { line, bullets, attainment, alerts, moves };
 }
 
