@@ -175,3 +175,7 @@ Every unit runs in its own worktree, ends with typecheck, test and a browser or 
 | F13 | Tool providers (Composio, Arcade): skipped for now (user, 2026-10-05) | - | - |
 
 Order: F1 first; F2 and F5 (no model behaviour change) beside it; F3, F4, F6 to F9 after F1 so the evals grade them; F10 before F11 because both resolve people through the same identity mapping. F10 and F11 are built and tested against local simulations until the user supplies the registrations.
+
+### F2. MCPServer
+
+- [x] `/api/mcp` serves each token holder's read tools through a per-request Mastra `MCPServer` (2026-07-28) with a stateless shim for 2025-era clients; every call runs through the gateway as that user with `initiator: "mcp"` and a saved run. Read-only switch: `MCP_TOOL_TIERS` in `lib/server/mcp.ts`. Docs: `docs/mcp.md` (Connect from Claude). Tests: `lib/server/mcp.test.ts` (per-caller lists, sales rep northeast only, missing/unknown/revoked token 401, CEL rule on `initiator == "mcp"`, audit row with channel and user, 2025-era client), `components/admin/mcp-tab.test.tsx`. Live: `bun run mcp:probe` against :3211, CEO 6 regions, `u_krit` ภาคอีสาน only in both protocol eras, 401 after revoke (`.shots/f2-walk.log`). Admin: `.shots/f2-admin-issued.png`, `f2-admin-revoked.png`, `f2-audit-mcp.png`. Model spend $0.

@@ -17,6 +17,7 @@ bun run seed         # regenerates .data/*.json from the generator (deterministi
 bun run probe:chat   # drives /api/copilotkit with session cookies against the dev server: CEO, sales rep, pin approve, pin decline (~11 Gemini calls); --only=a,b
 bun run trace [runId] # prints one agent run's harness trace (latest when no id)
 bun run call-tool <userId> <tool> [json]   # runs one tool through the gateway as that user and prints the audit decision (no model call)
+bun run mcp:probe <token> [--url=…/api/mcp] [--legacy]   # connects the official MCP client with an admin-issued token, lists tools and calls query_metric (no model call); see docs/mcp.md
 bun run connectors:demo   # serves the demo connectors: LMS over MCP on :3299, CRM over REST on :3298
 bun run investigate -- --users=<id>[,<id>…]|all [--save] [--show] [--replay]   # the morning investigation per person against the real model (~7 calls each); --show and --replay read saved runs without calling the model
 ```
