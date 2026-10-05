@@ -33,21 +33,47 @@ The frameworks do not cover the product rules, so these came across from Winyu o
 
 ## Better than Winyu
 
-- Smaller prompts. A chat model call in mascop averaged 10,454 input tokens, against 18,972 in Winyu's ledger. `compose_card` and its rule add about 930 tokens per call (the CEO's metric question's first call: 8,745 on main, 9,679 with composition). mascop sends no component catalog or spec rules, because the model chooses a tool and mascop draws the card from the result (inferred from the prompt contents; not isolated by an experiment).
+- Smaller prompts. A chat model call in mascop averaged 10,454 input tokens, against 18,972 in Winyu's ledger. The card block rule with its one example costs less than the `compose_card` tool it replaced: the CEO team question's first call took 9,772 input tokens with `compose_card` and 9,552 with the block rule (measured in the benchmark below). mascop sends a short component list instead of Winyu's full catalog and spec rules.
 - Cheaper questions. In the M5 walk, 15 questions (7 of them with an approval and a resume run) cost 36 chat calls and $0.1828: 2.4 calls and $0.0122 per question. Winyu's ledger holds 413 chat runs at 2.40 calls and $0.0268 per run (measured over 2026-09-25 to 2026-10-04). The question mix differs and Winyu's runs are not the same questions, so treat the ratio as indicative.
 - A metric card cannot be drawn wrong by the model, because the model never writes its markup. Winyu needed `normalize.ts` and an eval to keep specs honest.
 - The wire format is AG-UI, a public protocol, instead of Vexa's own message parts.
-- The model composes people and entity answers (`compose_card`, A2UI v0.9 drawn by CopilotKit's A2UI renderer with mascop's components; see `docs/a2ui.md`), and the composition cannot invent data: text binds to `{ path }` in this turn's read results, the server refuses a literal number, name or picture no tool returned, metric results cannot be composed at all, and the client receives only the paths the card shows. Winyu's composed specs carried literal values that `normalize.ts` and the card eval checked after the fact. The CEO's team question gives one card with the lead and his 5 reports, like Winyu (`.shots/a2ui-ceo-people-reload-top.png`).
+- The model composes people and entity answers inside its reply, as Winyu does, and the server checks every line before the browser sees it (A2UI v0.9 drawn by CopilotKit's A2UI renderer with mascop's components; see `docs/a2ui.md`). Text binds to `{ path }` in the run's read results. The server drops a line with a literal number, name or picture no tool returned, a path that does not resolve, or a metric result, and keeps the rest of the card. The client receives only the paths the card shows. Winyu's composed specs carried literal values that `normalize.ts` and the card eval checked after the fact. The CEO's team question gives one card with the lead and his 5 reports (`.shots/hybrid-ceo-team-top.png`), and the same card after a reload (`.shots/hybrid-ceo-team-reload-top.png`).
 - A handoff reply in the sender's thread reads as the colleague's note, and the model gets the colleague's words fenced as data. Winyu stored the reply as assistant text, so its model could take the colleague's words for its own.
 
 ## Worse than Winyu
 
-- A composed card costs more than a fixed one. The CEO's "ใครดูแลภาคอีสาน ขอข้อมูลคนนั้นและทีมของเขาหน่อย" took 4 chat calls and $0.032 with `compose_card` (the compose step alone spent 4,517 reasoning tokens and 18 s), against 3 calls and $0.015 with fixed cards on main. The card appears only when the grounded result returns; Winyu streamed its spec as the model wrote it.
+- A composed card still waits on the model step that writes the answer. Most of the wait is reasoning before the first block line (median 12.6 s from the last tool result to the finished card in the benchmark below). The block itself streams in about a second.
 - An approval splits one question into two runs, two model round trips and two traces that share a goal id.
 - Two stores hold a conversation: Mastra memory has the messages, `.data/threads.json` has the metadata.
 - Far more dependencies. mascop resolves 1,479 packages (1.4 GB `node_modules`). Winyu resolves 156 of its own on top of Vexa's 1,285.
 - Version coupling. `@openrouter/ai-sdk-provider` 3.x needs `ai@7`, which conflicts with CopilotKit's `ai@6`, so mascop stays on provider 2.x.
 - CopilotKit's client bundle loads Lit, which logs a dev-mode warning on chat pages under `next dev`. Production builds load the production Lit.
+
+## Composed cards benchmark
+
+The harness asks 5 people and HR questions (CEO team, HR candidates and courses, supply site, CEO licences, RSM team training) 2 times each, against `google/gemini-3.8-flash`, and scores each card against facts derived from the tool functions. The `baseline` tag ran Winyu (JSONL spec in the reply) and mascop with the `compose_card` tool on 2026-10-05. The `hybrid` tag ran mascop with the streamed, line-checked block the same day. Each cell is the median of 10 runs, with the range.
+
+| Metric | Winyu | mascop, `compose_card` | mascop, streamed block |
+|---|---|---|---|
+| First card | 21.0 s (13.6–44.5) | 16.5 s (5.7–28.7) | 12.1 s (7.8–19.6) |
+| Composed card shows | 23.5 s (15.8–44.5) | 16.8 s (13.3–28.7) | 15.1 s (11.7–19.6) |
+| Reply ends | 24.6 s (13.7–47.7) | 19.8 s (11.8–31.4) | 14.6 s (7.8–20.2) |
+| Model calls | 2 (2–3) | 3 (2–4) | 2 (2–3) |
+| Input tokens per question | 44,654 | 38,370 | 22,575 |
+| Reasoning tokens per question | 5,409 | 3,605 | 2,865 |
+| Cost per question | $0.0183 | $0.0222 | $0.0146 |
+| Composed, all cases | 8/10 | 5/10 | 6/10 |
+| Composed, people cases | 8/8 | 5/8 | 6/8 |
+| Whole cards refused | 0 | 2 | 0 |
+| Fact recall | 100% (38–100) | 100% (63–100) | 100% (33–100) |
+| Entity precision | 100% (100–100) | 100% (50–100) | 100% (50–100) |
+| Errors | 0 | 0 | 0 |
+
+- The streamed block saves one model call per composed answer. With `compose_card`, the model called the tool, read back that the card was up, and then wrote its sentence in another call. Now the sentence and the card come from the same call. That one call accounts for most of the drop in input tokens, cost and end time. The call counts are structural. The time ranges overlap: supply-site, which composes in neither design, varied from 11.8 s to 19.7 s within the baseline alone.
+- The model wrote 41 block lines across the 6 composed cards, and the server dropped none. The per-line tolerance never fired in these runs; the tests cover it.
+- The CEO licences question was not composed in either run. The model drew the fixed `find_people` card, because the prompt asks for a composed card only when an answer combines or selects from several reads. Winyu composes every answer.
+- HR run 2 scored 33% recall because the model asked `list_courses` for a filter that left out the alcohol-law course, not because a line was dropped.
+- The baseline and hybrid runs were not interleaved. They ran an hour apart on separate dev servers (`:3200` and `:3206`).
 
 ## Code size
 
