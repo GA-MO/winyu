@@ -9,7 +9,9 @@
     "start": "next start --port 3200",
     "typecheck": "tsc --noEmit",
     "test": "bun test",
-    "seed": "bun run scripts/seed.ts"
+    "seed": "bun run scripts/seed.ts",
+    "probe:chat": "bun run scripts/probe-chat.ts",
+    "trace": "bun run scripts/trace.ts"
   },
   "dependencies": {
     "@ag-ui/client": "1.0.1",
