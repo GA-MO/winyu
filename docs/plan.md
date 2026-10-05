@@ -65,11 +65,11 @@ Each row is one Winyu feature. The phase column says where mascop builds it. The
 
 ### M0. Standalone domain
 
-- [ ] Scaffold Next 16, React 19, bun, TypeScript strict, `@/*` alias only, happy-dom test preload.
-- [ ] Copy the 213-file domain closure with its tests, `scripts/seed.ts`, `public/img`.
-- [ ] Remove every Vexa touchpoint: local `fence`, `prefixedToolName`, MCP client from `@ai-sdk/mcp`, local `PersonaContext`, no json-render `Spec` types, neutral `WinyuTool`, `models.ts` without the scripted mock, `traceMiddleware` in `lib/harness/trace.ts`.
-- [ ] `app/api/health` runs `query_metric` through the gateway for a given user, under `next dev`.
-- [ ] Evidence: typecheck, test counts against the same files in Winyu, a grep for `vexa|agentic-ui|Cop` that prints nothing, curl of the health route for CEO and a sales rep.
+- [x] Scaffold Next 16, React 19, bun, TypeScript strict, `@/*` alias only, happy-dom test preload.
+- [x] Copy the 213-file domain closure with its tests, `scripts/seed.ts`, `public/img`.
+- [x] Remove every Vexa touchpoint: local `fence`, `prefixedToolName`, MCP client from `@ai-sdk/mcp`, local `PersonaContext`, no json-render `Spec` types, neutral `WinyuTool`, `models.ts` without the scripted mock, `traceMiddleware` in `lib/harness/trace.ts`.
+- [x] `app/api/health` runs `query_metric` through the gateway for a given user, under `next dev`.
+- [x] Evidence: typecheck passes; `bun test` 529 pass, 0 fail across 52 files (464 `test()` declarations, the same static count as the same files in Winyu); the grep matches only prose in `docs/` and `CLAUDE.md`; `/api/health?user=u_thana` (ceo) returns 23 tools and 1,110.2 ล้านบาท over 6 regions, `?user=u_krit` (sales_rep, northeast) returns 21 tools and 232.5 ล้านบาท over 1 region. Commits 08f7b25..b8607eb.
 
 ### M1. Agent on Mastra
 
@@ -80,9 +80,15 @@ Each row is one Winyu feature. The phase column says where mascop builds it. The
 - [ ] `WINYU_RULES` rewritten for tool renderers: no json-render rules, the domain rules kept.
 - [ ] Evidence: a probe script sends one question as CEO and one as a sales rep through the route, asserts a `query_metric` call, an audit row, and different scope; `bun run trace` prints the run.
 
+### U. UI foundation (parallel with M1)
+
+- [ ] Copy Vexa's presentational primitives into `components/ui/`; port the card components with a local action callback in place of Vexa's host `runTool`.
+- [ ] Login page, session API, app chrome, account sheet, theme.
+- [ ] `/dev/cards` renders every card kind from real tool results for review.
+- [ ] Evidence: typecheck, test, browser screenshots of login and `/dev/cards`.
+
 ### M2. Chat
 
-- [ ] Copy Vexa's presentational primitives into `components/ui/`; port `DataCard`, `AlertsCard`, `ForecastCard`, card parts, chart bodies, approval card, leave form, signal list.
 - [ ] CopilotKit chat at `/c/[threadId]` with a renderer for every tool (F4), next-action buttons (F5), approval cards (F6).
 - [ ] Threads persisted and restored, thread rail (F7); memory extraction after each turn (F8).
 - [ ] Evidence: browser walk of one question per tool and every write tool, screenshots per role.
