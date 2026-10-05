@@ -8,7 +8,7 @@ import { emitTo, newRun, runWithRun, saveRun, type Run } from "@/lib/harness/run
 import { TH } from "@/lib/i18n/th";
 import { currentAccess, runWithAccess, runWithTurn, type TurnContext } from "@/lib/server/request-context";
 import { finishTurn } from "@/lib/server/threads";
-import { threadForRun } from "@/lib/server/threads-read";
+import { threadForRun, threads } from "@/lib/server/threads-read";
 import { AGENT_ID, USER_ID_KEY, mascopAgent } from "./agent";
 import { chatTurnOf, observeReply, type ChatTurn, type ReplySeen, type RunInput } from "./turn";
 
@@ -43,14 +43,9 @@ function started(run: Run, turn: ChatTurn): void {
   }
 }
 
-function lastStepId(run: Run): string {
+function lastDecision(run: Run): { stepId: string; finishReason: string } {
   const decision = [...run.events].reverse().find((event) => event.type === "agent.decided");
-  return decision?.type === "agent.decided" ? decision.payload.stepId : `${run.id}:${run.steps}`;
-}
-
-function lastFinishReason(run: Run): string {
-  const decision = [...run.events].reverse().find((event) => event.type === "agent.decided");
-  return decision?.type === "agent.decided" ? decision.payload.finishReason : "none";
+  return decision?.type === "agent.decided" ? decision.payload : { stepId: `${run.id}:${run.steps}`, finishReason: "none" };
 }
 
 function learnFrom(run: Run, turn: ChatTurn, context: TurnContext): void {
@@ -61,13 +56,13 @@ function learnFrom(run: Run, turn: ChatTurn, context: TurnContext): void {
 }
 
 function ended(run: Run, turn: ChatTurn, context: TurnContext, seen: ReplySeen): void {
-  if (seen.results.length > 0) emitTo(run, "ui", { type: "ui.rendered", payload: { stepId: lastStepId(run), components: seen.results } });
+  if (seen.results.length > 0) emitTo(run, "ui", { type: "ui.rendered", payload: { stepId: lastDecision(run).stepId, components: seen.results } });
   for (const asked of seen.asked) {
     recordAsked(asked.interruptId, run.userId, asked.toolCallId, asked.tool);
     emitTo(run, "runtime", { type: "approval.requested", payload: { toolCallId: asked.toolCallId, tool: asked.tool } });
   }
   if (seen.error) emitTo(run, "runtime", { type: "agent.failed", payload: { reason: seen.error } });
-  else emitTo(run, "runtime", { type: "agent.completed", payload: { finishReason: seen.asked.length > 0 ? "awaiting_approval" : lastFinishReason(run) } });
+  else emitTo(run, "runtime", { type: "agent.completed", payload: { finishReason: seen.asked.length > 0 ? "awaiting_approval" : lastDecision(run).finishReason } });
   saveRun(run);
   if (!seen.error && seen.asked.length === 0) learnFrom(run, turn, context);
 }
@@ -86,19 +81,16 @@ function readInput(body: string): RunInput {
   }
 }
 
-async function serveRun(access: AccessContext, req: Request): Promise<Response> {
-  const body = await req.text();
-  const turn = chatTurnOf(readInput(body), randomUUID());
-  if (turn.threadId && !threadForRun(turn.threadId, access.userId, turn.question ?? "")) return Response.json(NOT_YOUR_THREAD, { status: 404 });
+async function serveRun(access: AccessContext, req: Request, turn: ChatTurn): Promise<Response> {
   const run = newRun(access.userId, turn.threadId, { id: turn.runId });
   started(run, turn);
   const spent = turn.answers.map((answer) => ({ answer, problem: problemOf(answer.interruptId, access.userId, answer.toolCallId) })).find((entry) => entry.problem !== null);
   if (spent) return refused(run, spent.answer.interruptId, spent.problem ?? "unknown");
   for (const answer of turn.answers) markAnswered(answer.interruptId);
+  if (turn.threadId) threadForRun(turn.threadId, access.userId, turn.question ?? "");
   const context: TurnContext = { turnId: run.id, threadId: turn.threadId, preloadPacketId: turn.preloadPacketId, question: turn.question, queries: [] };
-  const replayed = new Request(req.url, { method: "POST", headers: req.headers, body });
   try {
-    const response = await runWithAccess(access, () => runWithTurn(context, () => runWithRun(run, () => handler()(replayed))));
+    const response = await runWithAccess(access, () => runWithTurn(context, () => runWithRun(run, () => handler()(req))));
     return observeReply(response, (seen) => ended(run, turn, context, seen));
   } catch (error) {
     emitTo(run, "runtime", { type: "agent.failed", payload: { reason: error instanceof Error ? error.message : String(error) } });
@@ -107,8 +99,18 @@ async function serveRun(access: AccessContext, req: Request): Promise<Response> 
   }
 }
 
-/** Serves one CopilotKit request for a signed-in person. A run request is one harness run: started with its goal, the agent inside the person's access, turn and run, its trace saved when the reply ends. An approval splits a question into two runs that share the goal: the first ends asking, the second starts with the answer. */
-export function serveCopilot(access: AccessContext, req: Request): Promise<Response> {
-  if (req.method === "POST" && new URL(req.url).pathname === RUN_PATH) return serveRun(access, req);
-  return runWithAccess(access, () => handler()(req));
+function isOthersThread(threadId: string | null, userId: string): boolean {
+  const owner = threadId ? threads().get(threadId)?.userId : undefined;
+  return owner !== undefined && owner !== userId;
+}
+
+/** Serves one CopilotKit request for a signed-in person; no request reaches another person's thread. A run request is one harness run: started with its goal, the agent inside the person's access, turn and run, its trace saved when the reply ends. An approval splits a question into two runs that share the goal: the first ends asking, the second starts with the answer. */
+export async function serveCopilot(access: AccessContext, req: Request): Promise<Response> {
+  if (req.method !== "POST") return runWithAccess(access, () => handler()(req));
+  const body = await req.text();
+  const turn = chatTurnOf(readInput(body), randomUUID());
+  if (isOthersThread(turn.threadId, access.userId)) return Response.json(NOT_YOUR_THREAD, { status: 404 });
+  const replayed = new Request(req.url, { method: "POST", headers: req.headers, body });
+  if (new URL(req.url).pathname === RUN_PATH) return serveRun(access, replayed, turn);
+  return runWithAccess(access, () => handler()(replayed));
 }
