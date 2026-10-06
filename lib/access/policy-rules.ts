@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { Environment } from "@marcbachmann/cel-js";
-import { BRANDS, REGIONS, type AccessContext, type AuditEntry, type Initiator, type RoleId, type ToolSurfaceEntry, type ToolTier } from "@/lib/contracts";
+import { BRANDS, REGIONS, type AccessContext, type AuditEntry, type Initiator, type RoleId, type ToolTier } from "@/lib/contracts";
 import { findUser } from "@/lib/data/entities/users";
 import { TH } from "@/lib/i18n/th";
 import { collection } from "@/lib/server/store/json-store";
@@ -101,7 +101,7 @@ function bangkokClock(at: Date): CallFacts["now"] {
 }
 
 /** The facts of one call: the tool, its arguments as sent, who asks under what scope, who started the work, and the Bangkok clock. */
-export function factsOf(access: AccessContext, tool: Pick<ToolSurfaceEntry, "name" | "connector" | "tier">, args: unknown, initiator: Initiator, at: Date = new Date()): CallFacts {
+export function factsOf(access: AccessContext, tool: CallFacts["tool"], args: unknown, initiator: Initiator, at: Date = new Date()): CallFacts {
   return {
     tool: { name: tool.name, connector: tool.connector, tier: tool.tier },
     args,

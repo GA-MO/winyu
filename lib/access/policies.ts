@@ -85,6 +85,7 @@ export function accessFor(user: User): AccessContext {
     metricAcl: { ...policy.metricAcl },
     toolAllow: defaultToolsOf(user.role),
     canActAs: [],
+    grants: [],
   };
 }
 
