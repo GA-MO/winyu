@@ -60,6 +60,15 @@ describe("personaFor", () => {
     expect(lines).toContain("เอเย่นต์ = ผู้แทนจำหน่าย");
   });
 
+  test("the scope line is the same as before grants existed when the user holds none, and names a live grant when they hold one", () => {
+    const user = findUser("u_krit");
+    if (!user) throw new Error("no u_krit");
+    const scopeOf = (lines: string[]) => lines.find((line) => line.startsWith("ขอบเขตข้อมูลของผู้ใช้"));
+    expect(scopeOf(personaFor(accessFor(user), user, ctx({})))).toBe("ขอบเขตข้อมูลของผู้ใช้: ภาคอีสาน · ทุกแบรนด์ (ประจำ ภาคอีสาน) — ข้อมูลนอกขอบเขตนี้ระบบจะปฏิเสธเอง ไม่ต้องพยายามเลี่ยง");
+    const granted = { ...accessFor(user), grants: [{ id: "g1", grantorId: "u_thana", slice: { metric: "net_sales_value" as const, regions: "all" as const, brands: "all" as const }, expiresAt: "2026-10-09T03:00:00Z" }] };
+    expect(scopeOf(personaFor(granted, user, ctx({})))).toContain("สิทธิ์ชั่วคราว: มูลค่าขายเข้า · ทุกภาค · ทุกแบรนด์ (คุณธนา วงศ์สกุล ให้ ถึง");
+  });
+
   test("the persona carries only what differs per user and never tells the model how to draw", () => {
     const lines = personaOf("u_anucha").join("\n");
     expect(lines).not.toContain("BarChart");

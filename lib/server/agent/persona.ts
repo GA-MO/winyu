@@ -15,6 +15,9 @@ import type { ContextItem, ContextKind } from "@/lib/harness/types";
 import { currentTurn } from "@/lib/server/request-context";
 import { handoffEnabled } from "@/lib/access/enforce";
 import { TODAY as DATA_AS_OF } from "@/lib/data/dates";
+import { findUser } from "@/lib/data/entities/users";
+import { TH } from "@/lib/i18n/th";
+import { sliceLabel, untilLabel } from "@/lib/share/grant-label";
 
 const BUDDHIST_YEAR_OFFSET = 543;
 const MS_PER_DAY = 86_400_000;
@@ -109,7 +112,12 @@ function scopeLine(access: AccessContext, user: User | null): string {
   const regions = access.regions === "all" ? "ทุกภาค" : access.regions.map((region) => REGION_LABELS[region] ?? region).join(", ");
   const brands = access.brands === "all" ? "ทุกแบรนด์" : access.brands.join(", ");
   const home = user?.region ? `ประจำ ${REGION_LABELS[user.region] ?? user.region}` : "ส่วนกลาง";
-  return `ขอบเขตข้อมูลของผู้ใช้: ${regions} · ${brands} (${home}) — ข้อมูลนอกขอบเขตนี้ระบบจะปฏิเสธเอง ไม่ต้องพยายามเลี่ยง`;
+  return `ขอบเขตข้อมูลของผู้ใช้: ${regions} · ${brands} (${home})${grantsLine(access)} — ข้อมูลนอกขอบเขตนี้ระบบจะปฏิเสธเอง ไม่ต้องพยายามเลี่ยง`;
+}
+
+function grantsLine(access: AccessContext): string {
+  if (access.grants.length === 0) return "";
+  return TH.grant.scopeLine(access.grants.map((grant) => TH.grant.scopeItem(sliceLabel(grant.slice), findUser(grant.grantorId)?.nameTh ?? grant.grantorId, untilLabel(grant.expiresAt))).join(", "));
 }
 
 function relevance(question: string | null, fact: MemoryFact): number {
