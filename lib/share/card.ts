@@ -4,6 +4,8 @@ import { headingWithoutNumbers } from "@/lib/compose/composer";
 import { UNCOMPOSABLE_TOOLS } from "@/lib/compose/ground";
 import { forecastTitle, metricTitle } from "@/lib/cards/tool-answers";
 import { TH } from "@/lib/i18n/th";
+import { grantDaysSchema, type GrantRefusalCode } from "@/lib/contracts/grant";
+import type { MetricId } from "@/lib/contracts/semantic";
 import type { Persona } from "@/lib/contracts/persona";
 
 export const SHARE_CHANNELS = ["email", "teams", "line"] as const;
@@ -42,6 +44,9 @@ export type FallbackReason = "no-teams-conversation" | "send-failed";
 /** How one recipient was reached, as the sheet and the account sheet show it. */
 export type ShareReceipt = { userId: string; name: string; asked: ShareChannel; via: ShareChannel; fallback: FallbackReason | null };
 
+/** One recipient's temporary grant at share time, as the sheet reports it: given, or refused with its code. */
+export type ShareGrantReceipt = { userId: string; name: string; metric: MetricId; granted: boolean; refusal: GrantRefusalCode | null };
+
 /** A share the person sent, as their account sheet lists it. */
 export type SentShare = { code: string; path: string; title: string; at: string; receipts: ShareReceipt[]; views: number };
 
@@ -60,6 +65,7 @@ export const shareRequestSchema = z.object({
   question: z.string().max(500).nullable(),
   note: z.string().max(SHARE_NOTE_MAX),
   recipients: z.array(z.object({ userId: z.string().min(1), channel: z.enum(SHARE_CHANNELS) })).min(1).max(SHARE_RECIPIENTS_MAX),
+  grantDays: grantDaysSchema.nullable().optional(),
 });
 
 export type ShareRequest = z.infer<typeof shareRequestSchema>;

@@ -147,6 +147,34 @@ describe("sharing a card sends the question, never the numbers", () => {
   });
 });
 
+describe("a share can carry a temporary grant", () => {
+  test("the CEO shares with a 3-day grant: u_krit opens it and sees all six regions, the card names the grant, and the sheet hears who got it", async () => {
+    const { grants } = await import("@/lib/server/grants");
+    try {
+      const plain = await createShare(user("u_thana"), { card: metricCard, question: QUESTION, note: "", recipients: [{ userId: "u_krit", channel: "email" }] });
+      if (!plain.ok) throw new Error(plain.error);
+      expect(plain.grants).toEqual([]);
+      expect((await openShare(plain.share, user("u_krit"))).scope).toMatchObject({ grant: null, requestable: true });
+
+      const outcome = await createShare(user("u_thana"), { card: metricCard, question: QUESTION, note: "", recipients: [{ userId: "u_krit", channel: "email" }], grantDays: 3 });
+      if (!outcome.ok) throw new Error(outcome.error);
+      expect(outcome.grants).toEqual([{ userId: "u_krit", name: user("u_krit").nameTh, metric: "net_sales_value", granted: true, refusal: null }]);
+      const krit = await openShare(outcome.share, user("u_krit"));
+      expect(regionsOf(krit.reads[0].result)).toHaveLength(6);
+      expect(krit.scope).toMatchObject({ grant: { grantorName: user("u_thana").nameTh }, requestable: false });
+    } finally {
+      for (const grant of grants().all()) grants().remove(grant.id);
+    }
+  });
+
+  test("a sender without grant authority shares as before: the grant is refused and the share still goes out", async () => {
+    const outcome = await createShare(user("u_anucha"), { card: metricCard, question: QUESTION, note: "", recipients: [{ userId: "u_wee", channel: "email" }], grantDays: 7 });
+    if (!outcome.ok) throw new Error(outcome.error);
+    expect(outcome.share.deliveries).toHaveLength(1);
+    expect(outcome.grants.map((grant) => [grant.granted, grant.refusal])).toEqual([[false, "not_authority"]]);
+  });
+});
+
 describe("a composed card is re-grounded against the viewer's own results", () => {
   test("u_krit's copy of the CEO's team card reads his own get_person result, not the CEO's", async () => {
     const card = { kind: "composed" as const, reads: TEAM_READS, components: GEMINI_TEAM_CARD as never };

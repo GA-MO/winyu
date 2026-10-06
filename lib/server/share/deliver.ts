@@ -1,7 +1,8 @@
 import type { User } from "@/lib/contracts";
 import { findUser, USERS } from "@/lib/data/entities/users";
-import { shareTitle, type ChannelOption, type ShareChannel, type ShareContact, type ShareRequest } from "@/lib/share/card";
+import { shareTitle, type ChannelOption, type ShareChannel, type ShareContact, type ShareGrantReceipt, type ShareRequest } from "@/lib/share/card";
 import { recordShare } from "@/lib/server/audit";
+import { grantOnShare } from "@/lib/server/grants";
 import { lineSettings, pushLineMessages } from "@/lib/server/channels/line";
 import { postTeamsCard, teamsSettings } from "@/lib/server/channels/teams";
 import { teamsConversationOf } from "@/lib/server/channels/teams-conversations";
@@ -13,7 +14,7 @@ import type { FallbackReason } from "@/lib/share/card";
 import { shareableProblem, shareCode, shares, type Share, type ShareDelivery } from "./shares";
 
 /** What creating a share returns: the record, or why nothing was sent. */
-export type ShareOutcome = { ok: true; share: Share } | { ok: false; error: string };
+export type ShareOutcome = { ok: true; share: Share; grants: ShareGrantReceipt[] } | { ok: false; error: string };
 
 function linkOf(userId: string, provider: "entra" | "line", tenant: string | null) {
   return identityLinks().find((link) => link.userId === userId && link.provider === provider && (tenant === null || link.tenant === tenant)) ?? null;
@@ -81,7 +82,7 @@ function recipientsOf(request: ShareRequest, senderId: string): Array<{ user: Us
   });
 }
 
-/** Shares a card the person pressed share on: stores the reads (never their values) under a short code, sends each recipient the card's title and a button into Winyu on the channel picked (email when that channel cannot reach them), and leaves one audit row. */
+/** Shares a card the person pressed share on: stores the reads (never their values) under a short code, sends each recipient the card's title and a button into Winyu on the channel picked (email when that channel cannot reach them), and leaves one audit row; with grant days, also grants each recipient what the card showed the sender, when the sender may. */
 export async function createShare(sender: User, request: ShareRequest, at = new Date().toISOString()): Promise<ShareOutcome> {
   const problem = shareableProblem(request.card);
   if (problem) return { ok: false, error: problem };
@@ -95,5 +96,6 @@ export async function createShare(sender: User, request: ShareRequest, at = new 
   for (const { user, channel } of recipients) deliveries.push(await deliver(message, sender, user, channel, code));
   const share = shares().put({ id: code, at, senderId: sender.id, title, question: request.question, note, card: request.card, deliveries, views: 0, lastViewedAt: null });
   recordShare({ userId: sender.id, code, title, reads: request.card.reads.map((read) => read.tool), deliveries });
-  return { ok: true, share };
+  const grants = request.grantDays ? grantOnShare(sender, request.card, deliveries.map((delivery) => delivery.userId), request.grantDays, code, new Date(at)) : [];
+  return { ok: true, share, grants };
 }

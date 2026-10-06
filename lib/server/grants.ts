@@ -5,7 +5,7 @@ import { policyRules } from "@/lib/access/policy-rules";
 import { DEFAULT_GRANT_DAYS, type Grant, type GrantDays, type GrantRefusal, type GrantRequest, type GrantSlice, type RoleId, type ShareScope, type User } from "@/lib/contracts";
 import { findUser, USERS } from "@/lib/data/entities/users";
 import { TH } from "@/lib/i18n/th";
-import type { SharedCard } from "@/lib/share/card";
+import type { ShareGrantReceipt, SharedCard } from "@/lib/share/card";
 import { sliceLabel } from "@/lib/share/grant-label";
 import { recordGrantEvent } from "@/lib/server/audit";
 import { channelWebOrigin } from "@/lib/server/channels/config";
@@ -33,9 +33,6 @@ export type RequestOutcome = { ok: true; request: GrantRequest } | { ok: false; 
 
 /** What deciding a request returns: the request as it now stands, or why it could not be decided. */
 export type DecisionOutcome = { ok: true; request: GrantRequest; grant: Grant | null } | { ok: false; problem: "missing" | "not_yours" | "decided" } | { ok: false; problem: "refused"; refusal: GrantRefusal };
-
-/** One recipient's grant at share time: given, or refused with its code. */
-export type ShareGrantResult = { userId: string; name: string; metric: GrantSlice["metric"]; granted: boolean; refusal: GrantRefusal["code"] | null };
 
 export function grants() {
   return collection<Grant>(GRANTS_COLLECTION);
@@ -108,7 +105,7 @@ function slicesOf(card: SharedCard, sender: User, at: Date): GrantSlice[] {
 }
 
 /** At share time, grants each recipient every slice the card showed the sender, when the sender may; a refusal never stops the share. */
-export function grantOnShare(sender: User, card: SharedCard, recipientIds: readonly string[], days: GrantDays, shareCode: string, at = new Date()): ShareGrantResult[] {
+export function grantOnShare(sender: User, card: SharedCard, recipientIds: readonly string[], days: GrantDays, shareCode: string, at = new Date()): ShareGrantReceipt[] {
   const slices = slicesOf(card, sender, at);
   return recipientIds.flatMap((userId) => {
     const recipient = findUser(userId);

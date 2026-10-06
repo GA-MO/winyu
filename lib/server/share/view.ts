@@ -1,19 +1,20 @@
 import { randomUUID } from "node:crypto";
 import { liveAccessFor } from "@/lib/access/enforce";
-import type { User } from "@/lib/contracts";
+import type { ShareScope, User } from "@/lib/contracts";
 import type { ComposedSurface } from "@/lib/compose/catalog";
 import { CardComposer } from "@/lib/compose/composer";
 import { emitTo, newRun, runWithRun, saveRun } from "@/lib/harness/runtime";
 import type { SharedCard } from "@/lib/share/card";
 import { winyuTools } from "@/lib/server/agent/tools";
+import { shareScopeFor } from "@/lib/server/grants";
 import { runWithAccess, runWithTurn } from "@/lib/server/request-context";
 import type { Share } from "./shares";
 
 /** One stored read run again as the viewer: what it was called with and what the gateway returned to them. */
 export type FreshRead = { toolCallId: string; tool: string; input: Record<string, unknown>; result: unknown };
 
-/** A share drawn for one viewer: the reads as they came back under the viewer's access, and for a composed card the block re-checked against those results (null when none of it holds for them, so the fixed cards show instead). */
-export type SharedView = { reads: FreshRead[]; surface: ComposedSurface | null };
+/** A share drawn for one viewer: the reads as they came back under the viewer's access, for a composed card the block re-checked against those results (null when none of it holds for them, so the fixed cards show instead), and what the card hides from them that the sender saw. */
+export type SharedView = { reads: FreshRead[]; surface: ComposedSurface | null; scope: ShareScope | null };
 
 function jsonSafe(value: unknown): unknown {
   return JSON.parse(JSON.stringify(value ?? null));
@@ -49,7 +50,7 @@ export async function openShare(share: Share, viewer: User): Promise<SharedView>
   try {
     const reads = await runWithAccess(access, () => runWithTurn(turn, () => runWithRun(run, () => rerun(share.card))));
     emitTo(run, "runtime", { type: "agent.completed", payload: { finishReason: "done" } });
-    return { reads, surface: regrounded(share.card, reads, `share:${share.id}`) };
+    return { reads, surface: regrounded(share.card, reads, `share:${share.id}`), scope: shareScopeFor(share, viewer) };
   } finally {
     saveRun(run);
   }
