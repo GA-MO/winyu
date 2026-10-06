@@ -703,9 +703,8 @@ export const TH = {
   },
   admin: {
     title: "Admin console",
-    subtitle: "ใครเห็นอะไร ใช้อะไรได้ และระบบถูกใช้แค่ไหน — แก้ได้ที่นี่หรือสั่ง Winyu",
     denied: "หน้านี้สำหรับผู้ดูแลระบบไอทีเท่านั้น",
-    signedInAs: (name: string) => `เข้าสู่ระบบเป็น ${name}`,
+    groups: { overview: "ภาพรวม", access: "สิทธิ์", tools: "เครื่องมือ", audit: "Audit", connections: "การเชื่อมต่อ" },
     tabs: { overview: "ภาพรวม", access: "สิทธิ์ตามบทบาท", grants: "สิทธิ์ชั่วคราว", tools: "เครื่องมือ", rules: "กฎ", audit: "Audit", usage: "การใช้งาน", simulate: "จำลองมุมมอง", mcp: "MCP · A2A", signin: "การเข้าสู่ระบบ", documents: "เอกสาร" },
     ask: {
       placeholder: "สั่ง Winyu เช่น ให้พนักงานขายไม่เห็นมูลค่าขายเข้า",
