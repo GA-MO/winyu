@@ -31,5 +31,5 @@ saveRun(run);
 
 const audit = auditLog().where((entry) => entry.turnId === run.id);
 console.log(`${user.id} (${access.role}) · offered: ${toolsFor(access).includes(toolName as never) ? "yes" : "no"} · run ${run.id}`);
-console.log(`audit: ${audit.map((entry) => `${entry.tool} ${entry.decision}${entry.code ? ` ${entry.code}` : ""}${entry.rule ? ` rule "${entry.rule.name}"` : ""}`).join("; ") || "none"}`);
+console.log(`audit: ${audit.map((entry) => `${entry.tool} ${entry.decision}${entry.code ? ` ${entry.code}` : ""}${entry.rule ? ` rule "${entry.rule.name}"` : ""}${entry.grant ? ` grant ${entry.grant.id} from ${entry.grant.grantorId} until ${entry.grant.expiresAt}` : ""}`).join("; ") || "none"}`);
 console.log(JSON.stringify(output).slice(0, SHOWN_CHARS));

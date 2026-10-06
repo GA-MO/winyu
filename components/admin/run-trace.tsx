@@ -9,7 +9,9 @@ import type { RunSpend } from "@/lib/server/model-ledger";
 import { stateOf } from "@/lib/harness/state";
 import { timelineOf, type TimelineEntry, type ToolStory } from "@/lib/harness/timeline";
 import { studioTraceUrl } from "@/lib/harness/trace-link";
+import { findUser } from "@/lib/data/entities/users";
 import { TH } from "@/lib/i18n/th";
+import { untilLabel } from "@/lib/share/grant-label";
 import { toolLabel } from "@/lib/server/tools/registry";
 import { FOCUS, Pill, type Tone } from "./parts";
 
@@ -73,6 +75,7 @@ function ToolDetail({ story, args }: { story: ToolStory; args: string | null }) 
           </Pill>
         ) : null}
         {evidence && evidence.masked.length > 0 ? <Pill tone="warning">{COPY.masked(evidence.masked.join(", "))}</Pill> : null}
+        {evidence?.grant ? <Pill tone="primary" title={evidence.grant.id}>{TH.grant.usedBy(findUser(evidence.grant.grantorId)?.nameTh ?? evidence.grant.grantorId, untilLabel(evidence.grant.expiresAt))}</Pill> : null}
         {story.attempts > 1 ? <Pill>{COPY.attempts(story.attempts)}</Pill> : null}
         {story.verdict ? <Pill tone={story.verdict.passed ? "success" : "danger"}>{story.verdict.passed ? COPY.verified : COPY.unverified}</Pill> : null}
         {story.recovery.map((step, index) => (

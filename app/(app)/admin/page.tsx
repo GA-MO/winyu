@@ -2,7 +2,7 @@ import { cookies, headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
-import { ChartColumn, Eye, FileText, KeyRound, LayoutDashboard, Plug, Scale, ScrollText, ShieldCheck, Sparkles, Wrench } from "lucide-react";
+import { ChartColumn, Eye, FileText, Hourglass, KeyRound, LayoutDashboard, Plug, Scale, ScrollText, ShieldCheck, Sparkles, Wrench } from "lucide-react";
 import { cn } from "@/components/ui/cn";
 import { METRIC_IDS, ROLE_IDS, type AuditEntry, type MetricId, type RoleId } from "@/lib/contracts";
 import { USERS } from "@/lib/data/entities/users";
@@ -23,13 +23,14 @@ import { McpTab } from "@/components/admin/mcp-tab";
 import { A2A_CARD_PATH } from "@/lib/server/a2a";
 import { SignInTab } from "@/components/admin/sign-in-tab";
 import { DocumentsTab } from "@/components/admin/documents-tab";
+import { GrantsTab } from "@/components/admin/grants-tab";
 import { Avatar, FOCUS } from "@/components/admin/parts";
 
 type SearchParams = Promise<{ tab?: string; run?: string; as?: string; metric?: string; user?: string; tool?: string; connector?: string; decision?: string; range?: string; limit?: string; role?: string; view?: string }>;
 
-const TABS = ["overview", "access", "tools", "rules", "audit", "usage", "simulate", "mcp", "signin", "documents"] as const;
+const TABS = ["overview", "access", "grants", "tools", "rules", "audit", "usage", "simulate", "mcp", "signin", "documents"] as const;
 const LEGACY_TABS: Record<string, Tab> = { users: "access" };
-const TAB_ICONS: Record<Tab, LucideIcon> = { overview: LayoutDashboard, access: ShieldCheck, tools: Wrench, rules: Scale, audit: ScrollText, usage: ChartColumn, simulate: Eye, mcp: Plug, signin: KeyRound, documents: FileText };
+const TAB_ICONS: Record<Tab, LucideIcon> = { overview: LayoutDashboard, access: ShieldCheck, grants: Hourglass, tools: Wrench, rules: Scale, audit: ScrollText, usage: ChartColumn, simulate: Eye, mcp: Plug, signin: KeyRound, documents: FileText };
 const DECISIONS: readonly AuditEntry["decision"][] = ["allow", "deny", "masked"];
 const DEFAULT_ROLE: RoleId = "sales_rep";
 const DEFAULT_AUDIT_RANGE: AuditRange = "7d";
@@ -166,6 +167,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
         <TabBar current={current} />
         {current === "overview" ? <OverviewTab /> : null}
         {current === "access" ? <AccessTab role={roleOf(params.role)} view={params.view === "matrix" ? "matrix" : "role"} viewer={user.id} /> : null}
+        {current === "grants" ? <GrantsTab /> : null}
         {current === "tools" ? <ToolsTab /> : null}
         {current === "rules" ? <RulesTab /> : null}
         {current === "audit" ? <AuditTab

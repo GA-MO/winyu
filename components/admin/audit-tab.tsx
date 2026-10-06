@@ -7,13 +7,15 @@ import { USERS, findUser } from "@/lib/data/entities/users";
 import { TH } from "@/lib/i18n/th";
 import { AUDIT_RANGES, auditConnector, auditEntries, inAuditScope, type AuditFilter, type AuditRange } from "@/lib/server/usage";
 import { runStore } from "@/lib/harness/runtime";
-import { GUARD_AUDIT_TOOL, SHARE_AUDIT_TOOL, auditLog } from "@/lib/server/audit";
+import { GRANT_AUDIT_TOOL, GUARD_AUDIT_TOOL, SHARE_AUDIT_TOOL, auditLog } from "@/lib/server/audit";
+import { untilLabel } from "@/lib/share/grant-label";
 import { runSpend } from "@/lib/server/model-ledger";
 import { RunTrace } from "./run-trace";
 import { AutoSubmitForm } from "./auto-submit-form";
 import { Avatar, EmptyLine, FOCUS, GHOST, Panel, Pill, Select, stamp, type Tone } from "./parts";
 
 const AUDIT_PAGE = 60;
+const OWN_REASON_TOOLS: ReadonlySet<string> = new Set([GUARD_AUDIT_TOOL, SHARE_AUDIT_TOOL, GRANT_AUDIT_TOOL]);
 const DECISIONS: readonly AuditEntry["decision"][] = ["allow", "deny", "masked"];
 const DECISION_TONE: Record<AuditEntry["decision"], Tone> = { allow: "success", deny: "danger", masked: "warning" };
 const DECISION_WEIGHT: Record<AuditEntry["decision"], number> = { allow: 0, masked: 1, deny: 2 };
@@ -53,7 +55,7 @@ function worstOf(entries: AuditEntry[]): AuditEntry["decision"] {
 }
 
 function reasonOf(entry: AuditEntry): string | null {
-  if (entry.tool === GUARD_AUDIT_TOOL || entry.tool === SHARE_AUDIT_TOOL) return entry.reason ?? null;
+  if (OWN_REASON_TOOLS.has(entry.tool)) return entry.reason ?? null;
   if (entry.decision === "masked") return COPY.maskedReason;
   if (!entry.code) return null;
   return COPY.codes[entry.code] ?? COPY.otherCode(entry.code);
@@ -148,6 +150,7 @@ function CallRow({ entry }: { entry: AuditEntry }) {
         <Pill tone={DECISION_TONE[entry.decision]}>{TH.admin.decision[entry.decision]}</Pill>
       </div>
       {reason ? <p className="text-[12px] text-foreground/80">{entry.reason && entry.reason !== reason ? `${reason} — ${entry.reason}` : reason}</p> : null}
+      {entry.grant ? <p className="text-[12px] text-info">{TH.grant.usedBy(findUser(entry.grant.grantorId)?.nameTh ?? entry.grant.grantorId, untilLabel(entry.grant.expiresAt))}</p> : null}
       {entry.args ? (
         <p className="break-all font-mono text-[11px] text-muted-foreground">
           <span className="font-sans">{`${COPY.args}: `}</span>

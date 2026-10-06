@@ -1,12 +1,14 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { Check, Forward, Link2, Mail, MessageCircle, Search, Users, X } from "lucide-react";
+import { Check, Forward, KeyRound, Link2, Mail, MessageCircle, Search, Users, X } from "lucide-react";
 import { cn } from "@/components/ui/cn";
 import { CardShareProvider } from "@/components/ui/card-share";
 import { Portrait } from "@/components/ui/portrait";
+import { DEFAULT_GRANT_DAYS, GRANT_DAYS, type GrantDays } from "@/lib/contracts/grant";
+import { metricLabel } from "@/lib/dashboard/metric-display";
 import { TH } from "@/lib/i18n/th";
-import { SHARE_NOTE_MAX, SHARE_RECIPIENTS_MAX, preferredChannel, shareTitle, type ChannelOption, type ShareChannel, type ShareContact, type SharedCard, type ShareReceipt, type ShareTarget } from "@/lib/share/card";
+import { SHARE_NOTE_MAX, SHARE_RECIPIENTS_MAX, preferredChannel, shareTitle, type ChannelOption, type ShareChannel, type ShareContact, type SharedCard, type ShareGrantReceipt, type ShareReceipt, type ShareTarget } from "@/lib/share/card";
 
 const CONTACTS_ENDPOINT = "/api/shares/contacts";
 const SHARES_ENDPOINT = "/api/shares";
@@ -15,7 +17,10 @@ const CHIP = "inline-flex items-center gap-1 rounded-full border px-2.5 py-1 tex
 /** The icon each share channel shows with. */
 export const CHANNEL_ICON: Record<ShareChannel, typeof Mail> = { email: Mail, teams: Users, line: MessageCircle };
 
-type Phase = { kind: "picking" } | { kind: "sending" } | { kind: "sent"; receipts: ShareReceipt[]; path: string } | { kind: "failed" };
+type Phase = { kind: "picking" } | { kind: "sending" } | { kind: "sent"; receipts: ShareReceipt[]; grants: ShareGrantReceipt[]; path: string } | { kind: "failed" };
+
+/** Who the signed-in person can share with, and whether they may grant temporary access as they share. */
+export type ShareDirectory = { contacts: ShareContact[]; mayGrant: boolean };
 
 const ShareContext = createContext<((target: ShareTarget) => void) | null>(null);
 
@@ -75,7 +80,39 @@ function ContactRow({ contact, chosen, toggle, choose }: { contact: ShareContact
   );
 }
 
-function Sent({ receipts, path, close }: { receipts: ShareReceipt[]; path: string; close: () => void }) {
+function grantLine(grant: ShareGrantReceipt, days: GrantDays): string {
+  const label = `${grant.name} · ${metricLabel(grant.metric)}`;
+  if (grant.granted || !grant.refusal) return TH.grant.given(label, days);
+  return TH.grant.notGiven(label, TH.grant.refusal[grant.refusal] ?? grant.refusal);
+}
+
+function GrantPicker({ days, choose }: { days: GrantDays | null; choose: (days: GrantDays | null) => void }) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <button type="button" role="switch" aria-checked={days !== null} onClick={() => choose(days === null ? DEFAULT_GRANT_DAYS : null)} className="flex items-center gap-2 text-left text-xs font-medium text-foreground">
+        <span aria-hidden className={cn("flex size-4 shrink-0 items-center justify-center rounded border", days !== null ? "border-transparent bg-primary text-primary-foreground" : "border-border")}>
+          {days !== null ? <Check className="size-3" /> : null}
+        </span>
+        <KeyRound className="size-3.5 text-primary" aria-hidden />
+        {TH.grant.giveTitle}
+      </button>
+      {days !== null ? (
+        <div className="flex flex-col gap-1.5 pl-6">
+          <div className="flex flex-wrap gap-1.5" role="radiogroup" aria-label={TH.grant.giveTitle}>
+            {GRANT_DAYS.map((option) => (
+              <button key={option} type="button" role="radio" aria-checked={option === days} onClick={() => choose(option)} className={cn(CHIP, option === days ? "border-transparent bg-ink text-ink-foreground" : "border-border text-muted-foreground hover:border-foreground/25 hover:text-foreground")}>
+                {TH.grant.days(option)}
+              </button>
+            ))}
+          </div>
+          <p className="text-[11px] leading-relaxed text-muted-foreground">{TH.grant.giveNote}</p>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function Sent({ receipts, grants, days, path, close }: { receipts: ShareReceipt[]; grants: ShareGrantReceipt[]; days: GrantDays | null; path: string; close: () => void }) {
   const url = typeof window === "undefined" ? path : `${window.location.origin}${path}`;
   return (
     <div className="flex flex-col gap-4 px-4 py-5">
@@ -90,6 +127,16 @@ function Sent({ receipts, path, close }: { receipts: ShareReceipt[]; path: strin
           </li>
         ))}
       </ul>
+      {days !== null && grants.length > 0 ? (
+        <ul className="flex flex-col gap-1.5 text-sm">
+          {grants.map((grant) => (
+            <li key={`${grant.userId}:${grant.metric}`} className={cn("flex items-start gap-1.5", grant.granted ? "text-foreground" : "text-warning")}>
+              <KeyRound className="mt-0.5 size-3.5 shrink-0" aria-hidden />
+              {grantLine(grant, days)}
+            </li>
+          ))}
+        </ul>
+      ) : null}
       <a href={path} className="inline-flex items-center gap-1.5 break-all text-xs text-muted-foreground hover:text-foreground">
         <Link2 className="size-3.5 shrink-0" aria-hidden />
         {url}
@@ -101,22 +148,29 @@ function Sent({ receipts, path, close }: { receipts: ShareReceipt[]; path: strin
   );
 }
 
-/** Everyone the signed-in person can share with and the channels that reach them; null until loaded. */
-export function useShareContacts(): ShareContact[] | null {
-  const [contacts, setContacts] = useState<ShareContact[] | null>(null);
+/** Everyone the signed-in person can share with, the channels that reach them, and whether they may grant; null until loaded. */
+export function useShareDirectory(): ShareDirectory | null {
+  const [directory, setDirectory] = useState<ShareDirectory | null>(null);
   useEffect(() => {
     const controller = new AbortController();
     fetch(CONTACTS_ENDPOINT, { signal: controller.signal })
-      .then((response) => (response.ok ? (response.json() as Promise<{ contacts?: ShareContact[] }>) : null))
-      .then((payload) => setContacts(payload?.contacts ?? []))
+      .then((response) => (response.ok ? (response.json() as Promise<Partial<ShareDirectory>>) : null))
+      .then((payload) => setDirectory({ contacts: payload?.contacts ?? [], mayGrant: payload?.mayGrant === true }))
       .catch(() => undefined);
     return () => controller.abort();
   }, []);
-  return contacts;
+  return directory;
+}
+
+/** Everyone the signed-in person can share with and the channels that reach them; null until loaded. */
+export function useShareContacts(): ShareContact[] | null {
+  return useShareDirectory()?.contacts ?? null;
 }
 
 function Sheet({ target, close }: { target: ShareTarget; close: () => void }) {
-  const contacts = useShareContacts() ?? [];
+  const directory = useShareDirectory();
+  const contacts = directory?.contacts ?? [];
+  const [grantDays, setGrantDays] = useState<GrantDays | null>(null);
   const [query, setQuery] = useState("");
   const [note, setNote] = useState("");
   const [chosen, setChosen] = useState<ReadonlyMap<string, ShareChannel>>(new Map());
@@ -134,9 +188,9 @@ function Sheet({ target, close }: { target: ShareTarget; close: () => void }) {
   const send = async () => {
     setPhase({ kind: "sending" });
     const recipients = [...chosen].map(([userId, channel]) => ({ userId, channel }));
-    const response = await fetch(SHARES_ENDPOINT, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ card: target.card, question: target.question, note, recipients }) }).catch(() => null);
-    const payload = response?.ok ? ((await response.json()) as { receipts: ShareReceipt[]; path: string }) : null;
-    setPhase(payload ? { kind: "sent", receipts: payload.receipts, path: payload.path } : { kind: "failed" });
+    const response = await fetch(SHARES_ENDPOINT, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ card: target.card, question: target.question, note, recipients, grantDays: directory?.mayGrant ? grantDays : null }) }).catch(() => null);
+    const payload = response?.ok ? ((await response.json()) as { receipts: ShareReceipt[]; grants?: ShareGrantReceipt[]; path: string }) : null;
+    setPhase(payload ? { kind: "sent", receipts: payload.receipts, grants: payload.grants ?? [], path: payload.path } : { kind: "failed" });
   };
 
   const visible = contacts.filter((contact) => chosen.has(contact.id) || matches(contact, query));
@@ -159,7 +213,7 @@ function Sheet({ target, close }: { target: ShareTarget; close: () => void }) {
           </button>
         </header>
         {phase.kind === "sent" ? (
-          <Sent receipts={phase.receipts} path={phase.path} close={close} />
+          <Sent receipts={phase.receipts} grants={phase.grants} days={grantDays} path={phase.path} close={close} />
         ) : (
           <>
             <div className="flex flex-col gap-2 border-b border-border px-4 py-3">
@@ -176,6 +230,7 @@ function Sheet({ target, close }: { target: ShareTarget; close: () => void }) {
               {contacts.length > 0 && ordered.length === 0 ? <li className="px-2 py-3 text-sm text-muted-foreground">{TH.share.noMatch}</li> : null}
             </ul>
             <footer className="flex flex-col gap-2 border-t border-border px-4 py-3">
+              {directory?.mayGrant ? <GrantPicker days={grantDays} choose={setGrantDays} /> : null}
               <textarea value={note} onChange={(event) => setNote(event.target.value.slice(0, SHARE_NOTE_MAX))} placeholder={TH.share.notePlaceholder} rows={2} className="resize-none rounded-xl border border-border bg-transparent px-3 py-2 text-sm outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-ring" />
               {phase.kind === "failed" ? <p className="text-xs text-danger">{TH.share.failed}</p> : null}
               <div className="flex items-center justify-between gap-2">
