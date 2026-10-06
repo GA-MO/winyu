@@ -1,4 +1,5 @@
 import { inScope, outOfScopeFilters } from "@/lib/access/enforce";
+import { metricAccess } from "@/lib/access/grants";
 import { fieldVisibilityOf, permissionsFor } from "@/lib/access/role-overrides";
 import { DIMS, MAX_ROWS, type AccessContext, type Dim, type MetricId, type MetricQuery, type RoleId } from "@/lib/contracts";
 import type { Verdict, Verifier, VerifyInput } from "@/lib/harness/types";
@@ -57,11 +58,12 @@ function verdictOf(checks: Check[]): Verdict {
   return failed?.failure ? { status: "failed", reason: failed.failure } : { status: "passed", checks: checks.map((check) => check.name) };
 }
 
-/** A metric answer holds when every row sits inside the caller's regions and brands, every masked field carries no number, and the rows fit the cap. */
+/** A metric answer holds when every row sits inside the caller's regions and brands (widened by a live grant on the metric), every masked field carries no number, and the rows fit the cap. */
 export const metricAnswerHolds: Verifier = async ({ input, observation, access }: VerifyInput) => {
   const rows = rowsOf(observation.data);
   const query = input as MetricQuery;
-  return verdictOf([scopeCheck(rows, access, await loadDictionary()), maskCheck(rows, observation.evidence.masked, query, access), capCheck(rows)]);
+  const scoped = metricAccess(access, query.metric, new Date()).access;
+  return verdictOf([scopeCheck(rows, scoped, await loadDictionary()), maskCheck(rows, observation.evidence.masked, query, scoped), capCheck(rows)]);
 };
 
 function dataOf<T>(check: VerifyInput): Partial<T> {

@@ -1,5 +1,5 @@
 import { createHash, randomUUID } from "node:crypto";
-import type { AuditEntry, Initiator, RuleRef } from "@/lib/contracts";
+import type { AuditEntry, GrantSlice, Initiator, RuleRef } from "@/lib/contracts";
 import { TH } from "@/lib/i18n/th";
 import type { GuardFinding } from "@/lib/harness/guard";
 import { THROWN_CODE } from "@/lib/harness/observation";
@@ -59,7 +59,7 @@ export function recordToolCall(call: AuditedCall, observation: Observation): voi
   const { tool, connector, userId, args, redact, startedAt, toolCallId, runId, initiator, rule } = call;
   const turn = currentTurn();
   const turnId = runId ?? turn.turnId;
-  const { code, reason, rows } = observation.evidence;
+  const { code, reason, rows, grant } = observation.evidence;
   auditLog().put({
     id: randomUUID(),
     at: new Date().toISOString(),
@@ -79,6 +79,7 @@ export function recordToolCall(call: AuditedCall, observation: Observation): voi
     ...(turn.threadId ? { threadId: turn.threadId } : {}),
     ...(turn.question ? { question: turn.question } : {}),
     ...(rule ? { rule } : {}),
+    ...(grant ? { grant } : {}),
   });
 }
 
@@ -171,5 +172,37 @@ export function recordGuardFinding(finding: GuardFinding, userId: string): void 
     ...(turnId ? { turnId } : {}),
     ...(turn.threadId ? { threadId: turn.threadId } : {}),
     ...(turn.question ? { question: turn.question } : {}),
+  });
+}
+
+/** The name a temporary grant's lifecycle goes by in the audit. */
+export const GRANT_AUDIT_TOOL = "grant";
+
+const GRANT_CONNECTOR = "winyu";
+
+/** What happened to a grant or a request for one. */
+export type GrantEventKind = "requested" | "granted" | "declined" | "revoked" | "refused";
+
+/** One grant event as the audit needs it: who acted, on which grant or request, which slice for whom, and in Thai what happened; a refusal carries its code. */
+export type AuditedGrantEvent = { userId: string; event: GrantEventKind; ref: string; slice: GrantSlice; recipientId: string; days: number | null; reason: string; code?: string };
+
+/** Writes the audit row one grant event leaves: a refusal or a declined request is a deny, every other event an allow. */
+export function recordGrantEvent(entry: AuditedGrantEvent): void {
+  const args = { event: entry.event, ref: entry.ref, metric: entry.slice.metric, regions: entry.slice.regions, brands: entry.slice.brands, recipient: entry.recipientId, days: entry.days };
+  auditLog().put({
+    id: randomUUID(),
+    at: new Date().toISOString(),
+    userId: entry.userId,
+    tool: GRANT_AUDIT_TOOL,
+    connector: GRANT_CONNECTOR,
+    argsHash: argsHash(args),
+    decision: entry.event === "refused" || entry.event === "declined" ? "deny" : "allow",
+    rowsReturned: 0,
+    latencyMs: 0,
+    ...(entry.code ? { code: entry.code } : {}),
+    reason: entry.reason,
+    args: argsPreview(args),
+    toolCallId: entry.ref,
+    initiator: "person",
   });
 }

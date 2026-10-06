@@ -1,4 +1,5 @@
 import type { z } from "zod";
+import { metricAccess } from "@/lib/access/grants";
 import { getForecastInputSchema } from "@/lib/contracts";
 import { formatMetricValue, metricLabel } from "@/lib/dashboard/metric-display";
 import { weekKeyOfIso } from "@/lib/data/dates";
@@ -18,7 +19,7 @@ export const getForecastTool = defineTool({
   description: "Read the deterministic forecast for a metric and dimension slice over the next weeks, with its confidence band and MAPE. Call it when the user asks what will happen, whether stock lasts, or about a plan for coming weeks.",
   input: getForecastInputSchema,
   execute: async ({ metric, dims, weeks }: z.infer<typeof getForecastInputSchema>) => {
-    const access = currentAccess();
+    const { access, grant } = metricAccess(currentAccess(), metric, new Date());
     const slice = forecastSlice(forecastsFor(access), metric, dims);
     if (!slice) return { ok: true as const, summary: NO_FORECAST, weeks: [] };
     if (!slice.ok) return { ok: true as const, summary: `${NO_FORECAST} ต้องระบุ ${slice.missingDims.join(", ")} ด้วย เพราะรวมข้ามกันไม่ได้`, weeks: [] };
@@ -44,6 +45,7 @@ export const getForecastTool = defineTool({
       weekly_average: additive ? average : null,
       mape: slice.mape,
       weeks: points,
+      ...(grant ? { provenance: { grant } } : {}),
     };
   },
 });

@@ -1,5 +1,5 @@
 import type { GuardFinding } from "./guard";
-import type { AccessContext, RuleRef, ToolSurfaceEntry } from "@/lib/contracts";
+import type { AccessContext, GrantRef, RuleRef, ToolSurfaceEntry } from "@/lib/contracts";
 
 export type GoalStatus = "active" | "completed" | "failed" | "cancelled";
 
@@ -11,7 +11,7 @@ export type ApprovalRule = "never" | "required";
 export type ObservationStatus = "success" | "partial" | "failed";
 
 /** What a tool result showed, in the terms the harness reasons about: the code it returned and why, how many rows, which fields came back masked. */
-export type Evidence = { code: string | null; reason: string | null; rows: number; masked: string[] };
+export type Evidence = { code: string | null; reason: string | null; rows: number; masked: string[]; grant?: GrantRef };
 
 /** One tool result as the harness saw it; `data` is the raw output and never leaves the run. */
 export type Observation = { id: string; actionId: string; source: string; status: ObservationStatus; data: unknown; evidence: Evidence };

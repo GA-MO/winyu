@@ -1,3 +1,4 @@
+import { z } from "zod";
 import type { Brand, Region } from "./identity";
 import type { MetricId } from "./semantic";
 
@@ -5,6 +6,7 @@ export const GRANT_DAYS = [1, 3, 7] as const;
 /** How long a temporary grant lasts. */
 export type GrantDays = (typeof GRANT_DAYS)[number];
 export const DEFAULT_GRANT_DAYS: GrantDays = 3;
+export const grantDaysSchema = z.literal(GRANT_DAYS);
 
 /** What a grant opens: one metric, within these regions and brands. */
 export type GrantSlice = { metric: MetricId; regions: Region[] | "all"; brands: Brand[] | "all" };

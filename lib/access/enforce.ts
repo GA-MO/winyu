@@ -1,5 +1,5 @@
 import { toolSurface, surfaceEntry, toolsOfConnector, connectors } from "@/lib/server/tools/registry";
-import { type AccessContext, type Dim, type ToolName, type ToolTier, type User } from "@/lib/contracts";
+import { type AccessContext, type ActiveGrant, type Dim, type Grant, type ToolName, type ToolTier, type User } from "@/lib/contracts";
 import { collection } from "@/lib/server/store/json-store";
 import { accessFor } from "./policies";
 import { permissionsFor } from "./role-overrides";
@@ -10,6 +10,7 @@ export const HANDOFF_SWITCH_ID = "handoff";
 export const ALERTS_INBOX_SWITCH_ID = "alerts_inbox";
 export const HANDOFF_TOOLS: readonly ToolName[] = ["create_handoff", "send_email"];
 export const CONNECTOR_SWITCH_PREFIX = "connector:";
+export const GRANTS_COLLECTION = "grants";
 
 export type SwitchEntry = { id: string; enabled: boolean; by: string; at: string };
 
@@ -129,9 +130,26 @@ export function withAdminSwitches(access: AccessContext): AccessContext {
   return { ...access, metricAcl: permissions.metricAcl, toolAllow: permissions.toolAllow.filter((name) => !closed.has(name)) };
 }
 
-/** The access context a user's queries run under right now: the role policy, the admin's overrides and switches. */
-export function liveAccessFor(user: User): AccessContext {
+/** Whether a stored grant still widens its recipient's access at this moment. */
+export function isLiveGrant(grant: Grant, at: Date): boolean {
+  return grant.revokedAt === null && Date.parse(grant.expiresAt) > at.getTime();
+}
+
+/** The grants one person holds right now: neither revoked nor past their expiry. */
+export function liveGrantsOf(userId: string, at: Date): ActiveGrant[] {
+  return collection<Grant>(GRANTS_COLLECTION)
+    .where((grant) => grant.recipientId === userId && isLiveGrant(grant, at))
+    .map((grant) => ({ id: grant.id, grantorId: grant.grantorId, slice: grant.slice, expiresAt: grant.expiresAt }));
+}
+
+/** A user's own access without any grant they hold: the role policy, the admin's overrides and switches. What they may grant from. */
+export function baseAccessFor(user: User): AccessContext {
   return withAdminSwitches(accessFor(user));
+}
+
+/** The access context a user's queries run under right now: their own access and the temporary grants they hold. */
+export function liveAccessFor(user: User, at: Date = new Date()): AccessContext {
+  return { ...baseAccessFor(user), grants: liveGrantsOf(user.id, at) };
 }
 
 /** The tools a user may call: the surface, minus what the role policy withholds, minus the admin kill switches. */

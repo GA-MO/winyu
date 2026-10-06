@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { GrantRef } from "./grant";
 
 export type MetricId = "net_sales_volume" | "net_sales_value" | "sell_out_volume" | "target_attainment"
   | "stock_on_hand" | "days_of_cover" | "production_output" | "capacity_utilization" | "forecast_mape"
@@ -15,7 +16,7 @@ export type MetricQuery = { metric: MetricId; dims: Dim[]; filters: Partial<Reco
   range: { from: string; to: string }; grain: Grain; compare: "none" | "prev_period" | "prev_year" | "target"; limit: number | null; sort?: MetricSort | null; where?: ValueFilter | null };
 export type MetricRow = Record<string, string | number | null>;
 export type Provenance = { metric: MetricId; certified: boolean; sourceSystem: string; asOf: string; rowCount: number;
-  filtersApplied: Partial<Record<Dim, string[]>>; filterLabels?: string[]; scopeApplied: Partial<Record<Dim, string[]>>; masked: string[]; trust: "verified" | "derived" | "estimated" };
+  filtersApplied: Partial<Record<Dim, string[]>>; filterLabels?: string[]; scopeApplied: Partial<Record<Dim, string[]>>; masked: string[]; trust: "verified" | "derived" | "estimated"; grant?: GrantRef };
 /** Where a month still running ends against its target at the recent pace, formatted for the card and the model. */
 export type MonthEndProjection = { recentDays: number; projected: string; monthTarget: string; attainment: string };
 /** How many groups of a breakdown sit under the metric's deciding line, counted over every group in scope before the row cap. */

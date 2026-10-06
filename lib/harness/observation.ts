@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import type { GrantRef } from "@/lib/contracts";
 import type { Evidence, Observation, ObservationStatus } from "./types";
 
 const REASON_MAX_CHARS = 300;
@@ -6,7 +7,7 @@ const REASON_MAX_CHARS = 300;
 export const THROWN_CODE = "ERROR";
 const PARTIAL_CODES: ReadonlySet<string> = new Set(["SCOPE_TRIMMED", "NONE_IN_SCOPE"]);
 
-type ToolOutput = { ok?: unknown; code?: unknown; error?: unknown; rows?: unknown; data?: unknown; provenance?: { masked?: unknown } };
+type ToolOutput = { ok?: unknown; code?: unknown; error?: unknown; rows?: unknown; data?: unknown; provenance?: { masked?: unknown; grant?: unknown } };
 
 /** How one attempt of a tool call ended: what it returned, or what it threw. */
 export type Attempt = { returned: unknown } | { thrown: unknown };
@@ -27,10 +28,20 @@ function maskedOf(output: ToolOutput | null): string[] {
   return Array.isArray(masked) ? masked.map(String) : [];
 }
 
+function isGrantRef(value: unknown): value is GrantRef {
+  const ref = value as Partial<GrantRef> | null;
+  return typeof ref?.id === "string" && typeof ref.grantorId === "string" && typeof ref.expiresAt === "string";
+}
+
+function grantOf(output: ToolOutput | null): { grant?: GrantRef } {
+  const grant = output?.provenance?.grant;
+  return isGrantRef(grant) ? { grant: { id: grant.id, grantorId: grant.grantorId, expiresAt: grant.expiresAt } } : {};
+}
+
 function evidenceOf(output: ToolOutput | null): Evidence {
   const code = typeof output?.code === "string" ? output.code : null;
   const reason = output?.ok === false && typeof output.error === "string" ? output.error.slice(0, REASON_MAX_CHARS) : null;
-  return { code, reason, rows: rowsOf(output), masked: maskedOf(output) };
+  return { code, reason, rows: rowsOf(output), masked: maskedOf(output), ...grantOf(output) };
 }
 
 function statusOf(output: ToolOutput | null, evidence: Evidence): ObservationStatus {
