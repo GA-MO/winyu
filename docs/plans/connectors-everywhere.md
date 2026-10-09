@@ -1,91 +1,77 @@
-# Every outside system through an admin-configured connector
+# Native tools where they belong, systems of record behind ports
 
-In a real deployment almost every system Winyu reads is the customer's: the warehouse, the HRIS, the LMS, the EHS system, the company calendar, mail. Today the demo splits them three ways: ports configured by env (`WINYU_PORTS`, `WINYU_<SYSTEM>_MCP_URL`), code connectors (`lms_demo`, `crm_demo`) and console connectors. An IT admin can configure only the last kind. This plan makes the connection to every outside system an admin-configured connector, and keeps in code only what Winyu computes on top of the data.
+Decided 2026-10-09. Winyu's capabilities stay native tools: code reviewed in git, permission in `lib/access`, covered by the recorded eval. Every outside system is reached through a port, and a port reads or writes its system over MCP against a contract Winyu defines. The console connectors from `connector-ui.md` remain the way for a customer's IT to add a secondary system Winyu does not know. They are not the way to move a native tool out of code.
 
-## The split that holds
+Moving the ports behind MCP (`mcp-first.md`) was the right shape and stays. Four things around it were wrong:
 
-- **A capability** is a native tool: Winyu's own work on data (the semantic layer, people rules, leave arithmetic, anomaly detection). It stays code, reviewed in git and covered by the recorded eval.
-- **A connection** is where a capability's data comes from: URL, auth, secret, health, a switch, a test as a person. It belongs to the admin.
+- The engines bypass the metrics port.
+- `describe_entity` has no scope.
+- Winyu owns leave and course data that belongs to the HRIS and the LMS.
+- The leave balance counts a request the approver returned.
 
-A fixed card is not a reason to keep a tool native. A card is presentation that can be added for any tool whose rows have a known shape.
+## Survey of the 27 native tools
 
-## Native tools, surveyed 2026-10-09
+The table below rates each tool against this rule: a tool earns native status by enforcing a permission rule presets cannot express, computing numbers people act on, joining sources, or owning Winyu's own state. Winyu must not own a business rule whose source of truth is another system.
 
-The surface has 27 native tools. Almost all of them reach every role, so a change to any tool's name, description or schema makes all 67 recordings stale. One full re-record costs about $0.36 at the median recorded cost, which is small. The kind of work a tool does matters more than its eval cost.
+| Group | Tools | Verdict |
+|---|---|---|
+| Native, right as they are | `query_metric`, `explain_gap`, `list_metrics`, `get_alerts`, `get_forecast`, `get_calendar`, `find_people`, `get_person`, `recall_memory`, `resolve_owner`, `create_handoff`, `share_card`, `pin_widget`, `watch_metric`, `set_permission`, `run_job` | Keep. |
+| Native, but owning the wrong data | `get_policy`, `request_leave`, `list_courses`, `enroll_course`, `describe_entity` | Fix in this plan. |
+| Native, with the source not yet real | `search_documents` (corpus in the repo), `send_email` (mail only reaches `outbox`) | Later, when a document store and a mail system are chosen. |
+| Could be connectors | `list_candidates`, `get_site`, `ask_logistics_partner` | Stay native: the eval covers them, and moving gains nothing until a customer needs to swap them. |
+| Code connectors | `crm_demo`, `lms_demo` | Stay as the reference implementations of the console path. |
 
-| Tool | Reads | Winyu's work on top | Kind |
-|---|---|---|---|
-| `query_metric` | metrics port, dictionary | semantic layer, scope filters injected into every query, masking, grants, small-cell suppression, month-end projection | engine |
-| `explain_gap` | metrics port | the same scope as `query_metric` (grants not applied), gap breakdown | engine |
-| `list_metrics` | metrics port | drops metrics the role cannot see, refresh labels | rules |
-| `describe_entity` | metrics port (`describe_entity` passed straight through) | none, not even a scope filter | fetch |
-| `get_calendar` | calendar port + metrics port | impact of past events on sell-out (joins two systems) | engine |
-| `get_site` | sites port + directory port | safety status, lost-time-injury day count, people on site through `peopleViewOf` | rules |
-| `find_people` | directory port, dictionary | `peopleViewOf` (team, hr and directory views hide different fields), derived flags, lead first, cap of 12, open positions | rules → engine |
-| `get_person` | directory port | facts tiered by view, salary gate, certificate days left, risk for HR only | rules |
-| `list_candidates` | recruiting + directory ports | manager-chain gate, salary gate, pipeline headline | rules |
-| `list_courses` | learning + directory ports, Winyu requests | seats net of Winyu requests, certificate renewal relevance for me and my team | engine |
-| `get_policy` | leave, directory and calendar ports, Winyu requests | entitlement by tenure, balance net of pending requests, working-day arithmetic, approver | engine |
-| `request_leave` | as `get_policy` | validation, then **a packet in the approver's Winyu Inbox**; nothing reaches the leave system | engine |
-| `enroll_course` | learning port, Winyu requests | validation, then **a Winyu Inbox packet** that holds a seat in Winyu's own count; nothing reaches the LMS | engine |
-| `ask_logistics_partner` | partner agent over A2A | DC scope check before the call, fenced reply | fetch |
-| `send_email`, `share_card` | mail port; Teams and LINE for shares | recipient checks, verify | external write |
-| `get_alerts`, `get_forecast`, `recall_memory`, `search_documents`, `resolve_owner`, `create_handoff`, `pin_widget`, `watch_metric`, `set_permission`, `run_job` | Winyu's own stores | Winyu's own features | Winyu data |
+## Units, in order, each ending in a check
 
-Every outside system already sits behind one of six ports: metrics, directory, leave, recruiting and learning, sites, calendar, and mail. Each port except mail has an MCP contract: `METRICS_MCP_TOOLS`, `HRIS_MCP_TOOLS`, `LEARNING_MCP_TOOLS`, `SITES_MCP_TOOLS` and `CALENDAR_MCP_TOOLS`, all read-only. **The thing to make admin-configurable is therefore the port connection, not the tools.**
+### 1. `describe_entity` is scoped by Winyu
 
-## What the survey turned up
+The tool keeps calling the warehouse's reference lookup, because master data does not carry grade, credit, price or campaign budget. Winyu then checks the result against the caller's scope. An agent or DC whose region (from `masterData()`) is outside `access.regions` is refused as out of scope. Campaigns, SKUs and users carry no region and stay open. The tool's description and schema do not change, so no recording goes stale.
 
-1. **The anomaly, forecast and watch engines read the generator directly** (`runSeries` → `readGeneratorFacts` in `lib/data/query.ts:138`; called from `lib/engine/series.ts`, `forecast.ts` and `hypothesis.ts`). With a real warehouse connected, `query_metric` answers from the warehouse but alerts, forecasts and watches still compute on demo data. This must change before any real deployment.
-2. **`describe_entity` passes the lookup straight to the metrics system with no scope filter.** It returns master data (agents, SKUs, DCs, campaigns, users), which may be fine for every role. That needs a decision, and in any case it should not depend on the warehouse filtering for us.
-3. **The leave and course writes never reach the external system.** `LeavePort` and `LearningPort` are read-only. A request becomes a Winyu Inbox packet, and a seat is held in Winyu's own count. That is right for the demo. A deployment needs write tools in the HRIS and LMS contracts, using the phase 2 machinery (pins, guards, verify, idempotency) and the Inbox pull for pending decisions.
-4. **Mail has no MCP contract and no delivery.** The only implementation writes the `outbox` collection.
-5. **Connections are env-only.** URL, secret and the choice between generator and MCP live in `.env` and `WINYU_PORTS`, so a customer's IT cannot see, test or rotate them.
+Check: a unit test as the northeast rep refuses a Bangkok agent, answers a northeast one, and the CEO gets both.
 
-## Phases
+### 2. The engines read through the metrics port
 
-### 1. Port connections in the admin console
+`runSeries` (`lib/data/query.ts:138`) reads `readGeneratorFacts` directly. It is used by anomaly detection, forecasts, watches and hypotheses. It becomes async and reads `ports().metrics.readFacts`, so the engines see the same warehouse as `query_metric`.
 
-The wizard gains a second kind of connector, **ต่อเข้า port** (connect a port), next to **เพิ่มเครื่องมือให้ model** (add a tool for the model, phases 1 and 2 of `connector-ui.md`).
+Check: the existing engine tests still pass on the generator. A test registers a metrics port that counts calls and sees `buildForecasts` reach it.
 
-- The admin picks which port the system serves: warehouse, HRIS (directory, leave, recruiting), LMS, EHS or calendar. Then they give the URL and auth with a sealed secret, through the same egress allowlist and the same `discoverConnector` step.
-- **Contract check instead of declarations.** The listing must contain every contract tool, and each input schema must accept what Winyu sends. Winyu keeps the contract's hash beside the listing hash, and drift pauses the port the way it pauses a console tool.
-- **Test as a person.** Call the contract's read tools as the chosen person and show counts, field names and parse errors per tool, never values. A row that fails the contract's zod output schema is reported by field.
-- **Switch.** A port is either on its connector or on the demo generator. Turning a connector off falls back to the generator in dev and to "ข้อมูลไม่พร้อม" (data unavailable) in production. Health, last check and secret rotation are audited.
-- Env stays as the developer default. A stored port connection overrides it. `WINYU_PORTS` keeps working for `make up` and tests.
-- Native tools, `lib/access` and the eval do not change. The eval keeps generator ports.
-- Reuse: `stored.ts`, `secrets.ts`, `egress.ts`, `pool.ts`, the connect step of the wizard, and `ports/index.ts` (`configuredPorts` reads stored connections before env).
+### 3. The leave system owns balances and requests
 
-### 2. Data paths that bypass the ports
+`LeavePort` grows from `policy()` and `usedThisYear()` to the leave system's real surface:
 
-- Route `runSeries` (anomaly, forecast, watches, hypotheses) through `ports().metrics`, so every engine reads the connected warehouse.
-- Decide `describe_entity`: filter its answer in Winyu (an agent outside the caller's regions comes back out of scope), or declare master data open to every role in writing.
-- Mail: a mail port contract (`send_mail`), with Microsoft Graph or SMTP behind a wrapper.
+- `balances(employeeId)` gives entitled, used, pending and left per kind. The leave system computes these.
+- `requests(employeeId)` lists that employee's leave requests.
+- `submit({ employeeId, kind, from, to, days, reason, approverId, idempotencyKey })` creates a pending request.
+- `decide(requestId, approverId, approved)` records the approver's decision.
 
-### 3. Writes into the systems of record
+The generator port plays the HRIS. The entitlement rules (tenure steps, probation) move from `lib/server/leave.ts` into it, and its requests live in its own collection. Winyu keeps what is Winyu's: input checks before asking (dates, working days from the calendar, notice), the approval card, the Inbox packet that tells the approver, and the answer's wording. Accepting or returning the packet calls `decide`. Only pending requests count against the balance, which fixes the returned-request bug.
 
-- Add `submit_leave_request`, `get_leave_request` and `decide_leave_request` to the HRIS contract, and `enroll` with `get_enrollment` to the LMS contract. These are write tools with the phase 2 pins, guards, verify and idempotency.
-- `request_leave` and `enroll_course` then write through the port. The Inbox shows pending decisions by pull from the HRIS (`connector-ui.md`, worked examples).
-- This changes tool behaviour and probably descriptions: all 67 recordings go stale, about $0.36 to re-record.
+The HRIS MCP contract gains `leave_balances`, `list_leave_requests`, `submit_leave_request` and `decide_leave_request`, and the demo HRIS serves them from the generator port. `usedThisYear` leaves the contract, because `balances` carries `used`.
 
-### 4. Thin tools and code connectors
+Check: `get_policy` and `request_leave` answer as before for the demo personas. A returned request no longer reduces the balance. The verify post-condition reads the request from the leave port. A port test runs the same flow against the demo HRIS over MCP.
 
-- `crm_demo` becomes a console connector: `region_rows` on `region` plus `inject_regions`. Its `visitsOutput` adapter goes away (the wrapper returns flat rows with `as_of`).
-- `lms_demo` (training history) either joins the learning contract, if training history is a core capability, or becomes a console connector.
-- `describe_entity` and `ask_logistics_partner` are candidates for console connectors once phase 2 has settled `describe_entity`'s scope.
-- After this phase, "code connector" is no longer a category.
+### 4. The LMS owns seats and enrollments
 
-## Engine: connectors do not go through Mastra
+`LearningPort` grows from `courses()` to:
 
-Remote MCP servers are reached with `@ai-sdk/mcp` (`lib/server/connectors/mcp-client.ts`) in Winyu's own connector layer. Each remote tool becomes a `WinyuTool` whose only execute is the gateway (scope, pins, guards, masking, fence, audit, verify). The Mastra adapter (`lib/harness/adapters/mastra/tools.ts`) then wraps it as a Mastra tool, the same as a native tool. `@mastra/mcp` is used only in the other direction: Winyu's own MCP server at `/api/mcp` (`adapters/mastra/mcp.ts`). Keep it this way:
+- `courses()`, where each course carries `seatsLeft` as the LMS counts them, holds included.
+- `enrollments(employeeId)`.
+- `requestSeat({ courseId, employeeId, approverId, idempotencyKey })`.
+- `decide(enrollmentId, approverId, approved)`.
 
-- Mastra's MCP client would hand the agent the remote tools directly, which bypasses the gateway.
-- `lib/harness/boundary.test.ts` allows `@mastra/*` only in the adapter.
-- The AI SDK jobs use the same `WinyuTool`s.
+The generator plays the LMS. Winyu keeps the relevance order (renews my certificate, then my team's), the approval card and the Inbox packet. `staff-requests`, Winyu's shadow store for both, is deleted once units 3 and 4 have moved off it.
 
-## Open decisions
+The learning MCP contract gains `list_enrollments`, `request_seat` and `decide_enrollment`.
 
-1. In production, does a port with no connector fall back to the demo generator, or report "ข้อมูลไม่พร้อม"? The recommendation is "ข้อมูลไม่พร้อม", with the generator in dev only.
-2. Is master data from `describe_entity` open to every role?
-3. Is training history a core capability (a learning contract tool) or an add-on (a console connector)?
-4. Order: phase 1 first (no eval cost, no model cost), then phase 2, which is needed before any real deployment, then phase 3 when a real HRIS is chosen.
+Check: `list_courses` and `enroll_course` answer as before. Seats come from the port. A duplicate request is refused by the LMS, not by Winyu's own count.
+
+## Eval
+
+Units 1 and 2 change no tool description or schema. Units 3 and 4 change results, not descriptions. The recordings keep the old results, so scoring them still exercises the cards. `bun run eval --stale` is run after each unit. If any recording is stale, the cost is stated and the recordings are re-recorded once at the end, not per unit.
+
+## Later, when a real system is chosen
+
+- Contracts become a versioned spec (`hris.v1`), with a JSON schema generated from zod for whoever writes the wrapper.
+- `load_directory` returning the whole company with pay is reconsidered for the first real customer.
+- Port connections become configurable in the admin console, if a customer's IT needs to set them without a deploy.
+- The documents corpus and the mail system get real ports.

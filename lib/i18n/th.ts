@@ -1715,6 +1715,9 @@ export const TH = {
     connectorMasked: (fields: string) => `ซ่อนตามสิทธิ์: ${fields}`,
     connectorShown: (shown: number, total: number) => `แสดง ${shown} แถวแรกจาก ${total} แถว`,
   },
+  entities: {
+    outOfScope: (label: string) => `${label} อยู่นอกขอบเขตข้อมูลของคุณ`,
+  },
   partner: {
     summary: (count: number, dc: string) => (count > 0 ? `รถ ${count} เที่ยวกำลังไป${dc} ตามที่ Siam Freight แจ้ง` : `Siam Freight ไม่มีรถกำลังไป${dc}`),
     source: "Siam Freight (agent ภายนอก ผ่าน A2A)",
