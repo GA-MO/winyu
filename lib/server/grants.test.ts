@@ -40,7 +40,7 @@ async function queryAs(userId: string, input: unknown): Promise<{ output: Metric
 }
 
 function storedShare(senderId: string, recipientId: string, input: Record<string, unknown> = BY_REGION): Share {
-  return shares().put({ id: randomUUID().slice(0, 12), at: new Date().toISOString(), senderId, title: "ยอดขาย", question: null, note: null, card: { kind: "tool", reads: [{ tool: "query_metric", input }] }, deliveries: [{ userId: recipientId, asked: "email", via: "email", fallback: null }], views: 0, lastViewedAt: null });
+  return shares().put({ id: randomUUID().slice(0, 12), at: new Date().toISOString(), senderId, title: "ยอดขาย", question: null, note: null, card: { kind: "tool", reads: [{ tool: "query_metric", input }] }, deliveries: [{ userId: recipientId, asked: "email", via: "email", fallback: null }], openedBy: [], lastViewedAt: null });
 }
 
 afterEach(() => {

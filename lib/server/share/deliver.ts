@@ -96,7 +96,7 @@ export async function createShare(sender: User, request: ShareRequest, at = new 
   const message: ShareMessage = { title, senderName: sender.nameTh, senderTitle: sender.title, note, url: shareUrl(code) };
   const deliveries: ShareDelivery[] = [];
   for (const { user, channel } of recipients) deliveries.push(await deliver(message, sender, user, channel, code));
-  const share = shares().put({ id: code, at, senderId: sender.id, title, question: request.question, note, card: request.card, deliveries, views: 0, lastViewedAt: null });
+  const share = shares().put({ id: code, at, senderId: sender.id, title, question: request.question, note, card: request.card, deliveries, openedBy: [], lastViewedAt: null });
   recordShare({ userId: sender.id, code, title, reads: request.card.reads.map((read) => read.tool), deliveries });
   const grants = request.grantDays ? grantOnShare(sender, request.card, deliveries.map((delivery) => delivery.userId), request.grantDays, code, new Date(at)) : [];
   for (const delivery of deliveries) {

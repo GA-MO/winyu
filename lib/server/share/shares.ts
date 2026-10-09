@@ -16,8 +16,8 @@ const UNBIASED_BYTE_LIMIT = 248;
 /** How one recipient was reached: the channel the sender picked, the one that carried it, and why they differ. */
 export type ShareDelivery = { userId: string; asked: ShareChannel; via: ShareChannel; fallback: FallbackReason | null };
 
-/** A shared card: the short code it opens at, who sent it to whom, the reads behind it (never their results), and how often recipients opened it. */
-export type Share = { id: string; at: string; senderId: string; title: string; question: string | null; note: string | null; card: SharedCard; deliveries: ShareDelivery[]; views: number; lastViewedAt: string | null };
+/** A shared card: the short code it opens at, who sent it to whom, the reads behind it (never their results), and which recipients opened it (absent on shares stored before it was kept). */
+export type Share = { id: string; at: string; senderId: string; title: string; question: string | null; note: string | null; card: SharedCard; deliveries: ShareDelivery[]; openedBy?: string[]; lastViewedAt: string | null };
 
 export function shares() {
   return collection<Share>(SHARES_COLLECTION);
@@ -56,10 +56,16 @@ export function mayOpen(share: Share, user: Pick<User, "id">): boolean {
   return share.senderId === user.id || share.deliveries.some((delivery) => delivery.userId === user.id);
 }
 
-/** Counts one opening by a recipient; the sender looking at their own share is not a view. */
+/** The recipients who have opened a share, each once however often they came back. */
+export function openersOf(share: Share): string[] {
+  return share.openedBy ?? [];
+}
+
+/** Notes a recipient opening the share; the sender looking at their own share is not an opening, and a recipient counts once. */
 export function noteView(share: Share, viewerId: string, at: string): Share {
   if (viewerId === share.senderId) return share;
-  return shares().put({ ...share, views: share.views + 1, lastViewedAt: at });
+  const openers = openersOf(share);
+  return shares().put({ ...share, openedBy: openers.includes(viewerId) ? openers : [...openers, viewerId], lastViewedAt: at });
 }
 
 /** Where a share opens inside Winyu. */

@@ -83,7 +83,7 @@ function SentRow({ share }: { share: SentShare }) {
         <span className="text-xs text-muted-foreground">{COPY.to(recipients)}</span>
         <span className="flex items-center gap-1 text-xs text-muted-foreground">
           <Eye className="size-3.5 shrink-0" aria-hidden />
-          {COPY.views(share.views)}
+          {COPY.opened(share.opened, share.recipients)}
         </span>
       </Link>
       {share.grants.length > 0 ? (

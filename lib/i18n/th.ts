@@ -399,7 +399,7 @@ export const TH = {
     newMark: "ใหม่",
     from: (name: string) => `จาก${name}`,
     to: (names: string) => `ถึง ${names}`,
-    views: (count: number) => (count === 0 ? "ยังไม่มีใครเปิด" : `เปิดดูแล้ว ${count} ครั้ง`),
+    opened: (opened: number, recipients: number) => (opened === 0 ? "ยังไม่มีใครเปิด" : `เปิดแล้ว ${opened} จาก ${recipients} คน`),
     hidden: (slice: string) => `บางส่วนซ่อนตามสิทธิ์ของคุณ: ${slice}`,
     pending: (approver: string) => `ขอสิทธิ์แล้ว รอ${approver}อนุมัติ`,
     holding: (until: string) => `ใช้สิทธิ์ชั่วคราวได้ถึง ${until}`,

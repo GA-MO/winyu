@@ -51,7 +51,7 @@ export type ShareGrantReceipt = { userId: string; name: string; metric: MetricId
 export type GivenGrant = { id: string; recipientName: string; slice: string; until: string };
 
 /** A share the person sent, as Shared lists it: who got it on which channel, how often they opened it, and the grants still live on it. */
-export type SentShare = { code: string; path: string; title: string; at: string; receipts: ShareReceipt[]; views: number; grants: GivenGrant[] };
+export type SentShare = { code: string; path: string; title: string; at: string; receipts: ShareReceipt[]; opened: number; recipients: number; grants: GivenGrant[] };
 
 /** A share sent to the person, as Shared lists it: who sent it with what note, what it hides from them, and their pending request or live grant. */
 export type ReceivedShare = {

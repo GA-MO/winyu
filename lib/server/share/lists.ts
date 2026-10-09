@@ -5,7 +5,7 @@ import type { GivenGrant, ReceivedShare, SentShare } from "@/lib/share/card";
 import { sliceLabel, untilLabel } from "@/lib/share/grant-label";
 import { grants, shareScopeFor } from "@/lib/server/grants";
 import { notificationsIn } from "@/lib/server/notify";
-import { receiptsOf, sharePath, shares, type Share } from "./shares";
+import { openersOf, receiptsOf, sharePath, shares, type Share } from "./shares";
 
 function newestFirst(left: Share, right: Share): number {
   return right.at.localeCompare(left.at);
@@ -27,7 +27,7 @@ export function sentShares(sender: User, at = new Date()): SentShare[] {
   return shares()
     .where((share) => share.senderId === sender.id)
     .sort(newestFirst)
-    .map((share) => ({ code: share.id, path: sharePath(share.id), title: share.title, at: share.at, receipts: receiptsOf(share), views: share.views, grants: givenOn(share, sender, at) }));
+    .map((share) => ({ code: share.id, path: sharePath(share.id), title: share.title, at: share.at, receipts: receiptsOf(share), opened: openersOf(share).length, recipients: share.deliveries.length, grants: givenOn(share, sender, at) }));
 }
 
 function unreadCodes(viewerId: string): Set<string> {

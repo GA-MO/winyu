@@ -8,7 +8,7 @@ import { auditLog } from "@/lib/server/audit";
 import { approveRequest, grantRequests, grants, requestGrant, revokeGrant } from "@/lib/server/grants";
 import { notify } from "@/lib/server/notify";
 import { receivedShares, sentShares } from "./lists";
-import { shares, type Share } from "./shares";
+import { noteView, shares, type Share } from "./shares";
 
 const BY_REGION = { metric: "net_sales_value", dims: ["region"], filters: {}, range: { from: "2026-09-01", to: "2026-09-22" }, grain: "month", compare: "none", limit: null };
 const TITLE = "มูลค่าขายเข้า แยกตามภาค";
@@ -25,7 +25,7 @@ function user(id: string): User {
 function storedShare(senderId: string, recipientId: string): Share {
   const share = shares().put({
     id: randomUUID().slice(0, 12), at: new Date().toISOString(), senderId, title: TITLE, question: null, note: NOTE,
-    card: { kind: "tool", reads: [{ tool: "query_metric", input: BY_REGION }] }, deliveries: [{ userId: recipientId, asked: "email", via: "email", fallback: null }], views: 0, lastViewedAt: null,
+    card: { kind: "tool", reads: [{ tool: "query_metric", input: BY_REGION }] }, deliveries: [{ userId: recipientId, asked: "email", via: "email", fallback: null }], openedBy: [], lastViewedAt: null,
   });
   made.push(share.id);
   return share;
@@ -50,7 +50,7 @@ describe("Shared lists what was sent to the person and what they sent", () => {
     expect(received?.hidden).not.toContain(TH.region.northeast);
 
     const sent = sentShares(user("u_thana")).find((row) => row.code === share.id);
-    expect(sent).toMatchObject({ path: `/s/${share.id}`, title: TITLE, views: 0, grants: [] });
+    expect(sent).toMatchObject({ path: `/s/${share.id}`, title: TITLE, opened: 0, recipients: 1, grants: [] });
     expect(sent?.receipts.map((receipt) => [receipt.name, receipt.via])).toEqual([[user("u_krit").nameTh, "email"]]);
 
     expect(sentShares(user("u_krit")).map((row) => row.code)).not.toContain(share.id);
@@ -73,6 +73,25 @@ describe("Shared lists what was sent to the person and what they sent", () => {
     const until = receivedShares(user("u_krit")).find((row) => row.code === share.id)?.grant?.until;
     expect(until).toBeTruthy();
     expect(sentShares(user("u_thana")).find((row) => row.code === share.id)?.grants).toEqual([{ id: decided.grant.id, recipientName: user("u_krit").nameTh, slice: expect.any(String), until: until as string }]);
+  });
+});
+
+describe("how many opened a share", () => {
+  test("a recipient counts once however often the page renders, and the sender opening it does not count", () => {
+    const share = storedShare("u_thana", "u_krit");
+    const at = new Date().toISOString();
+    for (let render = 0; render < 5; render += 1) noteView(shares().get(share.id) ?? share, "u_krit", at);
+    noteView(shares().get(share.id) ?? share, "u_thana", at);
+
+    expect(sentShares(user("u_thana")).find((row) => row.code === share.id)).toMatchObject({ opened: 1, recipients: 1 });
+  });
+
+  test("a share stored before openings were kept reads as unopened", () => {
+    const share = storedShare("u_thana", "u_krit");
+    const { openedBy: _dropped, ...legacy } = share;
+    shares().put(legacy);
+
+    expect(sentShares(user("u_thana")).find((row) => row.code === share.id)).toMatchObject({ opened: 0, recipients: 1 });
   });
 });
 
