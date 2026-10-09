@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { DARK_QUERY, THEME_STORAGE_KEY } from "./theme-boot";
+import { THEME_STORAGE_KEY } from "./theme-boot";
 
 export type ThemeMode = "light" | "dark";
 
@@ -18,10 +18,6 @@ function storedMode(): ThemeMode | null {
   }
 }
 
-function systemMode(): ThemeMode {
-  return typeof window !== "undefined" && window.matchMedia(DARK_QUERY).matches ? "dark" : "light";
-}
-
 function persist(mode: ThemeMode) {
   try {
     localStorage.setItem(THEME_STORAGE_KEY, mode);
@@ -34,15 +30,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [mode, setMode] = useState<ThemeMode>("light");
 
   useEffect(() => {
-    const saved = storedMode();
-    setMode(saved ?? systemMode());
-    if (saved) return;
-    const media = window.matchMedia(DARK_QUERY);
-    const follow = () => {
-      if (!storedMode()) setMode(systemMode());
-    };
-    media.addEventListener("change", follow);
-    return () => media.removeEventListener("change", follow);
+    setMode(storedMode() ?? "light");
   }, []);
 
   useEffect(() => {
