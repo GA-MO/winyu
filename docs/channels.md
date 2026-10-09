@@ -164,6 +164,16 @@ The page talks to the simulator's control API, which any script can also use:
 | `POST /ui/line/say` `{lineUserId,name,text}` | A LINE user writes to the bot |
 | `POST /ui/line/press` `{lineUserId,data,label?}` | A LINE user presses a postback button |
 
+## Demo mail inbox
+
+`/dev/mail` shows the recipient's side of mail as an Outlook-style web client. Mail never leaves the machine: every message is an Outbox entry, and this page reads the same store. It exists only in development, needs a signed-in browser like `/dev/channels`, and does not need the simulator.
+
+- Pick the mailbox owner in the header (กล่องจดหมายของ, u_krit by default). The URL keeps the owner, the folder and the open mail (`/dev/mail?as=u_krit&f=sent&m=<id>`), so a presenter can bookmark or reload it.
+- กล่องจดหมายเข้า holds every entry addressed to the owner, of every kind: shares, `send_email` from colleagues, handoffs, watch alerts and the digest. ส่งแล้ว holds what the owner sent as a person. Winyu's watch alerts and digest are in no one's sent folder.
+- The page refreshes from the server every 3 seconds, so new mail appears without a reload.
+- The mail body renders in a sandboxed iframe that may only open popups. A link into this Winyu opens a new tab on the other loopback host through `/dev/as`, signed in as the mailbox owner, the same way the channel panes open links (`app/dev/loopback-link.ts`). Links to other origins stay as they are. `javascript:` and other non-web links lose their `href`.
+- A mail's link points at `WINYU_PUBLIC_URL` (default `http://localhost:3100`). On another port, set `WINYU_PUBLIC_URL` to that origin, or the links open the server on :3100 instead.
+
 Mail in the demo never leaves the machine: the generator's mail port writes to the in-app Outbox. Every receipt that says an email went out links to `/outbox` with **(เดโม ไม่ได้ส่งจริง)**.
 
 ## Tests
