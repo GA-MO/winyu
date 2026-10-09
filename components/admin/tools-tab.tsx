@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { cn } from "@/components/ui/cn";
-import { ROLE_IDS, type RoleId, type ToolSurfaceEntry, type ToolTier } from "@/lib/contracts";
+import { ROLE_IDS, type RoleId, type ToolSurfaceEntry, type ToolTier, type User } from "@/lib/contracts";
 import { surfaceByConnector } from "@/lib/server/tools/registry";
 import { closureOf, killedTools } from "@/lib/access/enforce";
 import { permissionsFor } from "@/lib/access/role-overrides";
@@ -8,6 +8,7 @@ import { sinceOf, toolActivity, type ToolActivity } from "@/lib/server/usage";
 import { TH } from "@/lib/i18n/th";
 import { setToolKilledAction } from "@/app/(app)/admin/actions";
 import { ConnectorHeader } from "./connector-parts";
+import { ConsoleConnectors } from "./console-connectors";
 import { HandoffSwitchRow } from "./overview-tab";
 import { FOCUS, Panel, Pill, SwitchButton, type Tone } from "./parts";
 
@@ -74,7 +75,7 @@ function ToolRow({ entry, isKilled, roles, activity }: { entry: ToolSurfaceEntry
   );
 }
 
-export function ToolsTab() {
+export function ToolsTab({ viewer }: { viewer: User | null }) {
   const killed = new Set(killedTools());
   const allowedBy = ROLE_IDS.map((role) => ({ role, tools: new Set(permissionsFor(role).toolAllow) }));
   const rolesOf = (name: ToolSurfaceEntry["name"]) => allowedBy.filter((item) => item.tools.has(name)).map((item) => item.role);
@@ -84,6 +85,8 @@ export function ToolsTab() {
       <Panel>
         <HandoffSwitchRow />
       </Panel>
+
+      <ConsoleConnectors viewer={viewer} />
 
       <Panel title={COPY.title} hint={COPY.hint} bodyClassName="overflow-x-auto pb-2">
         <table className="w-full min-w-[820px] border-collapse">

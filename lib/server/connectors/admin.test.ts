@@ -10,7 +10,7 @@ import { winyuTools } from "@/lib/server/agent/tools";
 import { AUDIT_COLLECTION, auditLog } from "@/lib/server/audit";
 import { runWithAccess } from "@/lib/server/request-context";
 import { collection, DATA_DIR } from "@/lib/server/store/json-store";
-import { cleanedDescription, type ToolDraft } from "@/lib/connectors/spec";
+import { cleanedDescription, type ConnectorView, type ToolDraft, type ToolSave } from "@/lib/connectors/spec";
 import { lmsDemoFetch } from "@/scripts/mcp-demo-lms";
 import { LMS_DEMO_TOOL, lmsDemoEnv } from "./lms-demo-config";
 import { verifiedIdentity } from "./signed-identity";
@@ -22,7 +22,7 @@ import { CONNECTOR_KEY_ENV, CONNECTOR_SECRETS_COLLECTION } from "./secrets";
 import { CONNECTORS_COLLECTION, UPSTREAM_COLLECTION } from "./stored";
 import {
   activateConnector, checkConnectorUpstream, connectorView, connectorViews, discoverConnector, sampleToolFields, saveConnectorTools, serverSettings, testConnectorTool,
-  type ConnectorView, type ToolSave,
+
 } from "./admin";
 
 const SECRET = lmsDemoEnv().secret;

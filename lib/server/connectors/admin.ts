@@ -6,10 +6,11 @@ import { TH } from "@/lib/i18n/th";
 import { recordConnectorEvent, type ConnectorEventKind } from "@/lib/server/audit";
 import {
   CONNECTOR_ID, DEFAULT_TIMEOUT_MS, MIN_SECRET_CHARS, declarationOf, inputNamesOf, lifecycleOf, promptTokens, storedConfigHash, storedToolBlockers,
-  type AuthKind, type BlockerCode, type LifecycleState, type SensitiveSpec, type StoredConnector, type StoredTool, type TestRun, type ToolDraft, type Upstream, type UpstreamTool,
+  type ActivateResult, type BlockerCode, type ConnectorView, type DiscoverInput, type EvalImpact, type Problem, type ProblemCode, type SampleResult, type SaveInput, type SaveResult,
+  type SensitiveSpec, type StoredConnector, type StoredTool, type TestResult, type TestRun, type ToolSave, type Upstream, type UpstreamTool, type ViewResult,
 } from "@/lib/connectors/spec";
 import { codeConnectorIds } from "./index";
-import { egressAllowlist, egressProblem, EgressRefused, type EgressProblem } from "./egress";
+import { egressAllowlist, egressProblem, EgressRefused } from "./egress";
 import { genericOutput, isRemoteError, MASKED_VALUE, scopedArgs, scopedRows } from "./output";
 import { callerIdentity, connectorScopeOf } from "./presets";
 import { connectorKey, openSecret, sealSecret } from "./secrets";
@@ -19,60 +20,6 @@ import type { ConnectorRow } from "./types";
 const MAX_FIELDS = 80;
 const DETAIL_CHARS = 160;
 const REDACTED_SECRET = "•••";
-
-export type ProblemCode =
-  | "not_admin"
-  | "read_only"
-  | "bad_id"
-  | "id_taken"
-  | "no_label"
-  | EgressProblem
-  | "no_secret"
-  | "unreachable"
-  | "not_found"
-  | "tool_not_listed"
-  | "upstream_moved"
-  | "declaration"
-  | "schema_unsupported"
-  | "unknown_user"
-  | "role_not_offered"
-  | "changed_upstream"
-  | "remote_error"
-  | "blocked";
-
-/** Why an admin operation did nothing: a code the wizard words in Thai, the blockers when a declaration or activation fell short, and a short technical line when a server failed. */
-export type Problem = { ok: false; problem: ProblemCode; codes?: BlockerCode[]; detail?: string };
-
-/** What turning the connector on would add to every question of the roles it reaches, and the eval recordings it makes stale. */
-export type EvalImpact = { roles: RoleId[]; tools: number; tokens: number; staleRecordings: number };
-
-/** A console connector as the admin sees it: the stored record (no secret, only its last characters), the last listing, the derived state and what blocks each tool. */
-export type ConnectorView = {
-  connector: StoredConnector;
-  upstream: Upstream | null;
-  state: LifecycleState;
-  enabled: boolean;
-  live: string[];
-  blockers: Record<string, BlockerCode[]>;
-  impact: EvalImpact;
-};
-
-export type ViewResult = { ok: true; view: ConnectorView } | Problem;
-
-export type TestResult = { ok: true; view: ConnectorView; run: TestRun } | Problem;
-
-export type SampleResult = { ok: true; fields: string[] } | Problem;
-
-export type ActivateResult = { ok: true; view: ConnectorView; impact: EvalImpact } | Problem;
-
-export type DiscoverInput = { existing: boolean; id: string; labelTh: string; url: string; auth: AuthKind; secret: string };
-
-/** One tool as the wizard sends it to save: the draft, the field names it learned, and the hash of the listing the admin was shown. */
-export type ToolSave = { draft: ToolDraft; fields: string[]; seenHash: string };
-
-export type SaveInput = { connector: string; tools: ToolSave[]; removed: string[] };
-
-export type SaveResult = { ok: true; view: ConnectorView; incomplete: Record<string, BlockerCode[]> } | Problem;
 
 function isItAdmin(actor: User | null): actor is User {
   return actor?.role === "it_admin";

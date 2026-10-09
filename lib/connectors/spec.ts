@@ -155,6 +155,33 @@ export type ScopeDraft = { kind: "unset" } | { kind: "none"; reason: string } | 
 /** A tool as the wizard edits it: anything may still be missing. */
 export type ToolDraft = { name: string; labelTh: string; description: string; tier: ToolTier; roles: RoleId[]; scope: ScopeDraft; sensitive: SensitiveSpec[] };
 
+const draftText = z.string().max(MAX_DESCRIPTION_CHARS * 2);
+const draftFilter = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("own_rows"), field: draftText, key: identityKey }),
+  z.object({ kind: z.literal("people_line"), field: draftText }),
+  z.object({ kind: z.literal("region_rows"), field: draftText }),
+  z.object({ kind: z.literal("brand_rows"), field: draftText }),
+]);
+const draftInject = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("inject_regions"), arg: draftText }),
+  z.object({ kind: z.literal("inject_identity"), arg: draftText, key: identityKey }),
+]);
+
+/** The shape a wizard draft must have to reach the server's rules at all; what it may still lack is reported by `declarationOf`. */
+export const toolDraftSchema: z.ZodType<ToolDraft> = z.object({
+  name: z.string().regex(REMOTE_TOOL_NAME),
+  labelTh: draftText,
+  description: draftText,
+  tier: z.enum(["read", "write", "destructive"]),
+  roles: z.array(role).max(ROLE_IDS.length),
+  scope: z.discriminatedUnion("kind", [
+    z.object({ kind: z.literal("unset") }),
+    z.object({ kind: z.literal("none"), reason: draftText }),
+    z.object({ kind: z.literal("scoped"), filter: draftFilter, inject: draftInject.nullable() }),
+  ]),
+  sensitive: z.array(z.object({ field: draftText, byRole: z.partialRecord(role, z.enum(VISIBILITIES)), ownerField: draftText.nullable() })).max(MAX_SENSITIVE),
+});
+
 export type BlockerCode =
   | "no_label"
   | "no_description"
@@ -336,3 +363,61 @@ export function inputNamesOf(schema: Record<string, unknown>): string[] {
   const properties = schema.properties;
   return typeof properties === "object" && properties !== null ? Object.keys(properties) : [];
 }
+
+/** Why Winyu will not connect to a URL. */
+export type EgressProblem = "bad_url" | "credentials_in_url" | "host_not_allowed" | "address_refused" | "unresolvable";
+
+export type ProblemCode =
+  | "not_admin"
+  | "read_only"
+  | "bad_id"
+  | "id_taken"
+  | "no_label"
+  | EgressProblem
+  | "no_secret"
+  | "unreachable"
+  | "not_found"
+  | "tool_not_listed"
+  | "upstream_moved"
+  | "declaration"
+  | "schema_unsupported"
+  | "unknown_user"
+  | "role_not_offered"
+  | "changed_upstream"
+  | "remote_error"
+  | "blocked"
+  | "bad_input";
+
+/** Why an admin operation did nothing: a code the wizard words in Thai, the blockers when a declaration or activation fell short, and a short technical line when a server failed. */
+export type Problem = { ok: false; problem: ProblemCode; codes?: BlockerCode[]; detail?: string };
+
+/** What turning the connector on would add to every question of the roles it reaches, and the eval recordings it makes stale. */
+export type EvalImpact = { roles: RoleId[]; tools: number; tokens: number; staleRecordings: number };
+
+/** A console connector as the admin sees it: the stored record (no secret, only its last characters), the last listing, the derived state and what blocks each tool. */
+export type ConnectorView = {
+  connector: StoredConnector;
+  upstream: Upstream | null;
+  state: LifecycleState;
+  enabled: boolean;
+  live: string[];
+  blockers: Record<string, BlockerCode[]>;
+  impact: EvalImpact;
+};
+
+export type ViewResult = { ok: true; view: ConnectorView } | Problem;
+
+export type TestResult = { ok: true; view: ConnectorView; run: TestRun } | Problem;
+
+export type SampleResult = { ok: true; fields: string[] } | Problem;
+
+export type ActivateResult = { ok: true; view: ConnectorView; impact: EvalImpact } | Problem;
+
+export type DiscoverInput = { existing: boolean; id: string; labelTh: string; url: string; auth: AuthKind; secret: string };
+
+/** One tool as the wizard sends it to save: the draft, the field names it learned, and the hash of the listing the admin was shown. */
+export type ToolSave = { draft: ToolDraft; fields: string[]; seenHash: string };
+
+export type SaveInput = { connector: string; tools: ToolSave[]; removed: string[] };
+
+export type SaveResult = { ok: true; view: ConnectorView; incomplete: Record<string, BlockerCode[]> } | Problem;

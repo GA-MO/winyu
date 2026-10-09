@@ -1,5 +1,6 @@
 import { BlockList, isIP } from "node:net";
 import { lookup } from "node:dns/promises";
+import type { EgressProblem } from "@/lib/connectors/spec";
 
 export const CONNECTOR_HOSTS_ENV = "WINYU_CONNECTOR_HOSTS";
 export const MAX_RESPONSE_BYTES = 2 * 1024 * 1024;
@@ -29,9 +30,6 @@ const PRIVATE: readonly [string, number, "ipv4" | "ipv6"][] = [
   ["::1", 128, "ipv6"],
   ["fc00::", 7, "ipv6"],
 ];
-
-/** Why Winyu will not connect to a URL. */
-export type EgressProblem = "bad_url" | "credentials_in_url" | "host_not_allowed" | "address_refused" | "unresolvable";
 
 export class EgressRefused extends Error {
   readonly problem: EgressProblem;

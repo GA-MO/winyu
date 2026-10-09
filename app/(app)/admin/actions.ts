@@ -2,6 +2,7 @@
 
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
 import { METRIC_IDS, ROLE_IDS, type MetricId, type RoleId, type ToolName } from "@/lib/contracts";
 import { connectorFields, connectors, isToolName } from "@/lib/server/tools/registry";
 import { killTool, reviveTool, setAlertsInboxEnabled, setConnectorEnabled, setHandoffEnabled } from "@/lib/access/enforce";
@@ -20,6 +21,11 @@ import { addRule, moveRule, removeRule, setRuleEnabled, updateRule, type RuleChe
 import { readUser } from "@/lib/server/session";
 import { TOKEN_CHANNELS, issueToken, revokeToken, type TokenChannel } from "@/lib/server/access-tokens";
 import { TH } from "@/lib/i18n/th";
+import {
+  AUTH_KINDS, toolDraftSchema,
+  type ActivateResult, type DiscoverInput, type Problem, type SampleResult, type SaveInput, type SaveResult, type TestResult, type ViewResult,
+} from "@/lib/connectors/spec";
+import { activateConnector, auditConnectorSwitch, checkConnectorUpstream, discoverConnector, sampleToolFields, saveConnectorTools, testConnectorTool } from "@/lib/server/connectors/admin";
 
 const ADMIN_PATH = "/admin";
 const VISIBILITIES: readonly Visibility[] = ["full", "masked", "none"];
@@ -138,10 +144,80 @@ export async function cycleFieldAction(formData: FormData) {
 }
 
 export async function setConnectorAction(formData: FormData) {
-  const by = await adminId();
+  const user = await sessionUser();
   const connector = connectorIn(formData);
-  if (!by || !connector) return;
-  setConnectorEnabled(connector, String(formData.get("enabled")) === "true", by);
+  if (user?.role !== "it_admin" || !connector) return;
+  const enabled = String(formData.get("enabled")) === "true";
+  setConnectorEnabled(connector, enabled, user.id);
+  auditConnectorSwitch(user, connector, enabled);
+  revalidatePath(ADMIN_PATH);
+}
+
+async function sessionUser() {
+  return readUser(await cookies());
+}
+
+function parsed<T>(schema: z.ZodType<T>, input: unknown): T | null {
+  const result = schema.safeParse(input);
+  return result.success ? result.data : null;
+}
+
+const BAD_INPUT: Problem = { ok: false, problem: "bad_input" };
+const connectorRef = z.object({ connector: z.string().max(64) });
+const toolRef = connectorRef.extend({ tool: z.string().max(64), asUser: z.string().max(64) });
+const discoverInput = z.object({ existing: z.boolean(), id: z.string().max(64), labelTh: z.string().max(200), url: z.string().max(2048), auth: z.enum(AUTH_KINDS), secret: z.string().max(4096) });
+const saveInput = connectorRef.extend({
+  tools: z.array(z.object({ draft: toolDraftSchema, fields: z.array(z.string().max(64)).max(200), seenHash: z.string().max(128) })).max(50),
+  removed: z.array(z.string().max(64)).max(50),
+});
+
+/** Connects to a server and lists its tools; the secret stays on the server and the reply carries its last characters only. IT admin only, audited. */
+export async function discoverConnectorAction(input: DiscoverInput): Promise<ViewResult> {
+  const valid = parsed(discoverInput, input);
+  if (!valid) return BAD_INPUT;
+  const result = await discoverConnector(await sessionUser(), valid);
+  revalidatePath(ADMIN_PATH);
+  return result;
+}
+
+/** Saves the complete tools of a console connector and removes the unticked ones. IT admin only, audited. */
+export async function saveConnectorToolsAction(input: SaveInput): Promise<SaveResult> {
+  const valid = parsed(saveInput, input);
+  if (!valid) return BAD_INPUT;
+  const result = saveConnectorTools(await sessionUser(), valid);
+  revalidatePath(ADMIN_PATH);
+  return result;
+}
+
+/** Reads the field names a tool's rows carry, as the chosen person; no value comes back. IT admin only, audited. */
+export async function sampleToolFieldsAction(input: { connector: string; tool: string; asUser: string }): Promise<SampleResult> {
+  const valid = parsed(toolRef, input);
+  return valid ? sampleToolFields(await sessionUser(), valid) : BAD_INPUT;
+}
+
+/** Tests a saved tool as the chosen person: counts and field names only. IT admin only, audited. */
+export async function testConnectorToolAction(input: { connector: string; tool: string; asUser: string }): Promise<TestResult> {
+  const valid = parsed(toolRef, input);
+  if (!valid) return BAD_INPUT;
+  const result = await testConnectorTool(await sessionUser(), valid);
+  revalidatePath(ADMIN_PATH);
+  return result;
+}
+
+/** Turns a ready console connector on. IT admin only, audited. */
+export async function activateConnectorAction(input: { connector: string }): Promise<ActivateResult> {
+  const valid = parsed(connectorRef, input);
+  if (!valid) return BAD_INPUT;
+  const result = activateConnector(await sessionUser(), valid);
+  revalidatePath(ADMIN_PATH);
+  return result;
+}
+
+/** Lists a console connector's tools again now. IT admin only, audited. */
+export async function checkConnectorUpstreamAction(formData: FormData) {
+  const valid = parsed(connectorRef, { connector: String(formData.get("connector") ?? "") });
+  if (!valid) return;
+  await checkConnectorUpstream(await sessionUser(), valid);
   revalidatePath(ADMIN_PATH);
 }
 

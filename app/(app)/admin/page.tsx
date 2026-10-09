@@ -215,7 +215,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
         {current === "overview" ? <OverviewTab /> : null}
         {current === "access" ? <AccessTab role={roleOf(params.role)} view={params.view === "matrix" ? "matrix" : "role"} viewer={user.id} /> : null}
         {current === "grants" ? <GrantsTab /> : null}
-        {current === "tools" ? <ToolsTab /> : null}
+        {current === "tools" ? <ToolsTab viewer={user} /> : null}
         {current === "rules" ? <RulesTab /> : null}
         {current === "audit" ? <AuditTab
             filter={{ userId: textOf(params.user), tool: textOf(params.tool), connector: textOf(params.connector), decision: decisionOf(params.decision), since: sinceOf(rangeOf(params.range)) }}
