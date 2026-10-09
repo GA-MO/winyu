@@ -9,12 +9,12 @@ import type { FeedItem, NextAction } from "@/lib/contracts";
 import { FeedList, postFeedAction, type FeedHandlers, type FeedSettle } from "@/components/feed/feed-list";
 import { TH } from "@/lib/i18n/th";
 import { dueTimeTh, relativeTimeTh } from "@/lib/i18n/format";
-import type { AlertItem, HandoffItem, InboxPayload, ReplyItem } from "./types";
+import type { AlertItem, HandoffItem, InboxPayload, NotificationItem, ReplyItem } from "./types";
 
 const INBOX_ENDPOINT = "/api/inbox";
 const ALERTS_ENDPOINT = "/api/alerts";
 const NOTIFICATIONS_ENDPOINT = "/api/notifications";
-const EMPTY: InboxPayload = { todo: [], goodNews: [], handoffs: [], alerts: [], replies: [], unread: 0, handoffOpen: true, alertsOpen: true };
+const EMPTY: InboxPayload = { notifications: [], todo: [], goodNews: [], handoffs: [], alerts: [], replies: [], unread: 0, handoffOpen: true, alertsOpen: true };
 const TABS = ["todo", "handoffs", "alerts", "replies"] as const;
 const PANEL = "fixed right-0 top-0 z-50 flex h-dvh w-full max-w-[26rem] flex-col border-l border-border bg-card shadow-panel animate-panel-in";
 const ACTION = "rounded-full border border-border bg-card px-3 py-1.5 text-xs text-muted-foreground transition hover:border-foreground/25 hover:text-foreground";
@@ -57,15 +57,15 @@ export function InboxDrawer({ open, onClose, focus = DEFAULT_FOCUS }: { open: bo
   const [loaded, setLoaded] = useState(false);
   const [note, setNote] = useState<string | null>(null);
 
-  const load = useCallback(() => {
+  const load = useCallback(() =>
     fetch(INBOX_ENDPOINT)
       .then((response) => (response.ok ? response.json() : null))
       .then((payload: InboxPayload | null) => {
         setData(payload ?? EMPTY);
         setLoaded(true);
       })
-      .catch(() => undefined);
-  }, []);
+      .catch(() => undefined),
+  []);
 
   useEffect(() => {
     if (open) setTab(focus.tab);
@@ -73,8 +73,7 @@ export function InboxDrawer({ open, onClose, focus = DEFAULT_FOCUS }: { open: bo
 
   useEffect(() => {
     if (!open) return;
-    load();
-    void fetch(NOTIFICATIONS_ENDPOINT, { method: "POST" });
+    void load().then(() => fetch(NOTIFICATIONS_ENDPOINT, { method: "POST" }));
   }, [load, open]);
 
   useEffect(() => {
@@ -167,6 +166,7 @@ export function InboxDrawer({ open, onClose, focus = DEFAULT_FOCUS }: { open: bo
 
         <div className="ui-scrollbar flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-3">
           {!loaded ? <p className="px-2 py-8 text-sm text-muted-foreground">{TH.common.loading}</p> : null}
+          {loaded && shown === "todo" ? <RecentList items={data.notifications} onOpen={(href) => { onClose(); router.push(href); }} /> : null}
           {loaded && shown === "todo" ? (
             data.todo.length > 0 ? (
               <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-card">
@@ -211,6 +211,33 @@ export function InboxDrawer({ open, onClose, focus = DEFAULT_FOCUS }: { open: bo
         </div>
       </aside>
     </>
+  );
+}
+
+/** The bell's recent notifications, newest first, each opening the page its kind points at. */
+export function RecentList({ items, onOpen }: { items: NotificationItem[]; onOpen: (href: string) => void }) {
+  if (items.length === 0) return null;
+  return (
+    <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-card" aria-label={TH.inbox.recent}>
+      <h3 className="px-4 pb-1 pt-3 text-[11px] font-medium text-muted-foreground">{TH.inbox.recent}</h3>
+      <ul className="flex flex-col">
+        {items.map((item) => (
+          <li key={item.id}>
+            <button type="button" onClick={() => onOpen(item.href)} data-notification={item.id} className="flex w-full items-start gap-2.5 px-4 py-2.5 text-left transition hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+              <span aria-hidden className={cn("mt-1.5 size-1.5 shrink-0 rounded-full", item.read ? "bg-transparent" : "bg-primary")} />
+              <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                <span className={cn("text-sm leading-snug", item.read ? "text-muted-foreground" : "font-medium text-foreground")}>
+                  {item.read ? null : <span className="sr-only">{TH.inbox.unreadMark} </span>}
+                  {item.title}
+                </span>
+                <span className="text-xs text-muted-foreground">{relativeTimeTh(item.at)}</span>
+              </span>
+              <ArrowRight className="mt-1 size-3.5 shrink-0 text-muted-foreground" aria-hidden />
+            </button>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
 

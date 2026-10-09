@@ -2,7 +2,9 @@ import type { User } from "@/lib/contracts";
 import { findUser, USERS } from "@/lib/data/entities/users";
 import { shareTitle, type ChannelOption, type ShareChannel, type ShareContact, type ShareGrantReceipt, type ShareRequest } from "@/lib/share/card";
 import { recordShare } from "@/lib/server/audit";
-import { grantOnShare } from "@/lib/server/grants";
+import { untilLabel } from "@/lib/share/grant-label";
+import { grantOnShare, shareGrantUntil } from "@/lib/server/grants";
+import { notify } from "@/lib/server/notify";
 import { lineSettings, pushLineMessages } from "@/lib/server/channels/line";
 import { postTeamsCard, teamsSettings } from "@/lib/server/channels/teams";
 import { teamsConversationOf } from "@/lib/server/channels/teams-conversations";
@@ -97,5 +99,9 @@ export async function createShare(sender: User, request: ShareRequest, at = new 
   const share = shares().put({ id: code, at, senderId: sender.id, title, question: request.question, note, card: request.card, deliveries, views: 0, lastViewedAt: null });
   recordShare({ userId: sender.id, code, title, reads: request.card.reads.map((read) => read.tool), deliveries });
   const grants = request.grantDays ? grantOnShare(sender, request.card, deliveries.map((delivery) => delivery.userId), request.grantDays, code, new Date(at)) : [];
+  for (const delivery of deliveries) {
+    const until = shareGrantUntil(code, delivery.userId);
+    notify(delivery.userId, { kind: "share", refId: code, senderName: sender.nameTh, cardTitle: title, grantUntil: until ? untilLabel(until) : null }, new Date(at));
+  }
   return { ok: true, share, grants };
 }

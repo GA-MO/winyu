@@ -26,7 +26,7 @@ export const sendEmailTool = defineTool({
     const target = recipient(toUserId);
     if (!target.ok) return { ok: false as const, error: target.error };
     const entry = await ports().mail.send({ kind: "email", fromUserId: access.userId, toUserId: target.user.id, toEmail: target.user.email, subject, body, refId: null });
-    notify({ userId: target.user.id, kind: "reply", refId: entry.id, title: `อีเมลใหม่: ${subject}` });
+    notify({ userId: target.user.id, kind: "email", refId: entry.id, title: `อีเมลใหม่: ${subject}` });
     return { ok: true as const, summary: `ส่งอีเมลถึง ${target.user.nameTh} แล้ว`, data: { outboxId: entry.id, toEmail: target.user.email, subject } };
   },
 });

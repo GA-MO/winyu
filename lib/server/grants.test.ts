@@ -5,7 +5,10 @@ import { metricAccess } from "@/lib/access/grants";
 import { addRule, resetPolicyRules } from "@/lib/access/policy-rules";
 import type { GrantSlice, User } from "@/lib/contracts";
 import { findUser } from "@/lib/data/entities/users";
-import { outbox } from "@/lib/server/agent/collections";
+import { TH } from "@/lib/i18n/th";
+import { untilLabel } from "@/lib/share/grant-label";
+import { notificationTarget } from "@/lib/share/notification-kinds";
+import { notifications, outbox } from "@/lib/server/agent/collections";
 import { winyuTools } from "@/lib/server/agent/tools";
 import { auditLog } from "@/lib/server/audit";
 import { runWithAccess } from "@/lib/server/request-context";
@@ -151,8 +154,8 @@ describe("grants from a share", () => {
     expect(again.ok && again.request.id).toBe(asked.request.id);
     expect(shareScopeFor(share, user("u_krit"))?.pendingRequest?.id).toBe(asked.request.id);
 
-    expect(approveRequest(asked.request.id, user("u_ton"), 7)).toMatchObject({ ok: false, problem: "not_yours" });
-    const approved = approveRequest(asked.request.id, user("u_thana"), 7);
+    expect(await approveRequest(asked.request.id, user("u_ton"), 7)).toMatchObject({ ok: false, problem: "not_yours" });
+    const approved = await approveRequest(asked.request.id, user("u_thana"), 7);
     if (!approved.ok) throw new Error(approved.problem);
     expect(approved.grant?.days).toBe(7);
     expect(shareScopeFor(share, user("u_krit"))).toMatchObject({ grant: { grantorName: "คุณธนา วงศ์สกุล" }, requestable: false });
@@ -164,7 +167,7 @@ describe("grants from a share", () => {
     const asked = await requestGrant(user("u_krit"), share.id, "");
     if (!asked.ok) throw new Error(asked.problem);
     expect(asked.request.approverId).toBe("u_prasit");
-    expect(declineRequest(asked.request.id, user("u_ton"))).toMatchObject({ ok: true, request: { status: "declined" } });
+    expect(await declineRequest(asked.request.id, user("u_ton"))).toMatchObject({ ok: true, request: { status: "declined" } });
 
     const own = storedShare("u_anucha", "u_krit");
     expect(await requestGrant(user("u_krit"), own.id, "")).toEqual({ ok: false, problem: "nothing_hidden" });
@@ -175,5 +178,79 @@ describe("grants from a share", () => {
     const share = storedShare("u_thana", "u_krit", { ...BY_REGION, metric: "ar_overdue" });
     expect(shareScopeFor(share, user("u_krit"))?.requestable).toBe(false);
     expect(await requestGrant(user("u_krit"), share.id, "")).toEqual({ ok: false, problem: "no_approver" });
+  });
+});
+
+describe("a request and its decision reach people by mail and in their bell", () => {
+  const SCRIPT_REASON = `<script>alert("x")</script> ต้องเทียบ & ดูกรุงเทพฯ`;
+
+  test("the approver's mail is HTML with a พิจารณาคำขอ button to /g/<id>, the requester and title, and the reason escaped; one bell item opens the request", async () => {
+    const share = storedShare("u_thana", "u_krit");
+    const mailBefore = outbox().all().length;
+    const bellBefore = notifications().all().length;
+    const asked = await requestGrant(user("u_krit"), share.id, SCRIPT_REASON);
+    if (!asked.ok) throw new Error(asked.problem);
+    const [mail, ...rest] = outbox().all().slice(mailBefore);
+    const path = `/g/${asked.request.id}`;
+    expect(rest).toEqual([]);
+    expect(mail).toMatchObject({ toUserId: "u_thana", fromUserId: "u_krit", refId: asked.request.id });
+    expect(mail.html).toMatch(new RegExp(`<a href="[^"]*${path}"[^>]*>${TH.grant.mail.decide}</a>`));
+    expect(mail.html).toContain(user("u_krit").nameTh);
+    expect(mail.html).toContain(user("u_krit").title);
+    expect(mail.html).not.toContain("<script>");
+    expect(mail.html).toContain("&lt;script&gt;alert(&quot;x&quot;)&lt;/script&gt; ต้องเทียบ &amp; ดูกรุงเทพฯ");
+    expect(mail.body).toContain(path);
+    expect(mail.body).toContain(SCRIPT_REASON);
+
+    const bell = notifications().all().slice(bellBefore);
+    expect(bell).toHaveLength(1);
+    expect(bell[0]).toMatchObject({ userId: "u_thana", kind: "grant_request", refId: asked.request.id, read: false });
+    expect(notificationTarget(bell[0])).toBe(path);
+    expect(bell[0].title).toContain(user("u_krit").nameTh);
+  });
+
+  test("approved: u_krit is mailed who approved, until when, and a เปิดการ์ด button to the card; one bell item opens the card", async () => {
+    const share = storedShare("u_thana", "u_krit");
+    const asked = await requestGrant(user("u_krit"), share.id, "");
+    if (!asked.ok) throw new Error(asked.problem);
+    const mailBefore = outbox().all().length;
+    const bellBefore = notifications().all().length;
+    const approved = await approveRequest(asked.request.id, user("u_thana"), 3);
+    if (!approved.ok || !approved.grant) throw new Error("not approved");
+    const until = untilLabel(approved.grant.expiresAt);
+    const [mail, ...rest] = outbox().all().slice(mailBefore);
+    expect(rest).toEqual([]);
+    expect(mail).toMatchObject({ toUserId: "u_krit", fromUserId: "u_thana" });
+    expect(mail.html).toMatch(new RegExp(`<a href="[^"]*/s/${share.id}"[^>]*>${TH.grant.mail.openCard}</a>`));
+    expect(mail.html).toContain(user("u_thana").nameTh);
+    expect(mail.html).toContain(until);
+    expect(mail.body).toContain(`/s/${share.id}`);
+
+    const bell = notifications().all().slice(bellBefore);
+    expect(bell).toHaveLength(1);
+    expect(bell[0]).toMatchObject({ userId: "u_krit", kind: "grant_approved", refId: share.id });
+    expect(bell[0].title).toContain(until);
+    expect(notificationTarget(bell[0])).toBe(`/s/${share.id}`);
+  });
+
+  test("declined, by IT here: u_krit is mailed who declined, politely, with no button; one bell item opens the card, and he may ask again from it", async () => {
+    const share = storedShare("u_thana", "u_krit");
+    const asked = await requestGrant(user("u_krit"), share.id, "");
+    if (!asked.ok) throw new Error(asked.problem);
+    const mailBefore = outbox().all().length;
+    const bellBefore = notifications().all().length;
+    expect(await declineRequest(asked.request.id, user("u_ton"))).toMatchObject({ ok: true });
+    const [mail, ...rest] = outbox().all().slice(mailBefore);
+    expect(rest).toEqual([]);
+    expect(mail).toMatchObject({ toUserId: "u_krit", fromUserId: "u_ton" });
+    expect(mail.subject).toContain(user("u_ton").nameTh);
+    expect(mail.html).not.toContain("<a ");
+    expect(mail.html).toContain(TH.grant.mail.declinedNote);
+
+    const bell = notifications().all().slice(bellBefore);
+    expect(bell).toHaveLength(1);
+    expect(bell[0]).toMatchObject({ userId: "u_krit", kind: "grant_declined", refId: share.id });
+    expect(notificationTarget(bell[0])).toBe(`/s/${share.id}`);
+    expect(shareScopeFor(share, user("u_krit"))?.requestable).toBe(true);
   });
 });

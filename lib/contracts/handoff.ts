@@ -6,7 +6,9 @@ export type ContextPacket = { id: string; fromUserId: string; toUserId: string; 
   conversationDigest: string; suggestedActions: string[]; status: "open" | "accepted" | "need_info" | "returned" | "resolved";
   outcome: string | null; thread: PacketReply[]; createdAt: string; updatedAt: string };
 export type PacketReply = { userId: string; at: string; text: string };
-export type Notification = { id: string; userId: string; at: string; kind: "handoff" | "alert" | "reply" | "email"; refId: string; read: boolean; title: string };
+export const NOTIFICATION_KINDS = ["handoff", "alert", "reply", "email", "share", "grant_request", "grant_approved", "grant_declined"] as const;
+export type NotificationKind = (typeof NOTIFICATION_KINDS)[number];
+export type Notification = { id: string; userId: string; at: string; kind: NotificationKind; refId: string; read: boolean; title: string };
 
 export const URGENCIES = ["low", "medium", "high"] as const;
 export type Urgency = (typeof URGENCIES)[number];

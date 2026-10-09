@@ -6,10 +6,13 @@ import { DEFAULT_GRANT_DAYS, type Grant, type GrantDays, type GrantRefusal, type
 import { findUser, USERS } from "@/lib/data/entities/users";
 import { TH } from "@/lib/i18n/th";
 import type { ShareGrantReceipt, SharedCard } from "@/lib/share/card";
-import { sliceLabel } from "@/lib/share/grant-label";
+import { sliceLabel, untilLabel } from "@/lib/share/grant-label";
 import { recordGrantEvent } from "@/lib/server/audit";
 import { channelWebOrigin } from "@/lib/server/channels/config";
+import { grantDecisionMail, grantRequestMail, type GrantMail } from "@/lib/server/grant-mail";
+import { notify } from "@/lib/server/notify";
 import { ports } from "@/lib/server/ports";
+import { shareUrl } from "@/lib/server/share/message";
 import { mayOpen, shares, type Share } from "@/lib/server/share/shares";
 import { collection } from "@/lib/server/store/json-store";
 
@@ -137,6 +140,11 @@ function pendingRequestOf(requesterId: string, shareCode: string, slice: GrantSl
   return grantRequests().where((request) => request.requesterId === requesterId && request.shareCode === shareCode && request.slice.metric === slice.metric && request.status === "pending")[0] ?? null;
 }
 
+/** When the grant a share gave one recipient at share time ends; null when it gave none. */
+export function shareGrantUntil(shareCode: string, recipientId: string): string | null {
+  return grants().where((grant) => grant.shareCode === shareCode && grant.recipientId === recipientId && grant.requestId === null)[0]?.expiresAt ?? null;
+}
+
 function liveGrantOf(recipientId: string, slice: GrantSlice, at: Date): Grant | null {
   return grants().where((grant) => grant.recipientId === recipientId && grant.slice.metric === slice.metric && isLiveGrant(grant, at))[0] ?? null;
 }
@@ -161,10 +169,27 @@ export function grantRequestPath(requestId: string): string {
   return `${GRANT_PATH}${requestId}`;
 }
 
-function mailApprover(request: GrantRequest, requester: User, approver: User): Promise<unknown> {
+function sendMail(from: User, to: User, mail: GrantMail, refId: string): Promise<unknown> {
+  return ports().mail.send({ kind: "share", fromUserId: from.id, toUserId: to.id, toEmail: to.email, subject: mail.subject, body: mail.body, html: mail.html, refId });
+}
+
+function tellApprover(request: GrantRequest, requester: User, approver: User): Promise<unknown> {
   const slice = sliceLabel(request.slice);
   const url = `${channelWebOrigin()}${grantRequestPath(request.id)}`;
-  return ports().mail.send({ kind: "share", fromUserId: requester.id, toUserId: approver.id, toEmail: approver.email, subject: TH.grant.mailSubject(requester.nameTh, slice), body: TH.grant.mailBody(requester.nameTh, slice, request.reason, url), refId: request.id });
+  const cardTitle = shares().get(request.shareCode)?.title ?? null;
+  notify(approver.id, { kind: "grant_request", refId: request.id, requesterName: requester.nameTh, slice });
+  return sendMail(requester, approver, grantRequestMail({ requesterName: requester.nameTh, requesterTitle: requester.title, slice, reason: request.reason, cardTitle, url }), request.id);
+}
+
+function tellRequester(request: GrantRequest, decider: User, requester: User, grant: Grant | null): Promise<unknown> {
+  const slice = sliceLabel(request.slice);
+  if (grant) {
+    const until = untilLabel(grant.expiresAt);
+    notify(requester.id, { kind: "grant_approved", refId: request.shareCode, approverName: decider.nameTh, slice, until });
+    return sendMail(decider, requester, grantDecisionMail({ outcome: "approved", approverName: decider.nameTh, slice, until, url: shareUrl(request.shareCode) }), request.id);
+  }
+  notify(requester.id, { kind: "grant_declined", refId: request.shareCode, deciderName: decider.nameTh, slice });
+  return sendMail(decider, requester, grantDecisionMail({ outcome: "declined", deciderName: decider.nameTh, slice }), request.id);
 }
 
 /** A recipient asks for what a shared card hid from them: the slice comes from the stored share, never the client; one pending request per share and metric, mailed to its approver and audited. */
@@ -182,7 +207,7 @@ export async function requestGrant(requester: User, shareCode: string, reason: s
     id: randomUUID(), requesterId: requester.id, approverId: approver.id, slice, shareCode: share.id, reason: reason.trim().slice(0, REASON_MAX),
     status: "pending", createdAt: at.toISOString(), decidedAt: null, grantId: null,
   });
-  await mailApprover(request, requester, approver);
+  await tellApprover(request, requester, approver);
   recordGrantEvent({ userId: requester.id, event: "requested", ref: request.id, slice, recipientId: requester.id, days: null, reason: TH.grant.audit.requested(requester.nameTh, approver.nameTh) });
   return { ok: true, request };
 }
@@ -192,8 +217,8 @@ export function mayDecide(request: GrantRequest, user: User): boolean {
   return request.approverId === user.id || user.role === "it_admin";
 }
 
-/** The approver grants a pending request for some days, the rules checked again now; a refusal leaves it pending. */
-export function approveRequest(requestId: string, approver: User, days: GrantDays, at = new Date()): DecisionOutcome {
+/** The approver grants a pending request for some days, the rules checked again now; a refusal leaves it pending. The requester is told in their bell and by mail. */
+export async function approveRequest(requestId: string, approver: User, days: GrantDays, at = new Date()): Promise<DecisionOutcome> {
   const request = grantRequests().get(requestId);
   const requester = request ? findUser(request.requesterId) : null;
   if (!request || !requester) return { ok: false, problem: "missing" };
@@ -202,17 +227,20 @@ export function approveRequest(requestId: string, approver: User, days: GrantDay
   const outcome = giveGrant({ grantor: approver, recipient: requester, slice: request.slice, days, shareCode: request.shareCode, requestId, at });
   if (!outcome.ok) return { ok: false, problem: "refused", refusal: outcome.refusal };
   const decided = grantRequests().put({ ...request, status: "approved", decidedAt: at.toISOString(), grantId: outcome.grant.id });
+  await tellRequester(decided, approver, requester, outcome.grant);
   return { ok: true, request: decided, grant: outcome.grant };
 }
 
-/** The approver or IT declines a pending request. */
-export function declineRequest(requestId: string, by: User, at = new Date()): DecisionOutcome {
+/** The approver or IT declines a pending request; the requester is told in their bell and by mail. */
+export async function declineRequest(requestId: string, by: User, at = new Date()): Promise<DecisionOutcome> {
   const request = grantRequests().get(requestId);
-  if (!request) return { ok: false, problem: "missing" };
+  const requester = request ? findUser(request.requesterId) : null;
+  if (!request || !requester) return { ok: false, problem: "missing" };
   if (!mayDecide(request, by)) return { ok: false, problem: "not_yours" };
   if (request.status !== "pending") return { ok: false, problem: "decided" };
   const decided = grantRequests().put({ ...request, status: "declined", decidedAt: at.toISOString() });
   recordGrantEvent({ userId: by.id, event: "declined", ref: request.id, slice: request.slice, recipientId: request.requesterId, days: null, reason: TH.grant.audit.declined(nameOf(request.requesterId)) });
+  await tellRequester(decided, by, requester, null);
   return { ok: true, request: decided, grant: null };
 }
 

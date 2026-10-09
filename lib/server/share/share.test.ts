@@ -15,6 +15,7 @@ const { liveAccessFor } = await import("@/lib/access/enforce");
 const { winyuTools } = await import("@/lib/server/agent/tools");
 const { runWithAccess } = await import("@/lib/server/request-context");
 const { GEMINI_TEAM_CARD } = await import("@/lib/compose/gemini-team-card");
+const { TH } = await import("@/lib/i18n/th");
 const { createShare, channelsFor } = await import("./deliver");
 const { mayOpen, shareCode, SHARE_CODE_LENGTH, shares } = await import("./shares");
 const { openShare, regrounded } = await import("./view");
@@ -234,5 +235,41 @@ describe("Teams and LINE carry a button into Winyu", () => {
     expect(message.altText).toContain(url);
     expect(message.contents.footer.contents[0].action).toMatchObject({ type: "uri", uri: url });
     expectNoValues(JSON.stringify(pushed[0].body));
+  });
+});
+
+describe("a share lands in the recipient's bell as well", () => {
+  test("whatever the channel, each recipient gets one bell item that names the sender and the card, opens /s/<code>, and carries no value", async () => {
+    const { notifications } = await import("@/lib/server/agent/collections");
+    const { notificationTarget } = await import("@/lib/share/notification-kinds");
+    for (const channel of ["email", "teams", "line"] as const) {
+      const before = notifications().all().length;
+      const outcome = await createShare(user("u_thana"), { card: metricCard, question: QUESTION, note: "", recipients: [{ userId: "u_krit", channel }, { userId: "u_anucha", channel: "email" }] });
+      if (!outcome.ok) throw new Error(outcome.error);
+      const bell = notifications().all().slice(before);
+      expect(bell.map((item) => [item.userId, item.kind, item.refId])).toEqual([["u_krit", "share", outcome.share.id], ["u_anucha", "share", outcome.share.id]]);
+      expect(notificationTarget(bell[0])).toBe(`/s/${outcome.share.id}`);
+      expect(bell[0].title).toBe(TH.notify.shared(user("u_thana").nameTh, outcome.share.title));
+      expectNoValues(JSON.stringify(bell));
+    }
+  });
+
+  test("a grant given at share time folds into the same bell item, with its end date", async () => {
+    const { notifications } = await import("@/lib/server/agent/collections");
+    const { grants } = await import("@/lib/server/grants");
+    const { untilLabel } = await import("@/lib/share/grant-label");
+    try {
+      const before = notifications().all().length;
+      const outcome = await createShare(user("u_thana"), { card: metricCard, question: QUESTION, note: "", recipients: [{ userId: "u_krit", channel: "email" }], grantDays: 3 });
+      if (!outcome.ok) throw new Error(outcome.error);
+      const bell = notifications().all().slice(before);
+      const grant = grants().all().find((item) => item.shareCode === outcome.share.id);
+      if (!grant) throw new Error("no grant");
+      expect(bell).toHaveLength(1);
+      expect(bell[0].title).toBe(TH.notify.sharedWithGrant(user("u_thana").nameTh, outcome.share.title, untilLabel(grant.expiresAt)));
+      expectNoValues(bell[0].title);
+    } finally {
+      for (const grant of grants().all()) grants().remove(grant.id);
+    }
   });
 });

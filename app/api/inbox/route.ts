@@ -1,5 +1,6 @@
 import type { AccessContext, Alert, ContextPacket, Dim } from "@/lib/contracts";
-import type { AlertItem, EvidenceLine, HandoffItem, InboxPayload, ReplyItem } from "@/components/inbox/types";
+import type { AlertItem, EvidenceLine, HandoffItem, InboxPayload, NotificationItem, ReplyItem } from "@/components/inbox/types";
+import { notificationTarget } from "@/lib/share/notification-kinds";
 import { requireAccess, unauthenticated } from "../_guard";
 import { notifications } from "@/lib/server/agent/collections";
 import { packetsFor, resolveEvidence, sentPackets, type EvidenceView } from "@/lib/server/handoff";
@@ -16,6 +17,7 @@ import { TH } from "@/lib/i18n/th";
 
 const MAX_ITEMS = 20;
 const MAX_ALERT_ITEMS = 60;
+const MAX_NOTIFICATIONS = 8;
 
 function nameOf(userId: string): string {
   return findUser(userId)?.nameTh ?? userId;
@@ -116,9 +118,13 @@ export async function GET() {
       return { id: packet.id, title: packet.title, toName: nameOf(packet.toUserId), text: last.text, at: last.at, status: TH.inbox.status[packet.status] };
     });
 
-  const unread = notifications().where((item) => item.userId === access.userId && !item.read).length;
+  const mine = notifications()
+    .where((item) => item.userId === access.userId)
+    .sort((left, right) => right.at.localeCompare(left.at));
+  const unread = mine.filter((item) => !item.read).length;
+  const recent: NotificationItem[] = mine.slice(0, MAX_NOTIFICATIONS).map((item) => ({ id: item.id, title: item.title, at: item.at, read: item.read, href: notificationTarget(item) }));
   const todo = (await todoFor(access)).slice(0, MAX_ITEMS);
   const goodNews = await goodNewsFor(access);
-  const payload: InboxPayload = { todo, goodNews, handoffs, alerts: alertItems, replies, unread, handoffOpen, alertsOpen };
+  const payload: InboxPayload = { notifications: recent, todo, goodNews, handoffs, alerts: alertItems, replies, unread, handoffOpen, alertsOpen };
   return Response.json(payload);
 }

@@ -45,4 +45,7 @@ export type AlertItem = {
 
 export type ReplyItem = { id: string; title: string; toName: string; text: string; at: string; status: string };
 
-export type InboxPayload = { todo: FeedItem[]; goodNews: FeedItem[]; handoffs: HandoffItem[]; alerts: AlertItem[]; replies: ReplyItem[]; unread: number; handoffOpen: boolean; alertsOpen: boolean };
+/** One bell notification as the drawer lists it, with the page pressing it opens. */
+export type NotificationItem = { id: string; title: string; at: string; read: boolean; href: string };
+
+export type InboxPayload = { notifications: NotificationItem[]; todo: FeedItem[]; goodNews: FeedItem[]; handoffs: HandoffItem[]; alerts: AlertItem[]; replies: ReplyItem[]; unread: number; handoffOpen: boolean; alertsOpen: boolean };

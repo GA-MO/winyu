@@ -24,7 +24,7 @@ export async function approveGrantAction(formData: FormData) {
   const id = textIn(formData, "request");
   const days = daysIn(formData);
   if (!user || !days) return;
-  const outcome = approveRequest(id, user, days);
+  const outcome = await approveRequest(id, user, days);
   if (!outcome.ok && outcome.problem === "refused") redirect(`${grantRequestPath(id)}?refused=${outcome.refusal.code}`);
   revalidatePath(grantRequestPath(id));
 }
@@ -33,7 +33,7 @@ export async function declineGrantAction(formData: FormData) {
   const user = readUser(await cookies());
   const id = textIn(formData, "request");
   if (!user) return;
-  declineRequest(id, user);
+  await declineRequest(id, user);
   revalidatePath(grantRequestPath(id));
 }
 

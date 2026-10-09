@@ -17,6 +17,9 @@ const HTML_ESCAPES: Record<string, string> = { "&": "&amp;", "<": "&lt;", ">": "
 /** Everything a share message says: the card's title, who shared it, their note, and the link into Winyu. No value from the card travels. */
 export type ShareMessage = { title: string; senderName: string; senderTitle: string; note: string | null; url: string };
 
+/** A mail as Winyu lays it out: a lead line, a heading, a quote of someone's own words, a button with its link written out, and closing lines. */
+export type MailLayout = { lead: string; heading: string; quote: string | null; button: { label: string; url: string } | null; foot: readonly string[] };
+
 /** The short link a share opens at, on the public host people reach Winyu from. */
 export function shareUrl(code: string): string {
   return `${channelWebOrigin()}${SHARE_PATH}${code}`;
@@ -26,23 +29,33 @@ function escaped(text: string): string {
   return text.replace(/[&<>"']/g, (char) => HTML_ESCAPES[char]);
 }
 
+/** A mail laid out as HTML in the light theme's tokens; every string in it is escaped here, so user text stays text. */
+export function mailHtml(layout: MailLayout): string {
+  const muted = `color:${LIGHT_THEME_TOKENS.mutedForeground};font-size:12px`;
+  const quote = layout.quote
+    ? `<p style="margin:16px 0 0;padding:12px 14px;border-left:3px solid ${LIGHT_THEME_TOKENS.border};color:${LIGHT_THEME_TOKENS.foreground};font-size:14px;line-height:1.6">${escaped(layout.quote)}</p>`
+    : "";
+  const button = layout.button
+    ? `<p style="margin:24px 0 0"><a href="${escaped(layout.button.url)}" style="display:inline-block;padding:12px 20px;border-radius:999px;background:${LIGHT_THEME_TOKENS.primary};color:${EMAIL_BUTTON_TEXT};font-size:14px;font-weight:600;text-decoration:none">${escaped(layout.button.label)}</a></p>
+<p style="margin:16px 0 0;${muted}">${escaped(TH.share.plainLink)} <a href="${escaped(layout.button.url)}" style="color:${LIGHT_THEME_TOKENS.primary}">${escaped(layout.button.url)}</a></p>`
+    : "";
+  const foot = layout.foot.map((line) => `<p style="margin:8px 0 0;${muted}">${escaped(line)}</p>`).join("\n");
+  return `<!doctype html><html lang="th"><body style="margin:0;padding:24px;background:${EMAIL_BACKGROUND};font-family:system-ui,-apple-system,'Segoe UI',sans-serif">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;margin:0 auto;background:${EMAIL_CARD};border:1px solid ${LIGHT_THEME_TOKENS.border};border-radius:16px">
+<tr><td style="padding:24px">
+<p style="margin:0;color:${LIGHT_THEME_TOKENS.mutedForeground};font-size:13px">${escaped(layout.lead)}</p>
+<h1 style="margin:8px 0 0;color:${LIGHT_THEME_TOKENS.foreground};font-size:20px;line-height:1.4">${escaped(layout.heading)}</h1>
+${quote}
+${button}
+${foot}
+</td></tr></table></body></html>`;
+}
+
 /** The share as a mail: a subject, a plain body with the short link, and HTML with a button and the same link written out. */
 export function shareEmail(message: ShareMessage): { subject: string; body: string; html: string } {
   const lead = TH.share.lead(message.senderName, message.senderTitle);
   const body = [lead, `"${message.title}"`, ...(message.note ? [`${TH.share.noteFrom(message.senderName)}: ${message.note}`] : []), `${TH.share.open}: ${message.url}`, TH.share.scopeNote].join("\n\n");
-  const note = message.note
-    ? `<p style="margin:16px 0 0;padding:12px 14px;border-left:3px solid ${LIGHT_THEME_TOKENS.border};color:${LIGHT_THEME_TOKENS.foreground};font-size:14px;line-height:1.6">${escaped(message.note)}</p>`
-    : "";
-  const html = `<!doctype html><html lang="th"><body style="margin:0;padding:24px;background:${EMAIL_BACKGROUND};font-family:system-ui,-apple-system,'Segoe UI',sans-serif">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;margin:0 auto;background:${EMAIL_CARD};border:1px solid ${LIGHT_THEME_TOKENS.border};border-radius:16px">
-<tr><td style="padding:24px">
-<p style="margin:0;color:${LIGHT_THEME_TOKENS.mutedForeground};font-size:13px">${escaped(lead)}</p>
-<h1 style="margin:8px 0 0;color:${LIGHT_THEME_TOKENS.foreground};font-size:20px;line-height:1.4">${escaped(message.title)}</h1>
-${note}
-<p style="margin:24px 0 0"><a href="${escaped(message.url)}" style="display:inline-block;padding:12px 20px;border-radius:999px;background:${LIGHT_THEME_TOKENS.primary};color:${EMAIL_BUTTON_TEXT};font-size:14px;font-weight:600;text-decoration:none">${escaped(TH.share.open)}</a></p>
-<p style="margin:16px 0 0;color:${LIGHT_THEME_TOKENS.mutedForeground};font-size:12px">${escaped(TH.share.plainLink)} <a href="${escaped(message.url)}" style="color:${LIGHT_THEME_TOKENS.primary}">${escaped(message.url)}</a></p>
-<p style="margin:8px 0 0;color:${LIGHT_THEME_TOKENS.mutedForeground};font-size:12px">${escaped(TH.share.scopeNote)}</p>
-</td></tr></table></body></html>`;
+  const html = mailHtml({ lead, heading: message.title, quote: message.note, button: { label: TH.share.open, url: message.url }, foot: [TH.share.scopeNote] });
   return { subject: TH.share.subject(message.senderName, message.title), body, html };
 }
 
