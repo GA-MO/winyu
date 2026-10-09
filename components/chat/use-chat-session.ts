@@ -27,6 +27,7 @@ export type ChatSession = {
   decisions: Readonly<Record<string, boolean>>;
   error: string | null;
   stoppedExchangeId: string | null;
+  durations: Readonly<Record<string, number>>;
   send: (text: string) => void;
   runAction: (action: CardAction) => void;
   decide: (toolCallId: string, approved: boolean) => void;
@@ -69,6 +70,7 @@ export function useChatSession({ threadId, initialMessages, initialApprovals, pr
   const [decisions, setDecisions] = useState<Record<string, boolean>>({});
   const [error, setError] = useState<string | null>(null);
   const [stoppedExchangeId, setStoppedExchangeId] = useState<string | null>(null);
+  const [durations, setDurations] = useState<Record<string, number>>({});
   const batchRef = useRef(batch);
   batchRef.current = batch;
   const decisionsRef = useRef(decisions);
@@ -82,9 +84,11 @@ export function useChatSession({ threadId, initialMessages, initialApprovals, pr
 
   useEffect(() => {
     let raised: PendingApproval[] = [];
+    let startedAt: number | null = null;
     const subscription = agent.subscribe({
       onRunStartedEvent: () => {
         raised = [];
+        startedAt = Date.now();
         setBatch([]);
       },
       onRunFinishedEvent: (params) => {
@@ -94,6 +98,12 @@ export function useChatSession({ threadId, initialMessages, initialApprovals, pr
         raised = params.interrupts.flatMap((interrupt) => approvalOf(interrupt, exchangeId, position) ?? []);
       },
       onRunFinalized: () => {
+        const exchangeId = lastQuestionId(agent.messages);
+        if (startedAt !== null && exchangeId) {
+          const took = Date.now() - startedAt;
+          setDurations((current) => ({ ...current, [exchangeId]: (current[exchangeId] ?? 0) + took }));
+        }
+        startedAt = null;
         const fresh = raised;
         raised = [];
         if (fresh.length === 0) return;
@@ -155,5 +165,5 @@ export function useChatSession({ threadId, initialMessages, initialApprovals, pr
     copilotkit.stopAgent({ agent });
   }, [agent, copilotkit, exchanges]);
 
-  return { ready: isReady && restored, exchanges, running: agent.isRunning, asked, waiting, decisions, error, stoppedExchangeId, send, runAction, decide, stop };
+  return { ready: isReady && restored, exchanges, running: agent.isRunning, asked, waiting, decisions, error, stoppedExchangeId, durations, send, runAction, decide, stop };
 }

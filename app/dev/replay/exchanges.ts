@@ -29,3 +29,25 @@ export function replayExchanges(caseIds: readonly string[], enrolled: string | n
   const exchanges = caseIds.flatMap((caseId) => recordedExchange(caseId) ?? []);
   return enrolled ? [...exchanges, enrolledExchange(enrolled)] : exchanges;
 }
+
+function pending(step: ReplyStep): ReplyStep {
+  return step.kind === "tool" ? { ...step, outcome: { state: "pending" } } : step;
+}
+
+function groupsOf(calls: readonly ReplyStep[], parallel: boolean): ReplyStep[][] {
+  return parallel ? [[...calls]] : calls.map((call) => [call]);
+}
+
+/** One recorded exchange as the live stream would show it at each moment, for a frame-by-frame look at the trail: before any call, each group of calls running (with `parallel` every call starts together and they finish one by one), the results read, then the whole finished exchange as the last frame. */
+export function streamFramesOf(exchange: Exchange, parallel: boolean): Exchange[] {
+  const calls = exchange.steps.filter((step) => step.kind === "tool");
+  const frames: ReplyStep[][] = [[]];
+  let finished: ReplyStep[] = [];
+  for (const group of groupsOf(calls, parallel)) {
+    frames.push([...finished, ...group.map(pending)]);
+    for (let done = 1; done < group.length; done += 1) frames.push([...finished, ...group.slice(0, done), ...group.slice(done).map(pending)]);
+    finished = [...finished, ...group];
+    frames.push(finished);
+  }
+  return [...frames.map((steps) => ({ ...exchange, steps })), exchange];
+}

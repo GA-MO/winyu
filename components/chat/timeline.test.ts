@@ -45,16 +45,16 @@ describe("toolViewOf", () => {
   const write = second.steps[0];
   if (read.kind !== "tool" || write.kind !== "tool") throw new Error("fixture");
 
-  test("a read tool's result is its card; while it runs it is a working line; an empty answer draws nothing", () => {
+  test("a read tool's result is its card; while it runs it draws nothing here (the trail names it); an empty answer draws nothing", () => {
     expect(toolViewOf(read, IDLE, CARD_TOOLS)).toMatchObject({ kind: "card", name: "query_metric" });
-    expect(toolViewOf({ ...read, outcome: { state: "pending" } }, { ...IDLE, running: true }, CARD_TOOLS)).toEqual({ kind: "working" });
+    expect(toolViewOf({ ...read, outcome: { state: "pending" } }, { ...IDLE, running: true }, CARD_TOOLS)).toEqual({ kind: "none" });
     expect(isEmptyAnswer({ ok: true, summary: "ยังไม่มีพยากรณ์", weeks: [] })).toBe(true);
     expect(toolViewOf({ ...read, outcome: { state: "returned", result: { ok: true, weeks: [] } } }, IDLE, CARD_TOOLS)).toEqual({ kind: "none" });
   });
 
-  test("a write waits on the person, works while the answer runs, and shows a receipt only for the result it earned", () => {
+  test("a write waits on the person, draws nothing while the answer runs, and shows a receipt only for the result it earned", () => {
     expect(toolViewOf(write, { ...IDLE, asking: true }, CARD_TOOLS)).toMatchObject({ kind: "decision", approved: null });
-    expect(toolViewOf(write, { ...IDLE, running: true, decided: true }, CARD_TOOLS)).toEqual({ kind: "working" });
+    expect(toolViewOf(write, { ...IDLE, running: true, decided: true }, CARD_TOOLS)).toEqual({ kind: "none" });
     expect(toolViewOf(write, { ...IDLE, decided: true }, CARD_TOOLS)).toEqual({ kind: "not-run" });
     expect(toolViewOf({ ...write, outcome: { state: "returned", result: { ok: true } } }, IDLE, CARD_TOOLS)).toMatchObject({ kind: "decision", approved: true });
     expect(toolViewOf({ ...write, outcome: { state: "returned", result: { approved: false } } }, IDLE, CARD_TOOLS)).toMatchObject({ kind: "decision", approved: false });

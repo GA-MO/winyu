@@ -11,11 +11,10 @@ const PEOPLE_LOOKUPS: ReadonlySet<string> = new Set(["find_people", "get_person"
 const ENTITY_LOOKUP = "describe_entity";
 const USER_ENTITY = "user";
 
-/** How one tool call shows in a reply: its card, the decision it waits on or its receipt, a working line, a quiet note, or nothing. */
+/** How one tool call shows in a reply: its card, the decision it waits on or its receipt, a quiet note, or nothing (a call still running shows in the action trail). */
 export type ToolView =
   | { kind: "card"; name: string; result: unknown; args: unknown }
   | { kind: "decision"; tool: string; input: unknown; approved: boolean | null }
-  | { kind: "working" }
   | { kind: "not-run" }
   | { kind: "none" };
 
@@ -44,7 +43,6 @@ function cardView(step: ToolStep, live: ToolLive): ToolView {
   if (live.hidden) return { kind: "none" };
   if (step.outcome.state === "returned" && isEmptyAnswer(step.outcome.result)) return { kind: "none" };
   if (step.outcome.state === "returned") return { kind: "card", name: step.name, result: step.outcome.result, args: step.args };
-  if (step.outcome.state === "pending" && live.running) return { kind: "working" };
   return { kind: "none" };
 }
 
@@ -56,7 +54,7 @@ function writeView(step: ToolStep, live: ToolLive): ToolView {
     return isDone(step.outcome.result) ? { ...decision, approved: true } : { kind: "none" };
   }
   if (step.outcome.state === "failed") return { kind: "none" };
-  return live.running ? { kind: "working" } : { kind: "not-run" };
+  return live.running ? { kind: "none" } : { kind: "not-run" };
 }
 
 /** Picks how a tool call is drawn: read tools with a card in `cardTools` draw their result; every other tool is a write the person decides on, then a receipt. */

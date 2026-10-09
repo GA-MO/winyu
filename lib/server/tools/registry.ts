@@ -133,6 +133,11 @@ export function toolLabel(name: string): string {
   return surfaceEntry(name)?.labelTh ?? TH.admin.auditOnlyTools[name] ?? name;
 }
 
+/** Every surface tool's Thai label by name, for the chat to name a call it has no phrase of its own for. */
+export function toolLabelsByName(): Record<string, string> {
+  return Object.fromEntries(toolSurface().map((entry) => [entry.name, entry.labelTh]));
+}
+
 /** The Thai label the admin shows for a connector field; the raw key for one no longer declared. */
 export function fieldLabel(key: string): string {
   return connectorFields().find((field) => field.key === key)?.labelTh ?? key;

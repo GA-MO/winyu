@@ -1,7 +1,7 @@
 "use client";
 
 import { Component, type ReactNode } from "react";
-import { AlertCircle, CircleSlash, MessageSquareReply, MousePointerClick, ShieldCheck, Sparkles } from "lucide-react";
+import { AlertCircle, CircleSlash, MessageSquareReply, MousePointerClick, ShieldCheck } from "lucide-react";
 import { renderApproval } from "@/components/cards/approval-card";
 import { ShareChrome } from "@/components/share/share-sheet";
 import { describeToolCall } from "@/lib/cards/describe-call";
@@ -11,11 +11,13 @@ import type { ContextPacket, HandoffReplyNote } from "@/lib/contracts";
 import { maskPersonalData } from "@/lib/harness/guard";
 import { sharedComposedCard, sharedToolCard, shareTitle, type ExchangeRead, type ShareTarget } from "@/lib/share/card";
 import { TH } from "@/lib/i18n/th";
+import { ActionTrail } from "./action-trail";
 import { ComposedCardView } from "./composed-card";
 import { Markdown } from "./markdown";
 import type { Exchange, Question, ReplyStep, ToolStep } from "./timeline";
 import { cardPlanOf, composedCalls, toolViewOf, type CardPlan } from "./tool-view";
 import { withRequestedCourses } from "./requested-courses";
+import { trailOf } from "./trail";
 import type { PendingApproval } from "./use-chat-session";
 
 const CARDS: Record<string, ToolCard> = TOOL_CARDS;
@@ -28,7 +30,7 @@ const STATUS_TONE: Record<ContextPacket["status"], "neutral" | "success" | "warn
   resolved: "success",
 };
 
-/** What one exchange needs from the live chat: whether it is the newest, whether a reply streams, the approvals asked and answered, how it ended, the course seats the conversation has requested since, and the card an earlier exchange left on screen (what "ส่งการ์ดนี้" asked here would send). */
+/** What one exchange needs from the live chat: whether it is the newest, whether a reply streams, the approvals asked and answered, how it ended, the course seats the conversation has requested since, the card an earlier exchange left on screen (what "ส่งการ์ดนี้" asked here would send), the Thai tool labels its trail names connector calls by, and how long its runs took when this tab saw them. */
 export type ExchangeLive = {
   isLast: boolean;
   running: boolean;
@@ -40,6 +42,8 @@ export type ExchangeLive = {
   error: string | null;
   requestedCourses: ReadonlySet<string>;
   cardBefore: ShareTarget | null;
+  toolLabels: Readonly<Record<string, string>>;
+  durationMs: number | null;
 };
 
 function UserBubble({ question }: { question: Question }) {
@@ -65,15 +69,6 @@ function UserBubble({ question }: { question: Question }) {
         </p>
       ) : null}
     </div>
-  );
-}
-
-function Working({ label }: { label: string }) {
-  return (
-    <p className="flex items-center gap-2 text-sm text-muted-foreground" role="status">
-      <Sparkles className="size-4 animate-hero-pulse text-primary" aria-hidden />
-      <span className="ui-shimmer bg-linear-to-r from-muted-foreground via-foreground to-muted-foreground bg-size-[200%_100%] bg-clip-text text-transparent">{label}</span>
-    </p>
   );
 }
 
@@ -138,7 +133,6 @@ function ToolStepView({ step, live, plan, reply, sharing }: { step: ToolStep; li
         <ShareChrome target={toolShare(sharing, step.toolCallId, view.result)}>{CARDS[view.name](view.result, view.args, reply)}</ShareChrome>
       </div>
     );
-  if (view.kind === "working") return <Working label={TH.conversation.working} />;
   if (view.kind === "not-run") return <Note text={TH.conversation.notRun} tone="muted" />;
   if (view.kind === "none") return null;
   return (
@@ -198,9 +192,7 @@ function shows(step: ReplyStep): boolean {
 }
 
 function Ending({ exchange, live }: { exchange: Exchange; live: ExchangeLive }) {
-  if (!live.isLast) return null;
-  const last = exchange.steps[exchange.steps.length - 1];
-  if (live.running) return !last || (last.kind === "tool" && last.outcome.state === "returned") ? <Working label={TH.chat.thinking} /> : null;
+  if (!live.isLast || live.running) return null;
   if (live.error) return <Note text={live.error} tone="danger" />;
   if (live.stopped) return <Note text={TH.conversation.stopped} tone="muted" />;
   if (live.asked.length > 0 || exchange.steps.some(shows)) return null;
@@ -219,7 +211,7 @@ function stepsWithApprovals(exchange: Exchange, asked: readonly PendingApproval[
   return steps;
 }
 
-/** One question and its answer: the question bubble, then reply sentences, cards and decisions in the order the agent produced them; an approval the stream asked for without showing its call still gets its card. */
+/** One question and its answer: the question bubble, the trail of what the agent did (live while it streams, one quiet line after), then reply sentences, cards and decisions in the order the agent produced them; an approval the stream asked for without showing its call still gets its card. */
 export function ExchangeView({ exchange, live }: { exchange: Exchange; live: ExchangeLive }) {
   const streaming = live.running && live.isLast;
   const toolSteps = exchange.steps.filter((step): step is ToolStep => step.kind === "tool");
@@ -229,6 +221,7 @@ export function ExchangeView({ exchange, live }: { exchange: Exchange; live: Exc
   return (
     <article className="flex flex-col gap-4">
       {exchange.question ? <UserBubble question={exchange.question} /> : null}
+      <ActionTrail trail={trailOf(exchange.steps, streaming, live.toolLabels)} streaming={streaming} durationMs={live.durationMs} />
       {stepsWithApprovals(exchange, live.asked).map((step) => (
         <StepView key={step.kind === "tool" ? step.toolCallId : `${step.kind}-${step.id}`} step={step} live={live} plan={plan} reply={reply} sharing={sharing} />
       ))}

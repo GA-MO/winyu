@@ -10,8 +10,8 @@ import type { Exchange } from "@/components/chat/timeline";
 
 const NOTHING = () => undefined;
 
-/** Recorded exchanges drawn by the chat's exchange view, finished and idle; buttons do nothing. */
-export function Replay({ exchanges }: { exchanges: Exchange[] }) {
+/** Recorded exchanges drawn by the chat's exchange view, the last one streaming when `streaming`; buttons do nothing. */
+export function Replay({ exchanges, streaming, toolLabels, durationMs }: { exchanges: Exchange[]; streaming: boolean; toolLabels: Record<string, string>; durationMs: number | null }) {
   const requestedCourses = requestedCoursesOf(exchanges);
   const cardsBefore = cardsBeforeEach(exchanges, new Set(Object.keys(TOOL_CARDS)));
   return (
@@ -22,7 +22,7 @@ export function Replay({ exchanges }: { exchanges: Exchange[] }) {
             <ExchangeView
               key={exchange.id}
               exchange={exchange}
-              live={{ isLast: index === exchanges.length - 1, running: false, asked: [], waiting: new Set(), decisions: {}, decide: NOTHING, stopped: false, error: null, requestedCourses, cardBefore: cardsBefore[index] ?? null }}
+              live={{ isLast: index === exchanges.length - 1, running: streaming, asked: [], waiting: new Set(), decisions: {}, decide: NOTHING, stopped: false, error: null, requestedCourses, cardBefore: cardsBefore[index] ?? null, toolLabels, durationMs }}
             />
           ))}
         </div>

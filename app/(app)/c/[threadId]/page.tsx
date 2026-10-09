@@ -6,6 +6,7 @@ import { openApprovalsOf, threadHistory } from "@/lib/harness/adapters/mastra/hi
 import { TH } from "@/lib/i18n/th";
 import { packets } from "@/lib/server/agent/collections";
 import { quickActionsFor } from "@/lib/server/quick-actions";
+import { toolLabelsByName } from "@/lib/server/tools/registry";
 import { readAccess } from "@/lib/server/session";
 import { getThread } from "@/lib/server/threads-read";
 
@@ -41,6 +42,7 @@ export default async function ThreadPage({ params, searchParams }: PageProps) {
       preload={preloadOf(preload ?? thread.preload?.packetId ?? null, access.userId)}
       suggestions={quickActionsFor(access)}
       placeholder={TH.landing.composerPlaceholderFor(access.role)}
+      toolLabels={toolLabelsByName()}
     />
   );
 }

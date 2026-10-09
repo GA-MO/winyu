@@ -39,6 +39,7 @@ export type ChatSessionProps = {
   preload: SessionPreload | null;
   suggestions: QuickAction[];
   placeholder: string;
+  toolLabels: Record<string, string>;
 };
 
 function notePressed(action: QuickAction): void {
@@ -98,7 +99,7 @@ function PreloadBanner({ preload }: { preload: SessionPreload }) {
 }
 
 /** The chat column for one thread: the transcript with its cards and decisions, follow-up chips, and the composer docked at the bottom. */
-export function ChatSession({ threadId, initialPrompt, initialMessages, initialApprovals, preload, suggestions, placeholder }: ChatSessionProps) {
+export function ChatSession({ threadId, initialPrompt, initialMessages, initialApprovals, preload, suggestions, placeholder, toolLabels }: ChatSessionProps) {
   const session = useChatSession({ threadId, initialMessages, initialApprovals, preloadPacketId: preload?.packetId ?? null });
   const { exchanges, running, ready, send } = session;
   const [text, setText] = useState("");
@@ -146,6 +147,8 @@ export function ChatSession({ threadId, initialPrompt, initialMessages, initialA
       error: isLast ? session.error : null,
       requestedCourses,
       cardBefore: cardsBefore[index] ?? null,
+      toolLabels,
+      durationMs: session.durations[exchanges[index].id] ?? null,
     };
   };
 
