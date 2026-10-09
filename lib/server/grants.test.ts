@@ -7,7 +7,7 @@ import type { GrantSlice, User } from "@/lib/contracts";
 import { findUser } from "@/lib/data/entities/users";
 import { TH } from "@/lib/i18n/th";
 import { untilLabel } from "@/lib/share/grant-label";
-import { notificationTarget } from "@/lib/share/notification-kinds";
+import { notificationHome } from "@/lib/share/notification-kinds";
 import { notifications, outbox } from "@/lib/server/agent/collections";
 import { winyuTools } from "@/lib/server/agent/tools";
 import { auditLog } from "@/lib/server/audit";
@@ -184,7 +184,7 @@ describe("grants from a share", () => {
 describe("a request and its decision reach people by mail and in their bell", () => {
   const SCRIPT_REASON = `<script>alert("x")</script> ต้องเทียบ & ดูกรุงเทพฯ`;
 
-  test("the approver's mail is HTML with a พิจารณาคำขอ button to /g/<id>, the requester and title, and the reason escaped; one bell item opens the request", async () => {
+  test("the approver's mail is HTML with a พิจารณาคำขอ button to /g/<id>, the requester and title, and the reason escaped; one notification, read in the Inbox", async () => {
     const share = storedShare("u_thana", "u_krit");
     const mailBefore = outbox().all().length;
     const bellBefore = notifications().all().length;
@@ -205,11 +205,11 @@ describe("a request and its decision reach people by mail and in their bell", ()
     const bell = notifications().all().slice(bellBefore);
     expect(bell).toHaveLength(1);
     expect(bell[0]).toMatchObject({ userId: "u_thana", kind: "grant_request", refId: asked.request.id, read: false });
-    expect(notificationTarget(bell[0])).toBe(path);
+    expect(notificationHome(bell[0].kind)).toBe("inbox");
     expect(bell[0].title).toContain(user("u_krit").nameTh);
   });
 
-  test("approved: u_krit is mailed who approved, until when, and a เปิดการ์ด button to the card; one bell item opens the card", async () => {
+  test("approved: u_krit is mailed who approved, until when, and a เปิดการ์ด button to the card; one notification, read on Shared", async () => {
     const share = storedShare("u_thana", "u_krit");
     const asked = await requestGrant(user("u_krit"), share.id, "");
     if (!asked.ok) throw new Error(asked.problem);
@@ -230,10 +230,10 @@ describe("a request and its decision reach people by mail and in their bell", ()
     expect(bell).toHaveLength(1);
     expect(bell[0]).toMatchObject({ userId: "u_krit", kind: "grant_approved", refId: share.id });
     expect(bell[0].title).toContain(until);
-    expect(notificationTarget(bell[0])).toBe(`/s/${share.id}`);
+    expect(notificationHome(bell[0].kind)).toBe("shared");
   });
 
-  test("declined, by IT here: u_krit is mailed who declined, politely, with no button; one bell item opens the card, and he may ask again from it", async () => {
+  test("declined, by IT here: u_krit is mailed who declined, politely, with no button; one notification, read on Shared, and he may ask again from the card", async () => {
     const share = storedShare("u_thana", "u_krit");
     const asked = await requestGrant(user("u_krit"), share.id, "");
     if (!asked.ok) throw new Error(asked.problem);
@@ -250,7 +250,7 @@ describe("a request and its decision reach people by mail and in their bell", ()
     const bell = notifications().all().slice(bellBefore);
     expect(bell).toHaveLength(1);
     expect(bell[0]).toMatchObject({ userId: "u_krit", kind: "grant_declined", refId: share.id });
-    expect(notificationTarget(bell[0])).toBe(`/s/${share.id}`);
+    expect(notificationHome(bell[0].kind)).toBe("shared");
     expect(shareScopeFor(share, user("u_krit"))?.requestable).toBe(true);
   });
 });

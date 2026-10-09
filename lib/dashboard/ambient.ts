@@ -76,7 +76,7 @@ export function alertCard({ alert, row, owner, note, actions }: AlertCardParts):
 /** A handoff's card; when it carries an alert, that alert's number leads. */
 export function packetCard(packet: AmbientPacket, row: AlertRow | null): AmbientCard {
   const root = `ambient-packet-${packet.id}`;
-  const eyebrow = `${TH.inbox.tabs.handoffs} · ${TH.inbox.urgency[packet.urgency]}`;
+  const eyebrow = `${TH.inbox.sections.handoffs} · ${TH.inbox.urgency[packet.urgency]}`;
   return {
     id: root,
     eyebrow,

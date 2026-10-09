@@ -317,16 +317,16 @@ describe("the shared view keeps the sender's card shape and locks what the viewe
 });
 
 describe("a share lands in the recipient's bell as well", () => {
-  test("whatever the channel, each recipient gets one bell item that names the sender and the card, opens /s/<code>, and carries no value", async () => {
+  test("whatever the channel, each recipient gets one bell item that names the sender and the card, is read on Shared, and carries no value", async () => {
     const { notifications } = await import("@/lib/server/agent/collections");
-    const { notificationTarget } = await import("@/lib/share/notification-kinds");
+    const { notificationHome } = await import("@/lib/share/notification-kinds");
     for (const channel of ["email", "teams", "line"] as const) {
       const before = notifications().all().length;
       const outcome = await createShare(user("u_thana"), { card: metricCard, question: QUESTION, note: "", recipients: [{ userId: "u_krit", channel }, { userId: "u_anucha", channel: "email" }] });
       if (!outcome.ok) throw new Error(outcome.error);
       const bell = notifications().all().slice(before);
       expect(bell.map((item) => [item.userId, item.kind, item.refId])).toEqual([["u_krit", "share", outcome.share.id], ["u_anucha", "share", outcome.share.id]]);
-      expect(notificationTarget(bell[0])).toBe(`/s/${outcome.share.id}`);
+      expect(notificationHome(bell[0].kind)).toBe("shared");
       expect(bell[0].title).toBe(TH.notify.shared(user("u_thana").nameTh, outcome.share.title));
       expectNoValues(JSON.stringify(bell));
     }
