@@ -32,7 +32,7 @@ type Route = { kind: "info" } | { kind: "run" } | { kind: "connect" } | { kind: 
 
 type Handler = (request: Request) => Promise<Response>;
 
-/** How one served run ends: `learn` runs memory extraction and logs the question after a finished turn; an eval recording turns it off so a case costs no extra model call and leaves no memory behind for the next case. `initiator` names the surface the person asked from (the web chat unless a channel says otherwise), for the audit and admin rules. */
+/** How one served run ends: `learn` runs memory extraction and logs the question after a finished turn; an eval recording turns it off so a case costs no extra model call and leaves no memory behind for the next case. `initiator` names who started the run (the person in the web chat unless the caller says otherwise), for the audit and admin rules. */
 export type ServeOptions = { learn: boolean; initiator?: Initiator };
 
 /** A served run learns from its finished turn. */

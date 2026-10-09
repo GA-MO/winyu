@@ -25,7 +25,6 @@
     "entra:mock": "bun run scripts/entra-mock.ts",
     "memory:bench": "bun run scripts/memory-bench.ts",
     "channels:walk": "bun run scripts/channels-walk.ts",
-    "channels:view": "bun run scripts/channels-view.ts",
     "docs:index": "bun run scripts/documents-index.ts",
     "docs:bench": "bun run scripts/documents-bench.ts"
   },

@@ -1,19 +1,14 @@
 import { messagingApi, validateSignature } from "@line/bot-sdk";
 import { TH } from "@/lib/i18n/th";
 import { linkedUser, type ExternalIdentity } from "@/lib/server/identity";
-import { answerChannel } from "./answer";
 import { channelWebOrigin } from "./config";
-import { flexOf, decisionOfPostback, lineNoticeOf, type LineMessage } from "./line-flex";
+import { lineNoticeOf, type LineMessage } from "./line-flex";
 import { finishLink, holdLinkRequest } from "./line-link";
-import type { ChannelInbound, ChannelReply } from "./types";
+import { fixedReplyTo } from "./reply";
 
 const DEFAULT_ACCESS_URL = "https://access.line.me";
 const ACCOUNT_LINK_PATH = "/dialog/bot/accountLink";
-const LOADING_SECONDS = 30;
 const SEEN_EVENTS_MAX = 1000;
-const MARKDOWN_EMPHASIS = /\*\*|__/g;
-const MARKDOWN_HEADING = /^#{1,6}\s+/gm;
-const MARKDOWN_BULLET = /^\s*[-*]\s+/gm;
 
 /** How this server talks to LINE: the Messaging API channel's id, secret and access token, and, in development only, the local simulator that stands in for api.line.me and access.line.me. */
 export type LineSettings = { channelId: string; channelSecret: string; accessToken: string; apiUrl: string | null; accessUrl: string };
@@ -25,7 +20,6 @@ type LineEvent = {
   replyToken?: string;
   source?: LineSource;
   message?: { type?: string; text?: string; mention?: { mentionees?: { isSelf?: boolean }[] } };
-  postback?: { data?: string };
   link?: { result?: string; nonce?: string };
 };
 
@@ -45,8 +39,7 @@ export function accountLinkUrl(settings: LineSettings, linkToken: string, nonce:
   return url.href;
 }
 
-/** The web page that confirms a LINE link request. */
-export function linkPageUrl(linkToken: string): string {
+function linkPageUrl(linkToken: string): string {
   return `${channelWebOrigin()}/link/line/${encodeURIComponent(linkToken)}`;
 }
 
@@ -54,12 +47,7 @@ function clientOf(settings: LineSettings): messagingApi.MessagingApiClient {
   return new messagingApi.MessagingApiClient({ channelAccessToken: settings.accessToken, ...(settings.apiUrl ? { baseURL: settings.apiUrl } : {}) });
 }
 
-/** Plain text for LINE, which shows markdown marks literally. */
-export function plainText(markdown: string): string {
-  return markdown.replace(MARKDOWN_EMPHASIS, "").replace(MARKDOWN_HEADING, "").replace(MARKDOWN_BULLET, "• ");
-}
-
-/** Pushes messages to a LINE user Winyu was not asked by (a share); false when no LINE channel is configured. */
+/** Pushes messages to a linked LINE user (a share); false when no LINE channel is configured. */
 export async function pushLineMessages(to: string, messages: LineMessage[]): Promise<boolean> {
   const settings = lineSettings();
   if (!settings) return false;
@@ -89,25 +77,8 @@ async function linkPrompt(client: messagingApi.MessagingApiClient, sender: Exter
   return lineNoticeOf(TH.channels.lineUnlinked, { label: TH.channels.linkButton, uri: linkPageUrl(issued.linkToken) });
 }
 
-async function messagesOf(client: messagingApi.MessagingApiClient, reply: ChannelReply, sender: ExternalIdentity): Promise<LineMessage[]> {
-  if (reply.kind === "unlinked") return [await linkPrompt(client, sender)];
-  if (reply.kind === "notice") return [lineNoticeOf(reply.text)];
-  return [flexOf({ ...reply, text: plainText(reply.text) })];
-}
-
 function mentionsBot(event: LineEvent): boolean {
   return event.message?.mention?.mentionees?.some((mentionee) => mentionee.isSelf === true) ?? false;
-}
-
-function inboundOf(event: LineEvent, sender: ExternalIdentity): ChannelInbound | null {
-  const source = event.source ?? {};
-  const place = { conversation: source.groupId ?? source.roomId ?? sender.subject, private: source.type === "user" };
-  if (event.type === "message" && event.message?.type === "text" && event.message.text) {
-    if (!place.private && !mentionsBot(event)) return null;
-    return { kind: "ask", channel: "line", sender, place, text: event.message.text };
-  }
-  const decision = event.type === "postback" ? decisionOfPostback(event.postback?.data ?? "") : null;
-  return decision ? { kind: "decide", channel: "line", sender, place, ...decision } : null;
 }
 
 async function linked(client: messagingApi.MessagingApiClient, event: LineEvent, lineUserId: string): Promise<void> {
@@ -116,18 +87,23 @@ async function linked(client: messagingApi.MessagingApiClient, event: LineEvent,
   await send(client, event, [lineNoticeOf(finished ? TH.channels.linked(finished.user.nameTh) : TH.channels.linkFailed)]);
 }
 
+async function senderOf(client: messagingApi.MessagingApiClient, settings: LineSettings, lineUserId: string): Promise<ExternalIdentity> {
+  const identity: ExternalIdentity = { provider: "line", tenant: settings.channelId, subject: lineUserId, email: null, name: null };
+  return linkedUser(identity) ? identity : { ...identity, name: await displayName(client, lineUserId) };
+}
+
 async function handleEvent(settings: LineSettings, event: LineEvent): Promise<void> {
   const lineUserId = event.source?.userId;
   if (!lineUserId) return;
   const client = clientOf(settings);
   if (event.type === "accountLink") return linked(client, event, lineUserId);
-  const identity: ExternalIdentity = { provider: "line", tenant: settings.channelId, subject: lineUserId, email: null, name: null };
-  const sender = linkedUser(identity) ? identity : { ...identity, name: await displayName(client, lineUserId) };
-  const inbound = inboundOf(event, sender);
-  if (!inbound) return;
-  if (inbound.place.private) await client.showLoadingAnimation({ chatId: lineUserId, loadingSeconds: LOADING_SECONDS }).catch(() => undefined);
-  const reply = await answerChannel(inbound, channelWebOrigin());
-  await send(client, event, await messagesOf(client, reply, sender));
+  if (event.type !== "message") return;
+  const isPrivate = event.source?.type === "user";
+  if (!isPrivate && !mentionsBot(event)) return;
+  const sender = await senderOf(client, settings, lineUserId);
+  const reply = fixedReplyTo(sender, isPrivate, new Date().toISOString());
+  const message = reply.kind === "unlinked" ? await linkPrompt(client, sender) : lineNoticeOf(TH.channels.askOnWeb, { label: TH.channels.openWinyu, uri: channelWebOrigin() });
+  await send(client, event, [message]);
 }
 
 const seenEvents = new Set<string>();
@@ -150,7 +126,7 @@ function eventsOf(body: string): LineEvent[] | null {
   }
 }
 
-/** Answers one LINE webhook: a body whose X-Line-Signature is not the channel secret's HMAC is refused before anything is read; each event then runs after the 200 (LINE wants a quick answer), as the Winyu user its LINE account is linked to. */
+/** Answers one LINE webhook: a body whose X-Line-Signature is not the channel secret's HMAC is refused before anything is read; each event then runs after the 200 (LINE wants a quick answer). A message gets a fixed reply with no model call, and an accountLink event finishes a link. */
 export async function handleLineWebhook(request: Request, waitUntil: (task: Promise<unknown>) => void): Promise<Response> {
   const settings = lineSettings();
   if (!settings) return Response.json({ error: "LINE channel is not configured" }, { status: 503 });

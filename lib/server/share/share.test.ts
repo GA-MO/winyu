@@ -208,7 +208,6 @@ describe("Teams and LINE carry a button into Winyu", () => {
     if (!early.ok) throw new Error(early.error);
     expect(early.share.deliveries).toEqual([{ userId: "u_krit", asked: "teams", via: "email", fallback: "no-teams-conversation" }]);
 
-    scripted.script([{ text: "สวัสดีครับ" }]);
     await sim.teamsSay(KRIT_TEAMS, "สวัสดี");
     expect(channelsFor("u_krit").find((option) => option.channel === "teams")?.ready).toBe(true);
 

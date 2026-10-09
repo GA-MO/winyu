@@ -18,8 +18,3 @@ export function simulatedEnv(simulatorOrigin: string): Record<string, string> {
     LINE_ACCESS_URL: simulatorOrigin,
   };
 }
-
-if (import.meta.main) {
-  const origin = process.argv[2] ?? "http://localhost:3295";
-  console.log(Object.entries(simulatedEnv(origin)).map(([name, value]) => `${name}=${value}`).join(" "));
-}

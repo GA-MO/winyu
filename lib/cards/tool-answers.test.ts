@@ -3,14 +3,12 @@ import { parseResult } from "@/components/cards/entity/shapes";
 import { readFixture } from "@/lib/eval/recording";
 import { TH } from "@/lib/i18n/th";
 import { z } from "zod";
-import { toolCardParts } from "./tool-answers";
-
-const ARGS = { metric: "trade_spend" };
+import { refusalOf } from "./tool-answers";
 
 function deniedOf(result: unknown) {
-  const parts = toolCardParts("query_metric", result, ARGS);
-  if (!parts?.denied) throw new Error("expected a refusal card");
-  return parts.denied;
+  const denied = refusalOf(result);
+  if (!denied) throw new Error("expected a refusal");
+  return denied;
 }
 
 function recordedRefusal(): { error: string; fix: string } {

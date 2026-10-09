@@ -6,8 +6,8 @@ setDefaultTimeout(30_000);
 const scripted = new ScriptedModel();
 mock.module("@/lib/server/models", () => scripted.modelsModule());
 
-const { answerChannel } = await import("@/lib/server/channels/answer");
-const { linkIdentity } = await import("@/lib/server/identity");
+const { serveCopilot, LEARNING } = await import("@/lib/harness/adapters/mastra/serve");
+const { describeToolCall } = await import("@/lib/cards/describe-call");
 const { auditLog, SHARE_AUDIT_TOOL } = await import("@/lib/server/audit");
 const { outbox } = await import("@/lib/server/agent/collections");
 const { findUser } = await import("@/lib/data/entities/users");
@@ -18,28 +18,38 @@ const { runWithAccess, runWithTurn } = await import("@/lib/server/request-contex
 const { shares } = await import("@/lib/server/share/shares");
 const { openShare } = await import("@/lib/server/share/view");
 
-const TENANT = "11111111-2222-4333-8444-555555555555";
-const WEB = "https://winyu.example.com";
+const RUN_URL = "http://localhost/api/copilotkit/agent/winyu/run";
+const THREAD = `share-card-${Date.now()}`;
+const SPENT_STATUS = 409;
 const BY_REGION = { metric: "net_sales_value", dims: ["region"], grain: "month", range: { from: "2026-09-01", to: "2026-09-22" }, compare: "target", filters: {}, sort: "value_desc", limit: 10 };
 const NOTE = "ช่วยดูภาคอีสานหน่อย";
 const URL_IN_TEXT = /https?:\/\/\S+/g;
 const DIGIT = /[0-9๐-๙]/;
 
-function entra(subject: string) {
-  return { provider: "entra" as const, tenant: TENANT, subject, email: null, name: null };
+type Asked = { interruptId: string; tool: string; args: unknown };
+type ChatTurn = { asked: Asked[]; spent: boolean };
+type Message = { id: string; content: string };
+type RunFinished = { type?: string; outcome?: { type?: string; interrupts?: { id?: string; metadata?: { mastra?: { toolName?: string; args?: unknown } } }[] } };
+
+function askedOf(sse: string): Asked[] {
+  return sse.split("\n").flatMap((line) => {
+    if (!line.startsWith("data:")) return [];
+    const event = JSON.parse(line.slice("data:".length)) as RunFinished;
+    if (event.type !== "RUN_FINISHED" || event.outcome?.type !== "interrupt") return [];
+    return (event.outcome.interrupts ?? []).map((interrupt) => ({ interruptId: interrupt.id ?? "", tool: interrupt.metadata?.mastra?.toolName ?? "", args: interrupt.metadata?.mastra?.args ?? null }));
+  });
 }
 
-function ask(text: string) {
-  return { kind: "ask" as const, channel: "teams" as const, sender: entra("oid-ceo-share"), place: { conversation: "dm-ceo-share", private: true }, text };
+async function chatTurn(message: Message, resume: { interruptId: string; approved: boolean } | null = null): Promise<ChatTurn> {
+  const body = { threadId: THREAD, runId: crypto.randomUUID(), state: {}, messages: [{ ...message, role: "user" }], tools: [], context: [], forwardedProps: {}, ...(resume ? { resume: [{ interruptId: resume.interruptId, status: "resolved", payload: { approved: resume.approved } }] } : {}) };
+  const request = new Request(RUN_URL, { method: "POST", headers: { "content-type": "application/json", accept: "text/event-stream" }, body: JSON.stringify(body) });
+  const response = await serveCopilot(liveAccessFor(user("u_thana")), request, LEARNING);
+  const sse = await response.text();
+  return response.status === SPENT_STATUS ? { asked: [], spent: true } : { asked: askedOf(sse), spent: false };
 }
 
-function decide(approvalId: string, approved: boolean) {
-  return { kind: "decide" as const, channel: "teams" as const, sender: entra("oid-ceo-share"), place: { conversation: "dm-ceo-share", private: true }, approvalId, approved };
-}
-
-function answerOf(reply: Awaited<ReturnType<typeof answerChannel>>) {
-  if (reply.kind !== "answer") throw new Error(`expected an answer, got ${JSON.stringify(reply)}`);
-  return reply;
+function questionOf(asked: Asked | undefined): string {
+  return asked ? (describeToolCall(asked.tool, asked.args)?.question ?? "") : "";
 }
 
 function user(id: string) {
@@ -60,15 +70,15 @@ function asCeo<T>(work: () => T): T {
   return runWithAccess(liveAccessFor(user("u_thana")), work);
 }
 
-async function askToShare(args: Record<string, unknown>) {
+async function askToShare(args: Record<string, unknown>): Promise<{ message: Message; asked: Asked | undefined }> {
   scripted.script([{ call: "share_card", args }]);
-  return answerOf(await answerChannel(ask("ส่งการ์ดนี้ให้คุณกฤตดูหน่อย"), WEB));
+  const message = { id: crypto.randomUUID(), content: "ส่งการ์ดนี้ให้คุณกฤตดูหน่อย" };
+  return { message, asked: (await chatTurn(message)).asked[0] };
 }
 
 beforeAll(async () => {
-  linkIdentity(entra("oid-ceo-share"), "u_thana", "test", new Date().toISOString());
   scripted.script([{ call: "query_metric", args: BY_REGION }, { text: "ภาคอีสานต่ำกว่าเป้า" }]);
-  answerOf(await answerChannel(ask("ยอดขายแยกตามภาคเดือนนี้"), WEB));
+  await chatTurn({ id: crypto.randomUUID(), content: "ยอดขายแยกตามภาคเดือนนี้" });
 });
 
 describe("share_card", () => {
@@ -104,8 +114,8 @@ describe("share_card", () => {
 
   test("in the chat an ambiguous name raises no approval and no share", async () => {
     const before = sharesByCeo().length;
-    const reply = await askToShare({ to: ["จันทร"] });
-    expect(reply.approval).toBeNull();
+    const { asked } = await askToShare({ to: ["จันทร"] });
+    expect(asked).toBeUndefined();
     expect(sharesByCeo()).toHaveLength(before);
   });
 
@@ -113,11 +123,11 @@ describe("share_card", () => {
     const before = { shares: sharesByCeo().length, mails: mailsToKrit().length };
     const startedAt = new Date().toISOString();
     const asking = await askToShare({ to: ["คุณกฤต"], note: NOTE });
-    expect(asking.approval?.question).toContain("คุณกฤต");
+    expect(questionOf(asking.asked)).toContain("คุณกฤต");
     expect(sharesByCeo()).toHaveLength(before.shares);
 
     scripted.script([{ text: "ส่งให้คุณกฤตแล้ว" }]);
-    answerOf(await answerChannel(decide(asking.approval?.id ?? "", true), WEB));
+    expect((await chatTurn(asking.message, { interruptId: asking.asked?.interruptId ?? "", approved: true })).spent).toBe(false);
     const sent = sharesByCeo().filter((share) => share.at >= startedAt);
     expect(sent).toHaveLength(1);
     const [share] = sent;
@@ -141,7 +151,7 @@ describe("share_card", () => {
     expect(call?.args ?? "").not.toContain(NOTE);
 
     scripted.script([{ text: "ไม่ควรส่งซ้ำ" }]);
-    expect(await answerChannel(decide(asking.approval?.id ?? "", true), WEB)).toEqual({ kind: "notice", text: expect.stringContaining("ใช้ไปแล้ว") });
+    expect((await chatTurn(asking.message, { interruptId: asking.asked?.interruptId ?? "", approved: true })).spent).toBe(true);
     expect(sharesByCeo().filter((entry) => entry.at >= startedAt)).toHaveLength(1);
 
     const opened = await openShare(share, user("u_krit"));
@@ -153,7 +163,7 @@ describe("share_card", () => {
     const before = { shares: sharesByCeo().length, mails: outbox().all().length };
     const asking = await askToShare({ to: ["คุณกฤต"] });
     scripted.script([{ text: "ยังไม่ส่งครับ" }]);
-    answerOf(await answerChannel(decide(asking.approval?.id ?? "", false), WEB));
+    expect((await chatTurn(asking.message, { interruptId: asking.asked?.interruptId ?? "", approved: false })).spent).toBe(false);
     expect({ shares: sharesByCeo().length, mails: outbox().all().length }).toEqual(before);
   });
 });

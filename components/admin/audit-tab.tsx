@@ -20,7 +20,7 @@ const DECISIONS: readonly AuditEntry["decision"][] = ["allow", "deny", "masked"]
 const DECISION_TONE: Record<AuditEntry["decision"], Tone> = { allow: "success", deny: "danger", masked: "warning" };
 const DECISION_WEIGHT: Record<AuditEntry["decision"], number> = { allow: 0, masked: 1, deny: 2 };
 const COPY = TH.admin.auditTab;
-const VIA_LABELS: Partial<Record<Initiator, string>> = { mcp: COPY.viaMcp, a2a: COPY.viaA2a, teams: COPY.viaTeams, line: COPY.viaLine };
+const VIA_LABELS: Partial<Record<Initiator, string>> = { mcp: COPY.viaMcp, a2a: COPY.viaA2a };
 
 export type AuditFilterParams = AuditFilter;
 

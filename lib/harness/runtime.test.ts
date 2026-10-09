@@ -5,7 +5,7 @@ const TOOL = { toolCallId: "c1", tool: "query_metric" };
 
 describe("run checkpoints", () => {
   test("a run cut off mid-reply comes back with its trace and the steps and tool calls it already spent", () => {
-    const run = newRun("u_thana", "t-1", { id: "run-cut", initiator: "teams" });
+    const run = newRun("u_thana", "t-1", { id: "run-cut", initiator: "mcp" });
     emitTo(run, "model", { type: "agent.thinking", payload: { stepId: "run-cut:1", step: 1 } });
     emitTo(run, "gateway", { type: "tool.authorized", payload: { ...TOOL, approval: "never" } });
     emitTo(run, "gateway", { type: "tool.denied", payload: { toolCallId: "c2", tool: "query_metric", code: "scope", reason: "out of scope" } });
@@ -16,7 +16,7 @@ describe("run checkpoints", () => {
     if (!stored) throw new Error("no checkpoint");
     const resumed = resumedRun(stored);
     expect(resumed.events.map((event) => event.type)).toEqual(["agent.thinking", "tool.authorized", "tool.denied", "agent.thinking"]);
-    expect({ toolCalls: resumed.toolCalls, steps: resumed.steps, threadId: resumed.threadId, initiator: resumed.initiator }).toEqual({ toolCalls: 2, steps: 2, threadId: "t-1", initiator: "teams" });
+    expect({ toolCalls: resumed.toolCalls, steps: resumed.steps, threadId: resumed.threadId, initiator: resumed.initiator }).toEqual({ toolCalls: 2, steps: 2, threadId: "t-1", initiator: "mcp" });
     saveRun(resumed);
   });
 

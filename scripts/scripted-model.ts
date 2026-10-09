@@ -33,6 +33,11 @@ export class ScriptedModel {
   private served = 0;
   readonly model = new MockLanguageModelV3({ provider: "scripted", modelId: "scripted", doStream: async () => this.next() });
 
+  /** How many model calls this stand-in has served. */
+  get calls(): number {
+    return this.served;
+  }
+
   /** Replaces what the model says next. */
   script(steps: readonly ScriptedStep[]): void {
     this.steps = [...steps];
