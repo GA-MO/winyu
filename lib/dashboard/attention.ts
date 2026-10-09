@@ -22,6 +22,7 @@ export type Attention = { level: "moved" | "steady"; reason: string | null; scor
 export type AttentionInput = { widget: WidgetSpec; result: MetricResult; alerts: readonly Alert[] };
 
 const STEADY: Attention = { level: "steady", reason: null, score: 0 };
+const UNREAD: Attention = { level: "moved", reason: null, score: 0 };
 
 function scoreIn(tier: number, magnitude: number): number {
   return (tier + 1) * TIER_SPAN + Math.min(TIER_SPAN - 1, Math.max(0, magnitude));
@@ -50,11 +51,13 @@ function belowFloor(widget: WidgetSpec, result: Extract<MetricResult, { ok: true
 /**
  * Whether a pinned card has something to say today and how urgently, in this order: an open alert on its metric (worst severity first, no count line — the card already shows it),
  * a level under its floor (furthest under first), a headline that moved (the harmful direction before the good one, bigger first), one row that fell hard.
+ * A card that could not be read stays in full view after those, never folded among the steady ones it cannot claim to be.
  */
 export function attentionOf({ widget, result, alerts }: AttentionInput): Attention {
   const onMetric = widget.kind === "alert_list" ? alerts : alerts.filter((alert) => alert.metric === widget.query.metric);
   if (onMetric.length > 0) return { level: "moved", reason: null, score: scoreIn(TIER.alert, alertMagnitude(onMetric)) };
-  if (widget.kind === "alert_list" || !result.ok) return STEADY;
+  if (!result.ok) return UNREAD;
+  if (widget.kind === "alert_list") return STEADY;
   const floor = belowFloor(widget, result);
   if (floor) return floor;
   const { deltaPercent: delta, compareLabel } = headlineChangeOf(widget.query, result);

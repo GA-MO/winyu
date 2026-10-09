@@ -49,6 +49,11 @@ describe("which pinned cards have something to say", () => {
     expect(attentionOf({ widget: attainment, result: result(null, [{ value: 101 }]), alerts: [] }).level).toBe("steady");
   });
 
+  test("a card whose data could not be read is never counted steady", () => {
+    const unread = attentionOf({ widget: widget("w"), result: { ok: false, code: "CONNECTOR_UNAVAILABLE", error: "down" }, alerts: [] });
+    expect(unread).toEqual({ level: "moved", reason: null, score: 0 });
+  });
+
   test("an alert list with nothing open is steady", () => {
     expect(attentionOf({ widget: widget("w", { kind: "alert_list" }), result: result(null), alerts: [] }).level).toBe("steady");
   });

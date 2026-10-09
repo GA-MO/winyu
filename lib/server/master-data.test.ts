@@ -72,4 +72,26 @@ describe("master data behind the metrics port", () => {
     await expect(loadDictionary()).rejects.toThrow("warehouse down");
     await expect(loadDictionary()).resolves.toBeDefined();
   });
+
+  test("a refresh that fails after the ten minutes serves the last dictionary and tries again half a minute later", async () => {
+    let calls = 0;
+    registerPorts({
+      metrics: {
+        ...ports().metrics,
+        masterData: async () => {
+          calls += 1;
+          if (calls === 2) throw new Error("warehouse down");
+          return GENERATOR_MASTER;
+        },
+      },
+    });
+    const start = Date.now();
+    const loaded = await loadDictionary(start);
+    const outage = start + 11 * 60_000;
+    expect(await loadDictionary(outage)).toBe(loaded);
+    expect(await loadDictionary(outage + 1_000)).toBe(loaded);
+    expect(calls).toBe(2);
+    await loadDictionary(outage + 31_000);
+    expect(calls).toBe(3);
+  });
 });
