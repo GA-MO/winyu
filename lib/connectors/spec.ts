@@ -396,8 +396,8 @@ export type ProblemCode =
 /** Why an admin operation did nothing: a code the wizard words in Thai, the blockers when a declaration or activation fell short, and a short technical line when a server failed. */
 export type Problem = { ok: false; problem: ProblemCode; codes?: BlockerCode[]; detail?: string };
 
-/** What turning the connector on would add to every question of the roles it reaches, and the eval recordings it makes stale. */
-export type EvalImpact = { roles: RoleId[]; tools: number; tokens: number; staleRecordings: number };
+/** What turning the connector on adds to every question of the roles it reaches, and how many eval recordings of those roles were made without its tools. */
+export type EvalImpact = { roles: RoleId[]; tools: number; tokens: number; affectedRecordings: number };
 
 /** A console connector as the admin sees it: the stored record (no secret, only its last characters), the last listing, the derived state and what blocks each tool. */
 export type ConnectorView = {

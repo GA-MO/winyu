@@ -1,9 +1,12 @@
 import { ROLE_IDS, type RoleId } from "@/lib/contracts";
+import { TH } from "@/lib/i18n/th";
 import {
   cleanedDescription, declarationOf, draftConfigHash, hintsSayWrites, promptTokens,
   type BlockerCode, type ConnectorView, type ReservedReason, type StoredConnector, type StoredTool, type ToolDraft, type UpstreamTool,
 } from "@/lib/connectors/spec";
 
+
+import type { Person } from "./parts";
 
 const UNDECLARED_TIER = "destructive";
 
@@ -75,6 +78,12 @@ export function rolesTouched(tools: readonly WizardTool[]): RoleId[] {
 /** Rough extra prompt tokens the role that gains the most pays on every question once these tools are live. */
 export function tokensOf(tools: readonly WizardTool[]): number {
   return Math.max(0, ...rolesTouched(tools).map((role) => promptTokens(tools.filter((tool) => tool.draft.roles.includes(role)).map((tool) => ({ description: tool.draft.description, inputSchema: tool.listed?.inputSchema ?? {} })))));
+}
+
+/** The person a test or sample starts as: someone in the tool's roles with a limited scope, since their rows show whether the scope holds. */
+export function defaultPersonFor(tool: WizardTool, people: readonly Person[]): string {
+  const eligible = people.filter((person) => tool.draft.roles.includes(person.role));
+  return (eligible.find((person) => person.scopeTh !== TH.region.all) ?? eligible[0] ?? people[0])?.id ?? "";
 }
 
 export function toggledRole(roles: readonly RoleId[], role: RoleId, on: boolean): RoleId[] {

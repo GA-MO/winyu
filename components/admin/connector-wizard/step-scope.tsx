@@ -10,8 +10,8 @@ import {
   FILTER_KINDS, IDENTITY_KEYS, VISIBILITIES, guessField, inputNamesOf,
   type FilterKind, type FilterPreset, type IdentityKey, type InjectPreset, type ScopeDraft, type SensitiveSpec,
 } from "@/lib/connectors/spec";
-import type { WizardTool } from "./model";
-import { Check, Label, ProblemLine, Segmented, type Person } from "./parts";
+import { defaultPersonFor, type WizardTool } from "./model";
+import { Check, Label, ProblemLine, Segmented } from "./parts";
 import type { DraftPatch, WizardContext } from "./wizard";
 
 const COPY = TH.connectorUi.scope;
@@ -175,18 +175,16 @@ function SensitiveFields({ tool, fields, patch }: { tool: WizardTool; fields: st
   );
 }
 
-function samplerOf(tool: WizardTool, people: readonly Person[]): string {
-  return (people.find((person) => tool.draft.roles.includes(person.role)) ?? people[0])?.id ?? "";
-}
 
 function FieldSampler({ tool, context }: { tool: WizardTool; context: WizardContext }) {
-  const [asUser, setAsUser] = useState(() => samplerOf(tool, context.people));
+  const [asUser, setAsUser] = useState(() => defaultPersonFor(tool, context.people));
   const [problem, setProblem] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const sample = () =>
     startTransition(async () => {
       setProblem(null);
       const result = await sampleToolFieldsAction({ connector: context.view.connector.id, tool: tool.name, asUser });
+      if (result.ok && result.fields.length === 0) setProblem(COPY.noRows);
       if (result.ok) context.addFields(tool.name, result.fields);
       else setProblem(TH.connectorUi.problems[result.problem]);
     });

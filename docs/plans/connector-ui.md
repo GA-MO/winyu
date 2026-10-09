@@ -1,6 +1,6 @@
 # Connecting other systems from the admin console
 
-Today an IT admin can watch a connector's health, turn it off, kill one of its tools and set who sees its sensitive fields. Adding a connector still takes code: a `defineMcpConnector` call added to `CONFIGURED` in `lib/server/connectors/index.ts`. This note explains how an IT admin adds an MCP server from `/admin` instead, without the UI becoming a way to leak data. The clickable prototype is at `/dev/connector-ui` (development only, IT admin only).
+Today an IT admin can watch a connector's health, turn it off, kill one of its tools and set who sees its sensitive fields. Adding a connector still takes code: a `defineMcpConnector` call added to `CONFIGURED` in `lib/server/connectors/index.ts`. This note explains how an IT admin adds an MCP server from `/admin` instead, without the UI becoming a way to leak data. Phase 1 is built: the wizard is at `/admin/connect` and replaced the `/dev/connector-ui` prototype. `docs/mcp.md` describes what it does today.
 
 The URL form is the easy part. The hard part is scope. Every connector tool must say which rows each person may see, and today that rule is a function such as `onlyPeopleInView` in `lms-demo.ts`. That function is the permission boundary. A UI that lets an admin type a URL and press "on" without an equally strict scope rule turns one wrong click into a leak.
 
@@ -172,9 +172,9 @@ All three appear in the prototype as mocked MCP servers with fixed tool lists. T
 
 **Moving the native leave tools onto this connector costs every eval recording.** `request_leave` and `get_policy` read the generator `LeavePort` and file into Winyu's own Inbox. Replacing them with `hris_leave__…` tools changes tool names and descriptions on every persona's surface. `toolsHash` in `lib/eval/fingerprint.ts` hashes a person's whole tool list, so all 67 recordings go stale, not only `policy-leave`, the one case that calls a leave tool. At the median recorded cost of $0.0054 a case (measured from `evals/recordings/*.json`), a re-record is about $0.36. The card changes too: `get_policy` has a composed card today and a connector reply would compose a different one. Recommendation: keep the native leave tools until a real HRIS is chosen. Then move the `LeavePort` behind an MCP client first (no tool change, no stale recording), and replace the tools only when the HRIS offers something the native tools cannot express, such as the manager's decision.
 
-## Turning a connector on makes eval recordings stale
+## Turning a connector on changes the tool surface the eval does not see
 
-New tools change the tool surface of every role that gets them, and `bun run eval --stale` then lists every recording of those roles. The review step says so before **เปิดใช้**, with the roles touched and the extra prompt tokens per question (description and input schema, divided by 3 characters per token, a rough guess). Re-record with `bun run eval --live --changed`, which prints the estimate and spends nothing until `--yes`.
+New tools change the tool surface of every role that gets them. The review step says so before **เปิดใช้**, with the roles touched, the recorded cases of those roles and the extra prompt tokens per question (description and input schema, divided by 3 characters per token, a rough guess). As built, `bun run eval` seeds a fresh data folder, so console connectors are never part of an eval and `--stale` does not list those cases. Measuring the model with a console connector needs an eval mode that copies the connector records in, which does not exist yet.
 
 ## Test plan
 

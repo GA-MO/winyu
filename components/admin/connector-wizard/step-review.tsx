@@ -9,17 +9,12 @@ import { ROLE_IDS, type RoleId } from "@/lib/contracts";
 import { TH } from "@/lib/i18n/th";
 import { activateConnectorAction, testConnectorToolAction } from "@/app/(app)/admin/actions";
 import type { BlockerCode, EvalImpact, Problem, TestRun } from "@/lib/connectors/spec";
-import { blockersOfTool, rolesTouched, testStatusOf, tokensOf, type WizardTool } from "./model";
+import { blockersOfTool, defaultPersonFor, rolesTouched, testStatusOf, tokensOf, type WizardTool } from "./model";
 import { ProblemLine, scopeCell, type Person } from "./parts";
 import type { WizardContext } from "./wizard";
 
 const COPY = TH.connectorUi.review;
 const STATUS_TONE = { tested: "success", stale: "warning", untested: "neutral" } as const;
-
-function defaultTester(tool: WizardTool, people: readonly Person[]): string {
-  const eligible = people.filter((person) => tool.draft.roles.includes(person.role));
-  return (eligible.find((person) => person.scopeTh !== TH.region.all) ?? eligible[0] ?? people[0])?.id ?? "";
-}
 
 function RunLine({ run, people }: { run: TestRun; people: readonly Person[] }) {
   const person = people.find((item) => item.id === run.asUser);
@@ -37,7 +32,7 @@ function RunLine({ run, people }: { run: TestRun; people: readonly Person[] }) {
 }
 
 function TestRow({ tool, context }: { tool: WizardTool; context: WizardContext }) {
-  const [asUser, setAsUser] = useState(() => defaultTester(tool, context.people));
+  const [asUser, setAsUser] = useState(() => defaultPersonFor(tool, context.people));
   const [problem, setProblem] = useState<Problem | null>(null);
   const [pending, startTransition] = useTransition();
   const status = testStatusOf(context.view.connector, tool);
@@ -159,7 +154,7 @@ function Activated({ impact }: { impact: EvalImpact }) {
         <CircleCheck className="size-4 text-success" aria-hidden />
         {COPY.activated}
       </p>
-      <p className="text-[13px]">{COPY.evalBody(impact.tools, impact.roles.length, impact.tokens, impact.staleRecordings)}</p>
+      <p className="text-[13px]">{COPY.evalBody(impact.tools, impact.roles.length, impact.tokens, impact.affectedRecordings)}</p>
       <Link href="/admin?tab=tools" className={cn(GHOST, "self-start")}>
         {COPY.toTools}
       </Link>
@@ -182,7 +177,7 @@ export function ReviewStep({ context }: { context: WizardContext }) {
   const groups = tools.map((tool) => ({ tool, codes: blockersOfTool(context.view.connector, tool) })).filter((group) => group.codes.length > 0);
   const blockers = groups.reduce((sum, group) => sum + group.codes.length, 0);
   const listed = tools.filter((tool) => tool.listed);
-  const recordings = context.view.impact.staleRecordings;
+  const recordings = context.view.impact.affectedRecordings;
   const activate = () =>
     startTransition(async () => {
       setProblem(null);

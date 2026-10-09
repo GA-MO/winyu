@@ -404,7 +404,7 @@ describe("a live connector changes tool by tool", () => {
     expect(ceo.rows).toHaveLength(CATALOG_ROWS.length);
   });
 
-  test("activation names the roles it reaches and the eval recordings it makes stale", async () => {
+  test("activation names the roles it reaches and the eval recordings made without its tools", async () => {
     const id = newId();
     await discovered(id);
     await saved(id, [catalogDraft()]);
@@ -413,8 +413,8 @@ describe("a live connector changes tool by tool", () => {
     if (!result.ok) throw new Error(result.problem);
     const roles: RoleId[] = ["ceo", "sales_rep"];
     expect(result.impact.roles).toEqual(roles);
-    expect(result.impact.staleRecordings).toBe(EVAL_CASES.filter((testCase) => roles.includes(userOf(testCase.userId).role)).length);
-    expect(result.impact.staleRecordings).toBeGreaterThan(0);
+    expect(result.impact.affectedRecordings).toBe(EVAL_CASES.filter((testCase) => roles.includes(userOf(testCase.userId).role)).length);
+    expect(result.impact.affectedRecordings).toBeGreaterThan(0);
     const audit = auditLog().where((entry) => entry.connector === id && entry.tool === "connector_admin").map((entry) => JSON.parse(entry.args ?? "{}").event);
     expect(audit).toEqual(expect.arrayContaining(["created", "tool_saved", "tested", "activated"]));
   });

@@ -2022,6 +2022,7 @@ export const TH = {
       sampleAs: "ดึงชื่อช่องในนามของ",
       fieldsFromSample: "ดึงชื่อช่องจากแถวตัวอย่าง",
       fieldsLoading: "กำลังดึง…",
+      noRows: "ไม่มีแถวกลับมาในนามของคนนี้ ลองเลือกคนอื่น",
       noFields: "ยังไม่รู้ชื่อช่อง ระบบนี้ไม่ได้ประกาศโครงสร้างผลลัพธ์ ดึงจากแถวตัวอย่าง (เห็นแค่ชื่อช่อง ไม่เห็นค่า)",
       presets: {
         own_rows: { label: "แถวของตัวเอง", body: "เก็บเฉพาะแถวที่ช่องนี้ตรงกับรหัสของผู้ถาม" },
@@ -2082,9 +2083,9 @@ export const TH = {
       noTools: "ยังไม่ได้เลือกเครื่องมือ",
       evalTitle: "เมื่อเปิดใช้",
       evalBody: (tools: number, roles: number, tokens: number, recordings: number) =>
-        `เครื่องมือใหม่ ${tools} ตัวจะอยู่ในทุกคำถามของ ${roles} บทบาท เพิ่มราว ${tokens.toLocaleString("th-TH")} token ต่อคำถาม คำตอบที่บันทึกไว้สำหรับ eval ${recordings.toLocaleString("th-TH")} รายการของบทบาทเหล่านี้จะ stale`,
-      evalCommand: "bun run eval --stale",
-      evalAfter: "รันก่อนเชื่อผล eval แล้วอัดใหม่เฉพาะที่ stale ด้วย --live --changed (ดูค่าใช้จ่ายก่อน)",
+        `เครื่องมือใหม่ ${tools} ตัวจะอยู่ในทุกคำถามของ ${roles} บทบาท เพิ่มราว ${tokens.toLocaleString("th-TH")} token ต่อคำถาม คำตอบที่บันทึกไว้สำหรับ eval ${recordings.toLocaleString("th-TH")} รายการของบทบาทเหล่านี้อัดไว้ตอนที่ยังไม่มีเครื่องมือนี้ คำตอบจริงของบทบาทเหล่านี้อาจต่างจากที่บันทึกไว้`,
+      evalCommand: "bun run eval",
+      evalAfter: "ตรวจบนโฟลเดอร์ข้อมูลใหม่ทุกครั้ง จึงไม่เห็นระบบที่เชื่อมจากหน้านี้ และ --stale จะไม่นับรายการเหล่านี้",
       activate: "เปิดใช้",
       activateBlocked: (count: number) => `เหลือ ${count} เรื่องก่อนเปิดใช้`,
       startsOff: "เปิดได้เมื่อทุกเครื่องมือมีขอบเขตและผ่านการทดสอบ เปิดแล้วปิดทั้งระบบได้จากแท็บเครื่องมือ",

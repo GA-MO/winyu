@@ -34,8 +34,15 @@ function Changed({ tool }: { tool: WizardTool }) {
       </p>
       <p className="text-[12px] text-muted-foreground">{COPY.changedHint}</p>
       <div className="grid gap-2 md:grid-cols-2">
-        <FencedText text={tool.stored.pinned.description} caption={COPY.before} />
-        <FencedText text={tool.listed.description} caption={COPY.now} />
+        {[
+          { caption: COPY.before, description: tool.stored.pinned.description, schema: tool.stored.pinned.inputSchema },
+          { caption: COPY.now, description: tool.listed.description, schema: tool.listed.inputSchema },
+        ].map((side) => (
+          <div key={side.caption} className="flex flex-col gap-1.5">
+            <FencedText text={side.description} caption={side.caption} />
+            <p className="px-1 font-mono text-[11px] text-muted-foreground">{`${COPY.inputs}: ${inputNamesOf(side.schema).join(", ")}`}</p>
+          </div>
+        ))}
       </div>
     </div>
   );

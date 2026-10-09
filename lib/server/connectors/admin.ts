@@ -5,7 +5,7 @@ import { EVAL_CASES } from "@/lib/eval/cases";
 import { TH } from "@/lib/i18n/th";
 import { recordConnectorEvent, type ConnectorEventKind } from "@/lib/server/audit";
 import {
-  CONNECTOR_ID, DEFAULT_TIMEOUT_MS, MIN_SECRET_CHARS, RESERVED_REASONS, declarationOf, inputNamesOf, lifecycleOf, promptTokens, storedConfigHash,
+  CONNECTOR_ID, DEFAULT_TIMEOUT_MS, MIN_SECRET_CHARS, RESERVED_REASONS, declarationPart, stableJson, declarationOf, inputNamesOf, lifecycleOf, promptTokens, storedConfigHash,
   type ActivateResult, type BlockerCode, type ConnectorView, type DiscoverInput, type EvalImpact, type Problem, type ProblemCode, type SampleResult, type SaveInput, type SaveResult,
   type SensitiveSpec, type StoredConnector, type StoredTool, type TestResult, type TestRun, type ToolSave, type Upstream, type UpstreamTool, type ViewResult,
 } from "@/lib/connectors/spec";
@@ -48,11 +48,11 @@ function impactOf(connector: StoredConnector, upstream: Upstream | null): EvalIm
   const tools = names.flatMap((name) => connector.tools[name] ?? []);
   const roles = rolesOf(tools);
   const tokens = Math.max(0, ...roles.map((role) => promptTokens(tools.filter((tool) => tool.roles.includes(role)).map((tool) => ({ description: tool.description, inputSchema: tool.pinned.inputSchema })))));
-  const staleRecordings = EVAL_CASES.filter((testCase) => {
+  const affectedRecordings = EVAL_CASES.filter((testCase) => {
     const role = findUser(testCase.userId)?.role;
     return role !== undefined && roles.includes(role);
   }).length;
-  return { roles, tools: tools.length, tokens, staleRecordings };
+  return { roles, tools: tools.length, tokens, affectedRecordings };
 }
 
 /** The admin's view of one console connector, derived fresh from the store, the switch and the last listing. */
@@ -149,7 +149,7 @@ export async function discoverConnector(actor: User | null, input: DiscoverInput
   return { ok: true, view: viewOf(saved) };
 }
 
-type SaveOutcome = { ok: true; tool: StoredTool; approved: boolean } | { ok: false; codes: BlockerCode[] } | { ok: false; problem: ProblemCode };
+type SaveOutcome = { ok: true; tool: StoredTool; approved: boolean; changed: boolean } | { ok: false; codes: BlockerCode[] } | { ok: false; problem: ProblemCode };
 
 function savedTool(connector: StoredConnector, listed: UpstreamTool, save: ToolSave, actor: User): SaveOutcome {
   if (save.seenHash !== listed.hash) return { ok: false, problem: "upstream_moved" };
@@ -162,7 +162,9 @@ function savedTool(connector: StoredConnector, listed: UpstreamTool, save: ToolS
   const approved = existing !== undefined && existing.pinned.hash !== listed.hash;
   const pinned = { description: listed.description, inputSchema: listed.inputSchema, hints: listed.hints, hash: listed.hash };
   const fields = [...new Set([...(existing?.fields ?? []), ...save.fields])].slice(0, MAX_FIELDS);
-  return { ok: true, approved, tool: { ...parsed.declaration, pinned, fields, test: existing?.test ?? null, updatedBy: actor.id, updatedAt: new Date().toISOString() } };
+  const changed = existing === undefined || approved || stableJson(declarationPart(existing)) !== stableJson(parsed.declaration);
+  if (!changed && existing) return { ok: true, approved, changed, tool: { ...existing, fields } };
+  return { ok: true, approved, changed, tool: { ...parsed.declaration, pinned, fields, test: existing?.test ?? null, updatedBy: actor.id, updatedAt: new Date().toISOString() } };
 }
 
 function savedDetail(tool: StoredTool): Record<string, unknown> {
@@ -191,7 +193,7 @@ export function saveConnectorTools(actor: User | null, input: SaveInput): SaveRe
       continue;
     }
     tools[listed.name] = outcome.tool;
-    audit(actor, outcome.approved ? "upstream_approved" : "tool_saved", connector.id, listed.name, (outcome.approved ? TH.connectorUi.audit.upstream_approved : TH.connectorUi.audit.tool_saved)(outcome.tool.labelTh), savedDetail(outcome.tool));
+    if (outcome.changed) audit(actor, outcome.approved ? "upstream_approved" : "tool_saved", connector.id, listed.name, (outcome.approved ? TH.connectorUi.audit.upstream_approved : TH.connectorUi.audit.tool_saved)(outcome.tool.labelTh), savedDetail(outcome.tool));
   }
   for (const name of input.removed) {
     if (!(name in tools)) continue;
@@ -332,7 +334,7 @@ export function activateConnector(actor: User | null, input: { connector: string
   const saved = saveStored(activated);
   setConnectorEnabled(saved.id, true, actor.id);
   const view = viewOf(saved);
-  audit(actor, "activated", saved.id, null, TH.connectorUi.audit.activated(saved.labelTh, view.impact.roles.length), { tools: view.live, roles: view.impact.roles, staleRecordings: view.impact.staleRecordings });
+  audit(actor, "activated", saved.id, null, TH.connectorUi.audit.activated(saved.labelTh, view.impact.roles.length), { tools: view.live, roles: view.impact.roles, affectedRecordings: view.impact.affectedRecordings });
   return { ok: true, view, impact: view.impact };
 }
 
