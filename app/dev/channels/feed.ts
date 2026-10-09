@@ -60,8 +60,6 @@ type TeamsActivity = { type?: string; text?: string; attachments?: { content?: A
 type LineMessages = { messages?: { type?: string; text?: string; contents?: FlexBubble }[] };
 
 const WAITING_KINDS = new Set(["inbound", "typing", "loading"]);
-const LOOPBACK_SWAP: Record<string, string> = { localhost: "127.0.0.1", "127.0.0.1": "localhost" };
-const SIGN_IN_AS_PATH = "/dev/as";
 
 /** The Teams conversation the simulator writes a persona's private chat with the bot in. */
 export function teamsThreadOf(person: DemoPerson): string {
@@ -94,13 +92,4 @@ export function chatOf(entries: readonly Sent[], channel: Sent["channel"], threa
   const mine = entries.filter((entry) => entry.channel === channel && entry.thread === thread);
   const last = mine.at(-1);
   return { bubbles: mine.flatMap(bubblesOf), typing: last !== undefined && WAITING_KINDS.has(last.kind) };
-}
-
-/** Where a pane opens a link: a link into this Winyu (a loopback host on the page's port) opens on the other loopback host through /dev/as, signed in as the pane's persona, so the presenter's own tab keeps its session; any other link opens as it is. */
-export function paneLinkOf(link: string, page: { protocol: string; hostname: string; port: string }, userId: string): string {
-  const url = new URL(link);
-  const other = LOOPBACK_SWAP[page.hostname];
-  if (!other || !LOOPBACK_SWAP[url.hostname] || url.port !== page.port) return link;
-  const query = new URLSearchParams({ user: userId, next: `${url.pathname}${url.search}${url.hash}` });
-  return `${page.protocol}//${other}:${page.port}${SIGN_IN_AS_PATH}?${query.toString()}`;
 }

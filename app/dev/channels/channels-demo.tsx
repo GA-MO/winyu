@@ -6,7 +6,8 @@ import { cn } from "@/components/ui/cn";
 import { TH } from "@/lib/i18n/th";
 import type { Sent } from "@/scripts/channels-sim";
 import { AdaptiveCardView, type AdaptivePress } from "./adaptive-card-view";
-import { chatOf, paneLinkOf, teamsThreadOf, type Bubble, type DemoPerson } from "./feed";
+import { signInAsLinkOf } from "../loopback-link";
+import { chatOf, teamsThreadOf, type Bubble, type DemoPerson } from "./feed";
 import { FlexView, type FlexPress } from "./flex-view";
 
 const POLL_MS = 700;
@@ -57,7 +58,8 @@ function send(origin: string, path: string, body: Record<string, string>): void 
 }
 
 function openAs(link: string, person: DemoPerson): void {
-  window.open(paneLinkOf(link, window.location, person.userId), "_blank", "noopener");
+  const target = signInAsLinkOf(link, window.location, person.userId);
+  if (target) window.open(target, "_blank", "noopener");
 }
 
 function useAutoScroll(count: number, typing: boolean) {
