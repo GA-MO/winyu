@@ -15,6 +15,8 @@ import { hrisMcpEnv } from "./hris-mcp-contract";
 import { directoryMcpPort, leaveMcpPort, recruitingMcpPort } from "./hris-mcp";
 import { sitesMcpEnv } from "./sites-mcp-contract";
 import { sitesMcpPort } from "./sites-mcp";
+import { calendarMcpEnv } from "./calendar-mcp-contract";
+import { calendarMcpPort } from "./calendar-mcp";
 import type { McpBackedConnector } from "./mcp-port";
 
 /** Every system of record Winyu reads or writes, one port each; a connector replaces one without touching the logic above it. */
@@ -37,6 +39,7 @@ const MCP_PORTS = {
   leave: { adapter: () => leaveMcpPort(hrisMcpEnv()), connector: "leave" },
   recruiting: { adapter: () => recruitingMcpPort(hrisMcpEnv()), connector: "hris" },
   sites: { adapter: () => sitesMcpPort(sitesMcpEnv()), connector: "sites" },
+  calendar: { adapter: () => calendarMcpPort(calendarMcpEnv()), connector: "calendar" },
 } satisfies { [Port in keyof Ports]?: { adapter: () => Ports[Port]; connector: McpBackedConnector } };
 
 export type McpPortName = keyof typeof MCP_PORTS;
