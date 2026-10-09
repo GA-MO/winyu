@@ -46,7 +46,8 @@
 }
 
 :root,
-[data-ui-theme] {
+[data-ui-theme],
+.theme-light {
   --ui-success: #059669;
   --ui-warning: #d97706;
   --ui-danger: #e11d48;
@@ -274,12 +275,21 @@
   --color-bubble: var(--winyu-bubble);
   --color-hairline: var(--winyu-hairline);
   --color-brand-coral: var(--brand-coral);
+  --color-teams: var(--teams);
+  --color-teams-foreground: var(--teams-foreground);
+  --color-teams-surface: var(--teams-surface);
+  --color-teams-bubble: var(--teams-bubble);
+  --color-line: var(--line);
+  --color-line-foreground: var(--line-foreground);
+  --color-line-chat: var(--line-chat);
+  --color-line-bubble: var(--line-bubble);
   --shadow-card: 0 1px 2px var(--winyu-shadow-weak), 0 10px 30px -24px var(--winyu-shadow-soft);
   --shadow-lift: 0 2px 6px var(--winyu-shadow-weak), 0 22px 46px -28px var(--winyu-shadow-soft);
   --shadow-panel: 0 1px 3px var(--winyu-shadow-weak), 0 44px 96px -58px var(--winyu-shadow-soft);
 }
 
-:root {
+:root,
+.theme-light {
   color-scheme: light;
   --background: #f9fafd;
   --foreground: #0b0c0f;
@@ -315,6 +325,14 @@
   --winyu-blob-violet: rgb(139 92 246 / 8%);
   --winyu-blob-blue: rgb(59 130 246 / 7%);
   --winyu-blob-pink: rgb(244 114 182 / 6%);
+  --teams: #5b5fc7;
+  --teams-foreground: #ffffff;
+  --teams-surface: #f5f5f5;
+  --teams-bubble: #e8ebfa;
+  --line: #06c755;
+  --line-foreground: #ffffff;
+  --line-chat: #8cabd9;
+  --line-bubble: #8de055;
 }
 
 .dark {
