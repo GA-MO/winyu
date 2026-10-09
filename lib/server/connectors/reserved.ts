@@ -3,7 +3,6 @@ import type { ReservedReason } from "@/lib/connectors/spec";
 import { CALENDAR_MCP_TOOLS, calendarMcpEnv } from "@/lib/server/ports/calendar-mcp-contract";
 import { HRIS_MCP_TOOLS, hrisMcpEnv } from "@/lib/server/ports/hris-mcp-contract";
 import { LEARNING_MCP_TOOLS, learningMcpEnv } from "@/lib/server/ports/learning-mcp-contract";
-import { METRICS_MCP_TOOLS, metricsMcpEnv } from "@/lib/server/ports/metrics-mcp-contract";
 import { SITES_MCP_TOOLS, sitesMcpEnv } from "@/lib/server/ports/sites-mcp-contract";
 import { CODE_CONNECTORS } from "./code";
 
@@ -15,7 +14,6 @@ function portServers(): ServedTools[] {
     { url: hrisMcpEnv().url, tools: Object.keys(HRIS_MCP_TOOLS) },
     { url: sitesMcpEnv().url, tools: Object.keys(SITES_MCP_TOOLS) },
     { url: calendarMcpEnv().url, tools: Object.keys(CALENDAR_MCP_TOOLS) },
-    { url: metricsMcpEnv().url, tools: Object.keys(METRICS_MCP_TOOLS) },
   ];
 }
 

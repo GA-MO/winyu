@@ -3,7 +3,7 @@ import { connectors } from "@/lib/server/tools/registry";
 import { GENERATOR_PORTS } from "./generator";
 import { mcpPortNames, ports, resetPorts, type Ports } from "./index";
 
-const READ_OVER_MCP = ["metrics", "directory", "recruiting", "learning", "leave", "sites", "calendar"] as const;
+const READ_OVER_MCP = ["directory", "recruiting", "learning", "leave", "sites", "calendar"] as const;
 
 function withPorts(setting: string | null): void {
   if (setting === null) delete process.env.WINYU_PORTS;
@@ -31,15 +31,16 @@ describe("WINYU_PORTS picks which ports read over MCP", () => {
     }
   });
 
-  test("mcp swaps every port but mail, and the admin shows each system behind them as an MCP connection", () => {
+  test("mcp swaps every port but the warehouse and mail, and the admin shows each system behind them as an MCP connection", () => {
     withPorts("mcp");
     expect(swapped().sort()).toEqual([...READ_OVER_MCP].sort());
-    for (const id of ["warehouse", "hris", "lms", "leave", "sites", "calendar"]) expect({ id, kind: kindOf(id) }).toEqual({ id, kind: "mcp" });
+    for (const id of ["hris", "lms", "leave", "sites", "calendar"]) expect({ id, kind: kindOf(id) }).toEqual({ id, kind: "mcp" });
+    expect(kindOf("warehouse")).toBe("native");
     expect(kindOf("mail")).toBe("native");
   });
 
   test("a comma list swaps only the ports it names and ignores names that are not ports", () => {
-    withPorts("directory, calendar,mail,nonsense");
+    withPorts("directory, calendar,mail,metrics,nonsense");
     expect(mcpPortNames().sort()).toEqual(["calendar", "directory"]);
     expect(swapped().sort()).toEqual(["calendar", "directory"]);
     expect(kindOf("hris")).toBe("mcp");

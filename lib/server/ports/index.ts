@@ -7,8 +7,6 @@ import type { MetricsPort } from "./metrics";
 import type { RecruitingPort } from "./recruiting";
 import type { SitesPort } from "./sites";
 import { GENERATOR_PORTS } from "./generator";
-import { metricsMcpEnv } from "./metrics-mcp-contract";
-import { metricsMcpPort } from "./metrics-mcp";
 import { learningMcpEnv } from "./learning-mcp-contract";
 import { learningMcpPort } from "./learning-mcp";
 import { hrisMcpEnv } from "./hris-mcp-contract";
@@ -33,7 +31,6 @@ export type Ports = {
 
 /** Each port that can read over MCP: how Winyu builds its client and the admin connector its health shows under. */
 const MCP_PORTS = {
-  metrics: { adapter: () => metricsMcpPort(metricsMcpEnv()), connector: "warehouse" },
   learning: { adapter: () => learningMcpPort(learningMcpEnv()), connector: "lms" },
   directory: { adapter: () => directoryMcpPort(hrisMcpEnv()), connector: "hris" },
   leave: { adapter: () => leaveMcpPort(hrisMcpEnv()), connector: "leave" },

@@ -937,7 +937,7 @@ export const TH = {
       reset: (count: number) => `คืนค่าเริ่มต้นทั้งหมด (${count})`,
     },
     connectors: {
-      warehouse: { label: "Data Warehouse", source: "คลังข้อมูลกลาง (ขาย ซัพพลาย การตลาด การเงิน HR)", sourceMcp: "คลังข้อมูลกลางของทีมดาต้า ผ่าน MCP" },
+      warehouse: { label: "Data Warehouse", source: "คลังข้อมูลกลาง (ขาย ซัพพลาย การตลาด การเงิน HR)" },
       hris: { label: "HRIS", source: "HRIS และระบบสรรหา", sourceMcp: "HRIS และระบบสรรหา ผ่าน MCP" },
       lms: { label: "LMS", source: "LMS", sourceMcp: "LMS ผ่าน MCP" },
       leave: { label: "Leave", source: "ระบบลาและนโยบายบริษัท", sourceMcp: "ระบบลาใน HRIS ผ่าน MCP" },

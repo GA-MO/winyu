@@ -16,7 +16,7 @@ export type McpToolContract = { description: string; input: z.ZodType; output: z
 /** A system's MCP contract, one tool per port method; shared by the demo server and Winyu's client. */
 export type McpContract = Record<string, McpToolContract>;
 
-const MCP_BACKED_CONNECTORS = ["warehouse", "hris", "lms", "leave", "sites", "calendar"] as const;
+const MCP_BACKED_CONNECTORS = ["hris", "lms", "leave", "sites", "calendar"] as const;
 
 /** The admin connectors a port reports its health under when it reads over MCP. */
 export type McpBackedConnector = (typeof MCP_BACKED_CONNECTORS)[number];
