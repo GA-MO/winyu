@@ -1,6 +1,6 @@
 import { clientFor, dropClient } from "./pool";
 import { learnRemoteTools, markReachable } from "./catalog";
-import { mcpConnectors } from "./index";
+import { remoteConnectors } from "./index";
 import type { RemoteTool } from "./catalog";
 import type { McpConnector, McpToolConfig } from "./types";
 
@@ -44,7 +44,7 @@ function report(drift: ConnectorDrift): void {
 /** Compares what each server offers with what Winyu declares and logs the difference; never opens a tool the config does not name. */
 export async function reconcileConnectors(): Promise<ConnectorDrift[]> {
   const drifts: ConnectorDrift[] = [];
-  for (const connector of mcpConnectors()) {
+  for (const connector of remoteConnectors()) {
     try {
       const drift = await driftOf(connector);
       report(drift);
@@ -70,7 +70,7 @@ async function probe(connector: McpConnector): Promise<void> {
 
 /** Asks every connector for its tool list so the admin's status pill follows a server that stopped or came back. */
 export async function probeConnectors(): Promise<void> {
-  await Promise.all(mcpConnectors().map(probe));
+  await Promise.all(remoteConnectors().map(probe));
 }
 
 /** Probes the connectors every few minutes, once per server process however many module copies load this file. */

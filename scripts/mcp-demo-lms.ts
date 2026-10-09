@@ -1,28 +1,24 @@
 import type { Employee } from "@/lib/contracts";
 import { ports } from "@/lib/server/ports";
-import { LMS_DEMO_PORT, LMS_DEMO_TOOL, lmsDemoEnv } from "@/lib/server/connectors/lms-demo-config";
-import { verifiedIdentity } from "@/lib/server/connectors/signed-identity";
+import { LMS_DEMO_TOOL, lmsDemoEnv } from "@/lib/server/connectors/lms-demo-config";
 import { formatDateTh } from "@/lib/i18n/format";
+import { mcpDemoFetch, portOf } from "./mcp-demo-server";
 
-const MCP_PATH = "/mcp";
 const SERVER_INFO = { name: "winyu-lms-demo", version: "0.1.0" };
 const MIN_SCORE = 60;
 const SCORE_SPREAD = 40;
 const ALL = "all";
 
-type JsonRpcRequest = { jsonrpc: "2.0"; id?: string | number; method: string; params?: Record<string, unknown> };
 type TrainingArgs = { employeeId?: string | null; name?: string | null; regions?: string | null };
 
-const TOOLS = [
-  {
-    name: LMS_DEMO_TOOL,
-    description: "Courses and certificates per employee from the LMS.",
-    inputSchema: {
-      type: "object",
-      properties: { employeeId: { type: ["string", "null"] }, name: { type: ["string", "null"] }, regions: { type: ["string", "null"] } },
-    },
+const TOOL = {
+  name: LMS_DEMO_TOOL,
+  description: "Courses and certificates per employee from the LMS.",
+  inputSchema: {
+    type: "object",
+    properties: { employeeId: { type: ["string", "null"] }, name: { type: ["string", "null"] }, regions: { type: ["string", "null"] } },
   },
-];
+};
 
 function scoreOf(seed: string): number {
   let hash = 0;
@@ -60,41 +56,17 @@ function matches(employee: Employee, args: TrainingArgs, viewerId: string): bool
 
 async function trainingHistory(args: TrainingArgs, viewerId: string) {
   const { employees } = await ports().directory.load();
-  const items = employees.filter((employee) => matches(employee, args, viewerId)).flatMap(rowsOf);
-  return { content: [{ type: "text", text: JSON.stringify({ items }) }], structuredContent: { items } };
+  return { items: employees.filter((employee) => matches(employee, args, viewerId)).flatMap(rowsOf) };
 }
 
-function reply(id: JsonRpcRequest["id"], result: unknown): Response {
-  return Response.json({ jsonrpc: "2.0", id, result });
-}
-
-function failure(id: JsonRpcRequest["id"], code: number, message: string, status = 200): Response {
-  return Response.json({ jsonrpc: "2.0", id: id ?? null, error: { code, message } }, { status });
-}
-
-async function answer(request: JsonRpcRequest, viewerId: string): Promise<Response> {
-  if (request.id === undefined) return new Response(null, { status: 202 });
-  if (request.method === "initialize") {
-    return reply(request.id, { protocolVersion: request.params?.protocolVersion ?? "2025-06-18", capabilities: { tools: {} }, serverInfo: SERVER_INFO });
-  }
-  if (request.method === "tools/list") return reply(request.id, { tools: TOOLS });
-  if (request.method === "tools/call" && request.params?.name === LMS_DEMO_TOOL) {
-    return reply(request.id, await trainingHistory((request.params.arguments ?? {}) as TrainingArgs, viewerId));
-  }
-  if (request.method === "tools/call") return reply(request.id, { isError: true, content: [{ type: "text", text: `unknown tool ${String(request.params?.name)}` }] });
-  return failure(request.id, -32601, `method ${request.method} not found`);
-}
-
-/** One HTTP request to the demo LMS: JSON-RPC over POST, only for callers whose identity Winyu signed. */
-export async function lmsDemoFetch(request: Request): Promise<Response> {
-  if (new URL(request.url).pathname !== MCP_PATH) return new Response("not found", { status: 404 });
-  if (request.method !== "POST") return new Response(null, { status: 405 });
-  const identity = verifiedIdentity(request.headers, lmsDemoEnv().secret);
-  if (!identity) return failure(undefined, -32001, "identity signature missing or wrong", 401);
-  return answer((await request.json()) as JsonRpcRequest, identity.userId);
-}
+/** The demo LMS: training history per person, only for callers whose identity Winyu signed. */
+export const lmsDemoFetch = mcpDemoFetch({
+  info: SERVER_INFO,
+  secret: () => lmsDemoEnv().secret,
+  tools: [{ ...TOOL, call: (args, identity) => trainingHistory(args as TrainingArgs, identity.userId) }],
+});
 
 if (import.meta.main) {
-  const server = Bun.serve({ port: LMS_DEMO_PORT, hostname: "127.0.0.1", fetch: lmsDemoFetch });
+  const server = Bun.serve({ port: portOf(lmsDemoEnv().url), hostname: "127.0.0.1", fetch: lmsDemoFetch });
   console.log(`LMS demo MCP on ${server.url}mcp`);
 }

@@ -20,34 +20,18 @@ export type SensitiveField = { field: string; labelTh: string; full: readonly Ro
 /** Rows in Winyu's shape, from an adapter that knows the server's raw result. */
 export type ConnectorOutput = { summary?: string; rows: ConnectorRow[]; asOf?: string };
 
-type ConnectorToolBase = {
+export type McpToolConfig = {
+  as?: string;
   labelTh: string;
   bodyTh?: string;
+  description?: string;
   tier?: ToolTier;
   roles: readonly RoleId[] | "all";
+  input?: z.ZodObject;
+  output?: (raw: McpCallResult) => ConnectorOutput;
   scope: ConnectorScope;
   sensitive?: readonly SensitiveField[];
 };
-
-export type McpToolConfig = ConnectorToolBase & {
-  as?: string;
-  description?: string;
-  input?: z.ZodObject;
-  output?: (raw: McpCallResult) => ConnectorOutput;
-};
-
-export type RestMethod = "GET" | "POST";
-
-/** One endpoint of a REST API: no catalog to read, so Winyu writes the description, the input schema and the adapter itself. `{name}` in the path is filled from the argument of that name. */
-export type RestToolConfig = ConnectorToolBase & {
-  method: RestMethod;
-  path: string;
-  description: string;
-  input: z.ZodObject;
-  output: (body: unknown) => ConnectorOutput;
-};
-
-export type ConnectorToolConfig = McpToolConfig | RestToolConfig;
 
 export type McpConnectorConfig = {
   id: string;
@@ -61,29 +45,6 @@ export type McpConnectorConfig = {
 
 export type ConnectorField = { key: string; connector: string; field: string; labelTh: string; defaultFor: (role: RoleId) => Visibility };
 
-export type RestConnectorConfig = {
-  id: string;
-  labelTh: string;
-  sourceSystemTh: string;
-  baseUrl: string;
-  auth: (access: AccessContext | null) => Record<string, string>;
-  timeoutMs: number;
-  tools: Record<string, RestToolConfig>;
-};
+export type ConnectorToolBinding = { name: string; remoteName: string; tier: ToolTier; config: McpToolConfig; fields: ConnectorField[] };
 
-/** What Winyu needs to know about any connector to call it and speak of it. */
-export type ConnectorIdentity = { id: string; labelTh: string; sourceSystemTh: string };
-
-export type ConnectorToolBinding<Config extends ConnectorToolConfig = ConnectorToolConfig> = { name: string; remoteName: string; tier: ToolTier; config: Config; fields: ConnectorField[] };
-
-/** What came back from the other system: rows in Winyu's shape, a failure in its own words, or no answer at all. */
-export type RemoteOutcome = { ok: true; output: ConnectorOutput } | { ok: false; reason: "unavailable" } | { ok: false; reason: "failed"; text: string };
-
-/** Asks the other system once, as the person asking, with arguments Winyu already scoped. */
-export type RemoteCaller = (args: Record<string, unknown>, access: AccessContext) => Promise<RemoteOutcome>;
-
-export type McpConnector = { def: ConnectorDef & { kind: "mcp" }; config: McpConnectorConfig; tools: WinyuTool[]; fields: ConnectorField[] };
-
-export type RestConnector = { def: ConnectorDef & { kind: "rest" }; config: RestConnectorConfig; tools: WinyuTool[]; fields: ConnectorField[] };
-
-export type RemoteConnector = McpConnector | RestConnector;
+export type McpConnector = { def: ConnectorDef; config: McpConnectorConfig; tools: WinyuTool[]; fields: ConnectorField[] };

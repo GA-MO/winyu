@@ -2,12 +2,11 @@ import { AGENTS } from "@/lib/data/entities/agents";
 import { REGION_LABELS_TH } from "@/lib/data/entities/org";
 import { USERS } from "@/lib/data/entities/users";
 import { TODAY, addDays } from "@/lib/data/dates";
-import { CRM_DEMO_PORT, crmDemoEnv } from "@/lib/server/connectors/crm-demo-config";
-import { verifiedIdentity } from "@/lib/server/connectors/signed-identity";
+import { CRM_DEMO_TOOL, crmDemoEnv } from "@/lib/server/connectors/crm-demo-config";
 import { formatCurrency, formatDateTh } from "@/lib/i18n/format";
+import { mcpDemoFetch, portOf } from "./mcp-demo-server";
 
-const API_PREFIX = "/api";
-const VISITS_PATH = "/visits";
+const SERVER_INFO = { name: "winyu-crm-demo", version: "0.1.0" };
 const VISITS_PER_AGENT = 3;
 const VISIT_GAP_DAYS = 24;
 const OUTCOMES = ["สั่งซื้อเพิ่ม", "ติดตามยอดค้างชำระ", "ตรวจสต๊อกหน้าร้าน", "แนะนำสินค้าใหม่"];
@@ -51,25 +50,30 @@ function visitsOf(agent: (typeof AGENTS)[number]) {
   });
 }
 
-function visits(params: URLSearchParams) {
-  const regions = params.get("regions");
-  const agentId = params.get("agentId");
+type VisitsArgs = { agentId?: string | null; regions?: string | null };
+
+function visits(args: VisitsArgs) {
   return AGENTS
-    .filter((agent) => !regions || regions === ALL || regions.split(",").includes(agent.region))
-    .filter((agent) => !agentId || agent.id === agentId)
+    .filter((agent) => !args.regions || args.regions === ALL || args.regions.split(",").includes(agent.region))
+    .filter((agent) => !args.agentId || agent.id === args.agentId)
     .flatMap(visitsOf);
 }
 
-/** One HTTP request to the demo CRM: GET /api/visits for callers whose identity Winyu signed. */
-export async function crmDemoFetch(request: Request): Promise<Response> {
-  const url = new URL(request.url);
-  if (url.pathname !== `${API_PREFIX}${VISITS_PATH}`) return Response.json({ error: "not found" }, { status: 404 });
-  if (request.method !== "GET") return new Response(null, { status: 405 });
-  if (!verifiedIdentity(request.headers, crmDemoEnv().secret)) return Response.json({ error: "identity signature missing or wrong" }, { status: 401 });
-  return Response.json({ items: visits(url.searchParams), as_of: TODAY });
-}
+/** The demo CRM: store visits per agent, only for callers whose identity Winyu signed. */
+export const crmDemoFetch = mcpDemoFetch({
+  info: SERVER_INFO,
+  secret: () => crmDemoEnv().secret,
+  tools: [
+    {
+      name: CRM_DEMO_TOOL,
+      description: "Store visits per agent from the CRM.",
+      inputSchema: { type: "object", properties: { agentId: { type: ["string", "null"] }, regions: { type: ["string", "null"] } } },
+      call: (args) => ({ items: visits(args as VisitsArgs), as_of: TODAY }),
+    },
+  ],
+});
 
 if (import.meta.main) {
-  const server = Bun.serve({ port: CRM_DEMO_PORT, hostname: "127.0.0.1", fetch: crmDemoFetch });
-  console.log(`CRM demo REST on ${server.url}api/visits`);
+  const server = Bun.serve({ port: portOf(crmDemoEnv().url), hostname: "127.0.0.1", fetch: crmDemoFetch });
+  console.log(`CRM demo MCP on ${server.url}mcp`);
 }

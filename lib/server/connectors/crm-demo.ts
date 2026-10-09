@@ -1,17 +1,17 @@
 import { z } from "zod";
 import type { AccessContext } from "@/lib/contracts";
 import { CRM_DEMO_ID, CRM_DEMO_TOOL, crmDemoEnv } from "./crm-demo-config";
-import { defineRestConnector } from "./define";
+import { defineMcpConnector } from "./define";
 import { signedIdentityHeaders } from "./signed-identity";
-import type { ConnectorOutput, ConnectorRow } from "./types";
+import type { ConnectorOutput, ConnectorRow, McpCallResult } from "./types";
 
 const TIMEOUT_MS = 4000;
 
-const VISITS_BODY = z.object({ items: z.array(z.record(z.string(), z.unknown())), as_of: z.string().optional() });
+const VISITS_RESULT = z.object({ structuredContent: z.object({ items: z.array(z.record(z.string(), z.unknown())), as_of: z.string().optional() }) });
 
-function visitsOutput(body: unknown): ConnectorOutput {
-  const parsed = VISITS_BODY.parse(body);
-  return { rows: parsed.items, asOf: parsed.as_of };
+function visitsOutput(raw: McpCallResult): ConnectorOutput {
+  const { structuredContent } = VISITS_RESULT.parse(raw);
+  return { rows: structuredContent.items, asOf: structuredContent.as_of };
 }
 
 function onlyOwnRegions(rows: ConnectorRow[], access: AccessContext): ConnectorRow[] {
@@ -20,18 +20,16 @@ function onlyOwnRegions(rows: ConnectorRow[], access: AccessContext): ConnectorR
   return rows.filter((row) => regions.includes(String(row.region)));
 }
 
-/** The demo CRM behind REST: store visits per agent, asked as the signed-in user, kept to the regions Winyu says they cover. */
-export const crmDemoConnector = defineRestConnector({
+/** The demo CRM behind MCP: store visits per agent, asked as the signed-in user, kept to the regions Winyu says they cover. */
+export const crmDemoConnector = defineMcpConnector({
   id: CRM_DEMO_ID,
-  labelTh: "CRM (REST)",
-  sourceSystemTh: "CRM ภายนอกผ่าน REST (เดโม)",
-  baseUrl: crmDemoEnv().url,
+  labelTh: "CRM (MCP)",
+  sourceSystemTh: "CRM ภายนอกผ่าน MCP (เดโม)",
+  transport: { type: "http", url: crmDemoEnv().url },
   auth: (access) => signedIdentityHeaders(access, crmDemoEnv().secret),
   timeoutMs: TIMEOUT_MS,
   tools: {
     [CRM_DEMO_TOOL]: {
-      method: "GET",
-      path: "/visits",
       labelTh: "ดูบันทึกการเยี่ยมร้าน",
       bodyTh: "การเยี่ยมเอเย่นต์จากระบบ CRM: วันที่ ผู้ไปเยี่ยม ผลการเยี่ยม และยอดสั่งซื้อ เห็นเฉพาะภาคที่รับผิดชอบ",
       description:

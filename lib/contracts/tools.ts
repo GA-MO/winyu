@@ -17,7 +17,7 @@ export type ToolName = NativeToolName | ConnectorToolName;
 export const NATIVE_CONNECTORS = ["warehouse", "hris", "lms", "leave", "sites", "calendar", "mail", "documents", "winyu", "logistics"] as const;
 export type NativeConnectorId = (typeof NATIVE_CONNECTORS)[number];
 
-export type ConnectorKind = "native" | "mcp" | "rest";
+export type ConnectorKind = "native" | "mcp";
 
 /** A system Winyu reaches tools through: its own ports (native) or a remote MCP server; what the admin groups tools under. */
 export type ConnectorDef = { id: string; labelTh: string; sourceSystemTh: string; kind: ConnectorKind };
