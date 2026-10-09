@@ -138,6 +138,34 @@ bun run channels:view      # writes .shots/f11-view.html and one JSON file per c
 
 The simulator (`scripts/channels-sim.ts`) stands in for both platforms. It signs Teams activities as the Bot Framework does (RS256 JWT with issuer `https://api.botframework.com`, audience = app id and a `serviceurl` claim) and publishes its keys. In development, Winyu checks those claims against the simulator's keys in place of Microsoft's. The simulator receives replies as the Bot Connector API, signs LINE webhooks with the channel secret, answers the LINE Messaging API, and plays LINE's account-link dialog.
 
+## Demo screen
+
+`/dev/channels` shows Winyu as people see it in the chat apps: a Microsoft Teams desktop chat on the left and a LINE phone on the right. It exists only in development and needs the simulator.
+
+```bash
+make up CHANNELS=on    # connectors, the channel simulator on :3295, and dev on :3100 pointed at it
+```
+
+Open `http://localhost:3100/dev/channels` while signed in. Each pane has its own persona picker (Teams starts as u_thana, LINE as u_krit). On start, `bun run channels:sim` (`scripts/channels-demo-sim.ts`) links every persona to a mock Entra account (`mockObjectId`) and a fixed LINE user id with `linkedBy: "channels-demo"`, so anyone can write from either pane without the LINE link flow. It skips links that already exist.
+
+- Each pane draws what Winyu really sent: the Adaptive Cards and Flex bubbles Winyu builds, with working buttons. Approve and reject go back to Winyu as a Teams `Action.Submit` or a LINE postback.
+- A card someone shares from the web (ส่งต่อ) appears in the recipient's pane when that persona is picked. Teams can reach a person only after they have written to the bot once, so write from the Teams pane first.
+- A button that opens Winyu (ดูต่อในเว็บ, เปิดดูใน Winyu) opens a new tab on the other loopback host (`127.0.0.1` when the page runs on `localhost`, and the reverse) through `/dev/as?user=<persona>&next=<path>`. The browser keeps separate cookies per host, so the new tab is the pane's persona and the presenter's own tab keeps its session. `/dev/as` answers 404 in production and outside demo sign-in, and accepts only a path inside the app as `next`.
+- The simulator keeps its chat log in memory. Restarting it clears the panes but not Winyu's stored Teams conversations.
+
+The page talks to the simulator's control API, which any script can also use:
+
+| Route | Does |
+|---|---|
+| `GET /ui/people` | The personas with their `oid` and `lineUserId` (served by `channels:sim`) |
+| `GET /ui/feed?after=<seq>` | Every entry after the cursor: what people sent (`inbound`), what Winyu sent (`message`, `reply`, `push`), and typing signals (`typing`, `loading`). `thread` names the chat: the Teams conversation id or the LINE user id. |
+| `POST /ui/teams/say` `{oid,name,text}` | A person writes in their private Teams chat; answers 202 at once |
+| `POST /ui/teams/press` `{oid,name,actionId,value,label?}` | A person presses an `Action.Submit` button |
+| `POST /ui/line/say` `{lineUserId,name,text}` | A LINE user writes to the bot |
+| `POST /ui/line/press` `{lineUserId,data,label?}` | A LINE user presses a postback button |
+
+Mail in the demo never leaves the machine: the generator's mail port writes to the in-app Outbox. Every receipt that says an email went out links to `/outbox` with **(เดโม ไม่ได้ส่งจริง)**.
+
 ## Tests
 
 `bun test` runs both channels end to end with a scripted model in place of Gemini, so no test calls a paid model. `scripts/scripted-model.ts` lets any test drive the real agent, gateway and harness.
@@ -146,3 +174,4 @@ The simulator (`scripts/channels-sim.ts`) stands in for both platforms. It signs
 - `lib/server/channels/teams.test.ts` covers signed activities through the official adapter, the Adaptive Card content, scope, the unlinked sender, the group mention, approvals, a tampered or unsigned activity (401), and Microsoft's own validator refusing an unsigned activity when no simulator is set.
 - `lib/server/channels/line.test.ts` covers a missing, wrong or stale signature (401, nothing sent), the unlinked prompt, the full link flow followed by u_krit's scope, a spent link token, a cross-site confirm, LINE reporting a different user, postback approvals, and group behaviour.
 - `lib/server/channels/render.test.ts` covers colours, buttons, postback round trips, plain text for LINE and composed-card rows.
+- `scripts/channels-sim.test.ts` covers the control API: a say answers 202, and the feed then holds the inbound entry and the reply on the sender's thread. `app/dev/as/route.test.ts` covers the persona route's checks.
