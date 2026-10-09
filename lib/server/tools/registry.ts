@@ -4,8 +4,6 @@ import { toolRolesInclude } from "@/lib/contracts";
 import { remoteConnectors } from "@/lib/server/connectors";
 import { nativeConnectors } from "@/lib/server/connectors/native";
 import type { ConnectorField } from "@/lib/server/connectors/types";
-import { readsOverMcp } from "@/lib/server/ports";
-import { isMcpBackedConnector } from "@/lib/server/ports/mcp-port";
 import type { WinyuTool } from "./define";
 import { queryMetricTool } from "./query-metric";
 import { listMetricsTool } from "./list-metrics";
@@ -70,15 +68,9 @@ function allTools(): WinyuTool[] {
   return [...Object.values(NATIVE_TOOLS), ...remoteConnectors().flatMap((connector) => connector.tools)];
 }
 
-/** A native connector as the admin sees it: an MCP connection with its health when its port reads from that system's MCP server. */
-function withPortSource(def: ConnectorDef): ConnectorDef {
-  if (!isMcpBackedConnector(def.id) || !readsOverMcp(def.id)) return def;
-  return { ...def, kind: "mcp", sourceSystemTh: TH.admin.connectors[def.id].sourceMcp };
-}
-
 /** Every system tools reach: Winyu's own ports first, then each MCP connector, in the order the admin groups them. */
 export function connectors(): ConnectorDef[] {
-  return [...nativeConnectors().map(withPortSource), ...remoteConnectors().map((connector) => connector.def)];
+  return [...nativeConnectors(), ...remoteConnectors().map((connector) => connector.def)];
 }
 
 export type ConnectorGroup = { connector: ConnectorDef; tools: ToolSurfaceEntry[] };

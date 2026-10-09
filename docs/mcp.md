@@ -54,7 +54,7 @@ Winyu also reaches other systems as an MCP client, and MCP is the only way it do
 - **Declare the connector.** Write it with `defineMcpConnector` in `lib/server/connectors/` and add it to `CODE_CONNECTORS` in `code.ts`, or let an IT admin add it from the console (next section). Only the tools that the config names reach the model. Each tool declares its tier, roles, scope (`inject` arguments, `filter` rows, or `none` with a reason) and sensitive fields. It can also declare its own description, input schema and output adapter.
 - **One pipeline.** Every call passes the gateway as the person asking. The MCP client sends that person's identity in headers that `signed-identity.ts` signs. Winyu injects scope arguments on the way in. On the way out, it filters, masks, caps at 60 rows and fences every string. A server that does not answer within `timeoutMs` reads as `CONNECTOR_UNAVAILABLE`.
 - **Drift.** At boot `reconcileConnectors` compares each server's tool list with the config, and a probe every five minutes keeps the admin's Online/Offline pill current.
-- **Demo servers.** `bun run connectors:demo` serves every demo system over MCP from one process: the LMS on `:3299/mcp`, the CRM on `:3298/mcp`, the HRIS on `:3293/mcp`, the safety (EHS) system on `:3292/mcp` the company calendar on `:3291/mcp`, and an asset register on `:3290/mcp` (`scripts/mcp-demo-assets.ts`) whose `request_asset` and `return_asset` are write tools for trying phase 2 of the admin console (connect it at `/admin/connect` with the secret `winyu-assets-demo-local-only`). `scripts/mcp-demo-server.ts` handles the JSON-RPC and the signature check for all of them. Each URL variable (`WINYU_LMS_DEMO_URL`, `WINYU_CRM_DEMO_URL`, `WINYU_HRIS_MCP_URL`, `WINYU_EHS_MCP_URL`, `WINYU_CALENDAR_MCP_URL`) moves a server and the URL Winyu calls together, because the demo listens on the port in that URL. Each server also runs alone with `bun run scripts/mcp-demo-<system>.ts`.
+- **Demo servers.** `bun run connectors:demo` serves the demo systems the connectors call, from one process: the LMS's training history on `:3299/mcp` and the CRM on `:3298/mcp` (both code connectors), and an asset register on `:3290/mcp` (`scripts/mcp-demo-assets.ts`) whose `request_asset` and `return_asset` are write tools for trying phase 2 of the admin console (connect it at `/admin/connect` with the secret `winyu-assets-demo-local-only`). `scripts/mcp-demo-server.ts` handles the JSON-RPC and the signature check for all of them. Each URL variable (`WINYU_LMS_DEMO_URL`, `WINYU_CRM_DEMO_URL`, `WINYU_ASSETS_MCP_URL`) moves a server and the URL Winyu calls together, because the demo listens on the port in that URL.
 
 ## Connecting a system from the admin console
 
@@ -97,54 +97,8 @@ Every request of a console connector goes through `egressFetch` (`egress.ts`). I
 
 `bun run eval` runs on a fresh data folder, so console connectors are never part of an eval and `--stale` does not count them. The review step says how many recorded cases belong to the roles a connector reaches and how many prompt tokens it adds per question.
 
-# Systems of record over MCP
+# Systems of record behind ports
 
-The sections above cover Winyu as an MCP server and its connector tools. Winyu is also an MCP client for every system of record behind its ports (`lib/server/ports/`). Each port becomes a client of that system's MCP server, and the model-facing tools above it keep their names, descriptions and schemas. Eval recordings therefore do not go stale when a port moves.
+Winyu holds none of the business data it shows. Every system of record sits behind a port in `lib/server/ports/` (`metrics`, `directory`, `recruiting`, `learning`, `leave`, `sites`, `calendar`, `mail`), and the native tools only call the port. A deployment fills each port with an adapter for the customer's system: SQL to the warehouse, the HRIS's API, the LMS's API, and so on. The demo fills every port with the generator (`lib/server/ports/generator.ts`), which plays those systems with deterministic data, including the leave system's requests (`generator-leave.ts`) and the LMS's enrollments (`generator-learning.ts`). Tests swap a port with `registerPorts`.
 
-## Which system serves which port
-
-| Port | System and demo server | Default URL | Contract tools | Cache | Admin connector |
-| --- | --- | --- | --- | --- | --- |
-| `learning` | The LMS, `scripts/mcp-demo-lms.ts`, beside its `training_history` connector tool | `:3299` | `list_courses`, `list_enrollments`, `request_seat`, `decide_enrollment` | none: seats change with every request | LMS |
-| `directory` | The HRIS, `scripts/mcp-demo-hris.ts` | `:3293` | `load_directory` | 5 min | HRIS |
-| `leave` | The HRIS leave module | `:3293` | `leave_policy` (1 min), `leave_balances`, `list_leave_requests`, `submit_leave_request`, `decide_leave_request` (never reused) | see tools | Leave |
-| `recruiting` | The HRIS recruiting module | `:3293` | `list_candidates` | 1 min | HRIS |
-| `sites` | The safety (EHS) system, `scripts/mcp-demo-ehs.ts` | `:3292` | `load_sites` | 1 min | Sites |
-| `calendar` | The company calendar, `scripts/mcp-demo-calendar.ts` | `:3291` | `load_calendar` | 30 min | Calendar |
-| `metrics` | Stays in-process: the warehouse is reached by an adapter of `MetricsPort` (`lib/server/ports/metrics.ts`), not over MCP. The demo answers from the generator. A deployment writes an adapter that turns each scoped `FactRequest` into SQL against the warehouse. | | | | |
-| `mail` | Stays in-process: the outbox is Winyu's own record of what it sent | | | | |
-
-Recruiting sits on the HRIS server because the admin already shows HRIS and recruiting as one connector, and `list_candidates` needs the directory to decide who sees which opening. Each contract is a zod module that the demo server and Winyu's client share: `learning-mcp-contract.ts`, `hris-mcp-contract.ts`, `sites-mcp-contract.ts` and `calendar-mcp-contract.ts`.
-
-## Select the source
-
-| Env | Effect |
-| --- | --- |
-| `WINYU_PORTS` unset, empty or `generator` | The in-process generator answers every port (`lib/server/ports/generator.ts`). `bun test` and `bun run eval` always delete `WINYU_PORTS`. |
-| `WINYU_PORTS=mcp` | Every port except `metrics` and `mail` reads over MCP. |
-| `WINYU_PORTS=directory,calendar` | Only the named ports read over MCP. Names that are not ports are ignored. |
-| `WINYU_<SYSTEM>_MCP_URL` | The server's endpoint, for `HRIS`, `EHS` and `CALENDAR`. The LMS keeps `WINYU_LMS_DEMO_URL`, shared with its connector. |
-| `WINYU_<SYSTEM>_MCP_SECRET` | The secret both sides sign identities with. The LMS keeps `WINYU_LMS_DEMO_SECRET`. The defaults are for the local demo only. |
-| `WINYU_<SYSTEM>_MCP_TIMEOUT_MS` | How long one call may take, connect included. `WINYU_LMS_MCP_TIMEOUT_MS` for the LMS. Default 4000. |
-
-`make up` starts `bun run connectors:demo`, then runs dev with `WINYU_PORTS=mcp`. Run `make up PORTS=generator` to keep every port in-process, or pass a list such as `make up PORTS=directory,calendar`. `make stop` and `make status` include :3290, :3291, :3292, :3293, :3298 and :3299.
-
-## What every server must do
-
-- Accept only requests that carry Winyu's signed identity headers (`x-winyu-user`, `x-winyu-role`, `x-winyu-regions`, `x-winyu-signature`, HMAC-SHA256 as in `lib/server/connectors/signed-identity.ts`). Refuse any other request with HTTP 401.
-- Offer one tool per port method. Arguments are plain JSON. Each result is a JSON object in `structuredContent`, or the same JSON as the first text content.
-- Refuse arguments that do not parse as a tool error (`isError`), never as an empty result.
-- Log the caller for its own audit. A chat tool call signs as the person asking. Dashboard and background reads sign as `winyu`.
-
-## How the client behaves
-
-`mcpPortClient` in `lib/server/ports/mcp-port.ts` is the one client every port uses.
-
-- **Short cache.** A call with the same arguments within the port's cache window is answered once. The key ignores key order. A failed call is not cached, and an expired entry is never served.
-- **Pooled clients.** Calls go through the connector pool (`lib/server/connectors/pool.ts`), one client per caller.
-- **Parsed at the boundary.** Every result is parsed against the contract's zod schema. A result that does not match is an error, never data, so a directory missing a field is never read as a smaller directory.
-- **One typed error.** A timeout, an unreachable server, a refused call or a malformed result throws `PortUnavailable`, which names the port and the reason.
-- **Tools.** The gateway turns `PortUnavailable` from any tool into `{ ok: false, code: "CONNECTOR_UNAVAILABLE" }` with a **ข้อมูลไม่พร้อม** message that names the system and tells the model not to guess. The harness classifies the code as an unavailable source (`lib/harness/recovery.ts`), so a read may run once more before the model gets the failure. A change such as `request_leave` or `enroll_course` files nothing.
-- **Pages.** A feed section whose system does not answer shows one item, labelled with the system, that says **ข้อมูลไม่พร้อม**. Team stories, which need the directory, are left untold. The landing, the inbox and the dashboard still render.
-- **The directory fails closed.** Nothing in `lib/access` loads the directory: `peopleViewOf` and `canSeeCandidates` take a loaded `Directory` from their caller. When the HRIS does not answer, the load throws and the call stops there, with no fallback to an empty or stale directory. People, candidate, site and training-history tools refuse for every user, and no feed carries a people matter. `lib/server/ports/hris-mcp.test.ts` checks this for all 26 users.
-- **Health.** Each port reports under its admin connector. With a port on MCP, **/admin → Tools** shows that connector as an MCP connection with its online or offline status, and the overview lists it when it is offline. The HRIS server reports as both HRIS and Leave.
+An adapter that cannot reach its system throws `PortUnavailable` (`lib/server/ports/unavailable.ts`). The gateway turns it into `{ ok: false, code: "CONNECTOR_UNAVAILABLE" }` with a **ข้อมูลไม่พร้อม** message that names the system, a write files nothing, and a feed section whose system does not answer shows one **ข้อมูลไม่พร้อม** item instead of an empty list.

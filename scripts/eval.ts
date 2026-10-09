@@ -48,7 +48,6 @@ if (args.help) {
 const dataDir = mkdtempSync(path.join(tmpdir(), "winyu-eval-"));
 process.env.WINYU_DATA_DIR = dataDir;
 process.env.WINYU_SCHEDULER = "off";
-delete process.env.WINYU_PORTS;
 process.on("exit", () => rmSync(dataDir, { recursive: true, force: true }));
 if (args.withConsole) {
   for (const file of CONSOLE_FILES) if (existsSync(path.join(PROJECT_DATA, file))) copyFileSync(path.join(PROJECT_DATA, file), path.join(dataDir, file));

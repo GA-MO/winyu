@@ -1,6 +1,5 @@
 import type { Employee } from "@/lib/contracts";
 import { GENERATOR_PORTS } from "@/lib/server/ports/generator";
-import { mcpEndpointFromEnv } from "@/lib/server/ports/mcp-port";
 import type { DirectoryPort } from "@/lib/server/ports/directory";
 import { mcpDemoFetch, portOf, type DemoMcpTool } from "./mcp-demo-server";
 
@@ -15,8 +14,11 @@ const FIRST_ASSET_NO = 1001;
 const FIRST_REQUEST_NO = 501;
 
 /** Where Winyu reaches the demo asset system and the secret both sides sign identities with. */
-export function assetsDemoEnv() {
-  return mcpEndpointFromEnv("ASSETS", ASSETS_MCP_PORT);
+export function assetsDemoEnv(): { url: string; secret: string } {
+  return {
+    url: process.env.WINYU_ASSETS_MCP_URL ?? `http://127.0.0.1:${ASSETS_MCP_PORT}/mcp`,
+    secret: process.env.WINYU_ASSETS_MCP_SECRET ?? "winyu-assets-demo-local-only",
+  };
 }
 
 type Asset = { asset_id: string; kind: string; model: string; serial_no: string; cost_thb: number; holder_id: string; region: string | null; status: "in_use" | "returned" };

@@ -1,5 +1,7 @@
 # Reaching every outside system over MCP
 
+> Superseded 2026-10-09: demo ports are the generator, not MCP (`docs/plan.md`). This note is kept as history.
+
 The user's principle is "ทำเป็น MCP มากที่สุดเท่าที่จะเป็นไปได้": every system outside Winyu is reached over MCP. This plan sorts today's integrations into what moves, what stays, and what needs a decision, and gives the order and the cost of each move. **Status (2026-10-09): done.** Every port except `mail` reads over MCP behind `WINYU_PORTS=mcp`, with no tool changed and no recording stale. `docs/mcp.md` ("Systems of record over MCP") describes the result. The calendar decision is made: it lives in a system outside Winyu.
 
 ## MCP can sit at two seams, and the cheaper one changes no tool

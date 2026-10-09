@@ -286,23 +286,16 @@ describe("a tool reaches the model only when scoped, read-only and tested", () =
     expect(connectorView(ADMIN, id)?.connector.tools).toEqual({});
   });
 
-  test("a remote tool that duplicates a native tool or one a port reads from the same server is refused with its reason", async () => {
-    const previousHris = process.env.WINYU_HRIS_MCP_URL;
-    process.env.WINYU_HRIS_MCP_URL = URL_OF_COPY;
-    try {
-      const id = newId();
-      const view = await discovered(id);
-      expect(view.reserved).toEqual({ list_courses: "native_tool", load_directory: "port_tool" });
-      const asCatalog = (name: string): ToolDraft => ({ ...catalogDraft(), name, scope: { kind: "none", reason: "แคตตาล็อกเปิดให้ทุกคนเห็น" } });
-      const result = kept(saveConnectorTools(ADMIN, { connector: id, tools: [saveOf(view, asCatalog("list_courses")), saveOf(view, asCatalog("load_directory"))], removed: [] }));
-      expect(result).toMatchObject({ ok: true, incomplete: { list_courses: ["native_tool"], load_directory: ["port_tool"] } });
-      expect(connectorView(ADMIN, id)?.connector.tools).toEqual({});
-      const refusals = auditLog().where((entry) => entry.connector === id && entry.decision === "deny").map((entry) => entry.code);
-      expect(refusals).toEqual(expect.arrayContaining(["native_tool", "port_tool"]));
-    } finally {
-      if (previousHris === undefined) delete process.env.WINYU_HRIS_MCP_URL;
-      else process.env.WINYU_HRIS_MCP_URL = previousHris;
-    }
+  test("a remote tool that duplicates a native tool is refused with its reason", async () => {
+    const id = newId();
+    const view = await discovered(id);
+    expect(view.reserved).toEqual({ list_courses: "native_tool" });
+    const asCatalog: ToolDraft = { ...catalogDraft(), name: "list_courses", scope: { kind: "none", reason: "แคตตาล็อกเปิดให้ทุกคนเห็น" } };
+    const result = kept(saveConnectorTools(ADMIN, { connector: id, tools: [saveOf(view, asCatalog)], removed: [] }));
+    expect(result).toMatchObject({ ok: true, incomplete: { list_courses: ["native_tool"] } });
+    expect(connectorView(ADMIN, id)?.connector.tools).toEqual({});
+    const refusals = auditLog().where((entry) => entry.connector === id && entry.decision === "deny").map((entry) => entry.code);
+    expect(refusals).toEqual(expect.arrayContaining(["native_tool"]));
   });
 
   test("the test run gives counts and field names, never a row value", async () => {

@@ -7,17 +7,8 @@ import type { MetricsPort } from "./metrics";
 import type { RecruitingPort } from "./recruiting";
 import type { SitesPort } from "./sites";
 import { GENERATOR_PORTS } from "./generator";
-import { learningMcpEnv } from "./learning-mcp-contract";
-import { learningMcpPort } from "./learning-mcp";
-import { hrisMcpEnv } from "./hris-mcp-contract";
-import { directoryMcpPort, leaveMcpPort, recruitingMcpPort } from "./hris-mcp";
-import { sitesMcpEnv } from "./sites-mcp-contract";
-import { sitesMcpPort } from "./sites-mcp";
-import { calendarMcpEnv } from "./calendar-mcp-contract";
-import { calendarMcpPort } from "./calendar-mcp";
-import type { McpBackedConnector } from "./mcp-port";
 
-/** Every system of record Winyu reads or writes, one port each; a connector replaces one without touching the logic above it. */
+/** Every system of record Winyu reads or writes, one port each; Winyu holds none of their data and only calls them. A deployment fills each port with an adapter for the customer's system, the demo with the generator. */
 export type Ports = {
   metrics: MetricsPort;
   directory: DirectoryPort;
@@ -29,54 +20,11 @@ export type Ports = {
   mail: MailPort;
 };
 
-/** Each port that can read over MCP: how Winyu builds its client and the admin connector its health shows under. */
-const MCP_PORTS = {
-  learning: { adapter: () => learningMcpPort(learningMcpEnv()), connector: "lms" },
-  directory: { adapter: () => directoryMcpPort(hrisMcpEnv()), connector: "hris" },
-  leave: { adapter: () => leaveMcpPort(hrisMcpEnv()), connector: "leave" },
-  recruiting: { adapter: () => recruitingMcpPort(hrisMcpEnv()), connector: "hris" },
-  sites: { adapter: () => sitesMcpPort(sitesMcpEnv()), connector: "sites" },
-  calendar: { adapter: () => calendarMcpPort(calendarMcpEnv()), connector: "calendar" },
-} satisfies { [Port in keyof Ports]?: { adapter: () => Ports[Port]; connector: McpBackedConnector } };
-
-export type McpPortName = keyof typeof MCP_PORTS;
-
-export type PortSource = "generator" | "mcp";
-
-const MCP_PORT_NAMES = Object.keys(MCP_PORTS) as McpPortName[];
-const EVERY_PORT = "mcp";
-
-function isMcpPortName(name: string): name is McpPortName {
-  return (MCP_PORT_NAMES as string[]).includes(name);
-}
-
-/** The ports read over MCP: all of them for `WINYU_PORTS=mcp`, the named ones for a comma list such as `WINYU_PORTS=metrics,directory`, none when unset or `generator`. */
-export function mcpPortNames(): McpPortName[] {
-  const setting = (process.env.WINYU_PORTS ?? "").trim();
-  if (setting === EVERY_PORT) return MCP_PORT_NAMES;
-  return setting.split(",").map((name) => name.trim()).filter(isMcpPortName);
-}
-
-export function portSource(port: McpPortName): PortSource {
-  return mcpPortNames().includes(port) ? "mcp" : "generator";
-}
-
-/** Whether any port reporting under this admin connector reads over MCP, so the admin shows it as an MCP connection with its health. */
-export function readsOverMcp(connector: McpBackedConnector): boolean {
-  return mcpPortNames().some((port) => MCP_PORTS[port].connector === connector);
-}
-
-function configuredPorts(): Ports {
-  const configured: Ports = { ...GENERATOR_PORTS };
-  for (const port of mcpPortNames()) Object.assign(configured, { [port]: MCP_PORTS[port].adapter() });
-  return configured;
-}
-
 let current: Ports | null = null;
 
-/** The systems Winyu talks to right now: the configured ones (the generator unless env says otherwise), or whatever `registerPorts` installed. */
+/** The systems Winyu talks to right now: the generator that stands in for them in the demo, or whatever `registerPorts` installed. */
 export function ports(): Ports {
-  current ??= configuredPorts();
+  current ??= GENERATOR_PORTS;
   return current;
 }
 

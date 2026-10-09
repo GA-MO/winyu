@@ -1,6 +1,4 @@
-import { z } from "zod";
 import { verifiedIdentity, type SignedIdentity } from "@/lib/server/connectors/signed-identity";
-import type { McpContract } from "@/lib/server/ports/mcp-port";
 
 const MCP_PATH = "/mcp";
 const DEFAULT_PROTOCOL = "2025-06-18";
@@ -66,23 +64,4 @@ export function mcpDemoFetch(server: DemoMcpServer): (request: Request) => Promi
 /** The port a demo server listens on: the one in the URL Winyu is told to reach it at, so one env var moves both. */
 export function portOf(url: string): number {
   return Number(new URL(url).port);
-}
-
-/** What a demo server answers for each tool of a contract, given the parsed arguments and the signed caller. */
-export type ContractHandlers<Contract extends McpContract> = {
-  [Tool in keyof Contract]: (input: z.output<Contract[Tool]["input"]>, identity: SignedIdentity) => Promise<z.input<Contract[Tool]["output"]>>;
-};
-
-/** A contract's tools as a demo server offers them: listed with the contract's JSON schema, arguments parsed before the handler runs, bad arguments refused as a tool error. */
-export function contractTools<Contract extends McpContract>(contract: Contract, handlers: ContractHandlers<Contract>): DemoMcpTool[] {
-  return (Object.keys(contract) as (keyof Contract & string)[]).map((name) => ({
-    name,
-    description: contract[name].description,
-    inputSchema: { ...z.toJSONSchema(contract[name].input), type: "object" },
-    call: (args, identity) => {
-      const parsed = contract[name].input.safeParse(args);
-      if (!parsed.success) throw new Error(`bad arguments for ${name}: ${parsed.error.message}`);
-      return handlers[name](parsed.data as z.output<Contract[typeof name]["input"]>, identity);
-    },
-  }));
 }
