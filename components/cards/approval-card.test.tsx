@@ -1,6 +1,10 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, spyOn, test } from "bun:test";
+import { act } from "react";
+import { createRoot } from "react-dom/client";
 import { renderToStaticMarkup } from "react-dom/server";
+import { findUser } from "@/lib/data/entities/users";
 import { TH } from "@/lib/i18n/th";
+import type { ChannelOption, ShareContact } from "@/lib/share/card";
 import { renderApproval, type ApprovalRequest } from "./approval-card";
 
 const HANDOFF = {
@@ -61,6 +65,34 @@ describe("the approval card", () => {
   test("a job is named in Thai", () => {
     const html = render("run_job", { job: "forecast" });
     expect(html).toContain(TH.approve.jobs.forecast);
+  });
+
+  test("a sent email points to the demo Outbox; a pending or declined one does not", () => {
+    const input = { toUserId: "u_may", subject: "ขอสิทธิ์", body: "ขอสิทธิ์ครับ" };
+    const sent = render("send_email", input, { approved: true });
+    expect(sent).toContain('href="/outbox"');
+    expect(sent).toContain(TH.outbox.viewLink);
+    expect(sent).toContain(TH.outbox.demoNote);
+    expect(render("send_email", input)).not.toContain(TH.outbox.viewLink);
+    expect(render("send_email", input, { approved: false })).not.toContain(TH.outbox.viewLink);
+  });
+
+  test("a sent share points to the Outbox only when a recipient was reached by email", async () => {
+    const krit = findUser("u_krit");
+    if (!krit) throw new Error("u_krit missing");
+    const contact = (channels: ChannelOption[]): ShareContact => ({ id: krit.id, nameTh: krit.nameTh, title: krit.title, role: krit.role, region: krit.region, photo: null, name: krit.name, channels });
+    const drawn = async (channels: ChannelOption[], channel: string) => {
+      const contacts = spyOn(globalThis, "fetch").mockResolvedValue(Response.json({ contacts: [contact(channels)], mayGrant: false }));
+      const host = document.createElement("div");
+      await act(async () => createRoot(host).render(renderApproval(request("share_card", { to: [krit.nameTh], channel }, { approved: true, shareTitle: "มูลค่าขายเข้า" }))));
+      contacts.mockRestore();
+      return host.innerHTML;
+    };
+    const teamsNotReady = await drawn([{ channel: "email", ready: true }, { channel: "teams", ready: false }], "teams");
+    expect(teamsNotReady).toContain('href="/outbox"');
+    const line = await drawn([{ channel: "email", ready: true }, { channel: "line", ready: true }], "line");
+    expect(line).toContain(TH.approve.doneShare(krit.nameTh));
+    expect(line).not.toContain(TH.outbox.viewLink);
   });
 
   test("a tool that needs no approval draws no decision", () => {

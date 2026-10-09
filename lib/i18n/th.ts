@@ -1137,6 +1137,8 @@ export const TH = {
     from: "จาก",
     empty: "ยังไม่มีอีเมลออก",
     fromWinyu: "Winyu ส่งถึงคุณ (จำลอง LINE/อีเมล)",
+    viewLink: "ดูใน Outbox",
+    demoNote: "(เดโม ไม่ได้ส่งจริง)",
   },
   metric: {
     net_sales_volume: "ปริมาณขาย",

@@ -2,6 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { Check, Forward, KeyRound, Link2, Mail, MessageCircle, Search, Users, X } from "lucide-react";
+import { OutboxNote } from "@/components/share/outbox-note";
 import { cn } from "@/components/ui/cn";
 import { CardShareProvider } from "@/components/ui/card-share";
 import { Portrait } from "@/components/ui/portrait";
@@ -112,7 +113,8 @@ function GrantPicker({ days, choose }: { days: GrantDays | null; choose: (days: 
   );
 }
 
-function Sent({ receipts, grants, days, path, close }: { receipts: ShareReceipt[]; grants: ShareGrantReceipt[]; days: GrantDays | null; path: string; close: () => void }) {
+/** What the sheet shows once a share went out: who got it on which channel, any grants, the link, and the Outbox when any of it went by mail. */
+export function ShareSent({ receipts, grants, days, path, close }: { receipts: ShareReceipt[]; grants: ShareGrantReceipt[]; days: GrantDays | null; path: string; close: () => void }) {
   const url = typeof window === "undefined" ? path : `${window.location.origin}${path}`;
   return (
     <div className="flex flex-col gap-4 px-4 py-5">
@@ -127,6 +129,7 @@ function Sent({ receipts, grants, days, path, close }: { receipts: ShareReceipt[
           </li>
         ))}
       </ul>
+      {receipts.some((receipt) => receipt.via === "email") ? <OutboxNote /> : null}
       {days !== null && grants.length > 0 ? (
         <ul className="flex flex-col gap-1.5 text-sm">
           {grants.map((grant) => (
@@ -213,7 +216,7 @@ function Sheet({ target, close }: { target: ShareTarget; close: () => void }) {
           </button>
         </header>
         {phase.kind === "sent" ? (
-          <Sent receipts={phase.receipts} grants={phase.grants} days={grantDays} path={phase.path} close={close} />
+          <ShareSent receipts={phase.receipts} grants={phase.grants} days={grantDays} path={phase.path} close={close} />
         ) : (
           <>
             <div className="flex flex-col gap-2 border-b border-border px-4 py-3">

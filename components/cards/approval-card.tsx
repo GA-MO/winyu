@@ -3,6 +3,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 import { BellRing, CalendarDays, Check, Forward, GraduationCap, LayoutGrid, Mail, RefreshCw, Send, ShieldCheck, X } from "lucide-react";
+import { OutboxNote } from "@/components/share/outbox-note";
 import { CHANNEL_ICON, useShareContacts } from "@/components/share/share-sheet";
 import { METRIC_IDS, ROLE_IDS, type MetricId, type MetricQuery, type RoleId, type Urgency, type WatchCondition } from "@/lib/contracts";
 import { conditionLabel } from "@/lib/engine/personal-watches";
@@ -53,6 +54,7 @@ type Decision = {
   done: string;
   extra?: ReactNode;
   blocked?: string;
+  mailed?: boolean;
 };
 
 type HandoffInput = { toUserId?: string; title?: string; ask?: string; urgency?: string; evidence?: MetricQuery[]; alertIds?: string[] };
@@ -141,6 +143,7 @@ function emailDecision(input: EmailInput): Decision {
     confirm: TH.approve.confirmEmail,
     cancel: TH.approve.cancelSend,
     done: TH.approve.doneEmail(person.name),
+    mailed: true,
   };
 }
 
@@ -346,6 +349,7 @@ function shareDecision(input: ShareInput, contacts: ShareContact[] | null, title
     done: TH.approve.doneShare(names),
     extra: <SharePreview recipients={recipients} title={title ?? null} note={note} />,
     blocked: title === null ? TH.approve.shareNoCard : undefined,
+    mailed: recipients.some((planned) => planned.via === "email"),
   };
 }
 
@@ -370,6 +374,7 @@ function Receipt({ decision, approved }: { decision: Decision; approved: boolean
       <div className="min-w-0">
         <p className={`text-sm font-medium ${approved ? "" : "text-muted-foreground"}`}>{approved ? decision.done : TH.approve.notDone}</p>
         {decision.subject ? <p className="truncate text-xs text-muted-foreground">{decision.subject}</p> : null}
+        {approved && decision.mailed ? <OutboxNote className="mt-1" /> : null}
       </div>
     </section>
   );
