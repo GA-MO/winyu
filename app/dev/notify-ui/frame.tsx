@@ -11,7 +11,7 @@ const COPY = TH.notifyUi;
 const RAIL_ICON = "flex size-10 items-center justify-center rounded-xl text-muted-foreground";
 const ROUND = "relative flex size-9 items-center justify-center rounded-full border border-border bg-card text-muted-foreground shadow-card";
 const WINYU_MARK = "flex shrink-0 items-center justify-center rounded-full bg-linear-135 from-primary via-brand-violet to-brand-coral text-white";
-const PRIMARY = "inline-flex shrink-0 items-center justify-center rounded-full bg-primary font-medium text-primary-foreground transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+const PRIMARY = "inline-flex shrink-0 items-center justify-center rounded-full bg-ink font-medium text-ink-foreground transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 const QUIET = "inline-flex shrink-0 items-center justify-center rounded-full font-medium text-foreground ring-1 ring-border transition hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
 export type Shell = { viewer: Person; bell: number; sharedDot: boolean };
@@ -57,7 +57,7 @@ export function BellButton({ count, pressed = false }: { count: number; pressed?
   return (
     <span aria-label={COPY.rail.bell} className={cn(ROUND, pressed && "border-primary/40 text-foreground ring-4 ring-primary/10")}>
       <Bell className="size-4" aria-hidden />
-      {count > 0 ? <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold tabular-nums text-primary-foreground ring-2 ring-background">{count}</span> : null}
+      {count > 0 ? <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-ink px-1 text-[10px] font-semibold tabular-nums text-ink-foreground ring-2 ring-background">{count}</span> : null}
     </span>
   );
 }

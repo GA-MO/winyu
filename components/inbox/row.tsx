@@ -9,7 +9,7 @@ import type { Movement } from "./types";
 
 export const DELTA_TONE: Record<Movement["tone"], string> = { good: "text-success", bad: "text-danger", neutral: "text-muted-foreground" };
 const BAR_TONE: Record<Movement["tone"], string> = { good: "bg-success", bad: "bg-danger", neutral: "bg-muted-foreground" };
-const PRIMARY = "inline-flex min-h-9 shrink-0 items-center justify-center gap-1.5 rounded-full bg-primary px-4 text-xs font-medium text-primary-foreground transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50";
+const PRIMARY = "inline-flex min-h-9 shrink-0 items-center justify-center gap-1.5 rounded-full bg-ink px-4 text-xs font-medium text-ink-foreground transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50";
 const QUIET = "inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-full px-3 text-xs font-medium text-foreground transition hover:bg-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50";
 const MENU_ITEM = "block w-full rounded-lg px-3 py-2 text-left text-xs text-foreground transition hover:bg-muted focus-visible:bg-muted focus-visible:outline-none";
 
