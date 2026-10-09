@@ -119,9 +119,6 @@ export default async function DevMailPage({ searchParams }: { searchParams: Sear
           <Search className="size-3.5" aria-hidden />
           Search
         </span>
-        <Link href="/dev/channels" className="text-xs underline-offset-2 hover:underline">
-          {T.channelsLink}
-        </Link>
         <MailboxPicker people={USERS.map(({ id, nameTh, title }) => ({ id, nameTh, title }))} value={owner} />
       </header>
       <div className="flex min-h-0 flex-1">

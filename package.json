@@ -26,7 +26,6 @@
     "memory:bench": "bun run scripts/memory-bench.ts",
     "channels:walk": "bun run scripts/channels-walk.ts",
     "channels:view": "bun run scripts/channels-view.ts",
-    "channels:sim": "bun run scripts/channels-demo-sim.ts",
     "docs:index": "bun run scripts/documents-index.ts",
     "docs:bench": "bun run scripts/documents-bench.ts"
   },

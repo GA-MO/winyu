@@ -6,7 +6,7 @@ const NOT_FOUND = { error: "ไม่พบหน้านี้" };
 const BAD_NEXT = { error: "next ต้องเป็น path ในแอป" };
 const UNKNOWN_USER = { error: "ไม่พบผู้ใช้" };
 
-/** Development only: signs this browser host in as a persona (the same demo sign-in as the persona picker) and opens `next` on the host the browser asked (a relative Location, since Next resolves the request URL to the host it was started with), so a link pressed in a /dev/channels pane opens as that pane's person. */
+/** Development only: signs this browser host in as a persona (the same demo sign-in as the persona picker) and opens `next` on the host the browser asked (a relative Location, since Next resolves the request URL to the host it was started with), so a link in a /dev/mail message opens as the mailbox owner. */
 export function GET(request: Request) {
   if (process.env.NODE_ENV === "production") return NextResponse.json(NOT_FOUND, { status: 404 });
   const url = new URL(request.url);
