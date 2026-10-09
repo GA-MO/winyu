@@ -1,6 +1,4 @@
 import { describe, expect, test } from "bun:test";
-import { renderToStaticMarkup } from "react-dom/server";
-import { NotificationList } from "@/components/notifications/notification-list";
 import { NOTIFICATION_KINDS, type Notification } from "@/lib/contracts";
 import { notificationHome, notificationTarget, notificationTitle } from "./notification-kinds";
 
@@ -42,13 +40,5 @@ describe("every notification kind knows where it is read and where it opens", ()
 
   test("an older kind keeps the title its writer gave it", () => {
     expect(notificationTitle({ kind: "handoff", refId: "pk_1", title: OLDER[0].title })).toBe(OLDER[0].title);
-  });
-
-  test("the list draws every kind, unread ones marked, each with its title and link", () => {
-    const items = OLDER.map((item) => ({ id: item.id, kind: item.kind, title: item.title, when: item.at, read: item.read, href: notificationTarget(item) }));
-    const html = renderToStaticMarkup(<NotificationList items={items} label="แจ้งเตือน" />);
-    for (const item of OLDER) expect(html).toContain(item.title);
-    expect(html).toContain('href="/c/new?preload=pk_1"');
-    expect(html.match(/bg-primary/g)?.length).toBe(3);
   });
 });

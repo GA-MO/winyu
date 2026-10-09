@@ -2,14 +2,15 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { Eye, EyeOff, Forward, KeyRound, Send } from "lucide-react";
-import { NotificationList } from "@/components/notifications/notification-list";
+import { Activity, WaitingPill } from "@/components/notifications/activity";
 import { cn } from "@/components/ui/cn";
 import { GlowBackdrop } from "@/components/ui/glow-backdrop";
 import { relativeTimeTh } from "@/lib/i18n/format";
 import { TH } from "@/lib/i18n/th";
 import type { ReceivedShare, SentShare } from "@/lib/share/card";
-import { notificationTarget } from "@/lib/share/notification-kinds";
-import { markHomeRead, notificationsIn } from "@/lib/server/notify";
+import { updatesFor } from "@/lib/server/bell";
+import { decisionCount } from "@/lib/server/inbox";
+import { markHomeRead } from "@/lib/server/notify";
 import { readUser } from "@/lib/server/session";
 import { receivedShares, sentShares } from "@/lib/server/share/lists";
 import { revokeGrantAction } from "../g/actions";
@@ -17,7 +18,6 @@ import { revokeGrantAction } from "../g/actions";
 export const dynamic = "force-dynamic";
 
 const PATH = "/shared";
-const RECENT_NOTIFICATIONS = 6;
 const COPY = TH.shared;
 const COLUMN = "relative mx-auto flex w-full max-w-2xl flex-col gap-8 px-4 py-12 sm:px-8";
 const LIST = "divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card shadow-card";
@@ -107,15 +107,14 @@ function SentRow({ share }: { share: SentShare }) {
   );
 }
 
-/** Shared: the cards colleagues sent the person and the cards they sent, each opening at /s/<code>; opening the page reads its notifications. */
+/** Shared: what happened for the person by day, the cards colleagues sent them and the cards they sent; opening the page reads its notifications. */
 export default async function SharedPage() {
   const viewer = readUser(await cookies());
   if (!viewer) redirect(`/login?next=${encodeURIComponent(PATH)}`);
   const received = receivedShares(viewer);
   const sent = sentShares(viewer);
-  const recent = notificationsIn(viewer.id, "shared")
-    .slice(0, RECENT_NOTIFICATIONS)
-    .map((item) => ({ id: item.id, kind: item.kind, title: item.title, when: relativeTimeTh(item.at), read: item.read, href: notificationTarget(item) }));
+  const activity = updatesFor(viewer.id);
+  const waiting = decisionCount(viewer.id);
   markHomeRead(viewer.id, "shared");
 
   return (
@@ -125,8 +124,9 @@ export default async function SharedPage() {
         <header className="flex flex-col gap-1.5">
           <h1 className="font-display text-[1.75rem] font-semibold leading-tight tracking-[-0.02em]">{COPY.title}</h1>
           <p className="text-sm text-muted-foreground">{COPY.subtitle}</p>
+          <WaitingPill count={waiting} />
         </header>
-        <NotificationList items={recent} label={COPY.recent} />
+        <Activity items={activity} />
         <Section title={COPY.received} icon={<Forward className="size-4 text-primary" aria-hidden />} empty={COPY.receivedEmpty} count={received.length}>
           {received.map((share) => (
             <ReceivedRow key={share.code} share={share} />

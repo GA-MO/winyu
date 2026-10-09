@@ -413,7 +413,6 @@ export const TH = {
     sent: "ฉันส่ง",
     receivedEmpty: "ยังไม่มีใครส่งการ์ดให้คุณ",
     sentEmpty: "ยังไม่เคยส่งต่อการ์ด กดส่งต่อใต้การ์ดในแชตได้เลย",
-    recent: "แจ้งเตือนล่าสุด",
     newMark: "ใหม่",
     from: (name: string) => `จาก${name}`,
     to: (names: string) => `ถึง ${names}`,
