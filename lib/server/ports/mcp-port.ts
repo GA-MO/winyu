@@ -8,7 +8,7 @@ import { accessOrNull } from "@/lib/server/request-context";
 import { PortUnavailable, type PortName } from "./unavailable";
 
 const MAX_CACHED = 500;
-const DEFAULT_TIMEOUT_MS = 4000;
+export const MCP_DEFAULT_TIMEOUT_MS = 4000;
 
 /** One tool of a system's MCP contract: what the server says it does, the arguments it takes and the JSON it answers with. */
 export type McpToolContract = { description: string; input: z.ZodType; output: z.ZodType };
@@ -129,6 +129,6 @@ export function mcpEndpointFromEnv(system: string, defaultPort: number): McpEndp
   return {
     url: process.env[`${prefix}_URL`] ?? `http://127.0.0.1:${defaultPort}/mcp`,
     secret: process.env[`${prefix}_SECRET`] ?? `winyu-${system.toLowerCase()}-demo-local-only`,
-    timeoutMs: Number(process.env[`${prefix}_TIMEOUT_MS`] ?? DEFAULT_TIMEOUT_MS),
+    timeoutMs: Number(process.env[`${prefix}_TIMEOUT_MS`] ?? MCP_DEFAULT_TIMEOUT_MS),
   };
 }

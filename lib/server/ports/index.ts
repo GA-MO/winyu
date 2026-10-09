@@ -9,6 +9,8 @@ import type { SitesPort } from "./sites";
 import { GENERATOR_PORTS } from "./generator";
 import { metricsMcpEnv } from "./metrics-mcp-contract";
 import { metricsMcpPort } from "./metrics-mcp";
+import { learningMcpEnv } from "./learning-mcp-contract";
+import { learningMcpPort } from "./learning-mcp";
 import type { McpBackedConnector } from "./mcp-port";
 
 /** Every system of record Winyu reads or writes, one port each; a connector replaces one without touching the logic above it. */
@@ -26,6 +28,7 @@ export type Ports = {
 /** Each port that can read over MCP: how Winyu builds its client and the admin connector its health shows under. */
 const MCP_PORTS = {
   metrics: { adapter: () => metricsMcpPort(metricsMcpEnv()), connector: "warehouse" },
+  learning: { adapter: () => learningMcpPort(learningMcpEnv()), connector: "lms" },
 } satisfies { [Port in keyof Ports]?: { adapter: () => Ports[Port]; connector: McpBackedConnector } };
 
 export type McpPortName = keyof typeof MCP_PORTS;

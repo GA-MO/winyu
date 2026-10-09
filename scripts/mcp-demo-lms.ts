@@ -1,8 +1,11 @@
 import type { Employee } from "@/lib/contracts";
-import { ports } from "@/lib/server/ports";
 import { LMS_DEMO_TOOL, lmsDemoEnv } from "@/lib/server/connectors/lms-demo-config";
 import { formatDateTh } from "@/lib/i18n/format";
-import { mcpDemoFetch, portOf } from "./mcp-demo-server";
+import { GENERATOR_PORTS } from "@/lib/server/ports/generator";
+import type { DirectoryPort } from "@/lib/server/ports/directory";
+import type { LearningPort } from "@/lib/server/ports/learning";
+import { LEARNING_MCP_TOOLS } from "@/lib/server/ports/learning-mcp-contract";
+import { contractTools, mcpDemoFetch, portOf } from "./mcp-demo-server";
 
 const SERVER_INFO = { name: "winyu-lms-demo", version: "0.1.0" };
 const MIN_SCORE = 60;
@@ -54,17 +57,27 @@ function matches(employee: Employee, args: TrainingArgs, viewerId: string): bool
   return employee.id === viewerId || employee.managerId === viewerId;
 }
 
-async function trainingHistory(args: TrainingArgs, viewerId: string) {
-  const { employees } = await ports().directory.load();
+async function trainingHistory(directory: DirectoryPort, args: TrainingArgs, viewerId: string) {
+  const { employees } = await directory.load();
   return { items: employees.filter((employee) => matches(employee, args, viewerId)).flatMap(rowsOf) };
 }
 
-/** The demo LMS: training history per person, only for callers whose identity Winyu signed. */
-export const lmsDemoFetch = mcpDemoFetch({
-  info: SERVER_INFO,
-  secret: () => lmsDemoEnv().secret,
-  tools: [{ ...TOOL, call: (args, identity) => trainingHistory(args as TrainingArgs, identity.userId) }],
-});
+/** What the demo LMS reads: its course catalogue, the people whose training it records, and the secret it checks Winyu's signature with. */
+export type LmsDemoSystems = { learning: LearningPort; directory: DirectoryPort; secret: () => string };
+
+/** The demo LMS: training history per person and the course catalogue Winyu's learning port reads, only for callers whose identity Winyu signed. */
+export function lmsDemoFetchFor(systems: LmsDemoSystems) {
+  return mcpDemoFetch({
+    info: SERVER_INFO,
+    secret: systems.secret,
+    tools: [
+      { ...TOOL, call: (args, identity) => trainingHistory(systems.directory, args as TrainingArgs, identity.userId) },
+      ...contractTools(LEARNING_MCP_TOOLS, { list_courses: async () => ({ courses: [...(await systems.learning.courses())] }) }),
+    ],
+  });
+}
+
+export const lmsDemoFetch = lmsDemoFetchFor({ ...GENERATOR_PORTS, secret: () => lmsDemoEnv().secret });
 
 if (import.meta.main) {
   const server = Bun.serve({ port: portOf(lmsDemoEnv().url), hostname: "127.0.0.1", fetch: lmsDemoFetch });

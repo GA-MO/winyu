@@ -20,10 +20,11 @@ import { loadDictionary } from "@/lib/server/master-data";
 import { actionsForAlert } from "@/lib/server/next-actions";
 import { peopleFeedFor } from "@/lib/server/people-feed";
 import { campaignFeedFor } from "@/lib/server/campaign-feed";
-import { systemFeedFor } from "@/lib/server/system-feed";
+import { portDownItem, systemFeedFor } from "@/lib/server/system-feed";
 import { withTeamStories, type TeamStory } from "@/lib/server/team-feed";
 import { ports } from "@/lib/server/ports";
-import { directoryOf } from "@/lib/server/ports/directory";
+import { directoryOf, type Directory } from "@/lib/server/ports/directory";
+import { PortUnavailable } from "@/lib/server/ports/unavailable";
 import { recordAction } from "@/lib/server/threads";
 
 const DAY_MS = 86_400_000;
@@ -42,6 +43,26 @@ const STORY_DIMS = ["agent", "sku", "brand", "plant", "dc", "campaign", "provinc
 function storySubject(alert: Alert): string {
   const dim = STORY_DIMS.find((candidate) => alert.dims[candidate]);
   return dim ? `${dim}:${alert.dims[dim]}` : "all";
+}
+
+/** A feed section that reads a system: its items, or one item saying the system did not answer. */
+async function orPortDown(section: () => Promise<FeedItem[]>): Promise<FeedItem[]> {
+  try {
+    return await section();
+  } catch (error) {
+    if (error instanceof PortUnavailable) return [portDownItem(error)];
+    throw error;
+  }
+}
+
+/** The directory, or null while HR does not answer: team stories are then left untold rather than told from a guess. */
+async function directoryOrNull(): Promise<Directory | null> {
+  try {
+    return directoryOf(await ports().directory.load());
+  } catch (error) {
+    if (error instanceof PortUnavailable) return null;
+    throw error;
+  }
 }
 
 /** A movement put down to a campaign is that campaign's story; otherwise the metric and its main subject. */
@@ -212,7 +233,7 @@ async function feedWithStories(access: AccessContext, now: number): Promise<{ it
     ...alertItems,
     ...openPacketsFor(access).map(packetItem),
     ...visitItems(stops, weekKeyOfIso(new Date(now).toISOString().slice(0, 10)), storyOfAgent),
-    ...(await peopleFeedFor(access)),
+    ...(await orPortDown(() => peopleFeedFor(access))),
     ...(await campaignFeedFor(access)),
     ...systemFeedFor(access),
     ...watchesOf(access.userId).filter((watch) => watch.state === "triggered").map((watch) => watchItem(watch, watchStory(watch, relevant))),
@@ -226,7 +247,8 @@ async function feedWithStories(access: AccessContext, now: number): Promise<{ it
     mutedKinds: mutedKindsOf(access.userId, open.map((item) => item.kind)),
     now,
   });
-  const told = withTeamStories(access, learned, directoryOf(await ports().directory.load()));
+  const directory = await directoryOrNull();
+  const told = directory ? withTeamStories(access, learned, directory) : { items: [...learned], stories: [] };
   const stories = told.stories
     .filter((story) => !hidden.has(story.item.key))
     .map((story) => {
