@@ -1,5 +1,21 @@
 import { describe, expect, test } from "bun:test";
-import { dueTimeTh, timeOfDay } from "./format";
+import { dueTimeTh, threadGroupOf, timeOfDay } from "./format";
+
+describe("threadGroupOf", () => {
+  const NOW = new Date("2026-10-09T01:00:00Z");
+
+  test("Today starts at midnight in Bangkok, not 24 hours back", () => {
+    expect(threadGroupOf("2026-10-08T17:00:00Z", NOW)).toBe("today");
+    expect(threadGroupOf("2026-10-08T16:59:59Z", NOW)).toBe("yesterday");
+    expect(threadGroupOf("2026-10-07T17:00:00Z", NOW)).toBe("yesterday");
+  });
+
+  test("Previous 7 days ends at midnight Bangkok seven days before today, and Older begins there", () => {
+    expect(threadGroupOf("2026-10-07T16:59:59Z", NOW)).toBe("week");
+    expect(threadGroupOf("2026-10-01T17:00:00Z", NOW)).toBe("week");
+    expect(threadGroupOf("2026-10-01T16:59:59Z", NOW)).toBe("older");
+  });
+});
 
 describe("timeOfDay", () => {
   test("reads the hour in Thai time, not the server's timezone", () => {

@@ -4,8 +4,10 @@ const CURRENCY = "บาท";
 const MINUTE_MS = 60_000;
 const HOUR_MS = 60 * MINUTE_MS;
 const DAY_MS = 24 * HOUR_MS;
-const WEEK_MS = 7 * DAY_MS;
+const WEEK_DAYS = 7;
+const WEEK_MS = WEEK_DAYS * DAY_MS;
 const MASKED = "***";
+const TENANT_UTC_OFFSET_HOURS = 7;
 
 const WHOLE_FROM = 100;
 const MILLION = 1_000_000;
@@ -90,17 +92,20 @@ function spanTh(ms: number): string {
 
 export type ThreadGroup = "today" | "yesterday" | "week" | "older";
 
+function tenantDayOf(ms: number): number {
+  return Math.floor((ms + TENANT_UTC_OFFSET_HOURS * HOUR_MS) / DAY_MS);
+}
+
+/** The day group of a moment by Bangkok calendar day: today, yesterday, the 7 days before, or older. */
 export function threadGroupOf(value: string, now: Date = new Date()): ThreadGroup {
-  const elapsed = now.getTime() - new Date(value).getTime();
-  if (elapsed < DAY_MS) return "today";
-  if (elapsed < 2 * DAY_MS) return "yesterday";
-  if (elapsed < WEEK_MS) return "week";
+  const daysBack = tenantDayOf(now.getTime()) - tenantDayOf(new Date(value).getTime());
+  if (daysBack <= 0) return "today";
+  if (daysBack === 1) return "yesterday";
+  if (daysBack <= WEEK_DAYS) return "week";
   return "older";
 }
 
 export type TimeOfDay = "morning" | "afternoon" | "evening" | "night";
-
-const TENANT_UTC_OFFSET_HOURS = 7;
 const HOURS_PER_DAY = 24;
 const MORNING_FROM = 5;
 const AFTERNOON_FROM = 12;
