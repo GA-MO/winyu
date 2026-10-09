@@ -23,7 +23,7 @@ export type MonthEndProjection = { recentDays: number; projected: string; monthT
 export type UnderLine = { line: number; count: number; of: number };
 export type MetricHeadline = { aggregate: "sum" | "average"; value: string; periodLabel: string; rowCount: number;
   deltaPercent: number | null; compareLabel: string | null; compareNote: string | null; top: { label: string; value: string }[]; projection?: MonthEndProjection | null; underLine?: UnderLine | null };
-export type MetricResult = { ok: true; rows: MetricRow[]; summary: string; headline: MetricHeadline; provenance: Provenance } | { ok: false; error: string; code: "PERMISSION_DENIED" | "UNKNOWN_METRIC" | "BAD_QUERY" };
+export type MetricResult = { ok: true; rows: MetricRow[]; summary: string; headline: MetricHeadline; provenance: Provenance } | { ok: false; error: string; code: "PERMISSION_DENIED" | "UNKNOWN_METRIC" | "BAD_QUERY" | "CONNECTOR_UNAVAILABLE" };
 
 export const METRIC_IDS = ["net_sales_volume", "net_sales_value", "sell_out_volume", "target_attainment",
   "stock_on_hand", "days_of_cover", "production_output", "capacity_utilization", "forecast_mape",

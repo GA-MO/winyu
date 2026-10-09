@@ -4,6 +4,8 @@ import { toolRolesInclude } from "@/lib/contracts";
 import { remoteConnectors } from "@/lib/server/connectors";
 import { nativeConnectors } from "@/lib/server/connectors/native";
 import type { ConnectorField } from "@/lib/server/connectors/types";
+import { metricsSource } from "@/lib/server/ports";
+import { METRICS_CONNECTOR_ID } from "@/lib/server/ports/metrics-mcp";
 import type { WinyuTool } from "./define";
 import { queryMetricTool } from "./query-metric";
 import { listMetricsTool } from "./list-metrics";
@@ -68,9 +70,15 @@ function allTools(): WinyuTool[] {
   return [...Object.values(NATIVE_TOOLS), ...remoteConnectors().flatMap((connector) => connector.tools)];
 }
 
+/** The warehouse as the admin sees it: an MCP connection with its health when metrics come from the data team's server. */
+function withMetricsSource(def: ConnectorDef): ConnectorDef {
+  if (def.id !== METRICS_CONNECTOR_ID || metricsSource() !== "mcp") return def;
+  return { ...def, kind: "mcp", sourceSystemTh: TH.admin.connectors.warehouse.sourceMcp };
+}
+
 /** Every system tools reach: Winyu's own ports first, then each MCP connector, in the order the admin groups them. */
 export function connectors(): ConnectorDef[] {
-  return [...nativeConnectors(), ...remoteConnectors().map((connector) => connector.def)];
+  return [...nativeConnectors().map(withMetricsSource), ...remoteConnectors().map((connector) => connector.def)];
 }
 
 export type ConnectorGroup = { connector: ConnectorDef; tools: ToolSurfaceEntry[] };

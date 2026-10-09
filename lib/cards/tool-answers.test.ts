@@ -39,19 +39,22 @@ describe("a refusal card tells the person the truth", () => {
     expect(deniedOf({ ok: false, code: "POLICY_RULE", error })).toEqual({ title: TH.cards.refused, body: error });
   });
 
-  test("every other code gets a neutral line, never the model-facing reason", () => {
-    const lines: [string, string][] = [
-      ["TIMEOUT", TH.cards.failed.timeout],
-      ["UNAVAILABLE", TH.cards.failed.unavailable],
-      ["RUN_LIMIT", TH.cards.failed.runLimit],
-      ["VERIFICATION_FAILED", TH.cards.failed.withheld],
-      ["BAD_QUERY", TH.cards.failed.other],
-      ["UNKNOWN_METRIC", TH.cards.failed.other],
-      ["ERROR", TH.cards.failed.other],
+  test("every other code gets a neutral line, never the model-facing reason; a source that did not answer reads as data unavailable", () => {
+    const failed = TH.cards.failed.title;
+    const unavailable = TH.cards.failed.unavailableTitle;
+    const lines: [string, string, string][] = [
+      ["TIMEOUT", failed, TH.cards.failed.timeout],
+      ["UNAVAILABLE", unavailable, TH.cards.failed.unavailable],
+      ["CONNECTOR_UNAVAILABLE", unavailable, TH.cards.failed.unavailable],
+      ["RUN_LIMIT", failed, TH.cards.failed.runLimit],
+      ["VERIFICATION_FAILED", failed, TH.cards.failed.withheld],
+      ["BAD_QUERY", failed, TH.cards.failed.other],
+      ["UNKNOWN_METRIC", failed, TH.cards.failed.other],
+      ["ERROR", failed, TH.cards.failed.other],
     ];
-    for (const [code, body] of lines) {
+    for (const [code, title, body] of lines) {
       const error = `model-facing reason for ${code}`;
-      expect(deniedOf({ ok: false, code, error, fix: "call again" })).toEqual({ title: TH.cards.failed.title, body });
+      expect(deniedOf({ ok: false, code, error, fix: "call again" })).toEqual({ title, body });
     }
   });
 

@@ -45,6 +45,7 @@ if (args.help) {
 const dataDir = mkdtempSync(path.join(tmpdir(), "winyu-eval-"));
 process.env.WINYU_DATA_DIR = dataDir;
 process.env.WINYU_SCHEDULER = "off";
+delete process.env.WINYU_METRICS;
 process.on("exit", () => rmSync(dataDir, { recursive: true, force: true }));
 
 const { ensureDemoStory } = await import("../lib/server/demo-story");

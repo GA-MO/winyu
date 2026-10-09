@@ -7,15 +7,33 @@ import { comparisonRequestOf, finishMetric, formatForSummary, planMetric } from 
 import { metricDef } from "@/lib/semantic/metrics";
 import { loadDictionary } from "@/lib/server/master-data";
 import { ports } from "@/lib/server/ports";
+import { MetricsUnavailable } from "@/lib/server/ports/metrics";
 
 const RECENT_DAYS = 7;
 
-async function runPlain(query: MetricQuery, access: AccessContext): Promise<MetricResult> {
+/** What a tool or a card gets when the metrics source did not answer: the "data unavailable" failure, never zeros. */
+export type MetricsDown = { ok: false; code: "CONNECTOR_UNAVAILABLE"; error: string };
+
+/** Runs work that reads the metrics port, turning a source that did not answer into `MetricsDown`; any other error still throws. */
+export async function unlessMetricsDown<T>(work: () => Promise<T>): Promise<T | MetricsDown> {
+  try {
+    return await work();
+  } catch (error) {
+    if (error instanceof MetricsUnavailable) return { ok: false, code: "CONNECTOR_UNAVAILABLE", error: TH.cards.failed.metricsDown };
+    throw error;
+  }
+}
+
+async function readPlain(query: MetricQuery, access: AccessContext): Promise<MetricResult> {
   const plan = planMetric(query, access, await loadDictionary());
   if ("ok" in plan) return plan;
   const comparison = comparisonRequestOf(plan);
   const [current, previous] = await ports().metrics.readFacts(comparison ? [plan.current, comparison] : [plan.current]);
   return finishMetric(plan, current, previous ?? null);
+}
+
+function runPlain(query: MetricQuery, access: AccessContext): Promise<MetricResult> {
+  return unlessMetricsDown(() => readPlain(query, access));
 }
 
 function monthStartOf(iso: string): string {

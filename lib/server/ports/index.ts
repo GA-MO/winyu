@@ -7,6 +7,8 @@ import type { MetricsPort } from "./metrics";
 import type { RecruitingPort } from "./recruiting";
 import type { SitesPort } from "./sites";
 import { GENERATOR_PORTS } from "./generator";
+import { metricsMcpEnv } from "./metrics-mcp-contract";
+import { metricsMcpPort } from "./metrics-mcp";
 
 /** Every system of record Winyu reads or writes, one port each; a connector replaces one without touching the logic above it. */
 export type Ports = {
@@ -20,17 +22,30 @@ export type Ports = {
   mail: MailPort;
 };
 
-let current: Ports = GENERATOR_PORTS;
+export type MetricsSource = "generator" | "mcp";
 
-/** The systems Winyu talks to right now: the generator by default, or whatever `registerPorts` installed. */
+/** Where metrics come from: the data team's MCP server when `WINYU_METRICS=mcp`, else the in-process generator. */
+export function metricsSource(): MetricsSource {
+  return process.env.WINYU_METRICS === "mcp" ? "mcp" : "generator";
+}
+
+function configuredPorts(): Ports {
+  if (metricsSource() === "generator") return GENERATOR_PORTS;
+  return { ...GENERATOR_PORTS, metrics: metricsMcpPort(metricsMcpEnv()) };
+}
+
+let current: Ports | null = null;
+
+/** The systems Winyu talks to right now: the configured ones (the generator unless env says otherwise), or whatever `registerPorts` installed. */
 export function ports(): Ports {
+  current ??= configuredPorts();
   return current;
 }
 
 export function registerPorts(next: Partial<Ports>): void {
-  current = { ...current, ...next };
+  current = { ...ports(), ...next };
 }
 
 export function resetPorts(): void {
-  current = GENERATOR_PORTS;
+  current = null;
 }

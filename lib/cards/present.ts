@@ -92,7 +92,8 @@ export type RefusalNotice = { title: string; body: string };
 export function refusalNoticeOf(code: unknown, error: string): RefusalNotice {
   if (typeof code === "string" && SCOPE_CODES.has(code)) return { title: TH.dash.denied, body: error };
   if (code === RULE_CODE || code === undefined || code === null) return { title: TH.cards.refused, body: error };
-  return { title: TH.cards.failed.title, body: (typeof code === "string" ? FAILED_LINES[code] : undefined) ?? TH.cards.failed.other };
+  const title = typeof code === "string" && UNAVAILABLE_CODES.has(code) ? TH.cards.failed.unavailableTitle : TH.cards.failed.title;
+  return { title, body: (typeof code === "string" ? FAILED_LINES[code] : undefined) ?? TH.cards.failed.other };
 }
 
 export type CardParts = {
@@ -125,6 +126,7 @@ export type PresentSource = { query: MetricQuery; result: MetricResult };
 
 const SCOPE_CODES: ReadonlySet<string> = new Set(["PERMISSION_DENIED", "TOOL_NOT_ALLOWED"]);
 const RULE_CODE = "POLICY_RULE";
+const UNAVAILABLE_CODES: ReadonlySet<string> = new Set(["UNAVAILABLE", "CONNECTOR_UNAVAILABLE"]);
 const FAILED_LINES: Record<string, string> = {
   TIMEOUT: TH.cards.failed.timeout,
   UNAVAILABLE: TH.cards.failed.unavailable,
