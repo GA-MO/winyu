@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { USERS } from "@/lib/data/entities/users";
 import { identityKey, linkedUserOfKey, linkIdentity, type ExternalIdentity } from "@/lib/server/identity";
-import { SIMULATED } from "./channel-harness";
+import { SIMULATED } from "./channel-sim-env";
 import { startChannelSimulator } from "./channels-sim";
 import { mockObjectId } from "./entra-mock";
 
