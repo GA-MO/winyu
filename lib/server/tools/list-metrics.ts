@@ -3,7 +3,6 @@ import { listMetricsInputSchema, type MetricDef } from "@/lib/contracts";
 import { TODAY } from "@/lib/data/dates";
 import { LAST_AUDITED_MONTH_KEY } from "@/lib/data/market-share";
 import { formatDateTh, periodLabelTh } from "@/lib/i18n/format";
-import { unlessMetricsDown } from "@/lib/server/metrics";
 import { ports } from "@/lib/server/ports";
 import { currentAccess } from "@/lib/server/request-context";
 import { defineTool } from "./define";
@@ -30,9 +29,7 @@ export const listMetricsTool = defineTool({
   input: listMetricsInputSchema,
   execute: async ({ search }: z.infer<typeof listMetricsInputSchema>) => {
     const acl = currentAccess().metricAcl;
-    const listed = await unlessMetricsDown(() => ports().metrics.listMetrics(search));
-    if (!Array.isArray(listed)) return listed;
-    const defs = listed.filter((def) => acl[def.id] !== "none");
+    const defs = (await ports().metrics.listMetrics(search)).filter((def) => acl[def.id] !== "none");
     const data = defs.map((def) => ({ id: def.id, labelTh: def.labelTh, unit: def.unit, dims: def.dims, certified: def.certified, source: def.sourceSystem, refresh: refreshOf(def), latest: latestOf(def) }));
     return { ok: true as const, summary: `พบ ${data.length} เมตริกที่ตรงกับคำค้น`, data };
   },

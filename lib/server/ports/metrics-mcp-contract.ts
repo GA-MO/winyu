@@ -4,6 +4,7 @@ import {
   type FactRequest, type FactResult, type MasterData, type MetricDef,
 } from "@/lib/contracts";
 import type { EntityDescription } from "./metrics";
+import { mcpEndpointFromEnv, type McpEndpoint } from "./mcp-port";
 
 export const METRICS_MCP_PORT = 3297;
 
@@ -95,10 +96,6 @@ export type MetricsMcpInput<Tool extends MetricsMcpTool> = z.infer<(typeof METRI
 export type MetricsMcpOutput<Tool extends MetricsMcpTool> = z.infer<(typeof METRICS_MCP_TOOLS)[Tool]["output"]>;
 
 /** Where the metrics MCP listens, the secret Winyu signs identities with, and how long Winyu waits; from env, with local defaults for the demo only. */
-export function metricsMcpEnv() {
-  return {
-    url: process.env.WINYU_METRICS_MCP_URL ?? `http://127.0.0.1:${METRICS_MCP_PORT}/mcp`,
-    secret: process.env.WINYU_METRICS_MCP_SECRET ?? "winyu-metrics-demo-local-only",
-    timeoutMs: Number(process.env.WINYU_METRICS_MCP_TIMEOUT_MS ?? 4000),
-  };
+export function metricsMcpEnv(): McpEndpoint {
+  return mcpEndpointFromEnv("METRICS", METRICS_MCP_PORT);
 }

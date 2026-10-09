@@ -71,12 +71,12 @@ The model-facing tools `query_metric`, `list_metrics` and `describe_entity` stay
 | Env | Effect |
 | --- | --- |
 | unset | The in-process generator answers `MetricsPort` (`lib/server/ports/generator.ts`). Tests and `bun run eval` always use it. |
-| `WINYU_METRICS=mcp` | `metricsMcpPort` (`lib/server/ports/metrics-mcp.ts`) answers `MetricsPort` over MCP. |
+| `WINYU_PORTS=mcp` or a list naming `metrics` | `metricsMcpPort` (`lib/server/ports/metrics-mcp.ts`) answers `MetricsPort` over MCP. |
 | `WINYU_METRICS_MCP_URL` | The server's Streamable HTTP endpoint. Default `http://127.0.0.1:3297/mcp`. |
 | `WINYU_METRICS_MCP_SECRET` | The secret both sides sign identities with. The default is for the local demo only. |
 | `WINYU_METRICS_MCP_TIMEOUT_MS` | How long one call may take, connect included. Default 4000. |
 
-`make up` starts `bun run metrics:mcp` on :3297 beside the other demo connectors and runs dev with `WINYU_METRICS=mcp`. Run `make up METRICS=generator` to keep the in-process port. `make stop` and `make status` include :3297. To run the demo server alone on another port, set `WINYU_METRICS_MCP_PORT`.
+`make up` starts `bun run metrics:mcp` on :3297 beside the other demo connectors and runs dev with `WINYU_PORTS=mcp`. Run `make up PORTS=generator` to keep the in-process port. `make stop` and `make status` include :3297. To run the demo server alone on another port, set `WINYU_METRICS_MCP_PORT`.
 
 ## The contract the data team's server provides
 
@@ -103,6 +103,6 @@ The server must also do the following:
 - **Short cache.** A request with the same scoped arguments within 30 seconds is answered once. The key ignores key order. A failed call is not cached.
 - **Pooled clients.** Calls go through the connector pool (`lib/server/connectors/pool.ts`), one client per caller.
 - **Parsed at the boundary.** Every result is parsed against the contract's zod schema. A result that does not match is an error, never data.
-- **One typed error.** A timeout, an unreachable server, a refused call or a malformed result throws `MetricsUnavailable`. The semantic layer returns it as `{ ok: false, code: "CONNECTOR_UNAVAILABLE" }`. Chat cards and dashboard widgets draw it as **ข้อมูลไม่พร้อม** and never show zeros. The harness classifies the code as an unavailable source (`lib/harness/recovery.ts`), so a read may run once more before the model gets the failure.
+- **One typed error.** A timeout, an unreachable server, a refused call or a malformed result throws `PortUnavailable`. The semantic layer returns it as `{ ok: false, code: "CONNECTOR_UNAVAILABLE" }`. Chat cards and dashboard widgets draw it as **ข้อมูลไม่พร้อม** and never show zeros. The harness classifies the code as an unavailable source (`lib/harness/recovery.ts`), so a read may run once more before the model gets the failure.
 - **Master data through an outage.** The dictionary keeps the last master data the source gave and tries again every 30 seconds. A cold start with the source down has no names to show, so pages that need names fail until the source answers.
-- **Health.** The source reports under the Data Warehouse connector. With `WINYU_METRICS=mcp`, **/admin → Tools** shows it as an MCP connection with its online or offline status, and the overview lists it when it is offline.
+- **Health.** The source reports under the Data Warehouse connector. With metrics on MCP, **/admin → Tools** shows it as an MCP connection with its online or offline status, and the overview lists it when it is offline.

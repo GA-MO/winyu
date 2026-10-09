@@ -4,10 +4,10 @@ import path from "node:path";
 
 const PAID_MODEL_KEYS = ["OPENROUTER_API_KEY", "ANTHROPIC_API_KEY"];
 
-/** Drops the keys Bun loads from `.env.local`, so no test (nor the memory or digest job a chat turn starts) ever calls a paid model; metrics stay on the in-process generator, never a network MCP. */
+/** Drops the keys Bun loads from `.env.local`, so no test (nor the memory or digest job a chat turn starts) ever calls a paid model; every port stays on the in-process generator, never a network MCP. */
 export function withoutPaidModels(): void {
   for (const key of PAID_MODEL_KEYS) delete process.env[key];
-  delete process.env.WINYU_METRICS;
+  delete process.env.WINYU_PORTS;
 }
 
 /** Swaps the local embedding model for the trigram embedder, so no test loads or downloads a model. */

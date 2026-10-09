@@ -13,16 +13,3 @@ export type MetricsPort = {
   listMetrics(search: string | null): Promise<MetricDef[]>;
   describeEntity(kind: EntityKind, query: string): Promise<EntityDescription>;
 };
-
-export type MetricsUnavailableReason = "timeout" | "unreachable" | "refused" | "malformed";
-
-/** A metrics port that could not answer: the source timed out, could not be reached, refused the call or sent something that is not the contract. */
-export class MetricsUnavailable extends Error {
-  readonly reason: MetricsUnavailableReason;
-
-  constructor(reason: MetricsUnavailableReason, detail: string) {
-    super(`metrics source ${reason}: ${detail}`);
-    this.name = "MetricsUnavailable";
-    this.reason = reason;
-  }
-}

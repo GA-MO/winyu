@@ -13,7 +13,8 @@ import { runWithAccess } from "@/lib/server/request-context";
 import { metricsMcpFetch } from "@/scripts/metrics-mcp";
 import { GENERATOR_PORTS } from "./generator";
 import { registerPorts, resetPorts } from "./index";
-import { MetricsUnavailable, type MetricsPort } from "./metrics";
+import type { MetricsPort } from "./metrics";
+import { PortUnavailable } from "./unavailable";
 import { metricsMcpPort } from "./metrics-mcp";
 
 const SECRET = "metrics-mcp-test-secret";
@@ -113,8 +114,8 @@ describe("the metrics port over the data team's MCP", () => {
     try {
       const port = metricsMcpPort({ url: slow.url, secret: SECRET, timeoutMs: TIMEOUT_MS });
       const failure = await port.readFacts([TOTAL]).catch((error: unknown) => error);
-      expect(failure).toBeInstanceOf(MetricsUnavailable);
-      expect((failure as MetricsUnavailable).reason).toBe("timeout");
+      expect(failure).toBeInstanceOf(PortUnavailable);
+      expect((failure as PortUnavailable).reason).toBe("timeout");
       const result = await onMcp(port, () => runMetric(QUESTIONS[0], PEOPLE.ceo));
       expect(result).toEqual({ ok: false, code: "CONNECTOR_UNAVAILABLE", error: TH.cards.failed.metricsDown });
       const card = presentCard({ title: "ยอดขาย", query: QUESTIONS[0], result });
@@ -138,7 +139,7 @@ describe("the metrics port over the data team's MCP", () => {
     expect(forged.status).toBe(401);
     const port = metricsMcpPort({ url: demo.url, secret: "not-the-secret", timeoutMs: 2_000 });
     const failure = await port.masterData().catch((error: unknown) => error);
-    expect(failure).toBeInstanceOf(MetricsUnavailable);
+    expect(failure).toBeInstanceOf(PortUnavailable);
   });
 
   test("a result that is not the contract is rejected at the boundary", async () => {
@@ -149,7 +150,7 @@ describe("the metrics port over the data team's MCP", () => {
     }));
     const port = metricsMcpPort({ url: "http://127.0.0.1:9/mcp", secret: SECRET, timeoutMs: 2_000 });
     const failure = await port.readFacts([TOTAL]).catch((error: unknown) => error);
-    expect(failure).toBeInstanceOf(MetricsUnavailable);
-    expect((failure as MetricsUnavailable).reason).toBe("malformed");
+    expect(failure).toBeInstanceOf(PortUnavailable);
+    expect((failure as PortUnavailable).reason).toBe("malformed");
   });
 });

@@ -3,6 +3,7 @@ import type { AccessContext } from "@/lib/contracts";
 import { TH } from "@/lib/i18n/th";
 import { recordToolCall, type AuditedCall } from "@/lib/server/audit";
 import { currentAccess } from "@/lib/server/request-context";
+import { PortUnavailable, portDownOf } from "@/lib/server/ports/unavailable";
 import { observe, type Attempt } from "./observation";
 import { authorize, type CallContext } from "./policy";
 import { failureOf, recover } from "./recovery";
@@ -26,8 +27,12 @@ type Ref = { toolCallId: string; tool: string };
 
 class ToolTimeout extends Error {}
 
+function thrownAttempt(thrown: unknown): Attempt {
+  return thrown instanceof PortUnavailable ? { returned: portDownOf(thrown) } : { thrown };
+}
+
 async function attemptOnce<Input>(run: (input: Input) => Promise<unknown>, input: Input, timeoutMs: number | null): Promise<Attempt> {
-  if (timeoutMs === null) return run(input).then((returned) => ({ returned }), (thrown: unknown) => ({ thrown }));
+  if (timeoutMs === null) return run(input).then((returned) => ({ returned }), thrownAttempt);
   let timer: ReturnType<typeof setTimeout> | undefined;
   const timeout = new Promise<never>((_resolve, reject) => {
     timer = setTimeout(() => reject(new ToolTimeout()), timeoutMs);
@@ -36,7 +41,7 @@ async function attemptOnce<Input>(run: (input: Input) => Promise<unknown>, input
     return { returned: await Promise.race([run(input), timeout]) };
   } catch (error) {
     if (error instanceof ToolTimeout) return { returned: { ok: false, code: "TIMEOUT", error: TH.harness.timeout(timeoutMs / MS_PER_SECOND) } };
-    return { thrown: error };
+    return thrownAttempt(error);
   } finally {
     clearTimeout(timer);
   }
