@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import type { AccessContext, ContextPacket, Dim, HandoffReplyNote, MetricQuery, MetricRow, Notification, PacketReply, User } from "@/lib/contracts";
+import type { AccessContext, ContextPacket, Dim, HandoffReplyNote, MetricQuery, MetricRow, PacketReply, User } from "@/lib/contracts";
 import { appendHandoffReply } from "@/lib/harness/adapters/mastra/history";
 import { runMetric } from "@/lib/server/metrics";
 import { ports } from "@/lib/server/ports";
@@ -10,7 +10,8 @@ import type { Dictionary } from "@/lib/semantic/dictionary";
 import { loadDictionary } from "@/lib/server/master-data";
 import { formatDateTh } from "@/lib/i18n/format";
 import { TH } from "@/lib/i18n/th";
-import { notifications, packetOrigins, packets } from "./agent/collections";
+import { packetOrigins, packets } from "./agent/collections";
+import { notify } from "./notify";
 import { threads } from "./threads-read";
 import { rememberAction } from "@/lib/engine/memory";
 
@@ -75,10 +76,6 @@ export function slaFor(urgency: ContextPacket["urgency"]): string {
   return new Date(Date.now() + SLA_HOURS[urgency] * HOUR_MS).toISOString();
 }
 
-function notify(notification: Omit<Notification, "id" | "at" | "read">): Notification {
-  return notifications().put({ ...notification, id: randomUUID(), at: now(), read: false });
-}
-
 export type HandoffInput = {
   toUserId: string;
   title: string;
@@ -119,7 +116,7 @@ export async function createPacket(input: HandoffInput, sender: User | null, rec
     rememberAction(sender.id, { type: "responsibility", value: TH.memory.sentTo(scope ? `${metricLabel(first.metric)} ${scope}` : metricLabel(first.metric), recipient.nameTh) });
   }
   if (input.threadId) packetOrigins().put({ id: packet.id, threadId: input.threadId, userId: packet.fromUserId });
-  notify({ userId: recipient.id, kind: "handoff", refId: packet.id, title: TH.handoff.newFrom(sender?.nameTh ?? packet.fromUserId, packet.title) });
+  notify(recipient.id, sender?.id ?? null, { kind: "handoff", refId: packet.id, title: TH.handoff.newFrom(sender?.nameTh ?? packet.fromUserId, packet.title) });
   await ports().mail.send({
     kind: "handoff",
     fromUserId: packet.fromUserId,
@@ -174,7 +171,7 @@ export async function actOnPacket(packet: ContextPacket, access: AccessContext, 
     updatedAt: at,
   });
   const responder = findUser(access.userId);
-  notify({ userId: packet.fromUserId, kind: "reply", refId: packet.id, title: `${responder?.nameTh ?? access.userId}: ${text}` });
+  notify(packet.fromUserId, access.userId, { kind: "reply", refId: packet.id, title: `${responder?.nameTh ?? access.userId}: ${text}` });
   await tellSenderThread(updated, responder, text, at).catch((error: unknown) => {
     console.error(`handoff reply ${packet.id} did not reach the sender's conversation`, error);
   });

@@ -13,7 +13,8 @@ import { loadDictionary } from "@/lib/server/master-data";
 import { TH } from "@/lib/i18n/th";
 import { rememberAction } from "@/lib/engine/memory";
 import { metricLabel } from "@/lib/dashboard/metric-display";
-import { notifications, personalWatches } from "./agent/collections";
+import { personalWatches } from "./agent/collections";
+import { notify } from "./notify";
 
 const MAX_WATCHES_PER_USER = 12;
 const SYSTEM_SENDER = "winyu";
@@ -73,7 +74,7 @@ async function tell(watch: PersonalWatch, hit: WatchHit): Promise<void> {
   if (!user) return;
   const title = TH.watch.fired(watch.title, hitLabel(watch, hit, await loadDictionary()));
   const at = new Date().toISOString();
-  notifications().put({ id: randomUUID(), userId: user.id, at, kind: "alert", refId: watch.id, read: false, title });
+  notify(user.id, null, { kind: "alert", refId: watch.id, title }, new Date(at));
   await ports().mail.send({
     kind: "watch",
     fromUserId: SYSTEM_SENDER,

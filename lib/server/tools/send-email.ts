@@ -1,16 +1,11 @@
-import { randomUUID } from "node:crypto";
 import type { z } from "zod";
-import { sendEmailInputSchema, type Notification } from "@/lib/contracts";
-import { notifications } from "@/lib/server/agent/collections";
+import { sendEmailInputSchema } from "@/lib/contracts";
+import { notify } from "@/lib/server/notify";
 import { ports } from "@/lib/server/ports";
 import { currentAccess } from "@/lib/server/request-context";
 import { defineTool } from "./define";
 import { emailHolds } from "./verify";
-import { ALL_BUT_SALES_REP, now, recipient } from "./shared";
-
-function notify(notification: Omit<Notification, "id" | "at" | "read">): Notification {
-  return notifications().put({ ...notification, id: randomUUID(), at: now(), read: false });
-}
+import { ALL_BUT_SALES_REP, recipient } from "./shared";
 
 export const sendEmailTool = defineTool({
   name: "send_email",
@@ -26,7 +21,7 @@ export const sendEmailTool = defineTool({
     const target = recipient(toUserId);
     if (!target.ok) return { ok: false as const, error: target.error };
     const entry = await ports().mail.send({ kind: "email", fromUserId: access.userId, toUserId: target.user.id, toEmail: target.user.email, subject, body, refId: null });
-    notify({ userId: target.user.id, kind: "email", refId: entry.id, title: `อีเมลใหม่: ${subject}` });
+    notify(target.user.id, access.userId, { kind: "email", refId: entry.id, title: `อีเมลใหม่: ${subject}` });
     return { ok: true as const, summary: `ส่งอีเมลถึง ${target.user.nameTh} แล้ว`, data: { outboxId: entry.id, toEmail: target.user.email, subject } };
   },
 });

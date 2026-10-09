@@ -177,7 +177,7 @@ function tellApprover(request: GrantRequest, requester: User, approver: User): P
   const slice = sliceLabel(request.slice);
   const url = `${channelWebOrigin()}${grantRequestPath(request.id)}`;
   const cardTitle = shares().get(request.shareCode)?.title ?? null;
-  notify(approver.id, { kind: "grant_request", refId: request.id, requesterName: requester.nameTh, slice });
+  notify(approver.id, requester.id, { kind: "grant_request", refId: request.id, requesterName: requester.nameTh, slice });
   return sendMail(requester, approver, grantRequestMail({ requesterName: requester.nameTh, requesterTitle: requester.title, slice, reason: request.reason, cardTitle, url }), request.id);
 }
 
@@ -185,10 +185,10 @@ function tellRequester(request: GrantRequest, decider: User, requester: User, gr
   const slice = sliceLabel(request.slice);
   if (grant) {
     const until = untilLabel(grant.expiresAt);
-    notify(requester.id, { kind: "grant_approved", refId: request.shareCode, approverName: decider.nameTh, slice, until });
+    notify(requester.id, decider.id, { kind: "grant_approved", refId: request.shareCode, approverName: decider.nameTh, slice, until });
     return sendMail(decider, requester, grantDecisionMail({ outcome: "approved", approverName: decider.nameTh, slice, until, url: shareUrl(request.shareCode) }), request.id);
   }
-  notify(requester.id, { kind: "grant_declined", refId: request.shareCode, deciderName: decider.nameTh, slice });
+  notify(requester.id, decider.id, { kind: "grant_declined", refId: request.shareCode, deciderName: decider.nameTh, slice });
   return sendMail(decider, requester, grantDecisionMail({ outcome: "declined", deciderName: decider.nameTh, slice }), request.id);
 }
 

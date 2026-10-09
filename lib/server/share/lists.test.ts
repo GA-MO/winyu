@@ -42,7 +42,7 @@ afterEach(() => {
 describe("Shared lists what was sent to the person and what they sent", () => {
   test("the recipient sees sender, note, what the card hides by name, and the unread mark; the sender sees recipients by channel and views; neither carries a value", () => {
     const share = storedShare("u_thana", "u_krit");
-    notify("u_krit", { kind: "share", refId: share.id, senderName: user("u_thana").nameTh, cardTitle: share.title, grantUntil: null });
+    notify("u_krit", "u_thana", { kind: "share", refId: share.id, senderName: user("u_thana").nameTh, cardTitle: share.title, grantUntil: null });
 
     const received = receivedShares(user("u_krit")).find((row) => row.code === share.id);
     expect(received).toMatchObject({ path: `/s/${share.id}`, title: TITLE, senderName: user("u_thana").nameTh, note: NOTE, request: null, grant: null, unread: true });

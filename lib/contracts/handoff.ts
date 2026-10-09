@@ -8,7 +8,8 @@ export type ContextPacket = { id: string; fromUserId: string; toUserId: string; 
 export type PacketReply = { userId: string; at: string; text: string };
 export const NOTIFICATION_KINDS = ["handoff", "alert", "reply", "email", "share", "grant_request", "grant_approved", "grant_declined"] as const;
 export type NotificationKind = (typeof NOTIFICATION_KINDS)[number];
-export type Notification = { id: string; userId: string; at: string; kind: NotificationKind; refId: string; read: boolean; title: string };
+/** `fromUserId` is who caused it; absent for Winyu's own watch and for notifications stored before it was kept. */
+export type Notification = { id: string; userId: string; at: string; kind: NotificationKind; refId: string; read: boolean; title: string; fromUserId?: string };
 
 export const URGENCIES = ["low", "medium", "high"] as const;
 export type Urgency = (typeof URGENCIES)[number];

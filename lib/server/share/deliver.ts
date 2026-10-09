@@ -101,7 +101,7 @@ export async function createShare(sender: User, request: ShareRequest, at = new 
   const grants = request.grantDays ? grantOnShare(sender, request.card, deliveries.map((delivery) => delivery.userId), request.grantDays, code, new Date(at)) : [];
   for (const delivery of deliveries) {
     const until = shareGrantUntil(code, delivery.userId);
-    notify(delivery.userId, { kind: "share", refId: code, senderName: sender.nameTh, cardTitle: title, grantUntil: until ? untilLabel(until) : null }, new Date(at));
+    notify(delivery.userId, sender.id, { kind: "share", refId: code, senderName: sender.nameTh, cardTitle: title, grantUntil: until ? untilLabel(until) : null }, new Date(at));
   }
   return { ok: true, share, grants };
 }
