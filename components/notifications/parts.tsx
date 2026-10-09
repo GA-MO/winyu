@@ -10,9 +10,15 @@ const COPY = TH.notifications;
 const WINYU_MARK = "flex shrink-0 items-center justify-center rounded-full bg-linear-135 from-primary via-brand-violet to-brand-coral text-white";
 const UNKNOWN = "flex shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground";
 
-/** Who caused the item: their portrait, Winyu's mark for a watch Winyu raised, or a plain bell when nobody is known. */
+/** Who caused the item: their portrait (hidden from screen readers, the title names them), Winyu's mark for a watch Winyu raised, or a plain bell when nobody is known. */
 export function Face({ item, className }: { item: Pick<BellItem, "person" | "kind">; className: string }) {
-  if (item.person) return <Portrait name={item.person.name} src={item.person.photo} className={cn("text-xs", className)} />;
+  if (item.person) {
+    return (
+      <span aria-hidden className="contents">
+        <Portrait name={item.person.name} src={item.person.photo} className={cn("text-xs", className)} />
+      </span>
+    );
+  }
   if (item.kind === "alert") {
     return (
       <span role="img" aria-label={COPY.winyu} className={cn(WINYU_MARK, className)}>

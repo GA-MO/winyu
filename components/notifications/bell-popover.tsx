@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type MouseEvent } from "react";
-import { Check } from "lucide-react";
+import { Check, X } from "lucide-react";
 import { Primary } from "@/components/inbox/row";
 import { cn } from "@/components/ui/cn";
 import { TH } from "@/lib/i18n/th";
@@ -71,7 +71,7 @@ function UpdateRow({ item, onOpen }: { item: BellItem; onOpen: (item: BellItem) 
     <li>
       <ItemLink item={item} onOpen={onOpen} className="flex items-center gap-3 rounded-xl px-2.5 py-2 transition hover:bg-muted">
         <Face item={item} className="size-7" />
-        <span className={cn("min-w-0 flex-1 truncate text-[13px]", item.read ? "text-muted-foreground" : "font-medium text-foreground")}>{item.title}</span>
+        <span title={item.title} className={cn("min-w-0 flex-1 truncate text-[13px]", item.read ? "text-muted-foreground" : "font-medium text-foreground")}>{item.title}</span>
         <When at={item.at} />
         <span className="flex w-2 justify-center">
           <UnreadDot read={item.read} />
@@ -157,8 +157,13 @@ export function BellPopover({ onClose, onOpenInbox, onChanged, navigate }: BellP
   );
 
   useLayoutEffect(() => {
+    const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const element = dialog.current;
     if (element && !element.open) element.showModal();
+    return () => {
+      if (element?.open) element.close();
+      opener?.focus();
+    };
   }, []);
 
   useEffect(() => {
@@ -228,8 +233,8 @@ export function BellPopover({ onClose, onOpenInbox, onChanged, navigate }: BellP
             {COPY.markAllRead}
           </button>
         ) : null}
-        <button type="button" onClick={onClose} className={cn(LINK, "sr-only focus:not-sr-only focus:px-1 focus:text-xs")}>
-          {COPY.close}
+        <button type="button" onClick={onClose} aria-label={COPY.close} className={cn(LINK, "-mr-1.5 flex size-7 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground")}>
+          <X className="size-4" aria-hidden />
         </button>
       </header>
       {problem ? (
