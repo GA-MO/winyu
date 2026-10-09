@@ -11,6 +11,8 @@ import { metricsMcpEnv } from "./metrics-mcp-contract";
 import { metricsMcpPort } from "./metrics-mcp";
 import { learningMcpEnv } from "./learning-mcp-contract";
 import { learningMcpPort } from "./learning-mcp";
+import { hrisMcpEnv } from "./hris-mcp-contract";
+import { directoryMcpPort, leaveMcpPort, recruitingMcpPort } from "./hris-mcp";
 import type { McpBackedConnector } from "./mcp-port";
 
 /** Every system of record Winyu reads or writes, one port each; a connector replaces one without touching the logic above it. */
@@ -29,6 +31,9 @@ export type Ports = {
 const MCP_PORTS = {
   metrics: { adapter: () => metricsMcpPort(metricsMcpEnv()), connector: "warehouse" },
   learning: { adapter: () => learningMcpPort(learningMcpEnv()), connector: "lms" },
+  directory: { adapter: () => directoryMcpPort(hrisMcpEnv()), connector: "hris" },
+  leave: { adapter: () => leaveMcpPort(hrisMcpEnv()), connector: "leave" },
+  recruiting: { adapter: () => recruitingMcpPort(hrisMcpEnv()), connector: "hris" },
 } satisfies { [Port in keyof Ports]?: { adapter: () => Ports[Port]; connector: McpBackedConnector } };
 
 export type McpPortName = keyof typeof MCP_PORTS;
