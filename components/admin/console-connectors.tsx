@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Plug, RefreshCw } from "lucide-react";
 import type { User } from "@/lib/contracts";
 import { TH } from "@/lib/i18n/th";
-import type { BlockerCode, ConnectorView, LifecycleState } from "@/lib/connectors/spec";
+import { RESERVED_REASONS, type BlockerCode, type ConnectorView, type LifecycleState } from "@/lib/connectors/spec";
 import { connectorViews, serverSettings } from "@/lib/server/connectors/admin";
 import { checkConnectorUpstreamAction } from "@/app/(app)/admin/actions";
 import { EmptyLine, GHOST, INK, Panel, Pill, stamp, type Tone } from "./parts";
@@ -13,9 +13,10 @@ const TOOL_BLOCKERS = ["changed_upstream", "gone_upstream", "stale_test", "no_te
 
 type ToolState = keyof typeof COPY.list.toolState;
 
-const TOOL_TONE: Record<ToolState, Tone> = { live: "success", waiting: "primary", off: "danger", no_test: "neutral", stale_test: "warning", changed_upstream: "warning", gone_upstream: "danger" };
+const TOOL_TONE: Record<ToolState, Tone> = { live: "success", waiting: "primary", off: "danger", no_test: "neutral", stale_test: "warning", changed_upstream: "warning", gone_upstream: "danger", duplicate: "danger" };
 
 function toolStateOf(view: ConnectorView, name: string): ToolState {
+  if (view.blockers[name]?.some((code) => RESERVED_REASONS.includes(code))) return "duplicate";
   const blocker = TOOL_BLOCKERS.find((code) => view.blockers[name]?.includes(code));
   if (blocker) return blocker;
   if (view.connector.activatedAt === null) return "waiting";

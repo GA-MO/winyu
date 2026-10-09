@@ -1,14 +1,14 @@
 import { ROLE_IDS, type RoleId } from "@/lib/contracts";
 import {
   cleanedDescription, declarationOf, draftConfigHash, hintsSayWrites, promptTokens,
-  type BlockerCode, type ConnectorView, type StoredConnector, type StoredTool, type ToolDraft, type UpstreamTool,
+  type BlockerCode, type ConnectorView, type ReservedReason, type StoredConnector, type StoredTool, type ToolDraft, type UpstreamTool,
 } from "@/lib/connectors/spec";
 
 
 const UNDECLARED_TIER = "destructive";
 
 /** One tool as the wizard holds it: what the server listed now (null when it is gone), what is stored (null before the first save), and the admin's edits. */
-export type WizardTool = { name: string; listed: UpstreamTool | null; stored: StoredTool | null; draft: ToolDraft; include: boolean; fields: string[] };
+export type WizardTool = { name: string; listed: UpstreamTool | null; stored: StoredTool | null; draft: ToolDraft; include: boolean; fields: string[]; reserved: ReservedReason | null };
 
 export type TestStatus = "untested" | "tested" | "stale";
 
@@ -26,11 +26,11 @@ export function wizardToolsOf(view: ConnectorView): WizardTool[] {
   const stored = view.connector.tools;
   const listed = (view.upstream?.tools ?? []).map((tool) => {
     const saved = stored[tool.name] ?? null;
-    return { name: tool.name, listed: tool, stored: saved, draft: saved ? draftOfStored(tool.name, saved) : freshDraft(tool), include: saved !== null, fields: saved?.fields ?? [] };
+    return { name: tool.name, listed: tool, stored: saved, draft: saved ? draftOfStored(tool.name, saved) : freshDraft(tool), include: saved !== null, fields: saved?.fields ?? [], reserved: view.reserved[tool.name] ?? null };
   });
   const gone = Object.entries(stored)
     .filter(([name]) => !listed.some((tool) => tool.name === name))
-    .map(([name, tool]) => ({ name, listed: null, stored: tool, draft: draftOfStored(name, tool), include: true, fields: tool.fields }));
+    .map(([name, tool]) => ({ name, listed: null, stored: tool, draft: draftOfStored(name, tool), include: true, fields: tool.fields, reserved: null }));
   return [...listed, ...gone];
 }
 
@@ -56,6 +56,7 @@ export function testStatusOf(connector: Pick<StoredConnector, "url" | "auth">, t
 
 /** What stops one included tool from going live, as the wizard shows it before the server checks again. */
 export function blockersOfTool(connector: Pick<StoredConnector, "url" | "auth">, tool: WizardTool): BlockerCode[] {
+  if (tool.reserved) return [tool.reserved];
   if (!tool.listed) return ["gone_upstream"];
   const parsed = declarationOf(tool.draft, tool.listed.hints);
   const codes: BlockerCode[] = parsed.ok ? [] : [...parsed.codes];

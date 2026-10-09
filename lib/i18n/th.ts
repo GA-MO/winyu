@@ -2075,6 +2075,9 @@ export const TH = {
         stale_test: "แก้หลังทดสอบ ต้องทดสอบใหม่",
         changed_upstream: "ระบบปลายทางเปลี่ยนเครื่องมือนี้ ต้องตรวจและบันทึกใหม่",
         gone_upstream: "ระบบปลายทางไม่มีเครื่องมือนี้แล้ว",
+        native_tool: "ชื่อซ้ำกับเครื่องมือที่ Winyu มีอยู่แล้ว เปิดซ้ำให้โมเดลไม่ได้",
+        port_tool: "Winyu อ่านเครื่องมือนี้ของระบบนี้อยู่แล้วผ่าน port ของตัวเอง เปิดซ้ำให้โมเดลไม่ได้",
+        code_tool: "เครื่องมือนี้ของระบบนี้เปิดไว้แล้วด้วยโค้ด เปิดซ้ำไม่ได้",
       },
       noTools: "ยังไม่ได้เลือกเครื่องมือ",
       evalTitle: "เมื่อเปิดใช้",
@@ -2104,7 +2107,7 @@ export const TH = {
       edit: "แก้ไข",
       check: "ตรวจระบบปลายทาง",
       checked: (when: string) => `ตรวจล่าสุด ${when}`,
-      toolState: { live: "Live", waiting: "รอเปิดใช้", off: "ปิดอยู่", no_test: "ยังไม่ทดสอบ", stale_test: "ต้องทดสอบใหม่", changed_upstream: "Changed upstream", gone_upstream: "หายจากระบบปลายทาง" },
+      toolState: { live: "Live", waiting: "รอเปิดใช้", off: "ปิดอยู่", no_test: "ยังไม่ทดสอบ", stale_test: "ต้องทดสอบใหม่", changed_upstream: "Changed upstream", gone_upstream: "หายจากระบบปลายทาง", duplicate: "ซ้ำกับเครื่องมือเดิม" },
     },
     audit: {
       created: (label: string) => `เพิ่มระบบ ${label} (ฉบับร่าง)`,

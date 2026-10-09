@@ -197,7 +197,12 @@ export type BlockerCode =
   | "no_test"
   | "stale_test"
   | "changed_upstream"
-  | "gone_upstream";
+  | "gone_upstream"
+  | ReservedReason;
+
+/** Why a remote tool may never be opened from the console: it duplicates a native tool, a tool a Winyu port reads from that server, or one a code connector opens there. */
+export type ReservedReason = "native_tool" | "port_tool" | "code_tool";
+export const RESERVED_REASONS: readonly BlockerCode[] = ["native_tool", "port_tool", "code_tool"];
 
 /** What a connector is, derived from its record, its switch and the last listing, never stored: nothing reaches the model before Live. */
 export type LifecycleState = "draft" | "ready" | "live" | "disabled" | "drifted";
@@ -402,6 +407,7 @@ export type ConnectorView = {
   enabled: boolean;
   live: string[];
   blockers: Record<string, BlockerCode[]>;
+  reserved: Record<string, ReservedReason>;
   impact: EvalImpact;
 };
 

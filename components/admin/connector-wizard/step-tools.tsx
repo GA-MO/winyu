@@ -71,16 +71,18 @@ function Declaration({ tool, context }: { tool: WizardTool; context: WizardConte
 
 function ToolCard({ tool, context }: { tool: WizardTool; context: WizardContext }) {
   const writes = writesUpstream(tool);
+  const closed = writes || tool.reserved !== null;
   const listed = tool.listed;
   return (
     <li className={cn("rounded-3xl border bg-card p-4 transition", tool.include ? "border-foreground/25 shadow-card" : "border-border")}>
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <Check checked={tool.include} disabled={!context.writable || (writes && !tool.include)} onChange={(include) => context.setInclude(tool.name, include)}>
+        <Check checked={tool.include} disabled={!context.writable || (closed && !tool.include)} onChange={(include) => context.setInclude(tool.name, include)}>
           <span className="font-mono text-[13px] font-medium">{tool.name}</span>
         </Check>
         <span className="flex flex-wrap items-center gap-1">
           {listed ? <HintPills hints={listed.hints} /> : null}
           {writes ? <Pill tone="primary">{COPY.writePhase}</Pill> : null}
+          {tool.reserved ? <Pill tone="danger">{TH.connectorUi.list.toolState.duplicate}</Pill> : null}
         </span>
       </div>
       <div className="mt-3 flex flex-col gap-3">
@@ -92,6 +94,7 @@ function ToolCard({ tool, context }: { tool: WizardTool; context: WizardContext 
           </p>
         ) : null}
         {writes ? <p className="text-[12px] text-muted-foreground">{COPY.writeNote}</p> : null}
+        {tool.reserved ? <p className="text-[12px] text-danger">{TH.connectorUi.review.blockers[tool.reserved]}</p> : null}
         {listed ? (
           <p className="flex flex-wrap items-center gap-1 text-[11px] text-muted-foreground">
             <span>{COPY.inputs}</span>

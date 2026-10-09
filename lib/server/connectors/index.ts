@@ -1,9 +1,6 @@
-import { crmDemoConnector } from "./crm-demo";
-import { lmsDemoConnector } from "./lms-demo";
+import { CODE_CONNECTORS } from "./code";
 import { activeStoredConnectors } from "./stored";
 import type { McpConnector } from "./types";
-
-const CONFIGURED: McpConnector[] = [lmsDemoConnector, crmDemoConnector];
 
 let registered: McpConnector[] | null = null;
 
@@ -15,7 +12,7 @@ function assertUniqueTools(connectors: McpConnector[]): void {
 
 /** The ids the code connectors hold, which no connector made in the admin console may take. */
 export function codeConnectorIds(): string[] {
-  return CONFIGURED.map((connector) => connector.def.id);
+  return CODE_CONNECTORS.map((connector) => connector.def.id);
 }
 
 function withoutCodeIds(stored: McpConnector[]): McpConnector[] {
@@ -25,7 +22,7 @@ function withoutCodeIds(stored: McpConnector[]): McpConnector[] {
 
 /** The connectors to other systems on Winyu's surface, all MCP (a system without MCP gets a thin MCP server around its API): the configured ones and the live ones an IT admin added in the console, or the ones a test registered. */
 export function remoteConnectors(): McpConnector[] {
-  return registered ?? [...CONFIGURED, ...withoutCodeIds(activeStoredConnectors())];
+  return registered ?? [...CODE_CONNECTORS, ...withoutCodeIds(activeStoredConnectors())];
 }
 
 export function registerConnectors(connectors: McpConnector[]): void {

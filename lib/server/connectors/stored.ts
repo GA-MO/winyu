@@ -5,13 +5,14 @@ import { fence } from "@/lib/harness/fence";
 import { collection, collectionStamp } from "@/lib/server/store/json-store";
 import {
   stableJson, storedConnectorSchema, storedToolBlockers,
-  type AuthKind, type RemoteHints, type StoredConnector, type StoredTool, type Upstream, type UpstreamTool,
+  type AuthKind, type BlockerCode, type RemoteHints, type StoredConnector, type StoredTool, type Upstream, type UpstreamTool,
 } from "@/lib/connectors/spec";
 import { markReachable } from "./catalog";
 import { defineMcpConnector } from "./define";
 import { egressFetch } from "./egress";
 import { openMcpClient, type MCPClient } from "./mcp-client";
 import { connectorScopeOf, sensitiveFieldOf } from "./presets";
+import { reservedReasonOf } from "./reserved";
 import { CONNECTOR_KEY_ENV, CONNECTOR_SECRETS_COLLECTION, connectorKey, openSecret } from "./secrets";
 import { signedIdentityHeaders } from "./signed-identity";
 import type { McpConnector, McpToolConfig } from "./types";
@@ -142,10 +143,16 @@ export function modelInputOf(inputSchema: Record<string, unknown>): z.ZodObject 
   }
 }
 
-/** The tools of a stored connector that may reach the model now: tested at their current config and unchanged upstream. */
+/** Everything that keeps one stored tool off the surface, its duplication of a tool Winyu already has included. */
+export function serverToolBlockers(connector: StoredConnector, name: string, tool: StoredTool, upstream: Upstream | null): BlockerCode[] {
+  const reserved = reservedReasonOf(connector.url, name);
+  return [...(reserved ? [reserved] : []), ...storedToolBlockers(connector, name, tool, upstream)];
+}
+
+/** The tools of a stored connector that may reach the model now: tested at their current config, unchanged upstream, and no duplicate of a tool Winyu already has. */
 export function liveToolNames(connector: StoredConnector, upstream: Upstream | null): string[] {
   return Object.entries(connector.tools)
-    .filter(([name, tool]) => storedToolBlockers(connector, name, tool, upstream).length === 0)
+    .filter(([name, tool]) => serverToolBlockers(connector, name, tool, upstream).length === 0)
     .map(([name]) => name);
 }
 

@@ -5,7 +5,7 @@ import { EVAL_CASES } from "@/lib/eval/cases";
 import { TH } from "@/lib/i18n/th";
 import { recordConnectorEvent, type ConnectorEventKind } from "@/lib/server/audit";
 import {
-  CONNECTOR_ID, DEFAULT_TIMEOUT_MS, MIN_SECRET_CHARS, declarationOf, inputNamesOf, lifecycleOf, promptTokens, storedConfigHash, storedToolBlockers,
+  CONNECTOR_ID, DEFAULT_TIMEOUT_MS, MIN_SECRET_CHARS, RESERVED_REASONS, declarationOf, inputNamesOf, lifecycleOf, promptTokens, storedConfigHash,
   type ActivateResult, type BlockerCode, type ConnectorView, type DiscoverInput, type EvalImpact, type Problem, type ProblemCode, type SampleResult, type SaveInput, type SaveResult,
   type SensitiveSpec, type StoredConnector, type StoredTool, type TestResult, type TestRun, type ToolSave, type Upstream, type UpstreamTool, type ViewResult,
 } from "@/lib/connectors/spec";
@@ -14,7 +14,8 @@ import { egressAllowlist, egressProblem, EgressRefused } from "./egress";
 import { genericOutput, isRemoteError, MASKED_VALUE, scopedArgs, scopedRows } from "./output";
 import { callerIdentity, connectorScopeOf } from "./presets";
 import { connectorKey, openSecret, sealSecret } from "./secrets";
-import { compileStored, listUpstream, liveToolNames, modelInputOf, recordUpstream, saveStored, storedConnector, storedConnectors, upstreamOf, withClient } from "./stored";
+import { reservedReasonOf } from "./reserved";
+import { compileStored, listUpstream, liveToolNames, serverToolBlockers, modelInputOf, recordUpstream, saveStored, storedConnector, storedConnectors, upstreamOf, withClient } from "./stored";
 import type { ConnectorRow } from "./types";
 
 const MAX_FIELDS = 80;
@@ -29,8 +30,8 @@ function refuse(problem: ProblemCode, extra: Omit<Problem, "ok" | "problem"> = {
   return { ok: false, problem, ...extra };
 }
 
-function audit(actor: User, event: ConnectorEventKind, connector: string, tool: string | null, reason: string, detail: Record<string, unknown> = {}): void {
-  recordConnectorEvent({ userId: actor.id, event, connector, tool, reason, detail });
+function audit(actor: User, event: ConnectorEventKind, connector: string, tool: string | null, reason: string, detail: Record<string, unknown> = {}, code?: string): void {
+  recordConnectorEvent({ userId: actor.id, event, connector, tool, reason, detail, ...(code ? { code } : {}) });
 }
 
 function refused(actor: User, connector: string, tool: string | null, problem: ProblemCode): Problem {
@@ -58,9 +59,13 @@ function impactOf(connector: StoredConnector, upstream: Upstream | null): EvalIm
 export function viewOf(connector: StoredConnector): ConnectorView {
   const upstream = upstreamOf(connector.id);
   const enabled = connectorEnabled(connector.id);
-  const blockers = Object.fromEntries(Object.entries(connector.tools).map(([name, tool]) => [name, storedToolBlockers(connector, name, tool, upstream)]));
+  const blockers = Object.fromEntries(Object.entries(connector.tools).map(([name, tool]) => [name, serverToolBlockers(connector, name, tool, upstream)]));
   const live = connector.activatedAt !== null && enabled ? liveToolNames(connector, upstream) : [];
-  return { connector, upstream, state: lifecycleOf(connector, upstream, enabled), enabled, live, blockers, impact: impactOf(connector, upstream) };
+  const reserved = Object.fromEntries((upstream?.tools ?? []).flatMap((tool) => {
+    const reason = reservedReasonOf(connector.url, tool.name);
+    return reason ? [[tool.name, reason] as const] : [];
+  }));
+  return { connector, upstream, state: lifecycleOf(connector, upstream, enabled), enabled, live, blockers, reserved, impact: impactOf(connector, upstream) };
 }
 
 /** Every console connector as the admin sees it; nothing for anyone else. */
@@ -148,6 +153,8 @@ type SaveOutcome = { ok: true; tool: StoredTool; approved: boolean } | { ok: fal
 
 function savedTool(connector: StoredConnector, listed: UpstreamTool, save: ToolSave, actor: User): SaveOutcome {
   if (save.seenHash !== listed.hash) return { ok: false, problem: "upstream_moved" };
+  const reserved = reservedReasonOf(connector.url, listed.name);
+  if (reserved) return { ok: false, codes: [reserved] };
   const parsed = declarationOf(save.draft, listed.hints);
   if (!parsed.ok) return { ok: false, codes: parsed.codes };
   if (!modelInputOf(listed.inputSchema)) return { ok: false, problem: "schema_unsupported" };
@@ -179,6 +186,8 @@ export function saveConnectorTools(actor: User | null, input: SaveInput): SaveRe
     if (!outcome.ok && "problem" in outcome) return refused(actor, connector.id, save.draft.name, outcome.problem);
     if (!outcome.ok) {
       incomplete[save.draft.name] = outcome.codes;
+      const reserved = outcome.codes.find((code) => RESERVED_REASONS.includes(code));
+      if (reserved) audit(actor, "refused", connector.id, save.draft.name, TH.connectorUi.audit.refused(TH.connectorUi.review.blockers[reserved]), {}, reserved);
       continue;
     }
     tools[listed.name] = outcome.tool;
@@ -297,7 +306,7 @@ export async function testConnectorTool(actor: User | null, input: { connector: 
 
 function activationBlockers(connector: StoredConnector): BlockerCode[] {
   const upstream = upstreamOf(connector.id);
-  return [...new Set(Object.entries(connector.tools).flatMap(([name, tool]) => storedToolBlockers(connector, name, tool, upstream)))];
+  return [...new Set(Object.entries(connector.tools).flatMap(([name, tool]) => serverToolBlockers(connector, name, tool, upstream)))];
 }
 
 /** Turns a ready connector on: every tool declared, tested at its current config and unchanged upstream, compiled through `defineMcpConnector`; then its switch goes on and its tools reach the roles chosen. */
