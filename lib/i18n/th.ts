@@ -431,6 +431,7 @@ export const TH = {
       asked: (requester: string) => `${requester}ขอสิทธิ์`,
       opened: (opened: number, recipients: number) => (opened === 0 ? "ยังไม่มีใครเปิด" : `เปิดแล้ว ${opened} จาก ${recipients} คน`),
       gave: (recipient: string, until: string) => `ให้สิทธิ์${recipient}ถึง ${until}`,
+      gaveUntil: (until: string) => `ให้สิทธิ์ถึง ${until}`,
     },
   },
   inbox: {

@@ -37,7 +37,7 @@ function sentSaid(group: ShareGroup<SentState>, grantsListed: boolean): Said {
   if (state.kind === "asked") return { text: STATE.asked(state.requesterName), tone: "text-warning" };
   if (grantsListed) return null;
   const [live] = group.grants;
-  if (live) return { text: STATE.gave(live.recipientName, live.until), tone: "text-success" };
+  if (live) return { text: group.latest.people.length === 1 ? STATE.gaveUntil(live.until) : STATE.gave(live.recipientName, live.until), tone: "text-success" };
   return { text: STATE.opened(state.opened, state.recipients), tone: "text-muted-foreground" };
 }
 
@@ -47,13 +47,14 @@ function peopleLabel(line: ShareLine<ReceivedState | SentState>): string {
   return others.length === 0 ? first.name : COPY.toMany(first.name, others.length);
 }
 
-function contextOf(group: ShareGroup<ReceivedState | SentState>, lead: string, now: Date): string {
-  if (group.count === 1) return lead;
+function repeatsOf(group: ShareGroup<ReceivedState | SentState>, now: Date): string | null {
+  if (group.count === 1) return null;
   const sent = lastSentLabel(group, now);
-  return [lead, COPY.repeats(group.count), sent ? COPY.lastSent(sent) : null].filter(Boolean).join(" · ");
+  return [COPY.repeats(group.count), sent ? COPY.lastSent(sent) : null].filter(Boolean).join(" · ");
 }
 
-function Row({ group, context, said, now, children }: { group: ShareGroup<ReceivedState | SentState>; context: string; said: Said; now: Date; children?: ReactNode }) {
+function Row({ group, lead, said, now, children }: { group: ShareGroup<ReceivedState | SentState>; lead: string; said: Said; now: Date; children?: ReactNode }) {
+  const repeats = repeatsOf(group, now);
   const person = group.latest.people[0];
   return (
     <li data-shared-row={group.latest.code} data-count={group.count}>
@@ -67,7 +68,10 @@ function Row({ group, context, said, now, children }: { group: ShareGroup<Receiv
         ) : null}
         <span className="flex min-w-0 flex-1 flex-col gap-0.5">
           <span className={cn("truncate text-sm leading-snug tracking-tight", group.unread ? "font-semibold" : "font-medium")}>{group.latest.title}</span>
-          <span className="truncate text-xs text-muted-foreground">{context}</span>
+          <span className="flex min-w-0 gap-1 text-xs text-muted-foreground">
+            <span className="truncate">{lead}</span>
+            {repeats ? <span className="shrink-0" data-shared-repeats>· {repeats}</span> : null}
+          </span>
         </span>
         <span className="flex max-w-[45%] shrink-0 flex-col items-end gap-0.5 text-right leading-tight">
           {said ? <span className={cn("text-xs font-medium", said.tone)}>{said.text}</span> : null}
@@ -82,7 +86,7 @@ function Row({ group, context, said, now, children }: { group: ShareGroup<Receiv
 }
 
 function ReceivedRow({ group, now }: { group: ShareGroup<ReceivedState>; now: Date }) {
-  return <Row group={group} now={now} said={receivedSaid(group.latest.state)} context={contextOf(group, COPY.from(peopleLabel(group.latest)), now)} />;
+  return <Row group={group} now={now} said={receivedSaid(group.latest.state)} lead={COPY.from(peopleLabel(group.latest))} />;
 }
 
 function GrantLines({ group }: { group: ShareGroup<SentState> }) {
@@ -106,7 +110,7 @@ function GrantLines({ group }: { group: ShareGroup<SentState> }) {
 
 function SentRow({ group, now, grantsListed }: { group: ShareGroup<SentState>; now: Date; grantsListed: boolean }) {
   return (
-    <Row group={group} now={now} said={sentSaid(group, grantsListed)} context={contextOf(group, COPY.to(peopleLabel(group.latest)), now)}>
+    <Row group={group} now={now} said={sentSaid(group, grantsListed)} lead={COPY.to(peopleLabel(group.latest))}>
       {grantsListed ? <GrantLines group={group} /> : null}
     </Row>
   );
