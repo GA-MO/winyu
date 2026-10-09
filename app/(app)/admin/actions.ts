@@ -27,6 +27,7 @@ import {
   type ActivateResult, type DiscoverInput, type ModelCheckInput, type ModelCheckResult, type Problem, type SampleResult, type SaveInput, type SaveResult, type TestResult, type ViewResult,
 } from "@/lib/connectors/spec";
 import { checkConnectorWithModel } from "@/lib/server/connectors/model-check";
+import { storedConnector } from "@/lib/server/connectors/stored";
 import { activateConnector, auditConnectorSwitch, checkConnectorUpstream, discoverConnector, sampleToolFields, saveConnectorTools, testConnectorTool } from "@/lib/server/connectors/admin";
 
 const ADMIN_PATH = "/admin";
@@ -152,6 +153,7 @@ export async function setConnectorAction(formData: FormData) {
   const enabled = String(formData.get("enabled")) === "true";
   setConnectorEnabled(connector, enabled, user.id);
   auditConnectorSwitch(user, connector, enabled);
+  if (enabled && storedConnector(connector)) await checkConnectorUpstream(user, { connector });
   revalidatePath(ADMIN_PATH);
 }
 

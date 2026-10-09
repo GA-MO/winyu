@@ -5,19 +5,19 @@
  "prompt": "ทีมขายภาคอีสานมีใครบ้าง",
  "model": "google/gemini-3.8-flash",
  "promptHash": "086aa018642e611e",
- "toolsHash": "8bdfd8d8fb9656cf",
- "today": "2026-10-05",
- "recordedAt": "2026-10-05T18:58:43.312Z",
+ "toolsHash": "92524a099b526bf9",
+ "today": "2026-10-09",
+ "recordedAt": "2026-10-09T16:40:22.760Z",
  "steps": [
   {
    "kind": "call",
    "tool": "find_people",
    "args": {
     "manager": null,
-    "region": "northeast",
     "query": null,
     "department": "dept_sales",
-    "flag": null
+    "flag": null,
+    "region": "northeast"
    },
    "result": {
     "ok": true,
@@ -150,17 +150,17 @@
   },
   {
    "kind": "text",
-   "text": "ทีมขายภาคอีสานมีบุคลากรประจำพื้นที่ครอบคลุมขอนแก่น นครราชสีมา บุรีรัมย์ และอุบลราชธานี พร้อมตำแหน่งที่ยังเปิดรับสมัครอยู่ โดยมีสมาชิกในทีมที่ใบอนุญาตขายสุราใกล้ครบกำหนดและชั่วโมงทำงานล่วงเวลาสะสมสูงที่ควรติดตาม\n\n```a2ui\n{\"id\":\"root\",\"component\":\"Card\",\"title\":\"ทีมขายภาคอีสาน\",\"footnote\":\"ระบบ HR\",\"children\":[\"team_section\",\"open_section\"]}\n{\"id\":\"team_section\",\"component\":\"Section\",\"label\":\"พนักงานปัจจุบัน\",\"children\":[\"team_grid\"]}\n{\"id\":\"team_grid\",\"component\":\"Grid\",\"children\":{\"componentId\":\"member\",\"path\":\"/find_people/data\"}}\n{\"id\":\"member\",\"component\":\"ListItem\",\"title\":{\"path\":\"name\"},\"subtitle\":{\"path\":\"title\"},\"detail\":{\"path\":\"place\"},\"src\":{\"path\":\"photo\"},\"media\":\"avatar\",\"badges\":{\"path\":\"badges\"},\"action\":{\"event\":{\"name\":\"ask\",\"context\":{\"prompt\":\"ขอดูโปรไฟล์\",\"about\":{\"path\":\"name\"}}}}}\n{\"id\":\"open_section\",\"component\":\"Section\",\"label\":\"ตำแหน่งเปิดรับสมัคร\",\"children\":[\"open_grid\"]}\n{\"id\":\"open_grid\",\"component\":\"Grid\",\"children\":{\"componentId\":\"open_item\",\"path\":\"/find_people/open_positions\"}}\n{\"id\":\"open_item\",\"component\":\"ListItem\",\"title\":{\"path\":\"title\"},\"subtitle\":{\"path\":\"open_label\"},\"media\":\"none\"}\n```"
+   "text": "ทีมขายภาคอีสานมีบุคลากรดูแลรับผิดชอบตามพื้นที่ พร้อมตำแหน่งที่กำลังเปิดรับสมัครเพิ่มเติมในเขตพื้นที่ย่อย ทั้งนี้ควรติดตามการต่ออายุใบอนุญาตขายสุราของสมาชิกในทีมและของตนเองที่ใกล้ถึงกำหนดครับ\n\n```a2ui\n{\"id\":\"root\",\"component\":\"Card\",\"title\":\"ทีมขายภาคอีสาน\",\"meta\":{\"path\":\"/find_people/summary\"},\"children\":[\"team_section\",\"open_section\"]}\n{\"id\":\"team_section\",\"component\":\"Section\",\"label\":\"สมาชิกในทีม\",\"children\":[\"team_grid\"]}\n{\"id\":\"team_grid\",\"component\":\"Grid\",\"children\":{\"componentId\":\"member\",\"path\":\"/find_people/data\"}}\n{\"id\":\"member\",\"component\":\"ListItem\",\"title\":{\"path\":\"name\"},\"subtitle\":{\"path\":\"title\"},\"detail\":{\"path\":\"place\"},\"src\":{\"path\":\"photo\"},\"media\":\"avatar\",\"badges\":{\"path\":\"badges\"},\"action\":{\"event\":{\"name\":\"ask\",\"context\":{\"prompt\":\"ขอดูโปรไฟล์\",\"about\":{\"path\":\"name\"}}}}}\n{\"id\":\"open_section\",\"component\":\"Section\",\"label\":\"ตำแหน่งเปิดรับสมัคร\",\"children\":[\"open_grid\"]}\n{\"id\":\"open_grid\",\"component\":\"Grid\",\"children\":{\"componentId\":\"open_item\",\"path\":\"/find_people/open_positions\"}}\n{\"id\":\"open_item\",\"component\":\"ListItem\",\"title\":{\"path\":\"title\"},\"subtitle\":{\"path\":\"open_label\"},\"media\":\"none\"}\n```"
   }
  ],
  "asked": [],
  "error": null,
  "usage": {
   "calls": 2,
-  "inputTokens": 23027,
-  "outputTokens": 2622,
-  "reasoningTokens": 2261,
-  "usd": 0.0061972500000000005
+  "inputTokens": 22924,
+  "outputTokens": 3303,
+  "reasoningTokens": 2951,
+  "usd": 0.007479375
  },
  "drawn": {
   "cards": [],
@@ -173,7 +173,9 @@
      "id": "root",
      "component": "Card",
      "title": "ทีมขายภาคอีสาน",
-     "footnote": "ระบบ HR",
+     "meta": {
+      "path": "/find_people/summary"
+     },
      "children": [
       "team_section",
       "open_section"
@@ -182,7 +184,7 @@
     {
      "id": "team_section",
      "component": "Section",
-     "label": "พนักงานปัจจุบัน",
+     "label": "สมาชิกในทีม",
      "children": [
       "team_grid"
      ]

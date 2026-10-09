@@ -5,9 +5,9 @@
  "prompt": "เทียบยอดขายเข้ากับยอดขายออกของ อุบลศรีสุข เทรดดิ้ง ก่อนไปเยี่ยม",
  "model": "google/gemini-3.8-flash",
  "promptHash": "7bbc19edc6ac2251",
- "toolsHash": "e80f152112971efa",
- "today": "2026-10-05",
- "recordedAt": "2026-10-05T18:54:51.528Z",
+ "toolsHash": "c0f7f7639288c4ad",
+ "today": "2026-10-09",
+ "recordedAt": "2026-10-09T16:39:55.284Z",
  "steps": [
   {
    "kind": "call",
@@ -35,22 +35,22 @@
    "kind": "call",
    "tool": "query_metric",
    "args": {
-    "where": null,
-    "grain": "month",
-    "sort": "value_desc",
-    "limit": 12,
-    "filters": {
-     "agent": "ag_nea_05"
-    },
-    "metric": "net_sales_volume",
     "range": {
-     "to": "2026-09-22",
-     "from": "2026-01-01"
+     "from": "2026-01-01",
+     "to": "2026-09-22"
     },
+    "grain": "month",
+    "metric": "net_sales_volume",
     "dims": [
      "month"
     ],
-    "compare": "none"
+    "where": null,
+    "compare": "none",
+    "limit": 12,
+    "sort": "value_desc",
+    "filters": {
+     "agent": "ag_nea_05"
+    }
    },
    "result": {
     "ok": true,
@@ -207,14 +207,12 @@
    "kind": "call",
    "tool": "query_metric",
    "args": {
+    "compare": "none",
+    "limit": 12,
     "dims": [
      "month"
     ],
-    "compare": "none",
     "metric": "sell_out_volume",
-    "limit": 12,
-    "grain": "month",
-    "where": null,
     "filters": {
      "agent": "ag_nea_05"
     },
@@ -222,6 +220,8 @@
      "to": "2026-09-22",
      "from": "2026-01-01"
     },
+    "grain": "month",
+    "where": null,
     "sort": "value_desc"
    },
    "result": {
@@ -360,17 +360,17 @@
   },
   {
    "kind": "text",
-   "text": "เปรียบเทียบด้วยเมตริกปริมาณขายเข้า (Sell-in) และปริมาณขายออก (Sell-out) ข้อมูลล่าสุดถึงวันที่ 22 กันยายน 2569\n\nภาพรวมช่วง 3 เดือนล่าสุด ปริมาณขายออกหน้าร้านสูงกว่ายอดขายเข้าอย่างต่อเนื่อง ทำให้ระดับสต๊อกของเอเย่นต์มีแนวโน้มพร่องลง แนะนำให้ตรวจสอบวันครอบคลุมสต๊อก (Days of Cover) ก่อนเข้าพบเพื่อเตรียมเสนอเติมคำสั่งซื้อในรายการที่สินค้าใกล้หมด"
+   "text": "เปรียบเทียบด้วยปริมาณขายเข้า (Sell-in) และขายออก (Sell-out) ระดับลิตร ข้อมูลล่าสุดถึงวันที่ 22 กันยายน 2569\n\nช่วงไตรมาส 3 ยอดขายออกหน้าร้านสูงกว่ายอดขายเข้าอย่างต่อเนื่อง ทำให้ระดับสต๊อกของเอเย่นต์มีแนวโน้มลดลง ควรตรวจสอบวันครอบคลุมสต๊อก (DOC) รายแบรนด์เพื่อเตรียมเสนอรายการเติมสต๊อกก่อนเข้าพบหน้าร้าน"
   }
  ],
  "asked": [],
  "error": null,
  "usage": {
   "calls": 3,
-  "inputTokens": 36813,
-  "outputTokens": 4745,
-  "reasoningTokens": 4400,
-  "usd": 0.0125959875
+  "inputTokens": 33887,
+  "outputTokens": 2189,
+  "reasoningTokens": 1850,
+  "usd": 0.006978633333333333
  },
  "drawn": {
   "cards": [

@@ -5,9 +5,9 @@
  "prompt": "เอเย่นต์ในภาคผมที่ยอดตก",
  "model": "google/gemini-3.8-flash",
  "promptHash": "086aa018642e611e",
- "toolsHash": "8bdfd8d8fb9656cf",
- "today": "2026-10-05",
- "recordedAt": "2026-10-05T18:52:36.934Z",
+ "toolsHash": "92524a099b526bf9",
+ "today": "2026-10-09",
+ "recordedAt": "2026-10-09T16:39:27.245Z",
  "steps": [
   {
    "kind": "call",
@@ -16,106 +16,107 @@
     "filters": {
      "region": "northeast"
     },
-    "sort": "delta_asc",
+    "grain": "month",
+    "limit": 10,
+    "compare": "prev_period",
+    "where": null,
+    "metric": "net_sales_volume",
+    "range": {
+     "from": "2026-09-01",
+     "to": "2026-09-22"
+    },
     "dims": [
      "agent"
     ],
-    "range": {
-     "to": "2026-09-22",
-     "from": "2026-09-01"
-    },
-    "metric": "net_sales_value",
-    "grain": "month",
-    "compare": "prev_period",
-    "limit": 10
+    "sort": "delta_asc"
    },
    "result": {
     "ok": true,
     "rows": [
      {
-      "agent": "อีสานรุ่งโรจน์ ค้าส่ง",
-      "value": 17907700,
-      "value_label": "17.9 ล้านบาท",
-      "compare_value": 35018632,
-      "delta_pct": -48.9
+      "agent": "อุบลศรีสุข เทรดดิ้ง",
+      "value": 330361,
+      "value_label": "330,361 ลิตร",
+      "compare_value": 535089,
+      "delta_pct": -38.3
      },
      {
-      "agent": "อุบลศรีสุข เทรดดิ้ง",
-      "value": 16860939,
-      "value_label": "16.9 ล้านบาท",
-      "compare_value": 32772109,
-      "delta_pct": -48.6
+      "agent": "อีสานรุ่งโรจน์ ค้าส่ง",
+      "value": 353359,
+      "value_label": "353,359 ลิตร",
+      "compare_value": 572160,
+      "delta_pct": -38.2
      },
      {
       "agent": "ส.รุ่งเรือง เทรดดิ้ง",
-      "value": 39684467,
-      "value_label": "39.7 ล้านบาท",
-      "compare_value": 45583997,
-      "delta_pct": -12.9
+      "value": 644944,
+      "value_label": "644,944 ลิตร",
+      "compare_value": 741990,
+      "delta_pct": -13.1
      },
      {
       "agent": "วารินพาณิชย์",
-      "value": 18502506,
-      "value_label": "18.5 ล้านบาท",
-      "compare_value": 20470266,
-      "delta_pct": -9.6
-     },
-     {
-      "agent": "ปากช่องเบเวอเรจ",
-      "value": 16794100,
-      "value_label": "16.8 ล้านบาท",
-      "compare_value": 18425348,
-      "delta_pct": -8.9
+      "value": 296261,
+      "value_label": "296,261 ลิตร",
+      "compare_value": 331009,
+      "delta_pct": -10.5
      },
      {
       "agent": "ขอนแก่นมหาชัย",
-      "value": 50840776,
-      "value_label": "50.8 ล้านบาท",
-      "compare_value": 55743936,
-      "delta_pct": -8.8
+      "value": 817661,
+      "value_label": "817,661 ลิตร",
+      "compare_value": 910264,
+      "delta_pct": -10.2
+     },
+     {
+      "agent": "ปากช่องเบเวอเรจ",
+      "value": 268948,
+      "value_label": "268,948 ลิตร",
+      "compare_value": 298405,
+      "delta_pct": -9.9
      },
      {
       "agent": "โคราชสหภัณฑ์",
-      "value": 47321423,
-      "value_label": "47.3 ล้านบาท",
-      "compare_value": 51796744,
-      "delta_pct": -8.6
+      "value": 758552,
+      "value_label": "758,552 ลิตร",
+      "compare_value": 837211,
+      "delta_pct": -9.4
      },
      {
       "agent": "นางรองค้าส่ง",
-      "value": 24553569,
-      "value_label": "24.6 ล้านบาท",
-      "compare_value": 26447696,
-      "delta_pct": -7.2
+      "value": 389827,
+      "value_label": "389,827 ลิตร",
+      "compare_value": 426563,
+      "delta_pct": -8.6
      }
     ],
-    "summary": "มูลค่าขายเข้า 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 232.5 ล้านบาท · สูงสุด: ขอนแก่นมหาชัย 50.8 ล้านบาท · โคราชสหภัณฑ์ 47.3 ล้านบาท · ส.รุ่งเรือง เทรดดิ้ง 39.7 ล้านบาท · เทียบช่วงก่อนหน้า -18.8% · (8 แถว · certified · SAP SD)",
+    "summary": "ปริมาณขายเข้า (Sell-in) 1 ก.ย. 2569 – 22 ก.ย. 2569: รวม 3.9 ล้านลิตร · สูงสุด: ขอนแก่นมหาชัย 817,661 ลิตร · โคราชสหภัณฑ์ 758,552 ลิตร · ส.รุ่งเรือง เทรดดิ้ง 644,944 ลิตร · เทียบช่วงก่อนหน้า -17.0% · (8 แถว · certified · SAP SD)",
     "headline": {
      "aggregate": "sum",
-     "value": "232.5 ล้านบาท",
+     "value": "3.9 ล้านลิตร",
      "periodLabel": "1 ก.ย. 2569 – 22 ก.ย. 2569",
      "rowCount": 8,
-     "deltaPercent": -18.8,
+     "deltaPercent": -17,
      "compareLabel": "เทียบช่วงก่อนหน้า",
      "compareNote": null,
      "top": [
       {
        "label": "ขอนแก่นมหาชัย",
-       "value": "50.8 ล้านบาท"
+       "value": "817,661 ลิตร"
       },
       {
        "label": "โคราชสหภัณฑ์",
-       "value": "47.3 ล้านบาท"
+       "value": "758,552 ลิตร"
       },
       {
        "label": "ส.รุ่งเรือง เทรดดิ้ง",
-       "value": "39.7 ล้านบาท"
+       "value": "644,944 ลิตร"
       }
      ],
      "underLine": null
     },
     "provenance": {
-     "metric": "net_sales_value",
+     "metric": "net_sales_volume",
      "certified": true,
      "sourceSystem": "SAP SD",
      "asOf": "2026-09-22",
@@ -133,7 +134,7 @@
      "trust": "verified"
     },
     "query": {
-     "metric": "net_sales_value",
+     "metric": "net_sales_volume",
      "dims": [
       "agent"
      ],
@@ -149,52 +150,70 @@
      "grain": "month",
      "compare": "prev_period",
      "limit": 10,
-     "sort": "delta_asc"
+     "sort": "delta_asc",
+     "where": null
     },
     "nextActions": [
      {
-      "id": "drill-why",
-      "kind": "drill",
-      "label": "ทำไมอีสานรุ่งโรจน์ ค้าส่งถึงเป็นแบบนี้",
-      "reason": "อีสานรุ่งโรจน์ ค้าส่ง เปลี่ยนไปในทางที่แย่ที่สุด",
+      "id": "verify",
+      "kind": "verify",
+      "label": "ตรวจสาเหตุ",
+      "reason": "ดูประวัติการสั่งซื้อรายวันของอุบลศรีสุข เทรดดิ้ง · ภาคอีสาน 30 วันล่าสุด",
       "tool": null,
       "input": null,
-      "prompt": "เจาะดูมูลค่าขายเข้าของอีสานรุ่งโรจน์ ค้าส่ง ว่าทำไมถึงเปลี่ยนไป เทียบกับช่วงก่อนหน้าและช่วงเดียวกันปีก่อน"
+      "prompt": "ดูประวัติการสั่งซื้อรายวันของอุบลศรีสุข เทรดดิ้ง · ภาคอีสาน 30 วันล่าสุด"
+     },
+     {
+      "id": "drill-province",
+      "kind": "drill",
+      "label": "แยกตามจังหวัด",
+      "reason": "ยังไม่ได้ดูแยกรายจังหวัด",
+      "tool": null,
+      "input": null,
+      "prompt": "ขอปริมาณขายเข้า (Sell-in)แยกตามจังหวัด เรียงจากมากไปน้อย"
      }
     ],
     "followUps": [
      {
+      "id": "fu-why",
+      "label": "ทำไมอุบลศรีสุข เทรดดิ้ง",
+      "prompt": "เจาะดูปริมาณขายเข้า (Sell-in) ของอุบลศรีสุข เทรดดิ้ง ว่าทำไมถึงเปลี่ยนไป เทียบกับช่วงก่อนหน้าและช่วงเดียวกันปีก่อน",
+      "reason": "อุบลศรีสุข เทรดดิ้ง คือแถวที่ต้องดูมากที่สุดในคำตอบนี้",
+      "intentKey": "follow|why",
+      "score": 0.95
+     },
+     {
       "id": "fu-trend",
       "label": "เริ่มแย่ตั้งแต่เมื่อไร",
-      "prompt": "มูลค่าขายเข้าของอีสานรุ่งโรจน์ ค้าส่ง รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+      "prompt": "ปริมาณขายเข้า (Sell-in) ของอุบลศรีสุข เทรดดิ้ง รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
       "reason": "ดูว่าตัวเลขเริ่มลดลงสัปดาห์ไหน",
       "intentKey": "follow|trend",
       "score": 0.65
      },
      {
-      "id": "fu-compare_year",
-      "label": "เทียบปีก่อน",
-      "prompt": "ขอมูลค่าขายเข้าแยกตามเอเย่นต์ เทียบกับช่วงเดียวกันปีก่อน",
-      "reason": "แยกผลของฤดูกาลออกจากการเปลี่ยนแปลงจริง",
-      "intentKey": "follow|compare_year",
-      "score": 0.45
+      "id": "fu-forecast",
+      "label": "พยากรณ์ 8 สัปดาห์",
+      "prompt": "พยากรณ์ปริมาณขายเข้า 8 สัปดาห์ข้างหน้า",
+      "reason": "ดูว่าถ้าเป็นแบบนี้ต่อไปจะเกิดอะไร",
+      "intentKey": "follow|forecast",
+      "score": 0.65
      }
     ]
    }
   },
   {
    "kind": "text",
-   "text": "รายงานจากมูลค่าขายสุทธิ (net_sales_value) ในภาคอีสาน ช่วงวันที่ 1–22 ก.ย. 2569 เทียบกับช่วงก่อนหน้า (ข้อมูลล่าสุดถึง 22 ก.ย. 2569) พบว่ายอดขายลดลงในทุกเอเย่นต์ โดยเฉพาะอีสานรุ่งโรจน์ ค้าส่ง และอุบลศรีสุข เทรดดิ้ง ที่ลดลงมากที่สุดเกือบครึ่งหนึ่ง แนะนำให้เจาะดูยอดขายออก (Sell-out) และระดับสต๊อกคงเหลือของสองรายนี้เพื่อตรวจสอบว่าเกิดจากปัญหาสินค้าค้างสต๊อกหรือดีมานด์หน้าร้านชะลอตัว"
+   "text": "คำนวณจากปริมาณขายเข้า (Sell-in) ในภาคอีสานช่วงเดือนนี้ถึงข้อมูลล่าสุดวันที่ 22 ก.ย. 2569 เทียบกับช่วงก่อนหน้า พบว่ายอดชะลอตัวลงทุกราย โดยอุบลศรีสุข เทรดดิ้ง และอีสานรุ่งโรจน์ ค้าส่ง ลดลงมากที่สุด ควรเจาะดูประวัติคำสั่งซื้อรายวันหรือระดับสต๊อกปลายทางเพื่อตรวจสอบสาเหตุการชะลอตัวของการสั่งซื้อ"
   }
  ],
  "asked": [],
  "error": null,
  "usage": {
   "calls": 2,
-  "inputTokens": 24335,
-  "outputTokens": 1946,
-  "reasoningTokens": 1698,
-  "usd": 0.00542025
+  "inputTokens": 24241,
+  "outputTokens": 2107,
+  "reasoningTokens": 1899,
+  "usd": 0.005956375
  },
  "drawn": {
   "cards": [

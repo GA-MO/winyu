@@ -5,9 +5,9 @@
  "prompt": "ลาพักร้อนยังไง",
  "model": "google/gemini-3.8-flash",
  "promptHash": "7bbc19edc6ac2251",
- "toolsHash": "e80f152112971efa",
- "today": "2026-10-05",
- "recordedAt": "2026-10-05T19:01:50.046Z",
+ "toolsHash": "c0f7f7639288c4ad",
+ "today": "2026-10-09",
+ "recordedAt": "2026-10-09T16:44:48.480Z",
  "steps": [
   {
    "kind": "call",
@@ -85,26 +85,24 @@
   },
   {
    "kind": "text",
-   "text": "สามารถแจ้งช่วงวันที่ต้องการลาพักร้อนพร้อมเหตุผล เพื่อให้ระบบทำรายการส่งใบลาเข้า Inbox ของหัวหน้างานเพื่ออนุมัติได้ทันทีครับ\n\n```a2ui\n{\"id\":\"root\",\"component\":\"Card\",\"title\":\"ระเบียบและสิทธิ์การลาพักร้อน\",\"footnote\":\"ระบบ HR\",\"children\":[\"bal\",\"rule\",\"approval\"]}\n{\"id\":\"bal\",\"component\":\"Metric\",\"label\":{\"path\":\"/get_policy/data/balances/0/label\"},\"value\":{\"path\":\"/get_policy/data/balances/0/value\"},\"detail\":{\"path\":\"/get_policy/data/balances/0/detail\"}}\n{\"id\":\"rule\",\"component\":\"Callout\",\"title\":{\"path\":\"/get_policy/data/sections/0/title\"},\"body\":{\"path\":\"/get_policy/data/sections/0/content\"},\"tone\":\"info\"}\n{\"id\":\"approval\",\"component\":\"Callout\",\"title\":{\"path\":\"/get_policy/data/sections/3/title\"},\"body\":{\"path\":\"/get_policy/data/sections/3/content\"},\"tone\":\"neutral\"}\n```"
+   "text": "การลาพักร้อนสามารถยื่นคำขอโดยระบุช่วงวันที่ต้องการลาผ่านระบบ เพื่อส่งให้หัวหน้างานพิจารณาอนุมัติทาง Inbox ตามขั้นตอน\n\n```a2ui\n{\"id\":\"root\",\"component\":\"Card\",\"title\":\"ระเบียบและสิทธิ์การลาพักร้อน\",\"footnote\":\"ระบบ HR\",\"children\":[\"bal\",\"rule\",\"proc\"]}\n{\"id\":\"bal\",\"component\":\"Metric\",\"label\":{\"path\":\"/get_policy/data/balances/0/label\"},\"value\":{\"path\":\"/get_policy/data/balances/0/value\"},\"detail\":{\"path\":\"/get_policy/data/balances/0/detail\"}}\n{\"id\":\"rule\",\"component\":\"Callout\",\"title\":{\"path\":\"/get_policy/data/sections/0/title\"},\"body\":{\"path\":\"/get_policy/data/sections/0/content\"},\"tone\":\"info\"}\n{\"id\":\"proc\",\"component\":\"Callout\",\"title\":{\"path\":\"/get_policy/data/sections/3/title\"},\"body\":{\"path\":\"/get_policy/data/sections/3/content\"},\"tone\":\"info\"}\n```"
   }
  ],
  "asked": [],
  "error": null,
  "usage": {
   "calls": 2,
-  "inputTokens": 21258,
-  "outputTokens": 10782,
-  "reasoningTokens": 10525,
-  "usd": 0.021450825
+  "inputTokens": 20970,
+  "outputTokens": 10446,
+  "reasoningTokens": 10188,
+  "usd": 0.0207567
  },
  "drawn": {
   "cards": [],
   "composed": {
    "accepted": 4,
    "rejected": 0,
-   "problems": [
-    "approval.tone: Invalid enum value. Expected 'info' | 'success' | 'warning' | 'danger', received 'neutral' (dropped)"
-   ],
+   "problems": [],
    "components": [
     {
      "id": "root",
@@ -114,7 +112,7 @@
      "children": [
       "bal",
       "rule",
-      "approval"
+      "proc"
      ]
     },
     {
@@ -142,14 +140,15 @@
      "tone": "info"
     },
     {
-     "id": "approval",
+     "id": "proc",
      "component": "Callout",
      "title": {
       "path": "/get_policy/data/sections/3/title"
      },
      "body": {
       "path": "/get_policy/data/sections/3/content"
-     }
+     },
+     "tone": "info"
     }
    ]
   }

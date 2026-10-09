@@ -2,6 +2,7 @@ export async function register() {
   if (process.env.NEXT_RUNTIME !== "nodejs") return;
   const { reconcileConnectors, startConnectorProbe } = await import("./lib/server/connectors/reconcile");
   void reconcileConnectors();
+  startConnectorProbe();
   const { ensureEngine } = await import("./lib/server/alerts");
   ensureEngine().catch((error: unknown) => console.error("[Winyu] analytics plane did not fill", error));
   const { recoverChatRuns } = await import("./lib/harness/adapters/mastra/recover");
@@ -10,7 +11,6 @@ export async function register() {
     .catch((error: unknown) => console.error("[Winyu] chat run recovery failed", error));
   const { schedulerEnabled } = await import("./lib/harness/adapters/mastra/jobs");
   if (!schedulerEnabled()) return;
-  startConnectorProbe();
   const { winyuMastra } = await import("./lib/harness/adapters/mastra/agent");
   await winyuMastra().startWorkers();
 }

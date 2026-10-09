@@ -5,9 +5,9 @@
  "prompt": "มีหลักสูตรอะไรเปิดเดือนนี้",
  "model": "google/gemini-3.8-flash",
  "promptHash": "dd0dfe3d93273af0",
- "toolsHash": "dbd92ac157880cce",
- "today": "2026-10-05",
- "recordedAt": "2026-10-05T19:00:36.215Z",
+ "toolsHash": "6e3729979994b019",
+ "today": "2026-10-09",
+ "recordedAt": "2026-10-09T16:41:56.142Z",
  "steps": [
   {
    "kind": "call",
@@ -105,17 +105,17 @@
   },
   {
    "kind": "text",
-   "text": "เดือนนี้มีหลักสูตรเปิดอบรมทั้งในรูปแบบออนไลน์และห้องเรียน โดยมีหลักสูตรต่ออายุใบอนุญาตที่สมาชิกในทีมใกล้หมดอายุซึ่งสามารถพิจารณาส่งเข้าอบรมและกดสมัครได้จากการ์ด\n\n```a2ui\n{\"id\":\"root\",\"component\":\"Card\",\"title\":\"หลักสูตรอบรมเดือนตุลาคม\",\"footnote\":\"ระบบฝึกอบรม LMS\",\"children\":[\"courses\"]}\n{\"id\":\"courses\",\"component\":\"Grid\",\"children\":{\"componentId\":\"course_item\",\"path\":\"/list_courses/data\"}}\n{\"id\":\"course_item\",\"component\":\"ListItem\",\"title\":{\"path\":\"title\"},\"subtitle\":{\"path\":\"when\"},\"detail\":{\"path\":\"place\"},\"src\":{\"path\":\"cover\"},\"media\":\"thumb\",\"action\":{\"event\":{\"name\":\"enroll_course\",\"context\":{\"courseId\":{\"path\":\"id\"}}}}}\n```"
+   "text": "เดือนนี้มีหลักสูตรที่เปิดให้ลงทะเบียนและเกี่ยวข้องกับการต่ออายุใบอนุญาตของทีม โดยเฉพาะหลักสูตรกฎหมายควบคุมเครื่องดื่มแอลกอฮอล์สำหรับพนักงานที่ใบอนุญาตใกล้หมดอายุ ส่วนหลักสูตรด้านความปลอดภัยอาหารที่ที่นั่งเต็มแล้วแนะนำให้รอติดตามรอบถัดไป\n\n```a2ui\n{\"id\":\"root\",\"component\":\"Card\",\"title\":\"หลักสูตรอบรมประจำเดือนตุลาคม\",\"footnote\":\"ระบบพัฒนาบุคลากรและการเรียนรู้\",\"children\":[\"courses\"]}\n{\"id\":\"courses\",\"component\":\"Grid\",\"children\":{\"componentId\":\"course_item\",\"path\":\"/list_courses/data\"}}\n{\"id\":\"course_item\",\"component\":\"ListItem\",\"title\":{\"path\":\"title\"},\"subtitle\":{\"path\":\"when\"},\"detail\":{\"path\":\"place\"},\"src\":{\"path\":\"cover\"},\"media\":\"thumb\",\"trailing\":{\"path\":\"seats/label\"},\"action\":{\"event\":{\"name\":\"enroll_course\",\"context\":{\"courseId\":{\"path\":\"id\"}}}}}\n```"
   }
  ],
  "asked": [],
  "error": null,
  "usage": {
   "calls": 2,
-  "inputTokens": 21868,
-  "outputTokens": 6101,
-  "reasoningTokens": 5892,
-  "usd": 0.012636075
+  "inputTokens": 21603,
+  "outputTokens": 5149,
+  "reasoningTokens": 4909,
+  "usd": 0.010765875000000001
  },
  "drawn": {
   "cards": [],
@@ -127,8 +127,8 @@
     {
      "id": "root",
      "component": "Card",
-     "title": "หลักสูตรอบรมเดือนตุลาคม",
-     "footnote": "ระบบฝึกอบรม LMS",
+     "title": "หลักสูตรอบรมประจำเดือนตุลาคม",
+     "footnote": "ระบบพัฒนาบุคลากรและการเรียนรู้",
      "children": [
       "courses"
      ]
@@ -157,6 +157,9 @@
       "path": "cover"
      },
      "media": "thumb",
+     "trailing": {
+      "path": "seats/label"
+     },
      "action": {
       "event": {
        "name": "enroll_course",

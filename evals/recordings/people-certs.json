@@ -5,19 +5,19 @@
  "prompt": "ใบอนุญาตหรือใบรับรองของใครใกล้หมดอายุบ้าง",
  "model": "google/gemini-3.8-flash",
  "promptHash": "dd0dfe3d93273af0",
- "toolsHash": "dbd92ac157880cce",
- "today": "2026-10-05",
- "recordedAt": "2026-10-05T18:58:55.731Z",
+ "toolsHash": "6e3729979994b019",
+ "today": "2026-10-09",
+ "recordedAt": "2026-10-09T16:40:50.132Z",
  "steps": [
   {
    "kind": "call",
    "tool": "find_people",
    "args": {
-    "region": null,
-    "flag": "cert_expiring",
+    "query": null,
     "department": null,
     "manager": null,
-    "query": null
+    "region": null,
+    "flag": "cert_expiring"
    },
    "result": {
     "ok": true,
@@ -149,17 +149,17 @@
   },
   {
    "kind": "text",
-   "text": "พบพนักงานที่มีใบอนุญาตขับขี่รถยก ใบอนุญาตขายสุรา และใบรับรอง GMP ที่กำลังจะหมดอายุในระยะเวลาอันใกล้ โดยเฉพาะใบอนุญาตขับขี่รถยกและใบอนุญาตขายสุราที่มีกำหนดหมดอายุภายในเดือนนี้ ควรเร่งประสานงานกับหัวหน้างานเพื่อเตรียมการอบรมและต่ออายุเอกสารให้เรียบร้อยก่อนครบกำหนด\n\n```a2ui\n{\"id\":\"root\",\"component\":\"Card\",\"title\":\"พนักงานที่ใบอนุญาตหรือใบรับรองใกล้หมดอายุ\",\"footnote\":\"ระบบ HR\",\"children\":[\"people_grid\"]}\n{\"id\":\"people_grid\",\"component\":\"Grid\",\"children\":{\"componentId\":\"person_item\",\"path\":\"/find_people/data\"}}\n{\"id\":\"person_item\",\"component\":\"ListItem\",\"title\":{\"path\":\"name\"},\"subtitle\":{\"path\":\"title\"},\"detail\":{\"path\":\"place\"},\"src\":{\"path\":\"photo\"},\"media\":\"avatar\",\"badges\":{\"path\":\"badges\"},\"action\":{\"event\":{\"name\":\"ask\",\"context\":{\"prompt\":\"ขอดูโปรไฟล์\",\"about\":{\"path\":\"name\"}}}}}\n```"
+   "text": "พบพนักงานในฝ่ายขาย การผลิต และซัพพลายเชน ที่ใบอนุญาตขับรถยก ใบอนุญาตขายสุรา และใบรับรอง GMP ใกล้ครบกำหนดอายุ ควรประสานงานหัวหน้างานเพื่อส่งต่อรายชื่อเข้าอบรมต่ออายุใบอนุญาตล่วงหน้า\n\n```a2ui\n{\"id\":\"root\",\"component\":\"Card\",\"title\":\"พนักงานที่ใบอนุญาตหรือใบรับรองใกล้หมดอายุ\",\"footnote\":\"ระบบ HR\",\"children\":[\"list\"]}\n{\"id\":\"list\",\"component\":\"Grid\",\"children\":{\"componentId\":\"item\",\"path\":\"/find_people/data\"}}\n{\"id\":\"item\",\"component\":\"ListItem\",\"title\":{\"path\":\"name\"},\"subtitle\":{\"path\":\"title\"},\"detail\":{\"path\":\"place\"},\"src\":{\"path\":\"photo\"},\"media\":\"avatar\",\"badges\":{\"path\":\"badges\"},\"action\":{\"event\":{\"name\":\"ask\",\"context\":{\"prompt\":\"ขอดูโปรไฟล์\",\"about\":{\"path\":\"name\"}}}}}\n```"
   }
  ],
  "asked": [],
  "error": null,
  "usage": {
   "calls": 2,
-  "inputTokens": 21968,
-  "outputTokens": 2357,
-  "reasoningTokens": 2089,
-  "usd": 0.005869741666666667
+  "inputTokens": 21969,
+  "outputTokens": 2727,
+  "reasoningTokens": 2490,
+  "usd": 0.006577604166666667
  },
  "drawn": {
   "cards": [],
@@ -174,19 +174,19 @@
      "title": "พนักงานที่ใบอนุญาตหรือใบรับรองใกล้หมดอายุ",
      "footnote": "ระบบ HR",
      "children": [
-      "people_grid"
+      "list"
      ]
     },
     {
-     "id": "people_grid",
+     "id": "list",
      "component": "Grid",
      "children": {
-      "componentId": "person_item",
+      "componentId": "item",
       "path": "/find_people/data"
      }
     },
     {
-     "id": "person_item",
+     "id": "item",
      "component": "ListItem",
      "title": {
       "path": "name"

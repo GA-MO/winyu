@@ -5,19 +5,19 @@
  "prompt": "ทีมขายภาคอีสานมีใครบ้าง",
  "model": "google/gemini-3.8-flash",
  "promptHash": "7bbc19edc6ac2251",
- "toolsHash": "e80f152112971efa",
- "today": "2026-10-05",
- "recordedAt": "2026-10-05T19:01:59.863Z",
+ "toolsHash": "c0f7f7639288c4ad",
+ "today": "2026-10-09",
+ "recordedAt": "2026-10-09T16:43:08.483Z",
  "steps": [
   {
    "kind": "call",
    "tool": "find_people",
    "args": {
-    "flag": null,
-    "department": "dept_sales",
     "query": null,
     "manager": null,
-    "region": "northeast"
+    "region": "northeast",
+    "department": "dept_sales",
+    "flag": null
    },
    "result": {
     "ok": true,
@@ -131,22 +131,22 @@
   },
   {
    "kind": "text",
-   "text": "ทีมขายภาคอีสานมีบางฟิลด์ถูกปิดตามสิทธิ์การเข้าถึง และพบว่าใบอนุญาตขายสุราของคุณกฤตเหลือเวลาอีก 23 วัน ซึ่งควรเตรียมดำเนินการต่ออายุล่วงหน้าครับ\n\n```a2ui\n{\"id\":\"root\",\"component\":\"Card\",\"title\":\"ทีมขายภาคอีสาน\",\"footnote\":\"ระบบ HR\",\"children\":[\"team_section\",\"open_section\"]}\n{\"id\":\"team_section\",\"component\":\"Section\",\"label\":\"สมาชิกในทีม\",\"children\":[\"team_grid\"]}\n{\"id\":\"team_grid\",\"component\":\"Grid\",\"children\":{\"componentId\":\"member\",\"path\":\"/find_people/data\"}}\n{\"id\":\"member\",\"component\":\"ListItem\",\"title\":{\"path\":\"name\"},\"subtitle\":{\"path\":\"title\"},\"detail\":{\"path\":\"place\"},\"src\":{\"path\":\"photo\"},\"media\":\"avatar\",\"badges\":{\"path\":\"badges\"},\"action\":{\"event\":{\"name\":\"ask\",\"context\":{\"prompt\":\"ขอดูโปรไฟล์\",\"about\":{\"path\":\"name\"}}}}}\n{\"id\":\"open_section\",\"component\":\"Section\",\"label\":\"ตำแหน่งเปิดรับสมัคร\",\"children\":[\"open_grid\"]}\n{\"id\":\"open_grid\",\"component\":\"Grid\",\"children\":{\"componentId\":\"open_pos\",\"path\":\"/find_people/open_positions\"}}\n{\"id\":\"open_pos\",\"component\":\"ListItem\",\"title\":{\"path\":\"title\"},\"subtitle\":{\"path\":\"open_label\"},\"media\":\"none\"}\n```"
+   "text": "ทีมขายภาคอีสานนำโดยคุณอนุชา พรหมศรี มีบางฟิลด์ถูกปิดตามสิทธิ์ของผู้ใช้ ทั้งนี้คุณมีรายการใบอนุญาตขายสุรา 23 วันที่ควรเตรียมดำเนินการต่ออายุ\n\n```a2ui\n{\"id\":\"root\",\"component\":\"Card\",\"title\":\"ทีมขายภาคอีสาน\",\"footnote\":\"ระบบ HR\",\"children\":[\"team_grid\",\"open_section\"]}\n{\"id\":\"team_grid\",\"component\":\"Grid\",\"children\":{\"componentId\":\"member_item\",\"path\":\"/find_people/data\"}}\n{\"id\":\"member_item\",\"component\":\"ListItem\",\"title\":{\"path\":\"name\"},\"subtitle\":{\"path\":\"title\"},\"detail\":{\"path\":\"place\"},\"src\":{\"path\":\"photo\"},\"media\":\"avatar\",\"badges\":{\"path\":\"badges\"},\"action\":{\"event\":{\"name\":\"ask\",\"context\":{\"prompt\":\"ขอดูโปรไฟล์\",\"about\":{\"path\":\"name\"}}}}}\n{\"id\":\"open_section\",\"component\":\"Section\",\"label\":\"ตำแหน่งเปิดรับ\",\"children\":{\"componentId\":\"open_item\",\"path\":\"/find_people/open_positions\"}}\n{\"id\":\"open_item\",\"component\":\"ListItem\",\"title\":{\"path\":\"title\"},\"subtitle\":{\"path\":\"open_label\"},\"media\":\"none\"}\n```"
   }
  ],
  "asked": [],
  "error": null,
  "usage": {
   "calls": 2,
-  "inputTokens": 21014,
-  "outputTokens": 2165,
-  "reasoningTokens": 1826,
-  "usd": 0.00520245
+  "inputTokens": 20886,
+  "outputTokens": 2353,
+  "reasoningTokens": 2054,
+  "usd": 0.0055508250000000006
  },
  "drawn": {
   "cards": [],
   "composed": {
-   "accepted": 7,
+   "accepted": 5,
    "rejected": 0,
    "problems": [],
    "components": [
@@ -156,28 +156,20 @@
      "title": "ทีมขายภาคอีสาน",
      "footnote": "ระบบ HR",
      "children": [
-      "team_section",
+      "team_grid",
       "open_section"
-     ]
-    },
-    {
-     "id": "team_section",
-     "component": "Section",
-     "label": "สมาชิกในทีม",
-     "children": [
-      "team_grid"
      ]
     },
     {
      "id": "team_grid",
      "component": "Grid",
      "children": {
-      "componentId": "member",
+      "componentId": "member_item",
       "path": "/find_people/data"
      }
     },
     {
-     "id": "member",
+     "id": "member_item",
      "component": "ListItem",
      "title": {
       "path": "name"
@@ -210,21 +202,14 @@
     {
      "id": "open_section",
      "component": "Section",
-     "label": "ตำแหน่งเปิดรับสมัคร",
-     "children": [
-      "open_grid"
-     ]
-    },
-    {
-     "id": "open_grid",
-     "component": "Grid",
+     "label": "ตำแหน่งเปิดรับ",
      "children": {
-      "componentId": "open_pos",
+      "componentId": "open_item",
       "path": "/find_people/open_positions"
      }
     },
     {
-     "id": "open_pos",
+     "id": "open_item",
      "component": "ListItem",
      "title": {
       "path": "title"
