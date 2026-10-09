@@ -38,8 +38,8 @@ export const TOOL_CARDS = {
   resolve_owner: (result) => <OwnerCard result={result} />,
   recall_memory: (result) => <MemoryCard result={result} />,
   list_metrics: (result) => <MetricsListCard result={result} />,
-  crm_demo__store_visits: (result) => <CrmVisitsCard result={result} />,
-  lms_demo__training_history: (result) => <LmsTrainingCard result={result} />,
+  store_visits: (result) => <CrmVisitsCard result={result} />,
+  training_history: (result) => <LmsTrainingCard result={result} />,
   ask_logistics_partner: (result) => <LogisticsPartnerCard result={result} />,
 } satisfies Record<string, ToolCard>;
 

@@ -63,7 +63,7 @@ const { readRecordings, turnOf, drawingOf, writeRecording, firstToolOf, medianRe
 const { promptHash, toolsHash } = await import("../lib/eval/fingerprint");
 const { scoreTurn } = await import("../lib/harness/adapters/mastra/scorers");
 const { agentModel } = await import("../lib/server/models");
-const { remoteConnectors, codeConnectorIds } = await import("../lib/server/connectors");
+const { remoteConnectors } = await import("../lib/server/connectors");
 const { KNOWN_FAILURES_FILE, readKnownFailures, unexpectedFailures, writeKnownFailures } = await import("../lib/eval/baseline");
 
 type EvalCase = (typeof EVAL_CASES)[number];
@@ -197,7 +197,7 @@ function withConsoleLine(testCase: EvalCase, now: Recording, recorded: Recording
 }
 
 function consoleConnectorsLine(): string {
-  const live = remoteConnectors().filter((connector) => !codeConnectorIds().includes(connector.def.id));
+  const live = remoteConnectors();
   return live.length > 0 ? `console connectors on the surface: ${live.map((connector) => `${connector.def.id} (${connector.tools.length} tools)`).join(", ")}` : "no live console connector in .data: the surface is the same as without --with-console";
 }
 

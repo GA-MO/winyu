@@ -1,7 +1,8 @@
 import { randomUUID } from "node:crypto";
-import type { Course, Enrollment, SeatRequest } from "@/lib/contracts";
+import type { Course, Employee, Enrollment, SeatRequest, TrainingRecord } from "@/lib/contracts";
 import { TODAY } from "@/lib/data/dates";
 import { COURSES } from "@/lib/data/entities/courses";
+import { EMPLOYEES } from "@/lib/data/entities/people";
 import { collection } from "@/lib/server/store/json-store";
 import type { LearningPort } from "./learning";
 
@@ -9,6 +10,23 @@ import type { LearningPort } from "./learning";
 export const DEMO_ENROLLMENTS = "lms-enrollments";
 
 type StoredEnrollment = Enrollment & { idempotencyKey: string };
+
+const MIN_SCORE = 60;
+const SCORE_SPREAD = 40;
+
+function scoreOf(seed: string): number {
+  let hash = 0;
+  for (const char of seed) hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
+  return MIN_SCORE + (hash % SCORE_SPREAD);
+}
+
+function trainingOf(employee: Employee): TrainingRecord[] {
+  const courses = employee.history
+    .filter((event) => event.kind === "trained")
+    .map((event): TrainingRecord => ({ employeeId: employee.id, kind: "course", title: event.labelTh, date: event.date, expires: null, score: scoreOf(`${employee.id}:${event.labelTh}`) }));
+  const certificates = employee.certificates.map((certificate): TrainingRecord => ({ employeeId: employee.id, kind: "certificate", title: certificate.nameTh, date: null, expires: certificate.expires, score: null }));
+  return [...courses, ...certificates];
+}
 
 class SeatRefused extends Error {}
 
@@ -47,10 +65,11 @@ function decided(enrollmentId: string, approverId: string, approved: boolean): E
   return publicOf(store().put({ ...enrollment, status: approved ? "approved" : "returned", decidedAt: new Date().toISOString() }));
 }
 
-/** The demo tenant's LMS: the catalogue with every held seat counted, and the seat requests it holds; it refuses a full or started course and a second seat for the same person. */
+/** The demo tenant's LMS: the catalogue with every held seat counted, the seat requests it holds (refusing a full or started course and a second seat for the same person), and each person's finished courses with scores and certificates. */
 export const GENERATOR_LEARNING: LearningPort = {
   courses: async () => catalogue(),
   enrollments: async (employeeId) => store().where((entry) => entry.employeeId === employeeId).map(publicOf),
   requestSeat: async (request) => requested(request),
   decide: async (enrollmentId, approverId, approved) => decided(enrollmentId, approverId, approved),
+  trainingHistory: async (employeeIds) => EMPLOYEES.filter((employee) => employeeIds.includes(employee.id)).flatMap(trainingOf),
 };

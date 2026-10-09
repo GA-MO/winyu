@@ -1,4 +1,5 @@
 import type { CalendarPort } from "./calendar";
+import type { CrmPort } from "./crm";
 import type { DirectoryPort } from "./directory";
 import type { LearningPort } from "./learning";
 import type { LeavePort } from "./leave";
@@ -15,6 +16,7 @@ export type Ports = {
   recruiting: RecruitingPort;
   learning: LearningPort;
   leave: LeavePort;
+  crm: CrmPort;
   sites: SitesPort;
   calendar: CalendarPort;
   mail: MailPort;

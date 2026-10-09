@@ -19,7 +19,7 @@ bun run probe:durable --disconnect   # cuts a live chat run at its first tool ca
 bun run trace [runId] # prints one agent run's harness trace (latest when no id)
 bun run call-tool <userId> <tool> [json]   # runs one tool through the gateway as that user and prints the audit decision (no model call)
 bun run mcp:probe <token> [--url=…/api/mcp] [--legacy]   # connects the official MCP client with an admin-issued token, lists tools and calls query_metric (no model call); see docs/mcp.md
-bun run connectors:demo   # serves the demo systems the connectors call over MCP: LMS training history :3299 and CRM :3298 (code connectors), and an asset register with write tools on :3290 for connecting from the admin console (secret `winyu-assets-demo-local-only`); see docs/mcp.md
+bun run connectors:demo   # serves the demo asset register over MCP on :3290, with write tools, for connecting from the admin console (secret `winyu-assets-demo-local-only`); see docs/mcp.md
 make up                   # starts connectors:demo and runs dev
 bun run investigate -- --users=<id>[,<id>…]|all [--save] [--show] [--replay]   # the morning investigation per person against the real model (~7 calls each); --show and --replay read saved runs without calling the model
 bun run studio       # development only: Mastra API on :3214 over the app's own Mastra instance and Studio on http://localhost:3213; pick a persona preset (u_thana, u_krit, …) in the agent's Request context before chatting

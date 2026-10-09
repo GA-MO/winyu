@@ -9,7 +9,6 @@ import {
   type ActivateResult, type BlockerCode, type ConnectorView, type DiscoverInput, type EvalImpact, type Problem, type ProblemCode, type SampleResult, type SaveInput, type SaveResult,
   type SensitiveSpec, type StoredConnector, type StoredTool, type TestResult, type TestRun, type ToolSave, type Upstream, type UpstreamTool, type ViewResult, type WriteSpec,
 } from "@/lib/connectors/spec";
-import { codeConnectorIds } from "./index";
 import { egressAllowlist, egressProblem, EgressRefused } from "./egress";
 import { genericOutput, isRemoteError, MASKED_VALUE, scopedArgs, scopedRows } from "./output";
 import { callerIdentity, connectorScopeOf } from "./presets";
@@ -64,7 +63,7 @@ export function viewOf(connector: StoredConnector): ConnectorView {
   const blockers = Object.fromEntries(Object.entries(connector.tools).map(([name, tool]) => [name, serverToolBlockers(connector, name, tool, upstream)]));
   const live = connector.activatedAt !== null && enabled ? liveToolNames(connector, upstream) : [];
   const reserved = Object.fromEntries((upstream?.tools ?? []).flatMap((tool) => {
-    const reason = reservedReasonOf(connector.url, tool.name);
+    const reason = reservedReasonOf(tool.name);
     return reason ? [[tool.name, reason] as const] : [];
   }));
   return { connector, upstream, state: lifecycleOf(connector, upstream, enabled), enabled, live, blockers, reserved, impact: impactOf(connector, upstream) };
@@ -88,7 +87,7 @@ export function serverSettings(actor: User | null): { hosts: string[]; writable:
 
 function idProblem(input: DiscoverInput): ProblemCode | null {
   if (!CONNECTOR_ID.test(input.id)) return "bad_id";
-  const taken = (NATIVE_CONNECTORS as readonly string[]).includes(input.id) || codeConnectorIds().includes(input.id);
+  const taken = (NATIVE_CONNECTORS as readonly string[]).includes(input.id);
   if (taken || (!input.existing && storedConnector(input.id))) return "id_taken";
   if (input.existing && !storedConnector(input.id)) return "not_found";
   return input.labelTh.trim() ? null : "no_label";
@@ -155,7 +154,7 @@ type SaveOutcome = { ok: true; tool: StoredTool; approved: boolean; changed: boo
 
 function savedTool(connector: StoredConnector, listed: UpstreamTool, save: ToolSave, actor: User): SaveOutcome {
   if (save.seenHash !== listed.hash) return { ok: false, problem: "upstream_moved" };
-  const reserved = reservedReasonOf(connector.url, listed.name);
+  const reserved = reservedReasonOf(listed.name);
   if (reserved) return { ok: false, codes: [reserved] };
   const parsed = declarationOf(save.draft, listed);
   if (!parsed.ok) return { ok: false, codes: parsed.codes };

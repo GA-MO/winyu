@@ -11,12 +11,12 @@ export type ToolTier = "read" | "write" | "destructive";
 export const NATIVE_TOOL_NAMES = ["query_metric", "list_metrics", "describe_entity", "get_alerts", "get_forecast", "get_calendar", "recall_memory",
   "find_people", "get_person", "get_site", "list_candidates", "list_courses", "get_policy", "request_leave", "enroll_course",
   "resolve_owner", "create_handoff", "send_email", "pin_widget", "watch_metric", "run_job", "set_permission", "explain_gap",
-  "ask_logistics_partner", "search_documents", "share_card"] as const;
+  "ask_logistics_partner", "search_documents", "share_card", "training_history", "store_visits"] as const;
 export type NativeToolName = (typeof NATIVE_TOOL_NAMES)[number];
 export type ConnectorToolName = `${string}__${string}`;
 export type ToolName = NativeToolName | ConnectorToolName;
 
-export const NATIVE_CONNECTORS = ["warehouse", "hris", "lms", "leave", "sites", "calendar", "mail", "documents", "winyu", "logistics"] as const;
+export const NATIVE_CONNECTORS = ["warehouse", "hris", "lms", "leave", "crm", "sites", "calendar", "mail", "documents", "winyu", "logistics"] as const;
 export type NativeConnectorId = (typeof NATIVE_CONNECTORS)[number];
 
 export type ConnectorKind = "native" | "mcp";
@@ -58,6 +58,8 @@ export const findPeopleInputSchema = z.object({
   flag: z.enum(PEOPLE_FLAGS).nullable(),
 });
 export const getSiteInputSchema = z.object({ id: z.string().nullable(), name: z.string().nullable() });
+export const trainingHistoryInputSchema = z.object({ employeeId: z.string().nullable(), name: z.string().nullable() });
+export const storeVisitsInputSchema = z.object({ agentId: z.string().nullable() });
 export const getPersonInputSchema = z.object({ id: z.string().nullable(), name: z.string().nullable() });
 export const listCandidatesInputSchema = z.object({ position: z.string().nullable(), stage: z.enum(CANDIDATE_STAGES).nullable() });
 export const listCoursesInputSchema = z.object({ month: z.string().regex(/^\d{4}-\d{2}$/).nullable(), query: z.string().nullable() });

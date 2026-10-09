@@ -31,6 +31,9 @@ import { runJobTool } from "./run-job";
 import { setPermissionTool } from "./set-permission";
 import { askLogisticsPartnerTool } from "./ask-logistics-partner";
 import { searchDocumentsTool } from "./search-documents";
+import { storeVisitsTool } from "./store-visits";
+import { trainingHistoryTool } from "./training-history";
+import { NATIVE_FIELDS } from "./native-fields";
 
 /** The tools whose answers are metric rows, so what a role may call there depends on the metrics it sees. */
 export const METRIC_READING_TOOLS: readonly ToolName[] = ["query_metric", "get_alerts", "get_forecast", "explain_gap", "pin_widget", "watch_metric"];
@@ -62,6 +65,8 @@ const NATIVE_TOOLS: { [Name in NativeToolName]: WinyuTool<Name> } = {
   run_job: runJobTool,
   set_permission: setPermissionTool,
   ask_logistics_partner: askLogisticsPartnerTool,
+  training_history: trainingHistoryTool,
+  store_visits: storeVisitsTool,
 };
 
 function allTools(): WinyuTool[] {
@@ -94,7 +99,7 @@ export function toolsOfConnector(connector: string): ToolName[] {
 
 /** Every connector field only some roles see in full, keyed `${connector}.${field}`. */
 export function connectorFields(): ConnectorField[] {
-  return remoteConnectors().flatMap((connector) => connector.fields);
+  return [...NATIVE_FIELDS, ...remoteConnectors().flatMap((connector) => connector.fields)];
 }
 
 /** Every tool Winyu can call, in the order the admin lists them: the one list the policy, the overrides, the kill switch and the audit read. */

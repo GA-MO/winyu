@@ -7,6 +7,7 @@ import { EMPLOYEES, OPEN_POSITIONS } from "@/lib/data/entities/people";
 import { CANDIDATES } from "@/lib/data/entities/recruiting";
 import { INCIDENTS, SITES } from "@/lib/data/entities/sites";
 import { outbox } from "@/lib/server/agent/collections";
+import { GENERATOR_CRM } from "./generator-crm";
 import { GENERATOR_LEARNING } from "./generator-learning";
 import { GENERATOR_LEAVE } from "./generator-leave";
 import type { Ports } from "./index";
@@ -23,6 +24,7 @@ export const GENERATOR_PORTS: Ports = {
   recruiting: { candidates: async () => CANDIDATES },
   learning: GENERATOR_LEARNING,
   leave: GENERATOR_LEAVE,
+  crm: GENERATOR_CRM,
   sites: { load: async () => ({ sites: SITES, incidents: INCIDENTS }) },
   calendar: { load: async () => ({ holidays: THAI_HOLIDAYS, alcoholBanDates: ALCOHOL_BAN_DATES, festivals: FESTIVAL_WINDOWS }) },
   mail: { send: async (message) => outbox().put({ ...message, id: randomUUID(), at: new Date().toISOString() }) },

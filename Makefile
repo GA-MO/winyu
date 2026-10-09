@@ -1,4 +1,4 @@
-LISTEN := 3100 3290 3298 3299
+LISTEN := 3100 3290
 SCHEDULER ?= off
 
 .PHONY: up dev connectors stop status

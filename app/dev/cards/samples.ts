@@ -66,8 +66,8 @@ export const READ_SAMPLES: ReadSample[] = [
   { tool: "resolve_owner", caption: "resolve_owner", question: "ใครดูแลยอดขายภาคอีสาน", input: { metric: "net_sales_value", dims: { region: "northeast" } } },
   { tool: "recall_memory", caption: "recall_memory", question: "จำอะไรเกี่ยวกับฉันได้บ้าง", input: { query: "ยอดขาย" } },
   { tool: "list_metrics", caption: "list_metrics", question: "ถามเรื่องอะไรได้บ้าง", input: { search: null } },
-  { tool: "crm_demo__store_visits", caption: "crm_demo__store_visits", question: "ไปเยี่ยมเอเย่นต์ล่าสุดเมื่อไร", input: { agentId: null, regions: null } },
-  { tool: "lms_demo__training_history", caption: "lms_demo__training_history", question: "ประวัติอบรมของทีม", input: { employeeId: null, name: null, regions: null } },
+  { tool: "store_visits", caption: "store_visits", question: "ไปเยี่ยมเอเย่นต์ล่าสุดเมื่อไร", input: { agentId: null } },
+  { tool: "training_history", caption: "training_history", question: "ประวัติอบรมของทีม", input: { employeeId: null, name: null } },
 ];
 
 export const WRITE_SAMPLES: WriteSample[] = [

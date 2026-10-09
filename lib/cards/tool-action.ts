@@ -1,4 +1,5 @@
 import { DIMS, REGIONS, ROLE_IDS, type Dim, type NativeToolName, type Region, type RoleId } from "@/lib/contracts";
+import { agentById } from "@/lib/data/entities/agents";
 import { dcById } from "@/lib/data/entities/supply";
 import { findUser } from "@/lib/data/entities/users";
 import { periodLabelTh } from "@/lib/i18n/format";
@@ -88,6 +89,10 @@ function personName(args: Args): string | null {
   return text(args.name) ?? (id ? (findUser(id)?.nameTh ?? null) : null);
 }
 
+function agentName(id: unknown): string | null {
+  return typeof id === "string" && id ? (agentById(id)?.nameTh ?? id) : null;
+}
+
 function isRole(value: unknown): value is RoleId {
   return ROLE_IDS.some((role) => role === value);
 }
@@ -109,6 +114,8 @@ const BUILDERS: { [Name in NativeToolName]: Builder } = {
   get_person: (args) => read(TH.trail.person(personName(args) ?? TH.trail.someone)),
   get_site: (args) => read(TH.trail.site(text(args.name) ?? TH.trail.someSite)),
   list_candidates: (args) => read(TH.trail.candidates, text(args.position)),
+  training_history: (args) => read(TH.admin.tools.training_history.label, personName({ id: args.employeeId, name: args.name })),
+  store_visits: (args) => read(TH.admin.tools.store_visits.label, agentName(args.agentId)),
   list_courses: (args) => read(TH.trail.courses, typeof args.month === "string" ? periodLabelTh(args.month) : null, quoted(args.query)),
   get_policy: (args) => read(TH.trail.policy[String(args.topic)] ?? TH.trail.somePolicy),
   search_documents: () => read(TH.trail.documents),

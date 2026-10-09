@@ -123,6 +123,12 @@ export type LeaveRequest = { id: string; employeeId: string; kind: LeaveKind; fr
 /** What Winyu files with the leave system; a repeated `idempotencyKey` returns the first request. */
 export type LeaveSubmission = { employeeId: string; kind: LeaveKind; from: string; to: string; days: number; reason: string; approverId: string; idempotencyKey: string };
 
+/** One row of a person's training as the LMS records it: a course they finished (with its score) or a certificate they hold (with its expiry). */
+export type TrainingRecord = { employeeId: string; kind: "course" | "certificate"; title: string; date: string | null; expires: string | null; score: number | null };
+
+/** One store visit as the CRM records it: which agent, when, by whom, what came of it, and the order taken. */
+export type StoreVisit = { agentId: string; region: Region; visitedOn: string; repName: string; outcome: string; note: string | null; orderValueThb: number };
+
 export const ENROLLMENT_STATUSES = ["pending", "approved", "returned"] as const;
 export type EnrollmentStatus = (typeof ENROLLMENT_STATUSES)[number];
 

@@ -145,7 +145,7 @@ export function modelInputOf(inputSchema: Record<string, unknown>): z.ZodObject 
 
 /** Everything that keeps one stored tool off the surface, its duplication of a tool Winyu already has included. */
 export function serverToolBlockers(connector: StoredConnector, name: string, tool: StoredTool, upstream: Upstream | null): BlockerCode[] {
-  const reserved = reservedReasonOf(connector.url, name);
+  const reserved = reservedReasonOf(name);
   return [...(reserved ? [reserved] : []), ...storedToolBlockers(connector, name, tool, upstream)];
 }
 
