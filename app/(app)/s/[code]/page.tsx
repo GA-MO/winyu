@@ -2,8 +2,7 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { ArrowRight, Forward, Lock, MessageSquarePlus } from "lucide-react";
-import { ShareScopeNotice } from "@/components/share/share-scope-notice";
-import { SharedCardView } from "@/components/share/shared-card-view";
+import { SharedBody } from "@/components/share/shared-body";
 import { GlowBackdrop } from "@/components/ui/glow-backdrop";
 import { Portrait } from "@/components/ui/portrait";
 import { findUser } from "@/lib/data/entities/users";
@@ -76,8 +75,7 @@ export default async function SharePage({ params }: PageProps) {
             </blockquote>
           ) : null}
         </header>
-        {view.scope && sender ? <ShareScopeNotice scope={view.scope} shareCode={share.id} senderName={sender.nameTh} /> : null}
-        <SharedCardView reads={view.reads} surface={view.surface} />
+        <SharedBody scope={view.scope} reads={view.reads} surface={view.surface} shareCode={share.id} senderName={sender?.nameTh ?? null} />
         <Link href={`/c/new?prompt=${encodeURIComponent(followUp)}`} className="inline-flex items-center gap-2 self-start rounded-full bg-ink px-4 py-2.5 text-sm font-medium text-ink-foreground transition hover:opacity-90">
           <MessageSquarePlus className="size-4" aria-hidden />
           {TH.share.askFollowUp}

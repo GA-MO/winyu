@@ -9,9 +9,12 @@ import { GRANT_REQUEST_ANCHOR, sliceLabel, untilLabel } from "@/lib/share/grant-
 const REQUESTS_ENDPOINT = "/api/grants/requests";
 const REASON_MAX = 300;
 
-type Phase = { kind: "idle" } | { kind: "writing" } | { kind: "sending" } | { kind: "sent"; approverName: string } | { kind: "failed" };
+type Phase = { kind: "idle" } | { kind: "writing" } | { kind: "sending" } | { kind: "failed" };
 
-function Request({ shareCode }: { shareCode: string }) {
+/** The request the viewer just made, so the page can stop offering ขอดู without a reload. */
+export type SentRequest = { id: string; approverName: string };
+
+function Request({ shareCode, onSent }: { shareCode: string; onSent: (request: SentRequest) => void }) {
   const [phase, setPhase] = useState<Phase>({ kind: "idle" });
   const [reason, setReason] = useState("");
   const reasonRef = useRef<HTMLTextAreaElement>(null);
@@ -31,11 +34,11 @@ function Request({ shareCode }: { shareCode: string }) {
   const send = async () => {
     setPhase({ kind: "sending" });
     const response = await fetch(REQUESTS_ENDPOINT, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ shareCode, reason }) }).catch(() => null);
-    const payload = response?.ok ? ((await response.json()) as { approverName: string }) : null;
-    setPhase(payload ? { kind: "sent", approverName: payload.approverName } : { kind: "failed" });
+    const payload = response?.ok ? ((await response.json()) as SentRequest) : null;
+    if (payload) onSent(payload);
+    else setPhase({ kind: "failed" });
   };
 
-  if (phase.kind === "sent") return <p className="text-sm text-foreground">{TH.grant.pending(phase.approverName)}</p>;
   if (phase.kind === "idle") {
     return (
       <button type="button" onClick={() => setPhase({ kind: "writing" })} className="inline-flex items-center gap-1.5 self-start rounded-full border border-border px-3.5 py-2 text-xs font-medium text-foreground transition hover:border-foreground/25">
@@ -57,7 +60,7 @@ function Request({ shareCode }: { shareCode: string }) {
 }
 
 /** What a shared card hides from its viewer that the sender saw, and the way to more: the grant they hold, the request they made, or a request to make. */
-export function ShareScopeNotice({ scope, shareCode, senderName }: { scope: ShareScope; shareCode: string; senderName: string }) {
+export function ShareScopeNotice({ scope, shareCode, senderName, onRequested }: { scope: ShareScope; shareCode: string; senderName: string; onRequested: (request: SentRequest) => void }) {
   if (scope.grant) {
     return (
       <p className="inline-flex items-center gap-1.5 rounded-2xl border border-border bg-card px-4 py-3 text-sm text-foreground" data-share-scope="granted">
@@ -73,7 +76,7 @@ export function ShareScopeNotice({ scope, shareCode, senderName }: { scope: Shar
         {TH.grant.hiddenNotice(senderName, sliceLabel(scope.hidden))}
       </p>
       {scope.pendingRequest ? <p className="text-sm text-muted-foreground">{TH.grant.pending(scope.pendingRequest.approverName)}</p> : null}
-      {!scope.pendingRequest && scope.requestable ? <Request shareCode={shareCode} /> : null}
+      {!scope.pendingRequest && scope.requestable ? <Request shareCode={shareCode} onSent={onRequested} /> : null}
       {!scope.pendingRequest && !scope.requestable ? <p className="text-xs text-muted-foreground">{TH.grant.noApprover}</p> : null}
     </section>
   );
