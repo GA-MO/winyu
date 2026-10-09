@@ -144,6 +144,7 @@ function ToolStepView({ step, live, plan, reply, sharing }: { step: ToolStep; li
         approve: () => live.decide(step.toolCallId, true),
         reject: () => live.decide(step.toolCallId, false),
         shareTitle: live.cardBefore ? shareTitle(live.cardBefore.card) : null,
+        labelTh: live.toolLabels[view.tool],
       })}
     </div>
   );

@@ -12,6 +12,7 @@ import {
 } from "@/lib/connectors/spec";
 import { defaultPersonFor, type WizardTool } from "./model";
 import { Check, Label, ProblemLine, Segmented } from "./parts";
+import { WriteRules } from "./write-rules";
 import type { DraftPatch, WizardContext } from "./wizard";
 
 const COPY = TH.connectorUi.scope;
@@ -217,9 +218,15 @@ function ScopeCard({ tool, context }: { tool: WizardTool; context: WizardContext
         <h3 className="text-[15px] font-semibold">{tool.draft.labelTh || tool.name}</h3>
         <p className="font-mono text-[11px] text-muted-foreground">{tool.name}</p>
       </header>
-      <FieldSampler tool={tool} context={context} />
-      <ScopeChoice tool={tool} fields={tool.fields} patch={patch} />
-      {tool.fields.length > 0 ? <SensitiveFields tool={tool} fields={tool.fields} patch={patch} /> : null}
+      {tool.draft.tier === "read" ? (
+        <>
+          <FieldSampler tool={tool} context={context} />
+          <ScopeChoice tool={tool} fields={tool.fields} patch={patch} />
+          {tool.fields.length > 0 ? <SensitiveFields tool={tool} fields={tool.fields} patch={patch} /> : null}
+        </>
+      ) : (
+        <WriteRules tool={tool} context={context} />
+      )}
     </li>
   );
 }

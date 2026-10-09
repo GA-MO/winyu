@@ -102,6 +102,7 @@ function historyDraft(roles: RoleId[] = ["sales_rep", "sales_rsm", "sales_direct
     roles,
     scope: { kind: "scoped", filter: { kind: "people_line", field: "employee_id" }, inject: { kind: "inject_regions", arg: "regions" } },
     sensitive: [{ field: "score", byRole: { ceo: "full", hr_manager: "full", sales_director: "masked", sales_rsm: "masked" }, ownerField: null }],
+    write: null,
   };
 }
 
@@ -114,6 +115,7 @@ function catalogDraft(): ToolDraft {
     roles: ["sales_rep", "ceo"],
     scope: { kind: "scoped", filter: { kind: "region_rows", field: "region" }, inject: null },
     sensitive: [],
+    write: null,
   };
 }
 
@@ -273,12 +275,12 @@ describe("a tool reaches the model only when scoped, read-only and tested", () =
     expect(winyuTools()[`${id}__${HISTORY}`]).toBeUndefined();
   });
 
-  test("a write tool cannot be stored, whether declared write or declared read against the server's own hint", async () => {
+  test("a write tool is not stored without its write declarations, nor as read against the server's own hint", async () => {
     const id = newId();
     const view = await discovered(id);
     const enroll: ToolDraft = { ...catalogDraft(), name: ENROLL, labelTh: "ลงทะเบียน", description: "Enrolls.", scope: { kind: "none", reason: "ลงทะเบียนให้ตัวเองเท่านั้น" } };
     const asWrite = kept(saveConnectorTools(ADMIN, { connector: id, tools: [saveOf(view, { ...enroll, tier: "write" })], removed: [] }));
-    expect(asWrite).toMatchObject({ ok: true, incomplete: { [ENROLL]: ["write_phase_2"] } });
+    expect(asWrite).toMatchObject({ ok: true, incomplete: { [ENROLL]: ["no_write"] } });
     const asRead = kept(saveConnectorTools(ADMIN, { connector: id, tools: [saveOf(view, enroll)], removed: [] }));
     expect(asRead).toMatchObject({ ok: true, incomplete: { [ENROLL]: ["remote_says_writes"] } });
     expect(connectorView(ADMIN, id)?.connector.tools).toEqual({});

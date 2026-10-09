@@ -1,11 +1,9 @@
-import { ROLE_IDS, type RoleId } from "@/lib/contracts";
+import { ROLE_IDS, type RoleId, type ToolTier } from "@/lib/contracts";
 import { TH } from "@/lib/i18n/th";
 import {
-  cleanedDescription, declarationOf, draftConfigHash, hintsSayWrites, promptTokens,
+  cleanedDescription, declarationOf, draftConfigHash, guessedWrite, helperToolsOf, hintsSayWrites, inputNamesOf, promptTokens,
   type BlockerCode, type ConnectorView, type ReservedReason, type StoredConnector, type StoredTool, type ToolDraft, type UpstreamTool,
 } from "@/lib/connectors/spec";
-
-
 import type { Person } from "./parts";
 
 const UNDECLARED_TIER = "destructive";
@@ -17,11 +15,12 @@ export type TestStatus = "untested" | "tested" | "stale";
 
 function draftOfStored(name: string, tool: StoredTool): ToolDraft {
   const scope: ToolDraft["scope"] = tool.scope.kind === "none" ? tool.scope : { kind: "scoped", filter: tool.scope.filters[0], inject: tool.scope.inject[0] ?? null };
-  return { name, labelTh: tool.labelTh, description: tool.description, tier: tool.tier, roles: [...tool.roles], scope, sensitive: tool.sensitive };
+  const write = tool.write ? { ...tool.write, pins: [...tool.write.pins], guards: [...tool.write.guards], redact: [...tool.write.redact] } : null;
+  return { name, labelTh: tool.labelTh, description: tool.description, tier: tool.tier, roles: [...tool.roles], scope: tool.write ? { kind: "unset" } : scope, sensitive: tool.sensitive, write };
 }
 
 function freshDraft(listed: UpstreamTool): ToolDraft {
-  return { name: listed.name, labelTh: "", description: cleanedDescription(listed.description), tier: UNDECLARED_TIER, roles: [], scope: { kind: "unset" }, sensitive: [] };
+  return { name: listed.name, labelTh: "", description: cleanedDescription(listed.description), tier: UNDECLARED_TIER, roles: [], scope: { kind: "unset" }, sensitive: [], write: guessedWrite(inputNamesOf(listed.inputSchema)) };
 }
 
 /** Every tool the wizard shows: each one the server lists, then each stored one the server no longer lists. */
@@ -57,12 +56,25 @@ export function testStatusOf(connector: Pick<StoredConnector, "url" | "auth">, t
   return hash === test.hash ? "tested" : "stale";
 }
 
+/** The draft with its tier changed: a write keeps or guesses its write declarations, a read drops them. */
+export function withTier(draft: ToolDraft, tier: ToolTier, listed: UpstreamTool | null): ToolDraft {
+  if (tier === "read") return { ...draft, tier, write: null };
+  return { ...draft, tier, write: draft.write ?? guessedWrite(listed ? inputNamesOf(listed.inputSchema) : []) };
+}
+
+/** The included read tools a write can check or read back through. */
+export function readToolsOf(tools: readonly WizardTool[], except: string): WizardTool[] {
+  return tools.filter((tool) => tool.include && tool.listed && tool.name !== except && tool.draft.tier === "read");
+}
+
 /** What stops one included tool from going live, as the wizard shows it before the server checks again. */
-export function blockersOfTool(connector: Pick<StoredConnector, "url" | "auth">, tool: WizardTool): BlockerCode[] {
+export function blockersOfTool(connector: Pick<StoredConnector, "url" | "auth">, tool: WizardTool, tools: readonly WizardTool[]): BlockerCode[] {
   if (tool.reserved) return [tool.reserved];
   if (!tool.listed) return ["gone_upstream"];
-  const parsed = declarationOf(tool.draft, tool.listed.hints);
+  const parsed = declarationOf(tool.draft, tool.listed);
   const codes: BlockerCode[] = parsed.ok ? [] : [...parsed.codes];
+  const readable = new Set(readToolsOf(tools, tool.name).map((item) => item.name));
+  if (tool.draft.tier !== "read" && !helperToolsOf(tool.draft.write).every((name) => readable.has(name))) codes.push("write_no_helper");
   if (tool.stored && tool.stored.pinned.hash !== tool.listed.hash) codes.push("changed_upstream");
   const status = testStatusOf(connector, tool);
   if (status === "untested") codes.push("no_test");

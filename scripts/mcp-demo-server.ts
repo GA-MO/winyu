@@ -12,6 +12,7 @@ export type DemoMcpTool = {
   name: string;
   description: string;
   inputSchema: Record<string, unknown>;
+  annotations?: { readOnlyHint?: boolean; destructiveHint?: boolean; idempotentHint?: boolean };
   call: (args: Record<string, unknown>, identity: SignedIdentity) => unknown | Promise<unknown>;
 };
 
@@ -27,7 +28,7 @@ function failure(id: JsonRpcRequest["id"], code: number, message: string, status
 }
 
 function listed(tool: DemoMcpTool) {
-  return { name: tool.name, description: tool.description, inputSchema: tool.inputSchema };
+  return { name: tool.name, description: tool.description, inputSchema: tool.inputSchema, ...(tool.annotations ? { annotations: tool.annotations } : {}) };
 }
 
 async function called(tool: DemoMcpTool, args: Record<string, unknown>, identity: SignedIdentity) {

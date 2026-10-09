@@ -6,15 +6,15 @@ import { EmptyLine, FIELD, FOCUS, Panel, Pill } from "@/components/admin/parts";
 import type { ToolTier } from "@/lib/contracts";
 import { TH } from "@/lib/i18n/th";
 import { hasSuspiciousText, inputNamesOf, MAX_DESCRIPTION_CHARS, type RemoteHints } from "@/lib/connectors/spec";
-import { writesUpstream, type WizardTool } from "./model";
+import { withTier, writesUpstream, type WizardTool } from "./model";
 import { Check, FencedText, Label, Segmented } from "./parts";
 import type { WizardContext } from "./wizard";
 
 const COPY = TH.connectorUi.tools;
 const TIERS: readonly { id: ToolTier; label: string }[] = [
   { id: "read", label: TH.admin.tier.read },
-  { id: "write", label: `${TH.admin.tier.write} · ${COPY.writePhase}` },
-  { id: "destructive", label: `${TH.admin.tier.destructive} · ${COPY.writePhase}` },
+  { id: "write", label: TH.admin.tier.write },
+  { id: "destructive", label: TH.admin.tier.destructive },
 ];
 
 function HintPills({ hints }: { hints: RemoteHints }) {
@@ -59,8 +59,7 @@ function Declaration({ tool, context }: { tool: WizardTool; context: WizardConte
       </label>
       <div className="flex flex-col gap-1.5">
         <Label hint={COPY.readHint}>{COPY.tier}</Label>
-        <Segmented value={draft.tier} options={TIERS} label={COPY.tier} onChange={(tier) => patch((current) => ({ ...current, tier }))} />
-        {draft.tier === "read" ? null : <p className="text-[12px] text-warning">{TH.connectorUi.review.blockers.write_phase_2}</p>}
+        <Segmented value={draft.tier} options={TIERS} label={COPY.tier} onChange={(tier) => patch((current) => withTier(current, tier, tool.listed))} />
       </div>
       <label className="flex flex-col gap-1.5 md:col-span-2">
         <Label>{COPY.approved}</Label>
@@ -78,7 +77,7 @@ function Declaration({ tool, context }: { tool: WizardTool; context: WizardConte
 
 function ToolCard({ tool, context }: { tool: WizardTool; context: WizardContext }) {
   const writes = writesUpstream(tool);
-  const closed = writes || tool.reserved !== null;
+  const closed = tool.reserved !== null;
   const listed = tool.listed;
   return (
     <li className={cn("rounded-3xl border bg-card p-4 transition", tool.include ? "border-foreground/25 shadow-card" : "border-border")}>
@@ -88,7 +87,6 @@ function ToolCard({ tool, context }: { tool: WizardTool; context: WizardContext 
         </Check>
         <span className="flex flex-wrap items-center gap-1">
           {listed ? <HintPills hints={listed.hints} /> : null}
-          {writes ? <Pill tone="primary">{COPY.writePhase}</Pill> : null}
           {tool.reserved ? <Pill tone="danger">{TH.connectorUi.list.toolState.duplicate}</Pill> : null}
         </span>
       </div>

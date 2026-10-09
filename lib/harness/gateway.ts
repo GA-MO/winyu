@@ -25,20 +25,23 @@ export type GatedTool<Input, Output = unknown> = (input: Input, options?: ToolCa
 
 type Ref = { toolCallId: string; tool: string };
 
+/** What a tool's run is told about the call it carries out: the id the engine gave it, the same one the audit and the approval card know it by. */
+export type CallRef = { toolCallId: string };
+
 class ToolTimeout extends Error {}
 
 function thrownAttempt(thrown: unknown): Attempt {
   return thrown instanceof PortUnavailable ? { returned: portDownOf(thrown) } : { thrown };
 }
 
-async function attemptOnce<Input>(run: (input: Input) => Promise<unknown>, input: Input, timeoutMs: number | null): Promise<Attempt> {
-  if (timeoutMs === null) return run(input).then((returned) => ({ returned }), thrownAttempt);
+async function attemptOnce<Input>(run: (input: Input, call: CallRef) => Promise<unknown>, input: Input, call: CallRef, timeoutMs: number | null): Promise<Attempt> {
+  if (timeoutMs === null) return run(input, call).then((returned) => ({ returned }), thrownAttempt);
   let timer: ReturnType<typeof setTimeout> | undefined;
   const timeout = new Promise<never>((_resolve, reject) => {
     timer = setTimeout(() => reject(new ToolTimeout()), timeoutMs);
   });
   try {
-    return { returned: await Promise.race([run(input), timeout]) };
+    return { returned: await Promise.race([run(input, call), timeout]) };
   } catch (error) {
     if (error instanceof ToolTimeout) return { returned: { ok: false, code: "TIMEOUT", error: TH.harness.timeout(timeoutMs / MS_PER_SECOND) } };
     return thrownAttempt(error);
@@ -105,13 +108,13 @@ function callContextOf(owner: Run | null, input: unknown): CallContext {
 }
 
 /** Whether the person is asked before this call: only when its risk needs a yes, the policy would let it through and the call names everything it needs, so nobody approves a call the gateway then refuses or the tool cannot carry out. */
-export function asksApproval(capability: Capability, input: unknown): boolean {
+export async function asksApproval(capability: Capability, input: unknown): Promise<boolean> {
   if (authorize(currentAccess(), capability, callContextOf(currentRun(), input)).decision !== "require_approval") return false;
   return capability.ready ? capability.ready(input) : true;
 }
 
 /** The one door every tool call goes through, whoever asks (the model, a pressed button, server code): policy, the tool under a timeout, what it showed, whether that holds, and what to do when it does not; one audit row per call. */
-export function gated<Input, Output>(capability: Capability, run: (input: Input) => Promise<Output>): GatedTool<Input, Output> {
+export function gated<Input, Output>(capability: Capability, run: (input: Input, call: CallRef) => Promise<Output>): GatedTool<Input, Output> {
   return async (input, options) => {
     const access = currentAccess();
     const ref = { toolCallId: options?.toolCallId ?? randomUUID(), tool: capability.name };
@@ -125,7 +128,7 @@ export function gated<Input, Output>(capability: Capability, run: (input: Input)
     for (let attempt = 1; ; attempt += 1) {
       emit("gateway", { type: "tool.started", payload: { ...ref, attempt } });
       const startedAt = Date.now();
-      const outcome = await attemptOnce(run, input, capability.tier === "read" ? capability.timeoutMs : null);
+      const outcome = await attemptOnce(run, input, { toolCallId: ref.toolCallId }, capability.tier === "read" ? capability.timeoutMs : null);
       const observation = observe(ref.toolCallId, capability.name, outcome);
       observed(ref, attempt, startedAt, observation);
       const verdict = await verdictOf(capability, input, observation, access);

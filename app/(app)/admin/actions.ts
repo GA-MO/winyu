@@ -23,8 +23,10 @@ import { TOKEN_CHANNELS, issueToken, revokeToken, type TokenChannel } from "@/li
 import { TH } from "@/lib/i18n/th";
 import {
   AUTH_KINDS, toolDraftSchema,
-  type ActivateResult, type DiscoverInput, type Problem, type SampleResult, type SaveInput, type SaveResult, type TestResult, type ViewResult,
+  MAX_CHECK_PROMPT_CHARS, MAX_CHECK_QUESTIONS,
+  type ActivateResult, type DiscoverInput, type ModelCheckInput, type ModelCheckResult, type Problem, type SampleResult, type SaveInput, type SaveResult, type TestResult, type ViewResult,
 } from "@/lib/connectors/spec";
+import { checkConnectorWithModel } from "@/lib/server/connectors/model-check";
 import { activateConnector, auditConnectorSwitch, checkConnectorUpstream, discoverConnector, sampleToolFields, saveConnectorTools, testConnectorTool } from "@/lib/server/connectors/admin";
 
 const ADMIN_PATH = "/admin";
@@ -202,6 +204,18 @@ export async function testConnectorToolAction(input: { connector: string; tool: 
   const result = await testConnectorTool(await sessionUser(), valid);
   revalidatePath(ADMIN_PATH);
   return result;
+}
+
+const modelCheckInput = connectorRef.extend({
+  asUser: z.string().max(64),
+  prompts: z.array(z.string().max(MAX_CHECK_PROMPT_CHARS)).max(MAX_CHECK_QUESTIONS),
+  cases: z.array(z.string().max(64)).max(MAX_CHECK_QUESTIONS),
+});
+
+/** Asks the real model a few questions as the chosen person with the console connector's tested tools on the surface; spends model calls, a write stops at its approval. IT admin only, audited. */
+export async function checkConnectorWithModelAction(input: ModelCheckInput): Promise<ModelCheckResult> {
+  const valid = parsed(modelCheckInput, input);
+  return valid ? checkConnectorWithModel(await sessionUser(), valid) : BAD_INPUT;
 }
 
 /** Turns a ready console connector on. IT admin only, audited. */

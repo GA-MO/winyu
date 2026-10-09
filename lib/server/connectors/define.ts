@@ -6,7 +6,9 @@ import type { Capability } from "@/lib/harness/types";
 import type { WinyuTool } from "@/lib/server/tools/define";
 import { TH } from "@/lib/i18n/th";
 import { CONNECTOR_ID, REMOTE_TOOL_NAME } from "@/lib/connectors/spec";
-import { callConnectorTool, descriptionOf, inputSchemaOf } from "./call";
+import { callConnectorTool, descriptionOf, inputSchemaOf, rowsReaderOf } from "./call";
+import { writeReadiness, writeVerifier } from "./write";
+import { helperToolsOf } from "@/lib/connectors/spec";
 import type { ConnectorField, ConnectorToolBinding, McpConnector, McpConnectorConfig, McpToolConfig, SensitiveField } from "./types";
 
 const UNDECLARED_TIER: ToolTier = "destructive";
@@ -34,6 +36,13 @@ function assertTool(connector: string, remoteName: string, tool: McpToolConfig) 
   if ("kind" in tool.scope && !tool.scope.reason) fail(connector, `tool ${remoteName} says scope none without a reason`);
 }
 
+function assertHelpers(config: McpConnectorConfig, remoteName: string, tool: McpToolConfig) {
+  if (tool.write && (tool.tier ?? UNDECLARED_TIER) === "read") fail(config.id, `tool ${remoteName} is read but declares write rules`);
+  for (const helper of helperToolsOf(tool.write ?? null)) {
+    if (helper === remoteName || config.tools[helper]?.tier !== "read") fail(config.id, `tool ${remoteName} checks through ${helper}, which is not a read tool of this connector`);
+  }
+}
+
 function includes(roles: readonly RoleId[] | "all" | undefined, role: RoleId): boolean {
   return roles === "all" || (roles ?? []).includes(role);
 }
@@ -43,10 +52,21 @@ function fieldOf(connector: string, sensitive: SensitiveField): ConnectorField {
   return { key: `${connector}.${sensitive.field}`, connector, field: sensitive.field, labelTh: sensitive.labelTh, ownerField: sensitive.ownerField ?? null, defaultFor };
 }
 
-function bindingOf(connector: string, remoteName: string, tool: McpToolConfig): ConnectorToolBinding {
-  assertTool(connector, remoteName, tool);
-  const fields = (tool.sensitive ?? []).map((sensitive) => fieldOf(connector, sensitive));
-  return { name: prefixedToolName(connector, tool.as ?? remoteName), remoteName, tier: tool.tier ?? UNDECLARED_TIER, config: tool, fields };
+function bindingsOf(config: McpConnectorConfig): ConnectorToolBinding[] {
+  const bindings = Object.entries(config.tools).map(([remoteName, tool]): ConnectorToolBinding => {
+    assertTool(config.id, remoteName, tool);
+    assertHelpers(config, remoteName, tool);
+    const fields = (tool.sensitive ?? []).map((sensitive) => fieldOf(config.id, sensitive));
+    return { name: prefixedToolName(config.id, tool.as ?? remoteName), remoteName, tier: tool.tier ?? UNDECLARED_TIER, config: tool, fields, helper: (name) => bindings.find((binding) => binding.remoteName === name) ?? null };
+  });
+  return bindings;
+}
+
+function writeRulesOf(connector: McpConnectorConfig, binding: ConnectorToolBinding): Pick<Capability, "ready" | "verify" | "redact"> {
+  const write = binding.config.write;
+  if (!write) return { ready: null, verify: null, redact: [] };
+  const read = rowsReaderOf(connector);
+  return { ready: writeReadiness(binding, write, read), verify: writeVerifier(binding, write, read), redact: write.redact };
 }
 
 function winyuToolOf(connector: McpConnectorConfig, binding: ConnectorToolBinding): WinyuTool {
@@ -58,13 +78,13 @@ function winyuToolOf(connector: McpConnectorConfig, binding: ConnectorToolBindin
     labelTh: binding.config.labelTh,
     bodyTh: binding.config.bodyTh ?? TH.admin.connectors.toolBody(connector.sourceSystemTh),
   };
-  const capability: Capability = { ...entry, timeoutMs: connector.timeoutMs + LIMITS.toolTimeoutMs, ready: null, verify: null, correct: null, redact: [] };
+  const capability: Capability = { ...entry, timeoutMs: connector.timeoutMs + LIMITS.toolTimeoutMs, correct: null, ...writeRulesOf(connector, binding) };
   return {
     entry,
     capability,
     description: () => descriptionOf(connector, binding),
     inputSchema: () => inputSchemaOf(connector, binding),
-    execute: gated(capability, (input: unknown) => callConnectorTool(connector, binding, input)),
+    execute: gated(capability, (input: unknown, call) => callConnectorTool(connector, binding, input, call)),
   };
 }
 
@@ -75,7 +95,7 @@ function uniqueFields(fields: ConnectorField[]): ConnectorField[] {
 /** One remote MCP server on Winyu's surface: only the tools named here, each with the tier, roles, scope and sensitive fields Winyu declares; throws on anything left undeclared. */
 export function defineMcpConnector(config: McpConnectorConfig): McpConnector {
   assertConnector(config);
-  const bindings = Object.entries(config.tools).map(([remoteName, tool]) => bindingOf(config.id, remoteName, tool));
+  const bindings = bindingsOf(config);
   const def: ConnectorDef = { id: config.id, labelTh: config.labelTh, sourceSystemTh: config.sourceSystemTh, kind: "mcp" };
   const tools = bindings.map((binding) => winyuToolOf(config, binding));
   return { def, config, tools, fields: uniqueFields(bindings.flatMap((binding) => binding.fields)) };

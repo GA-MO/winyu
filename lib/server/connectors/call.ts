@@ -7,7 +7,9 @@ import { markReachable, remoteTool } from "./catalog";
 import { clientFor, dropClient } from "./pool";
 import { callerIdentity } from "./presets";
 import { fencedRows, genericOutput, isRemoteError, maskedRows, MAX_CONNECTOR_ROWS, remoteErrorText, scopedArgs, scopedRows } from "./output";
-import type { ConnectorOutput, ConnectorRow, ConnectorToolBinding, McpCallResult, McpConnectorConfig } from "./types";
+import { connectorArgs, sentArgs } from "./write";
+import type { CallRef } from "@/lib/harness/gateway";
+import type { ConnectorOutput, ConnectorRow, ConnectorToolBinding, ConnectorWrite, McpCallResult, McpConnectorConfig } from "./types";
 
 export const CONNECTOR_UNAVAILABLE = "CONNECTOR_UNAVAILABLE";
 export const CONNECTOR_FAILED = "CONNECTOR_FAILED";
@@ -61,10 +63,6 @@ async function askServer(connector: McpConnectorConfig, binding: ConnectorToolBi
   return outputOf(binding, raw);
 }
 
-function argsOf(binding: ConnectorToolBinding, input: unknown): Record<string, unknown> {
-  return (binding.config.input ?? ANY_ARGS).parse(input) as Record<string, unknown>;
-}
-
 function scopeApplies(binding: ConnectorToolBinding): boolean {
   return !("kind" in binding.config.scope);
 }
@@ -98,11 +96,28 @@ async function shaped(connector: McpConnectorConfig, binding: ConnectorToolBindi
   };
 }
 
-/** One call to a connector tool as the person asking, once the gateway allowed it: Winyu's scope on the way in, the MCP server as that person (its error flag, then the adapter or the generic flattening), then Winyu's scope, masking and fence on the way out. */
-export async function callConnectorTool(connector: McpConnectorConfig, binding: ConnectorToolBinding, input: unknown): Promise<ConnectorToolResult> {
+/** One tool's rows as a person under that tool's own scope, unmasked and unfenced, for a write's guard or read-back on the server; null when the server did not answer or the arguments do not fit. */
+export function rowsReaderOf(connector: McpConnectorConfig) {
+  return async (binding: ConnectorToolBinding, input: Record<string, unknown>, access: AccessContext): Promise<ConnectorRow[] | null> => {
+    const parsed = (binding.config.input ?? ANY_ARGS).safeParse(input);
+    if (!parsed.success) return null;
+    const outcome = await askServer(connector, binding, await scopedArgs(binding.config.scope, parsed.data as Record<string, unknown>, access), access);
+    return outcome.ok ? scopedRows(binding.config.scope, outcome.output.rows, access) : null;
+  };
+}
+
+async function argsToSend(connector: McpConnectorConfig, binding: ConnectorToolBinding, write: ConnectorWrite | undefined, input: unknown, access: AccessContext, call: CallRef) {
+  const args = connectorArgs(binding, input);
+  if (!write) return { ok: true as const, args: await scopedArgs(binding.config.scope, args, access) };
+  return sentArgs(binding, write, args, access, call.toolCallId, rowsReaderOf(connector));
+}
+
+/** One call to a connector tool as the person asking, once the gateway allowed it: Winyu's scope on the way in (a write's pins and guards instead), the MCP server as that person (its error flag, then the adapter or the generic flattening), then Winyu's scope, masking and fence on the way out. */
+export async function callConnectorTool(connector: McpConnectorConfig, binding: ConnectorToolBinding, input: unknown, call: CallRef): Promise<ConnectorToolResult> {
   const access = currentAccess();
-  const args = await scopedArgs(binding.config.scope, argsOf(binding, input), access);
-  const outcome = await askServer(connector, binding, args, access);
+  const sent = await argsToSend(connector, binding, binding.config.write, input, access, call);
+  if (!sent.ok) return { ok: false, code: PERMISSION_DENIED, error: sent.error };
+  const outcome = await askServer(connector, binding, sent.args, access);
   if (outcome.ok) return shaped(connector, binding, outcome.output, access);
   if (outcome.reason === "unavailable") return { ok: false, code: CONNECTOR_UNAVAILABLE, error: TH.admin.connectors.unavailable(connector.labelTh) };
   return { ok: false, code: CONNECTOR_FAILED, error: `${TH.admin.connectors.failed(connector.labelTh)}: ${outcome.text}` };

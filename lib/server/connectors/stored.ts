@@ -167,6 +167,7 @@ function toolConfigOf(tool: StoredTool): McpToolConfig | null {
     input,
     scope: connectorScopeOf(tool.scope),
     sensitive: tool.sensitive.map((spec) => sensitiveFieldOf(spec, `${tool.labelTh} · ${spec.field}`)),
+    ...(tool.write ? { write: tool.write } : {}),
   };
 }
 

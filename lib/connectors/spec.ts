@@ -16,6 +16,13 @@ const MAX_FIELD_CHARS = 64;
 const MAX_REASON_CHARS = 300;
 const MAX_SENSITIVE = 20;
 const MAX_INJECT = 3;
+const MAX_PINS = 4;
+const MAX_GUARDS = 3;
+const MAX_REDACT = 8;
+const MAX_VERIFY_FIELDS = 6;
+const FREE_TEXT_ARG = /(reason|purpose|note|comment|message|detail|description|remark)s?$/i;
+const IDEMPOTENCY_ARG = /idempoten|request_key|dedupe/i;
+const OWNER_ARG = /(holder|requester|employee|owner|approver)_?id$/i;
 const ROLE_MARKUP = /<\/?\s*(system|assistant|user|tool|instructions?|prompt)\b[^>]*>|\[\s*(system|assistant|instructions?|admin)\s*\]/gi;
 const INSTRUCTION_BLOCK = /<\s*(system|assistant|instructions?|prompt)\b[^>]*>[\s\S]*?<\/\s*\1\s*>/gi;
 
@@ -72,15 +79,61 @@ export type SensitiveSpec = z.infer<typeof sensitiveSchema>;
 
 const uniqueRoles = (roles: RoleId[]) => ROLE_IDS.filter((id) => roles.includes(id));
 
-/** What the admin declares about one remote tool. Phase 1 opens read tools only, so the tier is always read. */
-export const toolDeclarationSchema = z.object({
-  labelTh: z.string().trim().min(1).max(MAX_LABEL_CHARS),
-  description: z.string().trim().min(1).max(MAX_DESCRIPTION_CHARS),
-  tier: z.literal("read"),
-  roles: z.array(role).min(1).transform(uniqueRoles),
-  scope: scopeSchema,
-  sensitive: z.array(sensitiveSchema).max(MAX_SENSITIVE).refine((items) => new Set(items.map((item) => item.field)).size === items.length),
-});
+const toolName = z.string().regex(REMOTE_TOOL_NAME);
+
+const pinSchema = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("identity"), arg: fieldName, key: identityKey }),
+  z.object({ kind: z.literal("call_id"), arg: fieldName }),
+]);
+
+/** An argument Winyu overwrites before a write is sent: the caller's own id whatever the model wrote, or the call's id as an idempotency key. */
+export type WritePin = z.infer<typeof pinSchema>;
+
+const guardSchema = z.object({ arg: fieldName, tool: toolName, field: fieldName });
+
+/** A write's argument that must name a row the caller sees in a read tool of the same connector under that tool's scope; checked before the person is asked and again before the call. */
+export type WriteGuard = z.infer<typeof guardSchema>;
+
+const verifySchema = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("echo"), idField: fieldName, fields: z.array(fieldName).max(MAX_VERIFY_FIELDS) }),
+  z.object({ kind: z.literal("read_back"), tool: toolName, idArg: fieldName, idField: fieldName, fields: z.array(fieldName).max(MAX_VERIFY_FIELDS) }),
+]);
+
+/** How Winyu checks a write took effect: its own reply carries an id and the chosen arguments back, or a read tool of the same connector finds the record by that id with those values. */
+export type WriteVerify = z.infer<typeof verifySchema>;
+export type VerifyKind = WriteVerify["kind"];
+export const VERIFY_KINDS: readonly VerifyKind[] = ["echo", "read_back"];
+
+const writeSchema = z
+  .object({
+    pins: z.array(pinSchema).max(MAX_PINS),
+    guards: z.array(guardSchema).max(MAX_GUARDS),
+    redact: z.array(fieldName).max(MAX_REDACT),
+    verify: verifySchema,
+    duplicateRisk: z.boolean(),
+  })
+  .refine((write) => write.pins.some((pin) => pin.kind === "identity") || write.guards.length > 0, { path: ["boundary"] })
+  .refine((write) => write.pins.some((pin) => pin.kind === "call_id") || write.duplicateRisk, { path: ["idempotency"] })
+  .refine((write) => new Set(write.pins.map((pin) => pin.arg)).size === write.pins.length, { path: ["pins"] });
+
+/** What a write or destructive tool must declare: what it may touch (an identity pin or a guard), its personal-text arguments, how its effect is checked, and an idempotency key or the admin's acknowledgement that a timeout can duplicate a record. */
+export type WriteSpec = z.infer<typeof writeSchema>;
+
+/** The scope a write is stored with: a write is bounded on its input by pins and guards, never by filtering its reply. */
+export const WRITE_SCOPE = { kind: "none", reason: "write: bounded by its pins and guards" } as const;
+
+/** What the admin declares about one remote tool; a write or destructive tool carries its write declarations, a read tool none. */
+export const toolDeclarationSchema = z
+  .object({
+    labelTh: z.string().trim().min(1).max(MAX_LABEL_CHARS),
+    description: z.string().trim().min(1).max(MAX_DESCRIPTION_CHARS),
+    tier: z.enum(["read", "write", "destructive"]),
+    roles: z.array(role).min(1).transform(uniqueRoles),
+    scope: scopeSchema,
+    sensitive: z.array(sensitiveSchema).max(MAX_SENSITIVE).refine((items) => new Set(items.map((item) => item.field)).size === items.length),
+    write: writeSchema.nullable().default(null),
+  })
+  .refine((tool) => (tool.tier === "read") === (tool.write === null), { path: ["write"] });
 
 export type ToolDeclaration = z.infer<typeof toolDeclarationSchema>;
 
@@ -98,6 +151,7 @@ export type PinnedRemote = z.infer<typeof pinnedSchema>;
 
 const testRunSchema = z.object({
   asUser: z.string(),
+  dryRun: z.boolean().default(false),
   at: z.string(),
   received: z.number().int().nonnegative(),
   kept: z.number().int().nonnegative(),
@@ -106,7 +160,7 @@ const testRunSchema = z.object({
   masked: z.array(z.string()),
 });
 
-/** One test call as one person: counts and field names only, never a value. */
+/** One test call as one person: counts and field names only, never a value. A write is never sent in a test: its dry run resolves the pins as that person and reads its guard tool, whose counts it keeps. */
 export type TestRun = z.infer<typeof testRunSchema>;
 
 const toolTestSchema = z.object({ hash: z.string(), runs: z.array(testRunSchema) });
@@ -152,8 +206,19 @@ export type Upstream = { id: string; at: string; tools: UpstreamTool[] };
 /** A tool's scope while the admin edits it; the stored config never holds "unset". */
 export type ScopeDraft = { kind: "unset" } | { kind: "none"; reason: string } | { kind: "scoped"; filter: FilterPreset; inject: InjectPreset | null };
 
+/** A write's declarations while the admin edits them: no verify chosen yet is allowed here, never in the stored config. */
+export type WriteDraft = { pins: WritePin[]; guards: WriteGuard[]; redact: string[]; verify: WriteVerify | null; duplicateRisk: boolean };
+
 /** A tool as the wizard edits it: anything may still be missing. */
-export type ToolDraft = { name: string; labelTh: string; description: string; tier: ToolTier; roles: RoleId[]; scope: ScopeDraft; sensitive: SensitiveSpec[] };
+export type ToolDraft = { name: string; labelTh: string; description: string; tier: ToolTier; roles: RoleId[]; scope: ScopeDraft; sensitive: SensitiveSpec[]; write: WriteDraft | null };
+
+/** The write declarations the wizard starts a write tool with, guessed from its arguments: the caller pinned into an id argument, the call id into an idempotency argument, free-text arguments redacted, and an echo check on the pinned id. */
+export function guessedWrite(inputNames: readonly string[]): WriteDraft {
+  const owner = inputNames.find((name) => OWNER_ARG.test(name));
+  const key = inputNames.find((name) => IDEMPOTENCY_ARG.test(name));
+  const pins: WritePin[] = [...(owner ? [{ kind: "identity" as const, arg: owner, key: "employee_id" as const }] : []), ...(key ? [{ kind: "call_id" as const, arg: key }] : [])];
+  return { pins, guards: [], redact: inputNames.filter((name) => FREE_TEXT_ARG.test(name)), verify: null, duplicateRisk: false };
+}
 
 const draftText = z.string().max(MAX_DESCRIPTION_CHARS * 2);
 const draftFilter = z.discriminatedUnion("kind", [
@@ -180,6 +245,20 @@ export const toolDraftSchema: z.ZodType<ToolDraft> = z.object({
     z.object({ kind: z.literal("scoped"), filter: draftFilter, inject: draftInject.nullable() }),
   ]),
   sensitive: z.array(z.object({ field: draftText, byRole: z.partialRecord(role, z.enum(VISIBILITIES)), ownerField: draftText.nullable() })).max(MAX_SENSITIVE),
+  write: z
+    .object({
+      pins: z.array(z.discriminatedUnion("kind", [z.object({ kind: z.literal("identity"), arg: draftText, key: identityKey }), z.object({ kind: z.literal("call_id"), arg: draftText })])).max(MAX_PINS),
+      guards: z.array(z.object({ arg: draftText, tool: draftText, field: draftText })).max(MAX_GUARDS),
+      redact: z.array(draftText).max(MAX_REDACT),
+      verify: z
+        .discriminatedUnion("kind", [
+          z.object({ kind: z.literal("echo"), idField: draftText, fields: z.array(draftText).max(MAX_VERIFY_FIELDS) }),
+          z.object({ kind: z.literal("read_back"), tool: draftText, idArg: draftText, idField: draftText, fields: z.array(draftText).max(MAX_VERIFY_FIELDS) }),
+        ])
+        .nullable(),
+      duplicateRisk: z.boolean(),
+    })
+    .nullable(),
 });
 
 export type BlockerCode =
@@ -191,8 +270,14 @@ export type BlockerCode =
   | "no_reason"
   | "no_filter_field"
   | "no_inject_arg"
-  | "write_phase_2"
   | "remote_says_writes"
+  | "remote_says_destructive"
+  | "no_write"
+  | "write_no_boundary"
+  | "write_no_verify"
+  | "write_no_idempotency"
+  | "write_bad_arg"
+  | "write_no_helper"
   | "bad_sensitive"
   | "no_test"
   | "stale_test"
@@ -225,16 +310,26 @@ export function hintsSayWrites(hints: RemoteHints): boolean {
   return hints.destructive === true || hints.readOnly === false;
 }
 
-function scopeInputOf(scope: ScopeDraft): unknown {
+function scopeInputOf(draft: ToolDraft): unknown {
+  const scope = draft.scope;
+  if (draft.tier !== "read") return WRITE_SCOPE;
   if (scope.kind !== "scoped") return scope;
   return { kind: "scoped", filters: [scope.filter], inject: scope.inject ? [scope.inject] : [] };
+}
+
+function writeCodeOf(path: readonly PropertyKey[]): BlockerCode {
+  const [, second] = path;
+  if (second === "boundary") return "write_no_boundary";
+  if (second === "idempotency") return "write_no_idempotency";
+  if (second === "verify") return "write_no_verify";
+  return "write_bad_arg";
 }
 
 function codeOfIssue(issue: z.core.$ZodIssue): BlockerCode {
   const [head, second, , fourth] = issue.path;
   if (head === "labelTh") return "no_label";
   if (head === "description") return issue.code === "too_big" ? "long_description" : "no_description";
-  if (head === "tier") return "write_phase_2";
+  if (head === "write") return issue.path.length === 1 ? "no_write" : writeCodeOf(issue.path);
   if (head === "roles") return "no_roles";
   if (head === "sensitive") return "bad_sensitive";
   if (second === "reason") return "no_reason";
@@ -245,13 +340,33 @@ function codeOfIssue(issue: z.core.$ZodIssue): BlockerCode {
 
 export type DeclarationResult = { ok: true; declaration: ToolDeclaration } | { ok: false; codes: BlockerCode[] };
 
-/** Parses a wizard draft into what may be stored, or the reasons it may not; the client shows them, the server refuses on them. */
-export function declarationOf(draft: ToolDraft, hints: RemoteHints): DeclarationResult {
-  const parsed = toolDeclarationSchema.safeParse({ ...draft, scope: scopeInputOf(draft.scope) });
+function writeArgs(write: WriteDraft): string[] {
+  const verifyArgs = write.verify?.kind === "read_back" ? [] : (write.verify?.fields ?? []);
+  return [...write.pins.map((pin) => pin.arg), ...write.guards.map((guard) => guard.arg), ...write.redact, ...verifyArgs];
+}
+
+function writeInputOf(draft: ToolDraft): WriteDraft | null {
+  return draft.tier === "read" ? null : draft.write;
+}
+
+/** Parses a wizard draft into what may be stored, or the reasons it may not; the client shows them, the server refuses on them. Every argument a write declaration names must be one the server lists. */
+export function declarationOf(draft: ToolDraft, listed: Pick<UpstreamTool, "hints" | "inputSchema">): DeclarationResult {
+  const write = writeInputOf(draft);
+  const parsed = toolDeclarationSchema.safeParse({ ...draft, scope: scopeInputOf(draft), write });
   const codes: BlockerCode[] = parsed.success ? [] : [...new Set(parsed.error.issues.map(codeOfIssue))];
-  if (draft.tier === "read" && hintsSayWrites(hints)) codes.push("remote_says_writes");
+  if (draft.tier === "read" && hintsSayWrites(listed.hints)) codes.push("remote_says_writes");
+  if (draft.tier === "write" && listed.hints.destructive === true) codes.push("remote_says_destructive");
+  const inputs = inputNamesOf(listed.inputSchema);
+  if (write && writeArgs(write).some((arg) => arg !== "" && !inputs.includes(arg)) && !codes.includes("write_bad_arg")) codes.push("write_bad_arg");
   if (codes.length > 0 || !parsed.success) return { ok: false, codes };
   return { ok: true, declaration: parsed.data };
+}
+
+/** The read tools a write's guards and read-back verify call. */
+export function helperToolsOf(write: { guards: readonly { tool: string }[]; verify: { kind: VerifyKind; tool?: string } | null } | null): string[] {
+  if (!write) return [];
+  const verify = write.verify?.kind === "read_back" && write.verify.tool ? [write.verify.tool] : [];
+  return [...new Set([...write.guards.map((guard) => guard.tool), ...verify])];
 }
 
 /** JSON with object keys sorted, so equal values always print the same. */
@@ -288,13 +403,13 @@ export function configHash(basis: ConfigBasis): string {
 
 /** The hash a draft would carry once saved against the listing the admin sees, for the wizard's tested and stale marks; null while the draft is incomplete. */
 export function draftConfigHash(connector: Pick<StoredConnector, "url" | "auth">, draft: ToolDraft, listed: UpstreamTool): string | null {
-  const parsed = declarationOf(draft, listed.hints);
+  const parsed = declarationOf(draft, listed);
   return parsed.ok ? configHash({ url: connector.url, auth: connector.auth.kind, name: draft.name, declaration: parsed.declaration, pinnedHash: listed.hash }) : null;
 }
 
 /** The declaration part of a stored tool. */
 export function declarationPart(tool: StoredTool): ToolDeclaration {
-  return { labelTh: tool.labelTh, description: tool.description, tier: tool.tier, roles: tool.roles, scope: tool.scope, sensitive: tool.sensitive };
+  return { labelTh: tool.labelTh, description: tool.description, tier: tool.tier, roles: tool.roles, scope: tool.scope, sensitive: tool.sensitive, write: tool.write };
 }
 
 export function storedConfigHash(connector: Pick<StoredConnector, "url" | "auth">, name: string, tool: StoredTool): string {
@@ -311,14 +426,24 @@ export function upstreamStateOf(name: string, tool: StoredTool, upstream: Upstre
   return listed.hash === tool.pinned.hash ? "same" : "changed";
 }
 
-/** Everything that keeps one stored tool off the model's surface; empty means it may go live. */
-export function storedToolBlockers(connector: Pick<StoredConnector, "url" | "auth">, name: string, tool: StoredTool, upstream: Upstream | null): BlockerCode[] {
+function ownBlockers(connector: Pick<StoredConnector, "url" | "auth">, name: string, tool: StoredTool, upstream: Upstream | null): BlockerCode[] {
   const codes: BlockerCode[] = [];
   const state = upstreamStateOf(name, tool, upstream);
   if (state === "changed") codes.push("changed_upstream");
   if (state === "gone") codes.push("gone_upstream");
   if (!tool.test || tool.test.runs.length === 0) codes.push("no_test");
   else if (tool.test.hash !== storedConfigHash(connector, name, tool)) codes.push("stale_test");
+  return codes;
+}
+
+/** Everything that keeps one stored tool off the model's surface; empty means it may go live. A write also waits for every read tool its guards and read-back call to be live on the same connector. */
+export function storedToolBlockers(connector: Pick<StoredConnector, "url" | "auth" | "tools">, name: string, tool: StoredTool, upstream: Upstream | null): BlockerCode[] {
+  const codes = ownBlockers(connector, name, tool, upstream);
+  const helperLive = (helper: string) => {
+    const found = connector.tools[helper];
+    return helper !== name && found !== undefined && found.tier === "read" && ownBlockers(connector, helper, found, upstream).length === 0;
+  };
+  if (!helperToolsOf(tool.write).every(helperLive)) codes.push("write_no_helper");
   return codes;
 }
 
@@ -390,6 +515,9 @@ export type ProblemCode =
   | "role_not_offered"
   | "changed_upstream"
   | "remote_error"
+  | "no_identity"
+  | "no_model"
+  | "bad_questions"
   | "blocked"
   | "bad_input";
 
@@ -427,3 +555,16 @@ export type ToolSave = { draft: ToolDraft; fields: string[]; seenHash: string };
 export type SaveInput = { connector: string; tools: ToolSave[]; removed: string[] };
 
 export type SaveResult = { ok: true; view: ConnectorView; incomplete: Record<string, BlockerCode[]> } | Problem;
+
+/** A recorded eval question of one person the admin can ask again with the connector on the surface, and the tool the recording called first. */
+export type CoreCase = { id: string; userId: string; prompt: string; tool: string | null };
+
+export type ModelCheckInput = { connector: string; asUser: string; prompts: string[]; cases: string[] };
+
+/** One question of a model check: the tools the model called in order, the approvals it raised (never carried out), which of them are this connector's, and for a recorded question whether it still starts with the tool it was recorded with. */
+export type ModelCheckAnswer = { prompt: string; caseId: string | null; tools: string[]; asked: string[]; fromConnector: string[]; expected: string | null; kept: boolean | null; error: string | null };
+
+export type ModelCheckResult = { ok: true; answers: ModelCheckAnswer[]; usd: number } | Problem;
+
+export const MAX_CHECK_QUESTIONS = 3;
+export const MAX_CHECK_PROMPT_CHARS = 300;

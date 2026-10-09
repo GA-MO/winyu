@@ -7,7 +7,7 @@ import { recordConnectorEvent, type ConnectorEventKind } from "@/lib/server/audi
 import {
   CONNECTOR_ID, DEFAULT_TIMEOUT_MS, MIN_SECRET_CHARS, RESERVED_REASONS, declarationPart, stableJson, declarationOf, inputNamesOf, lifecycleOf, promptTokens, storedConfigHash,
   type ActivateResult, type BlockerCode, type ConnectorView, type DiscoverInput, type EvalImpact, type Problem, type ProblemCode, type SampleResult, type SaveInput, type SaveResult,
-  type SensitiveSpec, type StoredConnector, type StoredTool, type TestResult, type TestRun, type ToolSave, type Upstream, type UpstreamTool, type ViewResult,
+  type SensitiveSpec, type StoredConnector, type StoredTool, type TestResult, type TestRun, type ToolSave, type Upstream, type UpstreamTool, type ViewResult, type WriteSpec,
 } from "@/lib/connectors/spec";
 import { codeConnectorIds } from "./index";
 import { egressAllowlist, egressProblem, EgressRefused } from "./egress";
@@ -17,10 +17,12 @@ import { connectorKey, openSecret, sealSecret } from "./secrets";
 import { reservedReasonOf } from "./reserved";
 import { compileStored, listUpstream, liveToolNames, serverToolBlockers, modelInputOf, recordUpstream, saveStored, storedConnector, storedConnectors, upstreamOf, withClient } from "./stored";
 import type { ConnectorRow } from "./types";
+import { pinnedArgs } from "./write";
 
 const MAX_FIELDS = 80;
 const DETAIL_CHARS = 160;
 const REDACTED_SECRET = "•••";
+const DRY_RUN_CALL_ID = "dry-run";
 
 function isItAdmin(actor: User | null): actor is User {
   return actor?.role === "it_admin";
@@ -155,7 +157,7 @@ function savedTool(connector: StoredConnector, listed: UpstreamTool, save: ToolS
   if (save.seenHash !== listed.hash) return { ok: false, problem: "upstream_moved" };
   const reserved = reservedReasonOf(connector.url, listed.name);
   if (reserved) return { ok: false, codes: [reserved] };
-  const parsed = declarationOf(save.draft, listed.hints);
+  const parsed = declarationOf(save.draft, listed);
   if (!parsed.ok) return { ok: false, codes: parsed.codes };
   if (!modelInputOf(listed.inputSchema)) return { ok: false, problem: "schema_unsupported" };
   const existing = connector.tools[listed.name];
@@ -169,7 +171,10 @@ function savedTool(connector: StoredConnector, listed: UpstreamTool, save: ToolS
 
 function savedDetail(tool: StoredTool): Record<string, unknown> {
   const scope = tool.scope.kind === "none" ? "none" : tool.scope.filters.map((filter) => `${filter.kind}:${filter.field}`).join("+");
-  return { roles: tool.roles, scope, sensitive: tool.sensitive.map((spec: SensitiveSpec) => spec.field) };
+  const write = tool.write
+    ? { pins: tool.write.pins.map((pin) => `${pin.arg}=${pin.kind === "call_id" ? "call_id" : pin.key}`), guards: tool.write.guards.map((guard) => `${guard.arg} in ${guard.tool}.${guard.field}`), redact: tool.write.redact, verify: tool.write.verify.kind, duplicateRisk: tool.write.duplicateRisk }
+    : null;
+  return { tier: tool.tier, roles: tool.roles, scope, sensitive: tool.sensitive.map((spec: SensitiveSpec) => spec.field), ...(write ? { write } : {}) };
 }
 
 /** Saves every complete tool the admin sent and removes the unticked ones; an incomplete tool is reported, never stored, and any edit voids that tool's test through its config hash. */
@@ -255,7 +260,27 @@ function hiddenFieldsFor(rows: readonly ConnectorRow[], sensitive: readonly Sens
     .map((spec) => (spec.byRole[role] === "masked" ? `${spec.field} ${MASKED_VALUE}` : spec.field));
 }
 
+async function listingHash(connector: StoredConnector, name: string, secret: string, access: AccessContext): Promise<string | undefined> {
+  const listed = await withClient({ url: connector.url, auth: connector.auth.kind }, secret, access, async (client) => recordUpstream(connector.id, await client.listTools()));
+  return listed.tools.find((tool) => tool.name === name)?.hash;
+}
+
+async function dryRunOf(connector: StoredConnector, name: string, tool: StoredTool, write: WriteSpec, secret: string, caller: Caller): Promise<TestRun | ProblemCode> {
+  if ((await listingHash(connector, name, secret, caller.access)) !== tool.pinned.hash) return "changed_upstream";
+  if (!(await pinnedArgs(write, {}, caller.access, DRY_RUN_CALL_ID))) return "no_identity";
+  const base = { asUser: caller.user.id, dryRun: true, at: new Date().toISOString(), fields: [], masked: [] };
+  const guard = write.guards[0];
+  const helper = guard ? connector.tools[guard.tool] : undefined;
+  if (!guard || !helper) return { ...base, received: 0, kept: 0, missingField: 0 };
+  const scope = connectorScopeOf(helper.scope);
+  const outcome = await rowsAs(connector, guard.tool, secret, caller.access, await scopedArgs(scope, nullArgs(helper.pinned.inputSchema), caller.access));
+  if (outcome === "remote_error") return "remote_error";
+  const kept = await scopedRows(scope, outcome.rows, caller.access);
+  return { ...base, received: outcome.rows.length, kept: kept.length, missingField: outcome.rows.filter((row) => row[guard.field] === undefined || row[guard.field] === null).length };
+}
+
 async function testRunOf(connector: StoredConnector, name: string, tool: StoredTool, secret: string, caller: Caller): Promise<TestRun | ProblemCode> {
+  if (tool.write) return dryRunOf(connector, name, tool, tool.write, secret, caller);
   const scope = connectorScopeOf(tool.scope);
   const args = await scopedArgs(scope, nullArgs(tool.pinned.inputSchema), caller.access);
   const outcome = await rowsAs(connector, name, secret, caller.access, args);
@@ -267,6 +292,7 @@ async function testRunOf(connector: StoredConnector, name: string, tool: StoredT
   const self = (await callerIdentity(caller.access)).employee_id;
   return {
     asUser: caller.user.id,
+    dryRun: false,
     at: new Date().toISOString(),
     received: outcome.rows.length,
     kept: kept.length,

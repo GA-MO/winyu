@@ -10,6 +10,7 @@ import { TH } from "@/lib/i18n/th";
 import { activateConnectorAction, testConnectorToolAction } from "@/app/(app)/admin/actions";
 import type { BlockerCode, EvalImpact, Problem, TestRun } from "@/lib/connectors/spec";
 import { blockersOfTool, defaultPersonFor, rolesTouched, testStatusOf, tokensOf, type WizardTool } from "./model";
+import { ModelCheck } from "./model-check";
 import { ProblemLine, scopeCell, type Person } from "./parts";
 import type { WizardContext } from "./wizard";
 
@@ -22,8 +23,9 @@ function RunLine({ run, people }: { run: TestRun; people: readonly Person[] }) {
     <li className="flex flex-col gap-0.5 text-[12px]">
       <p className="text-[13px]">
         <span className="font-medium">{person ? `${person.nameTh} · ${TH.roleShort[person.role]}` : run.asUser}</span>
-        <span className="tabular-nums text-muted-foreground">{` · ${COPY.readResult(run.received, run.kept)}`}</span>
+        <span className="tabular-nums text-muted-foreground">{` · ${run.dryRun ? COPY.dryRun : COPY.readResult(run.received, run.kept)}`}</span>
       </p>
+      {run.dryRun && run.received > 0 ? <p className="tabular-nums text-muted-foreground">{COPY.guardResult(run.received, run.kept)}</p> : null}
       {run.missingField > 0 ? <p className="text-warning">{COPY.missing(run.missingField)}</p> : null}
       {run.masked.length > 0 ? <p className="text-muted-foreground">{COPY.maskedFields(run.masked.join(", "))}</p> : null}
       {run.fields.length > 0 ? <p className="font-mono text-[11px] text-muted-foreground">{COPY.fieldsSeen(run.fields.join(", "))}</p> : null}
@@ -57,6 +59,7 @@ function TestRow({ tool, context }: { tool: WizardTool; context: WizardContext }
         </span>
       </div>
       <div className="flex min-w-0 flex-col gap-3">
+        {tool.draft.tier === "read" ? null : <p className="text-[12px] text-muted-foreground">{COPY.writeTestHint}</p>}
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-[13px] text-muted-foreground">{COPY.asUser}</span>
           <Select value={asUser} onChange={(event) => setAsUser(event.target.value)} aria-label={COPY.asUser} className="min-w-[14rem]">
@@ -89,6 +92,7 @@ function TestRow({ tool, context }: { tool: WizardTool; context: WizardContext }
 
 function cellOf(tool: WizardTool, role: RoleId): { text: string; hidden: string[] } | null {
   if (!tool.draft.roles.includes(role)) return null;
+  if (tool.draft.write) return { text: COPY.writeCell(tool.draft.write.pins.length, tool.draft.write.guards.length), hidden: [] };
   const hidden = tool.draft.sensitive.filter((item) => (item.byRole[role] ?? "none") !== "full").map((item) => (item.byRole[role] === "masked" ? `*** ${item.field}` : item.field));
   return { text: scopeCell(tool.draft.scope), hidden };
 }
@@ -118,7 +122,7 @@ function RoleMatrix({ tools }: { tools: WizardTool[] }) {
                 <td key={tool.name} className="px-2 py-2">
                   {cell ? (
                     <span className="flex flex-col gap-0.5">
-                      <span className={cn(tool.draft.scope.kind === "unset" ? "text-danger" : "text-foreground")}>{cell.text}</span>
+                      <span className={cn(tool.draft.scope.kind === "unset" && !tool.draft.write ? "text-danger" : "text-foreground")}>{cell.text}</span>
                       {cell.hidden.length > 0 ? <span className="text-muted-foreground">{COPY.maskedFields(cell.hidden.join(", "))}</span> : null}
                     </span>
                   ) : (
@@ -174,7 +178,7 @@ export function ReviewStep({ context }: { context: WizardContext }) {
       </Panel>
     );
   }
-  const groups = tools.map((tool) => ({ tool, codes: blockersOfTool(context.view.connector, tool) })).filter((group) => group.codes.length > 0);
+  const groups = tools.map((tool) => ({ tool, codes: blockersOfTool(context.view.connector, tool, context.tools) })).filter((group) => group.codes.length > 0);
   const blockers = groups.reduce((sum, group) => sum + group.codes.length, 0);
   const listed = tools.filter((tool) => tool.listed);
   const recordings = context.view.impact.affectedRecordings;
@@ -198,6 +202,7 @@ export function ReviewStep({ context }: { context: WizardContext }) {
           ))}
         </ul>
       </Panel>
+      <ModelCheck context={context} />
       <Panel title={COPY.matrixTitle} hint={COPY.matrixHint} bodyClassName="overflow-x-auto">
         <RoleMatrix tools={listed} />
       </Panel>

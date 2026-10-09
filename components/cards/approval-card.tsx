@@ -2,7 +2,7 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
-import { BellRing, CalendarDays, Check, Forward, GraduationCap, LayoutGrid, Mail, RefreshCw, Send, ShieldCheck, X } from "lucide-react";
+import { BellRing, CalendarDays, Check, Forward, GraduationCap, LayoutGrid, Mail, PlugZap, RefreshCw, Send, ShieldCheck, X } from "lucide-react";
 import { OutboxNote } from "@/components/share/outbox-note";
 import { CHANNEL_ICON, useShareContacts } from "@/components/share/share-sheet";
 import { METRIC_IDS, ROLE_IDS, type MetricId, type MetricQuery, type RoleId, type Urgency, type WatchCondition } from "@/lib/contracts";
@@ -19,6 +19,8 @@ const COURSES_ENDPOINT = "/api/courses";
 const PERMISSION_LABEL_ENDPOINT = "/api/permissions/label";
 const LABELS_ENDPOINT = "/api/labels";
 const MAX_EVIDENCE_LABELS = 2;
+const CONNECTOR_TOOL = /^[a-z][a-z0-9_]*__/;
+const MAX_ARG_CHIPS = 4;
 const URGENCY_BADGE: Record<Urgency, string> = {
   high: "bg-danger/10 text-danger",
   medium: "bg-warning/12 text-warning",
@@ -37,6 +39,7 @@ export type ApprovalRequest = {
   approve: () => void;
   reject: () => void;
   shareTitle?: string | null;
+  labelTh?: string;
 };
 
 type Decision = {
@@ -47,6 +50,7 @@ type Decision = {
   subject: string | null;
   body: { label: string; text: string } | null;
   chips: string[];
+  chipsLabel?: string;
   urgency: Urgency | null;
   effect: string;
   confirm: string;
@@ -353,8 +357,38 @@ function shareDecision(input: ShareInput, contacts: ShareContact[] | null, title
   };
 }
 
-function decisionOf(tool: string, input: unknown): Decision | null {
+function argText(value: unknown): string | null {
+  if (value === null || value === undefined || value === "") return null;
+  return typeof value === "object" ? JSON.stringify(value) : String(value);
+}
+
+function connectorDecision(input: Record<string, unknown>, label: string): Decision {
+  const args = Object.entries(input).flatMap(([key, value]) => {
+    const text = argText(value);
+    return text ? [{ key, text }] : [];
+  });
+  const longest = [...args].sort((left, right) => right.text.length - left.text.length)[0];
+  const body = longest && longest.text.length > 24 ? longest : null;
+  return {
+    icon: PlugZap,
+    title: label,
+    person: null,
+    subjectLabel: TH.approve.connectorSubject,
+    subject: null,
+    body: body ? { label: body.key, text: body.text } : null,
+    chips: args.filter((arg) => arg !== body).slice(0, MAX_ARG_CHIPS).map((arg) => `${arg.key}: ${arg.text}`),
+    chipsLabel: TH.approve.connectorSubject,
+    urgency: null,
+    effect: TH.approve.effectConnector,
+    confirm: TH.approve.confirmConnector,
+    cancel: TH.approve.cancelDo,
+    done: TH.approve.doneConnector(label),
+  };
+}
+
+function decisionOf(tool: string, input: unknown, labelTh?: string): Decision | null {
   const value = (input ?? {}) as Record<string, unknown>;
+  if (CONNECTOR_TOOL.test(tool)) return connectorDecision(value, labelTh ?? tool);
   if (tool === "send_email") return emailDecision(value);
   if (tool === "pin_widget") return pinDecision(value);
   if (tool === "run_job") return jobDecision(value);
@@ -417,7 +451,7 @@ function DecisionCard({ decision, request }: { decision: Decision; request: Appr
 
         {decision.chips.length > 0 ? (
           <div className="flex min-w-0 flex-col gap-1.5">
-            <p className="text-[11px] text-muted-foreground">{TH.approve.attached}</p>
+            <p className="text-[11px] text-muted-foreground">{decision.chipsLabel ?? TH.approve.attached}</p>
             <div className="flex flex-wrap gap-1.5">
               {decision.chips.map((chip) => (
                 <span key={chip} className="rounded-full border border-border px-2.5 py-1 text-[11px] text-muted-foreground">
@@ -537,7 +571,7 @@ export function renderApproval(request: ApprovalRequest): ReactNode {
   if (request.tool === "set_permission") return <PermissionApproval request={request} />;
   if (request.tool === "create_handoff") return <HandoffApproval request={request} />;
   if (request.tool === "watch_metric") return <WatchApproval request={request} />;
-  const decision = decisionOf(request.tool, request.input);
+  const decision = decisionOf(request.tool, request.input, request.labelTh);
   if (!decision) return null;
   return <Approval decision={decision} request={request} />;
 }

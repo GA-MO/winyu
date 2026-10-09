@@ -1,25 +1,27 @@
-import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { copyFileSync, existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
 const DEFAULT_CAP_USD = 0.25;
-const FALLBACK_CASE_USD = 0.0156;
 const METER_CAP_EXIT = 2;
 const PROJECT_LEDGER = path.join(process.cwd(), ".data", "model-calls.json");
 const LEDGER_FILE = "model-calls.json";
 const USD_DIGITS = 4;
+const PROJECT_DATA = path.join(process.cwd(), ".data");
+const CONSOLE_FILES = ["connectors.json", "connector-upstream.json", "connector-secrets.json", "switches.json"];
 const ID_WIDTH = 24;
 const GROUP_WIDTH = 16;
 
-const USAGE = `usage: bun run eval [--case=<id>[,<id>…]] [--stale] [--live (--case=<ids>|--changed) [--yes] [--cap=<usd>]] [--accept]
+const USAGE = `usage: bun run eval [--case=<id>[,<id>…]] [--stale] [--live (--case=<ids>|--changed) [--yes] [--cap=<usd>]] [--accept] [--with-console]
   (default)  score the committed recordings with code-only scorers: no model call, $0
   --stale    list recordings whose prompt, tools, model or question changed since they were recorded
   --live     re-record the chosen cases against the real model; prints the estimate and spends only with --yes
   --changed  with --live: the stale and missing recordings
   --cap      with --live: stop before a case that could take the run past this many dollars (default $${DEFAULT_CAP_USD})
-  --accept   write today's failures to evals/known-failures.json as the accepted baseline`;
+  --accept   write today's failures to evals/known-failures.json as the accepted baseline
+  --with-console  copy this deployment's console connectors (.data) into the eval's data folder: --stale lists the cases whose tool surface they change, and --live asks those questions with them on the surface, compares the first tool with the recording and keeps the recordings as they are`;
 
-type Args = { cases: string[]; stale: boolean; live: boolean; changed: boolean; yes: boolean; cap: number; accept: boolean; help: boolean };
+type Args = { cases: string[]; stale: boolean; live: boolean; changed: boolean; yes: boolean; cap: number; accept: boolean; withConsole: boolean; help: boolean };
 
 function argsOf(argv: readonly string[]): Args {
   const value = (name: string) => argv.find((arg) => arg.startsWith(`--${name}=`))?.slice(name.length + 3) ?? null;
@@ -32,6 +34,7 @@ function argsOf(argv: readonly string[]): Args {
     yes: argv.includes("--yes"),
     cap: Number.isFinite(cap) && cap > 0 ? cap : DEFAULT_CAP_USD,
     accept: argv.includes("--accept"),
+    withConsole: argv.includes("--with-console"),
     help: argv.includes("--help") || argv.includes("-h"),
   };
 }
@@ -47,6 +50,9 @@ process.env.WINYU_DATA_DIR = dataDir;
 process.env.WINYU_SCHEDULER = "off";
 delete process.env.WINYU_PORTS;
 process.on("exit", () => rmSync(dataDir, { recursive: true, force: true }));
+if (args.withConsole) {
+  for (const file of CONSOLE_FILES) if (existsSync(path.join(PROJECT_DATA, file))) copyFileSync(path.join(PROJECT_DATA, file), path.join(dataDir, file));
+}
 
 const { ensureDemoStory } = await import("../lib/server/demo-story");
 const { ensureFeedHistory } = await import("../lib/server/demo-feed-history");
@@ -54,10 +60,11 @@ await ensureDemoStory();
 await ensureFeedHistory();
 
 const { EVAL_CASES, groupOf } = await import("../lib/eval/cases");
-const { readRecordings, turnOf, drawingOf, writeRecording } = await import("../lib/eval/recording");
+const { readRecordings, turnOf, drawingOf, writeRecording, firstToolOf, medianRecordedUsd: medianCaseUsd } = await import("../lib/eval/recording");
 const { promptHash, toolsHash } = await import("../lib/eval/fingerprint");
 const { scoreTurn } = await import("../lib/harness/adapters/mastra/scorers");
 const { agentModel } = await import("../lib/server/models");
+const { remoteConnectors, codeConnectorIds } = await import("../lib/server/connectors");
 const { KNOWN_FAILURES_FILE, readKnownFailures, unexpectedFailures, writeKnownFailures } = await import("../lib/eval/baseline");
 
 type EvalCase = (typeof EVAL_CASES)[number];
@@ -89,13 +96,6 @@ function staleReasons(testCase: EvalCase, recording: Recording | undefined): str
   if (recording.toolsHash !== toolsHash(testCase.userId)) reasons.push("tools changed");
   if (recording.model !== currentModel()) reasons.push(`model ${recording.model} → ${currentModel()}`);
   return reasons;
-}
-
-function medianCaseUsd(recordings: Map<string, Recording>): number {
-  const costs = [...recordings.values()].map((recording) => recording.usage.usd).filter((cost) => cost > 0).sort((left, right) => left - right);
-  if (costs.length === 0) return FALLBACK_CASE_USD;
-  const middle = Math.floor(costs.length / 2);
-  return costs.length % 2 === 1 ? costs[middle] : (costs[middle - 1] + costs[middle]) / 2;
 }
 
 async function scoreCase(testCase: EvalCase, recording: Recording | undefined): Promise<CaseResult> {
@@ -159,6 +159,7 @@ async function scoreAll(cases: readonly EvalCase[]): Promise<number> {
 }
 
 function listStale(cases: readonly EvalCase[]): number {
+  if (args.withConsole) console.log(consoleConnectorsLine());
   const recordings = readRecordings();
   const stale = cases.flatMap((testCase) => {
     const reasons = staleReasons(testCase, recordings.get(testCase.id));
@@ -187,12 +188,27 @@ function copyNewCalls(copied: number): number {
   return calls.length;
 }
 
+function withConsoleLine(testCase: EvalCase, now: Recording, recorded: Recording | undefined): string {
+  const before = recorded ? firstToolOf(recorded) : null;
+  const after = firstToolOf(now);
+  const consoleTools = now.steps.flatMap((step) => (step.kind === "call" && step.tool.includes("__") ? [step.tool] : [])).concat(now.asked.filter((tool) => tool.includes("__")));
+  const mark = before === after ? "same " : "MOVED";
+  const extra = consoleTools.length > 0 ? ` · console tools ${[...new Set(consoleTools)].join(", ")}` : "";
+  return `${mark} ${testCase.id.padEnd(ID_WIDTH)} first tool ${before ?? "none"} → ${after ?? "none"}${extra} [${now.usage.calls} calls · ${usd(now.usage.usd)}${now.error ? ` · ${now.error}` : ""}]`;
+}
+
+function consoleConnectorsLine(): string {
+  const live = remoteConnectors().filter((connector) => !codeConnectorIds().includes(connector.def.id));
+  return live.length > 0 ? `console connectors on the surface: ${live.map((connector) => `${connector.def.id} (${connector.tools.length} tools)`).join(", ")}` : "no live console connector in .data: the surface is the same as without --with-console";
+}
+
 async function recordLive(cases: readonly EvalCase[]): Promise<number> {
   if (!args.changed && args.cases.length === 0) {
     console.error("--live needs --case=<ids> or --changed: a live run never re-records every case by default");
     return 2;
   }
   const recordings = readRecordings();
+  if (args.withConsole) console.log(consoleConnectorsLine());
   const chosen = args.changed ? cases.filter((testCase) => staleReasons(testCase, recordings.get(testCase.id)).length > 0) : cases;
   const perCase = medianCaseUsd(recordings);
   console.log(`live: ${chosen.length} case(s) × ${usd(perCase)} median recorded cost ≈ ${usd(chosen.length * perCase)} · cap ${usd(args.cap)} · model ${currentModel()}`);
@@ -219,6 +235,10 @@ async function recordLive(cases: readonly EvalCase[]): Promise<number> {
     copied = copyNewCalls(copied);
     spent += recording.usage.usd;
     recorded += 1;
+    if (args.withConsole) {
+      console.log(withConsoleLine(testCase, recording, recordings.get(testCase.id)));
+      continue;
+    }
     writeRecording(recording);
     const result = await scoreCase(testCase, recording);
     console.log(`${lineOf(result, readKnownFailures())} [${recording.usage.calls} calls · ${usd(recording.usage.usd)}${recording.error ? ` · ${recording.error}` : ""}]`);

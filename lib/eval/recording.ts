@@ -45,6 +45,22 @@ export type Recording = {
   remembered?: string[];
 };
 
+const FALLBACK_CASE_USD = 0.0156;
+
+/** The median cost of one recorded case, the per-question estimate a live run states before it spends. */
+export function medianRecordedUsd(recordings: Map<string, Recording>): number {
+  const costs = [...recordings.values()].map((recording) => recording.usage.usd).filter((cost) => cost > 0).sort((left, right) => left - right);
+  if (costs.length === 0) return FALLBACK_CASE_USD;
+  const middle = Math.floor(costs.length / 2);
+  return costs.length % 2 === 1 ? costs[middle] : (costs[middle - 1] + costs[middle]) / 2;
+}
+
+/** The first tool a recording called, or null when it answered without one. */
+export function firstToolOf(recording: Recording): string | null {
+  const call = recording.steps.find((step) => step.kind === "call");
+  return call?.kind === "call" ? call.tool : null;
+}
+
 /** A question the same person asked earlier in its own thread, and the reply it got, recorded before the case question. */
 export type RecordedBefore = { prompt: string; steps: RecordedStep[] };
 

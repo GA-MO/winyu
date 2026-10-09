@@ -21,7 +21,7 @@ const METRIC_TOOL = "query_metric";
 const NO_MEMORY = { learn: false };
 
 /** One question to record: the case it belongs to, who asks and what, and what the same person asked earlier, each in its own thread. */
-export type RecordRequest = { caseId: string; userId: string; prompt: string; before?: readonly string[] };
+export type RecordRequest = { caseId: string; userId: string; prompt: string; before?: readonly string[]; threadId?: string };
 
 type AgUiEvent = { type?: string; message?: string; outcome?: { type?: string; interrupts?: { metadata?: { mastra?: { toolName?: string } } }[] } };
 type StoredPart = { type?: unknown; text?: unknown; toolInvocation?: { state?: unknown; toolName?: unknown; args?: unknown; result?: unknown } };
@@ -114,7 +114,7 @@ async function forgetCase(userId: string): Promise<void> {
 export async function recordCase(request: RecordRequest): Promise<Recording> {
   const model = agentModel();
   if (!model) throw new Error("OPENROUTER_API_KEY is not set: a live recording needs the real model");
-  const threadId = `eval-${request.caseId}-${randomUUID()}`;
+  const threadId = request.threadId ?? `eval-${request.caseId}-${randomUUID()}`;
   const hasBefore = (request.before ?? []).length > 0;
   try {
     const { result, usage } = await measure(() => askCase(request, threadId));

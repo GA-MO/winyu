@@ -179,7 +179,7 @@ export function recordGuardFinding(finding: GuardFinding, userId: string): void 
 export const CONNECTOR_ADMIN_AUDIT_TOOL = "connector_admin";
 
 /** What an IT admin did to a connector made in the console, or tried to and was refused. */
-export type ConnectorEventKind = "created" | "rediscovered" | "tool_saved" | "upstream_approved" | "tool_removed" | "sampled" | "tested" | "activated" | "enabled" | "disabled" | "secret_rotated" | "upstream_checked" | "refused";
+export type ConnectorEventKind = "created" | "rediscovered" | "tool_saved" | "upstream_approved" | "tool_removed" | "sampled" | "tested" | "activated" | "enabled" | "disabled" | "secret_rotated" | "upstream_checked" | "model_checked" | "refused";
 
 /** One connector event as the audit needs it: who, which connector and tool, what happened in Thai, and names and counts only; never a secret nor a row value. */
 export type AuditedConnectorEvent = { userId: string; event: ConnectorEventKind; connector: string; tool: string | null; reason: string; detail: Record<string, unknown>; code?: string };

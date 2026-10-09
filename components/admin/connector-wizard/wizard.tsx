@@ -14,6 +14,7 @@ import { RolesStep } from "./step-roles";
 import { ScopeStep } from "./step-scope";
 import { ReviewStep } from "./step-review";
 import { ProblemLine, type Person } from "./parts";
+import type { CheckOptions } from "./props";
 
 const COPY = TH.connectorUi;
 const STEPS = ["connect", "tools", "roles", "scope", "review"] as const;
@@ -30,6 +31,7 @@ export type WizardContext = {
   tools: WizardTool[];
   writable: boolean;
   people: Person[];
+  checks: CheckOptions;
   patchDraft: (name: string, patch: DraftPatch) => void;
   setInclude: (name: string, include: boolean) => void;
   addFields: (name: string, fields: string[]) => void;
@@ -78,7 +80,7 @@ function toolSave(tool: WizardTool) {
 }
 
 /** The connect-a-system flow for IT admins: every step goes to the server, which validates again, seals the secret and audits; the page only ever holds the secret's last characters. */
-export function ConnectorWizard({ initial, settings, people }: { initial: ConnectorView | null; settings: Settings; people: Person[] }) {
+export function ConnectorWizard({ initial, settings, people, checks }: { initial: ConnectorView | null; settings: Settings; people: Person[]; checks: CheckOptions }) {
   const [step, setStep] = useState<StepId>(initial ? "tools" : "connect");
   const [view, setView] = useState<ConnectorView | null>(initial);
   const [tools, setTools] = useState<WizardTool[]>(() => (initial ? wizardToolsOf(initial) : []));
@@ -118,6 +120,7 @@ export function ConnectorWizard({ initial, settings, people }: { initial: Connec
         tools,
         writable: settings.writable,
         people,
+        checks,
         patchDraft: (name, patch) => update(name, (tool) => ({ ...tool, draft: patch(tool.draft) })),
         setInclude: (name, include) => update(name, (tool) => ({ ...tool, include })),
         addFields: (name, fields) => update(name, (tool) => ({ ...tool, fields: [...new Set([...tool.fields, ...fields])] })),

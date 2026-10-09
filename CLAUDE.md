@@ -19,7 +19,7 @@ bun run probe:durable --disconnect   # cuts a live chat run at its first tool ca
 bun run trace [runId] # prints one agent run's harness trace (latest when no id)
 bun run call-tool <userId> <tool> [json]   # runs one tool through the gateway as that user and prints the audit decision (no model call)
 bun run mcp:probe <token> [--url=…/api/mcp] [--legacy]   # connects the official MCP client with an admin-issued token, lists tools and calls query_metric (no model call); see docs/mcp.md
-bun run connectors:demo   # serves the demo systems over MCP: LMS :3299, CRM :3298, HRIS :3293 (directory, leave, recruiting), safety/EHS :3292, company calendar :3291; dev reads them behind the ports with WINYU_PORTS=mcp (or a list such as WINYU_PORTS=directory,calendar); see docs/mcp.md
+bun run connectors:demo   # serves the demo systems over MCP: LMS :3299, CRM :3298, HRIS :3293 (directory, leave, recruiting), safety/EHS :3292, company calendar :3291, and an asset register with write tools on :3290 for connecting from the admin console (secret `winyu-assets-demo-local-only`); dev reads them behind the ports with WINYU_PORTS=mcp (or a list such as WINYU_PORTS=directory,calendar); see docs/mcp.md
 bun run metrics:mcp       # the data team's demo metrics MCP on :3297 (generator warehouse); `make up` starts both demo processes and runs dev with WINYU_PORTS=mcp (`make up PORTS=generator` keeps the in-process ports); see docs/mcp.md
 bun run investigate -- --users=<id>[,<id>…]|all [--save] [--show] [--replay]   # the morning investigation per person against the real model (~7 calls each); --show and --replay read saved runs without calling the model
 bun run studio       # development only: Mastra API on :3214 over the app's own Mastra instance and Studio on http://localhost:3213; pick a persona preset (u_thana, u_krit, …) in the agent's Request context before chatting
@@ -43,6 +43,7 @@ bun run eval --stale                           # recordings whose prompt, tools,
 bun run eval --live --changed                  # print the estimate for re-recording the stale and missing cases; spends nothing
 bun run eval --live --case=<ids> --yes --cap=0.10   # re-record those cases against the real model, stopping before the cap
 bun run eval --accept                          # accept today's failures as the baseline in evals/known-failures.json
+bun run eval --stale --with-console            # copies this deployment's console connectors into the eval folder: lists the cases whose tool surface they change; with --live --case=… asks again with them on and compares the first tool, recordings untouched
 ```
 
 Cost rules:

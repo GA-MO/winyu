@@ -4,6 +4,22 @@ Today an IT admin can watch a connector's health, turn it off, kill one of its t
 
 The URL form is the easy part. The hard part is scope. Every connector tool must say which rows each person may see, and today that rule is a function such as `onlyPeopleInView` in `lms-demo.ts`. That function is the permission boundary. A UI that lets an admin type a URL and press "on" without an equally strict scope rule turns one wrong click into a leak.
 
+## สถานะ (updated 2026-10-09)
+ทำแล้ว: Phase 1 read tools จาก UI (`/admin/connect`, 1d082cf…059d00d); CRM เป็น MCP + ลบ REST (c92b410); ทุก port ยกเว้น mail อ่านผ่าน MCP หลัง `WINYU_PORTS` (93fe023, `mcp-first.md` done); แผน phase 2 model checks (1b66c08). ทุก commit อยู่บน `winyu-mastra` ยังไม่ push
+ทำแล้ว (phase 2): write/destructive tool จาก wizard: pin (identity, `call_id`), guard ผ่าน read tool ของ connector เดียวกัน (ตรวจใน async `ready` ก่อนขึ้นการ์ด และตรวจซ้ำก่อนส่ง), redact, verify `echo`/`read_back`, idempotency หรือ admin ยอมรับความเสี่ยงซ้ำ; ทดสอบ write เป็น dry run ไม่ส่งจริง; การ์ดอนุมัติแบบทั่วไปสำหรับ connector tool; ระบบทรัพย์สิน demo `:3290`; ขั้น "ทดสอบกับ model" ใน wizard (preview connector ผ่าน AsyncLocalStorage ก่อนเปิดใช้, ลบ thread หลังทดสอบ); `bun run eval --with-console`
+ค้าง (phase 2): Inbox pull รอ HRIS connector จริง; audit เก็บ args ที่ model ส่ง ไม่ใช่ args หลัง pin; read tool ที่ต้องมี argument (เช่น `get_asset_request`) ดึงชื่อช่องไม่ได้จึงใช้เป็น `read_back` จาก wizard ยาก; composer ปฏิเสธตารางจากคำตอบของ write (`request_table.rows` path ไม่อยู่ใน tool results) เห็นใน trace
+ค้าง: console connector ยังไม่มีปุ่มลบ, สร้าง signed-identity secret ให้ไม่ได้, test run ส่งทุก argument เป็น null (tool ที่บังคับ arg ทดสอบไม่ผ่าน), DNS ตรวจแต่ไม่ pin (`egress.ts`)
+ค้าง: `.env.local` ต้องมี `WINYU_CONNECTOR_KEY` + `WINYU_CONNECTOR_HOSTS` (เครื่องนี้ใส่แล้ว); เครื่องใหม่ไม่มี = console อ่านอย่างเดียว
+ค้าง: รอผู้ใช้ตัดสิน: trail แสดงคำค้นเอกสารของผู้ใช้เองไหม (`lib/cards/tool-action.ts`, ตอนนี้ซ่อนเพราะ `redact`); ปุ่มม่วงที่เหลือ (admin toggle, share sheet ticks, preview pill) เปลี่ยนเป็นดำไหม
+ค้าง: คำอธิบาย `crm_demo__store_visits` ยกตัวอย่าง "ag_ne_01" แต่ id จริงคือ `ag_nea_01` แก้ตอนมีรอบ re-record เท่านั้น
+ค้าง: session ของ u_thana หลุดครั้งหนึ่งระหว่างกดอนุมัติที่ `/g/<id>` ยังไม่รู้สาเหตุ (ไม่เจอซ้ำ)
+ค้นพบ: eval fingerprint รวม tool list ทั้งชุด เปลี่ยนชื่อ native tool ตัวเดียว = 67 case stale (~$0.36) จึงวาง MCP ไว้หลัง port ไม่แตะ tool
+ค้นพบ: eval seed data folder ใหม่ทุกครั้ง จึงไม่เห็น console connector เลย (phase 2 เพิ่ม `--with-console` แต่ eval เดิมยังเป็นชุดหลัก)
+ค้นพบ: scope ของ write tool ต้องตรวจที่ input (pin arg / guard) ไม่ใช่ output — phase 2 ด้านล่างรวมไว้แล้ว
+ค้นพบ: merge ไฟล์เยอะขณะ dev รันทำ Turbopack panic / `.next/dev/types` เสีย → `make stop`, `rm -rf .next`, `make up`
+ค้นพบ: Gemini คิด (reasoning ภาษาอังกฤษ) ~21 วินาทีก่อน tool แรก; Winyu ทิ้ง reasoning, trail แสดง "กำลังวางแผนคำตอบ…" + ตัวนับแทน
+ถัดไป: ตัดสิน open decisions 1, 3, 4, 5, 7 ด้านล่าง; แก้ข้อค้างของ phase 2
+
 ## Decisions already taken
 
 - **The UI is MCP only.** A system either offers an MCP server or the Winyu team writes a thin MCP wrapper over its REST, SAP or ServiceNow API (see [The wrapper pattern](#the-wrapper-pattern)). The UI has no REST mapping step.

@@ -82,21 +82,21 @@ beforeAll(async () => {
 });
 
 describe("share_card", () => {
-  test("a name that fits one colleague asks the person first; a name that fits several or nobody asks nothing", () => {
+  test("a name that fits one colleague asks the person first; a name that fits several or nobody asks nothing", async () => {
     const capability = winyuTools().share_card.capability;
-    expect(asCeo(() => asksApproval(capability, { to: ["คุณกฤต"] }))).toBe(true);
-    expect(asCeo(() => asksApproval(capability, { to: ["u_krit"] }))).toBe(true);
-    expect(asCeo(() => asksApproval(capability, { to: ["จันทร"] }))).toBe(false);
-    expect(asCeo(() => asksApproval(capability, { to: ["คุณกฤต", "คุณสมศรี"] }))).toBe(false);
+    expect(await asCeo(() => asksApproval(capability, { to: ["คุณกฤต"] }))).toBe(true);
+    expect(await asCeo(() => asksApproval(capability, { to: ["u_krit"] }))).toBe(true);
+    expect(await asCeo(() => asksApproval(capability, { to: ["จันทร"] }))).toBe(false);
+    expect(await asCeo(() => asksApproval(capability, { to: ["คุณกฤต", "คุณสมศรี"] }))).toBe(false);
   });
 
   test("a note carries no number the person did not type, so no value from the card travels in the message", async () => {
     const capability = winyuTools().share_card.capability;
     const turn = (question: string) => ({ turnId: null, threadId: null, preloadPacketId: null, question, queries: [] });
     const asked = (question: string, note: string) => asCeo(() => runWithTurn(turn(question), () => asksApproval(capability, { to: ["คุณกฤต"], note })));
-    expect(asked("ส่งการ์ดนี้ให้คุณกฤตดู", "ยอดอีสาน 232.5 ล้านบาท ต่ำกว่าเป้า")).toBe(false);
-    expect(asked("ส่งให้คุณกฤตดู บอกว่าคุยกันตอน 10 โมง", "คุยกันตอน 10 โมง")).toBe(true);
-    expect(asked("ส่งให้คุณกฤตดู", "ช่วยดูภาคอีสานหน่อย")).toBe(true);
+    expect(await asked("ส่งการ์ดนี้ให้คุณกฤตดู", "ยอดอีสาน 232.5 ล้านบาท ต่ำกว่าเป้า")).toBe(false);
+    expect(await asked("ส่งให้คุณกฤตดู บอกว่าคุยกันตอน 10 โมง", "คุยกันตอน 10 โมง")).toBe(true);
+    expect(await asked("ส่งให้คุณกฤตดู", "ช่วยดูภาคอีสานหน่อย")).toBe(true);
     const before = sharesByCeo().length;
     const result = (await asCeo(() => runWithTurn(turn("ส่งการ์ดนี้ให้คุณกฤตดู"), () => winyuTools().share_card.execute({ to: ["คุณกฤต"], note: "ยอด 232.5 ล้าน" })))) as { ok: boolean };
     expect(result.ok).toBe(false);
