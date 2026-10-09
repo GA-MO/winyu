@@ -5,11 +5,10 @@ import { LIMITS } from "@/lib/harness/limits";
 import type { Capability } from "@/lib/harness/types";
 import type { WinyuTool } from "@/lib/server/tools/define";
 import { TH } from "@/lib/i18n/th";
+import { CONNECTOR_ID, REMOTE_TOOL_NAME } from "@/lib/connectors/spec";
 import { callConnectorTool, descriptionOf, inputSchemaOf } from "./call";
 import type { ConnectorField, ConnectorToolBinding, McpConnector, McpConnectorConfig, McpToolConfig, SensitiveField } from "./types";
 
-const CONNECTOR_ID = /^[a-z][a-z0-9_]{0,31}$/;
-const REMOTE_TOOL_NAME = /^[A-Za-z0-9_.-]{1,64}$/;
 const UNDECLARED_TIER: ToolTier = "destructive";
 
 function prefixedToolName(connector: string, tool: string): string {
@@ -41,7 +40,7 @@ function includes(roles: readonly RoleId[] | "all" | undefined, role: RoleId): b
 
 function fieldOf(connector: string, sensitive: SensitiveField): ConnectorField {
   const defaultFor = (role: RoleId): Visibility => (includes(sensitive.full, role) ? "full" : includes(sensitive.masked, role) ? "masked" : "none");
-  return { key: `${connector}.${sensitive.field}`, connector, field: sensitive.field, labelTh: sensitive.labelTh, defaultFor };
+  return { key: `${connector}.${sensitive.field}`, connector, field: sensitive.field, labelTh: sensitive.labelTh, ownerField: sensitive.ownerField ?? null, defaultFor };
 }
 
 function bindingOf(connector: string, remoteName: string, tool: McpToolConfig): ConnectorToolBinding {

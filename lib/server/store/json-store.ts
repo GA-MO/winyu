@@ -62,6 +62,11 @@ export function collection<T extends Identified>(name: string): Collection<T> {
   };
 }
 
+/** When a collection's file last changed (0 before its first write), for callers that derive something from it once per version. */
+export function collectionStamp(name: string): number {
+  return stampOf(name);
+}
+
 export function resetCollections() {
   caches.clear();
 }

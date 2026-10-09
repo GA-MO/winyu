@@ -71,9 +71,11 @@ export function remoteErrorText(raw: McpCallResult): string {
   return fence(textOf(raw)).slice(0, 400);
 }
 
-export function scopedArgs(scope: ConnectorScope, args: Record<string, unknown>, access: AccessContext): Record<string, unknown> {
+export async function scopedArgs(scope: ConnectorScope, args: Record<string, unknown>, access: AccessContext): Promise<Record<string, unknown>> {
   if ("kind" in scope) return args;
-  return scope.reduce((current, rule) => (rule.kind === "inject" ? { ...current, ...rule.args(access) } : current), args);
+  let current = args;
+  for (const rule of scope) if (rule.kind === "inject") current = { ...current, ...(await rule.args(access)) };
+  return current;
 }
 
 export async function scopedRows(scope: ConnectorScope, rows: ConnectorRow[], access: AccessContext): Promise<ConnectorRow[]> {
@@ -83,9 +85,14 @@ export async function scopedRows(scope: ConnectorScope, rows: ConnectorRow[], ac
   return current;
 }
 
-function hide(rows: ConnectorRow[], field: string, masked: boolean): ConnectorRow[] {
-  const keys = [field, `${field}_label`];
+function ownsRow(field: ConnectorField, row: ConnectorRow, self: string | null): boolean {
+  return field.ownerField !== null && self !== null && row[field.ownerField] === self;
+}
+
+function hide(rows: ConnectorRow[], field: ConnectorField, masked: boolean, self: string | null): ConnectorRow[] {
+  const keys = [field.field, `${field.field}_label`];
   return rows.map((row) => {
+    if (ownsRow(field, row, self)) return row;
     const next = { ...row };
     for (const key of keys) {
       if (!(key in next)) continue;
@@ -96,14 +103,14 @@ function hide(rows: ConnectorRow[], field: string, masked: boolean): ConnectorRo
   });
 }
 
-/** Rows with each sensitive field shown in full, masked or dropped for the caller's role, and the fields that were not shown in full. */
-export function maskedRows(rows: ConnectorRow[], fields: readonly ConnectorField[], access: AccessContext): { rows: ConnectorRow[]; masked: string[] } {
+/** Rows with each sensitive field shown in full, masked or dropped for the caller's role (in full on the caller's own rows when the field says so), and the fields not shown in full somewhere. `self` is the caller's employee id. */
+export function maskedRows(rows: ConnectorRow[], fields: readonly ConnectorField[], access: AccessContext, self: string | null = null): { rows: ConnectorRow[]; masked: string[] } {
   let visible = rows;
   const masked: string[] = [];
   for (const field of fields) {
     const visibility = fieldVisibilityOf(access.role, field.key);
-    if (visibility === "full" || !rows.some((row) => field.field in row)) continue;
-    visible = hide(visible, field.field, visibility === "masked");
+    if (visibility === "full" || !rows.some((row) => field.field in row && !ownsRow(field, row, self))) continue;
+    visible = hide(visible, field, visibility === "masked", self);
     masked.push(field.field);
   }
   return { rows: visible, masked };

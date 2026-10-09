@@ -5,6 +5,7 @@ import { currentAccess } from "@/lib/server/request-context";
 import { TH } from "@/lib/i18n/th";
 import { markReachable, remoteTool } from "./catalog";
 import { clientFor, dropClient } from "./pool";
+import { callerIdentity } from "./presets";
 import { fencedRows, genericOutput, isRemoteError, maskedRows, MAX_CONNECTOR_ROWS, remoteErrorText, scopedArgs, scopedRows } from "./output";
 import type { ConnectorOutput, ConnectorRow, ConnectorToolBinding, McpCallResult, McpConnectorConfig } from "./types";
 
@@ -85,7 +86,8 @@ function scopeCodeOf(binding: ConnectorToolBinding, received: number, kept: numb
 async function shaped(connector: McpConnectorConfig, binding: ConnectorToolBinding, output: ConnectorOutput, access: AccessContext): Promise<ConnectorToolResult> {
   const inScope = await scopedRows(binding.config.scope, output.rows, access);
   if (output.rows.length > 0 && inScope.length === 0) return { ok: false, code: PERMISSION_DENIED, error: TH.admin.connectors.outOfScope(binding.config.labelTh) };
-  const { rows, masked } = maskedRows(inScope, binding.fields, access);
+  const self = binding.fields.some((field) => field.ownerField !== null) ? (await callerIdentity(access)).employee_id : null;
+  const { rows, masked } = maskedRows(inScope, binding.fields, access, self);
   const code = scopeCodeOf(binding, output.rows.length, inScope.length);
   return {
     ok: true,
@@ -99,7 +101,7 @@ async function shaped(connector: McpConnectorConfig, binding: ConnectorToolBindi
 /** One call to a connector tool as the person asking, once the gateway allowed it: Winyu's scope on the way in, the MCP server as that person (its error flag, then the adapter or the generic flattening), then Winyu's scope, masking and fence on the way out. */
 export async function callConnectorTool(connector: McpConnectorConfig, binding: ConnectorToolBinding, input: unknown): Promise<ConnectorToolResult> {
   const access = currentAccess();
-  const args = scopedArgs(binding.config.scope, argsOf(binding, input), access);
+  const args = await scopedArgs(binding.config.scope, argsOf(binding, input), access);
   const outcome = await askServer(connector, binding, args, access);
   if (outcome.ok) return shaped(connector, binding, outcome.output, access);
   if (outcome.reason === "unavailable") return { ok: false, code: CONNECTOR_UNAVAILABLE, error: TH.admin.connectors.unavailable(connector.labelTh) };

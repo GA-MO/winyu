@@ -175,6 +175,36 @@ export function recordGuardFinding(finding: GuardFinding, userId: string): void 
   });
 }
 
+/** The name an IT admin's work on a console connector goes by in the audit. */
+export const CONNECTOR_ADMIN_AUDIT_TOOL = "connector_admin";
+
+/** What an IT admin did to a connector made in the console, or tried to and was refused. */
+export type ConnectorEventKind = "created" | "rediscovered" | "tool_saved" | "upstream_approved" | "tool_removed" | "sampled" | "tested" | "activated" | "enabled" | "disabled" | "secret_rotated" | "upstream_checked" | "refused";
+
+/** One connector event as the audit needs it: who, which connector and tool, what happened in Thai, and names and counts only; never a secret nor a row value. */
+export type AuditedConnectorEvent = { userId: string; event: ConnectorEventKind; connector: string; tool: string | null; reason: string; detail: Record<string, unknown>; code?: string };
+
+/** Writes the audit row one connector event leaves: a refusal is a deny, every other event an allow. */
+export function recordConnectorEvent(entry: AuditedConnectorEvent): void {
+  const args = { event: entry.event, ...(entry.tool ? { tool: entry.tool } : {}), ...entry.detail };
+  auditLog().put({
+    id: randomUUID(),
+    at: new Date().toISOString(),
+    userId: entry.userId,
+    tool: CONNECTOR_ADMIN_AUDIT_TOOL,
+    connector: entry.connector,
+    argsHash: argsHash(args),
+    decision: entry.event === "refused" ? "deny" : "allow",
+    rowsReturned: 0,
+    latencyMs: 0,
+    ...(entry.code ? { code: entry.code } : {}),
+    reason: entry.reason,
+    args: argsPreview(args),
+    toolCallId: randomUUID(),
+    initiator: "person",
+  });
+}
+
 /** The name a temporary grant's lifecycle goes by in the audit. */
 export const GRANT_AUDIT_TOOL = "grant";
 

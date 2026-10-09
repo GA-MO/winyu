@@ -1,6 +1,9 @@
 import { clientFor, dropClient } from "./pool";
 import { learnRemoteTools, markReachable } from "./catalog";
-import { remoteConnectors } from "./index";
+import { codeConnectorIds, remoteConnectors } from "./index";
+import { openSecret } from "./secrets";
+import { listUpstream, storedConnectors } from "./stored";
+import type { StoredConnector } from "@/lib/connectors/spec";
 import type { RemoteTool } from "./catalog";
 import type { McpConnector, McpToolConfig } from "./types";
 
@@ -41,10 +44,27 @@ function report(drift: ConnectorDrift): void {
   if (drift.unused.length > 0) console.info(`[connectors] ${drift.connector} offers tools Winyu leaves closed: ${drift.unused.join(", ")}`);
 }
 
+async function checkStored(connector: StoredConnector): Promise<void> {
+  const secret = openSecret(connector.id);
+  if (!secret) return;
+  await listUpstream(connector.id, { url: connector.url, auth: connector.auth.kind }, secret).catch(() => undefined);
+}
+
+/** Lists the tools of every activated console connector and keeps the listing; a tool whose description, schema or hints changed leaves the surface until the admin approves the change, and one that returns to what was approved comes back. */
+export async function checkStoredConnectors(): Promise<void> {
+  await Promise.all(storedConnectors().filter((connector) => connector.activatedAt !== null).map(checkStored));
+}
+
+function codeConnectors(): McpConnector[] {
+  const code = new Set(codeConnectorIds());
+  return remoteConnectors().filter((connector) => code.has(connector.def.id));
+}
+
 /** Compares what each server offers with what Winyu declares and logs the difference; never opens a tool the config does not name. */
 export async function reconcileConnectors(): Promise<ConnectorDrift[]> {
+  await checkStoredConnectors();
   const drifts: ConnectorDrift[] = [];
-  for (const connector of remoteConnectors()) {
+  for (const connector of codeConnectors()) {
     try {
       const drift = await driftOf(connector);
       report(drift);
@@ -70,7 +90,7 @@ async function probe(connector: McpConnector): Promise<void> {
 
 /** Asks every connector for its tool list so the admin's status pill follows a server that stopped or came back. */
 export async function probeConnectors(): Promise<void> {
-  await Promise.all(remoteConnectors().map(probe));
+  await Promise.all([...codeConnectors().map(probe), checkStoredConnectors()]);
 }
 
 /** Probes the connectors every few minutes, once per server process however many module copies load this file. */
