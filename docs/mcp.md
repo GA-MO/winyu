@@ -54,29 +54,69 @@ Winyu also reaches other systems as an MCP client, and MCP is the only way it do
 - **Declare the connector.** Write it with `defineMcpConnector` in `lib/server/connectors/` and add it to `CONFIGURED` in `index.ts`. Only the tools that the config names reach the model. Each tool declares its tier, roles, scope (`inject` arguments, `filter` rows, or `none` with a reason) and sensitive fields. It can also declare its own description, input schema and output adapter.
 - **One pipeline.** Every call passes the gateway as the person asking. The MCP client sends that person's identity in headers that `signed-identity.ts` signs. Winyu injects scope arguments on the way in. On the way out, it filters, masks, caps at 60 rows and fences every string. A server that does not answer within `timeoutMs` reads as `CONNECTOR_UNAVAILABLE`.
 - **Drift.** At boot `reconcileConnectors` compares each server's tool list with the config, and a probe every five minutes keeps the admin's Online/Offline pill current.
-- **Demo servers.** `bun run connectors:demo` serves the LMS on `:3299/mcp` and the CRM on `:3298/mcp` (`scripts/mcp-demo-server.ts` handles the JSON-RPC and the signature check for both). `WINYU_LMS_DEMO_URL` and `WINYU_CRM_DEMO_URL` move a server and the URL Winyu calls together, because the demo listens on the port in that URL.
+- **Demo servers.** `bun run connectors:demo` serves every demo system over MCP from one process: the LMS on `:3299/mcp`, the CRM on `:3298/mcp`, the HRIS on `:3293/mcp`, the safety (EHS) system on `:3292/mcp` and the company calendar on `:3291/mcp`. `scripts/mcp-demo-server.ts` handles the JSON-RPC and the signature check for all of them. Each URL variable (`WINYU_LMS_DEMO_URL`, `WINYU_CRM_DEMO_URL`, `WINYU_HRIS_MCP_URL`, `WINYU_EHS_MCP_URL`, `WINYU_CALENDAR_MCP_URL`) moves a server and the URL Winyu calls together, because the demo listens on the port in that URL. Each server also runs alone with `bun run scripts/mcp-demo-<system>.ts`.
 
-# Metrics from the data team's MCP
+# Systems of record over MCP
 
-The section above covers Winyu as an MCP server. Winyu is also an MCP client for its metrics: the data team serves the warehouse over MCP, and Winyu reads facts and dimension tables from it.
+The sections above cover Winyu as an MCP server and its connector tools. Winyu is also an MCP client for every system of record behind its ports (`lib/server/ports/`). Each port becomes a client of that system's MCP server, and the model-facing tools above it keep their names, descriptions and schemas. Eval recordings therefore do not go stale when a port moves.
 
-## What stays in Winyu
+## Which system serves which port
 
-The semantic layer stays in Winyu: `lib/server/metrics.ts` and `lib/semantic/`. Winyu plans every question, injects the caller's scope into the filters, formats the numbers, adds certified, source and as-of, and applies the small-cell and masking rules. The data team's server never sees a question or a caller's access. It answers requests that Winyu has already scoped, so it never decides scope.
+| Port | System and demo server | Default URL | Contract tools | Cache | Admin connector |
+| --- | --- | --- | --- | --- | --- |
+| `metrics` | The data team's warehouse, `scripts/metrics-mcp.ts` | `:3297` | `query_facts`, `master_data`, `list_metrics`, `describe_entity` | 30 s | Data Warehouse |
+| `learning` | The LMS, `scripts/mcp-demo-lms.ts`, beside its `training_history` connector tool | `:3299` | `list_courses` | 1 min | LMS |
+| `directory` | The HRIS, `scripts/mcp-demo-hris.ts` | `:3293` | `load_directory` | 5 min | HRIS |
+| `leave` | The HRIS leave module | `:3293` | `leave_policy`, `leave_used_this_year` | 1 min | Leave |
+| `recruiting` | The HRIS recruiting module | `:3293` | `list_candidates` | 1 min | HRIS |
+| `sites` | The safety (EHS) system, `scripts/mcp-demo-ehs.ts` | `:3292` | `load_sites` | 1 min | Sites |
+| `calendar` | The company calendar, `scripts/mcp-demo-calendar.ts` | `:3291` | `load_calendar` | 30 min | Calendar |
+| `mail` | Stays in-process: the outbox is Winyu's own record of what it sent | | | | |
 
-The model-facing tools `query_metric`, `list_metrics` and `describe_entity` stay native. Their descriptions and schemas do not change with the source, so eval recordings do not go stale.
+Recruiting sits on the HRIS server because the admin already shows HRIS and recruiting as one connector, and `list_candidates` needs the directory to decide who sees which opening. Each contract is a zod module that the demo server and Winyu's client share: `metrics-mcp-contract.ts`, `learning-mcp-contract.ts`, `hris-mcp-contract.ts`, `sites-mcp-contract.ts` and `calendar-mcp-contract.ts`.
 
 ## Select the source
 
 | Env | Effect |
 | --- | --- |
-| unset | The in-process generator answers `MetricsPort` (`lib/server/ports/generator.ts`). Tests and `bun run eval` always use it. |
-| `WINYU_PORTS=mcp` or a list naming `metrics` | `metricsMcpPort` (`lib/server/ports/metrics-mcp.ts`) answers `MetricsPort` over MCP. |
-| `WINYU_METRICS_MCP_URL` | The server's Streamable HTTP endpoint. Default `http://127.0.0.1:3297/mcp`. |
-| `WINYU_METRICS_MCP_SECRET` | The secret both sides sign identities with. The default is for the local demo only. |
-| `WINYU_METRICS_MCP_TIMEOUT_MS` | How long one call may take, connect included. Default 4000. |
+| `WINYU_PORTS` unset, empty or `generator` | The in-process generator answers every port (`lib/server/ports/generator.ts`). `bun test` and `bun run eval` always delete `WINYU_PORTS`. |
+| `WINYU_PORTS=mcp` | Every port except `mail` reads over MCP. |
+| `WINYU_PORTS=metrics,directory` | Only the named ports read over MCP. Names that are not ports are ignored. |
+| `WINYU_<SYSTEM>_MCP_URL` | The server's endpoint, for `METRICS`, `HRIS`, `EHS` and `CALENDAR`. The LMS keeps `WINYU_LMS_DEMO_URL`, shared with its connector. |
+| `WINYU_<SYSTEM>_MCP_SECRET` | The secret both sides sign identities with. The LMS keeps `WINYU_LMS_DEMO_SECRET`. The defaults are for the local demo only. |
+| `WINYU_<SYSTEM>_MCP_TIMEOUT_MS` | How long one call may take, connect included. `WINYU_LMS_MCP_TIMEOUT_MS` for the LMS. Default 4000. |
 
-`make up` starts `bun run metrics:mcp` on :3297 beside the other demo connectors and runs dev with `WINYU_PORTS=mcp`. Run `make up PORTS=generator` to keep the in-process port. `make stop` and `make status` include :3297. To run the demo server alone on another port, set `WINYU_METRICS_MCP_PORT`.
+`make up` starts `bun run connectors:demo` and `bun run metrics:mcp`, then runs dev with `WINYU_PORTS=mcp`. Run `make up PORTS=generator` to keep every port in-process, or pass a list such as `make up PORTS=metrics,calendar`. `make stop` and `make status` include :3291, :3292, :3293, :3297, :3298 and :3299. To run the metrics server alone on another port, set `WINYU_METRICS_MCP_PORT`.
+
+## What every server must do
+
+- Accept only requests that carry Winyu's signed identity headers (`x-winyu-user`, `x-winyu-role`, `x-winyu-regions`, `x-winyu-signature`, HMAC-SHA256 as in `lib/server/connectors/signed-identity.ts`). Refuse any other request with HTTP 401.
+- Offer one tool per port method. Arguments are plain JSON. Each result is a JSON object in `structuredContent`, or the same JSON as the first text content.
+- Refuse arguments that do not parse as a tool error (`isError`), never as an empty result.
+- Log the caller for its own audit. A chat tool call signs as the person asking. Dashboard and background reads sign as `winyu`.
+
+## How the client behaves
+
+`mcpPortClient` in `lib/server/ports/mcp-port.ts` is the one client every port uses.
+
+- **Short cache.** A call with the same arguments within the port's cache window is answered once. The key ignores key order. A failed call is not cached, and an expired entry is never served.
+- **Pooled clients.** Calls go through the connector pool (`lib/server/connectors/pool.ts`), one client per caller.
+- **Parsed at the boundary.** Every result is parsed against the contract's zod schema. A result that does not match is an error, never data, so a directory missing a field is never read as a smaller directory.
+- **One typed error.** A timeout, an unreachable server, a refused call or a malformed result throws `PortUnavailable`, which names the port and the reason.
+- **Tools.** The gateway turns `PortUnavailable` from any tool into `{ ok: false, code: "CONNECTOR_UNAVAILABLE" }` with a **ข้อมูลไม่พร้อม** message that names the system and tells the model not to guess. The harness classifies the code as an unavailable source (`lib/harness/recovery.ts`), so a read may run once more before the model gets the failure. A change such as `request_leave` or `enroll_course` files nothing.
+- **Pages.** A feed section whose system does not answer shows one item, labelled with the system, that says **ข้อมูลไม่พร้อม**. Team stories, which need the directory, are left untold. The landing, the inbox and the dashboard still render.
+- **The directory fails closed.** Nothing in `lib/access` loads the directory: `peopleViewOf` and `canSeeCandidates` take a loaded `Directory` from their caller. When the HRIS does not answer, the load throws and the call stops there, with no fallback to an empty or stale directory. People, candidate, site and training-history tools refuse for every user, and no feed carries a people matter. `lib/server/ports/hris-mcp.test.ts` checks this for all 26 users.
+- **Health.** Each port reports under its admin connector. With a port on MCP, **/admin → Tools** shows that connector as an MCP connection with its online or offline status, and the overview lists it when it is offline. The HRIS server reports as both HRIS and Leave.
+
+# Metrics from the data team's MCP
+
+The data team serves the warehouse over MCP, and Winyu reads facts and dimension tables from it.
+
+## What stays in Winyu
+
+The semantic layer stays in Winyu: `lib/server/metrics.ts` and `lib/semantic/`. Winyu plans every question, injects the caller's scope into the filters, formats the numbers, adds certified, source and as-of, and applies the small-cell and masking rules. The data team's server never sees a question or a caller's access. It answers requests that Winyu has already scoped, so it never decides scope.
+
+The model-facing tools `query_metric`, `list_metrics` and `describe_entity` stay native.
 
 ## The contract the data team's server provides
 
@@ -89,20 +129,12 @@ The model-facing tools `query_metric`, `list_metrics` and `describe_entity` stay
 | `list_metrics` | `{ search: string \| null }` | `{ metrics: MetricDef[] }` |
 | `describe_entity` | `{ kind, query }` | `{ ok: true, data, summary }` or `{ ok: false, error }` |
 
-The server must also do the following:
-
-- Accept only requests that carry Winyu's signed identity headers (`x-winyu-user`, `x-winyu-role`, `x-winyu-regions`, `x-winyu-signature`, HMAC-SHA256 as in `lib/server/connectors/signed-identity.ts`). Refuse any other request with HTTP 401.
-- Log the caller for its own audit. A chat tool call signs as the person asking. Dashboard and background reads sign as `winyu`.
-- Return a group's `value` summed, and for ratio metrics its denominator in `weight`. Return `weight: 1` otherwise.
+Beyond what every server must do, the warehouse returns a group's `value` summed, and for ratio metrics its denominator in `weight`. It returns `weight: 1` otherwise.
 
 `scripts/metrics-mcp.ts` is the demo implementation. It serves the generator warehouse with the MCP SDK and prints one audit line per call.
 
-## How the client behaves
+## Metrics-specific client behaviour
 
 - **Parallel calls.** Each scoped `FactRequest` is one `query_facts` call, and a comparison or a dashboard fans out in parallel.
-- **Short cache.** A request with the same scoped arguments within 30 seconds is answered once. The key ignores key order. A failed call is not cached.
-- **Pooled clients.** Calls go through the connector pool (`lib/server/connectors/pool.ts`), one client per caller.
-- **Parsed at the boundary.** Every result is parsed against the contract's zod schema. A result that does not match is an error, never data.
-- **One typed error.** A timeout, an unreachable server, a refused call or a malformed result throws `PortUnavailable`. The semantic layer returns it as `{ ok: false, code: "CONNECTOR_UNAVAILABLE" }`. Chat cards and dashboard widgets draw it as **ข้อมูลไม่พร้อม** and never show zeros. The harness classifies the code as an unavailable source (`lib/harness/recovery.ts`), so a read may run once more before the model gets the failure.
+- **Cards.** The semantic layer returns `PortUnavailable` as `{ ok: false, code: "CONNECTOR_UNAVAILABLE" }`. Chat cards and dashboard widgets draw it as **ข้อมูลไม่พร้อม** and never show zeros.
 - **Master data through an outage.** The dictionary keeps the last master data the source gave and tries again every 30 seconds. A cold start with the source down has no names to show, so pages that need names fail until the source answers.
-- **Health.** The source reports under the Data Warehouse connector. With metrics on MCP, **/admin → Tools** shows it as an MCP connection with its online or offline status, and the overview lists it when it is offline.

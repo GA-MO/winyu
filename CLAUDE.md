@@ -19,8 +19,8 @@ bun run probe:durable --disconnect   # cuts a live chat run at its first tool ca
 bun run trace [runId] # prints one agent run's harness trace (latest when no id)
 bun run call-tool <userId> <tool> [json]   # runs one tool through the gateway as that user and prints the audit decision (no model call)
 bun run mcp:probe <token> [--url=…/api/mcp] [--legacy]   # connects the official MCP client with an admin-issued token, lists tools and calls query_metric (no model call); see docs/mcp.md
-bun run connectors:demo   # serves the demo connectors: LMS on :3299 and CRM on :3298, both over MCP (set WINYU_LMS_DEMO_URL / WINYU_CRM_DEMO_URL to move them)
-bun run metrics:mcp       # the data team's demo metrics MCP on :3297 (generator warehouse); dev reads it with WINYU_PORTS=mcp, `make up` does both; see docs/mcp.md
+bun run connectors:demo   # serves the demo systems over MCP: LMS :3299, CRM :3298, HRIS :3293 (directory, leave, recruiting), safety/EHS :3292, company calendar :3291; dev reads them behind the ports with WINYU_PORTS=mcp (or a list such as WINYU_PORTS=directory,calendar); see docs/mcp.md
+bun run metrics:mcp       # the data team's demo metrics MCP on :3297 (generator warehouse); `make up` starts both demo processes and runs dev with WINYU_PORTS=mcp (`make up PORTS=generator` keeps the in-process ports); see docs/mcp.md
 bun run investigate -- --users=<id>[,<id>…]|all [--save] [--show] [--replay]   # the morning investigation per person against the real model (~7 calls each); --show and --replay read saved runs without calling the model
 bun run studio       # development only: Mastra API on :3214 over the app's own Mastra instance and Studio on http://localhost:3213; pick a persona preset (u_thana, u_krit, …) in the agent's Request context before chatting
 bun run eval         # scores the recorded eval cases with code-only scorers, $0 (see Evals)

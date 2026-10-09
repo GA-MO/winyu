@@ -1,6 +1,6 @@
 # Reaching every outside system over MCP
 
-The user's principle is "ทำเป็น MCP มากที่สุดเท่าที่จะเป็นไปได้": every system outside Winyu is reached over MCP. This plan sorts today's integrations into what moves, what stays, and what needs a decision, and gives the order and the cost of each move. It is a plan only. Nothing here is migrated yet.
+The user's principle is "ทำเป็น MCP มากที่สุดเท่าที่จะเป็นไปได้": every system outside Winyu is reached over MCP. This plan sorts today's integrations into what moves, what stays, and what needs a decision, and gives the order and the cost of each move. **Status (2026-10-09): done.** Every port except `mail` reads over MCP behind `WINYU_PORTS=mcp`, with no tool changed and no recording stale. `docs/mcp.md` ("Systems of record over MCP") describes the result. The calendar decision is made: it lives in a system outside Winyu.
 
 ## MCP can sit at two seams, and the cheaper one changes no tool
 
@@ -74,12 +74,12 @@ The request carries no caller identity for filtering, because Winyu sends reques
 
 Each move behind a port changes no tool, so none costs an eval re-record. The risk is in the wrapper and the latency. The order puts the smallest, least shared systems first.
 
-1. **Learning (LMS).** Read-only courses, one small wrapper, and the LMS demo server already exists. Low risk.
-2. **Leave (HRIS leave).** Balances and policy behind the port. The risk is `request_leave`, which today files into Winyu's Inbox. A real HRIS takes the request itself, so the native tool's `verify` (`leaveHolds`) becomes a read-back through the port. That changes behaviour but not the tool's description, so it costs no re-record unless the description changes.
-3. **Recruiting and sites.** Read-only, few users.
-4. **Directory (HRIS).** Medium risk: everything people-related reads it, and `peopleViewOf` depends on `managerId` being right. It needs the bulk tool and the cache.
-5. **Metrics (warehouse).** Highest traffic and the most callers. It goes last, once the data team's server meets the latency budget and the parity tests pass.
-6. **Calendar and documents.** Only when the decision in the inventory table is made.
+1. **Learning (LMS).** Done: the LMS demo server serves `list_courses` beside `training_history`; `learningMcpPort` reads it. `enroll_course` still files into Winyu's Inbox.
+2. **Leave (HRIS leave).** Done: `leave_policy` and `leave_used_this_year` on the HRIS server. `request_leave` still files into Winyu's Inbox, so its `verify` is unchanged; a read-back through the port waits for a real HRIS that takes requests.
+3. **Recruiting and sites.** Done: `list_candidates` on the HRIS server (the admin already shows HRIS and recruiting as one connector), `load_sites` on a demo safety (EHS) server.
+4. **Directory (HRIS).** Done: `load_directory` returns the whole directory in one call, kept five minutes. An HRIS that does not answer fails closed for every user (`hris-mcp.test.ts`).
+5. **Metrics (warehouse).** Done first, before this plan's order, as the data team's server.
+6. **Calendar and documents.** The calendar is done: a demo company-calendar server serves `load_calendar`, kept 30 minutes. Documents stay open (decision 2).
 
 Replacing a native tool with connector tools is a separate decision for each system, taken only when the remote system offers something the native tool cannot express. It costs a full re-record of every persona who sees the tool, about $0.36 at today's 67 cases. Run `bun run eval --live --changed` first, which prints the estimate and spends nothing.
 
@@ -87,7 +87,7 @@ Replacing a native tool with connector tools is a separate decision for each sys
 
 These are product choices for the user.
 
-1. The company calendar (holidays, alcohol ban days): does a system outside Winyu own it, or does IT keep a yearly table in Winyu?
+1. ~~The company calendar: a system outside Winyu, or a yearly table in Winyu?~~ Decided: a system outside Winyu, reached over MCP.
 2. Documents: should Winyu keep its own search index fed from SharePoint, or ask the document system's own search over MCP and give up Winyu's ranking and scope filter?
 3. Should the data team's audit see which person asked for each number, or only that Winyu asked?
 4. What latency is acceptable for the dashboard when the warehouse answers over MCP: is 1.5 seconds for a full page the right target?
