@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { NOTIFICATION_KINDS } from "@/lib/contracts";
-import { activityGroups, bucketOf, decisionAction, hasUnread, type BellDecision, type BellItem } from "./items";
+import { bucketOf, decisionAction, hasUnread, type BellDecision, type BellItem } from "./items";
 
 const NOW = new Date("2026-10-09T10:00:00.000Z");
 const HOUR_MS = 3_600_000;
@@ -31,16 +31,6 @@ describe("the bell's items", () => {
   test("a handoff's button takes the work on its packet, a grant request's button opens the request to decide it", () => {
     expect(decisionAction(decision("handoff", "pk_1", "/c/new?preload=pk_1"))).toEqual({ type: "accept", packetId: "pk_1" });
     expect(decisionAction(decision("grant_request", "rq_1", "/g/rq_1"))).toEqual({ type: "open", href: "/g/rq_1" });
-  });
-
-  test("updates group by the rail's day groups, newest group first, leaving empty groups out", () => {
-    const groups = activityGroups([item("now", 1), item("old", 24 * 30), item("yesterday", 30)], NOW);
-    expect(groups.map((entry) => [entry.group, entry.items.map((row) => row.key)])).toEqual([
-      ["today", ["now"]],
-      ["yesterday", ["yesterday"]],
-      ["older", ["old"]],
-    ]);
-    expect(activityGroups([], NOW)).toEqual([]);
   });
 
   test("read all is offered only while something is unread", () => {

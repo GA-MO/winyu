@@ -1,7 +1,4 @@
 import type { NotificationKind } from "@/lib/contracts";
-import { threadGroupOf, type ThreadGroup } from "@/lib/i18n/format";
-
-const GROUP_ORDER: readonly ThreadGroup[] = ["today", "yesterday", "week", "older"];
 
 /** The kinds that wait on the reader, and what the bell's one inline button does about each: take the handoff, or open the request to decide it. */
 export const DECISION_ACTIONS = { handoff: "accept", grant_request: "open" } as const satisfies Partial<Record<NotificationKind, "accept" | "open">>;
@@ -21,7 +18,7 @@ export function bucketOf(kind: NotificationKind): Bucket {
 
 export type BellPerson = { name: string; photo: string | null };
 
-/** One row of the bell or the Shared timeline: who caused it (null when Winyu did or nobody is known), its title, when, where it opens, and the notification it reads when opened. */
+/** One row of the bell: who caused it (null when Winyu did or nobody is known), its title, when, where it opens, and the notification it reads when opened. */
 export type BellItem = { key: string; kind: NotificationKind; refId: string; title: string; person: BellPerson | null; at: string; read: boolean; target: string; notificationId: string | null };
 
 export type BellDecision = BellItem & { kind: DecisionKind };
@@ -34,13 +31,6 @@ export type DecisionAction = { type: "accept"; packetId: string } | { type: "ope
 
 export function decisionAction(item: BellDecision): DecisionAction {
   return DECISION_ACTIONS[item.kind] === "accept" ? { type: "accept", packetId: item.refId } : { type: "open", href: item.target };
-}
-
-export type ActivityGroup = { group: ThreadGroup; items: BellItem[] };
-
-/** Updates grouped by the chat rail's day groups, newest group first, empty groups left out. */
-export function activityGroups(items: readonly BellItem[], now: Date = new Date()): ActivityGroup[] {
-  return GROUP_ORDER.map((group) => ({ group, items: items.filter((item) => threadGroupOf(item.at, now) === group) })).filter((entry) => entry.items.length > 0);
 }
 
 /** Whether anything in the bell is unread, which is when "read all" is offered. */

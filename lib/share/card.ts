@@ -50,22 +50,25 @@ export type ShareGrantReceipt = { userId: string; name: string; metric: MetricId
 /** A live grant the sender gave on a share, as Shared lists it with its revoke. */
 export type GivenGrant = { id: string; recipientName: string; slice: string; until: string };
 
-/** A share the person sent, as Shared lists it: who got it on which channel, how often they opened it, and the grants still live on it. */
-export type SentShare = { code: string; path: string; title: string; at: string; receipts: ShareReceipt[]; opened: number; recipients: number; grants: GivenGrant[] };
+/** Someone on the other side of a share: the sender of a received one, a recipient of a sent one. */
+export type SharePerson = { id: string; name: string; photo: string | null };
 
-/** A share sent to the person, as Shared lists it: who sent it with what note, what it hides from them, and their pending request or live grant. */
-export type ReceivedShare = {
-  code: string;
-  path: string;
-  title: string;
-  at: string;
-  senderName: string;
-  note: string | null;
-  hidden: string | null;
-  request: { approverName: string } | null;
-  grant: { grantorName: string; until: string } | null;
-  unread: boolean;
-};
+/** Where a received share stands for its reader: a live grant, a pending request, a declined one, a part hidden by name, or nothing hidden. */
+export type ReceivedState =
+  | { kind: "granted"; until: string }
+  | { kind: "pending"; approverName: string }
+  | { kind: "declined" }
+  | { kind: "hidden"; slice: string }
+  | { kind: "full" };
+
+/** Where a sent share stands for its sender: someone asks for more, or how many recipients opened it. */
+export type SentState = { kind: "asked"; requesterName: string } | { kind: "delivered"; opened: number; recipients: number };
+
+/** One share as Shared lists it: the card, the other side, when it was sent, when it last moved (a request, grant, decision or opening), its state, whether anything about it is unread, and the live grants the viewer gave on it. */
+export type ShareLine<S extends ReceivedState | SentState> = { code: string; path: string; title: string; people: SharePerson[]; sentAt: string; activityAt: string; state: S; unread: boolean; grants: GivenGrant[] };
+
+export type ReceivedLine = ShareLine<ReceivedState>;
+export type SentLine = ShareLine<SentState>;
 
 /** One read call of an exchange as the chat knows it. */
 export type ExchangeRead = { toolCallId: string; tool: string; args: unknown; returned: boolean };
