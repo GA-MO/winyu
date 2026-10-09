@@ -46,3 +46,12 @@ The bearer token is checked at the route, not through OAuth. Mastra's `createOAu
 3. Ask, for example, "ยอดขายเข้าแยกตามภาคไตรมาสนี้". The answer holds only the rows that person may see.
 
 Replace `localhost:3100` with the deployed host. To check a token without a model, run `bun run mcp:probe mcp_... --url=http://localhost:3100/api/mcp`. Add `--legacy` to connect the way a 2025-era client does.
+
+## Connectors to other systems
+
+Winyu also reaches other systems as an MCP client, and MCP is the only way it does. A system that has no MCP server gets a thin one, written by the Winyu team, that wraps its REST API. `scripts/mcp-demo-crm.ts` is the example: it serves the demo CRM's visit list as one MCP tool.
+
+- **Declare the connector.** Write it with `defineMcpConnector` in `lib/server/connectors/` and add it to `CONFIGURED` in `index.ts`. Only the tools that the config names reach the model. Each tool declares its tier, roles, scope (`inject` arguments, `filter` rows, or `none` with a reason) and sensitive fields. It can also declare its own description, input schema and output adapter.
+- **One pipeline.** Every call passes the gateway as the person asking. The MCP client sends that person's identity in headers that `signed-identity.ts` signs. Winyu injects scope arguments on the way in. On the way out, it filters, masks, caps at 60 rows and fences every string. A server that does not answer within `timeoutMs` reads as `CONNECTOR_UNAVAILABLE`.
+- **Drift.** At boot `reconcileConnectors` compares each server's tool list with the config, and a probe every five minutes keeps the admin's Online/Offline pill current.
+- **Demo servers.** `bun run connectors:demo` serves the LMS on `:3299/mcp` and the CRM on `:3298/mcp` (`scripts/mcp-demo-server.ts` handles the JSON-RPC and the signature check for both). `WINYU_LMS_DEMO_URL` and `WINYU_CRM_DEMO_URL` move a server and the URL Winyu calls together, because the demo listens on the port in that URL.
