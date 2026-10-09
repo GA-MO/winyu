@@ -27,7 +27,7 @@ describe("/dev/as", () => {
     ENV.WINYU_AUTH = "demo";
     const response = open("u_krit", "/s/abc123?from=line");
     expect(response.status).toBe(307);
-    expect(response.headers.get("location")).toBe(`${ORIGIN}/s/abc123?from=line`);
+    expect(response.headers.get("location")).toBe("/s/abc123?from=line");
     expect(sessionOf(response)).toEqual({ via: "demo", userId: "u_krit" });
     expect(response.headers.get("set-cookie")?.toLowerCase()).not.toContain("domain=");
   });
