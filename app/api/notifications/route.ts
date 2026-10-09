@@ -1,8 +1,7 @@
 import { z } from "zod";
 import { badRequest, readBody, requireAccess, unauthenticated } from "../_guard";
-import { notifications } from "@/lib/server/agent/collections";
 import { inboxCountsFor } from "@/lib/server/inbox";
-import { notificationHome } from "@/lib/share/notification-kinds";
+import { markHomeRead } from "@/lib/server/notify";
 
 const readSchema = z.object({ home: z.enum(["inbox", "shared"]) });
 
@@ -19,7 +18,6 @@ export async function POST(req: Request) {
   if (!access) return unauthenticated();
   const parsed = readSchema.safeParse(await readBody<unknown>(req));
   if (!parsed.success) return badRequest();
-  const store = notifications();
-  for (const item of store.where((entry) => entry.userId === access.userId && !entry.read && notificationHome(entry.kind) === parsed.data.home)) store.put({ ...item, read: true });
+  markHomeRead(access.userId, parsed.data.home);
   return Response.json({ ok: true });
 }

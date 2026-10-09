@@ -1,6 +1,6 @@
 import { randomBytes } from "node:crypto";
 import type { User } from "@/lib/contracts";
-import { UNSHAREABLE_TOOLS, type FallbackReason, type SentShare, type ShareChannel, type SharedCard, type ShareReceipt } from "@/lib/share/card";
+import { UNSHAREABLE_TOOLS, type FallbackReason, type ShareChannel, type SharedCard, type ShareReceipt } from "@/lib/share/card";
 import { findUser, USERS } from "@/lib/data/entities/users";
 import { matchRecipients, type RecipientMatch } from "@/lib/share/recipients";
 import { winyuTools } from "@/lib/server/agent/tools";
@@ -67,15 +67,7 @@ export function sharePath(code: string): string {
   return `/s/${code}`;
 }
 
-/** Each delivery with the recipient's name, for the sheet and the account sheet. */
+/** Each delivery with the recipient's name, for the sheet and Shared. */
 export function receiptsOf(share: Share): ShareReceipt[] {
   return share.deliveries.map((delivery) => ({ ...delivery, name: findUser(delivery.userId)?.nameTh ?? delivery.userId }));
-}
-
-/** The shares one person sent, newest first. */
-export function sharesSentBy(userId: string): SentShare[] {
-  return shares()
-    .where((share) => share.senderId === userId)
-    .sort((left, right) => right.at.localeCompare(left.at))
-    .map((share) => ({ code: share.id, path: sharePath(share.id), title: share.title, at: share.at, receipts: receiptsOf(share), views: share.views }));
 }

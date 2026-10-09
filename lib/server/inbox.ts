@@ -7,13 +7,12 @@ import { formatDateTh } from "@/lib/i18n/format";
 import { TH } from "@/lib/i18n/th";
 import type { Dictionary } from "@/lib/semantic/dictionary";
 import { sliceLabel } from "@/lib/share/grant-label";
-import { notificationHome } from "@/lib/share/notification-kinds";
-import { notifications } from "@/lib/server/agent/collections";
 import { canJudge, openAlertsFor, visibleAlert } from "@/lib/server/alerts";
 import { goodNewsFor, todoFor } from "@/lib/server/feed";
 import { grantRequests } from "@/lib/server/grants";
 import { packetsFor, resolveEvidence, sentPackets, type EvidenceView } from "@/lib/server/handoff";
 import { loadDictionary } from "@/lib/server/master-data";
+import { notificationsIn } from "@/lib/server/notify";
 import { lessonFor } from "@/lib/server/outcomes";
 import { shares } from "@/lib/server/share/shares";
 
@@ -151,7 +150,7 @@ export function decisionCount(userId: string): number {
 
 /** Unread notifications that are read on Shared: cards shared with the person and decisions on their requests. */
 export function sharedUnreadCount(userId: string): number {
-  return notifications().where((item) => item.userId === userId && !item.read && notificationHome(item.kind) === "shared").length;
+  return notificationsIn(userId, "shared").filter((item) => !item.read).length;
 }
 
 export function inboxCountsFor(userId: string): InboxCounts {

@@ -3,10 +3,11 @@
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Check, History, Inbox, LayoutDashboard, Menu, MessageSquarePlus, Pencil, Search, Trash2, X } from "lucide-react";
+import { Check, Forward, History, Inbox, LayoutDashboard, Menu, MessageSquarePlus, Pencil, Search, Trash2, X } from "lucide-react";
 import { BrandMark } from "@/components/chrome/brand-mark";
 import { THREADS_CHANGED } from "@/components/chat/chat-session";
 import { cn } from "@/components/ui/cn";
+import { useInboxCounts } from "@/components/inbox/counts";
 import { threadGroupOf, type ThreadGroup } from "@/lib/i18n/format";
 import { TH } from "@/lib/i18n/th";
 
@@ -65,7 +66,7 @@ function grouped(threads: readonly ThreadSummary[], query: string) {
   return GROUP_ORDER.map((group) => ({ group, items: visible.filter((thread) => threadGroupOf(thread.updatedAt) === group) })).filter((entry) => entry.items.length > 0);
 }
 
-/** The fixed full-height rail: the mark, new chat, dashboard, inbox, then search and the threads grouped by day with rename and delete in place; icons only until expanded (remembered), a drawer on mobile. */
+/** The fixed full-height rail: the mark, new chat, dashboard, inbox, shared (dotted while a share is unread), then search and the threads grouped by day with rename and delete in place; icons only until expanded (remembered), a drawer on mobile. */
 export function ThreadRail() {
   const pathname = usePathname();
   const router = useRouter();
@@ -74,6 +75,7 @@ export function ThreadRail() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [mode, setMode] = useState<RowMode>({ kind: "view" });
+  const { counts } = useInboxCounts();
 
   useEffect(() => setOpen(storedOpen()), []);
   useEffect(() => setMobileOpen(false), [pathname]);
@@ -145,6 +147,7 @@ export function ThreadRail() {
           <RailLink href="/c/new" icon={<MessageSquarePlus className="size-5" aria-hidden />} label={TEXT.newChat} expanded={expanded} />
           <RailLink href="/dashboard" icon={<LayoutDashboard className="size-5" aria-hidden />} label={TH.nav.dashboard} expanded={expanded} active={pathname === "/dashboard"} />
           <RailLink href="/?inbox" icon={<Inbox className="size-5" aria-hidden />} label={TH.nav.inbox} expanded={expanded} />
+          <RailLink href="/shared" icon={<Forward className="size-5" aria-hidden />} label={TH.nav.shared} expanded={expanded} active={pathname === "/shared"} dot={counts.sharedUnread > 0} />
           {expanded ? null : (
             <>
               <button type="button" onClick={toggle} aria-label={TEXT.search} title={TEXT.search} className={ICON_BUTTON}>
@@ -249,21 +252,23 @@ function ThreadRow({ thread, active, mode, setMode, rename, remove }: RowProps) 
   );
 }
 
-function RailLink({ href, icon, label, expanded, active = false }: { href: string; icon: ReactNode; label: string; expanded: boolean; active?: boolean }) {
+function RailLink({ href, icon, label, expanded, active = false, dot = false }: { href: string; icon: ReactNode; label: string; expanded: boolean; active?: boolean; dot?: boolean }) {
+  const named = dot ? `${label} · ${TH.shared.newMark}` : label;
   return (
     <Link
       href={href}
-      aria-label={label}
-      title={label}
+      aria-label={named}
+      title={named}
       aria-current={active ? "page" : undefined}
       className={cn(
         expanded ? "flex items-center gap-3 rounded-full px-3 py-2 text-sm" : ICON_BUTTON,
-        "text-muted-foreground transition hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        "relative text-muted-foreground transition hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
         active ? ROW_ACTIVE : "",
       )}
     >
       {icon}
       {expanded ? <span>{label}</span> : null}
+      {dot ? <span aria-hidden data-rail-dot className={cn("size-2 rounded-full bg-primary ring-2 ring-card", expanded ? "ml-auto" : "absolute right-2 top-2")} /> : null}
     </Link>
   );
 }

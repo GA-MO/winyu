@@ -47,8 +47,25 @@ export type ShareReceipt = { userId: string; name: string; asked: ShareChannel; 
 /** One recipient's temporary grant at share time, as the sheet reports it: given, or refused with its code. */
 export type ShareGrantReceipt = { userId: string; name: string; metric: MetricId; granted: boolean; refusal: GrantRefusalCode | null };
 
-/** A share the person sent, as their account sheet lists it. */
-export type SentShare = { code: string; path: string; title: string; at: string; receipts: ShareReceipt[]; views: number };
+/** A live grant the sender gave on a share, as Shared lists it with its revoke. */
+export type GivenGrant = { id: string; recipientName: string; slice: string; until: string };
+
+/** A share the person sent, as Shared lists it: who got it on which channel, how often they opened it, and the grants still live on it. */
+export type SentShare = { code: string; path: string; title: string; at: string; receipts: ShareReceipt[]; views: number; grants: GivenGrant[] };
+
+/** A share sent to the person, as Shared lists it: who sent it with what note, what it hides from them, and their pending request or live grant. */
+export type ReceivedShare = {
+  code: string;
+  path: string;
+  title: string;
+  at: string;
+  senderName: string;
+  note: string | null;
+  hidden: string | null;
+  request: { approverName: string } | null;
+  grant: { grantorName: string; until: string } | null;
+  unread: boolean;
+};
 
 /** One read call of an exchange as the chat knows it. */
 export type ExchangeRead = { toolCallId: string; tool: string; args: unknown; returned: boolean };

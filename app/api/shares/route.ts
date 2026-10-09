@@ -1,15 +1,8 @@
 import { findUser } from "@/lib/data/entities/users";
 import { shareRequestSchema } from "@/lib/share/card";
 import { createShare } from "@/lib/server/share/deliver";
-import { receiptsOf, sharePath, sharesSentBy } from "@/lib/server/share/shares";
+import { receiptsOf, sharePath } from "@/lib/server/share/shares";
 import { badRequest, readBody, requireAccess, unauthenticated } from "../_guard";
-
-/** The shares the signed-in person sent, with who got them on which channel and how often they were opened. */
-export async function GET() {
-  const access = await requireAccess();
-  if (!access) return unauthenticated();
-  return Response.json({ shares: sharesSentBy(access.userId) });
-}
 
 /** Shares a card: the person's own press, so no approval card; the reads are checked, stored and sent as a link, and the share is audited. */
 export async function POST(req: Request) {
