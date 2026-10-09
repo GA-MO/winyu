@@ -143,9 +143,14 @@ export function undecidedHandoffsFor(userId: string): ContextPacket[] {
   return packetsFor(userId).filter((packet) => UNDECIDED.has(packet.status));
 }
 
+/** The handoffs sent to this person that they have not yet picked up, newest first. */
+export function newHandoffsFor(userId: string): ContextPacket[] {
+  return packetsFor(userId).filter((packet) => packet.status === NEW_HANDOFF);
+}
+
 /** What the bell counts: grant requests waiting on the person and handoffs they have not picked up; nothing that is only news. */
 export function decisionCount(userId: string): number {
-  return pendingRequestsFor(userId).length + packetsFor(userId).filter((packet) => packet.status === NEW_HANDOFF).length;
+  return pendingRequestsFor(userId).length + newHandoffsFor(userId).length;
 }
 
 /** Unread notifications that are read on Shared: cards shared with the person and decisions on their requests. */
