@@ -21,7 +21,10 @@ export function hrisDemoFetchFor(systems: HrisDemoSystems) {
         return { employees: [...records.employees], openPositions: [...records.openPositions] };
       },
       leave_policy: () => systems.leave.policy(),
-      leave_used_this_year: ({ employeeId }) => systems.leave.usedThisYear(employeeId),
+      leave_balances: async ({ employeeId }) => ({ balances: [...(await systems.leave.balances(employeeId))] }),
+      list_leave_requests: async ({ employeeId }) => ({ requests: [...(await systems.leave.requests(employeeId))] }),
+      submit_leave_request: (submission) => systems.leave.submit(submission),
+      decide_leave_request: async ({ requestId, approverId, approved }) => ({ request: await systems.leave.decide(requestId, approverId, approved) }),
       list_candidates: async () => ({ candidates: [...(await systems.recruiting.candidates())] }),
     }),
   });

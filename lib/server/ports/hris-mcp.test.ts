@@ -2,7 +2,8 @@ import { afterAll, afterEach, beforeAll, describe, expect, test } from "bun:test
 import { accessFor } from "@/lib/access/policies";
 import { USERS } from "@/lib/data/entities/users";
 import { TH } from "@/lib/i18n/th";
-import { staffRequests } from "@/lib/server/agent/collections";
+import { collection } from "@/lib/server/store/json-store";
+import { DEMO_LEAVE_REQUESTS } from "./generator-leave";
 import { resetClientPool } from "@/lib/server/connectors/pool";
 import { feedFor } from "@/lib/server/feed";
 import { hrisDemoFetchFor } from "@/scripts/mcp-demo-hris";
@@ -12,6 +13,8 @@ import { directoryMcpPort, leaveMcpPort, recruitingMcpPort } from "./hris-mcp";
 import { registerPorts, resetPorts } from "./index";
 import { NOWHERE, PERSONAS, answerEveryCallWith, bothWays, callTool, serve, statusesOfStrangers, type Served } from "./mcp-test-kit";
 import { PortUnavailable } from "./unavailable";
+import { requestLinks } from "@/lib/server/agent/collections";
+import { forwardDecision } from "@/lib/server/staff-requests";
 
 const SECRET = "hris-mcp-test-secret";
 const NOW = Date.parse("2026-09-22T09:00:00+07:00");
@@ -67,7 +70,7 @@ describe("the directory, leave and recruiting ports over the HRIS's MCP", () => 
   test("people, candidates, policy, sites, courses and the feed read the same through MCP as in-process, for every persona", async () => {
     const ports = hrisPorts(hris.url);
     expect(await ports.directory.load()).toEqual(await GENERATOR_PORTS.directory.load());
-    expect(await ports.leave.usedThisYear("u_krit")).toEqual(await GENERATOR_PORTS.leave.usedThisYear("u_krit"));
+    expect(await ports.leave.balances("u_krit")).toEqual(await GENERATOR_PORTS.leave.balances("u_krit"));
     for (const [who, access] of Object.entries(PERSONAS)) {
       for (const [tool, args] of CALLS) {
         const { local, remote } = await bothWays(ports, () => callTool(access, tool, args));
@@ -106,9 +109,9 @@ describe("the directory, leave and recruiting ports over the HRIS's MCP", () => 
     registerPorts(hrisPorts(NOWHERE, SECRET, DOWN_MS));
     expect(await callTool(PERSONAS.ceo, "find_people", CALLS[0][1])).toEqual({ ok: false, code: "CONNECTOR_UNAVAILABLE", error: TH.cards.failed.portDown(TH.cards.failed.systems.directory) });
     expect(await callTool(PERSONAS.rep, "get_policy", { topic: "leave" })).toMatchObject({ ok: false, code: "CONNECTOR_UNAVAILABLE" });
-    const filed = staffRequests().all().length;
+    const filed = collection(DEMO_LEAVE_REQUESTS).all().length;
     expect(await callTool(PERSONAS.rep, "request_leave", { kind: "annual", from: "2026-10-12", to: "2026-10-13", reason: "ธุระส่วนตัว" })).toMatchObject({ ok: false, code: "CONNECTOR_UNAVAILABLE" });
-    expect(staffRequests().all().length).toBe(filed);
+    expect(collection(DEMO_LEAVE_REQUESTS).all().length).toBe(filed);
   });
 
   test("an HRIS outage never widens anyone's access: no person, candidate or site row for any user, and no people matters in any feed", async () => {
@@ -142,5 +145,24 @@ describe("the directory, leave and recruiting ports over the HRIS's MCP", () => 
     for (const [who, access] of Object.entries(PERSONAS)) said[who] = (await feedFor(access, NOW)).some((item) => item.key === "system:down:directory");
     expect(said).toEqual(Object.fromEntries(Object.keys(PERSONAS).map((who) => [who, true])));
     expect(Object.values(local).some(Boolean)).toBe(true);
+  });
+
+  test("a leave request is filed with the HRIS once per call, the approver's return goes back to the HRIS, and a returned request no longer holds days", async () => {
+    registerPorts(hrisPorts(hris.url));
+    const leave = hrisPorts(hris.url).leave;
+    const pendingOf = async () => (await leave.balances("u_krit")).find((balance) => balance.kind === "personal")?.pending ?? 0;
+    const before = await pendingOf();
+    const ask = { kind: "personal", from: "2026-10-20", to: "2026-10-20", reason: "ธุระที่ธนาคาร" };
+    expect(await callTool(PERSONAS.rep, "request_leave", ask)).toMatchObject({ ok: true });
+    expect(await pendingOf()).toBe(before + 1);
+    const request = (await leave.requests("u_krit")).find((entry) => entry.from === ask.from && entry.status === "pending");
+    if (!request) throw new Error("the HRIS holds no request");
+    const link = requestLinks().where((entry) => entry.requestId === request.id)[0];
+    if (!link) throw new Error("no Inbox packet linked to the request");
+    await forwardDecision(link.id, "u_somchai", "return");
+    expect(await pendingOf()).toBe(before + 1);
+    await forwardDecision(link.id, link.approverId, "return");
+    expect((await leave.requests("u_krit")).find((entry) => entry.id === request.id)?.status).toBe("returned");
+    expect(await pendingOf()).toBe(before);
   });
 });

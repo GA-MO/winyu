@@ -14,5 +14,5 @@ export const requestLeaveTool = defineTool({
   input: requestLeaveInputSchema,
   redact: ["reason"],
   verify: leaveHolds,
-  execute: async (input: z.infer<typeof requestLeaveInputSchema>) => requestLeave(currentAccess(), input, currentTurn().threadId),
+  execute: async (input: z.infer<typeof requestLeaveInputSchema>, call) => requestLeave(currentAccess(), input, currentTurn().threadId, call.toolCallId),
 });

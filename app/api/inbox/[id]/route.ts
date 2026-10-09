@@ -3,7 +3,7 @@ import { packets } from "@/lib/server/agent/collections";
 import { actOnPacket, defaultReply, type PacketAction } from "@/lib/server/handoff";
 import { TH } from "@/lib/i18n/th";
 import { handoffEnabled } from "@/lib/access/enforce";
-import { isStaffRequestPacket } from "@/lib/server/staff-requests";
+import { forwardDecision, isStaffRequestPacket } from "@/lib/server/staff-requests";
 import { VERDICTS, recordOutcome, type Verdict } from "@/lib/server/outcomes";
 
 type RouteContext = { params: Promise<{ id: string }> };
@@ -39,5 +39,7 @@ export async function POST(req: Request, context: RouteContext) {
   if (judged && isVerdict(body.verdict) && outcome) recordOutcome(packet, access.userId, body.verdict, outcome);
 
   const text = trimmed(body.text) ?? (body.action === "resolve" ? (outcome as string) : defaultReply(body.action));
-  return Response.json({ packet: await actOnPacket(packet, access, body.action, text, outcome) });
+  const updated = await actOnPacket(packet, access, body.action, text, outcome);
+  await forwardDecision(packet.id, access.userId, body.action);
+  return Response.json({ packet: updated });
 }

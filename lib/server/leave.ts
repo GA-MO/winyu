@@ -1,31 +1,31 @@
-import { LEAVE_KINDS, type AccessContext, type Employee, type LeaveKind, type LeavePolicy, type PolicySection, type PolicyTopic } from "@/lib/contracts";
+import type { AccessContext, LeaveBalance, LeaveKind, LeavePolicy, PolicySection, PolicyTopic } from "@/lib/contracts";
 import { TODAY, addDays } from "@/lib/data/dates";
-import { signalsOf } from "@/lib/engine/people-signals";
 import { formatDateTh } from "@/lib/i18n/format";
 import { TH } from "@/lib/i18n/th";
 import { ports } from "./ports";
 import { calendarOf, type Calendar } from "./ports/calendar";
-import { directoryOf } from "./ports/directory";
-import { approverOf, requestsOf, submitRequest } from "./staff-requests";
+import { approverOf, deliverLeaveRequest } from "./staff-requests";
 
 const T = TH.leave;
-const DAYS_PER_YEAR = 365;
 const LOW_BALANCE_DAYS = 2;
 const SATURDAY = 6;
 const SUNDAY = 0;
 const MAX_LEAVE_SPAN_DAYS = 30;
 
 type Tone = "good" | "bad" | "neutral";
-type Balance = { kind: LeaveKind; entitled: number; used: number; pending: number; left: number };
 
 export type LeaveRequestInput = { kind: LeaveKind; from: string; to: string; reason: string };
 
-type LeaveBook = { policy: LeavePolicy; used: Readonly<Record<LeaveKind, number>>; self: Employee | null; calendar: Calendar };
+type LeaveBook = { policy: LeavePolicy; balances: readonly LeaveBalance[]; calendar: Calendar };
 
 async function leaveBookOf(userId: string): Promise<LeaveBook> {
   const leave = ports().leave;
-  const [policy, used, records, calendar] = await Promise.all([leave.policy(), leave.usedThisYear(userId), ports().directory.load(), ports().calendar.load()]);
-  return { policy, used, self: directoryOf(records).byId(userId), calendar: calendarOf(calendar) };
+  const [policy, balances, calendar] = await Promise.all([leave.policy(), leave.balances(userId), ports().calendar.load()]);
+  return { policy, balances, calendar: calendarOf(calendar) };
+}
+
+function balanceOf(kind: LeaveKind, book: LeaveBook): LeaveBalance {
+  return book.balances.find((balance) => balance.kind === kind) ?? { kind, entitled: 0, used: 0, pending: 0, left: 0 };
 }
 
 function isWorkday(iso: string, calendar: Calendar): boolean {
@@ -50,26 +50,7 @@ function nthWorkdayAfter(from: string, count: number, calendar: Calendar): strin
   return day;
 }
 
-function annualEntitlement(policy: LeavePolicy, tenureYears: number): number {
-  return policy.annualSteps.find((step) => tenureYears >= step.minYears)?.days ?? 0;
-}
-
-function entitlementOf(book: LeaveBook, kind: LeaveKind): number {
-  if (kind === "sick") return book.policy.sickDays;
-  if (kind === "personal") return book.policy.personalDays;
-  if (!book.self) return 0;
-  const signals = signalsOf(book.self);
-  return signals.onProbation ? 0 : annualEntitlement(book.policy, Math.floor(signals.tenureDays / DAYS_PER_YEAR));
-}
-
-function balanceOf(userId: string, kind: LeaveKind, book: LeaveBook): Balance {
-  const entitled = entitlementOf(book, kind);
-  const used = book.used[kind];
-  const pending = requestsOf(userId, "leave").filter((request) => request.refId === kind).reduce((sum, request) => sum + request.days, 0);
-  return { kind, entitled, used, pending, left: Math.max(entitled - used - pending, 0) };
-}
-
-function balanceMetric(balance: Balance) {
+function balanceMetric(balance: LeaveBalance) {
   const tone: Tone = balance.left <= LOW_BALANCE_DAYS ? "bad" : "neutral";
   return { label: T.kind[balance.kind], value: T.left(balance.left), detail: T.balanceDetail(balance.entitled, balance.used, balance.pending), tone };
 }
@@ -80,7 +61,7 @@ function sectionsOf(sections: readonly PolicySection[]) {
 
 async function leavePolicy(access: AccessContext) {
   const book = await leaveBookOf(access.userId);
-  const balances = LEAVE_KINDS.map((kind) => balanceOf(access.userId, kind, book));
+  const balances = book.balances;
   const approver = await approverOf(access.userId);
   const annual = balances.find((balance) => balance.kind === "annual");
   const earliest = nthWorkdayAfter(TODAY, book.policy.annualNoticeWorkdays, book.calendar);
@@ -107,41 +88,36 @@ export async function policyFor(access: AccessContext, topic: PolicyTopic) {
   return { ok: true as const, summary: T.benefitsSummary(benefits.length), data: { balances: [], sections: sectionsOf(benefits), form: null } };
 }
 
-function leaveError(access: AccessContext, input: LeaveRequestInput, days: number, book: LeaveBook): string | null {
+function leaveError(input: LeaveRequestInput, days: number, book: LeaveBook): string | null {
   if (input.to < input.from) return T.error.order;
   if (addDays(input.from, MAX_LEAVE_SPAN_DAYS) < input.to) return T.error.tooLong(MAX_LEAVE_SPAN_DAYS);
   if (days === 0) return T.error.noWorkdays;
   if (input.kind !== "sick" && input.from < TODAY) return T.error.past;
   const notice = book.policy.annualNoticeWorkdays;
   if (input.kind === "annual" && input.from < nthWorkdayAfter(TODAY, notice, book.calendar)) return T.error.notice(notice);
-  const balance = balanceOf(access.userId, input.kind, book);
+  const balance = balanceOf(input.kind, book);
   if (balance.entitled === 0) return T.error.probation;
   if (days > balance.left) return T.error.balance(T.kind[input.kind], days, balance.left);
   return null;
 }
 
-/** Files a leave request in the viewer's name: working days counted by the server, balance checked, sent to the approver's Inbox. */
-export async function requestLeave(access: AccessContext, input: LeaveRequestInput, threadId: string | null) {
+/** Files a leave request in the viewer's name with the leave system: working days counted from the company calendar, the balance the leave system keeps checked first, the request filed once per call, and the approver told in their Inbox. */
+export async function requestLeave(access: AccessContext, input: LeaveRequestInput, threadId: string | null, callId: string) {
   const book = await leaveBookOf(access.userId);
   const days = workdaysBetween(input.from, input.to, book.calendar);
-  const error = leaveError(access, input, days, book);
+  const error = leaveError(input, days, book);
   if (error) return { ok: false as const, error };
   const approver = await approverOf(access.userId);
   if (!approver) return { ok: false as const, error: T.error.noApprover };
   const kindLabel = T.kind[input.kind];
   const range = T.range(formatDateTh(input.from), formatDateTh(input.to));
-  await submitRequest(access, approver, {
-    kind: "leave",
-    refId: input.kind,
-    from: input.from,
-    to: input.to,
-    days,
-    reason: input.reason,
+  const request = await ports().leave.submit({ employeeId: access.userId, kind: input.kind, from: input.from, to: input.to, days, reason: input.reason, approverId: approver.id, idempotencyKey: callId });
+  await deliverLeaveRequest(access, approver, request, {
     title: T.packetTitle(kindLabel, range),
     ask: T.packetAsk(kindLabel, range, days, input.reason),
     replies: [T.replyApprove, T.replyReschedule],
     threadId,
   });
-  const left = balanceOf(access.userId, input.kind, book).left;
+  const left = balanceOf(input.kind, { ...book, balances: await ports().leave.balances(access.userId) }).left;
   return { ok: true as const, summary: T.sent(kindLabel, days, approver.nameTh), data: { kind: kindLabel, range, days, approver: approver.nameTh, left: T.left(left) } };
 }

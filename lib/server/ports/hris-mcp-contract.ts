@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { CANDIDATE_STAGES, LEAVE_KINDS, REGIONS, type Candidate, type Employee, type LeaveKind, type LeavePolicy, type OpenPosition } from "@/lib/contracts";
+import { CANDIDATE_STAGES, LEAVE_KINDS, LEAVE_REQUEST_STATUSES, REGIONS, type Candidate, type Employee, type LeaveBalance, type LeavePolicy, type LeaveRequest, type OpenPosition } from "@/lib/contracts";
 import { mcpEndpointFromEnv, type McpEndpoint } from "./mcp-port";
 
 export const HRIS_MCP_PORT = 3293;
@@ -60,7 +60,24 @@ export const leavePolicySchema = z.object({
   annualNoticeWorkdays: z.number(),
 }) satisfies z.ZodType<LeavePolicy>;
 
-export const leaveUsedSchema = z.object(Object.fromEntries(LEAVE_KINDS.map((kind) => [kind, z.number()])) as Record<LeaveKind, z.ZodNumber>);
+const leaveKind = z.enum(LEAVE_KINDS);
+const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+
+export const leaveBalanceSchema = z.object({ kind: leaveKind, entitled: z.number(), used: z.number(), pending: z.number(), left: z.number() }) satisfies z.ZodType<LeaveBalance>;
+
+export const leaveRequestSchema = z.object({
+  id: z.string(),
+  employeeId: z.string(),
+  kind: leaveKind,
+  from: isoDate,
+  to: isoDate,
+  days: z.number(),
+  reason: z.string(),
+  approverId: z.string(),
+  status: z.enum(LEAVE_REQUEST_STATUSES),
+  createdAt: z.string(),
+  decidedAt: z.string().nullable(),
+}) satisfies z.ZodType<LeaveRequest>;
 
 /** The HR system's MCP contract for Winyu's directory, leave and recruiting ports, one tool per port method: plain JSON in, plain JSON out. */
 export const HRIS_MCP_TOOLS = {
@@ -74,10 +91,25 @@ export const HRIS_MCP_TOOLS = {
     input: z.object({}),
     output: leavePolicySchema,
   },
-  leave_used_this_year: {
-    description: "How many days of each kind of leave one employee has taken this year.",
+  leave_balances: {
+    description: "One employee's leave this year per kind, as the HR system counts it: entitled, taken, waiting for a decision, and left.",
     input: z.object({ employeeId: z.string().min(1) }),
-    output: leaveUsedSchema,
+    output: z.object({ balances: z.array(leaveBalanceSchema) }),
+  },
+  list_leave_requests: {
+    description: "One employee's leave requests with their status (pending, approved, returned).",
+    input: z.object({ employeeId: z.string().min(1) }),
+    output: z.object({ requests: z.array(leaveRequestSchema) }),
+  },
+  submit_leave_request: {
+    description: "Files a leave request for an employee with the approver Winyu routes it to. A repeated idempotencyKey returns the first request. Refused when the balance does not cover it.",
+    input: z.object({ employeeId: z.string().min(1), kind: leaveKind, from: isoDate, to: isoDate, days: z.number().int().positive(), reason: z.string(), approverId: z.string().min(1), idempotencyKey: z.string().min(1) }),
+    output: leaveRequestSchema,
+  },
+  decide_leave_request: {
+    description: "Records the approver's decision on a pending leave request; only the request's approver can decide it.",
+    input: z.object({ requestId: z.string().min(1), approverId: z.string().min(1), approved: z.boolean() }),
+    output: z.object({ request: leaveRequestSchema.nullable() }),
   },
   list_candidates: {
     description: "Every candidate for every open position, from the recruiting module: stage, score, experience, strengths, concerns, source and expected salary.",

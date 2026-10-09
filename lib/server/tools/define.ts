@@ -1,6 +1,6 @@
 import type { z } from "zod";
 import type { NativeConnectorId, NativeToolName, RoleId, ToolSurfaceEntry, ToolTier } from "@/lib/contracts";
-import { gated, type GatedTool } from "@/lib/harness/gateway";
+import { gated, type CallRef, type GatedTool } from "@/lib/harness/gateway";
 import { LIMITS } from "@/lib/harness/limits";
 import type { Capability, Corrector, Readiness, Verifier } from "@/lib/harness/types";
 import { TH } from "@/lib/i18n/th";
@@ -21,7 +21,7 @@ type NativeToolSpec<Name extends NativeToolName, Input extends z.ZodType> = {
   roles: readonly RoleId[] | "all";
   description: string | (() => string);
   input: Input;
-  execute: (input: z.infer<Input>) => Promise<unknown>;
+  execute: (input: z.infer<Input>, call: CallRef) => Promise<unknown>;
   ready?: Readiness;
   verify?: Verifier;
   correct?: Corrector;

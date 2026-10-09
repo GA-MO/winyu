@@ -111,5 +111,17 @@ export type LeavePolicy = {
   annualNoticeWorkdays: number;
 };
 
+/** What one employee has of one kind of leave, as the leave system counts it: entitled this year, taken, waiting for a decision, and left. */
+export type LeaveBalance = { kind: LeaveKind; entitled: number; used: number; pending: number; left: number };
+
+export const LEAVE_REQUEST_STATUSES = ["pending", "approved", "returned"] as const;
+export type LeaveRequestStatus = (typeof LEAVE_REQUEST_STATUSES)[number];
+
+/** A leave request as the leave system keeps it. */
+export type LeaveRequest = { id: string; employeeId: string; kind: LeaveKind; from: string; to: string; days: number; reason: string; approverId: string; status: LeaveRequestStatus; createdAt: string; decidedAt: string | null };
+
+/** What Winyu files with the leave system; a repeated `idempotencyKey` returns the first request. */
+export type LeaveSubmission = { employeeId: string; kind: LeaveKind; from: string; to: string; days: number; reason: string; approverId: string; idempotencyKey: string };
+
 /** One mail as Winyu hands it to the mail system; the system gives it an id and a time. */
 export type MailMessage = Omit<OutboxEntry, "id" | "at">;

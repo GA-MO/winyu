@@ -28,8 +28,8 @@ export function isMcpBackedConnector(id: string): id is McpBackedConnector {
 /** Where a system's MCP server listens, the secret Winyu signs identities with, and how long one call may take. */
 export type McpEndpoint = { url: string; secret: string; timeoutMs: number };
 
-/** Which port a client serves, the admin connector its health shows under, its contract, and how long one answer is reused. */
-export type McpPortSpec<Contract extends McpContract> = { port: PortName; connector: McpBackedConnector; contract: Contract; cacheMs: number };
+/** Which port a client serves, the admin connector its health shows under, its contract, how long one answer is reused, and the tools never reused (writes, and reads a write changes). */
+export type McpPortSpec<Contract extends McpContract> = { port: PortName; connector: McpBackedConnector; contract: Contract; cacheMs: number; fresh?: readonly (keyof Contract & string)[] };
 
 export type McpAsk<Contract extends McpContract> = <Tool extends keyof Contract & string>(
   tool: Tool,
@@ -109,6 +109,7 @@ export function mcpPortClient<Contract extends McpContract>(spec: McpPortSpec<Co
   }
 
   return (tool, args) => {
+    if (spec.fresh?.includes(tool)) return call(tool, args);
     const key = `${tool}:${JSON.stringify(canonical(args))}`;
     const now = Date.now();
     const hit = cache.get(key);

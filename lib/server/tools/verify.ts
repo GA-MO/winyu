@@ -6,6 +6,7 @@ import type { Verdict, Verifier, VerifyInput } from "@/lib/harness/types";
 import type { Dictionary } from "@/lib/semantic/dictionary";
 import { layouts, outbox, packets, staffRequests } from "@/lib/server/agent/collections";
 import { loadDictionary } from "@/lib/server/master-data";
+import { ports } from "@/lib/server/ports";
 import { watchesOf } from "@/lib/server/watches";
 import { resolvedPeople } from "@/lib/share/recipients";
 import { recipientMatches, shares } from "@/lib/server/share/shares";
@@ -129,10 +130,12 @@ function requested(verify: VerifyInput, kind: "leave" | "course", matches: (refI
   return verdictOf([check(`${kind}_request_exists`, found, `no ${kind} request from the caller matches what was asked`)]);
 }
 
-/** A leave request holds when the caller has one of that kind over those dates. */
-export const leaveHolds: Verifier = (verify) => {
+/** A leave request holds when the leave system has a pending request from the caller of that kind over those dates. */
+export const leaveHolds: Verifier = async (verify) => {
   const input = verify.input as { kind: string; from: string; to: string };
-  return requested(verify, "leave", (refId, from, to) => refId === input.kind && from === input.from && to === input.to);
+  const requests = await ports().leave.requests(verify.access.userId);
+  const found = requests.some((request) => request.status === "pending" && request.kind === input.kind && request.from === input.from && request.to === input.to);
+  return verdictOf([check("leave_request_exists", found, "the leave system holds no pending request from the caller that matches what was asked")]);
 };
 
 /** An enrollment holds when the caller has a request for that course. */
