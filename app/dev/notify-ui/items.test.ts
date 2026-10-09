@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import type { NotificationKind } from "@/lib/contracts";
-import { bellCount, digestOf, hasUnreadUpdate, type NotifyItem } from "./items";
+import { bellCount, cappedDigest, digestOf, hasUnreadUpdate, type NotifyItem } from "./items";
 
 const KRIT = { name: "คุณกฤต จันทร์เสน", photo: null };
 const THANA = { name: "คุณธนา วงศ์สกุล", photo: null };
@@ -23,6 +23,15 @@ describe("notify-ui items", () => {
     const parts = digestOf([item("share", false), item("share", false), item("grant_request", true, KRIT), item("grant_approved", true)]);
     expect(parts.map((part) => part.text)).toEqual(["คุณกฤตรอคุณอนุมัติสิทธิ์", "คุณธนาส่งการ์ดมา 2 ใบ"]);
     expect(parts.map((part) => part.bucket)).toEqual(["decide", "update"]);
+  });
+
+  test("the capped digest keeps the first three phrases, decisions included, and counts the rest", () => {
+    const people = ["ก", "ข", "ค", "ง"].map((name) => ({ name: `คุณ${name}`, photo: null }));
+    const parts = digestOf([...people.map((person) => item("share", false, person)), item("handoff", false, KRIT)]);
+    const { shown, more } = cappedDigest(parts, 3);
+    expect(shown.map((part) => part.bucket)).toEqual(["decide", "update", "update"]);
+    expect(more).toBe(2);
+    expect(cappedDigest(parts.slice(0, 2), 3).more).toBe(0);
   });
 
   test("an inbox with nothing open says nothing", () => {

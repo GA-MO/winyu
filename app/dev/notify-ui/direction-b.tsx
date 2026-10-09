@@ -3,7 +3,7 @@ import { BrandMark } from "@/components/chrome/brand-mark";
 import { cn } from "@/components/ui/cn";
 import { TH } from "@/lib/i18n/th";
 import { Face, Frame, Landing, UnreadDot, When, type Shell } from "./frame";
-import { digestOf, type DigestPart, type Moments, type NotifyItem } from "./items";
+import { cappedDigest, digestOf, type DigestPart, type Moments, type NotifyItem } from "./items";
 
 const COPY = TH.notifyUi;
 
@@ -23,35 +23,50 @@ function Chip({ part }: { part: DigestPart }) {
   );
 }
 
-function Sentence({ parts }: { parts: DigestPart[] }) {
+function Sentence({ parts, more }: { parts: DigestPart[]; more: number }) {
   return (
     <span className="leading-[2.1]">
       {parts.map((part, index) => (
         <span key={part.key}>
-          {index > 0 && index === parts.length - 1 ? <span className="mx-1 text-muted-foreground">{COPY.and}</span> : null}
+          {more === 0 && index > 0 && index === parts.length - 1 ? <span className="mx-1 text-muted-foreground">{COPY.and}</span> : null}
           <Chip part={part} />
         </span>
       ))}
+      {more > 0 ? <span className="mx-1 text-muted-foreground">{COPY.andMore(more)}</span> : null}
     </span>
   );
 }
 
-function DigestLine({ items, open = false }: { items: NotifyItem[]; open?: boolean }) {
-  const parts = digestOf(items);
+type SeeAll = "expand" | "popover";
+
+function SeeAllButton({ count, open, mode }: { count: number; open: boolean; mode: SeeAll }) {
+  if (mode === "popover") {
+    return (
+      <button type="button" aria-haspopup="dialog" aria-expanded={open} className={cn("ml-1.5 inline-flex items-center align-middle text-xs underline-offset-4 hover:text-foreground", open ? "text-foreground underline" : "text-muted-foreground")}>
+        {COPY.seeAll(count)}
+      </button>
+    );
+  }
   const Toggle = open ? ChevronUp : ChevronDown;
+  return (
+    <button type="button" aria-expanded={open} className="ml-1.5 inline-flex items-center gap-0.5 align-middle text-xs text-muted-foreground hover:text-foreground">
+      {COPY.seeAll(count)}
+      <Toggle className="size-3.5" aria-hidden />
+    </button>
+  );
+}
+
+/** Winyu's one sentence under the greeting; `limit` stops it after that many phrases and counts the rest, and "ดูทั้งหมด" either expands in place or opens the bell's popover. */
+export function DigestLine({ items, open = false, limit = Number.POSITIVE_INFINITY, seeAll = "expand" }: { items: NotifyItem[]; open?: boolean; limit?: number; seeAll?: SeeAll }) {
+  const { shown: parts, more } = cappedDigest(digestOf(items), limit);
   return (
     <div className="mt-3 flex gap-2.5">
       <span className="mt-1 flex size-6 shrink-0 items-center justify-center rounded-full bg-linear-135 from-primary via-brand-violet to-brand-coral text-white">
         <BrandMark className="size-3.5" />
       </span>
       <p className="min-w-0 flex-1 text-sm text-foreground/85">
-        {parts.length === 0 ? <span className="leading-8 text-muted-foreground">{COPY.allCaughtUp}</span> : <Sentence parts={parts} />}
-        {items.length > 0 ? (
-          <button type="button" aria-expanded={open} className="ml-1.5 inline-flex items-center gap-0.5 align-middle text-xs text-muted-foreground hover:text-foreground">
-            {COPY.seeAll(items.length)}
-            <Toggle className="size-3.5" aria-hidden />
-          </button>
-        ) : null}
+        {parts.length === 0 ? <span className="leading-8 text-muted-foreground">{COPY.allCaughtUp}</span> : <Sentence parts={parts} more={more} />}
+        {items.length > 0 ? <SeeAllButton count={items.length} open={open} mode={seeAll} /> : null}
       </p>
     </div>
   );

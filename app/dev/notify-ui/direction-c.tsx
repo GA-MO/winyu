@@ -77,7 +77,7 @@ function Activity({ items }: { items: NotifyItem[] }) {
   );
 }
 
-function SharedPage({ items, waiting }: { items: NotifyItem[]; waiting: number }) {
+export function SharedPage({ items, waiting }: { items: NotifyItem[]; waiting: number }) {
   return (
     <div className="flex h-full flex-col gap-4 px-6 pb-5 pt-16">
       <header>

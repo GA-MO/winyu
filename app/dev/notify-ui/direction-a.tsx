@@ -94,7 +94,7 @@ function Panel({ items }: { items: NotifyItem[] }) {
   );
 }
 
-function Popover({ items }: { items: NotifyItem[] }) {
+export function Popover({ items }: { items: NotifyItem[] }) {
   return (
     <div role="dialog" aria-label={COPY.rail.bell} className="absolute right-3 top-14 z-20 w-[21.5rem] rounded-2xl border border-border bg-popover text-popover-foreground shadow-lift">
       <span aria-hidden className="absolute -top-1.5 right-[3.6rem] size-3 rotate-45 border-l border-t border-border bg-popover" />
@@ -103,7 +103,7 @@ function Popover({ items }: { items: NotifyItem[] }) {
   );
 }
 
-function Sheet({ items }: { items: NotifyItem[] }) {
+export function Sheet({ items }: { items: NotifyItem[] }) {
   return (
     <>
       <div aria-hidden className="absolute inset-0 z-20 bg-foreground/15 backdrop-blur-[2px]" />

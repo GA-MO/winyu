@@ -18,7 +18,7 @@ export function ThemeScope({ initial, header, children }: { initial: Theme; head
   const [theme, setTheme] = useState<Theme>(initial);
   return (
     <div className={cn(THEME_CLASS[theme], "min-h-dvh bg-background text-foreground")}>
-      <header className="mx-auto flex max-w-[90rem] flex-wrap items-end gap-4 px-6 pb-6 pt-8">
+      <header className="mx-auto flex max-w-[122rem] flex-wrap items-end gap-4 px-6 pb-6 pt-8">
         <div className="min-w-0 flex-1">{header}</div>
         <div role="radiogroup" aria-label={TH.notifyUi.theme} className="flex rounded-full bg-muted p-0.5 text-xs">
           {OPTIONS.map(({ theme: option, label, icon: Icon }) => (

@@ -6,6 +6,7 @@ import { readUser } from "@/lib/server/session";
 import { DirectionA } from "./direction-a";
 import { DirectionB } from "./direction-b";
 import { DirectionC } from "./direction-c";
+import { DirectionD } from "./direction-d";
 import { momentsFor, VIEWERS, viewerPerson, type ViewerId } from "./fixtures";
 import type { Shell } from "./frame";
 import { bellCount, hasUnreadUpdate, type NotifyItem } from "./items";
@@ -17,6 +18,7 @@ const PATH = "/dev/notify-ui";
 const COPY = TH.notifyUi;
 const DIRECTIONS = [
   { id: "a", Draw: DirectionA },
+  { id: "d", Draw: DirectionD },
   { id: "b", Draw: DirectionB },
   { id: "c", Draw: DirectionC },
 ] as const;
@@ -27,7 +29,7 @@ function viewerFrom(requested: string | undefined, signedIn: string): ViewerId {
   return VIEWERS.find((id) => id === requested) ?? VIEWERS.find((id) => id === signedIn) ?? VIEWERS[0];
 }
 
-/** Development only: three ways to tell someone what arrived for them, each drawn at real size in four moments for a sales rep or the CEO. */
+/** Development only: four ways (D combines the other three) to tell someone what arrived for them, each drawn at real size in four moments for a sales rep or the CEO. */
 export default async function DevNotifyUiPage({ searchParams }: { searchParams: SearchParams }) {
   if (process.env.NODE_ENV === "production") notFound();
   const user = readUser(await cookies());
@@ -59,7 +61,7 @@ export default async function DevNotifyUiPage({ searchParams }: { searchParams: 
 
   return (
     <ThemeScope initial={theme === "dark" ? "dark" : "light"} header={header}>
-      <main className="mx-auto grid max-w-[90rem] grid-cols-1 justify-center gap-8 px-4 pb-16 sm:px-6 xl:grid-cols-[repeat(3,28rem)]">
+      <main className="mx-auto grid max-w-[122rem] grid-cols-1 justify-center gap-8 px-4 pb-16 sm:px-6 lg:grid-cols-[repeat(2,28rem)] min-[122rem]:grid-cols-[repeat(4,28rem)]">
         {DIRECTIONS.map(({ id, Draw }) => (
           <section key={id} aria-labelledby={`direction-${id}`} className="mx-auto flex w-full max-w-[28rem] flex-col gap-6">
             <header className="flex flex-col gap-0.5 border-b border-border pb-3">

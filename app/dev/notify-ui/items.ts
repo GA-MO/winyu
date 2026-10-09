@@ -76,3 +76,8 @@ export function digestOf(items: readonly NotifyItem[]): DigestPart[] {
   });
   return [...parts.filter((part) => part.bucket === "decide"), ...parts.filter((part) => part.bucket === "update")];
 }
+
+/** The digest cut to its first `limit` phrases, with how many phrases it leaves for "และอีก N เรื่อง". */
+export function cappedDigest(parts: readonly DigestPart[], limit: number): { shown: DigestPart[]; more: number } {
+  return { shown: parts.slice(0, limit), more: Math.max(0, parts.length - limit) };
+}
