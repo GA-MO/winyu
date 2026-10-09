@@ -1,5 +1,7 @@
 # Native tools where they belong, systems of record behind ports
 
+Status 2026-10-09: units 1 to 4 are done (`92d40b0`, `4725ff2`, `4d576b0`, `227e845`). The approver is still chosen by Winyu (`approverOf`, the nearest manager with a login) and passed to the leave system and the LMS. A real HRIS would route approvals itself, which waits for a chosen system, together with the Inbox pull of requests filed outside Winyu.
+
 Decided 2026-10-09. Winyu's capabilities stay native tools: code reviewed in git, permission in `lib/access`, covered by the recorded eval. Every outside system is reached through a port, and a port reads or writes its system over MCP against a contract Winyu defines. The console connectors from `connector-ui.md` remain the way for a customer's IT to add a secondary system Winyu does not know. They are not the way to move a native tool out of code.
 
 Moving the ports behind MCP (`mcp-first.md`) was the right shape and stays. Four things around it were wrong:

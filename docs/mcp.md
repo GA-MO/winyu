@@ -106,9 +106,9 @@ The sections above cover Winyu as an MCP server and its connector tools. Winyu i
 | Port | System and demo server | Default URL | Contract tools | Cache | Admin connector |
 | --- | --- | --- | --- | --- | --- |
 | `metrics` | The data team's warehouse, `scripts/metrics-mcp.ts` | `:3297` | `query_facts`, `master_data`, `list_metrics`, `describe_entity` | 30 s | Data Warehouse |
-| `learning` | The LMS, `scripts/mcp-demo-lms.ts`, beside its `training_history` connector tool | `:3299` | `list_courses` | 1 min | LMS |
+| `learning` | The LMS, `scripts/mcp-demo-lms.ts`, beside its `training_history` connector tool | `:3299` | `list_courses`, `list_enrollments`, `request_seat`, `decide_enrollment` | none: seats change with every request | LMS |
 | `directory` | The HRIS, `scripts/mcp-demo-hris.ts` | `:3293` | `load_directory` | 5 min | HRIS |
-| `leave` | The HRIS leave module | `:3293` | `leave_policy`, `leave_used_this_year` | 1 min | Leave |
+| `leave` | The HRIS leave module | `:3293` | `leave_policy` (1 min), `leave_balances`, `list_leave_requests`, `submit_leave_request`, `decide_leave_request` (never reused) | see tools | Leave |
 | `recruiting` | The HRIS recruiting module | `:3293` | `list_candidates` | 1 min | HRIS |
 | `sites` | The safety (EHS) system, `scripts/mcp-demo-ehs.ts` | `:3292` | `load_sites` | 1 min | Sites |
 | `calendar` | The company calendar, `scripts/mcp-demo-calendar.ts` | `:3291` | `load_calendar` | 30 min | Calendar |
