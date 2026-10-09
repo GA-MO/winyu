@@ -1,4 +1,6 @@
 import { afterAll, beforeAll, describe, expect, mock, setDefaultTimeout, test } from "bun:test";
+import { renderToStaticMarkup } from "react-dom/server";
+import type { LockedRows } from "@/lib/cards/present";
 import { ScriptedModel } from "@/scripts/scripted-model";
 
 setDefaultTimeout(30_000);
@@ -16,6 +18,9 @@ const { winyuTools } = await import("@/lib/server/agent/tools");
 const { runWithAccess } = await import("@/lib/server/request-context");
 const { GEMINI_TEAM_CARD } = await import("@/lib/compose/gemini-team-card");
 const { TH } = await import("@/lib/i18n/th");
+const { presentCard } = await import("@/lib/cards/present");
+const { metricAnswerOf } = await import("@/lib/cards/tool-answers");
+const { DataCard } = await import("@/components/cards/data-card");
 const { createShare, channelsFor } = await import("./deliver");
 const { mayOpen, shareCode, SHARE_CODE_LENGTH, shares } = await import("./shares");
 const { openShare, regrounded } = await import("./view");
@@ -193,7 +198,7 @@ describe("a composed card is re-grounded against the viewer's own results", () =
 
   test("a block whose paths the viewer's results do not return draws nothing beyond the root", () => {
     const card = { kind: "composed" as const, reads: TEAM_READS, components: GEMINI_TEAM_CARD as never };
-    const refused = TEAM_READS.map((read) => ({ toolCallId: read.tool, tool: read.tool, input: read.input, result: { ok: false, error: "denied" } }));
+    const refused = TEAM_READS.map((read) => ({ toolCallId: read.tool, tool: read.tool, input: read.input, result: { ok: false, error: "denied" }, locked: null }));
     expect(regrounded(card, refused, "s")).toBeNull();
   });
 });
@@ -235,6 +240,79 @@ describe("Teams and LINE carry a button into Winyu", () => {
     expect(message.altText).toContain(url);
     expect(message.contents.footer.contents[0].action).toMatchObject({ type: "uri", uri: url });
     expectNoValues(JSON.stringify(pushed[0].body));
+  });
+});
+
+describe("the shared view keeps the sender's card shape and locks what the viewer may not see", () => {
+  type CeoRow = { region: string; value_label: string };
+  type Headline = { headline: { value: string } };
+  const OTHER_REGIONS = ["กรุงเทพฯ และปริมณฑล", "ภาคกลาง", "ภาคเหนือ", "ภาคตะวันออก", "ภาคใต้"];
+
+  async function ceoOnly() {
+    const ceo = (await readAs("u_thana", "query_metric", BY_REGION)) as { rows: CeoRow[] } & Headline;
+    const krit = (await readAs("u_krit", "query_metric", BY_REGION)) as { rows: CeoRow[] } & Headline;
+    const kritLabels = new Set(krit.rows.map((row) => row.value_label));
+    const others = ceo.rows.filter((row) => row.region !== "ภาคอีสาน");
+    return { ceo, krit, secrets: [...others.map((row) => row.value_label).filter((label) => !kritLabels.has(label)), ceo.headline.value], others };
+  }
+
+  function partsOf(read: { result: unknown; input: Record<string, unknown>; locked: LockedRows | null }) {
+    const answer = metricAnswerOf(read.result);
+    if (!answer) throw new Error("no answer");
+    return presentCard({ title: "t", query: answer.query, result: answer, view: "auto", locked: read.locked });
+  }
+
+  test("u_krit's view holds a locked row for each of the five other regions, in domain order, and no number of the CEO's anywhere in its props or its HTML", async () => {
+    const outcome = await createShare(user("u_thana"), { card: metricCard, question: QUESTION, note: "", recipients: [{ userId: "u_krit", channel: "email" }] });
+    if (!outcome.ok) throw new Error(outcome.error);
+    const view = await openShare(outcome.share, user("u_krit"));
+    expect(view.reads[0].locked).toEqual({ dim: "region", labels: OTHER_REGIONS, askHref: "#grant-request" });
+
+    const { ceo, krit, secrets, others } = await ceoOnly();
+    expect(secrets).toHaveLength(6);
+    expect(others.map((row) => row.region)).not.toEqual(OTHER_REGIONS);
+    const html = renderToStaticMarkup(<DataCard title={outcome.share.title} source={view.reads[0].result} locked={view.reads[0].locked} />);
+    for (const label of OTHER_REGIONS) expect(html).toContain(label);
+    expect(html.match(/data-locked-rows/g)).toHaveLength(1);
+    expect(html).toContain(TH.dash.lockedHidden);
+    expect(html).toContain('href="#grant-request"');
+    const serialized = `${JSON.stringify(view)}\n${html}`;
+    for (const secret of secrets) expect(serialized).not.toContain(secret);
+    expect(serialized).not.toContain(String(ceo.rows.find((row) => row.region === "ภาคกลาง")?.value_label));
+    expect(krit.rows).toHaveLength(1);
+  });
+
+  test("visible rows come first, locked rows after them in the fixed order, and the headline is u_krit's own figure labelled with his region", async () => {
+    const outcome = await createShare(user("u_thana"), { card: metricCard, question: QUESTION, note: "", recipients: [{ userId: "u_krit", channel: "email" }] });
+    if (!outcome.ok) throw new Error(outcome.error);
+    const view = await openShare(outcome.share, user("u_krit"));
+    const parts = partsOf(view.reads[0]);
+    const { krit } = await ceoOnly();
+    if (parts.body.kind !== "locked") throw new Error(`body ${parts.body.kind}`);
+    expect([...parts.body.rows.map((row) => row.label), ...parts.body.locked.map((row) => row.label)]).toEqual(["ภาคอีสาน", ...OTHER_REGIONS]);
+    expect(parts.body.locked.every((row) => Object.keys(row).join() === "label")).toBe(true);
+    expect(parts.hero).toMatchObject({ label: TH.dash.ownScope("มูลค่าขายเข้า", "ภาคอีสาน"), value: krit.headline.value });
+    expect(JSON.stringify(parts)).not.toContain("6 ภาค");
+  });
+
+  test("with a live grant over the slice, u_krit gets the full card as before: no locked rows", async () => {
+    const { grants } = await import("@/lib/server/grants");
+    try {
+      const outcome = await createShare(user("u_thana"), { card: metricCard, question: QUESTION, note: "", recipients: [{ userId: "u_krit", channel: "email" }], grantDays: 1 });
+      if (!outcome.ok) throw new Error(outcome.error);
+      const view = await openShare(outcome.share, user("u_krit"));
+      expect(view.reads[0].locked).toBeNull();
+      expect(partsOf(view.reads[0]).body.kind).not.toBe("locked");
+      expect(regionsOf(view.reads[0].result)).toHaveLength(6);
+    } finally {
+      for (const grant of grants().all()) grants().remove(grant.id);
+    }
+  });
+
+  test("the sender opening their own share sees no locked rows", async () => {
+    const outcome = await createShare(user("u_thana"), { card: metricCard, question: QUESTION, note: "", recipients: [{ userId: "u_krit", channel: "email" }] });
+    if (!outcome.ok) throw new Error(outcome.error);
+    expect((await openShare(outcome.share, user("u_thana"))).reads[0].locked).toBeNull();
   });
 });
 

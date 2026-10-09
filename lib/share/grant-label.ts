@@ -15,3 +15,6 @@ export function sliceLabel(slice: GrantSlice): string {
 export function untilLabel(expiresAt: string): string {
   return formatDateTh(expiresAt);
 }
+
+/** The id of the request block on a shared card, so a locked row's ขอดู can reach it. */
+export const GRANT_REQUEST_ANCHOR = "grant-request";

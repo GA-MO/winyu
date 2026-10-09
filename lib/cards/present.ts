@@ -63,10 +63,16 @@ export type ScatterAxis = { label: string; format: MetricFormat; median: number;
 export type GapRow = { label: string; gap: number; gapText: string; detail: string | null; tone: Tone };
 export type GapEnds = { less: string; more: string };
 export type FunnelStage = { label: string; value: number; valueText: string; width: number; dropText: string | null; dropTone: Tone };
+/** A row a shared card holds back from its viewer: its name only, never a value, a change, a share or a rank. */
+export type LockedRow = { label: string };
+
+/** The rows a shared card holds back along its one breakdown: names in the dimension's fixed order, and where asking for them goes (null when nobody may be asked now). */
+export type LockedRows = { dim: Dim; labels: string[]; askHref: string | null };
 
 export type CardBody =
   | { kind: "none" }
   | { kind: "rank"; rows: RankRow[]; showRank: boolean }
+  | { kind: "locked"; rows: RankRow[]; locked: LockedRow[]; askHref: string | null }
   | { kind: "progress"; value: number; detail: string }
   | { kind: "line"; labels: string[]; series: ChartSeries[]; format: MetricFormat }
   | { kind: "stacked"; shape: "bar" | "area"; labels: string[]; series: ChartSeries[]; format: MetricFormat }
@@ -112,6 +118,7 @@ export type PresentInput = {
   extras?: CardExtras;
   actions?: NextAction[];
   others?: PresentSource[];
+  locked?: LockedRows | null;
 };
 
 export type PresentSource = { query: MetricQuery; result: MetricResult };
@@ -858,6 +865,28 @@ export function presentForecast(input: PresentForecastInput): CardParts {
   };
 }
 
+function locksBreakdown(query: MetricQuery, locked: LockedRows): boolean {
+  const groups = groupDimsOf(query);
+  return locked.labels.length > 0 && !timeDimOf(query) && groups.length === 1 && groups[0] === locked.dim;
+}
+
+/** A shared card that holds rows back: the viewer's own rows in their usual order, then one locked row per hidden name in the order given; the headline is the viewer's own figure, labelled with the rows it covers, so nothing about the hidden rows can be worked out from it. */
+function lockedCard(input: PresentInput, result: Extract<MetricResult, { ok: true }>, rows: MetricRow[], locked: LockedRows): CardParts {
+  const { query } = input;
+  const visible = rankRowsOf(query, rows);
+  const own = heroOf(query, result, rows);
+  return {
+    title: input.title,
+    meta: scopeOf(query, rows.length, visible.length, result.headline.periodLabel, result.provenance.filterLabels ?? [], 0),
+    description: input.description ?? null,
+    footnote: footnoteOf(result, null, 0),
+    hero: { ...own, label: TH.dash.ownScope(metricLabel(query.metric), visible.map((row) => row.label).join(", ")) },
+    body: { kind: "locked", rows: visible, locked: locked.labels.map((label) => ({ label })), askHref: locked.askHref },
+    actions: input.actions ?? NO_ACTIONS,
+    denied: null,
+  };
+}
+
 /**
  * The one decision table for every data card in Winyu: what the headline is, which body the data shape deserves,
  * what the scope and source lines say. The dashboard and the chat both draw it.
@@ -872,9 +901,10 @@ export function presentCard(input: PresentInput): CardParts {
   const hidden = result.rows.filter(isHiddenRow).length;
   const visibleRows = hidden > 0 ? result.rows.filter((row) => !isHiddenRow(row)) : result.rows;
   const masked = result.provenance.masked.length > 0 && hidden === 0;
+  const sortBy = input.sortBy ?? query.sort ?? null;
+  if (input.locked && !masked && hidden === 0 && locksBreakdown(query, input.locked)) return lockedCard(input, result, sorted(query, visibleRows, sortBy), input.locked);
   const pairing = masked || hidden > 0 ? null : pairingOf({ query, result }, okSources(input.others));
   if (pairing) return pairedCard(input, pairing);
-  const sortBy = input.sortBy ?? query.sort ?? null;
   const whole: Shape = { query, rows: visibleRows, additive: result.headline.aggregate === "sum", sortBy };
   const view = hidden > 0 && visibleRows.length < RANK_MIN_ROWS ? "table" : viewFor(whole, input.view ?? "auto", masked, extras);
   const trimmed = withoutPartialBucket(query, view, visibleRows, result.provenance.asOf);

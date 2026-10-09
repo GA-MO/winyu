@@ -4,11 +4,14 @@ import { useRouter } from "next/navigation";
 import { CircleSlash } from "lucide-react";
 import { actionRequest } from "@/components/cards/action-tool";
 import { CardActionsProvider, type CardAction } from "@/components/cards/card-actions";
+import { DataCard } from "@/components/cards/data-card";
 import { TOOL_CARDS, type ToolCard } from "@/components/cards/registry";
 import { ComposedCardView } from "@/components/chat/composed-card";
 import { pressParam } from "@/components/chat/pressed";
 import type { ToolStep } from "@/components/chat/timeline";
 import { cardPlanOf, toolViewOf } from "@/components/chat/tool-view";
+import type { LockedRows } from "@/lib/cards/present";
+import { metricTitle } from "@/lib/cards/tool-answers";
 import type { ComposedSurface } from "@/lib/compose/catalog";
 import { TH } from "@/lib/i18n/th";
 
@@ -16,9 +19,10 @@ const CARDS: Record<string, ToolCard> = TOOL_CARDS;
 const CARD_TOOLS: ReadonlySet<string> = new Set(Object.keys(CARDS));
 const NOTHING_RUNNING = { running: false, asking: false, decided: undefined } as const;
 const NO_REPLY = { text: "", streaming: false };
+const LOCKABLE_TOOL = "query_metric";
 
 /** A stored read as it came back for the viewer; JSON-safe so it crosses from the share page. */
-export type FreshReadView = { toolCallId: string; tool: string; input: Record<string, unknown>; result: unknown };
+export type FreshReadView = { toolCallId: string; tool: string; input: Record<string, unknown>; result: unknown; locked: LockedRows | null };
 
 function stepOf(read: FreshReadView): ToolStep {
   return { kind: "tool", toolCallId: read.toolCallId, name: read.tool, args: read.input, outcome: { state: "returned", result: read.result } };
@@ -31,13 +35,19 @@ function chatHref(action: CardAction): string | null {
   return `/c/new?press=${encodeURIComponent(pressParam({ tool: request.tool, input: request.input, label: request.label }))}`;
 }
 
+function cardOf(name: string, result: unknown, args: unknown, locked: LockedRows | null) {
+  if (locked && name === LOCKABLE_TOOL) return <DataCard title={metricTitle(result, args)} source={result} locked={locked} />;
+  return CARDS[name](result, args, NO_REPLY);
+}
+
 function FixedCards({ reads }: { reads: readonly FreshReadView[] }) {
   const steps = reads.map(stepOf);
   const plan = cardPlanOf(steps, new Set(), CARD_TOOLS);
-  const drawn = steps.flatMap((step) => {
+  const drawn = reads.flatMap((read, index) => {
+    const step = steps[index];
     const result = plan.results.has(step.toolCallId) ? plan.results.get(step.toolCallId) : undefined;
     const view = toolViewOf(result === undefined ? step : { ...step, outcome: { state: "returned", result } }, { ...NOTHING_RUNNING, hidden: plan.hidden.has(step.toolCallId) }, CARD_TOOLS);
-    return view.kind === "card" ? [<div key={step.toolCallId}>{CARDS[view.name](view.result, view.args, NO_REPLY)}</div>] : [];
+    return view.kind === "card" ? [<div key={step.toolCallId}>{cardOf(view.name, view.result, view.args, read.locked)}</div>] : [];
   });
   if (drawn.length > 0) return <>{drawn}</>;
   return (

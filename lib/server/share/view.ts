@@ -4,14 +4,18 @@ import type { ShareScope, User } from "@/lib/contracts";
 import type { ComposedSurface } from "@/lib/compose/catalog";
 import { CardComposer } from "@/lib/compose/composer";
 import { emitTo, newRun, runWithRun, saveRun } from "@/lib/harness/runtime";
-import type { SharedCard } from "@/lib/share/card";
+import type { LockedRows } from "@/lib/cards/present";
+import { findUser } from "@/lib/data/entities/users";
+import type { SharedCard, SharedRead } from "@/lib/share/card";
+import { GRANT_REQUEST_ANCHOR } from "@/lib/share/grant-label";
 import { winyuTools } from "@/lib/server/agent/tools";
 import { shareScopeFor } from "@/lib/server/grants";
 import { runWithAccess, runWithTurn } from "@/lib/server/request-context";
+import { lockedRowsOf } from "./locked";
 import type { Share } from "./shares";
 
 /** One stored read run again as the viewer: what it was called with and what the gateway returned to them. */
-export type FreshRead = { toolCallId: string; tool: string; input: Record<string, unknown>; result: unknown };
+export type FreshRead = { toolCallId: string; tool: string; input: Record<string, unknown>; result: unknown; locked: LockedRows | null };
 
 /** A share drawn for one viewer: the reads as they came back under the viewer's access, for a composed card the block re-checked against those results (null when none of it holds for them, so the fixed cards show instead), and what the card hides from them that the sender saw. */
 export type SharedView = { reads: FreshRead[]; surface: ComposedSurface | null; scope: ShareScope | null };
@@ -20,13 +24,13 @@ function jsonSafe(value: unknown): unknown {
   return JSON.parse(JSON.stringify(value ?? null));
 }
 
-async function rerun(card: SharedCard): Promise<FreshRead[]> {
+async function rerun(card: SharedCard, lockedOf: (read: SharedRead) => LockedRows | null): Promise<FreshRead[]> {
   const tools = winyuTools();
   const reads: FreshRead[] = [];
   for (const read of card.reads) {
     const toolCallId = randomUUID();
     const output = await tools[read.tool].execute(read.input, { toolCallId });
-    reads.push({ toolCallId, tool: read.tool, input: read.input, result: jsonSafe(output) });
+    reads.push({ toolCallId, tool: read.tool, input: read.input, result: jsonSafe(output), locked: lockedOf(read) });
   }
   return reads;
 }
@@ -47,10 +51,14 @@ export async function openShare(share: Share, viewer: User): Promise<SharedView>
   const question = share.question ?? share.title;
   emitTo(run, "runtime", { type: "agent.started", payload: { goal: { id: run.id, userMessage: question, intent: "share", status: "active" }, userId: viewer.id, threadId: null } });
   const turn = { turnId: run.id, threadId: null, preloadPacketId: null, question, queries: [] };
+  const scope = shareScopeFor(share, viewer);
+  const sender = findUser(share.senderId);
+  const askHref = scope?.requestable ? `#${GRANT_REQUEST_ANCHOR}` : null;
+  const lockedOf = (read: SharedRead) => (sender && share.card.kind === "tool" ? lockedRowsOf(read, sender, viewer, askHref) : null);
   try {
-    const reads = await runWithAccess(access, () => runWithTurn(turn, () => runWithRun(run, () => rerun(share.card))));
+    const reads = await runWithAccess(access, () => runWithTurn(turn, () => runWithRun(run, () => rerun(share.card, lockedOf))));
     emitTo(run, "runtime", { type: "agent.completed", payload: { finishReason: "done" } });
-    return { reads, surface: regrounded(share.card, reads, `share:${share.id}`), scope: shareScopeFor(share, viewer) };
+    return { reads, surface: regrounded(share.card, reads, `share:${share.id}`), scope };
   } finally {
     saveRun(run);
   }

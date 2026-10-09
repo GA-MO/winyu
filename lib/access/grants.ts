@@ -107,12 +107,18 @@ export function grantedSlice(senderAccess: AccessContext, read: SharedRead): Gra
   };
 }
 
+/** Which regions and brands of a slice the viewer does not see under their access and live grants, in domain order; every one of them when the metric is closed to them. */
+export function hiddenValues(viewerAccess: AccessContext, slice: GrantSlice, at: Date): { regions: Region[]; brands: Brand[] } {
+  const { access } = metricAccess(viewerAccess, slice.metric, at);
+  if (access.metricAcl[slice.metric] !== "full") return { regions: expanded(slice.regions, REGIONS), brands: expanded(slice.brands, BRANDS) };
+  return { regions: missing(access.regions, slice.regions, REGIONS), brands: missing(access.brands, slice.brands, BRANDS) };
+}
+
 /** The part of a slice the viewer does not see under their access and live grants; null when they see all of it. */
 export function hiddenFrom(viewerAccess: AccessContext, slice: GrantSlice, at: Date): GrantSlice | null {
   const { access } = metricAccess(viewerAccess, slice.metric, at);
   if (access.metricAcl[slice.metric] !== "full") return slice;
-  const regions = missing(access.regions, slice.regions, REGIONS);
-  const brands = missing(access.brands, slice.brands, BRANDS);
+  const { regions, brands } = hiddenValues(viewerAccess, slice, at);
   if (regions.length === 0 && brands.length === 0) return null;
   return { metric: slice.metric, regions: regions.length > 0 ? regions : slice.regions, brands: brands.length > 0 ? brands : slice.brands };
 }

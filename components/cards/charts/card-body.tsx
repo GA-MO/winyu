@@ -8,6 +8,7 @@ import { ForecastBand } from "./forecast-band";
 import { Funnel } from "./funnel";
 import { GapBars } from "./gap-bars";
 import { Heatmap } from "./heatmap";
+import { LockedRank } from "./locked-rank";
 import { Meter } from "./meter";
 import { Scatter } from "./scatter";
 import { ShareDonut } from "./share-donut";
@@ -16,6 +17,7 @@ import { StackedArea } from "./stacked-area";
 /** Every body kind a `CardParts` can carry, rendered the same way on both surfaces: dumb components fed pre-decided props. */
 export function CardBodyView({ body }: { body: CardBody }) {
   if (body.kind === "rank") return <RankList props={{ items: body.rows, showRank: body.showRank }} />;
+  if (body.kind === "locked") return <LockedRank rows={body.rows} locked={body.locked} askHref={body.askHref} />;
   if (body.kind === "progress") return <Meter value={body.value} detail={body.detail} />;
   if (body.kind === "line") {
     return (

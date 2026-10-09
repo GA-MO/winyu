@@ -1,11 +1,11 @@
 "use client";
 
-import { presentAlerts, presentCard, presentForecast, type CardView, type SortBy } from "@/lib/cards/present";
+import { presentAlerts, presentCard, presentForecast, type CardView, type LockedRows, type SortBy } from "@/lib/cards/present";
 import { actionsOf, alertsOf, deniedParts, forecastOf, metricAnswerOf, othersOf, refusalOf } from "@/lib/cards/tool-answers";
 import { TH } from "@/lib/i18n/th";
 import { CardPartsView } from "./card-parts";
 
-type DataCardProps = { title: string; source: unknown; with?: unknown; view?: CardView | null; sortBy?: SortBy | null; description?: string | null };
+type DataCardProps = { title: string; source: unknown; with?: unknown; view?: CardView | null; sortBy?: SortBy | null; description?: string | null; locked?: LockedRows | null };
 
 type AlertsCardProps = { title: string; source: unknown; description?: string | null };
 
@@ -35,6 +35,7 @@ export function DataCard(props: DataCardProps) {
     description: props.description ?? null,
     actions: answer.nextActions,
     others: othersOf(props.with),
+    locked: props.locked ?? null,
   });
   return <CardPartsView parts={parts} />;
 }
