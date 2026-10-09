@@ -1,5 +1,5 @@
 import type { Dim, Forecast, MetricId } from "@/lib/contracts";
-import { runSeries } from "@/lib/data/query";
+import { readSeries } from "@/lib/server/metrics";
 import { DAY_COUNT, ISO_OF_DAY, WEEK_KEYS, WEEK_OF_DAY, addDays, weekIndexOfKey } from "@/lib/data/dates";
 import { BRANDS } from "@/lib/contracts";
 import { REGIONS } from "@/lib/contracts";
@@ -109,9 +109,9 @@ function completeWeeks(): { keys: string[]; lastEnd: string } {
   return { keys, lastEnd: ISO_OF_DAY[lastDay] as string };
 }
 
-function weeklyValues(target: Target, keys: readonly string[]): number[] {
+async function weeklyValues(target: Target, keys: readonly string[]): Promise<number[]> {
   const filters = Object.fromEntries(Object.entries(target.dims).map(([dim, value]) => [dim, [value as string]]));
-  const rows = runSeries({ metric: target.metric, dims: ["week"], filters, range: { from: ISO_OF_DAY[0] as string, to: ISO_OF_DAY[DAY_COUNT - 1] as string } });
+  const rows = await readSeries({ metric: target.metric, dims: ["week"], filters, range: { from: ISO_OF_DAY[0] as string, to: ISO_OF_DAY[DAY_COUNT - 1] as string } });
   const byWeek = new Map(rows.map((row) => [row.dims.week as string, row.value]));
   return keys.map((key) => byWeek.get(key) ?? 0);
 }
@@ -120,8 +120,8 @@ function idOf(target: Target): string {
   return ["fc", target.metric, ...Object.entries(target.dims).map(([dim, value]) => `${dim}-${value}`)].join("_");
 }
 
-function forecastOne(target: Target, keys: readonly string[], lastEnd: string): Forecast | null {
-  const values = weeklyValues(target, keys);
+async function forecastOne(target: Target, keys: readonly string[], lastEnd: string): Promise<Forecast | null> {
+  const values = await weeklyValues(target, keys);
   if (values.length < MIN_WEEKS || mean(values) < MIN_LEVEL) return null;
   const model = bestFit(values, target.period);
   if (!model) return null;
@@ -155,19 +155,19 @@ export function forecastTargets(): Target[] {
 }
 
 /** The deterministic eight-week forecast for every watched slice, with its backtest error. */
-export function buildForecasts(): Forecast[] {
+export async function buildForecasts(): Promise<Forecast[]> {
   const { keys, lastEnd } = completeWeeks();
   const out: Forecast[] = [];
   for (const target of forecastTargets()) {
-    const forecast = forecastOne(target, keys, lastEnd);
+    const forecast = await forecastOne(target, keys, lastEnd);
     if (forecast) out.push(forecast);
   }
   return out;
 }
 
-export function weeklySeriesFor(metric: MetricId, dims: Partial<Record<Dim, string>>): { values: number[]; keys: string[] } {
+export async function weeklySeriesFor(metric: MetricId, dims: Partial<Record<Dim, string>>): Promise<{ values: number[]; keys: string[] }> {
   const { keys } = completeWeeks();
-  return { values: weeklyValues({ metric, dims, period: YEAR_WEEKS }, keys), keys: [...keys] };
+  return { values: await weeklyValues({ metric, dims, period: YEAR_WEEKS }, keys), keys: [...keys] };
 }
 
 export { YEAR_WEEKS, COVER_PERIOD, weekIndexOfKey };

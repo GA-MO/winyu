@@ -26,10 +26,10 @@ function storyAlert(): Alert | null {
   );
 }
 
-function findOrRunEngine(): Alert | null {
+async function findOrRunEngine(): Promise<Alert | null> {
   const found = storyAlert();
   if (found) return found;
-  runEngineJobs();
+  await runEngineJobs();
   return storyAlert();
 }
 
@@ -84,7 +84,7 @@ function sendStoryPacket(alert: Alert): Promise<ContextPacket> {
 
 /** Adds the one handoff story the demo needs to show closing with a verdict and the lesson from last time; safe to run again. */
 export async function ensureDemoStory(): Promise<DemoStory | null> {
-  const alert = findOrRunEngine();
+  const alert = await findOrRunEngine();
   if (!alert) return null;
   const outcomeCreated = ensurePastOutcome(alert);
   const existing = openStoryPacket(alert.id);

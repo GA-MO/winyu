@@ -141,7 +141,7 @@ function later(left: string, right: string): string {
   return left > right ? left : right;
 }
 
-function mergedStory(parts: Detection[]): Detection {
+async function mergedStory(parts: Detection[]): Promise<Detection> {
   const lead = parts.reduce((best, part) => (Math.abs(part.zScore) > Math.abs(best.zScore) ? part : best));
   const dims = { agent: lead.dims.agent, ...(lead.dims.region ? { region: lead.dims.region } : {}) };
   const window = {
@@ -151,7 +151,7 @@ function mergedStory(parts: Detection[]): Detection {
   const observed = parts.reduce((sum, part) => sum + part.observed, 0);
   const expected = parts.reduce((sum, part) => sum + part.expected, 0);
   const region = regionOfDims(dims);
-  const explanation = explain({ metric: lead.metric, dims, direction: lead.direction, window, observed, expected, region, detail: null });
+  const explanation = await explain({ metric: lead.metric, dims, direction: lead.direction, window, observed, expected, region, detail: null });
   const worst = parts.reduce((best, part) => (SEVERITY_RANK[part.severity] < SEVERITY_RANK[best.severity] ? part : best));
   return {
     ...lead,
@@ -171,7 +171,7 @@ function mergedStory(parts: Detection[]): Detection {
 }
 
 /** Folds the brands of one agent moving the same way into a single alert, since they are one story for the person who acts on it. */
-export function mergeAgentStories(detections: Detection[]): Detection[] {
+export async function mergeAgentStories(detections: Detection[]): Promise<Detection[]> {
   const groups = new Map<string, Detection[]>();
   for (const detection of detections) {
     const key = agentStoryKey(detection);
@@ -180,7 +180,7 @@ export function mergeAgentStories(detections: Detection[]): Detection[] {
   const merged = new Map<Detection, Detection | null>();
   for (const parts of groups.values()) {
     if (parts.length < 2) continue;
-    const story = mergedStory(parts);
+    const story = await mergedStory(parts);
     parts.forEach((part, index) => merged.set(part, index === 0 ? story : null));
   }
   return detections.flatMap((detection) => {
@@ -251,15 +251,15 @@ export function linkDemandToCover(detections: Detection[]): Detection[] {
   return detections.map((detection) => ({ ...detection, relatedIds: [...(links.get(detection.id) ?? [])] }));
 }
 
-function detectWatch(watch: Watch, thresholds: Thresholds, covered: Set<string>): Detection[] {
+async function detectWatch(watch: Watch, thresholds: Thresholds, covered: Set<string>): Promise<Detection[]> {
   const parent = watch.parent ? watchById(watch.parent) : null;
   const found: Detection[] = [];
-  for (const series of seriesFor(watch)) {
+  for (const series of await seriesFor(watch)) {
     if (parent && covered.has(`${parent.id}:${parentKeyOf(watch, series.dims, parent)}`)) continue;
     const tailFrom = Math.max(0, series.values.length - BASELINE_TAIL);
     if (mean(series.values, tailFrom, series.values.length - 1) < watch.minLevel) continue;
     const scan = watch.lowThreshold === null
-      ? scanSeries(inLentRegime(watch, series), series.season, watch.scan ?? (watch.grain === "month" ? MONTHLY_SCAN : DAILY_SCAN), calendarSkipFor(watch, series))
+      ? scanSeries(await inLentRegime(watch, series), series.season, watch.scan ?? (watch.grain === "month" ? MONTHLY_SCAN : DAILY_SCAN), calendarSkipFor(watch, series))
       : scanFloor(series.values, watch.lowThreshold, FLOOR_WINDOW);
     if (!scan) continue;
     if (watch.lowThreshold === null && Math.abs(scan.z) < thresholdFor(thresholdKey(watch.metric, series.dims), thresholds)) continue;
@@ -268,7 +268,7 @@ function detectWatch(watch: Watch, thresholds: Thresholds, covered: Set<string>)
     const to = watch.grain === "month" ? monthEnd(isoOfSlot(series, scan.to, watch.grain)) : isoOfSlot(series, scan.to, watch.grain);
     const region = regionOfDims(series.dims);
     const dims = region ? { ...series.dims, region } : series.dims;
-    const explanation = explain({
+    const explanation = await explain({
       metric: watch.metric,
       dims,
       direction: scan.direction,
@@ -316,15 +316,15 @@ function capPerWatch(detections: Detection[]): Detection[] {
 }
 
 /** Every anomaly the watch list finds today, deepest slice first and roll-ups removed. */
-export function detectAnomalies(thresholds: Thresholds = {}): Detection[] {
+export async function detectAnomalies(thresholds: Thresholds = {}): Promise<Detection[]> {
   const covered = new Set<string>();
   const found: Detection[] = [];
   for (const watch of WATCHES) {
-    const detections = detectWatch(watch, thresholds, covered);
+    const detections = await detectWatch(watch, thresholds, covered);
     for (const detection of detections) covered.add(`${watch.id}:${watch.entityDims.map((dim) => detection.dims[dim] ?? "").join("|")}`);
     found.push(...detections);
   }
-  return linkDemandToCover(groupSkuStories(capPerWatch(absorbIntoAgentStories(mergeAgentStories(dropRollUps(found))))))
+  return linkDemandToCover(groupSkuStories(capPerWatch(absorbIntoAgentStories(await mergeAgentStories(dropRollUps(found))))))
     .sort((left, right) => SEVERITY_RANK[left.severity] - SEVERITY_RANK[right.severity] || Math.abs(right.zScore) - Math.abs(left.zScore))
     .slice(0, MAX_ALERTS);
 }

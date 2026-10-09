@@ -39,10 +39,10 @@ function storedThresholds(): Thresholds {
 }
 
 /** Re-runs detection and folds the result into the stored alerts, keeping what the user already did with them. */
-export function runAnomalyJob(): { alerts: number } {
+export async function runAnomalyJob(): Promise<{ alerts: number }> {
   const store = alerts();
   const previous = new Map(store.all().map((alert) => [alert.id, alert]));
-  const detections = detectAnomalies(storedThresholds());
+  const detections = await detectAnomalies(storedThresholds());
   const kept = new Set<string>();
   for (const detection of detections) {
     store.put(toAlert(detection, previous.get(detection.id) ?? null));
@@ -54,25 +54,25 @@ export function runAnomalyJob(): { alerts: number } {
   return { alerts: kept.size };
 }
 
-export function runForecastJob(): { forecasts: number } {
+export async function runForecastJob(): Promise<{ forecasts: number }> {
   const store = forecasts();
+  const built = await buildForecasts();
   for (const stale of store.all()) store.remove(stale.id);
-  const built = buildForecasts();
   for (const forecast of built) store.put(forecast);
   return { forecasts: built.length };
 }
 
-export function runEngineJobs(): { alerts: number; forecasts: number } {
-  return { ...runAnomalyJob(), ...runForecastJob() };
+export async function runEngineJobs(): Promise<{ alerts: number; forecasts: number }> {
+  return { ...(await runAnomalyJob()), ...(await runForecastJob()) };
 }
 
-/** Fills the analytics plane the first time the app runs against an empty `.data`. */
-export function ensureEngine(): void {
+/** Fills the analytics plane the first time the app runs against an empty `.data`; the readers only read what it stored. */
+export async function ensureEngine(): Promise<void> {
   if (running) return;
   if (existsSync(path.join(DATA_DIR, "alerts.json"))) return;
   running = true;
   try {
-    runEngineJobs();
+    await runEngineJobs();
   } finally {
     running = false;
   }
@@ -153,7 +153,6 @@ function mutedKeys(userId: string, now = Date.now()): ReadonlySet<string> {
 
 /** The open alerts this user can see, one per story (a story's children stay with it), minus the slices they said are not theirs, most relevant first. */
 export function openAlertsFor(access: AccessContext): Alert[] {
-  ensureEngine();
   const muted = mutedKeys(access.userId);
   return alerts()
     .where((alert) => alert.status === "open" && !alert.parentId && inScope(alert, access) && !muted.has(thresholdKey(alert.metric, alert.dims)))
@@ -171,7 +170,6 @@ export function relatedTo(alert: Alert): Alert[] {
 }
 
 export function allAlertsFor(access: AccessContext): Alert[] {
-  ensureEngine();
   return alerts().where((alert) => inScope(alert, access)).sort(rankFor(access));
 }
 
@@ -195,7 +193,6 @@ export function handedOffNote(alertId: string, viewerId: string): string | null 
 }
 
 export function forecastsFor(access: AccessContext): Forecast[] {
-  ensureEngine();
   return forecasts().where((forecast) => {
     if (access.metricAcl[forecast.metric] === "none") return false;
     if (access.regions === "all") return true;

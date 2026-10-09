@@ -1,9 +1,9 @@
-import type { AccessContext, MetricQuery, MetricResult, MonthEndProjection } from "@/lib/contracts";
+import type { AccessContext, Dim, MetricQuery, MetricResult, MonthEndProjection } from "@/lib/contracts";
 import { isTimeDim } from "@/lib/cards/rows";
 import { MONTH_OF_DAY, TODAY, addDays, daysInMonthIndex, toDayIndex } from "@/lib/data/dates";
 import { projectMonthEnd } from "@/lib/engine/gap";
 import { TH } from "@/lib/i18n/th";
-import { comparisonRequestOf, finishMetric, formatForSummary, planMetric } from "@/lib/semantic/engine";
+import { comparisonRequestOf, finishMetric, formatForSummary, keyRows, planMetric, seriesRequest, type SeriesQuery } from "@/lib/semantic/engine";
 import { metricDef } from "@/lib/semantic/metrics";
 import { loadDictionary } from "@/lib/server/master-data";
 import { ports } from "@/lib/server/ports";
@@ -68,4 +68,17 @@ export async function runMetric(query: MetricQuery, access: AccessContext): Prom
   const projection = await monthEndProjection(query, access);
   if (!projection) return result;
   return { ...result, summary: `${result.summary} · ${TH.dash.monthEnd(projection)}`, headline: { ...result.headline, projection } };
+}
+
+export type { SeriesQuery };
+
+/** One row of a series the engines read: the key of its dimension values, those values, and the aggregated value. */
+export type SeriesRow = { key: string; dims: Record<Dim, string>; value: number };
+
+/** The batch plane's reader for anomalies, forecasts, watches and hypotheses: the same aggregation as `runMetric` without access scoping, masking or the row cap, read through the metrics port like every answer. */
+export async function readSeries(query: SeriesQuery): Promise<SeriesRow[]> {
+  const request = seriesRequest(query, await loadDictionary());
+  if (!request) return [];
+  const [facts] = await ports().metrics.readFacts([request]);
+  return facts?.ok ? keyRows(request.dims, facts.rows) : [];
 }

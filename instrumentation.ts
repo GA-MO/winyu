@@ -2,6 +2,8 @@ export async function register() {
   if (process.env.NEXT_RUNTIME !== "nodejs") return;
   const { reconcileConnectors, startConnectorProbe } = await import("./lib/server/connectors/reconcile");
   void reconcileConnectors();
+  const { ensureEngine } = await import("./lib/server/alerts");
+  ensureEngine().catch((error: unknown) => console.error("[Winyu] analytics plane did not fill", error));
   const { recoverChatRuns } = await import("./lib/harness/adapters/mastra/recover");
   recoverChatRuns()
     .then((recovered) => recovered.forEach((entry) => console.info(`[Winyu] chat run ${entry.runId} after restart: ${entry.outcome}`)))

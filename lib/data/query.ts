@@ -1,6 +1,6 @@
 import type { AccessContext, Dim, MetricDef, MetricQuery, MetricResult } from "@/lib/contracts";
 import { METRIC_LIST, findMetric } from "@/lib/semantic/metrics";
-import { evaluateMetric, keyRows, seriesRequest, type SeriesQuery } from "@/lib/semantic/engine";
+import { evaluateMetric } from "@/lib/semantic/engine";
 import { INJECTED_ANOMALIES } from "./anomalies";
 import { readGeneratorFacts } from "./facts";
 import { GENERATOR_DICTIONARY } from "./master";
@@ -130,14 +130,3 @@ export function describeEntity(kind: "agent" | "sku" | "dc" | "campaign" | "user
 }
 
 export { INJECTED_ANOMALIES };
-
-export type { SeriesQuery };
-export type SeriesRow = { key: string; dims: Record<Dim, string>; value: number };
-
-/** The batch plane's reader: the same aggregation as `runMetric` without access scoping, masking or the row cap. */
-export function runSeries(query: SeriesQuery): SeriesRow[] {
-  const request = seriesRequest(query, GENERATOR_DICTIONARY);
-  if (!request) return [];
-  const facts = readGeneratorFacts(request);
-  return facts.ok ? keyRows(request.dims, facts.rows) : [];
-}

@@ -13,10 +13,10 @@ export const runJobTool = defineTool({
   description: "Run one batch job of the analytics plane: anomaly detection, forecasting or dashboard composition. IT administrators only; the user approves it first.",
   input: runJobInputSchema,
   execute: async ({ job }: z.infer<typeof runJobInputSchema>) => {
-    if (job === "anomaly") return { ok: true as const, summary: "รันการตรวจจับความผิดปกติแล้ว", data: runAnomalyJob() };
-    if (job === "forecast") return { ok: true as const, summary: "รันการพยากรณ์แล้ว", data: runForecastJob() };
+    if (job === "anomaly") return { ok: true as const, summary: "รันการตรวจจับความผิดปกติแล้ว", data: await runAnomalyJob() };
+    if (job === "forecast") return { ok: true as const, summary: "รันการพยากรณ์แล้ว", data: await runForecastJob() };
     if (job === "watches") return { ok: true as const, summary: "ตรวจเรื่องที่ผู้ใช้เฝ้าดูแล้ว", data: await runWatchJob() };
     if (job === "digest") return { ok: true as const, summary: "ส่งสรุปตอนเช้าแล้ว", data: await runDigestJob() };
-    return { ok: true as const, summary: "รันงานเบื้องหลังทั้งหมดแล้ว", data: runEngineJobs() };
+    return { ok: true as const, summary: "รันงานเบื้องหลังทั้งหมดแล้ว", data: await runEngineJobs() };
   },
 });

@@ -22,8 +22,8 @@ export async function POST(req: Request) {
   if (refused) return refused;
   const body = await readBody<JobBody>(req);
   const job = body?.job ?? "all";
-  if (job === "anomaly") return Response.json(runAnomalyJob());
-  if (job === "forecast") return Response.json(runForecastJob());
+  if (job === "anomaly") return Response.json(await runAnomalyJob());
+  if (job === "forecast") return Response.json(await runForecastJob());
   if (job === "watches") return Response.json(await runWatchJob());
   if (job === "digest") return Response.json(await runDigestJob());
   if (job === "investigate") {
@@ -31,7 +31,7 @@ export async function POST(req: Request) {
     if (!user) return badRequest();
     return Response.json({ runId: await startInvestigation([user.id]) }, { status: STARTED });
   }
-  if (job === "all" || job === "compose") return Response.json(runEngineJobs());
+  if (job === "all" || job === "compose") return Response.json(await runEngineJobs());
   return badRequest();
 }
 

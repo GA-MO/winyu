@@ -6,7 +6,7 @@ import { TH } from "@/lib/i18n/th";
 import { Z_OPEN, absorbIntoAgentStories, detectAnomalies, dropRollUps, groupSkuStories, linkDemandToCover, mergeAgentStories, severityOf, thresholdFor, thresholdKey, toAlert, type Detection } from "./anomaly";
 import { DAILY_SCAN, scanSeries } from "./stats";
 
-const DETECTED = detectAnomalies();
+const DETECTED = await detectAnomalies();
 
 type Matcher = { id: string; direction: "up" | "down"; match: (detection: Detection) => boolean };
 
@@ -92,8 +92,8 @@ describe("anomaly detection", () => {
     }
   });
 
-  test("detection is deterministic", () => {
-    expect(detectAnomalies().map((detection) => detection.id)).toEqual(DETECTED.map((detection) => detection.id));
+  test("detection is deterministic", async () => {
+    expect((await detectAnomalies()).map((detection) => detection.id)).toEqual(DETECTED.map((detection) => detection.id));
   });
 
   test("a roll-up is dropped when a deeper slice explains the same move", () => {
@@ -112,7 +112,7 @@ describe("anomaly detection", () => {
     expect(northeastAgentDrops.every((detection) => detection.dims.brand === undefined)).toBe(true);
   });
 
-  test("merging keeps the worst severity and sums the brands", () => {
+  test("merging keeps the worst severity and sums the brands", async () => {
     const part = (brand: string, severity: Detection["severity"], observed: number): Detection => ({
       ...DETECTED[0],
       id: brand,
@@ -123,7 +123,7 @@ describe("anomaly detection", () => {
       observed,
       expected: 50,
     });
-    const merged = mergeAgentStories([part("leo", "P2", 10), part("singha", "P1", 5)]);
+    const merged = await mergeAgentStories([part("leo", "P2", 10), part("singha", "P1", 5)]);
     expect(merged).toHaveLength(1);
     expect(merged[0].severity).toBe("P1");
     expect(merged[0].observed).toBe(15);

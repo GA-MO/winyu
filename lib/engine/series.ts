@@ -1,5 +1,5 @@
 import type { Dim, MetricId } from "@/lib/contracts";
-import { runSeries } from "@/lib/data/query";
+import { readSeries } from "@/lib/server/metrics";
 import {
   DAY_COUNT, DOW_OF_DAY, ISO_OF_DAY, MONTH_COUNT, MONTH_KEYS, TODAY, addDays, monthIndexOfKey, toDayIndex,
 } from "@/lib/data/dates";
@@ -39,8 +39,8 @@ function timeDimOf(watch: Watch): Dim {
   return watch.grain === "month" ? "month" : "date";
 }
 
-function collect(watch: Watch, range: { from: string; to: string }, slots: number, slotOf: (value: string) => number): EntitySeries[] {
-  const rows = runSeries({ metric: watch.metric, dims: [timeDimOf(watch), ...watch.entityDims], filters: {}, range });
+async function collect(watch: Watch, range: { from: string; to: string }, slots: number, slotOf: (value: string) => number): Promise<EntitySeries[]> {
+  const rows = await readSeries({ metric: watch.metric, dims: [timeDimOf(watch), ...watch.entityDims], filters: {}, range });
   const byEntity = new Map<string, EntitySeries>();
   const timeDim = timeDimOf(watch);
   for (const row of rows) {
@@ -83,14 +83,14 @@ function productionLineSeries(): EntitySeries[] {
 }
 
 /** Dense day-of-week-aware series per entity for one watch, newest point last. */
-export function seriesFor(watch: Watch): EntitySeries[] {
+export async function seriesFor(watch: Watch): Promise<EntitySeries[]> {
   if (watch.id === "output_plant") return productionLineSeries();
   if (watch.grain === "month") {
     const window = monthWindow();
     const slots = window.to - window.from + 1;
     const range = { from: "2025-04-01", to: TODAY };
     const season = new Array<number>(slots).fill(MONTH_SEASON);
-    const monthly = collect(watch, range, slots, (key) => monthIndexOfKey(key) - window.from).map((series) => ({ ...series, season, startDay: window.from }));
+    const monthly = (await collect(watch, range, slots, (key) => monthIndexOfKey(key) - window.from)).map((series) => ({ ...series, season, startDay: window.from }));
     if (watch.transform !== "year_over_year") return monthly;
     return monthly.map(toYearOverYear).filter((series): series is EntitySeries => series !== null);
   }
@@ -99,7 +99,7 @@ export function seriesFor(watch: Watch): EntitySeries[] {
   const range = { from: ISO_OF_DAY[window.from] as string, to: ISO_OF_DAY[window.to] as string };
   const season: number[] = [];
   for (let slot = 0; slot < slots; slot += 1) season.push(DOW_OF_DAY[window.from + slot] as number);
-  return collect(watch, range, slots, (iso) => toDayIndex(iso) - window.from).map((series) => ({ ...series, season, startDay: window.from }));
+  return (await collect(watch, range, slots, (iso) => toDayIndex(iso) - window.from)).map((series) => ({ ...series, season, startDay: window.from }));
 }
 
 function nearBanDay(dayIdx: number): boolean {
@@ -133,10 +133,10 @@ function spanMean(values: ReadonlyMap<string, number>, fromIso: string, days: nu
 
 let lentEffectCache: number | null = null;
 
-function stepAtLentStart(businessUnit: string): number {
+async function stepAtLentStart(businessUnit: string): Promise<number> {
   const from = addDays(LAST_YEAR_LENT_START, -LENT_EFFECT_SPAN_DAYS);
   const to = addDays(LAST_YEAR_LENT_START, LENT_EFFECT_SPAN_DAYS - 1);
-  const rows = runSeries({ metric: "net_sales_volume", dims: ["date"], filters: { business_unit: [businessUnit] }, range: { from, to } });
+  const rows = await readSeries({ metric: "net_sales_volume", dims: ["date"], filters: { business_unit: [businessUnit] }, range: { from, to } });
   const byDate = new Map(rows.map((row) => [row.dims.date as string, row.value]));
   const before = spanMean(byDate, from, LENT_EFFECT_SPAN_DAYS);
   const during = spanMean(byDate, LAST_YEAR_LENT_START, LENT_EFFECT_SPAN_DAYS);
@@ -144,9 +144,9 @@ function stepAtLentStart(businessUnit: string): number {
 }
 
 /** How much beer sell-in moves when Buddhist Lent starts: last year's step in beer against water and soda over the same days, so the season cancels out. */
-export function lentEffect(): number {
+export async function lentEffect(): Promise<number> {
   if (lentEffectCache !== null) return lentEffectCache;
-  lentEffectCache = stepAtLentStart("beer") / stepAtLentStart("non_alcohol");
+  lentEffectCache = (await stepAtLentStart("beer")) / (await stepAtLentStart("non_alcohol"));
   return lentEffectCache;
 }
 
@@ -161,11 +161,11 @@ function isCalendarSensitive(watch: Watch, series: EntitySeries): boolean {
 }
 
 /** Beer days on the other side of the latest Lent start or end, rescaled to the level of the current side, so a Lent step is not read as a trend. */
-export function inLentRegime(watch: Watch, series: EntitySeries): number[] {
+export async function inLentRegime(watch: Watch, series: EntitySeries): Promise<number[]> {
   if (!isCalendarSensitive(watch, series)) return series.values;
   const lastDay = series.startDay + series.values.length - 1;
   const current = LENT_FLAGS[lastDay] === 1;
-  const effect = lentEffect();
+  const effect = await lentEffect();
   return series.values.map((value, slot) => {
     const inLent = LENT_FLAGS[series.startDay + slot] === 1;
     if (inLent === current) return value;

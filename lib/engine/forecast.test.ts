@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { BACKTEST_WEEKS, HORIZON_WEEKS, backtest, buildForecasts, weeklySeriesFor } from "./forecast";
 
-const FORECASTS = buildForecasts();
+const FORECASTS = await buildForecasts();
 const VOLUME = FORECASTS.filter((forecast) => forecast.metric === "net_sales_volume");
 const MAPE_TARGET = 15;
 const COVERAGE = 0.8;
@@ -52,12 +52,30 @@ describe("forecast", () => {
     for (const forecast of cover) expect(forecast.mape).toBeGreaterThan(0);
   });
 
-  test("the weekly series drops the incomplete current week", () => {
-    const { keys } = weeklySeriesFor("net_sales_volume", { brand: "leo", region: "northeast" });
+  test("the weekly series drops the incomplete current week", async () => {
+    const { keys } = await weeklySeriesFor("net_sales_volume", { brand: "leo", region: "northeast" });
     expect(keys[keys.length - 1]).toBe("2026-W38");
   });
 
-  test("forecasting is deterministic", () => {
-    expect(buildForecasts().map((forecast) => forecast.points[0].value)).toEqual(FORECASTS.map((forecast) => forecast.points[0].value));
+  test("forecasting is deterministic", async () => {
+    expect((await buildForecasts()).map((forecast) => forecast.points[0].value)).toEqual(FORECASTS.map((forecast) => forecast.points[0].value));
+  });
+});
+
+describe("the engines read the warehouse through the metrics port", () => {
+  test("a forecast run asks whatever metrics port is installed, not the generator directly", async () => {
+    const { ports, registerPorts, resetPorts } = await import("@/lib/server/ports");
+    const generator = ports().metrics;
+    let asked = 0;
+    registerPorts({ metrics: { ...generator, readFacts: (requests) => {
+      asked += requests.length;
+      return generator.readFacts(requests);
+    } } });
+    try {
+      await weeklySeriesFor("net_sales_volume", { brand: "leo", region: "northeast" });
+    } finally {
+      resetPorts();
+    }
+    expect(asked).toBeGreaterThan(0);
   });
 });

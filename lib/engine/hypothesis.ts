@@ -1,5 +1,5 @@
 import type { Dim, MetricId, Region } from "@/lib/contracts";
-import { runSeries } from "@/lib/data/query";
+import { readSeries } from "@/lib/server/metrics";
 import { CAMPAIGNS, type Campaign } from "@/lib/data/entities/marketing";
 import { NORTHERN_PROVINCE_IDS, pm25Series } from "@/lib/data/entities/external";
 import { AGENTS, agentById } from "@/lib/data/entities/agents";
@@ -59,8 +59,8 @@ function filtersOf(dims: Partial<Record<Dim, string>>): Partial<Record<Dim, stri
   return Object.fromEntries(Object.entries(dims).map(([dim, value]) => [dim, [value as string]]));
 }
 
-function totalOf(metric: MetricId, dims: Partial<Record<Dim, string>>, from: string, to: string): number {
-  const rows = runSeries({ metric, dims: [], filters: filtersOf(dims), range: { from, to } });
+async function totalOf(metric: MetricId, dims: Partial<Record<Dim, string>>, from: string, to: string): Promise<number> {
+  const rows = await readSeries({ metric, dims: [], filters: filtersOf(dims), range: { from, to } });
   return rows[0]?.value ?? 0;
 }
 
@@ -73,11 +73,11 @@ function priorWindow(window: { from: string; to: string }): { from: string; to: 
   return { from: ISO_OF_DAY[priorFrom] as string, to: ISO_OF_DAY[priorTo] as string };
 }
 
-function sellOutHeldFlat(context: Context): boolean {
+async function sellOutHeldFlat(context: Context): Promise<boolean> {
   if (context.metric !== "net_sales_volume" || context.direction !== "down") return false;
   const prior = priorWindow(context.window);
-  const recent = totalOf("sell_out_volume", context.dims, context.window.from, context.window.to);
-  const before = totalOf("sell_out_volume", context.dims, prior.from, prior.to);
+  const recent = await totalOf("sell_out_volume", context.dims, context.window.from, context.window.to);
+  const before = await totalOf("sell_out_volume", context.dims, prior.from, prior.to);
   if (before <= 0) return false;
   return Math.abs(recent / before - 1) <= FLAT_RATIO;
 }
@@ -99,7 +99,7 @@ function sameWeekdayRatio(byDay: ReadonlyMap<number, number>, day: number): numb
   return count === 0 || sum === 0 ? 1 : (byDay.get(day) ?? 0) / (sum / count);
 }
 
-function pm25Match(context: Context): boolean {
+async function pm25Match(context: Context): Promise<boolean> {
   const province = context.dims.province;
   if (!province || !(NORTHERN_PROVINCE_IDS as readonly string[]).includes(province)) return false;
   const series = pm25Series(province);
@@ -107,7 +107,7 @@ function pm25Match(context: Context): boolean {
   const from = Math.max(0, toDayIndex(context.window.from) - PM25_LEAD_DAYS);
   const to = toDayIndex(context.window.to);
   const readFrom = Math.max(0, from - NORMAL_WEEKS * DAYS_PER_WEEK);
-  const rows = runSeries({ metric: context.metric, dims: ["date"], filters: filtersOf(context.dims), range: { from: ISO_OF_DAY[readFrom] as string, to: ISO_OF_DAY[to] as string } });
+  const rows = await readSeries({ metric: context.metric, dims: ["date"], filters: filtersOf(context.dims), range: { from: ISO_OF_DAY[readFrom] as string, to: ISO_OF_DAY[to] as string } });
   const byDay = new Map(rows.map((row) => [toDayIndex(row.dims.date as string), row.value]));
   const left: number[] = [];
   const right: number[] = [];
@@ -139,13 +139,15 @@ function yearBefore(iso: string): string {
 }
 
 /** The agents in a region whose overdue balance grew most against the same period last year, strongest first, with the growth in whole percent. */
-function arDrivers(region: string, window: { from: string; to: string }): { name: string; growth: number }[] {
-  return AGENTS.filter((agent) => agent.region === region)
-    .map((agent) => {
-      const now = totalOf("ar_overdue", { agent: agent.id }, window.from, window.to);
-      const before = totalOf("ar_overdue", { agent: agent.id }, yearBefore(window.from), yearBefore(window.to));
+async function arDrivers(region: string, window: { from: string; to: string }): Promise<{ name: string; growth: number }[]> {
+  const drivers = await Promise.all(
+    AGENTS.filter((agent) => agent.region === region).map(async (agent) => {
+      const now = await totalOf("ar_overdue", { agent: agent.id }, window.from, window.to);
+      const before = await totalOf("ar_overdue", { agent: agent.id }, yearBefore(window.from), yearBefore(window.to));
       return { name: agent.nameTh, growth: before > 0 ? Math.round(((now - before) / before) * PERCENT) : 0 };
-    })
+    }),
+  );
+  return drivers
     .filter((driver) => driver.growth >= AR_DRIVER_MIN_PCT)
     .sort((left, right) => right.growth - left.growth)
     .slice(0, AR_DRIVERS);
@@ -158,17 +160,17 @@ function steps(first: string, second: string): [string, string] {
 /** One hypothesis and two things to check, chosen from the metric, the direction and the context around the window. */
 type ShareShift = { maker: string; points: number };
 
-function shareShifts(context: Context): ShareShift[] {
+async function shareShifts(context: Context): Promise<ShareShift[]> {
   const months = Math.max(1, Math.round((toDayIndex(context.window.to) - toDayIndex(context.window.from) + 1) / DAYS_PER_MONTH));
   const before = { from: addDays(context.window.from, -months * DAYS_PER_MONTH), to: addDays(context.window.from, -1) };
   const filters = filtersOf(context.dims);
-  const during = new Map(runSeries({ metric: "market_share", dims: ["maker"], filters, range: context.window }).map((row) => [row.dims.maker as string, row.value]));
-  const earlier = new Map(runSeries({ metric: "market_share", dims: ["maker"], filters, range: before }).map((row) => [row.dims.maker as string, row.value]));
+  const during = new Map((await readSeries({ metric: "market_share", dims: ["maker"], filters, range: context.window })).map((row) => [row.dims.maker as string, row.value]));
+  const earlier = new Map((await readSeries({ metric: "market_share", dims: ["maker"], filters, range: before })).map((row) => [row.dims.maker as string, row.value]));
   return [...during].map(([maker, value]) => ({ maker, points: value - (earlier.get(maker) ?? value) }));
 }
 
-function shareExplanation(context: Context, place: string): Explanation {
-  const shifts = shareShifts(context);
+async function shareExplanation(context: Context, place: string): Promise<Explanation> {
+  const shifts = await shareShifts(context);
   const own = shifts.find((shift) => shift.maker === OWN_MAKER);
   const rival = shifts.filter((shift) => shift.maker !== OWN_MAKER).sort((left, right) => right.points - left.points)[0];
   const verifySteps = steps(TH.engine.verify.makersOfPlace(place), TH.engine.verify.sellOutLastYear(place));
@@ -180,7 +182,7 @@ function shareExplanation(context: Context, place: string): Explanation {
   };
 }
 
-export function explain(context: Context): Explanation {
+export async function explain(context: Context): Promise<Explanation> {
   const scope = scopeLabel(context.dims);
   const place = placeLabel(context.dims);
   const promo = campaignCovering(context);
@@ -204,7 +206,7 @@ export function explain(context: Context): Explanation {
   }
 
   if (context.metric === "ar_overdue" && context.direction === "up") {
-    const drivers = context.dims.region && !context.dims.agent ? arDrivers(context.dims.region, context.window) : [];
+    const drivers = context.dims.region && !context.dims.agent ? await arDrivers(context.dims.region, context.window) : [];
     return {
       hypothesis: drivers.length > 0 ? TH.engine.hypothesis.arUpDrivers(scope, drivers) : TH.engine.hypothesis.arUp(scope),
       verifySteps: steps(TH.engine.verify.arOfScope(scope), TH.engine.verify.orderHistory(scope)),
@@ -220,7 +222,7 @@ export function explain(context: Context): Explanation {
     };
   }
 
-  if (sellOutHeldFlat(context)) {
+  if (await sellOutHeldFlat(context)) {
     return {
       hypothesis: TH.engine.hypothesis.stockAtAgent(scope),
       verifySteps: steps(TH.engine.verify.compareSellInOut(scope), TH.engine.verify.coverOfScope(scope)),
@@ -228,7 +230,7 @@ export function explain(context: Context): Explanation {
     };
   }
 
-  if (context.direction === "up" && pm25Match(context)) {
+  if (context.direction === "up" && (await pm25Match(context))) {
     return {
       hypothesis: TH.engine.hypothesis.pm25(place),
       verifySteps: steps(TH.engine.verify.coverOfScope(scope), TH.engine.verify.forecastOfScope(scope)),
