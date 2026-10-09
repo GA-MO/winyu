@@ -1,6 +1,7 @@
 import { afterAll, afterEach, beforeAll, describe, expect, test } from "bun:test";
 import { TH } from "@/lib/i18n/th";
-import { staffRequests } from "@/lib/server/agent/collections";
+import { collection } from "@/lib/server/store/json-store";
+import { DEMO_LEAVE_REQUESTS } from "./generator-leave";
 import { resetClientPool } from "@/lib/server/connectors/pool";
 import { calendarDemoFetchFor } from "@/scripts/mcp-demo-calendar";
 import type { CalendarPort } from "./calendar";
@@ -75,8 +76,8 @@ describe("the calendar port over the company calendar's MCP", () => {
       const answer = await callTool(access, "get_calendar", QUESTIONS[1]);
       expect({ who, answer }).toEqual({ who, answer: { ok: false, code: "CONNECTOR_UNAVAILABLE", error: TH.cards.failed.portDown(TH.cards.failed.systems.calendar) } });
     }
-    const filed = staffRequests().all().length;
+    const filed = collection(DEMO_LEAVE_REQUESTS).all().length;
     expect(await callTool(PERSONAS.rep, "request_leave", { kind: "annual", from: "2026-10-12", to: "2026-10-14", reason: "ธุระส่วนตัว" })).toMatchObject({ ok: false, code: "CONNECTOR_UNAVAILABLE" });
-    expect(staffRequests().all().length).toBe(filed);
+    expect(collection(DEMO_LEAVE_REQUESTS).all().length).toBe(filed);
   });
 });

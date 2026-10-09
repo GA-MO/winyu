@@ -72,7 +72,12 @@ export function lmsDemoFetchFor(systems: LmsDemoSystems) {
     secret: systems.secret,
     tools: [
       { ...TOOL, call: (args, identity) => trainingHistory(systems.directory, args as TrainingArgs, identity.userId) },
-      ...contractTools(LEARNING_MCP_TOOLS, { list_courses: async () => ({ courses: [...(await systems.learning.courses())] }) }),
+      ...contractTools(LEARNING_MCP_TOOLS, {
+        list_courses: async () => ({ courses: [...(await systems.learning.courses())] }),
+        list_enrollments: async ({ employeeId }) => ({ enrollments: [...(await systems.learning.enrollments(employeeId))] }),
+        request_seat: (request) => systems.learning.requestSeat(request),
+        decide_enrollment: async ({ enrollmentId, approverId, approved }) => ({ enrollment: await systems.learning.decide(enrollmentId, approverId, approved) }),
+      }),
     ],
   });
 }

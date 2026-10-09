@@ -4,7 +4,7 @@ import { formatDateTh } from "@/lib/i18n/format";
 import { TH } from "@/lib/i18n/th";
 import { ports } from "./ports";
 import { calendarOf, type Calendar } from "./ports/calendar";
-import { approverOf, deliverLeaveRequest } from "./staff-requests";
+import { approverOf, deliverRequest } from "./staff-requests";
 
 const T = TH.leave;
 const LOW_BALANCE_DAYS = 2;
@@ -112,7 +112,7 @@ export async function requestLeave(access: AccessContext, input: LeaveRequestInp
   const kindLabel = T.kind[input.kind];
   const range = T.range(formatDateTh(input.from), formatDateTh(input.to));
   const request = await ports().leave.submit({ employeeId: access.userId, kind: input.kind, from: input.from, to: input.to, days, reason: input.reason, approverId: approver.id, idempotencyKey: callId });
-  await deliverLeaveRequest(access, approver, request, {
+  await deliverRequest(access, approver, { system: "leave", requestId: request.id, employeeId: access.userId }, {
     title: T.packetTitle(kindLabel, range),
     ask: T.packetAsk(kindLabel, range, days, input.reason),
     replies: [T.replyApprove, T.replyReschedule],

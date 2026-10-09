@@ -101,17 +101,11 @@ export function layoutVersions() {
   return collection<LayoutVersion>("layout-versions");
 }
 
-export type StaffRequest = { id: string; userId: string; kind: "leave" | "course"; refId: string; from: string; to: string; days: number; reason: string; packetId: string; at: string };
-
 /** Which Inbox packet told an approver about which request in another system (the leave system, the LMS), so their decision there is forwarded to that system. */
-export type RequestLink = { id: string; system: "leave"; requestId: string; employeeId: string; approverId: string };
+export type RequestLink = { id: string; system: "leave" | "course"; requestId: string; employeeId: string; approverId: string };
 
 export function requestLinks() {
   return collection<RequestLink>("request-links");
-}
-
-export function staffRequests() {
-  return collection<StaffRequest>("staff-requests");
 }
 
 export function feedStates() {

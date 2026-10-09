@@ -4,7 +4,7 @@ import { fieldVisibilityOf, permissionsFor } from "@/lib/access/role-overrides";
 import { DIMS, MAX_ROWS, type AccessContext, type Dim, type MetricId, type MetricQuery, type RoleId } from "@/lib/contracts";
 import type { Verdict, Verifier, VerifyInput } from "@/lib/harness/types";
 import type { Dictionary } from "@/lib/semantic/dictionary";
-import { layouts, outbox, packets, staffRequests } from "@/lib/server/agent/collections";
+import { layouts, outbox, packets } from "@/lib/server/agent/collections";
 import { loadDictionary } from "@/lib/server/master-data";
 import { ports } from "@/lib/server/ports";
 import { watchesOf } from "@/lib/server/watches";
@@ -125,11 +125,6 @@ export const emailHolds: Verifier = (verify) => {
   ]);
 };
 
-function requested(verify: VerifyInput, kind: "leave" | "course", matches: (refId: string, from: string, to: string) => boolean): Verdict {
-  const found = staffRequests().where((request) => request.userId === verify.access.userId && request.kind === kind).some((request) => matches(request.refId, request.from, request.to));
-  return verdictOf([check(`${kind}_request_exists`, found, `no ${kind} request from the caller matches what was asked`)]);
-}
-
 /** A leave request holds when the leave system has a pending request from the caller of that kind over those dates. */
 export const leaveHolds: Verifier = async (verify) => {
   const input = verify.input as { kind: string; from: string; to: string };
@@ -138,8 +133,13 @@ export const leaveHolds: Verifier = async (verify) => {
   return verdictOf([check("leave_request_exists", found, "the leave system holds no pending request from the caller that matches what was asked")]);
 };
 
-/** An enrollment holds when the caller has a request for that course. */
-export const courseHolds: Verifier = (verify) => requested(verify, "course", (refId) => refId === dataOf<{ courseId: string }>(verify).courseId);
+/** An enrollment holds when the LMS holds a pending seat for the caller on that course. */
+export const courseHolds: Verifier = async (verify) => {
+  const courseId = dataOf<{ courseId: string }>(verify).courseId;
+  const enrollments = await ports().learning.enrollments(verify.access.userId);
+  const found = enrollments.some((enrollment) => enrollment.status === "pending" && enrollment.courseId === courseId);
+  return verdictOf([check("course_request_exists", found, "the LMS holds no pending seat for the caller on that course")]);
+};
 
 /** A permission change holds when the role's live permissions now say what was asked. */
 export const permissionHolds: Verifier = (verify) => {

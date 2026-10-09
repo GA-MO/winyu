@@ -8,6 +8,8 @@ import { registerPorts, resetPorts } from "./index";
 import { learningMcpPort } from "./learning-mcp";
 import { NOWHERE, PERSONAS, answerEveryCallWith, bothWays, callTool, serve, statusesOfStrangers, type Served } from "./mcp-test-kit";
 import { PortUnavailable } from "./unavailable";
+import { requestLinks } from "@/lib/server/agent/collections";
+import { forwardDecision } from "@/lib/server/staff-requests";
 
 const SECRET = "learning-mcp-test-secret";
 const NOW = Date.parse("2026-09-22T09:00:00+07:00");
@@ -74,4 +76,22 @@ describe("the learning port over the LMS's MCP", () => {
     for (const [who, access] of Object.entries(PERSONAS)) said[who] = (await feedFor(access, NOW)).some((item) => item.key === "system:down:learning" && item.reason === TH.feed.system.portDown);
     expect(said).toEqual({ ceo: false, rep: true, hr: true, it: false });
   });
+
+  test("a seat is held by the LMS once per call, a second one for the same person is refused, and the manager's return gives the seat back", async () => {
+    const learning = learningMcpPort({ url: lms.url, secret: SECRET, timeoutMs: 5_000 });
+    registerPorts({ learning });
+    const course = (await learning.courses()).find((entry) => entry.seats - entry.enrolled >= 1 && entry.starts > "2026-10-01");
+    if (!course) throw new Error("no open course");
+    const enrolledOf = async () => (await learning.courses()).find((entry) => entry.id === course.id)?.enrolled ?? 0;
+    const before = await enrolledOf();
+    expect(await callTool(PERSONAS.rep, "enroll_course", { courseId: course.id })).toMatchObject({ ok: true });
+    expect(await enrolledOf()).toBe(before + 1);
+    expect(await callTool(PERSONAS.rep, "enroll_course", { courseId: course.id })).toMatchObject({ ok: false });
+    const enrollment = (await learning.enrollments(PERSONAS.rep.userId)).find((entry) => entry.courseId === course.id && entry.status === "pending");
+    const link = requestLinks().where((entry) => entry.requestId === enrollment?.id)[0];
+    if (!enrollment || !link) throw new Error("no held seat linked to an Inbox packet");
+    await forwardDecision(link.id, link.approverId, "return");
+    expect(await enrolledOf()).toBe(before);
+  });
 });
+

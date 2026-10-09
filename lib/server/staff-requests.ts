@@ -1,7 +1,6 @@
-import { randomUUID } from "node:crypto";
-import type { AccessContext, LeaveRequest, User } from "@/lib/contracts";
+import type { AccessContext, User } from "@/lib/contracts";
 import { findUser } from "@/lib/data/entities/users";
-import { requestLinks, staffRequests, type StaffRequest } from "./agent/collections";
+import { requestLinks, type RequestLink } from "./agent/collections";
 import { createPacket, type PacketAction } from "./handoff";
 import { ports } from "./ports";
 import { directoryOf } from "./ports/directory";
@@ -18,31 +17,26 @@ export async function approverOf(userId: string): Promise<User | null> {
   return userId === HR_FALLBACK_USER ? null : findUser(HR_FALLBACK_USER);
 }
 
-export function requestsOf(userId: string, kind: StaffRequest["kind"]): StaffRequest[] {
-  return staffRequests().all().filter((request) => request.userId === userId && request.kind === kind);
-}
-
 /** Leave and training requests stay answerable when the handoff switch is off: they are HR paperwork, not agent handoffs. */
 export function isStaffRequestPacket(packetId: string): boolean {
-  return requestLinks().get(packetId) !== null || staffRequests().all().some((request) => request.packetId === packetId);
+  return requestLinks().get(packetId) !== null;
 }
 
 /** How the approver is told about a request filed in another system: the packet's title, the ask, the suggested replies and the conversation it came from. */
 export type ApproverNote = { title: string; ask: string; replies: string[]; threadId: string | null };
 
-async function notifyApprover(access: AccessContext, approver: User, note: ApproverNote) {
-  return createPacket(
+/** A request held by another system, by which system and its id there. */
+export type HeldRequest = Pick<RequestLink, "system" | "requestId" | "employeeId">;
+
+/** Puts a request the leave system or the LMS now holds in the approver's Inbox, linked so their decision goes back to that system; a request already delivered is not delivered twice. */
+export async function deliverRequest(access: AccessContext, approver: User, request: HeldRequest, note: ApproverNote): Promise<void> {
+  if (requestLinks().where((link) => link.system === request.system && link.requestId === request.requestId).length > 0) return;
+  const packet = await createPacket(
     { toUserId: approver.id, title: note.title, ask: note.ask, urgency: "low", evidence: [], alertIds: [], digest: note.ask, suggestedActions: note.replies, threadId: note.threadId },
     findUser(access.userId),
     approver,
   );
-}
-
-/** Puts a leave request the leave system now holds in the approver's Inbox, linked so their decision goes back to the leave system. */
-export async function deliverLeaveRequest(access: AccessContext, approver: User, request: LeaveRequest, note: ApproverNote): Promise<void> {
-  if (requestLinks().where((link) => link.system === "leave" && link.requestId === request.id).length > 0) return;
-  const packet = await notifyApprover(access, approver, note);
-  requestLinks().put({ id: packet.id, system: "leave", requestId: request.id, employeeId: request.employeeId, approverId: approver.id });
+  requestLinks().put({ id: packet.id, ...request, approverId: approver.id });
 }
 
 const DECISIONS: Partial<Record<PacketAction, boolean>> = { accept: true, resolve: true, return: false };
@@ -52,28 +46,6 @@ export async function forwardDecision(packetId: string, approverId: string, acti
   const link = requestLinks().get(packetId);
   const approved = DECISIONS[action];
   if (!link || approved === undefined || link.approverId !== approverId) return;
-  await ports().leave.decide(link.requestId, approverId, approved);
-}
-
-export type SubmitInput = Omit<StaffRequest, "id" | "userId" | "packetId" | "at"> & { title: string; ask: string; replies: string[]; threadId: string | null };
-
-/** Records the request and puts it in the approver's Inbox as a packet they can accept or send back. */
-export async function submitRequest(access: AccessContext, approver: User, input: SubmitInput): Promise<StaffRequest> {
-  const packet = await createPacket(
-    { toUserId: approver.id, title: input.title, ask: input.ask, urgency: "low", evidence: [], alertIds: [], digest: input.ask, suggestedActions: input.replies, threadId: input.threadId },
-    findUser(access.userId),
-    approver,
-  );
-  return staffRequests().put({
-    id: randomUUID(),
-    userId: access.userId,
-    kind: input.kind,
-    refId: input.refId,
-    from: input.from,
-    to: input.to,
-    days: input.days,
-    reason: input.reason,
-    packetId: packet.id,
-    at: new Date().toISOString(),
-  });
+  if (link.system === "leave") await ports().leave.decide(link.requestId, approverId, approved);
+  else await ports().learning.decide(link.requestId, approverId, approved);
 }

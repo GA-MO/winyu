@@ -123,5 +123,14 @@ export type LeaveRequest = { id: string; employeeId: string; kind: LeaveKind; fr
 /** What Winyu files with the leave system; a repeated `idempotencyKey` returns the first request. */
 export type LeaveSubmission = { employeeId: string; kind: LeaveKind; from: string; to: string; days: number; reason: string; approverId: string; idempotencyKey: string };
 
+export const ENROLLMENT_STATUSES = ["pending", "approved", "returned"] as const;
+export type EnrollmentStatus = (typeof ENROLLMENT_STATUSES)[number];
+
+/** A seat on a course as the LMS keeps it: pending and approved ones are counted in the course's `enrolled`, a returned one gives the seat back. */
+export type Enrollment = { id: string; employeeId: string; courseId: string; approverId: string; status: EnrollmentStatus; createdAt: string; decidedAt: string | null };
+
+/** What Winyu asks the LMS for; a repeated `idempotencyKey` returns the first enrollment. */
+export type SeatRequest = { employeeId: string; courseId: string; approverId: string; idempotencyKey: string };
+
 /** One mail as Winyu hands it to the mail system; the system gives it an id and a time. */
 export type MailMessage = Omit<OutboxEntry, "id" | "at">;

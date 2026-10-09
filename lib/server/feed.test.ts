@@ -3,7 +3,9 @@ import type { AccessContext, FeedItem, PersonalWatch } from "@/lib/contracts";
 import { liveAccessFor } from "@/lib/access/enforce";
 import { EMPLOYEES } from "@/lib/data/entities/people";
 import { USERS, findUser } from "@/lib/data/entities/users";
-import { actionEvents, alerts, feedStates, memoryFacts, packets, personalWatches, staffRequests } from "@/lib/server/agent/collections";
+import { actionEvents, alerts, feedStates, memoryFacts, packets, personalWatches } from "@/lib/server/agent/collections";
+import { collection } from "@/lib/server/store/json-store";
+import { DEMO_ENROLLMENTS } from "@/lib/server/ports/generator-learning";
 import { confirmMemory } from "@/lib/engine/memory";
 import { enrollCourse } from "./courses";
 import { actOnFeedItem, feedFor, goodNewsFor, landingFeedFor, todoFor } from "./feed";
@@ -121,16 +123,16 @@ describe("each matter offers the one thing to do about it", () => {
   });
 
   test("once the holder books a renewal round, the licence leaves every feed", async () => {
-    const before = new Set(staffRequests().all().map((request) => request.id));
+    const before = new Set(collection(DEMO_ENROLLMENTS).all().map((enrollment) => enrollment.id));
     const packetsBefore = new Set(packets().all().map((packet) => packet.id));
-    const booked = await enrollCourse(accessOf("u_krit"), "crs_sales_licence", null);
+    const booked = await enrollCourse(accessOf("u_krit"), "crs_sales_licence", null, crypto.randomUUID());
     expect(booked.ok).toBe(true);
     try {
       expect((await feedFor(accessOf("u_krit"), NOW)).some((item) => item.kind === "own:cert")).toBe(false);
       expect((await feedFor(accessOf("u_anucha"), NOW)).some((item) => item.label === "คุณกฤต จันทร์เสน")).toBe(false);
       expect((await feedFor(accessOf("u_may"), NOW)).some((item) => item.label === "คุณกฤต จันทร์เสน")).toBe(false);
     } finally {
-      for (const request of staffRequests().all()) if (!before.has(request.id)) staffRequests().remove(request.id);
+      for (const enrollment of collection(DEMO_ENROLLMENTS).all()) if (!before.has(enrollment.id)) collection(DEMO_ENROLLMENTS).remove(enrollment.id);
       for (const packet of packets().all()) if (!packetsBefore.has(packet.id)) packets().remove(packet.id);
     }
   });

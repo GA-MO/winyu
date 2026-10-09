@@ -1,13 +1,12 @@
 import type { AccessContext, Course, Employee } from "@/lib/contracts";
 import { peopleViewOf } from "@/lib/access/people-scope";
-import { TODAY, addDays } from "@/lib/data/dates";
+import { TODAY } from "@/lib/data/dates";
 import { departmentById } from "@/lib/data/entities/hr";
 import { signalsOf } from "@/lib/engine/people-signals";
 import { formatDateTh } from "@/lib/i18n/format";
 import { TH } from "@/lib/i18n/th";
 import type { PersonBadge } from "./people";
-import { approverOf, requestsOf, submitRequest } from "./staff-requests";
-import { staffRequests } from "./agent/collections";
+import { approverOf, deliverRequest } from "./staff-requests";
 import { ports } from "./ports";
 import { directoryOf, type Directory } from "./ports/directory";
 
@@ -27,8 +26,13 @@ type CoursePurpose = { texts: string[]; groups: string[] };
 export type CourseQuery = { month: string | null; query: string | null };
 
 function seatsLeft(course: Course): number {
-  const requested = staffRequests().all().filter((request) => request.kind === "course" && request.refId === course.id).length;
-  return Math.max(course.seats - course.enrolled - requested, 0);
+  return Math.max(course.seats - course.enrolled, 0);
+}
+
+/** The courses this employee holds a seat on, pending or approved, as the LMS records them. */
+async function heldCourses(employeeId: string): Promise<ReadonlySet<string>> {
+  const enrollments = await ports().learning.enrollments(employeeId);
+  return new Set(enrollments.filter((enrollment) => enrollment.status !== "returned").map((enrollment) => enrollment.courseId));
 }
 
 function expiringFor(course: Course, employees: Employee[]): Expiring[] {
@@ -63,9 +67,9 @@ function noteOf(access: AccessContext, course: Course, directory: Directory): st
   return T.suggest(team.map((entry) => T.suggestPerson(entry.employee.nameTh, entry.daysLeft)).join(", "));
 }
 
-function rowOf(access: AccessContext, course: Course, directory: Directory) {
+function rowOf(access: AccessContext, course: Course, directory: Directory, held: ReadonlySet<string>) {
   const left = seatsLeft(course);
-  const enrolled = requestsOf(access.userId, "course").some((request) => request.refId === course.id);
+  const enrolled = held.has(course.id);
   return {
     id: course.id,
     title: course.titleTh,
@@ -120,7 +124,7 @@ function relevance(access: AccessContext, course: Course, directory: Directory):
 
 /** Upcoming courses (one month, or the next ones), searched by what each course is for: the ones renewing the viewer's or their team's expiring certificate first, then soonest, with seats left and whose certificate each one renews. */
 export async function listCourses(access: AccessContext, query: CourseQuery) {
-  const [catalogue, records] = await Promise.all([ports().learning.courses(), ports().directory.load()]);
+  const [catalogue, records, held] = await Promise.all([ports().learning.courses(), ports().directory.load(), heldCourses(access.userId)]);
   const directory = directoryOf(records);
   const courses = catalogue.filter((course) => inWindow(course, query.month) && (!query.query || matchesQuery(purposeOf(course, directory.employees), query.query)))
     .sort((left, right) => relevance(access, left, directory) - relevance(access, right, directory) || left.starts.localeCompare(right.starts))
@@ -130,7 +134,7 @@ export async function listCourses(access: AccessContext, query: CourseQuery) {
   return {
     ok: true as const,
     summary: T.summary(courses.length, formatDateTh(courses.reduce((first, course) => (course.starts < first ? course.starts : first), courses[0]?.starts ?? TODAY)), urgent),
-    data: courses.map((course) => rowOf(access, course, directory)),
+    data: courses.map((course) => rowOf(access, course, directory, held)),
   };
 }
 
@@ -142,7 +146,7 @@ export async function renewalRoundFor(certificateNameTh: string, userId: string)
   const rounds = (await ports().learning.courses())
     .filter((course) => course.renewsCertificate === certificateNameTh && course.starts >= TODAY)
     .sort((left, right) => left.starts.localeCompare(right.starts));
-  const requested = new Set(requestsOf(userId, "course").map((request) => request.refId));
+  const requested = await heldCourses(userId);
   const next = rounds.find((course) => seatsLeft(course) > 0) ?? rounds[0];
   if (!next) return null;
   return { course: next, enrolled: rounds.some((course) => requested.has(course.id)), seatsLeft: seatsLeft(next) };
@@ -153,27 +157,23 @@ export async function findCourse(courseId: string): Promise<Course | null> {
   return catalogue.find((entry) => entry.id === courseId) ?? catalogue.find((entry) => entry.titleTh.includes(courseId.trim())) ?? null;
 }
 
-/** Asks the viewer's manager to approve a seat on one course; the seat is held once the request is sent. */
-export async function enrollCourse(access: AccessContext, courseId: string, threadId: string | null) {
+/** Asks the LMS to hold a seat on one course in the viewer's name, once per call, and tells the viewer's manager in their Inbox; the LMS keeps the seat until the manager decides. */
+export async function enrollCourse(access: AccessContext, courseId: string, threadId: string | null, callId: string) {
   const course = await findCourse(courseId);
   if (!course) return { ok: false as const, error: T.notFound(courseId) };
   if (course.starts < TODAY) return { ok: false as const, error: T.started(course.titleTh) };
-  if (requestsOf(access.userId, "course").some((request) => request.refId === course.id)) return { ok: false as const, error: T.already(course.titleTh) };
+  if ((await heldCourses(access.userId)).has(course.id)) return { ok: false as const, error: T.already(course.titleTh) };
   if (seatsLeft(course) === 0) return { ok: false as const, error: T.fullError(course.titleTh) };
   const approver = await approverOf(access.userId);
   if (!approver) return { ok: false as const, error: T.noApprover };
   const when = T.when(formatDateTh(course.starts), course.days);
-  await submitRequest(access, approver, {
-    kind: "course",
-    refId: course.id,
-    from: course.starts,
-    to: addDays(course.starts, course.days - 1),
-    days: course.days,
-    reason: course.titleTh,
+  const enrollment = await ports().learning.requestSeat({ employeeId: access.userId, courseId: course.id, approverId: approver.id, idempotencyKey: callId });
+  await deliverRequest(access, approver, { system: "course", requestId: enrollment.id, employeeId: access.userId }, {
     title: T.packetTitle(course.titleTh),
     ask: T.packetAsk(course.titleTh, when, placeOf(course)),
     replies: [T.replyApprove, T.replyNext],
     threadId,
   });
-  return { ok: true as const, summary: T.sent(course.titleTh, approver.nameTh), data: { courseId: course.id, approver: approver.nameTh, when, seats_left: seatsLeft(course) } };
+  const now = (await findCourse(course.id)) ?? course;
+  return { ok: true as const, summary: T.sent(course.titleTh, approver.nameTh), data: { courseId: course.id, approver: approver.nameTh, when, seats_left: seatsLeft(now) } };
 }
