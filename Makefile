@@ -1,19 +1,24 @@
-PORTS := 3100 3298 3299
+PORTS := 3100 3297 3298 3299
 SCHEDULER ?= off
+METRICS ?= mcp
 
-.PHONY: up dev connectors stop status
+.PHONY: up dev connectors metrics stop status
 
 up:
 	@trap 'kill 0' INT TERM EXIT; \
 	bun run connectors:demo & \
+	bun run metrics:mcp & \
 	sleep 2; \
-	WINYU_SCHEDULER=$(SCHEDULER) bun run dev
+	WINYU_SCHEDULER=$(SCHEDULER) WINYU_METRICS=$(METRICS) bun run dev
 
 dev:
 	WINYU_SCHEDULER=$(SCHEDULER) bun run dev
 
 connectors:
 	bun run connectors:demo
+
+metrics:
+	bun run metrics:mcp
 
 stop:
 	@for port in $(PORTS); do \
@@ -22,4 +27,5 @@ stop:
 	done; true
 
 status:
-	@lsof -nP $(foreach port,$(PORTS),-iTCP:$(port)) -sTCP:LISTEN || echo "nothing listening on $(PORTS)"
+	@listening=$$(lsof -nP $(foreach port,$(PORTS),-iTCP:$(port)) -sTCP:LISTEN); \
+	[ -n "$$listening" ] && echo "$$listening" || echo "nothing listening on $(PORTS)"
