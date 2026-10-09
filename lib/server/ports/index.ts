@@ -13,6 +13,8 @@ import { learningMcpEnv } from "./learning-mcp-contract";
 import { learningMcpPort } from "./learning-mcp";
 import { hrisMcpEnv } from "./hris-mcp-contract";
 import { directoryMcpPort, leaveMcpPort, recruitingMcpPort } from "./hris-mcp";
+import { sitesMcpEnv } from "./sites-mcp-contract";
+import { sitesMcpPort } from "./sites-mcp";
 import type { McpBackedConnector } from "./mcp-port";
 
 /** Every system of record Winyu reads or writes, one port each; a connector replaces one without touching the logic above it. */
@@ -34,6 +36,7 @@ const MCP_PORTS = {
   directory: { adapter: () => directoryMcpPort(hrisMcpEnv()), connector: "hris" },
   leave: { adapter: () => leaveMcpPort(hrisMcpEnv()), connector: "leave" },
   recruiting: { adapter: () => recruitingMcpPort(hrisMcpEnv()), connector: "hris" },
+  sites: { adapter: () => sitesMcpPort(sitesMcpEnv()), connector: "sites" },
 } satisfies { [Port in keyof Ports]?: { adapter: () => Ports[Port]; connector: McpBackedConnector } };
 
 export type McpPortName = keyof typeof MCP_PORTS;

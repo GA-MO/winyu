@@ -1,9 +1,11 @@
 import { crmDemoEnv } from "@/lib/server/connectors/crm-demo-config";
 import { lmsDemoEnv } from "@/lib/server/connectors/lms-demo-config";
 import { hrisMcpEnv } from "@/lib/server/ports/hris-mcp-contract";
+import { sitesMcpEnv } from "@/lib/server/ports/sites-mcp-contract";
 import { crmDemoFetch } from "./mcp-demo-crm";
 import { lmsDemoFetch } from "./mcp-demo-lms";
 import { hrisDemoFetch } from "./mcp-demo-hris";
+import { ehsDemoFetch } from "./mcp-demo-ehs";
 import { portOf } from "./mcp-demo-server";
 
 const HOST = "127.0.0.1";
@@ -11,6 +13,8 @@ const HOST = "127.0.0.1";
 const lms = Bun.serve({ port: portOf(lmsDemoEnv().url), hostname: HOST, fetch: lmsDemoFetch });
 const crm = Bun.serve({ port: portOf(crmDemoEnv().url), hostname: HOST, fetch: crmDemoFetch });
 const hris = Bun.serve({ port: portOf(hrisMcpEnv().url), hostname: HOST, fetch: hrisDemoFetch });
+const ehs = Bun.serve({ port: portOf(sitesMcpEnv().url), hostname: HOST, fetch: ehsDemoFetch });
 console.log(`LMS demo MCP on ${lms.url}mcp`);
 console.log(`CRM demo MCP on ${crm.url}mcp`);
 console.log(`HRIS demo MCP on ${hris.url}mcp`);
+console.log(`Safety (EHS) demo MCP on ${ehs.url}mcp`);
