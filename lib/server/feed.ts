@@ -45,7 +45,7 @@ function storySubject(alert: Alert): string {
 }
 
 /** A movement put down to a campaign is that campaign's story; otherwise the metric and its main subject. */
-function storyOf(alert: Alert): string {
+export function storyOf(alert: Alert): string {
   return alert.campaignId ? `campaign:${alert.campaignId}` : `${alert.metric}|${storySubject(alert)}`;
 }
 

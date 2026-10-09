@@ -8,7 +8,7 @@ import { TH } from "@/lib/i18n/th";
 import type { Dictionary } from "@/lib/semantic/dictionary";
 import { sliceLabel } from "@/lib/share/grant-label";
 import { canJudge, openAlertsFor, visibleAlert } from "@/lib/server/alerts";
-import { goodNewsFor, todoFor } from "@/lib/server/feed";
+import { goodNewsFor, storyOf, todoFor } from "@/lib/server/feed";
 import { grantRequests } from "@/lib/server/grants";
 import { packetsFor, resolveEvidence, sentPackets, type EvidenceView } from "@/lib/server/handoff";
 import { loadDictionary } from "@/lib/server/master-data";
@@ -169,8 +169,9 @@ export function alertIdsTold(items: readonly FeedItem[]): Set<string> {
   return new Set(items.flatMap((item) => [...(item.alertId ? [item.alertId] : []), ...actionAlertIds(item)]));
 }
 
-function todoOf(item: FeedItem, access: AccessContext): TodoItem {
-  const alert = item.alertId ? visibleAlert(item.alertId, access) : null;
+/** A to-do row with the movement of its own alert, or of the open alert whose story it tells. */
+function todoOf(item: FeedItem, access: AccessContext, open: readonly Alert[]): TodoItem {
+  const alert = item.alertId ? visibleAlert(item.alertId, access) : (item.story ? open.find((candidate) => storyOf(candidate) === item.story) : null) ?? null;
   return { item, movement: alert ? movementOf(alert) : null, window: alert ? windowOf(alert) : null };
 }
 
@@ -184,7 +185,7 @@ function repliesOf(userId: string): ReplyItem[] {
     });
 }
 
-/** The Inbox of one person: what waits on their decision, each alert told once (a handoff or a to-do row that carries it tells it), then good news and replies. */
+/** The Inbox of one person: what waits on their decision, each alert told once (a handoff or a to-do row that carries it, or a to-do row of the same story, tells it), then good news and replies. */
 export async function inboxFor(access: AccessContext): Promise<InboxPayload> {
   const handoffOpen = handoffEnabled();
   const packets = undecidedHandoffsFor(access.userId).slice(0, MAX_ITEMS);
@@ -193,20 +194,20 @@ export async function inboxFor(access: AccessContext): Promise<InboxPayload> {
   const todoRows = (await todoFor(access)).filter((item) => !item.packetId || !handedIds.has(item.packetId)).slice(0, MAX_ITEMS);
   const told = alertIdsTold(todoRows);
   for (const packet of packets) for (const id of packet.alertIds) told.add(id);
+  const storiesTold = new Set(todoRows.flatMap((item) => (item.story ? [item.story] : [])));
 
   const alertsOpen = alertsInboxEnabled();
   const dictionary = await loadDictionary();
-  const alerts = alertsOpen
-    ? openAlertsFor(access)
-        .filter((alert) => !told.has(alert.id))
-        .slice(0, MAX_ALERT_ITEMS)
-        .map((alert) => alertOf(alert, access, handoffOpen, dictionary))
-    : [];
+  const open = alertsOpen ? openAlertsFor(access) : [];
+  const alerts = open
+    .filter((alert) => !told.has(alert.id) && !storiesTold.has(storyOf(alert)))
+    .slice(0, MAX_ALERT_ITEMS)
+    .map((alert) => alertOf(alert, access, handoffOpen, dictionary));
 
   return {
     grantRequests: pendingRequestsFor(access.userId).map(grantRequestOf),
     handoffs,
-    todo: todoRows.map((item) => todoOf(item, access)),
+    todo: todoRows.map((item) => todoOf(item, access, open)),
     alerts,
     goodNews: await goodNewsFor(access),
     replies: repliesOf(access.userId),

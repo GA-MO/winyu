@@ -76,7 +76,6 @@ export function InboxDrawer({ open, onClose, focus = null, onChanged }: { open: 
   }, [onClose]);
 
   const settled = useCallback(async () => {
-    setOpened(null);
     await load();
     onChanged?.();
   }, [load, onChanged]);
@@ -409,8 +408,8 @@ function TodoRow({ row, open, onToggle, onChat, onRun, onSettle }: RowState & { 
       onToggle={onToggle}
       dot={TONE_DOT[item.tone]}
       title={item.label}
-      context={item.detail ?? ""}
-      figure={<span className={cn("max-w-28 truncate font-display text-sm font-semibold tabular-nums", TONE_TEXT[item.tone])}>{item.reason.replace("-", "−")}</span>}
+      context={item.detail ?? item.reason.replace("-", "−")}
+      figure={row.movement ? <Figure movement={row.movement} /> : item.detail ? <span className={cn("max-w-28 truncate font-display text-sm font-semibold tabular-nums", TONE_TEXT[item.tone])}>{item.reason.replace("-", "−")}</span> : null}
     >
       {item.because ? <Reason text={item.because} /> : null}
       <Bars movement={row.movement} period={row.window} />

@@ -5,7 +5,7 @@ import type { Alert, ContextPacket, GrantRequest, NotificationKind } from "@/lib
 import { findUser } from "@/lib/data/entities/users";
 import { alerts, notifications, packets } from "@/lib/server/agent/collections";
 import { grantRequests } from "@/lib/server/grants";
-import { decisionCount, inboxCountsFor, inboxFor, movementOf } from "./inbox";
+import { alertIdsTold, decisionCount, inboxCountsFor, inboxFor, movementOf } from "./inbox";
 
 const VIEWER = "u_krit";
 const made = { packets: [] as string[], alerts: [] as string[], requests: [] as string[], notes: [] as string[] };
@@ -87,6 +87,16 @@ describe("the bell counts only what waits on a decision", () => {
 });
 
 describe("the Inbox payload", () => {
+  test("a to-do row tells its own alert and those its button would hand on", () => {
+    const base = { source: "alert", kind: "alert", story: null, rank: 0, tone: "danger", label: "", reason: "", detail: null, prompt: "", packetId: null, canFinish: true, because: null } as const;
+    const handOn = { id: "a", kind: "handoff", label: "", reason: "", tool: "create_handoff", input: { alertIds: ["al_2", "al_3", 7] }, prompt: null } as const;
+    const told = alertIdsTold([
+      { ...base, key: "one", alertId: "al_1", actions: [] },
+      { ...base, key: "team", alertId: null, actions: [{ ...handOn, input: { ...handOn.input, alertIds: [...handOn.input.alertIds] } }] },
+    ]);
+    expect([...told].sort()).toEqual(["al_1", "al_2", "al_3"]);
+  });
+
   test("a handoff's number is the movement of the alert it carries, whatever its title says, and that alert is not listed again", async () => {
     const alert = alertOnViewer();
     const sent = packet("open", [alert.id]);
