@@ -218,11 +218,12 @@ export function ExchangeView({ exchange, live }: { exchange: Exchange; live: Exc
   const plan = cardPlanOf(toolSteps, composedCalls(exchange.steps, streaming), CARD_TOOLS);
   const reply = replyOf(exchange, streaming);
   const sharing = sharingOf(exchange, toolSteps, streaming);
+  const steps = stepsWithApprovals(exchange, live.asked);
   return (
     <article className="flex flex-col gap-4">
       {exchange.question ? <UserBubble question={exchange.question} /> : null}
-      <ActionTrail trail={trailOf(exchange.steps, streaming, live.toolLabels)} streaming={streaming} durationMs={live.durationMs} />
-      {stepsWithApprovals(exchange, live.asked).map((step) => (
+      <ActionTrail trail={trailOf(steps, streaming, live.toolLabels)} streaming={streaming} durationMs={live.durationMs} />
+      {steps.map((step) => (
         <StepView key={step.kind === "tool" ? step.toolCallId : `${step.kind}-${step.id}`} step={step} live={live} plan={plan} reply={reply} sharing={sharing} />
       ))}
       <Ending exchange={exchange} live={live} />

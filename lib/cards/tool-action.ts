@@ -98,7 +98,7 @@ function roleLabel(role: unknown): string {
 
 const BUILDERS: { [Name in NativeToolName]: Builder } = {
   query_metric: (args) => read(TH.trail.pullMetric(metricOf(args.metric)), splitLabel(args.dims), regionFilter(args.filters), rangeLabel(args.range)),
-  list_metrics: (args) => read(TH.trail.listMetrics, quoted(args.search)),
+  list_metrics: () => read(TH.trail.listMetrics),
   describe_entity: (args) => read(TH.trail.findEntity(TH.trail.entity[String(args.kind)] ?? TH.trail.someData), quoted(args.query)),
   get_alerts: () => read(TH.trail.alerts),
   get_forecast: (args) => read(TH.trail.forecast(metricOf(args.metric)), regionsOf(argsOf(args.dims).region), typeof args.weeks === "number" ? TH.trail.weeksAhead(args.weeks) : null),
