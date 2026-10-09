@@ -195,6 +195,9 @@ New: `lib/server/connectors/stored.ts` (types, parse, compile, store), `lib/serv
 
 1. **MVP: read tools from the UI.** MCP only, signed identity or bearer, the four filter presets and two inject presets, sensitive fields with owner visibility, the test run, the lifecycle, drift pause, the egress allowlist, encrypted secrets, and the eval warning.
 2. **Write tools from the UI.** Pins, guards, redact, the two verify presets, the `call_id` idempotency pin, the async `ready`, and the gateway plumbing. The Inbox pull for pending decisions arrives with the first HRIS connector.
+   - **Model checks for console connectors.** The recorded eval stays the core regression suite: it covers the native tools, runs from recordings for $0, and is not retired. Console connectors add tools per deployment, which the recorded eval never sees. Phase 2 adds two model checks, each showing its cost estimate before it spends:
+     - `bun run eval --with-console --live --case=<ids>` replays chosen recorded questions with the deployment's live console connectors on the tool surface, to catch the model choosing differently once more tools are offered (all 67 cases ≈ $0.36 at the median recorded cost).
+     - A **ทดสอบกับ model** step in the wizard: the admin types two or three sample questions; Winyu runs them through the real agent as a chosen person and shows which tool the model picked and whether a core question still picks its native tool (≈ $0.005 a question).
 3. **Later.** Value maps for codes, a hidden helper tool that guards and verifies can use without offering it to the model, OAuth for servers that need it, and a second admin's approval before activation if the user wants it.
 
 ## Open decisions
