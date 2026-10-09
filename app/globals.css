@@ -283,6 +283,10 @@
   --color-line-foreground: var(--line-foreground);
   --color-line-chat: var(--line-chat);
   --color-line-bubble: var(--line-bubble);
+  --color-mail: var(--mail);
+  --color-mail-foreground: var(--mail-foreground);
+  --color-mail-surface: var(--mail-surface);
+  --color-mail-selected: var(--mail-selected);
   --shadow-card: 0 1px 2px var(--winyu-shadow-weak), 0 10px 30px -24px var(--winyu-shadow-soft);
   --shadow-lift: 0 2px 6px var(--winyu-shadow-weak), 0 22px 46px -28px var(--winyu-shadow-soft);
   --shadow-panel: 0 1px 3px var(--winyu-shadow-weak), 0 44px 96px -58px var(--winyu-shadow-soft);
@@ -333,6 +337,10 @@
   --line-foreground: #ffffff;
   --line-chat: #8cabd9;
   --line-bubble: #8de055;
+  --mail: #0f6cbd;
+  --mail-foreground: #ffffff;
+  --mail-surface: #f5f5f5;
+  --mail-selected: #cfe4fa;
 }
 
 .dark {
