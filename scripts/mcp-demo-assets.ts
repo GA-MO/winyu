@@ -26,7 +26,8 @@ type AssetRequest = { request_id: string; requester_id: string; kind: string; re
 
 const object = (properties: Record<string, unknown>, required: string[]) => ({ type: "object", properties, required, additionalProperties: false });
 
-function assetsOf(employees: readonly Employee[]): Asset[] {
+/** The equipment the demo register holds for each employee. */
+export function assetsOf(employees: readonly Employee[]): Asset[] {
   return employees.flatMap((employee, index) => {
     const owned = ASSET_KINDS.slice(0, 1 + (index % 2));
     return owned.map((item, slot) => {

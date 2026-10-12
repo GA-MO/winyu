@@ -7,4 +7,6 @@ next-env.d.ts
 .DS_Store
 .shots
 
-/site/
+/site/out/
+/site/node_modules/
+/site/.react-router/
