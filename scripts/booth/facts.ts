@@ -86,15 +86,6 @@ async function repLeaveBalance() {
   return balances.map((balance) => ({ label: LEAVE_LABELS[balance.kind] ?? balance.kind, left: balance.left, entitled: balance.entitled }));
 }
 
-async function spotlightProjection() {
-  const user = findUser(VIEWERS.director);
-  if (!user) throw new Error("Unknown director persona");
-  const query: MetricQuery = { metric: "net_sales_volume", dims: [], filters: { region: [SPOTLIGHT_REGION] }, range: { from: MONTH_START, to: TODAY }, grain: "month", compare: "target", limit: null };
-  const result = await runMetric(query, accessFor(user));
-  if (!result.ok || !result.headline.projection) throw new Error("No month-end projection for the spotlight region");
-  return { metric: "ปริมาณขาย", soFar: result.headline.value, ...result.headline.projection };
-}
-
 function spotlightAlerts() {
   const alerts = JSON.parse(readFileSync(ALERTS, "utf8")) as Alert[];
   const found = alerts.filter((alert) => alert.severity === "P1" && alert.dims.region === SPOTLIGHT_REGION && alert.dims.agent && alert.direction === "down");
@@ -126,7 +117,6 @@ const facts = {
   trend: await spotlightTrend(),
   team: await spotlightTeam(),
   leaveBalance: await repLeaveBalance(),
-  projection: await spotlightProjection(),
 };
 writeFileSync(OUTPUT, `${JSON.stringify(facts, null, 2)}\n`);
 console.log(`Wrote ${OUTPUT}`);

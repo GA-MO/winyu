@@ -208,13 +208,5 @@
       "left": 5,
       "entitled": 6
     }
-  ],
-  "projection": {
-    "metric": "ปริมาณขาย",
-    "soFar": "3.9 ล้านลิตร",
-    "recentDays": 7,
-    "projected": "5.1 ล้านลิตร",
-    "monthTarget": "5.6 ล้านลิตร",
-    "attainment": "90.6%"
-  }
+  ]
 }
