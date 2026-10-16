@@ -136,7 +136,7 @@ const PILL_BAR = "inline-flex gap-1 rounded-full border border-border bg-panel p
 function GroupTabs({ current }: { current: Group }) {
   return (
     <div className={cn("-mx-1 max-w-full overflow-x-auto px-1 [scrollbar-width:none]", EDGE_FADE)}>
-      <div className={PILL_BAR}>
+      <div className={cn(PILL_BAR, "w-max")}>
         {GROUPS.map((group) => {
           const Icon = group.icon;
           const active = group.id === current.id;
