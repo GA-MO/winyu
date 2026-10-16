@@ -1,6 +1,7 @@
-import { METRIC_IDS, type AlertRow, type MetricId, type MetricResult, type MonthEndProjection, type NextAction } from "@/lib/contracts";
+import { METRIC_IDS, type AlertRow, type Dim, type MetricId, type MetricResult, type MonthEndProjection, type NextAction } from "@/lib/contracts";
 import { metricLabel } from "@/lib/dashboard/metric-display";
 import { TH } from "@/lib/i18n/th";
+import { isTimeDim } from "./rows";
 import { type CardParts, type ForecastAnswer, pairedIndexes, type PresentSource, type RefusalNotice, refusalNoticeOf } from "./present";
 
 /** A query_metric result as its card reads it: the rows and headline, the query that made them, and what the card offers next. */
@@ -79,12 +80,12 @@ function dimsOf(value: unknown): string[] {
   return Array.isArray(dims) ? dims.filter((dim): dim is string => typeof dim === "string" && dim in TH.dash.dimUnit) : [];
 }
 
-/** A query_metric card's title says what the card is about: the metric's name and, for a breakdown or a series of more than one row, what it is broken down by ("มูลค่าขายเข้า · รายภาค"); read from the result's query or else the call's arguments. */
+/** A query_metric card's title says what the card is about: the metric's name and, for a breakdown or a series of more than one row, what it is broken down by ("มูลค่าขายเข้า · รายภาค"), leaving out a time split that holds one bucket; read from the result's query or else the call's arguments. */
 export function metricTitle(result: unknown, args: unknown): string {
   const answer = metricAnswerOf(result);
   const metric = metricOf(answer?.query) ?? metricOf(args);
   if (!metric) return TH.cards.unreadable;
-  const dims = dimsOf(answer?.query ?? args);
+  const dims = dimsOf(answer?.query ?? args).filter((dim) => !answer || !isTimeDim(dim as Dim) || new Set(answer.rows.map((row) => row[dim])).size > 1);
   const broken = dims.length > 0 && (!answer || answer.rows.length > 1);
   return broken ? TH.dash.ownScope(metricLabel(metric), TH.dash.byDims(dims.map((dim) => TH.dash.dimUnit[dim]))) : metricLabel(metric);
 }

@@ -257,7 +257,7 @@ function canDraw(view: CardView, shape: Shape): boolean {
 function timeView(shape: Shape): CardView {
   if (groupDimsOf(shape.query).length === 0) return "line";
   if (shape.additive) return bucketCountOf(shape.query, shape.rows) > MAX_BAR_BUCKETS ? "area" : "stacked";
-  return groupCountOf(shape.query, shape.rows) <= MAX_LINES ? "line" : "heatmap";
+  return groupCountOf(shape.query, shape.rows) <= MAX_LINES && bucketCountOf(shape.query, shape.rows) >= MIN_LINE_BUCKETS ? "line" : "heatmap";
 }
 
 type OkResult = Extract<MetricResult, { ok: true }>;
@@ -1171,6 +1171,13 @@ function breakdownCard(base: Omit<CardParts, "style" | "verdict" | "hero" | "bod
   return { ...base, style: "exceptions", verdict: spaced(reading.verdict), hero: reading.lead?.hero ?? reading.hero, tiles: NO_TILES, body: { kind: "exceptions", strip, fold } };
 }
 
+/** R2 for a split over time: groups over a single bucket ("this month by business unit") are a breakdown by the groups, never a chart of lone dots; null when the time axis holds more than one bucket. */
+function oneBucketBreakdown(query: MetricQuery, rows: MetricRow[]): MetricQuery | null {
+  const groups = groupDimsOf(query);
+  if (!timeDimOf(query) || groups.length === 0 || bucketCountOf(query, rows) !== 1) return null;
+  return { ...query, dims: groups };
+}
+
 function leadOf(facts: Facts, fit: Fit, rows: MetricRow[], view: CardView): Lead | null {
   if (fit.hero === "single") return singleLead(facts);
   if (fit.hero === "latest") return latestLead(facts);
@@ -1200,6 +1207,8 @@ export function presentCard(input: PresentInput): CardParts {
   const masked = result.provenance.masked.length > 0 && hidden === 0;
   const sortBy = input.sortBy ?? query.sort ?? null;
   if (input.locked && !masked && hidden === 0 && locksBreakdown(query, input.locked)) return lockedCard(input, result, sorted(query, visibleRows, sortBy), input.locked);
+  const oneBucket = oneBucketBreakdown(query, visibleRows);
+  if (oneBucket) return presentCard({ ...input, query: oneBucket });
   const pairing = masked || hidden > 0 ? null : pairingOf({ query, result }, okSources(input.others));
   if (pairing?.view === "baselines") return withBaseline(presentCard({ ...input, others: [] }), pairing.sources[1]);
   if (pairing) return pairedCard(input, pairing);

@@ -9,6 +9,7 @@ import { LOW_COVER_DAYS } from "@/lib/semantic/metrics";
 import { changeToneOf } from "@/lib/dashboard/metric-display";
 import { pairedIndexes, presentCard, presentForecast, weakestRow, type CardBody, type CardParts, type CardView, type ForecastAnswer, type SortBy } from "./present";
 import type { ReadRow, Strip } from "./reading";
+import { metricTitle } from "./tool-answers";
 
 const CEO = accessFor(findUser("u_thana")!);
 const AUGUST = { from: "2026-08-01", to: "2026-08-31" };
@@ -52,6 +53,18 @@ function measures(rows: readonly ReadRow[]): number[] {
 }
 
 describe("time × group", () => {
+  test("groups over a single month are a breakdown by the groups, never a line of lone dots, and the title drops the month split (AI-69)", () => {
+    const { query, result } = answer({ metric: "gross_margin", dims: ["month", "business_unit"] });
+    const card = presentCard({ title: "t", query, result });
+    expect(stripOf(card.body).rows.length).toBeGreaterThan(1);
+    expect(card.hero?.label).toBe(TH.read.averageOf(TH.dash.dimUnit.business_unit));
+    expect(metricTitle(result, query)).not.toContain(TH.dash.dimUnit.month);
+  });
+
+  test("a rate by group over two months is a grid, not two-point lines (AI-69)", () => {
+    expect(bodyOf({ metric: "gross_margin", dims: ["month", "business_unit"], range: { from: "2026-07-01", to: "2026-08-31" } }).kind).toBe("heatmap");
+  });
+
   test("a sum over six months by region stacks as bars, the sixth region folded into อื่น ๆ", () => {
     const body = expectKind(bodyOf({ metric: "net_sales_volume", dims: ["month", "region"], range: SIX_MONTHS }), "stacked");
     expect(body.shape).toBe("bar");
