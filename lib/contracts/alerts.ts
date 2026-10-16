@@ -6,7 +6,9 @@ export type VerifyStep = { text: string; metrics: readonly MetricId[] };
 export type Alert = { id: string; at: string; severity: "P1" | "P2" | "P3"; metric: MetricId; dims: Partial<Record<Dim, string>>;
   window: { from: string; to: string }; observed: number; expected: number; zScore: number; direction: "up" | "down";
   hypothesis: string; verifySteps: [VerifyStep, VerifyStep]; ownerUserId: string; status: "open" | "dismissed" | "handed_off" | "resolved"; dismissCount: number;
-  parentId?: string | null; relatedIds?: string[]; campaignId?: string | null; alsoOwnerIds?: string[] };
+  parentId?: string | null; relatedIds?: string[]; campaignId?: string | null; alsoOwnerIds?: string[];
+  /** The brands an agent alert's figure sums when it covers only those of the agent's book. */
+  brands?: string[] };
 export type Forecast = { id: string; metric: MetricId; dims: Partial<Record<Dim, string>>; horizon: { from: string; to: string };
   points: { date: string; value: number; lo: number; hi: number }[]; mape: number; method: "holt_winters" };
 

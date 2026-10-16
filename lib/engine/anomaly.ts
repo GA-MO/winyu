@@ -5,6 +5,7 @@ import { toneOf } from "@/lib/dashboard/metric-display";
 import { DATA_AS_OF, addDays } from "@/lib/data/dates";
 import { AGENTS } from "@/lib/data/entities/agents";
 import { campaignById } from "@/lib/data/entities/marketing";
+import { GENERATOR_DICTIONARY } from "@/lib/data/master";
 import { explain, regionOfDims } from "./hypothesis";
 import { DAILY_SCAN, MONTHLY_SCAN, mean, scanFloor, scanSeries } from "./stats";
 import { calendarSkipFor, inLentRegime, isoOfSlot, monthEnd, reboundsAfterLent, seriesFor } from "./series";
@@ -29,6 +30,7 @@ const SEVERITY_RANK: Record<Alert["severity"], number> = { P1: 0, P2: 1, P3: 2 }
 const RESOLVED_AFTER_DAYS = 3;
 const DEMAND_METRIC: MetricId = "sell_out_volume";
 const COVER_METRIC: MetricId = "days_of_cover";
+const BRAND_JOIN = " และ ";
 
 export type Detection = {
   id: string;
@@ -50,6 +52,7 @@ export type Detection = {
   relatedIds: string[];
   campaignId: string | null;
   alsoOwnerIds: string[];
+  brands?: string[];
 };
 
 export type Thresholds = Record<string, number>;
@@ -151,7 +154,9 @@ async function mergedStory(parts: Detection[]): Promise<Detection> {
   const observed = parts.reduce((sum, part) => sum + part.observed, 0);
   const expected = parts.reduce((sum, part) => sum + part.expected, 0);
   const region = regionOfDims(dims);
-  const explanation = await explain({ metric: lead.metric, dims, direction: lead.direction, window, observed, expected, region, detail: null });
+  const brands = [...new Set([lead, ...parts].flatMap((part) => part.dims.brand ?? []))];
+  const detail = brands.map((brand) => GENERATOR_DICTIONARY.displayLabel("brand", brand)).join(BRAND_JOIN);
+  const explanation = await explain({ metric: lead.metric, dims, direction: lead.direction, window, observed, expected, region, detail });
   const worst = parts.reduce((best, part) => (SEVERITY_RANK[part.severity] < SEVERITY_RANK[best.severity] ? part : best));
   return {
     ...lead,
@@ -167,6 +172,7 @@ async function mergedStory(parts: Detection[]): Promise<Detection> {
     ended: parts.every((part) => part.ended),
     campaignId: explanation.campaignId ?? null,
     alsoOwnerIds: alsoOwnersOf(lead.metric, region, explanation.campaignId ?? null),
+    brands,
   };
 }
 
@@ -361,5 +367,6 @@ export function toAlert(detection: Detection, previous: Alert | null): Alert {
     relatedIds: detection.relatedIds,
     campaignId: detection.campaignId,
     alsoOwnerIds: detection.alsoOwnerIds,
+    ...(detection.brands ? { brands: detection.brands } : {}),
   };
 }

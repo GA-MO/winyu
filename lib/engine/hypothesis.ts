@@ -220,7 +220,7 @@ export async function explain(context: Context): Promise<Explanation> {
 
   if (nearlySilent(context) && context.dims.agent) {
     return {
-      hypothesis: TH.engine.hypothesis.silentAgent(GENERATOR_DICTIONARY.displayLabel("agent", context.dims.agent)),
+      hypothesis: TH.engine.hypothesis.silentAgent(GENERATOR_DICTIONARY.displayLabel("agent", context.dims.agent), context.detail),
       verifySteps: steps(step(TH.engine.verify.orderHistory(scope), "net_sales_volume"), step(TH.engine.verify.arOfScope(scope), "ar_overdue")),
       explained: false,
     };
