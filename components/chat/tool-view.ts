@@ -4,7 +4,7 @@ import { namesPerson, type Named } from "@/lib/share/recipients";
 import type { ReplyStep, ToolStep } from "./timeline";
 
 const DECLINED_TEXT = /not approved|declined|rejected|denied/i;
-const ANSWER_LISTS = ["rows", "weeks"] as const;
+const ANSWER_LISTS = ["rows", "weeks", "data"] as const;
 const CATALOG_TOOL = "list_metrics";
 const PEOPLE_LOOKUPS: ReadonlySet<string> = new Set(["find_people", "get_person", "resolve_owner"]);
 const ENTITY_LOOKUP = "describe_entity";
@@ -32,11 +32,20 @@ function isDone(result: unknown): boolean {
   return typeof result === "object" && result !== null && (result as { ok?: unknown }).ok === true;
 }
 
-/** A successful read that found nothing (no rows, no forecast weeks): the reply says so in words, as the prompt asks, so no empty card is drawn. */
+/** A successful read that found nothing (no rows, no forecast weeks, an empty search): the reply says so in words, as the prompt asks, so no empty card is drawn. */
 export function isEmptyAnswer(result: unknown): boolean {
   if (typeof result !== "object" || result === null || (result as { ok?: unknown }).ok !== true) return false;
   const lists = ANSWER_LISTS.map((key) => (result as Record<string, unknown>)[key]).filter(Array.isArray);
   return lists.length > 0 && lists.every((list) => list.length === 0);
+}
+
+function isRefused(result: unknown): boolean {
+  return typeof result === "object" && result !== null && (result as { ok?: unknown }).ok === false;
+}
+
+/** A read result that draws no card: an empty answer, or a refusal or failure (its text is written for the model, and the reply tells the person in words). */
+export function drawsNoCard(result: unknown): boolean {
+  return isEmptyAnswer(result) || isRefused(result);
 }
 
 function reasonOf(result: unknown): string | null {
@@ -46,7 +55,7 @@ function reasonOf(result: unknown): string | null {
 
 function cardView(step: ToolStep, live: ToolLive): ToolView {
   if (live.hidden) return { kind: "none" };
-  if (step.outcome.state === "returned" && isEmptyAnswer(step.outcome.result)) return { kind: "none" };
+  if (step.outcome.state === "returned" && drawsNoCard(step.outcome.result)) return { kind: "none" };
   if (step.outcome.state === "returned") return { kind: "card", name: step.name, result: step.outcome.result, args: step.args };
   return { kind: "none" };
 }
@@ -82,9 +91,7 @@ export function composedCalls(steps: readonly ReplyStep[], streaming: boolean): 
 export type CardPlan = { hidden: ReadonlySet<string> };
 
 function answered(step: ToolStep): boolean {
-  if (step.outcome.state !== "returned") return false;
-  const result = step.outcome.result;
-  return typeof result !== "object" || result === null || (result as { ok?: unknown }).ok !== false;
+  return step.outcome.state === "returned" && !isRefused(step.outcome.result);
 }
 
 function recoveredFailures(steps: readonly ToolStep[]): string[] {
@@ -96,7 +103,7 @@ function recoveredFailures(steps: readonly ToolStep[]): string[] {
 
 function drawsAnswer(step: ToolStep, hidden: ReadonlySet<string>, cardTools: ReadonlySet<string>): boolean {
   if (step.name === CATALOG_TOOL || !cardTools.has(step.name) || hidden.has(step.toolCallId)) return false;
-  return step.outcome.state === "returned" && !isEmptyAnswer(step.outcome.result);
+  return step.outcome.state === "returned" && !drawsNoCard(step.outcome.result);
 }
 
 function recipientsAskedFor(step: ToolStep): string[] {

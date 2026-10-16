@@ -1,18 +1,14 @@
 import { sharedComposedCard, sharedToolCard, type ExchangeRead, type SharedCard, type ShareTarget } from "@/lib/share/card";
 import type { Exchange, ReplyStep, ToolStep } from "./timeline";
-import { cardPlanOf, composedCalls, isEmptyAnswer, type CardPlan } from "./tool-view";
+import { cardPlanOf, composedCalls, drawsNoCard, type CardPlan } from "./tool-view";
 
 function isToolStep(step: ReplyStep): step is ToolStep {
   return step.kind === "tool";
 }
 
-function isRefusal(result: unknown): boolean {
-  return typeof result === "object" && result !== null && (result as { ok?: unknown }).ok === false;
-}
-
 function drawsShareableCard(step: ToolStep, plan: CardPlan, cardTools: ReadonlySet<string>): boolean {
   if (!cardTools.has(step.name) || plan.hidden.has(step.toolCallId) || step.outcome.state !== "returned") return false;
-  return !isEmptyAnswer(step.outcome.result) && !isRefusal(step.outcome.result);
+  return !drawsNoCard(step.outcome.result);
 }
 
 function readsOf(steps: readonly ToolStep[], cardTools: ReadonlySet<string>): ExchangeRead[] {

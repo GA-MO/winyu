@@ -3,7 +3,7 @@ import path from "node:path";
 import type { ComposedComponent } from "@/lib/compose/catalog";
 import { UNCOMPOSABLE_TOOLS } from "@/lib/compose/ground";
 import type { ToolStep } from "@/components/chat/timeline";
-import { cardPlanOf, isEmptyAnswer } from "@/components/chat/tool-view";
+import { cardPlanOf, drawsNoCard } from "@/components/chat/tool-view";
 import { ReplyCards, type ComposedCardRecord, type StreamEvent } from "@/lib/harness/adapters/mastra/card-stream";
 import { toolTiers } from "@/lib/server/agent/tools";
 
@@ -130,7 +130,7 @@ function fixedCards(calls: EvalTurn["calls"], composedHolds: boolean): DrawnCard
   return steps.flatMap((step) => {
     if (step.outcome.state !== "returned" || !readTools.has(step.name) || plan.hidden.has(step.toolCallId)) return [];
     const result = step.outcome.result;
-    if (isEmptyAnswer(result)) return [];
+    if (drawsNoCard(result)) return [];
     return [{ tool: step.name, args: step.args, result }];
   });
 }

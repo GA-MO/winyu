@@ -52,6 +52,15 @@ describe("toolViewOf", () => {
     expect(toolViewOf({ ...read, outcome: { state: "returned", result: { ok: true, weeks: [] } } }, IDLE, CARD_TOOLS)).toEqual({ kind: "none" });
   });
 
+  test("an empty search and a read the tool refused or failed draw no card, even when nothing corrected them", () => {
+    const catalog = { ...read, name: "list_metrics", outcome: { state: "returned" as const, result: { ok: true, summary: "พบ 0 เมตริกที่ตรงกับคำค้น", data: [] } } };
+    const failed = { ...read, outcome: { state: "returned" as const, result: { ok: false, code: "BAD_QUERY", error: "มิติ agent ใช้กับเมตริก days_of_cover ไม่ได้" } } };
+    const denied = { ...read, outcome: { state: "returned" as const, result: { ok: false, code: "PERMISSION_DENIED", error: "บทบาทของคุณไม่มีสิทธิ์ดูเมตริก อัตรากำไรขั้นต้น" } } };
+    const tools = new Set([...CARD_TOOLS, "list_metrics"]);
+    for (const step of [catalog, failed, denied]) expect(toolViewOf(step, IDLE, tools)).toEqual({ kind: "none" });
+    expect(toolViewOf({ ...read, name: "find_people", outcome: { state: "returned", result: { ok: true, data: [{ id: "u_krit" }] } } }, IDLE, new Set(["find_people"]))).toMatchObject({ kind: "card" });
+  });
+
   test("a write waits on the person, draws nothing while the answer runs, and shows a receipt only for the result it earned", () => {
     expect(toolViewOf(write, { ...IDLE, asking: true }, CARD_TOOLS)).toMatchObject({ kind: "decision", approved: null });
     expect(toolViewOf(write, { ...IDLE, running: true, decided: true }, CARD_TOOLS)).toEqual({ kind: "none" });

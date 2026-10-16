@@ -111,12 +111,8 @@ class CardBoundary extends Component<{ children: ReactNode }, { failed: boolean 
 /** What a card in this exchange needs to offer ส่งต่อ: the exchange's read calls and the question it asked; null while the reply streams. */
 type Sharing = { calls: ExchangeRead[]; question: string | null } | null;
 
-function isRefusal(result: unknown): boolean {
-  return typeof result === "object" && result !== null && (result as { ok?: unknown }).ok === false;
-}
-
-function toolShare(sharing: Sharing, toolCallId: string, result: unknown): ShareTarget | null {
-  if (!sharing || isRefusal(result)) return null;
+function toolShare(sharing: Sharing, toolCallId: string): ShareTarget | null {
+  if (!sharing) return null;
   const card = sharedToolCard(sharing.calls, toolCallId);
   return card ? { card, question: sharing.question } : null;
 }
@@ -139,7 +135,7 @@ function ToolStepView({ step, live, plan, streaming, sharing, asked }: { step: T
   if (view.kind === "card")
     return (
       <div className="flex w-full animate-hero-rise flex-col gap-1">
-        <ShareChrome target={toolShare(sharing, step.toolCallId, view.result)}>{CARDS[view.name](view.result, view.args)}</ShareChrome>
+        <ShareChrome target={toolShare(sharing, step.toolCallId)}>{CARDS[view.name](view.result, view.args)}</ShareChrome>
       </div>
     );
   if (view.kind === "not-run") return <Note text={TH.conversation.notRun} tone="muted" />;
