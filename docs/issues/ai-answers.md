@@ -1243,10 +1243,10 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 |---|---|---|---|
 | AI-93 (เดิม AI-56) | สูง | เปิด (ใหม่) | Chat 'send this card' attaches a lookup, profile or newest card instead of the card the user named; a wrong card was actually sent |
 | AI-94 (เดิม AI-58) | กลาง | ยังเสีย | False premises go into sends: the send is raised before the rebuttal, and an overclaim gets no warning |
-| AI-95 (เดิม AI-65) | กลาง | ยังเสีย | Two clocks: the model says today is 27 Nov 2569 (demo date) while the real date and the admin windows are 17 Oct |
+| AI-95 (เดิม AI-65) | กลาง | แก้แล้วบางส่วน `b3048cc` | Two clocks: the model says today is 27 Nov 2569 (demo date) while the real date and the admin windows are 17 Oct |
 | AI-96 | กลาง | เปิด (ใหม่) | A read that completed in the same step as an abandoned approval loses its result; the card vanishes on reload and later sends fall through to another card |
 | AI-97 (เดิม AI-85) | กลาง | เปิด (ใหม่) | The CEO's bell shows no badge for pass-on and accept updates, which breaks the run-sheet beat |
-| AI-98 | กลาง | เปิด (ใหม่) | The Audit activity chip keeps stale rows from the All list, including users' typed questions, and logs duplicate React keys |
+| AI-98 | กลาง | แก้แล้ว `0453194` | The Audit activity chip keeps stale rows from the All list, including users' typed questions, and logs duplicate React keys |
 | AI-99 | กลาง | เปิด (ใหม่) | A reload during a run makes the turn look lost until a second reload |
 | AI-100 (เดิม AI-63) | กลาง | ยังเสีย | Lookup cards are drawn on refusals and sends (HR profiles, owner cards with a send button, the CEO master-data record) |
 | AI-101 (เดิม AI-53) | กลาง | เปิด (ใหม่) | The month-to-date attainment hero shows the pace figure (87.9%) when the question asks for % of the full-month target |
@@ -1259,7 +1259,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 | AI-108 (เดิม AI-32) | กลาง | ยังเสีย | The board question on company October sales is answered in litres, not baht |
 | AI-109 (เดิม AI-84) | กลาง | เปิด (ใหม่) | The leave card shows only days remaining; days used are dropped, though the text says the card shows them |
 | AI-110 (เดิม AI-26) | กลาง | ยังเสีย | Stock questions go unanswered: 'no stock data' for overstock, and the agent's DC cover is never fetched |
-| AI-111 (เดิม AI-74) | กลาง | ยังเสีย | Memory learns interests and styles from refused requests and one-off wording |
+| AI-111 (เดิม AI-74) | กลาง | แก้แล้ว `be92dc9` | Memory learns interests and styles from refused requests and one-off wording |
 | AI-112 (เดิม AI-64) | กลาง | ยังเสีย | Turns over 40 s spent in unbounded Gemini reasoning |
 | AI-113 (เดิม AI-53) | ต่ำ | เปิด (ใหม่) | The share warning quotes the pro-rated % beside a card whose hero is the full-month % |
 | AI-114 (เดิม AI-68) | ต่ำ | เปิด (ใหม่) | YoY comparison tile labelled 'งวดก่อน' |
@@ -1267,17 +1267,17 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 | AI-116 | ต่ำ | เปิด (ใหม่) | The busy indicator ends while text is still streaming |
 | AI-117 (เดิม AI-89) | ต่ำ | ยังเสีย | After an approval, the RSM chat jumped back to the top |
 | AI-118 (เดิม AI-89) | ต่ำ | เปิด (ใหม่) | The share success toast never dismisses and covers the composer's send button |
-| AI-119 (เดิม AI-43) | ต่ำ | ยังเสีย | Memory folds a beer-margin claim into the import-margin interest and promotes it to known |
+| AI-119 (เดิม AI-43) | ต่ำ | แก้แล้ว `be92dc9` | Memory folds a beer-margin claim into the import-margin interest and promotes it to known |
 | AI-120 (เดิม AI-14) | ต่ำ | ยังเสีย | Urgency ignores the deadline the sender wrote |
 | AI-121 (เดิม AI-78) | ต่ำ | ยังเสีย | English terms reach Thai users (MoM/YoY, metric names, 'None'/'Masked') |
 | AI-122 (เดิม AI-66) | ต่ำ | เปิด (ใหม่) | The RSM region-vs-agent question draws two cards repeating the same total |
 | AI-123 | ต่ำ | เปิด (ใหม่) | Follow-up chips are duplicated or off-scope |
 | AI-124 | ต่ำ | เปิด (ใหม่) | The board summary shows margin only as a subtitle, without its YoY change |
 | AI-125 (เดิม AI-21) | ต่ำ | ยังเสีย | Masked replies use jargon, state data coverage for hidden numbers, and offer chips into hidden data |
-| AI-126 (เดิม AI-12) | ต่ำ | เปิด (ใหม่) | The first set_permission approval does not name the tool |
-| AI-127 (เดิม AI-91) | ต่ำ | ยังเสีย | คืนค่า reverts a 6-person override in one tap, with no confirmation or undo |
-| AI-128 (เดิม AI-92) | ต่ำ | ยังเสีย | The admin answer offers to loosen access after listing hidden items |
-| AI-129 (เดิม AI-86) | ต่ำ | ยังเสีย | The cross-region refusal gives no way to request access; the lapsed-grant premise is not in the data |
+| AI-126 (เดิม AI-12) | ต่ำ | แก้แล้ว `475582d` | The first set_permission approval does not name the tool |
+| AI-127 (เดิม AI-91) | ต่ำ | แก้แล้ว `1dccafc` | คืนค่า reverts a 6-person override in one tap, with no confirmation or undo |
+| AI-128 (เดิม AI-92) | ต่ำ | แก้แล้วบางส่วน `b3048cc` | The admin answer offers to loosen access after listing hidden items |
+| AI-129 (เดิม AI-86) | ต่ำ | แก้แล้ว `730d618` | The cross-region refusal gives no way to request access; the lapsed-grant premise is not in the data |
 | AI-130 (เดิม AI-23) | ต่ำ | เปิด (ใหม่) | 'ทำไมตกอะ' after a −10.5% baht week is explained by one agent's litre anomaly |
 | AI-131 | ต่ำ | เปิด (ใหม่) | The run sheet no longer matches the product |
 | AI-52 | สูง | แก้แล้ว (ยืนยันรอบ 3) | Every write asks first; declines run nothing |
@@ -1327,7 +1327,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-95. Two clocks: the model says today is 27 Nov 2569 (demo date) while the real date and the admin windows are 17 Oct
 
-- **สถานะ:** ยังเสีย · เดิม AI-65
+- **สถานะ:** แก้แล้วบางส่วน `b3048cc` · เดิม AI-65: the prompt calls the demo date วันทำการของ Winyu and gives the IT admin the real date that `admin_audit` windows count back from; `admin_audit` stamps its summary and card ข้อมูลระบบ ณ <real date>; the Admin console header shows both clocks (persona.test, admin-audit.test, browser). Not re-measured against the model: whether replies stop saying 'วันนี้คือ 27 พ.ย.' needs a live turn.
 - **ระดับ:** กลาง · **หมวด:** `wrong-answer` · **บทบาท:** CEO u_thana, RSM u_anucha, ผู้ดูแลระบบไอที u_ton
 - **อาการ:** Every 'เดือนนี้' answer used 1–26 พ.ย. 2569. n1 replied 'วันนี้คือวันที่ 27 พ.ย. 2569', and s3t4 called October fully closed. For IT, 'ค่าเอไอเดือนนี้' passed days=27 and 'ตั้งแต่ 1 ต.ค.' passed days=58. Those windows run on the real clock (about 19 Aug–17 Oct), while the cost cards are stamped 'ณ 27 พ.ย. 2569'.
 - **ที่ควรเป็น:** One visible clock: the demo date is labelled as the data date and never stated as today, and Winyu's own operational data (cost, usage) is computed and stamped on the real date the model is told.
@@ -1362,7 +1362,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-98. The Audit activity chip keeps stale rows from the All list, including users' typed questions, and logs duplicate React keys
 
-- **สถานะ:** เปิด (ใหม่)
+- **สถานะ:** แก้แล้ว `0453194`: audit rows group by turn even when turns interleave, so keys are unique (7 duplicate-key errors on the round-3 data before, 0 after, in the browser); the activity view and the call list have their own keys, so switching remounts. The stale rows themselves did not reproduce on the round-3 data, so their fix is inferred from the duplicate keys.
 - **ระดับ:** กลาง · **หมวด:** `ui` · **บทบาท:** ผู้ดูแลระบบไอที u_ton (chain step 5)
 - **อาการ:** Moving from All to 'การส่งงานและการแก้ไข' kept 7 old rows quoting typed questions such as 'ขอดูเงินเดือนของคุณกฤตกับคุณนก…', under a hint that says typed text is not shown. React logged 7 duplicate-key errors. Loading the URL directly showed the clean list.
 - **ที่ควรเป็น:** The activity view replaces the list completely, and every row has a unique key.
@@ -1506,7 +1506,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-111. Memory learns interests and styles from refused requests and one-off wording
 
-- **สถานะ:** ยังเสีย · เดิม AI-74
+- **สถานะ:** แก้แล้ว `be92dc9` · เดิม AI-74: masked turns teach nothing; no interest in a metric the role sees masked or not at all, the whole company for a partial scope, or bonus and leave records; a style needs an ask or a wish from now on (memory.test with the round-3 values, learn.test).
 - **ระดับ:** กลาง · **หมวด:** `memory` · **บทบาท:** CEO u_thana, RSM u_anucha, พนักงานขาย u_krit, ผู้ดูแลระบบไอที u_ton
 - **อาการ:** Interests stored after refusals: CEO 'สนใจเงินเดือนและโบนัสของผู้จัดการขายภาค', RSM 'สนใจเงินเดือนพนักงาน', rep 'สนใจมูลค่าขายรวมทั้งบริษัท' and 'สนใจวันลาของทีม', IT 'สนใจเงินเดือนเฉลี่ยแยกตามฝ่าย'. A style was stored from a refused estimate, and 'ตอบเฉพาะยอดรวม' from a one-off 'ขอยอดเดียวพอ'.
 - **ที่ควรเป็น:** Refused, out-of-scope and masked requests add no interest or style, and one-off wording is not a style.
@@ -1587,7 +1587,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-119. Memory folds a beer-margin claim into the import-margin interest and promotes it to known
 
-- **สถานะ:** ยังเสีย · เดิม AI-43
+- **สถานะ:** แก้แล้ว `be92dc9` · เดิม AI-43: business units are part of a fact's slice, and a question that checks a claimed figure teaches nothing (memory.test).
 - **ระดับ:** ต่ำ · **หมวด:** `memory` · **บทบาท:** CEO u_thana
 - **อาการ:** 'สนใจกำไรขั้นต้นของกลุ่มนำเข้า' reached 0.6 from an import probe and a beer probe.
 - **ที่ควรเป็น:** Different subjects stay separate, and probe claims do not reinforce an interest.
@@ -1659,7 +1659,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-126. The first set_permission approval does not name the tool
 
-- **สถานะ:** เปิด (ใหม่) · เดิม AI-12
+- **สถานะ:** แก้แล้ว `475582d` · เดิม AI-12: a native tool is named from the card's first draw instead of after a label lookup (approval-card.test). Why the lookup did not answer in round 3 is not known.
 - **ระดับ:** ต่ำ · **หมวด:** `write-flow` · **บทบาท:** ผู้ดูแลระบบไอที u_ton
 - **อาการ:** It read 'เครื่องมือ → ใช้ไม่ได้'. A retry with the same args named the tool.
 - **ที่ควรเป็น:** Every permission approval names its target.
@@ -1669,7 +1669,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-127. คืนค่า reverts a 6-person override in one tap, with no confirmation or undo
 
-- **สถานะ:** ยังเสีย · เดิม AI-91
+- **สถานะ:** แก้แล้ว `1dccafc` · เดิม AI-91: คืนค่า, a role reset and reset-all open a confirmation that names what goes back and how many people it touches; only its button submits (overview-tab.test, browser).
 - **ระดับ:** ต่ำ · **หมวด:** `ui` · **บทบาท:** ผู้ดูแลระบบไอที u_ton
 - **อาการ:** The override row vanished at once, as in rounds 1-2.
 - **ที่ควรเป็น:** A confirmation or an undo toast.
@@ -1679,7 +1679,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-128. The admin answer offers to loosen access after listing hidden items
 
-- **สถานะ:** ยังเสีย · เดิม AI-92
+- **สถานะ:** แก้แล้วบางส่วน `b3048cc` · เดิม AI-92: the `admin_audit` description makes every topic a report and forbids offering wider access. Not re-measured against the model.
 - **ระดับ:** ต่ำ · **หมวด:** `wrong-answer` · **บทบาท:** ผู้ดูแลระบบไอที u_ton
 - **อาการ:** The reply ended with an offer to open more access.
 - **ที่ควรเป็น:** Report what is hidden, in neutral terms.
@@ -1689,7 +1689,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-129. The cross-region refusal gives no way to request access; the lapsed-grant premise is not in the data
 
-- **สถานะ:** ยังเสีย · เดิม AI-86
+- **สถานะ:** แก้แล้ว `730d618` · เดิม AI-86: a scope refusal from `query_metric` carries a request button (send the question as a card to whoever may grant the slice) and draws its card, lapsed grant or not; the rule tells the model to point at it (refusal-request.test). The reply wording is not re-measured against the model.
 - **ระดับ:** ต่ำ · **หมวด:** `wrong-answer` · **บทบาท:** พนักงานขาย u_krit
 - **อาการ:** The refusal held but did not say how to request a temporary grant, and showed an owner card instead. No grants are seeded.
 - **ที่ควรเป็น:** Say how to request a temporary grant, and name a lapsed grant when one exists.
