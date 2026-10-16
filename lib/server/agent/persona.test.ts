@@ -341,6 +341,14 @@ describe("lines that invite a question or an action follow what the role can cal
     expect(literal).toContain("ห้ามเขียนว่าด้านนั้นไม่มีความเสี่ยง");
   });
 
+  test("a number the user asked for by name is stated once in the first sentence; other card numbers are not repeated, so the two rules no longer pull apart", () => {
+    const literal = WINYU_RULES.find((line) => line.startsWith("ประโยคแรกตอบสิ่งที่ผู้ใช้ถามตรง ๆ")) ?? "";
+    const repeat = WINYU_RULES.find((line) => line.startsWith("ข้อความห้ามทวนหัวเลขหรือแถวที่การ์ดแสดง")) ?? "";
+    expect(literal).not.toContain("ถ้าการ์ดแสดงตัวเลขนั้นอยู่แล้ว ให้ตอบเป็นข้อสรุปโดยไม่ทวนตัวเลข");
+    expect(literal).toContain("ตัวเลขที่ผู้ใช้ถามถึงตรง ๆ (เช่นกี่เปอร์เซ็นต์ของเป้า ต้องขายอีกกี่ลิตร) บอกครั้งเดียวในประโยคแรก คัดลอกจากผล tool");
+    expect(repeat).toContain("ยกเว้นตัวเลขที่ผู้ใช้ถามถึงตรง ๆ ซึ่งบอกครั้งเดียวในประโยคแรก");
+  });
+
   test("a why over a whole period splits the change before naming a cause, and an even drop names no region (AI-190)", () => {
     const why = WINYU_RULES.find((line) => line.startsWith("ผู้ใช้ถามว่าทำไม")) ?? "";
     expect(why).toContain("ถามว่าตกไหมและทำไมของยอดรวม (เช่นสัปดาห์นี้ทั้งบริษัท)");
