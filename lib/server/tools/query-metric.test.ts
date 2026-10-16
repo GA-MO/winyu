@@ -151,6 +151,20 @@ describe("a rep asking about their own book", () => {
     expect(agents.rows).toHaveLength(own.length);
   });
 
+  test("a whole-company ask from someone who sees one region is refused with the request button, not drawn as his region's number (AI-147)", async () => {
+    const COMPANY = { metric: "net_sales_value", dims: [], filters: {}, grain: "month", compare: "none", limit: 1, period: "this_month" };
+    const refused = (await ask("u_krit", "งั้นขอแค่ยอดรวมทั้งบริษัททุกภาคก็พอ ตัวเดียว", COMPANY)) as unknown as Extract<MetricResult, { ok: false }> & { nextActions?: { kind: string }[] };
+    expect(refused.ok).toBe(false);
+    expect(refused.code).toBe("PERMISSION_DENIED");
+    expect(refused.error).toContain("ภาคอีสาน");
+    expect(refused.nextActions?.some((action) => action.kind === "request_access")).toBe(true);
+    expect((await ask("u_anucha", "ยอดขายทั้งประเทศเดือนนี้", COMPANY)).ok).toBe(false);
+    expect((await ask("u_thana", "งั้นขอแค่ยอดรวมทั้งบริษัททุกภาคก็พอ ตัวเดียว", COMPANY)).ok).toBe(true);
+    const own = await ask("u_krit", "ยอดขายเดือนนี้เท่าไร", COMPANY);
+    expect(own.ok).toBe(true);
+    expect(own.query.scopeApplied.region).toEqual(["northeast"]);
+  });
+
   test("a province the rep names himself stays as asked", async () => {
     const named = await ask("u_krit", "ยอดขายขอนแก่นของผมเดือนนี้", { ...MONTH, filters: { province: ["ขอนแก่น"] } });
     expect(named.query.filters.agent).toBeUndefined();
