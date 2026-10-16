@@ -4,7 +4,8 @@ export const REGION_SCOPE_DIMS: readonly Dim[] = ["region", "province", "agent",
 export const BRAND_SCOPE_DIMS: readonly Dim[] = ["brand", "sku", "business_unit"];
 export const TIME_DIMS: readonly Dim[] = ["date", "week", "month"];
 
-const SALES_DIMS: Dim[] = ["date", "week", "month", "region", "province", "channel", "brand", "sku", "pack", "agent", "business_unit"];
+const THAI_TONE_MARKS = /[็-๋]/g;
+const SALES_DIMS: Dim[] =["date", "week", "month", "region", "province", "channel", "brand", "sku", "pack", "agent", "business_unit"];
 const INVENTORY_DIMS: Dim[] = ["date", "week", "month", "region", "dc", "brand", "sku", "pack", "business_unit"];
 const PRODUCTION_DIMS: Dim[] = ["date", "week", "month", "region", "plant", "brand", "business_unit"];
 const CAMPAIGN_DIMS: Dim[] = ["date", "week", "month", "campaign", "brand", "region", "business_unit"];
@@ -184,8 +185,9 @@ export function metricDef(id: string): MetricDef | null {
   return (METRICS as Record<string, MetricDef | undefined>)[id] ?? null;
 }
 
+/** Text as the catalog search compares it: lower case, single spaces, and without Thai tone marks and the short-vowel mark, which people spell either way (สต็อก, สต๊อก). */
 function normalize(text: string): string {
-  return text.toLowerCase().replace(/\s+/g, " ").trim();
+  return text.toLowerCase().replace(THAI_TONE_MARKS, "").replace(/\s+/g, " ").trim();
 }
 
 function scoreMetric(def: MetricDef, needle: string): number {

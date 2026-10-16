@@ -43,6 +43,14 @@ describe("metric definitions", () => {
 });
 
 describe("findMetric", () => {
+  test("finds stock whichever tone mark the person types: สต็อก as well as สต๊อก (AI-110)", () => {
+    for (const spelling of ["สต็อก", "สต๊อก", "สตอก"]) {
+      const ids = findMetric(spelling).map((def) => def.id);
+      expect(ids).toContain("stock_on_hand");
+      expect(ids).toContain("days_of_cover");
+    }
+  });
+
   test("ranks the obvious Thai phrasing first", () => {
     expect(findMetric("ยอดขายเข้า")[0]?.id).toBe("net_sales_volume");
     expect(findMetric("วันครอบคลุม")[0]?.id).toBe("days_of_cover");
