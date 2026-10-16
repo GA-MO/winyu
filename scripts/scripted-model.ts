@@ -1,5 +1,6 @@
 import { simulateReadableStream } from "ai";
 import { MockLanguageModelV3 } from "ai/test";
+import * as models from "@/lib/server/models";
 
 type StreamResult = Awaited<ReturnType<MockLanguageModelV3["doStream"]>>;
 type StreamPart = StreamResult["stream"] extends ReadableStream<infer Part> ? Part : never;
@@ -43,9 +44,9 @@ export class ScriptedModel {
     this.steps = [...steps];
   }
 
-  /** The `@/lib/server/models` module with this model as the agent's model and no utility model, for `mock.module`. */
+  /** The `@/lib/server/models` module with this model as the agent's model and no utility model (the rest as it is), for `mock.module`. */
   modelsModule() {
-    return { agentModel: () => ({ id: "scripted", name: "scripted", model: () => this.model }), utilityModel: () => null };
+    return { ...models, agentModel: () => ({ id: "scripted", name: "scripted", model: () => this.model }), utilityModel: () => null };
   }
 
   private next(): StreamResult {

@@ -18,13 +18,12 @@ function turnOf(record: RunRecord): ChatTurn | null {
   const start = record.events.find((event) => event.type === "agent.started");
   if (start?.type !== "agent.started" || !record.threadId) return null;
   const { goal } = start.payload;
-  return { runId: record.id, goal, threadId: record.threadId, preloadPacketId: threads().get(record.threadId)?.preload?.packetId ?? null, question: goal.userMessage || null, answers: [] };
+  return { runId: record.id, goal, threadId: record.threadId, messageId: goal.id.slice(record.threadId.length + 1), preloadPacketId: threads().get(record.threadId)?.preload?.packetId ?? null, question: goal.userMessage || null, answers: [] };
 }
 
 function runRequest(turn: ChatTurn): Request {
   const threadId = turn.threadId ?? "";
-  const messageId = turn.goal.id.slice(threadId.length + 1);
-  const messages = turn.question ? [{ id: messageId, role: "user", content: turn.question }] : [];
+  const messages = turn.question ? [{ id: turn.messageId, role: "user", content: turn.question }] : [];
   const body = { threadId, runId: turn.runId, state: {}, messages, tools: [], context: [], forwardedProps: turn.preloadPacketId ? { preloadPacketId: turn.preloadPacketId } : {} };
   return new Request(`${LOCAL_ORIGIN}${RUN_PATH}`, { method: "POST", headers: { "content-type": "application/json", accept: "text/event-stream" }, body: JSON.stringify(body) });
 }

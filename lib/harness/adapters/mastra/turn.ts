@@ -15,8 +15,8 @@ export type RunInput = { threadId?: unknown; runId?: unknown; messages?: InputMe
 /** The person's yes or no to one approval interrupt, and the tool call it covers. */
 export type ApprovalAnswer = { interruptId: string; toolCallId: string; approved: boolean };
 
-/** What one run request carries for the harness: its run id, the goal, the thread, and the approval answered. */
-export type ChatTurn = { runId: string; goal: Goal; threadId: string | null; preloadPacketId: string | null; question: string | null; answers: ApprovalAnswer[] };
+/** What one run request carries for the harness: its run id, the goal, the thread, the person's message it answers, and the approval answered. */
+export type ChatTurn = { runId: string; goal: Goal; threadId: string | null; messageId: string | null; preloadPacketId: string | null; question: string | null; answers: ApprovalAnswer[] };
 
 function stringOr(value: unknown): string | null {
   return typeof value === "string" && value.length > 0 ? value : null;
@@ -61,6 +61,7 @@ export function chatTurnOf(input: RunInput, fallbackRunId: string): ChatTurn {
     runId,
     goal: { id: messageId ? `${threadId ?? UNTHREADED}:${messageId}` : runId, userMessage: question ?? "", intent: null, status: "active" },
     threadId,
+    messageId,
     preloadPacketId: stringOr(input?.forwardedProps?.preloadPacketId),
     question,
     answers: answersOf(input),

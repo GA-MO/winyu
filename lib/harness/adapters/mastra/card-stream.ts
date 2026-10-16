@@ -13,6 +13,9 @@ export type ComposedCardRecord = { surfaceId: string; accepted: number; rejected
 /** An AG-UI event as the card stream reads and writes it. */
 export type StreamEvent = { type?: unknown; messageId?: unknown; delta?: unknown; toolCallId?: unknown; toolCallName?: unknown; content?: unknown } & Record<string, unknown>;
 
+/** A tool call an earlier run of the same question finished: the run that answers an approval binds its card to these as if it had called them itself. */
+export type CarriedCall = { toolCallId: string; tool: string; args: unknown; output: unknown };
+
 type OpenBlock = { surfaceId: string; composer: CardComposer; shown: string };
 type TextState = { reader: BlockReader; block: OpenBlock | null; blocks: number };
 
@@ -45,7 +48,10 @@ export class ReplyCards {
   constructor(
     private readonly composable: (tool: string) => boolean,
     private readonly onCard: (record: ComposedCardRecord) => void,
-  ) {}
+    private readonly carried: readonly CarriedCall[] = [],
+  ) {
+    this.startRun();
+  }
 
   /** The events to send in place of one event the agent emitted. */
   next(event: StreamEvent): StreamEvent[] {
@@ -60,7 +66,7 @@ export class ReplyCards {
     return [event];
   }
 
-  /** The read results the run has returned so far, in the order the agent called them. */
+  /** The read results the run has returned so far (after those carried from the run that asked), in the order the agent called them. */
   results(): TurnResult[] {
     return [...this.calls].flatMap(([id, tool]) => (this.outputs.has(id) && this.composable(tool) ? [{ tool, output: this.outputs.get(id) }] : []));
   }
@@ -69,6 +75,10 @@ export class ReplyCards {
     this.calls.clear();
     this.outputs.clear();
     this.texts.clear();
+    for (const call of this.carried) {
+      this.calls.set(call.toolCallId, call.tool);
+      this.outputs.set(call.toolCallId, call.output);
+    }
   }
 
   private unchangedOr(event: StreamEvent, out: StreamEvent[]): StreamEvent[] {

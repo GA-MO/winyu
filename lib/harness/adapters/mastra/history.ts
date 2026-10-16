@@ -11,7 +11,7 @@ import { TH } from "@/lib/i18n/th";
 import type { ShareTarget } from "@/lib/share/card";
 import { toolTiers } from "@/lib/server/agent/tools";
 import type { SpokenTurn } from "@/lib/server/request-context";
-import { ReplyCards, type StreamEvent } from "./card-stream";
+import { ReplyCards, type CarriedCall, type StreamEvent } from "./card-stream";
 
 const RESULT_SUFFIX = ":result";
 const SEGMENT_SEPARATOR = ":";
@@ -162,6 +162,25 @@ export async function storedMessages(threadId: string, userId: string): Promise<
 /** The person's saved conversation on one thread, read from Mastra memory; empty for a thread that never ran. */
 export async function threadHistory(threadId: string, userId: string): Promise<Message[]> {
   return agUiMessagesOf(await storedMessages(threadId, userId));
+}
+
+function finishedCallsOf(message: StoredMessage): CarriedCall[] {
+  return partsOf(message.content).flatMap((part) => {
+    const invocation = part.toolInvocation;
+    if (part.type !== "tool-invocation" || invocation?.state !== "result") return [];
+    if (typeof invocation.toolCallId !== "string" || typeof invocation.toolName !== "string") return [];
+    return [{ toolCallId: invocation.toolCallId, tool: invocation.toolName, args: invocation.args ?? null, output: invocation.result ?? null }];
+  });
+}
+
+/** The tool calls earlier runs finished while answering one question (the person's message `messageId`), in call order, read from memory: the run that answers an approval continues the run that asked, as a restored thread already reads them. */
+export async function callsAnswering(threadId: string, userId: string, messageId: string): Promise<CarriedCall[]> {
+  const stored = await storedMessages(threadId, userId);
+  const asked = stored.findIndex((message) => message.role === "user" && message.id === messageId);
+  if (asked < 0) return [];
+  const after = stored.slice(asked + 1);
+  const nextQuestion = after.findIndex((message) => message.role === "user");
+  return (nextQuestion < 0 ? after : after.slice(0, nextQuestion)).filter((message) => message.role === "assistant").flatMap(finishedCallsOf);
 }
 
 /** The thread's questions and reply text as plain lines, for a handoff to summarise. */

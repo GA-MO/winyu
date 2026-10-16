@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { MastraAgent } from "@ag-ui/mastra";
 import { CopilotRuntime, createCopilotRuntimeHandler } from "@copilotkit/runtime/v2";
 import { RequestContext } from "@mastra/core/request-context";
-import type { AccessContext, Initiator } from "@/lib/contracts";
+import { metricQuerySchema, type AccessContext, type Initiator, type MetricQuery } from "@/lib/contracts";
 import { askedTool, markAnswered, problemOf, recordAsked } from "@/lib/harness/approvals";
 import { checkpointRun, currentRun, emitTo, newRun, runWithRun, saveRun, type Run } from "@/lib/harness/runtime";
 import { TH } from "@/lib/i18n/th";
@@ -13,8 +13,8 @@ import { threadForRun, threads } from "@/lib/server/threads-read";
 import { AGENT_ID, USER_ID_KEY, winyuAgent } from "./agent";
 import { HARNESS_RUN_KEY, tracingOptionsOf } from "./observability";
 import { asBridgeAgent } from "./durable";
-import { ReplyCards, withComposedCards, type ComposedCardRecord } from "./card-stream";
-import { cardBeforeQuestion, threadTranscript } from "./history";
+import { ReplyCards, withComposedCards, type CarriedCall, type ComposedCardRecord } from "./card-stream";
+import { callsAnswering, cardBeforeQuestion, threadTranscript } from "./history";
 import { guardedRunInput, inputFindings, type GuardedInput } from "./guardrails";
 import { learnFromTurn } from "./learn";
 import { chatTurnOf, observeReply, type ChatTurn, type KnownCalls, type ReplySeen, type RunInput } from "./turn";
@@ -27,6 +27,7 @@ const CONNECT_PATH = `${BASE_PATH}/agent/${AGENT_ID}/connect`;
 const STOP_PREFIX = `${BASE_PATH}/agent/${AGENT_ID}/stop/`;
 const NOT_YOUR_THREAD = { error: "ไม่พบบทสนทนานี้" };
 const NOT_SERVED = { error: "Not found" };
+const QUERY_TOOL = "query_metric";
 
 type Route = { kind: "info" } | { kind: "run" } | { kind: "connect" } | { kind: "stop"; threadId: string };
 
@@ -58,9 +59,23 @@ function handler(): Handler {
   return copilotHandler;
 }
 
-function replyCards(onCard: (record: ComposedCardRecord) => void): ReplyCards {
+function replyCards(onCard: (record: ComposedCardRecord) => void, carried: readonly CarriedCall[] = []): ReplyCards {
   const tiers = toolTiers();
-  return new ReplyCards((tool) => tiers[tool] === "read", onCard);
+  return new ReplyCards((tool) => tiers[tool] === "read", onCard, carried);
+}
+
+function queriesOf(calls: readonly CarriedCall[]): MetricQuery[] {
+  return calls.flatMap((call) => {
+    if (call.tool !== QUERY_TOOL) return [];
+    const parsed = metricQuerySchema.safeParse(call.args);
+    return parsed.success ? [parsed.data] : [];
+  });
+}
+
+/** What the run that answers an approval carries on from: the calls the asking run (and any earlier answer) finished for the same message; a run that answers nothing starts empty. */
+async function carriedCalls(turn: ChatTurn, userId: string): Promise<CarriedCall[]> {
+  if (turn.answers.length === 0 || !turn.threadId || !turn.messageId) return [];
+  return callsAnswering(turn.threadId, userId, turn.messageId);
 }
 
 function answeredCalls(turn: ChatTurn): KnownCalls {
@@ -130,10 +145,11 @@ export async function streamRun(access: AccessContext, req: Request, run: Run, t
   const threadId = turn.threadId;
   const transcript = threadId ? () => threadTranscript(threadId, access.userId) : undefined;
   const cardOnScreen = threadId ? () => cardBeforeQuestion(threadId, access.userId, turn.question) : undefined;
-  const context: TurnContext = { turnId: run.id, threadId, preloadPacketId: turn.preloadPacketId, question: turn.question, queries: [], transcript, cardOnScreen };
+  const carried = await carriedCalls(turn, access.userId);
+  const context: TurnContext = { turnId: run.id, threadId, preloadPacketId: turn.preloadPacketId, question: turn.question, queries: queriesOf(carried), transcript, cardOnScreen };
   if (guarded) runWithTurn(context, () => runWithRun(run, () => inputFindings(guarded).forEach((finding) => recordGuardFinding(finding, access.userId))));
   const records: ComposedCardRecord[] = [];
-  const cards = replyCards((record) => records.push(record));
+  const cards = replyCards((record) => records.push(record), carried);
   checkpointRun(run);
   try {
     const response = await runWithAccess(access, () => runWithTurn(context, () => runWithRun(run, () => handler()(req))));
