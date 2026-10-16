@@ -30,7 +30,7 @@ const action = z.union([
 ]);
 const tone = z.enum(["neutral", "success", "warning", "danger"]);
 const badgeList = z.union([z.array(z.object({ label: z.string(), tone: tone.nullish() })), binding]);
-const pairList = z.union([z.array(z.object({ label: z.string(), value: z.string() })), binding]);
+const pairList = z.union([z.array(z.object({ label: z.string(), value: z.string(), detail: z.string().optional() })), binding]);
 const rowList = z.union([z.array(z.record(z.unknown())), binding]);
 
 /** Every component a composed card may use, with its props as A2UI binds them: text is a literal or `{ path }` into the turn's tool results; children are ids or a template `{ componentId, path }` repeated per item. */
@@ -52,7 +52,7 @@ export const COMPOSE_CATALOG = {
     }),
   },
   Person: { props: z.object({ name: text, role: text.optional(), src: text.optional() }) },
-  KeyValue: { props: z.object({ pairs: z.array(z.object({ label: z.string(), value: text })).optional(), from: pairList.optional() }) },
+  KeyValue: { props: z.object({ pairs: z.array(z.object({ label: z.string(), value: text, detail: text.optional() })).optional(), from: pairList.optional() }) },
   Metric: { props: z.object({ label: text, value: text, detail: text.optional() }) },
   Badge: { props: z.object({ label: text, tone: tone.optional() }) },
   Callout: { props: z.object({ title: text, body: text, tone: z.enum(["info", "success", "warning", "danger"]).optional() }) },

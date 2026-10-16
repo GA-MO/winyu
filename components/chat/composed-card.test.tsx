@@ -73,6 +73,24 @@ describe("a card the model composes", () => {
     expect(pressed).toEqual([expect.objectContaining({ kind: "ask", prompt: "ขอดูโปรไฟล์ คุณป้อง แสนสุข" })]);
   });
 
+  test("a leave card bound to a report's balances shows the days used beside the days left (AI-109)", async () => {
+    const manager = findUser("u_anucha");
+    if (!manager) throw new Error("no RSM");
+    const tools = winyuTools();
+    const output = await runWithAccess(accessFor(manager), () => tools.get_person.execute(tools.get_person.inputSchema().parse({ id: "u_krit", name: "" })));
+    const leave = (output as { data?: { leave?: { detail?: string }[] } }).data?.leave ?? [];
+    expect(leave.length).toBeGreaterThan(0);
+    const composer = new CardComposer([{ tool: "get_person", output }]);
+    const lines = [
+      { id: "root", component: "Card", title: { path: "/get_person/data/name" }, children: ["leave"] },
+      { id: "leave", component: "KeyValue", from: { path: "/get_person/data/leave" } },
+    ];
+    const host = document.createElement("div");
+    document.body.append(host);
+    await draw(createRoot(host), surfaceAfter(composer, lines, true), []);
+    for (const row of leave) expect(host.textContent).toContain(String(row.detail));
+  });
+
   test("a card whose block held nothing beyond its root draws nothing", async () => {
     const host = document.createElement("div");
     document.body.append(host);

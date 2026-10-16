@@ -12,7 +12,7 @@ type Child = string | { id: string; basePath: string };
 type BuildChild = (id: string, basePath?: string) => ReactNode;
 type Resolved = Record<string, unknown>;
 type UserAction = { userAction?: { name?: unknown; context?: unknown } };
-type Pair = { label: string; value: string };
+type Pair = { label: string; value: string; detail: string | null };
 
 const ACTION_TOOLS: ReadonlySet<string> = new Set(COMPOSE_ACTION_TOOLS);
 
@@ -37,11 +37,11 @@ function ChildNodes({ list, build }: { list: unknown; build: BuildChild }) {
 }
 
 function pairsOf(props: Resolved): Pair[] {
-  const rows = [...listOf<{ label?: unknown; value?: unknown }>(props.pairs), ...listOf<{ label?: unknown; value?: unknown }>(props.from)];
+  const rows = [...listOf<{ label?: unknown; value?: unknown; detail?: unknown }>(props.pairs), ...listOf<{ label?: unknown; value?: unknown; detail?: unknown }>(props.from)];
   return rows.flatMap((row) => {
     const label = textOf(row.label);
     const value = textOf(row.value);
-    return label && value ? [{ label, value }] : [];
+    return label && value ? [{ label, value, detail: textOf(row.detail) }] : [];
   });
 }
 

@@ -662,7 +662,7 @@ export function Callout({ props }: { props: CalloutProps }) {
 }
 
 export type KeyValueProps = {
-  pairs?: Array<{ label: string; value: string }> | null;
+  pairs?: Array<{ label: string; value: string; detail?: string | null }> | null;
   size?: "sm" | "md" | null;
 };
 
@@ -682,7 +682,10 @@ export function KeyValue({ props }: { props: KeyValueProps }) {
           className={cn("flex items-baseline justify-between gap-3 px-2.5", size === "sm" ? "py-1" : "py-1.5")}
         >
           <dt className="shrink-0 text-muted-foreground">{pair.label}</dt>
-          <dd className="min-w-0 break-words text-right font-medium text-foreground">{pair.value}</dd>
+          <dd className="flex min-w-0 flex-col items-end break-words text-right font-medium text-foreground">
+            <span>{pair.value}</span>
+            {pair.detail ? <span className="text-[11px] font-normal text-muted-foreground">{pair.detail}</span> : null}
+          </dd>
         </div>
       ))}
     </dl>
