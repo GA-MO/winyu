@@ -90,8 +90,9 @@ describe("where the chat rests while following", () => {
     expect(followTarget({ top: 0, height: 4500, viewport: VIEWPORT }, 3000)).toBe(2984);
   });
 
-  test("never scrolls back up toward the question once the reader went past it", () => {
-    expect(nextScroll({ top: 3300, height: 4500, viewport: VIEWPORT }, 3000, true)).toBeNull();
+  test("never scrolls back up toward the question once the reader went past it: from there it rests at the bottom", () => {
+    expect(followTarget({ top: 3300, height: 4500, viewport: VIEWPORT }, 3000)).toBe(3700);
+    expect(nextScroll({ top: 3300, height: 4500, viewport: VIEWPORT }, 3000, true)).toBe(3700);
     expect(nextScroll({ top: 0, height: 4500, viewport: VIEWPORT }, 3000, false)).toBeNull();
   });
 });
@@ -116,6 +117,17 @@ describe("the chat as it grows", () => {
     chat.layout.tops.c = 3000;
     await chat.show(["a", "b", "c"]);
     expect(chat.scroller.scrollTop).toBe(2984);
+    await chat.unmount();
+  });
+
+  test("after the reader went down to an approval at the end of a long reply, the receipt and the answer that follow it come into view", async () => {
+    const chat = await mount({ height: 3000, tops: { a: 64, b: 800 } });
+    await chat.show(["a", "b"]);
+    expect(chat.scroller.scrollTop).toBe(784);
+    await chat.scrollTo(2200);
+    await chat.grow(2600);
+    await chat.grow(3200);
+    expect(chat.scroller.scrollTop).toBe(2400);
     await chat.unmount();
   });
 
