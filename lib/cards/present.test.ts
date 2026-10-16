@@ -655,6 +655,17 @@ describe("a total asked beside its own breakdown", () => {
   });
 });
 
+describe("a breakdown with changes", () => {
+  test("names what its changes are against on the overall row, so a reply cannot swap last period for last year unseen (AI-104)", () => {
+    for (const compare of ["prev_period", "prev_year"] as const) {
+      const { query, result } = answer({ metric: "ar_overdue", dims: ["region"], range: MONTH_TO_DATE, compare });
+      if (!result.ok) throw new Error(result.error);
+      const strip = stripOf(presentCard({ title: "t", query, result }).body);
+      expect(strip.overall?.sub ?? "").toContain(String(result.headline.compareLabel));
+    }
+  });
+});
+
 describe("one scope against a comparison", () => {
   test("labels the tile of the value compared with by its window: ปีก่อน against last year, never งวดก่อน (AI-114)", () => {
     const tiles = (compare: MetricQuery["compare"]) => cardOf({ metric: "net_sales_value", dims: ["region"], range: MONTH_TO_DATE, compare }, { filters: { region: ["northeast"] } }).tiles.map((tile) => tile.label);

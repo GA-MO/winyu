@@ -291,7 +291,7 @@ function changeReading(input: BreakdownInput): Breakdown {
   return {
     form: "line",
     baseline: 0,
-    overall: { label: input.scope, sub: input.baseTotal, measure: overallMeasure, fill: 0, text: overall.delta ?? "—", change: null, tone: overall.tone, exception: true, valued: true },
+    overall: { label: input.scope, sub: input.baseTotal ?? result.headline.compareLabel, measure: overallMeasure, fill: 0, text: overall.delta ?? "—", change: null, tone: overall.tone, exception: true, valued: true },
     rows,
     verdict: changeVerdict({
       unit: input.unit,
@@ -335,7 +335,7 @@ function boardReading(input: BreakdownInput): Breakdown {
   return {
     form: "board",
     baseline: 0,
-    overall: { label: input.scope, sub: null, measure: null, fill: 0, text: result.headline.value, change: overall.delta, tone: overall.tone, exception: true, valued: true },
+    overall: { label: input.scope, sub: overall.delta ? result.headline.compareLabel : null, measure: null, fill: 0, text: result.headline.value, change: overall.delta, tone: overall.tone, exception: true, valued: true },
     rows,
     verdict: boardVerdict({ unit: input.unit, labels: rows.map((row) => row.label), changes, notable, format, slice: input.capped ? TH.read.shown(rows.length, input.unit) : null }),
     hero: { label: input.scope, value: result.headline.value, unit: null, ...overall, detail: result.headline.compareLabel },
@@ -380,7 +380,7 @@ function referenceReading(input: BreakdownInput): Breakdown {
   return {
     form: "line",
     baseline,
-    overall: { label: input.scope, sub: null, measure: null, fill: 0, text: result.headline.value, change: overall.delta, tone: overall.tone, exception: true, valued: true },
+    overall: { label: input.scope, sub: overall.delta ? result.headline.compareLabel : null, measure: null, fill: 0, text: result.headline.value, change: overall.delta, tone: overall.tone, exception: true, valued: true },
     rows,
     verdict: referenceVerdict({ unit: input.unit, labels: rows.map((row) => row.label), values, texts: rows.map((row) => row.text), outliers }),
     hero: { label: input.scope, value: result.headline.value, unit: null, ...overall, detail: result.headline.compareLabel },
