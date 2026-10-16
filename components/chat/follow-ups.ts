@@ -41,9 +41,22 @@ export function answeredMetrics(exchanges: readonly Exchange[]): Set<string> {
   );
 }
 
-/** What the chip row shows: questions that follow from the latest card first, then the user's learned chips that do not repeat the question just answered. */
+/** What the chip row shows: questions that follow from the latest card first, then the user's learned chips that do not repeat the question just answered; no two chips ask or read the same. */
 export function chipRow(followUps: readonly QuickAction[], learned: readonly QuickAction[], limit = ANSWER_CHIPS, answered: ReadonlySet<string> = new Set()): QuickAction[] {
-  const prompts = new Set(followUps.map((action) => action.prompt));
-  const fresh = learned.filter((action) => !prompts.has(action.prompt) && !answered.has(action.intentKey.split(INTENT_SEPARATOR)[0]));
-  return [...followUps, ...fresh].slice(0, limit);
+  const fresh = learned.filter((action) => !answered.has(action.intentKey.split(INTENT_SEPARATOR)[0]));
+  const seen = new Set<string>();
+  return [...followUps, ...fresh]
+    .filter((action) => {
+      const repeats = seen.has(action.prompt) || seen.has(action.label);
+      seen.add(action.prompt).add(action.label);
+      return !repeats;
+    })
+    .slice(0, limit);
+}
+
+/** The chips under the latest answer: its card's follow-ups, then learned chips; an answer that read no metric (a memory change, a refusal, a lookup) gets none, since nothing there leads on to them. */
+export function answerChips(exchanges: readonly Exchange[], learned: readonly QuickAction[], limit = ANSWER_CHIPS): QuickAction[] {
+  const answered = answeredMetrics(exchanges);
+  if (answered.size === 0) return [];
+  return chipRow(latestFollowUps(exchanges), learned, limit, answered);
 }

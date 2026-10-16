@@ -111,12 +111,17 @@ function seesOneRegion(access: AccessContext): boolean {
   return access.regions !== "all" && access.regions.length === 1;
 }
 
+function pinnedToOne(query: MetricQuery, dim: Dim): boolean {
+  return query.filters[dim]?.length === 1;
+}
+
 function splitDraft(facts: Facts, access: AccessContext): Draft | null {
   if (facts.rankDim) return null;
   const dim = SPLIT_ORDER.find(
     (entry) =>
       supports(facts.query.metric, entry) &&
       !(entry === "region" && seesOneRegion(access)) &&
+      !pinnedToOne(facts.query, entry) &&
       !facts.taken.has(spaceLatinTh(TH.next.splitPrompt(facts.metric, TH.dash.dimUnit[entry]))),
   );
   if (!dim) return null;

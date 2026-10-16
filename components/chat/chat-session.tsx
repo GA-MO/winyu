@@ -12,7 +12,7 @@ import { GlowBackdrop } from "@/components/ui/glow-backdrop";
 import { screenCardsEach } from "./card-to-share";
 import { ExchangeView, type ExchangeLive } from "./exchange-view";
 import { useFollowLatest } from "./follow-latest";
-import { answeredMetrics, chipRow, latestFollowUps } from "./follow-ups";
+import { answerChips } from "./follow-ups";
 import { requestedCoursesOf } from "./requested-courses";
 import { useChatSession, type AgentMessage, type PendingApproval } from "./use-chat-session";
 
@@ -104,7 +104,7 @@ export function ChatSession({ threadId, initialPrompt, initialMessages, initialA
   const chips = useMemo(() => {
     if (!ready || running || session.waiting.size > 0) return [];
     if (exchanges.length === 0) return suggestions.slice(0, EMPTY_CHIPS);
-    return chipRow(latestFollowUps(exchanges), suggestions, ANSWER_CHIPS, answeredMetrics(exchanges));
+    return answerChips(exchanges, suggestions, ANSWER_CHIPS);
   }, [exchanges, ready, running, session.waiting.size, suggestions]);
 
   const submit = (value: string) => {
