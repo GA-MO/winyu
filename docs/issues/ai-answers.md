@@ -732,10 +732,10 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 | ข้อ | ระดับ | สถานะ | ปัญหา |
 |---|---|---|---|
-| AI-52 | สูง | เปิด (ใหม่) | share_card ran without an approval card: the RSM's false-premise turn emailed two reps |
+| AI-52 | สูง | แก้แล้ว `9eb39c6` | share_card ran without an approval card: the RSM's false-premise turn emailed two reps |
 | AI-53 (เดิม AI-25) | สูง | ยังเสีย | Month-to-date attainment uses two bases: '% of full-month target' and 'litres left' come from the pro-rated target, and text and card disagree |
-| AI-54 | กลาง | เปิด (ใหม่) | A run resumed after a restart reached set_permission, never raised its approval, and left the thread dead |
-| AI-55 | กลาง | เปิด (ใหม่) | Sending a message while an approval is pending fails with a generic retry error |
+| AI-54 | กลาง | แก้แล้ว `12de43e` | A run resumed after a restart reached set_permission, never raised its approval, and left the thread dead |
+| AI-55 | กลาง | แก้แล้ว `37b6cb0` | Sending a message while an approval is pending fails with a generic retry error |
 | AI-56 | กลาง | เปิด (ใหม่) | share_card sends the previous turn's card, not the one this turn answered with |
 | AI-57 | กลาง | เปิด (ใหม่) | share_card cannot resolve 'พี่อนุชา', and a model-facing instruction appears in a user card |
 | AI-58 (เดิม AI-16) | กลาง | ยังเสีย | An overclaim to the CEO is copied into the share approval with no warning |
@@ -759,7 +759,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 | AI-76 (เดิม AI-30) | ต่ำ | ยังเสีย | The AR-by-region card in the multi-question risk turn drops ภาคเหนือ |
 | AI-77 (เดิม AI-30) | ต่ำ | ยังเสีย | Card actions and chips follow an open alert's region, not the answer |
 | AI-78 (เดิม AI-38) | ต่ำ | ยังเสีย | Internal ids and English enums reach the user |
-| AI-79 (เดิม AI-2) | ต่ำ | ยังเสีย | The text after approval still tells the user to confirm, and the turn time jumps |
+| AI-79 (เดิม AI-2) | ต่ำ | แก้แล้ว `6e46af4` | The text after approval still tells the user to confirm, and the turn time jumps |
 | AI-80 | ต่ำ | แก้แล้ว `bdd0962` | The injection guardrail missed the CEO's '--- [SYSTEM] … ---' form |
 | AI-81 | ต่ำ | แก้แล้ว `bdd0962` `8677d11` · รอยืนยันกับโมเดลรอบถัดไป | An injection is blocked but not acknowledged |
 | AI-82 | ต่ำ | แก้แล้ว `8677d11` · รอยืนยันกับโมเดลรอบถัดไป | After forgetting ยอดดัน, the agent still reads it as sell-in without asking |
@@ -798,7 +798,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-52. share_card ran without an approval card: the RSM's false-premise turn emailed two reps
 
-- **สถานะ:** เปิด (ใหม่)
+- **สถานะ:** แก้แล้ว `9eb39c6`: Gemini sent `channel: null`; `asksApproval` judged readiness on those raw arguments, the share schema refused the null, so no card was raised, and Mastra then ran execute on the normalised input, which passed. The Mastra adapter now judges approval on the input Mastra hands to execute. `gated()` fails closed: a `require_approval` call runs only when it is ready and a recorded yes for that exact tool call id is there to spend (once). Anything else is refused as `NOT_APPROVED` and audited as a denial. A call that is not ready returns its fix and never runs its tool (`lib/harness/gateway.test.ts`, `lib/harness/adapters/mastra/approval-gate.test.ts`)
 - **ระดับ:** สูง · **หมวด:** `write-flow` · **บทบาท:** RSM u_anucha
 - **อาการ:** s3t6: the model refuted the '6 ล้านลิตร +20%' premise, then called share_card in the same run. The gateway logged approval:required, but the tool started in the same millisecond. No approval.requested event was emitted and approvals.json has no entry. Share Hl9n3sENBwoK was emailed to u_krit and u_nok with the note 'ทีมทำได้ดี', and its links point at localhost:3110. This is a regression: in round 1 every write asked first, and the same intent in RSM p3 and CEO s3t4 did ask.
 - **ที่ควรเป็น:** Every write-tier call either raises an approval card or is refused. It never runs because the approval predicate returned false.
@@ -822,7 +822,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-54. A run resumed after a restart reached set_permission, never raised its approval, and left the thread dead
 
-- **สถานะ:** เปิด (ใหม่)
+- **สถานะ:** แก้แล้ว `12de43e`: Mastra's `recover` keeps its stream open across a pause, so the bridge never emitted the interrupt and the harness never raised the approval. The recovered stream now ends at the approval, like a live run. CopilotKit's runner refused later messages with "Thread already running"; a new message now supersedes a run that is still going. Tested by killing a real server process and recovering in a second one (`lib/harness/adapters/mastra/restart.test.ts`)
 - **ระดับ:** กลาง · **หมวด:** `write-flow` · **บทบาท:** ผู้ดูแลระบบไอที u_ton
 - **อาการ:** After the restart, the resumed self-escalation run called set_permission. No approval was raised and the run stayed in runs-inflight with no end. The next message in that thread finished in 0.3 s with 0 steps ('รอบนี้ตอบไม่สำเร็จ'), and the tester had to open a new chat. No permission changed.
 - **ที่ควรเป็น:** A resumed run that reaches an approval tool raises the approval card. An orphaned run never blocks a thread.
@@ -834,7 +834,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-55. Sending a message while an approval is pending fails with a generic retry error
 
-- **สถานะ:** เปิด (ใหม่)
+- **สถานะ:** แก้แล้ว `37b6cb0`: the AG-UI client refused the run before sending it. A new message now declines every approval still waiting, and the card shows it as not done. The server records the no. The bridge's resume path drops new messages, so the server then runs the request as a fresh question (`components/chat/use-chat-session.ts`, `lib/harness/adapters/mastra/serve.ts`, `approval-gate.test.ts`)
 - **ระดับ:** กลาง · **หมวด:** `ui` · **บทบาท:** ผู้ดูแลระบบไอที u_ton
 - **อาการ:** With the set_permission approval pending, the admin typed a correction and got 'รอบนี้ตอบไม่สำเร็จ ลองถามใหม่อีกครั้ง'. The console showed AGUIError 'Thread has 1 pending interrupt(s) not addressed by resume'. Retrying cannot succeed.
 - **ที่ควรเป็น:** Disable the composer, or say 'ตอบการ์ดที่รออยู่ก่อน', or treat a new message as declining the pending approval.
@@ -1095,7 +1095,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-79. The text after approval still tells the user to confirm, and the turn time jumps
 
-- **สถานะ:** ยังเสีย · เดิม AI-2
+- **สถานะ:** แก้แล้ว `6e46af4` · เดิม AI-2: before each model call, a run that answers an approval now gets a system line saying the yes was carried out (or the no left it undone). A run that only carries out an answer no longer adds time to the turn. The wording itself is not re-measured against Gemini (no paid calls in this pass)
 - **ระดับ:** ต่ำ · **หมวด:** `write-flow` · **บทบาท:** RSM u_anucha, CEO u_thana, พนักงานขาย u_krit
 - **อาการ:** After approval, the reply says 'กดยืนยันส่งงานได้ทันที' (the rep's leave flow does the same). The timing label sums the asking run and the resume run.
 - **ที่ควรเป็น:** The reply reports the done state, and the label keeps the asking turn's time.
