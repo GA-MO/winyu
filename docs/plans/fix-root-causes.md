@@ -29,12 +29,13 @@ Each wave runs its work packages in parallel, one agent per package in its own w
 - [x] **RC3 + RC5 resolved query and focus.** The engine returns the resolved query (ids, full scope including `scopeApplied`, labels). Next actions, alert matching, RACI, the scope line and `get_alerts` slices use it. One focus function feeds card titles, handoff asks and follow-up chips.
 - [x] **RC8 approval.** The resumed run after an approval carries the asking run's tool results and queries. `request_leave` validates before the approval card. A sender is told when a recipient would see the card masked. Urgency comes from the user's words.
 - [x] **UI.** Persona switcher out; home input at the bottom; mini dashboard above it; **ดู Dashboard** button gone.
-- [ ] **Memory test.** Simulated users test memory for real: learning a fact, confirming it, using it in a later session, forgetting it, and isolation between users.
+- [x] **Memory test.** Simulated users test memory for real: learning a fact, confirming it, using it in a later session, forgetting it, and isolation between users.
 
 ### Wave 2
 
 - [ ] **RC1 + RC4 tools and prompt.** Read tools `inbox`, `visit_plan`, `admin_audit`. Invitations (prompt lines, quick actions, admin chips, verify steps) derived from the role's tools and metric access. Rewrite rule 99, add the literal-answer and unverified-claims rules, reword the lesson line.
 - [ ] **RC6 + RC7 cards and tool shapes.** Share pill matches the server rule, masked cards keep their request action, empty and failed results are not drawn as cards, points for percent metrics, remaining-to-target, readable gap shares, no masking of the user's own words, Thai labels instead of ids.
+- [ ] **RC11 memory.** `remember` and `forget` tools through the gateway with a tombstone for rejected facts; answer-format preferences become confirmed answer guidance, not fenced data; a prompt rule that memory holds no figures; `recall_memory` returns trusted facts only; meaning-based fact matching; repeats count only across conversations; dated responsibilities keep their date; no masked numbers in the person's own recalled words; one memory card per reply.
 - [ ] **RC10 data facts.** Agent-to-rep assignment, suppression for people only, metric list narrowed per role, investigation prompt without the campaign nudge.
 
 ### Wave 3
