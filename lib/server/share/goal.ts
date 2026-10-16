@@ -35,6 +35,13 @@ async function answerOf(input: MetricQueryInput, viewer: User): Promise<MetricRe
   return resolved.ok ? runMetric(resolved.query, liveAccessFor(viewer)) : null;
 }
 
+/** Every metric read of the card (a paired card draws several) run again under this person's access, in the card's order; reads that no longer resolve are left out. No model call, no audit row. */
+export async function cardAnswers(card: SharedCard, viewer: User): Promise<MetricResult[]> {
+  const inputs = card.reads.map(metricInputOf).filter((input): input is MetricQueryInput => input !== null);
+  const answers = await Promise.all(inputs.map((input) => answerOf(input, viewer)));
+  return answers.filter((answer): answer is MetricResult => answer !== null);
+}
+
 /** The card's first metric read run again under this person's access; null when the card has none or it no longer resolves. No model call, no audit row. */
 export async function cardAnswer(card: SharedCard, viewer: User): Promise<MetricResult | null> {
   const input = firstMetricInput(card);

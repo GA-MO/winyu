@@ -4,7 +4,7 @@ import { presentCard } from "@/lib/cards/present";
 import { groupDimsOf, labelAlong } from "@/lib/cards/rows";
 import type { CardFocus, SharedCard } from "@/lib/share/card";
 import { rowContradictionOf } from "@/lib/share/figures";
-import { cardAnswer } from "./goal";
+import { cardAnswers } from "./goal";
 
 type MetricAnswer = Extract<MetricResult, { ok: true }>;
 
@@ -28,11 +28,14 @@ function claimAbout(texts: readonly string[], answer: MetricAnswer, labels: read
   return naming.map((text) => claimOf(text, answer, labels[0])).find((claim) => claim !== null) ?? null;
 }
 
-/** What a send is about beyond the card's own filters: the rows of the card the first of `words` that names any (the ask, then what the person typed, newest first) singles out, read again under the sender's access, with what any of those words claim about the one row; null when none names a row. No model call. */
-export async function cardFocus(card: SharedCard, viewer: User, words: readonly (string | null | undefined)[]): Promise<CardFocus | null> {
-  const answer = await cardAnswer(card, viewer);
-  if (!answer?.ok) return null;
-  const texts = words.filter((text): text is string => Boolean(text?.trim()));
+function focusIn(answer: MetricAnswer, texts: readonly string[]): CardFocus | null {
   const labels = texts.map((text) => rowsNamedIn(text, answer.query, answer.rows)).find((named) => named.length > 0);
   return labels ? { labels, hero: heroOf(answer, labels), claim: claimAbout(texts, answer, labels) } : null;
+}
+
+/** What a send is about beyond the card's own filters: the rows the first of `words` that names any (the ask, then what the person typed, newest first) singles out, in the first of the card's metric reads that shows them (a paired card draws the region total and its agents), read again under the sender's access, with what any of those words claim about the one row; null when none names a row. No model call. */
+export async function cardFocus(card: SharedCard, viewer: User, words: readonly (string | null | undefined)[]): Promise<CardFocus | null> {
+  const texts = words.filter((text): text is string => Boolean(text?.trim()));
+  const answers = (await cardAnswers(card, viewer)).filter((answer): answer is MetricAnswer => answer.ok);
+  return answers.map((answer) => focusIn(answer, texts)).find((focus) => focus !== null) ?? null;
 }
