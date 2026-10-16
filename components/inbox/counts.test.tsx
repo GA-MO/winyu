@@ -30,7 +30,7 @@ function mountBadge(): HTMLElement {
 }
 
 function serveDecisions(read: () => number) {
-  const served = mock(async () => Response.json({ decisions: read(), sharedUnread: 0 }));
+  const served = mock(async () => Response.json({ decisions: read(), sharedUnread: 0, unreadUpdates: 0 }));
   globalThis.fetch = served as unknown as typeof fetch;
   return served;
 }

@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import type { InboxCounts } from "./types";
 
 const COUNTS_ENDPOINT = "/api/notifications";
-const NONE: InboxCounts = { decisions: 0, sharedUnread: 0 };
+const NONE: InboxCounts = { decisions: 0, sharedUnread: 0, unreadUpdates: 0 };
 const POLL_INTERVAL_MS = 10_000;
 
 /** The bell's and the rail's counts, fetched again on every page, whenever the window regains focus, every 10 seconds while the page is visible, and whenever `key` changes. */

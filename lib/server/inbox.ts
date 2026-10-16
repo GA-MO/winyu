@@ -1,5 +1,6 @@
 import type { AccessContext, Alert, Dim, FeedItem, GrantRequest } from "@/lib/contracts";
 import type { AlertItem, GrantRequestItem, InboxCounts, InboxPayload, Movement, StaffRequestItem, TodoItem } from "@/components/inbox/types";
+import { bucketOf } from "@/components/notifications/items";
 import { alertsInboxEnabled, handoffEnabled, isToolAllowed } from "@/lib/access/enforce";
 import { verifyStepsFor } from "@/lib/access/verify-steps";
 import { findUser } from "@/lib/data/entities/users";
@@ -12,7 +13,7 @@ import { canJudge, openAlertsFor, visibleAlert } from "@/lib/server/alerts";
 import { goodNewsFor, storyOf, todoFor } from "@/lib/server/feed";
 import { grantRequests } from "@/lib/server/grants";
 import { loadDictionary } from "@/lib/server/master-data";
-import { notificationsIn } from "@/lib/server/notify";
+import { notificationsIn, notificationsOf } from "@/lib/server/notify";
 import { lessonFor } from "@/lib/server/outcomes";
 import { mattersWaitingOn, shares } from "@/lib/server/share/shares";
 import { briefOf } from "@/lib/server/share/act";
@@ -107,8 +108,13 @@ export function sharedUnreadCount(userId: string): number {
   return notificationsIn(userId, "shared").filter((item) => !item.read).length;
 }
 
+/** Unread notifications that wait on nothing (a matter passed on or taken up, a share, an answer): the bell shows a dot for them. */
+export function unreadUpdateCount(userId: string): number {
+  return notificationsOf(userId).filter((item) => !item.read && bucketOf(item.kind) === "update").length;
+}
+
 export function inboxCountsFor(userId: string): InboxCounts {
-  return { decisions: decisionCount(userId), sharedUnread: sharedUnreadCount(userId) };
+  return { decisions: decisionCount(userId), sharedUnread: sharedUnreadCount(userId), unreadUpdates: unreadUpdateCount(userId) };
 }
 
 function actionAlertIds(item: FeedItem): string[] {

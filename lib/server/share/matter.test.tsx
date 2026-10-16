@@ -107,7 +107,7 @@ describe("a matter that asks for an answer waits on its recipient", () => {
     const outcome = await createShare(user("u_thana"), { card: NORTHEAST_CARD, question: null, ask: "", intent: "fyi", recipients: [{ userId: "u_krit", channel: "winyu" }] });
     if (!outcome.ok) throw new Error(outcome.error);
 
-    expect(inboxCountsFor("u_krit")).toEqual({ decisions: before.decisions, sharedUnread: before.sharedUnread + 1 });
+    expect(inboxCountsFor("u_krit")).toEqual({ decisions: before.decisions, sharedUnread: before.sharedUnread + 1, unreadUpdates: before.unreadUpdates + 1 });
   });
 
   test("sending from the sheet's route makes no model call", async () => {

@@ -7,7 +7,7 @@ import { formatThaiDate } from "@/lib/data/dates";
 import { TH } from "@/lib/i18n/th";
 import { SteadyList, StoryItem, countsLine, orderCards, storyCounts } from "@/components/stories/story-list";
 
-const PANEL = "fixed right-0 top-0 z-50 flex h-dvh w-full max-w-xl flex-col border-l border-border bg-background shadow-panel animate-panel-in";
+const PANEL = "fixed right-0 top-(--winyu-header-inset) z-50 flex h-page w-full max-w-xl flex-col border-l border-border bg-background shadow-panel animate-panel-in";
 const BANGKOK_TIME = new Intl.DateTimeFormat("th-TH", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Bangkok" });
 
 export function StoriesDrawer({ brief, asOf, open, onClose }: { brief: MorningBrief | null; asOf: string; open: boolean; onClose: () => void }) {
@@ -26,7 +26,7 @@ export function StoriesDrawer({ brief, asOf, open, onClose }: { brief: MorningBr
 
   return (
     <>
-      <button type="button" aria-label={TH.common.close} onClick={onClose} className="fixed inset-0 z-40 bg-foreground/10 backdrop-blur-sm" />
+      <button type="button" aria-label={TH.common.close} onClick={onClose} className="fixed inset-x-0 bottom-0 top-(--winyu-header-inset) z-40 bg-foreground/10 backdrop-blur-sm" />
       <aside className={PANEL} aria-label={TH.stories.landingLead(counts)}>
         <header className="flex items-start justify-between gap-3 border-b border-border px-5 py-4">
           <div className="flex min-w-0 flex-col gap-1">

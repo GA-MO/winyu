@@ -406,6 +406,7 @@ export const TH = {
   notifications: {
     bell: "แจ้งเตือน",
     bellWaiting: (count: number) => `แจ้งเตือน · ${count} เรื่องรอคุณตัดสินใจ`,
+    bellUnread: "แจ้งเตือน · มีความเคลื่อนไหวใหม่",
     decide: "ต้องตัดสินใจ",
     updates: "อัปเดต",
     markAllRead: "อ่านทั้งหมดแล้ว",

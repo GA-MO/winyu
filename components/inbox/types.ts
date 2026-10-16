@@ -46,4 +46,4 @@ export type InboxPayload = {
 };
 
 /** What the bell and the rail show without loading the Inbox: decisions waiting, and unread shares. */
-export type InboxCounts = { decisions: number; sharedUnread: number };
+export type InboxCounts = { decisions: number; sharedUnread: number; unreadUpdates: number };
