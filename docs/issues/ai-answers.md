@@ -1749,7 +1749,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 | AI-132 (เดิม AI-96) | สูง | แก้แล้ว `bacdb0f` · รอยืนยันกับโมเดล | An approved chat send fails when the model read the card in the same step as send_card: the approval shows one card, but the resumed run resolves against the older screen and refuses with raw cardRef ids |
 | AI-133 (เดิม AI-112) | กลาง | ยังเสีย | Turns over 40 s on the demo path, almost all of it in unbounded final-step reasoning |
 | AI-134 (เดิม AI-90) | กลาง | แก้แล้ว `85151f5` · รอยืนยันกับโมเดล | 'ผม/ของผม' for the rep resolves to Khon Kaen province (2 of his 4 agents), so chat and the home pin give different attainment |
-| AI-135 (เดิม AI-131) | กลาง | ยังเสีย | The run sheet describes buttons and texts the product does not show |
+| AI-135 (เดิม AI-131) | กลาง | แก้แล้ว (เอกสาร) · รอเดินยืนยันรอบ 5 | The run sheet describes buttons and texts the product does not show |
 | AI-136 | กลาง | แก้แล้ว `9209e23` · รอยืนยันกับโมเดล | The run-sheet story card is in litres while every chat answer about the same Isan month is in baht (79.7% vs 77.3%, both 'ของเป้าทั้งเดือน') |
 | AI-137 | กลาง | แก้แล้ว `5c0e4a4` · รอยืนยันกับโมเดล | Matters sent from chat lose their subject: titles carry no agent or brand, asks can be urgency words only, and the receiver's inbox cannot name what was sent |
 | AI-138 | กลาง | แก้แล้ว `46cbcf2` | The send approval previews the raw row sum (5.1 ล้านลิตร, 97.8 ล้านบาท), not the hero the card shows (79.7%, 72.4%) |
@@ -1825,7 +1825,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-135. The run sheet describes buttons and texts the product does not show
 
-- **สถานะ:** ยังเสีย · เดิม AI-131
+- **สถานะ:** แก้แล้ว (เอกสาร) · รอเดินยืนยันรอบ 5: เขียน run sheet ใหม่จากจอที่เดินครบ 5 ขั้นหลังรวม H1 ถึง H5 (ไม่มีปุ่มเปิดดู ปุ่มอยู่ในแผงกระดิ่ง เรื่องอีสานกางอยู่แล้ว กลุ่มผู้รับผิดชอบมีแค่เจ้าของ ถามต่อตอบเองก่อน ข้อความยกเลิกใหม่ สำรอง connector ก่อน seed) · เดิม AI-131 · เดิม AI-131
 - **ระดับ:** กลาง · **หมวด:** `run-sheet` · **บทบาท:** presenter (chain)
 - **อาการ:** Steps 2 and 3 say tap เปิดดู in the bell; there is no such button (card-title link plus รับ / ขอข้อมูลเพิ่ม / ส่งต่อ / ⋯). The bell item wording and missing ด่วน tag differ from the sheet. In the chat alternative ถามต่อ auto-sends a 25 s model run before the presenter can type, and the send took 37 s more; the sheet has no timing. Troubleshooting expects 'ไม่ได้ส่งการ์ด' but the screen shows 'รายการนี้ไม่ได้ทำ'. The share sheet's ticked close-goal switch is not mentioned.
 - **ที่ควรเป็น:** The sheet names what is on screen, says ถามต่อ auto-asks, and gives measured chat-path timings (about 70 s from ถามต่อ to sent).
