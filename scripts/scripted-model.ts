@@ -5,22 +5,27 @@ import * as models from "@/lib/server/models";
 type StreamResult = Awaited<ReturnType<MockLanguageModelV3["doStream"]>>;
 type StreamPart = StreamResult["stream"] extends ReadableStream<infer Part> ? Part : never;
 
-/** One model reply in a script: a call to one tool with its arguments, the closing words, or a model that never answers (a process killed mid-call). */
-export type ScriptedStep = { call: string; args: Record<string, unknown> } | { text: string } | { hang: true };
+type ScriptedCall = { call: string; args: Record<string, unknown> };
+
+/** One model reply in a script: a call to one tool with its arguments, several calls in one step, the closing words, or a model that never answers (a process killed mid-call). */
+export type ScriptedStep = ScriptedCall | { calls: ScriptedCall[] } | { text: string } | { hang: true };
 
 type SpokenStep = Exclude<ScriptedStep, { hang: true }>;
 
 const USAGE = { inputTokens: { total: 10, noCache: 10, cacheRead: 0, cacheWrite: 0 }, outputTokens: { total: 5, text: 5, reasoning: 0 } };
 const FALLBACK_TEXT = "ไม่มีขั้นต่อไปในสคริปต์";
 
+function toolCallsOf(calls: readonly ScriptedCall[], index: number): StreamPart[] {
+  return [
+    { type: "stream-start", warnings: [] },
+    ...calls.map((step, position): StreamPart => ({ type: "tool-call", toolCallId: position === 0 ? `scripted-${index}` : `scripted-${index}-${position}`, toolName: step.call, input: JSON.stringify(step.args) })),
+    { type: "finish", finishReason: { unified: "tool-calls", raw: "tool_calls" }, usage: USAGE },
+  ];
+}
+
 function partsOf(step: SpokenStep, index: number): StreamPart[] {
-  if ("call" in step) {
-    return [
-      { type: "stream-start", warnings: [] },
-      { type: "tool-call", toolCallId: `scripted-${index}`, toolName: step.call, input: JSON.stringify(step.args) },
-      { type: "finish", finishReason: { unified: "tool-calls", raw: "tool_calls" }, usage: USAGE },
-    ];
-  }
+  if ("call" in step) return toolCallsOf([step], index);
+  if ("calls" in step) return toolCallsOf(step.calls, index);
   return [
     { type: "stream-start", warnings: [] },
     { type: "text-start", id: `text-${index}` },
