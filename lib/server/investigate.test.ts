@@ -2,9 +2,9 @@ import { describe, expect, setDefaultTimeout, test } from "bun:test";
 import { ScriptedModel } from "@/scripts/scripted-model";
 import { accessFor } from "@/lib/access/policies";
 import { findUser } from "@/lib/data/entities/users";
-import type { DraftStory, MetricQuery } from "@/lib/contracts";
+import type { AlertRow, DraftStory, MetricQuery } from "@/lib/contracts";
 import { runMetric } from "./metrics";
-import { callsWithAnomalies, cardNumbersOf, evidenceIndexOf, gapQueryOf, investigate, investigateSystemFor, openAnomalies, repeatedIn, reviewDrafts, roleHoldersNamedIn, storiesFrom, evidenceQueryOf, whoOf, withoutPinnedDims, type ToolCall } from "./investigate";
+import { callsWithAnomalies, cardNumbersOf, evidenceIndexOf, gapQueryOf, investigate, investigateSystemFor, openAnomalies, repeatedIn, reviewDrafts, roleHoldersNamedIn, storiesFrom, evidenceQueryOf, uncoveredFor, whoOf, withoutPinnedDims, type ToolCall } from "./investigate";
 import { agentsOwnedBy } from "@/lib/data/entities/agents";
 import { DATA_AS_OF, dataDay, monthStart } from "@/lib/data/dates";
 
@@ -79,7 +79,7 @@ describe("a story is checked before it is kept", () => {
     const evidence = await evidenceIndexOf(calls, DIRECTOR);
     const [reviewed] = reviewDrafts([draftOf({})], calls, evidence);
     expect(reviewed).toMatchObject({ ungrounded: [], names: [], problems: [] });
-    expect(storiesFrom("u_prasit", [reviewed], calls, evidence).stories[0].evidence).toEqual({ title: "ยอดขายเข้าอีสานเทียบเป้า แยกตามเอเย่นต์", query: { ...QUERY, metric: "net_sales_value", sort: "delta_asc" } });
+    expect(storiesFrom("u_prasit", [reviewed], calls, evidence, []).stories[0].evidence).toEqual({ title: "ยอดขายเข้าอีสานเทียบเป้า แยกตามเอเย่นต์", query: { ...QUERY, metric: "net_sales_value", sort: "delta_asc" } });
   });
 
   test("a sell-in card is drawn in baht, the measure chat answers in, for whoever sees baht; a planner who sees only litres keeps litres (AI-136)", async () => {
@@ -117,7 +117,7 @@ describe("a story is checked before it is kept", () => {
     const draft = draftOf({ evidence: { call: 0, title: "ความผิดปกติ" } });
     const [reviewed] = reviewDrafts([draft], calls, evidence);
     expect(reviewed.problems).toContain("evidence.call 0 is not a successful query_metric or explain_gap call");
-    expect(storiesFrom("u_prasit", [reviewed], calls, evidence).stories[0].evidence).toBeNull();
+    expect(storiesFrom("u_prasit", [reviewed], calls, evidence, []).stories[0].evidence).toBeNull();
   });
 
   test("an explain_gap call is drawn as the same split against the same comparison, biggest shortfall first", async () => {
@@ -171,7 +171,7 @@ describe("a story is checked before it is kept", () => {
     ];
     const evidence = await evidenceIndexOf(calls, DIRECTOR);
     const reviewed = reviewDrafts([draftOf({ ruledOut }), draftOf({ action: "ถามคุณอนุชา" }), draftOf({ finding: "ขาดเป้า 123,456,789 ลิตร" })], calls, evidence);
-    const { stories, dropped } = storiesFrom("u_prasit", reviewed, calls, evidence);
+    const { stories, dropped } = storiesFrom("u_prasit", reviewed, calls, evidence, []);
     expect(stories).toHaveLength(1);
     expect(stories[0].ruledOut).toEqual([{ text: "สต๊อก DC พอ", source: "query_metric" }]);
     expect(dropped.map((entry) => [...entry.names, ...entry.ungrounded])).toEqual([["คุณอนุชา พรหมศรี"], ["123,456,789"]]);
@@ -192,8 +192,8 @@ describe("every P1 matter of the person gets a story (AI-166)", () => {
     return scripted;
   }
 
-  function promptOf(scripted: ScriptedModel, call: number): string {
-    return JSON.stringify(scripted.model.doGenerateCalls[call]?.prompt ?? null);
+  function mentions(scripted: ScriptedModel, call: number, id: string): number {
+    return JSON.stringify(scripted.model.doGenerateCalls[call]?.prompt ?? null).split(id).length - 1;
   }
 
   test("a writer that leaves out the Isan sell-in story is asked once to write it, naming only the uncovered anomalies, and the story leads the drawer", async () => {
@@ -201,10 +201,8 @@ describe("every P1 matter of the person gets a story (AI-166)", () => {
     const run = await investigate(CEO, scripted.model, "scripted");
     expect(run.investigation.stories.map((story) => story.scope)).toEqual(["ภาคอีสาน", LAMPHUN.scope, SOUTH_AR.scope, KORAT_SHARE.scope]);
     expect(scripted.calls).toBe(3);
-    const rewrite = promptOf(scripted, 2);
-    expect(rewrite).toContain("ag_nea_02");
-    expect(rewrite).toContain("ag_nea_05");
-    expect(rewrite).not.toContain("pv_nakhonratchasima");
+    for (const uncovered of ["ag_nea_02", "ag_nea_05"]) expect(mentions(scripted, 2, uncovered)).toBe(mentions(scripted, 1, uncovered) + 1);
+    for (const covered of ["dc_lamphun", "pv_nakhonratchasima"]) expect(mentions(scripted, 2, covered)).toBe(mentions(scripted, 1, covered));
   });
 
   test("a writer that still leaves it out keeps what it wrote, invents nothing and records the gap", async () => {
@@ -213,6 +211,28 @@ describe("every P1 matter of the person gets a story (AI-166)", () => {
     expect(run.investigation.stories.map((story) => story.scope)).toEqual([LAMPHUN.scope, SOUTH_AR.scope, KORAT_SHARE.scope]);
     expect(scripted.calls).toBe(3);
     expect(run.uncovered.map((anomaly) => anomaly.scope.agent)).toEqual(["ag_nea_02", "ag_nea_05"]);
+  });
+
+  function anomaly(severity: AlertRow["severity"], metric: AlertRow["metric"], scope: AlertRow["scope"]): AlertRow {
+    return { id: `${metric}-${JSON.stringify(scope)}`, severity, severityLabel: severity, metric, metricLabel: metric, scope, scopeLabel: "", window: "", observedLabel: "", expectedLabel: "", gapLabel: null, yearOverYear: false, direction: "down", hypothesis: "", ownerUserId: "u_anucha" };
+  }
+
+  test("a sell-in story told in baht or against target explains the litres alerts of its region; another region or another measure does not", () => {
+    const isan = [anomaly("P1", "net_sales_volume", { agent: "ag_nea_02", region: "northeast" }), anomaly("P1", "net_sales_volume", { agent: "ag_nea_05", region: "northeast" })];
+    expect(uncoveredFor("u_anucha", [{ metric: "net_sales_value", region: "northeast" }], isan)).toEqual([]);
+    expect(uncoveredFor("u_anucha", [{ metric: "target_attainment", region: null }], isan)).toEqual([]);
+    expect(uncoveredFor("u_anucha", [{ metric: "net_sales_value", region: "north" }], isan)).toEqual(isan);
+    expect(uncoveredFor("u_anucha", [{ metric: "sell_out_volume", region: "northeast" }], isan)).toEqual(isan);
+    expect(uncoveredFor("u_anucha", [], [anomaly("P2", "net_sales_volume", { region: "northeast" })])).toEqual([]);
+  });
+
+  test("a rep owes a story only for P1 anomalies on his own agents; another owner's agent stays context (AI-158)", () => {
+    const owned = agentsOwnedBy("u_krit").map((agent) => agent.id);
+    const mine = anomaly("P1", "net_sales_volume", { agent: owned[0], region: "northeast" });
+    const theirs = anomaly("P1", "net_sales_volume", { agent: "ag_nea_07", region: "northeast" });
+    expect(owned).not.toContain("ag_nea_07");
+    expect(uncoveredFor("u_krit", [], [mine, theirs])).toEqual([mine]);
+    expect(uncoveredFor("u_anucha", [], [mine, theirs])).toEqual([mine, theirs]);
   });
 
   test("four stories that cover every P1 matter are kept as written, with no rewrite", async () => {

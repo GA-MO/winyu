@@ -49,6 +49,7 @@ const investigatePerson = createStep({
       return null;
     });
     if (!run) return { userId: inputData.userId, saved: false, stories: 0 };
+    if (run.uncovered.length > 0) console.warn(`[Winyu] investigation for ${inputData.userId} left P1 anomalies without a story`, run.uncovered.map((anomaly) => anomaly.id));
     saveInvestigation(run.investigation);
     return { userId: inputData.userId, saved: true, stories: run.investigation.stories.length };
   },

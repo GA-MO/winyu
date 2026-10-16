@@ -7,7 +7,7 @@ import type { AccessContext, DraftStory, Investigation, Story } from "@/lib/cont
 import { USERS, findUser } from "@/lib/data/entities/users";
 import { toolsForAccess } from "@/lib/server/agent/tools";
 import { saveInvestigation } from "@/lib/server/investigations";
-import { evidenceIndexOf, investigate, reviewDrafts, storiesFrom, type EvidenceIndex, type InvestigationRun, type ReviewedDraft, type ToolCall } from "@/lib/server/investigate";
+import { anomaliesOf, evidenceIndexOf, investigate, reviewDrafts, storiesFrom, type EvidenceIndex, type InvestigationRun, type ReviewedDraft, type ToolCall } from "@/lib/server/investigate";
 import { agentModel } from "@/lib/server/models";
 import { runWithAccess } from "@/lib/server/request-context";
 
@@ -55,6 +55,10 @@ function storyLines(story: Story): string[] {
   ];
 }
 
+function uncoveredLines(uncovered: InvestigationRun["uncovered"]): string[] {
+  return uncovered.map((anomaly) => `  ⚠ no story explains ${anomaly.severity} ${anomaly.metric} · ${anomaly.scopeLabel}`);
+}
+
 async function runOne(userId: string, model: LanguageModel, modelId: string, save: boolean): Promise<string> {
   const started = Date.now();
   const run = await investigate(userId, model, modelId);
@@ -63,7 +67,7 @@ async function runOne(userId: string, model: LanguageModel, modelId: string, sav
   const { investigation } = run;
   const header = `\n== ${userId} · ${investigation.checkedCount} tool calls · $${investigation.costUsd.toFixed(4)} · ${((Date.now() - started) / 1000).toFixed(0)}s`;
   const dropped = run.dropped.map((entry) => `  ⚠ dropped "${entry.finding}": ${[...entry.ungrounded, ...entry.names].join(", ")}`);
-  return [header, ...investigation.stories.flatMap(storyLines), ...dropped].join("\n");
+  return [header, ...investigation.stories.flatMap(storyLines), ...dropped, ...uncoveredLines(run.uncovered)].join("\n");
 }
 
 async function runModel(users: string[], save: boolean): Promise<void> {
@@ -159,12 +163,14 @@ async function applyDrafts(file: string, save: boolean): Promise<void> {
       failing += 1;
       continue;
     }
-    const kept = storiesFrom(userId, reviewed, run.calls, evidence);
+    const anomalies = run.calls.filter((call) => call.tool === "get_alerts").flatMap(anomaliesOf);
+    const kept = storiesFrom(userId, reviewed, run.calls, evidence, anomalies);
     const investigation: Investigation = { ...run.investigation, stories: kept.stories };
     console.log(`${userId}: ${kept.stories.length} stories pass${save ? " · saved" : ""}`);
+    uncoveredLines(kept.uncovered).forEach((line) => console.log(line));
     if (!save) continue;
     saveInvestigation(investigation);
-    writeRun(userId, { ...run, investigation, drafts: stories, dropped: kept.dropped });
+    writeRun(userId, { ...run, investigation, drafts: stories, dropped: kept.dropped, uncovered: kept.uncovered });
   }
   if (failing > 0) process.exitCode = 1;
 }

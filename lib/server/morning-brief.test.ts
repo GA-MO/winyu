@@ -43,4 +43,22 @@ describe("the morning stories drawer order (AI-155)", () => {
       else investigations().remove(CEO);
     }
   });
+
+  test("a sell-in story drawn in baht is backed by the litres alerts of its region and still leads (AI-166)", async () => {
+    const user = findUser(CEO);
+    if (!user) throw new Error("no CEO");
+    const before = latestInvestigation(CEO);
+    const stories = [
+      story("dc_lamphun", "days_of_cover", "north", { dc: ["dc_lamphun"] }),
+      story("isan_sales", "net_sales_value", "northeast", { region: ["northeast"] }),
+    ];
+    saveInvestigation({ id: CEO, userId: CEO, at: new Date().toISOString(), model: "test", stories, checkedCount: 2, costUsd: 0 });
+    try {
+      const brief = await morningBriefFor(liveAccessFor(user));
+      expect(brief?.cards.map((card) => card.story.id)).toEqual(["isan_sales", "dc_lamphun"]);
+    } finally {
+      if (before) saveInvestigation(before);
+      else investigations().remove(CEO);
+    }
+  });
 });

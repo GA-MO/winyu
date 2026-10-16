@@ -6,7 +6,7 @@ import { managerOf } from "@/lib/access/raci";
 import { presentCard, weakestRow } from "@/lib/cards/present";
 import { isTimeDim } from "@/lib/cards/rows";
 import { toneOf } from "@/lib/dashboard/metric-display";
-import { explainGapInputSchema, storySchema, type AccessContext, type DraftStory, type Investigation, type MetricId, type MetricQuery, type MetricResult, type MetricSort, type Story, type User } from "@/lib/contracts";
+import { explainGapInputSchema, storySchema, type AccessContext, type AlertRow, type DraftStory, type Investigation, type MetricId, type MetricQuery, type MetricResult, type MetricSort, type Story, type User } from "@/lib/contracts";
 import { DATA_AS_OF, businessToday } from "@/lib/data/dates";
 import { USERS, findUser } from "@/lib/data/entities/users";
 import { agentsOwnedBy } from "@/lib/data/entities/agents";
@@ -18,6 +18,7 @@ import { winyuTools, toolsForAccess } from "@/lib/server/agent/tools";
 import { tracedRun } from "@/lib/harness/runtime";
 import { runWithAccess } from "@/lib/server/request-context";
 import { measure } from "@/lib/server/usage-meter";
+import { byUrgency, unexplainedP1 } from "@/lib/server/story-coverage";
 
 const MAX_STEPS = 18;
 const ALERT_LIMIT = 10;
@@ -39,6 +40,7 @@ const INVESTIGATE_GOAL = "Explain this person's open anomalies before they open 
 const SALES_VOLUME = "net_sales_volume";
 const SALES_VALUE = "net_sales_value";
 const LITRES = "ลิตร";
+const MAX_STORIES = 4;
 
 const EXPLANATION_CHECKS: readonly { text: string; open: (access: AccessContext) => boolean }[] = [
   { text: "season vs prior year", open: () => true },
@@ -65,7 +67,7 @@ export function investigateSystemFor(access: AccessContext): string {
 }
 
 const STORY_SYSTEM = [
-  "Turn an analyst's investigation into at most three stories for one person's Winyu home page, written in Thai.",
+  `Turn an analyst's investigation into at most ${MAX_STORIES} stories for one person's Winyu home page, written in Thai, the most urgent first.`,
   "A story has three parts and each says something the others do not:",
   "- `finding`: what is happening, where, and what it means for this person, in one or two short sentences.",
   "- `evidence`: the one query_metric or explain_gap call that proves the finding, by its `index` in the tool results. Winyu draws it as a card: a query_metric result as it is, an explain_gap call as the same metric split the same way against the same comparison, biggest shortfall first. The card shows the number, the comparison, the pace to target and where the month ends. `evidence.title` names the card: what and where, no numbers. A matter no such call shows (an incident, a licence, a vacancy) has evidence null.",
@@ -80,16 +82,17 @@ const STORY_SYSTEM = [
   "`kind` is how urgent it is for the business, whoever owns it: urgent when it needs action within days (a target about to be missed, stock about to run out, a deadline), watch when it is worth knowing, ok when fine.",
   "Never show error codes, ids or tool names to the reader; say what they mean in Thai.",
   `Keep it short enough to read in a glance: finding at most ${LIMITS.finding} characters, scope ${LIMITS.scope}, each ruledOut ${LIMITS.ruledOut}, evidence title ${LIMITS.evidenceTitle}, action ${LIMITS.action}. No filler words.`,
-  "Every story explains one of the open anomalies from get_alerts. If that list has no rows, or nothing needs this person, return one ok story that says so.",
+  "Every story explains one of the open anomalies from get_alerts, and every P1 anomaly that is this person's gets a story; anomalies on one metric in one region are one story. If that list has no rows, or nothing needs this person, return one ok story that says so.",
 ].join("\n");
 
-const storiesSchema = z.object({ stories: z.array(storySchema).max(3) });
+const storiesSchema = z.object({ stories: z.array(storySchema).max(MAX_STORIES) });
 
 export type ToolCall = { tool: string; input: unknown; output: unknown };
 export type ReviewedDraft = { draft: DraftStory; ungrounded: string[]; names: string[]; problems: string[] };
 /** The card each call could become, by the call's index: a query_metric result as it is, an explain_gap call as the query that draws the same split. */
 export type EvidenceIndex = ReadonlyMap<number, MetricAnswer>;
-export type InvestigationRun = { investigation: Investigation; notes: string; calls: ToolCall[]; dropped: { finding: string; ungrounded: string[]; names: string[] }[] };
+/** One investigation as it ran: the stories kept, what the analyst wrote and called, the drafts dropped, and the P1 anomalies of this person no kept story explains. */
+export type InvestigationRun = { investigation: Investigation; notes: string; calls: ToolCall[]; dropped: { finding: string; ungrounded: string[]; names: string[] }[]; uncovered: AlertRow[] };
 type MetricAnswer = Extract<MetricResult, { ok: true }> & { query: MetricQuery };
 
 /** The open anomalies this person would get from get_alerts, read before the model runs so a story cannot start without them. */
@@ -99,10 +102,28 @@ export async function openAnomalies(access: AccessContext): Promise<ToolCall> {
   return { tool: ALERTS_TOOL, input: ALERT_INPUT, output };
 }
 
-function anomalyRows(call: ToolCall): unknown[] {
+function isAlertRow(row: unknown): row is AlertRow {
+  if (!row || typeof row !== "object") return false;
+  const candidate = row as Partial<AlertRow>;
+  return typeof candidate.severity === "string" && typeof candidate.metric === "string" && typeof candidate.scope === "object" && candidate.scope !== null;
+}
+
+/** The anomaly rows a get_alerts call returned. */
+export function anomaliesOf(call: ToolCall): AlertRow[] {
   const output = call.output;
   if (!output || typeof output !== "object" || !("rows" in output) || !Array.isArray(output.rows)) return [];
-  return output.rows;
+  return output.rows.filter(isAlertRow);
+}
+
+function theirAnomalies(userId: string, anomalies: readonly AlertRow[]): AlertRow[] {
+  const owned = new Set(agentsOwnedBy(userId).map((agent) => agent.id));
+  if (owned.size === 0) return [...anomalies];
+  return anomalies.filter((anomaly) => !anomaly.scope.agent || owned.has(anomaly.scope.agent));
+}
+
+/** The P1 anomalies of this person that none of these stories explains; an anomaly on an agent someone else owns is an agent owner's context, not theirs. */
+export function uncoveredFor(userId: string, subjects: readonly DraftStory["subject"][], anomalies: readonly AlertRow[]): AlertRow[] {
+  return unexplainedP1(subjects, theirAnomalies(userId, anomalies));
 }
 
 /** Keeps the anomaly read on the call list when the model drilled without calling get_alerts itself. */
@@ -117,7 +138,7 @@ function investigationPrompt(who: string, anomalies: ToolCall): string {
 function quietRun(userId: string, modelId: string, anomalies: ToolCall): InvestigationRun {
   const story: Story = { id: `${userId}-0`, kind: "ok", finding: TH.stories.noAnomalies, scope: TH.stories.steady, subject: { metric: null, region: null }, evidence: null, ruledOut: [], action: null };
   const investigation = { id: userId, userId, at: new Date().toISOString(), model: modelId, stories: [story], checkedCount: 1, costUsd: 0 };
-  return { investigation, notes: "", calls: [anomalies], dropped: [] };
+  return { investigation, notes: "", calls: [anomalies], dropped: [], uncovered: [] };
 }
 
 function readTools(access: AccessContext): ToolSet {
@@ -294,27 +315,34 @@ function isBlocked(entry: ReviewedDraft): boolean {
   return entry.ungrounded.length > 0 || entry.names.length > 0;
 }
 
-function storyOf(entry: ReviewedDraft, calls: readonly ToolCall[], evidenceIndex: EvidenceIndex, id: string): Story {
+function storyOf(entry: ReviewedDraft, calls: readonly ToolCall[], evidenceIndex: EvidenceIndex): Omit<Story, "id"> {
   const called = new Set(calls.map((call) => call.tool));
   const answer = entry.draft.evidence ? evidenceIndex.get(entry.draft.evidence.call) : undefined;
   const evidence = answer && entry.draft.evidence ? { title: entry.draft.evidence.title, query: askedQuery(answer.query) } : null;
   const ruledOut = entry.draft.ruledOut.filter((item) => called.has(item.source) && !REMEMBERED.has(item.source));
-  return { ...entry.draft, id, evidence, ruledOut };
+  return { ...entry.draft, evidence, ruledOut };
 }
 
-/** The stories kept from reviewed drafts: a blocked draft is dropped, a ruled-out claim stands only on a data tool this run called, and the evidence becomes the query Winyu draws again. */
-export function storiesFrom(userId: string, reviewed: readonly ReviewedDraft[], calls: readonly ToolCall[], evidence: EvidenceIndex): { stories: Story[]; dropped: InvestigationRun["dropped"] } {
-  const kept = reviewed.filter((entry) => !isBlocked(entry));
+/** The stories kept from reviewed drafts, the ones the most severe anomalies back first: a blocked draft is dropped, a ruled-out claim stands only on a data tool this run called, the evidence becomes the query Winyu draws again, and the P1 anomalies of this person left unexplained are named. */
+export function storiesFrom(userId: string, reviewed: readonly ReviewedDraft[], calls: readonly ToolCall[], evidence: EvidenceIndex, anomalies: readonly AlertRow[]): Pick<InvestigationRun, "dropped" | "uncovered"> & { stories: Story[] } {
+  const kept = reviewed.filter((entry) => !isBlocked(entry)).map((entry) => storyOf(entry, calls, evidence));
+  const stories = byUrgency(kept, anomalies).slice(0, MAX_STORIES).map((story, index) => ({ ...story, id: `${userId}-${index}` }));
   const dropped = reviewed.filter(isBlocked).map((entry) => ({ finding: entry.draft.finding, ungrounded: entry.ungrounded, names: entry.names }));
-  return { stories: kept.map((entry, index) => storyOf(entry, calls, evidence, `${userId}-${index}`)), dropped };
+  return { stories, dropped, uncovered: uncoveredFor(userId, stories.map((story) => story.subject), anomalies) };
 }
 
 function indexed(calls: readonly ToolCall[]): unknown[] {
   return calls.map((call, index) => ({ index, ...call }));
 }
 
-async function draftStories(model: LanguageModel, who: string, notes: string, calls: readonly ToolCall[], repair: readonly ReviewedDraft[] = []): Promise<DraftStory[]> {
-  const fix = repair.length > 0 ? ["Rewrite only these stories. `ungrounded` lists numbers no tool returned: copy them from the tool results or leave them out. `names` lists people named where their role belongs. `problems` lists the rest to fix:", fenceAsData(JSON.stringify(repair))] : [];
+function rewriteAsk(repair: readonly ReviewedDraft[], missing: readonly AlertRow[]): string[] {
+  const fix = repair.length > 0 ? ["Rewrite these stories. `ungrounded` lists numbers no tool returned: copy them from the tool results or leave them out. `names` lists people named where their role belongs. `problems` lists the rest to fix:", fenceAsData(JSON.stringify(repair))] : [];
+  const add = missing.length > 0 ? ["No story explains these P1 anomalies of this person. Write one story for each matter among them (anomalies on one metric in one region are one matter), from the analyst notes and tool results:", fenceAsData(JSON.stringify(missing))] : [];
+  return fix.length + add.length > 0 ? [...fix, ...add, "Return only the stories asked for here."] : [];
+}
+
+async function draftStories(model: LanguageModel, who: string, notes: string, calls: readonly ToolCall[], repair: readonly ReviewedDraft[] = [], missing: readonly AlertRow[] = []): Promise<DraftStory[]> {
+  const fix = rewriteAsk(repair, missing);
   const { object } = await generateObject({
     model,
     schema: storiesSchema,
@@ -324,7 +352,7 @@ async function draftStories(model: LanguageModel, who: string, notes: string, ca
   return object.stories;
 }
 
-/** One person's morning investigation, traced as a run of its own: read their open anomalies first, then the model drills into those with the read tools of their role and writes stories that point at their evidence; a story that fails a check gets one rewrite, and one with a number no tool returned or a role holder's name is dropped. No anomalies means one quiet story and no model call. */
+/** One person's morning investigation, traced as a run of its own: read their open anomalies first, then the model drills into those with the read tools of their role and writes stories that point at their evidence; a story that fails a check, or a P1 anomaly of theirs no story explains, gets one rewrite, and one with a number no tool returned or a role holder's name is dropped. No anomalies means one quiet story and no model call. */
 export async function investigate(userId: string, model: LanguageModel, modelId: string): Promise<InvestigationRun> {
   return tracedRun(userId, { userMessage: INVESTIGATE_GOAL, intent: "job:investigate" }, INVESTIGATE_TOOL_BUDGET, () => investigateNow(userId, model, modelId));
 }
@@ -334,7 +362,8 @@ async function investigateNow(userId: string, model: LanguageModel, modelId: str
   if (!user) throw new Error(`no user ${userId}`);
   const access = accessFor(user);
   const anomalies = await openAnomalies(access);
-  if (anomalyRows(anomalies).length === 0) return quietRun(userId, modelId, anomalies);
+  const rows = anomaliesOf(anomalies);
+  if (rows.length === 0) return quietRun(userId, modelId, anomalies);
   const who = whoOf(user, access);
   const { result, usage } = await measure(async () => {
     const run = await runWithAccess(access, () => generateText({ model, system: investigateSystemFor(access), prompt: investigationPrompt(who, anomalies), tools: readTools(access), stopWhen: stepCountIs(MAX_STEPS) }));
@@ -342,11 +371,12 @@ async function investigateNow(userId: string, model: LanguageModel, modelId: str
     const evidence = await evidenceIndexOf(calls, access);
     const first = reviewDrafts(await draftStories(model, who, run.text, calls), calls, evidence);
     const failed = first.filter(needsRewrite);
-    const repaired = failed.length > 0 ? reviewDrafts(await draftStories(model, who, run.text, calls, failed), calls, evidence) : [];
-    return { notes: run.text, calls, evidence, reviewed: [...first.filter((entry) => !needsRewrite(entry)), ...repaired] };
+    const missing = uncoveredFor(userId, first.map((entry) => entry.draft.subject), rows);
+    const rewritten = failed.length > 0 || missing.length > 0 ? reviewDrafts(await draftStories(model, who, run.text, calls, failed, missing), calls, evidence) : [];
+    return { notes: run.text, calls, evidence, reviewed: [...first.filter((entry) => !needsRewrite(entry)), ...rewritten] };
   });
-  const { stories, dropped } = storiesFrom(userId, result.reviewed, result.calls, result.evidence);
+  const { stories, dropped, uncovered } = storiesFrom(userId, result.reviewed, result.calls, result.evidence, rows);
   const costUsd = usage.billedCalls > 0 ? usage.billedUsd : usage.estimatedUsd;
   const investigation = { id: userId, userId, at: new Date().toISOString(), model: modelId, stories, checkedCount: result.calls.length, costUsd };
-  return { investigation, notes: result.notes, calls: result.calls, dropped };
+  return { investigation, notes: result.notes, calls: result.calls, dropped, uncovered };
 }
