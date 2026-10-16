@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { breakDownGap, formatShare, projectMonthEnd } from "./gap";
+import { breakDownGap, formatShare, isBroad, projectMonthEnd } from "./gap";
 
 describe("breakDownGap", () => {
   test("two parts that together exceed the whole gap each carry their own share, and parts above target offset", () => {
@@ -15,6 +15,18 @@ describe("breakDownGap", () => {
     expect(formatShare(breakdown.contributors[0].share)).toBe("53.9%");
     expect(breakdown.offsetting.map((part) => part.label)).toEqual(["โคราชสหภัณฑ์"]);
     expect(breakdown.rest).toBeNull();
+  });
+
+  test("a gap no part explains a fifth of is broad; one part making half of it is not (AI-145)", () => {
+    const even = Array.from({ length: 7 }, (_, index) => ({ label: `p${index}`, value: 90, compare: 100 }));
+    expect(isBroad(breakDownGap({ label: "all", value: 630, compare: 700 }, even))).toBe(true);
+    const total = { label: "ภาคอีสาน", value: 3_859_913, compare: 4_138_403 };
+    const concentrated = [
+      { label: "อีสานรุ่งโรจน์", value: 353_359, compare: 503_440 },
+      { label: "อุบลศรีสุข", value: 330_361, compare: 477_585 },
+    ];
+    expect(isBroad(breakDownGap(total, concentrated))).toBe(false);
+    expect(isBroad(breakDownGap({ label: "all", value: 100, compare: 100 }, []))).toBe(false);
   });
 
   test("beyond five drivers the rest is summed into one line", () => {
