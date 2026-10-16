@@ -14,10 +14,15 @@ function measureOf(metric: MetricId): MetricId {
   return MEASURES.find((measure) => measure.includes(metric))?.[0] ?? metric;
 }
 
+/** Whether two metrics read one measure: sell-in in litres, in baht or against target is one, stock on hand and days of cover another, any other metric only itself. */
+export function sameMeasure(left: MetricId, right: MetricId): boolean {
+  return measureOf(left) === measureOf(right);
+}
+
 /** A story explains an anomaly on the same measure (sell-in in litres, in baht or against target is one) in the anomaly's region, or in every region. */
 export function explains(subject: Subject, anomaly: Anomaly): boolean {
   if (subject.metric === null) return false;
-  return measureOf(subject.metric) === measureOf(anomaly.metric) && (subject.region === null || subject.region === anomaly.scope.region);
+  return sameMeasure(subject.metric, anomaly.metric) && (subject.region === null || subject.region === anomaly.scope.region);
 }
 
 /** The P1 anomalies no story explains. */

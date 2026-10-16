@@ -11,6 +11,7 @@ import { actionsForAlert } from "@/lib/server/next-actions";
 import { lessonFor } from "@/lib/server/outcomes";
 import { loadDictionary } from "@/lib/server/master-data";
 import { currentAccess, turnSubjects } from "@/lib/server/request-context";
+import { sameMeasure } from "@/lib/server/story-coverage";
 import { defineTool } from "./define";
 
 const NO_ALERTS = "ไม่พบความผิดปกติที่เปิดอยู่ในขอบเขตของผู้ใช้คนนี้";
@@ -30,7 +31,7 @@ export const getAlertsTool = defineTool({
   connector: "winyu",
   tier: "read",
   roles: "all",
-  description: "Read the anomalies the detection engine raised for this user's scope, newest first, each with a hypothesis (a guess, not a finding) and the checks this user can run. Call it when the user asks what is wrong, what changed, or what needs attention. When the talk is about one metric or place (\"why did Ubon drop\"), pass metric and dims (region, province, agent and the like, by id or Thai name) so only the alerts on that slice come back.",
+  description: "Read the anomalies the detection engine raised for this user's scope, newest first, each with a hypothesis (a guess, not a finding) and the checks this user can run. Call it when the user asks what is wrong, what changed, or what needs attention. When the talk is about one metric or place (\"why did Ubon drop\"), pass metric and dims (region, province, agent and the like, by id or Thai name) so only the alerts on that slice come back. A sell-in metric finds the sell-in alerts in litres, baht or against target alike, each in its own unit.",
   input: getAlertsInputSchema,
   execute: async ({ status, limit, metric, dims }: z.infer<typeof getAlertsInputSchema>) => {
     const access = currentAccess();
@@ -38,7 +39,7 @@ export const getAlertsTool = defineTool({
     const slice = resolveFilters(dictionary, filtersOfSlice(dims ?? subjectSlice()));
     if (!slice.ok) return { ok: false as const, code: "BAD_QUERY", error: `ไม่รู้จักค่า "${slice.value}" ของมิติ ${slice.dim}` };
     const inScope = status === "open" ? openAlertsFor(access) : allAlertsFor(access);
-    const found = inScope.filter((alert) => (!metric || alert.metric === metric) && sliceCovers(dictionary, slice.filters, alert.dims));
+    const found = inScope.filter((alert) => (!metric || sameMeasure(alert.metric, metric)) && sliceCovers(dictionary, slice.filters, alert.dims));
     const shown = found.slice(0, limit ?? DEFAULT_ALERT_LIMIT);
     const rows = shown.map((alert) => ({ ...alertRowOf(alert, dictionary), verifySteps: verifyStepsFor(access, alert) }));
     if (rows.length === 0) return { ok: true as const, summary: NO_ALERTS, rows: [], lessons: [], nextActions: [] };
