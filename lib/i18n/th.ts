@@ -227,6 +227,13 @@ export const TH = {
     stopped: "หยุดคำตอบนี้แล้ว",
     notRun: "รายการนี้ไม่ได้ทำ",
     notDone: (tool: string, label: string | undefined) => NOT_DONE[tool] ?? (label ? `ไม่ได้ทำ: ${label}` : "ไม่ได้ทำรายการนี้"),
+    notDoneWhy: {
+      CARD_UNCLEAR: "ยังไม่ชัดว่าจะส่งการ์ดใบไหน",
+      CARD_UNKNOWN: "ไม่พบการ์ดที่จะส่งบนจอนี้",
+      NO_CARD: "ยังไม่มีการ์ดที่ส่งได้บนจอ",
+      NOT_APPROVED: "ยังไม่ได้รับการอนุมัติ",
+      VERIFICATION_FAILED: "ทำรายการแล้วแต่ตรวจซ้ำไม่ผ่าน",
+    } as Record<string, string>,
     signedOut: "หมดเวลาเข้าสู่ระบบ กรุณาเข้าสู่ระบบใหม่",
     failed: "ตอบไม่สำเร็จ ลองถามใหม่อีกครั้ง",
     pressed: "กดปุ่ม",

@@ -55,8 +55,8 @@ export function argsPreview(args: unknown, redact: readonly string[] = []): stri
   }
 }
 
-/** Writes the one `AuditEntry` a tool call leaves, from what the harness observed: who, which tool through which connector, hashed args, decision, rows, latency. */
-export function recordToolCall(call: AuditedCall, observation: Observation): void {
+/** Writes the one `AuditEntry` a tool call leaves, from what the harness observed: who, which tool through which connector, hashed args, decision (deny for a call the gateway refused to run, whatever its code), rows, latency. */
+export function recordToolCall(call: AuditedCall, observation: Observation, decision: AuditEntry["decision"] = decisionOf(observation)): void {
   const { tool, connector, userId, args, redact, startedAt, toolCallId, runId, initiator, rule } = call;
   const turn = currentTurn();
   const turnId = runId ?? turn.turnId;
@@ -68,7 +68,7 @@ export function recordToolCall(call: AuditedCall, observation: Observation): voi
     tool,
     connector,
     argsHash: argsHash(args),
-    decision: decisionOf(observation),
+    decision,
     rowsReturned: rows,
     latencyMs: Date.now() - startedAt,
     ...(code ? { code } : {}),

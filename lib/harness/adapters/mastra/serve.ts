@@ -55,6 +55,7 @@ function bridgeFor(userId: string): MastraAgent {
 }
 
 let copilotHandler: Handler | null = null;
+const keeping = new Map<string, Promise<void>>();
 
 /** CopilotKit's runtime over the one Mastra agent; each request gets a fresh bridge for the person being served, so no request state is shared between users (D9). A new message on a thread whose earlier run is still going (one resumed after a restart that never ends, a tab closed mid-reply) supersedes that run instead of failing with "Thread already running", so no run can leave its thread dead. */
 function handler(): Handler {
@@ -78,9 +79,10 @@ function queriesOf(calls: readonly CarriedCall[]): MetricQuery[] {
   });
 }
 
-/** What the run that answers an approval carries on from: the calls the asking run (and any earlier answer) finished for the same message; a run that answers nothing starts empty. */
+/** What the run that answers an approval carries on from: the calls the asking run (and any earlier answer) finished for the same message, read once the asking run's results are stored and before this run starts, because resuming stores the paused step again without them; a run that answers nothing starts empty. */
 async function carriedCalls(turn: ChatTurn, userId: string): Promise<CarriedCall[]> {
   if (turn.answers.length === 0 || !turn.threadId || !turn.messageId) return [];
+  await keeping.get(turn.threadId);
   return callsAnswering(turn.threadId, userId, turn.messageId);
 }
 
@@ -135,8 +137,12 @@ function composed(run: Run, turn: ChatTurn, cards: readonly ComposedCardRecord[]
 }
 
 function keepResultsOfPausedRun(run: Run, threadId: string, finished: readonly FinishedResult[]): void {
-  keepFinishedResults(run.id, threadId, run.userId, finished).catch((error: unknown) => {
+  const kept = keepFinishedResults(run.id, threadId, run.userId, finished).catch((error: unknown) => {
     console.error(`keeping the finished results of paused run ${run.id} failed`, error);
+  });
+  keeping.set(threadId, kept);
+  void kept.finally(() => {
+    if (keeping.get(threadId) === kept) keeping.delete(threadId);
   });
 }
 
@@ -176,7 +182,7 @@ export async function streamRun(access: AccessContext, req: Request, run: Run, t
   const screenCards = threadId ? () => screenCardsOn(threadId, access.userId, turn.messageId, turn.question, context.finished ?? []) : undefined;
   const onScreen = threadId ? (await screenCardsOn(threadId, access.userId, turn.messageId, turn.question, [])).cards : [];
   const carried = await carriedCalls(turn, access.userId);
-  const context: TurnContext = { turnId: run.id, threadId, question: turn.question, queries: queriesOf(carried), transcript, screenCards, onScreen, finished: [], answered: answeredOf(turn) };
+  const context: TurnContext = { turnId: run.id, threadId, question: turn.question, queries: queriesOf(carried), transcript, screenCards, onScreen, finished: [...carried], answered: answeredOf(turn) };
   if (guarded) runWithTurn(context, () => runWithRun(run, () => inputFindings(guarded).forEach((finding) => recordGuardFinding(finding, access.userId))));
   const records: ComposedCardRecord[] = [];
   const cards = replyCards((record) => records.push(record), carried);

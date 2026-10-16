@@ -1,7 +1,7 @@
 import type { Message } from "@ag-ui/core";
 import type { MastraDBMessage, MastraMessagePart } from "@mastra/core/agent/message-list";
 import { screenCardsEach } from "@/components/chat/card-to-share";
-import { exchangesOf, type Exchange, type ToolStep } from "@/components/chat/timeline";
+import { exchangesOf, type Exchange, type ReplyStep, type ToolStep } from "@/components/chat/timeline";
 import { openApprovalsFor } from "@/lib/harness/approvals";
 import type { ScreenCards } from "@/lib/share/card";
 import { toolTiers } from "@/lib/server/agent/tools";
@@ -234,12 +234,19 @@ function toolStepOf(call: FinishedCall): ToolStep {
   return { kind: "tool", toolCallId: call.toolCallId, name: call.tool, args: call.args, outcome: { state: "returned", result: call.output } };
 }
 
-/** The exchanges with the one being answered (`messageId`) carrying the calls this run finished that memory does not hold yet: a run's calls reach memory only when the run ends, and a send in it must see the card it drew. */
+function withResultOf(step: ReplyStep, finished: ReadonlyMap<string, FinishedCall>): ReplyStep {
+  if (step.kind !== "tool" || step.outcome.state === "returned") return step;
+  const call = finished.get(step.toolCallId);
+  return call ? toolStepOf(call) : step;
+}
+
+/** The exchanges with the one being answered (`messageId`) carrying the calls this run finished that memory does not hold, or holds without a result: a run's calls reach memory only when the run ends, a resumed run stores its paused step again without them, and a send in it must see the card it drew. */
 function withFinished(exchanges: readonly Exchange[], messageId: string, question: string | null, finished: readonly FinishedCall[]): Exchange[] {
   const index = exchanges.findIndex((exchange) => exchange.id === messageId);
   const current: Exchange = index >= 0 ? exchanges[index] : { id: messageId, question: question ? { kind: "typed", text: question } : null, steps: [] };
+  const byId = new Map(finished.map((call) => [call.toolCallId, call]));
   const known = new Set(current.steps.flatMap((step) => (step.kind === "tool" ? [step.toolCallId] : [])));
-  const answered: Exchange = { ...current, steps: [...current.steps, ...finished.filter((call) => !known.has(call.toolCallId)).map(toolStepOf)] };
+  const answered: Exchange = { ...current, steps: [...current.steps.map((step) => withResultOf(step, byId)), ...finished.filter((call) => !known.has(call.toolCallId)).map(toolStepOf)] };
   return index >= 0 ? exchanges.map((exchange, at) => (at === index ? answered : exchange)) : [...exchanges, answered];
 }
 

@@ -1,6 +1,7 @@
 import { metricPairsOf } from "@/lib/cards/tool-answers";
 import { UNCOMPOSABLE_TOOLS } from "@/lib/compose/ground";
 import { findUser } from "@/lib/data/entities/users";
+import { TH } from "@/lib/i18n/th";
 import { namesPerson, type Named } from "@/lib/share/recipients";
 import type { ReplyStep, ToolStep } from "./timeline";
 
@@ -61,8 +62,12 @@ export function drawsNoCard(result: unknown): boolean {
   return isEmptyAnswer(result) || (isRefused(result) && !offersNextStep(result));
 }
 
+/** Why a write did nothing, in the person's words: a refusal whose text is written for the model (card refs, instructions) has its own line by code. */
 function reasonOf(result: unknown): string | null {
-  const error = typeof result === "object" && result !== null ? (result as { error?: unknown }).error : null;
+  if (typeof result !== "object" || result === null) return null;
+  const { code, error } = result as { code?: unknown; error?: unknown };
+  const forPerson = typeof code === "string" ? TH.conversation.notDoneWhy[code] : undefined;
+  if (forPerson) return forPerson;
   return typeof error === "string" && error.trim() ? error : null;
 }
 
