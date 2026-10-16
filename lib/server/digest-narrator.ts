@@ -1,10 +1,9 @@
-import { generateObject, type LanguageModel } from "ai";
+import type { LanguageModel } from "ai";
 import { fenceAsData } from "@/lib/harness/fence";
 import { z } from "zod";
 import { isTrusted } from "@/lib/engine/memory-status";
 import { TH } from "@/lib/i18n/th";
 import { memoryFacts } from "@/lib/server/agent/collections";
-import { utilityModel } from "@/lib/server/models";
 
 const MAX_LEAD_CHARS = 280;
 const MAX_FACTS = 8;
@@ -39,6 +38,7 @@ export function factsFor(userId: string): string[] {
 async function narrateWith(model: LanguageModel, who: string, lines: readonly DigestLine[], facts: readonly string[]): Promise<Narration | null> {
   const listing = lines.map((line) => `${line.id} ${line.text}`).join("\n");
   const known = facts.length > 0 ? [TH.digest.narrateFacts, fenceAsData(facts.join("\n"))] : [];
+  const { generateObject } = await import("ai");
   const { object } = await generateObject({
     model,
     schema: narrationSchema,
@@ -53,6 +53,7 @@ async function narrateWith(model: LanguageModel, who: string, lines: readonly Di
  * the call fails, or the lead says anything the lines do not. The lines themselves are always the rules' own.
  */
 export const narrateDigest: Narrator = async (who, lines, facts) => {
+  const { utilityModel } = await import("@/lib/server/models");
   const model = utilityModel();
   if (!model || lines.length === 0) return null;
   try {

@@ -1,7 +1,5 @@
 import type { Dim, MetricId } from "@/lib/contracts";
 import { DAY_COUNT, toDayIndex } from "./dates";
-import { AGENT_INDEX } from "./entities/agents";
-import { SKU_INDEX } from "./entities/products";
 
 export type AnomalyEffect = { kind: "multiplier"; value: number } | { kind: "cover_days"; value: number };
 export type InjectedAnomaly = {
@@ -108,43 +106,3 @@ export function windowDays(anomaly: InjectedAnomaly): DayWindow {
     to: Math.min(DAY_COUNT - 1, toDayIndex(anomaly.window.to)),
   };
 }
-
-function multiplierOf(anomaly: InjectedAnomaly): number {
-  return anomaly.effect.kind === "multiplier" ? anomaly.effect.value : 1;
-}
-
-function splitIds(value: string | undefined): string[] {
-  return value ? value.split(",") : [];
-}
-
-export type CubeRule = { skus: Set<number>; agents: Set<number>; window: DayWindow; multiplier: number };
-
-function agentIndices(ids: string[]): Set<number> {
-  const set = new Set<number>();
-  for (const id of ids) {
-    const index = AGENT_INDEX.get(id);
-    if (index !== undefined) set.add(index);
-  }
-  return set;
-}
-
-function skuIndices(ids: string[]): Set<number> {
-  const set = new Set<number>();
-  for (const id of ids) {
-    const index = SKU_INDEX.get(id);
-    if (index !== undefined) set.add(index);
-  }
-  return set;
-}
-
-export function buildCubeRule(anomalyId: string, skuIds: string[], agentIds: string[]): CubeRule {
-  const anomaly = anomalyById(anomalyId) as InjectedAnomaly;
-  return { skus: skuIndices(skuIds), agents: agentIndices(agentIds), window: windowDays(anomaly), multiplier: multiplierOf(anomaly) };
-}
-
-export const ANOMALY_AGENT_IDS = {
-  rungrueang: "ag_nea_07",
-  silentNortheast: splitIds(anomalyById("anom_northeast_silent_agents")?.extraDims.agents),
-  southOverdue: splitIds(anomalyById("anom_south_ar_overdue")?.extraDims.agents),
-  purraNorthProvinces: splitIds(anomalyById("anom_purra_pm25_north")?.extraDims.provinces),
-} as const;

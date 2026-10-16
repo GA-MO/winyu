@@ -15,5 +15,4 @@ export * from "./watches";
 export * from "./records";
 export * from "./feed";
 export * from "./investigation";
-export * from "./documents";
 export * from "./grant";

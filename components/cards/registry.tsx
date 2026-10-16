@@ -5,16 +5,12 @@ import { forecastTitle, metricTitle } from "@/lib/cards/tool-answers";
 import { TH } from "@/lib/i18n/th";
 import { AlertsCard, DataCard, ForecastCard } from "./data-card";
 import { CandidatesCard, CoursesCard, PolicyCard } from "./entity/hr";
-import { DocumentsCard } from "./entity/documents";
 import { OwnerCard, PeopleCard, PersonCard } from "./entity/people";
 import { CalendarCard, connectorCard, EntityCard, GapCard, MemoryCard, MetricsListCard } from "./entity/reference";
 import { SiteCard } from "./entity/sites";
 
-/** The reply text of the exchange a card sits in, and whether it is still streaming. */
-export type ReplyText = { text: string; streaming: boolean };
-
-/** Draws one tool result; `args` is what the model called the tool with, `reply` what the model said around it. */
-export type ToolCard = (result: unknown, args: unknown, reply: ReplyText) => ReactNode;
+/** Draws one tool result; `args` is what the model called the tool with. */
+export type ToolCard = (result: unknown, args: unknown) => ReactNode;
 
 const CrmVisitsCard = connectorCard("store_visits");
 const LmsTrainingCard = connectorCard("training_history");
@@ -33,7 +29,6 @@ export const TOOL_CARDS = {
   list_candidates: (result) => <CandidatesCard result={result} />,
   list_courses: (result) => <CoursesCard result={result} />,
   get_policy: (result) => <PolicyCard result={result} />,
-  search_documents: (result, _args, reply) => <DocumentsCard result={result} reply={reply} />,
   describe_entity: (result) => <EntityCard result={result} />,
   resolve_owner: (result) => <OwnerCard result={result} />,
   recall_memory: (result) => <MemoryCard result={result} />,

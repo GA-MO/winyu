@@ -63,9 +63,3 @@ export class BlockReader {
     return last && !last.startsWith(FENCE_MARK) ? [{ kind: "line", line: rest }, { kind: "close" }] : [{ kind: "close" }];
   }
 }
-
-/** Reads a whole reply text at once, as history restore needs it. */
-export function blockEventsOf(text: string): BlockEvent[] {
-  const reader = new BlockReader();
-  return [...reader.push(text), ...reader.end()];
-}

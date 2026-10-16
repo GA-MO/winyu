@@ -1,10 +1,8 @@
 import type { DateWindow, Holiday } from "@/lib/contracts";
-import { DAY_COUNT, ISO_OF_DAY, toBuddhistYear, toDayIndex, weekKeyOfIso } from "../dates";
+import { DAY_COUNT, toBuddhistYear, toDayIndex, weekKeyOfIso } from "../dates";
 
 export type { DateWindow, Holiday };
 export { toBuddhistYear };
-
-export const FISCAL_YEAR_START_MONTH = 1;
 
 export const THAI_HOLIDAYS: readonly Holiday[] = [
   { date: "2025-04-06", nameTh: "วันจักรี", label: "Chakri Day" },
@@ -112,10 +110,6 @@ function withinWindows(windows: readonly DateWindow[], iso: string): boolean {
   return windows.some((window) => window.from <= iso && iso <= window.to);
 }
 
-export function isSongkran(iso: string): boolean {
-  return withinWindows(SONGKRAN_WINDOWS, iso);
-}
-
 export function isBuddhistLent(iso: string): boolean {
   return withinWindows(BUDDHIST_LENT_WINDOWS, iso);
 }
@@ -123,9 +117,5 @@ export function isBuddhistLent(iso: string): boolean {
 /** ISO week key such as "2025-W15". */
 export function weekOf(iso: string): string {
   return weekKeyOfIso(iso);
-}
-
-export function isoOfDay(dayIndex: number): string {
-  return ISO_OF_DAY[dayIndex] ?? ISO_OF_DAY[0] ?? "";
 }
 

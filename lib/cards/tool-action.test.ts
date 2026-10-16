@@ -57,7 +57,7 @@ describe("toolActionOf", () => {
       const args = Object.fromEntries(redact.map((field) => [field, SECRET]));
       expect({ tool: entry.name, line: line(toolActionOf(entry.name, args, labels)) }).toEqual({ tool: entry.name, line: expect.not.stringContaining(SECRET) });
     }
-    expect(line(toolActionOf("search_documents", { query: SECRET }, labels))).toBe("กำลังค้นเอกสารบริษัท");
+    expect(line(toolActionOf("recall_memory", { query: SECRET }, labels))).toBe("กำลังทบทวนสิ่งที่จำได้");
     expect(line(toolActionOf("pin_widget", { title: SECRET }, labels))).toContain(SECRET);
   });
 

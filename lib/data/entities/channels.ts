@@ -12,7 +12,6 @@ export const CHANNELS: readonly ChannelInfo[] = [
   { id: "export", nameTh: "ส่งออก", label: "Export", share: 0.06 },
 ];
 
-export const CHANNEL_IDS = CHANNELS.map((channel) => channel.id);
 export const CHANNEL_INDEX: ReadonlyMap<string, number> = new Map(CHANNELS.map((channel, index) => [channel.id, index]));
 
 export const MODERN_TRADE_CHAINS: readonly ModernTradeChain[] = [
@@ -22,10 +21,6 @@ export const MODERN_TRADE_CHAINS: readonly ModernTradeChain[] = [
   { id: "chain_greenfresh", nameTh: "กรีนเฟรช", label: "Green Fresh", storeCount: 94, regions: ["bkk", "north"] },
   { id: "chain_dailyplus", nameTh: "เดลี่พลัส", label: "Daily Plus", storeCount: 540, regions: ["central", "northeast", "east"] },
 ];
-
-export function chainById(id: string): ModernTradeChain | null {
-  return MODERN_TRADE_CHAINS.find((chain) => chain.id === id) ?? null;
-}
 
 /** Relative pull of a pack through each channel, before per-agent weighting. */
 export const PACK_CHANNEL_AFFINITY: Record<Pack, Record<ChannelId, number>> = {

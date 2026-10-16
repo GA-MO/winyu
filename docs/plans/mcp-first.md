@@ -33,7 +33,7 @@ The classes are (a) an outside system's data, which moves to MCP, (b) Winyu's ow
 | `sites` port, `get_site` | generator | (a) safety (EHS) system | behind the port | none |
 | `calendar` port, `get_calendar` | generator: holidays, alcohol ban days, festivals | (c) | behind the port if HR or the legal team keeps it in a system; native if IT keeps a yearly table in Winyu | none |
 | `mail` port, `send_email` | the in-app outbox | (b) the outbox is Winyu's record of what it sent | stays native; delivery uses SMTP or Microsoft Graph, where MCP adds nothing | none |
-| `search_documents` | Winyu's own index (`docs/rag.md`) | (c) | the index and the search stay Winyu's; ingestion may read SharePoint or a DMS through an MCP wrapper | none |
+| `search_documents` | removed 2026-10-15 for the demo deploy | (a) document management system | returns as an external document RAG, most likely an MCP connector added from the admin console | |
 | `crm_demo__store_visits` | REST connector | (a) | becoming "CRM (MCP)" in a separate change | that change's own |
 | `ask_logistics_partner` | A2A to Siam Freight's agent | (a), but another company's agent | stays A2A: MCP is for tools, A2A is for agents | |
 | `create_handoff`, `share_card`, `pin_widget`, `watch_metric`, `recall_memory`, `resolve_owner`, `run_job`, `set_permission`; memory, handoff packets, shares, grants, dashboard, watches, audit | Winyu | (b) | stay native | |

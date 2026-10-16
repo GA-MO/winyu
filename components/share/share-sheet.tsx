@@ -9,7 +9,7 @@ import { Portrait } from "@/components/ui/portrait";
 import { DEFAULT_GRANT_DAYS, GRANT_DAYS, type GrantDays } from "@/lib/contracts/grant";
 import { metricLabel } from "@/lib/dashboard/metric-display";
 import { TH } from "@/lib/i18n/th";
-import { SHARE_NOTE_MAX, SHARE_RECIPIENTS_MAX, preferredChannel, shareTitle, type ChannelOption, type ShareChannel, type ShareContact, type SharedCard, type ShareGrantReceipt, type ShareReceipt, type ShareTarget } from "@/lib/share/card";
+import { SHARE_NOTE_MAX, SHARE_RECIPIENTS_MAX, preferredChannel, shareTitle, type ShareChannel, type ShareContact, type ShareGrantReceipt, type ShareReceipt, type ShareTarget } from "@/lib/share/card";
 
 const CONTACTS_ENDPOINT = "/api/shares/contacts";
 const SHARES_ENDPOINT = "/api/shares";

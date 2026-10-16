@@ -12,7 +12,6 @@ export const MAKERS: readonly Maker[] = [
 ];
 
 export const OWN_MAKER: MakerId = "mk_boonrawd";
-export const MAKER_IDS: readonly MakerId[] = MAKERS.map((maker) => maker.id);
 
 /** Retail-audit starting shares by region, in percent: Boon Rawd leads everywhere, ThaiBev is strongest in the central plains, Carabao is a new entrant. */
 export const BASE_SHARE: Record<Region, Record<MakerId, number>> = {

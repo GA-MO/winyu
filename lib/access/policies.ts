@@ -1,5 +1,5 @@
 import { defaultToolsOf } from "@/lib/server/tools/registry";
-import { METRIC_IDS, ROLE_IDS, type AccessContext, type Brand, type MetricId, type Region, type RoleId, type User } from "@/lib/contracts";
+import { METRIC_IDS, type AccessContext, type Brand, type MetricId, type Region, type RoleId, type User } from "@/lib/contracts";
 
 type Visibility = "full" | "masked" | "none";
 type MetricAcl = Record<MetricId, Visibility>;
@@ -88,5 +88,3 @@ export function accessFor(user: User): AccessContext {
     grants: [],
   };
 }
-
-export const POLICY_ROLES: readonly RoleId[] = ROLE_IDS;

@@ -12,8 +12,7 @@ function isRefusal(result: unknown): boolean {
 
 function drawsShareableCard(step: ToolStep, plan: CardPlan, cardTools: ReadonlySet<string>): boolean {
   if (!cardTools.has(step.name) || UNSHAREABLE_TOOLS.has(step.name) || plan.hidden.has(step.toolCallId) || step.outcome.state !== "returned") return false;
-  const result = plan.results.has(step.toolCallId) ? plan.results.get(step.toolCallId) : step.outcome.result;
-  return !isEmptyAnswer(result) && !isRefusal(result);
+  return !isEmptyAnswer(step.outcome.result) && !isRefusal(step.outcome.result);
 }
 
 function readsOf(steps: readonly ToolStep[], cardTools: ReadonlySet<string>): ExchangeRead[] {

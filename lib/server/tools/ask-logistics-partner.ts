@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { AccessContext } from "@/lib/contracts";
 import { DISTRIBUTION_CENTERS } from "@/lib/data/entities/supply";
-import { askRemoteAgent, type RemoteAnswer } from "@/lib/harness/adapters/mastra/a2a-client";
+import type { RemoteAnswer } from "@/lib/harness/adapters/mastra/a2a-client";
 import { fenceAsData } from "@/lib/harness/fence";
 import { TH } from "@/lib/i18n/th";
 import { logisticsPartnerEnv } from "@/lib/server/connectors/logistics-partner-config";
@@ -41,6 +41,7 @@ export async function askLogisticsPartner(access: AccessContext, dcId: string) {
   const env = logisticsPartnerEnv();
   let answer: RemoteAnswer;
   try {
+    const { askRemoteAgent } = await import("@/lib/harness/adapters/mastra/a2a-client");
     answer = await askRemoteAgent({ cardUrl: env.cardUrl, headers: { Authorization: `Bearer ${env.token}` }, timeoutMs: PARTNER_TIMEOUT_MS }, `ETA to ${center.label}`);
   } catch {
     return { ok: false, code: "UNAVAILABLE", error: TH.partner.unavailable };

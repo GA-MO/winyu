@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useState, type ReactNode } from "react";
-import { cn } from "./cn";
 import { FORMATTER, type Formatter } from "./format";
 
 export type ChartFormat = "number" | "currency" | "percent";

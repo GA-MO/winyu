@@ -18,7 +18,6 @@ import { TH } from "@/lib/i18n/th";
 const CARDS: Record<string, ToolCard> = TOOL_CARDS;
 const CARD_TOOLS: ReadonlySet<string> = new Set(Object.keys(CARDS));
 const NOTHING_RUNNING = { running: false, asking: false, decided: undefined } as const;
-const NO_REPLY = { text: "", streaming: false };
 const LOCKABLE_TOOL = "query_metric";
 
 /** A stored read as it came back for the viewer; JSON-safe so it crosses from the share page. */
@@ -37,7 +36,7 @@ function chatHref(action: CardAction): string | null {
 
 function cardOf(name: string, result: unknown, args: unknown, locked: LockedRows | null) {
   if (locked && name === LOCKABLE_TOOL) return <DataCard title={metricTitle(result, args)} source={result} locked={locked} />;
-  return CARDS[name](result, args, NO_REPLY);
+  return CARDS[name](result, args);
 }
 
 function FixedCards({ reads }: { reads: readonly FreshReadView[] }) {
@@ -45,8 +44,7 @@ function FixedCards({ reads }: { reads: readonly FreshReadView[] }) {
   const plan = cardPlanOf(steps, new Set(), CARD_TOOLS);
   const drawn = reads.flatMap((read, index) => {
     const step = steps[index];
-    const result = plan.results.has(step.toolCallId) ? plan.results.get(step.toolCallId) : undefined;
-    const view = toolViewOf(result === undefined ? step : { ...step, outcome: { state: "returned", result } }, { ...NOTHING_RUNNING, hidden: plan.hidden.has(step.toolCallId) }, CARD_TOOLS);
+    const view = toolViewOf(step, { ...NOTHING_RUNNING, hidden: plan.hidden.has(step.toolCallId) }, CARD_TOOLS);
     return view.kind === "card" ? [<div key={step.toolCallId}>{cardOf(view.name, view.result, view.args, read.locked)}</div>] : [];
   });
   if (drawn.length > 0) return <>{drawn}</>;

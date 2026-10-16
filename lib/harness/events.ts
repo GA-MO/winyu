@@ -40,6 +40,4 @@ export type HarnessEventBody =
   | { type: "agent.completed"; payload: { finishReason: string } }
   | { type: "agent.failed"; payload: { reason: string } };
 
-export type HarnessEventType = HarnessEventBody["type"];
-
 export type HarnessEvent = HarnessEventBody & { id: string; runId: string; at: string; source: EventSource };

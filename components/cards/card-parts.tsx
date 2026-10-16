@@ -1,6 +1,5 @@
 "use client";
 
-import { ArrowRight } from "lucide-react";
 import { Alert, Card, Metric } from "@/components/ui/primitives";
 import type { NextAction } from "@/lib/contracts";
 import type { CardParts } from "@/lib/cards/present";
@@ -10,8 +9,6 @@ import { CardBodyView } from "./charts/card-body";
 
 const PRIMARY = "inline-flex items-center rounded-full bg-ink px-3.5 py-2 text-xs font-medium text-ink-foreground transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 const SECONDARY = "inline-flex items-center rounded-full border border-border bg-card px-3.5 py-2 text-xs font-medium text-muted-foreground transition hover:border-foreground/25 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
-
-const FOOTER_LINK = "inline-flex max-w-[55%] shrink-0 items-center gap-1 text-xs font-medium text-foreground/75 transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
 export function ActionStrip({ actions }: { actions: NextAction[] }) {
   const run = useRunAction();
@@ -32,23 +29,6 @@ export function ActionStrip({ actions }: { actions: NextAction[] }) {
           </button>
         ))}
       </div>
-    </div>
-  );
-}
-
-/** A dashboard card's closing line: where the numbers come from, and its first next step as a link; the full set of steps lives in the chat. */
-export function CardFooter({ note, action }: { note: string | null; action: NextAction | null }) {
-  const run = useRunAction();
-  if (!note && !action) return null;
-  return (
-    <div className="flex items-baseline justify-between gap-3 border-t border-border/60 pt-2.5">
-      <p className="min-w-0 flex-1 text-[11px] leading-normal text-muted-foreground/80">{note}</p>
-      {action ? (
-        <button type="button" title={action.reason} onClick={() => run(action)} className={FOOTER_LINK}>
-          <span className="truncate">{action.label}</span>
-          <ArrowRight className="size-3 shrink-0" aria-hidden />
-        </button>
-      ) : null}
     </div>
   );
 }

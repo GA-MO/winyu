@@ -11,7 +11,6 @@ import { TH } from "@/lib/i18n/th";
 import type { ShareTarget } from "@/lib/share/card";
 import { toolTiers } from "@/lib/server/agent/tools";
 import type { SpokenTurn } from "@/lib/server/request-context";
-import { winyuAgent } from "./agent";
 import { ReplyCards, type StreamEvent } from "./card-stream";
 
 const RESULT_SUFFIX = ":result";
@@ -145,6 +144,7 @@ export function agUiMessagesOf(stored: readonly StoredMessage[]): Message[] {
 }
 
 async function memory() {
+  const { winyuAgent } = await import("./agent");
   const found = await winyuAgent().getMemory();
   if (!found) throw new Error("the chat agent has no memory");
   return found;

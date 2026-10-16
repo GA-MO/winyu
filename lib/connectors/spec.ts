@@ -146,9 +146,6 @@ const jsonObject = z.record(z.string(), z.unknown());
 
 const pinnedSchema = z.object({ description: z.string(), inputSchema: jsonObject, hints: hintsSchema, hash: z.string().min(1) });
 
-/** The tool as its server listed it when the admin approved it; a different hash later means the server changed it. */
-export type PinnedRemote = z.infer<typeof pinnedSchema>;
-
 const testRunSchema = z.object({
   asUser: z.string(),
   dryRun: z.boolean().default(false),
@@ -164,9 +161,6 @@ const testRunSchema = z.object({
 export type TestRun = z.infer<typeof testRunSchema>;
 
 const toolTestSchema = z.object({ hash: z.string(), runs: z.array(testRunSchema) });
-
-/** The test runs of one configuration; they count only while `hash` equals the tool's config hash. */
-export type ToolTest = z.infer<typeof toolTestSchema>;
 
 const storedToolSchema = z.object({
   ...toolDeclarationSchema.shape,
@@ -291,7 +285,6 @@ export const RESERVED_REASONS: readonly BlockerCode[] = ["native_tool"];
 
 /** What a connector is, derived from its record, its switch and the last listing, never stored: nothing reaches the model before Live. */
 export type LifecycleState = "draft" | "ready" | "live" | "disabled" | "drifted";
-export const LIFECYCLE: readonly LifecycleState[] = ["draft", "ready", "live", "disabled", "drifted"];
 
 const FIELD_GUESS: Record<FilterKind, RegExp> = {
   own_rows: /(holder|requester|employee|owner)_?id$/i,

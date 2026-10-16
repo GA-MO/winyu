@@ -55,11 +55,6 @@ export function dropClient(connector: McpConnectorConfig, access: AccessContext 
   pool.delete(key);
 }
 
-export function registerClientFactory(next: ConnectorClientFactory): void {
-  resetClientPool();
-  factory = next;
-}
-
 export function resetClientPool(): void {
   for (const pooled of pool.values()) close(pooled);
   pool.clear();

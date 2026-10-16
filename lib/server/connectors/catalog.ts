@@ -46,8 +46,3 @@ export function learnRemoteTools(connector: string, listed: ListedTools): Remote
 export function remoteTool(connector: string, name: string): RemoteTool | null {
   return catalogs.get(connector)?.get(name) ?? null;
 }
-
-export function forgetRemoteTools(): void {
-  catalogs.clear();
-  for (const entry of healthLog().all()) healthLog().remove(entry.id);
-}

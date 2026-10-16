@@ -110,9 +110,3 @@ export function skuById(id: string): Sku | null {
   const index = SKU_INDEX.get(id);
   return index === undefined ? null : (SKUS[index] as Sku);
 }
-
-export function businessUnitOfBrand(brand: Brand): BusinessUnit {
-  return brandInfo(brand).businessUnit;
-}
-
-export const BEER_BRANDS: readonly Brand[] = BRAND_INFO.filter((info) => info.businessUnit !== "non_alcohol").map((info) => info.id);

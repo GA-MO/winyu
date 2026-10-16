@@ -1,4 +1,3 @@
-import { generateObject } from "ai";
 import { z } from "zod";
 import type { AccessContext, ActionEvent, Dim, Grain, MetricId, MetricQuery, WidgetKind, WidgetSpec } from "@/lib/contracts";
 import { actionEvents, alerts, personalWatches } from "@/lib/server/agent/collections";
@@ -8,7 +7,6 @@ import { topicOf } from "@/lib/dashboard/one-per-metric";
 import { TODAY, addDays } from "@/lib/data/dates";
 import { CLOSED_MONTH_METRICS, metricDef } from "@/lib/semantic/metrics";
 import { metricLabel } from "@/lib/dashboard/metric-display";
-import { utilityModel } from "@/lib/server/models";
 import { TH } from "@/lib/i18n/th";
 
 const CLUSTER_DAYS = 14;
@@ -132,8 +130,10 @@ function templateTitle(candidate: Candidate): string {
 }
 
 async function modelTitle(candidate: Candidate): Promise<string | null> {
+  const { utilityModel } = await import("@/lib/server/models");
   const model = utilityModel();
   if (!model) return null;
+  const { generateObject } = await import("ai");
   try {
     const result = await generateObject({
       model,

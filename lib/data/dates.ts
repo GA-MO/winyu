@@ -20,16 +20,6 @@ export function toDayIndex(iso: string): number {
   return Math.round((utc(iso) - START_MS) / MS_PER_DAY);
 }
 
-export function toIso(dayIndex: number): string {
-  return new Date(START_MS + dayIndex * MS_PER_DAY).toISOString().slice(0, 10);
-}
-
-export function clampDayIndex(dayIndex: number): number {
-  if (dayIndex < 0) return 0;
-  if (dayIndex > DAY_COUNT - 1) return DAY_COUNT - 1;
-  return dayIndex;
-}
-
 export function addDays(iso: string, days: number): string {
   return new Date(utc(iso) + days * MS_PER_DAY).toISOString().slice(0, 10);
 }
@@ -152,9 +142,4 @@ export function toBuddhistYear(gregorianYear: number): number {
 export function formatThaiDate(iso: string): string {
   const [year, month, day] = iso.split("-").map(Number);
   return `${day} ${THAI_MONTHS_SHORT[(month ?? 1) - 1]} ${toBuddhistYear(year ?? 1970)}`;
-}
-
-export function formatThaiMonth(monthKey: string): string {
-  const [year, month] = monthKey.split("-").map(Number);
-  return `${THAI_MONTHS_SHORT[(month ?? 1) - 1]} ${toBuddhistYear(year ?? 1970)}`;
 }

@@ -9,7 +9,6 @@ import { alerts, packets } from "@/lib/server/agent/collections";
 import type { Directory } from "@/lib/server/ports/directory";
 
 const MIN_MATTERS = 2;
-const DAY_MS = 86_400_000;
 const SALES_DEPARTMENT = "dept_sales";
 const CAPTION_MATTERS = 3;
 const TONE_ORDER: readonly FeedTone[] = ["danger", "warning", "brand", "info", "success", "neutral"];

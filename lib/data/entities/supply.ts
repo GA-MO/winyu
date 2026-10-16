@@ -3,7 +3,6 @@ import type { Region } from "@/lib/contracts";
 export type ProductionLine = { id: string; nameTh: string; capacityHlPerDay: number };
 export type Plant = { id: string; nameTh: string; label: string; provinceId: string; region: Region; lines: ProductionLine[] };
 export type DistributionCenter = { id: string; nameTh: string; label: string; provinceId: string; region: Region; capacityCases: number };
-export type RawMaterial = { id: string; nameTh: string; label: string; leadTimeDays: number; unit: string };
 
 export const PLANTS: readonly Plant[] = [
   {
@@ -30,7 +29,6 @@ export const PLANTS: readonly Plant[] = [
   },
 ];
 
-export const PLANT_INDEX: ReadonlyMap<string, number> = new Map(PLANTS.map((plant, index) => [plant.id, index]));
 export const PRODUCTION_LINES: readonly { plantIndex: number; plantId: string; line: ProductionLine }[] = PLANTS.flatMap(
   (plant, plantIndex) => plant.lines.map((line) => ({ plantIndex, plantId: plant.id, line })),
 );
@@ -52,15 +50,6 @@ export function dcById(id: string): DistributionCenter | null {
   const index = DC_INDEX.get(id);
   return index === undefined ? null : (DISTRIBUTION_CENTERS[index] as DistributionCenter);
 }
-
-export const RAW_MATERIALS: readonly RawMaterial[] = [
-  { id: "rm_malt", nameTh: "มอลต์", label: "Malt", leadTimeDays: 45, unit: "ตัน" },
-  { id: "rm_hops", nameTh: "ฮอปส์", label: "Hops", leadTimeDays: 60, unit: "กก." },
-  { id: "rm_yeast", nameTh: "ยีสต์", label: "Yeast", leadTimeDays: 14, unit: "กก." },
-  { id: "rm_glass", nameTh: "ขวดแก้ว", label: "Glass bottle", leadTimeDays: 21, unit: "ขวด" },
-  { id: "rm_can", nameTh: "กระป๋องอะลูมิเนียม", label: "Aluminium can", leadTimeDays: 35, unit: "ใบ" },
-  { id: "rm_carton", nameTh: "ลังกระดาษ", label: "Carton", leadTimeDays: 10, unit: "ใบ" },
-];
 
 /** Share of each plant's output that feeds each business unit. */
 export const PLANT_BRAND_MIX: Record<string, Record<string, number>> = {

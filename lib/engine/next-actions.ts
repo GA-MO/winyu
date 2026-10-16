@@ -1,4 +1,4 @@
-import type { AccessContext, Dim, NextAction, NextActionContext, Region, WidgetKind } from "@/lib/contracts";
+import type { AccessContext, Dim, NextAction, NextActionContext, WidgetKind } from "@/lib/contracts";
 import { responsibleFor } from "@/lib/access/raci";
 import { metricLabel, metricSource, toneOf } from "@/lib/dashboard/metric-display";
 import { GEO_LEVELS, finestGeoLevel } from "@/lib/semantic/geo";

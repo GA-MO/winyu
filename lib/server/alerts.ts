@@ -239,10 +239,6 @@ export function dismissAlert(alert: Alert): { alert: Alert; raised: boolean } {
   return { alert: updated, raised: dismissals % RAISE_EVERY === 0 };
 }
 
-export function alertById(id: string): Alert | null {
-  return alerts().get(id);
-}
-
 /** The intent an alert's events are counted under: the slice it watches, not the one alert, so a reopened alert is the same interest. */
 export function alertIntentKey(alert: Alert): string {
   return `alert:${thresholdKey(alert.metric, alert.dims)}`;

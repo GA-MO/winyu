@@ -9,7 +9,6 @@ export type Source = { query: MetricQuery; result: Extract<MetricResult, { ok: t
 
 const MAX_SERIES = 5;
 const MAX_SLICES = 6;
-const MAX_CALLOUTS = 3;
 const MAX_NAMED_POINTS = 4;
 const MIN_INTENSITY = 0.15;
 const PERCENT = 100;
@@ -20,8 +19,6 @@ const WIDE_GAP_PCT = 5;
 const MIN_GAP_SCALE_PCT = 10;
 const PARENTHETICAL = /\s*\(.*\)$/;
 const PERCENT_METRIC_SHARE: ReadonlySet<MetricId> = new Set(["market_share", "share_of_voice"]);
-const WORST_WHEN_LOW: ReadonlySet<MetricId> = new Set(["target_attainment", "days_of_cover", "market_share", "gross_margin"]);
-const WORST_WHEN_HIGH: ReadonlySet<MetricId> = new Set(["ar_overdue", "forecast_mape", "attrition_rate"]);
 
 type Group = { key: string; total: number; values: Map<string, number> };
 

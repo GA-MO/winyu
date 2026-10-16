@@ -22,10 +22,6 @@ export function metricSource(metric: MetricId): string {
   return METRICS[metric].sourceSystem;
 }
 
-export function isCertified(metric: MetricId): boolean {
-  return METRICS[metric].certified;
-}
-
 /** A metric value as the user reads it: number with unit, บาท for money, % for ratios, `***` when masked. */
 export function formatMetricValue(metric: MetricId, value: number | string | null): string {
   const format = metricFormat(metric);

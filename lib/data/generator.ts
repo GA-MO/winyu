@@ -12,7 +12,7 @@ import { CAMPAIGNS } from "./entities/marketing";
 import { BRAND_BASE_SOV, COMPETITORS } from "./entities/marketing";
 import { BRAND_INDEX, BRAND_INFO, PACK_INDEX, SKUS, brandInfo } from "./entities/products";
 import { BUSINESS_UNIT_INDEX, PROVINCE_INDEX, REGION_INDEX } from "./entities/org";
-import { DISTRIBUTION_CENTERS, DC_INDEX, PLANTS, PLANT_BRAND_MIX, PRODUCTION_LINES } from "./entities/supply";
+import { DISTRIBUTION_CENTERS, DC_INDEX, PLANT_BRAND_MIX, PRODUCTION_LINES } from "./entities/supply";
 import { hashNoise, jitter } from "./random";
 
 export const SKU_COUNT = SKUS.length;
@@ -22,7 +22,6 @@ export const BRAND_COUNT = BRANDS.length;
 export const CHANNEL_COUNT = CHANNELS.length;
 export const DC_COUNT = DISTRIBUTION_CENTERS.length;
 export const LINE_COUNT = PRODUCTION_LINES.length;
-export const PLANT_COUNT = PLANTS.length;
 export const CAMPAIGN_COUNT = CAMPAIGNS.length;
 export const DEPARTMENT_COUNT = DEPARTMENTS.length;
 

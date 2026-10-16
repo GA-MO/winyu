@@ -6,7 +6,8 @@ import { presentCard } from "@/lib/cards/present";
 import type { AccessContext, DraftStory, Investigation, Story } from "@/lib/contracts";
 import { USERS, findUser } from "@/lib/data/entities/users";
 import { toolsForAccess } from "@/lib/server/agent/tools";
-import { evidenceIndexOf, investigate, reviewDrafts, saveInvestigation, storiesFrom, type EvidenceIndex, type InvestigationRun, type ReviewedDraft, type ToolCall } from "@/lib/server/investigate";
+import { saveInvestigation } from "@/lib/server/investigations";
+import { evidenceIndexOf, investigate, reviewDrafts, storiesFrom, type EvidenceIndex, type InvestigationRun, type ReviewedDraft, type ToolCall } from "@/lib/server/investigate";
 import { agentModel } from "@/lib/server/models";
 import { runWithAccess } from "@/lib/server/request-context";
 

@@ -42,10 +42,6 @@ export function responsibleFor(metric: MetricId, region: Region | null): Respons
   return { userId: owner.id, user: owner, role: owner.role, basis: `${group.basis} (${scope})` };
 }
 
-export function responsibleUserId(metric: MetricId, region: Region | null): string | null {
-  return responsibleFor(metric, region)?.userId ?? null;
-}
-
 export function managerOf(userId: string): User | null {
   const user = findUser(userId);
   return user?.managerId ? findUser(user.managerId) : null;

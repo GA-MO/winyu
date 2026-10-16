@@ -5,7 +5,7 @@ import { AlertCircle, CircleSlash, MessageSquareReply, MousePointerClick, Shield
 import { renderApproval } from "@/components/cards/approval-card";
 import { ShareChrome } from "@/components/share/share-sheet";
 import { describeToolCall } from "@/lib/cards/describe-call";
-import { TOOL_CARDS, type ReplyText, type ToolCard } from "@/components/cards/registry";
+import { TOOL_CARDS, type ToolCard } from "@/components/cards/registry";
 import { Badge } from "@/components/ui/primitives";
 import type { ContextPacket, HandoffReplyNote } from "@/lib/contracts";
 import { maskPersonalData } from "@/lib/harness/guard";
@@ -120,17 +120,13 @@ function sharingOf(exchange: Exchange, toolSteps: readonly ToolStep[], streaming
   return { calls, question: exchange.question?.kind === "typed" ? exchange.question.text : null };
 }
 
-function drawnStep(step: ToolStep, plan: CardPlan): ToolStep {
-  return plan.results.has(step.toolCallId) ? { ...step, outcome: { state: "returned", result: plan.results.get(step.toolCallId) } } : step;
-}
-
-function ToolStepView({ step, live, plan, reply, sharing }: { step: ToolStep; live: ExchangeLive; plan: CardPlan; reply: ReplyText; sharing: Sharing }) {
+function ToolStepView({ step, live, plan, streaming, sharing }: { step: ToolStep; live: ExchangeLive; plan: CardPlan; streaming: boolean; sharing: Sharing }) {
   const asking = live.waiting.has(step.toolCallId);
-  const view = toolViewOf(drawnStep(step, plan), { running: reply.streaming, asking, decided: live.decisions[step.toolCallId], hidden: plan.hidden.has(step.toolCallId) }, CARD_TOOLS);
+  const view = toolViewOf(step, { running: streaming, asking, decided: live.decisions[step.toolCallId], hidden: plan.hidden.has(step.toolCallId) }, CARD_TOOLS);
   if (view.kind === "card")
     return (
       <div className="flex w-full animate-hero-rise flex-col gap-1">
-        <ShareChrome target={toolShare(sharing, step.toolCallId, view.result)}>{CARDS[view.name](view.result, view.args, reply)}</ShareChrome>
+        <ShareChrome target={toolShare(sharing, step.toolCallId, view.result)}>{CARDS[view.name](view.result, view.args)}</ShareChrome>
       </div>
     );
   if (view.kind === "not-run") return <Note text={TH.conversation.notRun} tone="muted" />;
@@ -164,7 +160,7 @@ function HandoffReplyView({ note }: { note: HandoffReplyNote }) {
   );
 }
 
-function StepView({ step, live, plan, reply, sharing }: { step: ReplyStep; live: ExchangeLive; plan: CardPlan; reply: ReplyText; sharing: Sharing }) {
+function StepView({ step, live, plan, streaming, sharing }: { step: ReplyStep; live: ExchangeLive; plan: CardPlan; streaming: boolean; sharing: Sharing }) {
   if (step.kind === "text") return <Markdown text={step.text} />;
   if (step.kind === "handoff-reply") return <HandoffReplyView note={step.note} />;
   if (step.kind === "composed")
@@ -179,13 +175,9 @@ function StepView({ step, live, plan, reply, sharing }: { step: ReplyStep; live:
     );
   return (
     <CardBoundary>
-      <ToolStepView step={step} live={live} plan={plan} reply={reply} sharing={sharing} />
+      <ToolStepView step={step} live={live} plan={plan} streaming={streaming} sharing={sharing} />
     </CardBoundary>
   );
-}
-
-function replyOf(exchange: Exchange, streaming: boolean): ReplyText {
-  return { text: exchange.steps.flatMap((step) => (step.kind === "text" ? [step.text] : [])).join("\n"), streaming };
 }
 
 function shows(step: ReplyStep): boolean {
@@ -217,7 +209,6 @@ export function ExchangeView({ exchange, live }: { exchange: Exchange; live: Exc
   const streaming = live.running && live.isLast;
   const toolSteps = exchange.steps.filter((step): step is ToolStep => step.kind === "tool");
   const plan = cardPlanOf(toolSteps, composedCalls(exchange.steps, streaming), CARD_TOOLS);
-  const reply = replyOf(exchange, streaming);
   const sharing = sharingOf(exchange, toolSteps, streaming);
   const steps = stepsWithApprovals(exchange, live.asked);
   return (
@@ -225,7 +216,7 @@ export function ExchangeView({ exchange, live }: { exchange: Exchange; live: Exc
       {exchange.question ? <UserBubble question={exchange.question} /> : null}
       <ActionTrail trail={trailOf(steps, streaming, live.toolLabels)} streaming={streaming} durationMs={live.durationMs} />
       {steps.map((step) => (
-        <StepView key={step.kind === "tool" ? step.toolCallId : `${step.kind}-${step.id}`} step={step} live={live} plan={plan} reply={reply} sharing={sharing} />
+        <StepView key={step.kind === "tool" ? step.toolCallId : `${step.kind}-${step.id}`} step={step} live={live} plan={plan} streaming={streaming} sharing={sharing} />
       ))}
       <Ending exchange={exchange} live={live} />
     </article>

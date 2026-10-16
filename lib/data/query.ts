@@ -1,4 +1,4 @@
-import type { AccessContext, Dim, MetricDef, MetricQuery, MetricResult } from "@/lib/contracts";
+import type { AccessContext, MetricDef, MetricQuery, MetricResult } from "@/lib/contracts";
 import { METRIC_LIST, findMetric } from "@/lib/semantic/metrics";
 import { evaluateMetric } from "@/lib/semantic/engine";
 import { INJECTED_ANOMALIES } from "./anomalies";

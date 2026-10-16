@@ -8,7 +8,7 @@ import { collection } from "@/lib/server/store/json-store";
 import { DEMO_ENROLLMENTS } from "@/lib/server/ports/generator-learning";
 import { confirmMemory } from "@/lib/engine/memory";
 import { enrollCourse } from "./courses";
-import { actOnFeedItem, feedFor, goodNewsFor, landingFeedFor, todoFor } from "./feed";
+import { actOnFeedItem, feedFor, goodNewsFor, todoFor } from "./feed";
 import { alertIntentKey, openAlertsFor } from "./alerts";
 import { quickActionsFor } from "./quick-actions";
 import { ensureFeedHistory } from "./demo-feed-history";

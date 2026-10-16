@@ -17,7 +17,6 @@ export const SHARE_RECIPIENTS_MAX = 10;
 export const SHARE_NOTE_MAX = 300;
 const READS_MAX = 12;
 const COMPONENTS_MAX = 80;
-const DOCUMENTS_TOOL = "search_documents";
 const CHANNEL_PREFERENCE: readonly ShareChannel[] = ["teams", "line", "email"];
 
 /** Reads that cannot be shared: the person's own memory, and the metric catalog the model browses on the way to an answer. */
@@ -118,12 +117,10 @@ function readOf(call: ExchangeRead): SharedRead {
   return { tool: call.tool, input: inputOf(call.args) };
 }
 
-/** The share behind one fixed card: its own call, or every documents search of the exchange, since the chat draws those as one card. */
+/** The share behind one fixed card: its own call. */
 export function sharedToolCard(calls: readonly ExchangeRead[], toolCallId: string): SharedCard | null {
   const call = calls.find((candidate) => candidate.toolCallId === toolCallId);
-  if (!call) return null;
-  if (call.tool !== DOCUMENTS_TOOL) return { kind: "tool", reads: [readOf(call)] };
-  return { kind: "tool", reads: calls.filter((candidate) => candidate.tool === DOCUMENTS_TOOL && candidate.returned).map(readOf) };
+  return call ? { kind: "tool", reads: [readOf(call)] } : null;
 }
 
 /** The share behind a composed card: every composable read that returned, in call order (the order names the card's data paths), and the components that held. */

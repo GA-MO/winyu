@@ -5,22 +5,20 @@ import {
 } from "./generator";
 import { buildMarketShare, type MarketTables } from "./market-share";
 
-type Slot<T> = { value: T | null; buildMs: number };
+type Slot<T> = { value: T | null };
 
-const sales: Slot<SalesCube> = { value: null, buildMs: 0 };
-const inventory: Slot<InventoryTables> = { value: null, buildMs: 0 };
-const production: Slot<ProductionTables> = { value: null, buildMs: 0 };
-const marketing: Slot<MarketingTables> = { value: null, buildMs: 0 };
-const finance: Slot<FinanceTables> = { value: null, buildMs: 0 };
-const hr: Slot<HrTables> = { value: null, buildMs: 0 };
-const forecastAccuracy: Slot<ForecastAccuracyTables> = { value: null, buildMs: 0 };
-const market: Slot<MarketTables> = { value: null, buildMs: 0 };
+const sales: Slot<SalesCube> = { value: null };
+const inventory: Slot<InventoryTables> = { value: null };
+const production: Slot<ProductionTables> = { value: null };
+const marketing: Slot<MarketingTables> = { value: null };
+const finance: Slot<FinanceTables> = { value: null };
+const hr: Slot<HrTables> = { value: null };
+const forecastAccuracy: Slot<ForecastAccuracyTables> = { value: null };
+const market: Slot<MarketTables> = { value: null };
 
 function fill<T>(slot: Slot<T>, build: () => T): T {
   if (slot.value) return slot.value;
-  const started = performance.now();
   slot.value = build();
-  slot.buildMs = performance.now() - started;
   return slot.value;
 }
 
@@ -66,24 +64,4 @@ export function warmAll(): void {
   hrTables();
   forecastAccuracyTables();
   marketTables();
-}
-
-export function buildTimings(): Record<string, number> {
-  return {
-    sales: sales.buildMs,
-    inventory: inventory.buildMs,
-    production: production.buildMs,
-    marketing: marketing.buildMs,
-    finance: finance.buildMs,
-    hr: hr.buildMs,
-    forecastAccuracy: forecastAccuracy.buildMs,
-    market: market.buildMs,
-  };
-}
-
-export function resetCaches(): void {
-  for (const slot of [sales, inventory, production, marketing, finance, hr, forecastAccuracy, market]) {
-    slot.value = null;
-    slot.buildMs = 0;
-  }
 }

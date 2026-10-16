@@ -94,14 +94,3 @@ export function exchangesOf(messages: readonly ChatMessage[]): Exchange[] {
   }
   return exchanges;
 }
-
-/** The newest tool result of one tool in the latest exchange; null until that tool has returned. */
-export function latestResultOf(exchanges: readonly Exchange[], tool: string): { args: unknown; result: unknown } | null {
-  const last = exchanges[exchanges.length - 1];
-  if (!last) return null;
-  for (let index = last.steps.length - 1; index >= 0; index -= 1) {
-    const step = last.steps[index];
-    if (step.kind === "tool" && step.name === tool && step.outcome.state === "returned") return { args: step.args, result: step.outcome.result };
-  }
-  return null;
-}

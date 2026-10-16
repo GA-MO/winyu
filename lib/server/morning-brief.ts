@@ -1,5 +1,5 @@
 import type { AccessContext, EvidenceAnswer, MorningBrief, Story, StoryCard } from "@/lib/contracts";
-import { latestInvestigation } from "@/lib/server/investigate";
+import { latestInvestigation } from "@/lib/server/investigations";
 import { runMetric } from "@/lib/server/metrics";
 
 async function evidenceFor(story: Story, access: AccessContext): Promise<EvidenceAnswer | null> {

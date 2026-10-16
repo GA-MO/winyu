@@ -129,7 +129,7 @@ function fixedCards(calls: EvalTurn["calls"], composedHolds: boolean): DrawnCard
   const plan = cardPlanOf(steps, composed, readTools);
   return steps.flatMap((step) => {
     if (step.outcome.state !== "returned" || !readTools.has(step.name) || plan.hidden.has(step.toolCallId)) return [];
-    const result = plan.results.has(step.toolCallId) ? plan.results.get(step.toolCallId) : step.outcome.result;
+    const result = step.outcome.result;
     if (isEmptyAnswer(result)) return [];
     return [{ tool: step.name, args: step.args, result }];
   });

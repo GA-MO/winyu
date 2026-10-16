@@ -1,5 +1,5 @@
 import { toolSurface, surfaceEntry, toolsOfConnector, connectors } from "@/lib/server/tools/registry";
-import { type AccessContext, type ActiveGrant, type Dim, type Grant, type ToolName, type ToolTier, type User } from "@/lib/contracts";
+import { type AccessContext, type ActiveGrant, type Dim, type Grant, type ToolName, type User } from "@/lib/contracts";
 import { collection } from "@/lib/server/store/json-store";
 import { accessFor } from "./policies";
 import { permissionsFor } from "./role-overrides";
@@ -166,10 +166,6 @@ export function assertToolAllowed(access: AccessContext, name: string): void {
   if (!isToolAllowed(access, name)) throw new ToolNotAllowedError(name, access.role);
 }
 
-export function tierOfTool(name: ToolName): ToolTier {
-  return surfaceEntry(name)?.tier ?? "read";
-}
-
 /** The dimension filters every query runs under; a dim missing here is unrestricted for this user. */
 export function scopePredicates(access: AccessContext): ScopePredicates {
   const predicates: ScopePredicates = {};
@@ -195,17 +191,4 @@ export function outOfScopeFilters(access: AccessContext, filters: Partial<Record
     if (denied.length > 0) denials.push({ dim, requested: denied, allowed });
   }
   return denials;
-}
-
-/** Narrows a query's filters to the caller's scope, so an unfiltered question never reads outside it. */
-export function applyScope(access: AccessContext, filters: Partial<Record<Dim, string[]>>): Partial<Record<Dim, string[]>> {
-  const predicates = scopePredicates(access);
-  const scoped: Partial<Record<Dim, string[]>> = { ...filters };
-  for (const dim of SCOPED_DIMS) {
-    const allowed = predicates[dim];
-    if (!allowed) continue;
-    const requested = scoped[dim];
-    scoped[dim] = requested ? requested.filter((value) => allowed.includes(value)) : [...allowed];
-  }
-  return scoped;
 }

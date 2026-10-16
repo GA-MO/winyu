@@ -5,7 +5,6 @@ import { currentAccess } from "@/lib/server/request-context";
 import { conditionLabel, createWatch } from "@/lib/server/watches";
 import { defineTool } from "./define";
 import { watchHolds } from "./verify";
-import { now } from "./shared";
 
 export const watchMetricTool = defineTool({
   name: "watch_metric",

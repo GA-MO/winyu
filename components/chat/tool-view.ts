@@ -5,7 +5,6 @@ import type { ReplyStep, ToolStep } from "./timeline";
 
 const DECLINED_TEXT = /not approved|declined|rejected|denied/i;
 const ANSWER_LISTS = ["rows", "weeks"] as const;
-const DOCUMENTS_TOOL = "search_documents";
 const CATALOG_TOOL = "list_metrics";
 const PEOPLE_LOOKUPS: ReadonlySet<string> = new Set(["find_people", "get_person", "resolve_owner"]);
 const ENTITY_LOOKUP = "describe_entity";
@@ -72,28 +71,8 @@ export function composedCalls(steps: readonly ReplyStep[], streaming: boolean): 
   return new Set(steps.flatMap((step) => (step.kind === "tool" && !UNCOMPOSABLE_TOOLS.includes(step.name) ? [step.toolCallId] : [])));
 }
 
-/** How the fixed cards of one exchange are drawn: the calls whose card is left out, and the results a card draws in place of its own call's. */
-export type CardPlan = { hidden: ReadonlySet<string>; results: ReadonlyMap<string, unknown> };
-
-type Passage = { doc_id?: unknown; section?: unknown; text?: unknown };
-type DocumentsResult = { data: { passages: Passage[] } };
-
-function documentsOf(step: ToolStep): DocumentsResult | null {
-  if (step.name !== DOCUMENTS_TOOL || step.outcome.state !== "returned") return null;
-  const result = step.outcome.result as { data?: { passages?: unknown } } | null;
-  return typeof result === "object" && result !== null && Array.isArray(result.data?.passages) ? (result as DocumentsResult) : null;
-}
-
-function passageKey(passage: Passage): string {
-  return JSON.stringify([passage.doc_id, passage.section, passage.text]);
-}
-
-function mergedDocuments(results: readonly DocumentsResult[]): DocumentsResult {
-  const passages = new Map<string, Passage>();
-  for (const passage of results.flatMap((result) => result.data.passages)) if (!passages.has(passageKey(passage))) passages.set(passageKey(passage), passage);
-  const last = results[results.length - 1];
-  return { ...last, data: { ...last.data, passages: [...passages.values()] } };
-}
+/** How the fixed cards of one exchange are drawn: the calls whose card is left out. */
+export type CardPlan = { hidden: ReadonlySet<string> };
 
 function answered(step: ToolStep): boolean {
   if (step.outcome.state !== "returned") return false;
@@ -151,19 +130,10 @@ function recipientLookups(steps: readonly ToolStep[]): string[] {
   });
 }
 
-/** One card per question: a people lookup that found the recipient of a later share, handoff or email in the exchange is left out, a refused or failed call the model corrected later in the exchange (the same tool answered after it) is left out, every documents search of the exchange draws as one card at the first search (passages merged, duplicates dropped, so citations count over all of them), and the metric catalog the model browsed on the way is left out once another card answers; `composed` are the calls a composed card already holds. */
+/** One card per question: a people lookup that found the recipient of a later share, handoff or email in the exchange is left out, a refused or failed call the model corrected later in the exchange (the same tool answered after it) is left out, and the metric catalog the model browsed on the way is left out once another card answers; `composed` are the calls a composed card already holds. */
 export function cardPlanOf(steps: readonly ToolStep[], composed: ReadonlySet<string>, cardTools: ReadonlySet<string>): CardPlan {
   const hidden = new Set([...composed, ...recoveredFailures(steps), ...recipientLookups(steps)]);
-  const results = new Map<string, unknown>();
-  const searches = steps.flatMap((step) => {
-    const documents = documentsOf(step);
-    return documents ? [{ step, documents }] : [];
-  });
-  if (searches.length > 1) {
-    results.set(searches[0].step.toolCallId, mergedDocuments(searches.map((search) => search.documents)));
-    for (const search of searches.slice(1)) hidden.add(search.step.toolCallId);
-  }
-  if (!steps.some((step) => drawsAnswer(step, hidden, cardTools))) return { hidden, results };
+  if (!steps.some((step) => drawsAnswer(step, hidden, cardTools))) return { hidden };
   for (const step of steps) if (step.name === CATALOG_TOOL) hidden.add(step.toolCallId);
-  return { hidden, results };
+  return { hidden };
 }

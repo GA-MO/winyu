@@ -10,7 +10,6 @@ import { explainGapInputSchema, storySchema, type AccessContext, type DraftStory
 import { TODAY } from "@/lib/data/dates";
 import { USERS, findUser } from "@/lib/data/entities/users";
 import { TH } from "@/lib/i18n/th";
-import { investigations } from "@/lib/server/agent/collections";
 import { runMetric } from "@/lib/server/metrics";
 import { aiSdkTools } from "@/lib/server/agent/ai-sdk-tools";
 import { winyuTools, toolsForAccess } from "@/lib/server/agent/tools";
@@ -310,13 +309,4 @@ async function investigateNow(userId: string, model: LanguageModel, modelId: str
   const costUsd = usage.billedCalls > 0 ? usage.billedUsd : usage.estimatedUsd;
   const investigation = { id: userId, userId, at: new Date().toISOString(), model: modelId, stories, checkedCount: result.calls.length, costUsd };
   return { investigation, notes: result.notes, calls: result.calls, dropped };
-}
-
-/** The last investigation stored for this person, or null before the first run. */
-export function latestInvestigation(userId: string): Investigation | null {
-  return investigations().get(userId) ?? null;
-}
-
-export function saveInvestigation(investigation: Investigation): void {
-  investigations().put(investigation);
 }

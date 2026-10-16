@@ -5,7 +5,6 @@ import { collection } from "@/lib/server/store/json-store";
 import type { EventSource, HarnessEvent, HarnessEventBody } from "./events";
 import { LIMITS } from "./limits";
 import type { Goal } from "./types";
-import { stateOf, type AgentState } from "./state";
 
 export const RUNS_COLLECTION = "runs";
 
@@ -45,10 +44,6 @@ export function emitTo(run: Run, source: EventSource, body: HarnessEventBody): H
 export function emit(source: EventSource, body: HarnessEventBody): void {
   const run = currentRun();
   if (run) emitTo(run, source, body);
-}
-
-export function runState(run: Run): AgentState {
-  return stateOf(run.id, run.events);
 }
 
 /** A finished run as the trace store keeps it: who, which thread, when, and every event in order. */

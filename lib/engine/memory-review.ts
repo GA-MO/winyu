@@ -1,8 +1,6 @@
-import { generateObject } from "ai";
 import { fenceAsData } from "@/lib/harness/fence";
 import { z } from "zod";
 import type { MemoryFact } from "@/lib/contracts";
-import { utilityModel } from "@/lib/server/models";
 import { TH } from "@/lib/i18n/th";
 
 const SHORT_ID_PREFIX = "f";
@@ -22,11 +20,13 @@ export type ReviewPlan = { groups: { ids: string[]; type: MemoryFact["type"]; va
 
 /** Asks the model to fold one user's facts into distinct statements and name the ones that are guesses or about the system; ids come back as real fact ids. */
 export async function planReview(facts: MemoryFact[], who: string): Promise<ReviewPlan | null> {
+  const { utilityModel } = await import("@/lib/server/models");
   const model = utilityModel();
   if (!model || facts.length === 0) return null;
   const idOf = new Map(facts.map((fact, index) => [`${SHORT_ID_PREFIX}${index + 1}`, fact.id]));
   const listing = facts.map((fact, index) => `${SHORT_ID_PREFIX}${index + 1} [${fact.type}] ${fact.value}`).join("\n");
   try {
+    const { generateObject } = await import("ai");
     const { object } = await generateObject({
       model,
       schema: reviewSchema,

@@ -30,7 +30,6 @@ import { watchMetricTool } from "./watch-metric";
 import { runJobTool } from "./run-job";
 import { setPermissionTool } from "./set-permission";
 import { askLogisticsPartnerTool } from "./ask-logistics-partner";
-import { searchDocumentsTool } from "./search-documents";
 import { storeVisitsTool } from "./store-visits";
 import { trainingHistoryTool } from "./training-history";
 import { NATIVE_FIELDS } from "./native-fields";
@@ -53,7 +52,6 @@ const NATIVE_TOOLS: { [Name in NativeToolName]: WinyuTool<Name> } = {
   list_candidates: listCandidatesTool,
   list_courses: listCoursesTool,
   get_policy: getPolicyTool,
-  search_documents: searchDocumentsTool,
   request_leave: requestLeaveTool,
   enroll_course: enrollCourseTool,
   resolve_owner: resolveOwnerTool,

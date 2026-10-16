@@ -1,7 +1,7 @@
 import { randomBytes } from "node:crypto";
 import { collection } from "@/lib/server/store/json-store";
-import { SECRETS_COLLECTION } from "@/lib/server/approval-secret";
 
+const SECRETS_COLLECTION = "secrets";
 const SESSION_SECRET_ENV = "WINYU_SESSION_SECRET";
 const SECRET_ID = "session";
 const SECRET_BYTES = 32;

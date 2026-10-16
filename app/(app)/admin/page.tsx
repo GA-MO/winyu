@@ -22,20 +22,19 @@ import { UsageTab } from "@/components/admin/usage-tab";
 import { McpTab } from "@/components/admin/mcp-tab";
 import { A2A_CARD_PATH } from "@/lib/server/a2a";
 import { SignInTab } from "@/components/admin/sign-in-tab";
-import { DocumentsTab } from "@/components/admin/documents-tab";
 import { GrantsTab } from "@/components/admin/grants-tab";
 import { FOCUS } from "@/components/admin/parts";
 
 type SearchParams = Promise<{ tab?: string; run?: string; as?: string; metric?: string; user?: string; tool?: string; connector?: string; decision?: string; range?: string; limit?: string; role?: string; view?: string }>;
 
-const TABS = ["overview", "access", "grants", "tools", "rules", "audit", "usage", "simulate", "mcp", "signin", "documents"] as const;
+const TABS = ["overview", "access", "grants", "tools", "rules", "audit", "usage", "simulate", "mcp", "signin"] as const;
 const LEGACY_TABS: Record<string, Tab> = { users: "access" };
 const GROUPS = [
   { id: "overview", icon: LayoutDashboard, tabs: ["overview", "usage"] },
   { id: "access", icon: ShieldCheck, tabs: ["access", "grants", "simulate"] },
   { id: "tools", icon: Wrench, tabs: ["tools", "rules"] },
   { id: "audit", icon: ScrollText, tabs: ["audit"] },
-  { id: "connections", icon: Plug, tabs: ["mcp", "signin", "documents"] },
+  { id: "connections", icon: Plug, tabs: ["mcp", "signin"] },
 ] as const satisfies readonly { id: string; icon: LucideIcon; tabs: readonly Tab[] }[];
 const DECISIONS: readonly AuditEntry["decision"][] = ["allow", "deny", "masked"];
 const DEFAULT_ROLE: RoleId = "sales_rep";
@@ -227,7 +226,6 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
         {current === "signin" ? <SignInTab /> : null}
         {current === "simulate" ? <SimulateTab userId={params.as ?? USERS[0].id} metric={metricOf(params.metric)} /> : null}
         {current === "mcp" ? await accessTokensTab() : null}
-        {current === "documents" ? <DocumentsTab /> : null}
       </div>
     </div>
   );

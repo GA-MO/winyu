@@ -5,9 +5,6 @@ import { linkedUserOfKey } from "@/lib/server/identity";
 import { sessionFromCookie } from "@/lib/server/auth/session-token";
 import { SESSION_COOKIE } from "./session-cookie";
 
-export { SESSION_COOKIE };
-export { clearedSessionCookie, sessionCookie } from "@/lib/server/auth/session-token";
-
 type CookieReader = { get(name: string): { value: string } | undefined };
 
 /** The signed-in user; an Entra session counts only while IT still links its identity to that same user. */

@@ -1,7 +1,6 @@
 import { BUSINESS_UNITS, REGIONS, type BusinessUnit, type Region } from "@/lib/contracts";
 
 export type Province = { id: string; nameTh: string; region: Region };
-export type BusinessUnitInfo = { id: BusinessUnit; nameTh: string; label: string };
 
 export const REGION_LABELS_TH: Record<Region, string> = {
   bkk: "กรุงเทพฯ และปริมณฑล",
@@ -11,12 +10,6 @@ export const REGION_LABELS_TH: Record<Region, string> = {
   east: "ภาคตะวันออก",
   south: "ภาคใต้",
 };
-
-export const BUSINESS_UNIT_INFO: readonly BusinessUnitInfo[] = [
-  { id: "beer", nameTh: "กลุ่มเบียร์", label: "Beer" },
-  { id: "non_alcohol", nameTh: "กลุ่มนอนแอลกอฮอล์", label: "Non-alcohol" },
-  { id: "import", nameTh: "กลุ่มนำเข้า", label: "Import" },
-];
 
 export const BUSINESS_UNIT_LABELS_TH: Record<BusinessUnit, string> = {
   beer: "กลุ่มเบียร์",
@@ -58,19 +51,5 @@ export function provinceById(id: string): Province | null {
   return index === undefined ? null : (PROVINCES[index] as Province);
 }
 
-export function provincesOfRegion(region: Region): Province[] {
-  return PROVINCES.filter((province) => province.region === region);
-}
-
 export const REGION_INDEX: ReadonlyMap<Region, number> = new Map(REGIONS.map((region, index) => [region, index]));
 export const BUSINESS_UNIT_INDEX: ReadonlyMap<BusinessUnit, number> = new Map(BUSINESS_UNITS.map((unit, index) => [unit, index]));
-
-/** Share of national demand per region; sums to 1. */
-export const REGION_DEMAND_SHARE: Record<Region, number> = {
-  bkk: 0.27,
-  central: 0.16,
-  north: 0.13,
-  northeast: 0.21,
-  east: 0.12,
-  south: 0.11,
-};

@@ -1,5 +1,4 @@
 import { randomUUID } from "node:crypto";
-import { generateObject } from "ai";
 import { fenceAsData } from "@/lib/harness/fence";
 import { z } from "zod";
 import type { Dim, MemoryFact, MetricId } from "@/lib/contracts";
@@ -8,7 +7,6 @@ import { findUser } from "@/lib/data/entities/users";
 import { METRIC_LIST, METRICS } from "@/lib/semantic/metrics";
 import type { Dictionary, EntityKind } from "@/lib/semantic/dictionary";
 import { loadDictionary } from "@/lib/server/master-data";
-import { utilityModel } from "@/lib/server/models";
 import { TH } from "@/lib/i18n/th";
 import { clusterFacts, findSameFact } from "./memory-match";
 import { planReview } from "./memory-review";
@@ -128,8 +126,10 @@ function questionLine(turn: HeardTurn): string {
 }
 
 async function extractByModel(userId: string, turns: HeardTurn[], known: MemoryFact[]): Promise<Extracted[] | null> {
+  const { utilityModel } = await import("@/lib/server/models");
   const model = utilityModel();
   if (!model) return null;
+  const { generateObject } = await import("ai");
   const { text, idOf } = knownBlock(known.slice(0, MAX_KNOWN_SHOWN_TO_MODEL));
   try {
     const result = await generateObject({

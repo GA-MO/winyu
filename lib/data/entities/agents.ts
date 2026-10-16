@@ -64,9 +64,3 @@ export function agentById(id: string): Agent | null {
   const index = AGENT_INDEX.get(id);
   return index === undefined ? null : (AGENTS[index] as Agent);
 }
-
-export function agentsOfRegion(region: Region): Agent[] {
-  return AGENTS.filter((agent) => agent.region === region);
-}
-
-export const TIER_LABELS_TH: Record<AgentTier, string> = { A: "เกรด A", B: "เกรด B", C: "เกรด C" };

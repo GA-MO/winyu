@@ -1,4 +1,4 @@
-import { createMCPClient, type MCPClient } from "@ai-sdk/mcp";
+import type { MCPClient } from "@ai-sdk/mcp";
 
 export type { MCPClient };
 
@@ -14,5 +14,6 @@ async function transportFor(config: McpTransportConfig) {
 
 /** Opens one MCP client on a transport; the stdio transport loads on demand because it needs child_process. */
 export async function openMcpClient(transport: McpTransportConfig, clientName: string): Promise<MCPClient> {
+  const { createMCPClient } = await import("@ai-sdk/mcp");
   return createMCPClient({ transport: await transportFor(transport), clientName });
 }

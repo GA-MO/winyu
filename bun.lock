@@ -48,7 +48,6 @@
         "@types/node": "^22.10.0",
         "@types/react": "^19.2.0",
         "@types/react-dom": "^19.2.0",
-        "happy-dom": "^20.14.5",
         "hono": "^4.13.13",
         "mastra": "1.32.1",
         "tailwindcss": "^4.1.18",

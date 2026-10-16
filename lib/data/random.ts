@@ -41,8 +41,3 @@ export function hashNoise(...keys: (string | number)[]): number {
 export function jitter(amplitude: number, ...keys: (string | number)[]): number {
   return 1 + (hashNoise(...keys) - 0.5) * 2 * amplitude;
 }
-
-export function pick<T>(items: readonly T[], ...keys: (string | number)[]): T {
-  const index = Math.min(items.length - 1, Math.floor(hashNoise(...keys) * items.length));
-  return items[index] as T;
-}
