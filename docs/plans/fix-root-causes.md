@@ -31,7 +31,7 @@ User (2026-10-16): "ตรวจสอบทดลองปรับแก้ไ
 Stop when a round on the four demo roles (CEO, RSM อีสาน, sales rep ขอนแก่น, IT) finds no medium or high finding, every card fits its question, and the run sheet walk in four windows passes.
 
 **Card fit** (user, 2026-10-16): a card's form must fit the question and the data shape. The same layout for every answer makes Winyu look like a template.
-- [ ] **Card-fit audit** ($0) over the 63 recorded cases and the 75 sim screenshots, then a presentation rule set for `lib/cards/present.ts`.
+- [x] **Card-fit audit** ($0) over the 63 recorded cases and the 75 sim screenshots; rules R1–R10 in [`card-fit.md`](card-fit.md).
 - [ ] **Card-fit fix** from that rule set.
 
 ## Waves
