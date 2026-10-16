@@ -150,9 +150,14 @@ export function recipientScopesFor(sender: User, card: SharedCard, recipientIds:
   });
 }
 
-/** Who may approve a request for this slice: the sender when they may grant it, else the first person who may; null when nobody can. */
+function managersAbove(user: User): User[] {
+  const manager = user.managerId ? findUser(user.managerId) : null;
+  return manager ? [manager, ...managersAbove(manager)] : [];
+}
+
+/** Who may approve a request for this slice: the sender when they may grant it, else the nearest manager above the requester who may, else the first person who may; null when nobody can. One rule for every role, so a rep and his RSM asking for the same slice reach the same approver (AI-199). */
 export function approverFor(requester: User, slice: GrantSlice, senderId: string, at: Date): User | null {
-  const candidates = [findUser(senderId), ...USERS.filter((user) => user.id !== senderId)].filter((user): user is User => user !== null && user !== undefined);
+  const candidates = [findUser(senderId), ...managersAbove(requester), ...USERS].filter((user): user is User => user !== null && user !== undefined);
   return candidates.find((user) => refusalFor(user, requester, slice, DEFAULT_GRANT_DAYS, at) === null) ?? null;
 }
 
