@@ -628,6 +628,7 @@ function readingOf(facts: Facts, bars: Bars, rows: MetricRow[]): Breakdown {
     falling: falling(facts, rows),
     target: targetBaseOf(facts),
     baseTotal: baseTotalOf(facts),
+    high: (facts.sortBy === "value_desc" && facts.capped) || facts.query.where?.op === "above",
   });
 }
 

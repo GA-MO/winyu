@@ -784,6 +784,8 @@ export const TH = {
     every: (unit: string) => `ทุก${/^[A-Za-z]/.test(unit) ? " " : ""}${unit}`,
     cover: {
       none: (unit: string, days: number, weakest: string, value: string) => `${weakest} เหลือน้อยสุด ${value} ยังเกิน ${days} วัน`,
+      most: (label: string, value: string) => `${label} สต๊อกพอขายนานสุด ${value}`,
+      over: (days: number) => `สต๊อกพอขายเกิน ${days} วัน`,
       all: (unit: string, days: number, worst: string) => `ทุก${/^[A-Za-z]/.test(unit) ? " " : ""}${unit}ต่ำกว่า ${days} วัน หนักสุด${worst}`,
       one: (label: string, days: number) => `มีแค่${label}ที่สต๊อกพอขายไม่ถึง ${days} วัน`,
       some: (count: number, unit: string, days: number, worst: string) => `${count} ${unit}สต๊อกพอขายไม่ถึง ${days} วัน หนักสุด${worst}`,

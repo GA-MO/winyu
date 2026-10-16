@@ -73,8 +73,8 @@ export function percentIn(text: string): number | null {
   return Number(trimmed.replace("−", "-").replace(/[,%]/g, ""));
 }
 
-/** What the decision table knows about one breakdown: its rows in the order asked, the bars it draws, the unit word, the overall row's label, whether the question set a threshold (R7), and what a target figure is a share of ("ของเป้าตามเวลา" in a month still running) with the whole month beside it. */
-export type BreakdownInput = { query: MetricQuery; result: OkResult; rows: MetricRow[]; bars: BreakdownBars; unit: string; scope: string; threshold: boolean; additive: boolean; falling: boolean; target: { unit: string; detail: string | null }; baseTotal: string | null };
+/** What the decision table knows about one breakdown: its rows in the order asked, the bars it draws, the unit word, the overall row's label, whether the question set a threshold (R7), and what a target figure is a share of ("ของเป้าตามเวลา" in a month still running) with the whole month beside it, the base total a change ranking moved from, and whether the line is read from above (the top of a capped ranking, or rows above a value). */
+export type BreakdownInput = { query: MetricQuery; result: OkResult; rows: MetricRow[]; bars: BreakdownBars; unit: string; scope: string; threshold: boolean; additive: boolean; falling: boolean; target: { unit: string; detail: string | null }; baseTotal: string | null; high: boolean };
 
 /** A breakdown read for styles B and A: the strip, the verdict, the hero the overall row stands for, the row style A leads with instead (a change ranking), and how the rows style A folds away read in one line. */
 export type Breakdown = {
@@ -117,8 +117,45 @@ function measuresOf(rows: ReadRow[]): number[] {
   return rows.flatMap((row) => (row.measure === null ? [] : [row.measure]));
 }
 
+/** R6 read from above: a question about stock piling up (cover ranked highest first, or rows above a value) leads with the row furthest over the line, the rows standing clear at the top drawn as exceptions. */
+function aboveLineReading(input: BreakdownInput, line: LevelLine): Breakdown {
+  const { query, result } = input;
+  const scored = input.rows.map((row) => ({ row, measure: numericOf(row, "value") })).sort((left, right) => (right.measure ?? -Infinity) - (left.measure ?? -Infinity));
+  const known = scored.flatMap((entry) => (entry.measure === null ? [] : [entry.measure]));
+  const leading = Math.max(1, leadingExceptions(known, MIN_GAP_POINTS));
+  const peak = Math.max(line.at, ...known);
+  const rows: ReadRow[] = scored.map((entry, index) => ({
+    label: labelOf(query, entry.row),
+    sub: null,
+    measure: entry.measure,
+    fill: entry.measure === null ? 0 : Math.min(1, Math.max(0, entry.measure / peak)),
+    text: valueTextOf(query, entry.row),
+    change: null,
+    tone: "neutral",
+    exception: index < leading,
+    valued: index < leading || index === scored.length - 1,
+  }));
+  const [top] = scored;
+  const topLabel = top ? labelOf(query, top.row) : input.scope;
+  const topText = top ? valueTextOf(query, top.row) : result.headline.value;
+  const threshold = input.threshold && query.where ? TH.read.cover.over(query.where.value) : null;
+  const verdict = threshold ? TH.read.countOf(rows.length, result.headline.underLine?.of ?? rows.length, input.unit, threshold) : TH.read.cover.most(topLabel, topText);
+  return {
+    form: "line",
+    baseline: line.at,
+    overall: null,
+    rows,
+    verdict,
+    hero: { label: TH.dash.rowHero(TH.dash.highest, topLabel), value: topText, unit: null, delta: null, trend: "neutral", tone: "neutral", detail: `${input.scope} ${result.headline.value}` },
+    lead: null,
+    pickWhenNone: LEADERS,
+    fold: foldLine(input.unit, () => null, measuresOf, (value) => formatMetricValue(query.metric, value)),
+  };
+}
+
 function lineReading(input: BreakdownInput, line: LevelLine): Breakdown {
   const { query, result } = input;
+  if (input.high && line.line.kind === "cover") return aboveLineReading(input, line);
   const overTarget = query.compare === "target" && query.metric !== "target_attainment";
   const measureOf = (row: MetricRow) => (overTarget ? attainmentOf(row) : numericOf(row, "value"));
   const scored = input.rows.map((row) => ({ row, measure: measureOf(row) })).sort((left, right) => (left.measure ?? Infinity) - (right.measure ?? Infinity));

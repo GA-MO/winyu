@@ -562,6 +562,15 @@ describe("a breakdown whose level decides", () => {
     if (under && under.count === 0) expect(card.verdict).toStartWith(`${worst?.label} เหลือน้อยสุด ${worst?.value}`);
   });
 
+  test("cover ranked highest first is an overstock question: the hero is the row furthest over the line, never the weakest (AI-67)", () => {
+    const card = cardOf({ metric: "days_of_cover", dims: ["brand"], compare: "none" }, { sort: "value_desc", limit: 5 });
+    const values = stripOf(card.body).rows.map((row) => row.measure ?? 0);
+    expect(values).toEqual([...values].sort((left, right) => right - left));
+    expect(card.hero?.label).toStartWith(TH.dash.highest);
+    expect(card.hero?.value).toBe(stripOf(card.body).rows[0].text);
+    expect(card.verdict).toContain("นานสุด");
+  });
+
   test("asked only for the rows under the line, the count still reads against every group", () => {
     const { query, result } = answer({ metric: "days_of_cover", dims: ["dc", "sku"], compare: "none" });
     if (!result.ok) throw new Error(result.error);
