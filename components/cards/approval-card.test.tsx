@@ -152,6 +152,21 @@ describe("the approval card", () => {
     expect(html).not.toContain(TH.approve.attached);
   });
 
+  test("a pin shows the figure the widget will show, from the server, worked out with the question that drew the card it pins (AI-184)", async () => {
+    const asked: string[] = [];
+    const spy = spyOn(globalThis, "fetch").mockImplementation((async (url: string, init?: RequestInit) => {
+      asked.push(`${url} ${String(init?.body ?? "")}`);
+      return url.endsWith("/api/pins/preview") ? Response.json({ hero: "72.6% ของเป้าทั้งเดือน" }) : Response.json({});
+    }) as unknown as typeof fetch);
+    const host = document.createElement("div");
+    const screen = screenWith([CARD_TO_SEND]);
+    await act(async () => createRoot(host).render(renderApproval(request("pin_widget", { title: "ยอดขายสุทธิเทียบเป้า", kind: "bar", query: NORTHEAST }, { onScreen: screen, question: "ปักการ์ดนี้ไว้" }))));
+    for (let tick = 0; tick < 4; tick += 1) await act(async () => new Promise((resolve) => setTimeout(resolve, 0)));
+    spy.mockRestore();
+    expect(host.querySelector("[data-pin-hero]")?.textContent).toBe("72.6% ของเป้าทั้งเดือน");
+    expect(asked.some((line) => line.includes("/api/pins/preview") && line.includes(CARD_TO_SEND.question ?? "∅"))).toBe(true);
+  });
+
   test("a job is named in Thai", () => {
     const html = render("run_job", { job: "forecast" });
     expect(html).toContain(TH.approve.jobs.forecast);
