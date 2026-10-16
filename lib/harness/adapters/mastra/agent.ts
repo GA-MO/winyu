@@ -81,7 +81,7 @@ const toldTheAnswerThenWrapUp: PrepareStep = (step) => {
 function chatModel() {
   const model = agentModel();
   if (!model) throw new Error(NO_MODEL);
-  return model.model();
+  return model.chat();
 }
 
 function buildMastra(): Mastra {

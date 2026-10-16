@@ -1,12 +1,9 @@
-import { randomUUID } from "node:crypto";
 import { auditLog } from "@/lib/server/audit";
 import { layouts } from "@/lib/server/agent/collections";
 import { runStore } from "@/lib/harness/runtime";
 import { modelCalls } from "@/lib/server/model-ledger";
-import { sessionCookie } from "@/lib/server/auth/session-token";
+import { type Interrupt, type Reply, type Thread, interruptsOf, resultOf, run, threadOf } from "./chat-client";
 
-const BASE_URL = process.env.PROBE_URL ?? "http://localhost:3100";
-const RUN_PATH = "/api/copilotkit/agent/winyu/run";
 const CEO = "u_thana";
 const SALES_REP = "u_krit";
 const SALES_BY_REGION = "ยอดขายเดือนนี้แยกตามภาค";
@@ -15,10 +12,6 @@ const APPROVAL_REASON = "mastra:tool_approval";
 const MEMORY_SETTLE_MS = 4000;
 const ONLY = process.argv.find((arg) => arg.startsWith("--only="))?.slice("--only=".length).split(",") ?? null;
 
-type AgUiEvent = { type: string; toolCallId?: string; toolCallName?: string; content?: string; delta?: string; message?: string; outcome?: { type: string; interrupts: Interrupt[] } };
-type Interrupt = { id: string; reason: string; toolCallId: string; metadata?: { mastra?: { toolName?: string } } };
-type Reply = { runId: string; status: number; events: AgUiEvent[]; text: string };
-type Thread = { id: string; userId: string; messages: { id: string; role: "user"; content: string }[] };
 type Check = { ok: boolean; label: string };
 
 let failures = 0;
@@ -27,55 +20,6 @@ function check(ok: boolean, label: string): Check {
   if (!ok) failures += 1;
   console.log(`  ${ok ? "ok  " : "FAIL"} ${label}`);
   return { ok, label };
-}
-
-function eventsOf(sse: string): AgUiEvent[] {
-  return sse.split("\n").flatMap((line) => {
-    if (!line.startsWith("data:")) return [];
-    try {
-      return [JSON.parse(line.slice(5)) as AgUiEvent];
-    } catch {
-      return [];
-    }
-  });
-}
-
-function cookieOf(userId: string): string {
-  const cookie = sessionCookie({ via: "demo", userId });
-  return `${cookie.name}=${cookie.value}`;
-}
-
-function threadOf(userId: string, question: string): Thread {
-  return { id: `probe-${randomUUID()}`, userId, messages: [{ id: randomUUID(), role: "user", content: question }] };
-}
-
-async function run(thread: Thread, resume: unknown[] | null = null): Promise<Reply> {
-  const runId = randomUUID();
-  const body = { threadId: thread.id, runId, state: {}, messages: thread.messages, tools: [], context: [], forwardedProps: {}, ...(resume ? { resume } : {}) };
-  const response = await fetch(`${BASE_URL}${RUN_PATH}`, {
-    method: "POST",
-    headers: { "content-type": "application/json", accept: "text/event-stream", cookie: cookieOf(thread.userId) },
-    body: JSON.stringify(body),
-  });
-  const events = eventsOf(await response.text());
-  const text = events.filter((event) => event.type === "TEXT_MESSAGE_CONTENT").map((event) => event.delta ?? "").join("");
-  return { runId, status: response.status, events, text };
-}
-
-function resultOf(reply: Reply, tool: string): unknown {
-  const call = reply.events.find((event) => event.type === "TOOL_CALL_START" && event.toolCallName === tool);
-  const result = call ? reply.events.find((event) => event.type === "TOOL_CALL_RESULT" && event.toolCallId === call.toolCallId) : undefined;
-  if (!result?.content) return null;
-  try {
-    return JSON.parse(result.content);
-  } catch {
-    return result.content;
-  }
-}
-
-function interruptsOf(reply: Reply): Interrupt[] {
-  const finished = reply.events.find((event) => event.type === "RUN_FINISHED");
-  return finished?.outcome?.type === "interrupt" ? finished.outcome.interrupts : [];
 }
 
 function auditOf(runId: string, tool: string) {

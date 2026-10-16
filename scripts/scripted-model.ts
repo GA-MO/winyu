@@ -54,7 +54,8 @@ export class ScriptedModel {
 
   /** The `@/lib/server/models` module with this model as the agent's model and no utility model (the rest as it is), for `mock.module`. */
   modelsModule() {
-    return { ...models, agentModel: () => ({ id: "scripted", name: "scripted", model: () => this.model }), utilityModel: () => null };
+    const agentModel = (): models.AgentModel => ({ id: "scripted", name: "scripted", chat: () => this.model, model: () => this.model });
+    return { ...models, agentModel, utilityModel: () => null };
   }
 
   private next(): StreamResult {
