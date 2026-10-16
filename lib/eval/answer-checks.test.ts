@@ -1,4 +1,5 @@
-import { describe, expect, test } from "bun:test";
+import { afterEach, describe, expect, test } from "bun:test";
+import { resetRoleOverrides, setRoleTool } from "@/lib/access/role-overrides";
 import { evalCase, type EvalCase } from "./cases";
 import { EVAL_CHECKS } from "./checks";
 import { turnOf, type Recording } from "./recording";
@@ -42,13 +43,17 @@ function verdictOf(checkId: string, caseId: string, text: string) {
 }
 
 describe("offersOwnTools", () => {
-  test("fails a sales rep's reply that offers a handoff the role cannot create", () => {
+  afterEach(() => resetRoleOverrides());
+
+  test("fails a reply that offers to send work on for a role the admin took sending away from", () => {
+    setRoleTool("sales_rep", "send_card", false, "u_ton");
     expect(verdictOf("offersOwnTools", REP_CASE, HANDOFF_OFFER)?.ok).toBe(false);
     expect(verdictOf("offersOwnTools", REP_CASE, "เสนอ Handoff ให้หัวหน้าได้")?.ok).toBe(false);
+    expect(verdictOf("offersOwnTools", REP_CASE, "ยอดของอีสานรุ่งโรจน์ลดลงมากในสองสัปดาห์ล่าสุด")?.ok).toBe(true);
   });
 
-  test("passes a rep's reply without the offer, and does not judge a role that can hand off", () => {
-    expect(verdictOf("offersOwnTools", REP_CASE, "ยอดของอีสานรุ่งโรจน์ลดลงมากในสองสัปดาห์ล่าสุด")?.ok).toBe(true);
+  test("does not judge a role that can send a card", () => {
+    expect(verdictOf("offersOwnTools", REP_CASE, HANDOFF_OFFER)).toBeNull();
     expect(verdictOf("offersOwnTools", RSM_CASE, HANDOFF_OFFER)).toBeNull();
   });
 });

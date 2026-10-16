@@ -1,8 +1,10 @@
-import type { ActionEvent, Alert, ContextPacket, OutboxEntry, PersonalWatch, RoleId, WidgetSpec } from "@/lib/contracts";
+import type { ActionEvent, Alert, OutboxEntry, PersonalWatch, RoleId, WidgetSpec } from "@/lib/contracts";
+import type { Matter } from "@/lib/share/matter";
 import { ROLE_IDS } from "@/lib/contracts";
 import { USERS } from "@/lib/data/entities/users";
 import { thresholdKey } from "@/lib/engine/anomaly";
-import { actionEvents, alerts, layouts, outbox, packets, personalWatches } from "./agent/collections";
+import { actionEvents, alerts, layouts, outbox, personalWatches } from "./agent/collections";
+import { shares } from "./share/shares";
 
 const DAY_MS = 86_400_000;
 const HOUR_MS = 3_600_000;
@@ -12,17 +14,17 @@ const PERCENT = 100;
 
 export type RoleActivity = { role: RoleId; active: number; total: number };
 export type AlertFate = { total: number; handedOff: number; closed: number; opened: number; untouched: number };
-export type HandoffFlow = { total: number; resolved: number; returned: number; medianHoursToReply: number | null };
+export type MatterFlow = { total: number; done: number; passedOn: number; medianHoursToAnswer: number | null };
 export type CardUse = { pinned: number; viewed: number; judged: boolean };
 export type WatchUse = { active: number; triggered: number; notified: number; digests: number };
 
-/** Whether Winyu is actually used: who came back, what happened to the alerts, whether handoffs got answered, which cards are read, what runs on its own. */
-export type AdoptionSummary = { activeByRole: RoleActivity[]; alerts: AlertFate; handoffs: HandoffFlow; cards: CardUse; watches: WatchUse };
+/** Whether Winyu is actually used: who came back, what happened to the alerts, whether matters that ask for an answer got one, which cards are read, what runs on its own. */
+export type AdoptionSummary = { activeByRole: RoleActivity[]; alerts: AlertFate; matters: MatterFlow; cards: CardUse; watches: WatchUse };
 
 export type AdoptionInput = {
   events: readonly ActionEvent[];
   alerts: readonly Alert[];
-  packets: readonly ContextPacket[];
+  matters: readonly Matter[];
   widgets: readonly WidgetSpec[];
   watches: readonly PersonalWatch[];
   outbox: readonly OutboxEntry[];
@@ -48,7 +50,7 @@ function activeByRole(events: readonly ActionEvent[], now: number): RoleActivity
 }
 
 function alertFate(input: AdoptionInput): AlertFate {
-  const handed = new Set(input.packets.flatMap((packet) => packet.alertIds));
+  const handed = new Set(input.matters.flatMap((matter) => matter.alertIds));
   const touched = new Set(input.events.filter((event) => event.kind === "alert_open" || event.kind === "dismiss").map((event) => event.intentKey));
   const fate: AlertFate = { total: input.alerts.length, handedOff: 0, closed: 0, opened: 0, untouched: 0 };
   for (const alert of input.alerts) {
@@ -60,16 +62,19 @@ function alertFate(input: AdoptionInput): AlertFate {
   return fate;
 }
 
-function handoffFlow(all: readonly ContextPacket[]): HandoffFlow {
-  const waits = all
-    .map((packet) => packet.thread.find((reply) => reply.userId === packet.toUserId))
-    .map((reply, index) => (reply ? (Date.parse(reply.at) - Date.parse(all[index]?.createdAt ?? reply.at)) / HOUR_MS : null))
-    .filter((hours): hours is number => hours !== null && hours >= 0);
+function hoursToFirstAnswer(matter: Matter): number | null {
+  const answer = matter.thread.find((line) => line.userId !== null && line.userId !== matter.senderId);
+  return answer ? (Date.parse(answer.at) - Date.parse(matter.at)) / HOUR_MS : null;
+}
+
+function matterFlow(all: readonly Matter[]): MatterFlow {
+  const asking = all.filter((matter) => matter.intent === "act");
+  const waits = asking.map(hoursToFirstAnswer).filter((hours): hours is number => hours !== null && hours >= 0);
   return {
-    total: all.length,
-    resolved: all.filter((packet) => packet.status === "resolved").length,
-    returned: all.filter((packet) => packet.status === "returned").length,
-    medianHoursToReply: median(waits),
+    total: asking.length,
+    done: asking.filter((matter) => matter.status === "done").length,
+    passedOn: asking.filter((matter) => matter.path.some((hop) => hop.state === "passed_on")).length,
+    medianHoursToAnswer: median(waits),
   };
 }
 
@@ -85,7 +90,7 @@ export function adoptionOf(input: AdoptionInput, now = Date.now()): AdoptionSumm
   return {
     activeByRole: activeByRole(input.events, now),
     alerts: alertFate(input),
-    handoffs: handoffFlow(input.packets),
+    matters: matterFlow(input.matters),
     cards: cardUse(input, now),
     watches: {
       active: input.watches.length,
@@ -101,7 +106,7 @@ export function adoptionSummary(now = Date.now()): AdoptionSummary {
     {
       events: actionEvents().all(),
       alerts: alerts().all(),
-      packets: packets().all(),
+      matters: shares().all(),
       widgets: layouts().all().flatMap((layout) => layout.widgets),
       watches: personalWatches().all(),
       outbox: outbox().all(),

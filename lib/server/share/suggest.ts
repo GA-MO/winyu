@@ -48,11 +48,19 @@ function agentOfRead(read: SharedRead): string | null {
   return agents.length === 1 ? agents[0] : null;
 }
 
+/** What a card is about: the metric of its first metric read and the one region its reads narrow to (null where they name none, or several). */
+export function cardSubject(card: SharedCard): { metric: MetricId | null; region: Region | null } {
+  const metric = card.reads.map(metricOf).find((found) => found !== null) ?? null;
+  const region = card.reads.map(regionOfRead).find((found) => found !== null) ?? null;
+  return { metric, region };
+}
+
 /** Who a card belongs to: the RACI owner of its first metric, in the region its reads narrow to (by region, or by the agents, provinces, DCs or plants they name, however many when they share one region), else in the region of the person looking when their own role is regional; null when no read names a metric. */
 export function cardOwner(card: SharedCard, lookerRegion: Region | null = null): Responsible | null {
-  const metric = card.reads.map(metricOf).find((found) => found !== null);
-  if (!metric) return null;
-  const region = card.reads.map(regionOfRead).find((found) => found !== null) ?? lookerRegion;
+  const subject = cardSubject(card);
+  if (!subject.metric) return null;
+  const metric = subject.metric;
+  const region = subject.region ?? lookerRegion;
   const agent = card.reads.map(agentOfRead).find((found) => found !== null) ?? null;
   return responsibleFor(metric, region, agent);
 }

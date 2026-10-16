@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import type { ShareTarget } from "@/lib/share/card";
-import { cardsBeforeEach, newestCardOf } from "./card-to-share";
+import { cardsToSendEach, newestCardOf } from "./card-to-share";
 import type { Exchange, ToolStep } from "./timeline";
 
 const CARD_TOOLS: ReadonlySet<string> = new Set(["query_metric", "find_people", "get_person", "resolve_owner", "list_metrics"]);
@@ -27,10 +27,18 @@ const SALES = exchange("q1", "ยอดขายแยกตามภาคเ�
 
 describe("the card ส่งการ์ดนี้ means", () => {
   test("is the newest card an earlier exchange drew, skipping a recipient lookup", () => {
-    const share = exchange("q2", "ส่งการ์ดนี้ให้คุณกฤตดูหน่อย", [lookup("p1", [KRIT_ROW]), pending("s1", "share_card", { to: ["คุณกฤต"] })]);
+    const share = exchange("q2", "ส่งการ์ดนี้ให้คุณกฤตดูหน่อย", [lookup("p1", [KRIT_ROW]), pending("s1", "send_card", { to: ["คุณกฤต"] })]);
     const expected: ShareTarget = { card: { kind: "tool", reads: [{ tool: "query_metric", input: BY_REGION }] }, question: "ยอดขายแยกตามภาคเดือนนี้" };
-    expect(cardsBeforeEach([SALES, share], CARD_TOOLS)).toEqual([null, expected]);
+    expect(cardsToSendEach([SALES, share], CARD_TOOLS)).toEqual([expected, expected]);
     expect(newestCardOf([SALES, share], CARD_TOOLS)).toEqual(expected);
+  });
+
+  test("is the card the same exchange drew when it drew one, not the one before", () => {
+    const BY_PROVINCE = { metric: "net_sales_volume", dims: ["province"], filters: { region: ["northeast"] } };
+    const drawAndSend = exchange("q2", "ยอดภาคอีสานรายจังหวัด แล้วส่งการ์ดนี้ให้พี่อนุชา", [returned("m2", "query_metric", BY_PROVINCE, { ok: true, rows: [{ province: "ขอนแก่น" }] }), pending("s1", "send_card", { to: ["พี่อนุชา"] })]);
+    const current: ShareTarget = { card: { kind: "tool", reads: [{ tool: "query_metric", input: BY_PROVINCE }] }, question: "ยอดภาคอีสานรายจังหวัด แล้วส่งการ์ดนี้ให้พี่อนุชา" };
+    expect(cardsToSendEach([SALES, drawAndSend], CARD_TOOLS)[1]).toEqual(current);
+    expect(newestCardOf([SALES, drawAndSend], CARD_TOOLS)).toEqual(current);
   });
 
   test("is the people card when the lookup was the answer", () => {

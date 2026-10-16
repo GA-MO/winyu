@@ -4,17 +4,36 @@ import { createRoot } from "react-dom/client";
 import { renderToStaticMarkup } from "react-dom/server";
 import { findUser } from "@/lib/data/entities/users";
 import { TH } from "@/lib/i18n/th";
-import type { ChannelOption, ShareContact } from "@/lib/share/card";
+import type { SendPreview, ShareContact, ShareTarget } from "@/lib/share/card";
 import { renderApproval, type ApprovalRequest } from "./approval-card";
 
-const HANDOFF = {
-  toUserId: "u_anucha",
-  title: "อุบลศรีสุข เทรดดิ้ง · สิงห์ · ภาคอีสาน",
-  ask: "ช่วยตรวจอุบลศรีสุข เทรดดิ้ง แล้วบอกกลับว่าเกิดจากอะไร",
-  urgency: "high",
-  evidence: [{ metric: "net_sales_volume", dims: ["agent"], filters: { region: ["northeast"] }, range: { from: "2026-09-01", to: "2026-09-22" }, grain: "month", compare: "prev_period", limit: 10 }],
-  alertIds: ["a_1", "a_2"],
-};
+const NORTHEAST = { metric: "net_sales_volume", dims: ["agent"], filters: { region: ["northeast"] }, range: { from: "2026-11-01", to: "2026-11-26" }, grain: "month", compare: "target", limit: 10 };
+const CARD_TO_SEND: ShareTarget = { card: { kind: "tool", reads: [{ tool: "query_metric", input: NORTHEAST }] }, question: "ยอดขายเข้าภาคอีสานเดือนนี้เทียบเป้า" };
+const ON_TARGET_CLAIM = "บอกว่าเดือนนี้ผมจะปิดเกินเป้าแน่นอน";
+const NO_PREVIEW: SendPreview = { ownerId: null, line: [], figures: null, goal: null };
+
+function contactOf(userId: string): ShareContact {
+  const user = findUser(userId);
+  if (!user) throw new Error(`${userId} missing`);
+  return { id: user.id, nameTh: user.nameTh, title: user.title, role: user.role, region: user.region, photo: null, name: user.name, channels: [{ channel: "email", ready: true }] };
+}
+
+function offersSend(host: HTMLElement): boolean {
+  return [...host.querySelectorAll("button")].some((button) => button.textContent === TH.approve.confirmSend);
+}
+
+async function drawnSend(input: unknown, overrides: Partial<ApprovalRequest>, preview: SendPreview = NO_PREVIEW): Promise<HTMLElement> {
+  const spy = spyOn(globalThis, "fetch").mockImplementation((async (url: string) => {
+    if (url.endsWith("/contacts")) return Response.json({ contacts: [contactOf("u_anucha"), contactOf("u_krit")], mayGrant: false });
+    if (url.endsWith("/preview")) return Response.json(preview);
+    return Response.json({ scopes: [] });
+  }) as unknown as typeof fetch);
+  const host = document.createElement("div");
+  await act(async () => createRoot(host).render(renderApproval(request("send_card", input, overrides))));
+  for (let tick = 0; tick < 4; tick += 1) await act(async () => new Promise((resolve) => setTimeout(resolve, 0)));
+  spy.mockRestore();
+  return host;
+}
 
 function request(tool: string, input: unknown, overrides: Partial<ApprovalRequest> = {}): ApprovalRequest {
   return { tool, input, approved: null, approve: () => undefined, reject: () => undefined, ...overrides };
@@ -25,35 +44,50 @@ function render(tool: string, input: unknown, overrides: Partial<ApprovalRequest
 }
 
 describe("the approval card", () => {
-  test("a handoff names the person, their role, the ask and what approving does", () => {
-    const html = render("create_handoff", HANDOFF, { question: "ส่งเรื่องนี้ให้ผู้จัดการขายภาคอีสานไปจัดการ ด่วน" });
-    expect(html).toContain("คุณอนุชา พรหมศรี");
-    expect(html).toContain("ผู้จัดการขายภาค ภาคอีสาน");
-    expect(html).toContain(HANDOFF.ask);
-    expect(html).toContain(TH.inbox.urgency.high);
-    expect(html).toContain(TH.approve.confirmHandoff);
-    expect(html).not.toContain("create_handoff");
+  test("a send with no recipient named is the send sheet filled in: the card's owner, the card, the ask, and the urgency the person's words gave", async () => {
+    const host = await drawnSend({ ask: "ช่วยดูอีสานหน่อย" }, { cardToSend: CARD_TO_SEND, question: "ส่งเรื่องนี้ให้ผู้จัดการขายภาคอีสาน ด่วน" }, { ...NO_PREVIEW, ownerId: "u_anucha" });
+    expect(host.querySelector("[data-send-recipient]")?.getAttribute("data-send-recipient")).toBe("u_anucha");
+    expect(host.textContent).toContain(TH.share.suggested);
+    expect(host.textContent).toContain("ปริมาณขายเข้า");
+    expect(host.textContent).toContain("ช่วยดูอีสานหน่อย");
+    expect(host.textContent).toContain(TH.share.urgency.now);
+    expect(host.querySelector("[data-send-intent]")?.getAttribute("data-send-intent")).toBe("act");
+    expect(offersSend(host)).toBe(true);
+    expect(host.textContent).not.toContain("send_card");
   });
 
-  test("a handoff shows the urgency it will go out with: not urgent when the person never said so, whatever the model passed", () => {
-    const html = render("create_handoff", HANDOFF, { question: "ฝากผู้จัดการขายภาคอีสานดูภายในสัปดาห์นี้" });
-    expect(html).toContain(TH.inbox.urgency.medium);
-    expect(html).not.toContain(TH.inbox.urgency.high);
+  test("the model's 'now' without the person saying urgent goes out as today", async () => {
+    const host = await drawnSend({ to: ["u_anucha"], urgency: "now" }, { cardToSend: CARD_TO_SEND, question: "ฝากผู้จัดการขายภาคอีสานดูหน่อย" });
+    expect(host.textContent).toContain(TH.share.urgency.today);
+    expect(host.textContent).not.toContain(TH.share.urgency.now);
   });
 
-  test("the evidence behind a handoff is named, not counted in the raw", () => {
-    const html = render("create_handoff", HANDOFF);
-    expect(html).toContain("ปริมาณขายเข้า (Sell-in)");
-    expect(html).toContain(TH.approve.alertCount(2));
+  test("an ask that claims the card is over target while it shows 87.9% carries one warning line from code, and can still be sent", async () => {
+    const preview = { ...NO_PREVIEW, ownerId: "u_anucha", figures: { attainment: 87.9, change: null } };
+    const host = await drawnSend({ to: ["พี่อนุชา"], ask: ON_TARGET_CLAIM }, { cardToSend: CARD_TO_SEND, question: ON_TARGET_CLAIM }, preview);
+    expect(host.querySelector("[data-send-warning]")?.textContent).toBe(TH.share.contradicts.atTarget("87.9%"));
+    expect(host.querySelector("[data-send-recipient]")?.getAttribute("data-send-recipient")).toBe("u_anucha");
+    expect(offersSend(host)).toBe(true);
   });
 
-  test("an answered decision becomes a receipt with no buttons left", () => {
-    const approved = render("create_handoff", HANDOFF, { approved: true });
-    expect(approved).toContain(TH.approve.doneHandoff("คุณอนุชา พรหมศรี"));
-    expect(approved).not.toContain(TH.approve.confirmHandoff);
+  test("an ask the card agrees with carries no warning", async () => {
+    const preview = { ...NO_PREVIEW, figures: { attainment: 87.9, change: null } };
+    const host = await drawnSend({ to: ["u_anucha"], ask: "เดือนนี้ไม่ถึงเป้า ช่วยดูหน่อย" }, { cardToSend: CARD_TO_SEND }, preview);
+    expect(host.querySelector("[data-send-warning]")).toBeNull();
+  });
 
-    const rejected = render("create_handoff", HANDOFF, { approved: false });
-    expect(rejected).toContain(TH.approve.notDone);
+  test("with no card in the conversation the sheet says so and offers no ส่ง", async () => {
+    const host = await drawnSend({ to: ["u_anucha"] }, { cardToSend: null });
+    expect(host.textContent).toContain(TH.approve.sendNoCard);
+    expect(offersSend(host)).toBe(false);
+  });
+
+  test("an answered send becomes a receipt with no buttons left", async () => {
+    const approved = await drawnSend({ to: ["u_anucha"] }, { approved: true, cardToSend: CARD_TO_SEND });
+    expect(approved.textContent).toContain(TH.approve.doneSend("คุณอนุชา พรหมศรี"));
+    expect(offersSend(approved)).toBe(false);
+    const rejected = await drawnSend({ to: ["u_anucha"] }, { approved: false, cardToSend: CARD_TO_SEND });
+    expect(rejected.textContent).toContain(TH.approve.notDone);
   });
 
   test("an email says it stays in the demo outbox", () => {
@@ -63,7 +97,7 @@ describe("the approval card", () => {
   });
 
   test("a pin asks about a card, not about evidence", () => {
-    const html = render("pin_widget", { title: "ยอดขายสุทธิเทียบเป้า", kind: "bar", query: HANDOFF.evidence[0] });
+    const html = render("pin_widget", { title: "ยอดขายสุทธิเทียบเป้า", kind: "bar", query: NORTHEAST });
     expect(html).toContain(TH.approve.card);
     expect(html).not.toContain(TH.approve.attached);
   });
@@ -81,24 +115,6 @@ describe("the approval card", () => {
     expect(sent).toContain(TH.outbox.demoNote);
     expect(render("send_email", input)).not.toContain(TH.outbox.viewLink);
     expect(render("send_email", input, { approved: false })).not.toContain(TH.outbox.viewLink);
-  });
-
-  test("a sent share points to the Outbox only when a recipient was reached by email", async () => {
-    const krit = findUser("u_krit");
-    if (!krit) throw new Error("u_krit missing");
-    const contact = (channels: ChannelOption[]): ShareContact => ({ id: krit.id, nameTh: krit.nameTh, title: krit.title, role: krit.role, region: krit.region, photo: null, name: krit.name, channels });
-    const drawn = async (channels: ChannelOption[], channel: string) => {
-      const contacts = spyOn(globalThis, "fetch").mockResolvedValue(Response.json({ contacts: [contact(channels)], mayGrant: false }));
-      const host = document.createElement("div");
-      await act(async () => createRoot(host).render(renderApproval(request("share_card", { to: [krit.nameTh], channel }, { approved: true, shareTitle: "มูลค่าขายเข้า" }))));
-      contacts.mockRestore();
-      return host.innerHTML;
-    };
-    const teamsNotReady = await drawn([{ channel: "email", ready: true }, { channel: "teams", ready: false }], "teams");
-    expect(teamsNotReady).toContain('href="/outbox"');
-    const line = await drawn([{ channel: "email", ready: true }, { channel: "line", ready: true }], "line");
-    expect(line).toContain(TH.approve.doneShare(krit.nameTh));
-    expect(line).not.toContain(TH.outbox.viewLink);
   });
 
   test("a tool that needs no approval draws no decision", () => {

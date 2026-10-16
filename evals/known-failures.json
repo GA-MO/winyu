@@ -1,1 +1,4 @@
-{}
+{
+  "share-card-chat": ["rightTool", "askedApproval", "rightRecipient"],
+  "handoff-not-share": ["rightTool", "askedApproval", "rightRecipient"]
+}

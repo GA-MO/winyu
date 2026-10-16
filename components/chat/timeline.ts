@@ -1,11 +1,10 @@
 import { COMPOSED_CARD_ACTIVITY, type ComposedSurface } from "@/lib/compose/catalog";
-import { HANDOFF_REPLY_ACTIVITY, handoffReplyNoteSchema, type HandoffReplyNote } from "@/lib/contracts/handoff";
 import { parsePressed, type PressedTool } from "./pressed";
 
 /** A tool call inside an assistant message, as the agent's transcript carries it. */
 export type ChatToolCall = { id: string; function: { name: string; arguments: string } };
 
-/** One transcript message as the chat reads it; roles other than user, assistant, tool and a handoff-reply or composed-card activity are skipped. */
+/** One transcript message as the chat reads it; roles other than user, assistant, tool and a composed-card activity are skipped. */
 export type ChatMessage = { id: string; role: string; content?: unknown; toolCalls?: ChatToolCall[]; toolCallId?: string; error?: string; activityType?: string };
 
 /** What opened an exchange: a question the person typed, or a card button that runs a tool. */
@@ -16,11 +15,9 @@ export type ToolOutcome = { state: "pending" } | { state: "returned"; result: un
 
 export type TextStep = { kind: "text"; id: string; text: string };
 export type ToolStep = { kind: "tool"; toolCallId: string; name: string; args: unknown; outcome: ToolOutcome };
-/** A colleague's answer to a handoff this conversation sent, drawn where it arrived. */
-export type HandoffReplyStep = { kind: "handoff-reply"; id: string; note: HandoffReplyNote };
 /** A card the model composed and the server checked line by line; while the reply streams it grows with each line that holds. */
 export type ComposedStep = { kind: "composed"; id: string; surface: ComposedSurface };
-export type ReplyStep = TextStep | ToolStep | HandoffReplyStep | ComposedStep;
+export type ReplyStep = TextStep | ToolStep | ComposedStep;
 
 /** One question and everything the agent did to answer it, in the order it happened. */
 export type Exchange = { id: string; question: Question | null; steps: ReplyStep[] };
@@ -72,10 +69,8 @@ function isComposedSurface(content: unknown): content is ComposedSurface {
 
 function activitySteps(message: ChatMessage): ReplyStep[] {
   if (message.role !== "activity") return [];
-  if (message.activityType === COMPOSED_CARD_ACTIVITY) return isComposedSurface(message.content) ? [{ kind: "composed", id: message.id, surface: message.content }] : [];
-  if (message.activityType !== HANDOFF_REPLY_ACTIVITY) return [];
-  const parsed = handoffReplyNoteSchema.safeParse(message.content);
-  return parsed.success ? [{ kind: "handoff-reply", id: message.id, note: parsed.data }] : [];
+  if (message.activityType !== COMPOSED_CARD_ACTIVITY || !isComposedSurface(message.content)) return [];
+  return [{ kind: "composed", id: message.id, surface: message.content }];
 }
 
 /** The transcript grouped into exchanges: each question with the reply text and tool calls that followed it, tool results joined to their calls. */

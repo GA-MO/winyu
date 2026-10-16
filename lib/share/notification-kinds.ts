@@ -4,13 +4,13 @@ import type { MatterEventKind } from "./matter";
 
 /** What each kind of notification is told from: names, the card's title and the slice in words, never a value from a card. Older kinds arrive with their title already written. */
 export type NotificationPayloads = {
-  handoff: { title: string };
   alert: { title: string };
-  reply: { title: string };
   email: { title: string };
   share: { senderName: string; cardTitle: string; grantUntil: string | null };
   matter: { senderName: string; ask: string };
   matter_update: { actorName: string; cardTitle: string; change: MatterEventKind; text: string | null };
+  staff_request: { requesterName: string; title: string };
+  staff_decision: { approverName: string; title: string; approved: boolean };
   grant_request: { requesterName: string; slice: string };
   grant_approved: { approverName: string; slice: string; until: string };
   grant_declined: { deciderName: string; slice: string };
@@ -27,16 +27,17 @@ type KindEntry<K extends NotificationKind> = { home: NotificationHome; target: (
 const COPY = TH.notify;
 const OWN_TITLE = (payload: { title: string }) => payload.title;
 const SHARE_PATH = (code: string) => `/s/${encodeURIComponent(code)}`;
+const INBOX_PATH = "/?inbox";
 
 /** Every notification kind: where it is read, where pressing it opens, and how its title is written. */
 export const NOTIFICATION_TABLE: { [K in NotificationKind]: KindEntry<K> } = {
-  handoff: { home: "inbox", target: (packetId) => `/c/new?preload=${encodeURIComponent(packetId)}`, title: OWN_TITLE },
   alert: { home: "outbox", target: () => "/outbox", title: OWN_TITLE },
-  reply: { home: "inbox", target: () => "/?inbox=replies", title: OWN_TITLE },
   email: { home: "outbox", target: () => "/outbox", title: OWN_TITLE },
   share: { home: "shared", target: SHARE_PATH, title: (event) => (event.grantUntil ? COPY.sharedWithGrant(event.senderName, event.cardTitle, event.grantUntil) : COPY.shared(event.senderName, event.cardTitle)) },
   matter: { home: "inbox", target: SHARE_PATH, title: (event) => COPY.matter(event.senderName, event.ask) },
   matter_update: { home: "inbox", target: SHARE_PATH, title: (event) => COPY.matterUpdate[event.change](event.actorName, event.cardTitle, event.text ?? "") },
+  staff_request: { home: "inbox", target: () => INBOX_PATH, title: (event) => COPY.staffRequest(event.requesterName, event.title) },
+  staff_decision: { home: "inbox", target: () => "/", title: (event) => (event.approved ? COPY.staffApproved(event.approverName, event.title) : COPY.staffDeclined(event.approverName, event.title)) },
   grant_request: { home: "inbox", target: (requestId) => `/g/${encodeURIComponent(requestId)}`, title: (event) => COPY.requested(event.requesterName, event.slice) },
   grant_approved: { home: "shared", target: SHARE_PATH, title: (event) => COPY.approved(event.approverName, event.slice, event.until) },
   grant_declined: { home: "shared", target: SHARE_PATH, title: (event) => COPY.declined(event.deciderName, event.slice) },

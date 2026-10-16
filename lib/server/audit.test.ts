@@ -7,7 +7,7 @@ import { auditLog } from "./audit";
 import { runWithAccess, runWithTurn } from "./request-context";
 import { sinceOf, toolActivity } from "./usage";
 
-const TURN = { turnId: "turn-audit-test", threadId: "thread-audit-test", preloadPacketId: null, question: "ยอดขายภาคใต้เท่าไหร่", queries: [] };
+const TURN = { turnId: "turn-audit-test", threadId: "thread-audit-test", question: "ยอดขายภาคใต้เท่าไหร่", queries: [] };
 
 function krit() {
   const user = findUser("u_krit");

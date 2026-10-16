@@ -38,8 +38,7 @@ function sentence(title: string, question: string): ToolCallDescription {
 export function describeToolCall(name: string, input: unknown): ToolCallDescription | null {
   const value = (input ?? {}) as Record<string, unknown>;
   const to = nameOf((value as Recipient).toUserId);
-  if (name === "create_handoff") return sentence(TH.approve.handoffDone(to), TH.approve.handoff(to));
-  if (name === "share_card") return sentence(TH.approve.shareDone(sharedWith(value.to)), TH.approve.share(sharedWith(value.to)));
+  if (name === "send_card") return sentence(TH.approve.sendDone(sharedWith(value.to) || TH.approve.cardOwner), TH.approve.send(sharedWith(value.to) || TH.approve.cardOwner));
   if (name === "send_email") return sentence(TH.approve.emailDone(to), TH.approve.email(to));
   if (name === "pin_widget") return sentence(TH.approve.pinDone, TH.approve.pin);
   if (name === "watch_metric") return sentence(TH.approve.watchDone, TH.approve.watch);

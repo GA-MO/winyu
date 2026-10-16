@@ -1,19 +1,20 @@
-import type { AccessContext, Alert, ContextPacket, Dim, FeedAction, FeedTone, FeedItem, FeedStateRecord, NextAction, PersonalWatch } from "@/lib/contracts";
+import type { AccessContext, Alert, Dim, FeedAction, FeedTone, FeedItem, FeedStateRecord, NextAction, PersonalWatch } from "@/lib/contracts";
 import { alertsInboxEnabled } from "@/lib/access/enforce";
 import { alertRowOf } from "@/lib/cards/alert-row";
-import { alertCard, itemCard, packetCard, type AmbientCard, type VisitStop } from "@/lib/dashboard/ambient";
+import { alertCard, itemCard, type AmbientCard, type VisitStop } from "@/lib/dashboard/ambient";
 import { weekKeyOfIso } from "@/lib/data/dates";
 import { findUser } from "@/lib/data/entities/users";
 import { TH } from "@/lib/i18n/th";
 import type { Dictionary } from "@/lib/semantic/dictionary";
-import { actionEvents, alerts, feedStates, memoryFacts, packets, visits } from "@/lib/server/agent/collections";
+import { actionEvents, alerts, feedStates, memoryFacts, visits } from "@/lib/server/agent/collections";
 import { feedIntentKey, isMutableKind, learnFeed, mutesOfKind, notFollowingStatement } from "@/lib/engine/feed-learning";
 import { proposeMemory } from "@/lib/engine/memory";
 import { isTrusted } from "@/lib/engine/memory-status";
 import { conditionLabel } from "@/lib/engine/personal-watches";
 import { watchesOf } from "@/lib/server/watches";
 import { toneOf } from "@/lib/dashboard/metric-display";
-import { alertIntentKey, alertSubject, childrenOf, handedOffNote, muteAlertForUser, openPacketsFor, relatedTo, relevanceContext, relevantAlertsFor } from "@/lib/server/alerts";
+import { alertIntentKey, alertSubject, childrenOf, muteAlertForUser, relatedTo, relevanceContext, relevantAlertsFor } from "@/lib/server/alerts";
+import { handedOffNote } from "@/lib/server/share/carrying";
 import { visitsFor } from "@/lib/server/dashboard";
 import { lessonFor } from "@/lib/server/outcomes";
 import { loadDictionary } from "@/lib/server/master-data";
@@ -32,7 +33,6 @@ const CLEAR_MOVE_PCT = 100;
 const SNOOZE_DAYS = 7;
 const LANDING_CARDS = 2;
 const ALERT_RANK: Record<Alert["severity"], number> = { P1: 900, P2: 600, P3: 200 };
-const PACKET_RANK: Record<ContextPacket["urgency"], number> = { high: 850, medium: 550, low: 250 };
 const VISIT_RANK = { danger: 800, warning: 500, other: 300 } as const;
 const WATCH_RANK = 880;
 const MUTES_BEFORE_PROPOSING = 3;
@@ -121,36 +121,8 @@ function alertItem(access: AccessContext, alert: Alert, dictionary: Dictionary):
     detail: detailOf(alert, dictionary, metric),
     prompt: TH.landing.askAbout(row.scopeLabel),
     alertId: alert.id,
-    packetId: null,
     canFinish: true,
-    actions: actionsForAlert(access, alert, dictionary).filter((action) => action.kind === "handoff" && action.tool !== null).slice(0, 1),
-    because: null,
-  };
-}
-
-function carriedAlert(packet: ContextPacket): Alert | null {
-  return packet.alertIds.map((id) => alerts().get(id)).find((candidate) => candidate?.status === "open") ?? null;
-}
-
-/** A handoff about an alert is that alert's story and leads it, so the recipient sees the ask and the alert as one matter. */
-function packetItem(packet: ContextPacket): FeedItem {
-  const from = findUser(packet.fromUserId)?.nameTh ?? packet.fromUserId;
-  const alert = carriedAlert(packet);
-  return {
-    key: `packet:${packet.id}`,
-    source: "packet",
-    kind: "packet",
-    story: alert ? storyOf(alert) : null,
-    rank: Math.max(PACKET_RANK[packet.urgency], alert ? ALERT_RANK[alert.severity] + 1 : 0),
-    tone: packet.urgency === "high" ? "danger" : packet.urgency === "medium" ? "warning" : "info",
-    label: packet.title,
-    reason: TH.inbox.urgency[packet.urgency],
-    detail: TH.landing.fromName(from),
-    prompt: TH.landing.packetPrompt(packet.title),
-    alertId: null,
-    packetId: packet.id,
-    canFinish: false,
-    actions: [],
+    actions: actionsForAlert(access, alert, dictionary).filter((action) => action.kind === "send" && action.tool !== null).slice(0, 1),
     because: null,
   };
 }
@@ -168,7 +140,6 @@ function visitItems(stops: readonly VisitStop[], week: string, storyOfAgent: (ag
     detail: null,
     prompt: stop.prompt,
     alertId: null,
-    packetId: null,
     canFinish: true,
     actions: [],
     because: null,
@@ -188,7 +159,6 @@ function watchItem(watch: PersonalWatch, story: string | null): FeedItem {
     detail: conditionLabel(watch.query, watch.condition),
     prompt: TH.landing.askAbout(watch.title),
     alertId: null,
-    packetId: null,
     canFinish: true,
     actions: [],
     because: null,
@@ -231,7 +201,6 @@ async function feedWithStories(access: AccessContext, now: number): Promise<{ it
   };
   const items = [
     ...alertItems,
-    ...openPacketsFor(access).map(packetItem),
     ...visitItems(stops, weekKeyOfIso(new Date(now).toISOString().slice(0, 10)), storyOfAgent),
     ...(await orPortDown(() => peopleFeedFor(access))),
     ...(await campaignFeedFor(access)),
@@ -312,12 +281,6 @@ function cardOf(access: AccessContext, item: FeedItem, stories: readonly TeamSto
   if (alert) {
     const note = handedOffNote(alert.id, access.userId) ?? lessonFor(alert);
     return { ...alertCard({ alert, row: alertRowOf(alert, dictionary), owner: ownerNameOf(access, alert), note, actions: item.actions }), feedKey: item.key };
-  }
-  const packet = item.packetId ? packets().get(item.packetId) ?? null : null;
-  if (packet) {
-    const carried = carriedAlert(packet);
-    const from = findUser(packet.fromUserId)?.nameTh ?? packet.fromUserId;
-    return packetCard({ id: packet.id, title: packet.title, ask: packet.ask, fromName: from, urgency: packet.urgency, carried }, carried ? alertRowOf(carried, dictionary) : null);
   }
   return itemCard(item);
 }

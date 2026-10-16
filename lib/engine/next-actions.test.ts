@@ -60,21 +60,22 @@ function idsOf(actions: { id: string }[]): string[] {
 }
 
 describe("nextActionsFor", () => {
-  test("a healthy number offers a drill-in, never a handoff", () => {
+  test("a healthy number offers a drill-in, never a send", () => {
     const actions = nextActionsFor(accessOf(CEO), contextOf({ deltaPercent: 1.2 }));
     expect(idsOf(actions)).toEqual(["drill-why"]);
   });
 
   test("a bad drop offers the person accountable for that metric and region", () => {
     const actions = nextActionsFor(accessOf(CEO), contextOf({ deltaPercent: -12, query: queryOf("net_sales_volume", "northeast") }));
-    const handoff = actions.find((action) => action.id === "handoff");
-    expect(handoff?.tool).toBe("create_handoff");
-    expect((handoff?.input as { toUserId: string }).toUserId).toBe(RSM_NORTHEAST);
+    const send = actions.find((action) => action.id === "send");
+    expect(send?.tool).toBe("send_card");
+    expect((send?.input as { to: string[] }).to).toEqual([RSM_NORTHEAST]);
+    expect((send?.input as { card: { reads: { tool: string }[] } }).card.reads.map((read) => read.tool)).toEqual(["query_metric"]);
   });
 
-  test("never offers to hand work to yourself", () => {
+  test("never offers to send work to yourself", () => {
     const actions = nextActionsFor(accessOf(RSM_NORTHEAST), contextOf({ deltaPercent: -12, query: queryOf("net_sales_volume", "northeast") }));
-    expect(idsOf(actions)).not.toContain("handoff");
+    expect(idsOf(actions)).not.toContain("send");
   });
 
   test("masked fields offer a request to the metric owner", () => {
@@ -98,9 +99,9 @@ describe("nextActionsFor", () => {
 
   test("a role without a tool never sees the button for it", () => {
     const rep = accessOf("u_krit");
-    expect(rep.toolAllow).not.toContain("create_handoff");
-    const actions = nextActionsFor(rep, contextOf({ deltaPercent: -20, query: queryOf("net_sales_volume", "northeast") }));
-    expect(idsOf(actions)).not.toContain("handoff");
+    const withoutSending = { ...rep, toolAllow: rep.toolAllow.filter((tool) => tool !== "send_card") };
+    expect(idsOf(nextActionsFor(rep, contextOf({ deltaPercent: -20, query: queryOf("net_sales_volume", "northeast") })))).toContain("send");
+    expect(idsOf(nextActionsFor(withoutSending, contextOf({ deltaPercent: -20, query: queryOf("net_sales_volume", "northeast") })))).not.toContain("send");
   });
 
   test("never offers more than three", () => {
@@ -110,12 +111,12 @@ describe("nextActionsFor", () => {
 
   test("overdue money falling is good news and asks nobody to act", () => {
     const actions = nextActionsFor(accessOf(CEO), contextOf({ deltaPercent: -22.6, query: queryOf("ar_overdue") }));
-    expect(idsOf(actions)).not.toContain("handoff");
+    expect(idsOf(actions)).not.toContain("send");
   });
 
   test("overdue money rising is bad news and goes to its owner", () => {
     const actions = nextActionsFor(accessOf(CEO), contextOf({ deltaPercent: 13.5, query: queryOf("ar_overdue", "south") }));
-    expect(idsOf(actions)).toContain("handoff");
+    expect(idsOf(actions)).toContain("send");
   });
 
   test("a province never offers a split by region, it offers the next finer level", () => {
@@ -127,8 +128,8 @@ describe("nextActionsFor", () => {
 
   test("a province hands work to the owner of its region", () => {
     const query = resolvedFor({ ...queryOf("net_sales_volume"), filters: { province: ["pv_khonkaen"] } });
-    const handoff = nextActionsFor(accessOf(CEO), contextOf({ deltaPercent: -12, query })).find((action) => action.id === "handoff");
-    expect((handoff?.input as { toUserId: string }).toUserId).toBe(RSM_NORTHEAST);
+    const send = nextActionsFor(accessOf(CEO), contextOf({ deltaPercent: -12, query })).find((action) => action.id === "send");
+    expect((send?.input as { to: string[] }).to).toEqual([RSM_NORTHEAST]);
   });
 
   test("an alert's verify step replaces the why question instead of repeating it", () => {
@@ -152,8 +153,8 @@ describe("nextActionsFor", () => {
   test("overdue debt on one agent is handed to the rep assigned to it; the same debt by region stays with finance", () => {
     const handoffTo = (filters: MetricQuery["filters"]) => {
       const query = resolvedFor({ metric: "ar_overdue", dims: ["agent"], filters, range: { from: "2026-09-01", to: "2026-09-22" }, grain: "month", compare: "prev_period", limit: 10 });
-      const handoff = nextActionsFor(accessOf(CEO), contextOf({ deltaPercent: 12, query, region: regionOf(query) })).find((action) => action.id === "handoff");
-      return (handoff?.input as { toUserId: string } | undefined)?.toUserId;
+      const send = nextActionsFor(accessOf(CEO), contextOf({ deltaPercent: 12, query, region: regionOf(query) })).find((action) => action.id === "send");
+      return (send?.input as { to: string[] } | undefined)?.to[0];
     };
     expect(handoffTo({ agent: ["ag_sou_06"] })).toBe("u_arm");
     expect(handoffTo({ region: ["south"] })).toBe("u_mint");

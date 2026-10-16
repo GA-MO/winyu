@@ -10,7 +10,7 @@ const AT = new Date().toISOString();
 const PAYLOAD: BellPayload = {
   decide: [
     { key: "grant_request:rq1", kind: "grant_request", refId: "rq1", title: "คุณกฤตขอสิทธิ์", person: null, at: AT, read: false, target: "/g/rq1", notificationId: "n-request" },
-    { key: "handoff:pk1", kind: "handoff", refId: "pk1", title: "งานใหม่จากคุณอนุชา", person: null, at: AT, read: false, target: "/c/new?preload=pk1", notificationId: "n-handoff" },
+    { key: "staff_request:sr1", kind: "staff_request", refId: "sr1", title: "คุณกฤตขออนุมัติ: ใบลาพักร้อน", person: null, at: AT, read: false, target: "/?inbox", notificationId: "n-staff" },
   ],
   updates: [{ key: "n-share", kind: "share", refId: "code1", title: "คุณธนาส่งการ์ด", person: null, at: AT, read: false, target: "/s/code1", notificationId: "n-share" }],
 };
@@ -74,17 +74,13 @@ describe("the bell popover", () => {
     expect(seen).toMatchObject({ closed: 1, went: ["/s/code1"] });
   });
 
-  test("รับงาน on a handoff accepts its packet, reads its notification and refreshes the badge without leaving", async () => {
-    const server = fakeServer(PAYLOAD);
+  test("พิจารณา on a leave request opens the Inbox where it is decided and reads its notification; nothing is approved from the popover", async () => {
+    const server = fakeServer({ ...PAYLOAD, decide: PAYLOAD.decide.filter((item) => item.kind === "staff_request") });
     const { host, seen } = await openPopover();
-    await act(async () => button(host, COPY.actions.handoff)?.click());
+    await act(async () => button(host, COPY.actions.staff_request)?.click());
     server.spy.mockRestore();
-    expect(server.calls.slice(1, 3)).toEqual([
-      { url: "/api/inbox/pk1", method: "POST", body: { action: "accept" } },
-      { url: "/api/notifications", method: "POST", body: { id: "n-handoff" } },
-    ]);
-    expect(server.calls[3]?.url).toBe("/api/notifications/bell");
-    expect(seen).toMatchObject({ closed: 0, changed: 1, went: [] });
+    expect(server.calls.slice(1)).toEqual([{ url: "/api/notifications", method: "POST", body: { id: "n-staff" } }]);
+    expect(seen).toMatchObject({ closed: 1, went: ["/?inbox"] });
   });
 
   test("พิจารณา on a grant request opens its approval page and reads its notification; nothing is approved from the popover", async () => {
@@ -108,7 +104,7 @@ describe("the bell popover", () => {
   });
 
   test("a matter shows its card title, the ask, who sent it and passed it on, and the presses; รับ presses it in place, reads its notification and refreshes", async () => {
-    const matter = { code: "m1", title: "ปริมาณขายเข้า", ask: "ช่วยดูภาคอีสาน", senderName: "คุณธนา", passerName: "คุณอนุชา", at: AT, actions: ["accept" as const, "ask" as const, "pass_on" as const, "not_mine" as const, "done" as const], suggested: { ownerId: null, line: [] } };
+    const matter = { code: "m1", title: "ปริมาณขายเข้า", ask: "ช่วยดูภาคอีสาน", senderName: "คุณธนา", passerName: "คุณอนุชา", at: AT, actions: ["accept" as const, "ask" as const, "pass_on" as const, "not_mine" as const, "done" as const], suggested: { ownerId: null, line: [] }, judges: false };
     const payload: BellPayload = { decide: [{ key: "matter:m1", kind: "matter", refId: "m1", title: "t", person: null, at: AT, read: false, target: "/s/m1", notificationId: "n-matter", matter }], updates: [] };
     const server = fakeServer(payload);
     const { host, seen } = await openPopover();

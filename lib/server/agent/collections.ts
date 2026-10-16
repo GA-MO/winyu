@@ -1,4 +1,4 @@
-import type { ActionEvent, Alert, Investigation, ContextPacket, DashboardLayout, FeedStateRecord, FeedTone, Forecast, MemoryFact, MemoryTombstone, Notification, OutboxEntry, PersonalWatch } from "@/lib/contracts";
+import type { ActionEvent, Alert, Investigation, DashboardLayout, FeedStateRecord, FeedTone, Forecast, MemoryFact, MemoryTombstone, Notification, OutboxEntry, PersonalWatch } from "@/lib/contracts";
 import { collection } from "@/lib/server/store/json-store";
 
 export type StoredForecast = Forecast;
@@ -11,7 +11,6 @@ export const COLLECTIONS = {
   memory: "memory",
   memoryReviews: "memory-reviews",
   memoryTombstones: "memory-tombstones",
-  packets: "packets",
   notifications: "notifications",
   outbox: "outbox",
   layouts: "layouts",
@@ -37,10 +36,6 @@ export type MemoryReview = { id: string; at: string; before: number; after: numb
 
 export function memoryReviews() {
   return collection<MemoryReview>(COLLECTIONS.memoryReviews);
-}
-
-export function packets() {
-  return collection<ContextPacket>(COLLECTIONS.packets);
 }
 
 export function notifications() {
@@ -90,12 +85,6 @@ export function alertOutcomes() {
   return collection<AlertOutcome>("alert-outcomes");
 }
 
-export type PacketOrigin = { id: string; threadId: string; userId: string };
-
-export function packetOrigins() {
-  return collection<PacketOrigin>("packet-origins");
-}
-
 export function actionEvents() {
   return collection<ActionEvent>("events");
 }
@@ -106,12 +95,6 @@ export function layoutVersions() {
   return collection<LayoutVersion>("layout-versions");
 }
 
-/** Which Inbox packet told an approver about which request in another system (the leave system, the LMS), so their decision there is forwarded to that system. */
-export type RequestLink = { id: string; system: "leave" | "course"; requestId: string; employeeId: string; approverId: string };
-
-export function requestLinks() {
-  return collection<RequestLink>("request-links");
-}
 
 export function feedStates() {
   return collection<FeedStateRecord>("feed-states");

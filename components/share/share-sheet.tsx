@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { Check, EyeOff, Forward, KeyRound, Link2, Mail, MessageCircle, Search, Users, X } from "lucide-react";
+import { AlertTriangle, Check, EyeOff, Forward, KeyRound, Link2, Mail, MessageCircle, Search, Target, Users, X } from "lucide-react";
 import { OutboxNote } from "@/components/share/outbox-note";
 import { cn } from "@/components/ui/cn";
 import { CardShareProvider } from "@/components/ui/card-share";
@@ -9,14 +9,14 @@ import { Portrait } from "@/components/ui/portrait";
 import { DEFAULT_GRANT_DAYS, GRANT_DAYS, type GrantDays, type RecipientScope } from "@/lib/contracts/grant";
 import { metricLabel } from "@/lib/dashboard/metric-display";
 import { TH } from "@/lib/i18n/th";
-import { MATTER_ASK_MAX, SHARE_RECIPIENTS_MAX, shareTitle, type ShareChannel, type ShareContact, type ShareGrantReceipt, type ShareReceipt, type ShareTarget } from "@/lib/share/card";
-import { saysUrgent } from "@/lib/cards/handoff-urgency";
-import { defaultUrgency, MATTER_INTENTS, type MatterIntent, type MatterUrgency } from "@/lib/share/matter";
+import { MATTER_ASK_MAX, SHARE_RECIPIENTS_MAX, shareTitle, type SendPreview, type ShareChannel, type ShareContact, type ShareGrantReceipt, type ShareReceipt, type ShareTarget } from "@/lib/share/card";
+import { contradictionOf } from "@/lib/share/figures";
+import { defaultUrgency, MATTER_INTENTS, saysUrgent, type MatterIntent, type MatterUrgency } from "@/lib/share/matter";
 import type { MatterSuggestions } from "@/lib/share/matter-actions";
 
 const CONTACTS_ENDPOINT = "/api/shares/contacts";
 const SHARES_ENDPOINT = "/api/shares";
-const SUGGESTION_ENDPOINT = "/api/shares/suggestion";
+const PREVIEW_ENDPOINT = "/api/shares/preview";
 const SCOPES_ENDPOINT = "/api/shares/scopes";
 const PANEL = "fixed right-0 top-0 z-50 flex h-dvh w-full max-w-[26rem] flex-col border-l border-border bg-card shadow-panel animate-panel-in";
 const CHIP = "inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
@@ -281,22 +281,45 @@ export function useShareContacts(): ShareContact[] | null {
   return useShareDirectory()?.contacts ?? null;
 }
 
-const NO_SUGGESTIONS: MatterSuggestions = { ownerId: null, line: [] };
+const NO_PREVIEW: SendPreview = { ownerId: null, line: [], figures: null, goal: null };
 
-/** Whom the server puts first for a card: its owner (never the person sending) and their own line; empty until loaded. */
-export function useSuggestions(card: ShareTarget["card"] | null): MatterSuggestions {
-  const [suggestions, setSuggestions] = useState<MatterSuggestions>(NO_SUGGESTIONS);
-  const body = card ? JSON.stringify({ card }) : null;
+/** What the server says about sending a card before it leaves: whom to put first (its owner, never the sender, then the sender's own line), what the card's numbers say for the sender, and the goal that would close it; empty until loaded. */
+export function useSendPreview(card: ShareTarget["card"] | null, alertIds: readonly string[] = []): SendPreview {
+  const [preview, setPreview] = useState<SendPreview>(NO_PREVIEW);
+  const body = card ? JSON.stringify({ card, alertIds }) : null;
   useEffect(() => {
     if (!body) return;
     const controller = new AbortController();
-    fetch(SUGGESTION_ENDPOINT, { method: "POST", headers: { "content-type": "application/json" }, body, signal: controller.signal })
-      .then((response) => (response.ok ? (response.json() as Promise<Partial<MatterSuggestions>>) : null))
-      .then((payload) => setSuggestions({ ownerId: payload?.ownerId ?? null, line: payload?.line ?? [] }))
+    fetch(PREVIEW_ENDPOINT, { method: "POST", headers: { "content-type": "application/json" }, body, signal: controller.signal })
+      .then((response) => (response.ok ? (response.json() as Promise<Partial<SendPreview>>) : null))
+      .then((payload) => setPreview({ ownerId: payload?.ownerId ?? null, line: payload?.line ?? [], figures: payload?.figures ?? null, goal: payload?.goal ?? null }))
       .catch(() => undefined);
     return () => controller.abort();
   }, [body]);
-  return suggestions;
+  return preview;
+}
+
+/** The one line code writes when the sender's words claim what the card's numbers do not show; the sender can still send. */
+export function ContradictionNote({ text }: { text: string | null }) {
+  if (!text) return null;
+  return (
+    <p className="flex items-start gap-1.5 rounded-xl border border-warning/25 bg-warning/[0.08] px-3 py-2 text-xs leading-relaxed text-foreground" role="status" data-send-warning>
+      <AlertTriangle className="mt-0.5 size-3.5 shrink-0 text-warning" aria-hidden />
+      {text}
+    </p>
+  );
+}
+
+function GoalChoice({ goal, keep, toggle }: { goal: string; keep: boolean; toggle: () => void }) {
+  return (
+    <button type="button" role="switch" aria-checked={keep} onClick={toggle} className="flex items-center gap-2 text-left text-xs text-foreground" data-share-goal>
+      <span aria-hidden className={cn("flex size-4 shrink-0 items-center justify-center rounded border", keep ? "border-transparent bg-primary text-primary-foreground" : "border-border")}>
+        {keep ? <Check className="size-3" /> : null}
+      </span>
+      <Target className="size-3.5 text-primary" aria-hidden />
+      {goal}
+    </button>
+  );
 }
 
 function nextChosen(current: readonly string[], id: string, intent: MatterIntent): string[] {
@@ -308,7 +331,8 @@ function nextChosen(current: readonly string[], id: string, intent: MatterIntent
 function Sheet({ target, close }: { target: ShareTarget; close: () => void }) {
   const directory = useShareDirectory();
   const contacts = directory?.contacts ?? [];
-  const suggested = useSuggestions(target.card);
+  const preview = useSendPreview(target.card);
+  const [keepGoal, setKeepGoal] = useState(true);
   const title = shareTitle(target.card);
   const [grantDays, setGrantDays] = useState<GrantDays | null>(null);
   const [ask, setAsk] = useState(() => target.draftAsk ?? TH.share.askDraft(title));
@@ -318,7 +342,7 @@ function Sheet({ target, close }: { target: ShareTarget; close: () => void }) {
   const [picked, setPicked] = useState<string[] | null>(null);
   const [phase, setPhase] = useState<Phase>({ kind: "picking" });
 
-  const chosen = picked ?? (suggested.ownerId ? [suggested.ownerId] : []);
+  const chosen = picked ?? (preview.ownerId ? [preview.ownerId] : []);
   const toggle = (contact: ShareContact) => setPicked(nextChosen(chosen, contact.id, intent));
   const chooseIntent = (next: MatterIntent) => {
     setIntent(next);
@@ -331,7 +355,7 @@ function Sheet({ target, close }: { target: ShareTarget; close: () => void }) {
   const send = async () => {
     setPhase({ kind: "sending" });
     const recipients = chosen.map((userId) => ({ userId, channel: "winyu" as const }));
-    const body = { card: target.card, question: target.question, ask, intent, urgency, recipients, grantDays: directory?.mayGrant ? grantDays : null };
+    const body = { card: target.card, question: target.question, ask, intent, urgency, recipients, grantDays: directory?.mayGrant ? grantDays : null, closeOnGoal: keepGoal };
     const response = await fetch(SHARES_ENDPOINT, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) }).catch(() => null);
     const payload = response?.ok ? ((await response.json()) as { receipts: ShareReceipt[]; grants?: ShareGrantReceipt[]; hidden?: RecipientScope[]; path: string }) : null;
     setPhase(payload ? { kind: "sent", receipts: payload.receipts, grants: payload.grants ?? [], hidden: payload.hidden ?? [], path: payload.path } : { kind: "failed", refused: response?.status === REFUSED_STATUS });
@@ -364,9 +388,11 @@ function Sheet({ target, close }: { target: ShareTarget; close: () => void }) {
                 <span className="text-xs font-medium text-muted-foreground">{TH.share.askLabel}</span>
                 <input value={ask} onChange={(event) => setAsk(event.target.value.slice(0, MATTER_ASK_MAX))} placeholder={TH.share.askPlaceholder} data-share-ask className="rounded-xl border border-border bg-transparent px-3 py-2 text-sm outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-ring" />
               </label>
+              <ContradictionNote text={contradictionOf(ask, preview.figures)} />
+              {intent === "act" && preview.goal ? <GoalChoice goal={preview.goal} keep={keepGoal} toggle={() => setKeepGoal((value) => !value)} /> : null}
             </div>
             <div className="ui-scrollbar flex min-h-0 flex-1 flex-col overflow-y-auto">
-              <PeoplePicker contacts={contacts} suggested={suggested} chosen={chosen} onToggle={toggle} />
+              <PeoplePicker contacts={contacts} suggested={preview} chosen={chosen} onToggle={toggle} />
             </div>
             <footer className="flex flex-col gap-2 border-t border-border px-4 py-3">
               <RecipientWarnings scopes={scopes} granting={grantDays !== null} grant={directory?.mayGrant ? () => setGrantDays(DEFAULT_GRANT_DAYS) : null} />

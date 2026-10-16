@@ -19,7 +19,7 @@ type Recalled = { summary: string; data: { value: string; status: string }[]; co
 type ForModel = Recalled & { conversationsAre?: string };
 
 function turnOn(threadId: string, turnId = "run_recall_tool"): TurnContext {
-  return { turnId, threadId, preloadPacketId: null, question: "ครั้งก่อนเรื่องคนลาออก", queries: [] };
+  return { turnId, threadId, question: "ครั้งก่อนเรื่องคนลาออก", queries: [] };
 }
 
 async function recallOn(threadId: string, query = "ครั้งก่อนที่คุยเรื่องคนลาออก", turnId?: string): Promise<Recalled> {

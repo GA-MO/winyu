@@ -4,7 +4,7 @@ import { findUser } from "@/lib/data/entities/users";
 import { resolveFilters } from "@/lib/semantic/dictionary";
 import { regionOfSlice } from "@/lib/semantic/geo";
 import { filtersOfSlice, pinnedSlice } from "@/lib/semantic/resolved";
-import { suggestOwner } from "@/lib/server/handoff";
+import { suggestOwner } from "@/lib/server/share/owner";
 import { loadDictionary } from "@/lib/server/master-data";
 import { currentAccess } from "@/lib/server/request-context";
 import { defineTool } from "./define";
@@ -14,7 +14,7 @@ export const resolveOwnerTool = defineTool({
   connector: "winyu",
   tier: "read",
   roles: "all",
-  description: "Find the person accountable for a metric in a region (the RACI table), or for one agent's overdue debt the rep assigned to that agent, before handing work over or asking for access. Returns the user id, name, title and the reason they own it.",
+  description: "Find the person accountable for a metric in a region (the RACI table), or for one agent's overdue debt the rep assigned to that agent, before sending a card to them or asking for access. Returns the user id, name, title and the reason they own it.",
   input: resolveOwnerInputSchema,
   execute: async ({ metric, dims }: z.infer<typeof resolveOwnerInputSchema>) => {
     const dictionary = await loadDictionary();

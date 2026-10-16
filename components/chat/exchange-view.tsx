@@ -1,15 +1,13 @@
 "use client";
 
 import { Component, type ReactNode } from "react";
-import { AlertCircle, CircleSlash, MessageSquareReply, MousePointerClick, ShieldCheck } from "lucide-react";
+import { AlertCircle, CircleSlash, MousePointerClick, ShieldCheck } from "lucide-react";
 import { renderApproval } from "@/components/cards/approval-card";
 import { ShareChrome } from "@/components/share/share-sheet";
 import { describeToolCall } from "@/lib/cards/describe-call";
 import { TOOL_CARDS, type ToolCard } from "@/components/cards/registry";
-import { Badge } from "@/components/ui/primitives";
-import type { ContextPacket, HandoffReplyNote } from "@/lib/contracts";
 import { maskPersonalData } from "@/lib/harness/guard";
-import { sharedComposedCard, sharedToolCard, shareTitle, type ExchangeRead, type ShareTarget } from "@/lib/share/card";
+import { sharedComposedCard, sharedToolCard, type ExchangeRead, type ShareTarget } from "@/lib/share/card";
 import { TH } from "@/lib/i18n/th";
 import { ActionTrail } from "./action-trail";
 import { ComposedCardView } from "./composed-card";
@@ -23,15 +21,7 @@ import type { PendingApproval } from "./use-chat-session";
 
 const CARDS: Record<string, ToolCard> = TOOL_CARDS;
 const CARD_TOOLS: ReadonlySet<string> = new Set(Object.keys(CARDS));
-const STATUS_TONE: Record<ContextPacket["status"], "neutral" | "success" | "warning" | "danger"> = {
-  open: "neutral",
-  accepted: "success",
-  need_info: "warning",
-  returned: "danger",
-  resolved: "success",
-};
-
-/** What one exchange needs from the live chat: whether it is the newest, whether a reply streams, the approvals asked and answered, how it ended, the course seats the conversation has requested since, the card an earlier exchange left on screen (what "ส่งการ์ดนี้" asked here would send), the Thai tool labels its trail names connector calls by, and how long its runs took when this tab saw them. */
+/** What one exchange needs from the live chat: whether it is the newest, whether a reply streams, the approvals asked and answered, how it ended, the course seats the conversation has requested since, the card "ส่งการ์ดนี้" asked here would send (the one this exchange drew, else the newest before it), the Thai tool labels its trail names connector calls by, and how long its runs took when this tab saw them. */
 export type ExchangeLive = {
   isLast: boolean;
   running: boolean;
@@ -42,7 +32,7 @@ export type ExchangeLive = {
   stopped: boolean;
   error: string | null;
   requestedCourses: ReadonlySet<string>;
-  cardBefore: ShareTarget | null;
+  cardToSend: ShareTarget | null;
   toolLabels: Readonly<Record<string, string>>;
   durationMs: number | null;
 };
@@ -149,8 +139,7 @@ function ToolStepView({ step, steps, live, plan, streaming, sharing, asked }: { 
         approved: view.approved,
         approve: () => live.decide(step.toolCallId, true),
         reject: () => live.decide(step.toolCallId, false),
-        shareTitle: live.cardBefore ? shareTitle(live.cardBefore.card) : null,
-        shareCard: live.cardBefore?.card ?? null,
+        cardToSend: live.cardToSend,
         question: asked,
         labelTh: live.toolLabels[view.tool],
       })}
@@ -158,23 +147,8 @@ function ToolStepView({ step, steps, live, plan, streaming, sharing, asked }: { 
   );
 }
 
-function HandoffReplyView({ note }: { note: HandoffReplyNote }) {
-  return (
-    <aside className="w-full animate-hero-rise rounded-2xl border border-border bg-card px-4 py-3" aria-label={TH.handoff.replyFrom(note.fromName, note.fromTitle)}>
-      <header className="flex flex-wrap items-center gap-2 text-sm">
-        <MessageSquareReply className="size-4 shrink-0 text-primary" aria-hidden />
-        <span className="font-medium text-foreground">{TH.handoff.replyFrom(note.fromName, note.fromTitle)}</span>
-        <Badge props={{ label: TH.inbox.status[note.status], tone: STATUS_TONE[note.status] }} />
-      </header>
-      <p className="mt-2 whitespace-pre-wrap text-[15px] leading-relaxed text-foreground">{note.text}</p>
-      <p className="mt-1 text-xs text-muted-foreground">{TH.handoff.replyAbout(note.packetTitle)}</p>
-    </aside>
-  );
-}
-
 function StepView({ step, toolSteps, live, plan, streaming, sharing, asked }: { step: ReplyStep; toolSteps: readonly ToolStep[]; live: ExchangeLive; plan: CardPlan; streaming: boolean; sharing: Sharing; asked: string | null }) {
   if (step.kind === "text") return <Markdown text={step.text} />;
-  if (step.kind === "handoff-reply") return <HandoffReplyView note={step.note} />;
   if (step.kind === "composed")
     return (
       <CardBoundary>

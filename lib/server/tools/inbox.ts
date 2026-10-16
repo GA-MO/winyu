@@ -1,15 +1,15 @@
 import type { z } from "zod";
-import { inboxInputSchema, type AccessContext, type ContextPacket, type GrantRequest, type InboxKind } from "@/lib/contracts";
+import { inboxInputSchema, type AccessContext, type GrantRequest, type InboxKind } from "@/lib/contracts";
 import { businessToday } from "@/lib/data/dates";
 import { findUser } from "@/lib/data/entities/users";
 import { formatDateTh } from "@/lib/i18n/format";
 import { TH } from "@/lib/i18n/th";
 import { sliceLabel } from "@/lib/share/grant-label";
 import { matterFrom, type MatterBrief } from "@/lib/share/matter-actions";
-import { requestLinks } from "@/lib/server/agent/collections";
 import { fencedRows, MAX_CONNECTOR_ROWS } from "@/lib/server/connectors/output";
 import type { ConnectorRow } from "@/lib/server/connectors/types";
-import { pendingRequestsFor, undecidedHandoffsFor } from "@/lib/server/inbox";
+import { pendingRequestsFor } from "@/lib/server/inbox";
+import { pendingStaffRequestsFor, type StaffRequest } from "@/lib/server/staff-requests";
 import { currentAccess } from "@/lib/server/request-context";
 import { briefOf } from "@/lib/server/share/act";
 import { mattersWaitingOn } from "@/lib/server/share/shares";
@@ -21,19 +21,11 @@ function nameOf(userId: string): string {
   return findUser(userId)?.nameTh ?? userId;
 }
 
-function packetItem(packet: ContextPacket): WaitingItem {
-  const approval = requestLinks().get(packet.id);
+function staffItem(request: StaffRequest): WaitingItem {
   return {
-    kind: approval ? "approval" : "handoff",
-    at: packet.createdAt,
-    row: {
-      kind_label: approval ? TH.waiting.approval[approval.system] : TH.waiting.kind.handoff,
-      title: packet.title,
-      from_name: nameOf(packet.fromUserId),
-      ask: packet.ask,
-      status_label: TH.inbox.status[packet.status],
-      at_label: formatDateTh(packet.createdAt),
-    },
+    kind: "approval",
+    at: request.createdAt,
+    row: { kind_label: TH.waiting.approval[request.system], title: request.title, from_name: nameOf(request.employeeId), ask: request.ask, status_label: TH.waiting.yourCall, at_label: formatDateTh(request.createdAt) },
   };
 }
 
@@ -47,16 +39,16 @@ function grantRequestItem(request: GrantRequest): WaitingItem {
 
 function matterItem(brief: MatterBrief): WaitingItem {
   return {
-    kind: "shared_card",
+    kind: "matter",
     at: brief.at,
-    row: { kind_label: TH.waiting.kind.shared_card, title: brief.title, from_name: matterFrom(brief), ask: brief.ask, status_label: TH.waiting.yourCall, at_label: formatDateTh(brief.at) },
+    row: { kind_label: TH.waiting.kind.matter, title: brief.title, from_name: matterFrom(brief), ask: brief.ask, status_label: TH.waiting.yourCall, at_label: formatDateTh(brief.at) },
   };
 }
 
-/** What waits on the viewer right now, newest first: handoffs sent to them, leave and training requests they approve, temporary-access requests they decide, and shared cards waiting on their answer; nobody else's items, and every colleague's words fenced as data. */
+/** What waits on the viewer right now, newest first: matters waiting on their answer, leave and training requests they approve, and temporary-access requests they decide; nobody else's items, and every colleague's words fenced as data. */
 export function waitingOn(access: AccessContext, kind: InboxKind | null) {
   const items = [
-    ...undecidedHandoffsFor(access.userId).map(packetItem),
+    ...pendingStaffRequestsFor(access.userId).map(staffItem),
     ...pendingRequestsFor(access.userId).map(grantRequestItem),
     ...mattersWaitingOn(access.userId).map((matter) => matterItem(briefOf(matter, access.userId))),
   ]
@@ -76,7 +68,7 @@ export const inboxTool = defineTool({
   tier: "read",
   roles: "all",
   description:
-    "What waits on the current user right now, read live from their own Inbox: handoffs sent to them (งานที่หัวหน้าหรือเพื่อนส่งมา), leave and training requests waiting for their approval, temporary-access requests waiting for their decision, and shared cards waiting for their answer. Only the user's own items, never anyone else's. kind narrows to one of handoff, approval, grant_request, shared_card; null lists them all. Call it for งานที่รอฉัน / หัวหน้าส่งงานอะไรมา / มีใบลารออนุมัติไหม / มีอะไรค้างใน Inbox. Do not answer these from recall_memory: past conversations are not the current state.",
+    "What waits on the current user right now, read live from their own Inbox: matters colleagues sent them that wait on their answer (งานหรือเรื่องที่หัวหน้าหรือเพื่อนส่งมา), leave and training requests waiting for their approval, and temporary-access requests waiting for their decision. Only the user's own items, never anyone else's. kind narrows to one of matter, approval, grant_request; null lists them all. Call it for งานที่รอฉัน / หัวหน้าส่งงานอะไรมา / มีใบลารออนุมัติไหม / มีอะไรค้างใน Inbox. Do not answer these from recall_memory: past conversations are not the current state.",
   input: inboxInputSchema,
   execute: async ({ kind }: z.infer<typeof inboxInputSchema>) => waitingOn(currentAccess(), kind),
 });

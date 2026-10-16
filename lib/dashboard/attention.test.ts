@@ -144,7 +144,7 @@ describe("starter cards the user never looked at", () => {
 });
 
 function feedItem(kind: string, rank: number, source: FeedItem["source"] = "alert"): FeedItem {
-  return { key: `${kind}:${rank}`, source, kind, story: null, rank, tone: "warning", label: kind, reason: "", detail: null, prompt: "", alertId: null, packetId: null, canFinish: true, actions: [], because: null };
+  return { key: `${kind}:${rank}`, source, kind, story: null, rank, tone: "warning", label: kind, reason: "", detail: null, prompt: "", alertId: null, canFinish: true, actions: [], because: null };
 }
 
 describe("cards about what is on the feed", () => {

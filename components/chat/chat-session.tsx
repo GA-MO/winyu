@@ -9,7 +9,7 @@ import { CardActionsProvider } from "@/components/cards/card-actions";
 import { TOOL_CARDS } from "@/components/cards/registry";
 import { Composer } from "@/components/composer/composer";
 import { GlowBackdrop } from "@/components/ui/glow-backdrop";
-import { cardsBeforeEach } from "./card-to-share";
+import { cardsToSendEach } from "./card-to-share";
 import { ExchangeView, type ExchangeLive } from "./exchange-view";
 import { answeredMetrics, chipRow, latestFollowUps } from "./follow-ups";
 import { requestedCoursesOf } from "./requested-courses";
@@ -27,8 +27,8 @@ const CHIP =
 /** The window event the chat fires when a reply ends, so the thread rail can pick up a new or retitled thread. */
 export const THREADS_CHANGED = "winyu:threads-changed";
 
-/** A handoff packet this thread was opened from, and who sent it. */
-export type SessionPreload = { packetId: string; fromName: string };
+/** The matter this thread was opened from: its page, its title and who sent it. */
+export type SessionPreload = { matterCode: string; title: string; fromName: string };
 
 export type ChatSessionProps = {
   threadId: string;
@@ -90,8 +90,10 @@ function PreloadBanner({ preload }: { preload: SessionPreload }) {
         <Inbox className="size-4" aria-hidden />
       </span>
       <div className="min-w-0">
-        <p className="text-sm font-medium">{TH.session.preloadBanner(preload.fromName)}</p>
-        <p className="mt-0.5 text-xs text-muted-foreground">{TH.session.preloadOpen}</p>
+        <p className="text-sm font-medium">{TH.session.preloadBanner(preload.fromName, preload.title)}</p>
+        <a href={`/s/${encodeURIComponent(preload.matterCode)}`} className="mt-0.5 text-xs text-primary hover:underline">
+          {TH.session.preloadOpen}
+        </a>
       </div>
     </div>
   );
@@ -99,7 +101,7 @@ function PreloadBanner({ preload }: { preload: SessionPreload }) {
 
 /** The chat column for one thread: the transcript with its cards and decisions, follow-up chips, and the composer docked at the bottom. */
 export function ChatSession({ threadId, initialPrompt, initialMessages, initialApprovals, preload, suggestions, placeholder, toolLabels }: ChatSessionProps) {
-  const session = useChatSession({ threadId, initialMessages, initialApprovals, preloadPacketId: preload?.packetId ?? null });
+  const session = useChatSession({ threadId, initialMessages, initialApprovals });
   const { exchanges, running, ready, send } = session;
   const [text, setText] = useState("");
   const sentInitial = useRef(false);
@@ -131,7 +133,7 @@ export function ChatSession({ threadId, initialPrompt, initialMessages, initialA
   };
 
   const requestedCourses = useMemo(() => requestedCoursesOf(exchanges), [exchanges]);
-  const cardsBefore = useMemo(() => cardsBeforeEach(exchanges, CARD_TOOLS), [exchanges]);
+  const cardsToSend = useMemo(() => cardsToSendEach(exchanges, CARD_TOOLS), [exchanges]);
 
   const live = (index: number): ExchangeLive => {
     const isLast = index === exchanges.length - 1;
@@ -145,7 +147,7 @@ export function ChatSession({ threadId, initialPrompt, initialMessages, initialA
       stopped: isLast && session.stoppedExchangeId === exchanges[index].id,
       error: isLast ? session.error : null,
       requestedCourses,
-      cardBefore: cardsBefore[index] ?? null,
+      cardToSend: cardsToSend[index] ?? null,
       toolLabels,
       durationMs: session.durations[exchanges[index].id] ?? null,
     };

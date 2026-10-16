@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import type { HandoffPreload, Thread } from "@/lib/contracts";
+import type { MatterPreload, Thread } from "@/lib/contracts";
 import { collection } from "@/lib/server/store/json-store";
 import { TH } from "@/lib/i18n/th";
 
@@ -7,7 +7,7 @@ export const THREADS_COLLECTION = "threads";
 
 const TITLE_LENGTH = 40;
 
-export type ThreadSummary = { id: string; title: string; createdAt: string; updatedAt: string; packetId: string | null };
+export type ThreadSummary = { id: string; title: string; createdAt: string; updatedAt: string; matterCode: string | null };
 
 export function threads() {
   return collection<Thread>(THREADS_COLLECTION);
@@ -20,7 +20,7 @@ export function titleFrom(firstMessage: string): string {
 }
 
 function summaryOf(thread: Thread): ThreadSummary {
-  return { id: thread.id, title: thread.title, createdAt: thread.createdAt, updatedAt: thread.updatedAt, packetId: thread.preload?.packetId ?? null };
+  return { id: thread.id, title: thread.title, createdAt: thread.createdAt, updatedAt: thread.updatedAt, matterCode: thread.preload?.matterCode ?? null };
 }
 
 /** Every thread of one user, newest first, without the message bodies. */
@@ -47,7 +47,7 @@ export function unusedThread(userId: string): Thread | null {
     .sort((left, right) => right.createdAt.localeCompare(left.createdAt))[0] ?? null;
 }
 
-export function createThread(userId: string, firstMessage: string, preload: HandoffPreload | null = null, storyId: string | null = null): Thread {
+export function createThread(userId: string, firstMessage: string, preload: MatterPreload | null = null, storyId: string | null = null): Thread {
   const now = new Date().toISOString();
   return threads().put({ id: randomUUID(), userId, title: titleFrom(firstMessage), createdAt: now, updatedAt: now, preload, storyId });
 }

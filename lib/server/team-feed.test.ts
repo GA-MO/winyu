@@ -38,12 +38,12 @@ describe("a manager reads a report's region as one story", () => {
     setHandoffEnabled(true, "u_ton");
     try {
       const [card] = (await landingFeedFor(accessOf("u_prasit"), NOW)).cards;
-      expect(card?.action?.input).toMatchObject({ toUserId: "u_anucha" });
+      expect(card?.action?.input).toMatchObject({ to: ["u_anucha"] });
       setHandoffEnabled(false, "u_ton");
       const [closed] = (await landingFeedFor(accessOf("u_prasit"), NOW)).cards;
       expect(closed?.action).toBeNull();
     } finally {
-      if (before) setHandoffEnabled(before.enabled, before.by);
+      setHandoffEnabled(before?.enabled ?? true, before?.by ?? "u_ton");
     }
   });
 });

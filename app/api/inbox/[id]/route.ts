@@ -1,45 +1,24 @@
 import { badRequest, notFound, readBody, requireAccess, unauthenticated } from "../../_guard";
-import { packets } from "@/lib/server/agent/collections";
-import { actOnPacket, defaultReply, type PacketAction } from "@/lib/server/handoff";
-import { TH } from "@/lib/i18n/th";
-import { handoffEnabled } from "@/lib/access/enforce";
-import { forwardDecision, isStaffRequestPacket } from "@/lib/server/staff-requests";
-import { VERDICTS, recordOutcome, type Verdict } from "@/lib/server/outcomes";
+import { findUser } from "@/lib/data/entities/users";
+import { decideStaffRequest, STAFF_DECISIONS, type StaffDecision } from "@/lib/server/staff-requests";
 
 type RouteContext = { params: Promise<{ id: string }> };
-type ActionBody = { action?: unknown; text?: unknown; outcome?: unknown; verdict?: unknown };
+type DecisionBody = { decision?: unknown };
 
-function isVerdict(value: unknown): value is Verdict {
-  return typeof value === "string" && VERDICTS.includes(value as Verdict);
+const CONFLICT = 409;
+
+function isDecision(value: unknown): value is StaffDecision {
+  return typeof value === "string" && (STAFF_DECISIONS as readonly string[]).includes(value);
 }
 
-const ACTIONS: readonly PacketAction[] = ["accept", "need_info", "return", "resolve"];
-
-function isAction(value: unknown): value is PacketAction {
-  return typeof value === "string" && ACTIONS.includes(value as PacketAction);
-}
-
-function trimmed(value: unknown): string | null {
-  return typeof value === "string" && value.trim() ? value.trim() : null;
-}
-
+/** The approver's answer to a leave or training request in their Inbox: sent to the system that holds it, and told to the person who asked. Leave and training stay answerable when sending work is turned off: they are HR paperwork. */
 export async function POST(req: Request, context: RouteContext) {
   const access = await requireAccess();
-  if (!access) return unauthenticated();
-  const body = await readBody<ActionBody>(req);
-  if (!body || !isAction(body.action)) return badRequest();
-  const packet = packets().get((await context.params).id);
-  if (!packet || packet.toUserId !== access.userId) return notFound();
-  if (!handoffEnabled() && !isStaffRequestPacket(packet.id)) return Response.json({ error: TH.inbox.handoffClosed }, { status: 403 });
-
-  const outcome = trimmed(body.outcome);
-  if (body.action === "resolve" && !outcome) return Response.json({ error: TH.handoff.closeNeedsOutcome }, { status: 400 });
-  const judged = body.action === "resolve" && packet.alertIds.length > 0;
-  if (judged && !isVerdict(body.verdict)) return Response.json({ error: TH.lesson.needsVerdict }, { status: 400 });
-  if (judged && isVerdict(body.verdict) && outcome) recordOutcome(packet, access.userId, body.verdict, outcome);
-
-  const text = trimmed(body.text) ?? (body.action === "resolve" ? (outcome as string) : defaultReply(body.action));
-  const updated = await actOnPacket(packet, access, body.action, text, outcome);
-  await forwardDecision(packet.id, access.userId, body.action);
-  return Response.json({ packet: updated });
+  const approver = access ? findUser(access.userId) : null;
+  if (!approver) return unauthenticated();
+  const body = await readBody<DecisionBody>(req);
+  if (!body || !isDecision(body.decision)) return badRequest();
+  const decided = await decideStaffRequest((await context.params).id, approver, body.decision);
+  if (!decided.ok) return decided.reason === "not_found" ? notFound() : Response.json({ error: decided.reason }, { status: CONFLICT });
+  return Response.json({ request: decided.request });
 }

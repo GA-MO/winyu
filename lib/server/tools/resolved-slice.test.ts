@@ -43,10 +43,13 @@ async function card(userId: string, partial: Partial<MetricQuery>): Promise<Card
   return result;
 }
 
-function handoffOf(answer: { nextActions: NextAction[] }): { toUserId: string; title: string; ask: string; alertIds: string[] } {
-  const handoff = answer.nextActions.find((action) => action.kind === "handoff");
-  if (!handoff?.input) throw new Error(`no handoff among ${answer.nextActions.map((action) => action.id).join(",")}`);
-  return handoff.input as { toUserId: string; title: string; ask: string; alertIds: string[] };
+type SendInput = { to: string[]; ask: string; card: { reads: { tool: string }[]; alertIds: string[] } };
+
+function handoffOf(answer: { nextActions: NextAction[] }): { toUserId: string; ask: string; alertIds: string[] } {
+  const send = answer.nextActions.find((action) => action.kind === "send");
+  if (!send?.input) throw new Error(`no send among ${answer.nextActions.map((action) => action.id).join(",")}`);
+  const input = send.input as SendInput;
+  return { toUserId: input.to[0] ?? "", ask: input.ask, alertIds: input.card.alertIds };
 }
 
 function alertById(id: string): Alert {
@@ -105,8 +108,8 @@ describe("the card's footer line names every slice it is narrowed to", () => {
   });
 });
 
-describe("one focus names the card's handoff, pin and follow-ups", () => {
-  test("an all-region card is not titled after its largest region, and its handoff title and ask name the same subject", async () => {
+describe("one focus names the card's send, pin and follow-ups", () => {
+  test("an all-region card is not titled after its largest region, and its send asks about the same subject", async () => {
     const query = metricQuery({ metric: "sell_out_volume", dims: ["region"] });
     recordAction(CEO, "question", intentKeyOf(query.metric, query.dims), "ยอดขายแยกภาค", null);
     recordAction(CEO, "question", intentKeyOf(query.metric, query.dims), "ยอดขายแยกภาค", null);
@@ -115,9 +118,8 @@ describe("one focus names the card's handoff, pin and follow-ups", () => {
     try {
       const answer = await card(CEO, query);
       const handoff = handoffOf(answer);
-      expect(handoff.title).not.toContain(BANGKOK);
-      const subject = handoff.title.replace(`${metricLabel(query.metric)} · `, "");
-      expect(handoff.ask).toContain(subject);
+      expect(handoff.ask).not.toContain(BANGKOK);
+      expect(handoff.ask).toContain("ภาคอีสาน");
       const pin = answer.nextActions.find((action) => action.kind === "pin");
       expect((pin?.input as { title: string } | undefined)?.title).toBe(`${metricLabel(query.metric)} · ${TH.next.splitBy(TH.dash.dimUnit.region)}`);
     } finally {

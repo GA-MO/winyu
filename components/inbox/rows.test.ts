@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import type { AlertItem } from "./types";
-import { barsOf, foldAlerts, handoffActions } from "./rows";
+import { barsOf, foldAlerts } from "./rows";
 
 function alert(id: string, severity: AlertItem["severity"]): AlertItem {
   return {
@@ -16,20 +16,11 @@ function alert(id: string, severity: AlertItem["severity"]): AlertItem {
     window: "",
     movement: { observed: "1", expected: "5", delta: "-80.0%", tone: "bad", ratio: 0.2 },
     ownerName: "คุณอนุชา พรหมศรี",
-    handoffPrompt: null,
+    sendPrompt: null,
   };
 }
 
 describe("inbox row model", () => {
-  test("a new handoff offers รับงาน, an accepted one ปิดงาน with the verdict only when it carries an alert, a closed one nothing", () => {
-    expect(handoffActions("open", 1)).toEqual({ primary: "accept", menu: ["need_info", "return"], verdict: false });
-    expect(handoffActions("need_info", 0).primary).toBe("accept");
-    expect(handoffActions("accepted", 1)).toEqual({ primary: "close", menu: ["need_info", "return"], verdict: true });
-    expect(handoffActions("accepted", 0).verdict).toBe(false);
-    expect(handoffActions("resolved", 1)).toEqual({ primary: null, menu: [], verdict: false });
-    expect(handoffActions("returned", 1).primary).toBeNull();
-  });
-
   test("only P1 stays on screen, in order, and the fold counts P2 and P3 apart", () => {
     const fold = foldAlerts([alert("a", "P3"), alert("b", "P1"), alert("c", "P2"), alert("d", "P3"), alert("e", "P1")]);
     expect(fold.urgent.map((item) => item.id)).toEqual(["b", "e"]);

@@ -5,9 +5,8 @@ import { businessDay } from "@/lib/data/dates";
 import { findUser } from "@/lib/data/entities/users";
 import { newRun, runWithRun } from "@/lib/harness/runtime";
 import { winyuTools } from "@/lib/server/agent/tools";
-import { requestLinks } from "@/lib/server/agent/collections";
 import { runWithAccess, runWithTurn } from "@/lib/server/request-context";
-import { forwardDecision } from "@/lib/server/staff-requests";
+import { decideStaffRequest, staffRequests } from "@/lib/server/staff-requests";
 import { collection } from "@/lib/server/store/json-store";
 import { GENERATOR_PORTS } from "./generator";
 import { DEMO_LEAVE_REQUESTS } from "./generator-leave";
@@ -27,14 +26,20 @@ function callTool(userId: string, name: string, args: Record<string, unknown>): 
   const tool = winyuTools()[name];
   if (!tool) throw new Error(`no tool ${name}`);
   const run = newRun(userId, null, { initiator: "system" });
-  const turn = { turnId: run.id, threadId: null, preloadPacketId: null, question: `test ${name}`, queries: [] };
+  const turn = { turnId: run.id, threadId: null, question: `test ${name}`, queries: [] };
   return runWithAccess(accessOf(userId), () => runWithTurn(turn, () => runWithRun(run, () => tool.execute(tool.inputSchema().parse(args), { toolCallId: approvedCallId(userId, name) }))));
 }
 
 function linkOf(requestId: string) {
-  const link = requestLinks().where((entry) => entry.requestId === requestId)[0];
-  if (!link) throw new Error(`no Inbox packet linked to ${requestId}`);
+  const link = staffRequests().find((entry) => entry.requestId === requestId);
+  if (!link) throw new Error(`no Inbox request linked to ${requestId}`);
   return link;
+}
+
+function user(id: string) {
+  const found = findUser(id);
+  if (!found) throw new Error(`no user ${id}`);
+  return found;
 }
 
 afterEach(() => resetPorts());
@@ -61,9 +66,10 @@ describe("requests live in the system that owns them", () => {
     const request = (await ports().leave.requests(REP)).find((entry) => entry.from === ask.from && entry.status === "pending");
     if (!request) throw new Error("the leave system holds no request");
     const link = linkOf(request.id);
-    await forwardDecision(link.id, "u_somchai", "return");
+    expect(await decideStaffRequest(link.id, user("u_somchai"), "decline")).toEqual({ ok: false, reason: "not_found" });
     expect(await pendingOf()).toBe(before + 1);
-    await forwardDecision(link.id, link.approverId, "return");
+    expect((await decideStaffRequest(link.id, user(link.approverId), "decline")).ok).toBe(true);
+    expect(await decideStaffRequest(link.id, user(link.approverId), "approve")).toEqual({ ok: false, reason: "decided" });
     expect((await ports().leave.requests(REP)).find((entry) => entry.id === request.id)?.status).toBe("returned");
     expect(await pendingOf()).toBe(before);
   });
@@ -78,7 +84,7 @@ describe("requests live in the system that owns them", () => {
     expect(await callTool(REP, "enroll_course", { courseId: course.id })).toMatchObject({ ok: false });
     const enrollment = (await ports().learning.enrollments(REP)).find((entry) => entry.courseId === course.id && entry.status === "pending");
     if (!enrollment) throw new Error("the LMS holds no seat");
-    await forwardDecision(linkOf(enrollment.id).id, linkOf(enrollment.id).approverId, "return");
+    await decideStaffRequest(linkOf(enrollment.id).id, user(linkOf(enrollment.id).approverId), "decline");
     expect(await enrolledOf()).toBe(before);
   });
 });

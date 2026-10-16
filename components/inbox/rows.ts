@@ -1,9 +1,6 @@
-import type { AlertItem, HandoffStatus } from "./types";
+import type { AlertItem } from "./types";
 
 export type Severity = AlertItem["severity"];
-
-/** What a handoff row offers in its state: one primary press, the quieter moves for the "…" menu, and whether closing asks real or noise. */
-export type HandoffActions = { primary: "accept" | "close" | null; menu: ("need_info" | "return")[]; verdict: boolean };
 
 /** The P1 alerts on screen; P2 and P3 behind one line that counts each. */
 export type AlertFold = { urgent: AlertItem[]; rest: AlertItem[]; restCounts: { severity: Severity; count: number }[] };
@@ -16,13 +13,6 @@ const FOLDED: readonly Severity[] = ["P2", "P3"];
 const PERCENT = 100;
 const MAX_RATIO = 2;
 const MIN_VISIBLE = 2;
-
-/** A new handoff (or one where its sender was asked for more) is picked up with รับงาน; an accepted one is closed with ปิดงาน; returning or asking for more stays in the menu. */
-export function handoffActions(status: HandoffStatus, alertCount: number): HandoffActions {
-  if (status === "accepted") return { primary: "close", menu: ["need_info", "return"], verdict: alertCount > 0 };
-  if (status === "open" || status === "need_info") return { primary: "accept", menu: ["need_info", "return"], verdict: false };
-  return { primary: null, menu: [], verdict: false };
-}
 
 export function foldAlerts(items: readonly AlertItem[]): AlertFold {
   const rest = items.filter((item) => item.severity !== URGENT);

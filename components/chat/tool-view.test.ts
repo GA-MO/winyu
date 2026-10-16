@@ -24,18 +24,18 @@ function hiddenOf(steps: ToolStep[]): string[] {
 
 describe("a people lookup on the way to an action is not the answer", () => {
   test("the lookup that found the recipient of a share, a handoff or an email draws no card", () => {
-    expect(hiddenOf([lookup("p1", [KRIT_ROW]), pending("s1", "share_card", { to: ["คุณกฤต"] })])).toEqual(["p1"]);
-    expect(hiddenOf([lookup("p1", [KRIT_ROW]), pending("s1", "share_card", { to: ["u_krit"] })])).toEqual(["p1"]);
-    expect(hiddenOf([lookup("p1", [NOK_ROW, KRIT_ROW]), pending("h1", "create_handoff", { toUserId: "u_krit" })])).toEqual(["p1"]);
+    expect(hiddenOf([lookup("p1", [KRIT_ROW]), pending("s1", "send_card", { to: ["คุณกฤต"] })])).toEqual(["p1"]);
+    expect(hiddenOf([lookup("p1", [KRIT_ROW]), pending("s1", "send_card", { to: ["u_krit"] })])).toEqual(["p1"]);
+    expect(hiddenOf([lookup("p1", [NOK_ROW, KRIT_ROW]), pending("h1", "send_email", { toUserId: "u_krit" })])).toEqual(["p1"]);
     expect(hiddenOf([returned("o1", "resolve_owner", {}, { ok: true, data: { userId: "u_krit", nameTh: "คุณกฤต จันทร์เสน" } }), pending("e1", "send_email", { toUserId: "u_krit" })])).toEqual(["o1"]);
-    expect(hiddenOf([returned("d1", "describe_entity", { kind: "user", query: "อนุชา" }, { ok: true, data: { id: "u_anucha", "ชื่อ": "คุณอนุชา พรหมศรี" } }), pending("s1", "share_card", { to: ["คุณอนุชา"] })])).toEqual(["d1"]);
+    expect(hiddenOf([returned("d1", "describe_entity", { kind: "user", query: "อนุชา" }, { ok: true, data: { id: "u_anucha", "ชื่อ": "คุณอนุชา พรหมศรี" } }), pending("s1", "send_card", { to: ["คุณอนุชา"] })])).toEqual(["d1"]);
   });
 
   test("a lookup that is the answer, or found someone else, still draws its card", () => {
     expect(hiddenOf([lookup("p1", [KRIT_ROW])])).toEqual([]);
-    expect(hiddenOf([lookup("p1", [NOK_ROW]), pending("s1", "share_card", { to: ["คุณกฤต"] })])).toEqual([]);
-    expect(hiddenOf([pending("s1", "share_card", { to: ["คุณกฤต"] }), lookup("p1", [KRIT_ROW])])).toEqual([]);
-    expect(hiddenOf([returned("d1", "describe_entity", { kind: "agent", query: "u_krit" }, { ok: true, data: { id: "u_krit" } }), pending("h1", "create_handoff", { toUserId: "u_krit" })])).toEqual([]);
+    expect(hiddenOf([lookup("p1", [NOK_ROW]), pending("s1", "send_card", { to: ["คุณกฤต"] })])).toEqual([]);
+    expect(hiddenOf([pending("s1", "send_card", { to: ["คุณกฤต"] }), lookup("p1", [KRIT_ROW])])).toEqual([]);
+    expect(hiddenOf([returned("d1", "describe_entity", { kind: "agent", query: "u_krit" }, { ok: true, data: { id: "u_krit" } }), pending("h1", "send_email", { toUserId: "u_krit" })])).toEqual([]);
   });
 });
 

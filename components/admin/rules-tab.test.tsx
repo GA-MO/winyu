@@ -14,7 +14,7 @@ afterEach(() => {
 describe("RulesTab", () => {
   test("each rule shows its name, expression, on or off, who changed it, and its dry run, in the order they are checked", () => {
     addRule("งานเบื้องหลังห้ามเขียนข้อมูล", 'initiator == "job" && tool.tier != "read"', ADMIN);
-    addRule("ห้ามส่งต่องานช่วงกลางคืน", 'tool.name == "create_handoff" && (now.hour >= 22 || now.hour < 6)', ADMIN);
+    addRule("ห้ามส่งต่องานช่วงกลางคืน", 'tool.name == "send_card" && (now.hour >= 22 || now.hour < 6)', ADMIN);
     setRuleEnabled(policyRules()[1].id, false, ADMIN);
     const html = renderToStaticMarkup(<RulesTab />);
     expect(html.indexOf("งานเบื้องหลังห้ามเขียนข้อมูล")).toBeLessThan(html.indexOf("ห้ามส่งต่องานช่วงกลางคืน"));

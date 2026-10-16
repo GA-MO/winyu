@@ -1,23 +1,20 @@
 import { randomUUID } from "node:crypto";
-import type { Alert, ContextPacket } from "@/lib/contracts";
+import type { Alert } from "@/lib/contracts";
 import { thresholdKey } from "@/lib/engine/anomaly";
 import { findUser } from "@/lib/data/entities/users";
 import { formatDateTh } from "@/lib/i18n/format";
 import { TH } from "@/lib/i18n/th";
 import { alertOutcomes, alerts, type AlertOutcome } from "./agent/collections";
 import { dismissAlert } from "./alerts";
-
-export type Verdict = AlertOutcome["verdict"];
-
-export const VERDICTS: readonly Verdict[] = ["real", "noise"];
+import type { Verdict } from "@/lib/share/matter";
 
 /**
- * What closing a handoff teaches: every alert it carried is labelled real or noise with what was done;
+ * What closing a matter about alerts teaches: every alert it carried is labelled real or noise with what was done;
  * noise closes the alert for everyone and counts toward raising the bar, real marks it resolved.
  */
-export function recordOutcome(packet: ContextPacket, byUserId: string, verdict: Verdict, outcome: string, at = new Date()): AlertOutcome[] {
+export function recordOutcome(alertIds: readonly string[], byUserId: string, verdict: Verdict, outcome: string, at = new Date()): AlertOutcome[] {
   const saved: AlertOutcome[] = [];
-  for (const alertId of packet.alertIds) {
+  for (const alertId of alertIds) {
     const alert = alerts().get(alertId);
     if (!alert) continue;
     saved.push(

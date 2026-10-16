@@ -1,19 +1,19 @@
 import { TH } from "@/lib/i18n/th";
-import { holdingHop, type Hop, type HopState, type Matter, type MatterEvent, type MatterEventKind } from "./matter";
+import { holdingHop, type Hop, type HopState, type Matter, type MatterEvent, type MatterEventKind, type Verdict } from "./matter";
 
 export const MATTER_ACTIONS = ["accept", "ask", "reply", "pass_on", "not_mine", "done"] as const;
 
 /** What a person can press on a matter: take it, ask the one who passed it, answer that question, pass it on, say it is not theirs, or close it. */
 export type MatterActionKind = (typeof MATTER_ACTIONS)[number];
 
-/** One press as the table applies it; not_mine arrives with the card's RACI owner already looked up. */
+/** One press as the table applies it; not_mine arrives with the card's RACI owner already looked up; done on a matter about alerts may say what they were and what was done. */
 export type MatterAction =
   | { kind: "accept" }
   | { kind: "ask"; text: string }
   | { kind: "reply"; text: string }
   | { kind: "pass_on"; toUserId: string }
   | { kind: "not_mine"; ownerId: string | null }
-  | { kind: "done" };
+  | { kind: "done"; verdict?: Verdict; outcome?: string };
 
 /** Why a press was refused: the matter is closed, it only informs, this person may not press that now, or the colleague picked cannot take it. */
 export type MatterRefusal = "closed" | "fyi" | "not_allowed" | "bad_target";
@@ -23,7 +23,8 @@ export type Telling = { userId: string; handed: true } | { userId: string; hande
 
 export type Transition = { ok: true; matter: Matter; tell: Telling[] } | { ok: false; refusal: MatterRefusal };
 
-type Step = { matter: Matter; tell: Telling[] };
+/** What one transition leaves: the new record and whom to tell. */
+export type Step = { matter: Matter; tell: Telling[] };
 type Rule<A extends MatterAction> = { may: (matter: Matter, actorId: string) => boolean; apply: (matter: Matter, actorId: string, action: A, at: string) => Step | MatterRefusal };
 
 const UNANSWERED: ReadonlySet<HopState> = new Set(["sent", "seen"]);
@@ -113,12 +114,19 @@ export const MATTER_RULES: Rules = {
   },
   done: {
     may: (matter, actorId) => matter.senderId === actorId || holds(matter, actorId, CLOSABLE),
-    apply: (matter, actorId, _action, at) => ({
-      matter: moved(matter, at, matter.path, event(actorId, at, "done"), { status: "done" }),
+    apply: (matter, actorId, action, at) => ({
+      matter: moved(matter, at, matter.path, event(actorId, at, "done", action.outcome ?? null), { status: "done" }),
       tell: everyoneOn(matter).flatMap((userId) => told(userId, actorId, "done")),
     }),
   },
 };
+
+/** A matter whose number reached its goal: Winyu adds a goal_met line and closes it, and its sender and everyone on its path hear it once. Pure; the watch job stores, audits and notifies. */
+export function goalReached(matter: Matter, at: string): Step {
+  const line: MatterEvent = { userId: null, at, kind: "goal_met", text: null, toUserId: null };
+  const tell = everyoneOn(matter).map((userId): Telling => ({ userId, handed: false, change: "goal_met", text: null, toUserId: null }));
+  return { matter: moved(matter, at, matter.path, line, { status: "done" }), tell };
+}
 
 function refusalOf(matter: Matter, actorId: string, kind: MatterActionKind): MatterRefusal | null {
   if (matter.intent !== "act") return "fyi";
@@ -144,7 +152,7 @@ export function allowedActions(matter: Matter, actorId: string): MatterActionKin
 export type MatterSuggestions = { ownerId: string | null; line: string[] };
 
 /** A matter as a bell row, an Inbox row and the page's actions need it: no value from the card, only names, the ask and what the viewer may press. */
-export type MatterBrief = { code: string; title: string; ask: string; senderName: string; passerName: string | null; at: string; actions: MatterActionKind[]; suggested: MatterSuggestions };
+export type MatterBrief = { code: string; title: string; ask: string; senderName: string; passerName: string | null; at: string; actions: MatterActionKind[]; suggested: MatterSuggestions; judges: boolean };
 
 /** Who a matter came from, and who passed it on when that was someone else. */
 export function matterFrom(brief: Pick<MatterBrief, "senderName" | "passerName">): string {

@@ -67,11 +67,11 @@ function handoffOf(employee: Employee, issue: Issue, signals: PeopleSignals, to:
   const title = issue.kind === "cert" ? F.certTitle(employee.nameTh, issue.subject) : issue.kind === "risk" ? F.careerTitle(employee.nameTh) : F.overtimeTitle(employee.nameTh);
   return {
     id: `feed-handoff-${employee.id}-${issue.kind}`,
-    kind: "handoff",
+    kind: "send",
     label: to.id === employee.id ? F.notify(to.nameTh) : F.sendTo(to.nameTh),
     reason: F.sendReason,
-    tool: "create_handoff",
-    input: { toUserId: to.id, title, ask, urgency: issue.urgent ? "high" : "medium", evidence: [], alertIds: [] },
+    tool: "send_card",
+    input: { to: [to.id], ask: `${title}: ${ask}`, intent: "act", urgency: issue.urgent ? "now" : "today", card: { reads: [{ tool: "get_person", input: { id: employee.id, name: null } }] } },
     prompt: null,
   };
 }
@@ -95,7 +95,6 @@ async function personItem(access: AccessContext, employee: Employee, issues: Iss
     detail: rest.length > 0 ? rest.map((issue) => issue.label).join(" · ") : employee.title,
     prompt: TH.landing.personPrompt(employee.nameTh),
     alertId: null,
-    packetId: null,
     canFinish: true,
     actions: to ? [handoffOf(employee, first, signals, to, round)] : [],
     because: null,
@@ -124,7 +123,6 @@ async function ownItems(self: Employee): Promise<FeedItem[]> {
       detail: round ? F.roundOf(round.course.titleTh, formatDateTh(round.course.starts)) : F.noRound,
       prompt: F.renewPrompt(name),
       alertId: null,
-      packetId: null,
       canFinish: true,
       actions: bookable
         ? [{ id: `feed-enroll-${bookable.course.id}`, kind: "enroll", label: F.enroll, reason: F.enrollReason, tool: "enroll_course", input: { courseId: bookable.course.id }, prompt: null }]
@@ -163,7 +161,6 @@ function openingItems(access: AccessContext, directory: Directory): FeedItem[] {
       detail: manager && position.managerId !== access.userId ? TH.landing.hiringManager(manager) : null,
       prompt: TH.landing.openingPrompt(position.title),
       alertId: null,
-      packetId: null,
       canFinish: true,
       actions: [],
       because: null,

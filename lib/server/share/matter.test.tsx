@@ -162,9 +162,9 @@ describe("the sheet puts the card's owner first", () => {
 });
 
 describe("the admin's switch closes every way to send", () => {
-  test("with sending work off, the card has no ส่งต่อ pill, the route refuses, and the chat has no share_card", async () => {
+  test("with sending work off, the card has no ส่งต่อ pill, the route refuses, and the chat has no send_card", async () => {
     expect(cardWithPill(true)).toContain(TH.share.button);
-    expect(toolsFor(liveAccessFor(user("u_thana")))).toContain("share_card");
+    expect(toolsFor(liveAccessFor(user("u_thana")))).toContain("send_card");
 
     setHandoffEnabled(false, "test");
     signedIn = "u_thana";
@@ -173,7 +173,7 @@ describe("the admin's switch closes every way to send", () => {
     expect(cardWithPill(false)).not.toContain(TH.share.button);
     expect((await postShare(actBody("u_anucha"))).status).toBe(403);
     expect(shares().all().length).toBe(stored);
-    expect(toolsFor(liveAccessFor(user("u_thana")))).not.toContain("share_card");
+    expect(toolsFor(liveAccessFor(user("u_thana")))).not.toContain("send_card");
   });
 });
 

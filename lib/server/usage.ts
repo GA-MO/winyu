@@ -1,6 +1,7 @@
 import type { AuditEntry } from "@/lib/contracts";
 import { auditLog } from "@/lib/server/audit";
-import { actionEvents, packets } from "@/lib/server/agent/collections";
+import { actionEvents } from "@/lib/server/agent/collections";
+import { shares } from "@/lib/server/share/shares";
 import { agentModel } from "@/lib/server/models";
 import { modelSpend, type ModelSpend } from "@/lib/server/model-ledger";
 import { surfaceEntry } from "@/lib/server/tools/registry";
@@ -23,7 +24,7 @@ export type UsageSummary = {
   denied: number;
   masked: number;
   emptyResults: number;
-  packets: number;
+  matters: number;
   inputTokens: number;
   outputTokens: number;
   costUsd: number;
@@ -96,7 +97,7 @@ export function usageSummary(): UsageSummary {
     denied: decisionCount(entries, "deny"),
     masked: decisionCount(entries, "masked"),
     emptyResults: entries.filter((entry) => entry.decision === "allow" && entry.rowsReturned === 0).length,
-    packets: packets().all().length,
+    matters: shares().all().length,
     inputTokens: spend.inputTokens,
     outputTokens: spend.outputTokens,
     costUsd: spend.totalUsd,

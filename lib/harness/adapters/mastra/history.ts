@@ -1,13 +1,7 @@
-import { randomUUID } from "node:crypto";
 import type { Message } from "@ag-ui/core";
 import { newestCardOf } from "@/components/chat/card-to-share";
 import { exchangesOf } from "@/components/chat/timeline";
-import { HANDOFF_REPLY_ACTIVITY, handoffReplyNoteSchema, type HandoffReplyNote } from "@/lib/contracts";
 import { openApprovalsFor } from "@/lib/harness/approvals";
-import { fenceAsData } from "@/lib/harness/fence";
-import { injectionIn, withoutInjection } from "@/lib/harness/guard";
-import { recordGuardFinding } from "@/lib/server/audit";
-import { TH } from "@/lib/i18n/th";
 import type { ShareTarget } from "@/lib/share/card";
 import { toolTiers } from "@/lib/server/agent/tools";
 import type { SpokenTurn } from "@/lib/server/request-context";
@@ -120,20 +114,10 @@ function assistantMessagesOf(message: StoredMessage, cards: ReplyCards): Message
   return out;
 }
 
-function handoffReplyOf(content: unknown): HandoffReplyNote | null {
-  if (typeof content !== "object" || content === null) return null;
-  const metadata = (content as { metadata?: unknown }).metadata;
-  if (typeof metadata !== "object" || metadata === null) return null;
-  const parsed = handoffReplyNoteSchema.safeParse((metadata as Record<string, unknown>)[HANDOFF_REPLY_ACTIVITY]);
-  return parsed.success ? parsed.data : null;
-}
-
-/** Mastra memory's stored messages as the AG-UI transcript the chat draws: user questions, reply text, tool calls and their results, and a colleague's handoff reply as an activity, never as a question or as the agent's words. */
+/** Mastra memory's stored messages as the AG-UI transcript the chat draws: user questions, reply text, and tool calls with their results. */
 export function agUiMessagesOf(stored: readonly StoredMessage[]): Message[] {
   let cards = turnCards();
   return stored.flatMap((message): Message[] => {
-    const reply = message.role === "user" ? handoffReplyOf(message.content) : null;
-    if (reply) return [{ id: message.id, role: "activity", activityType: HANDOFF_REPLY_ACTIVITY, content: reply }];
     if (message.role === "user") {
       cards = turnCards();
       return [{ id: message.id, role: "user", content: plainTextOf(message.content) }];
@@ -207,31 +191,11 @@ function readTools(): ReadonlySet<string> {
   return new Set(Object.keys(tiers).filter((tool) => tiers[tool] === "read"));
 }
 
-/** The card "ส่งการ์ดนี้" means on this thread: the newest card drawn before the question being answered, whether or not memory has stored that question yet. */
-export async function cardBeforeQuestion(threadId: string, userId: string, question: string | null): Promise<ShareTarget | null> {
-  const exchanges = exchangesOf(await threadHistory(threadId, userId));
-  const last = exchanges.at(-1)?.question;
-  const asking = last?.kind === "typed" && question !== null && last.text.trim().startsWith(question);
-  return newestCardOf(asking ? exchanges.slice(0, -1) : exchanges, readTools());
+/** The card "ส่งการ์ดนี้" means on this thread: the card the exchange being answered drew when it drew one (memory holds it once the run that asked for the approval ended), else the newest card an earlier exchange drew. */
+export async function cardToSendOn(threadId: string, userId: string): Promise<ShareTarget | null> {
+  return newestCardOf(exchangesOf(await threadHistory(threadId, userId)), readTools());
 }
 
-/** What the model reads for a handoff reply: a labelled system note with the colleague's words fenced as data. */
-export function handoffReplyForModel(note: HandoffReplyNote): string {
-  const words = fenceAsData(`${TH.handoff.replyAbout(note.packetTitle)}\n${withoutInjection(note.text).text}`);
-  return TH.handoff.replyForModel(note.fromName, note.fromTitle, TH.inbox.status[note.status], words);
-}
-
-/** Appends a colleague's handoff reply to the sender's conversation in Mastra memory, so it is in the restored thread and in what the agent remembers; a thread that never ran or is someone else's is left alone. Returns whether it was written. */
-export async function appendHandoffReply(threadId: string, userId: string, note: HandoffReplyNote): Promise<boolean> {
-  const store = await memory();
-  const thread = await store.getThreadById({ threadId });
-  if (!thread || thread.resourceId !== userId) return false;
-  const content = { format: 2 as const, parts: [{ type: "text" as const, text: handoffReplyForModel(note) }], metadata: { [HANDOFF_REPLY_ACTIVITY]: note } };
-  const injection = injectionIn(note.text);
-  if (injection.length > 0) recordGuardFinding({ source: "handoff_reply", check: "injection", kinds: injection, action: "neutralized" }, userId);
-  await store.saveMessages({ messages: [{ id: randomUUID(), role: "user", createdAt: new Date(note.at), threadId, resourceId: userId, type: "text", content }] });
-  return true;
-}
 
 /** Removes a thread and its messages from Mastra memory; a thread that never ran has nothing to remove. */
 export async function forgetThread(threadId: string, userId: string): Promise<void> {

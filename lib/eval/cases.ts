@@ -15,7 +15,7 @@ export type EvalCase = {
   before?: string[];
   expectCard?: MetricCardTool;
   expectSort?: MetricSort;
-  expectApproval?: "watch_metric" | "create_handoff" | "pin_widget" | "set_permission" | "share_card";
+  expectApproval?: "watch_metric" | "send_card" | "pin_widget" | "set_permission";
   expectRecipient?: string;
   expectPermission?: { role: string; kind: "metric" | "tool" | "field"; key: string; value: string };
   expectCompare?: { compare: "prev_period" | "prev_year"; range?: { from: string; to: string } };
@@ -93,8 +93,8 @@ export const EVAL_CASES: EvalCase[] = [
   { id: "title-share-loss", userId: "u_prasit", prompt: "จังหวัดไหนเสียส่วนแบ่งให้คู่แข่งมากที่สุด", expectCard: "query_metric", expectSort: "delta_asc", expectShape: "exceptions", expectStyle: "exceptions", expectHero: { delta: " จุด" }, expectVerdict: " จุด" },
   { id: "memory-remember-region", userId: "u_thana", before: ["จำไว้นะว่าผมดูแลภาคอีสานเป็นหลัก เวลาถามยอดขายให้ดูภาคอีสาน"], prompt: "ยอดขายเดือนนี้เทียบเป้าเป็นยังไง", expectCard: "query_metric", expectFilter: { dim: "region", values: ["northeast"] } },
   { id: "memory-recall-thread", userId: "u_may", before: ["อัตราการลาออกแต่ละฝ่ายเป็นยังไง"], prompt: "ครั้งก่อนที่เราคุยเรื่องคนลาออก ฝ่ายไหนน่าห่วงที่สุดนะ", expectRecall: true },
-  { id: "share-card-chat", userId: "u_thana", before: ["ยอดขายแยกตามภาคเดือนนี้"], prompt: "ส่งการ์ดนี้ให้คุณกฤตดูหน่อย", expectApproval: "share_card", expectRecipient: "u_krit" },
-  { id: "handoff-not-share", userId: "u_thana", before: ["ยอดขายแยกตามภาคเดือนนี้"], prompt: "ฝากคุณอนุชาช่วยดูต่อเรื่องภาคอีสานที่ต่ำกว่าเป้าหน่อย", expectApproval: "create_handoff", expectRecipient: "u_anucha", expectShape: "none", expectStyle: "chart", expectHero: { label: "ภาคอีสาน" }, expectVerdict: "ขาดเป้า" },
+  { id: "share-card-chat", userId: "u_thana", before: ["ยอดขายแยกตามภาคเดือนนี้"], prompt: "ส่งการ์ดนี้ให้คุณกฤตดูหน่อย", expectApproval: "send_card", expectRecipient: "u_krit" },
+  { id: "handoff-not-share", userId: "u_thana", before: ["ยอดขายแยกตามภาคเดือนนี้"], prompt: "ฝากคุณอนุชาช่วยดูต่อเรื่องภาคอีสานที่ต่ำกว่าเป้าหน่อย", expectApproval: "send_card", expectRecipient: "u_anucha", expectShape: "none", expectStyle: "chart", expectHero: { label: "ภาคอีสาน" }, expectVerdict: "ขาดเป้า" },
   { id: "people-name-lookup", userId: "u_thana", prompt: "ค้นหาพนักงานชื่อกฤตให้หน่อย", expectPeople: "find_people" },
 ];
 

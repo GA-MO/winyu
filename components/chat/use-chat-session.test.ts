@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { durationsAfter, unansweredOf, type PendingApproval } from "./use-chat-session";
 
 function asked(toolCallId: string): PendingApproval {
-  return { interruptId: `mastra-approval::run::${toolCallId}`, toolCallId, tool: "share_card", input: {}, exchangeId: "q1", position: 0 };
+  return { interruptId: `mastra-approval::run::${toolCallId}`, toolCallId, tool: "send_card", input: {}, exchangeId: "q1", position: 0 };
 }
 
 type Held = Parameters<typeof unansweredOf>[2][number];

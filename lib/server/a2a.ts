@@ -146,7 +146,7 @@ export function guardedMessage(params: unknown): GuardedMessage | null {
 }
 
 function instructionsFor(access: AccessContext, user: User, caller: string): string {
-  return personaFor(access, user, { today: businessToday(), context: { threadId: null, preloadPacketId: null } }, A2A_RULES(caller)).join("\n\n");
+  return personaFor(access, user, { today: businessToday(), context: { threadId: null } }, A2A_RULES(caller)).join("\n\n");
 }
 
 function outcomeOf(response: A2aResponse): { failed: string | null; finishReason: string } {
@@ -164,7 +164,7 @@ async function asked(call: A2aCall, user: User, holder: TokenHolder, model: Mode
   const access = liveAccessFor(user);
   const run: Run = newRun(user.id, null, { initiator: "a2a" });
   const question = guarded.question.slice(0, QUESTION_MAX_CHARS);
-  const turn: TurnContext = { turnId: run.id, threadId: null, preloadPacketId: null, question, queries: [] };
+  const turn: TurnContext = { turnId: run.id, threadId: null, question, queries: [] };
   emitTo(run, "runtime", { type: "agent.started", payload: { goal: { id: run.id, userMessage: question, intent: `${A2A_INTENT_PREFIX}${caller}`, status: "active" }, userId: user.id, threadId: null } });
   try {
     const response = await runWithAccess(access, () =>

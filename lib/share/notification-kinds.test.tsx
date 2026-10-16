@@ -1,22 +1,18 @@
 import { describe, expect, test } from "bun:test";
 import { NOTIFICATION_KINDS, type Notification } from "@/lib/contracts";
+import { TH } from "@/lib/i18n/th";
 import { notificationHome, notificationTarget, notificationTitle } from "./notification-kinds";
 
-const OLDER: Notification[] = [
-  { id: "n1", userId: "u_krit", at: "2026-10-08T03:00:00.000Z", kind: "handoff", refId: "pk_1", read: false, title: "งานใหม่จากคุณอนุชา: ยอดอีสาน" },
-  { id: "n2", userId: "u_krit", at: "2026-10-08T02:00:00.000Z", kind: "alert", refId: "w_1", read: true, title: "เฝ้าดู: ยอดขายต่ำกว่าเป้า" },
-  { id: "n3", userId: "u_krit", at: "2026-10-08T01:00:00.000Z", kind: "reply", refId: "pk_2", read: false, title: "คุณอนุชา: รับทราบ" },
-  { id: "n4", userId: "u_krit", at: "2026-10-08T00:00:00.000Z", kind: "email", refId: "ob_1", read: false, title: "อีเมลใหม่: ขอสิทธิ์" },
-];
+const OLDER: Notification[] = [{ id: "n2", userId: "u_krit", at: "2026-10-08T02:00:00.000Z", kind: "alert", refId: "w_1", read: true, title: "เฝ้าดู: ยอดขายต่ำกว่าเป้า" }];
 
 describe("every notification kind knows where it is read and where it opens", () => {
   test("what waits on a decision is read in the Inbox, what was shared and the decisions on one's own requests on Shared, mail and watches in the outbox", () => {
     const homes = Object.fromEntries(NOTIFICATION_KINDS.map((kind) => [kind, notificationHome(kind)]));
     expect(homes).toEqual({
-      handoff: "inbox",
       alert: "outbox",
-      reply: "inbox",
       email: "outbox",
+      staff_request: "inbox",
+      staff_decision: "inbox",
       share: "shared",
       matter: "inbox",
       matter_update: "inbox",
@@ -26,13 +22,13 @@ describe("every notification kind knows where it is read and where it opens", ()
     });
   });
 
-  test("each kind opens its page: a handoff its packet, mail and watches the outbox, replies the inbox, shares and decisions the card, a request its approval page", () => {
+  test("each kind opens its page: mail and watches the outbox, a leave or training request the Inbox, shares, matters and decisions the card, a grant request its approval page", () => {
     const targets = Object.fromEntries(NOTIFICATION_KINDS.map((kind) => [kind, notificationTarget({ kind, refId: "ref1" })]));
     expect(targets).toEqual({
-      handoff: "/c/new?preload=ref1",
       alert: "/outbox",
-      reply: "/?inbox=replies",
       email: "/outbox",
+      staff_request: "/?inbox",
+      staff_decision: "/",
       share: "/s/ref1",
       matter: "/s/ref1",
       matter_update: "/s/ref1",
@@ -43,6 +39,10 @@ describe("every notification kind knows where it is read and where it opens", ()
   });
 
   test("an older kind keeps the title its writer gave it", () => {
-    expect(notificationTitle({ kind: "handoff", refId: "pk_1", title: OLDER[0].title })).toBe(OLDER[0].title);
+    expect(notificationTitle({ kind: "alert", refId: "w_1", title: OLDER[0].title })).toBe(OLDER[0].title);
+  });
+
+  test("a leave decision tells the person who asked who decided and what", () => {
+    expect(notificationTitle({ kind: "staff_decision", refId: "sr1", approverName: "คุณอนุชา", title: "ใบลาพักร้อน 1-2 ธ.ค.", approved: true })).toBe(TH.notify.staffApproved("คุณอนุชา", "ใบลาพักร้อน 1-2 ธ.ค."));
   });
 });

@@ -2,7 +2,6 @@ import { z } from "zod";
 import { REGIONS, ROLE_IDS, type RoleId } from "./identity";
 import type { MemoryFactType } from "./memory";
 import { widgetKindSchema } from "./dashboard";
-import { urgencySchema } from "./handoff";
 import { CANDIDATE_STAGES, LEAVE_KINDS } from "./records";
 import { dimFiltersSchema, dimSchema, metricIdSchema, metricQuerySchema } from "./semantic";
 
@@ -10,8 +9,8 @@ export type ToolTier = "read" | "write" | "destructive";
 /** Every tool Winyu defines in code; a connector may not open a remote tool by one of these names. */
 export const NATIVE_TOOL_NAMES = ["query_metric", "list_metrics", "describe_entity", "get_alerts", "get_forecast", "get_calendar", "recall_memory", "remember", "forget",
   "find_people", "get_person", "get_site", "list_candidates", "list_courses", "get_policy", "request_leave", "enroll_course",
-  "resolve_owner", "create_handoff", "send_email", "pin_widget", "watch_metric", "run_job", "set_permission", "explain_gap",
-  "ask_logistics_partner", "share_card", "training_history", "store_visits", "inbox", "visit_plan", "admin_audit"] as const;
+  "resolve_owner", "send_card", "send_email", "pin_widget", "watch_metric", "run_job", "set_permission", "explain_gap",
+  "ask_logistics_partner", "training_history", "store_visits", "inbox", "visit_plan", "admin_audit"] as const;
 export type NativeToolName = (typeof NATIVE_TOOL_NAMES)[number];
 export type ConnectorToolName = `${string}__${string}`;
 export type ToolName = NativeToolName | ConnectorToolName;
@@ -69,7 +68,7 @@ export const getSiteInputSchema = z.object({ id: z.string().nullable(), name: z.
 export const trainingHistoryInputSchema = z.object({ employeeId: z.string().nullable(), name: z.string().nullable() });
 export const storeVisitsInputSchema = z.object({ agentId: z.string().nullable() });
 /** What waits on a person in their Inbox, by kind. */
-export const INBOX_KINDS = ["handoff", "approval", "grant_request", "shared_card"] as const;
+export const INBOX_KINDS = ["matter", "approval", "grant_request"] as const;
 export type InboxKind = (typeof INBOX_KINDS)[number];
 export const inboxInputSchema = z.object({ kind: z.enum(INBOX_KINDS).nullable() });
 export const visitPlanInputSchema = z.object({ limit: z.number().int().min(1).max(MAX_VISIT_STOPS).nullable() });
@@ -99,14 +98,6 @@ export const rememberInputSchema = z.object({
 });
 export const forgetInputSchema = z.object({ about: z.string().min(2).max(MEMORY_VALUE_MAX) });
 export const resolveOwnerInputSchema = z.object(metricScope);
-export const createHandoffInputSchema = z.object({
-  toUserId: z.string().min(1),
-  title: z.string().min(1),
-  ask: z.string().min(1),
-  urgency: urgencySchema.optional(),
-  evidence: z.array(metricQuerySchema),
-  alertIds: z.array(z.string()),
-});
 export const sendEmailInputSchema = z.object({ toUserId: z.string().min(1), subject: z.string().min(1), body: z.string().min(1) });
 export const pinWidgetInputSchema = z.object({ title: z.string().min(1), kind: widgetKindSchema, query: metricQuerySchema });
 export const runJobInputSchema = z.object({ job: z.enum(JOBS) });

@@ -80,7 +80,7 @@ export async function handleMcpRequest(request: Request): Promise<Response> {
   const access = liveAccessFor(user);
   const tool = calledTool(body.parsed);
   const run = newRun(user.id, null, { initiator: "mcp" });
-  const turn = { turnId: run.id, threadId: null, preloadPacketId: null, question: null, queries: [] };
+  const turn = { turnId: run.id, threadId: null, question: null, queries: [] };
   const surface = { tools: mcpToolsFor(access), render: mcpResultText, instructions: INSTRUCTIONS };
   if (tool) started(run, tool);
   const served = await runWithAccess(access, () => runWithTurn(turn, () => runWithRun(run, () => serveMcp(request, body.parsed, surface))));

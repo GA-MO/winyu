@@ -30,9 +30,9 @@ describe("toolsFor", () => {
     }
   });
 
-  test("sales_rep has no write tools, only it_admin has run_job", () => {
+  test("sales_rep sends cards but no email, only it_admin has run_job", () => {
     const rep = toolsFor(accessOf("sales_rep"));
-    expect(rep).not.toContain("create_handoff");
+    expect(rep).toContain("send_card");
     expect(rep).not.toContain("send_email");
     expect(rep).toContain("pin_widget");
     expect(rep).toContain("query_metric");
@@ -56,7 +56,7 @@ describe("toolsFor", () => {
 
 describe("assertToolAllowed", () => {
   test("throws a typed error for a tool the role does not have", () => {
-    expect(() => assertToolAllowed(accessOf("sales_rep"), "create_handoff")).toThrow(ToolNotAllowedError);
+    expect(() => assertToolAllowed(accessOf("sales_rep"), "send_email")).toThrow(ToolNotAllowedError);
     expect(() => assertToolAllowed(accessOf("ceo"), "query_metric")).not.toThrow();
   });
 });

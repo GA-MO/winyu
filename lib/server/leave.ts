@@ -129,10 +129,8 @@ export async function requestLeave(access: AccessContext, input: LeaveRequestInp
   const range = T.range(formatDateTh(input.from), formatDateTh(input.to));
   const request = await ports().leave.submit({ employeeId: access.userId, kind: input.kind, from: input.from, to: input.to, days, reason: input.reason, approverId: approver.id, idempotencyKey: callId });
   await deliverRequest(access, approver, { system: "leave", requestId: request.id, employeeId: access.userId }, {
-    title: T.packetTitle(kindLabel, range),
-    ask: T.packetAsk(kindLabel, range, days, input.reason),
-    replies: [T.replyApprove, T.replyReschedule],
-    threadId,
+    title: T.requestTitle(kindLabel, range),
+    ask: T.requestAsk(kindLabel, range, days, input.reason),
   });
   const left = balanceOf(input.kind, { ...book, balances: await ports().leave.balances(access.userId) }).left;
   return { ok: true as const, summary: T.sent(kindLabel, days, approver.nameTh), data: { kind: kindLabel, range, days, approver: approver.nameTh, left: T.left(left) } };

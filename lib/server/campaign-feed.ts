@@ -39,7 +39,6 @@ async function itemOf(campaign: Campaign, access: AccessContext): Promise<FeedIt
     detail: TH.feed.campaignDetail(`${target.toFixed(0)}%`, met, ended, formatDateTh(campaign.to)),
     prompt: TH.feed.campaignPrompt(campaign.nameTh),
     alertId: null,
-    packetId: null,
     canFinish: true,
     actions: [],
     because: null,

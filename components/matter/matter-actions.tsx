@@ -6,6 +6,7 @@ import { MoreMenu, Primary, Quiet, type MenuItem } from "@/components/inbox/row"
 import { PeoplePicker, useShareContacts } from "@/components/share/share-sheet";
 import { TH } from "@/lib/i18n/th";
 import { MATTER_ASK_MAX } from "@/lib/share/card";
+import { VERDICTS, type Verdict } from "@/lib/share/matter";
 import type { MatterActionKind, MatterBrief, MatterSuggestions } from "@/lib/share/matter-actions";
 
 const MATTERS_ENDPOINT = "/api/matters/";
@@ -15,8 +16,8 @@ const FOLDED: readonly MatterActionKind[] = ["not_mine", "done"];
 const COPY = TH.matter;
 
 type Writing = "ask" | "reply";
-type Mode = { kind: "idle" } | { kind: "writing"; action: Writing; text: string } | { kind: "passing"; to: string | null };
-type Press = { kind: "accept" | "not_mine" | "done" } | { kind: Writing; text: string } | { kind: "pass_on"; toUserId: string };
+type Mode = { kind: "idle" } | { kind: "writing"; action: Writing; text: string } | { kind: "passing"; to: string | null } | { kind: "closing"; verdict: Verdict | null; outcome: string };
+type Press = { kind: "accept" | "not_mine" | "done" } | { kind: "done"; verdict: Verdict; outcome: string } | { kind: Writing; text: string } | { kind: "pass_on"; toUserId: string };
 
 async function sendPress(code: string, press: Press): Promise<string | null> {
   const response = await fetch(`${MATTERS_ENDPOINT}${encodeURIComponent(code)}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(press) }).catch(() => null);
@@ -38,7 +39,36 @@ function PassOn({ suggested, chosen, choose }: { suggested: MatterSuggestions; c
 }
 
 /** What the viewer may press on a matter, from the transition table: the main presses as buttons, ไม่ใช่ของผม and เสร็จ folded under "…"; asking and passing on open in place, so it works inside the bell's sheet at phone width. */
-export function MatterActions({ brief, onActed }: { brief: Pick<MatterBrief, "code" | "actions" | "suggested">; onActed: () => void }) {
+function Closing({ mode, busy, change, close, cancel }: { mode: Extract<Mode, { kind: "closing" }>; busy: boolean; change: (mode: Extract<Mode, { kind: "closing" }>) => void; close: (verdict: Verdict, outcome: string) => void; cancel: () => void }) {
+  const ready = mode.verdict !== null && mode.outcome.trim().length > 0 && !busy;
+  return (
+    <form
+      className="flex flex-col gap-2"
+      data-matter-closing
+      onSubmit={(event) => {
+        event.preventDefault();
+        if (mode.verdict && mode.outcome.trim()) close(mode.verdict, mode.outcome.trim());
+      }}
+    >
+      <div className="flex flex-wrap items-center gap-1" role="radiogroup" aria-label={TH.inbox.verdict}>
+        {VERDICTS.map((verdict) => (
+          <button key={verdict} type="button" role="radio" aria-checked={mode.verdict === verdict} onClick={() => change({ ...mode, verdict })} className={`inline-flex min-h-9 items-center rounded-full border px-3.5 text-xs font-medium transition ${mode.verdict === verdict ? "border-transparent bg-ink text-ink-foreground" : "border-border text-muted-foreground hover:text-foreground"}`}>
+            {TH.inbox[verdict]}
+          </button>
+        ))}
+      </div>
+      <input value={mode.outcome} onChange={(event) => change({ ...mode, outcome: event.target.value.slice(0, MATTER_ASK_MAX) })} placeholder={COPY.outcomePlaceholder} aria-label={COPY.outcomePlaceholder} className={FIELD} />
+      <div className="flex items-center gap-1">
+        <button type="submit" disabled={!ready} className="inline-flex min-h-9 items-center rounded-full bg-ink px-4 text-xs font-medium text-ink-foreground transition hover:opacity-90 disabled:opacity-50">
+          {COPY.actions.done}
+        </button>
+        <Quiet onClick={cancel}>{COPY.cancel}</Quiet>
+      </div>
+    </form>
+  );
+}
+
+export function MatterActions({ brief, onActed }: { brief: Pick<MatterBrief, "code" | "actions" | "suggested" | "judges">; onActed: () => void }) {
   const [mode, setMode] = useState<Mode>({ kind: "idle" });
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
@@ -59,6 +89,7 @@ export function MatterActions({ brief, onActed }: { brief: Pick<MatterBrief, "co
   const start = (kind: MatterActionKind) => {
     if (kind === "ask" || kind === "reply") return setMode({ kind: "writing", action: kind, text: "" });
     if (kind === "pass_on") return setMode({ kind: "passing", to: null });
+    if (kind === "done" && brief.judges) return setMode({ kind: "closing", verdict: null, outcome: "" });
     if (kind === "accept" || kind === "not_mine" || kind === "done") void run({ kind });
   };
 
@@ -123,6 +154,7 @@ export function MatterActions({ brief, onActed }: { brief: Pick<MatterBrief, "co
           </div>
         </>
       ) : null}
+      {mode.kind === "closing" ? <Closing mode={mode} busy={busy} change={setMode} close={(verdict, outcome) => void run({ kind: "done", verdict, outcome })} cancel={() => setMode({ kind: "idle" })} /> : null}
       {problem ? (
         <p role="alert" className="text-xs text-danger">
           {problem}

@@ -24,6 +24,6 @@ if (!STORY_ONLY) {
 }
 
 const story = await ensureDemoStory();
-console.log(story ? `seed: demo story alert ${story.alertId} · packet ${story.packetId} (${story.created.packet ? "new" : "kept"}) · lesson ${story.created.outcome ? "new" : "kept"}` : "seed: demo story skipped (no alert on the story agent)");
+console.log(story ? `seed: demo story alert ${story.alertId} · matter ${story.matterCode} (${story.created.matter ? "new" : "kept"}) · lesson ${story.created.outcome ? "new" : "kept"}` : "seed: demo story skipped (no alert on the story agent)");
 
 console.log(`seed: demo feed history ${await ensureFeedHistory()} events added`);

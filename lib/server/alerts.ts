@@ -1,8 +1,8 @@
 import { existsSync } from "node:fs";
 import path from "node:path";
-import type { AccessContext, Alert, ContextPacket, Dim, Forecast, Region } from "@/lib/contracts";
+import type { AccessContext, Alert, Dim, Forecast, Region } from "@/lib/contracts";
 import { alertsInboxEnabled } from "@/lib/access/enforce";
-import { actionEvents, alertMutes, alertThresholds, alerts, forecasts, packets } from "@/lib/server/agent/collections";
+import { actionEvents, alertMutes, alertThresholds, alerts, forecasts } from "@/lib/server/agent/collections";
 import { feedIntentKey } from "@/lib/engine/feed-learning";
 import { DATA_DIR } from "@/lib/server/store/json-store";
 import { detectAnomalies, thresholdKey, toAlert, type Thresholds } from "@/lib/engine/anomaly";
@@ -171,25 +171,6 @@ export function relatedTo(alert: Alert): Alert[] {
 
 export function allAlertsFor(access: AccessContext): Alert[] {
   return alerts().where((alert) => inScope(alert, access)).sort(rankFor(access));
-}
-
-export function openPacketsFor(access: AccessContext): ContextPacket[] {
-  return packets()
-    .where((packet) => packet.toUserId === access.userId && packet.status !== "resolved")
-    .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt));
-}
-
-/** The open handoff that already carries this alert, whoever sent it: the alert is being handled and needs no second one. */
-export function openPacketCarrying(alertId: string): ContextPacket | null {
-  return packets().all().find((packet) => packet.status !== "resolved" && packet.alertIds.includes(alertId)) ?? null;
-}
-
-/** How an alert that was handed on is being handled, for everyone but its recipient: who sent it to whom, or that the viewer did. */
-export function handedOffNote(alertId: string, viewerId: string): string | null {
-  const packet = openPacketCarrying(alertId);
-  if (!packet || packet.toUserId === viewerId) return null;
-  const to = findUser(packet.toUserId)?.nameTh ?? packet.toUserId;
-  return packet.fromUserId === viewerId ? TH.team.youHandedOff(to) : TH.team.handedOff(findUser(packet.fromUserId)?.nameTh ?? packet.fromUserId, to);
 }
 
 export function forecastsFor(access: AccessContext): Forecast[] {

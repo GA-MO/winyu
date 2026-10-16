@@ -5,7 +5,7 @@ import { DIMS, MAX_ROWS, type AccessContext, type Dim, type MemoryFactType, type
 import { isBuried, memoryAbout } from "@/lib/engine/memory";
 import type { Verdict, Verifier, VerifyInput } from "@/lib/harness/types";
 import type { Dictionary } from "@/lib/semantic/dictionary";
-import { layouts, memoryFacts, outbox, packets } from "@/lib/server/agent/collections";
+import { layouts, memoryFacts, outbox } from "@/lib/server/agent/collections";
 import { loadDictionary } from "@/lib/server/master-data";
 import { ports } from "@/lib/server/ports";
 import { watchesOf } from "@/lib/server/watches";
@@ -95,24 +95,18 @@ export const watchHolds: Verifier = (verify) => {
 };
 
 /** A handoff holds when the packet exists, comes from the caller and goes to the person asked for. */
-export const handoffHolds: Verifier = (verify) => {
-  const packet = packets().get(dataOf<{ packetId: string }>(verify).packetId ?? "");
+/** A sent matter holds when it is stored under the code returned, comes from the caller, has the card on it, and reached everyone the call named (the card's owner when it named nobody). */
+export const matterHolds: Verifier = (verify) => {
+  const data = dataOf<{ code: string; receipts: { userId: string }[] }>(verify);
+  const matter = shares().get(data.code ?? "");
+  const asked = (verify.input as { to?: string[] }).to ?? [];
+  const named = asked.length > 0 ? (resolvedPeople(recipientMatches(asked, verify.access.userId)) ?? []).map((user) => user.id) : (data.receipts ?? []).map((receipt) => receipt.userId);
+  const reached = new Set(matter?.path.map((hop) => hop.userId));
   return verdictOf([
-    check("packet_exists", packet !== null, "no packet was stored"),
-    check("packet_from_caller", packet?.fromUserId === verify.access.userId, "the packet is not from the caller"),
-    check("packet_to_recipient", packet?.toUserId === (verify.input as { toUserId: string }).toUserId, "the packet went to someone else"),
-  ]);
-};
-
-/** A share holds when it is stored under the code returned, comes from the caller, and reached every person the call named. */
-export const shareHolds: Verifier = (verify) => {
-  const share = shares().get(dataOf<{ code: string }>(verify).code ?? "");
-  const named = resolvedPeople(recipientMatches((verify.input as { to: string[] }).to, verify.access.userId)) ?? [];
-  const reached = new Set(share?.deliveries.map((delivery) => delivery.userId));
-  return verdictOf([
-    check("share_exists", share !== null, "no share was stored"),
-    check("share_from_caller", share?.senderId === verify.access.userId, "the share is not from the caller"),
-    check("share_reached_everyone", named.length > 0 && named.every((user) => reached.has(user.id)), "the share did not reach everyone the call named"),
+    check("matter_exists", matter !== null, "no matter was stored"),
+    check("matter_from_caller", matter?.senderId === verify.access.userId, "the matter is not from the caller"),
+    check("matter_has_card", (matter?.card.reads.length ?? 0) > 0, "the matter carries no card"),
+    check("matter_reached_everyone", named.length > 0 && named.every((id) => reached.has(id)), "the matter did not reach everyone the call named"),
   ]);
 };
 

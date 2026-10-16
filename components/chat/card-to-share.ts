@@ -43,12 +43,11 @@ export function newestCardOf(exchanges: readonly Exchange[], cardTools: Readonly
   return null;
 }
 
-/** For each exchange, what "ส่งการ์ดนี้" asked there points at: the newest card an earlier exchange drew, or null when none did. */
-export function cardsBeforeEach(exchanges: readonly Exchange[], cardTools: ReadonlySet<string>): (ShareTarget | null)[] {
+/** For each exchange, what "ส่งการ์ดนี้" asked there points at: the card that exchange drew when it drew one, else the newest card an earlier exchange drew, or null when none did. */
+export function cardsToSendEach(exchanges: readonly Exchange[], cardTools: ReadonlySet<string>): (ShareTarget | null)[] {
   let newest: ShareTarget | null = null;
   return exchanges.map((exchange) => {
-    const before = newest;
     newest = lastCardOf(exchange, cardTools) ?? newest;
-    return before;
+    return newest;
   });
 }

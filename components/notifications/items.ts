@@ -1,15 +1,15 @@
 import type { NotificationKind } from "@/lib/contracts";
 import type { MatterBrief } from "@/lib/share/matter-actions";
 
-/** The kinds that wait on the reader, and what the bell's one inline button does about each: take the handoff, or open the request or the matter to decide it. */
-export const DECISION_ACTIONS = { handoff: "accept", grant_request: "open", matter: "open" } as const satisfies Partial<Record<NotificationKind, "accept" | "open">>;
+/** The kinds that wait on the reader's decision; the bell's one inline button opens where it is decided. */
+export const DECISION_KINDS = ["staff_request", "grant_request", "matter"] as const satisfies readonly NotificationKind[];
 
-export type DecisionKind = keyof typeof DECISION_ACTIONS;
+export type DecisionKind = (typeof DECISION_KINDS)[number];
 
 export type Bucket = "decide" | "update";
 
 export function isDecisionKind(kind: NotificationKind): kind is DecisionKind {
-  return kind in DECISION_ACTIONS;
+  return (DECISION_KINDS as readonly NotificationKind[]).includes(kind);
 }
 
 /** A decision waits on the reader (the bell counts it); everything else only tells them something. */
@@ -28,12 +28,6 @@ export type BellDecision = (BellItem & { kind: Exclude<DecisionKind, "matter"> }
 /** What the bell opens on: decisions waiting on the reader, then the latest updates. */
 export type BellPayload = { decide: BellDecision[]; updates: BellItem[] };
 
-/** What pressing a decision's inline button does. */
-export type DecisionAction = { type: "accept"; packetId: string } | { type: "open"; href: string };
-
-export function decisionAction(item: BellDecision): DecisionAction {
-  return DECISION_ACTIONS[item.kind] === "accept" ? { type: "accept", packetId: item.refId } : { type: "open", href: item.target };
-}
 
 /** Whether anything in the bell is unread, which is when "read all" is offered. */
 export function hasUnread(payload: BellPayload): boolean {

@@ -1,10 +1,12 @@
-import type { Alert, ContextPacket } from "@/lib/contracts";
+import type { Alert } from "@/lib/contracts";
 import { thresholdKey } from "@/lib/engine/anomaly";
 import { addDays, DATA_AS_OF } from "@/lib/data/dates";
 import { findUser } from "@/lib/data/entities/users";
-import { alertOutcomes, alerts, packets } from "./agent/collections";
+import type { Matter } from "@/lib/share/matter";
+import { alertOutcomes, alerts } from "./agent/collections";
 import { runEngineJobs } from "./alerts";
-import { createPacket } from "./handoff";
+import { createShare } from "./share/deliver";
+import { shares } from "./share/shares";
 import { handoffEnabled } from "@/lib/access/enforce";
 
 const STORY_AGENT = "ag_nea_05";
@@ -16,7 +18,7 @@ const PAST_OUTCOME_AT = "2026-06-12T09:00:00.000Z";
 const PAST_OUTCOME = "ติดวงเงินเครดิต ขยายวงเงินแล้วยอดกลับใน 2 สัปดาห์";
 const LOOKBACK_DAYS = 27;
 
-export type DemoStory = { alertId: string; packetId: string | null; outcomeId: string; created: { packet: boolean; outcome: boolean } };
+export type DemoStory = { alertId: string; matterCode: string | null; outcomeId: string; created: { matter: boolean; outcome: boolean } };
 
 function storyAlert(): Alert | null {
   return (
@@ -47,47 +49,36 @@ function ensurePastOutcome(alert: Alert): boolean {
   return true;
 }
 
-function openStoryPacket(alertId: string): ContextPacket | null {
-  return packets().all().find((packet) => packet.fromUserId === SENDER_ID && packet.toUserId === RECIPIENT_ID && packet.alertIds.includes(alertId) && packet.status !== "resolved") ?? null;
+function openStoryMatter(alertId: string): Matter | null {
+  return shares().all().find((matter) => matter.senderId === SENDER_ID && matter.status === "open" && matter.alertIds.includes(alertId)) ?? null;
 }
 
-function sendStoryPacket(alert: Alert): Promise<ContextPacket> {
-  const sender = findUser(SENDER_ID) ?? null;
-  const recipient = findUser(RECIPIENT_ID);
-  if (!recipient) throw new Error(`demo story: missing user ${RECIPIENT_ID}`);
-  return createPacket(
-    {
-      toUserId: RECIPIENT_ID,
-      title: "อุบลศรีสุข เทรดดิ้ง แทบไม่สั่งสินค้า",
-      ask: "ช่วยแวะอุบลศรีสุขสัปดาห์นี้ เช็กว่าติดวงเงินเครดิตเหมือนเดือนมิถุนายนหรือเปลี่ยนไปรับของเจ้าอื่น แล้วปิดงานพร้อมบอกว่าเป็นเรื่องจริงไหม",
-      urgency: "high",
-      evidence: [
-        {
-          metric: "net_sales_volume",
-          dims: ["brand"],
-          filters: { agent: [STORY_AGENT] },
-          range: { from: addDays(DATA_AS_OF, -LOOKBACK_DAYS), to: DATA_AS_OF },
-          grain: "week",
-          compare: "prev_period",
-          limit: null,
-        },
-      ],
-      alertIds: [alert.id],
-      digest: "ยอดขายเข้าของอุบลศรีสุข เทรดดิ้ง ลดลง 80% ทั้งสิงห์และลีโอ ครั้งก่อนเป็นเรื่องวงเงินเครดิต",
-      suggestedActions: ["เช็กวงเงินเครดิตกับฝ่ายการเงิน", "ถามเจ้าของร้านว่ารับของจากเจ้าอื่นไหม"],
-      threadId: null,
-    },
-    sender,
-    recipient,
-  );
+const STORY_QUERY = { metric: "net_sales_volume", dims: ["brand"], filters: { agent: [STORY_AGENT] }, grain: "week", compare: "prev_period", limit: null } as const;
+const STORY_ASK = "ช่วยแวะอุบลศรีสุขสัปดาห์นี้ เช็กว่าติดวงเงินเครดิตเหมือนเดือนมิถุนายนหรือเปลี่ยนไปรับของเจ้าอื่น แล้วปิดเรื่องพร้อมบอกว่าเป็นเรื่องจริงไหม";
+
+async function sendStoryMatter(alert: Alert): Promise<Matter> {
+  const sender = findUser(SENDER_ID);
+  if (!sender || !findUser(RECIPIENT_ID)) throw new Error(`demo story: missing ${SENDER_ID} or ${RECIPIENT_ID}`);
+  const input = { ...STORY_QUERY, range: { from: addDays(DATA_AS_OF, -LOOKBACK_DAYS), to: DATA_AS_OF } };
+  const outcome = await createShare(sender, {
+    card: { kind: "tool", reads: [{ tool: "query_metric", input }] },
+    question: null,
+    ask: STORY_ASK,
+    intent: "act",
+    urgency: "now",
+    recipients: [{ userId: RECIPIENT_ID, channel: "winyu" }],
+    alertIds: [alert.id],
+  });
+  if (!outcome.ok) throw new Error(`demo story: ${outcome.error}`);
+  return outcome.share;
 }
 
-/** Adds the one handoff story the demo needs to show closing with a verdict and the lesson from last time; safe to run again. */
+/** Adds the one matter the demo needs to show closing with a verdict and the lesson from last time: the northeast RSM asks the Khon Kaen rep about the agent whose orders stopped; safe to run again. */
 export async function ensureDemoStory(): Promise<DemoStory | null> {
   const alert = await findOrRunEngine();
   if (!alert) return null;
   const outcomeCreated = ensurePastOutcome(alert);
-  const existing = openStoryPacket(alert.id);
-  const packet = existing ?? (handoffEnabled() ? await sendStoryPacket(alert) : null);
-  return { alertId: alert.id, packetId: packet?.id ?? null, outcomeId: PAST_OUTCOME_ID, created: { packet: !existing && packet !== null, outcome: outcomeCreated } };
+  const existing = openStoryMatter(alert.id);
+  const matter = existing ?? (handoffEnabled() ? await sendStoryMatter(alert) : null);
+  return { alertId: alert.id, matterCode: matter?.id ?? null, outcomeId: PAST_OUTCOME_ID, created: { matter: !existing && matter !== null, outcome: outcomeCreated } };
 }

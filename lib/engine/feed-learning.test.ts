@@ -6,7 +6,7 @@ const NOW = Date.parse("2026-09-25T09:00:00.000Z");
 const DAY_MS = 86_400_000;
 
 function item(key: string, kind: string, rank: number): FeedItem {
-  return { key, source: "person", kind, story: null, rank, tone: "warning", label: key, reason: "", detail: null, prompt: "", alertId: null, packetId: null, canFinish: true, actions: [], because: null };
+  return { key, source: "person", kind, story: null, rank, tone: "warning", label: key, reason: "", detail: null, prompt: "", alertId: null, canFinish: true, actions: [], because: null };
 }
 
 function event(kind: ActionEvent["kind"], itemKind: string, key: string, daysAgo = 1): ActionEvent {

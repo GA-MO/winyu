@@ -24,9 +24,8 @@ import { getPolicyTool } from "./get-policy";
 import { requestLeaveTool } from "./request-leave";
 import { enrollCourseTool } from "./enroll-course";
 import { resolveOwnerTool } from "./resolve-owner";
-import { createHandoffTool } from "./create-handoff";
+import { sendCardTool } from "./send-card";
 import { sendEmailTool } from "./send-email";
-import { shareCardTool } from "./share-card";
 import { pinWidgetTool } from "./pin-widget";
 import { watchMetricTool } from "./watch-metric";
 import { runJobTool } from "./run-job";
@@ -62,9 +61,8 @@ const NATIVE_TOOLS: { [Name in NativeToolName]: WinyuTool<Name> } = {
   request_leave: requestLeaveTool,
   enroll_course: enrollCourseTool,
   resolve_owner: resolveOwnerTool,
-  create_handoff: createHandoffTool,
+  send_card: sendCardTool,
   send_email: sendEmailTool,
-  share_card: shareCardTool,
   pin_widget: pinWidgetTool,
   watch_metric: watchMetricTool,
   run_job: runJobTool,

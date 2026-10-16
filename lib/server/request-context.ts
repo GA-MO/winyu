@@ -28,10 +28,10 @@ export type SpokenTurn = { role: string; text: string; metrics?: string[] };
 /** The person's answer to one approval card: the tool it was for, and whether they said yes. */
 export type AnsweredApproval = { tool: string; approved: boolean };
 
-/** The chat turn being served; `transcript` reads the thread's saved conversation and `cardOnScreen` the card the person last saw on it, both absent outside a chat run; `answered` holds the approval answers this run carries out or declines. */
-export type TurnContext = { turnId: string | null; threadId: string | null; preloadPacketId: string | null; question: string | null; queries: MetricQuery[]; transcript?: () => Promise<SpokenTurn[]>; cardOnScreen?: () => Promise<ShareTarget | null>; answered?: readonly AnsweredApproval[] };
+/** The chat turn being served; `transcript` reads the thread's saved conversation and `cardToSend` the card "ส่งการ์ดนี้" means on it, both absent outside a chat run; `answered` holds the approval answers this run carries out or declines. */
+export type TurnContext = { turnId: string | null; threadId: string | null; question: string | null; queries: MetricQuery[]; transcript?: () => Promise<SpokenTurn[]>; cardToSend?: () => Promise<ShareTarget | null>; answered?: readonly AnsweredApproval[] };
 
-const EMPTY_TURN: TurnContext = { turnId: null, threadId: null, preloadPacketId: null, question: null, queries: [] };
+const EMPTY_TURN: TurnContext = { turnId: null, threadId: null, question: null, queries: [] };
 
 const turns = new AsyncLocalStorage<TurnContext>();
 

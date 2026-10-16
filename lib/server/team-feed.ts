@@ -5,7 +5,8 @@ import { agentById } from "@/lib/data/entities/agents";
 import { provinceById } from "@/lib/data/entities/org";
 import { findUser } from "@/lib/data/entities/users";
 import { TH } from "@/lib/i18n/th";
-import { alerts, packets } from "@/lib/server/agent/collections";
+import { alerts } from "@/lib/server/agent/collections";
+import { sentAbout } from "@/lib/server/share/carrying";
 import type { Directory } from "@/lib/server/ports/directory";
 
 const MIN_MATTERS = 2;
@@ -75,9 +76,9 @@ function sharedRegion(members: readonly Member[]): string | null {
 /** Who the matters were handed to, when the person holding them handed them on. */
 function handedOnBy(holderId: string, members: readonly Member[]): string | null {
   const ids = new Set(members.flatMap((member) => member.alert?.id ?? []));
-  const handed = packets().all().find((packet) => packet.fromUserId === holderId && packet.alertIds.some((id) => ids.has(id)));
+  const handed = sentAbout(holderId, ids);
   if (!handed) return null;
-  return TH.team.handedOff(findUser(holderId)?.nameTh ?? holderId, findUser(handed.toUserId)?.nameTh ?? handed.toUserId);
+  return TH.team.handedOff(findUser(holderId)?.nameTh ?? holderId, findUser(handed.holderId)?.nameTh ?? handed.holderId);
 }
 
 /** The card's severity tag, with the count when only some of the matters carry it, so it agrees with the status line. */
@@ -96,17 +97,16 @@ function askProgress(reportId: string, region: string, members: readonly Member[
   if (!report) return null;
   return {
     id: `team-ask-${reportId}`,
-    kind: "handoff",
+    kind: "send",
     label: TH.team.ask(report.nameTh),
     reason: TH.team.askReason,
-    tool: "create_handoff",
+    tool: "send_card",
     input: {
-      toUserId: reportId,
-      title: TH.team.askTitle(region),
+      to: [reportId],
       ask: TH.team.askText(members.map((member) => `${member.item.label} ${member.item.reason}`)),
-      urgency: members.some((member) => member.item.tone === "danger") ? "high" : "medium",
-      evidence: [],
-      alertIds: members.flatMap((member) => member.alert?.id ?? []),
+      intent: "act",
+      urgency: members.some((member) => member.item.tone === "danger") ? "now" : "today",
+      card: { reads: [{ tool: "get_alerts", input: { status: "open", limit: null, metric: null, dims: report.region ? { region: report.region } : null } }], alertIds: members.flatMap((member) => member.alert?.id ?? []) },
     },
     prompt: null,
   };
@@ -140,7 +140,6 @@ function storyOf(reportId: string, members: Member[], directory: Directory): Tea
     detail: [coverage, handling].filter(Boolean).join(" · "),
     prompt,
     alertId: null,
-    packetId: null,
     canFinish: true,
     actions: action ? [action] : [],
     because: null,
@@ -154,7 +153,6 @@ function storyOf(reportId: string, members: Member[], directory: Directory): Tea
     body: coverage,
     lesson: handling,
     prompt,
-    packetId: null,
     alertId: null,
     feedKey: key,
     action,

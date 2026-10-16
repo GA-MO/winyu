@@ -14,6 +14,9 @@ import { personaOf } from "@/lib/server/portraits";
 import { ports } from "@/lib/server/ports";
 import { shareAdaptiveCard, shareEmail, shareFlex, shareUrl, type ShareMessage } from "./message";
 import type { FallbackReason } from "@/lib/share/card";
+import { liveAccessFor } from "@/lib/access/enforce";
+import { visibleAlert } from "@/lib/server/alerts";
+import { goalOf } from "./goal";
 import { shareableProblem, shareCode, shares } from "./shares";
 
 /** What creating a share returns: the record, the grants given, and what the card still hides from each recipient; or why nothing was sent. */
@@ -88,7 +91,10 @@ function recipientsOf(request: ShareRequest, senderId: string): Array<{ user: Us
 
 function newMatter(sender: User, request: ShareRequest, sent: { code: string; at: string; title: string; ask: string; deliveries: ShareDelivery[] }): Matter {
   const path = sent.deliveries.map((delivery) => ({ userId: delivery.userId, fromUserId: sender.id, at: sent.at, state: "sent" as const }));
-  return { id: sent.code, at: sent.at, updatedAt: sent.at, senderId: sender.id, title: sent.title, question: request.question, ask: sent.ask, intent: request.intent, urgency: request.urgency ?? defaultUrgency(request.intent), goal: null, path, thread: [], status: "open", card: request.card, deliveries: sent.deliveries, openedBy: [], lastViewedAt: null };
+  const access = liveAccessFor(sender);
+  const alertIds = (request.alertIds ?? []).filter((id) => visibleAlert(id, access) !== null);
+  const goal = request.closeOnGoal === false ? null : goalOf(request.card, alertIds);
+  return { id: sent.code, at: sent.at, updatedAt: sent.at, senderId: sender.id, title: sent.title, question: request.question, ask: sent.ask, intent: request.intent, urgency: request.urgency ?? defaultUrgency(request.intent), goal, alertIds, path, thread: [], status: "open", card: request.card, deliveries: sent.deliveries, openedBy: [], lastViewedAt: null };
 }
 
 /** Sends a card as a matter: stores the reads (never their values) under a short code, tells each recipient in Winyu (in the Inbox when it asks for an answer, on Shared when it is for information), also on the outside channel picked (email when that channel cannot reach them), and leaves one audit row; with grant days, also grants each recipient what the card showed the sender, when the sender may. No model call. */

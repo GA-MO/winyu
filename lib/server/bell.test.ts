@@ -1,8 +1,10 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { randomUUID } from "node:crypto";
-import type { ContextPacket, GrantRequest, Notification } from "@/lib/contracts";
+import type { GrantRequest, Notification } from "@/lib/contracts";
 import { findUser } from "@/lib/data/entities/users";
-import { packets, notifications } from "@/lib/server/agent/collections";
+import { notifications } from "@/lib/server/agent/collections";
+import { collection } from "@/lib/server/store/json-store";
+import type { StaffRequest } from "./staff-requests";
 import { grantRequests } from "@/lib/server/grants";
 import { bellFor, decisionsFor, updatesFor } from "./bell";
 import { decisionCount } from "./inbox";
@@ -10,7 +12,8 @@ import { notify } from "./notify";
 
 const VIEWER = "u_thana";
 const UNTIL = "12 ต.ค. 69";
-const made = { packets: [] as string[], requests: [] as string[], notes: [] as string[] };
+const made = { staff: [] as string[], requests: [] as string[], notes: [] as string[] };
+const STAFF_REQUESTS = "request-links";
 
 function nameOf(userId: string): string {
   const user = findUser(userId);
@@ -18,13 +21,11 @@ function nameOf(userId: string): string {
   return user.nameTh;
 }
 
-function packet(status: ContextPacket["status"]): ContextPacket {
-  const at = new Date().toISOString();
-  const stored = packets().put({
-    id: randomUUID(), fromUserId: "u_krit", toUserId: VIEWER, title: "ร้านในขอนแก่นสั่งน้อยลง", ask: "ช่วยดู", urgency: "high", sla: null, evidence: [], alertIds: [],
-    conversationDigest: "", suggestedActions: [], status, outcome: null, thread: [], createdAt: at, updatedAt: at,
+function leave(status: StaffRequest["status"]): StaffRequest {
+  const stored = collection<StaffRequest>(STAFF_REQUESTS).put({
+    id: randomUUID(), system: "leave", requestId: `lv_${randomUUID()}`, employeeId: "u_krit", approverId: VIEWER, title: "ใบลาพักร้อน", ask: "ขอลาพักร้อน", status, createdAt: new Date().toISOString(), decidedAt: null,
   });
-  made.packets.push(stored.id);
+  made.staff.push(stored.id);
   return stored;
 }
 
@@ -43,22 +44,22 @@ function remember(note: Notification): Notification {
 }
 
 afterEach(() => {
-  for (const id of made.packets.splice(0)) packets().remove(id);
+  for (const id of made.staff.splice(0)) collection(STAFF_REQUESTS).remove(id);
   for (const id of made.requests.splice(0)) grantRequests().remove(id);
   for (const id of made.notes.splice(0)) notifications().remove(id);
 });
 
 describe("the bell's decisions are the open records the badge counts", () => {
-  test("a pending request and a handoff not picked up are decisions, each with who asked, its title and where it opens; an accepted handoff is not", () => {
+  test("a pending grant request and a leave waiting for approval are decisions, each with who asked, its title and where it opens; a decided leave is not", () => {
     const asked = request();
-    const handed = packet("open");
-    packet("accepted");
+    const handed = leave("pending");
+    leave("approved");
     const decide = decisionsFor(VIEWER);
     expect(decide.length).toBe(decisionCount(VIEWER));
     const mine = decide.filter((item) => item.refId === asked.id || item.refId === handed.id).sort((left, right) => left.kind.localeCompare(right.kind));
     expect(mine.map((item) => [item.kind, item.target, item.person?.name])).toEqual([
       ["grant_request", `/g/${asked.id}`, nameOf("u_krit")],
-      ["handoff", `/c/new?preload=${handed.id}`, nameOf("u_krit")],
+      ["staff_request", "/?inbox", nameOf("u_krit")],
     ]);
   });
 
@@ -94,7 +95,7 @@ describe("no title carries a number from a card", () => {
       notify(VIEWER, "u_krit", { kind: "grant_approved", refId: "c1", approverName: krit, slice, until: UNTIL }),
       notify(VIEWER, "u_krit", { kind: "grant_declined", refId: "c1", deciderName: krit, slice }),
     ].map((note) => remember(note).title);
-    const ours = new Set([request().id, packet("open").id]);
+    const ours = new Set([request().id, leave("pending").id]);
     const all = [...titles, ...decisionsFor(VIEWER).filter((item) => ours.has(item.refId)).map((item) => item.title)];
     expect(all.length).toBe(6);
     for (const title of all) expect(title.replace(UNTIL, "")).not.toMatch(/\d/);

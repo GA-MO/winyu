@@ -112,7 +112,6 @@ export default async function MatterPage({ params }: PageProps) {
   const matter = noteView(opening.matter, viewer.id, new Date().toISOString());
   const sender = findUser(matter.senderId);
   const senderPersona = sender ? personaOf(sender) : null;
-  const followUp = matter.question ?? matter.title;
   const acts = matter.intent === "act";
   const brief = briefOf(matter, viewer.id);
 
@@ -152,7 +151,7 @@ export default async function MatterPage({ params }: PageProps) {
         ) : null}
         {acts ? <PathList matter={matter} /> : null}
         {acts ? <Thread matter={matter} /> : null}
-        <Link href={`/c/new?prompt=${encodeURIComponent(followUp)}`} className="inline-flex items-center gap-2 self-start rounded-full bg-ink px-4 py-2.5 text-sm font-medium text-ink-foreground transition hover:opacity-90">
+        <Link href={`/c/new?matter=${encodeURIComponent(matter.id)}`} className="inline-flex items-center gap-2 self-start rounded-full bg-ink px-4 py-2.5 text-sm font-medium text-ink-foreground transition hover:opacity-90">
           <MessageSquarePlus className="size-4" aria-hidden />
           {TH.share.askFollowUp}
         </Link>

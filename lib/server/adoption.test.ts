@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import type { ActionEvent, Alert, ContextPacket } from "@/lib/contracts";
+import type { ActionEvent, Alert } from "@/lib/contracts";
+import type { Matter } from "@/lib/share/matter";
 import { thresholdKey } from "@/lib/engine/anomaly";
 import { adoptionOf, percentOf } from "./adoption";
 
@@ -14,14 +15,18 @@ function event(userId: string, kind: ActionEvent["kind"], intentKey: string, day
 }
 
 const ALERTS = [alert("a1", "open", "north"), alert("a2", "dismissed", "south"), alert("a3", "open", "east"), alert("a4", "open", "bkk")];
-const PACKET = { alertIds: ["a1"], status: "resolved", toUserId: "u_pim", createdAt: "2026-09-30T09:00:00.000Z", thread: [{ userId: "u_pim", at: "2026-09-30T12:00:00.000Z", text: "รับ" }] } as unknown as ContextPacket;
+const MATTER = {
+  alertIds: ["a1"], intent: "act", status: "done", senderId: "u_anucha", at: "2026-09-30T09:00:00.000Z",
+  path: [{ userId: "u_pim", fromUserId: "u_anucha", at: "2026-09-30T09:00:00.000Z", state: "accepted" }],
+  thread: [{ userId: "u_pim", at: "2026-09-30T12:00:00.000Z", kind: "accepted", text: null, toUserId: null }],
+} as unknown as Matter;
 
 describe("whether Winyu is used", () => {
   const summary = adoptionOf(
     {
       events: [event("u_anucha", "question", "x", 2), event("u_krit", "question", "x", 20), event("u_anucha", "alert_open", `alert:${thresholdKey("net_sales_volume", { region: "east" })}`, 1)],
       alerts: ALERTS,
-      packets: [PACKET],
+      matters: [MATTER],
       widgets: [],
       watches: [],
       outbox: [],
@@ -41,9 +46,9 @@ describe("whether Winyu is used", () => {
     expect(percentOf(summary.alerts.total - summary.alerts.untouched, summary.alerts.total)).toBe(75);
   });
 
-  test("measures how long a handoff waited for its first reply", () => {
-    expect(summary.handoffs.medianHoursToReply).toBe(3);
-    expect(summary.handoffs.resolved).toBe(1);
+  test("measures how long a matter waited for its first answer", () => {
+    expect(summary.matters.medianHoursToAnswer).toBe(3);
+    expect(summary.matters.done).toBe(1);
   });
 
   test("does not judge card use before anyone opened a dashboard", () => {

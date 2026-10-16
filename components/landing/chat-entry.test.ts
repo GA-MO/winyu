@@ -11,7 +11,7 @@ const EMPTY: NextAction = { ...DRILL, prompt: null };
 describe("chat entry links", () => {
   test("each entry kind becomes the /c/new query the chat reads", () => {
     expect(chatHref({ prompt: "ยอดขาย & เป้า" })).toBe(`/c/new?prompt=${encodeURIComponent("ยอดขาย & เป้า")}`);
-    expect(chatHref({ preload: "p1" })).toBe("/c/new?preload=p1");
+    expect(chatHref({ matter: "m1" })).toBe("/c/new?matter=m1");
     expect(chatHref({ story: "s1" })).toBe("/c/new?story=s1");
   });
 

@@ -7,10 +7,10 @@ import { addRule, dryRun, factsOf, moveRule, policyRules, resetPolicyRules, rule
 
 const ADMIN = "u_ton";
 const SALARY_EMAIL = 'tool.name == "send_email" && args.subject.contains("เงินเดือน")';
-const NIGHT_HANDOFF = 'tool.name == "create_handoff" && (now.hour >= 22 || now.hour < 6)';
+const NIGHT_HANDOFF = 'tool.name == "send_card" && (now.hour >= 22 || now.hour < 6)';
 const SEND_EMAIL = { name: "send_email", connector: "mail", tier: "write" } as const;
 const QUERY_METRIC = { name: "query_metric", connector: "warehouse", tier: "read" } as const;
-const CREATE_HANDOFF = { name: "create_handoff", connector: "winyu", tier: "write" } as const;
+const SEND_CARD = { name: "send_card", connector: "winyu", tier: "write" } as const;
 
 function rule(when: string, overrides: Partial<PolicyRule> = {}): PolicyRule {
   return { id: "r1", name: "กฎทดสอบ", when, enabled: true, by: ADMIN, at: "2026-10-04T00:00:00Z", ...overrides };
@@ -40,8 +40,8 @@ describe("a rule refuses only the calls it matches", () => {
 
   test("the night rule reads the Bangkok clock: 23:00 in Bangkok is refused, 12:00 is not", () => {
     const rules = [rule(NIGHT_HANDOFF)];
-    expect(ruleThatDenies(facts(CREATE_HANDOFF, {}, new Date("2026-10-04T16:00:00Z")), rules)).not.toBeNull();
-    expect(ruleThatDenies(facts(CREATE_HANDOFF, {}, new Date("2026-10-04T05:00:00Z")), rules)).toBeNull();
+    expect(ruleThatDenies(facts(SEND_CARD, {}, new Date("2026-10-04T16:00:00Z")), rules)).not.toBeNull();
+    expect(ruleThatDenies(facts(SEND_CARD, {}, new Date("2026-10-04T05:00:00Z")), rules)).toBeNull();
   });
 
   test("a rule that throws or gives something other than true or false refuses the call as broken", () => {

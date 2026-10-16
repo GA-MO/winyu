@@ -4,10 +4,10 @@ import { pressParam } from "@/components/chat/pressed";
 
 const CHAT_ENTRY = "/c/new";
 
-/** What a new chat opens on: a question to send, a handoff packet to load, a morning-investigation story to continue, or a pressed tool button. */
-export type ChatEntry = { prompt: string } | { preload: string } | { story: string } | { press: string };
+/** What a new chat opens on: a question to send, a matter to talk about, a morning-investigation story to continue, or a pressed tool button. */
+export type ChatEntry = { prompt: string } | { matter: string } | { story: string } | { press: string };
 
-/** The chat entry contract: `/c/new?prompt=…`, `?preload=<packetId>`, `?story=<storyId>` or `?press=<tool button>`. */
+/** The chat entry contract: `/c/new?prompt=…`, `?matter=<code>`, `?story=<storyId>` or `?press=<tool button>`. */
 export function chatHref(entry: ChatEntry): string {
   const [key, value] = Object.entries(entry)[0] as [string, string];
   return `${CHAT_ENTRY}?${key}=${encodeURIComponent(value)}`;

@@ -78,7 +78,7 @@ describe("the sheet before sending", () => {
 
   function reply(url: string, scopes: unknown[]): unknown {
     if (url.endsWith("/contacts")) return { contacts: [KRIT], mayGrant: true };
-    if (url.endsWith("/suggestion")) return { ownerId: "u_krit", line: [] };
+    if (url.endsWith("/preview")) return { ownerId: "u_krit", line: [], figures: null, goal: null };
     if (url.endsWith("/scopes")) return { scopes };
     return { receipts: [], grants: [], hidden: [], path: "/s/abc" };
   }

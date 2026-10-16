@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import type { Notification, NotificationKind } from "@/lib/contracts";
+import { NOTIFICATION_KINDS, type Notification, type NotificationKind } from "@/lib/contracts";
 import { notificationHome, notificationTitle, type NotificationEvent, type NotificationHome } from "@/lib/share/notification-kinds";
 import { notifications } from "@/lib/server/agent/collections";
 
@@ -9,10 +9,12 @@ export function notify<K extends NotificationKind>(userId: string, from: string 
   return notifications().put({ id: randomUUID(), userId, at: at.toISOString(), kind: event.kind, refId: event.refId, read: false, title: notificationTitle(event), ...sender });
 }
 
-/** A person's notifications, newest first. */
+const KNOWN_KINDS: ReadonlySet<string> = new Set(NOTIFICATION_KINDS);
+
+/** A person's notifications, newest first; one of a kind Winyu no longer has (stored before it was retired) is left out. */
 export function notificationsOf(userId: string): Notification[] {
   return notifications()
-    .where((item) => item.userId === userId)
+    .where((item) => item.userId === userId && KNOWN_KINDS.has(item.kind))
     .sort((left, right) => right.at.localeCompare(left.at));
 }
 

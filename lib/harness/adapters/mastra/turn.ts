@@ -10,13 +10,13 @@ type InputMessage = { id?: unknown; role?: unknown; content?: unknown };
 type ResumeEntry = { interruptId?: unknown; status?: unknown; payload?: unknown };
 
 /** An AG-UI run request as Winyu reads it; the browser sent all of it, so every field is checked. */
-export type RunInput = { threadId?: unknown; runId?: unknown; messages?: InputMessage[]; resume?: ResumeEntry[]; forwardedProps?: { preloadPacketId?: unknown } } | null;
+export type RunInput = { threadId?: unknown; runId?: unknown; messages?: InputMessage[]; resume?: ResumeEntry[] } | null;
 
 /** The person's yes or no to one approval interrupt, and the tool call it covers. */
 export type ApprovalAnswer = { interruptId: string; toolCallId: string; approved: boolean };
 
 /** What one run request carries for the harness: its run id, the goal, the thread, the person's message it answers, and the approval answered. */
-export type ChatTurn = { runId: string; goal: Goal; threadId: string | null; messageId: string | null; preloadPacketId: string | null; question: string | null; answers: ApprovalAnswer[] };
+export type ChatTurn = { runId: string; goal: Goal; threadId: string | null; messageId: string | null; question: string | null; answers: ApprovalAnswer[] };
 
 function stringOr(value: unknown): string | null {
   return typeof value === "string" && value.length > 0 ? value : null;
@@ -62,7 +62,6 @@ export function chatTurnOf(input: RunInput, fallbackRunId: string): ChatTurn {
     goal: { id: messageId ? `${threadId ?? UNTHREADED}:${messageId}` : runId, userMessage: question ?? "", intent: null, status: "active" },
     threadId,
     messageId,
-    preloadPacketId: stringOr(input?.forwardedProps?.preloadPacketId),
     question,
     answers: answersOf(input),
   };

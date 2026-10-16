@@ -10,7 +10,7 @@ const SYSTEM_ROLES: ReadonlySet<string> = new Set(["it_admin"]);
 const RANK = { offline: 820, portDown: 700, killed: 500 } as const;
 
 function systemItem(key: string, tone: FeedTone, rank: number, label: string, reason: string, detail: string, prompt: string): FeedItem {
-  return { key, source: "system", kind: "system", story: null, rank, tone, label, reason, detail, prompt, alertId: null, packetId: null, canFinish: true, actions: [], because: null };
+  return { key, source: "system", kind: "system", story: null, rank, tone, label, reason, detail, prompt, alertId: null, canFinish: true, actions: [], because: null };
 }
 
 /** What in Winyu itself needs the administrator: a connector that stopped answering, a tool taken out of service. Switches are policy, not matters. */

@@ -3,10 +3,10 @@ import { presentCard, type CardParts, type PresentSource } from "@/lib/cards/pre
 import { cardWords } from "@/lib/cards/words";
 import { actionsOf, metricTitle, othersOf } from "@/lib/cards/tool-answers";
 import { ASK_EVENT, COMPOSE_ACTION_TOOLS, type ComposedComponent } from "@/lib/compose/catalog";
-import { createHandoffInputSchema, REGIONS, setPermissionInputSchema, watchMetricInputSchema, type MetricQuery, type MetricResult, type Region } from "@/lib/contracts";
+import { REGIONS, setPermissionInputSchema, watchMetricInputSchema, type MetricQuery, type MetricResult, type Region } from "@/lib/contracts";
 import { DATA_AS_OF } from "@/lib/data/dates";
 import { findUser, USERS } from "@/lib/data/entities/users";
-import { shareCardInputSchema } from "@/lib/share/card";
+import { sendCardInputSchema } from "@/lib/share/card";
 import { matchRecipients, resolvedPeople } from "@/lib/share/recipients";
 import { TH } from "@/lib/i18n/th";
 import { maskNumbers } from "@/lib/server/recall/mask";
@@ -39,15 +39,15 @@ const NON_TEXT_PROPS: ReadonlySet<string> = new Set(["id", "component", "childre
 const FIELD_NAME_PROPS: Partial<Record<string, readonly string[]>> = { RankList: ["label", "value", "note"], Table: ["columns"] };
 const PICTURE_PROPS = ["src"] as const;
 const PRESS_EVENTS: ReadonlySet<string> = new Set([ASK_EVENT, ...COMPOSE_ACTION_TOOLS]);
-const APPROVAL_SCHEMAS: Partial<Record<string, { safeParse: (value: unknown) => { success: boolean } }>> = { watch_metric: watchMetricInputSchema, set_permission: setPermissionInputSchema, share_card: shareCardInputSchema, create_handoff: createHandoffInputSchema };
-const SENDING_TOOLS: ReadonlySet<string> = new Set(["share_card", "create_handoff", "send_email"]);
+const APPROVAL_SCHEMAS: Partial<Record<string, { safeParse: (value: unknown) => { success: boolean } }>> = { watch_metric: watchMetricInputSchema, set_permission: setPermissionInputSchema, send_card: sendCardInputSchema };
+const SENDING_TOOLS: ReadonlySet<string> = new Set(["send_card", "send_email"]);
 const PEOPLE_LOOKUPS: ReadonlySet<string> = new Set(["find_people", "get_person", "resolve_owner"]);
 const TEAM_FILTERS = ["manager", "region", "department"] as const;
 const REGION_IDS: ReadonlySet<string> = new Set(REGIONS);
 const TIME_UNIT_DIMS: ReadonlySet<string> = new Set(["date", "week", "month"]);
 const GROUP_UNITS = Object.entries(TH.dash.dimUnit).filter(([dim]) => !TIME_UNIT_DIMS.has(dim)).map(([, unit]) => unit);
 const COUNT_UNITS = [...new Set([...GROUP_UNITS, TH.dash.item, "แห่ง", "ตัว", "ราย"])].join("|");
-const HANDOFF_OFFER = /handoff|create_handoff|ส่งต่อให้ผู้รับผิดชอบ|ส่งงาน(ต่อ)?ให้|มอบหมาย(งาน)?ให้/i;
+const HANDOFF_OFFER = /handoff|send_card|ส่งต่อให้ผู้รับผิดชอบ|ส่งงาน(ต่อ)?ให้|มอบหมาย(งาน)?ให้/i;
 const CONCEDED_CLAIM = /(แม้|ถึง)(ว่า)?(จะ)?\s*ได้รับ(การ)?(อนุมัติ|ความเห็นชอบ)(แล้ว)?/;
 const ONE_ALONE = /(รายการ|แห่ง|ภาค|ตัว|ราย|จังหวัด|แบรนด์|ช่องทาง)เดียว|หนึ่ง(รายการ|แห่ง|ภาค|ตัว|ราย)/;
 
@@ -525,10 +525,10 @@ export const EVAL_CHECKS: readonly EvalCheck[] = [
   },
   {
     id: "offersOwnTools",
-    description: "A reply never offers a handoff to a person whose role cannot create one.",
+    description: "A reply never offers to send work on to a person whose role cannot send a card.",
     verdict: (turn) => {
       const user = findUser(turn.recording.userId);
-      if (!user || liveAccessFor(user).toolAllow.includes("create_handoff")) return null;
+      if (!user || liveAccessFor(user).toolAllow.includes("send_card")) return null;
       const offer = turn.words.match(HANDOFF_OFFER)?.[0] ?? null;
       return verdict(offer === null, offer === null ? "ไม่เสนอส่งงานต่อ" : `เสนอ "${offer}" ทั้งที่บทบาทนี้ส่งงานต่อไม่ได้`);
     },

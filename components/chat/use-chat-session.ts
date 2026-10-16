@@ -82,7 +82,7 @@ function declined(entry: Unanswered): ResumeEntry {
 }
 
 /** One thread's chat over the CopilotKit runtime: restores the saved transcript, sends questions and pressed buttons, answers approval interrupts (a question sent while one waits declines it, so the card reads not done and the new question runs), and stops a reply. */
-export function useChatSession({ threadId, initialMessages, initialApprovals, preloadPacketId }: { threadId: string; initialMessages: readonly AgentMessage[]; initialApprovals: readonly PendingApproval[]; preloadPacketId: string | null }): ChatSession {
+export function useChatSession({ threadId, initialMessages, initialApprovals }: { threadId: string; initialMessages: readonly AgentMessage[]; initialApprovals: readonly PendingApproval[] }): ChatSession {
   const { copilotkit } = useCopilotKit();
   const { agent, isReady } = useAgent({ agentId: `${CHAT_AGENT_ID}:${threadId}`, runtimeAgentId: CHAT_AGENT_ID, threadId, updates: UPDATES, throttleMs: THROTTLE_MS });
   const [restored, setRestored] = useState(false);
@@ -142,18 +142,16 @@ export function useChatSession({ threadId, initialMessages, initialApprovals, pr
     return () => subscription.unsubscribe();
   }, [agent]);
 
-  const forwardedProps = useMemo(() => (preloadPacketId ? { preloadPacketId } : {}), [preloadPacketId]);
-
   const run = useCallback(
     (resume?: ResumeEntry[]) => {
       setError(null);
       setStoppedExchangeId(null);
-      copilotkit.runAgent({ agent, forwardedProps, ...(resume ? { resume } : {}) }).catch((failure: unknown) => {
+      copilotkit.runAgent({ agent, ...(resume ? { resume } : {}) }).catch((failure: unknown) => {
         answeringRef.current = false;
         setError(messageOfError(failure));
       });
     },
-    [agent, copilotkit, forwardedProps],
+    [agent, copilotkit],
   );
 
   const send = useCallback(

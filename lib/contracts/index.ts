@@ -7,7 +7,7 @@ export * from "./dashboard";
 export * from "./events";
 export * from "./threads";
 export * from "./memory";
-export * from "./handoff";
+export * from "./notifications";
 export * from "./alerts";
 export * from "./audit";
 export * from "./tools";

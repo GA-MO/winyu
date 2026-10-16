@@ -23,7 +23,7 @@ describe("role policies", () => {
   });
 
   test("tool allow lists follow the tool surface", () => {
-    expect(defaultToolsOf("sales_rep")).not.toContain("create_handoff");
+    expect(defaultToolsOf("sales_rep")).toContain("send_card");
     expect(defaultToolsOf("sales_rep")).not.toContain("send_email");
     expect(defaultToolsOf("it_admin")).toContain("run_job");
     expect(defaultToolsOf("ceo")).not.toContain("run_job");

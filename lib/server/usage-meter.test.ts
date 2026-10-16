@@ -74,7 +74,7 @@ describe("model ledger", () => {
     const user = findUser("u_krit");
     if (!user) throw new Error("missing u_krit");
     const before = new Set(modelCalls().all().map((call) => call.id));
-    const turn = { turnId: "turn-ledger", threadId: null, preloadPacketId: null, question: "hi", queries: [] };
+    const turn = { turnId: "turn-ledger", threadId: null, question: "hi", queries: [] };
     await runWithAccess(liveAccessFor(user), () =>
       runWithTurn(turn, async () => {
         const result = streamText({ model: model(BILLED), prompt: "hi" });

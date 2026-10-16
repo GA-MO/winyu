@@ -7,7 +7,8 @@ import { namesOf, type Dictionary } from "@/lib/semantic/dictionary";
 import { effectiveFilters, pinnedSlice } from "@/lib/semantic/resolved";
 import { nextActionsFor } from "@/lib/engine/next-actions";
 import { followUpsFor, learnedKindShare } from "@/lib/engine/follow-ups";
-import { openAlertsFor, openPacketCarrying } from "@/lib/server/alerts";
+import { openAlertsFor } from "@/lib/server/alerts";
+import { openMatterCarrying } from "@/lib/server/share/carrying";
 import { actionEvents, layouts } from "@/lib/server/agent/collections";
 import { isPinnedSlice } from "@/lib/engine/compose";
 import { intentKeyOf } from "@/lib/server/threads";
@@ -16,10 +17,10 @@ const PERCENT = 100;
 const REPEAT_DAYS = 30;
 const DAY_MS = 86_400_000;
 
-/** A handoff is offered once: when every alert it would carry is already in someone's inbox, the button goes. */
-function withoutRepeatHandoff(actions: NextAction[], alertIds: readonly string[]): NextAction[] {
-  const handed = alertIds.length > 0 && alertIds.every((id) => openPacketCarrying(id) !== null);
-  return handed ? actions.filter((action) => action.kind !== "handoff") : actions;
+/** A send is offered once: when every alert it would carry is already on an open matter, the button goes. */
+function withoutRepeatSend(actions: NextAction[], alertIds: readonly string[]): NextAction[] {
+  const handed = alertIds.length > 0 && alertIds.every((id) => openMatterCarrying(id) !== null);
+  return handed ? actions.filter((action) => action.kind !== "send") : actions;
 }
 
 function repeatsOf(userId: string, query: MetricQuery, now = Date.now()): number {
@@ -63,7 +64,7 @@ export function actionsForMetric(access: AccessContext, result: MetricResult, di
     },
     alreadyPinned(access.userId, query) ? 0 : repeatsOf(access.userId, query),
   );
-  return withoutRepeatHandoff(actions, alert ? [alert.id] : []);
+  return withoutRepeatSend(actions, alert ? [alert.id] : []);
 }
 
 function alertQueryOf(alert: Alert, dictionary: Dictionary): ResolvedQuery {
@@ -83,7 +84,7 @@ export function actionsForAlert(access: AccessContext, alert: Alert | null, dict
     verifyStep: verifyStepsFor(access, alert)[0] ?? null,
     region: regionOfSlice(dictionary, alert.dims),
   });
-  return withoutRepeatHandoff(actions, [alert.id]);
+  return withoutRepeatSend(actions, [alert.id]);
 }
 
 /** The follow-up questions the chat offers under the composer after this result, about the row the card is about, minus what the card already offers. */

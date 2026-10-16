@@ -1,5 +1,5 @@
-import type { AccessContext, Alert, ContextPacket, Dim, FeedItem, GrantRequest } from "@/lib/contracts";
-import type { AlertItem, EvidenceLine, GrantRequestItem, HandoffItem, HandoffStatus, InboxCounts, InboxPayload, Movement, ReplyItem, TodoItem } from "@/components/inbox/types";
+import type { AccessContext, Alert, Dim, FeedItem, GrantRequest } from "@/lib/contracts";
+import type { AlertItem, GrantRequestItem, InboxCounts, InboxPayload, Movement, StaffRequestItem, TodoItem } from "@/components/inbox/types";
 import { alertsInboxEnabled, handoffEnabled, isToolAllowed } from "@/lib/access/enforce";
 import { verifyStepsFor } from "@/lib/access/verify-steps";
 import { findUser } from "@/lib/data/entities/users";
@@ -11,21 +11,17 @@ import { sliceLabel } from "@/lib/share/grant-label";
 import { canJudge, openAlertsFor, visibleAlert } from "@/lib/server/alerts";
 import { goodNewsFor, storyOf, todoFor } from "@/lib/server/feed";
 import { grantRequests } from "@/lib/server/grants";
-import { packetsFor, resolveEvidence, sentPackets, type EvidenceView } from "@/lib/server/handoff";
 import { loadDictionary } from "@/lib/server/master-data";
 import { notificationsIn } from "@/lib/server/notify";
 import { lessonFor } from "@/lib/server/outcomes";
 import { mattersWaitingOn, shares } from "@/lib/server/share/shares";
 import { briefOf } from "@/lib/server/share/act";
+import { pendingStaffRequestsFor, type StaffRequest } from "@/lib/server/staff-requests";
 
 const MAX_ITEMS = 20;
 const MAX_ALERT_ITEMS = 60;
 const PERCENT = 100;
 const SCOPE_ORDER: Dim[] = ["agent", "dc", "plant", "sku", "brand", "channel", "province", "region"];
-/** A handoff stays in its recipient's Inbox until they return or close it. */
-const UNDECIDED: ReadonlySet<HandoffStatus> = new Set(["open", "need_info", "accepted"]);
-/** A handoff the recipient has not yet picked up: the only state the bell counts. */
-const NEW_HANDOFF: HandoffStatus = "open";
 
 function nameOf(userId: string): string {
   return findUser(userId)?.nameTh ?? userId;
@@ -34,17 +30,6 @@ function nameOf(userId: string): string {
 function roleOf(userId: string): string {
   const user = findUser(userId);
   return user ? TH.role[user.role] : "";
-}
-
-function evidenceOf(view: EvidenceView): EvidenceLine {
-  return {
-    label: view.metric,
-    value: view.scope ? `${view.range} · ${view.scope}` : view.range,
-    summary: view.denied ? TH.handoff.denied : view.summary,
-    masked: view.masked,
-    denied: view.denied,
-    requestPrompt: view.masked || view.denied ? TH.handoff.requestPrompt(view.metric, view.ownerUserId ?? "") : null,
-  };
 }
 
 function scopeOf(alert: Alert, dictionary: Dictionary): string {
@@ -68,7 +53,7 @@ function windowOf(alert: Alert): string {
   return `${formatDateTh(alert.window.from)} – ${formatDateTh(alert.window.to)}`;
 }
 
-function alertOf(alert: Alert, access: AccessContext, handoffOpen: boolean, dictionary: Dictionary): AlertItem {
+function alertOf(alert: Alert, access: AccessContext, mayTell: boolean, dictionary: Dictionary): AlertItem {
   const owner = findUser(alert.ownerUserId);
   const scope = scopeOf(alert, dictionary);
   return {
@@ -84,39 +69,7 @@ function alertOf(alert: Alert, access: AccessContext, handoffOpen: boolean, dict
     window: windowOf(alert),
     movement: movementOf(alert),
     ownerName: owner?.nameTh ?? "",
-    handoffPrompt: handoffOpen ? TH.inbox.handoffPrompt(metricLabel(alert.metric), scope, owner?.nameTh ?? "") : null,
-  };
-}
-
-/** The first alert a handoff carries that its recipient may see: the number the handoff is about, read from the alert, never from the title. */
-function linkedAlertOf(packet: ContextPacket, access: AccessContext): Alert | null {
-  for (const id of packet.alertIds) {
-    const alert = visibleAlert(id, access);
-    if (alert) return alert;
-  }
-  return null;
-}
-
-async function handoffOf(packet: ContextPacket, access: AccessContext): Promise<HandoffItem> {
-  const alert = linkedAlertOf(packet, access);
-  return {
-    id: packet.id,
-    title: packet.title,
-    ask: packet.ask,
-    urgency: packet.urgency,
-    sla: packet.sla,
-    status: packet.status,
-    fromName: nameOf(packet.fromUserId),
-    fromRole: roleOf(packet.fromUserId),
-    evidence: (await resolveEvidence(packet, access)).map(evidenceOf),
-    suggestedActions: [...packet.suggestedActions],
-    digest: packet.conversationDigest,
-    at: packet.createdAt,
-    outcome: packet.outcome,
-    alertCount: packet.alertIds.length,
-    replies: packet.thread.map((reply) => ({ name: nameOf(reply.userId), at: reply.at, text: reply.text })),
-    movement: alert ? movementOf(alert) : null,
-    window: alert ? windowOf(alert) : null,
+    sendPrompt: mayTell && owner && owner.id !== access.userId ? TH.inbox.sendPrompt(metricLabel(alert.metric), scope, owner.nameTh) : null,
   };
 }
 
@@ -140,19 +93,13 @@ export function pendingRequestsFor(approverId: string): GrantRequest[] {
     .sort((left, right) => left.createdAt.localeCompare(right.createdAt));
 }
 
-/** The handoffs sent to this person that still wait on them. */
-export function undecidedHandoffsFor(userId: string): ContextPacket[] {
-  return packetsFor(userId).filter((packet) => UNDECIDED.has(packet.status));
+function staffRequestOf(request: StaffRequest): StaffRequestItem {
+  return { id: request.id, system: request.system, title: request.title, ask: request.ask, requesterName: nameOf(request.employeeId), requesterRole: roleOf(request.employeeId), at: request.createdAt };
 }
 
-/** The handoffs sent to this person that they have not yet picked up, newest first. */
-export function newHandoffsFor(userId: string): ContextPacket[] {
-  return packetsFor(userId).filter((packet) => packet.status === NEW_HANDOFF);
-}
-
-/** What the bell counts: grant requests waiting on the person, handoffs they have not picked up, and matters waiting on their answer; nothing that is only news. */
+/** What the bell counts: grant requests and leave or training requests waiting on the person, and matters waiting on their answer; nothing that is only news. */
 export function decisionCount(userId: string): number {
-  return pendingRequestsFor(userId).length + newHandoffsFor(userId).length + mattersWaitingOn(userId).length;
+  return pendingRequestsFor(userId).length + pendingStaffRequestsFor(userId).length + mattersWaitingOn(userId).length;
 }
 
 /** Unread notifications that are read on Shared: cards shared with the person and decisions on their requests. */
@@ -182,26 +129,14 @@ function todoOf(item: FeedItem, access: AccessContext, open: readonly Alert[]): 
   return { item, movement: alert ? movementOf(alert) : null, window: alert ? windowOf(alert) : null };
 }
 
-function repliesOf(userId: string): ReplyItem[] {
-  return sentPackets(userId)
-    .filter((packet) => packet.thread.length > 0)
-    .slice(0, MAX_ITEMS)
-    .map((packet) => {
-      const last = packet.thread[packet.thread.length - 1];
-      return { id: packet.id, title: packet.title, toName: nameOf(packet.toUserId), text: last.text, at: last.at, status: TH.inbox.status[packet.status] };
-    });
-}
-
-/** The Inbox of one person: what waits on their decision, each alert told once (a handoff or a to-do row that carries it, or a to-do row of the same story, tells it), then good news and replies. */
+/** The Inbox of one person: what waits on their decision, each alert told once (a matter or a to-do row that carries it, or a to-do row of the same story, tells it), then good news. */
 export async function inboxFor(access: AccessContext): Promise<InboxPayload> {
   const handoffOpen = handoffEnabled();
-  const mayHandOff = handoffOpen && isToolAllowed(access, "create_handoff");
-  const packets = undecidedHandoffsFor(access.userId).slice(0, MAX_ITEMS);
-  const handoffs = await Promise.all(packets.map((packet) => handoffOf(packet, access)));
-  const handedIds = new Set(packets.map((packet) => packet.id));
-  const todoRows = (await todoFor(access)).filter((item) => !item.packetId || !handedIds.has(item.packetId)).slice(0, MAX_ITEMS);
+  const mayTell = handoffOpen && isToolAllowed(access, "send_card");
+  const matters = mattersWaitingOn(access.userId).slice(0, MAX_ITEMS);
+  const todoRows = (await todoFor(access)).slice(0, MAX_ITEMS);
   const told = alertIdsTold(todoRows);
-  for (const packet of packets) for (const id of packet.alertIds) told.add(id);
+  for (const matter of matters) for (const id of matter.alertIds) told.add(id);
   const storiesTold = new Set(todoRows.flatMap((item) => (item.story ? [item.story] : [])));
 
   const alertsOpen = alertsInboxEnabled();
@@ -210,16 +145,15 @@ export async function inboxFor(access: AccessContext): Promise<InboxPayload> {
   const alerts = open
     .filter((alert) => !told.has(alert.id) && !storiesTold.has(storyOf(alert)))
     .slice(0, MAX_ALERT_ITEMS)
-    .map((alert) => alertOf(alert, access, mayHandOff, dictionary));
+    .map((alert) => alertOf(alert, access, mayTell, dictionary));
 
   return {
     grantRequests: pendingRequestsFor(access.userId).map(grantRequestOf),
-    matters: mattersWaitingOn(access.userId).map((matter) => briefOf(matter, access.userId)),
-    handoffs,
+    staffRequests: pendingStaffRequestsFor(access.userId).map(staffRequestOf),
+    matters: matters.map((matter) => briefOf(matter, access.userId)),
     todo: todoRows.map((item) => todoOf(item, access, open)),
     alerts,
     goodNews: await goodNewsFor(access),
-    replies: repliesOf(access.userId),
     handoffOpen,
     alertsOpen,
     decisions: decisionCount(access.userId),

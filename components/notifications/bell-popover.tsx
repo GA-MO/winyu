@@ -7,13 +7,12 @@ import { MatterActions } from "@/components/matter/matter-actions";
 import { matterFrom } from "@/lib/share/matter-actions";
 import { cn } from "@/components/ui/cn";
 import { TH } from "@/lib/i18n/th";
-import { decisionAction, hasUnread, type BellDecision, type BellItem, type BellPayload } from "./items";
+import { hasUnread, type BellDecision, type BellItem, type BellPayload } from "./items";
 import { Face, UnreadDot, When } from "./parts";
 
 const COPY = TH.notifications;
 const BELL_ENDPOINT = "/api/notifications/bell";
 const READ_ENDPOINT = "/api/notifications";
-const INBOX_ENDPOINT = "/api/inbox";
 const SHARED_PATH = "/shared";
 const JSON_HEADERS = { "content-type": "application/json" };
 const DIALOG =
@@ -47,7 +46,7 @@ function ItemLink({ item, onOpen, className, children }: { item: BellItem; onOpe
   );
 }
 
-function DecisionRow({ item, busy, onOpen, onDecide }: { item: BellDecision; busy: boolean; onOpen: (item: BellItem) => void; onDecide: (item: BellDecision) => void }) {
+function DecisionRow({ item, onOpen }: { item: BellDecision; onOpen: (item: BellItem) => void }) {
   return (
     <li className={cn("flex gap-3 rounded-xl px-2.5 py-2.5", !item.read && "bg-primary/[0.05]")} data-bell-decision={item.kind}>
       <Face item={item} className="size-8" />
@@ -56,7 +55,7 @@ function DecisionRow({ item, busy, onOpen, onDecide }: { item: BellDecision; bus
           {item.title}
         </ItemLink>
         <div className="flex items-center gap-2">
-          <Primary onClick={() => onDecide(item)} disabled={busy}>
+          <Primary onClick={() => onOpen(item)}>
             {COPY.actions[item.kind]}
           </Primary>
           <span className="flex-1" />
@@ -128,7 +127,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-function Lists({ payload, busyKey, onOpen, onDecide, onActed }: { payload: BellPayload; busyKey: string | null; onOpen: (item: BellItem) => void; onDecide: (item: BellDecision) => void; onActed: (item: BellDecision) => void }) {
+function Lists({ payload, onOpen, onActed }: { payload: BellPayload; onOpen: (item: BellItem) => void; onActed: (item: BellDecision) => void }) {
   if (payload.decide.length === 0 && payload.updates.length === 0) return <AllCaughtUp />;
   return (
     <div className="flex flex-col gap-2 px-1.5 pb-1.5">
@@ -136,7 +135,7 @@ function Lists({ payload, busyKey, onOpen, onDecide, onActed }: { payload: BellP
         <Section title={COPY.decide}>
           <ul className="flex flex-col gap-0.5">
             {payload.decide.map((item) =>
-              item.kind === "matter" ? <MatterRow key={item.key} item={item} onOpen={onOpen} onActed={onActed} /> : <DecisionRow key={item.key} item={item} busy={busyKey === item.key} onOpen={onOpen} onDecide={onDecide} />,
+              item.kind === "matter" ? <MatterRow key={item.key} item={item} onOpen={onOpen} onActed={onActed} /> : <DecisionRow key={item.key} item={item} onOpen={onOpen} />,
             )}
           </ul>
         </Section>
@@ -165,8 +164,6 @@ export function BellPopover({ onClose, onOpenInbox, onChanged, navigate }: BellP
   const dialog = useRef<HTMLDialogElement>(null);
   const titleId = useId();
   const [payload, setPayload] = useState<BellPayload | null>(null);
-  const [busyKey, setBusyKey] = useState<string | null>(null);
-  const [problem, setProblem] = useState<string | null>(null);
 
   const load = useCallback(
     () =>
@@ -200,25 +197,6 @@ export function BellPopover({ onClose, onOpenInbox, onChanged, navigate }: BellP
       navigate(item.target);
     },
     [navigate, onClose],
-  );
-
-  const decide = useCallback(
-    async (item: BellDecision) => {
-      const action = decisionAction(item);
-      if (action.type === "open") return open(item);
-      setBusyKey(item.key);
-      setProblem(null);
-      const response = await fetch(`${INBOX_ENDPOINT}/${encodeURIComponent(action.packetId)}`, { method: "POST", headers: JSON_HEADERS, body: JSON.stringify({ action: "accept" }) }).catch(() => null);
-      if (response?.ok && item.notificationId) await postRead({ id: item.notificationId });
-      if (!response?.ok) {
-        const body = (await response?.json().catch(() => null)) as { error?: string } | null;
-        setProblem(body?.error ?? TH.inbox.failed);
-      }
-      await load();
-      setBusyKey(null);
-      onChanged();
-    },
-    [load, onChanged, open],
   );
 
   const acted = useCallback(
@@ -269,12 +247,7 @@ export function BellPopover({ onClose, onOpenInbox, onChanged, navigate }: BellP
           <X className="size-4" aria-hidden />
         </button>
       </header>
-      {problem ? (
-        <p role="alert" className="mx-4 mb-1 rounded-lg bg-danger/10 px-3 py-2 text-xs text-danger">
-          {problem}
-        </p>
-      ) : null}
-      <div className="min-h-0 flex-1 overflow-y-auto">{payload ? <Lists payload={payload} busyKey={busyKey} onOpen={open} onDecide={(item) => void decide(item)} onActed={(item) => void acted(item)} /> : <div className="h-24" aria-busy />}</div>
+      <div className="min-h-0 flex-1 overflow-y-auto">{payload ? <Lists payload={payload} onOpen={open} onActed={(item) => void acted(item)} /> : <div className="h-24" aria-busy />}</div>
       <footer className="flex items-center justify-between border-t border-border px-4 py-2.5 text-xs">
         <button type="button" onClick={openInbox} className={cn(LINK, "font-medium text-primary hover:underline")}>
           {COPY.openInbox}

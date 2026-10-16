@@ -36,7 +36,7 @@ describe("RunTrace", () => {
   test("a refused tool shows that the system refused it and why", () => {
     const record = recordOf((run) => {
       emitTo(run, "runtime", { type: "agent.started", payload: { goal: GOAL, userId: "u_krit", threadId: "t" } });
-      emitTo(run, "gateway", { type: "tool.denied", payload: { toolCallId: "c2", tool: "create_handoff", code: "TOOL_NOT_ALLOWED", reason: "บทบาทของคุณใช้เครื่องมือนี้ไม่ได้" } });
+      emitTo(run, "gateway", { type: "tool.denied", payload: { toolCallId: "c2", tool: "send_email", code: "TOOL_NOT_ALLOWED", reason: "บทบาทของคุณใช้เครื่องมือนี้ไม่ได้" } });
       emitTo(run, "runtime", { type: "agent.failed", payload: { reason: "stopped" } });
     });
     const html = renderToStaticMarkup(<RunTrace record={record} audit={[]} />);

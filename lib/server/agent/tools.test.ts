@@ -9,7 +9,6 @@ import { findUser } from "@/lib/data/entities/users";
 import { auditLog } from "@/lib/server/audit";
 import { TH } from "@/lib/i18n/th";
 import { runWithAccess, runWithTurn } from "@/lib/server/request-context";
-import { notifications, outbox, packets } from "./collections";
 import type { WinyuTool } from "@/lib/server/tools/define";
 import { toolSurface } from "@/lib/server/tools/registry";
 import { approvedCallId } from "@/scripts/approved-call";
@@ -161,53 +160,6 @@ describe("resolve_owner", () => {
   });
 });
 
-describe("create_handoff", () => {
-  test("writes a packet, a notification and an outbox entry", async () => {
-    const result = await call<{ ok: boolean; data: { packetId: string } }>("u_anucha", "create_handoff", {
-      toUserId: "u_pim",
-      title: "ยอดขายภาคอีสานต่ำกว่าเป้า",
-      ask: "ช่วยตรวจสอบเอเย่นต์ที่ยอดตก",
-      urgency: "high",
-      evidence: [query({ filters: { region: ["northeast"] } })],
-      alertIds: [],
-    });
-    expect(result.ok).toBe(true);
-    const packet = packets().get(result.data.packetId);
-    expect(packet?.toUserId).toBe("u_pim");
-    expect(packet?.status).toBe("open");
-    expect(packet?.evidence.length).toBe(1);
-    expect(notifications().where((item) => item.refId === result.data.packetId).length).toBe(1);
-    expect(outbox().where((item) => item.refId === result.data.packetId).length).toBe(1);
-  });
-
-  test("the packet carries the sender's conversation, so the recipient's agent reads what was asked before the handoff", async () => {
-    const transcript = async () => [
-      { role: "user", text: "ยอดขายภาคอีสานเดือนนี้เทียบเป้า" },
-      { role: "assistant", text: "ภาคอีสานต่ำกว่าเป้า 10%" },
-    ];
-    const turn = { turnId: "turn-handoff-digest", threadId: "thread-handoff-digest", preloadPacketId: null, question: "ส่งงานให้ผู้รับผิดชอบ", queries: [], transcript };
-    const input = { toUserId: "u_pim", title: "ยอดอีสานต่ำกว่าเป้า", ask: "ช่วยตรวจสอบ", urgency: "medium", evidence: [], alertIds: [] };
-    const { execute } = winyuTools().create_handoff;
-    const result = (await runWithAccess(accessOf("u_anucha"), () => runWithTurn(turn, () => execute(input, { toolCallId: approvedCallId("u_anucha", "create_handoff") })))) as { ok: boolean; data: { packetId: string } };
-    const digest = packets().get(result.data.packetId)?.conversationDigest ?? "";
-    expect(digest).toContain("ยอดขายภาคอีสานเดือนนี้เทียบเป้า");
-    expect(digest).toContain("ต่ำกว่าเป้า 10%");
-  });
-
-  test("an unknown recipient is rejected", async () => {
-    const result = await call<{ ok: boolean; error: string }>("u_anucha", "create_handoff", {
-      toUserId: "u_nobody",
-      title: "x",
-      ask: "y",
-      urgency: "low",
-      evidence: [],
-      alertIds: [],
-    });
-    expect(result.ok).toBe(false);
-    expect(result.error).toContain("u_nobody");
-  });
-});
-
 describe("analytics plane tools", () => {
   test("alerts and forecasts come from the engine, memory answers empty when nothing matches", async () => {
     const alerts = await call<{ ok: boolean; summary: string; rows: { severity: string; hypothesis: string }[] }>("u_anucha", "get_alerts", { status: "open", limit: null });
@@ -281,18 +233,18 @@ describe("set_permission", () => {
 
 describe("toolsForAccess", () => {
   test("returns only the allowed subset", () => {
-    expect(toolNamesOf(toolsForAccess(accessOf("u_krit")))).not.toContain("create_handoff");
+    expect(toolNamesOf(toolsForAccess(accessOf("u_krit")))).not.toContain("send_email");
     expect(toolNamesOf(toolsForAccess(accessOf("u_ton")))).toContain("run_job");
     expect(toolNamesOf(toolsForAccess(accessOf("u_thana")))).not.toContain("run_job");
   });
 
-  test("the admin handoff switch takes handoff and mail away from everyone, then gives them back", () => {
+  test("the admin sending switch takes sending cards and mail away from everyone, then gives them back", () => {
     setHandoffEnabled(false, "u_ton");
-    expect(toolNamesOf(toolsForAccess(accessOf("u_anucha")))).not.toContain("create_handoff");
+    expect(toolNamesOf(toolsForAccess(accessOf("u_anucha")))).not.toContain("send_card");
     expect(toolNamesOf(toolsForAccess(accessOf("u_anucha")))).not.toContain("send_email");
-    expect(withAdminSwitches(accessOf("u_anucha")).toolAllow).not.toContain("create_handoff");
+    expect(withAdminSwitches(accessOf("u_anucha")).toolAllow).not.toContain("send_card");
     setHandoffEnabled(true, "u_ton");
-    expect(toolNamesOf(toolsForAccess(accessOf("u_anucha")))).toContain("create_handoff");
+    expect(toolNamesOf(toolsForAccess(accessOf("u_anucha")))).toContain("send_card");
   });
 });
 

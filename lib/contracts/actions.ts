@@ -2,7 +2,7 @@ import type { WidgetKind } from "./dashboard";
 import type { Region } from "./identity";
 import type { ResolvedQuery } from "./semantic";
 
-export type NextActionKind = "handoff" | "request_access" | "pin" | "verify" | "drill" | "enroll";
+export type NextActionKind = "send" | "request_access" | "pin" | "verify" | "drill" | "enroll";
 
 /** One thing the user can do next about a result: a tool call the card offers as a button, or a follow-up question. */
 export type NextAction = {
@@ -10,12 +10,12 @@ export type NextAction = {
   kind: NextActionKind;
   label: string;
   reason: string;
-  tool: "create_handoff" | "send_email" | "pin_widget" | "enroll_course" | null;
+  tool: "send_card" | "send_email" | "pin_widget" | "enroll_course" | null;
   input: Record<string, unknown> | null;
   prompt: string | null;
 };
 
-/** What a card is about, decided once for its handoff, its pin and its follow-up questions. */
+/** What a card is about, decided once for its send, its pin and its follow-up questions. */
 export type CardFocus = {
   /** What the whole card covers, in Thai: the values it is narrowed to, and "แยกตาม…" for a breakdown; null for everything the viewer may see. Names a pinned tile. */
   slice: string | null;

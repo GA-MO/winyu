@@ -35,7 +35,7 @@ export async function GET(req: Request): Promise<Response> {
   const queryMetric = winyuTools().query_metric;
   const input = queryMetric.inputSchema().parse(REVENUE_QUERY);
   const run = newRun(access.userId, null, { initiator: "system" });
-  const turn = { turnId: run.id, threadId: null, preloadPacketId: null, question: QUESTION, queries: [] };
+  const turn = { turnId: run.id, threadId: null, question: QUESTION, queries: [] };
   const output = await runWithAccess(access, () => runWithTurn(turn, () => runWithRun(run, () => queryMetric.execute(input, { toolCallId: randomUUID() }))));
   saveRun(run);
   const result = isMetricResult(output) ? output : null;

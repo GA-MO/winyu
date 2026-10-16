@@ -27,23 +27,22 @@ function widgetKindOf(context: NextActionContext): WidgetKind {
   return WIDGET_KIND_FOR_DIMS.other;
 }
 
-function handoffAction(access: AccessContext, context: NextActionContext): NextAction | null {
+function sendAction(access: AccessContext, context: NextActionContext): NextAction | null {
   const owner = responsibleFor(context.query.metric, context.region, pinnedSlice(effectiveFilters(context.query)).agent ?? null);
   if (!owner || owner.userId === access.userId) return null;
   const { subject } = context.focus;
   return {
-    id: "handoff",
-    kind: "handoff",
-    label: TH.next.handoff(shortName(owner.user.nameTh)),
+    id: "send",
+    kind: "send",
+    label: TH.next.send(shortName(owner.user.nameTh)),
     reason: owner.basis,
-    tool: "create_handoff",
+    tool: "send_card",
     input: {
-      toUserId: owner.userId,
-      title: focusTitle(context.query.metric, subject),
-      ask: TH.next.handoffAsk(subject ?? metricLabel(context.query.metric)),
-      urgency: context.alertIds.length > 0 ? "high" : "medium",
-      evidence: [askedQuery(context.query)],
-      alertIds: context.alertIds,
+      to: [owner.userId],
+      ask: TH.next.sendAsk(subject ?? metricLabel(context.query.metric)),
+      intent: "act",
+      urgency: context.alertIds.length > 0 ? "now" : "today",
+      card: { reads: [{ tool: "query_metric", input: askedQuery(context.query) }], alertIds: context.alertIds },
     },
     prompt: null,
   };
@@ -155,7 +154,7 @@ export function nextActionsFor(access: AccessContext, context: NextActionContext
   const verify = verifyAction(context);
   const candidates = [
     accessAction(access, context),
-    needsOwner(context) ? handoffAction(access, context) : null,
+    needsOwner(context) ? sendAction(access, context) : null,
     verify,
     pinAction(context, repeats),
     drillAction(access, context, verify !== null),

@@ -8,6 +8,8 @@ import { grantDaysSchema, type GrantRefusalCode } from "@/lib/contracts/grant";
 import type { MetricId } from "@/lib/contracts/semantic";
 import type { Persona } from "@/lib/contracts/persona";
 import { MATTER_INTENTS, MATTER_URGENCIES } from "./matter";
+import type { CardFigures } from "./figures";
+import type { MatterSuggestions } from "./matter-actions";
 
 export const SHARE_CHANNELS = ["email", "teams", "line"] as const;
 
@@ -24,6 +26,7 @@ export const SHARE_NOTE_MAX = 300;
 /** One line: the ask a matter carries, drafted from the card and edited by the sender. */
 export const MATTER_ASK_MAX = SHARE_NOTE_MAX;
 const READS_MAX = 12;
+const ALERTS_MAX = 10;
 const COMPONENTS_MAX = 80;
 const CHANNEL_PREFERENCE: readonly ShareChannel[] = ["teams", "line", "email"];
 
@@ -44,6 +47,9 @@ export type ShareContact = Persona & { name: string; channels: ChannelOption[] }
 
 /** A card someone is about to share: the reads behind it and the question that drew it. */
 export type ShareTarget = { card: SharedCard; question: string | null; draftAsk?: string };
+
+/** What a send shows before it leaves, worked out by the server: whom to put first, what the card's numbers say for the sender (to check the ask against), and the goal that would close the matter. */
+export type SendPreview = MatterSuggestions & { figures: CardFigures | null; goal: string | null };
 
 /** Why one recipient got the share on another channel than the one picked. */
 export type FallbackReason = "no-teams-conversation" | "send-failed";
@@ -98,18 +104,22 @@ export const shareRequestSchema = z.object({
   urgency: z.enum(MATTER_URGENCIES).optional(),
   recipients: z.array(z.object({ userId: z.string().min(1), channel: z.enum(DELIVERY_CHANNELS) })).min(1).max(SHARE_RECIPIENTS_MAX),
   grantDays: grantDaysSchema.nullable().optional(),
+  alertIds: z.array(z.string().min(1).max(120)).max(ALERTS_MAX).optional(),
+  closeOnGoal: z.boolean().optional(),
 }).refine((request) => request.intent === "fyi" || (request.recipients.length === 1 && request.ask.trim().length > 0), { message: "a matter that asks for an answer goes to one person with an ask" });
 
 export type ShareRequest = z.infer<typeof shareRequestSchema>;
 
-/** What the chat agent passes to share the card on screen: who it goes to (names as the person typed them, or user ids), the channel when the person named one, and a note. */
-export const shareCardInputSchema = z.object({
-  to: z.array(z.string().min(1).max(80)).min(1).max(SHARE_RECIPIENTS_MAX),
-  channel: z.enum(SHARE_CHANNELS).optional(),
-  note: z.string().max(SHARE_NOTE_MAX).optional(),
+/** What the chat agent passes to send the card this exchange answered with as a matter: who it goes to (names as the person typed them, or user ids; none means the card's owner), the ask in the person's words, whether it waits on an answer, how soon (only from the person's words), and the card itself only when a pressed button carried it. */
+export const sendCardInputSchema = z.object({
+  to: z.array(z.string().min(1).max(80)).max(SHARE_RECIPIENTS_MAX).optional(),
+  ask: z.string().max(MATTER_ASK_MAX).optional(),
+  intent: z.enum(MATTER_INTENTS).optional(),
+  urgency: z.enum(MATTER_URGENCIES).optional(),
+  card: z.object({ reads: z.array(readSchema).min(1).max(READS_MAX), alertIds: z.array(z.string().min(1).max(120)).max(ALERTS_MAX).optional() }).optional(),
 });
 
-export type ShareCardInput = z.infer<typeof shareCardInputSchema>;
+export type SendCardInput = z.infer<typeof sendCardInputSchema>;
 
 /** The channel a share goes by when nobody picked one: Teams once the person writes to the bot there, then LINE, then email. */
 export function preferredChannel(options: readonly ChannelOption[]): ShareChannel {

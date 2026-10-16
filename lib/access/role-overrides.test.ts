@@ -32,10 +32,10 @@ describe("role overrides", () => {
   });
 
   test("a tool can be given to a role and taken back", () => {
-    expect(toolsFor(live("u_krit"))).not.toContain("create_handoff");
-    expect(toggleRoleTool("sales_rep", "create_handoff", ADMIN)).toBe(true);
-    expect(toolsFor(live("u_krit"))).toContain("create_handoff");
-    expect(toggleRoleTool("sales_rep", "create_handoff", ADMIN)).toBe(false);
+    expect(toolsFor(live("u_krit"))).not.toContain("send_email");
+    expect(toggleRoleTool("sales_rep", "send_email", ADMIN)).toBe(true);
+    expect(toolsFor(live("u_krit"))).toContain("send_email");
+    expect(toggleRoleTool("sales_rep", "send_email", ADMIN)).toBe(false);
     expect(roleOverrides()).toHaveLength(0);
   });
 

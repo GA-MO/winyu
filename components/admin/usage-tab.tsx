@@ -97,9 +97,9 @@ function AlertFate() {
       </dl>
       <div className="mt-5 flex flex-col gap-3 border-t border-border pt-4 text-sm">
         <div>
-          <p className="text-[11px] text-muted-foreground">{ADOPTION.handoffs}</p>
-          <p className="mt-0.5">{ADOPTION.handoffLine(adoption.handoffs.resolved, adoption.handoffs.total, adoption.handoffs.returned)}</p>
-          <p className="text-xs text-muted-foreground">{ADOPTION.replyTime(adoption.handoffs.medianHoursToReply)}</p>
+          <p className="text-[11px] text-muted-foreground">{ADOPTION.matters}</p>
+          <p className="mt-0.5">{ADOPTION.mattersLine(adoption.matters.done, adoption.matters.total, adoption.matters.passedOn)}</p>
+          <p className="text-xs text-muted-foreground">{ADOPTION.replyTime(adoption.matters.medianHoursToAnswer)}</p>
         </div>
         <div>
           <p className="text-[11px] text-muted-foreground">{ADOPTION.cards}</p>

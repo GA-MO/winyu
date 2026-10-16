@@ -80,7 +80,7 @@ describe("the MCP endpoint", () => {
     expect(rep).not.toContain("get_forecast");
     expect(ceo).not.toContain("get_site");
     expect(rep).not.toContain("get_site");
-    for (const writer of ["create_handoff", "send_email", "pin_widget", "request_leave", "set_permission"]) expect(ceo).not.toContain(writer);
+    for (const writer of ["send_card", "send_email", "pin_widget", "request_leave", "set_permission"]) expect(ceo).not.toContain(writer);
   });
 
   test("a sales rep's query_metric comes back with the northeast only, while the CEO's spans regions", async () => {

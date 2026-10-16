@@ -169,10 +169,8 @@ export async function enrollCourse(access: AccessContext, courseId: string, thre
   const when = T.when(formatDateTh(course.starts), course.days);
   const enrollment = await ports().learning.requestSeat({ employeeId: access.userId, courseId: course.id, approverId: approver.id, idempotencyKey: callId });
   await deliverRequest(access, approver, { system: "course", requestId: enrollment.id, employeeId: access.userId }, {
-    title: T.packetTitle(course.titleTh),
-    ask: T.packetAsk(course.titleTh, when, placeOf(course)),
-    replies: [T.replyApprove, T.replyNext],
-    threadId,
+    title: T.requestTitle(course.titleTh),
+    ask: T.requestAsk(course.titleTh, when, placeOf(course)),
   });
   const now = (await findCourse(course.id)) ?? course;
   return { ok: true as const, summary: T.sent(course.titleTh, approver.nameTh), data: { courseId: course.id, approver: approver.nameTh, when, seats_left: seatsLeft(now) } };

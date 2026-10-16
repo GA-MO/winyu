@@ -23,7 +23,7 @@ const BRAND_MARK = "flex size-8 shrink-0 items-center justify-center rounded-[10
 const RAIL_OFFSET = "--winyu-rail-offset";
 const TEXT = TH.conversation.rail;
 
-type ThreadSummary = { id: string; title: string; createdAt: string; updatedAt: string; packetId: string | null };
+type ThreadSummary = { id: string; title: string; createdAt: string; updatedAt: string; matterCode: string | null };
 
 type RowMode = { kind: "view" } | { kind: "rename"; id: string; draft: string } | { kind: "confirm-delete"; id: string };
 

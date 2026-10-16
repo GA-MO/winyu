@@ -56,7 +56,7 @@ describe("a rep asking about their own book", () => {
     const user = findUser(userId);
     if (!user) throw new Error(`no ${userId}`);
     const tool = winyuTools().query_metric;
-    const turn = { turnId: null, threadId: null, preloadPacketId: null, question, queries: [] };
+    const turn = { turnId: null, threadId: null, question, queries: [] };
     return (await runWithAccess(accessFor(user), () => runWithTurn(turn, () => tool.execute(tool.inputSchema().parse(query))))) as Extract<MetricResult, { ok: true }>;
   }
 

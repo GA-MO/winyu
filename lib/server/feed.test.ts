@@ -4,7 +4,7 @@ import { liveAccessFor } from "@/lib/access/enforce";
 import { DATA_AS_OF, dataDay, monthEnd, monthStart } from "@/lib/data/dates";
 import { EMPLOYEES } from "@/lib/data/entities/people";
 import { USERS, findUser } from "@/lib/data/entities/users";
-import { actionEvents, alerts, feedStates, memoryFacts, packets, personalWatches } from "@/lib/server/agent/collections";
+import { actionEvents, alerts, feedStates, memoryFacts, personalWatches } from "@/lib/server/agent/collections";
 import { collection } from "@/lib/server/store/json-store";
 import { DEMO_ENROLLMENTS } from "@/lib/server/ports/generator-learning";
 import { confirmMemory } from "@/lib/engine/memory";
@@ -85,15 +85,9 @@ describe("what a user does with an item stays theirs", () => {
     expect((await feedFor(accessOf("u_may"), NOW + 8 * DAY_MS)).some((item) => item.key === first.key)).toBe(true);
   });
 
-  test("an item outside the user's feed does not exist for them, and a handoff is finished only in the inbox", async () => {
+  test("an item outside the user's feed does not exist for them", async () => {
     const opening = (await feedFor(accessOf("u_may"), NOW)).find((item) => item.source === "opening");
     expect(await actOnFeedItem(accessOf("u_krit"), opening?.key ?? "", "done", NOW)).toEqual({ ok: false, status: 404 });
-    for (const user of USERS) {
-      const packet = (await feedFor(accessOf(user.id), NOW)).find((item) => item.source === "packet");
-      if (!packet) continue;
-      expect(await actOnFeedItem(accessOf(user.id), packet.key, "done", NOW)).toEqual({ ok: false, status: 400 });
-      return;
-    }
   });
 
   test("opening an item is recorded without changing the question chips", async () => {
@@ -110,11 +104,11 @@ describe("each matter offers the one thing to do about it", () => {
   test("a licence goes to the holder's manager when the manager uses Winyu, else to the holder, else nowhere", async () => {
     const hr = await feedFor(accessOf("u_may"), NOW);
     const pong = hr.find((item) => item.label === "คุณป้อง แสนสุข");
-    expect(pong?.actions[0]).toMatchObject({ kind: "handoff", tool: "create_handoff", label: "ส่งให้คุณอนุชา พรหมศรี" });
-    expect(pong?.actions[0]?.input).toMatchObject({ toUserId: "u_anucha", urgency: "medium" });
+    expect(pong?.actions[0]).toMatchObject({ kind: "send", tool: "send_card", label: "ส่งให้คุณอนุชา พรหมศรี" });
+    expect(pong?.actions[0]?.input).toMatchObject({ to: ["u_anucha"], intent: "act", urgency: "today", card: { reads: [{ tool: "get_person" }] } });
     expect(hr.find((item) => item.label === "คุณแดง ศักดิ์ดี")?.actions).toEqual([]);
     const rsm = await feedFor(accessOf("u_anucha"), NOW);
-    expect(rsm.find((item) => item.label === "คุณกฤต จันทร์เสน")?.actions[0]).toMatchObject({ label: "แจ้งคุณกฤต จันทร์เสน", input: { toUserId: "u_krit" } });
+    expect(rsm.find((item) => item.label === "คุณกฤต จันทร์เสน")?.actions[0]).toMatchObject({ label: "แจ้งคุณกฤต จันทร์เสน", input: { to: ["u_krit"] } });
   });
 
   test("a user's own licence is on their feed with the renewal round to book", async () => {
@@ -125,7 +119,6 @@ describe("each matter offers the one thing to do about it", () => {
 
   test("once the holder books a renewal round, the licence leaves every feed", async () => {
     const before = new Set(collection(DEMO_ENROLLMENTS).all().map((enrollment) => enrollment.id));
-    const packetsBefore = new Set(packets().all().map((packet) => packet.id));
     const booked = await enrollCourse(accessOf("u_krit"), "crs_sales_licence", null, crypto.randomUUID());
     expect(booked.ok).toBe(true);
     try {
@@ -134,17 +127,17 @@ describe("each matter offers the one thing to do about it", () => {
       expect((await feedFor(accessOf("u_may"), NOW)).some((item) => item.label === "คุณกฤต จันทร์เสน")).toBe(false);
     } finally {
       for (const enrollment of collection(DEMO_ENROLLMENTS).all()) if (!before.has(enrollment.id)) collection(DEMO_ENROLLMENTS).remove(enrollment.id);
-      for (const packet of packets().all()) if (!packetsBefore.has(packet.id)) packets().remove(packet.id);
     }
   });
 });
 
 describe("buttons follow the tools a user may run", () => {
-  test("with handoffs switched off, no item offers to send work", async () => {
+  test("with sending switched off, no item offers to send work", async () => {
     const hr = accessOf("u_may");
-    const closed = { ...hr, toolAllow: hr.toolAllow.filter((name) => name !== "create_handoff") };
+    expect((await feedFor(hr, NOW)).some((item) => item.actions.some((action) => action.tool === "send_card"))).toBe(true);
+    const closed = { ...hr, toolAllow: hr.toolAllow.filter((name) => name !== "send_card") };
     const items = await feedFor(closed, NOW);
-    expect(items.some((item) => item.actions.some((action) => action.tool === "create_handoff"))).toBe(false);
+    expect(items.some((item) => item.actions.some((action) => action.tool === "send_card"))).toBe(false);
   });
 });
 

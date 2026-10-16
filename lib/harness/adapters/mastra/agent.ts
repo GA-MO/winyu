@@ -48,7 +48,7 @@ function accessOf(requestContext: RequestContext<UserContext>): AccessContext {
 
 function instructionsFor(access: AccessContext): CoreSystemMessage {
   const turn = currentTurn();
-  const context = { threadId: turn.threadId, preloadPacketId: turn.preloadPacketId };
+  const context = { threadId: turn.threadId };
   const lines = personaFor(access, findUser(access.userId), { today: businessToday(), context }, WINYU_RULES);
   return { role: "system", content: lines.join(PROMPT_SEPARATOR), providerOptions: CACHED_SYSTEM_PROMPT };
 }

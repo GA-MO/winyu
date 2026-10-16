@@ -8,7 +8,7 @@ import { templateFor } from "./templates";
 import { widgetCard } from "./widget-card";
 import { alertRowOf } from "@/lib/cards/alert-row";
 import { GENERATOR_DICTIONARY } from "@/lib/data/master";
-import { alertCard, itemCard, packetCard } from "./ambient";
+import { itemCard } from "./ambient";
 
 const RSM = "u_anucha";
 const HR = "u_may";
@@ -114,29 +114,10 @@ describe("widgetCard", () => {
     expect(JSON.stringify(card)).toContain("ถูกปิดตามสิทธิ์");
   });
 
-  test("a handoff carrying an alert leads with the same number as the alert's card", () => {
-    const alert = {
-      id: "a1", at: "2026-09-22T01:00:00.000Z", severity: "P1" as const, metric: "sell_out_volume" as const, dims: { region: "northeast" },
-      window: { from: "2026-09-01", to: "2026-09-22" }, observed: 100, expected: 140, zScore: -3.1, direction: "down" as const,
-      hypothesis: "สต๊อกค้างที่เอเย่นต์", verifySteps: [{ text: "ตรวจยอดขายออกจากร้าน", metrics: ["sell_out_volume"] }, { text: "ตรวจสต๊อกที่เอเย่นต์", metrics: ["days_of_cover"] }] as [VerifyStep, VerifyStep],
-      ownerUserId: RSM, status: "open" as const, dismissCount: 0,
-    };
-    const row = alertRowOf(alert, GENERATOR_DICTIONARY);
-    const cards = [
-      alertCard({ alert, row, owner: null, note: null, actions: [] }),
-      packetCard({ id: "p1", title: "ยอดอีสานต่ำกว่าเป้า", ask: "ช่วยตรวจเอเย่นต์ที่ยอดตก", fromName: "คุณอนุชา", urgency: "high", carried: alert }, row),
-      itemCard({
-        key: "person:e1:cert", source: "person", kind: "person:cert", story: null, rank: 700, tone: "danger", label: "คุณแดง ศักดิ์ดี",
-        reason: "ใบขับขี่รถยก 8 วัน", detail: "พนักงานขับรถยก", prompt: "ขอดูโปรไฟล์คุณแดง", alertId: null, packetId: null, canFinish: true, actions: [], because: null,
-      }),
-    ];
-    expect(cards[1]?.headline?.value).toBe(cards[0]?.headline?.value);
-  });
-
   test("a matter that is not an alert leads with its reason and names its kind", () => {
     const card = itemCard({
       key: "campaign:c1", source: "campaign", kind: "campaign", story: null, rank: 600, tone: "warning", label: "โซดาซัมเมอร์",
-      reason: "+12%", detail: "ต่ำกว่าเป้า 35%", prompt: "ผลแคมเปญ", alertId: null, packetId: null, canFinish: true, actions: [], because: null,
+      reason: "+12%", detail: "ต่ำกว่าเป้า 35%", prompt: "ผลแคมเปญ", alertId: null, canFinish: true, actions: [], because: null,
     });
     expect(card.headline?.value).toBe("+12%");
     expect(card.eyebrow).toBe(`${TH.severity.P2} · ${TH.feed.sources.campaign}`);

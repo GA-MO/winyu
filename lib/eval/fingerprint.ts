@@ -9,8 +9,8 @@ import { toolsForAccess } from "@/lib/server/agent/tools";
 const HASH_CHARS = 16;
 const ANY_DAY = "2000-01-01";
 
-/** Context that changes with what people did (memory, a repeated question, a preloaded packet or story), not with the code: left out so a recording goes stale only when the prompt itself changes. The date lines stay in: they are written for a fixed day here, so a change to how they read periods marks the recordings stale. */
-const VOLATILE_KINDS: ReadonlySet<ContextKind> = new Set(["memory", "suggestion", "packet", "story"]);
+/** Context that changes with what people did (memory, a repeated question, a matter or story the thread was opened from), not with the code: left out so a recording goes stale only when the prompt itself changes. The date lines stay in: they are written for a fixed day here, so a change to how they read periods marks the recordings stale. */
+const VOLATILE_KINDS: ReadonlySet<ContextKind> = new Set(["memory", "suggestion", "matter", "story"]);
 
 function hashOf(value: unknown): string {
   return createHash("sha256").update(JSON.stringify(value)).digest("hex").slice(0, HASH_CHARS);

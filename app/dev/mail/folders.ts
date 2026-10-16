@@ -3,7 +3,7 @@ import type { OutboxEntry } from "@/lib/contracts";
 /** The two folders of the demo mail client. */
 export type MailFolder = "inbox" | "sent";
 
-const PERSON_SENT: Readonly<Record<OutboxEntry["kind"], boolean>> = { handoff: true, email: true, share: true, watch: false, digest: false };
+const PERSON_SENT: Readonly<Record<OutboxEntry["kind"], boolean>> = { email: true, share: true, watch: false, digest: false };
 
 function newestFirst(left: OutboxEntry, right: OutboxEntry): number {
   return right.at.localeCompare(left.at);

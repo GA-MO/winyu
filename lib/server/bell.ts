@@ -1,10 +1,10 @@
-import type { ContextPacket, GrantRequest, Notification } from "@/lib/contracts";
+import type { GrantRequest, Notification } from "@/lib/contracts";
 import { findUser } from "@/lib/data/entities/users";
-import { TH } from "@/lib/i18n/th";
 import { bucketOf, type BellDecision, type BellItem, type BellPayload, type BellPerson } from "@/components/notifications/items";
 import { sliceLabel } from "@/lib/share/grant-label";
 import { notificationTarget, notificationTitle } from "@/lib/share/notification-kinds";
-import { newHandoffsFor, pendingRequestsFor } from "@/lib/server/inbox";
+import { pendingRequestsFor } from "@/lib/server/inbox";
+import { pendingStaffRequestsFor, type StaffRequest } from "@/lib/server/staff-requests";
 import { notificationsOf } from "@/lib/server/notify";
 import { mattersWaitingOn } from "@/lib/server/share/shares";
 import { holdingHop, type Matter } from "@/lib/share/matter";
@@ -33,21 +33,12 @@ function requestItem(request: GrantRequest, told: Map<string, Notification>): Be
   return { key, kind: "grant_request", refId: request.id, title, person, at: request.createdAt, read: note?.read ?? false, target: notificationTarget({ kind: "grant_request", refId: request.id }), notificationId: note?.id ?? null };
 }
 
-function handoffItem(packet: ContextPacket, told: Map<string, Notification>): BellDecision {
-  const key = decisionKey("handoff", packet.id);
-  const person = personOf(packet.fromUserId);
+function staffItem(request: StaffRequest, told: Map<string, Notification>): BellDecision {
+  const key = decisionKey("staff_request", request.id);
+  const person = personOf(request.employeeId);
   const note = told.get(key);
-  return {
-    key,
-    kind: "handoff",
-    refId: packet.id,
-    title: TH.handoff.newFrom(person?.name ?? packet.fromUserId, packet.title),
-    person,
-    at: packet.createdAt,
-    read: note?.read ?? false,
-    target: notificationTarget({ kind: "handoff", refId: packet.id }),
-    notificationId: note?.id ?? null,
-  };
+  const title = notificationTitle({ kind: "staff_request", refId: request.id, requesterName: person?.name ?? request.employeeId, title: request.title });
+  return { key, kind: "staff_request", refId: request.id, title, person, at: request.createdAt, read: note?.read ?? false, target: notificationTarget({ kind: "staff_request", refId: request.id }), notificationId: note?.id ?? null };
 }
 
 function matterItem(matter: Matter, userId: string, told: Map<string, Notification>): BellDecision {
@@ -67,7 +58,7 @@ function updateItem(note: Notification): BellItem {
 /** The decisions waiting on the person, built from the open records the bell counts, each read when its notification was. */
 export function decisionsFor(userId: string, notes: readonly Notification[] = notificationsOf(userId)): BellDecision[] {
   const told = new Map(notes.filter((note) => bucketOf(note.kind) === "decide").map((note) => [`${note.kind}:${note.refId}`, note]));
-  const items = [...pendingRequestsFor(userId).map((request) => requestItem(request, told)), ...newHandoffsFor(userId).map((packet) => handoffItem(packet, told)), ...mattersWaitingOn(userId).map((matter) => matterItem(matter, userId, told))];
+  const items = [...pendingRequestsFor(userId).map((request) => requestItem(request, told)), ...pendingStaffRequestsFor(userId).map((request) => staffItem(request, told)), ...mattersWaitingOn(userId).map((matter) => matterItem(matter, userId, told))];
   return items.sort((left, right) => right.at.localeCompare(left.at));
 }
 

@@ -4,6 +4,7 @@ import { recordMatterEvent } from "@/lib/server/audit";
 import { notify } from "@/lib/server/notify";
 import { holdingHop, type Matter } from "@/lib/share/matter";
 import { allowedActions, transition, type MatterAction, type MatterBrief, type MatterRefusal, type Telling } from "@/lib/share/matter-actions";
+import { recordOutcome } from "@/lib/server/outcomes";
 import { mayOpen, shares } from "./shares";
 import { cardOwner, suggestionsFor } from "./suggest";
 
@@ -45,6 +46,7 @@ export function actOnMatter(actor: User, code: string, press: MatterPress, at = 
   const stored = shares().put(result.matter);
   recordMatterEvent({ userId: actor.id, code, action: press.kind, toUserId: stored.thread.at(-1)?.toUserId ?? null, refusal: null });
   for (const telling of result.tell) tell(telling, stored, actor, at);
+  if (press.kind === "done" && press.verdict && press.outcome && stored.alertIds.length > 0) recordOutcome(stored.alertIds, actor.id, press.verdict, press.outcome, at);
   return { ok: true, matter: stored };
 }
 
@@ -61,5 +63,6 @@ export function briefOf(matter: Matter, viewerId: string): MatterBrief {
     at: hop?.at ?? matter.at,
     actions: allowedActions(matter, viewerId),
     suggested: suggestionsFor(matter.card, viewerId),
+    judges: matter.alertIds.length > 0,
   };
 }

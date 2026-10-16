@@ -3,6 +3,7 @@ import { handoffEnabled } from "@/lib/access/enforce";
 import { findUser } from "@/lib/data/entities/users";
 import { TH } from "@/lib/i18n/th";
 import { MATTER_ASK_MAX } from "@/lib/share/card";
+import { VERDICTS } from "@/lib/share/matter";
 import { actOnMatter, briefOf, type MatterOutcome } from "@/lib/server/share/act";
 import { badRequest, readBody, requireAccess, unauthenticated } from "../../_guard";
 
@@ -17,7 +18,7 @@ const pressSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("reply"), text: line }),
   z.object({ kind: z.literal("pass_on"), toUserId: z.string().min(1) }),
   z.object({ kind: z.literal("not_mine") }),
-  z.object({ kind: z.literal("done") }),
+  z.object({ kind: z.literal("done"), verdict: z.enum(VERDICTS).optional(), outcome: line.optional() }),
 ]);
 
 const REFUSAL_STATUS: Record<Refusal, number> = { not_found: 404, not_allowed: 403, closed: 409, fyi: 422, bad_target: 422 };

@@ -9,7 +9,7 @@ export type PersonalKind = "national_id" | "phone" | "email" | "bank_account";
 export type InjectionKind = "override" | "persona" | "prompt_leak" | "bypass" | "role_marker";
 
 /** Where a guarded piece of text came from: typed by the person, written by the model, or untrusted data re-entering the prompt. */
-export type GuardSource = "user_input" | "model_output" | "tool_result" | "memory" | "packet" | "handoff_reply";
+export type GuardSource = "user_input" | "model_output" | "tool_result" | "memory" | "matter";
 
 export type GuardCheck = "personal_data" | "injection";
 

@@ -9,10 +9,10 @@ import { actionHref, chatHref } from "@/components/landing/chat-entry";
 import { postFeedAction, type FeedSettle } from "@/components/feed/feed-list";
 import { DEFAULT_GRANT_DAYS, GRANT_DAYS, type FeedItem, type FeedTone, type GrantDays } from "@/lib/contracts";
 import { TH } from "@/lib/i18n/th";
-import { dueTimeTh, relativeTimeTh } from "@/lib/i18n/format";
+import { relativeTimeTh } from "@/lib/i18n/format";
 import { Actions, Bars, CheckInChat, Figure, InboxRow, Primary, Quiet, Reason, Segments, type MenuItem } from "./row";
-import { foldAlerts, handoffActions, type Severity } from "./rows";
-import type { AlertItem, GrantRequestItem, HandoffItem, InboxPayload, ReplyItem, TodoItem } from "./types";
+import { foldAlerts, type Severity } from "./rows";
+import type { AlertItem, GrantRequestItem, InboxPayload, StaffRequestItem, TodoItem } from "./types";
 import { MatterActions } from "@/components/matter/matter-actions";
 import { matterFrom, type MatterBrief } from "@/lib/share/matter-actions";
 
@@ -23,17 +23,15 @@ const GRANT_PAGE = "/g/";
 const MATTER_PAGE = "/s/";
 const PANEL = "fixed right-0 top-0 z-50 flex h-dvh w-full max-w-[26rem] flex-col border-l border-border bg-card shadow-panel animate-panel-in";
 const SEVERITY_DOT: Record<Severity, string> = { P1: "bg-danger", P2: "bg-warning", P3: "bg-info" };
-const URGENCY_DOT: Record<HandoffItem["urgency"], string> = { high: "bg-danger", medium: "bg-warning", low: "bg-muted-foreground/50" };
 const TONE_DOT: Record<FeedTone, string> = { danger: "bg-danger", warning: "bg-warning", info: "bg-info", brand: "bg-primary", success: "bg-success", neutral: "bg-muted-foreground/50" };
 const TONE_TEXT: Record<FeedTone, string> = { danger: "text-danger", warning: "text-warning", info: "text-info", brand: "text-primary", success: "text-success", neutral: "text-muted-foreground" };
-const FOLDS = ["alerts", "replies"] as const;
+const FOLDS = ["alerts"] as const;
 
 type Fold = (typeof FOLDS)[number];
-type PacketAction = "accept" | "need_info" | "return" | "resolve";
 type AlertAction = "open" | "mute" | "dismiss";
-type Verdict = "real" | "noise";
+type StaffDecision = "approve" | "decline";
 
-/** Which fold a `?inbox=alerts` or `?inbox=replies` link opens the drawer on; any other `?inbox` opens it as it is. */
+/** Which fold a `?inbox=alerts` link opens the drawer on; any other `?inbox` opens it as it is. */
 export type InboxFocus = Fold | null;
 
 export function focusFromParams(params: URLSearchParams): InboxFocus {
@@ -94,17 +92,11 @@ export function InboxDrawer({ open, onClose, focus = null, onChanged }: { open: 
     [settled],
   );
 
-  const actOnPacket = useCallback(
-    (packetId: string, action: PacketAction, outcome?: string, verdict?: Verdict) =>
+  const decideStaff = useCallback(
+    (requestId: string, decision: StaffDecision) =>
       run(async () => {
-        const response = await fetch(`${INBOX_ENDPOINT}/${packetId}`, {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ action, outcome: outcome ?? null, verdict: verdict ?? null }),
-        });
-        if (response.ok) return null;
-        const payload = (await response.json().catch(() => null)) as { error?: string } | null;
-        return payload?.error ?? TH.handoff.closeNeedsOutcome;
+        const response = await fetch(`${INBOX_ENDPOINT}/${encodeURIComponent(requestId)}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ decision }) });
+        return response.ok ? null : TH.inbox.failed;
       }),
     [run],
   );
@@ -158,7 +150,7 @@ export function InboxDrawer({ open, onClose, focus = null, onChanged }: { open: 
   const toggle = (key: string) => setOpened((current) => (current === key ? null : key));
   const rowProps = (key: string) => ({ open: opened === key, onToggle: () => toggle(key) });
   const fold = data ? foldAlerts(data.alerts) : null;
-  const nothing = data !== null && data.grantRequests.length + data.matters.length + data.handoffs.length + data.todo.length + data.alerts.length === 0;
+  const nothing = data !== null && data.grantRequests.length + data.staffRequests.length + data.matters.length + data.todo.length + data.alerts.length === 0;
 
   return (
     <>
@@ -192,26 +184,18 @@ export function InboxDrawer({ open, onClose, focus = null, onChanged }: { open: 
             </Section>
           ) : null}
 
-          {data && data.matters.length > 0 ? (
-            <Section title={TH.inbox.sections.matters} count={data.matters.length}>
-              {data.matters.map((brief) => (
-                <MatterRow key={brief.code} brief={brief} {...rowProps(`matter:${brief.code}`)} onActed={() => void settled()} onOpenPage={() => go(`${MATTER_PAGE}${brief.code}`)} />
+          {data && data.staffRequests.length > 0 ? (
+            <Section title={TH.inbox.sections.staff} count={data.staffRequests.length}>
+              {data.staffRequests.map((item) => (
+                <StaffRow key={item.id} item={item} {...rowProps(`staff:${item.id}`)} busy={busy} onDecide={decideStaff} />
               ))}
             </Section>
           ) : null}
 
-          {data && data.handoffs.length > 0 ? (
-            <Section title={TH.inbox.sections.handoffs} count={data.handoffs.length}>
-              {data.handoffs.map((item) => (
-                <HandoffRow
-                  key={item.id}
-                  item={item}
-                  {...rowProps(`handoff:${item.id}`)}
-                  busy={busy}
-                  onAct={actOnPacket}
-                  onChat={() => go(chatHref({ preload: item.id }))}
-                  onAsk={(prompt) => go(chatHref({ prompt }))}
-                />
+          {data && data.matters.length > 0 ? (
+            <Section title={TH.inbox.sections.matters} count={data.matters.length}>
+              {data.matters.map((brief) => (
+                <MatterRow key={brief.code} brief={brief} {...rowProps(`matter:${brief.code}`)} onActed={() => void settled()} onOpenPage={() => go(`${MATTER_PAGE}${brief.code}`)} />
               ))}
             </Section>
           ) : null}
@@ -225,7 +209,7 @@ export function InboxDrawer({ open, onClose, focus = null, onChanged }: { open: 
                   {...rowProps(`todo:${row.item.key}`)}
                   onChat={() => {
                     postFeedAction(row.item.key, "open");
-                    go(chatHref(row.item.packetId ? { preload: row.item.packetId } : { prompt: row.item.prompt }));
+                    go(chatHref({ prompt: row.item.prompt }));
                   }}
                   onRun={(href) => go(href)}
                   onSettle={settleTodo}
@@ -244,19 +228,12 @@ export function InboxDrawer({ open, onClose, focus = null, onChanged }: { open: 
             </Section>
           ) : null}
 
-          {data && (data.goodNews.length > 0 || data.replies.length > 0) ? (
+          {data && data.goodNews.length > 0 ? (
             <ul className="mt-4 border-t border-border">
               {data.goodNews.length > 0 ? (
                 <FoldLine label={TH.inbox.goodNews(data.goodNews.length)} dots={[{ key: "good", className: "bg-success", count: null }]} initiallyOpen={false}>
                   {data.goodNews.map((item) => (
                     <GoodNewsRow key={item.key} item={item} {...rowProps(`good:${item.key}`)} onChat={() => go(chatHref({ prompt: item.prompt }))} />
-                  ))}
-                </FoldLine>
-              ) : null}
-              {data.replies.length > 0 ? (
-                <FoldLine label={TH.inbox.replies(data.replies.length)} dots={[]} initiallyOpen={focus === "replies"}>
-                  {data.replies.map((item) => (
-                    <ReplyLine key={item.id} item={item} />
                   ))}
                 </FoldLine>
               ) : null}
@@ -345,70 +322,20 @@ function MatterRow({ brief, open, onToggle, onActed, onOpenPage }: RowState & { 
   );
 }
 
-function handoffContext(item: HandoffItem): string {
-  const parts = [TH.inbox.from(shortName(item.fromName))];
-  if (item.status !== "open") parts.push(TH.inbox.status[item.status]);
-  if (item.sla) parts.push(TH.inbox.due(dueTimeTh(item.sla)));
-  return parts.join(" · ");
-}
-
-function HandoffRow({ item, open, onToggle, busy, onAct, onChat, onAsk }: RowState & {
-  item: HandoffItem;
-  busy: boolean;
-  onAct: (id: string, action: PacketAction, outcome?: string, verdict?: Verdict) => void;
-  onChat: () => void;
-  onAsk: (prompt: string) => void;
-}) {
-  const [outcome, setOutcome] = useState("");
-  const [verdict, setVerdict] = useState<Verdict>("real");
-  const actions = handoffActions(item.status, item.alertCount);
-  const evidenceAsk = item.evidence.find((line) => line.requestPrompt)?.requestPrompt ?? null;
-  const menu: MenuItem[] = [
-    ...actions.menu.map((action) => ({ label: action === "need_info" ? TH.inbox.needInfo : TH.inbox.reject, onSelect: () => onAct(item.id, action) })),
-    ...(evidenceAsk ? [{ label: TH.inbox.requestAccess, onSelect: () => onAsk(evidenceAsk) }] : []),
-  ];
-  const latestReply = item.replies[item.replies.length - 1] ?? null;
+function StaffRow({ item, open, onToggle, busy, onDecide }: RowState & { item: StaffRequestItem; busy: boolean; onDecide: (id: string, decision: StaffDecision) => void }) {
   return (
-    <InboxRow
-      open={open}
-      onToggle={onToggle}
-      dot={URGENCY_DOT[item.urgency]}
-      label={TH.inbox.urgency[item.urgency]}
-      title={item.title}
-      context={handoffContext(item)}
-      figure={<Figure movement={item.movement} />}
-    >
+    <InboxRow open={open} onToggle={onToggle} dot="bg-primary" title={item.title} context={TH.inbox.from(shortName(item.requesterName))} figure={<span className="text-[11px] text-muted-foreground">{relativeTimeTh(item.at)}</span>}>
       <p className="line-clamp-2 text-[13px] leading-relaxed text-foreground/80">{item.ask}</p>
-      <Bars movement={item.movement} period={item.window} />
-      {latestReply ? (
-        <p className="truncate text-xs text-muted-foreground">
-          {latestReply.name}: {latestReply.text}
-        </p>
-      ) : null}
-      {actions.primary === "close" ? (
-        <>
-          <input
-            value={outcome}
-            onChange={(event) => setOutcome(event.target.value)}
-            placeholder={TH.handoff.outcomePlaceholder}
-            aria-label={TH.handoff.outcomePlaceholder}
-            className="min-h-9 w-full rounded-full bg-card px-3.5 text-xs outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-ring"
-          />
-          {actions.verdict ? <Segments label={TH.inbox.verdict} options={["real", "noise"] as const} value={verdict} onChange={setVerdict} render={(value) => (value === "real" ? TH.inbox.real : TH.inbox.noise)} /> : null}
-        </>
-      ) : null}
-      <Actions menu={menu}>
-        {actions.primary === "accept" ? (
-          <Primary onClick={() => onAct(item.id, "accept")} disabled={busy}>
-            {TH.inbox.accept}
-          </Primary>
-        ) : null}
-        {actions.primary === "close" ? (
-          <Primary onClick={() => onAct(item.id, "resolve", outcome, actions.verdict ? verdict : undefined)} disabled={busy || outcome.trim() === ""}>
-            {TH.handoff.close}
-          </Primary>
-        ) : null}
-        <CheckInChat onClick={onChat} />
+      <p className="text-[11px] text-muted-foreground">
+        {item.requesterName} · {item.requesterRole}
+      </p>
+      <Actions menu={[]}>
+        <Primary onClick={() => onDecide(item.id, "approve")} disabled={busy}>
+          {TH.inbox.approve}
+        </Primary>
+        <Quiet onClick={() => onDecide(item.id, "decline")} disabled={busy}>
+          {TH.inbox.decline}
+        </Quiet>
       </Actions>
     </InboxRow>
   );
@@ -475,9 +402,9 @@ function AlertRow({ item, open, onToggle, onAct, onAsk }: RowState & { item: Ale
       <Bars movement={item.movement} period={item.window} />
       {item.lesson ? <p className="text-xs text-muted-foreground">{item.lesson}</p> : null}
       <Actions menu={menu}>
-        {item.handoffPrompt && owner ? (
+        {item.sendPrompt && owner ? (
           <>
-            <Primary onClick={() => ask(item.handoffPrompt as string)}>{TH.feed.sendTo(owner)}</Primary>
+            <Primary onClick={() => ask(item.sendPrompt as string)}>{TH.feed.sendTo(owner)}</Primary>
             {check ? <CheckInChat onClick={() => ask(check)} /> : null}
           </>
         ) : check ? (
@@ -498,14 +425,3 @@ function GoodNewsRow({ item, open, onToggle, onChat }: RowState & { item: FeedIt
   );
 }
 
-function ReplyLine({ item }: { item: ReplyItem }) {
-  return (
-    <li className="flex flex-col gap-0.5 px-4 py-2.5">
-      <span className="truncate text-sm font-medium">{item.title}</span>
-      <span className="truncate text-xs text-muted-foreground">
-        {item.toName} · {item.status} · {relativeTimeTh(item.at)}
-      </span>
-      <span className="line-clamp-2 text-[13px] text-foreground/80">{item.text}</span>
-    </li>
-  );
-}

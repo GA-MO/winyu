@@ -1,5 +1,5 @@
 import type { Region } from "./identity";
-import type { OutboxEntry } from "./handoff";
+import type { OutboxEntry } from "./notifications";
 
 export type Gender = "female" | "male";
 export type CareerEventKind = "hired" | "promoted" | "moved" | "trained" | "award";
