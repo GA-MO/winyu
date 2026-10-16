@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { accessFor } from "@/lib/access/policies";
 import { METRIC_IDS, type MetricId, type MetricResult } from "@/lib/contracts";
-import { TODAY } from "@/lib/data/dates";
+import { DATA_AS_OF, monthStart } from "@/lib/data/dates";
 import { findUser } from "@/lib/data/entities/users";
 import { runWithAccess } from "@/lib/server/request-context";
 import { METRICS, TARGET_METRICS } from "@/lib/semantic/metrics";
@@ -17,7 +17,7 @@ describe("query_metric for a running month against target", () => {
   test("carries attainment against the whole month's target and what is left to reach it, in the result and the summary", async () => {
     const user = findUser("u_krit");
     if (!user) throw new Error("no sales rep");
-    const query = { metric: "net_sales_volume", dims: [], filters: {}, range: { from: `${TODAY.slice(0, 8)}01`, to: TODAY }, grain: "month", compare: "target", limit: null };
+    const query = { metric: "net_sales_volume", dims: [], filters: {}, range: { from: monthStart(DATA_AS_OF), to: DATA_AS_OF }, grain: "month", compare: "target", limit: null };
     const tool = winyuTools().query_metric;
     const result = (await runWithAccess(accessFor(user), () => tool.execute(tool.inputSchema().parse(query)))) as Extract<MetricResult, { ok: true }>;
     const projection = result.headline.projection;
