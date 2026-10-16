@@ -1438,6 +1438,7 @@ export const TH = {
     starter: (role: string) => `ชุดตั้งต้นสำหรับ${role}`,
     myAgentsPrompt: (agents: string[]) => `สรุปยอดเดือนนี้ของเอเย่นต์ที่ผมดูแล ${agents.length} ราย: ${agents.join(", ")}`,
     ownAgentsApplied: (count: number) => `คำถามพูดถึงของผู้ถามเอง จึงกรองเฉพาะเอเย่นต์ที่ผู้ถามดูแล ${count} ราย`,
+    wholeCompanyOutOfScope: (seen: string) => `ยอดรวมทั้งบริษัทอยู่นอกขอบเขตของคุณ คุณเห็นได้เฉพาะ ${seen} จึงไม่แสดงตัวเลขของ ${seen} แทนยอดทั้งบริษัท`,
     lent: "เตรียมสต๊อกออกพรรษา",
     lentReason: "ใกล้ออกพรรษา ยอดเบียร์จะกลับมา",
   },

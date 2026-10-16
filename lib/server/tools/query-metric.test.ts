@@ -158,7 +158,7 @@ describe("a rep asking about their own book", () => {
     expect(refused.code).toBe("PERMISSION_DENIED");
     expect(refused.error).toContain("ภาคอีสาน");
     expect(refused.nextActions?.some((action) => action.kind === "request_access")).toBe(true);
-    expect((await ask("u_anucha", "ยอดขายทั้งประเทศเดือนนี้", COMPANY)).ok).toBe(false);
+    expect((await ask("u_anucha", "ยอดขายทั้งประเทศเดือนนี้", COMPANY)).ok as boolean).toBe(false);
     expect((await ask("u_thana", "งั้นขอแค่ยอดรวมทั้งบริษัททุกภาคก็พอ ตัวเดียว", COMPANY)).ok).toBe(true);
     const own = await ask("u_krit", "ยอดขายเดือนนี้เท่าไร", COMPANY);
     expect(own.ok).toBe(true);

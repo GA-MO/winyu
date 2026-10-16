@@ -1,5 +1,6 @@
 import { metricAccess } from "@/lib/access/grants";
-import { metricQueryInputSchema, type AccessContext, type Dim, type MetricId, type MetricQueryInput } from "@/lib/contracts";
+import { outOfScopeFilters, type OutOfScope } from "@/lib/access/enforce";
+import { REGIONS, metricQueryInputSchema, type AccessContext, type Dim, type MetricId, type MetricQueryInput } from "@/lib/contracts";
 import { ownAgentsFilter } from "@/lib/data/entities/agents";
 import { TH } from "@/lib/i18n/th";
 import { METRICS, TARGET_METRICS } from "@/lib/semantic/metrics";
@@ -18,6 +19,8 @@ import { metricAnswerHolds } from "./verify";
 const FIRST_PERSON = /ผม|ดิฉัน|ฉัน|หนู/;
 const WIDER_THAN_OWN = /ทั้งภาค|ทุกเอเย่นต์|ทั้งหมด|ทั้งบริษัท|ทั้งประเทศ|ภาค[ก-๙]|จังหวัด/;
 const NAMED_PLACE_DIMS = ["agent", "province"] as const;
+const WHOLE_COMPANY = /ทั้งบริษัท|ทั้งประเทศ|ทั่วประเทศ|ทุกภาค|ภาพรวมบริษัท/;
+const PLACE_DIMS = ["region", "province", "agent", "dc"] as const;
 const MIN_NAME_LENGTH = 3;
 const SPACES = /\s+/g;
 
@@ -44,6 +47,19 @@ export function ownBookQuery(input: MetricQueryInput, access: AccessContext, que
   if (!own) return null;
   const { agent: _agent, province: _province, ...others } = input.filters ?? {};
   return { input: { ...input, filters: { ...others, agent: own } }, agents: own.length };
+}
+
+/** A question about the whole company ("ยอดรวมทั้งบริษัท", "ทุกภาค") whose query names no place: what it needs beyond the asker's scope, which the gateway would otherwise narrow away in silence and draw as their own region's number. Empty when the scope covers it or the question does not ask it. */
+export function wholeCompanyBeyondScope(query: MetricQueryInput, access: AccessContext, question: string | null): OutOfScope[] {
+  if (!question || !WHOLE_COMPANY.test(question)) return [];
+  if (!METRICS[query.metric]?.dims.includes("region")) return [];
+  if (PLACE_DIMS.some((dim) => (query.filters?.[dim]?.length ?? 0) > 0)) return [];
+  return outOfScopeFilters(access, { region: [...REGIONS] });
+}
+
+function wholeCompanyRefusal(beyond: readonly OutOfScope[], dictionary: Dictionary) {
+  const seen = beyond.flatMap((denial) => denial.allowed.map((id) => dictionary.displayLabel(denial.dim, id)));
+  return { ok: false as const, code: "PERMISSION_DENIED" as const, error: TH.quick.wholeCompanyOutOfScope(seen.join(", ")) };
 }
 
 const DESCRIPTION =
@@ -73,6 +89,8 @@ export const queryMetricTool = defineTool({
     const resolved = resolveQuery(input);
     if (!resolved.ok) return resolved;
     const { access, grant } = metricAccess(currentAccess(), resolved.query.metric, new Date());
+    const beyond = wholeCompanyBeyondScope(resolved.query, access, currentTurn().question);
+    if (beyond.length > 0) return { ...wholeCompanyRefusal(beyond, dictionary), nextActions: actionsForRefusal(access, resolved.query) };
     const result = await runMetric(resolved.query, access);
     if (!result.ok) return result.code === "PERMISSION_DENIED" ? { ...result, nextActions: actionsForRefusal(access, resolved.query) } : result;
     recordQuery(askedQuery(result.query));
