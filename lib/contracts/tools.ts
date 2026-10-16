@@ -37,7 +37,12 @@ const metricScope = { metric: metricIdSchema, dims: z.partialRecord(dimSchema, z
 
 export const listMetricsInputSchema = z.object({ search: z.string().nullable() });
 export const describeEntityInputSchema = z.object({ kind: z.enum(ENTITY_KINDS), query: z.string().min(1) });
-export const getAlertsInputSchema = z.object({ status: z.enum(["open", "all"]), limit: z.number().int().min(1).max(MAX_ALERTS).nullable() });
+export const getAlertsInputSchema = z.object({
+  status: z.enum(["open", "all"]),
+  limit: z.number().int().min(1).max(MAX_ALERTS).nullable(),
+  metric: metricIdSchema.nullable().optional(),
+  dims: z.partialRecord(dimSchema, z.string()).nullable().optional(),
+});
 export const getForecastInputSchema = z.object({ ...metricScope, weeks: z.number().int().min(1).max(MAX_FORECAST_WEEKS) });
 export const explainGapInputSchema = z.object({
   metric: metricIdSchema,
