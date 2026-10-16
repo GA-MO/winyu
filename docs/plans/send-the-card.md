@@ -10,7 +10,7 @@ The share has the right card and the handoff has the right workflow. This plan m
 Delivery stays inside Winyu. The sheet stops offering email, Teams, and LINE. The demo runs on four Winyu windows, and a second app would make it harder to follow. The channel code stays where it is for later.
 
 ## สถานะ (2026-10-16)
-ผู้ใช้รับทั้ง 4 ข้อตามที่แนะนำ (2026-10-16) phase 1 กับ phase 5 เสร็จและตรวจใน browser แล้ว: ส่งจากชีต 0.3 วินาที กระดิ่งผู้จัดการภาคขยับเองภายใน 12 วินาที กำลังทำ phase 2
+ผู้ใช้รับทั้ง 4 ข้อตามที่แนะนำ (2026-10-16) phase 1 กับ phase 5 เสร็จและตรวจใน browser แล้ว: ส่งจากชีต 0.3 วินาที กระดิ่งผู้จัดการภาคขยับเองภายใน 12 วินาที phase 2 เสร็จและตรวจแล้ว (2026-10-16, HTTP ด้วย session จริง: ผู้จัดการภาคเห็นอีสานและอีก 5 ภาค "ซ่อน · ขอดู", ส่งต่อให้คุณกฤต, คุณกฤตรับ, หน้าของ CEO แสดงเส้นทางครบ, คนนอกเส้นทางได้ 404) เหลือ phase 3 กับ 4 ซึ่งอยู่ใน wave 3 ของ fix-root-causes.md
 
 ## What a user needs from sending work
 
@@ -82,7 +82,7 @@ Each phase ends with `bun run typecheck`, `bun run test`, and a walk through the
 - [x] Show `act` matters in the bell and Inbox as small cards with the ask and the three actions.
 - [x] **ไม่ใช่ของผม** passes the matter to the `responsibleFor` owner. If the owner is the holder, it asks the sender instead.
 - [x] Turn `/s/[code]` into the matter page: the card, the path, the thread, and the holder's actions.
-- [ ] Check: the CEO sends an all-region sales card to the RSM. The RSM sees the northeast row and locked rows for the other regions. The RSM passes the matter to the Khon Kaen sales rep. The rep taps **รับ**. The CEO's matter page shows CEO, RSM (passed on), and sales rep (accepted).
+- [x] Check: the CEO sends an all-region sales card to the RSM. The RSM sees the northeast row and locked rows for the other regions. The RSM passes the matter to the Khon Kaen sales rep. The rep taps **รับ**. The CEO's matter page shows CEO, RSM (passed on), and sales rep (accepted).
 
 ### Phase 3. One tool for chat, and the handoff goes away
 
