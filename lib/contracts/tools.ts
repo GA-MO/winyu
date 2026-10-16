@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { REGIONS, ROLE_IDS, type RoleId } from "./identity";
+import type { MemoryFactType } from "./memory";
 import { widgetKindSchema } from "./dashboard";
 import { urgencySchema } from "./handoff";
 import { CANDIDATE_STAGES, LEAVE_KINDS } from "./records";
@@ -7,7 +8,7 @@ import { dimFiltersSchema, dimSchema, metricIdSchema, metricQuerySchema } from "
 
 export type ToolTier = "read" | "write" | "destructive";
 /** Every tool Winyu defines in code; a connector may not open a remote tool by one of these names. */
-export const NATIVE_TOOL_NAMES = ["query_metric", "list_metrics", "describe_entity", "get_alerts", "get_forecast", "get_calendar", "recall_memory",
+export const NATIVE_TOOL_NAMES = ["query_metric", "list_metrics", "describe_entity", "get_alerts", "get_forecast", "get_calendar", "recall_memory", "remember", "forget",
   "find_people", "get_person", "get_site", "list_candidates", "list_courses", "get_policy", "request_leave", "enroll_course",
   "resolve_owner", "create_handoff", "send_email", "pin_widget", "watch_metric", "run_job", "set_permission", "explain_gap",
   "ask_logistics_partner", "share_card", "training_history", "store_visits"] as const;
@@ -77,6 +78,15 @@ export const requestLeaveInputSchema = z.object({
 });
 export const enrollCourseInputSchema = z.object({ courseId: z.string().min(1) });
 export const recallMemoryInputSchema = z.object({ query: z.string().min(1) });
+/** What a person can ask Winyu to remember about them in chat. */
+export const REMEMBERED_TYPES = ["style", "preference", "vocabulary", "interest", "responsibility"] as const satisfies readonly MemoryFactType[];
+export const MEMORY_VALUE_MAX = 80;
+export const rememberInputSchema = z.object({
+  type: z.enum(REMEMBERED_TYPES),
+  value: z.string().min(3).max(MEMORY_VALUE_MAX),
+  until: z.string().regex(ISO_DATE).nullable(),
+});
+export const forgetInputSchema = z.object({ about: z.string().min(2).max(MEMORY_VALUE_MAX) });
 export const resolveOwnerInputSchema = z.object(metricScope);
 export const createHandoffInputSchema = z.object({
   toUserId: z.string().min(1),

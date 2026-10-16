@@ -28,6 +28,7 @@ const STOP_PREFIX = `${BASE_PATH}/agent/${AGENT_ID}/stop/`;
 const NOT_YOUR_THREAD = { error: "ไม่พบบทสนทนานี้" };
 const NOT_SERVED = { error: "Not found" };
 const QUERY_TOOL = "query_metric";
+const MEMORY_TOOLS: ReadonlySet<string> = new Set(["remember", "forget"]);
 
 type Route = { kind: "info" } | { kind: "run" } | { kind: "connect" } | { kind: "stop"; threadId: string };
 
@@ -98,9 +99,18 @@ function lastDecision(run: Run): { stepId: string; finishReason: string } {
   return decision?.type === "agent.decided" ? decision.payload : { stepId: `${run.id}:${run.steps}`, finishReason: "none" };
 }
 
+/** Whether the person asked this turn to remember or forget something (asked, approved, declined or carried out): the tool did what they asked, so the turn itself is neither learned from nor made findable. */
+function changedMemory(run: Run): boolean {
+  return run.events.some((event) => {
+    const payload: Record<string, unknown> = event.payload;
+    return typeof payload.tool === "string" && MEMORY_TOOLS.has(payload.tool);
+  });
+}
+
 function learnFrom(run: Run, turn: ChatTurn, context: TurnContext): void {
   if (!turn.question) return;
-  learnFromTurn({ userId: run.userId, threadId: turn.threadId, turnId: run.id, question: turn.question, queries: context.queries }).catch((error: unknown) => {
+  const finished = { userId: run.userId, threadId: turn.threadId, turnId: run.id, question: turn.question, queries: context.queries, memoryCommand: changedMemory(run) };
+  runWithTurn(context, () => learnFromTurn(finished)).catch((error: unknown) => {
     console.error(`memory extraction after run ${run.id} failed`, error);
   });
 }

@@ -29,12 +29,13 @@ export function recordAction(
   });
 }
 
-/** After a chat turn the agent finished: the thread is touched, the question joins the behaviour log with the slice it queried first, and memory learns from it. */
-export async function finishTurn(userId: string, threadId: string | null, question: string, queries: readonly MetricQuery[]): Promise<MemoryFact[]> {
+/** After a chat turn the agent finished: the thread is touched, the question joins the behaviour log with the slice it queried first, and memory learns from it unless `learn` is off. */
+export async function finishTurn(userId: string, threadId: string | null, question: string, queries: readonly MetricQuery[], { learn }: { learn: boolean } = { learn: true }): Promise<MemoryFact[]> {
   const thread = threadId ? getThread(threadId, userId) : null;
   if (thread) threads().put({ ...thread, updatedAt: new Date().toISOString() });
   const metric = queries[0]?.metric ?? null;
   const dims = queries[0]?.dims ?? [];
   recordAction(userId, "question", intentKeyOf(metric, dims), question, threadId, { metric, dims });
+  if (!learn) return [];
   return rememberTurn(userId, [{ prompt: question, metric, dims }], threadId);
 }

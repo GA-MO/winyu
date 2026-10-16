@@ -1,10 +1,11 @@
 import { inScope, outOfScopeFilters } from "@/lib/access/enforce";
 import { metricAccess } from "@/lib/access/grants";
 import { fieldVisibilityOf, permissionsFor } from "@/lib/access/role-overrides";
-import { DIMS, MAX_ROWS, type AccessContext, type Dim, type MetricId, type MetricQuery, type RoleId } from "@/lib/contracts";
+import { DIMS, MAX_ROWS, type AccessContext, type Dim, type MemoryFactType, type MetricId, type MetricQuery, type RoleId } from "@/lib/contracts";
+import { isBuried, memoryAbout } from "@/lib/engine/memory";
 import type { Verdict, Verifier, VerifyInput } from "@/lib/harness/types";
 import type { Dictionary } from "@/lib/semantic/dictionary";
-import { layouts, outbox, packets } from "@/lib/server/agent/collections";
+import { layouts, memoryFacts, outbox, packets } from "@/lib/server/agent/collections";
 import { loadDictionary } from "@/lib/server/master-data";
 import { ports } from "@/lib/server/ports";
 import { watchesOf } from "@/lib/server/watches";
@@ -147,4 +148,25 @@ export const permissionHolds: Verifier = (verify) => {
   const live = permissionsFor(input.role);
   const now = input.kind === "metric" ? live.metricAcl[input.key as MetricId] : input.kind === "field" ? fieldVisibilityOf(input.role, input.key) : live.toolAllow.some((name) => name === input.key) ? "allow" : "deny";
   return verdictOf([check("permission_applied", now === input.value, `${input.role} ${input.kind} ${input.key} is ${now}, not ${input.value}`)]);
+};
+
+/** A remembered fact holds when it is stored for the caller, confirmed, in the wording they approved, and nothing they rejected still buries it. */
+export const rememberHolds: Verifier = (verify) => {
+  const input = verify.input as { type: MemoryFactType; value: string };
+  const fact = memoryFacts().get(dataOf<{ id: string }>(verify).id ?? "");
+  return verdictOf([
+    check("fact_stored", fact !== null && fact.userId === verify.access.userId, "no fact was stored for the caller"),
+    check("fact_confirmed", fact?.decayAt === null, "the fact is not confirmed"),
+    check("fact_wording", fact?.value === input.value.trim() && fact?.type === input.type, "the stored wording differs from the one approved"),
+    check("fact_not_buried", !isBuried(verify.access.userId, input), "an earlier rejection still buries the fact"),
+  ]);
+};
+
+/** A forget holds when no fact of the caller still names the topic and learning would not bring it back. */
+export const forgetHolds: Verifier = (verify) => {
+  const { about } = verify.input as { about: string };
+  return verdictOf([
+    check("nothing_left", memoryAbout(verify.access.userId, about).length === 0, "a fact about the topic is still stored"),
+    check("topic_buried", isBuried(verify.access.userId, { type: "interest", value: about }), "the topic could be learned again"),
+  ]);
 };

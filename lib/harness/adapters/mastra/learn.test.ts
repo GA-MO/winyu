@@ -66,6 +66,18 @@ describe("learnFromTurn", () => {
     expect(await searchConversations(USER, QUESTION)).toEqual([]);
   });
 
+  test("a turn that told Winyu what to remember or forget learns no fact and is not made findable, because the tool already did what it asked", async () => {
+    const asked = "จำไว้ว่าผมสนใจกำไรขั้นต้นรายภาค";
+    await openThread();
+    await say("user", asked);
+    await say("assistant", "จำไว้แล้วครับ");
+    await learnFromTurn({ userId: USER, threadId: THREAD, turnId: "run_learn_memory", question: asked, queries: [], memoryCommand: true });
+    expect(memoryFacts().where((fact) => fact.userId === USER)).toEqual([]);
+    expect(await searchConversations(USER, asked)).toEqual([]);
+    await learnFromTurn({ userId: USER, threadId: THREAD, turnId: "run_learn_plain", question: asked, queries: [] });
+    expect(memoryFacts().where((fact) => fact.userId === USER).length).toBeGreaterThan(0);
+  });
+
   test("learning from a finished turn reuses the queries it ran and calls no tool", async () => {
     await openThread();
     await say("user", QUESTION);

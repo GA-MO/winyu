@@ -2,7 +2,7 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
-import { BellRing, CalendarDays, Check, Forward, GraduationCap, LayoutGrid, Mail, PlugZap, RefreshCw, Send, ShieldCheck, X } from "lucide-react";
+import { BellRing, Brain, CalendarDays, Check, Eraser, Forward, GraduationCap, LayoutGrid, Mail, PlugZap, RefreshCw, Send, ShieldCheck, X } from "lucide-react";
 import { OutboxNote } from "@/components/share/outbox-note";
 import { CHANNEL_ICON, RecipientWarnings, useRecipientScopes, useShareContacts } from "@/components/share/share-sheet";
 import { METRIC_IDS, ROLE_IDS, type MetricId, type MetricQuery, type RecipientScope, type RoleId, type Urgency, type WatchCondition } from "@/lib/contracts";
@@ -72,6 +72,8 @@ type WatchInput = { title?: string; query?: MetricQuery; condition?: WatchCondit
 type PermissionInput = { role?: string; kind?: string; key?: string; value?: string };
 type LeaveInput = { kind?: string; from?: string; to?: string; reason?: string };
 type EnrollInput = { courseId?: string };
+type RememberInput = { type?: string; value?: string; until?: string | null };
+type ForgetInput = { about?: string };
 type ShareInput = { to?: unknown; channel?: unknown; note?: unknown };
 type PlannedRecipient = { contact: ShareContact; via: ShareChannel; fellBack: boolean };
 type CourseSummary = { id: string; title: string; starts: string; days: number };
@@ -204,6 +206,41 @@ function jobDecision(input: JobInput): Decision {
     confirm: TH.approve.confirmJob,
     cancel: TH.approve.cancelDo,
     done: TH.approve.doneJob(job),
+  };
+}
+
+function rememberDecision(input: RememberInput): Decision {
+  const type = TH.account.memoryType[input.type as keyof typeof TH.account.memoryType] ?? null;
+  return {
+    icon: Brain,
+    title: TH.approve.rememberDone,
+    person: null,
+    subjectLabel: TH.approve.rememberLabel,
+    subject: input.value ?? null,
+    body: null,
+    chips: [type, input.until ? TH.approve.rememberUntil(formatDateTh(input.until)) : null].filter((chip): chip is string => chip !== null),
+    urgency: null,
+    effect: TH.approve.effectRemember,
+    confirm: TH.approve.confirmRemember,
+    cancel: TH.approve.cancelDo,
+    done: TH.approve.doneRemember,
+  };
+}
+
+function forgetDecision(input: ForgetInput): Decision {
+  return {
+    icon: Eraser,
+    title: TH.approve.forgetDone,
+    person: null,
+    subjectLabel: TH.approve.forgetLabel,
+    subject: input.about ?? null,
+    body: null,
+    chips: [],
+    urgency: null,
+    effect: TH.approve.effectForget,
+    confirm: TH.approve.confirmForget,
+    cancel: TH.approve.cancelDo,
+    done: TH.approve.doneForget,
   };
 }
 
@@ -401,6 +438,8 @@ function decisionOf(tool: string, input: unknown, labelTh?: string): Decision | 
   if (tool === "pin_widget") return pinDecision(value);
   if (tool === "run_job") return jobDecision(value);
   if (tool === "request_leave") return leaveDecision(value);
+  if (tool === "remember") return rememberDecision(value);
+  if (tool === "forget") return forgetDecision(value);
   return null;
 }
 

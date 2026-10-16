@@ -13,6 +13,8 @@ import { getForecastTool } from "./get-forecast";
 import { explainGapTool } from "./explain-gap";
 import { getCalendarTool } from "./get-calendar";
 import { recallMemoryTool } from "./recall-memory";
+import { rememberTool } from "./remember";
+import { forgetTool } from "./forget";
 import { findPeopleTool } from "./find-people";
 import { getPersonTool } from "./get-person";
 import { getSiteTool } from "./get-site";
@@ -46,6 +48,8 @@ const NATIVE_TOOLS: { [Name in NativeToolName]: WinyuTool<Name> } = {
   explain_gap: explainGapTool,
   get_calendar: getCalendarTool,
   recall_memory: recallMemoryTool,
+  remember: rememberTool,
+  forget: forgetTool,
   find_people: findPeopleTool,
   get_person: getPersonTool,
   get_site: getSiteTool,
