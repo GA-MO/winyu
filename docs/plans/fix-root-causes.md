@@ -27,7 +27,7 @@ Each wave runs its work packages in parallel, one agent per package in its own w
 
 - [ ] **RC2 dates.** One clock module, data end 2026-11-26, relative anomalies, code-resolved periods with a "ข้อมูลถึง…" line, `get_forecast` by month, regenerate the data.
 - [ ] **RC3 + RC5 resolved query and focus.** The engine returns the resolved query (ids, full scope including `scopeApplied`, labels). Next actions, alert matching, RACI, the scope line and `get_alerts` slices use it. One focus function feeds card titles, handoff asks and follow-up chips.
-- [ ] **RC8 approval.** The resumed run after an approval carries the asking run's tool results and queries. `request_leave` validates before the approval card. A sender is told when a recipient would see the card masked. Urgency comes from the user's words.
+- [x] **RC8 approval.** The resumed run after an approval carries the asking run's tool results and queries. `request_leave` validates before the approval card. A sender is told when a recipient would see the card masked. Urgency comes from the user's words.
 - [x] **UI.** Persona switcher out; home input at the bottom; mini dashboard above it; **ดู Dashboard** button gone.
 - [ ] **Memory test.** Simulated users test memory for real: learning a fact, confirming it, using it in a later session, forgetting it, and isolation between users.
 
