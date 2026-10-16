@@ -141,6 +141,21 @@ describe("a rep asking about their own book", () => {
     const named = await ask("u_krit", "ของผมที่อีสานรุ่งโรจน์", { ...MONTH, filters: { agent: ["อีสานรุ่งโรจน์"] } });
     expect(named.query.filters.agent?.length).toBe(1);
   });
+
+  test("a province the model took from the rep's title, not from his question, gives way to the agents he owns (AI-134)", async () => {
+    const own = ownAgentsFilter("u_krit").agent ?? [];
+    const total = await ask("u_krit", "เดือนนี้ผมขายได้กี่เปอร์เซ็นต์ของเป้าทั้งเดือนแล้ว ต้องขายอีกกี่ลิตรถึงจะครบเป้า", { ...MONTH, filters: { province: ["ขอนแก่น"] } });
+    expect(total.query.filters.agent).toEqual(own);
+    expect(total.query.filters.province).toBeUndefined();
+    const agents = await ask("u_krit", "ยอดขายเข้าเอเย่นต์ของผมเดือนนี้เทียบเป้าเป็นอย่างไร", { ...MONTH, dims: ["agent"], filters: { province: ["ขอนแก่น"] } });
+    expect(agents.rows).toHaveLength(own.length);
+  });
+
+  test("a province the rep names himself stays as asked", async () => {
+    const named = await ask("u_krit", "ยอดขายขอนแก่นของผมเดือนนี้", { ...MONTH, filters: { province: ["ขอนแก่น"] } });
+    expect(named.query.filters.agent).toBeUndefined();
+    expect(named.query.filters.province?.length).toBe(1);
+  });
 });
 
 describe("a breakdown whose question names one of its rows", () => {

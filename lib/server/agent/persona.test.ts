@@ -12,6 +12,7 @@ import { shares } from "@/lib/server/share/shares";
 import { threads } from "@/lib/server/threads-read";
 import { DATA_AS_OF, dataDay } from "@/lib/data/dates";
 import { findUser } from "@/lib/data/entities/users";
+import { agentsOwnedBy } from "@/lib/data/entities/agents";
 import { newRun, runWithRun } from "@/lib/harness/runtime";
 import { TH } from "@/lib/i18n/th";
 import { UNTRUSTED_OPEN } from "@/lib/harness/fence";
@@ -76,6 +77,14 @@ describe("personaFor", () => {
     expect(scopeOf(personaFor(accessFor(user), user, ctx({})))).toBe("ขอบเขตข้อมูลของผู้ใช้: ภาคอีสาน · ทุกแบรนด์ (ประจำ ภาคอีสาน) — ข้อมูลนอกขอบเขตนี้ระบบจะปฏิเสธเอง ไม่ต้องพยายามเลี่ยง");
     const granted = { ...accessFor(user), grants: [{ id: "g1", grantorId: "u_thana", slice: { metric: "net_sales_value" as const, regions: "all" as const, brands: "all" as const }, expiresAt: "2026-10-09T03:00:00Z" }] };
     expect(scopeOf(personaFor(granted, user, ctx({})))).toContain("สิทธิ์ชั่วคราว: มูลค่าขายเข้า · ทุกภาค · ทุกแบรนด์ (คุณธนา วงศ์สกุล ให้ ถึง");
+  });
+
+  test("a rep is told that 'ผม/ของผม' means the agents he owns, by name, and his duties name no province (AI-134)", () => {
+    const rep = personaOf("u_krit").join("\n");
+    for (const agent of agentsOwnedBy("u_krit")) expect(rep).toContain(agent.nameTh);
+    expect(rep).toContain("\"ผม\" \"ของผม\" \"เอเย่นต์ของผม\"");
+    expect(rep).not.toContain("จังหวัดที่รับผิดชอบ");
+    expect(personaOf("u_anucha").join("\n")).not.toContain("\"เอเย่นต์ของผม\"");
   });
 
   test("the persona carries only what differs per user and never tells the model how to draw", () => {
