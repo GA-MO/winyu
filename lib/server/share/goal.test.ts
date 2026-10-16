@@ -75,6 +75,12 @@ describe("the goal a matter is sent with", () => {
     }
   });
 
+  test("the goal line reads as Thai with a space after the metric's name, never 'Sell-in)ถึง' (AI-155)", () => {
+    const attainment = goalOf(TARGET_CARD, []);
+    if (!attainment) throw new Error("no goal");
+    expect(goalLabel(attainment)).toContain("ปริมาณขายเข้า (Sell-in) ถึง 100% ของเป้า");
+  });
+
   test("its read is checked on the latest data day: dates keep their length and end on DATA_AS_OF, a named period resolves on today's clock", () => {
     const earlier: MetricQueryInput = { metric: "net_sales_volume", dims: [], filters: {}, range: { from: addDays(DATA_AS_OF, -40), to: addDays(DATA_AS_OF, -30) }, grain: "day", compare: "none", limit: null };
     expect(onLatestDay(earlier).range).toEqual({ from: addDays(DATA_AS_OF, -10), to: DATA_AS_OF });
