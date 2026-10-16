@@ -54,3 +54,47 @@ describe("get_alerts matches the measure the question is on, not one metric id",
     expect(answer.rows.map((row) => row.id)).not.toContain(stopped.id);
   });
 });
+
+const EXCLUDING_ISAN = "นอกจากเรื่องอีสาน มีความเสี่ยงอื่นที่ผมควรรู้ก่อนขึ้นบอร์ดไหม เช่นสต๊อกค้าง ลูกหนี้";
+
+type MetricAnswer = { ok: boolean; summary: string; rows: Record<string, unknown>[] };
+
+async function metricFor(userId: string, input: Record<string, unknown>, question: string): Promise<MetricAnswer> {
+  const turn = { turnId: null, threadId: null, question, queries: [] };
+  const tool = winyuTools().query_metric;
+  return runWithAccess(accessOf(userId), () => runWithTurn(turn, () => tool.execute(tool.inputSchema().parse(input)) as Promise<MetricAnswer>));
+}
+
+describe("a place the question sets aside stays out of the alerts and the numbers (AI-172)", () => {
+  test("นอกจากเรื่องอีสาน leaves every Isan alert out and keeps the South one the answer names", async () => {
+    const isan = placed("al_test_isan_sellin", "net_sales_volume", { agent: STOPPED_AGENT, region: "northeast" });
+    const south = placed("al_test_south_ar", "ar_overdue", { region: "south" });
+    const answer = await alertsFor(CEO, {}, EXCLUDING_ISAN);
+    const ids = answer.rows.map((row) => row.id);
+    expect(ids).toContain(south.id);
+    expect(ids).not.toContain(isan.id);
+    expect(answer.rows.filter((row) => row.scope.region === "northeast")).toEqual([]);
+    expect(answer.summary).toContain("ไม่รวมภาคอีสาน");
+  });
+
+  test("the same alerts read without the exclusion still carry Isan", async () => {
+    const isan = placed("al_test_isan_sellin", "net_sales_volume", { agent: STOPPED_AGENT, region: "northeast" });
+    const answer = await alertsFor(CEO, {}, "มีความเสี่ยงอะไรที่ผมควรรู้ก่อนขึ้นบอร์ดไหม");
+    expect(answer.rows.map((row) => row.id)).toContain(isan.id);
+  });
+
+  test("overdue AR by region drops the Isan row and says so", async () => {
+    const answer = await metricFor(CEO, { metric: "ar_overdue", dims: ["region"], filters: {}, grain: "month", compare: "prev_period", limit: 5, sort: "value_desc", period: "this_month" }, EXCLUDING_ISAN);
+    expect(answer.ok).toBe(true);
+    const regions = answer.rows.map((row) => row.region);
+    expect(regions).not.toContain("ภาคอีสาน");
+    expect(regions).toContain("ภาคใต้");
+    expect(answer.summary).toContain("ไม่รวมภาคอีสาน");
+  });
+
+  test("a manager whose whole scope is the region set aside still gets his region's numbers", async () => {
+    const answer = await metricFor(RSM_NORTHEAST, { metric: "net_sales_value", dims: ["region"], filters: {}, grain: "month", compare: "target", limit: 5, period: "this_month" }, EXCLUDING_ISAN);
+    expect(answer.ok).toBe(true);
+    expect(answer.rows.map((row) => row.region)).toEqual(["ภาคอีสาน"]);
+  });
+});
