@@ -341,6 +341,24 @@ describe("lines that invite a question or an action follow what the role can cal
     expect(literal).toContain("ห้ามเขียนว่าด้านนั้นไม่มีความเสี่ยง");
   });
 
+  test("a why over a whole period splits the change before naming a cause, and an even drop names no region (AI-190)", () => {
+    const why = WINYU_RULES.find((line) => line.startsWith("ผู้ใช้ถามว่าทำไม")) ?? "";
+    expect(why).toContain("ถามว่าตกไหมและทำไมของยอดรวม (เช่นสัปดาห์นี้ทั้งบริษัท)");
+    expect(why).toContain("`explain_gap` ช่วงเดียวกัน `compare` `prev_period` แยกตาม `region`");
+    expect(why).toContain("ลดลงใกล้เคียงกันทุกภาค ห้ามชี้ภาคใดเป็นสาเหตุ");
+  });
+
+  test("after refusing one side of a comparison, the side shown carries a base, not a bare number (AI-191)", () => {
+    const denied = WINYU_RULES.find((line) => line.startsWith("`PERMISSION_DENIED`")) ?? "";
+    expect(denied).toContain("ฝั่งที่ดูได้ให้ query พร้อมฐานเทียบ");
+    expect(denied).toContain("ไม่ใช่ `compare` `none`");
+  });
+
+  test("the text names a metric as its card does (AI-192)", () => {
+    const words = WINYU_RULES.find((line) => line.startsWith("ภาษาในข้อความตอบ")) ?? "";
+    expect(words).toContain("ใช้ชื่อเดียวกับการ์ด เช่น `net_sales_value` = มูลค่าขายเข้า ไม่ใช่มูลค่าขายสุทธิ");
+  });
+
   test("an overclaim held back gets a corrected note to send instead, never an invitation to resend the false one (AI-161)", () => {
     const prompt = promptOf("u_krit");
     expect(prompt).toContain("เสนอข้อความแนบใหม่ที่ตรงกับการ์ดและไม่มีตัวเลข");

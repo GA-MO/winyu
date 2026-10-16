@@ -3,6 +3,7 @@ import { accessFor } from "@/lib/access/policies";
 import type { AccessContext, Alert, AlertRow, MetricId } from "@/lib/contracts";
 import { DATA_AS_OF, addDays } from "@/lib/data/dates";
 import { findUser } from "@/lib/data/entities/users";
+import { TH } from "@/lib/i18n/th";
 import { alerts } from "@/lib/server/agent/collections";
 import { winyuTools } from "@/lib/server/agent/tools";
 import { runWithAccess, runWithTurn } from "@/lib/server/request-context";
@@ -55,7 +56,15 @@ describe("get_alerts matches the measure the question is on, not one metric id",
   });
 });
 
-const EXCLUDING_ISAN = "นอกจากเรื่องอีสาน มีความเสี่ยงอื่นที่ผมควรรู้ก่อนขึ้นบอร์ดไหม เช่นสต๊อกค้าง ลูกหนี้";
+describe("the anomaly card's header (AI-192)", () => {
+  test("says the count once when every anomaly is urgent", () => {
+    expect(TH.read.alerts(5, 5)).toBe("ด่วนทั้งหมด 5 เรื่อง");
+    expect(TH.read.alerts(5, 2)).toBe("5 เรื่องผิดปกติ ด่วน 2 เรื่อง");
+    expect(TH.read.alerts(3, 0)).toBe("3 เรื่องผิดปกติ ไม่มีเรื่องด่วน");
+  });
+});
+
+const EXCLUDING_ISAN ="นอกจากเรื่องอีสาน มีความเสี่ยงอื่นที่ผมควรรู้ก่อนขึ้นบอร์ดไหม เช่นสต๊อกค้าง ลูกหนี้";
 
 type Offer = { label: string; prompt: string | null };
 type MetricAnswer = { ok: boolean; summary: string; rows: Record<string, unknown>[]; nextActions?: Offer[]; followUps?: Offer[] };
