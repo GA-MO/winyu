@@ -6,7 +6,7 @@ import { findUser } from "@/lib/data/entities/users";
 import { runMetric } from "@/lib/data/query";
 import { TH } from "@/lib/i18n/th";
 import { LOW_COVER_DAYS } from "@/lib/semantic/metrics";
-import { changeToneOf, formatChange, formatMetricValue } from "@/lib/dashboard/metric-display";
+import { changeToneOf, formatChange, formatMetricValue, metricLabel } from "@/lib/dashboard/metric-display";
 import { pairedIndexes, presentCard, presentForecast, weakestRow, type CardBody, type CardParts, type CardView, type ForecastAnswer, type SortBy } from "./present";
 import type { ReadRow, Strip } from "./reading";
 import { metricTitle } from "./tool-answers";
@@ -304,6 +304,16 @@ describe("two metrics on one card", () => {
     expect(rows.length).toBeGreaterThan(1);
     rows.forEach((row) => expect(row.sub).toMatch(/^.+บาท ยอดค้างชำระเกินกำหนด( [+−-][\d.,]+%)?$/));
     expect(card.title).toContain("ยอดค้างชำระเกินกำหนด");
+  });
+
+  test("two metrics from unrelated domains of the same groups keep their own cards: stock cover and overdue money are never merged into one strip (AI-140)", () => {
+    const cover = answer({ metric: "days_of_cover", dims: ["region"], range: MONTH_TO_DATE, compare: "none" });
+    const overdue = answer({ metric: "ar_overdue", dims: ["region"], range: MONTH_TO_DATE, compare: "prev_period" });
+    expect(pairedIndexes(cover, [overdue])).toEqual([]);
+    expect(pairedIndexes(overdue, [cover])).toEqual([]);
+    const card = presentCard({ title: "t", query: cover.query, result: cover.result, others: [overdue] });
+    expect(card.title).toBe("t");
+    stripOf(card.body).rows.forEach((row) => expect(row.sub ?? "").not.toContain(metricLabel("ar_overdue")));
   });
 
   test("the second metric keeps its change: margin against last year under each region and beside the overall row (AI-124)", () => {
