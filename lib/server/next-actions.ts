@@ -1,20 +1,17 @@
 import type { AccessContext, Alert, Dim, MetricQuery, MetricResult, NextAction, QuickAction, Region, ResolvedQuery } from "@/lib/contracts";
 import { widgetKindFor } from "@/lib/cards/present";
+import { alertFocus, cardFocus } from "@/lib/cards/focus";
 import { regionOfSlice, sliceCovers } from "@/lib/semantic/geo";
 import { namesOf, type Dictionary } from "@/lib/semantic/dictionary";
 import { effectiveFilters, pinnedSlice } from "@/lib/semantic/resolved";
-import { sharpestHarm } from "@/lib/cards/present";
 import { nextActionsFor } from "@/lib/engine/next-actions";
 import { followUpsFor, learnedKindShare } from "@/lib/engine/follow-ups";
-import { alertScopeLabel } from "@/lib/cards/alert-row";
-import { metricLabel } from "@/lib/dashboard/metric-display";
 import { openAlertsFor, openPacketCarrying } from "@/lib/server/alerts";
 import { actionEvents, layouts } from "@/lib/server/agent/collections";
 import { isPinnedSlice } from "@/lib/engine/compose";
 import { intentKeyOf } from "@/lib/server/threads";
 
 const PERCENT = 100;
-const HARM_MIN_PCT = 5;
 const REPEAT_DAYS = 30;
 const DAY_MS = 86_400_000;
 
@@ -46,11 +43,6 @@ function regionOf(dictionary: Dictionary, query: ResolvedQuery, alert: Alert | n
   return regionOfSlice(dictionary, pinnedSlice(effectiveFilters(query))) ?? (alert ? regionOfSlice(dictionary, alert.dims) : null);
 }
 
-function titleOf(query: MetricQuery, result: Extract<MetricResult, { ok: true }>): string {
-  const top = result.headline.top[0];
-  return top ? `${metricLabel(query.metric)} · ${top.label}` : metricLabel(query.metric);
-}
-
 /** The buttons a metric card offers, decided from the resolved question, the open alerts on that slice and how often it was asked. */
 export function actionsForMetric(access: AccessContext, result: MetricResult, dictionary: Dictionary): NextAction[] {
   if (!result.ok) return [];
@@ -59,13 +51,11 @@ export function actionsForMetric(access: AccessContext, result: MetricResult, di
   const actions = nextActionsFor(
     access,
     {
-      title: titleOf(query, result),
       query,
+      focus: cardFocus(result, alert, dictionary),
       deltaPercent: result.headline.deltaPercent,
       masked: result.provenance.masked,
-      topLabel: sharpestHarm(query, result, HARM_MIN_PCT)?.label ?? null,
       alertIds: alert ? [alert.id] : [],
-      alertScope: alert ? alertScopeLabel(alert, dictionary) : null,
       verifyStep: alert ? alert.verifySteps[0] : null,
       region: regionOf(dictionary, query, alert),
       drawnAs: widgetKindFor(query, result),
@@ -83,25 +73,22 @@ function alertQueryOf(alert: Alert, dictionary: Dictionary): ResolvedQuery {
 /** The buttons an anomaly card offers: hand the alert to its owner, or verify it first. */
 export function actionsForAlert(access: AccessContext, alert: Alert | null, dictionary: Dictionary): NextAction[] {
   if (!alert) return [];
-  const query = alertQueryOf(alert, dictionary);
-  const scope = alertScopeLabel(alert, dictionary);
   const actions = nextActionsFor(access, {
-    title: scope,
-    query,
+    query: alertQueryOf(alert, dictionary),
+    focus: alertFocus(alert, dictionary),
     deltaPercent: alert.expected === 0 ? null : ((alert.observed - alert.expected) / Math.abs(alert.expected)) * PERCENT,
     masked: [],
-    topLabel: scope,
     alertIds: [alert.id],
-    alertScope: scope,
     verifyStep: alert.verifySteps[0],
     region: regionOfSlice(dictionary, alert.dims),
   });
   return withoutRepeatHandoff(actions, [alert.id]);
 }
 
-/** The follow-up questions the chat offers under the composer after this result, minus what the card already offers. */
-export function followUpsForMetric(access: AccessContext, result: MetricResult, cardActions: readonly NextAction[]): QuickAction[] {
+/** The follow-up questions the chat offers under the composer after this result, about the row the card is about, minus what the card already offers. */
+export function followUpsForMetric(access: AccessContext, result: MetricResult, dictionary: Dictionary, cardActions: readonly NextAction[]): QuickAction[] {
   if (!result.ok) return [];
   const taken = cardActions.map((action) => action.prompt).filter((prompt): prompt is string => prompt !== null);
-  return followUpsFor(access, { query: result.query, result, taken }, learnedKindShare(actionEvents().all(), access.userId));
+  const { row } = cardFocus(result, alertInQuestion(access, result.query, dictionary), dictionary);
+  return followUpsFor(access, { query: result.query, result, focus: row, taken }, learnedKindShare(actionEvents().all(), access.userId));
 }

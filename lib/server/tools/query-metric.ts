@@ -25,8 +25,9 @@ export const queryMetricTool = defineTool({
     const result = await runMetric(input, access);
     if (!result.ok) return result;
     recordQuery(askedQuery(result.query));
-    const nextActions = actionsForMetric(access, result, await loadDictionary());
+    const dictionary = await loadDictionary();
+    const nextActions = actionsForMetric(access, result, dictionary);
     const provenance = grant ? { ...result.provenance, grant } : result.provenance;
-    return { ...result, provenance, nextActions, followUps: followUpsForMetric(access, result, nextActions) };
+    return { ...result, provenance, nextActions, followUps: followUpsForMetric(access, result, dictionary, nextActions) };
   },
 });

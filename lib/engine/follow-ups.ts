@@ -1,7 +1,7 @@
 import type { AccessContext, ActionEvent, Dim, MetricId, MetricQuery, MetricResult, QuickAction } from "@/lib/contracts";
 import { METRICS, TIME_DIMS } from "@/lib/semantic/metrics";
 import { metricLabel } from "@/lib/dashboard/metric-display";
-import { sharpestHarm, weakestRow } from "@/lib/cards/present";
+import { sharpestHarm } from "@/lib/cards/present";
 import { TH } from "@/lib/i18n/th";
 import { spaceLatinTh } from "@/lib/i18n/format";
 
@@ -41,6 +41,8 @@ export const FOLLOW_UP_KINDS: readonly FollowUpKind[] = ["why", "drill_down", "s
 export type FollowUpInput = {
   query: MetricQuery;
   result: Extract<MetricResult, { ok: true }>;
+  /** The breakdown row the card is about (`CardFocus.row`); the why and drill-down questions name it. */
+  focus: string | null;
   taken: readonly string[];
 };
 
@@ -64,21 +66,16 @@ function fits(label: string): boolean {
   return label.length <= MAX_LABEL_CHARS;
 }
 
-function focusOf(query: MetricQuery, result: Extract<MetricResult, { ok: true }>): string | null {
-  return weakestRow(query, result)?.label ?? sharpestHarm(query, result, BAD_DELTA_PCT)?.label ?? null;
-}
-
 function factsOf(input: FollowUpInput): Facts {
   const { query, result } = input;
   const delta = result.headline.deltaPercent;
-  const focus = focusOf(query, result);
   return {
     query,
     metric: metricLabel(query.metric),
     taken: new Set(input.taken.map(spaceLatinTh)),
     rankDim: query.dims.find((dim) => !TIME_DIMS.includes(dim)) ?? null,
     hasTime: query.dims.some((dim) => TIME_DIMS.includes(dim)),
-    focus,
+    focus: input.focus,
     bad: (delta !== null && delta <= -BAD_DELTA_PCT) || sharpestHarm(query, result, BAD_DELTA_PCT) !== null,
   };
 }

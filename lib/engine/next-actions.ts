@@ -3,6 +3,7 @@ import { responsibleFor } from "@/lib/access/raci";
 import { metricLabel, metricSource, toneOf } from "@/lib/dashboard/metric-display";
 import { GEO_LEVELS, finestGeoLevel } from "@/lib/semantic/geo";
 import { askedQuery, effectiveFilters, pinnedSlice } from "@/lib/semantic/resolved";
+import { focusTitle } from "@/lib/cards/focus";
 import { METRICS } from "@/lib/semantic/metrics";
 import { findUser } from "@/lib/data/entities/users";
 import { shortName } from "@/lib/i18n/format";
@@ -29,7 +30,7 @@ function widgetKindOf(context: NextActionContext): WidgetKind {
 function handoffAction(access: AccessContext, context: NextActionContext): NextAction | null {
   const owner = responsibleFor(context.query.metric, context.region);
   if (!owner || owner.userId === access.userId) return null;
-  const scope = context.alertScope ?? context.topLabel ?? metricLabel(context.query.metric);
+  const { subject } = context.focus;
   return {
     id: "handoff",
     kind: "handoff",
@@ -38,8 +39,8 @@ function handoffAction(access: AccessContext, context: NextActionContext): NextA
     tool: "create_handoff",
     input: {
       toUserId: owner.userId,
-      title: context.title,
-      ask: TH.next.handoffAsk(scope),
+      title: focusTitle(context.query.metric, subject),
+      ask: TH.next.handoffAsk(subject ?? metricLabel(context.query.metric)),
       urgency: context.alertIds.length > 0 ? "high" : "medium",
       evidence: [askedQuery(context.query)],
       alertIds: context.alertIds,
@@ -76,7 +77,7 @@ function pinAction(context: NextActionContext, repeats: number): NextAction | nu
     label: TH.next.pin,
     reason: TH.next.pinReason(repeats),
     tool: "pin_widget",
-    input: { title: context.title, kind: widgetKindOf(context), query: askedQuery(context.query) },
+    input: { title: focusTitle(context.query.metric, context.focus.slice), kind: widgetKindOf(context), query: askedQuery(context.query) },
     prompt: null,
   };
 }
@@ -86,7 +87,7 @@ function verifyAction(context: NextActionContext): NextAction | null {
   return {
     id: "verify",
     kind: "verify",
-    label: context.alertScope ? (shortLabel(TH.next.verifyScope(context.alertScope)) ?? TH.next.verify) : TH.next.verify,
+    label: context.focus.subject ? (shortLabel(TH.next.verifyScope(context.focus.subject)) ?? TH.next.verify) : TH.next.verify,
     reason: context.verifyStep,
     tool: null,
     input: null,
@@ -114,16 +115,17 @@ function shortLabel(label: string): string | null {
 function drillAction(access: AccessContext, context: NextActionContext, causeOffered: boolean): NextAction | null {
   if (context.masked.length > 0) return null;
   const metric = metricLabel(context.query.metric);
-  if (!causeOffered && context.topLabel && context.deltaPercent !== null) {
-    const short = shortLabel(context.topLabel);
+  const { row } = context.focus;
+  if (!causeOffered && row && context.deltaPercent !== null) {
+    const short = shortLabel(row);
     return {
       id: "drill-why",
       kind: "drill",
       label: short ? TH.next.why(short) : TH.next.whyShort,
-      reason: TH.next.whyReason(context.topLabel),
+      reason: TH.next.whyReason(row),
       tool: null,
       input: null,
-      prompt: TH.next.whyPrompt(metric, context.topLabel),
+      prompt: TH.next.whyPrompt(metric, row),
     };
   }
   const dim = drillDim(context);

@@ -3,6 +3,8 @@ import type { AccessContext, ActionEvent, Dim, MetricQuery, MetricResult } from 
 import { accessFor } from "@/lib/access/policies";
 import { findUser } from "@/lib/data/entities/users";
 import { runMetric } from "@/lib/data/query";
+import { GENERATOR_DICTIONARY } from "@/lib/data/master";
+import { cardFocus } from "@/lib/cards/focus";
 import { followUpIntent, followUpsFor, learnedKindShare, type FollowUpKind } from "./follow-ups";
 import { scoreIntents } from "./recommend";
 import { spaceLatinTh } from "@/lib/i18n/format";
@@ -26,8 +28,13 @@ function answered(access: AccessContext, query: MetricQuery): Extract<MetricResu
   return result;
 }
 
+function answerOf(access: AccessContext, query: MetricQuery): { query: MetricQuery; result: Extract<MetricResult, { ok: true }>; focus: string | null } {
+  const result = answered(access, query);
+  return { query, result, focus: cardFocus(result, null, GENERATOR_DICTIONARY).row };
+}
+
 function kindsOf(access: AccessContext, query: MetricQuery, taken: string[] = [], learned: Partial<Record<FollowUpKind, number>> = {}): string[] {
-  return followUpsFor(access, { query, result: answered(access, query), taken }, learned).map((action) => action.id);
+  return followUpsFor(access, { ...answerOf(access, query), taken }, learned).map((action) => action.id);
 }
 
 function followUpEvent(kind: FollowUpKind, index: number): ActionEvent {
@@ -38,7 +45,7 @@ describe("followUpsFor", () => {
   test("attainment by region asks why the weakest region, then opens it by agent, never compares a target with last year", () => {
     const access = accessOf(CEO);
     const query = queryOf("target_attainment", ["region"], "none");
-    const actions = followUpsFor(access, { query, result: answered(access, query), taken: [] });
+    const actions = followUpsFor(access, { ...answerOf(access, query), taken: [] });
     const ids = actions.map((action) => action.id);
     expect(ids).toContain("fu-why");
     expect(ids).toContain("fu-drill_down");
@@ -64,9 +71,9 @@ describe("followUpsFor", () => {
   test("a question the card already offers is left out, a split moves on to the next dimension", () => {
     const access = accessOf(CEO);
     const query = queryOf("gross_margin", []);
-    const first = followUpsFor(access, { query, result: answered(access, query), taken: [] })[0];
+    const first = followUpsFor(access, { ...answerOf(access, query), taken: [] })[0];
     if (!first) throw new Error("no follow-up");
-    const next = followUpsFor(access, { query, result: answered(access, query), taken: [first.prompt] });
+    const next = followUpsFor(access, { ...answerOf(access, query), taken: [first.prompt] });
     expect(next.map((action) => action.prompt)).not.toContain(first.prompt);
     expect(next.find((action) => action.id === "fu-split")?.label).not.toBe(first.label);
   });
@@ -84,7 +91,7 @@ describe("followUpsFor", () => {
     expect(kindsOf(accessOf(CEO), queryOf("gross_margin", []))).not.toContain("fu-forecast");
     const access = accessOf(CEO);
     const query = queryOf("net_sales_volume", ["brand"]);
-    const all = followUpsFor(access, { query, result: answered(access, query), taken: [] }, { forecast: 1 });
+    const all = followUpsFor(access, { ...answerOf(access, query), taken: [] }, { forecast: 1 });
     expect(all.find((action) => action.id === "fu-forecast")?.prompt).toContain("8 สัปดาห์");
   });
 

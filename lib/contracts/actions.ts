@@ -15,14 +15,22 @@ export type NextAction = {
   prompt: string | null;
 };
 
+/** What a card is about, decided once for its handoff, its pin and its follow-up questions. */
+export type CardFocus = {
+  /** What the whole card covers, in Thai: the values it is narrowed to, and "แยกตาม…" for a breakdown; null for everything the viewer may see. Names a pinned tile. */
+  slice: string | null;
+  /** The breakdown row the card points at: the row of the alert in question, the row the question pinned, else the worst row; null when there is none. Names the why and drill-down questions. */
+  row: string | null;
+  /** What work handed on from this card is about: the alert in question, else the row, else the slice. Names the handoff's title and ask. */
+  subject: string | null;
+};
+
 export type NextActionContext = {
-  title: string;
   query: ResolvedQuery;
+  focus: CardFocus;
   deltaPercent: number | null;
   masked: string[];
-  topLabel: string | null;
   alertIds: string[];
-  alertScope: string | null;
   verifyStep: string | null;
   /** The region id the card's work belongs to, from its pinned slice or the alert it is about; null for the whole country. */
   region: Region | null;

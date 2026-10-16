@@ -10,6 +10,7 @@ import { nextActionsFor } from "./next-actions";
 
 const CEO = "u_thana";
 const RSM_NORTHEAST = "u_anucha";
+const NO_FOCUS = { slice: null, row: null, subject: null };
 
 function accessOf(userId: string): AccessContext {
   const user = findUser(userId);
@@ -42,13 +43,11 @@ function regionOf(query: ResolvedQuery): NextActionContext["region"] {
 function contextOf(overrides: Partial<NextActionContext> = {}): NextActionContext {
   const query = overrides.query ?? queryOf("net_sales_volume");
   return {
-    title: "ยอดขาย",
     query,
+    focus: { slice: null, row: "ภาคอีสาน", subject: "ภาคอีสาน" },
     deltaPercent: null,
     masked: [],
-    topLabel: "ภาคอีสาน",
     alertIds: [],
-    alertScope: null,
     verifyStep: null,
     region: regionOf(query),
     ...overrides,
@@ -120,7 +119,7 @@ describe("nextActionsFor", () => {
 
   test("a province never offers a split by region, it offers the next finer level", () => {
     const query = resolvedFor({ ...queryOf("ar_overdue"), dims: ["month"], filters: { province: ["pv_songkhla"] } });
-    const actions = nextActionsFor(accessOf(CEO), contextOf({ query, topLabel: null }));
+    const actions = nextActionsFor(accessOf(CEO), contextOf({ query, focus: NO_FOCUS }));
     expect(idsOf(actions)).not.toContain("drill-region");
     expect(idsOf(actions)).toContain("drill-agent");
   });
@@ -132,20 +131,20 @@ describe("nextActionsFor", () => {
   });
 
   test("an alert's verify step replaces the why question instead of repeating it", () => {
-    const actions = nextActionsFor(accessOf(CEO), contextOf({ deltaPercent: -12, alertIds: ["a1"], alertScope: "ภาคใต้", verifyStep: "ดูเอเย่นต์ที่ค้างนานสุด" }));
+    const actions = nextActionsFor(accessOf(CEO), contextOf({ deltaPercent: -12, alertIds: ["a1"], focus: { slice: null, row: null, subject: "ภาคใต้" }, verifyStep: "ดูเอเย่นต์ที่ค้างนานสุด" }));
     expect(idsOf(actions)).toContain("verify");
     expect(idsOf(actions)).not.toContain("drill-why");
   });
 
   test("someone who sees one region is never offered a split by region", () => {
     const query = resolvedFor({ ...queryOf("sell_out_volume"), dims: ["sku"] }, "u_krit");
-    const actions = nextActionsFor(accessOf("u_krit"), contextOf({ query, topLabel: null }));
+    const actions = nextActionsFor(accessOf("u_krit"), contextOf({ query, focus: NO_FOCUS }));
     expect(idsOf(actions)).not.toContain("drill-region");
     expect(idsOf(actions)).toContain("drill-province");
   });
 
   test("a masked answer offers no drill into numbers nobody can read", () => {
-    const actions = nextActionsFor(accessOf("u_ton"), contextOf({ masked: ["value"], query: resolvedFor({ ...queryOf("net_sales_volume"), metric: "forecast_mape", dims: ["month"] }, "u_ton"), topLabel: null }));
+    const actions = nextActionsFor(accessOf("u_ton"), contextOf({ masked: ["value"], query: resolvedFor({ ...queryOf("net_sales_volume"), metric: "forecast_mape", dims: ["month"] }, "u_ton"), focus: NO_FOCUS }));
     expect(idsOf(actions).some((id) => id.startsWith("drill"))).toBe(false);
   });
 });
