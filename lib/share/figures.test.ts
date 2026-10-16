@@ -33,4 +33,13 @@ describe("words that the card's numbers contradict", () => {
     expect(contradictionOf("ช่วยดูอุบลศรีสุขหน่อย", under)).toBeNull();
     expect(contradictionOf("จะปิดเกินเป้า", null)).toBeNull();
   });
+
+  test("a number the words claim is checked against the card's own: a growth of 5% on a card up 0.6%, or 110% of target on one at 87.9%", () => {
+    const barely = figuresOf(answer("prev_period", 0.6));
+    expect(contradictionOf("กำไรขั้นต้นโตขึ้น 5% ตามที่ CFO รายงาน", barely)).toBe(TH.share.contradicts.changeBy("+5.0%", "+0.6%"));
+    expect(contradictionOf("ยอดโตขึ้น 0.5%", barely)).toBeNull();
+    expect(contradictionOf("ทำได้ 110% ของเป้าแล้ว", under)).toBe(TH.share.contradicts.attainmentBy("110.0%", "87.9%"));
+    expect(contradictionOf("ทำได้ 88% ของเป้า", under)).toBeNull();
+    expect(contradictionOf("ยังต่ำกว่าเป้า 12% ช่วยดูหน่อย", under)).toBeNull();
+  });
 });

@@ -13,6 +13,9 @@ const AT_TARGET = /เกินเป้า|ทะลุเป้า|ถึง�
 const FALLING = /ลดลง|ตกลง|แย่ลง|ต่ำลง|ร่วง/;
 const RISING = /โตขึ้น|เพิ่มขึ้น|ดีขึ้น|สูงขึ้น|โตกว่า/;
 const COMPARED = new Set(["prev_period", "prev_year"]);
+const CLAIMED_PERCENT = /(\d+(?:\.\d+)?)\s*%/;
+const ATTAINMENT_CLAIM = /(\d+(?:\.\d+)?)\s*%\s*ของเป้า/;
+const CLAIM_TOLERANCE = 1;
 
 function isMetricAnswer(result: unknown): result is MetricAnswer {
   if (typeof result !== "object" || result === null) return false;
@@ -56,8 +59,32 @@ function changeWarning(text: string, change: number | null): string | null {
   return null;
 }
 
-/** One line, worked out by code, when the words the sender sends with a card claim what its numbers do not show (on target while the card is under it, growth while it fell); null when they agree or say nothing the card measures. The sender can still send. */
+function signedLabel(value: number): string {
+  return `${value > 0 ? "+" : ""}${percentLabel(value)}`;
+}
+
+function claimedPercent(text: string): number | null {
+  const match = CLAIMED_PERCENT.exec(text);
+  return match ? Number(match[1]) : null;
+}
+
+function attainmentClaimWarning(text: string, attainment: number | null): string | null {
+  const match = ATTAINMENT_CLAIM.exec(text);
+  const claimed = match ? Number(match[1]) : null;
+  if (attainment === null || claimed === null) return null;
+  return Math.abs(claimed - attainment) > CLAIM_TOLERANCE ? TH.share.contradicts.attainmentBy(percentLabel(claimed), percentLabel(attainment)) : null;
+}
+
+function changeClaimWarning(text: string, change: number | null): string | null {
+  const claimed = claimedPercent(text);
+  const falling = FALLING.test(text);
+  if (change === null || claimed === null || ATTAINMENT_CLAIM.test(text) || (!falling && !RISING.test(text))) return null;
+  const signed = falling ? -claimed : claimed;
+  return Math.abs(signed - change) > CLAIM_TOLERANCE ? TH.share.contradicts.changeBy(signedLabel(signed), signedLabel(change)) : null;
+}
+
+/** One line, worked out by code, when the words the sender sends with a card claim what its numbers do not show (on target while the card is under it, growth while it fell, a percent of target or a change the card does not show); null when they agree or say nothing the card measures. The sender can still send. */
 export function contradictionOf(text: string, figures: CardFigures | null): string | null {
   if (!figures || !text.trim()) return null;
-  return targetWarning(text, figures.attainment) ?? changeWarning(text, figures.change);
+  return targetWarning(text, figures.attainment) ?? changeWarning(text, figures.change) ?? attainmentClaimWarning(text, figures.attainment) ?? changeClaimWarning(text, figures.change);
 }

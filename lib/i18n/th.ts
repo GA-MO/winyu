@@ -1973,6 +1973,8 @@ export const TH = {
   },
   matter: {
     actions: { accept: "รับ", ask: "ขอข้อมูลเพิ่ม", reply: "ตอบ", pass_on: "ส่งต่อ", not_mine: "ไม่ใช่ของผม", done: "เสร็จ" },
+      attainmentBy: (claimed: string, attainment: string) => `ข้อความบอกว่าได้ ${claimed} ของเป้า แต่การ์ดแสดง ${attainment} ของเป้า`,
+      changeBy: (claimed: string, change: string) => `ข้อความบอกว่าเปลี่ยน ${claimed} แต่การ์ดแสดง ${change}`,
     notMineAsk: "เรื่องนี้ไม่ใช่ของผม ช่วยบอกหน่อยว่าควรส่งให้ใคร",
     outcomePlaceholder: "สรุปสิ่งที่ทำและผลลัพธ์ก่อนปิดเรื่อง",
     askPlaceholder: "อยากได้ข้อมูลอะไรเพิ่ม บอกสั้น ๆ",
