@@ -68,6 +68,16 @@ export const wrapUpAtLimit: PrepareStep = ({ stepNumber, systemMessages }) => {
   return { toolChoice: "none", systemMessages: [...systemMessages, { role: "system", content: TH.harness.wrapUp }] };
 };
 
+function answersTold(): CoreSystemMessage[] {
+  return (currentTurn().answered ?? []).map(({ tool, approved }) => ({ role: "system", content: approved ? TH.harness.answeredYes(tool) : TH.harness.answeredNo(tool) }));
+}
+
+const toldTheAnswerThenWrapUp: PrepareStep = (step) => {
+  const told = answersTold();
+  const systemMessages = [...step.systemMessages, ...told];
+  return wrapUpAtLimit({ ...step, systemMessages }) ?? (told.length > 0 ? { systemMessages } : undefined);
+};
+
 function chatModel() {
   const model = agentModel();
   if (!model) throw new Error(NO_MODEL);
@@ -87,7 +97,7 @@ function buildMastra(): Mastra {
     },
     memory: new Memory({ options: { lastMessages: REMEMBERED_MESSAGES, semanticRecall: false, generateTitle: false } }),
     outputProcessors: [new ToolResultInjectionGuard(), replyPersonalDataGuard()],
-    defaultOptions: { maxSteps: LIMITS.maxSteps, prepareStep: wrapUpAtLimit },
+    defaultOptions: { maxSteps: LIMITS.maxSteps, prepareStep: toldTheAnswerThenWrapUp },
   });
   const durable = new ChatDurableAgent({ agent, shouldPersistSnapshot: persistsSnapshot });
   return new Mastra({ agents: { [AGENT_ID]: durable }, workflows: winyuWorkflows(), scheduler: { enabled: schedulerEnabled() }, storage, observability: winyuObservability(USER_ID_KEY) });
@@ -101,7 +111,7 @@ export function winyuMastra(): Mastra {
   return mastra;
 }
 
-/** The chat agent, built once per server as a durable agent: instructions and tools are resolved per request from the user in its request context (D3, D9), and its run state is checkpointed so a run outlives the connection and the process. */
+/** The chat agent, built once per server as a durable agent: instructions and tools are resolved per request from the user in its request context (D3, D9), a run that answers an approval is told the answer before each model call, and its run state is checkpointed so a run outlives the connection and the process. */
 export function winyuAgent(): ChatDurableAgent {
   const agent = winyuMastra().getAgent(AGENT_ID);
   if (!(agent instanceof ChatDurableAgent)) throw new Error(`agent ${AGENT_ID} is not the durable chat agent`);

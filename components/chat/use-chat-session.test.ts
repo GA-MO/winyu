@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { unansweredOf, type PendingApproval } from "./use-chat-session";
+import { durationsAfter, unansweredOf, type PendingApproval } from "./use-chat-session";
 
 function asked(toolCallId: string): PendingApproval {
   return { interruptId: `mastra-approval::run::${toolCallId}`, toolCallId, tool: "share_card", input: {}, exchangeId: "q1", position: 0 };
@@ -23,5 +23,15 @@ describe("a question sent while an approval waits", () => {
 
   test("with nothing waiting, the question runs on its own", () => {
     expect(unansweredOf([], {}, [])).toEqual([]);
+  });
+});
+
+describe("the time shown for a turn", () => {
+  test("keeps the asking run's time when a run only carries out the answer to its approval", () => {
+    expect(durationsAfter({ q1: 8000 }, "q1", 11000, true)).toEqual({ q1: 8000 });
+  });
+
+  test("adds the time of a run that answers a question", () => {
+    expect(durationsAfter({ q1: 8000 }, "q2", 3000, false)).toEqual({ q1: 8000, q2: 3000 });
   });
 });

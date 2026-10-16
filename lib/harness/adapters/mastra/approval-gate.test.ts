@@ -12,6 +12,7 @@ const { findUser } = await import("@/lib/data/entities/users");
 const { liveAccessFor } = await import("@/lib/access/enforce");
 const { outbox } = await import("@/lib/server/agent/collections");
 const { shares } = await import("@/lib/server/share/shares");
+const { TH } = await import("@/lib/i18n/th");
 const { collection } = await import("@/lib/server/store/json-store");
 const { APPROVALS_COLLECTION } = await import("@/lib/harness/approvals");
 
@@ -100,6 +101,20 @@ describe("a write the model calls with the nulls Gemini sends for optional field
     expect(effectsSince(before)).toEqual({ shares: 0, mails: 0 });
     expect(approvals().get(interruptId)?.status).toBe("declined");
     expect(promptOfLastCall()).toContain(newQuestion.content);
+  });
+
+  test("the run that carries out a yes tells the model it is done, and the one after a no that nothing was done, so neither reply asks to confirm again", async () => {
+    const yes = await askToShareWithNulls();
+    scripted.script([{ text: "ส่งให้คุณกฤตแล้ว" }]);
+    await chatTurn(yes.message, { interruptId: yes.asked[0]?.id ?? "", approved: true });
+    expect(promptOfLastCall()).toContain(TH.harness.answeredYes("share_card"));
+    expect(promptOfLastCall()).not.toContain(TH.harness.answeredNo("share_card"));
+
+    const no = await askToShareWithNulls();
+    expect(promptOfLastCall()).not.toContain(TH.harness.answeredYes("share_card"));
+    scripted.script([{ text: "ยกเลิกแล้วครับ" }]);
+    await chatTurn(no.message, { interruptId: no.asked[0]?.id ?? "", approved: false });
+    expect(promptOfLastCall()).toContain(TH.harness.answeredNo("share_card"));
   });
 
   test("declined, it never sends", async () => {

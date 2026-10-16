@@ -8,7 +8,7 @@ import { checkpointRun, currentRun, emitTo, newRun, runWithRun, saveRun, type Ru
 import { TH } from "@/lib/i18n/th";
 import { toolTiers } from "@/lib/server/agent/tools";
 import { recordComposedCard, recordGuardFinding } from "@/lib/server/audit";
-import { currentAccess, runWithAccess, runWithTurn, type TurnContext } from "@/lib/server/request-context";
+import { currentAccess, runWithAccess, runWithTurn, type AnsweredApproval, type TurnContext } from "@/lib/server/request-context";
 import { threadForRun, threads } from "@/lib/server/threads-read";
 import { AGENT_ID, USER_ID_KEY, winyuAgent } from "./agent";
 import { HARNESS_RUN_KEY, tracingOptionsOf } from "./observability";
@@ -87,6 +87,13 @@ function answeredCalls(turn: ChatTurn): KnownCalls {
   }));
 }
 
+function answeredOf(turn: ChatTurn): AnsweredApproval[] {
+  return turn.answers.flatMap((answer) => {
+    const tool = askedTool(answer.interruptId);
+    return tool ? [{ tool, approved: answer.approved }] : [];
+  });
+}
+
 function started(run: Run, turn: ChatTurn): void {
   emitTo(run, "runtime", { type: "agent.started", payload: { goal: turn.goal, userId: run.userId, threadId: run.threadId } });
   for (const [toolCallId, tool] of answeredCalls(turn)) {
@@ -157,7 +164,7 @@ export async function streamRun(access: AccessContext, req: Request, run: Run, t
   const transcript = threadId ? () => threadTranscript(threadId, access.userId) : undefined;
   const cardOnScreen = threadId ? () => cardBeforeQuestion(threadId, access.userId, turn.question) : undefined;
   const carried = await carriedCalls(turn, access.userId);
-  const context: TurnContext = { turnId: run.id, threadId, preloadPacketId: turn.preloadPacketId, question: turn.question, queries: queriesOf(carried), transcript, cardOnScreen };
+  const context: TurnContext = { turnId: run.id, threadId, preloadPacketId: turn.preloadPacketId, question: turn.question, queries: queriesOf(carried), transcript, cardOnScreen, answered: answeredOf(turn) };
   if (guarded) runWithTurn(context, () => runWithRun(run, () => inputFindings(guarded).forEach((finding) => recordGuardFinding(finding, access.userId))));
   const records: ComposedCardRecord[] = [];
   const cards = replyCards((record) => records.push(record), carried);

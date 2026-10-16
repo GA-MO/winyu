@@ -71,6 +71,12 @@ export function unansweredOf(batch: readonly PendingApproval[], decisions: Reado
   return [...asked, ...stillHeld];
 }
 
+/** The turn times after a run ends: a run that only carries out the person's answer to an approval adds nothing, so the exchange keeps the time of the run that asked. */
+export function durationsAfter(current: Readonly<Record<string, number>>, exchangeId: string, took: number, answerOnly: boolean): Record<string, number> {
+  if (answerOnly) return { ...current };
+  return { ...current, [exchangeId]: (current[exchangeId] ?? 0) + took };
+}
+
 function declined(entry: Unanswered): ResumeEntry {
   return { interruptId: entry.interruptId, status: "resolved", payload: { approved: false } };
 }
@@ -90,6 +96,7 @@ export function useChatSession({ threadId, initialMessages, initialApprovals, pr
   batchRef.current = batch;
   const decisionsRef = useRef(decisions);
   decisionsRef.current = decisions;
+  const answeringRef = useRef(false);
 
   useEffect(() => {
     if (!isReady || restored) return;
@@ -100,10 +107,13 @@ export function useChatSession({ threadId, initialMessages, initialApprovals, pr
   useEffect(() => {
     let raised: PendingApproval[] = [];
     let startedAt: number | null = null;
+    let answerOnly = false;
     const subscription = agent.subscribe({
       onRunStartedEvent: () => {
         raised = [];
         startedAt = Date.now();
+        answerOnly = answeringRef.current;
+        answeringRef.current = false;
         setBatch([]);
       },
       onRunFinishedEvent: (params) => {
@@ -116,7 +126,8 @@ export function useChatSession({ threadId, initialMessages, initialApprovals, pr
         const exchangeId = lastQuestionId(agent.messages);
         if (startedAt !== null && exchangeId) {
           const took = Date.now() - startedAt;
-          setDurations((current) => ({ ...current, [exchangeId]: (current[exchangeId] ?? 0) + took }));
+          const answered = answerOnly;
+          setDurations((current) => durationsAfter(current, exchangeId, took, answered));
         }
         startedAt = null;
         const fresh = raised;
@@ -137,7 +148,10 @@ export function useChatSession({ threadId, initialMessages, initialApprovals, pr
     (resume?: ResumeEntry[]) => {
       setError(null);
       setStoppedExchangeId(null);
-      copilotkit.runAgent({ agent, forwardedProps, ...(resume ? { resume } : {}) }).catch((failure: unknown) => setError(messageOfError(failure)));
+      copilotkit.runAgent({ agent, forwardedProps, ...(resume ? { resume } : {}) }).catch((failure: unknown) => {
+        answeringRef.current = false;
+        setError(messageOfError(failure));
+      });
     },
     [agent, copilotkit, forwardedProps],
   );
@@ -171,6 +185,7 @@ export function useChatSession({ threadId, initialMessages, initialApprovals, pr
       if (!answered || agent.isRunning) return;
       setDecisions({ ...decisionsRef.current, [toolCallId]: approved });
       setBatch([]);
+      answeringRef.current = true;
       run([{ interruptId: answered.interruptId, status: "resolved", payload: { approved } }]);
     },
     [agent, run],
