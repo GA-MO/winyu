@@ -70,9 +70,15 @@ export function inflightRuns() {
   return collection<RunRecord>(INFLIGHT_COLLECTION);
 }
 
-/** The id of the person's run still going on one thread, if any: what a page opened mid-reply connects to. */
+/** The person's run still going on one thread, if any, and when it started (epoch ms): what a page opened mid-reply connects to and times the turn from. */
+export function liveRunOn(threadId: string, userId: string): { id: string; startedAt: number } | null {
+  const record = inflightRuns().where((entry) => entry.threadId === threadId && entry.userId === userId).sort((left, right) => right.startedAt.localeCompare(left.startedAt))[0];
+  return record ? { id: record.id, startedAt: Date.parse(record.startedAt) } : null;
+}
+
+/** The id of the person's run still going on one thread, if any. */
 export function inflightRunOn(threadId: string, userId: string): string | null {
-  return inflightRuns().where((record) => record.threadId === threadId && record.userId === userId).sort((left, right) => right.startedAt.localeCompare(left.startedAt))[0]?.id ?? null;
+  return liveRunOn(threadId, userId)?.id ?? null;
 }
 
 /** Writes a run that is still going to disk with its trace so far, so a restart can finish it with the whole trace. */

@@ -81,11 +81,19 @@ function declined(entry: Unanswered): ResumeEntry {
   return { interruptId: entry.interruptId, status: "resolved", payload: { approved: false } };
 }
 
+/** A run still replying when the page was opened, and when it started (epoch ms). */
+export type LiveRun = { id: string; startedAt: number };
+
+/** When a run the chat sees start began: the run the page joined after a reload started before the page did, so its turn is timed from its own start; any other run starts now. */
+export function runStartedAt(runId: string, live: LiveRun | null, now: number): number {
+  return live && live.id === runId ? live.startedAt : now;
+}
+
 /** What the page restored for one thread: the saved transcript, the approvals still open, and the run still replying when the page was opened (null when none). */
-export type RestoredThread = { threadId: string; initialMessages: readonly AgentMessage[]; initialApprovals: readonly PendingApproval[]; liveRunId: string | null };
+export type RestoredThread = { threadId: string; initialMessages: readonly AgentMessage[]; initialApprovals: readonly PendingApproval[]; liveRun: LiveRun | null };
 
 /** One thread's chat over the CopilotKit runtime: restores the saved transcript and joins a reply still running (a page reloaded mid-reply shows the question, the working state and the reply as it lands), sends questions and pressed buttons, answers approval interrupts (a question sent while one waits declines it, so the card reads not done and the new question runs), and stops a reply. */
-export function useChatSession({ threadId, initialMessages, initialApprovals, liveRunId }: RestoredThread): ChatSession {
+export function useChatSession({ threadId, initialMessages, initialApprovals, liveRun }: RestoredThread): ChatSession {
   const { copilotkit } = useCopilotKit();
   const { agent, isReady } = useAgent({ agentId: `${CHAT_AGENT_ID}:${threadId}`, runtimeAgentId: CHAT_AGENT_ID, threadId, updates: UPDATES, throttleMs: THROTTLE_MS });
   const [restored, setRestored] = useState(false);
@@ -100,6 +108,8 @@ export function useChatSession({ threadId, initialMessages, initialApprovals, li
   const decisionsRef = useRef(decisions);
   decisionsRef.current = decisions;
   const answeringRef = useRef(false);
+  const liveRunRef = useRef(liveRun);
+  liveRunRef.current = liveRun;
 
   useEffect(() => {
     if (!isReady || restored) return;
@@ -112,9 +122,9 @@ export function useChatSession({ threadId, initialMessages, initialApprovals, li
     let startedAt: number | null = null;
     let answerOnly = false;
     const subscription = agent.subscribe({
-      onRunStartedEvent: () => {
+      onRunStartedEvent: ({ event }) => {
         raised = [];
-        startedAt = Date.now();
+        startedAt = runStartedAt(event.runId, liveRunRef.current, Date.now());
         answerOnly = answeringRef.current;
         answeringRef.current = false;
         setBatch([]);
@@ -146,9 +156,9 @@ export function useChatSession({ threadId, initialMessages, initialApprovals, li
   }, [agent]);
 
   useEffect(() => {
-    if (!restored || !liveRunId) return;
-    agent.connectAgent({ runId: liveRunId }).catch((failure: unknown) => setError(messageOfError(failure)));
-  }, [agent, liveRunId, restored]);
+    if (!restored || !liveRun) return;
+    agent.connectAgent({ runId: liveRun.id }).catch((failure: unknown) => setError(messageOfError(failure)));
+  }, [agent, liveRun, restored]);
 
   const run = useCallback(
     (resume?: ResumeEntry[]) => {

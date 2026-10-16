@@ -14,7 +14,7 @@ import { ExchangeView, type ExchangeLive } from "./exchange-view";
 import { useFollowLatest } from "./follow-latest";
 import { answerChips } from "./follow-ups";
 import { requestedCoursesOf } from "./requested-courses";
-import { useChatSession, type AgentMessage, type PendingApproval } from "./use-chat-session";
+import { useChatSession, type AgentMessage, type LiveRun, type PendingApproval } from "./use-chat-session";
 
 const COLUMN = "mx-auto w-full max-w-3xl px-4 sm:px-6";
 const CARD_TOOLS: ReadonlySet<string> = new Set(Object.keys(TOOL_CARDS));
@@ -35,7 +35,7 @@ export type ChatSessionProps = {
   initialPrompt: string | null;
   initialMessages: AgentMessage[];
   initialApprovals: PendingApproval[];
-  liveRunId: string | null;
+  liveRun: LiveRun | null;
   preload: SessionPreload | null;
   suggestions: QuickAction[];
   placeholder: string;
@@ -80,8 +80,8 @@ function PreloadBanner({ preload }: { preload: SessionPreload }) {
 }
 
 /** The chat column for one thread: the transcript with its cards and decisions, follow-up chips, and the composer docked at the bottom. */
-export function ChatSession({ threadId, initialPrompt, initialMessages, initialApprovals, liveRunId, preload, suggestions, placeholder, toolLabels }: ChatSessionProps) {
-  const session = useChatSession({ threadId, initialMessages, initialApprovals, liveRunId });
+export function ChatSession({ threadId, initialPrompt, initialMessages, initialApprovals, liveRun, preload, suggestions, placeholder, toolLabels }: ChatSessionProps) {
+  const session = useChatSession({ threadId, initialMessages, initialApprovals, liveRun });
   const { exchanges, running, ready, send } = session;
   const [text, setText] = useState("");
   const sentInitial = useRef(false);

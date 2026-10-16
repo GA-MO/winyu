@@ -26,7 +26,8 @@ function nowText(entry: TrailEntry): string {
 }
 
 function pastText(entry: TrailEntry): string {
-  return entry.state === "failed" ? TH.trail.failed(entry.action.action) : TH.trail.done(entry.action.action);
+  const past = entry.state === "failed" ? TH.trail.failed(entry.action.action) : TH.trail.done(entry.action.action);
+  return [past, entry.action.detail].filter(Boolean).join(DETAIL_SEPARATOR);
 }
 
 function Mark({ state }: { state: TrailEntry["state"] }) {
@@ -98,9 +99,7 @@ function FinishedTrail({ trail, durationMs }: { trail: Trail; durationMs: number
         {trail.entries.map((entry) => (
           <li key={entry.id} className="flex items-start gap-2">
             <Mark state={entry.state} />
-            <span className="min-w-0 text-muted-foreground">
-              {[pastText(entry), entry.action.detail].filter(Boolean).join(DETAIL_SEPARATOR)}
-            </span>
+            <span className="min-w-0 text-muted-foreground">{pastText(entry)}</span>
           </li>
         ))}
       </ol>

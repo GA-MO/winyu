@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { ChatSession, type SessionPreload } from "@/components/chat/chat-session";
 import { findUser } from "@/lib/data/entities/users";
 import { openApprovalsOf, threadHistory } from "@/lib/harness/adapters/mastra/history";
-import { inflightRunOn } from "@/lib/harness/runtime";
+import { liveRunOn } from "@/lib/harness/runtime";
 import { TH } from "@/lib/i18n/th";
 import { quickActionsFor } from "@/lib/server/quick-actions";
 import { toolLabelsByName } from "@/lib/server/tools/registry";
@@ -40,7 +40,7 @@ export default async function ThreadPage({ params, searchParams }: PageProps) {
       initialPrompt={prompt ?? null}
       initialMessages={messages}
       initialApprovals={openApprovalsOf(messages, access.userId)}
-      liveRunId={inflightRunOn(thread.id, access.userId)}
+      liveRun={liveRunOn(thread.id, access.userId)}
       preload={preloadOf(thread.preload?.matterCode ?? null, access.userId)}
       suggestions={quickActionsFor(access)}
       placeholder={TH.landing.composerPlaceholderFor(access.role)}
