@@ -218,6 +218,16 @@ describe("a send about one agent on the region's card names that agent, and a cl
     expect(matterOf(kept)?.card).toEqual(total.card);
   });
 
+  test("a card that draws the region total with its agents (two reads paired) singles out the agent its second read shows (real-model run 800831b1)", async () => {
+    const totalRead = { tool: "query_metric", input: { period: "this_month", metric: "net_sales_value", dims: ["region"], compare: "target", filters: { region: "northeast" }, grain: "month", limit: 1 } };
+    const paired: ShareTarget = { card: { kind: "tool", reads: [totalRead, ...REGION_CARD.card.reads] }, question: REGION_CARD.question };
+    const ask = "เข้าไปติดตามสถานะคำสั่งซื้อและดูแลเอเย่นต์ขอนแก่นมหาชัยภายในสัปดาห์นี้";
+    const sent = await send({ to: ["u_krit"], ask, cardRef: onScreen(paired).ref }, "รับทราบ ส่งไปเลย", screenWith([paired], false, ["รับทราบ ส่งไปเลย", FALSE_CLAIM]), RSM);
+    const matter = matterOf(sent);
+    expect(matter?.title).toContain(AGENT);
+    expect(matter?.focus).toEqual([AGENT]);
+  });
+
   test("a deictic ask with no agent named takes the card's subject, and two sends of one card never share a title", async () => {
     const generic = "ช่วยตรวจสอบและติดตามเรื่องนี้ด่วน";
     const first = matterOf(await send({ to: ["u_anucha"], ask: generic }, `ส่งให้คุณอนุชา ${generic}`, screenWith([REGION_CARD])));
