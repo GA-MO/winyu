@@ -3,7 +3,7 @@ import { MastraAgent } from "@ag-ui/mastra";
 import { CopilotRuntime, InMemoryAgentRunner, createCopilotRuntimeHandler } from "@copilotkit/runtime/v2";
 import { RequestContext } from "@mastra/core/request-context";
 import { metricQuerySchema, type AccessContext, type Initiator, type MetricQuery } from "@/lib/contracts";
-import { askedTool, markAnswered, problemOf, recordAsked } from "@/lib/harness/approvals";
+import { askedTool, askedUnder, markAnswered, problemOf, recordAsked } from "@/lib/harness/approvals";
 import { checkpointRun, currentRun, emitTo, newRun, runWithRun, saveRun, type Run } from "@/lib/harness/runtime";
 import { TH } from "@/lib/i18n/th";
 import { toolTiers } from "@/lib/server/agent/tools";
@@ -29,6 +29,7 @@ const NOT_YOUR_THREAD = { error: "ไม่พบบทสนทนานี้"
 const NOT_SERVED = { error: "Not found" };
 const QUERY_TOOL = "query_metric";
 const MEMORY_TOOLS: ReadonlySet<string> = new Set(["remember", "forget"]);
+const RESUME_KEY = "resume";
 
 type Route = { kind: "info" } | { kind: "run" } | { kind: "connect" } | { kind: "stop"; threadId: string };
 
@@ -126,7 +127,7 @@ function ended(run: Run, turn: ChatTurn, context: TurnContext, seen: ReplySeen, 
   if (seen.results.length > 0) emitTo(run, "ui", { type: "ui.rendered", payload: { stepId: lastDecision(run).stepId, components: seen.results } });
   composed(run, turn, cards);
   for (const asked of seen.asked) {
-    recordAsked(asked.interruptId, run.userId, asked.toolCallId, asked.tool);
+    recordAsked(asked.interruptId, run.userId, asked.toolCallId, asked.tool, turn.messageId);
     emitTo(run, "runtime", { type: "approval.requested", payload: { toolCallId: asked.toolCallId, tool: asked.tool } });
   }
   if (seen.error) emitTo(run, "runtime", { type: "agent.failed", payload: { reason: seen.error } });
@@ -171,6 +172,18 @@ export async function streamRun(access: AccessContext, req: Request, run: Run, t
   }
 }
 
+function declinedByNewQuestion(turn: ChatTurn): boolean {
+  return turn.answers.length > 0 && turn.answers.every((answer) => {
+    const askedMessage = askedUnder(answer.interruptId);
+    return !answer.approved && askedMessage !== null && askedMessage !== turn.messageId;
+  });
+}
+
+function withoutAnswers(req: Request, input: RunInput): Request {
+  const asked = Object.fromEntries(Object.entries(input ?? {}).filter(([key]) => key !== RESUME_KEY));
+  return new Request(req.url, { method: "POST", headers: req.headers, body: JSON.stringify(asked) });
+}
+
 async function serveRun(access: AccessContext, req: Request, turn: ChatTurn, guarded: GuardedInput, options: ServeOptions): Promise<Response> {
   const run = newRun(access.userId, turn.threadId, { id: turn.runId, initiator: options.initiator ?? "person" });
   started(run, turn);
@@ -178,6 +191,7 @@ async function serveRun(access: AccessContext, req: Request, turn: ChatTurn, gua
   const spent = turn.answers.map((answer) => ({ answer, problem: problemOf(answer.interruptId, access.userId, answer.toolCallId) })).find((entry) => entry.problem !== null);
   if (spent) return refused(run, spent.answer.interruptId, spent.problem ?? "unknown");
   for (const answer of turn.answers) markAnswered(answer.interruptId, answer.approved);
+  if (declinedByNewQuestion(turn)) return streamRun(access, withoutAnswers(req, guarded.input), run, { ...turn, answers: [] }, options, guarded);
   return streamRun(access, req, run, turn, options, guarded);
 }
 
@@ -196,7 +210,7 @@ function isOthersThread(threadId: string | null, userId: string): boolean {
   return owner !== undefined && owner !== userId;
 }
 
-/** Serves one CopilotKit request for a signed-in person; no request reaches another person's thread. A run request is one harness run: started with its goal, the agent inside the person's access, turn and run, its trace saved when the reply ends. An approval splits a question into two runs that share the goal: the first ends asking, the second starts with the answer. */
+/** Serves one CopilotKit request for a signed-in person; no request reaches another person's thread. A run request is one harness run: started with its goal, the agent inside the person's access, turn and run, its trace saved when the reply ends. An approval splits a question into two runs that share the goal: the first ends asking, the second starts with the answer; a new question sent while the card waits declines it and runs as a question of its own. */
 export async function serveCopilot(access: AccessContext, req: Request, options: ServeOptions = LEARNING): Promise<Response> {
   const route = routeOf(req.method, new URL(req.url).pathname);
   if (!route) return Response.json(NOT_SERVED, { status: 404 });

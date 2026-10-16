@@ -1,4 +1,5 @@
 import { beforeAll, describe, expect, mock, setDefaultTimeout, test } from "bun:test";
+import type { ApprovalRecord } from "@/lib/harness/approvals";
 import { ScriptedModel } from "@/scripts/scripted-model";
 
 setDefaultTimeout(30_000);
@@ -11,6 +12,8 @@ const { findUser } = await import("@/lib/data/entities/users");
 const { liveAccessFor } = await import("@/lib/access/enforce");
 const { outbox } = await import("@/lib/server/agent/collections");
 const { shares } = await import("@/lib/server/share/shares");
+const { collection } = await import("@/lib/server/store/json-store");
+const { APPROVALS_COLLECTION } = await import("@/lib/harness/approvals");
 
 const RUN_URL = "http://localhost/api/copilotkit/agent/winyu/run";
 const THREAD = `approval-gate-${Date.now()}`;
@@ -39,6 +42,14 @@ async function chatTurn(message: Message, answer: { interruptId: string; approve
   const body = { threadId: THREAD, runId: crypto.randomUUID(), state: {}, messages: [{ ...message, role: "user" }], tools: [], context: [], forwardedProps: {}, ...resume };
   const request = new Request(RUN_URL, { method: "POST", headers: { "content-type": "application/json", accept: "text/event-stream" }, body: JSON.stringify(body) });
   return interruptsOf(await (await serveCopilot(ceo(), request, LEARNING)).text());
+}
+
+function approvals() {
+  return collection<ApprovalRecord>(APPROVALS_COLLECTION);
+}
+
+function promptOfLastCall(): string {
+  return JSON.stringify(scripted.model.doStreamCalls.at(-1)?.prompt ?? []);
 }
 
 type Effects = { shares: number; mails: number };
@@ -77,6 +88,18 @@ describe("a write the model calls with the nulls Gemini sends for optional field
     scripted.script([{ text: "ส่งให้คุณกฤตแล้ว" }]);
     await chatTurn(message, { interruptId: asked[0]?.id ?? "", approved: true });
     expect(effectsSince(before)).toEqual({ shares: 1, mails: 1 });
+  });
+
+  test("a new message sent while the card waits declines it: nothing is sent, the decline is recorded, and the model answers the new message", async () => {
+    const before = effects();
+    const { asked } = await askToShareWithNulls();
+    const interruptId = asked[0]?.id ?? "";
+    const newQuestion = { id: crypto.randomUUID(), content: "ไม่ต้องส่งแล้ว ขอยอดขายภาคเหนือแทน" };
+    scripted.script([{ text: "ยอดขายภาคเหนือเดือนนี้" }]);
+    await chatTurn(newQuestion, { interruptId, approved: false });
+    expect(effectsSince(before)).toEqual({ shares: 0, mails: 0 });
+    expect(approvals().get(interruptId)?.status).toBe("declined");
+    expect(promptOfLastCall()).toContain(newQuestion.content);
   });
 
   test("declined, it never sends", async () => {
