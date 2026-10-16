@@ -11,7 +11,7 @@ const ROUND =
   "flex size-9 items-center justify-center rounded-full border border-border bg-card text-muted-foreground shadow-card transition hover:-translate-y-0.5 hover:border-foreground/25 hover:text-foreground hover:shadow-lift focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
 /** No bar: the inbox bell and the person (opening the account sheet, which holds the theme) float at the top right. */
-export function AppChrome({ user, people }: { user: Persona; people: readonly Persona[] }) {
+export function AppChrome({ user }: { user: Persona }) {
   const [accountOpen, setAccountOpen] = useState(false);
   return (
     <>
@@ -23,7 +23,7 @@ export function AppChrome({ user, people }: { user: Persona; people: readonly Pe
           <Portrait name={user.nameTh} src={user.photo} className="size-9 text-sm ring-2 ring-card" />
         </button>
       </div>
-      <AccountSheet open={accountOpen} onClose={() => setAccountOpen(false)} user={user} people={people} />
+      <AccountSheet open={accountOpen} onClose={() => setAccountOpen(false)} user={user} />
     </>
   );
 }

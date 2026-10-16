@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, BellRing, LogOut, Mail, Moon, Shield, Sun, Trash2, X } from "lucide-react";
-import { ROLE_IDS, type MemoryFact, type WatchItem } from "@/lib/contracts";
+import type { MemoryFact, WatchItem } from "@/lib/contracts";
 import { isTrusted, lastSeenAt } from "@/lib/engine/memory-status";
 import type { Persona } from "@/lib/contracts/persona";
 import { TH } from "@/lib/i18n/th";
@@ -25,8 +25,8 @@ const SECTION = "flex flex-col gap-2 border-b border-border px-4 py-4";
 const CHOICE = "flex items-center gap-2 rounded-full border border-border px-3.5 py-1.5 text-xs transition hover:border-foreground/25";
 const LINK = "flex items-center justify-between gap-2 rounded-xl px-2.5 py-2 text-sm text-foreground transition hover:bg-muted";
 
-/** The account sheet: what the agent watches for the person, what it remembers, outbox, theme, the persona switch (demo mode passes `people`; SSO passes none), admin for IT, sign out. */
-export function AccountSheet({ open, onClose, user, people }: { open: boolean; onClose: () => void; user: Persona; people: readonly Persona[] }) {
+/** The account sheet: what the agent watches for the person, what it remembers, outbox, theme, admin for IT, sign out. People switch by signing out. */
+export function AccountSheet({ open, onClose, user }: { open: boolean; onClose: () => void; user: Persona }) {
   const router = useRouter();
   const { mode, setMode } = useTheme();
   const [pending, startTransition] = useTransition();
@@ -57,18 +57,6 @@ export function AccountSheet({ open, onClose, user, people }: { open: boolean; o
     [load],
   );
 
-  const switchTo = useCallback(
-    (userId: string) => {
-      startTransition(async () => {
-        await fetch(SESSION_ENDPOINT, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ userId }) });
-        onClose();
-        router.push("/");
-        router.refresh();
-      });
-    },
-    [onClose, router],
-  );
-
   const signOut = useCallback(() => {
     startTransition(async () => {
       await fetch(SESSION_ENDPOINT, { method: "DELETE" });
@@ -81,7 +69,6 @@ export function AccountSheet({ open, onClose, user, people }: { open: boolean; o
   const trusted = facts.filter(isTrusted);
   const learningCount = facts.length - trusted.length;
   const recent = [...trusted].sort((left, right) => lastSeenAt(right).localeCompare(lastSeenAt(left))).slice(0, RECENT_FACTS);
-  const byRole = ROLE_IDS.map((role) => ({ role, people: people.filter((person) => person.role === role) })).filter((group) => group.people.length > 0);
 
   return (
     <>
@@ -181,36 +168,6 @@ export function AccountSheet({ open, onClose, user, people }: { open: boolean; o
               </button>
             </div>
           </section>
-
-          {byRole.length > 0 ? <section className={SECTION}>
-            <h3 className="text-xs font-medium tracking-wide text-muted-foreground">{TH.account.persona}</h3>
-            {byRole.map((group) => (
-              <details key={group.role} className="group" open={group.role === user.role}>
-                <summary className="flex cursor-pointer items-center justify-between rounded-xl px-2.5 py-1.5 text-xs text-muted-foreground hover:bg-muted">
-                  {TH.role[group.role]}
-                  <span className="tabular-nums">{group.people.length}</span>
-                </summary>
-                <div className="mt-1 flex flex-col gap-1">
-                  {group.people.map((person) => (
-                    <button
-                      key={person.id}
-                      type="button"
-                      disabled={pending}
-                      onClick={() => switchTo(person.id)}
-                      aria-current={person.id === user.id}
-                      className={cn("flex items-center gap-2.5 rounded-xl px-2.5 py-1.5 text-left text-sm transition hover:bg-muted", person.id === user.id && "bg-bubble")}
-                    >
-                      <Portrait name={person.nameTh} src={person.photo} className="size-7 text-xs" />
-                      <span className="flex min-w-0 flex-col">
-                        <span className="truncate">{person.nameTh}</span>
-                        <span className="truncate text-xs text-muted-foreground">{person.title}</span>
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              </details>
-            ))}
-          </section> : null}
 
           <section className={SECTION}>
             <button type="button" onClick={signOut} disabled={pending} className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-danger hover:bg-muted">

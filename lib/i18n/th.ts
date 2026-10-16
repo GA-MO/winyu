@@ -760,7 +760,6 @@ export const TH = {
     theme: "ธีม",
     themeDark: "มืด",
     themeLight: "สว่าง",
-    persona: "สลับผู้ใช้ (โหมดสาธิต)",
     adminLink: "Admin console",
     signOut: "ออกจากระบบ",
   },
