@@ -1,6 +1,6 @@
-import { DIMS, REGIONS, type MemoryFact, type Region } from "@/lib/contracts";
+import { BUSINESS_UNITS, DIMS, REGIONS, type BusinessUnit, type MemoryFact, type Region } from "@/lib/contracts";
 import { BRAND_INFO } from "@/lib/data/entities/products";
-import { REGION_LABELS_TH } from "@/lib/data/entities/org";
+import { BUSINESS_UNIT_LABELS_TH, REGION_LABELS_TH } from "@/lib/data/entities/org";
 import { TH } from "@/lib/i18n/th";
 import { METRIC_LIST } from "@/lib/semantic/metrics";
 
@@ -26,7 +26,12 @@ const REGION_ALIASES: Record<Region, string[]> = {
   east: [],
   south: [],
 };
-const BREAKDOWN_PREFIXES = ["แยกตาม", "แยก", "ราย", "แต่ละ"];
+const BUSINESS_UNIT_ALIASES: Record<BusinessUnit, string[]> = {
+  beer: ["ธุรกิจเบียร์"],
+  non_alcohol: ["ธุรกิจนอนแอลกอฮอล์"],
+  import: ["ธุรกิจนำเข้า", "สินค้านำเข้า"],
+};
+const BREAKDOWN_PREFIXES =["แยกตาม", "แยก", "ราย", "แต่ละ"];
 const COMPARISONS: [string, string[]][] = [
   ["target", ["เทียบเป้า", "เทียบกับเป้า", "ต่อเป้า"]],
   ["prev_year", ["เทียบปีก่อน", "เทียบปีที่แล้ว", "เทียบปีก่อนหน้า"]],
@@ -42,6 +47,7 @@ function longestFirst(anchors: Anchor[]): Anchor[] {
 const SLICE_ANCHORS: Anchor[] = longestFirst([
   ...REGIONS.flatMap((region) => [REGION_LABELS_TH[region], ...REGION_ALIASES[region]].map((word) => ({ id: `region:${region}`, word: word.toLowerCase() }))),
   ...BRAND_INFO.flatMap((brand) => [brand.nameTh, brand.label, ...brand.nicknames].map((word) => ({ id: `brand:${brand.id}`, word: word.toLowerCase() }))),
+  ...BUSINESS_UNITS.flatMap((unit) => [BUSINESS_UNIT_LABELS_TH[unit], ...BUSINESS_UNIT_ALIASES[unit]].map((word) => ({ id: `unit:${unit}`, word }))),
   ...DIMS.flatMap((dim) => BREAKDOWN_PREFIXES.map((prefix) => ({ id: `by:${dim}`, word: `${prefix}${TH.dim[dim] ?? dim}`.toLowerCase() }))),
   ...COMPARISONS.flatMap(([id, words]) => words.map((word) => ({ id: `vs:${id}`, word }))),
 ]);
@@ -98,12 +104,12 @@ export function anchorsOf(value: string): Set<string> {
   return anchors;
 }
 
-/** Which slice of the business a fact is about: the regions and brands it names, what it breaks down by, and what it compares against. */
+/** Which slice of the business a fact is about: the regions, brands and business units it names, what it breaks down by, and what it compares against. */
 export function sliceOf(value: string): Set<string> {
   return found(value.toLowerCase(), SLICE_ANCHORS, "");
 }
 
-/** Whether two fact texts are about the same slice of the business: the same regions, brands, breakdowns and comparisons. */
+/** Whether two fact texts are about the same slice of the business: the same regions, brands, business units, breakdowns and comparisons. */
 export function sameSlice(left: string, right: string): boolean {
   const leftSlice = sliceOf(left);
   const rightSlice = sliceOf(right);

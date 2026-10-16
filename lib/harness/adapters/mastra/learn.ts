@@ -20,10 +20,10 @@ export async function latestReplyText(threadId: string, userId: string): Promise
     .join(PARAGRAPH);
 }
 
-/** Whether the turn asked for something it was refused or tried to instruct the model: what it asked for is not something the person follows, so memory does not learn from it. */
+/** Whether the turn asked for something it was refused, got only with its numbers hidden, or tried to instruct the model: what it asked for is not something the person follows, so memory does not learn from it. */
 export function refusedOrInjected(turn: Pick<FinishedTurn, "userId" | "turnId" | "question">): boolean {
   if (injectionIn(turn.question).length > 0) return true;
-  return auditLog().where((entry) => entry.turnId === turn.turnId && entry.userId === turn.userId).some((entry) => entry.decision === "deny");
+  return auditLog().where((entry) => entry.turnId === turn.turnId && entry.userId === turn.userId).some((entry) => entry.decision !== "allow");
 }
 
 /** Everything that happens after a finished turn: the thread is touched, memory learns from the question unless the turn was refused or carried an injection, and the question and its reply become findable for later conversations; a turn that told Winyu what to remember or forget only touches the thread, because the tool already did what it asked. */

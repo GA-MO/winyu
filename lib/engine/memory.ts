@@ -8,7 +8,7 @@ import { METRIC_LIST, METRICS } from "@/lib/semantic/metrics";
 import type { Dictionary, EntityKind } from "@/lib/semantic/dictionary";
 import { loadDictionary } from "@/lib/server/master-data";
 import { TH } from "@/lib/i18n/th";
-import { clusterFacts, findSameFact, isSameFact, sameSlice, similarity, sliceOf } from "./memory-match";
+import { anchorsOf, clusterFacts, findSameFact, isSameFact, sameSlice, similarity, sliceOf } from "./memory-match";
 import { planReview } from "./memory-review";
 import { CONFIDENCE_STEP, isExpired, isTrusted, KNOWN_CONFIDENCE, memoryStatus, memoryToday, SAID_CONFIDENCE, lastSeenAt, seenCount } from "./memory-status";
 
@@ -31,6 +31,12 @@ const FORGET_SIMILARITY = 0.5;
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 const FIGURE = /[0-9๐-๙]{2,}|[0-9๐-๙]\s*(?:%|ล้าน|พัน|หมื่น|แสน|บาท|ลิตร|เท่า)/;
 const DEFINES_WORD = /เรียก.{0,60}ว่า|หมายถึง|แปลว่า/;
+const STANDING_WISH = /ทุกครั้ง|ทุกที|เสมอ|ตลอด|ต่อไป|จากนี้|คราวหน้า/;
+const CLAIM_CHECK = /ใช่ไหม|ใช่มั้ย|ใช่หรือเปล่า|ใช่รึเปล่า|จริงไหม|จริงมั้ย|ยืนยัน/;
+const WHOLE_COMPANY = /ทั้งบริษัท|ทุกภาค|ทั้งประเทศ/;
+const PERSONAL_RECORDS = /โบนัส|ค่าตอบแทน|วันลา|การลา|ลาป่วย|ลาพักร้อน|ลากิจ/;
+const READS_PERSONAL_RECORDS: ReadonlySet<string> = new Set(["hr_manager"]);
+const METRIC_ANCHOR = "metric:";
 const SCOPED_TYPES: ReadonlySet<MemoryFactType> = new Set(["interest", "responsibility"]);
 const SCOPED_ANCHORS: readonly { prefix: string; scope: (access: AccessContext) => readonly string[] | "all" }[] = [
   { prefix: "region:", scope: (access) => access.regions },
@@ -454,13 +460,41 @@ export function rememberStated(userId: string, stated: Pick<Extracted, "type" | 
   return memoryFacts().put({ id: randomUUID(), userId, ...confirmed, sourceThreadId: threadId, createdAt: now, seen: 1, threads: threadId ? [threadId] : [] });
 }
 
-/** Whether a fact names a region or brand the person cannot see: an interest in data outside their scope is a refused ask, not something they follow. */
-export function namesOutsideScope(fact: Pick<Extracted, "type" | "value">, access: AccessContext): boolean {
-  if (!SCOPED_TYPES.has(fact.type)) return false;
+function namesHiddenSlice(fact: Pick<Extracted, "value">, access: AccessContext): boolean {
   const slice = [...sliceOf(fact.value)];
   return SCOPED_ANCHORS.some(({ prefix, scope }) => {
     const allowed = scope(access);
     return allowed !== "all" && slice.some((anchor) => anchor.startsWith(prefix) && !allowed.includes(anchor.slice(prefix.length)));
+  });
+}
+
+function namesHiddenMetric(fact: Pick<Extracted, "value">, access: AccessContext): boolean {
+  return [...anchorsOf(fact.value)].some((anchor) => anchor.startsWith(METRIC_ANCHOR) && access.metricAcl[anchor.slice(METRIC_ANCHOR.length) as MetricId] !== "full");
+}
+
+/** Whether an interest or responsibility is about data the person cannot fully read: a region or brand outside their scope, the whole company when they see part of it, a metric they see masked or not at all, or someone's bonus or leave record (HR only). Asking for it was refused or hidden, not something they follow. */
+export function namesOutsideScope(fact: Pick<Extracted, "type" | "value">, access: AccessContext): boolean {
+  if (!SCOPED_TYPES.has(fact.type)) return false;
+  if (namesHiddenSlice(fact, access)) return true;
+  if (access.regions !== "all" && WHOLE_COMPANY.test(fact.value)) return true;
+  if (PERSONAL_RECORDS.test(fact.value) && !READS_PERSONAL_RECORDS.has(access.role)) return true;
+  return namesHiddenMetric(fact, access);
+}
+
+/** Whether a question checks a figure someone claimed ("มาร์จินขึ้น 30% ใช่ไหม"): a probe of a claim, not a sign of what the person follows. */
+export function checksAClaim(prompt: string): boolean {
+  return holdsFigure(prompt) && CLAIM_CHECK.test(prompt);
+}
+
+/** What memory may learn from these questions: nothing from a claim check; vocabulary only when asked for or defined; a style only when asked for or wished for from now on ("ทุกครั้ง", "ต่อไป"), never from one request's wording; no interest or responsibility in data the person cannot fully read. */
+export function learnableFacts(extracted: readonly Extracted[], heard: readonly HeardTurn[], access: AccessContext | null): Extracted[] {
+  if (heard.some((turn) => checksAClaim(turn.prompt))) return [];
+  const definesWord = heard.some((turn) => DEFINES_WORD.test(turn.prompt));
+  const wishedFromNowOn = heard.some((turn) => STANDING_WISH.test(turn.prompt));
+  return extracted.filter((fact) => {
+    if (fact.type === "vocabulary") return fact.asked === true || definesWord;
+    if (fact.type === "style") return fact.asked === true || wishedFromNowOn;
+    return access === null || !namesOutsideScope(fact, access);
   });
 }
 
@@ -478,10 +512,7 @@ export async function rememberTurn(userId: string, turns: HeardTurn[], threadId:
   if (heard.length === 0) return [];
   const known = factsOf(userId).sort(keepOrder);
   const extracted = (await extractByModel(userId, heard, known)) ?? extractByRule(heard.map((turn) => turn.prompt), await loadDictionary());
-  const definesWord = heard.some((turn) => DEFINES_WORD.test(turn.prompt));
-  const access = await accessOfUser(userId);
-  const kept = extracted.filter((fact) => (fact.type !== "vocabulary" || fact.asked === true || definesWord) && !(access && namesOutsideScope(fact, access)));
-  return learnExtracted(userId, kept, threadId);
+  return learnExtracted(userId, learnableFacts(extracted, heard, await accessOfUser(userId)), threadId);
 }
 
 /** Saves what the extractor heard in one turn: a fact the user asked to be remembered is trusted at once, the rest waits to be heard again. */

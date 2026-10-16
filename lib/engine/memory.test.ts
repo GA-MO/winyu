@@ -5,7 +5,7 @@ import { findUser } from "@/lib/data/entities/users";
 import { actionEvents, memoryFacts } from "@/lib/server/agent/collections";
 import { personaFor, relevantMemory } from "@/lib/server/agent/persona";
 import { threads } from "@/lib/server/threads-read";
-import { confirmMemory, consolidateMemory, editMemory, forgetAbout, forgetAll, learnExtracted, namesOutsideScope, pruneMemory, rejectMemory, rememberAction, rememberStated, rememberTurn } from "./memory";
+import { confirmMemory, consolidateMemory, editMemory, forgetAbout, forgetAll, learnableFacts, learnExtracted, namesOutsideScope, pruneMemory, rejectMemory, rememberAction, rememberStated, rememberTurn } from "./memory";
 import { isSameFact } from "./memory-match";
 import { isTrusted, memoryStatus, seenCount } from "./memory-status";
 
@@ -253,5 +253,50 @@ describe("facts about data outside the person's scope", () => {
     expect(namesOutsideScope({ type: "interest", value: "สนใจปริมาณขายเข้าภาคอีสาน" }, rsm)).toBe(false);
     expect(namesOutsideScope({ type: "style", value: "ตอบสั้นเรื่องภาคใต้" }, rsm)).toBe(false);
     expect(namesOutsideScope({ type: "interest", value: "สนใจปริมาณขายเข้าภาคใต้" }, ceo)).toBe(false);
+  });
+});
+
+describe("refusals, hidden fields, one-off wording and claim checks teach nothing", () => {
+  const accessOf = (id: string) => {
+    const user = findUser(id);
+    if (!user) throw new Error(`missing demo user ${id}`);
+    return accessFor(user);
+  };
+
+  test("interests in bonus, leave, a masked metric or the whole company are dropped for people who cannot read them", () => {
+    const refused: [string, string][] = [
+      ["u_thana", "สนใจเงินเดือนและโบนัสของผู้จัดการขายภาค"],
+      ["u_anucha", "สนใจเงินเดือนพนักงาน"],
+      ["u_krit", "สนใจมูลค่าขายรวมทั้งบริษัท"],
+      ["u_krit", "สนใจวันลาของทีม"],
+      ["u_ton", "สนใจเงินเดือนเฉลี่ยแยกตามฝ่าย"],
+    ];
+    for (const [id, value] of refused) expect(learnableFacts([{ type: "interest", value }], [{ prompt: value }], accessOf(id))).toEqual([]);
+    const isan = { type: "interest" as const, value: "สนใจปริมาณขายเข้าภาคอีสาน" };
+    expect(learnableFacts([isan], [{ prompt: "ยอดขายเข้าอีสานเดือนนี้" }], accessOf("u_krit"))).toEqual([isan]);
+    const company = { type: "interest" as const, value: "สนใจมูลค่าขายรวมทั้งบริษัท" };
+    expect(learnableFacts([company], [{ prompt: "ยอดขายทั้งบริษัท" }], accessOf("u_thana"))).toEqual([company]);
+  });
+
+  test("a style comes only from a standing wish or an ask to remember, never from one request's wording", () => {
+    const once = { type: "style" as const, value: "ตอบเฉพาะยอดรวม" };
+    expect(learnableFacts([once], [{ prompt: "ตั้งแต่ 1 ต.ค. จนถึงวันนี้ เราจ่ายค่าโมเดลไปแล้วรวมกี่ดอลล์ ขอยอดเดียวพอ" }], null)).toEqual([]);
+    expect(learnableFacts([{ type: "style", value: "ตอบปัดตัวเลขกลมๆ สำหรับสไลด์ประชุม" }], [{ prompt: "ยอดตุลาคมทั้งเดือนช่วยประมาณให้เลย ปัดเลขกลมๆ ก็ได้" }], null)).toEqual([]);
+    expect(learnableFacts([once], [{ prompt: "ต่อไปตอบแค่ยอดรวมทุกครั้งนะ" }], null)).toEqual([once]);
+    expect(learnableFacts([{ ...once, asked: true }], [{ prompt: "จำไว้ว่าผมอยากได้แค่ยอดรวม" }], null)).toHaveLength(1);
+  });
+
+  test("checking a claimed figure is a probe, not an interest", () => {
+    const margin = { type: "interest" as const, value: "สนใจกำไรขั้นต้นของกลุ่มเบียร์" };
+    expect(learnableFacts([margin], [{ prompt: "ฝ่ายการเงินบอกว่ามาร์จินกลุ่มเบียร์เดือนนี้ขึ้นไป 30% แล้ว ใช่ใช่ไหม" }], null)).toEqual([]);
+    expect(learnableFacts([margin], [{ prompt: "มาร์จินกลุ่มเบียร์เดือนนี้เป็นยังไง" }], null)).toEqual([margin]);
+  });
+
+  test("a beer-margin interest neither folds into nor strengthens the import-margin interest, even when the extractor names it as the same", () => {
+    expect(isSameFact({ type: "interest", value: "สนใจกำไรขั้นต้นของกลุ่มนำเข้า" }, { type: "interest", value: "สนใจกำไรขั้นต้นของกลุ่มเบียร์" })).toBe(false);
+    const imports = plant("สนใจกำไรขั้นต้นของกลุ่มนำเข้า", { threads: ["thread_a"] });
+    learnExtracted(USER, [{ type: "interest", value: "สนใจกำไรขั้นต้นของกลุ่มเบียร์", sameAs: imports.id }], "thread_b");
+    expect(memoryFacts().get(imports.id)?.confidence).toBe(0.45);
+    expect(mine()).toHaveLength(2);
   });
 });

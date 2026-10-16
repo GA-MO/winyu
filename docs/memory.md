@@ -30,10 +30,15 @@ Since RC11 (2026-10-16) learning is stricter in four ways, each enforced in code
 
 Round 2 of testing (AI-74) found interests learned from asks that were refused. An RSM's denied requests for the north, the centre and the whole company became interests, and so did the south he asked for inside a `[SYSTEM]` block. Two more rules now apply, both in code:
 
-- **A refused or injected turn teaches nothing.** `learnFromTurn` skips extraction when the turn's audit holds a `deny` or the question carries an instruction aimed at the model (`refusedOrInjected` in `learn.ts`). The question still joins the behaviour log and recall.
-- **No interest outside scope.** `rememberTurn` drops an interest or responsibility that names a region or brand the person cannot see now (`namesOutsideScope` in `lib/engine/memory.ts`). This also covers a refusal the model gave without calling a tool, which leaves no `deny` row.
+- **A refused, masked or injected turn teaches nothing.** `learnFromTurn` skips extraction when the turn's audit holds a `deny` or a `masked` row, or the question carries an instruction aimed at the model (`refusedOrInjected` in `learn.ts`). The question still joins the behaviour log and recall.
+- **No interest outside what the person can read.** `rememberTurn` drops an interest or responsibility that names a region or brand the person cannot see, the whole company ("ทั้งบริษัท", "ทุกภาค") when they see part of it, a metric their role sees masked or not at all (pay is `avg_salary`), or someone's bonus or leave record, which only HR reads (`namesOutsideScope` in `lib/engine/memory.ts`). This also covers a refusal the model gave without calling a tool, and a refusal that only hides a field, such as pay or leave that `get_person` leaves out, neither of which leaves a `deny` row.
 
-A refusal that only hides a field (a manager asking for a report's pay, which `get_person` leaves out) leaves no `deny` row and names no region, so neither rule catches it yet.
+Round 3 (AI-111, AI-119) found two more leaks, now closed in `learnableFacts`:
+
+- **One request's wording is not a style.** A style fact is kept only when the person asked for it to be remembered or wished it from now on ("ทุกครั้ง", "ต่อไป", "จากนี้"). "ขอยอดเดียวพอ" on one question no longer becomes "ตอบเฉพาะยอดรวม".
+- **Checking a claimed figure teaches nothing.** A question that carries a figure and asks to confirm it ("มาร์จินกลุ่มเบียร์ขึ้น 30% ใช่ไหม") is a probe of a claim, not a sign of what the person follows.
+
+Business units are part of a fact's slice, so "กำไรขั้นต้นของกลุ่มเบียร์" and "กำไรขั้นต้นของกลุ่มนำเข้า" stay two facts even when the extractor names one as the other.
 
 Forgetting a word keeps the word, not its meaning. After "ลืมคำว่ายอดดัน", the persona lists the forgotten words, fenced as data, and tells the model to ask what such a word means instead of reading it the old way (`forgottenTerms` in `lib/engine/memory.ts`, AI-82). A word the semantic layer certifies as a metric label or synonym, such as "ขายเข้า", is left out, because it keeps its common meaning.
 

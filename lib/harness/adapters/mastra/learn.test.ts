@@ -92,6 +92,15 @@ describe("learnFromTurn", () => {
     auditLog().remove(denial);
   });
 
+  test("a turn whose numbers came back masked teaches memory nothing", async () => {
+    const asked = "ขอดูกำไรขั้นต้นรายภาคหน่อย";
+    const masked = `audit_${randomUUID()}`;
+    auditLog().put({ id: masked, at: new Date().toISOString(), userId: USER, tool: "query_metric", argsHash: "x", decision: "masked", rowsReturned: 6, latencyMs: 0, turnId: "run_learn_masked" });
+    await learnFromTurn({ userId: USER, threadId: THREAD, turnId: "run_learn_masked", question: asked, queries: [] });
+    auditLog().remove(masked);
+    expect(memoryFacts().where((fact) => fact.userId === USER)).toEqual([]);
+  });
+
   test("learning from a finished turn reuses the queries it ran and calls no tool", async () => {
     await openThread();
     await say("user", QUESTION);
