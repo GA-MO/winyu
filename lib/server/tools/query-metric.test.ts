@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { accessFor } from "@/lib/access/policies";
 import { METRIC_IDS, type MetricId, type MetricResult } from "@/lib/contracts";
-import { DATA_AS_OF, monthStart } from "@/lib/data/dates";
+import { DATA_AS_OF, monthEnd, monthStart } from "@/lib/data/dates";
 import { findUser } from "@/lib/data/entities/users";
 import { runWithAccess, runWithTurn } from "@/lib/server/request-context";
 import { ownAgentsFilter } from "@/lib/data/entities/agents";
@@ -63,19 +63,20 @@ describe("query_metric for a running month against target", () => {
     expect(tiles.get(TH.read.monthEnd)).toBe(projection.attainment);
   });
 
-  test("a breakdown in the running month leads with the share of the whole month's target and what is left, whatever it is split by; the rows keep the pace base by name (AI-101)", async () => {
+  test("a breakdown in the running month leads with the share of the whole month's target and what is left, whatever it is split by; the rows are on the same base, read against where the month should be by now (AI-101, AI-141)", async () => {
+    const elapsed = Number(DATA_AS_OF.slice(8)) / Number(monthEnd(DATA_AS_OF).slice(8));
     for (const [userId, dims] of [["u_krit", ["agent"]], ["u_thana", ["region"]]] as const) {
       const result = await askMonthToDate(userId, [...dims]);
       const projection = result.headline.projection;
       if (!projection) throw new Error("no projection");
       const card = presentCard({ title: "t", query: result.query, result });
-      const paced = `${Math.round((100 + (result.headline.deltaPercent ?? 0)) * 10) / 10}%`;
       expect(card.hero?.value).toBe(projection.attainmentToDate);
       expect(card.hero?.unit).toBe(TH.read.ofMonthTarget);
-      expect(card.hero?.detail).toBe([projection.shortBy ? `${TH.read.toTarget} ${projection.shortBy}` : null, TH.read.pacedShare(paced)].filter(Boolean).join(" · "));
+      expect(card.hero?.detail).toBe([TH.read.paceMark(`${Math.round(elapsed * 1000) / 10}%`), projection.shortBy ? `${TH.read.toTarget} ${projection.shortBy}` : null].filter(Boolean).join(" · "));
       if (card.body.kind !== "strip") throw new Error("not a strip");
       expect(card.body.strip.overall?.text).toBe(projection.attainmentToDate);
-      expect(card.body.strip.overall?.measure).toBeNull();
+      expect(card.body.strip.overall?.measure).toBe(Number(projection.attainmentToDate.replace("%", "")));
+      expect(card.body.strip.baseline).toBeCloseTo(elapsed * 100, 5);
       if (card.body.strip.rows.some((row) => row.tone === "bad")) expect(card.verdict).toContain(TH.read.pacedGoal);
     }
   });

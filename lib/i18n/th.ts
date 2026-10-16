@@ -758,7 +758,7 @@ export const TH = {
     base: { prev_period: "งวดก่อน", prev_year: "ปีก่อน" } as Partial<Record<string, string>>,
     ofPacedTarget: "ของเป้าตามเวลา",
     pacedTarget: "เทียบเป้าตามเวลา",
-    pacedShare: (attainment: string) => `ตามเวลา ${attainment}`,
+    paceMark: (share: string) => `ถึงวันนี้ควรได้ ${share}`,
     againstTarget: (value: string, target: string) => `${value} · เป้า ${target}`,
     goal: "เป้า",
     pacedGoal: "เป้าตามเวลา",

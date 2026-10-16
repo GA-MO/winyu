@@ -428,10 +428,14 @@ function targetUnitOf(query: MetricQuery, asOf: string): string {
 function paceNoteOf(query: MetricQuery, asOf: string): string | null {
   if (!isPacedTarget(query, asOf)) return null;
   const through = targetThrough(query, asOf);
-  const monthEnd = lastDayOfMonth(through);
   if (query.range.from > `${monthKeyOfIso(through)}-01`) return null;
-  const share = (Number(through.slice(8)) / Number(monthEnd.slice(8))) * PERCENT;
-  return TH.dash.paceTarget(formatDateTh(through), formatPercent(Math.round(share)));
+  return TH.dash.paceTarget(formatDateTh(through), formatPercent(Math.round(monthElapsedOf(query, asOf) * PERCENT)));
+}
+
+/** How much of the month the target is counted to, 0 to 1: the share of the whole month's target a month on pace has reached by now. */
+function monthElapsedOf(query: MetricQuery, asOf: string): number {
+  const through = targetThrough(query, asOf);
+  return Number(through.slice(8)) / Number(lastDayOfMonth(through).slice(8));
 }
 
 function joined(parts: readonly (string | null)[]): string | null {
@@ -663,7 +667,8 @@ function baseTotalOf(facts: Facts): string | null {
 /** What a breakdown's target figures are a share of, and the whole month's share and what is left to it, which lead the card when the month is still running (AI-101). */
 function targetBaseOf(facts: Facts): TargetBase {
   const projection = facts.result.headline.projection;
-  return { paced: isPacedTarget(facts.query, facts.result.provenance.asOf), month: projection ? { attainment: projection.attainmentToDate, left: projection.shortBy } : null };
+  const asOf = facts.result.provenance.asOf;
+  return { paced: isPacedTarget(facts.query, asOf), month: projection ? { attainment: projection.attainmentToDate, left: projection.shortBy, elapsed: monthElapsedOf(facts.query, asOf) } : null };
 }
 
 /** Rows a shared card still shows beside the ones it locks, ranked by value with a bar sized against the largest. */

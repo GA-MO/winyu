@@ -627,7 +627,7 @@ describe("a target breakdown led by the whole month", () => {
     const strip = stripOf(card.body);
     expect(strip.baseline).toBeCloseTo(100 * elapsed, 5);
     expect(strip.overall?.measure).toBeCloseTo(toDate, 5);
-    expect(strip.overall?.sub ?? "").not.toContain(TH.read.pacedShare(`${Math.round(paced * 10) / 10}%`));
+    expect(strip.overall?.sub ?? "").not.toContain(`${Math.round(paced * 10) / 10}%`);
     const byLabel = new Map(result.rows.map((row) => [String(row.agent), 100 + Number(row.delta_pct)]));
     expect(strip.rows.length).toBe(result.rows.length);
     strip.rows.forEach((row) => {

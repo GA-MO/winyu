@@ -77,8 +77,12 @@ export function percentIn(text: string): number | null {
   return Number(trimmed.replace("−", "-").replace(/[,%]/g, ""));
 }
 
-/** What a breakdown's target figures are a share of: the target to date in a month still running ("ตามเวลา"), and the whole month's share done and what is left to it when the result carries them. */
-export type TargetBase = { paced: boolean; month: { attainment: string; left: string | null } | null };
+/** What a breakdown's target figures are a share of: the target to date in a month still running ("ตามเวลา"), and, when the result carries them, the whole month's share done, what is left to it and how much of the month has passed (0 to 1), which put every row on the whole month's base (AI-141). */
+export type TargetBase = { paced: boolean; month: { attainment: string; left: string | null; elapsed: number } | null };
+
+function scaled(value: number | null, scale: number): number | null {
+  return value === null ? null : value * scale;
+}
 
 /** What the decision table knows about one breakdown: its rows in the order asked, the bars it draws, the unit word, the overall row's label, whether the question set a threshold (R7), and what a target figure is a share of ("ของเป้าตามเวลา" in a month still running) with the whole month beside it, the base total a change ranking moved from, whether the line is read from above (the top of a capped ranking, or rows above a value), whether the list was cut by a limit, so its verdict speaks for the rows shown, never for every group, and the rows the question named. */
 export type BreakdownInput = { query: MetricQuery; result: OkResult; rows: MetricRow[]; bars: BreakdownBars; unit: string; scope: string; threshold: boolean; additive: boolean; falling: boolean; target: TargetBase; baseTotal: string | null; high: boolean; capped: boolean; asked: ReadonlySet<string> };
@@ -175,17 +179,20 @@ function lineReading(input: BreakdownInput, line: LevelLine): Breakdown {
   const { query, result } = input;
   if (input.high && line.line.kind === "cover") return aboveLineReading(input, line);
   const overTarget = query.compare === "target" && query.metric !== "target_attainment";
-  const measureOf = (row: MetricRow) => (overTarget ? attainmentOf(row) : numericOf(row, "value"));
   const overTime = timeDimOf(query) !== null;
+  const ofTarget = line.line.kind === "target";
+  const month = ofTarget && overTarget && !overTime ? input.target.month : null;
+  const scale = month?.elapsed ?? 1;
+  const at = line.at * scale;
+  const measureOf = (row: MetricRow) => (overTarget ? scaled(attainmentOf(row), scale) : numericOf(row, "value"));
   const measured = input.rows.map((row) => ({ row, measure: measureOf(row) }));
   const scored = overTime ? measured : measured.sort((left, right) => (left.measure ?? Infinity) - (right.measure ?? Infinity));
-  const under = scored.filter((entry) => entry.measure !== null && entry.measure < line.at).sort((left, right) => (left.measure ?? 0) - (right.measure ?? 0));
+  const under = scored.filter((entry) => entry.measure !== null && entry.measure < at).sort((left, right) => (left.measure ?? 0) - (right.measure ?? 0));
   const answer = line.line.kind === "cover" && under.length === 0 && !input.threshold ? scored[0] : null;
-  const peak = Math.max(line.at, ...scored.map((entry) => entry.measure ?? 0));
-  const ofTarget = line.line.kind === "target";
+  const peak = Math.max(at, ...scored.map((entry) => entry.measure ?? 0));
   const textOf = (entry: { row: MetricRow; measure: number | null }) => (overTarget ? (entry.measure === null ? "—" : percentText(entry.measure)) : valueTextOf(query, entry.row));
   const rows: ReadRow[] = scored.map((entry, index) => {
-    const isUnder = entry.measure !== null && entry.measure < line.at;
+    const isUnder = entry.measure !== null && entry.measure < at;
     const emphasised = isUnder || entry === answer;
     return {
       label: labelOf(query, entry.row),
@@ -208,11 +215,11 @@ function lineReading(input: BreakdownInput, line: LevelLine): Breakdown {
   const format = overTarget ? percentText : (value: number) => formatMetricValue(query.metric, value);
   const fold = foldLine(input.unit, () => line.aboveWords, measuresOf, format);
   const goalUnit = input.target.paced ? TH.read.ofPacedTarget : TH.read.ofTarget;
-  const month = ofTarget && overTarget && input.target.month ? { attainment: input.target.month.attainment, detail: joinedText([input.target.month.left ? `${TH.read.toTarget} ${input.target.month.left}` : null, TH.read.pacedShare(overallText)]) } : null;
+  const monthDetail = month ? joinedText([TH.read.paceMark(percentText(at)), month.left ? `${TH.read.toTarget} ${month.left}` : null]) : null;
   if (input.threshold) {
     return {
       form: "line",
-      baseline: line.at,
+      baseline: at,
       overall: null,
       rows,
       verdict: thresholdVerdict(count, of, input.unit, line.underLabel),
@@ -225,8 +232,8 @@ function lineReading(input: BreakdownInput, line: LevelLine): Breakdown {
   const change = overTarget ? { delta: formatDelta(result.headline.deltaPercent), trend: directionOf(result.headline.deltaPercent), tone: overallTone } : headlineMove(query, result);
   return {
     form: "line",
-    baseline: line.at,
-    overall: overTime ? null : month ? { label: input.scope, sub: joinedText([TH.read.ofMonthTarget, month.detail]), measure: null, fill: 0, text: month.attainment, change: null, tone: overallTone, exception: true, valued: true } : { label: input.scope, sub: ofTarget ? goalUnit : null, measure: overallMeasure, fill: 0, text: overallText, change: null, tone: overallTone, exception: true, valued: true },
+    baseline: at,
+    overall: overTime ? null : month ? { label: input.scope, sub: joinedText([TH.read.ofMonthTarget, monthDetail]), measure: percentIn(month.attainment), fill: 0, text: month.attainment, change: null, tone: overallTone, exception: true, valued: true } : { label: input.scope, sub: ofTarget ? goalUnit : null, measure: overallMeasure, fill: 0, text: overallText, change: null, tone: overallTone, exception: true, valued: true },
     rows,
     verdict: lineVerdict({
       line: line.line,
@@ -241,7 +248,7 @@ function lineReading(input: BreakdownInput, line: LevelLine): Breakdown {
       slice: input.capped && !result.headline.underLine ? TH.read.shown(rows.length, input.unit) : null,
     }),
     hero: month
-      ? { label: input.scope, value: month.attainment, unit: TH.read.ofMonthTarget, delta: null, trend: overallUnder ? "down" : "neutral", tone: overallTone, detail: month.detail }
+      ? { label: input.scope, value: month.attainment, unit: TH.read.ofMonthTarget, delta: null, trend: overallUnder ? "down" : "neutral", tone: overallTone, detail: monthDetail }
       : { label: input.scope, value: overallText, unit: ofTarget ? goalUnit : null, delta: change.delta, trend: change.trend, tone: ofTarget ? overallTone : change.tone, detail: ofTarget ? null : result.headline.compareLabel },
     lead: null,
     pickWhenNone: 0,
