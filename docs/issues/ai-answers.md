@@ -1249,36 +1249,36 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 | AI-98 | กลาง | แก้แล้ว `0453194` | The Audit activity chip keeps stale rows from the All list, including users' typed questions, and logs duplicate React keys |
 | AI-99 | กลาง | เปิด (ใหม่) | A reload during a run makes the turn look lost until a second reload |
 | AI-100 (เดิม AI-63) | กลาง | แก้แล้ว `d5e99b8` | Lookup cards are drawn on refusals and sends (HR profiles, owner cards with a send button, the CEO master-data record) |
-| AI-101 (เดิม AI-53) | กลาง | เปิด (ใหม่) | The month-to-date attainment hero shows the pace figure (87.9%) when the question asks for % of the full-month target |
-| AI-102 (เดิม AI-53) | กลาง | เปิด (ใหม่) | 'ขาดอีก 900,000 ลิตร' is computed from rounded labels; the real gap is about 930,600 L |
-| AI-103 | กลาง | เปิด (ใหม่) | Target-gap breakdowns sorted by delta use the change wording: 'ยอดหาย' for a shortfall against target |
-| AI-104 (เดิม AI-30) | กลาง | เปิด (ใหม่) | The CEO's risk answer contradicts its cards (South AR 'เพิ่มขึ้นเทียบปีก่อน' beside a card showing South −7.5% MoM) |
-| AI-105 (เดิม AI-30) | กลาง | เปิด (ใหม่) | The verdict 'ทุก SKU ลดลงใกล้กัน 43.9–48.9%' is drawn over a top-10-worst slice whose total is −30.7% |
-| AI-106 | กลาง | เปิด (ใหม่) | The Sep-claim card sums two months as its hero, ranks one province against itself, and shows no target |
-| AI-107 (เดิม AI-69) | กลาง | ยังเสีย | Margin cards do not show the group the question names (import, beer) |
-| AI-108 (เดิม AI-32) | กลาง | ยังเสีย | The board question on company October sales is answered in litres, not baht |
-| AI-109 (เดิม AI-84) | กลาง | เปิด (ใหม่) | The leave card shows only days remaining; days used are dropped, though the text says the card shows them |
-| AI-110 (เดิม AI-26) | กลาง | ยังเสีย | Stock questions go unanswered: 'no stock data' for overstock, and the agent's DC cover is never fetched |
+| AI-101 (เดิม AI-53) | กลาง | แก้แล้ว | The month-to-date attainment hero shows the pace figure (87.9%) when the question asks for % of the full-month target |
+| AI-102 (เดิม AI-53) | กลาง | แก้แล้ว | 'ขาดอีก 900,000 ลิตร' is computed from rounded labels; the real gap is about 930,600 L |
+| AI-103 | กลาง | แก้แล้ว | Target-gap breakdowns sorted by delta use the change wording: 'ยอดหาย' for a shortfall against target |
+| AI-104 (เดิม AI-30) | กลาง | รอยืนยันกับโมเดล | The CEO's risk answer contradicts its cards (South AR 'เพิ่มขึ้นเทียบปีก่อน' beside a card showing South −7.5% MoM) |
+| AI-105 (เดิม AI-30) | กลาง | แก้แล้ว | The verdict 'ทุก SKU ลดลงใกล้กัน 43.9–48.9%' is drawn over a top-10-worst slice whose total is −30.7% |
+| AI-106 | กลาง | แก้แล้ว | The Sep-claim card sums two months as its hero, ranks one province against itself, and shows no target |
+| AI-107 (เดิม AI-69) | กลาง | แก้แล้ว | Margin cards do not show the group the question names (import, beer) |
+| AI-108 (เดิม AI-32) | กลาง | รอยืนยันกับโมเดล | The board question on company October sales is answered in litres, not baht |
+| AI-109 (เดิม AI-84) | กลาง | แก้แล้ว | The leave card shows only days remaining; days used are dropped, though the text says the card shows them |
+| AI-110 (เดิม AI-26) | กลาง | รอยืนยันกับโมเดล | Stock questions go unanswered: 'no stock data' for overstock, and the agent's DC cover is never fetched |
 | AI-111 (เดิม AI-74) | กลาง | แก้แล้ว `be92dc9` | Memory learns interests and styles from refused requests and one-off wording |
 | AI-112 (เดิม AI-64) | กลาง | ยังเสีย | Turns over 40 s spent in unbounded Gemini reasoning |
-| AI-113 (เดิม AI-53) | ต่ำ | เปิด (ใหม่) | The share warning quotes the pro-rated % beside a card whose hero is the full-month % |
-| AI-114 (เดิม AI-68) | ต่ำ | เปิด (ใหม่) | YoY comparison tile labelled 'งวดก่อน' |
+| AI-113 (เดิม AI-53) | ต่ำ | แก้แล้ว | The share warning quotes the pro-rated % beside a card whose hero is the full-month % |
+| AI-114 (เดิม AI-68) | ต่ำ | แก้แล้ว | YoY comparison tile labelled 'งวดก่อน' |
 | AI-115 (เดิม AI-77) | ต่ำ | แก้แล้ว `ac7375d` | The company-wide card's send button targets the Isan RSM |
 | AI-116 | ต่ำ | เปิด (ใหม่) | The busy indicator ends while text is still streaming |
 | AI-117 (เดิม AI-89) | ต่ำ | ยังเสีย | After an approval, the RSM chat jumped back to the top |
 | AI-118 (เดิม AI-89) | ต่ำ | เปิด (ใหม่) | The share success toast never dismisses and covers the composer's send button |
 | AI-119 (เดิม AI-43) | ต่ำ | แก้แล้ว `be92dc9` | Memory folds a beer-margin claim into the import-margin interest and promotes it to known |
 | AI-120 (เดิม AI-14) | ต่ำ | แก้แล้ว `8976662` | Urgency ignores the deadline the sender wrote |
-| AI-121 (เดิม AI-78) | ต่ำ | ยังเสีย | English terms reach Thai users (MoM/YoY, metric names, 'None'/'Masked') |
-| AI-122 (เดิม AI-66) | ต่ำ | เปิด (ใหม่) | The RSM region-vs-agent question draws two cards repeating the same total |
+| AI-121 (เดิม AI-78) | ต่ำ | รอยืนยันกับโมเดล | English terms reach Thai users (MoM/YoY, metric names, 'None'/'Masked') |
+| AI-122 (เดิม AI-66) | ต่ำ | แก้แล้ว | The RSM region-vs-agent question draws two cards repeating the same total |
 | AI-123 | ต่ำ | เปิด (ใหม่) | Follow-up chips are duplicated or off-scope |
-| AI-124 | ต่ำ | เปิด (ใหม่) | The board summary shows margin only as a subtitle, without its YoY change |
-| AI-125 (เดิม AI-21) | ต่ำ | ยังเสีย | Masked replies use jargon, state data coverage for hidden numbers, and offer chips into hidden data |
+| AI-124 | ต่ำ | แก้แล้ว | The board summary shows margin only as a subtitle, without its YoY change |
+| AI-125 (เดิม AI-21) | ต่ำ | รอยืนยันกับโมเดล | Masked replies use jargon, state data coverage for hidden numbers, and offer chips into hidden data |
 | AI-126 (เดิม AI-12) | ต่ำ | แก้แล้ว `475582d` | The first set_permission approval does not name the tool |
 | AI-127 (เดิม AI-91) | ต่ำ | แก้แล้ว `1dccafc` | คืนค่า reverts a 6-person override in one tap, with no confirmation or undo |
 | AI-128 (เดิม AI-92) | ต่ำ | แก้แล้วบางส่วน `b3048cc` | The admin answer offers to loosen access after listing hidden items |
 | AI-129 (เดิม AI-86) | ต่ำ | แก้แล้ว `730d618` | The cross-region refusal gives no way to request access; the lapsed-grant premise is not in the data |
-| AI-130 (เดิม AI-23) | ต่ำ | เปิด (ใหม่) | 'ทำไมตกอะ' after a −10.5% baht week is explained by one agent's litre anomaly |
+| AI-130 (เดิม AI-23) | ต่ำ | รอยืนยันกับโมเดล | 'ทำไมตกอะ' after a −10.5% baht week is explained by one agent's litre anomaly |
 | AI-131 | ต่ำ | เปิด (ใหม่) | The run sheet no longer matches the product |
 | AI-52 | สูง | แก้แล้ว (ยืนยันรอบ 3) | Every write asks first; declines run nothing |
 | AI-53 | สูง | แก้แล้ว (ยืนยันรอบ 3) | Month-to-date attainment uses one base in the text and the card |
@@ -1399,7 +1399,8 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-101. The month-to-date attainment hero shows the pace figure (87.9%) when the question asks for % of the full-month target
 
-- **สถานะ:** เปิด (ใหม่) · เดิม AI-53
+- **สถานะ:** แก้แล้ว `fe32615` · เดิม AI-53
+- **ที่แก้:** การ์ดเทียบเป้าแยกกลุ่มในเดือนที่ยังไม่จบนำด้วยสัดส่วนของเป้าทั้งเดือนและยอดที่ขาด (เช่น 76.2% ของเป้าทั้งเดือน · ขาดอีก 0.93 ล้านลิตร · ตามเวลา 87.9%) ไม่ว่าแยกตามอะไร แถวยังเทียบเป้าตามเวลาและหัวการ์ดบอกว่า "เป้าตามเวลา" (`lib/cards/breakdown.ts` lineReading, `lib/cards/present.ts` targetBaseOf; test ใน `lib/server/tools/query-metric.test.ts`) · ข้อความตอบยังไม่ทวนตัวเลข เพราะกฎ prompt ห้ามทวนหัวเลขของการ์ด
 - **ระดับ:** กลาง · **หมวด:** `card-fit` · **บทบาท:** พนักงานขาย u_krit
 - **อาการ:** Both fresh-chat wordings ('กี่เปอร์เซ็นต์ของเป้าทั้งเดือน… อีกกี่ลิตร') drew the agent-ranking card with the hero 87.9% ของเป้าตามเวลา. The answer, 76.2% and the litres left, was in small subtitle text, and the reply text stated no number. As a follow-up with dims [month], the meter showed 76.2% first.
 - **ที่ควรเป็น:** When the question names the full-month target, the hero is '76.2% ของเป้าทั้งเดือน · ขาดอีก … ลิตร' whatever dims the model chose, and the text states both numbers.
@@ -1411,7 +1412,8 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-102. 'ขาดอีก 900,000 ลิตร' is computed from rounded labels; the real gap is about 930,600 L
 
-- **สถานะ:** เปิด (ใหม่) · เดิม AI-53
+- **สถานะ:** แก้แล้ว `a6caaec, 3fd0f19` · เดิม AI-53
+- **ที่แก้:** ยอดที่ขาดคิดจากเป้าและยอดจริงที่ไม่ปัด แล้วพิมพ์ครั้งเดียวตามสเกลของเป้า (0.93 ล้านลิตร, 297.1 ล้านบาท) (`lib/semantic/engine.ts` formatGapForSummary, `lib/server/metrics.ts`; test ใน `lib/server/metrics.test.ts`)
 - **ระดับ:** กลาง · **หมวด:** `wrong-number` · **บทบาท:** พนักงานขาย u_krit
 - **อาการ:** Every target answer says 900,000 L left. From the rows, the month target is about 3,904,913 L and the gap about 930,635 L. The printed figure is about 3.3% short and is written with full digits, as if exact.
 - **ที่ควรเป็น:** The gap is computed from unrounded values and printed at the precision of the other labels (for example '0.93 ล้านลิตร').
@@ -1421,7 +1423,8 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-103. Target-gap breakdowns sorted by delta use the change wording: 'ยอดหาย' for a shortfall against target
 
-- **สถานะ:** เปิด (ใหม่)
+- **สถานะ:** แก้แล้ว `fe32615, 91dbd44`
+- **ที่แก้:** compare=target วาดด้วย R3 ก่อนกฎการเปลี่ยนแปลง แม้เรียงตาม delta คำว่า ยอดหาย/ยอดเพิ่ม ใช้กับ prev_period และ prev_year เท่านั้น และชื่อแถวสองมิติขึ้นบรรทัดที่สองบนมือถือ (`lib/cards/present.ts` CARD_RULES, `lib/cards/breakdown.ts`, `components/cards/charts/strip.tsx`)
 - **ระดับ:** กลาง · **หมวด:** `card-quality` · **บทบาท:** CEO u_thana
 - **อาการ:** s1t3 (agent×province, compare target) headline: '2 รายการยอดหายเกือบครึ่ง', with the hero −12.7% and no base shown. n3 sent the RSM a card saying '2 จังหวัดยอดหายกว่า 16%', while the text gave 77.3% of the full-month target and 96.4 ล้านบาท short, neither of which is on the card. Two rows had no value, and on a phone the province name was cut off.
 - **ที่ควรเป็น:** compare=target is drawn by R3: '% ของเป้า' against the 100% line, with the base named. 'ยอดหาย' is used only for prev_period and prev_year.
@@ -1433,7 +1436,8 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-104. The CEO's risk answer contradicts its cards (South AR 'เพิ่มขึ้นเทียบปีก่อน' beside a card showing South −7.5% MoM)
 
-- **สถานะ:** เปิด (ใหม่) · เดิม AI-30
+- **สถานะ:** รอยืนยันกับโมเดล `c8db821, 71e926e` · เดิม AI-30
+- **ที่แก้:** การ์ดแยกกลุ่มบอกฐานเทียบที่แถวรวม (เช่น "เทียบช่วงก่อนหน้า") และ prompt สั่งให้ข้อความใช้ช่วงกับฐานเทียบเดียวกับการ์ด บอกช่วงของ alert และไม่ยกรายการที่ผู้ใช้ตัดออก (`lib/cards/breakdown.ts`, `lib/server/agent/persona.ts`) ยังต้องวัดกับโมเดล
 - **ระดับ:** กลาง · **หมวด:** `wrong-answer` · **บทบาท:** CEO u_thana
 - **อาการ:** s1t6 names ภาคใต้ as the AR risk from an October alert (2.1× of last year), while the November AR card shows ภาคใต้ −7.5% with อีสาน on top. 3 of the first 4 anomaly rows were อีสาน, which the user had excluded. The import-margin argument used the company average.
 - **ที่ควรเป็น:** The text cites only what the cards show, with the period and base named, and leaves out the excluded region.
@@ -1444,7 +1448,8 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-105. The verdict 'ทุก SKU ลดลงใกล้กัน 43.9–48.9%' is drawn over a top-10-worst slice whose total is −30.7%
 
-- **สถานะ:** เปิด (ใหม่) · เดิม AI-30
+- **สถานะ:** แก้แล้ว `9faebdf` · เดิม AI-30
+- **ที่แก้:** ข้อสรุปของรายการที่ถูกตัดด้วย limit บอกว่าเป็นส่วนหนึ่ง ("10 SKU ที่ลดลงมากสุด ลดลง 43.9–48.9%", "10 SKU ที่แสดงต่ำกว่าเป้าตามเวลา") ไม่ใช้คำว่า ทุก (`lib/cards/reading.ts`, `lib/cards/breakdown.ts`) · เรื่องเล่าตอนเช้าที่เขียนว่าหนักสุดที่ลีโอขวดเป็นข้อความของโมเดล ยังไม่ได้แก้
 - **ระดับ:** กลาง · **หมวด:** `card-quality` · **บทบาท:** CEO u_thana (chain step 6)
 - **อาการ:** The ถามต่อ card leads with −30.7% across all SKUs and says every SKU fell 43.9–48.9%, but its rows are only the 10 worst. The story says 'หนักสุดที่ลีโอขวด', while the worst row is ลีโอ กระป๋อง 490 มล. (−48.9%).
 - **ที่ควรเป็น:** The verdict names the slice ('10 SKU ที่ตกมากสุด…') when rows are limited, and the story agrees with the card's worst row.
@@ -1455,7 +1460,8 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-106. The Sep-claim card sums two months as its hero, ranks one province against itself, and shows no target
 
-- **สถานะ:** เปิด (ใหม่)
+- **สถานะ:** แก้แล้ว `b1400dc, e70960d`
+- **ที่แก้:** มิติที่คำถามกรองเหลือค่าเดียวถูกตัดออกจากการแยก ช่วงสองเดือนเทียบเป้าวาดเป็นแถวรายเดือนเรียงตามเวลา แต่ละเดือนมียอดจริงและเป้า ไม่มีแถวรวมสองเดือน และ "ใหญ่สุดทั้งช่วง" ต้องมีอย่างน้อยสองกลุ่ม (`lib/cards/present.ts` withoutPinnedGroups, `lib/cards/breakdown.ts`)
 - **ระดับ:** กลาง · **หมวด:** `card-fit` · **บทบาท:** พนักงานขาย u_krit
 - **อาการ:** 'กันยาขอนแก่นทำได้ 2.5 ล้านลิตร เกินเป้าไหม' drew the hero 3.5 ล้านลิตร −5.2% (Sep+Oct) and 'ขอนแก่นใหญ่สุดทั้งช่วง'. Neither the card nor the text gives September's figure or its target. Round 2 passed this turn.
 - **ที่ควรเป็น:** R1/R2: a per-month value/target meter for ขอนแก่น, with September first.
@@ -1465,7 +1471,8 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-107. Margin cards do not show the group the question names (import, beer)
 
-- **สถานะ:** ยังเสีย · เดิม AI-69
+- **สถานะ:** แก้แล้ว `a64ba95` · เดิม AI-69
+- **ที่แก้:** `query_metric` จดแถวที่คำถามเอ่ยชื่อไว้ใน `headline.asked` การ์ดวาดแถวนั้นพร้อมค่าและการเปลี่ยนแปลง และข้อสรุปพูดถึงแถวนั้น ("กลุ่มเบียร์ 25.7%", "กลุ่มนำเข้าเพิ่มขึ้น 0.6 จุด เทียบช่วงก่อนหน้า") (`lib/cards/asked.ts`, `lib/cards/breakdown.ts`)
 - **ระดับ:** กลาง · **หมวด:** `card-fit` · **บทบาท:** CEO u_thana
 - **อาการ:** s1t6 and s3t5 (import) and n2 (beer) show the company average 27.3% as the hero, with a headline about non-alcoholic. Under style B the beer row (25.7%) has no value and the import row shows no change.
 - **ที่ควรเป็น:** The row the question names is the hero, or is drawn with its value and change.
@@ -1476,7 +1483,8 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-108. The board question on company October sales is answered in litres, not baht
 
-- **สถานะ:** ยังเสีย · เดิม AI-32
+- **สถานะ:** รอยืนยันกับโมเดล `71e926e` · เดิม AI-32
+- **ที่แก้:** prompt: "ยอดขาย" ที่ไม่บอกหน่วย = มูลค่า (`net_sales_value`) โดยเฉพาะภาพรวมบริษัทและเรื่องสำหรับบอร์ด ใช้ปริมาณเมื่อพูดถึงลิตรหรือลัง และคำเดิมในบทสนทนาเดียวกันใช้ metric เดิม (`lib/server/agent/persona.ts`)
 - **ระดับ:** กลาง · **หมวด:** `card-fit` · **บทบาท:** CEO u_thana
 - **อาการ:** s3t4 (for a board slide) used net_sales_volume, while other CEO turns used net_sales_value for 'ยอดขาย'.
 - **ที่ควรเป็น:** The same word maps to the same metric for one user (baht for a board slide), or the agent asks which one.
@@ -1486,7 +1494,8 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-109. The leave card shows only days remaining; days used are dropped, though the text says the card shows them
 
-- **สถานะ:** เปิด (ใหม่) · เดิม AI-84
+- **สถานะ:** แก้แล้ว `c9594fe` · เดิม AI-84
+- **ที่แก้:** KeyValue ที่โมเดลประกอบเก็บ `detail` ของแต่ละคู่ไว้ การ์ดวันลาจึงแสดงวันที่ใช้แล้วใต้วันคงเหลือ (`lib/compose/catalog.ts`, `components/chat/composed-card.tsx`, `components/ui/primitives.tsx`) · การจับชื่อ "นก" ที่ไปตรง CFO ยังไม่ได้แก้
 - **ระดับ:** กลาง · **หมวด:** `card-quality` · **บทบาท:** RSM u_anucha
 - **อาการ:** s3t3 asked how many days คุณกฤต has taken. The card shows only 'เหลือ 9/28/5 วัน', so the answer (3/2/1 used) is shown nowhere. 'นก' also matched the CFO, and a failed lookup step was shown.
 - **ที่ควรเป็น:** The leave card shows used and remaining days, and a manager's direct report wins a name match.
@@ -1497,7 +1506,8 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-110. Stock questions go unanswered: 'no stock data' for overstock, and the agent's DC cover is never fetched
 
-- **สถานะ:** ยังเสีย · เดิม AI-26
+- **สถานะ:** รอยืนยันกับโมเดล `025c394, 71e926e` · เดิม AI-26
+- **ที่แก้:** การค้น metric ไม่สนวรรณยุกต์ "สต็อก" จึงเจอเมตริกสต๊อก (`lib/semantic/metrics.ts`) และ prompt บอกว่าสต๊อกล้นใช้ `days_of_cover` เรียง `value_desc` และสต๊อกของเอเย่นต์ใช้ศูนย์กระจายสินค้าจาก `describe_entity` เป็น filter `dc` ในเทิร์นเดียวกัน ส่วนที่เป็น prompt ยังต้องวัดกับโมเดล
 - **ระดับ:** กลาง · **หมวด:** `did-not-answer` · **บทบาท:** CEO u_thana, พนักงานขาย u_krit
 - **อาการ:** CEO s1t6 queried no stock metric and said there is no stock data. The rep's days-of-stock turn (a0d8bf85, 45.6 s) told him to count stock by hand. ac2aaad1's list_metrics search for 'สต็อก' returned 0 results, and the model then only offered the Khon Kaen DC instead of fetching it, although describe_entity had named it.
 - **ที่ควรเป็น:** Query days_of_cover or stock_on_hand (by value_desc for overstock; for the agent's DC, named as the DC figure) in one turn.
@@ -1530,7 +1540,8 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-113. The share warning quotes the pro-rated % beside a card whose hero is the full-month %
 
-- **สถานะ:** เปิด (ใหม่) · เดิม AI-53
+- **สถานะ:** แก้แล้ว `e1700da` · เดิม AI-53
+- **ที่แก้:** คำเตือนของการส่งอ่านสัดส่วนของเป้าทั้งเดือนที่หัวการ์ดแสดง ไม่ใช่ตัวเลขตามเวลา (`lib/share/figures.ts`)
 - **ระดับ:** ต่ำ · **หมวด:** `write-flow` · **บทบาท:** RSM u_anucha
 - **อาการ:** The p2 warning said 'การ์ดแสดง 92.0% ของเป้า', while the card hero is 79.7% ของเป้าทั้งเดือน.
 - **ที่ควรเป็น:** The warning uses the hero's base.
@@ -1540,7 +1551,8 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-114. YoY comparison tile labelled 'งวดก่อน'
 
-- **สถานะ:** เปิด (ใหม่) · เดิม AI-68
+- **สถานะ:** แก้แล้ว `421f413` · เดิม AI-68
+- **ที่แก้:** ช่องตัวเลขที่ใช้เทียบตั้งชื่อตามฐาน: ปีก่อน หรือ งวดก่อน (`lib/cards/present.ts` summaryLead)
 - **ระดับ:** ต่ำ · **หมวด:** `thai-language` · **บทบาท:** CEO u_thana
 - **อาการ:** s3t3 and p2 (compare prev_year) label the base 'งวดก่อน'.
 - **ที่ควรเป็น:** The label follows compare (ปีก่อน, or the month).
@@ -1612,7 +1624,8 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-121. English terms reach Thai users (MoM/YoY, metric names, 'None'/'Masked')
 
-- **สถานะ:** ยังเสีย · เดิม AI-78
+- **สถานะ:** รอยืนยันกับโมเดล `a45868d, 71e926e` · เดิม AI-78
+- **ที่แก้:** ในแชต (`admin_audit`, ผลของ `set_permission` และการ์ดอนุมัติ) ใช้ เห็นเต็ม / ซ่อนตัวเลข / ไม่เห็น หน้า admin ยังใช้ Full/Masked/None และ prompt ห้าม MoM YoY กับ id ของ metric ในข้อความ ส่วนที่เป็น prompt ยังต้องวัดกับโมเดล
 - **ระดับ:** ต่ำ · **หมวด:** `thai-language` · **บทบาท:** CEO u_thana, ผู้ดูแลระบบไอที u_ton
 - **อาการ:** The LINE paste uses MoM/YoY, and the ยอดดัน question lists English metric names. The chat role_access card mixes 'None'/'Masked' with 'ปิด', and approvals read '→ Masked'.
 - **ที่ควรเป็น:** Thai in chat answers; one vocabulary per column.
@@ -1623,7 +1636,8 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-122. The RSM region-vs-agent question draws two cards repeating the same total
 
-- **สถานะ:** เปิด (ใหม่) · เดิม AI-66
+- **สถานะ:** แก้แล้ว `71db485` · เดิม AI-66
+- **ที่แก้:** ยอดรวมที่ถามคู่กับการแยกของมันเองในเทิร์นเดียววาดเป็นการ์ดเดียว แถวรวมคือยอดนั้น และเอเย่นต์ที่ถามถึงถูกเน้นพร้อมค่า (`lib/cards/present.ts` isTotalOf, wholeCard)
 - **ระดับ:** ต่ำ · **หมวด:** `card-quality` · **บทบาท:** RSM u_anucha
 - **อาการ:** A one-row region card plus an agent breakdown whose headline is about ขอนแก่นมหาชัย, not the agent the user asked about (อุบลศรีสุข, rank 4).
 - **ที่ควรเป็น:** One breakdown with the region total as the hero and the named agent highlighted.
@@ -1644,7 +1658,8 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-124. The board summary shows margin only as a subtitle, without its YoY change
 
-- **สถานะ:** เปิด (ใหม่)
+- **สถานะ:** แก้แล้ว `b7cc73a`
+- **ที่แก้:** การ์ดคู่แสดงค่าและการเปลี่ยนแปลงของ metric ที่สองใต้ทุกแถว และค่ารวมพร้อมการเปลี่ยนแปลงที่แถวรวม ("อัตรากำไรขั้นต้น 27.3% +0.7 จุด เทียบปีก่อน") (`lib/cards/present.ts` withSecondMetric)
 - **ระดับ:** ต่ำ · **หมวด:** `card-quality` · **บทบาท:** CEO u_thana
 - **อาการ:** s1t1 text says margin rose +0.7 pt vs last year; the card shows no change.
 - **ที่ควรเป็น:** The margin change is on the card.
@@ -1654,7 +1669,8 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-125. Masked replies use jargon, state data coverage for hidden numbers, and offer chips into hidden data
 
-- **สถานะ:** ยังเสีย · เดิม AI-21
+- **สถานะ:** รอยืนยันกับโมเดล `1d15a16, 71e926e` · เดิม AI-21
+- **ที่แก้:** summary ของตัวเลขที่ถูกซ่อนเขียนเป็นภาษาคน ไม่มีบรรทัดจำนวนวันของข้อมูล และไม่มีปุ่มถามต่อเข้าไปในข้อมูลที่ซ่อน (`lib/semantic/engine.ts`, `lib/server/next-actions.ts`) prompt ให้ตอบประโยคเดียวว่าถูกซ่อนและขอสิทธิ์จากใคร ส่วนที่เป็น prompt ยังต้องวัดกับโมเดล
 - **ระดับ:** ต่ำ · **หมวด:** `card-quality` · **บทบาท:** พนักงานขาย u_krit, ผู้ดูแลระบบไอที u_ton
 - **อาการ:** Replies say 'ฟิลด์ถูกปิด (แสดงผลเป็น ***)', add a 26-day coverage line, and offer trend chips on a masked metric.
 - **ที่ควรเป็น:** One plain sentence saying the number is hidden and who can grant access, with no coverage line or drill chips.
@@ -1704,7 +1720,8 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-130. 'ทำไมตกอะ' after a −10.5% baht week is explained by one agent's litre anomaly
 
-- **สถานะ:** เปิด (ใหม่) · เดิม AI-23
+- **สถานะ:** รอยืนยันกับโมเดล `71e926e` · เดิม AI-23
+- **ที่แก้:** prompt: ถามว่าทำไมต่อจากตัวเลขบนการ์ด = `explain_gap` ด้วย metric ช่วง filters และ compare เดียวกับการ์ด และ alert ใช้ประกอบได้เฉพาะ metric และช่วงเดียวกัน (`lib/server/agent/persona.ts`)
 - **ระดับ:** ต่ำ · **หมวด:** `wrong-answer` · **บทบาท:** พนักงานขาย u_krit
 - **อาการ:** Only get_alerts ran. The answer used อีสานรุ่งโรจน์'s −89% sell-in anomaly in litres and ignored ขอนแก่นมหาชัย, which holds 92% of the value.
 - **ที่ควรเป็น:** Break down the drop that was asked about (same metric and week, both agents).
