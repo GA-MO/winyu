@@ -130,8 +130,11 @@ export function allowedActions(matter: Matter, actorId: string): MatterActionKin
   return MATTER_ACTIONS.filter((kind) => refusalOf(matter, actorId, kind) === null);
 }
 
+/** Who a picker puts first: the card's owner (preselected, never the viewer), then the viewer's own line. */
+export type MatterSuggestions = { ownerId: string | null; line: string[] };
+
 /** A matter as a bell row, an Inbox row and the page's actions need it: no value from the card, only names, the ask and what the viewer may press. */
-export type MatterBrief = { code: string; title: string; ask: string; senderName: string; passerName: string | null; at: string; actions: MatterActionKind[]; suggestedId: string | null };
+export type MatterBrief = { code: string; title: string; ask: string; senderName: string; passerName: string | null; at: string; actions: MatterActionKind[]; suggested: MatterSuggestions };
 
 /** Who a matter came from, and who passed it on when that was someone else. */
 export function matterFrom(brief: Pick<MatterBrief, "senderName" | "passerName">): string {

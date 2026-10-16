@@ -25,7 +25,8 @@ const { runWithAccess } = await import("@/lib/server/request-context");
 const { winyuTools } = await import("@/lib/server/agent/tools");
 const { SHARES_COLLECTION, shares } = await import("./shares");
 const { createShare } = await import("./deliver");
-const { suggestedRecipient } = await import("./suggest");
+const { suggestedRecipient, suggestionsFor } = await import("./suggest");
+const { AGENTS } = await import("@/lib/data/entities/agents");
 const { ShareChrome, ShareProvider } = await import("@/components/share/share-sheet");
 const { StoryItem } = await import("@/components/stories/story-list");
 const { Card } = await import("@/components/ui/primitives");
@@ -129,6 +130,34 @@ describe("the sheet puts the card's owner first", () => {
 
   test("the owner is never suggested to themselves", () => {
     expect(suggestedRecipient(NORTHEAST_CARD, "u_anucha")).toBeNull();
+  });
+
+  test("a rep's card about four northeast agents goes to the northeast RSM, not the national director", () => {
+    const fourAgents = { metric: "net_sales_volume", dims: ["agent"], filters: { agent: ["ขอนแก่นมหาชัย", "อีสานรุ่งโรจน์ ค้าส่ง", "โคราชสหภัณฑ์", "อุบลศรีสุข เทรดดิ้ง"] }, range: { from: "2026-11-01", to: "2026-11-26" }, grain: "month", compare: "target", limit: null };
+    const card = { kind: "tool" as const, reads: [{ tool: "query_metric", input: fourAgents }] };
+    expect(suggestedRecipient(card, "u_krit")?.userId).toBe("u_anucha");
+    const suggestions = suggestionsFor(card, "u_krit");
+    expect(suggestions.ownerId).toBe("u_anucha");
+    expect(suggestions.line).not.toContain("u_prasit");
+  });
+
+  test("a card on one agent's overdue debt goes to the rep who holds that agent", () => {
+    const debt = { metric: "ar_overdue", dims: ["agent"], filters: { agent: "ag_nea_05" }, period: "this_month", grain: "month", compare: "none", limit: 1, range: null };
+    const holder = AGENTS.find((agent) => agent.id === "ag_nea_05")?.ownerId;
+    expect(suggestedRecipient({ kind: "tool", reads: [{ tool: "query_metric", input: debt }] }, "u_anucha")?.userId).toBe(holder ?? "missing");
+  });
+
+  test("when the card is the sender's own, the sheet offers their own team first and preselects nobody", () => {
+    const suggestions = suggestionsFor(NORTHEAST_CARD, "u_anucha");
+    expect(suggestions.ownerId).toBeNull();
+    expect(suggestions.line.slice(0, 2).sort()).toEqual(["u_krit", "u_nok"]);
+    expect(suggestions.line).toContain("u_prasit");
+    expect(suggestions.line.indexOf("u_prasit")).toBeGreaterThan(suggestions.line.indexOf("u_nok"));
+  });
+
+  test("a regional sender's card that names no region is the sender's region", () => {
+    const noRegion = { ...NORTHEAST_QUERY, filters: {} };
+    expect(suggestionsFor({ kind: "tool", reads: [{ tool: "query_metric", input: noRegion }] }, "u_krit").ownerId).toBe("u_anucha");
   });
 });
 

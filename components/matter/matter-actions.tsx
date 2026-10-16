@@ -6,7 +6,7 @@ import { MoreMenu, Primary, Quiet, type MenuItem } from "@/components/inbox/row"
 import { PeoplePicker, useShareContacts } from "@/components/share/share-sheet";
 import { TH } from "@/lib/i18n/th";
 import { MATTER_ASK_MAX } from "@/lib/share/card";
-import type { MatterActionKind, MatterBrief } from "@/lib/share/matter-actions";
+import type { MatterActionKind, MatterBrief, MatterSuggestions } from "@/lib/share/matter-actions";
 
 const MATTERS_ENDPOINT = "/api/matters/";
 const FIELD = "min-h-9 w-full rounded-full border border-border bg-card px-3.5 text-xs outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-ring";
@@ -25,20 +25,20 @@ async function sendPress(code: string, press: Press): Promise<string | null> {
   return body?.error ?? COPY.failed;
 }
 
-function PassOn({ suggestedId, chosen, choose }: { suggestedId: string | null; chosen: string | null; choose: (id: string) => void }) {
+function PassOn({ suggested, chosen, choose }: { suggested: MatterSuggestions; chosen: string | null; choose: (id: string) => void }) {
   const contacts = useShareContacts();
   return (
     <div className="flex flex-col gap-1 rounded-xl border border-border bg-card">
       <p className="px-4 pt-2.5 text-xs font-medium text-muted-foreground">{COPY.passPick}</p>
       <div className="ui-scrollbar max-h-64 overflow-y-auto">
-        {contacts ? <PeoplePicker contacts={contacts} suggestedId={suggestedId} chosen={chosen ? [chosen] : []} onToggle={(contact) => choose(contact.id)} /> : <div className="h-16" aria-busy />}
+        {contacts ? <PeoplePicker contacts={contacts} suggested={suggested} chosen={chosen ? [chosen] : []} onToggle={(contact) => choose(contact.id)} /> : <div className="h-16" aria-busy />}
       </div>
     </div>
   );
 }
 
 /** What the viewer may press on a matter, from the transition table: the main presses as buttons, ไม่ใช่ของผม and เสร็จ folded under "…"; asking and passing on open in place, so it works inside the bell's sheet at phone width. */
-export function MatterActions({ brief, onActed }: { brief: Pick<MatterBrief, "code" | "actions" | "suggestedId">; onActed: () => void }) {
+export function MatterActions({ brief, onActed }: { brief: Pick<MatterBrief, "code" | "actions" | "suggested">; onActed: () => void }) {
   const [mode, setMode] = useState<Mode>({ kind: "idle" });
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
@@ -66,7 +66,7 @@ export function MatterActions({ brief, onActed }: { brief: Pick<MatterBrief, "co
   const folded = FOLDED.filter((kind) => allowed.has(kind));
   const inline = shown.length === 0 ? folded : [];
   const menu: MenuItem[] = shown.length === 0 ? [] : folded.map((kind) => ({ label: COPY.actions[kind], onSelect: () => start(kind) }));
-  const passTo = mode.kind === "passing" ? (mode.to ?? brief.suggestedId) : null;
+  const passTo = mode.kind === "passing" ? (mode.to ?? brief.suggested.ownerId) : null;
 
   return (
     <div className="flex flex-col gap-2" data-matter-actions={brief.code}>
@@ -113,7 +113,7 @@ export function MatterActions({ brief, onActed }: { brief: Pick<MatterBrief, "co
       ) : null}
       {mode.kind === "passing" ? (
         <>
-          <PassOn suggestedId={brief.suggestedId} chosen={passTo} choose={(to) => setMode({ kind: "passing", to })} />
+          <PassOn suggested={brief.suggested} chosen={passTo} choose={(to) => setMode({ kind: "passing", to })} />
           <div className="flex items-center gap-1">
             <Primary onClick={() => passTo && void run({ kind: "pass_on", toUserId: passTo })} disabled={busy || !passTo}>
               <Forward className="size-3.5" aria-hidden />

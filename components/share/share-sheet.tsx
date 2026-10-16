@@ -12,6 +12,7 @@ import { TH } from "@/lib/i18n/th";
 import { MATTER_ASK_MAX, SHARE_RECIPIENTS_MAX, shareTitle, type ShareChannel, type ShareContact, type ShareGrantReceipt, type ShareReceipt, type ShareTarget } from "@/lib/share/card";
 import { saysUrgent } from "@/lib/cards/handoff-urgency";
 import { defaultUrgency, MATTER_INTENTS, type MatterIntent, type MatterUrgency } from "@/lib/share/matter";
+import type { MatterSuggestions } from "@/lib/share/matter-actions";
 
 const CONTACTS_ENDPOINT = "/api/shares/contacts";
 const SHARES_ENDPOINT = "/api/shares";
@@ -65,24 +66,27 @@ function ContactRow({ contact, chosen, toggle }: { contact: ShareContact; chosen
   );
 }
 
-/** The people a card or a matter can go to: the card's owner first when known, then everyone else, searchable by name, title or role, the chosen ones on top. */
-export function PeoplePicker({ contacts, suggestedId, chosen, onToggle }: { contacts: ShareContact[]; suggestedId: string | null; chosen: readonly string[]; onToggle: (contact: ShareContact) => void }) {
+/** The people a card or a matter can go to: the card's owner and the person's own line first, then everyone else, searchable by name, title or role, the chosen ones on top. */
+export function PeoplePicker({ contacts, suggested, chosen, onToggle }: { contacts: ShareContact[]; suggested: MatterSuggestions; chosen: readonly string[]; onToggle: (contact: ShareContact) => void }) {
   const [query, setQuery] = useState("");
-  const owner = contacts.find((contact) => contact.id === suggestedId) ?? null;
-  const others = contacts.filter((contact) => contact.id !== suggestedId && (chosen.includes(contact.id) || matches(contact, query)));
+  const firstIds = [...(suggested.ownerId ? [suggested.ownerId] : []), ...suggested.line];
+  const first = firstIds.flatMap((id) => contacts.find((contact) => contact.id === id) ?? []);
+  const others = contacts.filter((contact) => !firstIds.includes(contact.id) && (chosen.includes(contact.id) || matches(contact, query)));
   const ordered = [...others.filter((contact) => chosen.includes(contact.id)), ...others.filter((contact) => !chosen.includes(contact.id))];
   return (
     <>
-      {owner ? (
-        <section className="flex flex-col gap-1 border-b border-border px-2 py-2" data-share-suggested={owner.id}>
-          <h3 className="px-2 text-xs font-medium text-muted-foreground">{TH.share.suggested}</h3>
+      {first.length > 0 ? (
+        <section className="flex flex-col gap-1 border-b border-border px-2 py-2" data-share-suggested={first.map((contact) => contact.id).join(" ")}>
+          <h3 className="px-2 text-xs font-medium text-muted-foreground">{suggested.ownerId ? TH.share.suggested : TH.share.yourLine}</h3>
           <ul>
-            <ContactRow contact={owner} chosen={chosen.includes(owner.id)} toggle={() => onToggle(owner)} />
+            {first.map((contact) => (
+              <ContactRow key={contact.id} contact={contact} chosen={chosen.includes(contact.id)} toggle={() => onToggle(contact)} />
+            ))}
           </ul>
         </section>
       ) : null}
       <div className="flex flex-col gap-2 px-4 pt-3">
-        {owner ? <h3 className="text-xs font-medium text-muted-foreground">{TH.share.others}</h3> : null}
+        {first.length > 0 ? <h3 className="text-xs font-medium text-muted-foreground">{TH.share.others}</h3> : null}
         <label className="flex items-center gap-2 rounded-xl border border-border px-3 py-2 focus-within:ring-2 focus-within:ring-ring">
           <Search className="size-4 text-muted-foreground" aria-hidden />
           <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={TH.share.search} className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground" />
@@ -277,17 +281,22 @@ export function useShareContacts(): ShareContact[] | null {
   return useShareDirectory()?.contacts ?? null;
 }
 
-function useSuggestedRecipient(card: ShareTarget["card"]): string | null {
-  const [userId, setUserId] = useState<string | null>(null);
+const NO_SUGGESTIONS: MatterSuggestions = { ownerId: null, line: [] };
+
+/** Whom the server puts first for a card: its owner (never the person sending) and their own line; empty until loaded. */
+export function useSuggestions(card: ShareTarget["card"] | null): MatterSuggestions {
+  const [suggestions, setSuggestions] = useState<MatterSuggestions>(NO_SUGGESTIONS);
+  const body = card ? JSON.stringify({ card }) : null;
   useEffect(() => {
+    if (!body) return;
     const controller = new AbortController();
-    fetch(SUGGESTION_ENDPOINT, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ card }), signal: controller.signal })
-      .then((response) => (response.ok ? (response.json() as Promise<{ userId?: string | null }>) : null))
-      .then((payload) => setUserId(payload?.userId ?? null))
+    fetch(SUGGESTION_ENDPOINT, { method: "POST", headers: { "content-type": "application/json" }, body, signal: controller.signal })
+      .then((response) => (response.ok ? (response.json() as Promise<Partial<MatterSuggestions>>) : null))
+      .then((payload) => setSuggestions({ ownerId: payload?.ownerId ?? null, line: payload?.line ?? [] }))
       .catch(() => undefined);
     return () => controller.abort();
-  }, [card]);
-  return userId;
+  }, [body]);
+  return suggestions;
 }
 
 function nextChosen(current: readonly string[], id: string, intent: MatterIntent): string[] {
@@ -299,7 +308,7 @@ function nextChosen(current: readonly string[], id: string, intent: MatterIntent
 function Sheet({ target, close }: { target: ShareTarget; close: () => void }) {
   const directory = useShareDirectory();
   const contacts = directory?.contacts ?? [];
-  const suggested = useSuggestedRecipient(target.card);
+  const suggested = useSuggestions(target.card);
   const title = shareTitle(target.card);
   const [grantDays, setGrantDays] = useState<GrantDays | null>(null);
   const [ask, setAsk] = useState(() => target.draftAsk ?? TH.share.askDraft(title));
@@ -309,7 +318,7 @@ function Sheet({ target, close }: { target: ShareTarget; close: () => void }) {
   const [picked, setPicked] = useState<string[] | null>(null);
   const [phase, setPhase] = useState<Phase>({ kind: "picking" });
 
-  const chosen = picked ?? (suggested ? [suggested] : []);
+  const chosen = picked ?? (suggested.ownerId ? [suggested.ownerId] : []);
   const toggle = (contact: ShareContact) => setPicked(nextChosen(chosen, contact.id, intent));
   const chooseIntent = (next: MatterIntent) => {
     setIntent(next);
@@ -357,7 +366,7 @@ function Sheet({ target, close }: { target: ShareTarget; close: () => void }) {
               </label>
             </div>
             <div className="ui-scrollbar flex min-h-0 flex-1 flex-col overflow-y-auto">
-              <PeoplePicker contacts={contacts} suggestedId={suggested} chosen={chosen} onToggle={toggle} />
+              <PeoplePicker contacts={contacts} suggested={suggested} chosen={chosen} onToggle={toggle} />
             </div>
             <footer className="flex flex-col gap-2 border-t border-border px-4 py-3">
               <RecipientWarnings scopes={scopes} granting={grantDays !== null} grant={directory?.mayGrant ? () => setGrantDays(DEFAULT_GRANT_DAYS) : null} />

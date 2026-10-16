@@ -108,7 +108,7 @@ describe("the bell popover", () => {
   });
 
   test("a matter shows its card title, the ask, who sent it and passed it on, and the presses; รับ presses it in place, reads its notification and refreshes", async () => {
-    const matter = { code: "m1", title: "ปริมาณขายเข้า", ask: "ช่วยดูภาคอีสาน", senderName: "คุณธนา", passerName: "คุณอนุชา", at: AT, actions: ["accept" as const, "ask" as const, "pass_on" as const, "not_mine" as const, "done" as const], suggestedId: null };
+    const matter = { code: "m1", title: "ปริมาณขายเข้า", ask: "ช่วยดูภาคอีสาน", senderName: "คุณธนา", passerName: "คุณอนุชา", at: AT, actions: ["accept" as const, "ask" as const, "pass_on" as const, "not_mine" as const, "done" as const], suggested: { ownerId: null, line: [] } };
     const payload: BellPayload = { decide: [{ key: "matter:m1", kind: "matter", refId: "m1", title: "t", person: null, at: AT, read: false, target: "/s/m1", notificationId: "n-matter", matter }], updates: [] };
     const server = fakeServer(payload);
     const { host, seen } = await openPopover();

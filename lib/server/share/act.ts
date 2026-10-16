@@ -5,7 +5,7 @@ import { notify } from "@/lib/server/notify";
 import { holdingHop, type Matter } from "@/lib/share/matter";
 import { allowedActions, transition, type MatterAction, type MatterBrief, type MatterRefusal, type Telling } from "@/lib/share/matter-actions";
 import { mayOpen, shares } from "./shares";
-import { cardOwner, suggestedRecipient } from "./suggest";
+import { cardOwner, suggestionsFor } from "./suggest";
 
 /** A press as a person sends it: not_mine names nobody, the server looks up the card's owner. */
 export type MatterPress = Exclude<MatterAction, { kind: "not_mine" }> | { kind: "not_mine" };
@@ -59,6 +59,6 @@ export function briefOf(matter: Matter, viewerId: string): MatterBrief {
     passerName: passer && passer !== matter.senderId ? nameOf(passer) : null,
     at: hop?.at ?? matter.at,
     actions: allowedActions(matter, viewerId),
-    suggestedId: suggestedRecipient(matter.card, viewerId)?.userId ?? null,
+    suggested: suggestionsFor(matter.card, viewerId),
   };
 }
