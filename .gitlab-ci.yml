@@ -1,0 +1,88 @@
+workflow:
+  rules:
+    - if: $WINYU_DEPLOY_ENABLED == "true" && $CI_COMMIT_BRANCH == "uat"
+
+variables:
+  DOCKERFILE: "Dockerfile"
+  UAT_DOCKER_IMAGE_URL: "asia-southeast1-docker.pkg.dev/singhaonline-dev/sol/winyu:uat"
+  UAT_NAMESPACE: "sol-uat"
+
+stages:
+  - prepare-build
+  - build
+  - prepare-deploy
+  - deploy
+
+############################### UAT ##################################
+prepare-build:
+  only:
+    - uat
+  tags:
+    - gcloud-sol-dev
+  stage: prepare-build
+  image:
+    name: gcr.io/google.com/cloudsdktool/google-cloud-cli:latest
+  script:
+    - echo "$UAT_SERVICE_ACCOUNT64" > config64
+    - openssl base64 -d -in config64 -out service-account-key.json -A
+    - gcloud auth activate-service-account --key-file=service-account-key.json
+    - token=$(gcloud auth print-access-token)
+    - docker_token=$(echo -n "gclouddockertoken:$token" | base64 | tr -d "\n")
+    - echo "{\"auths\":{\"asia-southeast1-docker.pkg.dev\":{\"auth\":\"$docker_token\",\"email\":\"not@val.id\"}}}" > gcloud-config.json
+  artifacts:
+    paths:
+      - gcloud-config.json
+
+build-uat:
+  only:
+    - uat
+  tags:
+    - gcloud-sol-dev
+  stage: build
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+  script:
+    - export DOCKER_IMAGE_URL="$UAT_DOCKER_IMAGE_URL"
+    - mkdir -p /kaniko/.docker
+    - cp gcloud-config.json /kaniko/.docker/config.json
+    - >-
+      /kaniko/executor
+      --context "${CI_PROJECT_DIR}"
+      --dockerfile "${CI_PROJECT_DIR}/${DOCKERFILE}"
+      --destination "${DOCKER_IMAGE_URL}"
+  dependencies:
+    - prepare-build
+
+prepare-deploy:
+  only:
+    - uat
+  tags:
+    - gcloud-sol-dev
+  stage: prepare-deploy
+  image:
+    name: alpine:latest
+  script:
+    - apk add gettext
+    - export DOCKER_IMAGE_URL="$UAT_DOCKER_IMAGE_URL"
+    - envsubst '${CI_PROJECT_NAME} ${DOCKER_IMAGE_URL}' < k8s-deploy.yml > k8s-deploy-override.yml
+  artifacts:
+    paths:
+      - k8s-deploy-override.yml
+
+deploy-uat:
+  only:
+    - uat
+  tags:
+    - gcloud-sol-dev
+  stage: deploy
+  image:
+    name: gcr.io/google.com/cloudsdktool/google-cloud-cli:latest
+  script:
+    - echo "$UAT_SERVICE_ACCOUNT64" > config64
+    - export NAMESPACE="$UAT_NAMESPACE"
+    - openssl base64 -d -in config64 -out service-account-key.json -A
+    - gcloud auth activate-service-account --key-file=service-account-key.json
+    - gcloud container clusters get-credentials --internal-ip singhaonline-dev-cluster --zone asia-southeast1-b --project singhaonline-dev
+    - kubectl apply -f ./k8s-deploy-override.yml -n $NAMESPACE
+    - kubectl rollout restart deployment $CI_PROJECT_NAME -n $NAMESPACE
+    - kubectl rollout status deployment $CI_PROJECT_NAME -n $NAMESPACE --timeout=300s

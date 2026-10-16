@@ -1,0 +1,82 @@
+[
+  {
+    "id": "86693dcb-80e3-4a11-abb8-df8c5a6eed00",
+    "requesterId": "u_krit",
+    "approverId": "u_thana",
+    "slice": {
+      "metric": "net_sales_volume",
+      "regions": "all",
+      "brands": "all"
+    },
+    "shareCode": "r6X8Q8JVK8fi",
+    "reason": "ต้องเทียบยอดอีสานกับภาคอื่นก่อนประชุมพรุ่งนี้",
+    "status": "approved",
+    "createdAt": "2026-10-06T03:22:33.599Z",
+    "decidedAt": "2026-10-06T03:23:38.566Z",
+    "grantId": "0c58c6c6-7b91-4559-96c6-50cd357d1a78"
+  },
+  {
+    "id": "44467552-a666-485d-849d-4a0aa58eb82f",
+    "requesterId": "u_krit",
+    "approverId": "u_thana",
+    "slice": {
+      "metric": "net_sales_value",
+      "regions": "all",
+      "brands": "all"
+    },
+    "shareCode": "79o8IcRiPzQy",
+    "reason": "ต้องเทียบอีสานกับภาคอื่นก่อนประชุมพรุ่งนี้",
+    "status": "approved",
+    "createdAt": "2026-10-09T09:44:11.070Z",
+    "decidedAt": "2026-10-09T09:44:38.873Z",
+    "grantId": "cc39a1a0-be9a-46b9-9add-254c1f9b7178"
+  },
+  {
+    "id": "49b43e25-6a2c-44eb-a9b2-242b021eb9f8",
+    "requesterId": "u_krit",
+    "approverId": "u_thana",
+    "slice": {
+      "metric": "net_sales_value",
+      "regions": "all",
+      "brands": "all"
+    },
+    "shareCode": "79o8IcRiPzQy",
+    "reason": "ขอเทียบภาคอื่นก่อนประชุม",
+    "status": "approved",
+    "createdAt": "2026-10-09T10:14:06.666Z",
+    "decidedAt": "2026-10-09T10:14:31.310Z",
+    "grantId": "5ee9fa25-5ad7-4263-bd8e-ef29c797520c"
+  },
+  {
+    "id": "e4dbfb19-08e2-4738-a6d6-73903126599f",
+    "requesterId": "u_anucha",
+    "approverId": "u_thana",
+    "slice": {
+      "metric": "net_sales_value",
+      "regions": "all",
+      "brands": "all"
+    },
+    "shareCode": "rdACPzOBignF",
+    "reason": "ขอดูตัวเลขหน่อยครับ",
+    "status": "pending",
+    "createdAt": "2026-10-15T08:27:42.923Z",
+    "decidedAt": null,
+    "grantId": null
+  },
+  {
+    "id": "3a6d2752-5a37-4e38-866e-d5bb1847936b",
+    "requesterId": "u_anucha",
+    "approverId": "u_thana",
+    "slice": {
+      "metric": "net_sales_value",
+      "regions": "all",
+      "brands": "all"
+    },
+    "shareCode": "O4zvXxc4noOz",
+    "reason": "ขอดูตัวเลข",
+    "status": "pending",
+    "createdAt": "2026-10-15T08:30:15.324Z",
+    "decidedAt": null,
+    "grantId": null
+  }
+]

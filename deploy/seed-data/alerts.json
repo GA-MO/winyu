@@ -1,0 +1,1449 @@
+[
+  {
+    "id": "al_7364476d77c8f435",
+    "at": "2026-09-22T06:00:00.000Z",
+    "severity": "P1",
+    "metric": "net_sales_volume",
+    "dims": {
+      "agent": "ag_nea_05",
+      "region": "northeast"
+    },
+    "window": {
+      "from": "2026-09-09",
+      "to": "2026-09-22"
+    },
+    "observed": 2219.8,
+    "expected": 12928.1,
+    "zScore": -31.8,
+    "direction": "down",
+    "hypothesis": "อุบลศรีสุข เทรดดิ้ง แทบไม่มีคำสั่งซื้อเข้ามาในช่วงนี้ น่าจะติดปัญหาเครดิต การวางบิล หรือเปลี่ยนไปรับสินค้าจากที่อื่น",
+    "verifySteps": [
+      "ดูประวัติการสั่งซื้อรายวันของอุบลศรีสุข เทรดดิ้ง · ภาคอีสาน 30 วันล่าสุด",
+      "ดูยอดค้างชำระเกินกำหนดของอุบลศรีสุข เทรดดิ้ง · ภาคอีสานรายเดือน 6 เดือนล่าสุด"
+    ],
+    "ownerUserId": "u_anucha",
+    "status": "open",
+    "dismissCount": 0,
+    "parentId": null,
+    "relatedIds": [],
+    "campaignId": null,
+    "alsoOwnerIds": []
+  },
+  {
+    "id": "al_ed6dca9e1dab4e48",
+    "at": "2026-09-22T06:00:00.000Z",
+    "severity": "P1",
+    "metric": "net_sales_volume",
+    "dims": {
+      "agent": "ag_nea_02",
+      "region": "northeast"
+    },
+    "window": {
+      "from": "2026-09-08",
+      "to": "2026-09-22"
+    },
+    "observed": 3251.2,
+    "expected": 13927.8,
+    "zScore": -27.6,
+    "direction": "down",
+    "hypothesis": "อีสานรุ่งโรจน์ ค้าส่ง แทบไม่มีคำสั่งซื้อเข้ามาในช่วงนี้ น่าจะติดปัญหาเครดิต การวางบิล หรือเปลี่ยนไปรับสินค้าจากที่อื่น",
+    "verifySteps": [
+      "ดูประวัติการสั่งซื้อรายวันของอีสานรุ่งโรจน์ ค้าส่ง · ภาคอีสาน 30 วันล่าสุด",
+      "ดูยอดค้างชำระเกินกำหนดของอีสานรุ่งโรจน์ ค้าส่ง · ภาคอีสานรายเดือน 6 เดือนล่าสุด"
+    ],
+    "ownerUserId": "u_anucha",
+    "status": "open",
+    "dismissCount": 0,
+    "parentId": null,
+    "relatedIds": [],
+    "campaignId": null,
+    "alsoOwnerIds": []
+  },
+  {
+    "id": "al_fa3be1e7b4f9fe40",
+    "at": "2026-09-22T06:00:00.000Z",
+    "severity": "P1",
+    "metric": "market_share",
+    "dims": {
+      "province": "pv_nakhonratchasima",
+      "region": "northeast"
+    },
+    "window": {
+      "from": "2026-06-01",
+      "to": "2026-08-31"
+    },
+    "observed": 59.7,
+    "expected": 63.2,
+    "zScore": -11.9,
+    "direction": "down",
+    "hypothesis": "ในนครราชสีมา คาราบาวได้ส่วนแบ่งตลาดเบียร์เพิ่ม 4.1 จุดในช่วงเดียวกับที่ส่วนแบ่งของเราลดลง 3.5 จุด น่าจะมีการทำตลาดหรือตั้งราคาเชิงรุกในพื้นที่นี้",
+    "verifySteps": [
+      "เทียบส่วนแบ่งตลาดของทุกผู้ผลิตในนครราชสีมา เทียบปีก่อน",
+      "ดูยอดขายออกเบียร์ของเราในนครราชสีมาเทียบปีก่อน"
+    ],
+    "ownerUserId": "u_anucha",
+    "status": "open",
+    "dismissCount": 0,
+    "parentId": null,
+    "relatedIds": [],
+    "campaignId": null,
+    "alsoOwnerIds": []
+  },
+  {
+    "id": "al_220936abb568e7c9",
+    "at": "2026-09-22T06:00:00.000Z",
+    "severity": "P1",
+    "metric": "ar_overdue",
+    "dims": {
+      "region": "south"
+    },
+    "window": {
+      "from": "2026-08-01",
+      "to": "2026-08-31"
+    },
+    "observed": 1.9,
+    "expected": 1.1,
+    "zScore": 7.8,
+    "direction": "up",
+    "hypothesis": "ยอดค้างชำระของภาคใต้สูงกว่าช่วงเดียวกันของปีก่อนมาก ส่วนใหญ่มาจาก สงขลาทักษิณ เทรดดิ้ง (+303%), เกาะสมุยเบเวอเรจ (+108%), นครศรีรุ่งเจริญ (+101%) ควรคุยเรื่องการวางบิลและวงเงินกับเอเย่นต์กลุ่มนี้",
+    "verifySteps": [
+      "ดูยอดค้างชำระเกินกำหนดของภาคใต้รายเดือน 6 เดือนล่าสุด",
+      "ดูประวัติการสั่งซื้อรายวันของภาคใต้ 30 วันล่าสุด"
+    ],
+    "ownerUserId": "u_mint",
+    "status": "open",
+    "dismissCount": 0,
+    "parentId": null,
+    "relatedIds": [],
+    "campaignId": null,
+    "alsoOwnerIds": [
+      "u_saranya"
+    ]
+  },
+  {
+    "id": "al_e8114d936da7141f",
+    "at": "2026-09-22T06:00:00.000Z",
+    "severity": "P1",
+    "metric": "days_of_cover",
+    "dims": {
+      "dc": "dc_lamphun",
+      "sku": "sku_purra_pet600",
+      "region": "north"
+    },
+    "window": {
+      "from": "2026-09-16",
+      "to": "2026-09-22"
+    },
+    "observed": 6.1,
+    "expected": 15.7,
+    "zScore": -2.3,
+    "direction": "down",
+    "hypothesis": "สต๊อกที่ศูนย์กระจายสินค้าลำพูนเหลือพอขายอีกประมาณ 6.1 วัน ต่ำกว่าเกณฑ์ 10 วัน เสี่ยงของขาดก่อนรอบเติมสินค้าถัดไป",
+    "verifySteps": [
+      "ดูวันครอบคลุมสต๊อกและสต๊อกคงเหลือของศูนย์กระจายสินค้าลำพูน · เพอร์ร่า ขวด PET 600 มล. · ภาคเหนือตอนนี้",
+      "ดูพยากรณ์ 8 สัปดาห์ข้างหน้าของศูนย์กระจายสินค้าลำพูน · เพอร์ร่า ขวด PET 600 มล. · ภาคเหนือ"
+    ],
+    "ownerUserId": "u_wee",
+    "status": "open",
+    "dismissCount": 0,
+    "parentId": null,
+    "relatedIds": [
+      "al_720464c45b4bed09"
+    ],
+    "campaignId": null,
+    "alsoOwnerIds": []
+  },
+  {
+    "id": "al_35ced4920cc14a53",
+    "at": "2026-09-22T06:00:00.000Z",
+    "severity": "P2",
+    "metric": "net_sales_volume",
+    "dims": {
+      "agent": "ag_nea_07",
+      "brand": "leo",
+      "sku": "sku_leo_bottle620",
+      "region": "northeast"
+    },
+    "window": {
+      "from": "2026-08-31",
+      "to": "2026-09-21"
+    },
+    "observed": 2002.1,
+    "expected": 2619.6,
+    "zScore": -6,
+    "direction": "down",
+    "hypothesis": "ยอดสั่งเข้าของ ส.รุ่งเรือง เทรดดิ้ง · ลีโอ ขวด 620 มล. · ภาคอีสาน ลดลงต่อเนื่องขณะที่ยอดขายออกหน้าร้านยังทรงตัว น่าจะมีสต๊อกค้างอยู่ที่เอเย่นต์มากกว่าความต้องการที่แท้จริงลดลง",
+    "verifySteps": [
+      "เทียบยอดขายเข้ากับยอดขายออกของส.รุ่งเรือง เทรดดิ้ง · ลีโอ ขวด 620 มล. · ภาคอีสาน รายสัปดาห์ 8 สัปดาห์ล่าสุด",
+      "ดูวันครอบคลุมสต๊อกและสต๊อกคงเหลือของส.รุ่งเรือง เทรดดิ้ง · ลีโอ ขวด 620 มล. · ภาคอีสานตอนนี้"
+    ],
+    "ownerUserId": "u_anucha",
+    "status": "open",
+    "dismissCount": 0,
+    "parentId": null,
+    "relatedIds": [],
+    "campaignId": null,
+    "alsoOwnerIds": []
+  },
+  {
+    "id": "al_39f3f0de7fc1747a",
+    "at": "2026-09-22T06:00:00.000Z",
+    "severity": "P2",
+    "metric": "ar_overdue",
+    "dims": {
+      "region": "central"
+    },
+    "window": {
+      "from": "2026-08-01",
+      "to": "2026-08-31"
+    },
+    "observed": 1.3,
+    "expected": 1,
+    "zScore": 5.7,
+    "direction": "up",
+    "hypothesis": "ยอดค้างชำระของภาคกลางสูงกว่าช่วงเดียวกันของปีก่อนมาก ส่วนใหญ่มาจาก สระบุรีพาณิชย์ (+76%), นครปฐมรุ่งทรัพย์ (+35%), ราชบุรีสหมิตร (+33%) ควรคุยเรื่องการวางบิลและวงเงินกับเอเย่นต์กลุ่มนี้",
+    "verifySteps": [
+      "ดูยอดค้างชำระเกินกำหนดของภาคกลางรายเดือน 6 เดือนล่าสุด",
+      "ดูประวัติการสั่งซื้อรายวันของภาคกลาง 30 วันล่าสุด"
+    ],
+    "ownerUserId": "u_mint",
+    "status": "open",
+    "dismissCount": 0,
+    "parentId": null,
+    "relatedIds": [],
+    "campaignId": null,
+    "alsoOwnerIds": [
+      "u_somchai"
+    ]
+  },
+  {
+    "id": "al_14c4da61c8ba9ac3",
+    "at": "2026-09-22T06:00:00.000Z",
+    "severity": "P2",
+    "metric": "sell_out_volume",
+    "dims": {
+      "sku": "sku_singha_water_pack12",
+      "province": "pv_suratthani",
+      "region": "south"
+    },
+    "window": {
+      "from": "2026-08-27",
+      "to": "2026-09-20"
+    },
+    "observed": 1139.6,
+    "expected": 1285.2,
+    "zScore": -5.5,
+    "direction": "down",
+    "hypothesis": "ยอดขายออกจากร้านในสุราษฎร์ธานีต่ำผิดปกติ ยังหาสาเหตุไม่ได้จากข้อมูลที่มี",
+    "verifySteps": [
+      "เทียบน้ำดื่มสิงห์ แพ็ก 12 · สุราษฎร์ธานี · ภาคใต้กับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+      "เทียบน้ำดื่มสิงห์ แพ็ก 12 · สุราษฎร์ธานี · ภาคใต้กับช่วงเดียวกันของปีที่แล้ว"
+    ],
+    "ownerUserId": "u_saranya",
+    "status": "open",
+    "dismissCount": 0,
+    "parentId": null,
+    "relatedIds": [],
+    "campaignId": null,
+    "alsoOwnerIds": []
+  },
+  {
+    "id": "al_0e3b94877495ec0d",
+    "at": "2026-09-22T06:00:00.000Z",
+    "severity": "P2",
+    "metric": "production_output",
+    "dims": {
+      "plant": "pl_khonkaen",
+      "region": "northeast"
+    },
+    "window": {
+      "from": "2026-09-14",
+      "to": "2026-09-17"
+    },
+    "observed": 101973.3,
+    "expected": 117416.1,
+    "zScore": -5.3,
+    "direction": "down",
+    "hypothesis": "โรงงานขอนแก่น สายการผลิต 2 ผลิตได้ต่ำกว่าระดับปกติในช่วงนี้ น่าจะมีสายการผลิตหยุดซ่อมบำรุงหรือขัดข้อง",
+    "verifySteps": [
+      "เทียบปริมาณการผลิตจริงกับแผนของโรงงานขอนแก่น · ภาคอีสาน 30 วันล่าสุด",
+      "ดูวันครอบคลุมสต๊อกและสต๊อกคงเหลือของโรงงานขอนแก่นตอนนี้"
+    ],
+    "ownerUserId": "u_oat",
+    "status": "resolved",
+    "dismissCount": 0,
+    "parentId": null,
+    "relatedIds": [],
+    "campaignId": null,
+    "alsoOwnerIds": []
+  },
+  {
+    "id": "al_f60bd19b789eb6d9",
+    "at": "2026-09-22T06:00:00.000Z",
+    "severity": "P2",
+    "metric": "sell_out_volume",
+    "dims": {
+      "sku": "sku_purra_pet600",
+      "province": "pv_nakhonpathom",
+      "region": "central"
+    },
+    "window": {
+      "from": "2026-08-29",
+      "to": "2026-09-21"
+    },
+    "observed": 755.1,
+    "expected": 859.1,
+    "zScore": -5,
+    "direction": "down",
+    "hypothesis": "ยอดขายออกจากร้านในนครปฐมต่ำผิดปกติ ยังหาสาเหตุไม่ได้จากข้อมูลที่มี",
+    "verifySteps": [
+      "เทียบเพอร์ร่า ขวด PET 600 มล. · นครปฐม · ภาคกลางกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+      "เทียบเพอร์ร่า ขวด PET 600 มล. · นครปฐม · ภาคกลางกับช่วงเดียวกันของปีที่แล้ว"
+    ],
+    "ownerUserId": "u_somchai",
+    "status": "open",
+    "dismissCount": 0,
+    "parentId": null,
+    "relatedIds": [],
+    "campaignId": null,
+    "alsoOwnerIds": []
+  },
+  {
+    "id": "al_6180aee35a5d31b6",
+    "at": "2026-09-22T06:00:00.000Z",
+    "severity": "P2",
+    "metric": "sell_out_volume",
+    "dims": {
+      "sku": "sku_purra_pet1500",
+      "province": "pv_chachoengsao",
+      "region": "east"
+    },
+    "window": {
+      "from": "2026-08-26",
+      "to": "2026-09-22"
+    },
+    "observed": 265.1,
+    "expected": 299.3,
+    "zScore": -4.1,
+    "direction": "down",
+    "hypothesis": "ยอดขายออกจากร้านในฉะเชิงเทราต่ำผิดปกติ ยังหาสาเหตุไม่ได้จากข้อมูลที่มี",
+    "verifySteps": [
+      "เทียบเพอร์ร่า ขวด PET 1.5 ลิตร · ฉะเชิงเทรา · ภาคตะวันออกกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+      "เทียบเพอร์ร่า ขวด PET 1.5 ลิตร · ฉะเชิงเทรา · ภาคตะวันออกกับช่วงเดียวกันของปีที่แล้ว"
+    ],
+    "ownerUserId": "u_wichai",
+    "status": "open",
+    "dismissCount": 0,
+    "parentId": null,
+    "relatedIds": [],
+    "campaignId": null,
+    "alsoOwnerIds": []
+  },
+  {
+    "id": "al_bb6300d2bd665b9b",
+    "at": "2026-09-22T06:00:00.000Z",
+    "severity": "P2",
+    "metric": "sell_out_volume",
+    "dims": {
+      "sku": "sku_singha_lemon_soda_pet600",
+      "province": "pv_saraburi",
+      "region": "central"
+    },
+    "window": {
+      "from": "2026-08-28",
+      "to": "2026-09-22"
+    },
+    "observed": 474.5,
+    "expected": 543.1,
+    "zScore": -4.1,
+    "direction": "down",
+    "hypothesis": "ยอดขายออกจากร้านในสระบุรีต่ำผิดปกติ ยังหาสาเหตุไม่ได้จากข้อมูลที่มี",
+    "verifySteps": [
+      "เทียบสิงห์ เลมอนโซดา ขวด PET 600 มล. · สระบุรี · ภาคกลางกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+      "เทียบสิงห์ เลมอนโซดา ขวด PET 600 มล. · สระบุรี · ภาคกลางกับช่วงเดียวกันของปีที่แล้ว"
+    ],
+    "ownerUserId": "u_somchai",
+    "status": "open",
+    "dismissCount": 0,
+    "parentId": null,
+    "relatedIds": [],
+    "campaignId": null,
+    "alsoOwnerIds": []
+  },
+  {
+    "id": "al_a25b3f027de53c68",
+    "at": "2026-09-22T06:00:00.000Z",
+    "severity": "P3",
+    "metric": "sell_out_volume",
+    "dims": {
+      "sku": "sku_singha_soda_can320",
+      "channel": "modern_trade",
+      "region": "bkk"
+    },
+    "window": {
+      "from": "2026-09-06",
+      "to": "2026-09-22"
+    },
+    "observed": 5099.2,
+    "expected": 3924.6,
+    "zScore": 21.5,
+    "direction": "up",
+    "hypothesis": "การเปลี่ยนแปลงนี้อธิบายได้ด้วยโปรโมชัน \"ซีสโตร์ โซดาซัมเมอร์ 1 แถม 1\" ที่กำลังทำอยู่ในช่วงเวลาเดียวกัน จึงยังไม่ถือว่าผิดปกติ",
+    "verifySteps": [
+      "ดูผลแคมเปญที่ทำอยู่กับโซดาสิงห์ กระป๋อง 320 มล. · โมเดิร์นเทรด · กรุงเทพฯ และปริมณฑล เทียบก่อนและระหว่างแคมเปญ",
+      "เทียบโซดาสิงห์ กระป๋อง 320 มล. · โมเดิร์นเทรด · กรุงเทพฯ และปริมณฑลกับช่วงเดียวกันของปีที่แล้ว"
+    ],
+    "ownerUserId": "u_kanok",
+    "status": "open",
+    "dismissCount": 0,
+    "parentId": null,
+    "relatedIds": [],
+    "campaignId": "cmp_cstore_soda_promo",
+    "alsoOwnerIds": [
+      "u_pim"
+    ]
+  },
+  {
+    "id": "al_2bced77035d90ef1",
+    "at": "2026-09-22T06:00:00.000Z",
+    "severity": "P3",
+    "metric": "sell_out_volume",
+    "dims": {
+      "sku": "sku_singha_soda_can320",
+      "channel": "modern_trade",
+      "region": "central"
+    },
+    "window": {
+      "from": "2026-09-06",
+      "to": "2026-09-22"
+    },
+    "observed": 2759.2,
+    "expected": 2143,
+    "zScore": 18.7,
+    "direction": "up",
+    "hypothesis": "การเปลี่ยนแปลงนี้อธิบายได้ด้วยโปรโมชัน \"ซีสโตร์ โซดาซัมเมอร์ 1 แถม 1\" ที่กำลังทำอยู่ในช่วงเวลาเดียวกัน จึงยังไม่ถือว่าผิดปกติ",
+    "verifySteps": [
+      "ดูผลแคมเปญที่ทำอยู่กับโซดาสิงห์ กระป๋อง 320 มล. · โมเดิร์นเทรด · ภาคกลาง เทียบก่อนและระหว่างแคมเปญ",
+      "เทียบโซดาสิงห์ กระป๋อง 320 มล. · โมเดิร์นเทรด · ภาคกลางกับช่วงเดียวกันของปีที่แล้ว"
+    ],
+    "ownerUserId": "u_somchai",
+    "status": "open",
+    "dismissCount": 0,
+    "parentId": null,
+    "relatedIds": [],
+    "campaignId": "cmp_cstore_soda_promo",
+    "alsoOwnerIds": [
+      "u_pim"
+    ]
+  },
+  {
+    "id": "al_720464c45b4bed09",
+    "at": "2026-09-22T06:00:00.000Z",
+    "severity": "P3",
+    "metric": "sell_out_volume",
+    "dims": {
+      "sku": "sku_purra_pet600",
+      "province": "pv_chiangmai",
+      "region": "north"
+    },
+    "window": {
+      "from": "2026-09-19",
+      "to": "2026-09-22"
+    },
+    "observed": 2688.9,
+    "expected": 2114.3,
+    "zScore": 8.7,
+    "direction": "up",
+    "hypothesis": "ยอดขายออกในเชียงใหม่พุ่งขึ้นพร้อมกับค่าฝุ่น PM2.5 ที่สูงขึ้น ความต้องการน้ำดื่มน่าจะเพิ่มตามสภาพอากาศ",
+    "verifySteps": [
+      "ดูวันครอบคลุมสต๊อกและสต๊อกคงเหลือของเพอร์ร่า ขวด PET 600 มล. · เชียงใหม่ · ภาคเหนือตอนนี้",
+      "ดูพยากรณ์ 8 สัปดาห์ข้างหน้าของเพอร์ร่า ขวด PET 600 มล. · เชียงใหม่ · ภาคเหนือ"
+    ],
+    "ownerUserId": "u_nattaya",
+    "status": "open",
+    "dismissCount": 0,
+    "parentId": null,
+    "relatedIds": [
+      "al_e8114d936da7141f"
+    ],
+    "campaignId": null,
+    "alsoOwnerIds": []
+  },
+  {
+    "id": "al_8ea42b7d9f03c765",
+    "at": "2026-09-22T06:00:00.000Z",
+    "severity": "P3",
+    "metric": "sell_out_volume",
+    "dims": {
+      "sku": "sku_singha_soda_can320",
+      "channel": "traditional_trade",
+      "region": "bkk"
+    },
+    "window": {
+      "from": "2026-08-29",
+      "to": "2026-09-22"
+    },
+    "observed": 2430.9,
+    "expected": 2667.5,
+    "zScore": -6.3,
+    "direction": "down",
+    "hypothesis": "ยอดขายออกจากร้านในกรุงเทพฯ และปริมณฑลต่ำผิดปกติ ยังหาสาเหตุไม่ได้จากข้อมูลที่มี",
+    "verifySteps": [
+      "เทียบโซดาสิงห์ กระป๋อง 320 มล. · ร้านค้าปลีกดั้งเดิม · กรุงเทพฯ และปริมณฑลกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+      "เทียบโซดาสิงห์ กระป๋อง 320 มล. · ร้านค้าปลีกดั้งเดิม · กรุงเทพฯ และปริมณฑลกับช่วงเดียวกันของปีที่แล้ว"
+    ],
+    "ownerUserId": "u_kanok",
+    "status": "open",
+    "dismissCount": 0,
+    "parentId": null,
+    "relatedIds": [],
+    "campaignId": null,
+    "alsoOwnerIds": []
+  },
+  {
+    "id": "al_0da1269017ea2e7c",
+    "at": "2026-09-22T06:00:00.000Z",
+    "severity": "P3",
+    "metric": "sell_out_volume",
+    "dims": {
+      "sku": "sku_singha_soda_can320",
+      "channel": "on_premise",
+      "region": "bkk"
+    },
+    "window": {
+      "from": "2026-08-29",
+      "to": "2026-09-22"
+    },
+    "observed": 1857.1,
+    "expected": 2029.2,
+    "zScore": -6.1,
+    "direction": "down",
+    "hypothesis": "ยอดขายออกจากร้านในกรุงเทพฯ และปริมณฑลต่ำผิดปกติ ยังหาสาเหตุไม่ได้จากข้อมูลที่มี",
+    "verifySteps": [
+      "เทียบโซดาสิงห์ กระป๋อง 320 มล. · ร้านอาหารและสถานบันเทิง · กรุงเทพฯ และปริมณฑลกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+      "เทียบโซดาสิงห์ กระป๋อง 320 มล. · ร้านอาหารและสถานบันเทิง · กรุงเทพฯ และปริมณฑลกับช่วงเดียวกันของปีที่แล้ว"
+    ],
+    "ownerUserId": "u_kanok",
+    "status": "open",
+    "dismissCount": 0,
+    "parentId": "al_8ea42b7d9f03c765",
+    "relatedIds": [],
+    "campaignId": null,
+    "alsoOwnerIds": []
+  },
+  {
+    "id": "al_cdada7f370931126",
+    "at": "2026-09-22T06:00:00.000Z",
+    "severity": "P3",
+    "metric": "sell_out_volume",
+    "dims": {
+      "sku": "sku_purra_pet600",
+      "channel": "on_premise",
+      "region": "north"
+    },
+    "window": {
+      "from": "2026-09-19",
+      "to": "2026-09-22"
+    },
+    "observed": 772,
+    "expected": 650.2,
+    "zScore": 6,
+    "direction": "up",
+    "hypothesis": "ยอดขายออกจากร้านในภาคเหนือสูงผิดปกติ ยังหาสาเหตุไม่ได้จากข้อมูลที่มี",
+    "verifySteps": [
+      "เทียบเพอร์ร่า ขวด PET 600 มล. · ร้านอาหารและสถานบันเทิง · ภาคเหนือกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+      "เทียบเพอร์ร่า ขวด PET 600 มล. · ร้านอาหารและสถานบันเทิง · ภาคเหนือกับช่วงเดียวกันของปีที่แล้ว"
+    ],
+    "ownerUserId": "u_nattaya",
+    "status": "open",
+    "dismissCount": 0,
+    "parentId": "al_720464c45b4bed09",
+    "relatedIds": [],
+    "campaignId": null,
+    "alsoOwnerIds": []
+  },
+  {
+    "id": "al_61751e8e091a0f4d",
+    "at": "2026-09-22T06:00:00.000Z",
+    "severity": "P3",
+    "metric": "net_sales_volume",
+    "dims": {
+      "agent": "ag_cen_05",
+      "brand": "singha",
+      "sku": "sku_singha_pack12",
+      "region": "central"
+    },
+    "window": {
+      "from": "2026-08-26",
+      "to": "2026-09-22"
+    },
+    "observed": 674.2,
+    "expected": 580,
+    "zScore": 5.8,
+    "direction": "up",
+    "hypothesis": "ปริมาณขายในภาคกลางสูงผิดปกติ ยังหาสาเหตุไม่ได้จากข้อมูลที่มี",
+    "verifySteps": [
+      "เทียบราชบุรีสหมิตร · สิงห์ แพ็ก 12 · ภาคกลางกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+      "เทียบราชบุรีสหมิตร · สิงห์ แพ็ก 12 · ภาคกลางกับช่วงเดียวกันของปีที่แล้ว"
+    ],
+    "ownerUserId": "u_somchai",
+    "status": "open",
+    "dismissCount": 0,
+    "parentId": null,
+    "relatedIds": [],
+    "campaignId": null,
+    "alsoOwnerIds": []
+  },
+  {
+    "id": "al_e6e600614ced7c3c",
+    "at": "2026-09-22T06:00:00.000Z",
+    "severity": "P3",
+    "metric": "sell_out_volume",
+    "dims": {
+      "sku": "sku_purra_pet600",
+      "channel": "traditional_trade",
+      "region": "north"
+    },
+    "window": {
+      "from": "2026-09-19",
+      "to": "2026-09-22"
+    },
+    "observed": 2550.4,
+    "expected": 2163.4,
+    "zScore": 5.7,
+    "direction": "up",
+    "hypothesis": "ยอดขายออกจากร้านในภาคเหนือสูงผิดปกติ ยังหาสาเหตุไม่ได้จากข้อมูลที่มี",
+    "verifySteps": [
+      "เทียบเพอร์ร่า ขวด PET 600 มล. · ร้านค้าปลีกดั้งเดิม · ภาคเหนือกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+      "เทียบเพอร์ร่า ขวด PET 600 มล. · ร้านค้าปลีกดั้งเดิม · ภาคเหนือกับช่วงเดียวกันของปีที่แล้ว"
+    ],
+    "ownerUserId": "u_nattaya",
+    "status": "open",
+    "dismissCount": 0,
+    "parentId": "al_720464c45b4bed09",
+    "relatedIds": [],
+    "campaignId": null,
+    "alsoOwnerIds": []
+  },
+  {
+    "id": "al_736fc28ea960a98a",
+    "at": "2026-09-22T06:00:00.000Z",
+    "severity": "P3",
+    "metric": "sell_out_volume",
+    "dims": {
+      "sku": "sku_purra_pet600",
+      "channel": "export",
+      "region": "north"
+    },
+    "window": {
+      "from": "2026-09-19",
+      "to": "2026-09-22"
+    },
+    "observed": 13.8,
+    "expected": 11.8,
+    "zScore": 5.7,
+    "direction": "up",
+    "hypothesis": "ยอดขายออกจากร้านในภาคเหนือสูงผิดปกติ ยังหาสาเหตุไม่ได้จากข้อมูลที่มี",
+    "verifySteps": [
+      "เทียบเพอร์ร่า ขวด PET 600 มล. · ส่งออก · ภาคเหนือกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+      "เทียบเพอร์ร่า ขวด PET 600 มล. · ส่งออก · ภาคเหนือกับช่วงเดียวกันของปีที่แล้ว"
+    ],
+    "ownerUserId": "u_nattaya",
+    "status": "open",
+    "dismissCount": 0,
+    "parentId": "al_720464c45b4bed09",
+    "relatedIds": [],
+    "campaignId": null,
+    "alsoOwnerIds": []
+  },
+  {
+    "id": "al_8dda69520234c961",
+    "at": "2026-09-22T06:00:00.000Z",
+    "severity": "P3",
+    "metric": "sell_out_volume",
+    "dims": {
+      "sku": "sku_purra_pet600",
+      "province": "pv_lamphun",
+      "region": "north"
+    },
+    "window": {
+      "from": "2026-09-19",
+      "to": "2026-09-22"
+    },
+    "observed": 1438.1,
+    "expected": 1164.4,
+    "zScore": 5.6,
+    "direction": "up",
+    "hypothesis": "ยอดขายออกในลำพูนพุ่งขึ้นพร้อมกับค่าฝุ่น PM2.5 ที่สูงขึ้น ความต้องการน้ำดื่มน่าจะเพิ่มตามสภาพอากาศ",
+    "verifySteps": [
+      "ดูวันครอบคลุมสต๊อกและสต๊อกคงเหลือของเพอร์ร่า ขวด PET 600 มล. · ลำพูน · ภาคเหนือตอนนี้",
+      "ดูพยากรณ์ 8 สัปดาห์ข้างหน้าของเพอร์ร่า ขวด PET 600 มล. · ลำพูน · ภาคเหนือ"
+    ],
+    "ownerUserId": "u_nattaya",
+    "status": "open",
+    "dismissCount": 0,
+    "parentId": "al_720464c45b4bed09",
+    "relatedIds": [],
+    "campaignId": null,
+    "alsoOwnerIds": []
+  },
+  {
+    "id": "al_84cdbb85b5f66ea9",
+    "at": "2026-09-22T06:00:00.000Z",
+    "severity": "P3",
+    "metric": "sell_out_volume",
+    "dims": {
+      "sku": "sku_purra_pet600",
+      "channel": "modern_trade",
+      "region": "north"
+    },
+    "window": {
+      "from": "2026-09-19",
+      "to": "2026-09-22"
+    },
+    "observed": 2347.8,
+    "expected": 2000.8,
+    "zScore": 5.5,
+    "direction": "up",
+    "hypothesis": "ยอดขายออกจากร้านในภาคเหนือสูงผิดปกติ ยังหาสาเหตุไม่ได้จากข้อมูลที่มี",
+    "verifySteps": [
+      "เทียบเพอร์ร่า ขวด PET 600 มล. · โมเดิร์นเทรด · ภาคเหนือกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+      "เทียบเพอร์ร่า ขวด PET 600 มล. · โมเดิร์นเทรด · ภาคเหนือกับช่วงเดียวกันของปีที่แล้ว"
+    ],
+    "ownerUserId": "u_nattaya",
+    "status": "open",
+    "dismissCount": 0,
+    "parentId": "al_720464c45b4bed09",
+    "relatedIds": [],
+    "campaignId": null,
+    "alsoOwnerIds": []
+  },
+  {
+    "id": "al_dc0b5002cea26800",
+    "at": "2026-09-22T06:00:00.000Z",
+    "severity": "P3",
+    "metric": "sell_out_volume",
+    "dims": {
+      "sku": "sku_singha_soda_can320",
+      "province": "pv_ratchaburi",
+      "region": "central"
+    },
+    "window": {
+      "from": "2026-09-12",
+      "to": "2026-09-21"
+    },
+    "observed": 1330.6,
+    "expected": 1108.7,
+    "zScore": 5.3,
+    "direction": "up",
+    "hypothesis": "การเปลี่ยนแปลงนี้อธิบายได้ด้วยโปรโมชัน \"ซีสโตร์ โซดาซัมเมอร์ 1 แถม 1\" ที่กำลังทำอยู่ในช่วงเวลาเดียวกัน จึงยังไม่ถือว่าผิดปกติ",
+    "verifySteps": [
+      "ดูผลแคมเปญที่ทำอยู่กับโซดาสิงห์ กระป๋อง 320 มล. · ราชบุรี · ภาคกลาง เทียบก่อนและระหว่างแคมเปญ",
+      "เทียบโซดาสิงห์ กระป๋อง 320 มล. · ราชบุรี · ภาคกลางกับช่วงเดียวกันของปีที่แล้ว"
+    ],
+    "ownerUserId": "u_somchai",
+    "status": "open",
+    "dismissCount": 0,
+    "parentId": "al_2bced77035d90ef1",
+    "relatedIds": [],
+    "campaignId": "cmp_cstore_soda_promo",
+    "alsoOwnerIds": [
+      "u_pim"
+    ]
+  },
+  {
+    "id": "al_05e4ed13725e756a",
+    "at": "2026-09-22T06:00:00.000Z",
+    "severity": "P3",
+    "metric": "net_sales_volume",
+    "dims": {
+      "agent": "ag_nea_06",
+      "brand": "asahi",
+      "sku": "sku_asahi_bottle320",
+      "region": "northeast"
+    },
+    "window": {
+      "from": "2026-08-30",
+      "to": "2026-09-22"
+    },
+    "observed": 27.1,
+    "expected": 24,
+    "zScore": 5.2,
+    "direction": "up",
+    "hypothesis": "ปริมาณขายในภาคอีสานสูงผิดปกติ ยังหาสาเหตุไม่ได้จากข้อมูลที่มี",
+    "verifySteps": [
+      "เทียบวารินพาณิชย์ · อาซาฮี ขวด 320 มล. · ภาคอีสานกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+      "เทียบวารินพาณิชย์ · อาซาฮี ขวด 320 มล. · ภาคอีสานกับช่วงเดียวกันของปีที่แล้ว"
+    ],
+    "ownerUserId": "u_anucha",
+    "status": "open",
+    "dismissCount": 0,
+    "parentId": null,
+    "relatedIds": [],
+    "campaignId": null,
+    "alsoOwnerIds": []
+  },
+  {
+    "id": "al_d2bf1cd89e43532e",
+    "at": "2026-09-22T06:00:00.000Z",
+    "severity": "P3",
+    "metric": "production_output",
+    "dims": {
+      "plant": "pl_singburi",
+      "region": "central"
+    },
+    "window": {
+      "from": "2026-09-09",
+      "to": "2026-09-16"
+    },
+    "observed": 104170.3,
+    "expected": 95787.7,
+    "zScore": 5.2,
+    "direction": "up",
+    "hypothesis": "กำลังการผลิตที่ผลิตได้ในโรงงานสิงห์บุรีสูงผิดปกติ ยังหาสาเหตุไม่ได้จากข้อมูลที่มี",
+    "verifySteps": [
+      "เทียบโรงงานสิงห์บุรี · ภาคกลางกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+      "เทียบโรงงานสิงห์บุรี · ภาคกลางกับช่วงเดียวกันของปีที่แล้ว"
+    ],
+    "ownerUserId": "u_wee",
+    "status": "resolved",
+    "dismissCount": 0,
+    "parentId": null,
+    "relatedIds": [],
+    "campaignId": null,
+    "alsoOwnerIds": []
+  },
+  {
+    "id": "al_bb026d2697fa2330",
+    "at": "2026-09-22T06:00:00.000Z",
+    "severity": "P3",
+    "metric": "net_sales_volume",
+    "dims": {
+      "agent": "ag_est_03",
+      "brand": "carlsberg",
+      "sku": "sku_carlsberg_bottle620",
+      "region": "east"
+    },
+    "window": {
+      "from": "2026-08-30",
+      "to": "2026-09-17"
+    },
+    "observed": 195.5,
+    "expected": 168.9,
+    "zScore": 5.1,
+    "direction": "up",
+    "hypothesis": "ปริมาณขายในภาคตะวันออกสูงผิดปกติ ยังหาสาเหตุไม่ได้จากข้อมูลที่มี",
+    "verifySteps": [
+      "เทียบระยองศรีทวี · คาร์ลสเบิร์ก ขวด 620 มล. · ภาคตะวันออกกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+      "เทียบระยองศรีทวี · คาร์ลสเบิร์ก ขวด 620 มล. · ภาคตะวันออกกับช่วงเดียวกันของปีที่แล้ว"
+    ],
+    "ownerUserId": "u_wichai",
+    "status": "resolved",
+    "dismissCount": 0,
+    "parentId": null,
+    "relatedIds": [],
+    "campaignId": null,
+    "alsoOwnerIds": []
+  },
+  {
+    "id": "al_1cf125f69bb321d5",
+    "at": "2026-09-22T06:00:00.000Z",
+    "severity": "P3",
+    "metric": "net_sales_volume",
+    "dims": {
+      "agent": "ag_cen_02",
+      "brand": "carlsberg",
+      "sku": "sku_carlsberg_bottle620",
+      "region": "central"
+    },
+    "window": {
+      "from": "2026-09-06",
+      "to": "2026-09-19"
+    },
+    "observed": 75.4,
+    "expected": 63.2,
+    "zScore": 5,
+    "direction": "up",
+    "hypothesis": "ปริมาณขายในภาคกลางสูงผิดปกติ ยังหาสาเหตุไม่ได้จากข้อมูลที่มี",
+    "verifySteps": [
+      "เทียบวังน้อยเบเวอเรจ · คาร์ลสเบิร์ก ขวด 620 มล. · ภาคกลางกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+      "เทียบวังน้อยเบเวอเรจ · คาร์ลสเบิร์ก ขวด 620 มล. · ภาคกลางกับช่วงเดียวกันของปีที่แล้ว"
+    ],
+    "ownerUserId": "u_somchai",
+    "status": "open",
+    "dismissCount": 0,
+    "parentId": null,
+    "relatedIds": [],
+    "campaignId": null,
+    "alsoOwnerIds": []
+  },
+  {
+    "id": "al_8bb04c0ccfa1512c",
+    "at": "2026-09-22T06:00:00.000Z",
+    "severity": "P3",
+    "metric": "sell_out_volume",
+    "dims": {
+      "sku": "sku_singha_soda_can320",
+      "province": "pv_bangkok",
+      "region": "bkk"
+    },
+    "window": {
+      "from": "2026-09-06",
+      "to": "2026-09-22"
+    },
+    "observed": 5254.5,
+    "expected": 4738.1,
+    "zScore": 5,
+    "direction": "up",
+    "hypothesis": "การเปลี่ยนแปลงนี้อธิบายได้ด้วยโปรโมชัน \"ซีสโตร์ โซดาซัมเมอร์ 1 แถม 1\" ที่กำลังทำอยู่ในช่วงเวลาเดียวกัน จึงยังไม่ถือว่าผิดปกติ",
+    "verifySteps": [
+      "ดูผลแคมเปญที่ทำอยู่กับโซดาสิงห์ กระป๋อง 320 มล. · กรุงเทพมหานคร · กรุงเทพฯ และปริมณฑล เทียบก่อนและระหว่างแคมเปญ",
+      "เทียบโซดาสิงห์ กระป๋อง 320 มล. · กรุงเทพมหานคร · กรุงเทพฯ และปริมณฑลกับช่วงเดียวกันของปีที่แล้ว"
+    ],
+    "ownerUserId": "u_kanok",
+    "status": "open",
+    "dismissCount": 0,
+    "parentId": "al_a25b3f027de53c68",
+    "relatedIds": [],
+    "campaignId": "cmp_cstore_soda_promo",
+    "alsoOwnerIds": [
+      "u_pim"
+    ]
+  },
+  {
+    "id": "al_2b7e4f62d7df189a",
+    "at": "2026-09-22T06:00:00.000Z",
+    "severity": "P3",
+    "metric": "sell_out_volume",
+    "dims": {
+      "sku": "sku_singha_soda_can320",
+      "channel": "traditional_trade",
+      "region": "central"
+    },
+    "window": {
+      "from": "2026-09-06",
+      "to": "2026-09-16"
+    },
+    "observed": 1187,
+    "expected": 1293,
+    "zScore": -5,
+    "direction": "down",
+    "hypothesis": "ยอดขายออกจากร้านในภาคกลางต่ำผิดปกติ ยังหาสาเหตุไม่ได้จากข้อมูลที่มี",
+    "verifySteps": [
+      "เทียบโซดาสิงห์ กระป๋อง 320 มล. · ร้านค้าปลีกดั้งเดิม · ภาคกลางกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+      "เทียบโซดาสิงห์ กระป๋อง 320 มล. · ร้านค้าปลีกดั้งเดิม · ภาคกลางกับช่วงเดียวกันของปีที่แล้ว"
+    ],
+    "ownerUserId": "u_somchai",
+    "status": "resolved",
+    "dismissCount": 0,
+    "parentId": null,
+    "relatedIds": [],
+    "campaignId": null,
+    "alsoOwnerIds": []
+  },
+  {
+    "id": "al_92d1c629e25fd049",
+    "at": "2026-09-22T06:00:00.000Z",
+    "severity": "P3",
+    "metric": "sell_out_volume",
+    "dims": {
+      "sku": "sku_singha_soda_can320",
+      "channel": "export",
+      "region": "central"
+    },
+    "window": {
+      "from": "2026-09-06",
+      "to": "2026-09-16"
+    },
+    "observed": 36.6,
+    "expected": 39.9,
+    "zScore": -5,
+    "direction": "down",
+    "hypothesis": "ยอดขายออกจากร้านในภาคกลางต่ำผิดปกติ ยังหาสาเหตุไม่ได้จากข้อมูลที่มี",
+    "verifySteps": [
+      "เทียบโซดาสิงห์ กระป๋อง 320 มล. · ส่งออก · ภาคกลางกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+      "เทียบโซดาสิงห์ กระป๋อง 320 มล. · ส่งออก · ภาคกลางกับช่วงเดียวกันของปีที่แล้ว"
+    ],
+    "ownerUserId": "u_somchai",
+    "status": "resolved",
+    "dismissCount": 0,
+    "parentId": "al_2b7e4f62d7df189a",
+    "relatedIds": [],
+    "campaignId": null,
+    "alsoOwnerIds": []
+  },
+  {
+    "id": "al_9a2a33a103cc2baa",
+    "at": "2026-09-22T06:00:00.000Z",
+    "severity": "P3",
+    "metric": "net_sales_volume",
+    "dims": {
+      "agent": "ag_cen_05",
+      "brand": "carlsberg",
+      "region": "central"
+    },
+    "window": {
+      "from": "2026-08-26",
+      "to": "2026-09-21"
+    },
+    "observed": 250,
+    "expected": 228,
+    "zScore": 4.9,
+    "direction": "up",
+    "hypothesis": "ปริมาณขายในภาคกลางสูงผิดปกติ ยังหาสาเหตุไม่ได้จากข้อมูลที่มี",
+    "verifySteps": [
+      "เทียบราชบุรีสหมิตร · คาร์ลสเบิร์ก · ภาคกลางกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+      "เทียบราชบุรีสหมิตร · คาร์ลสเบิร์ก · ภาคกลางกับช่วงเดียวกันของปีที่แล้ว"
+    ],
+    "ownerUserId": "u_somchai",
+    "status": "open",
+    "dismissCount": 0,
+    "parentId": null,
+    "relatedIds": [],
+    "campaignId": null,
+    "alsoOwnerIds": []
+  },
+  {
+    "id": "al_1ee6c7eaa1f811c3",
+    "at": "2026-09-22T06:00:00.000Z",
+    "severity": "P3",
+    "metric": "net_sales_volume",
+    "dims": {
+      "agent": "ag_cen_02",
+      "brand": "singha",
+      "sku": "sku_singha_bottle320",
+      "region": "central"
+    },
+    "window": {
+      "from": "2026-09-02",
+      "to": "2026-09-21"
+    },
+    "observed": 495.2,
+    "expected": 438.1,
+    "zScore": 4.9,
+    "direction": "up",
+    "hypothesis": "ปริมาณขายในภาคกลางสูงผิดปกติ ยังหาสาเหตุไม่ได้จากข้อมูลที่มี",
+    "verifySteps": [
+      "เทียบวังน้อยเบเวอเรจ · สิงห์ ขวด 320 มล. · ภาคกลางกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+      "เทียบวังน้อยเบเวอเรจ · สิงห์ ขวด 320 มล. · ภาคกลางกับช่วงเดียวกันของปีที่แล้ว"
+    ],
+    "ownerUserId": "u_somchai",
+    "status": "open",
+    "dismissCount": 0,
+    "parentId": null,
+    "relatedIds": [],
+    "campaignId": null,
+    "alsoOwnerIds": []
+  },
+  {
+    "id": "al_755bb7962bea28ca",
+    "at": "2026-09-22T06:00:00.000Z",
+    "severity": "P3",
+    "metric": "net_sales_volume",
+    "dims": {
+      "agent": "ag_nor_02",
+      "brand": "leo",
+      "sku": "sku_leo_can490",
+      "region": "north"
+    },
+    "window": {
+      "from": "2026-08-26",
+      "to": "2026-09-17"
+    },
+    "observed": 958.1,
+    "expected": 843.5,
+    "zScore": 4.9,
+    "direction": "up",
+    "hypothesis": "ปริมาณขายในภาคเหนือสูงผิดปกติ ยังหาสาเหตุไม่ได้จากข้อมูลที่มี",
+    "verifySteps": [
+      "เทียบล้านนาเบเวอเรจ · ลีโอ กระป๋อง 490 มล. · ภาคเหนือกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+      "เทียบล้านนาเบเวอเรจ · ลีโอ กระป๋อง 490 มล. · ภาคเหนือกับช่วงเดียวกันของปีที่แล้ว"
+    ],
+    "ownerUserId": "u_nattaya",
+    "status": "resolved",
+    "dismissCount": 0,
+    "parentId": null,
+    "relatedIds": [],
+    "campaignId": null,
+    "alsoOwnerIds": []
+  },
+  {
+    "id": "al_49b503043dd5af01",
+    "at": "2026-09-22T06:00:00.000Z",
+    "severity": "P3",
+    "metric": "sell_out_volume",
+    "dims": {
+      "sku": "sku_singha_water_pet600",
+      "province": "pv_khonkaen",
+      "region": "northeast"
+    },
+    "window": {
+      "from": "2026-08-26",
+      "to": "2026-09-22"
+    },
+    "observed": 5671,
+    "expected": 6271.6,
+    "zScore": -4.9,
+    "direction": "down",
+    "hypothesis": "ยอดขายออกจากร้านในขอนแก่นต่ำผิดปกติ ยังหาสาเหตุไม่ได้จากข้อมูลที่มี",
+    "verifySteps": [
+      "เทียบน้ำดื่มสิงห์ ขวด PET 600 มล. · ขอนแก่น · ภาคอีสานกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+      "เทียบน้ำดื่มสิงห์ ขวด PET 600 มล. · ขอนแก่น · ภาคอีสานกับช่วงเดียวกันของปีที่แล้ว"
+    ],
+    "ownerUserId": "u_anucha",
+    "status": "open",
+    "dismissCount": 0,
+    "parentId": null,
+    "relatedIds": [],
+    "campaignId": null,
+    "alsoOwnerIds": []
+  },
+  {
+    "id": "al_3d92631b3e62f8f1",
+    "at": "2026-09-22T06:00:00.000Z",
+    "severity": "P3",
+    "metric": "sell_out_volume",
+    "dims": {
+      "sku": "sku_singha_lemon_soda_bottle320",
+      "province": "pv_rayong",
+      "region": "east"
+    },
+    "window": {
+      "from": "2026-08-28",
+      "to": "2026-09-22"
+    },
+    "observed": 316,
+    "expected": 349.4,
+    "zScore": -4.8,
+    "direction": "down",
+    "hypothesis": "ยอดขายออกจากร้านในระยองต่ำผิดปกติ ยังหาสาเหตุไม่ได้จากข้อมูลที่มี",
+    "verifySteps": [
+      "เทียบสิงห์ เลมอนโซดา ขวด 320 มล. · ระยอง · ภาคตะวันออกกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+      "เทียบสิงห์ เลมอนโซดา ขวด 320 มล. · ระยอง · ภาคตะวันออกกับช่วงเดียวกันของปีที่แล้ว"
+    ],
+    "ownerUserId": "u_wichai",
+    "status": "open",
+    "dismissCount": 0,
+    "parentId": null,
+    "relatedIds": [],
+    "campaignId": null,
+    "alsoOwnerIds": []
+  },
+  {
+    "id": "al_5f6be9098036d7bb",
+    "at": "2026-09-22T06:00:00.000Z",
+    "severity": "P3",
+    "metric": "net_sales_volume",
+    "dims": {
+      "agent": "ag_nor_03",
+      "brand": "leo",
+      "sku": "sku_leo_bottle320",
+      "region": "north"
+    },
+    "window": {
+      "from": "2026-08-26",
+      "to": "2026-09-17"
+    },
+    "observed": 893.8,
+    "expected": 797.4,
+    "zScore": 4.6,
+    "direction": "up",
+    "hypothesis": "ปริมาณขายในภาคเหนือสูงผิดปกติ ยังหาสาเหตุไม่ได้จากข้อมูลที่มี",
+    "verifySteps": [
+      "เทียบเชียงรายทองคำ · ลีโอ ขวด 320 มล. · ภาคเหนือกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+      "เทียบเชียงรายทองคำ · ลีโอ ขวด 320 มล. · ภาคเหนือกับช่วงเดียวกันของปีที่แล้ว"
+    ],
+    "ownerUserId": "u_nattaya",
+    "status": "resolved",
+    "dismissCount": 0,
+    "parentId": null,
+    "relatedIds": [],
+    "campaignId": null,
+    "alsoOwnerIds": []
+  },
+  {
+    "id": "al_20ceca52c02a2f85",
+    "at": "2026-09-22T06:00:00.000Z",
+    "severity": "P3",
+    "metric": "sell_out_volume",
+    "dims": {
+      "sku": "sku_singha_soda_can320",
+      "channel": "on_premise",
+      "region": "central"
+    },
+    "window": {
+      "from": "2026-09-06",
+      "to": "2026-09-16"
+    },
+    "observed": 915.2,
+    "expected": 992.8,
+    "zScore": -4.6,
+    "direction": "down",
+    "hypothesis": "ยอดขายออกจากร้านในภาคกลางต่ำผิดปกติ ยังหาสาเหตุไม่ได้จากข้อมูลที่มี",
+    "verifySteps": [
+      "เทียบโซดาสิงห์ กระป๋อง 320 มล. · ร้านอาหารและสถานบันเทิง · ภาคกลางกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+      "เทียบโซดาสิงห์ กระป๋อง 320 มล. · ร้านอาหารและสถานบันเทิง · ภาคกลางกับช่วงเดียวกันของปีที่แล้ว"
+    ],
+    "ownerUserId": "u_somchai",
+    "status": "resolved",
+    "dismissCount": 0,
+    "parentId": "al_2b7e4f62d7df189a",
+    "relatedIds": [],
+    "campaignId": null,
+    "alsoOwnerIds": []
+  },
+  {
+    "id": "al_82238fd37fc95bf1",
+    "at": "2026-09-22T06:00:00.000Z",
+    "severity": "P3",
+    "metric": "net_sales_volume",
+    "dims": {
+      "agent": "ag_bkk_06",
+      "brand": "leo",
+      "sku": "sku_leo_bottle320",
+      "region": "bkk"
+    },
+    "window": {
+      "from": "2026-08-26",
+      "to": "2026-09-17"
+    },
+    "observed": 537.9,
+    "expected": 470.1,
+    "zScore": 4.5,
+    "direction": "up",
+    "hypothesis": "ปริมาณขายในกรุงเทพฯ และปริมณฑลสูงผิดปกติ ยังหาสาเหตุไม่ได้จากข้อมูลที่มี",
+    "verifySteps": [
+      "เทียบรังสิตซัพพลาย · ลีโอ ขวด 320 มล. · กรุงเทพฯ และปริมณฑลกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+      "เทียบรังสิตซัพพลาย · ลีโอ ขวด 320 มล. · กรุงเทพฯ และปริมณฑลกับช่วงเดียวกันของปีที่แล้ว"
+    ],
+    "ownerUserId": "u_kanok",
+    "status": "resolved",
+    "dismissCount": 0,
+    "parentId": null,
+    "relatedIds": [],
+    "campaignId": null,
+    "alsoOwnerIds": []
+  },
+  {
+    "id": "al_93abb30ae36301e5",
+    "at": "2026-09-22T06:00:00.000Z",
+    "severity": "P3",
+    "metric": "net_sales_volume",
+    "dims": {
+      "agent": "ag_bkk_02",
+      "brand": "leo",
+      "sku": "sku_leo_can320",
+      "region": "bkk"
+    },
+    "window": {
+      "from": "2026-09-01",
+      "to": "2026-09-18"
+    },
+    "observed": 2366,
+    "expected": 2065.8,
+    "zScore": 4.5,
+    "direction": "up",
+    "hypothesis": "ปริมาณขายในกรุงเทพฯ และปริมณฑลสูงผิดปกติ ยังหาสาเหตุไม่ได้จากข้อมูลที่มี",
+    "verifySteps": [
+      "เทียบพระราม 4 ดิสทริบิวชั่น · ลีโอ กระป๋อง 320 มล. · กรุงเทพฯ และปริมณฑลกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+      "เทียบพระราม 4 ดิสทริบิวชั่น · ลีโอ กระป๋อง 320 มล. · กรุงเทพฯ และปริมณฑลกับช่วงเดียวกันของปีที่แล้ว"
+    ],
+    "ownerUserId": "u_kanok",
+    "status": "resolved",
+    "dismissCount": 0,
+    "parentId": null,
+    "relatedIds": [],
+    "campaignId": null,
+    "alsoOwnerIds": []
+  },
+  {
+    "id": "al_15b905879589b0d2",
+    "at": "2026-09-22T06:00:00.000Z",
+    "severity": "P3",
+    "metric": "net_sales_volume",
+    "dims": {
+      "agent": "ag_cen_01",
+      "brand": "leo",
+      "sku": "sku_leo_keg30",
+      "region": "central"
+    },
+    "window": {
+      "from": "2026-08-26",
+      "to": "2026-09-17"
+    },
+    "observed": 879.8,
+    "expected": 775.8,
+    "zScore": 4.5,
+    "direction": "up",
+    "hypothesis": "ปริมาณขายในภาคกลางสูงผิดปกติ ยังหาสาเหตุไม่ได้จากข้อมูลที่มี",
+    "verifySteps": [
+      "เทียบอยุธยาศรีทอง · ลีโอ ถัง 30 ลิตร · ภาคกลางกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+      "เทียบอยุธยาศรีทอง · ลีโอ ถัง 30 ลิตร · ภาคกลางกับช่วงเดียวกันของปีที่แล้ว"
+    ],
+    "ownerUserId": "u_somchai",
+    "status": "resolved",
+    "dismissCount": 0,
+    "parentId": null,
+    "relatedIds": [],
+    "campaignId": null,
+    "alsoOwnerIds": []
+  },
+  {
+    "id": "al_945fbed26ce34a56",
+    "at": "2026-09-22T06:00:00.000Z",
+    "severity": "P3",
+    "metric": "net_sales_volume",
+    "dims": {
+      "agent": "ag_nor_04",
+      "brand": "singha",
+      "sku": "sku_singha_bottle320",
+      "region": "north"
+    },
+    "window": {
+      "from": "2026-08-26",
+      "to": "2026-09-16"
+    },
+    "observed": 549.5,
+    "expected": 483.3,
+    "zScore": 4.4,
+    "direction": "up",
+    "hypothesis": "ปริมาณขายในภาคเหนือสูงผิดปกติ ยังหาสาเหตุไม่ได้จากข้อมูลที่มี",
+    "verifySteps": [
+      "เทียบลำพูนรุ่งทรัพย์ · สิงห์ ขวด 320 มล. · ภาคเหนือกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+      "เทียบลำพูนรุ่งทรัพย์ · สิงห์ ขวด 320 มล. · ภาคเหนือกับช่วงเดียวกันของปีที่แล้ว"
+    ],
+    "ownerUserId": "u_nattaya",
+    "status": "resolved",
+    "dismissCount": 0,
+    "parentId": null,
+    "relatedIds": [],
+    "campaignId": null,
+    "alsoOwnerIds": []
+  },
+  {
+    "id": "al_1d514aceb2e16a96",
+    "at": "2026-09-22T06:00:00.000Z",
+    "severity": "P3",
+    "metric": "sell_out_volume",
+    "dims": {
+      "sku": "sku_singha_soda_bottle320",
+      "channel": "modern_trade",
+      "region": "central"
+    },
+    "window": {
+      "from": "2026-08-26",
+      "to": "2026-09-22"
+    },
+    "observed": 833,
+    "expected": 907.9,
+    "zScore": -4.4,
+    "direction": "down",
+    "hypothesis": "ยอดขายออกจากร้านในภาคกลางต่ำผิดปกติ ยังหาสาเหตุไม่ได้จากข้อมูลที่มี",
+    "verifySteps": [
+      "เทียบโซดาสิงห์ ขวด 320 มล. · โมเดิร์นเทรด · ภาคกลางกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+      "เทียบโซดาสิงห์ ขวด 320 มล. · โมเดิร์นเทรด · ภาคกลางกับช่วงเดียวกันของปีที่แล้ว"
+    ],
+    "ownerUserId": "u_somchai",
+    "status": "open",
+    "dismissCount": 0,
+    "parentId": null,
+    "relatedIds": [],
+    "campaignId": null,
+    "alsoOwnerIds": []
+  },
+  {
+    "id": "al_694132f3f25b5281",
+    "at": "2026-09-22T06:00:00.000Z",
+    "severity": "P3",
+    "metric": "sell_out_volume",
+    "dims": {
+      "sku": "sku_singha_soda_can320",
+      "province": "pv_saraburi",
+      "region": "central"
+    },
+    "window": {
+      "from": "2026-09-09",
+      "to": "2026-09-22"
+    },
+    "observed": 904.5,
+    "expected": 756.6,
+    "zScore": 4.3,
+    "direction": "up",
+    "hypothesis": "การเปลี่ยนแปลงนี้อธิบายได้ด้วยโปรโมชัน \"ซีสโตร์ โซดาซัมเมอร์ 1 แถม 1\" ที่กำลังทำอยู่ในช่วงเวลาเดียวกัน จึงยังไม่ถือว่าผิดปกติ",
+    "verifySteps": [
+      "ดูผลแคมเปญที่ทำอยู่กับโซดาสิงห์ กระป๋อง 320 มล. · สระบุรี · ภาคกลาง เทียบก่อนและระหว่างแคมเปญ",
+      "เทียบโซดาสิงห์ กระป๋อง 320 มล. · สระบุรี · ภาคกลางกับช่วงเดียวกันของปีที่แล้ว"
+    ],
+    "ownerUserId": "u_somchai",
+    "status": "open",
+    "dismissCount": 0,
+    "parentId": "al_2bced77035d90ef1",
+    "relatedIds": [],
+    "campaignId": "cmp_cstore_soda_promo",
+    "alsoOwnerIds": [
+      "u_pim"
+    ]
+  },
+  {
+    "id": "al_1a916cfbd8a973df",
+    "at": "2026-09-22T06:00:00.000Z",
+    "severity": "P3",
+    "metric": "net_sales_volume",
+    "dims": {
+      "agent": "ag_cen_03",
+      "brand": "carlsberg",
+      "region": "central"
+    },
+    "window": {
+      "from": "2026-08-26",
+      "to": "2026-09-18"
+    },
+    "observed": 273.3,
+    "expected": 250.7,
+    "zScore": 4.1,
+    "direction": "up",
+    "hypothesis": "ปริมาณขายในภาคกลางสูงผิดปกติ ยังหาสาเหตุไม่ได้จากข้อมูลที่มี",
+    "verifySteps": [
+      "เทียบสระบุรีพาณิชย์ · คาร์ลสเบิร์ก · ภาคกลางกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+      "เทียบสระบุรีพาณิชย์ · คาร์ลสเบิร์ก · ภาคกลางกับช่วงเดียวกันของปีที่แล้ว"
+    ],
+    "ownerUserId": "u_somchai",
+    "status": "resolved",
+    "dismissCount": 0,
+    "parentId": null,
+    "relatedIds": [],
+    "campaignId": null,
+    "alsoOwnerIds": []
+  },
+  {
+    "id": "al_f63d274564054838",
+    "at": "2026-09-22T06:00:00.000Z",
+    "severity": "P3",
+    "metric": "net_sales_volume",
+    "dims": {
+      "agent": "ag_nor_05",
+      "brand": "carlsberg",
+      "region": "north"
+    },
+    "window": {
+      "from": "2026-08-29",
+      "to": "2026-09-21"
+    },
+    "observed": 118.3,
+    "expected": 108.1,
+    "zScore": 4.1,
+    "direction": "up",
+    "hypothesis": "ปริมาณขายในภาคเหนือสูงผิดปกติ ยังหาสาเหตุไม่ได้จากข้อมูลที่มี",
+    "verifySteps": [
+      "เทียบหริภุญชัย เทรดดิ้ง · คาร์ลสเบิร์ก · ภาคเหนือกับพื้นที่อื่นในภาคเดียวกันช่วงเวลาเดียวกัน",
+      "เทียบหริภุญชัย เทรดดิ้ง · คาร์ลสเบิร์ก · ภาคเหนือกับช่วงเดียวกันของปีที่แล้ว"
+    ],
+    "ownerUserId": "u_nattaya",
+    "status": "open",
+    "dismissCount": 0,
+    "parentId": null,
+    "relatedIds": [],
+    "campaignId": null,
+    "alsoOwnerIds": []
+  }
+]

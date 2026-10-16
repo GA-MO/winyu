@@ -1,0 +1,1566 @@
+[
+  {
+    "id": "u_siriporn",
+    "userId": "u_siriporn",
+    "version": 1,
+    "widgets": [
+      {
+        "id": "w_u_siriporn_margin_trend",
+        "userId": "u_siriporn",
+        "title": "กำไรขั้นต้นรายเดือน",
+        "kind": "line",
+        "query": {
+          "metric": "gross_margin",
+          "dims": [
+            "month"
+          ],
+          "filters": {},
+          "range": {
+            "from": "2026-04-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "prev_year",
+          "limit": null
+        },
+        "sortBy": null,
+        "pinned": true,
+        "position": 0,
+        "source": "role_template",
+        "reason": null,
+        "createdAt": "2026-09-22T00:00:00.000Z",
+        "version": 1
+      },
+      {
+        "id": "w_u_siriporn_value",
+        "userId": "u_siriporn",
+        "title": "มูลค่าขายเดือนนี้",
+        "kind": "metric",
+        "query": {
+          "metric": "net_sales_value",
+          "dims": [],
+          "filters": {},
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "prev_period",
+          "limit": null
+        },
+        "sortBy": null,
+        "pinned": true,
+        "position": 1,
+        "source": "role_template",
+        "reason": null,
+        "createdAt": "2026-09-22T00:00:00.000Z",
+        "version": 1
+      },
+      {
+        "id": "w_u_siriporn_ar_region",
+        "userId": "u_siriporn",
+        "title": "ลูกหนี้ค้างชำระตามภาค",
+        "kind": "bar",
+        "query": {
+          "metric": "ar_overdue",
+          "dims": [
+            "region"
+          ],
+          "filters": {},
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "none",
+          "limit": null
+        },
+        "sortBy": null,
+        "pinned": true,
+        "position": 2,
+        "source": "role_template",
+        "reason": null,
+        "createdAt": "2026-09-22T00:00:00.000Z",
+        "version": 1
+      },
+      {
+        "id": "w_u_siriporn_trade_spend",
+        "userId": "u_siriporn",
+        "title": "งบส่งเสริมการขาย",
+        "kind": "kv",
+        "query": {
+          "metric": "trade_spend",
+          "dims": [
+            "region"
+          ],
+          "filters": {},
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "none",
+          "limit": 8
+        },
+        "sortBy": null,
+        "pinned": true,
+        "position": 3,
+        "source": "role_template",
+        "reason": null,
+        "createdAt": "2026-09-22T00:00:00.000Z",
+        "version": 1
+      },
+      {
+        "id": "w_u_siriporn_mape",
+        "userId": "u_siriporn",
+        "title": "ความคลาดเคลื่อนพยากรณ์",
+        "kind": "metric",
+        "query": {
+          "metric": "forecast_mape",
+          "dims": [],
+          "filters": {},
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "none",
+          "limit": null
+        },
+        "sortBy": null,
+        "pinned": false,
+        "position": 4,
+        "source": "role_template",
+        "reason": "ใช้ดูว่าพยากรณ์แม่นแค่ไหนก่อนวางแผน",
+        "createdAt": "2026-09-22T00:00:00.000Z",
+        "version": 1
+      }
+    ],
+    "updatedAt": "2026-10-06T02:31:26.417Z"
+  },
+  {
+    "id": "u_prasit",
+    "userId": "u_prasit",
+    "version": 1,
+    "widgets": [
+      {
+        "id": "w_u_prasit_attainment_region",
+        "userId": "u_prasit",
+        "title": "ความสำเร็จต่อเป้าตามภาค",
+        "kind": "bar",
+        "query": {
+          "metric": "target_attainment",
+          "dims": [
+            "region"
+          ],
+          "filters": {},
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "none",
+          "limit": null
+        },
+        "sortBy": null,
+        "pinned": true,
+        "position": 0,
+        "source": "role_template",
+        "reason": null,
+        "createdAt": "2026-09-22T00:00:00.000Z",
+        "version": 1
+      },
+      {
+        "id": "w_u_prasit_volume_trend",
+        "userId": "u_prasit",
+        "title": "ยอดขายออกจากร้านรายสัปดาห์",
+        "kind": "line",
+        "query": {
+          "metric": "sell_out_volume",
+          "dims": [
+            "week"
+          ],
+          "filters": {},
+          "range": {
+            "from": "2026-07-01",
+            "to": "2026-09-22"
+          },
+          "grain": "week",
+          "compare": "prev_year",
+          "limit": null
+        },
+        "sortBy": null,
+        "pinned": true,
+        "position": 1,
+        "source": "role_template",
+        "reason": null,
+        "createdAt": "2026-09-22T00:00:00.000Z",
+        "version": 1
+      },
+      {
+        "id": "w_u_prasit_agents",
+        "userId": "u_prasit",
+        "title": "เอเย่นต์ที่ยอดตกมากที่สุด",
+        "kind": "bar",
+        "query": {
+          "metric": "net_sales_volume",
+          "dims": [
+            "agent"
+          ],
+          "filters": {},
+          "range": {
+            "from": "2026-08-25",
+            "to": "2026-09-22"
+          },
+          "grain": "week",
+          "compare": "prev_period",
+          "limit": 8
+        },
+        "sortBy": "delta_asc",
+        "pinned": true,
+        "position": 2,
+        "source": "role_template",
+        "reason": null,
+        "createdAt": "2026-09-22T00:00:00.000Z",
+        "version": 1
+      },
+      {
+        "id": "w_u_prasit_alerts",
+        "userId": "u_prasit",
+        "title": "ความผิดปกติในทีมขาย",
+        "kind": "alert_list",
+        "query": {
+          "metric": "sell_out_volume",
+          "dims": [
+            "region"
+          ],
+          "filters": {},
+          "range": {
+            "from": "2026-08-25",
+            "to": "2026-09-22"
+          },
+          "grain": "week",
+          "compare": "prev_period",
+          "limit": null
+        },
+        "sortBy": null,
+        "pinned": true,
+        "position": 3,
+        "source": "role_template",
+        "reason": null,
+        "createdAt": "2026-09-22T00:00:00.000Z",
+        "version": 1
+      },
+      {
+        "id": "w_u_prasit_market_share",
+        "userId": "u_prasit",
+        "title": "ส่วนแบ่งตลาดเบียร์ตามภาค เทียบปีก่อน",
+        "kind": "bar",
+        "query": {
+          "metric": "market_share",
+          "dims": [
+            "region"
+          ],
+          "filters": {},
+          "range": {
+            "from": "2026-08-01",
+            "to": "2026-08-31"
+          },
+          "grain": "month",
+          "compare": "prev_year",
+          "limit": null
+        },
+        "sortBy": "delta_asc",
+        "pinned": false,
+        "position": 4,
+        "source": "role_template",
+        "reason": "ดูว่าภาคไหนเสียส่วนแบ่งให้คู่แข่ง",
+        "createdAt": "2026-09-22T00:00:00.000Z",
+        "version": 1
+      }
+    ],
+    "updatedAt": "2026-10-06T02:31:28.872Z"
+  },
+  {
+    "id": "u_may",
+    "userId": "u_may",
+    "version": 1,
+    "widgets": [
+      {
+        "id": "w_u_may_headcount",
+        "userId": "u_may",
+        "title": "จำนวนพนักงานทั้งหมด",
+        "kind": "metric",
+        "query": {
+          "metric": "headcount",
+          "dims": [],
+          "filters": {},
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "prev_year",
+          "limit": null
+        },
+        "sortBy": null,
+        "pinned": true,
+        "position": 0,
+        "source": "role_template",
+        "reason": null,
+        "createdAt": "2026-09-22T00:00:00.000Z",
+        "version": 1
+      },
+      {
+        "id": "w_u_may_attrition_dept",
+        "userId": "u_may",
+        "title": "ฝ่ายที่ลาออกเพิ่มขึ้นเดือนล่าสุด",
+        "kind": "bar",
+        "query": {
+          "metric": "attrition_rate",
+          "dims": [
+            "department"
+          ],
+          "filters": {},
+          "range": {
+            "from": "2026-08-01",
+            "to": "2026-08-31"
+          },
+          "grain": "month",
+          "compare": "prev_period",
+          "limit": null
+        },
+        "sortBy": "delta_desc",
+        "pinned": true,
+        "position": 1,
+        "source": "role_template",
+        "reason": null,
+        "createdAt": "2026-09-22T00:00:00.000Z",
+        "version": 1
+      },
+      {
+        "id": "w_u_may_attrition",
+        "userId": "u_may",
+        "title": "อัตราการลาออกรายเดือน",
+        "kind": "line",
+        "query": {
+          "metric": "attrition_rate",
+          "dims": [
+            "month"
+          ],
+          "filters": {},
+          "range": {
+            "from": "2026-04-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "none",
+          "limit": null
+        },
+        "sortBy": null,
+        "pinned": false,
+        "position": 2,
+        "source": "role_template",
+        "reason": "ดูแนวโน้มการลาออก 6 เดือน",
+        "createdAt": "2026-09-22T00:00:00.000Z",
+        "version": 1
+      },
+      {
+        "id": "w_u_may_salary",
+        "userId": "u_may",
+        "title": "เงินเดือนเฉลี่ยตามฝ่าย",
+        "kind": "kv",
+        "query": {
+          "metric": "avg_salary",
+          "dims": [
+            "department"
+          ],
+          "filters": {},
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "none",
+          "limit": 8
+        },
+        "sortBy": null,
+        "pinned": true,
+        "position": 3,
+        "source": "role_template",
+        "reason": null,
+        "createdAt": "2026-09-22T00:00:00.000Z",
+        "version": 1
+      }
+    ],
+    "updatedAt": "2026-10-06T02:31:36.085Z"
+  },
+  {
+    "id": "u_ton",
+    "userId": "u_ton",
+    "version": 1,
+    "widgets": [],
+    "updatedAt": "2026-10-15T08:13:55.549Z"
+  },
+  {
+    "id": "u_thana",
+    "userId": "u_thana",
+    "version": 2,
+    "widgets": [
+      {
+        "id": "w_u_thana_attainment",
+        "userId": "u_thana",
+        "title": "ยอดขายทั้งประเทศเทียบเป้า",
+        "kind": "metric",
+        "query": {
+          "metric": "target_attainment",
+          "dims": [],
+          "filters": {},
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "none",
+          "limit": null
+        },
+        "sortBy": null,
+        "pinned": true,
+        "position": 0,
+        "source": "role_template",
+        "reason": null,
+        "createdAt": "2026-09-22T00:00:00.000Z",
+        "version": 1
+      },
+      {
+        "id": "w_u_thana_volume_trend",
+        "userId": "u_thana",
+        "title": "ปริมาณขายรายเดือน",
+        "kind": "line",
+        "query": {
+          "metric": "net_sales_volume",
+          "dims": [
+            "month"
+          ],
+          "filters": {},
+          "range": {
+            "from": "2026-04-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "prev_year",
+          "limit": null
+        },
+        "sortBy": null,
+        "pinned": true,
+        "position": 1,
+        "source": "role_template",
+        "reason": null,
+        "createdAt": "2026-09-22T00:00:00.000Z",
+        "version": 1
+      },
+      {
+        "id": "w_u_thana_margin_bu",
+        "userId": "u_thana",
+        "title": "กำไรขั้นต้นตามกลุ่มธุรกิจ",
+        "kind": "bar",
+        "query": {
+          "metric": "gross_margin",
+          "dims": [
+            "business_unit"
+          ],
+          "filters": {},
+          "range": {
+            "from": "2026-01-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "none",
+          "limit": null
+        },
+        "sortBy": null,
+        "pinned": true,
+        "position": 2,
+        "source": "role_template",
+        "reason": null,
+        "createdAt": "2026-09-22T00:00:00.000Z",
+        "version": 1
+      },
+      {
+        "id": "w_u_thana_alerts",
+        "userId": "u_thana",
+        "title": "ความผิดปกติที่ต้องดู",
+        "kind": "alert_list",
+        "query": {
+          "metric": "sell_out_volume",
+          "dims": [
+            "region"
+          ],
+          "filters": {},
+          "range": {
+            "from": "2026-08-25",
+            "to": "2026-09-22"
+          },
+          "grain": "week",
+          "compare": "prev_period",
+          "limit": null
+        },
+        "sortBy": null,
+        "pinned": true,
+        "position": 3,
+        "source": "role_template",
+        "reason": null,
+        "createdAt": "2026-09-22T00:00:00.000Z",
+        "version": 1
+      },
+      {
+        "id": "w_u_thana_ar",
+        "userId": "u_thana",
+        "title": "ลูกหนี้ค้างชำระตามภาค",
+        "kind": "bar",
+        "query": {
+          "metric": "ar_overdue",
+          "dims": [
+            "region"
+          ],
+          "filters": {},
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "none",
+          "limit": null
+        },
+        "sortBy": null,
+        "pinned": false,
+        "position": 4,
+        "source": "role_template",
+        "reason": "ใช้ติดตามเงินที่ค้างจากเอเย่นต์",
+        "createdAt": "2026-09-22T00:00:00.000Z",
+        "version": 1
+      },
+      {
+        "id": "w_ai_u_thana_net_sales_value_region",
+        "userId": "u_thana",
+        "title": "ยอดขายเข้าแยกตามภูมิภาค",
+        "kind": "bar",
+        "query": {
+          "metric": "net_sales_value",
+          "dims": [
+            "region"
+          ],
+          "filters": {},
+          "range": {
+            "from": "2026-08-26",
+            "to": "2026-09-22"
+          },
+          "grain": "day",
+          "compare": "prev_period",
+          "limit": 8
+        },
+        "pinned": false,
+        "position": 5,
+        "source": "ai_suggested",
+        "reason": "คุณถามคำถามนี้ 3 ครั้งใน 14 วัน",
+        "replaces": null,
+        "createdAt": "2026-10-09T09:26:50.087Z",
+        "version": 1
+      }
+    ],
+    "updatedAt": "2026-10-09T09:26:58.153Z"
+  },
+  {
+    "id": "u_krit",
+    "userId": "u_krit",
+    "version": 1,
+    "widgets": [
+      {
+        "id": "w_u_krit_attainment",
+        "userId": "u_krit",
+        "title": "ยอดขายของคุณเทียบเป้า",
+        "kind": "metric",
+        "query": {
+          "metric": "target_attainment",
+          "dims": [],
+          "filters": {
+            "region": [
+              "northeast"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "none",
+          "limit": null
+        },
+        "sortBy": null,
+        "pinned": true,
+        "position": 0,
+        "source": "role_template",
+        "reason": null,
+        "createdAt": "2026-09-22T00:00:00.000Z",
+        "version": 1
+      },
+      {
+        "id": "w_u_krit_agents",
+        "userId": "u_krit",
+        "title": "เอเย่นต์ที่คุณดูแล",
+        "kind": "table",
+        "query": {
+          "metric": "net_sales_volume",
+          "dims": [
+            "agent"
+          ],
+          "filters": {
+            "region": [
+              "northeast"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "prev_period",
+          "limit": 8
+        },
+        "sortBy": null,
+        "pinned": true,
+        "position": 1,
+        "source": "role_template",
+        "reason": null,
+        "createdAt": "2026-09-22T00:00:00.000Z",
+        "version": 1
+      },
+      {
+        "id": "w_u_krit_stock",
+        "userId": "u_krit",
+        "title": "สต๊อกคงเหลือตาม SKU",
+        "kind": "kv",
+        "query": {
+          "metric": "stock_on_hand",
+          "dims": [
+            "sku"
+          ],
+          "filters": {
+            "region": [
+              "northeast"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "none",
+          "limit": 8
+        },
+        "sortBy": null,
+        "pinned": true,
+        "position": 2,
+        "source": "role_template",
+        "reason": null,
+        "createdAt": "2026-09-22T00:00:00.000Z",
+        "version": 1
+      }
+    ],
+    "updatedAt": "2026-10-09T08:52:30.164Z"
+  },
+  {
+    "id": "u_saranya",
+    "userId": "u_saranya",
+    "version": 1,
+    "widgets": [
+      {
+        "id": "w_u_saranya_attainment_brand",
+        "userId": "u_saranya",
+        "title": "ยอดขายเทียบเป้าแยกตามแบรนด์",
+        "kind": "bar",
+        "query": {
+          "metric": "target_attainment",
+          "dims": [
+            "brand"
+          ],
+          "filters": {
+            "region": [
+              "south"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "none",
+          "limit": null
+        },
+        "sortBy": null,
+        "pinned": true,
+        "position": 0,
+        "source": "role_template",
+        "reason": null,
+        "createdAt": "2026-09-22T00:00:00.000Z",
+        "version": 1
+      },
+      {
+        "id": "w_u_saranya_falling_agents",
+        "userId": "u_saranya",
+        "title": "เอเย่นต์ที่ยอดตก 4 สัปดาห์ล่าสุด",
+        "kind": "bar",
+        "query": {
+          "metric": "net_sales_volume",
+          "dims": [
+            "agent"
+          ],
+          "filters": {
+            "region": [
+              "south"
+            ]
+          },
+          "range": {
+            "from": "2026-08-25",
+            "to": "2026-09-22"
+          },
+          "grain": "week",
+          "compare": "prev_period",
+          "limit": 8
+        },
+        "sortBy": "delta_asc",
+        "pinned": true,
+        "position": 1,
+        "source": "role_template",
+        "reason": null,
+        "createdAt": "2026-09-22T00:00:00.000Z",
+        "version": 1
+      },
+      {
+        "id": "w_u_saranya_sell_out",
+        "userId": "u_saranya",
+        "title": "ยอดขายออกจากร้านรายสัปดาห์",
+        "kind": "line",
+        "query": {
+          "metric": "sell_out_volume",
+          "dims": [
+            "week"
+          ],
+          "filters": {
+            "region": [
+              "south"
+            ]
+          },
+          "range": {
+            "from": "2026-07-01",
+            "to": "2026-09-22"
+          },
+          "grain": "week",
+          "compare": "prev_year",
+          "limit": null
+        },
+        "sortBy": null,
+        "pinned": true,
+        "position": 2,
+        "source": "role_template",
+        "reason": null,
+        "createdAt": "2026-09-22T00:00:00.000Z",
+        "version": 1
+      },
+      {
+        "id": "w_u_saranya_cover",
+        "userId": "u_saranya",
+        "title": "สินค้าที่สต๊อกพอขายน้อยที่สุด",
+        "kind": "kv",
+        "query": {
+          "metric": "days_of_cover",
+          "dims": [
+            "dc",
+            "sku"
+          ],
+          "filters": {
+            "region": [
+              "south"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "none",
+          "limit": 8
+        },
+        "sortBy": null,
+        "pinned": true,
+        "position": 3,
+        "source": "role_template",
+        "reason": null,
+        "createdAt": "2026-09-22T00:00:00.000Z",
+        "version": 1
+      },
+      {
+        "id": "w_u_saranya_alerts",
+        "userId": "u_saranya",
+        "title": "ความผิดปกติในภาคของคุณ",
+        "kind": "alert_list",
+        "query": {
+          "metric": "sell_out_volume",
+          "dims": [
+            "agent"
+          ],
+          "filters": {
+            "region": [
+              "south"
+            ]
+          },
+          "range": {
+            "from": "2026-08-25",
+            "to": "2026-09-22"
+          },
+          "grain": "week",
+          "compare": "prev_period",
+          "limit": null
+        },
+        "sortBy": null,
+        "pinned": false,
+        "position": 4,
+        "source": "role_template",
+        "reason": "ใช้ดูความผิดปกติในภาคของคุณที่เดียว",
+        "createdAt": "2026-09-22T00:00:00.000Z",
+        "version": 1
+      },
+      {
+        "id": "w_u_saranya_market_share",
+        "userId": "u_saranya",
+        "title": "ส่วนแบ่งตลาดเบียร์ตามจังหวัด เทียบปีก่อน",
+        "kind": "bar",
+        "query": {
+          "metric": "market_share",
+          "dims": [
+            "province"
+          ],
+          "filters": {
+            "region": [
+              "south"
+            ]
+          },
+          "range": {
+            "from": "2026-08-01",
+            "to": "2026-08-31"
+          },
+          "grain": "month",
+          "compare": "prev_year",
+          "limit": null
+        },
+        "sortBy": "delta_asc",
+        "pinned": false,
+        "position": 5,
+        "source": "role_template",
+        "reason": "ดูว่าจังหวัดไหนเสียส่วนแบ่งให้คู่แข่ง",
+        "createdAt": "2026-09-22T00:00:00.000Z",
+        "version": 1
+      }
+    ],
+    "updatedAt": "2026-10-09T14:23:49.320Z"
+  },
+  {
+    "id": "u_wichai",
+    "userId": "u_wichai",
+    "version": 1,
+    "widgets": [
+      {
+        "id": "w_u_wichai_attainment_brand",
+        "userId": "u_wichai",
+        "title": "ยอดขายเทียบเป้าแยกตามแบรนด์",
+        "kind": "bar",
+        "query": {
+          "metric": "target_attainment",
+          "dims": [
+            "brand"
+          ],
+          "filters": {
+            "region": [
+              "east"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "none",
+          "limit": null
+        },
+        "sortBy": null,
+        "pinned": true,
+        "position": 0,
+        "source": "role_template",
+        "reason": null,
+        "createdAt": "2026-09-22T00:00:00.000Z",
+        "version": 1
+      },
+      {
+        "id": "w_u_wichai_falling_agents",
+        "userId": "u_wichai",
+        "title": "เอเย่นต์ที่ยอดตก 4 สัปดาห์ล่าสุด",
+        "kind": "bar",
+        "query": {
+          "metric": "net_sales_volume",
+          "dims": [
+            "agent"
+          ],
+          "filters": {
+            "region": [
+              "east"
+            ]
+          },
+          "range": {
+            "from": "2026-08-25",
+            "to": "2026-09-22"
+          },
+          "grain": "week",
+          "compare": "prev_period",
+          "limit": 8
+        },
+        "sortBy": "delta_asc",
+        "pinned": true,
+        "position": 1,
+        "source": "role_template",
+        "reason": null,
+        "createdAt": "2026-09-22T00:00:00.000Z",
+        "version": 1
+      },
+      {
+        "id": "w_u_wichai_sell_out",
+        "userId": "u_wichai",
+        "title": "ยอดขายออกจากร้านรายสัปดาห์",
+        "kind": "line",
+        "query": {
+          "metric": "sell_out_volume",
+          "dims": [
+            "week"
+          ],
+          "filters": {
+            "region": [
+              "east"
+            ]
+          },
+          "range": {
+            "from": "2026-07-01",
+            "to": "2026-09-22"
+          },
+          "grain": "week",
+          "compare": "prev_year",
+          "limit": null
+        },
+        "sortBy": null,
+        "pinned": true,
+        "position": 2,
+        "source": "role_template",
+        "reason": null,
+        "createdAt": "2026-09-22T00:00:00.000Z",
+        "version": 1
+      },
+      {
+        "id": "w_u_wichai_cover",
+        "userId": "u_wichai",
+        "title": "สินค้าที่สต๊อกพอขายน้อยที่สุด",
+        "kind": "kv",
+        "query": {
+          "metric": "days_of_cover",
+          "dims": [
+            "dc",
+            "sku"
+          ],
+          "filters": {
+            "region": [
+              "east"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "none",
+          "limit": 8
+        },
+        "sortBy": null,
+        "pinned": true,
+        "position": 3,
+        "source": "role_template",
+        "reason": null,
+        "createdAt": "2026-09-22T00:00:00.000Z",
+        "version": 1
+      },
+      {
+        "id": "w_u_wichai_alerts",
+        "userId": "u_wichai",
+        "title": "ความผิดปกติในภาคของคุณ",
+        "kind": "alert_list",
+        "query": {
+          "metric": "sell_out_volume",
+          "dims": [
+            "agent"
+          ],
+          "filters": {
+            "region": [
+              "east"
+            ]
+          },
+          "range": {
+            "from": "2026-08-25",
+            "to": "2026-09-22"
+          },
+          "grain": "week",
+          "compare": "prev_period",
+          "limit": null
+        },
+        "sortBy": null,
+        "pinned": false,
+        "position": 4,
+        "source": "role_template",
+        "reason": "ใช้ดูความผิดปกติในภาคของคุณที่เดียว",
+        "createdAt": "2026-09-22T00:00:00.000Z",
+        "version": 1
+      },
+      {
+        "id": "w_u_wichai_market_share",
+        "userId": "u_wichai",
+        "title": "ส่วนแบ่งตลาดเบียร์ตามจังหวัด เทียบปีก่อน",
+        "kind": "bar",
+        "query": {
+          "metric": "market_share",
+          "dims": [
+            "province"
+          ],
+          "filters": {
+            "region": [
+              "east"
+            ]
+          },
+          "range": {
+            "from": "2026-08-01",
+            "to": "2026-08-31"
+          },
+          "grain": "month",
+          "compare": "prev_year",
+          "limit": null
+        },
+        "sortBy": "delta_asc",
+        "pinned": false,
+        "position": 5,
+        "source": "role_template",
+        "reason": "ดูว่าจังหวัดไหนเสียส่วนแบ่งให้คู่แข่ง",
+        "createdAt": "2026-09-22T00:00:00.000Z",
+        "version": 1
+      }
+    ],
+    "updatedAt": "2026-10-09T14:23:54.959Z"
+  },
+  {
+    "id": "u_kanok",
+    "userId": "u_kanok",
+    "version": 1,
+    "widgets": [
+      {
+        "id": "w_u_kanok_attainment_brand",
+        "userId": "u_kanok",
+        "title": "ยอดขายเทียบเป้าแยกตามแบรนด์",
+        "kind": "bar",
+        "query": {
+          "metric": "target_attainment",
+          "dims": [
+            "brand"
+          ],
+          "filters": {
+            "region": [
+              "bkk"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "none",
+          "limit": null
+        },
+        "sortBy": null,
+        "pinned": true,
+        "position": 0,
+        "source": "role_template",
+        "reason": null,
+        "createdAt": "2026-09-22T00:00:00.000Z",
+        "version": 1
+      },
+      {
+        "id": "w_u_kanok_falling_agents",
+        "userId": "u_kanok",
+        "title": "เอเย่นต์ที่ยอดตก 4 สัปดาห์ล่าสุด",
+        "kind": "bar",
+        "query": {
+          "metric": "net_sales_volume",
+          "dims": [
+            "agent"
+          ],
+          "filters": {
+            "region": [
+              "bkk"
+            ]
+          },
+          "range": {
+            "from": "2026-08-25",
+            "to": "2026-09-22"
+          },
+          "grain": "week",
+          "compare": "prev_period",
+          "limit": 8
+        },
+        "sortBy": "delta_asc",
+        "pinned": true,
+        "position": 1,
+        "source": "role_template",
+        "reason": null,
+        "createdAt": "2026-09-22T00:00:00.000Z",
+        "version": 1
+      },
+      {
+        "id": "w_u_kanok_sell_out",
+        "userId": "u_kanok",
+        "title": "ยอดขายออกจากร้านรายสัปดาห์",
+        "kind": "line",
+        "query": {
+          "metric": "sell_out_volume",
+          "dims": [
+            "week"
+          ],
+          "filters": {
+            "region": [
+              "bkk"
+            ]
+          },
+          "range": {
+            "from": "2026-07-01",
+            "to": "2026-09-22"
+          },
+          "grain": "week",
+          "compare": "prev_year",
+          "limit": null
+        },
+        "sortBy": null,
+        "pinned": true,
+        "position": 2,
+        "source": "role_template",
+        "reason": null,
+        "createdAt": "2026-09-22T00:00:00.000Z",
+        "version": 1
+      },
+      {
+        "id": "w_u_kanok_cover",
+        "userId": "u_kanok",
+        "title": "สินค้าที่สต๊อกพอขายน้อยที่สุด",
+        "kind": "kv",
+        "query": {
+          "metric": "days_of_cover",
+          "dims": [
+            "dc",
+            "sku"
+          ],
+          "filters": {
+            "region": [
+              "bkk"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "none",
+          "limit": 8
+        },
+        "sortBy": null,
+        "pinned": true,
+        "position": 3,
+        "source": "role_template",
+        "reason": null,
+        "createdAt": "2026-09-22T00:00:00.000Z",
+        "version": 1
+      },
+      {
+        "id": "w_u_kanok_alerts",
+        "userId": "u_kanok",
+        "title": "ความผิดปกติในภาคของคุณ",
+        "kind": "alert_list",
+        "query": {
+          "metric": "sell_out_volume",
+          "dims": [
+            "agent"
+          ],
+          "filters": {
+            "region": [
+              "bkk"
+            ]
+          },
+          "range": {
+            "from": "2026-08-25",
+            "to": "2026-09-22"
+          },
+          "grain": "week",
+          "compare": "prev_period",
+          "limit": null
+        },
+        "sortBy": null,
+        "pinned": false,
+        "position": 4,
+        "source": "role_template",
+        "reason": "ใช้ดูความผิดปกติในภาคของคุณที่เดียว",
+        "createdAt": "2026-09-22T00:00:00.000Z",
+        "version": 1
+      },
+      {
+        "id": "w_u_kanok_market_share",
+        "userId": "u_kanok",
+        "title": "ส่วนแบ่งตลาดเบียร์ตามจังหวัด เทียบปีก่อน",
+        "kind": "bar",
+        "query": {
+          "metric": "market_share",
+          "dims": [
+            "province"
+          ],
+          "filters": {
+            "region": [
+              "bkk"
+            ]
+          },
+          "range": {
+            "from": "2026-08-01",
+            "to": "2026-08-31"
+          },
+          "grain": "month",
+          "compare": "prev_year",
+          "limit": null
+        },
+        "sortBy": "delta_asc",
+        "pinned": false,
+        "position": 5,
+        "source": "role_template",
+        "reason": "ดูว่าจังหวัดไหนเสียส่วนแบ่งให้คู่แข่ง",
+        "createdAt": "2026-09-22T00:00:00.000Z",
+        "version": 1
+      }
+    ],
+    "updatedAt": "2026-10-09T14:24:01.907Z"
+  },
+  {
+    "id": "u_anucha",
+    "userId": "u_anucha",
+    "version": 1,
+    "widgets": [
+      {
+        "id": "w_u_anucha_attainment_brand",
+        "userId": "u_anucha",
+        "title": "ยอดขายเทียบเป้าแยกตามแบรนด์",
+        "kind": "bar",
+        "query": {
+          "metric": "target_attainment",
+          "dims": [
+            "brand"
+          ],
+          "filters": {
+            "region": [
+              "northeast"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "none",
+          "limit": null
+        },
+        "sortBy": null,
+        "pinned": true,
+        "position": 0,
+        "source": "role_template",
+        "reason": null,
+        "createdAt": "2026-09-22T00:00:00.000Z",
+        "version": 1
+      },
+      {
+        "id": "w_u_anucha_falling_agents",
+        "userId": "u_anucha",
+        "title": "เอเย่นต์ที่ยอดตก 4 สัปดาห์ล่าสุด",
+        "kind": "bar",
+        "query": {
+          "metric": "net_sales_volume",
+          "dims": [
+            "agent"
+          ],
+          "filters": {
+            "region": [
+              "northeast"
+            ]
+          },
+          "range": {
+            "from": "2026-08-25",
+            "to": "2026-09-22"
+          },
+          "grain": "week",
+          "compare": "prev_period",
+          "limit": 8
+        },
+        "sortBy": "delta_asc",
+        "pinned": true,
+        "position": 1,
+        "source": "role_template",
+        "reason": null,
+        "createdAt": "2026-09-22T00:00:00.000Z",
+        "version": 1
+      },
+      {
+        "id": "w_u_anucha_sell_out",
+        "userId": "u_anucha",
+        "title": "ยอดขายออกจากร้านรายสัปดาห์",
+        "kind": "line",
+        "query": {
+          "metric": "sell_out_volume",
+          "dims": [
+            "week"
+          ],
+          "filters": {
+            "region": [
+              "northeast"
+            ]
+          },
+          "range": {
+            "from": "2026-07-01",
+            "to": "2026-09-22"
+          },
+          "grain": "week",
+          "compare": "prev_year",
+          "limit": null
+        },
+        "sortBy": null,
+        "pinned": true,
+        "position": 2,
+        "source": "role_template",
+        "reason": null,
+        "createdAt": "2026-09-22T00:00:00.000Z",
+        "version": 1
+      },
+      {
+        "id": "w_u_anucha_cover",
+        "userId": "u_anucha",
+        "title": "สินค้าที่สต๊อกพอขายน้อยที่สุด",
+        "kind": "kv",
+        "query": {
+          "metric": "days_of_cover",
+          "dims": [
+            "dc",
+            "sku"
+          ],
+          "filters": {
+            "region": [
+              "northeast"
+            ]
+          },
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "none",
+          "limit": 8
+        },
+        "sortBy": null,
+        "pinned": true,
+        "position": 3,
+        "source": "role_template",
+        "reason": null,
+        "createdAt": "2026-09-22T00:00:00.000Z",
+        "version": 1
+      },
+      {
+        "id": "w_u_anucha_alerts",
+        "userId": "u_anucha",
+        "title": "ความผิดปกติในภาคของคุณ",
+        "kind": "alert_list",
+        "query": {
+          "metric": "sell_out_volume",
+          "dims": [
+            "agent"
+          ],
+          "filters": {
+            "region": [
+              "northeast"
+            ]
+          },
+          "range": {
+            "from": "2026-08-25",
+            "to": "2026-09-22"
+          },
+          "grain": "week",
+          "compare": "prev_period",
+          "limit": null
+        },
+        "sortBy": null,
+        "pinned": false,
+        "position": 4,
+        "source": "role_template",
+        "reason": "ใช้ดูความผิดปกติในภาคของคุณที่เดียว",
+        "createdAt": "2026-09-22T00:00:00.000Z",
+        "version": 1
+      },
+      {
+        "id": "w_u_anucha_market_share",
+        "userId": "u_anucha",
+        "title": "ส่วนแบ่งตลาดเบียร์ตามจังหวัด เทียบปีก่อน",
+        "kind": "bar",
+        "query": {
+          "metric": "market_share",
+          "dims": [
+            "province"
+          ],
+          "filters": {
+            "region": [
+              "northeast"
+            ]
+          },
+          "range": {
+            "from": "2026-08-01",
+            "to": "2026-08-31"
+          },
+          "grain": "month",
+          "compare": "prev_year",
+          "limit": null
+        },
+        "sortBy": "delta_asc",
+        "pinned": false,
+        "position": 5,
+        "source": "role_template",
+        "reason": "ดูว่าจังหวัดไหนเสียส่วนแบ่งให้คู่แข่ง",
+        "createdAt": "2026-09-22T00:00:00.000Z",
+        "version": 1
+      }
+    ],
+    "updatedAt": "2026-10-09T16:00:37.822Z"
+  },
+  {
+    "id": "u_mint",
+    "userId": "u_mint",
+    "version": 1,
+    "widgets": [
+      {
+        "id": "w_u_mint_margin_bu",
+        "userId": "u_mint",
+        "title": "กำไรขั้นต้นตามกลุ่มธุรกิจ",
+        "kind": "bar",
+        "query": {
+          "metric": "gross_margin",
+          "dims": [
+            "business_unit"
+          ],
+          "filters": {},
+          "range": {
+            "from": "2026-01-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "none",
+          "limit": null
+        },
+        "sortBy": null,
+        "pinned": true,
+        "position": 0,
+        "source": "role_template",
+        "reason": null,
+        "createdAt": "2026-09-22T00:00:00.000Z",
+        "version": 1
+      },
+      {
+        "id": "w_u_mint_ar_agent",
+        "userId": "u_mint",
+        "title": "ลูกหนี้ค้างชำระรายเอเย่นต์",
+        "kind": "table",
+        "query": {
+          "metric": "ar_overdue",
+          "dims": [
+            "agent"
+          ],
+          "filters": {},
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "none",
+          "limit": 8
+        },
+        "sortBy": null,
+        "pinned": true,
+        "position": 1,
+        "source": "role_template",
+        "reason": null,
+        "createdAt": "2026-09-22T00:00:00.000Z",
+        "version": 1
+      },
+      {
+        "id": "w_u_mint_trade_trend",
+        "userId": "u_mint",
+        "title": "งบส่งเสริมการขายรายเดือน",
+        "kind": "line",
+        "query": {
+          "metric": "trade_spend",
+          "dims": [
+            "month"
+          ],
+          "filters": {},
+          "range": {
+            "from": "2026-04-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "none",
+          "limit": null
+        },
+        "sortBy": null,
+        "pinned": true,
+        "position": 2,
+        "source": "role_template",
+        "reason": null,
+        "createdAt": "2026-09-22T00:00:00.000Z",
+        "version": 1
+      },
+      {
+        "id": "w_u_mint_value",
+        "userId": "u_mint",
+        "title": "มูลค่าขายเดือนนี้",
+        "kind": "metric",
+        "query": {
+          "metric": "net_sales_value",
+          "dims": [],
+          "filters": {},
+          "range": {
+            "from": "2026-09-01",
+            "to": "2026-09-22"
+          },
+          "grain": "month",
+          "compare": "prev_year",
+          "limit": null
+        },
+        "sortBy": null,
+        "pinned": true,
+        "position": 3,
+        "source": "role_template",
+        "reason": null,
+        "createdAt": "2026-09-22T00:00:00.000Z",
+        "version": 1
+      }
+    ],
+    "updatedAt": "2026-10-09T16:49:51.039Z"
+  }
+]

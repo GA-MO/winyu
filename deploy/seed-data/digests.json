@@ -1,0 +1,304 @@
+[
+  {
+    "id": "u_thana",
+    "day": "2026-10-15",
+    "keys": [
+      "team:u_prasit:alert:al_7364476d77c8f435,alert:al_ed6dca9e1dab4e48,alert:al_fa3be1e7b4f9fe40",
+      "alert:al_e8114d936da7141f",
+      "alert:al_220936abb568e7c9"
+    ],
+    "tones": {
+      "team:u_prasit:alert:al_7364476d77c8f435,alert:al_ed6dca9e1dab4e48,alert:al_fa3be1e7b4f9fe40": "danger",
+      "alert:al_e8114d936da7141f": "danger",
+      "alert:al_220936abb568e7c9": "danger"
+    }
+  },
+  {
+    "id": "u_siriporn",
+    "day": "2026-10-15",
+    "keys": [
+      "team:u_mint:alert:al_220936abb568e7c9,alert:al_39f3f0de7fc1747a"
+    ],
+    "tones": {
+      "team:u_mint:alert:al_220936abb568e7c9,alert:al_39f3f0de7fc1747a": "danger"
+    }
+  },
+  {
+    "id": "u_prasit",
+    "day": "2026-10-15",
+    "keys": [
+      "team:u_anucha:alert:al_7364476d77c8f435,alert:al_ed6dca9e1dab4e48,alert:al_fa3be1e7b4f9fe40,opening:op_ne_khonkaen,opening:op_ne_ubon"
+    ],
+    "tones": {
+      "team:u_anucha:alert:al_7364476d77c8f435,alert:al_ed6dca9e1dab4e48,alert:al_fa3be1e7b4f9fe40,opening:op_ne_khonkaen,opening:op_ne_ubon": "danger"
+    }
+  },
+  {
+    "id": "u_somchai",
+    "day": "2026-10-15",
+    "keys": [
+      "alert:al_39f3f0de7fc1747a",
+      "alert:al_f60bd19b789eb6d9",
+      "alert:al_bb6300d2bd665b9b",
+      "alert:al_2bced77035d90ef1",
+      "alert:al_61751e8e091a0f4d",
+      "alert:al_1cf125f69bb321d5",
+      "alert:al_9a2a33a103cc2baa",
+      "alert:al_1ee6c7eaa1f811c3"
+    ],
+    "tones": {
+      "alert:al_39f3f0de7fc1747a": "warning",
+      "alert:al_f60bd19b789eb6d9": "warning",
+      "alert:al_bb6300d2bd665b9b": "warning",
+      "alert:al_2bced77035d90ef1": "success",
+      "alert:al_61751e8e091a0f4d": "success",
+      "alert:al_1cf125f69bb321d5": "success",
+      "alert:al_9a2a33a103cc2baa": "success",
+      "alert:al_1ee6c7eaa1f811c3": "success"
+    }
+  },
+  {
+    "id": "u_nattaya",
+    "day": "2026-10-15",
+    "keys": [
+      "alert:al_e8114d936da7141f",
+      "alert:al_720464c45b4bed09",
+      "alert:al_f63d274564054838"
+    ],
+    "tones": {
+      "alert:al_e8114d936da7141f": "danger",
+      "alert:al_720464c45b4bed09": "success",
+      "alert:al_f63d274564054838": "success"
+    }
+  },
+  {
+    "id": "u_anucha",
+    "day": "2026-10-15",
+    "keys": [
+      "alert:al_fa3be1e7b4f9fe40",
+      "alert:al_7364476d77c8f435",
+      "alert:al_ed6dca9e1dab4e48",
+      "alert:al_35ced4920cc14a53",
+      "person:e_pong:cert-ใบอนุญาตขายสุรา+overtime-overtime",
+      "opening:op_ne_ubon",
+      "person:u_krit:cert-ใบอนุญาตขายสุรา",
+      "opening:op_ne_khonkaen",
+      "packet:39f0276d-296a-4ccc-bb2c-f498daa91d01",
+      "alert:al_05e4ed13725e756a"
+    ],
+    "tones": {
+      "alert:al_fa3be1e7b4f9fe40": "danger",
+      "alert:al_7364476d77c8f435": "danger",
+      "alert:al_ed6dca9e1dab4e48": "danger",
+      "alert:al_35ced4920cc14a53": "warning",
+      "person:e_pong:cert-ใบอนุญาตขายสุรา+overtime-overtime": "warning",
+      "opening:op_ne_ubon": "warning",
+      "person:u_krit:cert-ใบอนุญาตขายสุรา": "warning",
+      "opening:op_ne_khonkaen": "warning",
+      "packet:39f0276d-296a-4ccc-bb2c-f498daa91d01": "info",
+      "alert:al_05e4ed13725e756a": "success"
+    }
+  },
+  {
+    "id": "u_wichai",
+    "day": "2026-10-15",
+    "keys": [
+      "alert:al_6180aee35a5d31b6"
+    ],
+    "tones": {
+      "alert:al_6180aee35a5d31b6": "warning"
+    }
+  },
+  {
+    "id": "u_saranya",
+    "day": "2026-10-15",
+    "keys": [
+      "alert:al_220936abb568e7c9",
+      "alert:al_14c4da61c8ba9ac3"
+    ],
+    "tones": {
+      "alert:al_220936abb568e7c9": "danger",
+      "alert:al_14c4da61c8ba9ac3": "warning"
+    }
+  },
+  {
+    "id": "u_krit",
+    "day": "2026-10-15",
+    "keys": [
+      "packet:c86b39f7-9a99-4a36-aeba-c7f968e10e46",
+      "visit:อุบลศรีสุข เทรดดิ้ง:2026-W42",
+      "visit:อีสานรุ่งโรจน์ ค้าส่ง:2026-W42",
+      "visit:ส.รุ่งเรือง เทรดดิ้ง:2026-W42",
+      "own:u_krit:cert-ใบอนุญาตขายสุรา"
+    ],
+    "tones": {
+      "packet:c86b39f7-9a99-4a36-aeba-c7f968e10e46": "danger",
+      "visit:อุบลศรีสุข เทรดดิ้ง:2026-W42": "danger",
+      "visit:อีสานรุ่งโรจน์ ค้าส่ง:2026-W42": "danger",
+      "visit:ส.รุ่งเรือง เทรดดิ้ง:2026-W42": "warning",
+      "own:u_krit:cert-ใบอนุญาตขายสุรา": "warning"
+    }
+  },
+  {
+    "id": "u_nok",
+    "day": "2026-10-15",
+    "keys": [
+      "visit:อุบลศรีสุข เทรดดิ้ง:2026-W42",
+      "visit:อีสานรุ่งโรจน์ ค้าส่ง:2026-W42",
+      "visit:ส.รุ่งเรือง เทรดดิ้ง:2026-W42"
+    ],
+    "tones": {
+      "visit:อุบลศรีสุข เทรดดิ้ง:2026-W42": "danger",
+      "visit:อีสานรุ่งโรจน์ ค้าส่ง:2026-W42": "danger",
+      "visit:ส.รุ่งเรือง เทรดดิ้ง:2026-W42": "warning"
+    }
+  },
+  {
+    "id": "u_ploy",
+    "day": "2026-10-15",
+    "keys": [
+      "visit:หริภุญชัย เทรดดิ้ง:2026-W42",
+      "visit:พิษณุโลกศรีเจริญ:2026-W42",
+      "visit:ล้านนาเบเวอเรจ:2026-W42"
+    ],
+    "tones": {
+      "visit:หริภุญชัย เทรดดิ้ง:2026-W42": "warning",
+      "visit:พิษณุโลกศรีเจริญ:2026-W42": "warning",
+      "visit:ล้านนาเบเวอเรจ:2026-W42": "warning"
+    }
+  },
+  {
+    "id": "u_beam",
+    "day": "2026-10-15",
+    "keys": [
+      "visit:พระราม 4 ดิสทริบิวชั่น:2026-W42",
+      "visit:กรุงไทยเบเวอเรจ:2026-W42",
+      "visit:สมุทรพรทวี:2026-W42"
+    ],
+    "tones": {
+      "visit:พระราม 4 ดิสทริบิวชั่น:2026-W42": "warning",
+      "visit:กรุงไทยเบเวอเรจ:2026-W42": "warning",
+      "visit:สมุทรพรทวี:2026-W42": "warning"
+    }
+  },
+  {
+    "id": "u_arm",
+    "day": "2026-10-15",
+    "keys": [
+      "visit:เกาะสมุยเบเวอเรจ:2026-W42",
+      "visit:หาดใหญ่สหมิตร:2026-W42",
+      "visit:ภูเก็ตอันดามัน ซัพพลาย:2026-W42"
+    ],
+    "tones": {
+      "visit:เกาะสมุยเบเวอเรจ:2026-W42": "warning",
+      "visit:หาดใหญ่สหมิตร:2026-W42": "warning",
+      "visit:ภูเก็ตอันดามัน ซัพพลาย:2026-W42": "warning"
+    }
+  },
+  {
+    "id": "u_wee",
+    "day": "2026-10-15",
+    "keys": [
+      "alert:al_e8114d936da7141f",
+      "person:e_wan:cert-ใบขับขี่รถยก"
+    ],
+    "tones": {
+      "alert:al_e8114d936da7141f": "danger",
+      "person:e_wan:cert-ใบขับขี่รถยก": "warning"
+    }
+  },
+  {
+    "id": "u_oat",
+    "day": "2026-10-15",
+    "keys": [
+      "alert:al_e8114d936da7141f",
+      "person:e_somsri:cert-GMP"
+    ],
+    "tones": {
+      "alert:al_e8114d936da7141f": "danger",
+      "person:e_somsri:cert-GMP": "warning"
+    }
+  },
+  {
+    "id": "u_mint",
+    "day": "2026-10-15",
+    "keys": [
+      "alert:al_220936abb568e7c9",
+      "alert:al_39f3f0de7fc1747a"
+    ],
+    "tones": {
+      "alert:al_220936abb568e7c9": "danger",
+      "alert:al_39f3f0de7fc1747a": "warning"
+    }
+  },
+  {
+    "id": "u_earn",
+    "day": "2026-10-15",
+    "keys": [
+      "alert:al_220936abb568e7c9"
+    ],
+    "tones": {
+      "alert:al_220936abb568e7c9": "danger"
+    }
+  },
+  {
+    "id": "u_may",
+    "day": "2026-10-15",
+    "keys": [
+      "person:e_dang:cert-ใบขับขี่รถยก+overtime-overtime+risk-risk",
+      "person:e_pong:cert-ใบอนุญาตขายสุรา+overtime-overtime+risk-risk",
+      "person:e_wan:cert-ใบขับขี่รถยก",
+      "person:u_krit:cert-ใบอนุญาตขายสุรา",
+      "person:e_somsri:cert-GMP",
+      "opening:op_ne_ubon",
+      "opening:op_ne_khonkaen"
+    ],
+    "tones": {
+      "person:e_dang:cert-ใบขับขี่รถยก+overtime-overtime+risk-risk": "danger",
+      "person:e_pong:cert-ใบอนุญาตขายสุรา+overtime-overtime+risk-risk": "warning",
+      "person:e_wan:cert-ใบขับขี่รถยก": "warning",
+      "person:u_krit:cert-ใบอนุญาตขายสุรา": "warning",
+      "person:e_somsri:cert-GMP": "warning",
+      "opening:op_ne_ubon": "warning",
+      "opening:op_ne_khonkaen": "warning"
+    }
+  },
+  {
+    "id": "u_ton",
+    "day": "2026-10-15",
+    "keys": [
+      "system:offline:asset:2026-10-15T07:58:37.560Z"
+    ],
+    "tones": {
+      "system:offline:asset:2026-10-15T07:58:37.560Z": "danger"
+    }
+  },
+  {
+    "id": "u_golf",
+    "day": "2026-10-15",
+    "keys": [
+      "visit:พัทยาซันไชน์ ซัพพลาย:2026-W42",
+      "visit:ชลบุรีบูรพา เทรดดิ้ง:2026-W42",
+      "visit:แปดริ้วรุ่งกิจ:2026-W42"
+    ],
+    "tones": {
+      "visit:พัทยาซันไชน์ ซัพพลาย:2026-W42": "warning",
+      "visit:ชลบุรีบูรพา เทรดดิ้ง:2026-W42": "warning",
+      "visit:แปดริ้วรุ่งกิจ:2026-W42": "warning"
+    }
+  },
+  {
+    "id": "u_ice",
+    "day": "2026-10-15",
+    "keys": [
+      "visit:ราชบุรีสหมิตร:2026-W42",
+      "visit:วังน้อยเบเวอเรจ:2026-W42",
+      "visit:นครปฐมรุ่งทรัพย์:2026-W42"
+    ],
+    "tones": {
+      "visit:ราชบุรีสหมิตร:2026-W42": "warning",
+      "visit:วังน้อยเบเวอเรจ:2026-W42": "warning",
+      "visit:นครปฐมรุ่งทรัพย์:2026-W42": "warning"
+    }
+  }
+]

@@ -1,0 +1,139 @@
+[
+  {
+    "userId": "u_krit",
+    "kind": "handoff",
+    "refId": "c86b39f7-9a99-4a36-aeba-c7f968e10e46",
+    "title": "งานใหม่จาก คุณอนุชา พรหมศรี: อุบลศรีสุข เทรดดิ้ง แทบไม่สั่งสินค้า",
+    "id": "0e7eac57-f087-416e-81cd-86467456341f",
+    "at": "2026-10-05T16:58:42.317Z",
+    "read": true
+  },
+  {
+    "id": "418264a9-581d-49e4-8ad0-9add77fb17be",
+    "userId": "u_thana",
+    "at": "2026-10-09T10:14:06.672Z",
+    "kind": "grant_request",
+    "refId": "49b43e25-6a2c-44eb-a9b2-242b021eb9f8",
+    "read": true,
+    "title": "คุณกฤต จันทร์เสน ขอสิทธิ์ชั่วคราว: มูลค่าขายเข้า · ทุกภาค · ทุกแบรนด์"
+  },
+  {
+    "id": "30dbf046-31e9-4f2e-9e38-f3a5493e1833",
+    "userId": "u_krit",
+    "at": "2026-10-09T10:14:31.318Z",
+    "kind": "grant_approved",
+    "refId": "79o8IcRiPzQy",
+    "read": true,
+    "title": "คุณธนา วงศ์สกุล อนุมัติสิทธิ์ มูลค่าขายเข้า · ทุกภาค · ทุกแบรนด์ ถึง 12 ต.ค. 2569"
+  },
+  {
+    "id": "521d5b04-7330-410c-98b4-e6d1d183b400",
+    "userId": "u_anucha",
+    "at": "2026-10-09T14:26:06.929Z",
+    "kind": "reply",
+    "refId": "c86b39f7-9a99-4a36-aeba-c7f968e10e46",
+    "read": true,
+    "title": "คุณกฤต จันทร์เสน: รับงานแล้ว กำลังตรวจสอบข้อมูลครับ",
+    "fromUserId": "u_krit"
+  },
+  {
+    "id": "20dd33fd-a726-453d-b978-553d11e9faaa",
+    "userId": "u_anucha",
+    "at": "2026-10-09T15:58:25.567Z",
+    "kind": "handoff",
+    "refId": "39f0276d-296a-4ccc-bb2c-f498daa91d01",
+    "read": true,
+    "title": "งานใหม่จาก คุณกฤต จันทร์เสน: ใบลากิจ 21 ต.ค. 2569",
+    "fromUserId": "u_krit"
+  },
+  {
+    "id": "56055b33-f817-495f-b670-5d1ee842b642",
+    "userId": "u_krit",
+    "at": "2026-10-09T16:00:47.933Z",
+    "kind": "reply",
+    "refId": "39f0276d-296a-4ccc-bb2c-f498daa91d01",
+    "read": false,
+    "title": "คุณอนุชา พรหมศรี: ขอตีกลับเพราะเรื่องนี้ไม่อยู่ในขอบเขตที่ผมดูแลครับ",
+    "fromUserId": "u_anucha"
+  },
+  {
+    "id": "7acc979f-b2af-46b0-862c-09f8fbb5c53a",
+    "userId": "u_mint",
+    "at": "2026-10-15T08:13:31.349Z",
+    "kind": "handoff",
+    "refId": "69bb6372-3b68-4879-8fc3-cf1cdc3880c8",
+    "read": true,
+    "title": "งานใหม่จาก คุณธนา วงศ์สกุล: ตรวจสอบอัตรากำไรขั้นต้นภาคอีสานปรับตัวลดลง",
+    "fromUserId": "u_thana"
+  },
+  {
+    "id": "2cfb05dd-297c-4f6a-94b3-5c9741b8b214",
+    "userId": "u_anucha",
+    "at": "2026-10-15T08:20:53.803Z",
+    "kind": "handoff",
+    "refId": "1fe66b10-c22a-46e8-b234-e155693583c2",
+    "read": true,
+    "title": "งานใหม่จาก คุณมิ้นท์ วรกุล: ตรวจสอบมูลค่าขายเข้าชะลอตัว · อุบลศรีสุข เทรดดิ้ง",
+    "fromUserId": "u_mint"
+  },
+  {
+    "id": "80afe8eb-e25b-47ad-aa55-71b19500866d",
+    "userId": "u_thana",
+    "at": "2026-10-15T08:21:12.876Z",
+    "kind": "reply",
+    "refId": "69bb6372-3b68-4879-8fc3-cf1cdc3880c8",
+    "read": false,
+    "title": "คุณมิ้นท์ วรกุล: รับงานแล้ว กำลังตรวจสอบข้อมูลครับ",
+    "fromUserId": "u_mint"
+  },
+  {
+    "id": "1970b083-dbcd-475f-9724-c83d86e59fb8",
+    "userId": "u_mint",
+    "at": "2026-10-15T08:22:13.020Z",
+    "kind": "reply",
+    "refId": "1fe66b10-c22a-46e8-b234-e155693583c2",
+    "read": true,
+    "title": "คุณอนุชา พรหมศรี: รับงานแล้ว กำลังตรวจสอบข้อมูลครับ",
+    "fromUserId": "u_anucha"
+  },
+  {
+    "id": "8fe162c5-9070-4bd6-9d84-fd1ee8e2c552",
+    "userId": "u_anucha",
+    "at": "2026-10-15T08:26:39.971Z",
+    "kind": "share",
+    "refId": "rdACPzOBignF",
+    "read": true,
+    "title": "คุณมิ้นท์ วรกุล ส่งการ์ด \"มูลค่าขายเข้า\" ให้คุณ",
+    "fromUserId": "u_mint"
+  },
+  {
+    "id": "d9abc564-8679-46f1-bb56-51a08a8d9522",
+    "userId": "u_thana",
+    "at": "2026-10-15T08:27:42.929Z",
+    "kind": "grant_request",
+    "refId": "e4dbfb19-08e2-4738-a6d6-73903126599f",
+    "read": false,
+    "title": "คุณอนุชา พรหมศรี ขอสิทธิ์ชั่วคราว: มูลค่าขายเข้า · ทุกภาค · ทุกแบรนด์",
+    "fromUserId": "u_anucha"
+  },
+  {
+    "id": "77091bc4-4ce1-415a-9ffc-df6481496631",
+    "userId": "u_anucha",
+    "at": "2026-10-15T08:29:28.171Z",
+    "kind": "share",
+    "refId": "O4zvXxc4noOz",
+    "read": true,
+    "title": "คุณมิ้นท์ วรกุล ส่งการ์ด \"มูลค่าขายเข้า\" ให้คุณ",
+    "fromUserId": "u_mint"
+  },
+  {
+    "id": "739d0cf2-745f-4a3a-a16d-d461907b3259",
+    "userId": "u_thana",
+    "at": "2026-10-15T08:30:15.326Z",
+    "kind": "grant_request",
+    "refId": "3a6d2752-5a37-4e38-866e-d5bb1847936b",
+    "read": false,
+    "title": "คุณอนุชา พรหมศรี ขอสิทธิ์ชั่วคราว: มูลค่าขายเข้า · ทุกภาค · ทุกแบรนด์",
+    "fromUserId": "u_anucha"
+  }
+]

@@ -10,3 +10,9 @@ next-env.d.ts
 /site/out/
 /site/node_modules/
 /site/.react-router/
+
+/deploy/.env
+/.claude/settings.local.json
+/.claude/worktrees/
+/.data-*/
+!.env.example

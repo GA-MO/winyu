@@ -1,0 +1,311 @@
+[
+  {
+    "id": "r6X8Q8JVK8fi",
+    "at": "2026-10-06T03:15:21.934Z",
+    "senderId": "u_thana",
+    "title": "ปริมาณขายเข้า (Sell-in)",
+    "question": null,
+    "note": null,
+    "card": {
+      "kind": "tool",
+      "reads": [
+        {
+          "tool": "query_metric",
+          "input": {
+            "metric": "net_sales_volume",
+            "dims": [
+              "month"
+            ],
+            "filters": {},
+            "range": {
+              "from": "2026-04-01",
+              "to": "2026-09-22"
+            },
+            "grain": "month",
+            "compare": "prev_year",
+            "limit": null
+          }
+        }
+      ]
+    },
+    "deliveries": [
+      {
+        "userId": "u_krit",
+        "asked": "email",
+        "via": "email",
+        "fallback": null
+      }
+    ],
+    "views": 3,
+    "lastViewedAt": "2026-10-09T14:26:39.919Z",
+    "openedBy": [
+      "u_krit"
+    ]
+  },
+  {
+    "id": "Uv1kwq3f70o1",
+    "at": "2026-10-09T08:51:51.302Z",
+    "senderId": "u_thana",
+    "title": "มูลค่าขายเข้า",
+    "question": "ยอดขายเข้าแยกตามภาคไตรมาสนี้",
+    "note": "ภาคเหนือเกิดอะไรขึ้นไปดูต่อแล้วมารายผม",
+    "card": {
+      "kind": "tool",
+      "reads": [
+        {
+          "tool": "query_metric",
+          "input": {
+            "grain": "month",
+            "dims": [
+              "region"
+            ],
+            "sort": "value_desc",
+            "limit": 10,
+            "compare": "target",
+            "filters": {},
+            "metric": "net_sales_value",
+            "range": {
+              "to": "2026-09-22",
+              "from": "2026-07-01"
+            }
+          }
+        }
+      ]
+    },
+    "deliveries": [
+      {
+        "userId": "u_krit",
+        "asked": "email",
+        "via": "email",
+        "fallback": null
+      }
+    ],
+    "views": 0,
+    "lastViewedAt": "2026-10-09T11:46:01.253Z",
+    "openedBy": [
+      "u_krit"
+    ]
+  },
+  {
+    "id": "JaKgjNzPViNU",
+    "at": "2026-10-09T09:18:56.282Z",
+    "senderId": "u_thana",
+    "title": "มูลค่าขายเข้า",
+    "question": "ยอดขายแยกตามภาคเดือนนี้",
+    "note": null,
+    "card": {
+      "kind": "tool",
+      "reads": [
+        {
+          "tool": "query_metric",
+          "input": {
+            "range": {
+              "from": "2026-09-01",
+              "to": "2026-09-22"
+            },
+            "dims": [
+              "region"
+            ],
+            "filters": {},
+            "sort": "value_desc",
+            "grain": "month",
+            "limit": 10,
+            "metric": "net_sales_value",
+            "compare": "target"
+          }
+        }
+      ]
+    },
+    "deliveries": [
+      {
+        "userId": "u_krit",
+        "asked": "line",
+        "via": "line",
+        "fallback": null
+      }
+    ],
+    "views": 1,
+    "lastViewedAt": "2026-10-09T11:46:03.648Z",
+    "openedBy": [
+      "u_krit"
+    ]
+  },
+  {
+    "id": "d9Na1jQwUPNS",
+    "at": "2026-10-09T09:19:30.648Z",
+    "senderId": "u_thana",
+    "title": "มูลค่าขายเข้า",
+    "question": "ยอดขายแยกตามภาคเดือนนี้",
+    "note": null,
+    "card": {
+      "kind": "tool",
+      "reads": [
+        {
+          "tool": "query_metric",
+          "input": {
+            "range": {
+              "from": "2026-09-01",
+              "to": "2026-09-22"
+            },
+            "dims": [
+              "region"
+            ],
+            "filters": {},
+            "sort": "value_desc",
+            "grain": "month",
+            "limit": 10,
+            "metric": "net_sales_value",
+            "compare": "target"
+          }
+        }
+      ]
+    },
+    "deliveries": [
+      {
+        "userId": "u_anucha",
+        "asked": "teams",
+        "via": "email",
+        "fallback": "no-teams-conversation"
+      }
+    ],
+    "views": 0,
+    "lastViewedAt": "2026-10-15T08:25:16.400Z",
+    "openedBy": [
+      "u_anucha"
+    ]
+  },
+  {
+    "id": "79o8IcRiPzQy",
+    "at": "2026-10-09T09:33:12.842Z",
+    "senderId": "u_thana",
+    "title": "มูลค่าขายเข้า",
+    "question": "ยอดขายแยกตามภาคเดือนนี้",
+    "note": "ช่วยดูภาคอีสานหน่อย",
+    "card": {
+      "kind": "tool",
+      "reads": [
+        {
+          "tool": "query_metric",
+          "input": {
+            "range": {
+              "from": "2026-09-01",
+              "to": "2026-09-22"
+            },
+            "dims": [
+              "region"
+            ],
+            "filters": {},
+            "sort": "value_desc",
+            "grain": "month",
+            "limit": 10,
+            "metric": "net_sales_value",
+            "compare": "target"
+          }
+        }
+      ]
+    },
+    "deliveries": [
+      {
+        "userId": "u_krit",
+        "asked": "email",
+        "via": "email",
+        "fallback": null
+      }
+    ],
+    "views": 676,
+    "lastViewedAt": "2026-10-09T14:26:14.342Z",
+    "openedBy": [
+      "u_krit"
+    ]
+  },
+  {
+    "id": "rdACPzOBignF",
+    "at": "2026-10-15T08:26:39.971Z",
+    "senderId": "u_mint",
+    "title": "มูลค่าขายเข้า",
+    "question": "มูลค่าขายเข้าของอุบลศรีสุข เทรดดิ้ง รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+    "note": null,
+    "card": {
+      "kind": "tool",
+      "reads": [
+        {
+          "tool": "query_metric",
+          "input": {
+            "grain": "week",
+            "filters": {
+              "agent": "อุบลศรีสุข เทรดดิ้ง"
+            },
+            "sort": null,
+            "compare": "none",
+            "range": {
+              "from": "2026-06-30",
+              "to": "2026-09-22"
+            },
+            "metric": "net_sales_value",
+            "limit": 12,
+            "dims": [
+              "week"
+            ]
+          }
+        }
+      ]
+    },
+    "deliveries": [
+      {
+        "userId": "u_anucha",
+        "asked": "email",
+        "via": "email",
+        "fallback": null
+      }
+    ],
+    "openedBy": [
+      "u_anucha"
+    ],
+    "lastViewedAt": "2026-10-15T08:27:24.535Z"
+  },
+  {
+    "id": "O4zvXxc4noOz",
+    "at": "2026-10-15T08:29:28.171Z",
+    "senderId": "u_mint",
+    "title": "มูลค่าขายเข้า",
+    "question": "มูลค่าขายเข้าของอุบลศรีสุข เทรดดิ้ง รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+    "note": null,
+    "card": {
+      "kind": "tool",
+      "reads": [
+        {
+          "tool": "query_metric",
+          "input": {
+            "grain": "week",
+            "filters": {
+              "agent": "อุบลศรีสุข เทรดดิ้ง"
+            },
+            "sort": null,
+            "compare": "none",
+            "range": {
+              "from": "2026-06-30",
+              "to": "2026-09-22"
+            },
+            "metric": "net_sales_value",
+            "limit": 12,
+            "dims": [
+              "week"
+            ]
+          }
+        }
+      ]
+    },
+    "deliveries": [
+      {
+        "userId": "u_anucha",
+        "asked": "email",
+        "via": "email",
+        "fallback": null
+      }
+    ],
+    "openedBy": [
+      "u_anucha"
+    ],
+    "lastViewedAt": "2026-10-15T08:30:27.700Z"
+  }
+]

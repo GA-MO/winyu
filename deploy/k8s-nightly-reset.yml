@@ -1,0 +1,48 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: winyu-reset
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: winyu-reset
+rules:
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    resourceNames: ["winyu"]
+    verbs: ["get", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: winyu-reset
+subjects:
+  - kind: ServiceAccount
+    name: winyu-reset
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: winyu-reset
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: winyu-nightly-reset
+spec:
+  schedule: "0 3 * * *"
+  timeZone: "Asia/Bangkok"
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        spec:
+          serviceAccountName: winyu-reset
+          restartPolicy: Never
+          nodeSelector:
+            sol: "true"
+          containers:
+            - name: restart
+              image: bitnami/kubectl:1.31
+              command: ["kubectl", "rollout", "restart", "deployment/winyu"]

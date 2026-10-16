@@ -1,0 +1,50 @@
+[
+  {
+    "id": "mastra-approval::01095e60-8e97-4562-80e2-29d53461db58::call_100664",
+    "userId": "u_thana",
+    "toolCallId": "call_100664",
+    "tool": "create_handoff",
+    "status": "answered",
+    "at": "2026-10-05T18:20:45.564Z"
+  },
+  {
+    "id": "mastra-approval::d01d72fb-318e-4e17-af6b-a034da2e7d11::call_329621",
+    "userId": "u_krit",
+    "toolCallId": "call_329621",
+    "tool": "asset__request_asset",
+    "status": "asked",
+    "at": "2026-10-09T14:36:22.469Z"
+  },
+  {
+    "id": "mastra-approval::c22ba9ae-9ec9-421e-8870-142315d4960f::call_1894069",
+    "userId": "u_krit",
+    "toolCallId": "call_1894069",
+    "tool": "asset__request_asset",
+    "status": "answered",
+    "at": "2026-10-09T14:37:49.017Z"
+  },
+  {
+    "id": "mastra-approval::d09ae884-4a52-4146-85bd-ddd158a46b50::call_2042603",
+    "userId": "u_krit",
+    "toolCallId": "call_2042603",
+    "tool": "request_leave",
+    "status": "answered",
+    "at": "2026-10-09T15:58:25.500Z"
+  },
+  {
+    "id": "mastra-approval::41e40f46-d561-4030-9309-35f76070c9a2::call_769028",
+    "userId": "u_thana",
+    "toolCallId": "call_769028",
+    "tool": "create_handoff",
+    "status": "answered",
+    "at": "2026-10-15T08:13:31.295Z"
+  },
+  {
+    "id": "mastra-approval::727b3bc6-fa35-47a3-b3dc-4f04fa4dec52::call_1012825",
+    "userId": "u_mint",
+    "toolCallId": "call_1012825",
+    "tool": "create_handoff",
+    "status": "answered",
+    "at": "2026-10-15T08:20:53.725Z"
+  }
+]

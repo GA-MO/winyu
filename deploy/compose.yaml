@@ -1,0 +1,16 @@
+name: winyu
+
+services:
+  app:
+    build:
+      context: ..
+    image: winyu-demo
+    env_file: .env
+    ports:
+      - "3100:8080"
+    volumes:
+      - winyu-data:/data
+    restart: unless-stopped
+
+volumes:
+  winyu-data:

@@ -1,0 +1,707 @@
+[
+  {
+    "id": "ev_demo_feed_u_may_open_0",
+    "userId": "u_may",
+    "at": "2026-10-03T16:58:42.318Z",
+    "kind": "feed_open",
+    "intentKey": "feed|person:cert|person:e_dang:cert-ใบขับขี่รถยก+overtime-overtime+risk-risk",
+    "metric": null,
+    "dims": [],
+    "prompt": "ขอดูโปรไฟล์คุณแดง ศักดิ์ดี",
+    "threadId": null
+  },
+  {
+    "id": "ev_demo_feed_u_may_open_1",
+    "userId": "u_may",
+    "at": "2026-10-01T16:58:42.318Z",
+    "kind": "feed_open",
+    "intentKey": "feed|person:cert|person:e_pong:cert-ใบอนุญาตขายสุรา+overtime-overtime+risk-risk",
+    "metric": null,
+    "dims": [],
+    "prompt": "ขอดูโปรไฟล์คุณป้อง แสนสุข",
+    "threadId": null
+  },
+  {
+    "id": "ev_demo_feed_u_may_open_2",
+    "userId": "u_may",
+    "at": "2026-09-29T16:58:42.318Z",
+    "kind": "feed_open",
+    "intentKey": "feed|person:cert|person:e_wan:cert-ใบขับขี่รถยก",
+    "metric": null,
+    "dims": [],
+    "prompt": "ขอดูโปรไฟล์คุณวันชัย เพชรดี",
+    "threadId": null
+  },
+  {
+    "id": "ev_demo_feed_u_may_open_3",
+    "userId": "u_may",
+    "at": "2026-09-26T16:58:42.318Z",
+    "kind": "feed_open",
+    "intentKey": "feed|person:cert|person:u_krit:cert-ใบอนุญาตขายสุรา",
+    "metric": null,
+    "dims": [],
+    "prompt": "ขอดูโปรไฟล์คุณกฤต จันทร์เสน",
+    "threadId": null
+  },
+  {
+    "id": "ev_demo_feed_u_may_open_4",
+    "userId": "u_may",
+    "at": "2026-09-23T16:58:42.318Z",
+    "kind": "feed_open",
+    "intentKey": "feed|person:cert|person:e_somsri:cert-GMP",
+    "metric": null,
+    "dims": [],
+    "prompt": "ขอดูโปรไฟล์คุณสมศรี ทองคำ",
+    "threadId": null
+  },
+  {
+    "id": "ev_demo_feed_u_may_snooze_0",
+    "userId": "u_may",
+    "at": "2026-10-02T16:58:42.318Z",
+    "kind": "feed_snooze",
+    "intentKey": "feed|opening|opening:op_ne_ubon",
+    "metric": null,
+    "dims": [],
+    "prompt": "ขอดูผู้สมัครตำแหน่งพนักงานขาย อุบลราชธานี (เขตวารินฯ)",
+    "threadId": null
+  },
+  {
+    "id": "ev_demo_feed_u_may_snooze_1",
+    "userId": "u_may",
+    "at": "2026-09-27T16:58:42.318Z",
+    "kind": "feed_snooze",
+    "intentKey": "feed|opening|opening:op_ne_khonkaen",
+    "metric": null,
+    "dims": [],
+    "prompt": "ขอดูผู้สมัครตำแหน่งพนักงานขาย ขอนแก่น (เขตชุมแพ)",
+    "threadId": null
+  },
+  {
+    "id": "ev_demo_feed_u_anucha_open_0",
+    "userId": "u_anucha",
+    "at": "2026-10-04T16:58:42.318Z",
+    "kind": "feed_open",
+    "intentKey": "feed|alert:net_sales_volume|alert:al_7364476d77c8f435",
+    "metric": null,
+    "dims": [],
+    "prompt": "ตรวจความผิดปกติของ อุบลศรีสุข เทรดดิ้ง · ภาคอีสาน ให้หน่อย",
+    "threadId": null
+  },
+  {
+    "id": "ev_demo_feed_u_anucha_open_1",
+    "userId": "u_anucha",
+    "at": "2026-10-02T16:58:42.318Z",
+    "kind": "feed_open",
+    "intentKey": "feed|alert:net_sales_volume|alert:al_ed6dca9e1dab4e48",
+    "metric": null,
+    "dims": [],
+    "prompt": "ตรวจความผิดปกติของ อีสานรุ่งโรจน์ ค้าส่ง · ภาคอีสาน ให้หน่อย",
+    "threadId": null
+  },
+  {
+    "id": "ev_demo_feed_u_anucha_open_2",
+    "userId": "u_anucha",
+    "at": "2026-09-30T16:58:42.318Z",
+    "kind": "feed_open",
+    "intentKey": "feed|alert:market_share|alert:al_fa3be1e7b4f9fe40",
+    "metric": null,
+    "dims": [],
+    "prompt": "ตรวจความผิดปกติของ นครราชสีมา · ภาคอีสาน ให้หน่อย",
+    "threadId": null
+  },
+  {
+    "id": "ev_demo_feed_u_anucha_open_3",
+    "userId": "u_anucha",
+    "at": "2026-09-25T16:58:42.318Z",
+    "kind": "feed_open",
+    "intentKey": "feed|alert:net_sales_volume|alert:al_35ced4920cc14a53",
+    "metric": null,
+    "dims": [],
+    "prompt": "ตรวจความผิดปกติของ ส.รุ่งเรือง เทรดดิ้ง · ลีโอ ขวด 620 มล. · ภาคอีสาน ให้หน่อย",
+    "threadId": null
+  },
+  {
+    "id": "ev_demo_feed_u_anucha_open_share_0",
+    "userId": "u_anucha",
+    "at": "2026-10-03T16:58:42.318Z",
+    "kind": "feed_open",
+    "intentKey": "feed|alert:market_share|alert:al_fa3be1e7b4f9fe40",
+    "metric": null,
+    "dims": [],
+    "prompt": "ตรวจความผิดปกติของ นครราชสีมา · ภาคอีสาน ให้หน่อย",
+    "threadId": null
+  },
+  {
+    "id": "ev_demo_feed_u_anucha_open_share_1",
+    "userId": "u_anucha",
+    "at": "2026-09-29T16:58:42.318Z",
+    "kind": "feed_open",
+    "intentKey": "feed|alert:market_share|alert:al_fa3be1e7b4f9fe40",
+    "metric": null,
+    "dims": [],
+    "prompt": "ตรวจความผิดปกติของ นครราชสีมา · ภาคอีสาน ให้หน่อย",
+    "threadId": null
+  },
+  {
+    "id": "ev_demo_feed_u_anucha_open_share_2",
+    "userId": "u_anucha",
+    "at": "2026-09-24T16:58:42.318Z",
+    "kind": "feed_open",
+    "intentKey": "feed|alert:market_share|alert:al_fa3be1e7b4f9fe40",
+    "metric": null,
+    "dims": [],
+    "prompt": "ตรวจความผิดปกติของ นครราชสีมา · ภาคอีสาน ให้หน่อย",
+    "threadId": null
+  },
+  {
+    "id": "ev_question_u_thana_1791219611480_zlqj02",
+    "userId": "u_thana",
+    "at": "2026-10-05T17:00:11.480Z",
+    "kind": "question",
+    "intentKey": "net_sales_value|region",
+    "metric": "net_sales_value",
+    "dims": [
+      "region"
+    ],
+    "prompt": "ยอดขายเดือนนี้เทียบเป้าแยกตามภาค",
+    "threadId": "82d6df47-6b57-444d-8106-81dca3db5dc8"
+  },
+  {
+    "id": "ev_question_u_thana_1791224448614_90ktyx",
+    "userId": "u_thana",
+    "at": "2026-10-05T18:20:48.614Z",
+    "kind": "question",
+    "intentKey": "",
+    "metric": null,
+    "dims": [],
+    "prompt": "ส่งการ์ดนี้ให้คุณกฤตดูหน่อย",
+    "threadId": "82d6df47-6b57-444d-8106-81dca3db5dc8"
+  },
+  {
+    "id": "ev_widget_view_u_thana_1791253933782_f88lv0",
+    "userId": "u_thana",
+    "at": "2026-10-06T02:32:13.782Z",
+    "kind": "widget_view",
+    "intentKey": "widget:w_u_thana_alerts",
+    "metric": null,
+    "dims": [],
+    "prompt": null,
+    "threadId": null
+  },
+  {
+    "id": "ev_widget_view_u_thana_1791253933784_561m8r",
+    "userId": "u_thana",
+    "at": "2026-10-06T02:32:13.784Z",
+    "kind": "widget_view",
+    "intentKey": "widget:w_u_thana_volume_trend",
+    "metric": null,
+    "dims": [],
+    "prompt": null,
+    "threadId": null
+  },
+  {
+    "id": "ev_widget_view_u_thana_1791253938363_aokmcc",
+    "userId": "u_thana",
+    "at": "2026-10-06T02:32:18.363Z",
+    "kind": "widget_view",
+    "intentKey": "widget:w_u_thana_attainment",
+    "metric": null,
+    "dims": [],
+    "prompt": null,
+    "threadId": null
+  },
+  {
+    "id": "ev_widget_view_u_thana_1791253938442_nr5n5v",
+    "userId": "u_thana",
+    "at": "2026-10-06T02:32:18.442Z",
+    "kind": "widget_view",
+    "intentKey": "widget:w_u_thana_margin_bu",
+    "metric": null,
+    "dims": [],
+    "prompt": null,
+    "threadId": null
+  },
+  {
+    "id": "ev_question_u_krit_1791256822568_8ojxoe",
+    "userId": "u_krit",
+    "at": "2026-10-06T03:20:22.568Z",
+    "kind": "question",
+    "intentKey": "net_sales_volume|region",
+    "metric": "net_sales_volume",
+    "dims": [
+      "region"
+    ],
+    "prompt": "ขอปริมาณขายเข้า (Sell-in)แยกตามภาค เรียงจากมากไปน้อย",
+    "threadId": "cefa5132-db8e-456d-b7e4-8e5b951730e9"
+  },
+  {
+    "id": "ev_widget_view_u_thana_1791533978262_vujazw",
+    "userId": "u_thana",
+    "at": "2026-10-09T08:19:38.262Z",
+    "kind": "widget_view",
+    "intentKey": "widget:w_u_thana_alerts",
+    "metric": null,
+    "dims": [],
+    "prompt": null,
+    "threadId": null
+  },
+  {
+    "id": "ev_widget_view_u_thana_1791533978264_h3xvcw",
+    "userId": "u_thana",
+    "at": "2026-10-09T08:19:38.264Z",
+    "kind": "widget_view",
+    "intentKey": "widget:w_u_thana_volume_trend",
+    "metric": null,
+    "dims": [],
+    "prompt": null,
+    "threadId": null
+  },
+  {
+    "id": "ev_widget_view_u_thana_1791533978267_1uwviy",
+    "userId": "u_thana",
+    "at": "2026-10-09T08:19:38.267Z",
+    "kind": "widget_view",
+    "intentKey": "widget:w_u_thana_margin_bu",
+    "metric": null,
+    "dims": [],
+    "prompt": null,
+    "threadId": null
+  },
+  {
+    "id": "ev_widget_view_u_thana_1791533978268_jztrdx",
+    "userId": "u_thana",
+    "at": "2026-10-09T08:19:38.268Z",
+    "kind": "widget_view",
+    "intentKey": "widget:w_u_thana_attainment",
+    "metric": null,
+    "dims": [],
+    "prompt": null,
+    "threadId": null
+  },
+  {
+    "id": "ev_question_u_thana_1791535850548_b7b9iq",
+    "userId": "u_thana",
+    "at": "2026-10-09T08:50:50.548Z",
+    "kind": "question",
+    "intentKey": "net_sales_value|region",
+    "metric": "net_sales_value",
+    "dims": [
+      "region"
+    ],
+    "prompt": "ยอดขายเข้าแยกตามภาคไตรมาสนี้",
+    "threadId": "ed365dc9-666c-4fa0-bb1c-74fe834fda1d"
+  },
+  {
+    "id": "ev_widget_view_u_krit_1791535982073_5vvdxt",
+    "userId": "u_krit",
+    "at": "2026-10-09T08:53:02.073Z",
+    "kind": "widget_view",
+    "intentKey": "widget:w_u_krit_attainment",
+    "metric": null,
+    "dims": [],
+    "prompt": null,
+    "threadId": null
+  },
+  {
+    "id": "ev_widget_view_u_krit_1791535982093_mwudgz",
+    "userId": "u_krit",
+    "at": "2026-10-09T08:53:02.093Z",
+    "kind": "widget_view",
+    "intentKey": "widget:w_u_krit_stock",
+    "metric": null,
+    "dims": [],
+    "prompt": null,
+    "threadId": null
+  },
+  {
+    "id": "ev_widget_view_u_krit_1791535982096_y3ew1f",
+    "userId": "u_krit",
+    "at": "2026-10-09T08:53:02.096Z",
+    "kind": "widget_view",
+    "intentKey": "widget:w_u_krit_agents",
+    "metric": null,
+    "dims": [],
+    "prompt": null,
+    "threadId": null
+  },
+  {
+    "id": "ev_follow_up_u_krit_1791536383335_i64ag1",
+    "userId": "u_krit",
+    "at": "2026-10-09T08:59:43.335Z",
+    "kind": "follow_up",
+    "intentKey": "follow|drill_down",
+    "metric": null,
+    "dims": [],
+    "prompt": "ขอปริมาณขายเข้า (Sell-in) ของภาคอีสาน แยกรายเอเย่นต์ เรียงจากแย่ไปดี",
+    "threadId": null
+  },
+  {
+    "id": "ev_question_u_krit_1791536399579_am5ucb",
+    "userId": "u_krit",
+    "at": "2026-10-09T08:59:59.579Z",
+    "kind": "question",
+    "intentKey": "net_sales_volume|agent",
+    "metric": "net_sales_volume",
+    "dims": [
+      "agent"
+    ],
+    "prompt": "ขอปริมาณขายเข้า (Sell-in) ของภาคอีสาน แยกรายเอเย่นต์ เรียงจากแย่ไปดี",
+    "threadId": "cefa5132-db8e-456d-b7e4-8e5b951730e9"
+  },
+  {
+    "id": "ev_follow_up_u_krit_1791536415220_9etbgm",
+    "userId": "u_krit",
+    "at": "2026-10-09T09:00:15.220Z",
+    "kind": "follow_up",
+    "intentKey": "follow|trend",
+    "metric": null,
+    "dims": [],
+    "prompt": "ปริมาณขายเข้า (Sell-in) ของอุบลศรีสุข เทรดดิ้ง รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+    "threadId": null
+  },
+  {
+    "id": "ev_question_u_krit_1791536431578_km8iae",
+    "userId": "u_krit",
+    "at": "2026-10-09T09:00:31.578Z",
+    "kind": "question",
+    "intentKey": "net_sales_volume|week",
+    "metric": "net_sales_volume",
+    "dims": [
+      "week"
+    ],
+    "prompt": "ปริมาณขายเข้า (Sell-in) ของอุบลศรีสุข เทรดดิ้ง รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+    "threadId": "cefa5132-db8e-456d-b7e4-8e5b951730e9"
+  },
+  {
+    "id": "ev_follow_up_u_krit_1791536445338_06x2my",
+    "userId": "u_krit",
+    "at": "2026-10-09T09:00:45.338Z",
+    "kind": "follow_up",
+    "intentKey": "follow|compare_year",
+    "metric": null,
+    "dims": [],
+    "prompt": "ขอปริมาณขายเข้า (Sell-in) เทียบกับช่วงเดียวกันปีก่อน",
+    "threadId": null
+  },
+  {
+    "id": "ev_question_u_krit_1791536455484_e22b3n",
+    "userId": "u_krit",
+    "at": "2026-10-09T09:00:55.484Z",
+    "kind": "question",
+    "intentKey": "net_sales_volume|week",
+    "metric": "net_sales_volume",
+    "dims": [
+      "week"
+    ],
+    "prompt": "ขอปริมาณขายเข้า (Sell-in) เทียบกับช่วงเดียวกันปีก่อน",
+    "threadId": "cefa5132-db8e-456d-b7e4-8e5b951730e9"
+  },
+  {
+    "id": "ev_question_u_thana_1791537525954_6z76wi",
+    "userId": "u_thana",
+    "at": "2026-10-09T09:18:45.954Z",
+    "kind": "question",
+    "intentKey": "net_sales_value|region",
+    "metric": "net_sales_value",
+    "dims": [
+      "region"
+    ],
+    "prompt": "ยอดขายแยกตามภาคเดือนนี้",
+    "threadId": "23c189c0-bee9-4b2d-8054-35cadd984d4e"
+  },
+  {
+    "id": "ev_question_u_krit_1791555903629_amm8eo",
+    "userId": "u_krit",
+    "at": "2026-10-09T14:25:03.629Z",
+    "kind": "question",
+    "intentKey": "net_sales_volume|brand",
+    "metric": "net_sales_volume",
+    "dims": [
+      "brand"
+    ],
+    "prompt": "ดึงข้อมูลของงานที่ส่งต่อมาเรื่อง \"อุบลศรีสุข เทรดดิ้ง แทบไม่สั่งสินค้า\" (ช่วยแวะอุบลศรีสุขสัปดาห์นี้ เช็กว่าติดวงเงินเครดิตเหมือนเดือนมิถุนายนหรือเปลี่ยนไปรับของเจ้าอื่น แล้วปิดงานพร้อมบอกว่าเป็นเรื่องจริงไหม) ตามหลักฐานที่แนบมา แล้วบอกว่าควรตรวจอะไรก่อนและใครควรรับผิดชอบขั้นต่อไป",
+    "threadId": "edc7cbfb-4edf-42d5-b81d-d3362d94c76f"
+  },
+  {
+    "id": "ev_question_u_krit_1791556685410_3sgbuj",
+    "userId": "u_krit",
+    "at": "2026-10-09T14:38:05.411Z",
+    "kind": "question",
+    "intentKey": "",
+    "metric": null,
+    "dims": [],
+    "prompt": "ขอเบิกโน้ตบุ๊กเครื่องใหม่ให้หน่อย เครื่องเดิมเปิดไม่ติดแล้ว",
+    "threadId": "80cdf779-f4fb-465a-9759-439e671a5782"
+  },
+  {
+    "id": "ev_question_u_krit_1791556802825_20dryw",
+    "userId": "u_krit",
+    "at": "2026-10-09T14:40:02.825Z",
+    "kind": "question",
+    "intentKey": "",
+    "metric": null,
+    "dims": [],
+    "prompt": "คืนทรัพย์สินรหัส AS-1001 ให้ไอทีหน่อย",
+    "threadId": "42428e11-8a91-4afb-a030-e1cafdad8da9"
+  },
+  {
+    "id": "ev_question_u_krit_1791561513726_k8qjrz",
+    "userId": "u_krit",
+    "at": "2026-10-09T15:58:33.726Z",
+    "kind": "question",
+    "intentKey": "",
+    "metric": null,
+    "dims": [],
+    "prompt": "ขอลากิจวันที่ 21 ต.ค. ไปทำธุระที่ธนาคาร",
+    "threadId": "72f06f9f-081d-4e50-882a-403842230bcd"
+  },
+  {
+    "id": "ev_feed_open_u_may_1791564433210_9drvwh",
+    "userId": "u_may",
+    "at": "2026-10-09T16:47:13.210Z",
+    "kind": "feed_open",
+    "intentKey": "feed|person:cert|person:e_dang:cert-ใบขับขี่รถยก+overtime-overtime+risk-risk",
+    "metric": null,
+    "dims": [],
+    "prompt": "ขอดูโปรไฟล์คุณแดง ศักดิ์ดี",
+    "threadId": null
+  },
+  {
+    "id": "ev_question_u_may_1791564455598_kuw8xn",
+    "userId": "u_may",
+    "at": "2026-10-09T16:47:35.598Z",
+    "kind": "question",
+    "intentKey": "",
+    "metric": null,
+    "dims": [],
+    "prompt": "ขอดูโปรไฟล์คุณแดง ศักดิ์ดี",
+    "threadId": "44c2dc12-86ea-448a-9ef6-dee2bf93d970"
+  },
+  {
+    "id": "ev_quick_action_u_may_1791564510354_tqovhm",
+    "userId": "u_may",
+    "at": "2026-10-09T16:48:30.354Z",
+    "kind": "quick_action",
+    "intentKey": "avg_salary|department",
+    "metric": null,
+    "dims": [],
+    "prompt": "เงินเดือนเฉลี่ยแต่ละฝ่ายเท่าไหร่",
+    "threadId": null
+  },
+  {
+    "id": "ev_question_u_may_1791564522363_ccmjj4",
+    "userId": "u_may",
+    "at": "2026-10-09T16:48:42.363Z",
+    "kind": "question",
+    "intentKey": "avg_salary|department",
+    "metric": "avg_salary",
+    "dims": [
+      "department"
+    ],
+    "prompt": "เงินเดือนเฉลี่ยแต่ละฝ่ายเท่าไหร่",
+    "threadId": "44c2dc12-86ea-448a-9ef6-dee2bf93d970"
+  },
+  {
+    "id": "ev_widget_view_u_may_1791564543994_pi5so2",
+    "userId": "u_may",
+    "at": "2026-10-09T16:49:03.994Z",
+    "kind": "widget_view",
+    "intentKey": "widget:w_u_may_headcount",
+    "metric": null,
+    "dims": [],
+    "prompt": null,
+    "threadId": null
+  },
+  {
+    "id": "ev_widget_view_u_may_1791564544032_g7mmf4",
+    "userId": "u_may",
+    "at": "2026-10-09T16:49:04.032Z",
+    "kind": "widget_view",
+    "intentKey": "widget:w_u_may_salary",
+    "metric": null,
+    "dims": [],
+    "prompt": null,
+    "threadId": null
+  },
+  {
+    "id": "ev_widget_view_u_may_1791564548316_oxg94g",
+    "userId": "u_may",
+    "at": "2026-10-09T16:49:08.316Z",
+    "kind": "widget_view",
+    "intentKey": "widget:w_u_may_attrition_dept",
+    "metric": null,
+    "dims": [],
+    "prompt": null,
+    "threadId": null
+  },
+  {
+    "id": "ev_quick_action_u_thana_1792051803628_tnsuvs",
+    "userId": "u_thana",
+    "at": "2026-10-15T08:10:03.628Z",
+    "kind": "quick_action",
+    "intentKey": "gross_margin|business_unit",
+    "metric": null,
+    "dims": [],
+    "prompt": "กำไรขั้นต้นไตรมาสนี้แยกตามกลุ่มธุรกิจ",
+    "threadId": null
+  },
+  {
+    "id": "ev_question_u_thana_1792051826679_ga338i",
+    "userId": "u_thana",
+    "at": "2026-10-15T08:10:26.679Z",
+    "kind": "question",
+    "intentKey": "gross_margin|business_unit",
+    "metric": "gross_margin",
+    "dims": [
+      "business_unit"
+    ],
+    "prompt": "กำไรขั้นต้นไตรมาสนี้แยกตามกลุ่มธุรกิจ",
+    "threadId": "77761e67-cc47-4f2f-a9ba-9f54f982aa9d"
+  },
+  {
+    "id": "ev_follow_up_u_thana_1792051836363_vaknzw",
+    "userId": "u_thana",
+    "at": "2026-10-15T08:10:36.363Z",
+    "kind": "follow_up",
+    "intentKey": "follow|trend",
+    "metric": null,
+    "dims": [],
+    "prompt": "อัตรากำไรขั้นต้น รายเดือนย้อนหลัง 6 เดือน",
+    "threadId": null
+  },
+  {
+    "id": "ev_question_u_thana_1792051851915_srvk3g",
+    "userId": "u_thana",
+    "at": "2026-10-15T08:10:51.915Z",
+    "kind": "question",
+    "intentKey": "gross_margin|month",
+    "metric": "gross_margin",
+    "dims": [
+      "month"
+    ],
+    "prompt": "อัตรากำไรขั้นต้น รายเดือนย้อนหลัง 6 เดือน",
+    "threadId": "77761e67-cc47-4f2f-a9ba-9f54f982aa9d"
+  },
+  {
+    "id": "ev_question_u_thana_1792051890064_tt0omu",
+    "userId": "u_thana",
+    "at": "2026-10-15T08:11:30.064Z",
+    "kind": "question",
+    "intentKey": "gross_margin|region",
+    "metric": "gross_margin",
+    "dims": [
+      "region"
+    ],
+    "prompt": "ขออัตรากำไรขั้นต้นแยกตามภาค เรียงจากมากไปน้อย",
+    "threadId": "77761e67-cc47-4f2f-a9ba-9f54f982aa9d"
+  },
+  {
+    "id": "ev_question_u_thana_1792052021756_47whnx",
+    "userId": "u_thana",
+    "at": "2026-10-15T08:13:41.756Z",
+    "kind": "question",
+    "intentKey": "",
+    "metric": null,
+    "dims": [],
+    "prompt": "ใครดูแลภารอีสานส่งต่อให้หน่อย",
+    "threadId": "77761e67-cc47-4f2f-a9ba-9f54f982aa9d"
+  },
+  {
+    "id": "ev_question_u_mint_1792052134992_4jf1gy",
+    "userId": "u_mint",
+    "at": "2026-10-15T08:15:34.992Z",
+    "kind": "question",
+    "intentKey": "gross_margin|brand",
+    "metric": "gross_margin",
+    "dims": [
+      "brand"
+    ],
+    "prompt": "ดึงข้อมูลของงานที่ส่งต่อมาเรื่อง \"ตรวจสอบอัตรากำไรขั้นต้นภาคอีสานปรับตัวลดลง\" (ช่วยตรวจสอบสาเหตุที่อัตรากำไรขั้นต้นภาคอีสานในช่วง 6 เดือนย้อนหลังลดลงเหลือ 26.3% (ลดลง 2.5% เมื่อเทียบกับปีก่อน) ทั้งในส่วนต้นทุนค่าขนส่งและสัดส่วนสินค้าขาย) ตามหลักฐานที่แนบมา แล้วบอกว่าควรตรวจอะไรก่อนและใครควรรับผิดชอบ",
+    "threadId": "814eda76-fa4a-454f-9c08-2fdb32f3b770"
+  },
+  {
+    "id": "ev_quick_action_u_mint_1792052352830_xn559j",
+    "userId": "u_mint",
+    "at": "2026-10-15T08:19:12.830Z",
+    "kind": "quick_action",
+    "intentKey": "net_sales_volume|agent",
+    "metric": null,
+    "dims": [],
+    "prompt": "เอเย่นต์ 10 อันดับที่ยอดตกเทียบไตรมาสก่อน",
+    "threadId": null
+  },
+  {
+    "id": "ev_question_u_mint_1792052371460_estpxm",
+    "userId": "u_mint",
+    "at": "2026-10-15T08:19:31.460Z",
+    "kind": "question",
+    "intentKey": "net_sales_value|agent",
+    "metric": "net_sales_value",
+    "dims": [
+      "agent"
+    ],
+    "prompt": "เอเย่นต์ 10 อันดับที่ยอดตกเทียบไตรมาสก่อน",
+    "threadId": "814eda76-fa4a-454f-9c08-2fdb32f3b770"
+  },
+  {
+    "id": "ev_follow_up_u_mint_1792052396024_gyk9u2",
+    "userId": "u_mint",
+    "at": "2026-10-15T08:19:56.024Z",
+    "kind": "follow_up",
+    "intentKey": "follow|trend",
+    "metric": null,
+    "dims": [],
+    "prompt": "มูลค่าขายเข้าของอุบลศรีสุข เทรดดิ้ง รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+    "threadId": null
+  },
+  {
+    "id": "ev_question_u_mint_1792052408432_ng2hwg",
+    "userId": "u_mint",
+    "at": "2026-10-15T08:20:08.432Z",
+    "kind": "question",
+    "intentKey": "net_sales_value|week",
+    "metric": "net_sales_value",
+    "dims": [
+      "week"
+    ],
+    "prompt": "มูลค่าขายเข้าของอุบลศรีสุข เทรดดิ้ง รายสัปดาห์ย้อนหลัง 12 สัปดาห์",
+    "threadId": "814eda76-fa4a-454f-9c08-2fdb32f3b770"
+  },
+  {
+    "id": "ev_question_u_mint_1792052457059_bftkm3",
+    "userId": "u_mint",
+    "at": "2026-10-15T08:20:57.059Z",
+    "kind": "question",
+    "intentKey": "",
+    "metric": null,
+    "dims": [],
+    "prompt": "ส่งเรื่องต่อ",
+    "threadId": "814eda76-fa4a-454f-9c08-2fdb32f3b770"
+  },
+  {
+    "id": "ev_question_u_anucha_1792052600489_ke8x55",
+    "userId": "u_anucha",
+    "at": "2026-10-15T08:23:20.489Z",
+    "kind": "question",
+    "intentKey": "net_sales_value|week",
+    "metric": "net_sales_value",
+    "dims": [
+      "week"
+    ],
+    "prompt": "ดึงข้อมูลของงานที่ส่งต่อมาเรื่อง \"ตรวจสอบมูลค่าขายเข้าชะลอตัว · อุบลศรีสุข เทรดดิ้ง\" (ช่วยตรวจสอบสาเหตุที่มูลค่าขายเข้าของอุบลศรีสุข เทรดดิ้ง ชะลอตัวลงต่อเนื่องในช่วง 12 สัปดาห์ย้อนหลัง โดยเฉพาะสัปดาห์ที่ 37-39 และติดตามสถานะสต๊อกหน้าร้านรวมถึงวงเงินสินเชื่อ) ตามหลักฐานที่แนบมา แล้วบอกว่าควรตรวจอะไร",
+    "threadId": "bb5d6de0-0752-4f02-952d-4c8695627394"
+  },
+  {
+    "id": "ev_question_u_anucha_1792052655409_zmx90k",
+    "userId": "u_anucha",
+    "at": "2026-10-15T08:24:15.409Z",
+    "kind": "question",
+    "intentKey": "net_sales_value|week",
+    "metric": "net_sales_value",
+    "dims": [
+      "week"
+    ],
+    "prompt": "ดึงข้อมูลของงานที่ส่งต่อมาเรื่อง \"ตรวจสอบมูลค่าขายเข้าชะลอตัว · อุบลศรีสุข เทรดดิ้ง\" (ช่วยตรวจสอบสาเหตุที่มูลค่าขายเข้าของอุบลศรีสุข เทรดดิ้ง ชะลอตัวลงต่อเนื่องในช่วง 12 สัปดาห์ย้อนหลัง โดยเฉพาะสัปดาห์ที่ 37-39 และติดตามสถานะสต๊อกหน้าร้านรวมถึงวงเงินสินเชื่อ) ตามหลักฐานที่แนบมา แล้วบอกว่าควรตรวจอะไร",
+    "threadId": "7547113d-3952-4df8-bf08-fd129cea9212"
+  }
+]

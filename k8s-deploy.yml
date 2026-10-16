@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ${CI_PROJECT_NAME}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ${CI_PROJECT_NAME}
+  template:
+    metadata:
+      labels:
+        app: ${CI_PROJECT_NAME}
+    spec:
+      nodeSelector:
+        sol: "true"
+      imagePullSecrets:
+        - name: registry-secret
+      containers:
+        - name: ${CI_PROJECT_NAME}
+          image: ${DOCKER_IMAGE_URL}
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: ${CI_PROJECT_NAME}-config
+            - secretRef:
+                name: ${CI_PROJECT_NAME}-secret
+          resources:
+            requests:
+              memory: "1Gi"
+              cpu: "250m"
+            limits:
+              memory: "2Gi"
+          volumeMounts:
+            - name: data
+              mountPath: /data
+          startupProbe:
+            httpGet:
+              path: /login
+              port: 8080
+            periodSeconds: 5
+            failureThreshold: 24
+          livenessProbe:
+            httpGet:
+              path: /login
+              port: 8080
+            periodSeconds: 30
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /login
+              port: 8080
+            periodSeconds: 10
+            timeoutSeconds: 5
+      volumes:
+        - name: data
+          emptyDir:
+            sizeLimit: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ${CI_PROJECT_NAME}
+spec:
+  selector:
+    app: ${CI_PROJECT_NAME}
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080

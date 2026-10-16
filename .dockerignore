@@ -1,0 +1,12 @@
+.git
+.next
+node_modules
+.data
+.data-*
+.shots
+.env*
+.claude
+site
+evals
+deploy/.env
+*.tsbuildinfo

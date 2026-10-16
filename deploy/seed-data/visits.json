@@ -1,0 +1,165 @@
+[
+  {
+    "id": "u_siriporn",
+    "at": "2026-10-09T14:23:34.835Z",
+    "alertIds": [
+      "al_220936abb568e7c9",
+      "al_39f3f0de7fc1747a"
+    ],
+    "previousAt": "2026-10-09T08:21:07.596Z",
+    "previousAlertIds": [
+      "al_220936abb568e7c9",
+      "al_39f3f0de7fc1747a"
+    ],
+    "shownKeys": [],
+    "seenCounts": {}
+  },
+  {
+    "id": "u_prasit",
+    "at": "2026-10-15T08:25:53.284Z",
+    "alertIds": [
+      "al_7364476d77c8f435",
+      "al_ed6dca9e1dab4e48",
+      "al_fa3be1e7b4f9fe40"
+    ],
+    "previousAt": "2026-10-09T14:23:41.449Z",
+    "previousAlertIds": [
+      "al_7364476d77c8f435",
+      "al_ed6dca9e1dab4e48",
+      "al_fa3be1e7b4f9fe40"
+    ],
+    "shownKeys": [],
+    "seenCounts": {}
+  },
+  {
+    "id": "u_may",
+    "at": "2026-10-09T16:46:53.201Z",
+    "alertIds": [],
+    "previousAt": "2026-10-06T02:31:36.095Z",
+    "previousAlertIds": [],
+    "shownKeys": [],
+    "seenCounts": {}
+  },
+  {
+    "id": "u_ton",
+    "at": "2026-10-15T08:13:55.550Z",
+    "alertIds": [],
+    "previousAt": "2026-10-15T06:40:41.885Z",
+    "previousAlertIds": [],
+    "shownKeys": [],
+    "seenCounts": {}
+  },
+  {
+    "id": "u_thana",
+    "at": "2026-10-15T08:09:57.871Z",
+    "alertIds": [
+      "al_e8114d936da7141f",
+      "al_7364476d77c8f435",
+      "al_ed6dca9e1dab4e48",
+      "al_fa3be1e7b4f9fe40",
+      "al_220936abb568e7c9"
+    ],
+    "previousAt": "2026-10-15T06:38:16.571Z",
+    "previousAlertIds": [
+      "al_e8114d936da7141f",
+      "al_7364476d77c8f435",
+      "al_ed6dca9e1dab4e48",
+      "al_fa3be1e7b4f9fe40",
+      "al_220936abb568e7c9"
+    ],
+    "shownKeys": [],
+    "seenCounts": {}
+  },
+  {
+    "id": "u_krit",
+    "at": "2026-10-15T08:16:06.096Z",
+    "alertIds": [
+      "al_7364476d77c8f435",
+      "al_ed6dca9e1dab4e48"
+    ],
+    "previousAt": "2026-10-15T06:39:43.026Z",
+    "previousAlertIds": [
+      "al_7364476d77c8f435",
+      "al_ed6dca9e1dab4e48"
+    ],
+    "shownKeys": [],
+    "seenCounts": {}
+  },
+  {
+    "id": "u_saranya",
+    "at": "2026-10-15T06:39:33.026Z",
+    "alertIds": [
+      "al_220936abb568e7c9",
+      "al_14c4da61c8ba9ac3"
+    ],
+    "previousAt": "2026-10-09T14:23:49.348Z",
+    "previousAlertIds": [
+      "al_220936abb568e7c9",
+      "al_14c4da61c8ba9ac3"
+    ],
+    "shownKeys": [],
+    "seenCounts": {}
+  },
+  {
+    "id": "u_wichai",
+    "at": "2026-10-09T14:23:54.986Z",
+    "alertIds": [
+      "al_6180aee35a5d31b6",
+      "al_3d92631b3e62f8f1"
+    ],
+    "previousAt": null,
+    "previousAlertIds": null,
+    "shownKeys": [],
+    "seenCounts": {}
+  },
+  {
+    "id": "u_kanok",
+    "at": "2026-10-09T14:24:01.944Z",
+    "alertIds": [
+      "al_a25b3f027de53c68",
+      "al_8ea42b7d9f03c765"
+    ],
+    "previousAt": null,
+    "previousAlertIds": null,
+    "shownKeys": [],
+    "seenCounts": {}
+  },
+  {
+    "id": "u_anucha",
+    "at": "2026-10-15T08:22:00.917Z",
+    "alertIds": [
+      "al_7364476d77c8f435",
+      "al_ed6dca9e1dab4e48",
+      "al_fa3be1e7b4f9fe40",
+      "al_35ced4920cc14a53",
+      "al_05e4ed13725e756a",
+      "al_49b503043dd5af01"
+    ],
+    "previousAt": "2026-10-09T16:30:43.462Z",
+    "previousAlertIds": [
+      "al_7364476d77c8f435",
+      "al_ed6dca9e1dab4e48",
+      "al_fa3be1e7b4f9fe40",
+      "al_35ced4920cc14a53",
+      "al_05e4ed13725e756a",
+      "al_49b503043dd5af01"
+    ],
+    "shownKeys": [],
+    "seenCounts": {}
+  },
+  {
+    "id": "u_mint",
+    "at": "2026-10-15T08:14:34.057Z",
+    "alertIds": [
+      "al_220936abb568e7c9",
+      "al_39f3f0de7fc1747a"
+    ],
+    "previousAt": "2026-10-09T16:49:51.074Z",
+    "previousAlertIds": [
+      "al_220936abb568e7c9",
+      "al_39f3f0de7fc1747a"
+    ],
+    "shownKeys": [],
+    "seenCounts": {}
+  }
+]

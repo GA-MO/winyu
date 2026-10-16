@@ -21,6 +21,7 @@ bun run call-tool <userId> <tool> [json]   # runs one tool through the gateway a
 bun run mcp:probe <token> [--url=…/api/mcp] [--legacy]   # connects the official MCP client with an admin-issued token, lists tools and calls query_metric (no model call); see docs/mcp.md
 bun run connectors:demo   # serves the demo asset register over MCP on :3290, with write tools, for connecting from the admin console (secret `winyu-assets-demo-local-only`); see docs/mcp.md
 make up                   # starts connectors:demo and runs dev
+make demo-build && make demo-start   # snapshots .data into deploy/seed-data, builds and runs the demo image on :3100; GKE deploy and its rules in docs/deploy.md
 bun run investigate -- --users=<id>[,<id>…]|all [--save] [--show] [--replay]   # the morning investigation per person against the real model (~7 calls each); --show and --replay read saved runs without calling the model
 bun run studio       # development only: Mastra API on :3214 over the app's own Mastra instance and Studio on http://localhost:3213; pick a persona preset (u_thana, u_krit, …) in the agent's Request context before chatting
 bun run eval         # scores the recorded eval cases with code-only scorers, $0 (see Evals)
@@ -34,7 +35,7 @@ Check the domain inside Next without a browser: `curl -s 'http://localhost:3100/
 
 ## Evals
 
-`bun run eval` grades the chat against 58 cases ported from the Vexa build's `eval:cards` (`lib/eval/cases.ts`). Each case has one recording in `evals/recordings/<case>.json`: the question, the model's reply as ordered steps (text with its card block, tool calls with arguments and results), the approvals it raised, its cost, and hashes of the prompt and the tool surface. Scoring replays the recording through the live card stream (`ReplyCards`, `present.ts`, the composer) and runs code-only Mastra scorers (`lib/harness/adapters/mastra/scorers.ts`, checks in `lib/eval/checks.ts`). No judge model, no call, $0.
+`bun run eval` grades the chat against 63 cases ported from the Vexa build's `eval:cards` (`lib/eval/cases.ts`). Each case has one recording in `evals/recordings/<case>.json`: the question, the model's reply as ordered steps (text with its card block, tool calls with arguments and results), the approvals it raised, its cost, and hashes of the prompt and the tool surface. Scoring replays the recording through the live card stream (`ReplyCards`, `present.ts`, the composer) and runs code-only Mastra scorers (`lib/harness/adapters/mastra/scorers.ts`, checks in `lib/eval/checks.ts`). No judge model, no call, $0.
 
 ```bash
 bun run eval                                   # score every recording, print the table, exit 1 on a failure not in evals/known-failures.json

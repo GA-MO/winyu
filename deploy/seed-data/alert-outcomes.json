@@ -1,0 +1,11 @@
+[
+  {
+    "id": "demo_outcome_ubon_credit",
+    "key": "net_sales_volume|agent=ag_nea_05|region=northeast",
+    "alertId": "demo_alert_ubon_june",
+    "verdict": "real",
+    "outcome": "ติดวงเงินเครดิต ขยายวงเงินแล้วยอดกลับใน 2 สัปดาห์",
+    "byUserId": "u_krit",
+    "at": "2026-06-12T09:00:00.000Z"
+  }
+]

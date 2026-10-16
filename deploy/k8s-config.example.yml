@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: winyu-config
+data:
+  WINYU_AUTH: "demo"
+  WINYU_SCHEDULER: "on"
+  AGENT_MODEL: "google/gemini-3.8-flash"
+  WINYU_CONNECTOR_HOSTS: ""
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: winyu-secret
+type: Opaque
+stringData:
+  OPENROUTER_API_KEY: "<the demo key, with a credit limit>"
+  WINYU_SESSION_SECRET: "<32 or more random characters: openssl rand -hex 32>"
