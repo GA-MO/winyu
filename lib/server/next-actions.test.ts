@@ -32,3 +32,25 @@ describe("the send button of a company-wide card (AI-115)", () => {
     }
   });
 });
+
+describe("a card compared with an earlier period drills into the row that changed for the worse (AI-186)", () => {
+  const query: MetricQuery = { metric: "ar_overdue", dims: ["agent"], filters: { region: ["northeast"] }, range: { from: "2026-11-01", to: "2026-11-26" }, grain: "month", compare: "prev_period", limit: 10, sort: "value_desc" };
+
+  test("overdue AR by agent, ranked by amount, asks why about the sharpest rise, not the largest balance", async () => {
+    const result = await runMetric(query, CEO);
+    if (!result.ok) throw new Error(result.error);
+    const [worst] = result.rows.filter((row) => typeof row.delta_pct === "number" && row.delta_pct >= 5).sort((left, right) => Number(right.delta_pct) - Number(left.delta_pct));
+    if (!worst) throw new Error("no agent's overdue AR rose");
+    expect(String(result.rows[0].agent)).not.toBe(String(worst.agent));
+    const why = actionsForMetric(CEO, result, await loadDictionary()).find((action) => action.id === "drill-why");
+    expect(why?.label).toContain(String(worst.agent));
+  });
+
+  test("when no row changed for the worse, no drill asks why a row that improved got worse", async () => {
+    const result = await runMetric(query, CEO);
+    if (!result.ok) throw new Error(result.error);
+    const improved = { ...result, rows: result.rows.map((row) => ({ ...row, delta_pct: -Math.abs(Number(row.delta_pct ?? 1)) })) };
+    const why = actionsForMetric(CEO, improved, await loadDictionary()).find((action) => action.id === "drill-why");
+    expect(why?.label ?? "").not.toContain(String(result.rows[0].agent));
+  });
+});

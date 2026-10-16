@@ -57,7 +57,8 @@ describe("get_alerts matches the measure the question is on, not one metric id",
 
 const EXCLUDING_ISAN = "นอกจากเรื่องอีสาน มีความเสี่ยงอื่นที่ผมควรรู้ก่อนขึ้นบอร์ดไหม เช่นสต๊อกค้าง ลูกหนี้";
 
-type MetricAnswer = { ok: boolean; summary: string; rows: Record<string, unknown>[] };
+type Offer = { label: string; prompt: string | null };
+type MetricAnswer = { ok: boolean; summary: string; rows: Record<string, unknown>[]; nextActions?: Offer[]; followUps?: Offer[] };
 
 async function metricFor(userId: string, input: Record<string, unknown>, question: string): Promise<MetricAnswer> {
   const turn = { turnId: null, threadId: null, question, queries: [] };
@@ -90,6 +91,8 @@ describe("a place the question sets aside stays out of the alerts and the number
     expect(regions).not.toContain("ภาคอีสาน");
     expect(regions).toContain("ภาคใต้");
     expect(answer.summary).toContain("ไม่รวมภาคอีสาน");
+    const offered = [...(answer.nextActions ?? []), ...(answer.followUps ?? [])].map((action) => `${action.label} ${action.prompt ?? ""}`);
+    expect(offered.filter((text) => text.includes("อีสาน"))).toEqual([]);
   });
 
   test("a manager whose whole scope is the region set aside still gets his region's numbers", async () => {
