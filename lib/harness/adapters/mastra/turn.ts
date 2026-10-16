@@ -70,13 +70,17 @@ export function chatTurnOf(input: RunInput, fallbackRunId: string): ChatTurn {
 /** One approval the agent raised: the interrupt id the answer must quote, the call it pauses, and its tool. */
 export type AskedApproval = { interruptId: string; toolCallId: string; tool: string };
 
-/** What the reply stream showed: the tool calls that returned a result (each drawn as a card), the approvals asked, and the error that ended it. */
-export type ReplySeen = { results: string[]; asked: AskedApproval[]; text: boolean; error: string | null };
+/** A tool call that returned a result in the reply, and the result as the reply carried it. */
+export type FinishedCall = { toolCallId: string; output: unknown };
+
+/** What the reply stream showed: the tool calls that returned a result (each drawn as a card) by name and with their output, the approvals asked, and the error that ended it. */
+export type ReplySeen = { results: string[]; finished: FinishedCall[]; asked: AskedApproval[]; text: boolean; error: string | null };
 
 type AgUiEvent = {
   type?: unknown;
   toolCallId?: unknown;
   toolCallName?: unknown;
+  content?: unknown;
   message?: unknown;
   outcome?: { type?: unknown; interrupts?: { id?: unknown; toolCallId?: unknown; metadata?: { mastra?: { toolName?: unknown } } }[] };
 };
@@ -106,20 +110,31 @@ function askedOf(event: AgUiEvent, names: KnownCalls): AskedApproval[] {
   });
 }
 
+function outputOf(content: unknown): unknown {
+  if (typeof content !== "string") return content;
+  try {
+    return JSON.parse(content);
+  } catch {
+    return content;
+  }
+}
+
 /** Folds the AG-UI events of one reply into what the harness records about it; a result is named by the call that started it in this reply or in `known`, and a result no one can name is left out rather than recorded as a guess. */
 export function seenOf(events: readonly AgUiEvent[], known: KnownCalls = new Map()): ReplySeen {
   const names = new Map(known);
   const results: string[] = [];
+  const finished: FinishedCall[] = [];
   let error: string | null = null;
   for (const event of events) {
     const toolCallId = stringOr(event.toolCallId);
     const toolName = stringOr(event.toolCallName);
     if (event.type === "TOOL_CALL_START" && toolCallId && toolName) names.set(toolCallId, toolName);
     const shown = toolCallId ? names.get(toolCallId) : undefined;
+    if (event.type === "TOOL_CALL_RESULT" && toolCallId) finished.push({ toolCallId, output: outputOf(event.content) });
     if (event.type === "TOOL_CALL_RESULT" && shown) results.push(shown);
     if (event.type === "RUN_ERROR") error = stringOr(event.message) ?? "run error";
   }
-  return { results, asked: events.flatMap((event) => askedOf(event, names)), text: events.some((event) => event.type === "TEXT_MESSAGE_CONTENT"), error };
+  return { results, finished, asked: events.flatMap((event) => askedOf(event, names)), text: events.some((event) => event.type === "TEXT_MESSAGE_CONTENT"), error };
 }
 
 async function readToEnd(body: ReadableStream<Uint8Array>, known: KnownCalls, onEnd: (seen: ReplySeen) => void): Promise<void> {
@@ -146,7 +161,7 @@ async function readToEnd(body: ReadableStream<Uint8Array>, known: KnownCalls, on
 /** Passes an AG-UI event stream to the client untouched and reads its own copy to the end (naming results by `known` when this reply did not start their call), so `onEnd` runs once with what the reply showed even when the client leaves mid-run: the run, not the connection, decides when the reply is over. */
 export function observeReply(response: Response, known: KnownCalls, onEnd: (seen: ReplySeen) => void): Response {
   if (!response.body) {
-    onEnd({ results: [], asked: [], text: false, error: response.ok ? null : `HTTP ${response.status}` });
+    onEnd({ results: [], finished: [], asked: [], text: false, error: response.ok ? null : `HTTP ${response.status}` });
     return response;
   }
   const [toClient, toHarness] = response.body.tee();

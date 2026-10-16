@@ -1,4 +1,6 @@
 import type { Message } from "@ag-ui/core";
+import { DurableStepIds } from "@mastra/core/agent/durable";
+import type { MastraDBMessage, MastraMessagePart } from "@mastra/core/agent/message-list";
 import { screenCardsEach } from "@/components/chat/card-to-share";
 import { exchangesOf, type Exchange, type ToolStep } from "@/components/chat/timeline";
 import { openApprovalsFor } from "@/lib/harness/approvals";
@@ -10,6 +12,10 @@ import { ReplyCards, type CarriedCall, type StreamEvent } from "./card-stream";
 const RESULT_SUFFIX = ":result";
 const SEGMENT_SEPARATOR = ":";
 const DENIED = "output-denied";
+const CALLED = "call";
+const PAUSED = "suspended";
+const PAUSE_POLLS = 100;
+const PAUSE_POLL_MS = 20;
 const DECLINED = { approved: false };
 
 type StoredInvocation = { state?: unknown; toolCallId?: unknown; toolName?: unknown; args?: unknown; result?: unknown };
@@ -141,6 +147,39 @@ export async function storedMessages(threadId: string, userId: string): Promise<
   if (!thread || thread.resourceId !== userId) return [];
   const { messages } = await store.recall({ threadId, resourceId: userId, perPage: false });
   return messages;
+}
+
+function withResult(part: MastraMessagePart, outputs: ReadonlyMap<string, unknown>): MastraMessagePart {
+  if (part.type !== "tool-invocation" || part.toolInvocation.state !== CALLED || !outputs.has(part.toolInvocation.toolCallId)) return part;
+  return { ...part, toolInvocation: { ...part.toolInvocation, state: "result", result: outputs.get(part.toolInvocation.toolCallId) } };
+}
+
+function completed(message: MastraDBMessage, outputs: ReadonlyMap<string, unknown>): MastraDBMessage[] {
+  const parts = message.content.parts.map((part) => withResult(part, outputs));
+  return parts.some((part, index) => part !== message.content.parts[index]) ? [{ ...message, content: { ...message.content, parts } }] : [];
+}
+
+async function pauseStored(runId: string): Promise<void> {
+  const { winyuMastra } = await import("./agent");
+  const workflows = await winyuMastra().getStorage()?.getStore("workflows");
+  for (let attempt = 0; workflows && attempt < PAUSE_POLLS; attempt += 1) {
+    const snapshot = await workflows.loadWorkflowSnapshot({ workflowName: DurableStepIds.AGENTIC_LOOP, runId });
+    if (snapshot?.status === PAUSED) return;
+    await new Promise((resolve) => setTimeout(resolve, PAUSE_POLL_MS));
+  }
+}
+
+/** Stores the results a paused run returned for calls memory still holds without one. Mastra saves a step's message when a call in it pauses for approval, before the step's finished calls get their results, and only an answer to that approval adds them; a run left waiting, or left behind by a new question, would otherwise lose the cards those calls drew from the restored thread. The write waits until Mastra has stored the pause, which it does after saving that message, so its save cannot overwrite this one. */
+export async function keepFinishedResults(runId: string, threadId: string, userId: string, finished: readonly Pick<FinishedCall, "toolCallId" | "output">[]): Promise<void> {
+  if (finished.length === 0) return;
+  const outputs = new Map(finished.map((call) => [call.toolCallId, call.output]));
+  await pauseStored(runId);
+  const store = await memory();
+  const thread = await store.getThreadById({ threadId });
+  if (!thread || thread.resourceId !== userId) return;
+  const { messages } = await store.recall({ threadId, resourceId: userId, perPage: false });
+  const updated = messages.flatMap((message) => completed(message, outputs));
+  if (updated.length > 0) await store.saveMessages({ messages: updated });
 }
 
 /** The person's saved conversation on one thread, read from Mastra memory; empty for a thread that never ran. */

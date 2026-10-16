@@ -14,10 +14,10 @@ import { AGENT_ID, USER_ID_KEY, winyuAgent } from "./agent";
 import { HARNESS_RUN_KEY, tracingOptionsOf } from "./observability";
 import { asBridgeAgent } from "./durable";
 import { ReplyCards, withComposedCards, type CarriedCall, type ComposedCardRecord } from "./card-stream";
-import { callsAnswering, screenCardsOn, threadTranscript } from "./history";
+import { callsAnswering, keepFinishedResults, screenCardsOn, threadTranscript } from "./history";
 import { guardedRunInput, inputFindings, type GuardedInput } from "./guardrails";
 import { learnFromTurn } from "./learn";
-import { chatTurnOf, observeReply, type ChatTurn, type KnownCalls, type ReplySeen, type RunInput } from "./turn";
+import { chatTurnOf, observeReply, type ChatTurn, type FinishedCall, type KnownCalls, type ReplySeen, type RunInput } from "./turn";
 
 const BASE_PATH = "/api/copilotkit";
 const INFO_PATH = `${BASE_PATH}/info`;
@@ -130,6 +130,12 @@ function composed(run: Run, turn: ChatTurn, cards: readonly ComposedCardRecord[]
   }
 }
 
+function keepResultsOfPausedRun(run: Run, threadId: string, finished: readonly FinishedCall[]): void {
+  keepFinishedResults(run.id, threadId, run.userId, finished).catch((error: unknown) => {
+    console.error(`keeping the finished results of paused run ${run.id} failed`, error);
+  });
+}
+
 function ended(run: Run, turn: ChatTurn, context: TurnContext, seen: ReplySeen, cards: readonly ComposedCardRecord[], options: ServeOptions): void {
   if (seen.results.length > 0) emitTo(run, "ui", { type: "ui.rendered", payload: { stepId: lastDecision(run).stepId, components: seen.results } });
   composed(run, turn, cards);
@@ -137,6 +143,7 @@ function ended(run: Run, turn: ChatTurn, context: TurnContext, seen: ReplySeen, 
     recordAsked(asked.interruptId, run.userId, asked.toolCallId, asked.tool, turn.messageId);
     emitTo(run, "runtime", { type: "approval.requested", payload: { toolCallId: asked.toolCallId, tool: asked.tool } });
   }
+  if (seen.asked.length > 0 && turn.threadId) keepResultsOfPausedRun(run, turn.threadId, seen.finished);
   if (seen.error) emitTo(run, "runtime", { type: "agent.failed", payload: { reason: seen.error } });
   else emitTo(run, "runtime", { type: "agent.completed", payload: { finishReason: seen.asked.length > 0 ? "awaiting_approval" : lastDecision(run).finishReason } });
   saveRun(run);

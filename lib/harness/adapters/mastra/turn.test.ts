@@ -41,12 +41,12 @@ describe("seenOf", () => {
   test("names each tool result by its call and reads approvals from the interrupt outcome", () => {
     const seen = seenOf([
       { type: "TOOL_CALL_START", toolCallId: "c1", toolCallName: "query_metric" },
-      { type: "TOOL_CALL_RESULT", toolCallId: "c1" },
+      { type: "TOOL_CALL_RESULT", toolCallId: "c1", content: '{"rows":[1]}' },
       { type: "TOOL_CALL_START", toolCallId: "c2", toolCallName: "pin_widget" },
       { type: "TEXT_MESSAGE_CONTENT" },
       { type: "RUN_FINISHED", outcome: { type: "interrupt", interrupts: [{ id: INTERRUPT_ID, toolCallId: "c2", metadata: { mastra: { toolName: "pin_widget" } } }] } },
     ]);
-    expect(seen).toEqual({ results: ["query_metric"], asked: [{ interruptId: INTERRUPT_ID, toolCallId: "c2", tool: "pin_widget" }], text: true, error: null });
+    expect(seen).toEqual({ results: ["query_metric"], finished: [{ toolCallId: "c1", output: { rows: [1] } }], asked: [{ interruptId: INTERRUPT_ID, toolCallId: "c2", tool: "pin_widget" }], text: true, error: null });
   });
 
   test("the run that answers an approval names the receipt by the asked call, and a result no one started is left out instead of called unknown", () => {
@@ -95,6 +95,6 @@ describe("observeReply", () => {
         finish();
       });
     });
-    expect(await ended).toEqual({ results: ["query_metric"], asked: [], text: true, error: null });
+    expect(await ended).toEqual({ results: ["query_metric"], finished: [{ toolCallId: "c1", output: undefined }], asked: [], text: true, error: null });
   });
 });
