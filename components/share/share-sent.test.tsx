@@ -1,25 +1,28 @@
-import { afterEach, describe, expect, jest, mock, test } from "bun:test";
+import { afterEach, describe, expect, mock, spyOn, test } from "bun:test";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
-import type { ShareReceipt, ShareTarget } from "@/lib/share/card";
+import { findUser } from "@/lib/data/entities/users";
+import { TH } from "@/lib/i18n/th";
+import type { ShareContact, ShareReceipt, ShareTarget } from "@/lib/share/card";
 
 let pathname = "/c/one";
 mock.module("next/navigation", () => ({ usePathname: () => pathname, useRouter: () => ({ push: () => {}, refresh: () => {} }) }));
 
-const { SENT_SHOWN_MS, ShareProvider, ShareSent, useShareCard } = await import("./share-sheet");
+const { ShareChrome, ShareProvider, useShareCard } = await import("./share-sheet");
+const { Card } = await import("@/components/ui/primitives");
 
 const RECEIPT: ShareReceipt = { userId: "u_anucha", name: "คุณอนุชา พรหมศรี", asked: "winyu", via: "winyu", fallback: null };
 const TARGET: ShareTarget = { card: { kind: "tool", reads: [{ tool: "query_metric", input: { metric: "net_sales_volume" } }] }, question: null };
 
 const mounted: { root: Root; host: HTMLElement }[] = [];
 
-function mount(node: React.ReactNode): HTMLElement {
+function mount(node: React.ReactNode): { host: HTMLElement; root: Root } {
   const host = document.createElement("div");
   document.body.append(host);
   const root = createRoot(host);
   mounted.push({ root, host });
   act(() => root.render(node));
-  return host;
+  return { host, root };
 }
 
 afterEach(() => {
@@ -27,31 +30,55 @@ afterEach(() => {
     act(() => root.unmount());
     host.remove();
   }
-  jest.useRealTimers();
 });
 
-describe("the sent confirmation", () => {
-  test("closes by itself after a few seconds", () => {
-    jest.useFakeTimers();
-    const close = mock(() => undefined);
-    mount(<ShareSent title="ปริมาณขายเข้า" receipts={[RECEIPT]} grants={[]} days={null} path="/s/abc" close={close} />);
-    act(() => jest.advanceTimersByTime(SENT_SHOWN_MS - 1));
-    expect(close).not.toHaveBeenCalled();
-    act(() => jest.advanceTimersByTime(1));
-    expect(close).toHaveBeenCalledTimes(1);
-  });
+function contact(userId: string): ShareContact {
+  const user = findUser(userId);
+  if (!user) throw new Error(`no ${userId}`);
+  return { id: user.id, nameTh: user.nameTh, title: user.title, role: user.role, region: user.region, photo: null, name: user.name, channels: [{ channel: "email", ready: true }] };
+}
 
-  test("stays while the person points at it, and closes a few seconds after they leave", () => {
-    jest.useFakeTimers();
-    const close = mock(() => undefined);
-    const host = mount(<ShareSent title="ปริมาณขายเข้า" receipts={[RECEIPT]} grants={[]} days={null} path="/s/abc" close={close} />);
-    const panel = host.querySelector("[data-share-sent]");
-    act(() => panel?.dispatchEvent(new PointerEvent("pointerover", { bubbles: true })));
-    act(() => jest.advanceTimersByTime(SENT_SHOWN_MS * 3));
-    expect(close).not.toHaveBeenCalled();
-    act(() => panel?.dispatchEvent(new PointerEvent("pointerout", { bubbles: true })));
-    act(() => jest.advanceTimersByTime(SENT_SHOWN_MS));
-    expect(close).toHaveBeenCalledTimes(1);
+function fakeServer() {
+  return spyOn(globalThis, "fetch").mockImplementation((async (url: string, init?: RequestInit) => {
+    if (url.endsWith("/contacts")) return Response.json({ contacts: [contact("u_anucha")], mayGrant: false });
+    if (url.endsWith("/preview")) return Response.json({ ownerId: "u_anucha", line: [], title: "ปริมาณขายเข้า", figures: null, goal: null });
+    if (url.endsWith("/scopes")) return Response.json({ scopes: [] });
+    if (url.endsWith("/api/shares") && init?.method === "POST") return Response.json({ receipts: [RECEIPT], grants: [], hidden: [], path: "/s/abc" });
+    return Response.json({});
+  }) as unknown as typeof fetch);
+}
+
+async function settle() {
+  for (let tick = 0; tick < 5; tick += 1) await act(async () => new Promise((resolve) => setTimeout(resolve, 0)));
+}
+
+function pillOf(host: HTMLElement): HTMLButtonElement | null {
+  return host.querySelector<HTMLButtonElement>("button[aria-label^='ส่งต่อการ์ด']");
+}
+
+describe("after a card is sent (AI-197)", () => {
+  test("its ส่งต่อ reads as sent, and the receipt sits under the card instead of floating over the page", async () => {
+    const spy = fakeServer();
+    const { host } = mount(
+      <ShareProvider open>
+        <ShareChrome target={TARGET}>
+          <Card props={{ title: "ปริมาณขายเข้า", footnote: "1–26 พ.ย." }} />
+        </ShareChrome>
+        <button type="button" data-below>ถามต่อ</button>
+      </ShareProvider>,
+    );
+    await act(async () => pillOf(host)?.click());
+    await settle();
+    await act(async () => host.querySelector<HTMLButtonElement>("[data-share-send]")?.click());
+    await settle();
+    spy.mockRestore();
+    expect(host.querySelector("[data-share-sheet]")).toBeNull();
+    expect(pillOf(host)?.textContent).toContain(TH.share.sentButton);
+    const receipt = host.querySelector("section [data-share-sent]");
+    expect(receipt).not.toBeNull();
+    expect(receipt?.className ?? "").not.toContain("fixed");
+    expect(receipt?.textContent).toContain(RECEIPT.name);
+    expect(document.querySelectorAll("[data-share-sent]")).toHaveLength(1);
   });
 });
 
@@ -69,11 +96,11 @@ describe("the share sheet", () => {
         <Opener />
       </ShareProvider>
     );
-    const host = mount(tree());
+    const { host, root } = mount(tree());
     act(() => host.querySelector<HTMLButtonElement>("[data-open]")?.click());
     expect(host.querySelector("[data-share-ask]")).not.toBeNull();
     pathname = "/c/two";
-    act(() => mounted[0]?.root.render(tree()));
+    act(() => root.render(tree()));
     expect(host.querySelector("[data-share-ask]")).toBeNull();
     globalThis.fetch = original;
   });

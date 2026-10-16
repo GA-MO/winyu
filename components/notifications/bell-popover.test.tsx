@@ -127,6 +127,26 @@ describe("the bell popover", () => {
     expect(seen).toMatchObject({ closed: 0, changed: 1, went: [] });
   });
 
+  test("after รับ the row leaves the decisions but a line says it was accepted and opens the matter, so the bell does not just empty (AI-197)", async () => {
+    const matter = { code: "m1", title: "ปริมาณขายเข้า · ภาคอีสาน", ask: "ช่วยดูภาคอีสาน", senderName: "คุณธนา", passerName: "คุณอนุชา", at: AT, actions: ["accept" as const, "ask" as const, "pass_on" as const], suggested: { ownerId: null, line: [] }, judges: false, sent: false };
+    const waiting: BellPayload = { decide: [{ key: "matter:m1", kind: "matter", refId: "m1", title: "t", person: null, at: AT, read: false, target: "/s/m1", notificationId: "n-matter", matter }], updates: [] };
+    let loads = 0;
+    const spy = spyOn(globalThis, "fetch").mockImplementation((async (input: RequestInfo | URL) => {
+      if (String(input) !== "/api/notifications/bell") return Response.json({ ok: true });
+      loads += 1;
+      return Response.json(loads === 1 ? waiting : { decide: [], updates: [] });
+    }) as typeof fetch);
+    const { host, seen } = await openPopover();
+    await act(async () => button(host, TH.matter.actions.accept)?.click());
+    spy.mockRestore();
+    expect(host.querySelector('[data-bell-decision="matter"]')).toBeNull();
+    const acted = host.querySelector<HTMLElement>("[data-bell-acted]");
+    expect(acted?.textContent).toContain(COPY.acted.accept);
+    expect(acted?.textContent).toContain(matter.title);
+    await act(async () => acted?.querySelector("a")?.click());
+    expect(seen.went).toEqual(["/s/m1"]);
+  });
+
   test("with nothing waiting and nothing new it says so", async () => {
     const server = fakeServer({ decide: [], updates: [] });
     const { host } = await openPopover();
