@@ -226,6 +226,20 @@ describe("เสร็จ", () => {
   });
 });
 
+describe("the sender's own matter (AI-194)", () => {
+  test("reads as the sender's: the heading says they sent it, and the brief marks them as its sender; a recipient reads what they were asked", async () => {
+    const { matterLabel } = await import("@/lib/share/matter-actions");
+    const code = await sent("u_thana", "u_anucha");
+    const matter = shares().get(code);
+    if (!matter) throw new Error("no matter");
+    expect(briefOf(matter, "u_thana").sent).toBe(true);
+    expect(briefOf(matter, "u_anucha").sent).toBe(false);
+    expect(matterLabel(matter, "u_thana")).toBe(TH.matter.sentLabel.act);
+    expect(matterLabel(matter, "u_anucha")).toBe(TH.matter.label.act);
+    expect(TH.matter.sentLabel.act).not.toBe(TH.matter.label.act);
+  });
+});
+
 describe("illegal presses are refused and change nothing", () => {
   test("someone who does not hold it, a matter for information, a closed one, passing to oneself or to nobody", async () => {
     const code = await sent("u_thana", "u_anucha");
