@@ -153,7 +153,6 @@ export function decisionCount(userId: string): number {
   return pendingRequestsFor(userId).length + newHandoffsFor(userId).length + mattersWaitingOn(userId).length;
 }
 
-
 /** Unread notifications that are read on Shared: cards shared with the person and decisions on their requests. */
 export function sharedUnreadCount(userId: string): number {
   return notificationsIn(userId, "shared").filter((item) => !item.read).length;

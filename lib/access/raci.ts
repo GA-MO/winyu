@@ -39,7 +39,6 @@ export function regionOf(dims: Partial<Record<Dim, string>>): Region | null {
   return null;
 }
 
-
 function groupOf(metric: MetricId): MetricGroup {
   if (SALES_METRICS.includes(metric)) return SALES;
   if (SUPPLY_METRICS.includes(metric)) return SUPPLY;

@@ -113,6 +113,5 @@ export async function createShare(sender: User, request: ShareRequest, at = new 
     const event = share.intent === "act" ? { kind: "matter" as const, refId: code, senderName: sender.nameTh, ask } : { kind: "share" as const, refId: code, senderName: sender.nameTh, cardTitle: title, grantUntil: until ? untilLabel(until) : null };
     notify(delivery.userId, sender.id, event, new Date(at));
   }
-
   return { ok: true, share, grants };
 }

@@ -104,7 +104,6 @@ export function StoryItem({ card, defaultOpen }: { card: StoryCard; defaultOpen:
               <DataCard title={story.evidence.title} source={evidence} />
             </ShareChrome>
           ) : null}
-
           <NextStep story={story} />
         </div>
       ) : null}
