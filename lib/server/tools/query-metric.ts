@@ -7,6 +7,7 @@ import { resolveQuery } from "@/lib/semantic/periods";
 import { loadDictionary } from "@/lib/server/master-data";
 import { runMetric } from "@/lib/server/metrics";
 import { askedQuery } from "@/lib/semantic/resolved";
+import { rowsNamedIn } from "@/lib/cards/asked";
 import { actionsForMetric, actionsForRefusal, followUpsForMetric } from "@/lib/server/next-actions";
 import { currentAccess, currentTurn, recordQuery } from "@/lib/server/request-context";
 import { defineTool } from "./define";
@@ -60,6 +61,8 @@ export const queryMetricTool = defineTool({
     const nextActions = actionsForMetric(access, result, dictionary);
     const provenance = grant ? { ...result.provenance, grant } : result.provenance;
     const summary = own ? `${result.summary} · ${TH.quick.ownAgentsApplied(own.agents)}` : result.summary;
-    return { ...result, summary, provenance, nextActions, followUps: followUpsForMetric(access, result, dictionary, nextActions) };
+    const named = rowsNamedIn(currentTurn().question, result.query, result.rows);
+    const headline = named.length > 0 ? { ...result.headline, asked: named } : result.headline;
+    return { ...result, summary, headline, provenance, nextActions, followUps: followUpsForMetric(access, result, dictionary, nextActions) };
   },
 });

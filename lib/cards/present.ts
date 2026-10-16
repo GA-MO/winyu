@@ -640,6 +640,7 @@ function readingOf(facts: Facts, bars: Bars, rows: MetricRow[]): Breakdown {
     baseTotal: baseTotalOf(facts),
     high: (facts.sortBy === "value_desc" && facts.capped) || facts.query.where?.op === "above",
     capped: facts.capped,
+    asked: new Set(facts.result.headline.asked ?? []),
   });
 }
 

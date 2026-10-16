@@ -143,6 +143,34 @@ describe("a rep asking about their own book", () => {
   });
 });
 
+describe("a breakdown whose question names one of its rows", () => {
+  async function askAs(userId: string, question: string, query: Record<string, unknown>) {
+    const user = findUser(userId);
+    if (!user) throw new Error(`no ${userId}`);
+    const tool = winyuTools().query_metric;
+    const turn = { turnId: null, threadId: null, question, queries: [] };
+    return (await runWithAccess(accessFor(user), () => runWithTurn(turn, () => tool.execute(tool.inputSchema().parse(query))))) as Extract<MetricResult, { ok: true }>;
+  }
+
+  test("draws the named group with its value and change and says the verdict about it, not the company average (AI-107)", async () => {
+    const beer = await askAs("u_thana", "ฝ่ายการเงินบอกว่ามาร์จินกลุ่มเบียร์เดือนนี้ขึ้นไป 30% แล้ว ใช่ไหม", { metric: "gross_margin", dims: ["business_unit"], filters: {}, period: "this_month", grain: "month", compare: "none", sort: "value_desc", limit: 10 });
+    const beerCard = presentCard({ title: "t", query: beer.query, result: beer, sortBy: "value_desc" });
+    if (beerCard.body.kind !== "strip") throw new Error("not a strip");
+    const beerRow = beerCard.body.strip.rows.find((row) => row.label === "กลุ่มเบียร์");
+    expect(beerRow?.valued).toBe(true);
+    expect(beerRow?.text).toBe(String(beer.rows.find((row) => row.business_unit === "กลุ่มเบียร์")?.value_label));
+    expect(beerCard.verdict).toStartWith("กลุ่มเบียร์");
+
+    const imports = await askAs("u_thana", "กำไรขั้นต้นกลุ่มนำเข้าเดือนนี้โตขึ้น 5% ตามที่ CFO รายงานใช่ไหม", { metric: "gross_margin", dims: ["month", "business_unit"], filters: {}, period: "this_month", grain: "month", compare: "prev_period", limit: 10 });
+    const importCard = presentCard({ title: "t", query: imports.query, result: imports });
+    if (importCard.body.kind !== "strip") throw new Error("not a strip");
+    const importRow = importCard.body.strip.rows.find((row) => row.label === "กลุ่มนำเข้า");
+    expect(importRow?.valued).toBe(true);
+    expect(importRow?.sub).toContain("จุด");
+    expect(importCard.verdict).toStartWith("กลุ่มนำเข้า");
+  });
+});
+
 describe("query_metric tells the model what each metric accepts", () => {
   const description = winyuTools().query_metric.description();
 

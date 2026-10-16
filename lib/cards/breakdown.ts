@@ -13,6 +13,7 @@ import {
   rangeText,
   referenceVerdict,
   spaced,
+  summaryVerdict,
   thresholdVerdict,
   type Fold,
   type LineKind,
@@ -77,8 +78,8 @@ export function percentIn(text: string): number | null {
 /** What a breakdown's target figures are a share of: the target to date in a month still running ("ตามเวลา"), and the whole month's share done and what is left to it when the result carries them. */
 export type TargetBase = { paced: boolean; month: { attainment: string; left: string | null } | null };
 
-/** What the decision table knows about one breakdown: its rows in the order asked, the bars it draws, the unit word, the overall row's label, whether the question set a threshold (R7), and what a target figure is a share of ("ของเป้าตามเวลา" in a month still running) with the whole month beside it, the base total a change ranking moved from, whether the line is read from above (the top of a capped ranking, or rows above a value), and whether the list was cut by a limit, so its verdict speaks for the rows shown, never for every group. */
-export type BreakdownInput = { query: MetricQuery; result: OkResult; rows: MetricRow[]; bars: BreakdownBars; unit: string; scope: string; threshold: boolean; additive: boolean; falling: boolean; target: TargetBase; baseTotal: string | null; high: boolean; capped: boolean };
+/** What the decision table knows about one breakdown: its rows in the order asked, the bars it draws, the unit word, the overall row's label, whether the question set a threshold (R7), and what a target figure is a share of ("ของเป้าตามเวลา" in a month still running) with the whole month beside it, the base total a change ranking moved from, whether the line is read from above (the top of a capped ranking, or rows above a value), whether the list was cut by a limit, so its verdict speaks for the rows shown, never for every group, and the rows the question named. */
+export type BreakdownInput = { query: MetricQuery; result: OkResult; rows: MetricRow[]; bars: BreakdownBars; unit: string; scope: string; threshold: boolean; additive: boolean; falling: boolean; target: TargetBase; baseTotal: string | null; high: boolean; capped: boolean; asked: ReadonlySet<string> };
 
 /** A breakdown read for styles B and A: the strip, the verdict, the hero the overall row stands for, the row style A leads with instead (a change ranking), and how the rows style A folds away read in one line. */
 export type Breakdown = {
@@ -419,11 +420,54 @@ export function parityReading(input: { gaps: readonly ParityGap[]; hero: CardHer
 
 /** Reads one breakdown the way styles B and A draw it, by the bars the decision table chose. */
 export function readBreakdown(input: BreakdownInput): Breakdown {
+  const reading = readByBars(input);
+  return input.asked.size === 0 ? reading : withAskedRows(reading, input);
+}
+
+function readByBars(input: BreakdownInput): Breakdown {
   if (input.bars === "change") return changeReading(input);
   if (input.bars === "board") return boardReading(input);
   if (input.bars === "reference") return referenceReading(input);
   const line = input.bars === "target" ? TARGET_LINE : (LEVEL_LINES[input.query.metric] ?? TARGET_LINE);
   return lineReading(input, line);
+}
+
+/** The second line of a row the question named: its value against target, or its change against the window it is compared with ("+0.6 จุด เทียบช่วงก่อนหน้า"). */
+function askedSubOf(query: MetricQuery, result: OkResult, row: MetricRow): string | null {
+  if (query.compare === "target") return targetSubOf(query, row);
+  const change = changeTextOf(query.metric, row);
+  return change ? [change, result.headline.compareLabel].filter(Boolean).join(" ") : null;
+}
+
+/** The verdict about the one row the question named: its share of target, its change, or its level. */
+function askedVerdictOf(query: MetricQuery, result: OkResult, row: MetricRow): string {
+  const move = rowMove(query, row);
+  const inPoints = metricFormat(query.metric) === "percent";
+  return summaryVerdict({
+    label: labelOf(query, row),
+    attainment: query.compare === "target" ? attainmentOf(row) : null,
+    change: inPoints ? deltaPointsOf(row) : deltaPercentOf(row),
+    changeText: move.delta,
+    flat: move.trend === "neutral",
+    versus: result.headline.compareLabel ?? "",
+    value: valueTextOf(query, row),
+  });
+}
+
+/** A breakdown whose question named rows ("มาร์จินกลุ่มเบียร์"): those rows are drawn as exceptions with their value and change, and one named row leads the verdict and style A's hero, so the card shows what was asked even when it is not an extreme. */
+function withAskedRows(reading: Breakdown, input: BreakdownInput): Breakdown {
+  const { query, result, asked } = input;
+  const named = new Map(input.rows.flatMap((row) => (asked.has(labelOf(query, row)) ? [[labelOf(query, row), row] as const] : [])));
+  if (named.size === 0) return reading;
+  const rows = reading.rows.map((row) => {
+    const source = named.get(row.label);
+    return source ? { ...row, exception: true, valued: true, sub: row.sub ?? askedSubOf(query, result, source) } : row;
+  });
+  const [only] = named.size === 1 ? [...named.values()] : [];
+  if (!only) return { ...reading, rows };
+  const label = labelOf(query, only);
+  const hero: CardHero = { label, value: valueTextOf(query, only), unit: null, ...rowMove(query, only), detail: baseOf(query, only) ?? result.headline.compareLabel };
+  return { ...reading, rows, verdict: askedVerdictOf(query, result, only), lead: { row: label, hero } };
 }
 
 function scaleOf(form: StripForm, baseline: number, measures: number[]): { low: number; high: number } {
