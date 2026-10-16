@@ -1,4 +1,4 @@
-import { METRIC_IDS, type AlertRow, type MetricId, type MetricResult, type NextAction } from "@/lib/contracts";
+import { METRIC_IDS, type AlertRow, type MetricId, type MetricResult, type MonthEndProjection, type NextAction } from "@/lib/contracts";
 import { metricLabel } from "@/lib/dashboard/metric-display";
 import { TH } from "@/lib/i18n/th";
 import { type CardParts, type ForecastAnswer, pairedIndexes, type PresentSource, type RefusalNotice, refusalNoticeOf } from "./present";
@@ -8,11 +8,24 @@ export type MetricAnswer = Extract<MetricResult, { ok: true }> & { nextActions: 
 
 type AlertAnswer = { ok?: boolean; rows?: AlertRow[]; nextActions?: NextAction[] };
 
+const PROJECTION_TEXTS = ["projected", "monthTarget", "attainment", "attainmentToDate", "remaining"] as const;
+
+/** A month-end projection a card can lead with: one saved before the card read the whole month's share (an older recording or pinned answer) is left out rather than drawn half empty. */
+function projectionOf(value: unknown): MonthEndProjection | null {
+  if (typeof value !== "object" || value === null) return null;
+  const candidate = value as Record<string, unknown>;
+  if (typeof candidate.recentDays !== "number" || !PROJECTION_TEXTS.every((key) => typeof candidate[key] === "string")) return null;
+  const shortBy = typeof candidate.shortBy === "string" ? candidate.shortBy : null;
+  return { ...(candidate as MonthEndProjection), shortBy };
+}
+
 export function metricAnswerOf(source: unknown): MetricAnswer | null {
   if (typeof source !== "object" || source === null) return null;
   const candidate = source as Partial<MetricAnswer>;
   if (candidate.ok !== true || !candidate.query || !Array.isArray(candidate.rows) || !candidate.headline) return null;
-  return candidate as MetricAnswer;
+  const answer = candidate as MetricAnswer;
+  if (answer.headline.projection === undefined || answer.headline.projection === null) return answer;
+  return { ...answer, headline: { ...answer.headline, projection: projectionOf(answer.headline.projection) } };
 }
 
 /** The refusal a tool returned (`ok: false` with its reason) as the person reads it, or null when it answered. */

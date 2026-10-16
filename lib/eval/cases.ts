@@ -40,7 +40,7 @@ export const EVAL_CASES: EvalCase[] = [
   { id: "ceo-alerts", userId: "u_thana", prompt: "ตอนนี้มีอะไรผิดปกติบ้าง", expectCard: "get_alerts" },
   { id: "cfo-ar", userId: "u_siriporn", prompt: "ลูกหนี้ค้างชำระตอนนี้แยกตามภาค", expectCard: "query_metric", expectSort: "value_desc", expectShape: "strip", expectStyle: "picture", expectVerdict: "น้อยกว่าภาคอื่น" },
   { id: "cfo-masked", userId: "u_siriporn", prompt: "เงินเดือนเฉลี่ยแต่ละฝ่ายเท่าไหร่", expectCard: "query_metric" },
-  { id: "rsm-own-region", userId: "u_anucha", prompt: "ยอดขายภาคอีสานเดือนนี้เทียบเป้า", expectCard: "query_metric", expectShape: "none", expectStyle: "scorecard", expectHero: { label: "ภาคอีสาน", value: "%" }, expectVerdict: "ภาคอีสานยังขาดเป้า" },
+  { id: "rsm-own-region", userId: "u_anucha", prompt: "ยอดขายภาคอีสานเดือนนี้เทียบเป้า", expectCard: "query_metric", expectShape: "none", expectStyle: "scorecard", expectHero: { label: "ภาคอีสาน", value: "%" }, expectVerdict: "ภาคอีสานช้ากว่าเป้าตามเวลา" },
   { id: "rsm-agents", userId: "u_anucha", prompt: "เอเย่นต์ในภาคผมที่ยอดตก", expectCard: "query_metric", expectSort: "delta_asc", expectShape: "strip", expectStyle: "picture", expectHero: { label: "รวมทุกเอเย่นต์" }, expectVerdict: "ยอดหาย" },
   { id: "planner-cover", userId: "u_wee", prompt: "ศูนย์กระจายสินค้าไหนสต๊อกจะขาดก่อน", expectCard: "query_metric", expectSort: "value_asc", expectShape: "strip", expectStyle: "picture", expectVerdict: "ยังเกิน 10 วัน" },
   { id: "planner-forecast", userId: "u_wee", prompt: "พยากรณ์ยอดขายอีก 8 สัปดาห์", expectCard: "get_forecast" },
@@ -94,7 +94,7 @@ export const EVAL_CASES: EvalCase[] = [
   { id: "memory-remember-region", userId: "u_thana", before: ["จำไว้นะว่าผมดูแลภาคอีสานเป็นหลัก เวลาถามยอดขายให้ดูภาคอีสาน"], prompt: "ยอดขายเดือนนี้เทียบเป้าเป็นยังไง", expectCard: "query_metric", expectFilter: { dim: "region", values: ["northeast"] } },
   { id: "memory-recall-thread", userId: "u_may", before: ["อัตราการลาออกแต่ละฝ่ายเป็นยังไง"], prompt: "ครั้งก่อนที่เราคุยเรื่องคนลาออก ฝ่ายไหนน่าห่วงที่สุดนะ", expectRecall: true },
   { id: "share-card-chat", userId: "u_thana", before: ["ยอดขายแยกตามภาคเดือนนี้"], prompt: "ส่งการ์ดนี้ให้คุณกฤตดูหน่อย", expectApproval: "share_card", expectRecipient: "u_krit" },
-  { id: "handoff-not-share", userId: "u_thana", before: ["ยอดขายแยกตามภาคเดือนนี้"], prompt: "ฝากคุณอนุชาช่วยดูต่อเรื่องภาคอีสานที่ต่ำกว่าเป้าหน่อย", expectApproval: "create_handoff", expectRecipient: "u_anucha", expectShape: "none", expectStyle: "chart", expectHero: { label: "ภาคอีสาน" }, expectVerdict: "ขาดเป้า" },
+  { id: "handoff-not-share", userId: "u_thana", before: ["ยอดขายแยกตามภาคเดือนนี้"], prompt: "ฝากคุณอนุชาช่วยดูต่อเรื่องภาคอีสานที่ต่ำกว่าเป้าหน่อย", expectApproval: "create_handoff", expectRecipient: "u_anucha", expectShape: "none", expectStyle: "chart", expectHero: { label: "ภาคอีสาน" }, expectVerdict: "ช้ากว่าเป้าตามเวลา" },
   { id: "people-name-lookup", userId: "u_thana", prompt: "ค้นหาพนักงานชื่อกฤตให้หน่อย", expectPeople: "find_people" },
 ];
 

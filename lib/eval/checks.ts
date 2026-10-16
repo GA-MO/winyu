@@ -1,7 +1,7 @@
 import { liveAccessFor } from "@/lib/access/enforce";
 import { presentCard, type CardParts, type PresentSource } from "@/lib/cards/present";
 import { cardWords } from "@/lib/cards/words";
-import { actionsOf, metricTitle, othersOf } from "@/lib/cards/tool-answers";
+import { actionsOf, metricAnswerOf as drawnAnswerOf, metricTitle, othersOf } from "@/lib/cards/tool-answers";
 import { ASK_EVENT, COMPOSE_ACTION_TOOLS, type ComposedComponent } from "@/lib/compose/catalog";
 import { createHandoffInputSchema, REGIONS, setPermissionInputSchema, watchMetricInputSchema, type MetricQuery, type MetricResult, type Region } from "@/lib/contracts";
 import { DATA_AS_OF } from "@/lib/data/dates";
@@ -68,8 +68,8 @@ function returned(turn: EvalTurn): ReadCall[] {
 }
 
 function metricAnswerOf(card: ReadCall): MetricAnswer | null {
-  if (!isRecord(card.result) || card.result.ok !== true || !isRecord(card.result.query)) return null;
-  return { query: card.result.query as unknown as MetricQuery, result: card.result as unknown as MetricAnswer["result"] };
+  const answer = drawnAnswerOf(card.result);
+  return answer ? { query: answer.query, result: answer } : null;
 }
 
 /** The metric card that answers: the last `query_metric` card the chat draws, with what it pairs. */

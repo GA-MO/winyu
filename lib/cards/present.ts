@@ -1,4 +1,4 @@
-import { WIDGET_KINDS, type Alert, type AlertRow, type Dim, type Forecast, type MetricId, type MetricQuery, type MetricResult, type MetricRow, type NextAction, type UnderLine, type WidgetKind } from "@/lib/contracts";
+import { WIDGET_KINDS, type Alert, type AlertRow, type Dim, type Forecast, type MetricId, type MetricQuery, type MetricResult, type MetricRow, type MonthEndProjection, type NextAction, type UnderLine, type WidgetKind } from "@/lib/contracts";
 import { TH } from "@/lib/i18n/th";
 import { MIN_CELL_SIZE } from "@/lib/access/suppression";
 import { addDays, monthKeyOfIso, weekKeyOfIso } from "@/lib/data/dates";
@@ -400,12 +400,27 @@ function lastDayOfMonth(iso: string): string {
   return addDays(`${addDays(`${monthKeyOfIso(iso)}-28`, 4).slice(0, 7)}-01`, -1);
 }
 
+function targetThrough(query: MetricQuery, asOf: string): string {
+  return query.range.to < asOf ? query.range.to : asOf;
+}
+
+/** Whether a target figure is counted only to a day inside its month: 100% then means on pace to date, never the whole month's target, and the card says "ตามเวลา". */
+function isPacedTarget(query: MetricQuery, asOf: string): boolean {
+  if (query.metric !== "target_attainment" && query.compare !== "target") return false;
+  const through = targetThrough(query, asOf);
+  return through !== lastDayOfMonth(through);
+}
+
+function targetUnitOf(query: MetricQuery, asOf: string): string {
+  return isPacedTarget(query, asOf) ? TH.read.ofPacedTarget : TH.read.ofTarget;
+}
+
 /** Against a target in a month still running, 100% means on pace to date: the line names the day the target is counted to and how much of the whole month that is. */
 function paceNoteOf(query: MetricQuery, asOf: string): string | null {
-  if (query.metric !== "target_attainment" && query.compare !== "target") return null;
-  const through = query.range.to < asOf ? query.range.to : asOf;
+  if (!isPacedTarget(query, asOf)) return null;
+  const through = targetThrough(query, asOf);
   const monthEnd = lastDayOfMonth(through);
-  if (through === monthEnd || query.range.from > `${monthKeyOfIso(through)}-01`) return null;
+  if (query.range.from > `${monthKeyOfIso(through)}-01`) return null;
   const share = (Number(through.slice(8)) / Number(monthEnd.slice(8))) * PERCENT;
   return TH.dash.paceTarget(formatDateTh(through), formatPercent(Math.round(share)));
 }
@@ -503,20 +518,38 @@ function tileOf(label: string, value: string, sub: string | null): Tile {
   return { label, value, delta: null, tone: "neutral", sub };
 }
 
+function paceVerdict(label: string, paced: number): string {
+  return paced >= PERCENT ? TH.read.onPace(label) : TH.read.behindPace(label, percentText(PERCENT - paced));
+}
+
+/** A month still running against its target has one base, the whole month's target: the hero is the share of it done so far, then what is left to it, the share of the target spread over the days so far (named "ตามเวลา"), and where the month ends at the recent pace; nothing left is ever set beside the forecast. */
+function monthToDateLead(name: string, paced: number, actual: string, projection: MonthEndProjection): Lead {
+  const behind = paced < PERCENT;
+  const left = projection.shortBy ? tileOf(TH.read.toTarget, projection.shortBy, TH.read.ofMonthTarget) : null;
+  return {
+    hero: { label: name, value: projection.attainmentToDate, unit: TH.read.ofMonthTarget, delta: null, trend: behind ? "down" : "neutral", tone: behind ? "bad" : "neutral", detail: `${TH.read.actual} ${actual}` },
+    tiles: [left, tileOf(TH.read.pacedTarget, percentText(paced), null), tileOf(TH.read.monthEnd, projection.attainment, TH.read.ofMonthTarget)].filter((tile): tile is Tile => tile !== null),
+    verdict: paceVerdict(name, paced),
+  };
+}
+
 /** One number about one scope (R1, R2, a total): its share of target when there is one, else its change with the value it is compared with, plus where the month ends. */
 function summaryLead(facts: Facts, name: string, subject: string): Lead {
   const { query, result, rows } = facts;
   const [row] = rows;
   const overTarget = query.compare === "target" && query.metric !== "target_attainment";
   const attainment = overTarget ? (result.headline.deltaPercent === null ? null : PERCENT + result.headline.deltaPercent) : query.metric === "target_attainment" ? (row && rows.length === 1 ? numericOf(row, "value") : percentIn(result.headline.value)) : null;
-  const projection = result.headline.projection ? tileOf(TH.read.monthEnd, result.headline.projection.attainment, TH.read.ofTarget) : null;
+  const projection = result.headline.projection ? tileOf(TH.read.monthEnd, result.headline.projection.attainment, TH.read.ofMonthTarget) : null;
   if (attainment !== null) {
     const tone: Tone = attainment < PERCENT ? "bad" : "neutral";
+    const trend = attainment < PERCENT ? "down" : "neutral";
+    if (result.headline.projection && overTarget) return monthToDateLead(name, attainment, result.headline.value, result.headline.projection);
+    const paced = isPacedTarget(query, result.provenance.asOf);
     const actual = overTarget ? tileOf(TH.read.actual, result.headline.value, null) : null;
     return {
-      hero: { label: name, value: percentText(attainment), unit: TH.read.ofTarget, delta: null, trend: attainment < PERCENT ? "down" : "neutral", tone, detail: null },
+      hero: { label: name, value: percentText(attainment), unit: paced ? TH.read.ofPacedTarget : TH.read.ofTarget, delta: null, trend, tone, detail: null },
       tiles: [actual, projection].filter((tile): tile is Tile => tile !== null),
-      verdict: summaryVerdict({ label: name, attainment, change: null, changeText: null, flat: false, versus: "", value: result.headline.value }),
+      verdict: paced ? paceVerdict(name, attainment) : summaryVerdict({ label: name, attainment, change: null, changeText: null, flat: false, versus: "", value: result.headline.value }),
     };
   }
   const move = headlineMoveOf(query, result);
@@ -593,7 +626,15 @@ function readingOf(facts: Facts, bars: Bars, rows: MetricRow[]): Breakdown {
     threshold: Boolean(facts.query.where) && concrete === "level",
     additive: facts.additive,
     falling: falling(facts, rows),
+    target: targetBaseOf(facts),
   });
+}
+
+/** What a breakdown's target figures are a share of, and the whole month's figure beside the overall row when the month is still running. */
+function targetBaseOf(facts: Facts): { unit: string; detail: string | null } {
+  const projection = facts.result.headline.projection;
+  const detail = projection ? TH.read.wholeMonth(projection.attainmentToDate, projection.shortBy) : null;
+  return { unit: targetUnitOf(facts.query, facts.result.provenance.asOf), detail };
 }
 
 /** Rows a shared card still shows beside the ones it locks, ranked by value with a bar sized against the largest. */

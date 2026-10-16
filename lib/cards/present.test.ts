@@ -504,7 +504,7 @@ describe("a target card in a month still running", () => {
   test("its footer says the pace the target is counted to and where the month ends when the result carries a projection", () => {
     const { query, result } = answer({ metric: "net_sales_volume", dims: ["region"], range: MONTH_TO_DATE, compare: "target" });
     if (!result.ok) throw new Error(result.error);
-    const projection = { recentDays: 7, projected: "10.2 ล้านลิตร", monthTarget: "11.3 ล้านลิตร", attainment: "90.6%", attainmentToDate: "66.4%", remaining: "เหลืออีก 3.8 ล้านลิตร ถึงเป้า" };
+    const projection = { recentDays: 7, projected: "10.2 ล้านลิตร", monthTarget: "11.3 ล้านลิตร", attainment: "90.6%", attainmentToDate: "66.4%", shortBy: "3.8 ล้านลิตร", remaining: "เหลืออีก 3.8 ล้านลิตร ถึงเป้าทั้งเดือน" };
     const card = presentCard({ title: "t", query, result: { ...result, headline: { ...result.headline, projection } } });
     expect(card.footer?.details).toContain(TH.dash.paceTarget(formatThaiDate(DATA_AS_OF), MONTH_ELAPSED));
     expect(card.footer?.details).toEndWith(TH.dash.monthEnd(projection));
@@ -516,7 +516,7 @@ describe("a target card in a month still running", () => {
     const delta = result.headline.deltaPercent ?? 0;
     const card = presentCard({ title: "t", query, result });
     expect(card.hero?.value).toBe(`${Math.round((100 + delta) * 10) / 10}%`);
-    expect(card.hero?.unit).toBe(TH.read.ofTarget);
+    expect(card.hero?.unit).toBe(TH.read.ofPacedTarget);
     expect(card.hero?.tone).toBe(delta < 0 ? "bad" : "neutral");
     const strip = stripOf(card.body);
     expect(strip.overall?.measure).toBeCloseTo(100 + delta, 5);

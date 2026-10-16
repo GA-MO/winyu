@@ -73,8 +73,8 @@ export function percentIn(text: string): number | null {
   return Number(trimmed.replace("−", "-").replace(/[,%]/g, ""));
 }
 
-/** What the decision table knows about one breakdown: its rows in the order asked, the bars it draws, the unit word, the overall row's label, and whether the question set a threshold (R7). */
-export type BreakdownInput = { query: MetricQuery; result: OkResult; rows: MetricRow[]; bars: BreakdownBars; unit: string; scope: string; threshold: boolean; additive: boolean; falling: boolean };
+/** What the decision table knows about one breakdown: its rows in the order asked, the bars it draws, the unit word, the overall row's label, whether the question set a threshold (R7), and what a target figure is a share of ("ของเป้าตามเวลา" in a month still running) with the whole month beside it. */
+export type BreakdownInput = { query: MetricQuery; result: OkResult; rows: MetricRow[]; bars: BreakdownBars; unit: string; scope: string; threshold: boolean; additive: boolean; falling: boolean; target: { unit: string; detail: string | null } };
 
 /** A breakdown read for styles B and A: the strip, the verdict, the hero the overall row stands for, the row style A leads with instead (a change ranking), and how the rows style A folds away read in one line. */
 export type Breakdown = {
@@ -167,7 +167,7 @@ function lineReading(input: BreakdownInput, line: LevelLine): Breakdown {
   return {
     form: "line",
     baseline: line.at,
-    overall: { label: input.scope, sub: ofTarget ? TH.read.ofTarget : null, measure: overallMeasure, fill: 0, text: overallText, change: null, tone: overallTone, exception: true, valued: true },
+    overall: { label: input.scope, sub: ofTarget ? input.target.unit : null, measure: overallMeasure, fill: 0, text: overallText, change: null, tone: overallTone, exception: true, valued: true },
     rows,
     verdict: lineVerdict({
       line: line.line,
@@ -179,7 +179,7 @@ function lineReading(input: BreakdownInput, line: LevelLine): Breakdown {
       sums: input.additive,
       weakest: answer ? { label: labelOf(query, answer.row), text: textOf(answer) } : null,
     }),
-    hero: { label: input.scope, value: overallText, unit: ofTarget ? TH.read.ofTarget : null, delta: change.delta, trend: change.trend, tone: ofTarget ? overallTone : change.tone, detail: ofTarget ? null : result.headline.compareLabel },
+    hero: { label: input.scope, value: overallText, unit: ofTarget ? input.target.unit : null, delta: change.delta, trend: change.trend, tone: ofTarget ? overallTone : change.tone, detail: ofTarget ? input.target.detail : result.headline.compareLabel },
     lead: null,
     pickWhenNone: 0,
     fold,
