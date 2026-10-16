@@ -198,6 +198,7 @@ describe("a send about one agent on the region's card names that agent, and a cl
     const sent = await send({ to: ["u_krit"], ask: DEICTIC_ASK }, "รับทราบ ส่งไปเลย", screenWith([REGION_CARD], false, ["รับทราบ ส่งไปเลย", FALSE_CLAIM]), RSM);
     expect(sent.ok).toBe(true);
     expect(sent.data?.warning ?? "").toContain(AGENT);
+    expect(sent.data?.urgency).toBe("this_week");
     expect(matterOf(sent)?.title).toContain(AGENT);
   });
 
