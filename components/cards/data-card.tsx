@@ -24,7 +24,7 @@ function Pending({ title }: { title: string }) {
 export function DataCard(props: DataCardProps) {
   const answer = metricAnswerOf(props.source);
   const refusal = refusalOf(props.source);
-  if (refusal) return <CardPartsView parts={deniedParts(props.title, refusal)} />;
+  if (refusal) return <CardPartsView parts={deniedParts(props.title, refusal, actionsOf(props.source))} />;
   if (!answer) return <Pending title={props.title} />;
   const parts = presentCard({
     title: props.title,

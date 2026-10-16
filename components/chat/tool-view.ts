@@ -50,9 +50,14 @@ function isRefused(result: unknown): boolean {
   return ok === false || error === true;
 }
 
-/** A read result that draws no card: an empty answer, or a refusal or failure (its text is written for the model, and the reply tells the person in words). */
+function offersNextStep(result: unknown): boolean {
+  const actions = typeof result === "object" && result !== null ? (result as { nextActions?: unknown }).nextActions : null;
+  return Array.isArray(actions) && actions.length > 0;
+}
+
+/** A read result that draws no card: an empty answer, or a refusal or failure (its text is written for the model, and the reply tells the person in words); a scope refusal that offers a way to more (a request for a temporary grant) still draws, so the button is there. */
 export function drawsNoCard(result: unknown): boolean {
-  return isEmptyAnswer(result) || isRefused(result);
+  return isEmptyAnswer(result) || (isRefused(result) && !offersNextStep(result));
 }
 
 function reasonOf(result: unknown): string | null {

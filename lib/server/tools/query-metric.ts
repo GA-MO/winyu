@@ -7,7 +7,7 @@ import { resolveQuery } from "@/lib/semantic/periods";
 import { loadDictionary } from "@/lib/server/master-data";
 import { runMetric } from "@/lib/server/metrics";
 import { askedQuery } from "@/lib/semantic/resolved";
-import { actionsForMetric, followUpsForMetric } from "@/lib/server/next-actions";
+import { actionsForMetric, actionsForRefusal, followUpsForMetric } from "@/lib/server/next-actions";
 import { currentAccess, currentTurn, recordQuery } from "@/lib/server/request-context";
 import { defineTool } from "./define";
 import { metricQueryFix } from "./correct";
@@ -54,7 +54,7 @@ export const queryMetricTool = defineTool({
     if (!resolved.ok) return resolved;
     const { access, grant } = metricAccess(currentAccess(), resolved.query.metric, new Date());
     const result = await runMetric(resolved.query, access);
-    if (!result.ok) return result;
+    if (!result.ok) return result.code === "PERMISSION_DENIED" ? { ...result, nextActions: actionsForRefusal(access, resolved.query) } : result;
     recordQuery(askedQuery(result.query));
     const dictionary = await loadDictionary();
     const nextActions = actionsForMetric(access, result, dictionary);

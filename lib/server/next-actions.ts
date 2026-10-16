@@ -1,4 +1,10 @@
-import type { AccessContext, Alert, Dim, MetricQuery, MetricResult, NextAction, QuickAction, Region, ResolvedQuery } from "@/lib/contracts";
+import { BRANDS, REGIONS, type AccessContext, type Alert, type Dim, type GrantSlice, type MetricQuery, type MetricResult, type NextAction, type QuickAction, type Region, type ResolvedQuery } from "@/lib/contracts";
+import { hiddenFrom } from "@/lib/access/grants";
+import { findUser } from "@/lib/data/entities/users";
+import { shortName } from "@/lib/i18n/format";
+import { TH } from "@/lib/i18n/th";
+import { sliceLabel } from "@/lib/share/grant-label";
+import { approverFor } from "@/lib/server/grants";
 import { verifyStepsFor } from "@/lib/access/verify-steps";
 import { widgetKindFor } from "@/lib/cards/present";
 import { alertFocus, alertForAnswer, cardFocus } from "@/lib/cards/focus";
@@ -14,6 +20,7 @@ import { isPinnedSlice } from "@/lib/engine/compose";
 import { intentKeyOf } from "@/lib/server/threads";
 
 const PERCENT = 100;
+const REQUEST_TOOL = "send_card";
 const REPEAT_DAYS = 30;
 const DAY_MS = 86_400_000;
 
@@ -66,6 +73,31 @@ export function actionsForMetric(access: AccessContext, result: MetricResult, di
     alreadyPinned(access.userId, query) ? 0 : repeatsOf(access.userId, query),
   );
   return withoutRepeatSend(actions, alert ? [alert.id] : []);
+}
+
+function askedValues<T extends string>(asked: readonly string[] | undefined, every: readonly T[]): T[] | "all" {
+  const known = (asked ?? []).filter((value): value is T => every.includes(value as T));
+  return known.length > 0 ? known : "all";
+}
+
+/** The button a scope refusal offers: send the refused question as a card to whoever may grant the hidden slice, asking for a temporary grant (they open it in their own scope and send it back with "ให้สิทธิ์ชั่วคราว"); none when nothing is hidden or nobody may grant it. The person approves the send sheet first. */
+export function actionsForRefusal(access: AccessContext, query: MetricQuery, at = new Date()): NextAction[] {
+  const requester = findUser(access.userId);
+  if (!requester || !access.toolAllow.includes(REQUEST_TOOL)) return [];
+  const asked: GrantSlice = { metric: query.metric, regions: askedValues(query.filters.region, REGIONS), brands: askedValues(query.filters.brand, BRANDS) };
+  const hidden = hiddenFrom(access, asked, at);
+  const approver = hidden ? approverFor(requester, hidden, requester.managerId ?? "", at) : null;
+  if (!hidden || !approver) return [];
+  const slice = sliceLabel(hidden);
+  return [{
+    id: "request-access",
+    kind: "request_access",
+    label: TH.next.requestAccess(shortName(approver.nameTh)),
+    reason: TH.next.requestGrantReason(slice),
+    tool: REQUEST_TOOL,
+    input: { to: [approver.id], ask: TH.next.grantAsk(slice), intent: "act", urgency: "today", card: { reads: [{ tool: "query_metric", input: query }], alertIds: [] } },
+    prompt: null,
+  }];
 }
 
 function alertQueryOf(alert: Alert, dictionary: Dictionary): ResolvedQuery {

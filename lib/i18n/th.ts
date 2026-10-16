@@ -569,6 +569,8 @@ export const TH = {
     sendAsk: (scope: string) => `ช่วยตรวจ${scope} แล้วบอกกลับว่าเกิดจากอะไรและจะแก้อย่างไร`,
     requestAccess: (name: string) => `ขอสิทธิ์จาก${name}`,
     requestAccessReason: (metric: string, source: string) => `${metric} ถูกปิดบางฟิลด์ตามสิทธิ์ เจ้าของข้อมูลคือผู้ดูแล ${source}`,
+    requestGrantReason: (slice: string) => `${slice} อยู่นอกขอบเขตของคุณ ขอสิทธิ์ชั่วคราวจากผู้ที่ให้ได้ เมื่ออนุมัติแล้วถามใหม่ได้เลย`,
+    grantAsk: (slice: string) => `ขอสิทธิ์ชั่วคราวดู ${slice} ครับ ตอนนี้อยู่นอกขอบเขตของผม ถ้าเห็นด้วย ช่วยส่งการ์ดนี้กลับมาพร้อมเลือก "ให้สิทธิ์ชั่วคราว"`,
     accessSubject: (metric: string) => `ขอสิทธิ์ดู${metric}`,
     accessBody: (metric: string, fields: number) => `ขอสิทธิ์ดู${metric}ครับ ตอนนี้มี ${fields} ฟิลด์ถูกปิด ทำให้วิเคราะห์ต่อไม่ได้`,
     pin: "ปักเป็นการ์ดบน Dashboard",

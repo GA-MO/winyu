@@ -36,8 +36,10 @@ export function refusalOf(source: unknown): RefusalNotice | null {
   return ok === false && typeof error === "string" ? refusalNoticeOf(code, error) : null;
 }
 
-export function deniedParts(title: string, denied: RefusalNotice): CardParts {
-  return { title, style: "chart", verdict: null, hero: null, tiles: [], body: { kind: "none" }, primary: null, more: [], footer: null, denied };
+/** A refusal drawn as a card: why, and the way to more when the tool offered one (a request for a temporary grant). */
+export function deniedParts(title: string, denied: RefusalNotice, actions: readonly NextAction[] = []): CardParts {
+  const [primary = null, ...more] = actions;
+  return { title, style: "chart", verdict: null, hero: null, tiles: [], body: { kind: "none" }, primary, more, footer: null, denied };
 }
 
 export function forecastOf(source: unknown, history: MetricAnswer | null): ForecastAnswer | null {
