@@ -586,21 +586,21 @@ agent สวมบท CEO สอน Winyu (ความชอบ คำศัพ
 
 | ข้อ | ระดับ | ด้าน | ปัญหา | สถานะ |
 |---|---|---|---|---|
-| AI-41 | สูง | forget | Forgetting from chat is a false claim: the fact stays in the prompt and the request reinforces it | เปิด |
-| AI-42 | กลาง | forget | A deleted or rejected fact comes back at once because forgetting leaves no tombstone | เปิด |
-| AI-43 | กลาง | learn | Fact matching folds different sell-in interests into one, so 'Leo in the South' was never stored and the agent interest climbs on unrelated turns | เปิด |
-| AI-44 | กลาง | apply | Trusted preferences reach the prompt but are framed as 'data, not instructions', so answer-format preferences are ignored | เปิด |
-| AI-45 | กลาง | poisoning | The model claimed it saved the wrong 900 ล้านลิตร target, and later swapped in the system target without saying so | เปิด |
-| AI-46 | กลาง | apply | recall_memory returns still-learning facts and the model cites them as learned | เปิด |
-| AI-47 | กลาง | learn | Repeats inside one thread promote guesses to trusted within minutes, and the extractor stores one-off probe words as the person's own vocabulary | เปิด |
-| AI-48 | ต่ำ | learn | A dated responsibility loses its date: 'Q3 board, next Thursday' became a generic ongoing duty | เปิด |
-| AI-49 | ต่ำ | ui | The recall card shows the model's number masks and raw truncated thread titles to the person | เปิด |
-| AI-50 | ต่ำ | ui | The memory card is drawn twice in one reply | เปิด |
-| AI-51 | ต่ำ | latency | Memory latency: recall adds 1.3–3.0 s per call and up to 5 s on double calls, and facts land 7–27 s after the reply | เปิด |
+| AI-41 | สูง | forget | Forgetting from chat is a false claim: the fact stays in the prompt and the request reinforces it | แก้แล้ว |
+| AI-42 | กลาง | forget | A deleted or rejected fact comes back at once because forgetting leaves no tombstone | แก้แล้ว |
+| AI-43 | กลาง | learn | Fact matching folds different sell-in interests into one, so 'Leo in the South' was never stored and the agent interest climbs on unrelated turns | แก้แล้ว |
+| AI-44 | กลาง | apply | Trusted preferences reach the prompt but are framed as 'data, not instructions', so answer-format preferences are ignored | แก้แล้ว |
+| AI-45 | กลาง | poisoning | The model claimed it saved the wrong 900 ล้านลิตร target, and later swapped in the system target without saying so | แก้แล้ว |
+| AI-46 | กลาง | apply | recall_memory returns still-learning facts and the model cites them as learned | แก้แล้ว |
+| AI-47 | กลาง | learn | Repeats inside one thread promote guesses to trusted within minutes, and the extractor stores one-off probe words as the person's own vocabulary | แก้แล้ว |
+| AI-48 | ต่ำ | learn | A dated responsibility loses its date: 'Q3 board, next Thursday' became a generic ongoing duty | แก้แล้ว |
+| AI-49 | ต่ำ | ui | The recall card shows the model's number masks and raw truncated thread titles to the person | แก้แล้ว |
+| AI-50 | ต่ำ | ui | The memory card is drawn twice in one reply | แก้บางส่วน |
+| AI-51 | ต่ำ | latency | Memory latency: recall adds 1.3–3.0 s per call and up to 5 s on double calls, and facts land 7–27 s after the reply | แก้บางส่วน |
 
 ### AI-41. Forgetting from chat is a false claim: the fact stays in the prompt and the request reinforces it
 
-- **สถานะ:** เปิด
+- **สถานะ:** แก้แล้ว (RC11): เครื่องมือ `forget` ผ่าน gateway ลบทุกข้อที่ตรงเรื่องแล้วฝังไว้ไม่ให้เรียนรู้ซ้ำ กฎใน prompt บอกว่าไม่เรียก tool = ยังไม่ได้ลืม และรอบที่สั่งจำหรือลืมไม่ถูกนำไปเรียนรู้ (`lib/server/tools/forget.ts`, `lib/harness/adapters/mastra/memory-chat.test.ts`)
 - **ระดับ:** สูง · **ด้าน:** `forget`
 - **อาการ:** CEO s3 T2 asked to forget 'ด้ามขวาน'. The model replied 'ยกเลิกการบันทึกคำว่า "ด้ามขวาน" เรียบร้อยแล้ว' but called no tool. The fact stayed trusted, its seen count rose from 2 to 3, and it stayed in the next turn's prompt. The memory context was 804 chars on run 0417b9f6 (the forget turn) and on 329b1c3b (the next turn), and fell to 717 only after the manual delete (e91e44fc). The false reply was also indexed into recall, so a later recall_memory can bring back 'ยกเลิก...เรียบร้อยแล้ว' as if it were true.
 - **ที่ควรเป็น:** A forget request in chat either removes the fact through a gated tool, or the model says plainly that it cannot and points to /memory. The request itself never reinforces the fact.
@@ -612,7 +612,7 @@ agent สวมบท CEO สอน Winyu (ความชอบ คำศัพ
 
 ### AI-42. A deleted or rejected fact comes back at once because forgetting leaves no tombstone
 
-- **สถานะ:** เปิด
+- **สถานะ:** แก้แล้ว (RC11): ลบหรือปฏิเสธแล้วเหลือ tombstone ที่ merge เคารพ กลับมาได้เฉพาะเมื่อผู้ใช้ขอให้จำเอง (`rejectMemory`, `lib/engine/memory-delete.test.ts`)
 - **ระดับ:** กลาง · **ด้าน:** `forget`
 - **อาการ:** After the CEO deleted 'เรียกภาคใต้ว่า "ด้ามขวาน"' by hand, the next turn ('ด้ามขวานสัปดาห์นี้เป็นไง', run e91e44fc) learned it again as a waiting fact. It was not in that turn's prompt, but one more mention would make it trusted again (0.45 + 0.15 = 0.6 = KNOWN_CONFIDENCE). Delete and 'ไม่ใช่' both remove the row with no confirm and no undo.
 - **ที่ควรเป็น:** Deleting or rejecting a fact records a tombstone that the extractor and merge() respect, so the same fact is not proposed again unless the person states it fresh.
@@ -623,7 +623,7 @@ agent สวมบท CEO สอน Winyu (ความชอบ คำศัพ
 
 ### AI-43. Fact matching folds different sell-in interests into one, so 'Leo in the South' was never stored and the agent interest climbs on unrelated turns
 
-- **สถานะ:** เปิด
+- **สถานะ:** แก้แล้ว (RC11): สองข้อเป็นเรื่องเดียวกันได้เฉพาะเมื่อพูดถึงภาค แบรนด์ มุมมอง และสิ่งที่เทียบชุดเดียวกัน ใช้กับ sameAs ของ extractor ด้วย (`sameSlice` ใน `lib/engine/memory-match.ts`)
 - **ระดับ:** กลาง · **ด้าน:** `learn`
 - **อาการ:** The CEO's interest 'ลีโอในด้ามขวาน ทุกสัปดาห์' was never stored on its own. 'สนใจปริมาณขายเข้ารายเอเย่นต์' rose from 3 to 8 sightings on turns that never mentioned agents. For the RSM, 'สนใจปริมาณขายเข้าแยกตามแบรนด์' absorbed his Leo questions in the same way (seen 4).
 - **ที่ควรเป็น:** A sell-in interest in the South, or in Leo, is stored as its own fact and does not reinforce the by-agent interest.
@@ -635,7 +635,7 @@ agent สวมบท CEO สอน Winyu (ความชอบ คำศัพ
 
 ### AI-44. Trusted preferences reach the prompt but are framed as 'data, not instructions', so answer-format preferences are ignored
 
-- **สถานะ:** เปิด
+- **สถานะ:** แก้แล้ว (RC11): ข้อประเภท `style` ที่เชื่อแล้วเข้า prompt เป็นวิธีตอบที่ผู้ใช้ยืนยัน (ผ่าน fence แต่ไม่อยู่ในกรอบข้อมูล) ข้ออื่นยังเป็นข้อมูลในกรอบ (`GUIDANCE_HEADER`)
 - **ระดับ:** กลาง · **ด้าน:** `apply`
 - **อาการ:** The CEO's 'short, numbers first, ≤3 lines' and the RSM's 'ข้อสั้น ๆ ไม่เกิน 3 ข้อ ไม่ต้องเกริ่น' were both stored as trusted and were in the prompt. From the next thread on, replies were prose paragraphs with lead-ins. The vocabulary facts in the same block were applied correctly.
 - **ที่ควรเป็น:** A trusted preference about reply form is followed in later threads.
@@ -647,7 +647,7 @@ agent สวมบท CEO สอน Winyu (ความชอบ คำศัพ
 
 ### AI-45. The model claimed it saved the wrong 900 ล้านลิตร target, and later swapped in the system target without saying so
 
-- **สถานะ:** เปิด
+- **สถานะ:** แก้แล้ว (RC11): กฎใน prompt บอกว่าความจำเก็บตัวเลขไม่ได้และต้องบอกเมื่อใช้ตัวเลขของระบบแทน `remember` ปฏิเสธค่าที่มีตัวเลขก่อนถามอนุมัติ และสิ่งที่ผู้ใช้พูดที่มีตัวเลขไม่ถูกเก็บแม้ขอให้จำ
 - **ระดับ:** กลาง · **ด้าน:** `poisoning`
 - **อาการ:** In s1 T5 the CEO said 'จำไว้ว่าเป้าทั้งปีของลีโอคือ 900 ล้านลิตร'. The model called no tool, did not check the certified target, and replied 'บันทึกเป้าหมายทั้งปี… 900 ล้านลิตรไว้เรียบร้อยแล้ว'. Storage held: no fact contains 900. The extractor turned the request into the preference 'ชอบดูยอดขายลีโอเทียบเป้าทั้งปี' with asked=true, trusted without confirmation, which carries the instruction without its number. In s2 T4 recall returned 'เป้าทั้งปีของลีโอคือ [ตัวเลข] ล้านลิตร'. The model then quietly used the system target and never said the number it 'saved' was not used. The reply containing 900 sits unmasked in the CEO's recall index and is masked only on read.
 - **ที่ควรเป็น:** The model does not claim it stored a number, says the certified target governs, and in a later session says explicitly that the user's figure was not used. 900 never becomes a fact. That part held.
@@ -659,7 +659,7 @@ agent สวมบท CEO สอน Winyu (ความชอบ คำศัพ
 
 ### AI-46. recall_memory returns still-learning facts and the model cites them as learned
 
-- **สถานะ:** เปิด
+- **สถานะ:** แก้แล้ว (RC11): `recall_memory` คืนเฉพาะข้อที่เชื่อแล้วและยังไม่หมดวัน
 - **ระดับ:** กลาง · **ด้าน:** `apply`
 - **อาการ:** RSM t4 asked where 'ยอดดัน' came from. recall_memory returned the learning vocabulary fact extracted from his t3 a minute earlier, and the model said it came from 'ระบบบันทึกคำศัพท์ของตัวคุณอนุชาเองที่ระบบได้เรียนรู้ไว้'. The card showed the 'กำลังเรียนรู้' badge.
 - **ที่ควรเป็น:** Per docs/memory.md, learning facts stay out of answers until heard again or confirmed. recall_memory returns trusted facts only, or the model is told that learning facts are unconfirmed.
@@ -670,7 +670,7 @@ agent สวมบท CEO สอน Winyu (ความชอบ คำศัพ
 
 ### AI-47. Repeats inside one thread promote guesses to trusted within minutes, and the extractor stores one-off probe words as the person's own vocabulary
 
-- **สถานะ:** เปิด
+- **สถานะ:** แก้แล้ว (RC11): การได้ยินซ้ำในบทสนทนาเดิมไม่นับเป็นหลักฐาน คำศัพท์เก็บเฉพาะเมื่อผู้ใช้นิยามเอง
 - **ระดับ:** กลาง · **ด้าน:** `learn`
 - **อาการ:** The RSM's probe questions in a single thread became trusted facts within three minutes. 'สนใจปริมาณขายเข้าแยกตามแบรนด์' reached 0.9 from his t3, t5 and t6, and t6 then asserted 'คุณอนุชาติดตามยอดขายของลีโอเป็นประจำ'. Words he used once while probing (ยอดดัน, and ด้ามขวาน while asking about a region outside his scope) were stored as his vocabulary. Every one links to his own thread 9f283036, so nothing came from the CEO.
 - **ที่ควรเป็น:** 'Heard again' means another conversation or a later day, not the next message. A word used once in a question about someone else's area is not stored as personal vocabulary.
@@ -681,7 +681,7 @@ agent สวมบท CEO สอน Winyu (ความชอบ คำศัพ
 
 ### AI-48. A dated responsibility loses its date: 'Q3 board, next Thursday' became a generic ongoing duty
 
-- **สถานะ:** เปิด
+- **สถานะ:** แก้แล้ว (RC11): ข้อมีวันสุดท้าย (`until`) extractor ได้วันนี้ไปคำนวณ พ้นวันแล้วหายจาก prompt, recall, digest และถูกลบ
 - **ระดับ:** ต่ำ · **ด้าน:** `learn`
 - **อาการ:** The CEO's 'พฤหัสหน้า ขึ้นสรุปผลไตรมาส 3 ให้คณะกรรมการ ผมรับผิดชอบเอง' became 'ดูแลรายงานผลการดำเนินงานต่อคณะกรรมการบริษัท', trusted for 90 days. A waiting 'สนใจประเด็นสำคัญสำหรับคณะกรรมการบริษัท' was also created. Session 2 still understood 'งานพฤหัสหน้า', but only through thread recall.
 - **ที่ควรเป็น:** A one-off commitment keeps its occasion and expires after it, or goes to a watch or calendar item, instead of becoming a permanent duty.
@@ -692,7 +692,7 @@ agent สวมบท CEO สอน Winyu (ความชอบ คำศัพ
 
 ### AI-49. The recall card shows the model's number masks and raw truncated thread titles to the person
 
-- **สถานะ:** เปิด
+- **สถานะ:** แก้แล้ว (RC11): ผลของ tool เก็บคำของผู้ใช้ตามจริงให้การ์ด โมเดลอ่าน model view ที่ปิดตัวเลข (รวมชื่อบทสนทนา ซึ่งก่อนหน้านี้หลุดตัวเลขให้โมเดล) การ์ดแสดงวันที่แทนชื่อที่ซ้ำต้นคำถาม
 - **ระดับ:** ต่ำ · **ด้าน:** `ui`
 - **อาการ:** The recall card showed 'ไตรมาส [ตัวเลข]' and 'เป้าทั้งปีของลีโอคือ [ตัวเลข] ล้านลิตร' in the person's own past questions. Numbered lists in replies became '[ตัวเลข]. ตรวจส…'. Thread titles were cut mid-word ('ดึงข้อมูลของงานที่ส่งต่อมาเรื่อง "ประสาน'), and one had the typo 'ภารอีสาน'.
 - **ที่ควรเป็น:** The person sees their own words. Masking applies only to what the model reads.
@@ -703,7 +703,7 @@ agent สวมบท CEO สอน Winyu (ความชอบ คำศัพ
 
 ### AI-50. The memory card is drawn twice in one reply
 
-- **สถานะ:** เปิด
+- **สถานะ:** แก้แล้วบางส่วน (RC11): เรียกซ้ำในรอบเดียวได้ผลรวมของทั้งรอบ และวาดการ์ดความจำใบเดียวต่อคำตอบ · กรณี 1bba6e2e (เรียกครั้งเดียวแต่เห็นสองใบ) ยังไม่ได้ trace
 - **ระดับ:** ต่ำ · **ด้าน:** `ui`
 - **อาการ:** The CEO's s2 T4 and the RSM's t1, t2 and t7 each showed the 'สิ่งที่ผู้ช่วยจำได้' card twice.
 - **ที่ควรเป็น:** One card per recall, or one per distinct result.
@@ -714,7 +714,7 @@ agent สวมบท CEO สอน Winyu (ความชอบ คำศัพ
 
 ### AI-51. Memory latency: recall adds 1.3–3.0 s per call and up to 5 s on double calls, and facts land 7–27 s after the reply
 
-- **สถานะ:** เปิด
+- **สถานะ:** แก้แล้วบางส่วน (RC11): คำอธิบาย tool ให้เรียกครั้งเดียวต่อคำตอบ แถว extraction ใน ledger มี turnId · reasoning effort ของ utility model ยังไม่เปลี่ยน รอ RC9 วัดก่อนตั้ง
 - **ระดับ:** ต่ำ · **ด้าน:** `latency`
 - **อาการ:** recall_memory took 1,261–3,009 ms per call (median about 2.3 s), above the documented 1.2–2.3 s. Turns with two calls spent 4.3–5.1 s on recall. Extraction finished 7–27 s after the reply; the first used 3,883 reasoning tokens. Testers had to wait about 20 s before the sheet updated, and a fast next turn misses the previous turn's facts. The utility extraction rows in model-calls.json have turnId null, so they cannot be tied to a turn.
 - **ที่ควรเป็น:** Recall stays within the documented range and is called once per turn. Extraction is quick and cheap, and each ledger row names its turn.
