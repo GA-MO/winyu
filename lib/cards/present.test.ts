@@ -7,7 +7,7 @@ import { runMetric } from "@/lib/data/query";
 import { TH } from "@/lib/i18n/th";
 import { LOW_COVER_DAYS } from "@/lib/semantic/metrics";
 import { changeToneOf } from "@/lib/dashboard/metric-display";
-import { presentCard, presentForecast, weakestRow, type CardBody, type CardParts, type CardView, type ForecastAnswer, type SortBy } from "./present";
+import { pairedIndexes, presentCard, presentForecast, weakestRow, type CardBody, type CardParts, type CardView, type ForecastAnswer, type SortBy } from "./present";
 import type { ReadRow, Strip } from "./reading";
 
 const CEO = accessFor(findUser("u_thana")!);
@@ -279,6 +279,18 @@ describe("two metrics on one card", () => {
 
   test("results that do not fit together fall back to the first card", () => {
     expect(bodyOf({ metric: "net_sales_volume", dims: ["region"] }, { others: [{ metric: "headcount", dims: ["department"] }] }).kind).toBe("strip");
+  });
+
+  test("one metric asked against target and against the period before is one card, the second change beside the hero and under each row (AI-66)", () => {
+    const target = answer({ metric: "net_sales_value", dims: ["region"], compare: "target" });
+    const previous = answer({ metric: "net_sales_value", dims: ["region"], compare: "prev_period" });
+    if (!previous.result.ok) throw new Error(previous.result.error);
+    expect(pairedIndexes(target, [previous])).toEqual([0]);
+    const card = presentCard({ title: "t", query: target.query, result: target.result, others: [previous] });
+    expect(card.hero?.detail).toContain(`${TH.dash.compare.prev_period} `);
+    const strip = stripOf(card.body);
+    expect(strip.rows.length).toBeGreaterThan(1);
+    strip.rows.forEach((row) => expect(row.sub).toStartWith(TH.dash.compare.prev_period));
   });
 });
 

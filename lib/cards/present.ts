@@ -5,7 +5,7 @@ import { addDays, monthKeyOfIso, weekKeyOfIso } from "@/lib/data/dates";
 import { formatDateTh, formatPercent, periodLabelTh } from "@/lib/i18n/format";
 import { changeTextOf, deltaPercentOf, deltaPointsOf, groupDimsOf, labelAlong, labelOf, numericOf, timeDimOf, valueTextOf } from "./rows";
 import { changeOf, exceptionsOf, fitsOneStrip, LEVEL_LINES, percentIn, readBreakdown, stripOf, type Breakdown, type BreakdownBars, type LevelLine } from "./breakdown";
-import { compactPeriod, outliersOf, percentText, rangeText, shareVerdict, spaced, summaryVerdict, trendVerdict, type CardFooter, type Fold, type Strip, type Tile } from "./reading";
+import { compactPeriod, outliersOf, percentText, rangeText, shareVerdict, spaced, summaryVerdict, trendVerdict, type CardFooter, type Fold, type ReadRow, type Strip, type Tile } from "./reading";
 import {
   bucketCountOf,
   funnelBody,
@@ -825,7 +825,8 @@ function hiddenGroupsNote(shape: Shape, view: CardView): string | null {
   return count > MAX_LINES ? TH.dash.shownOf(MAX_LINES, count) : null;
 }
 
-type Pairing = { view: "scatter" | "gap" | "funnel" | "overlay"; sources: Source[] };
+/** R10: how answers of one turn draw together; `baselines` is one metric of the same slice asked against two comparisons, drawn as the first card with the second change beside each row. */
+type Pairing = { view: "scatter" | "gap" | "funnel" | "overlay" | "baselines"; sources: Source[] };
 
 function sliceKeyOf(source: Source): string {
   const { query } = source;
@@ -838,6 +839,8 @@ function holdsOneValue(source: Source): boolean {
 
 /** R10: what a card bound to several metric results of the same dimensions and range draws (a funnel of single values in one unit, lines over the same buckets, a parity gap or a scatter of the same groups), or null when they do not fit together and only the first is shown. */
 function pairingOf(first: Source, others: Source[]): Pairing | null {
+  const baseline = others.find((other) => sliceKeyOf(other) === sliceKeyOf(first) && other.query.metric === first.query.metric && other.query.compare !== first.query.compare && other.query.compare !== "none");
+  if (baseline && first.query.compare !== "none") return { view: "baselines", sources: [first, baseline] };
   const all = [first, ...others.filter((other) => sliceKeyOf(other) === sliceKeyOf(first) && other.query.metric !== first.query.metric)];
   if (all.length < 2) return null;
   if (all.every(holdsOneValue) && sameUnit(all)) return { view: "funnel", sources: all };
@@ -949,6 +952,25 @@ function pairedCard(input: PresentInput, pairing: Pairing): CardParts {
     footer: footerOf(first.query, first.result, [indexed ? TH.dash.indexedNote : null]),
     denied: null,
   };
+}
+
+function baselineText(source: Source, change: string | null): string | null {
+  const label = source.result.headline.compareLabel ?? TH.dash.compare[source.query.compare];
+  return change === null ? null : `${label} ${change}`;
+}
+
+/** One metric asked against two baselines draws one card: the first answer's card, the second comparison beside the hero and under each row it names. */
+function withBaseline(card: CardParts, second: Source): CardParts {
+  const { query, result } = second;
+  const byLabel = new Map(result.rows.map((row) => [labelOf(query, row), baselineText(second, changeTextOf(query.metric, row))]));
+  const subOf = (row: ReadRow): ReadRow => ({ ...row, sub: byLabel.get(row.label) ?? row.sub });
+  const overall = baselineText(second, formatChange(query.metric, result.headline.deltaPercent, result.headline.deltaPoints ?? null));
+  const hero = card.hero && overall ? { ...card.hero, detail: joined([card.hero.detail, overall]) } : card.hero;
+  const strip = (current: Strip): Strip => ({ ...current, rows: current.rows.map(subOf) });
+  const body = card.body;
+  if (body.kind === "strip") return { ...card, hero, body: { ...body, strip: strip(body.strip) } };
+  if (body.kind === "exceptions") return { ...card, hero, body: { ...body, strip: strip(body.strip), fold: body.fold ? { ...body.fold, rows: body.fold.rows.map(subOf) } : null } };
+  return { ...card, hero };
 }
 
 function okSources(others: PresentSource[] | undefined): Source[] {
@@ -1168,6 +1190,7 @@ export function presentCard(input: PresentInput): CardParts {
   const sortBy = input.sortBy ?? query.sort ?? null;
   if (input.locked && !masked && hidden === 0 && locksBreakdown(query, input.locked)) return lockedCard(input, result, sorted(query, visibleRows, sortBy), input.locked);
   const pairing = masked || hidden > 0 ? null : pairingOf({ query, result }, okSources(input.others));
+  if (pairing?.view === "baselines") return withBaseline(presentCard({ ...input, others: [] }), pairing.sources[1]);
   if (pairing) return pairedCard(input, pairing);
   const whole: Shape = { query, rows: visibleRows, additive: result.headline.aggregate === "sum", sortBy };
   const facts = factsOf(whole, result);
