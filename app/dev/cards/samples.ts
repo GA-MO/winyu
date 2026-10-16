@@ -67,6 +67,9 @@ export const READ_SAMPLES: ReadSample[] = [
   { tool: "list_metrics", caption: "list_metrics", question: "ถามเรื่องอะไรได้บ้าง", input: { search: null } },
   { tool: "store_visits", caption: "store_visits", question: "ไปเยี่ยมเอเย่นต์ล่าสุดเมื่อไร", input: { agentId: null } },
   { tool: "training_history", caption: "training_history", question: "ประวัติอบรมของทีม", input: { employeeId: null, name: null } },
+  { tool: "admin_audit", caption: "admin_audit · role_access", question: "ฝ่ายขายเห็นอะไรบ้าง", input: { topic: "role_access", days: null, role: "sales_rep" } },
+  { tool: "admin_audit", caption: "admin_audit · model_cost", question: "ใช้ไปกี่ตัง", input: { topic: "model_cost", days: 7, role: null } },
+  { tool: "admin_audit", caption: "admin_audit · tool_usage", question: "การใช้งานเครื่องมือ", input: { topic: "tool_usage", days: 7, role: null } },
 ];
 
 export const WRITE_SAMPLES: WriteSample[] = [
