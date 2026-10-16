@@ -90,6 +90,12 @@ function deadlineOfDay(today: string, due: string, urgent: boolean): MatterDeadl
   return { urgency: daysBetween(today, due) <= 0 ? "today" : "this_week", due };
 }
 
+/** The words a send reads its deadline from: the question, except a bare go-ahead ("ส่งไปเลย") after a send was held back, which keeps the deadline of the question before it, the one that asked for the send. */
+export function deadlineWords(question: string | null, earlier: string | null, heldBack: boolean, today: string): string | null {
+  if (!heldBack || !question || isPressed(question) || saysUrgent(question) || writtenDeadline(question, today)) return question;
+  return earlier ?? question;
+}
+
 /** When a matter sent from chat is due, from the person's own words counted from `today`: "now" only when they say urgent, the day they wrote (พรุ่งนี้, ภายในศุกร์นี้, ภายในวันที่ 20) with today's urgency only when that day is today, what a pressed button carried when they pressed one, a calmer urgency the model passed, and the intent's default otherwise; the model never makes a matter urgent by itself. */
 export function matterDeadline(asked: MatterUrgency | undefined, question: string | null, intent: MatterIntent, today: string): MatterDeadline {
   if (question && isPressed(question)) return { urgency: asked ?? defaultUrgency(intent), due: null };

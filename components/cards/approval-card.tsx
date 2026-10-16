@@ -16,7 +16,7 @@ import { cardNamed } from "@/components/chat/card-to-share";
 import { businessToday } from "@/lib/data/dates";
 import { shareTitle, type ScreenCards, type SendPreview, type ShareContact, type SharedCard } from "@/lib/share/card";
 import { contradictionOf } from "@/lib/share/figures";
-import { askAboutOf, askNaming, matterAsk, matterDeadline, MATTER_INTENTS, MATTER_URGENCIES, sendIntent, type MatterIntent, type MatterUrgency } from "@/lib/share/matter";
+import { askAboutOf, askNaming, deadlineWords, matterAsk, matterDeadline, MATTER_INTENTS, MATTER_URGENCIES, sendIntent, type MatterIntent, type MatterUrgency } from "@/lib/share/matter";
 import { pinQuestion } from "@/lib/share/pin";
 import { matchRecipients } from "@/lib/share/recipients";
 
@@ -665,7 +665,9 @@ function SendApproval({ request }: { request: ApprovalRequest }) {
   const card = sending.card;
   const asking = request.approved === null;
   const preview = useSendPreview(asking ? card : null, alertIdsOf(input), wordsOf(input, request));
-  const plan = sendPlan(input, sending, contacts, preview, request.question ?? null);
+  const asked = request.question ?? null;
+  const earlier = request.onScreen?.said.find((text) => text !== asked) ?? null;
+  const plan = sendPlan(input, sending, contacts, preview, deadlineWords(asked, earlier, request.onScreen?.warned ?? false, businessToday()));
   const scopes = useRecipientScopes(asking ? card : null, plan.recipients.map((contact) => contact.id));
   return <Approval decision={sendDecision(plan, scopes, contacts !== null, input)} request={request} />;
 }
