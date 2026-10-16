@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { CardActionsProvider } from "@/components/cards/card-actions";
 import { ShareProvider } from "@/components/share/share-sheet";
 import { cardsBeforeEach } from "@/components/chat/card-to-share";
@@ -7,6 +8,7 @@ import { ExchangeView } from "@/components/chat/exchange-view";
 import { TOOL_CARDS } from "@/components/cards/registry";
 import { requestedCoursesOf } from "@/components/chat/requested-courses";
 import type { Exchange } from "@/components/chat/timeline";
+import { useFollowLatest } from "@/components/chat/follow-latest";
 
 const NOTHING = () => undefined;
 
@@ -28,5 +30,24 @@ export function Replay({ exchanges, streaming, toolLabels, durationMs }: { excha
         </div>
       </ShareProvider>
     </CardActionsProvider>
+  );
+}
+
+/** The recorded exchanges arriving one at a time in a scroll container that follows the newest one as the chat does; `data-replay-next` adds the next. */
+export function FollowReplay({ exchanges, toolLabels }: { exchanges: Exchange[]; toolLabels: Record<string, string> }) {
+  const [count, setCount] = useState(1);
+  const shown = exchanges.slice(0, count);
+  const { scroller, content, onScroll } = useFollowLatest(shown[shown.length - 1]?.id ?? null);
+  return (
+    <div className="flex h-page flex-col">
+      <div ref={scroller} onScroll={onScroll} data-replay-scroller className="min-h-0 flex-1 overflow-y-auto">
+        <div ref={content} className="mx-auto w-full max-w-3xl px-4 pb-8 pt-6">
+          <Replay exchanges={shown} streaming={false} toolLabels={toolLabels} durationMs={null} />
+        </div>
+      </div>
+      <button type="button" data-replay-next disabled={count >= exchanges.length} onClick={() => setCount(count + 1)} className="shrink-0 border-t border-border bg-card py-3 text-sm disabled:opacity-40">
+        {count} / {exchanges.length}
+      </button>
+    </div>
   );
 }
