@@ -1,6 +1,6 @@
 import type { WidgetKind } from "./dashboard";
 import type { Region } from "./identity";
-import type { MetricQuery } from "./semantic";
+import type { ResolvedQuery } from "./semantic";
 
 export type NextActionKind = "handoff" | "request_access" | "pin" | "verify" | "drill" | "enroll";
 
@@ -17,14 +17,14 @@ export type NextAction = {
 
 export type NextActionContext = {
   title: string;
-  query: MetricQuery;
+  query: ResolvedQuery;
   deltaPercent: number | null;
   masked: string[];
   topLabel: string | null;
   alertIds: string[];
   alertScope: string | null;
   verifyStep: string | null;
-  /** The region the question is pinned to, stated or implied by a province or agent filter; null for the whole country. */
+  /** The region id the card's work belongs to, from its pinned slice or the alert it is about; null for the whole country. */
   region: Region | null;
   drawnAs?: WidgetKind | null;
 };

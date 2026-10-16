@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import type { AccessContext, ContextPacket, Dim, HandoffReplyNote, MetricQuery, MetricRow, PacketReply, User } from "@/lib/contracts";
+import type { AccessContext, ContextPacket, Dim, HandoffReplyNote, MetricQuery, MetricRow, PacketReply, Region, User } from "@/lib/contracts";
 import { appendHandoffReply } from "@/lib/harness/adapters/mastra/history";
 import { runMetric } from "@/lib/server/metrics";
 import { ports } from "@/lib/server/ports";
@@ -200,13 +200,13 @@ const MIN_USUAL_SENDS = 2;
 
 const HANDLED: ReadonlySet<ContextPacket["status"]> = new Set(["accepted", "resolved"]);
 
-function aboutRegion(query: MetricQuery, region: string | null): boolean {
+function aboutRegion(query: MetricQuery, region: Region | null): boolean {
   const filtered = query.filters.region ?? [];
   return region === null ? filtered.length === 0 : filtered.includes(region);
 }
 
 /** The colleague who took this metric and region from this sender at least twice — accepted or closed it, not just received it. */
-export function usualRecipient(fromUserId: string, metric: MetricQuery["metric"], region: string | null): { userId: string; sent: number } | null {
+export function usualRecipient(fromUserId: string, metric: MetricQuery["metric"], region: Region | null): { userId: string; sent: number } | null {
   const counts = new Map<string, number>();
   for (const packet of packets().where((entry) => entry.fromUserId === fromUserId && HANDLED.has(entry.status))) {
     if (!packet.evidence.some((query) => query.metric === metric && aboutRegion(query, region))) continue;
@@ -217,7 +217,7 @@ export function usualRecipient(fromUserId: string, metric: MetricQuery["metric"]
 }
 
 /** Who should get this: whom this user usually sends it to, else the RACI owner; with how often they handled it and their open load. */
-export function suggestOwner(metric: ContextPacket["evidence"][number]["metric"], region: string | null, fromUserId: string | null = null): OwnerSuggestion | null {
+export function suggestOwner(metric: ContextPacket["evidence"][number]["metric"], region: Region | null, fromUserId: string | null = null): OwnerSuggestion | null {
   const raci = responsibleFor(metric, region);
   const usual = fromUserId ? usualRecipient(fromUserId, metric, region) : null;
   const usualUser = usual ? findUser(usual.userId) : null;

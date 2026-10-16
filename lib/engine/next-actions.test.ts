@@ -1,9 +1,11 @@
 import { describe, expect, test } from "bun:test";
-import type { AccessContext, MetricQuery, NextActionContext } from "@/lib/contracts";
+import type { AccessContext, MetricQuery, NextActionContext, ResolvedQuery } from "@/lib/contracts";
 import { accessFor } from "@/lib/access/policies";
 import { findUser } from "@/lib/data/entities/users";
 import { GENERATOR_DICTIONARY } from "@/lib/data/master";
-import { geoValueOf } from "@/lib/semantic/geo";
+import { runMetric } from "@/lib/data/query";
+import { regionOfSlice } from "@/lib/semantic/geo";
+import { effectiveFilters, pinnedSlice } from "@/lib/semantic/resolved";
 import { nextActionsFor } from "./next-actions";
 
 const CEO = "u_thana";
@@ -15,8 +17,14 @@ function accessOf(userId: string): AccessContext {
   return accessFor(user);
 }
 
-function queryOf(metric: MetricQuery["metric"], region?: string): MetricQuery {
-  return {
+function resolvedFor(query: MetricQuery, asUser = CEO): ResolvedQuery {
+  const result = runMetric(query, accessOf(asUser));
+  if (!result.ok) throw new Error(result.error);
+  return result.query;
+}
+
+function queryOf(metric: MetricQuery["metric"], region?: string, asUser = CEO): ResolvedQuery {
+  return resolvedFor({
     metric,
     dims: ["agent"],
     filters: region ? { region: [region] } : {},
@@ -24,12 +32,11 @@ function queryOf(metric: MetricQuery["metric"], region?: string): MetricQuery {
     grain: "month",
     compare: "prev_period",
     limit: 10,
-  };
+  }, asUser);
 }
 
-function regionOf(query: MetricQuery): NextActionContext["region"] {
-  const pinned = Object.entries(query.filters).filter(([, values]) => values?.length === 1).map(([dim, values]) => [dim, (values as string[])[0]]);
-  return geoValueOf(GENERATOR_DICTIONARY, Object.fromEntries(pinned), "region") as NextActionContext["region"];
+function regionOf(query: ResolvedQuery): NextActionContext["region"] {
+  return regionOfSlice(GENERATOR_DICTIONARY, pinnedSlice(effectiveFilters(query)));
 }
 
 function contextOf(overrides: Partial<NextActionContext> = {}): NextActionContext {
@@ -71,7 +78,7 @@ describe("nextActionsFor", () => {
   });
 
   test("masked fields offer a request to the metric owner", () => {
-    const actions = nextActionsFor(accessOf("u_siriporn"), contextOf({ masked: ["value"], query: queryOf("avg_salary") }));
+    const actions = nextActionsFor(accessOf("u_siriporn"), contextOf({ masked: ["value"], query: resolvedFor({ ...queryOf("net_sales_volume"), metric: "avg_salary", dims: ["department"] }, "u_siriporn") }));
     const request = actions.find((action) => action.id === "request-access");
     expect(request?.tool).toBe("send_email");
     expect((request?.input as { toUserId: string }).toUserId).toBe("u_may");
@@ -97,7 +104,7 @@ describe("nextActionsFor", () => {
   });
 
   test("never offers more than three", () => {
-    const actions = nextActionsFor(accessOf("u_siriporn"), contextOf({ deltaPercent: -20, masked: ["value"], alertIds: ["a1"], verifyStep: "ตรวจ", query: queryOf("ar_overdue", "northeast") }), 5);
+    const actions = nextActionsFor(accessOf("u_siriporn"), contextOf({ deltaPercent: -20, masked: ["value"], alertIds: ["a1"], verifyStep: "ตรวจ", query: queryOf("ar_overdue", "northeast", "u_siriporn") }), 5);
     expect(actions.length).toBeLessThanOrEqual(3);
   });
 
@@ -112,14 +119,14 @@ describe("nextActionsFor", () => {
   });
 
   test("a province never offers a split by region, it offers the next finer level", () => {
-    const query: MetricQuery = { ...queryOf("ar_overdue"), dims: ["month"], filters: { province: ["pv_songkhla"] } };
+    const query = resolvedFor({ ...queryOf("ar_overdue"), dims: ["month"], filters: { province: ["pv_songkhla"] } });
     const actions = nextActionsFor(accessOf(CEO), contextOf({ query, topLabel: null }));
     expect(idsOf(actions)).not.toContain("drill-region");
     expect(idsOf(actions)).toContain("drill-agent");
   });
 
   test("a province hands work to the owner of its region", () => {
-    const query: MetricQuery = { ...queryOf("net_sales_volume"), filters: { province: ["pv_khonkaen"] } };
+    const query = resolvedFor({ ...queryOf("net_sales_volume"), filters: { province: ["pv_khonkaen"] } });
     const handoff = nextActionsFor(accessOf(CEO), contextOf({ deltaPercent: -12, query })).find((action) => action.id === "handoff");
     expect((handoff?.input as { toUserId: string }).toUserId).toBe(RSM_NORTHEAST);
   });
@@ -131,14 +138,14 @@ describe("nextActionsFor", () => {
   });
 
   test("someone who sees one region is never offered a split by region", () => {
-    const query: MetricQuery = { ...queryOf("sell_out_volume"), dims: ["sku"] };
+    const query = resolvedFor({ ...queryOf("sell_out_volume"), dims: ["sku"] }, "u_krit");
     const actions = nextActionsFor(accessOf("u_krit"), contextOf({ query, topLabel: null }));
     expect(idsOf(actions)).not.toContain("drill-region");
     expect(idsOf(actions)).toContain("drill-province");
   });
 
   test("a masked answer offers no drill into numbers nobody can read", () => {
-    const actions = nextActionsFor(accessOf("u_ton"), contextOf({ masked: ["value"], query: { ...queryOf("forecast_mape"), dims: ["month"] }, topLabel: null }));
+    const actions = nextActionsFor(accessOf("u_ton"), contextOf({ masked: ["value"], query: resolvedFor({ ...queryOf("net_sales_volume"), metric: "forecast_mape", dims: ["month"] }, "u_ton"), topLabel: null }));
     expect(idsOf(actions).some((id) => id.startsWith("drill"))).toBe(false);
   });
 });

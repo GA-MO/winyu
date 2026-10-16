@@ -1,7 +1,8 @@
-import type { AccessContext, Alert, Dim, MetricQuery, MetricResult, NextAction, QuickAction, Region } from "@/lib/contracts";
+import type { AccessContext, Alert, Dim, MetricQuery, MetricResult, NextAction, QuickAction, Region, ResolvedQuery } from "@/lib/contracts";
 import { widgetKindFor } from "@/lib/cards/present";
-import { GEO_LEVELS, geoValueOf } from "@/lib/semantic/geo";
-import type { Dictionary } from "@/lib/semantic/dictionary";
+import { regionOfSlice, sliceCovers } from "@/lib/semantic/geo";
+import { namesOf, type Dictionary } from "@/lib/semantic/dictionary";
+import { effectiveFilters, pinnedSlice } from "@/lib/semantic/resolved";
 import { sharpestHarm } from "@/lib/cards/present";
 import { nextActionsFor } from "@/lib/engine/next-actions";
 import { followUpsFor, learnedKindShare } from "@/lib/engine/follow-ups";
@@ -34,31 +35,15 @@ function alreadyPinned(userId: string, query: MetricQuery): boolean {
   return isPinnedSlice(layouts().get(userId)?.widgets ?? [], query);
 }
 
-function sharedGeoLevel(alert: Alert, dim: Dim): Dim | null {
-  const alertLevel = GEO_LEVELS.findLast((level) => alert.dims[level]) ?? null;
-  if (!alertLevel) return null;
-  return GEO_LEVELS.indexOf(alertLevel) < GEO_LEVELS.indexOf(dim) ? alertLevel : dim;
+/** The open alert a card is about: the viewer's first open alert on the same metric inside every slice the answer is narrowed to. */
+function alertInQuestion(access: AccessContext, query: ResolvedQuery, dictionary: Dictionary): Alert | null {
+  const slice = effectiveFilters(query);
+  return openAlertsFor(access).find((alert) => alert.metric === query.metric && sliceCovers(dictionary, slice, alert.dims)) ?? null;
 }
 
-function alertCovers(dictionary: Dictionary, alert: Alert, dim: Dim, values: readonly string[]): boolean {
-  if (!GEO_LEVELS.includes(dim)) {
-    const scope = alert.dims[dim];
-    return !scope || values.includes(scope);
-  }
-  const level = sharedGeoLevel(alert, dim);
-  if (!level) return false;
-  const alertValue = geoValueOf(dictionary, alert.dims, level);
-  return values.some((value) => geoValueOf(dictionary, { [dim]: value }, level) === alertValue);
-}
-
-function matchesQuery(dictionary: Dictionary, alert: Alert, query: MetricQuery): boolean {
-  if (alert.metric !== query.metric) return false;
-  return Object.entries(query.filters).every(([dim, values]) => !values || values.length === 0 || alertCovers(dictionary, alert, dim as Dim, values));
-}
-
-function regionOf(dictionary: Dictionary, query: MetricQuery): Region | null {
-  const pinned = Object.entries(query.filters).filter(([, values]) => values?.length === 1).map(([dim, values]) => [dim, (values as string[])[0]]);
-  return geoValueOf(dictionary, Object.fromEntries(pinned), "region") as Region | null;
+/** The region a card's work belongs to: the one its slice is pinned to, else the region of the alert it is about; null for the whole country. */
+function regionOf(dictionary: Dictionary, query: ResolvedQuery, alert: Alert | null): Region | null {
+  return regionOfSlice(dictionary, pinnedSlice(effectiveFilters(query))) ?? (alert ? regionOfSlice(dictionary, alert.dims) : null);
 }
 
 function titleOf(query: MetricQuery, result: Extract<MetricResult, { ok: true }>): string {
@@ -66,10 +51,11 @@ function titleOf(query: MetricQuery, result: Extract<MetricResult, { ok: true }>
   return top ? `${metricLabel(query.metric)} · ${top.label}` : metricLabel(query.metric);
 }
 
-/** The buttons a metric card offers, decided from the result, the open alerts on that slice and how often it was asked. */
-export function actionsForMetric(access: AccessContext, query: MetricQuery, result: MetricResult, dictionary: Dictionary): NextAction[] {
+/** The buttons a metric card offers, decided from the resolved question, the open alerts on that slice and how often it was asked. */
+export function actionsForMetric(access: AccessContext, result: MetricResult, dictionary: Dictionary): NextAction[] {
   if (!result.ok) return [];
-  const alert = openAlertsFor(access).find((entry) => matchesQuery(dictionary, entry, query)) ?? null;
+  const { query } = result;
+  const alert = alertInQuestion(access, query, dictionary);
   const actions = nextActionsFor(
     access,
     {
@@ -81,7 +67,7 @@ export function actionsForMetric(access: AccessContext, query: MetricQuery, resu
       alertIds: alert ? [alert.id] : [],
       alertScope: alert ? alertScopeLabel(alert, dictionary) : null,
       verifyStep: alert ? alert.verifySteps[0] : null,
-      region: regionOf(dictionary, query),
+      region: regionOf(dictionary, query, alert),
       drawnAs: widgetKindFor(query, result),
     },
     alreadyPinned(access.userId, query) ? 0 : repeatsOf(access.userId, query),
@@ -89,18 +75,15 @@ export function actionsForMetric(access: AccessContext, query: MetricQuery, resu
   return withoutRepeatHandoff(actions, alert ? [alert.id] : []);
 }
 
-/** The buttons an anomaly card offers: hand the top alert to its owner, or verify it first. */
+function alertQueryOf(alert: Alert, dictionary: Dictionary): ResolvedQuery {
+  const filters = Object.fromEntries(Object.entries(alert.dims).map(([dim, id]) => [dim, [id as string]])) as Partial<Record<Dim, string[]>>;
+  return { metric: alert.metric, dims: [], filters, range: alert.window, grain: "day", compare: "prev_period", limit: 1, scopeApplied: {}, labels: namesOf(dictionary, filters) };
+}
+
+/** The buttons an anomaly card offers: hand the alert to its owner, or verify it first. */
 export function actionsForAlert(access: AccessContext, alert: Alert | null, dictionary: Dictionary): NextAction[] {
   if (!alert) return [];
-  const query: MetricQuery = {
-    metric: alert.metric,
-    dims: [],
-    filters: Object.fromEntries(Object.entries(alert.dims).map(([dim, value]) => [dim, [value as string]])),
-    range: alert.window,
-    grain: "day",
-    compare: "prev_period",
-    limit: 1,
-  };
+  const query = alertQueryOf(alert, dictionary);
   const scope = alertScopeLabel(alert, dictionary);
   const actions = nextActionsFor(access, {
     title: scope,
@@ -111,14 +94,14 @@ export function actionsForAlert(access: AccessContext, alert: Alert | null, dict
     alertIds: [alert.id],
     alertScope: scope,
     verifyStep: alert.verifySteps[0],
-    region: regionOf(dictionary, query),
+    region: regionOfSlice(dictionary, alert.dims),
   });
   return withoutRepeatHandoff(actions, [alert.id]);
 }
 
 /** The follow-up questions the chat offers under the composer after this result, minus what the card already offers. */
-export function followUpsForMetric(access: AccessContext, query: MetricQuery, result: MetricResult, cardActions: readonly NextAction[]): QuickAction[] {
+export function followUpsForMetric(access: AccessContext, result: MetricResult, cardActions: readonly NextAction[]): QuickAction[] {
   if (!result.ok) return [];
   const taken = cardActions.map((action) => action.prompt).filter((prompt): prompt is string => prompt !== null);
-  return followUpsFor(access, { query, result, taken }, learnedKindShare(actionEvents().all(), access.userId));
+  return followUpsFor(access, { query: result.query, result, taken }, learnedKindShare(actionEvents().all(), access.userId));
 }

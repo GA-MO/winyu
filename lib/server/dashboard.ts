@@ -131,7 +131,7 @@ function withoutPin(actions: NextAction[]): NextAction[] {
 
 async function viewOf(widget: WidgetSpec, access: AccessContext, relevant: readonly Alert[]): Promise<WidgetView> {
   const [result, extras] = await Promise.all([resolveWidget(widget, access), extrasFor(widget, access)]);
-  const actions = withoutPin(extras.actions ?? actionsForMetric(access, widget.query, result, await loadDictionary()));
+  const actions = withoutPin(extras.actions ?? actionsForMetric(access, result, await loadDictionary()));
   const hero = presentCard({ title: widget.title, query: widget.query, result }).hero;
   return {
     widget,

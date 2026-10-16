@@ -2,6 +2,7 @@ import type { AccessContext, Dim, NextAction, NextActionContext, WidgetKind } fr
 import { responsibleFor } from "@/lib/access/raci";
 import { metricLabel, metricSource, toneOf } from "@/lib/dashboard/metric-display";
 import { GEO_LEVELS, finestGeoLevel } from "@/lib/semantic/geo";
+import { askedQuery, effectiveFilters, pinnedSlice } from "@/lib/semantic/resolved";
 import { METRICS } from "@/lib/semantic/metrics";
 import { findUser } from "@/lib/data/entities/users";
 import { shortName } from "@/lib/i18n/format";
@@ -13,11 +14,6 @@ const BAD_DELTA_PCT = 5;
 const TIME_DIMS: readonly Dim[] = ["date", "week", "month"];
 const DRILL_DIM_ORDER: readonly Dim[] = ["region", "province", "channel", "brand", "agent"];
 const WIDGET_KIND_FOR_DIMS: Record<string, WidgetKind> = { time: "line", none: "metric", other: "bar" };
-
-function singleFilters(context: NextActionContext): Partial<Record<Dim, string>> {
-  const entries = Object.entries(context.query.filters).filter(([, values]) => values?.length === 1);
-  return Object.fromEntries(entries.map(([dim, values]) => [dim, (values as string[])[0]]));
-}
 
 function allows(access: AccessContext, tool: NextAction["tool"]): boolean {
   return tool === null || access.toolAllow.includes(tool);
@@ -45,7 +41,7 @@ function handoffAction(access: AccessContext, context: NextActionContext): NextA
       title: context.title,
       ask: TH.next.handoffAsk(scope),
       urgency: context.alertIds.length > 0 ? "high" : "medium",
-      evidence: [context.query],
+      evidence: [askedQuery(context.query)],
       alertIds: context.alertIds,
     },
     prompt: null,
@@ -80,7 +76,7 @@ function pinAction(context: NextActionContext, repeats: number): NextAction | nu
     label: TH.next.pin,
     reason: TH.next.pinReason(repeats),
     tool: "pin_widget",
-    input: { title: context.title, kind: widgetKindOf(context), query: context.query },
+    input: { title: context.title, kind: widgetKindOf(context), query: askedQuery(context.query) },
     prompt: null,
   };
 }
@@ -98,22 +94,16 @@ function verifyAction(context: NextActionContext): NextAction | null {
   };
 }
 
-/** The geography a card is already inside: the filters the question pinned, plus the one region a user may only see. */
-function pinnedGeography(access: AccessContext, context: NextActionContext): Partial<Record<Dim, string>> {
-  const filters = singleFilters(context);
-  if (filters.region || access.regions === "all" || access.regions.length !== 1) return filters;
-  return { ...filters, region: access.regions[0] };
-}
-
-function coveredByScope(access: AccessContext, context: NextActionContext, dim: Dim): boolean {
+/** True when the card's slice, the role's scope included, already sits at or inside that geo level. */
+function coveredByScope(context: NextActionContext, dim: Dim): boolean {
   const level = GEO_LEVELS.indexOf(dim);
-  return level !== -1 && level <= finestGeoLevel(pinnedGeography(access, context));
+  return level !== -1 && level <= finestGeoLevel(pinnedSlice(effectiveFilters(context.query)));
 }
 
-function drillDim(access: AccessContext, context: NextActionContext): Dim | null {
+function drillDim(context: NextActionContext): Dim | null {
   const used = new Set(context.query.dims);
   return DRILL_DIM_ORDER.find(
-    (dim) => !used.has(dim) && !coveredByScope(access, context, dim) && METRICS[context.query.metric].dims.includes(dim),
+    (dim) => !used.has(dim) && !coveredByScope(context, dim) && METRICS[context.query.metric].dims.includes(dim),
   ) ?? null;
 }
 
@@ -136,7 +126,7 @@ function drillAction(access: AccessContext, context: NextActionContext, causeOff
       prompt: TH.next.whyPrompt(metric, context.topLabel),
     };
   }
-  const dim = drillDim(access, context);
+  const dim = drillDim(context);
   if (!dim) return null;
   return {
     id: `drill-${dim}`,

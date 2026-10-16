@@ -10,6 +10,15 @@ export function effectiveFilters(query: ResolvedQuery): DimValues {
   return { ...query.filters, ...query.scopeApplied };
 }
 
+/** A slice of one value per dimension, as filters. */
+export function filtersOfSlice(slice: Partial<Record<Dim, string>>): DimValues {
+  const filters: DimValues = {};
+  for (const [dim, value] of Object.entries(slice) as [Dim, string | undefined][]) {
+    if (value) filters[dim] = [value];
+  }
+  return filters;
+}
+
 /** The dimensions narrowed to exactly one value, with that value. */
 export function pinnedSlice(filters: DimValues): Partial<Record<Dim, string>> {
   const pinned: Partial<Record<Dim, string>> = {};
