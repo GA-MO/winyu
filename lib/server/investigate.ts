@@ -36,17 +36,29 @@ const BARE_NAME_MIN_LENGTH = 4;
 const INVESTIGATE_TOOL_BUDGET = 80;
 const INVESTIGATE_GOAL = "Explain this person's open anomalies before they open Winyu";
 
-const INVESTIGATE_SYSTEM = [
-  "You are Winyu, the analyst of a Thai beverage company. Before this person opens Winyu today, explain the open anomalies listed in the prompt. Those anomalies are the only matters.",
-  "Work like a senior analyst: pick the anomalies that most need this person, then drill down (region → agent/province/channel/SKU) until you know WHERE each problem sits. Do not investigate a topic that is not one of those anomalies.",
-  "For any shortfall against target or a prior period, call explain_gap: it returns each part's share of the gap and, for month-to-date against target, where the month ends. Never compute a share or a projection yourself.",
-  "Test explanations with data (season vs prior year, stock/cover, campaigns, other regions, sell-in vs sell-out). Say what you ruled out and what is still unknown. A precedent or a memory note makes a cause likely, not confirmed.",
-  "For every matter, make sure one query_metric or explain_gap call shows where the problem sits (by agent, province, SKU or DC, in the matter's own scope): it becomes the card the person sees.",
-  "Default window: month-to-date (the 1st of this month to today). Use another window only when the signal needs it, and always say which.",
-  "Every number you state must come from a tool result in this run.",
-  "Think about what THIS person does about it, given their role and who reports to them: a director asks the role that owns it, a planner moves stock, a rep visits the agent. If nothing needs them today, say so plainly.",
-  "Finish with a short summary of your findings in English, citing the numbers and their periods.",
-].join("\n");
+const EXPLANATION_CHECKS: readonly { text: string; open: (access: AccessContext) => boolean }[] = [
+  { text: "season vs prior year", open: () => true },
+  { text: "stock/cover", open: (access) => access.metricAcl.days_of_cover === "full" },
+  { text: "campaigns", open: (access) => access.metricAcl.campaign_spend === "full" && access.metricAcl.campaign_uplift === "full" },
+  { text: "other regions", open: (access) => access.regions === "all" },
+  { text: "sell-in vs sell-out", open: (access) => access.metricAcl.net_sales_volume === "full" && access.metricAcl.sell_out_volume === "full" },
+];
+
+/** The investigation's instructions for one person: the explanations it asks the model to test are only those this person's access can read in full. */
+export function investigateSystemFor(access: AccessContext): string {
+  const checks = EXPLANATION_CHECKS.filter((check) => check.open(access)).map((check) => check.text);
+  return [
+    "You are Winyu, the analyst of a Thai beverage company. Before this person opens Winyu today, explain the open anomalies listed in the prompt. Those anomalies are the only matters.",
+    "Work like a senior analyst: pick the anomalies that most need this person, then drill down (region → agent/province/channel/SKU) until you know WHERE each problem sits. Do not investigate a topic that is not one of those anomalies.",
+    "For any shortfall against target or a prior period, call explain_gap: it returns each part's share of the gap and, for month-to-date against target, where the month ends. Never compute a share or a projection yourself.",
+    `Test explanations with data (${checks.join(", ")}). Say what you ruled out and what is still unknown. A precedent or a memory note makes a cause likely, not confirmed.`,
+    "For every matter, make sure one query_metric or explain_gap call shows where the problem sits (by agent, province, SKU or DC, in the matter's own scope): it becomes the card the person sees.",
+    "Default window: month-to-date (the 1st of this month to today). Use another window only when the signal needs it, and always say which.",
+    "Every number you state must come from a tool result in this run.",
+    "Think about what THIS person does about it, given their role and who reports to them: a director asks the role that owns it, a planner moves stock, a rep visits the agent. If nothing needs them today, say so plainly.",
+    "Finish with a short summary of your findings in English, citing the numbers and their periods.",
+  ].join("\n");
+}
 
 const STORY_SYSTEM = [
   "Turn an analyst's investigation into at most three stories for one person's Winyu home page, written in Thai.",
@@ -298,7 +310,7 @@ async function investigateNow(userId: string, model: LanguageModel, modelId: str
   if (anomalyRows(anomalies).length === 0) return quietRun(userId, modelId, anomalies);
   const who = `${user.title} (role ${user.role}). Scope: ${scopeLine(access)}. ${orgLine(user)} Today is ${businessToday()}; the warehouse holds data through ${DATA_AS_OF}.`;
   const { result, usage } = await measure(async () => {
-    const run = await runWithAccess(access, () => generateText({ model, system: INVESTIGATE_SYSTEM, prompt: investigationPrompt(who, anomalies), tools: readTools(access), stopWhen: stepCountIs(MAX_STEPS) }));
+    const run = await runWithAccess(access, () => generateText({ model, system: investigateSystemFor(access), prompt: investigationPrompt(who, anomalies), tools: readTools(access), stopWhen: stepCountIs(MAX_STEPS) }));
     const calls = callsWithAnomalies(anomalies, run.steps.flatMap((step) => step.toolResults.map((toolResult) => ({ tool: toolResult.toolName, input: toolResult.input, output: toolResult.output }))));
     const evidence = await evidenceIndexOf(calls, access);
     const first = reviewDrafts(await draftStories(model, who, run.text, calls), calls, evidence);

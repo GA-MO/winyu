@@ -3,7 +3,7 @@ import { accessFor } from "@/lib/access/policies";
 import { findUser } from "@/lib/data/entities/users";
 import type { DraftStory, MetricQuery } from "@/lib/contracts";
 import { runMetric } from "./metrics";
-import { callsWithAnomalies, cardNumbersOf, evidenceIndexOf, gapQueryOf, openAnomalies, repeatedIn, reviewDrafts, roleHoldersNamedIn, storiesFrom, evidenceQueryOf, withoutPinnedDims, type ToolCall } from "./investigate";
+import { callsWithAnomalies, cardNumbersOf, evidenceIndexOf, gapQueryOf, investigateSystemFor, openAnomalies, repeatedIn, reviewDrafts, roleHoldersNamedIn, storiesFrom, evidenceQueryOf, withoutPinnedDims, type ToolCall } from "./investigate";
 import { DATA_AS_OF, dataDay, monthStart } from "@/lib/data/dates";
 
 function accessOf(userId: string) {
@@ -11,6 +11,20 @@ function accessOf(userId: string) {
   if (!user) throw new Error(`missing ${userId}`);
   return accessFor(user);
 }
+
+describe("the investigation only asks for explanations the person can read", () => {
+  test("a regional sales manager is not told to test campaigns or other regions", () => {
+    const system = investigateSystemFor(accessOf("u_anucha"));
+    expect(system).not.toMatch(/campaign/i);
+    expect(system).not.toContain("other regions");
+    expect(system).toContain("stock/cover");
+  });
+
+  test("the CEO is told to test every explanation", () => {
+    const system = investigateSystemFor(accessOf("u_thana"));
+    for (const check of ["season vs prior year", "stock/cover", "campaigns", "other regions", "sell-in vs sell-out"]) expect(system).toContain(check);
+  });
+});
 
 describe("an investigation starts from anomalies", () => {
   test("the CEO's open anomalies are read through get_alerts before any story is written", async () => {

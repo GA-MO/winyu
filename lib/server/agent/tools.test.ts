@@ -306,3 +306,33 @@ describe("tool definitions for the prompt cache", () => {
     expect(names).toEqual(toolSurface().map((entry) => entry.name).filter((name) => names.includes(name)));
   });
 });
+
+describe("the metrics a person's tools offer follow their metric access", () => {
+  function offeredMetrics(userId: string, tool: string): string[] {
+    const found = toolsForAccess(accessOf(userId)).find((candidate) => candidate.entry.name === tool);
+    const schema = z.toJSONSchema(found!.inputSchema(), { unrepresentable: "any", io: "input" });
+    const metric = schema.properties?.metric;
+    return typeof metric === "object" && Array.isArray(metric.enum) ? metric.enum.map(String) : [];
+  }
+
+  test("a regional sales manager is never offered a metric their role cannot see, and keeps the masked ones", () => {
+    for (const tool of ["query_metric", "explain_gap", "get_forecast"]) {
+      const metrics = offeredMetrics("u_anucha", tool);
+      expect(metrics).not.toContain("campaign_spend");
+      expect(metrics).not.toContain("headcount");
+      expect(metrics).toContain("net_sales_volume");
+      expect(metrics).toContain("gross_margin");
+    }
+  });
+
+  test("the CEO is offered every metric", () => {
+    expect(offeredMetrics("u_thana", "query_metric")).toContain("campaign_spend");
+    expect(offeredMetrics("u_thana", "query_metric")).toHaveLength(21);
+  });
+
+  test("the narrowed schema refuses a metric the role cannot see", () => {
+    const tool = toolsForAccess(accessOf("u_anucha")).find((candidate) => candidate.entry.name === "query_metric");
+    expect(tool?.inputSchema().safeParse(query({ metric: "campaign_spend" })).success).toBe(false);
+    expect(tool?.inputSchema().safeParse(query({ metric: "net_sales_volume" })).success).toBe(true);
+  });
+});

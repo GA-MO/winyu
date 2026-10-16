@@ -1,7 +1,15 @@
+import { z } from "zod";
+import { askableMetrics } from "@/lib/access/grants";
 import { toolsFor } from "@/lib/access/enforce";
-import type { AccessContext, ToolTier } from "@/lib/contracts";
+import { explainGapInputSchema, getForecastInputSchema, metricQueryInputSchema, type AccessContext, type MetricId, type ToolTier } from "@/lib/contracts";
 import type { WinyuTool } from "@/lib/server/tools/define";
 import { winyuTool, toolSurface } from "@/lib/server/tools/registry";
+
+const METRIC_INPUTS: Readonly<Record<string, (metric: z.ZodType<MetricId>) => z.ZodType>> = {
+  query_metric: (metric) => metricQueryInputSchema.extend({ metric }),
+  explain_gap: (metric) => explainGapInputSchema.extend({ metric }),
+  get_forecast: (metric) => getForecastInputSchema.extend({ metric }),
+};
 
 function winyuToolOf(name: string): WinyuTool {
   const found = winyuTool(name);
@@ -19,7 +27,19 @@ export function winyuTools(): Record<string, WinyuTool> {
   return Object.fromEntries(toolSurface().map((entry) => [entry.name, winyuToolOf(entry.name)]));
 }
 
-/** The tools one person's agent gets: the surface minus what the policy and the kill switch withhold. */
+function withAskableMetrics(tool: WinyuTool, metrics: MetricId[]): WinyuTool[] {
+  const narrowed = METRIC_INPUTS[tool.entry.name];
+  if (!narrowed) return [tool];
+  if (metrics.length === 0) return [];
+  const metric = z.enum(metrics as [MetricId, ...MetricId[]]);
+  return [{ ...tool, inputSchema: () => narrowed(metric) }];
+}
+
+/** The tools one person's agent gets: the surface minus what the policy and the kill switch withhold, with every metric argument offering only the metrics this person may ask about. */
 export function toolsForAccess(access: AccessContext): WinyuTool[] {
-  return toolsFor(access).flatMap((name) => winyuTool(name) ?? []);
+  const metrics = askableMetrics(access, new Date());
+  return toolsFor(access).flatMap((name) => {
+    const tool = winyuTool(name);
+    return tool ? withAskableMetrics(tool, metrics) : [];
+  });
 }

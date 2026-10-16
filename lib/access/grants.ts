@@ -1,4 +1,4 @@
-import { BRANDS, REGIONS, type AccessContext, type ActiveGrant, type Brand, type GrantDays, type GrantRef, type GrantRefusal, type GrantSlice, type MetricId, type Region, type RoleId } from "@/lib/contracts";
+import { BRANDS, METRIC_IDS, REGIONS, type AccessContext, type ActiveGrant, type Brand, type GrantDays, type GrantRef, type GrantRefusal, type GrantSlice, type MetricId, type Region, type RoleId } from "@/lib/contracts";
 import type { SharedRead } from "@/lib/share/card";
 import { METRIC_DOMAINS, type MetricDomain } from "./policies";
 import { factsOf, ruleThatDenies, type PolicyRule } from "./policy-rules";
@@ -80,6 +80,11 @@ export function metricAccess(access: AccessContext, metric: MetricId, at: Date):
     access: { ...access, ...scope, metricAcl: { ...access.metricAcl, [metric]: access.metricAcl[metric] === "none" ? "full" : access.metricAcl[metric] } },
     grant: { id: grant.id, grantorId: grant.grantorId, expiresAt: grant.expiresAt },
   };
+}
+
+/** The metrics one person may ask about now: every metric their role sees in full or masked, plus any a live grant opens; a metric the role cannot see at all is left out. */
+export function askableMetrics(access: AccessContext, at: Date): MetricId[] {
+  return METRIC_IDS.filter((metric) => metricAccess(access, metric, at).access.metricAcl[metric] !== "none");
 }
 
 function filterValues(value: unknown): string[] | null {
