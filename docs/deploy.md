@@ -48,7 +48,7 @@ Dashed lines happen only at build time. At run time the container talks to `open
 
 Bun is in the build stage only. The runtime image has Node and no Bun. The runtime base is Debian, not Alpine, because `onnxruntime-node` needs glibc.
 
-The image sets `NODE_ENV=production`, `WINYU_DATA_DIR=/data`, and `PORT=8080`. It declares `VOLUME /data`, `EXPOSE 8080`, and a health check that fetches `/login` every 30 seconds.
+The image sets `NODE_ENV=production`, `WINYU_DATA_DIR=/data`, and `PORT=8080`. It also sets `COPILOTKIT_TELEMETRY_DISABLED=true` and `NEXT_TELEMETRY_DISABLED=1`. Without them, the CopilotKit runtime reports every runtime start and every run to `telemetry.copilotkit.ai`, and `next build` reports to Vercel. It declares `VOLUME /data`, `EXPOSE 8080`, and a health check that fetches `/login` every 30 seconds.
 
 ## Startup
 
@@ -100,7 +100,7 @@ The demo does not use the `ENTRA_*`, `LINE_*`, `TEAMS_*`, or `WINYU_PUBLIC_URL` 
 The demo is public. Anyone who opens the URL can pick any of the 26 personas, IT admin included, and spend model credit with our key. Keep these limits in place:
 
 - Give the demo its own OpenRouter key and set a credit limit on that key. The app has no per-visitor limit.
-- Leave `WINYU_CONNECTOR_HOSTS` empty, so that the IT admin persona cannot point a connector at any host.
+- Leave `WINYU_CONNECTOR_HOSTS` empty, so that the IT admin persona cannot point a connector at any host. When the external document RAG connects as an MCP connector, add only its host, in `winyu-config` and in `.env.local` for local testing. Without it, the admin console refuses the connector with `host_not_allowed`.
 - Reset the data on a schedule. Visitors who pick the same persona share its threads, memory, and dashboard.
 
 ## Build machine

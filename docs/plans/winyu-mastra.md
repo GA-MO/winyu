@@ -1,6 +1,6 @@
 # Winyu on Mastra + CopilotKit: what is left
 
-Winyu now runs on Mastra (agent) + CopilotKit (chat over AG-UI). Branch `winyu-mastra` holds it (merge 8ea0e62 keeps both histories; the Vexa build is tag `winyu-vexa-final`). The full feature record is `docs/plan.md` (phases M0–M5, F1–F15, S). This file holds only the phases still to do.
+Winyu now runs on Mastra (agent) + CopilotKit (chat over AG-UI). It lives on `main` (merge 8ea0e62 keeps both histories; the Vexa build is tag `winyu-vexa-final`). The `winyu-mastra` branch was merged into `main` and deleted on 2026-10-16. The full feature record is `docs/plan.md` (phases M0–M5, F1–F15, S). This file holds only the phases still to do.
 
 ## สถานะ (updated 2026-10-06)
 ทำแล้ว: Phase F ทั้งหมด (F1–F11, F14, F15) + merge เข้า Cop (8ea0e62) · การ์ดแชร์ปุ่ม/ลิงก์ (099a47d) · ปุ่มส่งต่อแบบ B ทุกการ์ดและ dashboard (0311a51) · `share_card` จากแชทพร้อมยืนยัน, find_people ไม่แนบตำแหน่งว่างเมื่อค้นด้วยชื่อ (4f8effa) · Phase 1 สิทธิ์ชั่วคราว (584e29e) · test 867 pass, eval 66/67 (line-under-target known), 0 stale

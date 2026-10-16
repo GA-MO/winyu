@@ -108,7 +108,7 @@ flowchart LR
 
 - **ต้องเป็น HTTPS:** cookie ของ session ใน production เป็น `Secure` ถ้าเข้าผ่าน HTTP ธรรมดาจะ login ไม่ติดและไม่มี error บอก
 - **เปิดสาธารณะ:** ใครมี URL ก็เลือก persona ได้ทุกตัว รวม IT admin และเรียก model ด้วย key ของเราได้ ในแอปไม่มี limit ต่อผู้ใช้ เพดานมีแค่วงเงินของ OpenRouter key
-- **egress ตอนรัน:** ออกไปที่ `openrouter.ai` เท่านั้น `WINYU_CONNECTOR_HOSTS` ตั้งว่างไว้ ทำให้ persona IT admin เพิ่ม connector ไปหา host ใดๆ ไม่ได้
+- **egress ตอนรัน:** ออกไปที่ `openrouter.ai` เท่านั้น `WINYU_CONNECTOR_HOSTS` ตั้งว่างไว้ ทำให้ persona IT admin เพิ่ม connector ไปหา host ใดๆ ไม่ได้ เมื่อระบบ doc RAG ภายนอกมาต่อเป็น MCP connector ให้เพิ่มเฉพาะ host ของระบบนั้นใน ConfigMap `winyu-config` แล้ว restart pod และเปิด egress จาก pod ไปที่ host นั้น
 - **background job:** รันอยู่ใน pod เดียวกันตาม cron เวลาไทย (เที่ยงคืน, ทุกชั่วโมง, 07:00) ไม่ต้องตั้ง CronJob แยก
 
 ## วิธีตรวจและดูแล

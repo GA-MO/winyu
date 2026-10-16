@@ -16,4 +16,4 @@ Delete the feature: the tool, the corpus, the index, the admin tab, the `Documen
 - `get_policy` still answers leave balances and benefits.
 - The local e5 embedder stays, because memory recall uses it.
 - The prompt and the tool surface changed, so every eval recording is stale. They still score, but they hold the old model's answers. Re-record them when the external RAG lands, not before.
-- The GitLab repository starts without history. The removed code is in the earlier repository, `github.com/GA-MO/cop`, branch `winyu-mastra`, at commit `bbad5fb` and before.
+- The GitLab repository starts without history. The removed code is in the earlier repository, `github.com/GA-MO/cop`, branch `main`, at commit `bbad5fb` and before.
