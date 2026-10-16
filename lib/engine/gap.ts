@@ -1,5 +1,6 @@
 const TOP_CONTRIBUTORS = 5;
 const PERCENT_DIGITS = 1;
+const DOMINANT_SHARE = 0.2;
 
 export type GapPart = { label: string; value: number; compare: number };
 export type Contribution = { label: string; gap: number; share: number };
@@ -25,6 +26,12 @@ export function breakDownGap(total: GapPart, parts: readonly GapPart[]): GapBrea
   const restGap = drivers.slice(TOP_CONTRIBUTORS).reduce((sum, part) => sum + part.gap, 0);
   const offsetting = withGap.filter((part) => part.gap !== 0 && !sameSign(part.gap, gap)).sort((left, right) => Math.abs(right.gap) - Math.abs(left.gap)).slice(0, TOP_CONTRIBUTORS).map((part) => ({ ...part, share: share(part.gap) }));
   return { gap, contributors, rest: restGap === 0 ? null : { label: "", gap: restGap, share: share(restGap) }, offsetting };
+}
+
+/** Whether the gap is spread wide: no part that made it explains a fifth of it, so none is its main cause. */
+export function isBroad(breakdown: GapBreakdown): boolean {
+  const [biggest] = breakdown.contributors;
+  return biggest !== undefined && Math.abs(biggest.share) < DOMINANT_SHARE;
 }
 
 /** Where the month ends if the rest of it sells at the recent daily pace, against a target spread evenly over the month's days; also how much of the whole month's target is done so far and what is left to reach it. */

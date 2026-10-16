@@ -3,7 +3,7 @@ import { explainGapInputSchema, type MetricQuery, type MetricResult, type Metric
 import { metricLabel } from "@/lib/dashboard/metric-display";
 import { formatForSummary } from "@/lib/semantic/engine";
 import { metricDef } from "@/lib/semantic/metrics";
-import { breakDownGap, formatShare, type Contribution, type GapBreakdown, type GapPart } from "@/lib/engine/gap";
+import { breakDownGap, formatShare, isBroad, type Contribution, type GapBreakdown, type GapPart } from "@/lib/engine/gap";
 import { TH } from "@/lib/i18n/th";
 import { runMetric } from "@/lib/server/metrics";
 import { currentAccess } from "@/lib/server/request-context";
@@ -59,6 +59,16 @@ function sharesOverWhole(breakdown: GapBreakdown): boolean {
   return [...breakdown.contributors, ...(breakdown.rest ? [breakdown.rest] : [])].some((part) => part.share > 1);
 }
 
+/** What the model must know before naming a cause: shares above 100%, and a gap spread so wide that no part is its main cause. */
+function shareNoteOf(breakdown: GapBreakdown): string | null {
+  const [biggest] = breakdown.contributors;
+  const notes = [
+    ...(sharesOverWhole(breakdown) ? [TH.cards.gap.overHundred] : []),
+    ...(biggest && isBroad(breakdown) ? [TH.cards.gap.broad(biggest.label, formatShare(biggest.share))] : []),
+  ];
+  return notes.length > 0 ? notes.join(" · ") : null;
+}
+
 function isFailure(result: MetricResult): result is Extract<MetricResult, { ok: false }> {
   return !result.ok;
 }
@@ -69,7 +79,7 @@ export const explainGapTool = defineTool({
   tier: "read",
   roles: "all",
   description:
-    "Split the gap between actual and target (or a prior period) of an additive metric by one dimension: each part's own gap and its share of the whole gap, computed by Winyu, plus the parts pulling the other way. With compare=target over month-to-date it also projects where the month ends at the recent pace. Call it before saying who or what caused a shortfall; copy share_label as is, never compute a share yourself.",
+    "Split the gap between actual and target (or a prior period) of an additive metric by one dimension: each part's own gap and its share of the whole gap, computed by Winyu, plus the parts pulling the other way. With compare=target over month-to-date it also projects where the month ends at the recent pace. Call it before saying who or what caused a shortfall; copy share_label as is, never compute a share yourself. When share_note says no part stands out, say the gap is spread wide and name no part as its main cause.",
   input: explainGapInputSchema,
   execute: async (input: Input) => {
     const access = currentAccess();
@@ -91,7 +101,7 @@ export const explainGapTool = defineTool({
       contributors: breakdown.contributors.map((contribution) => contributionRow(input, contribution)),
       rest: breakdown.rest ? contributionRow(input, { ...breakdown.rest, label: OTHERS }) : null,
       offsetting: breakdown.offsetting.map((contribution) => offsettingRow(input, contribution)),
-      share_note: sharesOverWhole(breakdown) ? TH.cards.gap.overHundred : null,
+      share_note: shareNoteOf(breakdown),
       projection: projectionOf(total),
     };
   },
