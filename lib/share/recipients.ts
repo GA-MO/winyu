@@ -1,4 +1,4 @@
-const HONORIFIC = /^(คุณ|khun\s|k\.)\s*/i;
+const HONORIFICS = /^(?:(?:คุณ|พี่|น้อง|ป้า|ลุง|เฮีย|เจ๊|khun\s|k\.|p')\s*)+/i;
 const WORD_GAP = /\s+/;
 const MIN_PARTIAL_NAME = 2;
 
@@ -12,7 +12,7 @@ export type RecipientMatch<Person extends Named> =
   | { asked: string; kind: "unknown" };
 
 function bare(text: string): string {
-  return text.trim().replace(HONORIFIC, "").trim().toLowerCase();
+  return text.trim().replace(HONORIFICS, "").trim().toLowerCase();
 }
 
 function fullNames(person: Named): string[] {

@@ -20,6 +20,15 @@ describe("recipient names", () => {
     expect(idsOf("u_krit")).toEqual(["u_krit"]);
   });
 
+  test("a Thai kinship or courtesy word before the name is not part of it, so พี่อนุชา is คุณอนุชา", () => {
+    expect(idsOf("พี่อนุชา")).toEqual(["u_anucha"]);
+    expect(idsOf("พี่ อนุชา")).toEqual(["u_anucha"]);
+    expect(idsOf("น้องกฤต")).toEqual(["u_krit"]);
+    expect(idsOf("ป้านก")).toEqual(["u_nok"]);
+    expect(idsOf("ลุงประสิทธิ์")).toEqual(["u_prasit"]);
+    expect(idsOf("คุณพี่อนุชา")).toEqual(["u_anucha"]);
+  });
+
   test("a whole first name beats part of another name, so คุณนก is not คุณกนก", () => {
     expect(idsOf("คุณนก")).toEqual(["u_nok"]);
     expect(idsOf("กนก")).toEqual(["u_kanok"]);
