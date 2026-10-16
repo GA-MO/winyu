@@ -5,13 +5,17 @@ import { LIMITS } from "@/lib/harness/limits";
 import type { Capability, Corrector, Readiness, Verifier } from "@/lib/harness/types";
 import { TH } from "@/lib/i18n/th";
 
-/** A tool as every engine sees it: its place on the surface, its capability, a description and a zod input read on demand, and the gateway as its only execute. */
+/** What a model reads of a tool's result when it must not read all of it; the card, the audit and the person get the result itself. */
+export type ModelView = (output: unknown) => unknown;
+
+/** A tool as every engine sees it: its place on the surface, its capability, a description and a zod input read on demand, the gateway as its only execute, and what a model reads of the result when that differs from the result. */
 export type WinyuTool<Name extends string = string> = {
   entry: ToolSurfaceEntry & { name: Name };
   capability: Capability;
   description: () => string;
   inputSchema: () => z.ZodType;
   execute: GatedTool<unknown>;
+  modelView?: ModelView;
 };
 
 type NativeToolSpec<Name extends NativeToolName, Input extends z.ZodType> = {
@@ -27,6 +31,7 @@ type NativeToolSpec<Name extends NativeToolName, Input extends z.ZodType> = {
   correct?: Corrector;
   redact?: readonly string[];
   timeoutMs?: number;
+  modelView?: ModelView;
 };
 
 /** One tool of Winyu's own: its place on the surface (connector, tier, roles), its post-condition, and an execute that only runs through the harness gateway. */
@@ -41,5 +46,6 @@ export function defineTool<Name extends NativeToolName, Input extends z.ZodType>
     description: () => (typeof describe === "string" ? describe : describe()),
     inputSchema: () => spec.input,
     execute: gated(capability, spec.execute) as GatedTool<unknown>,
+    ...(spec.modelView ? { modelView: spec.modelView } : {}),
   };
 }

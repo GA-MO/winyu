@@ -26,11 +26,14 @@ function gatewayStepsOf(toolCallId: string): GatewayStep[] {
 function mastraToolOf(winyuTool: WinyuTool, access: AccessContext) {
   const { capability, execute } = winyuTool;
   const approval = approvalOf(capability.tier) === "required" ? { requireApproval: (input: unknown) => inAccess(access, () => asksApproval(capability, input)) } : {};
+  const { modelView } = winyuTool;
+  const modelOutput = modelView ? { toModelOutput: (output: unknown) => ({ type: "json" as const, value: modelView(output) }) } : {};
   return createTool({
     id: winyuTool.entry.name,
     description: winyuTool.description(),
     inputSchema: winyuTool.inputSchema(),
     ...approval,
+    ...modelOutput,
     execute: async (input: unknown, context) => {
       const toolCallId = context.agent?.toolCallId;
       const result = await inAccess(access, () => execute(input, { toolCallId }));
@@ -40,7 +43,7 @@ function mastraToolOf(winyuTool: WinyuTool, access: AccessContext) {
   });
 }
 
-/** Neutral tools as a Mastra tool set: approval only for a call the policy would let through (reads never), and the gateway as the only execute, whose decisions (authorized or denied, observed, verified, recovered) are written onto the call's Mastra span. A call that runs outside the chat request's scope (Studio's background thread runs) is gated in the access the tools were resolved for. */
+/** Neutral tools as a Mastra tool set: approval only for a call the policy would let through (reads never), the gateway as the only execute, the model reading a tool's model view where it has one, whose decisions (authorized or denied, observed, verified, recovered) are written onto the call's Mastra span. A call that runs outside the chat request's scope (Studio's background thread runs) is gated in the access the tools were resolved for. */
 export function mastraTools(tools: readonly WinyuTool[], access: AccessContext): ToolsInput {
   return Object.fromEntries(tools.map((winyuTool) => [winyuTool.entry.name, mastraToolOf(winyuTool, access)]));
 }

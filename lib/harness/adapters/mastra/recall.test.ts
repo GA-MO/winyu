@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import type { MetricQuery } from "@/lib/contracts";
-import { TH } from "@/lib/i18n/th";
 import { useEmbedder } from "@/lib/server/recall/embedder";
 import { TRIGRAM_EMBEDDER } from "@/lib/server/recall/trigram-embedder";
 import type { Embedder, RecallTurn } from "@/lib/server/recall/types";
@@ -39,13 +38,13 @@ afterEach(async () => {
 });
 
 describe("conversation recall", () => {
-  test("finds the person's own earlier conversation with its numbers masked and its queries kept", async () => {
+  test("finds the person's own earlier conversation in their own words with its queries kept", async () => {
     await indexTurn(turn(USER, "t_attrition", "อัตราการลาออกแต่ละฝ่ายเป็นยังไง", "ฝ่ายขายลาออก 12.5% สูงสุด", [ATTRITION_QUERY]));
     await indexTurn(turn(USER, "t_stock", "สต๊อกดีซีลำพูนพอขายกี่วัน", "พอขาย 9 วัน"));
     const [found] = await searchConversations(USER, "ครั้งก่อนที่คุยเรื่องอัตราการลาออก");
     expect(found?.threadId).toBe("t_attrition");
     expect(found?.question).toBe("อัตราการลาออกแต่ละฝ่ายเป็นยังไง");
-    expect(found?.reply).toBe(`ฝ่ายขายลาออก ${TH.memory.maskedNumber}% สูงสุด`);
+    expect(found?.reply).toBe("ฝ่ายขายลาออก 12.5% สูงสุด");
     expect(found?.queries).toEqual([ATTRITION_QUERY]);
   });
 

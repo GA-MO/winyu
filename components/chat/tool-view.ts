@@ -6,6 +6,7 @@ import type { ReplyStep, ToolStep } from "./timeline";
 const DECLINED_TEXT = /not approved|declined|rejected|denied/i;
 const ANSWER_LISTS = ["rows", "weeks", "data"] as const;
 const CATALOG_TOOL = "list_metrics";
+const RECALL_TOOL = "recall_memory";
 const PEOPLE_LOOKUPS: ReadonlySet<string> = new Set(["find_people", "get_person", "resolve_owner"]);
 const ENTITY_LOOKUP = "describe_entity";
 const USER_ENTITY = "user";
@@ -134,6 +135,12 @@ function peopleFound(step: ToolStep): Named[] {
   return (Array.isArray(data) ? data : [data]).flatMap((row) => namedOf(row) ?? []);
 }
 
+/** Every memory recall of the exchange but the last that answered: each recall in a turn returns all the turn has recalled, so the last one is the whole of it and the reply draws one memory card. */
+function earlierRecalls(steps: readonly ToolStep[]): string[] {
+  const recalls = steps.filter((step) => step.name === RECALL_TOOL && answered(step));
+  return recalls.slice(0, -1).map((step) => step.toolCallId);
+}
+
 /** People lookups (a colleague found by name, team, owner or user record) that found whom a later call of the exchange sends something to (a share, a handoff, an email): the lookup was the way to the action, so its card is not the answer. */
 function recipientLookups(steps: readonly ToolStep[]): string[] {
   return steps.flatMap((step, index) => {
@@ -147,7 +154,7 @@ function recipientLookups(steps: readonly ToolStep[]): string[] {
 /** One card per question: a composed card holds only read results, so a write's receipt is never left out for it; a people lookup that found the recipient of a later share, handoff or email in the exchange is left out, a refused or failed call the model corrected later in the exchange (the same tool answered after it) is left out, and the metric catalog the model browsed on the way is left out once another card answers; `composed` are the calls a composed card already holds. */
 export function cardPlanOf(steps: readonly ToolStep[], composed: ReadonlySet<string>, cardTools: ReadonlySet<string>): CardPlan {
   const heldInCard = steps.flatMap((step) => (composed.has(step.toolCallId) && cardTools.has(step.name) ? [step.toolCallId] : []));
-  const hidden = new Set([...heldInCard, ...recoveredFailures(steps), ...recipientLookups(steps)]);
+  const hidden = new Set([...heldInCard, ...recoveredFailures(steps), ...recipientLookups(steps), ...earlierRecalls(steps)]);
   if (!steps.some((step) => drawsAnswer(step, hidden, cardTools))) return { hidden };
   for (const step of steps) if (step.name === CATALOG_TOOL) hidden.add(step.toolCallId);
   return { hidden };

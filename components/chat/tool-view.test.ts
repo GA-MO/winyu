@@ -38,3 +38,16 @@ describe("a people lookup on the way to an action is not the answer", () => {
     expect(hiddenOf([returned("d1", "describe_entity", { kind: "agent", query: "u_krit" }, { ok: true, data: { id: "u_krit" } }), pending("h1", "create_handoff", { toUserId: "u_krit" })])).toEqual([]);
   });
 });
+
+describe("memory recalls", () => {
+  const RECALL = { ok: true, summary: "จำได้", data: [], conversations: [] };
+
+  test("two recalls in one reply draw one memory card, the last one, which holds what both found", () => {
+    const steps = [returned("r1", "recall_memory", { query: "ด้ามขวาน" }, RECALL), returned("r2", "recall_memory", { query: "ลีโอ" }, RECALL)];
+    expect([...cardPlanOf(steps, new Set(), new Set(["recall_memory"])).hidden]).toEqual(["r1"]);
+  });
+
+  test("a single recall draws its card", () => {
+    expect([...cardPlanOf([returned("r1", "recall_memory", { query: "ลีโอ" }, RECALL)], new Set(), new Set(["recall_memory"])).hidden]).toEqual([]);
+  });
+});

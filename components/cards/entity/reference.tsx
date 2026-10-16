@@ -130,7 +130,14 @@ export function EntityCard({ result }: { result: unknown }) {
   );
 }
 
-/** recall_memory: what the assistant remembers about this user, each fact with how sure it is. */
+/** When a past conversation was had, and its title only when the title is not the start of the question shown under it. */
+function conversationMeta(conversation: { title: string; at: string; question: string }): string {
+  const when = formatDateTh(conversation.at);
+  const title = conversation.title.trim();
+  return title && !conversation.question.trim().startsWith(title) ? `${title} · ${when}` : when;
+}
+
+/** recall_memory: what the assistant remembers about this user, each fact with how sure it is, and past conversations in the person's own words. */
 export function MemoryCard({ result }: { result: unknown }) {
   return (
     <ParsedCard parsed={parseResult(memoryResult, result)} title={TH.cards.memoryTitle}>
@@ -155,7 +162,7 @@ export function MemoryCard({ result }: { result: unknown }) {
                 {conversations.map((conversation) => (
                   <li key={conversation.threadId}>
                     <Link href={`/c/${conversation.threadId}`} className="flex flex-col gap-0.5 rounded-xl border border-border px-3 py-2.5 transition hover:border-foreground/25">
-                      <span className="text-[11px] text-muted-foreground">{`${conversation.title} · ${formatDateTh(conversation.at)}`}</span>
+                      <span className="text-[11px] text-muted-foreground">{conversationMeta(conversation)}</span>
                       <span className="text-sm text-foreground">{conversation.question}</span>
                     </Link>
                   </li>

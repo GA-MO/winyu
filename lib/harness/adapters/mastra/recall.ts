@@ -3,7 +3,7 @@ import type { LibSQLVector } from "@mastra/libsql";
 import { z } from "zod";
 import type { MetricQuery } from "@/lib/contracts";
 import { currentEmbedder } from "@/lib/server/recall/embedder";
-import { maskNumbers, REPLY_CHARS, truncate } from "@/lib/server/recall/mask";
+import { REPLY_CHARS, truncate } from "@/lib/server/recall/mask";
 import type { Embedder, RecallTurn, RecalledConversation } from "@/lib/server/recall/types";
 import { DATA_DIR } from "@/lib/server/store/json-store";
 import { threads } from "@/lib/server/threads-read";
@@ -123,8 +123,8 @@ function recalled(hit: Hit, title: string): RecalledConversation {
     threadId: metadata.thread_id,
     title,
     at: metadata.at,
-    question: maskNumbers(metadata.question),
-    reply: truncate(maskNumbers(metadata.reply), REPLY_CHARS),
+    question: metadata.question,
+    reply: truncate(metadata.reply, REPLY_CHARS),
     queries: queriesOf(metadata.queries),
     score: hit.score,
   };
@@ -142,7 +142,7 @@ export async function indexTurn(turn: RecallTurn): Promise<void> {
   });
 }
 
-/** The person's past conversations closest to a question, best first: one per thread, only threads that still exist and are theirs, numbers masked. */
+/** The person's past conversations closest to a question, best first: one per thread, only threads that still exist and are theirs, in their own words (what a model reads of them is masked by `recall_memory`'s model view). */
 export async function searchConversations(userId: string, query: string, options: { excludeThreadId?: string | null; limit?: number } = {}): Promise<RecalledConversation[]> {
   const queryVector = await currentEmbedder().query(query);
   const results = await (await vectorStore()).query({ indexName: INDEX_NAME, queryVector, topK: SEARCH_TOP_K, filter: { resource_id: userId } });

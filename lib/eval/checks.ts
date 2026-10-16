@@ -455,7 +455,7 @@ export const EVAL_CHECKS: readonly EvalCheck[] = [
       if (!expected.expectRecall) return null;
       const earlier = (expected.before ?? []).map(maskNumbers);
       const found = recalledQuestions(turn);
-      const hit = found.some((question) => earlier.includes(question));
+      const hit = found.some((question) => earlier.includes(maskNumbers(question)));
       const called = turn.calls.some((call) => call.tool === RECALL_TOOL);
       return verdict(hit, hit ? "พบบทสนทนาก่อนหน้า" : called ? `ได้ ${found.join(" · ") || "ไม่มีบทสนทนา"}` : `ไม่ได้เรียก ${RECALL_TOOL}`);
     },

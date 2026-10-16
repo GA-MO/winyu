@@ -32,6 +32,15 @@ describe("MemoryCard", () => {
     expect(card.querySelector("a")?.getAttribute("href")).toBe("/c/t_past");
   });
 
+  test("shows the person's own past words with their numbers, and the date instead of a title that only repeats the start of the question", async () => {
+    const question = "จำไว้ว่าเป้าทั้งปีของลีโอคือ 900 ล้านลิตร แล้วเทียบไตรมาส 3 ให้ด้วย";
+    const own = { ...CONVERSATION, title: question.slice(0, 40), question };
+    const card = await draw({ ok: true, summary: "จำได้", data: [], conversations: [own] });
+    expect(card.textContent).toContain(question);
+    expect(card.textContent).not.toContain(TH.memory.maskedNumber);
+    expect(card.textContent).not.toContain(`${question.slice(0, 40)} ·`);
+  });
+
   test("a result recorded before conversations existed still draws its facts", async () => {
     const card = await draw({ ok: true, summary: "จำได้", data: [FACT] });
     expect(card.textContent).toContain(FACT.value);

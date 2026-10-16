@@ -79,7 +79,10 @@ function mcpToolOf(winyuTool: WinyuTool, render: McpSurface["render"]) {
     id: winyuTool.entry.name,
     description: winyuTool.description(),
     inputSchema: winyuTool.inputSchema(),
-    execute: async (input: unknown) => render(await winyuTool.execute(input)),
+    execute: async (input: unknown) => {
+      const result = await winyuTool.execute(input);
+      return render(winyuTool.modelView ? winyuTool.modelView(result) : result);
+    },
   });
 }
 
