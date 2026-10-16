@@ -101,7 +101,7 @@ export function Landing({
   );
 
   return (
-    <div className="relative min-h-dvh overflow-x-hidden">
+    <div className="relative min-h-dvh overflow-x-clip">
       <GlowBackdrop />
 
       <div className={PAGE}>
