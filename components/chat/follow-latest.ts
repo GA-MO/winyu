@@ -4,16 +4,18 @@ import { useCallback, useEffect, useRef } from "react";
 
 const FOLLOW_SLACK_PX = 120;
 const ANCHOR_GAP_PX = 16;
+const PAST_ANCHOR_PX = 8;
 const EXCHANGE_SELECTOR = "[data-exchange]";
 
 /** Where a scroll container stands: its scroll offset, the height of what it holds, and the height it shows. */
 export type ScrollView = { top: number; height: number; viewport: number };
 
-/** Where the chat rests while it follows: the bottom, but never past the start of the newest exchange, so a reply taller than the screen is read from its question down. */
+/** Where the chat rests while it follows: the bottom, but never past the start of the newest exchange, so a reply taller than the screen is read from its question down; once the reader has gone past that start themselves (down to an approval at the end of the reply, say), the bottom again, so what lands after it stays in view. */
 export function followTarget(view: ScrollView, latestTop: number | null): number {
   const bottom = Math.max(0, view.height - view.viewport);
   if (latestTop === null) return bottom;
-  return Math.min(bottom, Math.max(0, latestTop - ANCHOR_GAP_PX));
+  const anchor = Math.max(0, latestTop - ANCHOR_GAP_PX);
+  return view.top > anchor + PAST_ANCHOR_PX ? bottom : Math.min(bottom, anchor);
 }
 
 /** Whether the reader is still with the conversation: at or past the resting point, or within a short scroll of it; a reader who scrolled further up to read earlier content is not. */
