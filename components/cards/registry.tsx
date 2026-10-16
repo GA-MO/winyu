@@ -15,6 +15,9 @@ export type ToolCard = (result: unknown, args: unknown) => ReactNode;
 const CrmVisitsCard = connectorCard("store_visits");
 const LmsTrainingCard = connectorCard("training_history");
 const LogisticsPartnerCard = connectorCard("ask_logistics_partner");
+const InboxCard = connectorCard("inbox");
+const VisitPlanCard = connectorCard("visit_plan");
+const AdminAuditCard = connectorCard("admin_audit");
 
 /** Every read tool's card, keyed by tool name: the model picks the tool, the card is drawn from its result. */
 export const TOOL_CARDS = {
@@ -36,6 +39,9 @@ export const TOOL_CARDS = {
   store_visits: (result) => <CrmVisitsCard result={result} />,
   training_history: (result) => <LmsTrainingCard result={result} />,
   ask_logistics_partner: (result) => <LogisticsPartnerCard result={result} />,
+  inbox: (result) => <InboxCard result={result} />,
+  visit_plan: (result) => <VisitPlanCard result={result} />,
+  admin_audit: (result) => <AdminAuditCard result={result} />,
 } satisfies Record<string, ToolCard>;
 
 export type CardToolName = keyof typeof TOOL_CARDS;

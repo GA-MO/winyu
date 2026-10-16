@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { runMetric } from "@/lib/server/metrics";
-import type { AccessContext, Alert, DashboardLayout, FeedItem, MetricQuery, MetricResult, NextAction, WidgetSpec } from "@/lib/contracts";
+import type { AccessContext, Alert, DashboardLayout, FeedItem, MetricQuery, MetricResult, NextAction, RoleId, WidgetSpec } from "@/lib/contracts";
 import { layoutVersions, layouts } from "@/lib/server/agent/collections";
 import { forecastsFor, openAlertsFor, relevantAlertsFor } from "@/lib/server/alerts";
 import { alertRowOf } from "@/lib/cards/alert-row";
@@ -28,7 +28,8 @@ export type WidgetView = { widget: WidgetSpec; card: CardParts; attention: Atten
 
 const CREATED_AT = "2026-09-22T00:00:00.000Z";
 const KPI_LIMIT = 4;
-const VISIT_ROLES: ReadonlySet<string> = new Set(["sales_rep"]);
+/** The roles that visit agents in the field: the only ones offered a visit plan. */
+export const VISIT_ROLES: readonly RoleId[] = ["sales_rep"];
 const VISIT_LIMIT = 3;
 const VISIT_SCAN_LIMIT = 20;
 const VISIT_WINDOW_DAYS = 27;
@@ -230,8 +231,8 @@ function alertReason(alert: Alert, dictionary: Dictionary): string {
 }
 
 /** The agents assigned to a field rep that they should visit first: those with an open alert, then the steepest sell-in drop. Reps only. */
-export async function visitsFor(access: AccessContext): Promise<VisitStop[]> {
-  if (!VISIT_ROLES.has(access.role)) return [];
+export async function visitsFor(access: AccessContext, limit = VISIT_LIMIT): Promise<VisitStop[]> {
+  if (!VISIT_ROLES.includes(access.role)) return [];
   const result = await runMetric({ metric: "net_sales_volume", dims: ["agent"], filters: ownAgentsFilter(access.userId), range: { from: addDays(DATA_AS_OF, -VISIT_WINDOW_DAYS), to: DATA_AS_OF }, grain: "month", compare: "prev_period", limit: VISIT_SCAN_LIMIT }, access);
   if (!result.ok) return [];
   const dictionary = await loadDictionary();
@@ -252,7 +253,7 @@ export async function visitsFor(access: AccessContext): Promise<VisitStop[]> {
     })
     .filter((entry) => entry.rank < 0)
     .sort((left, right) => left.rank - right.rank);
-  return stops.slice(0, VISIT_LIMIT).map((entry) => entry.stop);
+  return stops.slice(0, limit).map((entry) => entry.stop);
 }
 
 function mutate(access: AccessContext, change: (widgets: WidgetSpec[]) => WidgetSpec[]): DashboardLayout {

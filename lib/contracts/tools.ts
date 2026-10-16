@@ -11,7 +11,7 @@ export type ToolTier = "read" | "write" | "destructive";
 export const NATIVE_TOOL_NAMES = ["query_metric", "list_metrics", "describe_entity", "get_alerts", "get_forecast", "get_calendar", "recall_memory", "remember", "forget",
   "find_people", "get_person", "get_site", "list_candidates", "list_courses", "get_policy", "request_leave", "enroll_course",
   "resolve_owner", "create_handoff", "send_email", "pin_widget", "watch_metric", "run_job", "set_permission", "explain_gap",
-  "ask_logistics_partner", "share_card", "training_history", "store_visits"] as const;
+  "ask_logistics_partner", "share_card", "training_history", "store_visits", "inbox", "visit_plan", "admin_audit"] as const;
 export type NativeToolName = (typeof NATIVE_TOOL_NAMES)[number];
 export type ConnectorToolName = `${string}__${string}`;
 export type ToolName = NativeToolName | ConnectorToolName;
@@ -29,6 +29,8 @@ export type ToolSurfaceEntry = { name: ToolName; connector: string; tier: ToolTi
 
 const MAX_FORECAST_WEEKS = 26;
 const MAX_ALERTS = 60;
+const MAX_VISIT_STOPS = 10;
+const MAX_AUDIT_DAYS = 90;
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 const MONTH_KEY = /^\d{4}-\d{2}$/;
 
@@ -66,6 +68,15 @@ export const findPeopleInputSchema = z.object({
 export const getSiteInputSchema = z.object({ id: z.string().nullable(), name: z.string().nullable() });
 export const trainingHistoryInputSchema = z.object({ employeeId: z.string().nullable(), name: z.string().nullable() });
 export const storeVisitsInputSchema = z.object({ agentId: z.string().nullable() });
+/** What waits on a person in their Inbox, by kind. */
+export const INBOX_KINDS = ["handoff", "approval", "grant_request", "shared_card"] as const;
+export type InboxKind = (typeof INBOX_KINDS)[number];
+export const inboxInputSchema = z.object({ kind: z.enum(INBOX_KINDS).nullable() });
+export const visitPlanInputSchema = z.object({ limit: z.number().int().min(1).max(MAX_VISIT_STOPS).nullable() });
+/** What an IT admin can read about Winyu itself from chat. */
+export const ADMIN_AUDIT_TOPICS = ["denials", "tool_usage", "model_cost", "connectors", "overrides", "role_access"] as const;
+export type AdminAuditTopic = (typeof ADMIN_AUDIT_TOPICS)[number];
+export const adminAuditInputSchema = z.object({ topic: z.enum(ADMIN_AUDIT_TOPICS), days: z.number().int().min(1).max(MAX_AUDIT_DAYS).nullable(), role: z.enum(ROLE_IDS).nullable() });
 export const getPersonInputSchema = z.object({ id: z.string().nullable(), name: z.string().nullable() });
 export const listCandidatesInputSchema = z.object({ position: z.string().nullable(), stage: z.enum(CANDIDATE_STAGES).nullable() });
 export const listCoursesInputSchema = z.object({ month: z.string().regex(MONTH_KEY).nullable(), query: z.string().nullable() });

@@ -34,6 +34,9 @@ import { setPermissionTool } from "./set-permission";
 import { askLogisticsPartnerTool } from "./ask-logistics-partner";
 import { storeVisitsTool } from "./store-visits";
 import { trainingHistoryTool } from "./training-history";
+import { inboxTool } from "./inbox";
+import { visitPlanTool } from "./visit-plan";
+import { adminAuditTool } from "./admin-audit";
 import { NATIVE_FIELDS } from "./native-fields";
 
 /** The tools whose answers are metric rows, so what a role may call there depends on the metrics it sees. */
@@ -69,6 +72,9 @@ const NATIVE_TOOLS: { [Name in NativeToolName]: WinyuTool<Name> } = {
   ask_logistics_partner: askLogisticsPartnerTool,
   training_history: trainingHistoryTool,
   store_visits: storeVisitsTool,
+  inbox: inboxTool,
+  visit_plan: visitPlanTool,
+  admin_audit: adminAuditTool,
 };
 
 function allTools(): WinyuTool[] {

@@ -28,7 +28,12 @@ describe("role policies", () => {
     expect(defaultToolsOf("it_admin")).toContain("run_job");
     expect(defaultToolsOf("ceo")).not.toContain("run_job");
     expect(defaultToolsOf("ceo")).not.toContain("set_permission");
-    expect(defaultToolsOf("ceo").length).toBe(toolSurface().filter((entry) => entry.tier !== "destructive").length);
+    const forOneRole = new Set(["visit_plan", "admin_audit"]);
+    expect(defaultToolsOf("ceo").length).toBe(toolSurface().filter((entry) => entry.tier !== "destructive" && !forOneRole.has(entry.name)).length);
+    expect(defaultToolsOf("ceo")).not.toContain("admin_audit");
+    expect(defaultToolsOf("it_admin")).toContain("admin_audit");
+    expect(defaultToolsOf("sales_rep")).toContain("visit_plan");
+    for (const role of ROLE_IDS) expect(defaultToolsOf(role)).toContain("inbox");
   });
 
   test("RSM scope is the own region, CEO scope is all", () => {
