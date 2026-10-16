@@ -99,7 +99,7 @@ Each phase ends with `bun run typecheck`, `bun run test`, and a walk through the
 
 ### Phase 5. The bell moves by itself
 
-- [ ] While the window is visible, fetch the counts every 10 seconds in `components/inbox/counts.ts`, as well as on focus. Stop while the window is hidden.
+- [x] While the window is visible, fetch the counts every 10 seconds in `components/inbox/counts.ts`, as well as on focus. Stop while the window is hidden.
 - [ ] Check: with the RSM window visible next to the CEO window, a matter the CEO sends shows on the RSM's bell within 10 seconds, with no click.
 
 ## The demo after this plan
