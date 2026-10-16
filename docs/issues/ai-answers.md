@@ -1780,6 +1780,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 | AI-163 | ต่ำ | แก้แล้ว `cc98f0e` · รอยืนยันกับโมเดล | IT asks how a denied RSM can get access; the answer points to the South RSM, not the admin's own grant path |
 | AI-164 (เดิม AI-99) | ต่ำ | แก้แล้ว `c9cce46` · นอกเส้นทางเดโม | Reload mid-reply rejoins the run but duplicates step lines and resets the timer |
 | AI-165 | ต่ำ | เปิด (ใหม่) · นอกเส้นทางเดโม | The month-end forecast card cannot be pinned |
+| AI-166 | สูง | แก้แล้ว `d38c5a7` · โมเดลจริง 3/3 รอบมีเรื่องอีสาน · เส้นทางเดโม | The CEO's morning stories can drop the Isan sell-in story when there are more than three P1 matters |
 
 ### AI-132. An approved chat send fails when the model read the card in the same step as send_card: the approval shows one card, but the resumed run resolves against the older screen and refuses with raw cardRef ids
 
@@ -2212,3 +2213,15 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 	- run 0445b6af no tool calls, 17.9 s
 	- r4-runs/ceo/p2.png
 - **สาเหตุ:** guess: widget kinds in lib/contracts accept only metric queries; explain_gap projections are not queries.
+
+### AI-166. The CEO's morning stories can drop the Isan sell-in story when there are more than three P1 matters
+
+- **สถานะ:** แก้แล้ว `d38c5a7` (เทสต์ที่ล้มบนโค้ดเดิม `3335d9b`) · เส้นทางเดโม: เรื่องที่เก็บไว้ต้องอธิบาย P1 ทุกรายการของคนนั้นจาก get_alerts เรื่องหนึ่งอธิบาย anomaly ได้เมื่อเป็นตัววัดเดียวกัน (ขายเข้าเป็นลิตร บาท หรือเทียบเป้า นับเป็นตัววัดเดียว) ในภาคเดียวกันหรือทุกภาค P1 ที่ยังไม่มีเรื่องรวมเข้าในการเขียนใหม่ครั้งเดียวที่มีอยู่แล้ว ถ้ายังไม่มีก็เก็บเรื่องเท่าที่มีและบันทึกช่องว่างไว้ใน `uncovered` ของ run ไม่แต่งเรื่องเพิ่ม เพดานเป็น 4 เรื่อง เรียงด่วนสุดก่อนด้วยการจัดลำดับเดียวกับ drawer (ย้ายไป `lib/server/story-coverage.ts` เรื่องขายเข้าที่วาดเป็นบาทจึงนับ alert ที่เป็นลิตรด้วย) เจ้าของเอเย่นต์ไม่ต้องมีเรื่องของเอเย่นต์คนอื่น โมเดลจริงบนสำเนาข้อมูล r5 สามรอบ ($0.18): ทุกรอบได้ 4 เรื่อง อีสาน ลำพูน ภาคใต้ โคราช และอีสานขึ้นก่อน (รอบ 3 มีการเขียนใหม่หนึ่งครั้ง ไม่ได้บันทึกว่าเพราะข้อใด) u_anucha หนึ่งรอบ ($0.11): P1 ครบ แต่สองเอเย่นต์อีสานรวมเป็นเรื่องเดียว (r5 แยกเป็นสองเรื่อง) หน้าแรกของ CEO บน dev server เปิดเรื่องอีสานเป็นเรื่องแรก
+- **ระดับ:** สูง · **หมวด:** `grounding` · **บทบาท:** u_thana (CEO, run sheet ขั้น 1)
+- **อาการ:** Round 5's analyst found four P1 matters (DC ลำพูน cover, South AR, Isan sell-in at ag_nea_02 and ag_nea_05, Korat market share), but the writer returned only three stories and left out Isan. Nothing was dropped by review. Rounds 3 and 4 had the story, so it varies run to run.
+- **ที่ควรเป็น:** Every P1 matter of the viewer has a story, the most urgent first; when the writer cannot produce one, the gap is recorded rather than filled with an invented story.
+- **หลักฐาน:**
+	- r5-data/investigations.json u_thana: three stories (days_of_cover north, ar_overdue south, market_share northeast)
+	- investigate.test.ts 'every P1 matter of the person gets a story (AI-166)': failed on the old code (Isan missing; 4 stories rejected by the schema)
+	- real runs on a copy of r5-data: u_thana $0.0628, $0.0697, $0.0509; u_anucha $0.1084
+- **สาเหตุ:** Verified: STORY_SYSTEM asked for 'at most three stories' and storiesSchema capped the array at 3 (lib/server/investigate.ts:68, :86 at `6e00a5e`); nothing checked the kept stories against the P1 anomalies read before the model ran, so with four P1 matters one was always left to the writer's choice.
