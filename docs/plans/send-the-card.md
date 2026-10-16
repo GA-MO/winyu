@@ -72,9 +72,9 @@ Each phase ends with `bun run typecheck`, `bun run test`, and a walk through the
 
 ### Phase 1. The sheet sends a matter
 
-- [ ] Add the matter fields to the share record and its parser. Existing shares load as `intent: "fyi"` with a one-hop path.
-- [ ] In the sheet, suggest the first recipient from `responsibleFor`, draft the ask, add the **ต้องตอบ** and **ให้ดู** toggle, and remove the channel choice.
-- [ ] Gate the **ส่งต่อ** pill, `/api/shares`, and `share_card` on `handoffEnabled()`. Today the admin copy says the switch hides the button on every page, but the card pill stays (`lib/access/enforce.ts` gates only `create_handoff` and `send_email`).
+- [x] Add the matter fields to the share record and its parser. Existing shares load as `intent: "fyi"` with a one-hop path.
+- [x] In the sheet, suggest the first recipient from `responsibleFor`, draft the ask, add the **ต้องตอบ** and **ให้ดู** toggle, and remove the channel choice.
+- [x] Gate the **ส่งต่อ** pill, `/api/shares`, and `share_card` on `handoffEnabled()`. Today the admin copy says the switch hides the button on every page, but the card pill stays (`lib/access/enforce.ts` gates only `create_handoff` and `send_email`).
 - [ ] Check: the CEO sends the northeast story card to the RSM from the sheet in under 5 seconds. The RSM's bell shows it. `.data/model-calls.json` gains no row.
 
 ### Phase 2. The recipient answers on the card
