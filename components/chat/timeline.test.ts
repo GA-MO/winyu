@@ -70,6 +70,19 @@ describe("toolViewOf", () => {
     expect(toolViewOf(refused, { ...IDLE, hidden: true }, CARD_TOOLS)).toEqual({ kind: "none" });
   });
 
+  test("a receipt never shows the person a refusal written for the model: no card refs, no field names, no English", () => {
+    const unclear = { ...write, name: "send_card", outcome: { state: "returned" as const, result: { ok: false, code: "CARD_UNCLEAR", error: "การ์ดบนจอที่ส่งได้มีมากกว่าหนึ่งใบ และคำขอนี้ไม่ได้ระบุ cardRef: c1br6lox «มูลค่าขายเข้า · รายภาค 328.4 ล้านบาท» · cw6z8sf «ความผิดปกติที่ต้องดู»" } } };
+    const unknown = { ...unclear, outcome: { state: "returned" as const, result: { ok: false, code: "CARD_UNKNOWN", error: "ไม่มีการ์ด ckj4ngn บนจอ การ์ดที่ส่งได้: c1br6lox «มูลค่าขายเข้า»" } } };
+    const unapproved = { ...unclear, outcome: { state: "returned" as const, result: { ok: false, code: "NOT_APPROVED", error: "ระบบไม่ได้ทำรายการนี้ เพราะผู้ใช้ยังไม่ได้กดอนุมัติการเรียกนี้ บอกผู้ใช้ตามจริงว่ายังไม่ได้ทำ ห้ามบอกว่าสำเร็จ" } } };
+    for (const step of [unclear, unknown, unapproved]) {
+      const view = toolViewOf(step, IDLE, CARD_TOOLS);
+      expect(view.kind).toBe("not-done");
+      const reason = view.kind === "not-done" ? (view.reason ?? "") : "";
+      expect(reason).not.toMatch(/[A-Za-z]/);
+      expect(reason).not.toContain("บอกผู้ใช้");
+    }
+  });
+
   test("a composed card never hides a write's receipt", () => {
     const refused = { ...write, outcome: { state: "returned" as const, result: { ok: false, error: "x" } } };
     expect(cardPlanOf([refused], new Set([refused.toolCallId]), CARD_TOOLS).hidden.has(refused.toolCallId)).toBe(false);
