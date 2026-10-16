@@ -1751,7 +1751,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 | AI-134 (เดิม AI-90) | กลาง | แก้แล้ว `85151f5` · รอยืนยันกับโมเดล | 'ผม/ของผม' for the rep resolves to Khon Kaen province (2 of his 4 agents), so chat and the home pin give different attainment |
 | AI-135 (เดิม AI-131) | กลาง | ยังเสีย | The run sheet describes buttons and texts the product does not show |
 | AI-136 | กลาง | แก้แล้ว `9209e23` · รอยืนยันกับโมเดล | The run-sheet story card is in litres while every chat answer about the same Isan month is in baht (79.7% vs 77.3%, both 'ของเป้าทั้งเดือน') |
-| AI-137 | กลาง | เปิด (ใหม่) | Matters sent from chat lose their subject: titles carry no agent or brand, asks can be urgency words only, and the receiver's inbox cannot name what was sent |
+| AI-137 | กลาง | แก้แล้ว `3f5d75a` · รอยืนยันกับโมเดล | Matters sent from chat lose their subject: titles carry no agent or brand, asks can be urgency words only, and the receiver's inbox cannot name what was sent |
 | AI-138 | กลาง | เปิด (ใหม่) | The send approval previews the raw row sum (5.1 ล้านลิตร, 97.8 ล้านบาท), not the hero the card shows (79.7%, 72.4%) |
 | AI-139 | กลาง | เปิด (ใหม่) | A new question sent while an approval waits re-raises the abandoned send instead of answering |
 | AI-140 (เดิม AI-110) | กลาง | ยังเสีย | The CEO risk answer says there is no stock risk while its own anomaly card leads with a P1 stock-out, and it merges stock cover and AR into one strip |
@@ -1768,12 +1768,12 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 | AI-151 | กลาง | แก้แล้ว `b33d05b` | Permission changes made in the Admin console (คืนค่า, reset) are not written to the audit |
 | AI-152 (เดิม AI-100) | ต่ำ | ยังเสีย | Failed or denied calls still draw actionable UI: a stray 'ไม่ได้ปักการ์ด' chip beside the pin approval, and a ส่งต่อ button on the access-denied card |
 | AI-153 (เดิม AI-123) | ต่ำ | ยังเสีย | Follow-up chips and card actions still leave the asked subject in places |
-| AI-154 (เดิม AI-131) | ต่ำ | ยังเสีย | Story pages offer 'ส่งให้คุณอนุชา' as the main action to the CEO who sent it and to the rep who received it |
-| AI-155 | ต่ำ | เปิด (ใหม่) | Share sheet and story drawer on run-sheet step 1: 'ผู้รับผิดชอบเรื่องนี้' lists the CEO's whole line, the Isan story sits third below an expanded story, and the sheet text is cut or unspaced |
+| AI-154 (เดิม AI-131) | ต่ำ | แก้แล้ว `8129496` | Story pages offer 'ส่งให้คุณอนุชา' as the main action to the CEO who sent it and to the rep who received it |
+| AI-155 | ต่ำ | แก้แล้ว `d2f5fe9` | Share sheet and story drawer on run-sheet step 1: 'ผู้รับผิดชอบเรื่องนี้' lists the CEO's whole line, the Isan story sits third below an expanded story, and the sheet text is cut or unspaced |
 | AI-156 (เดิม AI-107) | ต่ำ | เปิด (ใหม่) | Scorecards and single-row cards break the card rules: 4 tiles, the hero repeated as the headline, the all-group average as hero |
 | AI-157 | ต่ำ | เปิด (ใหม่) | CEO landing tile labels October's volume with the six-month range and compares it with September |
 | AI-158 | ต่ำ | แก้แล้วบางส่วน `9209e23` | The rep's story card shows all 8 Isan agents, the same as the CEO and RSM, so the per-role speech line has nothing to show |
-| AI-159 | ต่ำ | เปิด (ใหม่) | Phone-width truncation and dev overlays on the chain screens |
+| AI-159 | ต่ำ | แก้แล้วบางส่วน `ad87888` | Phone-width truncation and dev overlays on the chain screens |
 | AI-160 (เดิม AI-121) | ต่ำ | แก้แล้ว `b33d05b` | Chat audit cards show English codes, a raw 'policy_label' header and raw tool-argument JSON |
 | AI-161 | ต่ำ | แก้แล้ว `cc98f0e` · รอยืนยันกับโมเดล | The overclaim rebuttal invites resending the false message and offers no corrected wording |
 | AI-162 (เดิม AI-79) | ต่ำ | แก้แล้ว `cc98f0e` · รอยืนยันกับโมเดล | The text after an approved send mixes 'preparing' and 'done' |
@@ -1851,7 +1851,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-137. Matters sent from chat lose their subject: titles carry no agent or brand, asks can be urgency words only, and the receiver's inbox cannot name what was sent
 
-- **สถานะ:** เปิด (ใหม่)
+- **สถานะ:** แก้แล้ว `3f5d75a` `eee760d` · ชื่อเรื่องที่ส่งมีสิ่งที่การ์ดพูดถึงจากตัวกรองที่ถาม ('มูลค่าขายเข้า · ขอนแก่นมหาชัย') คำขอที่มีแต่คำบอกความด่วนขึ้นต้นด้วยคำขอที่ระบุการ์ด และแถว inbox มี subject, hero, due_label กับสถานะของผู้รับ พิสูจน์ด้วย send-card.test, read-tools.test และเบราว์เซอร์ (การ์ดอนุมัติ กระดิ่งพนักงานขาย แถว inbox) · รอยืนยันกับโมเดล ว่าคำตอบเรื่อง inbox เอ่ยชื่อเอเย่นต์และวันกำหนด
 - **ระดับ:** กลาง · **หมวด:** `chain` · **บทบาท:** u_thana (CEO), u_anucha (RSM), u_krit (rep)
 - **อาการ:** Krit's bell reads '…ขอให้คุณตอบ: เข้าไปคุยกับเอเย่นต์เจ้านี้ภายในสัปดาห์นี้' under title 'มูลค่าขายเข้า · รายเอเย่นต์', with no ขอนแก่นมหาชัย. Anucha's reads 'ด่วน ให้ตอบกลับภายในวันนี้' under 'มูลค่าขายเข้า · รายเอเย่นต์ × จังหวัด', with no ลีโอ. Approval previews had the same gap. When the rep asked what his manager sent, the inbox tool returned only title/from/ask/status, so the reply said 'เอเย่นต์รายนี้', kept 'ภายในสัปดาห์นี้' undated, and showed the unfinished status 'รอคุณตัดสิน'. Both chain matters share an identical title in every bell and audit row.
 - **ที่ควรเป็น:** The share title carries the card's filters ('· ขอนแก่นมหาชัย', '· ลีโอ ภาคอีสาน'), an ask without content falls back to the card's subject, and inbox rows carry the slice, hero and due date so the model can name them.
@@ -2059,7 +2059,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-154. Story pages offer 'ส่งให้คุณอนุชา' as the main action to the CEO who sent it and to the rep who received it
 
-- **สถานะ:** ยังเสีย · เดิม AI-131
+- **สถานะ:** แก้แล้ว `8129496` · เดิม AI-131: หน้าเรื่องตัดปุ่มส่งการ์ดให้ผู้ส่ง คนบนเส้นทาง และผู้ดูออก (openShare) พิสูจน์ด้วย view.test และเบราว์เซอร์ หน้าเรื่องของ CEO และพนักงานขายไม่มี 'ส่งให้คุณอนุชา' แล้ว
 - **ระดับ:** ต่ำ · **หมวด:** `card-quality` · **บทบาท:** u_thana (CEO), u_krit (rep), chain steps 3-4
 - **อาการ:** The CEO's own story page says 'เรื่องที่ขอให้ตอบ' (receiver wording) with a primary 'ส่งให้คุณอนุชา' and a lone 'เสร็จ'. The rep's page shows 'ส่งให้คุณอนุชา' next to รับ.
 - **ที่ควรเป็น:** On a matter page the card's send action is hidden or targets someone not already on the path.
@@ -2071,7 +2071,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-155. Share sheet and story drawer on run-sheet step 1: 'ผู้รับผิดชอบเรื่องนี้' lists the CEO's whole line, the Isan story sits third below an expanded story, and the sheet text is cut or unspaced
 
-- **สถานะ:** เปิด (ใหม่)
+- **สถานะ:** แก้แล้ว `d2f5fe9` · กลุ่ม 'ผู้รับผิดชอบเรื่องนี้' มีเฉพาะเจ้าของ สายงานของผู้ส่งแยกไปอยู่ 'ทีมของคุณ' ชื่อการ์ดกับช่องขออะไรขึ้นหลายบรรทัด เป้าปิดเรื่องมีช่องว่างก่อน 'ถึง' และเรื่องด่วนเรียงตามความรุนแรงของ alert ที่เปิดอยู่ (อีสานมี P1 สองรายการจึงขึ้นก่อนและกางอยู่) พิสูจน์ด้วย share-sheet.test, goal.test, morning-brief.test และเบราว์เซอร์ขั้น 1
 - **ระดับ:** ต่ำ · **หมวด:** `share-sheet` · **บทบาท:** u_thana (CEO, chain step 1)
 - **อาการ:** The owner is preselected first, but the same heading also lists the CFO, a brand manager, the supply planner, HR and IT. The drawer opens DC ลำพูน (expanded), then ภาคใต้, then ภาคอีสาน, so the presenter scrolls; after the send it scrolls back to the top. ขออะไร is one line and cuts the request. The goal reads 'ปิดเองเมื่อปริมาณขายเข้า (Sell-in)ถึง 100% ของเป้า' with no space.
 - **ที่ควรเป็น:** Only the owner sits under 'ผู้รับผิดชอบเรื่องนี้' (the sender's line gets its own heading); step 1's story is reachable without scrolling; sheet text complete and spaced.
@@ -2117,7 +2117,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-159. Phone-width truncation and dev overlays on the chain screens
 
-- **สถานะ:** เปิด (ใหม่)
+- **สถานะ:** แก้แล้วบางส่วน `ad87888` · แถวอัปเดตในกระดิ่งขึ้นได้ 3 บรรทัดโดยเวลาอยู่บรรทัดล่าง ชื่อเรื่องขึ้น 2 บรรทัด แถว Audit ตัดบรรทัดชื่อ บทบาท และเวลาแทนการตัดทิ้ง พิสูจน์ด้วย bell-popover.test, audit-tab.test และเบราว์เซอร์ที่ 393 px; แถบแท็บ Admin การรีโหลดแผงกิจกรรม และ overlay ของ next dev ยังไม่ได้แก้
 - **ระดับ:** ต่ำ · **หมวด:** `ui` · **บทบาท:** presenter (chain)
 - **อาการ:** CEO bell lines are cut before the recipient; IT Audit timestamps are cut; the tab strip clips 'Audit' and hides การเชื่อมต่อ; the IT activity panel needs a manual reload. The Next 'N' badge and 'Compiling…' toast cover content in all four windows.
 - **ที่ควรเป็น:** Bell and audit lines keep recipient and time visible at 390 px; demo on the built image (make demo-start).
