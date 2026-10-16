@@ -48,7 +48,7 @@ Each wave runs its work packages in parallel, one agent per package in its own w
 
 ### Wave 2
 
-- [ ] **RC1 + RC4 tools and prompt.** Read tools `inbox`, `visit_plan`, `admin_audit`. Invitations (prompt lines, quick actions, admin chips, verify steps) derived from the role's tools and metric access. Rewrite rule 99, add the literal-answer and unverified-claims rules, reword the lesson line.
+- [x] **RC1 + RC4 tools and prompt.** Read tools `inbox`, `visit_plan`, `admin_audit`. Invitations (prompt lines, quick actions, admin chips, verify steps) derived from the role's tools and metric access. Rewrite rule 99, add the literal-answer and unverified-claims rules, reword the lesson line.
 - [x] **RC6 + RC7 cards and tool shapes.** Share pill matches the server rule, masked cards keep their request action, empty and failed results are not drawn as cards, points for percent metrics, remaining-to-target, readable gap shares, Thai labels instead of ids. The masking of the user's own words (AI-39) moved to RC11.
 - [x] **RC11 memory.** `remember` and `forget` tools through the gateway with a tombstone for rejected facts; answer-format preferences become confirmed answer guidance, not fenced data; a prompt rule that memory holds no figures; `recall_memory` returns trusted facts only; meaning-based fact matching; repeats count only across conversations; dated responsibilities keep their date; no masked numbers in the person's own recalled words; one memory card per reply.
 - [x] **RC10 data facts.** Agent-to-rep assignment, suppression for people only, metric list narrowed per role, investigation prompt without the campaign nudge.

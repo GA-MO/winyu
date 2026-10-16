@@ -53,7 +53,7 @@ function denials(days: number): Report {
     user_name: nameOf(entry.userId),
     role_label: roleLabelOf(entry.userId),
     tool_label: toolLabel(entry.tool),
-    code_label: entry.code ? (TH.admin.auditTab.codes[entry.code as keyof typeof TH.admin.auditTab.codes] ?? entry.code) : "",
+    code_label: entry.code ? (TH.admin.auditTab.codes[entry.code] ?? entry.code) : "",
     reason: entry.reason ?? "",
     args: entry.args ?? "",
   }));

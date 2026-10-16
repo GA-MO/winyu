@@ -124,7 +124,7 @@ const BUILDERS: { [Name in NativeToolName]: Builder } = {
   store_visits: (args) => read(TH.admin.tools.store_visits.label, agentName(args.agentId)),
   inbox: () => read(TH.trail.inbox),
   visit_plan: () => read(TH.trail.visitPlan),
-  admin_audit: (args) => read(TH.trail.audit(TH.adminAudit.topic[String(args.topic) as keyof typeof TH.adminAudit.topic] ?? TH.admin.tools.admin_audit.label)),
+  admin_audit: (args) => read(TH.trail.audit(TH.adminAudit.topic[String(args.topic)] ?? TH.admin.tools.admin_audit.label)),
   list_courses: (args) => read(TH.trail.courses, typeof args.month === "string" ? periodLabelTh(args.month) : null, quoted(args.query)),
   get_policy: (args) => read(TH.trail.policy[String(args.topic)] ?? TH.trail.somePolicy),
   resolve_owner: (args) => read(TH.trail.owner(metricOf(args.metric)), regionsOf(argsOf(args.dims).region)),

@@ -1745,7 +1745,7 @@ export const TH = {
   },
   adminAudit: {
     source: "Audit log และบันทึกการใช้งานของ Winyu",
-    topic: { denials: "การปฏิเสธ", tool_usage: "การเรียกเครื่องมือ", model_cost: "ค่าโมเดล", connectors: "สถานะระบบเชื่อมต่อ", overrides: "การแก้สิทธิ์ที่ admin ทำ", role_access: "สิทธิ์ของบทบาท" },
+    topic: { denials: "การปฏิเสธ", tool_usage: "การเรียกเครื่องมือ", model_cost: "ค่าโมเดล", connectors: "สถานะระบบเชื่อมต่อ", overrides: "การแก้สิทธิ์ที่ admin ทำ", role_access: "สิทธิ์ของบทบาท" } as Record<string, string>,
     within: (days: number) => `${days} วันล่าสุด`,
     denials: (count: number, days: number) => `ถูกปฏิเสธ ${count} ครั้งใน ${days} วันล่าสุด`,
     usage: (calls: number, tools: number, days: number) => `เรียกเครื่องมือ ${calls} ครั้ง ${tools} เครื่องมือ ใน ${days} วันล่าสุด`,
