@@ -1,9 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { LayoutDashboard, ShieldCheck, Sparkles } from "lucide-react";
+import { ShieldCheck, Sparkles } from "lucide-react";
 import type { MorningBrief, QuickAction } from "@/lib/contracts";
 import type { LandingKpi } from "@/lib/dashboard/ambient";
 import type { Tone } from "@/lib/dashboard/metric-display";
@@ -22,7 +22,8 @@ import { PILL } from "./pill";
 const QUICK_ACTIONS_ENDPOINT = "/api/quick-actions";
 const DASHBOARD_PATH = "/dashboard";
 const MAX_CHIPS = 4;
-const HERO = "flex w-full max-w-3xl flex-col gap-6";
+const PAGE = "relative mx-auto flex min-h-dvh w-full max-w-3xl flex-col gap-6 px-4 pt-20 sm:justify-center sm:gap-8 sm:px-6 sm:pb-16";
+const ASK_DOCK = "sticky bottom-0 z-10 -mx-4 mt-auto flex flex-col gap-3 bg-gradient-to-t from-background from-70% to-transparent px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-6 sm:static sm:mx-0 sm:mt-0 sm:bg-none sm:p-0";
 const CHIP_ROW = "-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [mask-image:linear-gradient(to_right,black_80%,transparent)] sm:mx-0 sm:[mask-image:none] sm:flex-wrap sm:justify-center sm:overflow-visible sm:px-0 sm:pb-0";
 const KPI_COLUMNS: Record<number, string> = { 1: "sm:grid-cols-1", 2: "sm:grid-cols-2", 3: "sm:grid-cols-3", 4: "sm:grid-cols-4" };
 const KPI_STRIP = "grid w-full grid-cols-2 [&>*:last-child:nth-child(odd)]:col-span-2 sm:[&>*:last-child:nth-child(odd)]:col-span-1 overflow-hidden rounded-2xl border border-border bg-border gap-px shadow-card transition duration-200 hover:shadow-lift focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
@@ -63,7 +64,7 @@ function KpiStrip({ kpis }: { kpis: LandingKpi[] }) {
   );
 }
 
-/** The same landing for every role: the agent speaks first (the morning investigation), the question box, chips learned from use, the pinned numbers. */
+/** The same landing for every role: the agent speaks first (the morning investigation), then the pinned numbers, then chips learned from use and the question box at the bottom, near the thumb. */
 export function Landing({
   greeting,
   kpis,
@@ -99,35 +100,31 @@ export function Landing({
     [busy, router],
   );
 
-  useEffect(() => {
-    function openDashboard(event: KeyboardEvent) {
-      if (event.key.toLowerCase() !== "d" || !(event.metaKey || event.ctrlKey)) return;
-      event.preventDefault();
-      router.push(DASHBOARD_PATH);
-    }
-    window.addEventListener("keydown", openDashboard);
-    return () => window.removeEventListener("keydown", openDashboard);
-  }, [router]);
-
   return (
     <div className="relative min-h-dvh overflow-x-hidden">
       <GlowBackdrop />
 
-      <div className="relative flex min-h-dvh flex-col items-center justify-center gap-8 px-4 pb-16 pt-20 sm:px-6">
-        <div className={cn(HERO, "animate-hero-rise")}>
-          <header className="flex flex-col gap-2 text-center">
-            <h1 className="text-balance font-display text-[1.75rem] font-semibold leading-[1.2] tracking-[-0.02em] sm:text-[3rem]">
-              {greeting.lead} <GradientText className="whitespace-nowrap">{greeting.name}</GradientText>
-            </h1>
-            {brief ? (
-              <StoryLine counts={storyCounts(brief.cards.map((card) => card.story))} onOpen={() => setStoriesOpen(true)} />
-            ) : (
-              <p className="text-sm text-muted-foreground sm:text-base">{TH.stories.notYet}</p>
-            )}
-          </header>
+      <div className={PAGE}>
+        <header className="flex flex-col gap-2 text-center animate-hero-rise">
+          <h1 className="text-balance font-display text-[1.75rem] font-semibold leading-[1.2] tracking-[-0.02em] sm:text-[3rem]">
+            {greeting.lead} <GradientText className="whitespace-nowrap">{greeting.name}</GradientText>
+          </h1>
+          {brief ? (
+            <StoryLine counts={storyCounts(brief.cards.map((card) => card.story))} onOpen={() => setStoriesOpen(true)} />
+          ) : (
+            <p className="text-sm text-muted-foreground sm:text-base">{TH.stories.notYet}</p>
+          )}
+        </header>
 
-          <LandingComposer placeholder={placeholder} busy={busy} onSubmit={(prompt) => start(prompt)} />
+        <div className="flex flex-col gap-3 animate-hero-rise [animation-delay:120ms]">
+          {kpis.length > 0 ? <KpiStrip kpis={kpis} /> : null}
+          <p className="flex flex-wrap items-center justify-center gap-x-1.5 text-center text-xs text-muted-foreground/80">
+            <ShieldCheck className="size-3.5 shrink-0 text-primary" aria-hidden />
+            {TH.landing.trust} · {TH.landing.disclaimer}
+          </p>
+        </div>
 
+        <div className={cn(ASK_DOCK, "animate-hero-rise [animation-delay:200ms]")}>
           <div className={CHIP_ROW} aria-label={TH.landing.quickActions}>
             {quickActions.slice(0, MAX_CHIPS).map((action) => (
               <button key={action.id} type="button" title={action.reason} className={cn(PILL, "shrink-0 whitespace-nowrap")} disabled={busy} onClick={() => start(action.prompt, action.intentKey)}>
@@ -136,25 +133,7 @@ export function Landing({
               </button>
             ))}
           </div>
-        </div>
-
-
-        {kpis.length > 0 ? (
-          <div className="flex w-full max-w-3xl flex-col gap-3 animate-hero-rise [animation-delay:160ms]">
-            <KpiStrip kpis={kpis} />
-          </div>
-        ) : null}
-
-        <div className="flex flex-col items-center gap-3 animate-hero-rise [animation-delay:220ms]">
-          <Link href={DASHBOARD_PATH} className={PILL}>
-            <LayoutDashboard className="size-3.5" aria-hidden />
-            {TH.landing.viewDashboard}
-            <span className="hidden text-muted-foreground/70 sm:inline">{TH.landing.dashboardHint}</span>
-          </Link>
-          <p className="flex flex-wrap items-center justify-center gap-x-1.5 text-center text-xs text-muted-foreground/80">
-            <ShieldCheck className="size-3.5 shrink-0 text-primary" aria-hidden />
-            {TH.landing.trust} · {TH.landing.disclaimer}
-          </p>
+          <LandingComposer placeholder={placeholder} busy={busy} onSubmit={(prompt) => start(prompt)} />
         </div>
       </div>
       <ChatLinkActions>

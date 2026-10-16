@@ -302,8 +302,6 @@ export const TH = {
     composerPlaceholder: "ถาม Winyu เรื่องยอดขาย สต๊อก แคมเปญ หรือการเงิน…",
     composerPlaceholderFor: (role: RoleId) => `ถาม Winyu เรื่อง${TH.login.roles[role]}…`,
     send: "ส่งคำถาม",
-    viewDashboard: "ดู Dashboard",
-    dashboardHint: "⌘D",
     quickActions: "เริ่มจากคำถามที่คุณถามบ่อย",
     trust: "ตัวเลขทุกตัวมาจากข้อมูลที่รับรองแล้ว ตามสิทธิ์ของคุณ",
     disclaimer: "Winyu เป็นเดโม ข้อมูลทั้งหมดถูกสร้างขึ้นเพื่อการสาธิต",
