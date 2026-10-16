@@ -27,3 +27,18 @@ export function seenCount(fact: Pick<MemoryFact, "confidence" | "seen">): number
 export function lastSeenAt(fact: Pick<MemoryFact, "createdAt" | "lastSeenAt">): string {
   return fact.lastSeenAt ?? fact.createdAt;
 }
+
+/** Today's date as the memory reads it (the wall clock, like grant expiry). */
+export function memoryToday(now = Date.now()): string {
+  return new Date(now).toISOString().slice(0, 10);
+}
+
+/** Whether a dated fact is over: its last day has passed. */
+export function isExpired(fact: Pick<MemoryFact, "until">, today = memoryToday()): boolean {
+  return typeof fact.until === "string" && fact.until < today;
+}
+
+/** Whether the model may lean on this fact now: trusted and not over. */
+export function isUsable(fact: Pick<MemoryFact, "confidence" | "decayAt" | "until">, today = memoryToday()): boolean {
+  return isTrusted(fact) && !isExpired(fact, today);
+}

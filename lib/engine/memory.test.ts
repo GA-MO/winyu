@@ -5,7 +5,7 @@ import { findUser } from "@/lib/data/entities/users";
 import { actionEvents, memoryFacts } from "@/lib/server/agent/collections";
 import { personaFor, relevantMemory } from "@/lib/server/agent/persona";
 import { threads } from "@/lib/server/threads-read";
-import { confirmMemory, consolidateMemory, editMemory, forgetAll, learnExtracted, pruneMemory, rememberAction, rememberTurn } from "./memory";
+import { confirmMemory, consolidateMemory, editMemory, forgetAbout, forgetAll, learnExtracted, pruneMemory, rejectMemory, rememberAction, rememberStated, rememberTurn } from "./memory";
 import { isSameFact } from "./memory-match";
 import { isTrusted, memoryStatus, seenCount } from "./memory-status";
 
@@ -39,6 +39,7 @@ function personaMemory(): string {
 }
 
 afterEach(() => {
+  forgetAll(USER);
   for (const fact of mine()) memoryFacts().remove(fact.id);
   for (const event of actionEvents().where((item) => item.userId === USER)) actionEvents().remove(event.id);
   for (const thread of threads().where((item) => item.userId === USER)) threads().remove(thread.id);
@@ -48,6 +49,22 @@ describe("isSameFact", () => {
   test("paraphrases of one interest are the same fact", () => {
     expect(isSameFact({ type: "interest", value: "สนใจการตรวจสอบสินค้าที่มีความเสี่ยงจะขาดสต็อก" }, { type: "interest", value: "สนใจการติดตามสินค้าที่เสี่ยงต่อการขาดสต็อก" })).toBe(true);
     expect(isSameFact({ type: "vocabulary", value: "ใช้คำว่า เอเย่นต์ ในการเรียกตัวแทนจำหน่าย" }, { type: "vocabulary", value: "ใช้คำว่า 'เอเย่นต์' สำหรับเรียกตัวแทนจำหน่ายหรือคู่ค้า" })).toBe(true);
+  });
+
+  test("interests in different slices of one metric stay apart, while a rephrasing of the same slice is the same fact", () => {
+    const byAgent = { type: "interest" as const, value: "สนใจปริมาณขายเข้ารายเอเย่นต์" };
+    for (const other of ["สนใจปริมาณขายเข้าของลีโอในภาคใต้", "สนใจปริมาณขายเข้าภาคใต้", "สนใจปริมาณขายเข้าเทียบเป้า", "สนใจปริมาณขายเข้าแยกตามแบรนด์"]) {
+      expect(isSameFact(byAgent, { type: "interest", value: other })).toBe(false);
+    }
+    expect(isSameFact(byAgent, { type: "interest", value: "ติดตามยอดขายเข้าแยกตามเอเย่นต์" })).toBe(true);
+    expect(isSameFact({ type: "interest", value: "สนใจปริมาณขายเข้าของลีโอในภาคใต้" }, { type: "interest", value: "ติดตามปริมาณขายเข้าลีโอภาคใต้ทุกสัปดาห์" })).toBe(true);
+  });
+
+  test("hearing Leo in the South neither strengthens the by-agent interest nor is folded into it, even when the extractor names it as the same", () => {
+    const byAgent = plant("สนใจปริมาณขายเข้ารายเอเย่นต์", { confidence: 0.75, seen: 3 });
+    learnExtracted(USER, [{ type: "interest", value: "สนใจปริมาณขายเข้าของลีโอในภาคใต้", sameAs: byAgent.id }], "thread_b");
+    expect(memoryFacts().get(byAgent.id)?.seen).toBe(3);
+    expect(mine().map((fact) => fact.value).sort()).toEqual(["สนใจปริมาณขายเข้ารายเอเย่นต์", "สนใจปริมาณขายเข้าของลีโอในภาคใต้"].sort());
   });
 
   test("facts about different metrics or different words stay apart", () => {
@@ -67,6 +84,40 @@ describe("learning before trusting", () => {
     expect(second && memoryStatus(second)).toBe("known");
     expect(second && seenCount(second)).toBe(2);
     expect(personaMemory()).toContain(second?.value ?? "-");
+  });
+
+  test("repeats inside one conversation are not new evidence: the fact stays learning until another conversation brings it up", () => {
+    const [first] = learnExtracted(USER, [{ type: "interest", value: "สนใจปริมาณขายเข้าแยกตามแบรนด์" }], "thread_a");
+    learnExtracted(USER, [{ type: "interest", value: "สนใจปริมาณขายเข้าแยกตามแบรนด์" }], "thread_a");
+    const [third] = learnExtracted(USER, [{ type: "interest", value: "สนใจปริมาณขายเข้าแยกตามแบรนด์" }], "thread_a");
+    expect(third?.id).toBe(first?.id);
+    expect(third && memoryStatus(third)).toBe("learning");
+    expect(relevantMemory(USER, "ปริมาณขายเข้าแยกตามแบรนด์").map((fact) => fact.value)).not.toContain("สนใจปริมาณขายเข้าแยกตามแบรนด์");
+    const [elsewhere] = learnExtracted(USER, [{ type: "interest", value: "สนใจปริมาณขายเข้าแยกตามแบรนด์" }], "thread_b");
+    expect(elsewhere && memoryStatus(elsewhere)).toBe("known");
+  });
+
+  test("a word used once in a question is not the person's vocabulary unless they define it", async () => {
+    await rememberTurn(USER, [{ prompt: "ขอดู sell-in ลีโอเดือนนี้" }], "thread_a");
+    expect(mine().filter((fact) => fact.type === "vocabulary")).toEqual([]);
+    await rememberTurn(USER, [{ prompt: "ผมเรียกขายเข้าว่า sellin นะ ขอดู sellin เดือนนี้" }], "thread_b");
+    expect(mine().filter((fact) => fact.type === "vocabulary")).toHaveLength(1);
+  });
+
+  test("a figure the person says is never stored, even when they ask for it to be remembered", () => {
+    expect(learnExtracted(USER, [{ type: "preference", value: "เป้าทั้งปีของลีโอคือ 900 ล้านลิตร", asked: true }], "thread_a")).toEqual([]);
+    expect(rememberStated(USER, { type: "interest", value: "เป้าลีโอ 900 ล้านลิตร", until: null }, "thread_a")).toBeNull();
+    expect(mine()).toEqual([]);
+  });
+
+  test("a dated responsibility keeps its last day, reaches the prompt with it, and is gone once the day is over", () => {
+    const [fact] = learnExtracted(USER, [{ type: "responsibility", value: "นำเสนอผลไตรมาสสามต่อคณะกรรมการ", asked: true, until: "2099-01-01" }], "thread_a");
+    expect(fact?.until).toBe("2099-01-01");
+    expect(personaMemory()).toContain("นำเสนอผลไตรมาสสามต่อคณะกรรมการ (ถึง 2099-01-01)");
+    memoryFacts().put({ ...(fact as MemoryFact), until: "2020-01-01" });
+    expect(relevantMemory(USER, "คณะกรรมการ")).toEqual([]);
+    expect(pruneMemory(USER)).toBe(1);
+    expect(mine()).toEqual([]);
   });
 
   test("something the user did is known at once", () => {
@@ -125,6 +176,44 @@ describe("the user's own hand", () => {
     expect(forgetAll(USER)).toBe(2);
     expect(mine()).toHaveLength(0);
     expect(memoryFacts().where((fact) => fact.userId !== USER)).toHaveLength(others);
+  });
+});
+
+describe("forgetting and rejecting", () => {
+  const SOUTH = 'เรียกภาคใต้ว่า "ด้ามขวาน"';
+
+  test("forgetting a word removes every fact about it, trusted or learning, and learning never brings it back from what the person says", () => {
+    learnExtracted(USER, [{ type: "vocabulary", value: SOUTH, asked: true }], "thread_a");
+    plant("สนใจยอดขายลีโอในด้ามขวาน");
+    expect(forgetAbout(USER, "ด้ามขวาน").map((fact) => fact.value).sort()).toEqual([SOUTH, "สนใจยอดขายลีโอในด้ามขวาน"].sort());
+    expect(mine()).toEqual([]);
+    expect(learnExtracted(USER, [{ type: "vocabulary", value: SOUTH }], "thread_b")).toEqual([]);
+    expect(learnExtracted(USER, [{ type: "interest", value: "สนใจปริมาณขายเข้าด้ามขวาน" }], "thread_b")).toEqual([]);
+    expect(mine()).toEqual([]);
+  });
+
+  test("a rejected fact comes back only when the person asks for it again", () => {
+    const fact = plant(SOUTH, { type: "vocabulary", confidence: 0.75 });
+    expect(rejectMemory("u_pim", fact.id)).toBeNull();
+    expect(rejectMemory(USER, fact.id)?.id).toBe(fact.id);
+    expect(learnExtracted(USER, [{ type: "vocabulary", value: SOUTH }], "thread_b")).toEqual([]);
+    const [asked] = learnExtracted(USER, [{ type: "vocabulary", value: SOUTH, asked: true }], "thread_c");
+    expect(asked && isTrusted(asked)).toBe(true);
+  });
+
+  test("forgetting everything also drops the record of what was rejected", () => {
+    forgetAbout(USER, "ด้ามขวาน");
+    forgetAll(USER);
+    const [again] = learnExtracted(USER, [{ type: "vocabulary", value: SOUTH }], "thread_b");
+    expect(again?.value).toBe(SOUTH);
+  });
+
+  test("remembering in chat keeps the approved wording as confirmed and replaces the fact that says the same thing", () => {
+    const learning = plant("ชอบคำตอบสั้น", { type: "style" });
+    const kept = rememberStated(USER, { type: "style", value: "ชอบคำตอบสั้น ๆ", until: null }, "thread_b");
+    expect(kept?.id).toBe(learning.id);
+    expect(kept?.value).toBe("ชอบคำตอบสั้น ๆ");
+    expect(kept && memoryStatus(kept)).toBe("confirmed");
   });
 });
 

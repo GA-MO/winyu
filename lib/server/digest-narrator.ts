@@ -1,7 +1,7 @@
 import type { LanguageModel } from "ai";
 import { fenceAsData } from "@/lib/harness/fence";
 import { z } from "zod";
-import { isTrusted } from "@/lib/engine/memory-status";
+import { isUsable } from "@/lib/engine/memory-status";
 import { TH } from "@/lib/i18n/th";
 import { memoryFacts } from "@/lib/server/agent/collections";
 
@@ -29,7 +29,7 @@ export function isGrounded(lead: string, lines: readonly DigestLine[]): boolean 
 /** What Winyu has come to trust about the user, strongest first, as plain statements the narrator may lean on. */
 export function factsFor(userId: string): string[] {
   return memoryFacts()
-    .where((fact) => fact.userId === userId && isTrusted(fact))
+    .where((fact) => fact.userId === userId && isUsable(fact))
     .sort((left, right) => right.confidence - left.confidence)
     .slice(0, MAX_FACTS)
     .map((fact) => fact.value);

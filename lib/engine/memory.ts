@@ -1,16 +1,16 @@
 import { randomUUID } from "node:crypto";
 import { fenceAsData } from "@/lib/harness/fence";
 import { z } from "zod";
-import type { Dim, MemoryFact, MetricId } from "@/lib/contracts";
-import { memoryFacts, memoryReviews } from "@/lib/server/agent/collections";
+import { MEMORY_FACT_TYPES, type Dim, type MemoryFact, type MemoryFactType, type MemoryTombstone, type MetricId } from "@/lib/contracts";
+import { memoryFacts, memoryReviews, memoryTombstones } from "@/lib/server/agent/collections";
 import { findUser } from "@/lib/data/entities/users";
 import { METRIC_LIST, METRICS } from "@/lib/semantic/metrics";
 import type { Dictionary, EntityKind } from "@/lib/semantic/dictionary";
 import { loadDictionary } from "@/lib/server/master-data";
 import { TH } from "@/lib/i18n/th";
-import { clusterFacts, findSameFact } from "./memory-match";
+import { clusterFacts, findSameFact, isSameFact, sameSlice, similarity } from "./memory-match";
 import { planReview } from "./memory-review";
-import { CONFIDENCE_STEP, isTrusted, KNOWN_CONFIDENCE, memoryStatus, SAID_CONFIDENCE, lastSeenAt, seenCount } from "./memory-status";
+import { CONFIDENCE_STEP, isExpired, isTrusted, KNOWN_CONFIDENCE, memoryStatus, memoryToday, SAID_CONFIDENCE, lastSeenAt, seenCount } from "./memory-status";
 
 const KNOWN_DECAY_DAYS = 90;
 const LEARNING_DECAY_DAYS = 14;
@@ -26,9 +26,15 @@ const MAX_VALUE_LENGTH = 120;
 const REVIEW_INTERVAL_MS = DAY_MS;
 const KNOWN_ID_PREFIX = "k";
 const ENTITY_KINDS: EntityKind[] = ["agent", "sku", "dc", "campaign", "brand"];
+const MAX_THREADS_KEPT = 12;
+const FORGET_SIMILARITY = 0.5;
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+const FIGURE = /[0-9๐-๙]{2,}|[0-9๐-๙]\s*(?:%|ล้าน|พัน|หมื่น|แสน|บาท|ลิตร|เท่า)/;
+const DEFINES_WORD = /เรียก.{0,60}ว่า|หมายถึง|แปลว่า/;
+const LOOSE_CHARS = /[\s"'“”‘’ๆ.,()]/g;
 
-/** A fact the extractor heard: `asked` when the user asked for it to be remembered or stated it as a standing fact about themselves. */
-export type Extracted = { type: MemoryFact["type"]; value: string; sameAs?: string | null; asked?: boolean };
+/** A fact the extractor heard: `asked` when the user asked for it to be remembered or stated it as a standing fact about themselves; `until` the last day a dated fact holds. */
+export type Extracted = { type: MemoryFactType; value: string; sameAs?: string | null; asked?: boolean; until?: string | null };
 
 /** A question to learn from, with the metric slice the answer was built from when there was one. */
 export type HeardTurn = { prompt: string; metric?: MetricId | null; dims?: Dim[] };
@@ -45,10 +51,11 @@ const factSchema = z.object({
   facts: z
     .array(
       z.object({
-        type: z.enum(["interest", "vocabulary", "responsibility", "preference", "seasonal"]),
+        type: z.enum(MEMORY_FACT_TYPES),
         value: z.string().min(MIN_VALUE_LENGTH).max(80),
         sameAs: z.string().nullable(),
         asked: z.boolean(),
+        until: z.string().regex(ISO_DATE).nullable(),
       }),
     )
     .max(MAX_FACTS_PER_TURN),
@@ -65,6 +72,47 @@ function keyOf(fact: Extracted): string {
 
 function factsOf(userId: string): MemoryFact[] {
   return memoryFacts().where((fact) => fact.userId === userId);
+}
+
+/** Whether a text carries a figure (an amount, a percentage, a count with a unit): memory never holds one, every number comes from a tool. */
+export function holdsFigure(value: string): boolean {
+  return FIGURE.test(value);
+}
+
+function loose(text: string): string {
+  return text.toLowerCase().replace(LOOSE_CHARS, "");
+}
+
+function tombstonesOf(userId: string): MemoryTombstone[] {
+  return memoryTombstones().where((tombstone) => tombstone.userId === userId);
+}
+
+function buries(tombstone: MemoryTombstone, fact: Pick<MemoryFact, "type" | "value">): boolean {
+  if (tombstone.type === null) return loose(fact.value).includes(loose(tombstone.value));
+  return isSameFact({ type: tombstone.type, value: tombstone.value }, fact);
+}
+
+/** Whether the person rejected this fact or asked Winyu to forget it, so learning must not bring it back. */
+export function isBuried(userId: string, fact: Pick<MemoryFact, "type" | "value">): boolean {
+  return tombstonesOf(userId).some((tombstone) => buries(tombstone, fact));
+}
+
+function bury(userId: string, type: MemoryFactType | null, value: string): void {
+  const wording = value.trim();
+  if (tombstonesOf(userId).some((tombstone) => tombstone.type === type && tombstone.value === wording)) return;
+  memoryTombstones().put({ id: randomUUID(), userId, type, value: wording, at: new Date().toISOString() });
+}
+
+function unbury(userId: string, fact: Pick<MemoryFact, "type" | "value">): void {
+  for (const tombstone of tombstonesOf(userId)) if (buries(tombstone, fact)) memoryTombstones().remove(tombstone.id);
+}
+
+function heardIn(fact: MemoryFact): string[] {
+  return fact.threads ?? (fact.sourceThreadId ? [fact.sourceThreadId] : []);
+}
+
+function datedBy(until: string | null | undefined): Pick<MemoryFact, "until"> {
+  return until ? { until } : {};
 }
 
 const SYNONYM_OWNERS = (() => {
@@ -137,6 +185,7 @@ async function extractByModel(userId: string, turns: HeardTurn[], known: MemoryF
       schema: factSchema,
       system: TH.memory.systemPrompt,
       prompt: [
+        TH.memory.today(memoryToday()),
         TH.memory.reviewWho(whoOf(userId)),
         TH.memory.knownHeading,
         fenceAsData(text),
@@ -150,10 +199,15 @@ async function extractByModel(userId: string, turns: HeardTurn[], known: MemoryF
   }
 }
 
-function reinforce(fact: MemoryFact, origin: Origin): MemoryFact {
-  if (fact.decayAt === null) return fact;
+/** Hearing a fact again: a repeat from the same conversation is not new evidence, so only another conversation, something asked for or something done raises it. */
+function reinforce(fact: MemoryFact, origin: Origin, threadId: string | null, until: string | null | undefined): MemoryFact {
+  const now = new Date().toISOString();
+  if (fact.decayAt === null) return until ? memoryFacts().put({ ...fact, until }) : fact;
+  const sameConversation = origin === "said" && threadId !== null && heardIn(fact).includes(threadId);
+  if (sameConversation) return memoryFacts().put({ ...fact, ...datedBy(until), lastSeenAt: now });
   const confidence = Math.min(MAX_CONFIDENCE, Math.max(ORIGIN[origin].floor, fact.confidence + CONFIDENCE_STEP));
-  return memoryFacts().put({ ...fact, confidence, decayAt: decayAt(confidence), seen: seenCount(fact) + 1, lastSeenAt: new Date().toISOString() });
+  const threads = threadId ? [...heardIn(fact).filter((thread) => thread !== threadId), threadId].slice(-MAX_THREADS_KEPT) : heardIn(fact);
+  return memoryFacts().put({ ...fact, ...datedBy(until), confidence, decayAt: decayAt(confidence), seen: seenCount(fact) + 1, lastSeenAt: now, threads });
 }
 
 function add(userId: string, fact: Extracted, origin: Origin, threadId: string | null): MemoryFact {
@@ -169,7 +223,18 @@ function add(userId: string, fact: Extracted, origin: Origin, threadId: string |
     decayAt: decayAt(confidence),
     seen: 1,
     lastSeenAt: new Date().toISOString(),
+    threads: threadId ? [threadId] : [],
+    ...datedBy(fact.until),
   });
+}
+
+/** Whether a heard fact may be kept: what the person said never carries a figure, and something they rejected or asked to forget is only learned again when they ask for it or act on it. */
+function admits(userId: string, fact: Extracted, origin: Origin): boolean {
+  if (origin === "did") return true;
+  if (holdsFigure(fact.value)) return false;
+  if (origin === "said") return !isBuried(userId, fact);
+  unbury(userId, fact);
+  return true;
 }
 
 function merge(userId: string, extracted: Extracted[], heardAs: Origin, threadId: string | null): MemoryFact[] {
@@ -178,12 +243,13 @@ function merge(userId: string, extracted: Extracted[], heardAs: Origin, threadId
   const saved: MemoryFact[] = [];
   for (const fact of extracted) {
     const origin: Origin = fact.asked ? "asked" : heardAs;
-    const named = fact.sameAs ? mine.find((candidate) => candidate.id === fact.sameAs && candidate.type === fact.type) : undefined;
+    if (!admits(userId, fact, origin)) continue;
+    const named = fact.sameAs ? mine.find((candidate) => candidate.id === fact.sameAs && candidate.type === fact.type && sameSlice(candidate.value, fact.value)) : undefined;
     const existing = named ?? findSameFact(mine, fact);
     if (existing && touched.has(existing.id)) continue;
     if (existing) {
       touched.add(existing.id);
-      saved.push(reinforce(existing, origin));
+      saved.push(reinforce(existing, origin, threadId, fact.until));
       continue;
     }
     const created = add(userId, fact, origin, threadId);
@@ -217,10 +283,11 @@ function enforceCap(userId: string): number {
   return surplus.length;
 }
 
-/** Drops facts whose decay date has passed. */
+/** Drops facts whose decay date has passed and dated facts whose day is over. */
 export function pruneMemory(userId: string): number {
   const now = new Date().toISOString();
-  const stale = factsOf(userId).filter((fact) => fact.decayAt !== null && fact.decayAt < now);
+  const today = memoryToday();
+  const stale = factsOf(userId).filter((fact) => (fact.decayAt !== null && fact.decayAt < now) || isExpired(fact, today));
   for (const fact of stale) memoryFacts().remove(fact.id);
   return stale.length;
 }
@@ -234,15 +301,16 @@ function headOf(group: MemoryFact[]): MemoryFact {
 }
 
 function foldInto(head: MemoryFact, group: MemoryFact[], rewrite: Pick<MemoryFact, "type" | "value"> | null): MemoryFact {
-  const threads = new Set(group.map((fact) => fact.sourceThreadId).filter((thread) => thread !== null && thread !== head.sourceThreadId));
+  const heard = [...new Set(group.flatMap(heardIn))];
+  const otherThreads = heard.filter((thread) => !heardIn(head).includes(thread));
   const confirmed = group.some((fact) => fact.decayAt === null);
-  const confidence = confirmed ? MAX_CONFIDENCE : Math.min(MAX_CONFIDENCE, Math.max(...group.map((fact) => fact.confidence)) + CONFIDENCE_STEP * threads.size);
+  const confidence = confirmed ? MAX_CONFIDENCE : Math.min(MAX_CONFIDENCE, Math.max(...group.map((fact) => fact.confidence)) + CONFIDENCE_STEP * otherThreads.length);
   const createdAt = group.map((fact) => fact.createdAt).sort()[0] ?? head.createdAt;
   const wording = rewrite && !isProtected(head) ? { type: rewrite.type, value: rewrite.value.trim() } : {};
   for (const fact of group) if (fact.id !== head.id) memoryFacts().remove(fact.id);
   const seen = group.reduce((total, fact) => total + seenCount(fact), 0);
   const lastSeen = group.map(lastSeenAt).sort().at(-1) ?? head.createdAt;
-  return memoryFacts().put({ ...head, ...wording, confidence, createdAt, decayAt: confirmed ? null : decayAt(confidence), seen, lastSeenAt: lastSeen });
+  return memoryFacts().put({ ...head, ...wording, confidence, createdAt, decayAt: confirmed ? null : decayAt(confidence), seen, lastSeenAt: lastSeen, threads: heard.slice(-MAX_THREADS_KEPT) });
 }
 
 /** Folds paraphrases of one fact into its most confident wording (a repeat from another conversation counts as evidence), then trims to the per-user caps. */
@@ -304,11 +372,54 @@ export function editMemory(userId: string, id: string, value: string): MemoryFac
   return memoryFacts().put({ ...fact, value: wording, confidence: MAX_CONFIDENCE, decayAt: null });
 }
 
-/** Forgets everything Winyu remembers about this user. */
+/** Forgets everything Winyu remembers about this user, the record of what they rejected included. */
 export function forgetAll(userId: string): number {
   const facts = factsOf(userId);
   for (const fact of facts) memoryFacts().remove(fact.id);
+  for (const tombstone of tombstonesOf(userId)) memoryTombstones().remove(tombstone.id);
   return facts.length;
+}
+
+/** The person rejected a fact (deleted it or said it is wrong): it is removed and never learned again from what they merely say. */
+export function rejectMemory(userId: string, id: string): MemoryFact | null {
+  const fact = memoryFacts().get(id);
+  if (!fact || fact.userId !== userId) return null;
+  memoryFacts().remove(id);
+  bury(userId, fact.type, fact.value);
+  return fact;
+}
+
+function isAbout(fact: MemoryFact, about: string): boolean {
+  return loose(fact.value).includes(loose(about)) || similarity(about, fact.value) >= FORGET_SIMILARITY;
+}
+
+/** The person's facts, still learning or trusted, that a request to forget `about` names. */
+export function memoryAbout(userId: string, about: string): MemoryFact[] {
+  return factsOf(userId).filter((fact) => isAbout(fact, about));
+}
+
+/** The person asked Winyu to forget something: every fact about it is removed and buried, and so is the phrase itself, so neither the prompt, recall nor learning brings it back. */
+export function forgetAbout(userId: string, about: string): MemoryFact[] {
+  const forgotten = memoryAbout(userId, about);
+  for (const fact of forgotten) {
+    memoryFacts().remove(fact.id);
+    bury(userId, fact.type, fact.value);
+  }
+  bury(userId, null, about);
+  return forgotten;
+}
+
+/** The person asked in chat for this to be remembered and approved its wording: it is kept as confirmed (until its day is over, when dated), replaces a fact that says the same thing, and lifts any earlier rejection of it; null when it carries a figure. */
+export function rememberStated(userId: string, stated: Pick<Extracted, "type" | "value" | "until">, threadId: string | null): MemoryFact | null {
+  const value = stated.value.trim();
+  if (holdsFigure(value) || value.length < MIN_VALUE_LENGTH || value.length > MAX_VALUE_LENGTH) return null;
+  const fact = { type: stated.type, value };
+  unbury(userId, fact);
+  const now = new Date().toISOString();
+  const confirmed = { ...fact, confidence: MAX_CONFIDENCE, decayAt: null, lastSeenAt: now, until: stated.until ?? null };
+  const existing = findSameFact(factsOf(userId), fact);
+  if (existing) return memoryFacts().put({ ...existing, ...confirmed, seen: seenCount(existing) + 1 });
+  return memoryFacts().put({ id: randomUUID(), userId, ...confirmed, sourceThreadId: threadId, createdAt: now, seen: 1, threads: threadId ? [threadId] : [] });
 }
 
 /** After a save: learn from the questions that are new in it, matching them against what is already known so a repeat strengthens a fact instead of adding one. */
@@ -318,7 +429,8 @@ export async function rememberTurn(userId: string, turns: HeardTurn[], threadId:
   if (heard.length === 0) return [];
   const known = factsOf(userId).sort(keepOrder);
   const extracted = (await extractByModel(userId, heard, known)) ?? extractByRule(heard.map((turn) => turn.prompt), await loadDictionary());
-  return learnExtracted(userId, extracted, threadId);
+  const definesWord = heard.some((turn) => DEFINES_WORD.test(turn.prompt));
+  return learnExtracted(userId, extracted.filter((fact) => fact.type !== "vocabulary" || fact.asked === true || definesWord), threadId);
 }
 
 /** Saves what the extractor heard in one turn: a fact the user asked to be remembered is trusted at once, the rest waits to be heard again. */

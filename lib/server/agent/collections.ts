@@ -1,4 +1,4 @@
-import type { ActionEvent, Alert, Investigation, ContextPacket, DashboardLayout, FeedStateRecord, FeedTone, Forecast, MemoryFact, Notification, OutboxEntry, PersonalWatch } from "@/lib/contracts";
+import type { ActionEvent, Alert, Investigation, ContextPacket, DashboardLayout, FeedStateRecord, FeedTone, Forecast, MemoryFact, MemoryTombstone, Notification, OutboxEntry, PersonalWatch } from "@/lib/contracts";
 import { collection } from "@/lib/server/store/json-store";
 
 export type StoredForecast = Forecast;
@@ -10,6 +10,7 @@ export const COLLECTIONS = {
   forecasts: "forecasts",
   memory: "memory",
   memoryReviews: "memory-reviews",
+  memoryTombstones: "memory-tombstones",
   packets: "packets",
   notifications: "notifications",
   outbox: "outbox",
@@ -26,6 +27,10 @@ export function forecasts() {
 
 export function memoryFacts() {
   return collection<MemoryFact>(COLLECTIONS.memory);
+}
+
+export function memoryTombstones() {
+  return collection<MemoryTombstone>(COLLECTIONS.memoryTombstones);
 }
 
 export type MemoryReview = { id: string; at: string; before: number; after: number };

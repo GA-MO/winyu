@@ -6,14 +6,14 @@ import { BadgeCheck, Check, History, MessageSquare, MousePointerClick, Pencil, S
 import { cn } from "@/components/ui/cn";
 import type { MemoryFact } from "@/lib/contracts";
 import type { MemoryStatus } from "@/lib/engine/memory-status";
-import { relativeTimeTh } from "@/lib/i18n/format";
+import { formatDateTh, relativeTimeTh } from "@/lib/i18n/format";
 import { TH } from "@/lib/i18n/th";
 import { PILL } from "@/components/landing/pill";
 
 const MEMORY_ENDPOINT = "/api/memory";
 const CONVERSATIONS_ENDPOINT = `${MEMORY_ENDPOINT}/conversations`;
 const MIN_VALUE_LENGTH = 3;
-const TYPE_ORDER: MemoryFact["type"][] = ["interest", "vocabulary", "preference", "responsibility", "seasonal"];
+const TYPE_ORDER: MemoryFact["type"][] = ["style", "interest", "vocabulary", "preference", "responsibility", "seasonal"];
 const ICON_BUTTON = "rounded-lg p-1.5 text-muted-foreground transition hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 const CARD = "rounded-2xl border border-border bg-card shadow-card";
 
@@ -26,6 +26,7 @@ export type MemoryRow = {
   lastSeenAt: string;
   threadId: string | null;
   fromAction: boolean;
+  until: string | null;
 };
 
 /** A conversation recall can search, as the memory page lists it. */
@@ -229,6 +230,15 @@ function SourceLink({ threadId, className }: { threadId: string; className?: str
 }
 
 function Provenance({ row }: { row: MemoryRow }) {
+  return (
+    <span className="inline-flex flex-wrap items-center gap-x-2">
+      <Source row={row} />
+      {row.until ? <span>{TH.memoryPage.until(formatDateTh(row.until))}</span> : null}
+    </span>
+  );
+}
+
+function Source({ row }: { row: MemoryRow }) {
   if (row.status === "confirmed") {
     return (
       <span className="inline-flex items-center gap-1 text-success">

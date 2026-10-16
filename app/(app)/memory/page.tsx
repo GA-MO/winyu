@@ -31,6 +31,7 @@ export default async function MemoryPage() {
       lastSeenAt: lastSeenAt(fact),
       threadId: fact.sourceThreadId && getThread(fact.sourceThreadId, access.userId) ? fact.sourceThreadId : null,
       fromAction: fact.sourceThreadId === null,
+      until: fact.until ?? null,
     }));
 
   return (

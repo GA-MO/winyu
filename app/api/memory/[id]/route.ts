@@ -1,6 +1,6 @@
 import { badRequest, notFound, readBody, requireAccess, unauthenticated } from "../../_guard";
 import { memoryFacts } from "@/lib/server/agent/collections";
-import { confirmMemory, editMemory } from "@/lib/engine/memory";
+import { confirmMemory, editMemory, rejectMemory } from "@/lib/engine/memory";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
@@ -22,9 +22,7 @@ export async function PATCH(req: Request, context: RouteContext) {
 export async function DELETE(_req: Request, context: RouteContext) {
   const access = await requireAccess();
   if (!access) return unauthenticated();
-  const id = (await context.params).id;
-  const fact = memoryFacts().get(id);
-  if (!fact || fact.userId !== access.userId) return notFound();
-  memoryFacts().remove(id);
+  const rejected = rejectMemory(access.userId, (await context.params).id);
+  if (!rejected) return notFound();
   return Response.json({ ok: true });
 }

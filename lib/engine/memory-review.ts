@@ -1,6 +1,6 @@
 import { fenceAsData } from "@/lib/harness/fence";
 import { z } from "zod";
-import type { MemoryFact } from "@/lib/contracts";
+import { MEMORY_FACT_TYPES, type MemoryFact } from "@/lib/contracts";
 import { TH } from "@/lib/i18n/th";
 
 const SHORT_ID_PREFIX = "f";
@@ -9,7 +9,7 @@ const reviewSchema = z.object({
   groups: z.array(
     z.object({
       ids: z.array(z.string()).min(1),
-      type: z.enum(["interest", "vocabulary", "responsibility", "preference", "seasonal"]),
+      type: z.enum(MEMORY_FACT_TYPES),
       value: z.string().min(3).max(80),
     }),
   ),

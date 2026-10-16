@@ -1,4 +1,7 @@
-import type { MemoryFact } from "@/lib/contracts";
+import { DIMS, REGIONS, type MemoryFact, type Region } from "@/lib/contracts";
+import { BRAND_INFO } from "@/lib/data/entities/products";
+import { REGION_LABELS_TH } from "@/lib/data/entities/org";
+import { TH } from "@/lib/i18n/th";
 import { METRIC_LIST } from "@/lib/semantic/metrics";
 
 const SAME_FACT_SIMILARITY = 0.4;
@@ -15,7 +18,33 @@ const FILLER_WORDS = [
   "การ", "และ", "หรือ", "ของ", "ว่า", "เช่น", "ที่",
 ];
 
+const REGION_ALIASES: Record<Region, string[]> = {
+  bkk: ["กรุงเทพ"],
+  central: [],
+  north: [],
+  northeast: ["อีสาน", "ภาคตะวันออกเฉียงเหนือ"],
+  east: [],
+  south: [],
+};
+const BREAKDOWN_PREFIXES = ["แยกตาม", "แยก", "ราย", "แต่ละ"];
+const COMPARISONS: [string, string[]][] = [
+  ["target", ["เทียบเป้า", "เทียบกับเป้า", "ต่อเป้า"]],
+  ["prev_year", ["เทียบปีก่อน", "เทียบปีที่แล้ว", "เทียบปีก่อนหน้า"]],
+  ["prev_period", ["เทียบเดือนก่อน", "เทียบเดือนที่แล้ว", "เทียบสัปดาห์ก่อน"]],
+];
+
 type Anchor = { id: string; word: string };
+
+function longestFirst(anchors: Anchor[]): Anchor[] {
+  return anchors.sort((left, right) => right.word.length - left.word.length);
+}
+
+const SLICE_ANCHORS: Anchor[] = longestFirst([
+  ...REGIONS.flatMap((region) => [REGION_LABELS_TH[region], ...REGION_ALIASES[region]].map((word) => ({ id: `region:${region}`, word: word.toLowerCase() }))),
+  ...BRAND_INFO.flatMap((brand) => [brand.nameTh, brand.label, ...brand.nicknames].map((word) => ({ id: `brand:${brand.id}`, word: word.toLowerCase() }))),
+  ...DIMS.flatMap((dim) => BREAKDOWN_PREFIXES.map((prefix) => ({ id: `by:${dim}`, word: `${prefix}${TH.dim[dim] ?? dim}`.toLowerCase() }))),
+  ...COMPARISONS.flatMap(([id, words]) => words.map((word) => ({ id: `vs:${id}`, word }))),
+]);
 
 const METRIC_ANCHORS: Anchor[] = (() => {
   const owners = new Map<string, number>();
@@ -50,18 +79,35 @@ function dice(left: Set<string>, right: Set<string>): number {
   return (2 * shared) / (left.size + right.size);
 }
 
+function found(text: string, anchors: readonly Anchor[], prefix: string): Set<string> {
+  const ids = new Set<string>();
+  let rest = text;
+  for (const anchor of anchors) {
+    if (!rest.includes(anchor.word)) continue;
+    ids.add(`${prefix}${anchor.id}`);
+    rest = rest.split(anchor.word).join(" ");
+  }
+  return ids;
+}
+
 /** What a fact is about that a paraphrase must keep: the metrics it names and the words it quotes. */
 export function anchorsOf(value: string): Set<string> {
   const lower = value.toLowerCase();
-  const anchors = new Set<string>();
-  let rest = lower;
-  for (const anchor of METRIC_ANCHORS) {
-    if (!rest.includes(anchor.word)) continue;
-    anchors.add(`metric:${anchor.id}`);
-    rest = rest.split(anchor.word).join(" ");
-  }
+  const anchors = found(lower, METRIC_ANCHORS, "metric:");
   for (const match of lower.matchAll(QUOTED)) anchors.add(`word:${(match[1] ?? "").trim()}`);
   return anchors;
+}
+
+/** Which slice of the business a fact is about: the regions and brands it names, what it breaks down by, and what it compares against. */
+export function sliceOf(value: string): Set<string> {
+  return found(value.toLowerCase(), SLICE_ANCHORS, "");
+}
+
+/** Whether two fact texts are about the same slice of the business: the same regions, brands, breakdowns and comparisons. */
+export function sameSlice(left: string, right: string): boolean {
+  const leftSlice = sliceOf(left);
+  const rightSlice = sliceOf(right);
+  return leftSlice.size === rightSlice.size && [...leftSlice].every((anchor) => rightSlice.has(anchor));
 }
 
 function eachHasItsOwn(left: Set<string>, right: Set<string>): boolean {
@@ -75,10 +121,11 @@ export function similarity(left: string, right: string): number {
   return dice(grams(comparable(left)), grams(comparable(right)));
 }
 
-/** Whether two facts say the same thing: same type, alike wording, and no metric or quoted word that one has and the other lacks on both sides. */
+/** Whether two facts say the same thing: same type, the same slice of the business (region, brand, breakdown, comparison), alike wording, and no metric or quoted word that one has and the other lacks on both sides. */
 export function isSameFact(left: Pick<MemoryFact, "type" | "value">, right: Pick<MemoryFact, "type" | "value">): boolean {
   if (left.type !== right.type) return false;
   if (left.value.trim() === right.value.trim()) return true;
+  if (!sameSlice(left.value, right.value)) return false;
   if (eachHasItsOwn(anchorsOf(left.value), anchorsOf(right.value))) return false;
   return similarity(left.value, right.value) >= SAME_FACT_SIMILARITY;
 }
