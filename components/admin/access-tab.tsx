@@ -12,7 +12,7 @@ import { metricLabel } from "@/lib/dashboard/metric-display";
 import { TH } from "@/lib/i18n/th";
 import { cycleFieldAction, cycleMetricAction, resetAllAction, resetRoleAction, setFieldAction, setMetricAction, setRoleToolAction } from "@/app/(app)/admin/actions";
 import { ConnectorTitle } from "./connector-parts";
-import { Avatar, FOCUS, GHOST, Panel, Pill, SwitchButton, stamp } from "./parts";
+import { Avatar, ConfirmForm, FOCUS, Panel, Pill, SwitchButton, stamp } from "./parts";
 
 const COPY = TH.admin.access;
 const LEVELS: readonly Visibility[] = ["full", "masked", "none"];
@@ -105,13 +105,13 @@ function RoleHeader({ role }: { role: RoleId }) {
         </div>
       </div>
       {changed > 0 ? (
-        <form action={resetRoleAction}>
-          <input type="hidden" name="role" value={role} />
-          <button type="submit" className={GHOST}>
-            <RotateCcw className="size-3.5" aria-hidden />
-            {COPY.resetRole(changed)}
-          </button>
-        </form>
+        <ConfirmForm
+          action={resetRoleAction}
+          fields={{ role }}
+          label={COPY.resetRole(changed)}
+          icon={<RotateCcw className="size-3.5" aria-hidden />}
+          question={TH.admin.confirm.role(TH.role[role], changed, members.length)}
+        />
       ) : null}
     </Panel>
   );
@@ -440,12 +440,12 @@ function Matrix() {
       hint={COPY.compareHint}
       action={
         total > 0 ? (
-          <form action={resetAllAction}>
-            <button type="submit" className={GHOST}>
-              <RotateCcw className="size-3.5" aria-hidden />
-              {TH.admin.overrides.reset(total)}
-            </button>
-          </form>
+          <ConfirmForm
+            action={resetAllAction}
+            label={TH.admin.overrides.reset(total)}
+            icon={<RotateCcw className="size-3.5" aria-hidden />}
+            question={TH.admin.confirm.all(total, USERS.filter((user) => roleOverrides().some((entry) => entry.role === user.role)).length)}
+          />
         ) : null
       }
       bodyClassName="overflow-x-auto"

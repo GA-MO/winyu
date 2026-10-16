@@ -877,6 +877,13 @@ export const TH = {
   },
   admin: {
     title: "Admin console",
+    confirm: {
+      yes: "ยืนยันคืนค่า",
+      cancel: "ยกเลิก",
+      one: (role: string, subject: string, back: string, people: number) => `คืน ${subject} ของ${role} กลับเป็น "${back}" ตามที่ระบบตั้งไว้? มีผลกับ ${people} คนทันที`,
+      role: (role: string, count: number, people: number) => `คืนค่าที่ปรับไว้ ${count} รายการของ${role} กลับเป็นค่าที่ระบบตั้งไว้? มีผลกับ ${people} คนทันที`,
+      all: (count: number, people: number) => `คืนค่าที่ผู้ดูแลปรับไว้ทั้ง ${count} รายการกลับเป็นค่าที่ระบบตั้งไว้? มีผลกับ ${people} คนทันที`,
+    },
     clocks: (system: string, business: string) => `ข้อมูลระบบ ณ ${system} (วันที่จริง) · ข้อมูลธุรกิจ ณ วันทำการของ Winyu ${business}`,
     groups: { overview: "ภาพรวม", access: "สิทธิ์", tools: "เครื่องมือ", audit: "Audit", connections: "การเชื่อมต่อ" },
     tabs: { overview: "ภาพรวม", access: "สิทธิ์ตามบทบาท", grants: "สิทธิ์ชั่วคราว", tools: "เครื่องมือ", rules: "กฎ", audit: "Audit", usage: "การใช้งาน", simulate: "จำลองมุมมอง", mcp: "MCP · A2A", signin: "การเข้าสู่ระบบ" },

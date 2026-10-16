@@ -1,12 +1,38 @@
 import Link from "next/link";
 import { ArrowUpRight, ChevronDown } from "lucide-react";
 import { cn } from "@/components/ui/cn";
+import type { ReactNode } from "react";
 import { formatDateTh, formatTimeTh } from "@/lib/i18n/format";
+import { TH } from "@/lib/i18n/th";
+
+const CONFIRM = TH.admin.confirm;
 
 export const FOCUS = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 export const FIELD = `h-9 rounded-full border border-border bg-card px-3.5 text-sm text-foreground shadow-card ${FOCUS}`;
 export const GHOST = `inline-flex h-9 items-center gap-1.5 rounded-full border border-border bg-card px-3.5 text-sm text-muted-foreground shadow-card transition hover:border-foreground/25 hover:text-foreground ${FOCUS}`;
 export const INK = `inline-flex h-9 items-center gap-1.5 rounded-full bg-ink px-4 text-sm font-medium text-ink-foreground transition hover:opacity-90 ${FOCUS}`;
+
+/** A change that takes effect for many people at once, behind a second tap: the first tap shows what will change and whom it touches, and only the confirm button submits. */
+export function ConfirmForm({ action, fields = {}, label, question, icon }: { action: (formData: FormData) => Promise<void>; fields?: Record<string, string>; label: string; question: string; icon?: ReactNode }) {
+  return (
+    <details className="group relative">
+      <summary className={cn(GHOST, "cursor-pointer list-none [&::-webkit-details-marker]:hidden")}>
+        {icon}
+        <span className="group-open:hidden">{label}</span>
+        <span className="hidden group-open:inline">{CONFIRM.cancel}</span>
+      </summary>
+      <form action={action} role="alertdialog" aria-label={label} className="absolute bottom-full right-0 z-20 mb-2 flex w-72 flex-col gap-3 rounded-2xl border border-border bg-card p-3.5 text-left shadow-card">
+        {Object.entries(fields).map(([name, value]) => (
+          <input key={name} type="hidden" name={name} value={value} />
+        ))}
+        <p className="text-[13px] text-foreground">{question}</p>
+        <button type="submit" className={`inline-flex h-9 items-center justify-center rounded-full bg-destructive px-4 text-sm font-medium text-destructive-foreground transition hover:opacity-90 ${FOCUS}`}>
+          {CONFIRM.yes}
+        </button>
+      </form>
+    </details>
+  );
+}
 
 /** A native select with its own chevron, so the arrow sits inside the pill's padding instead of on its edge. */
 export function Select({ className, children, ...props }: React.SelectHTMLAttributes<HTMLSelectElement>) {

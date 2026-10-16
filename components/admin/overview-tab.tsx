@@ -2,7 +2,8 @@ import { BellRing, Lock, PlugZap, RotateCcw, Send } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { alertsInboxEnabled, alertsInboxSwitch, connectorEnabled, handoffEnabled, handoffSwitch, killedTools, type SwitchEntry } from "@/lib/access/enforce";
 import { defaultOf, roleOverrides, type RoleOverride, type Visibility } from "@/lib/access/role-overrides";
-import { findUser } from "@/lib/data/entities/users";
+import { USERS, findUser } from "@/lib/data/entities/users";
+import type { RoleId } from "@/lib/contracts";
 import { metricLabel } from "@/lib/dashboard/metric-display";
 import { TH } from "@/lib/i18n/th";
 import { adoptionSummary } from "@/lib/server/adoption";
@@ -13,7 +14,7 @@ import { connectorHealth } from "@/lib/server/connectors/catalog";
 import { connectors, fieldLabel, toolLabel } from "@/lib/server/tools/registry";
 import { removeOverrideAction, resetAllAction, setAlertsInboxAction, setHandoffAction } from "@/app/(app)/admin/actions";
 import { SpendStat } from "./spend-stat";
-import { Avatar, EmptyLine, GHOST, LinkMore, Panel, Pill, Stat, SystemToggle, stamp } from "./parts";
+import { Avatar, ConfirmForm, EmptyLine, LinkMore, Panel, Pill, Stat, SystemToggle, stamp } from "./parts";
 
 const RECENT_LIMIT = 6;
 const OVERRIDES_SHOWN = 12;
@@ -119,6 +120,11 @@ function ConnectorProblems() {
   );
 }
 
+function peopleIn(roles: readonly RoleId[]): number {
+  const touched = new Set(roles);
+  return USERS.filter((user) => touched.has(user.role)).length;
+}
+
 function OverrideRow({ entry }: { entry: RoleOverride }) {
   return (
     <li className="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0">
@@ -131,13 +137,13 @@ function OverrideRow({ entry }: { entry: RoleOverride }) {
         <p className="text-[12px]">{COPY.overrideChange(valueLabel(defaultOf(entry)), valueLabel(currentOf(entry)))}</p>
         <p className="text-[11px] text-muted-foreground">{TH.admin.overrides.changedBy(findUser(entry.by)?.nameTh ?? entry.by, stamp(entry.at))}</p>
       </div>
-      <form action={removeOverrideAction}>
-        <input type="hidden" name="override" value={entry.id} />
-        <button type="submit" className={GHOST}>
-          <RotateCcw className="size-3.5" aria-hidden />
-          {COPY.revert}
-        </button>
-      </form>
+      <ConfirmForm
+        action={removeOverrideAction}
+        fields={{ override: entry.id }}
+        label={COPY.revert}
+        icon={<RotateCcw className="size-3.5" aria-hidden />}
+        question={TH.admin.confirm.one(TH.role[entry.role], overrideSubject(entry), valueLabel(defaultOf(entry)), peopleIn([entry.role]))}
+      />
     </li>
   );
 }
@@ -146,11 +152,7 @@ function Overrides() {
   const all = [...roleOverrides()].sort((left, right) => right.at.localeCompare(left.at));
   const action =
     all.length > 0 ? (
-      <form action={resetAllAction}>
-        <button type="submit" className={GHOST}>
-          {COPY.revertAll(all.length)}
-        </button>
-      </form>
+      <ConfirmForm action={resetAllAction} label={COPY.revertAll(all.length)} question={TH.admin.confirm.all(all.length, peopleIn(all.map((entry) => entry.role)))} />
     ) : null;
   return (
     <Panel title={COPY.overrides} hint={COPY.overridesHint} action={action}>
