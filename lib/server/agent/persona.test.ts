@@ -327,6 +327,13 @@ describe("lines that invite a question or an action follow what the role can cal
     expect(rules).toContain("ห้ามใช้คำว่าเตรียม หรือกำลัง กับสิ่งที่ทำเสร็จแล้ว");
   });
 
+  test("a why about one agent may use its sell-in alert counted in another unit, stating the alert's own unit and window (AI-170)", () => {
+    const why = WINYU_RULES.find((line) => line.startsWith("ผู้ใช้ถามว่าทำไม")) ?? "";
+    expect(why).not.toContain("ห้ามใช้ alert ของ metric หรือหน่วยอื่น (ลิตรแทนบาท) อธิบาย");
+    expect(why).toContain("alert ยอดขายเข้าเป็นลิตร บาท หรือเทียบเป้า คือเรื่องเดียวกัน");
+    expect(why).toContain("บอกหน่วยและช่วงของ alert เอง");
+  });
+
   test("an overclaim held back gets a corrected note to send instead, never an invitation to resend the false one (AI-161)", () => {
     const prompt = promptOf("u_krit");
     expect(prompt).toContain("เสนอข้อความแนบใหม่ที่ตรงกับการ์ดและไม่มีตัวเลข");
