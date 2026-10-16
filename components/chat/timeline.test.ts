@@ -83,6 +83,13 @@ describe("toolViewOf", () => {
     }
   });
 
+  test("a write the runtime rejected and the model called again draws nothing, whether the retry waits for approval or answered", () => {
+    const rejected = { ...write, toolCallId: "c-bad", outcome: { state: "returned" as const, result: { error: true, message: "Tool input validation failed for pin_widget: query.range: expected object" } } };
+    const waiting = { ...write, toolCallId: "c-retry" };
+    expect(cardPlanOf([rejected, waiting], new Set(), CARD_TOOLS).hidden.has("c-bad")).toBe(true);
+    expect(cardPlanOf([rejected], new Set(), CARD_TOOLS).hidden.has("c-bad")).toBe(false);
+  });
+
   test("a composed card never hides a write's receipt", () => {
     const refused = { ...write, outcome: { state: "returned" as const, result: { ok: false, error: "x" } } };
     expect(cardPlanOf([refused], new Set([refused.toolCallId]), CARD_TOOLS).hidden.has(refused.toolCallId)).toBe(false);
