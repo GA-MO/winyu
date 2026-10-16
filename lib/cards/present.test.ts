@@ -294,6 +294,17 @@ describe("two metrics on one card", () => {
     expect(bodyOf({ metric: "net_sales_volume", dims: ["region"] }, { others: [{ metric: "headcount", dims: ["department"] }] }).kind).toBe("strip");
   });
 
+  test("two metrics of a few groups are the first breakdown with the second value under every row, not an unlabelled scatter (AI-70)", () => {
+    const first = answer({ metric: "net_sales_value", dims: ["region"] });
+    const second = answer({ metric: "ar_overdue", dims: ["region"] });
+    expect(pairedIndexes(first, [second])).toEqual([0]);
+    const card = presentCard({ title: "t", query: first.query, result: first.result, others: [second] });
+    const rows = stripOf(card.body).rows;
+    expect(rows.length).toBeGreaterThan(1);
+    rows.forEach((row) => expect(row.sub).toMatch(/^ยอดค้างชำระเกินกำหนด .+บาท$/));
+    expect(card.title).toContain("ยอดค้างชำระเกินกำหนด");
+  });
+
   test("a change ranking names what each row moved from, and the hero what the whole was, so last year's amount is on the card (AI-68)", () => {
     const card = cardOf({ metric: "ar_overdue", dims: ["region"], compare: "prev_year" }, { sort: "delta_desc" });
     const strip = stripOf(card.body);

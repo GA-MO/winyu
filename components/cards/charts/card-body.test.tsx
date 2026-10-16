@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { renderToStaticMarkup } from "react-dom/server";
 import type { CardBody, ChartSeries } from "@/lib/cards/present";
 import { CardBodyView } from "./card-body";
+import { spacedTicks } from "./scatter";
 
 const HEX_COLOR = /#[0-9a-f]{3,8}\b/i;
 
@@ -197,4 +198,10 @@ test("a strip row draws its second line under its name: the base it moved from o
   const row = { ...ROW, label: "ภาคใต้", sub: "5.1 ล้านบาท · ปีก่อน 1.3 ล้านบาท", measure: 1, text: "+297.5%", tone: "bad" as const, exception: true };
   for (const form of ["line", "board"] as const) expect(render({ kind: "strip", strip: { form, baseline: 0, low: 0, high: 1, overall: null, rows: [row] } })).toContain("ปีก่อน 1.3 ล้านบาท");
   expect(render({ kind: "exceptions", strip: { form: "line", baseline: 0, low: 0, high: 1, overall: null, rows: [row] }, fold: null })).toContain("ปีก่อน 1.3 ล้านบาท");
+});
+
+test("scatter x ticks keep both ends and drop a middle label that would touch them (AI-70)", () => {
+  const tick = (value: number, at: number, anchor: "start" | "middle" | "end") => ({ value, at, text: `${value} ล้าน`, anchor });
+  const kept = spacedTicks([tick(0, 40, "start"), tick(20, 110, "middle"), tick(40, 180, "middle"), tick(60, 250, "middle"), tick(80, 280, "end")]);
+  expect(kept.map((entry) => entry.value)).toEqual([0, 20, 40, 80]);
 });

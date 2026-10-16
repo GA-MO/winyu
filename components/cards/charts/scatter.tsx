@@ -12,6 +12,7 @@ const PLOT_BOTTOM = 38;
 const MIN_PLOT_LEFT = 40;
 const MAX_PLOT_LEFT = 96;
 const TICK_CHAR_PX = 5.6;
+const TICK_GAP_PX = 4;
 const PLOT_RIGHT = 12;
 const TICK_COUNT = 2;
 const LABEL_MAX_PX = 124;
@@ -51,6 +52,27 @@ function placeLabel(text: string, cx: number, cy: number, dots: Box[], placed: P
   const spots = [candidate(cx, cy, width, true, true), candidate(cx, cy, width, false, true), candidate(cx, cy, width, true, false), candidate(cx, cy, width, false, false)];
   const inside = (box: Box) => box.left >= bounds.left && box.right <= bounds.right && box.top >= bounds.top && box.bottom <= bounds.bottom;
   return spots.find((spot) => inside(spot.box) && !dots.some((dot) => overlaps(dot, spot.box)) && !placed.some((label) => overlaps(label.box, spot.box))) ?? null;
+}
+
+type Tick = { value: number; at: number; text: string; anchor: "start" | "middle" | "end" };
+
+function tickBox(tick: Tick): { left: number; right: number } {
+  const width = tick.text.length * TICK_CHAR_PX;
+  if (tick.anchor === "start") return { left: tick.at, right: tick.at + width };
+  if (tick.anchor === "end") return { left: tick.at - width, right: tick.at };
+  return { left: tick.at - width / 2, right: tick.at + width / 2 };
+}
+
+/** The axis ticks whose labels fit side by side: the two ends always, and a middle tick only when its text clears both neighbours kept. */
+export function spacedTicks(ticks: readonly Tick[]): Tick[] {
+  if (ticks.length <= 2) return [...ticks];
+  const last = ticks[ticks.length - 1];
+  const kept: Tick[] = [ticks[0]];
+  for (const tick of ticks.slice(1, -1)) {
+    const box = tickBox(tick);
+    if (box.left > tickBox(kept[kept.length - 1]).right + TICK_GAP_PX && box.right < tickBox(last).left - TICK_GAP_PX) kept.push(tick);
+  }
+  return [...kept, last];
 }
 
 /** Two metrics of the same things against each other: medians split the plot, the few points that answer the question are named and coloured, the rest stay muted. */
@@ -104,9 +126,9 @@ export function Scatter({ points, x, y }: ScatterProps) {
               </text>
             </g>
           ))}
-          {xTicks.map((t, index) => (
-            <text key={`x-${t}`} x={xScale(t)} y={plotBottom + 14} fontSize={10} fill={AXIS_COLOR} textAnchor={index === 0 ? "start" : index === xTicks.length - 1 ? "end" : "middle"}>
-              {formatTick(t, x.format)}
+          {spacedTicks(xTicks.map((t, index) => ({ value: t, at: xScale(t), text: formatTick(t, x.format), anchor: index === 0 ? "start" : index === xTicks.length - 1 ? "end" : "middle" }))).map((tick) => (
+            <text key={`x-${tick.value}`} x={tick.at} y={plotBottom + 14} fontSize={10} fill={AXIS_COLOR} textAnchor={tick.anchor}>
+              {tick.text}
             </text>
           ))}
           <text x={width - PLOT_RIGHT} y={HEIGHT - 4} fontSize={10} fill={AXIS_COLOR} textAnchor="end">

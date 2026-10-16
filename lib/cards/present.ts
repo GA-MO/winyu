@@ -163,7 +163,7 @@ const NO_TILES: Tile[] = [];
 const MAX_LINES = 5;
 const MAX_BAR_BUCKETS = 12;
 const MAX_SHARE_ROWS = 6;
-const MIN_SCATTER_POINTS = 4;
+const MIN_PLOTTED_SCATTER = 7;
 const MIN_GRID_FILL = 0.6;
 const COMPOSITION_DIMS: ReadonlySet<Dim> = new Set(["channel", "business_unit", "maker", "pack"]);
 const SHARE_METRICS: ReadonlySet<MetricId> = new Set(["market_share", "share_of_voice"]);
@@ -836,8 +836,8 @@ function hiddenGroupsNote(shape: Shape, view: CardView): string | null {
   return count > MAX_LINES ? TH.dash.shownOf(MAX_LINES, count) : null;
 }
 
-/** R10: how answers of one turn draw together; `baselines` is one metric of the same slice asked against two comparisons, drawn as the first card with the second change beside each row. */
-type Pairing = { view: "scatter" | "gap" | "funnel" | "overlay" | "baselines"; sources: Source[] };
+/** R10: how answers of one turn draw together; `baselines` is one metric of the same slice asked against two comparisons, drawn as the first card with the second change beside each row; `twin` is two metrics of too few groups for a scatter, drawn as the first breakdown with the second value under each row. */
+type Pairing = { view: "scatter" | "gap" | "funnel" | "overlay" | "baselines" | "twin"; sources: Source[] };
 
 function sliceKeyOf(source: Source): string {
   const { query } = source;
@@ -861,7 +861,9 @@ function pairingOf(first: Source, others: Source[]): Pairing | null {
   const grouped = groupDimsOf(first.query).length > 0 && !timeDimOf(first.query);
   if (!grouped) return null;
   if (isParityPair(first, second) && joinedRows(first, second).length >= RANK_MIN_ROWS) return { view: "gap", sources: [first, second] };
-  if (joinedRows(first, second).length >= MIN_SCATTER_POINTS) return { view: "scatter", sources: [first, second] };
+  const points = joinedRows(first, second).length;
+  if (points >= MIN_PLOTTED_SCATTER) return { view: "scatter", sources: [first, second] };
+  if (points >= RANK_MIN_ROWS) return { view: "twin", sources: [first, second] };
   return null;
 }
 
@@ -970,18 +972,29 @@ function baselineText(source: Source, change: string | null): string | null {
   return change === null ? null : `${label} ${change}`;
 }
 
-/** One metric asked against two baselines draws one card: the first answer's card, the second comparison beside the hero and under each row it names. */
-function withBaseline(card: CardParts, second: Source): CardParts {
-  const { query, result } = second;
-  const byLabel = new Map(result.rows.map((row) => [labelOf(query, row), baselineText(second, changeTextOf(query.metric, row))]));
-  const subOf = (row: ReadRow): ReadRow => ({ ...row, sub: byLabel.get(row.label) ?? row.sub });
-  const overall = baselineText(second, formatChange(query.metric, result.headline.deltaPercent, result.headline.deltaPoints ?? null));
-  const hero = card.hero && overall ? { ...card.hero, detail: joined([card.hero.detail, overall]) } : card.hero;
+/** A breakdown card with a second line under each row it names (`subs`, by row label) and an extra fact beside its hero. */
+function withSecondLine(card: CardParts, subs: ReadonlyMap<string, string | null>, heroExtra: string | null): CardParts {
+  const subOf = (row: ReadRow): ReadRow => ({ ...row, sub: subs.get(row.label) ?? row.sub });
+  const hero = card.hero && heroExtra ? { ...card.hero, detail: joined([card.hero.detail, heroExtra]) } : card.hero;
   const strip = (current: Strip): Strip => ({ ...current, rows: current.rows.map(subOf) });
   const body = card.body;
   if (body.kind === "strip") return { ...card, hero, body: { ...body, strip: strip(body.strip) } };
   if (body.kind === "exceptions") return { ...card, hero, body: { ...body, strip: strip(body.strip), fold: body.fold ? { ...body.fold, rows: body.fold.rows.map(subOf) } : null } };
   return { ...card, hero };
+}
+
+/** One metric asked against two baselines draws one card: the first answer's card, the second comparison beside the hero and under each row it names. */
+function withBaseline(card: CardParts, second: Source): CardParts {
+  const { query, result } = second;
+  const subs = new Map(result.rows.map((row) => [labelOf(query, row), baselineText(second, changeTextOf(query.metric, row))]));
+  return withSecondLine(card, subs, baselineText(second, formatChange(query.metric, result.headline.deltaPercent, result.headline.deltaPoints ?? null)));
+}
+
+/** Two metrics of a few groups (too few points for a scatter to say anything) read as the first metric's breakdown with the second metric's value under every row, so both numbers the reply relies on are on the card. */
+function withSecondMetric(card: CardParts, pairing: Pairing): CardParts {
+  const [, second] = pairing.sources;
+  const subs = new Map(second.result.rows.map((row) => [labelOf(second.query, row), `${shortMetricLabel(second)} ${valueTextOf(second.query, row)}`]));
+  return { ...withSecondLine(card, subs, `${shortMetricLabel(second)} ${second.result.headline.value}`), title: pairedTitleOf(pairing) };
 }
 
 function okSources(others: PresentSource[] | undefined): Source[] {
@@ -1211,6 +1224,7 @@ export function presentCard(input: PresentInput): CardParts {
   if (oneBucket) return presentCard({ ...input, query: oneBucket });
   const pairing = masked || hidden > 0 ? null : pairingOf({ query, result }, okSources(input.others));
   if (pairing?.view === "baselines") return withBaseline(presentCard({ ...input, others: [] }), pairing.sources[1]);
+  if (pairing?.view === "twin") return withSecondMetric(presentCard({ ...input, others: [] }), pairing);
   if (pairing) return pairedCard(input, pairing);
   const whole: Shape = { query, rows: visibleRows, additive: result.headline.aggregate === "sum", sortBy };
   const facts = factsOf(whole, result);
