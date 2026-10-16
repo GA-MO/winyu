@@ -148,6 +148,12 @@ describe("anomaly detection", () => {
     expect(row.expectedLabel).toBe("16,478 ลิตร/วัน");
   });
 
+  test("an agent alert over many brands names the first two and counts the rest, so the scope stays one line", () => {
+    const story = { ...toAlert(DETECTED[0], null), metric: "net_sales_volume" as const, dims: { agent: "ag_cen_06", region: "central" }, brands: ["singha_soda", "singha_water", "purra", "singha_lemon_soda"] };
+    const label = alertRowOf(story, GENERATOR_DICTIONARY).scopeLabel;
+    expect(label).toBe(`บ้านโป่งค้าส่ง · ${GENERATOR_DICTIONARY.displayLabel("brand", "singha_soda")}, ${GENERATOR_DICTIONARY.displayLabel("brand", "singha_water")} และอีก 2 แบรนด์ · ภาคกลาง`);
+  });
+
   test("a level read once a day (days of cover) is not per day", () => {
     const cover = DETECTED.find((detection) => detection.metric === "days_of_cover");
     if (!cover) throw new Error("no cover alert");
