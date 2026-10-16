@@ -1,6 +1,6 @@
 import { metricAccess } from "@/lib/access/grants";
 import { outOfScopeFilters, type OutOfScope } from "@/lib/access/enforce";
-import { REGIONS, metricQueryInputSchema, type AccessContext, type Dim, type MetricId, type MetricQueryInput } from "@/lib/contracts";
+import { REGIONS, metricQueryInputSchema, type AccessContext, type Dim, type MetricId, type MetricQueryInput, type MetricResult, type MetricRow } from "@/lib/contracts";
 import { ownAgentsFilter } from "@/lib/data/entities/agents";
 import { TH } from "@/lib/i18n/th";
 import { METRICS, TARGET_METRICS } from "@/lib/semantic/metrics";
@@ -23,6 +23,8 @@ const WHOLE_COMPANY = /ทั้งบริษัท|ทั้งประเ�
 const PLACE_DIMS = ["region", "province", "agent", "dc"] as const;
 const MIN_NAME_LENGTH = 3;
 const SPACES = /\s+/g;
+const SUMMARY_SEPARATOR = " · ";
+const PACED_FIELDS = ["compare_value", "delta_pct"] as const;
 
 function squeezed(text: string): string {
   return text.replace(SPACES, "");
@@ -62,6 +64,27 @@ function wholeCompanyRefusal(beyond: readonly OutOfScope[], dictionary: Dictiona
   return { ok: false as const, code: "PERMISSION_DENIED" as const, error: TH.quick.wholeCompanyOutOfScope(seen.join(", ")) };
 }
 
+type Answered = Extract<MetricResult, { ok: true }>;
+
+function isAnswered(output: unknown): output is Answered {
+  return typeof output === "object" && output !== null && (output as { ok?: unknown }).ok === true && "headline" in output && Array.isArray((output as { rows?: unknown }).rows);
+}
+
+function withoutPaced(row: MetricRow): MetricRow {
+  return Object.fromEntries(Object.entries(row).filter(([key]) => !(PACED_FIELDS as readonly string[]).includes(key)));
+}
+
+/** What the model reads of a month-to-date total against target: the card's one base. The card leads with the share of the whole month's target done so far and leaves the paced target out, so the model reads that share as the headline and never the paced figure, which it otherwise spent minutes reconciling with the card (AI-180); any other result, and the card, the audit and the person, get the result itself. */
+function oneBaseForModel(output: unknown): unknown {
+  if (!isAnswered(output) || output.rows.length !== 1) return output;
+  const { projection, compareLabel } = output.headline;
+  if (!projection || output.query.compare !== "target") return output;
+  const paced = compareLabel ? `${compareLabel} ` : null;
+  const summary = output.summary.split(SUMMARY_SEPARATOR).filter((part) => !paced || !part.startsWith(paced)).join(SUMMARY_SEPARATOR);
+  const headline = { ...output.headline, value: `${projection.attainmentToDate} ${TH.read.ofMonthTarget}`, actual: output.headline.value, deltaPercent: null, deltaPoints: null, compareLabel: null };
+  return { ...output, summary, headline, rows: output.rows.map(withoutPaced) };
+}
+
 const DESCRIPTION =
   "Read one certified metric from the semantic layer. Call it for every number you report: volumes, values, attainment, days of cover, margin, AR, headcount. Group with dims, narrow with filters, use compare for prev_period / prev_year / target. With a limit, set sort to the order the question asks (delta_asc = fell most, delta_desc = grew most, value_asc = lowest, value_desc = highest): rows are ranked by it before the limit cuts, so \"top 10 that fell\" really is the ten that fell most. A threshold in the question (\"under 10 days\", \"over 5 million\") goes in where { op: below | above, value } so only the rows that meet it come back. For a period the user names (this week, this month, last month, this year, the last 7 or 30 days) set period and leave range null: the server turns it into dates and says in the summary how far the data reaches; use range only for dates the user gives.";
 
@@ -82,6 +105,7 @@ export const queryMetricTool = defineTool({
   input: metricQueryInputSchema,
   verify: metricAnswerHolds,
   correct: metricQueryFix,
+  modelView: oneBaseForModel,
   execute: async (asked: MetricQueryInput) => {
     const dictionary = await loadDictionary();
     const own = ownBookQuery(asked, currentAccess(), currentTurn().question, dictionary);
