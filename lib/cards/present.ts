@@ -876,7 +876,7 @@ function hiddenGroupsNote(shape: Shape, view: CardView): string | null {
 }
 
 /** R10: how answers of one turn draw together; `baselines` is one metric of the same slice asked against two comparisons, drawn as the first card with the second change beside each row; `twin` is two metrics of too few groups for a scatter, drawn as the first breakdown with the second value under each row. */
-type Pairing = { view: "scatter" | "gap" | "funnel" | "overlay" | "baselines" | "twin"; sources: Source[] };
+type Pairing = { view: "scatter" | "gap" | "funnel" | "overlay" | "baselines" | "twin" | "whole"; sources: Source[] };
 
 function sliceKeyOf(source: Source): string {
   const { query } = source;
@@ -887,8 +887,18 @@ function holdsOneValue(source: Source): boolean {
   return groupDimsOf(source.query).length === 0 && source.result.rows.length <= 1;
 }
 
+/** Whether `total` is the one figure `breakdown` already adds up to: the same metric, comparison, window and filters, one row, and the same headline, so the turn draws the breakdown alone instead of a second card repeating its total. */
+function isTotalOf(total: Source, breakdown: Source): boolean {
+  const same = (key: (source: Source) => unknown) => JSON.stringify(key(total)) === JSON.stringify(key(breakdown));
+  if (total.result.rows.length > 1 || groupDimsOf(breakdown.query).length === 0 || timeDimOf(breakdown.query) || breakdown.result.rows.length < RANK_MIN_ROWS) return false;
+  const filters = (source: Source) => Object.entries(source.query.filters ?? {}).sort(([left], [right]) => left.localeCompare(right));
+  return same((source) => [source.query.metric, source.query.compare, source.query.range, source.result.headline.value]) && same(filters);
+}
+
 /** R10: what a card bound to several metric results of the same dimensions and range draws (a funnel of single values in one unit, lines over the same buckets, a parity gap or a scatter of the same groups), or null when they do not fit together and only the first is shown. */
 function pairingOf(first: Source, others: Source[]): Pairing | null {
+  const whole = others.find((other) => isTotalOf(first, other) || isTotalOf(other, first));
+  if (whole) return { view: "whole", sources: isTotalOf(first, whole) ? [whole, first] : [first, whole] };
   const baseline = others.find((other) => sliceKeyOf(other) === sliceKeyOf(first) && other.query.metric === first.query.metric && other.query.compare !== first.query.compare && other.query.compare !== "none");
   if (baseline && first.query.compare !== "none") return { view: "baselines", sources: [first, baseline] };
   const all = [first, ...others.filter((other) => sliceKeyOf(other) === sliceKeyOf(first) && other.query.metric !== first.query.metric)];
@@ -912,7 +922,7 @@ export function pairedIndexes(first: PresentSource, others: readonly PresentSour
   const candidates = others.flatMap((other, index) => (other.result.ok ? [{ index, source: { query: other.query, result: other.result } }] : []));
   const pairing = pairingOf({ query: first.query, result: first.result }, candidates.map((candidate) => candidate.source));
   if (!pairing) return [];
-  return pairing.sources.slice(1).flatMap((source) => candidates.filter((candidate) => candidate.source === source).map((candidate) => candidate.index));
+  return pairing.sources.flatMap((source) => candidates.filter((candidate) => candidate.source === source).map((candidate) => candidate.index));
 }
 
 function pairedBody(pairing: Pairing): CardBody {
@@ -1047,6 +1057,14 @@ function parityCard(input: PresentInput, pairing: Pairing): CardParts {
   if (!hero) return presentCard({ ...input, others: [] });
   const reading = parityReading({ gaps: parityGaps(first, second), hero: { ...hero, detail: null }, verdict: hero.detail ?? "", unit });
   return breakdownCard({ title: pairedTitleOf(pairing), ...actionsOf(input.actions ?? NO_ACTIONS), footer: footerOf(first.query, first.result, []), denied: null }, reading);
+}
+
+/** A total and its own breakdown in one turn draw the breakdown alone: its overall row is the total, and it is titled by what it is split by. */
+function wholeCard(input: PresentInput, pairing: Pairing): CardParts {
+  const [breakdown] = pairing.sources;
+  const dim = rankDimOf(breakdown.query);
+  const title = dim ? TH.dash.ownScope(metricLabel(breakdown.query.metric), TH.dash.byDims([TH.dash.dimUnit[dim]])) : input.title;
+  return presentCard({ ...input, title, query: breakdown.query, result: breakdown.result, others: [] });
 }
 
 function okSources(others: PresentSource[] | undefined): Source[] {
@@ -1284,6 +1302,7 @@ export function presentCard(input: PresentInput): CardParts {
   const unpinned = withoutPinnedGroups(query, visibleRows);
   if (unpinned) return presentCard({ ...input, query: unpinned });
   const pairing = masked || hidden > 0 ? null : pairingOf({ query, result }, okSources(input.others));
+  if (pairing?.view === "whole") return wholeCard(input, pairing);
   if (pairing?.view === "baselines") return withBaseline(presentCard({ ...input, others: [] }), pairing.sources[1]);
   if (pairing?.view === "twin") return withSecondMetric(presentCard({ ...input, others: [] }), pairing);
   if (pairing?.view === "gap") return parityCard(input, pairing);

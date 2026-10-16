@@ -635,6 +635,26 @@ describe("two months of one province against target", () => {
   });
 });
 
+describe("a total asked beside its own breakdown", () => {
+  test("is one card: the breakdown, its overall row the total, never a second card repeating it (AI-122)", () => {
+    const filters = { region: ["northeast"] };
+    const total = { ...queryOf({ metric: "ar_overdue", dims: ["region"], range: MONTH_TO_DATE, compare: "none" }), filters };
+    const byAgent = { ...queryOf({ metric: "ar_overdue", dims: ["agent"], range: MONTH_TO_DATE, compare: "none" }), filters, sort: "value_desc" as const, limit: 20 };
+    const sources = [total, byAgent].map((query) => ({ query, result: runMetric(query, CEO) }));
+    expect(pairedIndexes(sources[0], [sources[1]])).toEqual([0]);
+    expect(pairedIndexes(sources[1], [sources[0]])).toEqual([0]);
+    const card = presentCard({ title: "t", query: total, result: sources[0].result, others: [sources[1]] });
+    const strip = card.body.kind === "exceptions" ? card.body.strip : stripOf(card.body);
+    expect(card.body.kind === "exceptions" ? (card.body.fold?.rows.length ?? 0) + strip.rows.length : strip.rows.length).toBeGreaterThan(1);
+    expect(card.title).toContain(TH.dash.dimUnit.agent);
+    const agents = sources[1].result;
+    if (!agents.ok) throw new Error(agents.error);
+    const named = String(agents.rows[3].agent);
+    const asked = presentCard({ title: "t", query: total, result: sources[0].result, others: [{ query: byAgent, result: { ...agents, headline: { ...agents.headline, asked: [named] } } }] });
+    expect(asked.verdict).toStartWith(named);
+  });
+});
+
 describe("one scope against a comparison", () => {
   test("labels the tile of the value compared with by its window: ปีก่อน against last year, never งวดก่อน (AI-114)", () => {
     const tiles = (compare: MetricQuery["compare"]) => cardOf({ metric: "net_sales_value", dims: ["region"], range: MONTH_TO_DATE, compare }, { filters: { region: ["northeast"] } }).tiles.map((tile) => tile.label);
