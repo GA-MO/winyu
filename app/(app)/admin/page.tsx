@@ -15,7 +15,7 @@ import { adminSuggestionsFor } from "@/lib/server/quick-actions";
 import { AccessTab } from "@/components/admin/access-tab";
 import { ActiveTabInView } from "@/components/admin/active-tab-in-view";
 import { AuditTab } from "@/components/admin/audit-tab";
-import { AUDIT_RANGES, sinceOf, type AuditRange } from "@/lib/server/usage";
+import { AUDIT_ACTIVITY_KIND, AUDIT_RANGES, sinceOf, type AuditRange } from "@/lib/server/usage";
 import { OverviewTab } from "@/components/admin/overview-tab";
 import { SimulateTab } from "@/components/admin/simulate-tab";
 import { RulesTab } from "@/components/admin/rules-tab";
@@ -27,7 +27,7 @@ import { SignInTab } from "@/components/admin/sign-in-tab";
 import { GrantsTab } from "@/components/admin/grants-tab";
 import { FOCUS } from "@/components/admin/parts";
 
-type SearchParams = Promise<{ tab?: string; run?: string; as?: string; metric?: string; user?: string; tool?: string; connector?: string; decision?: string; range?: string; limit?: string; role?: string; view?: string }>;
+type SearchParams = Promise<{ tab?: string; run?: string; as?: string; metric?: string; user?: string; tool?: string; connector?: string; decision?: string; range?: string; limit?: string; role?: string; view?: string; kind?: string }>;
 
 const TABS = ["overview", "access", "grants", "tools", "rules", "audit", "usage", "simulate", "mcp", "signin"] as const;
 const LEGACY_TABS: Record<string, Tab> = { users: "access" };
@@ -220,7 +220,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
         {current === "tools" ? <ToolsTab viewer={user} /> : null}
         {current === "rules" ? <RulesTab /> : null}
         {current === "audit" ? <AuditTab
-            filter={{ userId: textOf(params.user), tool: textOf(params.tool), connector: textOf(params.connector), decision: decisionOf(params.decision), since: sinceOf(rangeOf(params.range)) }}
+            filter={{ userId: textOf(params.user), tool: textOf(params.tool), connector: textOf(params.connector), decision: decisionOf(params.decision), since: sinceOf(rangeOf(params.range)), activity: params.kind === AUDIT_ACTIVITY_KIND }}
             range={rangeOf(params.range)}
             limit={limitOf(params.limit)}
             openRun={textOf(params.run)}

@@ -54,11 +54,11 @@ describe("chips only offer what the role can still answer", () => {
     }
   });
 
-  test("the IT admin's chips are all answerable by tools they hold: tool usage by admin_audit, the rerun by run_job", () => {
+  test("the IT admin's chips lead with who sent work to whom, and all are answerable by tools they hold: activity and tool usage by admin_audit, the rerun by run_job", () => {
     const user = findUser("u_ton");
     if (!user) throw new Error("no user u_ton");
     const chips = defaultActionsFor(liveAccessFor(user));
-    expect(chips.map((action) => action.id)).toEqual(["qa_audit", "qa_rerun_anomaly"]);
+    expect(chips.map((action) => action.id)).toEqual(["qa_activity", "qa_audit", "qa_rerun_anomaly"]);
     setRoleTool("it_admin", "admin_audit", false, "u_thana");
     expect(defaultActionsFor(liveAccessFor(user)).map((action) => action.id)).toEqual(["qa_rerun_anomaly"]);
   });
@@ -68,7 +68,8 @@ describe("chips only offer what the role can still answer", () => {
     if (!user) throw new Error("no user u_ton");
     const all = Object.values(TH.admin.ask.suggestions);
     expect(adminSuggestionsFor(liveAccessFor(user))).toEqual(all);
+    expect(all[0]).toBe(TH.admin.ask.suggestions.recentActivity);
     setRoleTool("it_admin", "admin_audit", false, "u_thana");
-    expect(adminSuggestionsFor(liveAccessFor(user))).toEqual(all.filter((prompt) => prompt !== TH.admin.ask.suggestions.mostDenied));
+    expect(adminSuggestionsFor(liveAccessFor(user))).toEqual(all.filter((prompt) => prompt !== TH.admin.ask.suggestions.mostDenied && prompt !== TH.admin.ask.suggestions.recentActivity));
   });
 });

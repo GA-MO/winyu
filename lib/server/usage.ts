@@ -1,4 +1,5 @@
 import type { AuditEntry } from "@/lib/contracts";
+import { isActivity } from "@/lib/server/activity";
 import { auditLog } from "@/lib/server/audit";
 import { actionEvents } from "@/lib/server/agent/collections";
 import { shares } from "@/lib/server/share/shares";
@@ -106,7 +107,11 @@ export function usageSummary(): UsageSummary {
   };
 }
 
-export type AuditFilter = { userId: string | null; tool: string | null; connector: string | null; decision: AuditEntry["decision"] | null; since: string | null };
+/** The console's audit filters; `activity` keeps only the steps that acted (sends, presses on a matter, writes that ran). */
+export type AuditFilter = { userId: string | null; tool: string | null; connector: string | null; decision: AuditEntry["decision"] | null; since: string | null; activity: boolean };
+
+/** The `kind` the console's audit URL carries for the activity filter. */
+export const AUDIT_ACTIVITY_KIND = "activity";
 
 export const AUDIT_RANGES = ["today", "7d", "30d", "all"] as const;
 export type AuditRange = (typeof AUDIT_RANGES)[number];
@@ -128,6 +133,7 @@ export function inAuditScope(entry: AuditEntry, filter: AuditFilter): boolean {
   if (filter.userId && entry.userId !== filter.userId) return false;
   if (filter.tool && entry.tool !== filter.tool) return false;
   if (filter.since && entry.at < filter.since) return false;
+  if (filter.activity && !isActivity(entry)) return false;
   return !filter.connector || auditConnector(entry) === filter.connector;
 }
 

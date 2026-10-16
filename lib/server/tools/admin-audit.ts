@@ -7,6 +7,7 @@ import { businessToday } from "@/lib/data/dates";
 import { findUser } from "@/lib/data/entities/users";
 import { formatDateTh, formatTimeTh } from "@/lib/i18n/format";
 import { TH } from "@/lib/i18n/th";
+import { activitiesFrom, actorName, approvalLabel, recipientNames, type Activity } from "@/lib/server/activity";
 import { auditLog } from "@/lib/server/audit";
 import { connectorHealth, offlineSince } from "@/lib/server/connectors/catalog";
 import { fencedRows, MAX_CONNECTOR_ROWS } from "@/lib/server/connectors/output";
@@ -72,6 +73,23 @@ function denials(days: number): Report {
   return { summary: TH.adminAudit.denials(denied.length, days, denied.filter(heldByPolicy).length), rows };
 }
 
+function activityRow(activity: Activity): ConnectorRow {
+  return {
+    at_label: whenLabel(activity.at),
+    user_name: actorName(activity),
+    role_label: roleLabelOf(activity.actorId),
+    action_label: activity.action,
+    subject_label: activity.subject,
+    to_names: recipientNames(activity),
+    approval_label: approvalLabel(activity),
+  };
+}
+
+function activity(days: number): Report {
+  const steps = activitiesFrom(auditLog().all(), sinceDaysStart(days));
+  return { summary: TH.adminAudit.activity(steps.length, days), rows: steps.map(activityRow) };
+}
+
 function toolUsage(days: number): Report {
   const byTool = [...toolActivity(sinceDaysStart(days))].sort(([, left], [, right]) => right.calls - left.calls);
   const calls = byTool.reduce((sum, [, counts]) => sum + counts.calls, 0);
@@ -127,6 +145,7 @@ function roleAccess(role: RoleId | null): Report {
 }
 
 const TOPICS: Record<AdminAuditTopic, (input: AuditInput) => Report> = {
+  activity: ({ days }) => activity(days ?? DEFAULT_DAYS),
   denials: ({ days }) => denials(days ?? DEFAULT_DAYS),
   tool_usage: ({ days }) => toolUsage(days ?? DEFAULT_DAYS),
   model_cost: ({ days }) => modelCost(days ?? DEFAULT_DAYS),
@@ -155,7 +174,7 @@ export const adminAuditTool = defineTool({
   tier: "read",
   roles: ["it_admin"],
   description:
-    "Read Winyu's own audit and usage, for the IT admin. topic: denials (who was refused which tool, when and why), tool_usage (calls per tool with denied and masked counts), model_cost (model spend by chat, background jobs and eval), connectors (each MCP connector reachable or not and since when), overrides (permission changes admins made per role and tools switched off for everyone), role_access (what one role may not see in full or may not call now, the metrics it sees in full and the tools it may call folded apart; needs role). days is the window for denials, tool_usage and model_cost (null = 7). Call it for ใครถูกปฏิเสธ / การใช้เครื่องมือ / ค่าโมเดล / connector ไหนล่ม / บทบาทนี้เห็นอะไร / ปิดเครื่องมืออะไรไว้. When headline is set it is the answer: lead with it (model_cost: the total) and put the rows under it. Report denials as they are: a row whose policy_label is set is the access policy holding as designed, not a fault; never suggest widening or loosening a role's access unless the admin asks whether to change it.",
+    "Read Winyu's own audit and usage, for the IT admin. topic: activity (each send, pass-on, accept, close and write that acted: who, what, on which matter, to whom, when and whose yes let it act), denials (who was refused which tool, when and why), tool_usage (calls per tool with denied and masked counts), model_cost (model spend by chat, background jobs and eval), connectors (each MCP connector reachable or not and since when), overrides (permission changes admins made per role and tools switched off for everyone), role_access (what one role may not see in full or may not call now, the metrics it sees in full and the tools it may call folded apart; needs role). days is the window for activity, denials, tool_usage and model_cost (null = 7). Call it for ใครส่งงานให้ใคร / ใครรับหรือส่งต่อ / ใครถูกปฏิเสธ / การใช้เครื่องมือ / ค่าโมเดล / connector ไหนล่ม / บทบาทนี้เห็นอะไร / ปิดเครื่องมืออะไรไว้. When headline is set it is the answer: lead with it (model_cost: the total) and put the rows under it. Report denials as they are: a row whose policy_label is set is the access policy holding as designed, not a fault; never suggest widening or loosening a role's access unless the admin asks whether to change it.",
   input: adminAuditInputSchema,
   execute: async (input: AuditInput) => adminReport(input),
 });

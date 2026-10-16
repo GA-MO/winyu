@@ -173,7 +173,7 @@ function Overrides() {
 }
 
 function RecentDenied() {
-  const denied = auditEntries({ userId: null, tool: null, connector: null, decision: "deny", since: null }, RECENT_LIMIT);
+  const denied = auditEntries({ userId: null, tool: null, connector: null, decision: "deny", since: null, activity: false }, RECENT_LIMIT);
   if (denied.length === 0) return <EmptyLine text={COPY.recentDeniedEmpty} />;
   return (
     <ul className="flex flex-col divide-y divide-border">
@@ -199,7 +199,7 @@ function RecentDenied() {
 }
 
 function deniedThisWeek(): { denied: number; calls: number } {
-  const filter: AuditFilter = { userId: null, tool: null, connector: null, decision: null, since: sinceOf(DENIED_WINDOW) };
+  const filter: AuditFilter = { userId: null, tool: null, connector: null, decision: null, since: sinceOf(DENIED_WINDOW), activity: false };
   const entries = toolCalls(auditLog().all()).filter((entry) => inAuditScope(entry, filter));
   return { denied: entries.filter((entry) => entry.decision === "deny").length, calls: entries.length };
 }

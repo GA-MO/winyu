@@ -31,6 +31,7 @@ const ROLE_ACTIONS: Partial<Record<RoleId, QuickAction[]>> = {
     { id: "qa_salary", label: "เงินเดือนเฉลี่ยรายฝ่าย", prompt: "เงินเดือนเฉลี่ยแต่ละฝ่ายเท่าไหร่", score: 0.74, reason: "ใช้ประกอบการทบทวนค่าตอบแทน", intentKey: "avg_salary|department" },
   ],
   it_admin: [
+    { id: "qa_activity", label: "ใครส่งงานให้ใคร", prompt: TH.admin.ask.suggestions.recentActivity, score: 0.72, reason: "ดูว่าใครส่ง ส่งต่อ รับ หรือปิดเรื่องอะไร และใครอนุมัติ", intentKey: "audit|activity" },
     { id: "qa_audit", label: "การใช้งานเครื่องมือ", prompt: "สรุปการเรียกใช้เครื่องมือย้อนหลัง 7 วัน", score: 0.7, reason: "ตรวจการใช้งานเครื่องมือ", intentKey: "audit|tool" },
     { id: "qa_rerun_anomaly", label: "รันตรวจความผิดปกติใหม่", prompt: "รันงานตรวจหาความผิดปกติใหม่ตอนนี้", score: 0.68, reason: "ใช้หลังโหลดข้อมูลชุดใหม่", intentKey: "job|anomaly" },
   ],
@@ -50,6 +51,7 @@ export function answerable(action: QuickAction, access: AccessContext): boolean 
 }
 
 const ADMIN_SUGGESTIONS: readonly { tool: ToolName; prompt: string }[] = [
+  { tool: "admin_audit", prompt: TH.admin.ask.suggestions.recentActivity },
   { tool: "set_permission", prompt: TH.admin.ask.suggestions.hideSellInValue },
   { tool: "admin_audit", prompt: TH.admin.ask.suggestions.mostDenied },
   { tool: "set_permission", prompt: TH.admin.ask.suggestions.maskMargin },

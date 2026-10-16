@@ -7,6 +7,7 @@ import { metricLabel } from "@/lib/dashboard/metric-display";
 import { AGENTS } from "@/lib/data/entities/agents";
 import { findUser } from "@/lib/data/entities/users";
 import { TH } from "@/lib/i18n/th";
+import { actOnMatter } from "@/lib/server/share/act";
 import { createShare } from "@/lib/server/share/deliver";
 import { shares } from "@/lib/server/share/shares";
 import { deliverRequest, staffRequests } from "@/lib/server/staff-requests";
@@ -20,6 +21,7 @@ import { sinceOf } from "@/lib/server/usage";
 import { METRIC_IDS } from "@/lib/contracts";
 import { toolLabel, toolSurface } from "./registry";
 import { runWithAccess, runWithTurn } from "@/lib/server/request-context";
+import { approvedCallId } from "@/scripts/approved-call";
 
 const REP = "u_krit";
 const OTHER_REP = "u_nok";
@@ -33,6 +35,7 @@ type Rows = { ok: true; summary: string; rows: Record<string, unknown>[] } | { o
 
 const made = { matters: [] as string[], requests: [] as string[], staff: [] as string[], audit: [] as string[] };
 const CARD = { kind: "tool" as const, reads: [{ tool: "query_metric", input: { metric: "net_sales_volume", dims: ["agent"], filters: { region: ["northeast"] }, range: { from: "2026-11-01", to: "2026-11-26" }, grain: "month", compare: "target", limit: null } }] };
+const CHAIN_CARD = { kind: "tool" as const, reads: [{ tool: "query_metric", input: { metric: "sell_out_volume", dims: ["province"], filters: { region: ["northeast"] }, range: { from: "2026-11-01", to: "2026-11-26" }, grain: "month", compare: "prev_period", limit: null } }] };
 
 function accessOf(userId: string) {
   const user = findUser(userId);
@@ -167,6 +170,46 @@ describe("admin_audit", () => {
     expect(row?.role_label).toBe(TH.role.sales_rep);
     expect(row?.policy_label).toBe(TH.adminAudit.policyHeld);
     expect(report.ok === true && "summary" in report && String(report.summary)).toContain("เป็นไปตามสิทธิ์ของบทบาท");
+    const shown = JSON.stringify(report);
+    expect(shown).not.toContain(SECRET_ASK);
+    expect(shown).not.toContain(SECRET_QUESTION);
+  });
+
+  test("activity lists the chain a matter took, who to whom, and whose tap sent each step, never the ask or the question typed", async () => {
+    const before = new Set(auditLog().all().map((entry) => entry.id));
+    const [ceo, rsm, rep] = [CEO, RSM, REP].map((id) => findUser(id));
+    if (!ceo || !rsm || !rep) throw new Error("demo people missing");
+    const sent = await createShare(ceo, { card: CHAIN_CARD, question: SECRET_QUESTION, ask: SECRET_ASK, intent: "act", recipients: [{ userId: RSM, channel: "winyu" }] });
+    if (!sent.ok) throw new Error(sent.error);
+    made.matters.push(sent.share.id);
+    expect(actOnMatter(rsm, sent.share.id, { kind: "pass_on", toUserId: REP }).ok).toBe(true);
+    expect(actOnMatter(rep, sent.share.id, { kind: "accept" }).ok).toBe(true);
+    const report = await call(IT, "admin_audit", { topic: "activity", days: 1, role: null });
+    made.audit.push(...auditLog().all().filter((entry) => !before.has(entry.id)).map((entry) => entry.id));
+    const chain = rowsOf(report).filter((row) => row.subject_label === sent.share.title && [ceo.nameTh, rsm.nameTh, rep.nameTh].includes(String(row.user_name)));
+    expect(chain.map((row) => [row.user_name, row.action_label, row.to_names, row.approval_label])).toEqual([
+      [rep.nameTh, TH.adminAudit.activityAction.accept, "", TH.adminAudit.tapped],
+      [rsm.nameTh, TH.adminAudit.activityAction.pass_on, rep.nameTh, TH.adminAudit.tapped],
+      [ceo.nameTh, TH.adminAudit.activityAction.send, rsm.nameTh, TH.adminAudit.tapped],
+    ]);
+    const shown = JSON.stringify(report);
+    expect(shown).not.toContain(SECRET_ASK);
+    expect(shown).not.toContain(SECRET_QUESTION);
+  });
+
+  test("activity shows a send from chat once, approved by the sender's yes, not again as a write", async () => {
+    const before = new Set(auditLog().all().map((entry) => entry.id));
+    const ceo = findUser(CEO);
+    if (!ceo) throw new Error("no CEO");
+    const turn = { turnId: `run_${randomUUID()}`, threadId: null, question: SECRET_QUESTION, queries: [], cardToSend: async () => ({ card: CARD, question: SECRET_QUESTION }) };
+    const sent = (await runWithAccess(accessOf(CEO), () => runWithTurn(turn, () => winyuTools().send_card.execute({ to: [RSM], ask: SECRET_ASK }, { toolCallId: approvedCallId(CEO, "send_card") })))) as { ok: boolean; data?: { code: string; title: string } };
+    if (!sent.ok || !sent.data) throw new Error("not sent");
+    made.matters.push(sent.data.code);
+    const report = await call(IT, "admin_audit", { topic: "activity", days: 1, role: null });
+    made.audit.push(...auditLog().all().filter((entry) => !before.has(entry.id)).map((entry) => entry.id));
+    const fresh = rowsOf(report).filter((row) => row.user_name === ceo.nameTh && row.subject_label === sent.data?.title);
+    expect(fresh.filter((row) => row.action_label === TH.adminAudit.activityAction.send).map((row) => row.approval_label)).toContain(TH.adminAudit.approvedInChat(ceo.nameTh));
+    expect(rowsOf(report).some((row) => row.action_label === toolLabel("send_card"))).toBe(false);
     const shown = JSON.stringify(report);
     expect(shown).not.toContain(SECRET_ASK);
     expect(shown).not.toContain(SECRET_QUESTION);

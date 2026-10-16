@@ -5,7 +5,8 @@ import type { AuditEntry, Initiator } from "@/lib/contracts";
 import { connectorLabel, connectors, toolLabel, toolSurface } from "@/lib/server/tools/registry";
 import { USERS, findUser } from "@/lib/data/entities/users";
 import { TH } from "@/lib/i18n/th";
-import { AUDIT_RANGES, auditConnector, auditEntries, inAuditScope, type AuditFilter, type AuditRange } from "@/lib/server/usage";
+import { AUDIT_ACTIVITY_KIND, AUDIT_RANGES, auditConnector, auditEntries, inAuditScope, type AuditFilter, type AuditRange } from "@/lib/server/usage";
+import { activitiesFrom, actorName, approvalLabel, recipientNames, type Activity } from "@/lib/server/activity";
 import { runStore } from "@/lib/harness/runtime";
 import { GRANT_AUDIT_TOOL, GUARD_AUDIT_TOOL, SHARE_AUDIT_TOOL, auditLog } from "@/lib/server/audit";
 import { untilLabel } from "@/lib/share/grant-label";
@@ -26,7 +27,7 @@ type View = { filter: AuditFilter; range: AuditRange; limit: number };
 
 type TurnGroup = { key: string; entries: AuditEntry[] };
 
-function hrefWith(view: View, change: Partial<{ decision: AuditEntry["decision"] | null; limit: number }>): string {
+function hrefWith(view: View, change: Partial<{ decision: AuditEntry["decision"] | null; limit: number; activity: boolean }>): string {
   const params = new URLSearchParams({ tab: "audit", range: view.range });
   const decision = change.decision === undefined ? view.filter.decision : change.decision;
   if (view.filter.userId) params.set("user", view.filter.userId);
@@ -34,6 +35,7 @@ function hrefWith(view: View, change: Partial<{ decision: AuditEntry["decision"]
   if (view.filter.connector) params.set("connector", view.filter.connector);
   if (decision) params.set("decision", decision);
   if (change.limit) params.set("limit", String(change.limit));
+  if (change.activity ?? view.filter.activity) params.set("kind", AUDIT_ACTIVITY_KIND);
   return `/admin?${params.toString()}`;
 }
 
@@ -89,13 +91,54 @@ function DecisionChips({ view, counts }: { view: View; counts: Record<AuditEntry
   );
 }
 
+function ActivityChip({ view, count }: { view: View; count: number }) {
+  const on = view.filter.activity;
+  return (
+    <Link
+      href={hrefWith(view, { activity: !on })}
+      aria-pressed={on}
+      className={cn(
+        "inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-2 text-xs font-medium transition",
+        FOCUS,
+        on ? "bg-primary text-primary-foreground shadow-card" : "bg-muted text-muted-foreground hover:text-foreground",
+      )}
+    >
+      {TH.adminAudit.topic.activity}
+      <span className="tabular-nums opacity-80">{count.toLocaleString("th-TH")}</span>
+    </Link>
+  );
+}
+
+function ActivityRow({ activity }: { activity: Activity }) {
+  const person = findUser(activity.actorId);
+  const name = actorName(activity);
+  const to = recipientNames(activity);
+  return (
+    <li className="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-3 rounded-2xl px-3 py-2.5 hover:bg-muted/40">
+      <Avatar name={name} />
+      <div className="min-w-0">
+        <p className="truncate text-sm font-medium">
+          {name}
+          <span className="font-normal text-muted-foreground">{` · ${person ? TH.role[person.role] : ""} · ${stamp(activity.at)}`}</span>
+        </p>
+        <p className="text-[13px] text-foreground">{to ? COPY.activityTo(activity.action, to) : activity.action}</p>
+        {activity.subject ? <p className="line-clamp-2 text-[12px] text-muted-foreground">{activity.subject}</p> : null}
+        <p className="mt-1">
+          <Pill tone={activity.approval.kind === "automatic" ? "neutral" : "success"}>{approvalLabel(activity)}</Pill>
+        </p>
+      </div>
+    </li>
+  );
+}
+
 function Filters({ view }: { view: View }) {
   const { filter } = view;
-  const filtered = filter.userId || filter.tool || filter.connector || filter.decision || view.range !== "7d";
+  const filtered = filter.userId || filter.tool || filter.connector || filter.decision || filter.activity || view.range !== "7d";
   return (
     <AutoSubmitForm action="/admin" className="flex flex-wrap items-center gap-2">
       <input type="hidden" name="tab" value="audit" />
       {filter.decision ? <input type="hidden" name="decision" value={filter.decision} /> : null}
+      {filter.activity ? <input type="hidden" name="kind" value={AUDIT_ACTIVITY_KIND} /> : null}
       <Select name="range" defaultValue={view.range} aria-label={COPY.range}>
         {AUDIT_RANGES.map((range) => (
           <option key={range} value={range}>
@@ -213,9 +256,40 @@ function TurnRow({ group, open }: { group: TurnGroup; open: boolean }) {
   );
 }
 
+function ActivityPanel({ activities }: { activities: Activity[] }) {
+  return (
+    <Panel title={COPY.activityTitle} hint={COPY.activityHint} bodyClassName="px-2 pb-2 pt-3">
+      {activities.length === 0 ? (
+        <div className="px-3 pb-3">
+          <EmptyLine text={COPY.empty} />
+        </div>
+      ) : (
+        <ul className="flex flex-col gap-0.5">
+          {activities.map((activity, index) => (
+            <ActivityRow key={`${activity.at}-${index}`} activity={activity} />
+          ))}
+        </ul>
+      )}
+    </Panel>
+  );
+}
+
 export function AuditTab({ filter, range, limit, openRun }: { filter: AuditFilter; range: AuditRange; limit: number; openRun: string | null }) {
   const view: View = { filter, range, limit };
-  const scoped = auditLog().all().filter((entry) => inAuditScope(entry, filter));
+  const all = auditLog().all();
+  const activities = activitiesFrom(all.filter((entry) => inAuditScope(entry, { ...filter, activity: true })), filter.since ?? "");
+  if (filter.activity) {
+    return (
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <ActivityChip view={view} count={activities.length} />
+          <Filters view={view} />
+        </div>
+        <ActivityPanel activities={activities} />
+      </div>
+    );
+  }
+  const scoped = all.filter((entry) => inAuditScope(entry, filter));
   const counts = { all: scoped.length, allow: 0, deny: 0, masked: 0 };
   for (const entry of scoped) counts[entry.decision] += 1;
   const total = counts[filter.decision ?? "all"];
@@ -223,7 +297,10 @@ export function AuditTab({ filter, range, limit, openRun }: { filter: AuditFilte
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <DecisionChips view={view} counts={counts} />
+        <div className="flex flex-wrap items-center gap-2">
+          <ActivityChip view={view} count={activities.length} />
+          <DecisionChips view={view} counts={counts} />
+        </div>
         <Filters view={view} />
       </div>
 
