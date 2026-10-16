@@ -9,7 +9,7 @@ import { TOOL_CARDS, type ToolCard } from "@/components/cards/registry";
 import { ComposedCardView } from "@/components/chat/composed-card";
 import { pressParam } from "@/components/chat/pressed";
 import type { ToolStep } from "@/components/chat/timeline";
-import { cardPlanOf, toolViewOf } from "@/components/chat/tool-view";
+import { cardPlanOf, pairedResultsOf, toolViewOf } from "@/components/chat/tool-view";
 import type { LockedRows } from "@/lib/cards/present";
 import { metricTitle } from "@/lib/cards/tool-answers";
 import type { ComposedSurface } from "@/lib/compose/catalog";
@@ -34,9 +34,9 @@ function chatHref(action: CardAction): string | null {
   return `/c/new?press=${encodeURIComponent(pressParam({ tool: request.tool, input: request.input, label: request.label }))}`;
 }
 
-function cardOf(name: string, result: unknown, args: unknown, locked: LockedRows | null) {
+function cardOf(name: string, result: unknown, args: unknown, locked: LockedRows | null, paired: readonly unknown[]) {
   if (locked && name === LOCKABLE_TOOL) return <DataCard title={metricTitle(result, args)} source={result} locked={locked} />;
-  return CARDS[name](result, args);
+  return CARDS[name](result, args, paired);
 }
 
 function FixedCards({ reads }: { reads: readonly FreshReadView[] }) {
@@ -45,7 +45,7 @@ function FixedCards({ reads }: { reads: readonly FreshReadView[] }) {
   const drawn = reads.flatMap((read, index) => {
     const step = steps[index];
     const view = toolViewOf(step, { ...NOTHING_RUNNING, hidden: plan.hidden.has(step.toolCallId) }, CARD_TOOLS);
-    return view.kind === "card" ? [<div key={step.toolCallId}>{cardOf(view.name, view.result, view.args, read.locked)}</div>] : [];
+    return view.kind === "card" ? [<div key={step.toolCallId}>{cardOf(view.name, view.result, view.args, read.locked, pairedResultsOf(plan, steps, step.toolCallId))}</div>] : [];
   });
   if (drawn.length > 0) return <>{drawn}</>;
   return (

@@ -130,10 +130,12 @@ function readOf(call: ExchangeRead): SharedRead {
   return { tool: call.tool, input: inputOf(call.args) };
 }
 
-/** The share behind one fixed card: its own call, or null when the server refuses to share that tool. */
-export function sharedToolCard(calls: readonly ExchangeRead[], toolCallId: string): SharedCard | null {
+/** The share behind one fixed card: its own call and the calls a paired card draws with it, or null when the server refuses to share that tool. */
+export function sharedToolCard(calls: readonly ExchangeRead[], toolCallId: string, partners: readonly string[] = []): SharedCard | null {
   const call = calls.find((candidate) => candidate.toolCallId === toolCallId);
-  return call && !UNSHAREABLE_TOOLS.has(call.tool) ? { kind: "tool", reads: [readOf(call)] } : null;
+  if (!call || UNSHAREABLE_TOOLS.has(call.tool)) return null;
+  const paired = calls.filter((candidate) => partners.includes(candidate.toolCallId) && !UNSHAREABLE_TOOLS.has(candidate.tool));
+  return { kind: "tool", reads: [call, ...paired].map(readOf) };
 }
 
 /** The share behind a composed card: every composable, shareable read that returned, in call order (the order names the card's data paths), and the components that held; null when no shareable read remains. */

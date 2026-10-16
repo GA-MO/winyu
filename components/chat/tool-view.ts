@@ -1,3 +1,4 @@
+import { metricPairsOf } from "@/lib/cards/tool-answers";
 import { UNCOMPOSABLE_TOOLS } from "@/lib/compose/ground";
 import { findUser } from "@/lib/data/entities/users";
 import { namesPerson, type Named } from "@/lib/share/recipients";
@@ -7,6 +8,7 @@ const DECLINED_TEXT = /not approved|declined|rejected|denied/i;
 const ANSWER_LISTS = ["rows", "weeks", "data"] as const;
 const CATALOG_TOOL = "list_metrics";
 const RECALL_TOOL = "recall_memory";
+const METRIC_TOOL = "query_metric";
 const PEOPLE_LOOKUPS: ReadonlySet<string> = new Set(["find_people", "get_person", "resolve_owner"]);
 const ENTITY_LOOKUP = "describe_entity";
 const USER_ENTITY = "user";
@@ -88,8 +90,8 @@ export function composedCalls(steps: readonly ReplyStep[], streaming: boolean): 
   return new Set(steps.flatMap((step) => (step.kind === "tool" && !UNCOMPOSABLE_TOOLS.includes(step.name) ? [step.toolCallId] : [])));
 }
 
-/** How the fixed cards of one exchange are drawn: the calls whose card is left out. */
-export type CardPlan = { hidden: ReadonlySet<string> };
+/** How the fixed cards of one exchange are drawn: the calls whose card is left out, and the metric cards that draw other answers with their own. */
+export type CardPlan = { hidden: ReadonlySet<string>; paired: ReadonlyMap<string, readonly string[]> };
 
 function answered(step: ToolStep): boolean {
   return step.outcome.state === "returned" && !isRefused(step.outcome.result);
@@ -151,11 +153,24 @@ function recipientLookups(steps: readonly ToolStep[]): string[] {
   });
 }
 
-/** One card per question: a composed card holds only read results, so a write's receipt is never left out for it; a people lookup that found the recipient of a later share, handoff or email in the exchange is left out, a refused or failed call the model corrected later in the exchange (the same tool answered after it) is left out, and the metric catalog the model browsed on the way is left out once another card answers; `composed` are the calls a composed card already holds. */
+function metricPairs(steps: readonly ToolStep[], hidden: ReadonlySet<string>): ReadonlyMap<string, readonly string[]> {
+  const results = steps.flatMap((step) => (step.name === METRIC_TOOL && step.outcome.state === "returned" && !hidden.has(step.toolCallId) ? [{ id: step.toolCallId, result: step.outcome.result }] : []));
+  return metricPairsOf(results);
+}
+
+/** The results a paired card draws with its own: the answers of the calls `plan.paired` lists for it, in call order. */
+export function pairedResultsOf(plan: CardPlan, steps: readonly ToolStep[], toolCallId: string): unknown[] {
+  const partners = plan.paired.get(toolCallId) ?? [];
+  return steps.flatMap((step) => (partners.includes(step.toolCallId) && step.outcome.state === "returned" ? [step.outcome.result] : []));
+}
+
+/** One card per question: a composed card holds only read results, so a write's receipt is never left out for it; a people lookup that found the recipient of a later share, handoff or email in the exchange is left out, a refused or failed call the model corrected later in the exchange (the same tool answered after it) is left out, metric answers of the same dimensions and range that pair draw one card on the first of them (`paired`), and the metric catalog the model browsed on the way is left out once another card answers; `composed` are the calls a composed card already holds. */
 export function cardPlanOf(steps: readonly ToolStep[], composed: ReadonlySet<string>, cardTools: ReadonlySet<string>): CardPlan {
   const heldInCard = steps.flatMap((step) => (composed.has(step.toolCallId) && cardTools.has(step.name) ? [step.toolCallId] : []));
   const hidden = new Set([...heldInCard, ...recoveredFailures(steps), ...recipientLookups(steps), ...earlierRecalls(steps)]);
-  if (!steps.some((step) => drawsAnswer(step, hidden, cardTools))) return { hidden };
+  const paired = metricPairs(steps, hidden);
+  for (const partners of paired.values()) for (const id of partners) hidden.add(id);
+  if (!steps.some((step) => drawsAnswer(step, hidden, cardTools))) return { hidden, paired };
   for (const step of steps) if (step.name === CATALOG_TOOL) hidden.add(step.toolCallId);
-  return { hidden };
+  return { hidden, paired };
 }

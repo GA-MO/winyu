@@ -3,7 +3,7 @@ import path from "node:path";
 import type { ComposedComponent } from "@/lib/compose/catalog";
 import { UNCOMPOSABLE_TOOLS } from "@/lib/compose/ground";
 import type { ToolStep } from "@/components/chat/timeline";
-import { cardPlanOf, drawsNoCard } from "@/components/chat/tool-view";
+import { cardPlanOf, drawsNoCard, pairedResultsOf } from "@/components/chat/tool-view";
 import { ReplyCards, type ComposedCardRecord, type StreamEvent } from "@/lib/harness/adapters/mastra/card-stream";
 import { toolTiers } from "@/lib/server/agent/tools";
 
@@ -64,8 +64,8 @@ export function firstToolOf(recording: Recording): string | null {
 /** A question the same person asked earlier in its own thread, and the reply it got, recorded before the case question. */
 export type RecordedBefore = { prompt: string; steps: RecordedStep[] };
 
-/** A fixed card the chat draws for one read call. */
-export type DrawnCard = { tool: string; args: unknown; result: unknown };
+/** A fixed card the chat draws for one read call, with the other answers of the turn a paired metric card draws inside it. */
+export type DrawnCard = { tool: string; args: unknown; result: unknown; with: unknown[] };
 
 /** One recorded reply as the chat would draw it now: the words the person reads, the composed card the current composer accepts from the recorded block, and the fixed cards left beside it. */
 export type EvalTurn = {
@@ -131,7 +131,7 @@ function fixedCards(calls: EvalTurn["calls"], composedHolds: boolean): DrawnCard
     if (step.outcome.state !== "returned" || !readTools.has(step.name) || plan.hidden.has(step.toolCallId)) return [];
     const result = step.outcome.result;
     if (drawsNoCard(result)) return [];
-    return [{ tool: step.name, args: step.args, result }];
+    return [{ tool: step.name, args: step.args, result, with: pairedResultsOf(plan, steps, step.toolCallId) }];
   });
 }
 

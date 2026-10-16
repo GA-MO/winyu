@@ -15,7 +15,7 @@ import { ActionTrail } from "./action-trail";
 import { ComposedCardView } from "./composed-card";
 import { Markdown } from "./markdown";
 import type { Exchange, Question, ReplyStep, ToolStep } from "./timeline";
-import { cardPlanOf, composedCalls, toolViewOf, type CardPlan } from "./tool-view";
+import { cardPlanOf, composedCalls, pairedResultsOf, toolViewOf, type CardPlan } from "./tool-view";
 import { withRequestedCourses } from "./requested-courses";
 import { trailOf } from "./trail";
 import { pressedText } from "./pressed";
@@ -111,9 +111,9 @@ class CardBoundary extends Component<{ children: ReactNode }, { failed: boolean 
 /** What a card in this exchange needs to offer ส่งต่อ: the exchange's read calls and the question it asked; null while the reply streams. */
 type Sharing = { calls: ExchangeRead[]; question: string | null } | null;
 
-function toolShare(sharing: Sharing, toolCallId: string): ShareTarget | null {
+function toolShare(sharing: Sharing, toolCallId: string, partners: readonly string[]): ShareTarget | null {
   if (!sharing) return null;
-  const card = sharedToolCard(sharing.calls, toolCallId);
+  const card = sharedToolCard(sharing.calls, toolCallId, partners);
   return card ? { card, question: sharing.question } : null;
 }
 
@@ -129,13 +129,13 @@ function sharingOf(exchange: Exchange, toolSteps: readonly ToolStep[], streaming
   return { calls, question: exchange.question?.kind === "typed" ? exchange.question.text : null };
 }
 
-function ToolStepView({ step, live, plan, streaming, sharing, asked }: { step: ToolStep; live: ExchangeLive; plan: CardPlan; streaming: boolean; sharing: Sharing; asked: string | null }) {
+function ToolStepView({ step, steps, live, plan, streaming, sharing, asked }: { step: ToolStep; steps: readonly ToolStep[]; live: ExchangeLive; plan: CardPlan; streaming: boolean; sharing: Sharing; asked: string | null }) {
   const asking = live.waiting.has(step.toolCallId);
   const view = toolViewOf(step, { running: streaming, asking, decided: live.decisions[step.toolCallId], hidden: plan.hidden.has(step.toolCallId) }, CARD_TOOLS);
   if (view.kind === "card")
     return (
       <div className="flex w-full animate-hero-rise flex-col gap-1">
-        <ShareChrome target={toolShare(sharing, step.toolCallId)}>{CARDS[view.name](view.result, view.args)}</ShareChrome>
+        <ShareChrome target={toolShare(sharing, step.toolCallId, plan.paired.get(step.toolCallId) ?? [])}>{CARDS[view.name](view.result, view.args, pairedResultsOf(plan, steps, step.toolCallId))}</ShareChrome>
       </div>
     );
   if (view.kind === "not-run") return <Note text={TH.conversation.notRun} tone="muted" />;
@@ -172,7 +172,7 @@ function HandoffReplyView({ note }: { note: HandoffReplyNote }) {
   );
 }
 
-function StepView({ step, live, plan, streaming, sharing, asked }: { step: ReplyStep; live: ExchangeLive; plan: CardPlan; streaming: boolean; sharing: Sharing; asked: string | null }) {
+function StepView({ step, toolSteps, live, plan, streaming, sharing, asked }: { step: ReplyStep; toolSteps: readonly ToolStep[]; live: ExchangeLive; plan: CardPlan; streaming: boolean; sharing: Sharing; asked: string | null }) {
   if (step.kind === "text") return <Markdown text={step.text} />;
   if (step.kind === "handoff-reply") return <HandoffReplyView note={step.note} />;
   if (step.kind === "composed")
@@ -187,7 +187,7 @@ function StepView({ step, live, plan, streaming, sharing, asked }: { step: Reply
     );
   return (
     <CardBoundary>
-      <ToolStepView step={step} live={live} plan={plan} streaming={streaming} sharing={sharing} asked={asked} />
+      <ToolStepView step={step} steps={toolSteps} live={live} plan={plan} streaming={streaming} sharing={sharing} asked={asked} />
     </CardBoundary>
   );
 }
@@ -233,7 +233,7 @@ export function ExchangeView({ exchange, live }: { exchange: Exchange; live: Exc
       {exchange.question ? <UserBubble question={exchange.question} /> : null}
       <ActionTrail trail={trailOf(steps, streaming, live.toolLabels)} streaming={streaming} durationMs={live.durationMs} />
       {steps.map((step) => (
-        <StepView key={step.kind === "tool" ? step.toolCallId : `${step.kind}-${step.id}`} step={step} live={live} plan={plan} streaming={streaming} sharing={sharing} asked={askedText(exchange.question)} />
+        <StepView key={step.kind === "tool" ? step.toolCallId : `${step.kind}-${step.id}`} step={step} toolSteps={toolSteps} live={live} plan={plan} streaming={streaming} sharing={sharing} asked={askedText(exchange.question)} />
       ))}
       <Ending exchange={exchange} live={live} />
     </article>
