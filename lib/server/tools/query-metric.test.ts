@@ -26,6 +26,25 @@ describe("query_metric for a running month against target", () => {
     expect(result.summary).toContain(projection?.remaining ?? "-");
     expect(result.summary).toContain(projection?.attainmentToDate ?? "-");
   });
+
+  test("what is left reads as the printed month target less the printed actual, for every scope and unit", async () => {
+    const printed = (label: string) => {
+      const [, digits, million] = label.match(/([\d,.]+)\s*(ล้าน)?/) ?? [];
+      return Number((digits ?? "").replace(/,/g, "")) * (million ? 1_000_000 : 1);
+    };
+    for (const userId of ["u_thana", "u_anucha", "u_krit"]) {
+      const user = findUser(userId);
+      if (!user) throw new Error(`no ${userId}`);
+      for (const metric of ["net_sales_volume", "net_sales_value"]) {
+        const query = { metric, dims: [], filters: {}, range: { from: monthStart(DATA_AS_OF), to: DATA_AS_OF }, grain: "month", compare: "target", limit: null };
+        const tool = winyuTools().query_metric;
+        const result = (await runWithAccess(accessFor(user), () => tool.execute(tool.inputSchema().parse(query)))) as Extract<MetricResult, { ok: true }>;
+        const projection = result.headline.projection;
+        if (!projection || !projection.remaining.startsWith("เหลืออีก")) continue;
+        expect(Math.round(printed(projection.monthTarget) - printed(result.headline.value))).toBe(printed(projection.remaining));
+      }
+    }
+  });
 });
 
 describe("query_metric tells the model what each metric accepts", () => {

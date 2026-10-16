@@ -3,7 +3,7 @@ import { isTimeDim } from "@/lib/cards/rows";
 import { MONTH_OF_DAY, DATA_AS_OF, addDays, daysInMonthIndex, toDayIndex } from "@/lib/data/dates";
 import { projectMonthEnd } from "@/lib/engine/gap";
 import { TH } from "@/lib/i18n/th";
-import { comparisonRequestOf, finishMetric, formatForSummary, keyRows, planMetric, seriesRequest, type SeriesQuery } from "@/lib/semantic/engine";
+import { comparisonRequestOf, finishMetric, formatForSummary, keyRows, planMetric, roundForSummary, seriesRequest, type SeriesQuery } from "@/lib/semantic/engine";
 import { metricDef } from "@/lib/semantic/metrics";
 import { loadDictionary } from "@/lib/server/master-data";
 import { ports } from "@/lib/server/ports";
@@ -35,7 +35,7 @@ function totalOf(query: MetricQuery, overrides: Partial<MetricQuery>): MetricQue
   return { ...query, dims: [], limit: null, sort: null, where: null, ...overrides };
 }
 
-/** Where a month-to-date total against target ends if the days left sell at the last seven days' pace, against the target spread evenly over the month; null for any other question. */
+/** Where a month-to-date total against target ends if the days left sell at the last seven days' pace, against the target spread evenly over the month; null for any other question. What is left to reach the target is the printed target less the printed actual, so the three labels add up on screen. */
 export async function monthEndProjection(query: MetricQuery, access: AccessContext): Promise<MonthEndProjection | null> {
   const def = metricDef(query.metric);
   if (!def || !isMonthToDateVsTarget(query)) return null;
@@ -53,13 +53,15 @@ export async function monthEndProjection(query: MetricQuery, access: AccessConte
     recentDailyAverage: recentTotal / RECENT_DAYS,
   });
   if (!projection) return null;
+  const monthTarget = Math.round(projection.monthTarget);
+  const remaining = Math.max(0, roundForSummary(def, monthTarget) - roundForSummary(def, actual));
   return {
     recentDays: RECENT_DAYS,
     projected: formatForSummary(def, Math.round(projection.projected)),
-    monthTarget: formatForSummary(def, Math.round(projection.monthTarget)),
+    monthTarget: formatForSummary(def, monthTarget),
     attainment: `${projection.attainment.toFixed(1)}%`,
     attainmentToDate: `${projection.attainmentToDate.toFixed(1)}%`,
-    remaining: projection.remaining > 0 ? TH.dash.toTarget(formatForSummary(def, Math.round(projection.remaining))) : TH.dash.targetMet,
+    remaining: remaining > 0 ? TH.dash.toTarget(formatForSummary(def, remaining)) : TH.dash.targetMet,
   };
 }
 

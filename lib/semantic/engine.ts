@@ -126,6 +126,19 @@ export function formatForSummary(def: MetricDef, value: number): string {
   return `${formatNumber(value, digits)} ${def.unit}`;
 }
 
+function summaryStepOf(def: MetricDef, value: number): number {
+  if (def.format === "percent") return 0.1;
+  if (def.format === "currency") return Math.abs(value) >= MILLION ? MILLION / 10 : 1;
+  if (MILLION_UNITS.has(def.unit) && Math.abs(value) >= MILLION) return MILLION / 10;
+  return Math.abs(value) >= 100 || WHOLE_UNITS.has(def.unit) ? 1 : 0.1;
+}
+
+/** A value rounded to the step `formatForSummary` prints it at, so a label worked out from printed labels (target − actual) adds up on screen. */
+export function roundForSummary(def: MetricDef, value: number): number {
+  const step = summaryStepOf(def, value);
+  return Math.round(Math.round(value / step) * step * 10) / 10;
+}
+
 function firstTimeDim(dims: Dim[]): Dim | null {
   return dims.find((dim) => TIME_DIMS.includes(dim)) ?? null;
 }
