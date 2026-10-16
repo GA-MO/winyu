@@ -32,7 +32,7 @@ function OverallLabel({ row }: { row: ReadRow }) {
   return (
     <div className="flex min-w-0 flex-col text-[12px] leading-snug text-muted-foreground">
       <span className="truncate">{row.label}</span>
-      {row.sub ? <span className="line-clamp-2 break-words text-[11px]">{row.sub}</span> : null}
+      {row.sub ? <span className="line-clamp-3 break-words text-[11px]">{row.sub}</span> : null}
     </div>
   );
 }

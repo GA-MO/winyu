@@ -1025,7 +1025,7 @@ function withBaseline(card: CardParts, second: Source): CardParts {
 function withSecondMetric(card: CardParts, pairing: Pairing): CardParts {
   const [, second] = pairing.sources;
   const subs = new Map(second.result.rows.map((row) => [labelOf(second.query, row), `${valueTextOf(second.query, row)} ${shortMetricLabel(second)}`]));
-  return { ...withSecondLine(card, subs, `${second.result.headline.value} ${shortMetricLabel(second)}`), title: pairedTitleOf(pairing) };
+  return { ...withSecondLine(card, subs, null), title: pairedTitleOf(pairing) };
 }
 
 /** R10 parity (sell-out against sell-in by agent) in the B anatomy: the overall share on top, the things falling well short drawn thick with their share, the rest muted; the count that falls short is the verdict. */
