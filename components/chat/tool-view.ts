@@ -12,7 +12,8 @@ const METRIC_TOOL = "query_metric";
 const PEOPLE_LOOKUPS: ReadonlySet<string> = new Set(["find_people", "get_person", "resolve_owner"]);
 const ENTITY_LOOKUP = "describe_entity";
 const USER_ENTITY = "user";
-const LOOKUP_TOOLS: ReadonlySet<string> = new Set([CATALOG_TOOL, RECALL_TOOL, ENTITY_LOOKUP, ...PEOPLE_LOOKUPS]);
+const ENTITY_LOOKUPS: ReadonlySet<string> = new Set([ENTITY_LOOKUP, ...PEOPLE_LOOKUPS]);
+const LOOKUP_TOOLS: ReadonlySet<string> = new Set([CATALOG_TOOL, RECALL_TOOL, ...ENTITY_LOOKUPS]);
 
 /** How one tool call shows in a reply: its card, the decision it waits on or its receipt, the receipt of a write that did nothing and why, a quiet note, or nothing (a call still running shows in the action trail). */
 export type ToolView =
@@ -93,6 +94,11 @@ function holdsCard(step: ReplyStep): boolean {
   return step.kind === "composed" && step.surface.components.length > 0;
 }
 
+/** Whether the reply wrote a card block of its own, whether or not anything in it held. */
+export function wroteBlock(steps: readonly ReplyStep[]): boolean {
+  return steps.some((step) => step.kind === "composed");
+}
+
 /** The read calls of one exchange whose fixed card is not drawn: once a composed card holds, it is the answer and every composable result stays inside it; while the reply still streams, a card block may yet come, so none flashes up first. A block where nothing held leaves the fixed cards as the fallback. */
 export function composedCalls(steps: readonly ReplyStep[], streaming: boolean): ReadonlySet<string> {
   if (!streaming && !steps.some(holdsCard)) return new Set();
@@ -123,11 +129,17 @@ function searchesCatalog(step: ToolStep): boolean {
   return step.name === CATALOG_TOOL && typeof search === "string" && search.trim() !== "";
 }
 
-/** Lookups (the metric catalog, owners, people, entities, memory) are the way to an answer, not the answer: once another card of the exchange answers they draw nothing, and the catalog searched for a metric never does, whether the metric was then asked for or the reply refused. */
-function plumbingLookups(steps: readonly ToolStep[], hidden: ReadonlySet<string>, cardTools: ReadonlySet<string>): string[] {
-  const answers = steps.some((step) => drawsAnswer(step, hidden, cardTools));
-  const searched = steps.some(searchesCatalog);
-  return steps.flatMap((step) => (LOOKUP_TOOLS.has(step.name) && (answers || (searched && step.name === CATALOG_TOOL)) ? [step.toolCallId] : []));
+function plumbing(step: ToolStep, way: { answers: boolean; acts: boolean; searched: boolean; blockWritten: boolean }): boolean {
+  if (!LOOKUP_TOOLS.has(step.name)) return false;
+  if (way.answers || way.acts) return true;
+  if (ENTITY_LOOKUPS.has(step.name)) return !way.blockWritten;
+  return way.searched && step.name === CATALOG_TOOL;
+}
+
+/** Lookups (the metric catalog, owners, people, entities, memory) are the way to an answer, not the answer: once another card of the exchange answers, or the exchange acts (a send, an email), they draw nothing; a person, owner or entity found for a reply that wrote no card block of its own (a refusal, an answer in words) draws nothing either, so a profile or an owner card never stands in for a refusal; and the catalog searched for a metric never does, whether the metric was then asked for or the reply refused. */
+function plumbingLookups(steps: readonly ToolStep[], hidden: ReadonlySet<string>, cardTools: ReadonlySet<string>, blockWritten: boolean): string[] {
+  const way = { answers: steps.some((step) => drawsAnswer(step, hidden, cardTools)), acts: steps.some((step) => !cardTools.has(step.name)), searched: steps.some(searchesCatalog), blockWritten };
+  return steps.flatMap((step) => (plumbing(step, way) ? [step.toolCallId] : []));
 }
 
 function recipientsAskedFor(step: ToolStep): string[] {
@@ -185,12 +197,12 @@ export function pairedResultsOf(plan: CardPlan, steps: readonly ToolStep[], tool
   return steps.flatMap((step) => (partners.includes(step.toolCallId) && step.outcome.state === "returned" ? [step.outcome.result] : []));
 }
 
-/** One card per question: a composed card holds only read results, so a write's receipt is never left out for it; a people lookup that found the recipient of a later card or email sent in the exchange is left out, a refused or failed call the model corrected later in the exchange (the same tool answered after it) is left out, metric answers of the same dimensions and range that pair draw one card on the first of them (`paired`), and lookups the model made on the way are left out (`plumbingLookups`); `composed` are the calls a composed card already holds. */
-export function cardPlanOf(steps: readonly ToolStep[], composed: ReadonlySet<string>, cardTools: ReadonlySet<string>): CardPlan {
+/** One card per question: a composed card holds only read results, so a write's receipt is never left out for it; a people lookup that found the recipient of a later card or email sent in the exchange is left out, a refused or failed call the model corrected later in the exchange (the same tool answered after it) is left out, metric answers of the same dimensions and range that pair draw one card on the first of them (`paired`), and lookups the model made on the way are left out (`plumbingLookups`); `composed` are the calls a composed card already holds, `blockWritten` whether the reply wrote a card block at all (a shared card, drawn as it is, counts as one). */
+export function cardPlanOf(steps: readonly ToolStep[], composed: ReadonlySet<string>, cardTools: ReadonlySet<string>, blockWritten = true): CardPlan {
   const heldInCard = steps.flatMap((step) => (composed.has(step.toolCallId) && cardTools.has(step.name) ? [step.toolCallId] : []));
   const hidden = new Set([...heldInCard, ...recoveredFailures(steps), ...recipientLookups(steps), ...earlierRecalls(steps)]);
   const paired = metricPairs(steps, hidden);
   for (const partners of paired.values()) for (const id of partners) hidden.add(id);
-  for (const id of plumbingLookups(steps, hidden, cardTools)) hidden.add(id);
+  for (const id of plumbingLookups(steps, hidden, cardTools, blockWritten)) hidden.add(id);
   return { hidden, paired };
 }

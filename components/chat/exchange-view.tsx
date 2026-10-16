@@ -13,7 +13,7 @@ import { ActionTrail } from "./action-trail";
 import { ComposedCardView } from "./composed-card";
 import { Markdown } from "./markdown";
 import type { Exchange, Question, ReplyStep, ToolStep } from "./timeline";
-import { cardPlanOf, composedCalls, pairedResultsOf, toolViewOf, type CardPlan } from "./tool-view";
+import { cardPlanOf, composedCalls, pairedResultsOf, toolViewOf, wroteBlock, type CardPlan } from "./tool-view";
 import { withRequestedCourses } from "./requested-courses";
 import { trailOf } from "./trail";
 import { pressedText } from "./pressed";
@@ -199,7 +199,7 @@ function askedText(question: Question | null): string | null {
 export function ExchangeView({ exchange, live }: { exchange: Exchange; live: ExchangeLive }) {
   const streaming = live.running && live.isLast;
   const toolSteps = exchange.steps.filter((step): step is ToolStep => step.kind === "tool");
-  const plan = cardPlanOf(toolSteps, composedCalls(exchange.steps, streaming), CARD_TOOLS);
+  const plan = cardPlanOf(toolSteps, composedCalls(exchange.steps, streaming), CARD_TOOLS, wroteBlock(exchange.steps));
   const sharing = sharingOf(exchange, toolSteps, streaming);
   const steps = stepsWithApprovals(exchange, live.asked);
   return (

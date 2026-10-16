@@ -121,12 +121,12 @@ function toolStepOf(call: EvalTurn["calls"][number], index: number): ToolStep {
   return { kind: "tool", toolCallId: `call-${index}`, name: call.tool, args: call.args, outcome: "result" in call ? { state: "returned", result: call.result } : { state: "pending" } };
 }
 
-function fixedCards(calls: EvalTurn["calls"], composedHolds: boolean): DrawnCard[] {
+function fixedCards(calls: EvalTurn["calls"], composedHolds: boolean, blockWritten: boolean): DrawnCard[] {
   const tiers = toolTiers();
   const readTools = new Set(Object.keys(tiers).filter((tool) => tiers[tool] === READ_TIER));
   const steps = calls.map(toolStepOf);
   const composed = new Set(composedHolds ? steps.flatMap((step) => (UNCOMPOSABLE_TOOLS.includes(step.name) ? [] : [step.toolCallId])) : []);
-  const plan = cardPlanOf(steps, composed, readTools);
+  const plan = cardPlanOf(steps, composed, readTools, blockWritten);
   return steps.flatMap((step) => {
     if (step.outcome.state !== "returned" || !readTools.has(step.name) || plan.hidden.has(step.toolCallId)) return [];
     const result = step.outcome.result;
@@ -148,7 +148,7 @@ export function turnOf(recording: Recording): EvalTurn {
   const components = last?.components ?? [];
   const composed = record ? { ...record, components, dataModel: last?.dataModel ?? {} } : null;
   const calls = recording.steps.filter((step): step is EvalTurn["calls"][number] => step.kind === "call");
-  return { recording, calls, words, composed, cards: fixedCards(calls, components.length > 0) };
+  return { recording, calls, words, composed, cards: fixedCards(calls, components.length > 0, finals.length > 0) };
 }
 
 /** What a turn draws, in the compact form a recording keeps for its reader. */

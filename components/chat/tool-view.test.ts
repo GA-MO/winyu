@@ -31,11 +31,32 @@ describe("a people lookup on the way to an action is not the answer", () => {
     expect(hiddenOf([returned("d1", "describe_entity", { kind: "user", query: "อนุชา" }, { ok: true, data: { id: "u_anucha", "ชื่อ": "คุณอนุชา พรหมศรี" } }), pending("s1", "send_card", { to: ["คุณอนุชา"] })])).toEqual(["d1"]);
   });
 
-  test("a lookup that is the answer, or found someone else, still draws its card", () => {
+  test("a lookup that is the answer still draws its card when the reply wrote a card block", () => {
     expect(hiddenOf([lookup("p1", [KRIT_ROW])])).toEqual([]);
-    expect(hiddenOf([lookup("p1", [NOK_ROW]), pending("s1", "send_card", { to: ["คุณกฤต"] })])).toEqual([]);
-    expect(hiddenOf([pending("s1", "send_card", { to: ["คุณกฤต"] }), lookup("p1", [KRIT_ROW])])).toEqual([]);
-    expect(hiddenOf([returned("d1", "describe_entity", { kind: "agent", query: "u_krit" }, { ok: true, data: { id: "u_krit" } }), pending("h1", "send_email", { toUserId: "u_krit" })])).toEqual([]);
+  });
+});
+
+describe("lookups on refusals and sends draw nothing (AI-100)", () => {
+  const ANUCHA = { ok: true, summary: "คุณอนุชา พรหมศรี · บางช่องถูกปิดตามสิทธิ์ของผู้ใช้", data: { id: "u_anucha", name: "คุณอนุชา พรหมศรี", facts: [] } };
+  const NOK = { ok: true, summary: "คุณนก สุขสวัสดิ์", data: { id: "u_nok", name: "คุณนก สุขสวัสดิ์", facts: [] } };
+  const CENTRAL_OWNER = { ok: true, summary: "ผู้รับผิดชอบคือ คุณสมชาย บุญมี", data: { userId: "u_somchai", nameTh: "คุณสมชาย บุญมี" } };
+  const AGENT_RECORD = { ok: true, data: { id: "ag_sou_02", "ชื่อ": "สงขลาทักษิณ เทรดดิ้ง" } };
+
+  function hiddenInWords(steps: ToolStep[]): string[] {
+    return [...cardPlanOf(steps, new Set(), CARD_TOOLS, false).hidden].sort();
+  }
+
+  test("a refusal written in words draws no HR profile and no owner card", () => {
+    expect(hiddenInWords([returned("p1", "get_person", { name: "อนุชา" }, ANUCHA), returned("p2", "get_person", { id: "u_nok" }, NOK)])).toEqual(["p1", "p2"]);
+    expect(hiddenInWords([returned("o1", "resolve_owner", { metric: "net_sales_volume", dims: { region: "central" } }, CENTRAL_OWNER)])).toEqual(["o1"]);
+  });
+
+  test("a send or an email draws none of the lookups it made on the way, whoever they found and in whatever order", () => {
+    expect(hiddenOf([returned("e1", "describe_entity", { kind: "agent", query: "สงขลาทักษิณ" }, AGENT_RECORD), pending("s1", "send_card", { to: ["u_arm"] })])).toEqual(["e1"]);
+    expect(hiddenOf([lookup("p1", [NOK_ROW]), pending("s1", "send_card", { to: ["คุณกฤต"] })])).toEqual(["p1"]);
+    expect(hiddenOf([pending("s1", "send_card", { to: ["คุณกฤต"] }), lookup("p1", [KRIT_ROW])])).toEqual(["p1"]);
+    expect(hiddenOf([returned("p1", "get_person", { name: "กฤต จันทร์เสน" }, { ok: true, data: { ...KRIT_ROW, badges: [{ label: "ใบอนุญาตขายสุรา 23 วัน" }] } }), pending("s1", "send_card", { to: ["u_anucha"] })])).toEqual(["p1"]);
+    expect(hiddenOf([returned("d1", "describe_entity", { kind: "agent", query: "u_krit" }, { ok: true, data: { id: "u_krit" } }), pending("h1", "send_email", { toUserId: "u_krit" })])).toEqual(["d1"]);
   });
 });
 

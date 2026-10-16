@@ -2,7 +2,6 @@
 
 import { Avatar, Badge, Callout, Card, KeyValue, Timeline } from "@/components/ui/primitives";
 import { TH } from "@/lib/i18n/th";
-import { askAction, useRunAction } from "../card-actions";
 import { AskRow, ParsedCard, RowGrid, SectionTitle } from "./frame";
 import { parseResult, peopleResult, personResult, ownerResult } from "./shapes";
 import type { z } from "zod";
@@ -112,28 +111,13 @@ export function PersonCard({ result }: { result: unknown }) {
   );
 }
 
-function OwnerAsk({ name }: { name: string }) {
-  const run = useRunAction();
-  return (
-    <button
-      type="button"
-      onClick={() => run(askAction(TH.cards.owner.ask(name)))}
-      className="inline-flex self-start rounded-full bg-ink px-3.5 py-2 text-xs font-medium text-ink-foreground transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-    >
-      {TH.cards.owner.askLabel}
-      {name}
-    </button>
-  );
-}
-
-/** resolve_owner: the one person to hand this to, why them, and how loaded they are. */
+/** resolve_owner: the one person to hand this to, why them, and how loaded they are; no send button, since an owner card is never the card that is sent. */
 export function OwnerCard({ result }: { result: unknown }) {
   return (
     <ParsedCard parsed={parseResult(ownerResult, result)} title={TH.cards.refused}>
       {({ data }) => (
         <Card props={{ title: TH.cards.owner.title(data.nameTh), description: data.reason, footnote: TH.cards.source.routing }}>
           <Avatar props={{ name: data.nameTh, role: data.title, size: "md" }} />
-          <OwnerAsk name={data.nameTh} />
         </Card>
       )}
     </ParsedCard>

@@ -1723,8 +1723,6 @@ export const TH = {
     },
     owner: {
       title: (name: string) => `${name} เป็นผู้รับผิดชอบ`,
-      ask: (name: string) => `ส่งเรื่องนี้ให้${name}ดู`,
-      askLabel: "ส่งเรื่องให้",
     },
     entityTitle: "ข้อมูลหลัก",
     memoryTitle: "สิ่งที่ผู้ช่วยจำได้",
