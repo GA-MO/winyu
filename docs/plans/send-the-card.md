@@ -79,9 +79,9 @@ Each phase ends with `bun run typecheck`, `bun run test`, and a walk through the
 
 ### Phase 2. The recipient answers on the card
 
-- [ ] Show `act` matters in the bell and Inbox as small cards with the ask and the three actions.
-- [ ] **ไม่ใช่ของผม** passes the matter to the `responsibleFor` owner. If the owner is the holder, it asks the sender instead.
-- [ ] Turn `/s/[code]` into the matter page: the card, the path, the thread, and the holder's actions.
+- [x] Show `act` matters in the bell and Inbox as small cards with the ask and the three actions.
+- [x] **ไม่ใช่ของผม** passes the matter to the `responsibleFor` owner. If the owner is the holder, it asks the sender instead.
+- [x] Turn `/s/[code]` into the matter page: the card, the path, the thread, and the holder's actions.
 - [ ] Check: the CEO sends an all-region sales card to the RSM. The RSM sees the northeast row and locked rows for the other regions. The RSM passes the matter to the Khon Kaen sales rep. The rep taps **รับ**. The CEO's matter page shows CEO, RSM (passed on), and sales rep (accepted).
 
 ### Phase 3. One tool for chat, and the handoff goes away
