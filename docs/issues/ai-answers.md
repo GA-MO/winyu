@@ -2236,30 +2236,30 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 |---|---|---|---|
 | AI-167 (เดิม AI-137) | สูง | ยังเสีย | RSM 'ask Krit to visit this agent' sends the whole-region card with a deictic ask, so the matter never names ขอนแก่นมหาชัย; chat sends of the same card share one title |
 | AI-168 (เดิม AI-94) | กลาง | ยังเสีย | False premise 'ขอนแก่นมหาชัยก็ตกเยอะ' is sent first and rebutted only after the approved send |
-| AI-169 (เดิม AI-140) | กลาง | ยังเสีย | CEO risk answer says there is no stock risk while its own anomaly card leads with the P1 Lamphun stock-out |
-| AI-170 (เดิม AI-146) | กลาง | ยังเสีย | Agent-level 'why did it drop' (RSM) gets a brand gap split; the P1 'orders stopped' alert is missed because get_alerts matches metrics exactly |
+| AI-169 (เดิม AI-140) | กลาง | แก้แล้ว `6d696ac` | CEO risk answer says there is no stock risk while its own anomaly card leads with the P1 Lamphun stock-out |
+| AI-170 (เดิม AI-146) | กลาง | แก้แล้ว `0beacbe` | Agent-level 'why did it drop' (RSM) gets a brand gap split; the P1 'orders stopped' alert is missed because get_alerts matches metrics exactly |
 | AI-171 (เดิม AI-165) | กลาง | แก้แล้ว `0f1ffd0` | 'ปิดเดือนที่กี่ % แล้วปักการ์ดนั้น' pins the 83.9% month-to-date card as if it were the 96.3% forecast |
-| AI-172 | กลาง | เปิด (ใหม่) | An exclusion in the question is ignored: 'นอกจากเรื่องอีสาน' gets Isan-led AR and anomaly cards, and the South AR risk the text names is folded away |
+| AI-172 | กลาง | แก้แล้ว `285287b` | An exclusion in the question is ignored: 'นอกจากเรื่องอีสาน' gets Isan-led AR and anomaly cards, and the South AR risk the text names is folded away |
 | AI-173 | กลาง | แก้แล้ว `0f1ffd0` | Change strips drop the value on the row that answers the question and label only the last row |
 | AI-174 | กลาง | แก้แล้ว `0f1ffd0` | Time-series cards lead with the latest bucket against the one before, whatever the question asks (full-year target, why-drop) |
-| AI-175 | กลาง | เปิด (ใหม่) | P1 alert '1,785 vs 16,478 L (−89%)' disagrees with the agent's own sell-in on the same screen (about 9,900 L/day, about −40%) |
-| AI-176 (เดิม AI-22) | กลาง | ยังเสีย | The CEO's top story states the credit hypothesis as fact |
+| AI-175 | กลาง | แก้แล้ว `4ea6dd2` `a60202c` | P1 alert '1,785 vs 16,478 L (−89%)' disagrees with the agent's own sell-in on the same screen (about 9,900 L/day, about −40%) |
+| AI-176 (เดิม AI-22) | กลาง | แก้แล้ว `aa1b1b4` | The CEO's top story states the credit hypothesis as fact |
 | AI-177 (เดิม AI-135) | กลาง | ยังเสีย | Run sheet says the CEO has '3 เรื่องด่วน'; the screen shows 4 after the AI-166 fix, and 'เรื่องภาคอีสาน' is now ambiguous |
 | AI-178 (เดิม AI-135 (label from AI-139)) | กลาง | แก้แล้ว `54fbb14` | A cancelled approval reads 'รายการนี้ไม่ได้ทำ' live, not the sheet's 'ยกเลิกไว้ เพราะคุณถามเรื่องใหม่' |
-| AI-179 (เดิม AI-136) | กลาง | ยังเสีย | Story evidence card titled 'ปริมาณขายเข้า' (litres) over a baht query |
+| AI-179 (เดิม AI-136) | กลาง | แก้แล้ว `aa1b1b4` · รอยืนยันกับโมเดล | Story evidence card titled 'ปริมาณขายเข้า' (litres) over a baht query |
 | AI-180 (เดิม AI-133) | กลาง | แก้แล้ว `1d975e6` | Rep demo opener takes 42.7 s (CEO and RSM are now under 40 s) |
 | AI-181 (เดิม AI-133) | กลาง | แก้แล้ว `8562d3f` | IT run-sheet question takes 71.8 s: admin_audit requires 'role', so the first calls fail validation |
-| AI-182 | กลาง | เปิด (ใหม่) | Visit-priority card has no values, bars or verdict, and the text misreads the alert's −89% as a four-week decline |
+| AI-182 | กลาง | แก้แล้ว `01b73f3` · รอยืนยันกับโมเดล | Visit-priority card has no values, bars or verdict, and the text misreads the alert's −89% as a four-week decline |
 | AI-183 | กลาง | เปิด (ใหม่) · นอกเส้นทางเดโม | Pin of the rep's 4-agent card stores filters {}, so the widget shows the region's 8 agents |
 | AI-184 | ต่ำ | เปิด (ใหม่) | Pin approval shows only the card title, no number |
 | AI-185 | ต่ำ | แก้แล้ว `0f1ffd0` | RSM month-close gap card: month-end hero (implies 52.9 short) over the month-to-date paced gap (39.8); the text invents a goods-receiving problem |
-| AI-186 (เดิม AI-153) | ต่ำ | ยังเสีย | Follow-up chips and drills point at the first sorted row, not the asked scope or the worst change |
+| AI-186 (เดิม AI-153) | ต่ำ | แก้แล้ว `79afa95` `285287b` · รอยืนยันกับโมเดล | Follow-up chips and drills point at the first sorted row, not the asked scope or the worst change |
 | AI-187 | ต่ำ | แก้แล้ว `0f1ffd0` | CEO landing tile '98% ของเป้าตามเวลา' disagrees with chat 83.9% vs 86.7% (96.8% of pace) |
 | AI-188 | ต่ำ | แก้แล้ว `0f1ffd0` | Board summary card: import row has no value, and the hero detail is clamped mid-phrase |
 | AI-189 | ต่ำ | แก้แล้ว `0f1ffd0` | Market-share donut labels our own 59.3% as 'เฉลี่ยทุกผู้ผลิต' |
-| AI-190 | ต่ำ | เปิด (ใหม่) | 'ทำไมตกอะ' (week) gives no reason; the text points at Isan while the card says all regions fell evenly |
-| AI-191 | ต่ำ | เปิด (ใหม่) | RSM 'ใต้เทียบอีสาน': after the correct denial, the Isan side is a bare number |
-| AI-192 | ต่ำ | เปิด (ใหม่) | Wording: 'มูลค่าขายสุทธิ' in text vs 'มูลค่าขายเข้า' on cards; anomaly header '5 เรื่องผิดปกติ ด่วน 5 เรื่อง' |
+| AI-190 | ต่ำ | แก้แล้ว `c94b9b9` · รอยืนยันกับโมเดล | 'ทำไมตกอะ' (week) gives no reason; the text points at Isan while the card says all regions fell evenly |
+| AI-191 | ต่ำ | แก้แล้ว `c94b9b9` · รอยืนยันกับโมเดล | RSM 'ใต้เทียบอีสาน': after the correct denial, the Isan side is a bare number |
+| AI-192 | ต่ำ | แก้แล้ว `c94b9b9` · รอยืนยันกับโมเดล | Wording: 'มูลค่าขายสุทธิ' in text vs 'มูลค่าขายเข้า' on cards; anomaly header '5 เรื่องผิดปกติ ด่วน 5 เรื่อง' |
 | AI-193 (เดิม AI-135) | ต่ำ | ยังเสีย | Other run-sheet mismatches (switch vs ติ๊ก, ↑ icon vs 'ส่ง', unstated scroll and reload, bell counts on a rerun) |
 | AI-194 (เดิม AI-154) | ต่ำ | ยังเสีย | Sender's own story page uses receiver wording and a one-tap [เสร็จ] |
 | AI-195 (เดิม AI-158) | ต่ำ | ยังเสีย | Per-role speech line has nothing to show: RSM and rep cards show the same 8 agents |
@@ -2297,7 +2297,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-169. CEO risk answer says there is no stock risk while its own anomaly card leads with the P1 Lamphun stock-out
 
-- **สถานะ:** ยังเสีย · เดิม AI-140
+- **สถานะ:** แก้แล้ว `6d696ac` · กฎข้อตอบตรงให้แยกสต๊อกค้างกับสต๊อกขาด และห้ามบอกว่าด้านที่การ์ดมีเรื่องด่วนไม่มีความเสี่ยง ตัวตรวจ riskNotDenied จับข้อความแบบนี้จาก recording; รอบโมเดลจริงตอบว่า "ไม่พบสต๊อกค้าง แต่สต๊อกเพอร์ร่าที่ลำพูนใกล้ขาด" · เดิม AI-140
 - **ระดับ:** กลาง · **หมวด:** `grounding` · **บทบาท:** u_thana (CEO)
 - **อาการ:** The text says 'ด้านสต๊อกค้างไม่พบความเสี่ยงผิดปกติ'. The card leads with 'ศูนย์กระจายสินค้าลำพูน เพอร์ร่า −59% (6.3 vs 15.5 วัน) ต้องรีบดู'. The card split itself is fixed.
 - **ที่ควรเป็น:** Text and card agree on the P1 stock risk.
@@ -2308,7 +2308,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-170. Agent-level 'why did it drop' (RSM) gets a brand gap split; the P1 'orders stopped' alert is missed because get_alerts matches metrics exactly
 
-- **สถานะ:** ยังเสีย · เดิม AI-146
+- **สถานะ:** แก้แล้ว `0beacbe` · get_alerts จับ metric ตามกลุ่มวัดเดียวกัน (ขายเข้าเป็นลิตร บาท เทียบเป้า) และกฎ why ให้ใช้ alert นั้นโดยบอกหน่วยและช่วงของ alert เอง; รอบโมเดลจริงเจอ alert คำสั่งซื้อหยุด ตรวจค้างชำระ และบอกว่าสมมติฐานเครดิตอ่อนลง · เดิม AI-146
 - **ระดับ:** กลาง · **หมวด:** `wrong-answer` · **บทบาท:** u_anucha (RSM)
 - **อาการ:** Fixed for the rep: his why turn ran explain_gap and the daily orders and dated the slowdown. Still broken for the RSM: get_alerts with metric net_sales_value returned [], so the open P1 sell-in volume alert for อีสานรุ่งโรจน์ was not seen. The card repeated the month-close gap card and blamed brand Leo. The verify steps were not run.
 - **ที่ควรเป็น:** The why answer finds the order stop and checks the credit hypothesis or labels it as unverified.
@@ -2333,7 +2333,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-172. An exclusion in the question is ignored: 'นอกจากเรื่องอีสาน' gets Isan-led AR and anomaly cards, and the South AR risk the text names is folded away
 
-- **สถานะ:** เปิด (ใหม่)
+- **สถานะ:** แก้แล้ว `285287b` · คำว่า นอกจาก ยกเว้น ไม่นับ ไม่รวม หน้าเอเย่นต์ จังหวัด หรือภาค ถูกแปลในโค้ด get_alerts ตัด alert ของที่นั้น query_metric อ่านเฉพาะที่ที่เหลือในขอบเขต และ summary บอกว่าไม่รวมอะไร; รอบโมเดลจริงการ์ดความผิดปกติไม่มีอีสานและ P1 หนี้ภาคใต้ขึ้นแถวที่สอง
 - **ระดับ:** กลาง · **หมวด:** `card-fit` · **บทบาท:** u_thana (CEO)
 - **อาการ:** The CEO asked for risks other than Isan. The AR verdict leads with Isan, and 3 of 4 visible anomalies are Isan. The South AR P1, which the text tells the board to prepare for, sits under 'ดูอีก 1 รายการ'.
 - **ที่ควรเป็น:** An exclusion carries into the queries and cards, and the risk the text names is visible.
@@ -2369,7 +2369,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-175. P1 alert '1,785 vs 16,478 L (−89%)' disagrees with the agent's own sell-in on the same screen (about 9,900 L/day, about −40%)
 
-- **สถานะ:** เปิด (ใหม่)
+- **สถานะ:** แก้แล้ว `4ea6dd2` `a60202c` · alert ของเอเย่นต์ที่รวมจากบางแบรนด์บอกแบรนด์ในขอบเขต ("อีสานรุ่งโรจน์ ค้าส่ง · สิงห์, ลีโอ · ภาคอีสาน") สมมติฐานบอกว่าแทบไม่สั่งแบรนด์นั้น และตัวเลขของ watch รายวันอ่านเป็น ลิตร/วัน · ข้อมูลเดโมต้องรัน anomaly job ใหม่
 - **ระดับ:** กลาง · **หมวด:** `grounding` · **บทบาท:** u_krit (rep), CEO/RSM anomaly cards, visit_plan, stories
 - **อาการ:** Two tool numbers on one answer disagree. The −89% also feeds visit_plan and the stories' 'แทบไม่มีคำสั่งซื้อ'. The RSM review cited this alert as ground truth for AI-146, so its magnitude is suspect.
 - **ที่ควรเป็น:** An agent-level alert's observed and expected values use the same basis as query_metric, or the card states the basis.
@@ -2381,7 +2381,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-176. The CEO's top story states the credit hypothesis as fact
 
-- **สถานะ:** ยังเสีย · เดิม AI-22
+- **สถานะ:** แก้แล้ว `aa1b1b4` · STORY_SYSTEM บอกว่า hypothesis เป็นการเดาที่ต้องคง "น่าจะ" และการตรวจเรื่องขอเขียนใหม่เมื่อ finding บอกสาเหตุที่ alert เดาไว้ (เครดิต หนี้ สต๊อกค้างที่เอเย่นต์ สายผลิตหยุด) เป็นข้อเท็จจริง; รอบโมเดลจริงเรื่องอีสานเขียนว่า "น่าจะติดปัญหาเครดิต" · เดิม AI-22
 - **ระดับ:** กลาง · **หมวด:** `grounding` · **บทบาท:** u_thana (CEO, run sheet step 1 and chain)
 - **อาการ:** The story says 'สองเอเย่นต์หลักติดหนี้ค้างชำระจนไม่สั่งซื้อ', but AR was read with compare none. AR rose at 6 of 8 Isan agents, and these two rank 4th and 5th. The alert's own hypothesis is hedged ('น่าจะ'). This headline fills the share sheet's ขออะไร field, so it travels down the chain.
 - **ที่ควรเป็น:** Keep the hedge ('น่าจะ') or verify the cause before stating it.
@@ -2416,7 +2416,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-179. Story evidence card titled 'ปริมาณขายเข้า' (litres) over a baht query
 
-- **สถานะ:** ยังเสีย · เดิม AI-136
+- **สถานะ:** แก้แล้ว `aa1b1b4` · ชื่อการ์ดหลักฐานที่วาดเป็นบาทเปลี่ยนคำว่าปริมาณขายเข้าเป็นมูลค่าขายเข้าในโค้ด · รอยืนยันกับโมเดล · เดิม AI-136
 - **ระดับ:** กลาง · **หมวด:** `run-sheet` · **บทบาท:** u_krit and u_anucha story cards; u_thana in 1 of 3 runs
 - **อาการ:** Merged from both reviews. The rep and RSM story cards always carry the volume title over 77.3% and 'ขาดอีก 96.4 ล้านบาท'. The CEO's Isan story did so in 1 of 3 post-fix runs. The RSM story page is on the chain walk, so this is on the demo path. The RSM review rated the CEO occurrence low; the chain review rated the rep and RSM occurrence medium.
 - **ที่ควรเป็น:** The title names the measure the card draws (มูลค่าขายเข้า).
@@ -2450,7 +2450,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-182. Visit-priority card has no values, bars or verdict, and the text misreads the alert's −89% as a four-week decline
 
-- **สถานะ:** เปิด (ใหม่)
+- **สถานะ:** แก้แล้ว `01b73f3` · visit_plan ส่งเอเย่นต์ของพนักงานขายครบทุกราย พร้อมยอดขายเข้า 28 วันเทียบ 28 วันก่อน ฐานของตัวเลข และ alert_label ที่บอก gap ของ alert เทียบระดับปกติในช่วงของ alert เอง metrics[0] บอกรายที่ควรไปก่อน (แถบในการ์ดที่โมเดลประกอบเองยังว่าง) · รอยืนยันกับโมเดล
 - **ระดับ:** กลาง · **หมวด:** `card-fit` · **บทบาท:** u_krit (rep)
 - **อาการ:** visit_plan returned 2 rows with string reasons only. The RankList drew empty bars with no hero or period. The rep's other 2 agents are not shown.
 - **ที่ควรเป็น:** A ranked visit list with a numeric basis per row and a verdict.
@@ -2495,7 +2495,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-186. Follow-up chips and drills point at the first sorted row, not the asked scope or the worst change
 
-- **สถานะ:** ยังเสีย · เดิม AI-153
+- **สถานะ:** แก้แล้ว `79afa95` `285287b` · การ์ดที่เทียบช่วงก่อนหน้าชี้ drill และ chip ไปที่แถวที่แย่ลงมากสุด ไม่มีแถวแย่ลงก็ไม่ชี้แถวใด และที่ที่คำถามตัดออกไม่อยู่ในแถวและ chip · รอยืนยันกับโมเดล · เดิม AI-153
 - **ระดับ:** ต่ำ · **หมวด:** `chips` · **บทบาท:** u_thana (CEO, chain alt)
 - **อาการ:** The chips offer 'ดูเอเย่นต์ในภาคอีสาน' right after 'นอกจากเรื่องอีสาน'. An AR drill offers 'ทำไมขอนแก่นมหาชัย' as the row that changed for the worse, though its AR fell 21.9%.
 - **ที่ควรเป็น:** Chips respect the asked scope and the worst change.
@@ -2540,7 +2540,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-190. 'ทำไมตกอะ' (week) gives no reason; the text points at Isan while the card says all regions fell evenly
 
-- **สถานะ:** เปิด (ใหม่)
+- **สถานะ:** แก้แล้ว `c94b9b9` · กฎ why ของยอดรวมทั้งช่วงให้เรียก explain_gap แยกตามภาค และการ์ดที่ลดลงเท่า ๆ กันทุกภาคห้ามชี้ภาคใดเป็นสาเหตุ · รอยืนยันกับโมเดล
 - **ระดับ:** ต่ำ · **หมวด:** `wrong-answer` · **บทบาท:** u_thana (CEO)
 - **อาการ:** AI-145 is fixed: no agents are blamed. No cause is offered, the hero omits this week's value, and the units are mixed.
 - **ที่ควรเป็น:** Explain the uniform drop or say that no single cause is visible. Text and card agree.
@@ -2551,7 +2551,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-191. RSM 'ใต้เทียบอีสาน': after the correct denial, the Isan side is a bare number
 
-- **สถานะ:** เปิด (ใหม่)
+- **สถานะ:** แก้แล้ว `c94b9b9` · กฎ PERMISSION_DENIED ให้ฝั่งที่ดูได้ query พร้อมฐานเทียบ ไม่ใช่ compare none · รอยืนยันกับโมเดล
 - **ระดับ:** ต่ำ · **หมวด:** `card-fit` · **บทบาท:** u_anucha (RSM)
 - **อาการ:** The card shows 328.4 ล้านบาท with no target or change.
 - **ที่ควรเป็น:** Show Isan against target or the prior period.
@@ -2562,7 +2562,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-192. Wording: 'มูลค่าขายสุทธิ' in text vs 'มูลค่าขายเข้า' on cards; anomaly header '5 เรื่องผิดปกติ ด่วน 5 เรื่อง'
 
-- **สถานะ:** เปิด (ใหม่)
+- **สถานะ:** แก้แล้ว `c94b9b9` · กฎภาษาให้เรียก net_sales_value ว่ามูลค่าขายเข้าเหมือนการ์ด และหัวการ์ดความผิดปกติที่ด่วนทุกเรื่องเขียนว่า "ด่วนทั้งหมด N เรื่อง" · รอยืนยันกับโมเดล
 - **ระดับ:** ต่ำ · **หมวด:** `wording` · **บทบาท:** u_thana (CEO)
 - **อาการ:** The text and the cards use two names for one metric. The anomaly header repeats its count when all alerts are urgent.
 - **ที่ควรเป็น:** One Thai name per metric, and a compact header.
