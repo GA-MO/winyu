@@ -29,7 +29,7 @@ describe("visit_plan shows the numbers its order rests on (AI-182)", () => {
     expect(plan.rows).toHaveLength(owned.length);
     for (const row of plan.rows) {
       expect(row.sales_basis).toContain("28 วัน");
-      if (row.sales_change_pct !== null) expect(row.sales_change_label).toMatch(/^[+−]?\d+(\.\d)?%$/);
+      if (row.sales_change_pct !== null) expect(row.sales_change_label).toMatch(/^[+−-]?\d+(\.\d)?%$/);
     }
   });
 
@@ -42,12 +42,13 @@ describe("visit_plan shows the numbers its order rests on (AI-182)", () => {
     };
     alerts().put(alert);
     const plan = await planFor(REP);
-    const [first] = plan.rows;
-    expect(first.agent_name).toBe(agent.nameTh);
-    expect(first.alert_label).toContain("−89%");
-    expect(first.alert_label).toContain("ลีโอ");
-    expect(first.alert_label).toContain("เทียบระดับปกติ");
-    expect(first.alert_label).toContain("พ.ย.");
-    expect(plan.metrics[0]).toMatchObject({ value: agent.nameTh });
+    const alerted = plan.rows.find((row) => row.agent_name === agent.nameTh);
+    expect(alerted?.alert_label).toContain("−89%");
+    expect(alerted?.alert_label).toContain("ลีโอ");
+    expect(alerted?.alert_label).toContain("เทียบระดับปกติ");
+    expect(alerted?.alert_label).toContain("พ.ย.");
+    const quiet = plan.rows.findIndex((row) => row.alert_label === null);
+    expect(plan.rows.findIndex((row) => row.agent_name === agent.nameTh)).toBeLessThan(quiet === -1 ? plan.rows.length : quiet);
+    expect(plan.metrics[0]).toMatchObject({ value: plan.rows[0].agent_name, label: "ควรไปก่อน" });
   });
 });

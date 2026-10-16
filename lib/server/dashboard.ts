@@ -236,8 +236,14 @@ function alertReason(alert: Alert, dictionary: Dictionary): string {
   return row.gapLabel ? TH.landing.visitAlert(row.metricLabel.replace(PARENTHETICAL, ""), `${sign}${row.gapLabel}`) : row.severityLabel;
 }
 
-/** The agents assigned to a field rep that they should visit first: those with an open alert, then the steepest sell-in drop. Reps only. */
-export async function visitsFor(access: AccessContext, limit = VISIT_LIMIT): Promise<VisitStop[]> {
+/** One agent of a rep's book in visit order: its sell-in change over the last four weeks against the four before, its open alert, and whether either asks for a visit. */
+export type PlannedVisit = { stop: VisitStop; change: number | null; alert: Alert | null; needsVisit: boolean };
+
+/** How many days each side of a visit plan's sell-in change covers. */
+export const VISIT_WINDOW = VISIT_WINDOW_DAYS + 1;
+
+/** Every agent assigned to a field rep, those to visit first on top: an open alert, then the steepest sell-in drop, then the rest. Reps only. */
+export async function visitPlanFor(access: AccessContext): Promise<PlannedVisit[]> {
   if (!VISIT_ROLES.includes(access.role)) return [];
   const result = await runMetric({ metric: "net_sales_volume", dims: ["agent"], filters: ownAgentsFilter(access.userId), range: { from: addDays(DATA_AS_OF, -VISIT_WINDOW_DAYS), to: DATA_AS_OF }, grain: "month", compare: "prev_period", limit: VISIT_SCAN_LIMIT }, access);
   if (!result.ok) return [];
@@ -255,11 +261,15 @@ export async function visitsFor(access: AccessContext, limit = VISIT_LIMIT): Pro
       const rank = (alert ? ALERT_FIRST : 0) + (row.delta ?? 0);
       const reason = alert ? alertReason(alert, dictionary) : TH.landing.visitDrop(formatDelta(row.delta) ?? "—");
       const tone: VisitStop["tone"] = alert ? (alert.severity === "P1" ? "danger" : "warning") : (row.delta ?? 0) < 0 ? "warning" : "neutral";
-      return { rank, stop: { id: row.agent, agent: row.agent, reason, tone, prompt: TH.landing.visitPrompt(row.agent) } };
+      return { rank, visit: { stop: { id: row.agent, agent: row.agent, reason, tone, prompt: TH.landing.visitPrompt(row.agent) }, change: row.delta, alert, needsVisit: rank < 0 } };
     })
-    .filter((entry) => entry.rank < 0)
     .sort((left, right) => left.rank - right.rank);
-  return stops.slice(0, limit).map((entry) => entry.stop);
+  return stops.map((entry) => entry.visit);
+}
+
+/** The agents assigned to a field rep that they should visit first: those with an open alert, then the steepest sell-in drop. Reps only. */
+export async function visitsFor(access: AccessContext, limit = VISIT_LIMIT): Promise<VisitStop[]> {
+  return (await visitPlanFor(access)).filter((visit) => visit.needsVisit).slice(0, limit).map((visit) => visit.stop);
 }
 
 function mutate(access: AccessContext, change: (widgets: WidgetSpec[]) => WidgetSpec[]): DashboardLayout {
