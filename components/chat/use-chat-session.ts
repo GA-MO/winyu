@@ -81,8 +81,11 @@ function declined(entry: Unanswered): ResumeEntry {
   return { interruptId: entry.interruptId, status: "resolved", payload: { approved: false } };
 }
 
-/** One thread's chat over the CopilotKit runtime: restores the saved transcript, sends questions and pressed buttons, answers approval interrupts (a question sent while one waits declines it, so the card reads not done and the new question runs), and stops a reply. */
-export function useChatSession({ threadId, initialMessages, initialApprovals }: { threadId: string; initialMessages: readonly AgentMessage[]; initialApprovals: readonly PendingApproval[] }): ChatSession {
+/** What the page restored for one thread: the saved transcript, the approvals still open, and the run still replying when the page was opened (null when none). */
+export type RestoredThread = { threadId: string; initialMessages: readonly AgentMessage[]; initialApprovals: readonly PendingApproval[]; liveRunId: string | null };
+
+/** One thread's chat over the CopilotKit runtime: restores the saved transcript and joins a reply still running (a page reloaded mid-reply shows the question, the working state and the reply as it lands), sends questions and pressed buttons, answers approval interrupts (a question sent while one waits declines it, so the card reads not done and the new question runs), and stops a reply. */
+export function useChatSession({ threadId, initialMessages, initialApprovals, liveRunId }: RestoredThread): ChatSession {
   const { copilotkit } = useCopilotKit();
   const { agent, isReady } = useAgent({ agentId: `${CHAT_AGENT_ID}:${threadId}`, runtimeAgentId: CHAT_AGENT_ID, threadId, updates: UPDATES, throttleMs: THROTTLE_MS });
   const [restored, setRestored] = useState(false);
@@ -141,6 +144,11 @@ export function useChatSession({ threadId, initialMessages, initialApprovals }: 
     });
     return () => subscription.unsubscribe();
   }, [agent]);
+
+  useEffect(() => {
+    if (!restored || !liveRunId) return;
+    agent.connectAgent({ runId: liveRunId }).catch((failure: unknown) => setError(messageOfError(failure)));
+  }, [agent, liveRunId, restored]);
 
   const run = useCallback(
     (resume?: ResumeEntry[]) => {

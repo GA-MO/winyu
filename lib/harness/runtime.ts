@@ -70,6 +70,11 @@ export function inflightRuns() {
   return collection<RunRecord>(INFLIGHT_COLLECTION);
 }
 
+/** The id of the person's run still going on one thread, if any: what a page opened mid-reply connects to. */
+export function inflightRunOn(threadId: string, userId: string): string | null {
+  return inflightRuns().where((record) => record.threadId === threadId && record.userId === userId).sort((left, right) => right.startedAt.localeCompare(left.startedAt))[0]?.id ?? null;
+}
+
 /** Writes a run that is still going to disk with its trace so far, so a restart can finish it with the whole trace. */
 export function checkpointRun(run: Run): void {
   inflightRuns().put(recordOf(run));

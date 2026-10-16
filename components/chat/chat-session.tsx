@@ -35,6 +35,7 @@ export type ChatSessionProps = {
   initialPrompt: string | null;
   initialMessages: AgentMessage[];
   initialApprovals: PendingApproval[];
+  liveRunId: string | null;
   preload: SessionPreload | null;
   suggestions: QuickAction[];
   placeholder: string;
@@ -79,8 +80,8 @@ function PreloadBanner({ preload }: { preload: SessionPreload }) {
 }
 
 /** The chat column for one thread: the transcript with its cards and decisions, follow-up chips, and the composer docked at the bottom. */
-export function ChatSession({ threadId, initialPrompt, initialMessages, initialApprovals, preload, suggestions, placeholder, toolLabels }: ChatSessionProps) {
-  const session = useChatSession({ threadId, initialMessages, initialApprovals });
+export function ChatSession({ threadId, initialPrompt, initialMessages, initialApprovals, liveRunId, preload, suggestions, placeholder, toolLabels }: ChatSessionProps) {
+  const session = useChatSession({ threadId, initialMessages, initialApprovals, liveRunId });
   const { exchanges, running, ready, send } = session;
   const [text, setText] = useState("");
   const sentInitial = useRef(false);

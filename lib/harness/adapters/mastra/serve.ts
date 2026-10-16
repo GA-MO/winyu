@@ -13,7 +13,7 @@ import { threadForRun, threads } from "@/lib/server/threads-read";
 import { AGENT_ID, USER_ID_KEY, winyuAgent } from "./agent";
 import { HARNESS_RUN_KEY, tracingOptionsOf } from "./observability";
 import { asBridgeAgent } from "./durable";
-import { ReplyCards, withComposedCards, type CarriedCall, type ComposedCardRecord } from "./card-stream";
+import { ReplyCards, withComposedCards, type CarriedCall, type ComposedCardRecord, type StreamEvent } from "./card-stream";
 import { callsAnswering, keepFinishedResults, screenCardsOn, threadTranscript } from "./history";
 import { guardedRunInput, inputFindings, type GuardedInput } from "./guardrails";
 import { learnFromTurn } from "./learn";
@@ -220,6 +220,17 @@ export function routeOf(method: string, pathname: string): Route | null {
   return null;
 }
 
+/** The connect replay from the run the chat asks for (its `runId`) onward: the page restored the thread's earlier runs from memory, so replaying them would draw them twice, and a run the runner never held replays nothing. */
+function fromRun(runId: string | null, cards: ReplyCards): Pick<ReplyCards, "next"> {
+  let reached = false;
+  return {
+    next(event: StreamEvent): StreamEvent[] {
+      reached ||= runId !== null && event.type === "RUN_STARTED" && event.runId === runId;
+      return reached ? cards.next(event) : [];
+    },
+  };
+}
+
 function isOthersThread(threadId: string | null, userId: string): boolean {
   const owner = threadId ? threads().get(threadId)?.userId : undefined;
   return owner !== undefined && owner !== userId;
@@ -239,5 +250,5 @@ export async function serveCopilot(access: AccessContext, req: Request, options:
   const replayed = new Request(req.url, { method: "POST", headers: req.headers, body });
   if (route.kind === "run") return serveRun(access, replayed, turn, guarded, options);
   const response = await runWithAccess(access, () => handler()(replayed));
-  return route.kind === "connect" ? withComposedCards(response, replyCards(() => undefined)) : response;
+  return route.kind === "connect" ? withComposedCards(response, fromRun(turn.runId, replyCards(() => undefined))) : response;
 }

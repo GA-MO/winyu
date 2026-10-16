@@ -87,7 +87,7 @@ async function verify(started: Started): Promise<void> {
   const stored = await storedMessages(started.threadId, started.userId);
   const reply = stored.filter((message) => message.role === "assistant").map((message) => replyTextOf(message.content)).join("");
   check(reply.trim().length > 0, `Mastra memory holds the finished reply (${stored.length} messages, ${reply.length} chars of text)`);
-  const connect = await post(CONNECT_PATH, started.userId, bodyOf({ ...started, runId: randomUUID() }, []));
+  const connect = await post(CONNECT_PATH, started.userId, bodyOf(started, []));
   const replayed = eventsOf(await connect.text());
   const text = replayed.filter((event) => event.type === "TEXT_MESSAGE_CONTENT").map((event) => event.delta ?? "").join("");
   console.log(`  connect replay: HTTP ${connect.status}, ${replayed.length} events, ${text.length} chars of text`);

@@ -162,7 +162,7 @@ function framesOf(events: readonly StreamEvent[]): string {
 }
 
 /** Rewrites an AG-UI event stream so card blocks reach the chat as checked activity snapshots instead of reply text; frames it does not change pass through as they came. */
-export function withComposedCards(response: Response, cards: ReplyCards): Response {
+export function withComposedCards(response: Response, cards: Pick<ReplyCards, "next">): Response {
   if (!response.body) return response;
   const decoder = new TextDecoder();
   const encoder = new TextEncoder();

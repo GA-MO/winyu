@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { ChatSession, type SessionPreload } from "@/components/chat/chat-session";
 import { findUser } from "@/lib/data/entities/users";
 import { openApprovalsOf, threadHistory } from "@/lib/harness/adapters/mastra/history";
+import { inflightRunOn } from "@/lib/harness/runtime";
 import { TH } from "@/lib/i18n/th";
 import { quickActionsFor } from "@/lib/server/quick-actions";
 import { toolLabelsByName } from "@/lib/server/tools/registry";
@@ -21,7 +22,7 @@ function preloadOf(matterCode: string | null, userId: string): SessionPreload | 
   return { matterCode: matter.id, title: matter.title, fromName: findUser(matter.senderId)?.nameTh ?? matter.senderId };
 }
 
-/** One of the person's threads: its saved conversation restored from Mastra memory, with the chips and placeholder for their role. */
+/** One of the person's threads: its saved conversation restored from Mastra memory, the run still replying on it, and the chips and placeholder for their role. */
 export default async function ThreadPage({ params, searchParams }: PageProps) {
   const access = readAccess(await cookies());
   if (!access) redirect("/login");
@@ -39,6 +40,7 @@ export default async function ThreadPage({ params, searchParams }: PageProps) {
       initialPrompt={prompt ?? null}
       initialMessages={messages}
       initialApprovals={openApprovalsOf(messages, access.userId)}
+      liveRunId={inflightRunOn(thread.id, access.userId)}
       preload={preloadOf(thread.preload?.matterCode ?? null, access.userId)}
       suggestions={quickActionsFor(access)}
       placeholder={TH.landing.composerPlaceholderFor(access.role)}
