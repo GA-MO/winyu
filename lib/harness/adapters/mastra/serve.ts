@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { MastraAgent } from "@ag-ui/mastra";
-import { CopilotRuntime, createCopilotRuntimeHandler } from "@copilotkit/runtime/v2";
+import { CopilotRuntime, InMemoryAgentRunner, createCopilotRuntimeHandler } from "@copilotkit/runtime/v2";
 import { RequestContext } from "@mastra/core/request-context";
 import { metricQuerySchema, type AccessContext, type Initiator, type MetricQuery } from "@/lib/contracts";
 import { askedTool, markAnswered, problemOf, recordAsked } from "@/lib/harness/approvals";
@@ -51,10 +51,10 @@ function bridgeFor(userId: string): MastraAgent {
 
 let copilotHandler: Handler | null = null;
 
-/** CopilotKit's runtime over the one Mastra agent; each request gets a fresh bridge for the person being served, so no request state is shared between users (D9). */
+/** CopilotKit's runtime over the one Mastra agent; each request gets a fresh bridge for the person being served, so no request state is shared between users (D9). A new message on a thread whose earlier run is still going (one resumed after a restart that never ends, a tab closed mid-reply) supersedes that run instead of failing with "Thread already running", so no run can leave its thread dead. */
 function handler(): Handler {
   copilotHandler ??= createCopilotRuntimeHandler({
-    runtime: new CopilotRuntime({ agents: () => ({ [AGENT_ID]: bridgeFor(currentAccess().userId) }) }),
+    runtime: new CopilotRuntime({ agents: () => ({ [AGENT_ID]: bridgeFor(currentAccess().userId) }), runner: new InMemoryAgentRunner({ onConcurrentRun: "supersede" }) }),
     basePath: BASE_PATH,
   });
   return copilotHandler;

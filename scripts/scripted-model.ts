@@ -5,13 +5,15 @@ import * as models from "@/lib/server/models";
 type StreamResult = Awaited<ReturnType<MockLanguageModelV3["doStream"]>>;
 type StreamPart = StreamResult["stream"] extends ReadableStream<infer Part> ? Part : never;
 
-/** One model reply in a script: a call to one tool with its arguments, or the closing words. */
-export type ScriptedStep = { call: string; args: Record<string, unknown> } | { text: string };
+/** One model reply in a script: a call to one tool with its arguments, the closing words, or a model that never answers (a process killed mid-call). */
+export type ScriptedStep = { call: string; args: Record<string, unknown> } | { text: string } | { hang: true };
+
+type SpokenStep = Exclude<ScriptedStep, { hang: true }>;
 
 const USAGE = { inputTokens: { total: 10, noCache: 10, cacheRead: 0, cacheWrite: 0 }, outputTokens: { total: 5, text: 5, reasoning: 0 } };
 const FALLBACK_TEXT = "ไม่มีขั้นต่อไปในสคริปต์";
 
-function partsOf(step: ScriptedStep, index: number): StreamPart[] {
+function partsOf(step: SpokenStep, index: number): StreamPart[] {
   if ("call" in step) {
     return [
       { type: "stream-start", warnings: [] },
@@ -52,6 +54,7 @@ export class ScriptedModel {
   private next(): StreamResult {
     this.served += 1;
     const step = this.steps.shift() ?? { text: FALLBACK_TEXT };
+    if ("hang" in step) return { stream: new ReadableStream<StreamPart>() };
     return { stream: simulateReadableStream({ chunks: partsOf(step, this.served) }) };
   }
 }

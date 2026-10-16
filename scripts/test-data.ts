@@ -16,11 +16,12 @@ export async function withoutEmbeddingModel(): Promise<void> {
   useEmbedder(TRIGRAM_EMBEDDER);
 }
 
-/** Points the JSON store at a fresh seeded data folder, so tests never read what a walk left in `.data` nor write to real personas. */
+/** Points the JSON store at a fresh seeded data folder, so tests never read what a walk left in `.data` nor write to real personas; a test that runs a server process twice (a restart) passes its own folder in `WINYU_TEST_DATA_DIR`, which both processes share and the caller removes. */
 export async function isolateTestData(): Promise<string> {
-  const dir = mkdtempSync(path.join(tmpdir(), "winyu-test-data-"));
+  const shared = process.env.WINYU_TEST_DATA_DIR;
+  const dir = shared ?? mkdtempSync(path.join(tmpdir(), "winyu-test-data-"));
   process.env.WINYU_DATA_DIR = dir;
-  process.on("exit", () => rmSync(dir, { recursive: true, force: true }));
+  if (!shared) process.on("exit", () => rmSync(dir, { recursive: true, force: true }));
   const { ensureDemoStory } = await import("../lib/server/demo-story");
   const { ensureFeedHistory } = await import("../lib/server/demo-feed-history");
   await ensureDemoStory();
