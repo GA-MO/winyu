@@ -49,7 +49,40 @@ const GROUP_UNITS = Object.entries(TH.dash.dimUnit).filter(([dim]) => !TIME_UNIT
 const COUNT_UNITS = [...new Set([...GROUP_UNITS, TH.dash.item, "แห่ง", "ตัว", "ราย"])].join("|");
 const HANDOFF_OFFER = /handoff|send_card|ส่งต่อให้ผู้รับผิดชอบ|ส่งงาน(ต่อ)?ให้|มอบหมาย(งาน)?ให้/i;
 const CONCEDED_CLAIM = /(แม้|ถึง)(ว่า)?(จะ)?\s*ได้รับ(การ)?(อนุมัติ|ความเห็นชอบ)(แล้ว)?/;
+const URGENT = "P1";
+const ALERTS_TOOL = "get_alerts";
+/** Topics an answer may call safe, by the words that name them and the alert metrics that are that topic. */
+const RISK_TOPICS: readonly { words: RegExp; metrics: readonly string[] }[] = [
+  { words: /สต๊อก|สต็อก/, metrics: ["days_of_cover", "stock_on_hand"] },
+  { words: /ลูกหนี้|ค้างชำระ/, metrics: ["ar_overdue"] },
+];
+const SAFE_WORDS = /ไม่พบ|ไม่มี|ปกติดี|ไม่น่าห่วง/;
+const CLAUSE_BREAK = /[\s,.;:!?]+/;
+const PLACE_PREFIXES = /^(?:ศูนย์กระจายสินค้า|ภาค|จังหวัด)/;
 const ONE_ALONE = /(รายการ|แห่ง|ภาค|ตัว|ราย|จังหวัด|แบรนด์|ช่องทาง)เดียว|หนึ่ง(รายการ|แห่ง|ภาค|ตัว|ราย)/;
+
+type UrgentAlert = { metric: string; scopeLabel: string };
+
+function urgentAlerts(turn: EvalTurn): UrgentAlert[] {
+  return returned(turn)
+    .filter((call) => call.tool === ALERTS_TOOL)
+    .flatMap((call) => (isRecord(call.result) && Array.isArray(call.result.rows) ? call.result.rows : []))
+    .filter((row): row is UrgentAlert & { severity: string } => isRecord(row) && row.severity === URGENT && typeof row.metric === "string" && typeof row.scopeLabel === "string");
+}
+
+function placeWordsOf(scopeLabel: string): string[] {
+  return scopeLabel.split(" · ").map((part) => part.replace(PLACE_PREFIXES, "").split(" ")[0] ?? "").filter((word) => word.length > 1);
+}
+
+/** The urgent alert the reply calls safe: a clause that names its topic with a no-risk word, while the reply never names the alert's place. */
+function deniedAlert(turn: EvalTurn, alerts: readonly UrgentAlert[]): UrgentAlert | null {
+  const clauses = turn.words.split(CLAUSE_BREAK);
+  return alerts.find((alert) => {
+    const topic = RISK_TOPICS.find((entry) => entry.metrics.includes(alert.metric));
+    if (!topic || !clauses.some((clause) => topic.words.test(clause) && SAFE_WORDS.test(clause))) return false;
+    return !placeWordsOf(alert.scopeLabel).some((word) => turn.words.includes(word));
+  }) ?? null;
+}
 
 function verdict(ok: boolean, detail: string): Verdict {
   return { ok, detail };
@@ -531,6 +564,16 @@ export const EVAL_CHECKS: readonly EvalCheck[] = [
       if (!user || liveAccessFor(user).toolAllow.includes("send_card")) return null;
       const offer = turn.words.match(HANDOFF_OFFER)?.[0] ?? null;
       return verdict(offer === null, offer === null ? "ไม่เสนอส่งงานต่อ" : `เสนอ "${offer}" ทั้งที่บทบาทนี้ส่งงานต่อไม่ได้`);
+    },
+  },
+  {
+    id: "riskNotDenied",
+    description: "The reply never calls a topic safe that the anomaly card it draws marks urgent (a P1 stock-out beside \"no stock risk\").",
+    verdict: (turn) => {
+      const alerts = urgentAlerts(turn).filter((alert) => RISK_TOPICS.some((topic) => topic.metrics.includes(alert.metric)));
+      if (alerts.length === 0) return null;
+      const denied = deniedAlert(turn, alerts);
+      return verdict(denied === null, denied === null ? "ข้อความไม่ขัดกับเรื่องด่วนบนการ์ด" : `บอกว่าไม่มีความเสี่ยง ทั้งที่การ์ดมีเรื่องด่วนที่ ${denied.scopeLabel}`);
     },
   },
   {
