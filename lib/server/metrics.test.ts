@@ -1,15 +1,18 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import type { FactRequest, FactResult, MetricQuery } from "@/lib/contracts";
+import type { FactRequest, FactResult, MasterData, MetricQuery } from "@/lib/contracts";
 import { accessFor } from "@/lib/access/policies";
 import { SUPPRESSED_VALUE } from "@/lib/access/suppression";
 import { findUser } from "@/lib/data/entities/users";
 import { runMetric as runOnGenerator } from "@/lib/data/query";
 import { ports, registerPorts, resetPorts } from "@/lib/server/ports";
 import { runMetric } from "./metrics";
+import { loadDictionary } from "./master-data";
+import { actionsForMetric } from "./next-actions";
 import { DATA_AS_OF, dataDay, formatThaiDate, monthStart } from "@/lib/data/dates";
 
 const REP = accessFor(findUser("u_krit")!);
 const CFO = accessFor(findUser("u_siriporn")!);
+const HR = accessFor(findUser("u_may")!);
 const RANGE = { from: monthStart(DATA_AS_OF, 1), to: DATA_AS_OF };
 const REQUEST_KEYS = ["dims", "filters", "labelShift", "measure", "metric", "range"];
 
@@ -17,11 +20,13 @@ function question(partial: Partial<MetricQuery> & Pick<MetricQuery, "metric">): 
   return { dims: [], filters: {}, range: RANGE, grain: "month", compare: "none", limit: null, ...partial };
 }
 
-function recordingWarehouse(answer: (request: FactRequest) => FactResult): FactRequest[] {
+function recordingWarehouse(answer: (request: FactRequest) => FactResult, master?: MasterData): FactRequest[] {
   const seen: FactRequest[] = [];
+  const base = ports().metrics;
   registerPorts({
     metrics: {
-      ...ports().metrics,
+      ...base,
+      masterData: master ? async () => master : base.masterData,
       readFacts: async (requests) => {
         seen.push(...requests);
         return requests.map(answer);
@@ -61,7 +66,29 @@ describe("runMetric over the metrics port", () => {
     expect(result.headline.value).toBe("—");
   });
 
-  test("small cells from any warehouse are suppressed by Winyu", async () => {
+  test("a department too small to stay anonymous is hidden by the small-cell rule, said apart from role masking, with no access request", async () => {
+    const master = await ports().metrics.masterData();
+    recordingWarehouse(
+      () => ({
+        ok: true,
+        rows: [
+          { dims: { department: "dept_tiny" }, value: 2, weight: 1 },
+          { dims: { department: "dept_sales" }, value: 1_240, weight: 1 },
+        ],
+      }),
+      { ...master, departments: [...master.departments, { id: "dept_tiny", nameTh: "ฝ่ายเล็ก", label: "Tiny", headcount: 2 }] },
+    );
+    const result = await runMetric(question({ metric: "headcount", dims: ["department"] }), HR);
+    if (!result.ok) throw new Error(result.error);
+    expect(result.rows.find((row) => row.department === "ฝ่ายเล็ก")?.value).toBe(SUPPRESSED_VALUE);
+    expect(result.rows.find((row) => row.department === "ขาย")?.value).toBe(1_240);
+    expect(result.provenance.suppressedRows).toBe(1);
+    expect(result.provenance.masked).toEqual([]);
+    const actions = actionsForMetric(HR, result, await loadDictionary());
+    expect(actions.some((action) => action.kind === "request_access")).toBe(false);
+  });
+
+  test("overdue AR from any warehouse is never suppressed, even for a province with one agent", async () => {
     recordingWarehouse(() => ({
       ok: true,
       rows: [
@@ -71,8 +98,16 @@ describe("runMetric over the metrics port", () => {
     }));
     const result = await runMetric(question({ metric: "ar_overdue", dims: ["province"] }), CFO);
     if (!result.ok) throw new Error(result.error);
-    expect(result.rows.find((row) => row.province === "ภูเก็ต")?.value).toBe(SUPPRESSED_VALUE);
-    expect(result.rows.find((row) => row.province === "กรุงเทพมหานคร")?.value).toBe(9_000_000);
+    expect(result.rows.find((row) => row.province === "ภูเก็ต")?.value).toBe(1_000_000);
+    expect(result.provenance.suppressedRows).toBeUndefined();
+  });
+
+  test("a role-masked metric still offers the access request", async () => {
+    recordingWarehouse(() => ({ ok: true, rows: [{ dims: { department: "dept_sales" }, value: 48_000, weight: 120 }] }));
+    const result = await runMetric(question({ metric: "avg_salary", dims: ["department"] }), CFO);
+    if (!result.ok) throw new Error(result.error);
+    const actions = actionsForMetric(CFO, result, await loadDictionary());
+    expect(actions.some((action) => action.kind === "request_access")).toBe(true);
   });
 
   test("a warehouse failure is the answer's failure", async () => {

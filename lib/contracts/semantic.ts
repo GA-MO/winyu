@@ -23,7 +23,7 @@ export type DimValues = Partial<Record<Dim, string[]>>;
 /** A question as the engine read it: every filter value as its canonical id, the slice the caller's role added because the question left it open, and the Thai name of every value in both, in the same order. Code after the engine reads this, never the words the model wrote. */
 export type ResolvedQuery = MetricQuery & { scopeApplied: DimValues; labels: DimValues };
 export type Provenance = { metric: MetricId; certified: boolean; sourceSystem: string; asOf: string; rowCount: number;
-  filterLabels?: string[]; masked: string[]; trust: "verified" | "derived" | "estimated"; grant?: GrantRef; coverage?: Coverage };
+  filterLabels?: string[]; masked: string[]; suppressedRows?: number; trust: "verified" | "derived" | "estimated"; grant?: GrantRef; coverage?: Coverage };
 /** Where a month still running ends against its target at the recent pace, how much of the whole month's target is done so far, and what is left to reach it (the target-met line once nothing is), formatted for the card and the model. */
 export type MonthEndProjection = { recentDays: number; projected: string; monthTarget: string; attainment: string; attainmentToDate: string; remaining: string };
 /** How many groups of a breakdown sit under the metric's deciding line, counted over every group in scope before the row cap. */

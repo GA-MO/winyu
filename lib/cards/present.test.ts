@@ -406,8 +406,17 @@ describe("target in a running month", () => {
 });
 
 describe("rows too small to show", () => {
-  test("leave the card and are counted in the scope line instead of drawn as ***", () => {
+  const SMALL_PROVINCES = new Set(["ภูเก็ต", "ลำพูน", "เชียงราย"]);
+
+  function withSmallCells(): { query: MetricQuery; result: MetricResult } {
     const { query, result } = answer({ metric: "ar_overdue", dims: ["province"], range: MONTH_TO_DATE, compare: "none" });
+    if (!result.ok) throw new Error(result.error);
+    const rows = result.rows.map((row) => (SMALL_PROVINCES.has(String(row.province)) ? { ...row, value: "***", value_label: "***" } : row));
+    return { query, result: { ...result, rows, provenance: { ...result.provenance, suppressedRows: rows.filter((row) => row.value === "***").length } } };
+  }
+
+  test("leave the card and are counted in the scope line instead of drawn as ***", () => {
+    const { query, result } = withSmallCells();
     if (!result.ok) throw new Error(result.error);
     const hidden = result.rows.filter((row) => row.value === "***").length;
     expect(hidden).toBeGreaterThan(0);
@@ -418,7 +427,7 @@ describe("rows too small to show", () => {
   });
 
   test("a single row left still shows its number", () => {
-    const { query, result } = answer({ metric: "ar_overdue", dims: ["province"], range: MONTH_TO_DATE, compare: "none" });
+    const { query, result } = withSmallCells();
     if (!result.ok) throw new Error(result.error);
     const lone = { ...result, rows: [result.rows.find((row) => row.value !== "***"), ...result.rows.filter((row) => row.value === "***")].filter((row) => row !== undefined) };
     const body = presentCard({ title: "t", query, result: lone }).body;

@@ -196,7 +196,7 @@ function smallCellKeys(dictionary: Dictionary, metric: MetricId, dims: Dim[], ro
   const applied = allFilters(filters);
   const keys = new Set<string>();
   for (const row of rows) {
-    if (isSmallCell(dictionary.master, metric, dims, applied, cellScopeOf(dims, row.dims))) keys.add(row.key);
+    if (isSmallCell(dictionary.master, metric, applied, cellScopeOf(dims, row.dims))) keys.add(row.key);
   }
   return keys;
 }
@@ -564,7 +564,8 @@ export function finishMetric(plan: MetricPlan, current: FactResult, comparison: 
     asOf: DATA_AS_OF,
     rowCount: rows.length,
     filterLabels: [...filterLabelsOf(resolved), ...(query.where ? [whereLabelOf(def, query.where)] : [])],
-    masked: masked || suppressed.size > 0 ? [...SUPPRESSED_FIELDS, ...(def.format === "percent" ? [POINTS_FIELD] : [])] : [],
+    masked: masked ? [...SUPPRESSED_FIELDS, ...(def.format === "percent" ? [POINTS_FIELD] : [])] : [],
+    ...(suppressed.size > 0 ? { suppressedRows: suppressed.size } : {}),
     trust: def.certified ? "verified" : "derived",
     coverage: coverageOfQuery(query),
   };
@@ -576,7 +577,7 @@ export function finishMetric(plan: MetricPlan, current: FactResult, comparison: 
   return {
     ok: true,
     rows,
-    summary: suppressed.size > 0 ? `${summary} · ปิด ${suppressed.size} แถวที่รวมข้อมูลน้อยกว่า ${MIN_CELL_SIZE} เอเย่นต์` : summary,
+    summary: suppressed.size > 0 ? `${summary} · ปิด ${suppressed.size} แถวที่รวมพนักงานน้อยกว่า ${MIN_CELL_SIZE} คน` : summary,
     headline,
     provenance,
     query: resolved,
