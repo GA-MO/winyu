@@ -1,5 +1,6 @@
 import { isPressed } from "@/components/chat/pressed";
 import { daysBetween } from "@/lib/data/dates";
+import { TH } from "@/lib/i18n/th";
 import type { DeliveryChannel, FallbackReason, SharedCard } from "./card";
 import { writtenDeadline } from "./deadline";
 
@@ -12,6 +13,14 @@ export type MatterUrgency = (typeof MATTER_URGENCIES)[number];
 
 const URGENCY_OF_INTENT: Record<MatterIntent, MatterUrgency> = { act: "today", fyi: "this_week" };
 const URGENT_WORDS = /ด่วน|urgent|asap/i;
+const WHEN_AND_POLITE_WORDS = new RegExp(
+  [
+    "ด่วนที่สุด", "ด่วนมาก", "ด่วน", "urgent", "asap", "ตอบกลับ", "กลับมา", "ตอบ", "ช่วย", "ให้", "ด้วย", "หน่อย", "เลย", "นะ", "ครับ", "ค่ะ", "คะ", "จ้า",
+    "ภายใน", "ก่อน", "ไม่เกิน", "ให้ทัน", "เลิกงาน", "วันนี้", "เย็นนี้", "บ่ายนี้", "คืนนี้", "พรุ่งนี้", "มะรืน", "สัปดาห์", "อาทิตย์", "จันทร์", "อังคาร", "พุธ", "พฤหัสบดี", "พฤหัส", "ศุกร์", "เสาร์", "วันที่", "วัน", "นี้", "หน้า",
+    "[\\s\\d.,!?:;~-]",
+  ].join("|"),
+  "g",
+);
 
 /** How soon a matter is due when the sender did not choose: today for one that waits on an answer, this week for one sent to look at. */
 export function defaultUrgency(intent: MatterIntent): MatterUrgency {
@@ -21,6 +30,18 @@ export function defaultUrgency(intent: MatterIntent): MatterUrgency {
 /** Whether a matter sent from chat waits on an answer: as asked (an answer by default), except that one waiting on an answer goes to one person, so a send to several people is for them to look at. */
 export function sendIntent(asked: MatterIntent | undefined, recipients: number): MatterIntent {
   return recipients > 1 ? "fyi" : (asked ?? "act");
+}
+
+/** Whether an ask says what to do, once the words that only say how soon, ask for a reply or soften it are taken out ("ด่วน ให้ตอบกลับภายในวันนี้" says nothing). */
+export function askSaysWhat(ask: string): boolean {
+  return /[\p{L}]/u.test(ask.toLowerCase().replace(WHEN_AND_POLITE_WORDS, ""));
+}
+
+/** The ask a matter carries: the sender's words when they say what to do; one that waits on an answer and says nothing (empty, or only how soon) leads with the drafted ask that names the card, keeping the sender's words after it. */
+export function matterAsk(typed: string, intent: MatterIntent, title: string): string {
+  const ask = typed.trim();
+  if (intent !== "act" || askSaysWhat(ask)) return ask;
+  return ask ? `${TH.share.askDraft(title)} ${ask}` : TH.share.askDraft(title);
 }
 
 /** Whether the person's own words ask for it urgently (ด่วน, urgent, asap). */

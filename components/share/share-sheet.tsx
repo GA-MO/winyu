@@ -294,9 +294,9 @@ export function useShareContacts(): ShareContact[] | null {
   return useShareDirectory()?.contacts ?? null;
 }
 
-const NO_PREVIEW: SendPreview = { ownerId: null, line: [], figures: null, goal: null };
+const NO_PREVIEW: SendPreview = { ownerId: null, line: [], title: null, figures: null, goal: null };
 
-/** What the server says about sending a card before it leaves: whom to put first (its owner, never the sender, then the sender's own line), what the card's numbers say for the sender, and the goal that would close it; empty until loaded. */
+/** What the server says about sending a card before it leaves: the title it will carry, whom to put first (its owner, never the sender, then the sender's own line), what the card's numbers say for the sender, and the goal that would close it; empty until loaded. */
 export function useSendPreview(card: ShareTarget["card"] | null, alertIds: readonly string[] = []): SendPreview {
   const [preview, setPreview] = useState<SendPreview>(NO_PREVIEW);
   const body = card ? JSON.stringify({ card, alertIds }) : null;
@@ -305,7 +305,7 @@ export function useSendPreview(card: ShareTarget["card"] | null, alertIds: reado
     const controller = new AbortController();
     fetch(PREVIEW_ENDPOINT, { method: "POST", headers: { "content-type": "application/json" }, body, signal: controller.signal })
       .then((response) => (response.ok ? (response.json() as Promise<Partial<SendPreview>>) : null))
-      .then((payload) => setPreview({ ownerId: payload?.ownerId ?? null, line: payload?.line ?? [], figures: payload?.figures ?? null, goal: payload?.goal ?? null }))
+      .then((payload) => setPreview({ ownerId: payload?.ownerId ?? null, line: payload?.line ?? [], title: payload?.title ?? null, figures: payload?.figures ?? null, goal: payload?.goal ?? null }))
       .catch(() => undefined);
     return () => controller.abort();
   }, [body]);
@@ -346,7 +346,7 @@ function Sheet({ target, close }: { target: ShareTarget; close: () => void }) {
   const contacts = directory?.contacts ?? [];
   const preview = useSendPreview(target.card);
   const [keepGoal, setKeepGoal] = useState(true);
-  const title = shareTitle(target.card);
+  const title = preview.title ?? shareTitle(target.card);
   const [grantDays, setGrantDays] = useState<GrantDays | null>(null);
   const [ask, setAsk] = useState(() => target.draftAsk ?? TH.share.askDraft(title));
   const [intent, setIntent] = useState<MatterIntent>("act");

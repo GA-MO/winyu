@@ -1,6 +1,6 @@
 import type { RecipientScope, User } from "@/lib/contracts";
 import { findUser, USERS } from "@/lib/data/entities/users";
-import { shareTitle, type ChannelOption, type DeliveryChannel, type ShareChannel, type ShareContact, type ShareGrantReceipt, type ShareRequest } from "@/lib/share/card";
+import { type ChannelOption, type DeliveryChannel, type ShareChannel, type ShareContact, type ShareGrantReceipt, type ShareRequest } from "@/lib/share/card";
 import { defaultUrgency, type Matter, type ShareDelivery } from "@/lib/share/matter";
 import { recordShare } from "@/lib/server/audit";
 import { untilLabel } from "@/lib/share/grant-label";
@@ -17,6 +17,7 @@ import type { FallbackReason } from "@/lib/share/card";
 import { liveAccessFor } from "@/lib/access/enforce";
 import { visibleAlert } from "@/lib/server/alerts";
 import { goalOf } from "./goal";
+import { matterTitle } from "./title";
 import { shareableProblem, shareCode, shares } from "./shares";
 
 /** What creating a share returns: the record, the grants given, and what the card still hides from each recipient; or why nothing was sent. */
@@ -104,7 +105,7 @@ export async function createShare(sender: User, request: ShareRequest, at = new 
   const recipients = recipientsOf(request, sender.id);
   if (recipients.length === 0) return { ok: false, error: "no recipients" };
   const code = shareCode();
-  const title = shareTitle(request.card);
+  const title = await matterTitle(request.card);
   const ask = request.ask.trim();
   const message: ShareMessage = { title, senderName: sender.nameTh, senderTitle: sender.title, note: ask || null, url: shareUrl(code) };
   const deliveries: ShareDelivery[] = [];

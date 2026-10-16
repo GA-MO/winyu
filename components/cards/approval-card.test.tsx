@@ -13,7 +13,7 @@ import { renderApproval, type ApprovalRequest } from "./approval-card";
 const NORTHEAST = { metric: "net_sales_volume", dims: ["agent"], filters: { region: ["northeast"] }, range: { from: "2026-11-01", to: "2026-11-26" }, grain: "month", compare: "target", limit: 10 };
 const CARD_TO_SEND: ShareTarget = { card: { kind: "tool", reads: [{ tool: "query_metric", input: NORTHEAST }] }, question: "ยอดขายเข้าภาคอีสานเดือนนี้เทียบเป้า" };
 const ON_TARGET_CLAIM = "บอกว่าเดือนนี้ผมจะปิดเกินเป้าแน่นอน";
-const NO_PREVIEW: SendPreview = { ownerId: null, line: [], figures: null, goal: null };
+const NO_PREVIEW: SendPreview = { ownerId: null, line: [], title: null, figures: null, goal: null };
 const ONE_CARD = screenWith([CARD_TO_SEND]);
 const BY_REGION: ShareTarget = { card: { kind: "tool", reads: [{ tool: "query_metric", input: { metric: "net_sales_value", dims: ["region"], filters: {} } }] }, question: "ยอดขายแยกตามภาค" };
 const TWO_CARDS = screenWith([onScreen(CARD_TO_SEND, "earlier-exchange", "3.9 ล้านลิตร"), onScreen(BY_REGION, "earlier-exchange", "฿412.5M")]);

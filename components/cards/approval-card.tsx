@@ -16,7 +16,7 @@ import { cardNamed } from "@/components/chat/card-to-share";
 import { businessToday } from "@/lib/data/dates";
 import { shareTitle, type ScreenCards, type SendPreview, type ShareContact, type SharedCard } from "@/lib/share/card";
 import { contradictionOf } from "@/lib/share/figures";
-import { matterDeadline, MATTER_INTENTS, MATTER_URGENCIES, sendIntent, type MatterIntent, type MatterUrgency } from "@/lib/share/matter";
+import { matterAsk, matterDeadline, MATTER_INTENTS, MATTER_URGENCIES, sendIntent, type MatterIntent, type MatterUrgency } from "@/lib/share/matter";
 import { matchRecipients } from "@/lib/share/recipients";
 
 const COURSES_ENDPOINT = "/api/courses";
@@ -333,9 +333,10 @@ function sendPlan(input: SendInput, sending: CardToSend, contacts: ShareContact[
   const { people, owner } = recipientsOf(input, contacts, preview);
   const intent = sendIntent(oneOf(MATTER_INTENTS, input.intent), Math.max(people.length, 1));
   const typed = typeof input.ask === "string" ? input.ask.trim() : "";
-  const ask = typed || (intent === "act" && sending.card ? TH.share.askDraft(sending.title) : "");
+  const titled = sending.card ? { ...sending, title: preview.title ?? sending.title } : sending;
+  const ask = titled.card ? matterAsk(typed, intent, titled.title) : typed;
   const { urgency, due } = matterDeadline(oneOf(MATTER_URGENCIES, input.urgency), question, intent, businessToday());
-  return { sending, recipients: people, owner, ask, intent, urgency, due, preview };
+  return { sending: titled, recipients: people, owner, ask, intent, urgency, due, preview };
 }
 
 function CardPreview({ sending }: { sending: CardToSend }) {

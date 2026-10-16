@@ -5,7 +5,7 @@ import { UNCOMPOSABLE_TOOLS } from "@/lib/compose/ground";
 import { forecastTitle, metricTitle } from "@/lib/cards/tool-answers";
 import { TH } from "@/lib/i18n/th";
 import { grantDaysSchema, type GrantRefusalCode } from "@/lib/contracts/grant";
-import type { MetricId } from "@/lib/contracts/semantic";
+import type { DimValues, MetricId } from "@/lib/contracts/semantic";
 import type { Persona } from "@/lib/contracts/persona";
 import { MATTER_INTENTS, MATTER_URGENCIES } from "./matter";
 import type { CardFigures } from "./figures";
@@ -35,6 +35,8 @@ const CARD_REF_PREFIX = "c";
 const FNV_OFFSET = 0x811c9dc5;
 const FNV_PRIME = 0x01000193;
 const BASE36 = 36;
+const SUBJECT_PART_SEPARATOR = " · ";
+const SUBJECT_VALUE_SEPARATOR = ", ";
 
 /** Reads that cannot be shared: the person's own memory, the metric catalog the model browses on the way to an answer, the lookups that find a person, an owner or a master-data record, and people data (profiles, candidates, training, the inbox, the audit). */
 export const UNSHAREABLE_TOOLS: ReadonlySet<string> = new Set([
@@ -74,8 +76,8 @@ export type ScreenCards = { exchangeId: string | null; cards: CardOnScreen[]; wa
 /** The send_card refusal code for an ask the card's numbers contradict, given once before the person has seen the figure. */
 export const ASK_CONTRADICTS_CARD = "ASK_CONTRADICTS_CARD";
 
-/** What a send shows before it leaves, worked out by the server: whom to put first, what the card's numbers say for the sender (to check the ask against), and the goal that would close the matter. */
-export type SendPreview = MatterSuggestions & { figures: CardFigures | null; goal: string | null };
+/** What a send shows before it leaves, worked out by the server: the matter's title with what the card is about, whom to put first, what the card's numbers say for the sender (to check the ask against), and the goal that would close the matter. */
+export type SendPreview = MatterSuggestions & { title: string | null; figures: CardFigures | null; goal: string | null };
 
 /** Why one recipient got the share on another channel than the one picked. */
 export type FallbackReason = "no-teams-conversation" | "send-failed";
@@ -189,15 +191,40 @@ function rootTitle(card: SharedCard): string | null {
   return typeof title === "string" ? headingWithoutNumbers(title) : null;
 }
 
-/** The card's name as the message shows it, from what was asked and never from what came back: the metric's name, the composed card's heading without numbers, or the tool's kind of card. */
-export function shareTitle(card: SharedCard): string {
+function askedDims(read: SharedRead): string[] {
+  const dims = read.input.dims;
+  return Array.isArray(dims) ? dims.filter((dim): dim is string => typeof dim === "string") : [];
+}
+
+/** What a card is about, in Thai: the names of the filters its first read asked for ("ภาคอีสาน · ลีโอ"), except a dimension whose several values the card's rows name one by one; null when it asked for none. */
+export function shareSubject(card: SharedCard, names: DimValues): string | null {
+  const dims = askedDims(card.reads[0]);
+  const parts = Object.entries(names)
+    .filter(([dim, labels]) => labels && labels.length > 0 && !(dims.includes(dim) && labels.length > 1))
+    .map(([, labels]) => (labels ?? []).join(SUBJECT_VALUE_SEPARATOR));
+  return parts.length > 0 ? parts.join(SUBJECT_PART_SEPARATOR) : null;
+}
+
+function breakdownOnly(read: SharedRead, names: DimValues): Record<string, unknown> {
+  const pinned = (Object.entries(names) as [string, string[] | undefined][]).filter(([, labels]) => labels?.length === 1).map(([dim]) => dim);
+  return { ...read.input, dims: askedDims(read).filter((dim) => !pinned.includes(dim)) };
+}
+
+function baseTitle(read: SharedRead, names: DimValues): string {
+  if (read.tool === "query_metric") return metricTitle(null, breakdownOnly(read, names));
+  if (read.tool === "get_forecast") return forecastTitle(null, read.input);
+  if (read.tool === "get_alerts") return TH.cards.alertsTitle;
+  return TH.share.titles[read.tool] ?? TH.share.defaultTitle;
+}
+
+/** The card's name as the message shows it, from what was asked and never from what came back: the metric's name with what it is about (`names`, the Thai names of the filters asked for, which the server looks up), the composed card's heading without numbers, or the tool's kind of card. */
+export function shareTitle(card: SharedCard, names: DimValues = {}): string {
   const composed = rootTitle(card);
   if (composed) return composed;
   const [first] = card.reads;
-  if (first.tool === "query_metric") return metricTitle(null, first.input);
-  if (first.tool === "get_forecast") return forecastTitle(null, first.input);
-  if (first.tool === "get_alerts") return TH.cards.alertsTitle;
-  return TH.share.titles[first.tool] ?? TH.share.defaultTitle;
+  const base = baseTitle(first, names);
+  const subject = first.tool === "get_alerts" ? null : shareSubject(card, names);
+  return subject ? `${base}${SUBJECT_PART_SEPARATOR}${subject}` : base;
 }
 
 function canonical(value: unknown): unknown {

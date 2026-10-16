@@ -1,5 +1,5 @@
 import { liveAccessFor } from "@/lib/access/enforce";
-import { metricQueryInputSchema, type MetricQueryInput, type User } from "@/lib/contracts";
+import { metricQueryInputSchema, type MetricQueryInput, type MetricResult, type User } from "@/lib/contracts";
 import { addDays, daysBetween, DATA_AS_OF } from "@/lib/data/dates";
 import { findUser } from "@/lib/data/entities/users";
 import { metricLabel } from "@/lib/dashboard/metric-display";
@@ -30,7 +30,7 @@ function firstMetricInput(card: SharedCard): MetricQueryInput | null {
   return card.reads.map(metricInputOf).find((input) => input !== null) ?? null;
 }
 
-async function answerOf(input: MetricQueryInput, viewer: User): Promise<unknown> {
+async function answerOf(input: MetricQueryInput, viewer: User): Promise<MetricResult | null> {
   const resolved = resolveQuery(input);
   return resolved.ok ? runMetric(resolved.query, liveAccessFor(viewer)) : null;
 }
@@ -39,6 +39,15 @@ async function answerOf(input: MetricQueryInput, viewer: User): Promise<unknown>
 export async function cardFigures(card: SharedCard, viewer: User): Promise<CardFigures | null> {
   const input = firstMetricInput(card);
   return input ? figuresOf(await answerOf(input, viewer)) : null;
+}
+
+/** The card's headline figure for this person, as words a reply can quote: the share of the whole month's target while the month runs, else its headline value; null when the card has no metric read or it no longer answers. */
+export async function cardHero(card: SharedCard, viewer: User): Promise<string | null> {
+  const input = firstMetricInput(card);
+  const answer = input ? await answerOf(input, viewer) : null;
+  if (!answer?.ok) return null;
+  const { headline } = answer;
+  return headline.projection ? `${headline.projection.attainmentToDate} ${TH.read.ofMonthTarget}` : headline.value;
 }
 
 function targetGoal(input: MetricQueryInput): MatterGoal | null {
