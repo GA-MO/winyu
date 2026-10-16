@@ -1,7 +1,6 @@
 import { liveAccessFor } from "@/lib/access/enforce";
 import { findUser } from "@/lib/data/entities/users";
 import { emitTo, inflightRuns, resumedRun, saveRun, type RunRecord } from "@/lib/harness/runtime";
-import { threads } from "@/lib/server/threads-read";
 import { winyuAgent } from "./agent";
 import { recoverOnNextStream } from "./durable";
 import { LEARNING, RUN_PATH, streamRun } from "./serve";

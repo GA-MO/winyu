@@ -1,13 +1,11 @@
 import { describe, expect, test } from "bun:test";
-import { WIDGET_KINDS, type AccessContext, type NextAction, type VerifyStep, type WidgetKind, type WidgetSpec } from "@/lib/contracts";
+import { WIDGET_KINDS, type AccessContext, type NextAction, type WidgetKind, type WidgetSpec } from "@/lib/contracts";
 import { accessFor } from "@/lib/access/policies";
 import { TH } from "@/lib/i18n/th";
 import { findUser } from "@/lib/data/entities/users";
 import { runMetric as placeholderResult } from "@/lib/data/query";
 import { templateFor } from "./templates";
 import { widgetCard } from "./widget-card";
-import { alertRowOf } from "@/lib/cards/alert-row";
-import { GENERATOR_DICTIONARY } from "@/lib/data/master";
 import { itemCard } from "./ambient";
 
 const RSM = "u_anucha";

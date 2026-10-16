@@ -8,7 +8,7 @@ import { DATA_AS_OF, addDays, formatThaiDate, monthStart } from "@/lib/data/date
 import { findUser } from "@/lib/data/entities/users";
 import { auditLog } from "@/lib/server/audit";
 import { TH } from "@/lib/i18n/th";
-import { runWithAccess, runWithTurn } from "@/lib/server/request-context";
+import { runWithAccess } from "@/lib/server/request-context";
 import type { WinyuTool } from "@/lib/server/tools/define";
 import { toolSurface } from "@/lib/server/tools/registry";
 import { approvedCallId } from "@/scripts/approved-call";
