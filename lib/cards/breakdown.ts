@@ -384,7 +384,7 @@ export function parityReading(input: { gaps: readonly ParityGap[]; hero: CardHer
   return {
     form: "line",
     baseline: PERCENT,
-    overall: { label: hero.label, sub: null, measure: overallMeasure, fill: 0, text: hero.value, change: null, tone: hero.tone, exception: true, valued: true },
+    overall: { label: TH.read.allOf(input.unit), sub: hero.label, measure: overallMeasure, fill: 0, text: hero.value, change: null, tone: hero.tone, exception: true, valued: true },
     rows,
     verdict: input.verdict,
     hero,

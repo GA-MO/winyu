@@ -731,15 +731,14 @@ function leadingPartialDays(query: MetricQuery): number | null {
   return null;
 }
 
-/** A trend whose first bucket holds only some of its days draws that bucket apart: its label says how many days it holds and the segment to it is dashed, so a short first week never reads as a collapse. */
+/** A trend whose first bucket holds only some of its days draws that bucket apart: the step to it is a dashed series whose legend says how many days the bucket holds, so a short first week never reads as a collapse. */
 function markLeadingPartial(query: MetricQuery, body: Extract<CardBody, { kind: "line" }>): CardBody {
   const days = leadingPartialDays(query);
   const [actual, ...rest] = body.series;
   if (days === null || !actual || groupDimsOf(query).length > 0 || body.labels.length < 2 || actual.values[0] === null) return body;
-  const partial: ChartSeries = { name: TH.dash.partialSeries, values: actual.values.map((value, index) => (index < 2 ? value : null)), style: "dashed" };
+  const partial: ChartSeries = { name: TH.dash.partialSeries(body.labels[0], days), values: actual.values.map((value, index) => (index < 2 ? value : null)), style: "dashed" };
   return {
     ...body,
-    labels: [TH.dash.partialBucket(body.labels[0], days), ...body.labels.slice(1)],
     series: [{ ...actual, values: [null, ...actual.values.slice(1)] }, partial, ...rest],
   };
 }
