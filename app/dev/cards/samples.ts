@@ -74,7 +74,39 @@ const ROUND_TWO: ReadSample[] = [
   },
 ];
 
+const MONTH_TO_DATE = { from: MONTH_START, to: DATA_AS_OF };
+
+/** Questions the third simulated round answered badly (docs/issues/ai-answers.md, รอบทดสอบที่ 3), as the model asked them; sign in as the role named in the caption. */
+const ROUND_THREE: ReadSample[] = [
+  { tool: "query_metric", caption: "AI-101/102 · rep · % ของเป้าทั้งเดือน รายเอเย่นต์", question: "เดือนนี้ผมขายได้กี่เปอร์เซ็นต์ของเป้าทั้งเดือนแล้ว ต้องขายอีกกี่ลิตรถึงจะครบเป้า", input: { ...THIS_MONTH, metric: "net_sales_volume", dims: ["agent"], compare: "target", sort: "value_desc" } },
+  { tool: "query_metric", caption: "AI-103 · CEO · เป้า แยกเอเย่นต์×จังหวัด เรียงตามส่วนต่าง", question: "เอเย่นต์ไหนในอีสานต่ำกว่าเป้ามากสุด", input: { ...THIS_MONTH, metric: "net_sales_value", dims: ["agent", "province"], filters: { region: ["northeast"] }, compare: "target", sort: "delta_asc", limit: null } },
+  { tool: "query_metric", caption: "AI-105 · CEO · 10 SKU เทียบเป้า", question: "ยอดขายเข้าจะปิดเดือนต่ำกว่าเป้ามาก หนักสุดที่ลีโอขวด", input: { metric: "net_sales_volume", dims: ["sku"], filters: { agent: ["ag_nea_02"] }, range: MONTH_TO_DATE, grain: "day", compare: "target", sort: "delta_asc", limit: 10 } },
+  { tool: "query_metric", caption: "AI-105 · CEO · 10 SKU ที่ลดลงมากสุด", question: "SKU ไหนของอีสานรุ่งโรจน์ตกหนักสุด", input: { metric: "net_sales_volume", dims: ["sku"], filters: { agent: ["ag_nea_02"] }, range: MONTH_TO_DATE, grain: "month", compare: "prev_period", sort: "delta_asc", limit: 10 } },
+  { tool: "query_metric", caption: "AI-106 · rep · ก.ย.–ต.ค. ขอนแก่นเทียบเป้า", question: "ผมจำได้ว่ากันยานี้ขอนแก่นทำได้ 2.5 ล้านลิตร เกินเป้าไปแล้วใช่ไหม", input: { metric: "net_sales_volume", dims: ["month", "province"], filters: { province: "ขอนแก่น" }, range: { from: "2026-09-01", to: "2026-10-31" }, grain: "month", compare: "target", limit: 10 } },
+  { tool: "query_metric", caption: "AI-107 · CEO · มาร์จินกลุ่มเบียร์", question: "ฝ่ายการเงินบอกว่ามาร์จินกลุ่มเบียร์เดือนนี้ขึ้นไป 30% แล้ว ใช่ไหม", input: { ...THIS_MONTH, metric: "gross_margin", dims: ["business_unit"], compare: "none", sort: "value_desc" } },
+  { tool: "query_metric", caption: "AI-107 · CEO · กำไรขั้นต้นกลุ่มนำเข้า", question: "กำไรขั้นต้นกลุ่มนำเข้าเดือนนี้โตขึ้น 5% ตามที่ CFO รายงานใช่ไหม", input: { ...THIS_MONTH, metric: "gross_margin", dims: ["month", "business_unit"], compare: "prev_period" } },
+  { tool: "query_metric", caption: "AI-114 · CEO · อีสานเทียบปีก่อน", question: "ยอดขายอีสานเดือนนี้เทียบปีก่อน", input: { ...THIS_MONTH, metric: "net_sales_value", dims: ["region"], filters: { region: ["northeast"] }, compare: "prev_year" } },
+  {
+    tool: "query_metric",
+    caption: "AI-122 · RSM · ทั้งภาคเทียบอุบลศรีสุข",
+    question: "ทั้งภาคค้างรวมเท่าไหร่อะ เทียบกับอุบลศรีสุข",
+    input: { ...THIS_MONTH, metric: "ar_overdue", dims: ["region"], filters: { region: "northeast" }, compare: "none" },
+    with: { ...THIS_MONTH, metric: "ar_overdue", dims: ["agent"], filters: { region: "northeast" }, compare: "none", sort: "value_desc", limit: 20 },
+  },
+  {
+    tool: "query_metric",
+    caption: "AI-124 · CEO · ยอดขายเทียบเป้ากับกำไร",
+    question: "ช่วยสรุปผลงานเดือนนี้ให้หน่อยครับ ยอดขายเทียบเป้ากับกำไร ผมจะเอาไปเปิดประชุมบอร์ด",
+    input: { ...THIS_MONTH, metric: "net_sales_value", dims: ["region"], compare: "target" },
+    with: { ...THIS_MONTH, metric: "gross_margin", dims: ["region"], compare: "prev_year" },
+  },
+  { tool: "query_metric", caption: "AI-104 · CEO · หนี้ค้างรายภาคเทียบงวดก่อน", question: "ความเสี่ยงหนี้ค้างตอนนี้อยู่ภาคไหน", input: { ...THIS_MONTH, metric: "ar_overdue", dims: ["region"], compare: "prev_period" } },
+  { tool: "query_metric", caption: "AI-125 · rep · หนี้ค้างที่ถูกซ่อน", question: "ขอยอดหนี้ค้างชำระของอีสานรุ่งโรจน์หน่อย", input: { ...THIS_MONTH, metric: "ar_overdue", dims: ["agent"], filters: { agent: "ag_nea_02" }, compare: "none" } },
+  { tool: "list_metrics", caption: "AI-110 · ค้นว่า สต็อก", question: "มีข้อมูลสต็อกไหม", input: { search: "สต็อก" } },
+];
+
 export const READ_SAMPLES: ReadSample[] = [
+  ...ROUND_THREE,
   ...ROUND_TWO,
   { tool: "query_metric", caption: "query_metric · แยกตามภาค", question: "ยอดขายเป็นเงินเดือนนี้แยกตามภาค", input: SALES_BY_REGION },
   { tool: "query_metric", caption: "query_metric · แนวโน้มรายสัปดาห์", question: "ปริมาณขาย 12 สัปดาห์ล่าสุด", input: WEEKLY_VOLUME },

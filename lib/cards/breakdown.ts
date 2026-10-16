@@ -224,7 +224,7 @@ function lineReading(input: BreakdownInput, line: LevelLine): Breakdown {
   return {
     form: "line",
     baseline: line.at,
-    overall: month ? { label: input.scope, sub: joinedText([TH.read.ofMonthTarget, month.detail]), measure: null, fill: 0, text: month.attainment, change: null, tone: overallTone, exception: true, valued: true } : { label: input.scope, sub: ofTarget ? goalUnit : null, measure: overallMeasure, fill: 0, text: overallText, change: null, tone: overallTone, exception: true, valued: true },
+    overall: overTime ? null : month ? { label: input.scope, sub: joinedText([TH.read.ofMonthTarget, month.detail]), measure: null, fill: 0, text: month.attainment, change: null, tone: overallTone, exception: true, valued: true } : { label: input.scope, sub: ofTarget ? goalUnit : null, measure: overallMeasure, fill: 0, text: overallText, change: null, tone: overallTone, exception: true, valued: true },
     rows,
     verdict: lineVerdict({
       line: line.line,
@@ -232,7 +232,7 @@ function lineReading(input: BreakdownInput, line: LevelLine): Breakdown {
       count,
       of,
       worst: under[0] ? labelOf(query, under[0].row) : null,
-      overallUnder,
+      overallUnder: overallUnder && !overTime,
       goal: input.target.paced ? TH.read.pacedGoal : TH.read.goal,
       sums: input.additive,
       weakest: answer ? { label: labelOf(query, answer.row), text: textOf(answer) } : null,
