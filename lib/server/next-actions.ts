@@ -48,9 +48,9 @@ function alertInQuestion(access: AccessContext, result: Extract<MetricResult, { 
   return alertForAnswer(result, openAlertsFor(access).filter((alert) => alert.metric === query.metric && sliceCovers(dictionary, slice, alert.dims)), dictionary);
 }
 
-/** The region a card's work belongs to: the one its slice is pinned to, else the region of the alert it is about; null for the whole country. */
-function regionOf(dictionary: Dictionary, query: ResolvedQuery, alert: Alert | null): Region | null {
-  return regionOfSlice(dictionary, pinnedSlice(effectiveFilters(query))) ?? (alert ? regionOfSlice(dictionary, alert.dims) : null);
+/** The region a card's work belongs to: the one its slice is pinned to; null for the whole country, whose owner is the national one even when an open alert it points at sits in one region. */
+function regionOf(dictionary: Dictionary, query: ResolvedQuery): Region | null {
+  return regionOfSlice(dictionary, pinnedSlice(effectiveFilters(query)));
 }
 
 /** The buttons a metric card offers, decided from the resolved question, the open alerts on that slice and how often it was asked. */
@@ -67,7 +67,7 @@ export function actionsForMetric(access: AccessContext, result: MetricResult, di
       masked: result.provenance.masked,
       alertIds: alert ? [alert.id] : [],
       verifyStep: alert ? (verifyStepsFor(access, alert)[0] ?? null) : null,
-      region: regionOf(dictionary, query, alert),
+      region: regionOf(dictionary, query),
       drawnAs: widgetKindFor(query, result),
     },
     alreadyPinned(access.userId, query) ? 0 : repeatsOf(access.userId, query),
