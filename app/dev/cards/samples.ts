@@ -2,7 +2,7 @@ import type { MetricQuery } from "@/lib/contracts";
 import { addDays, businessDay, DATA_AS_OF } from "@/lib/data/dates";
 
 /** One read tool call the gallery runs for the signed-in user. */
-export type ReadSample = { tool: string; caption: string; question: string; input: Record<string, unknown> };
+export type ReadSample = { tool: string; caption: string; question: string; input: Record<string, unknown>; with?: Record<string, unknown> };
 
 /** One write tool call the gallery shows as an approval decision. */
 export type WriteSample = { tool: string; caption: string; input: Record<string, unknown> };
@@ -40,7 +40,42 @@ const TOP_AGENTS: MetricQuery = {
   sort: "delta_asc",
 };
 
+const THIS_MONTH = { filters: {}, grain: "month", limit: 10, period: "this_month" };
+
+/** Questions the second simulated round answered badly (docs/issues/ai-answers.md, รอบทดสอบที่ 2), as the model asked them. */
+const ROUND_TWO: ReadSample[] = [
+  { tool: "query_metric", caption: "AI-53 · เดือนนี้เทียบเป้า แยกรายเดือน", question: "เดือนนี้ขายได้กี่เปอร์เซ็นต์ของเป้าทั้งเดือน", input: { ...THIS_MONTH, metric: "net_sales_volume", dims: ["month"], compare: "target" } },
+  {
+    tool: "query_metric",
+    caption: "AI-66 · เทียบเป้าและเทียบงวดก่อน",
+    question: "ลีโออีสาน เอเย่นต์ไหนลดลงหนักสุด",
+    input: { ...THIS_MONTH, metric: "net_sales_value", dims: ["agent", "province"], filters: { region: ["northeast"], brand: ["leo"] }, compare: "target", sort: "delta_asc", limit: 5 },
+    with: { ...THIS_MONTH, metric: "net_sales_value", dims: ["agent", "province"], filters: { region: ["northeast"], brand: ["leo"] }, compare: "prev_period", sort: "delta_asc", limit: 5 },
+  },
+  { tool: "query_metric", caption: "AI-67 · สต๊อกล้น", question: "มีสต๊อกล้นตรงไหนไหม", input: { ...THIS_MONTH, metric: "days_of_cover", dims: ["brand"], compare: "prev_period", sort: "value_desc", limit: 5 } },
+  { tool: "query_metric", caption: "AI-68 · เลขปีก่อน", question: "ไหนเลขปีก่อน", input: { metric: "ar_overdue", dims: ["agent"], filters: { region: "south" }, range: { from: "2026-10-01", to: "2026-10-31" }, grain: "month", compare: "prev_year", sort: "delta_desc", limit: 10 } },
+  { tool: "query_metric", caption: "AI-69 · เดือนเดียว แยกกลุ่มธุรกิจ", question: "กำไรขั้นต้นกลุ่มนำเข้าเดือนนี้โต 5% จริงไหม", input: { ...THIS_MONTH, metric: "gross_margin", dims: ["month", "business_unit"], compare: "prev_period" } },
+  {
+    tool: "query_metric",
+    caption: "AI-70 · สองตัวเลข สี่จังหวัด",
+    question: "ยอดขายใต้แยกจังหวัด เทียบกับหนี้ค้าง",
+    input: { ...THIS_MONTH, metric: "net_sales_value", dims: ["province"], filters: { region: "south" }, compare: "target", sort: "value_desc", limit: 14 },
+    with: { ...THIS_MONTH, metric: "ar_overdue", dims: ["province"], filters: { region: "south" }, compare: "prev_period", sort: "value_desc", limit: 14 },
+  },
+  { tool: "query_metric", caption: "AI-71 · อาทิตย์นี้รายวัน", question: "ยอดขอนแก่นอาทิตย์นี้เป็นไง", input: { metric: "net_sales_volume", dims: ["date"], filters: { province: "ขอนแก่น" }, grain: "day", period: "this_week", compare: "prev_period", sort: "delta_desc", limit: 10 } },
+  { tool: "query_metric", caption: "AI-76 · หนี้ค้างรายภาค limit 5", question: "ความเสี่ยงอื่นก่อนขึ้นบอร์ด", input: { ...THIS_MONTH, metric: "ar_overdue", dims: ["region"], compare: "prev_period", sort: "value_desc", limit: 5 } },
+  { tool: "query_metric", caption: "AI-83 · รายสัปดาห์เดือนนี้", question: "อุบลศรีสุข รายสัปดาห์", input: { ...THIS_MONTH, metric: "net_sales_volume", dims: ["week"], filters: { agent: "ag_nea_05" }, grain: "week", compare: "prev_period", limit: 12 } },
+  {
+    tool: "query_metric",
+    caption: "parity · ขายเข้าเทียบขายออก",
+    question: "เทียบยอดขายเข้ากับยอดขายออกของเอเย่นต์",
+    input: { ...THIS_MONTH, metric: "net_sales_volume", dims: ["agent"], filters: { region: "northeast" }, compare: "none" },
+    with: { ...THIS_MONTH, metric: "sell_out_volume", dims: ["agent"], filters: { region: "northeast" }, compare: "none" },
+  },
+];
+
 export const READ_SAMPLES: ReadSample[] = [
+  ...ROUND_TWO,
   { tool: "query_metric", caption: "query_metric · แยกตามภาค", question: "ยอดขายเป็นเงินเดือนนี้แยกตามภาค", input: SALES_BY_REGION },
   { tool: "query_metric", caption: "query_metric · แนวโน้มรายสัปดาห์", question: "ปริมาณขาย 12 สัปดาห์ล่าสุด", input: WEEKLY_VOLUME },
   { tool: "query_metric", caption: "query_metric · เอเย่นต์ที่ลดลงมากสุด", question: "เอเย่นต์ภาคอีสานที่ยอดตกมากที่สุด", input: TOP_AGENTS },
