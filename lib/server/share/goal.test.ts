@@ -1,5 +1,5 @@
 import { afterAll, describe, expect, setDefaultTimeout, test } from "bun:test";
-import type { Alert } from "@/lib/contracts";
+import type { Alert, MetricQueryInput } from "@/lib/contracts";
 import { addDays, DATA_AS_OF } from "@/lib/data/dates";
 import { findUser } from "@/lib/data/entities/users";
 import { TH } from "@/lib/i18n/th";
@@ -72,9 +72,9 @@ describe("the goal a matter is sent with", () => {
   });
 
   test("its read is checked on the latest data day: dates keep their length and end on DATA_AS_OF, a named period resolves on today's clock", () => {
-    const earlier = { metric: "net_sales_volume", dims: [], filters: {}, range: { from: addDays(DATA_AS_OF, -40), to: addDays(DATA_AS_OF, -30) }, grain: "day", compare: "none", limit: null } as const;
+    const earlier: MetricQueryInput = { metric: "net_sales_volume", dims: [], filters: {}, range: { from: addDays(DATA_AS_OF, -40), to: addDays(DATA_AS_OF, -30) }, grain: "day", compare: "none", limit: null };
     expect(onLatestDay(earlier).range).toEqual({ from: addDays(DATA_AS_OF, -10), to: DATA_AS_OF });
-    const named = { ...earlier, range: null, period: "this_month" } as const;
+    const named: MetricQueryInput = { ...earlier, range: null, period: "this_month" };
     expect(onLatestDay(named)).toEqual(named);
   });
 });
