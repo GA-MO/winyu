@@ -3,7 +3,8 @@ import { explainGapInputSchema, type MetricQuery, type MetricResult, type Metric
 import { metricLabel } from "@/lib/dashboard/metric-display";
 import { formatForSummary } from "@/lib/semantic/engine";
 import { metricDef } from "@/lib/semantic/metrics";
-import { breakDownGap, formatShare, type Contribution, type GapPart } from "@/lib/engine/gap";
+import { breakDownGap, formatShare, type Contribution, type GapBreakdown, type GapPart } from "@/lib/engine/gap";
+import { TH } from "@/lib/i18n/th";
 import { runMetric } from "@/lib/server/metrics";
 import { currentAccess } from "@/lib/server/request-context";
 import { defineTool } from "./define";
@@ -54,6 +55,10 @@ function projectionOf(total: Extract<MetricResult, { ok: true }>) {
   };
 }
 
+function sharesOverWhole(breakdown: GapBreakdown): boolean {
+  return [...breakdown.contributors, ...(breakdown.rest ? [breakdown.rest] : [])].some((part) => part.share > 1);
+}
+
 function isFailure(result: MetricResult): result is Extract<MetricResult, { ok: false }> {
   return !result.ok;
 }
@@ -86,6 +91,7 @@ export const explainGapTool = defineTool({
       contributors: breakdown.contributors.map((contribution) => contributionRow(input, contribution)),
       rest: breakdown.rest ? contributionRow(input, { ...breakdown.rest, label: OTHERS }) : null,
       offsetting: breakdown.offsetting.map((contribution) => offsettingRow(input, contribution)),
+      share_note: sharesOverWhole(breakdown) ? TH.cards.gap.overHundred : null,
       projection: projectionOf(total),
     };
   },

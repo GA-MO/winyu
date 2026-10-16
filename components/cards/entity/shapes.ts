@@ -140,6 +140,7 @@ export const gapResult = z.object({
   contributors: z.array(z.object({ label: z.string(), gap_label: z.string(), share_label: z.string() })),
   rest: z.object({ label: z.string(), gap_label: z.string(), share_label: z.string() }).nullable(),
   offsetting: z.array(z.object({ label: z.string(), gap_label: z.string() })),
+  share_note: z.string().nullable().optional(),
   projection: z
     .object({ label: z.string(), basis: z.string(), projected_label: z.string(), month_target_label: z.string(), attainment_label: z.string() })
     .nullable(),

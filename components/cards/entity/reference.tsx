@@ -73,6 +73,7 @@ export function GapCard({ result }: { result: unknown }) {
             ))}
             {gap.rest ? <GapLine label={gap.rest.label} gap={gap.rest.gap_label} share={gap.rest.share_label} /> : null}
           </ul>
+          {gap.share_note ? <p className="text-[11px] text-muted-foreground">{gap.share_note}</p> : null}
           {gap.offsetting.length > 0 ? (
             <>
               <SectionTitle>{TH.cards.gap.offsetting}</SectionTitle>
