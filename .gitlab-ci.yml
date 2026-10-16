@@ -50,6 +50,9 @@ build-uat:
       --context "${CI_PROJECT_DIR}"
       --dockerfile "${CI_PROJECT_DIR}/${DOCKERFILE}"
       --destination "${DOCKER_IMAGE_URL}"
+      --single-snapshot
+      --compressed-caching=false
+      --snapshot-mode=redo
   dependencies:
     - prepare-build
 

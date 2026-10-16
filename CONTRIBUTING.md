@@ -44,6 +44,8 @@ Never re-record every case by default. `CLAUDE.md` has the full cost rules.
 - `lib/harness/boundary.test.ts`: only `lib/harness/adapters/mastra/` imports `@mastra/*`, `@ag-ui/*`, or `@copilotkit/runtime`.
 - `lib/server/light-requests.test.ts`: a request path that only checks the session (`lib/server/session.ts`, `lib/access/enforce.ts`, the feed, the home page) must not import the agent engine, the AI SDK, OpenRouter, or OpenTelemetry at module load. Load them with `await import()` at the point of use. Without this rule `next build` needs more memory than the CI runner has (see `docs/adr/0003-lazy-load-the-agent-engine.md`).
 
+No test enforces this rule: a new dependency that only server code imports goes in `SERVER_ONLY_PACKAGES` in `next.config.ts`. Turbopack then loads it from `node_modules` instead of bundling it and everything it imports (see `docs/adr/0005-server-only-packages-stay-out-of-the-bundle.md`).
+
 ## Commit messages
 
 Write the subject as what the change does for the user or the maintainer, in English, under 72 characters. Put the why in the body when it is not obvious.
