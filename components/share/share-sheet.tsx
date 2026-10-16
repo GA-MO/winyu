@@ -18,6 +18,7 @@ const SHARES_ENDPOINT = "/api/shares";
 const SUGGESTION_ENDPOINT = "/api/shares/suggestion";
 const SCOPES_ENDPOINT = "/api/shares/scopes";
 const PANEL = "fixed right-0 top-0 z-50 flex h-dvh w-full max-w-[26rem] flex-col border-l border-border bg-card shadow-panel animate-panel-in";
+const SENT_PANEL = "fixed inset-x-3 bottom-3 z-50 flex max-h-[50dvh] flex-col gap-2 overflow-y-auto rounded-2xl border border-border bg-card px-4 py-3 shadow-panel animate-panel-in pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:left-auto sm:right-4 sm:w-[24rem]";
 const CHIP = "inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 /** The icon each share channel shows with. */
 export const CHANNEL_ICON: Record<ShareChannel, typeof Mail> = { email: Mail, teams: Users, line: MessageCircle };
@@ -210,16 +211,22 @@ export function RecipientWarnings({ scopes, granting, grant }: { scopes: readonl
   );
 }
 
-/** What the sheet shows once a share went out: who got it on which channel, any grants, what it still hides from whom, the link, and the Outbox when any of it went by mail. */
-export function ShareSent({ receipts, grants, hidden = [], days, path, close }: { receipts: ShareReceipt[]; grants: ShareGrantReceipt[]; hidden?: RecipientScope[]; days: GrantDays | null; path: string; close: () => void }) {
+/** What is left on screen once a share went out: a compact confirmation docked at the bottom (who got it on which channel, any grants, what it still hides from whom, the link, and the Outbox when any of it went by mail) that leaves the page behind it usable. */
+export function ShareSent({ title, receipts, grants, hidden = [], days, path, close }: { title: string; receipts: ShareReceipt[]; grants: ShareGrantReceipt[]; hidden?: RecipientScope[]; days: GrantDays | null; path: string; close: () => void }) {
   const url = typeof window === "undefined" ? path : `${window.location.origin}${path}`;
   return (
-    <div className="flex flex-col gap-4 px-4 py-5">
-      <p className="flex items-center gap-2 text-sm font-medium text-success">
-        <Check className="size-4" aria-hidden />
-        {TH.share.sentTitle}
-      </p>
-      <ul className="flex flex-col gap-1.5 text-sm">
+    <aside role="status" aria-label={TH.share.sentTitle} data-share-sent className={SENT_PANEL}>
+      <div className="flex items-start gap-2">
+        <Check className="mt-0.5 size-4 shrink-0 text-success" aria-hidden />
+        <p className="flex min-w-0 flex-1 flex-col">
+          <span className="text-sm font-medium text-success">{TH.share.sentTitle}</span>
+          <span className="truncate text-xs text-muted-foreground">{title}</span>
+        </p>
+        <button type="button" onClick={close} aria-label={TH.common.close} className="-m-1 rounded-lg p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground">
+          <X className="size-4" aria-hidden />
+        </button>
+      </div>
+      <ul className="flex flex-col gap-1 pl-6 text-xs">
         {receipts.map((receipt) => (
           <li key={receipt.userId} className={cn(receipt.fallback ? "text-warning" : "text-foreground")}>
             {receiptLine(receipt)}
@@ -227,7 +234,7 @@ export function ShareSent({ receipts, grants, hidden = [], days, path, close }: 
         ))}
       </ul>
       {hidden.length > 0 ? (
-        <ul className="flex flex-col gap-1.5 text-sm text-warning" aria-label={TH.share.stillHidden}>
+        <ul className="flex flex-col gap-1 pl-6 text-xs text-warning" aria-label={TH.share.stillHidden}>
           {hidden.map((scope) => (
             <li key={scope.userId} className="flex items-start gap-1.5">
               <EyeOff className="mt-0.5 size-3.5 shrink-0" aria-hidden />
@@ -236,9 +243,9 @@ export function ShareSent({ receipts, grants, hidden = [], days, path, close }: 
           ))}
         </ul>
       ) : null}
-      {receipts.some((receipt) => receipt.via === "email") ? <OutboxNote /> : null}
+      {receipts.some((receipt) => receipt.via === "email") ? <div className="pl-6"><OutboxNote /></div> : null}
       {days !== null && grants.length > 0 ? (
-        <ul className="flex flex-col gap-1.5 text-sm">
+        <ul className="flex flex-col gap-1 pl-6 text-xs">
           {grants.map((grant) => (
             <li key={`${grant.userId}:${grant.metric}`} className={cn("flex items-start gap-1.5", grant.granted ? "text-foreground" : "text-warning")}>
               <KeyRound className="mt-0.5 size-3.5 shrink-0" aria-hidden />
@@ -247,14 +254,11 @@ export function ShareSent({ receipts, grants, hidden = [], days, path, close }: 
           ))}
         </ul>
       ) : null}
-      <a href={path} className="inline-flex items-center gap-1.5 break-all text-xs text-muted-foreground hover:text-foreground">
+      <a href={path} className="ml-6 inline-flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground">
         <Link2 className="size-3.5 shrink-0" aria-hidden />
-        {url}
+        <span className="truncate">{url}</span>
       </a>
-      <button type="button" onClick={close} className="self-start rounded-full border border-border px-3.5 py-2 text-xs font-medium text-muted-foreground hover:text-foreground">
-        {TH.common.close}
-      </button>
-    </div>
+    </aside>
   );
 }
 
@@ -328,6 +332,8 @@ function Sheet({ target, close }: { target: ShareTarget; close: () => void }) {
     setPhase(payload ? { kind: "sent", receipts: payload.receipts, grants: payload.grants ?? [], hidden: payload.hidden ?? [], path: payload.path } : { kind: "failed", refused: response?.status === REFUSED_STATUS });
   };
 
+  if (phase.kind === "sent") return <ShareSent title={title} receipts={phase.receipts} grants={phase.grants} hidden={phase.hidden} days={grantDays} path={phase.path} close={close} />;
+
   return (
     <>
       <button type="button" aria-label={TH.common.close} onClick={close} className="fixed inset-0 z-50 bg-foreground/10 backdrop-blur-sm" />
@@ -344,40 +350,34 @@ function Sheet({ target, close }: { target: ShareTarget; close: () => void }) {
             <X className="size-4" aria-hidden />
           </button>
         </header>
-        {phase.kind === "sent" ? (
-          <ShareSent receipts={phase.receipts} grants={phase.grants} hidden={phase.hidden} days={grantDays} path={phase.path} close={close} />
-        ) : (
-          <>
-            <div className="flex flex-col gap-3 border-b border-border px-4 py-3">
-              <IntentToggle intent={intent} choose={chooseIntent} />
-              {intent === "act" ? <UrgencyChoice urgency={urgency} choose={setUrgency} /> : null}
-              <label className="flex flex-col gap-1">
-                <span className="text-xs font-medium text-muted-foreground">{TH.share.askLabel}</span>
-                <input value={ask} onChange={(event) => setAsk(event.target.value.slice(0, MATTER_ASK_MAX))} placeholder={TH.share.askPlaceholder} data-share-ask className="rounded-xl border border-border bg-transparent px-3 py-2 text-sm outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-ring" />
-              </label>
-            </div>
-            <div className="ui-scrollbar flex min-h-0 flex-1 flex-col overflow-y-auto">
-              <PeoplePicker contacts={contacts} suggestedId={suggested} chosen={chosen} onToggle={toggle} />
-            </div>
-            <footer className="flex flex-col gap-2 border-t border-border px-4 py-3">
-              <RecipientWarnings scopes={scopes} granting={grantDays !== null} grant={directory?.mayGrant ? () => setGrantDays(DEFAULT_GRANT_DAYS) : null} />
-              {directory?.mayGrant ? <GrantPicker days={grantDays} choose={setGrantDays} /> : null}
-              <p className="text-[11px] leading-relaxed text-muted-foreground">{TH.share.sheetNote}</p>
-              {phase.kind === "failed" ? (
-                <p className="text-xs text-danger">
-                  {phase.refused ? TH.share.refused : TH.share.failed}
-                </p>
-              ) : null}
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-xs text-muted-foreground">{TH.share.chosen(chosen.length)}</span>
-                <button type="button" onClick={() => void send()} disabled={!ready} data-share-send className="inline-flex items-center gap-1.5 rounded-full bg-ink px-4 py-2 text-xs font-medium text-ink-foreground transition hover:opacity-90 disabled:opacity-40">
-                  <Forward className="size-3.5" aria-hidden />
-                  {phase.kind === "sending" ? TH.share.sending : TH.share.send}
-                </button>
-              </div>
-            </footer>
-          </>
-        )}
+        <div className="flex flex-col gap-3 border-b border-border px-4 py-3">
+          <IntentToggle intent={intent} choose={chooseIntent} />
+          {intent === "act" ? <UrgencyChoice urgency={urgency} choose={setUrgency} /> : null}
+          <label className="flex flex-col gap-1">
+            <span className="text-xs font-medium text-muted-foreground">{TH.share.askLabel}</span>
+            <input value={ask} onChange={(event) => setAsk(event.target.value.slice(0, MATTER_ASK_MAX))} placeholder={TH.share.askPlaceholder} data-share-ask className="rounded-xl border border-border bg-transparent px-3 py-2 text-sm outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-ring" />
+          </label>
+        </div>
+        <div className="ui-scrollbar flex min-h-0 flex-1 flex-col overflow-y-auto">
+          <PeoplePicker contacts={contacts} suggestedId={suggested} chosen={chosen} onToggle={toggle} />
+        </div>
+        <footer className="flex flex-col gap-2 border-t border-border px-4 py-3">
+          <RecipientWarnings scopes={scopes} granting={grantDays !== null} grant={directory?.mayGrant ? () => setGrantDays(DEFAULT_GRANT_DAYS) : null} />
+          {directory?.mayGrant ? <GrantPicker days={grantDays} choose={setGrantDays} /> : null}
+          <p className="text-[11px] leading-relaxed text-muted-foreground">{TH.share.sheetNote}</p>
+          {phase.kind === "failed" ? (
+            <p className="text-xs text-danger">
+              {phase.refused ? TH.share.refused : TH.share.failed}
+            </p>
+          ) : null}
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-xs text-muted-foreground">{TH.share.chosen(chosen.length)}</span>
+            <button type="button" onClick={() => void send()} disabled={!ready} data-share-send className="inline-flex items-center gap-1.5 rounded-full bg-ink px-4 py-2 text-xs font-medium text-ink-foreground transition hover:opacity-90 disabled:opacity-40">
+              <Forward className="size-3.5" aria-hidden />
+              {phase.kind === "sending" ? TH.share.sending : TH.share.send}
+            </button>
+          </div>
+        </footer>
       </aside>
     </>
   );
