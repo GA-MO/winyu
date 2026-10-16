@@ -58,5 +58,5 @@ The user compared three styles on real recorded results (prototype `app/dev/card
 - **Leaderboard** (inside B), for a plain level breakdown: sums that add up, no target, 3 to 8 rows, the question is who is how big. Every row is visible, bar length is the value from zero, and the change pill is coloured only on the rows whose change stands out. Not for target, change ranking, share of a whole with 5 or fewer parts, rates and averages, or time.
 - Keep these bodies and give them only the shared anatomy: the share donut (no repeated value in its centre), the funnel, the anomaly list, approval and handoff cards, the matter path, entity cards. Fix the heatmap's overflow and colour only its exception cells; label only the outliers on a scatter and say the correlation in words; use Thai units on line-chart axes.
 
-- [ ] B, A and C in production, chosen by the decision table
-- [ ] Every recorded case replayed at phone width and reviewed
+- [x] B, A and C in production, chosen by the decision table
+- [x] Every recorded case replayed at phone width and reviewed
