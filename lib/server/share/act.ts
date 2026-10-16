@@ -26,7 +26,8 @@ function tell(telling: Telling, matter: Matter, actor: User, at: Date): void {
     notify(telling.userId, actor.id, { kind: "matter", refId: matter.id, senderName: actor.nameTh, ask: matter.ask }, at);
     return;
   }
-  notify(telling.userId, actor.id, { kind: "matter_update", refId: matter.id, actorName: actor.nameTh, cardTitle: matter.title, change: telling.change, text: telling.text }, at);
+  const text = telling.text ?? (telling.toUserId ? nameOf(telling.toUserId) : null);
+  notify(telling.userId, actor.id, { kind: "matter_update", refId: matter.id, actorName: actor.nameTh, cardTitle: matter.title, change: telling.change, text }, at);
 }
 
 function refused(actor: User, code: string, press: MatterPress, refusal: MatterRefusal): MatterOutcome {

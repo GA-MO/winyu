@@ -105,7 +105,7 @@ describe("ขอข้อมูลเพิ่ม and the answer", () => {
 });
 
 describe("ส่งต่อ", () => {
-  test("adds a hop to the same record, hands the new holder the matter once, and tells nobody else", async () => {
+  test("adds a hop to the same record, hands the new holder the matter once, and tells the one who started it once whom it went to", async () => {
     const code = await sent("u_thana", "u_anucha");
     const stored = shares().all().length;
     const rsmBefore = inboxCountsFor("u_anucha").decisions;
@@ -123,12 +123,13 @@ describe("ส่งต่อ", () => {
     });
     expect(told("u_krit", code)).toHaveLength(1);
     expect(lastTold("u_krit", code)).toMatchObject({ kind: "matter", fromUserId: "u_anucha", title: TH.notify.matter(user("u_anucha").nameTh, ASK) });
-    expect(told("u_thana", code)).toHaveLength(0);
+    expect(told("u_thana", code)).toHaveLength(1);
+    expect(lastTold("u_thana", code)).toMatchObject({ kind: "matter_update", fromUserId: "u_anucha", title: TH.notify.matterUpdate.passed_on(user("u_anucha").nameTh, shares().get(code)?.title ?? "", user("u_krit").nameTh) });
     expect(inboxCountsFor("u_anucha").decisions).toBe(rsmBefore - 1);
     expect(inboxCountsFor("u_krit").decisions).toBe(repBefore + 1);
   });
 
-  test("the new holder's รับ tells the one who passed it, not the sender, and the path reads CEO, RSM passed on, rep accepted", async () => {
+  test("the new holder's รับ tells the one who passed it and the one who started it, each once, and the path reads CEO, RSM passed on, rep accepted", async () => {
     const code = await sent("u_thana", "u_anucha");
     press("u_anucha", code, { kind: "pass_on", toUserId: "u_krit" });
 
@@ -139,7 +140,9 @@ describe("ส่งต่อ", () => {
       ["u_anucha", "u_krit", "accepted"],
     ]);
     expect(lastTold("u_anucha", code)).toMatchObject({ kind: "matter_update", fromUserId: "u_krit" });
-    expect(told("u_thana", code)).toHaveLength(0);
+    expect(told("u_anucha", code).filter((note) => note.fromUserId === "u_krit")).toHaveLength(1);
+    expect(told("u_thana", code)).toHaveLength(2);
+    expect(lastTold("u_thana", code)).toMatchObject({ kind: "matter_update", fromUserId: "u_krit", title: TH.notify.matterUpdate.accepted(user("u_krit").nameTh, shares().get(code)?.title ?? "") });
   });
 });
 
@@ -154,7 +157,7 @@ describe("ไม่ใช่ของผม", () => {
       ["u_anucha", "sent"],
     ]);
     expect(told("u_anucha", code)).toHaveLength(1);
-    expect(told("u_thana", code)).toHaveLength(0);
+    expect(told("u_thana", code).map((note) => note.title)).toEqual([TH.notify.matterUpdate.passed_on(user("u_krit").nameTh, shares().get(code)?.title ?? "", user("u_anucha").nameTh)]);
   });
 
   test("when the holder is the owner, it asks the sender who should take it instead", async () => {
@@ -191,7 +194,7 @@ describe("เสร็จ", () => {
       expect(told(holder, code)).toHaveLength(2);
       expect(lastTold(holder, code)).toMatchObject({ kind: "matter_update", title: TH.notify.matterUpdate.done(user("u_thana").nameTh, shares().get(code)?.title ?? "") });
     }
-    expect(told("u_thana", code)).toHaveLength(0);
+    expect(told("u_thana", code).map((note) => note.fromUserId)).toEqual(["u_anucha"]);
     expect(inboxCountsFor("u_krit").decisions).toBe(repBefore - 1);
     expect(press("u_krit", code, { kind: "accept" })).toEqual({ ok: false, refusal: "closed" });
   });

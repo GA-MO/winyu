@@ -18,8 +18,8 @@ export type MatterAction =
 /** Why a press was refused: the matter is closed, it only informs, this person may not press that now, or the colleague picked cannot take it. */
 export type MatterRefusal = "closed" | "fyi" | "not_allowed" | "bad_target";
 
-/** Someone to tell once about a transition: a new holder is handed the matter; anyone else hears what changed. */
-export type Telling = { userId: string; handed: true } | { userId: string; handed: false; change: MatterEventKind; text: string | null };
+/** Someone to tell once about a transition: a new holder is handed the matter; anyone else hears what changed, and for a pass-on to whom. */
+export type Telling = { userId: string; handed: true } | { userId: string; handed: false; change: MatterEventKind; text: string | null; toUserId: string | null };
 
 export type Transition = { ok: true; matter: Matter; tell: Telling[] } | { ok: false; refusal: MatterRefusal };
 
@@ -48,8 +48,14 @@ function moved(matter: Matter, at: string, path: Hop[], line: MatterEvent, chang
   return { ...matter, ...changes, path, thread: [...matter.thread, line], updatedAt: at };
 }
 
-function told(userId: string | null | undefined, actorId: string, change: MatterEventKind, text: string | null = null): Telling[] {
-  return userId && userId !== actorId ? [{ userId, handed: false, change, text }] : [];
+function told(userId: string | null | undefined, actorId: string, change: MatterEventKind, text: string | null = null, toUserId: string | null = null): Telling[] {
+  return userId && userId !== actorId ? [{ userId, handed: false, change, text, toUserId }] : [];
+}
+
+/** Each person once: the first telling of someone wins, so the sender who also passed it on hears one line. */
+function once(tellings: readonly Telling[]): Telling[] {
+  const seen = new Set<string>();
+  return tellings.filter((telling) => !seen.has(telling.userId) && seen.add(telling.userId));
 }
 
 function passerOf(matter: Matter): string | null {
@@ -59,7 +65,8 @@ function passerOf(matter: Matter): string | null {
 function passedOn(matter: Matter, actorId: string, toUserId: string, at: string): Step | MatterRefusal {
   if (toUserId === actorId) return "bad_target";
   const path = [...withHolder(matter, "passed_on"), { userId: toUserId, fromUserId: actorId, at, state: "sent" as const }];
-  return { matter: moved(matter, at, path, event(actorId, at, "passed_on", null, toUserId)), tell: [{ userId: toUserId, handed: true }] };
+  const tell = once([{ userId: toUserId, handed: true }, ...told(matter.senderId, actorId, "passed_on", null, toUserId)]);
+  return { matter: moved(matter, at, path, event(actorId, at, "passed_on", null, toUserId)), tell };
 }
 
 function askedOf(matter: Matter, actorId: string, text: string, at: string, whom: string | null): Step {
@@ -76,7 +83,10 @@ type Rules = { [K in MatterActionKind]: Rule<Extract<MatterAction, { kind: K }>>
 export const MATTER_RULES: Rules = {
   accept: {
     may: (matter, actorId) => holds(matter, actorId, UNANSWERED),
-    apply: (matter, actorId, _action, at) => ({ matter: moved(matter, at, withHolder(matter, "accepted"), event(actorId, at, "accepted")), tell: told(passerOf(matter), actorId, "accepted") }),
+    apply: (matter, actorId, _action, at) => ({
+      matter: moved(matter, at, withHolder(matter, "accepted"), event(actorId, at, "accepted")),
+      tell: once([...told(passerOf(matter), actorId, "accepted"), ...told(matter.senderId, actorId, "accepted")]),
+    }),
   },
   ask: {
     may: (matter, actorId) => holds(matter, actorId, HELD),

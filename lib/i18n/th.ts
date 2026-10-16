@@ -396,7 +396,7 @@ export const TH = {
       accepted: (actor: string, title: string) => `${actor} รับเรื่อง "${title}"`,
       asked: (actor: string, title: string, text: string) => `${actor} ขอข้อมูลเพิ่มเรื่อง "${title}": ${text}`,
       note: (actor: string, title: string, text: string) => `${actor} ตอบเรื่อง "${title}": ${text}`,
-      passed_on: (actor: string, title: string) => `${actor} ส่งต่อเรื่อง "${title}"`,
+      passed_on: (actor: string, title: string, to: string) => `${actor} ส่งต่อเรื่อง "${title}"${to ? ` ให้ ${to}` : ""}`,
       goal_met: (_actor: string, title: string) => `เรื่อง "${title}" ถึงเป้าแล้ว`,
       done: (actor: string, title: string) => `${actor} ปิดเรื่อง "${title}"`,
     },
