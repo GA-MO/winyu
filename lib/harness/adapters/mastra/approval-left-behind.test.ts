@@ -52,6 +52,6 @@ describe("a new question sent while a send waits for approval", () => {
     expect(closed?.toolName).toBe("send_card");
     expect(JSON.stringify(closed?.output)).toContain("LEFT_FOR_NEW_QUESTION");
     const restored = (await threadHistory(threadId, USER)).find((message) => message.role === "tool" && message.toolCallId === toolCallId);
-    expect(restored?.role === "tool" ? JSON.parse(restored.content) : null).toMatchObject({ ok: false, code: "LEFT_FOR_NEW_QUESTION" });
+    expect(typeof restored?.content === "string" ? JSON.parse(restored.content) : null).toMatchObject({ ok: false, code: "LEFT_FOR_NEW_QUESTION" });
   });
 });

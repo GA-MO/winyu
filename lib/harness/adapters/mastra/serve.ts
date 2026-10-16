@@ -14,7 +14,7 @@ import { AGENT_ID, USER_ID_KEY, winyuAgent } from "./agent";
 import { HARNESS_RUN_KEY, tracingOptionsOf } from "./observability";
 import { asBridgeAgent } from "./durable";
 import { ReplyCards, withComposedCards, type CarriedCall, type ComposedCardRecord, type StreamEvent } from "./card-stream";
-import { callsAnswering, keepFinishedResults, screenCardsOn, threadHistory, threadTranscript } from "./history";
+import { callsAnswering, keepFinishedResults, screenCardsOn, storeResults, threadHistory, threadTranscript } from "./history";
 import { guardedRunInput, inputFindings, type GuardedInput } from "./guardrails";
 import { learnFromTurn } from "./learn";
 import { chatTurnOf, observeReply, type ChatTurn, type FinishedResult, type KnownCalls, type ReplySeen, type RunInput } from "./turn";
@@ -30,6 +30,7 @@ const NOT_SERVED = { error: "Not found" };
 const QUERY_TOOL = "query_metric";
 const MEMORY_TOOLS: ReadonlySet<string> = new Set(["remember", "forget"]);
 const RESUME_KEY = "resume";
+const LEFT_FOR_NEW_QUESTION = "LEFT_FOR_NEW_QUESTION";
 const MESSAGES_SNAPSHOT = "MESSAGES_SNAPSHOT";
 const SSE_DATA = "data:";
 const SSE_FRAME_END = "\n\n";
@@ -204,6 +205,17 @@ function declinedByNewQuestion(turn: ChatTurn): boolean {
   });
 }
 
+/** Closes in memory each call the new question left waiting, with a result that says the person moved on, so neither this run's model nor a later one reads it as a request still to carry out. */
+async function leaveBehind(turn: ChatTurn, userId: string): Promise<void> {
+  if (!turn.threadId) return;
+  await keeping.get(turn.threadId);
+  const outputs = new Map(turn.answers.flatMap((answer) => {
+    const tool = askedTool(answer.interruptId);
+    return tool ? [[answer.toolCallId, { ok: false, code: LEFT_FOR_NEW_QUESTION, error: TH.harness.leftForNewQuestion(tool) }] as const] : [];
+  }));
+  await storeResults(turn.threadId, userId, outputs);
+}
+
 function withoutAnswers(req: Request, input: RunInput): Request {
   const asked = Object.fromEntries(Object.entries(input ?? {}).filter(([key]) => key !== RESUME_KEY));
   return new Request(req.url, { method: "POST", headers: req.headers, body: JSON.stringify(asked) });
@@ -216,7 +228,10 @@ async function serveRun(access: AccessContext, req: Request, turn: ChatTurn, gua
   const spent = turn.answers.map((answer) => ({ answer, problem: problemOf(answer.interruptId, access.userId, answer.toolCallId) })).find((entry) => entry.problem !== null);
   if (spent) return refused(run, spent.answer.interruptId, spent.problem ?? "unknown");
   for (const answer of turn.answers) markAnswered(answer.interruptId, answer.approved);
-  if (declinedByNewQuestion(turn)) return streamRun(access, withoutAnswers(req, guarded.input), run, { ...turn, answers: [] }, options, guarded);
+  if (declinedByNewQuestion(turn)) {
+    await leaveBehind(turn, access.userId);
+    return streamRun(access, withoutAnswers(req, guarded.input), run, { ...turn, answers: [] }, options, guarded);
+  }
   return streamRun(access, req, run, turn, options, guarded);
 }
 

@@ -172,8 +172,13 @@ async function pauseStored(runId: string): Promise<void> {
 /** Stores the results a paused run returned for calls memory still holds without one. Mastra saves a step's message when a call in it pauses for approval, before the step's finished calls get their results, and only an answer to that approval adds them; a run left waiting, or left behind by a new question, would otherwise lose the cards those calls drew from the restored thread. The write waits until Mastra has stored the pause, which it does after saving that message, so its save cannot overwrite this one. */
 export async function keepFinishedResults(runId: string, threadId: string, userId: string, finished: readonly FinishedResult[]): Promise<void> {
   if (finished.length === 0) return;
-  const outputs = new Map(finished.map((call) => [call.toolCallId, call.output]));
   await pauseStored(runId);
+  await storeResults(threadId, userId, new Map(finished.map((call) => [call.toolCallId, call.output])));
+}
+
+/** Stores `outputs` as the results of calls memory holds without one, keyed by tool call id; a thread of someone else, or one that never ran, is left alone. */
+export async function storeResults(threadId: string, userId: string, outputs: ReadonlyMap<string, unknown>): Promise<void> {
+  if (outputs.size === 0) return;
   const store = await memory();
   const thread = await store.getThreadById({ threadId });
   if (!thread || thread.resourceId !== userId) return;
