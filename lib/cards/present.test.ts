@@ -323,8 +323,9 @@ describe("two metrics on one card", () => {
     const card = presentCard({ title: "t", query: sales.query, result: sales.result, others: [margin] });
     const strip = stripOf(card.body);
     strip.rows.forEach((row) => expect(row.sub).toMatch(/^[\d.]+% อัตรากำไรขั้นต้น [+−-]?[\d.]+ จุด$/));
-    const overall = `อัตรากำไรขั้นต้น ${margin.result.headline.value} ${formatChange("gross_margin", margin.result.headline.deltaPercent, margin.result.headline.deltaPoints ?? null)} ${margin.result.headline.compareLabel}`;
+    const overall = `อัตรากำไรขั้นต้น ${margin.result.headline.value} ${formatChange("gross_margin", margin.result.headline.deltaPercent, margin.result.headline.deltaPoints ?? null)}`;
     expect(strip.overall?.sub).toContain(overall);
+    expect(card.footer?.details).toContain(`อัตรากำไรขั้นต้น ${margin.result.headline.compareLabel}`);
   });
 
   test("a change ranking names what each row moved from, and the hero what the whole was, so last year's amount is on the card (AI-68)", () => {
@@ -867,7 +868,7 @@ describe("a gap card (explain_gap)", () => {
     expect(card.hero).toMatchObject({ label: TH.cards.gap.monthEndLabel, value: "87.5%", unit: TH.read.ofMonthTarget, tone: "bad" });
     expect(card.verdict).toBe("คาดปิดเดือนไม่ถึงเป้า ลีโอฉุดมากสุด 63.1%");
     const body = expectKind(card.body, "exceptions");
-    expect(body.strip.rows[0]).toMatchObject({ label: "ต่ำกว่าเป้าตามเวลา", text: "39.8 ล้านบาท" });
+    expect(body.strip.rows[0]).toMatchObject({ label: `${TH.cards.gap.toDate}ต่ำกว่าเป้าตามเวลา`, text: "39.8 ล้านบาท" });
     expect(body.strip.rows.slice(1).map((row) => row.label)).toEqual(["ลีโอ", "สิงห์"]);
     expect(body.fold?.rows.map((row) => row.label)).toEqual(["โซดาสิงห์", "น้ำดื่มสิงห์", "เพอร์ร่า"]);
     expect(body.fold?.line).toBe(`${TH.cards.gap.smallerFold(1, "0.3%")} · ${TH.cards.gap.offsetFold(2)}`);

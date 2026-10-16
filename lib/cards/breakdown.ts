@@ -33,6 +33,7 @@ export type LevelLine = { at: number; line: LineKind; underLabel: string; aboveW
 
 const PERCENT = 100;
 const MAX_STRIP_ROWS = 8;
+const FULLY_VALUED_ROWS = 3;
 const LEADERS = 3;
 const MIN_GAP_PERCENT = 5;
 const MIN_GAP_POINTS = 1;
@@ -148,7 +149,7 @@ function aboveLineReading(input: BreakdownInput, line: LevelLine): Breakdown {
     change: null,
     tone: "neutral",
     exception: index < leading,
-    valued: index < leading || index === scored.length - 1,
+    valued: index < leading,
   }));
   const [top] = scored;
   const topLabel = top ? labelOf(query, top.row) : input.scope;
@@ -191,7 +192,7 @@ function lineReading(input: BreakdownInput, line: LevelLine): Breakdown {
   const answer = line.line.kind === "cover" && under.length === 0 && !input.threshold ? scored[0] : null;
   const peak = Math.max(at, ...scored.map((entry) => entry.measure ?? 0));
   const textOf = (entry: { row: MetricRow; measure: number | null }) => (overTarget ? (entry.measure === null ? "—" : percentText(entry.measure)) : valueTextOf(query, entry.row));
-  const rows: ReadRow[] = scored.map((entry, index) => {
+  const rows: ReadRow[] = scored.map((entry) => {
     const isUnder = entry.measure !== null && entry.measure < at;
     const emphasised = isUnder || entry === answer;
     return {
@@ -203,7 +204,7 @@ function lineReading(input: BreakdownInput, line: LevelLine): Breakdown {
       change: null,
       tone: isUnder ? "bad" : "neutral",
       exception: emphasised,
-      valued: overTime || emphasised || index === scored.length - 1,
+      valued: overTime || emphasised,
     };
   });
   const overallMeasure = overTarget ? (result.headline.deltaPercent === null ? null : PERCENT + result.headline.deltaPercent) : ofTarget ? percentIn(result.headline.value) : null;
@@ -292,7 +293,7 @@ function changeReading(input: BreakdownInput): Breakdown {
   const exceptions = new Set(claimed.map((entry) => entry.row));
   const peak = Math.max(inPoints ? MIN_PEAK_POINTS : MIN_PEAK_PERCENT, ...known.map((entry) => Math.abs(entry.measure)));
   const format = inPoints ? (value: number) => TH.read.points(Math.round(value * 10) / 10) : percentText;
-  const rows: ReadRow[] = scored.map((entry, index) => {
+  const rows: ReadRow[] = scored.map((entry) => {
     const exception = exceptions.has(entry.row);
     return {
       label: labelOf(query, entry.row),
@@ -303,7 +304,7 @@ function changeReading(input: BreakdownInput): Breakdown {
       change: null,
       tone: exception ? rowMove(query, entry.row).tone : "neutral",
       exception,
-      valued: exception || index === scored.length - 1,
+      valued: exception,
     };
   });
   const overall = headlineMove(query, result);
@@ -394,7 +395,7 @@ function referenceReading(input: BreakdownInput): Breakdown {
       change: null,
       tone: outliers.has(index) && value !== null ? toneOf(query.metric, value > baseline ? PERCENT : -PERCENT) : "neutral",
       exception,
-      valued: exception || index === 0 || index === input.rows.length - 1,
+      valued: exception,
     };
   });
   const overall = headlineMove(query, result);
@@ -442,8 +443,17 @@ export function parityReading(input: { gaps: readonly ParityGap[]; hero: CardHer
 
 /** Reads one breakdown the way styles B and A draw it, by the bars the decision table chose. */
 export function readBreakdown(input: BreakdownInput): Breakdown {
-  const reading = readByBars(input);
+  const reading = withValuedEnds(readByBars(input));
   return input.asked.size === 0 ? reading : withAskedRows(reading, input);
+}
+
+/** Rows that carry their value whatever else the strip mutes: both ends of the measure, so the row furthest in the asked direction always says how far (AI-173), and every row of a strip this short, where one bar without a number reads as missing (AI-188). */
+function withValuedEnds(reading: Breakdown): Breakdown {
+  const known = measuresOf(reading.rows);
+  if (known.length === 0) return reading;
+  const ends = new Set([Math.min(...known), Math.max(...known)]);
+  const every = reading.rows.length <= FULLY_VALUED_ROWS;
+  return { ...reading, rows: reading.rows.map((row) => (every || (row.measure !== null && ends.has(row.measure)) ? { ...row, valued: true } : row)) };
 }
 
 function readByBars(input: BreakdownInput): Breakdown {

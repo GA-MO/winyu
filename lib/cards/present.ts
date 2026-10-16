@@ -1,11 +1,13 @@
 import { standsOut } from "@/lib/engine/gap";
-import { WIDGET_KINDS, type Alert, type AlertRow, type Dim, type Forecast, type MetricId, type MetricQuery, type MetricResult, type MetricRow, type MonthEndProjection, type NextAction, type UnderLine, type WidgetKind } from "@/lib/contracts";
+import { HEADLINE_OWN_ROW } from "@/lib/semantic/metrics";
+import { stepOf } from "./step";
+import { WIDGET_KINDS, type Alert, type AlertRow, type Dim, type Forecast, type Grain, type MetricId, type MetricQuery, type MetricResult, type MetricRow, type MonthEndProjection, type NextAction, type UnderLine, type WidgetKind } from "@/lib/contracts";
 import { TH } from "@/lib/i18n/th";
 import { MIN_CELL_SIZE } from "@/lib/access/suppression";
 import { addDays, daysBetween, monthKeyOfIso, weekKeyOfIso } from "@/lib/data/dates";
 import { formatDateTh, formatPercent, periodLabelTh } from "@/lib/i18n/format";
 import { changeTextOf, deltaPercentOf, deltaPointsOf, groupDimsOf, labelAlong, labelOf, numericOf, timeDimOf, valueTextOf } from "./rows";
-import { changeOf, exceptionsOf, fitsOneStrip, LEVEL_LINES, parityReading, percentIn, readBreakdown, stripOf, type Breakdown, type BreakdownBars, type LevelLine, type TargetBase } from "./breakdown";
+import { attainmentOf, changeOf, exceptionsOf, fitsOneStrip, LEVEL_LINES, parityReading, percentIn, readBreakdown, stripOf, type Breakdown, type BreakdownBars, type LevelLine, type TargetBase } from "./breakdown";
 import { compactPeriod, outliersOf, percentText, rangeText, shareVerdict, spaced, summaryVerdict, trendVerdict, type CardFooter, type Fold, type ReadRow, type Strip, type Tile } from "./reading";
 import {
   bucketCountOf,
@@ -272,8 +274,8 @@ function timeView(shape: Shape): CardView {
 
 type OkResult = Extract<MetricResult, { ok: true }>;
 
-/** What the card leads with when it is not a breakdown drawn as bars: the total, the one row it has, the row that ranks first, the latest full bucket, or the overall row of the breakdown reading. */
-type HeroKind = "total" | "single" | "leader" | "latest" | "reading";
+/** What the card leads with when it is not a breakdown drawn as bars: the total, the one row it has, the row that ranks first, the latest full bucket, the whole range against its target, the level a series stepped to, or the overall row of the breakdown reading. */
+type HeroKind = "total" | "single" | "leader" | "latest" | "target" | "step" | "reading";
 
 /** Which bars a breakdown draws; `auto` picks the change when the list is ranked by it, the deciding line when the metric has one, a leaderboard for a sum, a reference level for a rate. */
 type Bars = "auto" | BreakdownBars;
@@ -309,6 +311,8 @@ const CARD_RULES: readonly CardRule[] = [
   { rule: "R1 one row", when: (f) => f.rows.length <= 1 && (f.query.dims.length > 0 || f.filtered), view: always("metric"), bars: "auto", hero: "single", look: "summary" },
   { rule: "R2 short series against target", when: (f) => f.time && f.groups === 0 && f.buckets >= RANK_MIN_ROWS && f.buckets < MIN_LINE_BUCKETS && f.query.compare === "target" && hasChange(f.rows), view: always("bar"), bars: "target", hero: "reading", look: "breakdown" },
   { rule: "R2 short series", when: (f) => f.time && f.groups === 0 && f.buckets < MIN_LINE_BUCKETS, view: always("metric"), bars: "auto", hero: "total", look: "summary" },
+  { rule: "R12 series against target", when: (f) => f.time && f.groups === 0 && f.query.compare === "target", view: always("line"), bars: "auto", hero: "target", look: "summary" },
+  { rule: "R13 step", when: (f) => f.time && f.groups === 0 && seriesStepOf(f.query, f.result, f.rows) !== null, view: always("line"), bars: "auto", hero: "step", look: "summary" },
   { rule: "R9 trend", when: (f) => f.time && f.groups === 0, view: always("line"), bars: "auto", hero: "latest", look: "summary" },
   { rule: "time × group", when: (f) => f.time, view: timeView, bars: "auto", hero: "total", look: "chart" },
   { rule: "R3 against target", when: (f) => f.query.compare === "target" && f.rows.length >= RANK_MIN_ROWS && !isDenseGrid(f) && hasChange(f.rows), view: always("bar"), bars: "target", hero: "reading", look: "breakdown" },
@@ -385,18 +389,25 @@ export function subjectOf(query: MetricQuery, result: MetricResult): string {
   return named && !timeDimOf(query) ? TH.dash.ownScope(metricLabel(query.metric), named) : heroLabelOf(query, result);
 }
 
+/** Whether the engine's headline is the company's own row of the split rather than a blend of every row (market share by maker, AI-189). */
+function leadsWithOwnRow(query: MetricQuery): boolean {
+  const dim = HEADLINE_OWN_ROW[query.metric];
+  return dim !== undefined && query.dims.includes(dim);
+}
+
 /** A breakdown's headline stands for every group in scope, not only the rows the card lists; the label says which, and a total over everything the person may see says so. */
 function heroLabelOf(query: MetricQuery, result: OkResult): string {
   const label = metricLabel(query.metric);
   const dim = rankDimOf(query);
   if (!dim && !timeDimOf(query) && scopeLabelsOf(query, result).length === 0) return TH.dash.wholeScope(label, result.headline.aggregate === "average");
-  if (!dim || timeDimOf(query) || result.rows.length <= 1) return label;
+  if (!dim || timeDimOf(query) || result.rows.length <= 1 || leadsWithOwnRow(query)) return label;
   const unit = TH.dash.dimUnit[dim];
   return result.headline.aggregate === "average" ? TH.dash.averageAcross(label, unit) : TH.dash.totalAcross(label, unit);
 }
 
 /** What the overall row of a breakdown is called: the whole country for regions nobody narrowed, else every group of the unit, summed or averaged. */
 function overallLabelOf(query: MetricQuery, result: OkResult): string {
+  if (leadsWithOwnRow(query)) return TH.read.ownShare;
   const dim = rankDimOf(query);
   const unit = verdictUnitOf(query);
   const narrowed = scopeLabelsOf(query, result).length > 0 || Object.keys(result.query.scopeApplied ?? {}).length > 0;
@@ -500,6 +511,7 @@ type LatestBucket = { label: string; previous: string; value: string; deltaPerce
 
 /** A series with no breakdown is read at its latest full bucket against the one before: a sum always (the range total moves to a tile), a rate when nothing else is compared; the total or average of the whole line hides the turn someone asked about. */
 function latestBucketOf(query: MetricQuery, result: OkResult, rows: MetricRow[]): LatestBucket | null {
+  if (query.compare === "target") return null;
   if (result.headline.aggregate === "average" && result.headline.deltaPercent !== null) return null;
   if (asksAboutOnePeriod(query)) return null;
   if (rows.length === 2 && leadingPartialDays(query) !== null) return null;
@@ -522,17 +534,19 @@ function fullBucketRows(query: MetricQuery, rows: MetricRow[], asOf: string): Me
   return withoutPartialBucket(query, "line", rows, asOf).rows;
 }
 
-/** The change a card leads with, the same one its hero shows: the latest full bucket for a series, the headline comparison otherwise. */
+/** The change a card leads with, the same one its hero shows: the step a day or week series took, else the latest full bucket for a series, the headline comparison otherwise. */
 export function headlineChangeOf(query: MetricQuery, result: MetricResult): { deltaPercent: number | null; deltaPoints: number | null; compareLabel: string | null } {
   if (!result.ok) return { deltaPercent: null, deltaPoints: null, compareLabel: null };
+  const step = seriesStepOf(query, result, result.rows);
+  if (step) return { deltaPercent: ((step.after - step.before) / Math.abs(step.before)) * PERCENT, deltaPoints: step.after - step.before, compareLabel: TH.read.since(step.since) };
   const latest = latestBucketOf(query, result, fullBucketRows(query, result.rows, result.provenance.asOf));
   if (latest) return { deltaPercent: latest.deltaPercent, deltaPoints: latest.deltaPoints, compareLabel: latest.versus };
   return { deltaPercent: result.headline.deltaPercent, deltaPoints: result.headline.deltaPoints ?? null, compareLabel: result.headline.compareLabel };
 }
 
-/** The bucket a series card leads with ("ต.ค. 69"), so a tile names the month its number is, never the whole range the series spans (AI-157); null when the card leads with something else. */
+/** The bucket a series card leads with ("ต.ค. 69"), so a tile names the month its number is, never the whole range the series spans (AI-157); null when the card leads with something else (a step, a range against target). */
 export function leadBucketOf(query: MetricQuery, result: MetricResult): string | null {
-  if (!result.ok) return null;
+  if (!result.ok || seriesStepOf(query, result, result.rows)) return null;
   return latestBucketOf(query, result, fullBucketRows(query, result.rows, result.provenance.asOf))?.label ?? null;
 }
 
@@ -613,19 +627,98 @@ function singleLead(facts: Facts): Lead {
   return summaryLead(facts, name || shortMetric(query.metric), name || heroLabelOf(query, result));
 }
 
+/** The whole range of a summed series as one tile beside a hero that reads part of it. */
+function wholeRangeTiles(query: MetricQuery, result: OkResult): Tile[] {
+  if (result.headline.aggregate !== "sum") return NO_TILES;
+  const range = headlineMoveOf(query, result);
+  return [{ label: TH.read.wholeRange, value: result.headline.value, delta: range.delta, tone: range.tone, sub: result.headline.compareLabel }];
+}
+
 /** R9: a series leads with its latest full bucket against the one before; the range total is its second fact. */
 function latestLead(facts: Facts): Lead {
   const { query, result, rows } = facts;
   const latest = latestBucketOf(query, result, rows);
   if (!latest) return summaryLead(facts, shortMetric(query.metric), heroLabelOf(query, result));
   const move = moveOf({ ...query, compare: "prev_period" }, latest.deltaPercent, latest.deltaPoints);
-  const range = headlineMoveOf(query, result);
-  const whole = result.headline.aggregate === "sum" ? [{ label: TH.read.wholeRange, value: result.headline.value, delta: range.delta, tone: range.tone, sub: result.headline.compareLabel }] : NO_TILES;
   const change = metricFormat(query.metric) === "percent" ? latest.deltaPoints : latest.deltaPercent;
   return {
     hero: { label: latest.label, value: latest.value, unit: null, ...move, detail: latest.versus },
-    tiles: whole,
+    tiles: wholeRangeTiles(query, result),
     verdict: trendVerdict(latest.label, latest.previous, change, move.delta ?? "", isFlat(move)),
+  };
+}
+
+/** Grains whose series can break: a day or a week that moved to a new level is an event (orders stopped); months move with the season. */
+const STEP_GRAINS: ReadonlySet<Grain> = new Set<Grain>(["day", "week"]);
+
+type SeriesStep = { since: string; before: number; after: number };
+
+/** Where a summed daily or weekly series with no breakdown moved to a new level and stayed there, over its full buckets; null when it did not. */
+function seriesStepOf(query: MetricQuery, result: OkResult, rows: MetricRow[]): SeriesStep | null {
+  if (!STEP_GRAINS.has(query.grain) || result.headline.aggregate !== "sum" || !timeDimOf(query) || groupDimsOf(query).length > 0) return null;
+  const full = fullBucketRows(query, rows, result.provenance.asOf);
+  const values = full.flatMap((row) => {
+    const value = numericOf(row, "value");
+    return value === null ? [] : [value];
+  });
+  if (values.length !== full.length) return null;
+  const step = stepOf(values);
+  return step ? { since: labelOf(query, full[step.at]), before: step.before, after: step.after } : null;
+}
+
+/** R13: a day or week series that stepped to a new level leads with the step, when it came, the level before and the level since, in the colour of the move; the range total is its second fact (AI-174). */
+function stepLead(facts: Facts): Lead {
+  const { query, result, rows } = facts;
+  const step = seriesStepOf(query, result, rows);
+  if (!step) return latestLead(facts);
+  const every = TH.read.everyBucket[query.grain] ?? "";
+  const [before, after] = [formatMetricValue(query.metric, step.before), formatMetricValue(query.metric, step.after)];
+  const move = moveOf({ ...query, compare: "prev_period" }, ((step.after - step.before) / Math.abs(step.before)) * PERCENT, step.after - step.before);
+  return {
+    hero: { label: TH.read.since(step.since), value: after, unit: TH.read.perBucket[query.grain] ?? null, ...move, detail: TH.read.beforeStep(every, before) },
+    tiles: wholeRangeTiles(query, result),
+    verdict: TH.read.step(step.since, step.after < step.before, every, before, after),
+  };
+}
+
+/** R12: a series against its target answers whether the range reaches it: the whole range's share of target leads (on pace to date while a month is still running), with what is left to it and the bucket that missed most; never the last bucket against the one before (AI-174). */
+function targetSeriesLead(facts: Facts): Lead {
+  const { query, result } = facts;
+  const delta = result.headline.deltaPercent;
+  if (delta === null) return latestLead(facts);
+  const attainment = PERCENT + delta;
+  const paced = isPacedTarget(query, result.provenance.asOf);
+  const goal = paced ? TH.read.pacedGoal : TH.read.goal;
+  const behind = attainment < PERCENT;
+  const target = result.rows.reduce((sum, row) => sum + (numericOf(row, "compare_value") ?? 0), 0);
+  const actual = result.rows.reduce((sum, row) => sum + (numericOf(row, "value") ?? 0), 0);
+  const left = behind && !isCapped(query, result.rows.length) && target > actual ? tileOf(TH.read.toTarget, formatMetricValue(query.metric, target - actual), TH.read.toGoal(goal)) : null;
+  const worst = result.rows
+    .map((row) => ({ label: labelOf(query, row), share: attainmentOf(row) }))
+    .reduce<{ label: string; share: number } | null>((low, entry) => (entry.share !== null && entry.share < PERCENT && (low === null || entry.share < low.share) ? { label: entry.label, share: entry.share } : low), null);
+  const name = TH.read.sumToDate;
+  const standing = paced ? paceVerdict(name, attainment) : behind ? TH.read.belowGoal(name, goal, percentText(PERCENT - attainment)) : TH.read.met(name);
+  return {
+    hero: { label: name, value: percentText(attainment), unit: paced ? TH.read.ofPacedTarget : TH.read.ofTarget, delta: null, trend: behind ? "down" : "neutral", tone: behind ? "bad" : "neutral", detail: `${TH.read.actual} ${result.headline.value}` },
+    tiles: [left, worst ? tileOf(worst.label, percentText(worst.share), TH.read.missedMostTile) : null].filter((tile): tile is Tile => tile !== null),
+    verdict: [standing, worst ? TH.read.missedMost(worst.label, percentText(PERCENT - worst.share)) : null].filter(Boolean).join(" "),
+  };
+}
+
+/** A metric query drawn as where its running month ends (pinned as `month_end`): the month-end share of the whole month's target leads, the share done so far and what is left beside it, so a pinned projection shows the projection, never the month to date (AI-171). */
+function monthEndCard(input: PresentInput, result: OkResult, projection: MonthEndProjection): CardParts {
+  const reaches = (percentIn(projection.attainment) ?? 0) >= PERCENT;
+  const left = projection.shortBy ? tileOf(TH.read.toTarget, projection.shortBy, TH.read.ofMonthTarget) : null;
+  return {
+    title: input.title,
+    style: "scorecard",
+    verdict: spaced(TH.cards.gap.monthEnd(reaches)),
+    hero: { label: TH.cards.gap.monthEndLabel, value: projection.attainment, unit: TH.read.ofMonthTarget, delta: null, ...underTone(projection.attainment), detail: TH.cards.gap.projected(projection.projected, projection.monthTarget) },
+    tiles: [tileOf(TH.read.doneSoFar, projection.attainmentToDate, TH.read.ofMonthTarget), left].filter((tile): tile is Tile => tile !== null),
+    body: { kind: "none" },
+    ...actionsOf(input.actions ?? NO_ACTIONS),
+    footer: footerOf(input.query, result, [projectionNote(result)]),
+    denied: null,
   };
 }
 
@@ -1071,14 +1164,16 @@ function withBaseline(card: CardParts, second: Source): CardParts {
   return withSecondLine(card, subs, baselineText(second, formatChange(query.metric, result.headline.deltaPercent, result.headline.deltaPoints ?? null)));
 }
 
-/** Two metrics of a few groups (too few points for a scatter to say anything) read as the first metric's breakdown with the second metric's value and change under every row, and its overall figure with its change beside the hero, so both numbers the reply relies on are on the card (AI-124). */
+/** Two metrics of a few groups (too few points for a scatter to say anything) read as the first metric's breakdown with the second metric's value and change under every row, and its overall figure with its change beside the hero, so both numbers the reply relies on are on the card (AI-124); what that change is against goes to the footer like every row's, so the overall line is never clamped mid-phrase (AI-188). */
 function withSecondMetric(card: CardParts, pairing: Pairing): CardParts {
   const [, second] = pairing.sources;
   const { query, result } = second;
   const label = shortMetricLabel(second);
   const subs = new Map(result.rows.map((row) => [labelOf(query, row), joinedBySpace([valueTextOf(query, row), label, changeTextOf(query.metric, row)])]));
-  const overall = joinedBySpace([label, result.headline.value, formatChange(query.metric, result.headline.deltaPercent, result.headline.deltaPoints ?? null), result.headline.compareLabel]);
-  return { ...withSecondLine(card, subs, overall), title: pairedTitleOf(pairing) };
+  const overall = joinedBySpace([label, result.headline.value, formatChange(query.metric, result.headline.deltaPercent, result.headline.deltaPoints ?? null)]);
+  const versus = result.headline.compareLabel ? joinedBySpace([label, result.headline.compareLabel]) : null;
+  const footer = card.footer && versus ? { ...card.footer, details: joined([card.footer.details, versus]) } : card.footer;
+  return { ...withSecondLine(card, subs, overall), title: pairedTitleOf(pairing), footer };
 }
 
 function joinedBySpace(parts: readonly (string | null)[]): string {
@@ -1331,7 +1426,7 @@ export function presentGap(input: PresentGapInput): CardParts {
   const drawn = parts.filter((part) => part === lead || (part !== answer.rest && (percentIn(part.share_label) ?? 0) >= MIN_GAP_SHARE));
   const smaller = parts.filter((part) => !drawn.includes(part));
   const rows = [
-    gapRow(TH.cards.gap.whole(below, versus), unsignedLabel(answer.gap_label), null, null, tone),
+    gapRow(`${answer.projection ? TH.cards.gap.toDate : ""}${TH.cards.gap.whole(below, versus)}`, unsignedLabel(answer.gap_label), null, null, tone),
     ...drawn.map((part) => gapRow(part.label, unsignedLabel(part.gap_label), TH.cards.gap.ofGap(part.share_label), percentIn(part.share_label), tone)),
   ];
   const folded = [
@@ -1403,6 +1498,8 @@ function oneBucketBreakdown(query: MetricQuery, rows: MetricRow[]): MetricQuery 
 function leadOf(facts: Facts, fit: Fit, rows: MetricRow[], view: CardView): Lead | null {
   if (fit.hero === "single") return singleLead(facts);
   if (fit.hero === "latest") return latestLead(facts);
+  if (fit.hero === "target") return targetSeriesLead(facts);
+  if (fit.hero === "step") return stepLead(facts);
   if (fit.look === "summary") return summaryLead(facts, shortMetric(facts.query.metric), heroLabelOf(facts.query, facts.result));
   if (fit.hero === "leader") return { hero: leaderHero({ ...facts, rows }), tiles: NO_TILES, verdict: "" };
   if (fit.hero === "reading" && rows.length > 0) {
@@ -1423,6 +1520,7 @@ export function presentCard(input: PresentInput): CardParts {
     return { title, style: "chart", verdict: null, hero: null, tiles: NO_TILES, body: { kind: "none" }, primary: null, more: NO_ACTIONS, footer: null, denied: refusalNoticeOf(result.code, result.error) };
   }
   if (everyValueMasked(result)) return maskedCard(input, result);
+  if (input.view === "month_end" && result.headline.projection) return monthEndCard(input, result, result.headline.projection);
   const extras = input.extras ?? NO_EXTRAS;
   const hidden = result.rows.filter(isHiddenRow).length;
   const visibleRows = hidden > 0 ? result.rows.filter((row) => !isHiddenRow(row)) : result.rows;

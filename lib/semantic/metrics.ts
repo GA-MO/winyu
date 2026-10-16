@@ -158,6 +158,9 @@ export const METRICS: Record<MetricId, MetricDef> = Object.fromEntries(
 
 export const METRIC_LIST: readonly MetricDef[] = METRIC_IDS.map((id) => METRICS[id]);
 
+/** Metrics whose headline is the company's own row when split by this dim: market share by maker leads with our share, never a blend of every maker. */
+export const HEADLINE_OWN_ROW: Partial<Record<MetricId, Dim>> = { market_share: "maker" };
+
 /** Metrics reported once a month after the month closes (a retail audit): a card shows the last complete month, never a partial one. */
 export const CLOSED_MONTH_METRICS: ReadonlySet<MetricId> = new Set<MetricId>(["market_share"]);
 

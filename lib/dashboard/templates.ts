@@ -53,7 +53,7 @@ function seed(input: SeedInput): WidgetSeed {
 }
 
 const CEO_SEEDS: WidgetSeed[] = [
-  seed({ key: "attainment", title: "ยอดขายทั้งประเทศเทียบเป้า", kind: "metric", metric: "target_attainment", compare: "none" }),
+  seed({ key: "attainment", title: "ยอดขายทั้งประเทศเทียบเป้า", kind: "metric", metric: "net_sales_value", compare: "target" }),
   seed({ key: "volume_trend", title: "ปริมาณขายรายเดือน", kind: "line", metric: "net_sales_volume", dims: ["month"], range: LAST_6_MONTHS, compare: "prev_year" }),
   seed({ key: "margin_bu", title: "กำไรขั้นต้นตามกลุ่มธุรกิจ", kind: "bar", metric: "gross_margin", dims: ["business_unit"], range: YEAR_TO_DATE }),
   seed({ key: "alerts", title: "ความผิดปกติที่ต้องดู", kind: "alert_list", metric: "sell_out_volume", dims: ["region"], range: LAST_4_WEEKS, grain: "week", compare: "prev_period" }),

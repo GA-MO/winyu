@@ -137,7 +137,7 @@ function withoutPin(actions: NextAction[]): NextAction[] {
 async function viewOf(widget: WidgetSpec, access: AccessContext, relevant: readonly Alert[]): Promise<WidgetView> {
   const [result, extras] = await Promise.all([resolveWidget(widget, access), extrasFor(widget, access)]);
   const actions = withoutPin(extras.actions ?? actionsForMetric(access, result, await loadDictionary()));
-  const hero = presentCard({ title: widget.title, query: widget.query, result }).hero;
+  const hero = presentCard({ title: widget.title, query: widget.query, result, view: widget.kind }).hero;
   return {
     widget,
     card: widgetCard(widget, result, { sortBy: widget.sortBy ?? null, ...extras, actions }),
@@ -205,7 +205,7 @@ export async function landingKpis(access: AccessContext): Promise<LandingKpi[]> 
   const shownMetrics = new Set<string>();
   for (const { widget, result } of byAttention(pinned)) {
     if (kpis.length >= KPI_LIMIT) break;
-    const parts = presentCard({ title: widget.title, query: widget.query, result });
+    const parts = presentCard({ title: widget.title, query: widget.query, result, view: widget.kind });
     const hero = parts.hero;
     const value = hero?.unit ? `${hero.value} ${hero.unit}` : hero?.value;
     const label = subjectOf(widget.query, result);
