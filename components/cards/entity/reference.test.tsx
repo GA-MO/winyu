@@ -52,8 +52,9 @@ describe("explain_gap shares above 100%", () => {
   });
 
   test("the card shows the note only when the answer carries one", () => {
-    expect(renderToStaticMarkup(<GapCard result={gapFixture("149.8%", TH.cards.gap.overHundred)} />)).toContain(TH.cards.gap.overHundred);
-    expect(renderToStaticMarkup(<GapCard result={gapFixture("62.0%", null)} />)).not.toContain(TH.cards.gap.overHundred);
+    const args = { metric: "net_sales_volume", split: "agent" };
+    expect(renderToStaticMarkup(<GapCard result={gapFixture("149.8%", TH.cards.gap.overHundred)} args={args} />)).toContain(TH.cards.gap.overHundred);
+    expect(renderToStaticMarkup(<GapCard result={gapFixture("62.0%", null)} args={args} />)).not.toContain(TH.cards.gap.overHundred);
   });
 });
 

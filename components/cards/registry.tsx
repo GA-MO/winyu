@@ -24,7 +24,7 @@ export const TOOL_CARDS = {
   query_metric: (result, args, paired) => <DataCard title={metricTitle(result, args)} source={result} with={paired} />,
   get_alerts: (result) => <AlertsCard title={TH.cards.alertsTitle} source={result} />,
   get_forecast: (result, args) => <ForecastCard title={forecastTitle(result, args)} source={result} />,
-  explain_gap: (result) => <GapCard result={result} />,
+  explain_gap: (result, args) => <GapCard result={result} args={args} />,
   get_calendar: (result) => <CalendarCard result={result} />,
   find_people: (result) => <PeopleCard result={result} />,
   get_person: (result) => <PersonCard result={result} />,

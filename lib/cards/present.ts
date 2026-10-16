@@ -172,6 +172,7 @@ const SEVERITY_TONES: Record<Alert["severity"], AlertTone> = { P1: "danger", P2:
 const VERDICT_UNITS: Partial<Record<Dim, string>> = { dc: "DC" };
 const STRONG_CORRELATION = 0.5;
 const RECENT_WEEKS = 4;
+const MIN_GAP_SHARE = 10;
 /** Metrics that answer one question together (R10): the goods flowing from plant to shelf, the money of the same sales, a campaign and what it moved, a workforce. Two answers of one turn share a card only when one family holds both, so stock cover and overdue money asked side by side keep their own cards (AI-140). */
 const READ_TOGETHER: readonly ReadonlySet<MetricId>[] = [
   new Set<MetricId>(["production_output", "capacity_utilization", "net_sales_volume", "sell_out_volume", "stock_on_hand", "days_of_cover", "forecast_mape"]),
@@ -1256,6 +1257,100 @@ export function presentForecast(input: PresentForecastInput): CardParts {
     hero: forecastHero(forecast),
     body: forecastBody(forecast, history),
     footer: { line: `${TH.dash.forecastScope(points[0].week, points[points.length - 1].week, points.length)}`, verified: false, details: TH.dash.forecastMethod },
+  };
+}
+
+export type GapShare = { label: string; gap_label: string; share_label: string };
+export type GapAnswer = {
+  period_label: string;
+  actual_label: string;
+  compare_label: string;
+  gap_label: string;
+  attainment_label: string | null;
+  contributors: GapShare[];
+  rest: GapShare | null;
+  offsetting: { label: string; gap_label: string }[];
+  share_note?: string | null;
+  projection: { basis: string; projected_label: string; month_target_label: string; attainment_label: string } | null;
+};
+export type PresentGapInput = { answer: GapAnswer; metric: MetricId | null; split: Dim | null };
+
+/** What a gap card knows: the answer, whether the gap is under its comparison, and what that comparison is called ("เป้าตามเวลา" in a month still running, "ปีก่อน"). */
+type GapFacts = { answer: GapAnswer; metric: MetricId | null; below: boolean; versus: string };
+
+/** One row of the gap decision table: when it applies, the hero it leads with, and the verdict's opening clause. */
+type GapRule = { rule: string; when: (facts: GapFacts) => boolean; hero: (facts: GapFacts) => CardHero; opening: (facts: GapFacts) => string };
+
+function unsignedLabel(text: string): string {
+  return text.replace(/^[+−-]/, "");
+}
+
+function underTone(percent: string | null): Pick<CardHero, "tone" | "trend"> {
+  const value = percent === null ? null : percentIn(percent);
+  return value !== null && value < PERCENT ? { tone: "bad", trend: "down" } : { tone: "neutral", trend: "neutral" };
+}
+
+/** R11, the explain_gap decision table: a month still running leads with where it ends at the recent pace (whatever was asked, the month end decides "ทั้งเดือนจะปิดที่เท่าไหร่" and "จะถึงเป้าไหม"); a closed month against target with its share of target; any other comparison with the actual and its one coloured change. The verdict opens with that and names the part that pulled furthest, so "ภาคไหนน่าห่วงที่สุด" is answered in the headline (AI-142). */
+const GAP_RULES: readonly GapRule[] = [
+  {
+    rule: "R11 month end",
+    when: (f) => f.answer.projection !== null,
+    hero: (f) => ({ label: TH.cards.gap.monthEndLabel, value: f.answer.projection?.attainment_label ?? "", unit: TH.read.ofMonthTarget, delta: null, ...underTone(f.answer.projection?.attainment_label ?? null), detail: TH.cards.gap.projected(f.answer.projection?.projected_label ?? "", f.answer.projection?.month_target_label ?? "") }),
+    opening: (f) => TH.cards.gap.monthEnd((percentIn(f.answer.projection?.attainment_label ?? "") ?? 0) >= PERCENT),
+  },
+  {
+    rule: "R11 against target",
+    when: (f) => f.answer.attainment_label !== null,
+    hero: (f) => ({ label: TH.read.actual, value: f.answer.attainment_label ?? "", unit: TH.read.ofTarget, delta: null, ...underTone(f.answer.attainment_label), detail: `${f.answer.actual_label} · ${f.answer.compare_label}` }),
+    opening: (f) => `${TH.cards.gap.whole(f.below, f.versus)} ${unsignedLabel(f.answer.gap_label)}`,
+  },
+  {
+    rule: "R11 against a period",
+    when: () => true,
+    hero: (f) => ({ label: TH.read.actual, value: f.answer.actual_label, unit: null, delta: f.answer.gap_label, trend: f.below ? "down" : "up", tone: f.metric ? toneOf(f.metric, f.below ? -PERCENT : PERCENT) : f.below ? "bad" : "good", detail: f.answer.compare_label }),
+    opening: (f) => `${TH.cards.gap.whole(f.below, f.versus)} ${unsignedLabel(f.answer.gap_label)}`,
+  },
+];
+
+function gapRow(label: string, text: string, sub: string | null, share: number | null, tone: Tone): ReadRow {
+  return { label, sub, measure: share, fill: share === null ? 1 : Math.min(1, Math.max(0, share / PERCENT)), text, change: null, tone, exception: true, valued: true };
+}
+
+/** An explain_gap answer in the shared anatomy (style A): the verdict, the hero the decision table picks, the whole gap named by its base ("ต่ำกว่าเป้าตามเวลา 39.8 ล้านบาท") with the parts that made it under it, and the parts that offset it folded into one line. */
+export function presentGap(input: PresentGapInput): CardParts {
+  const { answer, metric, split } = input;
+  const below = /^[−-]/.test(answer.gap_label);
+  const [word = ""] = answer.compare_label.split(" ");
+  const versus = answer.projection && word === TH.read.goal ? TH.read.pacedGoal : word;
+  const facts: GapFacts = { answer, metric, below, versus };
+  const rule = GAP_RULES.find((candidate) => candidate.when(facts)) ?? GAP_RULES[GAP_RULES.length - 1];
+  const tone: Tone = metric ? toneOf(metric, below ? -PERCENT : PERCENT) : below ? "bad" : "good";
+  const parts = [...answer.contributors, ...(answer.rest ? [answer.rest] : [])];
+  const [lead] = answer.contributors;
+  const drawn = parts.filter((part) => part === lead || (part !== answer.rest && (percentIn(part.share_label) ?? 0) >= MIN_GAP_SHARE));
+  const smaller = parts.filter((part) => !drawn.includes(part));
+  const rows = [
+    gapRow(TH.cards.gap.whole(below, versus), unsignedLabel(answer.gap_label), null, null, tone),
+    ...drawn.map((part) => gapRow(part.label, unsignedLabel(part.gap_label), TH.cards.gap.ofGap(part.share_label), percentIn(part.share_label), tone)),
+  ];
+  const folded = [
+    ...smaller.map((part): ReadRow => ({ label: part.label, sub: TH.cards.gap.ofGap(part.share_label), measure: null, fill: 0, text: unsignedLabel(part.gap_label), change: null, tone: "neutral", exception: false, valued: true })),
+    ...answer.offsetting.map((part): ReadRow => ({ label: part.label, sub: null, measure: null, fill: 0, text: part.gap_label, change: null, tone: "neutral", exception: false, valued: true })),
+  ];
+  const smallerShare = smaller.reduce((sum, part) => sum + (percentIn(part.share_label) ?? 0), 0);
+  const foldLine = joined([smaller.length > 0 ? TH.cards.gap.smallerFold(smaller.length, percentText(smallerShare)) : null, answer.offsetting.length > 0 ? TH.cards.gap.offsetFold(answer.offsetting.length) : null]);
+  const verdict = [rule.opening(facts), lead ? TH.cards.gap.lead(lead.label, below, lead.share_label) : null].filter(Boolean).join(" ");
+  return {
+    title: metric ? TH.dash.ownScope(metricLabel(metric), split ? TH.dash.byDims([TH.dash.dimUnit[split]]) : TH.cards.gap.contributors) : TH.cards.gap.contributors,
+    style: "exceptions",
+    verdict: spaced(verdict),
+    hero: rule.hero(facts),
+    tiles: NO_TILES,
+    body: { kind: "exceptions", strip: { form: "line", baseline: 0, low: 0, high: PERCENT, overall: null, rows }, fold: foldLine ? { line: foldLine, rows: folded } : null },
+    primary: null,
+    more: NO_ACTIONS,
+    footer: { line: compactPeriod(answer.period_label), verified: false, details: joined([answer.projection?.basis ?? null, answer.share_note ?? null]) },
+    denied: null,
   };
 }
 

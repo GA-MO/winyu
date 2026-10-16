@@ -1,14 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { Badge, Card, KeyValue, ListItem, Metric, Table } from "@/components/ui/primitives";
+import { Badge, Card, KeyValue, ListItem, Table } from "@/components/ui/primitives";
+import { DIMS, METRIC_IDS } from "@/lib/contracts";
+import { presentGap } from "@/lib/cards/present";
 import { formatDateTh } from "@/lib/i18n/format";
 import { TH } from "@/lib/i18n/th";
+import { CardPartsView } from "../card-parts";
 import { ParsedCard, SectionTitle } from "./frame";
 import { calendarResult, connectorResult, entityResult, gapResult, memoryResult, metricsResult, parseResult } from "./shapes";
 
 const ALCOHOL_BAN = "alcohol_ban";
-const NEGATIVE = /^[−-]/;
 const ENTITY_NAME_KEY = "ชื่อ";
 const THAI = /[\u0E00-\u0E7F]/;
 const MAX_CONNECTOR_ROWS_SHOWN = 12;
@@ -45,62 +47,16 @@ export function CalendarCard({ result }: { result: unknown }) {
   );
 }
 
-function signTone(label: string): "good" | "bad" {
-  return NEGATIVE.test(label) ? "bad" : "good";
+function oneOf<T extends string>(allowed: readonly T[], value: unknown): T | null {
+  return allowed.find((entry) => entry === value) ?? null;
 }
 
-function GapLine({ label, gap, share }: { label: string; gap: string; share: string | null }) {
-  return (
-    <li className="flex items-baseline gap-2 py-1.5 text-[13px]">
-      <span className="min-w-0 flex-1 truncate text-foreground">{label}</span>
-      <span className={signTone(gap) === "bad" ? "font-semibold tabular-nums text-danger" : "font-semibold tabular-nums text-success"}>{gap}</span>
-      {share ? <span className="w-12 shrink-0 text-right text-xs tabular-nums text-muted-foreground">{share}</span> : null}
-    </li>
-  );
-}
-
-/** explain_gap: the gap as the headline, then who made it and who offset it, largest first. */
-export function GapCard({ result }: { result: unknown }) {
+/** explain_gap: drawn by the shared card anatomy from the gap decision table (R11), with the metric and split the model asked for. */
+export function GapCard({ result, args }: { result: unknown; args: unknown }) {
+  const asked = typeof args === "object" && args !== null ? (args as Record<string, unknown>) : {};
   return (
     <ParsedCard parsed={parseResult(gapResult, result)} title={TH.cards.gap.contributors}>
-      {(gap) => (
-        <Card props={{ title: TH.cards.gap.title(gap.gap_label), meta: gap.period_label }}>
-          <Metric props={{ label: gap.compare_label, value: gap.actual_label, delta: gap.gap_label, trend: signTone(gap.gap_label) === "bad" ? "down" : "up", detail: gap.attainment_label, size: "lg" }} />
-          <SectionTitle>{TH.cards.gap.contributors}</SectionTitle>
-          <ul className="divide-y divide-border/60">
-            {gap.contributors.map((row) => (
-              <GapLine key={row.label} label={row.label} gap={row.gap_label} share={row.share_label} />
-            ))}
-            {gap.rest ? <GapLine label={gap.rest.label} gap={gap.rest.gap_label} share={gap.rest.share_label} /> : null}
-          </ul>
-          {gap.share_note ? <p className="text-[11px] text-muted-foreground">{gap.share_note}</p> : null}
-          {gap.offsetting.length > 0 ? (
-            <>
-              <SectionTitle>{TH.cards.gap.offsetting}</SectionTitle>
-              <ul className="divide-y divide-border/60">
-                {gap.offsetting.map((row) => (
-                  <GapLine key={row.label} label={row.label} gap={row.gap_label} share={null} />
-                ))}
-              </ul>
-            </>
-          ) : null}
-          {gap.projection ? (
-            <>
-              <SectionTitle>{TH.cards.gap.projection}</SectionTitle>
-              <KeyValue
-                props={{
-                  pairs: [
-                    { label: TH.cards.gap.projected, value: gap.projection.projected_label },
-                    { label: TH.cards.gap.monthTarget, value: gap.projection.month_target_label },
-                    { label: TH.cards.gap.attainment, value: gap.projection.attainment_label },
-                  ],
-                }}
-              />
-              <p className="text-[11px] text-muted-foreground">{gap.projection.basis}</p>
-            </>
-          ) : null}
-        </Card>
-      )}
+      {(answer) => <CardPartsView parts={presentGap({ answer, metric: oneOf(METRIC_IDS, asked.metric), split: oneOf(DIMS, asked.split) })} />}
     </ParsedCard>
   );
 }

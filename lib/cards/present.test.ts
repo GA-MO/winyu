@@ -855,8 +855,9 @@ describe("a gap card (explain_gap)", () => {
     expect(card.verdict).toBe("คาดปิดเดือนไม่ถึงเป้า ลีโอฉุดมากสุด 63.1%");
     const body = expectKind(card.body, "exceptions");
     expect(body.strip.rows[0]).toMatchObject({ label: "ต่ำกว่าเป้าตามเวลา", text: "39.8 ล้านบาท" });
-    expect(body.strip.rows.slice(1).map((row) => row.label)).toEqual(["ลีโอ", "สิงห์", "โซดาสิงห์"]);
-    expect(body.fold?.rows.map((row) => row.label)).toEqual(["น้ำดื่มสิงห์", "เพอร์ร่า"]);
+    expect(body.strip.rows.slice(1).map((row) => row.label)).toEqual(["ลีโอ", "สิงห์"]);
+    expect(body.fold?.rows.map((row) => row.label)).toEqual(["โซดาสิงห์", "น้ำดื่มสิงห์", "เพอร์ร่า"]);
+    expect(body.fold?.line).toBe(`${TH.cards.gap.smallerFold(1, "0.3%")} · ${TH.cards.gap.offsetFold(2)}`);
     expect(`${card.title} ${card.verdict} ${body.strip.rows.map((row) => row.text).join(" ")}`).not.toMatch(/[−-]/);
     expect(card.title).toBe(TH.dash.ownScope(metricLabel("net_sales_value"), TH.dash.byDims([TH.dash.dimUnit.brand])));
   });
