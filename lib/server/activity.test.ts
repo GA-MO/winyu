@@ -1,6 +1,10 @@
 import { describe, expect, test } from "bun:test";
 import type { AuditEntry } from "@/lib/contracts";
-import { MATTER_AUDIT_TOOL, SHARE_AUDIT_TOOL } from "./audit";
+import { metricLabel } from "@/lib/dashboard/metric-display";
+import { TH } from "@/lib/i18n/th";
+import { activitiesFrom } from "./activity";
+import { MATTER_AUDIT_TOOL, SHARE_AUDIT_TOOL, auditLog } from "./audit";
+import { applyPermissionChange } from "./permissions";
 import { inAuditScope, type AuditFilter } from "./usage";
 
 const AT = "2026-10-16T09:00:00.000Z";
@@ -24,5 +28,20 @@ describe("the Audit tab's activity filter", () => {
     ];
     expect(rows.filter((entry) => inAuditScope(entry, ACTIVITY)).map((entry) => entry.id)).toEqual(["send", "pass-on", "pin", "permission"]);
     expect(rows.filter((entry) => inAuditScope(entry, { ...ACTIVITY, activity: false }))).toHaveLength(rows.length);
+  });
+});
+
+describe("a permission change made in chat", () => {
+  test("is one activity naming the role, the item, and the old and new level, approved in chat (AI-151)", () => {
+    const since = new Date(Date.now() - 1000).toISOString();
+    const change = applyPermissionChange({ role: "sales_rsm", kind: "metric", key: "ar_overdue", value: "none" }, "u_ton");
+    expect(change.ok).toBe(true);
+    auditLog().put({ id: "h5-chat-permission", at: new Date(Date.now() + 5).toISOString(), userId: "u_ton", tool: "set_permission", connector: "winyu", argsHash: "h5", decision: "allow", rowsReturned: 0, latencyMs: 400, args: JSON.stringify({ role: "sales_rsm", kind: "metric", key: "ar_overdue", value: "none" }), initiator: "person" });
+    const steps = activitiesFrom(auditLog().all(), since).filter((activity) => activity.actorId === "u_ton");
+    expect(steps).toHaveLength(1);
+    expect(steps[0]?.subject).toContain(TH.role.sales_rsm);
+    expect(steps[0]?.subject).toContain(metricLabel("ar_overdue"));
+    expect(steps[0]?.subject).toContain(TH.adminAudit.visibility.none);
+    expect(steps[0]?.approval).toEqual({ kind: "chat", approverId: "u_ton" });
   });
 });
