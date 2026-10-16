@@ -1,5 +1,5 @@
 import { AsyncLocalStorage } from "node:async_hooks";
-import type { AccessContext, MetricQuery } from "@/lib/contracts";
+import type { AccessContext, Dim, MetricQuery } from "@/lib/contracts";
 import type { ShareTarget } from "@/lib/share/card";
 
 const NO_ACCESS = "currentAccess() called outside runWithAccess()";
@@ -28,8 +28,8 @@ export type SpokenTurn = { role: string; text: string; metrics?: string[] };
 /** The person's answer to one approval card: the tool it was for, and whether they said yes. */
 export type AnsweredApproval = { tool: string; approved: boolean };
 
-/** The chat turn being served; `transcript` reads the thread's saved conversation and `cardToSend` the card "ส่งการ์ดนี้" means on it, both absent outside a chat run; `answered` holds the approval answers this run carries out or declines. */
-export type TurnContext = { turnId: string | null; threadId: string | null; question: string | null; queries: MetricQuery[]; transcript?: () => Promise<SpokenTurn[]>; cardToSend?: () => Promise<ShareTarget | null>; answered?: readonly AnsweredApproval[] };
+/** The chat turn being served; `transcript` reads the thread's saved conversation and `cardToSend` the card "ส่งการ์ดนี้" means on it, both absent outside a chat run; `subjects` are the entities the turn resolved by name; `answered` holds the approval answers this run carries out or declines. */
+export type TurnContext = { turnId: string | null; threadId: string | null; question: string | null; queries: MetricQuery[]; subjects?: TurnSubject[]; transcript?: () => Promise<SpokenTurn[]>; cardToSend?: () => Promise<ShareTarget | null>; answered?: readonly AnsweredApproval[] };
 
 const EMPTY_TURN: TurnContext = { turnId: null, threadId: null, question: null, queries: [] };
 
@@ -42,6 +42,20 @@ export function runWithTurn<T>(turn: TurnContext, fn: () => T): T {
 /** Which thread the current chat turn belongs to; tools that write back to a conversation read it here. */
 export function currentTurn(): TurnContext {
   return turns.getStore() ?? EMPTY_TURN;
+}
+
+/** One record the turn resolved by name (an agent, a DC, a SKU): what the person is asking about. */
+export type TurnSubject = { dim: Dim; id: string };
+
+/** Remembers a record the turn resolved, so a later read the model left unnarrowed (the alerts) can keep to it. */
+export function recordSubject(subject: TurnSubject): void {
+  const turn = turns.getStore();
+  if (turn) turn.subjects = [...(turn.subjects ?? []), subject];
+}
+
+/** The records the turn resolved so far, in order. */
+export function turnSubjects(): readonly TurnSubject[] {
+  return turns.getStore()?.subjects ?? [];
 }
 
 /** Remembers a query the turn ran so a handoff can carry it as evidence. */

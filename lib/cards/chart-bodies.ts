@@ -1,10 +1,10 @@
 import type { Dim, MetricId, MetricQuery, MetricResult, MetricRow } from "@/lib/contracts";
 import { TH } from "@/lib/i18n/th";
-import { formatPercent, formatWhole, periodLabelTh } from "@/lib/i18n/format";
+import { formatPercent, periodLabelTh } from "@/lib/i18n/format";
 import { directionOf, formatDelta, formatMetricValue, metricFormat, metricLabel, metricUnit, toneOf, type Tone } from "@/lib/dashboard/metric-display";
 import { changeTextOf, deltaPercentOf, deltaPointsOf, groupDimsOf, labelAlong, labelOf, numericOf, timeDimOf, valueTextOf } from "./rows";
 import { outliersOf } from "./reading";
-import type { CardBody, CardHero, ChartSeries, ColorScale, GapRow, HeatCell, ScatterAxis, ScatterPoint, ShareSlice } from "./present";
+import type { CardBody, CardHero, ChartSeries, ColorScale, HeatCell, ScatterAxis, ScatterPoint, ShareSlice } from "./present";
 
 export type Source = { query: MetricQuery; result: Extract<MetricResult, { ok: true }> };
 
@@ -18,9 +18,7 @@ const TREND_CORRELATION = 0.5;
 const MIN_INTENSITY = 0.15;
 const PERCENT = 100;
 const PARITY_RATIO = 3;
-const MAX_GAP_ROWS = 8;
 const WIDE_GAP_PCT = 5;
-const MIN_GAP_SCALE_PCT = 10;
 const PARENTHETICAL = /\s*\(.*\)$/;
 const PERCENT_METRIC_SHARE: ReadonlySet<MetricId> = new Set(["market_share", "share_of_voice"]);
 
@@ -341,35 +339,12 @@ function gapsOf(first: Source, second: Source): Gap[] {
     .sort((left, right) => left.percent - right.percent);
 }
 
-function exactTextOf(source: Source, row: MetricRow): string {
-  const unit = metricUnit(source.query.metric);
-  const whole = formatWhole(numericOf(row, "value") as number);
-  return unit ? `${whole} ${unit}` : whole;
-}
+/** One thing measured twice in one unit: the second as a percent of the first (sell-out as a share of sell-in), and whether it falls well short. */
+export type ParityGap = { label: string; ratio: number; short: boolean };
 
-function gapDetailOf(first: Source, second: Source, entry: Joined): string {
-  const [base, other] = [valueTextOf(first.query, entry.x), valueTextOf(second.query, entry.y)];
-  if (base !== other) return TH.dash.gapDetail(base, other);
-  return TH.dash.gapDetail(exactTextOf(first, entry.x), exactTextOf(second, entry.y));
-}
-
-/** The same things measured twice in one unit (sell-in against sell-out): one bar per thing for how far the second is from the first, the widest shortfall first. */
-export function gapBody(first: Source, second: Source): CardBody {
-  const gaps = gapsOf(first, second);
-  const shown = gaps.slice(0, MAX_GAP_ROWS);
-  const peak = Math.max(...shown.map((gap) => Math.abs(gap.percent)), MIN_GAP_SCALE_PCT);
-  const rows: GapRow[] = shown.map(({ entry, percent }) => ({
-    label: entry.label,
-    gap: percent / peak,
-    gapText: formatDelta(percent) ?? "0%",
-    detail: gapDetailOf(first, second, entry),
-    tone: toneOf(second.query.metric, percent),
-  }));
-  return {
-    kind: "gap",
-    rows,
-    shownOf: gaps.length > MAX_GAP_ROWS ? TH.dash.gapShownOf(MAX_GAP_ROWS, gaps.length) : null,
-  };
+/** The same things measured twice in one unit (sell-in against sell-out), each as the second over the first, the widest shortfall first. */
+export function parityGaps(first: Source, second: Source): ParityGap[] {
+  return gapsOf(first, second).map((gap) => ({ label: gap.entry.label, ratio: PERCENT + gap.percent, short: gap.percent <= -WIDE_GAP_PCT }));
 }
 
 /** The headline of a gap card: the second metric as a share of the first across everything shown, and how many fall well short. */

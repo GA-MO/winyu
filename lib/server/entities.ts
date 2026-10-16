@@ -10,6 +10,13 @@ const BRANDED: Partial<Record<EntityKind, Dim>> = { sku: "sku" };
 
 export type ScopedDescription = EntityDescription | { ok: false; code: typeof PERMISSION_DENIED; error: string };
 
+/** The slice a resolved record narrows a later read to ({agent: id}), or null for a kind that is not a slice or a lookup that failed. */
+export function subjectOf(kind: EntityKind, described: ScopedDescription): { dim: Dim; id: string } | null {
+  const dim = REGIONAL[kind] ?? BRANDED[kind];
+  const id = described.ok ? idOf(described) : null;
+  return dim && id ? { dim, id } : null;
+}
+
 function idOf(described: Extract<EntityDescription, { ok: true }>): string | null {
   return typeof described.data.id === "string" ? described.data.id : null;
 }

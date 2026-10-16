@@ -10,6 +10,7 @@ import { ports } from "@/lib/server/ports";
 import { unlessPortDown } from "@/lib/server/ports/unavailable";
 
 const RECENT_DAYS = 7;
+const MONTH_DIM: Dim = "month";
 
 async function readPlain(query: MetricQuery, access: AccessContext): Promise<MetricResult> {
   const plan = planMetric(query, access, await loadDictionary());
@@ -27,8 +28,10 @@ function monthStartOf(iso: string): string {
   return `${iso.slice(0, 8)}01`;
 }
 
+/** A target question over the running month from its first day, whole or split by groups or by month (one bucket, the month itself), never a daily or weekly trend; the data stops at the last day it holds even when the range reaches the month's end. */
 function isMonthToDateVsTarget(query: MetricQuery): boolean {
-  return query.compare === "target" && query.range.from === monthStartOf(DATA_AS_OF) && query.range.to === DATA_AS_OF && !query.dims.some(isTimeDim);
+  const splitWithinMonth = query.dims.some((dim) => isTimeDim(dim) && dim !== MONTH_DIM);
+  return query.compare === "target" && query.range.from === monthStartOf(DATA_AS_OF) && query.range.to >= DATA_AS_OF && !splitWithinMonth;
 }
 
 function totalOf(query: MetricQuery, overrides: Partial<MetricQuery>): MetricQuery {
@@ -55,13 +58,15 @@ export async function monthEndProjection(query: MetricQuery, access: AccessConte
   if (!projection) return null;
   const monthTarget = Math.round(projection.monthTarget);
   const remaining = Math.max(0, roundForSummary(def, monthTarget) - roundForSummary(def, actual));
+  const shortBy = remaining > 0 ? formatForSummary(def, remaining) : null;
   return {
     recentDays: RECENT_DAYS,
     projected: formatForSummary(def, Math.round(projection.projected)),
     monthTarget: formatForSummary(def, monthTarget),
     attainment: `${projection.attainment.toFixed(1)}%`,
     attainmentToDate: `${projection.attainmentToDate.toFixed(1)}%`,
-    remaining: remaining > 0 ? TH.dash.toTarget(formatForSummary(def, remaining)) : TH.dash.targetMet,
+    shortBy,
+    remaining: shortBy ? TH.dash.monthLeft(shortBy) : TH.dash.monthMet,
   };
 }
 

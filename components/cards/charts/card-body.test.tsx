@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { renderToStaticMarkup } from "react-dom/server";
 import type { CardBody, ChartSeries } from "@/lib/cards/present";
 import { CardBodyView } from "./card-body";
+import { spacedTicks } from "./scatter";
 
 const HEX_COLOR = /#[0-9a-f]{3,8}\b/i;
 
@@ -79,23 +80,6 @@ describe("scatter", () => {
   });
 });
 
-describe("gap", () => {
-  test("draws a bar each way from parity with no axis captions", () => {
-    const html = render({
-      kind: "gap",
-      rows: [
-        { label: "อุบลศรีสุข", gap: -1, gapText: "-12%", detail: "100 → 88", tone: "bad" },
-        { label: "พระราม 4", gap: 0.5, gapText: "+6%", detail: "100 → 106", tone: "good" },
-      ],
-      shownOf: null,
-    });
-    expect(html).toContain("อุบลศรีสุข");
-    expect(html).toContain("-12%");
-    expect(html).not.toContain("←");
-    expect(html).toContain("bg-danger");
-    expect(html).toContain("bg-success");
-  });
-});
 
 const ROW = { sub: null, fill: 0.5, change: null, valued: true } as const;
 
@@ -186,9 +170,20 @@ test("none of the new chart bodies render a raw hex colour", () => {
       y: { label: "Y", format: "number", median: 1, medianText: "1" },
       r: 0,
     },
-    { kind: "gap", rows: [{ label: "A", gap: -1, gapText: "-1%", detail: "d", tone: "bad" }], shownOf: null },
     { kind: "strip", strip: { form: "board", baseline: 0, low: 0, high: 1, overall: null, rows: [{ ...ROW, label: "A", measure: 1, text: "1", tone: "bad", exception: true }] } },
     { kind: "funnel", stages: [{ label: "A", value: 1, valueText: "1", width: 1, dropText: null, dropTone: "neutral" }] },
   ];
   for (const body of bodies) expect(render(body)).not.toMatch(HEX_COLOR);
+});
+
+test("a strip row draws its second line under its name: the base it moved from or a second comparison (AI-66, AI-68)", () => {
+  const row = { ...ROW, label: "ภาคใต้", sub: "5.1 ล้านบาท · ปีก่อน 1.3 ล้านบาท", measure: 1, text: "+297.5%", tone: "bad" as const, exception: true };
+  for (const form of ["line", "board"] as const) expect(render({ kind: "strip", strip: { form, baseline: 0, low: 0, high: 1, overall: null, rows: [row] } })).toContain("ปีก่อน 1.3 ล้านบาท");
+  expect(render({ kind: "exceptions", strip: { form: "line", baseline: 0, low: 0, high: 1, overall: null, rows: [row] }, fold: null })).toContain("ปีก่อน 1.3 ล้านบาท");
+});
+
+test("scatter x ticks keep both ends and drop a middle label that would touch them (AI-70)", () => {
+  const tick = (value: number, at: number, anchor: "start" | "middle" | "end") => ({ value, at, text: `${value} ล้าน`, anchor });
+  const kept = spacedTicks([tick(0, 40, "start"), tick(20, 110, "middle"), tick(40, 180, "middle"), tick(60, 250, "middle"), tick(80, 280, "end")]);
+  expect(kept.map((entry) => entry.value)).toEqual([0, 20, 40, 80]);
 });

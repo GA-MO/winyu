@@ -14,6 +14,11 @@ import { collection } from "@/lib/server/store/json-store";
 import { winyuTools } from "@/lib/server/agent/tools";
 import { auditLog } from "@/lib/server/audit";
 import { grantRequests } from "@/lib/server/grants";
+import { modelSpend } from "@/lib/server/model-ledger";
+import { toolActivity } from "@/lib/server/tool-activity";
+import { sinceOf } from "@/lib/server/usage";
+import { METRIC_IDS } from "@/lib/contracts";
+import { toolLabel, toolSurface } from "./registry";
 import { runWithAccess, runWithTurn } from "@/lib/server/request-context";
 
 const REP = "u_krit";
@@ -38,6 +43,17 @@ function accessOf(userId: string) {
 async function call(userId: string, tool: string, input: unknown, question: string | null = null): Promise<Rows> {
   const turn = { turnId: `run_${randomUUID()}`, threadId: null, question, queries: [] };
   return runWithAccess(accessOf(userId), () => runWithTurn(turn, () => winyuTools()[tool].execute(input))) as Promise<Rows>;
+}
+
+type Access = { rows: Record<string, unknown>[]; folded: Record<string, unknown>[]; line: string };
+
+async function roleAccessOf(role: string): Promise<Access> {
+  const result = (await call(IT, "admin_audit", { topic: "role_access", days: null, role })) as Rows & { folded?: { line: string; rows: Record<string, unknown>[] } | null };
+  return { rows: rowsOf(result), folded: result.ok ? (result.folded?.rows ?? []) : [], line: result.ok ? (result.folded?.line ?? "") : "" };
+}
+
+function sinceDays7(): string {
+  return new Date(Date.now() - 7 * 86_400_000).toISOString();
 }
 
 function rowsOf(result: Rows): Record<string, unknown>[] {
@@ -78,7 +94,9 @@ afterEach(() => {
   for (const id of made.matters) shares().remove(id);
   for (const id of made.requests) grantRequests().remove(id);
   for (const id of made.staff) collection("request-links").remove(id);
+  for (const id of made.audit) auditLog().remove(id);
   made.matters = [];
+  made.audit = [];
   made.requests = [];
   made.staff = [];
 });
@@ -155,16 +173,16 @@ describe("admin_audit", () => {
   });
 
   test("role_access tells what a role can see and call now, overrides included", async () => {
-    const rows = rowsOf(await call(IT, "admin_audit", { topic: "role_access", days: null, role: "sales_rep" }));
-    const valueOf = (label: string) => rows.find((row) => row.key_label === label)?.value_label;
+    const access = await roleAccessOf("sales_rep");
+    const valueOf = (label: string) => [...access.rows, ...access.folded].find((row) => row.key_label === label)?.value_label;
     expect(valueOf(TH.admin.tools.store_visits.label)).toBe(TH.adminAudit.allowed);
     expect(valueOf(TH.admin.tools.send_email.label)).toBe(TH.adminAudit.off);
     expect(valueOf(TH.admin.tools.send_card.label)).toBe(TH.adminAudit.allowed);
     expect(valueOf(metricLabel("ar_overdue"))).toBe(TH.admin.acl.masked);
     setRoleTool("sales_rep", "store_visits", false, IT);
     try {
-      const after = rowsOf(await call(IT, "admin_audit", { topic: "role_access", days: null, role: "sales_rep" }));
-      expect(after.find((row) => row.key_label === TH.admin.tools.store_visits.label)?.value_label).toBe(TH.adminAudit.off);
+      const after = await roleAccessOf("sales_rep");
+      expect(after.rows.find((row) => row.key_label === TH.admin.tools.store_visits.label)?.value_label).toBe(TH.adminAudit.off);
       const changes = rowsOf(await call(IT, "admin_audit", { topic: "overrides", days: null, role: null }));
       expect(changes.some((row) => row.key_label === TH.admin.tools.store_visits.label && row.role_label === TH.role.sales_rep)).toBe(true);
     } finally {
@@ -172,9 +190,37 @@ describe("admin_audit", () => {
     }
   });
 
+  test("role_access leads with what the role may not see in full or call, hidden metrics first, and folds the rest apart", async () => {
+    const access = await roleAccessOf("sales_rep");
+    const order: string[] = [TH.admin.acl.none, TH.admin.acl.masked, TH.adminAudit.off];
+    const ranks = access.rows.map((row) => order.indexOf(String(row.value_label)));
+    expect(ranks.every((rank) => rank >= 0)).toBe(true);
+    expect(ranks).toEqual([...ranks].sort((left, right) => left - right));
+    expect(access.folded.every((row) => row.value_label === TH.admin.acl.full || row.value_label === TH.adminAudit.allowed)).toBe(true);
+    expect(access.rows.length + access.folded.length).toBe(METRIC_IDS.length + toolSurface().length);
+    expect(access.line).toBe(TH.adminAudit.roleAccessFolded(access.folded.filter((row) => row.value_label === TH.admin.acl.full).length, access.folded.filter((row) => row.value_label === TH.adminAudit.allowed).length));
+  });
+
   test("role_access without a role asks for one instead of guessing", async () => {
     const result = await call(IT, "admin_audit", { topic: "role_access", days: null, role: null });
     expect(result.ok).toBe(false);
+  });
+
+  test("tool usage counts the tool calls the console counts, never a composed card, share, matter press or other row audited beside them", async () => {
+    const at = new Date().toISOString();
+    const pseudo = ["composed_card", "share", "matter", "guardrail", "grant", "connector_admin"].map((tool) => auditLog().put({ id: `usage-probe-${tool}`, at, userId: IT, tool, argsHash: "x", decision: "allow", rowsReturned: 0, latencyMs: 0 }));
+    made.audit.push(...pseudo.map((entry) => entry.id));
+    const consoleActivity = toolActivity(sinceOf("7d"));
+    const consoleCalls = [...consoleActivity.values()].reduce((sum, counts) => sum + counts.calls, 0);
+    const report = await call(IT, "admin_audit", { topic: "tool_usage", days: 7, role: null });
+    const labels = new Set(rowsOf(report).map((row) => row.tool_label));
+    expect(pseudo.map((entry) => toolLabel(entry.tool)).filter((label) => labels.has(label))).toEqual([]);
+    expect(report.ok === true && report.summary).toBe(TH.adminAudit.usage(consoleCalls, consoleActivity.size, 7));
+  });
+
+  test("model cost leads with the total it was asked for, the split by source under it", async () => {
+    const report = (await call(IT, "admin_audit", { topic: "model_cost", days: 7, role: null })) as Rows & { headline?: { label: string; value: string } | null };
+    expect(report.ok === true && report.headline).toEqual({ label: TH.adminAudit.costTotal(7), value: TH.adminAudit.usd(modelSpend(sinceDays7()).totalUsd) });
   });
 
   test("tool usage and model cost answer from the audit and the ledger", async () => {

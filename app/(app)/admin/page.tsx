@@ -188,7 +188,7 @@ function SubTabs({ group, current }: { group: Group; current: Tab }) {
 function AdminNav({ current }: { current: Tab }) {
   const group = groupOf(current);
   return (
-    <nav aria-label={TH.admin.title} className="z-20 flex flex-wrap items-center gap-2 sm:sticky sm:top-3">
+    <nav aria-label={TH.admin.title} className="z-20 flex flex-wrap items-center gap-2 sm:sticky sm:top-[calc(var(--winyu-header-inset)+0.75rem)]">
       <GroupTabs current={group} />
       <SubTabs group={group} current={current} />
     </nav>
@@ -203,9 +203,9 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
   const current = tabOf(params.tab);
 
   return (
-    <div className="relative min-h-dvh overflow-clip">
+    <div className="relative min-h-page overflow-clip">
       <GlowBackdrop />
-      <div className="relative mx-auto flex w-full max-w-6xl flex-col gap-5 px-4 pb-10 pt-16 sm:px-8 sm:pt-8">
+      <div className="relative mx-auto flex w-full max-w-6xl flex-col gap-5 px-4 pb-10 pt-4 sm:px-8 sm:pt-8">
         <header className="flex flex-wrap items-center justify-between gap-3">
           <h1 className="font-display text-[1.75rem] font-semibold leading-tight tracking-[-0.03em]">
             <GradientText>{TH.admin.title}</GradientText>

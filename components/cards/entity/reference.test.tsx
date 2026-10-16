@@ -6,7 +6,8 @@ import { findUser } from "@/lib/data/entities/users";
 import { TH } from "@/lib/i18n/th";
 import { winyuTools } from "@/lib/server/agent/tools";
 import { runWithAccess } from "@/lib/server/request-context";
-import { GapCard } from "./reference";
+import { EntityCard, GapCard } from "./reference";
+import { withoutInternalIds } from "@/components/chat/markdown";
 
 type GapAnswer = { contributors: { share_label: string }[]; rest: { share_label: string } | null; share_note?: string | null };
 
@@ -53,5 +54,21 @@ describe("explain_gap shares above 100%", () => {
   test("the card shows the note only when the answer carries one", () => {
     expect(renderToStaticMarkup(<GapCard result={gapFixture("149.8%", TH.cards.gap.overHundred)} />)).toContain(TH.cards.gap.overHundred);
     expect(renderToStaticMarkup(<GapCard result={gapFixture("62.0%", null)} />)).not.toContain(TH.cards.gap.overHundred);
+  });
+});
+
+describe("internal ids never reach the person (AI-78)", () => {
+  test("an entity card shows its Thai fields, never ownerId or id", () => {
+    const result = { ok: true, summary: "s", data: { id: "ag_nea_02", "ชื่อ": "อีสานรุ่งโรจน์ ค้าส่ง", "จังหวัด": "ขอนแก่น", "พนักงานขายที่ดูแล": "คุณกฤต จันทร์เสน", ownerId: "u_krit" } };
+    const html = renderToStaticMarkup(<EntityCard result={result} />);
+    expect(html).toContain("ขอนแก่น");
+    expect(html).not.toContain("ownerId");
+    expect(html).not.toContain("u_krit");
+  });
+
+  test("a reply drops an id the model put in parentheses and keeps the Thai name", () => {
+    expect(withoutInternalIds("รายงานด้วยมูลค่าขายเข้าสุทธิ (net_sales_value) ระหว่าง 1–22 ก.ย.")).toBe("รายงานด้วยมูลค่าขายเข้าสุทธิ ระหว่าง 1–22 ก.ย.");
+    expect(withoutInternalIds("ดูบันทึกเยี่ยมร้าน (`store_visits`) ได้ · คุณกฤต (u_krit)")).toBe("ดูบันทึกเยี่ยมร้าน ได้ · คุณกฤต");
+    expect(withoutInternalIds("ยอด (sell-in) และ (SAP SD) คงไว้")).toBe("ยอด (sell-in) และ (SAP SD) คงไว้");
   });
 });

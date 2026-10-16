@@ -15,7 +15,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <div className="winyu-main relative min-h-dvh">
         <ThreadRail />
         <AppChrome user={personaOf(user)} />
-        <main className="relative min-h-dvh">{children}</main>
+        <main className="relative min-h-dvh pt-(--winyu-header-inset)">{children}</main>
       </div>
     </ShareProvider>
   );

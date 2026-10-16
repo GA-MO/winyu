@@ -43,6 +43,14 @@ function sliceOf(query: ResolvedQuery, rankDim: Dim | null): string | null {
   return parts.length > 0 ? parts.join(PART_SEPARATOR) : null;
 }
 
+/** The open alert a metric card is about, of those on its metric and slice: the one on the row the answer points at (the row asked for, else the weakest or sharpest-falling row), so the card's buttons follow the answer; with no such row the first of them; an alert on another row belongs to another answer. */
+export function alertForAnswer(result: Extract<MetricResult, { ok: true }>, alerts: readonly Alert[], dictionary: Dictionary): Alert | null {
+  const rankDim = rankDimOf(result.query);
+  const answer = rankDim ? (pinnedRow(result.query, rankDim) ?? worstRow(result)) : null;
+  if (!rankDim || !answer) return alerts[0] ?? null;
+  return alerts.find((alert) => alertRow(rankDim, alert, dictionary) === answer) ?? null;
+}
+
 /** The one decision of what a metric card is about: the row it points at, the slice it covers, and what work handed on from it names. */
 export function cardFocus(result: Extract<MetricResult, { ok: true }>, alert: Alert | null, dictionary: Dictionary): CardFocus {
   const { query } = result;

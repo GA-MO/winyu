@@ -1,15 +1,15 @@
-import { WIDGET_KINDS, type Alert, type AlertRow, type Dim, type Forecast, type MetricId, type MetricQuery, type MetricResult, type MetricRow, type NextAction, type UnderLine, type WidgetKind } from "@/lib/contracts";
+import { WIDGET_KINDS, type Alert, type AlertRow, type Dim, type Forecast, type MetricId, type MetricQuery, type MetricResult, type MetricRow, type MonthEndProjection, type NextAction, type UnderLine, type WidgetKind } from "@/lib/contracts";
 import { TH } from "@/lib/i18n/th";
 import { MIN_CELL_SIZE } from "@/lib/access/suppression";
-import { addDays, monthKeyOfIso, weekKeyOfIso } from "@/lib/data/dates";
+import { addDays, daysBetween, monthKeyOfIso, weekKeyOfIso } from "@/lib/data/dates";
 import { formatDateTh, formatPercent, periodLabelTh } from "@/lib/i18n/format";
 import { changeTextOf, deltaPercentOf, deltaPointsOf, groupDimsOf, labelAlong, labelOf, numericOf, timeDimOf, valueTextOf } from "./rows";
-import { changeOf, exceptionsOf, fitsOneStrip, LEVEL_LINES, percentIn, readBreakdown, stripOf, type Breakdown, type BreakdownBars, type LevelLine } from "./breakdown";
-import { compactPeriod, outliersOf, percentText, rangeText, shareVerdict, spaced, summaryVerdict, trendVerdict, type CardFooter, type Fold, type Strip, type Tile } from "./reading";
+import { changeOf, exceptionsOf, fitsOneStrip, LEVEL_LINES, parityReading, percentIn, readBreakdown, stripOf, type Breakdown, type BreakdownBars, type LevelLine } from "./breakdown";
+import { compactPeriod, outliersOf, percentText, rangeText, shareVerdict, spaced, summaryVerdict, trendVerdict, type CardFooter, type Fold, type ReadRow, type Strip, type Tile } from "./reading";
 import {
   bucketCountOf,
   funnelBody,
-  gapBody,
+  parityGaps,
   gapHero,
   groupCountOf,
   heatmapBody,
@@ -64,7 +64,6 @@ export type HeatCell = { text: string; detail: string | null; intensity: number;
 export type ShareSlice = { label: string; valueText: string; share: number; shareText: string; isOther: boolean };
 export type ScatterPoint = { label: string; x: number; y: number; xText: string; yText: string; named: boolean };
 export type ScatterAxis = { label: string; format: MetricFormat; median: number; medianText: string };
-export type GapRow = { label: string; gap: number; gapText: string; detail: string | null; tone: Tone };
 export type FunnelStage = { label: string; value: number; valueText: string; width: number; dropText: string | null; dropTone: Tone };
 /** A row a shared card holds back from its viewer: its name only, never a value, a change, a share or a rank. */
 export type LockedRow = { label: string };
@@ -82,7 +81,6 @@ export type CardBody =
   | { kind: "share"; slices: ShareSlice[]; centerValue: string; centerLabel: string }
   | { kind: "heatmap"; rowLabels: string[]; columnLabels: string[]; cells: (HeatCell | null)[][]; scale: ColorScale }
   | { kind: "scatter"; points: ScatterPoint[]; x: ScatterAxis; y: ScatterAxis; r: number }
-  | { kind: "gap"; rows: GapRow[]; shownOf: string | null }
   | { kind: "funnel"; stages: FunnelStage[] }
   | { kind: "table"; columns: CardColumn[]; rows: Record<string, string>[] }
   | { kind: "alerts"; items: SignalItem[]; more: SignalItem[] }
@@ -156,6 +154,9 @@ const MINUS_SIGN = "−";
 const PLUS_SIGN = "+";
 const RANK_MIN_ROWS = 2;
 const SUNDAY = 0;
+const MONDAY = 1;
+const DAYS_PER_WEEK = 7;
+const MONTH_FIRST = "-01";
 const PERCENT = 100;
 const NO_EXTRAS: CardExtras = {};
 const NO_ACTIONS: NextAction[] = [];
@@ -163,7 +164,7 @@ const NO_TILES: Tile[] = [];
 const MAX_LINES = 5;
 const MAX_BAR_BUCKETS = 12;
 const MAX_SHARE_ROWS = 6;
-const MIN_SCATTER_POINTS = 4;
+const MIN_PLOTTED_SCATTER = 7;
 const MIN_GRID_FILL = 0.6;
 const COMPOSITION_DIMS: ReadonlySet<Dim> = new Set(["channel", "business_unit", "maker", "pack"]);
 const SHARE_METRICS: ReadonlySet<MetricId> = new Set(["market_share", "share_of_voice"]);
@@ -257,7 +258,7 @@ function canDraw(view: CardView, shape: Shape): boolean {
 function timeView(shape: Shape): CardView {
   if (groupDimsOf(shape.query).length === 0) return "line";
   if (shape.additive) return bucketCountOf(shape.query, shape.rows) > MAX_BAR_BUCKETS ? "area" : "stacked";
-  return groupCountOf(shape.query, shape.rows) <= MAX_LINES ? "line" : "heatmap";
+  return groupCountOf(shape.query, shape.rows) <= MAX_LINES && bucketCountOf(shape.query, shape.rows) >= MIN_LINE_BUCKETS ? "line" : "heatmap";
 }
 
 type OkResult = Extract<MetricResult, { ok: true }>;
@@ -400,12 +401,27 @@ function lastDayOfMonth(iso: string): string {
   return addDays(`${addDays(`${monthKeyOfIso(iso)}-28`, 4).slice(0, 7)}-01`, -1);
 }
 
+function targetThrough(query: MetricQuery, asOf: string): string {
+  return query.range.to < asOf ? query.range.to : asOf;
+}
+
+/** Whether a target figure is counted only to a day inside its month: 100% then means on pace to date, never the whole month's target, and the card says "ตามเวลา". */
+function isPacedTarget(query: MetricQuery, asOf: string): boolean {
+  if (query.metric !== "target_attainment" && query.compare !== "target") return false;
+  const through = targetThrough(query, asOf);
+  return through !== lastDayOfMonth(through);
+}
+
+function targetUnitOf(query: MetricQuery, asOf: string): string {
+  return isPacedTarget(query, asOf) ? TH.read.ofPacedTarget : TH.read.ofTarget;
+}
+
 /** Against a target in a month still running, 100% means on pace to date: the line names the day the target is counted to and how much of the whole month that is. */
 function paceNoteOf(query: MetricQuery, asOf: string): string | null {
-  if (query.metric !== "target_attainment" && query.compare !== "target") return null;
-  const through = query.range.to < asOf ? query.range.to : asOf;
+  if (!isPacedTarget(query, asOf)) return null;
+  const through = targetThrough(query, asOf);
   const monthEnd = lastDayOfMonth(through);
-  if (through === monthEnd || query.range.from > `${monthKeyOfIso(through)}-01`) return null;
+  if (query.range.from > `${monthKeyOfIso(through)}-01`) return null;
   const share = (Number(through.slice(8)) / Number(monthEnd.slice(8))) * PERCENT;
   return TH.dash.paceTarget(formatDateTh(through), formatPercent(Math.round(share)));
 }
@@ -456,11 +472,19 @@ function heroOf(query: MetricQuery, result: OkResult): CardHero {
   return { label: heroLabelOf(query, result), value: result.headline.value, unit: null, ...headlineMoveOf(query, result), detail: result.headline.compareLabel };
 }
 
+/** Days of one week or one month ("ยอดอาทิตย์นี้", "เดือนนี้รายวัน") ask about that period: its total against its comparison leads, the days are only the picture; a longer trend reads its latest bucket instead. */
+function asksAboutOnePeriod(query: MetricQuery): boolean {
+  if (query.grain !== "day") return false;
+  return weekKeyOfIso(query.range.from) === weekKeyOfIso(query.range.to) || monthKeyOfIso(query.range.from) === monthKeyOfIso(query.range.to);
+}
+
 type LatestBucket = { label: string; previous: string; value: string; deltaPercent: number; deltaPoints: number; versus: string };
 
 /** A series with no breakdown is read at its latest full bucket against the one before: a sum always (the range total moves to a tile), a rate when nothing else is compared; the total or average of the whole line hides the turn someone asked about. */
 function latestBucketOf(query: MetricQuery, result: OkResult, rows: MetricRow[]): LatestBucket | null {
   if (result.headline.aggregate === "average" && result.headline.deltaPercent !== null) return null;
+  if (asksAboutOnePeriod(query)) return null;
+  if (rows.length === 2 && leadingPartialDays(query) !== null) return null;
   if (!timeDimOf(query) || groupDimsOf(query).length > 0 || rows.length < 2) return null;
   const [previous, latest] = rows.slice(-2);
   const previousValue = numericOf(previous, "value");
@@ -503,20 +527,38 @@ function tileOf(label: string, value: string, sub: string | null): Tile {
   return { label, value, delta: null, tone: "neutral", sub };
 }
 
+function paceVerdict(label: string, paced: number): string {
+  return paced >= PERCENT ? TH.read.onPace(label) : TH.read.behindPace(label, percentText(PERCENT - paced));
+}
+
+/** A month still running against its target has one base, the whole month's target: the hero is the share of it done so far, then what is left to it, the share of the target spread over the days so far (named "ตามเวลา"), and where the month ends at the recent pace; nothing left is ever set beside the forecast. */
+function monthToDateLead(name: string, paced: number, actual: string, projection: MonthEndProjection): Lead {
+  const behind = paced < PERCENT;
+  const left = projection.shortBy ? tileOf(TH.read.toTarget, projection.shortBy, TH.read.ofMonthTarget) : null;
+  return {
+    hero: { label: name, value: projection.attainmentToDate, unit: TH.read.ofMonthTarget, delta: null, trend: behind ? "down" : "neutral", tone: behind ? "bad" : "neutral", detail: `${TH.read.actual} ${actual}` },
+    tiles: [left, tileOf(TH.read.pacedTarget, percentText(paced), null), tileOf(TH.read.monthEnd, projection.attainment, TH.read.ofMonthTarget)].filter((tile): tile is Tile => tile !== null),
+    verdict: paceVerdict(name, paced),
+  };
+}
+
 /** One number about one scope (R1, R2, a total): its share of target when there is one, else its change with the value it is compared with, plus where the month ends. */
 function summaryLead(facts: Facts, name: string, subject: string): Lead {
   const { query, result, rows } = facts;
   const [row] = rows;
   const overTarget = query.compare === "target" && query.metric !== "target_attainment";
   const attainment = overTarget ? (result.headline.deltaPercent === null ? null : PERCENT + result.headline.deltaPercent) : query.metric === "target_attainment" ? (row && rows.length === 1 ? numericOf(row, "value") : percentIn(result.headline.value)) : null;
-  const projection = result.headline.projection ? tileOf(TH.read.monthEnd, result.headline.projection.attainment, TH.read.ofTarget) : null;
+  const projection = result.headline.projection ? tileOf(TH.read.monthEnd, result.headline.projection.attainment, TH.read.ofMonthTarget) : null;
   if (attainment !== null) {
     const tone: Tone = attainment < PERCENT ? "bad" : "neutral";
+    const trend = attainment < PERCENT ? "down" : "neutral";
+    if (result.headline.projection && overTarget) return monthToDateLead(name, attainment, result.headline.value, result.headline.projection);
+    const paced = isPacedTarget(query, result.provenance.asOf);
     const actual = overTarget ? tileOf(TH.read.actual, result.headline.value, null) : null;
     return {
-      hero: { label: name, value: percentText(attainment), unit: TH.read.ofTarget, delta: null, trend: attainment < PERCENT ? "down" : "neutral", tone, detail: null },
+      hero: { label: name, value: percentText(attainment), unit: paced ? TH.read.ofPacedTarget : TH.read.ofTarget, delta: null, trend, tone, detail: null },
       tiles: [actual, projection].filter((tile): tile is Tile => tile !== null),
-      verdict: summaryVerdict({ label: name, attainment, change: null, changeText: null, flat: false, versus: "", value: result.headline.value }),
+      verdict: paced ? paceVerdict(name, attainment) : summaryVerdict({ label: name, attainment, change: null, changeText: null, flat: false, versus: "", value: result.headline.value }),
     };
   }
   const move = headlineMoveOf(query, result);
@@ -593,7 +635,26 @@ function readingOf(facts: Facts, bars: Bars, rows: MetricRow[]): Breakdown {
     threshold: Boolean(facts.query.where) && concrete === "level",
     additive: facts.additive,
     falling: falling(facts, rows),
+    target: targetBaseOf(facts),
+    baseTotal: baseTotalOf(facts),
+    high: (facts.sortBy === "value_desc" && facts.capped) || facts.query.where?.op === "above",
   });
+}
+
+/** What the whole of a summed breakdown was in the window it is compared with ("ปีก่อน 10.4 ล้านบาท"), when every group is on the card; a capped or filtered list cannot add up to it. */
+function baseTotalOf(facts: Facts): string | null {
+  const word = TH.read.base[facts.query.compare];
+  if (!word || !facts.additive || facts.capped || facts.query.where) return null;
+  const previous = facts.rows.map((row) => numericOf(row, "compare_value"));
+  if (previous.length === 0 || previous.some((value) => value === null)) return null;
+  return `${word} ${formatMetricValue(facts.query.metric, previous.reduce<number>((sum, value) => sum + (value ?? 0), 0))}`;
+}
+
+/** What a breakdown's target figures are a share of, and the whole month's figure beside the overall row when the month is still running. */
+function targetBaseOf(facts: Facts): { unit: string; detail: string | null } {
+  const projection = facts.result.headline.projection;
+  const detail = projection ? TH.read.wholeMonth(projection.attainmentToDate, projection.shortBy) : null;
+  return { unit: targetUnitOf(facts.query, facts.result.provenance.asOf), detail };
 }
 
 /** Rows a shared card still shows beside the ones it locks, ranked by value with a bar sized against the largest. */
@@ -659,6 +720,29 @@ function lineBody(shape: Shape, extras: CardExtras): CardBody {
   };
 }
 
+/** How many days the first bucket of a range holds when the range starts inside a week or a month (a month-to-date range read by week starts on a Sunday that is one day of its week), or null when the first bucket is whole. */
+function leadingPartialDays(query: MetricQuery): number | null {
+  const from = query.range.from;
+  if (query.grain === "week") {
+    const weekday = (new Date(`${from}T00:00:00Z`).getUTCDay() + DAYS_PER_WEEK - MONDAY) % DAYS_PER_WEEK;
+    return weekday === 0 ? null : Math.min(DAYS_PER_WEEK - weekday, daysBetween(from, query.range.to) + 1);
+  }
+  if (query.grain === "month" && !from.endsWith(MONTH_FIRST)) return Math.min(daysBetween(from, lastDayOfMonth(from)), daysBetween(from, query.range.to)) + 1;
+  return null;
+}
+
+/** A trend whose first bucket holds only some of its days draws that bucket apart: the step to it is a dashed series whose legend says how many days the bucket holds, so a short first week never reads as a collapse. */
+function markLeadingPartial(query: MetricQuery, body: Extract<CardBody, { kind: "line" }>): CardBody {
+  const days = leadingPartialDays(query);
+  const [actual, ...rest] = body.series;
+  if (days === null || !actual || groupDimsOf(query).length > 0 || body.labels.length < 2 || actual.values[0] === null) return body;
+  const partial: ChartSeries = { name: TH.dash.partialSeries(body.labels[0], days), values: actual.values.map((value, index) => (index < 2 ? value : null)), style: "dashed" };
+  return {
+    ...body,
+    series: [{ ...actual, values: [null, ...actual.values.slice(1)] }, partial, ...rest],
+  };
+}
+
 function tableBody(query: MetricQuery, rows: MetricRow[], withCompare: boolean): CardBody {
   const dim = rankDimOf(query) ?? timeDimOf(query);
   const columns: CardColumn[] = [
@@ -716,7 +800,10 @@ function alertsVerdict(alerts: AlertRow[]): string {
 function chartBodyFor(shape: Shape, view: CardView, extras: CardExtras): CardBody {
   const { query, rows } = shape;
   if (view === "alert_list") return alertsBody(extras.alerts ?? []);
-  if (view === "line") return lineBody(shape, extras);
+  if (view === "line") {
+    const body = lineBody(shape, extras);
+    return body.kind === "line" ? markLeadingPartial(shape.query, body) : body;
+  }
   if (view === "stacked" || view === "area") {
     const grouped = seriesByGroup(query, rows, true);
     return { kind: "stacked", shape: view === "area" ? "area" : "bar", labels: grouped.labels, series: grouped.series, format: metricFormat(query.metric) };
@@ -784,7 +871,8 @@ function hiddenGroupsNote(shape: Shape, view: CardView): string | null {
   return count > MAX_LINES ? TH.dash.shownOf(MAX_LINES, count) : null;
 }
 
-type Pairing = { view: "scatter" | "gap" | "funnel" | "overlay"; sources: Source[] };
+/** R10: how answers of one turn draw together; `baselines` is one metric of the same slice asked against two comparisons, drawn as the first card with the second change beside each row; `twin` is two metrics of too few groups for a scatter, drawn as the first breakdown with the second value under each row. */
+type Pairing = { view: "scatter" | "gap" | "funnel" | "overlay" | "baselines" | "twin"; sources: Source[] };
 
 function sliceKeyOf(source: Source): string {
   const { query } = source;
@@ -797,6 +885,8 @@ function holdsOneValue(source: Source): boolean {
 
 /** R10: what a card bound to several metric results of the same dimensions and range draws (a funnel of single values in one unit, lines over the same buckets, a parity gap or a scatter of the same groups), or null when they do not fit together and only the first is shown. */
 function pairingOf(first: Source, others: Source[]): Pairing | null {
+  const baseline = others.find((other) => sliceKeyOf(other) === sliceKeyOf(first) && other.query.metric === first.query.metric && other.query.compare !== first.query.compare && other.query.compare !== "none");
+  if (baseline && first.query.compare !== "none") return { view: "baselines", sources: [first, baseline] };
   const all = [first, ...others.filter((other) => sliceKeyOf(other) === sliceKeyOf(first) && other.query.metric !== first.query.metric)];
   if (all.length < 2) return null;
   if (all.every(holdsOneValue) && sameUnit(all)) return { view: "funnel", sources: all };
@@ -805,8 +895,10 @@ function pairingOf(first: Source, others: Source[]): Pairing | null {
   const [, second] = all;
   const grouped = groupDimsOf(first.query).length > 0 && !timeDimOf(first.query);
   if (!grouped) return null;
-  if (isParityPair(first, second) && joinedRows(first, second).length >= RANK_MIN_ROWS) return { view: "gap", sources: [first, second] };
-  if (joinedRows(first, second).length >= MIN_SCATTER_POINTS) return { view: "scatter", sources: [first, second] };
+  if (isParityPair(first, second) && joinedRows(first, second).length >= RANK_MIN_ROWS && gapHero(first, second, null)) return { view: "gap", sources: [first, second] };
+  const points = joinedRows(first, second).length;
+  if (points >= MIN_PLOTTED_SCATTER) return { view: "scatter", sources: [first, second] };
+  if (points >= RANK_MIN_ROWS) return { view: "twin", sources: [first, second] };
   return null;
 }
 
@@ -823,7 +915,6 @@ function pairedBody(pairing: Pairing): CardBody {
   const [first, ...others] = pairing.sources;
   if (pairing.view === "funnel") return funnelBody(pairing.sources);
   if (pairing.view === "scatter") return scatterBody(first, others[0]);
-  if (pairing.view === "gap") return gapBody(first, others[0]);
   return overlaidLines(first, others);
 }
 
@@ -872,11 +963,6 @@ function correlationVerdict(scatter: Extract<CardBody, { kind: "scatter" }>): st
 function pairedLead(pairing: Pairing, body: CardBody, indexed: boolean): { hero: CardHero | null; tiles: Tile[]; verdict: string | null } {
   const [first, ...others] = pairing.sources;
   const last = others[others.length - 1];
-  if (pairing.view === "gap") {
-    const dim = rankDimOf(first.query);
-    const hero = gapHero(first, others[0], dim ? TH.dash.dimUnit[dim] : null);
-    return { hero: hero ? { ...hero, detail: null } : null, tiles: NO_TILES, verdict: hero?.detail ?? null };
-  }
   if (pairing.view === "scatter") return { hero: null, tiles: NO_TILES, verdict: body.kind === "scatter" ? correlationVerdict(body) : null };
   if (pairing.view === "funnel") {
     const ratio = ratioOf(first, last);
@@ -908,6 +994,48 @@ function pairedCard(input: PresentInput, pairing: Pairing): CardParts {
     footer: footerOf(first.query, first.result, [indexed ? TH.dash.indexedNote : null]),
     denied: null,
   };
+}
+
+function baselineText(source: Source, change: string | null): string | null {
+  const label = source.result.headline.compareLabel ?? TH.dash.compare[source.query.compare];
+  return change === null ? null : `${change} ${label}`;
+}
+
+/** A breakdown card with a second line under each row it names (`subs`, by row label) and an extra fact beside its hero. */
+function withSecondLine(card: CardParts, subs: ReadonlyMap<string, string | null>, heroExtra: string | null): CardParts {
+  const subOf = (row: ReadRow): ReadRow => ({ ...row, sub: subs.get(row.label) ?? row.sub });
+  const hero = card.hero && heroExtra ? { ...card.hero, detail: joined([card.hero.detail, heroExtra]) } : card.hero;
+  const overallOf = (row: ReadRow | null): ReadRow | null => (row && heroExtra ? { ...row, sub: joined([row.sub, heroExtra]) } : row);
+  const strip = (current: Strip): Strip => ({ ...current, overall: overallOf(current.overall), rows: current.rows.map(subOf) });
+  const body = card.body;
+  if (body.kind === "strip") return { ...card, hero, body: { ...body, strip: strip(body.strip) } };
+  if (body.kind === "exceptions") return { ...card, hero, body: { ...body, strip: strip(body.strip), fold: body.fold ? { ...body.fold, rows: body.fold.rows.map(subOf) } : null } };
+  return { ...card, hero };
+}
+
+/** One metric asked against two baselines draws one card: the first answer's card, the second comparison beside the hero and under each row it names. */
+function withBaseline(card: CardParts, second: Source): CardParts {
+  const { query, result } = second;
+  const subs = new Map(result.rows.map((row) => [labelOf(query, row), baselineText(second, changeTextOf(query.metric, row))]));
+  return withSecondLine(card, subs, baselineText(second, formatChange(query.metric, result.headline.deltaPercent, result.headline.deltaPoints ?? null)));
+}
+
+/** Two metrics of a few groups (too few points for a scatter to say anything) read as the first metric's breakdown with the second metric's value under every row, so both numbers the reply relies on are on the card. */
+function withSecondMetric(card: CardParts, pairing: Pairing): CardParts {
+  const [, second] = pairing.sources;
+  const subs = new Map(second.result.rows.map((row) => [labelOf(second.query, row), `${valueTextOf(second.query, row)} ${shortMetricLabel(second)}`]));
+  return { ...withSecondLine(card, subs, null), title: pairedTitleOf(pairing) };
+}
+
+/** R10 parity (sell-out against sell-in by agent) in the B anatomy: the overall share on top, the things falling well short drawn thick with their share, the rest muted; the count that falls short is the verdict. */
+function parityCard(input: PresentInput, pairing: Pairing): CardParts {
+  const [first, second] = pairing.sources;
+  const dim = rankDimOf(first.query);
+  const unit = dim ? TH.dash.dimUnit[dim] : TH.dash.item;
+  const hero = gapHero(first, second, unit);
+  if (!hero) return presentCard({ ...input, others: [] });
+  const reading = parityReading({ gaps: parityGaps(first, second), hero: { ...hero, detail: null }, verdict: hero.detail ?? "", unit });
+  return breakdownCard({ title: pairedTitleOf(pairing), ...actionsOf(input.actions ?? NO_ACTIONS), footer: footerOf(first.query, first.result, []), denied: null }, reading);
 }
 
 function okSources(others: PresentSource[] | undefined): Source[] {
@@ -1097,6 +1225,13 @@ function breakdownCard(base: Omit<CardParts, "style" | "verdict" | "hero" | "bod
   return { ...base, style: "exceptions", verdict: spaced(reading.verdict), hero: reading.lead?.hero ?? reading.hero, tiles: NO_TILES, body: { kind: "exceptions", strip, fold } };
 }
 
+/** R2 for a split over time: groups over a single bucket ("this month by business unit") are a breakdown by the groups, never a chart of lone dots; null when the time axis holds more than one bucket. */
+function oneBucketBreakdown(query: MetricQuery, rows: MetricRow[]): MetricQuery | null {
+  const groups = groupDimsOf(query);
+  if (!timeDimOf(query) || groups.length === 0 || bucketCountOf(query, rows) !== 1) return null;
+  return { ...query, dims: groups };
+}
+
 function leadOf(facts: Facts, fit: Fit, rows: MetricRow[], view: CardView): Lead | null {
   if (fit.hero === "single") return singleLead(facts);
   if (fit.hero === "latest") return latestLead(facts);
@@ -1126,7 +1261,12 @@ export function presentCard(input: PresentInput): CardParts {
   const masked = result.provenance.masked.length > 0 && hidden === 0;
   const sortBy = input.sortBy ?? query.sort ?? null;
   if (input.locked && !masked && hidden === 0 && locksBreakdown(query, input.locked)) return lockedCard(input, result, sorted(query, visibleRows, sortBy), input.locked);
+  const oneBucket = oneBucketBreakdown(query, visibleRows);
+  if (oneBucket) return presentCard({ ...input, query: oneBucket });
   const pairing = masked || hidden > 0 ? null : pairingOf({ query, result }, okSources(input.others));
+  if (pairing?.view === "baselines") return withBaseline(presentCard({ ...input, others: [] }), pairing.sources[1]);
+  if (pairing?.view === "twin") return withSecondMetric(presentCard({ ...input, others: [] }), pairing);
+  if (pairing?.view === "gap") return parityCard(input, pairing);
   if (pairing) return pairedCard(input, pairing);
   const whole: Shape = { query, rows: visibleRows, additive: result.headline.aggregate === "sum", sortBy };
   const facts = factsOf(whole, result);

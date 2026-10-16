@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { accessFor } from "@/lib/access/policies";
 import type { AccessContext, Alert, AlertRow, MetricQuery, MetricResult, NextAction, QuickAction } from "@/lib/contracts";
-import { presentCard } from "@/lib/cards/present";
+import { presentCard, weakestRow } from "@/lib/cards/present";
 import { metricLabel } from "@/lib/dashboard/metric-display";
 import { DATA_AS_OF, monthStart } from "@/lib/data/dates";
 import { AGENTS } from "@/lib/data/entities/agents";
@@ -10,7 +10,7 @@ import { TH } from "@/lib/i18n/th";
 import { alerts } from "@/lib/server/agent/collections";
 import { winyuTools } from "@/lib/server/agent/tools";
 import { openAlertsFor } from "@/lib/server/alerts";
-import { runWithAccess } from "@/lib/server/request-context";
+import { runWithAccess, runWithTurn } from "@/lib/server/request-context";
 import { intentKeyOf, recordAction } from "@/lib/server/threads";
 
 const CEO = "u_thana";
@@ -127,15 +127,16 @@ describe("one focus names the card's send, pin and follow-ups", () => {
     }
   });
 
-  test("overdue AR by region asks why about the region of the alert in question, not the largest region", async () => {
+  test("overdue AR by region asks why about the region the answer points at, not an open alert's region elsewhere (AI-77)", async () => {
     const answer = await card(CEO, { metric: "ar_overdue", dims: ["region"], compare: "none" });
     const inQuestion = openAlertsFor(accessOf(CEO)).find((alert) => alert.metric === "ar_overdue");
     if (!inQuestion?.dims.region) throw new Error("no open AR alert");
+    const worst = weakestRow(answer.query, answer)?.label;
+    if (!worst) throw new Error("no weakest row");
     const why = answer.followUps.find((action) => action.id === "fu-why");
-    const regionName = answer.rows.map((row) => String(row.region)).find((label) => inQuestion.dims.region === "south" ? label === "ภาคใต้" : label === "ภาคกลาง");
-    expect(regionName).toBeDefined();
-    expect(why?.prompt).toContain(regionName ?? "");
-    expect(why?.prompt).not.toContain(BANGKOK);
+    expect(why?.prompt).toContain(worst);
+    const send = answer.nextActions.find((action) => action.kind === "send");
+    if (send) expect(JSON.stringify(send.input)).toContain(worst);
   });
 });
 
@@ -149,6 +150,21 @@ describe("get_alerts narrows to the slice under discussion", () => {
     for (const row of sliced.rows) expect(row.scope.province ?? provinceOfAgent(row.scope.agent ?? "")).toBe(KHON_KAEN);
     const verify = sliced.nextActions.find((action) => action.kind === "verify");
     expect(verify?.prompt).toBe(sliced.rows[0].verifySteps[0]);
+  });
+
+  test("after the turn resolved one agent by name, alerts asked with no slice are that agent's alone (AI-88)", async () => {
+    const all = await call<AlertsAnswer>(RSM_NORTHEAST, "get_alerts", { status: "open", limit: null });
+    const onUbon = all.rows.filter((row) => row.scope.agent === UBON_AGENT);
+    expect(onUbon.length).toBeGreaterThan(0);
+    expect(all.rows.length).toBeGreaterThan(onUbon.length);
+    const turn = { turnId: null, threadId: null, question: "อุบลศรีสุข เทรดดิ้ง เกิดอะไรขึ้น", queries: [] };
+    const narrowed = await runWithAccess(accessOf(RSM_NORTHEAST), () =>
+      runWithTurn(turn, async () => {
+        await winyuTools().describe_entity.execute({ kind: "agent", query: "อุบลศรีสุข เทรดดิ้ง" });
+        return (await winyuTools().get_alerts.execute({ status: "open", limit: null })) as AlertsAnswer;
+      }),
+    );
+    expect(narrowed.rows.map((row) => row.id).sort()).toEqual(onUbon.map((row) => row.id).sort());
   });
 
   test("a metric slice returns only that metric's alerts", async () => {

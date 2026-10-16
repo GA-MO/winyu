@@ -12,7 +12,7 @@ const BY_EMAIL: ShareReceipt = { userId: "u_may", name: "คุณเมย์ �
 const FELL_BACK: ShareReceipt = { userId: "u_anucha", name: "คุณอนุชา พรหมศรี", asked: "teams", via: "email", fallback: "no-teams-conversation" };
 
 function sent(receipts: ShareReceipt[]): string {
-  return renderToStaticMarkup(<ShareSent receipts={receipts} grants={[]} days={null} path="/s/abc" close={() => undefined} />);
+  return renderToStaticMarkup(<ShareSent title="ปริมาณขายเข้า" receipts={receipts} grants={[]} days={null} path="/s/abc" close={() => undefined} />);
 }
 
 describe("the share sheet's receipts", () => {
@@ -150,6 +150,22 @@ describe("the sheet before sending", () => {
       expect(sheet.host.textContent).not.toContain(hidden);
       await sheet.close();
     }
+  });
+
+  test("once sent, leaves a compact confirmation docked over the page instead of a full-screen sheet behind a backdrop", async () => {
+    const sheet = await openSheet([]);
+    await act(async () => sheet.host.querySelector<HTMLButtonElement>("[data-share-send]")?.click());
+    await settle();
+    const sent = sheet.host.querySelector<HTMLElement>("[data-share-sent]");
+    expect(sent?.textContent).toContain(TH.share.sentTitle);
+    expect(sent?.getAttribute("role")).toBe("status");
+    expect(sent?.className).not.toContain("h-dvh");
+    expect(sent?.className).toContain("bottom-3");
+    expect(sheet.host.querySelector("[data-share-sheet]")).toBeNull();
+    expect([...sheet.host.querySelectorAll("button")].some((button) => button.className.includes("inset-0"))).toBe(false);
+    await act(async () => sent?.querySelector<HTMLButtonElement>(`button[aria-label="${TH.common.close}"]`)?.click());
+    expect(sheet.host.querySelector("[data-share-sent]")).toBeNull();
+    await sheet.close();
   });
 
   test("offers the grant when the sender may open what is hidden, and says nothing when nothing is", async () => {

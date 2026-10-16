@@ -1,7 +1,7 @@
 import type { AccessContext, Alert, Dim, MetricQuery, MetricResult, NextAction, QuickAction, Region, ResolvedQuery } from "@/lib/contracts";
 import { verifyStepsFor } from "@/lib/access/verify-steps";
 import { widgetKindFor } from "@/lib/cards/present";
-import { alertFocus, cardFocus } from "@/lib/cards/focus";
+import { alertFocus, alertForAnswer, cardFocus } from "@/lib/cards/focus";
 import { regionOfSlice, sliceCovers } from "@/lib/semantic/geo";
 import { namesOf, type Dictionary } from "@/lib/semantic/dictionary";
 import { effectiveFilters, pinnedSlice } from "@/lib/semantic/resolved";
@@ -34,10 +34,11 @@ function alreadyPinned(userId: string, query: MetricQuery): boolean {
   return isPinnedSlice(layouts().get(userId)?.widgets ?? [], query);
 }
 
-/** The open alert a card is about: the viewer's first open alert on the same metric inside every slice the answer is narrowed to. */
-function alertInQuestion(access: AccessContext, query: ResolvedQuery, dictionary: Dictionary): Alert | null {
+/** The open alert a card is about: of the viewer's open alerts on the same metric inside every slice the answer is narrowed to, the one on the row the answer points at (`alertForAnswer`). */
+function alertInQuestion(access: AccessContext, result: Extract<MetricResult, { ok: true }>, dictionary: Dictionary): Alert | null {
+  const { query } = result;
   const slice = effectiveFilters(query);
-  return openAlertsFor(access).find((alert) => alert.metric === query.metric && sliceCovers(dictionary, slice, alert.dims)) ?? null;
+  return alertForAnswer(result, openAlertsFor(access).filter((alert) => alert.metric === query.metric && sliceCovers(dictionary, slice, alert.dims)), dictionary);
 }
 
 /** The region a card's work belongs to: the one its slice is pinned to, else the region of the alert it is about; null for the whole country. */
@@ -49,7 +50,7 @@ function regionOf(dictionary: Dictionary, query: ResolvedQuery, alert: Alert | n
 export function actionsForMetric(access: AccessContext, result: MetricResult, dictionary: Dictionary): NextAction[] {
   if (!result.ok) return [];
   const { query } = result;
-  const alert = alertInQuestion(access, query, dictionary);
+  const alert = alertInQuestion(access, result, dictionary);
   const actions = nextActionsFor(
     access,
     {
@@ -91,6 +92,6 @@ export function actionsForAlert(access: AccessContext, alert: Alert | null, dict
 export function followUpsForMetric(access: AccessContext, result: MetricResult, dictionary: Dictionary, cardActions: readonly NextAction[]): QuickAction[] {
   if (!result.ok) return [];
   const taken = cardActions.map((action) => action.prompt).filter((prompt): prompt is string => prompt !== null);
-  const { row } = cardFocus(result, alertInQuestion(access, result.query, dictionary), dictionary);
+  const { row } = cardFocus(result, alertInQuestion(access, result, dictionary), dictionary);
   return followUpsFor(access, { query: result.query, result, focus: row, taken }, learnedKindShare(actionEvents().all(), access.userId));
 }

@@ -24,8 +24,8 @@ export type DimValues = Partial<Record<Dim, string[]>>;
 export type ResolvedQuery = MetricQuery & { scopeApplied: DimValues; labels: DimValues };
 export type Provenance = { metric: MetricId; certified: boolean; sourceSystem: string; asOf: string; rowCount: number;
   filterLabels?: string[]; masked: string[]; suppressedRows?: number; trust: "verified" | "derived" | "estimated"; grant?: GrantRef; coverage?: Coverage };
-/** Where a month still running ends against its target at the recent pace, how much of the whole month's target is done so far, and what is left to reach it (the target-met line once nothing is), formatted for the card and the model. */
-export type MonthEndProjection = { recentDays: number; projected: string; monthTarget: string; attainment: string; attainmentToDate: string; remaining: string };
+/** Where a month still running ends against its target at the recent pace, how much of the whole month's target is done so far, and what is left to reach it: the amount (`shortBy`, null once the target is met) and the line the model reads, formatted for the card and the model. */
+export type MonthEndProjection = { recentDays: number; projected: string; monthTarget: string; attainment: string; attainmentToDate: string; shortBy: string | null; remaining: string };
 /** How many groups of a breakdown sit under the metric's deciding line, counted over every group in scope before the row cap. */
 export type UnderLine = { line: number; count: number; of: number };
 export type MetricHeadline = { aggregate: "sum" | "average"; value: string; periodLabel: string; rowCount: number;

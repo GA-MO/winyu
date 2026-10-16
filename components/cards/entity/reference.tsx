@@ -10,7 +10,7 @@ import { calendarResult, connectorResult, entityResult, gapResult, memoryResult,
 const ALCOHOL_BAN = "alcohol_ban";
 const NEGATIVE = /^[−-]/;
 const ENTITY_NAME_KEY = "ชื่อ";
-const HIDDEN_ENTITY_KEYS = new Set(["id", ENTITY_NAME_KEY]);
+const THAI = /[\u0E00-\u0E7F]/;
 const MAX_CONNECTOR_ROWS_SHOWN = 12;
 const GROUPED_FROM = 10_000;
 const HIDDEN_CONNECTOR_KEY = /(^|_)id$|^region$|^visited_on$|^date$|^order_value$|^score$/;
@@ -112,6 +112,11 @@ function entityValue(value: unknown): string {
 }
 
 /** describe_entity: the master record as label and value, named by the record itself. */
+/** A master-data field the card shows: a Thai label other than the name it is titled with; an English key (id, ownerId) is for the model to act on and never reaches the person. */
+function isShownField(key: string): boolean {
+  return key !== ENTITY_NAME_KEY && THAI.test(key);
+}
+
 export function EntityCard({ result }: { result: unknown }) {
   return (
     <ParsedCard parsed={parseResult(entityResult, result)} title={TH.cards.entityTitle}>
@@ -120,7 +125,7 @@ export function EntityCard({ result }: { result: unknown }) {
           <KeyValue
             props={{
               pairs: Object.entries(data)
-                .filter(([key]) => !HIDDEN_ENTITY_KEYS.has(key))
+                .filter(([key]) => isShownField(key))
                 .map(([label, value]) => ({ label, value: entityValue(value) })),
             }}
           />
@@ -214,6 +219,24 @@ function cellOf(value: unknown): string {
   return String(value);
 }
 
+/** A connector result's rows as a table with Thai column labels, cut to the first rows a phone shows with a line saying how many there were. */
+export function ConnectorTable({ rows }: { rows: Record<string, unknown>[] }) {
+  if (rows.length === 0) return null;
+  const keys = shownKeys(rows);
+  return (
+    <>
+      <Table
+        props={{
+          columns: keys.map((key) => ({ key, label: columnLabel(key) })),
+          rows: rows.slice(0, MAX_CONNECTOR_ROWS_SHOWN).map((row) => Object.fromEntries(keys.map((key) => [key, cellOf(row[key])]))),
+          nowrap: true,
+        }}
+      />
+      {rows.length > MAX_CONNECTOR_ROWS_SHOWN ? <p className="text-[11px] text-muted-foreground">{TH.cards.connectorShown(MAX_CONNECTOR_ROWS_SHOWN, rows.length)}</p> : null}
+    </>
+  );
+}
+
 /** A connector tool's rows as a table: Thai labels over raw ids, masked fields named under the card. */
 export function connectorCard(tool: string) {
   return function ConnectorCard({ result }: { result: unknown }) {
@@ -221,20 +244,10 @@ export function connectorCard(tool: string) {
     return (
       <ParsedCard parsed={parseResult(connectorResult, result)} title={title}>
         {({ summary, rows, provenance }) => {
-          const keys = shownKeys(rows);
           const masked = provenance.masked.length > 0 ? TH.cards.connectorMasked(provenance.masked.map(columnLabel).join(", ")) : null;
           return (
             <Card props={{ title, meta: summary, description: masked, footnote: TH.cards.source.connector(provenance.sourceSystem, formatDateTh(provenance.asOf)) }}>
-              {rows.length > 0 ? (
-                <Table
-                  props={{
-                    columns: keys.map((key) => ({ key, label: columnLabel(key) })),
-                    rows: rows.slice(0, MAX_CONNECTOR_ROWS_SHOWN).map((row) => Object.fromEntries(keys.map((key) => [key, cellOf(row[key])]))),
-                    nowrap: true,
-                  }}
-                />
-              ) : null}
-              {rows.length > MAX_CONNECTOR_ROWS_SHOWN ? <p className="text-[11px] text-muted-foreground">{TH.cards.connectorShown(MAX_CONNECTOR_ROWS_SHOWN, rows.length)}</p> : null}
+              <ConnectorTable rows={rows} />
             </Card>
           );
         }}

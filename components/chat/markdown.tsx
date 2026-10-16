@@ -3,6 +3,7 @@ import { Fragment, type ReactNode } from "react";
 const INLINE = /(\*\*[^*]+\*\*|`[^`]+`|\*[^*\s][^*]*\*)/g;
 const BULLET = /^\s*(?:[-*•]|\d+[.)])\s+/;
 const HEADING = /^#{1,6}\s+/;
+const INTERNAL_ID = /\s*\(`?[a-z][a-z0-9]*(?:_[a-z0-9]+)+`?\)/g;
 
 function inline(text: string): ReactNode[] {
   return text.split(INLINE).map((piece, index) => {
@@ -37,9 +38,14 @@ function Block({ block }: { block: string }) {
   return <p>{lines(block.trim())}</p>;
 }
 
-/** The small markdown a reply uses (paragraphs, bullets, bold, italic, code), drawn as React text; no HTML from the model reaches the page. */
+/** A reply without the internal identifiers the model sometimes adds after a Thai name ("มูลค่าขายเข้า (net_sales_value)", "(`store_visits`)", "(u_krit)"): an id in parentheses is for the system, never for the person. */
+export function withoutInternalIds(text: string): string {
+  return text.replace(INTERNAL_ID, "");
+}
+
+/** The small markdown a reply uses (paragraphs, bullets, bold, italic, code), drawn as React text; no HTML from the model reaches the page, and no internal id in parentheses. */
 export function Markdown({ text }: { text: string }) {
-  const blocks = text.split(/\n{2,}/).filter((block) => block.trim());
+  const blocks = withoutInternalIds(text).split(/\n{2,}/).filter((block) => block.trim());
   return (
     <div className="flex flex-col gap-3 text-[15px] leading-relaxed text-foreground">
       {blocks.map((block, index) => (

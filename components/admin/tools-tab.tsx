@@ -4,7 +4,8 @@ import { ROLE_IDS, type RoleId, type ToolSurfaceEntry, type ToolTier, type User 
 import { surfaceByConnector } from "@/lib/server/tools/registry";
 import { closureOf, killedTools } from "@/lib/access/enforce";
 import { permissionsFor } from "@/lib/access/role-overrides";
-import { sinceOf, toolActivity, type ToolActivity } from "@/lib/server/usage";
+import { toolActivity, type ToolActivity } from "@/lib/server/tool-activity";
+import { sinceOf } from "@/lib/server/usage";
 import { TH } from "@/lib/i18n/th";
 import { setToolKilledAction } from "@/app/(app)/admin/actions";
 import { ConnectorHeader } from "./connector-parts";
@@ -14,7 +15,7 @@ import { FOCUS, Panel, Pill, SwitchButton, type Tone } from "./parts";
 
 const COPY = TH.admin.toolsTab;
 const TIER_TONE: Record<ToolTier, Tone> = { read: "neutral", write: "primary", destructive: "warning" };
-const NO_ACTIVITY: ToolActivity = { calls: 0, failed: 0 };
+const NO_ACTIVITY: ToolActivity = { calls: 0, failed: 0, denied: 0, masked: 0 };
 const COLUMN_COUNT = 6;
 
 function systemClosure(entry: ToolSurfaceEntry) {

@@ -203,7 +203,7 @@ export function ExchangeView({ exchange, live }: { exchange: Exchange; live: Exc
   const sharing = sharingOf(exchange, toolSteps, streaming);
   const steps = stepsWithApprovals(exchange, live.asked);
   return (
-    <article className="flex flex-col gap-4">
+    <article data-exchange={exchange.id} className="flex flex-col gap-4">
       {exchange.question ? <UserBubble question={exchange.question} /> : null}
       <ActionTrail trail={trailOf(steps, streaming, live.toolLabels)} streaming={streaming} durationMs={live.durationMs} />
       {steps.map((step) => (

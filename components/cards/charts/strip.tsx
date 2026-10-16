@@ -32,7 +32,7 @@ function OverallLabel({ row }: { row: ReadRow }) {
   return (
     <div className="flex min-w-0 flex-col text-[12px] leading-snug text-muted-foreground">
       <span className="truncate">{row.label}</span>
-      {row.sub ? <span className="truncate">{row.sub}</span> : null}
+      {row.sub ? <span className="line-clamp-3 break-words text-[11px]">{row.sub}</span> : null}
     </div>
   );
 }
@@ -64,9 +64,12 @@ function LineStrip({ strip }: { strip: Strip }) {
         const gridRow = index + 1 + (overall ? 2 : 0);
         return (
           <div key={row.label} className="contents">
-            <span title={row.label} className={cn("truncate", row.exception ? "text-[13px] font-medium text-foreground" : "text-[12px] text-muted-foreground")} style={{ gridColumn: 1, gridRow }}>
-              {row.label}
-            </span>
+            <div className="flex min-w-0 flex-col" style={{ gridColumn: 1, gridRow }}>
+              <span title={row.label} className={cn("truncate", row.exception ? "text-[13px] font-medium text-foreground" : "text-[12px] text-muted-foreground")}>
+                {row.label}
+              </span>
+              <RowSub row={row} />
+            </div>
             <div className="relative h-4" style={{ gridColumn: 2, gridRow }}>
               {row.measure !== null ? <Bar strip={strip} value={row.measure} className={row.exception ? cn("h-2.5", TONE_BAR[row.tone]) : "h-1 bg-muted-foreground/30"} /> : null}
             </div>
@@ -80,6 +83,11 @@ function LineStrip({ strip }: { strip: Strip }) {
   );
 }
 
+/** A row's second line (the base it was compared with, a second comparison), small and muted under its name. */
+function RowSub({ row }: { row: ReadRow }) {
+  return row.sub ? <span className="line-clamp-2 break-words text-[11px] leading-snug text-muted-foreground tabular-nums">{row.sub}</span> : null;
+}
+
 function BoardRow({ row }: { row: ReadRow }) {
   return (
     <li className="flex flex-col gap-1">
@@ -90,6 +98,7 @@ function BoardRow({ row }: { row: ReadRow }) {
         <span className="shrink-0 text-[13px] font-medium tabular-nums text-foreground">{row.text}</span>
         {row.change ? <ChangeChip text={row.change} tone={row.exception ? row.tone : "neutral"} /> : null}
       </div>
+      <RowSub row={row} />
       <div className="h-1.5 w-full">
         <div className={cn("h-full rounded-full", row.exception ? "bg-foreground/55" : "bg-muted-foreground/30")} style={{ width: `${Math.max(row.fill * FULL, MIN_BAR_PCT)}%` }} />
       </div>
@@ -134,6 +143,7 @@ function ExceptionRow({ row, board }: { row: ReadRow; board: boolean }) {
         </span>
         <span className={cn("shrink-0 text-[15px] font-semibold tabular-nums", TONE_TEXT[row.tone])}>{row.text}</span>
       </div>
+      <RowSub row={row} />
       <div className="relative h-1.5 w-full overflow-hidden rounded-full bg-muted">
         <div className={cn("absolute inset-y-0 left-0 rounded-full", TONE_BAR[row.tone])} style={{ width: `${Math.max(row.fill * FULL, MIN_BAR_PCT)}%` }} />
       </div>
@@ -144,8 +154,11 @@ function ExceptionRow({ row, board }: { row: ReadRow; board: boolean }) {
 function PlainRow({ row }: { row: ReadRow }) {
   return (
     <li className="flex min-w-0 items-baseline justify-between gap-3 py-1 text-[13px]">
-      <span title={row.label} className="min-w-0 truncate text-muted-foreground">
-        {row.label}
+      <span className="flex min-w-0 flex-col">
+        <span title={row.label} className="truncate text-muted-foreground">
+          {row.label}
+        </span>
+        <RowSub row={row} />
       </span>
       <span className="shrink-0 tabular-nums text-muted-foreground">
         {row.text}
@@ -155,7 +168,8 @@ function PlainRow({ row }: { row: ReadRow }) {
   );
 }
 
-function FoldView({ fold, ruled }: { fold: Fold; ruled: boolean }) {
+/** Style A's folded rows: one muted line that expands to the rows, ruled off from what is drawn above it. */
+export function FoldView({ fold, ruled }: { fold: Fold; ruled: boolean }) {
   const [open, setOpen] = useState(false);
   const id = useId();
   return (

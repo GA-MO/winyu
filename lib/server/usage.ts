@@ -4,6 +4,7 @@ import { actionEvents } from "@/lib/server/agent/collections";
 import { shares } from "@/lib/server/share/shares";
 import { agentModel } from "@/lib/server/models";
 import { modelSpend, type ModelSpend } from "@/lib/server/model-ledger";
+import { sinceDaysStart, toolCalls } from "@/lib/server/tool-activity";
 import { surfaceEntry } from "@/lib/server/tools/registry";
 
 const DAYS = 14;
@@ -78,7 +79,7 @@ function decisionCount(entries: AuditEntry[], decision: AuditEntry["decision"]):
 
 /** What the platform did this fortnight: questions asked, intents behind them, what it could not answer and what it cost. */
 export function usageSummary(): UsageSummary {
-  const entries = auditLog().all();
+  const entries = toolCalls(auditLog().all());
   const events = actionEvents().all();
   const questions = events.filter((event) => event.kind === "question" || event.kind === "quick_action");
   const unanswered: UnansweredQuestion[] = events
@@ -114,10 +115,7 @@ const RANGE_DAYS: Record<AuditRange, number | null> = { today: 0, "7d": 7, "30d"
 /** The first instant an audit range covers, in UTC ISO; null for all time. */
 export function sinceOf(range: AuditRange, now = Date.now()): string | null {
   const days = RANGE_DAYS[range];
-  if (days === null) return null;
-  const start = new Date(now);
-  start.setUTCHours(0, 0, 0, 0);
-  return new Date(start.getTime() - days * 24 * 60 * 60_000).toISOString();
+  return days === null ? null : sinceDaysStart(days, now);
 }
 
 /** The connector an audit row went through; rows written before connectors were recorded fall back to the tool's connector today. */
@@ -141,19 +139,4 @@ export function auditEntries(filter: AuditFilter, limit: number): AuditEntry[] {
     .filter((entry) => !filter.decision || entry.decision === filter.decision)
     .sort((left, right) => right.at.localeCompare(left.at))
     .slice(0, limit);
-}
-
-export type ToolActivity = { calls: number; failed: number };
-
-/** How often each tool was called since a moment, and how many of those calls were refused or failed. */
-export function toolActivity(since: string | null): Map<string, ToolActivity> {
-  const table = new Map<string, ToolActivity>();
-  for (const entry of auditLog().all()) {
-    if (since && entry.at < since) continue;
-    const row = table.get(entry.tool) ?? { calls: 0, failed: 0 };
-    row.calls += 1;
-    if (entry.decision === "deny" || entry.code) row.failed += 1;
-    table.set(entry.tool, row);
-  }
-  return table;
 }

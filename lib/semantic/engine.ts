@@ -10,6 +10,7 @@ import { TH } from "@/lib/i18n/th";
 import { coverageOfQuery } from "@/lib/semantic/periods";
 
 const DEFAULT_LIMIT = 60;
+const WHOLE_PARTITIONS: ReadonlySet<Dim> = new Set(["region", "channel", "business_unit"]);
 const PREV_YEAR_DAYS = 364;
 const MONTHS_PER_YEAR = 12;
 const DAYS_PER_WEEK = 7;
@@ -308,7 +309,7 @@ function latestBucket(dims: Dim[], rows: Aggregated[]): Aggregated[] {
   return rows.filter((row) => row.dims[timeDim] === latest);
 }
 
-type HeadlineContext = { periodLabel: string; compareNote: string | null };
+type HeadlineContext = { periodLabel: string; compareLabel: string | null; compareNote: string | null };
 
 /** How many groups of a breakdown fall under the metric's deciding line, over every group the caller may see: before the row cap and before a `where` filter, so "10 of 60" never shrinks to "10 of 10". */
 function underLineOf(def: MetricDef, dims: Dim[], all: Aggregated[], suppressed: Set<string>): UnderLine | null {
@@ -336,7 +337,7 @@ function headlineOf(dictionary: Dictionary, def: MetricDef, query: MetricQuery, 
     rowCount: rows.length,
     deltaPercent,
     ...(deltaPoints === null ? {} : { deltaPoints }),
-    compareLabel: deltaPercent === null ? null : COMPARE_LABELS[query.compare] ?? "เทียบช่วงก่อนหน้า",
+    compareLabel: deltaPercent === null ? null : context.compareLabel,
     compareNote,
     top: topOf(dictionary, def, query, all, suppressed),
   };
@@ -419,6 +420,12 @@ function coveredShare(def: MetricDef, compare: MetricQuery["compare"], from: num
   return calendar > 0 ? covered / calendar : 1;
 }
 
+/** What a change is compared with; a target counted only to a day inside its month is the target spread over the days so far, and says so, so it is never read as the whole month's target. */
+function compareLabelOf(compare: MetricQuery["compare"], to: number): string | null {
+  if (compare === "target" && !isMonthEnd(to)) return TH.dash.pacedTarget;
+  return COMPARE_LABELS[compare];
+}
+
 function partialMonthNote(share: number, to: number): string | null {
   return share < 1 ? `ข้อมูลเดือนล่าสุดถึง ${formatThaiDate(ISO_OF_DAY[to])} จึงเทียบกับงวดก่อนตามสัดส่วนวัน (${Math.round(share * PERCENT)}%)` : null;
 }
@@ -454,7 +461,7 @@ function askedFilters(filters: Filters, scopeApplied: DimValues): DimValues {
 
 function resolvedQueryOf(plan: MetricPlan): ResolvedQuery {
   const filters = askedFilters(plan.filters, plan.scopeApplied);
-  return { ...plan.query, dims: plan.dims, filters, scopeApplied: plan.scopeApplied, labels: namesOf(plan.dictionary, { ...filters, ...plan.scopeApplied }) };
+  return { ...plan.query, dims: plan.dims, limit: limitAsked(plan.query, plan.dims), filters, scopeApplied: plan.scopeApplied, labels: namesOf(plan.dictionary, { ...filters, ...plan.scopeApplied }) };
 }
 
 /** Thai names of every slice the answer is narrowed to, the role's scope included, except a dimension whose several values the rows already name one by one. */
@@ -489,6 +496,7 @@ export type MetricPlan = {
   masked: boolean;
   ratio: boolean;
   periodLabel: string;
+  compareLabel: string | null;
   compareNote: string | null;
   comparisonScale: number;
   current: FactRequest;
@@ -531,6 +539,7 @@ export function planMetric(query: MetricQuery, access: AccessContext, dictionary
     masked: visibility === "masked",
     ratio: RATIO_METRICS.has(def.id),
     periodLabel: periodLabelOf(start.from, range.to),
+    compareLabel: compareLabelOf(query.compare, range.to),
     compareNote: start.note ?? partialMonthNote(share, range.to),
     comparisonScale: share,
     current: factRequest(def, "actual", dims, filters, start.from, range.to, NO_SHIFT),
@@ -564,7 +573,7 @@ export function finishMetric(plan: MetricPlan, current: FactResult, comparison: 
   const aggregated = where ? all.filter((row) => !suppressed.has(row.key) && passes(where, row.value)) : all;
   const compareRows = comparison ? keyRows(dims, comparison.rows).map((row) => ({ ...row, value: row.value * plan.comparisonScale })) : null;
 
-  const limit = query.limit ?? DEFAULT_LIMIT;
+  const limit = limitOf(query, dims);
   const lowFirst = RISK_WHEN_LOW.has(def.id);
   const sort = effectiveSort(query.sort ?? null, compareRows);
   const capped = sort && !masked && !firstTimeDim(dims) ? orderedRows(aggregated, sort, limit, compareRows) : sortRows(aggregated, dims, limit, masked, lowFirst);
@@ -583,7 +592,7 @@ export function finishMetric(plan: MetricPlan, current: FactResult, comparison: 
     coverage: coverageOfQuery(query),
   };
   const headline = {
-    ...headlineOf(dictionary, def, query, capped, aggregated, averagedHeadline(def, query, ratio), compareRows, masked, suppressed, { periodLabel: plan.periodLabel, compareNote: plan.compareNote }),
+    ...headlineOf(dictionary, def, query, capped, aggregated, averagedHeadline(def, query, ratio), compareRows, masked, suppressed, { periodLabel: plan.periodLabel, compareLabel: plan.compareLabel, compareNote: plan.compareNote }),
     underLine: masked ? null : underLineOf(def, query.dims, all, suppressed),
   };
   const summary = [summarize(def, query, headline, masked, aggregated.length === 0), provenance.coverage?.label ?? null].filter((part): part is string => part !== null).join(" · ");
@@ -595,6 +604,17 @@ export function finishMetric(plan: MetricPlan, current: FactResult, comparison: 
     provenance,
     query: resolved,
   };
+}
+
+/** The row limit an answer honours: none for a breakdown by one of the few parts that make up the company (six regions, the channels, the business units), since a missing part reads as a part that is fine; any other list keeps the limit asked. */
+function limitAsked(query: MetricQuery, dims: Dim[]): number | null {
+  const [only, ...rest] = dims;
+  if (only && rest.length === 0 && WHOLE_PARTITIONS.has(only)) return null;
+  return query.limit;
+}
+
+function limitOf(query: MetricQuery, dims: Dim[]): number {
+  return limitAsked(query, dims) ?? DEFAULT_LIMIT;
 }
 
 function passes(where: ValueFilter, value: number): boolean {

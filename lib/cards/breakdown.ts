@@ -21,6 +21,7 @@ import {
   type StripForm,
 } from "./reading";
 import type { CardHero } from "./present";
+import type { ParityGap } from "./chart-bodies";
 
 type OkResult = Extract<MetricResult, { ok: true }>;
 
@@ -73,8 +74,8 @@ export function percentIn(text: string): number | null {
   return Number(trimmed.replace("−", "-").replace(/[,%]/g, ""));
 }
 
-/** What the decision table knows about one breakdown: its rows in the order asked, the bars it draws, the unit word, the overall row's label, and whether the question set a threshold (R7). */
-export type BreakdownInput = { query: MetricQuery; result: OkResult; rows: MetricRow[]; bars: BreakdownBars; unit: string; scope: string; threshold: boolean; additive: boolean; falling: boolean };
+/** What the decision table knows about one breakdown: its rows in the order asked, the bars it draws, the unit word, the overall row's label, whether the question set a threshold (R7), and what a target figure is a share of ("ของเป้าตามเวลา" in a month still running) with the whole month beside it, the base total a change ranking moved from, and whether the line is read from above (the top of a capped ranking, or rows above a value). */
+export type BreakdownInput = { query: MetricQuery; result: OkResult; rows: MetricRow[]; bars: BreakdownBars; unit: string; scope: string; threshold: boolean; additive: boolean; falling: boolean; target: { unit: string; detail: string | null }; baseTotal: string | null; high: boolean };
 
 /** A breakdown read for styles B and A: the strip, the verdict, the hero the overall row stands for, the row style A leads with instead (a change ranking), and how the rows style A folds away read in one line. */
 export type Breakdown = {
@@ -117,8 +118,45 @@ function measuresOf(rows: ReadRow[]): number[] {
   return rows.flatMap((row) => (row.measure === null ? [] : [row.measure]));
 }
 
+/** R6 read from above: a question about stock piling up (cover ranked highest first, or rows above a value) leads with the row furthest over the line, the rows standing clear at the top drawn as exceptions. */
+function aboveLineReading(input: BreakdownInput, line: LevelLine): Breakdown {
+  const { query, result } = input;
+  const scored = input.rows.map((row) => ({ row, measure: numericOf(row, "value") })).sort((left, right) => (right.measure ?? -Infinity) - (left.measure ?? -Infinity));
+  const known = scored.flatMap((entry) => (entry.measure === null ? [] : [entry.measure]));
+  const leading = Math.max(1, leadingExceptions(known, MIN_GAP_POINTS));
+  const peak = Math.max(line.at, ...known);
+  const rows: ReadRow[] = scored.map((entry, index) => ({
+    label: labelOf(query, entry.row),
+    sub: null,
+    measure: entry.measure,
+    fill: entry.measure === null ? 0 : Math.min(1, Math.max(0, entry.measure / peak)),
+    text: valueTextOf(query, entry.row),
+    change: null,
+    tone: "neutral",
+    exception: index < leading,
+    valued: index < leading || index === scored.length - 1,
+  }));
+  const [top] = scored;
+  const topLabel = top ? labelOf(query, top.row) : input.scope;
+  const topText = top ? valueTextOf(query, top.row) : result.headline.value;
+  const threshold = input.threshold && query.where ? TH.read.cover.over(query.where.value) : null;
+  const verdict = threshold ? TH.read.countOf(rows.length, result.headline.underLine?.of ?? rows.length, input.unit, threshold) : TH.read.cover.most(topLabel, topText);
+  return {
+    form: "line",
+    baseline: line.at,
+    overall: null,
+    rows,
+    verdict,
+    hero: { label: TH.dash.rowHero(TH.dash.highest, topLabel), value: topText, unit: null, delta: null, trend: "neutral", tone: "neutral", detail: `${input.scope} ${result.headline.value}` },
+    lead: null,
+    pickWhenNone: LEADERS,
+    fold: foldLine(input.unit, () => null, measuresOf, (value) => formatMetricValue(query.metric, value)),
+  };
+}
+
 function lineReading(input: BreakdownInput, line: LevelLine): Breakdown {
   const { query, result } = input;
+  if (input.high && line.line.kind === "cover") return aboveLineReading(input, line);
   const overTarget = query.compare === "target" && query.metric !== "target_attainment";
   const measureOf = (row: MetricRow) => (overTarget ? attainmentOf(row) : numericOf(row, "value"));
   const scored = input.rows.map((row) => ({ row, measure: measureOf(row) })).sort((left, right) => (left.measure ?? Infinity) - (right.measure ?? Infinity));
@@ -167,7 +205,7 @@ function lineReading(input: BreakdownInput, line: LevelLine): Breakdown {
   return {
     form: "line",
     baseline: line.at,
-    overall: { label: input.scope, sub: ofTarget ? TH.read.ofTarget : null, measure: overallMeasure, fill: 0, text: overallText, change: null, tone: overallTone, exception: true, valued: true },
+    overall: { label: input.scope, sub: ofTarget ? [input.target.unit, input.target.detail].filter(Boolean).join(" · ") : null, measure: overallMeasure, fill: 0, text: overallText, change: null, tone: overallTone, exception: true, valued: true },
     rows,
     verdict: lineVerdict({
       line: line.line,
@@ -179,11 +217,23 @@ function lineReading(input: BreakdownInput, line: LevelLine): Breakdown {
       sums: input.additive,
       weakest: answer ? { label: labelOf(query, answer.row), text: textOf(answer) } : null,
     }),
-    hero: { label: input.scope, value: overallText, unit: ofTarget ? TH.read.ofTarget : null, delta: change.delta, trend: change.trend, tone: ofTarget ? overallTone : change.tone, detail: ofTarget ? null : result.headline.compareLabel },
+    hero: { label: input.scope, value: overallText, unit: ofTarget ? input.target.unit : null, delta: change.delta, trend: change.trend, tone: ofTarget ? overallTone : change.tone, detail: ofTarget ? input.target.detail : result.headline.compareLabel },
     lead: null,
     pickWhenNone: 0,
     fold,
   };
+}
+
+/** What a row was compared with, named by its window ("ปีก่อน 1.3 ล้านบาท"), so a change never stands without the number it moved from; null against a target or with nothing to compare. */
+export function baseOf(query: MetricQuery, row: MetricRow): string | null {
+  const word = TH.read.base[query.compare];
+  const previous = numericOf(row, "compare_value");
+  return word && previous !== null ? `${word} ${formatMetricValue(query.metric, previous)}` : null;
+}
+
+function levelAndBase(query: MetricQuery, row: MetricRow): string | null {
+  const base = baseOf(query, row);
+  return base ? `${valueTextOf(query, row)} · ${base}` : null;
 }
 
 function changeReading(input: BreakdownInput): Breakdown {
@@ -201,7 +251,7 @@ function changeReading(input: BreakdownInput): Breakdown {
     const exception = exceptions.has(entry.row);
     return {
       label: labelOf(query, entry.row),
-      sub: null,
+      sub: levelAndBase(query, entry.row),
       measure: entry.measure,
       fill: entry.measure === null ? 0 : Math.min(1, Math.abs(entry.measure) / (inPoints ? peak : PERCENT)),
       text: changeTextOf(query.metric, entry.row) ?? "—",
@@ -218,7 +268,7 @@ function changeReading(input: BreakdownInput): Breakdown {
   return {
     form: "line",
     baseline: 0,
-    overall: { label: input.scope, sub: null, measure: overallMeasure, fill: 0, text: overall.delta ?? "—", change: null, tone: overall.tone, exception: true, valued: true },
+    overall: { label: input.scope, sub: input.baseTotal, measure: overallMeasure, fill: 0, text: overall.delta ?? "—", change: null, tone: overall.tone, exception: true, valued: true },
     rows,
     verdict: changeVerdict({
       unit: input.unit,
@@ -229,8 +279,8 @@ function changeReading(input: BreakdownInput): Breakdown {
       changes: known.map((entry) => entry.measure),
       format,
     }),
-    hero: { label: input.scope, value: overall.delta ?? result.headline.value, unit: null, delta: null, trend: overall.trend, tone: overall.tone, detail: result.headline.compareLabel },
-    lead: leadRow && leading > 0 ? { row: labelOf(query, leadRow.row), hero: { label: labelOf(query, leadRow.row), value: valueTextOf(query, leadRow.row), unit: null, ...rowMove(query, leadRow.row), detail: result.headline.compareLabel } } : null,
+    hero: { label: input.scope, value: overall.delta ?? result.headline.value, unit: null, delta: null, trend: overall.trend, tone: overall.tone, detail: input.baseTotal ?? result.headline.compareLabel },
+    lead: leadRow && leading > 0 ? { row: labelOf(query, leadRow.row), hero: { label: labelOf(query, leadRow.row), value: valueTextOf(query, leadRow.row), unit: null, ...rowMove(query, leadRow.row), detail: baseOf(query, leadRow.row) ?? result.headline.compareLabel } } : null,
     pickWhenNone: wrongWay ? 0 : LEADERS,
     fold: foldLine(input.unit, (rest) => (sameWay(rest) ? (input.falling ? TH.read.fell : TH.read.rose) : null), (rest) => measuresOf(rest).map((value) => (sameWay(rest) ? Math.abs(value) : value)), (value) => (inPoints ? format(value) : percentText(value))),
   };
@@ -313,6 +363,34 @@ function referenceReading(input: BreakdownInput): Breakdown {
     lead: null,
     pickWhenNone: 0,
     fold: foldLine(input.unit, () => null, measuresOf, format),
+  };
+}
+
+/** R10 parity in the B anatomy: one thing measured twice (sell-out against sell-in) read as the second over the first around the 100% line, the things falling well short drawn thick with their share, the rest thin and muted; the overall share on top. */
+export function parityReading(input: { gaps: readonly ParityGap[]; hero: CardHero; verdict: string; unit: string }): Breakdown {
+  const { gaps, hero } = input;
+  const rows: ReadRow[] = gaps.map((gap, index) => ({
+    label: gap.label,
+    sub: null,
+    measure: gap.ratio,
+    fill: Math.min(1, Math.max(0, gap.ratio / PERCENT)),
+    text: percentText(gap.ratio),
+    change: null,
+    tone: gap.short ? "bad" : "neutral",
+    exception: gap.short,
+    valued: gap.short || index === gaps.length - 1,
+  }));
+  const overallMeasure = percentIn(hero.value);
+  return {
+    form: "line",
+    baseline: PERCENT,
+    overall: { label: TH.read.allOf(input.unit), sub: hero.label, measure: overallMeasure, fill: 0, text: hero.value, change: null, tone: hero.tone, exception: true, valued: true },
+    rows,
+    verdict: input.verdict,
+    hero,
+    lead: null,
+    pickWhenNone: 0,
+    fold: foldLine(input.unit, () => null, measuresOf, percentText),
   };
 }
 

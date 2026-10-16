@@ -6,9 +6,10 @@ import { findUser } from "@/lib/data/entities/users";
 import { runMetric } from "@/lib/data/query";
 import { TH } from "@/lib/i18n/th";
 import { LOW_COVER_DAYS } from "@/lib/semantic/metrics";
-import { changeToneOf } from "@/lib/dashboard/metric-display";
-import { presentCard, presentForecast, weakestRow, type CardBody, type CardParts, type CardView, type ForecastAnswer, type SortBy } from "./present";
+import { changeToneOf, formatChange } from "@/lib/dashboard/metric-display";
+import { pairedIndexes, presentCard, presentForecast, weakestRow, type CardBody, type CardParts, type CardView, type ForecastAnswer, type SortBy } from "./present";
 import type { ReadRow, Strip } from "./reading";
+import { metricTitle } from "./tool-answers";
 
 const CEO = accessFor(findUser("u_thana")!);
 const AUGUST = { from: "2026-08-01", to: "2026-08-31" };
@@ -52,6 +53,18 @@ function measures(rows: readonly ReadRow[]): number[] {
 }
 
 describe("time × group", () => {
+  test("groups over a single month are a breakdown by the groups, never a line of lone dots, and the title drops the month split (AI-69)", () => {
+    const { query, result } = answer({ metric: "gross_margin", dims: ["month", "business_unit"] });
+    const card = presentCard({ title: "t", query, result });
+    expect(stripOf(card.body).rows.length).toBeGreaterThan(1);
+    expect(card.hero?.label).toBe(TH.read.averageOf(TH.dash.dimUnit.business_unit));
+    expect(metricTitle(result, query)).not.toContain(TH.dash.dimUnit.month);
+  });
+
+  test("a rate by group over two months is a grid, not two-point lines (AI-69)", () => {
+    expect(bodyOf({ metric: "gross_margin", dims: ["month", "business_unit"], range: { from: "2026-07-01", to: "2026-08-31" } }).kind).toBe("heatmap");
+  });
+
   test("a sum over six months by region stacks as bars, the sixth region folded into อื่น ๆ", () => {
     const body = expectKind(bodyOf({ metric: "net_sales_volume", dims: ["month", "region"], range: SIX_MONTHS }), "stacked");
     expect(body.shape).toBe("bar");
@@ -245,15 +258,16 @@ describe("two metrics on one card", () => {
     expect(body.x.label).not.toBe(body.y.label);
   });
 
-  test("sell-in against sell-out is one gap bar per agent, widest shortfall first, with the overall ratio as the headline", () => {
+  test("sell-in against sell-out is a B breakdown around 100%: the overall share on top, the agents falling well short drawn as exceptions, no 'x → y' under any row", () => {
     const first = answer({ metric: "net_sales_volume", dims: ["agent"] });
     const card = presentCard({ title: "t", query: first.query, result: first.result, others: [answer({ metric: "sell_out_volume", dims: ["agent"] })] });
-    const body = expectKind(card.body, "gap");
-    expect(body.rows.length).toBeGreaterThanOrEqual(2);
-    const gaps = body.rows.map((row) => row.gap);
-    expect(gaps).toEqual([...gaps].sort((left, right) => left - right));
-    expect(Math.max(...gaps.map(Math.abs))).toBeLessThanOrEqual(1);
-    expect(body.rows[0].detail).toContain("→");
+    expect(["strip", "exceptions"]).toContain(card.body.kind);
+    const body = card.body as Extract<CardBody, { kind: "strip" | "exceptions" }>;
+    expect(body.strip.baseline).toBe(100);
+    const rows = [...body.strip.rows, ...(body.kind === "exceptions" ? (body.fold?.rows ?? []) : [])];
+    expect(rows.length).toBeGreaterThanOrEqual(2);
+    rows.forEach((row) => expect(`${row.text} ${row.sub ?? ""}`).not.toContain("→"));
+    rows.filter((row) => row.exception).forEach((row) => expect(row.measure ?? 100).toBeLessThanOrEqual(95));
     expect(card.hero?.value).toMatch(/%$/);
     expect(card.verdict).toMatch(/เอเย่นต์/);
   });
@@ -279,6 +293,58 @@ describe("two metrics on one card", () => {
 
   test("results that do not fit together fall back to the first card", () => {
     expect(bodyOf({ metric: "net_sales_volume", dims: ["region"] }, { others: [{ metric: "headcount", dims: ["department"] }] }).kind).toBe("strip");
+  });
+
+  test("two metrics of a few groups are the first breakdown with the second value under every row, not an unlabelled scatter (AI-70)", () => {
+    const first = answer({ metric: "net_sales_value", dims: ["region"] });
+    const second = answer({ metric: "ar_overdue", dims: ["region"] });
+    expect(pairedIndexes(first, [second])).toEqual([0]);
+    const card = presentCard({ title: "t", query: first.query, result: first.result, others: [second] });
+    const rows = stripOf(card.body).rows;
+    expect(rows.length).toBeGreaterThan(1);
+    rows.forEach((row) => expect(row.sub).toMatch(/^.+บาท ยอดค้างชำระเกินกำหนด$/));
+    expect(card.title).toContain("ยอดค้างชำระเกินกำหนด");
+  });
+
+  test("a change ranking names what each row moved from, and the hero what the whole was, so last year's amount is on the card (AI-68)", () => {
+    const card = cardOf({ metric: "ar_overdue", dims: ["region"], compare: "prev_year" }, { sort: "delta_desc" });
+    const strip = stripOf(card.body);
+    strip.rows.forEach((row) => expect(row.sub).toMatch(/ · ปีก่อน .+บาท$/));
+    expect(card.hero?.detail).toMatch(/^ปีก่อน .+บาท$/);
+  });
+
+  test("one metric asked against target and against the period before is one card, the second change beside the hero and under each row (AI-66)", () => {
+    const target = answer({ metric: "net_sales_value", dims: ["region"], compare: "target" });
+    const previous = answer({ metric: "net_sales_value", dims: ["region"], compare: "prev_period" });
+    if (!previous.result.ok) throw new Error(previous.result.error);
+    expect(pairedIndexes(target, [previous])).toEqual([0]);
+    const card = presentCard({ title: "t", query: target.query, result: target.result, others: [previous] });
+    expect(card.hero?.detail).toContain(TH.dash.compare.prev_period);
+    expect(stripOf(card.body).overall?.sub).toContain(TH.dash.compare.prev_period);
+    const strip = stripOf(card.body);
+    expect(strip.rows.length).toBeGreaterThan(1);
+    strip.rows.forEach((row) => expect(row.sub).toEndWith(TH.dash.compare.prev_period));
+  });
+});
+
+describe("a first bucket that holds only some of its days", () => {
+  test("a weekly line starting mid-week labels the short week with its days and draws the step to it dashed, never as a collapse (AI-83)", () => {
+    const body = expectKind(bodyOf({ metric: "net_sales_volume", dims: ["week"], grain: "week", range: { from: "2026-08-08", to: "2026-08-30" }, compare: "none" }), "line");
+    expect(body.series[1].name).toEndWith("มีข้อมูล 2 วัน");
+    expect(body.series[0].values[0]).toBeNull();
+    expect(body.series[1].style).toBe("dashed");
+    expect(body.series[1].values.slice(2).every((value) => value === null)).toBe(true);
+  });
+});
+
+describe("a period split into days", () => {
+  test("this week by day leads with the week's total against the week before, not its last day (AI-71)", () => {
+    const { query, result } = answer({ metric: "net_sales_volume", dims: ["date"], grain: "day", range: { from: "2026-08-17", to: "2026-08-23" } });
+    if (!result.ok) throw new Error(result.error);
+    const card = presentCard({ title: "t", query, result });
+    expect(card.hero?.value).toBe(result.headline.value);
+    expect(card.hero?.delta).toBe(formatChange(query.metric, result.headline.deltaPercent, result.headline.deltaPoints ?? null));
+    expect(card.body.kind).toBe("line");
   });
 });
 
@@ -504,7 +570,7 @@ describe("a target card in a month still running", () => {
   test("its footer says the pace the target is counted to and where the month ends when the result carries a projection", () => {
     const { query, result } = answer({ metric: "net_sales_volume", dims: ["region"], range: MONTH_TO_DATE, compare: "target" });
     if (!result.ok) throw new Error(result.error);
-    const projection = { recentDays: 7, projected: "10.2 ล้านลิตร", monthTarget: "11.3 ล้านลิตร", attainment: "90.6%", attainmentToDate: "66.4%", remaining: "เหลืออีก 3.8 ล้านลิตร ถึงเป้า" };
+    const projection = { recentDays: 7, projected: "10.2 ล้านลิตร", monthTarget: "11.3 ล้านลิตร", attainment: "90.6%", attainmentToDate: "66.4%", shortBy: "3.8 ล้านลิตร", remaining: "เหลืออีก 3.8 ล้านลิตร ถึงเป้าทั้งเดือน" };
     const card = presentCard({ title: "t", query, result: { ...result, headline: { ...result.headline, projection } } });
     expect(card.footer?.details).toContain(TH.dash.paceTarget(formatThaiDate(DATA_AS_OF), MONTH_ELAPSED));
     expect(card.footer?.details).toEndWith(TH.dash.monthEnd(projection));
@@ -516,7 +582,7 @@ describe("a target card in a month still running", () => {
     const delta = result.headline.deltaPercent ?? 0;
     const card = presentCard({ title: "t", query, result });
     expect(card.hero?.value).toBe(`${Math.round((100 + delta) * 10) / 10}%`);
-    expect(card.hero?.unit).toBe(TH.read.ofTarget);
+    expect(card.hero?.unit).toBe(TH.read.ofPacedTarget);
     expect(card.hero?.tone).toBe(delta < 0 ? "bad" : "neutral");
     const strip = stripOf(card.body);
     expect(strip.overall?.measure).toBeCloseTo(100 + delta, 5);
@@ -541,6 +607,15 @@ describe("a breakdown whose level decides", () => {
     const worst = weakestRow(top, capped);
     if (under && under.count > 1) expect(card.verdict).toStartWith(`${under.count} DC`);
     if (under && under.count === 0) expect(card.verdict).toStartWith(`${worst?.label} เหลือน้อยสุด ${worst?.value}`);
+  });
+
+  test("cover ranked highest first is an overstock question: the hero is the row furthest over the line, never the weakest (AI-67)", () => {
+    const card = cardOf({ metric: "days_of_cover", dims: ["brand"], compare: "none" }, { sort: "value_desc", limit: 5 });
+    const values = stripOf(card.body).rows.map((row) => row.measure ?? 0);
+    expect(values).toEqual([...values].sort((left, right) => right - left));
+    expect(card.hero?.label).toStartWith(TH.dash.highest);
+    expect(card.hero?.value).toBe(stripOf(card.body).rows[0].text);
+    expect(card.verdict).toContain("นานสุด");
   });
 
   test("asked only for the rows under the line, the count still reads against every group", () => {

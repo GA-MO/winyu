@@ -8,6 +8,7 @@ import { CandidatesCard, CoursesCard, PolicyCard } from "./entity/hr";
 import { OwnerCard, PeopleCard, PersonCard } from "./entity/people";
 import { CalendarCard, connectorCard, EntityCard, GapCard, MemoryCard, MetricsListCard } from "./entity/reference";
 import { SiteCard } from "./entity/sites";
+import { AdminAuditCard } from "./entity/admin-audit";
 
 /** Draws one tool result; `args` is what the model called the tool with, `paired` the other answers of the turn its card draws with it (R10). */
 export type ToolCard = (result: unknown, args: unknown, paired: readonly unknown[]) => ReactNode;
@@ -17,7 +18,6 @@ const LmsTrainingCard = connectorCard("training_history");
 const LogisticsPartnerCard = connectorCard("ask_logistics_partner");
 const InboxCard = connectorCard("inbox");
 const VisitPlanCard = connectorCard("visit_plan");
-const AdminAuditCard = connectorCard("admin_audit");
 
 /** Every read tool's card, keyed by tool name: the model picks the tool, the card is drawn from its result. */
 export const TOOL_CARDS = {

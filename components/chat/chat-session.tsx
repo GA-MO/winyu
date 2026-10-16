@@ -11,6 +11,7 @@ import { Composer } from "@/components/composer/composer";
 import { GlowBackdrop } from "@/components/ui/glow-backdrop";
 import { cardsToSendEach } from "./card-to-share";
 import { ExchangeView, type ExchangeLive } from "./exchange-view";
+import { useFollowLatest } from "./follow-latest";
 import { answeredMetrics, chipRow, latestFollowUps } from "./follow-ups";
 import { requestedCoursesOf } from "./requested-courses";
 import { useChatSession, type AgentMessage, type PendingApproval } from "./use-chat-session";
@@ -19,7 +20,6 @@ const COLUMN = "mx-auto w-full max-w-3xl px-4 sm:px-6";
 const CARD_TOOLS: ReadonlySet<string> = new Set(Object.keys(TOOL_CARDS));
 const EMPTY_CHIPS = 4;
 const ANSWER_CHIPS = 3;
-const PINNED_SLACK_PX = 120;
 const QUICK_ACTIONS_ENDPOINT = "/api/quick-actions";
 const CHIP =
   "inline-flex max-w-full items-center gap-1.5 truncate rounded-full border border-border bg-card px-3.5 py-1.5 text-sm text-foreground shadow-card transition hover:border-foreground/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
@@ -48,27 +48,6 @@ function notePressed(action: QuickAction): void {
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ intentKey: action.intentKey, prompt: action.prompt, kind }),
   }).catch(() => undefined);
-}
-
-function useStickToBottom() {
-  const scroller = useRef<HTMLDivElement>(null);
-  const content = useRef<HTMLDivElement>(null);
-  const pinned = useRef(true);
-  useEffect(() => {
-    const node = scroller.current;
-    const inner = content.current;
-    if (!node || !inner) return;
-    const follow = new ResizeObserver(() => {
-      if (pinned.current) node.scrollTo({ top: node.scrollHeight });
-    });
-    follow.observe(inner);
-    return () => follow.disconnect();
-  }, []);
-  const onScroll = () => {
-    const node = scroller.current;
-    if (node) pinned.current = node.scrollHeight - node.scrollTop - node.clientHeight < PINNED_SLACK_PX;
-  };
-  return { scroller, content, onScroll };
 }
 
 function EmptyState() {
@@ -119,7 +98,7 @@ export function ChatSession({ threadId, initialPrompt, initialMessages, initialA
     wasRunning.current = running;
   }, [running]);
 
-  const { scroller, content, onScroll } = useStickToBottom();
+  const { scroller, content, onScroll } = useFollowLatest(exchanges[exchanges.length - 1]?.id ?? null);
 
   const chips = useMemo(() => {
     if (!ready || running || session.waiting.size > 0) return [];
@@ -158,7 +137,7 @@ export function ChatSession({ threadId, initialPrompt, initialMessages, initialA
       <div className="relative flex h-full min-h-0 flex-1 flex-col">
         <GlowBackdrop className="opacity-60" />
         <div ref={scroller} onScroll={onScroll} className="relative z-10 min-h-0 flex-1 overflow-y-auto">
-          <div ref={content} className={`flex flex-col gap-8 pb-8 pt-16 ${COLUMN}`}>
+          <div ref={content} className={`flex flex-col gap-8 pb-8 pt-6 md:pt-16 ${COLUMN}`}>
             {preload ? <PreloadBanner preload={preload} /> : null}
             {exchanges.length === 0 && !running && !initialPrompt ? <EmptyState /> : null}
             {exchanges.map((exchange, index) => (
