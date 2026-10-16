@@ -330,7 +330,6 @@ export const TH = {
     observedVsExpected: (observed: string, expected: string) => `จริง ${observed} · คาด ${expected}`,
     fromName: (name: string) => `จาก ${name}`,
     askAbout: (scope: string) => `ตรวจความผิดปกติของ ${scope} ให้หน่อย`,
-    packetPrompt: (title: string) => `สรุปงานที่ส่งต่อมาเรื่อง ${title} และบอกว่าควรเริ่มตรวจอะไรก่อน`,
     kpiOpen: "เปิด Dashboard เพื่อดูการ์ดที่ปักไว้",
   },
   watch: {
