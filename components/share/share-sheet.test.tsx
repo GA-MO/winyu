@@ -87,10 +87,11 @@ describe("the sheet before sending", () => {
     for (let tick = 0; tick < 5; tick += 1) await act(async () => new Promise((resolve) => setTimeout(resolve, 0)));
   }
 
-  async function openSheet(scopes: unknown[]): Promise<Sheet> {
+  async function openSheet(scopes: unknown[], sendStatus = 200): Promise<Sheet> {
     const sent: Sent[] = [];
     const spy = spyOn(globalThis, "fetch").mockImplementation((async (input: string, init?: RequestInit) => {
       sent.push({ url: input, body: init?.body ? (JSON.parse(String(init.body)) as Record<string, unknown>) : {} });
+      if (input === "/api/shares" && sendStatus !== 200) return Response.json({ error: "list_metrics cannot be shared" }, { status: sendStatus });
       return Response.json(reply(input, scopes));
     }) as unknown as typeof fetch);
     const host = document.createElement("div");
@@ -138,6 +139,17 @@ describe("the sheet before sending", () => {
     await settle();
     expect(sheet.sent.find((call) => call.url === "/api/shares")?.body.urgency).toBe("this_week");
     await sheet.close();
+  });
+
+  test("says a refused card cannot be shared instead of asking to try again, and still asks to retry other failures", async () => {
+    for (const [status, shown, hidden] of [[422, TH.share.refused, TH.share.failed], [500, TH.share.failed, TH.share.refused]] as const) {
+      const sheet = await openSheet([], status);
+      await act(async () => sheet.host.querySelector<HTMLButtonElement>("[data-share-send]")?.click());
+      await settle();
+      expect(sheet.host.textContent).toContain(shown);
+      expect(sheet.host.textContent).not.toContain(hidden);
+      await sheet.close();
+    }
   });
 
   test("offers the grant when the sender may open what is hidden, and says nothing when nothing is", async () => {

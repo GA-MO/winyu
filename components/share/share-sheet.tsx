@@ -22,7 +22,9 @@ const CHIP = "inline-flex items-center gap-1 rounded-full border px-2.5 py-1 tex
 /** The icon each share channel shows with. */
 export const CHANNEL_ICON: Record<ShareChannel, typeof Mail> = { email: Mail, teams: Users, line: MessageCircle };
 
-type Phase = { kind: "picking" } | { kind: "sending" } | { kind: "sent"; receipts: ShareReceipt[]; grants: ShareGrantReceipt[]; hidden: RecipientScope[]; path: string } | { kind: "failed" };
+type Phase = { kind: "picking" } | { kind: "sending" } | { kind: "sent"; receipts: ShareReceipt[]; grants: ShareGrantReceipt[]; hidden: RecipientScope[]; path: string } | { kind: "failed"; refused: boolean };
+
+const REFUSED_STATUS = 422;
 
 /** Who the signed-in person can share with, and whether they may grant temporary access as they share. */
 export type ShareDirectory = { contacts: ShareContact[]; mayGrant: boolean };
@@ -323,7 +325,7 @@ function Sheet({ target, close }: { target: ShareTarget; close: () => void }) {
     const body = { card: target.card, question: target.question, ask, intent, urgency, recipients, grantDays: directory?.mayGrant ? grantDays : null };
     const response = await fetch(SHARES_ENDPOINT, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) }).catch(() => null);
     const payload = response?.ok ? ((await response.json()) as { receipts: ShareReceipt[]; grants?: ShareGrantReceipt[]; hidden?: RecipientScope[]; path: string }) : null;
-    setPhase(payload ? { kind: "sent", receipts: payload.receipts, grants: payload.grants ?? [], hidden: payload.hidden ?? [], path: payload.path } : { kind: "failed" });
+    setPhase(payload ? { kind: "sent", receipts: payload.receipts, grants: payload.grants ?? [], hidden: payload.hidden ?? [], path: payload.path } : { kind: "failed", refused: response?.status === REFUSED_STATUS });
   };
 
   return (
@@ -361,7 +363,11 @@ function Sheet({ target, close }: { target: ShareTarget; close: () => void }) {
               <RecipientWarnings scopes={scopes} granting={grantDays !== null} grant={directory?.mayGrant ? () => setGrantDays(DEFAULT_GRANT_DAYS) : null} />
               {directory?.mayGrant ? <GrantPicker days={grantDays} choose={setGrantDays} /> : null}
               <p className="text-[11px] leading-relaxed text-muted-foreground">{TH.share.sheetNote}</p>
-              {phase.kind === "failed" ? <p className="text-xs text-danger">{TH.share.failed}</p> : null}
+              {phase.kind === "failed" ? (
+                <p className="text-xs text-danger">
+                  {phase.refused ? TH.share.refused : TH.share.failed}
+                </p>
+              ) : null}
               <div className="flex items-center justify-between gap-2">
                 <span className="text-xs text-muted-foreground">{TH.share.chosen(chosen.length)}</span>
                 <button type="button" onClick={() => void send()} disabled={!ready} data-share-send className="inline-flex items-center gap-1.5 rounded-full bg-ink px-4 py-2 text-xs font-medium text-ink-foreground transition hover:opacity-90 disabled:opacity-40">

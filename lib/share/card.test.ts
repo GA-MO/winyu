@@ -25,3 +25,21 @@ describe("the share behind a card is its reads", () => {
     expect(shareTitle({ kind: "tool", reads: [{ tool: "find_people", input: {} }] })).toBe("คนและทีม");
   });
 });
+
+describe("the share pill follows the server's rule", () => {
+  const SURFACE = { surfaceId: "s", components: [{ id: "root", component: "Card" as const, title: "เมตริก", children: ["x"] }, { id: "x", component: "Person" as const, name: { path: "/get_person/data/name" } }], dataModel: {}, done: true };
+  const UNSHAREABLE: ExchangeRead[] = [
+    { toolCallId: "m", tool: "list_metrics", args: { search: "โบนัส" }, returned: true },
+    { toolCallId: "r", tool: "recall_memory", args: { query: "เป้า" }, returned: true },
+  ];
+
+  test("a fixed card from an unshareable read has no share", () => {
+    expect(sharedToolCard(UNSHAREABLE, "m")).toBeNull();
+    expect(sharedToolCard(UNSHAREABLE, "r")).toBeNull();
+  });
+
+  test("a composed card leaves unshareable reads out, and has no share when nothing else remains", () => {
+    expect(sharedComposedCard(UNSHAREABLE, SURFACE)).toBeNull();
+    expect(sharedComposedCard([...UNSHAREABLE, ...CALLS], SURFACE)?.reads.map((read) => read.tool)).toEqual(["get_person"]);
+  });
+});

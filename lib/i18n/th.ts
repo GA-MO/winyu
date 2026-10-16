@@ -1754,6 +1754,7 @@ export const TH = {
     fellBack: (name: string) => `${name} ทางอีเมลแทน (ยังไม่เคยทัก Winyu ใน Teams)`,
     failedSend: (name: string) => `${name} ทางอีเมลแทน (ส่งทางช่องทางที่เลือกไม่สำเร็จ)`,
     failed: "ส่งต่อไม่สำเร็จ ลองใหม่อีกครั้ง",
+    refused: "การ์ดนี้ส่งต่อไม่ได้ เพราะมีข้อมูลที่ระบบไม่อนุญาตให้ส่งต่อ",
     subject: (sender: string, title: string) => `${sender} ส่งต่อการ์ด "${title}" ให้คุณ`,
     lead: (sender: string, senderTitle: string) => `${sender} (${senderTitle}) ส่งต่อการ์ดจาก Winyu ให้คุณ`,
     open: "เปิดดูใน Winyu",
