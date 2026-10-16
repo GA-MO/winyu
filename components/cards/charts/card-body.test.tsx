@@ -80,23 +80,6 @@ describe("scatter", () => {
   });
 });
 
-describe("gap", () => {
-  test("draws a bar each way from parity with no axis captions", () => {
-    const html = render({
-      kind: "gap",
-      rows: [
-        { label: "อุบลศรีสุข", gap: -1, gapText: "-12%", detail: "100 → 88", tone: "bad" },
-        { label: "พระราม 4", gap: 0.5, gapText: "+6%", detail: "100 → 106", tone: "good" },
-      ],
-      shownOf: null,
-    });
-    expect(html).toContain("อุบลศรีสุข");
-    expect(html).toContain("-12%");
-    expect(html).not.toContain("←");
-    expect(html).toContain("bg-danger");
-    expect(html).toContain("bg-success");
-  });
-});
 
 const ROW = { sub: null, fill: 0.5, change: null, valued: true } as const;
 
@@ -187,7 +170,6 @@ test("none of the new chart bodies render a raw hex colour", () => {
       y: { label: "Y", format: "number", median: 1, medianText: "1" },
       r: 0,
     },
-    { kind: "gap", rows: [{ label: "A", gap: -1, gapText: "-1%", detail: "d", tone: "bad" }], shownOf: null },
     { kind: "strip", strip: { form: "board", baseline: 0, low: 0, high: 1, overall: null, rows: [{ ...ROW, label: "A", measure: 1, text: "1", tone: "bad", exception: true }] } },
     { kind: "funnel", stages: [{ label: "A", value: 1, valueText: "1", width: 1, dropText: null, dropTone: "neutral" }] },
   ];

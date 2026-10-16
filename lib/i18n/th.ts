@@ -745,11 +745,9 @@ export const TH = {
     gapShortCount: (count: number, total: number, unit: string, other: string, base: string, threshold: number) =>
       `${count} จาก ${total} ${unit} ${other}ต่ำกว่า${base}เกิน ${threshold}%`,
     gapNoneShort: (unit: string, other: string, base: string, threshold: number) => `ไม่มี${unit}ไหน${other}ต่ำกว่า${base}เกิน ${threshold}%`,
-    gapDetail: (baseText: string, otherText: string) => `${baseText} → ${otherText}`,
     underTarget: "ต่ำกว่าเป้า",
     underCover: (days: number) => `สต๊อกพอขายต่ำกว่า ${days} วัน`,
     countOf: (count: number, total: number, unit: string) => `${count} จาก ${total} ${unit}`,
-    gapShownOf: (shown: number, total: number) => `แสดง ${shown} จาก ${total} รายที่ขาดมากสุด`,
     fromPreviousStage: (delta: string) => `${delta} จากขั้นก่อน`,
     indexedNote: "หน่วยต่างกัน จึงแสดงเป็นดัชนี (งวดแรก = 100)",
   },

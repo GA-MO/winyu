@@ -258,15 +258,16 @@ describe("two metrics on one card", () => {
     expect(body.x.label).not.toBe(body.y.label);
   });
 
-  test("sell-in against sell-out is one gap bar per agent, widest shortfall first, with the overall ratio as the headline", () => {
+  test("sell-in against sell-out is a B breakdown around 100%: the overall share on top, the agents falling well short drawn as exceptions, no 'x → y' under any row", () => {
     const first = answer({ metric: "net_sales_volume", dims: ["agent"] });
     const card = presentCard({ title: "t", query: first.query, result: first.result, others: [answer({ metric: "sell_out_volume", dims: ["agent"] })] });
-    const body = expectKind(card.body, "gap");
-    expect(body.rows.length).toBeGreaterThanOrEqual(2);
-    const gaps = body.rows.map((row) => row.gap);
-    expect(gaps).toEqual([...gaps].sort((left, right) => left - right));
-    expect(Math.max(...gaps.map(Math.abs))).toBeLessThanOrEqual(1);
-    expect(body.rows[0].detail).toContain("→");
+    expect(["strip", "exceptions"]).toContain(card.body.kind);
+    const body = card.body as Extract<CardBody, { kind: "strip" | "exceptions" }>;
+    expect(body.strip.baseline).toBe(100);
+    const rows = [...body.strip.rows, ...(body.kind === "exceptions" ? (body.fold?.rows ?? []) : [])];
+    expect(rows.length).toBeGreaterThanOrEqual(2);
+    rows.forEach((row) => expect(`${row.text} ${row.sub ?? ""}`).not.toContain("→"));
+    rows.filter((row) => row.exception).forEach((row) => expect(row.measure ?? 100).toBeLessThanOrEqual(95));
     expect(card.hero?.value).toMatch(/%$/);
     expect(card.verdict).toMatch(/เอเย่นต์/);
   });

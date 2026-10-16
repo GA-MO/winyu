@@ -4,12 +4,12 @@ import { MIN_CELL_SIZE } from "@/lib/access/suppression";
 import { addDays, daysBetween, monthKeyOfIso, weekKeyOfIso } from "@/lib/data/dates";
 import { formatDateTh, formatPercent, periodLabelTh } from "@/lib/i18n/format";
 import { changeTextOf, deltaPercentOf, deltaPointsOf, groupDimsOf, labelAlong, labelOf, numericOf, timeDimOf, valueTextOf } from "./rows";
-import { changeOf, exceptionsOf, fitsOneStrip, LEVEL_LINES, percentIn, readBreakdown, stripOf, type Breakdown, type BreakdownBars, type LevelLine } from "./breakdown";
+import { changeOf, exceptionsOf, fitsOneStrip, LEVEL_LINES, parityReading, percentIn, readBreakdown, stripOf, type Breakdown, type BreakdownBars, type LevelLine } from "./breakdown";
 import { compactPeriod, outliersOf, percentText, rangeText, shareVerdict, spaced, summaryVerdict, trendVerdict, type CardFooter, type Fold, type ReadRow, type Strip, type Tile } from "./reading";
 import {
   bucketCountOf,
   funnelBody,
-  gapBody,
+  parityGaps,
   gapHero,
   groupCountOf,
   heatmapBody,
@@ -64,7 +64,6 @@ export type HeatCell = { text: string; detail: string | null; intensity: number;
 export type ShareSlice = { label: string; valueText: string; share: number; shareText: string; isOther: boolean };
 export type ScatterPoint = { label: string; x: number; y: number; xText: string; yText: string; named: boolean };
 export type ScatterAxis = { label: string; format: MetricFormat; median: number; medianText: string };
-export type GapRow = { label: string; gap: number; gapText: string; detail: string | null; tone: Tone };
 export type FunnelStage = { label: string; value: number; valueText: string; width: number; dropText: string | null; dropTone: Tone };
 /** A row a shared card holds back from its viewer: its name only, never a value, a change, a share or a rank. */
 export type LockedRow = { label: string };
@@ -82,7 +81,6 @@ export type CardBody =
   | { kind: "share"; slices: ShareSlice[]; centerValue: string; centerLabel: string }
   | { kind: "heatmap"; rowLabels: string[]; columnLabels: string[]; cells: (HeatCell | null)[][]; scale: ColorScale }
   | { kind: "scatter"; points: ScatterPoint[]; x: ScatterAxis; y: ScatterAxis; r: number }
-  | { kind: "gap"; rows: GapRow[]; shownOf: string | null }
   | { kind: "funnel"; stages: FunnelStage[] }
   | { kind: "table"; columns: CardColumn[]; rows: Record<string, string>[] }
   | { kind: "alerts"; items: SignalItem[]; more: SignalItem[] }
@@ -898,7 +896,7 @@ function pairingOf(first: Source, others: Source[]): Pairing | null {
   const [, second] = all;
   const grouped = groupDimsOf(first.query).length > 0 && !timeDimOf(first.query);
   if (!grouped) return null;
-  if (isParityPair(first, second) && joinedRows(first, second).length >= RANK_MIN_ROWS) return { view: "gap", sources: [first, second] };
+  if (isParityPair(first, second) && joinedRows(first, second).length >= RANK_MIN_ROWS && gapHero(first, second, null)) return { view: "gap", sources: [first, second] };
   const points = joinedRows(first, second).length;
   if (points >= MIN_PLOTTED_SCATTER) return { view: "scatter", sources: [first, second] };
   if (points >= RANK_MIN_ROWS) return { view: "twin", sources: [first, second] };
@@ -918,7 +916,6 @@ function pairedBody(pairing: Pairing): CardBody {
   const [first, ...others] = pairing.sources;
   if (pairing.view === "funnel") return funnelBody(pairing.sources);
   if (pairing.view === "scatter") return scatterBody(first, others[0]);
-  if (pairing.view === "gap") return gapBody(first, others[0]);
   return overlaidLines(first, others);
 }
 
@@ -967,11 +964,6 @@ function correlationVerdict(scatter: Extract<CardBody, { kind: "scatter" }>): st
 function pairedLead(pairing: Pairing, body: CardBody, indexed: boolean): { hero: CardHero | null; tiles: Tile[]; verdict: string | null } {
   const [first, ...others] = pairing.sources;
   const last = others[others.length - 1];
-  if (pairing.view === "gap") {
-    const dim = rankDimOf(first.query);
-    const hero = gapHero(first, others[0], dim ? TH.dash.dimUnit[dim] : null);
-    return { hero: hero ? { ...hero, detail: null } : null, tiles: NO_TILES, verdict: hero?.detail ?? null };
-  }
   if (pairing.view === "scatter") return { hero: null, tiles: NO_TILES, verdict: body.kind === "scatter" ? correlationVerdict(body) : null };
   if (pairing.view === "funnel") {
     const ratio = ratioOf(first, last);
@@ -1033,6 +1025,17 @@ function withSecondMetric(card: CardParts, pairing: Pairing): CardParts {
   const [, second] = pairing.sources;
   const subs = new Map(second.result.rows.map((row) => [labelOf(second.query, row), `${shortMetricLabel(second)} ${valueTextOf(second.query, row)}`]));
   return { ...withSecondLine(card, subs, `${shortMetricLabel(second)} ${second.result.headline.value}`), title: pairedTitleOf(pairing) };
+}
+
+/** R10 parity (sell-out against sell-in by agent) in the B anatomy: the overall share on top, the things falling well short drawn thick with their share, the rest muted; the count that falls short is the verdict. */
+function parityCard(input: PresentInput, pairing: Pairing): CardParts {
+  const [first, second] = pairing.sources;
+  const dim = rankDimOf(first.query);
+  const unit = dim ? TH.dash.dimUnit[dim] : TH.dash.item;
+  const hero = gapHero(first, second, unit);
+  if (!hero) return presentCard({ ...input, others: [] });
+  const reading = parityReading({ gaps: parityGaps(first, second), hero: { ...hero, detail: null }, verdict: hero.detail ?? "", unit });
+  return breakdownCard({ title: pairedTitleOf(pairing), ...actionsOf(input.actions ?? NO_ACTIONS), footer: footerOf(first.query, first.result, []), denied: null }, reading);
 }
 
 function okSources(others: PresentSource[] | undefined): Source[] {
@@ -1263,6 +1266,7 @@ export function presentCard(input: PresentInput): CardParts {
   const pairing = masked || hidden > 0 ? null : pairingOf({ query, result }, okSources(input.others));
   if (pairing?.view === "baselines") return withBaseline(presentCard({ ...input, others: [] }), pairing.sources[1]);
   if (pairing?.view === "twin") return withSecondMetric(presentCard({ ...input, others: [] }), pairing);
+  if (pairing?.view === "gap") return parityCard(input, pairing);
   if (pairing) return pairedCard(input, pairing);
   const whole: Shape = { query, rows: visibleRows, additive: result.headline.aggregate === "sum", sortBy };
   const facts = factsOf(whole, result);

@@ -21,6 +21,7 @@ import {
   type StripForm,
 } from "./reading";
 import type { CardHero } from "./present";
+import type { ParityGap } from "./chart-bodies";
 
 type OkResult = Extract<MetricResult, { ok: true }>;
 
@@ -362,6 +363,34 @@ function referenceReading(input: BreakdownInput): Breakdown {
     lead: null,
     pickWhenNone: 0,
     fold: foldLine(input.unit, () => null, measuresOf, format),
+  };
+}
+
+/** R10 parity in the B anatomy: one thing measured twice (sell-out against sell-in) read as the second over the first around the 100% line, the things falling well short drawn thick with their share, the rest thin and muted; the overall share on top. */
+export function parityReading(input: { gaps: readonly ParityGap[]; hero: CardHero; verdict: string; unit: string }): Breakdown {
+  const { gaps, hero } = input;
+  const rows: ReadRow[] = gaps.map((gap, index) => ({
+    label: gap.label,
+    sub: null,
+    measure: gap.ratio,
+    fill: Math.min(1, Math.max(0, gap.ratio / PERCENT)),
+    text: percentText(gap.ratio),
+    change: null,
+    tone: gap.short ? "bad" : "neutral",
+    exception: gap.short,
+    valued: gap.short || index === gaps.length - 1,
+  }));
+  const overallMeasure = percentIn(hero.value);
+  return {
+    form: "line",
+    baseline: PERCENT,
+    overall: { label: hero.label, sub: null, measure: overallMeasure, fill: 0, text: hero.value, change: null, tone: hero.tone, exception: true, valued: true },
+    rows,
+    verdict: input.verdict,
+    hero,
+    lead: null,
+    pickWhenNone: 0,
+    fold: foldLine(input.unit, () => null, measuresOf, percentText),
   };
 }
 
