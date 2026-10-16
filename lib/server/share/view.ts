@@ -27,9 +27,12 @@ function jsonSafe(value: unknown): unknown {
 async function rerun(card: SharedCard, lockedOf: (read: SharedRead) => LockedRows | null): Promise<FreshRead[]> {
   const tools = winyuTools();
   const reads: FreshRead[] = [];
-  for (const read of card.reads) {
+  for (const stored of card.reads) {
+    const tool = tools[stored.tool];
+    const parsed = tool.inputSchema().safeParse(stored.input);
+    const read = parsed.success ? { ...stored, input: parsed.data as Record<string, unknown> } : stored;
     const toolCallId = randomUUID();
-    const output = await tools[read.tool].execute(read.input, { toolCallId });
+    const output = await tool.execute(read.input, { toolCallId });
     reads.push({ toolCallId, tool: read.tool, input: read.input, result: jsonSafe(output), locked: lockedOf(read) });
   }
   return reads;

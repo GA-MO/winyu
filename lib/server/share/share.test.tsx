@@ -123,6 +123,16 @@ describe("sharing a card sends the question, never the numbers", () => {
     expect(mayOpen(outcome.share, user("u_wee"))).toBe(false);
   });
 
+  test("a read stored as the model wrote it, one agent as a plain string, runs for the recipient through the tool's schema", async () => {
+    const asWritten = { grain: "week", filters: { agent: "อุบลศรีสุข เทรดดิ้ง" }, sort: null, compare: "none", range: { from: "2026-06-30", to: "2026-09-22" }, metric: "net_sales_value", limit: 12, dims: ["week"] };
+    const card = { kind: "tool" as const, reads: [{ tool: "query_metric", input: asWritten }] };
+    const outcome = await createShare(user("u_mint"), { card, question: "มูลค่าขายเข้าของอุบลศรีสุข เทรดดิ้ง รายสัปดาห์", note: "", recipients: [{ userId: "u_anucha", channel: "email" }] });
+    if (!outcome.ok) throw new Error(outcome.error);
+    const view = await openShare(outcome.share, user("u_anucha"));
+    expect(view.reads[0].result).toMatchObject({ ok: true });
+    expect((view.reads[0].result as { rows: unknown[] }).rows).toHaveLength(12);
+  });
+
   test("a recipient whose role may not run the tool gets the refusal, not the sender's card", async () => {
     const outcome = await createShare(user("u_thana"), { card: metricCard, question: QUESTION, note: "", recipients: [{ userId: "u_wee", channel: "email" }] });
     if (!outcome.ok) throw new Error(outcome.error);
