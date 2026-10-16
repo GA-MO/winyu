@@ -118,9 +118,9 @@ function ActivityRow({ activity }: { activity: Activity }) {
     <li className="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-3 rounded-2xl px-3 py-2.5 hover:bg-muted/40">
       <Avatar name={name} />
       <div className="min-w-0">
-        <p className="truncate text-sm font-medium">
-          {name}
-          <span className="font-normal text-muted-foreground">{` · ${person ? TH.role[person.role] : ""} · ${stamp(activity.at)}`}</span>
+        <p className="flex flex-wrap items-baseline gap-x-1.5 text-sm font-medium">
+          <span>{name}</span>
+          <span className="text-xs font-normal text-muted-foreground">{`${person ? `${TH.role[person.role]} · ` : ""}${stamp(activity.at)}`}</span>
         </p>
         <p className="text-[13px] text-foreground">{to ? COPY.activityTo(activity.action, to) : activity.action}</p>
         {activity.subject ? <p className="line-clamp-2 text-[12px] text-muted-foreground">{activity.subject}</p> : null}
@@ -234,9 +234,9 @@ function TurnRow({ group, open }: { group: TurnGroup; open: boolean }) {
         <summary className={cn("grid cursor-pointer list-none grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-3 rounded-2xl px-3 py-2.5", FOCUS)}>
           <Avatar name={person?.nameTh ?? first.userId} />
           <div className="min-w-0">
-            <p className="truncate text-sm font-medium">
-              {person?.nameTh ?? first.userId}
-              <span className="font-normal text-muted-foreground">{` · ${person ? TH.role[person.role] : ""} · ${stamp(first.at)}`}</span>
+            <p className="flex flex-wrap items-baseline gap-x-1.5 text-sm font-medium">
+              <span>{person?.nameTh ?? first.userId}</span>
+              <span className="text-xs font-normal text-muted-foreground">{`${person ? `${TH.role[person.role]} · ` : ""}${stamp(first.at)}`}</span>
             </p>
             <p className={cn("line-clamp-2 text-[13px]", first.question || byJob ? "text-foreground" : "text-muted-foreground")}>{headline}</p>
             {first.question || byJob ? <p className="mt-0.5 truncate text-[11px] text-muted-foreground">{`${COPY.calls(group.entries.filter((entry) => entry.tool !== GUARD_AUDIT_TOOL).length)} · ${tools.join(" · ")}`}</p> : null}

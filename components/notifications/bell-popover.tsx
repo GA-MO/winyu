@@ -73,12 +73,12 @@ function MatterRow({ item, onOpen, onActed }: { item: Extract<BellDecision, { ki
     <li className={cn("flex gap-3 rounded-xl px-2.5 py-2.5", !item.read && "bg-primary/[0.05]")} data-bell-decision="matter">
       <Face item={item} className="size-8" />
       <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-        <ItemLink item={item} onOpen={onOpen} className={cn("line-clamp-1 text-[13px] leading-snug hover:underline", item.read ? "text-foreground/80" : "font-medium text-foreground")}>
+        <ItemLink item={item} onOpen={onOpen} className={cn("line-clamp-2 text-[13px] leading-snug hover:underline", item.read ? "text-foreground/80" : "font-medium text-foreground")}>
           {brief.title}
         </ItemLink>
         {brief.ask ? <p className="line-clamp-2 text-[13px] leading-snug text-foreground/80">{brief.ask}</p> : null}
         <p className="flex items-center gap-2 text-[11px] text-muted-foreground">
-          <span className="min-w-0 flex-1 truncate">{matterFrom(brief)}</span>
+          <span className="min-w-0 flex-1">{matterFrom(brief)}</span>
           <When at={item.at} />
         </p>
         <MatterActions brief={brief} onActed={() => onActed(item)} />
@@ -91,11 +91,13 @@ function MatterRow({ item, onOpen, onActed }: { item: Extract<BellDecision, { ki
 function UpdateRow({ item, onOpen }: { item: BellItem; onOpen: (item: BellItem) => void }) {
   return (
     <li>
-      <ItemLink item={item} onOpen={onOpen} className="flex items-center gap-3 rounded-xl px-2.5 py-2 transition hover:bg-muted">
+      <ItemLink item={item} onOpen={onOpen} className="flex items-start gap-3 rounded-xl px-2.5 py-2 transition hover:bg-muted">
         <Face item={item} className="size-7" />
-        <span title={item.title} className={cn("min-w-0 flex-1 truncate text-[13px]", item.read ? "text-muted-foreground" : "font-medium text-foreground")}>{item.title}</span>
-        <When at={item.at} />
-        <span className="flex w-2 justify-center">
+        <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+          <span title={item.title} className={cn("line-clamp-3 text-[13px] leading-snug wrap-anywhere", item.read ? "text-muted-foreground" : "font-medium text-foreground")}>{item.title}</span>
+          <When at={item.at} />
+        </span>
+        <span className="mt-1.5 flex w-2 justify-center">
           <UnreadDot read={item.read} />
         </span>
       </ItemLink>
