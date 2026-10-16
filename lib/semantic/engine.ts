@@ -10,6 +10,7 @@ import { TH } from "@/lib/i18n/th";
 import { coverageOfQuery } from "@/lib/semantic/periods";
 
 const DEFAULT_LIMIT = 60;
+const WHOLE_PARTITIONS: ReadonlySet<Dim> = new Set(["region", "channel", "business_unit"]);
 const PREV_YEAR_DAYS = 364;
 const MONTHS_PER_YEAR = 12;
 const DAYS_PER_WEEK = 7;
@@ -460,7 +461,7 @@ function askedFilters(filters: Filters, scopeApplied: DimValues): DimValues {
 
 function resolvedQueryOf(plan: MetricPlan): ResolvedQuery {
   const filters = askedFilters(plan.filters, plan.scopeApplied);
-  return { ...plan.query, dims: plan.dims, filters, scopeApplied: plan.scopeApplied, labels: namesOf(plan.dictionary, { ...filters, ...plan.scopeApplied }) };
+  return { ...plan.query, dims: plan.dims, limit: limitAsked(plan.query, plan.dims), filters, scopeApplied: plan.scopeApplied, labels: namesOf(plan.dictionary, { ...filters, ...plan.scopeApplied }) };
 }
 
 /** Thai names of every slice the answer is narrowed to, the role's scope included, except a dimension whose several values the rows already name one by one. */
@@ -572,7 +573,7 @@ export function finishMetric(plan: MetricPlan, current: FactResult, comparison: 
   const aggregated = where ? all.filter((row) => !suppressed.has(row.key) && passes(where, row.value)) : all;
   const compareRows = comparison ? keyRows(dims, comparison.rows).map((row) => ({ ...row, value: row.value * plan.comparisonScale })) : null;
 
-  const limit = query.limit ?? DEFAULT_LIMIT;
+  const limit = limitOf(query, dims);
   const lowFirst = RISK_WHEN_LOW.has(def.id);
   const sort = effectiveSort(query.sort ?? null, compareRows);
   const capped = sort && !masked && !firstTimeDim(dims) ? orderedRows(aggregated, sort, limit, compareRows) : sortRows(aggregated, dims, limit, masked, lowFirst);
@@ -603,6 +604,17 @@ export function finishMetric(plan: MetricPlan, current: FactResult, comparison: 
     provenance,
     query: resolved,
   };
+}
+
+/** The row limit an answer honours: none for a breakdown by one of the few parts that make up the company (six regions, the channels, the business units), since a missing part reads as a part that is fine; any other list keeps the limit asked. */
+function limitAsked(query: MetricQuery, dims: Dim[]): number | null {
+  const [only, ...rest] = dims;
+  if (only && rest.length === 0 && WHOLE_PARTITIONS.has(only)) return null;
+  return query.limit;
+}
+
+function limitOf(query: MetricQuery, dims: Dim[]): number {
+  return limitAsked(query, dims) ?? DEFAULT_LIMIT;
 }
 
 function passes(where: ValueFilter, value: number): boolean {

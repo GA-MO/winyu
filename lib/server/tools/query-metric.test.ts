@@ -92,6 +92,19 @@ describe("query_metric for a running month against target", () => {
   });
 });
 
+describe("a breakdown by the parts that make up the company", () => {
+  test("is never cut by a limit: overdue money by region with limit 5 still holds all six regions, ภาคเหนือ included (AI-76)", async () => {
+    const user = findUser("u_thana");
+    if (!user) throw new Error("no CEO");
+    const query = { metric: "ar_overdue", dims: ["region"], filters: {}, range: { from: monthStart(DATA_AS_OF), to: DATA_AS_OF }, grain: "month", compare: "prev_period", sort: "value_desc", limit: 5 };
+    const tool = winyuTools().query_metric;
+    const result = (await runWithAccess(accessFor(user), () => tool.execute(tool.inputSchema().parse(query)))) as Extract<MetricResult, { ok: true }>;
+    expect(result.rows).toHaveLength(6);
+    expect(result.rows.map((row) => row.region)).toContain("ภาคเหนือ");
+    expect(result.query.limit).toBeNull();
+  });
+});
+
 describe("a rep asking about their own book", () => {
   const MONTH = { metric: "net_sales_volume", dims: [], filters: {}, range: { from: monthStart(DATA_AS_OF), to: DATA_AS_OF }, grain: "month", compare: "target", limit: null };
 
