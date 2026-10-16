@@ -86,16 +86,16 @@ Each phase ends with `bun run typecheck`, `bun run test`, and a walk through the
 
 ### Phase 3. One tool for chat, and the handoff goes away
 
-- [ ] Add `send_card`. Its result renders the sheet, filled in, for the sender to confirm.
-- [ ] Move every caller of `ContextPacket` and the packet store to matters. The callers include `lib/server/inbox.ts`, `app/api/inbox/[id]/route.ts`, `persona.ts`, `lib/server/demo-story.ts`, and `app/(app)/c/new/page.tsx`. Then delete `ContextPacket`, `create_handoff`, `share_card`, `HandoffRow`, and `TH.handoff.preloadPrompt`.
-- [ ] Re-record the eval cases that the tool change makes stale. Run `bun run eval --live --changed` first and read the estimate. A rename of one native tool once made 67 cases stale (about $0.36).
-- [ ] Check: "ส่งเรื่องนี้ให้ผู้จัดการขายภาคอีสาน ด่วน" in chat shows the sheet with the RSM filled in, and **ส่ง** creates the matter.
+- [x] Add `send_card`. Its result renders the sheet, filled in, for the sender to confirm.
+- [x] Move every caller of `ContextPacket` and the packet store to matters. The callers include `lib/server/inbox.ts`, `app/api/inbox/[id]/route.ts`, `persona.ts`, `lib/server/demo-story.ts`, and `app/(app)/c/new/page.tsx`. Then delete `ContextPacket`, `create_handoff`, `share_card`, `HandoffRow`, and `TH.handoff.preloadPrompt`.
+- [ ] Re-record the eval cases that the tool change makes stale. Run `bun run eval --live --changed` first and read the estimate. A rename of one native tool once made 67 cases stale (about $0.36). On 2026-10-16 all 63 cases were stale (prompt and tools changed); the estimate was 63 × $0.0060 ≈ $0.38, over the default cap, and nothing was recorded. `share-card-chat` and `handoff-not-share` asked for the removed tools, so their `rightTool`, `askedApproval` and `rightRecipient` failures sit in `evals/known-failures.json` until they are re-recorded.
+- [x] Check: "ส่งเรื่องนี้ให้ผู้จัดการขายภาคอีสาน ด่วน" in chat shows the sheet with the RSM filled in, and **ส่ง** creates the matter. (Scripted model, 2026-10-16: the approval asked for `send_card` with the RSM, nothing was stored before the yes, the yes was spent once, and one matter went out with urgency "now", the northeast card and its target goal.)
 
 ### Phase 4. The matter closes itself
 
-- [ ] Derive a goal when the card has one: the target for an attainment card, or the expected value for an anomaly card. The sender can clear it in the sheet.
-- [ ] Check open matters that have goals in the hourly watch job (`runWatchJob`, `lib/server/watches.ts`). Watches today notify only when a number goes from ok to triggered, so recovery is a new event. When the number meets the goal, add a `goal_met` event, close the matter, and notify each person on the path once.
-- [ ] Check: with a goal just below the current value, one watch run closes the matter, and each person on the path gets exactly one notification.
+- [x] Derive a goal when the card has one: the target for an attainment card, or the expected value for an anomaly card. The sender can clear it in the sheet. (An anomaly card's goal is the anomaly engine resolving its alert: the semantic layer's total and the engine's per-day mean are different numbers.)
+- [x] Check open matters that have goals in the hourly watch job (`runWatchJob`, `lib/server/watches.ts`). Watches today notify only when a number goes from ok to triggered, so recovery is a new event. When the number meets the goal, add a `goal_met` event, close the matter, and notify each person on the path once.
+- [x] Check: with a goal just below the current value, one watch run closes the matter, and each person on the path gets exactly one notification. (Over HTTP on 2026-10-16: attainment 92.0%, goal set to 91%, the first `POST /api/jobs/run {"job":"watches"}` closed it and told the CEO, the RSM and the rep once each; the second told nobody.)
 
 ### Phase 5. The bell moves by itself
 

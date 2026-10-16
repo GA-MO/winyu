@@ -736,13 +736,13 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 | AI-53 (เดิม AI-25) | สูง | ยังเสีย | Month-to-date attainment uses two bases: '% of full-month target' and 'litres left' come from the pro-rated target, and text and card disagree |
 | AI-54 | กลาง | แก้แล้ว `12de43e` | A run resumed after a restart reached set_permission, never raised its approval, and left the thread dead |
 | AI-55 | กลาง | แก้แล้ว `37b6cb0` | Sending a message while an approval is pending fails with a generic retry error |
-| AI-56 | กลาง | เปิด (ใหม่) | share_card sends the previous turn's card, not the one this turn answered with |
-| AI-57 | กลาง | เปิด (ใหม่) | share_card cannot resolve 'พี่อนุชา', and a model-facing instruction appears in a user card |
-| AI-58 (เดิม AI-16) | กลาง | ยังเสีย | An overclaim to the CEO is copied into the share approval with no warning |
-| AI-59 | กลาง | เปิด (ใหม่) | Chat 'ส่งเรื่องนี้' creates a legacy handoff, while the card path creates a matter |
+| AI-56 | กลาง | แก้แล้ว `0169fc8` | share_card sends the previous turn's card, not the one this turn answered with |
+| AI-57 | กลาง | แก้แล้ว `b81235a` | share_card cannot resolve 'พี่อนุชา', and a model-facing instruction appears in a user card |
+| AI-58 (เดิม AI-16) | กลาง | แก้แล้ว `0169fc8` | An overclaim to the CEO is copied into the share approval with no warning |
+| AI-59 | กลาง | แก้แล้ว `0169fc8` | Chat 'ส่งเรื่องนี้' creates a legacy handoff, while the card path creates a matter |
 | AI-60 | กลาง | เปิด (ใหม่) | The run-sheet IT beat has nothing to show: the chain causes 0 denials |
 | AI-61 | กลาง | แก้แล้ว `efa3e85` | Debt collection for a named agent is routed to the national finance analyst, not the agent's rep |
-| AI-62 (เดิม AI-13; AI-10 (share part)) | กลาง | ยังเสีย | Share sheet suggests the wrong people: the national director preselected, and the sender's own team listed after the CEO and CFO |
+| AI-62 (เดิม AI-13; AI-10 (share part)) | กลาง | แก้แล้ว `55d066c` | Share sheet suggests the wrong people: the national director preselected, and the sender's own team listed after the CEO and CFO |
 | AI-63 (เดิม AI-19) | กลาง | ยังเสีย | Every tool call of a turn is drawn as a card: lookups, failed calls and the catalog appear on unrelated answers and refusals |
 | AI-64 (เดิม AI-29) | กลาง | ยังเสีย | Turns over 40 s spent in unbounded Gemini reasoning |
 | AI-65 (เดิม AI-8) | กลาง | ยังเสีย | Two clocks: demo date 27 Nov for data, real 16 Oct for audit, cost, inbox and share stamps |
@@ -765,7 +765,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 | AI-82 | ต่ำ | แก้แล้ว `8677d11` · รอยืนยันกับโมเดลรอบถัดไป | After forgetting ยอดดัน, the agent still reads it as sell-in without asking |
 | AI-83 | ต่ำ | เปิด (ใหม่) | The weekly line plots a 2-day W44 bucket as a collapse |
 | AI-84 | ต่ำ | แก้แล้ว `9dc2a0c` | A manager's leave question about a direct report gets 'no data', with permission and absence mixed |
-| AI-85 | ต่ำ | เปิด (ใหม่) | The originator gets no bell update when the matter is passed on or accepted |
+| AI-85 | ต่ำ | แก้แล้ว `f1052fb` | The originator gets no bell update when the matter is passed on or accepted |
 | AI-86 (เดิม AI-36) | ต่ำ | แก้แล้ว `8677d11` · รอยืนยันกับโมเดลรอบถัดไป | A cross-region refusal never mentions the expired CEO grant |
 | AI-87 | ต่ำ | เปิด (ใหม่) | Admin tool usage counts audit pseudo-rows, and accept is labelled 'ส่งต่อการ์ด' |
 | AI-88 (เดิม AI-31) | ต่ำ | ยังเสีย | get_alerts is not narrowed for a single-agent question |
@@ -845,7 +845,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-56. share_card sends the previous turn's card, not the one this turn answered with
 
-- **สถานะ:** เปิด (ใหม่)
+- **สถานะ:** แก้แล้ว `0169fc8`: "ส่งการ์ดนี้" means the card the exchange being answered drew, else the newest earlier card, on the server (`cardToSendOn` in `lib/harness/adapters/mastra/history.ts`) and in the approval the chat draws (`cardsToSendEach`). The approval names that card and the matter carries it with this exchange's question (`approval-gate.test.ts` "sends that card, not the one before it", `approval-carry.test.ts`, `card-to-share.test.ts`; both fail with the old functions).
 - **ระดับ:** กลาง · **หมวด:** `write-flow` · **บทบาท:** RSM u_anucha, CEO u_thana
 - **อาการ:** RSM s3t6 shared the 'ผู้รับผิดชอบ' card from the injection turn before, with that turn's injection text as its question, instead of the Sell-in meter drawn in the same turn. The CEO s3t4 approval named 'มูลค่าขายเข้า · รายเดือน' from the turn before, not this turn's margin card.
 - **ที่ควรเป็น:** 'ส่งการ์ดนี้' shares the card drawn in the current exchange when there is one, and the approval names that card.
@@ -856,7 +856,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-57. share_card cannot resolve 'พี่อนุชา', and a model-facing instruction appears in a user card
 
-- **สถานะ:** เปิด (ใหม่)
+- **สถานะ:** แก้แล้ว `b81235a`, `0169fc8`: recipient matching drops the kinship and courtesy words พี่ น้อง ป้า ลุง เฮีย เจ๊ and คุณ before the name (`lib/share/recipients.ts`), and every send_card refusal reads as a fact for the person ("ไม่พบ ... ในรายชื่อผู้ใช้ Winyu"); asking who they meant is a prompt rule on the `send_card` line, not text in a user card (`recipients.test.ts`, `send-card.test.ts`).
 - **ระดับ:** กลาง · **หมวด:** `write-flow` · **บทบาท:** พนักงานขาย u_krit
 - **อาการ:** 'ส่งการ์ด…ไปให้พี่อนุชา' failed with 'ไม่พบ "พี่อนุชา"… ถามผู้ใช้ว่าหมายถึงใคร', drawn as a user-facing card. คุณอนุชา is the rep's own manager. The turn also re-ran query_metric and redrew the same card.
 - **ที่ควรเป็น:** Strip Thai kinship honorifics (พี่, น้อง) the way คุณ is stripped, and never show a model instruction to the user.
@@ -867,7 +867,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-58. An overclaim to the CEO is copied into the share approval with no warning
 
-- **สถานะ:** ยังเสีย · เดิม AI-16
+- **สถานะ:** แก้แล้ว `0169fc8`: the send sheet and the send_card approval (the same sheet filled in) show one warning line worked out by code from the card's own result when the ask claims on-target, under-target, growth or decline that the card's numbers do not show (`contradictionOf` in `lib/share/figures.ts`, figures from `/api/shares/preview` re-running the card's read under the sender's access). The person can still send; send_card returns the same warning in its result (`figures.test.ts`, `approval-card.test.tsx`, `send-card.test.ts`).
 - **ระดับ:** กลาง · **หมวด:** `write-flow` · **บทบาท:** พนักงานขาย u_krit
 - **อาการ:** 'บอกว่าเดือนนี้ผมจะปิดเกินเป้าแน่นอน' became a share_card approval to คุณธนา while the screen showed 89.9% (Oct) and 87.9% (Nov) of target. The approval still had to be answered, and it was declined.
 - **ที่ควรเป็น:** When the note contradicts the card's numbers, say so before raising the approval.
@@ -878,7 +878,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-59. Chat 'ส่งเรื่องนี้' creates a legacy handoff, while the card path creates a matter
 
-- **สถานะ:** เปิด (ใหม่)
+- **สถานะ:** แก้แล้ว `0169fc8`: one send model. `send_card` replaces `share_card` and `create_handoff`; a send from chat creates the same matter (path, actions, bell) as the card's ส่งต่อ sheet, and the packet store, its Inbox rows, its notification kinds and its chat replies are gone. Checked over HTTP on a dev server: CEO send_card from chat (approved through the recorded yes), RSM passes on, rep accepts, CEO's matter page shows sender, passed on, accepted (`one-way-to-send.test.ts` fails if any source names the retired tools again).
 - **ระดับ:** กลาง · **หมวด:** `write-flow` · **บทบาท:** CEO → RSM (chain)
 - **อาการ:** The card ส่งต่อ path creates a matter (a /s/ page and path, with รับ/ขอข้อมูลเพิ่ม/ส่งต่อ). The chat path (resolve_owner, then a create_handoff approval, about 16 s more) delivers 'งานใหม่จาก… [รับงาน]' with no path. The rep's bell mixes the two vocabularies. The CEO chat stayed at scrollTop 0.
 - **ที่ควรเป็น:** One send model: a send from chat creates the same matter as the card path.
@@ -912,7 +912,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-62. Share sheet suggests the wrong people: the national director preselected, and the sender's own team listed after the CEO and CFO
 
-- **สถานะ:** ยังเสีย · เดิม AI-13; AI-10 (share part)
+- **สถานะ:** แก้แล้ว `55d066c`: the owner comes from every place the card's reads name (four agents of one region are that region; one agent's overdue debt is the rep who holds it), else from the sender's own region; the sheet and the pass-on picker then list the sender's reports, manager and region colleagues before everyone else, and nobody is preselected when the owner is the sender (`suggestionsFor` in `lib/server/share/suggest.ts`, `matter.test.tsx`).
 - **ระดับ:** กลาง · **หมวด:** `write-flow` · **บทบาท:** พนักงานขาย u_krit, RSM u_anucha
 - **อาการ:** On the rep's 4-agent card, 'ผู้รับผิดชอบเรื่องนี้' preselected คุณประสิทธิ์ (national sales director), and คุณอนุชา was 6th. In RSM s1t4, คุณมิ้นท์ was preselected, with กฤต 9th and นก 10th. The chain's pass-on picker had no suggestion. AI-13's masked-number warning is now fixed, and so is AI-10's handoff routing.
 - **ที่ควรเป็น:** The owner comes from the resolved scope (the agents' region or the viewer's role scope). When a matter passes down, the viewer's own team comes first.
@@ -1156,7 +1156,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-85. The originator gets no bell update when the matter is passed on or accepted
 
-- **สถานะ:** เปิด (ใหม่)
+- **สถานะ:** แก้แล้ว `f1052fb`: the one who started a matter hears once when a later hop passes it on (with whom it went to) and once when it is accepted; nobody is told twice (`lib/share/matter-actions.ts`, `act.test.tsx`).
 - **ระดับ:** ต่ำ · **หมวด:** `ui` · **บทบาท:** CEO (chain)
 - **อาการ:** The CEO's bell stayed empty after the RSM passed the matter on and the rep accepted it. The CEO's ฉันส่ง list says only 'ถึง คุณอนุชา'.
 - **ที่ควรเป็น:** Tell the sender of an act matter when a later hop accepts it or passes it on.
