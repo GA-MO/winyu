@@ -10,6 +10,15 @@ function render(body: CardBody): string {
   return renderToStaticMarkup(<CardBodyView body={body} />);
 }
 
+describe("strip rows named along two splits", () => {
+  test("show the first part as the name and the second on its own line, so a phone never cuts the province off (AI-103)", () => {
+    const row = { label: "อุบลศรีสุข เทรดดิ้ง · อุบลราชธานี", sub: null, measure: 60.5, fill: 0.6, text: "60.5%", change: null, tone: "bad" as const, exception: true, valued: true };
+    const html = render({ kind: "strip", strip: { form: "line", baseline: 100, low: 50, high: 110, overall: null, rows: [row] } });
+    expect(html).toContain(">อุบลศรีสุข เทรดดิ้ง</span>");
+    expect(html).toContain(">อุบลราชธานี</span>");
+  });
+});
+
 describe("stacked", () => {
   const labels = ["ม.ค.", "ก.พ.", "มี.ค."];
   const series: ChartSeries[] = [

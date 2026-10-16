@@ -12,6 +12,7 @@ const TONE_BAR: Record<Tone, string> = { bad: "bg-danger", good: "bg-success", n
 const TONE_CHIP: Record<Tone, string> = { bad: "bg-danger/10 text-danger", good: "bg-success/10 text-success", neutral: "bg-muted text-muted-foreground" };
 const MIN_BAR_PCT = 0.8;
 const FULL = 100;
+const LABEL_SEPARATOR = " · ";
 
 function at(strip: Strip, value: number): number {
   return ((value - strip.low) / (strip.high - strip.low || 1)) * FULL;
@@ -35,6 +36,16 @@ function OverallLabel({ row }: { row: ReadRow }) {
       {row.sub ? <span className="line-clamp-4 break-words text-[11px]">{row.sub}</span> : null}
     </div>
   );
+}
+
+/** A row named along two splits ("อุบลศรีสุข เทรดดิ้ง · อุบลราชธานี") shows its first part as the name and the rest on a small line under it, so a phone never cuts the second part off. */
+function nameOf(label: string): string {
+  return label.split(LABEL_SEPARATOR)[0] ?? label;
+}
+
+function placeOf(label: string): string | null {
+  const rest = label.split(LABEL_SEPARATOR).slice(1);
+  return rest.length > 0 ? rest.join(LABEL_SEPARATOR) : null;
 }
 
 function LineStrip({ strip }: { strip: Strip }) {
@@ -69,8 +80,9 @@ function LineStrip({ strip }: { strip: Strip }) {
           <div key={row.label} className="contents">
             <div className="flex min-w-0 flex-col" style={{ gridColumn: 1, gridRow }}>
               <span title={row.label} className={cn("truncate", row.exception ? "text-[13px] font-medium text-foreground" : "text-[12px] text-muted-foreground")}>
-                {row.label}
+                {nameOf(row.label)}
               </span>
+              {placeOf(row.label) ? <span className="truncate text-[11px] leading-snug text-muted-foreground">{placeOf(row.label)}</span> : null}
               <RowSub row={row} />
             </div>
             <div className="relative h-4" style={{ gridColumn: 2, gridRow }}>
