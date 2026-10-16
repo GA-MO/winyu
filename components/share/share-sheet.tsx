@@ -301,18 +301,20 @@ export function useShareContacts(): ShareContact[] | null {
   return useShareDirectory()?.contacts ?? null;
 }
 
-const NO_PREVIEW: SendPreview = { ownerId: null, line: [], title: null, figures: null, goal: null };
+const NO_PREVIEW: SendPreview = { ownerId: null, line: [], title: null, figures: null, goal: null, focus: null, subject: null };
 
-/** What the server says about sending a card before it leaves: the title it will carry, whom to put first (its owner, never the sender, then the sender's own line), what the card's numbers say for the sender, and the goal that would close it; empty until loaded. */
-export function useSendPreview(card: ShareTarget["card"] | null, alertIds: readonly string[] = []): SendPreview {
+/** What the server says about sending a card before it leaves: the title it will carry, whom to put first (its owner, never the sender, then the sender's own line), what the card's numbers say for the sender, the goal that would close it, and the rows the sender's `words` (the ask and what they typed) single out; empty until loaded. */
+export function useSendPreview(card: ShareTarget["card"] | null, alertIds: readonly string[] = [], words: readonly string[] = []): SendPreview {
   const [preview, setPreview] = useState<SendPreview>(NO_PREVIEW);
-  const body = card ? JSON.stringify({ card, alertIds }) : null;
+  const body = card ? JSON.stringify({ card, alertIds, words }) : null;
   useEffect(() => {
     if (!body) return;
     const controller = new AbortController();
     fetch(PREVIEW_ENDPOINT, { method: "POST", headers: { "content-type": "application/json" }, body, signal: controller.signal })
       .then((response) => (response.ok ? (response.json() as Promise<Partial<SendPreview>>) : null))
-      .then((payload) => setPreview({ ownerId: payload?.ownerId ?? null, line: payload?.line ?? [], title: payload?.title ?? null, figures: payload?.figures ?? null, goal: payload?.goal ?? null }))
+      .then((payload) =>
+        setPreview({ ownerId: payload?.ownerId ?? null, line: payload?.line ?? [], title: payload?.title ?? null, figures: payload?.figures ?? null, goal: payload?.goal ?? null, focus: payload?.focus ?? null, subject: payload?.subject ?? null }),
+      )
       .catch(() => undefined);
     return () => controller.abort();
   }, [body]);

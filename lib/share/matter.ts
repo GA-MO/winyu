@@ -1,7 +1,7 @@
 import { isPressed } from "@/components/chat/pressed";
 import { daysBetween } from "@/lib/data/dates";
 import { TH } from "@/lib/i18n/th";
-import type { DeliveryChannel, FallbackReason, SharedCard } from "./card";
+import type { CardFocus, DeliveryChannel, FallbackReason, SharedCard } from "./card";
 import { writtenDeadline } from "./deadline";
 
 export const MATTER_INTENTS = ["act", "fyi"] as const;
@@ -49,6 +49,11 @@ export function matterAsk(typed: string, intent: MatterIntent, title: string): s
 
 /** What a matter's ask is about, for naming it: the rows the sender singled out on the card (`singled`), else the card's own subject; null when there is nothing to name. */
 export type AskAbout = { subject: string | null; singled: boolean };
+
+/** What a pointing ask names: the rows the sender singled out when they did, else the card's own subject. */
+export function askAboutOf(focus: Pick<CardFocus, "labels"> | null | undefined, cardSubject: string | null): AskAbout {
+  return focus ? { subject: focus.labels.join(", "), singled: true } : { subject: cardSubject, singled: false };
+}
 
 function namesAny(ask: string, subject: string): boolean {
   const text = ask.replace(SPACES, "");

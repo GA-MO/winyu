@@ -76,8 +76,11 @@ export type ScreenCards = { exchangeId: string | null; cards: CardOnScreen[]; wa
 /** The send_card refusal code for an ask the card's numbers contradict, given once before the person has seen the figure. */
 export const ASK_CONTRADICTS_CARD = "ASK_CONTRADICTS_CARD";
 
-/** What a send shows before it leaves, worked out by the server: the matter's title with what the card is about, whom to put first, what the card's numbers say for the sender (to check the ask against), and the goal that would close the matter. */
-export type SendPreview = MatterSuggestions & { title: string | null; figures: CardFigures | null; goal: string | null };
+/** The rows of a card the sender's words single out ("ขอนแก่นมหาชัย" on the region's agents card): their labels, the figure the card draws for them, and the line code writes when the words that named one row claim what that row does not show. */
+export type CardFocus = { labels: string[]; hero: string | null; claim: string | null };
+
+/** What a send shows before it leaves, worked out by the server: the matter's title with what the card is about, whom to put first, what the card's numbers say for the sender (to check the ask against), the goal that would close the matter, the rows the sender's words single out, and the card's own subject (what a pointing ask names when they single out none). */
+export type SendPreview = MatterSuggestions & { title: string | null; figures: CardFigures | null; goal: string | null; focus?: CardFocus | null; subject?: string | null };
 
 /** Why one recipient got the share on another channel than the one picked. */
 export type FallbackReason = "no-teams-conversation" | "send-failed";

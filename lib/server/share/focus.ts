@@ -2,14 +2,11 @@ import type { MetricResult, User } from "@/lib/contracts";
 import { rowsNamedIn } from "@/lib/cards/asked";
 import { presentCard } from "@/lib/cards/present";
 import { groupDimsOf, labelAlong } from "@/lib/cards/rows";
-import type { SharedCard } from "@/lib/share/card";
+import type { CardFocus, SharedCard } from "@/lib/share/card";
 import { rowContradictionOf } from "@/lib/share/figures";
 import { cardAnswer } from "./goal";
 
 type MetricAnswer = Extract<MetricResult, { ok: true }>;
-
-/** The rows of a card the person singled out by name ("ขอนแก่นมหาชัย" on the region's agents card): their labels, the figure the card draws for them, and the line code writes when the words that named one row claim what that row does not show. */
-export type CardFocus = { labels: string[]; hero: string | null; claim: string | null };
 
 function heroOf(answer: MetricAnswer, labels: readonly string[]): string | null {
   const parts = presentCard({ title: "", query: answer.query, result: { ...answer, headline: { ...answer.headline, asked: [...labels] } } });

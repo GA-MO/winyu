@@ -6,14 +6,14 @@ import { findUser } from "@/lib/data/entities/users";
 import { notReady } from "@/lib/harness/gateway";
 import type { Unready } from "@/lib/harness/types";
 import { TH } from "@/lib/i18n/th";
-import { ASK_CONTRADICTS_CARD, sendCardInputSchema, type CardOnScreen, type SendCardInput, type SharedCard, type ShareTarget } from "@/lib/share/card";
+import { ASK_CONTRADICTS_CARD, sendCardInputSchema, type CardFocus, type CardOnScreen, type SendCardInput, type SharedCard, type ShareTarget } from "@/lib/share/card";
 import { contradictionOf } from "@/lib/share/figures";
-import { askNaming, matterAsk, type AskAbout, matterDeadline, sendIntent } from "@/lib/share/matter";
+import { askAboutOf, askNaming, matterAsk, matterDeadline, sendIntent } from "@/lib/share/matter";
 import { resolvedPeople, type RecipientMatch } from "@/lib/share/recipients";
 import { cardFigures, goalLabel } from "@/lib/server/share/goal";
-import { receiptsOf, recipientMatches, sharePath } from "@/lib/server/share/shares";
+import { receiptsOf, recipientMatches, sharePath, unusedTitle } from "@/lib/server/share/shares";
 import { suggestedRecipient } from "@/lib/server/share/suggest";
-import { cardFocus, type CardFocus } from "@/lib/server/share/focus";
+import { cardFocus } from "@/lib/server/share/focus";
 import { matterSubject, matterTitle } from "@/lib/server/share/title";
 import { currentAccess, currentTurn } from "@/lib/server/request-context";
 import { defineTool } from "./define";
@@ -92,11 +92,6 @@ async function heldBack(input: SendCardInput, chosen: Picked): Promise<string | 
   return warning ? TH.share.chat.heldBack(warning) : null;
 }
 
-/** What the ask names when it only points: the rows the sender singled out, else the card's own subject. */
-async function askAbout(card: SharedCard, focus: CardFocus | null): Promise<AskAbout> {
-  return focus ? { subject: focus.labels.join(", "), singled: true } : { subject: await matterSubject(card), singled: false };
-}
-
 async function unready(input: unknown): Promise<Unready | null> {
   const parsed = sendCardInputSchema.safeParse(input);
   if (!parsed.success) return notReady(TH.harness.notReady);
@@ -142,9 +137,9 @@ export const sendCardTool = defineTool({
     const people = recipientsOf(input, target, sender);
     if (!people) return input.to?.length ? refusal(UNRESOLVED, unresolved(input.to, sender.id) ?? TH.share.chat.noRecipient) : refusal(NO_RECIPIENT, TH.share.chat.noRecipient);
     const focus = await focusOf(input, chosen, sender);
-    const title = await matterTitle(target.card, focus?.labels);
+    const title = unusedTitle(await matterTitle(target.card, focus?.labels));
     const intent = sendIntent(input.intent, people.length);
-    const ask = askNaming(matterAsk(input.ask ?? "", intent, title), await askAbout(target.card, focus));
+    const ask = askNaming(matterAsk(input.ask ?? "", intent, title), askAboutOf(focus, await matterSubject(target.card)));
     const { urgency, due } = matterDeadline(input.urgency, currentTurn().question, intent, businessToday());
     const { createShare } = await channelDelivery();
     const recipients = people.map((user) => ({ userId: user.id, channel: "winyu" as const }));

@@ -16,7 +16,7 @@ import { cardNamed } from "@/components/chat/card-to-share";
 import { businessToday } from "@/lib/data/dates";
 import { shareTitle, type ScreenCards, type SendPreview, type ShareContact, type SharedCard } from "@/lib/share/card";
 import { contradictionOf } from "@/lib/share/figures";
-import { matterAsk, matterDeadline, MATTER_INTENTS, MATTER_URGENCIES, sendIntent, type MatterIntent, type MatterUrgency } from "@/lib/share/matter";
+import { askAboutOf, askNaming, matterAsk, matterDeadline, MATTER_INTENTS, MATTER_URGENCIES, sendIntent, type MatterIntent, type MatterUrgency } from "@/lib/share/matter";
 import { matchRecipients } from "@/lib/share/recipients";
 
 const COURSES_ENDPOINT = "/api/courses";
@@ -25,6 +25,7 @@ const LABELS_ENDPOINT = "/api/labels";
 const MAX_SCOPE_LABELS = 2;
 const CONNECTOR_TOOL = /^[a-z][a-z0-9_]*__/;
 const MAX_ARG_CHIPS = 4;
+const WORDS_SENT = 4;
 const URGENCY_BADGE: Record<MatterUrgency, string> = {
   now: "bg-danger/10 text-danger",
   today: "bg-warning/12 text-warning",
@@ -311,6 +312,12 @@ function readsOf(input: SendInput): SharedCard | null {
   return { kind: "tool", reads: reads.filter((read): read is SharedCard["reads"][number] => typeof read === "object" && read !== null && typeof (read as { tool?: unknown }).tool === "string") };
 }
 
+/** The person's own words a send is about, for the preview to find the rows they single out: the ask, the question, and what they typed before it. */
+function wordsOf(input: SendInput, request: ApprovalRequest): string[] {
+  const words = [typeof input.ask === "string" ? input.ask : null, request.question ?? null, ...(request.onScreen?.said ?? [])];
+  return [...new Set(words.filter((word): word is string => Boolean(word?.trim())))].slice(0, WORDS_SENT);
+}
+
 function alertIdsOf(input: SendInput): string[] {
   const ids = input.card?.alertIds;
   return Array.isArray(ids) ? ids.filter((id): id is string => typeof id === "string") : [];
@@ -333,8 +340,8 @@ function sendPlan(input: SendInput, sending: CardToSend, contacts: ShareContact[
   const { people, owner } = recipientsOf(input, contacts, preview);
   const intent = sendIntent(oneOf(MATTER_INTENTS, input.intent), Math.max(people.length, 1));
   const typed = typeof input.ask === "string" ? input.ask.trim() : "";
-  const titled = sending.card ? { ...sending, title: preview.title ?? sending.title } : sending;
-  const ask = titled.card ? matterAsk(typed, intent, titled.title) : typed;
+  const titled = sending.card ? { ...sending, title: preview.title ?? sending.title, hero: preview.focus?.hero ?? sending.hero } : sending;
+  const ask = titled.card ? askNaming(matterAsk(typed, intent, titled.title), askAboutOf(preview.focus, preview.subject ?? null)) : typed;
   const { urgency, due } = matterDeadline(oneOf(MATTER_URGENCIES, input.urgency), question, intent, businessToday());
   return { sending: titled, recipients: people, owner, ask, intent, urgency, due, preview };
 }
@@ -376,7 +383,7 @@ function SendSheet({ plan, scopes }: { plan: SendPlan; scopes: readonly Recipien
       <p className="text-xs text-muted-foreground" data-send-intent={plan.intent}>
         {TH.share.intent[plan.intent]} · {TH.share.intentHint[plan.intent]}
       </p>
-      <ContradictionNote text={contradictionOf(plan.ask, plan.preview.figures)} />
+      <ContradictionNote text={contradictionOf(plan.ask, plan.preview.figures) ?? plan.preview.focus?.claim ?? null} />
       <RecipientWarnings scopes={scopes} granting={false} grant={null} />
       {plan.intent === "act" && plan.preview.goal ? (
         <p className="flex items-center gap-1.5 text-xs text-muted-foreground" data-send-goal>
@@ -619,7 +626,7 @@ function SendApproval({ request }: { request: ApprovalRequest }) {
   const sending = cardToSend(input, request.onScreen);
   const card = sending.card;
   const asking = request.approved === null;
-  const preview = useSendPreview(asking ? card : null, alertIdsOf(input));
+  const preview = useSendPreview(asking ? card : null, alertIdsOf(input), wordsOf(input, request));
   const plan = sendPlan(input, sending, contacts, preview, request.question ?? null);
   const scopes = useRecipientScopes(asking ? card : null, plan.recipients.map((contact) => contact.id));
   return <Approval decision={sendDecision(plan, scopes, contacts !== null, input)} request={request} />;
