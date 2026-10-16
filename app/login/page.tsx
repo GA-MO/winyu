@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ChevronDown } from "lucide-react";
 import { cn } from "@/components/ui/cn";
 import { METRIC_IDS, ROLE_IDS, type RoleId } from "@/lib/contracts";
 import { ROLE_POLICIES } from "@/lib/access/policies";
@@ -7,7 +7,8 @@ import { permissionsFor } from "@/lib/access/role-overrides";
 import { USERS } from "@/lib/data/entities/users";
 import { personaOf } from "@/lib/server/portraits";
 import { TH } from "@/lib/i18n/th";
-import { PersonList } from "@/components/login/person-list";
+import { DemoPathList, PersonList, type DemoSeat } from "@/components/login/person-list";
+import { DEMO_PATH } from "@/components/login/demo-path";
 import { ROLE_ICONS } from "@/components/login/role-icon";
 import { GlowBackdrop } from "@/components/ui/glow-backdrop";
 import { GradientText } from "@/components/ui/gradient-text";
@@ -33,6 +34,13 @@ function problemOf(value: string | undefined): SignInProblem | null {
 
 function membersOf(role: RoleId) {
   return USERS.filter((user) => user.role === role);
+}
+
+function demoSeats(): DemoSeat[] {
+  return DEMO_PATH.flatMap(({ userId, opener }) => {
+    const user = USERS.find((candidate) => candidate.id === userId);
+    return user ? [{ person: personaOf(user), opener }] : [];
+  });
 }
 
 function reachOf(role: RoleId): { scope: string; sees: string; tools: string } {
@@ -110,6 +118,29 @@ function RoleGrid({ next }: { next: string }) {
   );
 }
 
+function DemoFront({ next }: { next: string }) {
+  return (
+    <div className="flex flex-col gap-8">
+      <section className="flex flex-col gap-4">
+        <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 px-1">
+          <h2 className="text-[15px] font-semibold tracking-tight">{TH.login.demoPath.title}</h2>
+          <p className="text-xs text-muted-foreground">{TH.login.demoPath.hint}</p>
+        </div>
+        <DemoPathList seats={demoSeats()} next={next} />
+      </section>
+      <details className="group flex flex-col">
+        <summary className={cn("inline-flex w-fit cursor-pointer list-none items-center gap-1.5 rounded-full border border-border bg-card px-3.5 py-1.5 text-sm text-muted-foreground shadow-card transition hover:text-foreground [&::-webkit-details-marker]:hidden", FOCUS)}>
+          {TH.login.demoPath.allRoles(ROLE_IDS.length)}
+          <ChevronDown className="size-4 shrink-0 transition group-open:rotate-180" aria-hidden />
+        </summary>
+        <div className="pt-4">
+          <RoleGrid next={next} />
+        </div>
+      </details>
+    </div>
+  );
+}
+
 function RoleSummary({ role }: { role: RoleId }) {
   const Icon = ROLE_ICONS[role];
   const reach = reachOf(role);
@@ -158,7 +189,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Search
           </h1>
           <p className="max-w-2xl text-sm text-muted-foreground sm:text-base">{TH.login.subtitle}</p>
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <Steps current={role ? 2 : 1} />
+            {role ? <Steps current={2} /> : null}
             <p className="text-xs text-muted-foreground">{TH.login.demoNotice}</p>
           </div>
         </header>
@@ -173,7 +204,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Search
             <PersonList people={membersOf(role).map(personaOf)} next={next} />
           </section>
         ) : (
-          <RoleGrid next={next} />
+          <DemoFront next={next} />
         )}
       </div>
     </main>
