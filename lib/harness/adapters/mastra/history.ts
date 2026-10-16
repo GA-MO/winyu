@@ -1,5 +1,4 @@
 import type { Message } from "@ag-ui/core";
-import { DurableStepIds } from "@mastra/core/agent/durable";
 import type { MastraDBMessage, MastraMessagePart } from "@mastra/core/agent/message-list";
 import { screenCardsEach } from "@/components/chat/card-to-share";
 import { exchangesOf, type Exchange, type ToolStep } from "@/components/chat/timeline";
@@ -160,7 +159,7 @@ function completed(message: MastraDBMessage, outputs: ReadonlyMap<string, unknow
 }
 
 async function pauseStored(runId: string): Promise<void> {
-  const { winyuMastra } = await import("./agent");
+  const [{ winyuMastra }, { DurableStepIds }] = await Promise.all([import("./agent"), import("@mastra/core/agent/durable")]);
   const workflows = await winyuMastra().getStorage()?.getStore("workflows");
   for (let attempt = 0; workflows && attempt < PAUSE_POLLS; attempt += 1) {
     const snapshot = await workflows.loadWorkflowSnapshot({ workflowName: DurableStepIds.AGENTIC_LOOP, runId });
