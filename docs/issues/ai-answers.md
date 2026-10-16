@@ -1748,20 +1748,20 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 |---|---|---|---|
 | AI-132 (เดิม AI-96) | สูง | ยังเสีย | An approved chat send fails when the model read the card in the same step as send_card: the approval shows one card, but the resumed run resolves against the older screen and refuses with raw cardRef ids |
 | AI-133 (เดิม AI-112) | กลาง | ยังเสีย | Turns over 40 s on the demo path, almost all of it in unbounded final-step reasoning |
-| AI-134 (เดิม AI-90) | กลาง | ยังเสีย | 'ผม/ของผม' for the rep resolves to Khon Kaen province (2 of his 4 agents), so chat and the home pin give different attainment |
+| AI-134 (เดิม AI-90) | กลาง | แก้แล้ว `85151f5` · รอยืนยันกับโมเดล | 'ผม/ของผม' for the rep resolves to Khon Kaen province (2 of his 4 agents), so chat and the home pin give different attainment |
 | AI-135 (เดิม AI-131) | กลาง | ยังเสีย | The run sheet describes buttons and texts the product does not show |
-| AI-136 | กลาง | เปิด (ใหม่) | The run-sheet story card is in litres while every chat answer about the same Isan month is in baht (79.7% vs 77.3%, both 'ของเป้าทั้งเดือน') |
+| AI-136 | กลาง | แก้แล้ว `9209e23` · รอยืนยันกับโมเดล | The run-sheet story card is in litres while every chat answer about the same Isan month is in baht (79.7% vs 77.3%, both 'ของเป้าทั้งเดือน') |
 | AI-137 | กลาง | เปิด (ใหม่) | Matters sent from chat lose their subject: titles carry no agent or brand, asks can be urgency words only, and the receiver's inbox cannot name what was sent |
 | AI-138 | กลาง | เปิด (ใหม่) | The send approval previews the raw row sum (5.1 ล้านลิตร, 97.8 ล้านบาท), not the hero the card shows (79.7%, 72.4%) |
 | AI-139 | กลาง | เปิด (ใหม่) | A new question sent while an approval waits re-raises the abandoned send instead of answering |
 | AI-140 (เดิม AI-110) | กลาง | ยังเสีย | The CEO risk answer says there is no stock risk while its own anomaly card leads with a P1 stock-out, and it merges stock cover and AR into one strip |
 | AI-141 (เดิม AI-53) | กลาง | ยังเสีย | Breakdown cards mix bases: the hero is % of the full-month target, the unlabelled rows are % of the pro-rated target, and every row is red |
 | AI-142 | กลาง | เปิด (ใหม่) | The gap card (explain_gap) has no verdict; for 'how will the month close' it leads with month-to-date and hides the forecast below the fold |
-| AI-143 (เดิม AI-123) | กลาง | เปิด (ใหม่) | The market-share answer does not show our share against competitors or name the region we lost most; the drill points at 'ภาคกลาง · รายอื่น' |
+| AI-143 (เดิม AI-123) | กลาง | แก้แล้ว `cc98f0e` · รอยืนยันกับโมเดล | The market-share answer does not show our share against competitors or name the region we lost most; the drill points at 'ภาคกลาง · รายอื่น' |
 | AI-144 | กลาง | เปิด (ใหม่) | The CEO's South AR story card says '2 เอเย่นต์ยอดเพิ่มกว่าเท่าตัว' while three agents more than doubled |
-| AI-145 (เดิม AI-130) | กลาง | เปิด (ใหม่) | 'ทำไมตกอะ' names two agents as the main cause of a drop that is 74% long tail |
-| AI-146 (เดิม AI-130) | กลาง | ยังเสีย | An agent-level 'why did it drop' gets the alert's generic hypothesis, not an investigation |
-| AI-147 (เดิม AI-129) | กลาง | ยังเสีย | The rep's 'whole company' request is silently scoped to Isan and drawn as a lone Isan number |
+| AI-145 (เดิม AI-130) | กลาง | แก้แล้ว `a156a61` `cc98f0e` · รอยืนยันกับโมเดล | 'ทำไมตกอะ' names two agents as the main cause of a drop that is 74% long tail |
+| AI-146 (เดิม AI-130) | กลาง | แก้แล้ว `cc98f0e` · รอยืนยันกับโมเดล | An agent-level 'why did it drop' gets the alert's generic hypothesis, not an investigation |
+| AI-147 (เดิม AI-129) | กลาง | แก้แล้ว `4f08c41` | The rep's 'whole company' request is silently scoped to Isan and drawn as a lone Isan number |
 | AI-148 | กลาง | เปิด (ใหม่) | IT audit answers are wide tables on a phone: the 'who to whom' column is off-screen |
 | AI-149 | กลาง | เปิด (ใหม่) | 'Only what is hidden' gets a card of 18 restricted items while the text says 2 |
 | AI-150 | กลาง | เปิด (ใหม่) | 'Who uses Winyu most' is answered 'no per-person data', though every audit row has a user |
@@ -1772,12 +1772,12 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 | AI-155 | ต่ำ | เปิด (ใหม่) | Share sheet and story drawer on run-sheet step 1: 'ผู้รับผิดชอบเรื่องนี้' lists the CEO's whole line, the Isan story sits third below an expanded story, and the sheet text is cut or unspaced |
 | AI-156 (เดิม AI-107) | ต่ำ | เปิด (ใหม่) | Scorecards and single-row cards break the card rules: 4 tiles, the hero repeated as the headline, the all-group average as hero |
 | AI-157 | ต่ำ | เปิด (ใหม่) | CEO landing tile labels October's volume with the six-month range and compares it with September |
-| AI-158 | ต่ำ | เปิด (ใหม่) | The rep's story card shows all 8 Isan agents, the same as the CEO and RSM, so the per-role speech line has nothing to show |
+| AI-158 | ต่ำ | แก้แล้วบางส่วน `9209e23` | The rep's story card shows all 8 Isan agents, the same as the CEO and RSM, so the per-role speech line has nothing to show |
 | AI-159 | ต่ำ | เปิด (ใหม่) | Phone-width truncation and dev overlays on the chain screens |
 | AI-160 (เดิม AI-121) | ต่ำ | ยังเสีย | Chat audit cards show English codes, a raw 'policy_label' header and raw tool-argument JSON |
-| AI-161 | ต่ำ | เปิด (ใหม่) | The overclaim rebuttal invites resending the false message and offers no corrected wording |
-| AI-162 (เดิม AI-79) | ต่ำ | ยังเสีย | The text after an approved send mixes 'preparing' and 'done' |
-| AI-163 | ต่ำ | เปิด (ใหม่) | IT asks how a denied RSM can get access; the answer points to the South RSM, not the admin's own grant path |
+| AI-161 | ต่ำ | แก้แล้ว `cc98f0e` · รอยืนยันกับโมเดล | The overclaim rebuttal invites resending the false message and offers no corrected wording |
+| AI-162 (เดิม AI-79) | ต่ำ | แก้แล้ว `cc98f0e` · รอยืนยันกับโมเดล | The text after an approved send mixes 'preparing' and 'done' |
+| AI-163 | ต่ำ | แก้แล้ว `cc98f0e` · รอยืนยันกับโมเดล | IT asks how a denied RSM can get access; the answer points to the South RSM, not the admin's own grant path |
 | AI-164 (เดิม AI-99) | ต่ำ | เปิด (ใหม่) · นอกเส้นทางเดโม | Reload mid-reply rejoins the run but duplicates step lines and resets the timer |
 | AI-165 | ต่ำ | เปิด (ใหม่) · นอกเส้นทางเดโม | The month-end forecast card cannot be pinned |
 
@@ -1811,7 +1811,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-134. 'ผม/ของผม' for the rep resolves to Khon Kaen province (2 of his 4 agents), so chat and the home pin give different attainment
 
-- **สถานะ:** ยังเสีย · เดิม AI-90
+- **สถานะ:** แก้แล้ว `85151f5` · รอยืนยันกับโมเดล · เดิม AI-90: persona ของพนักงานขายมีรายชื่อเอเย่นต์ 4 รายที่เขาดูแล และคำถาม 'ผม/ของผม' ที่ไม่ได้เอ่ยจังหวัดหรือเอเย่นต์เอง ระบบกรองเอเย่นต์ชุดนั้นแทนจังหวัดที่โมเดลเดาจากชื่อตำแหน่ง ชุดเดียวกับการ์ดบนหน้าแรกและแผนเยี่ยม (query-metric.test)
 - **ระดับ:** กลาง · **หมวด:** `wrong-answer` · **บทบาท:** u_krit (sales rep)
 - **อาการ:** The rep's demo opener filtered province ขอนแก่น: 1.5 M L, 76.0% of 2.0 M L. 'เอเย่นต์ของผม' also returned only 2 agents. He owns 4 (ag_nea_01, 02, 03, 05); his home pin sums all 4 at 87.9%, and visit_plan ranks อุบลศรีสุข second, which the 'my sales' card omits.
 - **ที่ควรเป็น:** 'ผม/ของผม' means the agents the rep owns, the same 4 the home widget and visit_plan use, so chat and pin agree.
@@ -1838,7 +1838,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-136. The run-sheet story card is in litres while every chat answer about the same Isan month is in baht (79.7% vs 77.3%, both 'ของเป้าทั้งเดือน')
 
-- **สถานะ:** เปิด (ใหม่)
+- **สถานะ:** แก้แล้ว `9209e23` · รอยืนยันกับโมเดล: การ์ดหลักฐานยอดขายเข้าของเรื่องเมื่อเช้าวาดเป็นมูลค่า (บาท) แบบเดียวกับแชตสำหรับคนที่เห็นมูลค่า (อีสาน 77.3% ตรงกับคำตอบในแชต) และ finding ที่อ้างลิตรใต้การ์ดบาทต้องเขียนใหม่ ต้องสืบตอนเช้าใหม่เรื่องที่เก็บไว้จึงจะเปลี่ยน · ไทล์หน้าแรกของ CEO อยู่กับ AI-157 (investigate.test)
 - **ระดับ:** กลาง · **หมวด:** `run-sheet` · **บทบาท:** u_thana (CEO), u_anucha (RSM), u_krit (rep)
 - **อาการ:** The CEO's Isan story card, the one the run sheet sends down the chain, uses net_sales_volume: 79.7%, ขาดอีก 1.29 ล้านลิตร, ตามเวลา 92%. The RSM asking in chat gets net_sales_value: 77.3%, ตามเวลา 89.2%. The CEO's own chat answers on Isan are in baht. The CEO landing attainment tile is also on volume (98% pace) while the board chat answer is baht (96.8%).
 - **ที่ควรเป็น:** The morning story, landing and chat use one sales measure (baht), or the card names its unit in the headline.
@@ -1928,7 +1928,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-143. The market-share answer does not show our share against competitors or name the region we lost most; the drill points at 'ภาคกลาง · รายอื่น'
 
-- **สถานะ:** เปิด (ใหม่) · เดิม AI-123
+- **สถานะ:** แก้แล้ว `cc98f0e` · รอยืนยันกับโมเดล · เดิม AI-123: prompt: ส่วนแบ่งของเราเทียบคู่แข่ง = dims maker, ภาคที่เราเสียมากสุด = dims region ไม่ระบุ maker เรียง delta_asc, ใช้ last_month และห้ามเรียงการลดลงข้ามผู้ผลิต (ผล tool ยืนยันว่าแบบนี้ได้ภาคอีสาน −0.3 จุดเป็นแถวแรก)
 - **ระดับ:** กลาง · **หมวด:** `card-fit` · **บทบาท:** u_thana (CEO)
 - **อาการ:** For a chip the board summary offers, the heatmap shows only point changes for every maker, headline 'ไม่มีรายการไหนลดลงโดดเด่น', Isan not highlighted. Sorting delta_asc across all makers puts a small competitor's −0.4 pt first, so the button and chip ask 'ทำไมภาคกลาง · รายอื่นถึงเป็นแบบนี้' (good news for us). The text says Isan −0.3 จุด.
 - **ที่ควรเป็น:** The card shows our share level vs competitors per region, and its verdict names the region where our share fell most.
@@ -1951,7 +1951,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-145. 'ทำไมตกอะ' names two agents as the main cause of a drop that is 74% long tail
 
-- **สถานะ:** เปิด (ใหม่) · เดิม AI-130
+- **สถานะ:** แก้แล้ว `a156a61` `cc98f0e` · รอยืนยันกับโมเดล · เดิม AI-130: explain_gap ใส่ share_note ว่าไม่มีส่วนไหนเด่นเมื่อส่วนที่ใหญ่สุดไม่ถึง 20% ของช่องว่าง (สัปดาห์ของ CEO ใหญ่สุด 6.3%) และกฎ why ให้ตอบว่าลดลงกระจายทั่ว ไม่ยกรายใดเป็นสาเหตุหลัก (explain-gap.test, gap.test)
 - **ระดับ:** กลาง · **หมวด:** `grounding` · **บทบาท:** u_thana (CEO)
 - **อาการ:** Units are now consistent (AI-130's form fixed), but the text says the main cause is โคราชสหภัณฑ์ (6.3% of the gap) and ขอนแก่นมหาชัย (5.4%), while explain_gap shows the rest at 74.3% and every region is down 8-11%. get_alerts found nothing. The prior period's dates are not shown.
 - **ที่ควรเป็น:** The answer says the drop is broad (every region −8 to −11%, no agent above 7% of the gap) and does not invent a main cause.
@@ -1963,7 +1963,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-146. An agent-level 'why did it drop' gets the alert's generic hypothesis, not an investigation
 
-- **สถานะ:** ยังเสีย · เดิม AI-130
+- **สถานะ:** แก้แล้ว `cc98f0e` · รอยืนยันกับโมเดล · เดิม AI-130: prompt: why ถึงรายเดียวโดยไม่มีการ์ดก่อนหน้า = explain_gap กรองรายนั้นเดือนนี้เทียบเป้า และทำ verifySteps ที่ผู้ใช้ทำได้ แล้วสรุปจากข้อมูล ไม่ทวน hypothesis ของ alert
 - **ระดับ:** กลาง · **หมวด:** `wrong-answer` · **บทบาท:** u_krit (rep)
 - **อาการ:** 'ทำไมอีสานรุ่งโรจน์ยอดขายเข้าตกเยอะขนาดนี้' ran describe_entity and get_alerts only, repeated the alert's hypothesis and told the rep to check order history himself. The card headline 'ด่วน 1 เรื่อง' counts items and does not answer why.
 - **ที่ควรเป็น:** Run explain_gap or the alert's verifySteps (30-day daily orders, the agent's AR, saying it is masked for a rep) and conclude.
@@ -1975,7 +1975,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-147. The rep's 'whole company' request is silently scoped to Isan and drawn as a lone Isan number
 
-- **สถานะ:** ยังเสีย · เดิม AI-129
+- **สถานะ:** แก้แล้ว `4f08c41` · เดิม AI-129: คำถามขอยอดทั้งบริษัทหรือทุกภาคจากคนที่เห็นภาคเดียว และ query ไม่ได้กรองที่ใด ถูกปฏิเสธเป็น PERMISSION_DENIED พร้อมปุ่มขอสิทธิ์ชั่วคราวและบันทึก deny ใน audit ไม่ถูกตัดเหลือภาคอีสานเงียบ ๆ (query-metric.test)
 - **ระดับ:** กลาง · **หมวด:** `permission` · **บทบาท:** u_krit (rep)
 - **อาการ:** query_metric with filters {} was narrowed to northeast by the gateway; the card shows 'มูลค่าขายเข้า ภาคอีสาน 328.4 ล้านบาท' where a company total would go. The text says the total is outside his scope but offers no request path. The AI-129 request button (fixed for the RSM's explicit South query) fires only on an explicit out-of-scope filter.
 - **ที่ควรเป็น:** Say the company total is outside his scope, show who can grant it (the request button), and do not draw a lone Isan number as the answer.
@@ -2105,7 +2105,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-158. The rep's story card shows all 8 Isan agents, the same as the CEO and RSM, so the per-role speech line has nothing to show
 
-- **สถานะ:** เปิด (ใหม่)
+- **สถานะ:** แก้แล้วบางส่วน `9209e23`: ไม่เปลี่ยนสิทธิ์: พนักงานขายยังเห็นทั้งภาคตามนโยบาย การ์ดที่ส่งต่อมาจึงยังแสดง 8 เอเย่นต์ เรื่องเมื่อเช้าของพนักงานขายเองอยู่บนเอเย่นต์ของเขาอยู่แล้ว (u_krit-0, u_krit-1) และตอนนี้การสืบได้รายชื่อเอเย่นต์ที่เขาดูแล · ประโยคพูดใน run sheet ต้องแก้กับ AI-135
 - **ระดับ:** ต่ำ · **หมวด:** `run-sheet` · **บทบาท:** u_krit (rep, chain step 3)
 - **อาการ:** Not a leak: sales_rep is scoped to the whole region. But the RSM speech line 'ผู้จัดการภาคเห็นเฉพาะส่วนในภาคตัวเอง' implies a difference the demo never shows.
 - **ที่ควรเป็น:** Drop the per-role claim for this card, or pick a beat where views differ (for example the rep's masked AR).
@@ -2141,7 +2141,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-161. The overclaim rebuttal invites resending the false message and offers no corrected wording
 
-- **สถานะ:** เปิด (ใหม่)
+- **สถานะ:** แก้แล้ว `cc98f0e` · รอยืนยันกับโมเดล: prompt: ASK_CONTRADICTS_CARD = บอกตัวเลขของการ์ด แล้วเสนอข้อความแนบใหม่ที่ตรงกับการ์ดและไม่มีตัวเลข ไม่ชวนให้ยืนยันส่งข้อความเดิม
 - **ระดับ:** ต่ำ · **หมวด:** `write-flow` · **บทบาท:** u_krit (rep)
 - **อาการ:** send_card refused with ASK_CONTRADICTS_CARD citing 76.0%, then the reply said to confirm again if he still wants to send, with no true ask proposed.
 - **ที่ควรเป็น:** State the figure and propose a corrected ask ('ทำได้ 76% ของเป้า ขาดอีก 0.49 ล้านลิตร').
@@ -2152,7 +2152,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-162. The text after an approved send mixes 'preparing' and 'done'
 
-- **สถานะ:** ยังเสีย · เดิม AI-79
+- **สถานะ:** แก้แล้ว `cc98f0e` · รอยืนยันกับโมเดล · เดิม AI-79: prompt: หลังกดยืนยันและผล ok = เล่าเป็นสิ่งที่เสร็จแล้วตามด้วยสิ่งที่จะเกิดต่อ ห้ามใช้คำว่าเตรียมหรือกำลัง
 - **ระดับ:** ต่ำ · **หมวด:** `thai-language` · **บทบาท:** u_thana (CEO chain alt)
 - **อาการ:** After ส่ง was approved and the matter created, the reply opened 'เตรียมส่งการ์ด… เรียบร้อยแล้ว'.
 - **ที่ควรเป็น:** 'ส่งการ์ดให้คุณอนุชาแล้ว' plus what happens next.
@@ -2163,7 +2163,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-163. IT asks how a denied RSM can get access; the answer points to the South RSM, not the admin's own grant path
 
-- **สถานะ:** เปิด (ใหม่)
+- **สถานะ:** แก้แล้ว `cc98f0e` · รอยืนยันกับโมเดล: prompt ของ IT: คนที่ถูกปฏิเสธกดปุ่มขอสิทธิ์ชั่วคราว (ผู้อนุมัติที่ระบบเลือกคือผู้อำนวยการฝ่ายขาย ไม่ใช่ RSM ภาคใต้) และ IT ตั้งได้ว่าใครให้สิทธิ์ ดูและเพิกถอนที่ Admin console > สิทธิ์ > สิทธิ์ชั่วคราว ไม่ต้อง resolve_owner
 - **ระดับ:** ต่ำ · **หมวด:** `wrong-answer` · **บทบาท:** u_ton (IT admin)
 - **อาการ:** The reply explains the denial correctly, then says to use the request button or contact the South RSM. The asker can grant scope in Admin console > สิทธิ์, which is never mentioned. 27.7 s for one lookup.
 - **ที่ควรเป็น:** For the admin: the RSM's request button reaches the slice owner, and you can grant a temporary scope in the Admin console.
