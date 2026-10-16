@@ -6,7 +6,7 @@ import { findUser } from "@/lib/data/entities/users";
 import { notReady } from "@/lib/harness/gateway";
 import type { Unready } from "@/lib/harness/types";
 import { TH } from "@/lib/i18n/th";
-import { ASK_CONTRADICTS_CARD, sendCardInputSchema, type CardFocus, type CardOnScreen, type SendCardInput, type SharedCard, type ShareTarget } from "@/lib/share/card";
+import { ASK_CONTRADICTS_CARD, CARD_MISSES_SUBJECT, sendCardInputSchema, shareTitle, type CardFocus, type CardOnScreen, type SendCardInput, type SharedCard, type ShareTarget } from "@/lib/share/card";
 import { contradictionOf } from "@/lib/share/figures";
 import { askAboutOf, askNaming, deadlineWords, followsEarlier, matterAsk, matterDeadline, sendIntent } from "@/lib/share/matter";
 import { resolvedPeople, type RecipientMatch } from "@/lib/share/recipients";
@@ -27,11 +27,12 @@ const CARD_UNKNOWN = "CARD_UNKNOWN";
 const NOT_SHAREABLE = "NOT_SHAREABLE";
 const ASK_NUMBERS = "ASK_CARRIES_NUMBERS";
 const NUMBER = /[0-9๐-๙]+/g;
+const SUBJECT_PARTS = / · |, /;
 
 const DESCRIPTION =
   "Send one card on screen to a colleague as a matter: it lands in their bell with the ask, they answer on the card, can pass it on, and it closes itself when its number reaches its goal. Use it for every 'ส่ง… ให้…', 'ฝาก… ดู', 'แชร์ให้', 'มอบหมาย'. `cardRef` = the ref of the card the user means, copied from the cards-on-screen list (the card they point at: first, above, by its name, or the card the request is about, e.g. the overdue card for a collection); leave it out only to send the one card this reply drew. A person, owner, profile or master-data lookup is never a card to send. `to` = each colleague as the user named them (\"พี่อนุชา\", \"ผู้จัดการขายภาคอีสาน\" → resolve_owner first) or a user id; leave it out to send to the card's owner. `ask` = what the user wants done, in their words, no number they did not type. `intent` fyi only when the user only wants them to look. Leave `urgency` out unless the user's words say when; the server reads ด่วน and deadlines (พรุ่งนี้, ภายในศุกร์นี้) itself. `card` only when a pressed button passes it; copy it unchanged. The user sees the filled send sheet and approves it first.";
 
-type Chosen = { ok: true; target: ShareTarget; warned: boolean; said: readonly string[] } | { ok: false; code: string; fix: string };
+type Chosen = { ok: true; target: ShareTarget; warned: boolean; said: readonly string[]; others: readonly CardOnScreen[]; redirected: boolean } | { ok: false; code: string; fix: string };
 type Picked = Extract<Chosen, { ok: true }>;
 
 function channelDelivery() {
@@ -66,11 +67,31 @@ function notChosen(choice: Exclude<CardChoice, { kind: "card" }>): Chosen {
 
 /** The card this send carries: the one a pressed button passed, else the card on screen `cardRef` names (or the only one there is), validated against what the conversation drew; with what the person typed last. */
 async function chosenCard(input: SendCardInput): Promise<Chosen> {
-  if (input.card) return { ok: true, target: { card: { kind: "tool", reads: input.card.reads }, question: currentTurn().question }, warned: false, said: [] };
+  if (input.card) return { ok: true, target: { card: { kind: "tool", reads: input.card.reads }, question: currentTurn().question }, warned: false, said: [], others: [], redirected: true };
   const screen = await currentTurn().screenCards?.();
   if (!screen) return notChosen({ kind: "none" });
   const choice = cardNamed(screen, input.cardRef);
-  return choice.kind === "card" ? { ok: true, target: choice.card.target, warned: screen.warned, said: screen.said } : notChosen(choice);
+  if (choice.kind !== "card") return notChosen(choice);
+  const others = screen.cards.filter((card) => card.ref !== choice.card.ref);
+  return { ok: true, target: choice.card.target, warned: screen.warned, said: screen.said, others, redirected: screen.redirected };
+}
+
+/** The other cards on screen that show the rows the person's words name, when the chosen card shows none of them and the conversation has not pointed this out yet; null otherwise. Once pointed out, the person's choice stands. */
+async function cardsShowingFocus(input: SendCardInput, chosen: Picked, sender: User): Promise<{ labels: string[]; cards: CardOnScreen[] } | null> {
+  if (chosen.redirected || (await focusOf(input, chosen, sender))) return null;
+  const words = [input.ask, currentTurn().question, ...chosen.said];
+  const covered = new Set((await matterSubject(chosen.target.card))?.split(SUBJECT_PARTS) ?? []);
+  const found = await Promise.all(chosen.others.map(async (card) => ({ card, labels: ((await cardFocus(card.target.card, sender, words))?.labels ?? []).filter((label) => !covered.has(label)) })));
+  const showing = found.filter((entry) => entry.labels.length > 0);
+  if (showing.length === 0) return null;
+  return { labels: [...new Set(showing.flatMap((entry) => entry.labels))], cards: showing.map((entry) => entry.card) };
+}
+
+/** Why the chosen card is not the one the send is about: the rows the person named, and the cards on screen that show them. */
+async function missingSubject(input: SendCardInput, chosen: Picked): Promise<string | null> {
+  const sender = findUser(currentAccess().userId);
+  const showing = sender ? await cardsShowingFocus(input, chosen, sender) : null;
+  return showing ? TH.share.chat.cardMissesSubject(showing.labels.join(", "), shareTitle(chosen.target.card), cardsLine(showing.cards)) : null;
 }
 
 /** The rows of the card this send is about, from the ask and what the person typed (this question, then the one before it, so a send confirmed after a hold-back still knows whom they named). */
@@ -102,6 +123,8 @@ async function unready(input: unknown): Promise<Unready | null> {
   if (problem) return notReady(problem, UNRESOLVED);
   const chosen = await chosenCard(parsed.data);
   if (!chosen.ok) return notReady(chosen.fix, chosen.code);
+  const missing = await missingSubject(parsed.data, chosen);
+  if (missing) return notReady(missing, CARD_MISSES_SUBJECT);
   const held = await heldBack(parsed.data, chosen);
   return held ? notReady(held, ASK_CONTRADICTS_CARD) : null;
 }

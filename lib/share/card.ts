@@ -70,8 +70,11 @@ export type ShareTarget = { card: SharedCard; question: string | null; draftAsk?
 /** A card the conversation drew that may be sent, as the model and the send sheet name it: `ref` comes from what the card is (its reads and layout), so the server and the browser give the same card the same ref; `hero` is its headline figure when it has one. */
 export type CardOnScreen = { ref: string; exchangeId: string; target: ShareTarget; title: string; hero: string | null };
 
-/** The sendable cards of a conversation up to the exchange a send was asked in (`exchangeId`), oldest first, whether an earlier exchange held a send back because its words contradicted its card, and what the person typed there and in the exchange before, newest first (a send confirmed after a hold-back still knows whom the person named). */
-export type ScreenCards = { exchangeId: string | null; cards: CardOnScreen[]; warned: boolean; said: string[] };
+/** The sendable cards of a conversation up to the exchange a send was asked in (`exchangeId`), oldest first, whether an earlier exchange held a send back because its words contradicted its card, and what the person typed there and in the exchange before, newest first (a send confirmed after a hold-back still knows whom the person named), and whether an earlier send was pointed at another card that shows what the person named. */
+export type ScreenCards = { exchangeId: string | null; cards: CardOnScreen[]; warned: boolean; said: string[]; redirected: boolean };
+
+/** The send_card refusal code for a card that shows none of the rows the person named while another card on screen does, given once. */
+export const CARD_MISSES_SUBJECT = "CARD_MISSES_SUBJECT";
 
 /** The send_card refusal code for an ask the card's numbers contradict, given once before the person has seen the figure. */
 export const ASK_CONTRADICTS_CARD = "ASK_CONTRADICTS_CARD";

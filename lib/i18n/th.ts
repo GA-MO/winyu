@@ -2052,6 +2052,7 @@ export const TH = {
       noCard: "ยังไม่มีการ์ดที่ส่งได้บนจอ (ข้อมูลบุคคล ผู้รับผิดชอบ และข้อมูลอ้างอิงไม่ใช่การ์ดที่ส่งได้)",
       cardOnScreen: (ref: string, title: string, hero: string | null) => (hero ? `${ref} «${title} ${hero}»` : `${ref} «${title}»`),
       unclearCard: (cards: string) => `การ์ดบนจอที่ส่งได้มีมากกว่าหนึ่งใบ และคำขอนี้ไม่ได้ระบุ cardRef: ${cards}`,
+      cardMissesSubject: (names: string, title: string, cards: string) => `การ์ด «${title}» ไม่มี ${names} · การ์ดบนจอที่มี ${names}: ${cards}`,
       unknownCard: (ref: string, cards: string) => `ไม่มีการ์ด ${ref} บนจอ การ์ดที่ส่งได้: ${cards || "ไม่มี"}`,
       heldBack: (warning: string) => `ยังไม่ได้ส่ง: ${warning}`,
       noRecipient: "การ์ดนี้ยังไม่มีผู้รับผิดชอบที่ไม่ใช่ผู้ส่ง จึงยังไม่รู้ว่าจะส่งให้ใคร",

@@ -260,7 +260,7 @@ export async function screenCardsOn(threadId: string, userId: string, messageId:
   const history = exchangesOf(await threadHistory(threadId, userId));
   const exchanges = messageId ? withFinished(history, messageId, question, finished) : history;
   const each = screenCardsEach(exchanges, readTools());
-  return each.find((screen) => screen.exchangeId === messageId) ?? each.at(-1) ?? { exchangeId: messageId, cards: [], warned: false, said: question ? [question] : [] };
+  return each.find((screen) => screen.exchangeId === messageId) ?? each.at(-1) ?? { exchangeId: messageId, cards: [], warned: false, said: question ? [question] : [], redirected: false };
 }
 
 /** Removes a thread and its messages from Mastra memory; a thread that never ran has nothing to remove. */

@@ -1,4 +1,4 @@
-import { ASK_CONTRADICTS_CARD, cardRefOf, sharedComposedCard, sharedToolCard, shareTitle, type CardOnScreen, type ExchangeRead, type ScreenCards, type SharedCard } from "@/lib/share/card";
+import { ASK_CONTRADICTS_CARD, CARD_MISSES_SUBJECT, cardRefOf, sharedComposedCard, sharedToolCard, shareTitle, type CardOnScreen, type ExchangeRead, type ScreenCards, type SharedCard } from "@/lib/share/card";
 import type { Exchange, ReplyStep, ToolStep } from "./timeline";
 import { presentCard } from "@/lib/cards/present";
 import { metricAnswerOf, metricTitle, othersOf } from "@/lib/cards/tool-answers";
@@ -62,10 +62,10 @@ function latestOfEach(cards: readonly CardOnScreen[]): CardOnScreen[] {
   return cards.filter((card, index) => !cards.slice(index + 1).some((later) => later.ref === card.ref));
 }
 
-function heldBackForContradiction(exchange: Exchange): boolean {
+function heldBackWith(exchange: Exchange, code: string): boolean {
   return exchange.steps.some((step) => {
     if (step.kind !== "tool" || step.name !== SEND_TOOL || step.outcome.state !== "returned") return false;
-    return (step.outcome.result as { code?: unknown } | null)?.code === ASK_CONTRADICTS_CARD;
+    return (step.outcome.result as { code?: unknown } | null)?.code === code;
   });
 }
 
@@ -73,17 +73,19 @@ function typedIn(exchange: Exchange): string | null {
   return exchange.question?.kind === "typed" ? exchange.question.text : null;
 }
 
-/** For each exchange, the cards on screen when a send was asked there (those it drew and every earlier one, a card drawn twice listed once at its latest), whether an earlier exchange held a send back because its words contradicted its card, and the person's last typed words. */
+/** For each exchange, the cards on screen when a send was asked there (those it drew and every earlier one, a card drawn twice listed once at its latest), whether an earlier exchange held a send back because its words contradicted its card or pointed it at another card, and the person's last typed words. */
 export function screenCardsEach(exchanges: readonly Exchange[], cardTools: ReadonlySet<string>): ScreenCards[] {
   let drawn: CardOnScreen[] = [];
   let warned = false;
+  let redirected = false;
   let said: string[] = [];
   return exchanges.map((exchange) => {
     drawn = latestOfEach([...drawn, ...cardsOfExchange(exchange, cardTools)]);
     const typed = typedIn(exchange);
     said = typed ? [typed, ...said].slice(0, SAID_KEPT) : said;
-    const screen = { exchangeId: exchange.id, cards: drawn, warned, said };
-    warned ||= heldBackForContradiction(exchange);
+    const screen = { exchangeId: exchange.id, cards: drawn, warned, said, redirected };
+    warned ||= heldBackWith(exchange, ASK_CONTRADICTS_CARD);
+    redirected ||= heldBackWith(exchange, CARD_MISSES_SUBJECT);
     return screen;
   });
 }

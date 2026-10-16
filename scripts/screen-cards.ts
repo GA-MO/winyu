@@ -10,5 +10,5 @@ export function onScreen(target: ShareTarget, exchangeId = "earlier-exchange", h
 /** The screen a send in a test sees: these cards drawn earlier, whether a send was already held back for a contradiction, and the person's last typed words, newest first. */
 export function screenWith(targets: readonly (ShareTarget | CardOnScreen)[], warned = false, said: string[] = []): ScreenCards {
   const cards = targets.map((target) => ("ref" in target ? target : onScreen(target)));
-  return { exchangeId: EXCHANGE, cards, warned, said };
+  return { exchangeId: EXCHANGE, cards, warned, said, redirected: false };
 }
