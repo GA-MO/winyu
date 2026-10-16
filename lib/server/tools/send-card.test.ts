@@ -186,6 +186,7 @@ describe("a send about one agent on the region's card names that agent, and a cl
     expect(matter?.title).toContain(AGENT);
     expect(matter?.ask).toContain(AGENT);
     expect(sent.data?.warning ?? "").toContain(AGENT);
+    expect(sent.data?.urgency).toBe("this_week");
     const krit = findUser("u_krit");
     if (!krit) throw new Error("no u_krit");
     const inbox = await waitingOn(liveAccessFor(krit), "matter");
