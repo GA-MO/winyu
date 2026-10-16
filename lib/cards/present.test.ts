@@ -822,6 +822,19 @@ describe("scorecards and one-row cards keep to the card rules (AI-156)", () => {
     expect(strip.rows.map((row) => row.label)).not.toContain(named);
   });
 
+  test("a named group with nothing to compare is judged against the others, never restated: a rate against the average, a sum as its share of the whole", () => {
+    const margin = answer({ metric: "gross_margin", dims: ["business_unit"], compare: "none" });
+    if (!margin.result.ok) throw new Error(margin.result.error);
+    const named = String(margin.result.rows[1].business_unit);
+    const rate = presentCard({ title: "t", query: margin.query, result: { ...margin.result, headline: { ...margin.result.headline, asked: [named] } } });
+    expect(rate.verdict).toMatch(new RegExp(`^${named}(สูง|ต่ำ)กว่า${TH.read.averageOf(TH.dash.dimUnit.business_unit)} [\\d.]+ จุด$`));
+    const sales = answer({ metric: "net_sales_value", dims: ["region"], compare: "none" });
+    if (!sales.result.ok) throw new Error(sales.result.error);
+    const region = String(sales.result.rows[2].region);
+    const sum = presentCard({ title: "t", query: sales.query, result: { ...sales.result, headline: { ...sales.result.headline, asked: [region] } } });
+    expect(sum.verdict).toMatch(new RegExp(`^${region}คิดเป็น [\\d.]+% ของทั้งหมด$`));
+  });
+
   test("a one-row card's subject names its row, so a pinned tile says which region it is", () => {
     const query = { ...queryOf({ metric: "net_sales_value", dims: ["region"], range: MONTH_TO_DATE, compare: "target" }), filters: { region: ["northeast"] } };
     expect(subjectOf(query, runMetric(query, CEO))).toBe(TH.dash.ownScope(metricLabel("net_sales_value"), "ภาคอีสาน"));
