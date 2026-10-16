@@ -3,7 +3,8 @@ import { accessFor } from "@/lib/access/policies";
 import { findUser } from "@/lib/data/entities/users";
 import type { DraftStory, MetricQuery } from "@/lib/contracts";
 import { runMetric } from "./metrics";
-import { callsWithAnomalies, cardNumbersOf, evidenceIndexOf, gapQueryOf, investigateSystemFor, openAnomalies, repeatedIn, reviewDrafts, roleHoldersNamedIn, storiesFrom, evidenceQueryOf, withoutPinnedDims, type ToolCall } from "./investigate";
+import { callsWithAnomalies, cardNumbersOf, evidenceIndexOf, gapQueryOf, investigateSystemFor, openAnomalies, repeatedIn, reviewDrafts, roleHoldersNamedIn, storiesFrom, evidenceQueryOf, whoOf, withoutPinnedDims, type ToolCall } from "./investigate";
+import { agentsOwnedBy } from "@/lib/data/entities/agents";
 import { DATA_AS_OF, dataDay, monthStart } from "@/lib/data/dates";
 
 function accessOf(userId: string) {
@@ -18,6 +19,15 @@ describe("the investigation only asks for explanations the person can read", () 
     expect(system).not.toMatch(/campaign/i);
     expect(system).not.toContain("other regions");
     expect(system).toContain("stock/cover");
+  });
+
+  test("a rep's investigation is told which agents are his, so his stories sit on his own book (AI-158)", () => {
+    const krit = findUser("u_krit");
+    const anucha = findUser("u_anucha");
+    if (!krit || !anucha) throw new Error("missing users");
+    const who = whoOf(krit, accessOf("u_krit"));
+    for (const agent of agentsOwnedBy("u_krit")) expect(who).toContain(agent.nameTh);
+    expect(whoOf(anucha, accessOf("u_anucha"))).not.toContain("Owns agents");
   });
 
   test("the CEO is told to test every explanation", () => {
@@ -66,13 +76,32 @@ describe("a story is checked before it is kept", () => {
     const evidence = await evidenceIndexOf(calls, DIRECTOR);
     const [reviewed] = reviewDrafts([draftOf({})], calls, evidence);
     expect(reviewed).toMatchObject({ ungrounded: [], names: [], problems: [] });
-    expect(storiesFrom("u_prasit", [reviewed], calls, evidence).stories[0].evidence).toEqual({ title: "ยอดขายเข้าอีสานเทียบเป้า แยกตามเอเย่นต์", query: { ...QUERY, sort: "delta_asc" } });
+    expect(storiesFrom("u_prasit", [reviewed], calls, evidence).stories[0].evidence).toEqual({ title: "ยอดขายเข้าอีสานเทียบเป้า แยกตามเอเย่นต์", query: { ...QUERY, metric: "net_sales_value", sort: "delta_asc" } });
+  });
+
+  test("a sell-in card is drawn in baht, the measure chat answers in, for whoever sees baht; a planner who sees only litres keeps litres (AI-136)", async () => {
+    const calls = await callsFor();
+    expect((await evidenceIndexOf(calls, DIRECTOR)).get(1)?.query.metric).toBe("net_sales_value");
+    const input = { metric: "net_sales_volume", split: "agent", filters: { region: ["northeast"] }, range: { from: monthStart(DATA_AS_OF), to: DATA_AS_OF }, compare: "target" };
+    const gap = await evidenceIndexOf([{ tool: "explain_gap", input, output: { ok: true } }], accessOf("u_thana"));
+    expect(gap.get(0)?.query.metric).toBe("net_sales_value");
+    expect(gap.get(0)?.headline.projection?.monthTarget).toContain("บาท");
+    const planner = await evidenceIndexOf([{ tool: "explain_gap", input, output: { ok: true } }], accessOf("u_wee"));
+    expect(planner.get(0)?.query.metric).toBe("net_sales_volume");
+  });
+
+  test("a finding that quotes litres under a card drawn in baht asks for a rewrite", async () => {
+    const calls = await callsFor();
+    const evidence = await evidenceIndexOf(calls, DIRECTOR);
+    const [litres] = reviewDrafts([draftOf({ finding: "อีสานยังขาดอีกราว 1.29 ล้านลิตร สองเอเย่นต์ใหญ่แทบหยุดสั่ง" })], calls, evidence);
+    expect(litres.problems).toContain("finding quotes litres while its card is in baht");
   });
 
   test("a finding that repeats its card's headline or month-end number asks for a rewrite", async () => {
     const calls = await callsFor();
     const evidence = await evidenceIndexOf(calls, DIRECTOR);
-    const answer = calls[1].output as Parameters<typeof cardNumbersOf>[0];
+    const answer = evidence.get(1);
+    if (!answer) throw new Error("no evidence card");
     const [shown] = cardNumbersOf(answer, "t");
     const [reviewed] = reviewDrafts([draftOf({ finding: `อีสานขายได้ ${shown} ต่ำกว่าเป้า` })], calls, evidence);
     expect(reviewed.problems).toContain(`finding repeats the card's number ${shown}`);
