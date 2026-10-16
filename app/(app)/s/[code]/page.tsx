@@ -68,10 +68,10 @@ export default async function SharePage({ params }: PageProps) {
               <p className="text-sm text-muted-foreground">{TH.share.sharedBy(senderPersona.nameTh, senderPersona.title)}</p>
             </div>
           ) : null}
-          {share.note && sender ? (
+          {share.ask && sender ? (
             <blockquote className="rounded-2xl border border-border bg-card px-4 py-3 text-[15px] leading-relaxed text-foreground">
               <span className="mb-1 block text-xs text-muted-foreground">{TH.share.noteFrom(sender.nameTh)}</span>
-              {share.note}
+              {share.ask}
             </blockquote>
           ) : null}
         </header>

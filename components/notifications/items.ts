@@ -1,7 +1,7 @@
 import type { NotificationKind } from "@/lib/contracts";
 
-/** The kinds that wait on the reader, and what the bell's one inline button does about each: take the handoff, or open the request to decide it. */
-export const DECISION_ACTIONS = { handoff: "accept", grant_request: "open" } as const satisfies Partial<Record<NotificationKind, "accept" | "open">>;
+/** The kinds that wait on the reader, and what the bell's one inline button does about each: take the handoff, or open the request or the matter to decide it. */
+export const DECISION_ACTIONS = { handoff: "accept", grant_request: "open", matter: "open" } as const satisfies Partial<Record<NotificationKind, "accept" | "open">>;
 
 export type DecisionKind = keyof typeof DECISION_ACTIONS;
 

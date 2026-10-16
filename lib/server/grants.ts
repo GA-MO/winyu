@@ -13,7 +13,8 @@ import { grantDecisionMail, grantRequestMail, type GrantMail } from "@/lib/serve
 import { notify } from "@/lib/server/notify";
 import { ports } from "@/lib/server/ports";
 import { shareUrl } from "@/lib/server/share/message";
-import { mayOpen, shares, type Share } from "@/lib/server/share/shares";
+import { mayOpen, shares } from "@/lib/server/share/shares";
+import type { Matter } from "@/lib/share/matter";
 import { collection } from "@/lib/server/store/json-store";
 
 export const GRANT_REQUESTS_COLLECTION = "grant-requests";
@@ -120,7 +121,7 @@ export function grantOnShare(sender: User, card: SharedCard, recipientIds: reado
   });
 }
 
-function hiddenSliceOf(share: Share, viewer: User, at: Date): GrantSlice | null {
+function hiddenSliceOf(share: Matter, viewer: User, at: Date): GrantSlice | null {
   const sender = findUser(share.senderId);
   if (!sender || sender.id === viewer.id) return null;
   const own = baseAccessFor(viewer);
@@ -150,7 +151,7 @@ function liveGrantOf(recipientId: string, slice: GrantSlice, at: Date): Grant | 
 }
 
 /** What a shared card hides from its viewer, for the first read that showed the sender more, with the viewer's grant, pending request, and whether anyone may approve; null when it hides nothing. */
-export function shareScopeFor(share: Share, viewer: User, at = new Date()): ShareScope | null {
+export function shareScopeFor(share: Matter, viewer: User, at = new Date()): ShareScope | null {
   const slice = hiddenSliceOf(share, viewer, at);
   if (!slice) return null;
   const hidden = hiddenFrom(baseAccessFor(viewer), slice, at) ?? slice;

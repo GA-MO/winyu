@@ -1,6 +1,7 @@
 import type { User } from "@/lib/contracts";
 import { findUser, USERS } from "@/lib/data/entities/users";
-import { shareTitle, type ChannelOption, type ShareChannel, type ShareContact, type ShareGrantReceipt, type ShareRequest } from "@/lib/share/card";
+import { shareTitle, type ChannelOption, type DeliveryChannel, type ShareChannel, type ShareContact, type ShareGrantReceipt, type ShareRequest } from "@/lib/share/card";
+import type { Matter, MatterUrgency, ShareDelivery } from "@/lib/share/matter";
 import { recordShare } from "@/lib/server/audit";
 import { untilLabel } from "@/lib/share/grant-label";
 import { grantOnShare, shareGrantUntil } from "@/lib/server/grants";
@@ -13,10 +14,10 @@ import { personaOf } from "@/lib/server/portraits";
 import { ports } from "@/lib/server/ports";
 import { shareAdaptiveCard, shareEmail, shareFlex, shareUrl, type ShareMessage } from "./message";
 import type { FallbackReason } from "@/lib/share/card";
-import { shareableProblem, shareCode, shares, type Share, type ShareDelivery } from "./shares";
+import { shareableProblem, shareCode, shares } from "./shares";
 
 /** What creating a share returns: the record, or why nothing was sent. */
-export type ShareOutcome = { ok: true; share: Share; grants: ShareGrantReceipt[] } | { ok: false; error: string };
+export type ShareOutcome = { ok: true; share: Matter; grants: ShareGrantReceipt[] } | { ok: false; error: string };
 
 function linkOf(userId: string, provider: "entra" | "line", tenant: string | null) {
   return identityLinks().find((link) => link.userId === userId && link.provider === provider && (tenant === null || link.tenant === tenant)) ?? null;
@@ -60,7 +61,8 @@ async function sentElsewhere(channel: ShareChannel, message: ShareMessage, recip
   return (await pushLineMessages(link.subject, [shareFlex(message)])) ? null : "send-failed";
 }
 
-async function deliver(message: ShareMessage, sender: User, recipient: User, asked: ShareChannel, code: string): Promise<ShareDelivery> {
+async function deliver(message: ShareMessage, sender: User, recipient: User, asked: DeliveryChannel, code: string): Promise<ShareDelivery> {
+  if (asked === "winyu") return { userId: recipient.id, asked, via: asked, fallback: null };
   if (asked !== "email") {
     const fallback = await sentElsewhere(asked, message, recipient).catch((error: unknown) => {
       console.error("share delivery failed", asked, error);
@@ -74,7 +76,7 @@ async function deliver(message: ShareMessage, sender: User, recipient: User, ask
   return { userId: recipient.id, asked, via: "email", fallback: null };
 }
 
-function recipientsOf(request: ShareRequest, senderId: string): Array<{ user: User; channel: ShareChannel }> {
+function recipientsOf(request: ShareRequest, senderId: string): Array<{ user: User; channel: DeliveryChannel }> {
   const seen = new Set<string>([senderId]);
   return request.recipients.flatMap(({ userId, channel }) => {
     const user = findUser(userId);
@@ -84,7 +86,14 @@ function recipientsOf(request: ShareRequest, senderId: string): Array<{ user: Us
   });
 }
 
-/** Shares a card the person pressed share on: stores the reads (never their values) under a short code, sends each recipient the card's title and a button into Winyu on the channel picked (email when that channel cannot reach them), and leaves one audit row; with grant days, also grants each recipient what the card showed the sender, when the sender may. */
+const URGENCY_OF_INTENT: Record<Matter["intent"], MatterUrgency> = { act: "today", fyi: "this_week" };
+
+function newMatter(sender: User, request: ShareRequest, sent: { code: string; at: string; title: string; ask: string; deliveries: ShareDelivery[] }): Matter {
+  const path = sent.deliveries.map((delivery) => ({ userId: delivery.userId, fromUserId: sender.id, at: sent.at, state: "sent" as const }));
+  return { id: sent.code, at: sent.at, updatedAt: sent.at, senderId: sender.id, title: sent.title, question: request.question, ask: sent.ask, intent: request.intent, urgency: URGENCY_OF_INTENT[request.intent], goal: null, path, thread: [], status: "open", card: request.card, deliveries: sent.deliveries, openedBy: [], lastViewedAt: null };
+}
+
+/** Sends a card as a matter: stores the reads (never their values) under a short code, tells each recipient in Winyu (in the Inbox when it asks for an answer, on Shared when it is for information), also on the outside channel picked (email when that channel cannot reach them), and leaves one audit row; with grant days, also grants each recipient what the card showed the sender, when the sender may. No model call. */
 export async function createShare(sender: User, request: ShareRequest, at = new Date().toISOString()): Promise<ShareOutcome> {
   const problem = shareableProblem(request.card);
   if (problem) return { ok: false, error: problem };
@@ -92,16 +101,18 @@ export async function createShare(sender: User, request: ShareRequest, at = new 
   if (recipients.length === 0) return { ok: false, error: "no recipients" };
   const code = shareCode();
   const title = shareTitle(request.card);
-  const note = request.note.trim() || null;
-  const message: ShareMessage = { title, senderName: sender.nameTh, senderTitle: sender.title, note, url: shareUrl(code) };
+  const ask = request.ask.trim();
+  const message: ShareMessage = { title, senderName: sender.nameTh, senderTitle: sender.title, note: ask || null, url: shareUrl(code) };
   const deliveries: ShareDelivery[] = [];
   for (const { user, channel } of recipients) deliveries.push(await deliver(message, sender, user, channel, code));
-  const share = shares().put({ id: code, at, senderId: sender.id, title, question: request.question, note, card: request.card, deliveries, openedBy: [], lastViewedAt: null });
+  const share = shares().put(newMatter(sender, request, { code, at, title, ask, deliveries }));
   recordShare({ userId: sender.id, code, title, reads: request.card.reads.map((read) => read.tool), deliveries });
   const grants = request.grantDays ? grantOnShare(sender, request.card, deliveries.map((delivery) => delivery.userId), request.grantDays, code, new Date(at)) : [];
   for (const delivery of deliveries) {
     const until = shareGrantUntil(code, delivery.userId);
-    notify(delivery.userId, sender.id, { kind: "share", refId: code, senderName: sender.nameTh, cardTitle: title, grantUntil: until ? untilLabel(until) : null }, new Date(at));
+    const event = share.intent === "act" ? { kind: "matter" as const, refId: code, senderName: sender.nameTh, ask } : { kind: "share" as const, refId: code, senderName: sender.nameTh, cardTitle: title, grantUntil: until ? untilLabel(until) : null };
+    notify(delivery.userId, sender.id, event, new Date(at));
   }
+
   return { ok: true, share, grants };
 }

@@ -3,7 +3,7 @@
 import { useCallback, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronDown, CircleCheck, HelpCircle, Pin, PinOff, Sparkles, X } from "lucide-react";
-import { ShareChrome, ShareProvider } from "@/components/share/share-sheet";
+import { ShareChrome } from "@/components/share/share-sheet";
 import { cn } from "@/components/ui/cn";
 import type { WidgetSpec } from "@/lib/contracts";
 import type { CardParts } from "@/lib/cards/present";
@@ -85,7 +85,6 @@ export function DashboardView({
   const trayCount = learned.length + suggested.length;
 
   return (
-    <ShareProvider>
     <ChatLinkActions>
     <div className="flex flex-col gap-8">
       <section className="flex flex-col gap-3">
@@ -159,7 +158,6 @@ export function DashboardView({
       ) : null}
     </div>
     </ChatLinkActions>
-    </ShareProvider>
   );
 }
 

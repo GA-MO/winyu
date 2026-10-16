@@ -6,6 +6,8 @@ import { sliceLabel } from "@/lib/share/grant-label";
 import { notificationTarget, notificationTitle } from "@/lib/share/notification-kinds";
 import { newHandoffsFor, pendingRequestsFor } from "@/lib/server/inbox";
 import { notificationsOf } from "@/lib/server/notify";
+import { mattersWaitingOn } from "@/lib/server/share/shares";
+import type { Matter } from "@/lib/share/matter";
 import { personaOf } from "@/lib/server/portraits";
 
 const BELL_UPDATES = 8;
@@ -47,6 +49,14 @@ function handoffItem(packet: ContextPacket, told: Map<string, Notification>): Be
   };
 }
 
+function matterItem(matter: Matter, told: Map<string, Notification>): BellDecision {
+  const key = decisionKey("matter", matter.id);
+  const person = personOf(matter.senderId);
+  const note = told.get(key);
+  const title = notificationTitle({ kind: "matter", refId: matter.id, senderName: person?.name ?? matter.senderId, ask: matter.ask });
+  return { key, kind: "matter", refId: matter.id, title, person, at: matter.at, read: note?.read ?? false, target: notificationTarget({ kind: "matter", refId: matter.id }), notificationId: note?.id ?? null };
+}
+
 function updateItem(note: Notification): BellItem {
   return { key: note.id, kind: note.kind, refId: note.refId, title: note.title, person: personOf(note.fromUserId), at: note.at, read: note.read, target: notificationTarget(note), notificationId: note.id };
 }
@@ -54,7 +64,7 @@ function updateItem(note: Notification): BellItem {
 /** The decisions waiting on the person, built from the open records the bell counts, each read when its notification was. */
 export function decisionsFor(userId: string, notes: readonly Notification[] = notificationsOf(userId)): BellDecision[] {
   const told = new Map(notes.filter((note) => bucketOf(note.kind) === "decide").map((note) => [`${note.kind}:${note.refId}`, note]));
-  const items = [...pendingRequestsFor(userId).map((request) => requestItem(request, told)), ...newHandoffsFor(userId).map((packet) => handoffItem(packet, told))];
+  const items = [...pendingRequestsFor(userId).map((request) => requestItem(request, told)), ...newHandoffsFor(userId).map((packet) => handoffItem(packet, told)), ...mattersWaitingOn(userId).map((matter) => matterItem(matter, told))];
   return items.sort((left, right) => right.at.localeCompare(left.at));
 }
 

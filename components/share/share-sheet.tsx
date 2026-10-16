@@ -9,10 +9,12 @@ import { Portrait } from "@/components/ui/portrait";
 import { DEFAULT_GRANT_DAYS, GRANT_DAYS, type GrantDays } from "@/lib/contracts/grant";
 import { metricLabel } from "@/lib/dashboard/metric-display";
 import { TH } from "@/lib/i18n/th";
-import { SHARE_NOTE_MAX, SHARE_RECIPIENTS_MAX, preferredChannel, shareTitle, type ShareChannel, type ShareContact, type ShareGrantReceipt, type ShareReceipt, type ShareTarget } from "@/lib/share/card";
+import { MATTER_ASK_MAX, SHARE_RECIPIENTS_MAX, shareTitle, type ShareChannel, type ShareContact, type ShareGrantReceipt, type ShareReceipt, type ShareTarget } from "@/lib/share/card";
+import { MATTER_INTENTS, type MatterIntent } from "@/lib/share/matter";
 
 const CONTACTS_ENDPOINT = "/api/shares/contacts";
 const SHARES_ENDPOINT = "/api/shares";
+const SUGGESTION_ENDPOINT = "/api/shares/suggestion";
 const PANEL = "fixed right-0 top-0 z-50 flex h-dvh w-full max-w-[26rem] flex-col border-l border-border bg-card shadow-panel animate-panel-in";
 const CHIP = "inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 /** The icon each share channel shows with. */
@@ -42,31 +44,10 @@ function receiptLine(receipt: ShareReceipt): string {
   return TH.share.sentVia(receipt.name, TH.share.channel[receipt.via]);
 }
 
-function ChannelChips({ contact, chosen, choose }: { contact: ShareContact; chosen: ShareChannel; choose: (channel: ShareChannel) => void }) {
-  const teams = contact.channels.find((option) => option.channel === "teams");
+function ContactRow({ contact, chosen, toggle }: { contact: ShareContact; chosen: boolean; toggle: () => void }) {
   return (
-    <div className="flex flex-col gap-1.5 pl-11">
-      <div className="flex flex-wrap gap-1.5" role="radiogroup" aria-label={contact.nameTh}>
-        {contact.channels.map((option) => {
-          const Icon = CHANNEL_ICON[option.channel];
-          const active = option.channel === chosen;
-          return (
-            <button key={option.channel} type="button" role="radio" aria-checked={active} onClick={() => choose(option.channel)} className={cn(CHIP, active ? "border-transparent bg-ink text-ink-foreground" : "border-border text-muted-foreground hover:border-foreground/25 hover:text-foreground")}>
-              <Icon className="size-3.5" aria-hidden />
-              {TH.share.channel[option.channel]}
-            </button>
-          );
-        })}
-      </div>
-      {chosen === "teams" && teams && !teams.ready ? <p className="text-[11px] text-warning">{TH.share.teamsViaEmail}</p> : null}
-    </div>
-  );
-}
-
-function ContactRow({ contact, chosen, toggle, choose }: { contact: ShareContact; chosen: ShareChannel | null; toggle: () => void; choose: (channel: ShareChannel) => void }) {
-  return (
-    <li className={cn("flex flex-col gap-2 rounded-xl px-2 py-2", chosen && "bg-muted")}>
-      <button type="button" onClick={toggle} aria-pressed={chosen !== null} className="flex items-center gap-2.5 text-left">
+    <li className={cn("rounded-xl px-2 py-2", chosen && "bg-muted")}>
+      <button type="button" onClick={toggle} aria-pressed={chosen} className="flex w-full items-center gap-2.5 text-left">
         <Portrait name={contact.nameTh} src={contact.photo} className="size-8 text-xs" />
         <span className="flex min-w-0 flex-1 flex-col">
           <span className="truncate text-sm">{contact.nameTh}</span>
@@ -76,8 +57,22 @@ function ContactRow({ contact, chosen, toggle, choose }: { contact: ShareContact
           {chosen ? <Check className="size-3.5" /> : null}
         </span>
       </button>
-      {chosen ? <ChannelChips contact={contact} chosen={chosen} choose={choose} /> : null}
     </li>
+  );
+}
+
+function IntentToggle({ intent, choose }: { intent: MatterIntent; choose: (intent: MatterIntent) => void }) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <div className="inline-flex self-start rounded-full border border-border p-0.5" role="radiogroup" aria-label={TH.share.sheetTitle}>
+        {MATTER_INTENTS.map((option) => (
+          <button key={option} type="button" role="radio" aria-checked={option === intent} onClick={() => choose(option)} className={cn("rounded-full px-3 py-1 text-xs font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring", option === intent ? "bg-ink text-ink-foreground" : "text-muted-foreground hover:text-foreground")}>
+            {TH.share.intent[option]}
+          </button>
+        ))}
+      </div>
+      <p className="text-[11px] leading-relaxed text-muted-foreground">{TH.share.intentHint[intent]}</p>
+    </div>
   );
 }
 
@@ -170,38 +165,61 @@ export function useShareContacts(): ShareContact[] | null {
   return useShareDirectory()?.contacts ?? null;
 }
 
+function useSuggestedRecipient(card: ShareTarget["card"]): string | null {
+  const [userId, setUserId] = useState<string | null>(null);
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch(SUGGESTION_ENDPOINT, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ card }), signal: controller.signal })
+      .then((response) => (response.ok ? (response.json() as Promise<{ userId?: string | null }>) : null))
+      .then((payload) => setUserId(payload?.userId ?? null))
+      .catch(() => undefined);
+    return () => controller.abort();
+  }, [card]);
+  return userId;
+}
+
+function nextChosen(current: readonly string[], id: string, intent: MatterIntent): string[] {
+  if (current.includes(id)) return current.filter((chosen) => chosen !== id);
+  if (intent === "act") return [id];
+  return current.length < SHARE_RECIPIENTS_MAX ? [...current, id] : [...current];
+}
+
 function Sheet({ target, close }: { target: ShareTarget; close: () => void }) {
   const directory = useShareDirectory();
   const contacts = directory?.contacts ?? [];
+  const suggested = useSuggestedRecipient(target.card);
+  const title = shareTitle(target.card);
   const [grantDays, setGrantDays] = useState<GrantDays | null>(null);
   const [query, setQuery] = useState("");
-  const [note, setNote] = useState("");
-  const [chosen, setChosen] = useState<ReadonlyMap<string, ShareChannel>>(new Map());
+  const [ask, setAsk] = useState(() => TH.share.askDraft(title));
+  const [intent, setIntent] = useState<MatterIntent>("act");
+  const [picked, setPicked] = useState<string[] | null>(null);
   const [phase, setPhase] = useState<Phase>({ kind: "picking" });
 
-  const toggle = (contact: ShareContact) =>
-    setChosen((current) => {
-      const next = new Map(current);
-      if (next.has(contact.id)) next.delete(contact.id);
-      else if (next.size < SHARE_RECIPIENTS_MAX) next.set(contact.id, preferredChannel(contact.channels));
-      return next;
-    });
-  const choose = (contact: ShareContact, channel: ShareChannel) => setChosen((current) => new Map(current).set(contact.id, channel));
+  const chosen = picked ?? (suggested ? [suggested] : []);
+  const toggle = (contact: ShareContact) => setPicked(nextChosen(chosen, contact.id, intent));
+  const chooseIntent = (next: MatterIntent) => {
+    setIntent(next);
+    if (next === "act") setPicked(chosen.slice(0, 1));
+  };
+  const ready = chosen.length > 0 && (intent === "fyi" || ask.trim().length > 0) && phase.kind !== "sending";
 
   const send = async () => {
     setPhase({ kind: "sending" });
-    const recipients = [...chosen].map(([userId, channel]) => ({ userId, channel }));
-    const response = await fetch(SHARES_ENDPOINT, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ card: target.card, question: target.question, note, recipients, grantDays: directory?.mayGrant ? grantDays : null }) }).catch(() => null);
+    const recipients = chosen.map((userId) => ({ userId, channel: "winyu" as const }));
+    const body = { card: target.card, question: target.question, ask, intent, recipients, grantDays: directory?.mayGrant ? grantDays : null };
+    const response = await fetch(SHARES_ENDPOINT, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) }).catch(() => null);
     const payload = response?.ok ? ((await response.json()) as { receipts: ShareReceipt[]; grants?: ShareGrantReceipt[]; path: string }) : null;
     setPhase(payload ? { kind: "sent", receipts: payload.receipts, grants: payload.grants ?? [], path: payload.path } : { kind: "failed" });
   };
 
-  const visible = contacts.filter((contact) => chosen.has(contact.id) || matches(contact, query));
-  const ordered = [...visible.filter((contact) => chosen.has(contact.id)), ...visible.filter((contact) => !chosen.has(contact.id))];
+  const owner = contacts.find((contact) => contact.id === suggested) ?? null;
+  const others = contacts.filter((contact) => contact.id !== suggested && (chosen.includes(contact.id) || matches(contact, query)));
+  const ordered = [...others.filter((contact) => chosen.includes(contact.id)), ...others.filter((contact) => !chosen.includes(contact.id))];
 
   return (
     <>
-      <button type="button" aria-label={TH.common.close} onClick={close} className="fixed inset-0 z-40 bg-foreground/10 backdrop-blur-sm" />
+      <button type="button" aria-label={TH.common.close} onClick={close} className="fixed inset-0 z-50 bg-foreground/10 backdrop-blur-sm" />
       <aside className={PANEL} aria-label={TH.share.sheetTitle} data-share-sheet>
         <header className="flex items-start justify-between gap-2 border-b border-border px-4 py-3">
           <div className="flex min-w-0 flex-col gap-0.5">
@@ -209,7 +227,7 @@ function Sheet({ target, close }: { target: ShareTarget; close: () => void }) {
               <Forward className="size-4 text-primary" aria-hidden />
               {TH.share.sheetTitle}
             </h2>
-            <p className="truncate text-sm text-foreground">{shareTitle(target.card)}</p>
+            <p className="truncate text-sm text-foreground">{title}</p>
           </div>
           <button type="button" onClick={close} aria-label={TH.common.close} className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground">
             <X className="size-4" aria-hidden />
@@ -219,26 +237,43 @@ function Sheet({ target, close }: { target: ShareTarget; close: () => void }) {
           <ShareSent receipts={phase.receipts} grants={phase.grants} days={grantDays} path={phase.path} close={close} />
         ) : (
           <>
-            <div className="flex flex-col gap-2 border-b border-border px-4 py-3">
-              <p className="text-xs leading-relaxed text-muted-foreground">{TH.share.sheetNote}</p>
-              <label className="flex items-center gap-2 rounded-xl border border-border px-3 py-2 focus-within:ring-2 focus-within:ring-ring">
-                <Search className="size-4 text-muted-foreground" aria-hidden />
-                <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={TH.share.search} className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground" />
+            <div className="flex flex-col gap-3 border-b border-border px-4 py-3">
+              <IntentToggle intent={intent} choose={chooseIntent} />
+              <label className="flex flex-col gap-1">
+                <span className="text-xs font-medium text-muted-foreground">{TH.share.askLabel}</span>
+                <input value={ask} onChange={(event) => setAsk(event.target.value.slice(0, MATTER_ASK_MAX))} placeholder={TH.share.askPlaceholder} data-share-ask className="rounded-xl border border-border bg-transparent px-3 py-2 text-sm outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-ring" />
               </label>
             </div>
-            <ul className="ui-scrollbar flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto px-2 py-2">
-              {ordered.map((contact) => (
-                <ContactRow key={contact.id} contact={contact} chosen={chosen.get(contact.id) ?? null} toggle={() => toggle(contact)} choose={(channel) => choose(contact, channel)} />
-              ))}
-              {contacts.length > 0 && ordered.length === 0 ? <li className="px-2 py-3 text-sm text-muted-foreground">{TH.share.noMatch}</li> : null}
-            </ul>
+            <div className="ui-scrollbar flex min-h-0 flex-1 flex-col overflow-y-auto">
+              {owner ? (
+                <section className="flex flex-col gap-1 border-b border-border px-2 py-2" data-share-suggested={owner.id}>
+                  <h3 className="px-2 text-xs font-medium text-muted-foreground">{TH.share.suggested}</h3>
+                  <ul>
+                    <ContactRow contact={owner} chosen={chosen.includes(owner.id)} toggle={() => toggle(owner)} />
+                  </ul>
+                </section>
+              ) : null}
+              <div className="flex flex-col gap-2 px-4 pt-3">
+                {owner ? <h3 className="text-xs font-medium text-muted-foreground">{TH.share.others}</h3> : null}
+                <label className="flex items-center gap-2 rounded-xl border border-border px-3 py-2 focus-within:ring-2 focus-within:ring-ring">
+                  <Search className="size-4 text-muted-foreground" aria-hidden />
+                  <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={TH.share.search} className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground" />
+                </label>
+              </div>
+              <ul className="flex flex-col gap-0.5 px-2 py-2">
+                {ordered.map((contact) => (
+                  <ContactRow key={contact.id} contact={contact} chosen={chosen.includes(contact.id)} toggle={() => toggle(contact)} />
+                ))}
+                {contacts.length > 0 && ordered.length === 0 ? <li className="px-2 py-3 text-sm text-muted-foreground">{TH.share.noMatch}</li> : null}
+              </ul>
+            </div>
             <footer className="flex flex-col gap-2 border-t border-border px-4 py-3">
               {directory?.mayGrant ? <GrantPicker days={grantDays} choose={setGrantDays} /> : null}
-              <textarea value={note} onChange={(event) => setNote(event.target.value.slice(0, SHARE_NOTE_MAX))} placeholder={TH.share.notePlaceholder} rows={2} className="resize-none rounded-xl border border-border bg-transparent px-3 py-2 text-sm outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-ring" />
+              <p className="text-[11px] leading-relaxed text-muted-foreground">{TH.share.sheetNote}</p>
               {phase.kind === "failed" ? <p className="text-xs text-danger">{TH.share.failed}</p> : null}
               <div className="flex items-center justify-between gap-2">
-                <span className="text-xs text-muted-foreground">{TH.share.chosen(chosen.size)}</span>
-                <button type="button" onClick={() => void send()} disabled={chosen.size === 0 || phase.kind === "sending"} className="inline-flex items-center gap-1.5 rounded-full bg-ink px-4 py-2 text-xs font-medium text-ink-foreground transition hover:opacity-90 disabled:opacity-40">
+                <span className="text-xs text-muted-foreground">{TH.share.chosen(chosen.length)}</span>
+                <button type="button" onClick={() => void send()} disabled={!ready} data-share-send className="inline-flex items-center gap-1.5 rounded-full bg-ink px-4 py-2 text-xs font-medium text-ink-foreground transition hover:opacity-90 disabled:opacity-40">
                   <Forward className="size-3.5" aria-hidden />
                   {phase.kind === "sending" ? TH.share.sending : TH.share.send}
                 </button>
@@ -251,16 +286,16 @@ function Sheet({ target, close }: { target: ShareTarget; close: () => void }) {
   );
 }
 
-/** Lets every card inside offer ส่งต่อ, with one sheet for the whole surface. */
-export function ShareProvider({ children }: { children: ReactNode }) {
+/** Lets every card inside offer ส่งต่อ, with one sheet for the whole surface; with `open` false (the admin turned sending work off) no card offers it. */
+export function ShareProvider({ open, children }: { open: boolean; children: ReactNode }) {
   const [target, setTarget] = useState<ShareTarget | null>(null);
-  const open = useCallback((next: ShareTarget) => setTarget(next), []);
+  const show = useCallback((next: ShareTarget) => setTarget(next), []);
   const close = useCallback(() => setTarget(null), []);
-  const value = useMemo(() => open, [open]);
+  const value = useMemo(() => (open ? show : null), [open, show]);
   return (
     <ShareContext.Provider value={value}>
       {children}
-      {target ? <Sheet key={JSON.stringify(target.card)} target={target} close={close} /> : null}
+      {open && target ? <Sheet key={JSON.stringify(target.card)} target={target} close={close} /> : null}
     </ShareContext.Provider>
   );
 }

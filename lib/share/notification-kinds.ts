@@ -8,6 +8,7 @@ export type NotificationPayloads = {
   reply: { title: string };
   email: { title: string };
   share: { senderName: string; cardTitle: string; grantUntil: string | null };
+  matter: { senderName: string; ask: string };
   grant_request: { requesterName: string; slice: string };
   grant_approved: { approverName: string; slice: string; until: string };
   grant_declined: { deciderName: string; slice: string };
@@ -32,6 +33,8 @@ export const NOTIFICATION_TABLE: { [K in NotificationKind]: KindEntry<K> } = {
   reply: { home: "inbox", target: () => "/?inbox=replies", title: OWN_TITLE },
   email: { home: "outbox", target: () => "/outbox", title: OWN_TITLE },
   share: { home: "shared", target: SHARE_PATH, title: (event) => (event.grantUntil ? COPY.sharedWithGrant(event.senderName, event.cardTitle, event.grantUntil) : COPY.shared(event.senderName, event.cardTitle)) },
+  matter: { home: "inbox", target: SHARE_PATH, title: (event) => COPY.matter(event.senderName, event.ask) },
+
   grant_request: { home: "inbox", target: (requestId) => `/g/${encodeURIComponent(requestId)}`, title: (event) => COPY.requested(event.requesterName, event.slice) },
   grant_approved: { home: "shared", target: SHARE_PATH, title: (event) => COPY.approved(event.approverName, event.slice, event.until) },
   grant_declined: { home: "shared", target: SHARE_PATH, title: (event) => COPY.declined(event.deciderName, event.slice) },

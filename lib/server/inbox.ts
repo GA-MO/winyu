@@ -14,7 +14,7 @@ import { packetsFor, resolveEvidence, sentPackets, type EvidenceView } from "@/l
 import { loadDictionary } from "@/lib/server/master-data";
 import { notificationsIn } from "@/lib/server/notify";
 import { lessonFor } from "@/lib/server/outcomes";
-import { shares } from "@/lib/server/share/shares";
+import { mattersWaitingOn, shares } from "@/lib/server/share/shares";
 
 const MAX_ITEMS = 20;
 const MAX_ALERT_ITEMS = 60;
@@ -148,10 +148,11 @@ export function newHandoffsFor(userId: string): ContextPacket[] {
   return packetsFor(userId).filter((packet) => packet.status === NEW_HANDOFF);
 }
 
-/** What the bell counts: grant requests waiting on the person and handoffs they have not picked up; nothing that is only news. */
+/** What the bell counts: grant requests waiting on the person, handoffs they have not picked up, and matters waiting on their answer; nothing that is only news. */
 export function decisionCount(userId: string): number {
-  return pendingRequestsFor(userId).length + newHandoffsFor(userId).length;
+  return pendingRequestsFor(userId).length + newHandoffsFor(userId).length + mattersWaitingOn(userId).length;
 }
+
 
 /** Unread notifications that are read on Shared: cards shared with the person and decisions on their requests. */
 export function sharedUnreadCount(userId: string): number {

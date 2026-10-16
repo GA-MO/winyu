@@ -7,6 +7,8 @@ import { cn } from "@/components/ui/cn";
 import type { Story, StoryCard, StoryKind } from "@/lib/contracts";
 import { TH } from "@/lib/i18n/th";
 import { DataCard } from "@/components/cards/data-card";
+import { ShareChrome } from "@/components/share/share-sheet";
+import type { ShareTarget } from "@/lib/share/card";
 import { chatHref } from "@/components/landing/chat-entry";
 
 const KIND_BADGE: Record<StoryKind, string> = {
@@ -41,6 +43,10 @@ export function orderCards(cards: readonly StoryCard[]): { ranked: StoryCard[]; 
 
 function askHref(story: Story): string {
   return chatHref({ story: story.id });
+}
+
+function shareOf(story: Story): ShareTarget | null {
+  return story.evidence ? { card: { kind: "tool", reads: [{ tool: "query_metric", input: story.evidence.query }] }, question: null } : null;
 }
 
 function RuledOut({ story }: { story: Story }) {
@@ -93,7 +99,12 @@ export function StoryItem({ card, defaultOpen }: { card: StoryCard; defaultOpen:
       {open ? (
         <div className="flex flex-col gap-3">
           <RuledOut story={story} />
-          {evidence && story.evidence ? <DataCard title={story.evidence.title} source={evidence} /> : null}
+          {evidence && story.evidence ? (
+            <ShareChrome target={shareOf(story)}>
+              <DataCard title={story.evidence.title} source={evidence} />
+            </ShareChrome>
+          ) : null}
+
           <NextStep story={story} />
         </div>
       ) : null}

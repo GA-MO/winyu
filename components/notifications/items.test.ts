@@ -14,11 +14,12 @@ function decision(kind: BellDecision["kind"], refId: string, target: string): Be
 }
 
 describe("the bell's items", () => {
-  test("only a handoff and a grant request wait on a decision; every other kind is an update", () => {
+  test("a handoff, a grant request and a matter that asks for an answer wait on a decision; every other kind is an update", () => {
     const buckets = Object.fromEntries(NOTIFICATION_KINDS.map((kind) => [kind, bucketOf(kind)]));
     expect(buckets).toEqual({
       handoff: "decide",
       grant_request: "decide",
+      matter: "decide",
       alert: "update",
       reply: "update",
       email: "update",

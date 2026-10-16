@@ -13,7 +13,8 @@ import { winyuTools } from "@/lib/server/agent/tools";
 import { auditLog } from "@/lib/server/audit";
 import { runWithAccess } from "@/lib/server/request-context";
 import { approveRequest, declineRequest, giveGrant, grantOnShare, grantRequests, grants, requestGrant, revokeGrant, setGrantAuthority, shareScopeFor } from "./grants";
-import { shares, type Share } from "./share/shares";
+import { shares } from "./share/shares";
+import { matterOf, type Matter } from "@/lib/share/matter";
 
 const ALL_SALES: GrantSlice = { metric: "net_sales_value", regions: "all", brands: "all" };
 const BKK_SALES = { metric: "net_sales_value", dims: ["region"], filters: { region: ["bkk"] }, range: { from: "2026-09-01", to: "2026-09-22" }, grain: "month", compare: "none", limit: null };
@@ -39,8 +40,8 @@ async function queryAs(userId: string, input: unknown): Promise<{ output: Metric
   return { output, toolCallId };
 }
 
-function storedShare(senderId: string, recipientId: string, input: Record<string, unknown> = BY_REGION): Share {
-  return shares().put({ id: randomUUID().slice(0, 12), at: new Date().toISOString(), senderId, title: "ยอดขาย", question: null, note: null, card: { kind: "tool", reads: [{ tool: "query_metric", input }] }, deliveries: [{ userId: recipientId, asked: "email", via: "email", fallback: null }], openedBy: [], lastViewedAt: null });
+function storedShare(senderId: string, recipientId: string, input: Record<string, unknown> = BY_REGION): Matter {
+  return shares().put(matterOf({ id: randomUUID().slice(0, 12), at: new Date().toISOString(), senderId, title: "ยอดขาย", question: null, note: null, card: { kind: "tool", reads: [{ tool: "query_metric", input }] }, deliveries: [{ userId: recipientId, asked: "email", via: "email", fallback: null }], openedBy: [], lastViewedAt: null }));
 }
 
 afterEach(() => {

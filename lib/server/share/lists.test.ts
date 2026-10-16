@@ -10,7 +10,8 @@ import { auditLog } from "@/lib/server/audit";
 import { approveRequest, declineRequest, grantRequests, grants, requestGrant, revokeGrant } from "@/lib/server/grants";
 import { notify } from "@/lib/server/notify";
 import { receivedShares, sentShares } from "./lists";
-import { noteView, shares, type Share } from "./shares";
+import { noteView, shares } from "./shares";
+import { matterOf, type Matter } from "@/lib/share/matter";
 
 const BY_REGION = { metric: "net_sales_value", dims: ["region"], filters: {}, range: { from: "2026-09-01", to: "2026-09-22" }, grain: "month", compare: "none", limit: null };
 const TITLE = "มูลค่าขายเข้า แยกตามภาค";
@@ -30,11 +31,11 @@ function hoursAgo(hours: number): string {
   return new Date(Date.now() - hours * HOUR_MS).toISOString();
 }
 
-function storedShare(senderId: string, recipientId: string, options: { title?: string; hours?: number } = {}): Share {
-  const share = shares().put({
+function storedShare(senderId: string, recipientId: string, options: { title?: string; hours?: number } = {}): Matter {
+  const share = shares().put(matterOf({
     id: randomUUID().slice(0, 12), at: hoursAgo(options.hours ?? 0), senderId, title: options.title ?? TITLE, question: null, note: NOTE,
     card: { kind: "tool", reads: [{ tool: "query_metric", input: BY_REGION }] }, deliveries: [{ userId: recipientId, asked: "email", via: "email", fallback: null }], openedBy: [], lastViewedAt: null,
-  });
+  }));
   made.push(share.id);
   return share;
 }
@@ -53,7 +54,7 @@ function stateWithoutDates(state: ReceivedState | SentState | undefined): string
   return JSON.stringify(rest);
 }
 
-async function askedBy(requesterId: string, share: Share) {
+async function askedBy(requesterId: string, share: Matter) {
   const asked = await requestGrant(user(requesterId), share.id, "");
   if (!asked.ok) throw new Error(asked.problem);
   return asked.request;

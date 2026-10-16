@@ -56,7 +56,7 @@ export const shareCardTool = defineTool({
     if (!onScreen) return { ok: false as const, code: NO_CARD, error: TH.share.chat.noCard };
     const { channelsFor, createShare } = await channelDelivery();
     const recipients = people.map((user) => ({ userId: user.id, channel: channelFor(channelsFor(user.id), input.channel ?? null) }));
-    const outcome = await createShare(sender, { card: onScreen.card, question: onScreen.question, note: input.note ?? "", recipients });
+    const outcome = await createShare(sender, { card: onScreen.card, question: onScreen.question, ask: input.note ?? "", intent: "fyi", recipients });
     if (!outcome.ok) return { ok: false as const, code: NOT_SHAREABLE, error: outcome.error };
     const receipts = receiptsOf(outcome.share);
     return {

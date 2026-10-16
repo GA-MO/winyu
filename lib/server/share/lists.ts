@@ -6,7 +6,8 @@ import { sliceLabel, untilLabel } from "@/lib/share/grant-label";
 import { grantRequests, grants, shareScopeFor } from "@/lib/server/grants";
 import { notificationsIn, notificationsOf } from "@/lib/server/notify";
 import { personaOf } from "@/lib/server/portraits";
-import { openersOf, sharePath, shares, type Share } from "./shares";
+import { openersOf, sharePath, shares } from "./shares";
+import type { Matter } from "@/lib/share/matter";
 
 function nameOf(userId: string): string {
   return findUser(userId)?.nameTh ?? userId;
@@ -36,7 +37,7 @@ function givenOn(shareGrants: readonly Grant[], sender: User, at: Date): GivenGr
     .map((grant) => ({ id: grant.id, recipientName: nameOf(grant.recipientId), slice: sliceLabel(grant.slice), until: untilLabel(grant.expiresAt) }));
 }
 
-function sentStateOf(share: Share, pending: readonly GrantRequest[]): SentState {
+function sentStateOf(share: Matter, pending: readonly GrantRequest[]): SentState {
   const [latest] = [...pending].sort((left, right) => right.createdAt.localeCompare(left.createdAt));
   if (latest) return { kind: "asked", requesterName: nameOf(latest.requesterId) };
   return { kind: "delivered", opened: openersOf(share).length, recipients: share.deliveries.length };
@@ -72,7 +73,7 @@ export function sentShares(sender: User, at = new Date()): SentLine[] {
     .sort(byActivity);
 }
 
-function receivedStateOf(share: Share, viewer: User, requests: readonly GrantRequest[], at: Date): ReceivedState {
+function receivedStateOf(share: Matter, viewer: User, requests: readonly GrantRequest[], at: Date): ReceivedState {
   const scope = shareScopeFor(share, viewer, at);
   if (!scope) return { kind: "full" };
   if (scope.grant) return { kind: "granted", until: untilLabel(scope.grant.expiresAt) };

@@ -97,7 +97,7 @@ describe("sharing a card sends the question, never the numbers", () => {
 
   test("the CEO shares sales by region with u_krit by email: the mail has the title, a button and the short link, and none of the CEO's numbers", async () => {
     const before = outbox().all().length;
-    const outcome = await createShare(user("u_thana"), { card: metricCard, question: QUESTION, note: "ดูภาคอีสานหน่อยครับ", recipients: [{ userId: "u_krit", channel: "email" }] });
+    const outcome = await createShare(user("u_thana"), { card: metricCard, question: QUESTION, intent: "fyi", ask: "ดูภาคอีสานหน่อยครับ", recipients: [{ userId: "u_krit", channel: "email" }] });
     if (!outcome.ok) throw new Error(outcome.error);
     const mail = outbox().all().slice(before);
     expect(mail).toHaveLength(1);
@@ -112,7 +112,7 @@ describe("sharing a card sends the question, never the numbers", () => {
   });
 
   test("u_krit opens it and sees only the northeast, re-run under his scope; the CEO sees six regions; anyone else may not open it", async () => {
-    const outcome = await createShare(user("u_thana"), { card: metricCard, question: QUESTION, note: "", recipients: [{ userId: "u_krit", channel: "email" }] });
+    const outcome = await createShare(user("u_thana"), { card: metricCard, question: QUESTION, intent: "fyi", ask: "", recipients: [{ userId: "u_krit", channel: "email" }] });
     if (!outcome.ok) throw new Error(outcome.error);
     const krit = await openShare(outcome.share, user("u_krit"));
     expect(regionsOf(krit.reads[0].result)).toEqual(["ภาคอีสาน"]);
@@ -126,7 +126,7 @@ describe("sharing a card sends the question, never the numbers", () => {
   test("a read stored as the model wrote it, one agent as a plain string, runs for the recipient through the tool's schema", async () => {
     const asWritten = { grain: "week", filters: { agent: "อุบลศรีสุข เทรดดิ้ง" }, sort: null, compare: "none", range: { from: "2026-06-30", to: "2026-09-22" }, metric: "net_sales_value", limit: 12, dims: ["week"] };
     const card = { kind: "tool" as const, reads: [{ tool: "query_metric", input: asWritten }] };
-    const outcome = await createShare(user("u_mint"), { card, question: "มูลค่าขายเข้าของอุบลศรีสุข เทรดดิ้ง รายสัปดาห์", note: "", recipients: [{ userId: "u_anucha", channel: "email" }] });
+    const outcome = await createShare(user("u_mint"), { card, question: "มูลค่าขายเข้าของอุบลศรีสุข เทรดดิ้ง รายสัปดาห์", intent: "fyi", ask: "", recipients: [{ userId: "u_anucha", channel: "email" }] });
     if (!outcome.ok) throw new Error(outcome.error);
     const view = await openShare(outcome.share, user("u_anucha"));
     expect(view.reads[0].result).toMatchObject({ ok: true });
@@ -134,7 +134,7 @@ describe("sharing a card sends the question, never the numbers", () => {
   });
 
   test("a recipient whose role may not run the tool gets the refusal, not the sender's card", async () => {
-    const outcome = await createShare(user("u_thana"), { card: metricCard, question: QUESTION, note: "", recipients: [{ userId: "u_wee", channel: "email" }] });
+    const outcome = await createShare(user("u_thana"), { card: metricCard, question: QUESTION, intent: "fyi", ask: "", recipients: [{ userId: "u_wee", channel: "email" }] });
     if (!outcome.ok) throw new Error(outcome.error);
     const view = await openShare(outcome.share, user("u_wee"));
     expect(view.reads[0].result).toMatchObject({ ok: false });
@@ -143,7 +143,7 @@ describe("sharing a card sends the question, never the numbers", () => {
 
   test("the share and every opening are audited as the person: a share row with recipients and channels, a query row per opening", async () => {
     const before = auditLog().all().length;
-    const outcome = await createShare(user("u_thana"), { card: metricCard, question: QUESTION, note: "ส่วนตัว", recipients: [{ userId: "u_krit", channel: "email" }] });
+    const outcome = await createShare(user("u_thana"), { card: metricCard, question: QUESTION, intent: "fyi", ask: "ส่วนตัว", recipients: [{ userId: "u_krit", channel: "email" }] });
     if (!outcome.ok) throw new Error(outcome.error);
     await openShare(outcome.share, user("u_krit"));
     const rows = auditLog().all().slice(before);
@@ -156,9 +156,9 @@ describe("sharing a card sends the question, never the numbers", () => {
   });
 
   test("a share cannot carry a write tool or an input its schema refuses", async () => {
-    const write = await createShare(user("u_thana"), { card: { kind: "tool", reads: [{ tool: "send_email", input: { toUserId: "u_krit", subject: "x", body: "y" } }] }, question: null, note: "", recipients: [{ userId: "u_krit", channel: "email" }] });
+    const write = await createShare(user("u_thana"), { card: { kind: "tool", reads: [{ tool: "send_email", input: { toUserId: "u_krit", subject: "x", body: "y" } }] }, question: null, intent: "fyi", ask: "", recipients: [{ userId: "u_krit", channel: "email" }] });
     expect(write.ok).toBe(false);
-    const broken = await createShare(user("u_thana"), { card: { kind: "tool", reads: [{ tool: "query_metric", input: { metric: "nope" } }] }, question: null, note: "", recipients: [{ userId: "u_krit", channel: "email" }] });
+    const broken = await createShare(user("u_thana"), { card: { kind: "tool", reads: [{ tool: "query_metric", input: { metric: "nope" } }] }, question: null, intent: "fyi", ask: "", recipients: [{ userId: "u_krit", channel: "email" }] });
     expect(broken.ok).toBe(false);
   });
 });
@@ -167,12 +167,12 @@ describe("a share can carry a temporary grant", () => {
   test("the CEO shares with a 3-day grant: u_krit opens it and sees all six regions, the card names the grant, and the sheet hears who got it", async () => {
     const { grants } = await import("@/lib/server/grants");
     try {
-      const plain = await createShare(user("u_thana"), { card: metricCard, question: QUESTION, note: "", recipients: [{ userId: "u_krit", channel: "email" }] });
+      const plain = await createShare(user("u_thana"), { card: metricCard, question: QUESTION, intent: "fyi", ask: "", recipients: [{ userId: "u_krit", channel: "email" }] });
       if (!plain.ok) throw new Error(plain.error);
       expect(plain.grants).toEqual([]);
       expect((await openShare(plain.share, user("u_krit"))).scope).toMatchObject({ grant: null, requestable: true });
 
-      const outcome = await createShare(user("u_thana"), { card: metricCard, question: QUESTION, note: "", recipients: [{ userId: "u_krit", channel: "email" }], grantDays: 3 });
+      const outcome = await createShare(user("u_thana"), { card: metricCard, question: QUESTION, intent: "fyi", ask: "", recipients: [{ userId: "u_krit", channel: "email" }], grantDays: 3 });
       if (!outcome.ok) throw new Error(outcome.error);
       expect(outcome.grants).toEqual([{ userId: "u_krit", name: user("u_krit").nameTh, metric: "net_sales_value", granted: true, refusal: null }]);
       const krit = await openShare(outcome.share, user("u_krit"));
@@ -184,7 +184,7 @@ describe("a share can carry a temporary grant", () => {
   });
 
   test("a sender without grant authority shares as before: the grant is refused and the share still goes out", async () => {
-    const outcome = await createShare(user("u_anucha"), { card: metricCard, question: QUESTION, note: "", recipients: [{ userId: "u_wee", channel: "email" }], grantDays: 7 });
+    const outcome = await createShare(user("u_anucha"), { card: metricCard, question: QUESTION, intent: "fyi", ask: "", recipients: [{ userId: "u_wee", channel: "email" }], grantDays: 7 });
     if (!outcome.ok) throw new Error(outcome.error);
     expect(outcome.share.deliveries).toHaveLength(1);
     expect(outcome.grants.map((grant) => [grant.granted, grant.refusal])).toEqual([[false, "not_authority"]]);
@@ -194,7 +194,7 @@ describe("a share can carry a temporary grant", () => {
 describe("a composed card is re-grounded against the viewer's own results", () => {
   test("u_krit's copy of the CEO's team card reads his own get_person result, not the CEO's", async () => {
     const card = { kind: "composed" as const, reads: TEAM_READS, components: GEMINI_TEAM_CARD as never };
-    const outcome = await createShare(user("u_thana"), { card, question: "ใครดูแลภาคอีสาน", note: "", recipients: [{ userId: "u_krit", channel: "email" }] });
+    const outcome = await createShare(user("u_thana"), { card, question: "ใครดูแลภาคอีสาน", intent: "fyi", ask: "", recipients: [{ userId: "u_krit", channel: "email" }] });
     if (!outcome.ok) throw new Error(outcome.error);
     expect(outcome.share.title).toBe("ผู้ดูแลและทีมขายภาคอีสาน");
     const ceo = await openShare(outcome.share, user("u_thana"));
@@ -220,7 +220,7 @@ describe("Teams and LINE carry a button into Winyu", () => {
       { channel: "teams", ready: false },
       { channel: "line", ready: true },
     ]);
-    const early = await createShare(user("u_thana"), { card: metricCard, question: QUESTION, note: "", recipients: [{ userId: "u_krit", channel: "teams" }] });
+    const early = await createShare(user("u_thana"), { card: metricCard, question: QUESTION, intent: "fyi", ask: "", recipients: [{ userId: "u_krit", channel: "teams" }] });
     if (!early.ok) throw new Error(early.error);
     expect(early.share.deliveries).toEqual([{ userId: "u_krit", asked: "teams", via: "email", fallback: "no-teams-conversation" }]);
 
@@ -228,7 +228,7 @@ describe("Teams and LINE carry a button into Winyu", () => {
     expect(channelsFor("u_krit").find((option) => option.channel === "teams")?.ready).toBe(true);
 
     const seq = lastSeq();
-    const outcome = await createShare(user("u_thana"), { card: metricCard, question: QUESTION, note: "ดูหน่อย", recipients: [{ userId: "u_krit", channel: "teams" }] });
+    const outcome = await createShare(user("u_thana"), { card: metricCard, question: QUESTION, intent: "fyi", ask: "ดูหน่อย", recipients: [{ userId: "u_krit", channel: "teams" }] });
     if (!outcome.ok) throw new Error(outcome.error);
     expect(outcome.share.deliveries[0]).toMatchObject({ via: "teams", fallback: null });
     const posted = sentSince(seq).filter((entry) => entry.channel === "teams" && entry.kind === "message");
@@ -240,7 +240,7 @@ describe("Teams and LINE carry a button into Winyu", () => {
 
   test("LINE gets a pushed Flex bubble with a URI button, and its notification text carries the short link", async () => {
     const seq = lastSeq();
-    const outcome = await createShare(user("u_thana"), { card: metricCard, question: QUESTION, note: "", recipients: [{ userId: "u_krit", channel: "line" }] });
+    const outcome = await createShare(user("u_thana"), { card: metricCard, question: QUESTION, intent: "fyi", ask: "", recipients: [{ userId: "u_krit", channel: "line" }] });
     if (!outcome.ok) throw new Error(outcome.error);
     const pushed = sentSince(seq).filter((entry) => entry.channel === "line" && entry.kind === "push");
     expect(pushed).toHaveLength(1);
@@ -273,7 +273,7 @@ describe("the shared view keeps the sender's card shape and locks what the viewe
   }
 
   test("u_krit's view holds a locked row for each of the five other regions, in domain order, and no number of the CEO's anywhere in its props or its HTML", async () => {
-    const outcome = await createShare(user("u_thana"), { card: metricCard, question: QUESTION, note: "", recipients: [{ userId: "u_krit", channel: "email" }] });
+    const outcome = await createShare(user("u_thana"), { card: metricCard, question: QUESTION, intent: "fyi", ask: "", recipients: [{ userId: "u_krit", channel: "email" }] });
     if (!outcome.ok) throw new Error(outcome.error);
     const view = await openShare(outcome.share, user("u_krit"));
     expect(view.reads[0].locked).toEqual({ dim: "region", labels: OTHER_REGIONS, askHref: "#grant-request" });
@@ -293,7 +293,7 @@ describe("the shared view keeps the sender's card shape and locks what the viewe
   });
 
   test("visible rows come first, locked rows after them in the fixed order, and the headline is u_krit's own figure labelled with his region", async () => {
-    const outcome = await createShare(user("u_thana"), { card: metricCard, question: QUESTION, note: "", recipients: [{ userId: "u_krit", channel: "email" }] });
+    const outcome = await createShare(user("u_thana"), { card: metricCard, question: QUESTION, intent: "fyi", ask: "", recipients: [{ userId: "u_krit", channel: "email" }] });
     if (!outcome.ok) throw new Error(outcome.error);
     const view = await openShare(outcome.share, user("u_krit"));
     const parts = partsOf(view.reads[0]);
@@ -308,7 +308,7 @@ describe("the shared view keeps the sender's card shape and locks what the viewe
   test("with a live grant over the slice, u_krit gets the full card as before: no locked rows", async () => {
     const { grants } = await import("@/lib/server/grants");
     try {
-      const outcome = await createShare(user("u_thana"), { card: metricCard, question: QUESTION, note: "", recipients: [{ userId: "u_krit", channel: "email" }], grantDays: 1 });
+      const outcome = await createShare(user("u_thana"), { card: metricCard, question: QUESTION, intent: "fyi", ask: "", recipients: [{ userId: "u_krit", channel: "email" }], grantDays: 1 });
       if (!outcome.ok) throw new Error(outcome.error);
       const view = await openShare(outcome.share, user("u_krit"));
       expect(view.reads[0].locked).toBeNull();
@@ -320,7 +320,7 @@ describe("the shared view keeps the sender's card shape and locks what the viewe
   });
 
   test("the sender opening their own share sees no locked rows", async () => {
-    const outcome = await createShare(user("u_thana"), { card: metricCard, question: QUESTION, note: "", recipients: [{ userId: "u_krit", channel: "email" }] });
+    const outcome = await createShare(user("u_thana"), { card: metricCard, question: QUESTION, intent: "fyi", ask: "", recipients: [{ userId: "u_krit", channel: "email" }] });
     if (!outcome.ok) throw new Error(outcome.error);
     expect((await openShare(outcome.share, user("u_thana"))).reads[0].locked).toBeNull();
   });
@@ -332,7 +332,7 @@ describe("a share lands in the recipient's bell as well", () => {
     const { notificationHome } = await import("@/lib/share/notification-kinds");
     for (const channel of ["email", "teams", "line"] as const) {
       const before = notifications().all().length;
-      const outcome = await createShare(user("u_thana"), { card: metricCard, question: QUESTION, note: "", recipients: [{ userId: "u_krit", channel }, { userId: "u_anucha", channel: "email" }] });
+      const outcome = await createShare(user("u_thana"), { card: metricCard, question: QUESTION, intent: "fyi", ask: "", recipients: [{ userId: "u_krit", channel }, { userId: "u_anucha", channel: "email" }] });
       if (!outcome.ok) throw new Error(outcome.error);
       const bell = notifications().all().slice(before);
       expect(bell.map((item) => [item.userId, item.kind, item.refId])).toEqual([["u_krit", "share", outcome.share.id], ["u_anucha", "share", outcome.share.id]]);
@@ -348,7 +348,7 @@ describe("a share lands in the recipient's bell as well", () => {
     const { untilLabel } = await import("@/lib/share/grant-label");
     try {
       const before = notifications().all().length;
-      const outcome = await createShare(user("u_thana"), { card: metricCard, question: QUESTION, note: "", recipients: [{ userId: "u_krit", channel: "email" }], grantDays: 3 });
+      const outcome = await createShare(user("u_thana"), { card: metricCard, question: QUESTION, intent: "fyi", ask: "", recipients: [{ userId: "u_krit", channel: "email" }], grantDays: 3 });
       if (!outcome.ok) throw new Error(outcome.error);
       const bell = notifications().all().slice(before);
       const grant = grants().all().find((item) => item.shareCode === outcome.share.id);

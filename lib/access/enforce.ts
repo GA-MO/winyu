@@ -8,7 +8,7 @@ export const KILLED_TOOLS_COLLECTION = "killed-tools";
 export const SWITCHES_COLLECTION = "switches";
 export const HANDOFF_SWITCH_ID = "handoff";
 export const ALERTS_INBOX_SWITCH_ID = "alerts_inbox";
-export const HANDOFF_TOOLS: readonly ToolName[] = ["create_handoff", "send_email"];
+export const HANDOFF_TOOLS: readonly ToolName[] = ["create_handoff", "send_email", "share_card"];
 export const CONNECTOR_SWITCH_PREFIX = "connector:";
 export const GRANTS_COLLECTION = "grants";
 

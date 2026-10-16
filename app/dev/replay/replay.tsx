@@ -16,7 +16,7 @@ export function Replay({ exchanges, streaming, toolLabels, durationMs }: { excha
   const cardsBefore = cardsBeforeEach(exchanges, new Set(Object.keys(TOOL_CARDS)));
   return (
     <CardActionsProvider value={{ runAction: NOTHING }}>
-      <ShareProvider>
+      <ShareProvider open>
         <div className="flex flex-col gap-8">
           {exchanges.map((exchange, index) => (
             <ExchangeView

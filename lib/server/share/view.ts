@@ -12,7 +12,7 @@ import { winyuTools } from "@/lib/server/agent/tools";
 import { shareScopeFor } from "@/lib/server/grants";
 import { runWithAccess, runWithTurn } from "@/lib/server/request-context";
 import { lockedRowsOf } from "./locked";
-import type { Share } from "./shares";
+import type { Matter } from "@/lib/share/matter";
 
 /** One stored read run again as the viewer: what it was called with and what the gateway returned to them. */
 export type FreshRead = { toolCallId: string; tool: string; input: Record<string, unknown>; result: unknown; locked: LockedRows | null };
@@ -48,7 +48,7 @@ export function regrounded(card: SharedCard, reads: readonly FreshRead[], surfac
 }
 
 /** Opens a share for one viewer: every stored read runs again through the gateway as that viewer (their scope, masking, rules and kill switches; one audit row each, initiator person) in a harness run of its own, and the card is drawn from those fresh results. */
-export async function openShare(share: Share, viewer: User): Promise<SharedView> {
+export async function openShare(share: Matter, viewer: User): Promise<SharedView> {
   const access = liveAccessFor(viewer);
   const run = newRun(viewer.id, null, { initiator: "person" });
   const question = share.question ?? share.title;
