@@ -6,7 +6,9 @@ import { changeTextOf, deltaPercentOf, deltaPointsOf, labelOf, numericOf, timeDi
 import {
   boardVerdict,
   changeVerdict,
+  claimedFloor,
   leadingExceptions,
+  meetsClaim,
   lineVerdict,
   outliersOf,
   percentText,
@@ -259,6 +261,18 @@ function levelAndBase(query: MetricQuery, row: MetricRow): string | null {
   return base ? `${valueTextOf(query, row)} · ${base}` : null;
 }
 
+type ScoredChange = { row: MetricRow; measure: number };
+
+/** The rows a change ranking's verdict speaks for: the leading exceptions, then every other row that moved the asked way at least as far as the verdict's words claim, so "กว่าเท่าตัว" counts every row that more than doubled (AI-144). */
+function claimedRows(known: readonly ScoredChange[], leading: number, falling: boolean, inPoints: boolean): ScoredChange[] {
+  const leaders = known.slice(0, leading);
+  if (leaders.length === 0) return leaders;
+  const floor = claimedFloor(Math.min(...leaders.map((entry) => Math.abs(entry.measure))), leaders.length > 1, inPoints ? "points" : "percent");
+  if (!floor) return leaders;
+  const askedWay = (measure: number) => (falling ? measure < 0 : measure > 0);
+  return known.filter((entry, index) => index < leading || (askedWay(entry.measure) && meetsClaim(Math.abs(entry.measure), floor)));
+}
+
 function changeReading(input: BreakdownInput): Breakdown {
   const { query, result } = input;
   const inPoints = metricFormat(query.metric) === "percent";
@@ -267,7 +281,8 @@ function changeReading(input: BreakdownInput): Breakdown {
   const first = known[0]?.measure ?? 0;
   const wrongWay = input.falling ? first >= 0 : first <= 0;
   const leading = wrongWay ? 0 : leadingExceptions(known.map((entry) => entry.measure), inPoints ? MIN_GAP_POINTS : MIN_GAP_PERCENT);
-  const exceptions = new Set(known.slice(0, leading).map((entry) => entry.row));
+  const claimed = claimedRows(known, leading, input.falling, inPoints);
+  const exceptions = new Set(claimed.map((entry) => entry.row));
   const peak = Math.max(inPoints ? MIN_PEAK_POINTS : MIN_PEAK_PERCENT, ...known.map((entry) => Math.abs(entry.measure)));
   const format = inPoints ? (value: number) => TH.read.points(Math.round(value * 10) / 10) : percentText;
   const rows: ReadRow[] = scored.map((entry, index) => {
@@ -298,7 +313,7 @@ function changeReading(input: BreakdownInput): Breakdown {
       falling: input.falling,
       sums: input.additive && TH.read.base[query.compare] !== undefined,
       inPoints,
-      leading: known.slice(0, leading).map((entry) => ({ label: labelOf(query, entry.row), size: Math.abs(entry.measure) })),
+      leading: claimed.map((entry) => ({ label: labelOf(query, entry.row), size: Math.abs(entry.measure) })),
       changes: known.map((entry) => entry.measure),
       format,
       slice: input.capped ? TH.read.topMovers(input.rows.length, input.unit, input.falling ? TH.read.fell : TH.read.rose) : null,

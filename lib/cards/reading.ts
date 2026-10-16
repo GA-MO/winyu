@@ -112,6 +112,20 @@ export function magnitudeWords(size: number, several: boolean, unit: "percent" |
   return unit === "points" ? TH.read.points(round1(size)) : percentText(size);
 }
 
+/** The smallest move the words `magnitudeWords` picks for `size` still claim ("กว่าเท่าตัว" claims 100% and up, "กว่า 12%" more than 12%), so a verdict counts every row they fit; null when the words are one row's exact size. */
+export function claimedFloor(size: number, several: boolean, unit: "percent" | "points"): { at: number; strict: boolean } | null {
+  if (unit === "percent" && size >= WHOLE) return { at: WHOLE, strict: false };
+  if (unit === "percent" && size >= HALF) return { at: HALF, strict: false };
+  if (unit === "percent" && size >= NEAR_HALF) return { at: NEAR_HALF, strict: false };
+  if (!several) return null;
+  return { at: size >= 1 ? Math.floor(size) : Math.floor(size * 10) / 10, strict: true };
+}
+
+/** Whether a move of `size` meets what a verdict's words claim. */
+export function meetsClaim(size: number, floor: { at: number; strict: boolean }): boolean {
+  return floor.strict ? size > floor.at : size >= floor.at;
+}
+
 function compactSpan(start: string, end: string): string {
   if (start === end) return end;
   const [startDay, startMonth, startYear] = start.split(" ");
