@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
+import { useRefreshWhileVisible } from "@/components/ui/use-refresh-while-visible";
 import type { InboxCounts } from "./types";
 
 const COUNTS_ENDPOINT = "/api/notifications";
@@ -19,34 +20,6 @@ export function useInboxCounts(key: unknown = null): { counts: InboxCounts; refr
       .catch(() => undefined);
   }, []);
   useEffect(refresh, [refresh, pathname, key]);
-  useEffect(() => {
-    window.addEventListener("focus", refresh);
-    return () => window.removeEventListener("focus", refresh);
-  }, [refresh]);
-  useEffect(() => {
-    let timer: ReturnType<typeof setInterval> | null = null;
-    const stopPolling = () => {
-      if (timer !== null) clearInterval(timer);
-      timer = null;
-    };
-    const startPolling = () => {
-      stopPolling();
-      timer = setInterval(refresh, POLL_INTERVAL_MS);
-    };
-    const onVisibilityChange = () => {
-      if (document.visibilityState === "hidden") {
-        stopPolling();
-        return;
-      }
-      refresh();
-      startPolling();
-    };
-    if (document.visibilityState !== "hidden") startPolling();
-    document.addEventListener("visibilitychange", onVisibilityChange);
-    return () => {
-      stopPolling();
-      document.removeEventListener("visibilitychange", onVisibilityChange);
-    };
-  }, [refresh]);
+  useRefreshWhileVisible(refresh, POLL_INTERVAL_MS);
   return { counts, refresh };
 }

@@ -12,6 +12,7 @@ import { GRANT_AUDIT_TOOL, GUARD_AUDIT_TOOL, PERMISSION_AUDIT_TOOL, SHARE_AUDIT_
 import { untilLabel } from "@/lib/share/grant-label";
 import { runSpend } from "@/lib/server/model-ledger";
 import { RunTrace } from "./run-trace";
+import { AuditRefresh } from "./audit-refresh";
 import { AutoSubmitForm } from "./auto-submit-form";
 import { Avatar, EmptyLine, FOCUS, GHOST, Panel, Pill, Select, stamp, type Tone } from "./parts";
 
@@ -287,6 +288,7 @@ export function AuditTab({ filter, range, limit, openRun }: { filter: AuditFilte
           <Filters view={view} />
         </div>
         <ActivityPanel activities={activities} />
+        <AuditRefresh />
       </div>
     );
   }

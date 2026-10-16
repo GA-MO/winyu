@@ -129,11 +129,13 @@ function groupOf(tab: Tab): Group {
   return GROUPS.find((group) => (group.tabs as readonly Tab[]).includes(tab)) ?? GROUPS[0];
 }
 
+const EDGE_FADE =
+  "data-[edge=right]:[mask-image:linear-gradient(to_right,black_calc(100%-2.5rem),transparent)] data-[edge=left]:[mask-image:linear-gradient(to_left,black_calc(100%-2.5rem),transparent)] data-[edge=both]:[mask-image:linear-gradient(to_right,transparent,black_2.5rem,black_calc(100%-2.5rem),transparent)]";
 const PILL_BAR = "inline-flex gap-1 rounded-full border border-border bg-panel p-1 shadow-card backdrop-blur-xl";
 
 function GroupTabs({ current }: { current: Group }) {
   return (
-    <div className="-mx-1 max-w-full overflow-x-auto px-1 [scrollbar-width:none]">
+    <div className={cn("-mx-1 max-w-full overflow-x-auto px-1 [scrollbar-width:none]", EDGE_FADE)}>
       <div className={PILL_BAR}>
         {GROUPS.map((group) => {
           const Icon = group.icon;
@@ -155,7 +157,7 @@ function GroupTabs({ current }: { current: Group }) {
           );
         })}
       </div>
-      <ActiveTabInView />
+      <ActiveTabInView current={current.id} />
     </div>
   );
 }
