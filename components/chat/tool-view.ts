@@ -12,6 +12,7 @@ const METRIC_TOOL = "query_metric";
 const PEOPLE_LOOKUPS: ReadonlySet<string> = new Set(["find_people", "get_person", "resolve_owner"]);
 const ENTITY_LOOKUP = "describe_entity";
 const USER_ENTITY = "user";
+const LOOKUP_TOOLS: ReadonlySet<string> = new Set([CATALOG_TOOL, RECALL_TOOL, ENTITY_LOOKUP, ...PEOPLE_LOOKUPS]);
 
 /** How one tool call shows in a reply: its card, the decision it waits on or its receipt, the receipt of a write that did nothing and why, a quiet note, or nothing (a call still running shows in the action trail). */
 export type ToolView =
@@ -42,8 +43,11 @@ export function isEmptyAnswer(result: unknown): boolean {
   return lists.length > 0 && lists.every((list) => list.length === 0);
 }
 
+/** A refusal (`ok: false`) or a call the runtime rejected before the tool ran (`error: true`, its arguments failed the schema). */
 function isRefused(result: unknown): boolean {
-  return typeof result === "object" && result !== null && (result as { ok?: unknown }).ok === false;
+  if (typeof result !== "object" || result === null) return false;
+  const { ok, error } = result as { ok?: unknown; error?: unknown };
+  return ok === false || error === true;
 }
 
 /** A read result that draws no card: an empty answer, or a refusal or failure (its text is written for the model, and the reply tells the person in words). */
@@ -105,8 +109,20 @@ function recoveredFailures(steps: readonly ToolStep[]): string[] {
 }
 
 function drawsAnswer(step: ToolStep, hidden: ReadonlySet<string>, cardTools: ReadonlySet<string>): boolean {
-  if (step.name === CATALOG_TOOL || !cardTools.has(step.name) || hidden.has(step.toolCallId)) return false;
+  if (LOOKUP_TOOLS.has(step.name) || !cardTools.has(step.name) || hidden.has(step.toolCallId)) return false;
   return step.outcome.state === "returned" && !drawsNoCard(step.outcome.result);
+}
+
+function searchesCatalog(step: ToolStep): boolean {
+  const search = (step.args as { search?: unknown } | null)?.search;
+  return step.name === CATALOG_TOOL && typeof search === "string" && search.trim() !== "";
+}
+
+/** Lookups (the metric catalog, owners, people, entities, memory) are the way to an answer, not the answer: once another card of the exchange answers they draw nothing, and the catalog searched for a metric never does, whether the metric was then asked for or the reply refused. */
+function plumbingLookups(steps: readonly ToolStep[], hidden: ReadonlySet<string>, cardTools: ReadonlySet<string>): string[] {
+  const answers = steps.some((step) => drawsAnswer(step, hidden, cardTools));
+  const searched = steps.some(searchesCatalog);
+  return steps.flatMap((step) => (LOOKUP_TOOLS.has(step.name) && (answers || (searched && step.name === CATALOG_TOOL)) ? [step.toolCallId] : []));
 }
 
 function recipientsAskedFor(step: ToolStep): string[] {
@@ -164,13 +180,12 @@ export function pairedResultsOf(plan: CardPlan, steps: readonly ToolStep[], tool
   return steps.flatMap((step) => (partners.includes(step.toolCallId) && step.outcome.state === "returned" ? [step.outcome.result] : []));
 }
 
-/** One card per question: a composed card holds only read results, so a write's receipt is never left out for it; a people lookup that found the recipient of a later share, handoff or email in the exchange is left out, a refused or failed call the model corrected later in the exchange (the same tool answered after it) is left out, metric answers of the same dimensions and range that pair draw one card on the first of them (`paired`), and the metric catalog the model browsed on the way is left out once another card answers; `composed` are the calls a composed card already holds. */
+/** One card per question: a composed card holds only read results, so a write's receipt is never left out for it; a people lookup that found the recipient of a later share, handoff or email in the exchange is left out, a refused or failed call the model corrected later in the exchange (the same tool answered after it) is left out, metric answers of the same dimensions and range that pair draw one card on the first of them (`paired`), and lookups the model made on the way are left out (`plumbingLookups`); `composed` are the calls a composed card already holds. */
 export function cardPlanOf(steps: readonly ToolStep[], composed: ReadonlySet<string>, cardTools: ReadonlySet<string>): CardPlan {
   const heldInCard = steps.flatMap((step) => (composed.has(step.toolCallId) && cardTools.has(step.name) ? [step.toolCallId] : []));
   const hidden = new Set([...heldInCard, ...recoveredFailures(steps), ...recipientLookups(steps), ...earlierRecalls(steps)]);
   const paired = metricPairs(steps, hidden);
   for (const partners of paired.values()) for (const id of partners) hidden.add(id);
-  if (!steps.some((step) => drawsAnswer(step, hidden, cardTools))) return { hidden, paired };
-  for (const step of steps) if (step.name === CATALOG_TOOL) hidden.add(step.toolCallId);
+  for (const id of plumbingLookups(steps, hidden, cardTools)) hidden.add(id);
   return { hidden, paired };
 }
