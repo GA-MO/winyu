@@ -1244,10 +1244,10 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 | AI-93 (เดิม AI-56) | สูง | แก้แล้ว `8976662` `d5e99b8` · รอยืนยันกับโมเดล | Chat 'send this card' attaches a lookup, profile or newest card instead of the card the user named; a wrong card was actually sent |
 | AI-94 (เดิม AI-58) | กลาง | แก้แล้ว `8976662` `c113954` · รอยืนยันกับโมเดล | False premises go into sends: the send is raised before the rebuttal, and an overclaim gets no warning |
 | AI-95 (เดิม AI-65) | กลาง | แก้แล้วบางส่วน `b3048cc` | Two clocks: the model says today is 27 Nov 2569 (demo date) while the real date and the admin windows are 17 Oct |
-| AI-96 | กลาง | เปิด (ใหม่) | A read that completed in the same step as an abandoned approval loses its result; the card vanishes on reload and later sends fall through to another card |
-| AI-97 (เดิม AI-85) | กลาง | เปิด (ใหม่) | The CEO's bell shows no badge for pass-on and accept updates, which breaks the run-sheet beat |
+| AI-96 | กลาง | แก้แล้ว `5b3892a` | A read that completed in the same step as an abandoned approval loses its result; the card vanishes on reload and later sends fall through to another card |
+| AI-97 (เดิม AI-85) | กลาง | แก้แล้ว `4f3cb1d` | The CEO's bell shows no badge for pass-on and accept updates, which breaks the run-sheet beat |
 | AI-98 | กลาง | แก้แล้ว `0453194` | The Audit activity chip keeps stale rows from the All list, including users' typed questions, and logs duplicate React keys |
-| AI-99 | กลาง | เปิด (ใหม่) | A reload during a run makes the turn look lost until a second reload |
+| AI-99 | กลาง | แก้แล้ว `4109766` `fb6c622` | A reload during a run makes the turn look lost until a second reload |
 | AI-100 (เดิม AI-63) | กลาง | แก้แล้ว `d5e99b8` | Lookup cards are drawn on refusals and sends (HR profiles, owner cards with a send button, the CEO master-data record) |
 | AI-101 (เดิม AI-53) | กลาง | แก้แล้ว | The month-to-date attainment hero shows the pace figure (87.9%) when the question asks for % of the full-month target |
 | AI-102 (เดิม AI-53) | กลาง | แก้แล้ว | 'ขาดอีก 900,000 ลิตร' is computed from rounded labels; the real gap is about 930,600 L |
@@ -1264,14 +1264,14 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 | AI-113 (เดิม AI-53) | ต่ำ | แก้แล้ว | The share warning quotes the pro-rated % beside a card whose hero is the full-month % |
 | AI-114 (เดิม AI-68) | ต่ำ | แก้แล้ว | YoY comparison tile labelled 'งวดก่อน' |
 | AI-115 (เดิม AI-77) | ต่ำ | แก้แล้ว `ac7375d` | The company-wide card's send button targets the Isan RSM |
-| AI-116 | ต่ำ | เปิด (ใหม่) | The busy indicator ends while text is still streaming |
+| AI-116 | ต่ำ | แก้แล้ว `ac5dc11` | The busy indicator ends while text is still streaming |
 | AI-117 (เดิม AI-89) | ต่ำ | ยังเสีย | After an approval, the RSM chat jumped back to the top |
-| AI-118 (เดิม AI-89) | ต่ำ | เปิด (ใหม่) | The share success toast never dismisses and covers the composer's send button |
+| AI-118 (เดิม AI-89) | ต่ำ | แก้แล้ว `6fe120c` | The share success toast never dismisses and covers the composer's send button |
 | AI-119 (เดิม AI-43) | ต่ำ | แก้แล้ว `be92dc9` | Memory folds a beer-margin claim into the import-margin interest and promotes it to known |
 | AI-120 (เดิม AI-14) | ต่ำ | แก้แล้ว `8976662` | Urgency ignores the deadline the sender wrote |
 | AI-121 (เดิม AI-78) | ต่ำ | รอยืนยันกับโมเดล | English terms reach Thai users (MoM/YoY, metric names, 'None'/'Masked') |
 | AI-122 (เดิม AI-66) | ต่ำ | แก้แล้ว | The RSM region-vs-agent question draws two cards repeating the same total |
-| AI-123 | ต่ำ | เปิด (ใหม่) | Follow-up chips are duplicated or off-scope |
+| AI-123 | ต่ำ | แก้แล้ว `0fd9108` | Follow-up chips are duplicated or off-scope |
 | AI-124 | ต่ำ | แก้แล้ว | The board summary shows margin only as a subtitle, without its YoY change |
 | AI-125 (เดิม AI-21) | ต่ำ | รอยืนยันกับโมเดล | Masked replies use jargon, state data coverage for hidden numbers, and offer chips into hidden data |
 | AI-126 (เดิม AI-12) | ต่ำ | แก้แล้ว `475582d` | The first set_permission approval does not name the tool |
@@ -1341,7 +1341,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-96. A read that completed in the same step as an abandoned approval loses its result; the card vanishes on reload and later sends fall through to another card
 
-- **สถานะ:** เปิด (ใหม่)
+- **สถานะ:** แก้แล้ว `5b3892a`: ผล read ที่จบในขั้นเดียวกับ write ที่รออนุมัติถูกเขียนลง memory หลัง Mastra เก็บการหยุด (`keepFinishedResults`, `approval-siblings.test.ts`); ทดสอบบนจอมือถือ: ทิ้งการอนุมัติแล้ว reload การ์ดยังอยู่
 - **ระดับ:** กลาง · **หมวด:** `durability` · **บทบาท:** พนักงานขาย u_krit (chain steps 7-9)
 - **อาการ:** Run 3c60be7e called query_metric (8 rows, audited allow) and send_card in one step. The next message (e5bd1963) closed the approval. Mastra memory kept query_metric as state 'call' with no result, so after a reload the brand Sell-in card was gone. 'ส่งการ์ดยอดขายเข้าใบนี้' then resolved to the AR card, and that card was sent.
 - **ที่ควรเป็น:** A completed read is stored with its result even when a sibling write in its step waits for approval or is abandoned, so the restored thread draws the same cards as the live one.
@@ -1353,7 +1353,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-97. The CEO's bell shows no badge for pass-on and accept updates, which breaks the run-sheet beat
 
-- **สถานะ:** เปิด (ใหม่) · เดิม AI-85
+- **สถานะ:** แก้แล้ว `4f3cb1d` · เดิม AI-85: กระดิ่งขึ้นจุดเมื่อมีอัปเดตที่ยังไม่อ่าน และแผงเรื่องด่วนเริ่มใต้แถบหัวบนมือถือ (`bellSignal`, `unreadUpdateCount`); ทดสอบ: ผู้จัดการภาคกดรับ กระดิ่ง CEO ขึ้นจุดขณะแผงเปิดอยู่
 - **ระดับ:** กลาง · **หมวด:** `chain` · **บทบาท:** CEO u_thana (chain step 4)
 - **อาการ:** Both matter_update notifications reached u_thana (the server fix holds), but the bell showed no count or dot for 42 s. The run-sheet beat 'กระดิ่งของ CEO ขึ้น…' only shows after the bell is tapped, and the story drawer from step 1 covered the bell.
 - **ที่ควรเป็น:** An unread update shows on the bell (at least a dot), as the run sheet says.
@@ -1375,7 +1375,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-99. A reload during a run makes the turn look lost until a second reload
 
-- **สถานะ:** เปิด (ใหม่)
+- **สถานะ:** แก้แล้ว `4109766` `fb6c622`: หน้าเธรดส่ง run ที่ยังตอบอยู่ให้แชตต่อเข้า connect ซึ่งส่งเธรดจาก memory แล้วตามด้วย run นั้นตั้งแต่ต้น (`connect-live.test.ts`); ทดสอบ: reload กลาง run เห็นคำถาม สถานะกำลังเขียน และคำตอบไหลต่อทันที
 - **ระดับ:** กลาง · **หมวด:** `durability` · **บทบาท:** พนักงานขาย u_krit (chain step 8)
 - **อาการ:** After a reload 4 s into c61edd62, the user's message and any progress indicator were missing for more than 30 s, although the durable run raised its approval at 17:04:27. Only a second reload showed the message and the pending approval.
 - **ที่ควรเป็น:** After a reload, the in-flight message and a working indicator show at once, and the reply streams in when the run finishes.
@@ -1573,7 +1573,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-116. The busy indicator ends while text is still streaming
 
-- **สถานะ:** เปิด (ใหม่)
+- **สถานะ:** แก้แล้ว `ac5dc11`: trail แสดง "กำลังเขียนคำตอบ…" จนกว่า run จบ (`trail.test.ts`); ทดสอบ: สถานะทำงานอยู่จนข้อความสุดท้ายขึ้น
 - **ระดับ:** ต่ำ · **หมวด:** `ui` · **บทบาท:** CEO u_thana
 - **อาการ:** On s1t6 and s2t3, 'กำลัง…' disappeared mid-stream, and s1t6's last sentence was cut off.
 - **ที่ควรเป็น:** The busy state lasts until the final text is drawn.
@@ -1583,7 +1583,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-117. After an approval, the RSM chat jumped back to the top
 
-- **สถานะ:** ยังเสีย · เดิม AI-89
+- **สถานะ:** ยังเสีย · เดิม AI-89 · ส่วนที่แก้แล้ว `d7e00a1`: หลังกดอนุมัติที่ท้ายคำตอบยาว แชตไม่ตามคำตอบที่ตามมา (บนมือถือคำตอบยาวเลยขอบจอ 37 px บรรทัดท้ายหลุดจอ 5 px) ตอนนี้ตามลงล่างสุด (`follow-latest.test.tsx`) · อาการกลับขึ้นบนสุดทำซ้ำไม่ได้ด้วยโมเดลจำลอง ทั้งกดอนุมัติทันทีและหลัง reload
 - **ระดับ:** ต่ำ · **หมวด:** `ui` · **บทบาท:** RSM u_anucha
 - **อาการ:** On s1t5 the view returned to the top of the chat after approval.
 - **ที่ควรเป็น:** The view stays on the receipt and the reply.
@@ -1593,7 +1593,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-118. The share success toast never dismisses and covers the composer's send button
 
-- **สถานะ:** เปิด (ใหม่) · เดิม AI-89
+- **สถานะ:** แก้แล้ว `6fe120c` · เดิม AI-89: แผงส่งต่อแล้วปิดเองหลัง 6 วินาทีเมื่อไม่ได้ชี้หรือโฟกัส และปิดเมื่อเปลี่ยนหน้า (`share-sent.test.tsx`)
 - **ระดับ:** ต่ำ · **หมวด:** `ui` · **บทบาท:** พนักงานขาย u_krit, ผู้ดูแลระบบไอที u_ton, CEO (chain)
 - **อาการ:** The full-screen panel is gone, but the new bottom toast stays until X is pressed. It blocked the next send and followed the CEO across pages in the chain.
 - **ที่ควรเป็น:** The toast closes by itself after a few seconds and on navigation, or sits above the composer.
@@ -1647,7 +1647,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-123. Follow-up chips are duplicated or off-scope
 
-- **สถานะ:** เปิด (ใหม่)
+- **สถานะ:** แก้แล้ว `0fd9108`: ชิปไม่ซ้ำทั้ง prompt และ label, การ์ดที่กรองภาคเดียวไม่เสนอแยกตามภาค, คำตอบที่ไม่ได้อ่าน metric ไม่มีชิป (`answerChips`, `follow-ups.test.ts`)
 - **ระดับ:** ต่ำ · **หมวด:** `card-quality` · **บทบาท:** CEO u_thana
 - **อาการ:** 'ปริมาณขายเข้าตามเดือน' appears twice, a south-only card offers 'แยกตามภาค', and memory turns get AR chips.
 - **ที่ควรเป็น:** Unique chips scoped to the answer.
