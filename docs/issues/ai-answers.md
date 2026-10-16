@@ -2245,10 +2245,10 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 | AI-175 | กลาง | เปิด (ใหม่) | P1 alert '1,785 vs 16,478 L (−89%)' disagrees with the agent's own sell-in on the same screen (about 9,900 L/day, about −40%) |
 | AI-176 (เดิม AI-22) | กลาง | ยังเสีย | The CEO's top story states the credit hypothesis as fact |
 | AI-177 (เดิม AI-135) | กลาง | ยังเสีย | Run sheet says the CEO has '3 เรื่องด่วน'; the screen shows 4 after the AI-166 fix, and 'เรื่องภาคอีสาน' is now ambiguous |
-| AI-178 (เดิม AI-135 (label from AI-139)) | กลาง | ยังเสีย | A cancelled approval reads 'รายการนี้ไม่ได้ทำ' live, not the sheet's 'ยกเลิกไว้ เพราะคุณถามเรื่องใหม่' |
+| AI-178 (เดิม AI-135 (label from AI-139)) | กลาง | แก้แล้ว `288c153` | A cancelled approval reads 'รายการนี้ไม่ได้ทำ' live, not the sheet's 'ยกเลิกไว้ เพราะคุณถามเรื่องใหม่' |
 | AI-179 (เดิม AI-136) | กลาง | ยังเสีย | Story evidence card titled 'ปริมาณขายเข้า' (litres) over a baht query |
-| AI-180 (เดิม AI-133) | กลาง | ยังเสีย | Rep demo opener takes 42.7 s (CEO and RSM are now under 40 s) |
-| AI-181 (เดิม AI-133) | กลาง | ยังเสีย | IT run-sheet question takes 71.8 s: admin_audit requires 'role', so the first calls fail validation |
+| AI-180 (เดิม AI-133) | กลาง | แก้แล้ว `36b9e34` | Rep demo opener takes 42.7 s (CEO and RSM are now under 40 s) |
+| AI-181 (เดิม AI-133) | กลาง | แก้แล้ว `7071c07` | IT run-sheet question takes 71.8 s: admin_audit requires 'role', so the first calls fail validation |
 | AI-182 | กลาง | เปิด (ใหม่) | Visit-priority card has no values, bars or verdict, and the text misreads the alert's −89% as a four-week decline |
 | AI-183 | กลาง | เปิด (ใหม่) · นอกเส้นทางเดโม | Pin of the rep's 4-agent card stores filters {}, so the widget shows the region's 8 agents |
 | AI-184 | ต่ำ | เปิด (ใหม่) | Pin approval shows only the card title, no number |
@@ -2263,11 +2263,11 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 | AI-193 (เดิม AI-135) | ต่ำ | ยังเสีย | Other run-sheet mismatches (switch vs ติ๊ก, ↑ icon vs 'ส่ง', unstated scroll and reload, bell counts on a rerun) |
 | AI-194 (เดิม AI-154) | ต่ำ | ยังเสีย | Sender's own story page uses receiver wording and a one-tap [เสร็จ] |
 | AI-195 (เดิม AI-158) | ต่ำ | ยังเสีย | Per-role speech line has nothing to show: RSM and rep cards show the same 8 agents |
-| AI-196 (เดิม AI-159) | ต่ำ | ยังเสีย | IT screen at phone width: Audit tab truncated, activity panel stale without a reload |
+| AI-196 (เดิม AI-159) | ต่ำ | แก้แล้ว `7d3f13b` `e555896` | IT screen at phone width: Audit tab truncated, activity panel stale without a reload |
 | AI-197 | ต่ำ | เปิด (ใหม่) | Card actions give no confirmation: ส่งต่อ looks unchanged, รับ just empties the bell, the toast covers ถามต่อ |
 | AI-198 | ต่ำ | เปิด (ใหม่) · นอกเส้นทางเดโม | South send approval shows a bare '−7.5%' (region total) for an ask about one agent's +17.6% rise |
-| AI-199 (เดิม AI-147 (fixed otherwise)) | ต่ำ | เปิด (ใหม่) · นอกเส้นทางเดโม | Rep whole-company refusal: stray spaces in the template; approver differs from the RSM's |
-| AI-200 (เดิม AI-150 (fixed otherwise)) | ต่ำ | เปิด (ใหม่) · นอกเส้นทางเดโม | IT activity pin rows name no card; the usage ranking breaks a tie silently |
+| AI-199 (เดิม AI-147 (fixed otherwise)) | ต่ำ | แก้แล้ว `2d2a58e` | Rep whole-company refusal: stray spaces in the template; approver differs from the RSM's |
+| AI-200 (เดิม AI-150 (fixed otherwise)) | ต่ำ | แก้แล้ว `a2cd583` | IT activity pin rows name no card; the usage ranking breaks a tie silently |
 
 ### AI-167. RSM 'ask Krit to visit this agent' sends the whole-region card with a deictic ask, so the matter never names ขอนแก่นมหาชัย; chat sends of the same card share one title
 
@@ -2405,7 +2405,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-178. A cancelled approval reads 'รายการนี้ไม่ได้ทำ' live, not the sheet's 'ยกเลิกไว้ เพราะคุณถามเรื่องใหม่'
 
-- **สถานะ:** ยังเสีย · เดิม AI-135 (label from AI-139)
+- **สถานะ:** แก้แล้ว `288c153` · เบราว์เซอร์จอมือถือ: การ์ดที่ถูกคำถามใหม่ยกเลิกขึ้น "ไม่ได้ส่งการ์ด · ยกเลิกไว้ เพราะคุณถามเรื่องใหม่" ทันทีระหว่างคำตอบใหม่ และหลังโหลดใหม่ก็ขึ้นเหมือนกัน · เดิม AI-135 (label from AI-139)
 - **ระดับ:** กลาง · **หมวด:** `run-sheet` · **บทบาท:** u_krit (chain break 2), presenter
 - **อาการ:** The model behaved correctly: LEFT_FOR_NEW_QUESTION, with no re-raise. The live card shows the generic not-run label, and the coded reason appears only after a reload. The sheet's 'อย่าพิมพ์' is also too strict.
 - **ที่ควรเป็น:** The live view shows the reason, and the sheet quotes the screen.
@@ -2428,7 +2428,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-180. Rep demo opener takes 42.7 s (CEO and RSM are now under 40 s)
 
-- **สถานะ:** ยังเสีย · เดิม AI-133
+- **สถานะ:** แก้แล้ว `36b9e34` · ผลที่โมเดลอ่านของยอดเดือนนี้เทียบเป้าใช้ฐานเดียวกับการ์ด (% ของเป้าทั้งเดือน) ไม่มีเป้าตามเวลาให้ชั่งอีก · production build port 3154 effort medium 3 รอบ: เดิม 27.3 / 41.4 / 146.9 s (reasoning ขั้นเขียน 2,330 / 4,202 / 20,948) หลังแก้ 19.6 / 21.9 / 20.0 s (1,352 / 2,681 / 1,236) ค่าโมเดล $0.006–0.009 ต่อเทิร์น · เดิม AI-133
 - **ระดับ:** กลาง · **หมวด:** `latency` · **บทบาท:** u_krit (sales rep)
 - **อาการ:** The opener ran one 29 ms query, but the final step reasoned for 28.7 s (3,763 tokens) to write a reply that contains no numbers. CEO and RSM runs were 9.7–39.0 s, so AI-133 holds for those roles, though their slowest turn (39.0 s) is at the limit.
 - **ที่ควรเป็น:** Every demo turn finishes in 40 s or less.
@@ -2439,7 +2439,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-181. IT run-sheet question takes 71.8 s: admin_audit requires 'role', so the first calls fail validation
 
-- **สถานะ:** ยังเสีย · เดิม AI-133
+- **สถานะ:** แก้แล้ว `7071c07` · ช่องที่รับ null ของทุก tool ไม่บังคับส่งแล้ว (default null) admin_audit ไม่ล้มเพราะไม่มี role อีก · production build port 3154 effort medium: เดิม 71.8 s · หลังแก้ 33.2 / 25.4 / 57.0 s · รวมกับ AI-180 18.8 / 21.6 / 17.2 s ทุกรอบเรียก admin_audit 2 ครั้งใน step แรกโดยไม่มี validation error · เดิม AI-133
 - **ระดับ:** กลาง · **หมวด:** `latency` · **บทบาท:** u_ton (IT admin)
 - **อาการ:** The first step reasoned for 52 s, then called admin_audit twice without role, and both calls failed validation ('role: Invalid option'). The retry with it_admin succeeded, and the final answer was correct.
 - **ที่ควรเป็น:** Under 40 s. Role is optional for the denials and activity topics.
@@ -2605,7 +2605,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-196. IT screen at phone width: Audit tab truncated, activity panel stale without a reload
 
-- **สถานะ:** ยังเสีย · เดิม AI-159
+- **สถานะ:** แก้แล้ว `7d3f13b` `e555896` · แถบแท็บเลื่อนแท็บปัจจุบันมากลางทุกครั้งที่เปลี่ยนแท็บและจางขอบด้านที่ยังมีแท็บ แผงกิจกรรมโหลดใหม่ตอนกลับมาที่หน้าต่างและทุก 10 วินาทีเหมือนกระดิ่ง (เบราว์เซอร์จอมือถือ: แถวที่ CEO เพิ่งส่งขึ้นโดยไม่ต้องโหลดหน้า) · เดิม AI-159
 - **ระดับ:** ต่ำ · **หมวด:** `ui` · **บทบาท:** u_ton (chain step 5)
 - **อาการ:** The tab reads 'Audi', only 2 of 3 rows are visible, and the panel needs a reload.
 - **ที่ควรเป็น:** All 3 rows visible at 393 px, and the panel refreshes.
@@ -2636,7 +2636,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-199. Rep whole-company refusal: stray spaces in the template; approver differs from the RSM's
 
-- **สถานะ:** เปิด (ใหม่) · เดิม AI-147 (fixed otherwise) · นอกเส้นทางเดโม
+- **สถานะ:** แก้แล้ว `2d2a58e` · ผู้อนุมัติคือหัวหน้าที่ใกล้ที่สุดในสายที่ให้สิทธิ์ได้ พนักงานขายและผู้จัดการขายภาคได้คุณประสิทธิ์เหมือนกัน และข้อความปฏิเสธไม่มีช่องว่างรอบชื่อภาค · เดิม AI-147 (fixed otherwise)
 - **ระดับ:** ต่ำ · **หมวด:** `thai-language` · **บทบาท:** u_krit (rep)
 - **อาการ:** The text has stray spaces around the inserted label. The rep's request goes to the CEO, while the RSM's request goes to the sales director.
 - **ที่ควรเป็น:** Spacing fits the label, and one approver rule.
@@ -2647,7 +2647,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-200. IT activity pin rows name no card; the usage ranking breaks a tie silently
 
-- **สถานะ:** เปิด (ใหม่) · เดิม AI-150 (fixed otherwise) · นอกเส้นทางเดโม
+- **สถานะ:** แก้แล้ว `a2cd583` · แถวปักการ์ดในกิจกรรมบอกชื่อการ์ดที่ปัก และ user_usage บอกว่าถามเท่ากันพร้อมชื่อทุกคนเมื่อหลายคนถามเท่ากัน · เดิม AI-150 (fixed otherwise)
 - **ระดับ:** ต่ำ · **หมวด:** `card-quality` · **บทบาท:** u_ton (IT admin)
 - **อาการ:** Pin rows have an empty subject_label. All 4 users asked 1 question, yet one is named 'มากที่สุด'.
 - **ที่ควรเป็น:** Pin rows name the card, and a tie is called a tie.
