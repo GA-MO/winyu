@@ -746,3 +746,16 @@ describe("a breakdown whose level decides", () => {
     expect(presentCard({ title: "t", query, result }).hero?.label).not.toBe(TH.dash.underCover(LOW_COVER_DAYS));
   });
 });
+
+describe("a change ranking's verdict", () => {
+  test("counts every row that meets its own words: three agents more than doubled, so the card says 3 and draws all three thick (AI-144)", () => {
+    const query: MetricQuery = { metric: "ar_overdue", dims: ["agent"], filters: { region: ["south"] }, range: { from: "2026-10-01", to: "2026-10-31" }, grain: "month", compare: "prev_period", limit: 10, sort: "delta_desc" };
+    const result = runMetric(query, CEO);
+    if (!result.ok) throw new Error(result.error);
+    const doubled = result.rows.filter((row) => Number(row.delta_pct) >= 100);
+    expect(doubled.length).toBeGreaterThanOrEqual(3);
+    const card = presentCard({ title: "t", query, result });
+    expect(card.verdict).toBe(`${doubled.length} เอเย่นต์${TH.read.gained}${TH.read.overDouble}`);
+    expect(stripOf(card.body).rows.filter((row) => row.exception).map((row) => row.label)).toEqual(doubled.map((row) => String(row.agent)));
+  });
+});
