@@ -28,10 +28,15 @@ export function breakDownGap(total: GapPart, parts: readonly GapPart[]): GapBrea
   return { gap, contributors, rest: restGap === 0 ? null : { label: "", gap: restGap, share: share(restGap) }, offsetting };
 }
 
+/** Whether a part explains enough of a gap (a fifth, as a fraction) to be named its main cause. */
+export function standsOut(share: number): boolean {
+  return Math.abs(share) >= DOMINANT_SHARE;
+}
+
 /** Whether the gap is spread wide: no part that made it explains a fifth of it, so none is its main cause. */
 export function isBroad(breakdown: GapBreakdown): boolean {
   const [biggest] = breakdown.contributors;
-  return biggest !== undefined && Math.abs(biggest.share) < DOMINANT_SHARE;
+  return biggest !== undefined && !standsOut(biggest.share);
 }
 
 /** Where the month ends if the rest of it sells at the recent daily pace, against a target spread evenly over the month's days; also how much of the whole month's target is done so far and what is left to reach it. */

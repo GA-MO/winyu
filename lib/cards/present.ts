@@ -1,3 +1,4 @@
+import { standsOut } from "@/lib/engine/gap";
 import { WIDGET_KINDS, type Alert, type AlertRow, type Dim, type Forecast, type MetricId, type MetricQuery, type MetricResult, type MetricRow, type MonthEndProjection, type NextAction, type UnderLine, type WidgetKind } from "@/lib/contracts";
 import { TH } from "@/lib/i18n/th";
 import { MIN_CELL_SIZE } from "@/lib/access/suppression";
@@ -1339,7 +1340,8 @@ export function presentGap(input: PresentGapInput): CardParts {
   ];
   const smallerShare = smaller.reduce((sum, part) => sum + (percentIn(part.share_label) ?? 0), 0);
   const foldLine = joined([smaller.length > 0 ? TH.cards.gap.smallerFold(smaller.length, percentText(smallerShare)) : null, answer.offsetting.length > 0 ? TH.cards.gap.offsetFold(answer.offsetting.length) : null]);
-  const verdict = [rule.opening(facts), lead ? TH.cards.gap.lead(lead.label, below, lead.share_label) : null].filter(Boolean).join(" ");
+  const named = lead && standsOut((percentIn(lead.share_label) ?? 0) / PERCENT) ? TH.cards.gap.lead(lead.label, below, lead.share_label) : lead ? TH.cards.gap.spread : null;
+  const verdict = [rule.opening(facts), named].filter(Boolean).join(" ");
   return {
     title: metric ? TH.dash.ownScope(metricLabel(metric), split ? TH.dash.byDims([TH.dash.dimUnit[split]]) : TH.cards.gap.contributors) : TH.cards.gap.contributors,
     style: "exceptions",

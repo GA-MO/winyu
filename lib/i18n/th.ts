@@ -1741,6 +1741,7 @@ export const TH = {
       projected: (projected: string, monthTarget: string) => `คาดได้ ${projected} จากเป้าทั้งเดือน ${monthTarget}`,
       whole: (below: boolean, versus: string) => `${below ? "ต่ำกว่า" : "สูงกว่า"}${versus}`,
       lead: (label: string, below: boolean, share: string) => `${label}${below ? "ฉุด" : "ดัน"}มากสุด ${share}`,
+      spread: "กระจายไปทั่ว ไม่มีส่วนไหนเด่น",
       ofGap: (share: string) => `${share} ของช่องว่าง`,
       offsetFold: (count: number) => `${count} รายการช่วยชดเชย`,
       smallerFold: (count: number, share: string) => `อีก ${count} รายการรวม ${share} ของช่องว่าง`,
