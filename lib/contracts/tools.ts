@@ -38,11 +38,11 @@ export const JOBS = ["anomaly", "forecast", "compose", "watches", "digest"] as c
 
 const metricScope = { metric: metricIdSchema, dims: z.partialRecord(dimSchema, z.string()) };
 
-export const listMetricsInputSchema = z.object({ search: z.string().nullable() });
+export const listMetricsInputSchema = z.object({ search: z.string().nullable().default(null) });
 export const describeEntityInputSchema = z.object({ kind: z.enum(ENTITY_KINDS), query: z.string().min(1) });
 export const getAlertsInputSchema = z.object({
   status: z.enum(["open", "all"]),
-  limit: z.number().int().min(1).max(MAX_ALERTS).nullable(),
+  limit: z.number().int().min(1).max(MAX_ALERTS).nullable().default(null),
   metric: metricIdSchema.nullable().optional(),
   dims: z.partialRecord(dimSchema, z.string()).nullable().optional(),
 });
@@ -54,24 +54,24 @@ export const explainGapInputSchema = z.object({
   range: z.object({ from: z.string().regex(ISO_DATE), to: z.string().regex(ISO_DATE) }),
   compare: z.enum(["target", "prev_period", "prev_year"]),
 });
-export const getCalendarInputSchema = z.object({ from: z.string().regex(ISO_DATE).nullable(), to: z.string().regex(ISO_DATE).nullable() });
+export const getCalendarInputSchema = z.object({ from: z.string().regex(ISO_DATE).nullable().default(null), to: z.string().regex(ISO_DATE).nullable().default(null) });
 export const PEOPLE_FLAGS = ["new", "risk", "cert_expiring", "overtime", "retiring"] as const;
 export type PeopleFlag = (typeof PEOPLE_FLAGS)[number];
 export const findPeopleInputSchema = z.object({
-  region: z.enum(REGIONS).nullable(),
-  department: z.string().nullable(),
-  manager: z.string().nullable(),
-  query: z.string().nullable(),
-  flag: z.enum(PEOPLE_FLAGS).nullable(),
+  region: z.enum(REGIONS).nullable().default(null),
+  department: z.string().nullable().default(null),
+  manager: z.string().nullable().default(null),
+  query: z.string().nullable().default(null),
+  flag: z.enum(PEOPLE_FLAGS).nullable().default(null),
 });
-export const getSiteInputSchema = z.object({ id: z.string().nullable(), name: z.string().nullable() });
-export const trainingHistoryInputSchema = z.object({ employeeId: z.string().nullable(), name: z.string().nullable() });
-export const storeVisitsInputSchema = z.object({ agentId: z.string().nullable() });
+export const getSiteInputSchema = z.object({ id: z.string().nullable().default(null), name: z.string().nullable().default(null) });
+export const trainingHistoryInputSchema = z.object({ employeeId: z.string().nullable().default(null), name: z.string().nullable().default(null) });
+export const storeVisitsInputSchema = z.object({ agentId: z.string().nullable().default(null) });
 /** What waits on a person in their Inbox, by kind. */
 export const INBOX_KINDS = ["matter", "approval", "grant_request"] as const;
 export type InboxKind = (typeof INBOX_KINDS)[number];
-export const inboxInputSchema = z.object({ kind: z.enum(INBOX_KINDS).nullable() });
-export const visitPlanInputSchema = z.object({ limit: z.number().int().min(1).max(MAX_VISIT_STOPS).nullable() });
+export const inboxInputSchema = z.object({ kind: z.enum(INBOX_KINDS).nullable().default(null) });
+export const visitPlanInputSchema = z.object({ limit: z.number().int().min(1).max(MAX_VISIT_STOPS).nullable().default(null) });
 /** What an IT admin can read about Winyu itself from chat. */
 export const ADMIN_AUDIT_TOPICS = ["activity", "denials", "tool_usage", "user_usage", "model_cost", "connectors", "overrides", "role_access"] as const;
 export type AdminAuditTopic = (typeof ADMIN_AUDIT_TOPICS)[number];
@@ -80,13 +80,13 @@ export const ROLE_ACCESS_LEVELS = ["masked", "none", "off"] as const;
 export type RoleAccessLevel = (typeof ROLE_ACCESS_LEVELS)[number];
 export const adminAuditInputSchema = z.object({
   topic: z.enum(ADMIN_AUDIT_TOPICS),
-  days: z.number().int().min(1).max(MAX_AUDIT_DAYS).nullable(),
-  role: z.enum(ROLE_IDS).nullable(),
+  days: z.number().int().min(1).max(MAX_AUDIT_DAYS).nullable().default(null),
+  role: z.enum(ROLE_IDS).nullable().default(null),
   level: z.enum(ROLE_ACCESS_LEVELS).nullable().optional(),
 });
-export const getPersonInputSchema = z.object({ id: z.string().nullable(), name: z.string().nullable() });
-export const listCandidatesInputSchema = z.object({ position: z.string().nullable(), stage: z.enum(CANDIDATE_STAGES).nullable() });
-export const listCoursesInputSchema = z.object({ month: z.string().regex(MONTH_KEY).nullable(), query: z.string().nullable() });
+export const getPersonInputSchema = z.object({ id: z.string().nullable().default(null), name: z.string().nullable().default(null) });
+export const listCandidatesInputSchema = z.object({ position: z.string().nullable().default(null), stage: z.enum(CANDIDATE_STAGES).nullable().default(null) });
+export const listCoursesInputSchema = z.object({ month: z.string().regex(MONTH_KEY).nullable().default(null), query: z.string().nullable().default(null) });
 export const getPolicyInputSchema = z.object({ topic: z.enum(["leave", "benefits"]) });
 export const requestLeaveInputSchema = z.object({
   kind: z.enum(LEAVE_KINDS),
@@ -102,7 +102,7 @@ export const MEMORY_VALUE_MAX = 80;
 export const rememberInputSchema = z.object({
   type: z.enum(REMEMBERED_TYPES),
   value: z.string().min(3).max(MEMORY_VALUE_MAX),
-  until: z.string().regex(ISO_DATE).nullable(),
+  until: z.string().regex(ISO_DATE).nullable().default(null),
 });
 export const forgetInputSchema = z.object({ about: z.string().min(2).max(MEMORY_VALUE_MAX) });
 export const resolveOwnerInputSchema = z.object(metricScope);

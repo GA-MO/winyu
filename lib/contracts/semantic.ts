@@ -60,7 +60,7 @@ export const metricQuerySchema = z.object({
   range: z.object({ from: z.string().regex(ISO_DATE), to: z.string().regex(ISO_DATE) }),
   grain: grainSchema,
   compare: z.enum(COMPARE_MODES),
-  limit: z.number().int().min(1).max(MAX_ROWS).nullable(),
+  limit: z.number().int().min(1).max(MAX_ROWS).nullable().default(null),
   sort: z.enum(METRIC_SORTS).nullable().optional(),
   where: z.object({ op: z.enum(["below", "above"]), value: z.number() }).nullable().optional(),
   period: z.enum(METRIC_PERIODS).nullable().optional(),
