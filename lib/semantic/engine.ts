@@ -127,13 +127,16 @@ export function formatForSummary(def: MetricDef, value: number): string {
   return `${formatNumber(value, digits)} ${def.unit}`;
 }
 
-const GAP_DIGITS = 2;
+const SMALL_GAP_DIGITS = 2;
+const LARGE_GAP_DIGITS = 1;
+const LARGE_GAP = 10 * MILLION;
 
-/** A gap worked out from unrounded figures (target less actual), printed once at the scale of the whole it is part of: "0.93 ล้านลิตร" beside a target of "3.9 ล้านลิตร", never full digits that look exact beside rounded labels. */
+/** A gap worked out from unrounded figures (target less actual), printed once at the scale of the whole it is part of ("0.93 ล้านลิตร" beside a target of "3.9 ล้านลิตร", "297.1 ล้านบาท" once the gap passes ten million), never full digits that look exact beside rounded labels. */
 export function formatGapForSummary(def: MetricDef, gap: number, whole: number): string {
   const inMillions = def.format !== "percent" && Math.abs(whole) >= MILLION && (def.format === "currency" || MILLION_UNITS.has(def.unit));
   if (!inMillions) return formatForSummary(def, gap);
-  return `${formatNumber(gap / MILLION, GAP_DIGITS)} ล้าน${def.format === "currency" ? "บาท" : def.unit}`;
+  const digits = Math.abs(gap) >= LARGE_GAP ? LARGE_GAP_DIGITS : SMALL_GAP_DIGITS;
+  return `${formatNumber(gap / MILLION, digits)} ล้าน${def.format === "currency" ? "บาท" : def.unit}`;
 }
 
 function firstTimeDim(dims: Dim[]): Dim | null {
