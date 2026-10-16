@@ -461,10 +461,30 @@ function askedSubOf(query: MetricQuery, result: OkResult, row: MetricRow): strin
   return change ? [change, result.headline.compareLabel].filter(Boolean).join(" ") : null;
 }
 
-/** The verdict about the one row the question named: its share of target, its change, or its level. */
-function askedVerdictOf(query: MetricQuery, result: OkResult, row: MetricRow): string {
+/** Where a named row stands among the others when nothing else judges it: a rate above or below the overall level, a sum as its share of every row; null when the rows cannot say (a capped or filtered list, a level that is not a percent). */
+function standingOf(input: BreakdownInput, row: MetricRow): string | null {
+  const { query, result } = input;
+  const value = numericOf(row, "value");
+  const label = labelOf(query, row);
+  if (value === null) return null;
+  if (input.additive) {
+    const total = input.rows.reduce((sum, entry) => sum + (numericOf(entry, "value") ?? 0), 0);
+    return input.capped || query.where || total <= 0 ? null : TH.read.shareOfAll(label, percentText((value / total) * PERCENT));
+  }
+  const level = metricFormat(query.metric) === "percent" ? percentIn(result.headline.value) : null;
+  if (level === null) return null;
+  const gap = Math.round(Math.abs(value - level) * 10) / 10;
+  return gap === 0 ? TH.read.atLevel(label, input.scope) : TH.read.versusLevel(label, value > level ? TH.read.higher : TH.read.lower, input.scope, TH.read.points(gap));
+}
+
+/** The verdict about the one row the question named: its share of target, its change, or, with neither, where it stands among the others, so the headline never only repeats the row on top (AI-156). */
+function askedVerdictOf(input: BreakdownInput, row: MetricRow): string {
+  const { query, result } = input;
   const move = rowMove(query, row);
   const inPoints = metricFormat(query.metric) === "percent";
+  const judged = query.compare === "target" || move.delta !== null;
+  const standing = judged ? null : standingOf(input, row);
+  if (standing) return standing;
   return summaryVerdict({
     label: labelOf(query, row),
     attainment: query.compare === "target" ? attainmentOf(row) : null,
@@ -489,7 +509,7 @@ function withAskedRows(reading: Breakdown, input: BreakdownInput): Breakdown {
   if (!only) return { ...reading, rows };
   const label = labelOf(query, only);
   const hero: CardHero = { label, value: valueTextOf(query, only), unit: null, ...rowMove(query, only), detail: baseOf(query, only) ?? result.headline.compareLabel };
-  const verdict = askedVerdictOf(query, result, only);
+  const verdict = askedVerdictOf(input, only);
   const top = rows.find((row) => row.label === label);
   if (!reading.overall || !top) return { ...reading, rows, verdict, lead: { row: label, hero } };
   const overall: ReadRow = { ...top, sub: joinedText([top.sub, overallLine(reading.overall)]) };
