@@ -334,6 +334,13 @@ describe("lines that invite a question or an action follow what the role can cal
     expect(why).toContain("บอกหน่วยและช่วงของ alert เอง");
   });
 
+  test("the text never calls a topic safe that the anomaly card it draws marks urgent (AI-169)", () => {
+    const literal = WINYU_RULES.find((line) => line.startsWith("ประโยคแรกตอบสิ่งที่ผู้ใช้ถามตรง ๆ")) ?? "";
+    expect(literal).toContain("ห้ามตอบด้วยความเสี่ยงสต๊อกขาดแทน");
+    expect(literal).toContain("ข้อความต้องไม่ขัดกับการ์ดความผิดปกติที่เทิร์นนี้วาด");
+    expect(literal).toContain("ห้ามเขียนว่าด้านนั้นไม่มีความเสี่ยง");
+  });
+
   test("an overclaim held back gets a corrected note to send instead, never an invitation to resend the false one (AI-161)", () => {
     const prompt = promptOf("u_krit");
     expect(prompt).toContain("เสนอข้อความแนบใหม่ที่ตรงกับการ์ดและไม่มีตัวเลข");
