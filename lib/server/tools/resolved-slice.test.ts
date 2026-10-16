@@ -10,7 +10,7 @@ import { TH } from "@/lib/i18n/th";
 import { alerts } from "@/lib/server/agent/collections";
 import { winyuTools } from "@/lib/server/agent/tools";
 import { openAlertsFor } from "@/lib/server/alerts";
-import { runWithAccess } from "@/lib/server/request-context";
+import { runWithAccess, runWithTurn } from "@/lib/server/request-context";
 import { intentKeyOf, recordAction } from "@/lib/server/threads";
 
 const CEO = "u_thana";
@@ -148,6 +148,21 @@ describe("get_alerts narrows to the slice under discussion", () => {
     for (const row of sliced.rows) expect(row.scope.province ?? provinceOfAgent(row.scope.agent ?? "")).toBe(KHON_KAEN);
     const verify = sliced.nextActions.find((action) => action.kind === "verify");
     expect(verify?.prompt).toBe(sliced.rows[0].verifySteps[0]);
+  });
+
+  test("after the turn resolved one agent by name, alerts asked with no slice are that agent's alone (AI-88)", async () => {
+    const all = await call<AlertsAnswer>(RSM_NORTHEAST, "get_alerts", { status: "open", limit: null });
+    const onUbon = all.rows.filter((row) => row.scope.agent === UBON_AGENT);
+    expect(onUbon.length).toBeGreaterThan(0);
+    expect(all.rows.length).toBeGreaterThan(onUbon.length);
+    const turn = { turnId: null, threadId: null, preloadPacketId: null, question: "อุบลศรีสุข เทรดดิ้ง เกิดอะไรขึ้น", queries: [] };
+    const narrowed = await runWithAccess(accessOf(RSM_NORTHEAST), () =>
+      runWithTurn(turn, async () => {
+        await winyuTools().describe_entity.execute({ kind: "agent", query: "อุบลศรีสุข เทรดดิ้ง" });
+        return (await winyuTools().get_alerts.execute({ status: "open", limit: null })) as AlertsAnswer;
+      }),
+    );
+    expect(narrowed.rows.map((row) => row.id).sort()).toEqual(onUbon.map((row) => row.id).sort());
   });
 
   test("a metric slice returns only that metric's alerts", async () => {
