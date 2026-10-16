@@ -11,6 +11,9 @@ export const ALERTS_INBOX_SWITCH_ID = "alerts_inbox";
 export const HANDOFF_TOOLS: readonly ToolName[] = ["create_handoff", "send_email", "share_card"];
 export const CONNECTOR_SWITCH_PREFIX = "connector:";
 export const GRANTS_COLLECTION = "grants";
+const LAPSED_GRANT_DAYS = 30;
+const MAX_LAPSED_GRANTS = 3;
+const DAY_MS = 86_400_000;
 
 export type SwitchEntry = { id: string; enabled: boolean; by: string; at: string };
 
@@ -140,6 +143,17 @@ export function liveGrantsOf(userId: string, at: Date): ActiveGrant[] {
   return collection<Grant>(GRANTS_COLLECTION)
     .where((grant) => grant.recipientId === userId && isLiveGrant(grant, at))
     .map((grant) => ({ id: grant.id, grantorId: grant.grantorId, slice: grant.slice, expiresAt: grant.expiresAt }));
+}
+
+/** The grants one person held that ran out in the last month and were not renewed: what a refusal can point back to, never access. Newest first. */
+export function lapsedGrantsOf(userId: string, at: Date): Grant[] {
+  const held = collection<Grant>(GRANTS_COLLECTION).where((grant) => grant.recipientId === userId && grant.revokedAt === null);
+  const renewed = new Set(held.filter((grant) => isLiveGrant(grant, at)).map((grant) => grant.slice.metric));
+  const since = at.getTime() - LAPSED_GRANT_DAYS * DAY_MS;
+  return held
+    .filter((grant) => !isLiveGrant(grant, at) && Date.parse(grant.expiresAt) >= since && !renewed.has(grant.slice.metric))
+    .sort((left, right) => right.expiresAt.localeCompare(left.expiresAt))
+    .slice(0, MAX_LAPSED_GRANTS);
 }
 
 /** A user's own access without any grant they hold: the role policy, the admin's overrides and switches. What they may grant from. */

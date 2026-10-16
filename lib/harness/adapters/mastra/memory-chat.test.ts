@@ -31,7 +31,7 @@ const { memoryFacts } = await import("@/lib/server/agent/collections");
 const { forgetAll, learnExtracted } = await import("@/lib/engine/memory");
 const { forgetConversations, indexTurn } = await import("./recall");
 const { threadForRun } = await import("@/lib/server/threads-read");
-const { GUIDANCE_HEADER } = await import("@/lib/server/agent/persona");
+const { FORGOTTEN_TERMS_HEADER, GUIDANCE_HEADER } = await import("@/lib/server/agent/persona");
 const { UNTRUSTED_OPEN } = await import("@/lib/harness/fence");
 const { TH } = await import("@/lib/i18n/th");
 const { modelCalls } = await import("@/lib/server/model-ledger");
@@ -115,7 +115,10 @@ describe("remembering and forgetting from the chat", () => {
     expect(recalled?.data).toEqual([]);
     scripted.script([{ text: "ภาคใต้สัปดาห์นี้ทรงตัว" }]);
     await run(threadId, ask(`${SOUTH_WORD}สัปดาห์นี้เป็นไง`));
-    expect(systemOfLastCall()).not.toContain(SOUTH_WORD);
+    const system = systemOfLastCall();
+    expect(system).not.toContain(SOUTH);
+    expect(system.split(SOUTH_WORD).length - 1).toBe(1);
+    expect(system.slice(system.indexOf(FORGOTTEN_TERMS_HEADER))).toContain(`- ${SOUTH_WORD}`);
     expect(facts().filter((fact) => fact.value.includes(SOUTH_WORD))).toEqual([]);
   });
 

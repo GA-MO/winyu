@@ -1944,6 +1944,7 @@ export const TH = {
     usedBy: (grantor: string, until: string) => `ใช้สิทธิ์ที่ ${grantor} ให้ ถึง ${until}`,
     scopeLine: (slices: string) => ` · สิทธิ์ชั่วคราว: ${slices}`,
     scopeItem: (slice: string, grantor: string, until: string) => `${slice} (${grantor} ให้ ถึง ${until})`,
+    lapsedItem: (slice: string, grantor: string, until: string, url: string | null) => `${slice} (${grantor} ให้ หมดเมื่อ ${until}${url ? ` · ขอใหม่ที่ ${url}` : ""})`,
     days: (days: number) => `${days} วัน`,
     giveTitle: "ให้สิทธิ์ชั่วคราว",
     giveNote: "ผู้รับเปิดการ์ดสดได้ ถามต่อและเจาะดูได้เฉพาะเรื่องนี้ ตามขอบเขตที่คุณเห็น",

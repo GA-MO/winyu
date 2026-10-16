@@ -45,7 +45,7 @@ export type FailureKind = "thrown" | "timeout" | "unavailable" | "denied" | "rej
 
 export type RecoveryAction = "retry" | "correct" | "return" | "withhold";
 
-export type ContextKind = "identity" | "role" | "scope" | "date" | "vocabulary" | "memory" | "switch" | "packet" | "story" | "suggestion";
+export type ContextKind = "identity" | "role" | "scope" | "date" | "vocabulary" | "memory" | "switch" | "packet" | "story" | "suggestion" | "guard";
 
 /** One piece of what the model is told, with where it came from, how much it matters, and whose data it is. */
 export type ContextItem = { id: string; kind: ContextKind; content: string; priority: number; source: string; scope: string | null; guarded?: GuardFinding };

@@ -32,6 +32,11 @@ const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 const FIGURE = /[0-9๐-๙]{2,}|[0-9๐-๙]\s*(?:%|ล้าน|พัน|หมื่น|แสน|บาท|ลิตร|เท่า)/;
 const DEFINES_WORD = /เรียก.{0,60}ว่า|หมายถึง|แปลว่า/;
 const LOOSE_CHARS = /[\s"'“”‘’ๆ.,()]/g;
+const WORD_DEFINITION = /\s*(?:หมายถึง|แปลว่า|คือ|=)\s*/;
+const QUOTED_WORD = /["“'‘]([^"”'’]+)["”'’]/;
+const CALLED_WORD = /เรียก.{0,60}?ว่า\s*(\S+)/;
+const MAX_TERM_LENGTH = 30;
+const MAX_FORGOTTEN_TERMS = 8;
 
 /** A fact the extractor heard: `asked` when the user asked for it to be remembered or stated it as a standing fact about themselves; `until` the last day a dated fact holds. */
 export type Extracted = { type: MemoryFactType; value: string; sameAs?: string | null; asked?: boolean; until?: string | null };
@@ -407,6 +412,28 @@ export function forgetAbout(userId: string, about: string): MemoryFact[] {
   }
   bury(userId, null, about);
   return forgotten;
+}
+
+function isCertifiedTerm(term: string): boolean {
+  const wanted = loose(term);
+  return METRIC_LIST.some((def) => [def.labelTh, ...def.synonyms].some((word) => loose(word) === wanted));
+}
+
+function termOf(tombstone: MemoryTombstone): string {
+  if (tombstone.type !== "vocabulary") return tombstone.value.trim();
+  const named = tombstone.value.match(QUOTED_WORD)?.[1] ?? tombstone.value.match(CALLED_WORD)?.[1];
+  return (named ?? tombstone.value.split(WORD_DEFINITION)[0] ?? "").trim();
+}
+
+/** The words whose private meaning the person asked Winyu to forget, leaving out any the semantic layer certifies as common jargon: a later question that uses one is asked about, not read the old way. */
+export function forgottenTerms(userId: string): string[] {
+  const buried = tombstonesOf(userId);
+  const vocabulary = buried.filter((tombstone) => tombstone.type === "vocabulary");
+  const words = buried
+    .filter((tombstone) => tombstone.type === "vocabulary" || (tombstone.type === null && vocabulary.some((defined) => loose(defined.value).includes(loose(tombstone.value)))))
+    .map(termOf)
+    .filter((term) => term.length > 0 && term.length <= MAX_TERM_LENGTH && !isCertifiedTerm(term));
+  return [...new Map(words.map((term) => [loose(term), term])).values()].slice(0, MAX_FORGOTTEN_TERMS);
 }
 
 /** The person asked in chat for this to be remembered and approved its wording: it is kept as confirmed (until its day is over, when dated), replaces a fact that says the same thing, and lifts any earlier rejection of it; null when it carries a figure. */
