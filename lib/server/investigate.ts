@@ -9,6 +9,7 @@ import { toneOf } from "@/lib/dashboard/metric-display";
 import { explainGapInputSchema, storySchema, type AccessContext, type DraftStory, type Investigation, type MetricId, type MetricQuery, type MetricResult, type MetricSort, type Story, type User } from "@/lib/contracts";
 import { DATA_AS_OF, businessToday } from "@/lib/data/dates";
 import { USERS, findUser } from "@/lib/data/entities/users";
+import { agentsOwnedBy } from "@/lib/data/entities/agents";
 import { TH } from "@/lib/i18n/th";
 import { runMetric } from "@/lib/server/metrics";
 import { askedQuery } from "@/lib/semantic/resolved";
@@ -35,6 +36,9 @@ const HONORIFIC = "คุณ";
 const BARE_NAME_MIN_LENGTH = 4;
 const INVESTIGATE_TOOL_BUDGET = 80;
 const INVESTIGATE_GOAL = "Explain this person's open anomalies before they open Winyu";
+const SALES_VOLUME = "net_sales_volume";
+const SALES_VALUE = "net_sales_value";
+const LITRES = "ลิตร";
 
 const EXPLANATION_CHECKS: readonly { text: string; open: (access: AccessContext) => boolean }[] = [
   { text: "season vs prior year", open: () => true },
@@ -68,6 +72,7 @@ const STORY_SYSTEM = [
   "- `action`: the one thing THIS person does next in their role. The owner acts; a manager asks the role that owns it a specific question; someone who only follows gets null. It never repeats the finding.",
   "The card shows the numbers, so the finding never repeats the card's headline number or its month-end projection: it says what they mean (\"จะปิดเดือนต่ำกว่าเป้า\", \"ของจะหมดก่อนรอบเติม\"). A number the card does not show (a date, a count, a share from explain_gap) may appear, copied exactly as the tool wrote it.",
   "Pick as evidence the call whose rows show where the problem sits, in the same scope as the finding. A card must agree with its finding: a story about one agent is not proven by a whole region's total.",
+  "Winyu draws a sell-in card in baht (net_sales_value), the measure chat answers sales in, even when the analysis worked in litres: a finding about sell-in quotes no litre amount.",
   "`ruledOut`: at most two explanations a tool result in this run showed are NOT the cause, each with that tool's name as `source`. Empty when nothing was ruled out.",
   "State a cause as fact only when a tool result shows it; a likely cause is written as likely (\"น่าจะ\", \"อาจ\"), an untested one as not yet known.",
   "Refer to people by their role (ผู้จัดการขายภาคอีสาน, ฝ่ายสินเชื่อ, ทีมขายขอนแก่น, นักวางแผนซัพพลาย), never by name: who holds a role changes. The people a matter is about (an employee to train, an agent to visit) may be named.",
@@ -129,6 +134,17 @@ function orgLine(user: User): string {
   const manager = managerOf(user.id);
   const reports = USERS.filter((other) => other.managerId === user.id).map((other) => other.title);
   return `Reports to: ${manager ? manager.title : "nobody"}. Direct reports: ${reports.length > 0 ? reports.join(", ") : "none"}.`;
+}
+
+function ownedLine(userId: string): string {
+  const owned = agentsOwnedBy(userId);
+  if (owned.length === 0) return "";
+  return `Owns agents: ${owned.map((agent) => `${agent.nameTh} (${agent.id})`).join(", ")}. Their matters come first; an anomaly on another agent of the region is context, not this person's story. `;
+}
+
+/** Who the investigation is for: role, scope, the agents they own, their line and the day. */
+export function whoOf(user: User, access: AccessContext): string {
+  return `${user.title} (role ${user.role}). Scope: ${scopeLine(access)}. ${ownedLine(user.id)}${orgLine(user)} Today is ${businessToday()}; the warehouse holds data through ${DATA_AS_OF}.`;
 }
 
 function textsOf(draft: DraftStory): string[] {
@@ -197,10 +213,16 @@ async function answerOf(query: MetricQuery, access: AccessContext): Promise<Metr
   return result.ok ? result : null;
 }
 
+/** A sell-in card in the measure chat answers sales in (baht), so the morning story and the chat about one month show one number; litres stay for whoever cannot see baht. */
+export function inSalesMeasure(query: MetricQuery, access: AccessContext): MetricQuery {
+  if (query.metric !== SALES_VOLUME || access.metricAcl[SALES_VALUE] !== "full") return query;
+  return { ...query, metric: SALES_VALUE };
+}
+
 async function queryAnswerOf(call: ToolCall, access: AccessContext): Promise<MetricAnswer | null> {
   const answer = metricAnswerOf(call.output);
   if (!answer) return null;
-  const query = evidenceQueryOf(answer.query);
+  const query = inSalesMeasure(evidenceQueryOf(answer.query), access);
   return query === answer.query ? answer : answerOf(query, access);
 }
 
@@ -208,7 +230,7 @@ async function gapAnswerOf(call: ToolCall, access: AccessContext): Promise<Metri
   const output = call.output as { ok?: unknown; gap_label?: unknown } | null;
   if (output?.ok !== true) return null;
   const query = gapQueryOf(call.input, typeof output.gap_label === "string" ? output.gap_label : null);
-  return query ? answerOf(withoutPinnedDims(query), access) : null;
+  return query ? answerOf(inSalesMeasure(withoutPinnedDims(query), access), access) : null;
 }
 
 /** Every call that could become a story's card, drawn under the person's access. */
@@ -250,12 +272,17 @@ export function roleHoldersNamedIn(draft: DraftStory): string[] {
   return [...new Set(USERS.flatMap((user) => (namePatternsOf(user).some((pattern) => text.includes(pattern)) ? [user.nameTh] : [])))];
 }
 
+function litresUnderBaht(draft: DraftStory, evidence: EvidenceIndex): string[] {
+  const answer = draft.evidence ? evidence.get(draft.evidence.call) : undefined;
+  return answer?.query.metric === SALES_VALUE && draft.finding.includes(LITRES) ? ["finding quotes litres while its card is in baht"] : [];
+}
+
 /** Every check a draft story must pass before it is kept: grounded numbers and no role holder named block it; the rest asks for one rewrite. */
 export function reviewDrafts(drafts: readonly DraftStory[], calls: readonly ToolCall[], evidence: EvidenceIndex): ReviewedDraft[] {
   return drafts.map((draft) => {
     const wrongEvidence = draft.evidence && !evidence.has(draft.evidence.call) ? [`evidence.call ${draft.evidence.call} is not a successful query_metric or explain_gap call`] : [];
     const repeated = repeatedIn(draft, evidence).map((number) => `finding repeats the card's number ${number}`);
-    return { draft, ungrounded: ungroundedIn(draft, calls), names: roleHoldersNamedIn(draft), problems: [...tooLongIn(draft), ...wrongEvidence, ...repeated] };
+    return { draft, ungrounded: ungroundedIn(draft, calls), names: roleHoldersNamedIn(draft), problems: [...tooLongIn(draft), ...wrongEvidence, ...repeated, ...litresUnderBaht(draft, evidence)] };
   });
 }
 
@@ -308,7 +335,7 @@ async function investigateNow(userId: string, model: LanguageModel, modelId: str
   const access = accessFor(user);
   const anomalies = await openAnomalies(access);
   if (anomalyRows(anomalies).length === 0) return quietRun(userId, modelId, anomalies);
-  const who = `${user.title} (role ${user.role}). Scope: ${scopeLine(access)}. ${orgLine(user)} Today is ${businessToday()}; the warehouse holds data through ${DATA_AS_OF}.`;
+  const who = whoOf(user, access);
   const { result, usage } = await measure(async () => {
     const run = await runWithAccess(access, () => generateText({ model, system: investigateSystemFor(access), prompt: investigationPrompt(who, anomalies), tools: readTools(access), stopWhen: stepCountIs(MAX_STEPS) }));
     const calls = callsWithAnomalies(anomalies, run.steps.flatMap((step) => step.toolResults.map((toolResult) => ({ tool: toolResult.toolName, input: toolResult.input, output: toolResult.output }))));
