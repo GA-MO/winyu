@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { NOTIFICATION_KINDS } from "@/lib/contracts";
-import { bucketOf, hasUnread, type BellItem } from "./items";
+import { TH } from "@/lib/i18n/th";
+import { bellSignal, bucketOf, hasUnread, type BellItem } from "./items";
 
 const NOW = new Date("2026-10-09T10:00:00.000Z");
 const HOUR_MS = 3_600_000;
@@ -29,5 +30,19 @@ describe("the bell's items", () => {
   test("read all is offered only while something is unread", () => {
     expect(hasUnread({ decide: [], updates: [item("a", 1)] })).toBe(false);
     expect(hasUnread({ decide: [], updates: [item("a", 1, false)] })).toBe(true);
+  });
+});
+
+describe("the closed bell", () => {
+  test("counts the decisions waiting on the person", () => {
+    expect(bellSignal({ decisions: 2, sharedUnread: 0, unreadUpdates: 3 })).toEqual({ badge: 2, label: TH.notifications.bellWaiting(2) });
+  });
+
+  test("shows a dot for unread news such as a matter passed on or taken up when nothing waits on a decision", () => {
+    expect(bellSignal({ decisions: 0, sharedUnread: 0, unreadUpdates: 2 })).toEqual({ badge: "dot", label: TH.notifications.bellUnread });
+  });
+
+  test("shows nothing when everything is read", () => {
+    expect(bellSignal({ decisions: 0, sharedUnread: 0, unreadUpdates: 0 }).badge).toBeNull();
   });
 });

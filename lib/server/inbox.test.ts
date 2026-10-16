@@ -109,6 +109,19 @@ describe("the bell counts only what waits on a decision", () => {
     note("staff_request");
     expect(inboxCountsFor(VIEWER).sharedUnread).toBe(before + 2);
   });
+
+  test("the sender's bell has unread news when the matter they sent is taken up, and none once it is read", async () => {
+    const sender = "u_anucha";
+    const sent = await matter();
+    const before = inboxCountsFor(sender).unreadUpdates;
+    actOnMatter(user(VIEWER), sent.id, { kind: "accept" });
+    const told = notifications().where((item) => item.userId === sender && item.refId === sent.id && item.kind === "matter_update");
+    made.notes.push(...told.map((item) => item.id));
+    expect(told).toHaveLength(1);
+    expect(inboxCountsFor(sender).unreadUpdates).toBe(before + 1);
+    for (const item of told) notifications().put({ ...item, read: true });
+    expect(inboxCountsFor(sender).unreadUpdates).toBe(before);
+  });
 });
 
 describe("the Inbox payload", () => {
