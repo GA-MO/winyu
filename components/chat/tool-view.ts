@@ -6,6 +6,7 @@ import { namesPerson, type Named } from "@/lib/share/recipients";
 import type { ReplyStep, ToolStep } from "./timeline";
 
 const DECLINED_TEXT = /not approved|declined|rejected|denied/i;
+const LEFT_FOR_NEW_QUESTION = "LEFT_FOR_NEW_QUESTION";
 const ANSWER_LISTS = ["rows", "weeks", "data"] as const;
 const CATALOG_TOOL = "list_metrics";
 const RECALL_TOOL = "recall_memory";
@@ -24,8 +25,8 @@ export type ToolView =
   | { kind: "not-run" }
   | { kind: "none" };
 
-/** What the live chat knows about one call beyond the transcript: whether a reply is streaming, whether this call waits for the person, what they chose, and whether its card is left out (a composed card shows or may yet show its result, or another card of the exchange draws it). */
-export type ToolLive = { running: boolean; asking: boolean; decided: boolean | undefined; hidden: boolean };
+/** What the live chat knows about one call beyond the transcript: whether a reply is streaming, whether this call waits for the person, what they chose, whether a new question left it behind (the server closes it then, but the live transcript never sees that result), and whether its card is left out (a composed card shows or may yet show its result, or another card of the exchange draws it). */
+export type ToolLive = { running: boolean; asking: boolean; decided: boolean | undefined; left: boolean; hidden: boolean };
 
 /** A write tool's result that says the person declined it rather than that it ran. */
 export function isDeclined(result: unknown): boolean {
@@ -87,6 +88,7 @@ function writeView(step: ToolStep, live: ToolLive): ToolView {
     return live.hidden ? { kind: "none" } : { kind: "not-done", tool: step.name, reason: reasonOf(step.outcome.result) };
   }
   if (step.outcome.state === "failed") return { kind: "none" };
+  if (live.left) return { kind: "not-done", tool: step.name, reason: reasonOf({ code: LEFT_FOR_NEW_QUESTION }) };
   return live.running ? { kind: "none" } : { kind: "not-run" };
 }
 

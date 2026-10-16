@@ -25,6 +25,7 @@ export type ChatSession = {
   asked: PendingApproval[];
   waiting: ReadonlySet<string>;
   decisions: Readonly<Record<string, boolean>>;
+  left: ReadonlySet<string>;
   error: string | null;
   stoppedExchangeId: string | null;
   durations: Readonly<Record<string, number>>;
@@ -100,6 +101,7 @@ export function useChatSession({ threadId, initialMessages, initialApprovals, li
   const [asked, setAsked] = useState<PendingApproval[]>(() => [...initialApprovals]);
   const [batch, setBatch] = useState<PendingApproval[]>(() => [...initialApprovals]);
   const [decisions, setDecisions] = useState<Record<string, boolean>>({});
+  const [left, setLeft] = useState<ReadonlySet<string>>(() => new Set());
   const [error, setError] = useState<string | null>(null);
   const [stoppedExchangeId, setStoppedExchangeId] = useState<string | null>(null);
   const [durations, setDurations] = useState<Record<string, number>>({});
@@ -179,7 +181,9 @@ export function useChatSession({ threadId, initialMessages, initialApprovals, li
       const waitingOn = unansweredOf(batchRef.current, decisionsRef.current, agent.pendingInterrupts);
       agent.addMessage({ id: newId(), role: "user", content: question });
       if (waitingOn.length === 0) return run();
-      setDecisions({ ...decisionsRef.current, ...Object.fromEntries(waitingOn.flatMap((entry) => (entry.toolCallId ? [[entry.toolCallId, false]] : []))) });
+      const leftBehind = waitingOn.flatMap((entry) => (entry.toolCallId ? [entry.toolCallId] : []));
+      setDecisions({ ...decisionsRef.current, ...Object.fromEntries(leftBehind.map((toolCallId) => [toolCallId, false])) });
+      setLeft((current) => new Set([...current, ...leftBehind]));
       setBatch([]);
       run(waitingOn.map(declined));
     },
@@ -215,5 +219,5 @@ export function useChatSession({ threadId, initialMessages, initialApprovals, li
     copilotkit.stopAgent({ agent });
   }, [agent, copilotkit, exchanges]);
 
-  return { ready: isReady && restored, exchanges, running: agent.isRunning, asked, waiting, decisions, error, stoppedExchangeId, durations, send, runAction, decide, stop };
+  return { ready: isReady && restored, exchanges, running: agent.isRunning, asked, waiting, decisions, left, error, stoppedExchangeId, durations, send, runAction, decide, stop };
 }

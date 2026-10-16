@@ -22,7 +22,7 @@ async function deniedForRsm(): Promise<unknown> {
 }
 
 function live(isLast: boolean) {
-  return { isLast, running: false, asked: [], waiting: new Set<string>(), decisions: {}, decide: () => {}, stopped: false, error: null, requestedCourses: new Set<string>(), onScreen: null, toolLabels: {}, durationMs: null };
+  return { isLast, running: false, asked: [], waiting: new Set<string>(), decisions: {}, left: new Set<string>(), decide: () => {}, stopped: false, error: null, requestedCourses: new Set<string>(), onScreen: null, toolLabels: {}, durationMs: null };
 }
 
 describe("a card for a read the person may not see", () => {

@@ -17,7 +17,7 @@ import { TH } from "@/lib/i18n/th";
 
 const CARDS: Record<string, ToolCard> = TOOL_CARDS;
 const CARD_TOOLS: ReadonlySet<string> = new Set(Object.keys(CARDS));
-const NOTHING_RUNNING = { running: false, asking: false, decided: undefined } as const;
+const NOTHING_RUNNING = { running: false, asking: false, decided: undefined, left: false } as const;
 const LOCKABLE_TOOL = "query_metric";
 
 /** A stored read as it came back for the viewer; JSON-safe so it crosses from the share page. */

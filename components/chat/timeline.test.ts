@@ -66,7 +66,7 @@ describe("toolViewOf", () => {
 
   test("a write a new question left behind reads the same live as after a reload: cancelled because the person asked something new (AI-178)", () => {
     const restored = { ...write, outcome: { state: "returned" as const, result: { ok: false, code: "LEFT_FOR_NEW_QUESTION", error: TH.harness.leftForNewQuestion("pin_widget") } } };
-    const cancelled = { kind: "not-done", tool: "pin_widget", reason: TH.conversation.notDoneWhy.LEFT_FOR_NEW_QUESTION };
+    const cancelled = { kind: "not-done" as const, tool: "pin_widget", reason: TH.conversation.notDoneWhy.LEFT_FOR_NEW_QUESTION };
     expect(toolViewOf(restored, IDLE, CARD_TOOLS)).toEqual(cancelled);
     expect(toolViewOf(write, { ...IDLE, decided: false, left: true }, CARD_TOOLS)).toEqual(cancelled);
     expect(toolViewOf(write, { ...IDLE, running: true, decided: false, left: true }, CARD_TOOLS)).toEqual(cancelled);

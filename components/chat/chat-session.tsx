@@ -123,6 +123,7 @@ export function ChatSession({ threadId, initialPrompt, initialMessages, initialA
       asked: session.asked.filter((approval) => approval.exchangeId === exchanges[index].id),
       waiting: session.waiting,
       decisions: session.decisions,
+      left: session.left,
       decide: session.decide,
       stopped: isLast && session.stoppedExchangeId === exchanges[index].id,
       error: isLast ? session.error : null,

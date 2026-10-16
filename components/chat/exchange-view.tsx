@@ -28,6 +28,7 @@ export type ExchangeLive = {
   asked: readonly PendingApproval[];
   waiting: ReadonlySet<string>;
   decisions: Readonly<Record<string, boolean>>;
+  left: ReadonlySet<string>;
   decide: (toolCallId: string, approved: boolean) => void;
   stopped: boolean;
   error: string | null;
@@ -121,7 +122,7 @@ function sharingOf(exchange: Exchange, toolSteps: readonly ToolStep[], streaming
 
 function ToolStepView({ step, steps, live, plan, streaming, sharing, asked }: { step: ToolStep; steps: readonly ToolStep[]; live: ExchangeLive; plan: CardPlan; streaming: boolean; sharing: Sharing; asked: string | null }) {
   const asking = live.waiting.has(step.toolCallId);
-  const view = toolViewOf(step, { running: streaming, asking, decided: live.decisions[step.toolCallId], hidden: plan.hidden.has(step.toolCallId) }, CARD_TOOLS);
+  const view = toolViewOf(step, { running: streaming, asking, decided: live.decisions[step.toolCallId], left: live.left.has(step.toolCallId), hidden: plan.hidden.has(step.toolCallId) }, CARD_TOOLS);
   if (view.kind === "card")
     return (
       <div className="flex w-full animate-hero-rise flex-col gap-1">
