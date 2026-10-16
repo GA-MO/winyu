@@ -14,7 +14,7 @@ import { FOCUS, Panel, Pill, SwitchButton, type Tone } from "./parts";
 
 const COPY = TH.admin.toolsTab;
 const TIER_TONE: Record<ToolTier, Tone> = { read: "neutral", write: "primary", destructive: "warning" };
-const NO_ACTIVITY: ToolActivity = { calls: 0, failed: 0 };
+const NO_ACTIVITY: ToolActivity = { calls: 0, failed: 0, denied: 0, masked: 0 };
 const COLUMN_COUNT = 6;
 
 function systemClosure(entry: ToolSurfaceEntry) {

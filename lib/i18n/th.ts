@@ -906,7 +906,7 @@ export const TH = {
     },
     domain: { sales: "ขาย", supply: "ซัพพลายและการผลิต", marketing: "การตลาด", finance: "การเงิน", hr: "ทรัพยากรบุคคล" },
     tier: { read: "Read", write: "Write", destructive: "Critical" },
-    auditOnlyTools: { composed_card: "ประกอบการ์ดเอง", compose_card: "ประกอบการ์ดเอง", guardrail: "ด่านกันข้อมูล", share: "ส่งต่อการ์ด", grant: "สิทธิ์ชั่วคราว", connector_admin: "ตั้งค่าระบบเชื่อมต่อ" } as Record<string, string>,
+    auditOnlyTools: { composed_card: "ประกอบการ์ดเอง", compose_card: "ประกอบการ์ดเอง", guardrail: "ด่านกันข้อมูล", share: "ส่งต่อการ์ด", matter: "เรื่องที่ส่งต่อ", grant: "สิทธิ์ชั่วคราว", connector_admin: "ตั้งค่าระบบเชื่อมต่อ" } as Record<string, string>,
     tools: {
       query_metric: { label: "ถามตัวเลข", body: "อ่านเมตริกที่รับรองแล้วจาก semantic layer ตามสิทธิ์ของผู้ถาม" },
       ask_logistics_partner: { label: "ถาม ETA จากบริษัทขนส่ง", body: "ถาม agent ของ Siam Freight ผ่าน A2A ว่ารถคันไหนกำลังไปศูนย์กระจายสินค้าและถึงเมื่อไร ส่งออกไปแค่ชื่อ DC" },

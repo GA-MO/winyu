@@ -6,7 +6,7 @@ import { findUser } from "@/lib/data/entities/users";
 import { metricLabel } from "@/lib/dashboard/metric-display";
 import { TH } from "@/lib/i18n/th";
 import { adoptionSummary } from "@/lib/server/adoption";
-import { auditEntries, inAuditScope, sinceOf, usageSummary, type AuditFilter } from "@/lib/server/usage";
+import { auditEntries, inAuditScope, sinceOf, toolCalls, usageSummary, type AuditFilter } from "@/lib/server/usage";
 import { auditLog } from "@/lib/server/audit";
 import { connectorHealth } from "@/lib/server/connectors/catalog";
 import { connectors, fieldLabel, toolLabel } from "@/lib/server/tools/registry";
@@ -199,7 +199,7 @@ function RecentDenied() {
 
 function deniedThisWeek(): { denied: number; calls: number } {
   const filter: AuditFilter = { userId: null, tool: null, connector: null, decision: null, since: sinceOf(DENIED_WINDOW) };
-  const entries = auditLog().all().filter((entry) => inAuditScope(entry, filter));
+  const entries = toolCalls(auditLog().all()).filter((entry) => inAuditScope(entry, filter));
   return { denied: entries.filter((entry) => entry.decision === "deny").length, calls: entries.length };
 }
 

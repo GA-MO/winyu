@@ -7,6 +7,7 @@ import { currentRun, emit } from "@/lib/harness/runtime";
 import type { Observation } from "@/lib/harness/types";
 import { currentTurn } from "@/lib/server/request-context";
 import { collection } from "@/lib/server/store/json-store";
+import type { MatterActionKind } from "@/lib/share/matter-actions";
 
 export const AUDIT_COLLECTION = "audit";
 
@@ -147,7 +148,7 @@ export function recordShare(share: AuditedShare): void {
 export const MATTER_AUDIT_TOOL = "matter";
 
 /** One press on a matter as the audit needs it: who pressed what on which code, whom it went to on a pass-on, and the refusal when refused; never the words they wrote. */
-export type AuditedMatterEvent = { userId: string; code: string; action: string; toUserId: string | null; refusal: string | null };
+export type AuditedMatterEvent = { userId: string; code: string; action: MatterActionKind; toUserId: string | null; refusal: string | null };
 
 /** Writes the audit row one press on a matter leaves: a refusal is a deny, every other press an allow. */
 export function recordMatterEvent(entry: AuditedMatterEvent): void {
@@ -163,7 +164,7 @@ export function recordMatterEvent(entry: AuditedMatterEvent): void {
     rowsReturned: 0,
     latencyMs: 0,
     ...(entry.refusal ? { code: entry.refusal } : {}),
-    reason: TH.matter.auditReason(entry.refusal ? `${entry.action} (${entry.refusal})` : entry.action),
+    reason: TH.matter.auditReason(entry.refusal ? `${TH.matter.actions[entry.action]} (${entry.refusal})` : TH.matter.actions[entry.action]),
     args: argsPreview(args),
     toolCallId: entry.code,
     initiator: "person",

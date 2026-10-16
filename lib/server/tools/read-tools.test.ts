@@ -11,6 +11,8 @@ import { packets, requestLinks } from "@/lib/server/agent/collections";
 import { winyuTools } from "@/lib/server/agent/tools";
 import { auditLog } from "@/lib/server/audit";
 import { grantRequests } from "@/lib/server/grants";
+import { sinceOf, toolActivity } from "@/lib/server/usage";
+import { toolLabel } from "./registry";
 import { runWithAccess, runWithTurn } from "@/lib/server/request-context";
 
 const REP = "u_krit";
@@ -64,7 +66,9 @@ afterEach(() => {
   for (const id of made.packets) packets().remove(id);
   for (const id of made.requests) grantRequests().remove(id);
   for (const id of made.links) requestLinks().remove(id);
+  for (const id of made.audit) auditLog().remove(id);
   made.packets = [];
+  made.audit = [];
   made.requests = [];
   made.links = [];
 });
@@ -160,6 +164,18 @@ describe("admin_audit", () => {
   test("role_access without a role asks for one instead of guessing", async () => {
     const result = await call(IT, "admin_audit", { topic: "role_access", days: null, role: null });
     expect(result.ok).toBe(false);
+  });
+
+  test("tool usage counts the tool calls the console counts, never a composed card, share, matter press or other row audited beside them", async () => {
+    const at = new Date().toISOString();
+    const pseudo = ["composed_card", "share", "matter", "guardrail", "grant", "connector_admin"].map((tool) => auditLog().put({ id: `usage-probe-${tool}`, at, userId: IT, tool, argsHash: "x", decision: "allow", rowsReturned: 0, latencyMs: 0 }));
+    made.audit.push(...pseudo.map((entry) => entry.id));
+    const console = toolActivity(sinceOf("7d"));
+    const consoleCalls = [...console.values()].reduce((sum, counts) => sum + counts.calls, 0);
+    const report = await call(IT, "admin_audit", { topic: "tool_usage", days: 7, role: null });
+    const labels = new Set(rowsOf(report).map((row) => row.tool_label));
+    expect(pseudo.map((entry) => toolLabel(entry.tool)).filter((label) => labels.has(label))).toEqual([]);
+    expect(report.ok === true && report.summary).toBe(TH.adminAudit.usage(consoleCalls, console.size, 7));
   });
 
   test("tool usage and model cost answer from the audit and the ledger", async () => {

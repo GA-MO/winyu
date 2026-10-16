@@ -12,6 +12,7 @@ import { connectorHealth, offlineSince } from "@/lib/server/connectors/catalog";
 import { fencedRows, MAX_CONNECTOR_ROWS } from "@/lib/server/connectors/output";
 import type { ConnectorRow } from "@/lib/server/connectors/types";
 import { modelSpend, type ModelCallSource } from "@/lib/server/model-ledger";
+import { sinceDaysStart, toolActivity } from "@/lib/server/usage";
 import { defineTool } from "./define";
 import { connectors, fieldLabel, toolLabel, toolSurface } from "./registry";
 
@@ -41,7 +42,7 @@ function roleLabelOf(userId: string): string {
 }
 
 function entriesSince(days: number): AuditEntry[] {
-  const since = sinceDays(days);
+  const since = sinceDaysStart(days);
   return auditLog().where((entry) => entry.at >= since);
 }
 
@@ -67,19 +68,10 @@ function denials(days: number): Report {
 }
 
 function toolUsage(days: number): Report {
-  const entries = entriesSince(days);
-  const byTool = new Map<string, { calls: number; denied: number; masked: number }>();
-  for (const entry of entries) {
-    const counts = byTool.get(entry.tool) ?? { calls: 0, denied: 0, masked: 0 };
-    counts.calls += 1;
-    if (entry.decision === "deny") counts.denied += 1;
-    if (entry.decision === "masked") counts.masked += 1;
-    byTool.set(entry.tool, counts);
-  }
-  const rows = [...byTool]
-    .sort(([, left], [, right]) => right.calls - left.calls)
-    .map(([tool, counts]) => ({ tool_label: toolLabel(tool), ...counts }));
-  return { summary: TH.adminAudit.usage(entries.length, byTool.size, days), rows };
+  const byTool = [...toolActivity(sinceDaysStart(days))].sort(([, left], [, right]) => right.calls - left.calls);
+  const calls = byTool.reduce((sum, [, counts]) => sum + counts.calls, 0);
+  const rows = byTool.map(([tool, counts]) => ({ tool_label: toolLabel(tool), calls: counts.calls, denied: counts.denied, masked: counts.masked }));
+  return { summary: TH.adminAudit.usage(calls, byTool.length, days), rows };
 }
 
 function modelCost(days: number): Report {
