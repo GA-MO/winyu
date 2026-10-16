@@ -14,6 +14,16 @@ describe("what a card's numbers say", () => {
   });
 });
 
+describe("a card in a month still running", () => {
+  const projection = { recentDays: 7, projected: "3.4 ล้านลิตร", monthTarget: "3.9 ล้านลิตร", attainment: "85.9%", attainmentToDate: "79.7%", shortBy: "0.79 ล้านลิตร", remaining: "" };
+  const running = { ...answer("target", -8), headline: { ...answer("target", -8).headline, projection } };
+
+  test("tells the share of the whole month's target its hero shows, not the pace figure, and the warning quotes it (AI-113)", () => {
+    expect(figuresOf(running)?.attainment).toBe(79.7);
+    expect(contradictionOf("เก่งมาก ยอดขายเข้าเดือนนี้เกินเป้า", figuresOf(running))).toBe(TH.share.contradicts.atTarget("79.7%"));
+  });
+});
+
 describe("words that the card's numbers contradict", () => {
   const under = figuresOf(answer("target", -12.1));
   const over = figuresOf(answer("target", 4));

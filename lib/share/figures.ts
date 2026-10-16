@@ -28,8 +28,10 @@ function numberIn(text: string): number | null {
   return match ? Number(match[0].replaceAll(",", "")) : null;
 }
 
+/** The attainment the card leads with: the share of the whole month's target while the month is still running (the hero `presentCard` draws), else value over target. */
 function attainmentOf(answer: MetricAnswer): number | null {
   if (answer.query.metric === "target_attainment") return numberIn(answer.headline.value);
+  if (answer.headline.projection) return numberIn(answer.headline.projection.attainmentToDate);
   const delta = answer.headline.deltaPercent;
   return answer.query.compare === "target" && delta !== null ? FULL_TARGET + delta : null;
 }
