@@ -12,7 +12,7 @@ import { ownAgentsFilter } from "@/lib/data/entities/agents";
 import type { Dictionary } from "@/lib/semantic/dictionary";
 import { loadDictionary } from "@/lib/server/master-data";
 import { formatDelta } from "@/lib/dashboard/metric-display";
-import { presentCard, sharpestHarm, subjectOf, weakestRow, type CardParts } from "@/lib/cards/present";
+import { leadBucketOf, presentCard, sharpestHarm, subjectOf, weakestRow, type CardParts } from "@/lib/cards/present";
 import { percentIn } from "@/lib/cards/breakdown";
 import { formatPercent } from "@/lib/i18n/format";
 import { TH } from "@/lib/i18n/th";
@@ -217,7 +217,7 @@ export async function landingKpis(access: AccessContext): Promise<LandingKpi[]> 
     }
     shownMetrics.add(widget.query.metric);
     const note = kpiNoteOf(widget.query, result, parts);
-    kpis.push({ id: widget.id, label, value, delta: hero.delta, tone: hero.tone, detail: hero.detail, note, period: periodTag(widget.query.range) });
+    kpis.push({ id: widget.id, label, value, delta: hero.delta, tone: hero.tone, detail: hero.detail, note, period: leadBucketOf(widget.query, result) ?? periodTag(widget.query.range) });
   }
   return kpis;
 }

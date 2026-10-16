@@ -528,6 +528,12 @@ export function headlineChangeOf(query: MetricQuery, result: MetricResult): { de
   return { deltaPercent: result.headline.deltaPercent, deltaPoints: result.headline.deltaPoints ?? null, compareLabel: result.headline.compareLabel };
 }
 
+/** The bucket a series card leads with ("ต.ค. 69"), so a tile names the month its number is, never the whole range the series spans (AI-157); null when the card leads with something else. */
+export function leadBucketOf(query: MetricQuery, result: MetricResult): string | null {
+  if (!result.ok) return null;
+  return latestBucketOf(query, result, fullBucketRows(query, result.rows, result.provenance.asOf))?.label ?? null;
+}
+
 /** A card's hero, its other facts as tiles (style C when there is at least one) and its verdict. */
 type Lead = { hero: CardHero; tiles: Tile[]; verdict: string };
 
