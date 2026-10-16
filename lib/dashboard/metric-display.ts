@@ -1,5 +1,6 @@
 import type { MetricId } from "@/lib/contracts";
 import { formatCurrency, formatNumber, formatPercent } from "@/lib/i18n/format";
+import { TH } from "@/lib/i18n/th";
 import { METRICS } from "@/lib/semantic/metrics";
 
 const DELTA_FORMAT = new Intl.NumberFormat("th-TH", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
@@ -51,6 +52,19 @@ export function toneOf(metric: MetricId, deltaPercent: number | null): Tone {
   if (direction === "neutral") return "neutral";
   const rising = direction === "up";
   return rising === LOWER_IS_BETTER.has(metric) ? "bad" : "good";
+}
+
+/** A signed change in percentage points the way a card shows it: "+0.9 จุด", "-0.6 จุด", "0 จุด". */
+export function formatPoints(points: number | null): string | null {
+  if (points === null) return null;
+  const rounded = Math.round(points * 10) / 10;
+  if (rounded === 0) return TH.dash.points("0");
+  return TH.dash.points(`${rounded > 0 ? "+" : ""}${DELTA_FORMAT.format(rounded)}`);
+}
+
+/** How a card writes a change: in percentage points for a metric that is itself a percent (a margin going 24.3% to 23.7% is "-0.6 จุด", not "-2.4%"), as a relative percent otherwise. */
+export function formatChange(metric: MetricId, deltaPercent: number | null, deltaPoints: number | null): string | null {
+  return metricFormat(metric) === "percent" ? formatPoints(deltaPoints) : formatDelta(deltaPercent);
 }
 
 /** A signed percentage the way a card shows it: "+5.4%", "-12.0%", "0%". */

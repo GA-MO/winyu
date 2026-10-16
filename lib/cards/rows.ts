@@ -1,6 +1,6 @@
-import type { Dim, MetricQuery, MetricRow } from "@/lib/contracts";
+import type { Dim, MetricId, MetricQuery, MetricRow } from "@/lib/contracts";
 import { periodLabelTh } from "@/lib/i18n/format";
-import { formatMetricValue, metricLabel } from "@/lib/dashboard/metric-display";
+import { formatChange, formatMetricValue, metricLabel } from "@/lib/dashboard/metric-display";
 
 const TIME_DIMS: readonly Dim[] = ["date", "week", "month"];
 const DC_PREFIX = "ศูนย์กระจายสินค้า";
@@ -21,6 +21,20 @@ export function deltaPercentOf(row: MetricRow): number | null {
   const previous = numericOf(row, "compare_value");
   if (value === null || previous === null || previous === 0) return null;
   return ((value - previous) / Math.abs(previous)) * PERCENT;
+}
+
+/** The row's change in percentage points, stored by the engine or derived from the two values; meaningful for a metric that is itself a percent. */
+export function deltaPointsOf(row: MetricRow): number | null {
+  const stored = numericOf(row, "delta_pt");
+  if (stored !== null) return stored;
+  const value = numericOf(row, "value");
+  const previous = numericOf(row, "compare_value");
+  return value === null || previous === null ? null : value - previous;
+}
+
+/** The row's change as a card writes it: points for a percent metric, relative percent otherwise. */
+export function changeTextOf(metric: MetricId, row: MetricRow): string | null {
+  return formatChange(metric, deltaPercentOf(row), deltaPointsOf(row));
 }
 
 export function isTimeDim(dim: Dim): boolean {

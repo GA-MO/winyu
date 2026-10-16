@@ -212,6 +212,7 @@ function buildRows(dictionary: Dictionary, def: MetricDef, dims: Dim[], rows: Ag
       if (compareIndex) {
         out.compare_value = SUPPRESSED_VALUE;
         out.delta_pct = SUPPRESSED_VALUE;
+        if (def.format === "percent") out[POINTS_FIELD] = SUPPRESSED_VALUE;
       }
       return out;
     }
@@ -222,10 +223,12 @@ function buildRows(dictionary: Dictionary, def: MetricDef, dims: Dim[], rows: Ag
     if (previous === undefined) {
       out.compare_value = null;
       out.delta_pct = null;
+      if (def.format === "percent") out[POINTS_FIELD] = null;
       return out;
     }
     out.compare_value = roundValue(def.format, previous);
     out.delta_pct = previous === 0 ? null : Math.round(((row.value - previous) / Math.abs(previous)) * 1000) / 10;
+    if (def.format === "percent") out[POINTS_FIELD] = pointsBetween(row.value, previous);
     return out;
   });
 }
@@ -237,6 +240,8 @@ const COMPARE_LABELS: Record<MetricQuery["compare"], string | null> = {
   target: "เทียบเป้า",
 };
 const TOP_IN_HEADLINE = 3;
+const POINTS_UNIT = "จุด";
+const POINTS_FIELD = "delta_pt";
 const DATA_START_LABEL = formatThaiDate(ISO_OF_DAY[0]);
 const UNCOMPARABLE_LEAD = "ไม่มีข้อมูลให้";
 
@@ -244,6 +249,16 @@ function combined(rows: Aggregated[], averaged: boolean): number {
   if (!averaged) return rows.reduce((sum, row) => sum + row.value, 0);
   const weight = rows.reduce((sum, row) => sum + row.weight, 0);
   return weight === 0 ? 0 : rows.reduce((sum, row) => sum + row.value * row.weight, 0) / weight;
+}
+
+/** The change of a metric that is itself a percent, in percentage points: 24.3% to 23.7% is -0.6, where the relative change would read -2.4%. */
+function pointsBetween(current: number, previous: number): number {
+  return Math.round((current - previous) * 10) / 10;
+}
+
+function deltaPointsOf(def: MetricDef, all: Aggregated[], compareRows: Aggregated[] | null, ratio: boolean): number | null {
+  if (def.format !== "percent" || !compareRows || compareRows.length === 0 || all.length === 0) return null;
+  return pointsBetween(combined(all, ratio), combined(compareRows, ratio));
 }
 
 function deltaPercentOf(def: MetricDef, all: Aggregated[], compareRows: Aggregated[] | null, ratio: boolean): number | null {
@@ -298,13 +313,16 @@ function headlineOf(dictionary: Dictionary, def: MetricDef, query: MetricQuery, 
     return { aggregate, value: "—", periodLabel, rowCount: rows.length, deltaPercent: null, compareLabel: null, compareNote, top: [] };
   }
   const headlineRows = headlineSubset(dictionary, def, query, all);
-  const deltaPercent = deltaPercentOf(def, headlineRows, compareRows ? headlineSubset(dictionary, def, query, compareRows) : null, ratio);
+  const headlineCompare = compareRows ? headlineSubset(dictionary, def, query, compareRows) : null;
+  const deltaPercent = deltaPercentOf(def, headlineRows, headlineCompare, ratio);
+  const deltaPoints = deltaPercent === null ? null : deltaPointsOf(def, headlineRows, headlineCompare, ratio);
   return {
     aggregate,
     value: formatForSummary(def, combined(headlineRows, ratio)),
     periodLabel,
     rowCount: rows.length,
     deltaPercent,
+    ...(deltaPoints === null ? {} : { deltaPoints }),
     compareLabel: deltaPercent === null ? null : COMPARE_LABELS[query.compare] ?? "เทียบช่วงก่อนหน้า",
     compareNote,
     top: topOf(dictionary, def, query, all, suppressed),
@@ -319,7 +337,8 @@ function summarize(def: MetricDef, query: MetricQuery, headline: MetricHeadline,
   const parts = [`${def.labelTh} ${span}: ${lead} ${headline.value}`];
   if (headline.top.length > 0) parts.push(`${RISK_WHEN_LOW.has(def.id) ? "ต่ำสุด" : "สูงสุด"}: ${headline.top.map((row) => `${row.label} ${row.value}`).join(" · ")}`);
   if (headline.deltaPercent !== null) {
-    parts.push(`${headline.compareLabel} ${headline.deltaPercent >= 0 ? "+" : ""}${formatNumber(headline.deltaPercent, 1)}%`);
+    const [change, unit] = typeof headline.deltaPoints === "number" ? [headline.deltaPoints, ` ${POINTS_UNIT}`] : [headline.deltaPercent, "%"];
+    parts.push(`${headline.compareLabel} ${change >= 0 ? "+" : ""}${formatNumber(change, 1)}${unit}`);
   }
   if (headline.compareNote) parts.push(headline.compareNote);
   parts.push(`(${headline.rowCount} แถว · ${def.certified ? "certified" : "derived"} · ${def.sourceSystem})`);
@@ -545,7 +564,7 @@ export function finishMetric(plan: MetricPlan, current: FactResult, comparison: 
     asOf: DATA_AS_OF,
     rowCount: rows.length,
     filterLabels: [...filterLabelsOf(resolved), ...(query.where ? [whereLabelOf(def, query.where)] : [])],
-    masked: masked || suppressed.size > 0 ? [...SUPPRESSED_FIELDS] : [],
+    masked: masked || suppressed.size > 0 ? [...SUPPRESSED_FIELDS, ...(def.format === "percent" ? [POINTS_FIELD] : [])] : [],
     trust: def.certified ? "verified" : "derived",
     coverage: coverageOfQuery(query),
   };

@@ -4,7 +4,7 @@ import { MIN_CELL_SIZE } from "@/lib/access/suppression";
 import { addDays, monthKeyOfIso, weekKeyOfIso } from "@/lib/data/dates";
 import { DECIDING_LINES, LOW_COVER_DAYS } from "@/lib/semantic/metrics";
 import { formatDateTh, formatPercent, periodLabelTh } from "@/lib/i18n/format";
-import { deltaPercentOf, groupDimsOf, labelOf, numericOf, timeDimOf, valueTextOf } from "./rows";
+import { changeTextOf, deltaPercentOf, groupDimsOf, labelOf, numericOf, timeDimOf, valueTextOf } from "./rows";
 import {
   bucketCountOf,
   funnelBody,
@@ -24,6 +24,7 @@ import {
 } from "./chart-bodies";
 import {
   directionOf,
+  formatChange,
   formatDelta,
   formatMetricValue,
   metricFormat,
@@ -380,7 +381,7 @@ function heroOf(query: MetricQuery, result: Extract<MetricResult, { ok: true }>,
   return {
     label: heroLabelOf(query, result),
     value: result.headline.value,
-    delta: formatDelta(delta),
+    delta: formatChange(query.metric, delta, result.headline.deltaPoints ?? null),
     trend: directionOf(delta),
     tone: toneOf(query.metric, delta),
     detail: paceNoteOf(query, result.provenance.asOf) ?? result.headline.compareLabel,
@@ -388,7 +389,7 @@ function heroOf(query: MetricQuery, result: Extract<MetricResult, { ok: true }>,
   };
 }
 
-type LatestBucket = { label: string; value: string; deltaPercent: number; versus: string };
+type LatestBucket = { label: string; value: string; deltaPercent: number; deltaPoints: number; versus: string };
 
 /** A rate over time without a comparison is read at its latest full bucket against the one before; the average of the whole line hides the turn someone asked about. */
 function latestBucketOf(query: MetricQuery, result: Extract<MetricResult, { ok: true }>, rows: MetricRow[]): LatestBucket | null {
@@ -402,6 +403,7 @@ function latestBucketOf(query: MetricQuery, result: Extract<MetricResult, { ok: 
     label: labelOf(query, latest),
     value: valueTextOf(query, latest),
     deltaPercent: ((latestValue - previousValue) / Math.abs(previousValue)) * PERCENT,
+    deltaPoints: latestValue - previousValue,
     versus: TH.dash.versusBucket(labelOf(query, previous)),
   };
 }
@@ -411,11 +413,11 @@ function fullBucketRows(query: MetricQuery, rows: MetricRow[], asOf: string): Me
 }
 
 /** The change a card leads with, the same one its hero shows: the latest full bucket for a rate over time, the headline comparison otherwise. */
-export function headlineChangeOf(query: MetricQuery, result: MetricResult): { deltaPercent: number | null; compareLabel: string | null } {
-  if (!result.ok) return { deltaPercent: null, compareLabel: null };
+export function headlineChangeOf(query: MetricQuery, result: MetricResult): { deltaPercent: number | null; deltaPoints: number | null; compareLabel: string | null } {
+  if (!result.ok) return { deltaPercent: null, deltaPoints: null, compareLabel: null };
   const latest = latestBucketOf(query, result, fullBucketRows(query, result.rows, result.provenance.asOf));
-  if (latest) return { deltaPercent: latest.deltaPercent, compareLabel: latest.versus };
-  return { deltaPercent: result.headline.deltaPercent, compareLabel: result.headline.compareLabel };
+  if (latest) return { deltaPercent: latest.deltaPercent, deltaPoints: latest.deltaPoints, compareLabel: latest.versus };
+  return { deltaPercent: result.headline.deltaPercent, deltaPoints: result.headline.deltaPoints ?? null, compareLabel: result.headline.compareLabel };
 }
 
 function unitOf(query: MetricQuery): string {
@@ -449,7 +451,7 @@ function heroFor(query: MetricQuery, result: Extract<MetricResult, { ok: true }>
   return {
     label: TH.dash.atBucket(metricLabel(query.metric), latest.label),
     value: latest.value,
-    delta: formatDelta(latest.deltaPercent),
+    delta: formatChange(query.metric, latest.deltaPercent, latest.deltaPoints),
     trend: directionOf(latest.deltaPercent),
     tone: toneOf(query.metric, latest.deltaPercent),
     detail: latest.versus,
@@ -468,7 +470,7 @@ function rankRowsOf(query: MetricQuery, rows: MetricRow[]): RankRow[] {
       label: labelOf(query, row),
       value: valueTextOf(query, row),
       share: peak === 0 ? null : Math.abs(values[index]) / peak,
-      delta: formatDelta(delta),
+      delta: changeTextOf(query.metric, row),
       trend: directionOf(delta),
       tone: toneOf(query.metric, delta),
       note: null,
@@ -538,7 +540,7 @@ function tableBody(query: MetricQuery, rows: MetricRow[], withCompare: boolean):
     rows: rows.slice(0, MAX_TABLE_ROWS).map((row) => ({
       label: labelOf(query, row),
       value: valueTextOf(query, row),
-      ...(withCompare ? { delta: formatDelta(deltaPercentOf(row)) ?? "—" } : {}),
+      ...(withCompare ? { delta: changeTextOf(query.metric, row) ?? "—" } : {}),
     })),
   };
 }
@@ -564,7 +566,7 @@ function changeBody(query: MetricQuery, rows: MetricRow[]): CardBody {
     rows: shown.map((row, index) => ({
       label: labelOf(query, row),
       gap: (deltas[index] ?? 0) / span,
-      gapText: formatDelta(deltas[index]) ?? "—",
+      gapText: changeTextOf(query.metric, row) ?? "—",
       detail: valueTextOf(query, row),
       tone: toneOf(query.metric, deltas[index]),
     })),
@@ -594,7 +596,7 @@ function levelBody(query: MetricQuery, rows: MetricRow[], line: LevelLine): Card
         label: labelOf(query, row),
         gap: value === null ? 0 : (value - line.at) / span,
         gapText: valueTextOf(query, row),
-        detail: formatDelta(delta),
+        detail: changeTextOf(query.metric, row),
         tone: value === null ? "neutral" : levelToneOf(value, line),
       };
     }),
@@ -777,7 +779,7 @@ export function sharpestHarm(query: MetricQuery, result: MetricResult, minPercen
     const delta = deltaPercentOf(row);
     if (delta === null || Math.abs(delta) < minPercent || toneOf(query.metric, delta) !== "bad") continue;
     if (worst && Math.abs(delta) <= Math.abs(worst.deltaPercent)) continue;
-    worst = { label: labelOf(query, row), delta: formatDelta(delta) ?? "", deltaPercent: delta };
+    worst = { label: labelOf(query, row), delta: changeTextOf(query.metric, row) ?? "", deltaPercent: delta };
   }
   return worst;
 }

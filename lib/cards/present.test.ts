@@ -348,6 +348,30 @@ describe("forecast card", () => {
   });
 });
 
+describe("a change in a metric that is itself a percent", () => {
+  test("is returned and drawn in points, the headline, every row and the summary alike", () => {
+    const { query, result } = answer({ metric: "gross_margin", dims: ["business_unit"], compare: "prev_year" });
+    if (!result.ok) throw new Error(result.error);
+    const [first] = result.rows;
+    expect(first.delta_pt).toBe(Math.round((Number(first.value) - Number(first.compare_value)) * 10) / 10);
+    expect(typeof result.headline.deltaPoints).toBe("number");
+    expect(result.summary).toContain(" จุด");
+    const parts = presentCard({ title: "t", query, result });
+    expect(parts.hero?.delta).toMatch(/ จุด$/);
+    const body = expectKind(parts.body, "rank");
+    for (const row of body.rows) expect(row.delta).toMatch(/ จุด$/);
+  });
+
+  test("a ratio that is not a percent keeps its relative change", () => {
+    for (const metric of ["headcount", "avg_salary"] as const) {
+      const { query, result } = answer({ metric, dims: ["department"], compare: "prev_year" });
+      if (!result.ok) throw new Error(result.error);
+      expect(result.rows[0].delta_pt).toBeUndefined();
+      expect(presentCard({ title: "t", query, result }).hero?.delta ?? "%").toMatch(/%$/);
+    }
+  });
+});
+
 describe("every value masked", () => {
   test("becomes one line instead of a card of ***", () => {
     const query = queryOf({ metric: "avg_salary", dims: ["department"], compare: "none" });

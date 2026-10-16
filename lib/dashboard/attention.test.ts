@@ -179,6 +179,6 @@ describe("a rate over time", () => {
     const averaged = { ...result(null, rows), headline: { aggregate: "average", value: "1.0%", periodLabel: "", rowCount: 4, deltaPercent: null, compareLabel: null, compareNote: null, top: [] } } as MetricResult;
     const attention = attentionOf({ widget: widget("w", { kind: "line", query: monthly }), result: averaged, alerts: [] });
     expect(attention.level).toBe("moved");
-    expect(attention.reason).toContain("+9.1%");
+    expect(attention.reason).toContain("+0.1 จุด");
   });
 });

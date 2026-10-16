@@ -2,7 +2,7 @@ import type { Dim, MetricId, MetricQuery, MetricResult, MetricRow } from "@/lib/
 import { TH } from "@/lib/i18n/th";
 import { formatPercent, formatWhole, periodLabelTh } from "@/lib/i18n/format";
 import { directionOf, formatDelta, formatMetricValue, metricFormat, metricLabel, metricUnit, toneOf, type Tone } from "@/lib/dashboard/metric-display";
-import { deltaPercentOf, groupDimsOf, labelAlong, labelOf, numericOf, timeDimOf, valueTextOf } from "./rows";
+import { changeTextOf, deltaPercentOf, groupDimsOf, labelAlong, labelOf, numericOf, timeDimOf, valueTextOf } from "./rows";
 import type { CardBody, CardHero, ChartSeries, ColorScale, GapRow, HeatCell, ScatterAxis, ScatterPoint, ShareSlice } from "./present";
 
 export type Source = { query: MetricQuery; result: Extract<MetricResult, { ok: true }> };
@@ -104,7 +104,7 @@ function cellPainter(query: MetricQuery, rows: MetricRow[], scale: ColorScale): 
     const value = numericOf(row, "value");
     if (value === null) return null;
     const delta = deltaPercentOf(row);
-    const deltaText = formatDelta(delta);
+    const deltaText = changeTextOf(query.metric, row);
     if (scale === "delta") {
       return { text: deltaText ?? "—", detail: valueTextOf(query, row), intensity: delta === null ? 0 : scaled(Math.abs(delta) / deltaMax), tone: toneOf(query.metric, delta) };
     }
@@ -203,7 +203,7 @@ export function shareBody(query: MetricQuery, rows: MetricRow[]): CardBody {
   const alreadyShare = PERCENT_METRIC_SHARE.has(query.metric);
   const slices: ShareSlice[] = shown.map((entry) => {
     const share = sliceShare(entry.value, total);
-    const delta = formatDelta(deltaPercentOf(entry.row));
+    const delta = changeTextOf(query.metric, entry.row);
     return {
       label: labelOf(query, entry.row),
       valueText: alreadyShare ? (delta ?? "") : valueTextOf(query, entry.row),
