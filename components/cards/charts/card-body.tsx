@@ -36,7 +36,7 @@ export function CardBodyView({ body }: { body: CardBody }) {
   if (body.kind === "gap") return <GapBars rows={body.rows} ends={body.ends} caption={body.caption} shownOf={body.shownOf} />;
   if (body.kind === "funnel") return <Funnel stages={body.stages} />;
   if (body.kind === "table") return <Table props={{ columns: body.columns, rows: body.rows }} />;
-  if (body.kind === "alerts") return <SignalList items={body.items} />;
+  if (body.kind === "alerts") return <SignalList items={body.items} more={body.more} />;
   if (body.kind === "forecast") return <ForecastBand labels={body.labels} actual={body.actual} forecast={body.forecast} lo={body.lo} hi={body.hi} format={body.format} />;
   return null;
 }

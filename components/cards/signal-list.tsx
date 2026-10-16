@@ -62,14 +62,33 @@ function SignalRow({ item }: { item: SignalItem }) {
   );
 }
 
-/** Anomalies as rows that decide at a glance: who, the gap as the big number, the numbers behind it; the cause opens on demand. */
-export function SignalList({ items }: { items: SignalItem[] }) {
-  if (items.length === 0) return null;
+function Rows({ items }: { items: SignalItem[] }) {
   return (
     <ul className="flex flex-col gap-2">
       {items.map((item) => (
         <SignalRow key={item.id} item={item} />
       ))}
     </ul>
+  );
+}
+
+/** Anomalies as rows that decide at a glance: who, the gap as the big number, the numbers behind it; the cause opens on demand, and the rows past the first few fold under one toggle so none the reply may cite is dropped. */
+export function SignalList({ items, more = [] }: { items: SignalItem[]; more?: SignalItem[] }) {
+  if (items.length === 0) return null;
+  return (
+    <div className="flex flex-col gap-2">
+      <Rows items={items} />
+      {more.length > 0 ? (
+        <details className="group/more flex flex-col gap-2">
+          <summary className="flex cursor-pointer list-none items-center gap-1 text-xs font-medium text-muted-foreground [&::-webkit-details-marker]:hidden">
+            {TH.dash.moreAlerts(more.length)}
+            <ChevronDown aria-hidden className="size-3 transition-transform group-open/more:rotate-180" />
+          </summary>
+          <div className="mt-2">
+            <Rows items={more} />
+          </div>
+        </details>
+      ) : null}
+    </div>
   );
 }

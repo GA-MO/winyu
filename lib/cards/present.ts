@@ -82,7 +82,7 @@ export type CardBody =
   | { kind: "gap"; rows: GapRow[]; ends: GapEnds; caption: string | null; shownOf: string | null }
   | { kind: "funnel"; stages: FunnelStage[] }
   | { kind: "table"; columns: CardColumn[]; rows: Record<string, string>[] }
-  | { kind: "alerts"; items: SignalItem[] }
+  | { kind: "alerts"; items: SignalItem[]; more: SignalItem[] }
   | { kind: "forecast"; labels: string[]; actual: (number | null)[]; forecast: (number | null)[]; lo: (number | null)[]; hi: (number | null)[]; format: MetricFormat };
 
 /** The warning a card shows in place of its data: a heading and one line, both written for the person. */
@@ -637,14 +637,12 @@ function signalOf(alert: AlertRow, why: string | null): SignalItem {
 
 function alertsBody(alerts: AlertRow[]): CardBody {
   const said = new Set<string>();
-  return {
-    kind: "alerts",
-    items: alerts.slice(0, MAX_ALERTS).map((alert) => {
-      const repeated = said.has(alert.hypothesis);
-      said.add(alert.hypothesis);
-      return signalOf(alert, repeated ? null : alert.hypothesis);
-    }),
-  };
+  const items = alerts.map((alert) => {
+    const repeated = said.has(alert.hypothesis);
+    said.add(alert.hypothesis);
+    return signalOf(alert, repeated ? null : alert.hypothesis);
+  });
+  return { kind: "alerts", items: items.slice(0, MAX_ALERTS), more: items.slice(MAX_ALERTS) };
 }
 
 function bodyFor(shape: Shape, view: CardView, extras: CardExtras): CardBody {
@@ -746,7 +744,7 @@ export type PresentAlertsInput = {
 export function presentAlerts(input: PresentAlertsInput): CardParts {
   return {
     title: input.title,
-    meta: TH.dash.alertCount(Math.min(input.alerts.length, MAX_ALERTS), input.alerts.length),
+    meta: TH.dash.alertCount(input.alerts.length),
     description: input.description ?? null,
     footnote: null,
     hero: null,

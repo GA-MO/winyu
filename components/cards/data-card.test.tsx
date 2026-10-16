@@ -2,11 +2,13 @@ import { describe, expect, test } from "bun:test";
 import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { accessFor } from "@/lib/access/policies";
-import type { MetricQuery, NextAction } from "@/lib/contracts";
+import type { AlertRow, MetricQuery, NextAction } from "@/lib/contracts";
+import { presentAlerts } from "@/lib/cards/present";
+import { TH } from "@/lib/i18n/th";
 import { findUser } from "@/lib/data/entities/users";
 import { winyuTools } from "@/lib/server/agent/tools";
 import { runWithAccess } from "@/lib/server/request-context";
-import { DataCard } from "./data-card";
+import { AlertsCard, DataCard } from "./data-card";
 
 const QUERY: MetricQuery = {
   metric: "net_sales_value",
@@ -61,6 +63,21 @@ describe("DataCard from a real query_metric result", () => {
     const grounded = groundedIn(JSON.stringify(result));
     const strange = numbersIn(text).filter((token) => !grounded(token));
     expect(strange).toEqual([]);
+  });
+});
+
+describe("AlertsCard", () => {
+  test("keeps every alert the tool returned, the ones past the first few folded, so an alert the reply cites is on the card", async () => {
+    const user = findUser("u_thana");
+    if (!user) throw new Error("no CEO");
+    const answer = await runWithAccess(accessFor(user), () => winyuTools().get_alerts.execute({ limit: 10 }) as Promise<{ rows: AlertRow[] }>);
+    expect(answer.rows.length).toBeGreaterThan(4);
+    const body = presentAlerts({ title: "t", alerts: answer.rows }).body;
+    if (body.kind !== "alerts") throw new Error("not an alerts body");
+    expect([...body.items, ...body.more].map((item) => item.id)).toEqual(answer.rows.map((row) => row.id));
+    const card = await render(<AlertsCard title="ความผิดปกติ" source={answer} />);
+    expect(card.textContent).toContain(TH.dash.moreAlerts(answer.rows.length - body.items.length));
+    for (const item of body.more) expect(card.textContent).toContain(item.place);
   });
 });
 
