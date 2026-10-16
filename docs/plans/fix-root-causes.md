@@ -43,7 +43,7 @@ Round 4 walked the run sheet in four windows and asked 26 likely demo-day questi
 - [ ] **H2 matter and share sheet** (AI-137, AI-154, AI-155, AI-159): a matter's title and ask name its subject; the inbox row carries it; story pages do not offer to send to people already on the path; the sheet's owner group lists owners only.
 - [ ] **H3 cards** (AI-140, AI-141, AI-142, AI-144, AI-156, AI-157): one base per breakdown card; a verdict on the gap card, with the forecast first for month-end questions; R10 pairs only related results; verdict counts every row that meets it; scorecards and one-row cards follow the card rules; the landing tile labels the bucket it shows.
 - [x] **H4 prompt, scope, story metric** (AI-134, AI-136, AI-143, AI-145, AI-146, AI-147, AI-158, AI-161, AI-162, AI-163): a rep's "ผม" is the agents he owns; the morning story uses the sales measure chat uses; whole-company asks outside scope are refused, not narrowed; "why" answers say when no contributor dominates.
-- [ ] **H5 IT answers** (AI-148, AI-149, AI-150, AI-151, AI-160): phone-width audit cards, `role_access` filtered by visibility, usage per person, console permission changes audited, Thai labels.
+- [x] **H5 IT answers** (AI-148, AI-149, AI-150, AI-151, AI-160): phone-width audit cards, `role_access` filtered by visibility, usage per person, console permission changes audited, Thai labels.
 - [ ] then speed (AI-133, measured on a production build) and the run sheet rewritten against the screens (AI-135).
 
 ## Round 4 fixes (after round 3, 2026-10-17)

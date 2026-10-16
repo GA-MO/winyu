@@ -1762,10 +1762,10 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 | AI-145 (เดิม AI-130) | กลาง | แก้แล้ว `a156a61` `cc98f0e` · รอยืนยันกับโมเดล | 'ทำไมตกอะ' names two agents as the main cause of a drop that is 74% long tail |
 | AI-146 (เดิม AI-130) | กลาง | แก้แล้ว `cc98f0e` · รอยืนยันกับโมเดล | An agent-level 'why did it drop' gets the alert's generic hypothesis, not an investigation |
 | AI-147 (เดิม AI-129) | กลาง | แก้แล้ว `4f08c41` | The rep's 'whole company' request is silently scoped to Isan and drawn as a lone Isan number |
-| AI-148 | กลาง | เปิด (ใหม่) | IT audit answers are wide tables on a phone: the 'who to whom' column is off-screen |
-| AI-149 | กลาง | เปิด (ใหม่) | 'Only what is hidden' gets a card of 18 restricted items while the text says 2 |
-| AI-150 | กลาง | เปิด (ใหม่) | 'Who uses Winyu most' is answered 'no per-person data', though every audit row has a user |
-| AI-151 | กลาง | เปิด (ใหม่) · นอกเส้นทางเดโม | Permission changes made in the Admin console (คืนค่า, reset) are not written to the audit |
+| AI-148 | กลาง | แก้แล้ว `cda396f` · รอยืนยันกับโมเดล | IT audit answers are wide tables on a phone: the 'who to whom' column is off-screen |
+| AI-149 | กลาง | แก้แล้ว `cda396f` · รอยืนยันกับโมเดล | 'Only what is hidden' gets a card of 18 restricted items while the text says 2 |
+| AI-150 | กลาง | แก้แล้ว `cda396f` · รอยืนยันกับโมเดล | 'Who uses Winyu most' is answered 'no per-person data', though every audit row has a user |
+| AI-151 | กลาง | แก้แล้ว `cda396f` | Permission changes made in the Admin console (คืนค่า, reset) are not written to the audit |
 | AI-152 (เดิม AI-100) | ต่ำ | ยังเสีย | Failed or denied calls still draw actionable UI: a stray 'ไม่ได้ปักการ์ด' chip beside the pin approval, and a ส่งต่อ button on the access-denied card |
 | AI-153 (เดิม AI-123) | ต่ำ | ยังเสีย | Follow-up chips and card actions still leave the asked subject in places |
 | AI-154 (เดิม AI-131) | ต่ำ | ยังเสีย | Story pages offer 'ส่งให้คุณอนุชา' as the main action to the CEO who sent it and to the rep who received it |
@@ -1774,7 +1774,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 | AI-157 | ต่ำ | เปิด (ใหม่) | CEO landing tile labels October's volume with the six-month range and compares it with September |
 | AI-158 | ต่ำ | แก้แล้วบางส่วน `9209e23` | The rep's story card shows all 8 Isan agents, the same as the CEO and RSM, so the per-role speech line has nothing to show |
 | AI-159 | ต่ำ | เปิด (ใหม่) | Phone-width truncation and dev overlays on the chain screens |
-| AI-160 (เดิม AI-121) | ต่ำ | ยังเสีย | Chat audit cards show English codes, a raw 'policy_label' header and raw tool-argument JSON |
+| AI-160 (เดิม AI-121) | ต่ำ | แก้แล้ว `cda396f` | Chat audit cards show English codes, a raw 'policy_label' header and raw tool-argument JSON |
 | AI-161 | ต่ำ | แก้แล้ว `cc98f0e` · รอยืนยันกับโมเดล | The overclaim rebuttal invites resending the false message and offers no corrected wording |
 | AI-162 (เดิม AI-79) | ต่ำ | แก้แล้ว `cc98f0e` · รอยืนยันกับโมเดล | The text after an approved send mixes 'preparing' and 'done' |
 | AI-163 | ต่ำ | แก้แล้ว `cc98f0e` · รอยืนยันกับโมเดล | IT asks how a denied RSM can get access; the answer points to the South RSM, not the admin's own grant path |
@@ -1986,7 +1986,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-148. IT audit answers are wide tables on a phone: the 'who to whom' column is off-screen
 
-- **สถานะ:** เปิด (ใหม่)
+- **สถานะ:** แก้แล้ว `cda396f` · รอยืนยันกับโมเดล · การ์ด audit ในแชตเรียงแถวซ้อนกันพอดีจอมือถือ (ใคร → ถึงใคร · เรื่อง · เวลา) ใต้หัวข้อตามเรื่องและประโยคสรุป เกิน 8 แถวพับเหลือ 5
 - **ระดับ:** กลาง · **หมวด:** `card-fit` · **บทบาท:** u_ton (IT admin)
 - **อาการ:** The denials card is an 8-column table for 1 row; only เมื่อ/ผู้ใช้/บทบาท are visible at phone width. The sends card's ถึง column needs a sideways scroll. 'ใครใช้เยอะที่สุด' drew 12 of 19 tool rows. Every IT card has the title 'Audit และการใช้งาน Winyu' and no follow-up chips.
 - **ที่ควรเป็น:** A single denial is one verdict line; sends are a list of 'A → B · card'; tables over 8 rows become style A with a title per topic.
@@ -1998,7 +1998,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-149. 'Only what is hidden' gets a card of 18 restricted items while the text says 2
 
-- **สถานะ:** เปิด (ใหม่)
+- **สถานะ:** แก้แล้ว `cda396f` · รอยืนยันกับโมเดล · role_access รับ `level` (masked / none / off) การ์ดจึงแสดงเฉพาะระดับที่ถาม ที่เหลือพับเป็นบรรทัดเดียว
 - **ระดับ:** กลาง · **หมวด:** `card-fit` · **บทบาท:** u_ton (IT admin)
 - **อาการ:** admin_audit role_access returned 18 rows (12 ไม่เห็น, 2 ซ่อนตัวเลข, 4 ปิด); the card headline reads '18 รายการ' and the text says 2 metrics are masked.
 - **ที่ควรเป็น:** Verdict '2 เมตริกถูกซ่อนตัวเลข' with those 2 as exceptions and the rest folded; card and text agree.
@@ -2010,7 +2010,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-150. 'Who uses Winyu most' is answered 'no per-person data', though every audit row has a user
 
-- **สถานะ:** เปิด (ใหม่)
+- **สถานะ:** แก้แล้ว `cda396f` · รอยืนยันกับโมเดล · หัวข้อใหม่ `user_usage` นับคำถามและการเรียกเครื่องมือต่อคนพร้อมบทบาท ไม่แสดงข้อความที่พิมพ์
 - **ระดับ:** กลาง · **หมวด:** `did-not-answer` · **บทบาท:** u_ton (IT admin)
 - **อาการ:** The model called admin_audit tool_usage (143 calls per tool) and said Winyu keeps no per-person usage. audit.json has userId on every row, and the console usage tab shows users by role. The counts 143 / 154 / 144 across chat, Audit tab and usage tab differ unexplained.
 - **ที่ควรเป็น:** Rank people by questions or tool calls for the window and show top users with roles.
@@ -2022,7 +2022,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-151. Permission changes made in the Admin console (คืนค่า, reset) are not written to the audit
 
-- **สถานะ:** เปิด (ใหม่) · นอกเส้นทางเดโม
+- **สถานะ:** แก้แล้ว `cda396f` · นอกเส้นทางเดโม · การแก้สิทธิ์ทุกทาง (แชตและ Admin console ทั้งตั้งค่า คืนค่า และรีเซ็ต) เขียน audit หนึ่งแถวต่อระดับที่เปลี่ยน พร้อมค่าเดิมและค่าใหม่ และแสดงในมุมการส่งงานและการแก้ไข
 - **ระดับ:** กลาง · **หมวด:** `audit` · **บทบาท:** u_ton (IT admin)
 - **อาการ:** After the chat set_permission (audited 19:00:20), the console revert via คืนค่า wrote no audit row. The chat set_permission activity row has an empty subject.
 - **ที่ควรเป็น:** Every permission write, from chat or console, is an activity row naming the role, item, and old and new level.
@@ -2129,7 +2129,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-160. Chat audit cards show English codes, a raw 'policy_label' header and raw tool-argument JSON
 
-- **สถานะ:** ยังเสีย · เดิม AI-121
+- **สถานะ:** แก้แล้ว `cda396f` · เดิม AI-121 · การ์ด audit ในแชตใช้ผลและหัวข้อภาษาไทย ไม่มีหัวคอลัมน์ policy_label และไม่ส่ง JSON อาร์กิวเมนต์ดิบ แทนด้วยชื่อเมตริกที่ขอ
 - **ระดับ:** ต่ำ · **หมวด:** `thai-language` · **บทบาท:** u_ton (IT admin)
 - **อาการ:** The denial row shows ผล 'Out of scope', a column headed 'policy_label', and args '{"metric":"net_sales_value",…}'. role_access labels are now Thai.
 - **ที่ควรเป็น:** Thai result labels, a Thai header for every column, no raw JSON.
