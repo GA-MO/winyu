@@ -364,3 +364,11 @@ describe("the admin audit line", () => {
     expect(prompt).toContain("ห้ามเสนอให้ขยายหรือคลายสิทธิ์ของบทบาทใด");
   });
 });
+
+describe("leave of someone else", () => {
+  test("goes to the person's profile, where a missing leave field is a permission, not an absence", () => {
+    const rule = WINYU_RULES.find((line) => line.includes("ระเบียบการลา")) ?? "";
+    expect(rule).toContain("วันลาคงเหลือหรือใบลาของคนอื่น (เช่นลูกทีม) = `get_person`");
+    expect(rule).toContain("`leave_note`");
+  });
+});

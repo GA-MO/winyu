@@ -1469,6 +1469,10 @@ export const TH = {
     notFound: (query: string) => `ไม่พบพนักงาน "${query}" ในขอบเขตของคุณ`,
     ambiguous: (query: string, count: number) => `"${query}" ตรงกับ ${count} คน ระบุ id จากรายการนี้`,
     hiddenFields: "บางช่องถูกปิดตามสิทธิ์ของผู้ใช้",
+    leaveStatus: { pending: "รออนุมัติ", approved: "อนุมัติแล้ว", returned: "ส่งกลับ" } as Record<string, string>,
+    leaveRequest: (kind: string, status: string) => `ใบ${kind} · ${status}`,
+    leaveSpan: (from: string, to: string, days: number) => `${from} ถึง ${to} (${days} วัน)`,
+    leaveHidden: (manager: string | null) => `วันลาและใบลาของคนนี้เห็นได้เฉพาะ${manager ? ` ${manager} (หัวหน้าสายตรง)` : "หัวหน้าสายตรง"} ผู้บริหารในสายงาน และ HR · ข้อมูลมีอยู่ แต่อยู่นอกสิทธิ์ของคุณ`,
   },
   sites: {
     kind: { plant: "โรงงาน", dc: "ศูนย์กระจายสินค้า", office: "สำนักงาน" } as Record<string, string>,

@@ -170,3 +170,16 @@ describe("admin_audit", () => {
     expect(cost.every((row) => String(row.cost_label).startsWith("$"))).toBe(true);
   });
 });
+
+describe("get_person leave", () => {
+  type Profile = { ok: true; data: { leave: { label: string; value: string }[]; leave_note: string | null } };
+
+  test("a manager reads a direct report's leave balances; a peer gets a note naming who may, not an empty answer", async () => {
+    const manager = (await call(RSM, "get_person", { id: REP, name: null })) as unknown as Profile;
+    expect(manager.data.leave.map((entry) => entry.label)).toContain(TH.leave.kind.annual);
+    expect(manager.data.leave_note).toBeNull();
+    const peer = (await call(OTHER_REP, "get_person", { id: REP, name: null })) as unknown as Profile;
+    expect(peer.data.leave).toEqual([]);
+    expect(peer.data.leave_note).toBe(TH.people.leaveHidden(findUser(RSM)?.nameTh ?? null));
+  });
+});

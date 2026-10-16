@@ -208,7 +208,22 @@ function resolvePerson(access: AccessContext, id: string | null, name: string | 
   return { ok: false as const, error: T.ambiguous(needle, found.length), candidates: found.map((employee) => ({ id: employee.id, name: employee.nameTh, title: employee.title })) };
 }
 
-/** One employee's profile, shaped for the viewer: directory fields for everyone, career and certificates for the team, risk and pay for HR. */
+async function leaveOf(employee: Employee) {
+  const leave = ports().leave;
+  const [balances, requests] = await Promise.all([leave.balances(employee.id), leave.requests(employee.id)]);
+  const today = businessToday();
+  const current = requests.filter((request) => request.status === "pending" || request.to >= today);
+  return [
+    ...balances.map((balance) => ({ label: TH.leave.kind[balance.kind] ?? balance.kind, value: TH.leave.left(balance.left), detail: TH.leave.balanceDetail(balance.entitled, balance.used, balance.pending) })),
+    ...current.map((request) => ({
+      label: T.leaveRequest(TH.leave.kind[request.kind] ?? request.kind, T.leaveStatus[request.status] ?? request.status),
+      value: T.leaveSpan(formatDateTh(request.from), formatDateTh(request.to), request.days),
+      detail: null,
+    })),
+  ];
+}
+
+/** One employee's profile, shaped for the viewer: directory fields for everyone, career, certificates and leave for the team (their line managers, leadership, themselves), risk and pay for HR; a directory view says who may see the leave instead. */
 export async function personProfile(access: AccessContext, id: string | null, name: string | null) {
   const directory = directoryOf(await ports().directory.load());
   const resolved = resolvePerson(access, id, name, directory);
@@ -233,6 +248,8 @@ export async function personProfile(access: AccessContext, id: string | null, na
       risk_reasons: view === "hr" ? signals.riskReasons : [],
       reports: reports.map((report) => ({ id: report.id, name: report.nameTh, title: report.title, photo: report.photo })),
       reports_count: reports.length > 0 ? T.reportsCount(reports.length) : null,
+      leave: detailed ? await leaveOf(employee) : [],
+      leave_note: detailed ? null : T.leaveHidden(managerName(employee, directory)),
     },
   };
 }
