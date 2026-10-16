@@ -10,7 +10,7 @@ import { calendarResult, connectorResult, entityResult, gapResult, memoryResult,
 const ALCOHOL_BAN = "alcohol_ban";
 const NEGATIVE = /^[−-]/;
 const ENTITY_NAME_KEY = "ชื่อ";
-const HIDDEN_ENTITY_KEYS = new Set(["id", ENTITY_NAME_KEY]);
+const THAI = /[\u0E00-\u0E7F]/;
 const MAX_CONNECTOR_ROWS_SHOWN = 12;
 const GROUPED_FROM = 10_000;
 const HIDDEN_CONNECTOR_KEY = /(^|_)id$|^region$|^visited_on$|^date$|^order_value$|^score$/;
@@ -112,6 +112,11 @@ function entityValue(value: unknown): string {
 }
 
 /** describe_entity: the master record as label and value, named by the record itself. */
+/** A master-data field the card shows: a Thai label other than the name it is titled with; an English key (id, ownerId) is for the model to act on and never reaches the person. */
+function isShownField(key: string): boolean {
+  return key !== ENTITY_NAME_KEY && THAI.test(key);
+}
+
 export function EntityCard({ result }: { result: unknown }) {
   return (
     <ParsedCard parsed={parseResult(entityResult, result)} title={TH.cards.entityTitle}>
@@ -120,7 +125,7 @@ export function EntityCard({ result }: { result: unknown }) {
           <KeyValue
             props={{
               pairs: Object.entries(data)
-                .filter(([key]) => !HIDDEN_ENTITY_KEYS.has(key))
+                .filter(([key]) => isShownField(key))
                 .map(([label, value]) => ({ label, value: entityValue(value) })),
             }}
           />
