@@ -592,6 +592,19 @@ describe("a target card in a month still running", () => {
   });
 });
 
+describe("a target breakdown ranked by its gap", () => {
+  test("is read against the 100% line with its base named, never in change words like ยอดหาย, by one group or two (AI-103)", () => {
+    for (const dims of [["agent"], ["agent", "province"]] as Dim[][]) {
+      const card = cardOf({ metric: "net_sales_value", dims, range: MONTH_TO_DATE, compare: "target" }, { sort: "delta_asc", filters: { region: ["northeast"] } });
+      const strip = card.body.kind === "strip" ? card.body.strip : card.body.kind === "exceptions" ? card.body.strip : null;
+      expect(strip?.baseline).toBe(100);
+      expect(card.verdict ?? "").not.toContain(TH.read.lost);
+      expect(card.hero?.unit).toBe(TH.read.ofPacedTarget);
+      expect(card.hero?.value).toMatch(/^\d+(\.\d)?%$/);
+    }
+  });
+});
+
 describe("a breakdown whose level decides", () => {
   test("cover counts the groups under the low-cover line over every group before the row cap, and names the worst", () => {
     const { query, result } = answer({ metric: "days_of_cover", dims: ["dc"], compare: "none" });
@@ -633,7 +646,7 @@ describe("a breakdown whose level decides", () => {
     const card = presentCard({ title: "t", query, result });
     const under = result.rows.filter((row) => Number(row.value) < 100);
     expect(card.hero?.value).toBe(result.headline.value);
-    if (under.length === 0) expect(card.verdict).toBe(TH.read.target.none("ภาค"));
+    if (under.length === 0) expect(card.verdict).toBe(TH.read.target.none("ภาค", TH.read.goal));
     else expect(card.verdict).toContain(String(under.sort((left, right) => Number(left.value) - Number(right.value))[0].region));
   });
 

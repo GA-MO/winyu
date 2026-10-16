@@ -33,8 +33,8 @@ export type EvalCase = {
 
 /** The questions a demo actually gets asked, one per card shape and per persona scope. The Vexa build's funnel, scatter and sell-through cases drew one card from several bound results (`with`); Winyu draws one card per `query_metric`, so they check that every metric was asked with the same dims and range instead. */
 export const EVAL_CASES: EvalCase[] = [
-  { id: "ceo-attainment", userId: "u_thana", prompt: "ยอดขายทั้งประเทศเทียบเป้าตอนนี้เท่าไหร่", expectCard: "query_metric", expectShape: "strip", expectStyle: "picture", expectHero: { label: "ทั้งประเทศ", value: "98.6%" }, expectVerdict: "หลุดเป้าเพราะภาคอีสาน" },
-  { id: "ceo-by-region", userId: "u_thana", prompt: "ยอดขายแยกตามภาคเดือนนี้", expectCard: "query_metric", expectSort: "value_desc", expectShape: "strip", expectStyle: "picture", expectHero: { label: "ทั้งประเทศ" }, expectVerdict: "หลุดเป้าเพราะภาคอีสาน" },
+  { id: "ceo-attainment", userId: "u_thana", prompt: "ยอดขายทั้งประเทศเทียบเป้าตอนนี้เท่าไหร่", expectCard: "query_metric", expectShape: "strip", expectStyle: "picture", expectHero: { label: "ทั้งประเทศ", value: "98.6%" }, expectVerdict: "หลุดเป้าตามเวลาเพราะภาคอีสาน" },
+  { id: "ceo-by-region", userId: "u_thana", prompt: "ยอดขายแยกตามภาคเดือนนี้", expectCard: "query_metric", expectSort: "value_desc", expectShape: "strip", expectStyle: "picture", expectHero: { label: "ทั้งประเทศ" }, expectVerdict: "หลุดเป้าตามเวลาเพราะภาคอีสาน" },
   { id: "ceo-decline", userId: "u_thana", prompt: "เอเย่นต์ไหนยอดตกแรงที่สุดเทียบงวดก่อน", expectCard: "query_metric", expectSort: "delta_asc", expectShape: "strip", expectStyle: "picture", expectHero: { label: "รวมทุกเอเย่นต์" }, expectVerdict: "2 เอเย่นต์ยอดหาย" },
   { id: "ceo-trend", userId: "u_thana", prompt: "แนวโน้มยอดขายรายเดือนปีนี้เป็นยังไง", expectCard: "query_metric", expectShape: "line", expectStyle: "scorecard", expectHero: { label: "ส.ค. 69" }, expectVerdict: " จาก ก.ค. 69" },
   { id: "ceo-alerts", userId: "u_thana", prompt: "ตอนนี้มีอะไรผิดปกติบ้าง", expectCard: "get_alerts" },
@@ -48,7 +48,7 @@ export const EVAL_CASES: EvalCase[] = [
   { id: "hr-attrition", userId: "u_may", prompt: "อัตราการลาออกแต่ละฝ่ายเป็นยังไง", expectCard: "query_metric", expectShape: "strip", expectStyle: "picture", expectHero: { label: "เฉลี่ยทุกฝ่าย" }, expectVerdict: "สูงสุด" },
   { id: "rep-denied", userId: "u_krit", prompt: "กำไรขั้นต้นของบริษัทเท่าไหร่" },
   { id: "hr-headcount", userId: "u_may", prompt: "จำนวนพนักงานแต่ละฝ่ายเทียบปีที่แล้ว", expectCard: "query_metric", expectSort: "value_desc", expectShape: "strip", expectStyle: "picture" },
-  { id: "finance-budget", userId: "u_mint", prompt: "เปรียบเทียบงบกับยอดจริงของเดือนนี้", expectCard: "query_metric", expectShape: "strip", expectStyle: "picture", expectHero: { label: "ทั้งประเทศ" }, expectVerdict: "หลุดเป้าเพราะภาคอีสาน" },
+  { id: "finance-budget", userId: "u_mint", prompt: "เปรียบเทียบงบกับยอดจริงของเดือนนี้", expectCard: "query_metric", expectShape: "strip", expectStyle: "picture", expectHero: { label: "ทั้งประเทศ" }, expectVerdict: "หลุดเป้าตามเวลาเพราะภาคอีสาน" },
   { id: "landing-alert-marketing", userId: "u_ben", prompt: "ตรวจความผิดปกติของ เพอร์ร่า ขวด PET 600 มล. · เชียงใหม่ · ภาคเหนือ ให้หน่อย", expectCard: "get_alerts" },
   { id: "landing-alert-finance", userId: "u_mint", prompt: "ตรวจความผิดปกติของ ภาคใต้ ให้หน่อย", expectCard: "get_alerts" },
   { id: "landing-visit", userId: "u_krit", prompt: "เทียบยอดขายเข้ากับยอดขายออกของ อุบลศรีสุข เทรดดิ้ง ก่อนไปเยี่ยม", expectCard: "query_metric", expectShape: "line", expectStyle: "scorecard", expectHero: { label: "อัตราส่วน" }, expectVerdict: "สูงกว่าปริมาณขายเข้า" },

@@ -4,7 +4,7 @@ import { MIN_CELL_SIZE } from "@/lib/access/suppression";
 import { addDays, daysBetween, monthKeyOfIso, weekKeyOfIso } from "@/lib/data/dates";
 import { formatDateTh, formatPercent, periodLabelTh } from "@/lib/i18n/format";
 import { changeTextOf, deltaPercentOf, deltaPointsOf, groupDimsOf, labelAlong, labelOf, numericOf, timeDimOf, valueTextOf } from "./rows";
-import { changeOf, exceptionsOf, fitsOneStrip, LEVEL_LINES, parityReading, percentIn, readBreakdown, stripOf, type Breakdown, type BreakdownBars, type LevelLine } from "./breakdown";
+import { changeOf, exceptionsOf, fitsOneStrip, LEVEL_LINES, parityReading, percentIn, readBreakdown, stripOf, type Breakdown, type BreakdownBars, type LevelLine, type TargetBase } from "./breakdown";
 import { compactPeriod, outliersOf, percentText, rangeText, shareVerdict, spaced, summaryVerdict, trendVerdict, type CardFooter, type Fold, type ReadRow, type Strip, type Tile } from "./reading";
 import {
   bucketCountOf,
@@ -301,13 +301,13 @@ const CARD_RULES: readonly CardRule[] = [
   { rule: "R2 short series", when: (f) => f.time && f.groups === 0 && f.buckets < MIN_LINE_BUCKETS, view: always("metric"), bars: "auto", hero: "total", look: "summary" },
   { rule: "R9 trend", when: (f) => f.time && f.groups === 0, view: always("line"), bars: "auto", hero: "latest", look: "summary" },
   { rule: "time × group", when: (f) => f.time, view: timeView, bars: "auto", hero: "total", look: "chart" },
+  { rule: "R3 against target", when: (f) => f.query.compare === "target" && f.rows.length >= RANK_MIN_ROWS && !isDenseGrid(f) && hasChange(f.rows), view: always("bar"), bars: "target", hero: "reading", look: "breakdown" },
   { rule: "R4 two groups sorted by change", when: (f) => f.groups >= 2 && !isDenseGrid(f) && asksAboutChange(f.sortBy) && hasChange(f.rows), view: always("bar"), bars: "change", hero: "reading", look: "breakdown" },
   { rule: "two groups", when: (f) => f.groups >= 2, view: (f) => (isDenseGrid(f) ? "heatmap" : "bar"), bars: "auto", hero: "total", look: "breakdown" },
   { rule: "no breakdown", when: (f) => f.groups === 0 || f.rows.length < RANK_MIN_ROWS, view: (f) => (f.rows.length <= 1 ? "metric" : "table"), bars: "auto", hero: "total", look: "summary" },
   { rule: "R6 under the line", when: (f) => f.line !== null && f.under !== null && f.under.count > 0, view: always("bar"), bars: "level", hero: "reading", look: "breakdown" },
   { rule: "R6 nothing under the line", when: (f) => f.line !== null && f.under !== null, view: always("bar"), bars: "level", hero: "reading", look: "breakdown" },
   { rule: "R4 sorted by change", when: (f) => asksAboutChange(f.sortBy) && hasChange(f.rows), view: always("bar"), bars: "change", hero: "reading", look: "breakdown" },
-  { rule: "R3 against target", when: (f) => f.query.compare === "target" && hasChange(f.rows), view: always("bar"), bars: "target", hero: "reading", look: "breakdown" },
   { rule: "R5 top of a ranking", when: (f) => sortsByValue(f.sortBy) && (!f.additive || f.capped), view: wholeOrBars, bars: "auto", hero: "leader", look: "breakdown" },
   { rule: "breakdown", when: () => true, view: wholeOrBars, bars: "auto", hero: "reading", look: "breakdown" },
 ];
@@ -650,11 +650,10 @@ function baseTotalOf(facts: Facts): string | null {
   return `${word} ${formatMetricValue(facts.query.metric, previous.reduce<number>((sum, value) => sum + (value ?? 0), 0))}`;
 }
 
-/** What a breakdown's target figures are a share of, and the whole month's figure beside the overall row when the month is still running. */
-function targetBaseOf(facts: Facts): { unit: string; detail: string | null } {
+/** What a breakdown's target figures are a share of, and the whole month's share and what is left to it, which lead the card when the month is still running (AI-101). */
+function targetBaseOf(facts: Facts): TargetBase {
   const projection = facts.result.headline.projection;
-  const detail = projection ? TH.read.wholeMonth(projection.attainmentToDate, projection.shortBy) : null;
-  return { unit: targetUnitOf(facts.query, facts.result.provenance.asOf), detail };
+  return { paced: isPacedTarget(facts.query, facts.result.provenance.asOf), month: projection ? { attainment: projection.attainmentToDate, left: projection.shortBy } : null };
 }
 
 /** Rows a shared card still shows beside the ones it locks, ranked by value with a bar sized against the largest. */

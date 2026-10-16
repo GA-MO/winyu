@@ -63,13 +63,21 @@ describe("query_metric for a running month against target", () => {
     expect(tiles.get(TH.read.monthEnd)).toBe(projection.attainment);
   });
 
-  test("a breakdown in the running month calls its percentages ของเป้าตามเวลา and puts the whole month beside the overall row (AI-53)", async () => {
-    const result = await askMonthToDate("u_thana", ["region"]);
-    const projection = result.headline.projection;
-    if (!projection) throw new Error("no projection");
-    const card = presentCard({ title: "t", query: result.query, result });
-    expect(card.hero?.unit).toBe(TH.read.ofPacedTarget);
-    expect(card.hero?.detail).toBe(TH.read.wholeMonth(projection.attainmentToDate, projection.shortBy));
+  test("a breakdown in the running month leads with the share of the whole month's target and what is left, whatever it is split by; the rows keep the pace base by name (AI-101)", async () => {
+    for (const [userId, dims] of [["u_krit", ["agent"]], ["u_thana", ["region"]]] as const) {
+      const result = await askMonthToDate(userId, [...dims]);
+      const projection = result.headline.projection;
+      if (!projection) throw new Error("no projection");
+      const card = presentCard({ title: "t", query: result.query, result });
+      const paced = `${Math.round((100 + (result.headline.deltaPercent ?? 0)) * 10) / 10}%`;
+      expect(card.hero?.value).toBe(projection.attainmentToDate);
+      expect(card.hero?.unit).toBe(TH.read.ofMonthTarget);
+      expect(card.hero?.detail).toBe([projection.shortBy ? `${TH.read.toTarget} ${projection.shortBy}` : null, TH.read.pacedShare(paced)].filter(Boolean).join(" · "));
+      if (card.body.kind !== "strip") throw new Error("not a strip");
+      expect(card.body.strip.overall?.text).toBe(projection.attainmentToDate);
+      expect(card.body.strip.overall?.measure).toBeNull();
+      if (card.body.strip.rows.some((row) => row.tone === "bad")) expect(card.verdict).toContain(TH.read.pacedGoal);
+    }
   });
 
   test("what is left agrees with the printed month target less the printed actual within their rounding, for every scope and unit (AI-102)", async () => {
