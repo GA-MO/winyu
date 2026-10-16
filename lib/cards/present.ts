@@ -348,7 +348,8 @@ function heroLabelOf(query: MetricQuery, result: Extract<MetricResult, { ok: tru
 function footnoteOf(result: Extract<MetricResult, { ok: true }>, extraNote: string | null, hidden: number): string {
   const trust = TH.dash.trust[result.provenance.trust];
   const masked = result.provenance.masked.length > 0 && hidden === 0 ? TH.dash.maskedNote(result.provenance.masked.length) : null;
-  return [TH.dash.provenance(result.provenance.sourceSystem, trust, formatDateTh(result.provenance.asOf)), masked, result.headline.compareNote, extraNote]
+  const gap = result.provenance.coverage?.label ?? null;
+  return [TH.dash.provenance(result.provenance.sourceSystem, trust, formatDateTh(result.provenance.asOf)), gap, masked, result.headline.compareNote, extraNote]
     .filter((line): line is string => line !== null)
     .join(" · ");
 }

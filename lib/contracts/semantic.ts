@@ -12,14 +12,18 @@ export type MetricDef = { id: MetricId; label: string; labelTh: string; unit: st
   owner: string; certified: boolean; dims: Dim[]; aclDims: Dim[]; synonyms: string[]; description: string; sourceSystem: string };
 export type MetricSort = "value_desc" | "value_asc" | "delta_asc" | "delta_desc";
 export type ValueFilter = { op: "below" | "above"; value: number };
+/** A period named the way people say it; the server turns it into dates against the business day and the last data day. */
+export type MetricPeriod = "this_week" | "last_week" | "this_month" | "last_month" | "ytd" | "last_7_days" | "last_30_days";
 export type MetricQuery = { metric: MetricId; dims: Dim[]; filters: Partial<Record<Dim, string[]>>;
-  range: { from: string; to: string }; grain: Grain; compare: "none" | "prev_period" | "prev_year" | "target"; limit: number | null; sort?: MetricSort | null; where?: ValueFilter | null };
+  range: { from: string; to: string }; grain: Grain; compare: "none" | "prev_period" | "prev_year" | "target"; limit: number | null; sort?: MetricSort | null; where?: ValueFilter | null; period?: MetricPeriod | null };
+/** How much of the asked window the warehouse holds: the window, the last day with data in it, its days and covered days, and the Thai line that names the gap (null when there is none). */
+export type Coverage = { from: string; to: string; through: string; days: number; coveredDays: number; label: string | null };
 export type MetricRow = Record<string, string | number | null>;
 export type DimValues = Partial<Record<Dim, string[]>>;
 /** A question as the engine read it: every filter value as its canonical id, the slice the caller's role added because the question left it open, and the Thai name of every value in both, in the same order. Code after the engine reads this, never the words the model wrote. */
 export type ResolvedQuery = MetricQuery & { scopeApplied: DimValues; labels: DimValues };
 export type Provenance = { metric: MetricId; certified: boolean; sourceSystem: string; asOf: string; rowCount: number;
-  filterLabels?: string[]; masked: string[]; trust: "verified" | "derived" | "estimated"; grant?: GrantRef };
+  filterLabels?: string[]; masked: string[]; trust: "verified" | "derived" | "estimated"; grant?: GrantRef; coverage?: Coverage };
 /** Where a month still running ends against its target at the recent pace, formatted for the card and the model. */
 export type MonthEndProjection = { recentDays: number; projected: string; monthTarget: string; attainment: string };
 /** How many groups of a breakdown sit under the metric's deciding line, counted over every group in scope before the row cap. */
@@ -37,6 +41,7 @@ export const DIMS = ["date", "week", "month", "region", "province", "channel", "
 export const GRAINS = ["day", "week", "month"] as const satisfies readonly Grain[];
 export const COMPARE_MODES = ["none", "prev_period", "prev_year", "target"] as const;
 export const METRIC_SORTS = ["value_desc", "value_asc", "delta_asc", "delta_desc"] as const satisfies readonly MetricSort[];
+export const METRIC_PERIODS = ["this_week", "last_week", "this_month", "last_month", "ytd", "last_7_days", "last_30_days"] as const satisfies readonly MetricPeriod[];
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 /** The most rows any tool hands the model; the model copies them into props, so the cap is part of the grounding contract. */
@@ -58,4 +63,12 @@ export const metricQuerySchema = z.object({
   limit: z.number().int().min(1).max(MAX_ROWS).nullable(),
   sort: z.enum(METRIC_SORTS).nullable().optional(),
   where: z.object({ op: z.enum(["below", "above"]), value: z.number() }).nullable().optional(),
+  period: z.enum(METRIC_PERIODS).nullable().optional(),
 }) satisfies z.ZodType<MetricQuery>;
+
+/** What `query_metric` takes: a named period or explicit dates; the server resolves the period, so `range` may be left out when `period` is set. */
+export const metricQueryInputSchema = metricQuerySchema.extend({
+  range: z.object({ from: z.string().regex(ISO_DATE), to: z.string().regex(ISO_DATE) }).nullable().optional(),
+  period: z.enum(METRIC_PERIODS).nullable().optional(),
+});
+export type MetricQueryInput = z.infer<typeof metricQueryInputSchema>;

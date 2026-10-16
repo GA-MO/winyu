@@ -20,8 +20,6 @@ import { TH } from "@/lib/i18n/th";
 import { sliceLabel, untilLabel } from "@/lib/share/grant-label";
 
 const BUDDHIST_YEAR_OFFSET = 543;
-const MS_PER_DAY = 86_400_000;
-const DAYS_PER_WEEK = 7;
 const MEMORY_CHAR_BUDGET = 2400;
 const MEMORY_FACT_LIMIT = 12;
 const PERSONA_LINE_BREAK = "\n\n";
@@ -182,58 +180,8 @@ function storyBlock(story: Story): string {
   ].join("\n");
 }
 
-type Period = { from: string; to: string };
-
-function isoOf(date: Date): string {
-  return date.toISOString().slice(0, 10);
-}
-
-function utcDate(iso: string): Date {
-  const [year, month, day] = iso.split("-").map(Number);
-  return new Date(Date.UTC(year ?? 1970, (month ?? 1) - 1, day ?? 1));
-}
-
-function shifted(date: Date, days: number): Date {
-  return new Date(date.getTime() + days * MS_PER_DAY);
-}
-
-/** The calendar periods a question names, anchored to the day the data reaches instead of the wall clock. */
-export function periodsAsOf(asOf: string): Record<"yesterday" | "thisWeek" | "lastWeek" | "thisMonth" | "lastMonth" | "thisYear" | "lastYear", Period> {
-  const day = utcDate(asOf);
-  const year = day.getUTCFullYear();
-  const month = day.getUTCMonth();
-  const monday = shifted(day, -((day.getUTCDay() + DAYS_PER_WEEK - 1) % DAYS_PER_WEEK));
-  return {
-    yesterday: { from: isoOf(shifted(day, -1)), to: isoOf(shifted(day, -1)) },
-    thisWeek: { from: isoOf(monday), to: asOf },
-    lastWeek: { from: isoOf(shifted(monday, -DAYS_PER_WEEK)), to: isoOf(shifted(monday, -1)) },
-    thisMonth: { from: isoOf(new Date(Date.UTC(year, month, 1))), to: asOf },
-    lastMonth: { from: isoOf(new Date(Date.UTC(year, month - 1, 1))), to: isoOf(new Date(Date.UTC(year, month, 0))) },
-    thisYear: { from: `${year}-01-01`, to: asOf },
-    lastYear: { from: `${year - 1}-01-01`, to: `${year - 1}-12-31` },
-  };
-}
-
-function periodText(period: Period): string {
-  return period.from === period.to ? period.from : `${period.from} ถึง ${period.to}`;
-}
-
-/** When the calendar has moved past the data, the model anchors every relative period ("today", "last month", "last year"…) to the day the data reaches and says so, instead of reading them off the wall clock or asking for days the warehouse does not hold. */
-function dataAsOfLine(today: string): string | null {
-  if (today <= DATA_AS_OF) return null;
-  const periods = periodsAsOf(DATA_AS_OF);
-  const named = [
-    `วันนี้ = ${DATA_AS_OF}`,
-    `เมื่อวาน = ${periodText(periods.yesterday)}`,
-    `สัปดาห์นี้ = ${periodText(periods.thisWeek)}`,
-    `สัปดาห์ที่แล้ว = ${periodText(periods.lastWeek)}`,
-    `เดือนนี้ = ${periodText(periods.thisMonth)}`,
-    `เดือนที่แล้ว / เดือนก่อน = ${periodText(periods.lastMonth)}`,
-    `ปีนี้ = ${periodText(periods.thisYear)}`,
-    `ปีที่แล้ว / ปีก่อน = ${periodText(periods.lastYear)}`,
-  ];
-  return `ข้อมูลในชั้นเมตริกล่าสุดถึง ${DATA_AS_OF} (${buddhistDate(DATA_AS_OF)} พ.ศ.): นับช่วงเวลาที่ผู้ใช้พูดถึงจากวันนั้น ไม่ใช่จากวันนี้ตามปฏิทิน: ${named.join(" · ")} บอกผู้ใช้ว่าข้อมูลล่าสุดถึงวันไหน อย่าขอช่วงวันหลังจากนั้น`;
-}
+/** The one date fact the model needs about the warehouse, and the rule that leaves turning a period into dates to the server. */
+const DATA_AS_OF_LINE = `ข้อมูลในชั้นเมตริกล่าสุดถึง ${DATA_AS_OF} (${buddhistDate(DATA_AS_OF)} พ.ศ.) · ช่วงเวลาที่ผู้ใช้พูดถึง (สัปดาห์นี้ สัปดาห์ที่แล้ว เดือนนี้ เดือนที่แล้ว ปีนี้ 7 หรือ 30 วันล่าสุด) ให้ส่งเป็น \`period\` ของ \`query_metric\` แทนการคำนวณวันที่เอง ระบบแปลงเป็นวันที่ให้ · ถ้า summary บอกว่าข้อมูลถึงวันไหนหรือช่วงนั้นมีข้อมูลกี่วัน ให้บอกผู้ใช้ในประโยคแรก และอย่าเรียกช่วงที่ข้อมูลยังไม่ครบว่าทั้งเดือนหรือทั้งสัปดาห์`;
 
 /** How much each kind of context matters when the budget is tight; the required kinds are never dropped. */
 const PRIORITY: Record<ContextKind, number> = {
@@ -286,8 +234,7 @@ export function contextFor(access: AccessContext, user: User | null, ctx: Person
     item("scope", "scope", "user", scopeLine(access, user), "access.policy", own),
     item("today", "date", "day", `วันนี้คือ ${ctx.today} (ตรงกับ ${buddhistDate(ctx.today)} พ.ศ.)`, "clock", null),
   ];
-  const asOf = dataAsOfLine(ctx.today);
-  if (asOf) items.push(item("data-as-of", "date", "everyone", asOf, "warehouse.asOf", null));
+  items.push(item("data-as-of", "date", "everyone", DATA_AS_OF_LINE, "warehouse.asOf", null));
   items.push(item("vocabulary", "vocabulary", "everyone", VOCABULARY.join(PERSONA_LINE_BREAK), "persona.vocabulary", null));
   const remembered = guardedData(memory.length > 0 ? memory.map(memoryLine).join("\n") : NO_MEMORY_LINE, "memory");
   items.push({ ...item("memory", "memory", "turn", [MEMORY_HEADER, remembered.fenced].join(PERSONA_LINE_BREAK), "memory.relevant", own), ...(remembered.guarded ? { guarded: remembered.guarded } : {}) });

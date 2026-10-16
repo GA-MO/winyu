@@ -630,6 +630,22 @@ export const TH = {
     askPrompt: (claim: string) => `${claim} ช่วยสืบต่อให้หน่อย`,
     steady: "ปกติดี",
   },
+  period: {
+    name: {
+      this_week: "สัปดาห์นี้",
+      last_week: "สัปดาห์ที่แล้ว",
+      this_month: "เดือนนี้",
+      last_month: "เดือนที่แล้ว",
+      ytd: "ปีนี้",
+      last_7_days: "7 วันล่าสุด",
+      last_30_days: "30 วันล่าสุด",
+    } as Record<string, string>,
+    through: (day: string) => `ข้อมูลถึง ${day}`,
+    partial: (name: string, days: number, day: string) => `${name}มีข้อมูล ${days} วัน (ถึง ${day})`,
+    none: (name: string, day: string) => `${name}ยังไม่มีข้อมูล ข้อมูลล่าสุดถึง ${day}`,
+    rangeAfterData: (day: string) => `ช่วงที่ขอยังไม่มีข้อมูล ข้อมูลล่าสุดถึง ${day}`,
+    missing: "ระบุ period (เช่น this_month) หรือ range อย่างใดอย่างหนึ่ง",
+  },
   dash: {
     pinnedZone: "การ์ดที่ปักไว้",
     suggestedZone: "การ์ดอื่นสำหรับบทบาทคุณ",

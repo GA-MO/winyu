@@ -3,12 +3,12 @@ import type { PersonaContext } from "./persona";
 import { accessFor } from "@/lib/access/policies";
 import type { ContextPacket, Story } from "@/lib/contracts";
 import { threads } from "@/lib/server/threads-read";
-import { DATA_AS_OF, dataDay, monthEnd, monthStart } from "@/lib/data/dates";
+import { DATA_AS_OF, dataDay } from "@/lib/data/dates";
 import { findUser } from "@/lib/data/entities/users";
 import { newRun, runWithRun } from "@/lib/harness/runtime";
 import { TH } from "@/lib/i18n/th";
 import { investigations, packets } from "./collections";
-import { WINYU_RULES, periodsAsOf, personaFor } from "./persona";
+import { WINYU_RULES, personaFor } from "./persona";
 
 const TODAY = DATA_AS_OF;
 const PACKET_ID = "pkt-persona-test";
@@ -125,32 +125,16 @@ afterEach(() => {
 });
 
 describe("the day the data reaches", () => {
-  test("a calendar past the data anchors ranges to the data's last day; the same day says nothing extra", () => {
+  test("the prompt states the last data day once and leaves named periods to query_metric, whatever today is", () => {
     const user = findUser("u_thana");
     if (!user) throw new Error("no CEO");
-    const later = personaFor(accessFor(user), user, ctx({}, dataDay(3))).join("\n");
-    const lastYear = Number(DATA_AS_OF.slice(0, 4)) - 1;
-    expect(later).toContain(`ข้อมูลในชั้นเมตริกล่าสุดถึง ${DATA_AS_OF}`);
-    expect(later).toContain(`เดือนที่แล้ว / เดือนก่อน = ${monthStart(DATA_AS_OF, 1)} ถึง ${monthEnd(DATA_AS_OF, 1)}`);
-    expect(later).toContain(`ปีที่แล้ว / ปีก่อน = ${lastYear}-01-01 ถึง ${lastYear}-12-31`);
-    expect(personaFor(accessFor(user), user, ctx()).join("\n")).not.toContain("ข้อมูลในชั้นเมตริกล่าสุดถึง");
-  });
-});
-
-describe("periodsAsOf", () => {
-  test("names each relative period from the data's last day, across month and year edges", () => {
-    expect(periodsAsOf("2026-09-22")).toEqual({
-      yesterday: { from: "2026-09-21", to: "2026-09-21" },
-      thisWeek: { from: "2026-09-21", to: "2026-09-22" },
-      lastWeek: { from: "2026-09-14", to: "2026-09-20" },
-      thisMonth: { from: "2026-09-01", to: "2026-09-22" },
-      lastMonth: { from: "2026-08-01", to: "2026-08-31" },
-      thisYear: { from: "2026-01-01", to: "2026-09-22" },
-      lastYear: { from: "2025-01-01", to: "2025-12-31" },
-    });
-    expect(periodsAsOf("2026-01-04").lastMonth).toEqual({ from: "2025-12-01", to: "2025-12-31" });
-    expect(periodsAsOf("2026-03-01").lastMonth).toEqual({ from: "2026-02-01", to: "2026-02-28" });
-    expect(periodsAsOf("2026-03-01").thisWeek).toEqual({ from: "2026-02-23", to: "2026-03-01" });
+    for (const today of [DATA_AS_OF, dataDay(1), dataDay(40)]) {
+      const prompt = personaFor(accessFor(user), user, ctx({}, today)).join("\n");
+      expect(prompt).toContain(`ข้อมูลในชั้นเมตริกล่าสุดถึง ${DATA_AS_OF}`);
+      expect(prompt).toContain("`period` ของ `query_metric`");
+      expect(prompt).toContain(`วันนี้คือ ${today}`);
+      expect(prompt).not.toContain("เดือนที่แล้ว / เดือนก่อน =");
+    }
   });
 });
 

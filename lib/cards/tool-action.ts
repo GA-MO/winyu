@@ -48,6 +48,10 @@ function quoted(value: unknown): string | null {
   return said ? TH.trail.quoted(said) : null;
 }
 
+function periodLabel(value: unknown): string | null {
+  return typeof value === "string" ? TH.period.name[value] ?? null : null;
+}
+
 function rangeLabel(value: unknown): string | null {
   const range = argsOf(value);
   const from = ISO_DATE.exec(String(range.from ?? ""));
@@ -102,7 +106,7 @@ function roleLabel(role: unknown): string {
 }
 
 const BUILDERS: { [Name in NativeToolName]: Builder } = {
-  query_metric: (args) => read(TH.trail.pullMetric(metricOf(args.metric)), splitLabel(args.dims), regionFilter(args.filters), rangeLabel(args.range)),
+  query_metric: (args) => read(TH.trail.pullMetric(metricOf(args.metric)), splitLabel(args.dims), regionFilter(args.filters), rangeLabel(args.range) ?? periodLabel(args.period)),
   list_metrics: () => read(TH.trail.listMetrics),
   describe_entity: (args) => read(TH.trail.findEntity(TH.trail.entity[String(args.kind)] ?? TH.trail.someData), quoted(args.query)),
   get_alerts: () => read(TH.trail.alerts),

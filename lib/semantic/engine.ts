@@ -5,7 +5,9 @@ import {
 import { DECIDING_LINES, MONTHLY_METRICS, RATIO_METRICS, TARGET_METRICS, TIME_DIMS, metricDef } from "@/lib/semantic/metrics";
 import { MIN_CELL_SIZE, SUPPRESSED_FIELDS, SUPPRESSED_VALUE, cellScopeOf, isSmallCell } from "@/lib/access/suppression";
 import { namesOf, resolveFilters, type Dictionary } from "@/lib/semantic/dictionary";
-import { DAY_COUNT, ISO_OF_DAY, MONTH_COUNT, MONTH_FIRST_DAY, MONTH_OF_DAY, DATA_AS_OF, daysInMonthIndex, formatThaiDate, toDayIndex } from "@/lib/data/dates";
+import { DATA_AS_OF, DAY_COUNT, ISO_OF_DAY, MONTH_COUNT, MONTH_FIRST_DAY, MONTH_OF_DAY, daysInMonthIndex, formatThaiDate, toDayIndex } from "@/lib/data/dates";
+import { TH } from "@/lib/i18n/th";
+import { coverageOfQuery } from "@/lib/semantic/periods";
 
 const DEFAULT_LIMIT = 60;
 const PREV_YEAR_DAYS = 364;
@@ -172,6 +174,7 @@ function rangeDays(query: MetricQuery): { from: number; to: number } | Failure {
   const to = toDayIndex(query.range.to);
   if (Number.isNaN(from) || Number.isNaN(to)) return fail("BAD_QUERY", "ช่วงวันที่ไม่ถูกต้อง");
   if (to < from) return fail("BAD_QUERY", "วันที่สิ้นสุดต้องไม่น้อยกว่าวันที่เริ่มต้น");
+  if (from > DAY_COUNT - 1) return fail("BAD_QUERY", TH.period.rangeAfterData(formatThaiDate(DATA_AS_OF)));
   const clampedFrom = Math.max(0, Math.min(DAY_COUNT - 1, from));
   const clampedTo = Math.max(0, Math.min(DAY_COUNT - 1, to));
   return { from: clampedFrom, to: clampedTo };
@@ -544,12 +547,13 @@ export function finishMetric(plan: MetricPlan, current: FactResult, comparison: 
     filterLabels: [...filterLabelsOf(resolved), ...(query.where ? [whereLabelOf(def, query.where)] : [])],
     masked: masked || suppressed.size > 0 ? [...SUPPRESSED_FIELDS] : [],
     trust: def.certified ? "verified" : "derived",
+    coverage: coverageOfQuery(query),
   };
   const headline = {
     ...headlineOf(dictionary, def, query, capped, aggregated, averagedHeadline(def, query, ratio), compareRows, masked, suppressed, { periodLabel: plan.periodLabel, compareNote: plan.compareNote }),
     underLine: masked ? null : underLineOf(def, query.dims, all, suppressed),
   };
-  const summary = summarize(def, query, headline, masked, aggregated.length === 0);
+  const summary = [summarize(def, query, headline, masked, aggregated.length === 0), provenance.coverage?.label ?? null].filter((part): part is string => part !== null).join(" · ");
   return {
     ok: true,
     rows,
