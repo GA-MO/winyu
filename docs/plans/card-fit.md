@@ -4,6 +4,7 @@ The user (2026-10-16): "ไม่ใช่แสดง card หน้าตา�
 
 ## สถานะ (2026-10-16)
 แก้แล้ว: ตารางตัดสินใจ `CARD_RULES` ใน `lib/cards/present.ts`, การ์ดคู่ (R10) ผ่าน `cardPlanOf`, เช็ก `answeredHero` และ `drewShape` ต่อเคสใน `lib/eval/cases.ts`
+2026-10-17 รอบ 6 (I3): เพิ่ม R12 ซีรีส์เทียบเป้า, R13 ซีรีส์ที่ยอดเปลี่ยนระดับ, ค่าที่ปลายทั้งสองของแถบ, widget แบบ `month_end` เช็กใน `lib/cards/question-fit.test.ts`
 
 ## Worst examples
 
@@ -37,6 +38,12 @@ The user (2026-10-16): "ไม่ใช่แสดง card หน้าตา�
 | R9 | time series of a summed metric, no grouping | latest full bucket vs the one before; range total in the note | line | `ceo-trend`, `compare-stock-weekly` |
 | R10 | 2+ `query_metric` results in one turn with the same dimensions and range, of metrics that read together | the pairing | funnel, scatter, parity gap, or two lines on one chart | `shape-funnel`, `shape-scatter`, `shape-sell-through`, `landing-visit` |
 | R11 | an `explain_gap` answer | where the month ends at the recent pace (a running month), the share of target (a closed month), or the actual with its change | the whole gap named by its base, the parts over 10% of it drawn, the rest and the offsetting parts folded | present.test.ts "a gap card" |
+| R12 | time series against target, no grouping | the whole range's share of target ("ยอดสะสม 98.2% ของเป้าตามเวลา" while a month still runs), tiles for what is left and the bucket that missed most; verdict names both | line with the target dashed | question-fit.test.ts (round-5 CEO "ทั้งปีนี้ยอดขายจะถึงเป้าไหม") |
+| R13 | day or week series of a sum, no grouping, that stepped to a new level (`lib/cards/step.ts`: each side ≥ 3 buckets, a shift ≥ 40%, the two levels explain ≥ half the spread) | the level since the step ("เฉลี่ยตั้งแต่ 15 พ.ย. 8,951 ลิตร ต่อวัน", red), the level before in the detail; verdict "ตั้งแต่ 15 พ.ย. ลดลงจากวันละ 26,215 ลิตร เหลือ 8,951 ลิตร" | line | question-fit.test.ts (round-5 rep why-drop) |
+
+R12 and R13 come before R9 in `CARD_RULES`: R9 (latest bucket against the one before) answers "how did the last month go" and nothing else, so a target question or a series that broke never leads with it (AI-174). Months are left out of R13 because a month-level shift is the season, not an event. A tile, the landing period tag and the attention check read the same change the hero leads with (`headlineChangeOf`, `leadBucketOf`).
+
+A metric query can also be drawn and pinned as `month_end` (a widget kind): a this-month query against target leads with where the month ends at the recent pace, the share done so far and what is left beside it, so a pinned projection shows the projection, never the month to date (AI-171).
 
 R10 also needs the exchange view to pass the turn's other results to `DataCard` as `with`. Two metrics read together only when one family in `READ_TOGETHER` (`lib/cards/present.ts`) holds both: the goods flow (production, sell-in, sell-out, stock, cover), the money of the same sales (sell-in, value, attainment, margin, trade spend, overdue), a campaign and what it moved, the workforce. Stock cover and overdue money asked side by side keep their own cards (AI-140).
 
@@ -50,6 +57,10 @@ R11's verdict opens with the hero's judgement ("คาดปิดเดือ�
 - A breakdown whose question named one group puts that group on top as the hero, the overall level on the line under it; with no change or target its verdict says where the group stands (a rate against the overall level, a sum as its share of the whole).
 - A change ranking's verdict counts every row its words claim: "กว่าเท่าตัว" counts every row that more than doubled, and draws them all thick (AI-144).
 - A landing tile of a series names the bucket its number is ("ต.ค. 69"), never the widget's range (AI-157).
+- A strip values both ends of its measure, so the row furthest in the asked direction always says how far, and every row when it has three or fewer (AI-173, AI-188).
+- An explain_gap card whose hero is the month end names its gap row "ถึงวันนี้ต่ำกว่าเป้าตามเวลา", so the paced gap under a month-end hero reads as a different base (AI-185).
+- A headline that is the company's own row of the split (market share by maker, `HEADLINE_OWN_ROW`) is labelled "ส่วนแบ่งของเรา", never an average of every row (AI-189).
+- A paired card's second metric puts its comparison word in the footer, as its rows do, so the overall line is never clamped mid-phrase (AI-188).
 
 ## Check
 

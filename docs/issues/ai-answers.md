@@ -2238,10 +2238,10 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 | AI-168 (เดิม AI-94) | กลาง | ยังเสีย | False premise 'ขอนแก่นมหาชัยก็ตกเยอะ' is sent first and rebutted only after the approved send |
 | AI-169 (เดิม AI-140) | กลาง | ยังเสีย | CEO risk answer says there is no stock risk while its own anomaly card leads with the P1 Lamphun stock-out |
 | AI-170 (เดิม AI-146) | กลาง | ยังเสีย | Agent-level 'why did it drop' (RSM) gets a brand gap split; the P1 'orders stopped' alert is missed because get_alerts matches metrics exactly |
-| AI-171 (เดิม AI-165) | กลาง | ยังเสีย | 'ปิดเดือนที่กี่ % แล้วปักการ์ดนั้น' pins the 83.9% month-to-date card as if it were the 96.3% forecast |
+| AI-171 (เดิม AI-165) | กลาง | แก้แล้ว `0f1ffd0` | 'ปิดเดือนที่กี่ % แล้วปักการ์ดนั้น' pins the 83.9% month-to-date card as if it were the 96.3% forecast |
 | AI-172 | กลาง | เปิด (ใหม่) | An exclusion in the question is ignored: 'นอกจากเรื่องอีสาน' gets Isan-led AR and anomaly cards, and the South AR risk the text names is folded away |
-| AI-173 | กลาง | เปิด (ใหม่) | Change strips drop the value on the row that answers the question and label only the last row |
-| AI-174 | กลาง | เปิด (ใหม่) | Time-series cards lead with the latest bucket against the one before, whatever the question asks (full-year target, why-drop) |
+| AI-173 | กลาง | แก้แล้ว `0f1ffd0` | Change strips drop the value on the row that answers the question and label only the last row |
+| AI-174 | กลาง | แก้แล้ว `0f1ffd0` | Time-series cards lead with the latest bucket against the one before, whatever the question asks (full-year target, why-drop) |
 | AI-175 | กลาง | เปิด (ใหม่) | P1 alert '1,785 vs 16,478 L (−89%)' disagrees with the agent's own sell-in on the same screen (about 9,900 L/day, about −40%) |
 | AI-176 (เดิม AI-22) | กลาง | ยังเสีย | The CEO's top story states the credit hypothesis as fact |
 | AI-177 (เดิม AI-135) | กลาง | ยังเสีย | Run sheet says the CEO has '3 เรื่องด่วน'; the screen shows 4 after the AI-166 fix, and 'เรื่องภาคอีสาน' is now ambiguous |
@@ -2252,11 +2252,11 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 | AI-182 | กลาง | เปิด (ใหม่) | Visit-priority card has no values, bars or verdict, and the text misreads the alert's −89% as a four-week decline |
 | AI-183 | กลาง | เปิด (ใหม่) · นอกเส้นทางเดโม | Pin of the rep's 4-agent card stores filters {}, so the widget shows the region's 8 agents |
 | AI-184 | ต่ำ | เปิด (ใหม่) | Pin approval shows only the card title, no number |
-| AI-185 | ต่ำ | เปิด (ใหม่) | RSM month-close gap card: month-end hero (implies 52.9 short) over the month-to-date paced gap (39.8); the text invents a goods-receiving problem |
+| AI-185 | ต่ำ | แก้แล้ว `0f1ffd0` | RSM month-close gap card: month-end hero (implies 52.9 short) over the month-to-date paced gap (39.8); the text invents a goods-receiving problem |
 | AI-186 (เดิม AI-153) | ต่ำ | ยังเสีย | Follow-up chips and drills point at the first sorted row, not the asked scope or the worst change |
-| AI-187 | ต่ำ | เปิด (ใหม่) | CEO landing tile '98% ของเป้าตามเวลา' disagrees with chat 83.9% vs 86.7% (96.8% of pace) |
-| AI-188 | ต่ำ | เปิด (ใหม่) | Board summary card: import row has no value, and the hero detail is clamped mid-phrase |
-| AI-189 | ต่ำ | เปิด (ใหม่) | Market-share donut labels our own 59.3% as 'เฉลี่ยทุกผู้ผลิต' |
+| AI-187 | ต่ำ | แก้แล้ว `0f1ffd0` | CEO landing tile '98% ของเป้าตามเวลา' disagrees with chat 83.9% vs 86.7% (96.8% of pace) |
+| AI-188 | ต่ำ | แก้แล้ว `0f1ffd0` | Board summary card: import row has no value, and the hero detail is clamped mid-phrase |
+| AI-189 | ต่ำ | แก้แล้ว `0f1ffd0` | Market-share donut labels our own 59.3% as 'เฉลี่ยทุกผู้ผลิต' |
 | AI-190 | ต่ำ | เปิด (ใหม่) | 'ทำไมตกอะ' (week) gives no reason; the text points at Isan while the card says all regions fell evenly |
 | AI-191 | ต่ำ | เปิด (ใหม่) | RSM 'ใต้เทียบอีสาน': after the correct denial, the Isan side is a bare number |
 | AI-192 | ต่ำ | เปิด (ใหม่) | Wording: 'มูลค่าขายสุทธิ' in text vs 'มูลค่าขายเข้า' on cards; anomaly header '5 เรื่องผิดปกติ ด่วน 5 เรื่อง' |
@@ -2320,7 +2320,8 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-171. 'ปิดเดือนที่กี่ % แล้วปักการ์ดนั้น' pins the 83.9% month-to-date card as if it were the 96.3% forecast
 
-- **สถานะ:** ยังเสีย · เดิม AI-165
+- **สถานะ:** แก้แล้ว `0f1ffd0` · เดิม AI-165
+- **ที่แก้:** เพิ่ม widget แบบ `month_end`: query เดือนนี้เทียบเป้าวาดเป็นการ์ดคาดปิดเดือน (96.3% ของเป้าทั้งเดือน ทำได้แล้ว 83.9% ขาดอีก 297.1 ล้านบาท) ปักได้ และ Dashboard กับ tile หน้าแรกแสดงตัวคาดการณ์ (test ใน `lib/cards/question-fit.test.ts`, ภาพ Dashboard CEO) · โมเดลเห็น `month_end` ในคำอธิบาย schema ของ pin_widget แต่ยังไม่ได้ยืนยันกับโมเดล และการ์ดในแชตตอนปักอยู่กับงาน pin_widget (I1)
 - **ระดับ:** กลาง · **หมวด:** `capability` · **บทบาท:** u_thana (CEO); u_anucha P2
 - **อาการ:** Only pin_widget was called. The 96.3% figure appears in the text only. The pinned tile shows 83.9% ของเป้าทั้งเดือน, and the reply says the card was pinned without noting the difference. The RSM's pin of a gap card was refused, and no alternative was offered.
 - **ที่ควรเป็น:** A forecast card in chat, and either a pinnable projection or a reply that says what the pinned card shows.
@@ -2343,7 +2344,8 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-173. Change strips drop the value on the row that answers the question and label only the last row
 
-- **สถานะ:** เปิด (ใหม่)
+- **สถานะ:** แก้แล้ว `0f1ffd0`
+- **ที่แก้:** แถบการ์ดแสดงค่าที่ปลายทั้งสองของแถบเสมอ ภาคอีสาน −11.0% และภาคอีสาน −0.3 จุดจึงมีตัวเลข (test ใน `lib/cards/question-fit.test.ts`, replay run 810b04f6 และ bed8de8e)
 - **ระดับ:** กลาง · **หมวด:** `card-fit` · **บทบาท:** u_thana (CEO)
 - **อาการ:** s2t1: Isan −11.0% (the largest drop) is unlabelled, and Central −8.0% is labelled. s1t3: Isan −0.3 จุด (the answer) is unlabelled, and BKK +0.3 is labelled.
 - **ที่ควรเป็น:** The extreme row in the asked direction always carries its value.
@@ -2353,7 +2355,8 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-174. Time-series cards lead with the latest bucket against the one before, whatever the question asks (full-year target, why-drop)
 
-- **สถานะ:** เปิด (ใหม่)
+- **สถานะ:** แก้แล้ว `0f1ffd0`
+- **ที่แก้:** เพิ่ม R12 ซีรีส์เทียบเป้านำด้วยยอดสะสม 98.2% ของเป้าตามเวลา ขาดอีก 477.7 ล้านบาท และ ต.ค. 69 หลุดเป้ามากสุด 13.2% กับ R13 ซีรีส์รายวันหรือรายสัปดาห์ที่เปลี่ยนระดับนำด้วย "ตั้งแต่ 15 พ.ย. ลดลงจากวันละ 26,215 ลิตร เหลือ 8,951 ลิตร" (test ใน `lib/cards/question-fit.test.ts`, replay run 16eb1cc3 และ 675e707f)
 - **ระดับ:** กลาง · **หมวด:** `card-fit` · **บทบาท:** u_thana (CEO), u_krit (rep)
 - **อาการ:** The two reviews found one cause. CEO 'ทั้งปีนี้ยอดขายจะถึงเป้าไหม': the hero is 'ต.ค. 69 ลดลง 3.1% จาก ก.ย.', YTD against target is a secondary tile that includes November's partial month, and October's −13.2% miss is not called out. Rep 'why did sales drop': the daily card's verdict is '26 พ.ย. เพิ่มขึ้น 2.3%' with a green chip, and the step from about 30k to about 10k litres a day since 15 พ.ย. appears only in the line. The rep's gap card also puts Leo's 64.2% share directly over a 64.6% hero, which reads as one number twice.
 - **ที่ควรเป็น:** Target series lead with YTD against target and what is left. Why-drop series lead with the break.
@@ -2480,7 +2483,8 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-185. RSM month-close gap card: month-end hero (implies 52.9 short) over the month-to-date paced gap (39.8); the text invents a goods-receiving problem
 
-- **สถานะ:** เปิด (ใหม่)
+- **สถานะ:** แก้แล้ว `0f1ffd0`
+- **ที่แก้:** แถวช่องว่างใต้หัวการ์ดคาดปิดเดือนเขียนว่า "ถึงวันนี้ต่ำกว่าเป้าตามเวลา" จึงอ่านเป็นคนละฐานกับหัวการ์ด (test ใน `lib/cards/question-fit.test.ts`, replay run 34cc35db) · ข้อความที่แต่งเรื่องการรับสินค้ายังเปิด (prompt)
 - **ระดับ:** ต่ำ · **หมวด:** `card-fit` · **บทบาท:** u_anucha (RSM)
 - **อาการ:** The AI-142 lead works. The bar shares are of a different gap than the hero implies, and 'แก้ปัญหาการรับสินค้า' appears in no tool result.
 - **ที่ควรเป็น:** The gap is on the hero's base or labelled 'ถึงวันนี้', and recommendations are grounded.
@@ -2502,7 +2506,8 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-187. CEO landing tile '98% ของเป้าตามเวลา' disagrees with chat 83.9% vs 86.7% (96.8% of pace)
 
-- **สถานะ:** เปิด (ใหม่)
+- **สถานะ:** แก้แล้ว `0f1ffd0`
+- **ที่แก้:** สาเหตุจริงคือคนละเมตริก ไม่ใช่การเฉลี่ยอัตราส่วน: tile ใช้ target_attainment ซึ่งเป็นปริมาณ (ลิตร) ส่วนแชตใช้มูลค่าเทียบเป้า tile ของ CEO จึงเปลี่ยนเป็นมูลค่าขายเข้าเทียบเป้า คำนวณชุดเดียวกับแชต ขึ้น 83.9% ของเป้าทั้งเดือน (test ใน `lib/cards/question-fit.test.ts`, ภาพหน้าแรก CEO)
 - **ระดับ:** ต่ำ · **หมวด:** `grounding` · **บทบาท:** u_thana (CEO)
 - **อาการ:** Both figures are on run-sheet step 1.
 - **ที่ควรเป็น:** One company figure, or a label that explains the difference.
@@ -2513,7 +2518,8 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-188. Board summary card: import row has no value, and the hero detail is clamped mid-phrase
 
-- **สถานะ:** เปิด (ใหม่)
+- **สถานะ:** แก้แล้ว `0f1ffd0`
+- **ที่แก้:** แถบที่มีไม่เกิน 3 แถวแสดงค่าทุกแถว และคำเทียบของเมตริกที่สองย้ายไปท้ายการ์ด บรรทัดรวมจึงไม่ถูกตัดกลางวลี (test ใน `lib/cards/question-fit.test.ts`, replay run 11ed95d7)
 - **ระดับ:** ต่ำ · **หมวด:** `card-fit` · **บทบาท:** u_thana (CEO)
 - **อาการ:** Of 3 rows, กลุ่มนำเข้า has a bar and no value. The sub-line ends with '…'.
 - **ที่ควรเป็น:** With few rows, every row is valued. Detail drops a part instead of clamping.
@@ -2523,7 +2529,8 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-189. Market-share donut labels our own 59.3% as 'เฉลี่ยทุกผู้ผลิต'
 
-- **สถานะ:** เปิด (ใหม่)
+- **สถานะ:** แก้แล้ว `0f1ffd0`
+- **ที่แก้:** หัวการ์ดส่วนแบ่งตลาดแยกตามผู้ผลิตเขียนว่า "ส่วนแบ่งของเรา" แทน "เฉลี่ยทุกผู้ผลิต" (test ใน `lib/cards/question-fit.test.ts`, replay run bed8de8e)
 - **ระดับ:** ต่ำ · **หมวด:** `wording` · **บทบาท:** u_thana (CEO)
 - **อาการ:** An average over all producers would be about 25%. 59.3% is our share.
 - **ที่ควรเป็น:** Label it 'ส่วนแบ่งของเรา' or the company name.
