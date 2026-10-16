@@ -999,14 +999,15 @@ function pairedCard(input: PresentInput, pairing: Pairing): CardParts {
 
 function baselineText(source: Source, change: string | null): string | null {
   const label = source.result.headline.compareLabel ?? TH.dash.compare[source.query.compare];
-  return change === null ? null : `${label} ${change}`;
+  return change === null ? null : `${change} ${label}`;
 }
 
 /** A breakdown card with a second line under each row it names (`subs`, by row label) and an extra fact beside its hero. */
 function withSecondLine(card: CardParts, subs: ReadonlyMap<string, string | null>, heroExtra: string | null): CardParts {
   const subOf = (row: ReadRow): ReadRow => ({ ...row, sub: subs.get(row.label) ?? row.sub });
   const hero = card.hero && heroExtra ? { ...card.hero, detail: joined([card.hero.detail, heroExtra]) } : card.hero;
-  const strip = (current: Strip): Strip => ({ ...current, rows: current.rows.map(subOf) });
+  const overallOf = (row: ReadRow | null): ReadRow | null => (row && heroExtra ? { ...row, sub: joined([row.sub, heroExtra]) } : row);
+  const strip = (current: Strip): Strip => ({ ...current, overall: overallOf(current.overall), rows: current.rows.map(subOf) });
   const body = card.body;
   if (body.kind === "strip") return { ...card, hero, body: { ...body, strip: strip(body.strip) } };
   if (body.kind === "exceptions") return { ...card, hero, body: { ...body, strip: strip(body.strip), fold: body.fold ? { ...body.fold, rows: body.fold.rows.map(subOf) } : null } };
@@ -1023,8 +1024,8 @@ function withBaseline(card: CardParts, second: Source): CardParts {
 /** Two metrics of a few groups (too few points for a scatter to say anything) read as the first metric's breakdown with the second metric's value under every row, so both numbers the reply relies on are on the card. */
 function withSecondMetric(card: CardParts, pairing: Pairing): CardParts {
   const [, second] = pairing.sources;
-  const subs = new Map(second.result.rows.map((row) => [labelOf(second.query, row), `${shortMetricLabel(second)} ${valueTextOf(second.query, row)}`]));
-  return { ...withSecondLine(card, subs, `${shortMetricLabel(second)} ${second.result.headline.value}`), title: pairedTitleOf(pairing) };
+  const subs = new Map(second.result.rows.map((row) => [labelOf(second.query, row), `${valueTextOf(second.query, row)} ${shortMetricLabel(second)}`]));
+  return { ...withSecondLine(card, subs, `${second.result.headline.value} ${shortMetricLabel(second)}`), title: pairedTitleOf(pairing) };
 }
 
 /** R10 parity (sell-out against sell-in by agent) in the B anatomy: the overall share on top, the things falling well short drawn thick with their share, the rest muted; the count that falls short is the verdict. */

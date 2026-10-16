@@ -32,7 +32,7 @@ function OverallLabel({ row }: { row: ReadRow }) {
   return (
     <div className="flex min-w-0 flex-col text-[12px] leading-snug text-muted-foreground">
       <span className="truncate">{row.label}</span>
-      {row.sub ? <span className="truncate">{row.sub}</span> : null}
+      {row.sub ? <span className="line-clamp-2 break-words text-[11px]">{row.sub}</span> : null}
     </div>
   );
 }
@@ -85,7 +85,7 @@ function LineStrip({ strip }: { strip: Strip }) {
 
 /** A row's second line (the base it was compared with, a second comparison), small and muted under its name. */
 function RowSub({ row }: { row: ReadRow }) {
-  return row.sub ? <span className="truncate text-[11px] leading-snug text-muted-foreground tabular-nums">{row.sub}</span> : null;
+  return row.sub ? <span className="line-clamp-2 break-words text-[11px] leading-snug text-muted-foreground tabular-nums">{row.sub}</span> : null;
 }
 
 function BoardRow({ row }: { row: ReadRow }) {

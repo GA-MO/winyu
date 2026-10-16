@@ -205,7 +205,7 @@ function lineReading(input: BreakdownInput, line: LevelLine): Breakdown {
   return {
     form: "line",
     baseline: line.at,
-    overall: { label: input.scope, sub: ofTarget ? input.target.unit : null, measure: overallMeasure, fill: 0, text: overallText, change: null, tone: overallTone, exception: true, valued: true },
+    overall: { label: input.scope, sub: ofTarget ? [input.target.unit, input.target.detail].filter(Boolean).join(" · ") : null, measure: overallMeasure, fill: 0, text: overallText, change: null, tone: overallTone, exception: true, valued: true },
     rows,
     verdict: lineVerdict({
       line: line.line,
@@ -268,7 +268,7 @@ function changeReading(input: BreakdownInput): Breakdown {
   return {
     form: "line",
     baseline: 0,
-    overall: { label: input.scope, sub: null, measure: overallMeasure, fill: 0, text: overall.delta ?? "—", change: null, tone: overall.tone, exception: true, valued: true },
+    overall: { label: input.scope, sub: input.baseTotal, measure: overallMeasure, fill: 0, text: overall.delta ?? "—", change: null, tone: overall.tone, exception: true, valued: true },
     rows,
     verdict: changeVerdict({
       unit: input.unit,

@@ -302,7 +302,7 @@ describe("two metrics on one card", () => {
     const card = presentCard({ title: "t", query: first.query, result: first.result, others: [second] });
     const rows = stripOf(card.body).rows;
     expect(rows.length).toBeGreaterThan(1);
-    rows.forEach((row) => expect(row.sub).toMatch(/^ยอดค้างชำระเกินกำหนด .+บาท$/));
+    rows.forEach((row) => expect(row.sub).toMatch(/^.+บาท ยอดค้างชำระเกินกำหนด$/));
     expect(card.title).toContain("ยอดค้างชำระเกินกำหนด");
   });
 
@@ -319,10 +319,11 @@ describe("two metrics on one card", () => {
     if (!previous.result.ok) throw new Error(previous.result.error);
     expect(pairedIndexes(target, [previous])).toEqual([0]);
     const card = presentCard({ title: "t", query: target.query, result: target.result, others: [previous] });
-    expect(card.hero?.detail).toContain(`${TH.dash.compare.prev_period} `);
+    expect(card.hero?.detail).toContain(TH.dash.compare.prev_period);
+    expect(stripOf(card.body).overall?.sub).toContain(TH.dash.compare.prev_period);
     const strip = stripOf(card.body);
     expect(strip.rows.length).toBeGreaterThan(1);
-    strip.rows.forEach((row) => expect(row.sub).toStartWith(TH.dash.compare.prev_period));
+    strip.rows.forEach((row) => expect(row.sub).toEndWith(TH.dash.compare.prev_period));
   });
 });
 
