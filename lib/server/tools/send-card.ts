@@ -84,11 +84,12 @@ async function contradiction(ask: string, card: SharedCard, sender: User, focus:
   return figures ?? focus?.claim ?? null;
 }
 
-/** The contradiction that holds a send back: the ask, or what the person said about the row they singled out, claims what the card's numbers do not show, and the conversation has not held a send back for that yet (once the person has read the figure, they may send anyway and the sheet warns). */
+/** The contradiction that holds a send back: the ask, or what the person said in this question about the row they singled out, claims what the card's numbers do not show, and the conversation has not held a send back for that yet (once the person has read the figure, they may send anyway and the sheet warns). A claim made in an earlier question had a reply in between, so it only warns on the sheet. */
 async function heldBack(input: SendCardInput, chosen: Picked): Promise<string | null> {
   const sender = findUser(currentAccess().userId);
   if (chosen.warned || !sender) return null;
-  const warning = await contradiction(input.ask ?? "", chosen.target.card, sender, await focusOf(input, chosen, sender));
+  const focus = await cardFocus(chosen.target.card, sender, [input.ask, currentTurn().question]);
+  const warning = await contradiction(input.ask ?? "", chosen.target.card, sender, focus);
   return warning ? TH.share.chat.heldBack(warning) : null;
 }
 
