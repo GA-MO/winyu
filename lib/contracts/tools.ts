@@ -76,7 +76,7 @@ export const createHandoffInputSchema = z.object({
   toUserId: z.string().min(1),
   title: z.string().min(1),
   ask: z.string().min(1),
-  urgency: urgencySchema,
+  urgency: urgencySchema.optional(),
   evidence: z.array(metricQuerySchema),
   alertIds: z.array(z.string()),
 });

@@ -18,6 +18,7 @@ import type { Exchange, Question, ReplyStep, ToolStep } from "./timeline";
 import { cardPlanOf, composedCalls, toolViewOf, type CardPlan } from "./tool-view";
 import { withRequestedCourses } from "./requested-courses";
 import { trailOf } from "./trail";
+import { pressedText } from "./pressed";
 import type { PendingApproval } from "./use-chat-session";
 
 const CARDS: Record<string, ToolCard> = TOOL_CARDS;
@@ -132,7 +133,7 @@ function sharingOf(exchange: Exchange, toolSteps: readonly ToolStep[], streaming
   return { calls, question: exchange.question?.kind === "typed" ? exchange.question.text : null };
 }
 
-function ToolStepView({ step, live, plan, streaming, sharing }: { step: ToolStep; live: ExchangeLive; plan: CardPlan; streaming: boolean; sharing: Sharing }) {
+function ToolStepView({ step, live, plan, streaming, sharing, asked }: { step: ToolStep; live: ExchangeLive; plan: CardPlan; streaming: boolean; sharing: Sharing; asked: string | null }) {
   const asking = live.waiting.has(step.toolCallId);
   const view = toolViewOf(step, { running: streaming, asking, decided: live.decisions[step.toolCallId], hidden: plan.hidden.has(step.toolCallId) }, CARD_TOOLS);
   if (view.kind === "card")
@@ -154,6 +155,7 @@ function ToolStepView({ step, live, plan, streaming, sharing }: { step: ToolStep
         reject: () => live.decide(step.toolCallId, false),
         shareTitle: live.cardBefore ? shareTitle(live.cardBefore.card) : null,
         shareCard: live.cardBefore?.card ?? null,
+        question: asked,
         labelTh: live.toolLabels[view.tool],
       })}
     </div>
@@ -174,7 +176,7 @@ function HandoffReplyView({ note }: { note: HandoffReplyNote }) {
   );
 }
 
-function StepView({ step, live, plan, streaming, sharing }: { step: ReplyStep; live: ExchangeLive; plan: CardPlan; streaming: boolean; sharing: Sharing }) {
+function StepView({ step, live, plan, streaming, sharing, asked }: { step: ReplyStep; live: ExchangeLive; plan: CardPlan; streaming: boolean; sharing: Sharing; asked: string | null }) {
   if (step.kind === "text") return <Markdown text={step.text} />;
   if (step.kind === "handoff-reply") return <HandoffReplyView note={step.note} />;
   if (step.kind === "composed")
@@ -189,7 +191,7 @@ function StepView({ step, live, plan, streaming, sharing }: { step: ReplyStep; l
     );
   return (
     <CardBoundary>
-      <ToolStepView step={step} live={live} plan={plan} streaming={streaming} sharing={sharing} />
+      <ToolStepView step={step} live={live} plan={plan} streaming={streaming} sharing={sharing} asked={asked} />
     </CardBoundary>
   );
 }
@@ -218,6 +220,11 @@ function stepsWithApprovals(exchange: Exchange, asked: readonly PendingApproval[
   return steps;
 }
 
+function askedText(question: Question | null): string | null {
+  if (!question) return null;
+  return question.kind === "typed" ? question.text : pressedText(question);
+}
+
 /** One question and its answer: the question bubble, the trail of what the agent did (live while it streams, one quiet line after), then reply sentences, cards and decisions in the order the agent produced them; an approval the stream asked for without showing its call still gets its card. */
 export function ExchangeView({ exchange, live }: { exchange: Exchange; live: ExchangeLive }) {
   const streaming = live.running && live.isLast;
@@ -230,7 +237,7 @@ export function ExchangeView({ exchange, live }: { exchange: Exchange; live: Exc
       {exchange.question ? <UserBubble question={exchange.question} /> : null}
       <ActionTrail trail={trailOf(steps, streaming, live.toolLabels)} streaming={streaming} durationMs={live.durationMs} />
       {steps.map((step) => (
-        <StepView key={step.kind === "tool" ? step.toolCallId : `${step.kind}-${step.id}`} step={step} live={live} plan={plan} streaming={streaming} sharing={sharing} />
+        <StepView key={step.kind === "tool" ? step.toolCallId : `${step.kind}-${step.id}`} step={step} live={live} plan={plan} streaming={streaming} sharing={sharing} asked={askedText(exchange.question)} />
       ))}
       <Ending exchange={exchange} live={live} />
     </article>

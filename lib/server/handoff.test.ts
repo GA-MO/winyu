@@ -100,16 +100,28 @@ describe("handoff packets", () => {
     expect((suggestion as { openLoad: number }).openLoad).toBeGreaterThanOrEqual(0);
   });
 
-  test("the digest keeps only the last turns and labels who said what", () => {
-    const digest = digestOf([
-      { role: "user", text: "หนึ่ง" },
-      { role: "assistant", text: "สอง" },
-      { role: "user", text: "สาม" },
-      { role: "assistant", text: "สี่" },
-    ]);
-    expect(digest).toContain(TH.handoff.asked);
-    expect(digest).toContain(TH.handoff.answered);
-    expect(digest).toContain("สี่");
+  test("the digest carries the question and the earlier exchanges about its evidence, labelled, and leaves an unrelated answer out", () => {
+    const digest = digestOf(
+      [
+        { role: "user", text: "ยอดขายอีสานเดือนนี้" },
+        { role: "assistant", text: "", metrics: ["net_sales_value"] },
+        { role: "assistant", text: "อีสานต่ำกว่าเป้า 8%" },
+        { role: "user", text: "อุบลศรีสุขค้างชำระเท่าไร" },
+        { role: "assistant", text: "อุบลศรีสุขค้าง 1.2 ล้าน คุณนกดูแล", metrics: ["ar_overdue"] },
+        { role: "user", text: "ให้คุณกฤตไปเยี่ยมภายในสัปดาห์นี้" },
+        { role: "assistant", text: "", metrics: [] },
+      ],
+      ["net_sales_value"],
+    );
+    expect(digest).toContain(`${TH.handoff.asked}: ยอดขายอีสานเดือนนี้`);
+    expect(digest).toContain(`${TH.handoff.answered}: อีสานต่ำกว่าเป้า 8%`);
+    expect(digest).toContain("ให้คุณกฤตไปเยี่ยมภายในสัปดาห์นี้");
+    expect(digest).not.toContain("อุบลศรีสุข");
+  });
+
+  test("with no evidence the digest is the question alone", () => {
+    const digest = digestOf([{ role: "user", text: "อุบลศรีสุขค้างชำระเท่าไร" }, { role: "assistant", text: "ค้าง 1.2 ล้าน" }, { role: "user", text: "ให้คุณกฤตไปเยี่ยม" }], []);
+    expect(digest).toBe(`${TH.handoff.asked}: ให้คุณกฤตไปเยี่ยม`);
   });
 
   test("urgency sets how long the recipient has", () => {

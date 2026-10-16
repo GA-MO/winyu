@@ -183,10 +183,23 @@ export async function callsAnswering(threadId: string, userId: string, messageId
   return (nextQuestion < 0 ? after : after.slice(0, nextQuestion)).filter((message) => message.role === "assistant").flatMap(finishedCallsOf);
 }
 
-/** The thread's questions and reply text as plain lines, for a handoff to summarise. */
+function metricOf(call: { function: { arguments: string } }): string[] {
+  try {
+    const metric = (JSON.parse(call.function.arguments) as { metric?: unknown }).metric;
+    return typeof metric === "string" ? [metric] : [];
+  } catch {
+    return [];
+  }
+}
+
+/** The thread's questions and reply text as plain lines, each reply with the metrics its tool calls read, for a handoff to summarise. */
 export async function threadTranscript(threadId: string, userId: string): Promise<SpokenTurn[]> {
   const messages = await threadHistory(threadId, userId);
-  return messages.flatMap((message) => ((message.role === "user" || message.role === "assistant") && typeof message.content === "string" ? [{ role: message.role, text: message.content }] : []));
+  return messages.flatMap((message): SpokenTurn[] => {
+    if (message.role === "user" && typeof message.content === "string") return [{ role: message.role, text: message.content }];
+    if (message.role !== "assistant") return [];
+    return [{ role: message.role, text: typeof message.content === "string" ? message.content : "", metrics: (message.toolCalls ?? []).flatMap(metricOf) }];
+  });
 }
 
 function readTools(): ReadonlySet<string> {

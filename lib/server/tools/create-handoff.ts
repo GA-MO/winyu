@@ -1,5 +1,6 @@
 import type { z } from "zod";
 import { createHandoffInputSchema, type MetricQuery } from "@/lib/contracts";
+import { handoffUrgency } from "@/lib/cards/handoff-urgency";
 import { findUser } from "@/lib/data/entities/users";
 import { TH } from "@/lib/i18n/th";
 import { createPacket, digestOf } from "@/lib/server/handoff";
@@ -29,7 +30,7 @@ export const createHandoffTool = defineTool({
   connector: "winyu",
   tier: "write",
   roles: ALL_BUT_SALES_REP,
-  description: "Hand this question over to the responsible person as a context packet: the ask, the urgency and the queries as evidence (references, re-run under their own scope). The user approves it first. Resolve the owner before calling.",
+  description: "Hand this question over to the responsible person as a context packet: the ask and the queries as evidence (references, re-run under their own scope). Leave urgency out unless the user's own words say urgent (ด่วน): the server sets it from what the user said. The user approves it first. Resolve the owner before calling.",
   input: createHandoffInputSchema,
   redact: ["ask"],
   verify: handoffHolds,
@@ -38,15 +39,16 @@ export const createHandoffTool = defineTool({
     const target = recipient(input.toUserId);
     if (!target.ok) return { ok: false as const, error: target.error };
     const turn = currentTurn();
+    const evidence = mergeEvidence(input.evidence, turn.queries);
     const packet = await createPacket(
       {
         toUserId: target.user.id,
         title: input.title,
         ask: input.ask,
-        urgency: input.urgency,
-        evidence: mergeEvidence(input.evidence, turn.queries),
+        urgency: handoffUrgency(input.urgency, turn.question),
+        evidence,
         alertIds: input.alertIds,
-        digest: digestOf((await turn.transcript?.()) ?? []),
+        digest: digestOf((await turn.transcript?.()) ?? [], evidence.map((query) => query.metric)),
         suggestedActions: suggestedActionsFor(input.ask),
         threadId: turn.threadId,
       },

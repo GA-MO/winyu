@@ -9,6 +9,7 @@ import { METRIC_IDS, ROLE_IDS, type MetricId, type MetricQuery, type RecipientSc
 import { conditionLabel } from "@/lib/engine/personal-watches";
 import { USERS, findUser } from "@/lib/data/entities/users";
 import { sharedWith } from "@/lib/cards/describe-call";
+import { handoffUrgency } from "@/lib/cards/handoff-urgency";
 import { formatDateTh } from "@/lib/i18n/format";
 import { metricLabel } from "@/lib/dashboard/metric-display";
 import { TH } from "@/lib/i18n/th";
@@ -40,6 +41,7 @@ export type ApprovalRequest = {
   reject: () => void;
   shareTitle?: string | null;
   shareCard?: SharedCard | null;
+  question?: string | null;
   labelTh?: string;
 };
 
@@ -115,7 +117,7 @@ function evidenceChips(input: HandoffInput, names: Labels): string[] {
   return labels;
 }
 
-function handoffDecision(input: HandoffInput, labels: Labels): Decision {
+function handoffDecision(input: HandoffInput, labels: Labels, question: string | null): Decision {
   const person = personLine(input.toUserId);
   return {
     icon: Send,
@@ -125,7 +127,7 @@ function handoffDecision(input: HandoffInput, labels: Labels): Decision {
     subject: input.title ?? null,
     body: input.ask ? { label: TH.approve.askLabel, text: input.ask } : null,
     chips: evidenceChips(input, labels),
-    urgency: urgencyOf(input.urgency),
+    urgency: handoffUrgency(urgencyOf(input.urgency) ?? undefined, question),
     effect: TH.approve.effectHandoff(person.name),
     confirm: TH.approve.confirmHandoff,
     cancel: TH.approve.cancelSend,
@@ -543,7 +545,7 @@ function useLabels(queries: MetricQuery[]): Labels {
 function HandoffApproval({ request }: { request: ApprovalRequest }) {
   const input = (request.input ?? {}) as HandoffInput;
   const labels = useLabels((input.evidence ?? []).slice(0, MAX_EVIDENCE_LABELS));
-  return <Approval decision={handoffDecision(input, labels)} request={request} />;
+  return <Approval decision={handoffDecision(input, labels, request.question ?? null)} request={request} />;
 }
 
 function WatchApproval({ request }: { request: ApprovalRequest }) {

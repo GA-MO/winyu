@@ -73,4 +73,26 @@ describe("the run that answers an approval continues the asking run", () => {
     const packet = sent.at(-1);
     expect(packet?.evidence.map((query) => query.metric)).toEqual(["net_sales_value"]);
   });
+
+  test("the handoff's digest carries this question, not an earlier answer about something else", async () => {
+    const threadId = `carry-digest-${Date.now()}`;
+    const AR = { ...BY_REGION, metric: "ar_overdue", compare: "prev_period" };
+    scripted.script([{ call: "query_metric", args: AR }, { text: "อุบลศรีสุขค้างชำระมากที่สุด" }]);
+    await run(threadId, { id: crypto.randomUUID(), content: "ลูกหนี้ค้างชำระแยกตามภาค" }, null);
+    await askThenApprove(threadId, "ส่งงานแล้ว");
+    const packet = packets().where((sent) => sent.fromUserId === "u_thana" && sent.title === HANDOFF_ARGS.title).at(-1);
+    expect(packet?.conversationDigest).toContain("ส่งเรื่องนี้ให้ผู้จัดการขายภาคอีสาน");
+    expect(packet?.conversationDigest).not.toContain("อุบลศรีสุข");
+  });
+
+  test("the handoff is as urgent as the person said, not as the model guessed", async () => {
+    const threadId = `carry-urgency-${Date.now()}`;
+    const title = `ไม่ด่วน ${threadId}`;
+    const message = { id: crypto.randomUUID(), content: "ฝากผู้จัดการขายภาคอีสานดูเรื่องนี้ภายในสัปดาห์นี้" };
+    scripted.script([{ call: "create_handoff", args: { ...HANDOFF_ARGS, title, urgency: "high" } }]);
+    const interrupt = interruptOf(await run(threadId, message, null));
+    scripted.script([{ text: "ส่งงานแล้ว" }]);
+    await run(threadId, message, interrupt);
+    expect(packets().where((packet) => packet.title === title).map((packet) => packet.urgency)).toEqual(["medium"]);
+  });
 });

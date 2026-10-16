@@ -9,6 +9,11 @@ export function pressedText({ tool, input }: PressedTool): string {
   return `${PRESSED_LEAD} \`${tool}\` ด้วย ${JSON.stringify(input)}`;
 }
 
+/** Whether a message is a pressed tool button rather than words the person typed, even when it was cut short. */
+export function isPressed(text: string): boolean {
+  return text.trim().startsWith(PRESSED_LEAD);
+}
+
 /** Reads a pressed-button message back into its tool and input; null for anything the person typed. */
 export function parsePressed(text: string): PressedTool | null {
   const match = PRESSED_SHAPE.exec(text.trim());

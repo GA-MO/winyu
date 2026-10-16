@@ -14,6 +14,7 @@ import { packetOrigins, packets } from "./agent/collections";
 import { notify } from "./notify";
 import { threads } from "./threads-read";
 import { rememberAction } from "@/lib/engine/memory";
+import type { SpokenTurn } from "./request-context";
 
 const MAX_EVIDENCE_ROWS = 6;
 const DIGEST_TURNS = 3;
@@ -64,12 +65,27 @@ export async function resolveEvidence(packet: ContextPacket, access: AccessConte
   }));
 }
 
-export function digestOf(turns: { role: string; text: string }[]): string {
-  const recent = turns.slice(-DIGEST_TURNS * 2).filter((turn) => turn.text.trim().length > 0);
-  if (recent.length === 0) return "";
-  return recent
-    .map((turn) => `${turn.role === "user" ? TH.handoff.asked : TH.handoff.answered}: ${turn.text.slice(0, DIGEST_CHARS)}`)
-    .join("\n");
+function exchangesOf(turns: readonly SpokenTurn[]): SpokenTurn[][] {
+  const exchanges: SpokenTurn[][] = [];
+  for (const turn of turns) {
+    const current = exchanges.at(-1);
+    if (turn.role === "user" || !current) exchanges.push([turn]);
+    else current.push(turn);
+  }
+  return exchanges;
+}
+
+function readsAny(exchange: readonly SpokenTurn[], metrics: ReadonlySet<string>): boolean {
+  return exchange.some((turn) => (turn.metrics ?? []).some((metric) => metrics.has(metric)));
+}
+
+/** The conversation a handoff carries: the question it came from and the earlier exchanges that read one of its evidence metrics, the last few of them, labelled by who said what; an exchange about something else stays out. */
+export function digestOf(turns: readonly SpokenTurn[], evidenceMetrics: readonly string[]): string {
+  const metrics = new Set(evidenceMetrics);
+  const exchanges = exchangesOf(turns);
+  const about = exchanges.filter((exchange, index) => index === exchanges.length - 1 || readsAny(exchange, metrics));
+  const lines = about.slice(-DIGEST_TURNS).flat().filter((turn) => turn.text.trim().length > 0);
+  return lines.map((turn) => `${turn.role === "user" ? TH.handoff.asked : TH.handoff.answered}: ${turn.text.slice(0, DIGEST_CHARS)}`).join("\n");
 }
 
 export function slaFor(urgency: ContextPacket["urgency"]): string {

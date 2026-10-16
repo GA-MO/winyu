@@ -22,8 +22,8 @@ export function accessOrNull(): AccessContext | null {
   return storage.getStore() ?? null;
 }
 
-/** One line of a saved conversation: who spoke and what they said. */
-export type SpokenTurn = { role: string; text: string };
+/** One line of a saved conversation: who spoke, what they said, and for a reply the metrics its tool calls read. */
+export type SpokenTurn = { role: string; text: string; metrics?: string[] };
 
 /** The chat turn being served; `transcript` reads the thread's saved conversation and `cardOnScreen` the card the person last saw on it, both absent outside a chat run. */
 export type TurnContext = { turnId: string | null; threadId: string | null; preloadPacketId: string | null; question: string | null; queries: MetricQuery[]; transcript?: () => Promise<SpokenTurn[]>; cardOnScreen?: () => Promise<ShareTarget | null> };
