@@ -10,10 +10,11 @@ const PEOPLE_LOOKUPS: ReadonlySet<string> = new Set(["find_people", "get_person"
 const ENTITY_LOOKUP = "describe_entity";
 const USER_ENTITY = "user";
 
-/** How one tool call shows in a reply: its card, the decision it waits on or its receipt, a quiet note, or nothing (a call still running shows in the action trail). */
+/** How one tool call shows in a reply: its card, the decision it waits on or its receipt, the receipt of a write that did nothing and why, a quiet note, or nothing (a call still running shows in the action trail). */
 export type ToolView =
   | { kind: "card"; name: string; result: unknown; args: unknown }
   | { kind: "decision"; tool: string; input: unknown; approved: boolean | null }
+  | { kind: "not-done"; tool: string; reason: string | null }
   | { kind: "not-run" }
   | { kind: "none" };
 
@@ -38,6 +39,11 @@ export function isEmptyAnswer(result: unknown): boolean {
   return lists.length > 0 && lists.every((list) => list.length === 0);
 }
 
+function reasonOf(result: unknown): string | null {
+  const error = typeof result === "object" && result !== null ? (result as { error?: unknown }).error : null;
+  return typeof error === "string" && error.trim() ? error : null;
+}
+
 function cardView(step: ToolStep, live: ToolLive): ToolView {
   if (live.hidden) return { kind: "none" };
   if (step.outcome.state === "returned" && isEmptyAnswer(step.outcome.result)) return { kind: "none" };
@@ -50,7 +56,8 @@ function writeView(step: ToolStep, live: ToolLive): ToolView {
   if (live.asking) return { ...decision, approved: live.decided ?? null };
   if (step.outcome.state === "returned") {
     if (isDeclined(step.outcome.result)) return { ...decision, approved: false };
-    return isDone(step.outcome.result) ? { ...decision, approved: true } : { kind: "none" };
+    if (isDone(step.outcome.result)) return { ...decision, approved: true };
+    return live.hidden ? { kind: "none" } : { kind: "not-done", tool: step.name, reason: reasonOf(step.outcome.result) };
   }
   if (step.outcome.state === "failed") return { kind: "none" };
   return live.running ? { kind: "none" } : { kind: "not-run" };
@@ -130,9 +137,10 @@ function recipientLookups(steps: readonly ToolStep[]): string[] {
   });
 }
 
-/** One card per question: a people lookup that found the recipient of a later share, handoff or email in the exchange is left out, a refused or failed call the model corrected later in the exchange (the same tool answered after it) is left out, and the metric catalog the model browsed on the way is left out once another card answers; `composed` are the calls a composed card already holds. */
+/** One card per question: a composed card holds only read results, so a write's receipt is never left out for it; a people lookup that found the recipient of a later share, handoff or email in the exchange is left out, a refused or failed call the model corrected later in the exchange (the same tool answered after it) is left out, and the metric catalog the model browsed on the way is left out once another card answers; `composed` are the calls a composed card already holds. */
 export function cardPlanOf(steps: readonly ToolStep[], composed: ReadonlySet<string>, cardTools: ReadonlySet<string>): CardPlan {
-  const hidden = new Set([...composed, ...recoveredFailures(steps), ...recipientLookups(steps)]);
+  const heldInCard = steps.flatMap((step) => (composed.has(step.toolCallId) && cardTools.has(step.name) ? [step.toolCallId] : []));
+  const hidden = new Set([...heldInCard, ...recoveredFailures(steps), ...recipientLookups(steps)]);
   if (!steps.some((step) => drawsAnswer(step, hidden, cardTools))) return { hidden };
   for (const step of steps) if (step.name === CATALOG_TOOL) hidden.add(step.toolCallId);
   return { hidden };

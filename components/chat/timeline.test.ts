@@ -2,7 +2,7 @@ import { COMPOSED_CARD_ACTIVITY } from "@/lib/compose/catalog";
 import { describe, expect, test } from "bun:test";
 import { pressedText } from "./pressed";
 import { exchangesOf, type ChatMessage } from "./timeline";
-import { composedCalls, isEmptyAnswer, toolViewOf, type ToolLive } from "./tool-view";
+import { cardPlanOf, composedCalls, isEmptyAnswer, toolViewOf, type ToolLive } from "./tool-view";
 import { sinceLastQuestion } from "@/components/providers/copilot-provider";
 
 const CARD_TOOLS = new Set(["query_metric"]);
@@ -58,8 +58,19 @@ describe("toolViewOf", () => {
     expect(toolViewOf(write, { ...IDLE, decided: true }, CARD_TOOLS)).toEqual({ kind: "not-run" });
     expect(toolViewOf({ ...write, outcome: { state: "returned", result: { ok: true } } }, IDLE, CARD_TOOLS)).toMatchObject({ kind: "decision", approved: true });
     expect(toolViewOf({ ...write, outcome: { state: "returned", result: { approved: false } } }, IDLE, CARD_TOOLS)).toMatchObject({ kind: "decision", approved: false });
-    expect(toolViewOf({ ...write, outcome: { state: "returned", result: { ok: false, error: "x" } } }, IDLE, CARD_TOOLS)).toEqual({ kind: "none" });
     expect(toolViewOf(write, IDLE, CARD_TOOLS)).toEqual({ kind: "not-run" });
+  });
+
+  test("a write that ran and did nothing leaves a receipt that says so and why, unless a later call of it answered", () => {
+    const refused = { ...write, outcome: { state: "returned" as const, result: { ok: false, error: "ช่วงวันที่เลือกไม่มีวันทำการ" } } };
+    expect(toolViewOf(refused, IDLE, CARD_TOOLS)).toEqual({ kind: "not-done", tool: "pin_widget", reason: "ช่วงวันที่เลือกไม่มีวันทำการ" });
+    expect(toolViewOf({ ...write, outcome: { state: "returned", result: { ok: false } } }, IDLE, CARD_TOOLS)).toEqual({ kind: "not-done", tool: "pin_widget", reason: null });
+    expect(toolViewOf(refused, { ...IDLE, hidden: true }, CARD_TOOLS)).toEqual({ kind: "none" });
+  });
+
+  test("a composed card never hides a write's receipt", () => {
+    const refused = { ...write, outcome: { state: "returned" as const, result: { ok: false, error: "x" } } };
+    expect(cardPlanOf([refused], new Set([refused.toolCallId]), CARD_TOOLS).hidden.has(refused.toolCallId)).toBe(false);
   });
 });
 

@@ -1,5 +1,14 @@
 import type { FeedSource, RoleId } from "@/lib/contracts";
 
+const NOT_DONE: Record<string, string> = {
+  request_leave: "ไม่ได้ยื่นลา",
+  share_card: "ไม่ได้ส่งการ์ด",
+  create_handoff: "ไม่ได้ส่งงาน",
+  send_email: "ไม่ได้ส่งอีเมล",
+  pin_widget: "ไม่ได้ปักการ์ด",
+  enroll_course: "ไม่ได้ลงทะเบียนคอร์ส",
+};
+
 export const TH = {
   app: { name: "Winyu", tagline: "ผู้ช่วยข้อมูลสำหรับทุกคนในองค์กร" },
   nav: {
@@ -213,6 +222,7 @@ export const TH = {
   conversation: {
     stopped: "หยุดคำตอบนี้แล้ว",
     notRun: "รายการนี้ไม่ได้ทำ",
+    notDone: (tool: string, label: string | undefined) => NOT_DONE[tool] ?? (label ? `ไม่ได้ทำ: ${label}` : "ไม่ได้ทำรายการนี้"),
     signedOut: "หมดเวลาเข้าสู่ระบบ กรุณาเข้าสู่ระบบใหม่",
     failed: "ตอบไม่สำเร็จ ลองถามใหม่อีกครั้ง",
     pressed: "กดปุ่ม",

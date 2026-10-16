@@ -72,6 +72,18 @@ function UserBubble({ question }: { question: Question }) {
   );
 }
 
+function NotDone({ tool, reason, labelTh }: { tool: string; reason: string | null; labelTh: string | undefined }) {
+  return (
+    <div className="flex w-full items-start gap-3 rounded-2xl border border-border bg-card px-4 py-3" role="status">
+      <CircleSlash className="mt-0.5 size-4 shrink-0 text-danger" aria-hidden />
+      <div className="flex min-w-0 flex-col gap-0.5">
+        <p className="text-sm font-medium text-foreground">{TH.conversation.notDone(tool, labelTh)}</p>
+        {reason ? <p className="text-sm text-muted-foreground">{reason}</p> : null}
+      </div>
+    </div>
+  );
+}
+
 function Note({ text, tone }: { text: string; tone: "muted" | "danger" }) {
   const Icon = tone === "danger" ? AlertCircle : CircleSlash;
   return (
@@ -130,6 +142,7 @@ function ToolStepView({ step, live, plan, streaming, sharing }: { step: ToolStep
       </div>
     );
   if (view.kind === "not-run") return <Note text={TH.conversation.notRun} tone="muted" />;
+  if (view.kind === "not-done") return <NotDone tool={view.tool} reason={view.reason} labelTh={live.toolLabels[view.tool]} />;
   if (view.kind === "none") return null;
   return (
     <div className="w-full">
