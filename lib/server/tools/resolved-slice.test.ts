@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { accessFor } from "@/lib/access/policies";
 import type { AccessContext, Alert, AlertRow, MetricQuery, MetricResult, NextAction, QuickAction } from "@/lib/contracts";
-import { presentCard } from "@/lib/cards/present";
+import { presentCard, weakestRow } from "@/lib/cards/present";
 import { metricLabel } from "@/lib/dashboard/metric-display";
 import { DATA_AS_OF, monthStart } from "@/lib/data/dates";
 import { AGENTS } from "@/lib/data/entities/agents";
@@ -125,15 +125,16 @@ describe("one focus names the card's handoff, pin and follow-ups", () => {
     }
   });
 
-  test("overdue AR by region asks why about the region of the alert in question, not the largest region", async () => {
+  test("overdue AR by region asks why about the region the answer points at, not an open alert's region elsewhere (AI-77)", async () => {
     const answer = await card(CEO, { metric: "ar_overdue", dims: ["region"], compare: "none" });
     const inQuestion = openAlertsFor(accessOf(CEO)).find((alert) => alert.metric === "ar_overdue");
     if (!inQuestion?.dims.region) throw new Error("no open AR alert");
+    const worst = weakestRow(answer.query, answer)?.label;
+    if (!worst) throw new Error("no weakest row");
     const why = answer.followUps.find((action) => action.id === "fu-why");
-    const regionName = answer.rows.map((row) => String(row.region)).find((label) => inQuestion.dims.region === "south" ? label === "ภาคใต้" : label === "ภาคกลาง");
-    expect(regionName).toBeDefined();
-    expect(why?.prompt).toContain(regionName ?? "");
-    expect(why?.prompt).not.toContain(BANGKOK);
+    expect(why?.prompt).toContain(worst);
+    const handoff = answer.nextActions.find((action) => action.kind === "handoff");
+    if (handoff) expect(JSON.stringify(handoff.input)).toContain(worst);
   });
 });
 
