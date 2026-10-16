@@ -1024,11 +1024,18 @@ function withBaseline(card: CardParts, second: Source): CardParts {
   return withSecondLine(card, subs, baselineText(second, formatChange(query.metric, result.headline.deltaPercent, result.headline.deltaPoints ?? null)));
 }
 
-/** Two metrics of a few groups (too few points for a scatter to say anything) read as the first metric's breakdown with the second metric's value under every row, so both numbers the reply relies on are on the card. */
+/** Two metrics of a few groups (too few points for a scatter to say anything) read as the first metric's breakdown with the second metric's value and change under every row, and its overall figure with its change beside the hero, so both numbers the reply relies on are on the card (AI-124). */
 function withSecondMetric(card: CardParts, pairing: Pairing): CardParts {
   const [, second] = pairing.sources;
-  const subs = new Map(second.result.rows.map((row) => [labelOf(second.query, row), `${valueTextOf(second.query, row)} ${shortMetricLabel(second)}`]));
-  return { ...withSecondLine(card, subs, null), title: pairedTitleOf(pairing) };
+  const { query, result } = second;
+  const label = shortMetricLabel(second);
+  const subs = new Map(result.rows.map((row) => [labelOf(query, row), joinedBySpace([valueTextOf(query, row), label, changeTextOf(query.metric, row)])]));
+  const overall = joinedBySpace([label, result.headline.value, formatChange(query.metric, result.headline.deltaPercent, result.headline.deltaPoints ?? null), result.headline.compareLabel]);
+  return { ...withSecondLine(card, subs, overall), title: pairedTitleOf(pairing) };
+}
+
+function joinedBySpace(parts: readonly (string | null)[]): string {
+  return parts.filter((part): part is string => Boolean(part)).join(" ");
 }
 
 /** R10 parity (sell-out against sell-in by agent) in the B anatomy: the overall share on top, the things falling well short drawn thick with their share, the rest muted; the count that falls short is the verdict. */

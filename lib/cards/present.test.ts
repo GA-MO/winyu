@@ -302,8 +302,19 @@ describe("two metrics on one card", () => {
     const card = presentCard({ title: "t", query: first.query, result: first.result, others: [second] });
     const rows = stripOf(card.body).rows;
     expect(rows.length).toBeGreaterThan(1);
-    rows.forEach((row) => expect(row.sub).toMatch(/^.+บาท ยอดค้างชำระเกินกำหนด$/));
+    rows.forEach((row) => expect(row.sub).toMatch(/^.+บาท ยอดค้างชำระเกินกำหนด( [+−-][\d.,]+%)?$/));
     expect(card.title).toContain("ยอดค้างชำระเกินกำหนด");
+  });
+
+  test("the second metric keeps its change: margin against last year under each region and beside the overall row (AI-124)", () => {
+    const sales = answer({ metric: "net_sales_value", dims: ["region"], range: MONTH_TO_DATE, compare: "target" });
+    const margin = answer({ metric: "gross_margin", dims: ["region"], range: MONTH_TO_DATE, compare: "prev_year" });
+    if (!margin.result.ok) throw new Error(margin.result.error);
+    const card = presentCard({ title: "t", query: sales.query, result: sales.result, others: [margin] });
+    const strip = stripOf(card.body);
+    strip.rows.forEach((row) => expect(row.sub).toMatch(/^[\d.]+% อัตรากำไรขั้นต้น [+−-]?[\d.]+ จุด$/));
+    const overall = `อัตรากำไรขั้นต้น ${margin.result.headline.value} ${formatChange("gross_margin", margin.result.headline.deltaPercent, margin.result.headline.deltaPoints ?? null)} ${margin.result.headline.compareLabel}`;
+    expect(strip.overall?.sub).toContain(overall);
   });
 
   test("a change ranking names what each row moved from, and the hero what the whole was, so last year's amount is on the card (AI-68)", () => {

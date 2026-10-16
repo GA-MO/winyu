@@ -32,7 +32,7 @@ function OverallLabel({ row }: { row: ReadRow }) {
   return (
     <div className="flex min-w-0 flex-col text-[12px] leading-snug text-muted-foreground">
       <span className="truncate">{row.label}</span>
-      {row.sub ? <span className="line-clamp-3 break-words text-[11px]">{row.sub}</span> : null}
+      {row.sub ? <span className="line-clamp-4 break-words text-[11px]">{row.sub}</span> : null}
     </div>
   );
 }
@@ -40,19 +40,22 @@ function OverallLabel({ row }: { row: ReadRow }) {
 function LineStrip({ strip }: { strip: Strip }) {
   const overall = strip.overall;
   const lines = strip.rows.length + (overall ? 2 : 0);
+  const lineRows = overall && overall.measure === null ? `3 / span ${strip.rows.length}` : `1 / span ${lines}`;
   return (
     <div className="relative grid grid-cols-[minmax(0,7.5rem)_minmax(0,1fr)_max-content] items-center gap-x-2.5 gap-y-1.5">
-      <div aria-hidden className="pointer-events-none relative self-stretch" style={{ gridColumn: 2, gridRow: `1 / span ${lines}` }}>
+      <div aria-hidden className="pointer-events-none relative self-stretch" style={{ gridColumn: 2, gridRow: lineRows }}>
         <div className="absolute inset-y-0 w-px bg-foreground/25" style={{ left: `${at(strip, strip.baseline)}%` }} />
       </div>
       {overall ? (
         <>
-          <div style={{ gridColumn: 1, gridRow: 1 }}>
+          <div style={{ gridColumn: overall.measure === null ? "1 / 3" : 1, gridRow: 1 }}>
             <OverallLabel row={overall} />
           </div>
-          <div className="relative h-6" style={{ gridColumn: 2, gridRow: 1 }}>
-            {overall.measure !== null ? <Bar strip={strip} value={overall.measure} className={cn("h-3", TONE_BAR[overall.tone])} /> : null}
-          </div>
+          {overall.measure !== null ? (
+            <div className="relative h-6" style={{ gridColumn: 2, gridRow: 1 }}>
+              <Bar strip={strip} value={overall.measure} className={cn("h-3", TONE_BAR[overall.tone])} />
+            </div>
+          ) : null}
           <div className="flex flex-col items-end gap-1 text-right" style={{ gridColumn: 3, gridRow: 1 }}>
             <span className={cn("text-[22px] font-semibold leading-none tracking-tight tabular-nums", overall.change ? "text-foreground" : TONE_TEXT[overall.tone])}>{overall.text}</span>
             {overall.change ? <ChangeChip text={overall.change} tone={overall.tone} /> : null}
