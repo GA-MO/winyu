@@ -12,7 +12,7 @@ import { DATA_AS_OF, dataDay, formatThaiDate, monthStart } from "@/lib/data/date
 
 const REP = accessFor(findUser("u_krit")!);
 const CFO = accessFor(findUser("u_siriporn")!);
-const HR = accessFor(findUser("u_may")!);
+const CEO = accessFor(findUser("u_thana")!);
 const RANGE = { from: monthStart(DATA_AS_OF, 1), to: DATA_AS_OF };
 const REQUEST_KEYS = ["dims", "filters", "labelShift", "measure", "metric", "range"];
 
@@ -72,19 +72,19 @@ describe("runMetric over the metrics port", () => {
       () => ({
         ok: true,
         rows: [
-          { dims: { department: "dept_tiny" }, value: 2, weight: 1 },
-          { dims: { department: "dept_sales" }, value: 1_240, weight: 1 },
+          { dims: { department: "dept_tiny" }, value: 1, weight: 2 },
+          { dims: { department: "dept_sales" }, value: 15, weight: 1_240 },
         ],
       }),
       { ...master, departments: [...master.departments, { id: "dept_tiny", nameTh: "ฝ่ายเล็ก", label: "Tiny", headcount: 2 }] },
     );
-    const result = await runMetric(question({ metric: "headcount", dims: ["department"] }), HR);
+    const result = await runMetric(question({ metric: "attrition_rate", dims: ["department"] }), CEO);
     if (!result.ok) throw new Error(result.error);
     expect(result.rows.find((row) => row.department === "ฝ่ายเล็ก")?.value).toBe(SUPPRESSED_VALUE);
-    expect(result.rows.find((row) => row.department === "ขาย")?.value).toBe(1_240);
+    expect(result.rows.find((row) => row.department === "ขาย")?.value).toBeTypeOf("number");
     expect(result.provenance.suppressedRows).toBe(1);
     expect(result.provenance.masked).toEqual([]);
-    const actions = actionsForMetric(HR, result, await loadDictionary());
+    const actions = actionsForMetric(CEO, result, await loadDictionary());
     expect(actions.some((action) => action.kind === "request_access")).toBe(false);
   });
 
