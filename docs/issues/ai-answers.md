@@ -733,7 +733,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 | ข้อ | ระดับ | สถานะ | ปัญหา |
 |---|---|---|---|
 | AI-52 | สูง | แก้แล้ว `9eb39c6` | share_card ran without an approval card: the RSM's false-premise turn emailed two reps |
-| AI-53 (เดิม AI-25) | สูง | ยังเสีย | Month-to-date attainment uses two bases: '% of full-month target' and 'litres left' come from the pro-rated target, and text and card disagree |
+| AI-53 (เดิม AI-25) | สูง | แก้แล้ว `3f813cb` `5a7af8a` · รอยืนยันกับโมเดล | Month-to-date attainment uses two bases: '% of full-month target' and 'litres left' come from the pro-rated target, and text and card disagree |
 | AI-54 | กลาง | แก้แล้ว `12de43e` | A run resumed after a restart reached set_permission, never raised its approval, and left the thread dead |
 | AI-55 | กลาง | แก้แล้ว `37b6cb0` | Sending a message while an approval is pending fails with a generic retry error |
 | AI-56 | กลาง | เปิด (ใหม่) | share_card sends the previous turn's card, not the one this turn answered with |
@@ -743,33 +743,33 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 | AI-60 | กลาง | เปิด (ใหม่) | The run-sheet IT beat has nothing to show: the chain causes 0 denials |
 | AI-61 | กลาง | แก้แล้ว `efa3e85` | Debt collection for a named agent is routed to the national finance analyst, not the agent's rep |
 | AI-62 (เดิม AI-13; AI-10 (share part)) | กลาง | ยังเสีย | Share sheet suggests the wrong people: the national director preselected, and the sender's own team listed after the CEO and CFO |
-| AI-63 (เดิม AI-19) | กลาง | ยังเสีย | Every tool call of a turn is drawn as a card: lookups, failed calls and the catalog appear on unrelated answers and refusals |
+| AI-63 (เดิม AI-19) | กลาง | แก้แล้ว `be97f47` | Every tool call of a turn is drawn as a card: lookups, failed calls and the catalog appear on unrelated answers and refusals |
 | AI-64 (เดิม AI-29) | กลาง | ยังเสีย | Turns over 40 s spent in unbounded Gemini reasoning |
 | AI-65 (เดิม AI-8) | กลาง | ยังเสีย | Two clocks: demo date 27 Nov for data, real 16 Oct for audit, cost, inbox and share stamps |
-| AI-66 | กลาง | เปิด (ใหม่) | The same metric asked against two baselines draws two near-identical cards |
-| AI-67 (เดิม AI-26) | กลาง | ยังเสีย | An overstock question gets a cover-days card whose hero is the weakest row |
-| AI-68 | กลาง | เปิด (ใหม่) | Last year's amount is in the tool rows but not on the card, while the text says the card shows it |
-| AI-69 | กลาง | เปิด (ใหม่) | A single-month time×group query draws a line chart of lone dots with the wrong hero |
-| AI-70 | กลาง | เปิด (ใหม่) | A 4-point province scatter shows no values, and its axis labels overlap |
-| AI-71 | กลาง | เปิด (ใหม่) | A 'this week' question gets a single-day hero whose sign is opposite to the week's |
-| AI-72 | กลาง | เปิด (ใหม่) | A role-permissions answer is a 57-row table on a phone |
-| AI-73 | กลาง | เปิด (ใหม่) | Cost questions are answered without the total that was asked for |
+| AI-66 | กลาง | แก้แล้ว `4315adb` `5a7af8a` | The same metric asked against two baselines draws two near-identical cards |
+| AI-67 (เดิม AI-26) | กลาง | แก้แล้ว `3b3b89a` | An overstock question gets a cover-days card whose hero is the weakest row |
+| AI-68 | กลาง | แก้แล้ว `87d2d51` `5a7af8a` | Last year's amount is in the tool rows but not on the card, while the text says the card shows it |
+| AI-69 | กลาง | แก้แล้ว `9b592f7` | A single-month time×group query draws a line chart of lone dots with the wrong hero |
+| AI-70 | กลาง | แก้แล้ว `b38fdb3` `d76d13d` | A 4-point province scatter shows no values, and its axis labels overlap |
+| AI-71 | กลาง | แก้แล้ว `6ceba51` | A 'this week' question gets a single-day hero whose sign is opposite to the week's |
+| AI-72 | กลาง | แก้แล้ว `b16358f` | A role-permissions answer is a 57-row table on a phone |
+| AI-73 | กลาง | แก้แล้ว `b16358f` · รอยืนยันกับโมเดล | Cost questions are answered without the total that was asked for |
 | AI-74 | กลาง | แก้แล้ว `67ed73c` | Memory learns interests from refused, out-of-scope and injected requests |
 | AI-75 (เดิม AI-44) | กลาง | แก้แล้ว `8677d11` · รอยืนยันกับโมเดลรอบถัดไป | The 'ตัวเลขก่อน' preference is not applied consistently |
-| AI-76 (เดิม AI-30) | ต่ำ | ยังเสีย | The AR-by-region card in the multi-question risk turn drops ภาคเหนือ |
-| AI-77 (เดิม AI-30) | ต่ำ | ยังเสีย | Card actions and chips follow an open alert's region, not the answer |
-| AI-78 (เดิม AI-38) | ต่ำ | ยังเสีย | Internal ids and English enums reach the user |
+| AI-76 (เดิม AI-30) | ต่ำ | แก้แล้ว `ec1c2d8` | The AR-by-region card in the multi-question risk turn drops ภาคเหนือ |
+| AI-77 (เดิม AI-30) | ต่ำ | แก้แล้ว `75572b1` | Card actions and chips follow an open alert's region, not the answer |
+| AI-78 (เดิม AI-38) | ต่ำ | แก้แล้ว `992e7af` | Internal ids and English enums reach the user |
 | AI-79 (เดิม AI-2) | ต่ำ | แก้แล้ว `6e46af4` | The text after approval still tells the user to confirm, and the turn time jumps |
 | AI-80 | ต่ำ | แก้แล้ว `bdd0962` | The injection guardrail missed the CEO's '--- [SYSTEM] … ---' form |
 | AI-81 | ต่ำ | แก้แล้ว `bdd0962` `8677d11` · รอยืนยันกับโมเดลรอบถัดไป | An injection is blocked but not acknowledged |
 | AI-82 | ต่ำ | แก้แล้ว `8677d11` · รอยืนยันกับโมเดลรอบถัดไป | After forgetting ยอดดัน, the agent still reads it as sell-in without asking |
-| AI-83 | ต่ำ | เปิด (ใหม่) | The weekly line plots a 2-day W44 bucket as a collapse |
+| AI-83 | ต่ำ | แก้แล้ว `477c291` `4edf1c9` | The weekly line plots a 2-day W44 bucket as a collapse |
 | AI-84 | ต่ำ | แก้แล้ว `9dc2a0c` | A manager's leave question about a direct report gets 'no data', with permission and absence mixed |
 | AI-85 | ต่ำ | เปิด (ใหม่) | The originator gets no bell update when the matter is passed on or accepted |
 | AI-86 (เดิม AI-36) | ต่ำ | แก้แล้ว `8677d11` · รอยืนยันกับโมเดลรอบถัดไป | A cross-region refusal never mentions the expired CEO grant |
-| AI-87 | ต่ำ | เปิด (ใหม่) | Admin tool usage counts audit pseudo-rows, and accept is labelled 'ส่งต่อการ์ด' |
-| AI-88 (เดิม AI-31) | ต่ำ | ยังเสีย | get_alerts is not narrowed for a single-agent question |
-| AI-89 (เดิม AI-40) | ต่ำ | ยังเสีย | Phone layout: the share success panel fills the screen, the header covers numbers, and chat does not auto-scroll |
+| AI-87 | ต่ำ | แก้แล้ว `e8d24ef` `c5f3398` | Admin tool usage counts audit pseudo-rows, and accept is labelled 'ส่งต่อการ์ด' |
+| AI-88 (เดิม AI-31) | ต่ำ | แก้แล้ว `f706ffb` · รอยืนยันกับโมเดล | get_alerts is not narrowed for a single-agent question |
+| AI-89 (เดิม AI-40) | ต่ำ | แก้แล้ว `4e93758` `15e933a` `8ba1d5b` | Phone layout: the share success panel fills the screen, the header covers numbers, and chat does not auto-scroll |
 | AI-90 (เดิม AI-35) | ต่ำ | แก้แล้ว `396f455` | Free-text 'ผม/ของผม' still means the whole region |
 | AI-91 | ต่ำ | ยังเสีย | คืนค่า on a permission override reverts at once with no confirmation or undo |
 | AI-92 | ต่ำ | แก้แล้ว `3b28887` `8677d11` · รอยืนยันกับโมเดลรอบถัดไป | Admin answers suggest loosening RSM access after correct denials |
@@ -810,7 +810,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-53. Month-to-date attainment uses two bases: '% of full-month target' and 'litres left' come from the pro-rated target, and text and card disagree
 
-- **สถานะ:** ยังเสีย · เดิม AI-25
+- **สถานะ:** แก้แล้ว `3f813cb` `5a7af8a` · รอยืนยันกับโมเดล · เดิม AI-25
 - **ระดับ:** สูง · **หมวด:** `wrong-answer` · **บทบาท:** พนักงานขาย u_krit, CEO u_thana
 - **อาการ:** Rep p1 said 'ทำได้ประมาณ 92% ของเป้าหมายทั้งเดือน และยังขาดอีก 441,402 ลิตร'. Both numbers are against the target pro-rated to 26 Nov (5,508,848 L). Against the full month the rep is at about 79%. The rep's s1t5 turn (93 s, 5 cards) never stated the full-month % or the litres left. CEO s2t6 put '85.5% ของเป้า' (to date vs the full month) in a LINE summary while the card said 98.6% (pro-rated). In m8 the CEO text gave '85.9%' beside a card at 99.1%, and attached 'ขาดอีก 500,000 ลิตร' to the 98.9% forecast. A pasted summary contradicts the screenshot. (Merges A's 'two bases' finding, which was new, into B's AI-25.)
 - **ที่ควรเป็น:** Attainment is stated one way, or its base is named every time. A month-to-date vs target answer gives the % of the full-month target and the litres left to it. The remaining amount is never attached to the forecast.
@@ -924,7 +924,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-63. Every tool call of a turn is drawn as a card: lookups, failed calls and the catalog appear on unrelated answers and refusals
 
-- **สถานะ:** ยังเสีย · เดิม AI-19
+- **สถานะ:** แก้แล้ว `be97f47` · เดิม AI-19
 - **ระดับ:** กลาง · **หมวด:** `card-quality` · **บทบาท:** CEO u_thana, พนักงานขาย u_krit, ผู้ดูแลระบบไอที u_ton
 - **อาการ:** The CEO's salary refusal (s3t1) drew a 'เมตริกที่ถามได้' table. The rep's injection turn kept an 'อ่านผลลัพธ์นี้ไม่ได้' card from a schema-rejected query_metric. The rep's stock question drew a 9-metric catalog that listed เงินเดือนเฉลี่ย. The rep's 'my target %' turn drew a visit log and his own HR profile (5 cards). IT turns drew person cards from find_people. The CEO's chat send showed an entity card, a ส่งต่อ pill and an approval card. (Merges A's AI-19 finding with B's AI-19 finding and B's new 'every tool drawn' finding.)
 - **ที่ควรเป็น:** Draw only results that answer the question. Lookups, failed calls and catalog searches stay hidden, and a refusal is text only.
@@ -960,7 +960,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-66. The same metric asked against two baselines draws two near-identical cards
 
-- **สถานะ:** เปิด (ใหม่)
+- **สถานะ:** แก้แล้ว `4315adb` `5a7af8a`
 - **ระดับ:** กลาง · **หมวด:** `card-quality` · **บทบาท:** CEO u_thana
 - **อาการ:** s1t3 ran net_sales_value by agent×province vs target and vs previous period. It drew two bars-gap cards with different heroes (−45.0% and −21.9%).
 - **ที่ควรเป็น:** One card per question: the second baseline folds into the first or is dropped.
@@ -970,7 +970,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-67. An overstock question gets a cover-days card whose hero is the weakest row
 
-- **สถานะ:** ยังเสีย · เดิม AI-26
+- **สถานะ:** แก้แล้ว `3b3b89a` · เดิม AI-26
 - **ระดับ:** กลาง · **หมวด:** `card-quality` · **บทบาท:** CEO u_thana
 - **อาการ:** s1t6 queried days_of_cover sorted value_desc, but the hero reads 'ต่ำสุด · ลีโอ 14.8 วัน', which frames the answer as a stock-out. The import-margin part of AI-26 is now answered.
 - **ที่ควรเป็น:** With a value_desc sort, the hero leads with the highest-cover row (R5).
@@ -980,7 +980,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-68. Last year's amount is in the tool rows but not on the card, while the text says the card shows it
 
-- **สถานะ:** เปิด (ใหม่)
+- **สถานะ:** แก้แล้ว `87d2d51` `5a7af8a`
 - **ระดับ:** กลาง · **หมวด:** `card-quality` · **บทบาท:** CEO u_thana
 - **อาการ:** s2t3 'ไหนเลขปีก่อน': compare_value per agent is in the result, but the card shows only this year and %. In p2, 10.4 ล้าน appeared only in the text.
 - **ที่ควรเป็น:** When the user asks for the base, the card shows the compare value next to the current value.
@@ -990,7 +990,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-69. A single-month time×group query draws a line chart of lone dots with the wrong hero
 
-- **สถานะ:** เปิด (ใหม่)
+- **สถานะ:** แก้แล้ว `9b592f7`
 - **ระดับ:** กลาง · **หมวด:** `card-quality` · **บทบาท:** CEO u_thana
 - **อาการ:** s3t4 gross_margin by month×business_unit for this month drew a 'รายเดือน' line with one bucket. Its hero was the company average 27.3%, not the import group's figure. The +0.6 จุด rebuttal was never given.
 - **ที่ควรเป็น:** A single bucket with groups draws bars or a meter, with the asked group in the hero.
@@ -1000,7 +1000,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-70. A 4-point province scatter shows no values, and its axis labels overlap
 
-- **สถานะ:** เปิด (ใหม่)
+- **สถานะ:** แก้แล้ว `b38fdb3` `d76d13d`
 - **ระดับ:** กลาง · **หมวด:** `card-quality` · **บทบาท:** CEO u_thana
 - **อาการ:** s2t5 drew an R10 scatter of 4 provinces with no point labels, and the 60 ล้าน and 80 ล้าน labels overlap. The key claim in the text is not on the card.
 - **ที่ควรเป็น:** With few points, label each point with both values, or use a paired table or bars.
@@ -1010,7 +1010,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-71. A 'this week' question gets a single-day hero whose sign is opposite to the week's
 
-- **สถานะ:** เปิด (ใหม่)
+- **สถานะ:** แก้แล้ว `6ceba51`
 - **ระดับ:** กลาง · **หมวด:** `card-quality` · **บทบาท:** พนักงานขาย u_krit
 - **อาการ:** 'ยอดขอนแก่นอาทิตนี้เปนไง' drew a hero of '63,077 ลิตร +8.7% เทียบ 25 พ.ย.' in green. The week total (213,353 L, −10.4%) appears only in small text.
 - **ที่ควรเป็น:** The hero gives the week total against the previous week.
@@ -1020,7 +1020,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-72. A role-permissions answer is a 57-row table on a phone
 
-- **สถานะ:** เปิด (ใหม่)
+- **สถานะ:** แก้แล้ว `b16358f`
 - **ระดับ:** กลาง · **หมวด:** `card-quality` · **บทบาท:** ผู้ดูแลระบบไอที u_ton
 - **อาการ:** 'What does sales see' drew 56 rows (6,141 px) with English enums. The hidden items are buried among them. With 'เอาสั้นๆ', the answer was a 3-row card.
 - **ที่ควรเป็น:** By default, list only the hidden, masked and closed items, with Thai labels.
@@ -1031,7 +1031,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-73. Cost questions are answered without the total that was asked for
 
-- **สถานะ:** เปิด (ใหม่)
+- **สถานะ:** แก้แล้ว `b16358f` · รอยืนยันกับโมเดล
 - **ระดับ:** กลาง · **หมวด:** `did-not-answer` · **บทบาท:** ผู้ดูแลระบบไอที u_ton
 - **อาการ:** 'ใช้ไปกี่ตัง' got a 3-row split table with no total in the card or the text. Two later turns did show the total.
 - **ที่ควรเป็น:** The total is the hero, with the split below.
@@ -1064,7 +1064,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-76. The AR-by-region card in the multi-question risk turn drops ภาคเหนือ
 
-- **สถานะ:** ยังเสีย · เดิม AI-30
+- **สถานะ:** แก้แล้ว `ec1c2d8` · เดิม AI-30
 - **ระดับ:** ต่ำ · **หมวด:** `card-quality` · **บทบาท:** CEO u_thana
 - **อาการ:** limit 5 shows 90.9 of 102.6, with ภาคเหนือ missing.
 - **ที่ควรเป็น:** Small bounded dimensions (6 regions) are never truncated.
@@ -1074,7 +1074,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-77. Card actions and chips follow an open alert's region, not the answer
 
-- **สถานะ:** ยังเสีย · เดิม AI-30
+- **สถานะ:** แก้แล้ว `75572b1` · เดิม AI-30
 - **ระดับ:** ต่ำ · **หมวด:** `card-quality` · **บทบาท:** CEO u_thana
 - **อาการ:** p1's text names ภาคอีสาน, but the handoff and the chips point to ภาคใต้.
 - **ที่ควรเป็น:** The focus row follows the answer.
@@ -1084,7 +1084,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-78. Internal ids and English enums reach the user
 
-- **สถานะ:** ยังเสีย · เดิม AI-38
+- **สถานะ:** แก้แล้ว `992e7af` · เดิม AI-38
 - **ระดับ:** ต่ำ · **หมวด:** `thai-language` · **บทบาท:** CEO u_thana, RSM u_anucha, พนักงานขาย u_krit, ผู้ดูแลระบบไอที u_ton
 - **อาการ:** Users see '(net_sales_value)' and '(store_visits)' in replies, 'ownerId u_*' rows on entity cards, Masked/Full/None in permission cards, and 'SAP SD' wording.
 - **ที่ควรเป็น:** Thai labels only.
@@ -1136,7 +1136,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-83. The weekly line plots a 2-day W44 bucket as a collapse
 
-- **สถานะ:** เปิด (ใหม่)
+- **สถานะ:** แก้แล้ว `477c291` `4edf1c9`
 - **ระดับ:** ต่ำ · **หมวด:** `card-quality` · **บทบาท:** RSM u_anucha
 - **อาการ:** W44 holds only 1–2 Nov and is drawn as a full week. The hero (W47 vs W46) is correct.
 - **ที่ควรเป็น:** Mark or drop partial edge buckets.
@@ -1176,7 +1176,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-87. Admin tool usage counts audit pseudo-rows, and accept is labelled 'ส่งต่อการ์ด'
 
-- **สถานะ:** เปิด (ใหม่)
+- **สถานะ:** แก้แล้ว `e8d24ef` `c5f3398`
 - **ระดับ:** ต่ำ · **หมวด:** `wrong-answer` · **บทบาท:** ผู้ดูแลระบบไอที u_ton
 - **อาการ:** The table has rows for matter, composed_card and share, and sums to 97 while the console says 84.
 - **ที่ควรเป็น:** Count only real tool calls, and label matter actions by their action.
@@ -1186,7 +1186,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-88. get_alerts is not narrowed for a single-agent question
 
-- **สถานะ:** ยังเสีย · เดิม AI-31
+- **สถานะ:** แก้แล้ว `f706ffb` · รอยืนยันกับโมเดล · เดิม AI-31
 - **ระดับ:** ต่ำ · **หมวด:** `card-quality` · **บทบาท:** พนักงานขาย u_krit
 - **อาการ:** 4 alerts were drawn, 3 of them for other agents.
 - **ที่ควรเป็น:** Narrow the alerts to the agent asked about.
@@ -1196,7 +1196,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-89. Phone layout: the share success panel fills the screen, the header covers numbers, and chat does not auto-scroll
 
-- **สถานะ:** ยังเสีย · เดิม AI-40
+- **สถานะ:** แก้แล้ว `4e93758` `15e933a` `8ba1d5b` · เดิม AI-40
 - **ระดับ:** ต่ำ · **หมวด:** `ui` · **บทบาท:** พนักงานขาย u_krit, chain
 - **อาการ:** The 'ส่งต่อแล้ว' panel fills the phone, the bell and avatar overlap numbers, the matter actions sit below the fold, and the CEO chat did not scroll to the new reply.
 - **ที่ควรเป็น:** A compact confirmation, a header inset, and auto-scroll to the new answer.
