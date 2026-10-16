@@ -135,16 +135,17 @@ export function compactPeriod(label: string): string {
 /** Which deciding line a level breakdown is read against. */
 export type LineKind = { kind: "target" } | { kind: "cover"; days: number };
 
-/** R3 and R6: how many groups sit on the wrong side of the line out of every group in scope, the worst of them, whether the overall level is under the line too, the target's name ("เป้าตามเวลา" in a month still running), and the weakest row when nothing is under. */
-export type LineVerdictInput = { line: LineKind; unit: string; count: number; of: number; worst: string | null; overallUnder: boolean; goal: string; sums: boolean; weakest: { label: string; text: string } | null };
+/** R3 and R6: how many groups sit on the wrong side of the line out of every group in scope, the worst of them, whether the overall level is under the line too, the target's name ("เป้าตามเวลา" in a month still running), the weakest row when nothing is under, and what the shown rows are when the list was cut (null when every group is shown). */
+export type LineVerdictInput = { line: LineKind; unit: string; count: number; of: number; worst: string | null; overallUnder: boolean; goal: string; sums: boolean; weakest: { label: string; text: string } | null; slice: string | null };
 
 /** The verdict of a breakdown read against a target or the low-cover line: who sits under it, or that nobody does. */
 export function lineVerdict(input: LineVerdictInput): string {
   const { line, unit, count, of, worst } = input;
   if (line.kind === "target") {
     const { goal } = input;
-    if (count === 0 || !worst) return TH.read.target.none(unit, goal);
-    if (count === of && of > 1) return TH.read.target.all(unit, worst, goal);
+    const every = input.slice ?? TH.read.every(unit);
+    if (count === 0 || !worst) return TH.read.target.none(every, goal);
+    if (count === of && of > 1) return TH.read.target.all(every, worst, goal);
     if (count === 1) return input.overallUnder ? TH.read.target.oneSinks(worst, unit, input.sums, goal) : TH.read.target.one(worst, unit, goal);
     return TH.read.target.some(count, unit, worst, goal);
   }
@@ -159,8 +160,8 @@ export function thresholdVerdict(count: number, of: number, unit: string, what: 
   return TH.read.countOf(count, of, unit, what);
 }
 
-/** R4: a list ranked by change, its leading exceptions (the size of each move, as positive numbers), and every row's signed change. */
-export type ChangeVerdictInput = { unit: string; falling: boolean; sums: boolean; inPoints: boolean; leading: readonly { label: string; size: number }[]; changes: readonly number[]; format: (value: number) => string };
+/** R4: a list ranked by change, its leading exceptions (the size of each move, as positive numbers), every row's signed change, and what the rows are when the list was cut ("10 SKU ที่ลดลงมากสุด"), so a verdict over a slice never speaks for every group. */
+export type ChangeVerdictInput = { unit: string; falling: boolean; sums: boolean; inPoints: boolean; leading: readonly { label: string; size: number }[]; changes: readonly number[]; format: (value: number) => string; slice: string | null };
 
 function directionWord(change: number): string {
   return change < 0 ? TH.read.fell : TH.read.rose;
@@ -174,7 +175,9 @@ export function changeVerdict(input: ChangeVerdictInput): string {
   if (input.leading.length === 0) {
     const sameWay = input.changes.every((change) => (input.falling ? change < 0 : change > 0));
     if (!sameWay) return TH.read.noneStandsOut(input.unit, verb);
-    return TH.read.allClose(TH.read.every(input.unit), input.falling ? TH.read.fell : TH.read.rose, rangeText(input.changes.map(Math.abs), input.format));
+    const direction = input.falling ? TH.read.fell : TH.read.rose;
+    const range = rangeText(input.changes.map(Math.abs), input.format);
+    return input.slice ? TH.read.sliceRange(input.slice, direction, range) : TH.read.allClose(TH.read.every(input.unit), direction, range);
   }
   const mildest = Math.min(...input.leading.map((row) => row.size));
   const size = magnitudeWords(mildest, input.leading.length > 1, input.inPoints ? "points" : "percent");
@@ -182,8 +185,8 @@ export function changeVerdict(input: ChangeVerdictInput): string {
   return TH.read.someMoved(input.leading.length, input.unit, verb, size);
 }
 
-/** A leaderboard: labels by size, every row's signed change, the rows whose change stands out (by index), and how a change size is written. */
-export type BoardVerdictInput = { unit: string; labels: readonly string[]; changes: readonly (number | null)[]; notable: ReadonlySet<number>; format: (value: number) => string };
+/** A leaderboard: labels by size, every row's signed change, the rows whose change stands out (by index), how a change size is written, and what the rows are when the list was cut. */
+export type BoardVerdictInput = { unit: string; labels: readonly string[]; changes: readonly (number | null)[]; notable: ReadonlySet<number>; format: (value: number) => string; slice: string | null };
 
 function medianOf(values: readonly number[]): number {
   const ordered = [...values].sort((left, right) => left - right);
@@ -215,7 +218,7 @@ export function boardVerdict(input: BoardVerdictInput): string {
   const [leader = "", next] = input.labels;
   const changes = known.map((entry) => entry.change);
   const sameWay = changes.length === input.labels.length && changes.length > 1 && (changes.every((change) => change < 0) || changes.every((change) => change > 0));
-  if (sameWay) return TH.read.boardLeaderClose(leader, TH.read.every(input.unit), directionWord(changes[0]));
+  if (sameWay) return TH.read.boardLeaderClose(leader, input.slice ?? TH.read.every(input.unit), directionWord(changes[0]));
   return next ? TH.read.boardLeader(leader, next) : leader;
 }
 

@@ -605,6 +605,23 @@ describe("a target breakdown ranked by its gap", () => {
   });
 });
 
+describe("a list cut by a limit", () => {
+  test("speaks for the rows it shows, never for every group: the ten SKUs that fell most are named as ten (AI-105)", () => {
+    const sku: Dim[] = ["sku"];
+    const asks = [
+      { ask: { metric: "net_sales_volume" as const, dims: sku, range: MONTH_TO_DATE, compare: "target" as const }, filters: { agent: ["ag_nea_02"] } },
+      { ask: { metric: "net_sales_volume" as const, dims: sku, range: MONTH_TO_DATE, compare: "prev_period" as const }, filters: { agent: ["ag_nea_02"] } },
+      { ask: { metric: "net_sales_volume" as const, dims: sku, range: MONTH_TO_DATE, compare: "prev_year" as const }, filters: {} },
+    ];
+    for (const { ask, filters } of asks) {
+      const card = cardOf(ask, { sort: "delta_asc", limit: 10, filters });
+      expect(card.verdict ?? "").not.toContain("ทุก");
+    }
+    const changes = cardOf(asks[1].ask, { sort: "delta_asc", limit: 10, filters: asks[1].filters });
+    if (/ใกล้กัน|SKU ที่/.test(changes.verdict ?? "")) expect(changes.verdict).toContain(TH.read.topMovers(10, "SKU", TH.read.fell));
+  });
+});
+
 describe("a breakdown whose level decides", () => {
   test("cover counts the groups under the low-cover line over every group before the row cap, and names the worst", () => {
     const { query, result } = answer({ metric: "days_of_cover", dims: ["dc"], compare: "none" });

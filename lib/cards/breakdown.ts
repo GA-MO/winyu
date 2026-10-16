@@ -77,8 +77,8 @@ export function percentIn(text: string): number | null {
 /** What a breakdown's target figures are a share of: the target to date in a month still running ("ตามเวลา"), and the whole month's share done and what is left to it when the result carries them. */
 export type TargetBase = { paced: boolean; month: { attainment: string; left: string | null } | null };
 
-/** What the decision table knows about one breakdown: its rows in the order asked, the bars it draws, the unit word, the overall row's label, whether the question set a threshold (R7), and what a target figure is a share of ("ของเป้าตามเวลา" in a month still running) with the whole month beside it, the base total a change ranking moved from, and whether the line is read from above (the top of a capped ranking, or rows above a value). */
-export type BreakdownInput = { query: MetricQuery; result: OkResult; rows: MetricRow[]; bars: BreakdownBars; unit: string; scope: string; threshold: boolean; additive: boolean; falling: boolean; target: TargetBase; baseTotal: string | null; high: boolean };
+/** What the decision table knows about one breakdown: its rows in the order asked, the bars it draws, the unit word, the overall row's label, whether the question set a threshold (R7), and what a target figure is a share of ("ของเป้าตามเวลา" in a month still running) with the whole month beside it, the base total a change ranking moved from, whether the line is read from above (the top of a capped ranking, or rows above a value), and whether the list was cut by a limit, so its verdict speaks for the rows shown, never for every group. */
+export type BreakdownInput = { query: MetricQuery; result: OkResult; rows: MetricRow[]; bars: BreakdownBars; unit: string; scope: string; threshold: boolean; additive: boolean; falling: boolean; target: TargetBase; baseTotal: string | null; high: boolean; capped: boolean };
 
 /** A breakdown read for styles B and A: the strip, the verdict, the hero the overall row stands for, the row style A leads with instead (a change ranking), and how the rows style A folds away read in one line. */
 export type Breakdown = {
@@ -226,6 +226,7 @@ function lineReading(input: BreakdownInput, line: LevelLine): Breakdown {
       goal: input.target.paced ? TH.read.pacedGoal : TH.read.goal,
       sums: input.additive,
       weakest: answer ? { label: labelOf(query, answer.row), text: textOf(answer) } : null,
+      slice: input.capped && !result.headline.underLine ? TH.read.shown(rows.length, input.unit) : null,
     }),
     hero: month
       ? { label: input.scope, value: month.attainment, unit: TH.read.ofMonthTarget, delta: null, trend: overallUnder ? "down" : "neutral", tone: overallTone, detail: month.detail }
@@ -290,6 +291,7 @@ function changeReading(input: BreakdownInput): Breakdown {
       leading: known.slice(0, leading).map((entry) => ({ label: labelOf(query, entry.row), size: Math.abs(entry.measure) })),
       changes: known.map((entry) => entry.measure),
       format,
+      slice: input.capped ? TH.read.topMovers(input.rows.length, input.unit, input.falling ? TH.read.fell : TH.read.rose) : null,
     }),
     hero: { label: input.scope, value: overall.delta ?? result.headline.value, unit: null, delta: null, trend: overall.trend, tone: overall.tone, detail: input.baseTotal ?? result.headline.compareLabel },
     lead: leadRow && leading > 0 ? { row: labelOf(query, leadRow.row), hero: { label: labelOf(query, leadRow.row), value: valueTextOf(query, leadRow.row), unit: null, ...rowMove(query, leadRow.row), detail: baseOf(query, leadRow.row) ?? result.headline.compareLabel } } : null,
@@ -325,7 +327,7 @@ function boardReading(input: BreakdownInput): Breakdown {
     baseline: 0,
     overall: { label: input.scope, sub: null, measure: null, fill: 0, text: result.headline.value, change: overall.delta, tone: overall.tone, exception: true, valued: true },
     rows,
-    verdict: boardVerdict({ unit: input.unit, labels: rows.map((row) => row.label), changes, notable, format }),
+    verdict: boardVerdict({ unit: input.unit, labels: rows.map((row) => row.label), changes, notable, format, slice: input.capped ? TH.read.shown(rows.length, input.unit) : null }),
     hero: { label: input.scope, value: result.headline.value, unit: null, ...overall, detail: result.headline.compareLabel },
     lead: null,
     pickWhenNone: LEADERS,

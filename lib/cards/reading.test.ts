@@ -68,7 +68,7 @@ describe("one verdict per rule, built only from the result", () => {
   });
 
   test("R3: against a target the verdict names the one group that sank the total, or counts them with the worst", () => {
-    const base = { line: TARGET, unit: "ภาค", of: 6, overallUnder: true, goal: "เป้า", sums: true, weakest: null };
+    const base = { line: TARGET, unit: "ภาค", of: 6, overallUnder: true, goal: "เป้า", sums: true, weakest: null, slice: null };
     expect(lineVerdict({ ...base, count: 1, worst: "ภาคอีสาน" })).toBe("ยอดรวมหลุดเป้าเพราะภาคอีสานภาคเดียว");
     expect(lineVerdict({ ...base, count: 1, worst: "ภาคอีสาน", overallUnder: false })).toBe("ภาคอีสานภาคเดียวยังไม่ถึงเป้า");
     expect(lineVerdict({ ...base, unit: "จังหวัด", of: 24, count: 3, worst: "อุบลราชธานี" })).toBe("3 จังหวัดต่ำกว่าเป้า หนักสุดอุบลราชธานี");
@@ -78,18 +78,19 @@ describe("one verdict per rule, built only from the result", () => {
 
   test("R4: a change ranking says how many moved clear of the rest and by how much in words, or plainly that none did", () => {
     const format = percentText;
-    expect(changeVerdict({ unit: "เอเย่นต์", falling: true, sums: true, inPoints: false, leading: [{ label: "ก", size: 48.9 }, { label: "ข", size: 48.6 }], changes: [-48.9, -48.6, -12.9], format })).toBe("2 เอเย่นต์ยอดหายเกือบครึ่ง");
-    expect(spaced(changeVerdict({ unit: "จังหวัด", falling: true, sums: false, inPoints: true, leading: [{ label: "นครราชสีมา", size: 6.7 }], changes: [-6.7, -1.5], format }))).toBe("นครราชสีมาลดลง 6.7 จุด");
-    expect(changeVerdict({ unit: "เอเย่นต์", falling: true, sums: true, inPoints: false, leading: [], changes: [-28.4, -27.8], format })).toBe("ทุกเอเย่นต์ลดลงใกล้กัน 27.8–28.4%");
-    expect(changeVerdict({ unit: "เอเย่นต์", falling: true, sums: true, inPoints: false, leading: [], changes: [3, 5], format })).toBe("ไม่มีเอเย่นต์ไหนลดลง");
+    expect(changeVerdict({ unit: "เอเย่นต์", falling: true, sums: true, inPoints: false, leading: [{ label: "ก", size: 48.9 }, { label: "ข", size: 48.6 }], changes: [-48.9, -48.6, -12.9], format, slice: null })).toBe("2 เอเย่นต์ยอดหายเกือบครึ่ง");
+    expect(spaced(changeVerdict({ unit: "จังหวัด", falling: true, sums: false, inPoints: true, leading: [{ label: "นครราชสีมา", size: 6.7 }], changes: [-6.7, -1.5], format, slice: null }))).toBe("นครราชสีมาลดลง 6.7 จุด");
+    expect(changeVerdict({ unit: "เอเย่นต์", falling: true, sums: true, inPoints: false, leading: [], changes: [-28.4, -27.8], format, slice: null })).toBe("ทุกเอเย่นต์ลดลงใกล้กัน 27.8–28.4%");
+    expect(changeVerdict({ unit: "เอเย่นต์", falling: true, sums: true, inPoints: false, leading: [], changes: [3, 5], format, slice: null })).toBe("ไม่มีเอเย่นต์ไหนลดลง");
+    expect(changeVerdict({ unit: "SKU", falling: true, sums: true, inPoints: false, leading: [], changes: [-48.9, -46, -43.9], format, slice: "10 SKU ที่ลดลงมากสุด" })).toBe("10 SKU ที่ลดลงมากสุด ลดลง 43.9–48.9%");
   });
 
   test("R5 leaderboard: the row whose change stands apart and whether it moved more, less or against the rest", () => {
     const format = percentText;
     const labels = ["กรุงเทพฯ", "ภาคอีสาน", "ภาคใต้", "ภาคกลาง"];
-    expect(boardVerdict({ unit: "ภาค", labels, changes: [-10.1, -9.8, -10.3, 12], notable: new Set([3]), format })).toBe("ภาคกลางเพิ่มขึ้น 12% สวนทางภาคอื่น");
-    expect(boardVerdict({ unit: "ภาค", labels, changes: [-17.6, -36.6, -32.9, -20.7], notable: new Set([0, 3]), format })).toBe("กรุงเทพฯกับภาคกลางลดลงน้อยกว่าภาคอื่น");
-    expect(boardVerdict({ unit: "ภาค", labels, changes: [-10, -9, -11, -10], notable: new Set(), format })).toBe("กรุงเทพฯมากสุด ทุกภาคลดลงใกล้กัน");
+    expect(boardVerdict({ unit: "ภาค", labels, changes: [-10.1, -9.8, -10.3, 12], notable: new Set([3]), format, slice: null })).toBe("ภาคกลางเพิ่มขึ้น 12% สวนทางภาคอื่น");
+    expect(boardVerdict({ unit: "ภาค", labels, changes: [-17.6, -36.6, -32.9, -20.7], notable: new Set([0, 3]), format, slice: null })).toBe("กรุงเทพฯกับภาคกลางลดลงน้อยกว่าภาคอื่น");
+    expect(boardVerdict({ unit: "ภาค", labels, changes: [-10, -9, -11, -10], notable: new Set(), format, slice: null })).toBe("กรุงเทพฯมากสุด ทุกภาคลดลงใกล้กัน");
   });
 
   test("R5 rate ranking: the row clear above the rest, else the highest and the lowest with their values", () => {
@@ -99,7 +100,7 @@ describe("one verdict per rule, built only from the result", () => {
   });
 
   test("R6: against the low-cover line the verdict names the lowest when nothing is under, else counts the ones under", () => {
-    const base = { line: COVER, unit: "DC", of: 8, overallUnder: false, goal: "เป้า", sums: false };
+    const base = { line: COVER, unit: "DC", of: 8, overallUnder: false, goal: "เป้า", sums: false, slice: null };
     expect(lineVerdict({ ...base, count: 0, worst: null, weakest: { label: "DC เชียงใหม่", text: "13.9 วัน" } })).toBe("DC เชียงใหม่ เหลือน้อยสุด 13.9 วัน ยังเกิน 10 วัน");
     expect(spaced(lineVerdict({ ...base, count: 2, worst: "DC ลำพูน", weakest: null }))).toBe("2 DC สต๊อกพอขายไม่ถึง 10 วัน หนักสุด DC ลำพูน");
   });

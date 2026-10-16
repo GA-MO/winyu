@@ -638,6 +638,7 @@ function readingOf(facts: Facts, bars: Bars, rows: MetricRow[]): Breakdown {
     target: targetBaseOf(facts),
     baseTotal: baseTotalOf(facts),
     high: (facts.sortBy === "value_desc" && facts.capped) || facts.query.where?.op === "above",
+    capped: facts.capped,
   });
 }
 
@@ -844,7 +845,9 @@ function gridVerdict(query: MetricQuery, rows: MetricRow[], additive: boolean): 
     const known = changes.filter((change): change is number => change !== null);
     const sameWay = known.every((change) => change < 0) || known.every((change) => change > 0);
     const verb = (known[0] ?? 0) < 0 ? TH.read.fell : TH.read.rose;
-    return sameWay ? TH.read.allClose(TH.read.every(TH.dash.item), verb, rangeText(known.map(Math.abs), format)) : TH.read.noneStandsOut(TH.dash.item, verb);
+    if (!sameWay) return TH.read.noneStandsOut(TH.dash.item, verb);
+    const range = rangeText(known.map(Math.abs), format);
+    return isCapped(query, rows.length) ? TH.read.sliceRange(TH.read.shown(rows.length, TH.dash.item), verb, range) : TH.read.allClose(TH.read.every(TH.dash.item), verb, range);
   }
   const verb = picked[0].change < 0 ? TH.read.fell : TH.read.rose;
   const range = rangeText(picked.map((entry) => Math.abs(entry.change)), format);
