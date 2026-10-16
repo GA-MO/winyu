@@ -194,6 +194,13 @@ describe("a send about one agent on the region's card names that agent, and a cl
     expect(JSON.stringify(row ?? null)).toMatch(new RegExp(`"subject":"[^"]*${AGENT}`));
   });
 
+  test("a claim made in the question before, which the reply already answered, does not hold the go-ahead back again; the sheet still carries it (real-model run 57e3b090)", async () => {
+    const sent = await send({ to: ["u_krit"], ask: DEICTIC_ASK }, "รับทราบ ส่งไปเลย", screenWith([REGION_CARD], false, ["รับทราบ ส่งไปเลย", FALSE_CLAIM]), RSM);
+    expect(sent.ok).toBe(true);
+    expect(sent.data?.warning ?? "").toContain(AGENT);
+    expect(matterOf(sent)?.title).toContain(AGENT);
+  });
+
   test("a deictic ask with no agent named takes the card's subject, and two sends of one card never share a title", async () => {
     const generic = "ช่วยตรวจสอบและติดตามเรื่องนี้ด่วน";
     const first = matterOf(await send({ to: ["u_anucha"], ask: generic }, `ส่งให้คุณอนุชา ${generic}`, screenWith([REGION_CARD])));
