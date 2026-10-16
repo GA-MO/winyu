@@ -155,7 +155,8 @@ function PlainRow({ row }: { row: ReadRow }) {
   );
 }
 
-function FoldView({ fold, ruled }: { fold: Fold; ruled: boolean }) {
+/** Style A's folded rows: one muted line that expands to the rows, ruled off from what is drawn above it. */
+export function FoldView({ fold, ruled }: { fold: Fold; ruled: boolean }) {
   const [open, setOpen] = useState(false);
   const id = useId();
   return (

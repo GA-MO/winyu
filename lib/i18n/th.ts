@@ -1835,6 +1835,7 @@ export const TH = {
     policyHeld: "เป็นไปตามสิทธิ์ของบทบาท ระบบกันถูกต้อง",
     usage: (calls: number, tools: number, days: number) => `เรียกเครื่องมือ ${calls} ครั้ง ${tools} เครื่องมือ ใน ${days} วันล่าสุด`,
     cost: (usd: string, calls: number, days: number) => `ค่าโมเดล ${usd} จากการเรียก ${calls} ครั้ง ใน ${days} วันล่าสุด`,
+    costTotal: (days: number) => `ค่าโมเดลรวม ${days} วันล่าสุด`,
     usd: (value: number) => `$${value.toFixed(2)}`,
     sources: { chat: "แชต", eval: "eval", background: "งานเบื้องหลัง" },
     connectors: (offline: number, total: number) => (total === 0 ? "ยังไม่มีระบบเชื่อมต่อภายนอก (MCP)" : offline > 0 ? `ระบบเชื่อมต่อภายนอก ${total} ระบบ ติดต่อไม่ได้ ${offline} ระบบ` : `ระบบเชื่อมต่อภายนอก ${total} ระบบ ติดต่อได้ทุกระบบหรือยังไม่เคยเรียก`),
@@ -1843,7 +1844,8 @@ export const TH = {
     kind: { metric: "เมตริก", tool: "เครื่องมือ", field: "ฟิลด์", killed: "ปิดทั้งระบบ" },
     allowed: "ใช้ได้",
     off: "ปิด",
-    roleAccess: (role: string, tools: number, metrics: number) => `${role}: ใช้เครื่องมือได้ ${tools} ตัว · เห็นเมตริกเต็ม ${metrics} ตัว`,
+    roleAccess: (role: string, limited: number) => (limited > 0 ? `${role} ถูกซ่อนหรือปิดไว้ ${limited} รายการ` : `${role} เห็นทุกเมตริกและใช้ได้ทุกเครื่องมือ`),
+    roleAccessFolded: (metrics: number, tools: number) => `เห็นเต็ม ${metrics} เมตริก · ใช้ได้ ${tools} เครื่องมือ`,
     needsRole: "ระบุบทบาทที่ต้องการดูสิทธิ์ (role)",
   },
   partner: {

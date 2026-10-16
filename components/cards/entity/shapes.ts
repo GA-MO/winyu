@@ -172,6 +172,11 @@ export const connectorResult = z.object({
   provenance: z.object({ sourceSystem: z.string(), asOf: z.string(), masked: z.array(z.string()) }),
 });
 
+export const adminAuditResult = connectorResult.extend({
+  headline: z.object({ label: z.string(), value: z.string() }).nullish(),
+  folded: z.object({ line: z.string(), rows: z.array(z.record(z.string(), z.unknown())) }).nullish(),
+});
+
 /** What a tool result turned out to be once parsed at the card boundary. */
 export type Parsed<T> = { kind: "ok"; data: T } | { kind: "refused"; notice: RefusalNotice } | { kind: "unreadable" };
 

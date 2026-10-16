@@ -1,7 +1,7 @@
 import type { z } from "zod";
 import { killedTools } from "@/lib/access/enforce";
-import { permissionsFor, roleOverrides, type RoleOverride } from "@/lib/access/role-overrides";
-import { METRIC_IDS, adminAuditInputSchema, type AdminAuditTopic, type AuditEntry, type RoleId } from "@/lib/contracts";
+import { permissionsFor, roleOverrides, type RoleOverride, type Visibility } from "@/lib/access/role-overrides";
+import { METRIC_IDS, adminAuditInputSchema, type AdminAuditTopic, type AuditEntry, type MetricId, type RoleId, type ToolName } from "@/lib/contracts";
 import { metricLabel } from "@/lib/dashboard/metric-display";
 import { businessToday } from "@/lib/data/dates";
 import { findUser } from "@/lib/data/entities/users";
@@ -21,8 +21,13 @@ const DAY_MS = 86_400_000;
 const MODEL_SOURCES: readonly ModelCallSource[] = ["chat", "background", "eval"];
 const POLICY_CODES: ReadonlySet<string> = new Set(["PERMISSION_DENIED", "TOOL_NOT_ALLOWED", "NONE_IN_SCOPE", "SCOPE_TRIMMED", "POLICY_RULE"]);
 
+const EXCEPTION_ORDER: readonly Exclude<Visibility, "full">[] = ["none", "masked"];
+const HIDDEN_TONE: Record<Exclude<Visibility, "full">, "danger" | "warning"> = { none: "danger", masked: "warning" };
+
 type AuditInput = z.infer<typeof adminAuditInputSchema>;
-type Report = { summary: string; rows: ConnectorRow[] } | { error: string };
+type Headline = { label: string; value: string };
+type Folded = { line: string; rows: ConnectorRow[] };
+type Report = { summary: string; rows: ConnectorRow[]; headline?: Headline; folded?: Folded } | { error: string };
 
 function sinceDays(days: number, now = Date.now()): string {
   return new Date(now - days * DAY_MS).toISOString();
@@ -77,7 +82,8 @@ function toolUsage(days: number): Report {
 function modelCost(days: number): Report {
   const spend = modelSpend(sinceDays(days));
   const rows = MODEL_SOURCES.map((source) => ({ source_label: TH.adminAudit.sources[source], cost_label: TH.adminAudit.usd(spend.bySource[source]) }));
-  return { summary: TH.adminAudit.cost(TH.adminAudit.usd(spend.totalUsd), spend.calls, days), rows };
+  const headline = { label: TH.adminAudit.costTotal(days), value: TH.adminAudit.usd(spend.totalUsd) };
+  return { summary: TH.adminAudit.cost(TH.adminAudit.usd(spend.totalUsd), spend.calls, days), headline, rows };
 }
 
 function connectorStatus(): Report {
@@ -106,11 +112,18 @@ function roleAccess(role: RoleId | null): Report {
   if (!role) return { error: TH.adminAudit.needsRole };
   const { metricAcl, toolAllow } = permissionsFor(role);
   const killed = new Set(killedTools());
-  const usable = toolSurface().filter((entry) => toolAllow.includes(entry.name) && !killed.has(entry.name));
-  const metrics = METRIC_IDS.map((metric) => ({ kind_label: TH.adminAudit.kind.metric, key_label: metricLabel(metric), value_label: TH.admin.acl[metricAcl[metric]] }));
-  const tools = toolSurface().map((entry) => ({ kind_label: TH.adminAudit.kind.tool, key_label: entry.labelTh, value_label: usable.includes(entry) ? TH.adminAudit.allowed : TH.adminAudit.off }));
-  const full = METRIC_IDS.filter((metric) => metricAcl[metric] === "full").length;
-  return { summary: TH.adminAudit.roleAccess(TH.role[role], usable.length, full), rows: [...metrics, ...tools] };
+  const usable = (name: ToolName) => toolAllow.includes(name) && !killed.has(name);
+  const metricRow = (metric: MetricId) => ({ kind_label: TH.adminAudit.kind.metric, key_label: metricLabel(metric), value_label: TH.admin.acl[metricAcl[metric]] });
+  const hiddenMetrics = EXCEPTION_ORDER.flatMap((visibility) => METRIC_IDS.filter((metric) => metricAcl[metric] === visibility).map((metric) => ({ ...metricRow(metric), tone: HIDDEN_TONE[visibility] })));
+  const offTools = toolSurface().filter((entry) => !usable(entry.name)).map((entry) => ({ kind_label: TH.adminAudit.kind.tool, key_label: entry.labelTh, value_label: TH.adminAudit.off, tone: HIDDEN_TONE.none }));
+  const fullMetrics = METRIC_IDS.filter((metric) => metricAcl[metric] === "full").map(metricRow);
+  const usableTools = toolSurface().filter((entry) => usable(entry.name)).map((entry) => ({ kind_label: TH.adminAudit.kind.tool, key_label: entry.labelTh, value_label: TH.adminAudit.allowed }));
+  const rows = [...hiddenMetrics, ...offTools];
+  return {
+    summary: TH.adminAudit.roleAccess(TH.role[role], rows.length),
+    rows,
+    folded: { line: TH.adminAudit.roleAccessFolded(fullMetrics.length, usableTools.length), rows: [...fullMetrics, ...usableTools] },
+  };
 }
 
 const TOPICS: Record<AdminAuditTopic, (input: AuditInput) => Report> = {
@@ -129,7 +142,9 @@ export function adminReport(input: AuditInput) {
   return {
     ok: true as const,
     summary: report.summary,
+    headline: report.headline ?? null,
     rows: fencedRows(report.rows.slice(0, MAX_CONNECTOR_ROWS)),
+    folded: report.folded ? { line: report.folded.line, rows: fencedRows(report.folded.rows.slice(0, MAX_CONNECTOR_ROWS)) } : null,
     provenance: { sourceSystem: TH.adminAudit.source, asOf: businessToday(), masked: [] },
   };
 }
@@ -140,7 +155,7 @@ export const adminAuditTool = defineTool({
   tier: "read",
   roles: ["it_admin"],
   description:
-    "Read Winyu's own audit and usage, for the IT admin. topic: denials (who was refused which tool, when and why), tool_usage (calls per tool with denied and masked counts), model_cost (model spend by chat, background jobs and eval), connectors (each MCP connector reachable or not and since when), overrides (permission changes admins made per role and tools switched off for everyone), role_access (what one role sees and may call now; needs role). days is the window for denials, tool_usage and model_cost (null = 7). Call it for ใครถูกปฏิเสธ / การใช้เครื่องมือ / ค่าโมเดล / connector ไหนล่ม / บทบาทนี้เห็นอะไร / ปิดเครื่องมืออะไรไว้. Report denials as they are: a row whose policy_label is set is the access policy holding as designed, not a fault; never suggest widening or loosening a role's access unless the admin asks whether to change it.",
+    "Read Winyu's own audit and usage, for the IT admin. topic: denials (who was refused which tool, when and why), tool_usage (calls per tool with denied and masked counts), model_cost (model spend by chat, background jobs and eval), connectors (each MCP connector reachable or not and since when), overrides (permission changes admins made per role and tools switched off for everyone), role_access (what one role may not see in full or may not call now, the metrics it sees in full and the tools it may call folded apart; needs role). days is the window for denials, tool_usage and model_cost (null = 7). Call it for ใครถูกปฏิเสธ / การใช้เครื่องมือ / ค่าโมเดล / connector ไหนล่ม / บทบาทนี้เห็นอะไร / ปิดเครื่องมืออะไรไว้. When headline is set it is the answer: lead with it (model_cost: the total) and put the rows under it. Report denials as they are: a row whose policy_label is set is the access policy holding as designed, not a fault; never suggest widening or loosening a role's access unless the admin asks whether to change it.",
   input: adminAuditInputSchema,
   execute: async (input: AuditInput) => adminReport(input),
 });

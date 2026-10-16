@@ -214,6 +214,24 @@ function cellOf(value: unknown): string {
   return String(value);
 }
 
+/** A connector result's rows as a table with Thai column labels, cut to the first rows a phone shows with a line saying how many there were. */
+export function ConnectorTable({ rows }: { rows: Record<string, unknown>[] }) {
+  if (rows.length === 0) return null;
+  const keys = shownKeys(rows);
+  return (
+    <>
+      <Table
+        props={{
+          columns: keys.map((key) => ({ key, label: columnLabel(key) })),
+          rows: rows.slice(0, MAX_CONNECTOR_ROWS_SHOWN).map((row) => Object.fromEntries(keys.map((key) => [key, cellOf(row[key])]))),
+          nowrap: true,
+        }}
+      />
+      {rows.length > MAX_CONNECTOR_ROWS_SHOWN ? <p className="text-[11px] text-muted-foreground">{TH.cards.connectorShown(MAX_CONNECTOR_ROWS_SHOWN, rows.length)}</p> : null}
+    </>
+  );
+}
+
 /** A connector tool's rows as a table: Thai labels over raw ids, masked fields named under the card. */
 export function connectorCard(tool: string) {
   return function ConnectorCard({ result }: { result: unknown }) {
@@ -221,20 +239,10 @@ export function connectorCard(tool: string) {
     return (
       <ParsedCard parsed={parseResult(connectorResult, result)} title={title}>
         {({ summary, rows, provenance }) => {
-          const keys = shownKeys(rows);
           const masked = provenance.masked.length > 0 ? TH.cards.connectorMasked(provenance.masked.map(columnLabel).join(", ")) : null;
           return (
             <Card props={{ title, meta: summary, description: masked, footnote: TH.cards.source.connector(provenance.sourceSystem, formatDateTh(provenance.asOf)) }}>
-              {rows.length > 0 ? (
-                <Table
-                  props={{
-                    columns: keys.map((key) => ({ key, label: columnLabel(key) })),
-                    rows: rows.slice(0, MAX_CONNECTOR_ROWS_SHOWN).map((row) => Object.fromEntries(keys.map((key) => [key, cellOf(row[key])]))),
-                    nowrap: true,
-                  }}
-                />
-              ) : null}
-              {rows.length > MAX_CONNECTOR_ROWS_SHOWN ? <p className="text-[11px] text-muted-foreground">{TH.cards.connectorShown(MAX_CONNECTOR_ROWS_SHOWN, rows.length)}</p> : null}
+              <ConnectorTable rows={rows} />
             </Card>
           );
         }}
