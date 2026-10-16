@@ -53,6 +53,7 @@ const QUESTIONS: Question[] = [
   },
   { key: "lookup-ceo-regions", userId: "u_thana", question: "ยอดขายเดือนนี้แยกตามภาค" },
   { key: "lookup-rep-stock", userId: "u_krit", question: "อีสานรุ่งโรจน์ของในสต็อกพอขายได้อีกกี่วัน" },
+  { key: "it-audit", userId: "u_ton", question: "สัปดาห์นี้ใครถูกปฏิเสธสิทธิ์บ้าง และใครส่งงานอะไรให้ใคร" },
 ];
 
 function argOf(name: string): string | null {
