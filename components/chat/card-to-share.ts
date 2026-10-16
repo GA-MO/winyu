@@ -5,6 +5,7 @@ import { metricAnswerOf, metricTitle, othersOf } from "@/lib/cards/tool-answers"
 import { cardPlanOf, composedCalls, drawsNoCard, isRefused, pairedResultsOf, wroteBlock, type CardPlan } from "./tool-view";
 
 const SEND_TOOL = "send_card";
+const SAID_KEPT = 2;
 
 /** Which card a send names: the one card it means, none on screen, several it could mean, or a ref no card on screen has. */
 export type CardChoice =
@@ -50,7 +51,7 @@ export function cardsOfExchange(exchange: Exchange, cardTools: ReadonlySet<strin
   const toolSteps = exchange.steps.filter(isToolStep);
   const plan = cardPlanOf(toolSteps, composedCalls(exchange.steps, false), cardTools, wroteBlock(exchange.steps));
   const reads = readsOf(toolSteps, cardTools);
-  const question = exchange.question?.kind === "typed" ? exchange.question.text : null;
+  const question = typedIn(exchange);
   return exchange.steps.flatMap((step) => {
     const card = cardOfStep(step, plan, reads, cardTools);
     return card ? [{ ref: cardRefOf(card), exchangeId: exchange.id, target: { card, question }, title: shareTitle(card), hero: heroOf(step, plan, toolSteps) }] : [];
@@ -68,13 +69,20 @@ function heldBackForContradiction(exchange: Exchange): boolean {
   });
 }
 
-/** For each exchange, the cards on screen when a send was asked there (those it drew and every earlier one, a card drawn twice listed once at its latest), and whether an earlier exchange held a send back because its words contradicted its card. */
+function typedIn(exchange: Exchange): string | null {
+  return exchange.question?.kind === "typed" ? exchange.question.text : null;
+}
+
+/** For each exchange, the cards on screen when a send was asked there (those it drew and every earlier one, a card drawn twice listed once at its latest), whether an earlier exchange held a send back because its words contradicted its card, and the person's last typed words. */
 export function screenCardsEach(exchanges: readonly Exchange[], cardTools: ReadonlySet<string>): ScreenCards[] {
   let drawn: CardOnScreen[] = [];
   let warned = false;
+  let said: string[] = [];
   return exchanges.map((exchange) => {
     drawn = latestOfEach([...drawn, ...cardsOfExchange(exchange, cardTools)]);
-    const screen = { exchangeId: exchange.id, cards: drawn, warned };
+    const typed = typedIn(exchange);
+    said = typed ? [typed, ...said].slice(0, SAID_KEPT) : said;
+    const screen = { exchangeId: exchange.id, cards: drawn, warned, said };
     warned ||= heldBackForContradiction(exchange);
     return screen;
   });

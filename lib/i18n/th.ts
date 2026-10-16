@@ -1985,6 +1985,8 @@ export const TH = {
     askLabel: "ขออะไร",
     askPlaceholder: "บอกสั้น ๆ ว่าอยากให้ทำอะไร",
     askDraft: (title: string) => `ช่วยดู ${title} หน่อย`,
+    askAbout: (subject: string) => `(${subject})`,
+    repeatTitle: (title: string, count: number) => `${title} (ครั้งที่ ${count})`,
     intent: { act: "ต้องตอบ", fyi: "ให้ดู" },
     urgencyLabel: "ต้องการเมื่อไร",
     urgency: { now: "ด่วน", today: "วันนี้", this_week: "สัปดาห์นี้" },
@@ -2060,6 +2062,9 @@ export const TH = {
       falling: (change: string) => `ข้อความบอกว่าลดลง แต่การ์ดแสดง +${change}`,
       attainmentBy: (claimed: string, attainment: string) => `ข้อความบอกว่าได้ ${claimed} ของเป้า แต่การ์ดแสดง ${attainment} ของเป้า`,
       changeBy: (claimed: string, change: string) => `ข้อความบอกว่าเปลี่ยน ${claimed} แต่การ์ดแสดง ${change}`,
+      rowFellHard: (label: string, shown: string) => `ข้อความบอกว่า${label}ตกหนัก แต่การ์ดแสดง ${shown}`,
+      rowFell: (label: string, shown: string) => `ข้อความบอกว่า${label}ลดลง แต่การ์ดแสดง ${shown}`,
+      rowRose: (label: string, shown: string) => `ข้อความบอกว่า${label}เพิ่มขึ้น แต่การ์ดแสดง ${shown}`,
     },
   },
   matter: {

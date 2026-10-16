@@ -16,6 +16,8 @@ const COMPARED = new Set(["prev_period", "prev_year"]);
 const CLAIMED_PERCENT = /(\d+(?:\.\d+)?)\s*%/;
 const ATTAINMENT_CLAIM = /(\d+(?:\.\d+)?)\s*%\s*ของเป้า/;
 const CLAIM_TOLERANCE = 1;
+const FELL_HARD = /ตกเยอะ|ตกหนัก|ตกมาก|ตกแรง|ตกฮวบ|ร่วงหนัก|ร่วงแรง|ดิ่ง|ลดลงเยอะ|ลดลงมาก|ลดฮวบ|แย่มาก/;
+const HARD_FALL_LINE = -5;
 
 function isMetricAnswer(result: unknown): result is MetricAnswer {
   if (typeof result !== "object" || result === null) return false;
@@ -83,6 +85,18 @@ function changeClaimWarning(text: string, change: number | null): string | null 
   if (change === null || claimed === null || ATTAINMENT_CLAIM.test(text) || (!falling && !RISING.test(text))) return null;
   const signed = falling ? -claimed : claimed;
   return Math.abs(signed - change) > CLAIM_TOLERANCE ? TH.share.contradicts.changeBy(signedLabel(signed), signedLabel(change)) : null;
+}
+
+/** One row the person's words single out on a card: its label, its change against the card's comparison in percent, and that comparison in words ("เทียบเป้าตามเวลา"). */
+export type RowFigure = { label: string; change: number; versus: string };
+
+/** One line, worked out by code, when the person's words about one row of a card claim what that row does not show: a hard fall ("ตกเยอะ") for a row within a few percent of its base, a fall for a row that rose, a rise for one that fell; null when they agree or claim nothing about its direction. */
+export function rowContradictionOf(text: string, row: RowFigure): string | null {
+  const shown = [row.label, signedLabel(row.change), row.versus].filter(Boolean).join(" ");
+  if (FELL_HARD.test(text)) return row.change > HARD_FALL_LINE ? TH.share.contradicts.rowFellHard(row.label, shown) : null;
+  if (RISING.test(text)) return row.change < 0 ? TH.share.contradicts.rowRose(row.label, shown) : null;
+  if (FALLING.test(text)) return row.change > 0 ? TH.share.contradicts.rowFell(row.label, shown) : null;
+  return null;
 }
 
 /** One line, worked out by code, when the words the sender sends with a card claim what its numbers do not show (on target while the card is under it, growth while it fell, a percent of target or a change the card does not show); null when they agree or say nothing the card measures. The sender can still send. */

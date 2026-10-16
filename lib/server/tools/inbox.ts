@@ -54,7 +54,7 @@ async function matterItem(matter: Matter, viewer: User): Promise<WaitingItem> {
     row: {
       kind_label: TH.waiting.kind.matter,
       title: brief.title,
-      subject: await matterSubject(matter.card),
+      subject: await matterSubject(matter.card, matter.focus),
       hero: await cardHero(matter.card, viewer),
       from_name: matterFrom(brief),
       ask: brief.ask,

@@ -13,6 +13,9 @@ export type MatterUrgency = (typeof MATTER_URGENCIES)[number];
 
 const URGENCY_OF_INTENT: Record<MatterIntent, MatterUrgency> = { act: "today", fyi: "this_week" };
 const URGENT_WORDS = /ด่วน|urgent|asap/i;
+const POINTING = /(?:เจ้า|ร้าน|เอเย่นต์|ราย|ตัว|อัน|เรื่อง|งาน|การ์ด|ที่|คน|ภาค|จังหวัด|แบรนด์|สินค้า|ยี่ห้อ|เคส|จุด|ส่วน|ตรง)\s*(?:นี้|นั้น|นี่|นั่น)/;
+const SUBJECT_PARTS = / · |, /;
+const SPACES = /\s+/g;
 const WHEN_AND_POLITE_WORDS = new RegExp(
   [
     "ด่วนที่สุด", "ด่วนมาก", "ด่วน", "urgent", "asap", "ตอบกลับ", "กลับมา", "ตอบ", "ช่วย", "ให้", "ด้วย", "หน่อย", "เลย", "นะ", "ครับ", "ค่ะ", "คะ", "จ้า",
@@ -42,6 +45,31 @@ export function matterAsk(typed: string, intent: MatterIntent, title: string): s
   const ask = typed.trim();
   if (intent !== "act" || askSaysWhat(ask)) return ask;
   return ask ? `${TH.share.askDraft(title)} ${ask}` : TH.share.askDraft(title);
+}
+
+/** What a matter's ask is about, for naming it: the rows the sender singled out on the card (`singled`), else the card's own subject; null when there is nothing to name. */
+export type AskAbout = { subject: string | null; singled: boolean };
+
+function namesAny(ask: string, subject: string): boolean {
+  const text = ask.replace(SPACES, "");
+  return subject.split(SUBJECT_PARTS).some((part) => part.trim().length > 0 && text.includes(part.replace(SPACES, "")));
+}
+
+/** Where the first words that only point at a thing end ("เจ้านี้", "เรื่องนี้"; never "สัปดาห์นี้" or the นี้ inside "หนี้"); null when the ask points at nothing. */
+function pointingEnd(ask: string): number | null {
+  const match = POINTING.exec(ask);
+  return match ? match.index + match[0].length : null;
+}
+
+/** The ask with what it is about named once, so whoever gets it knows which agent, brand or region it means: right after the first word that only points ("เข้าไปคุยกับเอเย่นต์เจ้านี้ (ขอนแก่นมหาชัย)"), or at the end when the sender singled out rows the ask leaves out; unchanged when it names them already or there is nothing to name. */
+export function askNaming(ask: string, about: AskAbout): string {
+  const { subject } = about;
+  if (!ask || !subject || namesAny(ask, subject)) return ask;
+  const named = TH.share.askAbout(subject);
+  const at = pointingEnd(ask);
+  if (at === null) return about.singled ? `${ask} ${named}` : ask;
+  const rest = ask.slice(at).trimStart();
+  return rest ? `${ask.slice(0, at)} ${named} ${rest}` : `${ask.slice(0, at)} ${named}`;
 }
 
 /** Whether the person's own words ask for it urgently (ด่วน, urgent, asap). */
@@ -89,7 +117,7 @@ export type MatterEvent = { userId: string | null; at: string; kind: MatterEvent
 /** How one recipient was reached: the channel the sender picked, the one that carried it, and why they differ. */
 export type ShareDelivery = { userId: string; asked: DeliveryChannel; via: DeliveryChannel; fallback: FallbackReason | null };
 
-/** A card sent to colleagues: the reads behind it (never their results) under its short code `id`, the one-line ask, whether it waits on an answer, the alerts it is about, the number that closes it, the people it went through, and which recipients opened it. */
+/** A card sent to colleagues: the reads behind it (never their results) under its short code `id`, the one-line ask, whether it waits on an answer, the alerts it is about, the number that closes it, the rows of the card the sender singled out (`focus`, "ขอนแก่นมหาชัย" on the region's card), the people it went through, and which recipients opened it. */
 export type Matter = {
   id: string;
   at: string;
@@ -107,6 +135,7 @@ export type Matter = {
   thread: MatterEvent[];
   status: MatterStatus;
   card: SharedCard;
+  focus?: string[];
   deliveries: ShareDelivery[];
   openedBy?: string[];
   lastViewedAt: string | null;

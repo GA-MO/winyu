@@ -35,10 +35,15 @@ async function answerOf(input: MetricQueryInput, viewer: User): Promise<MetricRe
   return resolved.ok ? runMetric(resolved.query, liveAccessFor(viewer)) : null;
 }
 
-/** What the card's numbers say for the person sending it, from its first metric read run again under their access; null when the card has no metric read. No model call, no audit row: it never leaves the server except as figures. */
-export async function cardFigures(card: SharedCard, viewer: User): Promise<CardFigures | null> {
+/** The card's first metric read run again under this person's access; null when the card has none or it no longer resolves. No model call, no audit row. */
+export async function cardAnswer(card: SharedCard, viewer: User): Promise<MetricResult | null> {
   const input = firstMetricInput(card);
-  return input ? figuresOf(await answerOf(input, viewer)) : null;
+  return input ? answerOf(input, viewer) : null;
+}
+
+/** What the card's numbers say for the person sending it, from its first metric read run again under their access; null when the card has no metric read. It never leaves the server except as figures. */
+export async function cardFigures(card: SharedCard, viewer: User): Promise<CardFigures | null> {
+  return figuresOf(await cardAnswer(card, viewer));
 }
 
 /** The card's headline figure for this person, as words a reply can quote: the share of the whole month's target while the month runs, else its headline value; null when the card has no metric read or it no longer answers. */

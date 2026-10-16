@@ -171,20 +171,16 @@ describe("a send about one agent on the region's card names that agent, and a cl
   const AGENT = "ขอนแก่นมหาชัย";
   const RSM = "u_anucha";
 
-  function saying(screen: ScreenCards, words: string[]): ScreenCards {
-    return Object.assign(screen, { said: words });
-  }
-
   test("the user's 'fell a lot' about an agent close to pace is held back with that agent's own figure, and nothing is sent", async () => {
     const before = shares().where((matter) => matter.senderId === RSM).length;
-    const held = await send({ to: ["u_krit"], ask: DEICTIC_ASK }, FALSE_CLAIM, saying(screenWith([REGION_CARD]), [FALSE_CLAIM]), RSM);
+    const held = await send({ to: ["u_krit"], ask: DEICTIC_ASK }, FALSE_CLAIM, screenWith([REGION_CARD], false, [FALSE_CLAIM]), RSM);
     expect(held).toMatchObject({ ok: false, code: "ASK_CONTRADICTS_CARD" });
     expect(held.error ?? "").toMatch(new RegExp(`^ยังไม่ได้ส่ง: .*${AGENT}.* ${AGENT} -?\\d+\\.\\d% เทียบเป้าตามเวลา$`));
     expect(shares().where((matter) => matter.senderId === RSM).length).toBe(before);
   });
 
   test("once the person has read the figure the send goes, and its title, its ask and the rep's inbox row name the agent", async () => {
-    const sent = await send({ to: ["u_krit"], ask: DEICTIC_ASK }, "ส่งไปเลย", saying(screenWith([REGION_CARD], true), ["ส่งไปเลย", FALSE_CLAIM]), RSM);
+    const sent = await send({ to: ["u_krit"], ask: DEICTIC_ASK }, "ส่งไปเลย", screenWith([REGION_CARD], true, ["ส่งไปเลย", FALSE_CLAIM]), RSM);
     const matter = matterOf(sent);
     expect(matter?.title).toContain(AGENT);
     expect(matter?.ask).toContain(AGENT);

@@ -54,7 +54,7 @@ function finalCardIds(events: readonly SseEvent[]): string[] {
 }
 
 function sentLast(ask: string) {
-  return shares().where((matter) => matter.senderId === "u_thana" && matter.ask === ask).sort((left, right) => left.at.localeCompare(right.at)).at(-1);
+  return shares().where((matter) => matter.senderId === "u_thana" && matter.ask.startsWith(ask)).sort((left, right) => left.at.localeCompare(right.at)).at(-1);
 }
 
 async function askThenApprove(threadId: string, reply: string, args: Record<string, unknown> = SEND_ARGS): Promise<SseEvent[]> {

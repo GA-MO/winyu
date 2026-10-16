@@ -6,14 +6,15 @@ import { findUser } from "@/lib/data/entities/users";
 import { notReady } from "@/lib/harness/gateway";
 import type { Unready } from "@/lib/harness/types";
 import { TH } from "@/lib/i18n/th";
-import { ASK_CONTRADICTS_CARD, sendCardInputSchema, type CardOnScreen, type SendCardInput, type ShareTarget } from "@/lib/share/card";
+import { ASK_CONTRADICTS_CARD, sendCardInputSchema, type CardOnScreen, type SendCardInput, type SharedCard, type ShareTarget } from "@/lib/share/card";
 import { contradictionOf } from "@/lib/share/figures";
-import { matterAsk, matterDeadline, sendIntent } from "@/lib/share/matter";
+import { askNaming, matterAsk, type AskAbout, matterDeadline, sendIntent } from "@/lib/share/matter";
 import { resolvedPeople, type RecipientMatch } from "@/lib/share/recipients";
 import { cardFigures, goalLabel } from "@/lib/server/share/goal";
 import { receiptsOf, recipientMatches, sharePath } from "@/lib/server/share/shares";
 import { suggestedRecipient } from "@/lib/server/share/suggest";
-import { matterTitle } from "@/lib/server/share/title";
+import { cardFocus, type CardFocus } from "@/lib/server/share/focus";
+import { matterSubject, matterTitle } from "@/lib/server/share/title";
 import { currentAccess, currentTurn } from "@/lib/server/request-context";
 import { defineTool } from "./define";
 import { matterHolds } from "./verify";
@@ -30,7 +31,8 @@ const NUMBER = /[0-9๐-๙]+/g;
 const DESCRIPTION =
   "Send one card on screen to a colleague as a matter: it lands in their bell with the ask, they answer on the card, can pass it on, and it closes itself when its number reaches its goal. Use it for every 'ส่ง… ให้…', 'ฝาก… ดู', 'แชร์ให้', 'มอบหมาย'. `cardRef` = the ref of the card the user means, copied from the cards-on-screen list (the card they point at: first, above, by its name, or the card the request is about, e.g. the overdue card for a collection); leave it out only to send the one card this reply drew. A person, owner, profile or master-data lookup is never a card to send. `to` = each colleague as the user named them (\"พี่อนุชา\", \"ผู้จัดการขายภาคอีสาน\" → resolve_owner first) or a user id; leave it out to send to the card's owner. `ask` = what the user wants done, in their words, no number they did not type. `intent` fyi only when the user only wants them to look. Leave `urgency` out unless the user's words say when; the server reads ด่วน and deadlines (พรุ่งนี้, ภายในศุกร์นี้) itself. `card` only when a pressed button passes it; copy it unchanged. The user sees the filled send sheet and approves it first.";
 
-type Chosen = { ok: true; target: ShareTarget; warned: boolean } | { ok: false; code: string; fix: string };
+type Chosen = { ok: true; target: ShareTarget; warned: boolean; said: readonly string[] } | { ok: false; code: string; fix: string };
+type Picked = Extract<Chosen, { ok: true }>;
 
 function channelDelivery() {
   return import("@/lib/server/share/deliver");
@@ -62,21 +64,37 @@ function notChosen(choice: Exclude<CardChoice, { kind: "card" }>): Chosen {
   return { ok: false, code: CARD_UNKNOWN, fix: TH.share.chat.unknownCard(choice.ref, cardsLine(choice.cards)) };
 }
 
-/** The card this send carries: the one a pressed button passed, else the card on screen `cardRef` names (or the only one there is), validated against what the conversation drew. */
+/** The card this send carries: the one a pressed button passed, else the card on screen `cardRef` names (or the only one there is), validated against what the conversation drew; with what the person typed last. */
 async function chosenCard(input: SendCardInput): Promise<Chosen> {
-  if (input.card) return { ok: true, target: { card: { kind: "tool", reads: input.card.reads }, question: currentTurn().question }, warned: false };
+  if (input.card) return { ok: true, target: { card: { kind: "tool", reads: input.card.reads }, question: currentTurn().question }, warned: false, said: [] };
   const screen = await currentTurn().screenCards?.();
   if (!screen) return notChosen({ kind: "none" });
   const choice = cardNamed(screen, input.cardRef);
-  return choice.kind === "card" ? { ok: true, target: choice.card.target, warned: screen.warned } : notChosen(choice);
+  return choice.kind === "card" ? { ok: true, target: choice.card.target, warned: screen.warned, said: screen.said } : notChosen(choice);
 }
 
-/** The contradiction that holds a send back: the ask claims what the card's numbers do not show, and the conversation has not held a send back for that yet (once the person has read the figure, they may send anyway and the sheet warns). */
-async function heldBack(ask: string | undefined, chosen: Extract<Chosen, { ok: true }>): Promise<string | null> {
+/** The rows of the card this send is about, from the ask and what the person typed (this question, then the one before it, so a send confirmed after a hold-back still knows whom they named). */
+function focusOf(input: SendCardInput, chosen: Picked, sender: User): Promise<CardFocus | null> {
+  return cardFocus(chosen.target.card, sender, [input.ask, currentTurn().question, ...chosen.said]);
+}
+
+/** What the sender's words claim that the card does not show: the ask against the card's figures, else what they said about the row they singled out. */
+async function contradiction(ask: string, card: SharedCard, sender: User, focus: CardFocus | null): Promise<string | null> {
+  const figures = ask.trim() ? contradictionOf(ask, await cardFigures(card, sender)) : null;
+  return figures ?? focus?.claim ?? null;
+}
+
+/** The contradiction that holds a send back: the ask, or what the person said about the row they singled out, claims what the card's numbers do not show, and the conversation has not held a send back for that yet (once the person has read the figure, they may send anyway and the sheet warns). */
+async function heldBack(input: SendCardInput, chosen: Picked): Promise<string | null> {
   const sender = findUser(currentAccess().userId);
-  if (chosen.warned || !sender || !ask?.trim()) return null;
-  const warning = contradictionOf(ask, await cardFigures(chosen.target.card, sender));
+  if (chosen.warned || !sender) return null;
+  const warning = await contradiction(input.ask ?? "", chosen.target.card, sender, await focusOf(input, chosen, sender));
   return warning ? TH.share.chat.heldBack(warning) : null;
+}
+
+/** What the ask names when it only points: the rows the sender singled out, else the card's own subject. */
+async function askAbout(card: SharedCard, focus: CardFocus | null): Promise<AskAbout> {
+  return focus ? { subject: focus.labels.join(", "), singled: true } : { subject: await matterSubject(card), singled: false };
 }
 
 async function unready(input: unknown): Promise<Unready | null> {
@@ -88,8 +106,8 @@ async function unready(input: unknown): Promise<Unready | null> {
   if (problem) return notReady(problem, UNRESOLVED);
   const chosen = await chosenCard(parsed.data);
   if (!chosen.ok) return notReady(chosen.fix, chosen.code);
-  const contradiction = await heldBack(parsed.data.ask, chosen);
-  return contradiction ? notReady(contradiction, ASK_CONTRADICTS_CARD) : null;
+  const held = await heldBack(parsed.data, chosen);
+  return held ? notReady(held, ASK_CONTRADICTS_CARD) : null;
 }
 
 function recipientsOf(input: SendCardInput, target: ShareTarget, sender: User): User[] | null {
@@ -123,17 +141,18 @@ export const sendCardTool = defineTool({
     const target = chosen.target;
     const people = recipientsOf(input, target, sender);
     if (!people) return input.to?.length ? refusal(UNRESOLVED, unresolved(input.to, sender.id) ?? TH.share.chat.noRecipient) : refusal(NO_RECIPIENT, TH.share.chat.noRecipient);
-    const title = await matterTitle(target.card);
+    const focus = await focusOf(input, chosen, sender);
+    const title = await matterTitle(target.card, focus?.labels);
     const intent = sendIntent(input.intent, people.length);
-    const ask = matterAsk(input.ask ?? "", intent, title);
+    const ask = askNaming(matterAsk(input.ask ?? "", intent, title), await askAbout(target.card, focus));
     const { urgency, due } = matterDeadline(input.urgency, currentTurn().question, intent, businessToday());
     const { createShare } = await channelDelivery();
     const recipients = people.map((user) => ({ userId: user.id, channel: "winyu" as const }));
-    const outcome = await createShare(sender, { card: target.card, question: target.question, ask, intent, urgency, due, recipients, alertIds: input.card?.alertIds ?? [] });
+    const outcome = await createShare(sender, { card: target.card, question: target.question, ask, intent, urgency, due, recipients, alertIds: input.card?.alertIds ?? [], focus: focus?.labels });
     if (!outcome.ok) return refusal(NOT_SHAREABLE, outcome.error);
     const receipts = receiptsOf(outcome.share);
     const hidden = outcome.hidden.map((scope) => TH.share.recipientHidden[scope.hidden](scope.name, metricLabel(scope.metric)));
-    const warning = contradictionOf(ask, await cardFigures(target.card, sender));
+    const warning = await contradiction(ask, target.card, sender, focus);
     return {
       ok: true as const,
       summary: `${TH.share.chat.sent(outcome.share.title, receipts.map((receipt) => receipt.name).join(", "))}${hidden.length > 0 ? TH.share.chat.hidden(hidden.join(" · ")) : ""}`,

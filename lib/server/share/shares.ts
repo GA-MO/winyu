@@ -3,6 +3,7 @@ import type { User } from "@/lib/contracts";
 import { UNSHAREABLE_TOOLS, type SharedCard, type ShareReceipt } from "@/lib/share/card";
 import { matterOf, seenBy, waitsOn, type Matter, type StoredMatter } from "@/lib/share/matter";
 import { findUser, USERS } from "@/lib/data/entities/users";
+import { TH } from "@/lib/i18n/th";
 import { matchRecipients, type RecipientMatch } from "@/lib/share/recipients";
 import { winyuTools } from "@/lib/server/agent/tools";
 import { collection, type Collection } from "@/lib/server/store/json-store";
@@ -13,6 +14,7 @@ export const SHARES_COLLECTION = "shares";
 export const SHARE_CODE_LENGTH = 12;
 const CODE_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 const UNBIASED_BYTE_LIMIT = 248;
+const FIRST_REPEAT = 2;
 
 /** Every matter, each read through `matterOf` so a share stored before matters loads as one. */
 export function shares(): Collection<Matter> {
@@ -27,6 +29,15 @@ export function shares(): Collection<Matter> {
     remove: (id) => stored.remove(id),
     where: (predicate) => stored.all().map(matterOf).filter(predicate),
   };
+}
+
+/** A title no matter carries yet: the title itself, else the first "(ครั้งที่ n)" of it from 2 that is free, so the bell, the matter page and the audit tell two matters about one card apart. */
+export function unusedTitle(title: string): string {
+  const taken = new Set(shares().all().map((matter) => matter.title));
+  if (!taken.has(title)) return title;
+  let count = FIRST_REPEAT;
+  while (taken.has(TH.share.repeatTitle(title, count))) count += 1;
+  return TH.share.repeatTitle(title, count);
 }
 
 /** The open matters that wait on this person's answer. */

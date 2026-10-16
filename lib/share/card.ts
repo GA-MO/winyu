@@ -70,8 +70,8 @@ export type ShareTarget = { card: SharedCard; question: string | null; draftAsk?
 /** A card the conversation drew that may be sent, as the model and the send sheet name it: `ref` comes from what the card is (its reads and layout), so the server and the browser give the same card the same ref; `hero` is its headline figure when it has one. */
 export type CardOnScreen = { ref: string; exchangeId: string; target: ShareTarget; title: string; hero: string | null };
 
-/** The sendable cards of a conversation up to the exchange a send was asked in (`exchangeId`), oldest first, and whether an earlier exchange held a send back because its words contradicted its card. */
-export type ScreenCards = { exchangeId: string | null; cards: CardOnScreen[]; warned: boolean };
+/** The sendable cards of a conversation up to the exchange a send was asked in (`exchangeId`), oldest first, whether an earlier exchange held a send back because its words contradicted its card, and what the person typed there and in the exchange before, newest first (a send confirmed after a hold-back still knows whom the person named). */
+export type ScreenCards = { exchangeId: string | null; cards: CardOnScreen[]; warned: boolean; said: string[] };
 
 /** The send_card refusal code for an ask the card's numbers contradict, given once before the person has seen the figure. */
 export const ASK_CONTRADICTS_CARD = "ASK_CONTRADICTS_CARD";
@@ -225,6 +225,14 @@ export function shareTitle(card: SharedCard, names: DimValues = {}): string {
   const base = baseTitle(first, names);
   const subject = first.tool === "get_alerts" ? null : shareSubject(card, names);
   return subject ? `${base}${SUBJECT_PART_SEPARATOR}${subject}` : base;
+}
+
+/** A title or subject with the rows the sender singled out added once, after what it already names ("… · ภาคอีสาน · ขอนแก่นมหาชัย"); unchanged when it names them already. */
+export function withFocus(text: string, focus: readonly string[]): string {
+  const added = focus.filter((label) => !text.includes(label));
+  if (added.length === 0) return text;
+  const named = added.join(SUBJECT_VALUE_SEPARATOR);
+  return text ? `${text}${SUBJECT_PART_SEPARATOR}${named}` : named;
 }
 
 function canonical(value: unknown): unknown {
