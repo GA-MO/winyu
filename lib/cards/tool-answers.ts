@@ -23,7 +23,7 @@ export function refusalOf(source: unknown): RefusalNotice | null {
 }
 
 export function deniedParts(title: string, denied: RefusalNotice): CardParts {
-  return { title, meta: null, description: null, footnote: null, hero: null, body: { kind: "none" }, actions: [], denied };
+  return { title, style: "chart", verdict: null, hero: null, tiles: [], body: { kind: "none" }, primary: null, more: [], footer: null, denied };
 }
 
 export function forecastOf(source: unknown, history: MetricAnswer | null): ForecastAnswer | null {

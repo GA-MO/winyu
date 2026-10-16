@@ -21,6 +21,16 @@ function compactTick(formatter: Formatter, format: ChartFormat | null | undefine
   return formatter.compact(value, format ?? "number");
 }
 
+const MIN_AXIS_W = 44;
+const TICK_CHAR_PX = 5.4;
+const TICK_GAP_PX = 10;
+
+/** Room for the longest tick label, so "4,000 ล้าน" is never cut at the left edge. */
+function axisWidthFor(ticks: string[]): number {
+  const longest = Math.max(0, ...ticks.map((tick) => tick.length));
+  return Math.max(MIN_AXIS_W, Math.ceil(longest * TICK_CHAR_PX) + TICK_GAP_PX);
+}
+
 function scale(d0: number, d1: number, r0: number, r1: number) {
   const span = d1 - d0 || 1;
   return (v: number) => r0 + ((v - d0) / span) * (r1 - r0);
@@ -262,7 +272,7 @@ export function BarChart({ props }: { props: BarChartProps }) {
     );
   }
 
-  const AXIS_W = 44;
+  const AXIS_W = axisWidthFor(ticks.map((t) => compactTick(formatter, format, t)));
   const height = CHART_HEIGHT[props.height ?? "md"];
   const plotH = height - 24;
   const y = scale(0, top, plotH, 6);
@@ -368,10 +378,10 @@ export function LineChart({ props }: { props: LineChartProps }) {
   const series = (props.series ?? []).slice(0, 5);
   const format = props.format ?? "number";
   const n = labels.length;
-  const AXIS_W = 44;
   const height = CHART_HEIGHT[props.height ?? "md"];
   const plotH = height - 24;
   const ticks = niceTicks(seriesMax(series, false));
+  const AXIS_W = axisWidthFor(ticks.map((t) => compactTick(formatter, format, t)));
   const top = ticks[ticks.length - 1] ?? 0;
   const x = scale(0, Math.max(1, n - 1), AXIS_W + 4, width - 8);
   const y = scale(0, top, plotH, 6);

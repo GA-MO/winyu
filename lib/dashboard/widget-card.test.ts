@@ -45,7 +45,8 @@ describe("widgetCard", () => {
       { id: "b", kind: "drill", label: "แยกตามแบรนด์", reason: "r", tool: null, input: null, prompt: "p" },
     ] as NextAction[];
     const card = widgetCard(widget, placeholderResult(widget.query, access), { actions });
-    expect(card.actions[0]?.label).toBe("แยกตามจังหวัด");
+    expect(card.primary?.label).toBe("แยกตามจังหวัด");
+    expect(card.more.map((action) => action.label)).toEqual(["แยกตามแบรนด์"]);
   });
 
 
@@ -55,8 +56,8 @@ describe("widgetCard", () => {
       const widget = widgetOf(kind, access);
       const card = widgetCard(widget, placeholderResult(widget.query, access));
       expect(card.denied).toBeNull();
-      expect(card.footnote).toContain(TH.dash.trust.verified);
-      expect(card.description).toBeNull();
+      expect(card.footer?.verified).toBe(true);
+      expect(card.footer?.details).toContain(TH.dash.trust.verified);
     }
   });
 

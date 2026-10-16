@@ -6,8 +6,9 @@ import { findUser } from "@/lib/data/entities/users";
 import { runMetric } from "@/lib/data/query";
 import { TH } from "@/lib/i18n/th";
 import { LOW_COVER_DAYS } from "@/lib/semantic/metrics";
-import { changeToneOf, formatDelta } from "@/lib/dashboard/metric-display";
-import { presentCard, presentForecast, weakestRow, type CardBody, type CardView, type ForecastAnswer, type SortBy } from "./present";
+import { changeToneOf } from "@/lib/dashboard/metric-display";
+import { presentCard, presentForecast, weakestRow, type CardBody, type CardParts, type CardView, type ForecastAnswer, type SortBy } from "./present";
+import type { ReadRow, Strip } from "./reading";
 
 const CEO = accessFor(findUser("u_thana")!);
 const AUGUST = { from: "2026-08-01", to: "2026-08-31" };
@@ -37,6 +38,19 @@ function expectKind<K extends CardBody["kind"]>(body: CardBody, kind: K): Extrac
   return body as Extract<CardBody, { kind: K }>;
 }
 
+function stripOf(body: CardBody): Strip {
+  return expectKind(body, "strip").strip;
+}
+
+function cardOf(ask: Ask, options: { limit?: number; sort?: SortBy; view?: CardView; filters?: MetricQuery["filters"] } = {}): CardParts {
+  const query = { ...queryOf(ask), limit: options.limit ?? null, sort: options.sort ?? null, filters: options.filters ?? {} };
+  return presentCard({ title: "t", query, result: runMetric(query, CEO), view: options.view });
+}
+
+function measures(rows: readonly ReadRow[]): number[] {
+  return rows.flatMap((row) => (row.measure === null ? [] : [row.measure]));
+}
+
 describe("time × group", () => {
   test("a sum over six months by region stacks as bars, the sixth region folded into อื่น ๆ", () => {
     const body = expectKind(bodyOf({ metric: "net_sales_volume", dims: ["month", "region"], range: SIX_MONTHS }), "stacked");
@@ -47,9 +61,10 @@ describe("time × group", () => {
     expect(body.series.every((series) => series.values.length === 6)).toBe(true);
   });
 
-  test("the scope line counts regions, not region × month rows", () => {
-    const { query, result } = answer({ metric: "net_sales_volume", dims: ["month", "region"], range: SIX_MONTHS });
-    expect(presentCard({ title: "t", query, result }).meta).toContain("6 ภาค");
+  test("the verdict names the region that is largest over the whole range, and the style keeps the chart", () => {
+    const card = cardOf({ metric: "net_sales_volume", dims: ["month", "region"], range: SIX_MONTHS });
+    expect(card.style).toBe("chart");
+    expect(card.verdict).toEndWith("ใหญ่สุดทั้งช่วง");
   });
 
   test("a sum over thirty days by channel stacks as an area", () => {
@@ -91,56 +106,43 @@ describe("two groups", () => {
   });
 });
 
-function deltaOf(text: string | null): number {
-  return Number((text ?? "0").replace("−", "-").replace("%", ""));
-}
-
 describe("bars measure the number beside them", () => {
-  test("ordered by what fell, each bar is the change printed beside it, the biggest drop first, the level in the grey detail", () => {
-    const { query, result } = answer({ metric: "net_sales_volume", dims: ["agent"] });
-    const body = expectKind(presentCard({ title: "t", query, result, sortBy: "delta_asc" }).body, "gap");
-    const deltas = body.rows.map((row) => deltaOf(row.gapText));
-    expect(deltas).toEqual([...deltas].sort((left, right) => left - right));
-    const span = Math.max(10, ...deltas.map(Math.abs));
-    body.rows.forEach((row, index) => expect(row.gap).toBeCloseTo(deltas[index] / span, 2));
-    expect(body.rows.every((row) => row.detail?.endsWith("ลิตร"))).toBe(true);
-    expect(body.ends.less).toContain("ลดลง");
+  test("ordered by what fell, each bar is the change printed beside it, the biggest drop first, around zero (B)", () => {
+    const card = cardOf({ metric: "net_sales_volume", dims: ["agent"] }, { limit: 8, sort: "delta_asc" });
+    expect(card.style).toBe("picture");
+    const strip = stripOf(card.body);
+    expect(strip.baseline).toBe(0);
+    expect(measures(strip.rows)).toEqual([...measures(strip.rows)].sort((left, right) => left - right));
+    expect(strip.rows.every((row) => row.text.endsWith("%"))).toBe(true);
+    expect(strip.overall?.label).toBe("รวมทุกเอเย่นต์");
   });
 
   test("the query's own sort orders the card when the card names none, so a pinned card keeps it", () => {
-    const query = { ...queryOf({ metric: "net_sales_volume", dims: ["agent"] }), limit: 5, sort: "delta_asc" as const };
-    const body = expectKind(presentCard({ title: "t", query, result: runMetric(query, CEO) }).body, "gap");
-    const deltas = body.rows.map((row) => deltaOf(row.gapText));
-    expect(deltas).toEqual([...deltas].sort((left, right) => left - right));
+    const strip = stripOf(cardOf({ metric: "net_sales_volume", dims: ["agent"] }, { limit: 5, sort: "delta_asc" }).body);
+    expect(measures(strip.rows)).toEqual([...measures(strip.rows)].sort((left, right) => left - right));
   });
 
-  test("attainment is drawn from the 100% target: under it grows left and reads bad, at or over it grows right", () => {
-    const { query, result } = answer({ metric: "target_attainment", dims: ["region"] });
-    const body = expectKind(presentCard({ title: "t", query, result }).body, "gap");
-    for (const row of body.rows) {
-      const value = Number(row.gapText.replace("%", ""));
-      expect(Math.sign(row.gap)).toBe(Math.sign(value - 100));
-      if (value < 98) expect(row.tone).toBe("bad");
-      if (value >= 100) expect(row.tone).toBe("good");
+  test("attainment is drawn around the 100% target: only rows under it are exceptions, red", () => {
+    const strip = stripOf(cardOf({ metric: "target_attainment", dims: ["region"] }).body);
+    expect(strip.baseline).toBe(100);
+    for (const row of strip.rows) {
+      expect(row.exception).toBe((row.measure ?? 100) < 100);
+      expect(row.tone).toBe((row.measure ?? 100) < 100 ? "bad" : "neutral");
     }
-    expect(body.caption).toContain("100%");
   });
 
-  test("days of cover is drawn from the low-cover line the detector uses", () => {
-    const { query, result } = answer({ metric: "days_of_cover", dims: ["dc"] });
-    const body = expectKind(presentCard({ title: "t", query, result }).body, "gap");
-    for (const row of body.rows) {
-      const days = Number(row.gapText.replace(/[^\d.]/g, ""));
-      expect(row.tone).toBe(days < LOW_COVER_DAYS ? "bad" : "neutral");
-    }
-    expect(body.caption).toContain(String(LOW_COVER_DAYS));
+  test("days of cover is drawn around the low-cover line the detector uses", () => {
+    const strip = stripOf(cardOf({ metric: "days_of_cover", dims: ["dc"] }).body);
+    expect(strip.baseline).toBe(LOW_COVER_DAYS);
+    for (const row of strip.rows) if ((row.measure ?? LOW_COVER_DAYS) < LOW_COVER_DAYS) expect(row.tone).toBe("bad");
   });
 
-  test("the scope line says so when the card draws fewer rows than the result holds", () => {
-    const query = { ...queryOf({ metric: "ar_overdue", dims: ["agent"] }), limit: 10 };
-    const card = presentCard({ title: "t", query, result: runMetric(query, CEO) });
-    expect(expectKind(card.body, "rank").rows).toHaveLength(8);
-    expect(card.meta).toContain("แสดง 8 จาก 10 เอเย่นต์");
+  test("above 8 rows the card turns to style A: the exceptions drawn, every other row folded into one line, none lost", () => {
+    const card = cardOf({ metric: "ar_overdue", dims: ["agent"] }, { limit: 10 });
+    expect(card.style).toBe("exceptions");
+    const body = expectKind(card.body, "exceptions");
+    expect(body.strip.rows.length + (body.fold?.rows.length ?? 0)).toBe(10);
+    expect(body.fold?.line).toMatch(/^(อีก|ทั้ง) \d+ เอเย่นต์/);
   });
 
   test("attainment lists the furthest under target first, and a change sort with nothing to compare keeps that order", () => {
@@ -153,8 +155,11 @@ describe("bars measure the number beside them", () => {
     expect(byChange.rows.map((row) => row.province)).toEqual(plain.rows.map((row) => row.province));
   });
 
-  test("a level list with no deciding line keeps ranked bars from zero", () => {
-    expect(bodyOf({ metric: "ar_overdue", dims: ["region"] }).kind).toBe("rank");
+  test("a sum with no deciding line is a leaderboard: bars from zero, the biggest first, every value and change shown", () => {
+    const strip = stripOf(cardOf({ metric: "ar_overdue", dims: ["region"] }).body);
+    expect(strip.form).toBe("board");
+    expect(measures(strip.rows)).toEqual([...measures(strip.rows)].sort((left, right) => right - left));
+    expect(strip.rows.every((row) => row.valued && row.change !== null)).toBe(true);
   });
 });
 
@@ -167,22 +172,20 @@ describe("heatmap rows follow the order", () => {
   });
 });
 
-describe("tables become ranked bars", () => {
-  test("a table asked for a breakdown draws ranked bars with the change on each row", () => {
-    const body = expectKind(bodyOf({ metric: "net_sales_volume", dims: ["agent"] }, { view: "table" }), "rank");
-    expect(body.rows.every((row) => row.share !== null && row.delta !== null)).toBe(true);
+describe("tables become breakdown strips", () => {
+  test("a table asked for a breakdown draws the leaderboard with the change on each row", () => {
+    const strip = stripOf(cardOf({ metric: "net_sales_volume", dims: ["agent"] }, { view: "table", limit: 8 }).body);
+    expect(strip.form).toBe("board");
+    expect(strip.rows.every((row) => row.change !== null)).toBe(true);
   });
 
-  test("kv on a breakdown is ranked bars too", () => {
-    expect(bodyOf({ metric: "stock_on_hand", dims: ["sku"] }, { view: "kv" }).kind).toBe("rank");
+  test("kv on a breakdown is a breakdown too", () => {
+    expect(["strip", "exceptions"]).toContain(bodyOf({ metric: "stock_on_hand", dims: ["sku"] }, { view: "kv" }).kind);
   });
 
   test("a sparse DC × SKU top list is bars against the low-cover line, not a mostly empty heatmap", () => {
-    const { query, result } = answer({ metric: "days_of_cover", dims: ["dc", "sku"] });
-    const top = { ...query, limit: 8 };
-    const card = presentCard({ title: "t", query: top, result: runMetric(top, CEO), view: "table" });
-    expect(card.body.kind).toBe("gap");
-    expect(result.ok).toBe(true);
+    const strip = stripOf(cardOf({ metric: "days_of_cover", dims: ["dc", "sku"] }, { limit: 8, view: "table" }).body);
+    expect(strip.baseline).toBe(LOW_COVER_DAYS);
   });
 
   test("a time series asked as a table stays a table", () => {
@@ -191,14 +194,17 @@ describe("tables become ranked bars", () => {
 });
 
 describe("geography", () => {
-  test("provinces asked what fell draw the change, in the order the question asked", () => {
-    const body = expectKind(bodyOf({ metric: "sell_out_volume", dims: ["province"] }, { sortBy: "delta_asc" }), "gap");
-    const deltas = body.rows.map((row) => deltaOf(row.gapText));
-    expect(deltas).toEqual([...deltas].sort((left, right) => left - right));
+  test("provinces asked what fell draw the change in the order asked, the rest folded behind the exceptions", () => {
+    const card = cardOf({ metric: "sell_out_volume", dims: ["province"] }, { sort: "delta_asc" });
+    expect(card.style).toBe("exceptions");
+    const body = expectKind(card.body, "exceptions");
+    const folded = measures(body.fold?.rows ?? []);
+    expect(folded).toEqual([...folded].sort((left, right) => left - right));
+    for (const drawn of measures(body.strip.rows)) expect(drawn).toBeLessThanOrEqual(Math.min(...folded));
   });
 
-  test("regions are ranked bars", () => {
-    expect(bodyOf({ metric: "net_sales_volume", dims: ["region"] }).kind).toBe("rank");
+  test("regions are a leaderboard", () => {
+    expect(stripOf(bodyOf({ metric: "net_sales_volume", dims: ["region"] })).form).toBe("board");
   });
 });
 
@@ -211,26 +217,31 @@ describe("parts of a whole", () => {
   });
 
   test("a question about what dropped draws the change, a donut cannot show change", () => {
-    expect(bodyOf({ metric: "net_sales_value", dims: ["channel"] }, { sortBy: "delta_asc" }).kind).toBe("gap");
+    expect(stripOf(bodyOf({ metric: "net_sales_value", dims: ["channel"] }, { sortBy: "delta_asc" })).baseline).toBe(0);
   });
 
-  test("market share by maker is a donut led by our own share", () => {
-    const body = expectKind(bodyOf({ metric: "market_share", dims: ["maker"] }), "share");
+  test("market share by maker is a donut led by our own share, its centre never repeating the hero value", () => {
+    const card = cardOf({ metric: "market_share", dims: ["maker"] }, { sort: "value_desc" });
+    const body = expectKind(card.body, "share");
     expect(body.slices[0].label).toBe("บุญรอดบริวเวอรี่");
-    expect(body.centerValue).toMatch(/%$/);
+    expect(card.hero?.value).toBe(body.slices[0].shareText);
+    expect(body.centerValue).toBe("");
+    expect(card.verdict).toStartWith("บุญรอดบริวเวอรี่");
   });
 
   test("an average cannot be a donut: attainment by channel is drawn against the target", () => {
-    expect(bodyOf({ metric: "target_attainment", dims: ["channel"] }, { view: "share" }).kind).toBe("gap");
+    expect(stripOf(bodyOf({ metric: "target_attainment", dims: ["channel"] }, { view: "share" })).baseline).toBe(100);
   });
 });
 
 describe("two metrics on one card", () => {
-  test("sales against overdue money by agent is a scatter with named outliers and a correlation note", () => {
-    const body = expectKind(bodyOf({ metric: "net_sales_value", dims: ["agent"] }, { others: [{ metric: "ar_overdue", dims: ["agent"] }] }), "scatter");
+  test("sales against overdue money by agent is a scatter naming the few points off the trend, the correlation said in words", () => {
+    const { query, result } = answer({ metric: "net_sales_value", dims: ["agent"] });
+    const card = presentCard({ title: "t", query, result, others: [answer({ metric: "ar_overdue", dims: ["agent"] })] });
+    const body = expectKind(card.body, "scatter");
     expect(body.points.length).toBeGreaterThanOrEqual(4);
-    expect(body.points.filter((point) => point.named).length).toBe(4);
-    expect(body.note).toMatch(/r = /);
+    expect(body.points.filter((point) => point.named).length).toBe(3);
+    expect(card.verdict).not.toMatch(/r = |\d\.\d\d/);
     expect(body.x.label).not.toBe(body.y.label);
   });
 
@@ -244,7 +255,7 @@ describe("two metrics on one card", () => {
     expect(Math.max(...gaps.map(Math.abs))).toBeLessThanOrEqual(1);
     expect(body.rows[0].detail).toContain("→");
     expect(card.hero?.value).toMatch(/%$/);
-    expect(card.hero?.detail).toMatch(/เอเย่นต์/);
+    expect(card.verdict).toMatch(/เอเย่นต์/);
   });
 
   test("produced → sold in → sold out is a funnel in the order given", () => {
@@ -263,11 +274,11 @@ describe("two metrics on one card", () => {
     const card = presentCard({ title: "t", query, result, others: [answer({ metric: "campaign_spend", dims: ["month"], range: SIX_MONTHS })] });
     const body = expectKind(card.body, "line");
     expect(body.series).toHaveLength(2);
-    expect(card.footnote).toContain("ดัชนี");
+    expect(card.footer?.details).toContain("ดัชนี");
   });
 
   test("results that do not fit together fall back to the first card", () => {
-    expect(bodyOf({ metric: "net_sales_volume", dims: ["region"] }, { others: [{ metric: "headcount", dims: ["department"] }] }).kind).toBe("rank");
+    expect(bodyOf({ metric: "net_sales_volume", dims: ["region"] }, { others: [{ metric: "headcount", dims: ["department"] }] }).kind).toBe("strip");
   });
 });
 
@@ -279,74 +290,78 @@ describe("a rate over time", () => {
     const card = presentCard({ title: "t", query, result });
     const line = expectKind(card.body, "line");
     expect(line.labels).toHaveLength(11);
-    expect(card.footnote).toContain("เดือนปัจจุบันยังไม่ครบ");
-    expect(card.hero?.label).toBe(`อัตราการลาออกต่อเดือน · ${line.labels[10]}`);
+    expect(card.footer?.details).toContain("เดือนปัจจุบันยังไม่ครบ");
+    expect(card.hero?.label).toBe(line.labels[10]);
     expect(card.hero?.detail).toBe(`เทียบ ${line.labels[9]}`);
     expect(card.hero?.delta).not.toBeNull();
+    expect(card.verdict).toStartWith(line.labels[10]);
   });
 
-  test("a sum over time leads with its latest full month against the one before, the range total in the note (R9)", () => {
+  test("a sum over time leads with its latest full month against the one before, the range total as the second tile (R9, style C)", () => {
     const { query, result } = answer({ metric: "net_sales_volume", dims: ["month"], range: SIX_MONTHS, compare: "none" });
     if (!result.ok) throw new Error(result.error);
     const card = presentCard({ title: "t", query, result });
     const line = expectKind(card.body, "line");
     const last = result.rows[result.rows.length - 1];
-    expect(card.hero?.label).toBe(`ปริมาณขายเข้า (Sell-in) · ${line.labels[line.labels.length - 1]}`);
+    expect(card.style).toBe("scorecard");
+    expect(card.hero?.label).toBe(line.labels[line.labels.length - 1]);
     expect(card.hero?.value).toBe(String(last.value_label));
-    expect(card.hero?.detail).toBe(`เทียบ ${line.labels[line.labels.length - 2]}`);
-    expect(card.hero?.note).toBe(TH.dash.rangeTotal(result.headline.value));
+    expect(card.tiles.map((tile) => [tile.label, tile.value])).toEqual([[TH.read.wholeRange, result.headline.value]]);
+    expect(card.verdict).toEndWith(`จาก ${line.labels[line.labels.length - 2]}`);
   });
 
   test("a series of fewer than three buckets is no line: one bucket is the row it names (R1, R2)", () => {
     const { query, result } = answer({ metric: "production_output", dims: ["month"], compare: "none" });
     const card = presentCard({ title: "t", query, result });
     expect(card.body.kind).toBe("none");
-    expect(card.hero?.label).toBe("ปริมาณการผลิต · ส.ค. 69");
+    expect(card.hero?.label).toBe("ส.ค. 69");
   });
 
   test("a year-on-year card says why it starts later than asked", () => {
     const { query, result } = answer({ metric: "attrition_rate", dims: ["department"], range: { from: "2026-01-01", to: "2026-08-31" }, compare: "prev_year" });
     const card = presentCard({ title: "t", query, result });
-    expect(card.meta?.startsWith("1 เม.ย. 2569")).toBe(true);
-    expect(card.footnote).toContain("เทียบปีก่อนได้ตั้งแต่");
+    expect(card.footer?.line.startsWith("1 เม.ย. – ")).toBe(true);
+    expect(card.footer?.details).toContain("เทียบปีก่อนได้ตั้งแต่");
     expect(card.hero?.delta).not.toBeNull();
   });
 });
 
 describe("the headline says what it stands for", () => {
-  test("ranked by what fell, the hero is the row that fell most and the total of every group in scope moves to the note (R4)", () => {
-    const query = { ...queryOf({ metric: "net_sales_volume", dims: ["agent"] }), limit: 5, sort: "delta_asc" as const };
+  test("ranked by what fell, style B leads with every agent's change and style A with the agent that fell most (R4)", () => {
+    const picture = cardOf({ metric: "net_sales_volume", dims: ["agent"] }, { limit: 5, sort: "delta_asc" });
+    expect(picture.hero?.label).toBe("รวมทุกเอเย่นต์");
+    const query = { ...queryOf({ metric: "net_sales_volume", dims: ["agent"] }), sort: "delta_asc" as const };
     const result = runMetric(query, CEO);
     if (!result.ok) throw new Error(result.error);
-    const card = presentCard({ title: "t", query, result });
+    const longer = presentCard({ title: "t", query, result });
+    expect(longer.style).toBe("exceptions");
     const [first] = result.rows;
-    expect(card.hero?.label).toBe(`ลดลงมากสุด · ${first.agent}`);
-    expect(card.hero?.value).toBe(String(first.value_label));
-    expect(card.hero?.delta).toBe(formatDelta(Number(first.delta_pct)));
-    expect(card.hero?.tone).toBe("bad");
-    expect(card.hero?.note).toStartWith(`ปริมาณขายเข้า (Sell-in) รวมทุกเอเย่นต์ ${result.headline.value}`);
-    expect(card.meta).toContain("แสดง 5 เอเย่นต์");
+    if (longer.hero?.label !== "รวมทุกเอเย่นต์") {
+      expect(longer.hero?.label).toBe(String(first.agent));
+      expect(longer.hero?.value).toBe(String(first.value_label));
+      expect(longer.hero?.tone).toBe("bad");
+    }
   });
 
-  test("a ranking of a rate leads with its first row, the average in the note (R5)", () => {
-    const query = { ...queryOf({ metric: "attrition_rate", dims: ["department"] }), limit: 10, sort: "value_desc" as const };
-    const result = runMetric(query, CEO);
-    if (!result.ok) throw new Error(result.error);
-    const hero = presentCard({ title: "t", query, result }).hero;
-    expect(hero?.label).toBe(`สูงสุด · ${result.rows[0].department}`);
-    expect(hero?.value).toBe(String(result.rows[0].value_label));
-    expect(hero?.delta).toMatch(/ จุด$/);
-    expect(hero?.note).toContain("เฉลี่ยทุกฝ่าย");
+  test("a ranking of a rate is read around its average, the overall row on top (R5)", () => {
+    const card = cardOf({ metric: "attrition_rate", dims: ["department"] }, { limit: 10, sort: "value_desc" });
+    expect(card.hero?.label).toBe("เฉลี่ยทุกฝ่าย");
+    const strip = stripOf(card.body);
+    expect(strip.form).toBe("line");
+    expect(strip.overall?.text).toBe(card.hero?.value);
   });
 
-  test("one row of a breakdown names its row, and with a target draws a meter of value over target (R1)", () => {
+  test("one row of a breakdown names its row, and with a target is a scorecard of share of target, actual and what is left (R1, style C)", () => {
     const query = { ...queryOf({ metric: "net_sales_volume", dims: ["region"], range: MONTH_TO_DATE, compare: "target" }), filters: { region: ["northeast"] } };
     const result = runMetric(query, CEO);
     if (!result.ok) throw new Error(result.error);
     const card = presentCard({ title: "t", query, result });
-    expect(card.hero?.label).toBe("ปริมาณขายเข้า (Sell-in) · ภาคอีสาน");
-    const meter = expectKind(card.body, "progress");
-    expect(meter.value).toBeCloseTo(100 + Number(result.rows[0].delta_pct), 5);
+    const attainment = 100 + Number(result.rows[0].delta_pct);
+    expect(card.style).toBe("scorecard");
+    expect(card.hero?.label).toBe("ภาคอีสาน");
+    expect(card.hero?.value).toBe(`${Math.round(attainment * 10) / 10}%`);
+    expect(card.tiles[0]).toMatchObject({ label: TH.read.actual, value: result.headline.value });
+    expect(card.body.kind).toBe("none");
   });
 
   test("an average across provinces says it is an average", () => {
@@ -354,10 +369,9 @@ describe("the headline says what it stands for", () => {
     expect(card.hero?.label).toContain("เฉลี่ยทุกจังหวัด");
   });
 
-  test("a filter the question narrowed to shows on the scope line", () => {
-    const query = { ...queryOf({ metric: "days_of_cover", dims: ["dc"] }), filters: { sku: ["sku_purra_pet600"] } };
-    const card = presentCard({ title: "t", query, result: runMetric(query, CEO) });
-    expect(card.meta).toContain("เฉพาะ เพอร์ร่า");
+  test("a filter the question narrowed to shows on the footer line", () => {
+    const card = cardOf({ metric: "days_of_cover", dims: ["dc"] }, { filters: { sku: ["sku_purra_pet600"] } });
+    expect(card.footer?.line).toContain("เพอร์ร่า");
   });
 });
 
@@ -401,8 +415,7 @@ describe("a change in a metric that is itself a percent", () => {
     expect(result.summary).toContain(" จุด");
     const parts = presentCard({ title: "t", query, result });
     expect(parts.hero?.delta).toMatch(/ จุด$/);
-    const body = expectKind(parts.body, "rank");
-    for (const row of body.rows) expect(row.delta).toMatch(/ จุด$/);
+    expect(stripOf(parts.body).overall?.change).toMatch(/ จุด$/);
   });
 
   test("is judged in points: half a point is a move even when it is a large relative change, and only a change that prints as 0 จุด is flat (R8)", () => {
@@ -439,20 +452,21 @@ describe("every value masked", () => {
     expect(parts.denied?.body).toContain("ฝ่าย");
     expect(parts.denied?.body).not.toMatch(/[A-Za-z]$/);
     expect(parts.body).toEqual({ kind: "locked", rows: [], locked: [{ label: "ขาย" }, { label: "ไอที" }], askHref: null });
-    expect(parts.actions).toEqual([ask]);
+    expect(parts.primary).toEqual(ask);
+    expect(parts.more).toEqual([]);
   });
 });
 
 describe("target in a running month", () => {
-  test("says the target is counted to the last day of data and how much of the month that is", () => {
+  test("says in the footer that the target is counted to the last day of data and how much of the month that is", () => {
     const { query, result } = answer({ metric: "target_attainment", dims: ["region"], range: { from: monthStart(DATA_AS_OF), to: monthEnd(DATA_AS_OF) }, compare: "none" });
     const parts = presentCard({ title: "t", query, result });
-    expect(parts.hero?.detail).toBe(TH.dash.paceTarget(formatThaiDate(DATA_AS_OF), MONTH_ELAPSED));
+    expect(parts.footer?.details).toContain(TH.dash.paceTarget(formatThaiDate(DATA_AS_OF), MONTH_ELAPSED));
   });
 
   test("a closed month needs no pace line", () => {
     const { query, result } = answer({ metric: "target_attainment", dims: ["region"], compare: "none" });
-    expect(presentCard({ title: "t", query, result }).hero?.detail ?? null).toBeNull();
+    expect(presentCard({ title: "t", query, result }).footer?.details ?? "").not.toContain("เทียบเป้าตามเวลา");
   });
 });
 
@@ -466,13 +480,13 @@ describe("rows too small to show", () => {
     return { query, result: { ...result, rows, provenance: { ...result.provenance, suppressedRows: rows.filter((row) => row.value === "***").length } } };
   }
 
-  test("leave the card and are counted in the scope line instead of drawn as ***", () => {
+  test("leave the card and are counted in the footer instead of drawn as ***", () => {
     const { query, result } = withSmallCells();
     if (!result.ok) throw new Error(result.error);
     const hidden = result.rows.filter((row) => row.value === "***").length;
     expect(hidden).toBeGreaterThan(0);
     const parts = presentCard({ title: "t", query, result });
-    expect(parts.meta).toContain(TH.dash.hiddenSmall(hidden, "จังหวัด", 3));
+    expect(parts.footer?.details).toContain(TH.dash.hiddenSmall(hidden, "จังหวัด", 3));
     expect(JSON.stringify(parts.body)).not.toContain("***");
     expect(parts.hero).toBeNull();
   });
@@ -487,35 +501,33 @@ describe("rows too small to show", () => {
 });
 
 describe("a target card in a month still running", () => {
-  test("under the headline, its own line says where the month ends when the result carries a projection", () => {
+  test("its footer says the pace the target is counted to and where the month ends when the result carries a projection", () => {
     const { query, result } = answer({ metric: "net_sales_volume", dims: ["region"], range: MONTH_TO_DATE, compare: "target" });
     if (!result.ok) throw new Error(result.error);
     const projection = { recentDays: 7, projected: "10.2 ล้านลิตร", monthTarget: "11.3 ล้านลิตร", attainment: "90.6%", attainmentToDate: "66.4%", remaining: "เหลืออีก 3.8 ล้านลิตร ถึงเป้า" };
     const card = presentCard({ title: "t", query, result: { ...result, headline: { ...result.headline, projection } } });
-    const hero = card.hero;
-    expect(hero?.detail).toBe(TH.dash.paceTarget(formatThaiDate(DATA_AS_OF), MONTH_ELAPSED));
-    expect(hero?.note).toEndWith(TH.dash.monthEnd(projection));
+    expect(card.footer?.details).toContain(TH.dash.paceTarget(formatThaiDate(DATA_AS_OF), MONTH_ELAPSED));
+    expect(card.footer?.details).toEndWith(TH.dash.monthEnd(projection));
   });
 
-  test("against a target the hero is the share of target, red under the 100% line, and the bars are value over target (R3)", () => {
+  test("against a target the overall row is the share of target, red under the 100% line, and the bars are value over target, the furthest under first (R3)", () => {
     const { query, result } = answer({ metric: "net_sales_volume", dims: ["region"], range: MONTH_TO_DATE, compare: "target" });
     if (!result.ok) throw new Error(result.error);
     const delta = result.headline.deltaPercent ?? 0;
     const card = presentCard({ title: "t", query, result });
-    expect(card.hero?.value).toBe(TH.dash.ofTarget(`${Math.round((100 + delta) * 10) / 10}%`));
-    expect(card.hero?.tone).toBe(delta < 0 ? "bad" : "good");
-    const under = result.rows.filter((row) => Number(row.delta_pct) < 0).length;
-    expect(card.hero?.note).toStartWith(under > 0 ? TH.dash.countUnderTarget(under, result.rows.length, "ภาค") : TH.dash.allOnTarget("ภาค"));
-    expect(card.hero?.note).toContain(result.headline.value);
-    const bars = expectKind(card.body, "gap");
-    const values = bars.rows.map((row) => Number(row.gapText.replace("%", "")));
+    expect(card.hero?.value).toBe(`${Math.round((100 + delta) * 10) / 10}%`);
+    expect(card.hero?.unit).toBe(TH.read.ofTarget);
+    expect(card.hero?.tone).toBe(delta < 0 ? "bad" : "neutral");
+    const strip = stripOf(card.body);
+    expect(strip.overall?.measure).toBeCloseTo(100 + delta, 5);
+    const values = measures(strip.rows);
     expect(values).toEqual([...values].sort((left, right) => left - right));
-    bars.rows.forEach((row, index) => expect(row.tone).toBe(values[index] < 100 ? "bad" : "good"));
+    strip.rows.forEach((row) => expect(row.tone).toBe((row.measure ?? 100) < 100 ? "bad" : "neutral"));
   });
 });
 
 describe("a breakdown whose level decides", () => {
-  test("cover leads with how many groups sit under the low-cover line, counted over every group before the row cap, and names the lowest", () => {
+  test("cover counts the groups under the low-cover line over every group before the row cap, and names the worst", () => {
     const { query, result } = answer({ metric: "days_of_cover", dims: ["dc"], compare: "none" });
     if (!result.ok) throw new Error(result.error);
     const every = result.rows.map((row) => Number(row.value));
@@ -524,19 +536,11 @@ describe("a breakdown whose level decides", () => {
     if (!capped.ok) throw new Error(capped.error);
     expect(capped.rows).toHaveLength(2);
     expect(capped.headline.underLine).toEqual({ line: LOW_COVER_DAYS, count: every.filter((days) => days < LOW_COVER_DAYS).length, of: every.length });
-    const hero = presentCard({ title: "t", query: top, result: capped }).hero;
+    const card = presentCard({ title: "t", query: top, result: capped });
     const under = capped.headline.underLine;
     const worst = weakestRow(top, capped);
-    if (under && under.count > 0) {
-      expect(hero?.label).toBe(TH.dash.underCover(LOW_COVER_DAYS));
-      expect(hero?.value).toBe(TH.dash.countOf(under.count, under.of, TH.dash.dimUnit.dc));
-      expect(hero?.note).toContain(TH.dash.weakest(true, worst?.label ?? "", worst?.value ?? ""));
-    } else {
-      expect(hero?.label).toBe(`ต่ำสุด · ${worst?.label}`);
-      expect(hero?.value).toBe(worst?.value ?? "");
-      expect(hero?.detail).toBe(TH.dash.noneBelow(TH.dash.days(LOW_COVER_DAYS)));
-    }
-    expect(presentCard({ title: "t", query: top, result: capped }).meta).toContain(TH.dash.shownRowsOf(2, every.length, TH.dash.dimUnit.dc));
+    if (under && under.count > 1) expect(card.verdict).toStartWith(`${under.count} DC`);
+    if (under && under.count === 0) expect(card.verdict).toStartWith(`${worst?.label} เหลือน้อยสุด ${worst?.value}`);
   });
 
   test("asked only for the rows under the line, the count still reads against every group", () => {
@@ -548,14 +552,14 @@ describe("a breakdown whose level decides", () => {
     expect(below.headline.underLine?.of).toBeGreaterThan(below.headline.underLine?.count ?? 0);
   });
 
-  test("attainment by region leads with the regions under target and keeps the overall level beside the lowest", () => {
+  test("attainment by region says which regions are under target, the overall level on top", () => {
     const { query, result } = answer({ metric: "target_attainment", dims: ["region"] });
     if (!result.ok) throw new Error(result.error);
-    const under = result.rows.filter((row) => Number(row.value) < 100).length;
-    const hero = presentCard({ title: "t", query, result }).hero;
-    expect(hero?.label).toBe(TH.dash.underTarget);
-    expect(hero?.value).toBe(under > 0 ? TH.dash.countOf(under, result.rows.length, TH.dash.dimUnit.region) : TH.dash.noneUnder);
-    expect(hero?.note).toContain(result.headline.value);
+    const card = presentCard({ title: "t", query, result });
+    const under = result.rows.filter((row) => Number(row.value) < 100);
+    expect(card.hero?.value).toBe(result.headline.value);
+    if (under.length === 0) expect(card.verdict).toBe(TH.read.target.none("ภาค"));
+    else expect(card.verdict).toContain(String(under.sort((left, right) => Number(left.value) - Number(right.value))[0].region));
   });
 
   test("a trend of cover over time keeps its level headline, there is nothing to count", () => {
@@ -563,10 +567,5 @@ describe("a breakdown whose level decides", () => {
     if (!result.ok) throw new Error(result.error);
     expect(result.headline.underLine ?? null).toBeNull();
     expect(presentCard({ title: "t", query, result }).hero?.label).not.toBe(TH.dash.underCover(LOW_COVER_DAYS));
-  });
-
-  test("a total with no level to decide on keeps its headline alone", () => {
-    const { query, result } = answer({ metric: "net_sales_volume", dims: ["region"] });
-    expect(presentCard({ title: "t", query, result }).hero?.note).toBeNull();
   });
 });

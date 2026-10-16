@@ -1,5 +1,9 @@
+import { TH } from "@/lib/i18n/th";
+
 const LOCALE = "th-TH";
 const CURRENCY = "THB";
+const MILLION = 1_000_000;
+const THOUSAND = 1_000;
 
 export type Formatter = {
   currencySymbol: string;
@@ -23,11 +27,10 @@ function createFormatter(): Formatter {
   const compact = (value: number, kind: "number" | "currency" | "percent" = "number") => {
     const abs = Math.abs(value);
     const sign = value < 0 ? "-" : "";
-    const prefix = kind === "currency" ? symbol : "";
     const suffix = kind === "percent" ? "%" : "";
-    if (abs >= 1_000_000) return `${sign}${prefix}${trimDecimal(abs / 1_000_000)}M${suffix}`;
-    if (abs >= 1_000) return `${sign}${prefix}${trimDecimal(abs / 1_000)}K${suffix}`;
-    return `${sign}${prefix}${trimDecimal(abs)}${suffix}`;
+    if (abs >= MILLION) return `${sign}${number(abs / MILLION, 1)} ${TH.chart.million}${suffix}`;
+    if (abs >= THOUSAND) return `${sign}${number(abs, 0)}${suffix}`;
+    return `${sign}${trimDecimal(abs)}${suffix}`;
   };
   return { currencySymbol: symbol, number, integer: (value) => number(value, 0), compact };
 }

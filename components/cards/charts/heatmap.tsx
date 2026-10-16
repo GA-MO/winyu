@@ -1,68 +1,56 @@
 "use client";
 
 import { Fragment } from "react";
-import type { ColorScale, HeatCell } from "@/lib/cards/present";
-import { LegendCaption, heatCellBackground, heatCellTextClass, heatCellTitle } from "./chart-kit";
+import { cn } from "@/components/ui/cn";
+import type { HeatCell } from "@/lib/cards/present";
+import { heatCellTitle } from "./chart-kit";
 
 type HeatmapProps = {
   rowLabels: string[];
   columnLabels: string[];
   cells: (HeatCell | null)[][];
-  scale: ColorScale;
-  legend: string;
 };
 
-const ROW_LABEL_WIDTH = 120;
+const CELL_TONE: Record<HeatCell["tone"], string> = {
+  bad: "bg-danger/15 text-danger font-semibold",
+  good: "bg-success/15 text-success font-semibold",
+  neutral: "bg-primary/15 text-foreground font-semibold",
+};
 
 function EmptyCell() {
-  return (
-    <div className="flex h-9 items-center justify-center rounded-md bg-muted/60 text-[11px] text-muted-foreground">—</div>
-  );
+  return <div className="flex h-9 items-center justify-center rounded-md bg-muted/40 text-[11px] text-muted-foreground">—</div>;
 }
 
-/** A grid of groups × groups (or groups × time), each cell coloured by value or by change, with row labels held in view while the grid scrolls. */
-export function Heatmap({ rowLabels, columnLabels, cells, scale, legend }: HeatmapProps) {
+/** A grid of groups × groups (or groups × time) that fits the card's width: only the cells that stand apart carry colour, the rest stay quiet, and a long column name wraps to two lines with its full name on hover or long-press. */
+export function Heatmap({ rowLabels, columnLabels, cells }: HeatmapProps) {
   return (
-    <div>
-      <div className="w-full overflow-x-auto">
-        <div
-          className="grid min-w-max gap-1"
-          style={{ gridTemplateColumns: `${ROW_LABEL_WIDTH}px repeat(${columnLabels.length}, minmax(56px, 1fr))` }}
-        >
-          <div />
-          {columnLabels.map((column) => (
-            <div
-              key={column}
-              title={column}
-              className="flex items-end justify-center truncate px-1 pb-1 text-[10px] font-medium text-muted-foreground"
-            >
-              {column}
-            </div>
-          ))}
-          {rowLabels.map((row, ri) => (
-            <Fragment key={row}>
-              <div className="sticky left-0 z-10 flex items-center truncate bg-card pr-2 text-xs font-medium text-foreground">
-                {row}
-              </div>
-              {columnLabels.map((column, ci) => {
-                const cell = cells[ri]?.[ci] ?? null;
-                if (!cell) return <EmptyCell key={`${row}-${column}`} />;
-                return (
-                  <div
-                    key={`${row}-${column}`}
-                    title={heatCellTitle(row, column, cell)}
-                    style={{ background: heatCellBackground(cell, scale) }}
-                    className={`flex h-9 items-center justify-center rounded-md text-[11px] font-medium tabular-nums ${heatCellTextClass(cell, scale)}`}
-                  >
-                    {cell.text}
-                  </div>
-                );
-              })}
-            </Fragment>
-          ))}
+    <div className="grid w-full min-w-0 gap-1" style={{ gridTemplateColumns: `minmax(0, 5.5rem) repeat(${columnLabels.length}, minmax(0, 1fr))` }}>
+      <div />
+      {columnLabels.map((column) => (
+        <div key={column} title={column} className="line-clamp-2 flex items-end justify-center break-words px-0.5 pb-1 text-center text-[10px] font-medium leading-tight text-muted-foreground">
+          {column}
         </div>
-      </div>
-      <LegendCaption text={legend} scale={scale} />
+      ))}
+      {rowLabels.map((row, ri) => (
+        <Fragment key={row}>
+          <div title={row} className="flex min-w-0 items-center pr-1 text-[12px] font-medium text-foreground">
+            <span className="line-clamp-2 break-words leading-tight">{row}</span>
+          </div>
+          {columnLabels.map((column, ci) => {
+            const cell = cells[ri]?.[ci] ?? null;
+            if (!cell) return <EmptyCell key={`${row}-${column}`} />;
+            return (
+              <div
+                key={`${row}-${column}`}
+                title={heatCellTitle(row, column, cell)}
+                className={cn("flex h-9 min-w-0 items-center justify-center rounded-md text-[11px] tabular-nums", cell.exception ? CELL_TONE[cell.tone] : "bg-muted/50 text-muted-foreground")}
+              >
+                <span className="truncate px-0.5">{cell.text}</span>
+              </div>
+            );
+          })}
+        </Fragment>
+      ))}
     </div>
   );
 }

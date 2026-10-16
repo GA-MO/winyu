@@ -2,7 +2,7 @@
 
 import { useCallback, useState, type ReactNode } from "react";
 import { formatCurrency, formatNumber, formatPercent } from "@/lib/i18n/format";
-import type { ColorScale, HeatCell } from "@/lib/cards/present";
+import type { HeatCell } from "@/lib/cards/present";
 import type { MetricFormat, Tone } from "@/lib/dashboard/metric-display";
 import { TH } from "@/lib/i18n/th";
 
@@ -12,11 +12,6 @@ export const AXIS_COLOR = "var(--muted-foreground)";
 export const CHART_HEIGHT = { sm: 120, md: 180, lg: 260 } as const;
 export const AXIS_W = 44;
 
-const VALUE_MIN_MIX = 8;
-const VALUE_MAX_MIX = 70;
-const DELTA_MIN_MIX = 8;
-const DELTA_MAX_MIX = 60;
-const TEXT_SWITCH_INTENSITY = 0.6;
 
 /** Maps a domain span onto a pixel range, the way every chart in this kit places a value on an axis. */
 export function scaleLinear(d0: number, d1: number, r0: number, r1: number): (value: number) => number {
@@ -120,7 +115,7 @@ export function arcPath(cx: number, cy: number, rOuter: number, rInner: number, 
   const full = a1 - a0 >= Math.PI * 2 - 1e-6;
   const end = full ? a0 + Math.PI * 2 - 1e-4 : a1;
   const large = end - a0 > Math.PI ? 1 : 0;
-  const p = (r: number, a: number) => `${cx + r * Math.sin(a)},${cy - r * Math.cos(a)}`;
+  const p = (r: number, a: number) => `${(cx + r * Math.sin(a)).toFixed(2)},${(cy - r * Math.cos(a)).toFixed(2)}`;
   const outer = `M${p(rOuter, a0)} A${rOuter},${rOuter} 0 ${large} 1 ${p(rOuter, end)}`;
   if (rInner <= 0) return `${outer} L${cx},${cy} Z`;
   return `${outer} L${p(rInner, end)} A${rInner},${rInner} 0 ${large} 0 ${p(rInner, a0)} Z`;
@@ -138,36 +133,6 @@ export function toneTextClass(tone: Tone): string {
   return "text-muted-foreground";
 }
 
-/** A cell's background: primary intensity for a value scale, tone colour intensity for a delta scale. */
-export function heatCellBackground(cell: HeatCell, scale: ColorScale): string {
-  if (scale === "value") {
-    const pct = VALUE_MIN_MIX + cell.intensity * (VALUE_MAX_MIX - VALUE_MIN_MIX);
-    return `color-mix(in oklab, var(--primary) ${pct}%, var(--card))`;
-  }
-  const base = cell.tone === "good" ? "var(--color-success)" : cell.tone === "bad" ? "var(--color-danger)" : "var(--muted)";
-  const pct = DELTA_MIN_MIX + cell.intensity * (DELTA_MAX_MIX - DELTA_MIN_MIX);
-  return `color-mix(in oklab, ${base} ${pct}%, var(--card))`;
-}
-
-export function heatCellTextClass(cell: HeatCell, scale: ColorScale): string {
-  return scale === "value" && cell.intensity > TEXT_SWITCH_INTENSITY ? "text-primary-foreground" : "text-foreground";
-}
-
 export function heatCellTitle(row: string, column: string, cell: HeatCell): string {
   return cell.detail ? `${row} · ${column}: ${cell.text} · ${cell.detail}` : `${row} · ${column}: ${cell.text}`;
-}
-
-function legendGradient(scale: ColorScale): string {
-  if (scale === "delta") return "linear-gradient(to right, var(--color-danger), var(--muted), var(--color-success))";
-  return "linear-gradient(to right, var(--card), var(--primary))";
-}
-
-/** The short caption a heatmap or map shows under the grid, with a swatch hinting at what the colour means. */
-export function LegendCaption({ text, scale }: { text: string; scale: ColorScale }) {
-  return (
-    <div className="mt-2 flex items-center gap-2 text-[11px] text-muted-foreground">
-      <span aria-hidden className="h-2 w-10 shrink-0 rounded-full border border-border" style={{ background: legendGradient(scale) }} />
-      <span>{text}</span>
-    </div>
-  );
 }

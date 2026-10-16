@@ -42,35 +42,27 @@ describe("share", () => {
 });
 
 describe("heatmap", () => {
-  test("renders a cell's text and tooltip", () => {
+  test("renders a cell's text and tooltip, and colours only the cell that stands apart", () => {
     const html = render({
       kind: "heatmap",
-      rowLabels: ["ภาคอีสาน"],
+      rowLabels: ["ภาคอีสาน", "ภาคใต้"],
       columnLabels: ["ส.ค. 69"],
-      cells: [[{ text: "1.2 ล้าน", detail: "+5%", intensity: 0.8, tone: "good" }]],
-      scale: "value",
-      legend: "สีเข้มคือค่าสูง",
+      cells: [[{ text: "-18.5%", detail: "1.2 ล้าน", intensity: 0.8, tone: "bad", exception: true }], [{ text: "-9.5%", detail: "2.0 ล้าน", intensity: 0.4, tone: "bad", exception: false }]],
+      scale: "delta",
     });
-    expect(html).toContain("1.2 ล้าน");
-    expect(html).toContain("ภาคอีสาน · ส.ค. 69: 1.2 ล้าน · +5%");
-    expect(html).toContain("สีเข้มคือค่าสูง");
+    expect(html).toContain("ภาคอีสาน · ส.ค. 69: -18.5% · 1.2 ล้าน");
+    expect(html.match(/text-danger/g)).toHaveLength(1);
+    expect(html).not.toContain("min-w-max");
   });
 
   test("a null cell shows a muted dash", () => {
-    const html = render({
-      kind: "heatmap",
-      rowLabels: ["ภาคใต้"],
-      columnLabels: ["ก.ย. 69"],
-      cells: [[null]],
-      scale: "value",
-      legend: "สีเข้มคือค่าสูง",
-    });
+    const html = render({ kind: "heatmap", rowLabels: ["ภาคใต้"], columnLabels: ["ก.ย. 69"], cells: [[null]], scale: "value" });
     expect(html).toContain("—");
   });
 });
 
 describe("scatter", () => {
-  test("names an outlier point and shows the median caption", () => {
+  test("names an outlier point without a median caption or a correlation number", () => {
     const html = render({
       kind: "scatter",
       points: [
@@ -79,40 +71,90 @@ describe("scatter", () => {
       ],
       x: { label: "ขายเข้า", format: "number", median: 75, medianText: "75" },
       y: { label: "ขายออก", format: "number", median: 60, medianText: "60" },
-      note: "ความสัมพันธ์ปานกลาง",
+      r: 0.58,
     });
     expect(html).toContain("ตัวแทนขาย ก");
-    expect(html).toContain("มัธยฐาน");
-    expect(html).toContain("ความสัมพันธ์ปานกลาง");
+    expect(html).not.toContain("มัธยฐาน");
+    expect(html).not.toContain("0.58");
   });
 });
 
 describe("gap", () => {
-  test("draws a bar each way from parity and says which side is which", () => {
+  test("draws a bar each way from parity with no axis captions", () => {
     const html = render({
       kind: "gap",
       rows: [
         { label: "อุบลศรีสุข", gap: -1, gapText: "-12%", detail: "100 → 88", tone: "bad" },
         { label: "พระราม 4", gap: 0.5, gapText: "+6%", detail: "100 → 106", tone: "good" },
       ],
-      ends: { less: "← น้อยกว่า", more: "มากกว่า →" },
-      caption: "ตัวเลขใต้ชื่อ = ขายเข้า → ขายออก",
       shownOf: null,
     });
     expect(html).toContain("อุบลศรีสุข");
-    expect(html).toContain("← น้อยกว่า");
     expect(html).toContain("-12%");
-    expect(html).toContain("ตัวเลขใต้ชื่อ");
+    expect(html).not.toContain("←");
     expect(html).toContain("bg-danger");
     expect(html).toContain("bg-success");
   });
 });
 
-describe("progress", () => {
-  test("draws the bar and the distance to go without repeating the headline number", () => {
-    const html = render({ kind: "progress", value: 93.3, detail: "เหลืออีก 6.7% ถึงเป้า" });
-    expect(html).toContain("เหลืออีก 6.7% ถึงเป้า");
-    expect(html).not.toMatch(/>[^<]*93\.3%[^<]*</);
+const ROW = { sub: null, fill: 0.5, change: null, valued: true } as const;
+
+describe("strip (style B)", () => {
+  test("a leaderboard shows every row's value and colours only the pill whose change stands out", () => {
+    const html = render({
+      kind: "strip",
+      strip: {
+        form: "board",
+        baseline: 0,
+        low: 0,
+        high: 30,
+        overall: { ...ROW, label: "ทั้งประเทศ", measure: null, text: "108.8 ล้านบาท", change: "-29.3%", tone: "good", exception: true },
+        rows: [
+          { ...ROW, label: "ภาคกลาง", measure: 24, text: "24.3 ล้านบาท", change: "+18.0%", tone: "bad", exception: true },
+          { ...ROW, label: "ภาคใต้", measure: 20, text: "19.9 ล้านบาท", change: "-32.9%", tone: "neutral", exception: false },
+          { ...ROW, label: "ภาคเหนือ", measure: 13, text: "13.2 ล้านบาท", change: "-32.8%", tone: "neutral", exception: false },
+        ],
+      },
+    });
+    expect(html).toContain("19.9 ล้านบาท");
+    expect(html.match(/bg-danger\/10 text-danger/g)).toHaveLength(1);
+    expect(html.match(/bg-muted text-muted-foreground/g)).toHaveLength(2);
+  });
+
+  test("a line strip draws the deciding line and writes values only for exceptions and the extreme", () => {
+    const html = render({
+      kind: "strip",
+      strip: {
+        form: "line",
+        baseline: 100,
+        low: 88,
+        high: 103,
+        overall: { ...ROW, label: "ทั้งประเทศ", sub: "ของเป้า", measure: 98.6, text: "98.6%", tone: "bad", exception: true },
+        rows: [
+          { ...ROW, label: "ภาคอีสาน", measure: 90, text: "90%", tone: "bad", exception: true },
+          { ...ROW, label: "ภาคใต้", measure: 101, text: "101%", tone: "neutral", exception: false, valued: false },
+          { ...ROW, label: "ภาคกลาง", measure: 101.6, text: "101.6%", tone: "neutral", exception: false },
+        ],
+      },
+    });
+    expect(html).toContain("ของเป้า");
+    expect(html).toContain("90%");
+    expect(html).not.toContain(">101%<");
+    expect(html).toContain("101.6%");
+  });
+});
+
+describe("exceptions (style A)", () => {
+  test("draws only the exception rows and folds the rest into one line that expands", () => {
+    const html = render({
+      kind: "exceptions",
+      strip: { form: "line", baseline: 100, low: 80, high: 104, overall: null, rows: [{ ...ROW, label: "อุบลราชธานี", measure: 81.7, text: "81.7%", tone: "bad", exception: true }] },
+      fold: { line: "อีก 21 จังหวัดเกินเป้า 100.3–103.5%", rows: [{ ...ROW, label: "เลย", measure: 103.5, text: "103.5%", tone: "neutral", exception: false }] },
+    });
+    expect(html).toContain("อุบลราชธานี");
+    expect(html).toContain("อีก 21 จังหวัดเกินเป้า");
+    expect(html).toContain('aria-expanded="false"');
+    expect(html).not.toContain("เลย");
   });
 });
 
@@ -136,17 +178,16 @@ test("none of the new chart bodies render a raw hex colour", () => {
   const bodies: CardBody[] = [
     { kind: "stacked", shape: "area", labels: ["A", "B"], series: [{ name: "s", values: [1, 2], style: null }], format: "number" },
     { kind: "share", slices: [{ label: "A", valueText: "1", share: 1, shareText: "100%", isOther: false }], centerValue: "100%", centerLabel: "A" },
-    { kind: "heatmap", rowLabels: ["A"], columnLabels: ["B"], cells: [[{ text: "1", detail: null, intensity: 0.5, tone: "neutral" }]], scale: "value", legend: "L" },
-    
+    { kind: "heatmap", rowLabels: ["A"], columnLabels: ["B"], cells: [[{ text: "1", detail: null, intensity: 0.5, tone: "neutral", exception: true }]], scale: "value" },
     {
       kind: "scatter",
       points: [{ label: "A", x: 1, y: 1, xText: "1", yText: "1", named: true }],
       x: { label: "X", format: "number", median: 1, medianText: "1" },
       y: { label: "Y", format: "number", median: 1, medianText: "1" },
-      note: null,
+      r: 0,
     },
-    { kind: "gap", rows: [{ label: "A", gap: -1, gapText: "-1%", detail: "d", tone: "bad" }], ends: { less: "l", more: "m" }, caption: "c", shownOf: null },
-    { kind: "progress", value: 93, detail: "เหลืออีก 7% ถึงเป้า" },
+    { kind: "gap", rows: [{ label: "A", gap: -1, gapText: "-1%", detail: "d", tone: "bad" }], shownOf: null },
+    { kind: "strip", strip: { form: "board", baseline: 0, low: 0, high: 1, overall: null, rows: [{ ...ROW, label: "A", measure: 1, text: "1", tone: "bad", exception: true }] } },
     { kind: "funnel", stages: [{ label: "A", value: 1, valueText: "1", width: 1, dropText: null, dropTone: "neutral" }] },
   ];
   for (const body of bodies) expect(render(body)).not.toMatch(HEX_COLOR);

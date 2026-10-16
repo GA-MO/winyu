@@ -5,11 +5,11 @@ import { actionsOf, alertsOf, deniedParts, forecastOf, metricAnswerOf, othersOf,
 import { TH } from "@/lib/i18n/th";
 import { CardPartsView } from "./card-parts";
 
-type DataCardProps = { title: string; source: unknown; with?: unknown; view?: CardView | null; sortBy?: SortBy | null; description?: string | null; locked?: LockedRows | null };
+type DataCardProps = { title: string; source: unknown; with?: unknown; view?: CardView | null; sortBy?: SortBy | null; locked?: LockedRows | null };
 
-type AlertsCardProps = { title: string; source: unknown; description?: string | null };
+type AlertsCardProps = { title: string; source: unknown };
 
-type ForecastCardProps = { title: string; source: unknown; history?: unknown; description?: string | null };
+type ForecastCardProps = { title: string; source: unknown; history?: unknown };
 
 function Pending({ title }: { title: string }) {
   return (
@@ -32,7 +32,6 @@ export function DataCard(props: DataCardProps) {
     result: answer,
     view: props.view ?? "auto",
     sortBy: props.sortBy ?? null,
-    description: props.description ?? null,
     actions: answer.nextActions,
     others: othersOf(props.with),
     locked: props.locked ?? null,
@@ -49,8 +48,7 @@ export function AlertsCard(props: AlertsCardProps) {
       parts={presentAlerts({
         title: props.title,
         alerts,
-        description: props.description ?? null,
-        actions: actionsOf(props.source),
+            actions: actionsOf(props.source),
       })}
     />
   );
@@ -67,8 +65,7 @@ export function ForecastCard(props: ForecastCardProps) {
         title: props.title,
         forecast,
         history: history ? { query: history.query, result: history } : null,
-        description: props.description ?? null,
-      })}
+          })}
     />
   );
 }

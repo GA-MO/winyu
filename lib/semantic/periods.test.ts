@@ -61,7 +61,7 @@ describe("query_metric with a period", () => {
     expect(result.query.range).toEqual({ from: monthStart(businessToday()), to: DATA_AS_OF });
     expect(result.provenance.coverage?.label).toBe(label);
     expect(result.summary).toContain(label);
-    expect(presentCard({ title: "t", query: result.query, result }).footnote).toContain(label);
+    expect(presentCard({ title: "t", query: result.query, result }).footer?.details).toContain(label);
   });
 
   test("dates wholly after the data are refused with the last data day, not answered from it", async () => {

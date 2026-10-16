@@ -16,6 +16,18 @@ export function CardShareProvider({ value, children }: { value: CardShare | null
   return <CardShareContext.Provider value={value}>{children}</CardShareContext.Provider>;
 }
 
+/** The ส่งต่อ pill of the outermost card, or nothing outside a surface that can share. */
+export function SharePill() {
+  const card = useContext(CardShareContext);
+  if (!card) return null;
+  return (
+    <button type="button" onClick={card.share} aria-label={card.label} className={PILL}>
+      <Forward className="size-3.5" aria-hidden />
+      {TH.share.button}
+    </button>
+  );
+}
+
 /** The card's closing row: the source line, with the ส่งต่อ pill on the right that drops under it when the row is too narrow. */
 export function CardFootnote({ footnote }: { footnote: string | null | undefined }) {
   const card = useContext(CardShareContext);

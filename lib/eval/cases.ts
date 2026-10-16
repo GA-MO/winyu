@@ -1,4 +1,4 @@
-import type { CardBody } from "@/lib/cards/present";
+import type { CardBody, CardStyle } from "@/lib/cards/present";
 import type { Dim, MetricId, MetricSort } from "@/lib/contracts";
 
 /** The read tools whose fixed card answers a metric question. */
@@ -20,7 +20,9 @@ export type EvalCase = {
   expectPermission?: { role: string; kind: "metric" | "tool" | "field"; key: string; value: string };
   expectCompare?: { compare: "prev_period" | "prev_year"; range?: { from: string; to: string } };
   expectShape?: CardBody["kind"];
-  expectHero?: { label?: string; value?: string; delta?: string; detail?: string; note?: string };
+  expectStyle?: CardStyle;
+  expectHero?: { label?: string; value?: string; delta?: string };
+  expectVerdict?: string;
   expectMetrics?: MetricId[][];
   expectPeople?: ComposedTool;
   expectPress?: "ask" | "enroll_course";
@@ -31,44 +33,44 @@ export type EvalCase = {
 
 /** The questions a demo actually gets asked, one per card shape and per persona scope. The Vexa build's funnel, scatter and sell-through cases drew one card from several bound results (`with`); Winyu draws one card per `query_metric`, so they check that every metric was asked with the same dims and range instead. */
 export const EVAL_CASES: EvalCase[] = [
-  { id: "ceo-attainment", userId: "u_thana", prompt: "ยอดขายทั้งประเทศเทียบเป้าตอนนี้เท่าไหร่", expectCard: "query_metric", expectShape: "gap", expectHero: { value: "ของเป้า", note: "ต่ำกว่าเป้า" } },
-  { id: "ceo-by-region", userId: "u_thana", prompt: "ยอดขายแยกตามภาคเดือนนี้", expectCard: "query_metric", expectSort: "value_desc", expectShape: "gap", expectHero: { value: "ของเป้า", note: "ต่ำกว่าเป้า" } },
-  { id: "ceo-decline", userId: "u_thana", prompt: "เอเย่นต์ไหนยอดตกแรงที่สุดเทียบงวดก่อน", expectCard: "query_metric", expectSort: "delta_asc", expectShape: "gap", expectHero: { label: "ลดลงมากสุด", note: "รวมทุกเอเย่นต์" } },
-  { id: "ceo-trend", userId: "u_thana", prompt: "แนวโน้มยอดขายรายเดือนปีนี้เป็นยังไง", expectCard: "query_metric", expectShape: "line", expectHero: { label: " · ", note: "ทั้งช่วง" } },
+  { id: "ceo-attainment", userId: "u_thana", prompt: "ยอดขายทั้งประเทศเทียบเป้าตอนนี้เท่าไหร่", expectCard: "query_metric", expectShape: "strip", expectStyle: "picture", expectHero: { label: "ทั้งประเทศ", value: "98.6%" }, expectVerdict: "หลุดเป้าเพราะภาคอีสาน" },
+  { id: "ceo-by-region", userId: "u_thana", prompt: "ยอดขายแยกตามภาคเดือนนี้", expectCard: "query_metric", expectSort: "value_desc", expectShape: "strip", expectStyle: "picture", expectHero: { label: "ทั้งประเทศ" }, expectVerdict: "หลุดเป้าเพราะภาคอีสาน" },
+  { id: "ceo-decline", userId: "u_thana", prompt: "เอเย่นต์ไหนยอดตกแรงที่สุดเทียบงวดก่อน", expectCard: "query_metric", expectSort: "delta_asc", expectShape: "strip", expectStyle: "picture", expectHero: { label: "รวมทุกเอเย่นต์" }, expectVerdict: "2 เอเย่นต์ยอดหาย" },
+  { id: "ceo-trend", userId: "u_thana", prompt: "แนวโน้มยอดขายรายเดือนปีนี้เป็นยังไง", expectCard: "query_metric", expectShape: "line", expectStyle: "scorecard", expectHero: { label: "ส.ค. 69" }, expectVerdict: " จาก ก.ค. 69" },
   { id: "ceo-alerts", userId: "u_thana", prompt: "ตอนนี้มีอะไรผิดปกติบ้าง", expectCard: "get_alerts" },
-  { id: "cfo-ar", userId: "u_siriporn", prompt: "ลูกหนี้ค้างชำระตอนนี้แยกตามภาค", expectCard: "query_metric", expectSort: "value_desc" },
+  { id: "cfo-ar", userId: "u_siriporn", prompt: "ลูกหนี้ค้างชำระตอนนี้แยกตามภาค", expectCard: "query_metric", expectSort: "value_desc", expectShape: "strip", expectStyle: "picture", expectVerdict: "น้อยกว่าภาคอื่น" },
   { id: "cfo-masked", userId: "u_siriporn", prompt: "เงินเดือนเฉลี่ยแต่ละฝ่ายเท่าไหร่", expectCard: "query_metric" },
-  { id: "rsm-own-region", userId: "u_anucha", prompt: "ยอดขายภาคอีสานเดือนนี้เทียบเป้า", expectCard: "query_metric", expectShape: "progress", expectHero: { label: "ภาคอีสาน" } },
-  { id: "rsm-agents", userId: "u_anucha", prompt: "เอเย่นต์ในภาคผมที่ยอดตก", expectCard: "query_metric", expectSort: "delta_asc", expectShape: "gap", expectHero: { label: "ลดลงมากสุด", note: "รวมทุกเอเย่นต์" } },
-  { id: "planner-cover", userId: "u_wee", prompt: "ศูนย์กระจายสินค้าไหนสต๊อกจะขาดก่อน", expectCard: "query_metric", expectSort: "value_asc", expectShape: "gap", expectHero: { label: "ต่ำสุด · DC", detail: "ไม่มีต่ำกว่า 10 วัน" } },
+  { id: "rsm-own-region", userId: "u_anucha", prompt: "ยอดขายภาคอีสานเดือนนี้เทียบเป้า", expectCard: "query_metric", expectShape: "none", expectStyle: "scorecard", expectHero: { label: "ภาคอีสาน", value: "%" }, expectVerdict: "ภาคอีสานยังขาดเป้า" },
+  { id: "rsm-agents", userId: "u_anucha", prompt: "เอเย่นต์ในภาคผมที่ยอดตก", expectCard: "query_metric", expectSort: "delta_asc", expectShape: "strip", expectStyle: "picture", expectHero: { label: "รวมทุกเอเย่นต์" }, expectVerdict: "ยอดหาย" },
+  { id: "planner-cover", userId: "u_wee", prompt: "ศูนย์กระจายสินค้าไหนสต๊อกจะขาดก่อน", expectCard: "query_metric", expectSort: "value_asc", expectShape: "strip", expectStyle: "picture", expectVerdict: "ยังเกิน 10 วัน" },
   { id: "planner-forecast", userId: "u_wee", prompt: "พยากรณ์ยอดขายอีก 8 สัปดาห์", expectCard: "get_forecast" },
-  { id: "marketing-campaign", userId: "u_ben", prompt: "แคมเปญไหนได้ผลดีที่สุด", expectCard: "query_metric", expectSort: "value_desc", expectShape: "rank", expectHero: { label: "สูงสุด · " } },
-  { id: "hr-attrition", userId: "u_may", prompt: "อัตราการลาออกแต่ละฝ่ายเป็นยังไง", expectCard: "query_metric", expectShape: "rank", expectHero: { label: "สูงสุด · ", delta: " จุด" } },
+  { id: "marketing-campaign", userId: "u_ben", prompt: "แคมเปญไหนได้ผลดีที่สุด", expectCard: "query_metric", expectSort: "value_desc", expectShape: "strip", expectStyle: "picture", expectVerdict: "สูงกว่าแคมเปญอื่น" },
+  { id: "hr-attrition", userId: "u_may", prompt: "อัตราการลาออกแต่ละฝ่ายเป็นยังไง", expectCard: "query_metric", expectShape: "strip", expectStyle: "picture", expectHero: { label: "เฉลี่ยทุกฝ่าย" }, expectVerdict: "สูงสุด" },
   { id: "rep-denied", userId: "u_krit", prompt: "กำไรขั้นต้นของบริษัทเท่าไหร่" },
-  { id: "hr-headcount", userId: "u_may", prompt: "จำนวนพนักงานแต่ละฝ่ายเทียบปีที่แล้ว", expectCard: "query_metric", expectSort: "value_desc" },
-  { id: "finance-budget", userId: "u_mint", prompt: "เปรียบเทียบงบกับยอดจริงของเดือนนี้", expectCard: "query_metric", expectShape: "gap", expectHero: { value: "ของเป้า", note: "ต่ำกว่าเป้า" } },
+  { id: "hr-headcount", userId: "u_may", prompt: "จำนวนพนักงานแต่ละฝ่ายเทียบปีที่แล้ว", expectCard: "query_metric", expectSort: "value_desc", expectShape: "strip", expectStyle: "picture" },
+  { id: "finance-budget", userId: "u_mint", prompt: "เปรียบเทียบงบกับยอดจริงของเดือนนี้", expectCard: "query_metric", expectShape: "strip", expectStyle: "picture", expectHero: { label: "ทั้งประเทศ" }, expectVerdict: "หลุดเป้าเพราะภาคอีสาน" },
   { id: "landing-alert-marketing", userId: "u_ben", prompt: "ตรวจความผิดปกติของ เพอร์ร่า ขวด PET 600 มล. · เชียงใหม่ · ภาคเหนือ ให้หน่อย", expectCard: "get_alerts" },
   { id: "landing-alert-finance", userId: "u_mint", prompt: "ตรวจความผิดปกติของ ภาคใต้ ให้หน่อย", expectCard: "get_alerts" },
-  { id: "landing-visit", userId: "u_krit", prompt: "เทียบยอดขายเข้ากับยอดขายออกของ อุบลศรีสุข เทรดดิ้ง ก่อนไปเยี่ยม", expectCard: "query_metric", expectShape: "line", expectHero: { label: "เทียบ" } },
-  { id: "line-cover-below", userId: "u_arm", prompt: "สินค้าตัวไหนสต๊อกพอขายน้อยกว่า 10 วัน", expectCard: "query_metric", expectShape: "gap", expectHero: { value: "1 จาก 30 SKU" } },
-  { id: "line-cover-days", userId: "u_saranya", prompt: "สต๊อกน้ำดื่มสิงห์ที่ DC สงขลาพอขายกี่วัน", expectCard: "query_metric", expectShape: "gap", expectHero: { label: "ต่ำสุด · ", detail: "ไม่มีต่ำกว่า 10 วัน" } },
-  { id: "line-under-target", userId: "u_thana", prompt: "เช้านี้ภาคไหนยังไม่ถึงเป้าบ้าง", expectCard: "query_metric", expectShape: "gap", expectHero: { value: "1 จาก 6 ภาค" } },
-  { id: "line-province-target", userId: "u_anucha", prompt: "ยอดเทียบเป้ารายจังหวัดในภาคผมเดือนนี้", expectCard: "query_metric", expectShape: "gap" },
-  { id: "line-drop-agents", userId: "u_prasit", prompt: "เอเย่นต์ที่ยอดหายมากสุดในอีสาน เทียบ 4 สัปดาห์ก่อน", expectCard: "query_metric", expectSort: "delta_asc", expectShape: "gap" },
-  { id: "ceo-channel", userId: "u_thana", prompt: "ขอยอดขายแยกตามช่องทางหน่อย", expectCard: "query_metric", expectSort: "value_desc", expectShape: "share" },
+  { id: "landing-visit", userId: "u_krit", prompt: "เทียบยอดขายเข้ากับยอดขายออกของ อุบลศรีสุข เทรดดิ้ง ก่อนไปเยี่ยม", expectCard: "query_metric", expectShape: "line", expectStyle: "scorecard", expectHero: { label: "อัตราส่วน" }, expectVerdict: "สูงกว่าปริมาณขายเข้า" },
+  { id: "line-cover-below", userId: "u_arm", prompt: "สินค้าตัวไหนสต๊อกพอขายน้อยกว่า 10 วัน", expectCard: "query_metric", expectShape: "strip", expectStyle: "picture", expectHero: { value: "1 จาก 30 SKU" }, expectVerdict: "1 จาก 30 SKU" },
+  { id: "line-cover-days", userId: "u_saranya", prompt: "สต๊อกน้ำดื่มสิงห์ที่ DC สงขลาพอขายกี่วัน", expectCard: "query_metric", expectShape: "strip", expectStyle: "picture", expectVerdict: "ยังเกิน 10 วัน" },
+  { id: "line-under-target", userId: "u_thana", prompt: "เช้านี้ภาคไหนยังไม่ถึงเป้าบ้าง", expectCard: "query_metric", expectShape: "strip", expectStyle: "picture", expectHero: { value: "1 จาก 6 ภาค" }, expectVerdict: "1 จาก 6 ภาค" },
+  { id: "line-province-target", userId: "u_anucha", prompt: "ยอดเทียบเป้ารายจังหวัดในภาคผมเดือนนี้", expectCard: "query_metric", expectShape: "strip", expectStyle: "picture", expectVerdict: "จังหวัดต่ำกว่าเป้า" },
+  { id: "line-drop-agents", userId: "u_prasit", prompt: "เอเย่นต์ที่ยอดหายมากสุดในอีสาน เทียบ 4 สัปดาห์ก่อน", expectCard: "query_metric", expectSort: "delta_asc", expectShape: "strip", expectStyle: "picture", expectVerdict: "ยอดหาย" },
+  { id: "ceo-channel", userId: "u_thana", prompt: "ขอยอดขายแยกตามช่องทางหน่อย", expectCard: "query_metric", expectSort: "value_desc", expectShape: "share", expectStyle: "chart", expectVerdict: "มากสุด" },
   { id: "planner-watch", userId: "u_wee", prompt: "เตือนฉันถ้าสต๊อกดีซีลำพูนพอขายต่ำกว่า 10 วัน", expectApproval: "watch_metric" },
   { id: "compare-month-to-date", userId: "u_thana", prompt: "ยอดขายเดือนนี้เทียบเดือนก่อนเป็นยังไง", expectCard: "query_metric", expectCompare: { compare: "prev_period", range: { from: "2026-09-01", to: "2026-09-22" } } },
-  { id: "compare-top-decliners", userId: "u_thana", prompt: "10 เอเย่นต์ที่ยอดขายเดือนที่แล้วตกมากที่สุดเทียบเดือนก่อนหน้า", expectCard: "query_metric", expectSort: "delta_asc", expectCompare: { compare: "prev_period", range: { from: "2026-08-01", to: "2026-08-31" } }, expectShape: "gap", expectHero: { label: "ลดลงมากสุด", note: "รวมทุกเอเย่นต์" } },
-  { id: "compare-stock-weekly", userId: "u_wee", prompt: "สต๊อกคงเหลือรายสัปดาห์ เทียบกับช่วงก่อนหน้า", expectCard: "query_metric", expectCompare: { compare: "prev_period" }, expectShape: "line", expectHero: { label: " · ", note: "ทั้งช่วง" } },
+  { id: "compare-top-decliners", userId: "u_thana", prompt: "10 เอเย่นต์ที่ยอดขายเดือนที่แล้วตกมากที่สุดเทียบเดือนก่อนหน้า", expectCard: "query_metric", expectSort: "delta_asc", expectCompare: { compare: "prev_period", range: { from: "2026-08-01", to: "2026-08-31" } }, expectShape: "exceptions", expectStyle: "exceptions", expectHero: { label: "รวมทุกเอเย่นต์" }, expectVerdict: "ลดลง" },
+  { id: "compare-stock-weekly", userId: "u_wee", prompt: "สต๊อกคงเหลือรายสัปดาห์ เทียบกับช่วงก่อนหน้า", expectCard: "query_metric", expectCompare: { compare: "prev_period" }, expectShape: "line", expectStyle: "scorecard", expectVerdict: " จาก สัปดาห์" },
   { id: "compare-ar-last-year", userId: "u_siriporn", prompt: "ลูกหนี้ค้างชำระภาคใต้เดือนที่แล้ว แยกตามเอเย่นต์ เทียบช่วงเดียวกันปีก่อน", expectCard: "query_metric", expectCompare: { compare: "prev_year", range: { from: "2026-08-01", to: "2026-08-31" } } },
   { id: "rsm-watch-agent", userId: "u_anucha", prompt: "ถ้ายอดขายเข้าของ ส.รุ่งเรือง เทรดดิ้ง เปลี่ยนเกิน 15% ให้เตือนผมด้วย", expectApproval: "watch_metric" },
-  { id: "shape-stacked", userId: "u_thana", prompt: "ยอดขายรายเดือนแยกภาค 6 เดือนล่าสุด", expectCard: "query_metric", expectShape: "stacked" },
-  { id: "shape-province", userId: "u_thana", prompt: "ยอดเทียบเป้ารายจังหวัดเดือนนี้", expectCard: "query_metric", expectShape: "gap" },
-  { id: "shape-heatmap", userId: "u_thana", prompt: "ยอดขายแต่ละภาคแยกช่องทาง เทียบเดือนก่อน", expectCard: "query_metric", expectShape: "heatmap" },
-  { id: "shape-funnel", userId: "u_thana", prompt: "เดือน ส.ค. ผลิตเบียร์ได้เท่าไหร่ ขายเข้าเท่าไหร่ ขายออกเท่าไหร่", expectCard: "query_metric", expectMetrics: [["production_output"], ["net_sales_volume"], ["sell_out_volume"]], expectShape: "funnel", expectHero: { label: "เทียบ" } },
-  { id: "shape-scatter", userId: "u_thana", prompt: "เอเย่นต์ที่ขายมากค้างชำระมากด้วยไหม เดือน ส.ค.", expectCard: "query_metric", expectMetrics: [["net_sales_value", "net_sales_volume"], ["ar_overdue"]], expectShape: "scatter" },
-  { id: "shape-sell-through", userId: "u_thana", prompt: "เทียบยอดขายเข้ากับยอดขายออกของเอเย่นต์", expectCard: "query_metric", expectMetrics: [["net_sales_volume", "net_sales_value"], ["sell_out_volume"]], expectShape: "gap", expectHero: { label: "เทียบ" } },
-  { id: "shape-share-market", userId: "u_anucha", prompt: "สัดส่วนตลาดเบียร์ในนครราชสีมาเดือน ส.ค. แต่ละผู้ผลิตได้เท่าไหร่", expectCard: "query_metric", expectShape: "share", expectHero: { label: "สูงสุด · บุญรอด" } },
+  { id: "shape-stacked", userId: "u_thana", prompt: "ยอดขายรายเดือนแยกภาค 6 เดือนล่าสุด", expectCard: "query_metric", expectShape: "stacked", expectStyle: "chart" },
+  { id: "shape-province", userId: "u_thana", prompt: "ยอดเทียบเป้ารายจังหวัดเดือนนี้", expectCard: "query_metric", expectShape: "exceptions", expectStyle: "exceptions", expectVerdict: "3 จังหวัดต่ำกว่าเป้า" },
+  { id: "shape-heatmap", userId: "u_thana", prompt: "ยอดขายแต่ละภาคแยกช่องทาง เทียบเดือนก่อน", expectCard: "query_metric", expectShape: "heatmap", expectStyle: "chart", expectVerdict: "ภาคอีสานลดลงแรงกว่าภาคอื่น" },
+  { id: "shape-funnel", userId: "u_thana", prompt: "เดือน ส.ค. ผลิตเบียร์ได้เท่าไหร่ ขายเข้าเท่าไหร่ ขายออกเท่าไหร่", expectCard: "query_metric", expectMetrics: [["production_output"], ["net_sales_volume"], ["sell_out_volume"]], expectShape: "funnel", expectStyle: "chart", expectHero: { label: "อัตราส่วน" }, expectVerdict: "สูงกว่าปริมาณการผลิต" },
+  { id: "shape-scatter", userId: "u_thana", prompt: "เอเย่นต์ที่ขายมากค้างชำระมากด้วยไหม เดือน ส.ค.", expectCard: "query_metric", expectMetrics: [["net_sales_value", "net_sales_volume"], ["ar_overdue"]], expectShape: "scatter", expectStyle: "chart", expectVerdict: "มักมากตาม" },
+  { id: "shape-sell-through", userId: "u_thana", prompt: "เทียบยอดขายเข้ากับยอดขายออกของเอเย่นต์", expectCard: "query_metric", expectMetrics: [["net_sales_volume", "net_sales_value"], ["sell_out_volume"]], expectShape: "gap", expectStyle: "chart", expectHero: { label: "เทียบ" }, expectVerdict: "ต่ำกว่า" },
+  { id: "shape-share-market", userId: "u_anucha", prompt: "สัดส่วนตลาดเบียร์ในนครราชสีมาเดือน ส.ค. แต่ละผู้ผลิตได้เท่าไหร่", expectCard: "query_metric", expectShape: "share", expectStyle: "chart", expectHero: { label: "สูงสุด · บุญรอด" }, expectVerdict: "ครองเกินครึ่ง" },
   { id: "people-team", userId: "u_anucha", prompt: "ทีมขายภาคอีสานมีใครบ้าง", expectPeople: "find_people", expectPress: "ask", forbidCarousel: true },
   { id: "people-certs", userId: "u_may", prompt: "ใบอนุญาตหรือใบรับรองของใครใกล้หมดอายุบ้าง", expectPeople: "find_people" },
   { id: "people-profile", userId: "u_may", prompt: "ขอดูโปรไฟล์คุณจอย ศรีประเสริฐ", expectPeople: "get_person" },
@@ -83,16 +85,16 @@ export const EVAL_CASES: EvalCase[] = [
   { id: "admin-field", userId: "u_ton", prompt: "ให้ผู้จัดการขายภาคเห็นคะแนนสอบของหลักสูตรเต็มๆ ไม่ต้องซ่อน", expectApproval: "set_permission", expectPermission: { role: "sales_rsm", kind: "field", key: "lms.score", value: "full" } },
   { id: "policy-leave", userId: "u_krit", prompt: "ลาพักร้อนยังไง", expectPeople: "get_policy" },
   { id: "people-rep-scope", userId: "u_krit", prompt: "ทีมขายภาคอีสานมีใครบ้าง", expectPeople: "find_people" },
-  { id: "title-ar-rising", userId: "u_siriporn", prompt: "ลูกหนี้ค้างเกินกำหนดเอเย่นต์ไหนเพิ่มขึ้นบ้าง", expectCard: "query_metric", expectSort: "delta_desc", expectShape: "gap", expectHero: { label: "เพิ่มขึ้นมากสุด", note: "รวมทุกเอเย่นต์" } },
+  { id: "title-ar-rising", userId: "u_siriporn", prompt: "ลูกหนี้ค้างเกินกำหนดเอเย่นต์ไหนเพิ่มขึ้นบ้าง", expectCard: "query_metric", expectSort: "delta_desc", expectShape: "exceptions", expectStyle: "exceptions", expectHero: { delta: "+" }, expectVerdict: "เอเย่นต์ยอดเพิ่ม" },
   { id: "title-named-decline", userId: "u_saranya", prompt: "เอเย่นต์ฝั่งอันดามันกับสมุย ใครขายออกตกบ้าง", expectCard: "query_metric", expectSort: "delta_asc" },
-  { id: "title-cover-threshold", userId: "u_arm", prompt: "สินค้าตัวไหนสต๊อกพอขายน้อยกว่า 10 วัน", expectCard: "query_metric", expectSort: "value_asc", expectShape: "gap", expectHero: { value: "1 จาก 30 SKU" } },
+  { id: "title-cover-threshold", userId: "u_arm", prompt: "สินค้าตัวไหนสต๊อกพอขายน้อยกว่า 10 วัน", expectCard: "query_metric", expectSort: "value_asc", expectShape: "strip", expectStyle: "picture", expectHero: { value: "1 จาก 30 SKU" }, expectVerdict: "1 จาก 30 SKU" },
   { id: "forecast-target", userId: "u_prasit", prompt: "พยากรณ์ยอดขายทั้งประเทศ 8 สัปดาห์ จะถึงเป้าไหม", expectCard: "get_forecast" },
   { id: "freshness", userId: "u_ton", prompt: "metric ไหนมีข้อมูลล่าสุดถึงวันไหน" },
-  { id: "title-share-loss", userId: "u_prasit", prompt: "จังหวัดไหนเสียส่วนแบ่งให้คู่แข่งมากที่สุด", expectCard: "query_metric", expectSort: "delta_asc", expectShape: "gap", expectHero: { label: "ลดลงมากสุด", delta: " จุด" } },
+  { id: "title-share-loss", userId: "u_prasit", prompt: "จังหวัดไหนเสียส่วนแบ่งให้คู่แข่งมากที่สุด", expectCard: "query_metric", expectSort: "delta_asc", expectShape: "exceptions", expectStyle: "exceptions", expectHero: { delta: " จุด" }, expectVerdict: " จุด" },
   { id: "memory-remember-region", userId: "u_thana", before: ["จำไว้นะว่าผมดูแลภาคอีสานเป็นหลัก เวลาถามยอดขายให้ดูภาคอีสาน"], prompt: "ยอดขายเดือนนี้เทียบเป้าเป็นยังไง", expectCard: "query_metric", expectFilter: { dim: "region", values: ["northeast"] } },
   { id: "memory-recall-thread", userId: "u_may", before: ["อัตราการลาออกแต่ละฝ่ายเป็นยังไง"], prompt: "ครั้งก่อนที่เราคุยเรื่องคนลาออก ฝ่ายไหนน่าห่วงที่สุดนะ", expectRecall: true },
   { id: "share-card-chat", userId: "u_thana", before: ["ยอดขายแยกตามภาคเดือนนี้"], prompt: "ส่งการ์ดนี้ให้คุณกฤตดูหน่อย", expectApproval: "share_card", expectRecipient: "u_krit" },
-  { id: "handoff-not-share", userId: "u_thana", before: ["ยอดขายแยกตามภาคเดือนนี้"], prompt: "ฝากคุณอนุชาช่วยดูต่อเรื่องภาคอีสานที่ต่ำกว่าเป้าหน่อย", expectApproval: "create_handoff", expectRecipient: "u_anucha", expectShape: "progress", expectHero: { label: "ภาคอีสาน" } },
+  { id: "handoff-not-share", userId: "u_thana", before: ["ยอดขายแยกตามภาคเดือนนี้"], prompt: "ฝากคุณอนุชาช่วยดูต่อเรื่องภาคอีสานที่ต่ำกว่าเป้าหน่อย", expectApproval: "create_handoff", expectRecipient: "u_anucha", expectShape: "none", expectStyle: "chart", expectHero: { label: "ภาคอีสาน" }, expectVerdict: "ขาดเป้า" },
   { id: "people-name-lookup", userId: "u_thana", prompt: "ค้นหาพนักงานชื่อกฤตให้หน่อย", expectPeople: "find_people" },
 ];
 

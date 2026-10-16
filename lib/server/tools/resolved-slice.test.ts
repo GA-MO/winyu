@@ -91,17 +91,17 @@ describe("a question written in the model's words reaches the same alert and own
   });
 });
 
-describe("the card's scope line names every slice it is narrowed to", () => {
+describe("the card's footer line names every slice it is narrowed to", () => {
   test("an RSM's card names the region the role added", async () => {
     const answer = await card(RSM_NORTHEAST, {});
     const parts = presentCard({ title: "t", query: answer.query, result: answer });
-    expect(parts.meta).toContain(TH.dash.filteredTo("ภาคอีสาน"));
+    expect(parts.footer?.line).toContain("ภาคอีสาน");
   });
 
   test("a breakdown pinned to one of its own rows names that row", async () => {
     const answer = await card(CEO, { metric: "ar_overdue", filters: { agent: [UBON_AGENT] }, compare: "none" });
     const parts = presentCard({ title: "t", query: answer.query, result: answer });
-    expect(parts.meta).toContain(TH.dash.filteredTo("อุบลศรีสุข เทรดดิ้ง"));
+    expect(parts.footer?.line).toContain("อุบลศรีสุข เทรดดิ้ง");
   });
 });
 

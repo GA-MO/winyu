@@ -11,6 +11,7 @@ const TENANT_UTC_OFFSET_HOURS = 7;
 
 const WHOLE_FROM = 100;
 const MILLION = 1_000_000;
+const MILLION_WORD = "ล้าน";
 const numberFormat = new Intl.NumberFormat(LOCALE, { maximumFractionDigits: 1 });
 const wholeFormat = new Intl.NumberFormat(LOCALE, { maximumFractionDigits: 0 });
 const percentFormat = new Intl.NumberFormat(LOCALE, { maximumFractionDigits: 1 });
@@ -27,7 +28,7 @@ export function formatNumber(value: number | string | null): string {
   const numeric = typeof value === "number" ? value : Number(value);
   if (!Number.isFinite(numeric)) return String(value);
   const size = Math.abs(numeric);
-  if (size >= MILLION) return `${numberFormat.format(numeric / MILLION)} ล้าน`;
+  if (size >= MILLION) return `${numberFormat.format(numeric / MILLION)} ${MILLION_WORD}`;
   return size >= WHOLE_FROM ? wholeFormat.format(numeric) : numberFormat.format(numeric);
 }
 
@@ -39,7 +40,8 @@ export function formatWhole(value: number): string {
 export function formatCurrency(value: number | string | null): string {
   if (value === null) return "—";
   if (isMasked(value)) return MASKED;
-  return `${formatNumber(value)} ${CURRENCY}`;
+  const formatted = formatNumber(value);
+  return formatted.endsWith(MILLION_WORD) ? `${formatted}${CURRENCY}` : `${formatted} ${CURRENCY}`;
 }
 
 export function formatPercent(value: number | string | null): string {

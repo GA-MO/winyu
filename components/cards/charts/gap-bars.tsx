@@ -1,10 +1,10 @@
 "use client";
 
-import type { GapEnds, GapRow } from "@/lib/cards/present";
+import type { GapRow } from "@/lib/cards/present";
 import type { Tone } from "@/lib/dashboard/metric-display";
 import { TH } from "@/lib/i18n/th";
 
-type GapBarsProps = { rows: GapRow[]; ends: GapEnds; caption: string | null; shownOf: string | null };
+type GapBarsProps = { rows: GapRow[]; shownOf: string | null };
 
 const MIN_BAR_PCT = 1.5;
 const HALF = 50;
@@ -27,13 +27,9 @@ function barStyle(gap: number): { left?: string; right?: string; width: string }
 }
 
 /** Each row's distance from a line — a change from zero, a level from its target, a second measure from the first: bars grow left for less and right for more from the centre line. */
-export function GapBars({ rows, ends, caption, shownOf }: GapBarsProps) {
+export function GapBars({ rows, shownOf }: GapBarsProps) {
   return (
     <div className="flex w-full min-w-0 flex-col gap-2.5">
-      <div className="flex justify-between gap-2 text-[11px] text-muted-foreground">
-        <span>{ends.less}</span>
-        <span className="text-end">{ends.more}</span>
-      </div>
       <ol className="flex w-full min-w-0 flex-col gap-2.5" aria-label={TH.chart.gap}>
         {rows.map((row) => (
           <li key={row.label} className="min-w-0">
@@ -51,7 +47,6 @@ export function GapBars({ rows, ends, caption, shownOf }: GapBarsProps) {
           </li>
         ))}
       </ol>
-      {caption ? <p className="text-[11px] text-muted-foreground/80">{caption}</p> : null}
       {shownOf ? <p className="text-[11px] text-muted-foreground/80">{shownOf}</p> : null}
     </div>
   );

@@ -2,17 +2,21 @@ import type { Dim, MetricId, MetricQuery, MetricResult, MetricRow } from "@/lib/
 import { TH } from "@/lib/i18n/th";
 import { formatPercent, formatWhole, periodLabelTh } from "@/lib/i18n/format";
 import { directionOf, formatDelta, formatMetricValue, metricFormat, metricLabel, metricUnit, toneOf, type Tone } from "@/lib/dashboard/metric-display";
-import { changeTextOf, deltaPercentOf, groupDimsOf, labelAlong, labelOf, numericOf, timeDimOf, valueTextOf } from "./rows";
+import { changeTextOf, deltaPercentOf, deltaPointsOf, groupDimsOf, labelAlong, labelOf, numericOf, timeDimOf, valueTextOf } from "./rows";
+import { outliersOf } from "./reading";
 import type { CardBody, CardHero, ChartSeries, ColorScale, GapRow, HeatCell, ScatterAxis, ScatterPoint, ShareSlice } from "./present";
 
 export type Source = { query: MetricQuery; result: Extract<MetricResult, { ok: true }> };
 
 const MAX_SERIES = 5;
 const MAX_SLICES = 6;
-const MAX_NAMED_POINTS = 4;
+const MAX_NAMED_POINTS = 3;
+const MIN_CELL_GAP_PERCENT = 5;
+const MIN_CELL_GAP_POINTS = 1;
+const CELL_GAP_SHARE = 0.1;
+const TREND_CORRELATION = 0.5;
 const MIN_INTENSITY = 0.15;
 const PERCENT = 100;
-const STRONG_CORRELATION = 0.5;
 const PARITY_RATIO = 3;
 const MAX_GAP_ROWS = 8;
 const WIDE_GAP_PCT = 5;
@@ -96,31 +100,40 @@ function deltaScaleOf(rows: MetricRow[]): number | null {
 
 type CellPainter = (row: MetricRow) => HeatCell | null;
 
+/** The cells that stand apart from the rest on the grid's colour scale; only they carry colour, so the eye lands on the decision. */
+function standoutsOf(query: MetricQuery, rows: MetricRow[], scale: ColorScale): Set<MetricRow> {
+  if (scale === "delta") {
+    const inPoints = metricFormat(query.metric) === "percent";
+    const changes = rows.map((row) => (inPoints ? deltaPointsOf(row) : deltaPercentOf(row)));
+    return new Set([...outliersOf(changes, inPoints ? MIN_CELL_GAP_POINTS : MIN_CELL_GAP_PERCENT)].map((index) => rows[index]));
+  }
+  const values = rows.map((row) => numericOf(row, "value"));
+  const peak = Math.max(...values.map((value) => Math.abs(value ?? 0)), 0);
+  return new Set([...outliersOf(values, peak * CELL_GAP_SHARE)].map((index) => rows[index]));
+}
+
 function cellPainter(query: MetricQuery, rows: MetricRow[], scale: ColorScale): CellPainter {
   const values = rows.map((row) => numericOf(row, "value")).filter((value): value is number => value !== null);
   const range = values.length > 0 ? spread(values) : { min: 0, max: 0 };
   const deltaMax = deltaScaleOf(rows) ?? 1;
+  const standouts = standoutsOf(query, rows, scale);
   return (row) => {
     const value = numericOf(row, "value");
     if (value === null) return null;
     const delta = deltaPercentOf(row);
     const deltaText = changeTextOf(query.metric, row);
+    const exception = standouts.has(row);
     if (scale === "delta") {
-      return { text: deltaText ?? "—", detail: valueTextOf(query, row), intensity: delta === null ? 0 : scaled(Math.abs(delta) / deltaMax), tone: toneOf(query.metric, delta) };
+      return { text: deltaText ?? "—", detail: valueTextOf(query, row), intensity: delta === null ? 0 : scaled(Math.abs(delta) / deltaMax), tone: toneOf(query.metric, delta), exception };
     }
     const width = range.max - range.min;
-    return { text: valueTextOf(query, row), detail: deltaText, intensity: scaled(width === 0 ? 1 : (value - range.min) / width), tone: "neutral" };
+    return { text: valueTextOf(query, row), detail: deltaText, intensity: scaled(width === 0 ? 1 : (value - range.min) / width), tone: "neutral", exception };
   };
 }
 
 function scaleFor(query: MetricQuery, rows: MetricRow[]): ColorScale {
   if (query.compare === "none" || timeDimOf(query)) return "value";
   return deltaScaleOf(rows) === null ? "value" : "delta";
-}
-
-function legendOf(query: MetricQuery, scale: ColorScale): string {
-  if (scale === "delta") return TH.dash.legendDelta(TH.dash.compare[query.compare]);
-  return TH.dash.legendValue(metricLabel(query.metric));
 }
 
 function axesOf(query: MetricQuery, rows: MetricRow[]): { rowDims: Dim[]; columnDims: Dim[] } {
@@ -183,7 +196,6 @@ export function heatmapBody(query: MetricQuery, rows: MetricRow[], order: RowOrd
       }),
     ),
     scale,
-    legend: legendOf(query, scale),
   };
 }
 
@@ -242,6 +254,16 @@ function correlation(xs: number[], ys: number[]): number {
   return sx === 0 || sy === 0 ? 0 : top / Math.sqrt(sx * sy);
 }
 
+/** The least-squares line through the points, so the points furthest off the trend can be named. */
+function lineFit(xs: number[], ys: number[]): { slope: number; intercept: number } {
+  const mean = (values: number[]) => values.reduce((sum, value) => sum + value, 0) / values.length;
+  const mx = mean(xs);
+  const my = mean(ys);
+  const spread = xs.reduce((sum, value) => sum + (value - mx) ** 2, 0);
+  const slope = spread === 0 ? 0 : xs.reduce((sum, value, index) => sum + (value - mx) * (ys[index] - my), 0) / spread;
+  return { slope, intercept: my - slope * mx };
+}
+
 type Joined = { label: string; x: MetricRow; y: MetricRow };
 
 /** Rows of two results that name the same thing along the same dims. */
@@ -257,12 +279,6 @@ export function joinedRows(first: Source, second: Source): Joined[] {
 function axisOf(source: Source, values: number[]): ScatterAxis {
   const middle = median(values);
   return { label: metricLabel(source.query.metric), format: metricFormat(source.query.metric), median: middle, medianText: formatMetricValue(source.query.metric, middle) };
-}
-
-function correlationNote(xLabel: string, yLabel: string, r: number): string {
-  const rounded = Math.round(r * 100) / 100;
-  if (Math.abs(r) < STRONG_CORRELATION) return TH.dash.noCorrelation(rounded);
-  return r > 0 ? TH.dash.positiveCorrelation(xLabel, yLabel, rounded) : TH.dash.negativeCorrelation(xLabel, yLabel, rounded);
 }
 
 function comparableScale(left: number, right: number): boolean {
@@ -287,11 +303,15 @@ export function scatterBody(first: Source, second: Source): CardBody {
   const y = axisOf(second, ys);
   const xSpan = Math.max(...xs) - Math.min(...xs) || 1;
   const ySpan = Math.max(...ys) - Math.min(...ys) || 1;
+  const r = correlation(xs, ys);
+  const fit = lineFit(xs, ys);
+  const offTrend = (index: number) => Math.abs(ys[index] - (fit.intercept + fit.slope * xs[index])) / ySpan;
   const distance = (index: number) => Math.hypot((xs[index] - x.median) / xSpan, (ys[index] - y.median) / ySpan);
+  const standsOut = Math.abs(r) >= TREND_CORRELATION ? offTrend : distance;
   const named = new Set(
     joined
       .map((_, index) => index)
-      .sort((left, right) => distance(right) - distance(left))
+      .sort((left, right) => standsOut(right) - standsOut(left))
       .slice(0, MAX_NAMED_POINTS),
   );
   const points: ScatterPoint[] = joined.map((entry, index) => ({
@@ -302,7 +322,7 @@ export function scatterBody(first: Source, second: Source): CardBody {
     yText: valueTextOf(second.query, entry.y),
     named: named.has(index),
   }));
-  return { kind: "scatter", points, x, y, note: correlationNote(x.label, y.label, correlation(xs, ys)) };
+  return { kind: "scatter", points, x, y, r: Math.round(r * 100) / 100 };
 }
 
 function shortLabel(source: Source): string {
@@ -338,7 +358,6 @@ export function gapBody(first: Source, second: Source): CardBody {
   const gaps = gapsOf(first, second);
   const shown = gaps.slice(0, MAX_GAP_ROWS);
   const peak = Math.max(...shown.map((gap) => Math.abs(gap.percent)), MIN_GAP_SCALE_PCT);
-  const [base, other] = [shortLabel(first), shortLabel(second)];
   const rows: GapRow[] = shown.map(({ entry, percent }) => ({
     label: entry.label,
     gap: percent / peak,
@@ -349,8 +368,6 @@ export function gapBody(first: Source, second: Source): CardBody {
   return {
     kind: "gap",
     rows,
-    ends: { less: TH.dash.gapLess, more: TH.dash.gapMore },
-    caption: TH.dash.gapCaption(base, other),
     shownOf: gaps.length > MAX_GAP_ROWS ? TH.dash.gapShownOf(MAX_GAP_ROWS, gaps.length) : null,
   };
 }
@@ -370,8 +387,8 @@ export function gapHero(first: Source, second: Source, unit: string | null): Car
     delta: null,
     trend: directionOf(overall),
     tone: toneOf(second.query.metric, overall),
+    unit: null,
     detail: short > 0 ? TH.dash.gapShortCount(short, gaps.length, unit ?? "", other, base, WIDE_GAP_PCT) : TH.dash.gapNoneShort(unit ?? "", other, base, WIDE_GAP_PCT),
-    note: null,
   };
 }
 

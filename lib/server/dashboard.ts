@@ -12,7 +12,9 @@ import { ownAgentsFilter } from "@/lib/data/entities/agents";
 import type { Dictionary } from "@/lib/semantic/dictionary";
 import { loadDictionary } from "@/lib/server/master-data";
 import { formatDelta } from "@/lib/dashboard/metric-display";
-import { presentCard, sharpestHarm, weakestRow, type CardParts } from "@/lib/cards/present";
+import { presentCard, sharpestHarm, subjectOf, weakestRow, type CardParts } from "@/lib/cards/present";
+import { percentIn } from "@/lib/cards/breakdown";
+import { formatPercent } from "@/lib/i18n/format";
 import { TH } from "@/lib/i18n/th";
 import { templateFor } from "@/lib/dashboard/templates";
 import { displacedBy, onePinnedPerMetric } from "@/lib/dashboard/one-per-metric";
@@ -28,6 +30,7 @@ export type WidgetView = { widget: WidgetSpec; card: CardParts; attention: Atten
 
 const CREATED_AT = "2026-09-22T00:00:00.000Z";
 const KPI_LIMIT = 4;
+const PERCENT_OF_TARGET = 100;
 /** The roles that visit agents in the field: the only ones offered a visit plan. */
 export const VISIT_ROLES: readonly RoleId[] = ["sales_rep"];
 const VISIT_LIMIT = 3;
@@ -139,7 +142,7 @@ async function viewOf(widget: WidgetSpec, access: AccessContext, relevant: reado
     widget,
     card: widgetCard(widget, result, { sortBy: widget.sortBy ?? null, ...extras, actions }),
     attention: attentionOf({ widget, result, alerts: relevant }),
-    headline: hero ? { value: hero.value, delta: hero.delta, tone: hero.tone } : null,
+    headline: hero ? { value: hero.unit ? `${hero.value} ${hero.unit}` : hero.value, delta: hero.delta, tone: hero.tone } : null,
   };
 }
 
@@ -185,7 +188,8 @@ function kpiNoteOf(query: MetricQuery, result: MetricResult, parts: CardParts): 
   if (weakest) return TH.dash.weakest(weakest.lowIsWorst, weakest.label, weakest.value);
   const harm = sharpestHarm(query, result, HARMFUL_ROW_PCT);
   if (harm) return TH.landing.sharpest(harm.label, harm.delta);
-  return parts.body.kind === "progress" ? parts.body.detail : null;
+  const attainment = parts.hero?.unit === TH.read.ofTarget ? percentIn(parts.hero.value) : null;
+  return attainment !== null && attainment < PERCENT_OF_TARGET ? TH.dash.toTarget(formatPercent(Math.round((PERCENT_OF_TARGET - attainment) * 10) / 10)) : null;
 }
 
 export async function landingKpis(access: AccessContext): Promise<LandingKpi[]> {
@@ -203,7 +207,9 @@ export async function landingKpis(access: AccessContext): Promise<LandingKpi[]> 
     if (kpis.length >= KPI_LIMIT) break;
     const parts = presentCard({ title: widget.title, query: widget.query, result });
     const hero = parts.hero;
-    if (!hero || kpis.some((kpi) => kpi.label === hero.label && kpi.value === hero.value)) continue;
+    const value = hero?.unit ? `${hero.value} ${hero.unit}` : hero?.value;
+    const label = subjectOf(widget.query, result);
+    if (!hero || !value || kpis.some((kpi) => kpi.label === label && kpi.value === value)) continue;
     const mover = shownMetrics.has(widget.query.metric) ? moverKpi(widget, result, hero.detail) : null;
     if (mover) {
       kpis.push(mover);
@@ -211,7 +217,7 @@ export async function landingKpis(access: AccessContext): Promise<LandingKpi[]> 
     }
     shownMetrics.add(widget.query.metric);
     const note = kpiNoteOf(widget.query, result, parts);
-    kpis.push({ id: widget.id, label: hero.label, value: hero.value, delta: hero.delta, tone: hero.tone, detail: hero.detail, note, period: periodTag(widget.query.range) });
+    kpis.push({ id: widget.id, label, value, delta: hero.delta, tone: hero.tone, detail: hero.detail, note, period: periodTag(widget.query.range) });
   }
   return kpis;
 }

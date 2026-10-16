@@ -1,6 +1,7 @@
 import { liveAccessFor } from "@/lib/access/enforce";
 import { presentCard, type CardParts, type PresentSource } from "@/lib/cards/present";
-import { metricTitle, othersOf } from "@/lib/cards/tool-answers";
+import { cardWords } from "@/lib/cards/words";
+import { actionsOf, metricTitle, othersOf } from "@/lib/cards/tool-answers";
 import { ASK_EVENT, COMPOSE_ACTION_TOOLS, type ComposedComponent } from "@/lib/compose/catalog";
 import { createHandoffInputSchema, REGIONS, setPermissionInputSchema, watchMetricInputSchema, type MetricQuery, type MetricResult, type Region } from "@/lib/contracts";
 import { DATA_AS_OF } from "@/lib/data/dates";
@@ -80,12 +81,19 @@ function answerCard(turn: EvalTurn): DrawnAnswer | null {
   return answers.at(-1) ?? null;
 }
 
-/** The answering card as present.ts draws it in the chat: the registry's title, no view or sort asked, the paired answers bound. */
-function drawnParts(answer: DrawnAnswer): CardParts {
-  return presentCard({ title: metricTitle(answer.result, answer.args), query: answer.query, result: answer.result, view: "auto", sortBy: null, others: answer.others });
+/** The answering metric card of a turn as the chat draws it, or null when the turn drew none. */
+export function answeringParts(turn: EvalTurn): CardParts | null {
+  const answer = answerCard(turn);
+  return answer ? drawnParts(answer) : null;
 }
 
-const HERO_FIELDS = ["label", "value", "delta", "detail", "note"] as const;
+/** The answering card as present.ts draws it in the chat: the registry's title, no view or sort asked, the paired answers bound. */
+function drawnParts(answer: DrawnAnswer): CardParts {
+  return presentCard({ title: metricTitle(answer.result, answer.args), query: answer.query, result: answer.result, view: "auto", sortBy: null, actions: actionsOf(answer.result), others: answer.others });
+}
+
+const HERO_FIELDS = ["label", "value", "delta"] as const;
+const WORD_LIMIT = 45;
 
 function metricQueries(turn: EvalTurn): MetricQuery[] {
   return turn.calls.filter((call) => call.tool === METRIC_TOOL).map((call) => {
@@ -341,27 +349,41 @@ export const EVAL_CHECKS: readonly EvalCheck[] = [
   },
   {
     id: "drewShape",
-    description: "present.ts draws the answering card in the shape the question needs.",
+    description: "present.ts draws the answering card in the shape and style the question needs (B picture first for a breakdown, A above 8 rows, C scorecard for one scope).",
     verdict: (turn, expected) => {
-      if (!expected.expectShape) return null;
+      if (!expected.expectShape && !expected.expectStyle) return null;
       const answer = answerCard(turn);
       if (!answer) return verdict(false, "ไม่มีการ์ด query_metric ที่ตอบได้");
-      const body = drawnParts(answer).body;
-      return verdict(body.kind === expected.expectShape, `วาดเป็น ${body.kind} คาดว่า ${expected.expectShape} (dims ${answer.query.dims.join(",") || "-"}${answer.others.length > 0 ? ` · คู่กับ ${answer.others.map((other) => other.query.metric).join(", ")}` : ""})`);
+      const parts = drawnParts(answer);
+      const ok = (!expected.expectShape || parts.body.kind === expected.expectShape) && (!expected.expectStyle || parts.style === expected.expectStyle);
+      return verdict(ok, `วาดเป็น ${parts.body.kind}/${parts.style} คาดว่า ${expected.expectShape ?? "-"}/${expected.expectStyle ?? "-"} (dims ${answer.query.dims.join(",") || "-"}${answer.others.length > 0 ? ` · คู่กับ ${answer.others.map((other) => other.query.metric).join(", ")}` : ""})`);
     },
   },
   {
     id: "answeredHero",
-    description: "The answering card's headline answers the question the way the card-fit table says (the row, the share of target, the mover, the count under a line), not the total of every row.",
+    description: "The answering card's verdict and headline answer the question the way the card-fit table says (who is under target, which row moved, how many sit under a line), not the total of every row.",
     verdict: (turn, expected) => {
       const wanted = expected.expectHero;
-      if (!wanted) return null;
+      if (!wanted && !expected.expectVerdict) return null;
       const answer = answerCard(turn);
       if (!answer) return verdict(false, "ไม่มีการ์ด query_metric ที่ตอบได้");
-      const hero = drawnParts(answer).hero;
-      const missing = HERO_FIELDS.filter((field) => wanted[field] !== undefined && !(hero?.[field] ?? "").includes(wanted[field] ?? ""));
-      const shown = hero ? `[${hero.label}] ${hero.value} ${hero.delta ?? ""}` : "ไม่มีหัวการ์ด";
-      return verdict(missing.length === 0, missing.length === 0 ? shown : `${shown} · ขาด ${missing.map((field) => `${field} "${wanted[field]}"`).join(", ")}`);
+      const parts = drawnParts(answer);
+      const hero = parts.hero;
+      const missing = HERO_FIELDS.filter((field) => wanted?.[field] !== undefined && !(hero?.[field] ?? "").includes(wanted[field] ?? ""));
+      const verdictMissed = expected.expectVerdict !== undefined && !(parts.verdict ?? "").includes(expected.expectVerdict);
+      const shown = `"${parts.verdict ?? ""}" · ${hero ? `[${hero.label}] ${hero.value} ${hero.delta ?? ""}` : "ไม่มีหัวการ์ด"}`;
+      const gaps = [...missing.map((field) => `${field} "${wanted?.[field]}"`), ...(verdictMissed ? [`verdict "${expected.expectVerdict}"`] : [])];
+      return verdict(gaps.length === 0, gaps.length === 0 ? shown : `${shown} · ขาด ${gaps.join(", ")}`);
+    },
+  },
+  {
+    id: "fewWords",
+    description: "The answering data card reads in about 20 to 25 words at rest, row names left out, so it decides at a glance instead of reading like a text wall.",
+    verdict: (turn) => {
+      const parts = answeringParts(turn);
+      if (!parts || parts.denied) return null;
+      const words = cardWords(parts);
+      return verdict(words <= WORD_LIMIT, `${words} คำบนการ์ด (ไม่เกิน ${WORD_LIMIT})`);
     },
   },
   {
