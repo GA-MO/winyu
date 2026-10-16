@@ -1,5 +1,5 @@
 import type { MetricQuery } from "@/lib/contracts";
-import { addDays, TODAY } from "@/lib/data/dates";
+import { addDays, businessDay, DATA_AS_OF } from "@/lib/data/dates";
 
 /** One read tool call the gallery runs for the signed-in user. */
 export type ReadSample = { tool: string; caption: string; question: string; input: Record<string, unknown> };
@@ -7,13 +7,13 @@ export type ReadSample = { tool: string; caption: string; question: string; inpu
 /** One write tool call the gallery shows as an approval decision. */
 export type WriteSample = { tool: string; caption: string; input: Record<string, unknown> };
 
-const MONTH_START = `${TODAY.slice(0, 7)}-01`;
+const MONTH_START = `${DATA_AS_OF.slice(0, 7)}-01`;
 
 const SALES_BY_REGION: MetricQuery = {
   metric: "net_sales_value",
   dims: ["region"],
   filters: {},
-  range: { from: MONTH_START, to: TODAY },
+  range: { from: MONTH_START, to: DATA_AS_OF },
   grain: "month",
   compare: "prev_period",
   limit: null,
@@ -23,7 +23,7 @@ const WEEKLY_VOLUME: MetricQuery = {
   metric: "net_sales_volume",
   dims: ["week"],
   filters: {},
-  range: { from: addDays(TODAY, -83), to: TODAY },
+  range: { from: addDays(DATA_AS_OF, -83), to: DATA_AS_OF },
   grain: "week",
   compare: "none",
   limit: null,
@@ -33,7 +33,7 @@ const TOP_AGENTS: MetricQuery = {
   metric: "net_sales_volume",
   dims: ["agent"],
   filters: { region: ["northeast"] },
-  range: { from: MONTH_START, to: TODAY },
+  range: { from: MONTH_START, to: DATA_AS_OF },
   grain: "month",
   compare: "prev_period",
   limit: 8,
@@ -50,7 +50,7 @@ export const READ_SAMPLES: ReadSample[] = [
     tool: "explain_gap",
     caption: "explain_gap",
     question: "ยอดขายเดือนนี้ห่างจากเดือนก่อนเพราะอะไร",
-    input: { metric: "net_sales_value", split: "region", filters: {}, range: { from: MONTH_START, to: TODAY }, compare: "prev_period" },
+    input: { metric: "net_sales_value", split: "region", filters: {}, range: { from: MONTH_START, to: DATA_AS_OF }, compare: "prev_period" },
   },
   { tool: "get_calendar", caption: "get_calendar", question: "วันสำคัญที่จะกระทบยอดขาย", input: { from: null, to: null } },
   { tool: "find_people", caption: "find_people", question: "ทีมของฉันมีใครบ้าง", input: { region: null, department: null, manager: null, query: null, flag: null } },
@@ -70,7 +70,7 @@ export const READ_SAMPLES: ReadSample[] = [
 ];
 
 export const WRITE_SAMPLES: WriteSample[] = [
-  { tool: "request_leave", caption: "request_leave", input: { kind: "annual", from: addDays(TODAY, 7), to: addDays(TODAY, 9), reason: "พาครอบครัวไปเที่ยว" } },
+  { tool: "request_leave", caption: "request_leave", input: { kind: "annual", from: businessDay(7), to: businessDay(9), reason: "พาครอบครัวไปเที่ยว" } },
   { tool: "enroll_course", caption: "enroll_course", input: { courseId: "crs_sales_licence" } },
   {
     tool: "create_handoff",

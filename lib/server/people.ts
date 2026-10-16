@@ -1,6 +1,6 @@
 import type { AccessContext, CareerEvent, Employee, PeopleFlag, Region } from "@/lib/contracts";
 import { canSeeSalary, peopleViewOf, type PeopleView } from "@/lib/access/people-scope";
-import { TODAY, toDayIndex } from "@/lib/data/dates";
+import { businessToday, daysBetween } from "@/lib/data/dates";
 import { signalsOf, tenureLabel, type CertificateState, type PeopleSignals } from "@/lib/engine/people-signals";
 import { formatCurrency, formatDateTh } from "@/lib/i18n/format";
 import { TH } from "@/lib/i18n/th";
@@ -132,7 +132,7 @@ function openPositionsFor(access: AccessContext, query: PeopleQuery, directory: 
     id: position.id,
     title: position.title,
     manager: directory.byId(position.managerId)?.nameTh ?? null,
-    open_label: T.openPosition(toDayIndex(TODAY) - toDayIndex(position.openedOn)),
+    open_label: T.openPosition(daysBetween(position.openedOn, businessToday())),
   }));
 }
 

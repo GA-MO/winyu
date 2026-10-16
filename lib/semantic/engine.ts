@@ -5,7 +5,7 @@ import {
 import { DECIDING_LINES, MONTHLY_METRICS, RATIO_METRICS, TARGET_METRICS, TIME_DIMS, metricDef } from "@/lib/semantic/metrics";
 import { MIN_CELL_SIZE, SUPPRESSED_FIELDS, SUPPRESSED_VALUE, cellScopeOf, isSmallCell } from "@/lib/access/suppression";
 import { namesOf, resolveFilters, type Dictionary } from "@/lib/semantic/dictionary";
-import { DAY_COUNT, ISO_OF_DAY, MONTH_COUNT, MONTH_FIRST_DAY, MONTH_OF_DAY, TODAY, daysInMonthIndex, formatThaiDate, toDayIndex } from "@/lib/data/dates";
+import { DAY_COUNT, ISO_OF_DAY, MONTH_COUNT, MONTH_FIRST_DAY, MONTH_OF_DAY, DATA_AS_OF, daysInMonthIndex, formatThaiDate, toDayIndex } from "@/lib/data/dates";
 
 const DEFAULT_LIMIT = 60;
 const PREV_YEAR_DAYS = 364;
@@ -539,7 +539,7 @@ export function finishMetric(plan: MetricPlan, current: FactResult, comparison: 
     metric: def.id,
     certified: def.certified,
     sourceSystem: def.sourceSystem,
-    asOf: TODAY,
+    asOf: DATA_AS_OF,
     rowCount: rows.length,
     filterLabels: [...filterLabelsOf(resolved), ...(query.where ? [whereLabelOf(def, query.where)] : [])],
     masked: masked || suppressed.size > 0 ? [...SUPPRESSED_FIELDS] : [],

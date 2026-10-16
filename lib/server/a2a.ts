@@ -1,5 +1,6 @@
 import { liveAccessFor } from "@/lib/access/enforce";
 import type { AccessContext, ToolTier, User } from "@/lib/contracts";
+import { businessToday } from "@/lib/data/dates";
 import { findUser } from "@/lib/data/entities/users";
 import { A2A_METHODS, answerA2a, type A2aCall, type A2aMethod, type A2aResponse, type A2aSurface } from "@/lib/harness/adapters/mastra/a2a";
 import { injectionIn, maskPersonalData, type GuardFinding, type InjectionKind, type PersonalKind } from "@/lib/harness/guard";
@@ -145,7 +146,7 @@ export function guardedMessage(params: unknown): GuardedMessage | null {
 }
 
 function instructionsFor(access: AccessContext, user: User, caller: string): string {
-  return personaFor(access, user, { today: new Date().toISOString().slice(0, 10), context: { threadId: null, preloadPacketId: null } }, A2A_RULES(caller)).join("\n\n");
+  return personaFor(access, user, { today: businessToday(), context: { threadId: null, preloadPacketId: null } }, A2A_RULES(caller)).join("\n\n");
 }
 
 function outcomeOf(response: A2aResponse): { failed: string | null; finishReason: string } {

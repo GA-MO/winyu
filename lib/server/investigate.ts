@@ -7,7 +7,7 @@ import { presentCard, weakestRow } from "@/lib/cards/present";
 import { isTimeDim } from "@/lib/cards/rows";
 import { toneOf } from "@/lib/dashboard/metric-display";
 import { explainGapInputSchema, storySchema, type AccessContext, type DraftStory, type Investigation, type MetricId, type MetricQuery, type MetricResult, type MetricSort, type Story, type User } from "@/lib/contracts";
-import { TODAY } from "@/lib/data/dates";
+import { DATA_AS_OF, businessToday } from "@/lib/data/dates";
 import { USERS, findUser } from "@/lib/data/entities/users";
 import { TH } from "@/lib/i18n/th";
 import { runMetric } from "@/lib/server/metrics";
@@ -296,7 +296,7 @@ async function investigateNow(userId: string, model: LanguageModel, modelId: str
   const access = accessFor(user);
   const anomalies = await openAnomalies(access);
   if (anomalyRows(anomalies).length === 0) return quietRun(userId, modelId, anomalies);
-  const who = `${user.title} (role ${user.role}). Scope: ${scopeLine(access)}. ${orgLine(user)} Today is ${TODAY}.`;
+  const who = `${user.title} (role ${user.role}). Scope: ${scopeLine(access)}. ${orgLine(user)} Today is ${businessToday()}; the warehouse holds data through ${DATA_AS_OF}.`;
   const { result, usage } = await measure(async () => {
     const run = await runWithAccess(access, () => generateText({ model, system: INVESTIGATE_SYSTEM, prompt: investigationPrompt(who, anomalies), tools: readTools(access), stopWhen: stepCountIs(MAX_STEPS) }));
     const calls = callsWithAnomalies(anomalies, run.steps.flatMap((step) => step.toolResults.map((toolResult) => ({ tool: toolResult.toolName, input: toolResult.input, output: toolResult.output }))));

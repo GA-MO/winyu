@@ -5,7 +5,7 @@ import type { Alert, MetricQuery } from "@/lib/contracts";
 import { accessFor } from "@/lib/access/policies";
 import { findUser } from "@/lib/data/entities/users";
 import { AGENTS } from "@/lib/data/entities/agents";
-import { addDays, TODAY } from "@/lib/data/dates";
+import { addDays, businessDay, DATA_AS_OF } from "@/lib/data/dates";
 import { formatDateTh } from "@/lib/i18n/format";
 import { runMetric } from "@/lib/server/metrics";
 import { GENERATOR_PORTS } from "@/lib/server/ports/generator";
@@ -15,11 +15,11 @@ import { GENERATOR_LEAVE } from "@/lib/server/ports/generator-leave";
 
 const OUTPUT = path.join(process.cwd(), "site", "film", "facts.json");
 const ALERTS = path.join(process.cwd(), ".data", "alerts.json");
-const MONTH_START = `${TODAY.slice(0, 7)}-01`;
+const MONTH_START = `${DATA_AS_OF.slice(0, 7)}-01`;
 const SPOTLIGHT_REGION = "northeast";
 const SPOTLIGHT_LABEL = "ภาคอีสาน";
 const VIEWERS = { director: "u_prasit", ceo: "u_thana", rep: "u_nok" } as const;
-const LEAVE = { from: addDays(TODAY, 7), to: addDays(TODAY, 9), reason: "พาครอบครัวไปเที่ยว" };
+const LEAVE = { from: businessDay(7), to: businessDay(9), reason: "พาครอบครัวไปเที่ยว" };
 const KIND_LABELS: Record<string, string> = { notebook: "โน้ตบุ๊ก", phone: "โทรศัพท์", tablet: "แท็บเล็ต" };
 
 const TREND_WEEKS_BACK = 55;
@@ -35,7 +35,7 @@ const SALES_BY_REGION: MetricQuery = {
   metric: "net_sales_value",
   dims: ["region"],
   filters: {},
-  range: { from: MONTH_START, to: TODAY },
+  range: { from: MONTH_START, to: DATA_AS_OF },
   grain: "month",
   compare: "prev_period",
   limit: null,
@@ -60,7 +60,7 @@ async function salesByRegion(userId: string) {
 async function spotlightTrend() {
   const user = findUser(VIEWERS.director);
   if (!user) throw new Error("Unknown director persona");
-  const query: MetricQuery = { metric: "net_sales_volume", dims: ["week"], filters: { region: [SPOTLIGHT_REGION] }, range: { from: addDays(TODAY, -TREND_WEEKS_BACK), to: TODAY }, grain: "week", compare: "none", limit: null };
+  const query: MetricQuery = { metric: "net_sales_volume", dims: ["week"], filters: { region: [SPOTLIGHT_REGION] }, range: { from: addDays(DATA_AS_OF, -TREND_WEEKS_BACK), to: DATA_AS_OF }, grain: "week", compare: "none", limit: null };
   const result = await runMetric(query, accessFor(user));
   if (!result.ok) throw new Error(`trend: ${result.error}`);
   const fullWeeks = (result.rows as WeekRow[]).slice(1, -1);

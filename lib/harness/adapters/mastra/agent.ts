@@ -7,6 +7,7 @@ import { LibSQLStore } from "@mastra/libsql";
 import { Memory } from "@mastra/memory";
 import { liveAccessFor } from "@/lib/access/enforce";
 import type { AccessContext } from "@/lib/contracts";
+import { businessToday } from "@/lib/data/dates";
 import { findUser } from "@/lib/data/entities/users";
 import type { RunLimit } from "@/lib/harness/events";
 import { LIMITS } from "@/lib/harness/limits";
@@ -48,7 +49,7 @@ function accessOf(requestContext: RequestContext<UserContext>): AccessContext {
 function instructionsFor(access: AccessContext): CoreSystemMessage {
   const turn = currentTurn();
   const context = { threadId: turn.threadId, preloadPacketId: turn.preloadPacketId };
-  const lines = personaFor(access, findUser(access.userId), { today: new Date().toISOString().slice(0, 10), context }, WINYU_RULES);
+  const lines = personaFor(access, findUser(access.userId), { today: businessToday(), context }, WINYU_RULES);
   return { role: "system", content: lines.join(PROMPT_SEPARATOR), providerOptions: CACHED_SYSTEM_PROMPT };
 }
 

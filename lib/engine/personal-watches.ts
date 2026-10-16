@@ -1,5 +1,5 @@
 import type { MetricQuery, MetricResult, MetricRow, PersonalWatch, WatchCondition } from "@/lib/contracts";
-import { TODAY, addDays } from "@/lib/data/dates";
+import { DATA_AS_OF, addDays } from "@/lib/data/dates";
 import { formatMetricValue } from "@/lib/dashboard/metric-display";
 import { TH } from "@/lib/i18n/th";
 
@@ -22,7 +22,7 @@ export function windowDaysOf(query: MetricQuery): number {
  * The watch's query moved to end on the latest data day, over every row (a line can be crossed by the smallest one);
  * a stock level is read on that day alone, because an average over the window hides the day it ran out.
  */
-export function rollingQuery(watch: Pick<PersonalWatch, "query" | "windowDays" | "condition">, today = TODAY): MetricQuery {
+export function rollingQuery(watch: Pick<PersonalWatch, "query" | "windowDays" | "condition">, today = DATA_AS_OF): MetricQuery {
   const compare = watch.condition.kind === "change" && watch.query.compare === "none" ? "prev_period" : watch.query.compare;
   const from = LEVEL_METRICS.has(watch.query.metric) && watch.condition.kind !== "change" ? today : addDays(today, -watch.windowDays);
   return { ...watch.query, compare, limit: null, range: { from, to: today } };

@@ -1,7 +1,7 @@
 import type { Dim, MetricId } from "@/lib/contracts";
 import { readSeries } from "@/lib/server/metrics";
 import {
-  DAY_COUNT, DOW_OF_DAY, ISO_OF_DAY, MONTH_COUNT, MONTH_KEYS, TODAY, addDays, monthIndexOfKey, toDayIndex,
+  DAY_COUNT, DOW_OF_DAY, ISO_OF_DAY, MONTH_COUNT, MONTH_KEYS, DATA_AS_OF, addDays, monthIndexOfKey, toDayIndex,
 } from "@/lib/data/dates";
 import { ALCOHOL_BAN_FLAGS, LENT_FLAGS } from "@/lib/data/entities/calendar";
 import { BRAND_INFO, LITRES_PER_HL, skuById } from "@/lib/data/entities/products";
@@ -13,6 +13,8 @@ export type EntitySeries = { key: string; dims: Partial<Record<Dim, string>>; va
 
 const MONTH_SEASON = 0;
 const BAN_ORDERING_DAYS = 2;
+const LENT_REBOUND_DAYS = 14;
+const REBOUND_METRICS: ReadonlySet<MetricId> = new Set<MetricId>(["net_sales_volume", "net_sales_value", "sell_out_volume", "production_output"]);
 const CALENDAR_SENSITIVE: ReadonlySet<MetricId> = new Set<MetricId>(["net_sales_volume", "net_sales_value", "sell_out_volume"]);
 
 function dayWindow(endDay: number, length: number): { from: number; to: number } {
@@ -88,7 +90,7 @@ export async function seriesFor(watch: Watch): Promise<EntitySeries[]> {
   if (watch.grain === "month") {
     const window = monthWindow();
     const slots = window.to - window.from + 1;
-    const range = { from: "2025-04-01", to: TODAY };
+    const range = { from: "2025-04-01", to: DATA_AS_OF };
     const season = new Array<number>(slots).fill(MONTH_SEASON);
     const monthly = (await collect(watch, range, slots, (key) => monthIndexOfKey(key) - window.from)).map((series) => ({ ...series, season, startDay: window.from }));
     if (watch.transform !== "year_over_year") return monthly;
@@ -158,6 +160,17 @@ export function calendarSkipFor(watch: Watch, series: EntitySeries): boolean[] |
 
 function isCalendarSensitive(watch: Watch, series: EntitySeries): boolean {
   return watch.grain === "day" && CALENDAR_SENSITIVE.has(watch.metric) && !isNonAlcohol(series.dims);
+}
+
+/** Whether a rise starting at this slot is beer, or the plants brewing it, climbing back in the weeks after Lent ends: the calendar explains it, so it is not an anomaly. */
+export function reboundsAfterLent(watch: Watch, series: EntitySeries, slot: number): boolean {
+  if (watch.grain !== "day" || !REBOUND_METRICS.has(watch.metric) || isNonAlcohol(series.dims)) return false;
+  const day = series.startDay + slot;
+  if (LENT_FLAGS[day] === 1) return false;
+  for (let back = 1; back <= LENT_REBOUND_DAYS; back += 1) {
+    if (day - back >= 0 && LENT_FLAGS[day - back] === 1) return true;
+  }
+  return false;
 }
 
 /** Beer days on the other side of the latest Lent start or end, rescaled to the level of the current side, so a Lent step is not read as a trend. */

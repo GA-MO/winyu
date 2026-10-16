@@ -2,12 +2,12 @@ import { createHash } from "node:crypto";
 import type { Alert, Dim, MetricId, Region } from "@/lib/contracts";
 import { responsibleFor } from "@/lib/access/raci";
 import { toneOf } from "@/lib/dashboard/metric-display";
-import { TODAY, addDays } from "@/lib/data/dates";
+import { DATA_AS_OF, addDays } from "@/lib/data/dates";
 import { AGENTS } from "@/lib/data/entities/agents";
 import { campaignById } from "@/lib/data/entities/marketing";
 import { explain, regionOfDims } from "./hypothesis";
 import { DAILY_SCAN, MONTHLY_SCAN, mean, scanFloor, scanSeries } from "./stats";
-import { calendarSkipFor, inLentRegime, isoOfSlot, monthEnd, seriesFor } from "./series";
+import { calendarSkipFor, inLentRegime, isoOfSlot, monthEnd, reboundsAfterLent, seriesFor } from "./series";
 import { WATCHES, parentKeyOf, watchById, type Watch } from "./watches";
 
 export const Z_OPEN = 4;
@@ -263,6 +263,7 @@ async function detectWatch(watch: Watch, thresholds: Thresholds, covered: Set<st
       : scanFloor(series.values, watch.lowThreshold, FLOOR_WINDOW);
     if (!scan) continue;
     if (watch.lowThreshold === null && Math.abs(scan.z) < thresholdFor(thresholdKey(watch.metric, series.dims), thresholds)) continue;
+    if (scan.direction === "up" && reboundsAfterLent(watch, series, scan.from)) continue;
 
     const from = isoOfSlot(series, scan.from, watch.grain);
     const to = watch.grain === "month" ? monthEnd(isoOfSlot(series, scan.to, watch.grain)) : isoOfSlot(series, scan.to, watch.grain);
@@ -293,7 +294,7 @@ async function detectWatch(watch: Watch, thresholds: Thresholds, covered: Set<st
       verifySteps: explanation.verifySteps,
       ownerUserId: ownerOf(watch.metric, region),
       explained: explanation.explained,
-      ended: watch.grain === "day" && watch.lowThreshold === null && to < addDays(TODAY, -RESOLVED_AFTER_DAYS),
+      ended: watch.grain === "day" && watch.lowThreshold === null && to < addDays(DATA_AS_OF, -RESOLVED_AFTER_DAYS),
       parentId: null,
       relatedIds: [],
       campaignId: explanation.campaignId ?? null,
@@ -342,7 +343,7 @@ export function toAlert(detection: Detection, previous: Alert | null): Alert {
   const status = statusAfterRerun(previous, detection);
   return {
     id: detection.id,
-    at: previous?.at ?? `${TODAY}T06:00:00.000Z`,
+    at: previous?.at ?? `${DATA_AS_OF}T06:00:00.000Z`,
     severity: status === "dismissed" && previous ? previous.severity : detection.severity,
     metric: detection.metric,
     dims: detection.dims,

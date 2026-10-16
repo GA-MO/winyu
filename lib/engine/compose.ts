@@ -4,7 +4,7 @@ import { actionEvents, alerts, personalWatches } from "@/lib/server/agent/collec
 import { dimsOfFeedKind, feedIntentOf, kindLabel, metricOfFeedKind } from "@/lib/engine/feed-learning";
 import { untouchedTemplates } from "@/lib/dashboard/attention";
 import { topicOf } from "@/lib/dashboard/one-per-metric";
-import { TODAY, addDays } from "@/lib/data/dates";
+import { DATA_AS_OF, addDays } from "@/lib/data/dates";
 import { CLOSED_MONTH_METRICS, metricDef } from "@/lib/semantic/metrics";
 import { metricLabel } from "@/lib/dashboard/metric-display";
 import { TH } from "@/lib/i18n/th";
@@ -103,7 +103,7 @@ function grainFor(dims: Dim[]): Grain {
 }
 
 function lastClosedMonth(): { from: string; to: string } {
-  const firstOfThisMonth = `${TODAY.slice(0, 7)}-01`;
+  const firstOfThisMonth = `${DATA_AS_OF.slice(0, 7)}-01`;
   const to = addDays(firstOfThisMonth, -1);
   return { from: `${to.slice(0, 7)}-01`, to };
 }
@@ -117,7 +117,7 @@ export function queryFor(candidate: Candidate, access: AccessContext): MetricQue
     metric: candidate.metric,
     dims,
     filters,
-    range: closedMonth ? lastClosedMonth() : { from: addDays(TODAY, -RANGE_DAYS), to: TODAY },
+    range: closedMonth ? lastClosedMonth() : { from: addDays(DATA_AS_OF, -RANGE_DAYS), to: DATA_AS_OF },
     grain: closedMonth ? "month" : grainFor(dims),
     compare: closedMonth ? "prev_year" : "prev_period",
     limit: ROW_LIMIT,

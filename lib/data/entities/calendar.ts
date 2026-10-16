@@ -46,6 +46,7 @@ export const THAI_HOLIDAYS: readonly Holiday[] = [
   { date: "2026-12-05", nameTh: "วันพ่อแห่งชาติ", label: "Father's Day" },
   { date: "2026-12-10", nameTh: "วันรัฐธรรมนูญ", label: "Constitution Day" },
   { date: "2026-12-31", nameTh: "วันสิ้นปี", label: "New Year's Eve" },
+  { date: "2027-01-01", nameTh: "วันขึ้นปีใหม่", label: "New Year's Day" },
 ];
 
 /** Buddhist holy days on which selling alcohol is prohibited; beer sell-out nearly stops, water and soda do not. */

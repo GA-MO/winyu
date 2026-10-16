@@ -1,6 +1,7 @@
 import type { AccessContext, Employee, TrainingRecord } from "@/lib/contracts";
 import { peopleViewOf } from "@/lib/access/people-scope";
 import { formatDateTh } from "@/lib/i18n/format";
+import { businessToday } from "@/lib/data/dates";
 import { TH } from "@/lib/i18n/th";
 import { fencedRows, maskedRows, MAX_CONNECTOR_ROWS } from "./connectors/output";
 import type { ConnectorRow } from "./connectors/types";
@@ -54,8 +55,8 @@ export async function trainingHistoryFor(access: AccessContext, query: TrainingQ
   const visible = wanted.filter((employee) => VIEWS_WITH_TRAINING.has(peopleViewOf(access, employee, directory) ?? ""));
   if (wanted.length > 0 && visible.length === 0) return { ok: false as const, code: "PERMISSION_DENIED" as const, error: TH.admin.connectors.outOfScope(T.label) };
   const rows = await trainingRowsOf(visible);
-  if (rows.length === 0) return { ok: true as const, summary: TH.admin.connectors.noneInScope(T.label), code: "NONE_IN_SCOPE" as const, rows: [], provenance: { sourceSystem: TH.cards.failed.systems.learning, asOf: new Date().toISOString(), masked: [] } };
+  if (rows.length === 0) return { ok: true as const, summary: TH.admin.connectors.noneInScope(T.label), code: "NONE_IN_SCOPE" as const, rows: [], provenance: { sourceSystem: TH.cards.failed.systems.learning, asOf: businessToday(), masked: [] } };
   const shown = maskedRows(rows, [TRAINING_SCORE_FIELD], access);
   const summary = rows.length > MAX_CONNECTOR_ROWS ? TH.admin.connectors.rowsCapped(T.label, MAX_CONNECTOR_ROWS, rows.length) : TH.admin.connectors.rows(T.label, rows.length);
-  return { ok: true as const, summary, rows: fencedRows(shown.rows.slice(0, MAX_CONNECTOR_ROWS)), provenance: { sourceSystem: TH.cards.failed.systems.learning, asOf: new Date().toISOString(), masked: shown.masked } };
+  return { ok: true as const, summary, rows: fencedRows(shown.rows.slice(0, MAX_CONNECTOR_ROWS)), provenance: { sourceSystem: TH.cards.failed.systems.learning, asOf: businessToday(), masked: shown.masked } };
 }

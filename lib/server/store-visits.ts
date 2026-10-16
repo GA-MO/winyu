@@ -1,6 +1,7 @@
 import type { AccessContext, StoreVisit } from "@/lib/contracts";
 import { REGION_LABELS_TH } from "@/lib/data/entities/org";
 import { formatCurrency, formatDateTh } from "@/lib/i18n/format";
+import { businessToday } from "@/lib/data/dates";
 import { TH } from "@/lib/i18n/th";
 import { fencedRows, maskedRows, MAX_CONNECTOR_ROWS } from "./connectors/output";
 import type { ConnectorRow } from "./connectors/types";
@@ -34,7 +35,7 @@ function rowOf(visit: StoreVisit, agentName: string): ConnectorRow {
 export async function storeVisitsFor(access: AccessContext, agentId: string | null) {
   const [visits, dictionary] = await Promise.all([ports().crm.visits({ agentId, regions: access.regions }), loadDictionary()]);
   const kept = visits.filter((visit) => inRegions(access, visit)).sort((left, right) => right.visitedOn.localeCompare(left.visitedOn));
-  const provenance = { sourceSystem: TH.cards.failed.systems.crm, asOf: new Date().toISOString() };
+  const provenance = { sourceSystem: TH.cards.failed.systems.crm, asOf: businessToday() };
   if (kept.length === 0) return { ok: true as const, summary: TH.admin.connectors.noneInScope(T.label), code: "NONE_IN_SCOPE" as const, rows: [], provenance: { ...provenance, masked: [] } };
   const shown = maskedRows(kept.map((visit) => rowOf(visit, dictionary.entityLabel("agent", visit.agentId))), [ORDER_VALUE_FIELD], access);
   const summary = kept.length > MAX_CONNECTOR_ROWS ? TH.admin.connectors.rowsCapped(T.label, MAX_CONNECTOR_ROWS, kept.length) : TH.admin.connectors.rows(T.label, kept.length);

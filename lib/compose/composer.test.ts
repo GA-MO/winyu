@@ -1,6 +1,8 @@
 import { beforeAll, describe, expect, test } from "bun:test";
 import { accessFor } from "@/lib/access/policies";
+import { businessToday, daysBetween } from "@/lib/data/dates";
 import { findUser } from "@/lib/data/entities/users";
+import { tenureLabel } from "@/lib/engine/people-signals";
 import { winyuTools } from "@/lib/server/agent/tools";
 import { runWithAccess } from "@/lib/server/request-context";
 import type { ComposedComponent } from "./catalog";
@@ -9,6 +11,8 @@ import { GEMINI_TEAM_CARD } from "./gemini-team-card";
 import type { TurnResult } from "./ground";
 
 type Component = Record<string, unknown> & { id: string };
+
+const ANUCHA_HIRED_ON = "2010-04-01";
 
 let results: TurnResult[] = [];
 
@@ -110,7 +114,7 @@ describe("a composed card holds line by line, only what this turn's tools return
   });
 
   test("a count typed as literal text is refused even when the same digit is somewhere in the turn's results", () => {
-    expect(JSON.stringify(results)).toContain("16 ปี 5 เดือน");
+    expect(JSON.stringify(results)).toContain("ลูกทีมโดยตรง 5 คน");
     const outcome = composed(lines(withComponent({ ...GEMINI_TEAM_CARD[0], meta: "ทีม 5 คน" })));
     expect(outcome.problems.join("\n")).toContain('"ทีม 5 คน"');
     expect(drawn(outcome, "root")?.meta).toBeUndefined();
@@ -129,7 +133,7 @@ describe("a composed card holds line by line, only what this turn's tools return
     expect(drawn(outcome, "root")?.meta).toEqual({ path: "/get_person/data/reports_count" });
     const model = outcome.surface?.dataModel as { get_person: { data: { reports_count: string; facts: { value: string }[] } } };
     expect(model.get_person.data.reports_count).toBe("ลูกทีมโดยตรง 5 คน");
-    expect(model.get_person.data.facts.map((fact) => fact.value)).toContain("16 ปี 5 เดือน");
+    expect(model.get_person.data.facts.map((fact) => fact.value)).toContain(tenureLabel(daysBetween(ANUCHA_HIRED_ON, businessToday())));
   });
 
   test("a person's name or a picture no tool returned is refused", () => {

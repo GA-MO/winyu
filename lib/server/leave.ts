@@ -1,5 +1,5 @@
 import type { AccessContext, LeaveBalance, LeaveKind, LeavePolicy, PolicySection, PolicyTopic } from "@/lib/contracts";
-import { TODAY, addDays } from "@/lib/data/dates";
+import { businessToday, addDays } from "@/lib/data/dates";
 import { formatDateTh } from "@/lib/i18n/format";
 import { TH } from "@/lib/i18n/th";
 import { ports } from "./ports";
@@ -11,6 +11,7 @@ const LOW_BALANCE_DAYS = 2;
 const SATURDAY = 6;
 const SUNDAY = 0;
 const MAX_LEAVE_SPAN_DAYS = 30;
+const SICK_FILE_WITHIN_DAYS = 3;
 
 type Tone = "good" | "bad" | "neutral";
 
@@ -65,7 +66,7 @@ async function leavePolicy(access: AccessContext) {
   const balances = book.balances;
   const approver = await approverOf(access.userId);
   const annual = balances.find((balance) => balance.kind === "annual");
-  const earliest = nthWorkdayAfter(TODAY, book.policy.annualNoticeWorkdays, book.calendar);
+  const earliest = nthWorkdayAfter(businessToday(), book.policy.annualNoticeWorkdays, book.calendar);
   return {
     ok: true as const,
     summary: T.summary(annual?.left ?? 0, approver?.nameTh ?? null),
@@ -93,9 +94,11 @@ function leaveError(input: LeaveRequestInput, days: number, book: LeaveBook): st
   if (input.to < input.from) return T.error.order;
   if (addDays(input.from, MAX_LEAVE_SPAN_DAYS) < input.to) return T.error.tooLong(MAX_LEAVE_SPAN_DAYS);
   if (days === 0) return T.error.noWorkdays;
-  if (input.kind !== "sick" && input.from < TODAY) return T.error.past;
+  const today = businessToday();
+  if (input.kind !== "sick" && input.from < today) return T.error.past;
+  if (input.kind === "sick" && input.to < addDays(today, -SICK_FILE_WITHIN_DAYS)) return T.error.sickTooLate(SICK_FILE_WITHIN_DAYS);
   const notice = book.policy.annualNoticeWorkdays;
-  if (input.kind === "annual" && input.from < nthWorkdayAfter(TODAY, notice, book.calendar)) return T.error.notice(notice);
+  if (input.kind === "annual" && input.from < nthWorkdayAfter(today, notice, book.calendar)) return T.error.notice(notice);
   const balance = balanceOf(input.kind, book);
   if (balance.entitled === 0) return T.error.probation;
   if (days > balance.left) return T.error.balance(T.kind[input.kind], days, balance.left);

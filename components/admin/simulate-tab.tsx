@@ -4,6 +4,7 @@ import { METRIC_DOMAINS } from "@/lib/access/policies";
 import { liveAccessFor } from "@/lib/access/enforce";
 import { runMetric } from "@/lib/server/metrics";
 import { TIME_DIMS, metricDef } from "@/lib/semantic/metrics";
+import { DATA_AS_OF, monthStart } from "@/lib/data/dates";
 import { USERS, findUser } from "@/lib/data/entities/users";
 import { metricLabel } from "@/lib/dashboard/metric-display";
 import { TH } from "@/lib/i18n/th";
@@ -11,7 +12,7 @@ import { Avatar, INK, Panel, Pill, Select, type Tone } from "./parts";
 import { surfaceByConnector } from "@/lib/server/tools/registry";
 
 const SIMULATE_ROWS = 6;
-const SIMULATE_RANGE = { from: "2026-09-01", to: "2026-09-22" };
+const SIMULATE_RANGE = { from: monthStart(DATA_AS_OF), to: DATA_AS_OF };
 const ACL_TONE: Record<"full" | "masked" | "none", Tone> = { full: "success", masked: "warning", none: "neutral" };
 
 function breakdownDimOf(metric: MetricId): Dim {

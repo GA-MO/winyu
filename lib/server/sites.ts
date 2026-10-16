@@ -1,5 +1,5 @@
 import type { AccessContext, Incident, Site } from "@/lib/contracts";
-import { TODAY, addDays } from "@/lib/data/dates";
+import { businessToday, addDays } from "@/lib/data/dates";
 import { RECENT_LTI_DAYS, SAFE_STREAK_DAYS, safetyOf, type SafetyStatus, type SiteSafety } from "@/lib/engine/site-safety";
 import { formatDateTh } from "@/lib/i18n/format";
 import { TH } from "@/lib/i18n/th";
@@ -55,8 +55,8 @@ function rowOf(site: Site, safety: SiteSafety) {
 }
 
 function lastYearOf(site: Site, incidents: readonly Incident[]): Incident[] {
-  const since = addDays(TODAY, -TIMELINE_DAYS);
-  return incidents.filter((incident) => incident.siteId === site.id && incident.date >= since && incident.date <= TODAY);
+  const since = addDays(businessToday(), -TIMELINE_DAYS);
+  return incidents.filter((incident) => incident.siteId === site.id && incident.date >= since && incident.date <= businessToday());
 }
 
 function timelineOf(incidents: Incident[]) {

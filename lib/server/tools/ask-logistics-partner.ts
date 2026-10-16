@@ -3,6 +3,7 @@ import type { AccessContext } from "@/lib/contracts";
 import { DISTRIBUTION_CENTERS } from "@/lib/data/entities/supply";
 import type { RemoteAnswer } from "@/lib/harness/adapters/mastra/a2a-client";
 import { fenceAsData } from "@/lib/harness/fence";
+import { businessToday } from "@/lib/data/dates";
 import { TH } from "@/lib/i18n/th";
 import { logisticsPartnerEnv } from "@/lib/server/connectors/logistics-partner-config";
 import { MAX_CONNECTOR_ROWS, fencedRows } from "@/lib/server/connectors/output";
@@ -52,7 +53,7 @@ export async function askLogisticsPartner(access: AccessContext, dcId: string) {
     summary: TH.partner.summary(rows.length, center.nameTh),
     answer: fenceAsData(answer.text.slice(0, MAX_ANSWER_CHARS)),
     rows,
-    provenance: { sourceSystem: TH.partner.source, asOf: new Date().toISOString(), masked: [] },
+    provenance: { sourceSystem: TH.partner.source, asOf: businessToday(), masked: [] },
   };
 }
 

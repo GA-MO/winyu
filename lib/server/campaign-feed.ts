@@ -1,5 +1,5 @@
 import type { AccessContext, FeedItem } from "@/lib/contracts";
-import { TODAY, addDays } from "@/lib/data/dates";
+import { DATA_AS_OF, addDays } from "@/lib/data/dates";
 import { CAMPAIGNS, type Campaign } from "@/lib/data/entities/marketing";
 import { formatDateTh } from "@/lib/i18n/format";
 import { TH } from "@/lib/i18n/th";
@@ -11,11 +11,11 @@ const BELOW_TARGET_RANK = 560;
 const MET_TARGET_RANK = 300;
 
 function isCurrent(campaign: Campaign): boolean {
-  return campaign.from <= TODAY && campaign.to >= addDays(TODAY, -RECENT_DAYS);
+  return campaign.from <= DATA_AS_OF && campaign.to >= addDays(DATA_AS_OF, -RECENT_DAYS);
 }
 
 async function upliftOf(campaign: Campaign, access: AccessContext): Promise<number | null> {
-  const to = campaign.to < TODAY ? campaign.to : TODAY;
+  const to = campaign.to < DATA_AS_OF ? campaign.to : DATA_AS_OF;
   const result = await runMetric({ metric: "campaign_uplift", dims: [], filters: { campaign: [campaign.id] }, range: { from: campaign.from, to }, grain: "day", compare: "none", limit: null }, access);
   const value = result.ok ? result.rows[0]?.value : null;
   return typeof value === "number" ? value : null;
@@ -26,7 +26,7 @@ async function itemOf(campaign: Campaign, access: AccessContext): Promise<FeedIt
   if (uplift === null) return null;
   const target = campaign.upliftTarget * PERCENT;
   const met = uplift >= target;
-  const ended = campaign.to < TODAY;
+  const ended = campaign.to < DATA_AS_OF;
   return {
     key: `campaign:${campaign.id}:${ended ? "ended" : "running"}:${met ? "met" : "below"}`,
     source: "campaign",

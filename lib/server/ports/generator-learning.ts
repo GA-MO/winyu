@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import type { Course, Employee, Enrollment, SeatRequest, TrainingRecord } from "@/lib/contracts";
-import { TODAY } from "@/lib/data/dates";
+import { businessToday } from "@/lib/data/dates";
 import { COURSES } from "@/lib/data/entities/courses";
 import { EMPLOYEES } from "@/lib/data/entities/people";
 import { collection } from "@/lib/server/store/json-store";
@@ -52,7 +52,7 @@ function requested(request: SeatRequest): Enrollment {
   if (repeated) return publicOf(repeated);
   const course = catalogue().find((entry) => entry.id === request.courseId);
   if (!course) throw new SeatRefused(`no course ${request.courseId}`);
-  if (course.starts < TODAY) throw new SeatRefused(`${course.id} has started`);
+  if (course.starts < businessToday()) throw new SeatRefused(`${course.id} has started`);
   if (course.enrolled >= course.seats) throw new SeatRefused(`${course.id} is full`);
   if (store().where((entry) => entry.employeeId === request.employeeId && entry.courseId === request.courseId).some(held)) throw new SeatRefused(`${request.employeeId} already holds a seat on ${course.id}`);
   const { idempotencyKey, ...rest } = request;

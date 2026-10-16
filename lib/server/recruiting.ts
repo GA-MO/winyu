@@ -1,6 +1,6 @@
 import { CANDIDATE_STAGES, type AccessContext, type Candidate, type CandidateStage, type OpenPosition } from "@/lib/contracts";
 import { canSeeCandidates, canSeeSalary } from "@/lib/access/people-scope";
-import { TODAY, toDayIndex } from "@/lib/data/dates";
+import { businessToday, daysBetween } from "@/lib/data/dates";
 import { formatCurrency, formatDateTh } from "@/lib/i18n/format";
 import { TH } from "@/lib/i18n/th";
 import type { PersonBadge } from "./people";
@@ -26,7 +26,7 @@ function stepOf(stage: CandidateStage): number {
 }
 
 function daysOpen(position: OpenPosition): number {
-  return toDayIndex(TODAY) - toDayIndex(position.openedOn);
+  return daysBetween(position.openedOn, businessToday());
 }
 
 function badgesOf(candidate: Candidate): PersonBadge[] {
@@ -82,7 +82,7 @@ function positionSummary(position: OpenPosition, hiring: Hiring) {
 
 function metricsOf(positions: OpenPosition[], hiring: Hiring) {
   const candidates = hiring.candidates.filter((candidate) => positions.some((position) => position.id === candidate.positionId));
-  const recent = candidates.filter((candidate) => toDayIndex(TODAY) - toDayIndex(candidate.appliedOn) <= RECENT_DAYS).length;
+  const recent = candidates.filter((candidate) => daysBetween(candidate.appliedOn, businessToday()) <= RECENT_DAYS).length;
   const advanced = candidates.filter((candidate) => stepOf(candidate.stage) >= INTERVIEW_STEP).length;
   const offers = candidates.filter((candidate) => candidate.stage === "offer").length;
   const oldest = Math.max(...positions.map(daysOpen));

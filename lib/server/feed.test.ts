@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import type { AccessContext, FeedItem, PersonalWatch } from "@/lib/contracts";
 import { liveAccessFor } from "@/lib/access/enforce";
+import { DATA_AS_OF, dataDay, monthEnd, monthStart } from "@/lib/data/dates";
 import { EMPLOYEES } from "@/lib/data/entities/people";
 import { USERS, findUser } from "@/lib/data/entities/users";
 import { actionEvents, alerts, feedStates, memoryFacts, packets, personalWatches } from "@/lib/server/agent/collections";
@@ -14,7 +15,7 @@ import { quickActionsFor } from "./quick-actions";
 import { ensureFeedHistory } from "./demo-feed-history";
 
 const DAY_MS = 86_400_000;
-const NOW = Date.parse("2026-09-25T09:00:00.000Z");
+const NOW = Date.parse(`${dataDay(3)}T09:00:00.000Z`);
 const RISK_LABEL = "เสี่ยงลาออกสูง";
 
 function accessOf(userId: string): AccessContext {
@@ -150,17 +151,18 @@ describe("buttons follow the tools a user may run", () => {
 describe("what Winyu learns from the feed changes the feed", () => {
   test("three 'not mine' on licences proposes stopping them; once confirmed they are gone", async () => {
     const hr = accessOf("u_may");
+    const now = Date.now();
     const factsBefore = new Set(memoryFacts().all().map((fact) => fact.id));
     const eventsBefore = new Set(actionEvents().all().map((entry) => entry.id));
     try {
-      const licences = (await feedFor(hr, NOW)).filter((item) => item.kind === "person:cert").slice(0, 3);
+      const licences = (await feedFor(hr, now)).filter((item) => item.kind === "person:cert").slice(0, 3);
       expect(licences).toHaveLength(3);
-      for (const licence of licences) await actOnFeedItem(hr, licence.key, "mute", NOW);
+      for (const licence of licences) await actOnFeedItem(hr, licence.key, "mute", now);
       const proposal = memoryFacts().all().find((fact) => !factsBefore.has(fact.id) && fact.value === "ไม่ติดตามใบอนุญาตใกล้หมด");
       expect(proposal).toBeDefined();
-      expect((await feedFor(hr, NOW)).some((item) => item.kind === "person:cert")).toBe(true);
+      expect((await feedFor(hr, now)).some((item) => item.kind === "person:cert")).toBe(true);
       confirmMemory("u_may", proposal?.id ?? "");
-      expect((await feedFor(hr, NOW)).some((item) => item.kind === "person:cert")).toBe(false);
+      expect((await feedFor(hr, now)).some((item) => item.kind === "person:cert")).toBe(false);
     } finally {
       for (const fact of memoryFacts().all()) if (!factsBefore.has(fact.id)) memoryFacts().remove(fact.id);
       for (const entry of actionEvents().all()) if (!eventsBefore.has(entry.id)) actionEvents().remove(entry.id);
@@ -172,13 +174,13 @@ describe("what Winyu learns from the feed changes the feed", () => {
       id: "w_test_attrition",
       userId: "u_may",
       title: "อัตราการลาออกฝ่ายขาย",
-      query: { metric: "attrition_rate", dims: [], filters: { department: ["dept_sales"] }, range: { from: "2026-08-01", to: "2026-08-31" }, grain: "month", compare: "none", limit: null },
+      query: { metric: "attrition_rate", dims: [], filters: { department: ["dept_sales"] }, range: { from: monthStart(DATA_AS_OF, 1), to: monthEnd(DATA_AS_OF, 1) }, grain: "month", compare: "none", limit: null },
       windowDays: 30,
       condition: { kind: "above", value: 1.2 },
-      createdAt: "2026-09-20T00:00:00.000Z",
+      createdAt: `${dataDay(-2)}T00:00:00.000Z`,
       state: "triggered",
-      lastCheckedAt: "2026-09-25T00:00:00.000Z",
-      lastTriggeredAt: "2026-09-25T00:00:00.000Z",
+      lastCheckedAt: `${dataDay(3)}T00:00:00.000Z`,
+      lastTriggeredAt: `${dataDay(3)}T00:00:00.000Z`,
     };
     personalWatches().put(watch);
     try {
@@ -208,13 +210,13 @@ describe("the to-do list holds tasks, not movements", () => {
       id: "w_test_cover",
       userId: "u_wee",
       title: "สต๊อกดีซีทดสอบ",
-      query: { metric: "days_of_cover", dims: ["dc", "sku"], filters: { dc: ["dc_lamphun"] }, range: { from: "2026-09-16", to: "2026-09-22" }, grain: "day", compare: "none", limit: null },
+      query: { metric: "days_of_cover", dims: ["dc", "sku"], filters: { dc: ["dc_lamphun"] }, range: { from: dataDay(-6), to: DATA_AS_OF }, grain: "day", compare: "none", limit: null },
       windowDays: 6,
       condition: { kind: "below", value: 10 },
-      createdAt: "2026-09-20T00:00:00.000Z",
+      createdAt: `${dataDay(-2)}T00:00:00.000Z`,
       state: "triggered",
-      lastCheckedAt: "2026-09-25T00:00:00.000Z",
-      lastTriggeredAt: "2026-09-25T00:00:00.000Z",
+      lastCheckedAt: `${dataDay(3)}T00:00:00.000Z`,
+      lastTriggeredAt: `${dataDay(3)}T00:00:00.000Z`,
     };
     personalWatches().put(watch);
     try {
@@ -230,13 +232,15 @@ describe("the to-do list holds tasks, not movements", () => {
 describe("an alert reaches people by the line of command", () => {
   test("a manager hears of a report's sizeable warning only while it waits unopened, without being told who opened what; a small one stays with the report", async () => {
     const director = accessOf("u_prasit");
-    const small = openAlertsFor(director).find((alert) => alert.severity === "P2" && alert.ownerUserId === "u_wichai");
-    if (!small) throw new Error("no P2 for the east RSM");
-    expect((await feedFor(director, NOW)).some((entry) => entry.alertId === small.id)).toBe(false);
+    const template = openAlertsFor(accessOf("u_wichai")).find((alert) => alert.metric === "net_sales_volume" || alert.metric === "sell_out_volume");
+    if (!template) throw new Error("no sales alert in the east RSM's scope");
+    const small = { ...template, id: "al_test_small_gap", severity: "P2" as const, ownerUserId: "u_wichai", alsoOwnerIds: [], parentId: null, observed: template.expected * 0.95 };
     const big = { ...small, id: "al_test_big_gap", observed: small.expected - 5_000 };
-    alerts().put(big);
     const opened = { id: "ev_test_wichai_open", userId: "u_wichai", at: new Date(NOW).toISOString(), kind: "alert_open" as const, intentKey: alertIntentKey(big), metric: big.metric, dims: [], prompt: null, threadId: null };
     try {
+      alerts().put(small);
+      expect((await feedFor(director, NOW)).some((entry) => entry.alertId === small.id)).toBe(false);
+      alerts().put(big);
       const item = (await feedFor(director, NOW)).find((entry) => entry.alertId === big.id);
       expect(item).toBeDefined();
       expect(item?.detail).not.toContain("ยังไม่ได้เปิด");
@@ -246,6 +250,7 @@ describe("an alert reaches people by the line of command", () => {
     } finally {
       actionEvents().remove(opened.id);
       alerts().remove(big.id);
+      alerts().remove(small.id);
     }
   });
 

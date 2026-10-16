@@ -1491,6 +1491,7 @@ export const TH = {
       tooLong: (days: number) => `ยื่นได้ครั้งละไม่เกิน ${days} วัน`,
       noWorkdays: "ช่วงวันที่เลือกไม่มีวันทำการ",
       past: "ลาย้อนหลังได้เฉพาะลาป่วย",
+      sickTooLate: (days: number) => `ลาป่วยยื่นย้อนหลังได้ภายใน ${days} วันหลังกลับมาทำงาน`,
       notice: (days: number) => `ลาพักร้อนต้องยื่นล่วงหน้าอย่างน้อย ${days} วันทำการ`,
       probation: "ระหว่างทดลองงานยังลาพักร้อนไม่ได้",
       balance: (kind: string, days: number, left: number) => `${kind}ครั้งนี้ ${days} วันทำการ แต่เหลือสิทธิ์ ${left} วัน`,

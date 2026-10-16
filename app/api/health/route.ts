@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { liveAccessFor, toolsFor } from "@/lib/access/enforce";
 import { presentCard } from "@/lib/cards/present";
 import type { MetricQuery, MetricResult } from "@/lib/contracts";
-import { addDays, TODAY } from "@/lib/data/dates";
+import { addDays, DATA_AS_OF } from "@/lib/data/dates";
 import { findUser } from "@/lib/data/entities/users";
 import { newRun, runWithRun, saveRun } from "@/lib/harness/runtime";
 import { winyuTools } from "@/lib/server/agent/tools";
@@ -15,7 +15,7 @@ const REVENUE_QUERY: MetricQuery = {
   metric: "net_sales_value",
   dims: ["region"],
   filters: {},
-  range: { from: addDays(TODAY, -21), to: TODAY },
+  range: { from: addDays(DATA_AS_OF, -21), to: DATA_AS_OF },
   grain: "month",
   compare: "prev_period",
   limit: null,

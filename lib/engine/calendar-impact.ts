@@ -1,4 +1,4 @@
-import { addDays, TODAY } from "@/lib/data/dates";
+import { addDays, DATA_AS_OF } from "@/lib/data/dates";
 import type { CalendarEvent } from "@/lib/contracts";
 import type { Calendar } from "@/lib/server/ports/calendar";
 
@@ -55,8 +55,8 @@ function hasOrdinaryEve(day: string, calendar: Calendar): boolean {
 }
 
 function lastPast(event: CalendarEvent, calendar: Calendar): CalendarEvent | null {
-  const lookFrom = addDays(TODAY, -2 * 366);
-  const past = calendar.events(lookFrom, addDays(TODAY, -1)).filter((candidate) => candidate.to < TODAY && candidate.kind === event.kind);
+  const lookFrom = addDays(DATA_AS_OF, -2 * 366);
+  const past = calendar.events(lookFrom, addDays(DATA_AS_OF, -1)).filter((candidate) => candidate.to < DATA_AS_OF && candidate.kind === event.kind);
   if (event.kind === "alcohol_ban") return past.filter((candidate) => hasOrdinaryEve(candidate.from, calendar)).at(-1) ?? null;
   return past.filter((candidate) => candidate.nameTh.split(" ")[0] === event.nameTh.split(" ")[0]).at(-1) ?? null;
 }
@@ -89,7 +89,7 @@ async function windowImpact(reference: CalendarEvent, beer: DailyBeer, calendar:
 
 /** What the most recent comparable event did to beer volume in the caller's scope, measured from data; null when there is no past event or no access. */
 export async function impactOf(event: CalendarEvent, beer: DailyBeer, calendar: Calendar): Promise<EventImpact | null> {
-  const reference = event.to < TODAY ? event : lastPast(event, calendar);
+  const reference = event.to < DATA_AS_OF ? event : lastPast(event, calendar);
   if (!reference) return null;
   if (reference.kind === "alcohol_ban") return banImpact(reference, beer, calendar);
   return windowImpact(reference, beer, calendar);

@@ -3,13 +3,14 @@ import type { PersonaContext } from "./persona";
 import { accessFor } from "@/lib/access/policies";
 import type { ContextPacket, Story } from "@/lib/contracts";
 import { threads } from "@/lib/server/threads-read";
+import { DATA_AS_OF, dataDay, monthEnd, monthStart } from "@/lib/data/dates";
 import { findUser } from "@/lib/data/entities/users";
 import { newRun, runWithRun } from "@/lib/harness/runtime";
 import { TH } from "@/lib/i18n/th";
 import { investigations, packets } from "./collections";
 import { WINYU_RULES, periodsAsOf, personaFor } from "./persona";
 
-const TODAY = "2026-09-22";
+const TODAY = DATA_AS_OF;
 const PACKET_ID = "pkt-persona-test";
 const DRAWING_VOCABULARY = ["DataCard", "AlertsCard", "ForecastCard", "$state", "runTool", "⟦action⟧", "/tools/"];
 const LATER_DAY = "2026-10-05";
@@ -127,10 +128,11 @@ describe("the day the data reaches", () => {
   test("a calendar past the data anchors ranges to the data's last day; the same day says nothing extra", () => {
     const user = findUser("u_thana");
     if (!user) throw new Error("no CEO");
-    const later = personaFor(accessFor(user), user, ctx({}, "2026-09-25")).join("\n");
-    expect(later).toContain("ข้อมูลในชั้นเมตริกล่าสุดถึง 2026-09-22");
-    expect(later).toContain("เดือนที่แล้ว / เดือนก่อน = 2026-08-01 ถึง 2026-08-31");
-    expect(later).toContain("ปีที่แล้ว / ปีก่อน = 2025-01-01 ถึง 2025-12-31");
+    const later = personaFor(accessFor(user), user, ctx({}, dataDay(3))).join("\n");
+    const lastYear = Number(DATA_AS_OF.slice(0, 4)) - 1;
+    expect(later).toContain(`ข้อมูลในชั้นเมตริกล่าสุดถึง ${DATA_AS_OF}`);
+    expect(later).toContain(`เดือนที่แล้ว / เดือนก่อน = ${monthStart(DATA_AS_OF, 1)} ถึง ${monthEnd(DATA_AS_OF, 1)}`);
+    expect(later).toContain(`ปีที่แล้ว / ปีก่อน = ${lastYear}-01-01 ถึง ${lastYear}-12-31`);
     expect(personaFor(accessFor(user), user, ctx()).join("\n")).not.toContain("ข้อมูลในชั้นเมตริกล่าสุดถึง");
   });
 });
@@ -176,6 +178,7 @@ describe("asking on from a morning story", () => {
     threads().put({ id: THREAD_ID, userId: "u_krit", title: "t", createdAt: TODAY, updatedAt: TODAY, preload: null, storyId: STORY_ID });
     const lines = personaOf("u_krit", { threadId: THREAD_ID }).join("\n");
     if (saved) investigations().put(saved);
+    else investigations().remove("u_krit");
     expect(lines).toContain(`ข้อสรุป: ${story.finding}`);
     expect(lines).toContain(`หลักฐาน: การ์ด "${story.evidence?.title}" จาก query_metric ${JSON.stringify(story.evidence?.query)}`);
     expect(lines).toContain("ตัดทิ้งแล้ว: DC ขอนแก่นมีสต๊อกพอ");

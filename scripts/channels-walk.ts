@@ -1,3 +1,4 @@
+import { DATA_AS_OF, monthStart } from "@/lib/data/dates";
 import { linkIdentity } from "@/lib/server/identity";
 import { SIMULATED } from "./channel-sim-env";
 import { startChannelSimulator, type Sent } from "./channels-sim";
@@ -8,7 +9,7 @@ const APP = process.env.WALK_APP ?? "http://localhost:3218";
 const KRIT_LINE = "U00000000000000000000000000krit1";
 const REPLY_WAIT_TRIES = 50;
 const REPLY_WAIT_MS = 200;
-const BY_REGION = { metric: "net_sales_value", dims: ["region"], grain: "month", range: { from: "2026-09-01", to: "2026-09-22" }, compare: "target", filters: {}, sort: "value_desc", limit: 10 };
+const BY_REGION = { metric: "net_sales_value", dims: ["region"], grain: "month", range: { from: monthStart(DATA_AS_OF), to: DATA_AS_OF }, compare: "target", filters: {}, sort: "value_desc", limit: 10 };
 const STEPS = (process.env.WALK_STEPS ?? "teams-stranger,teams-linked,line-link,line-ask,share-teams,share-line,share-email").split(",");
 
 const sim = startChannelSimulator({ port: SIMULATOR_PORT, winyu: APP, teams: SIMULATED.teams, line: SIMULATED.line });

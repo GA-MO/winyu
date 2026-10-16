@@ -1,10 +1,12 @@
 import { describe, expect, test } from "bun:test";
+import { dataDay, weekKeyOfIso } from "@/lib/data/dates";
 import { BACKTEST_WEEKS, HORIZON_WEEKS, backtest, buildForecasts, weeklySeriesFor } from "./forecast";
 
 const FORECASTS = await buildForecasts();
 const VOLUME = FORECASTS.filter((forecast) => forecast.metric === "net_sales_volume");
 const MAPE_TARGET = 15;
 const COVERAGE = 0.8;
+const DAYS_PER_WEEK = 7;
 
 function median(values: number[]): number {
   const sorted = [...values].sort((left, right) => left - right);
@@ -54,7 +56,7 @@ describe("forecast", () => {
 
   test("the weekly series drops the incomplete current week", async () => {
     const { keys } = await weeklySeriesFor("net_sales_volume", { brand: "leo", region: "northeast" });
-    expect(keys[keys.length - 1]).toBe("2026-W38");
+    expect(keys[keys.length - 1]).toBe(weekKeyOfIso(dataDay(-DAYS_PER_WEEK)));
   });
 
   test("forecasting is deterministic", async () => {

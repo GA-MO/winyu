@@ -1,6 +1,6 @@
 import type { AccessContext, Employee, FeedItem, NextAction, RoleId } from "@/lib/contracts";
 import { peopleViewOf, type PeopleView } from "@/lib/access/people-scope";
-import { TODAY, toDayIndex } from "@/lib/data/dates";
+import { businessToday, daysBetween } from "@/lib/data/dates";
 import { findUser } from "@/lib/data/entities/users";
 import { signalsOf, type PeopleSignals } from "@/lib/engine/people-signals";
 import { formatDateTh } from "@/lib/i18n/format";
@@ -148,7 +148,7 @@ function ownsOpening(access: AccessContext, managerId: string, directory: Direct
 function openingItems(access: AccessContext, directory: Directory): FeedItem[] {
   return directory.openPositions.flatMap((position): FeedItem[] => {
     if (!ownsOpening(access, position.managerId, directory)) return [];
-    const days = toDayIndex(TODAY) - toDayIndex(position.openedOn);
+    const days = daysBetween(position.openedOn, businessToday());
     if (days < LONG_OPEN_DAYS) return [];
     const manager = directory.byId(position.managerId)?.nameTh ?? null;
     return [{

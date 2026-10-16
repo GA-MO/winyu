@@ -1,4 +1,4 @@
-import { TODAY, toDayIndex } from "@/lib/data/dates";
+import { businessToday, daysBetween } from "@/lib/data/dates";
 import type { Certificate, Employee } from "@/lib/contracts";
 
 export const PROBATION_DAYS = 119;
@@ -27,10 +27,6 @@ export type PeopleSignals = {
   risk: RiskLevel | null;
 };
 
-function daysBetween(from: string, to: string): number {
-  return toDayIndex(to) - toDayIndex(from);
-}
-
 function certificateState(certificate: Certificate, today: string): CertificateState {
   const daysLeft = daysBetween(today, certificate.expires);
   const status = daysLeft < 0 ? "expired" : daysLeft <= CERT_WARNING_DAYS ? "expiring" : "valid";
@@ -52,7 +48,7 @@ function riskReasonsOf(employee: Employee, tenureDays: number, age: number, toda
 }
 
 /** The facts and the attrition judgement Winyu derives for one employee on a given day. */
-export function signalsOf(employee: Employee, today: string = TODAY): PeopleSignals {
+export function signalsOf(employee: Employee, today: string = businessToday()): PeopleSignals {
   const tenureDays = daysBetween(employee.hiredOn, today);
   const age = Number(today.slice(0, 4)) - employee.birthYear;
   const yearsLeft = RETIREMENT_AGE - age;

@@ -4,7 +4,7 @@ import { METRIC_IDS } from "@/lib/contracts";
 import { accessFor } from "@/lib/access/policies";
 import { METRICS } from "@/lib/semantic/metrics";
 import { warmAll } from "./cache";
-import { DATA_START, TODAY } from "./dates";
+import { DATA_AS_OF, DATA_START, addDays, daysBetween, monthStart } from "./dates";
 import { findUser } from "./entities/users";
 import { describeEntity, listMetrics, runMetric } from "./query";
 
@@ -45,7 +45,7 @@ describe("metric registry coverage", () => {
       if (!result.ok) continue;
       expect(result.rows.length).toBeGreaterThan(0);
       expect(result.provenance.metric).toBe(metric);
-      expect(result.provenance.asOf).toBe(TODAY);
+      expect(result.provenance.asOf).toBe(DATA_AS_OF);
       expect(result.provenance.trust).toBe(def.certified ? "verified" : "derived");
       expect(result.summary.length).toBeGreaterThan(10);
     }
@@ -151,7 +151,7 @@ describe("aggregation and compare", () => {
   });
 
   test("the default row cap is 60", () => {
-    const result = runMetric(query({ metric: "net_sales_volume", dims: ["date"], range: { from: DATA_START, to: TODAY } }), CEO);
+    const result = runMetric(query({ metric: "net_sales_volume", dims: ["date"], range: { from: DATA_START, to: DATA_AS_OF } }), CEO);
     expect(result.ok).toBe(true);
     if (result.ok) expect(result.rows).toHaveLength(60);
   });
@@ -223,7 +223,7 @@ describe("performance", () => {
   test("a single runMetric stays well under the budget on warm caches", () => {
     warmAll();
     const started = performance.now();
-    const result = runMetric(query({ metric: "net_sales_volume", dims: ["region", "brand"], range: { from: DATA_START, to: TODAY } }), CEO);
+    const result = runMetric(query({ metric: "net_sales_volume", dims: ["region", "brand"], range: { from: DATA_START, to: DATA_AS_OF } }), CEO);
     const elapsed = performance.now() - started;
     expect(result.ok).toBe(true);
     expect(elapsed).toBeLessThan(QUERY_BUDGET_MS);
@@ -278,9 +278,9 @@ describe("headline delta", () => {
   });
 
   test("a month the data has only partly reached is held to a pro-rata target, not the whole month's", () => {
-    const partial = runMetric(query({ metric: "target_attainment", range: { from: "2026-09-01", to: TODAY } }), CEO);
-    const sameDaysBefore = runMetric(query({ metric: "target_attainment", range: { from: "2026-08-01", to: "2026-08-22" } }), CEO);
-    if (!partial.ok || !sameDaysBefore.ok) throw new Error("query failed");
-    expect(Math.abs(totalOf(partial) - totalOf(sameDaysBefore))).toBeLessThan(10);
+    const partial = runMetric(query({ metric: "target_attainment", range: { from: monthStart(DATA_AS_OF), to: DATA_AS_OF } }), CEO);
+    const sameDaysLastYear = runMetric(query({ metric: "target_attainment", range: { from: monthStart(DATA_AS_OF, 12), to: addDays(monthStart(DATA_AS_OF, 12), daysBetween(monthStart(DATA_AS_OF), DATA_AS_OF)) } }), CEO);
+    if (!partial.ok || !sameDaysLastYear.ok) throw new Error("query failed");
+    expect(Math.abs(totalOf(partial) - totalOf(sameDaysLastYear))).toBeLessThan(10);
   });
 });

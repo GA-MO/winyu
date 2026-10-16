@@ -4,6 +4,7 @@ import { findUser } from "@/lib/data/entities/users";
 import type { DraftStory, MetricQuery } from "@/lib/contracts";
 import { runMetric } from "./metrics";
 import { callsWithAnomalies, cardNumbersOf, evidenceIndexOf, gapQueryOf, openAnomalies, repeatedIn, reviewDrafts, roleHoldersNamedIn, storiesFrom, evidenceQueryOf, withoutPinnedDims, type ToolCall } from "./investigate";
+import { DATA_AS_OF, dataDay, monthStart } from "@/lib/data/dates";
 
 function accessOf(userId: string) {
   const user = findUser(userId);
@@ -33,7 +34,7 @@ describe("an investigation starts from anomalies", () => {
 
 describe("a story is checked before it is kept", () => {
   const DIRECTOR = accessOf("u_prasit");
-  const QUERY: MetricQuery = { metric: "net_sales_volume", dims: ["agent"], filters: { region: ["northeast"] }, range: { from: "2026-09-01", to: "2026-09-22" }, grain: "day", compare: "target", limit: null };
+  const QUERY: MetricQuery = { metric: "net_sales_volume", dims: ["agent"], filters: { region: ["northeast"] }, range: { from: monthStart(DATA_AS_OF), to: DATA_AS_OF }, grain: "day", compare: "target", limit: null };
 
   async function callsFor(): Promise<ToolCall[]> {
     const result = await runMetric(QUERY, DIRECTOR);
@@ -74,7 +75,7 @@ describe("a story is checked before it is kept", () => {
   });
 
   test("an explain_gap call is drawn as the same split against the same comparison, biggest shortfall first", async () => {
-    const input = { metric: "net_sales_volume", split: "agent", filters: { region: ["northeast"] }, range: { from: "2026-09-01", to: "2026-09-22" }, compare: "target" };
+    const input = { metric: "net_sales_volume", split: "agent", filters: { region: ["northeast"] }, range: { from: monthStart(DATA_AS_OF), to: DATA_AS_OF }, compare: "target" };
     const gap = { tool: "explain_gap", input, output: { ok: true } };
     const evidence = await evidenceIndexOf([gap, { tool: "explain_gap", input, output: { ok: false } }], DIRECTOR);
     expect(gapQueryOf(input)).toEqual({ metric: "net_sales_volume", dims: ["agent"], filters: { region: ["northeast"] }, range: input.range, grain: "day", compare: "target", limit: null, sort: "delta_asc", where: null });
@@ -84,7 +85,7 @@ describe("a story is checked before it is kept", () => {
   });
 
   test("a card split by a dimension its filter already pins to one value drops that dimension, so rows are not all the same DC", async () => {
-    const pinned: MetricQuery = { metric: "days_of_cover", dims: ["dc", "sku"], filters: { dc: ["dc_lamphun"] }, range: { from: "2026-09-16", to: "2026-09-22" }, grain: "day", compare: "none", limit: 10, sort: "value_asc" };
+    const pinned: MetricQuery = { metric: "days_of_cover", dims: ["dc", "sku"], filters: { dc: ["dc_lamphun"] }, range: { from: dataDay(-6), to: DATA_AS_OF }, grain: "day", compare: "none", limit: 10, sort: "value_asc" };
     expect(withoutPinnedDims(pinned).dims).toEqual(["sku"]);
     expect(withoutPinnedDims({ ...pinned, filters: { dc: ["dc_lamphun", "dc_chiangmai"] } }).dims).toEqual(["dc", "sku"]);
     const result = await runMetric(pinned, DIRECTOR);
@@ -94,7 +95,7 @@ describe("a story is checked before it is kept", () => {
   });
 
   test("a card proving a change ranks by the change, the bad side first, unless the query already ranks by change", () => {
-    const base: MetricQuery = { metric: "trade_spend", dims: ["business_unit"], filters: {}, range: { from: "2026-09-01", to: "2026-09-22" }, grain: "month", compare: "prev_period", limit: 10, sort: "value_desc" };
+    const base: MetricQuery = { metric: "trade_spend", dims: ["business_unit"], filters: {}, range: { from: monthStart(DATA_AS_OF), to: DATA_AS_OF }, grain: "month", compare: "prev_period", limit: 10, sort: "value_desc" };
     expect(evidenceQueryOf(base).sort).toBe("delta_desc");
     expect(evidenceQueryOf({ ...base, metric: "net_sales_volume" }).sort).toBe("delta_asc");
     expect(evidenceQueryOf({ ...base, sort: "delta_asc" }).sort).toBe("delta_asc");
@@ -103,7 +104,7 @@ describe("a story is checked before it is kept", () => {
   });
 
   test("an explain_gap card leads with the parts that made the gap, whichever way it runs", () => {
-    const input = { metric: "ar_overdue", split: "agent", filters: {}, range: { from: "2026-09-01", to: "2026-09-22" }, compare: "prev_year" };
+    const input = { metric: "ar_overdue", split: "agent", filters: {}, range: { from: monthStart(DATA_AS_OF), to: DATA_AS_OF }, compare: "prev_year" };
     expect(gapQueryOf(input, "−278,490 ลิตร")?.sort).toBe("delta_asc");
     expect(gapQueryOf(input, "+7.8 ล้านบาท")?.sort).toBe("delta_desc");
   });

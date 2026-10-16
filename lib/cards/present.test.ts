@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import type { Dim, Grain, MetricId, MetricQuery, MetricResult } from "@/lib/contracts";
 import { accessFor } from "@/lib/access/policies";
+import { DATA_AS_OF, daysBetween, formatThaiDate, monthEnd, monthStart } from "@/lib/data/dates";
 import { findUser } from "@/lib/data/entities/users";
 import { runMetric } from "@/lib/data/query";
 import { TH } from "@/lib/i18n/th";
@@ -9,6 +10,8 @@ import { presentCard, presentForecast, weakestRow, type CardBody, type CardView,
 
 const CEO = accessFor(findUser("u_thana")!);
 const AUGUST = { from: "2026-08-01", to: "2026-08-31" };
+const MONTH_TO_DATE = { from: monthStart(DATA_AS_OF), to: DATA_AS_OF };
+const MONTH_ELAPSED = `${Math.round((daysBetween(monthStart(DATA_AS_OF), DATA_AS_OF) + 1) / (daysBetween(monthStart(DATA_AS_OF), monthEnd(DATA_AS_OF)) + 1) * 100)}%`;
 const SIX_MONTHS = { from: "2026-03-01", to: "2026-08-31" };
 const LAST_30_DAYS = { from: "2026-08-01", to: "2026-08-30" };
 
@@ -268,10 +271,10 @@ describe("two metrics on one card", () => {
 });
 
 describe("a rate over time", () => {
-  const TWELVE_MONTHS_TO_SEPTEMBER = { from: "2025-10-01", to: "2026-09-30" };
+  const TWELVE_MONTHS_TO_RUNNING = { from: monthStart(DATA_AS_OF, 11), to: monthEnd(DATA_AS_OF) };
 
   test("the hero is the latest full month against the one before, and the running month is cut on the day the data stops", () => {
-    const { query, result } = answer({ metric: "attrition_rate", dims: ["month"], range: TWELVE_MONTHS_TO_SEPTEMBER, compare: "none" });
+    const { query, result } = answer({ metric: "attrition_rate", dims: ["month"], range: TWELVE_MONTHS_TO_RUNNING, compare: "none" });
     const card = presentCard({ title: "t", query, result });
     const line = expectKind(card.body, "line");
     expect(line.labels).toHaveLength(11);
@@ -364,9 +367,9 @@ describe("every value masked", () => {
 
 describe("target in a running month", () => {
   test("says the target is counted to the last day of data and how much of the month that is", () => {
-    const { query, result } = answer({ metric: "target_attainment", dims: ["region"], range: { from: "2026-09-01", to: "2026-09-30" }, compare: "none" });
+    const { query, result } = answer({ metric: "target_attainment", dims: ["region"], range: { from: monthStart(DATA_AS_OF), to: monthEnd(DATA_AS_OF) }, compare: "none" });
     const parts = presentCard({ title: "t", query, result });
-    expect(parts.hero?.detail).toBe(TH.dash.paceTarget("22 ก.ย. 2569", "73%"));
+    expect(parts.hero?.detail).toBe(TH.dash.paceTarget(formatThaiDate(DATA_AS_OF), MONTH_ELAPSED));
   });
 
   test("a closed month needs no pace line", () => {
@@ -377,7 +380,7 @@ describe("target in a running month", () => {
 
 describe("rows too small to show", () => {
   test("leave the card and are counted in the scope line instead of drawn as ***", () => {
-    const { query, result } = answer({ metric: "ar_overdue", dims: ["province"], range: { from: "2026-09-01", to: "2026-09-22" }, compare: "none" });
+    const { query, result } = answer({ metric: "ar_overdue", dims: ["province"], range: MONTH_TO_DATE, compare: "none" });
     if (!result.ok) throw new Error(result.error);
     const hidden = result.rows.filter((row) => row.value === "***").length;
     expect(hidden).toBeGreaterThan(0);
@@ -388,7 +391,7 @@ describe("rows too small to show", () => {
   });
 
   test("a single row left still shows its number", () => {
-    const { query, result } = answer({ metric: "ar_overdue", dims: ["province"], range: { from: "2026-09-01", to: "2026-09-22" }, compare: "none" });
+    const { query, result } = answer({ metric: "ar_overdue", dims: ["province"], range: MONTH_TO_DATE, compare: "none" });
     if (!result.ok) throw new Error(result.error);
     const lone = { ...result, rows: [result.rows.find((row) => row.value !== "***"), ...result.rows.filter((row) => row.value === "***")].filter((row) => row !== undefined) };
     const body = presentCard({ title: "t", query, result: lone }).body;
@@ -398,11 +401,11 @@ describe("rows too small to show", () => {
 
 describe("a target card in a month still running", () => {
   test("under the headline, its own line says where the month ends when the result carries a projection", () => {
-    const { query, result } = answer({ metric: "net_sales_volume", dims: ["region"], range: { from: "2026-09-01", to: "2026-09-22" }, compare: "target" });
+    const { query, result } = answer({ metric: "net_sales_volume", dims: ["region"], range: MONTH_TO_DATE, compare: "target" });
     if (!result.ok) throw new Error(result.error);
     const projection = { recentDays: 7, projected: "10.2 ล้านลิตร", monthTarget: "11.3 ล้านลิตร", attainment: "90.6%" };
     const hero = presentCard({ title: "t", query, result: { ...result, headline: { ...result.headline, projection } } }).hero;
-    expect(hero?.detail).toBe(TH.dash.paceTarget("22 ก.ย. 2569", "73%"));
+    expect(hero?.detail).toBe(TH.dash.paceTarget(formatThaiDate(DATA_AS_OF), MONTH_ELAPSED));
     expect(hero?.note).toBe(TH.dash.monthEnd(projection));
   });
 });

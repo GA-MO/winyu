@@ -1,5 +1,6 @@
 import type { Brand, Region } from "@/lib/contracts";
 import type { ChannelId } from "./channels";
+import { dataDay } from "../dates";
 
 export type Campaign = {
   id: string; nameTh: string; label: string; from: string; to: string;
@@ -46,7 +47,7 @@ export const CAMPAIGNS: readonly Campaign[] = [
   },
   {
     id: "cmp_cstore_soda_promo", nameTh: "ซีสโตร์ โซดาซัมเมอร์ 1 แถม 1", label: "C-Store soda promo",
-    from: "2026-09-05", to: "2026-09-22", brands: ["singha_soda"], regions: ["bkk", "central"], channels: ["modern_trade"],
+    from: dataDay(-17), to: dataDay(0), brands: ["singha_soda"], regions: ["bkk", "central"], channels: ["modern_trade"],
     spendThb: 8_000_000, upliftTarget: 0.35, ownerUserId: "u_pim",
   },
 ];

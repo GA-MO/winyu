@@ -1,6 +1,6 @@
 import type { z } from "zod";
 import { getCalendarInputSchema, type AccessContext, type CalendarEvent } from "@/lib/contracts";
-import { addDays, TODAY, toDayIndex } from "@/lib/data/dates";
+import { addDays, businessToday, daysBetween } from "@/lib/data/dates";
 import { impactOf, type DailyBeer, type EventImpact } from "@/lib/engine/calendar-impact";
 import { formatDateTh } from "@/lib/i18n/format";
 import { TH } from "@/lib/i18n/th";
@@ -46,7 +46,7 @@ export const getCalendarTool = defineTool({
   input: getCalendarInputSchema,
   execute: async ({ from, to }: z.infer<typeof getCalendarInputSchema>) => {
     const access = currentAccess();
-    const start = from ?? TODAY;
+    const start = from ?? businessToday();
     const end = to ?? addDays(start, CALENDAR_DEFAULT_DAYS);
     const calendar = calendarOf(await ports().calendar.load());
     const events = calendar.events(start, end).slice(0, CALENDAR_MAX_ROWS);
@@ -55,7 +55,7 @@ export const getCalendarTool = defineTool({
     const rows = await Promise.all(events.map(async (event) => ({
       date: event.from,
       date_label: dateSpanLabel(event),
-      when_label: TH.calendar.inDays(toDayIndex(event.from) - toDayIndex(TODAY)),
+      when_label: TH.calendar.inDays(daysBetween(businessToday(), event.from)),
       name: event.nameTh,
       kind: event.kind,
       kind_label: TH.calendar.kind[event.kind],

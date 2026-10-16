@@ -3,6 +3,7 @@ import { accessFor } from "@/lib/access/policies";
 import type { AccessContext, Alert, AlertRow, MetricQuery, MetricResult, NextAction, QuickAction } from "@/lib/contracts";
 import { presentCard } from "@/lib/cards/present";
 import { metricLabel } from "@/lib/dashboard/metric-display";
+import { DATA_AS_OF, monthStart } from "@/lib/data/dates";
 import { AGENTS } from "@/lib/data/entities/agents";
 import { findUser } from "@/lib/data/entities/users";
 import { TH } from "@/lib/i18n/th";
@@ -33,7 +34,7 @@ async function call<T>(userId: string, name: string, input: unknown): Promise<T>
 }
 
 function metricQuery(partial: Partial<MetricQuery>): MetricQuery {
-  return { metric: "net_sales_volume", dims: ["agent"], filters: {}, range: { from: "2026-09-01", to: "2026-09-22" }, grain: "month", compare: "prev_period", limit: 10, ...partial };
+  return { metric: "net_sales_volume", dims: ["agent"], filters: {}, range: { from: monthStart(DATA_AS_OF), to: DATA_AS_OF }, grain: "month", compare: "prev_period", limit: 10, ...partial };
 }
 
 async function card(userId: string, partial: Partial<MetricQuery>): Promise<Card> {
@@ -58,14 +59,23 @@ function provinceOfAgent(agentId: string): string | undefined {
   return AGENTS.find((agent) => agent.id === agentId)?.provinceId;
 }
 
+function northeastSellOutAlert(severity: Alert["severity"]): Alert {
+  const template = openAlertsFor(accessOf(CEO))[0];
+  if (!template) throw new Error("no open alert");
+  return { ...template, id: "al_test_northeast_sellout", metric: "sell_out_volume", dims: { province: KHON_KAEN, region: "northeast" }, window: { from: monthStart(DATA_AS_OF), to: DATA_AS_OF }, severity, status: "open", ownerUserId: RSM_NORTHEAST, alsoOwnerIds: [], parentId: null, relatedIds: [], campaignId: null };
+}
+
 describe("a question written in the model's words reaches the same alert and owner as one written in ids", () => {
   test("a region written as its Thai name carries the northeast alert and routes to the region's RSM", async () => {
-    const handoff = handoffOf(await card(CEO, { metric: "sell_out_volume", dims: ["province"], filters: { region: ["ภาคอีสาน"] } }));
-    expect(handoff.toUserId).toBe(RSM_NORTHEAST);
-    expect(handoff.alertIds).toHaveLength(1);
-    const alert = alertById(handoff.alertIds[0]);
-    expect(alert.metric).toBe("sell_out_volume");
-    expect(alert.dims.region).toBe("northeast");
+    const northeast = northeastSellOutAlert("P2");
+    alerts().put(northeast);
+    try {
+      const handoff = handoffOf(await card(CEO, { metric: "sell_out_volume", dims: ["province"], filters: { region: ["ภาคอีสาน"] } }));
+      expect(handoff.toUserId).toBe(RSM_NORTHEAST);
+      expect(handoff.alertIds).toEqual([northeast.id]);
+    } finally {
+      alerts().remove(northeast.id);
+    }
   });
 
   test("an agent written as its Thai name carries that agent's alert and routes to the RSM of its region", async () => {
@@ -100,13 +110,19 @@ describe("one focus names the card's handoff, pin and follow-ups", () => {
     const query = metricQuery({ metric: "sell_out_volume", dims: ["region"] });
     recordAction(CEO, "question", intentKeyOf(query.metric, query.dims), "ยอดขายแยกภาค", null);
     recordAction(CEO, "question", intentKeyOf(query.metric, query.dims), "ยอดขายแยกภาค", null);
-    const answer = await card(CEO, query);
-    const handoff = handoffOf(answer);
-    expect(handoff.title).not.toContain(BANGKOK);
-    const subject = handoff.title.replace(`${metricLabel(query.metric)} · `, "");
-    expect(handoff.ask).toContain(subject);
-    const pin = answer.nextActions.find((action) => action.kind === "pin");
-    expect((pin?.input as { title: string } | undefined)?.title).toBe(`${metricLabel(query.metric)} · ${TH.next.splitBy(TH.dash.dimUnit.region)}`);
+    const northeast = northeastSellOutAlert("P1");
+    alerts().put(northeast);
+    try {
+      const answer = await card(CEO, query);
+      const handoff = handoffOf(answer);
+      expect(handoff.title).not.toContain(BANGKOK);
+      const subject = handoff.title.replace(`${metricLabel(query.metric)} · `, "");
+      expect(handoff.ask).toContain(subject);
+      const pin = answer.nextActions.find((action) => action.kind === "pin");
+      expect((pin?.input as { title: string } | undefined)?.title).toBe(`${metricLabel(query.metric)} · ${TH.next.splitBy(TH.dash.dimUnit.region)}`);
+    } finally {
+      alerts().remove(northeast.id);
+    }
   });
 
   test("overdue AR by region asks why about the region of the alert in question, not the largest region", async () => {

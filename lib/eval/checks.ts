@@ -3,7 +3,7 @@ import { presentCard } from "@/lib/cards/present";
 import { ASK_EVENT, COMPOSE_ACTION_TOOLS, type ComposedComponent } from "@/lib/compose/catalog";
 import { createHandoffInputSchema, REGIONS, setPermissionInputSchema, watchMetricInputSchema, type MetricQuery, type MetricResult, type Region } from "@/lib/contracts";
 import { metricLabel } from "@/lib/dashboard/metric-display";
-import { TODAY } from "@/lib/data/dates";
+import { DATA_AS_OF } from "@/lib/data/dates";
 import { findUser, USERS } from "@/lib/data/entities/users";
 import { shareCardInputSchema } from "@/lib/share/card";
 import { matchRecipients, resolvedPeople } from "@/lib/share/recipients";
@@ -217,7 +217,7 @@ function sameSlice(queries: readonly MetricQuery[]): boolean {
 }
 
 function readEnd(to: string | undefined): string | undefined {
-  return to !== undefined && to > TODAY ? TODAY : to;
+  return to !== undefined && to > DATA_AS_OF ? DATA_AS_OF : to;
 }
 
 /** Every check a recorded turn is scored with: the Vexa build's `eval:cards` checks translated to what Winyu draws (the fixed card from `present.ts`, the A2UI card the model composes, the approval it asks), plus Winyu's own grounding, composition and scope checks. */
@@ -390,7 +390,7 @@ export const EVAL_CHECKS: readonly EvalCheck[] = [
       const known = numbersIn(returned(turn).map((call) => call.result), new Set());
       numbersIn(turn.recording.prompt, known);
       yearsIn(returned(turn).map((call) => call.result), known);
-      yearsIn(TODAY, known);
+      yearsIn(DATA_AS_OF, known);
       const invented = [...numbersIn(turn.words, new Set())].filter((value) => !known.has(value));
       return verdict(invented.length === 0, invented.length === 0 ? "ทุกตัวเลขในข้อความอยู่ในผล tool" : `ตัวเลขที่ไม่มีในผล tool: ${invented.slice(0, 5).join(", ")}`);
     },

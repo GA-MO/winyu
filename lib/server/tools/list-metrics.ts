@@ -1,6 +1,6 @@
 import type { z } from "zod";
 import { listMetricsInputSchema, type MetricDef } from "@/lib/contracts";
-import { TODAY } from "@/lib/data/dates";
+import { DATA_AS_OF } from "@/lib/data/dates";
 import { LAST_AUDITED_MONTH_KEY } from "@/lib/data/market-share";
 import { formatDateTh, periodLabelTh } from "@/lib/i18n/format";
 import { ports } from "@/lib/server/ports";
@@ -17,7 +17,7 @@ function refreshOf(def: MetricDef): string {
 }
 
 function latestOf(def: MetricDef): string {
-  return AUDITED_METRICS.has(def.id) ? `รอบ ${periodLabelTh(LAST_AUDITED_MONTH_KEY)}` : formatDateTh(TODAY);
+  return AUDITED_METRICS.has(def.id) ? `รอบ ${periodLabelTh(LAST_AUDITED_MONTH_KEY)}` : formatDateTh(DATA_AS_OF);
 }
 
 export const listMetricsTool = defineTool({

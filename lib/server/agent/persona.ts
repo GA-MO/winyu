@@ -14,7 +14,7 @@ import { emit } from "@/lib/harness/runtime";
 import type { ContextItem, ContextKind } from "@/lib/harness/types";
 import { currentTurn } from "@/lib/server/request-context";
 import { handoffEnabled } from "@/lib/access/enforce";
-import { TODAY as DATA_AS_OF } from "@/lib/data/dates";
+import { DATA_AS_OF } from "@/lib/data/dates";
 import { findUser } from "@/lib/data/entities/users";
 import { TH } from "@/lib/i18n/th";
 import { sliceLabel, untilLabel } from "@/lib/share/grant-label";

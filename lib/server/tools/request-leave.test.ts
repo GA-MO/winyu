@@ -11,7 +11,7 @@ const { asksApproval } = await import("@/lib/harness/gateway");
 const { winyuTools } = await import("@/lib/server/agent/tools");
 const { liveAccessFor } = await import("@/lib/access/enforce");
 const { findUser } = await import("@/lib/data/entities/users");
-const { TODAY, addDays } = await import("@/lib/data/dates");
+const { addDays, businessToday } = await import("@/lib/data/dates");
 const { runWithAccess } = await import("@/lib/server/request-context");
 const { ports } = await import("@/lib/server/ports");
 const { calendarOf } = await import("@/lib/server/ports/calendar");
@@ -34,7 +34,7 @@ async function calendar() {
 async function weekdayHoliday(): Promise<string> {
   const days = await calendar();
   for (let offset = 1; offset < SEARCH_DAYS; offset += 1) {
-    const day = addDays(TODAY, offset);
+    const day = addDays(businessToday(), offset);
     const weekday = new Date(`${day}T00:00:00Z`).getUTCDay();
     if (days.holidayOn(day) && weekday !== 0 && weekday !== 6) return day;
   }
@@ -43,7 +43,7 @@ async function weekdayHoliday(): Promise<string> {
 
 async function workdayAhead(offset: number): Promise<string> {
   const days = await calendar();
-  for (let day = addDays(TODAY, offset); ; day = addDays(day, 1)) if (workdaysBetween(day, day, days) === 1) return day;
+  for (let day = addDays(businessToday(), offset); ; day = addDays(day, 1)) if (workdaysBetween(day, day, days) === 1) return day;
 }
 
 function asks(input: Record<string, unknown>): Promise<boolean> {

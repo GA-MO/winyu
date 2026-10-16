@@ -1,5 +1,5 @@
 import type { Dim, MetricId } from "@/lib/contracts";
-import { DAY_COUNT, toDayIndex } from "./dates";
+import { DAY_COUNT, dataDay, toDayIndex } from "./dates";
 
 export type AnomalyEffect = { kind: "multiplier"; value: number } | { kind: "cover_days"; value: number };
 export type InjectedAnomaly = {
@@ -14,6 +14,11 @@ export type InjectedAnomaly = {
   explainedBy: string | null;
 };
 
+/** A window of `length` days ending `endsDaysBefore` days before the last data day, so every planted story sits at the edge of the data wherever it ends. */
+function lastDays(length: number, endsDaysBefore = 0): { from: string; to: string } {
+  return { from: dataDay(1 - length - endsDaysBefore), to: dataDay(-endsDaysBefore) };
+}
+
 export const INJECTED_ANOMALIES: readonly InjectedAnomaly[] = [
   {
     id: "anom_rungrueang_leo620",
@@ -21,7 +26,7 @@ export const INJECTED_ANOMALIES: readonly InjectedAnomaly[] = [
     metric: "net_sales_volume",
     dims: { agent: "ag_nea_07", sku: "sku_leo_bottle620", province: "pv_buriram", region: "northeast" },
     extraDims: {},
-    window: { from: "2026-09-02", to: "2026-09-22" },
+    window: lastDays(21),
     direction: "down",
     effect: { kind: "multiplier", value: 0.66 },
     explainedBy: null,
@@ -32,7 +37,7 @@ export const INJECTED_ANOMALIES: readonly InjectedAnomaly[] = [
     metric: "sell_out_volume",
     dims: { sku: "sku_purra_pet600", region: "north" },
     extraDims: { provinces: "pv_chiangmai,pv_lamphun" },
-    window: { from: "2026-09-18", to: "2026-09-22" },
+    window: lastDays(5),
     direction: "up",
     effect: { kind: "multiplier", value: 1.28 },
     explainedBy: "pm25",
@@ -43,7 +48,7 @@ export const INJECTED_ANOMALIES: readonly InjectedAnomaly[] = [
     metric: "days_of_cover",
     dims: { dc: "dc_lamphun", sku: "sku_purra_pet600", region: "north" },
     extraDims: {},
-    window: { from: "2026-09-13", to: "2026-09-22" },
+    window: lastDays(10),
     direction: "down",
     effect: { kind: "cover_days", value: 6.2 },
     explainedBy: null,
@@ -54,7 +59,7 @@ export const INJECTED_ANOMALIES: readonly InjectedAnomaly[] = [
     metric: "net_sales_volume",
     dims: { region: "northeast" },
     extraDims: { agents: "ag_nea_02,ag_nea_05", brands: "leo,singha" },
-    window: { from: "2026-09-11", to: "2026-09-22" },
+    window: lastDays(12),
     direction: "down",
     effect: { kind: "multiplier", value: 0.04 },
     explainedBy: null,
@@ -65,7 +70,7 @@ export const INJECTED_ANOMALIES: readonly InjectedAnomaly[] = [
     metric: "sell_out_volume",
     dims: { channel: "modern_trade", sku: "sku_singha_soda_can320" },
     extraDims: { chain: "chain_cstore", regions: "bkk,central" },
-    window: { from: "2026-09-05", to: "2026-09-22" },
+    window: lastDays(18),
     direction: "up",
     effect: { kind: "multiplier", value: 1.4 },
     explainedBy: "cmp_cstore_soda_promo",
@@ -76,7 +81,7 @@ export const INJECTED_ANOMALIES: readonly InjectedAnomaly[] = [
     metric: "ar_overdue",
     dims: { region: "south" },
     extraDims: { agents: "ag_sou_02,ag_sou_05,ag_sou_06" },
-    window: { from: "2026-08-01", to: "2026-09-22" },
+    window: lastDays(53),
     direction: "up",
     effect: { kind: "multiplier", value: 2.6 },
     explainedBy: null,
@@ -87,7 +92,7 @@ export const INJECTED_ANOMALIES: readonly InjectedAnomaly[] = [
     metric: "production_output",
     dims: { plant: "pl_khonkaen", region: "northeast" },
     extraDims: { line: "pl_khonkaen_l2" },
-    window: { from: "2026-09-14", to: "2026-09-17" },
+    window: lastDays(4, 5),
     direction: "down",
     effect: { kind: "multiplier", value: 0.8 },
     explainedBy: "maintenance",

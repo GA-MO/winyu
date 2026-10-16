@@ -1,6 +1,6 @@
 import type { AccessContext, Dim, MetricQuery, MetricResult, MonthEndProjection } from "@/lib/contracts";
 import { isTimeDim } from "@/lib/cards/rows";
-import { MONTH_OF_DAY, TODAY, addDays, daysInMonthIndex, toDayIndex } from "@/lib/data/dates";
+import { MONTH_OF_DAY, DATA_AS_OF, addDays, daysInMonthIndex, toDayIndex } from "@/lib/data/dates";
 import { projectMonthEnd } from "@/lib/engine/gap";
 import { TH } from "@/lib/i18n/th";
 import { comparisonRequestOf, finishMetric, formatForSummary, keyRows, planMetric, seriesRequest, type SeriesQuery } from "@/lib/semantic/engine";
@@ -28,7 +28,7 @@ function monthStartOf(iso: string): string {
 }
 
 function isMonthToDateVsTarget(query: MetricQuery): boolean {
-  return query.compare === "target" && query.range.from === monthStartOf(TODAY) && query.range.to === TODAY && !query.dims.some(isTimeDim);
+  return query.compare === "target" && query.range.from === monthStartOf(DATA_AS_OF) && query.range.to === DATA_AS_OF && !query.dims.some(isTimeDim);
 }
 
 function totalOf(query: MetricQuery, overrides: Partial<MetricQuery>): MetricQuery {
@@ -41,15 +41,15 @@ export async function monthEndProjection(query: MetricQuery, access: AccessConte
   if (!def || !isMonthToDateVsTarget(query)) return null;
   const total = await runPlain(totalOf(query, {}), access);
   if (!total.ok || total.headline.aggregate !== "sum" || total.provenance.masked.length > 0 || total.rows.length === 0) return null;
-  const recent = await runPlain(totalOf(query, { compare: "none", range: { from: addDays(TODAY, 1 - RECENT_DAYS), to: TODAY } }), access);
+  const recent = await runPlain(totalOf(query, { compare: "none", range: { from: addDays(DATA_AS_OF, 1 - RECENT_DAYS), to: DATA_AS_OF } }), access);
   if (!recent.ok || recent.rows.length === 0) return null;
   const [actual, targetSoFar, recentTotal] = [total.rows[0].value, total.rows[0].compare_value, recent.rows[0].value].map(Number);
   if (![actual, targetSoFar, recentTotal].every(Number.isFinite)) return null;
   const projection = projectMonthEnd({
     actual,
     targetSoFar,
-    elapsedDays: toDayIndex(TODAY) - toDayIndex(query.range.from) + 1,
-    monthDays: daysInMonthIndex(MONTH_OF_DAY[toDayIndex(TODAY)]),
+    elapsedDays: toDayIndex(DATA_AS_OF) - toDayIndex(query.range.from) + 1,
+    monthDays: daysInMonthIndex(MONTH_OF_DAY[toDayIndex(DATA_AS_OF)]),
     recentDailyAverage: recentTotal / RECENT_DAYS,
   });
   if (!projection) return null;

@@ -1,14 +1,15 @@
 import type { AccessContext, Dim, Grain, MetricId, MetricQuery, RoleId, WidgetKind, WidgetSort, WidgetSpec } from "@/lib/contracts";
+import { DATA_AS_OF, dataDay, monthEnd, monthStart } from "@/lib/data/dates";
 
 export type WidgetSeed = { key: string; title: string; kind: WidgetKind; query: MetricQuery; sortBy: WidgetSort | null; pinned: boolean; source: WidgetSpec["source"]; reason: string | null };
 
-const TODAY = "2026-09-22";
-const MONTH_TO_DATE = { from: "2026-09-01", to: TODAY };
-const LAST_4_WEEKS = { from: "2026-08-25", to: TODAY };
-const LAST_QUARTER = { from: "2026-07-01", to: TODAY };
-const LAST_6_MONTHS = { from: "2026-04-01", to: TODAY };
-const YEAR_TO_DATE = { from: "2026-01-01", to: TODAY };
-const LAST_AUDITED_MONTH = { from: "2026-08-01", to: "2026-08-31" };
+const FOUR_WEEKS_DAYS = 28;
+const MONTH_TO_DATE = { from: monthStart(DATA_AS_OF), to: DATA_AS_OF };
+const LAST_4_WEEKS = { from: dataDay(-FOUR_WEEKS_DAYS), to: DATA_AS_OF };
+const LAST_QUARTER = { from: monthStart(DATA_AS_OF, 2), to: DATA_AS_OF };
+const LAST_6_MONTHS = { from: monthStart(DATA_AS_OF, 5), to: DATA_AS_OF };
+const YEAR_TO_DATE = { from: `${DATA_AS_OF.slice(0, 4)}-01-01`, to: DATA_AS_OF };
+const LAST_AUDITED_MONTH = { from: monthStart(DATA_AS_OF, 1), to: monthEnd(DATA_AS_OF, 1) };
 const TOP_ROWS = 8;
 
 type SeedInput = {

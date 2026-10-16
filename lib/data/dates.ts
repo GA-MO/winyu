@@ -1,9 +1,33 @@
-export const DATA_START = "2025-04-01";
-export const TODAY = "2026-09-22";
-
+const DEFAULT_DATA_AS_OF = "2026-11-26";
+const DEFAULT_TODAY = "2026-11-27";
+const LIVE_TODAY = "live";
+const BUSINESS_TIME_ZONE = "Asia/Bangkok";
+const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;
 const MS_PER_DAY = 86_400_000;
 const THAI_YEAR_OFFSET = 543;
 const THAI_MONTHS_SHORT = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
+
+function isoDayFromEnv(name: string, fallback: string): string {
+  const value = process.env[name]?.trim();
+  if (!value) return fallback;
+  if (!ISO_DAY.test(value)) throw new Error(`${name} must be YYYY-MM-DD, got "${value}"`);
+  return value;
+}
+
+export const DATA_START = "2025-04-01";
+/** The last day the generated warehouse holds (env WINYU_DATA_AS_OF); warehouse tools, periods and planted anomalies count from it. */
+export const DATA_AS_OF = isoDayFromEnv("WINYU_DATA_AS_OF", DEFAULT_DATA_AS_OF);
+
+/** The calendar date in Bangkok at a moment. */
+export function bangkokDate(at: Date): string {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: BUSINESS_TIME_ZONE }).format(at);
+}
+
+/** Winyu's today as a Bangkok date (env WINYU_TODAY: a date, or "live" for the real one); leave, calendar, people, courses, recruiting, feeds and the prompt count from it. Grant expiry and audit stamps keep the real clock. */
+export function businessToday(): string {
+  if (process.env.WINYU_TODAY?.trim() === LIVE_TODAY) return bangkokDate(new Date());
+  return isoDayFromEnv("WINYU_TODAY", DEFAULT_TODAY);
+}
 
 function utc(iso: string): number {
   const [year, month, day] = iso.split("-").map(Number);
@@ -11,17 +35,44 @@ function utc(iso: string): number {
 }
 
 const START_MS = utc(DATA_START);
-const TODAY_MS = utc(TODAY);
+const AS_OF_MS = utc(DATA_AS_OF);
 
-export const DAY_COUNT = Math.round((TODAY_MS - START_MS) / MS_PER_DAY) + 1;
+export const DAY_COUNT = Math.round((AS_OF_MS - START_MS) / MS_PER_DAY) + 1;
 
-/** Zero-based day offset from DATA_START; negative or past TODAY when out of range. */
+/** Zero-based day offset from DATA_START; negative or past DATA_AS_OF when out of range. */
 export function toDayIndex(iso: string): number {
   return Math.round((utc(iso) - START_MS) / MS_PER_DAY);
 }
 
 export function addDays(iso: string, days: number): string {
   return new Date(utc(iso) + days * MS_PER_DAY).toISOString().slice(0, 10);
+}
+
+/** The day `offset` days from DATA_AS_OF (negative = earlier). */
+export function dataDay(offset: number): string {
+  return addDays(DATA_AS_OF, offset);
+}
+
+/** The day `offset` days from businessToday() (negative = earlier). */
+export function businessDay(offset: number): string {
+  return addDays(businessToday(), offset);
+}
+
+/** The first day of the month `monthsBack` months before the one holding `iso`. */
+export function monthStart(iso: string, monthsBack = 0): string {
+  const [year, month] = iso.split("-").map(Number);
+  return new Date(Date.UTC(year ?? 1970, (month ?? 1) - 1 - monthsBack, 1)).toISOString().slice(0, 10);
+}
+
+/** The last day of the month `monthsBack` months before the one holding `iso`. */
+export function monthEnd(iso: string, monthsBack = 0): string {
+  const [year, month] = iso.split("-").map(Number);
+  return new Date(Date.UTC(year ?? 1970, (month ?? 1) - monthsBack, 0)).toISOString().slice(0, 10);
+}
+
+/** Calendar days from one ISO day to another, negative when `to` is earlier. */
+export function daysBetween(from: string, to: string): number {
+  return Math.round((utc(to) - utc(from)) / MS_PER_DAY);
 }
 
 export function monthKeyOfIso(iso: string): string {

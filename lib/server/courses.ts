@@ -1,6 +1,6 @@
 import type { AccessContext, Course, Employee } from "@/lib/contracts";
 import { peopleViewOf } from "@/lib/access/people-scope";
-import { TODAY } from "@/lib/data/dates";
+import { businessToday } from "@/lib/data/dates";
 import { departmentById } from "@/lib/data/entities/hr";
 import { signalsOf } from "@/lib/engine/people-signals";
 import { formatDateTh } from "@/lib/i18n/format";
@@ -111,7 +111,7 @@ function matchesQuery(purpose: CoursePurpose, query: string): boolean {
 }
 
 function inWindow(course: Course, month: string | null): boolean {
-  if (course.starts < TODAY) return false;
+  if (course.starts < businessToday()) return false;
   return month ? course.starts.startsWith(month) : true;
 }
 
@@ -133,7 +133,7 @@ export async function listCourses(access: AccessContext, query: CourseQuery) {
   const urgent = courses.filter((course) => relevance(access, course, directory) < 2).length;
   return {
     ok: true as const,
-    summary: T.summary(courses.length, formatDateTh(courses.reduce((first, course) => (course.starts < first ? course.starts : first), courses[0]?.starts ?? TODAY)), urgent),
+    summary: T.summary(courses.length, formatDateTh(courses.reduce((first, course) => (course.starts < first ? course.starts : first), courses[0]?.starts ?? businessToday())), urgent),
     data: courses.map((course) => rowOf(access, course, directory, held)),
   };
 }
@@ -144,7 +144,7 @@ export type RenewalRound = { course: Course; enrolled: boolean; seatsLeft: numbe
 /** The next round that renews a certificate, and whether this user already asked for a seat in any round that renews it; null when none is scheduled. */
 export async function renewalRoundFor(certificateNameTh: string, userId: string): Promise<RenewalRound | null> {
   const rounds = (await ports().learning.courses())
-    .filter((course) => course.renewsCertificate === certificateNameTh && course.starts >= TODAY)
+    .filter((course) => course.renewsCertificate === certificateNameTh && course.starts >= businessToday())
     .sort((left, right) => left.starts.localeCompare(right.starts));
   const requested = await heldCourses(userId);
   const next = rounds.find((course) => seatsLeft(course) > 0) ?? rounds[0];
@@ -161,7 +161,7 @@ export async function findCourse(courseId: string): Promise<Course | null> {
 export async function enrollCourse(access: AccessContext, courseId: string, threadId: string | null, callId: string) {
   const course = await findCourse(courseId);
   if (!course) return { ok: false as const, error: T.notFound(courseId) };
-  if (course.starts < TODAY) return { ok: false as const, error: T.started(course.titleTh) };
+  if (course.starts < businessToday()) return { ok: false as const, error: T.started(course.titleTh) };
   if ((await heldCourses(access.userId)).has(course.id)) return { ok: false as const, error: T.already(course.titleTh) };
   if (seatsLeft(course) === 0) return { ok: false as const, error: T.fullError(course.titleTh) };
   const approver = await approverOf(access.userId);

@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { Landing } from "@/components/landing/landing";
-import { TODAY } from "@/lib/data/dates";
+import { DATA_AS_OF } from "@/lib/data/dates";
 import { shortName, timeOfDay } from "@/lib/i18n/format";
 import { TH } from "@/lib/i18n/th";
 import { landingKpis } from "@/lib/server/dashboard";
@@ -26,7 +26,7 @@ export default async function LandingPage() {
       kpis={kpis}
       quickActions={quickActionsFor(access)}
       brief={brief}
-      asOf={TODAY}
+      asOf={DATA_AS_OF}
       placeholder={TH.landing.composerPlaceholderFor(access.role)}
     />
   );

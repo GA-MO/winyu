@@ -1,4 +1,5 @@
 import type { Region } from "@/lib/contracts";
+import { DATA_AS_OF, monthStart } from "../dates";
 
 export type MakerId = "mk_boonrawd" | "mk_thaibev" | "mk_carabao" | "mk_other";
 export type Maker = { id: MakerId; nameTh: string; label: string; brandsTh: string[]; nicknames: string[] };
@@ -23,9 +24,9 @@ export const BASE_SHARE: Record<Region, Record<MakerId, number>> = {
   south: { mk_boonrawd: 61, mk_thaibev: 31, mk_carabao: 4, mk_other: 4 },
 };
 
-/** Carabao's push: extra share points it takes from us per province, ramping over the months of the window. */
+/** Carabao's push: extra share points it takes from us per province, ramping over the three audited months before the data's last month. */
 export const SHARE_PUSHES: readonly { provinceId: string; maker: MakerId; fromMonth: string; toMonth: string; points: number; fromUs: number }[] = [
-  { provinceId: "pv_nakhonratchasima", maker: "mk_carabao", fromMonth: "2026-06", toMonth: "2026-08", points: 6, fromUs: 0.85 },
+  { provinceId: "pv_nakhonratchasima", maker: "mk_carabao", fromMonth: monthStart(DATA_AS_OF, 3).slice(0, 7), toMonth: monthStart(DATA_AS_OF, 1).slice(0, 7), points: 6, fromUs: 0.85 },
 ];
 
 export const CARABAO_MONTHLY_GAIN = 0.12;

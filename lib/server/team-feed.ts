@@ -1,6 +1,6 @@
 import type { AccessContext, Alert, FeedItem, FeedTone, NextAction } from "@/lib/contracts";
 import type { AmbientCard } from "@/lib/dashboard/ambient";
-import { TODAY, toDayIndex } from "@/lib/data/dates";
+import { businessToday, toDayIndex } from "@/lib/data/dates";
 import { agentById } from "@/lib/data/entities/agents";
 import { provinceById } from "@/lib/data/entities/org";
 import { findUser } from "@/lib/data/entities/users";
@@ -54,7 +54,7 @@ function uncoveredProvinces(members: readonly Member[], directory: Directory): {
   return directory.openPositions.flatMap((position) => {
     const province = position.provinceId;
     if (position.departmentId !== SALES_DEPARTMENT || !province || !troubled.has(province)) return [];
-    return [{ name: provinceById(province)?.nameTh ?? province, days: daysBetween(position.openedOn, TODAY) }];
+    return [{ name: provinceById(province)?.nameTh ?? province, days: daysBetween(position.openedOn, businessToday()) }];
   })
     .sort((left, right) => right.days - left.days);
 }

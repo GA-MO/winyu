@@ -7,7 +7,7 @@ import { alertRowOf } from "@/lib/cards/alert-row";
 import { actionsForAlert, actionsForMetric } from "@/lib/server/next-actions";
 import { composeSuggestion } from "@/lib/engine/compose";
 import type { LandingKpi, VisitStop } from "@/lib/dashboard/ambient";
-import { TODAY, addDays } from "@/lib/data/dates";
+import { DATA_AS_OF, addDays } from "@/lib/data/dates";
 import type { Dictionary } from "@/lib/semantic/dictionary";
 import { loadDictionary } from "@/lib/server/master-data";
 import { formatDelta } from "@/lib/dashboard/metric-display";
@@ -239,7 +239,7 @@ function alertReason(alert: Alert, dictionary: Dictionary): string {
 /** The agents a field rep should visit first: those with an open alert, then the steepest sell-in drop. Reps only. */
 export async function visitsFor(access: AccessContext): Promise<VisitStop[]> {
   if (!VISIT_ROLES.has(access.role)) return [];
-  const result = await runMetric({ metric: "net_sales_volume", dims: ["agent"], filters: {}, range: { from: addDays(TODAY, -VISIT_WINDOW_DAYS), to: TODAY }, grain: "month", compare: "prev_period", limit: VISIT_SCAN_LIMIT }, access);
+  const result = await runMetric({ metric: "net_sales_volume", dims: ["agent"], filters: {}, range: { from: addDays(DATA_AS_OF, -VISIT_WINDOW_DAYS), to: DATA_AS_OF }, grain: "month", compare: "prev_period", limit: VISIT_SCAN_LIMIT }, access);
   if (!result.ok) return [];
   const dictionary = await loadDictionary();
   const alerted = new Map<string, Alert>();

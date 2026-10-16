@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { liveAccessFor } from "@/lib/access/enforce";
 import type { MetricQuery } from "@/lib/contracts";
+import { businessToday } from "@/lib/data/dates";
 import { forgetAll } from "@/lib/engine/memory";
 import { isTrusted } from "@/lib/engine/memory-status";
 import { findUser } from "@/lib/data/entities/users";
@@ -126,7 +127,7 @@ export async function recordCase(request: RecordRequest): Promise<Recording> {
       model: model.id,
       promptHash: promptHash(request.userId),
       toolsHash: toolsHash(request.userId),
-      today: new Date().toISOString().slice(0, 10),
+      today: businessToday(),
       recordedAt: new Date().toISOString(),
       steps: stepsOf(await storedMessages(threadId, request.userId)),
       asked: askedOf(result.asked.events),

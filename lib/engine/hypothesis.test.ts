@@ -1,8 +1,9 @@
 import { describe, expect, test } from "bun:test";
 import { TH } from "@/lib/i18n/th";
 import { explain } from "./hypothesis";
+import { DATA_AS_OF, dataDay } from "@/lib/data/dates";
 
-const NORTH_WINDOW = { from: "2026-09-19", to: "2026-09-22" };
+const NORTH_WINDOW = { from: dataDay(-3), to: DATA_AS_OF };
 
 describe("what a movement is put down to", async () => {
   test("bottled water rising with the haze in Chiang Mai and Lamphun is put down to PM2.5, despite the weekly cycle", async () => {
@@ -13,7 +14,7 @@ describe("what a movement is put down to", async () => {
   });
 
   test("a promotion explains a rise in what it sells, never a fall or a plant's output", async () => {
-    const window = { from: "2026-09-10", to: "2026-09-22" };
+    const window = { from: dataDay(-12), to: DATA_AS_OF };
     const soda = { sku: "sku_singha_soda_can320", channel: "modern_trade", region: "bkk" };
     const rise = await explain({ metric: "sell_out_volume", dims: soda, direction: "up", window, observed: 130, expected: 100, region: "bkk", detail: null });
     expect(rise.explained).toBe(true);

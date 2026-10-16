@@ -1,5 +1,5 @@
 import type { StoreVisit } from "@/lib/contracts";
-import { TODAY, addDays } from "@/lib/data/dates";
+import { businessToday, addDays } from "@/lib/data/dates";
 import { AGENTS } from "@/lib/data/entities/agents";
 import { USERS } from "@/lib/data/entities/users";
 import type { CrmPort, VisitQuery } from "./crm";
@@ -31,7 +31,7 @@ function visitsOf(agent: (typeof AGENTS)[number]): StoreVisit[] {
     return {
       agentId: agent.id,
       region: agent.region,
-      visitedOn: addDays(TODAY, -(index * VISIT_GAP_DAYS + (seed % VISIT_GAP_DAYS) + 1)),
+      visitedOn: addDays(businessToday(), -(index * VISIT_GAP_DAYS + (seed % VISIT_GAP_DAYS) + 1)),
       repName: repOf(agent.region, seed),
       outcome: OUTCOMES[outcome] ?? "",
       note: index === 0 && agent.id === AGENTS[0]?.id ? PLANTED_NOTE : null,

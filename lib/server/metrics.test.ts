@@ -6,10 +6,11 @@ import { findUser } from "@/lib/data/entities/users";
 import { runMetric as runOnGenerator } from "@/lib/data/query";
 import { ports, registerPorts, resetPorts } from "@/lib/server/ports";
 import { runMetric } from "./metrics";
+import { DATA_AS_OF, dataDay, formatThaiDate, monthStart } from "@/lib/data/dates";
 
 const REP = accessFor(findUser("u_krit")!);
 const CFO = accessFor(findUser("u_siriporn")!);
-const RANGE = { from: "2026-08-01", to: "2026-09-22" };
+const RANGE = { from: monthStart(DATA_AS_OF, 1), to: DATA_AS_OF };
 const REQUEST_KEYS = ["dims", "filters", "labelShift", "measure", "metric", "range"];
 
 function question(partial: Partial<MetricQuery> & Pick<MetricQuery, "metric">): MetricQuery {
@@ -88,7 +89,7 @@ describe("runMetric over the metrics port", () => {
 
 describe("where the month ends", () => {
   const DIRECTOR = accessFor(findUser("u_prasit")!);
-  const MONTH_TO_DATE = { from: "2026-09-01", to: "2026-09-22" };
+  const MONTH_TO_DATE = { from: monthStart(DATA_AS_OF), to: DATA_AS_OF };
   const northeastByAgent = question({ metric: "net_sales_volume", dims: ["agent"], filters: { region: ["northeast"] }, range: MONTH_TO_DATE, compare: "target" });
 
   test("a month-to-date total against target carries the month-end projection, and the model reads it in the summary", async () => {
@@ -107,13 +108,13 @@ describe("where the month ends", () => {
   });
 
   test("a one-day window is labelled with one date, not a range from a day to itself", async () => {
-    const result = await runMetric(question({ metric: "days_of_cover", range: { from: "2026-09-22", to: "2026-09-22" }, grain: "day" }), DIRECTOR);
-    expect(result.ok && result.headline.periodLabel).toBe("22 ก.ย. 2569");
+    const result = await runMetric(question({ metric: "days_of_cover", range: { from: DATA_AS_OF, to: DATA_AS_OF }, grain: "day" }), DIRECTOR);
+    expect(result.ok && result.headline.periodLabel).toBe(formatThaiDate(DATA_AS_OF));
   });
 
   test("another window, another comparison or a split over time says nothing about the month end", async () => {
     const answers = await Promise.all([
-      runMetric({ ...northeastByAgent, range: { from: "2026-09-01", to: "2026-09-15" } }, DIRECTOR),
+      runMetric({ ...northeastByAgent, range: { from: monthStart(DATA_AS_OF), to: dataDay(-7) } }, DIRECTOR),
       runMetric({ ...northeastByAgent, compare: "prev_year" }, DIRECTOR),
       runMetric({ ...northeastByAgent, dims: ["week"], grain: "week" }, DIRECTOR),
     ]);

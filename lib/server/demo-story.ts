@@ -1,6 +1,6 @@
 import type { Alert, ContextPacket } from "@/lib/contracts";
 import { thresholdKey } from "@/lib/engine/anomaly";
-import { addDays, TODAY } from "@/lib/data/dates";
+import { addDays, DATA_AS_OF } from "@/lib/data/dates";
 import { findUser } from "@/lib/data/entities/users";
 import { alertOutcomes, alerts, packets } from "./agent/collections";
 import { runEngineJobs } from "./alerts";
@@ -66,7 +66,7 @@ function sendStoryPacket(alert: Alert): Promise<ContextPacket> {
           metric: "net_sales_volume",
           dims: ["brand"],
           filters: { agent: [STORY_AGENT] },
-          range: { from: addDays(TODAY, -LOOKBACK_DAYS), to: TODAY },
+          range: { from: addDays(DATA_AS_OF, -LOOKBACK_DAYS), to: DATA_AS_OF },
           grain: "week",
           compare: "prev_period",
           limit: null,

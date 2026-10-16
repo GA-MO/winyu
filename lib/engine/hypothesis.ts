@@ -73,13 +73,13 @@ function priorWindow(window: { from: string; to: string }): { from: string; to: 
   return { from: ISO_OF_DAY[priorFrom] as string, to: ISO_OF_DAY[priorTo] as string };
 }
 
-async function sellOutHeldFlat(context: Context): Promise<boolean> {
+async function sellOutHeldUp(context: Context): Promise<boolean> {
   if (context.metric !== "net_sales_volume" || context.direction !== "down") return false;
   const prior = priorWindow(context.window);
   const recent = await totalOf("sell_out_volume", context.dims, context.window.from, context.window.to);
   const before = await totalOf("sell_out_volume", context.dims, prior.from, prior.to);
   if (before <= 0) return false;
-  return Math.abs(recent / before - 1) <= FLAT_RATIO;
+  return recent / before >= 1 - FLAT_RATIO;
 }
 
 function nearlySilent(context: Context): boolean {
@@ -222,7 +222,7 @@ export async function explain(context: Context): Promise<Explanation> {
     };
   }
 
-  if (await sellOutHeldFlat(context)) {
+  if (await sellOutHeldUp(context)) {
     return {
       hypothesis: TH.engine.hypothesis.stockAtAgent(scope),
       verifySteps: steps(TH.engine.verify.compareSellInOut(scope), TH.engine.verify.coverOfScope(scope)),
