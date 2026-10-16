@@ -38,7 +38,8 @@ function agentTerms(nameTh: string): string[] {
   return terms;
 }
 
-const REGION_ALIASES: Record<string, string[]> = {
+/** The names people and the model write for each region, Thai and English, by region id. */
+export const REGION_ALIASES: Record<Region, string[]> = {
   bkk: ["กรุงเทพ", "กรุงเทพฯ", "กทม", "กทม.", "บางกอก", "ปริมณฑล", "bangkok", "bkk", "กรุงเทพและปริมณฑล"],
   central: ["ภาคกลาง", "กลาง", "central"],
   north: ["ภาคเหนือ", "เหนือ", "ล้านนา", "north", "northern"],

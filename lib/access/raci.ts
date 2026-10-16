@@ -3,6 +3,7 @@ import { USERS, findUser } from "@/lib/data/entities/users";
 import { AGENTS } from "@/lib/data/entities/agents";
 import { PROVINCES } from "@/lib/data/entities/org";
 import { DISTRIBUTION_CENTERS, PLANTS } from "@/lib/data/entities/supply";
+import { REGION_ALIASES } from "@/lib/semantic/dictionary";
 
 export type Responsible = { userId: string; user: User; role: RoleId; basis: string };
 
@@ -28,9 +29,19 @@ const REGION_OF_PLACE: Partial<Record<Dim, ReadonlyMap<string, Region>>> = {
   plant: new Map(PLANTS.map((plant) => [plant.id, plant.region])),
 };
 
+const REGION_BY_NAME: ReadonlyMap<string, Region> = new Map(
+  (Object.entries(REGION_ALIASES) as [Region, string[]][]).flatMap(([region, names]) => [region, ...names].map((name) => [name.toLowerCase(), region] as const)),
+);
+
+/** The region a value names: its id, or a Thai or English name the model may write ("ภาคอีสาน", "isan"); null when it names none. */
+export function parseRegion(value: string): Region | null {
+  return REGION_BY_NAME.get(value.trim().toLowerCase()) ?? null;
+}
+
 /** The region a slice sits in: its region when named, else the region of the agent, province, DC or plant it names. */
 export function regionOf(dims: Partial<Record<Dim, string>>): Region | null {
-  if (dims.region) return dims.region as Region;
+  const named = dims.region ? parseRegion(dims.region) : null;
+  if (named) return named;
   for (const [dim, regions] of Object.entries(REGION_OF_PLACE) as [Dim, ReadonlyMap<string, Region>][]) {
     const place = dims[dim];
     const region = place ? regions.get(place) : undefined;
@@ -52,9 +63,10 @@ function nationalWith(role: RoleId): User | null {
   return USERS.find((user) => user.role === role && user.region === null) ?? null;
 }
 
-/** The person accountable for a metric in a region: the RACI table `resolve_owner` and the alert engine read. */
-export function responsibleFor(metric: MetricId, region: Region | null): Responsible | null {
+/** The person accountable for a metric in a region (an id or a name the model wrote): the RACI table `resolve_owner` and the alert engine read. */
+export function responsibleFor(metric: MetricId, regionName: string | null): Responsible | null {
   const group = groupOf(metric);
+  const region = regionName ? parseRegion(regionName) : null;
   const inRegion = region ? USERS.find((user) => user.role === group.role && user.region === region) : null;
   const owner = inRegion ?? nationalWith(group.role) ?? nationalWith(group.fallbackRole) ?? USERS.find((user) => user.role === group.role) ?? null;
   if (!owner) return null;

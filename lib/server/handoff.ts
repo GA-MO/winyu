@@ -202,7 +202,7 @@ export function usualRecipient(fromUserId: string, metric: MetricQuery["metric"]
 
 /** Who should get this: whom this user usually sends it to, else the RACI owner; with how often they handled it and their open load. */
 export function suggestOwner(metric: ContextPacket["evidence"][number]["metric"], region: string | null, fromUserId: string | null = null): OwnerSuggestion | null {
-  const raci = responsibleFor(metric, (region ?? null) as never);
+  const raci = responsibleFor(metric, region);
   const usual = fromUserId ? usualRecipient(fromUserId, metric, region) : null;
   const usualUser = usual ? findUser(usual.userId) : null;
   const target = usualUser ?? raci?.user ?? null;

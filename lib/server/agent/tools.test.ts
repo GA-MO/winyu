@@ -142,6 +142,14 @@ describe("resolve_owner", () => {
     expect(result.data.userId).toBe("u_anucha");
   });
 
+  test("a region written as its Thai name resolves to that region's RSM, not the national owner", async () => {
+    const result = await call<{ ok: boolean; data: { userId: string } }>("u_thana", "resolve_owner", {
+      metric: "net_sales_volume",
+      dims: { region: "ภาคอีสาน" },
+    });
+    expect(result.data.userId).toBe("u_anucha");
+  });
+
   test("sales with no place at all resolves to the national owner, not the first RSM listed", async () => {
     const result = await call<{ ok: boolean; data: { userId: string } }>("u_thana", "resolve_owner", {
       metric: "net_sales_volume",
