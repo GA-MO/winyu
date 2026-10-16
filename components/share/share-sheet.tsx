@@ -10,7 +10,7 @@ import { Portrait } from "@/components/ui/portrait";
 import { DEFAULT_GRANT_DAYS, GRANT_DAYS, type GrantDays, type RecipientScope } from "@/lib/contracts/grant";
 import { metricLabel } from "@/lib/dashboard/metric-display";
 import { TH } from "@/lib/i18n/th";
-import { MATTER_ASK_MAX, SHARE_RECIPIENTS_MAX, shareTitle, type SendPreview, type ShareChannel, type ShareContact, type ShareGrantReceipt, type ShareReceipt, type ShareTarget } from "@/lib/share/card";
+import { cardRefOf, MATTER_ASK_MAX, SHARE_RECIPIENTS_MAX, shareTitle, type SendPreview, type ShareChannel, type ShareContact, type ShareGrantReceipt, type ShareReceipt, type ShareTarget } from "@/lib/share/card";
 import { contradictionOf } from "@/lib/share/figures";
 import { defaultUrgency, MATTER_INTENTS, saysUrgent, type MatterIntent, type MatterUrgency } from "@/lib/share/matter";
 import type { MatterSuggestions } from "@/lib/share/matter-actions";
@@ -20,16 +20,21 @@ const SHARES_ENDPOINT = "/api/shares";
 const PREVIEW_ENDPOINT = "/api/shares/preview";
 const SCOPES_ENDPOINT = "/api/shares/scopes";
 const PANEL = "fixed right-0 top-0 z-50 flex h-dvh w-full max-w-[26rem] flex-col border-l border-border bg-card shadow-panel animate-panel-in";
-const SENT_PANEL = "fixed inset-x-3 bottom-3 z-50 flex max-h-[50dvh] flex-col gap-2 overflow-y-auto rounded-2xl border border-border bg-card px-4 py-3 shadow-panel animate-panel-in pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:left-auto sm:right-4 sm:w-[24rem]";
-/** How long the sent confirmation stays when nobody points at or tabs into it. */
-export const SENT_SHOWN_MS = 6000;
+const SENT_NOTE = "flex w-full basis-full flex-col gap-2 rounded-xl border border-success/25 bg-success/[0.06] px-3 py-2.5 animate-hero-rise";
 const ASK_ROWS = 3;
 const LINE_BREAKS = /[\r\n]+/g;
 const CHIP = "inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 /** The icon each share channel shows with. */
 export const CHANNEL_ICON: Record<ShareChannel, typeof Mail> = { email: Mail, teams: Users, line: MessageCircle };
 
-type Phase = { kind: "picking" } | { kind: "sending" } | { kind: "sent"; receipts: ShareReceipt[]; grants: ShareGrantReceipt[]; hidden: RecipientScope[]; path: string } | { kind: "failed"; refused: boolean };
+type Phase = { kind: "picking" } | { kind: "sending" } | { kind: "failed"; refused: boolean };
+
+/** What one send left: the receipts, grants and hidden parts the server reported, the grant days picked, the matter's link, and whether the person folded the receipt away (the card still reads as sent). */
+type SentShare = { receipts: ShareReceipt[]; grants: ShareGrantReceipt[]; hidden: RecipientScope[]; days: GrantDays | null; path: string; folded: boolean };
+
+type SentShares = { byCard: Readonly<Record<string, SentShare>>; fold: (key: string) => void };
+
+const SentContext = createContext<SentShares>({ byCard: {}, fold: () => undefined });
 
 const REFUSED_STATUS = 422;
 
@@ -225,23 +230,14 @@ export function RecipientWarnings({ scopes, granting, grant }: { scopes: readonl
   );
 }
 
-/** What is left on screen once a share went out: a compact confirmation docked at the bottom (who got it on which channel, any grants, what it still hides from whom, the link, and the Outbox when any of it went by mail) that leaves the page behind it usable, and closes by itself a few seconds after nobody points at or tabs into it. */
-export function ShareSent({ title, receipts, grants, hidden = [], days, path, close }: { title: string; receipts: ShareReceipt[]; grants: ShareGrantReceipt[]; hidden?: RecipientScope[]; days: GrantDays | null; path: string; close: () => void }) {
+/** What a share left, under the card it sent: who got it on which channel, what it still hides from whom, any grants, the Outbox when any of it went by mail, and the matter's link; it stays where the person sent from, covering nothing, until they fold it. */
+export function ShareSent({ receipts, grants, hidden = [], days, path, close }: { receipts: ShareReceipt[]; grants: ShareGrantReceipt[]; hidden?: RecipientScope[]; days: GrantDays | null; path: string; close: () => void }) {
   const url = typeof window === "undefined" ? path : `${window.location.origin}${path}`;
-  const [held, setHeld] = useState(false);
-  useEffect(() => {
-    if (held) return;
-    const timer = setTimeout(close, SENT_SHOWN_MS);
-    return () => clearTimeout(timer);
-  }, [close, held]);
   return (
-    <aside role="status" aria-label={TH.share.sentTitle} data-share-sent className={SENT_PANEL} onPointerEnter={() => setHeld(true)} onPointerLeave={() => setHeld(false)} onFocus={() => setHeld(true)} onBlur={() => setHeld(false)}>
+    <aside role="status" aria-label={TH.share.sentTitle} data-share-sent className={SENT_NOTE}>
       <div className="flex items-start gap-2">
         <Check className="mt-0.5 size-4 shrink-0 text-success" aria-hidden />
-        <p className="flex min-w-0 flex-1 flex-col">
-          <span className="text-sm font-medium text-success">{TH.share.sentTitle}</span>
-          <span className="truncate text-xs text-muted-foreground">{title}</span>
-        </p>
+        <p className="min-w-0 flex-1 text-sm font-medium text-success">{TH.share.sentTitle}</p>
         <button type="button" onClick={close} aria-label={TH.common.close} className="-m-1 rounded-lg p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground">
           <X className="size-4" aria-hidden />
         </button>
@@ -350,7 +346,7 @@ function nextChosen(current: readonly string[], id: string, intent: MatterIntent
   return current.length < SHARE_RECIPIENTS_MAX ? [...current, id] : [...current];
 }
 
-function Sheet({ target, close }: { target: ShareTarget; close: () => void }) {
+function Sheet({ target, close, onSent }: { target: ShareTarget; close: () => void; onSent: (sent: SentShare) => void }) {
   const directory = useShareDirectory();
   const contacts = directory?.contacts ?? [];
   const preview = useSendPreview(target.card);
@@ -380,10 +376,9 @@ function Sheet({ target, close }: { target: ShareTarget; close: () => void }) {
     const body = { card: target.card, question: target.question, ask, intent, urgency, recipients, grantDays: directory?.mayGrant ? grantDays : null, closeOnGoal: keepGoal };
     const response = await fetch(SHARES_ENDPOINT, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) }).catch(() => null);
     const payload = response?.ok ? ((await response.json()) as { receipts: ShareReceipt[]; grants?: ShareGrantReceipt[]; hidden?: RecipientScope[]; path: string }) : null;
-    setPhase(payload ? { kind: "sent", receipts: payload.receipts, grants: payload.grants ?? [], hidden: payload.hidden ?? [], path: payload.path } : { kind: "failed", refused: response?.status === REFUSED_STATUS });
+    if (!payload) return setPhase({ kind: "failed", refused: response?.status === REFUSED_STATUS });
+    onSent({ receipts: payload.receipts, grants: payload.grants ?? [], hidden: payload.hidden ?? [], days: grantDays, path: payload.path, folded: false });
   };
-
-  if (phase.kind === "sent") return <ShareSent title={title} receipts={phase.receipts} grants={phase.grants} hidden={phase.hidden} days={grantDays} path={phase.path} close={close} />;
 
   return (
     <>
@@ -436,25 +431,38 @@ function Sheet({ target, close }: { target: ShareTarget; close: () => void }) {
   );
 }
 
-/** Lets every card inside offer ส่งต่อ, with one sheet for the whole surface that closes when the person moves to another page; with `open` false (the admin turned sending work off) no card offers it. */
+/** Lets every card inside offer ส่งต่อ, with one sheet for the whole surface that closes when the person moves to another page, and remembers what each card's send left so the card reads as sent; with `open` false (the admin turned sending work off) no card offers it. */
 export function ShareProvider({ open, children }: { open: boolean; children: ReactNode }) {
   const [target, setTarget] = useState<ShareTarget | null>(null);
+  const [byCard, setByCard] = useState<Record<string, SentShare>>({});
   const pathname = usePathname();
   const show = useCallback((next: ShareTarget) => setTarget(next), []);
   const close = useCallback(() => setTarget(null), []);
   useEffect(close, [close, pathname]);
   const value = useMemo(() => (open ? show : null), [open, show]);
+  const fold = useCallback((key: string) => setByCard((current) => (current[key] ? { ...current, [key]: { ...current[key], folded: true } } : current)), []);
+  const sentShares = useMemo(() => ({ byCard, fold }), [byCard, fold]);
+  const sent = (sentTarget: ShareTarget, share: SentShare) => {
+    setByCard((current) => ({ ...current, [cardRefOf(sentTarget.card)]: share }));
+    close();
+  };
   return (
     <ShareContext.Provider value={value}>
-      {children}
-      {open && target ? <Sheet key={JSON.stringify(target.card)} target={target} close={close} /> : null}
+      <SentContext.Provider value={sentShares}>
+        {children}
+        {open && target ? <Sheet key={JSON.stringify(target.card)} target={target} close={close} onSent={(share) => sent(target, share)} /> : null}
+      </SentContext.Provider>
     </ShareContext.Provider>
   );
 }
 
-/** Hands the outermost card inside its ส่งต่อ pill; nothing outside a surface that can share. */
+/** Hands the outermost card inside its ส่งต่อ pill, which reads as sent with the receipt under the card once this card went out; nothing outside a surface that can share. */
 export function ShareChrome({ target, children }: { target: ShareTarget | null; children: ReactNode }) {
   const share = useShareCard();
-  const value = share && target ? { share: () => share(target), label: TH.share.buttonLabel(shareTitle(target.card)) } : null;
+  const { byCard, fold } = useContext(SentContext);
+  const key = target ? cardRefOf(target.card) : null;
+  const sent = key ? byCard[key] : undefined;
+  const note = sent && key && !sent.folded ? <ShareSent receipts={sent.receipts} grants={sent.grants} hidden={sent.hidden} days={sent.days} path={sent.path} close={() => fold(key)} /> : null;
+  const value = share && target ? { share: () => share(target), label: TH.share.buttonLabel(shareTitle(target.card)), sent: sent ? { note } : null } : null;
   return <CardShareProvider value={value}>{children}</CardShareProvider>;
 }

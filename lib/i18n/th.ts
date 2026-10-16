@@ -423,6 +423,8 @@ export const TH = {
     openShared: "ดูใน Shared",
     close: "ปิด",
     allCaughtUp: "ไม่มีเรื่องรอคุณ",
+    acted: { accept: "รับเรื่องแล้ว", ask: "ส่งคำถามแล้ว", reply: "ตอบแล้ว", pass_on: "ส่งต่อแล้ว", not_mine: "แจ้งว่าไม่ใช่ของคุณแล้ว", done: "ปิดเรื่องแล้ว" },
+    openMatter: "เปิดเรื่อง",
     allCaughtUpHint: "เมื่อมีคนส่งการ์ด ส่งงาน หรือขอสิทธิ์ จะขึ้นที่นี่",
     unread: "ยังไม่อ่าน",
     winyu: "Winyu",
@@ -2008,6 +2010,7 @@ export const TH = {
 
     sending: "กำลังส่ง…",
     sentTitle: "ส่งต่อแล้ว",
+    sentButton: "ส่งแล้ว",
     sentVia: (name: string, channel: string) => `${name} ทาง ${channel}`,
     fellBack: (name: string) => `${name} ทางอีเมลแทน (ยังไม่เคยทัก Winyu ใน Teams)`,
     failedSend: (name: string) => `${name} ทางอีเมลแทน (ส่งทางช่องทางที่เลือกไม่สำเร็จ)`,

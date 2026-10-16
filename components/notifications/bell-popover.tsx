@@ -4,7 +4,7 @@ import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type 
 import { Check, X } from "lucide-react";
 import { Primary } from "@/components/inbox/row";
 import { MatterActions } from "@/components/matter/matter-actions";
-import { matterFrom } from "@/lib/share/matter-actions";
+import { matterFrom, type MatterActionKind } from "@/lib/share/matter-actions";
 import { cn } from "@/components/ui/cn";
 import { TH } from "@/lib/i18n/th";
 import { hasUnread, type BellDecision, type BellItem, type BellPayload } from "./items";
@@ -67,7 +67,30 @@ function DecisionRow({ item, onOpen }: { item: BellDecision; onOpen: (item: Bell
   );
 }
 
-function MatterRow({ item, onOpen, onActed }: { item: Extract<BellDecision, { kind: "matter" }>; onOpen: (item: BellItem) => void; onActed: (item: BellDecision) => void }) {
+type MatterItem = Extract<BellDecision, { kind: "matter" }>;
+
+/** A press that landed from the bell: what was done to which matter, kept on screen after its row leaves the decisions. */
+type Acted = { key: string; kind: MatterActionKind; title: string; item: BellItem };
+
+function ActedLines({ acted, onOpen }: { acted: readonly Acted[]; onOpen: (item: BellItem) => void }) {
+  return (
+    <ul className="flex flex-col gap-1 px-3 pb-1">
+      {acted.map((line) => (
+        <li key={line.key} className="flex items-start gap-2 rounded-xl bg-success/[0.07] px-2.5 py-2 text-[13px] leading-snug" data-bell-acted={line.kind}>
+          <Check className="mt-0.5 size-3.5 shrink-0 text-success" aria-hidden />
+          <span className="min-w-0 flex-1 wrap-anywhere">
+            <span className="font-medium text-success">{COPY.acted[line.kind]}</span> {line.title}
+          </span>
+          <ItemLink item={line.item} onOpen={onOpen} className="shrink-0 text-xs font-medium text-primary hover:underline">
+            {COPY.openMatter}
+          </ItemLink>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function MatterRow({ item, onOpen, onActed }: { item: MatterItem; onOpen: (item: BellItem) => void; onActed: (item: BellDecision, kind: MatterActionKind) => void }) {
   const brief = item.matter;
   return (
     <li className={cn("flex gap-3 rounded-xl px-2.5 py-2.5", !item.read && "bg-primary/[0.05]")} data-bell-decision="matter">
@@ -81,7 +104,7 @@ function MatterRow({ item, onOpen, onActed }: { item: Extract<BellDecision, { ki
           <span className="min-w-0 flex-1">{matterFrom(brief)}</span>
           <When at={item.at} />
         </p>
-        <MatterActions brief={brief} onActed={() => onActed(item)} />
+        <MatterActions brief={brief} onActed={(kind) => onActed(item, kind)} />
       </div>
       <UnreadDot read={item.read} className="mt-1.5" />
     </li>
@@ -129,7 +152,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-function Lists({ payload, onOpen, onActed }: { payload: BellPayload; onOpen: (item: BellItem) => void; onActed: (item: BellDecision) => void }) {
+function Lists({ payload, onOpen, onActed }: { payload: BellPayload; onOpen: (item: BellItem) => void; onActed: (item: BellDecision, kind: MatterActionKind) => void }) {
   if (payload.decide.length === 0 && payload.updates.length === 0) return <AllCaughtUp />;
   return (
     <div className="flex flex-col gap-2 px-1.5 pb-1.5">
@@ -166,6 +189,7 @@ export function BellPopover({ onClose, onOpenInbox, onChanged, navigate }: BellP
   const dialog = useRef<HTMLDialogElement>(null);
   const titleId = useId();
   const [payload, setPayload] = useState<BellPayload | null>(null);
+  const [acted, setActed] = useState<Acted[]>([]);
 
   const load = useCallback(
     () =>
@@ -201,8 +225,9 @@ export function BellPopover({ onClose, onOpenInbox, onChanged, navigate }: BellP
     [navigate, onClose],
   );
 
-  const acted = useCallback(
-    async (item: BellDecision) => {
+  const pressed = useCallback(
+    async (item: BellDecision, kind: MatterActionKind) => {
+      if (item.kind === "matter") setActed((current) => [{ key: `${item.key}:${kind}`, kind, title: item.matter.title, item }, ...current.filter((line) => line.item.key !== item.key)]);
       if (item.notificationId && !item.read) await postRead({ id: item.notificationId });
       await load();
       onChanged();
@@ -249,7 +274,10 @@ export function BellPopover({ onClose, onOpenInbox, onChanged, navigate }: BellP
           <X className="size-4" aria-hidden />
         </button>
       </header>
-      <div className="min-h-0 flex-1 overflow-y-auto">{payload ? <Lists payload={payload} onOpen={open} onActed={(item) => void acted(item)} /> : <div className="h-24" aria-busy />}</div>
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        {acted.length > 0 ? <ActedLines acted={acted} onOpen={open} /> : null}
+        {payload ? <Lists payload={payload} onOpen={open} onActed={(item, kind) => void pressed(item, kind)} /> : <div className="h-24" aria-busy />}
+      </div>
       <footer className="flex items-center justify-between border-t border-border px-4 py-2.5 text-xs">
         <button type="button" onClick={openInbox} className={cn(LINK, "font-medium text-primary hover:underline")}>
           {COPY.openInbox}
