@@ -32,9 +32,12 @@ describe("trailOf", () => {
     expect(states(trailOf([together[0], call("b", "get_alerts", {}, RETURNED)], true, LABELS)).map(([, state]) => state)).toEqual(["running", "done"]);
   });
 
-  test("between steps after results came back the agent is reading them; once text streams it is not paused", () => {
+  test("between steps after results came back the agent is reading them; while text streams it is still writing, until the answer ends", () => {
+    const written = [call("a", "query_metric", SALES, RETURNED), { kind: "text" as const, id: "t", text: "อีสานต่ำกว่าเป้า" }];
     expect(trailOf([call("a", "query_metric", SALES, RETURNED)], true, LABELS).pause).toBe("reading");
-    expect(trailOf([call("a", "query_metric", SALES, RETURNED), { kind: "text", id: "t", text: "อีสานต่ำกว่าเป้า" }], true, LABELS).pause).toBeNull();
+    expect(trailOf(written, true, LABELS).pause).toBe("writing");
+    expect(trailOf([{ kind: "text", id: "t", text: "สวัสดีครับ" }], true, LABELS).pause).toBe("writing");
+    expect(trailOf(written, false, LABELS).pause).toBeNull();
   });
 
   test("a refused or failed call reads as not done; once the answer ends a read never left pending and a write it prepared is done", () => {
