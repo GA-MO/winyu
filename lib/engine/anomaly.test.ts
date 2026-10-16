@@ -5,6 +5,8 @@ import { INJECTED_ANOMALIES } from "@/lib/data/anomalies";
 import { TH } from "@/lib/i18n/th";
 import { Z_OPEN, absorbIntoAgentStories, detectAnomalies, dropRollUps, groupSkuStories, linkDemandToCover, mergeAgentStories, severityOf, thresholdFor, thresholdKey, toAlert, type Detection } from "./anomaly";
 import { DAILY_SCAN, scanSeries } from "./stats";
+import { alertRowOf } from "@/lib/cards/alert-row";
+import { GENERATOR_DICTIONARY } from "@/lib/data/master";
 
 const DETECTED = await detectAnomalies();
 
@@ -129,6 +131,27 @@ describe("anomaly detection", () => {
     expect(merged[0].observed).toBe(15);
     expect(merged[0].expected).toBe(100);
     expect(merged[0].dims.brand).toBeUndefined();
+  });
+
+  test("an agent alert summed from some of its brands says which brands and that the figure is per day (AI-175)", async () => {
+    const part = (brand: string, observed: number, expected: number): Detection => ({
+      ...DETECTED[0], id: brand, watchId: "sellin_agent_brand", metric: "net_sales_volume", direction: "down", dims: { agent: "ag_nea_02", brand, region: "northeast" }, severity: "P1", observed, expected, zScore: -20,
+    });
+    const [story] = await mergeAgentStories([part("leo", 1147, 10784), part("singha", 637, 5694)]);
+    expect(story.brands).toEqual(["leo", "singha"]);
+    expect(story.hypothesis).toContain("ลีโอ");
+    expect(story.hypothesis).toContain("สิงห์");
+    expect(story.hypothesis).not.toContain("แทบไม่มีคำสั่งซื้อเข้ามา");
+    const row = alertRowOf(toAlert(story, null), GENERATOR_DICTIONARY);
+    expect(row.scopeLabel).toBe("อีสานรุ่งโรจน์ ค้าส่ง · ลีโอ, สิงห์ · ภาคอีสาน");
+    expect(row.observedLabel).toBe("1,784 ลิตร/วัน");
+    expect(row.expectedLabel).toBe("16,478 ลิตร/วัน");
+  });
+
+  test("a level read once a day (days of cover) is not per day", () => {
+    const cover = DETECTED.find((detection) => detection.metric === "days_of_cover");
+    if (!cover) throw new Error("no cover alert");
+    expect(alertRowOf(toAlert(cover, null), GENERATOR_DICTIONARY).observedLabel).not.toContain("/วัน");
   });
 
   test("a product of an agent whose whole book fell is part of that story; a rise, or another agent, is not", () => {
