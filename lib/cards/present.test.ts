@@ -6,6 +6,7 @@ import { findUser } from "@/lib/data/entities/users";
 import { runMetric } from "@/lib/data/query";
 import { TH } from "@/lib/i18n/th";
 import { LOW_COVER_DAYS } from "@/lib/semantic/metrics";
+import { changeToneOf, formatDelta } from "@/lib/dashboard/metric-display";
 import { presentCard, presentForecast, weakestRow, type CardBody, type CardView, type ForecastAnswer, type SortBy } from "./present";
 
 const CEO = accessFor(findUser("u_thana")!);
@@ -284,9 +285,23 @@ describe("a rate over time", () => {
     expect(card.hero?.delta).not.toBeNull();
   });
 
-  test("a sum over time keeps the period total as its hero", () => {
+  test("a sum over time leads with its latest full month against the one before, the range total in the note (R9)", () => {
     const { query, result } = answer({ metric: "net_sales_volume", dims: ["month"], range: SIX_MONTHS, compare: "none" });
-    expect(presentCard({ title: "t", query, result }).hero?.value).toBe(result.ok ? result.headline.value : "");
+    if (!result.ok) throw new Error(result.error);
+    const card = presentCard({ title: "t", query, result });
+    const line = expectKind(card.body, "line");
+    const last = result.rows[result.rows.length - 1];
+    expect(card.hero?.label).toBe(`ปริมาณขายเข้า (Sell-in) · ${line.labels[line.labels.length - 1]}`);
+    expect(card.hero?.value).toBe(String(last.value_label));
+    expect(card.hero?.detail).toBe(`เทียบ ${line.labels[line.labels.length - 2]}`);
+    expect(card.hero?.note).toBe(TH.dash.rangeTotal(result.headline.value));
+  });
+
+  test("a series of fewer than three buckets is no line: one bucket is the row it names (R1, R2)", () => {
+    const { query, result } = answer({ metric: "production_output", dims: ["month"], compare: "none" });
+    const card = presentCard({ title: "t", query, result });
+    expect(card.body.kind).toBe("none");
+    expect(card.hero?.label).toBe("ปริมาณการผลิต · ส.ค. 69");
   });
 
   test("a year-on-year card says why it starts later than asked", () => {
@@ -299,11 +314,39 @@ describe("a rate over time", () => {
 });
 
 describe("the headline says what it stands for", () => {
-  test("a capped breakdown's total is labelled as every group in scope and the scope line says how many are shown", () => {
+  test("ranked by what fell, the hero is the row that fell most and the total of every group in scope moves to the note (R4)", () => {
     const query = { ...queryOf({ metric: "net_sales_volume", dims: ["agent"] }), limit: 5, sort: "delta_asc" as const };
-    const card = presentCard({ title: "t", query, result: runMetric(query, CEO) });
-    expect(card.hero?.label).toBe("ปริมาณขายเข้า (Sell-in) รวมทุกเอเย่นต์");
+    const result = runMetric(query, CEO);
+    if (!result.ok) throw new Error(result.error);
+    const card = presentCard({ title: "t", query, result });
+    const [first] = result.rows;
+    expect(card.hero?.label).toBe(`ลดลงมากสุด · ${first.agent}`);
+    expect(card.hero?.value).toBe(String(first.value_label));
+    expect(card.hero?.delta).toBe(formatDelta(Number(first.delta_pct)));
+    expect(card.hero?.tone).toBe("bad");
+    expect(card.hero?.note).toStartWith(`ปริมาณขายเข้า (Sell-in) รวมทุกเอเย่นต์ ${result.headline.value}`);
     expect(card.meta).toContain("แสดง 5 เอเย่นต์");
+  });
+
+  test("a ranking of a rate leads with its first row, the average in the note (R5)", () => {
+    const query = { ...queryOf({ metric: "attrition_rate", dims: ["department"] }), limit: 10, sort: "value_desc" as const };
+    const result = runMetric(query, CEO);
+    if (!result.ok) throw new Error(result.error);
+    const hero = presentCard({ title: "t", query, result }).hero;
+    expect(hero?.label).toBe(`สูงสุด · ${result.rows[0].department}`);
+    expect(hero?.value).toBe(String(result.rows[0].value_label));
+    expect(hero?.delta).toMatch(/ จุด$/);
+    expect(hero?.note).toContain("เฉลี่ยทุกฝ่าย");
+  });
+
+  test("one row of a breakdown names its row, and with a target draws a meter of value over target (R1)", () => {
+    const query = { ...queryOf({ metric: "net_sales_volume", dims: ["region"], range: MONTH_TO_DATE, compare: "target" }), filters: { region: ["northeast"] } };
+    const result = runMetric(query, CEO);
+    if (!result.ok) throw new Error(result.error);
+    const card = presentCard({ title: "t", query, result });
+    expect(card.hero?.label).toBe("ปริมาณขายเข้า (Sell-in) · ภาคอีสาน");
+    const meter = expectKind(card.body, "progress");
+    expect(meter.value).toBeCloseTo(100 + Number(result.rows[0].delta_pct), 5);
   });
 
   test("an average across provinces says it is an average", () => {
@@ -360,6 +403,13 @@ describe("a change in a metric that is itself a percent", () => {
     expect(parts.hero?.delta).toMatch(/ จุด$/);
     const body = expectKind(parts.body, "rank");
     for (const row of body.rows) expect(row.delta).toMatch(/ จุด$/);
+  });
+
+  test("is judged in points: half a point is a move even when it is a large relative change, and under a tenth of a point is flat (R8)", () => {
+    expect(changeToneOf("attrition_rate", 30, 0.5)).toBe("bad");
+    expect(changeToneOf("market_share", -1.5, -0.9)).toBe("bad");
+    expect(changeToneOf("market_share", 12, 0.05)).toBe("neutral");
+    expect(changeToneOf("net_sales_value", 1.5, null)).toBe("neutral");
   });
 
   test("a ratio that is not a percent keeps its relative change", () => {
@@ -440,9 +490,26 @@ describe("a target card in a month still running", () => {
     const { query, result } = answer({ metric: "net_sales_volume", dims: ["region"], range: MONTH_TO_DATE, compare: "target" });
     if (!result.ok) throw new Error(result.error);
     const projection = { recentDays: 7, projected: "10.2 ล้านลิตร", monthTarget: "11.3 ล้านลิตร", attainment: "90.6%", attainmentToDate: "66.4%", remaining: "เหลืออีก 3.8 ล้านลิตร ถึงเป้า" };
-    const hero = presentCard({ title: "t", query, result: { ...result, headline: { ...result.headline, projection } } }).hero;
+    const card = presentCard({ title: "t", query, result: { ...result, headline: { ...result.headline, projection } } });
+    const hero = card.hero;
     expect(hero?.detail).toBe(TH.dash.paceTarget(formatThaiDate(DATA_AS_OF), MONTH_ELAPSED));
-    expect(hero?.note).toBe(TH.dash.monthEnd(projection));
+    expect(hero?.note).toEndWith(TH.dash.monthEnd(projection));
+  });
+
+  test("against a target the hero is the share of target, red under the 100% line, and the bars are value over target (R3)", () => {
+    const { query, result } = answer({ metric: "net_sales_volume", dims: ["region"], range: MONTH_TO_DATE, compare: "target" });
+    if (!result.ok) throw new Error(result.error);
+    const delta = result.headline.deltaPercent ?? 0;
+    const card = presentCard({ title: "t", query, result });
+    expect(card.hero?.value).toBe(TH.dash.ofTarget(`${Math.round((100 + delta) * 10) / 10}%`));
+    expect(card.hero?.tone).toBe(delta < 0 ? "bad" : "good");
+    const under = result.rows.filter((row) => Number(row.delta_pct) < 0).length;
+    expect(card.hero?.note).toStartWith(under > 0 ? TH.dash.countUnderTarget(under, result.rows.length, "ภาค") : TH.dash.allOnTarget("ภาค"));
+    expect(card.hero?.note).toContain(result.headline.value);
+    const bars = expectKind(card.body, "gap");
+    const values = bars.rows.map((row) => Number(row.gapText.replace("%", "")));
+    expect(values).toEqual([...values].sort((left, right) => left - right));
+    bars.rows.forEach((row, index) => expect(row.tone).toBe(values[index] < 100 ? "bad" : "good"));
   });
 });
 
@@ -457,11 +524,17 @@ describe("a breakdown whose level decides", () => {
     expect(capped.rows).toHaveLength(2);
     expect(capped.headline.underLine).toEqual({ line: LOW_COVER_DAYS, count: every.filter((days) => days < LOW_COVER_DAYS).length, of: every.length });
     const hero = presentCard({ title: "t", query: top, result: capped }).hero;
-    expect(hero?.label).toBe(TH.dash.underCover(LOW_COVER_DAYS));
     const under = capped.headline.underLine;
-    expect(hero?.value).toBe(under && under.count > 0 ? TH.dash.countOf(under.count, under.of, TH.dash.dimUnit.dc) : TH.dash.noneUnder);
     const worst = weakestRow(top, capped);
-    expect(hero?.note).toContain(TH.dash.weakest(true, worst?.label ?? "", worst?.value ?? ""));
+    if (under && under.count > 0) {
+      expect(hero?.label).toBe(TH.dash.underCover(LOW_COVER_DAYS));
+      expect(hero?.value).toBe(TH.dash.countOf(under.count, under.of, TH.dash.dimUnit.dc));
+      expect(hero?.note).toContain(TH.dash.weakest(true, worst?.label ?? "", worst?.value ?? ""));
+    } else {
+      expect(hero?.label).toBe(`ต่ำสุด · ${worst?.label}`);
+      expect(hero?.value).toBe(worst?.value ?? "");
+      expect(hero?.detail).toBe(TH.dash.noneBelow(TH.dash.days(LOW_COVER_DAYS)));
+    }
     expect(presentCard({ title: "t", query: top, result: capped }).meta).toContain(TH.dash.shownRowsOf(2, every.length, TH.dash.dimUnit.dc));
   });
 

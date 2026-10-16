@@ -1,7 +1,7 @@
 import { METRIC_IDS, type AlertRow, type MetricId, type MetricResult, type NextAction } from "@/lib/contracts";
 import { metricLabel } from "@/lib/dashboard/metric-display";
 import { TH } from "@/lib/i18n/th";
-import { type CardParts, type ForecastAnswer, type PresentSource, type RefusalNotice, refusalNoticeOf } from "./present";
+import { type CardParts, type ForecastAnswer, pairedIndexes, type PresentSource, type RefusalNotice, refusalNoticeOf } from "./present";
 
 /** A query_metric result as its card reads it: the rows and headline, the query that made them, and what the card offers next. */
 export type MetricAnswer = Extract<MetricResult, { ok: true }> & { nextActions: NextAction[] };
@@ -61,10 +61,42 @@ function metricOf(value: unknown): MetricId | null {
   return METRIC_IDS.includes(metric as MetricId) ? (metric as MetricId) : null;
 }
 
-/** A query_metric card's title: the metric's name, from the result's query or else the call's arguments. */
+function dimsOf(value: unknown): string[] {
+  const dims = typeof value === "object" && value !== null ? (value as { dims?: unknown }).dims : null;
+  return Array.isArray(dims) ? dims.filter((dim): dim is string => typeof dim === "string" && dim in TH.dash.dimUnit) : [];
+}
+
+/** A query_metric card's title says what the card is about: the metric's name and, for a breakdown or a series of more than one row, what it is broken down by ("มูลค่าขายเข้า · รายภาค"); read from the result's query or else the call's arguments. */
 export function metricTitle(result: unknown, args: unknown): string {
-  const metric = metricOf((result as { query?: unknown } | null)?.query) ?? metricOf(args);
-  return metric ? metricLabel(metric) : TH.cards.unreadable;
+  const answer = metricAnswerOf(result);
+  const metric = metricOf(answer?.query) ?? metricOf(args);
+  if (!metric) return TH.cards.unreadable;
+  const dims = dimsOf(answer?.query ?? args);
+  const broken = dims.length > 0 && (!answer || answer.rows.length > 1);
+  return broken ? TH.dash.ownScope(metricLabel(metric), TH.dash.byDims(dims.map((dim) => TH.dash.dimUnit[dim]))) : metricLabel(metric);
+}
+
+/** One returned tool call of a turn: its id and what came back. */
+export type TurnResult = { id: string; result: unknown };
+
+/** R10: the turn's query_metric answers that draw one card together, keyed by the call that draws it, with the calls drawn inside it; every other answer keeps its own card. */
+export function metricPairsOf(results: readonly TurnResult[]): ReadonlyMap<string, readonly string[]> {
+  const answers = results.flatMap((entry) => {
+    const answer = metricAnswerOf(entry.result);
+    return answer ? [{ id: entry.id, source: { query: answer.query, result: answer } }] : [];
+  });
+  const claimed = new Set<string>();
+  const pairs = new Map<string, string[]>();
+  answers.forEach((lead, index) => {
+    if (claimed.has(lead.id)) return;
+    const later = answers.slice(index + 1).filter((entry) => !claimed.has(entry.id));
+    const partners = pairedIndexes(lead.source, later.map((entry) => entry.source)).map((at) => later[at].id);
+    if (partners.length === 0) return;
+    partners.forEach((id) => claimed.add(id));
+    claimed.add(lead.id);
+    pairs.set(lead.id, partners);
+  });
+  return pairs;
 }
 
 export function forecastTitle(result: unknown, args: unknown): string {

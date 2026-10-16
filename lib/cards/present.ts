@@ -4,7 +4,7 @@ import { MIN_CELL_SIZE } from "@/lib/access/suppression";
 import { addDays, monthKeyOfIso, weekKeyOfIso } from "@/lib/data/dates";
 import { DECIDING_LINES, LOW_COVER_DAYS } from "@/lib/semantic/metrics";
 import { formatDateTh, formatPercent, periodLabelTh } from "@/lib/i18n/format";
-import { changeTextOf, deltaPercentOf, groupDimsOf, labelOf, numericOf, timeDimOf, valueTextOf } from "./rows";
+import { changeTextOf, deltaPercentOf, deltaPointsOf, groupDimsOf, labelAlong, labelOf, numericOf, timeDimOf, valueTextOf } from "./rows";
 import {
   bucketCountOf,
   funnelBody,
@@ -23,7 +23,8 @@ import {
   type Source,
 } from "./chart-bodies";
 import {
-  directionOf,
+  changeDirectionOf,
+  changeToneOf,
   formatChange,
   formatDelta,
   formatMetricValue,
@@ -163,27 +164,29 @@ const SHARE_METRICS: ReadonlySet<MetricId> = new Set(["market_share", "share_of_
 const SEVERITY_TONES: Record<Alert["severity"], AlertTone> = { P1: "danger", P2: "warning", P3: "info" };
 const MIN_CHANGE_SPAN_PCT = 10;
 
-/** A level read against a line rather than from zero: how far either side still reads as a bar, which tone the good side wears, and what the headline calls the groups under the line. */
-type LevelLine = { at: number; minSpan: number; tolerance: number; aboveTone: Tone; ends: GapEnds; caption: string; underLabel: string };
+/** A level read against a line rather than from zero: how far either side still reads as a bar, which tone the good side wears, what the headline calls the groups under the line, and what it says when none is. */
+type LevelLine = { at: number; minSpan: number; aboveTone: Tone; ends: GapEnds; caption: string; underLabel: string; noneUnder: string };
+
+const TARGET_LINE: LevelLine = {
+  at: DECIDING_LINES.target_attainment ?? PERCENT,
+  minSpan: 10,
+  aboveTone: "good",
+  ends: { less: TH.dash.belowTarget, more: TH.dash.aboveTarget },
+  caption: TH.dash.targetLine,
+  underLabel: TH.dash.underTarget,
+  noneUnder: TH.dash.noneBelow(TH.dash.target),
+};
 
 const LEVEL_LINES: Partial<Record<MetricId, LevelLine>> = {
-  target_attainment: {
-    at: DECIDING_LINES.target_attainment ?? PERCENT,
-    minSpan: 10,
-    tolerance: 2,
-    aboveTone: "good",
-    ends: { less: TH.dash.belowTarget, more: TH.dash.aboveTarget },
-    caption: TH.dash.targetLine,
-    underLabel: TH.dash.underTarget,
-  },
+  target_attainment: TARGET_LINE,
   days_of_cover: {
     at: LOW_COVER_DAYS,
     minSpan: 5,
-    tolerance: 0,
     aboveTone: "neutral",
     ends: { less: TH.dash.belowCover(LOW_COVER_DAYS), more: TH.dash.aboveCover },
     caption: TH.dash.coverLine(LOW_COVER_DAYS),
     underLabel: TH.dash.underCover(LOW_COVER_DAYS),
+    noneUnder: TH.dash.noneBelow(TH.dash.days(LOW_COVER_DAYS)),
   },
 };
 
@@ -274,29 +277,90 @@ function timeView(shape: Shape): CardView {
   return groupCountOf(shape.query, shape.rows) <= MAX_LINES ? "line" : "heatmap";
 }
 
-function automaticView(shape: Shape): CardView {
-  const groups = groupDimsOf(shape.query);
-  if (timeDimOf(shape.query)) return timeView(shape);
-  if (groups.length >= 2) return isDenseGrid(shape) ? "heatmap" : "bar";
-  if (shape.rows.length <= 1) return "metric";
-  if (groups.length === 0) return "table";
-  if (isPartOfWhole(shape) && !asksAboutChange(shape.sortBy)) return "share";
-  return "bar";
+type OkResult = Extract<MetricResult, { ok: true }>;
+
+/** What the card leads with: the total, the one row it has, the share of target, the row that moved or ranks first, the weakest row, how many sit under a line, or the latest full bucket. */
+type HeroKind = "total" | "single" | "attainment" | "mover" | "leader" | "weakest" | "underCount" | "latest";
+
+/** Which bars a breakdown draws: the change, the distance from a deciding line, value against target around 100%, or the level from zero; `auto` picks from the sort and the line. */
+type Bars = "auto" | "change" | "level" | "target" | "rank";
+
+/** Everything the decision table reads: the query's intent (compare, sort, limit, where, dims, grain), the rows it got, and the metric's level line. */
+type Facts = Shape & { result: OkResult; groups: number; time: boolean; buckets: number; line: LevelLine | null; under: UnderLine | null; capped: boolean; filtered: boolean };
+
+/** One row of the decision table: when it applies, the form it draws and the hero that answers. */
+type CardRule = { rule: string; when: (facts: Facts) => boolean; view: (facts: Facts) => CardView; bars: Bars; hero: HeroKind };
+
+const MIN_LINE_BUCKETS = 3;
+
+function hasChange(rows: MetricRow[]): boolean {
+  return rows.some((row) => deltaPercentOf(row) !== null);
+}
+
+function sortsByValue(sortBy: SortBy | null): boolean {
+  return sortBy === "value_desc" || sortBy === "value_asc";
+}
+
+function wholeOrBars(facts: Facts): CardView {
+  return isPartOfWhole(facts) && !asksAboutChange(facts.sortBy) ? "share" : "bar";
+}
+
+const always = (view: CardView) => () => view;
+
+/** The one decision table: the first rule whose condition holds decides the card's form and what its hero answers. */
+const CARD_RULES: readonly CardRule[] = [
+  { rule: "R7 threshold met by few", when: (f) => Boolean(f.query.where) && f.under !== null && f.groups === 1 && !f.time && f.rows.length > 0, view: always("bar"), bars: "level", hero: "underCount" },
+  { rule: "R1 one row", when: (f) => f.rows.length <= 1 && (f.query.dims.length > 0 || f.filtered), view: always("metric"), bars: "auto", hero: "single" },
+  { rule: "R2 short series", when: (f) => f.time && f.groups === 0 && f.buckets < MIN_LINE_BUCKETS, view: always("metric"), bars: "auto", hero: "total" },
+  { rule: "R9 trend", when: (f) => f.time && f.groups === 0, view: always("line"), bars: "auto", hero: "latest" },
+  { rule: "time × group", when: (f) => f.time, view: timeView, bars: "auto", hero: "total" },
+  { rule: "R4 two groups sorted by change", when: (f) => f.groups >= 2 && !isDenseGrid(f) && asksAboutChange(f.sortBy) && hasChange(f.rows), view: always("bar"), bars: "change", hero: "mover" },
+  { rule: "two groups", when: (f) => f.groups >= 2, view: (f) => (isDenseGrid(f) ? "heatmap" : "bar"), bars: "auto", hero: "total" },
+  { rule: "no breakdown", when: (f) => f.groups === 0 || f.rows.length < RANK_MIN_ROWS, view: (f) => (f.rows.length <= 1 ? "metric" : "table"), bars: "auto", hero: "total" },
+  { rule: "R6 under the line", when: (f) => f.line !== null && f.under !== null && f.under.count > 0, view: always("bar"), bars: "level", hero: "underCount" },
+  { rule: "R6 nothing under the line", when: (f) => f.line !== null && f.under !== null, view: always("bar"), bars: "level", hero: "weakest" },
+  { rule: "R4 sorted by change", when: (f) => asksAboutChange(f.sortBy) && hasChange(f.rows), view: always("bar"), bars: "change", hero: "mover" },
+  { rule: "R3 against target", when: (f) => f.query.compare === "target" && hasChange(f.rows), view: always("bar"), bars: "target", hero: "attainment" },
+  { rule: "R5 top of a ranking", when: (f) => sortsByValue(f.sortBy) && (!f.additive || f.capped), view: wholeOrBars, bars: "auto", hero: "leader" },
+  { rule: "breakdown", when: () => true, view: wholeOrBars, bars: "auto", hero: "total" },
+];
+
+type Fit = { rule: string; view: CardView; bars: Bars; hero: HeroKind };
+
+function factsOf(shape: Shape, result: OkResult): Facts {
+  const { query, rows } = shape;
+  const time = timeDimOf(query) !== null;
+  return {
+    ...shape,
+    result,
+    groups: groupDimsOf(query).length,
+    time,
+    buckets: time ? bucketCountOf(query, rows) : 0,
+    line: LEVEL_LINES[query.metric] ?? null,
+    under: result.headline.underLine ?? null,
+    capped: isCapped(query, rows.length),
+    filtered: scopeLabelsOf(query, result).length > 0,
+  };
+}
+
+function fitOf(facts: Facts): Fit {
+  const rule = CARD_RULES.find((candidate) => candidate.when(facts)) ?? CARD_RULES[CARD_RULES.length - 1];
+  return { rule: rule.rule, view: rule.view(facts), bars: rule.bars, hero: rule.hero };
 }
 
 /** The widget kind a result is drawn as when nobody asks for one, so a pinned card looks like the card it was pinned from. */
 export function widgetKindFor(query: MetricQuery, result: MetricResult): WidgetKind {
   if (!result.ok) return "metric";
-  const view = automaticView({ query, rows: result.rows, additive: result.headline.aggregate === "sum", sortBy: null });
+  const { view } = fitOf(factsOf({ query, rows: result.rows, additive: result.headline.aggregate === "sum", sortBy: null }, result));
   return WIDGET_KINDS.includes(view as WidgetKind) ? (view as WidgetKind) : "table";
 }
 
-/** Which body a result deserves, from the shape of the data rather than from anyone's judgement. */
-function viewFor(shape: Shape, requested: CardView, masked: boolean, extras: CardExtras): CardView {
+/** Which body a result is drawn as: alerts and masked values first, then a view someone asked for when the data can fill it, else the decision table's. */
+function viewFor(shape: Shape, requested: CardView, masked: boolean, extras: CardExtras, fit: Fit): CardView {
   if (extras.alerts && extras.alerts.length > 0) return "alert_list";
   if (masked) return "kv";
   if (requested !== "auto" && canDraw(requested, shape)) return requested;
-  return automaticView(shape);
+  return fit.view;
 }
 
 function groupCountFor(query: MetricQuery, rows: MetricRow[], rowCount: number): number {
@@ -337,10 +401,17 @@ function scopeOf(query: MetricQuery, rowCount: number, drawn: number | null, per
   return TH.dash.scope(periodLabel, [filtered, rows, hiddenLineOf(query, hidden)].filter((part): part is string => part !== null).join(" · ") || null);
 }
 
-/** A breakdown's headline stands for every group in scope, not only the rows the card lists; the label says which. */
+/** What the person narrowed the question to (an agent, a brand), without the value threshold a `where` adds to the same list. */
+function scopeLabelsOf(query: MetricQuery, result: OkResult): readonly string[] {
+  const labels = result.provenance.filterLabels ?? [];
+  return query.where ? labels.slice(0, -1) : labels;
+}
+
+/** A breakdown's headline stands for every group in scope, not only the rows the card lists; the label says which, and a total over everything the person may see says so. */
 function heroLabelOf(query: MetricQuery, result: Extract<MetricResult, { ok: true }>): string {
   const label = metricLabel(query.metric);
   const dim = rankDimOf(query);
+  if (!dim && !timeDimOf(query) && scopeLabelsOf(query, result).length === 0) return TH.dash.wholeScope(label, result.headline.aggregate === "average");
   if (!dim || timeDimOf(query) || result.rows.length <= 1) return label;
   const unit = TH.dash.dimUnit[dim];
   return result.headline.aggregate === "average" ? TH.dash.averageAcross(label, unit) : TH.dash.totalAcross(label, unit);
@@ -369,31 +440,62 @@ function paceNoteOf(query: MetricQuery, asOf: string): string | null {
   return TH.dash.paceTarget(formatDateTh(through), formatPercent(Math.round(share)));
 }
 
+function joined(parts: readonly (string | null)[]): string | null {
+  return parts.filter((part): part is string => part !== null && part !== "").join(" · ") || null;
+}
+
+function projectionNote(result: OkResult): string | null {
+  return result.headline.projection ? TH.dash.monthEnd(result.headline.projection) : null;
+}
+
 function heroNoteOf(query: MetricQuery, result: Extract<MetricResult, { ok: true }>, rows: MetricRow[]): string | null {
   const weakest = weakestRow(query, result);
   const listedFirst = rows[0] ? labelOf(query, rows[0]) : null;
-  const lines = [weakest && weakest.label !== listedFirst ? TH.dash.weakest(weakest.lowIsWorst, weakest.label, weakest.value) : null, result.headline.projection ? TH.dash.monthEnd(result.headline.projection) : null];
-  return lines.filter((line): line is string => line !== null).join(" · ") || null;
+  return joined([weakest && weakest.label !== listedFirst ? TH.dash.weakest(weakest.lowIsWorst, weakest.label, weakest.value) : null, projectionNote(result)]);
+}
+
+type Move = { delta: string | null; trend: Direction; tone: Tone };
+
+function againstTarget(deltaPercent: number | null): Pick<Move, "trend" | "tone"> {
+  if (deltaPercent === null || deltaPercent === 0) return { trend: "neutral", tone: deltaPercent === 0 ? "good" : "neutral" };
+  return deltaPercent < 0 ? { trend: "down", tone: "bad" } : { trend: "up", tone: "good" };
+}
+
+/** A change as a card writes it: in points for a percent metric, and judged against the 100% line when the comparison is a target, so 1.4% under target never reads grey. */
+function moveOf(query: MetricQuery, deltaPercent: number | null, deltaPoints: number | null): Move {
+  const delta = formatChange(query.metric, deltaPercent, deltaPoints);
+  if (query.compare === "target") return { delta, ...againstTarget(deltaPercent) };
+  return { delta, trend: changeDirectionOf(query.metric, deltaPercent, deltaPoints), tone: changeToneOf(query.metric, deltaPercent, deltaPoints) };
+}
+
+function rowMoveOf(query: MetricQuery, row: MetricRow): Move {
+  return moveOf(query, deltaPercentOf(row), deltaPointsOf(row));
+}
+
+function headlineMoveOf(query: MetricQuery, result: OkResult): Move {
+  return moveOf(query, result.headline.deltaPercent, result.headline.deltaPoints ?? null);
 }
 
 function heroOf(query: MetricQuery, result: Extract<MetricResult, { ok: true }>, rows: MetricRow[]): CardHero {
-  const delta = result.headline.deltaPercent;
   return {
     label: heroLabelOf(query, result),
     value: result.headline.value,
-    delta: formatChange(query.metric, delta, result.headline.deltaPoints ?? null),
-    trend: directionOf(delta),
-    tone: toneOf(query.metric, delta),
+    ...headlineMoveOf(query, result),
     detail: paceNoteOf(query, result.provenance.asOf) ?? result.headline.compareLabel,
     note: heroNoteOf(query, result, rows),
   };
 }
 
+/** The total a hero that names one row moves to its note: the headline with its own change. */
+function totalNoteOf(query: MetricQuery, result: OkResult): string {
+  return TH.dash.overall(heroLabelOf(query, result), [result.headline.value, headlineMoveOf(query, result).delta].filter((part): part is string => part !== null).join(" "));
+}
+
 type LatestBucket = { label: string; value: string; deltaPercent: number; deltaPoints: number; versus: string };
 
-/** A rate over time without a comparison is read at its latest full bucket against the one before; the average of the whole line hides the turn someone asked about. */
+/** A series with no breakdown is read at its latest full bucket against the one before: a sum always (the range total moves to the note), a rate when nothing else is compared; the total or average of the whole line hides the turn someone asked about. */
 function latestBucketOf(query: MetricQuery, result: Extract<MetricResult, { ok: true }>, rows: MetricRow[]): LatestBucket | null {
-  if (result.headline.aggregate !== "average" || result.headline.deltaPercent !== null) return null;
+  if (result.headline.aggregate === "average" && result.headline.deltaPercent !== null) return null;
   if (!timeDimOf(query) || groupDimsOf(query).length > 0 || rows.length < 2) return null;
   const [previous, latest] = rows.slice(-2);
   const previousValue = numericOf(previous, "value");
@@ -412,7 +514,7 @@ function fullBucketRows(query: MetricQuery, rows: MetricRow[], asOf: string): Me
   return withoutPartialBucket(query, "line", rows, asOf).rows;
 }
 
-/** The change a card leads with, the same one its hero shows: the latest full bucket for a rate over time, the headline comparison otherwise. */
+/** The change a card leads with, the same one its hero shows: the latest full bucket for a series, the headline comparison otherwise. */
 export function headlineChangeOf(query: MetricQuery, result: MetricResult): { deltaPercent: number | null; deltaPoints: number | null; compareLabel: string | null } {
   if (!result.ok) return { deltaPercent: null, deltaPoints: null, compareLabel: null };
   const latest = latestBucketOf(query, result, fullBucketRows(query, result.rows, result.provenance.asOf));
@@ -425,57 +527,161 @@ function unitOf(query: MetricQuery): string {
   return dim && groupDimsOf(query).length === 1 ? TH.dash.dimUnit[dim] : TH.dash.item;
 }
 
-/** A breakdown judged against a line leads with how many groups sit under it, from every group in scope, then names the worst and the overall level, so "how many days does it last" is still answered. */
+/** A breakdown judged against a line leads with how many groups sit under it, from every group in scope, then names the worst and the overall level, so "how many days does it last" is still answered; asked only for the rows under the line, the card lists them, so the level of those rows is left out. */
 function underLineHero(query: MetricQuery, result: Extract<MetricResult, { ok: true }>, line: LevelLine, under: UnderLine): CardHero {
   const unit = unitOf(query);
   const weakest = weakestRow(query, result);
-  const overall = TH.dash.overall(heroLabelOf(query, result), result.headline.value);
-  const notes = [weakest ? TH.dash.weakest(weakest.lowIsWorst, weakest.label, weakest.value) : null, overall, result.headline.projection ? TH.dash.monthEnd(result.headline.projection) : null];
+  const overall = query.where ? null : TH.dash.overall(heroLabelOf(query, result), result.headline.value);
   return {
     label: line.underLabel,
     value: under.count > 0 ? TH.dash.countOf(under.count, under.of, unit) : TH.dash.noneUnder,
     delta: null,
     trend: "neutral",
     tone: "neutral",
-    detail: [under.count > 0 ? null : TH.dash.ofAll(under.of, unit), paceNoteOf(query, result.provenance.asOf)].filter((part): part is string => part !== null).join(" · ") || null,
-    note: notes.filter((note): note is string => note !== null).join(" · ") || null,
+    detail: joined([under.count > 0 ? null : TH.dash.ofAll(under.of, unit), paceNoteOf(query, result.provenance.asOf)]),
+    note: joined([weakest ? TH.dash.weakest(weakest.lowIsWorst, weakest.label, weakest.value) : null, overall, projectionNote(result)]),
   };
 }
 
-function heroFor(query: MetricQuery, result: Extract<MetricResult, { ok: true }>, rows: MetricRow[]): CardHero {
-  const line = LEVEL_LINES[query.metric];
-  const under = result.headline.underLine;
-  if (line && under && rankDimOf(query) && !timeDimOf(query)) return underLineHero(query, result, line, under);
+/** R1: one row, named. A breakdown or filter that left one row labels the hero with that row, so "3.9 ล้านลิตร" says which region it is. */
+function singleHero(facts: Facts): CardHero {
+  const { query, result, rows } = facts;
+  const total = heroOf(query, result, rows);
+  const row = rows[0];
+  const name = (row ? labelAlong(query.dims, row) : null) ?? scopeLabelsOf(query, result).join(", ");
+  return name ? { ...total, label: TH.dash.ownScope(metricLabel(query.metric), name) } : total;
+}
+
+function attainmentOf(row: MetricRow): number | null {
+  const delta = deltaPercentOf(row);
+  return delta === null ? null : PERCENT + delta;
+}
+
+function percentText(value: number): string {
+  return formatPercent(Math.round(value * 10) / 10);
+}
+
+/** R3: compared with a target, the hero is how much of the target the whole scope reached, coloured by the 100% line; how many groups sit under it, the furthest under and the total move to the note. */
+function attainmentHero(facts: Facts): CardHero {
+  const { query, result, rows } = facts;
+  const total = heroOf(query, result, rows);
+  const delta = result.headline.deltaPercent;
+  if (delta === null) return total;
+  const scored = rows.flatMap((row) => {
+    const value = attainmentOf(row);
+    return value === null ? [] : [{ label: labelOf(query, row), value }];
+  });
+  const under = scored.filter((entry) => entry.value < PERCENT);
+  const worst = under.reduce<{ label: string; value: number } | null>((low, entry) => (low === null || entry.value < low.value ? entry : low), null);
+  return {
+    ...total,
+    value: TH.dash.ofTarget(percentText(PERCENT + delta)),
+    note: joined([
+      under.length > 0 ? TH.dash.countUnderTarget(under.length, scored.length, unitOf(query)) : TH.dash.allOnTarget(unitOf(query)),
+      worst ? TH.dash.weakest(true, worst.label, percentText(worst.value)) : null,
+      TH.dash.overall(heroLabelOf(query, result), result.headline.value),
+      projectionNote(result),
+    ]),
+  };
+}
+
+function moverWordOf(sortBy: SortBy | null, deltaPercent: number): string {
+  if (sortBy === "delta_desc") return deltaPercent > 0 ? TH.dash.mover.roseMost : TH.dash.mover.fellLeast;
+  return deltaPercent < 0 ? TH.dash.mover.fellMost : TH.dash.mover.roseLeast;
+}
+
+/** R4: ranked by change, the hero is the row that moved first in that order, its level beside its change; the total moves to the note. */
+function moverHero(facts: Facts): CardHero {
+  const { query, result, rows, sortBy } = facts;
+  const first = rows.find((row) => deltaPercentOf(row) !== null);
+  const delta = first ? deltaPercentOf(first) : null;
+  if (!first || delta === null) return heroOf(query, result, rows);
+  return {
+    label: TH.dash.rowHero(moverWordOf(sortBy, delta), labelOf(query, first)),
+    value: valueTextOf(query, first),
+    ...rowMoveOf(query, first),
+    detail: TH.dash.compare[query.compare] || null,
+    note: joined([totalNoteOf(query, result), projectionNote(result)]),
+  };
+}
+
+/** R5: a ranking by value leads with its first row; the total or the average across rows moves to the note. */
+function leaderHero(facts: Facts): CardHero {
+  const { query, result, rows, sortBy } = facts;
+  const first = rows[0];
+  if (!first) return heroOf(query, result, rows);
+  const move = rowMoveOf(query, first);
+  const value = valueTextOf(query, first);
+  return {
+    label: TH.dash.rowHero(sortBy === "value_asc" ? TH.dash.lowest : TH.dash.highest, labelOf(query, first)),
+    value,
+    ...move,
+    detail: move.delta ? TH.dash.compare[query.compare] || null : paceNoteOf(query, result.provenance.asOf),
+    note: joined([result.headline.value === value ? null : totalNoteOf(query, result), projectionNote(result)]),
+  };
+}
+
+/** R6: a metric with a level line and nothing under it leads with its weakest row and says nothing is under the line. */
+function weakestHero(facts: Facts): CardHero {
+  const { query, result, rows, line } = facts;
+  const weakest = weakestRow(query, result);
+  if (!weakest || !line) return heroOf(query, result, rows);
+  return {
+    label: TH.dash.rowHero(weakest.lowIsWorst ? TH.dash.lowest : TH.dash.highest, weakest.label),
+    value: weakest.value,
+    delta: null,
+    trend: "neutral",
+    tone: line.aboveTone,
+    detail: line.noneUnder,
+    note: joined([TH.dash.overall(heroLabelOf(query, result), result.headline.value), paceNoteOf(query, result.provenance.asOf), projectionNote(result)]),
+  };
+}
+
+/** R9: a series leads with its latest full bucket against the one before; the range total and its comparison move to the note. */
+function latestHero(facts: Facts): CardHero {
+  const { query, result, rows } = facts;
   const latest = latestBucketOf(query, result, rows);
   if (!latest) return heroOf(query, result, rows);
+  const range = result.headline.aggregate === "sum" ? TH.dash.rangeTotal([result.headline.value, headlineMoveOf(query, result).delta, result.headline.compareLabel].filter((part): part is string => part !== null).join(" ")) : null;
   return {
     label: TH.dash.atBucket(metricLabel(query.metric), latest.label),
     value: latest.value,
     delta: formatChange(query.metric, latest.deltaPercent, latest.deltaPoints),
-    trend: directionOf(latest.deltaPercent),
-    tone: toneOf(query.metric, latest.deltaPercent),
+    trend: changeDirectionOf(query.metric, latest.deltaPercent, latest.deltaPoints),
+    tone: changeToneOf(query.metric, latest.deltaPercent, latest.deltaPoints),
     detail: latest.versus,
-    note: null,
+    note: range,
   };
 }
+
+function underCountHero(facts: Facts): CardHero {
+  const { query, result, rows, line, under } = facts;
+  return line && under ? underLineHero(query, result, line, under) : heroOf(query, result, rows);
+}
+
+const HEROES: Record<HeroKind, (facts: Facts) => CardHero> = {
+  total: (facts) => heroOf(facts.query, facts.result, facts.rows),
+  single: singleHero,
+  attainment: attainmentHero,
+  mover: moverHero,
+  leader: leaderHero,
+  weakest: weakestHero,
+  underCount: underCountHero,
+  latest: latestHero,
+};
 
 /** Bars measure the number printed beside them; a list ordered by what fell keeps that order and shows the change in the pill. */
 function rankRowsOf(query: MetricQuery, rows: MetricRow[]): RankRow[] {
   const shown = rows.slice(0, MAX_RANK_ROWS);
   const values = shown.map((row) => numericOf(row, "value") ?? 0);
   const peak = Math.max(...values.map(Math.abs), 0);
-  return shown.map((row, index) => {
-    const delta = deltaPercentOf(row);
-    return {
-      label: labelOf(query, row),
-      value: valueTextOf(query, row),
-      share: peak === 0 ? null : Math.abs(values[index]) / peak,
-      delta: changeTextOf(query.metric, row),
-      trend: directionOf(delta),
-      tone: toneOf(query.metric, delta),
-      note: null,
-    };
-  });
+  return shown.map((row, index) => ({
+    label: labelOf(query, row),
+    value: valueTextOf(query, row),
+    share: peak === 0 ? null : Math.abs(values[index]) / peak,
+    ...rowMoveOf(query, row),
+    note: null,
+  }));
 }
 
 function chartPoints(query: MetricQuery, rows: MetricRow[]): { label: string; value: number }[] {
@@ -545,8 +751,11 @@ function tableBody(query: MetricQuery, rows: MetricRow[], withCompare: boolean):
   };
 }
 
-function progressBody(rows: MetricRow[]): CardBody {
-  const value = numericOf(rows[0] ?? {}, "value");
+/** R1's body: a Meter of the one row against its target (attainment itself, or value over target), or nothing when there is no target. */
+function meterBody(query: MetricQuery, rows: MetricRow[]): CardBody {
+  const [row] = rows;
+  if (!row) return { kind: "none" };
+  const value = PROGRESS_METRICS.has(query.metric) ? numericOf(row, "value") : query.compare === "target" ? attainmentOf(row) : null;
   if (value === null) return { kind: "none" };
   const remaining = Math.round((PERCENT - value) * 10) / 10;
   return {
@@ -568,7 +777,7 @@ function changeBody(query: MetricQuery, rows: MetricRow[]): CardBody {
       gap: (deltas[index] ?? 0) / span,
       gapText: changeTextOf(query.metric, row) ?? "—",
       detail: valueTextOf(query, row),
-      tone: toneOf(query.metric, deltas[index]),
+      tone: rowMoveOf(query, row).tone,
     })),
     ends: { less: TH.dash.changeLess, more: TH.dash.changeMore },
     caption: TH.dash.changeCaption(TH.dash.compare[query.compare] ?? ""),
@@ -577,41 +786,60 @@ function changeBody(query: MetricQuery, rows: MetricRow[]): CardBody {
 }
 
 function levelToneOf(value: number, line: LevelLine): Tone {
-  if (value < line.at - line.tolerance) return "bad";
-  return value >= line.at ? line.aboveTone : "neutral";
+  return value < line.at ? "bad" : line.aboveTone;
+}
+
+type LevelPoint = { row: MetricRow; value: number | null; text: string; detail: string | null };
+
+function gapRowsOf(query: MetricQuery, points: LevelPoint[], line: LevelLine): GapRow[] {
+  const span = Math.max(line.minSpan, ...points.map((point) => (point.value === null ? 0 : Math.abs(point.value - line.at))));
+  return points.map((point) => ({
+    label: labelOf(query, point.row),
+    gap: point.value === null ? 0 : (point.value - line.at) / span,
+    gapText: point.text,
+    detail: point.detail,
+    tone: point.value === null ? "neutral" : levelToneOf(point.value, line),
+  }));
 }
 
 /** A level judged against a line (the target, the low-cover mark) draws each row's distance from that line, so 93% and 102% no longer look like two full bars. */
 function levelBody(query: MetricQuery, rows: MetricRow[], line: LevelLine): CardBody {
   const shown = rows.slice(0, MAX_RANK_ROWS);
-  const values = shown.map((row) => numericOf(row, "value"));
-  const span = Math.max(line.minSpan, ...values.map((value) => (value === null ? 0 : Math.abs(value - line.at))));
   const withChange = shown.some((row) => deltaPercentOf(row) !== null);
+  const points = shown.map((row) => ({ row, value: numericOf(row, "value"), text: valueTextOf(query, row), detail: changeTextOf(query.metric, row) }));
   return {
     kind: "gap",
-    rows: shown.map((row, index) => {
-      const value = values[index];
-      const delta = deltaPercentOf(row);
-      return {
-        label: labelOf(query, row),
-        gap: value === null ? 0 : (value - line.at) / span,
-        gapText: valueTextOf(query, row),
-        detail: changeTextOf(query.metric, row),
-        tone: value === null ? "neutral" : levelToneOf(value, line),
-      };
-    }),
+    rows: gapRowsOf(query, points, line),
     ends: line.ends,
     caption: withChange ? TH.dash.levelChangeCaption(line.caption, TH.dash.compare[query.compare] ?? "") : line.caption,
     shownOf: null,
   };
 }
 
-/** Which bars a breakdown deserves: the change when the list is ranked by it, the distance from a deciding line when the metric has one, the level from zero otherwise. */
-function barBody(shape: Shape): CardBody {
-  const { query, rows, sortBy } = shape;
-  if (asksAboutChange(sortBy) && rows.some((row) => deltaPercentOf(row) !== null)) return changeBody(query, rows);
+/** R3's body: each row's value over its target around the 100% line, furthest under first, the value itself in grey. */
+function targetBody(query: MetricQuery, rows: MetricRow[]): CardBody {
+  const byAttainment = [...rows].sort((left, right) => (attainmentOf(left) ?? Infinity) - (attainmentOf(right) ?? Infinity));
+  const points = byAttainment.slice(0, MAX_RANK_ROWS).map((row) => {
+    const value = attainmentOf(row);
+    return { row, value, text: value === null ? "—" : percentText(value), detail: valueTextOf(query, row) };
+  });
+  return { kind: "gap", rows: gapRowsOf(query, points, TARGET_LINE), ends: TARGET_LINE.ends, caption: TARGET_LINE.caption, shownOf: null };
+}
+
+function concreteBars(shape: Shape, bars: Bars): Exclude<Bars, "auto"> {
+  if (bars !== "auto") return bars;
+  if (asksAboutChange(shape.sortBy) && hasChange(shape.rows)) return "change";
+  return LEVEL_LINES[shape.query.metric] ? "level" : "rank";
+}
+
+/** The bars the decision table chose; with `auto`, the change when the list is ranked by it, the distance from a deciding line when the metric has one, the level from zero otherwise. */
+function barBody(shape: Shape, bars: Bars): CardBody {
+  const { query, rows } = shape;
+  const kind = concreteBars(shape, bars);
   const line = LEVEL_LINES[query.metric];
-  if (line) return levelBody(query, rows, line);
+  if (kind === "change") return changeBody(query, rows);
+  if (kind === "target") return targetBody(query, rows);
+  if (kind === "level" && line) return levelBody(query, rows, line);
   return { kind: "rank", rows: rankRowsOf(query, rows), showRank: rows.length > RANK_MIN_ROWS };
 }
 
@@ -647,7 +875,7 @@ function alertsBody(alerts: AlertRow[]): CardBody {
   return { kind: "alerts", items: items.slice(0, MAX_ALERTS), more: items.slice(MAX_ALERTS) };
 }
 
-function bodyFor(shape: Shape, view: CardView, extras: CardExtras): CardBody {
+function bodyFor(shape: Shape, view: CardView, extras: CardExtras, bars: Bars): CardBody {
   const { query, rows } = shape;
   if (view === "alert_list") return alertsBody(extras.alerts ?? []);
   if (view === "line") return lineBody(shape, extras);
@@ -658,9 +886,8 @@ function bodyFor(shape: Shape, view: CardView, extras: CardExtras): CardBody {
   if (view === "heatmap") return heatmapBody(query, rows, shape.sortBy);
   if (view === "share") return shareBody(query, rows);
   if (view === "table") return tableBody(query, rows, query.compare !== "none");
-  if (view === "bar" && rows.length >= RANK_MIN_ROWS) return barBody(shape);
-  if (view === "metric" && PROGRESS_METRICS.has(query.metric)) return progressBody(rows);
-  if (view === "metric") return { kind: "none" };
+  if (view === "bar" && (rows.length >= RANK_MIN_ROWS || (bars === "level" && rows.length > 0))) return barBody(shape, bars);
+  if (view === "metric") return meterBody(query, rows);
   if (rows.length === 0) return { kind: "none" };
   return tableBody(query, rows, false);
 }
@@ -673,21 +900,37 @@ function hiddenGroupsNote(shape: Shape, view: CardView): string | null {
 
 type Pairing = { view: "scatter" | "gap" | "funnel" | "overlay"; sources: Source[] };
 
-/** What a card bound to several metric results should draw, or null when they do not fit together and only the first is shown. */
+function sliceKeyOf(source: Source): string {
+  const { query } = source;
+  return JSON.stringify([[...query.dims].sort(), query.range.from, query.range.to, query.grain, Object.entries(query.filters ?? {}).sort(([left], [right]) => left.localeCompare(right))]);
+}
+
+function holdsOneValue(source: Source): boolean {
+  return groupDimsOf(source.query).length === 0 && source.result.rows.length <= 1;
+}
+
+/** R10: what a card bound to several metric results of the same dimensions and range draws (a funnel of single values in one unit, lines over the same buckets, a parity gap or a scatter of the same groups), or null when they do not fit together and only the first is shown. */
 function pairingOf(first: Source, others: Source[]): Pairing | null {
-  if (others.length === 0) return null;
-  const all = [first, ...others];
-  const noDims = all.every((source) => source.query.dims.length === 0);
-  if (noDims && sameUnit(all)) return { view: "funnel", sources: all };
-  const timeOnly = all.every((source) => timeDimOf(source.query) !== null && groupDimsOf(source.query).length === 0);
+  const all = [first, ...others.filter((other) => sliceKeyOf(other) === sliceKeyOf(first) && other.query.metric !== first.query.metric)];
+  if (all.length < 2) return null;
+  if (all.every(holdsOneValue) && sameUnit(all)) return { view: "funnel", sources: all };
+  const timeOnly = all.every((source) => timeDimOf(source.query) !== null && groupDimsOf(source.query).length === 0 && source.result.rows.length >= MIN_LINE_BUCKETS);
   if (timeOnly) return { view: "overlay", sources: all };
-  const [second] = others;
-  const sameGroups = groupDimsOf(first.query).join() === groupDimsOf(second.query).join() && groupDimsOf(first.query).length > 0;
-  const untimed = !timeDimOf(first.query) && !timeDimOf(second.query);
-  if (!sameGroups || !untimed) return null;
+  const [, second] = all;
+  const grouped = groupDimsOf(first.query).length > 0 && !timeDimOf(first.query);
+  if (!grouped) return null;
   if (isParityPair(first, second) && joinedRows(first, second).length >= RANK_MIN_ROWS) return { view: "gap", sources: [first, second] };
   if (joinedRows(first, second).length >= MIN_SCATTER_POINTS) return { view: "scatter", sources: [first, second] };
   return null;
+}
+
+/** Which of `others` (by index) the card of `first` draws with it under R10; empty when they do not pair, so each keeps its own card. */
+export function pairedIndexes(first: PresentSource, others: readonly PresentSource[]): number[] {
+  if (!first.result.ok) return [];
+  const candidates = others.flatMap((other, index) => (other.result.ok ? [{ index, source: { query: other.query, result: other.result } }] : []));
+  const pairing = pairingOf({ query: first.query, result: first.result }, candidates.map((candidate) => candidate.source));
+  if (!pairing) return [];
+  return pairing.sources.slice(1).flatMap((source) => candidates.filter((candidate) => candidate.source === source).map((candidate) => candidate.index));
 }
 
 function pairedBody(pairing: Pairing): CardBody {
@@ -701,26 +944,65 @@ function pairedBody(pairing: Pairing): CardBody {
 function pairedMeta(pairing: Pairing): string {
   const [first, ...others] = pairing.sources;
   const period = first.result.headline.periodLabel;
-  if (pairing.view !== "scatter" && pairing.view !== "gap") return TH.dash.scope(period, null);
+  const scope = scopeLabelsOf(first.query, first.result);
+  const filtered = scope.length > 0 ? TH.dash.filteredTo(scope.join(", ")) : null;
   const dim = rankDimOf(first.query);
-  const count = joinedRows(first, others[0]).length;
-  return TH.dash.scope(period, dim ? `${count} ${TH.dash.dimUnit[dim]}` : null);
+  const counted = (pairing.view === "scatter" || pairing.view === "gap") && dim ? `${joinedRows(first, others[0]).length} ${TH.dash.dimUnit[dim]}` : null;
+  return TH.dash.scope(period, joined([filtered, counted]));
+}
+
+function shortMetricLabel(source: Source): string {
+  return metricLabel(source.query.metric).replace(PARENTHETICAL, "");
+}
+
+/** A paired card's title names every metric it draws: the stages of a funnel in order, otherwise one against the other, and the groups they are compared by. */
+function pairedTitleOf(pairing: Pairing): string {
+  const labels = pairing.sources.map(shortMetricLabel);
+  if (pairing.view === "funnel") return TH.dash.stages(labels);
+  const dim = rankDimOf(pairing.sources[0].query);
+  const versus = TH.dash.versusMetrics(labels);
+  return dim ? TH.dash.ownScope(versus, TH.dash.byDims([TH.dash.dimUnit[dim]])) : versus;
+}
+
+function rowTotalOf(source: Source): number {
+  return source.result.rows.reduce((sum, row) => sum + (numericOf(row, "value") ?? 0), 0);
+}
+
+/** Two summed metrics in one unit read as one against the other: the last as a share of the first over everything the card draws (sell-out as a share of sell-in, sold out as a share of produced), the two totals beside it. */
+function ratioHero(base: Source, other: Source): CardHero | null {
+  const additive = base.result.headline.aggregate === "sum" && other.result.headline.aggregate === "sum";
+  const total = rowTotalOf(base);
+  if (!additive || !sameUnit([base, other]) || total === 0) return null;
+  const share = (rowTotalOf(other) / total) * PERCENT;
+  const move = moveOf(other.query, share - PERCENT, null);
+  return {
+    label: TH.dash.gapHeroLabel(shortMetricLabel(other), shortMetricLabel(base)),
+    value: percentText(share),
+    delta: null,
+    trend: move.trend,
+    tone: move.tone,
+    detail: TH.dash.stages([base.result.headline.value, other.result.headline.value]),
+    note: null,
+  };
 }
 
 function pairedHero(pairing: Pairing, indexed: boolean): CardHero | null {
   const [first, ...others] = pairing.sources;
+  const last = others[others.length - 1];
   if (pairing.view === "gap") {
     const dim = rankDimOf(first.query);
     return gapHero(first, others[0], dim ? TH.dash.dimUnit[dim] : null);
   }
-  return pairing.view === "overlay" && !indexed ? heroOf(first.query, first.result, first.result.rows) : null;
+  if (pairing.view === "funnel") return ratioHero(first, last);
+  if (pairing.view !== "overlay" || indexed) return null;
+  return (others.length === 1 ? ratioHero(first, last) : null) ?? heroOf(first.query, first.result, first.result.rows);
 }
 
 function pairedCard(input: PresentInput, pairing: Pairing): CardParts {
   const [first, ...others] = pairing.sources;
   const indexed = pairing.view === "overlay" && isIndexedOverlay(first, others);
   return {
-    title: input.title,
+    title: pairedTitleOf(pairing),
     meta: pairedMeta(pairing),
     description: input.description ?? null,
     footnote: footnoteOf(first.result, indexed ? TH.dash.indexedNote : null, 0),
@@ -891,8 +1173,15 @@ function lockedCard(input: PresentInput, result: Extract<MetricResult, { ok: tru
   };
 }
 
+/** How many groups the scope line counts: the rows a `where` kept (they are what the card shows), every group in scope when a level line counted them, else the rows the result holds. */
+function shownCountOf(query: MetricQuery, result: OkResult, visibleRows: MetricRow[], hidden: number): number {
+  if (query.where) return groupCountFor(query, visibleRows, visibleRows.length);
+  if (groupDimsOf(query).length === 1 && result.headline.underLine) return result.headline.underLine.of;
+  return groupCountFor(query, visibleRows, result.headline.rowCount - hidden);
+}
+
 /**
- * The one decision table for every data card in Winyu: what the headline is, which body the data shape deserves,
+ * Every data card in Winyu, drawn from the decision table (`CARD_RULES`): what the headline answers, which body the data shape deserves,
  * what the scope and source lines say. The dashboard and the chat both draw it.
  */
 export function presentCard(input: PresentInput): CardParts {
@@ -910,18 +1199,19 @@ export function presentCard(input: PresentInput): CardParts {
   const pairing = masked || hidden > 0 ? null : pairingOf({ query, result }, okSources(input.others));
   if (pairing) return pairedCard(input, pairing);
   const whole: Shape = { query, rows: visibleRows, additive: result.headline.aggregate === "sum", sortBy };
-  const view = hidden > 0 && visibleRows.length < RANK_MIN_ROWS ? "table" : viewFor(whole, input.view ?? "auto", masked, extras);
+  const facts = factsOf(whole, result);
+  const fit = fitOf(facts);
+  const view = hidden > 0 && visibleRows.length < RANK_MIN_ROWS ? "table" : viewFor(whole, input.view ?? "auto", masked, extras, fit);
   const trimmed = withoutPartialBucket(query, view, visibleRows, result.provenance.asOf);
   const shape: Shape = { ...whole, rows: sorted(query, trimmed.rows, sortBy) };
   const note = [trimmed.note, hiddenGroupsNote(shape, view)].filter((line): line is string => line !== null).join(" · ");
-  const body = bodyFor(shape, view, extras);
-  const rowCount = groupDimsOf(query).length === 1 && result.headline.underLine ? result.headline.underLine.of : groupCountFor(query, visibleRows, result.headline.rowCount - hidden);
+  const body = bodyFor(shape, view, extras, fit.bars);
   return {
     title,
-    meta: scopeOf(query, rowCount, drawnRowsOf(query, body), result.headline.periodLabel, result.provenance.filterLabels ?? [], hidden),
+    meta: scopeOf(query, shownCountOf(query, result, visibleRows, hidden), drawnRowsOf(query, body), result.headline.periodLabel, result.provenance.filterLabels ?? [], hidden),
     description: input.description ?? null,
     footnote: footnoteOf(result, note || null, hidden),
-    hero: masked || hidden > 0 || view === "alert_list" ? null : heroFor(query, result, shape.rows),
+    hero: masked || hidden > 0 || view === "alert_list" ? null : HEROES[fit.hero]({ ...facts, rows: shape.rows }),
     body,
     actions: input.actions ?? NO_ACTIONS,
     denied: null,
