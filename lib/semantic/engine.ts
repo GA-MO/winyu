@@ -341,7 +341,7 @@ function headlineOf(dictionary: Dictionary, def: MetricDef, query: MetricQuery, 
 
 function summarize(def: MetricDef, query: MetricQuery, headline: MetricHeadline, masked: boolean, empty: boolean): string {
   const span = headline.periodLabel;
-  if (masked) return `${def.labelTh} ${span}: ข้อมูลถูกปิดตามนโยบาย (masked) — เห็นได้เฉพาะโครงสร้างข้อมูล`;
+  if (masked) return `${def.labelTh} ${span}: ตัวเลขนี้ถูกซ่อนสำหรับบทบาทของผู้ถาม เห็นได้แค่ชื่อแถว`;
   if (empty) return `${def.labelTh} ${span}: ไม่พบข้อมูลตามเงื่อนไขที่ขอ`;
   const lead = headline.aggregate === "average" ? "เฉลี่ย" : "รวม";
   const parts = [`${def.labelTh} ${span}: ${lead} ${headline.value}`];
@@ -591,7 +591,8 @@ export function finishMetric(plan: MetricPlan, current: FactResult, comparison: 
     ...headlineOf(dictionary, def, query, capped, aggregated, averagedHeadline(def, query, ratio), compareRows, masked, suppressed, { periodLabel: plan.periodLabel, compareLabel: plan.compareLabel, compareNote: plan.compareNote }),
     underLine: masked ? null : underLineOf(def, query.dims, all, suppressed),
   };
-  const summary = [summarize(def, query, headline, masked, aggregated.length === 0), provenance.coverage?.label ?? null].filter((part): part is string => part !== null).join(" · ");
+  const coverage = masked ? null : (provenance.coverage?.label ?? null);
+  const summary = [summarize(def, query, headline, masked, aggregated.length === 0), coverage].filter((part): part is string => part !== null).join(" · ");
   return {
     ok: true,
     rows,

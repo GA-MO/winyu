@@ -7,7 +7,7 @@ import { runMetric as runOnGenerator } from "@/lib/data/query";
 import { ports, registerPorts, resetPorts } from "@/lib/server/ports";
 import { runMetric } from "./metrics";
 import { loadDictionary } from "./master-data";
-import { actionsForMetric } from "./next-actions";
+import { actionsForMetric, followUpsForMetric } from "./next-actions";
 import { DATA_AS_OF, dataDay, formatThaiDate, monthStart } from "@/lib/data/dates";
 
 const REP = accessFor(findUser("u_krit")!);
@@ -108,6 +108,17 @@ describe("runMetric over the metrics port", () => {
     if (!result.ok) throw new Error(result.error);
     const actions = actionsForMetric(CFO, result, await loadDictionary());
     expect(actions.some((action) => action.kind === "request_access")).toBe(true);
+  });
+
+  test("a hidden number reads plainly: no jargon, no data-coverage line, and no follow-up chips into the hidden data (AI-125)", async () => {
+    const result = await runMetric(question({ metric: "ar_overdue", dims: ["agent"], filters: { agent: ["ag_nea_02"] }, range: { from: monthStart(DATA_AS_OF), to: DATA_AS_OF } }), REP);
+    if (!result.ok) throw new Error(result.error);
+    expect(result.provenance.masked.length).toBeGreaterThan(0);
+    expect(result.summary).not.toContain("masked");
+    expect(result.summary).not.toContain("โครงสร้างข้อมูล");
+    expect(result.summary).not.toContain("มีข้อมูล");
+    const dictionary = await loadDictionary();
+    expect(followUpsForMetric(REP, result, dictionary, actionsForMetric(REP, result, dictionary))).toEqual([]);
   });
 
   test("a warehouse failure is the answer's failure", async () => {

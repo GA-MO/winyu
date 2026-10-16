@@ -109,7 +109,7 @@ describe("widgetCard", () => {
     expect(result.ok).toBe(true);
     const card = widgetCard(masked, result);
     expect(JSON.stringify(card)).not.toContain("***");
-    expect(JSON.stringify(card)).toContain("ถูกปิดตามสิทธิ์");
+    expect(JSON.stringify(card)).toContain("ถูกซ่อนสำหรับบทบาทของคุณ");
   });
 
   test("a matter that is not an alert leads with its reason and names its kind", () => {

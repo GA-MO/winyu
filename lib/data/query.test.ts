@@ -114,7 +114,7 @@ describe("access control", () => {
     if (masked.ok) {
       expect(masked.rows.every((row) => row.value === "***")).toBe(true);
       expect(masked.provenance.masked).toContain("value");
-      expect(masked.summary).toContain("masked");
+      expect(masked.summary).toContain("ถูกซ่อน");
     }
     const visible = runMetric(query({ metric: "avg_salary", dims: ["department"] }), HR);
     expect(visible.ok).toBe(true);

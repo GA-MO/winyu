@@ -120,9 +120,9 @@ export function actionsForAlert(access: AccessContext, alert: Alert | null, dict
   return withoutRepeatSend(actions, [alert.id]);
 }
 
-/** The follow-up questions the chat offers under the composer after this result, about the row the card is about, minus what the card already offers. */
+/** The follow-up questions the chat offers under the composer after this result, about the row the card is about, minus what the card already offers; none for numbers hidden from the person, whose every drill would come back hidden too. */
 export function followUpsForMetric(access: AccessContext, result: MetricResult, dictionary: Dictionary, cardActions: readonly NextAction[]): QuickAction[] {
-  if (!result.ok) return [];
+  if (!result.ok || result.provenance.masked.length > 0) return [];
   const taken = cardActions.map((action) => action.prompt).filter((prompt): prompt is string => prompt !== null);
   const { row } = cardFocus(result, alertInQuestion(access, result, dictionary), dictionary);
   return followUpsFor(access, { query: result.query, result, focus: row, taken }, learnedKindShare(actionEvents().all(), access.userId));
