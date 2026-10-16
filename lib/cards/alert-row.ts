@@ -9,14 +9,16 @@ import { RATIO_METRICS } from "@/lib/semantic/metrics";
 const SCOPE_ORDER: readonly Dim[] = ["agent", "dc", "plant", "sku", "brand", "channel", "province", "region"];
 const PERCENT = 100;
 const BRAND_SEPARATOR = ", ";
+const BRANDS_NAMED = 2;
 
 /** The Thai scope of an alert — "ส.รุ่งเรือง เทรดดิ้ง · สิงห์ · ภาคอีสาน" — never the raw dimension ids. */
 export function alertScopeLabel(alert: Alert, dictionary: Dictionary): string {
   const parts = SCOPE_ORDER.filter((dim) => alert.dims[dim] && !(dim === "brand" && alert.dims.sku)).map((dim) =>
     dictionary.displayLabel(dim, alert.dims[dim] as string),
   );
-  const brands = alert.brands?.map((brand) => dictionary.displayLabel("brand", brand)).join(BRAND_SEPARATOR);
-  if (brands && alert.dims.agent) parts.splice(1, 0, brands);
+  const brands = alert.brands ?? [];
+  const named = brands.slice(0, BRANDS_NAMED).map((brand) => dictionary.displayLabel("brand", brand)).join(BRAND_SEPARATOR);
+  if (named && alert.dims.agent) parts.splice(1, 0, TH.dash.someBrands(named, brands.length - BRANDS_NAMED));
   return parts.length > 0 ? parts.join(" · ") : metricLabel(alert.metric);
 }
 

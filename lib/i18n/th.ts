@@ -713,6 +713,7 @@ export const TH = {
     toTarget: (remaining: string) => `เหลืออีก ${remaining} ถึงเป้า`,
     timesLastYear: (ratio: string) => `${ratio} เท่าของปีก่อน`,
     perDay: (value: string) => `${value}/วัน`,
+    someBrands: (named: string, more: number) => (more > 0 ? `${named} และอีก ${more} แบรนด์` : named),
     pacedTarget: "เทียบเป้าตามเวลา",
     monthLeft: (amount: string) => `เหลืออีก ${amount} ถึงเป้าทั้งเดือน`,
     monthMet: "ถึงเป้าทั้งเดือนแล้ว",
