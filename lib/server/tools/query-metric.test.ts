@@ -3,7 +3,9 @@ import { accessFor } from "@/lib/access/policies";
 import { METRIC_IDS, type MetricId, type MetricResult } from "@/lib/contracts";
 import { DATA_AS_OF, monthStart } from "@/lib/data/dates";
 import { findUser } from "@/lib/data/entities/users";
-import { runWithAccess } from "@/lib/server/request-context";
+import { runWithAccess, runWithTurn } from "@/lib/server/request-context";
+import { ownAgentsFilter } from "@/lib/data/entities/agents";
+import { TH } from "@/lib/i18n/th";
 import { METRICS, TARGET_METRICS } from "@/lib/semantic/metrics";
 import { winyuTools } from "@/lib/server/agent/tools";
 
@@ -44,6 +46,35 @@ describe("query_metric for a running month against target", () => {
         expect(Math.round(printed(projection.monthTarget) - printed(result.headline.value))).toBe(printed(projection.remaining));
       }
     }
+  });
+});
+
+describe("a rep asking about their own book", () => {
+  const MONTH = { metric: "net_sales_volume", dims: [], filters: {}, range: { from: monthStart(DATA_AS_OF), to: DATA_AS_OF }, grain: "month", compare: "target", limit: null };
+
+  async function ask(userId: string, question: string, query: Record<string, unknown> = MONTH) {
+    const user = findUser(userId);
+    if (!user) throw new Error(`no ${userId}`);
+    const tool = winyuTools().query_metric;
+    const turn = { turnId: null, threadId: null, preloadPacketId: null, question, queries: [] };
+    return (await runWithAccess(accessFor(user), () => runWithTurn(turn, () => tool.execute(tool.inputSchema().parse(query))))) as Extract<MetricResult, { ok: true }>;
+  }
+
+  test("'ผมขายได้กี่เปอร์เซ็นต์' reads the agents assigned to the rep, says so, and keeps the target comparison", async () => {
+    const own = ownAgentsFilter("u_krit").agent ?? [];
+    expect(own.length).toBeGreaterThan(0);
+    const result = await ask("u_krit", "ผมขายได้กี่เปอร์เซ็นต์");
+    expect(result.query.filters.agent).toEqual(own);
+    expect(result.summary).toContain(TH.quick.ownAgentsApplied(own.length));
+    expect(result.headline.projection?.monthTarget).toBeDefined();
+  });
+
+  test("a question naming a wider place, another role, or a named agent is left as asked", async () => {
+    expect((await ask("u_krit", "ยอดทั้งภาคเดือนนี้ผมอยากรู้")).query.filters.agent).toBeUndefined();
+    expect((await ask("u_anucha", "ผมขายได้กี่เปอร์เซ็นต์")).query.filters.agent).toBeUndefined();
+    expect((await ask("u_krit", "ยอดขายเดือนนี้เท่าไร")).query.filters.agent).toBeUndefined();
+    const named = await ask("u_krit", "ของผมที่อีสานรุ่งโรจน์", { ...MONTH, filters: { agent: ["อีสานรุ่งโรจน์"] } });
+    expect(named.query.filters.agent?.length).toBe(1);
   });
 });
 

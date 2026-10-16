@@ -1391,6 +1391,7 @@ export const TH = {
     monthEndReason: "ใกล้สิ้นเดือน เหลือไม่กี่วันก่อนปิดยอด",
     starter: (role: string) => `ชุดตั้งต้นสำหรับ${role}`,
     myAgentsPrompt: (agents: string[]) => `สรุปยอดเดือนนี้ของเอเย่นต์ที่ผมดูแล ${agents.length} ราย: ${agents.join(", ")}`,
+    ownAgentsApplied: (count: number) => `คำถามพูดถึงของผู้ถามเอง จึงกรองเฉพาะเอเย่นต์ที่ผู้ถามดูแล ${count} ราย`,
     lent: "เตรียมสต๊อกออกพรรษา",
     lentReason: "ใกล้ออกพรรษา ยอดเบียร์จะกลับมา",
   },
