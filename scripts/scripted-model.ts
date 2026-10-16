@@ -3,6 +3,7 @@ import { MockLanguageModelV3 } from "ai/test";
 import * as models from "@/lib/server/models";
 
 type StreamResult = Awaited<ReturnType<MockLanguageModelV3["doStream"]>>;
+type GenerateResult = Awaited<ReturnType<MockLanguageModelV3["doGenerate"]>>;
 type StreamPart = StreamResult["stream"] extends ReadableStream<infer Part> ? Part : never;
 
 type ScriptedCall = { call: string; args: Record<string, unknown> };
@@ -23,6 +24,13 @@ function toolCallsOf(calls: readonly ScriptedCall[], index: number): StreamPart[
   ];
 }
 
+function generatedOf(step: SpokenStep, index: number): GenerateResult {
+  if ("text" in step) return { content: [{ type: "text", text: step.text }], finishReason: { unified: "stop", raw: "stop" }, usage: USAGE, warnings: [] };
+  const calls = "call" in step ? [step] : step.calls;
+  const content = calls.map((call, position) => ({ type: "tool-call" as const, toolCallId: position === 0 ? `scripted-${index}` : `scripted-${index}-${position}`, toolName: call.call, input: JSON.stringify(call.args) }));
+  return { content, finishReason: { unified: "tool-calls", raw: "tool_calls" }, usage: USAGE, warnings: [] };
+}
+
 function partsOf(step: SpokenStep, index: number): StreamPart[] {
   if ("call" in step) return toolCallsOf([step], index);
   if ("calls" in step) return toolCallsOf(step.calls, index);
@@ -36,11 +44,11 @@ function partsOf(step: SpokenStep, index: number): StreamPart[] {
   ];
 }
 
-/** A stand-in for the chat model in tests: each model call takes the next step of the current script, so a whole turn runs through the real agent, gateway and harness without a paid call. */
+/** A stand-in for the chat model in tests: each model call, streamed or generated, takes the next step of the current script, so a whole turn runs through the real agent, gateway and harness without a paid call. */
 export class ScriptedModel {
   private steps: ScriptedStep[] = [];
   private served = 0;
-  readonly model = new MockLanguageModelV3({ provider: "scripted", modelId: "scripted", doStream: async () => this.next() });
+  readonly model = new MockLanguageModelV3({ provider: "scripted", modelId: "scripted", doStream: async () => this.next(), doGenerate: () => this.generated() });
 
   /** How many model calls this stand-in has served. */
   get calls(): number {
@@ -56,6 +64,13 @@ export class ScriptedModel {
   modelsModule() {
     const agentModel = (): models.AgentModel => ({ id: "scripted", name: "scripted", chat: () => this.model, model: () => this.model });
     return { ...models, agentModel, utilityModel: () => null };
+  }
+
+  private generated(): Promise<GenerateResult> {
+    this.served += 1;
+    const step = this.steps.shift() ?? { text: FALLBACK_TEXT };
+    if ("hang" in step) return new Promise(() => {});
+    return Promise.resolve(generatedOf(step, this.served));
   }
 
   private next(): StreamResult {

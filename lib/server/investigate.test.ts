@@ -1,11 +1,14 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, setDefaultTimeout, test } from "bun:test";
+import { ScriptedModel } from "@/scripts/scripted-model";
 import { accessFor } from "@/lib/access/policies";
 import { findUser } from "@/lib/data/entities/users";
 import type { DraftStory, MetricQuery } from "@/lib/contracts";
 import { runMetric } from "./metrics";
-import { callsWithAnomalies, cardNumbersOf, evidenceIndexOf, gapQueryOf, investigateSystemFor, openAnomalies, repeatedIn, reviewDrafts, roleHoldersNamedIn, storiesFrom, evidenceQueryOf, whoOf, withoutPinnedDims, type ToolCall } from "./investigate";
+import { callsWithAnomalies, cardNumbersOf, evidenceIndexOf, gapQueryOf, investigate, investigateSystemFor, openAnomalies, repeatedIn, reviewDrafts, roleHoldersNamedIn, storiesFrom, evidenceQueryOf, whoOf, withoutPinnedDims, type ToolCall } from "./investigate";
 import { agentsOwnedBy } from "@/lib/data/entities/agents";
 import { DATA_AS_OF, dataDay, monthStart } from "@/lib/data/dates";
+
+setDefaultTimeout(30_000);
 
 function accessOf(userId: string) {
   const user = findUser(userId);
@@ -172,5 +175,51 @@ describe("a story is checked before it is kept", () => {
     expect(stories).toHaveLength(1);
     expect(stories[0].ruledOut).toEqual([{ text: "สต๊อก DC พอ", source: "query_metric" }]);
     expect(dropped.map((entry) => [...entry.names, ...entry.ungrounded])).toEqual([["คุณอนุชา พรหมศรี"], ["123,456,789"]]);
+  });
+});
+
+describe("every P1 matter of the person gets a story (AI-166)", () => {
+  const CEO = "u_thana";
+  const NOTES = "Four P1 matters: Lamphun cover, South AR, the Isan sell-in drop at two agents, Korat market share.";
+  const LAMPHUN: DraftStory = { kind: "urgent", finding: "สต๊อกเพอร์ร่าที่ศูนย์ลำพูนจะหมดก่อนรอบเติม", scope: "DC ลำพูน · เพอร์ร่า 600 มล.", subject: { metric: "days_of_cover", region: "north" }, evidence: null, ruledOut: [], action: "ถามนักวางแผนซัพพลายว่าจะโอนของเข้าลำพูนเมื่อไร" };
+  const SOUTH_AR: DraftStory = { kind: "urgent", finding: "หนี้ค้างชำระภาคใต้สูงขึ้นมาก กระจุกอยู่ไม่กี่เอเย่นต์", scope: "ภาคใต้", subject: { metric: "ar_overdue", region: "south" }, evidence: null, ruledOut: [], action: "ถามฝ่ายสินเชื่อว่าจะเร่งเก็บหนี้อย่างไร" };
+  const KORAT_SHARE: DraftStory = { kind: "watch", finding: "ส่วนแบ่งตลาดเบียร์ที่นครราชสีมาลดลง คู่แข่งรุกหนัก", scope: "นครราชสีมา", subject: { metric: "market_share", region: "northeast" }, evidence: null, ruledOut: [], action: null };
+  const ISAN: DraftStory = { kind: "urgent", finding: "ยอดขายเข้าอีสานจะปิดเดือนต่ำกว่าเป้า สองเอเย่นต์แทบหยุดสั่ง", scope: "ภาคอีสาน", subject: { metric: "net_sales_value", region: "northeast" }, evidence: null, ruledOut: [], action: "ถามผู้จัดการขายภาคอีสานว่าสองเอเย่นต์ติดอะไร" };
+
+  function writes(...replies: DraftStory[][]) {
+    const scripted = new ScriptedModel();
+    scripted.script([{ text: NOTES }, ...replies.map((stories) => ({ text: JSON.stringify({ stories }) }))]);
+    return scripted;
+  }
+
+  function promptOf(scripted: ScriptedModel, call: number): string {
+    return JSON.stringify(scripted.model.doGenerateCalls[call]?.prompt ?? null);
+  }
+
+  test("a writer that leaves out the Isan sell-in story is asked once to write it, naming only the uncovered anomalies, and the story leads the drawer", async () => {
+    const scripted = writes([LAMPHUN, SOUTH_AR, KORAT_SHARE], [ISAN]);
+    const run = await investigate(CEO, scripted.model, "scripted");
+    expect(run.investigation.stories.map((story) => story.scope)).toEqual(["ภาคอีสาน", LAMPHUN.scope, SOUTH_AR.scope, KORAT_SHARE.scope]);
+    expect(scripted.calls).toBe(3);
+    const rewrite = promptOf(scripted, 2);
+    expect(rewrite).toContain("ag_nea_02");
+    expect(rewrite).toContain("ag_nea_05");
+    expect(rewrite).not.toContain("pv_nakhonratchasima");
+  });
+
+  test("a writer that still leaves it out keeps what it wrote, invents nothing and records the gap", async () => {
+    const scripted = writes([LAMPHUN, SOUTH_AR, KORAT_SHARE], []);
+    const run = await investigate(CEO, scripted.model, "scripted");
+    expect(run.investigation.stories.map((story) => story.scope)).toEqual([LAMPHUN.scope, SOUTH_AR.scope, KORAT_SHARE.scope]);
+    expect(scripted.calls).toBe(3);
+    expect(run.uncovered.map((anomaly) => anomaly.scope.agent)).toEqual(["ag_nea_02", "ag_nea_05"]);
+  });
+
+  test("four stories that cover every P1 matter are kept as written, with no rewrite", async () => {
+    const scripted = writes([LAMPHUN, ISAN, SOUTH_AR, KORAT_SHARE]);
+    const run = await investigate(CEO, scripted.model, "scripted");
+    expect(run.investigation.stories).toHaveLength(4);
+    expect(scripted.calls).toBe(2);
+    expect(run.uncovered).toEqual([]);
   });
 });
