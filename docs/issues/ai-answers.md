@@ -1746,14 +1746,14 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 | ข้อ | ระดับ | สถานะ | ปัญหา |
 |---|---|---|---|
-| AI-132 (เดิม AI-96) | สูง | แก้แล้ว `0b9f482` · รอยืนยันกับโมเดล | An approved chat send fails when the model read the card in the same step as send_card: the approval shows one card, but the resumed run resolves against the older screen and refuses with raw cardRef ids |
+| AI-132 (เดิม AI-96) | สูง | แก้แล้ว `bacdb0f` · รอยืนยันกับโมเดล | An approved chat send fails when the model read the card in the same step as send_card: the approval shows one card, but the resumed run resolves against the older screen and refuses with raw cardRef ids |
 | AI-133 (เดิม AI-112) | กลาง | ยังเสีย | Turns over 40 s on the demo path, almost all of it in unbounded final-step reasoning |
 | AI-134 (เดิม AI-90) | กลาง | แก้แล้ว `85151f5` · รอยืนยันกับโมเดล | 'ผม/ของผม' for the rep resolves to Khon Kaen province (2 of his 4 agents), so chat and the home pin give different attainment |
 | AI-135 (เดิม AI-131) | กลาง | ยังเสีย | The run sheet describes buttons and texts the product does not show |
 | AI-136 | กลาง | แก้แล้ว `9209e23` · รอยืนยันกับโมเดล | The run-sheet story card is in litres while every chat answer about the same Isan month is in baht (79.7% vs 77.3%, both 'ของเป้าทั้งเดือน') |
 | AI-137 | กลาง | แก้แล้ว `5c0e4a4` · รอยืนยันกับโมเดล | Matters sent from chat lose their subject: titles carry no agent or brand, asks can be urgency words only, and the receiver's inbox cannot name what was sent |
-| AI-138 | กลาง | แก้แล้ว `f7e1944` | The send approval previews the raw row sum (5.1 ล้านลิตร, 97.8 ล้านบาท), not the hero the card shows (79.7%, 72.4%) |
-| AI-139 | กลาง | แก้แล้ว `f5b5802` · รอยืนยันกับโมเดล | A new question sent while an approval waits re-raises the abandoned send instead of answering |
+| AI-138 | กลาง | แก้แล้ว `46cbcf2` | The send approval previews the raw row sum (5.1 ล้านลิตร, 97.8 ล้านบาท), not the hero the card shows (79.7%, 72.4%) |
+| AI-139 | กลาง | แก้แล้ว `a967069` · รอยืนยันกับโมเดล | A new question sent while an approval waits re-raises the abandoned send instead of answering |
 | AI-140 (เดิม AI-110) | กลาง | ยังเสีย | The CEO risk answer says there is no stock risk while its own anomaly card leads with a P1 stock-out, and it merges stock cover and AR into one strip |
 | AI-141 (เดิม AI-53) | กลาง | ยังเสีย | Breakdown cards mix bases: the hero is % of the full-month target, the unlabelled rows are % of the pro-rated target, and every row is red |
 | AI-142 | กลาง | เปิด (ใหม่) | The gap card (explain_gap) has no verdict; for 'how will the month close' it leads with month-to-date and hides the forecast below the fold |
@@ -1766,7 +1766,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 | AI-149 | กลาง | แก้แล้ว `b33d05b` · รอยืนยันกับโมเดล | 'Only what is hidden' gets a card of 18 restricted items while the text says 2 |
 | AI-150 | กลาง | แก้แล้ว `b33d05b` · รอยืนยันกับโมเดล | 'Who uses Winyu most' is answered 'no per-person data', though every audit row has a user |
 | AI-151 | กลาง | แก้แล้ว `b33d05b` | Permission changes made in the Admin console (คืนค่า, reset) are not written to the audit |
-| AI-152 (เดิม AI-100) | ต่ำ | แก้แล้ว `60af27a` | Failed or denied calls still draw actionable UI: a stray 'ไม่ได้ปักการ์ด' chip beside the pin approval, and a ส่งต่อ button on the access-denied card |
+| AI-152 (เดิม AI-100) | ต่ำ | แก้แล้ว `c75dbad` | Failed or denied calls still draw actionable UI: a stray 'ไม่ได้ปักการ์ด' chip beside the pin approval, and a ส่งต่อ button on the access-denied card |
 | AI-153 (เดิม AI-123) | ต่ำ | ยังเสีย | Follow-up chips and card actions still leave the asked subject in places |
 | AI-154 (เดิม AI-131) | ต่ำ | แก้แล้ว `87199fe` | Story pages offer 'ส่งให้คุณอนุชา' as the main action to the CEO who sent it and to the rep who received it |
 | AI-155 | ต่ำ | แก้แล้ว `142dd1a` | Share sheet and story drawer on run-sheet step 1: 'ผู้รับผิดชอบเรื่องนี้' lists the CEO's whole line, the Isan story sits third below an expanded story, and the sheet text is cut or unspaced |
@@ -1778,12 +1778,12 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 | AI-161 | ต่ำ | แก้แล้ว `cc98f0e` · รอยืนยันกับโมเดล | The overclaim rebuttal invites resending the false message and offers no corrected wording |
 | AI-162 (เดิม AI-79) | ต่ำ | แก้แล้ว `cc98f0e` · รอยืนยันกับโมเดล | The text after an approved send mixes 'preparing' and 'done' |
 | AI-163 | ต่ำ | แก้แล้ว `cc98f0e` · รอยืนยันกับโมเดล | IT asks how a denied RSM can get access; the answer points to the South RSM, not the admin's own grant path |
-| AI-164 (เดิม AI-99) | ต่ำ | แก้แล้ว `78115ce` · นอกเส้นทางเดโม | Reload mid-reply rejoins the run but duplicates step lines and resets the timer |
+| AI-164 (เดิม AI-99) | ต่ำ | แก้แล้ว `c9cce46` · นอกเส้นทางเดโม | Reload mid-reply rejoins the run but duplicates step lines and resets the timer |
 | AI-165 | ต่ำ | เปิด (ใหม่) · นอกเส้นทางเดโม | The month-end forecast card cannot be pinned |
 
 ### AI-132. An approved chat send fails when the model read the card in the same step as send_card: the approval shows one card, but the resumed run resolves against the older screen and refuses with raw cardRef ids
 
-- **สถานะ:** แก้แล้ว `0b9f482` · เดิม AI-96 · รอยืนยันกับโมเดล: ตอนกลับมาทำต่อหลังอนุมัติ Mastra เขียน step ที่หยุดไว้ทับลงหน่วยความจำโดยไม่มีผลของ query_metric ตอนนี้ run ที่ทำต่อเริ่มด้วยผลที่ run ที่ขออนุมัติทำเสร็จแล้ว (อ่านหลังบันทึกผลเสร็จ) จึงส่งการ์ดใบที่การ์ดยืนยันแสดง, การเรียกที่ gateway ปฏิเสธลง audit เป็น deny, และใบแจ้ง "ไม่ได้ส่งการ์ด" ใช้ข้อความภาษาไทยตามรหัสแทนข้อความถึงโมเดล (approval-same-step.test ล้มบนโค้ดเดิมด้วย CARD_UNCLEAR, ใน browser ด้วยโมเดลจำลอง CEO ส่งการ์ดรายเอเย่นต์อีสาน 79.7% ที่การ์ดยืนยันแสดงได้จริง)
+- **สถานะ:** แก้แล้ว `bacdb0f` · เดิม AI-96 · รอยืนยันกับโมเดล: ตอนกลับมาทำต่อหลังอนุมัติ Mastra เขียน step ที่หยุดไว้ทับลงหน่วยความจำโดยไม่มีผลของ query_metric ตอนนี้ run ที่ทำต่อเริ่มด้วยผลที่ run ที่ขออนุมัติทำเสร็จแล้ว (อ่านหลังบันทึกผลเสร็จ) จึงส่งการ์ดใบที่การ์ดยืนยันแสดง, การเรียกที่ gateway ปฏิเสธลง audit เป็น deny, และใบแจ้ง "ไม่ได้ส่งการ์ด" ใช้ข้อความภาษาไทยตามรหัสแทนข้อความถึงโมเดล (approval-same-step.test ล้มบนโค้ดเดิมด้วย CARD_UNCLEAR, ใน browser ด้วยโมเดลจำลอง CEO ส่งการ์ดรายเอเย่นต์อีสาน 79.7% ที่การ์ดยืนยันแสดงได้จริง)
 - **ระดับ:** สูง · **หมวด:** `chain` · **บทบาท:** u_anucha (RSM)
 - **อาการ:** After 'ยืนยัน ส่งงานให้คุณกฤตเลย' the model called query_metric (Khon Kaen agent) and send_card in one step. The approval showed 'มูลค่าขายเข้า · รายเอเย่นต์ 71.0 ล้านบาท'. On ส่ง the gateway denied with CARD_UNCLEAR and listed only the two turn-1 cards (c1br6lox, cw6z8sf), so the user saw raw English 'cardRef: …' text. A third turn was needed to send ckj4ngn. With only one older card on screen, the resolver would have sent a card other than the one approved. The refused send is also audited as 'allow'.
 - **ที่ควรเป็น:** An approved send carries exactly the card its approval showed. A card drawn in the same step as the send counts as on screen when the resumed run executes. Errors never show ref ids or English.
@@ -1866,7 +1866,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-138. The send approval previews the raw row sum (5.1 ล้านลิตร, 97.8 ล้านบาท), not the hero the card shows (79.7%, 72.4%)
 
-- **สถานะ:** แก้แล้ว `f7e1944`: ตัวเลขบนการ์ดยืนยันมาจาก hero ที่ card plan วาดจริง (presentCard พร้อมผลที่จับคู่) ไม่ใช่ผลรวมแถว (card-to-share.test ล้มบนโค้ดเดิม 5.1 ล้านลิตร แทน 79.7% ของเป้าทั้งเดือน, ใน browser การ์ดยืนยันแสดง 79.7% ของเป้าทั้งเดือน ตรงกับการ์ด)
+- **สถานะ:** แก้แล้ว `46cbcf2`: ตัวเลขบนการ์ดยืนยันมาจาก hero ที่ card plan วาดจริง (presentCard พร้อมผลที่จับคู่) ไม่ใช่ผลรวมแถว (card-to-share.test ล้มบนโค้ดเดิม 5.1 ล้านลิตร แทน 79.7% ของเป้าทั้งเดือน, ใน browser การ์ดยืนยันแสดง 79.7% ของเป้าทั้งเดือน ตรงกับการ์ด)
 - **ระดับ:** กลาง · **หมวด:** `write-flow` · **บทบาท:** u_thana (CEO chain alt), u_krit (rep)
 - **อาการ:** The CEO's run-sheet chat send raised an approval reading 'ปริมาณขายเข้า (Sell-in) · รายเอเย่นต์ 5.1 ล้านลิตร' for a card that leads with 79.7% ของเป้าทั้งเดือน · ขาดอีก 1.29 ล้านลิตร. The rep's preview showed 97.8 ล้านบาท beside a card at 72.4%. The attached cards were correct.
 - **ที่ควรเป็น:** The approval preview shows the same hero the drawn card shows.
@@ -1878,7 +1878,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-139. A new question sent while an approval waits re-raises the abandoned send instead of answering
 
-- **สถานะ:** แก้แล้ว `f5b5802` · รอยืนยันกับโมเดล: สาเหตุจริงคือ send_card ที่ค้างไม่มีผล Mastra จึงตัดทิ้งจาก prompt โมเดลเห็นแค่คำขอส่งที่ยังไม่เสร็จ ตอนนี้ก่อนคำถามใหม่จะวิ่ง ระบบบันทึกผล LEFT_FOR_NEW_QUESTION ลงหน่วยความจำ บอกว่าผู้ใช้ถามเรื่องใหม่และห้ามเรียกซ้ำ แชตที่โหลดใหม่แสดง "ยกเลิกไว้ เพราะคุณถามเรื่องใหม่" (approval-left-behind.test ล้มบนโค้ดเดิม, ใน browser โมเดลจำลองได้ prompt ที่มีผลนี้)
+- **สถานะ:** แก้แล้ว `a967069` · รอยืนยันกับโมเดล: สาเหตุจริงคือ send_card ที่ค้างไม่มีผล Mastra จึงตัดทิ้งจาก prompt โมเดลเห็นแค่คำขอส่งที่ยังไม่เสร็จ ตอนนี้ก่อนคำถามใหม่จะวิ่ง ระบบบันทึกผล LEFT_FOR_NEW_QUESTION ลงหน่วยความจำ บอกว่าผู้ใช้ถามเรื่องใหม่และห้ามเรียกซ้ำ แชตที่โหลดใหม่แสดง "ยกเลิกไว้ เพราะคุณถามเรื่องใหม่" (approval-left-behind.test ล้มบนโค้ดเดิม, ใน browser โมเดลจำลองได้ prompt ที่มีผลนี้)
 - **ระดับ:** กลาง · **หมวด:** `write-flow` · **บทบาท:** u_krit (rep, chain break 2)
 - **อาการ:** While a send_card approval waited, the rep asked 'ขอนแก่นมหาชัยค้างชำระเท่าไร'. The first approval was denied correctly, then the model issued send_card again with the same cardRef and ask and raised the same approval. The question was answered only after the rep tapped ยังไม่ส่ง, about 51 s in all.
 - **ที่ควรเป็น:** After a new message the abandoned send stays closed and the turn answers the new question.
@@ -2034,7 +2034,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-152. Failed or denied calls still draw actionable UI: a stray 'ไม่ได้ปักการ์ด' chip beside the pin approval, and a ส่งต่อ button on the access-denied card
 
-- **สถานะ:** แก้แล้ว `60af27a` · เดิม AI-100: pin_widget รับ query แบบเดียวกับ query_metric (period กับ range null) แล้วแปลงเป็นวันที่, การเรียกที่ runtime ปฏิเสธเพราะ schema ถูกซ่อนเมื่อมีการเรียกซ้ำที่รออนุมัติ, การ์ดที่ถูกปฏิเสธสิทธิ์ไม่มีปุ่มส่งต่อและไม่นับเป็นการ์ดที่ส่งได้ (pin-widget.test, timeline.test, exchange-view.test ล้มบนโค้ดเดิม, ใน browser RSM ปักการ์ดด้วย period ได้โดยไม่มีชิป และการ์ดภาคใต้มีแค่ปุ่มขอสิทธิ์)
+- **สถานะ:** แก้แล้ว `c75dbad` · เดิม AI-100: pin_widget รับ query แบบเดียวกับ query_metric (period กับ range null) แล้วแปลงเป็นวันที่, การเรียกที่ runtime ปฏิเสธเพราะ schema ถูกซ่อนเมื่อมีการเรียกซ้ำที่รออนุมัติ, การ์ดที่ถูกปฏิเสธสิทธิ์ไม่มีปุ่มส่งต่อและไม่นับเป็นการ์ดที่ส่งได้ (pin-widget.test, timeline.test, exchange-view.test ล้มบนโค้ดเดิม, ใน browser RSM ปักการ์ดด้วย period ได้โดยไม่มีชิป และการ์ดภาคใต้มีแค่ปุ่มขอสิทธิ์)
 - **ระดับ:** ต่ำ · **หมวด:** `ui` · **บทบาท:** u_anucha (RSM)
 - **อาการ:** The first pin_widget call failed schema validation ('query.range: expected object') because the model passed period as for query_metric; the retry worked but a failure chip showed beside the approval. The South denial card has a ส่งต่อ button preselecting the South RSM. (The salary-refusal part of AI-100 is fixed.)
 - **ที่ควรเป็น:** A schema retry is not drawn; a denial card has the request-access action only.
@@ -2174,7 +2174,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-164. Reload mid-reply rejoins the run but duplicates step lines and resets the timer
 
-- **สถานะ:** แก้แล้ว `78115ce` · เดิม AI-99 · นอกเส้นทางเดโม: บรรทัดซ้ำไม่ได้มาจากการ replay แต่เป็นการเรียกส่วนแบ่งตลาดจริงสองครั้ง (trace bace56ec) บรรทัดระหว่างทำจึงแสดงรายละเอียดของแต่ละขั้นเหมือนตอนจบ และหน้าที่โหลดใหม่จับเวลาจากเวลาเริ่มของ run (action-trail.test, use-chat-session.test ล้มบนโค้ดเดิม, ใน browser รีโหลดกลางคำตอบแล้วสรุป 28.8 วินาที จากเวลาจริงราว 30 วินาที)
+- **สถานะ:** แก้แล้ว `c9cce46` · เดิม AI-99 · นอกเส้นทางเดโม: บรรทัดซ้ำไม่ได้มาจากการ replay แต่เป็นการเรียกส่วนแบ่งตลาดจริงสองครั้ง (trace bace56ec) บรรทัดระหว่างทำจึงแสดงรายละเอียดของแต่ละขั้นเหมือนตอนจบ และหน้าที่โหลดใหม่จับเวลาจากเวลาเริ่มของ run (action-trail.test, use-chat-session.test ล้มบนโค้ดเดิม, ใน browser รีโหลดกลางคำตอบแล้วสรุป 28.8 วินาที จากเวลาจริงราว 30 วินาที)
 - **ระดับ:** ต่ำ · **หมวด:** `ui` · **บทบาท:** u_thana (CEO)
 - **อาการ:** After a reload 6 s in, the run came back (AI-99 fixed), but 'ดึงส่วนแบ่งตลาดเบียร์แล้ว' showed twice and the turn time read 16.2 s for a 44.5 s run.
 - **ที่ควรเป็น:** Each step shown once; time measured from the original send.
