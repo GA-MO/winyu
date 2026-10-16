@@ -7,7 +7,8 @@ import { notificationTarget, notificationTitle } from "@/lib/share/notification-
 import { newHandoffsFor, pendingRequestsFor } from "@/lib/server/inbox";
 import { notificationsOf } from "@/lib/server/notify";
 import { mattersWaitingOn } from "@/lib/server/share/shares";
-import type { Matter } from "@/lib/share/matter";
+import { holdingHop, type Matter } from "@/lib/share/matter";
+import { briefOf } from "@/lib/server/share/act";
 import { personaOf } from "@/lib/server/portraits";
 
 const BELL_UPDATES = 8;
@@ -49,12 +50,14 @@ function handoffItem(packet: ContextPacket, told: Map<string, Notification>): Be
   };
 }
 
-function matterItem(matter: Matter, told: Map<string, Notification>): BellDecision {
+function matterItem(matter: Matter, userId: string, told: Map<string, Notification>): BellDecision {
   const key = decisionKey("matter", matter.id);
-  const person = personOf(matter.senderId);
+  const handedBy = holdingHop(matter)?.fromUserId ?? matter.senderId;
+  const person = personOf(handedBy);
   const note = told.get(key);
-  const title = notificationTitle({ kind: "matter", refId: matter.id, senderName: person?.name ?? matter.senderId, ask: matter.ask });
-  return { key, kind: "matter", refId: matter.id, title, person, at: matter.at, read: note?.read ?? false, target: notificationTarget({ kind: "matter", refId: matter.id }), notificationId: note?.id ?? null };
+  const title = notificationTitle({ kind: "matter", refId: matter.id, senderName: person?.name ?? handedBy, ask: matter.ask });
+  const brief = briefOf(matter, userId);
+  return { key, kind: "matter", refId: matter.id, title, person, at: brief.at, read: note?.read ?? false, target: notificationTarget({ kind: "matter", refId: matter.id }), notificationId: note?.id ?? null, matter: brief };
 }
 
 function updateItem(note: Notification): BellItem {
@@ -64,7 +67,7 @@ function updateItem(note: Notification): BellItem {
 /** The decisions waiting on the person, built from the open records the bell counts, each read when its notification was. */
 export function decisionsFor(userId: string, notes: readonly Notification[] = notificationsOf(userId)): BellDecision[] {
   const told = new Map(notes.filter((note) => bucketOf(note.kind) === "decide").map((note) => [`${note.kind}:${note.refId}`, note]));
-  const items = [...pendingRequestsFor(userId).map((request) => requestItem(request, told)), ...newHandoffsFor(userId).map((packet) => handoffItem(packet, told)), ...mattersWaitingOn(userId).map((matter) => matterItem(matter, told))];
+  const items = [...pendingRequestsFor(userId).map((request) => requestItem(request, told)), ...newHandoffsFor(userId).map((packet) => handoffItem(packet, told)), ...mattersWaitingOn(userId).map((matter) => matterItem(matter, userId, told))];
   return items.sort((left, right) => right.at.localeCompare(left.at));
 }
 

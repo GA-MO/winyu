@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type MouseEvent } from "react";
 import { Check, X } from "lucide-react";
 import { Primary } from "@/components/inbox/row";
+import { MatterActions } from "@/components/matter/matter-actions";
+import { matterFrom } from "@/lib/share/matter-actions";
 import { cn } from "@/components/ui/cn";
 import { TH } from "@/lib/i18n/th";
 import { decisionAction, hasUnread, type BellDecision, type BellItem, type BellPayload } from "./items";
@@ -66,6 +68,27 @@ function DecisionRow({ item, busy, onOpen, onDecide }: { item: BellDecision; bus
   );
 }
 
+function MatterRow({ item, onOpen, onActed }: { item: Extract<BellDecision, { kind: "matter" }>; onOpen: (item: BellItem) => void; onActed: (item: BellDecision) => void }) {
+  const brief = item.matter;
+  return (
+    <li className={cn("flex gap-3 rounded-xl px-2.5 py-2.5", !item.read && "bg-primary/[0.05]")} data-bell-decision="matter">
+      <Face item={item} className="size-8" />
+      <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+        <ItemLink item={item} onOpen={onOpen} className={cn("line-clamp-1 text-[13px] leading-snug hover:underline", item.read ? "text-foreground/80" : "font-medium text-foreground")}>
+          {brief.title}
+        </ItemLink>
+        {brief.ask ? <p className="line-clamp-2 text-[13px] leading-snug text-foreground/80">{brief.ask}</p> : null}
+        <p className="flex items-center gap-2 text-[11px] text-muted-foreground">
+          <span className="min-w-0 flex-1 truncate">{matterFrom(brief)}</span>
+          <When at={item.at} />
+        </p>
+        <MatterActions brief={brief} onActed={() => onActed(item)} />
+      </div>
+      <UnreadDot read={item.read} className="mt-1.5" />
+    </li>
+  );
+}
+
 function UpdateRow({ item, onOpen }: { item: BellItem; onOpen: (item: BellItem) => void }) {
   return (
     <li>
@@ -105,16 +128,16 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-function Lists({ payload, busyKey, onOpen, onDecide }: { payload: BellPayload; busyKey: string | null; onOpen: (item: BellItem) => void; onDecide: (item: BellDecision) => void }) {
+function Lists({ payload, busyKey, onOpen, onDecide, onActed }: { payload: BellPayload; busyKey: string | null; onOpen: (item: BellItem) => void; onDecide: (item: BellDecision) => void; onActed: (item: BellDecision) => void }) {
   if (payload.decide.length === 0 && payload.updates.length === 0) return <AllCaughtUp />;
   return (
     <div className="flex flex-col gap-2 px-1.5 pb-1.5">
       {payload.decide.length > 0 ? (
         <Section title={COPY.decide}>
           <ul className="flex flex-col gap-0.5">
-            {payload.decide.map((item) => (
-              <DecisionRow key={item.key} item={item} busy={busyKey === item.key} onOpen={onOpen} onDecide={onDecide} />
-            ))}
+            {payload.decide.map((item) =>
+              item.kind === "matter" ? <MatterRow key={item.key} item={item} onOpen={onOpen} onActed={onActed} /> : <DecisionRow key={item.key} item={item} busy={busyKey === item.key} onOpen={onOpen} onDecide={onDecide} />,
+            )}
           </ul>
         </Section>
       ) : null}
@@ -198,6 +221,15 @@ export function BellPopover({ onClose, onOpenInbox, onChanged, navigate }: BellP
     [load, onChanged, open],
   );
 
+  const acted = useCallback(
+    async (item: BellDecision) => {
+      if (item.notificationId && !item.read) await postRead({ id: item.notificationId });
+      await load();
+      onChanged();
+    },
+    [load, onChanged],
+  );
+
   const readAll = useCallback(async () => {
     setPayload((current) => (current ? readEverything(current) : current));
     await postRead({ all: true });
@@ -242,7 +274,7 @@ export function BellPopover({ onClose, onOpenInbox, onChanged, navigate }: BellP
           {problem}
         </p>
       ) : null}
-      <div className="min-h-0 flex-1 overflow-y-auto">{payload ? <Lists payload={payload} busyKey={busyKey} onOpen={open} onDecide={(item) => void decide(item)} /> : <div className="h-24" aria-busy />}</div>
+      <div className="min-h-0 flex-1 overflow-y-auto">{payload ? <Lists payload={payload} busyKey={busyKey} onOpen={open} onDecide={(item) => void decide(item)} onActed={(item) => void acted(item)} /> : <div className="h-24" aria-busy />}</div>
       <footer className="flex items-center justify-between border-t border-border px-4 py-2.5 text-xs">
         <button type="button" onClick={openInbox} className={cn(LINK, "font-medium text-primary hover:underline")}>
           {COPY.openInbox}

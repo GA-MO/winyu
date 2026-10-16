@@ -132,3 +132,9 @@ export function allowedActions(matter: Matter, actorId: string): MatterActionKin
 
 /** A matter as a bell row, an Inbox row and the page's actions need it: no value from the card, only names, the ask and what the viewer may press. */
 export type MatterBrief = { code: string; title: string; ask: string; senderName: string; passerName: string | null; at: string; actions: MatterActionKind[]; suggestedId: string | null };
+
+/** Who a matter came from, and who passed it on when that was someone else. */
+export function matterFrom(brief: Pick<MatterBrief, "senderName" | "passerName">): string {
+  const from = TH.matter.from(brief.senderName);
+  return brief.passerName ? `${from} · ${TH.matter.via(brief.passerName)}` : from;
+}

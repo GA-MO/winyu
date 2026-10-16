@@ -67,6 +67,16 @@ export function mayOpen(share: Matter, user: Pick<User, "id">): boolean {
   return share.senderId === user.id || share.path.some((hop) => hop.userId === user.id);
 }
 
+/** What opening a matter's page finds: the matter, or why the page stays closed (no such code, or the viewer is neither its sender nor on its path). */
+export type MatterOpening = { ok: true; matter: Matter } | { ok: false; reason: "missing" | "notYours" };
+
+/** The gate of the matter page. */
+export function openingOf(code: string, viewer: Pick<User, "id">): MatterOpening {
+  const matter = shares().get(code);
+  if (!matter) return { ok: false, reason: "missing" };
+  return mayOpen(matter, viewer) ? { ok: true, matter } : { ok: false, reason: "notYours" };
+}
+
 /** The recipients who have opened a share, each once however often they came back. */
 export function openersOf(share: Matter): string[] {
   return share.openedBy ?? [];

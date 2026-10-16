@@ -13,11 +13,14 @@ import { dueTimeTh, relativeTimeTh } from "@/lib/i18n/format";
 import { Actions, Bars, CheckInChat, Figure, InboxRow, Primary, Quiet, Reason, Segments, type MenuItem } from "./row";
 import { foldAlerts, handoffActions, type Severity } from "./rows";
 import type { AlertItem, GrantRequestItem, HandoffItem, InboxPayload, ReplyItem, TodoItem } from "./types";
+import { MatterActions } from "@/components/matter/matter-actions";
+import { matterFrom, type MatterBrief } from "@/lib/share/matter-actions";
 
 const INBOX_ENDPOINT = "/api/inbox";
 const ALERTS_ENDPOINT = "/api/alerts";
 const NOTIFICATIONS_ENDPOINT = "/api/notifications";
 const GRANT_PAGE = "/g/";
+const MATTER_PAGE = "/s/";
 const PANEL = "fixed right-0 top-0 z-50 flex h-dvh w-full max-w-[26rem] flex-col border-l border-border bg-card shadow-panel animate-panel-in";
 const SEVERITY_DOT: Record<Severity, string> = { P1: "bg-danger", P2: "bg-warning", P3: "bg-info" };
 const URGENCY_DOT: Record<HandoffItem["urgency"], string> = { high: "bg-danger", medium: "bg-warning", low: "bg-muted-foreground/50" };
@@ -155,7 +158,7 @@ export function InboxDrawer({ open, onClose, focus = null, onChanged }: { open: 
   const toggle = (key: string) => setOpened((current) => (current === key ? null : key));
   const rowProps = (key: string) => ({ open: opened === key, onToggle: () => toggle(key) });
   const fold = data ? foldAlerts(data.alerts) : null;
-  const nothing = data !== null && data.grantRequests.length + data.handoffs.length + data.todo.length + data.alerts.length === 0;
+  const nothing = data !== null && data.grantRequests.length + data.matters.length + data.handoffs.length + data.todo.length + data.alerts.length === 0;
 
   return (
     <>
@@ -185,6 +188,14 @@ export function InboxDrawer({ open, onClose, focus = null, onChanged }: { open: 
             <Section title={TH.inbox.sections.grants} count={data.grantRequests.length}>
               {data.grantRequests.map((item) => (
                 <GrantRow key={item.id} item={item} {...rowProps(`grant:${item.id}`)} busy={busy} onDecide={decideGrant} onOpenPage={() => go(`${GRANT_PAGE}${item.id}`)} />
+              ))}
+            </Section>
+          ) : null}
+
+          {data && data.matters.length > 0 ? (
+            <Section title={TH.inbox.sections.matters} count={data.matters.length}>
+              {data.matters.map((brief) => (
+                <MatterRow key={brief.code} brief={brief} {...rowProps(`matter:${brief.code}`)} onActed={() => void settled()} onOpenPage={() => go(`${MATTER_PAGE}${brief.code}`)} />
               ))}
             </Section>
           ) : null}
@@ -318,6 +329,18 @@ function GrantRow({ item, open, onToggle, busy, onDecide, onOpenPage }: RowState
           {TH.grant.page.decline}
         </Quiet>
       </Actions>
+    </InboxRow>
+  );
+}
+
+function MatterRow({ brief, open, onToggle, onActed, onOpenPage }: RowState & { brief: MatterBrief; onActed: () => void; onOpenPage: () => void }) {
+  return (
+    <InboxRow open={open} onToggle={onToggle} dot="bg-primary" title={brief.title} context={brief.ask || matterFrom(brief)} figure={<span className="text-[11px] text-muted-foreground">{relativeTimeTh(brief.at)}</span>}>
+      <p className="text-[11px] text-muted-foreground">{matterFrom(brief)}</p>
+      <button type="button" onClick={onOpenPage} className="self-start text-xs font-medium text-primary hover:underline">
+        {TH.inbox.openMatter}
+      </button>
+      <MatterActions brief={brief} onActed={onActed} />
     </InboxRow>
   );
 }

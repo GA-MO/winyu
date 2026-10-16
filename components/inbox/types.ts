@@ -1,4 +1,5 @@
 import type { FeedItem } from "@/lib/contracts";
+import type { MatterBrief } from "@/lib/share/matter-actions";
 
 export type EvidenceLine = {
   label: string;
@@ -65,6 +66,7 @@ export type ReplyItem = { id: string; title: string; toName: string; text: strin
  */
 export type InboxPayload = {
   grantRequests: GrantRequestItem[];
+  matters: MatterBrief[];
   handoffs: HandoffItem[];
   todo: TodoItem[];
   alerts: AlertItem[];

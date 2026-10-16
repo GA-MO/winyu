@@ -1,5 +1,4 @@
 import { afterEach, describe, expect, mock, setDefaultTimeout, test } from "bun:test";
-import { renderToStaticMarkup } from "react-dom/server";
 
 setDefaultTimeout(30_000);
 
@@ -11,14 +10,14 @@ mock.module("next/headers", () => ({
 }));
 
 const { POST } = await import("@/app/api/matters/[code]/route");
-const { default: SharePage } = await import("@/app/(app)/s/[code]/page");
 const { setHandoffEnabled } = await import("@/lib/access/enforce");
 const { findUser } = await import("@/lib/data/entities/users");
 const { inboxCountsFor } = await import("@/lib/server/inbox");
+const { bellFor } = await import("@/lib/server/bell");
 const { notificationsOf } = await import("@/lib/server/notify");
 const { auditLog } = await import("@/lib/server/audit");
 const { TH } = await import("@/lib/i18n/th");
-const { shares } = await import("./shares");
+const { openingOf, shares } = await import("./shares");
 const { createShare } = await import("./deliver");
 const { actOnMatter } = await import("./act");
 
@@ -71,8 +70,10 @@ describe("รับ", () => {
   test("the holder's hop becomes accepted, the thread gains one line, the one who passed it is told once, and the holder's decisions drop by one", async () => {
     const code = await sent("u_thana", "u_anucha");
     const before = inboxCountsFor("u_anucha").decisions;
+    expect(bellFor("u_anucha").decide.some((item) => item.refId === code)).toBe(true);
 
     const outcome = press("u_anucha", code, { kind: "accept" });
+    expect(bellFor("u_anucha").decide.some((item) => item.refId === code)).toBe(false);
 
     expect(outcome.ok).toBe(true);
     expect(shares().get(code)).toMatchObject({ status: "open", path: [{ userId: "u_anucha", fromUserId: "u_thana", state: "accepted" }], thread: [{ userId: "u_anucha", kind: "accepted", text: null, toUserId: null }] });
@@ -248,14 +249,17 @@ describe("illegal presses are refused and change nothing", () => {
   });
 });
 
-describe("the matter page", () => {
-  test("a person not on the path sees that it was not sent to them, not the card", async () => {
+describe("the matter page's gate", () => {
+  test("a person not on the path is kept out; once the matter is passed to them, they are let in", async () => {
     const code = await sent("u_thana", "u_anucha");
-    signedIn = "u_krit";
 
-    const html = renderToStaticMarkup(await SharePage({ params: Promise.resolve({ code }) }));
+    expect(openingOf(code, user("u_krit"))).toEqual({ ok: false, reason: "notYours" });
+    expect(openingOf(code, user("u_thana")).ok).toBe(true);
 
-    expect(html).toContain(TH.share.notYours.title);
-    expect(html).not.toContain(ASK);
+    press("u_anucha", code, { kind: "pass_on", toUserId: "u_krit" });
+
+    expect(openingOf(code, user("u_krit")).ok).toBe(true);
+    expect(openingOf(code, user("u_nok"))).toEqual({ ok: false, reason: "notYours" });
+    expect(openingOf("nosuchcode00", user("u_thana"))).toEqual({ ok: false, reason: "missing" });
   });
 });

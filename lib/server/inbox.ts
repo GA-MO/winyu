@@ -15,6 +15,7 @@ import { loadDictionary } from "@/lib/server/master-data";
 import { notificationsIn } from "@/lib/server/notify";
 import { lessonFor } from "@/lib/server/outcomes";
 import { mattersWaitingOn, shares } from "@/lib/server/share/shares";
+import { briefOf } from "@/lib/server/share/act";
 
 const MAX_ITEMS = 20;
 const MAX_ALERT_ITEMS = 60;
@@ -211,6 +212,7 @@ export async function inboxFor(access: AccessContext): Promise<InboxPayload> {
 
   return {
     grantRequests: pendingRequestsFor(access.userId).map(grantRequestOf),
+    matters: mattersWaitingOn(access.userId).map((matter) => briefOf(matter, access.userId)),
     handoffs,
     todo: todoRows.map((item) => todoOf(item, access, open)),
     alerts,

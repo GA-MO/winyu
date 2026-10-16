@@ -9,7 +9,7 @@ function item(key: string, hoursAgo: number, read = true): BellItem {
   return { key, kind: "share", refId: key, title: key, person: null, at: new Date(NOW.getTime() - hoursAgo * HOUR_MS).toISOString(), read, target: `/s/${key}`, notificationId: key };
 }
 
-function decision(kind: BellDecision["kind"], refId: string, target: string): BellDecision {
+function decision(kind: "handoff" | "grant_request", refId: string, target: string): BellDecision {
   return { key: `${kind}:${refId}`, kind, refId, title: "t", person: null, at: NOW.toISOString(), read: false, target, notificationId: null };
 }
 

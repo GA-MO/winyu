@@ -107,6 +107,30 @@ describe("the bell popover", () => {
     expect(seen).toMatchObject({ closed: 1, inbox: 1 });
   });
 
+  test("a matter shows its card title, the ask, who sent it and passed it on, and the presses; รับ presses it in place, reads its notification and refreshes", async () => {
+    const matter = { code: "m1", title: "ปริมาณขายเข้า", ask: "ช่วยดูภาคอีสาน", senderName: "คุณธนา", passerName: "คุณอนุชา", at: AT, actions: ["accept" as const, "ask" as const, "pass_on" as const, "not_mine" as const, "done" as const], suggestedId: null };
+    const payload: BellPayload = { decide: [{ key: "matter:m1", kind: "matter", refId: "m1", title: "t", person: null, at: AT, read: false, target: "/s/m1", notificationId: "n-matter", matter }], updates: [] };
+    const server = fakeServer(payload);
+    const { host, seen } = await openPopover();
+    const row = host.querySelector<HTMLElement>('[data-bell-decision="matter"]');
+    expect(row?.textContent).toContain(matter.title);
+    expect(row?.textContent).toContain(matter.ask);
+    expect(row?.textContent).toContain(TH.matter.from(matter.senderName));
+    expect(row?.textContent).toContain(TH.matter.via(matter.passerName));
+    for (const kind of ["accept", "ask", "pass_on"] as const) expect(button(host, TH.matter.actions[kind])).toBeDefined();
+    expect(button(host, TH.matter.actions.not_mine)).toBeUndefined();
+    expect(host.querySelector(`button[aria-label="${TH.inbox.more}"]`)).not.toBeNull();
+
+    await act(async () => button(host, TH.matter.actions.accept)?.click());
+    server.spy.mockRestore();
+    expect(server.calls.slice(1, 3)).toEqual([
+      { url: "/api/matters/m1", method: "POST", body: { kind: "accept" } },
+      { url: "/api/notifications", method: "POST", body: { id: "n-matter" } },
+    ]);
+    expect(server.calls[3]?.url).toBe("/api/notifications/bell");
+    expect(seen).toMatchObject({ closed: 0, changed: 1, went: [] });
+  });
+
   test("with nothing waiting and nothing new it says so", async () => {
     const server = fakeServer({ decide: [], updates: [] });
     const { host } = await openPopover();
