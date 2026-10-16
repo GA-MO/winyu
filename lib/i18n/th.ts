@@ -366,7 +366,7 @@ export const TH = {
   },
   lesson: {
     verdict: { real: "เป็นเรื่องจริง", noise: "ไม่ใช่ปัญหา" },
-    line: (verdict: string, outcome: string, name: string, date: string) => `ครั้งก่อน (${verdict}): ${outcome} — ${name}, ${date}`,
+    line: (verdict: string, outcome: string, name: string, date: string) => `เคสเก่า ${date}: ${name} ปิดไว้ว่า${verdict} · ${outcome}`,
     needsVerdict: "งานนี้แนบความผิดปกติมา ต้องบอกว่าเป็นเรื่องจริงหรือไม่ก่อนปิด ระบบจะใช้เป็นบทเรียนครั้งหน้า",
   },
   attention: {
@@ -1361,6 +1361,7 @@ export const TH = {
     maskedNumber: "[ตัวเลข]",
     conversationsHeading: "บทสนทนาที่เคยคุย",
     recalledSummary: (facts: number, conversations: number) => [facts > 0 ? `จำได้ ${facts} เรื่องที่เกี่ยวข้อง` : "", conversations > 0 ? `เคยคุยเรื่องใกล้เคียง ${conversations} บทสนทนา` : ""].filter(Boolean).join(" · "),
+    pastConversations: "บทสนทนาเหล่านี้คือสิ่งที่พูดกันครั้งนั้น ไม่ใช่สถานะตอนนี้: งาน สถานะ หรือตัวเลขปัจจุบันต้องอ่านจาก tool อีกครั้ง",
     truncated: "…",
   },
   quick: {

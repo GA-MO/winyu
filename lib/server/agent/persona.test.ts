@@ -1,6 +1,8 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import type { PersonaContext } from "./persona";
+import { liveAccessFor } from "@/lib/access/enforce";
 import { accessFor } from "@/lib/access/policies";
+import { resetRoleOverrides, setRoleTool } from "@/lib/access/role-overrides";
 import type { ContextPacket, Story } from "@/lib/contracts";
 import { threads } from "@/lib/server/threads-read";
 import { DATA_AS_OF, dataDay } from "@/lib/data/dates";
@@ -218,3 +220,54 @@ describe("the prompt is laid out for the provider's prompt cache", () => {
     expect(tomorrow).not.toBe(today);
   });
 });
+
+describe("lines that invite a question or an action follow what the role can call", () => {
+  function promptOf(userId: string): string {
+    const user = findUser(userId);
+    if (!user) throw new Error(`no user ${userId}`);
+    return personaFor(liveAccessFor(user), user, ctx({}), WINYU_RULES).join("\n");
+  }
+
+  afterEach(() => {
+    resetRoleOverrides();
+  });
+
+  test("a sales rep, who cannot create handoffs, is never told to offer one; the regional manager is", () => {
+    expect(promptOf("u_krit")).not.toContain("create_handoff");
+    expect(promptOf("u_anucha")).toContain("`create_handoff`");
+  });
+
+  test("an admin taking create_handoff away from regional managers takes the offer out of their prompt", () => {
+    setRoleTool("sales_rsm", "create_handoff", false, "u_ton");
+    expect(promptOf("u_anucha")).not.toContain("create_handoff");
+  });
+
+  test("the visit plan is offered to the rep who visits, the audit to IT, the Inbox to everyone", () => {
+    expect(promptOf("u_krit")).toContain("`visit_plan`");
+    expect(promptOf("u_anucha")).not.toContain("visit_plan");
+    expect(promptOf("u_ton")).toContain("`admin_audit`");
+    expect(promptOf("u_ton")).toContain("`set_permission`");
+    expect(promptOf("u_thana")).not.toContain("admin_audit");
+    for (const userId of ["u_krit", "u_anucha", "u_ton", "u_thana", "u_may"]) expect(promptOf(userId)).toContain("`inbox`");
+  });
+
+  test("the anomaly rule no longer prescribes a hypothesis and a handoff for every anomaly", () => {
+    const rules = WINYU_RULES.join("\n");
+    expect(rules).not.toContain("ให้เสนอสมมติฐาน 1 ข้อ + วิธีตรวจ 2 ทาง");
+    expect(rules).toContain("เสนอเฉพาะเมื่อผู้ใช้ถามว่าทำไม");
+    expect(rules).toContain("คงคำว่า \"สมมติฐาน\"");
+  });
+
+  test("rules ask for the literal answer first, \"ไม่มีข้อมูล\" for an uncovered part, and treat what the user asserts as unverified", () => {
+    const rules = WINYU_RULES.join("\n");
+    expect(rules).toContain("ประโยคแรกตอบสิ่งที่ผู้ใช้ถามตรง ๆ");
+    expect(rules).toContain("\"ไม่มีข้อมูล\"");
+    expect(rules).toContain("คำอ้างที่ระบบยังไม่ได้ตรวจ");
+    expect(rules).toContain("ตัวเลขยังมาจากผล tool เท่านั้น");
+  });
+
+  test("permission stays in code: no invitation line is phrased as a permission rule", () => {
+    for (const userId of ["u_krit", "u_ton"]) expect(promptOf(userId)).not.toMatch(/ไม่มีสิทธิ์ใช้|ห้ามใช้เครื่องมือ|ไม่ได้รับอนุญาตให้/);
+  });
+});
+

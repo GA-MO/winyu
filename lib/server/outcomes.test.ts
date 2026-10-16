@@ -46,6 +46,8 @@ describe("closing a handoff teaches the next alert", () => {
     const lesson = lessonFor(alerts().get(alert.id) as Alert);
     expect(lesson).toContain("เป็นเรื่องจริง");
     expect(lesson).toContain("ขยายวงเงิน");
+    expect(lesson?.startsWith("เคสเก่า ")).toBe(true);
+    expect(lesson).toContain("คุณพิม สุริยวงศ์ ปิดไว้ว่าเป็นเรื่องจริง");
   });
 
   test("noise closes it for everyone", () => {
