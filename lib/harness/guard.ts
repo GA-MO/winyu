@@ -6,7 +6,7 @@ import { INVISIBLE_CHARS } from "./fence";
 export type PersonalKind = "national_id" | "phone" | "email" | "bank_account";
 
 /** The ways a piece of text tries to steer the model instead of informing it. */
-export type InjectionKind = "override" | "persona" | "prompt_leak" | "bypass";
+export type InjectionKind = "override" | "persona" | "prompt_leak" | "bypass" | "role_marker";
 
 /** Where a guarded piece of text came from: typed by the person, written by the model, or untrusted data re-entering the prompt. */
 export type GuardSource = "user_input" | "model_output" | "tool_result" | "memory" | "packet" | "handoff_reply";
@@ -44,13 +44,19 @@ export const NEVER_IN_REPLY: Record<"national_id" | "bank_account", RegExp> = {
 
 const INJECTION_PATTERNS: readonly { kind: InjectionKind; pattern: RegExp }[] = [
   { kind: "override", pattern: /\b(?:ignore|disregard|forget|override)\b[^.\n]{0,30}?\b(?:previous|prior|above|earlier|all|your|the|system)\b[^.\n]{0,20}?\b(?:instructions?|prompts?|rules?|guidelines?|directives?)\b/gi },
-  { kind: "override", pattern: /(?:ลืม|ละเว้น|ไม่ต้องสนใจ|ไม่ต้องทำตาม|เพิกเฉยต่อ|เพิกเฉย)\s*(?:ทุก|ทั้งหมด)?\s*(?:คำสั่ง(?!ซื้อ|ผลิต|จ่าย)|กฎ|ข้อกำหนด|คำแนะนำ)/g },
+  { kind: "override", pattern: /(?:ลืม|ละเว้น|ไม่ต้องสนใจ|ไม่ต้องทำตาม|เพิกเฉยต่อ|เพิกเฉย|ยกเลิก)\s*(?:ทุก|ทั้งหมด)?\s*(?:คำสั่ง(?!ซื้อ|ผลิต|จ่าย)|กฎ|ข้อกำหนด|ข้อจำกัด|คำแนะนำ)/g },
   { kind: "persona", pattern: /\byou are now\b|\bfrom now on,? you (?:are|will)\b|\bact as (?:an? )?(?:unrestricted|unfiltered|jailbroken)\b|\b(?:developer|god|dan) mode\b|\bjailbreak/gi },
   { kind: "persona", pattern: /(?:จากนี้ไป|จากนี้|ตอนนี้)\s*(?:ให้)?\s*(?:คุณ|เธอ|AI)\s*(?:คือ|ทำตัวเป็น|สวมบทเป็น)/g },
+  { kind: "persona", pattern: /\b(?:unrestricted|maintenance|admin|god|developer) mode\b|โหมด\s*(?:unrestricted|ไม่จำกัด|บำรุงรักษา|ผู้ดูแลระบบ|แอดมิน|admin|god)/gi },
   { kind: "prompt_leak", pattern: /\b(?:reveal|show|print|repeat|output|tell me|leak)\b[^.\n]{0,20}?(?:system prompt|hidden prompt|initial prompt|your instructions|developer message)/gi },
   { kind: "prompt_leak", pattern: /(?:เปิดเผย|แสดง|บอก|พิมพ์|ขอดู|ส่ง)[^\n]{0,16}?(?:system prompt|prompt ระบบ|พรอมต์|พรอมท์|คำสั่งระบบ|คำสั่งลับ|คำสั่งตั้งต้น)/gi },
   { kind: "bypass", pattern: /\b(?:bypass|disable|turn off|ignore|skip)\b[^.\n]{0,20}?\b(?:permissions?|access control|security|guardrails?|safety checks?|scope)\b/gi },
-  { kind: "bypass", pattern: /(?:ข้าม|หลบ|เลี่ยง|ไม่ต้องเช็ค|ไม่ต้องตรวจ)\s*(?:การ)?(?:ตรวจ)?\s*(?:สิทธิ์|สิทธิ|ความปลอดภัย|ขอบเขต)/g },
+  { kind: "bypass", pattern: /(?:ข้าม|หลบ|เลี่ยง|ไม่ต้องเช็ค|ไม่ต้องตรวจ)\s*(?:การ)?(?:ตรวจ|กรอง)?\s*(?:สิทธิ์|สิทธิ|ความปลอดภัย|ขอบเขต)/g },
+  { kind: "bypass", pattern: /\b(?:role|scope|access|permissions?)\s*[:=]\s*(?:admin|root|all\w*|\*)/gi },
+  { kind: "role_marker", pattern: /\[\s*\/?\s*(?:system|sys|inst|developer)(?:[\s_-]+[a-z]+){0,2}\s*\]|\[\s*\/?\s*(?:ระบบ|ผู้ดูแลระบบ|คำสั่งระบบ)\s*\]/gi },
+  { kind: "role_marker", pattern: /<\|?\s*\/?\s*(?:system|im_start|im_end|developer)\b[^>\n]{0,20}\|?>|<<\s*\/?\s*sys\s*>>/gi },
+  { kind: "role_marker", pattern: /^[ \t>#*-]*(?:system|developer)(?: prompt| message)?\s*:/gim },
+  { kind: "role_marker", pattern: /(?:คำสั่ง|ข้อความ|ประกาศ)(?:ใหม่|ด่วน)?\s*จาก\s*(?:ผู้ดูแลระบบ|ทีมระบบ|แอดมิน|admin)/gi },
 ];
 
 function thaiIdChecksumHolds(digits: string): boolean {

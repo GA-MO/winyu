@@ -1797,7 +1797,7 @@ export const TH = {
   },
   guard: {
     mask: { national_id: "[เลขบัตรประชาชนถูกซ่อน]", phone: "[เบอร์โทรถูกซ่อน]", email: "[อีเมลถูกซ่อน]", bank_account: "[เลขบัญชีถูกซ่อน]" },
-    kind: { national_id: "เลขบัตรประชาชน", phone: "เบอร์โทร", email: "อีเมล", bank_account: "เลขบัญชี", override: "สั่งให้ลืมกฎ", persona: "สั่งให้เปลี่ยนบทบาท", prompt_leak: "ขอดูคำสั่งระบบ", bypass: "สั่งให้ข้ามสิทธิ์" } as Record<string, string>,
+    kind: { national_id: "เลขบัตรประชาชน", phone: "เบอร์โทร", email: "อีเมล", bank_account: "เลขบัญชี", override: "สั่งให้ลืมกฎ", persona: "สั่งให้เปลี่ยนบทบาท", prompt_leak: "ขอดูคำสั่งระบบ", bypass: "สั่งให้ข้ามสิทธิ์", role_marker: "แอบอ้างเป็นข้อความของระบบ" } as Record<string, string>,
     cut: "[ตัดข้อความที่สั่งให้ AI ทำตามออก]",
     typedNotice: (kinds: string) => `ซ่อน${kinds}ที่พิมพ์ไว้แล้ว ทั้ง AI และบันทึกการใช้งานจะไม่เห็น`,
     source: { user_input: "สิ่งที่ผู้ใช้พิมพ์", model_output: "คำตอบของ AI", tool_result: "ผลจากเครื่องมือ", memory: "ความจำ", packet: "งานส่งต่อ", handoff_reply: "คำตอบงานส่งต่อ" } as Record<string, string>,
