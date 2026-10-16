@@ -1,11 +1,11 @@
 import { TH } from "@/lib/i18n/th";
 
-const OPENERS = TH.login.demoPath.openers;
+const CUES = TH.login.demoPath.cues;
 
-/** The seats a presenter signs in as, in demo order, each with the first question to type. */
-export const DEMO_PATH: readonly { userId: string; opener: string }[] = [
-  { userId: "u_thana", opener: OPENERS.ceo },
-  { userId: "u_anucha", opener: OPENERS.rsmNortheast },
-  { userId: "u_krit", opener: OPENERS.repKhonKaen },
-  { userId: "u_ton", opener: OPENERS.itAdmin },
+/** The seats a presenter signs in as, in demo order, each with what the presenter does there. */
+export const DEMO_PATH: readonly { userId: string; cue: string }[] = [
+  { userId: "u_thana", cue: CUES.ceo },
+  { userId: "u_anucha", cue: CUES.rsmNortheast },
+  { userId: "u_krit", cue: CUES.repKhonKaen },
+  { userId: "u_ton", cue: CUES.itAdmin },
 ];

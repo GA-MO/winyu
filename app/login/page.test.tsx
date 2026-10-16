@@ -57,7 +57,7 @@ describe("the demo path on the sign-in front", () => {
     for (const seat of DEMO_PATH) expect(ids.has(seat.userId)).toBe(true);
   });
 
-  test("the four seats render in path order, each with its role headline, its name and its opener", async () => {
+  test("the four seats render in path order, each with its role headline, its name and its cue", async () => {
     process.env.WINYU_AUTH = "demo";
     const html = await render({});
     const seats = DEMO_PATH.map((seat) => ({ ...seat, user: USERS.find((user) => user.id === seat.userId) }));
@@ -67,7 +67,7 @@ describe("the demo path on the sign-in front", () => {
     expect([...positions].sort((a, b) => a - b)).toEqual(positions);
     for (const [index, seat] of seats.entries()) {
       const card = html.slice(positions[index], positions[index + 1] ?? undefined);
-      expect(card).toContain(seat.opener);
+      expect(card).toContain(seat.cue);
       expect(card).toContain(seat.user?.nameTh ?? "");
     }
   });

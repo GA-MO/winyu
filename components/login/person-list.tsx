@@ -12,7 +12,7 @@ const CARD =
 const HOME = "/";
 const ADMIN_HOME = "/admin";
 
-export type DemoSeat = { person: Persona; opener: string };
+export type DemoSeat = { person: Persona; cue: string };
 
 function destinationOf(person: Persona, next: string): string {
   return person.role === "it_admin" && next === HOME ? ADMIN_HOME : next;
@@ -51,14 +51,14 @@ export function PersonList({ people, next }: { people: readonly Persona[]; next:
   );
 }
 
-/** The demo path as numbered sign-in cards, each naming the seat and the first question to ask there. */
+/** The demo path as numbered sign-in cards, each naming the seat and the step to take there. */
 export function DemoPathList({ seats, next }: { seats: readonly DemoSeat[]; next: string }) {
   const { signIn, pending, chosen, error } = useSignIn();
   return (
     <div className="flex flex-col gap-3">
       {error ? <p className="text-sm text-danger">{error}</p> : null}
       <ol className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        {seats.map(({ person, opener }, index) => (
+        {seats.map(({ person, cue }, index) => (
           <li key={person.id} className="animate-hero-rise" style={{ animationDelay: `${index * 40}ms` }}>
             <button type="button" onClick={() => signIn(person.id, destinationOf(person, next))} disabled={pending} aria-label={`${TH.login.pick} ${person.title} ${person.nameTh}`} className={cn(CARD, "h-full flex-col gap-3")}>
               <span className="flex items-center justify-between gap-3">
@@ -75,8 +75,8 @@ export function DemoPathList({ seats, next }: { seats: readonly DemoSeat[]; next
                 <span className="truncate text-xs text-muted-foreground">{person.nameTh}</span>
               </span>
               <span className="mt-auto flex min-w-0 items-baseline gap-1.5 rounded-2xl bg-muted px-3 py-2 text-xs">
-                <span className="shrink-0 text-muted-foreground">{TH.login.demoPath.tryAsking}</span>
-                <span className="truncate text-foreground">{opener}</span>
+                <span className="shrink-0 text-muted-foreground">{TH.login.demoPath.cue}</span>
+                <span className="line-clamp-2 text-foreground">{cue}</span>
               </span>
             </button>
           </li>

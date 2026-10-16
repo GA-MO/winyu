@@ -37,9 +37,9 @@ function membersOf(role: RoleId) {
 }
 
 function demoSeats(): DemoSeat[] {
-  return DEMO_PATH.flatMap(({ userId, opener }) => {
+  return DEMO_PATH.flatMap(({ userId, cue }) => {
     const user = USERS.find((candidate) => candidate.id === userId);
-    return user ? [{ person: personaOf(user), opener }] : [];
+    return user ? [{ person: personaOf(user), cue }] : [];
   });
 }
 
