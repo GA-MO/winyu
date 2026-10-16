@@ -71,10 +71,10 @@ export function chatTurnOf(input: RunInput, fallbackRunId: string): ChatTurn {
 export type AskedApproval = { interruptId: string; toolCallId: string; tool: string };
 
 /** A tool call that returned a result in the reply, and the result as the reply carried it. */
-export type FinishedCall = { toolCallId: string; output: unknown };
+export type FinishedResult = { toolCallId: string; output: unknown };
 
 /** What the reply stream showed: the tool calls that returned a result (each drawn as a card) by name and with their output, the approvals asked, and the error that ended it. */
-export type ReplySeen = { results: string[]; finished: FinishedCall[]; asked: AskedApproval[]; text: boolean; error: string | null };
+export type ReplySeen = { results: string[]; finished: FinishedResult[]; asked: AskedApproval[]; text: boolean; error: string | null };
 
 type AgUiEvent = {
   type?: unknown;
@@ -123,7 +123,7 @@ function outputOf(content: unknown): unknown {
 export function seenOf(events: readonly AgUiEvent[], known: KnownCalls = new Map()): ReplySeen {
   const names = new Map(known);
   const results: string[] = [];
-  const finished: FinishedCall[] = [];
+  const finished: FinishedResult[] = [];
   let error: string | null = null;
   for (const event of events) {
     const toolCallId = stringOr(event.toolCallId);

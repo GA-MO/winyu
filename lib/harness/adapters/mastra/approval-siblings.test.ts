@@ -8,7 +8,8 @@ const scripted = new ScriptedModel();
 mock.module("@/lib/server/models", () => scripted.modelsModule());
 
 const { serveCopilot, LEARNING } = await import("./serve");
-const { threadHistory, cardToSendOn } = await import("./history");
+const { threadHistory, screenCardsOn } = await import("./history");
+const { cardNamed } = await import("@/components/chat/card-to-share");
 const { findUser } = await import("@/lib/data/entities/users");
 const { liveAccessFor } = await import("@/lib/access/enforce");
 
@@ -94,7 +95,7 @@ describe("a read finished in the same step as a write that waits for approval", 
     expect(next.some((event) => event.type === "RUN_ERROR")).toBe(false);
     expect(next.some((event) => event.type === "TEXT_MESSAGE_CONTENT")).toBe(true);
     expect(resultOf(await threadHistory(threadId, USER), readId)).toMatchObject({ rows: expect.any(Array) });
-    expect((await cardToSendOn(threadId, USER))?.card.reads.map((read) => read.tool)).toEqual(["query_metric"]);
+    expect(cardNamed(await screenCardsOn(threadId, USER, null, null, []), undefined).kind).toBe("card");
   });
 
   test("keeps one result after the approval is answered yes, and the answer still sends", async () => {

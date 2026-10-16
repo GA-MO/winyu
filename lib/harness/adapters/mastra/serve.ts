@@ -17,7 +17,7 @@ import { ReplyCards, withComposedCards, type CarriedCall, type ComposedCardRecor
 import { callsAnswering, keepFinishedResults, screenCardsOn, threadHistory, threadTranscript } from "./history";
 import { guardedRunInput, inputFindings, type GuardedInput } from "./guardrails";
 import { learnFromTurn } from "./learn";
-import { chatTurnOf, observeReply, type ChatTurn, type FinishedCall, type KnownCalls, type ReplySeen, type RunInput } from "./turn";
+import { chatTurnOf, observeReply, type ChatTurn, type FinishedResult, type KnownCalls, type ReplySeen, type RunInput } from "./turn";
 
 const BASE_PATH = "/api/copilotkit";
 const INFO_PATH = `${BASE_PATH}/info`;
@@ -134,7 +134,7 @@ function composed(run: Run, turn: ChatTurn, cards: readonly ComposedCardRecord[]
   }
 }
 
-function keepResultsOfPausedRun(run: Run, threadId: string, finished: readonly FinishedCall[]): void {
+function keepResultsOfPausedRun(run: Run, threadId: string, finished: readonly FinishedResult[]): void {
   keepFinishedResults(run.id, threadId, run.userId, finished).catch((error: unknown) => {
     console.error(`keeping the finished results of paused run ${run.id} failed`, error);
   });
