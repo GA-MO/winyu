@@ -214,7 +214,8 @@ function roleOf(value: string | undefined): RoleId | null {
 function permissionSubject(input: PermissionInput, label: string | null): string {
   const key = input.key ?? "";
   if (label) return label;
-  return input.kind === "metric" && METRIC_IDS.includes(key as MetricId) ? metricLabel(key as MetricId) : key;
+  if (input.kind === "metric" && METRIC_IDS.includes(key as MetricId)) return metricLabel(key as MetricId);
+  return TH.approve.permissionKind[input.kind ?? ""] ?? TH.approve.permissionChange;
 }
 
 function permissionDecision(input: PermissionInput, label: string | null): Decision {

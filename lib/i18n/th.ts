@@ -510,6 +510,7 @@ export const TH = {
     permission: "เปลี่ยนสิทธิ์นี้ใช่ไหมครับ",
     permissionDone: (role: string) => `เปลี่ยนสิทธิ์ของ${role}`,
     permissionChange: "สิ่งที่เปลี่ยน",
+    permissionKind: { metric: "เมตริก", tool: "เครื่องมือ", field: "ฟิลด์ข้อมูล" } as Record<string, string>,
     permissionPeople: (count: number) => `มีผลกับ ${count} คน`,
     effectPermission: "เมื่ออนุมัติ ทุกคนในบทบาทนี้จะเห็นตามสิทธิ์ใหม่ตั้งแต่คำถามถัดไป แก้กลับได้ที่ Admin console หรือสั่ง Winyu อีกครั้ง",
     confirmPermission: "เปลี่ยนสิทธิ์",

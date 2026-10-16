@@ -105,3 +105,32 @@ describe("the approval card", () => {
     expect(renderApproval(request("query_metric", {}))).toBeNull();
   });
 });
+
+describe("a permission change", () => {
+  const FIELD = { role: "sales_rep", kind: "field", key: "crm.order_value", value: "none" };
+
+  test("never shows the field, tool or metric id, not even before its Thai name arrives or when it does not", () => {
+    for (const input of [FIELD, { ...FIELD, kind: "tool", key: "store_visits", value: "deny" }, { ...FIELD, kind: "metric", key: "avg_salary", value: "masked" }]) {
+      for (const approved of [null, false]) {
+        const html = render("set_permission", input, { approved });
+        expect(html).not.toContain(input.key);
+        expect(html).not.toContain(input.role);
+      }
+    }
+    expect(render("set_permission", { ...FIELD, kind: "metric", key: "avg_salary" })).toContain("เงินเดือนเฉลี่ย");
+  });
+
+  test("names the field in Thai once the label comes back", async () => {
+    const spy = spyOn(globalThis, "fetch").mockImplementation((async () => Response.json({ label: "ยอดสั่งซื้อจากการเยี่ยมร้าน" })) as unknown as typeof fetch);
+    const host = document.createElement("div");
+    document.body.append(host);
+    const root = createRoot(host);
+    await act(async () => root.render(renderApproval(request("set_permission", FIELD))));
+    await act(async () => new Promise((resolve) => setTimeout(resolve, 0)));
+    expect(host.textContent).toContain("ยอดสั่งซื้อจากการเยี่ยมร้าน");
+    expect(host.textContent).not.toContain("crm.order_value");
+    await act(async () => root.unmount());
+    host.remove();
+    spy.mockRestore();
+  });
+});
