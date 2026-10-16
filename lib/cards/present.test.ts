@@ -7,7 +7,7 @@ import { runMetric } from "@/lib/data/query";
 import { TH } from "@/lib/i18n/th";
 import { LOW_COVER_DAYS } from "@/lib/semantic/metrics";
 import { changeToneOf, formatChange, formatMetricValue, metricLabel } from "@/lib/dashboard/metric-display";
-import { pairedIndexes, presentCard, presentForecast, subjectOf, weakestRow, type CardBody, type CardParts, type CardView, type ForecastAnswer, type SortBy } from "./present";
+import { pairedIndexes, presentCard, presentForecast, presentGap, subjectOf, weakestRow, type CardBody, type CardParts, type CardView, type ForecastAnswer, type GapAnswer, type SortBy } from "./present";
 import type { ReadRow, Strip } from "./reading";
 import { metricTitle } from "./tool-answers";
 
@@ -825,6 +825,54 @@ describe("scorecards and one-row cards keep to the card rules (AI-156)", () => {
   test("a one-row card's subject names its row, so a pinned tile says which region it is", () => {
     const query = { ...queryOf({ metric: "net_sales_value", dims: ["region"], range: MONTH_TO_DATE, compare: "target" }), filters: { region: ["northeast"] } };
     expect(subjectOf(query, runMetric(query, CEO))).toBe(TH.dash.ownScope(metricLabel("net_sales_value"), "ภาคอีสาน"));
+  });
+});
+
+describe("a gap card (explain_gap)", () => {
+  const NORTHEAST_BY_BRAND: GapAnswer = {
+    period_label: "1 พ.ย. 2569 – 26 พ.ย. 2569",
+    actual_label: "328.4 ล้านบาท",
+    compare_label: "เป้า 368.2 ล้านบาท",
+    gap_label: "−39.8 ล้านบาท",
+    attainment_label: "89.2%",
+    contributors: [
+      { label: "ลีโอ", gap_label: "−25.1 ล้านบาท", share_label: "63.1%" },
+      { label: "สิงห์", gap_label: "−14.9 ล้านบาท", share_label: "37.6%" },
+      { label: "โซดาสิงห์", gap_label: "−123,727 บาท", share_label: "0.3%" },
+    ],
+    rest: null,
+    offsetting: [
+      { label: "น้ำดื่มสิงห์", gap_label: "+165,120 บาท" },
+      { label: "เพอร์ร่า", gap_label: "+98,834 บาท" },
+    ],
+    share_note: null,
+    projection: { basis: "วันที่เหลือของเดือนขายเท่าค่าเฉลี่ย 7 วันล่าสุด และเป้ากระจายเท่ากันทุกวัน", projected_label: "371.9 ล้านบาท", month_target_label: "424.8 ล้านบาท", attainment_label: "87.5%" },
+  };
+
+  test("in a month still running leads with where the month ends and a verdict built from the result, the gap's base named above its parts, never a double minus (AI-142)", () => {
+    const card = presentGap({ answer: NORTHEAST_BY_BRAND, metric: "net_sales_value", split: "brand" });
+    expect(card.hero).toMatchObject({ label: TH.cards.gap.monthEndLabel, value: "87.5%", unit: TH.read.ofMonthTarget, tone: "bad" });
+    expect(card.verdict).toBe("คาดปิดเดือนไม่ถึงเป้า ลีโอฉุดมากสุด 63.1%");
+    const body = expectKind(card.body, "exceptions");
+    expect(body.strip.rows[0]).toMatchObject({ label: "ต่ำกว่าเป้าตามเวลา", text: "39.8 ล้านบาท" });
+    expect(body.strip.rows.slice(1).map((row) => row.label)).toEqual(["ลีโอ", "สิงห์", "โซดาสิงห์"]);
+    expect(body.fold?.rows.map((row) => row.label)).toEqual(["น้ำดื่มสิงห์", "เพอร์ร่า"]);
+    expect(`${card.title} ${card.verdict} ${body.strip.rows.map((row) => row.text).join(" ")}`).not.toMatch(/[−-]/);
+    expect(card.title).toBe(TH.dash.ownScope(metricLabel("net_sales_value"), TH.dash.byDims([TH.dash.dimUnit.brand])));
+  });
+
+  test("asked which region worries most, the verdict names the region that pulled furthest", () => {
+    const answer: GapAnswer = { ...NORTHEAST_BY_BRAND, contributors: [{ label: "ภาคอีสาน", gap_label: "−39.8 ล้านบาท", share_label: "78.1%" }, { label: "ภาคเหนือ", gap_label: "−3.1 ล้านบาท", share_label: "6.1%" }], offsetting: [] };
+    expect(presentGap({ answer, metric: "net_sales_value", split: "region" }).verdict).toContain("ภาคอีสานฉุดมากสุด 78.1%");
+  });
+
+  test("a closed month against target leads with its share of target; against last year with the actual and its coloured change", () => {
+    const closed = presentGap({ answer: { ...NORTHEAST_BY_BRAND, projection: null }, metric: "net_sales_value", split: "brand" });
+    expect(closed.hero).toMatchObject({ value: "89.2%", unit: TH.read.ofTarget, tone: "bad" });
+    expect(closed.verdict).toBe("ต่ำกว่าเป้า 39.8 ล้านบาท ลีโอฉุดมากสุด 63.1%");
+    const lastYear = presentGap({ answer: { ...NORTHEAST_BY_BRAND, projection: null, attainment_label: null, compare_label: "ปีก่อน 368.2 ล้านบาท" }, metric: "net_sales_value", split: "brand" });
+    expect(lastYear.hero).toMatchObject({ value: "328.4 ล้านบาท", delta: "−39.8 ล้านบาท", tone: "bad" });
+    expect(lastYear.verdict).toBe("ต่ำกว่าปีก่อน 39.8 ล้านบาท ลีโอฉุดมากสุด 63.1%");
   });
 });
 
