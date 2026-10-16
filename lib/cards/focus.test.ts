@@ -8,7 +8,7 @@ import { alertForAnswer, cardFocus } from "./focus";
 import { weakestRow } from "./present";
 
 const CEO = accessFor(findUser("u_thana")!);
-const QUERY: MetricQuery = { metric: "ar_overdue", dims: ["region"], filters: {}, range: { from: "2026-08-01", to: "2026-08-31" }, grain: "month", compare: "prev_period", limit: null, sort: "value_desc" };
+const QUERY: MetricQuery = { metric: "ar_overdue", dims: ["region"], filters: {}, range: { from: "2026-08-01", to: "2026-08-31" }, grain: "month", compare: "none", limit: null, sort: "value_desc" };
 
 function alertOn(id: string, region: string): Alert {
   return {

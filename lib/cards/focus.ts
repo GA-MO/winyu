@@ -8,6 +8,7 @@ import type { Dictionary } from "@/lib/semantic/dictionary";
 import { GEO_LEVELS, geoValueOf } from "@/lib/semantic/geo";
 
 const HARM_MIN_PCT = 5;
+const PERIOD_COMPARES: ReadonlySet<ResolvedQuery["compare"]> = new Set(["prev_period", "prev_year"]);
 const LABEL_SEPARATOR = ", ";
 const PART_SEPARATOR = " · ";
 
@@ -31,7 +32,9 @@ function pinnedRow(query: ResolvedQuery, dim: Dim): string | null {
 }
 
 function worstRow(result: Extract<MetricResult, { ok: true }>): string | null {
-  return weakestRow(result.query, result)?.label ?? sharpestHarm(result.query, result, HARM_MIN_PCT)?.label ?? null;
+  const harm = sharpestHarm(result.query, result, HARM_MIN_PCT)?.label ?? null;
+  if (PERIOD_COMPARES.has(result.query.compare)) return harm;
+  return weakestRow(result.query, result)?.label ?? harm;
 }
 
 function sliceOf(query: ResolvedQuery, rankDim: Dim | null): string | null {
