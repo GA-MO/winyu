@@ -212,7 +212,7 @@ describe("set_permission", () => {
       value: "none",
     });
     expect(result.ok).toBe(true);
-    expect(result.data.after).toBe(TH.admin.acl.none);
+    expect(result.data.after).toBe(TH.adminAudit.visibility.none);
     expect(result.data.affectedUsers).toBeGreaterThan(0);
     expect(liveAccessFor(findUser("u_krit")!).metricAcl.net_sales_value).toBe("none");
     resetRoleOverrides();

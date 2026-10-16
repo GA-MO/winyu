@@ -222,7 +222,7 @@ describe("admin_audit", () => {
     expect(valueOf(TH.admin.tools.store_visits.label)).toBe(TH.adminAudit.allowed);
     expect(valueOf(TH.admin.tools.send_email.label)).toBe(TH.adminAudit.off);
     expect(valueOf(TH.admin.tools.send_card.label)).toBe(TH.adminAudit.allowed);
-    expect(valueOf(metricLabel("ar_overdue"))).toBe(TH.admin.acl.masked);
+    expect(valueOf(metricLabel("ar_overdue"))).toBe(TH.adminAudit.visibility.masked);
     setRoleTool("sales_rep", "store_visits", false, IT);
     try {
       const after = await roleAccessOf("sales_rep");
@@ -234,15 +234,21 @@ describe("admin_audit", () => {
     }
   });
 
+  test("role_access and overrides answer a Thai chat in Thai: no Full, Masked or None in the value column (AI-121)", async () => {
+    const access = await roleAccessOf("sales_rep");
+    const values = [...access.rows, ...access.folded].map((row) => String(row.value_label));
+    expect(values.filter((value) => /[A-Za-z]/.test(value))).toEqual([]);
+  });
+
   test("role_access leads with what the role may not see in full or call, hidden metrics first, and folds the rest apart", async () => {
     const access = await roleAccessOf("sales_rep");
-    const order: string[] = [TH.admin.acl.none, TH.admin.acl.masked, TH.adminAudit.off];
+    const order: string[] = [TH.adminAudit.visibility.none, TH.adminAudit.visibility.masked, TH.adminAudit.off];
     const ranks = access.rows.map((row) => order.indexOf(String(row.value_label)));
     expect(ranks.every((rank) => rank >= 0)).toBe(true);
     expect(ranks).toEqual([...ranks].sort((left, right) => left - right));
-    expect(access.folded.every((row) => row.value_label === TH.admin.acl.full || row.value_label === TH.adminAudit.allowed)).toBe(true);
+    expect(access.folded.every((row) => row.value_label === TH.adminAudit.visibility.full || row.value_label === TH.adminAudit.allowed)).toBe(true);
     expect(access.rows.length + access.folded.length).toBe(METRIC_IDS.length + toolSurface().length);
-    expect(access.line).toBe(TH.adminAudit.roleAccessFolded(access.folded.filter((row) => row.value_label === TH.admin.acl.full).length, access.folded.filter((row) => row.value_label === TH.adminAudit.allowed).length));
+    expect(access.line).toBe(TH.adminAudit.roleAccessFolded(access.folded.filter((row) => row.value_label === TH.adminAudit.visibility.full).length, access.folded.filter((row) => row.value_label === TH.adminAudit.allowed).length));
   });
 
   test("role_access without a role asks for one instead of guessing", async () => {

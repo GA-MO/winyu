@@ -112,7 +112,7 @@ function overrideRow(entry: RoleOverride): ConnectorRow {
   const shared = { role_label: TH.role[entry.role], kind_label: TH.adminAudit.kind[entry.kind], by_name: nameOf(entry.by), at_label: whenLabel(entry.at) };
   if (entry.kind === "tool") return { ...shared, key_label: toolLabel(entry.key), value_label: entry.allowed ? TH.adminAudit.allowed : TH.adminAudit.off };
   const key = entry.kind === "metric" ? metricLabel(entry.key) : fieldLabel(entry.key);
-  return { ...shared, key_label: key, value_label: TH.admin.acl[entry.visibility] };
+  return { ...shared, key_label: key, value_label: TH.adminAudit.visibility[entry.visibility] };
 }
 
 function overrides(): Report {
@@ -126,7 +126,7 @@ function roleAccess(role: RoleId | null): Report {
   const { metricAcl, toolAllow } = permissionsFor(role);
   const killed = new Set(killedTools());
   const usable = (name: ToolName) => toolAllow.includes(name) && !killed.has(name);
-  const metricRow = (metric: MetricId) => ({ kind_label: TH.adminAudit.kind.metric, key_label: metricLabel(metric), value_label: TH.admin.acl[metricAcl[metric]] });
+  const metricRow = (metric: MetricId) => ({ kind_label: TH.adminAudit.kind.metric, key_label: metricLabel(metric), value_label: TH.adminAudit.visibility[metricAcl[metric]] });
   const hiddenMetrics = EXCEPTION_ORDER.flatMap((visibility) => METRIC_IDS.filter((metric) => metricAcl[metric] === visibility).map((metric) => ({ ...metricRow(metric), tone: HIDDEN_TONE[visibility] })));
   const offTools = toolSurface().filter((entry) => !usable(entry.name)).map((entry) => ({ kind_label: TH.adminAudit.kind.tool, key_label: entry.labelTh, value_label: TH.adminAudit.off, tone: HIDDEN_TONE.none }));
   const fullMetrics = METRIC_IDS.filter((metric) => metricAcl[metric] === "full").map(metricRow);

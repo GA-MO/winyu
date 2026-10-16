@@ -84,9 +84,9 @@ type SendPlan = { sending: CardToSend; recipients: ShareContact[]; owner: boolea
 type CourseSummary = { id: string; title: string; starts: string; days: number };
 
 const PERMISSION_VALUE_LABEL: Record<string, string> = {
-  full: TH.admin.acl.full,
-  masked: TH.admin.acl.masked,
-  none: TH.admin.acl.none,
+  full: TH.adminAudit.visibility.full,
+  masked: TH.adminAudit.visibility.masked,
+  none: TH.adminAudit.visibility.none,
   allow: TH.admin.permission.allow,
   deny: TH.admin.permission.deny,
 };

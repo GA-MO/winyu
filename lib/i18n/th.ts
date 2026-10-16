@@ -1829,6 +1829,7 @@ export const TH = {
     kind: { metric: "เมตริก", tool: "เครื่องมือ", field: "ฟิลด์", killed: "ปิดทั้งระบบ" },
     allowed: "ใช้ได้",
     off: "ปิด",
+    visibility: { full: "เห็นเต็ม", masked: "ซ่อนตัวเลข", none: "ไม่เห็น" },
     roleAccess: (role: string, limited: number) => (limited > 0 ? `${role} ถูกซ่อนหรือปิดไว้ ${limited} รายการ` : `${role} เห็นทุกเมตริกและใช้ได้ทุกเครื่องมือ`),
     roleAccessFolded: (metrics: number, tools: number) => `เห็นเต็ม ${metrics} เมตริก · ใช้ได้ ${tools} เครื่องมือ`,
     needsRole: "ระบุบทบาทที่ต้องการดูสิทธิ์ (role)",

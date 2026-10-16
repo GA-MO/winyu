@@ -42,7 +42,7 @@ function changeMetric(role: RoleId, metric: string, value: PermissionInput["valu
   const before = permissionsFor(role).metricAcl[metric];
   if (widensOwnAccess(role, by, before, value as Visibility, defaultMetricVisibility(role, metric))) return { ok: false, error: TH.admin.permission.ownRole(TH.role[role]) };
   setMetricVisibility(role, metric, value as Visibility, by);
-  const data = { role, roleLabel: TH.role[role], kind: "metric" as const, key: metric, label: metricLabel(metric), before: TH.admin.acl[before], after: TH.admin.acl[value as Visibility], affectedUsers: membersOf(role) };
+  const data = { role, roleLabel: TH.role[role], kind: "metric" as const, key: metric, label: metricLabel(metric), before: TH.adminAudit.visibility[before], after: TH.adminAudit.visibility[value as Visibility], affectedUsers: membersOf(role) };
   return { ok: true, summary: TH.admin.permission.done(data.roleLabel, data.label, data.before, data.after, data.affectedUsers), data };
 }
 
@@ -65,7 +65,7 @@ function changeField(role: RoleId, key: string, value: PermissionInput["value"],
   const before = fieldVisibilityOf(role, key);
   if (widensOwnAccess(role, by, before, value as Visibility, defaultFieldVisibility(role, key))) return { ok: false, error: TH.admin.permission.ownRole(TH.role[role]) };
   setFieldVisibility(role, key, value as Visibility, by);
-  const data = { role, roleLabel: TH.role[role], kind: "field" as const, key, label: field.labelTh, before: TH.admin.acl[before], after: TH.admin.acl[value as Visibility], affectedUsers: membersOf(role) };
+  const data = { role, roleLabel: TH.role[role], kind: "field" as const, key, label: field.labelTh, before: TH.adminAudit.visibility[before], after: TH.adminAudit.visibility[value as Visibility], affectedUsers: membersOf(role) };
   return { ok: true, summary: TH.admin.permission.done(data.roleLabel, data.label, data.before, data.after, data.affectedUsers), data };
 }
 
