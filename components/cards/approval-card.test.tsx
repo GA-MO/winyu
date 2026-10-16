@@ -136,6 +136,12 @@ describe("a permission change", () => {
     expect(render("set_permission", { ...FIELD, kind: "metric", key: "avg_salary" })).toContain("เงินเดือนเฉลี่ย");
   });
 
+  test("names a native tool from the first draw, without waiting on a lookup that may never answer", () => {
+    const html = render("set_permission", { ...FIELD, kind: "tool", key: "store_visits", value: "deny" });
+    expect(html).toContain(TH.admin.tools.store_visits.label);
+    expect(html).not.toContain(`${TH.approve.permissionKind.tool} →`);
+  });
+
   test("names the field in Thai once the label comes back", async () => {
     const spy = spyOn(globalThis, "fetch").mockImplementation((async () => Response.json({ label: "ยอดสั่งซื้อจากการเยี่ยมร้าน" })) as unknown as typeof fetch);
     const host = document.createElement("div");
