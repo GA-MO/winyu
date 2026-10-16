@@ -64,5 +64,6 @@ export function briefOf(matter: Matter, viewerId: string): MatterBrief {
     actions: allowedActions(matter, viewerId),
     suggested: suggestionsFor(matter.card, viewerId),
     judges: matter.alertIds.length > 0,
+    sent: matter.senderId === viewerId,
   };
 }

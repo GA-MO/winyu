@@ -151,8 +151,13 @@ export function allowedActions(matter: Matter, actorId: string): MatterActionKin
 /** Who a picker puts first: the card's owner (preselected, never the viewer), then the viewer's own line. */
 export type MatterSuggestions = { ownerId: string | null; line: string[] };
 
-/** A matter as a bell row, an Inbox row and the page's actions need it: no value from the card, only names, the ask and what the viewer may press. */
-export type MatterBrief = { code: string; title: string; ask: string; senderName: string; passerName: string | null; at: string; actions: MatterActionKind[]; suggested: MatterSuggestions; judges: boolean };
+/** A matter as a bell row, an Inbox row and the page's actions need it: no value from the card, only names, the ask, what the viewer may press, and whether the viewer is the one who sent it. */
+export type MatterBrief = { code: string; title: string; ask: string; senderName: string; passerName: string | null; at: string; actions: MatterActionKind[]; suggested: MatterSuggestions; judges: boolean; sent: boolean };
+
+/** The matter page's heading for this viewer: the sender reads what they sent, anyone on the path what they were asked. */
+export function matterLabel(matter: Pick<Matter, "intent" | "senderId">, viewerId: string): string {
+  return matter.senderId === viewerId ? TH.matter.sentLabel[matter.intent] : TH.matter.label[matter.intent];
+}
 
 /** Who a matter came from, and who passed it on when that was someone else. */
 export function matterFrom(brief: Pick<MatterBrief, "senderName" | "passerName">): string {

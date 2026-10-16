@@ -104,7 +104,7 @@ describe("the bell popover", () => {
   });
 
   test("a matter shows its card title, the ask, who sent it and passed it on, and the presses; รับ presses it in place, reads its notification and refreshes", async () => {
-    const matter = { code: "m1", title: "ปริมาณขายเข้า", ask: "ช่วยดูภาคอีสาน", senderName: "คุณธนา", passerName: "คุณอนุชา", at: AT, actions: ["accept" as const, "ask" as const, "pass_on" as const, "not_mine" as const, "done" as const], suggested: { ownerId: null, line: [] }, judges: false };
+    const matter = { code: "m1", title: "ปริมาณขายเข้า", ask: "ช่วยดูภาคอีสาน", senderName: "คุณธนา", passerName: "คุณอนุชา", at: AT, actions: ["accept" as const, "ask" as const, "pass_on" as const, "not_mine" as const, "done" as const], suggested: { ownerId: null, line: [] }, judges: false, sent: false };
     const payload: BellPayload = { decide: [{ key: "matter:m1", kind: "matter", refId: "m1", title: "t", person: null, at: AT, read: false, target: "/s/m1", notificationId: "n-matter", matter }], updates: [] };
     const server = fakeServer(payload);
     const { host, seen } = await openPopover();
@@ -141,7 +141,7 @@ describe("bell rows on a phone (AI-159)", () => {
   const MATTER_TITLE = "ปริมาณขายเข้า (Sell-in) · รายเอเย่นต์ · ภาคอีสาน";
 
   test("an update and a matter keep the recipient and the card's name readable: their lines wrap, never cut to one line", async () => {
-    const brief = { code: "m1", title: MATTER_TITLE, ask: "ช่วยดู", senderName: "คุณธนา", passerName: null, at: AT, actions: [], suggested: { ownerId: null, line: [] }, judges: false };
+    const brief = { code: "m1", title: MATTER_TITLE, ask: "ช่วยดู", senderName: "คุณธนา", passerName: null, at: AT, actions: [], suggested: { ownerId: null, line: [] }, judges: false, sent: false };
     fakeServer({
       decide: [{ key: "matter:m1", kind: "matter", refId: "m1", title: MATTER_TITLE, person: null, at: AT, read: false, target: "/s/m1", notificationId: "n-matter", matter: brief }],
       updates: [{ key: "n-pass", kind: "matter_update", refId: "m1", title: LONG, person: null, at: AT, read: false, target: "/s/m1", notificationId: "n-pass" }],

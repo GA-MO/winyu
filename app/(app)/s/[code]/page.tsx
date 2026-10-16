@@ -17,6 +17,7 @@ import { pathSteps, threadLines, type PathStep } from "@/lib/server/share/matter
 import { noteView, openingOf } from "@/lib/server/share/shares";
 import { openShare } from "@/lib/server/share/view";
 import type { Matter } from "@/lib/share/matter";
+import { matterLabel } from "@/lib/share/matter-actions";
 
 export const dynamic = "force-dynamic";
 
@@ -122,7 +123,7 @@ export default async function MatterPage({ params }: PageProps) {
         <header className="flex flex-col gap-3">
           <p className="inline-flex flex-wrap items-center gap-1.5 text-xs font-medium text-muted-foreground">
             <Forward className="size-3.5 text-primary" aria-hidden />
-            {TH.matter.label[matter.intent]}
+            {matterLabel(matter, viewer.id)}
             {acts && matter.status === "open" ? <span className={`rounded-full px-2 py-0.5 ${matter.urgency === "now" ? "bg-danger/10 text-danger" : "bg-muted text-foreground"}`} data-matter-urgency>{matter.due ? TH.share.dueBy(formatDateTh(matter.due)) : TH.share.urgency[matter.urgency]}</span> : null}
             {acts && matter.status !== "open" ? <span className="rounded-full bg-success/10 px-2 py-0.5 text-success">{TH.matter.status[matter.status]}</span> : null}
           </p>
