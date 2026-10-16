@@ -23,6 +23,8 @@ const PANEL = "fixed right-0 top-0 z-50 flex h-dvh w-full max-w-[26rem] flex-col
 const SENT_PANEL = "fixed inset-x-3 bottom-3 z-50 flex max-h-[50dvh] flex-col gap-2 overflow-y-auto rounded-2xl border border-border bg-card px-4 py-3 shadow-panel animate-panel-in pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:left-auto sm:right-4 sm:w-[24rem]";
 /** How long the sent confirmation stays when nobody points at or tabs into it. */
 export const SENT_SHOWN_MS = 6000;
+const ASK_ROWS = 3;
+const LINE_BREAKS = /[\r\n]+/g;
 const CHIP = "inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 /** The icon each share channel shows with. */
 export const CHANNEL_ICON: Record<ShareChannel, typeof Mail> = { email: Mail, teams: Users, line: MessageCircle };
@@ -74,23 +76,28 @@ function ContactRow({ contact, chosen, toggle }: { contact: ShareContact; chosen
 export function PeoplePicker({ contacts, suggested, chosen, onToggle }: { contacts: ShareContact[]; suggested: MatterSuggestions; chosen: readonly string[]; onToggle: (contact: ShareContact) => void }) {
   const [query, setQuery] = useState("");
   const firstIds = [...(suggested.ownerId ? [suggested.ownerId] : []), ...suggested.line];
-  const first = firstIds.flatMap((id) => contacts.find((contact) => contact.id === id) ?? []);
+  const pick = (ids: readonly string[]) => ids.flatMap((id) => contacts.find((contact) => contact.id === id) ?? []);
+  const owner = pick(suggested.ownerId ? [suggested.ownerId] : []);
+  const line = pick(suggested.line.filter((id) => id !== suggested.ownerId));
   const others = contacts.filter((contact) => !firstIds.includes(contact.id) && (chosen.includes(contact.id) || matches(contact, query)));
   const ordered = [...others.filter((contact) => chosen.includes(contact.id)), ...others.filter((contact) => !chosen.includes(contact.id))];
+  const group = (heading: string, people: ShareContact[]) =>
+    people.length > 0 ? (
+      <section className="flex flex-col gap-1 border-b border-border px-2 py-2" data-share-suggested={people.map((contact) => contact.id).join(" ")}>
+        <h3 className="px-2 text-xs font-medium text-muted-foreground">{heading}</h3>
+        <ul>
+          {people.map((contact) => (
+            <ContactRow key={contact.id} contact={contact} chosen={chosen.includes(contact.id)} toggle={() => onToggle(contact)} />
+          ))}
+        </ul>
+      </section>
+    ) : null;
   return (
     <>
-      {first.length > 0 ? (
-        <section className="flex flex-col gap-1 border-b border-border px-2 py-2" data-share-suggested={first.map((contact) => contact.id).join(" ")}>
-          <h3 className="px-2 text-xs font-medium text-muted-foreground">{suggested.ownerId ? TH.share.suggested : TH.share.yourLine}</h3>
-          <ul>
-            {first.map((contact) => (
-              <ContactRow key={contact.id} contact={contact} chosen={chosen.includes(contact.id)} toggle={() => onToggle(contact)} />
-            ))}
-          </ul>
-        </section>
-      ) : null}
+      {group(TH.share.suggested, owner)}
+      {group(TH.share.yourLine, line)}
       <div className="flex flex-col gap-2 px-4 pt-3">
-        {first.length > 0 ? <h3 className="text-xs font-medium text-muted-foreground">{TH.share.others}</h3> : null}
+        {owner.length + line.length > 0 ? <h3 className="text-xs font-medium text-muted-foreground">{TH.share.others}</h3> : null}
         <label className="flex items-center gap-2 rounded-xl border border-border px-3 py-2 focus-within:ring-2 focus-within:ring-ring">
           <Search className="size-4 text-muted-foreground" aria-hidden />
           <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={TH.share.search} className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground" />
@@ -386,7 +393,7 @@ function Sheet({ target, close }: { target: ShareTarget; close: () => void }) {
               <Forward className="size-4 text-primary" aria-hidden />
               {TH.share.sheetTitle}
             </h2>
-            <p className="truncate text-sm text-foreground">{title}</p>
+            <p className="text-sm leading-snug text-foreground wrap-anywhere">{title}</p>
           </div>
           <button type="button" onClick={close} aria-label={TH.common.close} className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground">
             <X className="size-4" aria-hidden />
@@ -397,7 +404,7 @@ function Sheet({ target, close }: { target: ShareTarget; close: () => void }) {
           {intent === "act" ? <UrgencyChoice urgency={urgency} choose={setUrgency} /> : null}
           <label className="flex flex-col gap-1">
             <span className="text-xs font-medium text-muted-foreground">{TH.share.askLabel}</span>
-            <input value={ask} onChange={(event) => setAsk(event.target.value.slice(0, MATTER_ASK_MAX))} placeholder={TH.share.askPlaceholder} data-share-ask className="rounded-xl border border-border bg-transparent px-3 py-2 text-sm outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-ring" />
+            <textarea value={ask} onChange={(event) => setAsk(event.target.value.replace(LINE_BREAKS, " ").slice(0, MATTER_ASK_MAX))} rows={ASK_ROWS} placeholder={TH.share.askPlaceholder} data-share-ask className="field-sizing-content min-h-16 resize-none rounded-xl border border-border bg-transparent px-3 py-2 text-sm leading-relaxed outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-ring" />
           </label>
           <ContradictionNote text={contradictionOf(ask, preview.figures)} />
           {intent === "act" && preview.goal ? <GoalChoice goal={preview.goal} keep={keepGoal} toggle={() => setKeepGoal((value) => !value)} /> : null}

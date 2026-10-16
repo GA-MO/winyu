@@ -2051,8 +2051,8 @@ export const TH = {
       done: (name: string) => `${name} ปิดเรื่อง`,
     },
     goal: {
-      attainment: (metric: string) => `ปิดเองเมื่อ${metric}ถึง 100% ของเป้า`,
-      back: (metric: string) => `ปิดเองเมื่อ${metric}กลับมาเป็นปกติ`,
+      attainment: (metric: string) => `ปิดเองเมื่อ${metric} ถึง 100% ของเป้า`,
+      back: (metric: string) => `ปิดเองเมื่อ${metric} กลับมาเป็นปกติ`,
       unknown: "ปิดเองเมื่อตัวเลขถึงเป้า",
       keep: "ปิดเรื่องเองเมื่อถึงเป้า",
     },
