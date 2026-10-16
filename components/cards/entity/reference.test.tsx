@@ -48,7 +48,7 @@ describe("explain_gap shares above 100%", () => {
     const answers = await Promise.all(
       ["u_thana", "u_anucha"].flatMap((userId) => (["prev_year", "target"] as const).flatMap((compare) => RANGES.map((range) => explainGapAs(userId, compare, range)))),
     );
-    for (const answer of answers) expect(Boolean(answer.share_note)).toBe(overWhole(answer));
+    for (const answer of answers) expect(Boolean(answer.share_note?.includes(TH.cards.gap.overHundred))).toBe(overWhole(answer));
   });
 
   test("the card shows the note only when the answer carries one", () => {
