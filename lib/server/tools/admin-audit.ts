@@ -12,7 +12,7 @@ import { connectorHealth, offlineSince } from "@/lib/server/connectors/catalog";
 import { fencedRows, MAX_CONNECTOR_ROWS } from "@/lib/server/connectors/output";
 import type { ConnectorRow } from "@/lib/server/connectors/types";
 import { modelSpend, type ModelCallSource } from "@/lib/server/model-ledger";
-import { sinceDaysStart, toolActivity } from "@/lib/server/usage";
+import { sinceDaysStart, toolActivity } from "@/lib/server/tool-activity";
 import { defineTool } from "./define";
 import { connectors, fieldLabel, toolLabel, toolSurface } from "./registry";
 

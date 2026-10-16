@@ -11,7 +11,8 @@ import { packets, requestLinks } from "@/lib/server/agent/collections";
 import { winyuTools } from "@/lib/server/agent/tools";
 import { auditLog } from "@/lib/server/audit";
 import { grantRequests } from "@/lib/server/grants";
-import { sinceOf, toolActivity } from "@/lib/server/usage";
+import { toolActivity } from "@/lib/server/tool-activity";
+import { sinceOf } from "@/lib/server/usage";
 import { toolLabel } from "./registry";
 import { runWithAccess, runWithTurn } from "@/lib/server/request-context";
 

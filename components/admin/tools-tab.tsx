@@ -4,7 +4,8 @@ import { ROLE_IDS, type RoleId, type ToolSurfaceEntry, type ToolTier, type User 
 import { surfaceByConnector } from "@/lib/server/tools/registry";
 import { closureOf, killedTools } from "@/lib/access/enforce";
 import { permissionsFor } from "@/lib/access/role-overrides";
-import { sinceOf, toolActivity, type ToolActivity } from "@/lib/server/usage";
+import { toolActivity, type ToolActivity } from "@/lib/server/tool-activity";
+import { sinceOf } from "@/lib/server/usage";
 import { TH } from "@/lib/i18n/th";
 import { setToolKilledAction } from "@/app/(app)/admin/actions";
 import { ConnectorHeader } from "./connector-parts";

@@ -3,7 +3,8 @@ import { auditLog } from "@/lib/server/audit";
 import { actionEvents, packets } from "@/lib/server/agent/collections";
 import { agentModel } from "@/lib/server/models";
 import { modelSpend, type ModelSpend } from "@/lib/server/model-ledger";
-import { surfaceEntry, toolSurface } from "@/lib/server/tools/registry";
+import { sinceDaysStart, toolCalls } from "@/lib/server/tool-activity";
+import { surfaceEntry } from "@/lib/server/tools/registry";
 
 const DAYS = 14;
 const TOP_INTENTS = 8;
@@ -75,12 +76,6 @@ function decisionCount(entries: AuditEntry[], decision: AuditEntry["decision"]):
   return entries.filter((entry) => entry.decision === decision).length;
 }
 
-/** The audit rows that are calls of a tool on the surface, since a moment when one is given; a composed card, share, matter press, guard decision, grant or connector edit is audited beside them but is not a tool call. */
-export function toolCalls(entries: readonly AuditEntry[], since: string | null = null): AuditEntry[] {
-  const names = new Set<string>(toolSurface().map((entry) => entry.name));
-  return entries.filter((entry) => names.has(entry.tool) && (!since || entry.at >= since));
-}
-
 /** What the platform did this fortnight: questions asked, intents behind them, what it could not answer and what it cost. */
 export function usageSummary(): UsageSummary {
   const entries = toolCalls(auditLog().all());
@@ -122,13 +117,6 @@ export function sinceOf(range: AuditRange, now = Date.now()): string | null {
   return days === null ? null : sinceDaysStart(days, now);
 }
 
-/** The start of the UTC day a number of days back: the window the console and the admin's audit tool both count from. */
-export function sinceDaysStart(days: number, now = Date.now()): string {
-  const start = new Date(now);
-  start.setUTCHours(0, 0, 0, 0);
-  return new Date(start.getTime() - days * 24 * 60 * 60_000).toISOString();
-}
-
 /** The connector an audit row went through; rows written before connectors were recorded fall back to the tool's connector today. */
 export function auditConnector(entry: AuditEntry): string | null {
   return entry.connector ?? surfaceEntry(entry.tool)?.connector ?? null;
@@ -150,20 +138,4 @@ export function auditEntries(filter: AuditFilter, limit: number): AuditEntry[] {
     .filter((entry) => !filter.decision || entry.decision === filter.decision)
     .sort((left, right) => right.at.localeCompare(left.at))
     .slice(0, limit);
-}
-
-export type ToolActivity = { calls: number; failed: number; denied: number; masked: number };
-
-/** How often each tool was called since a moment, and how many of those calls were refused, failed or masked; only tool calls count. */
-export function toolActivity(since: string | null): Map<string, ToolActivity> {
-  const table = new Map<string, ToolActivity>();
-  for (const entry of toolCalls(auditLog().all(), since)) {
-    const row = table.get(entry.tool) ?? { calls: 0, failed: 0, denied: 0, masked: 0 };
-    row.calls += 1;
-    if (entry.decision === "deny" || entry.code) row.failed += 1;
-    if (entry.decision === "deny") row.denied += 1;
-    if (entry.decision === "masked") row.masked += 1;
-    table.set(entry.tool, row);
-  }
-  return table;
 }
