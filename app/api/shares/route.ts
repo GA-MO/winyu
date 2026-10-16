@@ -16,5 +16,5 @@ export async function POST(req: Request) {
   if (!parsed.success) return badRequest();
   const outcome = await createShare(sender, parsed.data);
   if (!outcome.ok) return Response.json({ error: outcome.error }, { status: 422 });
-  return Response.json({ code: outcome.share.id, path: sharePath(outcome.share.id), title: outcome.share.title, receipts: receiptsOf(outcome.share), grants: outcome.grants });
+  return Response.json({ code: outcome.share.id, path: sharePath(outcome.share.id), title: outcome.share.title, receipts: receiptsOf(outcome.share), grants: outcome.grants, hidden: outcome.hidden });
 }

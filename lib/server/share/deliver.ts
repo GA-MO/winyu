@@ -1,10 +1,10 @@
-import type { User } from "@/lib/contracts";
+import type { RecipientScope, User } from "@/lib/contracts";
 import { findUser, USERS } from "@/lib/data/entities/users";
 import { shareTitle, type ChannelOption, type DeliveryChannel, type ShareChannel, type ShareContact, type ShareGrantReceipt, type ShareRequest } from "@/lib/share/card";
 import type { Matter, MatterUrgency, ShareDelivery } from "@/lib/share/matter";
 import { recordShare } from "@/lib/server/audit";
 import { untilLabel } from "@/lib/share/grant-label";
-import { grantOnShare, shareGrantUntil } from "@/lib/server/grants";
+import { grantOnShare, recipientScopesFor, shareGrantUntil } from "@/lib/server/grants";
 import { notify } from "@/lib/server/notify";
 import { lineSettings, pushLineMessages } from "@/lib/server/channels/line";
 import { postTeamsCard, teamsSettings } from "@/lib/server/channels/teams";
@@ -16,8 +16,8 @@ import { shareAdaptiveCard, shareEmail, shareFlex, shareUrl, type ShareMessage }
 import type { FallbackReason } from "@/lib/share/card";
 import { shareableProblem, shareCode, shares } from "./shares";
 
-/** What creating a share returns: the record, or why nothing was sent. */
-export type ShareOutcome = { ok: true; share: Matter; grants: ShareGrantReceipt[] } | { ok: false; error: string };
+/** What creating a share returns: the record, the grants given, and what the card still hides from each recipient; or why nothing was sent. */
+export type ShareOutcome = { ok: true; share: Matter; grants: ShareGrantReceipt[]; hidden: RecipientScope[] } | { ok: false; error: string };
 
 function linkOf(userId: string, provider: "entra" | "line", tenant: string | null) {
   return identityLinks().find((link) => link.userId === userId && link.provider === provider && (tenant === null || link.tenant === tenant)) ?? null;
@@ -113,5 +113,5 @@ export async function createShare(sender: User, request: ShareRequest, at = new 
     const event = share.intent === "act" ? { kind: "matter" as const, refId: code, senderName: sender.nameTh, ask } : { kind: "share" as const, refId: code, senderName: sender.nameTh, cardTitle: title, grantUntil: until ? untilLabel(until) : null };
     notify(delivery.userId, sender.id, event, new Date(at));
   }
-  return { ok: true, share, grants };
+  return { ok: true, share, grants, hidden: recipientScopesFor(sender, request.card, deliveries.map((delivery) => delivery.userId), new Date(at)) };
 }

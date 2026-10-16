@@ -1,4 +1,5 @@
 import type { User } from "@/lib/contracts";
+import { metricLabel } from "@/lib/dashboard/metric-display";
 import { findUser } from "@/lib/data/entities/users";
 import { TH } from "@/lib/i18n/th";
 import { channelFor, shareCardInputSchema, type ShareCardInput } from "@/lib/share/card";
@@ -59,10 +60,11 @@ export const shareCardTool = defineTool({
     const outcome = await createShare(sender, { card: onScreen.card, question: onScreen.question, ask: input.note ?? "", intent: "fyi", recipients });
     if (!outcome.ok) return { ok: false as const, code: NOT_SHAREABLE, error: outcome.error };
     const receipts = receiptsOf(outcome.share);
+    const hidden = outcome.hidden.map((scope) => TH.share.recipientHidden[scope.hidden](scope.name, metricLabel(scope.metric)));
     return {
       ok: true as const,
-      summary: TH.share.chat.sent(outcome.share.title, receipts.map((receipt) => receipt.name).join(", ")),
-      data: { code: outcome.share.id, path: sharePath(outcome.share.id), title: outcome.share.title, receipts },
+      summary: `${TH.share.chat.sent(outcome.share.title, receipts.map((receipt) => receipt.name).join(", "))}${hidden.length > 0 ? TH.share.chat.hidden(hidden.join(" · ")) : ""}`,
+      data: { code: outcome.share.id, path: sharePath(outcome.share.id), title: outcome.share.title, receipts, hidden },
     };
   },
 });

@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { baseAccessFor, GRANTS_COLLECTION, isLiveGrant, liveAccessFor } from "@/lib/access/enforce";
 import { DEFAULT_GRANT_AUTHORITY, GRANT_DOMAINS, grantedSlice, grantRefusal, hiddenFrom, type GrantDomain } from "@/lib/access/grants";
 import { policyRules } from "@/lib/access/policy-rules";
-import { DEFAULT_GRANT_DAYS, type Grant, type GrantDays, type GrantRefusal, type GrantRequest, type GrantSlice, type RoleId, type ShareScope, type User } from "@/lib/contracts";
+import { DEFAULT_GRANT_DAYS, type AccessContext, type Grant, type GrantDays, type GrantRefusal, type GrantRequest, type GrantSlice, type RecipientScope, type RoleId, type ShareScope, type User } from "@/lib/contracts";
 import { findUser, USERS } from "@/lib/data/entities/users";
 import { TH } from "@/lib/i18n/th";
 import type { ShareGrantReceipt, SharedCard } from "@/lib/share/card";
@@ -129,6 +129,25 @@ function hiddenSliceOf(share: Matter, viewer: User, at: Date): GrantSlice | null
     if (hiddenFrom(own, slice, at)) return slice;
   }
   return null;
+}
+
+function hiddenKindOf(recipient: AccessContext, slice: GrantSlice): RecipientScope["hidden"] {
+  const acl = recipient.metricAcl[slice.metric];
+  if (acl === "masked") return "masked";
+  return acl === "none" ? "closed" : "rows";
+}
+
+/** What the card would hide from each recipient if the sender sent it now, under the recipient's live access and grants: the first read that showed the sender more, and whether the sender may grant it; recipients who would see all of it are left out. */
+export function recipientScopesFor(sender: User, card: SharedCard, recipientIds: readonly string[], at = new Date()): RecipientScope[] {
+  const slices = slicesOf(card, sender, at);
+  return recipientIds.flatMap((userId) => {
+    const recipient = findUser(userId);
+    if (!recipient || recipient.id === sender.id) return [];
+    const access = liveAccessFor(recipient, at);
+    const slice = slices.find((candidate) => hiddenFrom(access, candidate, at) !== null);
+    if (!slice) return [];
+    return [{ userId, name: recipient.nameTh, metric: slice.metric, hidden: hiddenKindOf(access, slice), grantable: refusalFor(sender, recipient, slice, DEFAULT_GRANT_DAYS, at) === null }];
+  });
 }
 
 /** Who may approve a request for this slice: the sender when they may grant it, else the first person who may; null when nobody can. */

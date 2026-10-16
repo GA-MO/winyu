@@ -1715,6 +1715,14 @@ export const TH = {
     others: "คนอื่น",
     chosen: (count: number) => `เลือกแล้ว ${count} คน`,
     send: "ส่ง",
+    recipientHidden: {
+      masked: (name: string, metric: string) => `${name} จะเห็น${metric}แบบปิดตัวเลข เพราะบทบาทของเขาดูตัวเลขนี้ไม่ได้`,
+      closed: (name: string, metric: string) => `${name} ไม่มีสิทธิ์ดู${metric} จะเปิดการ์ดนี้แล้วไม่เห็นตัวเลข`,
+      rows: (name: string, metric: string) => `${name} จะเห็น${metric}เฉพาะส่วนในขอบเขตของเขา ส่วนที่เหลือถูกล็อก`,
+    },
+    grantToShow: "ให้สิทธิ์ชั่วคราวตอนส่ง",
+    grantWillShow: "จะให้สิทธิ์ชั่วคราวตอนส่ง",
+    stillHidden: "ผู้รับบางคนจะเห็นไม่ครบ",
 
     sending: "กำลังส่ง…",
     sentTitle: "ส่งต่อแล้ว",
@@ -1757,6 +1765,7 @@ export const TH = {
       noteNumbers: "ข้อความถึงผู้รับต้องไม่มีตัวเลขที่ผู้ใช้ไม่ได้พิมพ์เอง (ผู้รับเห็นตัวเลขจากการ์ดตามสิทธิ์ของตัวเอง) เรียกใหม่โดยไม่ใส่ note หรือใส่เฉพาะคำของผู้ใช้",
       noCard: "ยังไม่มีการ์ดในบทสนทนานี้ให้ส่ง บอกผู้ใช้ให้ถามเรื่องที่อยากส่งก่อน แล้วค่อยสั่งส่ง",
       sent: (title: string, names: string) => `ส่งการ์ด "${title}" ให้ ${names} แล้ว ผู้รับเปิดดูตามสิทธิ์ของตัวเอง`,
+      hidden: (lines: string) => ` ผู้รับบางคนจะเห็นไม่ครบ บอกผู้ใช้ด้วย: ${lines}`,
     },
   },
   matter: {

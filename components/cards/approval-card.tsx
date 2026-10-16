@@ -4,15 +4,15 @@ import { useEffect, useState, type ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 import { BellRing, CalendarDays, Check, Forward, GraduationCap, LayoutGrid, Mail, PlugZap, RefreshCw, Send, ShieldCheck, X } from "lucide-react";
 import { OutboxNote } from "@/components/share/outbox-note";
-import { CHANNEL_ICON, useShareContacts } from "@/components/share/share-sheet";
-import { METRIC_IDS, ROLE_IDS, type MetricId, type MetricQuery, type RoleId, type Urgency, type WatchCondition } from "@/lib/contracts";
+import { CHANNEL_ICON, RecipientWarnings, useRecipientScopes, useShareContacts } from "@/components/share/share-sheet";
+import { METRIC_IDS, ROLE_IDS, type MetricId, type MetricQuery, type RecipientScope, type RoleId, type Urgency, type WatchCondition } from "@/lib/contracts";
 import { conditionLabel } from "@/lib/engine/personal-watches";
 import { USERS, findUser } from "@/lib/data/entities/users";
 import { sharedWith } from "@/lib/cards/describe-call";
 import { formatDateTh } from "@/lib/i18n/format";
 import { metricLabel } from "@/lib/dashboard/metric-display";
 import { TH } from "@/lib/i18n/th";
-import { channelFor, SHARE_CHANNELS, type ShareChannel, type ShareContact } from "@/lib/share/card";
+import { channelFor, SHARE_CHANNELS, type ShareChannel, type ShareContact, type SharedCard } from "@/lib/share/card";
 import { matchRecipients, type RecipientMatch } from "@/lib/share/recipients";
 
 const COURSES_ENDPOINT = "/api/courses";
@@ -31,7 +31,7 @@ const CONFIRM =
 const CANCEL =
   "inline-flex items-center rounded-full border border-border bg-card px-4 py-2.5 text-sm font-medium text-muted-foreground transition hover:border-foreground/25 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
-/** A write tool call waiting for the user: `approved` is null until they decide; `shareTitle` names the card a share_card call would send (null when the conversation has none yet, absent where nobody knows). */
+/** A write tool call waiting for the user: `approved` is null until they decide; `shareTitle` and `shareCard` name the card a share_card call would send (null when the conversation has none yet, absent where nobody knows). */
 export type ApprovalRequest = {
   tool: string;
   input: unknown;
@@ -39,6 +39,7 @@ export type ApprovalRequest = {
   approve: () => void;
   reject: () => void;
   shareTitle?: string | null;
+  shareCard?: SharedCard | null;
   labelTh?: string;
 };
 
@@ -304,9 +305,10 @@ function RecipientRow({ planned }: { planned: PlannedRecipient }) {
   );
 }
 
-function SharePreview({ recipients, title, note }: { recipients: PlannedRecipient[]; title: string | null; note: string | null }) {
+function SharePreview({ recipients, title, note, scopes }: { recipients: PlannedRecipient[]; title: string | null; note: string | null; scopes: readonly RecipientScope[] }) {
   return (
     <div className="flex min-w-0 flex-col gap-3">
+      <RecipientWarnings scopes={scopes} granting={false} grant={null} />
       {recipients.length > 0 ? (
         <div className="min-w-0">
           <p className="text-[11px] text-muted-foreground">{TH.approve.shareRecipients}</p>
@@ -332,10 +334,13 @@ function SharePreview({ recipients, title, note }: { recipients: PlannedRecipien
   );
 }
 
-function shareDecision(input: ShareInput, contacts: ShareContact[] | null, title: string | null | undefined): Decision {
+function plannedRecipients(input: ShareInput, contacts: ShareContact[] | null): PlannedRecipient[] {
   const asked = askedChannel(input.channel);
   const matches = contacts ? matchRecipients(typedNames(input), contacts) : [];
-  const recipients = matches.flatMap((match) => plannedOf(match, asked) ?? []);
+  return matches.flatMap((match) => plannedOf(match, asked) ?? []);
+}
+
+function shareDecision(input: ShareInput, recipients: PlannedRecipient[], title: string | null | undefined, scopes: readonly RecipientScope[]): Decision {
   const names = recipients.length > 0 ? recipients.map((planned) => planned.contact.nameTh).join(", ") : sharedWith(input.to);
   const note = typeof input.note === "string" && input.note.trim() ? input.note.trim() : null;
   return {
@@ -351,7 +356,7 @@ function shareDecision(input: ShareInput, contacts: ShareContact[] | null, title
     confirm: TH.approve.confirmShare,
     cancel: TH.approve.cancelSend,
     done: TH.approve.doneShare(names),
-    extra: <SharePreview recipients={recipients} title={title ?? null} note={note} />,
+    extra: <SharePreview recipients={recipients} title={title ?? null} note={note} scopes={scopes} />,
     blocked: title === null ? TH.approve.shareNoCard : undefined,
     mailed: recipients.some((planned) => planned.via === "email"),
   };
@@ -561,7 +566,10 @@ function CourseApproval({ request }: { request: ApprovalRequest }) {
 
 function ShareApproval({ request }: { request: ApprovalRequest }) {
   const contacts = useShareContacts();
-  return <Approval decision={shareDecision((request.input ?? {}) as ShareInput, contacts, request.shareTitle)} request={request} />;
+  const input = (request.input ?? {}) as ShareInput;
+  const recipients = plannedRecipients(input, contacts);
+  const scopes = useRecipientScopes(request.approved === null ? (request.shareCard ?? null) : null, recipients.map((planned) => planned.contact.id));
+  return <Approval decision={shareDecision(input, recipients, request.shareTitle, scopes)} request={request} />;
 }
 
 /** The one decision the user has to make: who gets the work, what it asks, what approving does. Null for a tool that needs no approval. */

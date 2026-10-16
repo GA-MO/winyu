@@ -35,3 +35,6 @@ export type GrantRefusal = { code: Exclude<GrantRefusalCode, "policy_rule"> } | 
 
 /** What a shared card hides from its viewer and where they stand on getting it: their live grant, their pending request, or whether anyone may approve one. */
 export type ShareScope = { hidden: GrantSlice; grant: { expiresAt: string; grantorName: string } | null; pendingRequest: { id: string; approverName: string } | null; requestable: boolean };
+
+/** What a card would hide from one recipient if it went now: numbers their role masks (no grant lifts that), a metric closed to them, or rows outside their scope; and whether the sender may open it with a temporary grant. */
+export type RecipientScope = { userId: string; name: string; metric: MetricId; hidden: "masked" | "closed" | "rows"; grantable: boolean };

@@ -1,12 +1,12 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { Check, Forward, KeyRound, Link2, Mail, MessageCircle, Search, Users, X } from "lucide-react";
+import { Check, EyeOff, Forward, KeyRound, Link2, Mail, MessageCircle, Search, Users, X } from "lucide-react";
 import { OutboxNote } from "@/components/share/outbox-note";
 import { cn } from "@/components/ui/cn";
 import { CardShareProvider } from "@/components/ui/card-share";
 import { Portrait } from "@/components/ui/portrait";
-import { DEFAULT_GRANT_DAYS, GRANT_DAYS, type GrantDays } from "@/lib/contracts/grant";
+import { DEFAULT_GRANT_DAYS, GRANT_DAYS, type GrantDays, type RecipientScope } from "@/lib/contracts/grant";
 import { metricLabel } from "@/lib/dashboard/metric-display";
 import { TH } from "@/lib/i18n/th";
 import { MATTER_ASK_MAX, SHARE_RECIPIENTS_MAX, shareTitle, type ShareChannel, type ShareContact, type ShareGrantReceipt, type ShareReceipt, type ShareTarget } from "@/lib/share/card";
@@ -15,12 +15,13 @@ import { MATTER_INTENTS, type MatterIntent } from "@/lib/share/matter";
 const CONTACTS_ENDPOINT = "/api/shares/contacts";
 const SHARES_ENDPOINT = "/api/shares";
 const SUGGESTION_ENDPOINT = "/api/shares/suggestion";
+const SCOPES_ENDPOINT = "/api/shares/scopes";
 const PANEL = "fixed right-0 top-0 z-50 flex h-dvh w-full max-w-[26rem] flex-col border-l border-border bg-card shadow-panel animate-panel-in";
 const CHIP = "inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 /** The icon each share channel shows with. */
 export const CHANNEL_ICON: Record<ShareChannel, typeof Mail> = { email: Mail, teams: Users, line: MessageCircle };
 
-type Phase = { kind: "picking" } | { kind: "sending" } | { kind: "sent"; receipts: ShareReceipt[]; grants: ShareGrantReceipt[]; path: string } | { kind: "failed" };
+type Phase = { kind: "picking" } | { kind: "sending" } | { kind: "sent"; receipts: ShareReceipt[]; grants: ShareGrantReceipt[]; hidden: RecipientScope[]; path: string } | { kind: "failed" };
 
 /** Who the signed-in person can share with, and whether they may grant temporary access as they share. */
 export type ShareDirectory = { contacts: ShareContact[]; mayGrant: boolean };
@@ -141,8 +142,56 @@ function GrantPicker({ days, choose }: { days: GrantDays | null; choose: (days: 
   );
 }
 
-/** What the sheet shows once a share went out: who got it on which channel, any grants, the link, and the Outbox when any of it went by mail. */
-export function ShareSent({ receipts, grants, days, path, close }: { receipts: ShareReceipt[]; grants: ShareGrantReceipt[]; days: GrantDays | null; path: string; close: () => void }) {
+function hiddenLine(scope: RecipientScope): string {
+  return TH.share.recipientHidden[scope.hidden](scope.name, metricLabel(scope.metric));
+}
+
+/** What the card would hide from each chosen recipient, as the server works it out from their access, before anything is sent; empty while it loads or when everyone would see all of it. */
+export function useRecipientScopes(card: ShareTarget["card"] | null, recipientIds: readonly string[]): RecipientScope[] {
+  const [scopes, setScopes] = useState<RecipientScope[]>([]);
+  const body = card && recipientIds.length > 0 ? JSON.stringify({ card, recipients: recipientIds }) : null;
+  useEffect(() => {
+    if (!body) {
+      setScopes([]);
+      return;
+    }
+    const controller = new AbortController();
+    fetch(SCOPES_ENDPOINT, { method: "POST", headers: { "content-type": "application/json" }, body, signal: controller.signal })
+      .then((response) => (response.ok ? (response.json() as Promise<{ scopes?: RecipientScope[] }>) : null))
+      .then((payload) => setScopes(payload?.scopes ?? []))
+      .catch(() => undefined);
+    return () => controller.abort();
+  }, [body]);
+  return scopes;
+}
+
+/** One line per recipient who would see the card masked, closed or with rows locked, and the temporary grant where the sender may give it. */
+export function RecipientWarnings({ scopes, granting, grant }: { scopes: readonly RecipientScope[]; granting: boolean; grant: (() => void) | null }) {
+  if (scopes.length === 0) return null;
+  const grantable = scopes.some((scope) => scope.grantable);
+  return (
+    <div className="flex flex-col gap-1.5 rounded-xl border border-warning/25 bg-warning/[0.08] px-3 py-2" role="status" data-share-hidden>
+      <ul className="flex flex-col gap-1">
+        {scopes.map((scope) => (
+          <li key={scope.userId} className="flex items-start gap-1.5 text-xs leading-relaxed text-foreground">
+            <EyeOff className="mt-0.5 size-3.5 shrink-0 text-warning" aria-hidden />
+            {hiddenLine(scope)}
+          </li>
+        ))}
+      </ul>
+      {grantable && granting ? <p className="pl-5 text-[11px] text-muted-foreground">{TH.share.grantWillShow}</p> : null}
+      {grantable && !granting && grant ? (
+        <button type="button" onClick={grant} className="ml-5 inline-flex items-center gap-1 self-start text-xs font-medium text-primary hover:underline" data-share-grant>
+          <KeyRound className="size-3.5" aria-hidden />
+          {TH.share.grantToShow}
+        </button>
+      ) : null}
+    </div>
+  );
+}
+
+/** What the sheet shows once a share went out: who got it on which channel, any grants, what it still hides from whom, the link, and the Outbox when any of it went by mail. */
+export function ShareSent({ receipts, grants, hidden = [], days, path, close }: { receipts: ShareReceipt[]; grants: ShareGrantReceipt[]; hidden?: RecipientScope[]; days: GrantDays | null; path: string; close: () => void }) {
   const url = typeof window === "undefined" ? path : `${window.location.origin}${path}`;
   return (
     <div className="flex flex-col gap-4 px-4 py-5">
@@ -157,6 +206,16 @@ export function ShareSent({ receipts, grants, days, path, close }: { receipts: S
           </li>
         ))}
       </ul>
+      {hidden.length > 0 ? (
+        <ul className="flex flex-col gap-1.5 text-sm text-warning" aria-label={TH.share.stillHidden}>
+          {hidden.map((scope) => (
+            <li key={scope.userId} className="flex items-start gap-1.5">
+              <EyeOff className="mt-0.5 size-3.5 shrink-0" aria-hidden />
+              {hiddenLine(scope)}
+            </li>
+          ))}
+        </ul>
+      ) : null}
       {receipts.some((receipt) => receipt.via === "email") ? <OutboxNote /> : null}
       {days !== null && grants.length > 0 ? (
         <ul className="flex flex-col gap-1.5 text-sm">
@@ -235,14 +294,15 @@ function Sheet({ target, close }: { target: ShareTarget; close: () => void }) {
     if (next === "act") setPicked(chosen.slice(0, 1));
   };
   const ready = chosen.length > 0 && (intent === "fyi" || ask.trim().length > 0) && phase.kind !== "sending";
+  const scopes = useRecipientScopes(target.card, chosen);
 
   const send = async () => {
     setPhase({ kind: "sending" });
     const recipients = chosen.map((userId) => ({ userId, channel: "winyu" as const }));
     const body = { card: target.card, question: target.question, ask, intent, recipients, grantDays: directory?.mayGrant ? grantDays : null };
     const response = await fetch(SHARES_ENDPOINT, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) }).catch(() => null);
-    const payload = response?.ok ? ((await response.json()) as { receipts: ShareReceipt[]; grants?: ShareGrantReceipt[]; path: string }) : null;
-    setPhase(payload ? { kind: "sent", receipts: payload.receipts, grants: payload.grants ?? [], path: payload.path } : { kind: "failed" });
+    const payload = response?.ok ? ((await response.json()) as { receipts: ShareReceipt[]; grants?: ShareGrantReceipt[]; hidden?: RecipientScope[]; path: string }) : null;
+    setPhase(payload ? { kind: "sent", receipts: payload.receipts, grants: payload.grants ?? [], hidden: payload.hidden ?? [], path: payload.path } : { kind: "failed" });
   };
 
   return (
@@ -262,7 +322,7 @@ function Sheet({ target, close }: { target: ShareTarget; close: () => void }) {
           </button>
         </header>
         {phase.kind === "sent" ? (
-          <ShareSent receipts={phase.receipts} grants={phase.grants} days={grantDays} path={phase.path} close={close} />
+          <ShareSent receipts={phase.receipts} grants={phase.grants} hidden={phase.hidden} days={grantDays} path={phase.path} close={close} />
         ) : (
           <>
             <div className="flex flex-col gap-3 border-b border-border px-4 py-3">
@@ -276,6 +336,7 @@ function Sheet({ target, close }: { target: ShareTarget; close: () => void }) {
               <PeoplePicker contacts={contacts} suggestedId={suggested} chosen={chosen} onToggle={toggle} />
             </div>
             <footer className="flex flex-col gap-2 border-t border-border px-4 py-3">
+              <RecipientWarnings scopes={scopes} granting={grantDays !== null} grant={directory?.mayGrant ? () => setGrantDays(DEFAULT_GRANT_DAYS) : null} />
               {directory?.mayGrant ? <GrantPicker days={grantDays} choose={setGrantDays} /> : null}
               <p className="text-[11px] leading-relaxed text-muted-foreground">{TH.share.sheetNote}</p>
               {phase.kind === "failed" ? <p className="text-xs text-danger">{TH.share.failed}</p> : null}
