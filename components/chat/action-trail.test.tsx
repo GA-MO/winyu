@@ -27,6 +27,15 @@ describe("ActionTrail", () => {
     expect(live[0].textContent).toBe("กำลังดึงมูลค่าขายเข้า แยกตามภาค · ก.ย. 69");
   });
 
+  test("while streaming, two finished reads of the same metric read as two different lines, each with its detail", () => {
+    const byBrand = { ...SALES, dims: ["region", "brand"] };
+    const done = (toolCallId: string, args: unknown): ReplyStep => ({ kind: "tool", toolCallId, name: "query_metric", args, outcome: { state: "returned", result: { ok: true, rows: [] } } });
+    const lines = [...rendered(true, [done("x", byBrand), done("y", SALES)]).querySelectorAll("li")].map((item) => item.textContent);
+    expect(lines[1]).toBe("ดึงมูลค่าขายเข้าแล้ว · แยกตามภาค · ก.ย. 69");
+    expect(lines[0]).toStartWith("ดึงมูลค่าขายเข้าแล้ว · ");
+    expect(lines[0]).not.toBe(lines[1]);
+  });
+
   test("once finished, one quiet line opens to the list with each action's detail", () => {
     const host = rendered(false, [STEPS[0], { ...STEPS[1], outcome: { state: "returned", result: { ok: true, rows: [] } } } as ReplyStep]);
     expect(host.querySelector("summary")?.textContent).toBe("ใช้ข้อมูล 2 แหล่ง · 4.2 วินาที");

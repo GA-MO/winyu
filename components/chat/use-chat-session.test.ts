@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { durationsAfter, unansweredOf, type PendingApproval } from "./use-chat-session";
+import { durationsAfter, runStartedAt, unansweredOf, type PendingApproval } from "./use-chat-session";
 
 function asked(toolCallId: string): PendingApproval {
   return { interruptId: `mastra-approval::run::${toolCallId}`, toolCallId, tool: "send_card", input: {}, exchangeId: "q1", position: 0 };
@@ -27,6 +27,13 @@ describe("a question sent while an approval waits", () => {
 });
 
 describe("the time shown for a turn", () => {
+  test("counts a run the page joined after a reload from when the run started, not from the rejoin", () => {
+    const live = { id: "run-live", startedAt: 1_000 };
+    expect(runStartedAt("run-live", live, 29_000)).toBe(1_000);
+    expect(runStartedAt("run-other", live, 29_000)).toBe(29_000);
+    expect(runStartedAt("run-live", null, 29_000)).toBe(29_000);
+  });
+
   test("keeps the asking run's time when a run only carries out the answer to its approval", () => {
     expect(durationsAfter({ q1: 8000 }, "q1", 11000, true)).toEqual({ q1: 8000 });
   });
