@@ -52,7 +52,7 @@ function UserBubble({ question }: { question: Question }) {
     const description = describeToolCall(question.tool, question.input);
     return (
       <div className="flex justify-end">
-        <p className="inline-flex max-w-[85%] items-center gap-2 rounded-2xl rounded-br-md bg-bubble px-4 py-2.5 text-sm font-medium text-foreground">
+        <p className="inline-flex max-w-[85%] items-center gap-2 rounded-2xl rounded-br-md bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground">
           <MousePointerClick className="size-4 shrink-0 opacity-70" aria-hidden />
           {description?.title ?? `${TH.conversation.pressed} ${question.tool}`}
         </p>
@@ -62,7 +62,7 @@ function UserBubble({ question }: { question: Question }) {
   const masked = maskPersonalData(question.text);
   return (
     <div className="flex flex-col items-end gap-1">
-      <p className="max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-br-md bg-bubble px-4 py-2.5 text-[15px] leading-relaxed text-foreground">{masked.text}</p>
+      <p className="max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-br-md bg-primary px-4 py-2.5 text-[15px] leading-relaxed text-primary-foreground">{masked.text}</p>
       {masked.kinds.length > 0 ? (
         <p className="inline-flex max-w-[85%] items-center gap-1.5 text-xs text-muted-foreground">
           <ShieldCheck className="size-3.5 shrink-0 text-success" aria-hidden />
