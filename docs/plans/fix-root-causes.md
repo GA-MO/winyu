@@ -19,6 +19,21 @@ The simulated-user round on 2026-10-16 found 40 problems. They come from 10 root
 - Remove the persona switcher (**สลับผู้ใช้ (โหมดสาธิต)**) from the account sheet and any sidebar entry. People switch by signing out.
 - On the home page, put the prompt input at the bottom, near the thumb, and the mini dashboard above it. Remove the **ดู Dashboard** button.
 
+## The loop until it is excellent
+
+User (2026-10-16): "ตรวจสอบทดลองปรับแก้ไปจนกว่าทุกอย่างใช้งานได้เยี่ยมไม่มีจุดที่แปลกๆ … loop ทำไปแต่ช่วยประหยัดค่า api". Each round:
+
+1. Fix: merge the work packages, each checked by the lead (diff against report, one mutation, `bun test`).
+2. Check for $0 first: `bun test` (recordings included), `/dev/replay` of recorded cases, the card-fit audit over saved tool results and screenshots, HTTP checks with real sessions.
+3. Check with the model only where nothing else can: simulated users replay only the turns that failed last round, plus a few new turns per demo role. Say the estimated cost before each round.
+4. Review with separate agents, write new findings into `docs/issues/ai-answers.md`, group by root cause, fix.
+
+Stop when a round on the four demo roles (CEO, RSM อีสาน, sales rep ขอนแก่น, IT) finds no medium or high finding, every card fits its question, and the run sheet walk in four windows passes.
+
+**Card fit** (user, 2026-10-16): a card's form must fit the question and the data shape. The same layout for every answer makes Winyu look like a template.
+- [ ] **Card-fit audit** ($0) over the 63 recorded cases and the 75 sim screenshots, then a presentation rule set for `lib/cards/present.ts`.
+- [ ] **Card-fit fix** from that rule set.
+
 ## Waves
 
 Each wave runs its work packages in parallel, one agent per package in its own worktree, with disjoint files. The lead reviews every diff against the report, checks one mutation per package, merges, and walks the four demo windows before the next wave.
