@@ -135,3 +135,21 @@ describe("the bell popover", () => {
     expect(button(host, COPY.markAllRead)).toBeUndefined();
   });
 });
+
+describe("bell rows on a phone (AI-159)", () => {
+  const LONG = "คุณอนุชา พรหมศรี ส่งต่อเรื่อง \"ปริมาณขายเข้า (Sell-in) · รายเอเย่นต์ · ภาคอีสาน\" ให้ คุณกฤต จันทร์เสน";
+  const MATTER_TITLE = "ปริมาณขายเข้า (Sell-in) · รายเอเย่นต์ · ภาคอีสาน";
+
+  test("an update and a matter keep the recipient and the card's name readable: their lines wrap, never cut to one line", async () => {
+    const brief = { code: "m1", title: MATTER_TITLE, ask: "ช่วยดู", senderName: "คุณธนา", passerName: null, at: AT, actions: [], suggested: { ownerId: null, line: [] }, judges: false };
+    fakeServer({
+      decide: [{ key: "matter:m1", kind: "matter", refId: "m1", title: MATTER_TITLE, person: null, at: AT, read: false, target: "/s/m1", notificationId: "n-matter", matter: brief }],
+      updates: [{ key: "n-pass", kind: "matter_update", refId: "m1", title: LONG, person: null, at: AT, read: false, target: "/s/m1", notificationId: "n-pass" }],
+    });
+    const { host } = await openPopover();
+    const holding = (text: string) => [...host.querySelectorAll("a, span")].filter((node) => node.textContent === text);
+    expect(holding(LONG).length).toBeGreaterThan(0);
+    expect(holding(MATTER_TITLE).length).toBeGreaterThan(0);
+    for (const node of [...holding(LONG), ...holding(MATTER_TITLE)]) expect(node.className).not.toMatch(/\btruncate\b|line-clamp-1\b/);
+  });
+});
