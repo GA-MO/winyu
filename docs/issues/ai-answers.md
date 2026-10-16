@@ -2234,8 +2234,8 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 | ข้อ | ระดับ | สถานะ | ปัญหา |
 |---|---|---|---|
-| AI-167 (เดิม AI-137) | สูง | ยังเสีย | RSM 'ask Krit to visit this agent' sends the whole-region card with a deictic ask, so the matter never names ขอนแก่นมหาชัย; chat sends of the same card share one title |
-| AI-168 (เดิม AI-94) | กลาง | ยังเสีย | False premise 'ขอนแก่นมหาชัยก็ตกเยอะ' is sent first and rebutted only after the approved send |
+| AI-167 (เดิม AI-137) | สูง | แก้แล้ว `510fbbe` · รอยืนยันกับโมเดล | RSM 'ask Krit to visit this agent' sends the whole-region card with a deictic ask, so the matter never names ขอนแก่นมหาชัย; chat sends of the same card share one title |
+| AI-168 (เดิม AI-94) | กลาง | แก้แล้ว `ea71eaf` | False premise 'ขอนแก่นมหาชัยก็ตกเยอะ' is sent first and rebutted only after the approved send |
 | AI-169 (เดิม AI-140) | กลาง | แก้แล้ว `6d696ac` | CEO risk answer says there is no stock risk while its own anomaly card leads with the P1 Lamphun stock-out |
 | AI-170 (เดิม AI-146) | กลาง | แก้แล้ว `0beacbe` | Agent-level 'why did it drop' (RSM) gets a brand gap split; the P1 'orders stopped' alert is missed because get_alerts matches metrics exactly |
 | AI-171 (เดิม AI-165) | กลาง | แก้แล้ว `0f1ffd0` | 'ปิดเดือนที่กี่ % แล้วปักการ์ดนั้น' pins the 83.9% month-to-date card as if it were the 96.3% forecast |
@@ -2250,8 +2250,8 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 | AI-180 (เดิม AI-133) | กลาง | แก้แล้ว `1d975e6` | Rep demo opener takes 42.7 s (CEO and RSM are now under 40 s) |
 | AI-181 (เดิม AI-133) | กลาง | แก้แล้ว `8562d3f` | IT run-sheet question takes 71.8 s: admin_audit requires 'role', so the first calls fail validation |
 | AI-182 | กลาง | แก้แล้ว `01b73f3` · รอยืนยันกับโมเดล | Visit-priority card has no values, bars or verdict, and the text misreads the alert's −89% as a four-week decline |
-| AI-183 | กลาง | เปิด (ใหม่) · นอกเส้นทางเดโม | Pin of the rep's 4-agent card stores filters {}, so the widget shows the region's 8 agents |
-| AI-184 | ต่ำ | เปิด (ใหม่) | Pin approval shows only the card title, no number |
+| AI-183 | กลาง | แก้แล้ว `2a995ca` · นอกเส้นทางเดโม | Pin of the rep's 4-agent card stores filters {}, so the widget shows the region's 8 agents |
+| AI-184 | ต่ำ | แก้แล้ว `a0f67b8` | Pin approval shows only the card title, no number |
 | AI-185 | ต่ำ | แก้แล้ว `0f1ffd0` | RSM month-close gap card: month-end hero (implies 52.9 short) over the month-to-date paced gap (39.8); the text invents a goods-receiving problem |
 | AI-186 (เดิม AI-153) | ต่ำ | แก้แล้ว `79afa95` `285287b` · รอยืนยันกับโมเดล | Follow-up chips and drills point at the first sorted row, not the asked scope or the worst change |
 | AI-187 | ต่ำ | แก้แล้ว `0f1ffd0` | CEO landing tile '98% ของเป้าตามเวลา' disagrees with chat 83.9% vs 86.7% (96.8% of pace) |
@@ -2261,17 +2261,17 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 | AI-191 | ต่ำ | แก้แล้ว `c94b9b9` · รอยืนยันกับโมเดล | RSM 'ใต้เทียบอีสาน': after the correct denial, the Isan side is a bare number |
 | AI-192 | ต่ำ | แก้แล้ว `c94b9b9` · รอยืนยันกับโมเดล | Wording: 'มูลค่าขายสุทธิ' in text vs 'มูลค่าขายเข้า' on cards; anomaly header '5 เรื่องผิดปกติ ด่วน 5 เรื่อง' |
 | AI-193 (เดิม AI-135) | ต่ำ | ยังเสีย | Other run-sheet mismatches (switch vs ติ๊ก, ↑ icon vs 'ส่ง', unstated scroll and reload, bell counts on a rerun) |
-| AI-194 (เดิม AI-154) | ต่ำ | ยังเสีย | Sender's own story page uses receiver wording and a one-tap [เสร็จ] |
+| AI-194 (เดิม AI-154) | ต่ำ | แก้แล้ว `26661b9` | Sender's own story page uses receiver wording and a one-tap [เสร็จ] |
 | AI-195 (เดิม AI-158) | ต่ำ | ยังเสีย | Per-role speech line has nothing to show: RSM and rep cards show the same 8 agents |
 | AI-196 (เดิม AI-159) | ต่ำ | แก้แล้ว `6f57c0c` `892d82c` | IT screen at phone width: Audit tab truncated, activity panel stale without a reload |
-| AI-197 | ต่ำ | เปิด (ใหม่) | Card actions give no confirmation: ส่งต่อ looks unchanged, รับ just empties the bell, the toast covers ถามต่อ |
-| AI-198 | ต่ำ | เปิด (ใหม่) · นอกเส้นทางเดโม | South send approval shows a bare '−7.5%' (region total) for an ask about one agent's +17.6% rise |
+| AI-197 | ต่ำ | แก้แล้ว `24531fe` | Card actions give no confirmation: ส่งต่อ looks unchanged, รับ just empties the bell, the toast covers ถามต่อ |
+| AI-198 | ต่ำ | แก้แล้ว `18c123c` · นอกเส้นทางเดโม · รอยืนยันกับโมเดล | South send approval shows a bare '−7.5%' (region total) for an ask about one agent's +17.6% rise |
 | AI-199 (เดิม AI-147 (fixed otherwise)) | ต่ำ | แก้แล้ว `9ae8006` | Rep whole-company refusal: stray spaces in the template; approver differs from the RSM's |
 | AI-200 (เดิม AI-150 (fixed otherwise)) | ต่ำ | แก้แล้ว `3b378af` | IT activity pin rows name no card; the usage ranking breaks a tie silently |
 
 ### AI-167. RSM 'ask Krit to visit this agent' sends the whole-region card with a deictic ask, so the matter never names ขอนแก่นมหาชัย; chat sends of the same card share one title
 
-- **สถานะ:** ยังเสีย · เดิม AI-137
+- **สถานะ:** แก้แล้ว `b185bab` `18c123c` `9dc6e11` `510fbbe` · เรื่องที่ส่งจากแชตใส่ชื่อเอเย่นต์ที่ผู้ใช้เอ่ยถึงไว้ในชื่อเรื่อง คำขอที่ชี้ลอย ๆ ("เจ้านี้") และแถว inbox, การ์ดที่ไม่มีเอเย่นต์นั้นถูกชี้ไปการ์ดบนจอที่มีหนึ่งครั้ง, เรื่องที่ชื่อซ้ำได้ "(ครั้งที่ n)" · ส่งซ้ำด้วย args จริงของโมเดล (run 3fe57f04, 800831b1) ได้ชื่อ "มูลค่าขายเข้า · ภาคอีสาน · ขอนแก่นมหาชัย" · รอยืนยันกับโมเดล · เดิม AI-137
 - **ระดับ:** สูง · **หมวด:** `chain` · **บทบาท:** u_anucha (RSM), u_krit (rep inbox), u_thana (bells, chain alt)
 - **อาการ:** Both reviews hit this. S1T2: the user asked to have คุณกฤต visit ขอนแก่นมหาชัย. send_card used cardRef c10qds6l, the region card whose headline names อีสานรุ่งโรจน์, with the ask 'เข้าไปคุยกับเอเย่นต์เจ้านี้'. Matter NBkicUSPcBbQ is titled with that ask, and ขอนแก่นมหาชัย appears only as row 4. When the rep later asked 'พี่อนุชาฝากงานอะไรมา', the inbox row held only the subject 'ภาคอีสาน', so the rep could not tell which agent to visit. In the chain alt, the CEO's send used the generic ask 'ช่วยตรวจสอบและติดตามเรื่องนี้ด่วน' and got the same title as the first matter ('มูลค่าขายเข้า · รายเอเย่นต์ · ภาคอีสาน'). The RSM bell, the CEO bell (4 rows in identical pairs) and the IT audit cannot tell the two apart.
 - **ที่ควรเป็น:** The matter names its subject: a card about ขอนแก่นมหาชัย, or a title and ask that name the agent. A deictic or generic ask falls back to the entity named in the message or the card's subject, or is resolved before the approval. Two matters never share one title.
@@ -2286,7 +2286,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-168. False premise 'ขอนแก่นมหาชัยก็ตกเยอะ' is sent first and rebutted only after the approved send
 
-- **สถานะ:** ยังเสีย · เดิม AI-94
+- **สถานะ:** แก้แล้ว `b185bab` `ea71eaf` · สิ่งที่ผู้ใช้อ้างถึงแถวที่เอ่ยชื่อในคำถามนี้ถูกตรวจกับตัวเลขของแถวนั้น และพักการส่งไว้หนึ่งครั้งก่อนมีการ์ดอนุมัติ ส่วนการ์ดอนุมัติแสดงบรรทัดเตือน · โมเดลจริงบอก -1.6% ก่อนอนุมัติทุกรอบ (run e042e4fe, c0f1a359, 57e3b090) · เดิม AI-94
 - **ระดับ:** กลาง · **หมวด:** `write-flow` · **บทบาท:** u_anucha (RSM)
 - **อาการ:** ขอนแก่นมหาชัย was at 85.3% against 86.7% pace (−1.6%), the second-best row on the card the RSM had just seen. The send approval was raised with no warning. The rebuttal ('ไม่ได้ตกหนัก') came only after approval.
 - **ที่ควรเป็น:** State the figure before raising any send and let the RSM decide.
@@ -2461,7 +2461,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-183. Pin of the rep's 4-agent card stores filters {}, so the widget shows the region's 8 agents
 
-- **สถานะ:** เปิด (ใหม่) · นอกเส้นทางเดโม
+- **สถานะ:** แก้แล้ว `2a995ca` · การปักใช้คำถามที่วาดการ์ดนั้นเลือกเอเย่นต์ของพนักงานขายแบบเดียวกับ query_metric วิดเจ็ตจึงเป็น 4 เอเย่นต์ 72.6% เหมือนการ์ด (เบราว์เซอร์จอมือถือ)
 - **ระดับ:** กลาง · **หมวด:** `write-flow` · **บทบาท:** u_krit (rep)
 - **อาการ:** The card showed his 4 agents at 72.6%, but the widget re-runs at region scope (about 77.3%). The approval showed no number, so the difference could not be seen.
 - **ที่ควรเป็น:** A pin stores the query the card actually ran.
@@ -2472,7 +2472,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-184. Pin approval shows only the card title, no number
 
-- **สถานะ:** เปิด (ใหม่)
+- **สถานะ:** แก้แล้ว `2a995ca` `a0f67b8` · การ์ดอนุมัติการปักแสดงตัวเลขที่วิดเจ็ตจะแสดงตามชนิดของมัน (month_end แสดงที่ปิดเดือน) ทำแบบเดียวกับตอนปักจริง
 - **ระดับ:** ต่ำ · **หมวด:** `write-flow` · **บทบาท:** u_thana (CEO), u_krit
 - **อาการ:** Both reviews saw it. The CEO could not see that the pin was 83.9% to date, and the rep could not see that his pin would widen to the region.
 - **ที่ควรเป็น:** The pin approval shows the widget's hero, as the send approval does.
@@ -2584,7 +2584,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-194. Sender's own story page uses receiver wording and a one-tap [เสร็จ]
 
-- **สถานะ:** ยังเสีย · เดิม AI-154
+- **สถานะ:** แก้แล้ว `26661b9` · ผู้ส่งเห็นหัว "เรื่องที่คุณส่งไป รอคำตอบ" และปุ่มรอง "ปิดเรื่อง" ที่ถามยืนยันก่อนปิดให้ทุกคนในเส้นทาง · เดิม AI-154
 - **ระดับ:** ต่ำ · **หมวด:** `card-quality` · **บทบาท:** u_thana (chain step 4)
 - **อาการ:** The page header reads 'เรื่องที่ขอให้ตอบ' for the sender, and a lone [เสร็จ] closes the matter for everyone.
 - **ที่ควรเป็น:** Sender wording, and closing is secondary or confirmed.
@@ -2615,7 +2615,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-197. Card actions give no confirmation: ส่งต่อ looks unchanged, รับ just empties the bell, the toast covers ถามต่อ
 
-- **สถานะ:** เปิด (ใหม่)
+- **สถานะ:** แก้แล้ว `24531fe` · ปุ่มของการ์ดที่ส่งแล้วเป็น "ส่งแล้ว" พร้อมใบยืนยันใต้การ์ดแทนแผงลอยที่บังถามต่อ และกด "รับ" ในกระดิ่งแล้วมีบรรทัด "รับเรื่องแล้ว" พร้อมลิงก์เปิดเรื่อง
 - **ระดับ:** ต่ำ · **หมวด:** `ui` · **บทบาท:** presenter (chain steps 1 and 3)
 - **อาการ:** A second tap opens a new sheet, and nothing visible says 'รับแล้ว'.
 - **ที่ควรเป็น:** A sent state on the card and a visible accepted line.
@@ -2625,7 +2625,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-198. South send approval shows a bare '−7.5%' (region total) for an ask about one agent's +17.6% rise
 
-- **สถานะ:** เปิด (ใหม่) · นอกเส้นทางเดโม
+- **สถานะ:** แก้แล้ว `18c123c` · การ์ดอนุมัติแสดงตัวเลขของแถวที่คำขอหรือคำถามเอ่ยถึงแทนยอดรวมของการ์ด · รอยืนยันกับโมเดล
 - **ระดับ:** ต่ำ · **หมวด:** `write-flow` · **บทบาท:** u_thana (CEO)
 - **อาการ:** Recipient, ask and deadline are right. The number has no label, and the recipient name is truncated.
 - **ที่ควรเป็น:** Show the figure the ask is about, or label the total.
