@@ -1,5 +1,5 @@
 import type { z } from "zod";
-import { pinWidgetInputSchema, type AccessContext, type MetricQueryInput } from "@/lib/contracts";
+import { pinWidgetInputSchema, type AccessContext, type MetricQueryInput, type WidgetKind } from "@/lib/contracts";
 import { presentCard } from "@/lib/cards/present";
 import { resolveQuery } from "@/lib/semantic/periods";
 import { pinQuestion } from "@/lib/share/pin";
@@ -17,12 +17,12 @@ export async function pinnedQuery(asked: MetricQueryInput, access: AccessContext
   return ownBookQuery(asked, access, question, await loadDictionary())?.input ?? asked;
 }
 
-/** The figure the widget will lead with for this person, as its card draws it; null when the query does not resolve or answer. No model call. */
-export async function pinHero(title: string, asked: MetricQueryInput, access: AccessContext, question: string | null): Promise<string | null> {
+/** The figure the widget will lead with for this person, as its card draws it in the widget's `kind` (a month_end widget leads with where the month closes); null when the query does not resolve or answer. No model call. */
+export async function pinHero(title: string, kind: WidgetKind, asked: MetricQueryInput, access: AccessContext, question: string | null): Promise<string | null> {
   const resolved = resolveQuery(await pinnedQuery(asked, access, question));
   if (!resolved.ok) return null;
   const result = await runMetric(resolved.query, access);
-  const hero = result.ok ? presentCard({ title, query: resolved.query, result }).hero : null;
+  const hero = result.ok ? presentCard({ title, query: resolved.query, result, view: kind }).hero : null;
   return hero ? [hero.value, hero.unit].filter(Boolean).join(" ") : null;
 }
 
@@ -31,7 +31,7 @@ export const pinWidgetTool = defineTool({
   connector: "winyu",
   tier: "write",
   roles: "all",
-  description: "Pin the answer to the user's dashboard as a widget that re-runs its query on every load. Call it when the user asks to keep or pin a view; pass the query exactly as query_metric took it (a named period with range null works). The user approves it first.",
+  description: "Pin the answer to the user's dashboard as a widget that re-runs its query on every load. Call it when the user asks to keep or pin a view; pass the query exactly as query_metric took it (a named period with range null works). kind month_end when the pin is about where this month will close against target (\"ปิดเดือนที่กี่ %\", the forecast card): a this_month query with compare target; otherwise the kind that matches the card. The user approves it first.",
   input: pinWidgetInputSchema,
   verify: pinHolds,
   execute: async ({ title, kind, query: asked }: z.infer<typeof pinWidgetInputSchema>) => {

@@ -71,7 +71,7 @@ type Decision = {
 };
 
 type EmailInput = { toUserId?: string; subject?: string; body?: string };
-type PinInput = { title?: string; query?: MetricQuery };
+type PinInput = { title?: string; kind?: string; query?: MetricQuery };
 type JobInput = { job?: string };
 type WatchInput = { title?: string; query?: MetricQuery; condition?: WatchCondition };
 type PermissionInput = { role?: string; kind?: string; key?: string; value?: string };
@@ -159,7 +159,7 @@ function pinDecision(input: PinInput, hero: string | null = null): Decision {
 /** The figure a pin's widget will lead with for the signed-in person, asked of the server with the question that drew the card it pins; null until it answers or when it cannot. */
 function usePinHero(input: PinInput, question: string | null): string | null {
   const [hero, setHero] = useState<string | null>(null);
-  const body = input.title && input.query ? JSON.stringify({ title: input.title, query: input.query, question }) : null;
+  const body = input.title && input.query ? JSON.stringify({ title: input.title, kind: input.kind ?? "metric", query: input.query, question }) : null;
   useEffect(() => {
     if (!body) return;
     const controller = new AbortController();
