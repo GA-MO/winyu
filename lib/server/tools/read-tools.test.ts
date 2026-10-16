@@ -171,6 +171,14 @@ describe("admin_audit", () => {
   });
 });
 
+describe("resolve_owner", () => {
+  test("names the rep assigned to an agent for its overdue debt, and finance for a region's", async () => {
+    const ownerOf = async (dims: Record<string, string>) => ((await call(CEO, "resolve_owner", { metric: "ar_overdue", dims })) as unknown as { data: { userId: string } }).data.userId;
+    expect(await ownerOf({ agent: "นครศรีรุ่งเจริญ" })).toBe("u_arm");
+    expect(await ownerOf({ region: "south" })).toBe("u_mint");
+  });
+});
+
 describe("get_person leave", () => {
   type Profile = { ok: true; data: { leave: { label: string; value: string }[]; leave_note: string | null } };
 

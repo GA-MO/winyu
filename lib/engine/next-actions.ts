@@ -28,7 +28,7 @@ function widgetKindOf(context: NextActionContext): WidgetKind {
 }
 
 function handoffAction(access: AccessContext, context: NextActionContext): NextAction | null {
-  const owner = responsibleFor(context.query.metric, context.region);
+  const owner = responsibleFor(context.query.metric, context.region, pinnedSlice(effectiveFilters(context.query)).agent ?? null);
   if (!owner || owner.userId === access.userId) return null;
   const { subject } = context.focus;
   return {

@@ -6,6 +6,7 @@ import { GENERATOR_DICTIONARY } from "@/lib/data/master";
 import { runMetric } from "@/lib/data/query";
 import { regionOfSlice } from "@/lib/semantic/geo";
 import { effectiveFilters, pinnedSlice } from "@/lib/semantic/resolved";
+import { responsibleFor } from "@/lib/access/raci";
 import { nextActionsFor } from "./next-actions";
 
 const CEO = "u_thana";
@@ -146,5 +147,24 @@ describe("nextActionsFor", () => {
   test("a masked answer offers no drill into numbers nobody can read", () => {
     const actions = nextActionsFor(accessOf("u_ton"), contextOf({ masked: ["value"], query: resolvedFor({ ...queryOf("net_sales_volume"), metric: "forecast_mape", dims: ["month"] }, "u_ton"), focus: NO_FOCUS }));
     expect(idsOf(actions).some((id) => id.startsWith("drill"))).toBe(false);
+  });
+
+  test("overdue debt on one agent is handed to the rep assigned to it; the same debt by region stays with finance", () => {
+    const handoffTo = (filters: MetricQuery["filters"]) => {
+      const query = resolvedFor({ metric: "ar_overdue", dims: ["agent"], filters, range: { from: "2026-09-01", to: "2026-09-22" }, grain: "month", compare: "prev_period", limit: 10 });
+      const handoff = nextActionsFor(accessOf(CEO), contextOf({ deltaPercent: 12, query, region: regionOf(query) })).find((action) => action.id === "handoff");
+      return (handoff?.input as { toUserId: string } | undefined)?.toUserId;
+    };
+    expect(handoffTo({ agent: ["ag_sou_06"] })).toBe("u_arm");
+    expect(handoffTo({ region: ["south"] })).toBe("u_mint");
+  });
+});
+
+describe("responsibleFor", () => {
+  test("an agent's overdue debt goes to its assigned rep; its sales and margin keep their RACI owner", () => {
+    expect(responsibleFor("ar_overdue", "south", "ag_sou_06")?.userId).toBe("u_arm");
+    expect(responsibleFor("net_sales_volume", "south", "ag_sou_06")?.role).toBe("sales_rsm");
+    expect(responsibleFor("ar_overdue", "south")?.userId).toBe("u_mint");
+    expect(responsibleFor("gross_margin", "south", "ag_sou_06")?.role).toBe("finance_analyst");
   });
 });

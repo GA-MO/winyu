@@ -14,13 +14,14 @@ export const resolveOwnerTool = defineTool({
   connector: "winyu",
   tier: "read",
   roles: "all",
-  description: "Find the person accountable for a metric in a region (the RACI table) before handing work over or asking for access. Returns the user id, name, title and the reason they own it.",
+  description: "Find the person accountable for a metric in a region (the RACI table), or for one agent's overdue debt the rep assigned to that agent, before handing work over or asking for access. Returns the user id, name, title and the reason they own it.",
   input: resolveOwnerInputSchema,
   execute: async ({ metric, dims }: z.infer<typeof resolveOwnerInputSchema>) => {
     const dictionary = await loadDictionary();
     const slice = resolveFilters(dictionary, filtersOfSlice(dims));
     if (!slice.ok) return { ok: false as const, code: "BAD_QUERY", error: `ไม่รู้จักค่า "${slice.value}" ของมิติ ${slice.dim}` };
-    const suggestion = suggestOwner(metric, regionOfSlice(dictionary, pinnedSlice(slice.filters)), currentAccess().userId);
+    const pinned = pinnedSlice(slice.filters);
+    const suggestion = suggestOwner(metric, regionOfSlice(dictionary, pinned), currentAccess().userId, pinned.agent ?? null);
     const target = suggestion ? findUser(suggestion.userId) : null;
     if (!suggestion || !target) return { ok: false as const, error: `ยังไม่มีผู้รับผิดชอบสำหรับ ${metric}` };
     return {
