@@ -7,8 +7,8 @@ type StreamPart = StreamResult["stream"] extends ReadableStream<infer Part> ? Pa
 
 type ScriptedCall = { call: string; args: Record<string, unknown> };
 
-/** One model reply in a script: a call to one tool with its arguments, several calls in one step, the closing words, or a model that never answers (a process killed mid-call). */
-export type ScriptedStep = ScriptedCall | { calls: ScriptedCall[] } | { text: string } | { hang: true };
+/** One model reply in a script: a call to one tool with its arguments, several calls in one step, the closing words (streamed a character at a time `delayMs` apart when given), or a model that never answers (a process killed mid-call). */
+export type ScriptedStep = ScriptedCall | { calls: ScriptedCall[] } | { text: string; delayMs?: number } | { hang: true };
 
 type SpokenStep = Exclude<ScriptedStep, { hang: true }>;
 
@@ -26,10 +26,11 @@ function toolCallsOf(calls: readonly ScriptedCall[], index: number): StreamPart[
 function partsOf(step: SpokenStep, index: number): StreamPart[] {
   if ("call" in step) return toolCallsOf([step], index);
   if ("calls" in step) return toolCallsOf(step.calls, index);
+  const deltas = step.delayMs ? Array.from(step.text) : [step.text];
   return [
     { type: "stream-start", warnings: [] },
     { type: "text-start", id: `text-${index}` },
-    { type: "text-delta", id: `text-${index}`, delta: step.text },
+    ...deltas.map((delta): StreamPart => ({ type: "text-delta", id: `text-${index}`, delta })),
     { type: "text-end", id: `text-${index}` },
     { type: "finish", finishReason: { unified: "stop", raw: "stop" }, usage: USAGE },
   ];
@@ -60,6 +61,7 @@ export class ScriptedModel {
     this.served += 1;
     const step = this.steps.shift() ?? { text: FALLBACK_TEXT };
     if ("hang" in step) return { stream: new ReadableStream<StreamPart>() };
-    return { stream: simulateReadableStream({ chunks: partsOf(step, this.served) }) };
+    const chunkDelayInMs = "delayMs" in step ? step.delayMs : undefined;
+    return { stream: simulateReadableStream({ chunks: partsOf(step, this.served), chunkDelayInMs }) };
   }
 }
