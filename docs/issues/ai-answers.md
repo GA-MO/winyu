@@ -1241,14 +1241,14 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 | ข้อ | ระดับ | สถานะ | ปัญหา |
 |---|---|---|---|
-| AI-93 (เดิม AI-56) | สูง | เปิด (ใหม่) | Chat 'send this card' attaches a lookup, profile or newest card instead of the card the user named; a wrong card was actually sent |
-| AI-94 (เดิม AI-58) | กลาง | ยังเสีย | False premises go into sends: the send is raised before the rebuttal, and an overclaim gets no warning |
+| AI-93 (เดิม AI-56) | สูง | แก้แล้ว `8976662` `d5e99b8` · รอยืนยันกับโมเดล | Chat 'send this card' attaches a lookup, profile or newest card instead of the card the user named; a wrong card was actually sent |
+| AI-94 (เดิม AI-58) | กลาง | แก้แล้ว `8976662` `c113954` · รอยืนยันกับโมเดล | False premises go into sends: the send is raised before the rebuttal, and an overclaim gets no warning |
 | AI-95 (เดิม AI-65) | กลาง | แก้แล้วบางส่วน `b3048cc` | Two clocks: the model says today is 27 Nov 2569 (demo date) while the real date and the admin windows are 17 Oct |
 | AI-96 | กลาง | เปิด (ใหม่) | A read that completed in the same step as an abandoned approval loses its result; the card vanishes on reload and later sends fall through to another card |
 | AI-97 (เดิม AI-85) | กลาง | เปิด (ใหม่) | The CEO's bell shows no badge for pass-on and accept updates, which breaks the run-sheet beat |
 | AI-98 | กลาง | แก้แล้ว `0453194` | The Audit activity chip keeps stale rows from the All list, including users' typed questions, and logs duplicate React keys |
 | AI-99 | กลาง | เปิด (ใหม่) | A reload during a run makes the turn look lost until a second reload |
-| AI-100 (เดิม AI-63) | กลาง | ยังเสีย | Lookup cards are drawn on refusals and sends (HR profiles, owner cards with a send button, the CEO master-data record) |
+| AI-100 (เดิม AI-63) | กลาง | แก้แล้ว `d5e99b8` | Lookup cards are drawn on refusals and sends (HR profiles, owner cards with a send button, the CEO master-data record) |
 | AI-101 (เดิม AI-53) | กลาง | เปิด (ใหม่) | The month-to-date attainment hero shows the pace figure (87.9%) when the question asks for % of the full-month target |
 | AI-102 (เดิม AI-53) | กลาง | เปิด (ใหม่) | 'ขาดอีก 900,000 ลิตร' is computed from rounded labels; the real gap is about 930,600 L |
 | AI-103 | กลาง | เปิด (ใหม่) | Target-gap breakdowns sorted by delta use the change wording: 'ยอดหาย' for a shortfall against target |
@@ -1263,12 +1263,12 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 | AI-112 (เดิม AI-64) | กลาง | ยังเสีย | Turns over 40 s spent in unbounded Gemini reasoning |
 | AI-113 (เดิม AI-53) | ต่ำ | เปิด (ใหม่) | The share warning quotes the pro-rated % beside a card whose hero is the full-month % |
 | AI-114 (เดิม AI-68) | ต่ำ | เปิด (ใหม่) | YoY comparison tile labelled 'งวดก่อน' |
-| AI-115 (เดิม AI-77) | ต่ำ | ยังเสีย | The company-wide card's send button targets the Isan RSM |
+| AI-115 (เดิม AI-77) | ต่ำ | แก้แล้ว `ac7375d` | The company-wide card's send button targets the Isan RSM |
 | AI-116 | ต่ำ | เปิด (ใหม่) | The busy indicator ends while text is still streaming |
 | AI-117 (เดิม AI-89) | ต่ำ | ยังเสีย | After an approval, the RSM chat jumped back to the top |
 | AI-118 (เดิม AI-89) | ต่ำ | เปิด (ใหม่) | The share success toast never dismisses and covers the composer's send button |
 | AI-119 (เดิม AI-43) | ต่ำ | แก้แล้ว `be92dc9` | Memory folds a beer-margin claim into the import-margin interest and promotes it to known |
-| AI-120 (เดิม AI-14) | ต่ำ | ยังเสีย | Urgency ignores the deadline the sender wrote |
+| AI-120 (เดิม AI-14) | ต่ำ | แก้แล้ว `8976662` | Urgency ignores the deadline the sender wrote |
 | AI-121 (เดิม AI-78) | ต่ำ | ยังเสีย | English terms reach Thai users (MoM/YoY, metric names, 'None'/'Masked') |
 | AI-122 (เดิม AI-66) | ต่ำ | เปิด (ใหม่) | The RSM region-vs-agent question draws two cards repeating the same total |
 | AI-123 | ต่ำ | เปิด (ใหม่) | Follow-up chips are duplicated or off-scope |
@@ -1303,7 +1303,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-93. Chat 'send this card' attaches a lookup, profile or newest card instead of the card the user named; a wrong card was actually sent
 
-- **สถานะ:** เปิด (ใหม่) · เดิม AI-56
+- **สถานะ:** แก้แล้ว `8976662` `d5e99b8` · รอยืนยันกับโมเดล (ว่าโมเดลใส่ `cardRef` ของใบที่ผู้ใช้ชี้) · เดิม AI-56
 - **ระดับ:** สูง · **หมวด:** `write-flow` · **บทบาท:** พนักงานขาย u_krit, CEO u_thana → rep u_arm (chain)
 - **อาการ:** All 5 rep chat sends picked the wrong card: the CEO's master-data profile (3166f71e), the RACI owner card (1af6056f), the rep's own HR profile with OT and licence data (3550ae0c, so approving it would have sent HR data to his manager), and the masked AR card for 'การ์ดปริมาณขายเข้า' twice (c61edd62, 093ecf41). 093ecf41 was approved and sent share 3ahC0e3ctMO8 (AR card) to u_anucha with the ask 'ดูปริมาณขายเข้าของอีสานรุ่งโรจน์'. On the CEO side, 'ไปตามเก็บหนี้' in s2t4 and p3 sent the agent profile 'ข้อมูลอ้างอิง' (VF7zFieBvfNK) to u_arm with no baht figure, and the owner card then left the transcript.
 - **ที่ควรเป็น:** The send carries the card the user pointed at (first, above, by name), or the card the request is about (the AR card for a collection request). A lookup or profile card is never sent. When the target is unclear, the agent asks.
@@ -1312,10 +1312,11 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 	- mastra_messages 7fa7d3d2 send_card result title 'ยอดค้างชำระเกินกำหนด · รายเอเย่นต์'
 	- notifications.json 6e44a27a → u_anucha 17:05:57; 978a5eb7 → u_arm
 - **สาเหตุ:** verified lib/server/tools/send-card.ts:26,57-59: the model cannot name a card, so the tool falls back to cardToSendOn. lib/harness/adapters/mastra/history.ts:195-197 and components/chat/card-to-share.ts:47-53 take the last card the exchange drew, else the newest earlier card. components/chat/tool-view.ts:122-126 and :163-170 let lookups (get_person, describe_entity, resolve_owner) count as drawn cards. Merges review 1 'go collect' (AI-56, medium) and review 2 (high).
+- **แก้:** every sendable card on screen has a ref hashed from its reads and layout (`cardRefOf`, `lib/share/card.ts`), the same in the browser and on the server; the turn lists the cards earlier questions drew in a fenced "การ์ดบนจอ" context item and `send_card` takes `cardRef`. The server resolves the card from memory plus the calls this run finished (`screenCardsOn`, `history.ts`; `recordFinished` in the Mastra tool adapter) before the approval is raised: the named card, else the one card the reply drew, else the one card on screen; none, several or an unknown ref refuse (`NO_CARD`, `CARD_UNCLEAR`, `CARD_UNKNOWN`, the cards listed) and the prompt has the agent ask which. Lookups and people data are never sendable (`UNSHAREABLE_TOOLS`, also from the share sheet). The approval sheet resolves the same card (`cardNamed`) and shows its title and headline figure. Tests that fail on the old code: `lib/harness/adapters/mastra/send-card-choice.test.ts` (the CEO's collection send with only the agent record on screen, the owner card and the rep's HR profile on send turns, two cards and none named, a card named by ref), `components/cards/approval-card.test.tsx` (the sheet shows the named card; several and none named offers no ส่ง).
 
 ### AI-94. False premises go into sends: the send is raised before the rebuttal, and an overclaim gets no warning
 
-- **สถานะ:** ยังเสีย · เดิม AI-58
+- **สถานะ:** แก้แล้ว `8976662` `c113954` · รอยืนยันกับโมเดล (เงื่อนไขที่อยู่ในคำถาม เช่น "ยืนยันว่าโต 5% แล้วส่ง" กันด้วยกฎใน prompt) · เดิม AI-58
 - **ระดับ:** กลาง · **หมวด:** `write-flow` · **บทบาท:** CEO u_thana, RSM u_anucha, พนักงานขาย u_krit
 - **อาการ:** CEO s3t5 ('import margin up 5%? confirm, then send') raised send_card although the data showed +0.6 pt MoM. The later rebuttal gave no figure. RSM p2 copied 'เก่งมาก ยอดขายเข้าเดือนนี้เกินเป้า' into the ask, and RSM s1t5 rebutted only after the approval. Rep asks 'เดือนนี้ผมจะปิดเกินเป้าแน่นอน' and 'ทุกเจ้าทำเกินเป้าแล้ว' got no caution while the previous card showed 76.2% and 3 of 4 agents below target. CEO n2 and RSM s3t6 handled the pattern correctly.
 - **ที่ควรเป็น:** When a send depends on a premise the data contradicts, the agent states the figure and raises no send. An unconditional send puts the rebuttal before the approval, and the sheet warns when the ask contradicts the card.
@@ -1324,6 +1325,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 	- run 3cd65fb9 ask 'เก่งมาก…เกินเป้า'
 	- run 62b0519a approval 16:48:32, rebuttal 16:54:39
 - **สาเหตุ:** Two parts. verified lib/server/tools/send-card.ts:102: contradictionOf(ask, cardFigures(target.card)) returns null because the attached card is the wrong one (an entity, owner or HR card) and has no figures, so this part depends on the AI-56 high. guess: checking a conditional premise is a prompt rule only, and lib/share/figures.ts checks the ask against card figures, not whether the user's condition holds.
+- **แก้:** with the right card attached (AI-93) `contradictionOf` reads its figures, and also checks a percent the ask claims (`โตขึ้น 5%` on +0.6%, `110% ของเป้า` on 87.9%). `send_card`'s readiness holds a send back once with `ASK_CONTRADICTS_CARD` and the card's figure, so no approval is raised before the agent states it; asked again in a later message, the approval is raised and the sheet warns. A send that depends on the user's own condition is a prompt line (state the real figure, do not send). Tests that fail on the old code: `send-card-choice.test.ts` (refused first with the figure, then raised with the warning), `lib/share/figures.test.ts` (percent claims).
 
 ### AI-95. Two clocks: the model says today is 27 Nov 2569 (demo date) while the real date and the admin windows are 17 Oct
 
@@ -1384,7 +1386,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-100. Lookup cards are drawn on refusals and sends (HR profiles, owner cards with a send button, the CEO master-data record)
 
-- **สถานะ:** ยังเสีย · เดิม AI-63
+- **สถานะ:** แก้แล้ว `d5e99b8` · เดิม AI-63
 - **ระดับ:** กลาง · **หมวด:** `card-quality` · **บทบาท:** พนักงานขาย u_krit (CEO list_metrics case fixed)
 - **อาการ:** The rep's salary/leave refusal drew 2 get_person profile cards, one for an unasked คุณนก. The company-total refusal drew a Central RSM owner card with 'ส่งเรื่องให้คุณสมชาย'. Send turns drew describe_entity, resolve_owner and get_person cards. The CEO s3t1 salary refusal (list_metrics) was text only, so that part is fixed.
 - **ที่ควรเป็น:** A refusal is text only. A lookup made on the way to an answer or an action is never drawn.
@@ -1393,6 +1395,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 	- f7ec4961 [resolve_owner]
 	- 3166f71e [describe_entity], 1af6056f [resolve_owner], 3550ae0c [get_person]
 - **สาเหตุ:** verified components/chat/tool-view.ts:122-126: plumbingLookups hides lookups only when another card in the exchange answers, and a refusal or a send has no answering card. Shares its root with the AI-56 high. Review 1 marked AI-63 fixed and review 2 still-broken; merged as still-broken.
+- **แก้:** in an exchange that acts (a send, an email) every lookup is hidden, and a person, owner or entity lookup draws only when the reply wrote a card block of its own (`plumbingLookups`, `wroteBlock`); the owner card has no send button. Tests that fail on the old code: `components/chat/tool-view.test.ts` "lookups on refusals and sends draw nothing (AI-100)".
 
 ### AI-101. The month-to-date attainment hero shows the pace figure (87.9%) when the question asks for % of the full-month target
 
@@ -1547,13 +1550,14 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-115. The company-wide card's send button targets the Isan RSM
 
-- **สถานะ:** ยังเสีย · เดิม AI-77
+- **สถานะ:** แก้แล้ว `ac7375d` · เดิม AI-77
 - **ระดับ:** ต่ำ · **หมวด:** `card-quality` · **บทบาท:** CEO u_thana
 - **อาการ:** The s3t4 whole-company card offers 'ส่งให้คุณอนุชา'. Chips on region cards now follow the region (that part is fixed).
 - **ที่ควรเป็น:** A whole-country card sends to the national owner, or offers no send.
 - **หลักฐาน:**
 	- query_metric 17:01:03 nextActions send with filters {}
 - **สาเหตุ:** verified lib/server/next-actions.ts:44-47 regionOf falls back to an open alert's region
+- **แก้:** the region comes from the card's slice only; a whole-country card goes to the national owner (none when that is the sender). Test that fails on the old code: `lib/server/next-actions.test.ts`.
 
 ### AI-116. The busy indicator ends while text is still streaming
 
@@ -1597,13 +1601,14 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-120. Urgency ignores the deadline the sender wrote
 
-- **สถานะ:** ยังเสีย · เดิม AI-14
+- **สถานะ:** แก้แล้ว `8976662` · เดิม AI-14
 - **ระดับ:** ต่ำ · **หมวด:** `write-flow` · **บทบาท:** RSM u_anucha
 - **อาการ:** 'ภายในศุกร์นี้' and 'ภายในพรุ่งนี้' were both stored as 'today'.
 - **ที่ควรเป็น:** The urgency or due date follows the stated deadline.
 - **หลักฐาน:**
 	- shares McpKjWgOpFZI, Qov8bKamhcuC urgency today
-- **สาเหตุ:** guess: the default urgency is 'today' when the call passes none
+- **สาเหตุ:** verified lib/share/matter.ts `matterUrgency` read only ด่วน from the person's words and fell back to the intent's default ('today' for an act), so no written deadline was ever read
+- **แก้:** `writtenDeadline` (`lib/share/deadline.ts`) reads พรุ่งนี้, มะรืน, ภายในวันนี้, ภายใน/ก่อน + weekday, ภายในวันที่ N, สัปดาห์นี้/หน้า from the person's words against Winyu's today; the matter stores `due`, urgency is 'today' only when that day is today, and the sheet and the matter page show "ภายใน <date>". Tests that fail on the old code: `send-card-choice.test.ts` (ภายในพรุ่งนี้ → due tomorrow), `lib/share/deadline.test.ts`.
 
 ### AI-121. English terms reach Thai users (MoM/YoY, metric names, 'None'/'Masked')
 
