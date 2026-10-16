@@ -17,11 +17,13 @@ import { businessToday } from "@/lib/data/dates";
 import { shareTitle, type ScreenCards, type SendPreview, type ShareContact, type SharedCard } from "@/lib/share/card";
 import { contradictionOf } from "@/lib/share/figures";
 import { askAboutOf, askNaming, matterAsk, matterDeadline, MATTER_INTENTS, MATTER_URGENCIES, sendIntent, type MatterIntent, type MatterUrgency } from "@/lib/share/matter";
+import { pinQuestion } from "@/lib/share/pin";
 import { matchRecipients } from "@/lib/share/recipients";
 
 const COURSES_ENDPOINT = "/api/courses";
 const PERMISSION_LABEL_ENDPOINT = "/api/permissions/label";
 const LABELS_ENDPOINT = "/api/labels";
+const PIN_PREVIEW_ENDPOINT = "/api/pins/preview";
 const MAX_SCOPE_LABELS = 2;
 const CONNECTOR_TOOL = /^[a-z][a-z0-9_]*__/;
 const MAX_ARG_CHIPS = 4;
@@ -123,13 +125,26 @@ function emailDecision(input: EmailInput): Decision {
   };
 }
 
-function pinDecision(input: PinInput): Decision {
+function PinPreview({ title, hero }: { title: string; hero: string }) {
+  return (
+    <div className="min-w-0 rounded-xl border border-border px-3.5 py-3" data-pin-card>
+      <p className="text-[11px] text-muted-foreground">{TH.approve.card}</p>
+      <p className="mt-0.5 text-sm font-medium wrap-anywhere">{title}</p>
+      <p className="mt-1 text-xl font-semibold tracking-tight tabular-nums" data-pin-hero>
+        {hero}
+      </p>
+    </div>
+  );
+}
+
+function pinDecision(input: PinInput, hero: string | null = null): Decision {
+  const title = input.title ?? null;
   return {
     icon: LayoutGrid,
     title: TH.approve.pinDone,
     person: null,
     subjectLabel: TH.approve.card,
-    subject: input.title ?? null,
+    subject: hero ? null : title,
     body: null,
     chips: [],
     urgency: null,
@@ -137,7 +152,24 @@ function pinDecision(input: PinInput): Decision {
     confirm: TH.approve.confirmPin,
     cancel: TH.approve.cancelDo,
     done: TH.approve.donePin,
+    extra: hero && title ? <PinPreview title={title} hero={hero} /> : undefined,
   };
+}
+
+/** The figure a pin's widget will lead with for the signed-in person, asked of the server with the question that drew the card it pins; null until it answers or when it cannot. */
+function usePinHero(input: PinInput, question: string | null): string | null {
+  const [hero, setHero] = useState<string | null>(null);
+  const body = input.title && input.query ? JSON.stringify({ title: input.title, query: input.query, question }) : null;
+  useEffect(() => {
+    if (!body) return;
+    const controller = new AbortController();
+    fetch(PIN_PREVIEW_ENDPOINT, { method: "POST", headers: { "content-type": "application/json" }, body, signal: controller.signal })
+      .then((response) => (response.ok ? (response.json() as Promise<{ hero?: string | null }>) : null))
+      .then((payload) => setHero(payload?.hero ?? null))
+      .catch(() => undefined);
+    return () => controller.abort();
+  }, [body]);
+  return hero;
 }
 
 function scopeOf(query: MetricQuery, labels: Labels): string {
@@ -455,7 +487,6 @@ function decisionOf(tool: string, input: unknown, labelTh?: string): Decision | 
   const value = (input ?? {}) as Record<string, unknown>;
   if (CONNECTOR_TOOL.test(tool)) return connectorDecision(value, labelTh ?? tool);
   if (tool === "send_email") return emailDecision(value);
-  if (tool === "pin_widget") return pinDecision(value);
   if (tool === "run_job") return jobDecision(value);
   if (tool === "request_leave") return leaveDecision(value);
   if (tool === "remember") return rememberDecision(value);
@@ -620,6 +651,13 @@ function CourseApproval({ request }: { request: ApprovalRequest }) {
   return <Approval decision={enrollDecision(input, course)} request={request} />;
 }
 
+function PinApproval({ request }: { request: ApprovalRequest }) {
+  const input = (request.input ?? {}) as PinInput;
+  const question = pinQuestion(request.onScreen?.cards ?? [], input.query, request.question ?? null);
+  const hero = usePinHero(request.approved === null ? input : {}, question);
+  return <Approval decision={pinDecision(input, hero)} request={request} />;
+}
+
 function SendApproval({ request }: { request: ApprovalRequest }) {
   const contacts = useShareContacts();
   const input = (request.input ?? {}) as SendInput;
@@ -635,6 +673,7 @@ function SendApproval({ request }: { request: ApprovalRequest }) {
 /** The one decision the user has to make: who gets the work, what it asks, what approving does. Null for a tool that needs no approval. */
 export function renderApproval(request: ApprovalRequest): ReactNode {
   if (request.tool === "send_card") return <SendApproval request={request} />;
+  if (request.tool === "pin_widget") return <PinApproval request={request} />;
   if (request.tool === "enroll_course") return <CourseApproval request={request} />;
   if (request.tool === "set_permission") return <PermissionApproval request={request} />;
   if (request.tool === "watch_metric") return <WatchApproval request={request} />;

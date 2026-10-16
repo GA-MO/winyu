@@ -251,6 +251,11 @@ function fnv1a(text: string): number {
   return hash;
 }
 
+/** Whether two tool inputs ask the same thing, keys in any order and empty arguments dropped. */
+export function sameInput(left: unknown, right: unknown): boolean {
+  return JSON.stringify(canonical(left)) === JSON.stringify(canonical(right));
+}
+
 /** The short ref a card goes by in the cards-on-screen list: a hash of its reads and layout with keys sorted and empty arguments dropped, so the same card has the same ref wherever it is worked out. */
 export function cardRefOf(card: SharedCard): string {
   return `${CARD_REF_PREFIX}${fnv1a(JSON.stringify(canonical(card))).toString(BASE36)}`;
