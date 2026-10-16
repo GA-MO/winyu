@@ -32,7 +32,7 @@ Stop when a round on the four demo roles (CEO, RSM อีสาน, sales rep �
 
 **Card fit** (user, 2026-10-16): a card's form must fit the question and the data shape. The same layout for every answer makes Winyu look like a template.
 - [x] **Card-fit audit** ($0) over the 63 recorded cases and the 75 sim screenshots; rules R1–R10 in [`card-fit.md`](card-fit.md).
-- [ ] **Card-fit fix** from that rule set.
+- [x] **Card-fit fix** from that rule set.
 
 ## Waves
 

@@ -3,7 +3,7 @@
 The user (2026-10-16): "ไม่ใช่แสดง card หน้าตาเดิมๆ มันจะทำให้ระบบดูไม่ฉลาด คนจะไม่เชื่อ". A card-fit audit rendered all 63 recorded cases with today's code and read 75 simulated-user screenshots. The recordings hold 44 `query_metric` cards: 26 are rank or gap bars led by the total of all rows, and 7 are line charts, 3 of them with a single point. Scatter, funnel, parity gap and overlay are never drawn. Screenshots and the survey are in the session scratchpad (`cardfit/`).
 
 ## สถานะ (2026-10-16)
-รอ RC6 + RC7 merge ก่อน เพราะแก้ `lib/cards/present.ts` ไฟล์เดียวกัน
+แก้แล้ว: ตารางตัดสินใจ `CARD_RULES` ใน `lib/cards/present.ts`, การ์ดคู่ (R10) ผ่าน `cardPlanOf`, เช็ก `answeredHero` และ `drewShape` ต่อเคสใน `lib/eval/cases.ts`
 
 ## Worst examples
 
@@ -43,5 +43,5 @@ R10 also needs the exchange view to pass the turn's other results to `DataCard` 
 
 Every rule is checked for $0: replay the listed cases at `/dev/replay?cases=…` at phone width, and add a hero-label or `expectShape` check per case in `lib/eval/cases.ts` so `bun test` scores it from the recordings. The simulated-user turns have no recordings; the next simulated round checks them by eye against the same table.
 
-- [ ] R1–R10 in `lib/cards/present.ts`, `lib/dashboard/metric-display.ts`, `components/cards/registry.tsx` and the exchange view
-- [ ] Checks per case, every listed case replayed and screenshot-reviewed
+- [x] R1–R10 in `lib/cards/present.ts`, `lib/dashboard/metric-display.ts`, `components/cards/registry.tsx` and the exchange view
+- [x] Checks per case, every listed case replayed and screenshot-reviewed
