@@ -202,6 +202,22 @@ describe("a send about one agent on the region's card names that agent, and a cl
     expect(matterOf(sent)?.title).toContain(AGENT);
   });
 
+  test("a send naming an agent on the region-total card is pointed once at the card on screen that shows the agent; it goes as asked after that (real-model run 3fe57f04)", async () => {
+    const total: ShareTarget = { card: { kind: "tool", reads: [{ tool: "query_metric", input: { period: "this_month", metric: "net_sales_value", dims: ["region"], compare: "target", filters: { region: "northeast" }, grain: "month", limit: 1 } }] }, question: REGION_CARD.question };
+    const ask = "เข้าไปคุยกับเอเย่นต์ขอนแก่นมหาชัย";
+    const before = shares().where((matter) => matter.senderId === RSM).length;
+    const pointed = await send({ to: ["u_krit"], ask, cardRef: onScreen(total).ref }, "รับทราบ ส่งไปเลย", screenWith([total, REGION_CARD], true, ["รับทราบ ส่งไปเลย", FALSE_CLAIM]), RSM);
+    expect(pointed).toMatchObject({ ok: false, code: "CARD_MISSES_SUBJECT" });
+    expect(pointed.error ?? "").toContain(onScreen(REGION_CARD).ref);
+    expect(pointed.error ?? "").toContain(AGENT);
+    expect(pointed.error ?? "").not.toMatch(MODEL_INSTRUCTION);
+    expect(shares().where((matter) => matter.senderId === RSM).length).toBe(before);
+    const right = await send({ to: ["u_krit"], ask, cardRef: onScreen(REGION_CARD).ref }, "รับทราบ ส่งไปเลย", screenWith([total, REGION_CARD], true, ["รับทราบ ส่งไปเลย", FALSE_CLAIM]), RSM);
+    expect(matterOf(right)?.title).toContain(AGENT);
+    const kept = await send({ to: ["u_krit"], ask, cardRef: onScreen(total).ref }, "ส่งการ์ดยอดรวมนั่นแหละ", { ...screenWith([total, REGION_CARD], true, ["ส่งการ์ดยอดรวมนั่นแหละ", FALSE_CLAIM]), redirected: true }, RSM);
+    expect(matterOf(kept)?.card).toEqual(total.card);
+  });
+
   test("a deictic ask with no agent named takes the card's subject, and two sends of one card never share a title", async () => {
     const generic = "ช่วยตรวจสอบและติดตามเรื่องนี้ด่วน";
     const first = matterOf(await send({ to: ["u_anucha"], ask: generic }, `ส่งให้คุณอนุชา ${generic}`, screenWith([REGION_CARD])));
