@@ -880,6 +880,13 @@ describe("a gap card (explain_gap)", () => {
     expect(presentGap({ answer, metric: "net_sales_value", split: "region" }).verdict).toContain("ภาคอีสานฉุดมากสุด 78.1%");
   });
 
+  test("a gap spread wide names no part in its verdict, as explain_gap's share_note says (AI-145)", () => {
+    const answer: GapAnswer = { ...NORTHEAST_BY_BRAND, projection: null, attainment_label: null, compare_label: "สัปดาห์ก่อน 82.0 ล้านบาท", contributors: [{ label: "อีสานรุ่งโรจน์ ค้าส่ง", gap_label: "−540,000 บาท", share_label: "6.3%" }, { label: "อุบลศรีสุข เทรดดิ้ง", gap_label: "−420,000 บาท", share_label: "4.9%" }], rest: { label: "", gap_label: "−6.4 ล้านบาท", share_label: "74.3%" }, offsetting: [] };
+    const verdict = presentGap({ answer, metric: "net_sales_value", split: "agent" }).verdict;
+    expect(verdict).not.toContain("มากสุด");
+    expect(verdict).toContain(TH.cards.gap.spread);
+  });
+
   test("a closed month against target leads with its share of target; against last year with the actual and its coloured change", () => {
     const closed = presentGap({ answer: { ...NORTHEAST_BY_BRAND, projection: null }, metric: "net_sales_value", split: "brand" });
     expect(closed.hero).toMatchObject({ value: "89.2%", unit: TH.read.ofTarget, tone: "bad" });
