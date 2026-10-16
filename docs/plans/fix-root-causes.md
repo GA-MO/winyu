@@ -34,6 +34,15 @@ Stop when a round on the four demo roles (CEO, RSM อีสาน, sales rep �
 - [x] **Card-fit audit** ($0) over the 63 recorded cases and the 75 sim screenshots; rules R1–R10 in [`card-fit.md`](card-fit.md).
 - [x] **Card-fit fix** from that rule set.
 
+## Round 3 fixes (after round 2, 2026-10-16)
+
+Round 2 replayed the 72 round-1 problem turns ($1.10): 22 fixed, 18 still broken, 23 new; the stop condition does not hold. Groups, by the files they touch:
+- [ ] **F1 approval fails closed** (AI-52 high, AI-54, AI-55, AI-79): a write runs only after a recorded yes; a not-ready write returns its fix and does nothing; resumed runs raise their approvals; a pending approval does not break the next message.
+- [ ] **F2 one way to send** (after F1): send-the-card phase 3, `send_card` replaces `share_card` and `create_handoff` (AI-59), the current turn's card is the one sent (AI-56), Thai honorifics resolve (AI-57), a contradicting note is flagged (AI-58), the sender's own team first in the sheet (AI-62), the originator hears about pass-on and accept (AI-85).
+- [ ] **F3 numbers and cards** (after the card-style package): AI-53 high (month-to-date attainment on one base), AI-63, AI-66 to AI-73, AI-76, AI-77, AI-78, AI-83, AI-87, AI-88, AI-89.
+- [ ] **F4 prompt, memory, guardrail** (AI-61, AI-74, AI-75, AI-80, AI-81, AI-82, AI-84, AI-86, AI-90, AI-92).
+- [ ] **F5 demo beats** : the IT step shows the chain's activity, not only denials (AI-60); the demo clock covers inbox, share and audit labels on rehearsal days (AI-65); speed (AI-64, RC9).
+
 ## Waves
 
 Each wave runs its work packages in parallel, one agent per package in its own worktree, with disjoint files. The lead reviews every diff against the report, checks one mutation per package, merges, and walks the four demo windows before the next wave.
