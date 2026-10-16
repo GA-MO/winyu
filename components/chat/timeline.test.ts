@@ -4,9 +4,10 @@ import { pressedText } from "./pressed";
 import { exchangesOf, type ChatMessage } from "./timeline";
 import { cardPlanOf, composedCalls, isEmptyAnswer, toolViewOf, type ToolLive } from "./tool-view";
 import { sinceLastQuestion } from "@/components/providers/copilot-provider";
+import { TH } from "@/lib/i18n/th";
 
 const CARD_TOOLS = new Set(["query_metric"]);
-const IDLE: ToolLive = { running: false, asking: false, decided: undefined, hidden: false };
+const IDLE: ToolLive = { running: false, asking: false, decided: undefined, left: false, hidden: false };
 
 function call(id: string, name: string, args: unknown = {}) {
   return { id, type: "function", function: { name, arguments: JSON.stringify(args) } };
@@ -61,6 +62,14 @@ describe("toolViewOf", () => {
     expect(toolViewOf({ ...write, outcome: { state: "returned", result: { ok: true } } }, IDLE, CARD_TOOLS)).toMatchObject({ kind: "decision", approved: true });
     expect(toolViewOf({ ...write, outcome: { state: "returned", result: { approved: false } } }, IDLE, CARD_TOOLS)).toMatchObject({ kind: "decision", approved: false });
     expect(toolViewOf(write, IDLE, CARD_TOOLS)).toEqual({ kind: "not-run" });
+  });
+
+  test("a write a new question left behind reads the same live as after a reload: cancelled because the person asked something new (AI-178)", () => {
+    const restored = { ...write, outcome: { state: "returned" as const, result: { ok: false, code: "LEFT_FOR_NEW_QUESTION", error: TH.harness.leftForNewQuestion("pin_widget") } } };
+    const cancelled = { kind: "not-done", tool: "pin_widget", reason: TH.conversation.notDoneWhy.LEFT_FOR_NEW_QUESTION };
+    expect(toolViewOf(restored, IDLE, CARD_TOOLS)).toEqual(cancelled);
+    expect(toolViewOf(write, { ...IDLE, decided: false, left: true }, CARD_TOOLS)).toEqual(cancelled);
+    expect(toolViewOf(write, { ...IDLE, running: true, decided: false, left: true }, CARD_TOOLS)).toEqual(cancelled);
   });
 
   test("a write that ran and did nothing leaves a receipt that says so and why, unless a later call of it answered", () => {
