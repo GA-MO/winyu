@@ -292,6 +292,17 @@ describe("lines that invite a question or an action follow what the role can cal
     expect(rules).toContain("คงคำว่า \"สมมติฐาน\"");
   });
 
+  test("rules pin round 3's answer faults: ยอดขาย in baht, the card's own base, why from the same metric, stock by DC, Thai words, plain hidden numbers (AI-104, AI-108, AI-110, AI-121, AI-125, AI-130)", () => {
+    const rules = WINYU_RULES.join("\n");
+    expect(rules).toContain("\"ยอดขาย\" ที่ไม่บอกหน่วย = มูลค่า (`net_sales_value`, บาท)");
+    expect(rules).toContain("ใช้ช่วงกับฐานเทียบเดียวกับการ์ด");
+    expect(rules).toContain("= `explain_gap` ด้วย metric ช่วง filters และ compare เดียวกับการ์ดนั้น");
+    expect(rules).toContain("filters `dc`");
+    expect(rules).toContain("ห้ามใช้ตัวย่อ MoM YoY");
+    expect(rules).toContain("ตัวเลขนี้ถูกซ่อนสำหรับบทบาทของเขา");
+    expect(rules).not.toContain("มี N ฟิลด์ถูกปิดตามสิทธิ์");
+  });
+
   test("rules ask for the literal answer first, \"ไม่มีข้อมูล\" for an uncovered part, and treat what the user asserts as unverified", () => {
     const rules = WINYU_RULES.join("\n");
     expect(rules).toContain("ประโยคแรกตอบสิ่งที่ผู้ใช้ถามตรง ๆ");
