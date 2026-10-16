@@ -1,7 +1,7 @@
 import { WIDGET_KINDS, type Alert, type AlertRow, type Dim, type Forecast, type MetricId, type MetricQuery, type MetricResult, type MetricRow, type MonthEndProjection, type NextAction, type UnderLine, type WidgetKind } from "@/lib/contracts";
 import { TH } from "@/lib/i18n/th";
 import { MIN_CELL_SIZE } from "@/lib/access/suppression";
-import { addDays, monthKeyOfIso, weekKeyOfIso } from "@/lib/data/dates";
+import { addDays, daysBetween, monthKeyOfIso, weekKeyOfIso } from "@/lib/data/dates";
 import { formatDateTh, formatPercent, periodLabelTh } from "@/lib/i18n/format";
 import { changeTextOf, deltaPercentOf, deltaPointsOf, groupDimsOf, labelAlong, labelOf, numericOf, timeDimOf, valueTextOf } from "./rows";
 import { changeOf, exceptionsOf, fitsOneStrip, LEVEL_LINES, percentIn, readBreakdown, stripOf, type Breakdown, type BreakdownBars, type LevelLine } from "./breakdown";
@@ -156,6 +156,9 @@ const MINUS_SIGN = "−";
 const PLUS_SIGN = "+";
 const RANK_MIN_ROWS = 2;
 const SUNDAY = 0;
+const MONDAY = 1;
+const DAYS_PER_WEEK = 7;
+const MONTH_FIRST = "-01";
 const PERCENT = 100;
 const NO_EXTRAS: CardExtras = {};
 const NO_ACTIONS: NextAction[] = [];
@@ -483,6 +486,7 @@ type LatestBucket = { label: string; previous: string; value: string; deltaPerce
 function latestBucketOf(query: MetricQuery, result: OkResult, rows: MetricRow[]): LatestBucket | null {
   if (result.headline.aggregate === "average" && result.headline.deltaPercent !== null) return null;
   if (asksAboutOnePeriod(query)) return null;
+  if (rows.length === 2 && leadingPartialDays(query) !== null) return null;
   if (!timeDimOf(query) || groupDimsOf(query).length > 0 || rows.length < 2) return null;
   const [previous, latest] = rows.slice(-2);
   const previousValue = numericOf(previous, "value");
@@ -718,6 +722,30 @@ function lineBody(shape: Shape, extras: CardExtras): CardBody {
   };
 }
 
+/** How many days the first bucket of a range holds when the range starts inside a week or a month (a month-to-date range read by week starts on a Sunday that is one day of its week), or null when the first bucket is whole. */
+function leadingPartialDays(query: MetricQuery): number | null {
+  const from = query.range.from;
+  if (query.grain === "week") {
+    const weekday = (new Date(`${from}T00:00:00Z`).getUTCDay() + DAYS_PER_WEEK - MONDAY) % DAYS_PER_WEEK;
+    return weekday === 0 ? null : Math.min(DAYS_PER_WEEK - weekday, daysBetween(from, query.range.to) + 1);
+  }
+  if (query.grain === "month" && !from.endsWith(MONTH_FIRST)) return Math.min(daysBetween(from, lastDayOfMonth(from)), daysBetween(from, query.range.to)) + 1;
+  return null;
+}
+
+/** A trend whose first bucket holds only some of its days draws that bucket apart: its label says how many days it holds and the segment to it is dashed, so a short first week never reads as a collapse. */
+function markLeadingPartial(query: MetricQuery, body: Extract<CardBody, { kind: "line" }>): CardBody {
+  const days = leadingPartialDays(query);
+  const [actual, ...rest] = body.series;
+  if (days === null || !actual || groupDimsOf(query).length > 0 || body.labels.length < 2 || actual.values[0] === null) return body;
+  const partial: ChartSeries = { name: TH.dash.partialSeries, values: actual.values.map((value, index) => (index < 2 ? value : null)), style: "dashed" };
+  return {
+    ...body,
+    labels: [TH.dash.partialBucket(body.labels[0], days), ...body.labels.slice(1)],
+    series: [{ ...actual, values: [null, ...actual.values.slice(1)] }, partial, ...rest],
+  };
+}
+
 function tableBody(query: MetricQuery, rows: MetricRow[], withCompare: boolean): CardBody {
   const dim = rankDimOf(query) ?? timeDimOf(query);
   const columns: CardColumn[] = [
@@ -775,7 +803,10 @@ function alertsVerdict(alerts: AlertRow[]): string {
 function chartBodyFor(shape: Shape, view: CardView, extras: CardExtras): CardBody {
   const { query, rows } = shape;
   if (view === "alert_list") return alertsBody(extras.alerts ?? []);
-  if (view === "line") return lineBody(shape, extras);
+  if (view === "line") {
+    const body = lineBody(shape, extras);
+    return body.kind === "line" ? markLeadingPartial(shape.query, body) : body;
+  }
   if (view === "stacked" || view === "area") {
     const grouped = seriesByGroup(query, rows, true);
     return { kind: "stacked", shape: view === "area" ? "area" : "bar", labels: grouped.labels, series: grouped.series, format: metricFormat(query.metric) };

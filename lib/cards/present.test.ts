@@ -325,6 +325,16 @@ describe("two metrics on one card", () => {
   });
 });
 
+describe("a first bucket that holds only some of its days", () => {
+  test("a weekly line starting mid-week labels the short week with its days and draws the step to it dashed, never as a collapse (AI-83)", () => {
+    const body = expectKind(bodyOf({ metric: "net_sales_volume", dims: ["week"], grain: "week", range: { from: "2026-08-08", to: "2026-08-30" }, compare: "none" }), "line");
+    expect(body.labels[0]).toEndWith("(2 วัน)");
+    expect(body.series[0].values[0]).toBeNull();
+    expect(body.series[1]).toMatchObject({ name: TH.dash.partialSeries, style: "dashed" });
+    expect(body.series[1].values.slice(2).every((value) => value === null)).toBe(true);
+  });
+});
+
 describe("a period split into days", () => {
   test("this week by day leads with the week's total against the week before, not its last day (AI-71)", () => {
     const { query, result } = answer({ metric: "net_sales_volume", dims: ["date"], grain: "day", range: { from: "2026-08-17", to: "2026-08-23" } });

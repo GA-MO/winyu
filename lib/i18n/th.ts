@@ -736,6 +736,8 @@ export const TH = {
     maskedAll: (unit: string | null) => `ตัวเลขชุดนี้ถูกปิดตามสิทธิ์ของบทบาทคุณ${unit ? ` เห็นได้แค่รายชื่อ${unit}` : ""} · ขอสิทธิ์ได้จากเจ้าของเมตริก`,
     partialWeek: "สัปดาห์ปัจจุบันยังไม่ครบ",
     partialMonth: "เดือนปัจจุบันยังไม่ครบ",
+    partialSeries: "ช่วงที่ข้อมูลไม่ครบ",
+    partialBucket: (label: string, days: number) => `${label} (${days} วัน)`,
     versusBucket: (bucket: string) => `เทียบ ${bucket}`,
     others: "อื่น ๆ",
     shownOf: (shown: number, total: number) => `แสดง ${shown} จาก ${total} กลุ่มที่ค่ารวมสูงสุด`,
