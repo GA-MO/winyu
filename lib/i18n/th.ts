@@ -1710,6 +1710,8 @@ export const TH = {
     askPlaceholder: "บอกสั้น ๆ ว่าอยากให้ทำอะไร",
     askDraft: (title: string) => `ช่วยดู ${title} หน่อย`,
     intent: { act: "ต้องตอบ", fyi: "ให้ดู" },
+    urgencyLabel: "ต้องการเมื่อไร",
+    urgency: { now: "ด่วน", today: "วันนี้", this_week: "สัปดาห์นี้" },
     intentHint: { act: "รอคำตอบจากผู้รับหนึ่งคน ขึ้นในกระดิ่งของเขาจนกว่าจะตอบ", fyi: "ส่งให้ดูเฉยๆ ไม่ต้องตอบ เลือกได้หลายคน" },
     suggested: "ผู้รับผิดชอบเรื่องนี้",
     others: "คนอื่น",

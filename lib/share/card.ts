@@ -7,7 +7,7 @@ import { TH } from "@/lib/i18n/th";
 import { grantDaysSchema, type GrantRefusalCode } from "@/lib/contracts/grant";
 import type { MetricId } from "@/lib/contracts/semantic";
 import type { Persona } from "@/lib/contracts/persona";
-import { MATTER_INTENTS } from "./matter";
+import { MATTER_INTENTS, MATTER_URGENCIES } from "./matter";
 
 export const SHARE_CHANNELS = ["email", "teams", "line"] as const;
 
@@ -95,6 +95,7 @@ export const shareRequestSchema = z.object({
   question: z.string().max(500).nullable(),
   ask: z.string().max(MATTER_ASK_MAX),
   intent: z.enum(MATTER_INTENTS),
+  urgency: z.enum(MATTER_URGENCIES).optional(),
   recipients: z.array(z.object({ userId: z.string().min(1), channel: z.enum(DELIVERY_CHANNELS) })).min(1).max(SHARE_RECIPIENTS_MAX),
   grantDays: grantDaysSchema.nullable().optional(),
 }).refine((request) => request.intent === "fyi" || (request.recipients.length === 1 && request.ask.trim().length > 0), { message: "a matter that asks for an answer goes to one person with an ask" });

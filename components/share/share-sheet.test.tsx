@@ -128,6 +128,18 @@ describe("the sheet before sending", () => {
     await sheet.close();
   });
 
+  test("sends the urgency the sender chose, today by default for an ask", async () => {
+    const sheet = await openSheet([]);
+    const checked = () => sheet.host.querySelector('[data-share-urgency] [aria-checked="true"]')?.getAttribute("data-urgency");
+    expect(checked()).toBe("today");
+    await act(async () => sheet.host.querySelector<HTMLButtonElement>('[data-urgency="this_week"]')?.click());
+    expect(checked()).toBe("this_week");
+    await act(async () => sheet.host.querySelector<HTMLButtonElement>("[data-share-send]")?.click());
+    await settle();
+    expect(sheet.sent.find((call) => call.url === "/api/shares")?.body.urgency).toBe("this_week");
+    await sheet.close();
+  });
+
   test("offers the grant when the sender may open what is hidden, and says nothing when nothing is", async () => {
     const grantable = await openSheet([{ ...MASKED, hidden: "rows", grantable: true }]);
     expect(grantable.host.querySelector("[data-share-grant]")?.textContent).toBe(TH.share.grantToShow);

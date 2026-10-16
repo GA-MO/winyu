@@ -6,6 +6,13 @@ export const MATTER_URGENCIES = ["now", "today", "this_week"] as const;
 /** act: the holder must answer; fyi: for information only. */
 export type MatterIntent = (typeof MATTER_INTENTS)[number];
 export type MatterUrgency = (typeof MATTER_URGENCIES)[number];
+
+const URGENCY_OF_INTENT: Record<MatterIntent, MatterUrgency> = { act: "today", fyi: "this_week" };
+
+/** How soon a matter is due when the sender did not choose: today for one that waits on an answer, this week for one sent to look at. */
+export function defaultUrgency(intent: MatterIntent): MatterUrgency {
+  return URGENCY_OF_INTENT[intent];
+}
 export type MatterStatus = "open" | "done" | "dropped";
 export type HopState = "sent" | "seen" | "accepted" | "asked" | "passed_on";
 

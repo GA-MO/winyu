@@ -32,3 +32,17 @@ describe("before a card is sent, the sender learns what each recipient would not
     expect(outcome.ok && outcome.hidden.map((scope) => [scope.userId, scope.hidden])).toEqual([["u_krit", "masked"]]);
   });
 });
+
+describe("a sent matter's urgency", () => {
+  const send = (urgency?: "now" | "today" | "this_week") => createShare(user("u_thana"), { card: SALES_CARD, question: null, ask: "ช่วยดูภาคอีสาน", intent: "act", recipients: [{ userId: "u_anucha", channel: "winyu" }], ...(urgency ? { urgency } : {}) });
+
+  test("is the sender's choice", async () => {
+    const outcome = await send("this_week");
+    expect(outcome.ok && outcome.share.urgency).toBe("this_week");
+  });
+
+  test("is today for an ask when the sender did not choose", async () => {
+    const outcome = await send();
+    expect(outcome.ok && outcome.share.urgency).toBe("today");
+  });
+});

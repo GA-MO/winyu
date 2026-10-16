@@ -1,7 +1,7 @@
 import type { RecipientScope, User } from "@/lib/contracts";
 import { findUser, USERS } from "@/lib/data/entities/users";
 import { shareTitle, type ChannelOption, type DeliveryChannel, type ShareChannel, type ShareContact, type ShareGrantReceipt, type ShareRequest } from "@/lib/share/card";
-import type { Matter, MatterUrgency, ShareDelivery } from "@/lib/share/matter";
+import { defaultUrgency, type Matter, type ShareDelivery } from "@/lib/share/matter";
 import { recordShare } from "@/lib/server/audit";
 import { untilLabel } from "@/lib/share/grant-label";
 import { grantOnShare, recipientScopesFor, shareGrantUntil } from "@/lib/server/grants";
@@ -86,11 +86,9 @@ function recipientsOf(request: ShareRequest, senderId: string): Array<{ user: Us
   });
 }
 
-const URGENCY_OF_INTENT: Record<Matter["intent"], MatterUrgency> = { act: "today", fyi: "this_week" };
-
 function newMatter(sender: User, request: ShareRequest, sent: { code: string; at: string; title: string; ask: string; deliveries: ShareDelivery[] }): Matter {
   const path = sent.deliveries.map((delivery) => ({ userId: delivery.userId, fromUserId: sender.id, at: sent.at, state: "sent" as const }));
-  return { id: sent.code, at: sent.at, updatedAt: sent.at, senderId: sender.id, title: sent.title, question: request.question, ask: sent.ask, intent: request.intent, urgency: URGENCY_OF_INTENT[request.intent], goal: null, path, thread: [], status: "open", card: request.card, deliveries: sent.deliveries, openedBy: [], lastViewedAt: null };
+  return { id: sent.code, at: sent.at, updatedAt: sent.at, senderId: sender.id, title: sent.title, question: request.question, ask: sent.ask, intent: request.intent, urgency: request.urgency ?? defaultUrgency(request.intent), goal: null, path, thread: [], status: "open", card: request.card, deliveries: sent.deliveries, openedBy: [], lastViewedAt: null };
 }
 
 /** Sends a card as a matter: stores the reads (never their values) under a short code, tells each recipient in Winyu (in the Inbox when it asks for an answer, on Shared when it is for information), also on the outside channel picked (email when that channel cannot reach them), and leaves one audit row; with grant days, also grants each recipient what the card showed the sender, when the sender may. No model call. */

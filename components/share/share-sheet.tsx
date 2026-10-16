@@ -10,7 +10,8 @@ import { DEFAULT_GRANT_DAYS, GRANT_DAYS, type GrantDays, type RecipientScope } f
 import { metricLabel } from "@/lib/dashboard/metric-display";
 import { TH } from "@/lib/i18n/th";
 import { MATTER_ASK_MAX, SHARE_RECIPIENTS_MAX, shareTitle, type ShareChannel, type ShareContact, type ShareGrantReceipt, type ShareReceipt, type ShareTarget } from "@/lib/share/card";
-import { MATTER_INTENTS, type MatterIntent } from "@/lib/share/matter";
+import { saysUrgent } from "@/lib/cards/handoff-urgency";
+import { defaultUrgency, MATTER_INTENTS, type MatterIntent, type MatterUrgency } from "@/lib/share/matter";
 
 const CONTACTS_ENDPOINT = "/api/shares/contacts";
 const SHARES_ENDPOINT = "/api/shares";
@@ -106,6 +107,23 @@ function IntentToggle({ intent, choose }: { intent: MatterIntent; choose: (inten
         ))}
       </div>
       <p className="text-[11px] leading-relaxed text-muted-foreground">{TH.share.intentHint[intent]}</p>
+    </div>
+  );
+}
+
+const URGENCY_ORDER: readonly MatterUrgency[] = ["today", "this_week", "now"];
+
+function UrgencyChoice({ urgency, choose }: { urgency: MatterUrgency; choose: (urgency: MatterUrgency) => void }) {
+  return (
+    <div className="flex items-center gap-2">
+      <span className="text-xs font-medium text-muted-foreground">{TH.share.urgencyLabel}</span>
+      <div className="flex flex-wrap gap-1.5" role="radiogroup" aria-label={TH.share.urgencyLabel} data-share-urgency>
+        {URGENCY_ORDER.map((option) => (
+          <button key={option} type="button" role="radio" aria-checked={option === urgency} data-urgency={option} onClick={() => choose(option)} className={cn(CHIP, option === urgency ? "border-transparent bg-ink text-ink-foreground" : "border-border text-muted-foreground hover:border-foreground/25 hover:text-foreground")}>
+            {TH.share.urgency[option]}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }
@@ -284,6 +302,8 @@ function Sheet({ target, close }: { target: ShareTarget; close: () => void }) {
   const [grantDays, setGrantDays] = useState<GrantDays | null>(null);
   const [ask, setAsk] = useState(() => target.draftAsk ?? TH.share.askDraft(title));
   const [intent, setIntent] = useState<MatterIntent>("act");
+  const [chosenUrgency, setUrgency] = useState<MatterUrgency | null>(null);
+  const urgency = chosenUrgency ?? (saysUrgent(ask) ? "now" : defaultUrgency(intent));
   const [picked, setPicked] = useState<string[] | null>(null);
   const [phase, setPhase] = useState<Phase>({ kind: "picking" });
 
@@ -291,6 +311,7 @@ function Sheet({ target, close }: { target: ShareTarget; close: () => void }) {
   const toggle = (contact: ShareContact) => setPicked(nextChosen(chosen, contact.id, intent));
   const chooseIntent = (next: MatterIntent) => {
     setIntent(next);
+    setUrgency(null);
     if (next === "act") setPicked(chosen.slice(0, 1));
   };
   const ready = chosen.length > 0 && (intent === "fyi" || ask.trim().length > 0) && phase.kind !== "sending";
@@ -299,7 +320,7 @@ function Sheet({ target, close }: { target: ShareTarget; close: () => void }) {
   const send = async () => {
     setPhase({ kind: "sending" });
     const recipients = chosen.map((userId) => ({ userId, channel: "winyu" as const }));
-    const body = { card: target.card, question: target.question, ask, intent, recipients, grantDays: directory?.mayGrant ? grantDays : null };
+    const body = { card: target.card, question: target.question, ask, intent, urgency, recipients, grantDays: directory?.mayGrant ? grantDays : null };
     const response = await fetch(SHARES_ENDPOINT, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) }).catch(() => null);
     const payload = response?.ok ? ((await response.json()) as { receipts: ShareReceipt[]; grants?: ShareGrantReceipt[]; hidden?: RecipientScope[]; path: string }) : null;
     setPhase(payload ? { kind: "sent", receipts: payload.receipts, grants: payload.grants ?? [], hidden: payload.hidden ?? [], path: payload.path } : { kind: "failed" });
@@ -327,6 +348,7 @@ function Sheet({ target, close }: { target: ShareTarget; close: () => void }) {
           <>
             <div className="flex flex-col gap-3 border-b border-border px-4 py-3">
               <IntentToggle intent={intent} choose={chooseIntent} />
+              {intent === "act" ? <UrgencyChoice urgency={urgency} choose={setUrgency} /> : null}
               <label className="flex flex-col gap-1">
                 <span className="text-xs font-medium text-muted-foreground">{TH.share.askLabel}</span>
                 <input value={ask} onChange={(event) => setAsk(event.target.value.slice(0, MATTER_ASK_MAX))} placeholder={TH.share.askPlaceholder} data-share-ask className="rounded-xl border border-border bg-transparent px-3 py-2 text-sm outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-ring" />
