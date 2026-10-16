@@ -118,7 +118,7 @@ describe("memory", () => {
   });
 
   test("a fact past its decay date is dropped", async () => {
-    const [fact] = await rememberTurn(USER, [{ prompt: "กำไรขั้นต้นเดือนนี้" }], null);
+    const [fact] = await rememberTurn(USER, [{ prompt: "ปริมาณขายเข้าเดือนนี้" }], null);
     memoryFacts().put({ ...fact, decayAt: "2020-01-01T00:00:00.000Z" });
     expect(pruneMemory(USER)).toBeGreaterThan(0);
     expect(memoryFacts().get(fact.id)).toBeNull();

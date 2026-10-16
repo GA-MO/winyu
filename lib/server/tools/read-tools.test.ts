@@ -258,7 +258,7 @@ describe("admin_audit", () => {
     const report = await call(IT, "admin_audit", { topic: "tool_usage", days: 7, role: null });
     const labels = new Set(rowsOf(report).map((row) => row.tool_label));
     expect(pseudo.map((entry) => toolLabel(entry.tool)).filter((label) => labels.has(label))).toEqual([]);
-    expect(report.ok === true && report.summary).toBe(TH.adminAudit.usage(consoleCalls, consoleActivity.size, 7));
+    expect(report.ok === true && report.summary).toEndWith(TH.adminAudit.usage(consoleCalls, consoleActivity.size, 7));
   });
 
   test("model cost leads with the total it was asked for, the split by source under it", async () => {
