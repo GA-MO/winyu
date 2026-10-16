@@ -298,6 +298,7 @@ const always = (view: CardView) => () => view;
 const CARD_RULES: readonly CardRule[] = [
   { rule: "R7 threshold met by few", when: (f) => Boolean(f.query.where) && f.under !== null && f.groups === 1 && !f.time && f.rows.length > 0, view: always("bar"), bars: "level", hero: "reading", look: "breakdown" },
   { rule: "R1 one row", when: (f) => f.rows.length <= 1 && (f.query.dims.length > 0 || f.filtered), view: always("metric"), bars: "auto", hero: "single", look: "summary" },
+  { rule: "R2 short series against target", when: (f) => f.time && f.groups === 0 && f.buckets >= RANK_MIN_ROWS && f.buckets < MIN_LINE_BUCKETS && f.query.compare === "target" && hasChange(f.rows), view: always("bar"), bars: "target", hero: "reading", look: "breakdown" },
   { rule: "R2 short series", when: (f) => f.time && f.groups === 0 && f.buckets < MIN_LINE_BUCKETS, view: always("metric"), bars: "auto", hero: "total", look: "summary" },
   { rule: "R9 trend", when: (f) => f.time && f.groups === 0, view: always("line"), bars: "auto", hero: "latest", look: "summary" },
   { rule: "time × group", when: (f) => f.time, view: timeView, bars: "auto", hero: "total", look: "chart" },
@@ -390,10 +391,10 @@ function overallLabelOf(query: MetricQuery, result: OkResult): string {
   return result.headline.aggregate === "average" ? TH.read.averageOf(unit) : TH.read.allOf(unit);
 }
 
-/** The unit word a verdict counts groups in ("ภาค", "SKU", "DC"). */
+/** The unit word a verdict counts groups in ("ภาค", "SKU", "DC"), or periods in ("เดือน") when the rows are a short series. */
 function verdictUnitOf(query: MetricQuery): string {
-  const dim = rankDimOf(query);
-  if (!dim || groupDimsOf(query).length !== 1) return TH.dash.item;
+  const dim = rankDimOf(query) ?? (groupDimsOf(query).length === 0 ? timeDimOf(query) : null);
+  if (!dim || query.dims.length !== 1) return TH.dash.item;
   return VERDICT_UNITS[dim] ?? TH.dash.dimUnit[dim];
 }
 
@@ -826,7 +827,7 @@ function largestGroupVerdict(query: MetricQuery, rows: MetricRow[], additive: bo
     if (label && value !== null) totals.set(label, (totals.get(label) ?? 0) + value);
   }
   const [top] = [...totals.entries()].sort((left, right) => right[1] - left[1]);
-  if (!top) return null;
+  if (!top || totals.size < RANK_MIN_ROWS) return null;
   return additive ? TH.read.biggest(top[0]) : TH.read.highest(top[0]);
 }
 
@@ -1227,6 +1228,13 @@ function breakdownCard(base: Omit<CardParts, "style" | "verdict" | "hero" | "bod
   return { ...base, style: "exceptions", verdict: spaced(reading.verdict), hero: reading.lead?.hero ?? reading.hero, tiles: NO_TILES, body: { kind: "exceptions", strip, fold } };
 }
 
+/** R1 for a group pinned to one value: a breakdown by a dim the question filtered to one name ("ขอนแก่น" by month) is that name's series, never a ranking of the name against itself; null when every group dim holds several values. */
+function withoutPinnedGroups(query: MetricQuery, rows: MetricRow[]): MetricQuery | null {
+  if (rows.length < RANK_MIN_ROWS) return null;
+  const pinned = groupDimsOf(query).filter((dim) => (query.filters[dim]?.length ?? 0) === 1 && new Set(rows.map((row) => row[dim])).size === 1);
+  return pinned.length === 0 ? null : { ...query, dims: query.dims.filter((dim) => !pinned.includes(dim)) };
+}
+
 /** R2 for a split over time: groups over a single bucket ("this month by business unit") are a breakdown by the groups, never a chart of lone dots; null when the time axis holds more than one bucket. */
 function oneBucketBreakdown(query: MetricQuery, rows: MetricRow[]): MetricQuery | null {
   const groups = groupDimsOf(query);
@@ -1265,6 +1273,8 @@ export function presentCard(input: PresentInput): CardParts {
   if (input.locked && !masked && hidden === 0 && locksBreakdown(query, input.locked)) return lockedCard(input, result, sorted(query, visibleRows, sortBy), input.locked);
   const oneBucket = oneBucketBreakdown(query, visibleRows);
   if (oneBucket) return presentCard({ ...input, query: oneBucket });
+  const unpinned = withoutPinnedGroups(query, visibleRows);
+  if (unpinned) return presentCard({ ...input, query: unpinned });
   const pairing = masked || hidden > 0 ? null : pairingOf({ query, result }, okSources(input.others));
   if (pairing?.view === "baselines") return withBaseline(presentCard({ ...input, others: [] }), pairing.sources[1]);
   if (pairing?.view === "twin") return withSecondMetric(presentCard({ ...input, others: [] }), pairing);

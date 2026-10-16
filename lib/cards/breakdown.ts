@@ -2,7 +2,7 @@ import type { MetricId, MetricQuery, MetricResult, MetricRow } from "@/lib/contr
 import { TH } from "@/lib/i18n/th";
 import { DECIDING_LINES, LOW_COVER_DAYS } from "@/lib/semantic/metrics";
 import { changeDirectionOf, changeToneOf, directionOf, formatChange, formatDelta, formatMetricValue, metricFormat, toneOf, type Direction, type Tone } from "@/lib/dashboard/metric-display";
-import { changeTextOf, deltaPercentOf, deltaPointsOf, labelOf, numericOf, valueTextOf } from "./rows";
+import { changeTextOf, deltaPercentOf, deltaPointsOf, labelOf, numericOf, timeDimOf, valueTextOf } from "./rows";
 import {
   boardVerdict,
   changeVerdict,
@@ -161,13 +161,22 @@ function aboveLineReading(input: BreakdownInput, line: LevelLine): Breakdown {
   };
 }
 
+/** What a period was against its target in the metric's own unit ("1.8 ล้านลิตร · เป้า 1.8 ล้านลิตร"), so a month asked about shows its figure and its target, not only the share. */
+function targetSubOf(query: MetricQuery, row: MetricRow): string | null {
+  const target = numericOf(row, "compare_value");
+  return target === null ? null : TH.read.againstTarget(valueTextOf(query, row), formatMetricValue(query.metric, target));
+}
+
+/** R3 and R6: groups read against the deciding line, the furthest under first; periods (a short series against target) stay in time order, each with its value and target. */
 function lineReading(input: BreakdownInput, line: LevelLine): Breakdown {
   const { query, result } = input;
   if (input.high && line.line.kind === "cover") return aboveLineReading(input, line);
   const overTarget = query.compare === "target" && query.metric !== "target_attainment";
   const measureOf = (row: MetricRow) => (overTarget ? attainmentOf(row) : numericOf(row, "value"));
-  const scored = input.rows.map((row) => ({ row, measure: measureOf(row) })).sort((left, right) => (left.measure ?? Infinity) - (right.measure ?? Infinity));
-  const under = scored.filter((entry) => entry.measure !== null && entry.measure < line.at);
+  const overTime = timeDimOf(query) !== null;
+  const measured = input.rows.map((row) => ({ row, measure: measureOf(row) }));
+  const scored = overTime ? measured : measured.sort((left, right) => (left.measure ?? Infinity) - (right.measure ?? Infinity));
+  const under = scored.filter((entry) => entry.measure !== null && entry.measure < line.at).sort((left, right) => (left.measure ?? 0) - (right.measure ?? 0));
   const answer = line.line.kind === "cover" && under.length === 0 && !input.threshold ? scored[0] : null;
   const peak = Math.max(line.at, ...scored.map((entry) => entry.measure ?? 0));
   const ofTarget = line.line.kind === "target";
@@ -177,14 +186,14 @@ function lineReading(input: BreakdownInput, line: LevelLine): Breakdown {
     const emphasised = isUnder || entry === answer;
     return {
       label: labelOf(query, entry.row),
-      sub: null,
+      sub: overTime && overTarget ? targetSubOf(query, entry.row) : null,
       measure: entry.measure,
       fill: entry.measure === null ? 0 : Math.min(1, Math.max(0, entry.measure / (ofTarget ? PERCENT : peak))),
       text: textOf(entry),
       change: null,
       tone: isUnder ? "bad" : "neutral",
       exception: emphasised,
-      valued: emphasised || index === scored.length - 1,
+      valued: overTime || emphasised || index === scored.length - 1,
     };
   });
   const overallMeasure = overTarget ? (result.headline.deltaPercent === null ? null : PERCENT + result.headline.deltaPercent) : ofTarget ? percentIn(result.headline.value) : null;

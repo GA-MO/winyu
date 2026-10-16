@@ -6,7 +6,7 @@ import { findUser } from "@/lib/data/entities/users";
 import { runMetric } from "@/lib/data/query";
 import { TH } from "@/lib/i18n/th";
 import { LOW_COVER_DAYS } from "@/lib/semantic/metrics";
-import { changeToneOf, formatChange } from "@/lib/dashboard/metric-display";
+import { changeToneOf, formatChange, formatMetricValue } from "@/lib/dashboard/metric-display";
 import { pairedIndexes, presentCard, presentForecast, weakestRow, type CardBody, type CardParts, type CardView, type ForecastAnswer, type SortBy } from "./present";
 import type { ReadRow, Strip } from "./reading";
 import { metricTitle } from "./tool-answers";
@@ -602,6 +602,25 @@ describe("a target breakdown ranked by its gap", () => {
       expect(card.hero?.unit).toBe(TH.read.ofPacedTarget);
       expect(card.hero?.value).toMatch(/^\d+(\.\d)?%$/);
     }
+  });
+});
+
+describe("two months of one province against target", () => {
+  test("reads each month against its target, September first with its value and target, never the two summed or the province ranked against itself (AI-106)", () => {
+    const REP = accessFor(findUser("u_krit")!);
+    const query: MetricQuery = { metric: "net_sales_volume", dims: ["month", "province"], filters: { province: ["pv_khonkaen"] }, range: { from: "2026-09-01", to: "2026-10-31" }, grain: "month", compare: "target", limit: 10 };
+    const result = runMetric(query, REP);
+    if (!result.ok) throw new Error(result.error);
+    const card = presentCard({ title: "t", query, result });
+    expect(card.verdict ?? "").not.toContain("ใหญ่สุดทั้งช่วง");
+    expect(card.hero?.value).not.toBe(result.headline.value);
+    expect(card.hero?.unit).toBe(TH.read.ofTarget);
+    const strip = stripOf(card.body);
+    expect(strip.baseline).toBe(100);
+    expect(strip.rows.map((row) => row.label)).toEqual(["ก.ย. 69", "ต.ค. 69"]);
+    expect(strip.rows.every((row) => row.valued)).toBe(true);
+    const september = result.rows.find((row) => row.month === "2026-09");
+    expect(strip.rows[0].sub).toBe(TH.read.againstTarget(String(september?.value_label), formatMetricValue("net_sales_volume", Number(september?.compare_value))));
   });
 });
 

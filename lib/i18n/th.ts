@@ -749,6 +749,7 @@ export const TH = {
     ofPacedTarget: "ของเป้าตามเวลา",
     pacedTarget: "เทียบเป้าตามเวลา",
     pacedShare: (attainment: string) => `ตามเวลา ${attainment}`,
+    againstTarget: (value: string, target: string) => `${value} · เป้า ${target}`,
     goal: "เป้า",
     pacedGoal: "เป้าตามเวลา",
     onPace: (label: string) => `${label}ทันเป้าตามเวลา`,
