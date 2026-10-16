@@ -565,7 +565,7 @@ function summaryLead(facts: Facts, name: string, subject: string): Lead {
   const move = headlineMoveOf(query, result);
   const change = metricFormat(query.metric) === "percent" ? (result.headline.deltaPoints ?? null) : result.headline.deltaPercent;
   const previousValue = row && rows.length === 1 ? numericOf(row, "compare_value") : null;
-  const previous = previousValue === null ? null : tileOf(TH.read.previous, formatMetricValue(query.metric, previousValue), null);
+  const previous = previousValue === null ? null : tileOf(TH.read.base[query.compare] ?? TH.read.previous, formatMetricValue(query.metric, previousValue), null);
   return {
     hero: { label: previous ? TH.read.current : subject, value: result.headline.value, unit: null, ...move, detail: result.headline.compareLabel },
     tiles: [previous, projection].filter((tile): tile is Tile => tile !== null),

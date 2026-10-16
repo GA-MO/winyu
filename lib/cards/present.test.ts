@@ -624,6 +624,15 @@ describe("two months of one province against target", () => {
   });
 });
 
+describe("one scope against a comparison", () => {
+  test("labels the tile of the value compared with by its window: ปีก่อน against last year, never งวดก่อน (AI-114)", () => {
+    const tiles = (compare: MetricQuery["compare"]) => cardOf({ metric: "net_sales_value", dims: ["region"], range: MONTH_TO_DATE, compare }, { filters: { region: ["northeast"] } }).tiles.map((tile) => tile.label);
+    expect(tiles("prev_year")).toContain("ปีก่อน");
+    expect(tiles("prev_year")).not.toContain("งวดก่อน");
+    expect(tiles("prev_period")).toContain("งวดก่อน");
+  });
+});
+
 describe("a list cut by a limit", () => {
   test("speaks for the rows it shows, never for every group: the ten SKUs that fell most are named as ten (AI-105)", () => {
     const sku: Dim[] = ["sku"];
