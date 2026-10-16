@@ -7,6 +7,7 @@ import type { ScreenCards, ShareTarget } from "@/lib/share/card";
 import { winyuTools } from "@/lib/server/agent/tools";
 import { runWithAccess, runWithTurn, type TurnContext } from "@/lib/server/request-context";
 import { shares } from "@/lib/server/share/shares";
+import { waitingOn } from "@/lib/server/tools/inbox";
 import { approvedCallId } from "@/scripts/approved-call";
 import { onScreen, screenWith } from "@/scripts/screen-cards";
 import { addDays, businessToday } from "@/lib/data/dates";
@@ -159,5 +160,47 @@ describe("a matter sent from chat keeps its subject (AI-137)", () => {
   test("an ask that says what to do is kept as written", async () => {
     const ask = "โทรตามหนี้แล้วตอบกลับมา";
     expect(matterOf(await send({ to: ["u_anucha"], ask }, `ส่งให้คุณอนุชา ${ask}`))?.ask).toBe(ask);
+  });
+});
+
+describe("a send about one agent on the region's card names that agent, and a claim the card refutes is answered before any approval (AI-167, AI-168)", () => {
+  const ISAN_AGENTS = { metric: "net_sales_value", compare: "target", dims: ["agent"], filters: { region: "northeast" }, grain: "month", sort: "delta_asc", period: "this_month", limit: 10 };
+  const REGION_CARD: ShareTarget = { card: { kind: "tool", reads: [{ tool: "query_metric", input: ISAN_AGENTS }] }, question: "ทีมผมเดือนนี้ถึงเป้าแค่ไหนแล้ว เอเย่นต์ไหนน่าห่วงสุด" };
+  const DEICTIC_ASK = "เข้าไปคุยกับเอเย่นต์เจ้านี้";
+  const FALSE_CLAIM = "ขอนแก่นมหาชัยก็ตกเยอะเหมือนกัน ฝากงานให้คุณกฤตเข้าไปคุยกับเอเย่นต์เจ้านี้ภายในสัปดาห์นี้";
+  const AGENT = "ขอนแก่นมหาชัย";
+  const RSM = "u_anucha";
+
+  function saying(screen: ScreenCards, words: string[]): ScreenCards {
+    return Object.assign(screen, { said: words });
+  }
+
+  test("the user's 'fell a lot' about an agent close to pace is held back with that agent's own figure, and nothing is sent", async () => {
+    const before = shares().where((matter) => matter.senderId === RSM).length;
+    const held = await send({ to: ["u_krit"], ask: DEICTIC_ASK }, FALSE_CLAIM, saying(screenWith([REGION_CARD]), [FALSE_CLAIM]), RSM);
+    expect(held).toMatchObject({ ok: false, code: "ASK_CONTRADICTS_CARD" });
+    expect(held.error ?? "").toMatch(new RegExp(`^ยังไม่ได้ส่ง: .*${AGENT}.* ${AGENT} -?\\d+\\.\\d% เทียบเป้าตามเวลา$`));
+    expect(shares().where((matter) => matter.senderId === RSM).length).toBe(before);
+  });
+
+  test("once the person has read the figure the send goes, and its title, its ask and the rep's inbox row name the agent", async () => {
+    const sent = await send({ to: ["u_krit"], ask: DEICTIC_ASK }, "ส่งไปเลย", saying(screenWith([REGION_CARD], true), ["ส่งไปเลย", FALSE_CLAIM]), RSM);
+    const matter = matterOf(sent);
+    expect(matter?.title).toContain(AGENT);
+    expect(matter?.ask).toContain(AGENT);
+    expect(sent.data?.warning ?? "").toContain(AGENT);
+    const krit = findUser("u_krit");
+    if (!krit) throw new Error("no u_krit");
+    const inbox = await waitingOn(liveAccessFor(krit), "matter");
+    const row = inbox.rows.find((entry) => JSON.stringify(entry).includes(matter?.title ?? "∅"));
+    expect(JSON.stringify(row ?? null)).toMatch(new RegExp(`"subject":"[^"]*${AGENT}`));
+  });
+
+  test("a deictic ask with no agent named takes the card's subject, and two sends of one card never share a title", async () => {
+    const generic = "ช่วยตรวจสอบและติดตามเรื่องนี้ด่วน";
+    const first = matterOf(await send({ to: ["u_anucha"], ask: generic }, `ส่งให้คุณอนุชา ${generic}`, screenWith([REGION_CARD])));
+    const second = matterOf(await send({ to: ["u_anucha"], ask: generic }, `ส่งให้คุณอนุชา ${generic}`, screenWith([REGION_CARD])));
+    expect(first?.ask).toContain("ภาคอีสาน");
+    expect(first?.title).not.toBe(second?.title);
   });
 });
