@@ -452,6 +452,7 @@ function TodoRow({ row, open, onToggle, onChat, onRun, onSettle }: RowState & { 
 
 function AlertRow({ item, open, onToggle, onAct, onAsk }: RowState & { item: AlertItem; onAct: (id: string, action: AlertAction) => void; onAsk: (prompt: string) => void }) {
   const owner = shortName(item.ownerName);
+  const check = item.verifySteps[0] ?? null;
   const ask = (prompt: string) => {
     onAct(item.id, "open");
     onAsk(prompt);
@@ -477,11 +478,11 @@ function AlertRow({ item, open, onToggle, onAct, onAsk }: RowState & { item: Ale
         {item.handoffPrompt && owner ? (
           <>
             <Primary onClick={() => ask(item.handoffPrompt as string)}>{TH.feed.sendTo(owner)}</Primary>
-            <CheckInChat onClick={() => ask(item.verifySteps[0])} />
+            {check ? <CheckInChat onClick={() => ask(check)} /> : null}
           </>
-        ) : (
-          <Primary onClick={() => ask(item.verifySteps[0])}>{TH.inbox.checkInChat}</Primary>
-        )}
+        ) : check ? (
+          <Primary onClick={() => ask(check)}>{TH.inbox.checkInChat}</Primary>
+        ) : null}
       </Actions>
     </InboxRow>
   );

@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import type { Alert, Dim, MetricId, Region } from "@/lib/contracts";
+import type { Alert, Dim, MetricId, Region, VerifyStep } from "@/lib/contracts";
 import { responsibleFor } from "@/lib/access/raci";
 import { toneOf } from "@/lib/dashboard/metric-display";
 import { DATA_AS_OF, addDays } from "@/lib/data/dates";
@@ -42,7 +42,7 @@ export type Detection = {
   direction: "up" | "down";
   severity: Alert["severity"];
   hypothesis: string;
-  verifySteps: [string, string];
+  verifySteps: [VerifyStep, VerifyStep];
   ownerUserId: string;
   explained: boolean;
   ended: boolean;

@@ -1,4 +1,5 @@
 import type { AccessContext, Alert, Dim, MetricQuery, MetricResult, NextAction, QuickAction, Region, ResolvedQuery } from "@/lib/contracts";
+import { verifyStepsFor } from "@/lib/access/verify-steps";
 import { widgetKindFor } from "@/lib/cards/present";
 import { alertFocus, cardFocus } from "@/lib/cards/focus";
 import { regionOfSlice, sliceCovers } from "@/lib/semantic/geo";
@@ -56,7 +57,7 @@ export function actionsForMetric(access: AccessContext, result: MetricResult, di
       deltaPercent: result.headline.deltaPercent,
       masked: result.provenance.masked,
       alertIds: alert ? [alert.id] : [],
-      verifyStep: alert ? alert.verifySteps[0] : null,
+      verifyStep: alert ? (verifyStepsFor(access, alert)[0] ?? null) : null,
       region: regionOf(dictionary, query, alert),
       drawnAs: widgetKindFor(query, result),
     },
@@ -79,7 +80,7 @@ export function actionsForAlert(access: AccessContext, alert: Alert | null, dict
     deltaPercent: alert.expected === 0 ? null : ((alert.observed - alert.expected) / Math.abs(alert.expected)) * PERCENT,
     masked: [],
     alertIds: [alert.id],
-    verifyStep: alert.verifySteps[0],
+    verifyStep: verifyStepsFor(access, alert)[0] ?? null,
     region: regionOfSlice(dictionary, alert.dims),
   });
   return withoutRepeatHandoff(actions, [alert.id]);

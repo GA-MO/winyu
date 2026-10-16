@@ -21,7 +21,7 @@ const KHON_KAEN = "pv_khonkaen";
 const BANGKOK = "กรุงเทพ";
 
 type Card = Extract<MetricResult, { ok: true }> & { query: MetricQuery; nextActions: NextAction[]; followUps: QuickAction[] };
-type AlertsAnswer = { ok: boolean; rows: AlertRow[]; nextActions: NextAction[] };
+type AlertsAnswer = { ok: boolean; rows: (AlertRow & { verifySteps: string[] })[]; nextActions: NextAction[] };
 
 function accessOf(userId: string): AccessContext {
   const user = findUser(userId);

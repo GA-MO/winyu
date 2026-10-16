@@ -50,7 +50,6 @@ export function alertRowOf(alert: Alert, dictionary: Dictionary): AlertRow {
     yearOverYear: measuredAgainstLastYear(alert),
     direction: alert.direction,
     hypothesis: alert.hypothesis,
-    verifySteps: alert.verifySteps,
     ownerUserId: alert.ownerUserId,
   };
 }

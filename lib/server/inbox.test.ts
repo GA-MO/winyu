@@ -44,7 +44,7 @@ function alertOnViewer(): Alert {
   const stored = alerts().put({
     id: `al_test_${randomUUID().slice(0, 8)}`, at: new Date().toISOString(), severity: "P1", metric: "net_sales_volume", dims: { region: "northeast" },
     window: { from: "2026-09-01", to: "2026-09-22" }, observed: 2220, expected: 12928, zScore: -4, direction: "down",
-    hypothesis: "ทดสอบ", verifySteps: ["a", "b"], ownerUserId: VIEWER, status: "open", dismissCount: 0,
+    hypothesis: "ทดสอบ", verifySteps: [{ text: "a", metrics: ["net_sales_volume"] }, { text: "b", metrics: ["net_sales_volume"] }], ownerUserId: VIEWER, status: "open", dismissCount: 0,
   });
   made.alerts.push(stored.id);
   return stored;
@@ -127,5 +127,20 @@ describe("the Inbox payload", () => {
     const inbox = await inboxFor(viewerAccess());
     expect(inbox.grantRequests.map((item) => item.id)).toEqual([waiting.id]);
     expect(inbox.grantRequests[0].slice).not.toMatch(/\d/);
+  });
+
+  test("an alert row offers to hand the alert on only to a role that can create handoffs", async () => {
+    const accessOf = (userId: string) => {
+      const user = findUser(userId);
+      if (!user) throw new Error(`missing demo user ${userId}`);
+      return accessFor(user);
+    };
+    const rep = accessOf("u_nok");
+    expect(rep.toolAllow).not.toContain("create_handoff");
+    const repAlerts = (await inboxFor(rep)).alerts;
+    expect(repAlerts.length).toBeGreaterThan(0);
+    expect(repAlerts.map((item) => item.handoffPrompt)).toEqual(repAlerts.map(() => null));
+    const managerAlerts = (await inboxFor(accessOf("u_somchai"))).alerts;
+    expect(managerAlerts.some((item) => item.handoffPrompt !== null)).toBe(true);
   });
 });

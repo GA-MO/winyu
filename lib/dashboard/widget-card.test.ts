@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { WIDGET_KINDS, type AccessContext, type NextAction, type WidgetKind, type WidgetSpec } from "@/lib/contracts";
+import { WIDGET_KINDS, type AccessContext, type NextAction, type VerifyStep, type WidgetKind, type WidgetSpec } from "@/lib/contracts";
 import { accessFor } from "@/lib/access/policies";
 import { TH } from "@/lib/i18n/th";
 import { findUser } from "@/lib/data/entities/users";
@@ -117,7 +117,7 @@ describe("widgetCard", () => {
     const alert = {
       id: "a1", at: "2026-09-22T01:00:00.000Z", severity: "P1" as const, metric: "sell_out_volume" as const, dims: { region: "northeast" },
       window: { from: "2026-09-01", to: "2026-09-22" }, observed: 100, expected: 140, zScore: -3.1, direction: "down" as const,
-      hypothesis: "สต๊อกค้างที่เอเย่นต์", verifySteps: ["ตรวจยอดขายออกจากร้าน", "ตรวจสต๊อกที่เอเย่นต์"] as [string, string],
+      hypothesis: "สต๊อกค้างที่เอเย่นต์", verifySteps: [{ text: "ตรวจยอดขายออกจากร้าน", metrics: ["sell_out_volume"] }, { text: "ตรวจสต๊อกที่เอเย่นต์", metrics: ["days_of_cover"] }] as [VerifyStep, VerifyStep],
       ownerUserId: RSM, status: "open" as const, dismissCount: 0,
     };
     const row = alertRowOf(alert, GENERATOR_DICTIONARY);

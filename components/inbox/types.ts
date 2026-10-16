@@ -43,7 +43,7 @@ export type AlertItem = {
   severity: "P1" | "P2" | "P3";
   metric: string;
   hypothesis: string;
-  verifySteps: [string, string];
+  verifySteps: string[];
   at: string;
   scope: string;
   window: string;

@@ -1,6 +1,7 @@
 import type { AccessContext, Alert, ContextPacket, Dim, FeedItem, GrantRequest } from "@/lib/contracts";
 import type { AlertItem, EvidenceLine, GrantRequestItem, HandoffItem, HandoffStatus, InboxCounts, InboxPayload, Movement, ReplyItem, TodoItem } from "@/components/inbox/types";
-import { alertsInboxEnabled, handoffEnabled } from "@/lib/access/enforce";
+import { alertsInboxEnabled, handoffEnabled, isToolAllowed } from "@/lib/access/enforce";
+import { verifyStepsFor } from "@/lib/access/verify-steps";
 import { findUser } from "@/lib/data/entities/users";
 import { formatDelta, formatMetricValue, metricLabel, toneOf } from "@/lib/dashboard/metric-display";
 import { formatDateTh } from "@/lib/i18n/format";
@@ -77,7 +78,7 @@ function alertOf(alert: Alert, access: AccessContext, handoffOpen: boolean, dict
     severity: alert.severity,
     metric: metricLabel(alert.metric),
     hypothesis: alert.hypothesis,
-    verifySteps: alert.verifySteps,
+    verifySteps: verifyStepsFor(access, alert),
     at: alert.at,
     scope,
     window: windowOf(alert),
@@ -194,6 +195,7 @@ function repliesOf(userId: string): ReplyItem[] {
 /** The Inbox of one person: what waits on their decision, each alert told once (a handoff or a to-do row that carries it, or a to-do row of the same story, tells it), then good news and replies. */
 export async function inboxFor(access: AccessContext): Promise<InboxPayload> {
   const handoffOpen = handoffEnabled();
+  const mayHandOff = handoffOpen && isToolAllowed(access, "create_handoff");
   const packets = undecidedHandoffsFor(access.userId).slice(0, MAX_ITEMS);
   const handoffs = await Promise.all(packets.map((packet) => handoffOf(packet, access)));
   const handedIds = new Set(packets.map((packet) => packet.id));
@@ -208,7 +210,7 @@ export async function inboxFor(access: AccessContext): Promise<InboxPayload> {
   const alerts = open
     .filter((alert) => !told.has(alert.id) && !storiesTold.has(storyOf(alert)))
     .slice(0, MAX_ALERT_ITEMS)
-    .map((alert) => alertOf(alert, access, handoffOpen, dictionary));
+    .map((alert) => alertOf(alert, access, mayHandOff, dictionary));
 
   return {
     grantRequests: pendingRequestsFor(access.userId).map(grantRequestOf),

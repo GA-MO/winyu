@@ -1,4 +1,4 @@
-import type { Dim, MetricId, Region } from "@/lib/contracts";
+import type { Dim, MetricId, Region, VerifyStep } from "@/lib/contracts";
 import { readSeries } from "@/lib/server/metrics";
 import { CAMPAIGNS, type Campaign } from "@/lib/data/entities/marketing";
 import { NORTHERN_PROVINCE_IDS, pm25Series } from "@/lib/data/entities/external";
@@ -13,7 +13,7 @@ import { TH } from "@/lib/i18n/th";
 import { pearson } from "./stats";
 
 /** `campaignId`: the campaign a rise was put down to, so its owner hears how it went. */
-export type Explanation = { hypothesis: string; verifySteps: [string, string]; explained: boolean; campaignId?: string };
+export type Explanation = { hypothesis: string; verifySteps: [VerifyStep, VerifyStep]; explained: boolean; campaignId?: string };
 
 export type Context = {
   metric: MetricId;
@@ -153,7 +153,11 @@ async function arDrivers(region: string, window: { from: string; to: string }): 
     .slice(0, AR_DRIVERS);
 }
 
-function steps(first: string, second: string): [string, string] {
+function step(text: string, ...metrics: MetricId[]): VerifyStep {
+  return { text, metrics };
+}
+
+function steps(first: VerifyStep, second: VerifyStep): [VerifyStep, VerifyStep] {
   return [first, second];
 }
 
@@ -173,7 +177,7 @@ async function shareExplanation(context: Context, place: string): Promise<Explan
   const shifts = await shareShifts(context);
   const own = shifts.find((shift) => shift.maker === OWN_MAKER);
   const rival = shifts.filter((shift) => shift.maker !== OWN_MAKER).sort((left, right) => right.points - left.points)[0];
-  const verifySteps = steps(TH.engine.verify.makersOfPlace(place), TH.engine.verify.sellOutLastYear(place));
+  const verifySteps = steps(step(TH.engine.verify.makersOfPlace(place), "market_share"), step(TH.engine.verify.sellOutLastYear(place), "sell_out_volume"));
   if (!own || !rival || rival.points <= 0) return { hypothesis: TH.engine.hypothesis.genericDown(TH.metric.market_share, place), verifySteps, explained: false };
   return {
     hypothesis: TH.engine.hypothesis.rivalGain(place, GENERATOR_DICTIONARY.displayLabel("maker", rival.maker), rival.points.toFixed(SHARE_DECIMALS), Math.abs(own.points).toFixed(SHARE_DECIMALS)),
@@ -192,7 +196,7 @@ export async function explain(context: Context): Promise<Explanation> {
   if (context.metric === "days_of_cover" && context.direction === "down") {
     return {
       hypothesis: TH.engine.hypothesis.lowCover(place, context.observed.toFixed(COVER_DECIMALS)),
-      verifySteps: steps(TH.engine.verify.coverOfScope(scope), TH.engine.verify.forecastOfScope(scope)),
+      verifySteps: steps(step(TH.engine.verify.coverOfScope(scope), "days_of_cover"), step(TH.engine.verify.forecastOfScope(scope), context.metric)),
       explained: false,
     };
   }
@@ -200,7 +204,7 @@ export async function explain(context: Context): Promise<Explanation> {
   if (context.metric === "production_output" && context.direction === "down") {
     return {
       hypothesis: TH.engine.hypothesis.productionDown(context.detail ? `${place} ${context.detail}` : place),
-      verifySteps: steps(TH.engine.verify.productionPlan(scope), TH.engine.verify.coverOfScope(place)),
+      verifySteps: steps(step(TH.engine.verify.productionPlan(scope), "production_output"), step(TH.engine.verify.coverOfScope(place), "days_of_cover")),
       explained: false,
     };
   }
@@ -209,7 +213,7 @@ export async function explain(context: Context): Promise<Explanation> {
     const drivers = context.dims.region && !context.dims.agent ? await arDrivers(context.dims.region, context.window) : [];
     return {
       hypothesis: drivers.length > 0 ? TH.engine.hypothesis.arUpDrivers(scope, drivers) : TH.engine.hypothesis.arUp(scope),
-      verifySteps: steps(TH.engine.verify.arOfScope(scope), TH.engine.verify.orderHistory(scope)),
+      verifySteps: steps(step(TH.engine.verify.arOfScope(scope), "ar_overdue"), step(TH.engine.verify.orderHistory(scope), "net_sales_volume")),
       explained: false,
     };
   }
@@ -217,7 +221,7 @@ export async function explain(context: Context): Promise<Explanation> {
   if (nearlySilent(context) && context.dims.agent) {
     return {
       hypothesis: TH.engine.hypothesis.silentAgent(GENERATOR_DICTIONARY.displayLabel("agent", context.dims.agent)),
-      verifySteps: steps(TH.engine.verify.orderHistory(scope), TH.engine.verify.arOfScope(scope)),
+      verifySteps: steps(step(TH.engine.verify.orderHistory(scope), "net_sales_volume"), step(TH.engine.verify.arOfScope(scope), "ar_overdue")),
       explained: false,
     };
   }
@@ -225,7 +229,7 @@ export async function explain(context: Context): Promise<Explanation> {
   if (await sellOutHeldUp(context)) {
     return {
       hypothesis: TH.engine.hypothesis.stockAtAgent(scope),
-      verifySteps: steps(TH.engine.verify.compareSellInOut(scope), TH.engine.verify.coverOfScope(scope)),
+      verifySteps: steps(step(TH.engine.verify.compareSellInOut(scope), "net_sales_volume", "sell_out_volume"), step(TH.engine.verify.coverOfScope(scope), "days_of_cover")),
       explained: false,
     };
   }
@@ -233,7 +237,7 @@ export async function explain(context: Context): Promise<Explanation> {
   if (context.direction === "up" && (await pm25Match(context))) {
     return {
       hypothesis: TH.engine.hypothesis.pm25(place),
-      verifySteps: steps(TH.engine.verify.coverOfScope(scope), TH.engine.verify.forecastOfScope(scope)),
+      verifySteps: steps(step(TH.engine.verify.coverOfScope(scope), "days_of_cover"), step(TH.engine.verify.forecastOfScope(scope), context.metric)),
       explained: false,
     };
   }
@@ -241,7 +245,7 @@ export async function explain(context: Context): Promise<Explanation> {
   if (promo) {
     return {
       hypothesis: TH.engine.hypothesis.promotion(promo.nameTh),
-      verifySteps: steps(TH.engine.verify.campaignEffect(scope), TH.engine.verify.lastYear(scope)),
+      verifySteps: steps(step(TH.engine.verify.campaignEffect(scope), "campaign_uplift"), step(TH.engine.verify.lastYear(scope), context.metric)),
       explained: true,
       campaignId: promo.id,
     };
@@ -250,7 +254,7 @@ export async function explain(context: Context): Promise<Explanation> {
   const what = TH.metric[context.metric];
   return {
     hypothesis: context.direction === "up" ? TH.engine.hypothesis.genericUp(what, place) : TH.engine.hypothesis.genericDown(what, place),
-    verifySteps: steps(TH.engine.verify.neighbours(scope), TH.engine.verify.lastYear(scope)),
+    verifySteps: steps(step(TH.engine.verify.neighbours(scope), context.metric), step(TH.engine.verify.lastYear(scope), context.metric)),
     explained: false,
   };
 }
