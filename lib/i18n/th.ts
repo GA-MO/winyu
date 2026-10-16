@@ -836,7 +836,7 @@ export const TH = {
     together: (x: string, y: string) => `${x}มาก ${y}มักมากตาม`,
     opposite: (x: string, y: string) => `${x}มาก ${y}มักน้อย`,
     apart: (x: string, y: string) => `${x}กับ${y}ไม่ได้ขยับไปด้วยกัน`,
-    alerts: (count: number, urgent: number) => (urgent > 0 ? `${count} เรื่องผิดปกติ ด่วน ${urgent} เรื่อง` : `${count} เรื่องผิดปกติ ไม่มีเรื่องด่วน`),
+    alerts: (count: number, urgent: number) => (urgent === count ? `ด่วนทั้งหมด ${count} เรื่อง` : urgent > 0 ? `${count} เรื่องผิดปกติ ด่วน ${urgent} เรื่อง` : `${count} เรื่องผิดปกติ ไม่มีเรื่องด่วน`),
     forecast: (weeks: number) => `พยากรณ์ ${weeks} สัปดาห์ข้างหน้า`,
     forecastTrend: (weeks: number, direction: string, size: string) => `${weeks} สัปดาห์ข้างหน้าคาดว่า${direction} ${size}`,
     forecastMove: (weeks: number, direction: string, size: string, recent: number) => `อีก ${weeks} สัปดาห์${direction} ${size} จาก ${recent} สัปดาห์ล่าสุด`,
