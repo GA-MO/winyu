@@ -9,6 +9,8 @@ import { loadDictionary } from "@/lib/server/master-data";
 import type { Dictionary } from "@/lib/semantic/dictionary";
 import { runMetric } from "@/lib/server/metrics";
 import { askedQuery } from "@/lib/semantic/resolved";
+import { excludedIn, filtersWithout } from "@/lib/semantic/exclusion";
+import { namesOf } from "@/lib/semantic/dictionary";
 import { rowsNamedIn } from "@/lib/cards/asked";
 import { actionsForMetric, actionsForRefusal, followUpsForMetric } from "@/lib/server/next-actions";
 import { currentAccess, currentTurn, recordQuery } from "@/lib/server/request-context";
@@ -85,6 +87,14 @@ function oneBaseForModel(output: unknown): unknown {
   return { ...output, summary, headline, rows: output.rows.map(withoutPaced) };
 }
 
+/** A question that sets places aside ("นอกจากเรื่องอีสาน") reads the places that remain, so the card and its rows follow the question; null when it sets none aside or the query keeps them anyway. */
+function withoutSetAside(input: MetricQueryInput, access: AccessContext, question: string | null, dictionary: Dictionary): { input: MetricQueryInput; places: string } | null {
+  const excluded = excludedIn(question, dictionary);
+  const filters = filtersWithout(input.filters ?? {}, excluded, METRICS[input.metric]?.dims ?? [], access.regions, dictionary);
+  if (filters === input.filters) return null;
+  return { input: { ...input, filters }, places: Object.values(namesOf(dictionary, excluded)).flat().join(", ") };
+}
+
 const DESCRIPTION =
   "Read one certified metric from the semantic layer. Call it for every number you report: volumes, values, attainment, days of cover, margin, AR, headcount. Group with dims, narrow with filters, use compare for prev_period / prev_year / target. With a limit, set sort to the order the question asks (delta_asc = fell most, delta_desc = grew most, value_asc = lowest, value_desc = highest): rows are ranked by it before the limit cuts, so \"top 10 that fell\" really is the ten that fell most. A threshold in the question (\"under 10 days\", \"over 5 million\") goes in where { op: below | above, value } so only the rows that meet it come back. For a period the user names (this week, this month, last month, this year, the last 7 or 30 days) set period and leave range null: the server turns it into dates and says in the summary how far the data reaches; use range only for dates the user gives.";
 
@@ -109,7 +119,8 @@ export const queryMetricTool = defineTool({
   execute: async (asked: MetricQueryInput) => {
     const dictionary = await loadDictionary();
     const own = ownBookQuery(asked, currentAccess(), currentTurn().question, dictionary);
-    const input = own?.input ?? asked;
+    const setAside = withoutSetAside(own?.input ?? asked, currentAccess(), currentTurn().question, dictionary);
+    const input = setAside?.input ?? own?.input ?? asked;
     const resolved = resolveQuery(input);
     if (!resolved.ok) return resolved;
     const { access, grant } = metricAccess(currentAccess(), resolved.query.metric, new Date());
@@ -120,7 +131,8 @@ export const queryMetricTool = defineTool({
     recordQuery(askedQuery(result.query));
     const nextActions = actionsForMetric(access, result, dictionary);
     const provenance = grant ? { ...result.provenance, grant } : result.provenance;
-    const summary = own ? `${result.summary} · ${TH.quick.ownAgentsApplied(own.agents)}` : result.summary;
+    const notes = [...(own ? [TH.quick.ownAgentsApplied(own.agents)] : []), ...(setAside ? [TH.quick.excludedApplied(setAside.places)] : [])];
+    const summary = [result.summary, ...notes].join(" · ");
     const named = rowsNamedIn(currentTurn().question, result.query, result.rows);
     const headline = named.length > 0 ? { ...result.headline, asked: named } : result.headline;
     return { ...result, summary, headline, provenance, nextActions, followUps: followUpsForMetric(access, result, dictionary, nextActions) };

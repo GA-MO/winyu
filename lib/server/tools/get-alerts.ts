@@ -4,14 +4,16 @@ import { alertRowOf } from "@/lib/cards/alert-row";
 import { getAlertsInputSchema, type Dim } from "@/lib/contracts";
 import { metricLabel } from "@/lib/dashboard/metric-display";
 import { namesOf, resolveFilters } from "@/lib/semantic/dictionary";
+import { excludedIn, isExcluded } from "@/lib/semantic/exclusion";
 import { sliceCovers } from "@/lib/semantic/geo";
 import { filtersOfSlice } from "@/lib/semantic/resolved";
 import { allAlertsFor, openAlertsFor } from "@/lib/server/alerts";
 import { actionsForAlert } from "@/lib/server/next-actions";
 import { lessonFor } from "@/lib/server/outcomes";
 import { loadDictionary } from "@/lib/server/master-data";
-import { currentAccess, turnSubjects } from "@/lib/server/request-context";
+import { currentAccess, currentTurn, turnSubjects } from "@/lib/server/request-context";
 import { sameMeasure } from "@/lib/server/story-coverage";
+import { TH } from "@/lib/i18n/th";
 import { defineTool } from "./define";
 
 const NO_ALERTS = "ไม่พบความผิดปกติที่เปิดอยู่ในขอบเขตของผู้ใช้คนนี้";
@@ -39,7 +41,8 @@ export const getAlertsTool = defineTool({
     const slice = resolveFilters(dictionary, filtersOfSlice(dims ?? subjectSlice()));
     if (!slice.ok) return { ok: false as const, code: "BAD_QUERY", error: `ไม่รู้จักค่า "${slice.value}" ของมิติ ${slice.dim}` };
     const inScope = status === "open" ? openAlertsFor(access) : allAlertsFor(access);
-    const found = inScope.filter((alert) => (!metric || sameMeasure(alert.metric, metric)) && sliceCovers(dictionary, slice.filters, alert.dims));
+    const excluded = excludedIn(currentTurn().question, dictionary);
+    const found = inScope.filter((alert) => (!metric || sameMeasure(alert.metric, metric)) && sliceCovers(dictionary, slice.filters, alert.dims) && !isExcluded(dictionary, excluded, alert.dims));
     const shown = found.slice(0, limit ?? DEFAULT_ALERT_LIMIT);
     const rows = shown.map((alert) => ({ ...alertRowOf(alert, dictionary), verifySteps: verifyStepsFor(access, alert) }));
     if (rows.length === 0) return { ok: true as const, summary: NO_ALERTS, rows: [], lessons: [], nextActions: [] };
@@ -47,10 +50,11 @@ export const getAlertsTool = defineTool({
       const lesson = lessonFor(alert);
       return lesson ? [{ alertId: alert.id, lesson }] : [];
     });
+    const setAside = Object.values(namesOf(dictionary, excluded)).flat().join(", ");
     const names = [...(metric ? [metricLabel(metric)] : []), ...Object.values(namesOf(dictionary, slice.filters)).flatMap((labels) => labels ?? [])];
     return {
       ok: true as const,
-      summary: `มีความผิดปกติที่เปิดอยู่ ${rows.length} รายการ${names.length > 0 ? `ใน ${names.join(" · ")}` : IN_SCOPE}`,
+      summary: [`มีความผิดปกติที่เปิดอยู่ ${rows.length} รายการ${names.length > 0 ? `ใน ${names.join(" · ")}` : IN_SCOPE}`, ...(setAside ? [TH.quick.excludedApplied(setAside)] : [])].join(" · "),
       rows,
       lessons,
       nextActions: actionsForAlert(access, shown[0], dictionary),
