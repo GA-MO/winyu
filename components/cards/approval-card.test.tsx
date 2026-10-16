@@ -26,13 +26,19 @@ function render(tool: string, input: unknown, overrides: Partial<ApprovalRequest
 
 describe("the approval card", () => {
   test("a handoff names the person, their role, the ask and what approving does", () => {
-    const html = render("create_handoff", HANDOFF);
+    const html = render("create_handoff", HANDOFF, { question: "ส่งเรื่องนี้ให้ผู้จัดการขายภาคอีสานไปจัดการ ด่วน" });
     expect(html).toContain("คุณอนุชา พรหมศรี");
     expect(html).toContain("ผู้จัดการขายภาค ภาคอีสาน");
     expect(html).toContain(HANDOFF.ask);
     expect(html).toContain(TH.inbox.urgency.high);
     expect(html).toContain(TH.approve.confirmHandoff);
     expect(html).not.toContain("create_handoff");
+  });
+
+  test("a handoff shows the urgency it will go out with: not urgent when the person never said so, whatever the model passed", () => {
+    const html = render("create_handoff", HANDOFF, { question: "ฝากผู้จัดการขายภาคอีสานดูภายในสัปดาห์นี้" });
+    expect(html).toContain(TH.inbox.urgency.medium);
+    expect(html).not.toContain(TH.inbox.urgency.high);
   });
 
   test("the evidence behind a handoff is named, not counted in the raw", () => {
