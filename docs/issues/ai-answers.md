@@ -2244,7 +2244,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 | AI-174 | กลาง | แก้แล้ว `0f1ffd0` | Time-series cards lead with the latest bucket against the one before, whatever the question asks (full-year target, why-drop) |
 | AI-175 | กลาง | แก้แล้ว `4ea6dd2` `a60202c` | P1 alert '1,785 vs 16,478 L (−89%)' disagrees with the agent's own sell-in on the same screen (about 9,900 L/day, about −40%) |
 | AI-176 (เดิม AI-22) | กลาง | แก้แล้ว `aa1b1b4` | The CEO's top story states the credit hypothesis as fact |
-| AI-177 (เดิม AI-135) | กลาง | ยังเสีย | Run sheet says the CEO has '3 เรื่องด่วน'; the screen shows 4 after the AI-166 fix, and 'เรื่องภาคอีสาน' is now ambiguous |
+| AI-177 (เดิม AI-135) | กลาง | แก้แล้ว (เอกสาร) · รอเดินยืนยันรอบ 6 | Run sheet says the CEO has '3 เรื่องด่วน'; the screen shows 4 after the AI-166 fix, and 'เรื่องภาคอีสาน' is now ambiguous |
 | AI-178 (เดิม AI-135 (label from AI-139)) | กลาง | แก้แล้ว `54fbb14` | A cancelled approval reads 'รายการนี้ไม่ได้ทำ' live, not the sheet's 'ยกเลิกไว้ เพราะคุณถามเรื่องใหม่' |
 | AI-179 (เดิม AI-136) | กลาง | แก้แล้ว `aa1b1b4` · รอยืนยันกับโมเดล | Story evidence card titled 'ปริมาณขายเข้า' (litres) over a baht query |
 | AI-180 (เดิม AI-133) | กลาง | แก้แล้ว `1d975e6` | Rep demo opener takes 42.7 s (CEO and RSM are now under 40 s) |
@@ -2260,9 +2260,9 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 | AI-190 | ต่ำ | แก้แล้ว `c94b9b9` · รอยืนยันกับโมเดล | 'ทำไมตกอะ' (week) gives no reason; the text points at Isan while the card says all regions fell evenly |
 | AI-191 | ต่ำ | แก้แล้ว `c94b9b9` · รอยืนยันกับโมเดล | RSM 'ใต้เทียบอีสาน': after the correct denial, the Isan side is a bare number |
 | AI-192 | ต่ำ | แก้แล้ว `c94b9b9` · รอยืนยันกับโมเดล | Wording: 'มูลค่าขายสุทธิ' in text vs 'มูลค่าขายเข้า' on cards; anomaly header '5 เรื่องผิดปกติ ด่วน 5 เรื่อง' |
-| AI-193 (เดิม AI-135) | ต่ำ | ยังเสีย | Other run-sheet mismatches (switch vs ติ๊ก, ↑ icon vs 'ส่ง', unstated scroll and reload, bell counts on a rerun) |
+| AI-193 (เดิม AI-135) | ต่ำ | แก้แล้ว (เอกสาร) · รอเดินยืนยันรอบ 6 | Other run-sheet mismatches (switch vs ติ๊ก, ↑ icon vs 'ส่ง', unstated scroll and reload, bell counts on a rerun) |
 | AI-194 (เดิม AI-154) | ต่ำ | แก้แล้ว `26661b9` | Sender's own story page uses receiver wording and a one-tap [เสร็จ] |
-| AI-195 (เดิม AI-158) | ต่ำ | ยังเสีย | Per-role speech line has nothing to show: RSM and rep cards show the same 8 agents |
+| AI-195 (เดิม AI-158) | ต่ำ | แก้แล้ว (เอกสาร) · รอเดินยืนยันรอบ 6 | Per-role speech line has nothing to show: RSM and rep cards show the same 8 agents |
 | AI-196 (เดิม AI-159) | ต่ำ | แก้แล้ว `6f57c0c` `892d82c` | IT screen at phone width: Audit tab truncated, activity panel stale without a reload |
 | AI-197 | ต่ำ | แก้แล้ว `24531fe` | Card actions give no confirmation: ส่งต่อ looks unchanged, รับ just empties the bell, the toast covers ถามต่อ |
 | AI-198 | ต่ำ | แก้แล้ว `18c123c` · นอกเส้นทางเดโม · รอยืนยันกับโมเดล | South send approval shows a bare '−7.5%' (region total) for an ask about one agent's +17.6% rise |
@@ -2395,7 +2395,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-177. Run sheet says the CEO has '3 เรื่องด่วน'; the screen shows 4 after the AI-166 fix, and 'เรื่องภาคอีสาน' is now ambiguous
 
-- **สถานะ:** ยังเสีย · เดิม AI-135
+- **สถานะ:** แก้แล้ว (เอกสาร) · รอเดินยืนยันรอบ 6: run sheet แก้ตามจอหลังรวม I1 ถึง I4 (4 เรื่องด่วน, production build กับ WINYU_AUTH=demo, ปุ่มส่งแล้ว, รับเรื่องแล้ว, หัวหน้าเรื่องของผู้ส่ง, Audit อัปเดตเอง, ปุ่มลูกศร, ข้อความยกเลิก, คำพูดขั้น 2)
 - **ระดับ:** กลาง · **หมวด:** `run-sheet` · **บทบาท:** presenter, u_thana
 - **อาการ:** Both reviews found it. The badge and panel read 4 (urgent ×4 in the browser walk, and in 2 of 3 data runs). The sheet says 3 in three places: morning step 2, morning step 3 (as the success check) and stage step 1.1. A second Isan story (นครราชสีมา market share) is in the drawer. The Isan sell-in story is on top.
 - **ที่ควรเป็น:** The sheet matches the screen and names the story to open by its headline.
@@ -2575,7 +2575,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-193. Other run-sheet mismatches (switch vs ติ๊ก, ↑ icon vs 'ส่ง', unstated scroll and reload, bell counts on a rerun)
 
-- **สถานะ:** ยังเสีย · เดิม AI-135
+- **สถานะ:** แก้แล้ว (เอกสาร) · รอเดินยืนยันรอบ 6: run sheet แก้ตามจอหลังรวม I1 ถึง I4 (4 เรื่องด่วน, production build กับ WINYU_AUTH=demo, ปุ่มส่งแล้ว, รับเรื่องแล้ว, หัวหน้าเรื่องของผู้ส่ง, Audit อัปเดตเอง, ปุ่มลูกศร, ข้อความยกเลิก, คำพูดขั้น 2)
 - **ระดับ:** ต่ำ · **หมวด:** `run-sheet` · **บทบาท:** presenter (chain)
 - **อาการ:** The tester found seven places where the sheet's words differ from the screen.
 - **ที่ควรเป็น:** The sheet names the controls on screen and says where to scroll or reload.
@@ -2597,7 +2597,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-195. Per-role speech line has nothing to show: RSM and rep cards show the same 8 agents
 
-- **สถานะ:** ยังเสีย · เดิม AI-158
+- **สถานะ:** แก้แล้ว (เอกสาร) · รอเดินยืนยันรอบ 6: run sheet แก้ตามจอหลังรวม I1 ถึง I4 (4 เรื่องด่วน, production build กับ WINYU_AUTH=demo, ปุ่มส่งแล้ว, รับเรื่องแล้ว, หัวหน้าเรื่องของผู้ส่ง, Audit อัปเดตเอง, ปุ่มลูกศร, ข้อความยกเลิก, คำพูดขั้น 2)
 - **ระดับ:** ต่ำ · **หมวด:** `run-sheet` · **บทบาท:** presenter, u_anucha, u_krit
 - **อาการ:** The sheet still claims each role sees a different slice.
 - **ที่ควรเป็น:** Drop the line, or draw the rep's evidence on his agents.

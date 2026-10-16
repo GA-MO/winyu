@@ -43,7 +43,7 @@ Round 5 replayed the round-4 failures per role and walked the rewritten run shee
 - [x] **I2 alerts and grounded answers** (AI-169, AI-170, AI-172, AI-175, AI-176, AI-179, AI-182, AI-186, AI-190, AI-191, AI-192): get_alerts matches the metric family, an exclusion in the question carries into the reads, the alert's figure is the agent's own, text agrees with the alert card, hypotheses stay hedged, the story card title follows its query, visit priority shows its numbers.
 - [x] **I3 cards** (AI-171, AI-173, AI-174, AI-185, AI-187, AI-188, AI-189): the row that answers carries its value, time series lead with what the question asks (year target, the step change), a forecast card that can be pinned, one base on the landing tile and in chat, correct labels.
 - [x] **I4 speed, IT and receipts** (AI-178, AI-180, AI-181, AI-196, AI-199, AI-200): admin_audit takes no required role, the rep opener under 40 s, the live cancelled receipt matches the restored one, the IT screen fits and refreshes, activity names pinned cards.
-- [ ] then the run sheet against the screens again (AI-177, AI-193, AI-195).
+- [x] then the run sheet against the screens again (AI-177, AI-193, AI-195; walked again in round 6).
 
 ## Round 5 fixes (after round 4, 2026-10-17)
 
