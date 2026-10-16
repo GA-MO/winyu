@@ -268,3 +268,34 @@ export function recordGrantEvent(entry: AuditedGrantEvent): void {
     initiator: "person",
   });
 }
+
+/** The name a change to what a role may see or call goes by in the audit, whether made in chat or in the Admin console. */
+export const PERMISSION_AUDIT_TOOL = "permission";
+
+const PERMISSION_CONNECTOR = "winyu";
+
+/** Where a permission change was made: by set_permission in chat, or by a control in the Admin console. */
+export type PermissionVia = "chat" | "console";
+
+/** One permission that moved, as the audit keeps it: who moved it from where, which role and item, its level before and after (a visibility for a metric or field, allow or deny for a tool), and the change in Thai. */
+export type AuditedPermission = { userId: string; via: PermissionVia; role: string; kind: "metric" | "tool" | "field"; key: string; before: string; after: string; reason: string };
+
+/** Writes the audit row one permission change leaves; in chat it sits inside the set_permission call that made it. */
+export function recordPermissionChange(change: AuditedPermission): void {
+  const args = { via: change.via, role: change.role, kind: change.kind, key: change.key, before: change.before, after: change.after };
+  auditLog().put({
+    id: randomUUID(),
+    at: new Date().toISOString(),
+    userId: change.userId,
+    tool: PERMISSION_AUDIT_TOOL,
+    connector: PERMISSION_CONNECTOR,
+    argsHash: argsHash(args),
+    decision: "allow",
+    rowsReturned: 0,
+    latencyMs: 0,
+    reason: change.reason,
+    args: argsPreview(args),
+    toolCallId: randomUUID(),
+    initiator: "person",
+  });
+}

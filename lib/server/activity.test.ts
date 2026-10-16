@@ -33,7 +33,7 @@ describe("the Audit tab's activity filter", () => {
 
 describe("a permission change made in chat", () => {
   test("is one activity naming the role, the item, and the old and new level, approved in chat (AI-151)", () => {
-    const since = new Date(Date.now() - 1000).toISOString();
+    const since = new Date().toISOString();
     const change = applyPermissionChange({ role: "sales_rsm", kind: "metric", key: "ar_overdue", value: "none" }, "u_ton");
     expect(change.ok).toBe(true);
     auditLog().put({ id: "h5-chat-permission", at: new Date(Date.now() + 5).toISOString(), userId: "u_ton", tool: "set_permission", connector: "winyu", argsHash: "h5", decision: "allow", rowsReturned: 0, latencyMs: 400, args: JSON.stringify({ role: "sales_rsm", kind: "metric", key: "ar_overdue", value: "none" }), initiator: "person" });

@@ -137,6 +137,10 @@ export const READ_SAMPLES: ReadSample[] = [
   { tool: "admin_audit", caption: "admin_audit · role_access", question: "ฝ่ายขายเห็นอะไรบ้าง", input: { topic: "role_access", days: null, role: "sales_rep" } },
   { tool: "admin_audit", caption: "admin_audit · model_cost", question: "ใช้ไปกี่ตัง", input: { topic: "model_cost", days: 7, role: null } },
   { tool: "admin_audit", caption: "admin_audit · tool_usage", question: "การใช้งานเครื่องมือ", input: { topic: "tool_usage", days: 7, role: null } },
+  { tool: "admin_audit", caption: "admin_audit · activity", question: "ใครส่งงานอะไรให้ใคร", input: { topic: "activity", days: 7, role: null } },
+  { tool: "admin_audit", caption: "admin_audit · denials", question: "สัปดาห์นี้ใครถูกปฏิเสธสิทธิ์บ้าง", input: { topic: "denials", days: 7, role: null } },
+  { tool: "admin_audit", caption: "admin_audit · user_usage", question: "ใครใช้ Winyu เยอะที่สุด", input: { topic: "user_usage", days: 7, role: null } },
+  { tool: "admin_audit", caption: "admin_audit · role_access masked", question: "พนักงานขายถูกซ่อนตัวเลขอะไรบ้าง เอาเฉพาะที่ซ่อน", input: { topic: "role_access", days: null, role: "sales_rep", level: "masked" } },
 ];
 
 export const WRITE_SAMPLES: WriteSample[] = [

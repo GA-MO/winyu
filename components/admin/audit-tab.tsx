@@ -8,7 +8,7 @@ import { TH } from "@/lib/i18n/th";
 import { AUDIT_ACTIVITY_KIND, AUDIT_RANGES, auditConnector, auditEntries, inAuditScope, type AuditFilter, type AuditRange } from "@/lib/server/usage";
 import { activitiesFrom, actorName, approvalLabel, recipientNames, type Activity } from "@/lib/server/activity";
 import { runStore } from "@/lib/harness/runtime";
-import { GRANT_AUDIT_TOOL, GUARD_AUDIT_TOOL, SHARE_AUDIT_TOOL, auditLog } from "@/lib/server/audit";
+import { GRANT_AUDIT_TOOL, GUARD_AUDIT_TOOL, PERMISSION_AUDIT_TOOL, SHARE_AUDIT_TOOL, auditLog } from "@/lib/server/audit";
 import { untilLabel } from "@/lib/share/grant-label";
 import { runSpend } from "@/lib/server/model-ledger";
 import { RunTrace } from "./run-trace";
@@ -16,7 +16,7 @@ import { AutoSubmitForm } from "./auto-submit-form";
 import { Avatar, EmptyLine, FOCUS, GHOST, Panel, Pill, Select, stamp, type Tone } from "./parts";
 
 const AUDIT_PAGE = 60;
-const OWN_REASON_TOOLS: ReadonlySet<string> = new Set([GUARD_AUDIT_TOOL, SHARE_AUDIT_TOOL, GRANT_AUDIT_TOOL]);
+const OWN_REASON_TOOLS: ReadonlySet<string> = new Set([GUARD_AUDIT_TOOL, SHARE_AUDIT_TOOL, GRANT_AUDIT_TOOL, PERMISSION_AUDIT_TOOL]);
 const DECISIONS: readonly AuditEntry["decision"][] = ["allow", "deny", "masked"];
 const DECISION_TONE: Record<AuditEntry["decision"], Tone> = { allow: "success", deny: "danger", masked: "warning" };
 const DECISION_WEIGHT: Record<AuditEntry["decision"], number> = { allow: 0, masked: 1, deny: 2 };

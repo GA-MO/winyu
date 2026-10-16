@@ -73,9 +73,17 @@ export type InboxKind = (typeof INBOX_KINDS)[number];
 export const inboxInputSchema = z.object({ kind: z.enum(INBOX_KINDS).nullable() });
 export const visitPlanInputSchema = z.object({ limit: z.number().int().min(1).max(MAX_VISIT_STOPS).nullable() });
 /** What an IT admin can read about Winyu itself from chat. */
-export const ADMIN_AUDIT_TOPICS = ["activity", "denials", "tool_usage", "model_cost", "connectors", "overrides", "role_access"] as const;
+export const ADMIN_AUDIT_TOPICS = ["activity", "denials", "tool_usage", "user_usage", "model_cost", "connectors", "overrides", "role_access"] as const;
 export type AdminAuditTopic = (typeof ADMIN_AUDIT_TOPICS)[number];
-export const adminAuditInputSchema = z.object({ topic: z.enum(ADMIN_AUDIT_TOPICS), days: z.number().int().min(1).max(MAX_AUDIT_DAYS).nullable(), role: z.enum(ROLE_IDS).nullable() });
+/** One kind of limit role_access can narrow to: metrics shown with numbers hidden, metrics not shown, tools switched off. */
+export const ROLE_ACCESS_LEVELS = ["masked", "none", "off"] as const;
+export type RoleAccessLevel = (typeof ROLE_ACCESS_LEVELS)[number];
+export const adminAuditInputSchema = z.object({
+  topic: z.enum(ADMIN_AUDIT_TOPICS),
+  days: z.number().int().min(1).max(MAX_AUDIT_DAYS).nullable(),
+  role: z.enum(ROLE_IDS).nullable(),
+  level: z.enum(ROLE_ACCESS_LEVELS).nullable().optional(),
+});
 export const getPersonInputSchema = z.object({ id: z.string().nullable(), name: z.string().nullable() });
 export const listCandidatesInputSchema = z.object({ position: z.string().nullable(), stage: z.enum(CANDIDATE_STAGES).nullable() });
 export const listCoursesInputSchema = z.object({ month: z.string().regex(MONTH_KEY).nullable(), query: z.string().nullable() });

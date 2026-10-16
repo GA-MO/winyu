@@ -19,6 +19,7 @@ import {
 } from "@/lib/access/role-overrides";
 import { addRule, moveRule, removeRule, setRuleEnabled, updateRule, type RuleCheck } from "@/lib/access/policy-rules";
 import { readUser } from "@/lib/server/session";
+import { auditedPermissionChange } from "@/lib/server/permissions";
 import { TOKEN_CHANNELS, issueToken, revokeToken, type TokenChannel } from "@/lib/server/access-tokens";
 import { TH } from "@/lib/i18n/th";
 import {
@@ -69,7 +70,7 @@ export async function setMetricAction(formData: FormData) {
   const metric = metricIn(formData);
   const visibility = String(formData.get("visibility")) as Visibility;
   if (!by || !role || !metric || !VISIBILITIES.includes(visibility)) return;
-  setMetricVisibility(role, metric, visibility, by);
+  auditedPermissionChange(by, "console", () => setMetricVisibility(role, metric, visibility, by));
   revalidatePath(ADMIN_PATH);
 }
 
@@ -78,7 +79,7 @@ export async function cycleMetricAction(formData: FormData) {
   const role = roleIn(formData);
   const metric = metricIn(formData);
   if (!by || !role || !metric) return;
-  cycleMetricVisibility(role, metric, by);
+  auditedPermissionChange(by, "console", () => cycleMetricVisibility(role, metric, by));
   revalidatePath(ADMIN_PATH);
 }
 
@@ -87,20 +88,22 @@ export async function setRoleToolAction(formData: FormData) {
   const role = roleIn(formData);
   const tool = toolIn(formData);
   if (!by || !role || !tool) return;
-  setRoleTool(role, tool, String(formData.get("allowed")) === "true", by);
+  auditedPermissionChange(by, "console", () => setRoleTool(role, tool, String(formData.get("allowed")) === "true", by));
   revalidatePath(ADMIN_PATH);
 }
 
 export async function resetRoleAction(formData: FormData) {
+  const by = await adminId();
   const role = roleIn(formData);
-  if (!(await adminId()) || !role) return;
-  resetOverridesOf(role);
+  if (!by || !role) return;
+  auditedPermissionChange(by, "console", () => resetOverridesOf(role));
   revalidatePath(ADMIN_PATH);
 }
 
 export async function resetAllAction() {
-  if (!(await adminId())) return;
-  resetRoleOverrides();
+  const by = await adminId();
+  if (!by) return;
+  auditedPermissionChange(by, "console", () => resetRoleOverrides());
   revalidatePath(ADMIN_PATH);
 }
 
@@ -133,7 +136,7 @@ export async function setFieldAction(formData: FormData) {
   const field = fieldIn(formData);
   const visibility = String(formData.get("visibility")) as Visibility;
   if (!by || !role || !field || !VISIBILITIES.includes(visibility)) return;
-  setFieldVisibility(role, field, visibility, by);
+  auditedPermissionChange(by, "console", () => setFieldVisibility(role, field, visibility, by));
   revalidatePath(ADMIN_PATH);
 }
 
@@ -142,7 +145,7 @@ export async function cycleFieldAction(formData: FormData) {
   const role = roleIn(formData);
   const field = fieldIn(formData);
   if (!by || !role || !field) return;
-  cycleFieldVisibility(role, field, by);
+  auditedPermissionChange(by, "console", () => cycleFieldVisibility(role, field, by));
   revalidatePath(ADMIN_PATH);
 }
 
@@ -238,9 +241,10 @@ export async function checkConnectorUpstreamAction(formData: FormData) {
 }
 
 export async function removeOverrideAction(formData: FormData) {
+  const by = await adminId();
   const id = String(formData.get("override"));
-  if (!(await adminId()) || !id) return;
-  removeOverride(id);
+  if (!by || !id) return;
+  auditedPermissionChange(by, "console", () => removeOverride(id));
   revalidatePath(ADMIN_PATH);
 }
 

@@ -1,11 +1,12 @@
-import { METRIC_IDS, type MetricId, type RoleId } from "@/lib/contracts";
-import { connectorFields, isToolName } from "@/lib/server/tools/registry";
+import { METRIC_IDS, ROLE_IDS, type MetricId, type RoleId } from "@/lib/contracts";
+import { connectorFields, fieldLabel, isToolName, toolLabel, toolSurface } from "@/lib/server/tools/registry";
 import type { setPermissionInputSchema } from "@/lib/contracts";
 import type { z } from "zod";
-import { defaultFieldVisibility, defaultMetricVisibility, fieldVisibilityOf, grantsOwnTool, isGrantable, permissionsFor, setFieldVisibility, setMetricVisibility, setRoleTool, widensOwnAccess, type Visibility } from "@/lib/access/role-overrides";
+import { defaultFieldVisibility, defaultMetricVisibility, fieldVisibilityOf, grantsOwnTool, isGrantable, permissionsFor, setFieldVisibility, setMetricVisibility, setRoleTool, widensOwnAccess, type RoleOverride, type Visibility } from "@/lib/access/role-overrides";
 import { USERS } from "@/lib/data/entities/users";
 import { metricLabel } from "@/lib/dashboard/metric-display";
 import { TH } from "@/lib/i18n/th";
+import { recordPermissionChange, type PermissionVia } from "@/lib/server/audit";
 
 type PermissionInput = z.infer<typeof setPermissionInputSchema>;
 
@@ -23,6 +24,53 @@ export type PermissionChange = {
 };
 
 type Applied = { ok: true; summary: string; data: PermissionChange } | { ok: false; error: string };
+
+/** One role's level on one metric, tool or field: a visibility, or allow or deny for a tool. */
+type Level = { role: RoleId; kind: RoleOverride["kind"]; key: string; value: string };
+
+/** A permission that moved, as the admin reads it; `before` is null on an audit row that never recorded it. */
+export type MovedPermission = { role: string; kind: string; key: string; before: string | null; after: string };
+
+function itemLabel(kind: string, key: string): string {
+  if (kind === "metric") return isMetric(key) ? metricLabel(key) : key;
+  return kind === "tool" ? toolLabel(key) : fieldLabel(key);
+}
+
+function levelLabel(kind: string, value: string): string {
+  if (kind === "tool") return value === "allow" ? TH.adminAudit.allowed : TH.adminAudit.off;
+  return TH.adminAudit.visibility[value as Visibility] ?? value;
+}
+
+/** A permission change in one Thai line: the role, the item, and its level before and after. */
+export function movedPermissionLabel(moved: MovedPermission): string {
+  const role = TH.role[moved.role as RoleId] ?? moved.role;
+  return TH.adminAudit.permissionSubject(role, itemLabel(moved.kind, moved.key), moved.before === null ? null : levelLabel(moved.kind, moved.before), levelLabel(moved.kind, moved.after));
+}
+
+function levels(): Map<string, Level> {
+  const table = new Map<string, Level>();
+  const put = (level: Level) => table.set(`${level.role}:${level.kind}:${level.key}`, level);
+  for (const role of ROLE_IDS) {
+    const { metricAcl, toolAllow } = permissionsFor(role);
+    for (const metric of METRIC_IDS) put({ role, kind: "metric", key: metric, value: metricAcl[metric] });
+    for (const entry of toolSurface()) put({ role, kind: "tool", key: entry.name, value: toolAllow.includes(entry.name) ? "allow" : "deny" });
+    for (const field of connectorFields()) put({ role, kind: "field", key: field.key, value: fieldVisibilityOf(role, field.key) });
+  }
+  return table;
+}
+
+/** Runs a change to role permissions and writes one audit row for every level it moved, whoever made it and from where; a change refused or already in place writes none. */
+export function auditedPermissionChange<T>(by: string, via: PermissionVia, change: () => T): T {
+  const before = levels();
+  const result = change();
+  for (const [id, after] of levels()) {
+    const was = before.get(id);
+    if (!was || was.value === after.value) continue;
+    const moved = { role: after.role, kind: after.kind, key: after.key, before: was.value, after: after.value };
+    recordPermissionChange({ userId: by, via, ...moved, reason: movedPermissionLabel(moved) });
+  }
+  return result;
+}
 
 function membersOf(role: RoleId): number {
   return USERS.filter((user) => user.role === role).length;
@@ -71,7 +119,9 @@ function changeField(role: RoleId, key: string, value: PermissionInput["value"],
 
 /** Applies one admin permission change from chat, validated against the metric catalog, the tool surface and the connector fields. */
 export function applyPermissionChange(input: PermissionInput, by: string): Applied {
-  if (input.kind === "metric") return changeMetric(input.role, input.key, input.value, by);
-  if (input.kind === "field") return changeField(input.role, input.key, input.value, by);
-  return changeTool(input.role, input.key, input.value, by);
+  return auditedPermissionChange(by, "chat", () => {
+    if (input.kind === "metric") return changeMetric(input.role, input.key, input.value, by);
+    if (input.kind === "field") return changeField(input.role, input.key, input.value, by);
+    return changeTool(input.role, input.key, input.value, by);
+  });
 }

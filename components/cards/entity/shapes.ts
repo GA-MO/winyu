@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { ADMIN_AUDIT_TOPICS } from "@/lib/contracts";
 import { refusalNoticeOf, type RefusalNotice } from "@/lib/cards/present";
 
 const tone = z.enum(["good", "bad", "neutral"]);
@@ -173,6 +174,7 @@ export const connectorResult = z.object({
 });
 
 export const adminAuditResult = connectorResult.extend({
+  topic: z.enum(ADMIN_AUDIT_TOPICS).nullish(),
   headline: z.object({ label: z.string(), value: z.string() }).nullish(),
   folded: z.object({ line: z.string(), rows: z.array(z.record(z.string(), z.unknown())) }).nullish(),
 });
