@@ -90,9 +90,16 @@ function deadlineOfDay(today: string, due: string, urgent: boolean): MatterDeadl
   return { urgency: daysBetween(today, due) <= 0 ? "today" : "this_week", due };
 }
 
-/** The words a send reads its deadline from: the question, except a bare go-ahead ("ส่งไปเลย") after a send was held back, which keeps the deadline of the question before it, the one that asked for the send. */
-export function deadlineWords(question: string | null, earlier: string | null, heldBack: boolean, today: string): string | null {
-  if (!heldBack || !question || isPressed(question) || saysUrgent(question) || writtenDeadline(question, today)) return question;
+/** Whether this question goes on with the send the question before asked for: a send was held back, or the rows the send singles out were named before and not in this question ("ส่งไปเลย" after "ขอนแก่นมหาชัย… ฝากงานให้คุณกฤต"). */
+export function followsEarlier(question: string | null, heldBack: boolean, focus: Pick<CardFocus, "labels"> | null | undefined): boolean {
+  if (heldBack) return true;
+  const text = (question ?? "").replace(SPACES, "");
+  return Boolean(focus) && !focus?.labels.some((label) => text.includes(label.replace(SPACES, "")));
+}
+
+/** The words a send reads its deadline from: the question, except a bare go-ahead ("ส่งไปเลย") that goes on with the send the question before asked for, which keeps that question's deadline. */
+export function deadlineWords(question: string | null, earlier: string | null, follows: boolean, today: string): string | null {
+  if (!follows || !question || isPressed(question) || saysUrgent(question) || writtenDeadline(question, today)) return question;
   return earlier ?? question;
 }
 

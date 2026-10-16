@@ -8,7 +8,7 @@ import type { Unready } from "@/lib/harness/types";
 import { TH } from "@/lib/i18n/th";
 import { ASK_CONTRADICTS_CARD, sendCardInputSchema, type CardFocus, type CardOnScreen, type SendCardInput, type SharedCard, type ShareTarget } from "@/lib/share/card";
 import { contradictionOf } from "@/lib/share/figures";
-import { askAboutOf, askNaming, deadlineWords, matterAsk, matterDeadline, sendIntent } from "@/lib/share/matter";
+import { askAboutOf, askNaming, deadlineWords, followsEarlier, matterAsk, matterDeadline, sendIntent } from "@/lib/share/matter";
 import { resolvedPeople, type RecipientMatch } from "@/lib/share/recipients";
 import { cardFigures, goalLabel } from "@/lib/server/share/goal";
 import { receiptsOf, recipientMatches, sharePath, unusedTitle } from "@/lib/server/share/shares";
@@ -142,7 +142,7 @@ export const sendCardTool = defineTool({
     const intent = sendIntent(input.intent, people.length);
     const ask = askNaming(matterAsk(input.ask ?? "", intent, title), askAboutOf(focus, await matterSubject(target.card)));
     const question = currentTurn().question;
-    const when = deadlineWords(question, chosen.said.find((text) => text !== question) ?? null, chosen.warned, businessToday());
+    const when = deadlineWords(question, chosen.said.find((text) => text !== question) ?? null, followsEarlier(question, chosen.warned, focus), businessToday());
     const { urgency, due } = matterDeadline(input.urgency, when, intent, businessToday());
     const { createShare } = await channelDelivery();
     const recipients = people.map((user) => ({ userId: user.id, channel: "winyu" as const }));
