@@ -17,7 +17,7 @@ const SLOW_REPLY = "ยอดขายเดือนนี้สูงกว่
 const MID_RUN_MS = 300;
 const STREAM_DELAY_MS = 60;
 
-type SseEvent = { type?: string; runId?: string; delta?: string; input?: { messages?: { id: string; content?: string }[] } };
+type SseEvent = { type?: string; runId?: string; delta?: string; messages?: { id: string; role: string }[]; input?: { messages?: { id: string; content?: string }[] } };
 type UserMessage = { id: string; role: "user"; content: string };
 
 function eventsOf(sse: string): SseEvent[] {
@@ -40,7 +40,7 @@ function said(content: string): UserMessage {
 }
 
 describe("a page opened while a reply is still running", () => {
-  test("finds the run and joins it from its start: the question, the reply as it lands, and none of the runs memory already restored", async () => {
+  test("finds the run and joins it from its start: the thread as memory holds it, then the question and the reply as it lands, and no earlier run replayed", async () => {
     const threadId = `live-${Date.now()}`;
     const first = said("คำถามแรก");
     scripted.script([{ text: "คำตอบแรก" }]);
@@ -56,6 +56,8 @@ describe("a page opened while a reply is still running", () => {
     const joined = eventsOf(await (await post("connect", threadId, liveRunId, [])).text());
     await live;
 
+    expect(joined[0]?.type).toBe("MESSAGES_SNAPSHOT");
+    expect(joined[0]?.messages?.filter((message) => message.role === "user").map((message) => message.id)).toEqual([first.id]);
     const runs = joined.filter((event) => event.type === "RUN_STARTED").map((event) => event.runId);
     expect(runs).toEqual([liveRunId]);
     expect(joined.find((event) => event.type === "RUN_STARTED")?.input?.messages?.map((message) => message.id)).toEqual([second.id]);
@@ -64,10 +66,14 @@ describe("a page opened while a reply is still running", () => {
     expect(inflightRunOn(threadId, USER)).toBeNull();
   });
 
-  test("a connect that names no run the thread held replays nothing", async () => {
+  test("a connect that names no running run sends only the thread as memory holds it, never an empty history that would clear the chat", async () => {
     const threadId = `live-none-${Date.now()}`;
+    const asked = said("คำถาม");
     scripted.script([{ text: "คำตอบ" }]);
-    await (await post("run", threadId, crypto.randomUUID(), [said("คำถาม")])).text();
-    expect(eventsOf(await (await post("connect", threadId, crypto.randomUUID(), [])).text())).toEqual([]);
+    await (await post("run", threadId, crypto.randomUUID(), [asked])).text();
+    const joined = eventsOf(await (await post("connect", threadId, crypto.randomUUID(), [])).text());
+    expect(joined.map((event) => event.type)).toEqual(["MESSAGES_SNAPSHOT"]);
+    expect(joined[0]?.messages?.map((message) => message.role)).toEqual(["user", "assistant"]);
+    expect(joined[0]?.messages?.[0]?.id).toBe(asked.id);
   });
 });

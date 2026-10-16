@@ -16,7 +16,7 @@ const STARTED_FILE = process.env.PROBE_STARTED_FILE ?? ".data/probe-durable.json
 const MODE = process.argv.find((arg) => arg.startsWith("--"))?.slice(2) ?? "disconnect";
 
 type Started = { threadId: string; runId: string; userId: string; at: string };
-type AgUiEvent = { type: string; toolCallName?: string; delta?: string };
+type AgUiEvent = { type: string; toolCallName?: string; delta?: string; messages?: { role: string; content?: unknown }[] };
 
 let failures = 0;
 
@@ -89,7 +89,8 @@ async function verify(started: Started): Promise<void> {
   check(reply.trim().length > 0, `Mastra memory holds the finished reply (${stored.length} messages, ${reply.length} chars of text)`);
   const connect = await post(CONNECT_PATH, started.userId, bodyOf(started, []));
   const replayed = eventsOf(await connect.text());
-  const text = replayed.filter((event) => event.type === "TEXT_MESSAGE_CONTENT").map((event) => event.delta ?? "").join("");
+  const restored = replayed.flatMap((event) => (event.type === "MESSAGES_SNAPSHOT" ? (event.messages ?? []) : [])).filter((message) => message.role === "assistant");
+  const text = [...restored.map((message) => (typeof message.content === "string" ? message.content : "")), ...replayed.filter((event) => event.type === "TEXT_MESSAGE_CONTENT").map((event) => event.delta ?? "")].join("");
   console.log(`  connect replay: HTTP ${connect.status}, ${replayed.length} events, ${text.length} chars of text`);
   const calls = modelCalls().where((call) => call.turnId === started.runId);
   console.log(`  model calls for the run: ${calls.length} · $${calls.reduce((sum, call) => sum + (call.billedUsd ?? call.estimatedUsd), 0).toFixed(4)}`);

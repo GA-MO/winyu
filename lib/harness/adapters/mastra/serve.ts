@@ -4,7 +4,7 @@ import { CopilotRuntime, InMemoryAgentRunner, createCopilotRuntimeHandler } from
 import { RequestContext } from "@mastra/core/request-context";
 import { metricQuerySchema, type AccessContext, type Initiator, type MetricQuery } from "@/lib/contracts";
 import { askedTool, askedUnder, markAnswered, problemOf, recordAsked } from "@/lib/harness/approvals";
-import { checkpointRun, currentRun, emitTo, newRun, runWithRun, saveRun, type Run } from "@/lib/harness/runtime";
+import { checkpointRun, currentRun, emitTo, inflightRunOn, newRun, runWithRun, saveRun, type Run } from "@/lib/harness/runtime";
 import { TH } from "@/lib/i18n/th";
 import { toolTiers } from "@/lib/server/agent/tools";
 import { recordComposedCard, recordGuardFinding } from "@/lib/server/audit";
@@ -14,7 +14,7 @@ import { AGENT_ID, USER_ID_KEY, winyuAgent } from "./agent";
 import { HARNESS_RUN_KEY, tracingOptionsOf } from "./observability";
 import { asBridgeAgent } from "./durable";
 import { ReplyCards, withComposedCards, type CarriedCall, type ComposedCardRecord, type StreamEvent } from "./card-stream";
-import { callsAnswering, keepFinishedResults, screenCardsOn, threadTranscript } from "./history";
+import { callsAnswering, keepFinishedResults, screenCardsOn, threadHistory, threadTranscript } from "./history";
 import { guardedRunInput, inputFindings, type GuardedInput } from "./guardrails";
 import { learnFromTurn } from "./learn";
 import { chatTurnOf, observeReply, type ChatTurn, type FinishedCall, type KnownCalls, type ReplySeen, type RunInput } from "./turn";
@@ -30,6 +30,10 @@ const NOT_SERVED = { error: "Not found" };
 const QUERY_TOOL = "query_metric";
 const MEMORY_TOOLS: ReadonlySet<string> = new Set(["remember", "forget"]);
 const RESUME_KEY = "resume";
+const MESSAGES_SNAPSHOT = "MESSAGES_SNAPSHOT";
+const SSE_DATA = "data:";
+const SSE_FRAME_END = "\n\n";
+const SSE_TYPE = "text/event-stream";
 
 type Route = { kind: "info" } | { kind: "run" } | { kind: "connect" } | { kind: "stop"; threadId: string };
 
@@ -220,15 +224,40 @@ export function routeOf(method: string, pathname: string): Route | null {
   return null;
 }
 
-/** The connect replay from the run the chat asks for (its `runId`) onward: the page restored the thread's earlier runs from memory, so replaying them would draw them twice, and a run the runner never held replays nothing. */
-function fromRun(runId: string | null, cards: ReplyCards): Pick<ReplyCards, "next"> {
+function fromRun(runId: string, cards: ReplyCards): Pick<ReplyCards, "next"> {
   let reached = false;
   return {
     next(event: StreamEvent): StreamEvent[] {
-      reached ||= runId !== null && event.type === "RUN_STARTED" && event.runId === runId;
+      reached ||= event.type === "RUN_STARTED" && event.runId === runId;
       return reached ? cards.next(event) : [];
     },
   };
+}
+
+function startingWith(event: StreamEvent, rest: Response | null): Response {
+  const reader = rest?.body?.getReader() ?? null;
+  const body = new ReadableStream<Uint8Array>({
+    async start(controller) {
+      controller.enqueue(new TextEncoder().encode(`${SSE_DATA} ${JSON.stringify(event)}${SSE_FRAME_END}`));
+      for (let chunk = await reader?.read(); chunk && !chunk.done; chunk = await reader?.read()) controller.enqueue(chunk.value);
+      controller.close();
+    },
+    cancel(reason) {
+      return reader?.cancel(reason);
+    },
+  });
+  return new Response(body, { headers: { "content-type": SSE_TYPE } });
+}
+
+/** What a chat that connects to its thread is sent: the thread as memory holds it (CopilotKit clears the chat when a connect starts, so the replay must carry the whole thread), then, when the run the chat names (its `runId`) is still replying, that run from its start; the runner's earlier runs are never replayed, since memory already holds them. */
+async function joined(access: AccessContext, req: Request, turn: ChatTurn): Promise<Response> {
+  const threadId = turn.threadId;
+  if (!threadId) return startingWith({ type: MESSAGES_SNAPSHOT, messages: [] }, null);
+  const live = inflightRunOn(threadId, access.userId) === turn.runId;
+  const snapshot: StreamEvent = { type: MESSAGES_SNAPSHOT, messages: await threadHistory(threadId, access.userId) };
+  if (!live) return startingWith(snapshot, null);
+  const response = await runWithAccess(access, () => handler()(req));
+  return startingWith(snapshot, withComposedCards(response, fromRun(turn.runId, replyCards(() => undefined))));
 }
 
 function isOthersThread(threadId: string | null, userId: string): boolean {
@@ -249,6 +278,6 @@ export async function serveCopilot(access: AccessContext, req: Request, options:
   if (isOthersThread(threadId, access.userId)) return Response.json(NOT_YOUR_THREAD, { status: 404 });
   const replayed = new Request(req.url, { method: "POST", headers: req.headers, body });
   if (route.kind === "run") return serveRun(access, replayed, turn, guarded, options);
-  const response = await runWithAccess(access, () => handler()(replayed));
-  return route.kind === "connect" ? withComposedCards(response, fromRun(turn.runId, replyCards(() => undefined))) : response;
+  if (route.kind === "connect") return joined(access, replayed, turn);
+  return runWithAccess(access, () => handler()(replayed));
 }
