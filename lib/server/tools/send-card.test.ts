@@ -130,3 +130,34 @@ describe("send_card", () => {
     expect(refusals[0].error).toBe(TH.share.chat.unknown("พี่สมศรี"));
   });
 });
+
+describe("a matter sent from chat keeps its subject (AI-137)", () => {
+  const ONE_AGENT = { metric: "net_sales_value", dims: ["agent"], filters: { agent: "ag_nea_01" }, range: { from: "2026-11-01", to: "2026-11-26" }, grain: "month", compare: "target", limit: null };
+  const LEO_ISAN = { metric: "net_sales_value", dims: ["agent", "province"], filters: { region: "northeast", brand: "leo" }, range: { from: "2026-11-01", to: "2026-11-26" }, grain: "month", compare: "target", limit: null };
+
+  test("the title names the agent the card is about, not a breakdown it no longer has", async () => {
+    const ask = "เข้าไปคุยกับเอเย่นต์เจ้านี้ภายในสัปดาห์นี้";
+    const matter = matterOf(await send({ to: ["u_krit"], ask, card: { reads: [{ tool: "query_metric", input: ONE_AGENT }] } }, `ส่งให้กฤต ${ask}`, screenWith([ON_SCREEN]), "u_anucha"));
+    expect(matter?.title).toBe("มูลค่าขายเข้า · ขอนแก่นมหาชัย");
+  });
+
+  test("the title names the region and the brand the card is narrowed to", async () => {
+    const title = matterOf(await send({ to: ["u_anucha"], ask: "ดูยอดลีโอให้หน่อย", card: { reads: [{ tool: "query_metric", input: LEO_ISAN }] } }))?.title ?? "";
+    expect(title).toContain("ภาคอีสาน");
+    expect(title).toContain("ลีโอ");
+  });
+
+  test("an ask of urgency words only falls back to an ask that names the card, keeping the sender's words", async () => {
+    const urgentOnly = "ด่วน ให้ตอบกลับภายในวันนี้";
+    const matter = matterOf(await send({ to: ["u_anucha"], ask: urgentOnly }, `ส่งให้คุณอนุชา ${urgentOnly}`));
+    expect(matter?.ask).not.toBe(urgentOnly);
+    expect(matter?.ask).toContain("ภาคอีสาน");
+    expect(matter?.ask).toContain(urgentOnly);
+    expect(matter?.urgency).toBe("now");
+  });
+
+  test("an ask that says what to do is kept as written", async () => {
+    const ask = "โทรตามหนี้แล้วตอบกลับมา";
+    expect(matterOf(await send({ to: ["u_anucha"], ask }, `ส่งให้คุณอนุชา ${ask}`))?.ask).toBe(ask);
+  });
+});

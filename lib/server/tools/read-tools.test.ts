@@ -131,6 +131,19 @@ describe("inbox", () => {
     const ask = String(rows.find((row) => String(row.ask).includes("งานด่วน"))?.ask);
     expect(ask).not.toContain("<system>");
   });
+
+  test("a matter row names what was sent: its subject, the card's headline figure for the viewer, and the day it is due (AI-137)", async () => {
+    const sender = findUser(RSM);
+    if (!sender) throw new Error("no RSM");
+    const outcome = await createShare(sender, { card: CARD, question: null, ask: "ไปคุยกับเอเย่นต์ก่อนสิ้นเดือน", intent: "act", urgency: "now", due: "2026-11-27", recipients: [{ userId: REP, channel: "winyu" }] });
+    if (!outcome.ok) throw new Error(outcome.error);
+    made.matters.push(outcome.share.id);
+    const row = rowsOf(await call(REP, "inbox", { kind: "matter" })).find((candidate) => String(candidate.ask).includes("ไปคุยกับเอเย่นต์ก่อนสิ้นเดือน"));
+    expect(String(row?.subject)).toContain("ภาคอีสาน");
+    expect(String(row?.hero)).toMatch(/\d/);
+    expect(String(row?.due_label)).toContain("27 พ.ย.");
+    expect(row?.status_label).not.toBe(TH.waiting.yourCall);
+  });
 });
 
 describe("visit_plan", () => {
