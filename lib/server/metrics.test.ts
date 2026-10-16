@@ -136,6 +136,20 @@ describe("where the month ends", () => {
     expect(result.summary).toContain(`≈ ${projection?.attainment} ของเป้า`);
   });
 
+  test("what is left to the month's target is the unrounded target less the unrounded actual, printed once at the precision of the target (AI-102)", async () => {
+    const mine = question({ metric: "net_sales_volume", dims: ["agent"], range: MONTH_TO_DATE, compare: "target" });
+    const result = await runMetric(mine, REP);
+    const total = runOnGenerator({ ...mine, dims: [] }, REP);
+    if (!result.ok || !total.ok) throw new Error("no answer");
+    const elapsed = Number(DATA_AS_OF.slice(8));
+    const monthDays = new Date(Date.UTC(Number(DATA_AS_OF.slice(0, 4)), Number(DATA_AS_OF.slice(5, 7)), 0)).getUTCDate();
+    const [actual, targetSoFar] = [Number(total.rows[0].value), Number(total.rows[0].compare_value)];
+    const left = (targetSoFar / elapsed) * monthDays - actual;
+    const shortBy = result.headline.projection?.shortBy ?? "";
+    expect(shortBy).toBe(`${(left / 1_000_000).toFixed(2)} ล้านลิตร`);
+    expect(result.summary).toContain(shortBy);
+  });
+
   test("a role that sees the metric masked learns nothing about the month end", async () => {
     const result = await runMetric(question({ metric: "net_sales_volume", range: MONTH_TO_DATE, compare: "target" }), accessFor(findUser("u_ton")!));
     expect(result.ok && result.headline.projection).toBeFalsy();

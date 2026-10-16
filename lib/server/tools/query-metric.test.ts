@@ -72,7 +72,7 @@ describe("query_metric for a running month against target", () => {
     expect(card.hero?.detail).toBe(TH.read.wholeMonth(projection.attainmentToDate, projection.shortBy));
   });
 
-  test("what is left reads as the printed month target less the printed actual, for every scope and unit", async () => {
+  test("what is left agrees with the printed month target less the printed actual within their rounding, for every scope and unit (AI-102)", async () => {
     const printed = (label: string) => {
       const [, digits, million] = label.match(/([\d,.]+)\s*(ล้าน)?/) ?? [];
       return Number((digits ?? "").replace(/,/g, "")) * (million ? 1_000_000 : 1);
@@ -86,7 +86,8 @@ describe("query_metric for a running month against target", () => {
         const result = (await runWithAccess(accessFor(user), () => tool.execute(tool.inputSchema().parse(query)))) as Extract<MetricResult, { ok: true }>;
         const projection = result.headline.projection;
         if (!projection || !projection.remaining.startsWith("เหลืออีก")) continue;
-        expect(Math.round(printed(projection.monthTarget) - printed(result.headline.value))).toBe(printed(projection.remaining));
+        const roundingOfTwoLabels = 100_000;
+        expect(Math.abs(printed(projection.monthTarget) - printed(result.headline.value) - printed(projection.remaining))).toBeLessThanOrEqual(roundingOfTwoLabels);
       }
     }
   });

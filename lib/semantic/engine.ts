@@ -127,17 +127,13 @@ export function formatForSummary(def: MetricDef, value: number): string {
   return `${formatNumber(value, digits)} ${def.unit}`;
 }
 
-function summaryStepOf(def: MetricDef, value: number): number {
-  if (def.format === "percent") return 0.1;
-  if (def.format === "currency") return Math.abs(value) >= MILLION ? MILLION / 10 : 1;
-  if (MILLION_UNITS.has(def.unit) && Math.abs(value) >= MILLION) return MILLION / 10;
-  return Math.abs(value) >= 100 || WHOLE_UNITS.has(def.unit) ? 1 : 0.1;
-}
+const GAP_DIGITS = 2;
 
-/** A value rounded to the step `formatForSummary` prints it at, so a label worked out from printed labels (target − actual) adds up on screen. */
-export function roundForSummary(def: MetricDef, value: number): number {
-  const step = summaryStepOf(def, value);
-  return Math.round(Math.round(value / step) * step * 10) / 10;
+/** A gap worked out from unrounded figures (target less actual), printed once at the scale of the whole it is part of: "0.93 ล้านลิตร" beside a target of "3.9 ล้านลิตร", never full digits that look exact beside rounded labels. */
+export function formatGapForSummary(def: MetricDef, gap: number, whole: number): string {
+  const inMillions = def.format !== "percent" && Math.abs(whole) >= MILLION && (def.format === "currency" || MILLION_UNITS.has(def.unit));
+  if (!inMillions) return formatForSummary(def, gap);
+  return `${formatNumber(gap / MILLION, GAP_DIGITS)} ล้าน${def.format === "currency" ? "บาท" : def.unit}`;
 }
 
 function firstTimeDim(dims: Dim[]): Dim | null {

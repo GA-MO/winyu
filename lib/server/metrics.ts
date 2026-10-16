@@ -3,7 +3,7 @@ import { isTimeDim } from "@/lib/cards/rows";
 import { MONTH_OF_DAY, DATA_AS_OF, addDays, daysInMonthIndex, toDayIndex } from "@/lib/data/dates";
 import { projectMonthEnd } from "@/lib/engine/gap";
 import { TH } from "@/lib/i18n/th";
-import { comparisonRequestOf, finishMetric, formatForSummary, keyRows, planMetric, roundForSummary, seriesRequest, type SeriesQuery } from "@/lib/semantic/engine";
+import { comparisonRequestOf, finishMetric, formatForSummary, formatGapForSummary, keyRows, planMetric, seriesRequest, type SeriesQuery } from "@/lib/semantic/engine";
 import { metricDef } from "@/lib/semantic/metrics";
 import { loadDictionary } from "@/lib/server/master-data";
 import { ports } from "@/lib/server/ports";
@@ -38,7 +38,7 @@ function totalOf(query: MetricQuery, overrides: Partial<MetricQuery>): MetricQue
   return { ...query, dims: [], limit: null, sort: null, where: null, ...overrides };
 }
 
-/** Where a month-to-date total against target ends if the days left sell at the last seven days' pace, against the target spread evenly over the month; null for any other question. What is left to reach the target is the printed target less the printed actual, so the three labels add up on screen. */
+/** Where a month-to-date total against target ends if the days left sell at the last seven days' pace, against the target spread evenly over the month; null for any other question. What is left is the unrounded target less the unrounded actual, printed once at the target's scale. */
 export async function monthEndProjection(query: MetricQuery, access: AccessContext): Promise<MonthEndProjection | null> {
   const def = metricDef(query.metric);
   if (!def || !isMonthToDateVsTarget(query)) return null;
@@ -57,8 +57,7 @@ export async function monthEndProjection(query: MetricQuery, access: AccessConte
   });
   if (!projection) return null;
   const monthTarget = Math.round(projection.monthTarget);
-  const remaining = Math.max(0, roundForSummary(def, monthTarget) - roundForSummary(def, actual));
-  const shortBy = remaining > 0 ? formatForSummary(def, remaining) : null;
+  const shortBy = projection.remaining > 0 ? formatGapForSummary(def, projection.remaining, monthTarget) : null;
   return {
     recentDays: RECENT_DAYS,
     projected: formatForSummary(def, Math.round(projection.projected)),
