@@ -10,7 +10,7 @@ export const storeVisitsTool = defineTool({
   tier: "read",
   roles: ["ceo", "sales_director", "sales_rsm", "sales_rep", "marketing_lead"],
   description:
-    "Store visits from the CRM: when the sales team last visited an agent, who went, what came of it and the order taken, newest first, only in the caller's regions. agentId picks one agent (resolve a name with describe_entity first); null lists every agent the caller covers. Call it for เยี่ยมร้าน / ไปเยี่ยมเอเย่นต์ล่าสุดเมื่อไร questions. Not for sales numbers (query_metric).",
+    "Store visits from the CRM: when the sales team last visited an agent, who went, the agent's assigned rep (owner_name; the person responsible for that agent), what came of it and the order taken, newest first, only in the caller's regions. agentId picks one agent (resolve a name with describe_entity first); null lists every agent the caller covers. Call it for เยี่ยมร้าน / ไปเยี่ยมเอเย่นต์ล่าสุดเมื่อไร questions. Not for sales numbers (query_metric).",
   input: storeVisitsInputSchema,
   execute: async ({ agentId }: z.infer<typeof storeVisitsInputSchema>) => storeVisitsFor(currentAccess(), agentId),
 });

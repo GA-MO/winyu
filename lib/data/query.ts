@@ -4,7 +4,7 @@ import { evaluateMetric } from "@/lib/semantic/engine";
 import { INJECTED_ANOMALIES } from "./anomalies";
 import { readGeneratorFacts } from "./facts";
 import { GENERATOR_DICTIONARY } from "./master";
-import { AGENTS, agentById } from "./entities/agents";
+import { AGENTS, agentById, type OwnerBasis } from "./entities/agents";
 import { campaignById } from "./entities/marketing";
 import { BUSINESS_UNIT_LABELS_TH, PROVINCES, REGION_LABELS_TH } from "./entities/org";
 import { BRAND_INFO, LITRES_PER_HL, PACK_LABELS_TH, skuById } from "./entities/products";
@@ -30,6 +30,11 @@ export function listMetrics(search: string | null): MetricDef[] {
   return findMetric(search);
 }
 
+const OWNER_BASIS_TH: Record<OwnerBasis, string> = {
+  territory: "ประจำเขตจังหวัดนี้",
+  region: "จังหวัดนี้ไม่มีพนักงานขายประจำ จึงมอบให้พนักงานขายในภาคเดียวกันที่ดูแลเอเย่นต์น้อยที่สุด",
+};
+
 type DescribeResult = { ok: true; data: Record<string, unknown>; summary: string } | { ok: false; error: string };
 
 function describeAgent(id: string): DescribeResult {
@@ -37,6 +42,7 @@ function describeAgent(id: string): DescribeResult {
   if (!agent) return { ok: false, error: `ไม่พบเอเย่นต์ "${id}"` };
   const dc = dcById(agent.servingDc);
   const province = PROVINCES.find((entry) => entry.id === agent.provinceId);
+  const owner = findUser(agent.ownerId);
   const data = {
     id: agent.id,
     ชื่อ: agent.nameTh,
@@ -46,8 +52,11 @@ function describeAgent(id: string): DescribeResult {
     เครดิต: `${agent.creditDays} วัน`,
     เป็นคู่ค้าตั้งแต่: agent.sinceYear,
     ศูนย์กระจายสินค้า: dc?.nameTh ?? agent.servingDc,
+    พนักงานขายที่ดูแล: owner ? `${owner.nameTh} (${owner.title})` : agent.ownerId,
+    ownerId: agent.ownerId,
+    เหตุที่ได้ดูแล: OWNER_BASIS_TH[agent.ownerBasis],
   };
-  return { ok: true, data, summary: `${agent.nameTh} เอเย่นต์เกรด ${agent.tier} จังหวัด${province?.nameTh ?? ""} ${REGION_LABELS_TH[agent.region]} เครดิต ${agent.creditDays} วัน ส่งจาก${dc?.nameTh ?? ""}` };
+  return { ok: true, data, summary: `${agent.nameTh} เอเย่นต์เกรด ${agent.tier} จังหวัด${province?.nameTh ?? ""} ${REGION_LABELS_TH[agent.region]} เครดิต ${agent.creditDays} วัน ส่งจาก${dc?.nameTh ?? ""} พนักงานขายที่ดูแลคือ${owner?.nameTh ?? agent.ownerId}` };
 }
 
 function describeSku(id: string): DescribeResult {

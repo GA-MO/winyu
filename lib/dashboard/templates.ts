@@ -1,5 +1,7 @@
 import type { AccessContext, Dim, Grain, MetricId, MetricQuery, RoleId, WidgetKind, WidgetSort, WidgetSpec } from "@/lib/contracts";
 import { DATA_AS_OF, dataDay, monthEnd, monthStart } from "@/lib/data/dates";
+import { ownAgentsFilter } from "@/lib/data/entities/agents";
+import { METRICS } from "@/lib/semantic/metrics";
 
 export type WidgetSeed = { key: string; title: string; kind: WidgetKind; query: MetricQuery; sortBy: WidgetSort | null; pinned: boolean; source: WidgetSpec["source"]; reason: string | null };
 
@@ -139,9 +141,14 @@ function scoped(seedItem: WidgetSeed, access: AccessContext): WidgetSeed {
   return { ...seedItem, query: { ...seedItem.query, filters: { ...seedItem.query.filters, region: [...access.regions] } } };
 }
 
-/** The starting widgets for a role, with the caller's own region pushed into every query. */
+function ownAgentsOnly(seedItem: WidgetSeed, access: AccessContext): WidgetSeed {
+  if (access.role !== "sales_rep" || !METRICS[seedItem.query.metric].dims.includes("agent")) return seedItem;
+  return { ...seedItem, query: { ...seedItem.query, filters: { ...seedItem.query.filters, ...ownAgentsFilter(access.userId) } } };
+}
+
+/** The starting widgets for a role, with the caller's own region pushed into every query; a sales rep's cards that split by agent show the agents assigned to them. */
 export function templateFor(access: AccessContext): WidgetSeed[] {
-  return ROLE_TEMPLATES[access.role].map((item) => scoped(item, access));
+  return ROLE_TEMPLATES[access.role].map((item) => ownAgentsOnly(scoped(item, access), access));
 }
 
 export const TEMPLATE_ROLES = Object.keys(ROLE_TEMPLATES) as RoleId[];

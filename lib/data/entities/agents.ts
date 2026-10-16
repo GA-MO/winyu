@@ -1,10 +1,13 @@
 import type { Region } from "@/lib/contracts";
 import { PROVINCE_INDEX, PROVINCES, type Province } from "./org";
+import { USERS } from "./users";
 
 export type AgentTier = "A" | "B" | "C";
+/** Why an agent has its rep: the rep covers the agent's province, or no rep does and the region's least-loaded rep took it. */
+export type OwnerBasis = "territory" | "region";
 export type Agent = {
   id: string; nameTh: string; provinceId: string; region: Region; tier: AgentTier;
-  creditDays: number; sinceYear: number; weight: number; servingDc: string;
+  creditDays: number; sinceYear: number; weight: number; servingDc: string; ownerId: string; ownerBasis: OwnerBasis;
 };
 
 type AgentSeed = { id: string; nameTh: string; provinceId: string; tier: AgentTier; creditDays: number; sinceYear: number; weight: number; servingDc: string };
@@ -57,10 +60,69 @@ function regionOfProvince(provinceId: string): Region {
   return (PROVINCES[index ?? 0] as Province).region;
 }
 
-export const AGENTS: readonly Agent[] = AGENT_SEEDS.map((seed) => ({ ...seed, region: regionOfProvince(seed.provinceId) }));
+const REP_TERRITORY: Readonly<Record<string, string>> = {
+  u_krit: "pv_khonkaen",
+  u_nok: "pv_buriram",
+  u_ploy: "pv_chiangmai",
+  u_beam: "pv_bangkok",
+  u_arm: "pv_songkhla",
+  u_golf: "pv_chonburi",
+  u_ice: "pv_ayutthaya",
+};
+
+const REPS = USERS.filter((user) => user.role === "sales_rep");
+
+function territoryRep(provinceId: string): string | null {
+  return REPS.find((rep) => REP_TERRITORY[rep.id] === provinceId)?.id ?? null;
+}
+
+function leastLoadedRep(region: Region, load: Map<string, number>): string {
+  const candidates = REPS.filter((rep) => rep.region === region);
+  const chosen = candidates.reduce<string | null>((best, rep) => (best === null || (load.get(rep.id) ?? 0) < (load.get(best) ?? 0) ? rep.id : best), null);
+  if (!chosen) throw new Error(`no sales rep covers region ${region}`);
+  return chosen;
+}
+
+type Placed = AgentSeed & { region: Region };
+type Ownership = { ownerId: string; ownerBasis: OwnerBasis };
+
+function withOwners(placed: readonly Placed[]): Agent[] {
+  const owners = new Map<string, Ownership>();
+  const load = new Map<string, number>();
+  const assign = (agentId: string, ownership: Ownership) => {
+    owners.set(agentId, ownership);
+    load.set(ownership.ownerId, (load.get(ownership.ownerId) ?? 0) + 1);
+  };
+  for (const agent of placed) {
+    const rep = territoryRep(agent.provinceId);
+    if (rep) assign(agent.id, { ownerId: rep, ownerBasis: "territory" });
+  }
+  for (const agent of placed) {
+    if (!owners.has(agent.id)) assign(agent.id, { ownerId: leastLoadedRep(agent.region, load), ownerBasis: "region" });
+  }
+  return placed.map((agent) => {
+    const ownership = owners.get(agent.id);
+    if (!ownership) throw new Error(`agent ${agent.id} has no owner`);
+    return { ...agent, ...ownership };
+  });
+}
+
+/** Every agent with the one sales rep assigned to it: the rep whose territory is the agent's province, else the rep of the same region with the fewest agents (ties go to the rep listed first). */
+export const AGENTS: readonly Agent[] = withOwners(AGENT_SEEDS.map((seed) => ({ ...seed, region: regionOfProvince(seed.provinceId) })));
 export const AGENT_INDEX: ReadonlyMap<string, number> = new Map(AGENTS.map((agent, index) => [agent.id, index]));
 
 export function agentById(id: string): Agent | null {
   const index = AGENT_INDEX.get(id);
   return index === undefined ? null : (AGENTS[index] as Agent);
+}
+
+/** The agents assigned to one sales rep, in master-data order; empty for anyone who owns none. */
+export function agentsOwnedBy(userId: string): Agent[] {
+  return AGENTS.filter((agent) => agent.ownerId === userId);
+}
+
+/** A metric filter on the agents one person owns ("my agents"), or no filter when they own none. */
+export function ownAgentsFilter(userId: string): { agent?: string[] } {
+  const owned = agentsOwnedBy(userId).map((agent) => agent.id);
+  return owned.length > 0 ? { agent: owned } : {};
 }

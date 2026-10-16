@@ -7,7 +7,7 @@ export type MasterData = {
   regions: { id: Region; nameTh: string }[];
   businessUnits: { id: BusinessUnit; nameTh: string }[];
   provinces: { id: string; nameTh: string; region: Region }[];
-  agents: { id: string; nameTh: string; provinceId: string; region: Region; servingDc: string }[];
+  agents: { id: string; nameTh: string; provinceId: string; region: Region; servingDc: string; ownerId: string }[];
   brands: { id: Brand; nameTh: string; label: string; nicknames: string[]; businessUnit: BusinessUnit }[];
   packs: { id: string; nameTh: string }[];
   skus: { id: string; nameTh: string; label: string; brand: Brand; pack: string }[];

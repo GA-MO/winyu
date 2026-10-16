@@ -2,8 +2,10 @@ import { METRIC_IDS, type AccessContext, type MetricId, type QuickAction, type R
 import { isToolAllowed } from "@/lib/access/enforce";
 import { quickActionsFrom } from "@/lib/engine/recommend";
 import { TH } from "@/lib/i18n/th";
+import { agentsOwnedBy } from "@/lib/data/entities/agents";
 
 const MAX_ACTIONS = 6;
+const MY_AGENTS_ACTION = "qa_my_agents";
 const METRIC_TOOL: ToolName = "query_metric";
 const SUBJECT_TOOLS: Record<string, ToolName> = { calendar: "get_calendar", job: "run_job" };
 
@@ -46,9 +48,15 @@ function answerable(action: QuickAction, access: AccessContext): boolean {
   return !METRIC_IDS.includes(subject as MetricId) || access.metricAcl[subject as MetricId] === "full";
 }
 
-/** The role defaults a cold-start user sees before the recommender has any behaviour to learn from; the reason says so instead of claiming a habit. */
+function namingOwnAgents(action: QuickAction, access: AccessContext): QuickAction {
+  if (action.id !== MY_AGENTS_ACTION) return action;
+  const owned = agentsOwnedBy(access.userId).map((agent) => agent.nameTh);
+  return owned.length > 0 ? { ...action, prompt: TH.quick.myAgentsPrompt(owned) } : action;
+}
+
+/** The role defaults a cold-start user sees before the recommender has any behaviour to learn from; the reason says so instead of claiming a habit. "My agents" names the agents assigned to the caller. */
 export function defaultActionsFor(access: AccessContext): QuickAction[] {
-  const roleActions = ROLE_ACTIONS[access.role] ?? [];
+  const roleActions = (ROLE_ACTIONS[access.role] ?? []).map((action) => namingOwnAgents(action, access));
   const starter = TH.quick.starter(TH.role[access.role]);
   return [...roleActions, ...SHARED_ACTIONS]
     .filter((action) => answerable(action, access))
