@@ -1754,12 +1754,12 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 | AI-137 | กลาง | แก้แล้ว `5c0e4a4` · รอยืนยันกับโมเดล | Matters sent from chat lose their subject: titles carry no agent or brand, asks can be urgency words only, and the receiver's inbox cannot name what was sent |
 | AI-138 | กลาง | แก้แล้ว `46cbcf2` | The send approval previews the raw row sum (5.1 ล้านลิตร, 97.8 ล้านบาท), not the hero the card shows (79.7%, 72.4%) |
 | AI-139 | กลาง | แก้แล้ว `a967069` · รอยืนยันกับโมเดล | A new question sent while an approval waits re-raises the abandoned send instead of answering |
-| AI-140 (เดิม AI-110) | กลาง | แก้แล้วบางส่วน `3fce6dd` (การ์ด) | The CEO risk answer says there is no stock risk while its own anomaly card leads with a P1 stock-out, and it merges stock cover and AR into one strip |
-| AI-141 (เดิม AI-53) | กลาง | แก้แล้ว `94ab5b2` | Breakdown cards mix bases: the hero is % of the full-month target, the unlabelled rows are % of the pro-rated target, and every row is red |
-| AI-142 | กลาง | แก้แล้ว `f7adb63` | The gap card (explain_gap) has no verdict; for 'how will the month close' it leads with month-to-date and hides the forecast below the fold |
+| AI-140 (เดิม AI-110) | กลาง | แก้แล้วบางส่วน `54cafb3` (การ์ด) | The CEO risk answer says there is no stock risk while its own anomaly card leads with a P1 stock-out, and it merges stock cover and AR into one strip |
+| AI-141 (เดิม AI-53) | กลาง | แก้แล้ว `df99803` | Breakdown cards mix bases: the hero is % of the full-month target, the unlabelled rows are % of the pro-rated target, and every row is red |
+| AI-142 | กลาง | แก้แล้ว `c1ab43c` | The gap card (explain_gap) has no verdict; for 'how will the month close' it leads with month-to-date and hides the forecast below the fold |
 | AI-143 (เดิม AI-123) | กลาง | แก้แล้ว `cc98f0e` · รอยืนยันกับโมเดล | The market-share answer does not show our share against competitors or name the region we lost most; the drill points at 'ภาคกลาง · รายอื่น' |
-| AI-144 | กลาง | แก้แล้ว `306d847` | The CEO's South AR story card says '2 เอเย่นต์ยอดเพิ่มกว่าเท่าตัว' while three agents more than doubled |
-| AI-145 (เดิม AI-130) | กลาง | แก้แล้ว `a156a61` `cc98f0e` · รอยืนยันกับโมเดล | 'ทำไมตกอะ' names two agents as the main cause of a drop that is 74% long tail |
+| AI-144 | กลาง | แก้แล้ว `b0cc36d` | The CEO's South AR story card says '2 เอเย่นต์ยอดเพิ่มกว่าเท่าตัว' while three agents more than doubled |
+| AI-145 (เดิม AI-130) | กลาง | แก้แล้ว `a156a61` `cc98f0e` `a690363` · รอยืนยันกับโมเดล | 'ทำไมตกอะ' names two agents as the main cause of a drop that is 74% long tail |
 | AI-146 (เดิม AI-130) | กลาง | แก้แล้ว `cc98f0e` · รอยืนยันกับโมเดล | An agent-level 'why did it drop' gets the alert's generic hypothesis, not an investigation |
 | AI-147 (เดิม AI-129) | กลาง | แก้แล้ว `4f08c41` | The rep's 'whole company' request is silently scoped to Isan and drawn as a lone Isan number |
 | AI-148 | กลาง | แก้แล้ว `b33d05b` · รอยืนยันกับโมเดล | IT audit answers are wide tables on a phone: the 'who to whom' column is off-screen |
@@ -1770,8 +1770,8 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 | AI-153 (เดิม AI-123) | ต่ำ | ยังเสีย | Follow-up chips and card actions still leave the asked subject in places |
 | AI-154 (เดิม AI-131) | ต่ำ | แก้แล้ว `87199fe` | Story pages offer 'ส่งให้คุณอนุชา' as the main action to the CEO who sent it and to the rep who received it |
 | AI-155 | ต่ำ | แก้แล้ว `142dd1a` | Share sheet and story drawer on run-sheet step 1: 'ผู้รับผิดชอบเรื่องนี้' lists the CEO's whole line, the Isan story sits third below an expanded story, and the sheet text is cut or unspaced |
-| AI-156 (เดิม AI-107) | ต่ำ | แก้แล้ว `e2093b6` `4d3a2a2` | Scorecards and single-row cards break the card rules: 4 tiles, the hero repeated as the headline, the all-group average as hero |
-| AI-157 | ต่ำ | แก้แล้ว `b464168` | CEO landing tile labels October's volume with the six-month range and compares it with September |
+| AI-156 (เดิม AI-107) | ต่ำ | แก้แล้ว `18b159e` `7f8264e` | Scorecards and single-row cards break the card rules: 4 tiles, the hero repeated as the headline, the all-group average as hero |
+| AI-157 | ต่ำ | แก้แล้ว `aac97ae` | CEO landing tile labels October's volume with the six-month range and compares it with September |
 | AI-158 | ต่ำ | แก้แล้วบางส่วน `9209e23` | The rep's story card shows all 8 Isan agents, the same as the CEO and RSM, so the per-role speech line has nothing to show |
 | AI-159 | ต่ำ | แก้แล้วบางส่วน `9794b51` | Phone-width truncation and dev overlays on the chain screens |
 | AI-160 (เดิม AI-121) | ต่ำ | แก้แล้ว `b33d05b` | Chat audit cards show English codes, a raw 'policy_label' header and raw tool-argument JSON |
@@ -1891,7 +1891,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-140. The CEO risk answer says there is no stock risk while its own anomaly card leads with a P1 stock-out, and it merges stock cover and AR into one strip
 
-- **สถานะ:** แก้แล้วบางส่วน `3fce6dd` (การ์ด) · เดิม AI-110
+- **สถานะ:** แก้แล้วบางส่วน `54cafb3` (การ์ด) · เดิม AI-110
 - **ที่แก้:** แก้แล้วเฉพาะส่วนการ์ด: การ์ดคู่ (R10) จับคู่เฉพาะเมตริกที่อ่านด้วยกันตามตาราง READ_TOGETHER วันครอบคลุมสต๊อกกับยอดค้างชำระจึงเป็นสองการ์ด (test ใน `lib/cards/present.test.ts`, replay run e4e9a15a ที่ความกว้างมือถือ) · ข้อความที่ไม่พูดถึง P1 และการ์ดความผิดปกติที่ไม่ตัดเรื่องที่ขอยกเว้นอยู่นอกการ์ด ยังเปิด
 - **ระดับ:** กลาง · **หมวด:** `answer-consistency` · **บทบาท:** u_thana (CEO)
 - **อาการ:** Text says 'ความเสี่ยงด้านสต๊อกค้างยังไม่พบสัญญาณผิดปกติ', beside an anomaly card whose first item is P1 DC ลำพูน เพอร์ร่า 6.3 vs 15.5 วัน −59%. Card 1 pairs days_of_cover with ar_overdue; its headline covers stock only and the AR half sits in row subtext. The South AR 'สูง' (Oct YoY alert) still reads against a −7.5% Nov row. The anomaly card lists the two Isan agents the CEO asked to exclude, and the stock card's send action asks คุณวีร์ about DC ลำพูน. (The rep's DC cover fetch part of AI-110 is fixed.)
@@ -1904,7 +1904,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-141. Breakdown cards mix bases: the hero is % of the full-month target, the unlabelled rows are % of the pro-rated target, and every row is red
 
-- **สถานะ:** แก้แล้ว `94ab5b2` · เดิม AI-53
+- **สถานะ:** แก้แล้ว `df99803` · เดิม AI-53
 - **ที่แก้:** การ์ดเทียบเป้าในเดือนที่ยังไม่จบวาดทุกแถวเป็นสัดส่วนของเป้าทั้งเดือนเหมือนหัวการ์ด เส้นตัดสินคือจุดที่ควรถึงวันนี้ (ถึงวันนี้ควรได้ 86.7%) แถวแดงเฉพาะที่ช้ากว่าเส้นนั้น (test ใน `lib/cards/present.test.ts` และ `query-metric.test.ts`, replay run f417d1c8 และ c39ff601)
 - **ระดับ:** กลาง · **หมวด:** `card-fit` · **บทบาท:** u_thana (CEO), u_anucha (RSM)
 - **อาการ:** The RSM team card shows 'รวมทุกเอเย่นต์ 77.3% ของเป้าทั้งเดือน' over rows at 98.4%, 98.9% (vs pace). The CEO board card reads 83.9% with beer 96% and non-alc 101.4%; the run-sheet story card 79.7% with rows on pace. Every agent looks near 100% under a 77% total, all red. The numbers themselves trace.
@@ -1917,7 +1917,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-142. The gap card (explain_gap) has no verdict; for 'how will the month close' it leads with month-to-date and hides the forecast below the fold
 
-- **สถานะ:** แก้แล้ว `f7adb63`
+- **สถานะ:** แก้แล้ว `c1ab43c`
 - **ที่แก้:** การ์ด explain_gap วาดด้วยโครงการ์ดเดียวกันจากตาราง R11 เดือนที่ยังไม่จบนำด้วยคาดปิดเดือน (87.5% ของเป้าทั้งเดือน) และข้อสรุปที่สร้างจากผล เช่น "คาดปิดเดือนไม่ถึงเป้า ภาคอีสานฉุดมากสุด 78.1%" ไม่มีลบซ้อน (test ใน `lib/cards/present.test.ts`, replay run 514e2987, 34119483, 43e03084)
 - **ระดับ:** กลาง · **หมวด:** `card-fit` · **บทบาท:** u_thana (CEO), u_anucha (RSM)
 - **อาการ:** 'ภาคไหนน่าห่วงที่สุด', 'ทั้งเดือนจะปิดที่เท่าไหร่' and 'ภาคอีสานจะปิดเดือนได้ถึงเป้าไหม' all got the same card: headline 'ห่าง −50.9 / −39.8 ล้านบาท' (double negative) over an actual-to-date hero. The answer (371.9 ล้าน = 87.5% of 424.8, ไม่ถึงเป้า) sits in a table below.
@@ -1942,7 +1942,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-144. The CEO's South AR story card says '2 เอเย่นต์ยอดเพิ่มกว่าเท่าตัว' while three agents more than doubled
 
-- **สถานะ:** แก้แล้ว `306d847`
+- **สถานะ:** แก้แล้ว `b0cc36d`
 - **ที่แก้:** ข้อสรุปของการจัดอันดับตามการเปลี่ยนแปลงนับทุกแถวที่เข้าคำที่ใช้ (กว่าเท่าตัว = ตั้งแต่ 100%) และวาดทุกแถวนั้นเป็นแถวเด่น การ์ดลูกหนี้ภาคใต้จึงขึ้น "3 เอเย่นต์ยอดเพิ่มกว่าเท่าตัว" (test ใน `lib/cards/present.test.ts` บนข้อมูล seed เดียวกับรอบ 4)
 - **ระดับ:** กลาง · **หมวด:** `card-verdict` · **บทบาท:** u_thana (CEO)
 - **อาการ:** Story 2 text says 3 agents; its evidence card headline says 2. Rows: สงขลาทักษิณ +282.2%, เกาะสมุยเบเวอเรจ +203%, นครศรีรุ่งเจริญ +108.6% (the third shows no %).
@@ -1955,7 +1955,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-145. 'ทำไมตกอะ' names two agents as the main cause of a drop that is 74% long tail
 
-- **สถานะ:** แก้แล้ว `a156a61` `cc98f0e` · รอยืนยันกับโมเดล · เดิม AI-130: explain_gap ใส่ share_note ว่าไม่มีส่วนไหนเด่นเมื่อส่วนที่ใหญ่สุดไม่ถึง 20% ของช่องว่าง (สัปดาห์ของ CEO ใหญ่สุด 6.3%) และกฎ why ให้ตอบว่าลดลงกระจายทั่ว ไม่ยกรายใดเป็นสาเหตุหลัก (explain-gap.test, gap.test)
+- **สถานะ:** แก้แล้ว `a156a61` `cc98f0e` `a690363` · รอยืนยันกับโมเดล · เดิม AI-130: หัวการ์ดช่องว่างเขียน "กระจายไปทั่ว ไม่มีส่วนไหนเด่น" แทนการบอกว่าส่วนที่ใหญ่สุดฉุดมากสุด เมื่อไม่มีส่วนไหนถึง 20% (ใช้เกณฑ์เดียวกับ share_note); explain_gap ใส่ share_note ว่าไม่มีส่วนไหนเด่นเมื่อส่วนที่ใหญ่สุดไม่ถึง 20% ของช่องว่าง (สัปดาห์ของ CEO ใหญ่สุด 6.3%) และกฎ why ให้ตอบว่าลดลงกระจายทั่ว ไม่ยกรายใดเป็นสาเหตุหลัก (explain-gap.test, gap.test)
 - **ระดับ:** กลาง · **หมวด:** `grounding` · **บทบาท:** u_thana (CEO)
 - **อาการ:** Units are now consistent (AI-130's form fixed), but the text says the main cause is โคราชสหภัณฑ์ (6.3% of the gap) and ขอนแก่นมหาชัย (5.4%), while explain_gap shows the rest at 74.3% and every region is down 8-11%. get_alerts found nothing. The prior period's dates are not shown.
 - **ที่ควรเป็น:** The answer says the drop is broad (every region −8 to −11%, no agent above 7% of the gap) and does not invent a main cause.
@@ -2087,7 +2087,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-156. Scorecards and single-row cards break the card rules: 4 tiles, the hero repeated as the headline, the all-group average as hero
 
-- **สถานะ:** แก้แล้ว `e2093b6` `4d3a2a2` · เดิม AI-107
+- **สถานะ:** แก้แล้ว `18b159e` `7f8264e` · เดิม AI-107
 - **ที่แก้:** scorecard เดือนที่ยังไม่จบเหลือ 2 ช่องข้างหัวการ์ด (ขาดอีก, คาดสิ้นเดือน) บนฐานเป้าทั้งเดือน การ์ดแถวเดียวที่ไม่มีอะไรเทียบไม่ทวนหัวการ์ดเป็นข้อสรุป สต๊อกแถวเดียวตัดสินกับเส้น 10 วัน กลุ่มที่คำถามเอ่ยชื่อขึ้นเป็นหัวการ์ดพร้อมข้อสรุปว่าอยู่ตรงไหนเทียบกลุ่มอื่น และ tile ที่ปักบอกชื่อภาค (test ใน `lib/cards/present.test.ts`, replay run a7e17d59, ac87ab38, 8509107b, 217cab27) · ปุ่มดำ "แยกตามแบรนด์" ยังเป็นปุ่มหลักตามกติกาการ์ด
 - **ระดับ:** ต่ำ · **หมวด:** `card-fit` · **บทบาท:** u_thana (CEO), u_anucha (RSM), u_krit (rep)
 - **อาการ:** The Khon Kaen, Isan and rep-opener scorecards have 4 tiles (rule is 2-3; the rep's 87.7% tile repeats the headline). The RSM's Isan card and the rep's Isan value card show 'ภาคอีสาน 328.4 ล้านบาท' over hero 328.4 with no target or change. The rep's DC cover card repeats 14.7 วัน with no verdict and a large black 'แยกตามแบรนด์' button that looks primary. The beer-margin card's hero is the all-group 27.3%, not beer's 25.7%. The pinned home tile has no region name.
@@ -2099,7 +2099,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-157. CEO landing tile labels October's volume with the six-month range and compares it with September
 
-- **สถานะ:** แก้แล้ว `b464168`
+- **สถานะ:** แก้แล้ว `aac97ae`
 - **ที่แก้:** tile หน้าแรกของการ์ดแนวโน้มบอกเดือนที่ตัวเลขเป็นจริง (ต.ค. 69) แทนช่วงของ widget (test ใน `lib/server/landing-kpis.test.ts`, ภาพหน้าแรก CEO ที่ความกว้างมือถือ)
 - **ระดับ:** ต่ำ · **หมวด:** `landing` · **บทบาท:** u_thana (CEO)
 - **อาการ:** The tile shows 'มิ.ย.–พ.ย. 24.2 ล้านลิตร −5.4% เทียบ ก.ย. 69': the latest full month against the one before, under the whole widget range, while the widget is configured with compare prev_year.
