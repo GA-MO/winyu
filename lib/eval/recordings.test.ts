@@ -54,6 +54,14 @@ describe("recorded evals", () => {
     expect(verdictOf("groundedCard", leaked, "people-team")?.ok).toBe(false);
   });
 
+  test("metric answers of the same dimensions and range draw one paired card, not one card each (R10)", () => {
+    const metricCards = (caseId: string) => turnOf(recordingOf(caseId)).cards.filter((card) => card.tool === "query_metric");
+    expect(metricCards("shape-funnel").map((card) => card.with.length)).toEqual([2]);
+    expect(metricCards("shape-scatter").map((card) => card.with.length)).toEqual([1]);
+    expect(metricCards("landing-visit").map((card) => card.with.length)).toEqual([1]);
+    expect(metricCards("line-cover-days").map((card) => card.with.length)).toEqual([0, 0]);
+  });
+
   test("a sales rep's recorded reads stay in the rep's region, and a row from another region is caught", () => {
     const turn = turnOf(recordingOf("people-rep-scope"));
     expect(verdictOf("inScope", turn, "people-rep-scope")?.ok).toBe(true);

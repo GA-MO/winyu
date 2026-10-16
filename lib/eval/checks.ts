@@ -1,8 +1,8 @@
 import { liveAccessFor } from "@/lib/access/enforce";
-import { presentCard } from "@/lib/cards/present";
+import { presentCard, type CardParts, type PresentSource } from "@/lib/cards/present";
+import { metricTitle, othersOf } from "@/lib/cards/tool-answers";
 import { ASK_EVENT, COMPOSE_ACTION_TOOLS, type ComposedComponent } from "@/lib/compose/catalog";
 import { createHandoffInputSchema, REGIONS, setPermissionInputSchema, watchMetricInputSchema, type MetricQuery, type MetricResult, type Region } from "@/lib/contracts";
-import { metricLabel } from "@/lib/dashboard/metric-display";
 import { DATA_AS_OF } from "@/lib/data/dates";
 import { findUser, USERS } from "@/lib/data/entities/users";
 import { shareCardInputSchema } from "@/lib/share/card";
@@ -12,6 +12,8 @@ import { maskNumbers } from "@/lib/server/recall/mask";
 import type { EvalCase } from "./cases";
 import type { DrawnCard, EvalTurn } from "./recording";
 
+type ReadCall = Omit<DrawnCard, "with">;
+
 /** One check's verdict on one turn. */
 export type Verdict = { ok: boolean; detail: string };
 
@@ -19,6 +21,9 @@ export type Verdict = { ok: boolean; detail: string };
 export type EvalCheck = { id: string; description: string; verdict: (turn: EvalTurn, expected: EvalCase) => Verdict | null };
 
 type MetricAnswer = { query: MetricQuery; result: Extract<MetricResult, { ok: true }> };
+
+/** The answering metric card as the chat draws it: its own answer and the answers a paired card draws with it. */
+type DrawnAnswer = MetricAnswer & { args: unknown; others: PresentSource[] };
 
 const METRIC_TOOL = "query_metric";
 const RECALL_TOOL = "recall_memory";
@@ -57,20 +62,30 @@ function isPath(value: unknown): value is { path: string } {
   return isRecord(value) && typeof value.path === "string";
 }
 
-function returned(turn: EvalTurn): DrawnCard[] {
+function returned(turn: EvalTurn): ReadCall[] {
   return turn.calls.flatMap((call) => ("result" in call ? [{ tool: call.tool, args: call.args, result: call.result }] : []));
 }
 
-function metricAnswerOf(card: DrawnCard): MetricAnswer | null {
+function metricAnswerOf(card: ReadCall): MetricAnswer | null {
   if (!isRecord(card.result) || card.result.ok !== true || !isRecord(card.result.query)) return null;
   return { query: card.result.query as unknown as MetricQuery, result: card.result as unknown as MetricAnswer["result"] };
 }
 
-/** The metric card that answers: the last `query_metric` card the chat draws. */
-function answerCard(turn: EvalTurn): MetricAnswer | null {
-  const answers = turn.cards.filter((card) => card.tool === METRIC_TOOL).flatMap((card) => metricAnswerOf(card) ?? []);
+/** The metric card that answers: the last `query_metric` card the chat draws, with what it pairs. */
+function answerCard(turn: EvalTurn): DrawnAnswer | null {
+  const answers = turn.cards.filter((card) => card.tool === METRIC_TOOL).flatMap((card) => {
+    const answer = metricAnswerOf(card);
+    return answer ? [{ ...answer, args: card.args, others: othersOf(card.with) }] : [];
+  });
   return answers.at(-1) ?? null;
 }
+
+/** The answering card as present.ts draws it in the chat: the registry's title, no view or sort asked, the paired answers bound. */
+function drawnParts(answer: DrawnAnswer): CardParts {
+  return presentCard({ title: metricTitle(answer.result, answer.args), query: answer.query, result: answer.result, view: "auto", sortBy: null, others: answer.others });
+}
+
+const HERO_FIELDS = ["label", "value", "delta", "detail", "note"] as const;
 
 function metricQueries(turn: EvalTurn): MetricQuery[] {
   return turn.calls.filter((call) => call.tool === METRIC_TOOL).map((call) => {
@@ -92,14 +107,14 @@ function recalledQuestions(turn: EvalTurn): string[] {
     .flatMap((conversation) => (isRecord(conversation) && typeof conversation.question === "string" ? [conversation.question] : []));
 }
 
-function recipientsOf(call: DrawnCard, askerId: string): string[] {
+function recipientsOf(call: ReadCall, askerId: string): string[] {
   const args = isRecord(call.args) ? call.args : {};
   if (typeof args.toUserId === "string") return [args.toUserId];
   const names = Array.isArray(args.to) ? args.to.filter((name): name is string => typeof name === "string") : [];
   return (resolvedPeople(matchRecipients(names, USERS.filter((user) => user.id !== askerId))) ?? []).map((user) => user.id);
 }
 
-function isNameLookup(call: DrawnCard): boolean {
+function isNameLookup(call: ReadCall): boolean {
   return call.tool === "find_people" && isRecord(call.args) && TEAM_FILTERS.every((filter) => !(isRecord(call.args) && call.args[filter]));
 }
 
@@ -117,7 +132,7 @@ function isComposedRead(tool: string): boolean {
   return COMPOSED_READS.has(tool) || tool.includes(CONNECTOR_SEPARATOR);
 }
 
-function composableReads(turn: EvalTurn): DrawnCard[] {
+function composableReads(turn: EvalTurn): ReadCall[] {
   return returned(turn).filter((call) => isComposedRead(call.tool) && isRecord(call.result) && call.result.ok !== false);
 }
 
@@ -331,8 +346,22 @@ export const EVAL_CHECKS: readonly EvalCheck[] = [
       if (!expected.expectShape) return null;
       const answer = answerCard(turn);
       if (!answer) return verdict(false, "ไม่มีการ์ด query_metric ที่ตอบได้");
-      const body = presentCard({ title: metricLabel(answer.query.metric), query: answer.query, result: answer.result, view: "auto", sortBy: null }).body;
-      return verdict(body.kind === expected.expectShape, `วาดเป็น ${body.kind} คาดว่า ${expected.expectShape} (dims ${answer.query.dims.join(",") || "-"})`);
+      const body = drawnParts(answer).body;
+      return verdict(body.kind === expected.expectShape, `วาดเป็น ${body.kind} คาดว่า ${expected.expectShape} (dims ${answer.query.dims.join(",") || "-"}${answer.others.length > 0 ? ` · คู่กับ ${answer.others.map((other) => other.query.metric).join(", ")}` : ""})`);
+    },
+  },
+  {
+    id: "answeredHero",
+    description: "The answering card's headline answers the question the way the card-fit table says (the row, the share of target, the mover, the count under a line), not the total of every row.",
+    verdict: (turn, expected) => {
+      const wanted = expected.expectHero;
+      if (!wanted) return null;
+      const answer = answerCard(turn);
+      if (!answer) return verdict(false, "ไม่มีการ์ด query_metric ที่ตอบได้");
+      const hero = drawnParts(answer).hero;
+      const missing = HERO_FIELDS.filter((field) => wanted[field] !== undefined && !(hero?.[field] ?? "").includes(wanted[field] ?? ""));
+      const shown = hero ? `[${hero.label}] ${hero.value} ${hero.delta ?? ""}` : "ไม่มีหัวการ์ด";
+      return verdict(missing.length === 0, missing.length === 0 ? shown : `${shown} · ขาด ${missing.map((field) => `${field} "${wanted[field]}"`).join(", ")}`);
     },
   },
   {
