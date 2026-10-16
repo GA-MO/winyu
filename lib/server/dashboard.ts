@@ -174,7 +174,7 @@ export function staleFor(access: AccessContext, now = Date.now()): WidgetSpec[] 
 function moverKpi(widget: WidgetSpec, result: MetricResult, detail: string | null): LandingKpi | null {
   const harm = sharpestHarm(widget.query, result, HARMFUL_ROW_PCT);
   if (!harm) return null;
-  return { id: widget.id, label: widget.title, value: harm.label, delta: harm.delta, tone: "bad", detail, note: null };
+  return { id: widget.id, label: widget.title, value: harm.label, delta: harm.delta, tone: "bad", detail, note: null, period: periodTag(widget.query.range) };
 }
 
 /** The one row that makes a breakdown worth a tile: the weakest level, the sharpest harmful move, or how far a progress card has to go. */
@@ -211,7 +211,7 @@ export async function landingKpis(access: AccessContext): Promise<LandingKpi[]> 
     const note = kpiNoteOf(widget.query, result, parts);
     kpis.push({ id: widget.id, label: hero.label, value: hero.value, delta: hero.delta, tone: hero.tone, detail: hero.detail, note, period: periodTag(widget.query.range) });
   }
-  return withPeriodsWhereAlike(kpis);
+  return kpis;
 }
 
 /** A short name for a tile's period: the month, "4 สัปดาห์ล่าสุด", or the months it spans. */
@@ -220,14 +220,6 @@ function periodTag(range: MetricQuery["range"]): string {
   if (range.from.slice(0, 7) === range.to.slice(0, 7)) return MONTH_SHORT.format(new Date(range.to));
   if (days <= FOUR_WEEKS_DAYS) return TH.landing.lastFourWeeks;
   return `${MONTH_SHORT.format(new Date(range.from))}–${MONTH_SHORT.format(new Date(range.to))}`;
-}
-
-/** Two tiles with the same name say which period each covers; a name that stands alone keeps it short. */
-function withPeriodsWhereAlike(kpis: LandingKpi[]): LandingKpi[] {
-  return kpis.map((kpi) => {
-    const alike = kpis.filter((other) => other.label === kpi.label).length > 1;
-    return alike && kpi.period ? { ...kpi, label: `${kpi.label} · ${kpi.period}` } : kpi;
-  });
 }
 
 function alertReason(alert: Alert, dictionary: Dictionary): string {

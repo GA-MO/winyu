@@ -27,7 +27,7 @@ export type AmbientCard = {
 };
 
 /** One pinned card's headline on the landing: the number the dashboard shows, readable without opening it. */
-export type LandingKpi = { id: string; label: string; value: string; delta: string | null; tone: Tone; detail: string | null; note: string | null; period?: string };
+export type LandingKpi = { id: string; label: string; value: string; delta: string | null; tone: Tone; detail: string | null; note: string | null; period: string };
 
 /** One agent a field rep should visit today, with the one reason that put it on the list. */
 export type VisitStop = { id: string; agent: string; reason: string; tone: AmbientTone; prompt: string };

@@ -7,7 +7,7 @@ mock.module("next/navigation", () => ({ useRouter: () => ({ push: () => {}, refr
 const { Landing } = await import("./landing");
 
 const GREETING = { lead: "สวัสดีตอนเช้าครับ", name: "ธนา" };
-const KPI = { id: "k1", label: "ยอดขายเข้าเดือนนี้", value: "฿12.4M", delta: "+3.1%", tone: "good" as const, detail: null, note: null };
+const KPI = { id: "k1", label: "ยอดขายเข้าเดือนนี้", value: "฿12.4M", delta: "+3.1%", tone: "good" as const, detail: null, note: null, period: "พ.ย." };
 const CHIP = { id: "q1", label: "ยอดขายภาคเหนือ", prompt: "ยอดขายภาคเหนือเดือนนี้", score: 1, reason: "ถามบ่อย", intentKey: "sales_north" };
 const PLACEHOLDER = "ถาม Winyu เรื่องผู้บริหาร…";
 
@@ -16,6 +16,10 @@ function render(): string {
 }
 
 describe("the home page", () => {
+  test("every tile names the period its number covers", () => {
+    expect(render()).toContain(`>${KPI.period}</span>`);
+  });
+
   test("reads greeting, then the pinned numbers, then the chips, and ends with the question box near the thumb", () => {
     const html = render();
     const order = [GREETING.name, KPI.value, TH.landing.trust, CHIP.label, `placeholder="${PLACEHOLDER}"`].map((marker) => html.indexOf(marker));

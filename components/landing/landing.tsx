@@ -49,7 +49,10 @@ function KpiStrip({ kpis }: { kpis: LandingKpi[] }) {
     <Link href={DASHBOARD_PATH} aria-label={TH.landing.kpiOpen} className={cn(KPI_STRIP, KPI_COLUMNS[kpis.length])}>
       {kpis.map((kpi) => (
         <span key={kpi.id} className="flex min-w-0 flex-col gap-1 bg-card px-4 py-3 text-left">
-          <span className="truncate text-[11px] font-medium text-muted-foreground">{kpi.label}</span>
+          <span className="flex min-w-0 items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
+            <span className="truncate">{kpi.label}</span>
+            <span className="shrink-0 rounded-full bg-muted px-1.5 py-0.5 text-[10px] tabular-nums">{kpi.period}</span>
+          </span>
           <span className="font-display text-lg font-semibold leading-tight tabular-nums tracking-tight sm:text-xl">{kpi.value}</span>
           {kpi.note ? <span className="line-clamp-2 text-[11px] font-medium text-warning">{kpi.note}</span> : null}
           {kpi.delta ? (
