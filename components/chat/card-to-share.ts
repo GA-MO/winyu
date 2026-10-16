@@ -1,6 +1,8 @@
 import { ASK_CONTRADICTS_CARD, cardRefOf, sharedComposedCard, sharedToolCard, shareTitle, type CardOnScreen, type ExchangeRead, type ScreenCards, type SharedCard } from "@/lib/share/card";
 import type { Exchange, ReplyStep, ToolStep } from "./timeline";
-import { cardPlanOf, composedCalls, drawsNoCard, wroteBlock, type CardPlan } from "./tool-view";
+import { presentCard } from "@/lib/cards/present";
+import { metricAnswerOf, metricTitle, othersOf } from "@/lib/cards/tool-answers";
+import { cardPlanOf, composedCalls, drawsNoCard, pairedResultsOf, wroteBlock, type CardPlan } from "./tool-view";
 
 const SEND_TOOL = "send_card";
 
@@ -30,8 +32,15 @@ function cardOfStep(step: ReplyStep, plan: CardPlan, reads: readonly ExchangeRea
   return sharedToolCard(reads, step.toolCallId, plan.paired.get(step.toolCallId) ?? []);
 }
 
-function heroOf(step: ReplyStep): string | null {
+/** The figure a card leads with, as the drawn card shows it: a metric card's hero from the same card plan (none when the card draws none), else the result's headline. */
+function heroOf(step: ReplyStep, plan: CardPlan, toolSteps: readonly ToolStep[]): string | null {
   if (step.kind !== "tool" || step.outcome.state !== "returned") return null;
+  const answer = metricAnswerOf(step.outcome.result);
+  if (answer) {
+    const others = othersOf(pairedResultsOf(plan, toolSteps, step.toolCallId));
+    const hero = presentCard({ title: metricTitle(answer, step.args), query: answer.query, result: answer, actions: answer.nextActions, others }).hero;
+    return hero ? [hero.value, hero.unit].filter(Boolean).join(" ") : null;
+  }
   const headline = (step.outcome.result as { headline?: { value?: unknown } } | null)?.headline;
   return typeof headline?.value === "string" ? headline.value : null;
 }
@@ -44,7 +53,7 @@ export function cardsOfExchange(exchange: Exchange, cardTools: ReadonlySet<strin
   const question = exchange.question?.kind === "typed" ? exchange.question.text : null;
   return exchange.steps.flatMap((step) => {
     const card = cardOfStep(step, plan, reads, cardTools);
-    return card ? [{ ref: cardRefOf(card), exchangeId: exchange.id, target: { card, question }, title: shareTitle(card), hero: heroOf(step) }] : [];
+    return card ? [{ ref: cardRefOf(card), exchangeId: exchange.id, target: { card, question }, title: shareTitle(card), hero: heroOf(step, plan, toolSteps) }] : [];
   });
 }
 
