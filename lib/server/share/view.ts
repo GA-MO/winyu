@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { liveAccessFor } from "@/lib/access/enforce";
-import type { ShareScope, User } from "@/lib/contracts";
+import type { NextAction, ShareScope, User } from "@/lib/contracts";
 import type { ComposedSurface } from "@/lib/compose/catalog";
 import { CardComposer } from "@/lib/compose/composer";
 import { emitTo, newRun, runWithRun, saveRun } from "@/lib/harness/runtime";
@@ -38,6 +38,22 @@ async function rerun(card: SharedCard, lockedOf: (read: SharedRead) => LockedRow
   return reads;
 }
 
+function sendsTo(action: NextAction, people: ReadonlySet<string>): boolean {
+  const to = action.input?.to;
+  return action.kind === "send" && Array.isArray(to) && to.some((id) => typeof id === "string" && people.has(id));
+}
+
+/** A read's result without the buttons that would send the card to someone already on the matter's path or to the viewer: they have it. */
+function withoutSendsTo(read: FreshRead, people: ReadonlySet<string>): FreshRead {
+  const result = read.result as { nextActions?: NextAction[] } | null;
+  if (!result || !Array.isArray(result.nextActions)) return read;
+  return { ...read, result: { ...result, nextActions: result.nextActions.filter((action) => !sendsTo(action, people)) } };
+}
+
+function onPath(share: Matter, viewer: User): Set<string> {
+  return new Set([share.senderId, viewer.id, ...share.path.map((hop) => hop.userId)]);
+}
+
 /** The stored block checked again, line by line, against the viewer's results: a line whose data their scope did not return is dropped like any composed line that fails. */
 export function regrounded(card: SharedCard, reads: readonly FreshRead[], surfaceId: string): ComposedSurface | null {
   if (card.kind !== "composed") return null;
@@ -47,7 +63,7 @@ export function regrounded(card: SharedCard, reads: readonly FreshRead[], surfac
   return outcome.surface ? { surfaceId, components: outcome.surface.components, dataModel: outcome.surface.dataModel, done: true } : null;
 }
 
-/** Opens a share for one viewer: every stored read runs again through the gateway as that viewer (their scope, masking, rules and kill switches; one audit row each, initiator person) in a harness run of its own, and the card is drawn from those fresh results. */
+/** Opens a share for one viewer: every stored read runs again through the gateway as that viewer (their scope, masking, rules and kill switches; one audit row each, initiator person) in a harness run of its own, and the card is drawn from those fresh results, offering no send to anyone already on the matter. */
 export async function openShare(share: Matter, viewer: User): Promise<SharedView> {
   const access = liveAccessFor(viewer);
   const run = newRun(viewer.id, null, { initiator: "person" });
@@ -59,7 +75,8 @@ export async function openShare(share: Matter, viewer: User): Promise<SharedView
   const askHref = scope?.requestable ? `#${GRANT_REQUEST_ANCHOR}` : null;
   const lockedOf = (read: SharedRead) => (sender && share.card.kind === "tool" ? lockedRowsOf(read, sender, viewer, askHref) : null);
   try {
-    const reads = await runWithAccess(access, () => runWithTurn(turn, () => runWithRun(run, () => rerun(share.card, lockedOf))));
+    const people = onPath(share, viewer);
+    const reads = (await runWithAccess(access, () => runWithTurn(turn, () => runWithRun(run, () => rerun(share.card, lockedOf))))).map((read) => withoutSendsTo(read, people));
     emitTo(run, "runtime", { type: "agent.completed", payload: { finishReason: "done" } });
     return { reads, surface: regrounded(share.card, reads, `share:${share.id}`), scope };
   } finally {
