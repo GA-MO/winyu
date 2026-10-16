@@ -61,6 +61,39 @@ function ContactRow({ contact, chosen, toggle }: { contact: ShareContact; chosen
   );
 }
 
+/** The people a card or a matter can go to: the card's owner first when known, then everyone else, searchable by name, title or role, the chosen ones on top. */
+export function PeoplePicker({ contacts, suggestedId, chosen, onToggle }: { contacts: ShareContact[]; suggestedId: string | null; chosen: readonly string[]; onToggle: (contact: ShareContact) => void }) {
+  const [query, setQuery] = useState("");
+  const owner = contacts.find((contact) => contact.id === suggestedId) ?? null;
+  const others = contacts.filter((contact) => contact.id !== suggestedId && (chosen.includes(contact.id) || matches(contact, query)));
+  const ordered = [...others.filter((contact) => chosen.includes(contact.id)), ...others.filter((contact) => !chosen.includes(contact.id))];
+  return (
+    <>
+      {owner ? (
+        <section className="flex flex-col gap-1 border-b border-border px-2 py-2" data-share-suggested={owner.id}>
+          <h3 className="px-2 text-xs font-medium text-muted-foreground">{TH.share.suggested}</h3>
+          <ul>
+            <ContactRow contact={owner} chosen={chosen.includes(owner.id)} toggle={() => onToggle(owner)} />
+          </ul>
+        </section>
+      ) : null}
+      <div className="flex flex-col gap-2 px-4 pt-3">
+        {owner ? <h3 className="text-xs font-medium text-muted-foreground">{TH.share.others}</h3> : null}
+        <label className="flex items-center gap-2 rounded-xl border border-border px-3 py-2 focus-within:ring-2 focus-within:ring-ring">
+          <Search className="size-4 text-muted-foreground" aria-hidden />
+          <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={TH.share.search} className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground" />
+        </label>
+      </div>
+      <ul className="flex flex-col gap-0.5 px-2 py-2">
+        {ordered.map((contact) => (
+          <ContactRow key={contact.id} contact={contact} chosen={chosen.includes(contact.id)} toggle={() => onToggle(contact)} />
+        ))}
+        {contacts.length > 0 && ordered.length === 0 ? <li className="px-2 py-3 text-sm text-muted-foreground">{TH.share.noMatch}</li> : null}
+      </ul>
+    </>
+  );
+}
+
 function IntentToggle({ intent, choose }: { intent: MatterIntent; choose: (intent: MatterIntent) => void }) {
   return (
     <div className="flex flex-col gap-1.5">
@@ -190,8 +223,7 @@ function Sheet({ target, close }: { target: ShareTarget; close: () => void }) {
   const suggested = useSuggestedRecipient(target.card);
   const title = shareTitle(target.card);
   const [grantDays, setGrantDays] = useState<GrantDays | null>(null);
-  const [query, setQuery] = useState("");
-  const [ask, setAsk] = useState(() => TH.share.askDraft(title));
+  const [ask, setAsk] = useState(() => target.draftAsk ?? TH.share.askDraft(title));
   const [intent, setIntent] = useState<MatterIntent>("act");
   const [picked, setPicked] = useState<string[] | null>(null);
   const [phase, setPhase] = useState<Phase>({ kind: "picking" });
@@ -212,10 +244,6 @@ function Sheet({ target, close }: { target: ShareTarget; close: () => void }) {
     const payload = response?.ok ? ((await response.json()) as { receipts: ShareReceipt[]; grants?: ShareGrantReceipt[]; path: string }) : null;
     setPhase(payload ? { kind: "sent", receipts: payload.receipts, grants: payload.grants ?? [], path: payload.path } : { kind: "failed" });
   };
-
-  const owner = contacts.find((contact) => contact.id === suggested) ?? null;
-  const others = contacts.filter((contact) => contact.id !== suggested && (chosen.includes(contact.id) || matches(contact, query)));
-  const ordered = [...others.filter((contact) => chosen.includes(contact.id)), ...others.filter((contact) => !chosen.includes(contact.id))];
 
   return (
     <>
@@ -245,27 +273,7 @@ function Sheet({ target, close }: { target: ShareTarget; close: () => void }) {
               </label>
             </div>
             <div className="ui-scrollbar flex min-h-0 flex-1 flex-col overflow-y-auto">
-              {owner ? (
-                <section className="flex flex-col gap-1 border-b border-border px-2 py-2" data-share-suggested={owner.id}>
-                  <h3 className="px-2 text-xs font-medium text-muted-foreground">{TH.share.suggested}</h3>
-                  <ul>
-                    <ContactRow contact={owner} chosen={chosen.includes(owner.id)} toggle={() => toggle(owner)} />
-                  </ul>
-                </section>
-              ) : null}
-              <div className="flex flex-col gap-2 px-4 pt-3">
-                {owner ? <h3 className="text-xs font-medium text-muted-foreground">{TH.share.others}</h3> : null}
-                <label className="flex items-center gap-2 rounded-xl border border-border px-3 py-2 focus-within:ring-2 focus-within:ring-ring">
-                  <Search className="size-4 text-muted-foreground" aria-hidden />
-                  <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={TH.share.search} className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground" />
-                </label>
-              </div>
-              <ul className="flex flex-col gap-0.5 px-2 py-2">
-                {ordered.map((contact) => (
-                  <ContactRow key={contact.id} contact={contact} chosen={chosen.includes(contact.id)} toggle={() => toggle(contact)} />
-                ))}
-                {contacts.length > 0 && ordered.length === 0 ? <li className="px-2 py-3 text-sm text-muted-foreground">{TH.share.noMatch}</li> : null}
-              </ul>
+              <PeoplePicker contacts={contacts} suggestedId={suggested} chosen={chosen} onToggle={toggle} />
             </div>
             <footer className="flex flex-col gap-2 border-t border-border px-4 py-3">
               {directory?.mayGrant ? <GrantPicker days={grantDays} choose={setGrantDays} /> : null}

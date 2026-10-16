@@ -46,7 +46,7 @@ function askHref(story: Story): string {
 }
 
 function shareOf(story: Story): ShareTarget | null {
-  return story.evidence ? { card: { kind: "tool", reads: [{ tool: "query_metric", input: story.evidence.query }] }, question: null } : null;
+  return story.evidence ? { card: { kind: "tool", reads: [{ tool: "query_metric", input: story.evidence.query }] }, question: null, draftAsk: story.finding } : null;
 }
 
 function RuledOut({ story }: { story: Story }) {

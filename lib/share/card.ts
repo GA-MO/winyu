@@ -43,7 +43,7 @@ export type ChannelOption = { channel: ShareChannel; ready: boolean };
 export type ShareContact = Persona & { name: string; channels: ChannelOption[] };
 
 /** A card someone is about to share: the reads behind it and the question that drew it. */
-export type ShareTarget = { card: SharedCard; question: string | null };
+export type ShareTarget = { card: SharedCard; question: string | null; draftAsk?: string };
 
 /** Why one recipient got the share on another channel than the one picked. */
 export type FallbackReason = "no-teams-conversation" | "send-failed";

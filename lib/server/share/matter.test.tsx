@@ -1,4 +1,6 @@
-import { afterEach, describe, expect, mock, setDefaultTimeout, test } from "bun:test";
+import { afterEach, describe, expect, mock, setDefaultTimeout, spyOn, test } from "bun:test";
+import { act } from "react";
+import { createRoot } from "react-dom/client";
 import { renderToStaticMarkup } from "react-dom/server";
 import { metricQuerySchema, type EvidenceAnswer } from "@/lib/contracts";
 
@@ -160,5 +162,30 @@ describe("the morning story card offers ส่งต่อ", () => {
 
     expect(html).toContain(`aria-label="${TH.share.buttonLabel(shareTitle(NORTHEAST_CARD))}"`);
     expect(html).toContain(TH.share.button);
+  });
+
+  test("its pill opens the sheet with the story's headline as the drafted ask", async () => {
+    const queryMetric = winyuTools().query_metric;
+    const evidence = await runWithAccess(liveAccessFor(user("u_thana")), () => queryMetric.execute(queryMetric.inputSchema().parse(NORTHEAST_QUERY)));
+    const story = { id: "st_northeast", kind: "urgent" as const, finding: "ยอดขายเข้าภาคอีสานต่ำกว่าเป้า", scope: "ภาคอีสาน", subject: { metric: "net_sales_volume" as const, region: "northeast" as const }, evidence: { title: "ช่องว่างยอดขายเข้าภาคอีสานแยกตามเอเย่นต์", query: metricQuerySchema.parse(NORTHEAST_QUERY) }, ruledOut: [], action: null };
+    const spy = spyOn(globalThis, "fetch").mockImplementation((async () => Response.json({ contacts: [], mayGrant: false, userId: null })) as unknown as typeof fetch);
+    const host = document.createElement("div");
+    document.body.append(host);
+    const root = createRoot(host);
+
+    await act(async () =>
+      root.render(
+        <ShareProvider open>
+          <StoryItem card={{ story, evidence: evidence as EvidenceAnswer }} defaultOpen />
+        </ShareProvider>,
+      ),
+    );
+    await act(async () => host.querySelector<HTMLButtonElement>(`button[aria-label="${TH.share.buttonLabel(shareTitle(NORTHEAST_CARD))}"]`)?.click());
+    const ask = host.querySelector<HTMLInputElement>("[data-share-ask]")?.value;
+    await act(async () => root.unmount());
+    host.remove();
+    spy.mockRestore();
+
+    expect(ask).toBe(story.finding);
   });
 });
