@@ -18,7 +18,7 @@ import { currentTurn } from "@/lib/server/request-context";
 import { handoffEnabled, isToolAllowed, lapsedGrantsOf } from "@/lib/access/enforce";
 import { forgottenTerms } from "@/lib/engine/memory";
 import { shareUrl } from "@/lib/server/share/message";
-import { DATA_AS_OF } from "@/lib/data/dates";
+import { DATA_AS_OF, bangkokDate } from "@/lib/data/dates";
 import { findUser } from "@/lib/data/entities/users";
 import { TH } from "@/lib/i18n/th";
 import { sliceLabel, untilLabel } from "@/lib/share/grant-label";
@@ -252,8 +252,16 @@ export type PromptLayer = (typeof PROMPT_LAYERS)[number];
 /** A context item with the audience that shares it. */
 export type PromptItem = ContextItem & { layer: PromptLayer };
 
-/** What one turn tells the persona: today's date and the turn's context (the thread, whose story or matter it was opened from). */
-export type PersonaContext = { today: string; context: Record<string, unknown> };
+/** What one turn tells the persona: Winyu's business day, the real calendar date its own operations run on (the current Bangkok date when left out), and the turn's context (the thread, whose story or matter it was opened from). */
+export type PersonaContext = { today: string; systemToday?: string; context: Record<string, unknown> };
+
+function businessDayLine(today: string): string {
+  return `วันทำการของ Winyu คือ ${today} (ตรงกับ ${buddhistDate(today)} พ.ศ.) — ข้อมูลธุรกิจ งาน ลา ปฏิทิน และคำว่าวันนี้ เดือนนี้ นับจากวันนี้ · เมื่อบอกวันที่ให้เรียกว่า "วันทำการของ Winyu" ไม่ใช่วันที่ตามปฏิทินจริง`;
+}
+
+function systemDayLine(systemToday: string): string {
+  return `วันที่จริงตามปฏิทินคือ ${systemToday} (ตรงกับ ${buddhistDate(systemToday)} พ.ศ.) — ข้อมูลระบบของ Winyu เอง (ค่าโมเดล การใช้งานเครื่องมือ audit) เกิดตามวันจริง: \`days\` ของ \`admin_audit\` นับย้อนจากวันที่จริงนี้ ไม่ใช่จากวันทำการ และเมื่อรายงานให้บอกว่าเป็นข้อมูลระบบ ณ วันที่จริง · อย่านำสองวันนี้มาปนกัน`;
+}
 
 function item(id: string, kind: ContextKind, layer: PromptLayer, content: string, source: string, scope: string | null): PromptItem {
   return { id, kind, layer, content, priority: PRIORITY[kind], source, scope };
@@ -279,8 +287,9 @@ export function contextFor(access: AccessContext, user: User | null, ctx: Person
     item("identity", "identity", "user", `กำลังคุยกับ ${user?.nameTh ?? access.userId} — ${user?.title ?? access.role} (บทบาท ${access.role})`, "users", own),
     item("responsibilities", "role", "role", `หน้าที่ของผู้ใช้: ${RESPONSIBILITIES[access.role]}`, "persona.responsibilities", `role:${access.role}`),
     item("scope", "scope", "user", scopeLine(access, user), "access.policy", own),
-    item("today", "date", "day", `วันนี้คือ ${ctx.today} (ตรงกับ ${buddhistDate(ctx.today)} พ.ศ.)`, "clock", null),
+    item("today", "date", "day", businessDayLine(ctx.today), "clock", null),
   ];
+  if (isToolAllowed(access, "admin_audit")) items.push(item("system-today", "date", "day", systemDayLine(ctx.systemToday ?? bangkokDate(new Date())), "clock.system", null));
   items.push(item("data-as-of", "date", "everyone", DATA_AS_OF_LINE, "warehouse.asOf", null));
   items.push(item("vocabulary", "vocabulary", "everyone", VOCABULARY.join(PERSONA_LINE_BREAK), "persona.vocabulary", null));
   const remembered = guardedData(memory.length > 0 ? memory.map(memoryLine).join("\n") : NO_MEMORY_LINE, "memory");

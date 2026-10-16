@@ -7,6 +7,8 @@ import { cn } from "@/components/ui/cn";
 import { METRIC_IDS, ROLE_IDS, type AuditEntry, type MetricId, type RoleId } from "@/lib/contracts";
 import { USERS } from "@/lib/data/entities/users";
 import { TH } from "@/lib/i18n/th";
+import { formatDateTh } from "@/lib/i18n/format";
+import { bangkokDate, businessToday } from "@/lib/data/dates";
 import { GlowBackdrop } from "@/components/ui/glow-backdrop";
 import { GradientText } from "@/components/ui/gradient-text";
 import { readUser } from "@/lib/server/session";
@@ -207,9 +209,12 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
       <GlowBackdrop />
       <div className="relative mx-auto flex w-full max-w-6xl flex-col gap-5 px-4 pb-10 pt-4 sm:px-8 sm:pt-8">
         <header className="flex flex-wrap items-center justify-between gap-3">
-          <h1 className="font-display text-[1.75rem] font-semibold leading-tight tracking-[-0.03em]">
-            <GradientText>{TH.admin.title}</GradientText>
-          </h1>
+          <div className="flex flex-col gap-1">
+            <h1 className="font-display text-[1.75rem] font-semibold leading-tight tracking-[-0.03em]">
+              <GradientText>{TH.admin.title}</GradientText>
+            </h1>
+            <p className="text-xs text-muted-foreground">{TH.admin.clocks(formatDateTh(bangkokDate(new Date())), formatDateTh(businessToday()))}</p>
+          </div>
           <AskAgent />
         </header>
         <AdminNav current={current} />

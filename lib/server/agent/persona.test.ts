@@ -27,7 +27,7 @@ const DRAWING_VOCABULARY = ["DataCard", "AlertsCard", "ForecastCard", "$state", 
 const LATER_DAY = "2026-10-05";
 const DAY_AFTER = "2026-10-06";
 const FIRST_PERSONAL_LINE = "กำลังคุยกับ";
-const DAY_LINE = "วันนี้คือ";
+const DAY_LINE = "วันทำการของ Winyu คือ";
 const MIN_SHARED_SHARE = 0.9;
 const DOMAIN_MARKERS = ["ห้ามประมาณเอง", "certified metric", "PERMISSION_DENIED", "resolve_owner", "`masked`", "watch_metric", "pin_widget", "find_people", "request_leave", "describe_entity"];
 
@@ -161,9 +161,33 @@ describe("the day the data reaches", () => {
       const prompt = personaFor(accessFor(user), user, ctx({}, today)).join("\n");
       expect(prompt).toContain(`ข้อมูลในชั้นเมตริกล่าสุดถึง ${DATA_AS_OF}`);
       expect(prompt).toContain("`period` ของ `query_metric`");
-      expect(prompt).toContain(`วันนี้คือ ${today}`);
+      expect(prompt).toContain(`วันทำการของ Winyu คือ ${today}`);
       expect(prompt).not.toContain("เดือนที่แล้ว / เดือนก่อน =");
     }
+  });
+});
+
+describe("two clocks", () => {
+  const SYSTEM_DAY = "2026-10-17";
+  const BUSINESS_DAY = "2026-11-27";
+  const promptOf = (userId: string) => {
+    const user = findUser(userId);
+    if (!user) throw new Error(`no user ${userId}`);
+    return personaFor(accessFor(user), user, { today: BUSINESS_DAY, systemToday: SYSTEM_DAY, context: {} }).join("\n");
+  };
+
+  test("the demo date is presented as Winyu's business day, never as the calendar's today", () => {
+    const prompt = promptOf("u_thana");
+    expect(prompt).toContain(`วันทำการของ Winyu คือ ${BUSINESS_DAY}`);
+    expect(prompt).not.toContain(`วันนี้คือ ${BUSINESS_DAY}`);
+    expect(prompt).not.toContain(SYSTEM_DAY);
+  });
+
+  test("the IT admin is also told the real date that Winyu's cost, usage and audit windows count back from", () => {
+    const prompt = promptOf("u_ton");
+    expect(prompt).toContain(`วันทำการของ Winyu คือ ${BUSINESS_DAY}`);
+    expect(prompt).toContain(`วันที่จริงตามปฏิทินคือ ${SYSTEM_DAY}`);
+    expect(prompt).toContain("`days` ของ `admin_audit` นับย้อนจากวันที่จริงนี้");
   });
 });
 

@@ -25,7 +25,7 @@ function accessOf(userId: string) {
 /** The prompt one person's agent runs under on a fixed day, minus the parts that move with use: the rules and the persona lines the code writes. */
 export function promptHash(userId: string): string {
   const { user, access } = accessOf(userId);
-  const steady = contextFor(access, user, { today: ANY_DAY, context: {} }, null).filter((item) => !VOLATILE_KINDS.has(item.kind));
+  const steady = contextFor(access, user, { today: ANY_DAY, systemToday: ANY_DAY, context: {} }, null).filter((item) => !VOLATILE_KINDS.has(item.kind));
   return hashOf(promptLines(steady, WINYU_RULES));
 }
 

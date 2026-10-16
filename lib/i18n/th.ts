@@ -877,6 +877,7 @@ export const TH = {
   },
   admin: {
     title: "Admin console",
+    clocks: (system: string, business: string) => `ข้อมูลระบบ ณ ${system} (วันที่จริง) · ข้อมูลธุรกิจ ณ วันทำการของ Winyu ${business}`,
     groups: { overview: "ภาพรวม", access: "สิทธิ์", tools: "เครื่องมือ", audit: "Audit", connections: "การเชื่อมต่อ" },
     tabs: { overview: "ภาพรวม", access: "สิทธิ์ตามบทบาท", grants: "สิทธิ์ชั่วคราว", tools: "เครื่องมือ", rules: "กฎ", audit: "Audit", usage: "การใช้งาน", simulate: "จำลองมุมมอง", mcp: "MCP · A2A", signin: "การเข้าสู่ระบบ" },
     ask: {
@@ -1797,6 +1798,8 @@ export const TH = {
   },
   adminAudit: {
     source: "Audit log และบันทึกการใช้งานของ Winyu",
+    systemAsOf: (date: string) => `ข้อมูลระบบ ณ ${date} (วันที่จริง)`,
+    footnote: (system: string, date: string) => `แหล่งข้อมูล: ${system} · ข้อมูลระบบ ณ ${date} (วันที่จริง)`,
     topic: { activity: "การส่งงานและการแก้ไข", denials: "การปฏิเสธ", tool_usage: "การเรียกเครื่องมือ", model_cost: "ค่าโมเดล", connectors: "สถานะระบบเชื่อมต่อ", overrides: "การแก้สิทธิ์ที่ admin ทำ", role_access: "สิทธิ์ของบทบาท" } as Record<string, string>,
     within: (days: number) => `${days} วันล่าสุด`,
     denials: (count: number, days: number, held: number) => `ถูกปฏิเสธ ${count} ครั้งใน ${days} วันล่าสุด${held > 0 ? ` · ${held} ครั้งเป็นไปตามสิทธิ์ของบทบาท ระบบกันข้อมูลถูกต้อง ไม่ใช่ข้อผิดพลาด` : ""}`,

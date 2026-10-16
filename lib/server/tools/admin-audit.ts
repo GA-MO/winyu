@@ -3,7 +3,7 @@ import { killedTools } from "@/lib/access/enforce";
 import { permissionsFor, roleOverrides, type RoleOverride, type Visibility } from "@/lib/access/role-overrides";
 import { METRIC_IDS, adminAuditInputSchema, type AdminAuditTopic, type AuditEntry, type MetricId, type RoleId, type ToolName } from "@/lib/contracts";
 import { metricLabel } from "@/lib/dashboard/metric-display";
-import { businessToday } from "@/lib/data/dates";
+import { bangkokDate } from "@/lib/data/dates";
 import { findUser } from "@/lib/data/entities/users";
 import { formatDateTh, formatTimeTh } from "@/lib/i18n/format";
 import { TH } from "@/lib/i18n/th";
@@ -18,7 +18,6 @@ import { defineTool } from "./define";
 import { connectors, fieldLabel, toolLabel, toolSurface } from "./registry";
 
 const DEFAULT_DAYS = 7;
-const DAY_MS = 86_400_000;
 const MODEL_SOURCES: readonly ModelCallSource[] = ["chat", "background", "eval"];
 const POLICY_CODES: ReadonlySet<string> = new Set(["PERMISSION_DENIED", "TOOL_NOT_ALLOWED", "NONE_IN_SCOPE", "SCOPE_TRIMMED", "POLICY_RULE"]);
 
@@ -29,10 +28,6 @@ type AuditInput = z.infer<typeof adminAuditInputSchema>;
 type Headline = { label: string; value: string };
 type Folded = { line: string; rows: ConnectorRow[] };
 type Report = { summary: string; rows: ConnectorRow[]; headline?: Headline; folded?: Folded } | { error: string };
-
-function sinceDays(days: number, now = Date.now()): string {
-  return new Date(now - days * DAY_MS).toISOString();
-}
 
 function whenLabel(iso: string): string {
   return `${formatDateTh(iso)} ${formatTimeTh(iso)}`;
@@ -98,7 +93,7 @@ function toolUsage(days: number): Report {
 }
 
 function modelCost(days: number): Report {
-  const spend = modelSpend(sinceDays(days));
+  const spend = modelSpend(sinceDaysStart(days));
   const rows = MODEL_SOURCES.map((source) => ({ source_label: TH.adminAudit.sources[source], cost_label: TH.adminAudit.usd(spend.bySource[source]) }));
   const headline = { label: TH.adminAudit.costTotal(days), value: TH.adminAudit.usd(spend.totalUsd) };
   return { summary: TH.adminAudit.cost(TH.adminAudit.usd(spend.totalUsd), spend.calls, days), headline, rows };
@@ -154,17 +149,18 @@ const TOPICS: Record<AdminAuditTopic, (input: AuditInput) => Report> = {
   role_access: ({ role }) => roleAccess(role),
 };
 
-/** What an IT admin asks about Winyu itself, read from the audit, the model ledger, connector health and the role overrides: who did what and was refused, never the question they typed, the arguments shown only as the audit already stored them with personal fields hidden, every value fenced as data. */
+/** What an IT admin asks about Winyu itself, read from the audit, the model ledger, connector health and the role overrides: who did what and was refused, never the question they typed, the arguments shown only as the audit already stored them with personal fields hidden, every value fenced as data. Winyu's own operations happen on the real calendar, so windows count back from the real date and the report is stamped with it, never with Winyu's business day. */
 export function adminReport(input: AuditInput) {
   const report = TOPICS[input.topic](input);
   if ("error" in report) return { ok: false as const, code: "BAD_QUERY", error: report.error };
+  const systemToday = bangkokDate(new Date());
   return {
     ok: true as const,
-    summary: report.summary,
+    summary: `${TH.adminAudit.systemAsOf(formatDateTh(systemToday))} · ${report.summary}`,
     headline: report.headline ?? null,
     rows: fencedRows(report.rows.slice(0, MAX_CONNECTOR_ROWS)),
     folded: report.folded ? { line: report.folded.line, rows: fencedRows(report.folded.rows.slice(0, MAX_CONNECTOR_ROWS)) } : null,
-    provenance: { sourceSystem: TH.adminAudit.source, asOf: businessToday(), masked: [] },
+    provenance: { sourceSystem: TH.adminAudit.source, asOf: systemToday, masked: [] },
   };
 }
 
@@ -174,7 +170,7 @@ export const adminAuditTool = defineTool({
   tier: "read",
   roles: ["it_admin"],
   description:
-    "Read Winyu's own audit and usage, for the IT admin. topic: activity (each send, pass-on, accept, close and write that acted: who, what, on which matter, to whom, when and whose yes let it act), denials (who was refused which tool, when and why), tool_usage (calls per tool with denied and masked counts), model_cost (model spend by chat, background jobs and eval), connectors (each MCP connector reachable or not and since when), overrides (permission changes admins made per role and tools switched off for everyone), role_access (what one role may not see in full or may not call now, the metrics it sees in full and the tools it may call folded apart; needs role). days is the window for activity, denials, tool_usage and model_cost (null = 7). Call it for ใครส่งงานให้ใคร / ใครรับหรือส่งต่อ / ใครถูกปฏิเสธ / การใช้เครื่องมือ / ค่าโมเดล / connector ไหนล่ม / บทบาทนี้เห็นอะไร / ปิดเครื่องมืออะไรไว้. When headline is set it is the answer: lead with it (model_cost: the total) and put the rows under it. Report denials as they are: a row whose policy_label is set is the access policy holding as designed, not a fault; never suggest widening or loosening a role's access unless the admin asks whether to change it.",
+    "Read Winyu's own audit and usage, for the IT admin. topic: activity (each send, pass-on, accept, close and write that acted: who, what, on which matter, to whom, when and whose yes let it act), denials (who was refused which tool, when and why), tool_usage (calls per tool with denied and masked counts), model_cost (model spend by chat, background jobs and eval), connectors (each MCP connector reachable or not and since when), overrides (permission changes admins made per role and tools switched off for everyone), role_access (what one role may not see in full or may not call now, the metrics it sees in full and the tools it may call folded apart; needs role). days is the window for activity, denials, tool_usage and model_cost (null = 7), counted back from the real calendar date, not from Winyu's business day: Winyu's own operations (cost, usage, audit) happen on the real calendar, and the summary opens with that date; say it as that date when you answer. Call it for ใครส่งงานให้ใคร / ใครรับหรือส่งต่อ / ใครถูกปฏิเสธ / การใช้เครื่องมือ / ค่าโมเดล / connector ไหนล่ม / บทบาทนี้เห็นอะไร / ปิดเครื่องมืออะไรไว้. When headline is set it is the answer: lead with it (model_cost: the total) and put the rows under it. Every topic is a report: say what is hidden, switched off or refused in neutral terms and stop there. A denial row whose policy_label is set is the access policy holding as designed, not a fault. Never offer or suggest opening, widening or loosening anyone's access (no closing line such as 'หากต้องการเปิดสิทธิ์…'), unless the admin asks whether to change it.",
   input: adminAuditInputSchema,
   execute: async (input: AuditInput) => adminReport(input),
 });

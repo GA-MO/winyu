@@ -48,7 +48,7 @@ export function AdminAuditCard({ result }: { result: unknown }) {
   return (
     <ParsedCard parsed={parseResult(adminAuditResult, result)} title={TITLE}>
       {({ summary, headline, rows, folded, provenance }) => (
-        <Card props={{ title: TITLE, meta: headline ? undefined : summary, footnote: TH.cards.source.connector(provenance.sourceSystem, formatDateTh(provenance.asOf)) }}>
+        <Card props={{ title: TITLE, meta: headline ? undefined : summary, footnote: TH.adminAudit.footnote(provenance.sourceSystem, formatDateTh(provenance.asOf)) }}>
           {headline ? <Metric props={{ label: headline.label, value: headline.value, size: "lg" }} /> : null}
           {rows.length > 0 && rows.every(isAccessRow) ? <AccessList rows={rows} /> : <ConnectorTable rows={rows} />}
           {folded && folded.rows.length > 0 ? <FoldView fold={{ line: folded.line, rows: folded.rows.map(readRowOf) }} ruled={rows.length === 0} /> : null}
