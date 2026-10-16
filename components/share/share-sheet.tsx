@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { usePathname } from "next/navigation";
 import { AlertTriangle, Check, EyeOff, Forward, KeyRound, Link2, Mail, MessageCircle, Search, Target, Users, X } from "lucide-react";
 import { OutboxNote } from "@/components/share/outbox-note";
 import { cn } from "@/components/ui/cn";
@@ -20,6 +21,8 @@ const PREVIEW_ENDPOINT = "/api/shares/preview";
 const SCOPES_ENDPOINT = "/api/shares/scopes";
 const PANEL = "fixed right-0 top-0 z-50 flex h-dvh w-full max-w-[26rem] flex-col border-l border-border bg-card shadow-panel animate-panel-in";
 const SENT_PANEL = "fixed inset-x-3 bottom-3 z-50 flex max-h-[50dvh] flex-col gap-2 overflow-y-auto rounded-2xl border border-border bg-card px-4 py-3 shadow-panel animate-panel-in pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:left-auto sm:right-4 sm:w-[24rem]";
+/** How long the sent confirmation stays when nobody points at or tabs into it. */
+export const SENT_SHOWN_MS = 6000;
 const CHIP = "inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 /** The icon each share channel shows with. */
 export const CHANNEL_ICON: Record<ShareChannel, typeof Mail> = { email: Mail, teams: Users, line: MessageCircle };
@@ -215,11 +218,17 @@ export function RecipientWarnings({ scopes, granting, grant }: { scopes: readonl
   );
 }
 
-/** What is left on screen once a share went out: a compact confirmation docked at the bottom (who got it on which channel, any grants, what it still hides from whom, the link, and the Outbox when any of it went by mail) that leaves the page behind it usable. */
+/** What is left on screen once a share went out: a compact confirmation docked at the bottom (who got it on which channel, any grants, what it still hides from whom, the link, and the Outbox when any of it went by mail) that leaves the page behind it usable, and closes by itself a few seconds after nobody points at or tabs into it. */
 export function ShareSent({ title, receipts, grants, hidden = [], days, path, close }: { title: string; receipts: ShareReceipt[]; grants: ShareGrantReceipt[]; hidden?: RecipientScope[]; days: GrantDays | null; path: string; close: () => void }) {
   const url = typeof window === "undefined" ? path : `${window.location.origin}${path}`;
+  const [held, setHeld] = useState(false);
+  useEffect(() => {
+    if (held) return;
+    const timer = setTimeout(close, SENT_SHOWN_MS);
+    return () => clearTimeout(timer);
+  }, [close, held]);
   return (
-    <aside role="status" aria-label={TH.share.sentTitle} data-share-sent className={SENT_PANEL}>
+    <aside role="status" aria-label={TH.share.sentTitle} data-share-sent className={SENT_PANEL} onPointerEnter={() => setHeld(true)} onPointerLeave={() => setHeld(false)} onFocus={() => setHeld(true)} onBlur={() => setHeld(false)}>
       <div className="flex items-start gap-2">
         <Check className="mt-0.5 size-4 shrink-0 text-success" aria-hidden />
         <p className="flex min-w-0 flex-1 flex-col">
@@ -418,11 +427,13 @@ function Sheet({ target, close }: { target: ShareTarget; close: () => void }) {
   );
 }
 
-/** Lets every card inside offer ส่งต่อ, with one sheet for the whole surface; with `open` false (the admin turned sending work off) no card offers it. */
+/** Lets every card inside offer ส่งต่อ, with one sheet for the whole surface that closes when the person moves to another page; with `open` false (the admin turned sending work off) no card offers it. */
 export function ShareProvider({ open, children }: { open: boolean; children: ReactNode }) {
   const [target, setTarget] = useState<ShareTarget | null>(null);
+  const pathname = usePathname();
   const show = useCallback((next: ShareTarget) => setTarget(next), []);
   const close = useCallback(() => setTarget(null), []);
+  useEffect(close, [close, pathname]);
   const value = useMemo(() => (open ? show : null), [open, show]);
   return (
     <ShareContext.Provider value={value}>
