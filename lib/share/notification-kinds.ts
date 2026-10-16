@@ -1,5 +1,6 @@
 import type { Notification, NotificationKind } from "@/lib/contracts";
 import { TH } from "@/lib/i18n/th";
+import type { MatterEventKind } from "./matter";
 
 /** What each kind of notification is told from: names, the card's title and the slice in words, never a value from a card. Older kinds arrive with their title already written. */
 export type NotificationPayloads = {
@@ -9,6 +10,7 @@ export type NotificationPayloads = {
   email: { title: string };
   share: { senderName: string; cardTitle: string; grantUntil: string | null };
   matter: { senderName: string; ask: string };
+  matter_update: { actorName: string; cardTitle: string; change: MatterEventKind; text: string | null };
   grant_request: { requesterName: string; slice: string };
   grant_approved: { approverName: string; slice: string; until: string };
   grant_declined: { deciderName: string; slice: string };
@@ -34,7 +36,7 @@ export const NOTIFICATION_TABLE: { [K in NotificationKind]: KindEntry<K> } = {
   email: { home: "outbox", target: () => "/outbox", title: OWN_TITLE },
   share: { home: "shared", target: SHARE_PATH, title: (event) => (event.grantUntil ? COPY.sharedWithGrant(event.senderName, event.cardTitle, event.grantUntil) : COPY.shared(event.senderName, event.cardTitle)) },
   matter: { home: "inbox", target: SHARE_PATH, title: (event) => COPY.matter(event.senderName, event.ask) },
-
+  matter_update: { home: "inbox", target: SHARE_PATH, title: (event) => COPY.matterUpdate[event.change](event.actorName, event.cardTitle, event.text ?? "") },
   grant_request: { home: "inbox", target: (requestId) => `/g/${encodeURIComponent(requestId)}`, title: (event) => COPY.requested(event.requesterName, event.slice) },
   grant_approved: { home: "shared", target: SHARE_PATH, title: (event) => COPY.approved(event.approverName, event.slice, event.until) },
   grant_declined: { home: "shared", target: SHARE_PATH, title: (event) => COPY.declined(event.deciderName, event.slice) },

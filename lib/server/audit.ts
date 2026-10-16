@@ -143,6 +143,33 @@ export function recordShare(share: AuditedShare): void {
   });
 }
 
+/** The name a press on a matter goes by in the audit, beside the share that started it. */
+export const MATTER_AUDIT_TOOL = "matter";
+
+/** One press on a matter as the audit needs it: who pressed what on which code, whom it went to on a pass-on, and the refusal when refused; never the words they wrote. */
+export type AuditedMatterEvent = { userId: string; code: string; action: string; toUserId: string | null; refusal: string | null };
+
+/** Writes the audit row one press on a matter leaves: a refusal is a deny, every other press an allow. */
+export function recordMatterEvent(entry: AuditedMatterEvent): void {
+  const args = { code: entry.code, action: entry.action, ...(entry.toUserId ? { to: entry.toUserId } : {}) };
+  auditLog().put({
+    id: randomUUID(),
+    at: new Date().toISOString(),
+    userId: entry.userId,
+    tool: MATTER_AUDIT_TOOL,
+    connector: SHARE_CONNECTOR,
+    argsHash: argsHash(args),
+    decision: entry.refusal ? "deny" : "allow",
+    rowsReturned: 0,
+    latencyMs: 0,
+    ...(entry.refusal ? { code: entry.refusal } : {}),
+    reason: TH.matter.auditReason(entry.refusal ? `${entry.action} (${entry.refusal})` : entry.action),
+    args: argsPreview(args),
+    toolCallId: entry.code,
+    initiator: "person",
+  });
+}
+
 /** The name a guard decision goes by in the audit, beside the tool calls of the same run. */
 export const GUARD_AUDIT_TOOL = "guardrail";
 

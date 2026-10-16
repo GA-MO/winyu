@@ -24,11 +24,16 @@ function placesOf(read: SharedRead): Partial<Record<Dim, string>> {
   return places;
 }
 
-/** Who a card most likely belongs to: the RACI owner of its first metric, in the region its reads narrow to (by region, or by the agent, province, DC or plant they name); null when no read names a metric or the owner is the sender. */
-export function suggestedRecipient(card: SharedCard, senderId: string): Responsible | null {
+/** Who a card belongs to: the RACI owner of its first metric, in the region its reads narrow to (by region, or by the agent, province, DC or plant they name); null when no read names a metric. */
+export function cardOwner(card: SharedCard): Responsible | null {
   const metric = card.reads.map(metricOf).find((found) => found !== null);
   if (!metric) return null;
   const region = card.reads.map((read) => regionOf(placesOf(read))).find((found) => found !== null) ?? null;
-  const owner = responsibleFor(metric, region);
+  return responsibleFor(metric, region);
+}
+
+/** Who a card most likely belongs to, never the sender themselves. */
+export function suggestedRecipient(card: SharedCard, senderId: string): Responsible | null {
+  const owner = cardOwner(card);
   return owner && owner.userId !== senderId ? owner : null;
 }

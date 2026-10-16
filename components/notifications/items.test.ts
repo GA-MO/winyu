@@ -20,6 +20,7 @@ describe("the bell's items", () => {
       handoff: "decide",
       grant_request: "decide",
       matter: "decide",
+      matter_update: "update",
       alert: "update",
       reply: "update",
       email: "update",

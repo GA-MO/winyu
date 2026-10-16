@@ -15,7 +15,10 @@ export type Hop = { userId: string; fromUserId: string | null; at: string; state
 /** The number that closes a matter by itself: one read's field at least or at most a value. */
 export type MatterGoal = { read: number; field: string; atLeast: number } | { read: number; field: string; atMost: number };
 
-export type MatterEvent = { userId: string | null; at: string; kind: "note" | "accepted" | "asked" | "passed_on" | "goal_met" | "done"; text: string | null };
+export type MatterEventKind = "note" | "accepted" | "asked" | "passed_on" | "goal_met" | "done";
+
+/** One line of a matter's thread: who did what when, the words they wrote, and for a pass-on whom it went to. */
+export type MatterEvent = { userId: string | null; at: string; kind: MatterEventKind; text: string | null; toUserId: string | null };
 
 /** How one recipient was reached: the channel the sender picked, the one that carried it, and why they differ. */
 export type ShareDelivery = { userId: string; asked: DeliveryChannel; via: DeliveryChannel; fallback: FallbackReason | null };
@@ -69,10 +72,15 @@ export function matterOf(stored: StoredMatter): Matter {
   };
 }
 
+/** The hop that holds the matter: the last one not passed on; null when every hop passed it on. */
+export function holdingHop(matter: Pick<Matter, "path">): Hop | null {
+  return matter.path.findLast((candidate) => candidate.state !== "passed_on") ?? null;
+}
+
 /** Whether an open matter that asks for an answer waits on this person: they hold it (the last hop not passed on) and have not answered yet. */
 export function waitsOn(matter: Matter, userId: string): boolean {
   if (matter.intent !== "act" || matter.status !== "open") return false;
-  const hop = matter.path.findLast((candidate) => candidate.state !== "passed_on");
+  const hop = holdingHop(matter);
   return hop?.userId === userId && WAITING.has(hop.state);
 }
 
