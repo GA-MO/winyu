@@ -18,7 +18,8 @@ import { winyuTools, toolsForAccess } from "@/lib/server/agent/tools";
 import { tracedRun } from "@/lib/harness/runtime";
 import { runWithAccess } from "@/lib/server/request-context";
 import { measure } from "@/lib/server/usage-meter";
-import { byUrgency, unexplainedP1 } from "@/lib/server/story-coverage";
+import { byUrgency, explains, unexplainedP1 } from "@/lib/server/story-coverage";
+import { metricLabel } from "@/lib/dashboard/metric-display";
 
 const MAX_STEPS = 18;
 const ALERT_LIMIT = 10;
@@ -40,6 +41,15 @@ const INVESTIGATE_GOAL = "Explain this person's open anomalies before they open 
 const SALES_VOLUME = "net_sales_volume";
 const SALES_VALUE = "net_sales_value";
 const LITRES = "ลิตร";
+const VOLUME_WORDING = /ปริมาณขายเข้า(?:\s*\(Sell-in\))?|ปริมาณขาย/g;
+const HEDGE = "น่าจะ";
+const HEDGED = /น่าจะ|อาจ|คาดว่า|สมมติฐาน|ยังไม่ยืนยัน|ยังไม่รู้/;
+/** Causes an anomaly's hypothesis guesses at, by the words that name them, and the metrics that measure the cause itself (a story about overdue debt may say debt). */
+const GUESSED_CAUSES: readonly { words: RegExp; measuredBy: readonly MetricId[] }[] = [
+  { words: /เครดิต|หนี้|ค้างชำระ|วงเงิน|วางบิล/, measuredBy: ["ar_overdue"] },
+  { words: /สต๊อกค้าง|ของค้าง/, measuredBy: ["stock_on_hand", "days_of_cover"] },
+  { words: /ซ่อมบำรุง|ขัดข้อง/, measuredBy: [] },
+];
 const MAX_STORIES = 4;
 
 const EXPLANATION_CHECKS: readonly { text: string; open: (access: AccessContext) => boolean }[] = [
@@ -77,6 +87,7 @@ const STORY_SYSTEM = [
   "Winyu draws a sell-in card in baht (net_sales_value), the measure chat answers sales in, even when the analysis worked in litres: a finding about sell-in quotes no litre amount.",
   "`ruledOut`: at most two explanations a tool result in this run showed are NOT the cause, each with that tool's name as `source`. Empty when nothing was ruled out.",
   "State a cause as fact only when a tool result shows it; a likely cause is written as likely (\"น่าจะ\", \"อาจ\"), an untested one as not yet known.",
+  "An anomaly's `hypothesis` is a guess, not a finding: a story that names the cause it guesses (credit, overdue debt, stock held at the agent, a line stopped for repair) keeps its hedge (\"น่าจะ\") even when a tool result shows the cause is present, since being present does not show it caused the drop.",
   "Refer to people by their role (ผู้จัดการขายภาคอีสาน, ฝ่ายสินเชื่อ, ทีมขายขอนแก่น, นักวางแผนซัพพลาย), never by name: who holds a role changes. The people a matter is about (an employee to train, an agent to visit) may be named.",
   "`scope` is where the matter sits in a few words (\"ภาคอีสาน\", \"DC ลำพูน · เพอร์ร่า 600 มล.\"). `subject` is the metric and region of the anomaly the story explains.",
   "`kind` is how urgent it is for the business, whoever owns it: urgent when it needs action within days (a target about to be missed, stock about to run out, a deadline), watch when it is worth knowing, ok when fine.",
@@ -298,13 +309,34 @@ function litresUnderBaht(draft: DraftStory, evidence: EvidenceIndex): string[] {
   return answer?.query.metric === SALES_VALUE && draft.finding.includes(LITRES) ? ["finding quotes litres while its card is in baht"] : [];
 }
 
+function guessedPart(hypothesis: string): string | null {
+  const at = hypothesis.indexOf(HEDGE);
+  return at === -1 ? null : hypothesis.slice(at);
+}
+
+/** The causes a finding states as fact that only an anomaly it explains guessed at ("น่าจะติดปัญหาเครดิต" told as "ติดหนี้ค้างชำระจนไม่สั่งซื้อ"). */
+export function guessesStatedAsFact(draft: DraftStory, anomalies: readonly AlertRow[]): string[] {
+  const { metric } = draft.subject;
+  if (metric === null || HEDGED.test(draft.finding)) return [];
+  const guesses = anomalies.filter((anomaly) => explains(draft.subject, anomaly)).flatMap((anomaly) => guessedPart(anomaly.hypothesis) ?? []);
+  return GUESSED_CAUSES.filter((cause) => !cause.measuredBy.includes(metric) && cause.words.test(draft.finding) && guesses.some((guess) => cause.words.test(guess)))
+    .map((cause) => `finding states the anomaly's guessed cause (${draft.finding.match(cause.words)?.[0]}) as fact: keep the hedge (${HEDGE}) the hypothesis has`);
+}
+
 /** Every check a draft story must pass before it is kept: grounded numbers and no role holder named block it; the rest asks for one rewrite. */
 export function reviewDrafts(drafts: readonly DraftStory[], calls: readonly ToolCall[], evidence: EvidenceIndex): ReviewedDraft[] {
+  const anomalies = calls.filter((call) => call.tool === ALERTS_TOOL).flatMap(anomaliesOf);
   return drafts.map((draft) => {
     const wrongEvidence = draft.evidence && !evidence.has(draft.evidence.call) ? [`evidence.call ${draft.evidence.call} is not a successful query_metric or explain_gap call`] : [];
     const repeated = repeatedIn(draft, evidence).map((number) => `finding repeats the card's number ${number}`);
-    return { draft, ungrounded: ungroundedIn(draft, calls), names: roleHoldersNamedIn(draft), problems: [...tooLongIn(draft), ...wrongEvidence, ...repeated, ...litresUnderBaht(draft, evidence)] };
+    const problems = [...tooLongIn(draft), ...wrongEvidence, ...repeated, ...litresUnderBaht(draft, evidence), ...guessesStatedAsFact(draft, anomalies)];
+    return { draft, ungrounded: ungroundedIn(draft, calls), names: roleHoldersNamedIn(draft), problems };
   });
+}
+
+/** The card's title names the measure the card draws: a sell-in card drawn in baht is not titled in litres, whichever measure the writer named. */
+export function titleOfDrawn(title: string, query: MetricQuery): string {
+  return query.metric === SALES_VALUE ? title.replace(VOLUME_WORDING, metricLabel(SALES_VALUE)) : title;
 }
 
 function needsRewrite(entry: ReviewedDraft): boolean {
@@ -318,7 +350,7 @@ function isBlocked(entry: ReviewedDraft): boolean {
 function storyOf(entry: ReviewedDraft, calls: readonly ToolCall[], evidenceIndex: EvidenceIndex): Omit<Story, "id"> {
   const called = new Set(calls.map((call) => call.tool));
   const answer = entry.draft.evidence ? evidenceIndex.get(entry.draft.evidence.call) : undefined;
-  const evidence = answer && entry.draft.evidence ? { title: entry.draft.evidence.title, query: askedQuery(answer.query) } : null;
+  const evidence = answer && entry.draft.evidence ? { title: titleOfDrawn(entry.draft.evidence.title, answer.query), query: askedQuery(answer.query) } : null;
   const ruledOut = entry.draft.ruledOut.filter((item) => called.has(item.source) && !REMEMBERED.has(item.source));
   return { ...entry.draft, evidence, ruledOut };
 }
