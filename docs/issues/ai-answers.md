@@ -741,7 +741,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 | AI-58 (เดิม AI-16) | กลาง | ยังเสีย | An overclaim to the CEO is copied into the share approval with no warning |
 | AI-59 | กลาง | เปิด (ใหม่) | Chat 'ส่งเรื่องนี้' creates a legacy handoff, while the card path creates a matter |
 | AI-60 | กลาง | เปิด (ใหม่) | The run-sheet IT beat has nothing to show: the chain causes 0 denials |
-| AI-61 | กลาง | ยังเสีย | Debt collection for a named agent is routed to the national finance analyst, not the agent's rep |
+| AI-61 | กลาง | แก้แล้ว `efa3e85` | Debt collection for a named agent is routed to the national finance analyst, not the agent's rep |
 | AI-62 (เดิม AI-13; AI-10 (share part)) | กลาง | ยังเสีย | Share sheet suggests the wrong people: the national director preselected, and the sender's own team listed after the CEO and CFO |
 | AI-63 (เดิม AI-19) | กลาง | ยังเสีย | Every tool call of a turn is drawn as a card: lookups, failed calls and the catalog appear on unrelated answers and refusals |
 | AI-64 (เดิม AI-29) | กลาง | ยังเสีย | Turns over 40 s spent in unbounded Gemini reasoning |
@@ -754,25 +754,25 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 | AI-71 | กลาง | เปิด (ใหม่) | A 'this week' question gets a single-day hero whose sign is opposite to the week's |
 | AI-72 | กลาง | เปิด (ใหม่) | A role-permissions answer is a 57-row table on a phone |
 | AI-73 | กลาง | เปิด (ใหม่) | Cost questions are answered without the total that was asked for |
-| AI-74 | กลาง | เปิด (ใหม่) | Memory learns interests from refused, out-of-scope and injected requests |
-| AI-75 (เดิม AI-44) | กลาง | ยังเสีย | The 'ตัวเลขก่อน' preference is not applied consistently |
+| AI-74 | กลาง | แก้แล้ว `67ed73c` | Memory learns interests from refused, out-of-scope and injected requests |
+| AI-75 (เดิม AI-44) | กลาง | แก้แล้ว `8677d11` · รอยืนยันกับโมเดลรอบถัดไป | The 'ตัวเลขก่อน' preference is not applied consistently |
 | AI-76 (เดิม AI-30) | ต่ำ | ยังเสีย | The AR-by-region card in the multi-question risk turn drops ภาคเหนือ |
 | AI-77 (เดิม AI-30) | ต่ำ | ยังเสีย | Card actions and chips follow an open alert's region, not the answer |
 | AI-78 (เดิม AI-38) | ต่ำ | ยังเสีย | Internal ids and English enums reach the user |
 | AI-79 (เดิม AI-2) | ต่ำ | ยังเสีย | The text after approval still tells the user to confirm, and the turn time jumps |
-| AI-80 | ต่ำ | เปิด (ใหม่) | The injection guardrail missed the CEO's '--- [SYSTEM] … ---' form |
-| AI-81 | ต่ำ | เปิด (ใหม่) | An injection is blocked but not acknowledged |
-| AI-82 | ต่ำ | เปิด (ใหม่) | After forgetting ยอดดัน, the agent still reads it as sell-in without asking |
+| AI-80 | ต่ำ | แก้แล้ว `bdd0962` | The injection guardrail missed the CEO's '--- [SYSTEM] … ---' form |
+| AI-81 | ต่ำ | แก้แล้ว `bdd0962` `8677d11` · รอยืนยันกับโมเดลรอบถัดไป | An injection is blocked but not acknowledged |
+| AI-82 | ต่ำ | แก้แล้ว `8677d11` · รอยืนยันกับโมเดลรอบถัดไป | After forgetting ยอดดัน, the agent still reads it as sell-in without asking |
 | AI-83 | ต่ำ | เปิด (ใหม่) | The weekly line plots a 2-day W44 bucket as a collapse |
-| AI-84 | ต่ำ | เปิด (ใหม่) | A manager's leave question about a direct report gets 'no data', with permission and absence mixed |
+| AI-84 | ต่ำ | แก้แล้ว `9dc2a0c` | A manager's leave question about a direct report gets 'no data', with permission and absence mixed |
 | AI-85 | ต่ำ | เปิด (ใหม่) | The originator gets no bell update when the matter is passed on or accepted |
-| AI-86 (เดิม AI-36) | ต่ำ | ยังเสีย | A cross-region refusal never mentions the expired CEO grant |
+| AI-86 (เดิม AI-36) | ต่ำ | แก้แล้ว `8677d11` · รอยืนยันกับโมเดลรอบถัดไป | A cross-region refusal never mentions the expired CEO grant |
 | AI-87 | ต่ำ | เปิด (ใหม่) | Admin tool usage counts audit pseudo-rows, and accept is labelled 'ส่งต่อการ์ด' |
 | AI-88 (เดิม AI-31) | ต่ำ | ยังเสีย | get_alerts is not narrowed for a single-agent question |
 | AI-89 (เดิม AI-40) | ต่ำ | ยังเสีย | Phone layout: the share success panel fills the screen, the header covers numbers, and chat does not auto-scroll |
-| AI-90 (เดิม AI-35) | ต่ำ | ยังเสีย | Free-text 'ผม/ของผม' still means the whole region |
+| AI-90 (เดิม AI-35) | ต่ำ | แก้แล้ว `396f455` | Free-text 'ผม/ของผม' still means the whole region |
 | AI-91 | ต่ำ | ยังเสีย | คืนค่า on a permission override reverts at once with no confirmation or undo |
-| AI-92 | ต่ำ | เปิด (ใหม่) | Admin answers suggest loosening RSM access after correct denials |
+| AI-92 | ต่ำ | แก้แล้ว `3b28887` `8677d11` · รอยืนยันกับโมเดลรอบถัดไป | Admin answers suggest loosening RSM access after correct denials |
 | AI-9 | ต่ำ | แก้แล้ว (ยืนยันรอบ 2) | Region and month answers state data coverage |
 | AI-33 | ต่ำ | แก้แล้ว (ยืนยันรอบ 2) | Explain-gap shares add up to about 100% |
 | AI-11 | ต่ำ | แก้แล้ว (ยืนยันรอบ 2) | The handoff subject and pin title name the card's row |
@@ -900,7 +900,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-61. Debt collection for a named agent is routed to the national finance analyst, not the agent's rep
 
-- **สถานะ:** ยังเสีย
+- **สถานะ:** แก้แล้ว `efa3e85`
 - **ระดับ:** กลาง · **หมวด:** `write-flow` · **บทบาท:** CEO u_thana
 - **อาการ:** For s2t4 'ตัวนครศรีอะ ส่งให้คนดูแลไปตามเก็บ', the handoff went to คุณมิ้นท์ (finance_analyst, 0 prior tasks), although describe_entity in the same turn named คุณอาร์ม as the owner. Every AR card's handoff button targets คุณมิ้นท์, even on agent-scoped cards.
 - **ที่ควรเป็น:** Agent-scoped work goes to the rep assigned in master data (ownerId), with the metric's RACI owner as the fallback.
@@ -1042,7 +1042,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-74. Memory learns interests from refused, out-of-scope and injected requests
 
-- **สถานะ:** เปิด (ใหม่)
+- **สถานะ:** แก้แล้ว `67ed73c` · ยังไม่ครอบคลุมคำขอที่ถูกปิดแค่บางช่อง เช่นเงินเดือน (docs/memory.md)
 - **ระดับ:** กลาง · **หมวด:** `memory` · **บทบาท:** CEO u_thana, RSM u_anucha
 - **อาการ:** Memory now holds 'สนใจเงินเดือนและโบนัสของผู้จัดการขายภาค' (CEO), and ภาคใต้ (from the [SYSTEM] turn), รวมทั้งบริษัท, ภาคกลาง and เงินเดือน/วันลา interests (RSM). These feed memory.relevant and appear on /memory. The rep and IT memory are clean (AI-39).
 - **ที่ควรเป็น:** Turns that were refused, out of scope or flagged as injection do not become interests.
@@ -1053,7 +1053,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-75. The 'ตัวเลขก่อน' preference is not applied consistently
 
-- **สถานะ:** ยังเสีย · เดิม AI-44
+- **สถานะ:** แก้แล้ว `8677d11` · รอยืนยันกับโมเดลรอบถัดไป · เดิม AI-44
 - **ระดับ:** กลาง · **หมวด:** `memory` · **บทบาท:** CEO u_thana
 - **อาการ:** The style memory was saved. In the next chat, the 3-line limit held, but line 1 opened with date coverage instead of the number.
 - **ที่ควรเป็น:** A trusted format preference is followed on every turn.
@@ -1106,7 +1106,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-80. The injection guardrail missed the CEO's '--- [SYSTEM] … ---' form
 
-- **สถานะ:** เปิด (ใหม่)
+- **สถานะ:** แก้แล้ว `bdd0962`
 - **ระดับ:** ต่ำ · **หมวด:** `injection` · **บทบาท:** CEO u_thana
 - **อาการ:** The injection had no effect, but no guardrail row was written for it. The RSM's '[SYSTEM]…[/SYSTEM]' form was flagged.
 - **ที่ควรเป็น:** Both forms are flagged.
@@ -1116,7 +1116,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-81. An injection is blocked but not acknowledged
 
-- **สถานะ:** เปิด (ใหม่)
+- **สถานะ:** แก้แล้ว `bdd0962` `8677d11` · รอยืนยันกับโมเดลรอบถัดไป
 - **ระดับ:** ต่ำ · **หมวด:** `thai-language` · **บทบาท:** พนักงานขาย u_krit
 - **อาการ:** Scope held and AR was masked, but the reply never said that chat cannot change permissions. It also gave data coverage for a metric the user cannot see.
 - **ที่ควรเป็น:** One line saying that chat cannot change permissions.
@@ -1126,7 +1126,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-82. After forgetting ยอดดัน, the agent still reads it as sell-in without asking
 
-- **สถานะ:** เปิด (ใหม่)
+- **สถานะ:** แก้แล้ว `8677d11` · รอยืนยันกับโมเดลรอบถัดไป
 - **ระดับ:** ต่ำ · **หมวด:** `memory` · **บทบาท:** CEO u_thana
 - **อาการ:** The tombstones held (AI-41 and AI-42). In a new chat, ยอดดัน was mapped to ขายเข้า with no clarifying question (75.5 s turn).
 - **ที่ควรเป็น:** Ask what the term means, or state the assumption.
@@ -1146,7 +1146,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-84. A manager's leave question about a direct report gets 'no data', with permission and absence mixed
 
-- **สถานะ:** เปิด (ใหม่)
+- **สถานะ:** แก้แล้ว `9dc2a0c`
 - **ระดับ:** ต่ำ · **หมวด:** `wrong-answer` · **บทบาท:** RSM u_anucha
 - **อาการ:** One sentence says salary is restricted and leave is 'not in the system'. The turn drew a names-only card. Krit's pending leave is in the inbox.
 - **ที่ควรเป็น:** Say which part is restricted and which part exists.
@@ -1166,7 +1166,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-86. A cross-region refusal never mentions the expired CEO grant
 
-- **สถานะ:** ยังเสีย · เดิม AI-36
+- **สถานะ:** แก้แล้ว `8677d11` · รอยืนยันกับโมเดลรอบถัดไป · เดิม AI-36
 - **ระดับ:** ต่ำ · **หมวด:** `wrong-answer` · **บทบาท:** พนักงานขาย u_krit
 - **อาการ:** The refusal held, but it added an unasked Isan card and a Central RSM card, and said nothing about the expired grant.
 - **ที่ควรเป็น:** Explain the expired grant and offer to request a renewal.
@@ -1207,7 +1207,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-90. Free-text 'ผม/ของผม' still means the whole region
 
-- **สถานะ:** ยังเสีย · เดิม AI-35
+- **สถานะ:** แก้แล้ว `396f455` · เดิม AI-35
 - **ระดับ:** ต่ำ · **หมวด:** `wrong-answer` · **บทบาท:** พนักงานขาย u_krit
 - **อาการ:** The chip is fixed, but a typed 'ผมขายได้กี่เปอร์เซ็นต์' queried all of Isan.
 - **ที่ควรเป็น:** The rep's own agents are part of his context.
@@ -1227,7 +1227,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-92. Admin answers suggest loosening RSM access after correct denials
 
-- **สถานะ:** เปิด (ใหม่)
+- **สถานะ:** แก้แล้ว `3b28887` `8677d11` · รอยืนยันกับโมเดลรอบถัดไป
 - **ระดับ:** ต่ำ · **หมวด:** `wrong-answer` · **บทบาท:** ผู้ดูแลระบบไอที u_ton
 - **อาการ:** Twice, the reply suggested widening RSM access for correct out-of-region denials.
 - **ที่ควรเป็น:** Report the denials neutrally.
