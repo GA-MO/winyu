@@ -11,7 +11,7 @@ Winyu is one Next.js server process in one container. Nothing else runs beside i
 - It serves the web app and the API on port `8080` in the container. `deploy/compose.yaml` publishes it on `localhost:3100`.
 - It runs the chat agent (Mastra) and calls the model through OpenRouter.
 - It runs the background jobs on Bangkok cron when `WINYU_SCHEDULER=on`: anomaly and forecast at midnight, watches hourly, and the digest at 07:00.
-- It embeds memory text with a local model (`Xenova/multilingual-e5-base`), which ships inside the image.
+- It embeds memory text through OpenRouter (`intfloat/multilingual-e5-large`) so that recall can find past conversations.
 - It finishes any chat run that a restart cut off. It does this on boot.
 
 There is no database server, no cache, and no queue. All state is files in `/data`.
@@ -23,7 +23,6 @@ flowchart LR
 		seed --> img
 		src["repo source"] --> img["image winyu-demo"]
 		npm["npm registry"] -.->|"bun install"| img
-		hf["huggingface.co"] -.->|"e5 model"| img
 		gf["Google Fonts"] -.->|"next/font"| img
 	end
 	subgraph host["Host (infra)"]
@@ -43,10 +42,10 @@ Dashed lines happen only at build time. At run time the container talks to `open
 
 | Stage | Base | What it does |
 |---|---|---|
-| `build` | `node:22-bookworm`, with the `bun` binary copied from `oven/bun:1.4-debian` | `bun install --frozen-lockfile` from `bun.lock`, `bun run scripts/warm-embedder.ts` to download the e5 model (282 MB), `next build` |
-| runtime | `node:22-bookworm-slim` | Runs as user `node`. Holds `node_modules`, `.next`, `public`, the model cache in `/home/node/.cache/winyu/models`, the snapshot in `/app/seed-data`, and `entrypoint.sh` |
+| `build` | `node:22-bookworm`, with the `bun` binary copied from `oven/bun:1.4-debian` | `bun install --frozen-lockfile` from `bun.lock`, then `next build` |
+| runtime | `node:22-bookworm-slim` | Runs as user `node`. Holds `node_modules`, `.next`, `public`, the snapshot in `/app/seed-data`, and `entrypoint.sh` |
 
-Bun is in the build stage only. The runtime image has Node and no Bun. The runtime base is Debian, not Alpine, because `onnxruntime-node` needs glibc.
+Bun is in the build stage only. The runtime image has Node and no Bun.
 
 The image sets `NODE_ENV=production`, `WINYU_DATA_DIR=/data`, and `PORT=8080`. It also sets `COPILOTKIT_TELEMETRY_DISABLED=true` and `NEXT_TELEMETRY_DISABLED=1`. Without them, the CopilotKit runtime reports every runtime start and every run to `telemetry.copilotkit.ai`, and `next build` reports to Vercel. It declares `VOLUME /data`, `EXPOSE 8080`, and a health check that fetches `/login` every 30 seconds.
 
@@ -92,8 +91,8 @@ The demo does not use the `ENTRA_*`, `LINE_*`, `TEAMS_*`, or `WINYU_PUBLIC_URL` 
 ## Network
 
 - **Inbound.** Port `8080`, plain HTTP. Put an HTTPS proxy or load balancer in front of the container. In production the session cookie is `Secure`. If the browser reaches the app over plain HTTP, sign-in fails and shows no error.
-- **Outbound at run time.** `openrouter.ai` on port 443.
-- **Outbound at build time.** The npm registry for `bun install`, `huggingface.co` for the e5 model, and Google Fonts for `next/font`.
+- **Outbound at run time.** `openrouter.ai` on port 443, for the chat model and for the memory embeddings.
+- **Outbound at build time.** The npm registry for `bun install` and Google Fonts for `next/font`.
 
 ## Exposure
 
@@ -105,14 +104,19 @@ The demo is public. Anyone who opens the URL can pick any of the 26 personas, IT
 
 ## Build machine
 
-Measured on 2026-10-15 and 2026-10-16 in a Docker Desktop VM with 4 GB of memory:
+Measured on 2026-10-16 in a Docker Desktop VM with 4 GB of memory, one run each:
 
-| Builder | Result |
-|---|---|
-| `docker build` (BuildKit) | Passed once on 2026-10-15. Killed three times on 2026-10-16 in the TypeScript step of `next build`, with the same code |
-| Kaniko (`gcr.io/kaniko-project/executor:debug`, the builder CI uses) | Killed during `next build`, also with `--compressed-caching=false --snapshot-mode=redo` |
+| Build | Peak memory | Result |
+|---|---|---|
+| `next build` alone, before `docs/adr/0005-server-only-packages-stay-out-of-the-bundle.md` | over 3.1 GB | Killed |
+| `next build` alone, after it | 2.28 GB | Passes in 75 s |
+| `docker build` (BuildKit) | | Passes |
+| Kaniko with no flags, while the image still downloaded and loaded the local e5 model | 3.0 GB at `warm-embedder` | Killed |
+| Kaniko with `--single-snapshot --compressed-caching=false --snapshot-mode=redo`, as `.gitlab-ci.yml` runs it | 2.64 GB with the local model, 2.19 GB without it | Passes in about 200 s, then 164 s. The image it built with the model ran, and its health check reported healthy |
 
-Kaniko builds inside one container and keeps its own filesystem snapshots in memory on top of `next build`. A local `docker build` needs Docker Desktop set above 4 GB, for example 6 GB. Give the CI build at least 6 GB. That number is an estimate, not a measurement, because only 4 GB was available here. The image is about 4.8 GB, because it carries the full `node_modules` and the 282 MB e5 model.
+`next build` peaks are the cgroup's anonymous memory. Kaniko peaks are `docker stats`. Kaniko builds inside one container. By default it takes a snapshot of the whole filesystem after every step, `node_modules` included. `--single-snapshot` takes one snapshot per stage at the end. Give the CI build at least 4 GB. `docs/adr/0006-recall-embeddings-through-openrouter.md` removed the local e5 model. The image is about 2.6 GB, mostly the full `node_modules`.
+
+A server-only package that a route imports belongs in `SERVER_ONLY_PACKAGES` in `next.config.ts`. Otherwise Turbopack bundles it and its dependencies, and the build needs more memory again.
 
 Most routes do not load the agent. `lib/server/light-requests.test.ts` fails when a session-only path, such as `lib/server/session.ts` or `app/api/feed/route.ts`, statically imports Mastra, the AI SDK, OpenRouter, or OpenTelemetry. If that test fails, the build needs more memory again.
 
@@ -132,7 +136,7 @@ The Deployment differs from the Go services in these ways:
 - **`replicas: 1`, always.** The state lives in the pod. Two pods would each hold different chats and dashboards.
 - **`/data` is an `emptyDir` (1 Gi).** Every new pod starts empty, so the entrypoint copies the snapshot in. A deploy, a `rollout restart`, a crash, or a node upgrade therefore resets the demo data. The nightly CronJob uses this to reset the demo.
 - **Config comes from `envFrom`.** The app reads environment variables, not an `application.yml` file. `winyu-config` holds the plain settings and `winyu-secret` holds `OPENROUTER_API_KEY` and `WINYU_SESSION_SECRET`.
-- **Resources.** Requests `1Gi` memory and `250m` CPU, limit `2Gi` memory. Measured in Docker: 425 MiB idle and 541 MiB after every page for three personas. The e5 embedder loads after the first chat. We estimate that it brings the pod to about 1 GB.
+- **Resources.** Requests `1Gi` memory and `250m` CPU, limit `2Gi` memory. Measured in Docker: 425 MiB idle and 541 MiB after every page for three personas, with the earlier local embedder. With embeddings through OpenRouter, 351 MiB after one chat turn that called `recall_memory`.
 - **Probes on `GET /login`.** The app has no `/healthz`. A startup probe allows 2 minutes for the first start.
 - **Port.** The container listens on `8080`, and the Service exposes `8080`, the same port as the `sol-*` services.
 
@@ -140,7 +144,7 @@ The snapshot `deploy/seed-data` is committed to git, because CI builds from the 
 
 ### First deploy
 
-1. Make a runner with about 6 GB for Kaniko available to the project `gitlab.com/sbpds-ai/winyu`.
+1. Make a runner with at least 4 GB for Kaniko available to the project `gitlab.com/sbpds-ai/winyu`.
 2. Set the CI variable `UAT_SERVICE_ACCOUNT64` on the project, the same as on the other `sol-*` projects.
 3. Fill in `deploy/k8s-config.example.yml`. Do not commit the real values. Then run `kubectl apply -f <the filled file> -n sol-uat`.
 4. Set the CI variable `WINYU_DEPLOY_ENABLED` to `true`, then merge `main` into `uat`. The pipeline builds, applies, and waits for the rollout.
@@ -155,13 +159,13 @@ We do not know these facts. Fill them in here when you know them, and change the
 | Question | What we assumed | Where it is set | Answer |
 |---|---|---|---|
 | Can a project in the `sbpds-ai` group use the `gcloud-sol-dev` runner? | Yes | GitLab runner settings, `.gitlab-ci.yml` `tags` | |
-| How much memory does that runner give a Kaniko job? The build needs about 6 GB (estimate). | Enough | `.gitlab-ci.yml` `tags` | |
+| How much memory does that runner give a Kaniko job? The build peaks at 2.19 GB in Kaniko (measured in a 4 GB VM). | Enough | `.gitlab-ci.yml` `tags` | |
 | Which namespace hosts the demo? | `sol-uat` | `.gitlab-ci.yml` `UAT_NAMESPACE` | |
 | Which registry path and tag? | `singhaonline-dev/sol/winyu:uat` | `.gitlab-ci.yml` `UAT_DOCKER_IMAGE_URL` | |
 | Can `UAT_SERVICE_ACCOUNT64` push to that path and deploy to that namespace? | Yes, as for the `sol-*` projects | GitLab CI variables | |
 | What is the public hostname, and who issues its TLS certificate? | Infra's ingress | Outside this repository | |
 | Can pods in the namespace reach `openrouter.ai:443`? | Yes | Cluster egress or NAT | |
-| Can the runner reach the npm registry, `huggingface.co`, and Google Fonts during the build? | Yes | Runner network | |
+| Can the runner reach the npm registry and Google Fonts during the build? | Yes | Runner network | |
 | Do nodes labelled `sol: "true"` have 2 GiB of free memory for this pod? | Yes | `k8s-deploy.yml` `nodeSelector` | |
 | May the cluster pull `bitnami/kubectl:1.31` from Docker Hub for the nightly reset? | Yes | `deploy/k8s-nightly-reset.yml` | |
 | Who holds the OpenRouter key, and what is its credit limit? | A demo-only key with a limit | Secret `winyu-secret` | |

@@ -25,6 +25,10 @@ function providerOrderOf(modelId: string): string[] | null {
   return PROVIDER_ORDER[modelId] ?? null;
 }
 
+function openRouterClient(apiKey: string) {
+  return createOpenRouter({ apiKey, compatibility: "strict", appName: process.env.OPENROUTER_APP_TITLE ?? "Winyu", appUrl: OPENROUTER_APP_URL });
+}
+
 function metered(modelId: string, model: Exclude<LanguageModel, string>): MeteredModel {
   return wrapLanguageModel({ model: model as WrappableModel, middleware: [traceMiddleware(), meterMiddleware(modelId)] });
 }
@@ -34,7 +38,7 @@ export function agentModel(): AgentModel | null {
   const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey) return null;
   const id = process.env.AGENT_MODEL || DEFAULT_OPENROUTER_MODEL;
-  const client = createOpenRouter({ apiKey, compatibility: "strict", appName: process.env.OPENROUTER_APP_TITLE ?? "Winyu", appUrl: OPENROUTER_APP_URL });
+  const client = openRouterClient(apiKey);
   const order = providerOrderOf(id);
   const settings = { usage: { include: true }, ...(order ? { provider: { order, allow_fallbacks: true } } : {}) };
   return { id, name: MODEL_NAMES[id] ?? id, model: () => metered(id, client(id, settings)) };
@@ -43,4 +47,10 @@ export function agentModel(): AgentModel | null {
 /** The model background jobs (memory extraction and review, digest, titles) run on, or null when no real model is configured. */
 export function utilityModel(): LanguageModel | null {
   return agentModel()?.model() ?? null;
+}
+
+/** An OpenRouter embedding model by id, or null when no OPENROUTER_API_KEY is set; the caller records its usage with `recordEmbedding`. */
+export function embeddingModel(id: string) {
+  const apiKey = process.env.OPENROUTER_API_KEY;
+  return apiKey ? openRouterClient(apiKey).textEmbeddingModel(id) : null;
 }

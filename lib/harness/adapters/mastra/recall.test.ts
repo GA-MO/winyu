@@ -1,13 +1,28 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import type { MetricQuery } from "@/lib/contracts";
 import { TH } from "@/lib/i18n/th";
-import type { RecallTurn } from "@/lib/server/recall/types";
+import { useEmbedder } from "@/lib/server/recall/embedder";
+import { TRIGRAM_EMBEDDER } from "@/lib/server/recall/trigram-embedder";
+import type { Embedder, RecallTurn } from "@/lib/server/recall/types";
 import { threadForRun, threads } from "@/lib/server/threads-read";
-import { forgetConversation, forgetConversations, indexTurn, recallableThreads, searchConversations } from "./recall";
+import { forgetConversation, forgetConversations, indexTurn, prepareRecallIndex, recallableThreads, searchConversations } from "./recall";
 
 const USER = "u_recall_test";
 const OTHER = "u_recall_other";
 const ATTRITION_QUERY: MetricQuery = { metric: "attrition_rate", dims: ["department"], filters: {}, range: { from: "2026-09-01", to: "2026-09-22" }, grain: "month", compare: "none", limit: null };
+
+const WIDER_DIMENSION = 96;
+
+const WIDER_EMBEDDER: Embedder = {
+  id: "trigram-96",
+  dimension: WIDER_DIMENSION,
+  passages: async (texts) => (await TRIGRAM_EMBEDDER.passages(texts)).map(padded),
+  query: async (text) => padded(await TRIGRAM_EMBEDDER.query(text)),
+};
+
+function padded(vector: number[]): number[] {
+  return [...vector, ...new Array<number>(WIDER_DIMENSION - vector.length).fill(0)];
+}
 
 let turnCount = 0;
 
@@ -61,5 +76,20 @@ describe("conversation recall", () => {
     expect((await recallableThreads(OTHER)).map((thread) => thread.threadId)).toEqual(["t_drop_other"]);
     await forgetConversations(USER);
     expect(await recallableThreads(USER)).toEqual([]);
+  });
+
+  test("an embedder of another vector size re-embeds the stored conversations instead of losing them", async () => {
+    await indexTurn(turn(USER, "t_resize", "อัตราการลาออกแต่ละฝ่ายเป็นยังไง", "ฝ่ายขายสูงสุด"));
+    await indexTurn(turn(USER, "t_resize", "แยกตามเดือน", "ทรงตัว"));
+    useEmbedder(WIDER_EMBEDDER);
+    try {
+      expect(await prepareRecallIndex()).toMatchObject({ dimension: WIDER_DIMENSION });
+      expect((await searchConversations(USER, "ครั้งก่อนที่คุยเรื่องอัตราการลาออก"))[0]?.threadId).toBe("t_resize");
+      expect((await recallableThreads(USER)).map((thread) => [thread.threadId, thread.turns])).toEqual([["t_resize", 2]]);
+    } finally {
+      await forgetConversations(USER);
+      useEmbedder(TRIGRAM_EMBEDDER);
+    }
+    expect(await prepareRecallIndex()).toMatchObject({ dimension: TRIGRAM_EMBEDDER.dimension });
   });
 });

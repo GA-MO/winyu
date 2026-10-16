@@ -6,7 +6,6 @@ WORKDIR /app
 COPY package.json bun.lock ./
 RUN bun install --frozen-lockfile
 COPY . .
-RUN bun run scripts/warm-embedder.ts
 ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1
 RUN node node_modules/next/dist/bin/next build
 
@@ -17,7 +16,6 @@ COPY --from=build --chown=node:node /app/package.json /app/next.config.ts /app/t
 COPY --from=build --chown=node:node /app/node_modules ./node_modules
 COPY --from=build --chown=node:node /app/.next ./.next
 COPY --from=build --chown=node:node /app/public ./public
-COPY --from=build --chown=node:node /root/.cache/winyu /home/node/.cache/winyu
 COPY --chown=node:node deploy/seed-data ./seed-data
 COPY --chown=node:node deploy/entrypoint.sh ./entrypoint.sh
 RUN mkdir -p /data && chown node:node /data

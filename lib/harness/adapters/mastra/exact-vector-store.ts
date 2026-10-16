@@ -18,3 +18,17 @@ export async function reopenExact(setup: LibSQLVector, { id, url, indexName }: V
   }
   return new LibSQLVector({ id, url });
 }
+
+/** One stored vector's id and metadata, read straight from the index table. */
+export type StoredVector = { id: string; metadata: Record<string, unknown> };
+
+/** Every row of an index, without its vector: what a re-embedding needs to rebuild it. */
+export async function storedVectors({ url, indexName }: Omit<VectorIndexLocation, "id">): Promise<StoredVector[]> {
+  const client = createClient({ url });
+  try {
+    const result = await client.execute(`SELECT vector_id, metadata FROM "${indexName}"`);
+    return result.rows.map((row) => ({ id: String(row.vector_id), metadata: JSON.parse(String(row.metadata ?? "{}")) as Record<string, unknown> }));
+  } finally {
+    client.close();
+  }
+}

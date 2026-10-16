@@ -40,7 +40,7 @@ Each phase ends in a check that someone can rerun. Do not start a phase before t
 The steps are in `docs/handoff-infra.md`, First deploy.
 
 - [ ] Infra answers the twelve questions in `docs/handoff-infra.md`, and we change the files where an answer differs from our assumption.
-- [ ] Infra makes a runner with about 6 GB for Kaniko available to `sbpds-ai/winyu`. Check: a Kaniko build of `main` finishes.
+- [ ] Infra makes a runner with at least 4 GB for Kaniko available to `sbpds-ai/winyu`. Check: a Kaniko build of `main` finishes.
 - [ ] Infra sets `UAT_SERVICE_ACCOUNT64` and creates `winyu-config` and `winyu-secret` in the namespace.
 - [ ] Infra sets `WINYU_DEPLOY_ENABLED=true`, and we merge `main` into `uat`. Check: the pipeline ends with `rollout status` reporting success, and the pod log shows that it seeded `/data`.
 - [ ] Infra points an ingress with TLS at the Service `winyu`. Check: the persona picker loads over HTTPS.
@@ -48,7 +48,7 @@ The steps are in `docs/handoff-infra.md`, First deploy.
 ### Phase 3. Verify the public demo
 
 - [ ] Walk the CEO, a sales rep, and IT admin on the public URL, with one question each. Check: the same results as in Phase 0. About three model calls, about $0.02.
-- [ ] Measure the pod's memory after the first chat, when the embedder has loaded. Check: it stays under the `2Gi` limit. Adjust the requests if it does not.
+- [ ] Measure the pod's memory after the first chat, when the embedder has loaded. Check: it stays under the `2Gi` limit. Adjust the requests if it does not. In Docker it was 446 MiB after one chat (2026-10-16).
 - [ ] Apply `deploy/k8s-nightly-reset.yml`, if infra agrees. Check: after 03:00 Bangkok time, a test thread is gone.
 
 ### Follow-up
@@ -57,6 +57,8 @@ The steps are in `docs/handoff-infra.md`, First deploy.
 - [ ] Add a notice on the login page that the data is fictional and shared between visitors who pick the same persona (string in `lib/i18n/th.ts`).
 - [ ] Decide whether the demo needs a per-visitor chat limit. Today the OpenRouter credit limit is the only cap.
 - [ ] Add a `/healthz` route, if infra prefers it to probing `/login`.
+- [x] Keep the server-only packages out of the Turbopack bundle and turn off the build cache (2026-10-16). Check: `next build` peaks at 2.28 GB on Linux (was killed above 3.1 GB), `docker build` passes in 4 GB, and Kaniko with the flags in `.gitlab-ci.yml` passes at 2.64 GB; the image it builds runs and reports healthy.
+- [x] Embed recall through OpenRouter (`intfloat/multilingual-e5-large`) instead of the local e5-base model (2026-10-16, `docs/adr/0006-recall-embeddings-through-openrouter.md`). Check: the image is 2.59 GB (was 3.73 GB); in the image, a recall question as u_krit finds the earlier notebook thread, `winyu_recall` grows by 2 vectors of 1024 dimensions, and both embedding calls are in the ledger.
 - [x] Listen on port `8080` in the container and the Service, like the `sol-*` services (2026-10-16). Check: the image answers `/login` with 200 on `8080`, and its HEALTHCHECK command exits 0.
 - [ ] Re-record the eval cases when the external document RAG connects. Every recording is stale since the prompt changed on 2026-10-15.
 
@@ -68,7 +70,7 @@ The steps are in `docs/handoff-infra.md`, First deploy.
 | Visitors who pick the same persona see each other's chats, memory, and dashboard (threads are keyed by persona, `lib/server/threads-read.ts`) | Fictional data, the reset on every restart, and the follow-up notice on the login page |
 | The IT admin persona can change permissions, switches, and connectors | `WINYU_CONNECTOR_HOSTS` is empty, so no connector can reach any host. Any restart resets the changes |
 | Over plain HTTP the `Secure` session cookie is dropped and sign-in fails without an error | The ingress serves HTTPS only |
-| Kaniko runs out of memory on the CI runner | Phase 2 asks for about 6 GB. The estimate is unmeasured, because only 4 GB was available locally |
+| Kaniko runs out of memory on the CI runner | Kaniko with the flags in `.gitlab-ci.yml` peaked at 2.19 GB in a 4 GB VM (`docs/adr/0005-server-only-packages-stay-out-of-the-bundle.md`). Phase 2 asks for at least 4 GB |
 | A second replica splits the state | `replicas: 1` in `k8s-deploy.yml`, and the warning in `docs/handoff-infra.md` |
 
 ## Rollback

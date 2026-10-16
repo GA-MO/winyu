@@ -25,11 +25,13 @@ Each turn, `relevantMemory` (`lib/server/agent/persona.ts`) ranks the trusted fa
 
 ## How conversation recall works
 
-After each finished turn, `learnFromTurn` also embeds the question and the reply text as two vectors with a local model and stores them in a `LibSQLVector` index named `winyu_recall` in `.data/mastra.db`. Each vector carries the person's id, the thread, the turn, the text, the time, and the turn's metric queries.
+After each finished turn, `learnFromTurn` also embeds the question and the reply text as two vectors through OpenRouter and stores them in a `LibSQLVector` index named `winyu_recall` in `.data/mastra.db`. Each vector carries the person's id, the thread, the turn, the text, the time, and the turn's metric queries.
 
 The `recall_memory` tool searches that index when the model calls it, usually because the person refers to an earlier conversation. It returns at most three past threads (not the current one), each with its title, date, question, reply, and metric queries. Before any recalled text leaves the recall module, `maskNumbers` replaces every number in it. The model therefore cannot repeat an old figure. To give a number, it re-runs the stored `query_metric` query through the gateway, which applies the person's current scope.
 
-The embedder is `Xenova/multilingual-e5-base` (8-bit) through `@huggingface/transformers`. It runs on the server's CPU. No text leaves the machine. The model (288 MB) downloads once to `~/.cache/winyu/models`.
+The embedder is `intfloat/multilingual-e5-large` (1024 dimensions) through OpenRouter's embeddings API (`RECALL_EMBEDDING` in `lib/server/recall/embedder.ts`). The question and the reply text of every turn go to OpenRouter and the provider it routes to (DeepInfra in our calls), the same route the chat text already takes. The numbers in them are not masked at that point. Each call is recorded in the model ledger with the cost OpenRouter billed. One call takes about 1.2 to 2.3 seconds, so a turn that calls `recall_memory` waits about that long for its query embedding. Indexing runs after the reply. Without `OPENROUTER_API_KEY`, recall cannot embed and the turn is not indexed.
+
+An index built for another vector size is embedded again from its stored texts the first time it opens (`prepareRecallIndex` in `lib/harness/adapters/mastra/recall.ts`). The new vectors are computed before the old index is dropped. Tests use the trigram embedder and never call the API.
 
 ## Working memory: rejected, its one advantage kept
 
@@ -101,6 +103,19 @@ Mastra's per-turn processor was rejected for three measured reasons:
 - **It adds tokens to every call of every turn.** On-demand recall adds tokens only on the turns that call `recall_memory`.
 - **Its block is not fenced and keeps the old numbers.** The processor writes past replies, figures included, into a system message.
 
+### The embedder moved to OpenRouter (2026-10-16)
+
+The local e5-base model made the demo image 3.73 GB and its build heavier (`docs/adr/0006-recall-embeddings-through-openrouter.md`). `bun run memory:bench --embedders=…` compared OpenRouter models on the 63 recorded conversations (119 messages) and the same 38 questions. The total cost was $0.0024.
+
+| Model | Right thread in top 3 | Right thread first | Query time (p50) | Price per million tokens |
+|---|---|---|---|---|
+| `intfloat/multilingual-e5-large` (chosen) | 38 of 38 | 34 of 38 | 1.2 to 1.5 s | $0.01 |
+| `baai/bge-m3` | 38 of 38 | 33 of 38 | 1.3 to 1.7 s | $0.01 |
+| `qwen/qwen3-embedding-8b` | 37 of 38 | 34 of 38 | 1.2 s | $0.01 |
+| `google/gemini-embedding-001` | 37 of 38 | 35 of 38 | 0.9 s | $0.15 |
+
+Trigram found 27 of 38 in its top 3 on the same set. The earlier local numbers came from 58 conversations, so they do not compare one to one. e5-large keeps the `query:` and `passage:` prefixes of the model it replaced. Its scores bunch together (related 0.837 to 0.908, unrelated 0.806 to 0.830), which does not matter while recall returns the top three without a threshold.
+
 FastEmbed's multilingual E5 large, Mastra's documented local option, found fewer threads than e5-base (recall@3 34 of 38 against 36 of 38) and took about 0.8 to 1.0 seconds per query against about 25 to 45 milliseconds, with a 2.1 GB model. The English FastEmbed models do not read Thai.
 
 ## Observational memory: rejected
@@ -117,11 +132,11 @@ Costs are per chat turn. The median chat turn costs $0.0115 (42 turns in the mai
 |---|---|---|---|---|
 | Fact extraction (today, kept) | 1 utility call after the reply (median 515 input tokens) | at most 308 | none | $0.0013 |
 | `asked` origin (F6, adopted) | 0 | about 40 | none | about $0 |
-| Conversation recall (F6, adopted) | 0, plus 2 local embeddings after the reply | 0, or p50 517 on turns that call `recall_memory` | 16 to 21 ms on those turns | $0 |
+| Conversation recall (F6, adopted) | 0, plus 1 embedding call after the reply (about 80 tokens) | 0, or p50 517 on turns that call `recall_memory` | about 1.2 to 1.5 s on those turns, for the query embedding | under $0.00001 |
 | Working memory (rejected) | 1 more chat step on every turn that writes the profile | about 730 | one more step (6.6 s against 5.1 s) | about $0.004 on a write turn, plus about $0.0005 on every turn |
 | Per-turn semantic recall (rejected) | 0, plus 1 local embedding | p50 713 | 16 to 21 ms on every turn | about $0.0005 |
 | Observational memory (rejected) | about 1.3 Observer calls | fewer in threads past 30,000 tokens | none (background) | about $0.005 (estimate) |
 
 ## Reproduce the numbers
 
-`bun run memory:bench` measures retrieval, prompt sizes, thread sizes, and extraction cost with no model call. `--mastra-db=<path>` and `--ledger=<path>` point it at another store or ledger. The two-thread behaviour is graded by the eval cases `memory-remember-region` and `memory-recall-thread` (`bun run eval --case=memory-remember-region,memory-recall-thread`), recorded live once.
+`bun run memory:bench` measures retrieval, prompt sizes, thread sizes, and extraction cost. Only retrieval spends: each embedding model in `--embedders` (the recall model by default) embeds about 15,000 tokens, under $0.0002 at $0.01 per million. `--mastra-db=<path>` and `--ledger=<path>` point it at another store or ledger. The two-thread behaviour is graded by the eval cases `memory-remember-region` and `memory-recall-thread` (`bun run eval --case=memory-remember-region,memory-recall-thread`), recorded live once.

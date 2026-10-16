@@ -4,7 +4,7 @@ import { z } from "zod";
 import type { MetricQuery } from "@/lib/contracts";
 import { currentEmbedder } from "@/lib/server/recall/embedder";
 import { maskNumbers, REPLY_CHARS, truncate } from "@/lib/server/recall/mask";
-import type { RecallTurn, RecalledConversation } from "@/lib/server/recall/types";
+import type { Embedder, RecallTurn, RecalledConversation } from "@/lib/server/recall/types";
 import { DATA_DIR } from "@/lib/server/store/json-store";
 import { threads } from "@/lib/server/threads-read";
 
@@ -38,17 +38,49 @@ type Hit = { score: number; metadata: TurnMetadata };
 /** A conversation the person can see is findable, and take out of recall. */
 export type RecallableThread = { threadId: string; title: string; turns: number; lastAt: string };
 
-let ready: Promise<LibSQLVector> | null = null;
+type Reembedded = { ids: string[]; vectors: number[][]; metadata: Record<string, unknown>[] };
 
+let opened: { embedderId: string; store: Promise<LibSQLVector> } | null = null;
+
+/** The index's rows embedded again when it was built for another vector size, or null when it fits; nothing is deleted until every text has its new vector. */
+async function reembedResized(setup: LibSQLVector, url: string, embedder: Embedder): Promise<Reembedded | null> {
+  if (!(await setup.listIndexes()).includes(INDEX_NAME)) return null;
+  if ((await setup.describeIndex({ indexName: INDEX_NAME })).dimension === embedder.dimension) return null;
+  const { storedVectors } = await import("./exact-vector-store");
+  const rows = (await storedVectors({ url, indexName: INDEX_NAME })).filter((row) => turnMetadataSchema.safeParse(row.metadata).success);
+  const vectors = await embedder.passages(rows.map((row) => String(row.metadata.text)));
+  return { ids: rows.map((row) => row.id), vectors, metadata: rows.map((row) => row.metadata) };
+}
+
+async function openStore(embedder: Embedder): Promise<LibSQLVector> {
+  const [{ LibSQLVector }, { reopenExact }] = await Promise.all([import("@mastra/libsql"), import("./exact-vector-store")]);
+  const url = `file:${path.join(DATA_DIR, STORAGE_FILE)}`;
+  const setup = new LibSQLVector({ id: VECTOR_STORE_ID, url });
+  const carried = await reembedResized(setup, url, embedder);
+  if (carried) await setup.deleteIndex({ indexName: INDEX_NAME });
+  await setup.createIndex({ indexName: INDEX_NAME, dimension: embedder.dimension });
+  const store = await reopenExact(setup, { id: VECTOR_STORE_ID, url, indexName: INDEX_NAME });
+  if (carried && carried.ids.length > 0) await store.upsert({ indexName: INDEX_NAME, ...carried });
+  return store;
+}
+
+/** The recall index for the current embedder; switching embedders reopens it, and an index of another vector size is re-embedded from its stored texts. */
 function vectorStore(): Promise<LibSQLVector> {
-  ready ??= (async () => {
-    const [{ LibSQLVector }, { reopenExact }] = await Promise.all([import("@mastra/libsql"), import("./exact-vector-store")]);
-    const url = `file:${path.join(DATA_DIR, STORAGE_FILE)}`;
-    const setup = new LibSQLVector({ id: VECTOR_STORE_ID, url });
-    await setup.createIndex({ indexName: INDEX_NAME, dimension: currentEmbedder().dimension });
-    return reopenExact(setup, { id: VECTOR_STORE_ID, url, indexName: INDEX_NAME });
-  })();
-  return ready;
+  const embedder = currentEmbedder();
+  if (opened?.embedderId === embedder.id) return opened.store;
+  const store = openStore(embedder);
+  opened = { embedderId: embedder.id, store };
+  store.catch(() => {
+    if (opened?.store === store) opened = null;
+  });
+  return store;
+}
+
+/** Opens the recall index, re-embedding it first when the embedder changed its vector size. */
+export async function prepareRecallIndex(): Promise<{ dimension: number; vectors: number }> {
+  const store = await vectorStore();
+  const stats = await store.describeIndex({ indexName: INDEX_NAME });
+  return { dimension: stats.dimension, vectors: stats.count };
 }
 
 function metadataOf(turn: RecallTurn, role: Role, text: string): TurnMetadata {

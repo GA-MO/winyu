@@ -1902,5 +1902,19 @@
     "reasoningTokens": 338,
     "billedUsd": 0.00097875,
     "estimatedUsd": 0.0019575
+  },
+  {
+    "id": "c409105d-cca7-4cd9-9423-03e641f3913a",
+    "at": "2026-10-16T09:07:02.207Z",
+    "modelId": "intfloat/multilingual-e5-large",
+    "source": "background",
+    "userId": null,
+    "turnId": null,
+    "inputTokens": 2601,
+    "cachedTokens": 0,
+    "outputTokens": 0,
+    "reasoningTokens": 0,
+    "billedUsd": 0.00002601,
+    "estimatedUsd": 0
   }
 ]

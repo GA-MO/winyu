@@ -127,3 +127,8 @@ export function meterMiddleware(modelId: string): LanguageModelMiddleware {
     },
   };
 }
+
+/** Records one embedding call in the ledger and the current `measure` scope: its input tokens and the cost OpenRouter billed. */
+export function recordEmbedding(modelId: string, tokens: number, metadata: ProviderMetadata): void {
+  record(modelId, { inputTokens: { total: tokens, cacheRead: 0 }, outputTokens: { total: 0, reasoning: 0 } }, metadata, contextNow());
+}

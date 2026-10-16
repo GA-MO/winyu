@@ -297,9 +297,10 @@ Observed live as the CEO: after a sales-by-region card, "ส่งการ์�
 
 ## Phase D. Public demo deploy (user decisions 2026-10-15 and 2026-10-16: Docker image, public persona picker, start from the current `.data`, GKE through GitLab CI like the `sol-*` services, `emptyDir`, repository `gitlab.com/sbpds-ai/winyu` pushed without history)
 
-The phases, checks, and status are in `docs/plans/demo-deploy.md`. The structural decisions are `docs/adr/0001` to `0004`. Infra's part is in `docs/handoff-infra.md`.
+The phases, checks, and status are in `docs/plans/demo-deploy.md`. The structural decisions are `docs/adr/0001` to `0006`. Infra's part is in `docs/handoff-infra.md`.
 
 - [x] D0. Image builds and runs locally, every role walked in the browser (`docs/plans/demo-deploy.md` Phase 0).
 - [x] D1. Repository ready for GitLab: CI and manifests on the team pattern, pipeline gated on `WINYU_DEPLOY_ENABLED`, README, CONTRIBUTING, ADRs, handoff.
+- [x] D1b. Build fits 4 GB and the image shrinks: server-only packages out of the Turbopack bundle (`docs/adr/0005`), recall embeddings through OpenRouter (`docs/adr/0006`). Image 4.81 GB to 2.59 GB.
 - [ ] D2. Infra wires the runner, variables, secrets, and ingress, then turns the pipeline on.
 - [ ] D3. Public demo verified for CEO, sales rep, and IT admin.

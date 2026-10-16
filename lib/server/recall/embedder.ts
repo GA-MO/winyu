@@ -1,53 +1,41 @@
-import os from "node:os";
-import path from "node:path";
 import type { Embedder } from "./types";
 
-const MODEL_ID = "Xenova/multilingual-e5-base";
-const MODEL_DTYPE = "q8";
-const DIMENSION = 768;
-const QUERY_PREFIX = "query: ";
-const PASSAGE_PREFIX = "passage: ";
-const MODEL_CACHE_DIR = path.join(os.homedir(), ".cache", "winyu", "models");
-const POOLING = { pooling: "mean", normalize: true } as const;
+/** How one OpenRouter embedding model is called: its vector size and the prefixes it expects on a question and on a stored text. */
+export type EmbeddingSpec = { modelId: string; dimension: number; queryPrefix: string; passagePrefix: string };
 
-type Extract = (texts: string[], options: typeof POOLING) => Promise<{ tolist(): unknown }>;
+/** The model recall indexes and searches with. */
+export const RECALL_EMBEDDING: EmbeddingSpec = { modelId: "intfloat/multilingual-e5-large", dimension: 1024, queryPrefix: "query: ", passagePrefix: "passage: " };
 
-let loading: Promise<Extract> | null = null;
-
-async function loadExtractor(): Promise<Extract> {
-  const { env, pipeline } = await import("@huggingface/transformers");
-  env.cacheDir = MODEL_CACHE_DIR;
-  const extractor = await pipeline("feature-extraction", MODEL_ID, { dtype: MODEL_DTYPE });
-  return (texts, options) => extractor(texts, options);
-}
-
-async function embed(texts: string[]): Promise<number[][]> {
+async function embed(spec: EmbeddingSpec, texts: string[]): Promise<number[][]> {
   if (texts.length === 0) return [];
-  loading ??= loadExtractor();
-  const tensor = await (await loading)(texts, POOLING);
-  return tensor.tolist() as number[][];
+  const [{ embedMany }, { embeddingModel }, { recordEmbedding }] = await Promise.all([import("ai"), import("@/lib/server/models"), import("@/lib/server/usage-meter")]);
+  const model = embeddingModel(spec.modelId);
+  if (!model) throw new Error("recall needs OPENROUTER_API_KEY to embed");
+  const result = await embedMany({ model, values: texts });
+  recordEmbedding(spec.modelId, result.usage.tokens, result.providerMetadata);
+  return result.embeddings;
 }
 
-const LOCAL_EMBEDDER: Embedder = {
-  id: `${MODEL_ID}@${MODEL_DTYPE}`,
-  dimension: DIMENSION,
-  passages: (texts) => embed(texts.map((text) => `${PASSAGE_PREFIX}${text}`)),
-  query: async (text) => (await embed([`${QUERY_PREFIX}${text}`]))[0] ?? [],
-};
-
-/** The local multilingual e5 embedder; the model loads on first use from the machine's model cache. */
-export function localEmbedder(): Embedder {
-  return LOCAL_EMBEDDER;
+/** An embedder that calls one OpenRouter embedding model; every call is metered into the model ledger. */
+export function openRouterEmbedder(spec: EmbeddingSpec): Embedder {
+  return {
+    id: spec.modelId,
+    dimension: spec.dimension,
+    passages: (texts) => embed(spec, texts.map((text) => `${spec.passagePrefix}${text}`)),
+    query: async (text) => (await embed(spec, [`${spec.queryPrefix}${text}`]))[0] ?? [],
+  };
 }
+
+const RECALL_EMBEDDER = openRouterEmbedder(RECALL_EMBEDDING);
 
 let override: Embedder | null = null;
 
-/** Replaces the embedder for this process (tests use a deterministic one); null restores the local model. */
+/** Replaces the embedder for this process (tests use a deterministic one); null restores the OpenRouter model. */
 export function useEmbedder(embedder: Embedder | null): void {
   override = embedder;
 }
 
 /** The embedder recall indexes and searches with. */
 export function currentEmbedder(): Embedder {
-  return override ?? localEmbedder();
+  return override ?? RECALL_EMBEDDER;
 }

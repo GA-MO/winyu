@@ -8,5 +8,7 @@ One file per structural decision: its context, the decision, and what follows fr
 | [0002](0002-remove-documents-rag.md) | Remove the built-in company-documents search | Accepted | 2026-10-15 |
 | [0003](0003-lazy-load-the-agent-engine.md) | Load the agent engine only on the paths that run it | Accepted | 2026-10-15 |
 | [0004](0004-gated-gitlab-pipeline.md) | The GitLab pipeline stays off until infra turns it on | Accepted | 2026-10-16 |
+| [0005](0005-server-only-packages-stay-out-of-the-bundle.md) | Server-only packages stay out of the Turbopack bundle | Accepted | 2026-10-16 |
+| [0006](0006-recall-embeddings-through-openrouter.md) | Recall embeddings go through OpenRouter | Accepted | 2026-10-16 |
 
 Earlier decisions, made while the app was rebuilt on Mastra, are in the Decisions section of `docs/plan.md`.

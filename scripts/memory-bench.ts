@@ -2,13 +2,13 @@ import { readdirSync, readFileSync, existsSync } from "node:fs";
 import path from "node:path";
 import { Database } from "bun:sqlite";
 import { similarity } from "@/lib/engine/memory-match";
-import { localEmbedder } from "@/lib/server/recall/embedder";
+import { openRouterEmbedder, RECALL_EMBEDDING, type EmbeddingSpec } from "@/lib/server/recall/embedder";
 import { REPLY_CHARS } from "@/lib/server/recall/mask";
 import { MEMORY_HEADER } from "@/lib/server/agent/persona";
 
-const USAGE = `usage: bun run memory:bench [--mastra-db=<path>] [--ledger=<path>]
-  Measures the memory designs F6 compared, with no model call ($0):
-  retrieval   which past conversation a "what did we discuss" question finds: trigram (today's fact matcher) vs the local embedder, over the 58 recorded eval conversations
+const USAGE = `usage: bun run memory:bench [--embedders=<id>,<id>…] [--mastra-db=<path>] [--ledger=<path>]
+  Measures the memory designs F6 compared:
+  retrieval   which past conversation a "what did we discuss" question finds: trigram (today's fact matcher) vs OpenRouter embedding models, over the recorded eval conversations; each model embeds about 15,000 tokens (under $0.0002 at $0.01 per million, about $0.002 for gemini-embedding-001); the recall model when --embedders is absent; the other sections spend nothing
   prompt      characters each design adds to a call: today's memory block, Mastra working memory, Mastra's per-turn recall block, the recall_memory result
   threads     how big real threads get (for observational memory's 30k-token threshold), from a Mastra store
   extraction  what today's post-turn fact extraction costs, from a model-call ledger`;
@@ -23,6 +23,14 @@ const CHARS_PER_TOKEN = 2.5;
 const EXTRACTION_MAX_INPUT_TOKENS = 700;
 const MEMORY_FACTS_SHOWN = 12;
 const TURN_SIZE = 2;
+
+const CANDIDATES: Record<string, EmbeddingSpec> = {
+  [RECALL_EMBEDDING.modelId]: RECALL_EMBEDDING,
+  "qwen/qwen3-embedding-8b": { modelId: "qwen/qwen3-embedding-8b", dimension: 4096, queryPrefix: "Instruct: Given a question about an earlier conversation, retrieve that conversation\nQuery: ", passagePrefix: "" },
+  "baai/bge-m3": { modelId: "baai/bge-m3", dimension: 1024, queryPrefix: "", passagePrefix: "" },
+  "google/gemini-embedding-001": { modelId: "google/gemini-embedding-001", dimension: 3072, queryPrefix: "", passagePrefix: "" },
+};
+const LATENCY_SAMPLE_TURNS = 5;
 
 type Message = { caseId: string; role: "user" | "assistant"; text: string };
 type Query = [question: string, expected: string[]];
@@ -138,36 +146,53 @@ async function scoreSet(messages: Message[], ranker: Ranker, label: string, quer
   console.log(`  ${ranker.name.padEnd(28)} ${label.padEnd(9)} recall@1 ${first}/${queries.length}  recall@${TOP_K} ${inTop}/${queries.length}  query p50 ${percentile(millis, 0.5).toFixed(1)} ms`);
 }
 
-async function retrieval(messages: Message[]): Promise<Map<string, number[]>> {
-  console.log(`\nretrieval: ${messages.length} messages from ${new Set(messages.map((message) => message.caseId)).size} recorded conversations, ${EVERYDAY.length} everyday and ${REWORDED.length} reworded questions`);
-  const trigram: Ranker = { name: "trigram (memory-match)", scores: async (question) => messages.map((message) => similarity(question, message.text)) };
-  const embedder = localEmbedder();
-  const loadStarted = performance.now();
-  await embedder.query("warm up");
-  const loaded = performance.now() - loadStarted;
-  const passages: number[][] = [];
+function specsOf(raw: string | null): EmbeddingSpec[] {
+  const ids = raw ? raw.split(",").map((id) => id.trim()).filter(Boolean) : [RECALL_EMBEDDING.modelId];
+  return ids.map((id) => {
+    const spec = CANDIDATES[id];
+    if (!spec) throw new Error(`no embedding spec for ${id}; known: ${Object.keys(CANDIDATES).join(", ")}`);
+    return spec;
+  });
+}
+
+async function semanticRanker(messages: Message[], spec: EmbeddingSpec): Promise<Ranker> {
+  const embedder = openRouterEmbedder(spec);
   const perTurn: number[] = [];
-  for (let start = 0; start < messages.length; start += TURN_SIZE) {
+  for (let start = 0; start < LATENCY_SAMPLE_TURNS * TURN_SIZE; start += TURN_SIZE) {
     const started = performance.now();
-    passages.push(...(await embedder.passages(messages.slice(start, start + TURN_SIZE).map((message) => message.text))));
+    await embedder.passages(messages.slice(start, start + TURN_SIZE).map((message) => message.text));
     perTurn.push(performance.now() - started);
   }
-  console.log(`  ${embedder.id}: model load ${Math.round(loaded)} ms, indexing a turn (question and reply) p50 ${Math.round(percentile(perTurn, 0.5))} ms, ${embedder.dimension} dims`);
+  const passages = await embedder.passages(messages.map((message) => message.text));
+  console.log(`  ${embedder.id}: indexing a turn (question and reply) p50 ${Math.round(percentile(perTurn, 0.5))} ms over ${LATENCY_SAMPLE_TURNS} turns, ${passages[0]?.length ?? 0} dims`);
   const dot = (left: number[], right: number[]) => left.reduce((sum, value, index) => sum + value * (right[index] ?? 0), 0);
-  const semantic: Ranker = { name: embedder.id, scores: async (question) => {
-    const vector = await embedder.query(question);
+  const queries = new Map<string, Promise<number[]>>();
+  return { name: embedder.id, scores: async (question) => {
+    if (!queries.has(question)) queries.set(question, embedder.query(question));
+    const vector = await (queries.get(question) as Promise<number[]>);
     return passages.map((passage) => dot(vector, passage));
   } };
-  for (const ranker of [trigram, semantic]) {
-    await scoreSet(messages, ranker, "everyday", EVERYDAY);
-    await scoreSet(messages, ranker, "reworded", REWORDED);
+}
+
+async function retrieval(messages: Message[], specs: EmbeddingSpec[]): Promise<Map<string, number[]>> {
+  console.log(`\nretrieval: ${messages.length} messages from ${new Set(messages.map((message) => message.caseId)).size} recorded conversations, ${EVERYDAY.length} everyday and ${REWORDED.length} reworded questions`);
+  const trigram: Ranker = { name: "trigram (memory-match)", scores: async (question) => messages.map((message) => similarity(question, message.text)) };
+  await scoreSet(messages, trigram, "everyday", EVERYDAY);
+  await scoreSet(messages, trigram, "reworded", REWORDED);
+  let first: Ranker | null = null;
+  for (const spec of specs) {
+    const semantic = await semanticRanker(messages, spec);
+    first ??= semantic;
+    await scoreSet(messages, semantic, "everyday", EVERYDAY);
+    await scoreSet(messages, semantic, "reworded", REWORDED);
+    const topScores = async (questions: string[]) => Promise.all(questions.map(async (question) => Math.max(...(await semantic.scores(question)))));
+    const related = await topScores([...EVERYDAY, ...REWORDED].map(([question]) => question));
+    const unrelated = await topScores(UNRELATED);
+    console.log(`  best score, related questions ${percentile(related, 0).toFixed(3)} to ${percentile(related, 1).toFixed(3)}; unrelated ${percentile(unrelated, 0).toFixed(3)} to ${percentile(unrelated, 1).toFixed(3)}`);
   }
-  const topScores = async (questions: string[]) => Promise.all(questions.map(async (question) => Math.max(...(await semantic.scores(question)))));
-  const related = await topScores([...EVERYDAY, ...REWORDED].map(([question]) => question));
-  const unrelated = await topScores(UNRELATED);
-  console.log(`  best score, related questions ${percentile(related, 0).toFixed(3)} to ${percentile(related, 1).toFixed(3)}; unrelated ${percentile(unrelated, 0).toFixed(3)} to ${percentile(unrelated, 1).toFixed(3)}`);
+  const ranker = first ?? trigram;
   const all = new Map<string, number[]>();
-  for (const [question] of [...EVERYDAY, ...REWORDED]) all.set(question, await semantic.scores(question));
+  for (const [question] of [...EVERYDAY, ...REWORDED]) all.set(question, await ranker.scores(question));
   return all;
 }
 
@@ -235,7 +260,7 @@ if (process.argv.includes("--help")) {
   process.exit(0);
 }
 const messages = readConversations();
-const recalled = await retrieval(messages);
+const recalled = await retrieval(messages, specsOf(flag("embedders")));
 prompt(messages, recalled);
 threads(flag("mastra-db") ?? path.join(process.cwd(), ".data", "mastra.db"));
 extraction(flag("ledger") ?? path.join(process.cwd(), ".data", "model-calls.json"));
