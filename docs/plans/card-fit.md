@@ -45,3 +45,15 @@ Every rule is checked for $0: replay the listed cases at `/dev/replay?cases=…`
 
 - [x] R1–R10 in `lib/cards/present.ts`, `lib/dashboard/metric-display.ts`, `components/cards/registry.tsx` and the exchange view
 - [x] Checks per case, every listed case replayed and screenshot-reviewed
+
+## Card style (user decision 2026-10-16)
+
+The user compared three styles on real recorded results (prototype `app/dev/card-variants`, branch `worktree-agent-aec5e6183fd53c073`, commit `49f8388`) and chose: "ใช้ B เป็นแบบหลักของการ์ดที่แยกตามแถว (เทียบเป้า จัดอันดับ อะไรตกหรือขึ้นมากสุด) ถ้าเกิน 8 แถวให้สลับเป็น A อัตโนมัติ ส่วน C เก็บไว้ใช้กับการ์ดสรุปหลายตัวเลข".
+
+- **B, picture first**, for breakdown cards (R3 target, R4 change, R5 ranking, R6 level line, R7 threshold): a verdict sentence as the headline, one strip of bars on a shared scale around the deciding line with the overall row on top as the hero, exceptions drawn thick in the danger or success colour with values, normal rows thin and muted without values except the extremes.
+- **A, verdict and exceptions**, automatically when a breakdown has more than 8 rows: the verdict, the hero number with one coloured change, only the exception rows drawn, the normal rows folded into one muted line that expands.
+- **C, scorecard**, for summary cards that carry several numbers about one scope (no breakdown): the verdict and 2 to 3 tiles.
+- Every style: the headline is a verdict built in code from the result, one hero number with one coloured change, colour only for meaning, no axis or centre-line captions, no "ทำอะไรต่อ" label, one primary action with the rest behind a small menu, date and source as one footer line, about 20 to 25 words on the card excluding row labels.
+
+- [ ] B, A and C in production, chosen by the decision table
+- [ ] Every recorded case replayed at phone width and reviewed
