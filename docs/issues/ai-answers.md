@@ -1770,7 +1770,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 | AI-153 (เดิม AI-123) | ต่ำ | ยังเสีย | Follow-up chips and card actions still leave the asked subject in places |
 | AI-154 (เดิม AI-131) | ต่ำ | แก้แล้ว `87199fe` | Story pages offer 'ส่งให้คุณอนุชา' as the main action to the CEO who sent it and to the rep who received it |
 | AI-155 | ต่ำ | แก้แล้ว `142dd1a` | Share sheet and story drawer on run-sheet step 1: 'ผู้รับผิดชอบเรื่องนี้' lists the CEO's whole line, the Isan story sits third below an expanded story, and the sheet text is cut or unspaced |
-| AI-156 (เดิม AI-107) | ต่ำ | แก้แล้ว `e2093b6` | Scorecards and single-row cards break the card rules: 4 tiles, the hero repeated as the headline, the all-group average as hero |
+| AI-156 (เดิม AI-107) | ต่ำ | แก้แล้ว `e2093b6` `4d3a2a2` | Scorecards and single-row cards break the card rules: 4 tiles, the hero repeated as the headline, the all-group average as hero |
 | AI-157 | ต่ำ | แก้แล้ว `b464168` | CEO landing tile labels October's volume with the six-month range and compares it with September |
 | AI-158 | ต่ำ | แก้แล้วบางส่วน `9209e23` | The rep's story card shows all 8 Isan agents, the same as the CEO and RSM, so the per-role speech line has nothing to show |
 | AI-159 | ต่ำ | แก้แล้วบางส่วน `9794b51` | Phone-width truncation and dev overlays on the chain screens |
@@ -2087,8 +2087,8 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-156. Scorecards and single-row cards break the card rules: 4 tiles, the hero repeated as the headline, the all-group average as hero
 
-- **สถานะ:** แก้แล้ว `e2093b6` · เดิม AI-107
-- **ที่แก้:** scorecard เดือนที่ยังไม่จบเหลือ 2 ช่องข้างหัวการ์ด (ขาดอีก, คาดสิ้นเดือน) บนฐานเป้าทั้งเดือน การ์ดแถวเดียวที่ไม่มีอะไรเทียบไม่ทวนหัวการ์ดเป็นข้อสรุป สต๊อกแถวเดียวตัดสินกับเส้น 10 วัน กลุ่มที่คำถามเอ่ยชื่อขึ้นเป็นหัวการ์ด และ tile ที่ปักบอกชื่อภาค (test ใน `lib/cards/present.test.ts`, replay run a7e17d59, ac87ab38, 8509107b, 217cab27) · ปุ่มดำ "แยกตามแบรนด์" ยังเป็นปุ่มหลักตามกติกาการ์ด
+- **สถานะ:** แก้แล้ว `e2093b6` `4d3a2a2` · เดิม AI-107
+- **ที่แก้:** scorecard เดือนที่ยังไม่จบเหลือ 2 ช่องข้างหัวการ์ด (ขาดอีก, คาดสิ้นเดือน) บนฐานเป้าทั้งเดือน การ์ดแถวเดียวที่ไม่มีอะไรเทียบไม่ทวนหัวการ์ดเป็นข้อสรุป สต๊อกแถวเดียวตัดสินกับเส้น 10 วัน กลุ่มที่คำถามเอ่ยชื่อขึ้นเป็นหัวการ์ดพร้อมข้อสรุปว่าอยู่ตรงไหนเทียบกลุ่มอื่น และ tile ที่ปักบอกชื่อภาค (test ใน `lib/cards/present.test.ts`, replay run a7e17d59, ac87ab38, 8509107b, 217cab27) · ปุ่มดำ "แยกตามแบรนด์" ยังเป็นปุ่มหลักตามกติกาการ์ด
 - **ระดับ:** ต่ำ · **หมวด:** `card-fit` · **บทบาท:** u_thana (CEO), u_anucha (RSM), u_krit (rep)
 - **อาการ:** The Khon Kaen, Isan and rep-opener scorecards have 4 tiles (rule is 2-3; the rep's 87.7% tile repeats the headline). The RSM's Isan card and the rep's Isan value card show 'ภาคอีสาน 328.4 ล้านบาท' over hero 328.4 with no target or change. The rep's DC cover card repeats 14.7 วัน with no verdict and a large black 'แยกตามแบรนด์' button that looks primary. The beer-margin card's hero is the all-group 27.3%, not beer's 25.7%. The pinned home tile has no region name.
 - **ที่ควรเป็น:** Per card-fit.md: C has 2-3 tiles; R1 shows the metric with its row label and a meter against target with a code-built verdict; the hero is the asked group.

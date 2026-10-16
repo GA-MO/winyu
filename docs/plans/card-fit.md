@@ -47,7 +47,7 @@ R11's verdict opens with the hero's judgement ("คาดปิดเดือ�
 - A target card in a month still running leads with the share of the whole month's target. Its rows are on that base too, and the deciding line is where the month should be by now ("ถึงวันนี้ควรได้ 86.7%"): a row is red only when it is behind that line.
 - Its scorecard (C) has two tiles beside the hero, what is left and where the month ends; the verdict says pace and month end in words ("ช้ากว่าเป้าตามเวลา คาดปิดเดือนไม่ถึงเป้า"), never a figure on the pace base.
 - A one-row card with nothing to compare has no verdict, since it would only repeat the hero; one row of cover is judged against the low-cover line.
-- A breakdown whose question named one group puts that group on top as the hero, the overall level on the line under it.
+- A breakdown whose question named one group puts that group on top as the hero, the overall level on the line under it; with no change or target its verdict says where the group stands (a rate against the overall level, a sum as its share of the whole).
 - A change ranking's verdict counts every row its words claim: "กว่าเท่าตัว" counts every row that more than doubled, and draws them all thick (AI-144).
 - A landing tile of a series names the bucket its number is ("ต.ค. 69"), never the widget's range (AI-157).
 
