@@ -172,6 +172,13 @@ const SEVERITY_TONES: Record<Alert["severity"], AlertTone> = { P1: "danger", P2:
 const VERDICT_UNITS: Partial<Record<Dim, string>> = { dc: "DC" };
 const STRONG_CORRELATION = 0.5;
 const RECENT_WEEKS = 4;
+/** Metrics that answer one question together (R10): the goods flowing from plant to shelf, the money of the same sales, a campaign and what it moved, a workforce. Two answers of one turn share a card only when one family holds both, so stock cover and overdue money asked side by side keep their own cards (AI-140). */
+const READ_TOGETHER: readonly ReadonlySet<MetricId>[] = [
+  new Set<MetricId>(["production_output", "capacity_utilization", "net_sales_volume", "sell_out_volume", "stock_on_hand", "days_of_cover", "forecast_mape"]),
+  new Set<MetricId>(["net_sales_volume", "net_sales_value", "target_attainment", "gross_margin", "trade_spend", "ar_overdue"]),
+  new Set<MetricId>(["campaign_spend", "campaign_reach", "campaign_uplift", "share_of_voice", "sentiment_score", "market_share", "net_sales_volume", "net_sales_value"]),
+  new Set<MetricId>(["headcount", "attrition_rate", "avg_salary"]),
+];
 const MIN_GRID_GAP_PERCENT = 5;
 
 function rankDimOf(query: MetricQuery): Dim | null {
@@ -883,6 +890,10 @@ function sliceKeyOf(source: Source): string {
   return JSON.stringify([[...query.dims].sort(), query.range.from, query.range.to, query.grain, Object.entries(query.filters ?? {}).sort(([left], [right]) => left.localeCompare(right))]);
 }
 
+function readTogether(left: MetricId, right: MetricId): boolean {
+  return READ_TOGETHER.some((family) => family.has(left) && family.has(right));
+}
+
 function holdsOneValue(source: Source): boolean {
   return groupDimsOf(source.query).length === 0 && source.result.rows.length <= 1;
 }
@@ -901,7 +912,7 @@ function pairingOf(first: Source, others: Source[]): Pairing | null {
   if (whole) return { view: "whole", sources: isTotalOf(first, whole) ? [whole, first] : [first, whole] };
   const baseline = others.find((other) => sliceKeyOf(other) === sliceKeyOf(first) && other.query.metric === first.query.metric && other.query.compare !== first.query.compare && other.query.compare !== "none");
   if (baseline && first.query.compare !== "none") return { view: "baselines", sources: [first, baseline] };
-  const all = [first, ...others.filter((other) => sliceKeyOf(other) === sliceKeyOf(first) && other.query.metric !== first.query.metric)];
+  const all = [first, ...others.filter((other) => sliceKeyOf(other) === sliceKeyOf(first) && other.query.metric !== first.query.metric && readTogether(first.query.metric, other.query.metric))];
   if (all.length < 2) return null;
   if (all.every(holdsOneValue) && sameUnit(all)) return { view: "funnel", sources: all };
   const timeOnly = all.every((source) => timeDimOf(source.query) !== null && groupDimsOf(source.query).length === 0 && source.result.rows.length >= MIN_LINE_BUCKETS);
