@@ -1877,6 +1877,8 @@ export const TH = {
     usage: (calls: number, tools: number, days: number) => `เรียกเครื่องมือ ${calls} ครั้ง ${tools} เครื่องมือ ใน ${days} วันล่าสุด`,
     people: (count: number, days: number, top: { name: string; questions: number; calls: number } | null) =>
       top ? `ใช้ Winyu ${count} คนใน ${days} วันล่าสุด · มากที่สุด ${top.name} ถาม ${top.questions} ครั้ง เรียกเครื่องมือ ${top.calls} ครั้ง` : `ไม่มีใครใช้ Winyu ใน ${days} วันล่าสุด`,
+    peopleTied: (count: number, days: number, names: readonly string[], questions: number) =>
+      `ใช้ Winyu ${count} คนใน ${days} วันล่าสุด · ${names.length === count ? "ทุกคนถามเท่ากัน" : `${names.length} คนถามมากที่สุดเท่ากัน`} คนละ ${questions} ครั้ง: ${names.join(", ")}`,
     questions: (count: number) => `${count} คำถาม`,
     calls: (count: number) => `เรียกเครื่องมือ ${count} ครั้ง`,
     times: (count: number) => `${count} ครั้ง`,

@@ -107,8 +107,13 @@ function chatPermissionSubject(entry: AuditEntry): string {
   return movedPermissionLabel({ role: text(parsed.role), kind: text(parsed.kind), key: text(parsed.key), before: null, after: text(parsed.value) });
 }
 
+/** What a write acted on: the levels a permission change moved, else the title it was given (the card a pin or a watch names); empty when the call names none. */
+function writeSubject(entry: AuditEntry): string {
+  return entry.tool === CHAT_PERMISSION_TOOL ? chatPermissionSubject(entry) : text(argsOf(entry).title);
+}
+
 function writeOf(entry: AuditEntry): Activity {
-  const subject = entry.tool === CHAT_PERMISSION_TOOL ? chatPermissionSubject(entry) : "";
+  const subject = writeSubject(entry);
   return { at: entry.at, actorId: entry.userId, action: toolLabel(entry.tool), subject, toIds: [], approval: { kind: "chat", approverId: entry.userId } };
 }
 

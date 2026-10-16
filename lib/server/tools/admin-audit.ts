@@ -117,8 +117,18 @@ function userUsage(days: number): Report {
   for (const entry of toolCalls(auditLog().all(), since)) if ((entry.initiator ?? "person") === "person") tally(entry.userId, "calls");
   const ranked = [...byUser].sort(([, left], [, right]) => right.questions - left.questions || right.calls - left.calls);
   const rows = ranked.map(([userId, use]) => ({ user_name: nameOf(userId), role_label: roleLabelOf(userId), questions: use.questions, calls: use.calls }));
-  const top = rows[0];
-  return { summary: TH.adminAudit.people(rows.length, days, top ? { name: top.user_name, questions: top.questions, calls: top.calls } : null), rows };
+  return { summary: usageSummaryOf(rows, days), rows };
+}
+
+type UsageRow = { user_name: string; questions: number; calls: number };
+
+/** Who used Winyu most, by questions asked: one name when one person leads, every name that shares the top when several asked the same, never one picked out of a tie (AI-200). */
+export function usageSummaryOf(rows: readonly UsageRow[], days: number): string {
+  const [top] = rows;
+  if (!top) return TH.adminAudit.people(0, days, null);
+  const leaders = rows.filter((row) => row.questions === top.questions);
+  if (leaders.length > 1) return TH.adminAudit.peopleTied(rows.length, days, leaders.map((row) => row.user_name), top.questions);
+  return TH.adminAudit.people(rows.length, days, { name: top.user_name, questions: top.questions, calls: top.calls });
 }
 
 function modelCost(days: number): Report {
