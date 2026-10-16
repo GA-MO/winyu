@@ -1747,7 +1747,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 | ข้อ | ระดับ | สถานะ | ปัญหา |
 |---|---|---|---|
 | AI-132 (เดิม AI-96) | สูง | แก้แล้ว `bacdb0f` · รอยืนยันกับโมเดล | An approved chat send fails when the model read the card in the same step as send_card: the approval shows one card, but the resumed run resolves against the older screen and refuses with raw cardRef ids |
-| AI-133 (เดิม AI-112) | กลาง | ยังเสีย | Turns over 40 s on the demo path, almost all of it in unbounded final-step reasoning |
+| AI-133 (เดิม AI-112) | กลาง | แก้แล้วบางส่วน `4df953e` · วัดบน production build: เดโม median 22.8 s ช้าสุด 38.8 s (เดิม 27.7 / 155.9 s) ค้นหา 22.7 s | Turns over 40 s on the demo path, almost all of it in unbounded final-step reasoning |
 | AI-134 (เดิม AI-90) | กลาง | แก้แล้ว `85151f5` · รอยืนยันกับโมเดล | 'ผม/ของผม' for the rep resolves to Khon Kaen province (2 of his 4 agents), so chat and the home pin give different attainment |
 | AI-135 (เดิม AI-131) | กลาง | แก้แล้ว (เอกสาร) · รอเดินยืนยันรอบ 5 | The run sheet describes buttons and texts the product does not show |
 | AI-136 | กลาง | แก้แล้ว `9209e23` · รอยืนยันกับโมเดล | The run-sheet story card is in litres while every chat answer about the same Isan month is in baht (79.7% vs 77.3%, both 'ของเป้าทั้งเดือน') |
@@ -1798,7 +1798,20 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-133. Turns over 40 s on the demo path, almost all of it in unbounded final-step reasoning
 
-- **สถานะ:** ยังเสีย · เดิม AI-112
+- **สถานะ:** แก้แล้วบางส่วน `4df953e` · เดิม AI-112 · วัดบน production build แล้ว: เทิร์นเดโมไม่เกิน 40 s ทุกครั้ง (35 เทิร์น ช้าสุด 38.8 s) แต่คำถามค้นหายังราว 23 s ไม่ใช่ 15 s
+- **ที่แก้:** แชทส่ง reasoning effort `medium` ให้ Gemini ผ่าน OpenRouter (`lib/server/models.ts` CHAT_REASONING_EFFORT, เปลี่ยนด้วย `OPENROUTER_CHAT_REASONING_EFFORT`; test ใน `lib/server/models.test.ts` ตรึงค่าที่ส่งไป OpenRouter) งานเบื้องหลัง (สืบตอนเช้า ความจำ digest) ยังใช้ค่าของโมเดลเอง เพราะไม่มีใครรอและยังไม่ได้วัดคุณภาพที่ effort ต่ำ
+- **ผลวัด (2026-10-17):** `bun run bench:speed` บน `next build` + `next start` port 3140, `WINYU_SCHEDULER=off`, ข้อมูล seed ใหม่ + investigations ของรอบ 4, 7 คำถามที่ช้า + 2 คำถามค้นหา × 3 รอบต่อ config สลับลำดับ config ทุกรอบ ค่าโมเดลรวม $1.69
+
+| config | เดโม median / ช้าสุด | ค้นหา median | reasoning ต่อเทิร์น (median) | ค่าโมเดลต่อเทิร์น | คุณภาพเทียบค่าเดิม |
+|---|---|---|---|---|---|
+| ค่าเดิมของโมเดล, flex | 27.7 / 155.9 s (เกิน 40 s 3 จาก 21) | 25.4 s | 2,434 | $0.0103 | ฐาน |
+| effort low, flex | 8.2 / 16.9 s | 8.4 s | 0 | $0.0033 | แย่กว่า 2 ข้อ |
+| **effort medium, flex (ใช้อยู่)** | 22.8 / 38.8 s (35 เทิร์น) | 22.7 s | 2,200 | $0.0082 | เท่าเดิม |
+| ค่าเดิม, tier standard | 25.7 / 50.1 s | 22.7 s | 2,549 | $0.0178 | เท่าเดิม |
+| effort low, tier standard | 8.6 / 21.6 s | 8.4 s | 0 | $0.0065 | แย่กว่า (ตัวเลขที่คิดเอง) |
+
+- **ทำไมไม่ใช้ low:** low เร็วสุดแต่เลือกแย่กว่าค่าเดิมใน 2 คำถาม คำถามละ 1 จาก 3 รอบ: ส่งเรื่องให้ผู้จัดการขายภาคอีสาน (run `2a1e092c`) ไม่เปิดใบอนุมัติ แต่ถามกลับว่าการ์ดใบไหนและโชว์ ref ดิบ และยอดขายแยกภาค (run `58efad2f`) เทียบช่วงก่อนจนไม่บอกว่าอีสานตามหลังเป้า ข้อแรกแก้ได้ที่ `send_card` (ไม่มี cardRef แต่มีหลายการ์ดบนจอ) ข้อหลังแก้ได้ที่ prompt (ยอดเดือนนี้แยกตาม X ให้เทียบเป้า) แล้วค่อยวัด low ใหม่เฉพาะ 3 คำถามนั้น (~$0.05) low + standard ยังคิดตัวเลข 925,722 ลิตรเอง (run `dc596a0d`)
+- **อะไรจำกัดตอนนี้:** เวลาอยู่ที่จำนวน token ที่ Gemini สร้าง ไม่ใช่คิว: ทุก config สร้างได้ราว 105 token/s ในช่วง model step ทั้ง flex และ standard จึงเปลี่ยน tier แล้วไม่เร็วขึ้นแต่แพงขึ้นเท่าตัว medium ยังคิดราว 2,200 token ต่อเทิร์น (≈ 20 s) และไม่ใช่เพดานแข็ง เทิร์นช้าสุดคิด 5,164 token (38.8 s) พื้นของแต่ละ step คือราว 3 s (เห็นจาก low ที่ไม่คิดเลย) คูณจำนวน step 2-4 ต่อเทิร์น ค่าเดิมเคยคิด 22,680 token ใน step เดียว (145 s, run rep-target รอบ 2) ซึ่ง medium ตัดหางนี้ทิ้ง
 - **ระดับ:** กลาง · **หมวด:** `latency` · **บทบาท:** u_thana (CEO), u_anucha (RSM), u_krit (rep)
 - **อาการ:** CEO risk took 52.3 s, the RSM delegation 48.5 s (3,819 reasoning tokens), the RSM leave lookup 55.1 s (37 s and 5,011 reasoning tokens in its last step), and CEO market share 44.5 s (first query_metric asked this_month for a monthly survey, got 0 rows, then list_metrics and a retry). The rep's demo opener took 47.3 s (32 s final step, 4,235 reasoning tokens against a 10 ms tool), the visit plan 41.1 s (4,300 reasoning tokens for two sentences). The run-sheet chat send f55ac603 spent 37 s and 4,605 reasoning tokens before one resolve_owner.
 - **ที่ควรเป็น:** A demo turn finishes in 40 s or less; a lookup in about 15 s; reasoning bounded on answer-writing steps.
