@@ -50,7 +50,7 @@ export function ownBookQuery(input: MetricQueryInput, access: AccessContext, que
 }
 
 /** A question about the whole company ("ยอดรวมทั้งบริษัท", "ทุกภาค") whose query names no place: what it needs beyond the asker's scope, which the gateway would otherwise narrow away in silence and draw as their own region's number. Empty when the scope covers it or the question does not ask it. */
-export function wholeCompanyBeyondScope(query: MetricQueryInput, access: AccessContext, question: string | null): OutOfScope[] {
+function wholeCompanyBeyondScope(query: MetricQueryInput, access: AccessContext, question: string | null): OutOfScope[] {
   if (!question || !WHOLE_COMPANY.test(question)) return [];
   if (!METRICS[query.metric]?.dims.includes("region")) return [];
   if (PLACE_DIMS.some((dim) => (query.filters?.[dim]?.length ?? 0) > 0)) return [];

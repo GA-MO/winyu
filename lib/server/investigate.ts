@@ -214,7 +214,7 @@ async function answerOf(query: MetricQuery, access: AccessContext): Promise<Metr
 }
 
 /** A sell-in card in the measure chat answers sales in (baht), so the morning story and the chat about one month show one number; litres stay for whoever cannot see baht. */
-export function inSalesMeasure(query: MetricQuery, access: AccessContext): MetricQuery {
+function inSalesMeasure(query: MetricQuery, access: AccessContext): MetricQuery {
   if (query.metric !== SALES_VOLUME || access.metricAcl[SALES_VALUE] !== "full") return query;
   return { ...query, metric: SALES_VALUE };
 }
