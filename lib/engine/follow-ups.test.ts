@@ -8,6 +8,7 @@ import { cardFocus } from "@/lib/cards/focus";
 import { followUpIntent, followUpsFor, learnedKindShare, type FollowUpKind } from "./follow-ups";
 import { scoreIntents } from "./recommend";
 import { spaceLatinTh } from "@/lib/i18n/format";
+import { TH } from "@/lib/i18n/th";
 
 const CEO = "u_thana";
 const NOW = new Date("2026-09-22T09:00:00.000Z").getTime();
@@ -51,6 +52,14 @@ describe("followUpsFor", () => {
     expect(ids).toContain("fu-drill_down");
     expect(ids).not.toContain("fu-compare_year");
     expect(actions.find((action) => action.id === "fu-drill_down")?.prompt).toContain("เอเย่นต์");
+  });
+
+  test("a card already filtered to one region is never split by region again", () => {
+    const access = accessOf(CEO);
+    const byRegion = spaceLatinTh(TH.next.splitBy(TH.dash.dimUnit.region));
+    const splitOf = (query: MetricQuery) => followUpsFor(access, { ...answerOf(access, query), taken: [] }).find((action) => action.id === "fu-split")?.label;
+    expect(splitOf(queryOf("ar_overdue", []))).toBe(byRegion);
+    expect(splitOf({ ...queryOf("ar_overdue", []), filters: { region: ["south"] } })).not.toBe(byRegion);
   });
 
   test("a single number is split and trended, with nothing to ask why about", () => {

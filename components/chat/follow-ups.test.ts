@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import type { QuickAction } from "@/lib/contracts";
-import { answeredMetrics, chipRow, latestFollowUps } from "./follow-ups";
+import { answerChips, answeredMetrics, chipRow, latestFollowUps } from "./follow-ups";
 import { exchangesOf, type ChatMessage } from "./timeline";
 
 function chip(id: string, prompt = id): QuickAction {
@@ -33,9 +33,26 @@ describe("chipRow", () => {
     expect(chipRow([chip("why", "same")], [chip("learned", "same"), chip("other")], 3).map((action) => action.id)).toEqual(["why", "other"]);
   });
 
+  test("no two chips read the same, even when learned chips repeat a label with other words", () => {
+    const learned = [{ ...chip("monthly", "ปริมาณขายเข้ารายเดือน"), label: "ปริมาณขายเข้าตามเดือน" }, { ...chip("monthly-again", "ขอปริมาณขายเข้าตามเดือน"), label: "ปริมาณขายเข้าตามเดือน" }, chip("other")];
+    expect(chipRow([], learned, 3).map((action) => action.label)).toEqual(["ปริมาณขายเข้าตามเดือน", "other"]);
+  });
+
   test("a learned chip on the metric the latest answer read is left out", () => {
     const answered = answeredMetrics(exchangesOf([QUESTION, ...queried("c1", "attrition_rate", [])]));
     const learned = [{ ...chip("attrition"), intentKey: "attrition_rate|month" }, { ...chip("headcount"), intentKey: "headcount|department" }];
     expect(chipRow([], learned, 3, answered).map((action) => action.id)).toEqual(["headcount"]);
+  });
+});
+
+describe("answerChips", () => {
+  test("an answer that read no metric, such as a memory change, offers no chips", () => {
+    const remembered = exchangesOf([QUESTION, { id: "a1", role: "assistant", toolCalls: [{ id: "m1", function: { name: "remember", arguments: "{}" } }] }, { id: "t1", role: "tool", toolCallId: "m1", content: JSON.stringify({ ok: true }) }]);
+    expect(answerChips(remembered, [chip("ar", "ลูกหนี้ค้างชำระ")])).toEqual([]);
+  });
+
+  test("an answer that read a metric offers its follow-ups, then learned chips", () => {
+    const exchanges = exchangesOf([QUESTION, ...queried("c1", "ar_overdue", [chip("why")])]);
+    expect(answerChips(exchanges, [chip("sell-in")]).map((action) => action.id)).toEqual(["why", "sell-in"]);
   });
 });
