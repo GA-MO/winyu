@@ -1,4 +1,10 @@
 import { describe, expect, test } from "bun:test";
+import { liveAccessFor } from "@/lib/access/enforce";
+import { presentCard } from "@/lib/cards/present";
+import { metricAnswerOf, metricTitle } from "@/lib/cards/tool-answers";
+import { findUser } from "@/lib/data/entities/users";
+import { winyuTools } from "@/lib/server/agent/tools";
+import { runWithAccess } from "@/lib/server/request-context";
 import { cardRefOf, type SharedCard } from "@/lib/share/card";
 import { cardNamed, screenCardsEach } from "./card-to-share";
 import type { Exchange, ReplyStep, ToolStep } from "./timeline";
@@ -91,5 +97,21 @@ describe("the cards on screen a send can name", () => {
     const catalog = exchange("q4", "มี metric อะไรบ้าง", [returned("c1", "list_metrics", {}, { ok: true, metrics: [{ id: "x" }] })]);
     expect(lastScreen([SALES, refused, empty, catalog]).cards.map((drawn) => drawn.exchangeId)).toEqual(["q1"]);
     expect(lastScreen([refused, empty, catalog]).cards).toEqual([]);
+  });
+});
+
+describe("the figure the send approval shows for a card", () => {
+  test("is the hero the drawn card leads with, not the sum of its rows", async () => {
+    const args = { metric: "net_sales_volume", dims: ["agent"], grain: "month", range: { from: "2026-11-01", to: "2026-11-26" }, compare: "target", filters: { region: ["northeast"] }, sort: "value_desc", limit: 10 };
+    const ceo = findUser("u_thana");
+    if (!ceo) throw new Error("no u_thana");
+    const result = await runWithAccess(liveAccessFor(ceo), () => winyuTools().query_metric.execute(args, { toolCallId: "m-hero" }));
+    const answer = metricAnswerOf(result);
+    if (!answer) throw new Error("the query answered nothing");
+    const drawn = presentCard({ title: metricTitle(result, args), query: answer.query, result: answer, actions: answer.nextActions }).hero;
+    if (!drawn) throw new Error("the card draws no hero");
+    expect(drawn.value).not.toBe(answer.headline.value);
+    const [screen] = screenCardsEach([exchange("q1", "ยอดเอเย่นต์อีสานเทียบเป้า", [returned("m-hero", "query_metric", args, result)])], CARD_TOOLS);
+    expect(screen.cards[0]?.hero).toBe(drawn.unit ? `${drawn.value} ${drawn.unit}` : drawn.value);
   });
 });
