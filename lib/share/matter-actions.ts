@@ -66,8 +66,8 @@ function askedOf(matter: Matter, actorId: string, text: string, at: string, whom
   return { matter: moved(matter, at, withHolder(matter, "asked"), event(actorId, at, "asked", text)), tell: told(whom, actorId, "asked", text) };
 }
 
-function everyoneBut(matter: Matter, actorId: string): string[] {
-  return [...new Set([matter.senderId, ...matter.path.map((hop) => hop.userId)])].filter((userId) => userId !== actorId);
+function everyoneOn(matter: Matter): string[] {
+  return [...new Set([matter.senderId, ...matter.path.map((hop) => hop.userId)])];
 }
 
 type Rules = { [K in MatterActionKind]: Rule<Extract<MatterAction, { kind: K }>> };
@@ -105,7 +105,7 @@ export const MATTER_RULES: Rules = {
     may: (matter, actorId) => matter.senderId === actorId || holds(matter, actorId, CLOSABLE),
     apply: (matter, actorId, _action, at) => ({
       matter: moved(matter, at, matter.path, event(actorId, at, "done"), { status: "done" }),
-      tell: everyoneBut(matter, actorId).flatMap((userId) => told(userId, actorId, "done")),
+      tell: everyoneOn(matter).flatMap((userId) => told(userId, actorId, "done")),
     }),
   },
 };
