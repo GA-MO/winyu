@@ -2268,6 +2268,8 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 | AI-198 | ต่ำ | แก้แล้ว `18c123c` · นอกเส้นทางเดโม · รอยืนยันกับโมเดล | South send approval shows a bare '−7.5%' (region total) for an ask about one agent's +17.6% rise |
 | AI-199 (เดิม AI-147 (fixed otherwise)) | ต่ำ | แก้แล้ว `9ae8006` | Rep whole-company refusal: stray spaces in the template; approver differs from the RSM's |
 | AI-200 (เดิม AI-150 (fixed otherwise)) | ต่ำ | แก้แล้ว `3b378af` | IT activity pin rows name no card; the usage ranking breaks a tie silently |
+| AI-201 (เดิม AI-183) | กลาง | แก้แล้ว `2b45611` | A rep's own-book card that is sent stores the model's raw read (filters {}), so the receiver opens the whole region's 8 agents instead of the rep's 4 |
+| AI-202 | ต่ำ | เปิด (ใหม่) · นอกเส้นทางเดโม | memory-chat.test.ts "recalled conversations" failed once in a full run and passed when run alone (flaky test) |
 
 ### AI-167. RSM 'ask Krit to visit this agent' sends the whole-region card with a deictic ask, so the matter never names ขอนแก่นมหาชัย; chat sends of the same card share one title
 
@@ -2655,3 +2657,23 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 	- thread a446ffdc
 	- thread ab206426
 - **สาเหตุ:** guess: lib/server/activity.ts builds a subject only for shares and permission changes.
+
+### AI-201. A rep's own-book card that is sent stores the model's raw read, so the receiver opens the whole region
+
+- **สถานะ:** แก้แล้ว `2b45611` · เดิม AI-183: `createShare` เก็บ read ของ query_metric ตามที่พนักงานขายเห็น (เอเย่นต์ 4 รายของเขา ผ่าน `ownBookQuery` กับคำถามที่วาดการ์ด) ทุกทางที่ส่งการ์ดจึงได้การ์ดเดียวกับที่ผู้ส่งเห็น (`own-book.test.ts` ล้มบนโค้ดเดิม)
+- **ระดับ:** กลาง · **หมวด:** `chain` · **บทบาท:** u_krit (sales rep) → u_anucha
+- **อาการ:** Found by package I1 while fixing AI-183: the pin kept the rep's agents, but a sent card stored `filters {}`, so the RSM re-ran it as the region's 8 agents.
+- **ที่ควรเป็น:** The receiver opens the card the sender saw, within the receiver's own scope.
+- **หลักฐาน:**
+	- I1 report (round 6), lib/server/share/deliver.ts createShare
+- **สาเหตุ:** verified: ownBookQuery ran only inside query_metric's execute and pin_widget, never on the stored reads of a share.
+
+### AI-202. memory-chat.test.ts "recalled conversations" is flaky
+
+- **สถานะ:** เปิด (ใหม่) · นอกเส้นทางเดโม
+- **ระดับ:** ต่ำ · **หมวด:** `test` · **บทบาท:** —
+- **อาการ:** Failed once in a full `bun run test` run (reported by I1 and I3), passed alone and in the next full run.
+- **ที่ควรเป็น:** Deterministic.
+- **หลักฐาน:**
+	- I1 and I3 reports (round 6)
+- **สาเหตุ:** guess: shared state or timing with other files in a full run.
