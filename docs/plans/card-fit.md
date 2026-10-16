@@ -35,9 +35,21 @@ The user (2026-10-16): "ไม่ใช่แสดง card หน้าตา�
 | R7 | `where` threshold met by few rows | "n จาก N" | the rows that meet it, named; meta counts them | `title-cover-threshold`, `line-cover-below`, `line-under-target` |
 | R8 | metric shown as a percent and averaged | change as "±x.x จุด" | — | `title-share-loss`, `hr-attrition`, `shape-share-market` |
 | R9 | time series of a summed metric, no grouping | latest full bucket vs the one before; range total in the note | line | `ceo-trend`, `compare-stock-weekly` |
-| R10 | 2+ `query_metric` results in one turn with the same dimensions and range | the pairing | funnel, scatter, parity gap, or two lines on one chart | `shape-funnel`, `shape-scatter`, `shape-sell-through`, `landing-visit` |
+| R10 | 2+ `query_metric` results in one turn with the same dimensions and range, of metrics that read together | the pairing | funnel, scatter, parity gap, or two lines on one chart | `shape-funnel`, `shape-scatter`, `shape-sell-through`, `landing-visit` |
+| R11 | an `explain_gap` answer | where the month ends at the recent pace (a running month), the share of target (a closed month), or the actual with its change | the whole gap named by its base, the parts over 10% of it drawn, the rest and the offsetting parts folded | present.test.ts "a gap card" |
 
-R10 also needs the exchange view to pass the turn's other results to `DataCard` as `with`.
+R10 also needs the exchange view to pass the turn's other results to `DataCard` as `with`. Two metrics read together only when one family in `READ_TOGETHER` (`lib/cards/present.ts`) holds both: the goods flow (production, sell-in, sell-out, stock, cover), the money of the same sales (sell-in, value, attainment, margin, trade spend, overdue), a campaign and what it moved, the workforce. Stock cover and overdue money asked side by side keep their own cards (AI-140).
+
+R11's verdict opens with the hero's judgement ("คาดปิดเดือนไม่ถึงเป้า", "ต่ำกว่าปีก่อน 39.8 ล้านบาท") and names the part that pulled furthest ("ภาคอีสานฉุดมากสุด 78.1%"), so a month-end question and a "which region" question are both answered in the headline (AI-142).
+
+## One base per card (AI-141, AI-156)
+
+- A target card in a month still running leads with the share of the whole month's target. Its rows are on that base too, and the deciding line is where the month should be by now ("ถึงวันนี้ควรได้ 86.7%"): a row is red only when it is behind that line.
+- Its scorecard (C) has two tiles beside the hero, what is left and where the month ends; the verdict says pace and month end in words ("ช้ากว่าเป้าตามเวลา คาดปิดเดือนไม่ถึงเป้า"), never a figure on the pace base.
+- A one-row card with nothing to compare has no verdict, since it would only repeat the hero; one row of cover is judged against the low-cover line.
+- A breakdown whose question named one group puts that group on top as the hero, the overall level on the line under it.
+- A change ranking's verdict counts every row its words claim: "กว่าเท่าตัว" counts every row that more than doubled, and draws them all thick (AI-144).
+- A landing tile of a series names the bucket its number is ("ต.ค. 69"), never the widget's range (AI-157).
 
 ## Check
 
