@@ -39,6 +39,8 @@ export function CardPartsView({ parts }: { parts: CardParts }) {
     return (
       <Card props={{ title: parts.title, description: null, meta: null, footnote: null }}>
         <Alert props={{ title: parts.denied.title, body: parts.denied.body, tone: "warning", meta: null }} />
+        <CardBodyView body={parts.body} />
+        <ActionStrip actions={parts.actions} />
       </Card>
     );
   }

@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { accessFor } from "@/lib/access/policies";
-import type { MetricQuery } from "@/lib/contracts";
+import type { MetricQuery, NextAction } from "@/lib/contracts";
 import { findUser } from "@/lib/data/entities/users";
 import { winyuTools } from "@/lib/server/agent/tools";
 import { runWithAccess } from "@/lib/server/request-context";
@@ -18,11 +18,11 @@ const QUERY: MetricQuery = {
   limit: null,
 };
 
-async function queryMetricAs(userId: string): Promise<Record<string, unknown>> {
+async function queryMetricAs(userId: string, query: MetricQuery = QUERY): Promise<Record<string, unknown>> {
   const user = findUser(userId);
   if (!user) throw new Error(`no user ${userId}`);
   const tool = winyuTools().query_metric;
-  return runWithAccess(accessFor(user), () => tool.execute(tool.inputSchema().parse(QUERY)) as Promise<Record<string, unknown>>);
+  return runWithAccess(accessFor(user), () => tool.execute(tool.inputSchema().parse(query)) as Promise<Record<string, unknown>>);
 }
 
 function numbersIn(text: string): string[] {
@@ -61,5 +61,17 @@ describe("DataCard from a real query_metric result", () => {
     const grounded = groundedIn(JSON.stringify(result));
     const strange = numbersIn(text).filter((token) => !grounded(token));
     expect(strange).toEqual([]);
+  });
+});
+
+describe("DataCard when every value is masked", () => {
+  test("keeps the tool's request-access action and lists the names the copy promises", async () => {
+    const result = await queryMetricAs("u_ton", { ...QUERY, metric: "avg_salary", dims: ["department"], range: { from: "2026-08-01", to: "2026-08-31" }, compare: "none" });
+    const request = (result.nextActions as NextAction[]).find((action) => action.kind === "request_access");
+    expect(request).toBeDefined();
+    const card = await render(<DataCard title="เงินเดือนเฉลี่ยแยกตามฝ่าย" source={result} />);
+    const text = card.textContent ?? "";
+    expect(text).toContain(request?.label ?? "");
+    for (const row of result.rows as { department: string }[]) expect(text).toContain(row.department);
   });
 });

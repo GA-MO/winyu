@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import type { Dim, Grain, MetricId, MetricQuery, MetricResult } from "@/lib/contracts";
+import type { Dim, Grain, MetricId, MetricQuery, MetricResult, NextAction } from "@/lib/contracts";
 import { accessFor } from "@/lib/access/policies";
 import { DATA_AS_OF, daysBetween, formatThaiDate, monthEnd, monthStart } from "@/lib/data/dates";
 import { findUser } from "@/lib/data/entities/users";
@@ -359,9 +359,12 @@ describe("every value masked", () => {
       provenance: { metric: "avg_salary", certified: true, sourceSystem: "HRIS", asOf: "2026-09-22", rowCount: 2, masked: ["value"], trust: "verified" },
       query: { ...query, scopeApplied: {}, labels: {} },
     };
-    const parts = presentCard({ title: "t", query, result });
+    const ask: NextAction = { id: "ask", kind: "request_access", label: "ขอสิทธิ์จากคุณประสิทธิ์", reason: "เจ้าของเมตริก", tool: "send_email", input: {}, prompt: null };
+    const parts = presentCard({ title: "t", query, result, actions: [ask] });
     expect(parts.denied?.body).toContain("ฝ่าย");
-    expect(parts.body.kind).toBe("none");
+    expect(parts.denied?.body).not.toMatch(/[A-Za-z]$/);
+    expect(parts.body).toEqual({ kind: "locked", rows: [], locked: [{ label: "ขาย" }, { label: "ไอที" }], askHref: null });
+    expect(parts.actions).toEqual([ask]);
   });
 });
 

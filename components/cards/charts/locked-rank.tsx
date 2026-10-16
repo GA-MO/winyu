@@ -7,8 +7,8 @@ import { TH } from "@/lib/i18n/th";
 export function LockedRank({ rows, locked, askHref }: { rows: RankRow[]; locked: LockedRow[]; askHref: string | null }) {
   return (
     <div className="flex w-full min-w-0 flex-col gap-2.5">
-      <RankList props={{ items: rows, showRank: false }} />
-      <ul className="flex flex-col gap-1.5 border-t border-dashed border-border pt-2.5" data-locked-rows>
+      {rows.length > 0 ? <RankList props={{ items: rows, showRank: false }} /> : null}
+      <ul className={rows.length > 0 ? "flex flex-col gap-1.5 border-t border-dashed border-border pt-2.5" : "flex flex-col gap-1.5"} data-locked-rows>
         {locked.map((row) => (
           <li key={row.label} className="flex min-w-0 items-center gap-2" aria-label={TH.dash.lockedRow(row.label)}>
             <Lock className="size-3.5 shrink-0 text-muted-foreground/70" aria-hidden />

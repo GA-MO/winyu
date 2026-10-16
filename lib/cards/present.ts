@@ -794,15 +794,16 @@ function everyValueMasked(result: Extract<MetricResult, { ok: true }>): boolean 
 
 function maskedCard(input: PresentInput, result: Extract<MetricResult, { ok: true }>): CardParts {
   const dim = rankDimOf(input.query);
+  const names = dim && result.rows.length > 1 ? result.rows.slice(0, MAX_RANK_ROWS).map((row) => ({ label: labelOf(input.query, row) })) : [];
   return {
     title: input.title,
     meta: null,
     description: null,
     footnote: null,
     hero: null,
-    body: { kind: "none" },
-    actions: NO_ACTIONS,
-    denied: { title: TH.dash.denied, body: TH.dash.maskedAll(dim && result.rows.length > 1 ? TH.dash.dimUnit[dim] : null) },
+    body: dim && names.length > 0 ? { kind: "locked", rows: [], locked: names, askHref: null } : { kind: "none" },
+    actions: input.actions ?? NO_ACTIONS,
+    denied: { title: TH.dash.denied, body: TH.dash.maskedAll(dim && names.length > 0 ? TH.dash.dimUnit[dim] : null) },
   };
 }
 

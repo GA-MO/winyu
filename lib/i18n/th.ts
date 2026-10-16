@@ -709,7 +709,7 @@ export const TH = {
     forecastError: (mape: string) => `ความคลาดเคลื่อนย้อนหลัง (MAPE) ${mape}`,
     forecastScope: (from: string, to: string, weeks: number) => `${from} – ${to} · ${weeks} สัปดาห์`,
     forecastMethod: "พยากรณ์ Holt-Winters · ช่วงที่คาดจากความคลาดเคลื่อนย้อนหลัง",
-    maskedAll: (unit: string | null) => `ตัวเลขชุดนี้ถูกปิดตามสิทธิ์ของบทบาทคุณ${unit ? ` เห็นได้แค่รายชื่อ${unit}` : ""} · ขอสิทธิ์ได้จากเจ้าของ metric`,
+    maskedAll: (unit: string | null) => `ตัวเลขชุดนี้ถูกปิดตามสิทธิ์ของบทบาทคุณ${unit ? ` เห็นได้แค่รายชื่อ${unit}` : ""} · ขอสิทธิ์ได้จากเจ้าของเมตริก`,
     partialWeek: "สัปดาห์ปัจจุบันยังไม่ครบ",
     partialMonth: "เดือนปัจจุบันยังไม่ครบ",
     atBucket: (metric: string, bucket: string) => `${metric} · ${bucket}`,
