@@ -627,7 +627,17 @@ function readingOf(facts: Facts, bars: Bars, rows: MetricRow[]): Breakdown {
     additive: facts.additive,
     falling: falling(facts, rows),
     target: targetBaseOf(facts),
+    baseTotal: baseTotalOf(facts),
   });
+}
+
+/** What the whole of a summed breakdown was in the window it is compared with ("ปีก่อน 10.4 ล้านบาท"), when every group is on the card; a capped or filtered list cannot add up to it. */
+function baseTotalOf(facts: Facts): string | null {
+  const word = TH.read.base[facts.query.compare];
+  if (!word || !facts.additive || facts.capped || facts.query.where) return null;
+  const previous = facts.rows.map((row) => numericOf(row, "compare_value"));
+  if (previous.length === 0 || previous.some((value) => value === null)) return null;
+  return `${word} ${formatMetricValue(facts.query.metric, previous.reduce<number>((sum, value) => sum + (value ?? 0), 0))}`;
 }
 
 /** What a breakdown's target figures are a share of, and the whole month's figure beside the overall row when the month is still running. */

@@ -281,6 +281,13 @@ describe("two metrics on one card", () => {
     expect(bodyOf({ metric: "net_sales_volume", dims: ["region"] }, { others: [{ metric: "headcount", dims: ["department"] }] }).kind).toBe("strip");
   });
 
+  test("a change ranking names what each row moved from, and the hero what the whole was, so last year's amount is on the card (AI-68)", () => {
+    const card = cardOf({ metric: "ar_overdue", dims: ["region"], compare: "prev_year" }, { sort: "delta_desc" });
+    const strip = stripOf(card.body);
+    strip.rows.forEach((row) => expect(row.sub).toMatch(/ · ปีก่อน .+บาท$/));
+    expect(card.hero?.detail).toMatch(/^ปีก่อน .+บาท$/);
+  });
+
   test("one metric asked against target and against the period before is one card, the second change beside the hero and under each row (AI-66)", () => {
     const target = answer({ metric: "net_sales_value", dims: ["region"], compare: "target" });
     const previous = answer({ metric: "net_sales_value", dims: ["region"], compare: "prev_period" });

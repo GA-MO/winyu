@@ -757,6 +757,7 @@ export const TH = {
     averageOf: (unit: string) => `เฉลี่ยทุก${/^[A-Za-z]/.test(unit) ? " " : ""}${unit}`,
     ofTarget: "ของเป้า",
     ofMonthTarget: "ของเป้าทั้งเดือน",
+    base: { prev_period: "งวดก่อน", prev_year: "ปีก่อน" } as Partial<Record<string, string>>,
     ofPacedTarget: "ของเป้าตามเวลา",
     pacedTarget: "เทียบเป้าตามเวลา",
     wholeMonth: (attainment: string, left: string | null) => `ทั้งเดือน ${attainment}${left ? ` · ขาดอีก ${left}` : ""}`,

@@ -74,7 +74,7 @@ export function percentIn(text: string): number | null {
 }
 
 /** What the decision table knows about one breakdown: its rows in the order asked, the bars it draws, the unit word, the overall row's label, whether the question set a threshold (R7), and what a target figure is a share of ("ของเป้าตามเวลา" in a month still running) with the whole month beside it. */
-export type BreakdownInput = { query: MetricQuery; result: OkResult; rows: MetricRow[]; bars: BreakdownBars; unit: string; scope: string; threshold: boolean; additive: boolean; falling: boolean; target: { unit: string; detail: string | null } };
+export type BreakdownInput = { query: MetricQuery; result: OkResult; rows: MetricRow[]; bars: BreakdownBars; unit: string; scope: string; threshold: boolean; additive: boolean; falling: boolean; target: { unit: string; detail: string | null }; baseTotal: string | null };
 
 /** A breakdown read for styles B and A: the strip, the verdict, the hero the overall row stands for, the row style A leads with instead (a change ranking), and how the rows style A folds away read in one line. */
 export type Breakdown = {
@@ -186,6 +186,18 @@ function lineReading(input: BreakdownInput, line: LevelLine): Breakdown {
   };
 }
 
+/** What a row was compared with, named by its window ("ปีก่อน 1.3 ล้านบาท"), so a change never stands without the number it moved from; null against a target or with nothing to compare. */
+export function baseOf(query: MetricQuery, row: MetricRow): string | null {
+  const word = TH.read.base[query.compare];
+  const previous = numericOf(row, "compare_value");
+  return word && previous !== null ? `${word} ${formatMetricValue(query.metric, previous)}` : null;
+}
+
+function levelAndBase(query: MetricQuery, row: MetricRow): string | null {
+  const base = baseOf(query, row);
+  return base ? `${valueTextOf(query, row)} · ${base}` : null;
+}
+
 function changeReading(input: BreakdownInput): Breakdown {
   const { query, result } = input;
   const inPoints = metricFormat(query.metric) === "percent";
@@ -201,7 +213,7 @@ function changeReading(input: BreakdownInput): Breakdown {
     const exception = exceptions.has(entry.row);
     return {
       label: labelOf(query, entry.row),
-      sub: null,
+      sub: levelAndBase(query, entry.row),
       measure: entry.measure,
       fill: entry.measure === null ? 0 : Math.min(1, Math.abs(entry.measure) / (inPoints ? peak : PERCENT)),
       text: changeTextOf(query.metric, entry.row) ?? "—",
@@ -229,8 +241,8 @@ function changeReading(input: BreakdownInput): Breakdown {
       changes: known.map((entry) => entry.measure),
       format,
     }),
-    hero: { label: input.scope, value: overall.delta ?? result.headline.value, unit: null, delta: null, trend: overall.trend, tone: overall.tone, detail: result.headline.compareLabel },
-    lead: leadRow && leading > 0 ? { row: labelOf(query, leadRow.row), hero: { label: labelOf(query, leadRow.row), value: valueTextOf(query, leadRow.row), unit: null, ...rowMove(query, leadRow.row), detail: result.headline.compareLabel } } : null,
+    hero: { label: input.scope, value: overall.delta ?? result.headline.value, unit: null, delta: null, trend: overall.trend, tone: overall.tone, detail: input.baseTotal ?? result.headline.compareLabel },
+    lead: leadRow && leading > 0 ? { row: labelOf(query, leadRow.row), hero: { label: labelOf(query, leadRow.row), value: valueTextOf(query, leadRow.row), unit: null, ...rowMove(query, leadRow.row), detail: baseOf(query, leadRow.row) ?? result.headline.compareLabel } } : null,
     pickWhenNone: wrongWay ? 0 : LEADERS,
     fold: foldLine(input.unit, (rest) => (sameWay(rest) ? (input.falling ? TH.read.fell : TH.read.rose) : null), (rest) => measuresOf(rest).map((value) => (sameWay(rest) ? Math.abs(value) : value)), (value) => (inPoints ? format(value) : percentText(value))),
   };

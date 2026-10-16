@@ -192,3 +192,9 @@ test("none of the new chart bodies render a raw hex colour", () => {
   ];
   for (const body of bodies) expect(render(body)).not.toMatch(HEX_COLOR);
 });
+
+test("a strip row draws its second line under its name: the base it moved from or a second comparison (AI-66, AI-68)", () => {
+  const row = { ...ROW, label: "ภาคใต้", sub: "5.1 ล้านบาท · ปีก่อน 1.3 ล้านบาท", measure: 1, text: "+297.5%", tone: "bad" as const, exception: true };
+  for (const form of ["line", "board"] as const) expect(render({ kind: "strip", strip: { form, baseline: 0, low: 0, high: 1, overall: null, rows: [row] } })).toContain("ปีก่อน 1.3 ล้านบาท");
+  expect(render({ kind: "exceptions", strip: { form: "line", baseline: 0, low: 0, high: 1, overall: null, rows: [row] }, fold: null })).toContain("ปีก่อน 1.3 ล้านบาท");
+});
