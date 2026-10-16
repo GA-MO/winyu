@@ -7,6 +7,7 @@ import { runMetric } from "./metrics";
 import { callsWithAnomalies, cardNumbersOf, evidenceIndexOf, gapQueryOf, investigate, investigateSystemFor, openAnomalies, repeatedIn, reviewDrafts, roleHoldersNamedIn, storiesFrom, evidenceQueryOf, uncoveredFor, whoOf, withoutPinnedDims, type ToolCall } from "./investigate";
 import { agentsOwnedBy } from "@/lib/data/entities/agents";
 import { DATA_AS_OF, dataDay, monthStart } from "@/lib/data/dates";
+import { TH } from "@/lib/i18n/th";
 
 setDefaultTimeout(30_000);
 
@@ -98,6 +99,36 @@ describe("a story is checked before it is kept", () => {
     const evidence = await evidenceIndexOf(calls, DIRECTOR);
     const [litres] = reviewDrafts([draftOf({ finding: "อีสานยังขาดอีกราว 1.29 ล้านลิตร สองเอเย่นต์ใหญ่แทบหยุดสั่ง" })], calls, evidence);
     expect(litres.problems).toContain("finding quotes litres while its card is in baht");
+  });
+
+  test("the card's title names the measure the card draws: a litre title over a card swapped to baht says มูลค่าขายเข้า (AI-179)", async () => {
+    const calls = await callsFor();
+    const draft = draftOf({ evidence: { call: 1, title: "ปริมาณขายเข้า ภาคอีสาน แยกตามเอเย่นต์" } });
+    const baht = await evidenceIndexOf(calls, DIRECTOR);
+    const [story] = storiesFrom("u_prasit", reviewDrafts([draft], calls, baht), calls, baht, []).stories;
+    expect(story.evidence?.query.metric).toBe("net_sales_value");
+    expect(story.evidence?.title).toBe("มูลค่าขายเข้า ภาคอีสาน แยกตามเอเย่นต์");
+    const planner = accessOf("u_wee");
+    const litres = await evidenceIndexOf(calls, planner);
+    const [kept] = storiesFrom("u_wee", reviewDrafts([draft], calls, litres), calls, litres, []).stories;
+    expect(kept.evidence?.query.metric).toBe("net_sales_volume");
+    expect(kept.evidence?.title).toBe("ปริมาณขายเข้า ภาคอีสาน แยกตามเอเย่นต์");
+  });
+
+  test("a finding that states an anomaly's hedged cause as fact asks for a rewrite; the hedged one and a story about the debt itself pass (AI-176)", async () => {
+    const [, metric] = await callsFor();
+    const silent = { id: "al_silent", severity: "P1", severityLabel: "P1", metric: "net_sales_volume", metricLabel: "", scope: { agent: "ag_nea_02", region: "northeast" }, scopeLabel: "", window: "", observedLabel: "", expectedLabel: "", gapLabel: null, yearOverYear: false, direction: "down", hypothesis: TH.engine.hypothesis.silentAgent("อีสานรุ่งโรจน์ ค้าส่ง", null), ownerUserId: "u_anucha" } satisfies AlertRow;
+    const owed = { ...silent, id: "al_south_ar", metric: "ar_overdue", scope: { region: "south" }, direction: "up", hypothesis: TH.engine.hypothesis.arUp("ภาคใต้") } satisfies AlertRow;
+    const calls: ToolCall[] = [{ tool: "get_alerts", input: { status: "open", limit: 10 }, output: { ok: true, rows: [silent, owed] } }, metric];
+    const evidence = await evidenceIndexOf(calls, DIRECTOR);
+    const [fact, hedged, debt] = reviewDrafts([
+      draftOf({ finding: "สองเอเย่นต์หลักติดหนี้ค้างชำระจนไม่สั่งซื้อ ทำให้ยอดขายเข้าภาคอีสานจะปิดเดือนต่ำกว่าเป้า" }),
+      draftOf({ finding: "สองเอเย่นต์หลักหยุดสั่งซื้อ น่าจะติดวงเงิน ทำให้ยอดขายเข้าภาคอีสานจะปิดเดือนต่ำกว่าเป้า" }),
+      draftOf({ finding: "หนี้ค้างชำระภาคใต้สูงขึ้นมาก กระจุกอยู่ไม่กี่เอเย่นต์", scope: "ภาคใต้", subject: { metric: "ar_overdue", region: "south" }, evidence: null }),
+    ], calls, evidence);
+    expect(fact.problems.some((problem) => problem.includes("น่าจะ"))).toBe(true);
+    expect(hedged.problems).toEqual([]);
+    expect(debt.problems).toEqual([]);
   });
 
   test("a finding that repeats its card's headline or month-end number asks for a rewrite", async () => {
@@ -241,5 +272,13 @@ describe("every P1 matter of the person gets a story (AI-166)", () => {
     expect(run.investigation.stories).toHaveLength(4);
     expect(scripted.calls).toBe(2);
     expect(run.uncovered).toEqual([]);
+  });
+
+  test("the story writer is told an anomaly's hypothesis is a guess that stays hedged (AI-176)", async () => {
+    const scripted = writes([LAMPHUN, ISAN, SOUTH_AR, KORAT_SHARE]);
+    await investigate(CEO, scripted.model, "scripted");
+    const writer = JSON.stringify(scripted.model.doGenerateCalls[1]?.prompt ?? null);
+    expect(writer).toContain("An anomaly's `hypothesis` is a guess");
+    expect(writer).toContain("keeps its hedge (\\\"น่าจะ\\\")");
   });
 });
