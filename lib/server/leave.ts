@@ -16,7 +16,8 @@ type Tone = "good" | "bad" | "neutral";
 
 export type LeaveRequestInput = { kind: LeaveKind; from: string; to: string; reason: string };
 
-type LeaveBook = { policy: LeavePolicy; balances: readonly LeaveBalance[]; calendar: Calendar };
+/** What a leave request is checked against: the leave policy, the person's balances and the company calendar. */
+export type LeaveBook = { policy: LeavePolicy; balances: readonly LeaveBalance[]; calendar: Calendar };
 
 async function leaveBookOf(userId: string): Promise<LeaveBook> {
   const leave = ports().leave;
@@ -99,6 +100,18 @@ function leaveError(input: LeaveRequestInput, days: number, book: LeaveBook): st
   if (balance.entitled === 0) return T.error.probation;
   if (days > balance.left) return T.error.balance(T.kind[input.kind], days, balance.left);
   return null;
+}
+
+/** Why this leave request cannot be filed against this leave book (date order, span, working days, past date, notice, balance), or null when it can; no I/O. */
+export function leaveProblem(input: LeaveRequestInput, book: LeaveBook): string | null {
+  return leaveError(input, workdaysBetween(input.from, input.to, book.calendar), book);
+}
+
+/** Why this person's leave request would not be filed (the same checks against their leave book now, and someone to approve it), or null when it would; the approval is asked only for a request that files. */
+export async function leaveProblemFor(userId: string, input: LeaveRequestInput): Promise<string | null> {
+  const problem = leaveProblem(input, await leaveBookOf(userId));
+  if (problem) return problem;
+  return (await approverOf(userId)) ? null : T.error.noApprover;
 }
 
 /** Files a leave request in the viewer's name with the leave system: working days counted from the company calendar, the balance the leave system keeps checked first, the request filed once per call, and the approver told in their Inbox. */
