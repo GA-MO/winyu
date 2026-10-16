@@ -822,7 +822,7 @@ export const TH = {
       placeholder: "สั่ง Winyu เช่น ให้พนักงานขายไม่เห็นมูลค่าขายเข้า",
       submit: "สั่ง Winyu",
       label: "สั่งงาน Winyu",
-      suggestions: ["ให้พนักงานขายไม่เห็นมูลค่าขายเข้า", "ใครถูกปฏิเสธบ่อยที่สุดสัปดาห์นี้", "ให้การตลาดเห็นอัตรากำไรขั้นต้นแต่ซ่อนตัวเลข"],
+      suggestions: { hideSellInValue: "ให้พนักงานขายไม่เห็นมูลค่าขายเข้า", mostDenied: "ใครถูกปฏิเสธบ่อยที่สุดสัปดาห์นี้", maskMargin: "ให้การตลาดเห็นอัตรากำไรขั้นต้นแต่ซ่อนตัวเลข" },
     },
     acl: { full: "Full", masked: "Masked", none: "None" },
     aclShort: { full: "Full", masked: "Masked", none: "None" },

@@ -7,7 +7,7 @@ import { agentsOwnedBy } from "@/lib/data/entities/agents";
 const MAX_ACTIONS = 6;
 const MY_AGENTS_ACTION = "qa_my_agents";
 const METRIC_TOOL: ToolName = "query_metric";
-const SUBJECT_TOOLS: Record<string, ToolName> = { calendar: "get_calendar", job: "run_job" };
+const SUBJECT_TOOLS: Record<string, ToolName> = { calendar: "get_calendar", job: "run_job", audit: "admin_audit" };
 
 const SHARED_ACTIONS: QuickAction[] = [
   { id: "qa_attainment", label: "ยอดเทียบเป้าแยกตามภาค", prompt: "ยอดขายเดือนนี้เทียบเป้าแยกตามภาค", score: 0.92, reason: "ดูว่าภาคไหนยังห่างเป้า", intentKey: "target_attainment|region" },
@@ -41,11 +41,23 @@ function toolAnswering(subject: string): ToolName | null {
   return SUBJECT_TOOLS[subject] ?? null;
 }
 
-function answerable(action: QuickAction, access: AccessContext): boolean {
+/** A chip is offered only when a tool the person may call answers it, and a metric chip only on a metric they see in full. */
+export function answerable(action: QuickAction, access: AccessContext): boolean {
   const subject = action.intentKey.split("|")[0] ?? "";
   const tool = toolAnswering(subject);
-  if (tool && !isToolAllowed(access, tool)) return false;
+  if (!tool || !isToolAllowed(access, tool)) return false;
   return !METRIC_IDS.includes(subject as MetricId) || access.metricAcl[subject as MetricId] === "full";
+}
+
+const ADMIN_SUGGESTIONS: readonly { tool: ToolName; prompt: string }[] = [
+  { tool: "set_permission", prompt: TH.admin.ask.suggestions.hideSellInValue },
+  { tool: "admin_audit", prompt: TH.admin.ask.suggestions.mostDenied },
+  { tool: "set_permission", prompt: TH.admin.ask.suggestions.maskMargin },
+];
+
+/** The prompts the admin console suggests sending to Winyu, each only while the admin may call the tool that answers it. */
+export function adminSuggestionsFor(access: AccessContext): string[] {
+  return ADMIN_SUGGESTIONS.filter((suggestion) => isToolAllowed(access, suggestion.tool)).map((suggestion) => suggestion.prompt);
 }
 
 function namingOwnAgents(action: QuickAction, access: AccessContext): QuickAction {

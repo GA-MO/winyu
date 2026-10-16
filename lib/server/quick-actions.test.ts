@@ -6,7 +6,7 @@ import { findUser, USERS } from "@/lib/data/entities/users";
 import { templateFor } from "@/lib/dashboard/templates";
 import { seasonalHints } from "@/lib/engine/seasons";
 import { TH } from "@/lib/i18n/th";
-import { defaultActionsFor, quickActionsFor } from "./quick-actions";
+import { adminSuggestionsFor, answerable, defaultActionsFor, quickActionsFor } from "./quick-actions";
 
 const CLAIMS_A_HABIT = /ทุก(เช้า|ครั้ง|ต้น|สัปดาห์|เดือน)|ถาม(บ่อย|ทุก)|เปิดดู\S*\s*\d|\d+\s*ครั้ง|คนตำแหน่งเดียวกับคุณ|ของคุณคือ/;
 const MONTH_END = Date.parse("2026-09-28T09:00:00.000Z");
@@ -45,5 +45,30 @@ describe("chips only offer what the role can still answer", () => {
     expect(withoutTool.map((action) => action.intentKey)).toContain("calendar|date");
     setRoleTool("sales_rep", "query_metric", true, "u_ton");
     expect(quickActionsFor(liveAccessFor(user)).some((action) => metricChip(action.intentKey))).toBe(true);
+  });
+
+  test("a chip whose subject no tool answers is never offered, whatever the role", () => {
+    for (const user of USERS) {
+      const access = liveAccessFor(user);
+      expect(answerable({ id: "qa_x", label: "x", prompt: "x", score: 1, reason: "x", intentKey: "who_owns_the_system|owner" }, access)).toBe(false);
+    }
+  });
+
+  test("the IT admin's chips are all answerable by tools they hold: tool usage by admin_audit, the rerun by run_job", () => {
+    const user = findUser("u_ton");
+    if (!user) throw new Error("no user u_ton");
+    const chips = defaultActionsFor(liveAccessFor(user));
+    expect(chips.map((action) => action.id)).toEqual(["qa_audit", "qa_rerun_anomaly"]);
+    setRoleTool("it_admin", "admin_audit", false, "u_thana");
+    expect(defaultActionsFor(liveAccessFor(user)).map((action) => action.id)).toEqual(["qa_rerun_anomaly"]);
+  });
+
+  test("the admin console suggests asking Winyu only what a tool the admin holds can answer", () => {
+    const user = findUser("u_ton");
+    if (!user) throw new Error("no user u_ton");
+    const all = Object.values(TH.admin.ask.suggestions);
+    expect(adminSuggestionsFor(liveAccessFor(user))).toEqual(all);
+    setRoleTool("it_admin", "admin_audit", false, "u_thana");
+    expect(adminSuggestionsFor(liveAccessFor(user))).toEqual(all.filter((prompt) => prompt !== TH.admin.ask.suggestions.mostDenied));
   });
 });

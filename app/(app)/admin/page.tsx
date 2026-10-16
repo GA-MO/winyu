@@ -10,6 +10,8 @@ import { TH } from "@/lib/i18n/th";
 import { GlowBackdrop } from "@/components/ui/glow-backdrop";
 import { GradientText } from "@/components/ui/gradient-text";
 import { readUser } from "@/lib/server/session";
+import { liveAccessFor } from "@/lib/access/enforce";
+import { adminSuggestionsFor } from "@/lib/server/quick-actions";
 import { AccessTab } from "@/components/admin/access-tab";
 import { ActiveTabInView } from "@/components/admin/active-tab-in-view";
 import { AuditTab } from "@/components/admin/audit-tab";
@@ -102,10 +104,11 @@ function AskAgent() {
   );
 }
 
-function AskSuggestions() {
+function AskSuggestions({ prompts }: { prompts: readonly string[] }) {
+  if (prompts.length === 0) return null;
   return (
     <div className="flex flex-wrap gap-1.5">
-      {TH.admin.ask.suggestions.map((prompt) => (
+      {prompts.map((prompt) => (
         <Link
           key={prompt}
           href={`/c/new?prompt=${encodeURIComponent(prompt)}`}
@@ -210,7 +213,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
           <AskAgent />
         </header>
         <AdminNav current={current} />
-        {current === "overview" ? <AskSuggestions /> : null}
+        {current === "overview" ? <AskSuggestions prompts={adminSuggestionsFor(liveAccessFor(user))} /> : null}
         {current === "overview" ? <OverviewTab /> : null}
         {current === "access" ? <AccessTab role={roleOf(params.role)} view={params.view === "matrix" ? "matrix" : "role"} viewer={user.id} /> : null}
         {current === "grants" ? <GrantsTab /> : null}
