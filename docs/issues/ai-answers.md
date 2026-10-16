@@ -1738,3 +1738,458 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 - **หลักฐาน:**
 	- docs/demo-run-sheet.md:42,63,71,78,109
 - **สาเหตุ:** verified by reading the sheet against the screens; the sheet predates the bell redesign
+## รอบทดสอบที่ 4 (2026-10-17) เฉพาะเส้นทางเดโม
+
+เดิน run sheet ใน 4 หน้าต่าง แล้วถามคำถามที่น่าจะเจอในวันงานกับ 4 บทบาท รวม turn ที่เสียในรอบ 3 บนเส้นทางนี้ server `:3110` ที่ commit `9292a4b` ข้อมูล seed ใหม่และสืบตอนเช้าใหม่ ($0.23) ค่าโมเดลรอบทดสอบ $0.62 ผล: แก้แล้ว 21 · ยังเสีย 13 · ใหม่ 21 · เงื่อนไขหยุดยังไม่ผ่าน (สูง 1 ข้อ กลางบนเส้นทางเดโม 18 ข้อ)
+
+ยืนยันกับโมเดลแล้วว่าแก้แล้ว: AI-93, AI-94, AI-95, AI-97, AI-98, AI-99, AI-100, AI-101, AI-102, AI-103, AI-107, AI-108, AI-109, AI-110, AI-111, AI-118, AI-120, AI-123, AI-125, AI-126, AI-129
+
+| ข้อ | ระดับ | สถานะ | ปัญหา |
+|---|---|---|---|
+| AI-132 (เดิม AI-96) | สูง | ยังเสีย | An approved chat send fails when the model read the card in the same step as send_card: the approval shows one card, but the resumed run resolves against the older screen and refuses with raw cardRef ids |
+| AI-133 (เดิม AI-112) | กลาง | ยังเสีย | Turns over 40 s on the demo path, almost all of it in unbounded final-step reasoning |
+| AI-134 (เดิม AI-90) | กลาง | ยังเสีย | 'ผม/ของผม' for the rep resolves to Khon Kaen province (2 of his 4 agents), so chat and the home pin give different attainment |
+| AI-135 (เดิม AI-131) | กลาง | ยังเสีย | The run sheet describes buttons and texts the product does not show |
+| AI-136 | กลาง | เปิด (ใหม่) | The run-sheet story card is in litres while every chat answer about the same Isan month is in baht (79.7% vs 77.3%, both 'ของเป้าทั้งเดือน') |
+| AI-137 | กลาง | เปิด (ใหม่) | Matters sent from chat lose their subject: titles carry no agent or brand, asks can be urgency words only, and the receiver's inbox cannot name what was sent |
+| AI-138 | กลาง | เปิด (ใหม่) | The send approval previews the raw row sum (5.1 ล้านลิตร, 97.8 ล้านบาท), not the hero the card shows (79.7%, 72.4%) |
+| AI-139 | กลาง | เปิด (ใหม่) | A new question sent while an approval waits re-raises the abandoned send instead of answering |
+| AI-140 (เดิม AI-110) | กลาง | ยังเสีย | The CEO risk answer says there is no stock risk while its own anomaly card leads with a P1 stock-out, and it merges stock cover and AR into one strip |
+| AI-141 (เดิม AI-53) | กลาง | ยังเสีย | Breakdown cards mix bases: the hero is % of the full-month target, the unlabelled rows are % of the pro-rated target, and every row is red |
+| AI-142 | กลาง | เปิด (ใหม่) | The gap card (explain_gap) has no verdict; for 'how will the month close' it leads with month-to-date and hides the forecast below the fold |
+| AI-143 (เดิม AI-123) | กลาง | เปิด (ใหม่) | The market-share answer does not show our share against competitors or name the region we lost most; the drill points at 'ภาคกลาง · รายอื่น' |
+| AI-144 | กลาง | เปิด (ใหม่) | The CEO's South AR story card says '2 เอเย่นต์ยอดเพิ่มกว่าเท่าตัว' while three agents more than doubled |
+| AI-145 (เดิม AI-130) | กลาง | เปิด (ใหม่) | 'ทำไมตกอะ' names two agents as the main cause of a drop that is 74% long tail |
+| AI-146 (เดิม AI-130) | กลาง | ยังเสีย | An agent-level 'why did it drop' gets the alert's generic hypothesis, not an investigation |
+| AI-147 (เดิม AI-129) | กลาง | ยังเสีย | The rep's 'whole company' request is silently scoped to Isan and drawn as a lone Isan number |
+| AI-148 | กลาง | เปิด (ใหม่) | IT audit answers are wide tables on a phone: the 'who to whom' column is off-screen |
+| AI-149 | กลาง | เปิด (ใหม่) | 'Only what is hidden' gets a card of 18 restricted items while the text says 2 |
+| AI-150 | กลาง | เปิด (ใหม่) | 'Who uses Winyu most' is answered 'no per-person data', though every audit row has a user |
+| AI-151 | กลาง | เปิด (ใหม่) · นอกเส้นทางเดโม | Permission changes made in the Admin console (คืนค่า, reset) are not written to the audit |
+| AI-152 (เดิม AI-100) | ต่ำ | ยังเสีย | Failed or denied calls still draw actionable UI: a stray 'ไม่ได้ปักการ์ด' chip beside the pin approval, and a ส่งต่อ button on the access-denied card |
+| AI-153 (เดิม AI-123) | ต่ำ | ยังเสีย | Follow-up chips and card actions still leave the asked subject in places |
+| AI-154 (เดิม AI-131) | ต่ำ | ยังเสีย | Story pages offer 'ส่งให้คุณอนุชา' as the main action to the CEO who sent it and to the rep who received it |
+| AI-155 | ต่ำ | เปิด (ใหม่) | Share sheet and story drawer on run-sheet step 1: 'ผู้รับผิดชอบเรื่องนี้' lists the CEO's whole line, the Isan story sits third below an expanded story, and the sheet text is cut or unspaced |
+| AI-156 (เดิม AI-107) | ต่ำ | เปิด (ใหม่) | Scorecards and single-row cards break the card rules: 4 tiles, the hero repeated as the headline, the all-group average as hero |
+| AI-157 | ต่ำ | เปิด (ใหม่) | CEO landing tile labels October's volume with the six-month range and compares it with September |
+| AI-158 | ต่ำ | เปิด (ใหม่) | The rep's story card shows all 8 Isan agents, the same as the CEO and RSM, so the per-role speech line has nothing to show |
+| AI-159 | ต่ำ | เปิด (ใหม่) | Phone-width truncation and dev overlays on the chain screens |
+| AI-160 (เดิม AI-121) | ต่ำ | ยังเสีย | Chat audit cards show English codes, a raw 'policy_label' header and raw tool-argument JSON |
+| AI-161 | ต่ำ | เปิด (ใหม่) | The overclaim rebuttal invites resending the false message and offers no corrected wording |
+| AI-162 (เดิม AI-79) | ต่ำ | ยังเสีย | The text after an approved send mixes 'preparing' and 'done' |
+| AI-163 | ต่ำ | เปิด (ใหม่) | IT asks how a denied RSM can get access; the answer points to the South RSM, not the admin's own grant path |
+| AI-164 (เดิม AI-99) | ต่ำ | เปิด (ใหม่) · นอกเส้นทางเดโม | Reload mid-reply rejoins the run but duplicates step lines and resets the timer |
+| AI-165 | ต่ำ | เปิด (ใหม่) · นอกเส้นทางเดโม | The month-end forecast card cannot be pinned |
+
+### AI-132. An approved chat send fails when the model read the card in the same step as send_card: the approval shows one card, but the resumed run resolves against the older screen and refuses with raw cardRef ids
+
+- **สถานะ:** ยังเสีย · เดิม AI-96
+- **ระดับ:** สูง · **หมวด:** `chain` · **บทบาท:** u_anucha (RSM)
+- **อาการ:** After 'ยืนยัน ส่งงานให้คุณกฤตเลย' the model called query_metric (Khon Kaen agent) and send_card in one step. The approval showed 'มูลค่าขายเข้า · รายเอเย่นต์ 71.0 ล้านบาท'. On ส่ง the gateway denied with CARD_UNCLEAR and listed only the two turn-1 cards (c1br6lox, cw6z8sf), so the user saw raw English 'cardRef: …' text. A third turn was needed to send ckj4ngn. With only one older card on screen, the resolver would have sent a card other than the one approved. The refused send is also audited as 'allow'.
+- **ที่ควรเป็น:** An approved send carries exactly the card its approval showed. A card drawn in the same step as the send counts as on screen when the resumed run executes. Errors never show ref ids or English.
+- **หลักฐาน:**
+	- run 5aebb2ed query_metric call_1694693 + send_card call_1694699 in step 1, approval.requested
+	- run f0333ee0 18:42:02.382 tool.denied CARD_UNCLEAR listing only c1br6lox, cw6z8sf
+	- audit.json 18:42:02 u_anucha send_card decision 'allow' with the refusal text
+	- screenCardsOn on the final data returns ckj4ngn, so the card was missing only at resume time
+	- shares.json 6rtGsoxnaiYb sent 18:45:07 with cardRef ckj4ngn
+	- r4-runs/rsm/s1t2-failed.png
+- **สาเหตุ:** Verified in part: lib/harness/adapters/mastra/serve.ts:176-179 builds the resumed run's screenCards from context.finished, which starts empty (carried calls go only into `queries`), so the paused step's card is on screen only if keepFinishedResults (history.ts:173) has already rewritten the stored message. cardNamed (components/chat/card-to-share.ts:81-84) then falls back to all screen cards. Why keepFinishedResults had not landed: guess.
+
+### AI-133. Turns over 40 s on the demo path, almost all of it in unbounded final-step reasoning
+
+- **สถานะ:** ยังเสีย · เดิม AI-112
+- **ระดับ:** กลาง · **หมวด:** `latency` · **บทบาท:** u_thana (CEO), u_anucha (RSM), u_krit (rep)
+- **อาการ:** CEO risk took 52.3 s, the RSM delegation 48.5 s (3,819 reasoning tokens), the RSM leave lookup 55.1 s (37 s and 5,011 reasoning tokens in its last step), and CEO market share 44.5 s (first query_metric asked this_month for a monthly survey, got 0 rows, then list_metrics and a retry). The rep's demo opener took 47.3 s (32 s final step, 4,235 reasoning tokens against a 10 ms tool), the visit plan 41.1 s (4,300 reasoning tokens for two sentences). The run-sheet chat send f55ac603 spent 37 s and 4,605 reasoning tokens before one resolve_owner.
+- **ที่ควรเป็น:** A demo turn finishes in 40 s or less; a lookup in about 15 s; reasoning bounded on answer-writing steps.
+- **หลักฐาน:**
+	- runs.json e4e9a15a 52.3 s, 02a7de6d 48.5 s, 447718a2 55.1 s, bace56ec 44.5 s, b4323a0e 47.3 s, 83f6c1d9 41.1 s, f55ac603 37.0 s
+	- model-calls.json reasoningTokens 447718a2 5011, f55ac603 4605, 83f6c1d9 4300, b4323a0e 4235, 02a7de6d 3819
+	- bace56ec first query_metric market_share this_month → rows [] (latest survey 'รอบ ต.ค. 69')
+	- tool latency 1-185 ms in every trace
+- **สาเหตุ:** Verified from model-calls.json and traces: time is in Gemini model steps, not tools. Reasoning effort is not capped (guess on the fix point). Market-share delay verified from the tool result: query_metric defaults a monthly-survey metric to this_month.
+
+### AI-134. 'ผม/ของผม' for the rep resolves to Khon Kaen province (2 of his 4 agents), so chat and the home pin give different attainment
+
+- **สถานะ:** ยังเสีย · เดิม AI-90
+- **ระดับ:** กลาง · **หมวด:** `wrong-answer` · **บทบาท:** u_krit (sales rep)
+- **อาการ:** The rep's demo opener filtered province ขอนแก่น: 1.5 M L, 76.0% of 2.0 M L. 'เอเย่นต์ของผม' also returned only 2 agents. He owns 4 (ag_nea_01, 02, 03, 05); his home pin sums all 4 at 87.9%, and visit_plan ranks อุบลศรีสุข second, which the 'my sales' card omits.
+- **ที่ควรเป็น:** 'ผม/ของผม' means the agents the rep owns, the same 4 the home widget and visit_plan use, so chat and pin agree.
+- **หลักฐาน:**
+	- audit 18:39:33 b4323a0e query_metric filters {province:[ขอนแก่น]} → 76.0%
+	- audit 18:34:58 38a12ee7 filters {province:[ขอนแก่น]} rows 2
+	- layouts.json w_u_krit_attainment filters agent [ag_nea_01, 02, 03, 05]
+	- lib/data/entities/agents.test.ts:35 agentsOwnedBy(u_krit) = 4
+	- r4-runs/rep/s1t1.png
+- **สาเหตุ:** Verified: lib/server/agent/persona.ts:141-146 scopeLine gives the region only, no owned-agent list, and persona.ts:75 says 'จังหวัดที่รับผิดชอบ', so the model filters the province from the title 'พนักงานขาย ขอนแก่น'.
+
+### AI-135. The run sheet describes buttons and texts the product does not show
+
+- **สถานะ:** ยังเสีย · เดิม AI-131
+- **ระดับ:** กลาง · **หมวด:** `run-sheet` · **บทบาท:** presenter (chain)
+- **อาการ:** Steps 2 and 3 say tap เปิดดู in the bell; there is no such button (card-title link plus รับ / ขอข้อมูลเพิ่ม / ส่งต่อ / ⋯). The bell item wording and missing ด่วน tag differ from the sheet. In the chat alternative ถามต่อ auto-sends a 25 s model run before the presenter can type, and the send took 37 s more; the sheet has no timing. Troubleshooting expects 'ไม่ได้ส่งการ์ด' but the screen shows 'รายการนี้ไม่ได้ทำ'. The share sheet's ticked close-goal switch is not mentioned.
+- **ที่ควรเป็น:** The sheet names what is on screen, says ถามต่อ auto-asks, and gives measured chat-path timings (about 70 s from ถามต่อ to sent).
+- **หลักฐาน:**
+	- docs/demo-run-sheet.md:63,71,97,109,117
+	- runs 2226be81 25.4 s, f55ac603 37.0 s, 88090eda 8.4 s
+	- lib/i18n/th.ts:228 notRun 'รายการนี้ไม่ได้ทำ'
+	- r4-runs/chain/step2-2-rsm-bell-open.png, r4-runs/chain/alt-1-askmore.png
+- **สาเหตุ:** Verified by reading docs/demo-run-sheet.md against the round-4 screens; the sheet was not updated after round 3.
+
+### AI-136. The run-sheet story card is in litres while every chat answer about the same Isan month is in baht (79.7% vs 77.3%, both 'ของเป้าทั้งเดือน')
+
+- **สถานะ:** เปิด (ใหม่)
+- **ระดับ:** กลาง · **หมวด:** `run-sheet` · **บทบาท:** u_thana (CEO), u_anucha (RSM), u_krit (rep)
+- **อาการ:** The CEO's Isan story card, the one the run sheet sends down the chain, uses net_sales_volume: 79.7%, ขาดอีก 1.29 ล้านลิตร, ตามเวลา 92%. The RSM asking in chat gets net_sales_value: 77.3%, ตามเวลา 89.2%. The CEO's own chat answers on Isan are in baht. The CEO landing attainment tile is also on volume (98% pace) while the board chat answer is baht (96.8%).
+- **ที่ควรเป็น:** The morning story, landing and chat use one sales measure (baht), or the card names its unit in the headline.
+- **หลักฐาน:**
+	- investigations.json u_thana-2 evidence metric net_sales_volume
+	- shares.json uPmVZs56LuuN goal metric net_sales_volume
+	- run f417d1c8 net_sales_value 77.3%
+	- r4-runs/ceo/00-landing.png
+- **สาเหตุ:** guess: the investigation job takes the metric from the alert (alerts are on net_sales_volume), while the chat prompt prefers baht after AI-108.
+
+### AI-137. Matters sent from chat lose their subject: titles carry no agent or brand, asks can be urgency words only, and the receiver's inbox cannot name what was sent
+
+- **สถานะ:** เปิด (ใหม่)
+- **ระดับ:** กลาง · **หมวด:** `chain` · **บทบาท:** u_thana (CEO), u_anucha (RSM), u_krit (rep)
+- **อาการ:** Krit's bell reads '…ขอให้คุณตอบ: เข้าไปคุยกับเอเย่นต์เจ้านี้ภายในสัปดาห์นี้' under title 'มูลค่าขายเข้า · รายเอเย่นต์', with no ขอนแก่นมหาชัย. Anucha's reads 'ด่วน ให้ตอบกลับภายในวันนี้' under 'มูลค่าขายเข้า · รายเอเย่นต์ × จังหวัด', with no ลีโอ. Approval previews had the same gap. When the rep asked what his manager sent, the inbox tool returned only title/from/ask/status, so the reply said 'เอเย่นต์รายนี้', kept 'ภายในสัปดาห์นี้' undated, and showed the unfinished status 'รอคุณตัดสิน'. Both chain matters share an identical title in every bell and audit row.
+- **ที่ควรเป็น:** The share title carries the card's filters ('· ขอนแก่นมหาชัย', '· ลีโอ ภาคอีสาน'), an ask without content falls back to the card's subject, and inbox rows carry the slice, hero and due date so the model can name them.
+- **หลักฐาน:**
+	- shares.json 6rtGsoxnaiYb filters agent ag_nea_01, due null, urgency this_week
+	- shares.json PQiThX2UhYvm filters region northeast, brand leo; ask 'ด่วน ให้ตอบกลับภายในวันนี้'
+	- notifications.json 18:45:07 u_krit, 18:45:38 u_anucha
+	- mastra_messages thread 272ad95e inbox rows[0] title/from_name/ask/status_label/at_label only
+	- lib/i18n/th.ts:1809 yourCall 'รอคุณตัดสิน'
+	- r4-runs/rep/p1.png
+- **สาเหตุ:** Verified for the inbox (rows carry no slice label, hero or due). guess: shareTitle in lib/share/card.ts builds the title from metric and dims only, and send_card keeps a non-empty ask even when it holds only urgency words.
+
+### AI-138. The send approval previews the raw row sum (5.1 ล้านลิตร, 97.8 ล้านบาท), not the hero the card shows (79.7%, 72.4%)
+
+- **สถานะ:** เปิด (ใหม่)
+- **ระดับ:** กลาง · **หมวด:** `write-flow` · **บทบาท:** u_thana (CEO chain alt), u_krit (rep)
+- **อาการ:** The CEO's run-sheet chat send raised an approval reading 'ปริมาณขายเข้า (Sell-in) · รายเอเย่นต์ 5.1 ล้านลิตร' for a card that leads with 79.7% ของเป้าทั้งเดือน · ขาดอีก 1.29 ล้านลิตร. The rep's preview showed 97.8 ล้านบาท beside a card at 72.4%. The attached cards were correct.
+- **ที่ควรเป็น:** The approval preview shows the same hero the drawn card shows.
+- **หลักฐาน:**
+	- thread 3aa4642c query_metric headline.value '5.1 ล้านลิตร', summary 79.7%
+	- thread 1d220399 headline.value '97.8 ล้านบาท', summary 72.4%
+	- r4-runs/chain/alt-3-approval.png, r4-runs/chain/break2-0-approval-waiting.png
+- **สาเหตุ:** Verified: components/chat/card-to-share.ts:33-37 heroOf returns result.headline.value (the row sum), not the hero chosen by the card plan in lib/cards/present.ts; components/cards/approval-card.tsx:304,349-351 renders it.
+
+### AI-139. A new question sent while an approval waits re-raises the abandoned send instead of answering
+
+- **สถานะ:** เปิด (ใหม่)
+- **ระดับ:** กลาง · **หมวด:** `write-flow` · **บทบาท:** u_krit (rep, chain break 2)
+- **อาการ:** While a send_card approval waited, the rep asked 'ขอนแก่นมหาชัยค้างชำระเท่าไร'. The first approval was denied correctly, then the model issued send_card again with the same cardRef and ask and raised the same approval. The question was answered only after the rep tapped ยังไม่ส่ง, about 51 s in all.
+- **ที่ควรเป็น:** After a new message the abandoned send stays closed and the turn answers the new question.
+- **หลักฐาน:**
+	- 6540f34d send_card call_1992717 approval.requested
+	- c5ea8a38 approval.denied call_1992717 then send_card call_3833431 (same cardRef c1h76qk0, same ask)
+	- c21a5039 approval.denied 18:36:10, answer 18:36:44
+	- r4-runs/chain/break2-2-after.png
+- **สาเหตุ:** guess: the denied call reaches the model as output-denied with no line saying the user moved on, so Gemini retries the unfinished request.
+
+### AI-140. The CEO risk answer says there is no stock risk while its own anomaly card leads with a P1 stock-out, and it merges stock cover and AR into one strip
+
+- **สถานะ:** ยังเสีย · เดิม AI-110
+- **ระดับ:** กลาง · **หมวด:** `answer-consistency` · **บทบาท:** u_thana (CEO)
+- **อาการ:** Text says 'ความเสี่ยงด้านสต๊อกค้างยังไม่พบสัญญาณผิดปกติ', beside an anomaly card whose first item is P1 DC ลำพูน เพอร์ร่า 6.3 vs 15.5 วัน −59%. Card 1 pairs days_of_cover with ar_overdue; its headline covers stock only and the AR half sits in row subtext. The South AR 'สูง' (Oct YoY alert) still reads against a −7.5% Nov row. The anomaly card lists the two Isan agents the CEO asked to exclude, and the stock card's send action asks คุณวีร์ about DC ลำพูน. (The rep's DC cover fetch part of AI-110 is fixed.)
+- **ที่ควรเป็น:** The text names the P1 stock-out as a stock risk; stock and AR get their own cards or one verdict covering both; the excluded subject is left out.
+- **หลักฐาน:**
+	- run e4e9a15a: days_of_cover by region, ar_overdue by region (ภาคใต้ −7.5%), get_alerts al_e8114d936da7141f P1 DC ลำพูน
+	- days_of_cover nextActions send to u_wee about ศูนย์กระจายสินค้าลำพูน
+	- r4-runs/ceo/s1t4-a.png
+- **สาเหตุ:** guess: R10 pairing in lib/cards/present.ts (cardPlanOf) pairs any two query_metric results with the same dims and range even when unrelated, and the prompt does not make the text cover open P1 alerts in the asked domain.
+
+### AI-141. Breakdown cards mix bases: the hero is % of the full-month target, the unlabelled rows are % of the pro-rated target, and every row is red
+
+- **สถานะ:** ยังเสีย · เดิม AI-53
+- **ระดับ:** กลาง · **หมวด:** `card-fit` · **บทบาท:** u_thana (CEO), u_anucha (RSM)
+- **อาการ:** The RSM team card shows 'รวมทุกเอเย่นต์ 77.3% ของเป้าทั้งเดือน' over rows at 98.4%, 98.9% (vs pace). The CEO board card reads 83.9% with beer 96% and non-alc 101.4%; the run-sheet story card 79.7% with rows on pace. Every agent looks near 100% under a 77% total, all red. The numbers themselves trace.
+- **ที่ควรเป็น:** Rows and hero use one base, or the rows are labelled 'เทียบเป้าตามเวลา'.
+- **หลักฐาน:**
+	- run f417d1c8 agent rows ขอนแก่นมหาชัย 70967921 vs 72089717 −1.6%, summary 77.3% ของเป้าทั้งเดือน
+	- run c39ff601 board card
+	- r4-runs/rsm/s1t1-full.png, r4-runs/ceo/s1t1-full.png, r4-runs/ceo/03-story-isan.png
+- **สาเหตุ:** guess: lib/cards/breakdown.ts / present.ts R3 builds the hero from the full-month projection fields (AI-101) while the bars keep value/compare_value (pace target).
+
+### AI-142. The gap card (explain_gap) has no verdict; for 'how will the month close' it leads with month-to-date and hides the forecast below the fold
+
+- **สถานะ:** เปิด (ใหม่)
+- **ระดับ:** กลาง · **หมวด:** `card-fit` · **บทบาท:** u_thana (CEO), u_anucha (RSM)
+- **อาการ:** 'ภาคไหนน่าห่วงที่สุด', 'ทั้งเดือนจะปิดที่เท่าไหร่' and 'ภาคอีสานจะปิดเดือนได้ถึงเป้าไหม' all got the same card: headline 'ห่าง −50.9 / −39.8 ล้านบาท' (double negative) over an actual-to-date hero. The answer (371.9 ล้าน = 87.5% of 424.8, ไม่ถึงเป้า) sits in a table below.
+- **ที่ควรเป็น:** For month-end, the hero is the projected close with a code-built verdict ('คาดปิด 87.5% ของเป้า ไม่ถึงเป้า'); for 'which region', the headline names the region.
+- **หลักฐาน:**
+	- run 514e2987 explain_gap projection 371.9 ล้านบาท / 424.8 / 87.5%
+	- runs 34119483, 43e03084 same card
+	- docs/plans/card-fit.md 'the headline is a verdict built in code from the result'
+	- r4-runs/rsm/p2.png, r4-runs/ceo/s2t3.png, r4-runs/ceo/s1t2-a.png
+- **สาเหตุ:** guess: the explain_gap body is outside the CARD_RULES decision table in lib/cards/present.ts, so it keeps a fixed 'ห่าง {gap}' title and an actual-to-date hero.
+
+### AI-143. The market-share answer does not show our share against competitors or name the region we lost most; the drill points at 'ภาคกลาง · รายอื่น'
+
+- **สถานะ:** เปิด (ใหม่) · เดิม AI-123
+- **ระดับ:** กลาง · **หมวด:** `card-fit` · **บทบาท:** u_thana (CEO)
+- **อาการ:** For a chip the board summary offers, the heatmap shows only point changes for every maker, headline 'ไม่มีรายการไหนลดลงโดดเด่น', Isan not highlighted. Sorting delta_asc across all makers puts a small competitor's −0.4 pt first, so the button and chip ask 'ทำไมภาคกลาง · รายอื่นถึงเป็นแบบนี้' (good news for us). The text says Isan −0.3 จุด.
+- **ที่ควรเป็น:** The card shows our share level vs competitors per region, and its verdict names the region where our share fell most.
+- **หลักฐาน:**
+	- run bace56ec query_metric region×maker sort delta_asc, first row ภาคกลาง รายอื่น −0.4
+	- r4-runs/ceo/p1.png
+- **สาเหตุ:** guess: the model sorts across all makers rather than filtering maker=ours, and the heatmap verdict reads the whole grid.
+
+### AI-144. The CEO's South AR story card says '2 เอเย่นต์ยอดเพิ่มกว่าเท่าตัว' while three agents more than doubled
+
+- **สถานะ:** เปิด (ใหม่)
+- **ระดับ:** กลาง · **หมวด:** `card-verdict` · **บทบาท:** u_thana (CEO)
+- **อาการ:** Story 2 text says 3 agents; its evidence card headline says 2. Rows: สงขลาทักษิณ +282.2%, เกาะสมุยเบเวอเรจ +203%, นครศรีรุ่งเจริญ +108.6% (the third shows no %).
+- **ที่ควรเป็น:** The verdict count covers every row that meets its own wording, or the wording does not imply exclusivity.
+- **หลักฐาน:**
+	- investigations.json u_thana-1 ar_overdue by agent, south, Oct, delta_desc
+	- call-tool u_thana query_metric → 282.2, 203, 108.6, 33.3 …
+	- r4-runs/ceo/02-story-south.png
+- **สาเหตุ:** Verified: changeVerdict in lib/cards/reading.ts:182-186 counts only the `leading` outlier rows and words them with magnitudeWords(mildest), so a non-outlier row that also doubled is left out.
+
+### AI-145. 'ทำไมตกอะ' names two agents as the main cause of a drop that is 74% long tail
+
+- **สถานะ:** เปิด (ใหม่) · เดิม AI-130
+- **ระดับ:** กลาง · **หมวด:** `grounding` · **บทบาท:** u_thana (CEO)
+- **อาการ:** Units are now consistent (AI-130's form fixed), but the text says the main cause is โคราชสหภัณฑ์ (6.3% of the gap) and ขอนแก่นมหาชัย (5.4%), while explain_gap shows the rest at 74.3% and every region is down 8-11%. get_alerts found nothing. The prior period's dates are not shown.
+- **ที่ควรเป็น:** The answer says the drop is broad (every region −8 to −11%, no agent above 7% of the gap) and does not invent a main cause.
+- **หลักฐาน:**
+	- run cbc2acd5 explain_gap top 6.3%, rest 74.3%
+	- query_metric region rows −8.0% to −11.0%
+	- get_alerts rows []
+- **สาเหตุ:** guess: nothing in the explain_gap result tells the model when no contributor dominates (share_note is null).
+
+### AI-146. An agent-level 'why did it drop' gets the alert's generic hypothesis, not an investigation
+
+- **สถานะ:** ยังเสีย · เดิม AI-130
+- **ระดับ:** กลาง · **หมวด:** `wrong-answer` · **บทบาท:** u_krit (rep)
+- **อาการ:** 'ทำไมอีสานรุ่งโรจน์ยอดขายเข้าตกเยอะขนาดนี้' ran describe_entity and get_alerts only, repeated the alert's hypothesis and told the rep to check order history himself. The card headline 'ด่วน 1 เรื่อง' counts items and does not answer why.
+- **ที่ควรเป็น:** Run explain_gap or the alert's verifySteps (30-day daily orders, the agent's AR, saying it is masked for a rep) and conclude.
+- **หลักฐาน:**
+	- audit 18:48:17 b42a6453 describe_entity, get_alerts only
+	- get_alerts verifySteps not run
+	- r4-runs/rep/p2.png
+- **สาเหตุ:** guess: the 71e926e prompt rule covers 'why' after a card number only; an agent-level why still defaults to get_alerts.
+
+### AI-147. The rep's 'whole company' request is silently scoped to Isan and drawn as a lone Isan number
+
+- **สถานะ:** ยังเสีย · เดิม AI-129
+- **ระดับ:** กลาง · **หมวด:** `permission` · **บทบาท:** u_krit (rep)
+- **อาการ:** query_metric with filters {} was narrowed to northeast by the gateway; the card shows 'มูลค่าขายเข้า ภาคอีสาน 328.4 ล้านบาท' where a company total would go. The text says the total is outside his scope but offers no request path. The AI-129 request button (fixed for the RSM's explicit South query) fires only on an explicit out-of-scope filter.
+- **ที่ควรเป็น:** Say the company total is outside his scope, show who can grant it (the request button), and do not draw a lone Isan number as the answer.
+- **หลักฐาน:**
+	- audit 18:44:44 1bbea903 query_metric filters {} allow, scopeApplied region northeast
+	- r4-runs/rep/s2t5.png
+- **สาเหตุ:** Verified: lib/access/enforce.ts:197-209 outOfScopeFilters checks only filters the caller asked for, so an unfiltered query is narrowed silently and never refused.
+
+### AI-148. IT audit answers are wide tables on a phone: the 'who to whom' column is off-screen
+
+- **สถานะ:** เปิด (ใหม่)
+- **ระดับ:** กลาง · **หมวด:** `card-fit` · **บทบาท:** u_ton (IT admin)
+- **อาการ:** The denials card is an 8-column table for 1 row; only เมื่อ/ผู้ใช้/บทบาท are visible at phone width. The sends card's ถึง column needs a sideways scroll. 'ใครใช้เยอะที่สุด' drew 12 of 19 tool rows. Every IT card has the title 'Audit และการใช้งาน Winyu' and no follow-up chips.
+- **ที่ควรเป็น:** A single denial is one verdict line; sends are a list of 'A → B · card'; tables over 8 rows become style A with a title per topic.
+- **หลักฐาน:**
+	- admin_audit b2754562 denials rows 1, activity rows 12
+	- f650d459 tool_usage rows 19
+	- r4-runs/it/s1t1-full.png, r4-runs/it/p2-bottom-view.png
+- **สาเหตุ:** guess: admin_audit results render through the generic row table, not the B/A/C decision table in lib/cards/present.ts.
+
+### AI-149. 'Only what is hidden' gets a card of 18 restricted items while the text says 2
+
+- **สถานะ:** เปิด (ใหม่)
+- **ระดับ:** กลาง · **หมวด:** `card-fit` · **บทบาท:** u_ton (IT admin)
+- **อาการ:** admin_audit role_access returned 18 rows (12 ไม่เห็น, 2 ซ่อนตัวเลข, 4 ปิด); the card headline reads '18 รายการ' and the text says 2 metrics are masked.
+- **ที่ควรเป็น:** Verdict '2 เมตริกถูกซ่อนตัวเลข' with those 2 as exceptions and the rest folded; card and text agree.
+- **หลักฐาน:**
+	- audit 18:57:02 01ce9104 admin_audit role_access sales_rep rows 18
+	- thread fa1ac5fe reply 'มี 2 รายการ'
+	- r4-runs/it/s1t4-bottom.png
+- **สาเหตุ:** Verified: lib/server/tools/admin-audit.ts:173 role_access has no visibility filter argument, so it always returns every restricted item.
+
+### AI-150. 'Who uses Winyu most' is answered 'no per-person data', though every audit row has a user
+
+- **สถานะ:** เปิด (ใหม่)
+- **ระดับ:** กลาง · **หมวด:** `did-not-answer` · **บทบาท:** u_ton (IT admin)
+- **อาการ:** The model called admin_audit tool_usage (143 calls per tool) and said Winyu keeps no per-person usage. audit.json has userId on every row, and the console usage tab shows users by role. The counts 143 / 154 / 144 across chat, Audit tab and usage tab differ unexplained.
+- **ที่ควรเป็น:** Rank people by questions or tool calls for the window and show top users with roles.
+- **หลักฐาน:**
+	- audit 19:03:20 f650d459 admin_audit {topic:tool_usage}
+	- audit.json 158 rows before 19:03:20
+	- r4-runs/it/p2-bottom-view.png
+- **สาเหตุ:** Verified: lib/server/tools/admin-audit.ts:173 topics are activity, denials, tool_usage, model_cost, connectors, overrides, role_access; none groups by user.
+
+### AI-151. Permission changes made in the Admin console (คืนค่า, reset) are not written to the audit
+
+- **สถานะ:** เปิด (ใหม่) · นอกเส้นทางเดโม
+- **ระดับ:** กลาง · **หมวด:** `audit` · **บทบาท:** u_ton (IT admin)
+- **อาการ:** After the chat set_permission (audited 19:00:20), the console revert via คืนค่า wrote no audit row. The chat set_permission activity row has an empty subject.
+- **ที่ควรเป็น:** Every permission write, from chat or console, is an activity row naming the role, item, and old and new level.
+- **หลักฐาน:**
+	- audit.json u_ton 18:59-19:02: only set_permission 19:00:20
+	- admin_audit 336dd87d activity row subject_label ''
+	- app/(app)/admin/actions.ts:66-105,240-245 (no audit call, unlike auditConnectorSwitch at :155)
+- **สาเหตุ:** Verified: setMetricAction, removeOverrideAction, resetRoleAction and resetAllAction in app/(app)/admin/actions.ts change overrides without any audit write.
+
+### AI-152. Failed or denied calls still draw actionable UI: a stray 'ไม่ได้ปักการ์ด' chip beside the pin approval, and a ส่งต่อ button on the access-denied card
+
+- **สถานะ:** ยังเสีย · เดิม AI-100
+- **ระดับ:** ต่ำ · **หมวด:** `ui` · **บทบาท:** u_anucha (RSM)
+- **อาการ:** The first pin_widget call failed schema validation ('query.range: expected object') because the model passed period as for query_metric; the retry worked but a failure chip showed beside the approval. The South denial card has a ส่งต่อ button preselecting the South RSM. (The salary-refusal part of AI-100 is fixed.)
+- **ที่ควรเป็น:** A schema retry is not drawn; a denial card has the request-access action only.
+- **หลักฐาน:**
+	- run fba59895 pin_widget call_1805076 validation error, call_4343883 ok
+	- audit 18:47:28 u_anucha query_metric deny
+	- r4-runs/rsm/s2t1-denial.png, r4-runs/rsm/s2t1-denial-share.png, r4-runs/rsm/s1t3-approval.png
+- **สาเหตุ:** Verified for the pin: lib/contracts/tools.ts:102 pinWidgetInputSchema uses metricQuerySchema, whose range is required (tools.ts:54), while query_metric accepts period with range null. Denial-card share button: guess, client card actions do not check failure state.
+
+### AI-153. Follow-up chips and card actions still leave the asked subject in places
+
+- **สถานะ:** ยังเสีย · เดิม AI-123
+- **ระดับ:** ต่ำ · **หมวด:** `chips` · **บทบาท:** u_thana (CEO), u_krit (rep)
+- **อาการ:** The margin question got 'วันครอบคลุมสต๊อกตามภาค'. The market-share drill goes to 'ภาคกลาง · รายอื่น'. The region stock card's send asks คุณวีร์ about DC ลำพูน. The rep's chip 'ทำไมศูนย์กระจายสินค้าขอนแก่น' is an unfinished phrase. (Chip uniqueness in chat, the other half of AI-123, is fixed.)
+- **ที่ควรเป็น:** Chips and actions follow the question and the card's own rows, and are full questions.
+- **หลักฐาน:**
+	- run 8509107b chips
+	- run bace56ec nextActions
+	- run e4e9a15a days_of_cover nextActions send u_wee
+	- 217cab27 followUps 'ทำไมศูนย์กระจายสินค้าขอนแก่น'
+- **สาเหตุ:** guess: nextActions and followUps come from open alerts and the first sorted row, not the asked subject (same root as AI-77); the follow-up label template drops the predicate.
+
+### AI-154. Story pages offer 'ส่งให้คุณอนุชา' as the main action to the CEO who sent it and to the rep who received it
+
+- **สถานะ:** ยังเสีย · เดิม AI-131
+- **ระดับ:** ต่ำ · **หมวด:** `card-quality` · **บทบาท:** u_thana (CEO), u_krit (rep), chain steps 3-4
+- **อาการ:** The CEO's own story page says 'เรื่องที่ขอให้ตอบ' (receiver wording) with a primary 'ส่งให้คุณอนุชา' and a lone 'เสร็จ'. The rep's page shows 'ส่งให้คุณอนุชา' next to รับ.
+- **ที่ควรเป็น:** On a matter page the card's send action is hidden or targets someone not already on the path.
+- **หลักฐาน:**
+	- r4-runs/chain/step4-2-ceo-story-full.png
+	- r4-runs/chain/step3-2-rep-story-full.png
+	- query_metric nextActions send to u_anucha
+- **สาเหตุ:** guess: the story page reuses the card's nextActions (lib/server/next-actions.ts) without excluding people on the matter's path.
+
+### AI-155. Share sheet and story drawer on run-sheet step 1: 'ผู้รับผิดชอบเรื่องนี้' lists the CEO's whole line, the Isan story sits third below an expanded story, and the sheet text is cut or unspaced
+
+- **สถานะ:** เปิด (ใหม่)
+- **ระดับ:** ต่ำ · **หมวด:** `share-sheet` · **บทบาท:** u_thana (CEO, chain step 1)
+- **อาการ:** The owner is preselected first, but the same heading also lists the CFO, a brand manager, the supply planner, HR and IT. The drawer opens DC ลำพูน (expanded), then ภาคใต้, then ภาคอีสาน, so the presenter scrolls; after the send it scrolls back to the top. ขออะไร is one line and cuts the request. The goal reads 'ปิดเองเมื่อปริมาณขายเข้า (Sell-in)ถึง 100% ของเป้า' with no space.
+- **ที่ควรเป็น:** Only the owner sits under 'ผู้รับผิดชอบเรื่องนี้' (the sender's line gets its own heading); step 1's story is reachable without scrolling; sheet text complete and spaced.
+- **หลักฐาน:**
+	- lib/server/share/suggest.ts:83-87 suggestionsFor returns ownerId plus lineOf(sender)
+	- send_card goal text (thread 3aa4642c)
+	- r4-runs/ceo/share-1.png, r4-runs/chain/step1-1-stories.png, r4-runs/chain/step1-3-share-sheet.png
+- **สาเหตุ:** Verified for the list: suggestionsFor (lib/server/share/suggest.ts:83) returns owner and sender's line together under one heading. guess: the goal label concatenates metric label and 'ถึง' without a space; story order follows severity, not the run sheet.
+
+### AI-156. Scorecards and single-row cards break the card rules: 4 tiles, the hero repeated as the headline, the all-group average as hero
+
+- **สถานะ:** เปิด (ใหม่) · เดิม AI-107
+- **ระดับ:** ต่ำ · **หมวด:** `card-fit` · **บทบาท:** u_thana (CEO), u_anucha (RSM), u_krit (rep)
+- **อาการ:** The Khon Kaen, Isan and rep-opener scorecards have 4 tiles (rule is 2-3; the rep's 87.7% tile repeats the headline). The RSM's Isan card and the rep's Isan value card show 'ภาคอีสาน 328.4 ล้านบาท' over hero 328.4 with no target or change. The rep's DC cover card repeats 14.7 วัน with no verdict and a large black 'แยกตามแบรนด์' button that looks primary. The beer-margin card's hero is the all-group 27.3%, not beer's 25.7%. The pinned home tile has no region name.
+- **ที่ควรเป็น:** Per card-fit.md: C has 2-3 tiles; R1 shows the metric with its row label and a meter against target with a code-built verdict; the hero is the asked group.
+- **หลักฐาน:**
+	- runs 5aebb2ed, a7e17d59, ac87ab38, 8509107b, 217cab27
+	- r4-runs/rsm/s2t2.png, r4-runs/ceo/s2t1.png, r4-runs/rsm/s1t3-home.png, r4-runs/rep/s1t3.png, r4-runs/rep/s1t1.png
+- **สาเหตุ:** guess: lib/cards/present.ts C-style tile list and R1/R6 one-row bodies have no verdict builder.
+
+### AI-157. CEO landing tile labels October's volume with the six-month range and compares it with September
+
+- **สถานะ:** เปิด (ใหม่)
+- **ระดับ:** ต่ำ · **หมวด:** `landing` · **บทบาท:** u_thana (CEO)
+- **อาการ:** The tile shows 'มิ.ย.–พ.ย. 24.2 ล้านลิตร −5.4% เทียบ ก.ย. 69': the latest full month against the one before, under the whole widget range, while the widget is configured with compare prev_year.
+- **ที่ควรเป็น:** The tile names the month it shows (ต.ค. 69) and the comparison it actually makes.
+- **หลักฐาน:**
+	- layouts.json w_u_thana_volume_trend range 2026-06-01..2026-11-26 compare prev_year
+	- r4-runs/ceo/00-landing.png
+- **สาเหตุ:** guess: the metric tile renders the query range as its period label while R9 picks the latest full bucket for the value.
+
+### AI-158. The rep's story card shows all 8 Isan agents, the same as the CEO and RSM, so the per-role speech line has nothing to show
+
+- **สถานะ:** เปิด (ใหม่)
+- **ระดับ:** ต่ำ · **หมวด:** `run-sheet` · **บทบาท:** u_krit (rep, chain step 3)
+- **อาการ:** Not a leak: sales_rep is scoped to the whole region. But the RSM speech line 'ผู้จัดการภาคเห็นเฉพาะส่วนในภาคตัวเอง' implies a difference the demo never shows.
+- **ที่ควรเป็น:** Drop the per-role claim for this card, or pick a beat where views differ (for example the rep's masked AR).
+- **หลักฐาน:**
+	- audit 18:31:02 d8ebda00 u_krit query_metric region northeast rows 8
+	- lib/access/policies.ts:46-48 sales_rep regions 'own'
+	- r4-runs/chain/step3-2-rep-story-full.png
+- **สาเหตุ:** Verified: the policy scopes reps by region, not by owned agent (lib/access/enforce.ts:184-189).
+
+### AI-159. Phone-width truncation and dev overlays on the chain screens
+
+- **สถานะ:** เปิด (ใหม่)
+- **ระดับ:** ต่ำ · **หมวด:** `ui` · **บทบาท:** presenter (chain)
+- **อาการ:** CEO bell lines are cut before the recipient; IT Audit timestamps are cut; the tab strip clips 'Audit' and hides การเชื่อมต่อ; the IT activity panel needs a manual reload. The Next 'N' badge and 'Compiling…' toast cover content in all four windows.
+- **ที่ควรเป็น:** Bell and audit lines keep recipient and time visible at 390 px; demo on the built image (make demo-start).
+- **หลักฐาน:**
+	- r4-runs/chain/step4-1-ceo-bell-open.png
+	- r4-runs/chain/step5-2-it-activity.png
+	- r4-runs/chain/alt-step5-1-it-audit.png
+- **สาเหตุ:** guess: single-line truncation in the bell and audit row components; overlays come from next dev.
+
+### AI-160. Chat audit cards show English codes, a raw 'policy_label' header and raw tool-argument JSON
+
+- **สถานะ:** ยังเสีย · เดิม AI-121
+- **ระดับ:** ต่ำ · **หมวด:** `thai-language` · **บทบาท:** u_ton (IT admin)
+- **อาการ:** The denial row shows ผล 'Out of scope', a column headed 'policy_label', and args '{"metric":"net_sales_value",…}'. role_access labels are now Thai.
+- **ที่ควรเป็น:** Thai result labels, a Thai header for every column, no raw JSON.
+- **หลักฐาน:**
+	- admin_audit b2754562 code_label 'Out of scope'
+	- lib/server/tools/admin-audit.ts:63 uses TH.admin.auditTab.codes (English, lib/i18n/th.ts:1175)
+	- lib/i18n/th.ts:1768-1796 no policy_label key
+- **สาเหตุ:** Verified: lib/server/tools/admin-audit.ts:63-66 and the missing policy_label key in lib/i18n/th.ts.
+
+### AI-161. The overclaim rebuttal invites resending the false message and offers no corrected wording
+
+- **สถานะ:** เปิด (ใหม่)
+- **ระดับ:** ต่ำ · **หมวด:** `write-flow` · **บทบาท:** u_krit (rep)
+- **อาการ:** send_card refused with ASK_CONTRADICTS_CARD citing 76.0%, then the reply said to confirm again if he still wants to send, with no true ask proposed.
+- **ที่ควรเป็น:** State the figure and propose a corrected ask ('ทำได้ 76% ของเป้า ขาดอีก 0.49 ล้านลิตร').
+- **หลักฐาน:**
+	- audit 18:43:03 0f6ac111 ASK_CONTRADICTS_CARD
+	- thread 84d51820 reply 5edee03c
+- **สาเหตุ:** guess: the AI-94 design raises the approval with a warning on a second ask, and the prompt tells the model to say so.
+
+### AI-162. The text after an approved send mixes 'preparing' and 'done'
+
+- **สถานะ:** ยังเสีย · เดิม AI-79
+- **ระดับ:** ต่ำ · **หมวด:** `thai-language` · **บทบาท:** u_thana (CEO chain alt)
+- **อาการ:** After ส่ง was approved and the matter created, the reply opened 'เตรียมส่งการ์ด… เรียบร้อยแล้ว'.
+- **ที่ควรเป็น:** 'ส่งการ์ดให้คุณอนุชาแล้ว' plus what happens next.
+- **หลักฐาน:**
+	- 88090eda reply 9a00820f
+	- r4-runs/chain/alt-4-approved.png
+- **สาเหตุ:** guess: model wording; the resume system line states the outcome but does not fix the tense.
+
+### AI-163. IT asks how a denied RSM can get access; the answer points to the South RSM, not the admin's own grant path
+
+- **สถานะ:** เปิด (ใหม่)
+- **ระดับ:** ต่ำ · **หมวด:** `wrong-answer` · **บทบาท:** u_ton (IT admin)
+- **อาการ:** The reply explains the denial correctly, then says to use the request button or contact the South RSM. The asker can grant scope in Admin console > สิทธิ์, which is never mentioned. 27.7 s for one lookup.
+- **ที่ควรเป็น:** For the admin: the RSM's request button reaches the slice owner, and you can grant a temporary scope in the Admin console.
+- **หลักฐาน:**
+	- c38d539f resolve_owner south → u_saranya; reply d430781d
+	- r4-runs/it/p1-bottom.png
+- **สาเหตุ:** guess: the prompt has no admin-specific grant route.
+
+### AI-164. Reload mid-reply rejoins the run but duplicates step lines and resets the timer
+
+- **สถานะ:** เปิด (ใหม่) · เดิม AI-99 · นอกเส้นทางเดโม
+- **ระดับ:** ต่ำ · **หมวด:** `ui` · **บทบาท:** u_thana (CEO)
+- **อาการ:** After a reload 6 s in, the run came back (AI-99 fixed), but 'ดึงส่วนแบ่งตลาดเบียร์แล้ว' showed twice and the turn time read 16.2 s for a 44.5 s run.
+- **ที่ควรเป็น:** Each step shown once; time measured from the original send.
+- **หลักฐาน:**
+	- runs.json bace56ec 44.5 s
+	- r4-runs/ceo/p1.png, r4-runs/ceo/p1-after-reload.png
+- **สาเหตุ:** guess: the connect replay appends replayed events onto steps already drawn, and the timer starts at rejoin.
+
+### AI-165. The month-end forecast card cannot be pinned
+
+- **สถานะ:** เปิด (ใหม่) · นอกเส้นทางเดโม
+- **ระดับ:** ต่ำ · **หมวด:** `capability` · **บทบาท:** u_thana (CEO)
+- **อาการ:** Refused with no tool call; the refusal is honest and offers the attainment card instead, but does not raise it.
+- **ที่ควรเป็น:** A projection widget, or the offered alternative raised as an approval in the same turn.
+- **หลักฐาน:**
+	- run 0445b6af no tool calls, 17.9 s
+	- r4-runs/ceo/p2.png
+- **สาเหตุ:** guess: widget kinds in lib/contracts accept only metric queries; explain_gap projections are not queries.
