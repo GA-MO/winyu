@@ -27,16 +27,15 @@ function groupOf(metric: MetricId): MetricGroup {
   return EXECUTIVE;
 }
 
-function firstWithRole(role: RoleId, region: Region | null): User | null {
-  const inRegion = region ? USERS.find((user) => user.role === role && user.region === region) : null;
-  return inRegion ?? USERS.find((user) => user.role === role && user.region === null) ?? USERS.find((user) => user.role === role) ?? null;
+function nationalWith(role: RoleId): User | null {
+  return USERS.find((user) => user.role === role && user.region === null) ?? null;
 }
 
 /** The person accountable for a metric in a region: the RACI table `resolve_owner` and the alert engine read. */
 export function responsibleFor(metric: MetricId, region: Region | null): Responsible | null {
   const group = groupOf(metric);
   const inRegion = region ? USERS.find((user) => user.role === group.role && user.region === region) : null;
-  const owner = inRegion ?? firstWithRole(group.role, region) ?? firstWithRole(group.fallbackRole, null);
+  const owner = inRegion ?? nationalWith(group.role) ?? nationalWith(group.fallbackRole) ?? USERS.find((user) => user.role === group.role) ?? null;
   if (!owner) return null;
   const scope = inRegion ? "ระดับภาค" : "ระดับประเทศ";
   return { userId: owner.id, user: owner, role: owner.role, basis: `${group.basis} (${scope})` };

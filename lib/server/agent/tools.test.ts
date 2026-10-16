@@ -133,6 +133,22 @@ describe("resolve_owner", () => {
     expect(result.data.userId).toBe("u_anucha");
     expect(result.data.reason.length).toBeGreaterThan(0);
   });
+
+  test("an agent without a region resolves to the RSM of the agent's region", async () => {
+    const result = await call<{ ok: boolean; data: { userId: string } }>("u_anucha", "resolve_owner", {
+      metric: "net_sales_volume",
+      dims: { agent: "ag_nea_05" },
+    });
+    expect(result.data.userId).toBe("u_anucha");
+  });
+
+  test("sales with no place at all resolves to the national owner, not the first RSM listed", async () => {
+    const result = await call<{ ok: boolean; data: { userId: string } }>("u_thana", "resolve_owner", {
+      metric: "net_sales_volume",
+      dims: {},
+    });
+    expect(result.data.userId).toBe("u_prasit");
+  });
 });
 
 describe("create_handoff", () => {
