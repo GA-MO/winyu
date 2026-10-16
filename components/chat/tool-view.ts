@@ -46,7 +46,7 @@ export function isEmptyAnswer(result: unknown): boolean {
 }
 
 /** A refusal (`ok: false`) or a call the runtime rejected before the tool ran (`error: true`, its arguments failed the schema). */
-function isRefused(result: unknown): boolean {
+export function isRefused(result: unknown): boolean {
   if (typeof result !== "object" || result === null) return false;
   const { ok, error } = result as { ok?: unknown; error?: unknown };
   return ok === false || error === true;
@@ -117,10 +117,20 @@ function answered(step: ToolStep): boolean {
   return step.outcome.state === "returned" && !isRefused(step.outcome.result);
 }
 
+function rejectedBeforeRunning(step: ToolStep): boolean {
+  return step.outcome.state === "returned" && (step.outcome.result as { error?: unknown } | null)?.error === true;
+}
+
+function retried(step: ToolStep, later: ToolStep): boolean {
+  if (later.name !== step.name) return false;
+  return answered(later) || (rejectedBeforeRunning(step) && later.outcome.state === "pending");
+}
+
+/** Failed calls the model made again: corrected when a later call of the tool answered, and a call the runtime rejected before it ran (its arguments failed the schema) as soon as a later call of the tool is waiting, so a retry that waits for approval stands alone. */
 function recoveredFailures(steps: readonly ToolStep[]): string[] {
   return steps.flatMap((step, index) => {
     if (answered(step) || step.outcome.state === "pending") return [];
-    return steps.slice(index + 1).some((later) => later.name === step.name && answered(later)) ? [step.toolCallId] : [];
+    return steps.slice(index + 1).some((later) => retried(step, later)) ? [step.toolCallId] : [];
   });
 }
 

@@ -2,7 +2,7 @@ import { ASK_CONTRADICTS_CARD, cardRefOf, sharedComposedCard, sharedToolCard, sh
 import type { Exchange, ReplyStep, ToolStep } from "./timeline";
 import { presentCard } from "@/lib/cards/present";
 import { metricAnswerOf, metricTitle, othersOf } from "@/lib/cards/tool-answers";
-import { cardPlanOf, composedCalls, drawsNoCard, pairedResultsOf, wroteBlock, type CardPlan } from "./tool-view";
+import { cardPlanOf, composedCalls, drawsNoCard, isRefused, pairedResultsOf, wroteBlock, type CardPlan } from "./tool-view";
 
 const SEND_TOOL = "send_card";
 
@@ -19,7 +19,7 @@ function isToolStep(step: ReplyStep): step is ToolStep {
 
 function drawsShareableCard(step: ToolStep, plan: CardPlan, cardTools: ReadonlySet<string>): boolean {
   if (!cardTools.has(step.name) || plan.hidden.has(step.toolCallId) || step.outcome.state !== "returned") return false;
-  return !drawsNoCard(step.outcome.result);
+  return !drawsNoCard(step.outcome.result) && !isRefused(step.outcome.result);
 }
 
 function readsOf(steps: readonly ToolStep[], cardTools: ReadonlySet<string>): ExchangeRead[] {

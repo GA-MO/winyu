@@ -3,7 +3,7 @@ import { REGIONS, ROLE_IDS, type RoleId } from "./identity";
 import type { MemoryFactType } from "./memory";
 import { widgetKindSchema } from "./dashboard";
 import { CANDIDATE_STAGES, LEAVE_KINDS } from "./records";
-import { dimFiltersSchema, dimSchema, metricIdSchema, metricQuerySchema } from "./semantic";
+import { dimFiltersSchema, dimSchema, metricIdSchema, metricQueryInputSchema } from "./semantic";
 
 export type ToolTier = "read" | "write" | "destructive";
 /** Every tool Winyu defines in code; a connector may not open a remote tool by one of these names. */
@@ -107,7 +107,7 @@ export const rememberInputSchema = z.object({
 export const forgetInputSchema = z.object({ about: z.string().min(2).max(MEMORY_VALUE_MAX) });
 export const resolveOwnerInputSchema = z.object(metricScope);
 export const sendEmailInputSchema = z.object({ toUserId: z.string().min(1), subject: z.string().min(1), body: z.string().min(1) });
-export const pinWidgetInputSchema = z.object({ title: z.string().min(1), kind: widgetKindSchema, query: metricQuerySchema });
+export const pinWidgetInputSchema = z.object({ title: z.string().min(1), kind: widgetKindSchema, query: metricQueryInputSchema });
 export const runJobInputSchema = z.object({ job: z.enum(JOBS) });
 export const PERMISSION_KINDS = ["metric", "tool", "field"] as const;
 export const PERMISSION_VALUES = ["full", "masked", "none", "allow", "deny"] as const;

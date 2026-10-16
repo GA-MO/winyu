@@ -13,7 +13,7 @@ import { ActionTrail } from "./action-trail";
 import { ComposedCardView } from "./composed-card";
 import { Markdown } from "./markdown";
 import type { Exchange, Question, ReplyStep, ToolStep } from "./timeline";
-import { cardPlanOf, composedCalls, pairedResultsOf, toolViewOf, wroteBlock, type CardPlan } from "./tool-view";
+import { cardPlanOf, composedCalls, isRefused, pairedResultsOf, toolViewOf, wroteBlock, type CardPlan } from "./tool-view";
 import { withRequestedCourses } from "./requested-courses";
 import { trailOf } from "./trail";
 import { pressedText } from "./pressed";
@@ -125,7 +125,7 @@ function ToolStepView({ step, steps, live, plan, streaming, sharing, asked }: { 
   if (view.kind === "card")
     return (
       <div className="flex w-full animate-hero-rise flex-col gap-1">
-        <ShareChrome target={toolShare(sharing, step.toolCallId, plan.paired.get(step.toolCallId) ?? [])}>{CARDS[view.name](view.result, view.args, pairedResultsOf(plan, steps, step.toolCallId))}</ShareChrome>
+        <ShareChrome target={isRefused(view.result) ? null : toolShare(sharing, step.toolCallId, plan.paired.get(step.toolCallId) ?? [])}>{CARDS[view.name](view.result, view.args, pairedResultsOf(plan, steps, step.toolCallId))}</ShareChrome>
       </div>
     );
   if (view.kind === "not-run") return <Note text={TH.conversation.notRun} tone="muted" />;
