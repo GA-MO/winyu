@@ -39,15 +39,16 @@ function hrefWith(view: View, change: Partial<{ decision: AuditEntry["decision"]
   return `/admin?${params.toString()}`;
 }
 
-function groupsOf(entries: AuditEntry[]): TurnGroup[] {
-  const groups: TurnGroup[] = [];
+/** The audit rows gathered by the turn that made them, in the order each turn first appears: turns of people working at the same time interleave in the log, and each still shows as one row with one key. */
+export function turnGroups(entries: readonly AuditEntry[]): TurnGroup[] {
+  const byKey = new Map<string, TurnGroup>();
   for (const entry of entries) {
-    const last = groups.at(-1);
     const key = entry.turnId ?? entry.id;
-    if (last && entry.turnId && last.key === key) last.entries.push(entry);
-    else groups.push({ key, entries: [entry] });
+    const group = byKey.get(key);
+    if (group) group.entries.push(entry);
+    else byKey.set(key, { key, entries: [entry] });
   }
-  return groups;
+  return [...byKey.values()];
 }
 
 function worstOf(entries: AuditEntry[]): AuditEntry["decision"] {
@@ -280,7 +281,7 @@ export function AuditTab({ filter, range, limit, openRun }: { filter: AuditFilte
   const activities = activitiesFrom(all.filter((entry) => inAuditScope(entry, { ...filter, activity: true })), filter.since ?? "");
   if (filter.activity) {
     return (
-      <div className="flex flex-col gap-4">
+      <div key="activity" className="flex flex-col gap-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <ActivityChip view={view} count={activities.length} />
           <Filters view={view} />
@@ -295,7 +296,7 @@ export function AuditTab({ filter, range, limit, openRun }: { filter: AuditFilte
   const total = counts[filter.decision ?? "all"];
   const entries = auditEntries(filter, limit);
   return (
-    <div className="flex flex-col gap-4">
+    <div key="calls" className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2">
           <ActivityChip view={view} count={activities.length} />
@@ -311,7 +312,7 @@ export function AuditTab({ filter, range, limit, openRun }: { filter: AuditFilte
           </div>
         ) : (
           <ul className="flex flex-col gap-0.5">
-            {groupsOf(entries).map((group) => (
+            {turnGroups(entries).map((group) => (
               <TurnRow key={group.key} group={group} open={group.key === openRun} />
             ))}
           </ul>
