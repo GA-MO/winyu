@@ -613,6 +613,32 @@ describe("a target card in a month still running", () => {
   });
 });
 
+describe("a target breakdown led by the whole month", () => {
+  test("puts every row on the hero's base, the share of the whole month's target, with the pace line drawn where the month should be by now and only rows behind it red (AI-141)", () => {
+    const query = { ...queryOf({ metric: "net_sales_value", dims: ["agent"], range: MONTH_TO_DATE, compare: "target" }), filters: { region: ["northeast"] } };
+    const result = runMetric(query, CEO);
+    if (!result.ok) throw new Error(result.error);
+    const elapsed = (daysBetween(monthStart(DATA_AS_OF), DATA_AS_OF) + 1) / (daysBetween(monthStart(DATA_AS_OF), monthEnd(DATA_AS_OF)) + 1);
+    const paced = 100 + (result.headline.deltaPercent ?? 0);
+    const toDate = Math.round(paced * elapsed * 10) / 10;
+    const projection = { recentDays: 7, projected: "371.9 ล้านบาท", monthTarget: "424.8 ล้านบาท", attainment: "87.5%", attainmentToDate: `${toDate}%`, shortBy: "96.4 ล้านบาท", remaining: "เหลืออีก 96.4 ล้านบาท ถึงเป้าทั้งเดือน" };
+    const card = presentCard({ title: "t", query, result: { ...result, headline: { ...result.headline, projection } } });
+    expect(card.hero).toMatchObject({ value: `${toDate}%`, unit: TH.read.ofMonthTarget });
+    const strip = stripOf(card.body);
+    expect(strip.baseline).toBeCloseTo(100 * elapsed, 5);
+    expect(strip.overall?.measure).toBeCloseTo(toDate, 5);
+    expect(strip.overall?.sub ?? "").not.toContain(TH.read.pacedShare(`${Math.round(paced * 10) / 10}%`));
+    const byLabel = new Map(result.rows.map((row) => [String(row.agent), 100 + Number(row.delta_pct)]));
+    expect(strip.rows.length).toBe(result.rows.length);
+    strip.rows.forEach((row) => {
+      const rowPaced = byLabel.get(row.label) ?? 0;
+      expect(row.measure).toBeCloseTo(rowPaced * elapsed, 5);
+      expect(row.tone).toBe(rowPaced < 100 ? "bad" : "neutral");
+      if (row.valued) expect(row.text).toBe(`${Math.round(rowPaced * elapsed * 10) / 10}%`);
+    });
+  });
+});
+
 describe("a target breakdown ranked by its gap", () => {
   test("is read against the 100% line with its base named, never in change words like ยอดหาย, by one group or two (AI-103)", () => {
     for (const dims of [["agent"], ["agent", "province"]] as Dim[][]) {
