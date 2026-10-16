@@ -163,6 +163,7 @@ const COMPOSITION_DIMS: ReadonlySet<Dim> = new Set(["channel", "business_unit", 
 const SHARE_METRICS: ReadonlySet<MetricId> = new Set(["market_share", "share_of_voice"]);
 const SEVERITY_TONES: Record<Alert["severity"], AlertTone> = { P1: "danger", P2: "warning", P3: "info" };
 const MIN_CHANGE_SPAN_PCT = 10;
+const MIN_CHANGE_SPAN_POINTS = 2;
 
 /** A level read against a line rather than from zero: how far either side still reads as a bar, which tone the good side wears, what the headline calls the groups under the line, and what it says when none is. */
 type LevelLine = { at: number; minSpan: number; aboveTone: Tone; ends: GapEnds; caption: string; underLabel: string; noneUnder: string };
@@ -225,9 +226,14 @@ function withoutPartialBucket(query: MetricQuery, view: CardView, rows: MetricRo
 const SORTERS: Record<SortBy, (query: MetricQuery) => (left: MetricRow, right: MetricRow) => number> = {
   value_desc: () => (left, right) => (numericOf(right, "value") ?? 0) - (numericOf(left, "value") ?? 0),
   value_asc: () => (left, right) => (numericOf(left, "value") ?? 0) - (numericOf(right, "value") ?? 0),
-  delta_asc: () => (left, right) => (deltaPercentOf(left) ?? 0) - (deltaPercentOf(right) ?? 0),
-  delta_desc: () => (left, right) => (deltaPercentOf(right) ?? 0) - (deltaPercentOf(left) ?? 0),
+  delta_asc: (query) => (left, right) => (changeOf(query, left) ?? 0) - (changeOf(query, right) ?? 0),
+  delta_desc: (query) => (left, right) => (changeOf(query, right) ?? 0) - (changeOf(query, left) ?? 0),
 };
+
+/** The change a list ranked by change is ordered and drawn by: points for a percent metric, relative percent otherwise. */
+function changeOf(query: MetricQuery, row: MetricRow): number | null {
+  return metricFormat(query.metric) === "percent" ? deltaPointsOf(row) : deltaPercentOf(row);
+}
 
 function sorted(query: MetricQuery, rows: MetricRow[], sortBy: SortBy | null | undefined): MetricRow[] {
   if (!sortBy || timeDimOf(query)) return rows;
@@ -579,7 +585,7 @@ function attainmentHero(facts: Facts): CardHero {
     note: joined([
       under.length > 0 ? TH.dash.countUnderTarget(under.length, scored.length, unitOf(query)) : TH.dash.allOnTarget(unitOf(query)),
       worst ? TH.dash.weakest(true, worst.label, percentText(worst.value)) : null,
-      TH.dash.overall(heroLabelOf(query, result), result.headline.value),
+      TH.dash.actualTotal(result.headline.value),
       projectionNote(result),
     ]),
   };
@@ -761,15 +767,16 @@ function meterBody(query: MetricQuery, rows: MetricRow[]): CardBody {
   return {
     kind: "progress",
     value: Math.max(0, Math.min(PERCENT, value)),
-    detail: remaining > 0 ? TH.dash.toTarget(formatPercent(remaining)) : TH.dash.targetMet,
+    detail: joined([query.compare === "target" && !PROGRESS_METRICS.has(query.metric) ? TH.dash.ofTarget(percentText(value)) : null, remaining > 0 ? TH.dash.toTarget(formatPercent(remaining)) : TH.dash.targetMet]) ?? TH.dash.targetMet,
   };
 }
 
 /** A list ranked by how much each row moved draws the move: bars left for less, right for more, the level itself beside the name. */
 function changeBody(query: MetricQuery, rows: MetricRow[]): CardBody {
   const shown = rows.slice(0, MAX_RANK_ROWS);
-  const deltas = shown.map(deltaPercentOf);
-  const span = Math.max(MIN_CHANGE_SPAN_PCT, ...deltas.map((delta) => Math.abs(delta ?? 0)));
+  const inPoints = metricFormat(query.metric) === "percent";
+  const deltas = shown.map((row) => changeOf(query, row));
+  const span = Math.max(inPoints ? MIN_CHANGE_SPAN_POINTS : MIN_CHANGE_SPAN_PCT, ...deltas.map((delta) => Math.abs(delta ?? 0)));
   return {
     kind: "gap",
     rows: shown.map((row, index) => ({
@@ -780,7 +787,7 @@ function changeBody(query: MetricQuery, rows: MetricRow[]): CardBody {
       tone: rowMoveOf(query, row).tone,
     })),
     ends: { less: TH.dash.changeLess, more: TH.dash.changeMore },
-    caption: TH.dash.changeCaption(TH.dash.compare[query.compare] ?? ""),
+    caption: (inPoints ? TH.dash.pointsChangeCaption : TH.dash.changeCaption)(TH.dash.compare[query.compare] ?? ""),
     shownOf: null,
   };
 }
@@ -974,13 +981,12 @@ function ratioHero(base: Source, other: Source): CardHero | null {
   const total = rowTotalOf(base);
   if (!additive || !sameUnit([base, other]) || total === 0) return null;
   const share = (rowTotalOf(other) / total) * PERCENT;
-  const move = moveOf(other.query, share - PERCENT, null);
   return {
     label: TH.dash.gapHeroLabel(shortMetricLabel(other), shortMetricLabel(base)),
     value: percentText(share),
     delta: null,
-    trend: move.trend,
-    tone: move.tone,
+    trend: "neutral",
+    tone: "neutral",
     detail: TH.dash.stages([base.result.headline.value, other.result.headline.value]),
     note: null,
   };

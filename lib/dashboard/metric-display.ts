@@ -36,7 +36,7 @@ export function formatMetricValue(metric: MetricId, value: number | string | nul
 
 const LOWER_IS_BETTER = new Set<MetricId>(["ar_overdue", "attrition_rate", "forecast_mape", "trade_spend"]);
 const NEUTRAL_BAND_PCT = 2;
-const NEUTRAL_BAND_POINTS = 0.1;
+const NEUTRAL_BAND_POINTS = 0.05;
 
 export type Direction = "up" | "down" | "neutral";
 export type Tone = "good" | "bad" | "neutral";
@@ -60,7 +60,7 @@ function pointsDirectionOf(deltaPoints: number): Direction {
   return deltaPoints > 0 ? "up" : "down";
 }
 
-/** Which way a change points as the card writes it: a percent metric moves in points and is flat under a tenth of a point, any other metric in relative percent with its ±2% band. */
+/** Which way a change points as the card writes it: a percent metric moves in points and is flat only when it prints as "0 จุด", any other metric in relative percent with its ±2% band. */
 export function changeDirectionOf(metric: MetricId, deltaPercent: number | null, deltaPoints: number | null): Direction {
   if (metricFormat(metric) === "percent" && deltaPoints !== null) return pointsDirectionOf(deltaPoints);
   return directionOf(deltaPercent);

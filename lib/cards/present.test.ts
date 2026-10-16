@@ -405,10 +405,11 @@ describe("a change in a metric that is itself a percent", () => {
     for (const row of body.rows) expect(row.delta).toMatch(/ จุด$/);
   });
 
-  test("is judged in points: half a point is a move even when it is a large relative change, and under a tenth of a point is flat (R8)", () => {
+  test("is judged in points: half a point is a move even when it is a large relative change, and only a change that prints as 0 จุด is flat (R8)", () => {
     expect(changeToneOf("attrition_rate", 30, 0.5)).toBe("bad");
     expect(changeToneOf("market_share", -1.5, -0.9)).toBe("bad");
-    expect(changeToneOf("market_share", 12, 0.05)).toBe("neutral");
+    expect(changeToneOf("market_share", 12, 0.04)).toBe("neutral");
+    expect(changeToneOf("attrition_rate", -8, -0.1)).toBe("good");
     expect(changeToneOf("net_sales_value", 1.5, null)).toBe("neutral");
   });
 
