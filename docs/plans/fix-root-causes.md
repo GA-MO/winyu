@@ -41,7 +41,7 @@ Round 2 replayed the 72 round-1 problem turns ($1.10): 22 fixed, 18 still broken
 - [ ] **F2 one way to send** (after F1): send-the-card phase 3, `send_card` replaces `share_card` and `create_handoff` (AI-59), the current turn's card is the one sent (AI-56), Thai honorifics resolve (AI-57), a contradicting note is flagged (AI-58), the sender's own team first in the sheet (AI-62), the originator hears about pass-on and accept (AI-85).
 - [ ] **F3 numbers and cards** (after the card-style package): AI-53 high (month-to-date attainment on one base), AI-63, AI-66 to AI-73, AI-76, AI-77, AI-78, AI-83, AI-87, AI-88, AI-89.
 - [ ] **F4 prompt, memory, guardrail** (AI-61, AI-74, AI-75, AI-80, AI-81, AI-82, AI-84, AI-86, AI-90, AI-92).
-- [ ] **F5 demo beats** : the IT step shows the chain's activity, not only denials (AI-60); the demo clock covers inbox, share and audit labels on rehearsal days (AI-65); speed (AI-64, RC9).
+- [ ] **F5 demo beats** : the IT step shows the chain's activity, not only denials (AI-60, done `1861c64`); the demo clock covers inbox, share and audit labels on rehearsal days (AI-65); speed (AI-64, RC9).
 
 ## Waves
 

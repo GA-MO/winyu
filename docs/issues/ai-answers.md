@@ -740,7 +740,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 | AI-57 | กลาง | แก้แล้ว `b81235a` | share_card cannot resolve 'พี่อนุชา', and a model-facing instruction appears in a user card |
 | AI-58 (เดิม AI-16) | กลาง | แก้แล้ว `0169fc8` | An overclaim to the CEO is copied into the share approval with no warning |
 | AI-59 | กลาง | แก้แล้ว `0169fc8` | Chat 'ส่งเรื่องนี้' creates a legacy handoff, while the card path creates a matter |
-| AI-60 | กลาง | เปิด (ใหม่) | The run-sheet IT beat has nothing to show: the chain causes 0 denials |
+| AI-60 | กลาง | แก้แล้ว `1861c64` | The run-sheet IT beat has nothing to show: the chain causes 0 denials |
 | AI-61 | กลาง | แก้แล้ว `efa3e85` | Debt collection for a named agent is routed to the national finance analyst, not the agent's rep |
 | AI-62 (เดิม AI-13; AI-10 (share part)) | กลาง | แก้แล้ว `55d066c` | Share sheet suggests the wrong people: the national director preselected, and the sender's own team listed after the CEO and CFO |
 | AI-63 (เดิม AI-19) | กลาง | แก้แล้ว `be97f47` | Every tool call of a turn is drawn as a card: lookups, failed calls and the catalog appear on unrelated answers and refusals |
@@ -889,7 +889,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-60. The run-sheet IT beat has nothing to show: the chain causes 0 denials
 
-- **สถานะ:** เปิด (ใหม่)
+- **สถานะ:** แก้แล้ว `1861c64`: the IT beat now shows the chain itself. `admin_audit` topic `activity` (`lib/server/activity.ts`) lists each send, pass-on, accept, close and write that acted, with who, what, the card, to whom, when and whose yes let it act (a tap on the card, a yes in chat, or Winyu on a goal); a send from chat shows once. No ask, note, write argument or typed question reaches it, and cells are fenced. It is the IT admin's first chip and console suggestion, and the Audit tab has the chip **การส่งงานและการแก้ไข** (`?kind=activity`). Proved over HTTP on 2026-10-16 (CEO send, RSM pass-on, rep accept, then `/admin?tab=audit&kind=activity` listed all three) and by `read-tools.test.ts`, `activity.test.ts` and `quick-actions.test.ts`, which fail on the old code. The run sheet's IT step uses it.
 - **ระดับ:** กลาง · **หมวด:** `demo-chain` · **บทบาท:** ผู้ดูแลระบบไอที (chain step 5)
 - **อาการ:** The admin overview showed 'ถูกปฏิเสธ 7 วัน 0'. The สั่ง Winyu answer said there were no denials and no changes, as text with no card. No chain step makes an out-of-scope request, so the 'RSM denied outside region' beat never happens.
 - **ที่ควรเป็น:** The run sheet stages a denial (for example, the RSM asks for ภาคใต้), or the IT beat changes.
