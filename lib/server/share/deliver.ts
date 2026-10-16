@@ -1,6 +1,6 @@
-import type { RecipientScope, User } from "@/lib/contracts";
+import { metricQueryInputSchema, type RecipientScope, type User } from "@/lib/contracts";
 import { findUser, USERS } from "@/lib/data/entities/users";
-import { type ChannelOption, type DeliveryChannel, type ShareChannel, type ShareContact, type ShareGrantReceipt, type ShareRequest } from "@/lib/share/card";
+import { type ChannelOption, type DeliveryChannel, type ShareChannel, type ShareContact, type ShareGrantReceipt, type ShareRequest, type SharedCard, type SharedRead } from "@/lib/share/card";
 import { defaultUrgency, type Matter, type ShareDelivery } from "@/lib/share/matter";
 import { recordShare } from "@/lib/server/audit";
 import { untilLabel } from "@/lib/share/grant-label";
@@ -17,8 +17,12 @@ import type { FallbackReason } from "@/lib/share/card";
 import { liveAccessFor } from "@/lib/access/enforce";
 import { visibleAlert } from "@/lib/server/alerts";
 import { goalOf } from "./goal";
+import { loadDictionary } from "@/lib/server/master-data";
+import { ownBookQuery } from "@/lib/server/tools/query-metric";
 import { matterTitle } from "./title";
 import { shareableProblem, shareCode, shares, unusedTitle } from "./shares";
+
+const METRIC_READ = "query_metric";
 
 /** What creating a share returns: the record, the grants given, and what the card still hides from each recipient; or why nothing was sent. */
 export type ShareOutcome = { ok: true; share: Matter; grants: ShareGrantReceipt[]; hidden: RecipientScope[] } | { ok: false; error: string };
@@ -102,8 +106,22 @@ function newMatter(sender: User, request: MatterRequest, sent: { code: string; a
   return { id: sent.code, at: sent.at, updatedAt: sent.at, senderId: sender.id, title: sent.title, question: request.question, ask: sent.ask, intent: request.intent, urgency: request.urgency ?? defaultUrgency(request.intent), due: request.due ?? null, goal, alertIds, path, thread: [], status: "open", card: request.card, ...focus, deliveries: sent.deliveries, openedBy: [], lastViewedAt: null };
 }
 
+async function ownBookRead(read: SharedRead, sender: User, question: string | null): Promise<SharedRead> {
+  const parsed = read.tool === METRIC_READ ? metricQueryInputSchema.safeParse(read.input) : null;
+  if (!parsed?.success) return read;
+  const own = ownBookQuery(parsed.data, liveAccessFor(sender), question, await loadDictionary());
+  return own ? { ...read, input: own.input } : read;
+}
+
+/** The card as the sender saw it: a rep's own-book read keeps the agents query_metric narrowed it to, so the receiver re-runs the card the rep looked at, not the whole region. */
+async function asSeenBy(card: SharedCard, sender: User, question: string | null): Promise<SharedCard> {
+  const reads = await Promise.all(card.reads.map((read) => ownBookRead(read, sender, question)));
+  return { ...card, reads };
+}
+
 /** Sends a card as a matter: stores the reads (never their values) under a short code, tells each recipient in Winyu (in the Inbox when it asks for an answer, on Shared when it is for information), also on the outside channel picked (email when that channel cannot reach them), and leaves one audit row; with grant days, also grants each recipient what the card showed the sender, when the sender may. No model call. */
-export async function createShare(sender: User, request: MatterRequest, at = new Date().toISOString()): Promise<ShareOutcome> {
+export async function createShare(sender: User, asked: MatterRequest, at = new Date().toISOString()): Promise<ShareOutcome> {
+  const request = { ...asked, card: await asSeenBy(asked.card, sender, asked.question) };
   const problem = shareableProblem(request.card);
   if (problem) return { ok: false, error: problem };
   const recipients = recipientsOf(request, sender.id);
