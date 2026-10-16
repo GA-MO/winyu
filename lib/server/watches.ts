@@ -15,6 +15,7 @@ import { rememberAction } from "@/lib/engine/memory";
 import { metricLabel } from "@/lib/dashboard/metric-display";
 import { personalWatches } from "./agent/collections";
 import { notify } from "./notify";
+import { runGoalChecks } from "./share/goal";
 
 const MAX_WATCHES_PER_USER = 12;
 const SYSTEM_SENDER = "winyu";
@@ -86,8 +87,8 @@ async function tell(watch: PersonalWatch, hit: WatchHit): Promise<void> {
   });
 }
 
-/** Re-asks every standing question under its owner's scope and tells the owner the first time a line is crossed. */
-export async function runWatchJob(at = new Date()): Promise<{ checked: number; fired: number }> {
+/** Re-asks every standing question under its owner's scope and tells the owner the first time a line is crossed; then closes every open matter whose number reached its goal (a recovery, which a watch never tells), telling each person on its path once. */
+export async function runWatchJob(at = new Date()): Promise<{ checked: number; fired: number; mattersClosed: number }> {
   let fired = 0;
   const watches = personalWatches().all();
   for (const watch of watches) {
@@ -106,5 +107,6 @@ export async function runWatchJob(at = new Date()): Promise<{ checked: number; f
       fired += 1;
     }
   }
-  return { checked: watches.length, fired };
+  const goals = await runGoalChecks(at);
+  return { checked: watches.length, fired, mattersClosed: goals.closed };
 }
