@@ -312,6 +312,35 @@ describe("lines that invite a question or an action follow what the role can cal
     expect(rules).not.toContain("มี N ฟิลด์ถูกปิดตามสิทธิ์");
   });
 
+  test("rules pin round 4's answer faults: market share is ours against competitors, a why is investigated at any level, a broad gap names no main cause, a done send is told as done (AI-143, AI-145, AI-146, AI-162)", () => {
+    const rules = WINYU_RULES.join("\n");
+    const share = WINYU_RULES.find((line) => line.startsWith("ส่วนแบ่งตลาด")) ?? "";
+    expect(share).toContain("dims `[\"maker\"]`");
+    expect(share).toContain("dims `[\"region\"]` ไม่ระบุ `maker` และ `sort` `delta_asc`");
+    expect(share).toContain("`last_month`");
+    expect(share).toContain("ห้ามเรียง `delta_asc` ข้ามผู้ผลิต");
+    const why = WINYU_RULES.find((line) => line.startsWith("ผู้ใช้ถามว่าทำไม")) ?? "";
+    expect(why).toContain("ถามถึงรายเดียว");
+    expect(why).toContain("`verifySteps`");
+    expect(why).toContain("ไม่ใช่ทวน `hypothesis` ของ alert");
+    expect(why).toContain("`share_note`");
+    expect(rules).toContain("ห้ามใช้คำว่าเตรียม หรือกำลัง กับสิ่งที่ทำเสร็จแล้ว");
+  });
+
+  test("an overclaim held back gets a corrected note to send instead, never an invitation to resend the false one (AI-161)", () => {
+    const prompt = promptOf("u_krit");
+    expect(prompt).toContain("เสนอข้อความแนบใหม่ที่ตรงกับการ์ดและไม่มีตัวเลข");
+    expect(prompt).toContain("ไม่ชวนให้ยืนยันส่งข้อความเดิม");
+    expect(prompt).not.toContain("ถ้าผู้ใช้ยืนยันให้ส่งในข้อความถัดไป");
+  });
+
+  test("IT asking how someone denied gets access is told the request button and its own console path, not the data owner (AI-163)", () => {
+    const it = promptOf("u_ton");
+    expect(it).toContain(`Admin console > ${TH.admin.groups.access} > ${TH.admin.tabs.grants}`);
+    expect(it).toContain("ไม่ต้อง `resolve_owner`");
+    expect(promptOf("u_krit")).not.toContain(`${TH.admin.groups.access} > ${TH.admin.tabs.grants}`);
+  });
+
   test("rules ask for the literal answer first, \"ไม่มีข้อมูล\" for an uncovered part, and treat what the user asserts as unverified", () => {
     const rules = WINYU_RULES.join("\n");
     expect(rules).toContain("ประโยคแรกตอบสิ่งที่ผู้ใช้ถามตรง ๆ");
