@@ -1,14 +1,14 @@
 import { randomUUID } from "node:crypto";
 import { fenceAsData } from "@/lib/harness/fence";
 import { z } from "zod";
-import { MEMORY_FACT_TYPES, type Dim, type MemoryFact, type MemoryFactType, type MemoryTombstone, type MetricId } from "@/lib/contracts";
+import { MEMORY_FACT_TYPES, type AccessContext, type Dim, type MemoryFact, type MemoryFactType, type MemoryTombstone, type MetricId } from "@/lib/contracts";
 import { memoryFacts, memoryReviews, memoryTombstones } from "@/lib/server/agent/collections";
 import { findUser } from "@/lib/data/entities/users";
 import { METRIC_LIST, METRICS } from "@/lib/semantic/metrics";
 import type { Dictionary, EntityKind } from "@/lib/semantic/dictionary";
 import { loadDictionary } from "@/lib/server/master-data";
 import { TH } from "@/lib/i18n/th";
-import { clusterFacts, findSameFact, isSameFact, sameSlice, similarity } from "./memory-match";
+import { clusterFacts, findSameFact, isSameFact, sameSlice, similarity, sliceOf } from "./memory-match";
 import { planReview } from "./memory-review";
 import { CONFIDENCE_STEP, isExpired, isTrusted, KNOWN_CONFIDENCE, memoryStatus, memoryToday, SAID_CONFIDENCE, lastSeenAt, seenCount } from "./memory-status";
 
@@ -31,6 +31,11 @@ const FORGET_SIMILARITY = 0.5;
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 const FIGURE = /[0-9๐-๙]{2,}|[0-9๐-๙]\s*(?:%|ล้าน|พัน|หมื่น|แสน|บาท|ลิตร|เท่า)/;
 const DEFINES_WORD = /เรียก.{0,60}ว่า|หมายถึง|แปลว่า/;
+const SCOPED_TYPES: ReadonlySet<MemoryFactType> = new Set(["interest", "responsibility"]);
+const SCOPED_ANCHORS: readonly { prefix: string; scope: (access: AccessContext) => readonly string[] | "all" }[] = [
+  { prefix: "region:", scope: (access) => access.regions },
+  { prefix: "brand:", scope: (access) => access.brands },
+];
 const LOOSE_CHARS = /[\s"'“”‘’ๆ.,()]/g;
 const WORD_DEFINITION = /\s*(?:หมายถึง|แปลว่า|คือ|=)\s*/;
 const QUOTED_WORD = /["“'‘]([^"”'’]+)["”'’]/;
@@ -449,6 +454,23 @@ export function rememberStated(userId: string, stated: Pick<Extracted, "type" | 
   return memoryFacts().put({ id: randomUUID(), userId, ...confirmed, sourceThreadId: threadId, createdAt: now, seen: 1, threads: threadId ? [threadId] : [] });
 }
 
+/** Whether a fact names a region or brand the person cannot see: an interest in data outside their scope is a refused ask, not something they follow. */
+export function namesOutsideScope(fact: Pick<Extracted, "type" | "value">, access: AccessContext): boolean {
+  if (!SCOPED_TYPES.has(fact.type)) return false;
+  const slice = [...sliceOf(fact.value)];
+  return SCOPED_ANCHORS.some(({ prefix, scope }) => {
+    const allowed = scope(access);
+    return allowed !== "all" && slice.some((anchor) => anchor.startsWith(prefix) && !allowed.includes(anchor.slice(prefix.length)));
+  });
+}
+
+async function accessOfUser(userId: string): Promise<AccessContext | null> {
+  const user = findUser(userId);
+  if (!user) return null;
+  const { liveAccessFor } = await import("@/lib/access/enforce");
+  return liveAccessFor(user);
+}
+
 /** After a save: learn from the questions that are new in it, matching them against what is already known so a repeat strengthens a fact instead of adding one. */
 export async function rememberTurn(userId: string, turns: HeardTurn[], threadId: string | null): Promise<MemoryFact[]> {
   pruneMemory(userId);
@@ -457,7 +479,9 @@ export async function rememberTurn(userId: string, turns: HeardTurn[], threadId:
   const known = factsOf(userId).sort(keepOrder);
   const extracted = (await extractByModel(userId, heard, known)) ?? extractByRule(heard.map((turn) => turn.prompt), await loadDictionary());
   const definesWord = heard.some((turn) => DEFINES_WORD.test(turn.prompt));
-  return learnExtracted(userId, extracted.filter((fact) => fact.type !== "vocabulary" || fact.asked === true || definesWord), threadId);
+  const access = await accessOfUser(userId);
+  const kept = extracted.filter((fact) => (fact.type !== "vocabulary" || fact.asked === true || definesWord) && !(access && namesOutsideScope(fact, access)));
+  return learnExtracted(userId, kept, threadId);
 }
 
 /** Saves what the extractor heard in one turn: a fact the user asked to be remembered is trusted at once, the rest waits to be heard again. */

@@ -5,7 +5,7 @@ import { findUser } from "@/lib/data/entities/users";
 import { actionEvents, memoryFacts } from "@/lib/server/agent/collections";
 import { personaFor, relevantMemory } from "@/lib/server/agent/persona";
 import { threads } from "@/lib/server/threads-read";
-import { confirmMemory, consolidateMemory, editMemory, forgetAbout, forgetAll, learnExtracted, pruneMemory, rejectMemory, rememberAction, rememberStated, rememberTurn } from "./memory";
+import { confirmMemory, consolidateMemory, editMemory, forgetAbout, forgetAll, learnExtracted, namesOutsideScope, pruneMemory, rejectMemory, rememberAction, rememberStated, rememberTurn } from "./memory";
 import { isSameFact } from "./memory-match";
 import { isTrusted, memoryStatus, seenCount } from "./memory-status";
 
@@ -237,5 +237,21 @@ describe("consolidateMemory", () => {
     expect(kept).toHaveLength(10);
     expect(kept).not.toContain(`สนใจ${DISTINCT_TOPICS[0]}`);
     expect(kept).toContain(`สนใจ${DISTINCT_TOPICS[11]}`);
+  });
+});
+
+describe("facts about data outside the person's scope", () => {
+  const user = findUser("u_anucha");
+  if (!user) throw new Error("no u_anucha");
+  const rsm = accessFor(user);
+  const ceo = { ...rsm, regions: "all" as const };
+
+  test("an interest or responsibility naming a region the person cannot see is out of scope; their own region, a style or a word is not", () => {
+    expect(namesOutsideScope({ type: "interest", value: "สนใจปริมาณขายเข้าภาคใต้" }, rsm)).toBe(true);
+    expect(namesOutsideScope({ type: "interest", value: "สนใจเปรียบเทียบปริมาณขายเข้าภาคอีสานกับภาคเหนือ" }, rsm)).toBe(true);
+    expect(namesOutsideScope({ type: "responsibility", value: "ดูแลยอดขายภาคกลาง" }, rsm)).toBe(true);
+    expect(namesOutsideScope({ type: "interest", value: "สนใจปริมาณขายเข้าภาคอีสาน" }, rsm)).toBe(false);
+    expect(namesOutsideScope({ type: "style", value: "ตอบสั้นเรื่องภาคใต้" }, rsm)).toBe(false);
+    expect(namesOutsideScope({ type: "interest", value: "สนใจปริมาณขายเข้าภาคใต้" }, ceo)).toBe(false);
   });
 });
