@@ -697,6 +697,7 @@ export const TH = {
     paceTarget: (through: string, share: string) => `เทียบเป้าตามเวลาถึง ${through} (${share} ของเป้าทั้งเดือน)`,
     weakest: (lowIsWorst: boolean, label: string, value: string) => `${lowIsWorst ? "ต่ำสุด" : "สูงสุด"} ${label} ${value}`,
     monthEnd: (projection: { recentDays: number; attainment: string }) => `สิ้นเดือนถ้าขายเท่า ${projection.recentDays} วันล่าสุด ≈ ${projection.attainment} ของเป้า`,
+    monthSoFar: (projection: { monthTarget: string; attainmentToDate: string; remaining: string }) => `ถึงตอนนี้ทำได้ ${projection.attainmentToDate} ของเป้าทั้งเดือน ${projection.monthTarget} · ${projection.remaining}`,
     points: (value: string) => `${value} จุด`,
     trust: { verified: "รับรองแล้ว", derived: "คำนวณ", estimated: "ประมาณการ" },
     denied: "ข้อมูลนี้อยู่นอกขอบเขตสิทธิ์ของคุณ",

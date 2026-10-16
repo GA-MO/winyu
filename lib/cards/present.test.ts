@@ -406,7 +406,7 @@ describe("a target card in a month still running", () => {
   test("under the headline, its own line says where the month ends when the result carries a projection", () => {
     const { query, result } = answer({ metric: "net_sales_volume", dims: ["region"], range: MONTH_TO_DATE, compare: "target" });
     if (!result.ok) throw new Error(result.error);
-    const projection = { recentDays: 7, projected: "10.2 ล้านลิตร", monthTarget: "11.3 ล้านลิตร", attainment: "90.6%" };
+    const projection = { recentDays: 7, projected: "10.2 ล้านลิตร", monthTarget: "11.3 ล้านลิตร", attainment: "90.6%", attainmentToDate: "66.4%", remaining: "เหลืออีก 3.8 ล้านลิตร ถึงเป้า" };
     const hero = presentCard({ title: "t", query, result: { ...result, headline: { ...result.headline, projection } } }).hero;
     expect(hero?.detail).toBe(TH.dash.paceTarget(formatThaiDate(DATA_AS_OF), MONTH_ELAPSED));
     expect(hero?.note).toBe(TH.dash.monthEnd(projection));

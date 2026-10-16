@@ -33,6 +33,13 @@ describe("projectMonthEnd", () => {
     expect(projection?.attainment).toBeCloseTo(86.67, 1);
   });
 
+  test("says how much of the whole month's target is done so far and how much is left to reach it", () => {
+    const projection = projectMonthEnd({ actual: 2_200, targetSoFar: 2_200, elapsedDays: 22, monthDays: 30, recentDailyAverage: 50 });
+    expect(projection?.remaining).toBe(800);
+    expect(projection?.attainmentToDate).toBeCloseTo(73.33, 1);
+    expect(projectMonthEnd({ actual: 3_100, targetSoFar: 2_200, elapsedDays: 22, monthDays: 30, recentDailyAverage: 50 })?.remaining).toBe(0);
+  });
+
   test("has nothing to say before a target exists", () => {
     expect(projectMonthEnd({ actual: 10, targetSoFar: 0, elapsedDays: 5, monthDays: 30, recentDailyAverage: 1 })).toBeNull();
   });

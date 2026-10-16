@@ -58,6 +58,8 @@ export async function monthEndProjection(query: MetricQuery, access: AccessConte
     projected: formatForSummary(def, Math.round(projection.projected)),
     monthTarget: formatForSummary(def, Math.round(projection.monthTarget)),
     attainment: `${projection.attainment.toFixed(1)}%`,
+    attainmentToDate: `${projection.attainmentToDate.toFixed(1)}%`,
+    remaining: projection.remaining > 0 ? TH.dash.toTarget(formatForSummary(def, Math.round(projection.remaining))) : TH.dash.targetMet,
   };
 }
 
@@ -67,7 +69,7 @@ export async function runMetric(query: MetricQuery, access: AccessContext): Prom
   if (!result.ok) return result;
   const projection = await monthEndProjection(query, access);
   if (!projection) return result;
-  return { ...result, summary: `${result.summary} · ${TH.dash.monthEnd(projection)}`, headline: { ...result.headline, projection } };
+  return { ...result, summary: `${result.summary} · ${TH.dash.monthSoFar(projection)} · ${TH.dash.monthEnd(projection)}`, headline: { ...result.headline, projection } };
 }
 
 export type { SeriesQuery };

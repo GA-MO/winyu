@@ -5,7 +5,7 @@ export type GapPart = { label: string; value: number; compare: number };
 export type Contribution = { label: string; gap: number; share: number };
 export type GapBreakdown = { gap: number; contributors: Contribution[]; rest: Contribution | null; offsetting: Contribution[] };
 export type RunRate = { actual: number; targetSoFar: number; elapsedDays: number; monthDays: number; recentDailyAverage: number };
-export type Projection = { projected: number; monthTarget: number; attainment: number };
+export type Projection = { projected: number; monthTarget: number; attainment: number; remaining: number; attainmentToDate: number };
 
 function gapOf(part: GapPart): number {
   return part.value - part.compare;
@@ -27,12 +27,12 @@ export function breakDownGap(total: GapPart, parts: readonly GapPart[]): GapBrea
   return { gap, contributors, rest: restGap === 0 ? null : { label: "", gap: restGap, share: share(restGap) }, offsetting };
 }
 
-/** Where the month ends if the rest of it sells at the recent daily pace, against a target spread evenly over the month's days. */
+/** Where the month ends if the rest of it sells at the recent daily pace, against a target spread evenly over the month's days; also how much of the whole month's target is done so far and what is left to reach it. */
 export function projectMonthEnd(rate: RunRate): Projection | null {
   if (rate.elapsedDays <= 0 || rate.targetSoFar <= 0 || rate.monthDays < rate.elapsedDays) return null;
   const projected = rate.actual + rate.recentDailyAverage * (rate.monthDays - rate.elapsedDays);
   const monthTarget = (rate.targetSoFar / rate.elapsedDays) * rate.monthDays;
-  return { projected, monthTarget, attainment: (projected / monthTarget) * 100 };
+  return { projected, monthTarget, attainment: (projected / monthTarget) * 100, remaining: Math.max(0, monthTarget - rate.actual), attainmentToDate: (rate.actual / monthTarget) * 100 };
 }
 
 /** A share as a card prints it: "53.4%". */

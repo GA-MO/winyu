@@ -49,6 +49,8 @@ function projectionOf(total: Extract<MetricResult, { ok: true }>) {
     projected_label: projection.projected,
     month_target_label: projection.monthTarget,
     attainment_label: projection.attainment,
+    attainment_to_date_label: projection.attainmentToDate,
+    remaining_label: projection.remaining,
   };
 }
 
