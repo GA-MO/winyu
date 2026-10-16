@@ -21,6 +21,7 @@ import { forgottenTerms } from "@/lib/engine/memory";
 import { shareUrl } from "@/lib/server/share/message";
 import { DATA_AS_OF, bangkokDate } from "@/lib/data/dates";
 import { findUser } from "@/lib/data/entities/users";
+import { agentsOwnedBy } from "@/lib/data/entities/agents";
 import { TH } from "@/lib/i18n/th";
 import { sliceLabel, untilLabel } from "@/lib/share/grant-label";
 
@@ -72,7 +73,7 @@ const RESPONSIBILITIES: Record<RoleId, string> = {
   cfo: "ดูรายได้ ต้นทุน กำไรขั้นต้น งบการตลาด และลูกหนี้เกินกำหนด",
   sales_director: "ดูยอดขายทุกภาค ความคืบหน้าเทียบเป้า และผลงานของทีมขายรายภาค",
   sales_rsm: "ดูแลยอดขายและเอเย่นต์ในภาคของตัวเอง ติดตามเป้ารายเดือนและสต๊อกที่ค้างอยู่กับเอเย่นต์",
-  sales_rep: "ดูแลเอเย่นต์และร้านค้าในจังหวัดที่รับผิดชอบ ติดตามยอดสั่งและสต๊อกหน้าร้าน",
+  sales_rep: "ดูแลเอเย่นต์ที่ได้รับมอบหมายและร้านค้าของเอเย่นต์เหล่านั้น ติดตามยอดสั่งและสต๊อกหน้าร้าน",
   marketing_lead: "ดูแลแคมเปญ งบการตลาด การรับรู้แบรนด์ และผลของโปรโมชันต่อยอดขาย",
   supply_planner: "ดูแลแผนผลิต สต๊อก วันคงคลังของศูนย์กระจายสินค้า และความแม่นยำของพยากรณ์",
   finance_analyst: "ดูแลงบเทียบจริง กำไรขั้นต้น งบการค้า และลูกหนี้",
@@ -143,6 +144,13 @@ function scopeLine(access: AccessContext, user: User | null): string {
   const brands = access.brands === "all" ? "ทุกแบรนด์" : access.brands.join(", ");
   const home = user?.region ? `ประจำ ${REGION_LABELS[user.region] ?? user.region}` : "ส่วนกลาง";
   return `ขอบเขตข้อมูลของผู้ใช้: ${regions} · ${brands} (${home})${grantsLine(access)} — ข้อมูลนอกขอบเขตนี้ระบบจะปฏิเสธเอง ไม่ต้องพยายามเลี่ยง`;
+}
+
+/** The agents a rep owns, by name, and what his first person means; null for anyone who owns none. */
+function ownAgentsLine(userId: string): string | null {
+  const owned = agentsOwnedBy(userId);
+  if (owned.length === 0) return null;
+  return `เอเย่นต์ที่ผู้ใช้ดูแล ${owned.length} ราย: ${owned.map((agent) => agent.nameTh).join(", ")} — "ผม" "ของผม" "เอเย่นต์ของผม" หมายถึงเอเย่นต์ชุดนี้ ไม่ใช่จังหวัดในชื่อตำแหน่ง: ไม่ใส่ filters จังหวัดหรือเอเย่นต์ที่ผู้ใช้ไม่ได้เอ่ย ระบบกรองเอเย่นต์ชุดนี้ให้เอง เหมือนการ์ดบนหน้าแรกและแผนเยี่ยม`;
 }
 
 function grantsLine(access: AccessContext): string {
@@ -301,6 +309,8 @@ export function contextFor(access: AccessContext, user: User | null, ctx: Person
     item("scope", "scope", "user", scopeLine(access, user), "access.policy", own),
     item("today", "date", "day", businessDayLine(ctx.today), "clock", null),
   ];
+  const ownAgents = ownAgentsLine(access.userId);
+  if (ownAgents) items.push(item("own-agents", "scope", "user", ownAgents, "agents.owner", own));
   if (isToolAllowed(access, "admin_audit")) items.push(item("system-today", "date", "day", systemDayLine(ctx.systemToday ?? bangkokDate(new Date())), "clock.system", null));
   items.push(item("data-as-of", "date", "everyone", DATA_AS_OF_LINE, "warehouse.asOf", null));
   items.push(item("vocabulary", "vocabulary", "everyone", VOCABULARY.join(PERSONA_LINE_BREAK), "persona.vocabulary", null));

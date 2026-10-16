@@ -1,10 +1,11 @@
 import { metricAccess } from "@/lib/access/grants";
-import { metricQueryInputSchema, type AccessContext, type MetricId, type MetricQueryInput } from "@/lib/contracts";
+import { metricQueryInputSchema, type AccessContext, type Dim, type MetricId, type MetricQueryInput } from "@/lib/contracts";
 import { ownAgentsFilter } from "@/lib/data/entities/agents";
 import { TH } from "@/lib/i18n/th";
 import { METRICS, TARGET_METRICS } from "@/lib/semantic/metrics";
 import { resolveQuery } from "@/lib/semantic/periods";
 import { loadDictionary } from "@/lib/server/master-data";
+import type { Dictionary } from "@/lib/semantic/dictionary";
 import { runMetric } from "@/lib/server/metrics";
 import { askedQuery } from "@/lib/semantic/resolved";
 import { rowsNamedIn } from "@/lib/cards/asked";
@@ -17,15 +18,32 @@ import { metricAnswerHolds } from "./verify";
 const FIRST_PERSON = /ผม|ดิฉัน|ฉัน|หนู/;
 const WIDER_THAN_OWN = /ทั้งภาค|ทุกเอเย่นต์|ทั้งหมด|ทั้งบริษัท|ทั้งประเทศ|ภาค[ก-๙]|จังหวัด/;
 const NAMED_PLACE_DIMS = ["agent", "province"] as const;
+const MIN_NAME_LENGTH = 3;
+const SPACES = /\s+/g;
 
-/** A rep's question about their own book ("ผมขายได้กี่เปอร์เซ็นต์", "ยอดของผม") with no place named reads the agents assigned to them, as the "my agents" quick action does; scope is unchanged, this only narrows inside it. Null when the default does not apply. */
-export function ownBookQuery(input: MetricQueryInput, access: AccessContext, question: string | null): { input: MetricQueryInput; agents: number } | null {
+function squeezed(text: string): string {
+  return text.replace(SPACES, "");
+}
+
+/** Whether the question itself names one of a filter's places: the value as the model wrote it, its label, or the label's first word ("อีสานรุ่งโรจน์" of "อีสานรุ่งโรจน์ ค้าส่ง"). */
+function namedInQuestion(question: string, dim: Dim, values: readonly string[], dictionary: Dictionary): boolean {
+  const text = squeezed(question);
+  return values.some((value) => {
+    const id = dictionary.resolveDimValue(dim, value);
+    const label = id ? dictionary.displayLabel(dim, id) : value;
+    return [value, label, label.split(" ")[0] ?? ""].map(squeezed).some((name) => name.length >= MIN_NAME_LENGTH && text.includes(name));
+  });
+}
+
+/** A rep's question about their own book ("ผมขายได้กี่เปอร์เซ็นต์", "ยอดของผม") reads the agents assigned to them, as the "my agents" quick action and the home pin do; an agent or province the question does not name itself (the model took it from his title) gives way to them. Scope is unchanged, this only narrows inside it. Null when the default does not apply. */
+export function ownBookQuery(input: MetricQueryInput, access: AccessContext, question: string | null, dictionary: Dictionary): { input: MetricQueryInput; agents: number } | null {
   if (access.role !== "sales_rep" || !question || !FIRST_PERSON.test(question) || WIDER_THAN_OWN.test(question)) return null;
   if (!METRICS[input.metric]?.dims.includes("agent")) return null;
-  if (NAMED_PLACE_DIMS.some((dim) => (input.filters?.[dim]?.length ?? 0) > 0)) return null;
+  if (NAMED_PLACE_DIMS.some((dim) => namedInQuestion(question, dim, input.filters?.[dim] ?? [], dictionary))) return null;
   const own = ownAgentsFilter(access.userId).agent;
   if (!own) return null;
-  return { input: { ...input, filters: { ...input.filters, agent: own } }, agents: own.length };
+  const { agent: _agent, province: _province, ...others } = input.filters ?? {};
+  return { input: { ...input, filters: { ...others, agent: own } }, agents: own.length };
 }
 
 const DESCRIPTION =
@@ -49,7 +67,8 @@ export const queryMetricTool = defineTool({
   verify: metricAnswerHolds,
   correct: metricQueryFix,
   execute: async (asked: MetricQueryInput) => {
-    const own = ownBookQuery(asked, currentAccess(), currentTurn().question);
+    const dictionary = await loadDictionary();
+    const own = ownBookQuery(asked, currentAccess(), currentTurn().question, dictionary);
     const input = own?.input ?? asked;
     const resolved = resolveQuery(input);
     if (!resolved.ok) return resolved;
@@ -57,7 +76,6 @@ export const queryMetricTool = defineTool({
     const result = await runMetric(resolved.query, access);
     if (!result.ok) return result.code === "PERMISSION_DENIED" ? { ...result, nextActions: actionsForRefusal(access, resolved.query) } : result;
     recordQuery(askedQuery(result.query));
-    const dictionary = await loadDictionary();
     const nextActions = actionsForMetric(access, result, dictionary);
     const provenance = grant ? { ...result.provenance, grant } : result.provenance;
     const summary = own ? `${result.summary} · ${TH.quick.ownAgentsApplied(own.agents)}` : result.summary;
