@@ -19,7 +19,9 @@ const { auditLog } = await import("@/lib/server/audit");
 const { TH } = await import("@/lib/i18n/th");
 const { openingOf, shares } = await import("./shares");
 const { createShare } = await import("./deliver");
-const { actOnMatter } = await import("./act");
+const { actOnMatter, briefOf } = await import("./act");
+const { alerts } = await import("@/lib/server/agent/collections");
+const { lessonFor } = await import("@/lib/server/outcomes");
 
 const NORTHEAST_QUERY = { metric: "net_sales_volume", dims: ["agent"], filters: { region: ["northeast"] }, range: { from: "2026-09-01", to: "2026-09-22" }, grain: "day", compare: "target", limit: null, sort: "delta_asc", where: null };
 const NORTHEAST_CARD = { kind: "tool" as const, reads: [{ tool: "query_metric", input: NORTHEAST_QUERY }] };
@@ -178,6 +180,30 @@ describe("ไม่ใช่ของผม", () => {
     expect(shares().get(code)?.path).toHaveLength(1);
     expect(shares().get(code)?.path[0].state).toBe("asked");
     expect(told("u_anucha", code)).toHaveLength(1);
+  });
+});
+
+describe("เสร็จ on a matter about an alert", () => {
+  test("the holder says what it was and what was done; the alert is resolved and the next one on its slice carries the lesson", async () => {
+    const alert = alerts().put({
+      id: `al_act_${Date.now()}`, at: new Date().toISOString(), severity: "P1", metric: "net_sales_volume", dims: { agent: "ag_nea_05", region: "northeast" },
+      window: { from: "2026-11-13", to: "2026-11-26" }, observed: 2220, expected: 12928, zScore: -4, direction: "down",
+      hypothesis: "ทดสอบ", verifySteps: [{ text: "a", metrics: ["net_sales_volume"] }, { text: "b", metrics: ["net_sales_volume"] }], ownerUserId: "u_anucha", status: "open", dismissCount: 0,
+    });
+    try {
+      const outcome = await createShare(user("u_anucha"), { card: NORTHEAST_CARD, question: null, ask: ASK, intent: "act", recipients: [{ userId: "u_krit", channel: "winyu" }], alertIds: [alert.id] });
+      if (!outcome.ok) throw new Error(outcome.error);
+      const code = outcome.share.id;
+      expect(outcome.share.alertIds).toEqual([alert.id]);
+      expect(briefOf(outcome.share, "u_krit").judges).toBe(true);
+      press("u_krit", code, { kind: "accept" });
+      expect(press("u_krit", code, { kind: "done", verdict: "real", outcome: "ติดวงเงินเครดิต ขยายวงเงินแล้ว" }).ok).toBe(true);
+      expect(shares().get(code)?.thread.at(-1)).toMatchObject({ kind: "done", text: "ติดวงเงินเครดิต ขยายวงเงินแล้ว" });
+      expect(alerts().get(alert.id)?.status).toBe("resolved");
+      expect(lessonFor(alert)).toContain("ขยายวงเงิน");
+    } finally {
+      alerts().remove(alert.id);
+    }
   });
 });
 

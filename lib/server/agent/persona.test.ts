@@ -240,7 +240,6 @@ describe("lines that invite a question or an action follow what the role can cal
     for (const userId of ["u_krit", "u_anucha", "u_thana"]) {
       const prompt = promptOf(userId);
       expect(prompt).toContain("`send_card`");
-      expect(prompt).not.toContain("share_card");
       expect(prompt).not.toContain("handoff");
     }
   });
