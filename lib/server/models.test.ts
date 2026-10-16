@@ -50,11 +50,11 @@ afterEach(() => {
 });
 
 describe("the settings sent to OpenRouter", () => {
-  test("the chat runs Gemini 3.8 Flash on the flex tier first with medium reasoning effort", async () => {
+  test("the chat runs Gemini 3.8 Flash on the flex tier first with a thinking budget per step, so no answer-writing step reasons for minutes (AI-180)", async () => {
     const body = await bodySentToOpenRouter("chat");
     expect(body.model).toBe("google/gemini-3.8-flash");
     expect(body.provider).toEqual({ order: ["google-ai-studio/flex", "google-ai-studio"], allow_fallbacks: true });
-    expect(body.reasoning).toEqual({ effort: "medium" });
+    expect(body.reasoning).toEqual({ max_tokens: 1024 });
   });
 
   test("background work runs on the same tier with the model's own reasoning", async () => {
@@ -63,7 +63,7 @@ describe("the settings sent to OpenRouter", () => {
     expect("reasoning" in body).toBe(false);
   });
 
-  test("OPENROUTER_CHAT_REASONING_EFFORT sets another effort for the chat only", async () => {
+  test("OPENROUTER_CHAT_REASONING_EFFORT sends an effort instead of the budget, for the chat only", async () => {
     process.env.OPENROUTER_CHAT_REASONING_EFFORT = "low";
     expect((await bodySentToOpenRouter("chat")).reasoning).toEqual({ effort: "low" });
     expect("reasoning" in (await bodySentToOpenRouter("model"))).toBe(false);
@@ -79,11 +79,11 @@ describe("the settings sent to OpenRouter", () => {
     expect(() => agentModel()).toThrow("OPENROUTER_CHAT_REASONING_EFFORT");
   });
 
-  test("OPENROUTER_PROVIDER_ORDER sends the standard tier without changing the effort", async () => {
+  test("OPENROUTER_PROVIDER_ORDER sends the standard tier without changing the thinking budget", async () => {
     process.env.OPENROUTER_PROVIDER_ORDER = "google-ai-studio";
     const body = await bodySentToOpenRouter("chat");
     expect(body.provider).toEqual({ order: ["google-ai-studio"], allow_fallbacks: true });
-    expect(body.reasoning).toEqual({ effort: "medium" });
+    expect(body.reasoning).toEqual({ max_tokens: 1024 });
   });
 
   test("a model with no default of its own gets no reasoning setting", async () => {
