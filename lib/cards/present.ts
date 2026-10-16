@@ -425,7 +425,7 @@ function footerOf(query: MetricQuery, result: OkResult, notes: readonly (string 
   return {
     line: [compactPeriod(result.headline.periodLabel), ...scopeLabelsOf(query, result), provenance.sourceSystem].join(" · "),
     verified: provenance.trust === "verified",
-    details: joined([TH.dash.trust[provenance.trust], TH.read.asOf(formatDateTh(provenance.asOf)), provenance.coverage?.label ?? null, masked, result.headline.compareNote, ...notes]),
+    details: joined([TH.dash.trust[provenance.trust], TH.read.asOf(formatDateTh(provenance.asOf)), result.headline.compareLabel, provenance.coverage?.label ?? null, masked, result.headline.compareNote, ...notes]),
   };
 }
 
