@@ -39,10 +39,10 @@ Stop when a round on the four demo roles (CEO, RSM อีสาน, sales rep �
 ## Round 4 fixes (after round 3, 2026-10-17)
 
 Round 3 replayed the 38 turns still broken after round 2 ($0.75): 20 fixed, 17 still broken, 22 new, stop condition not met. The high one: a chat send attached the wrong card, including an HR profile, and one was sent (AI-93). Packages, by files:
-- [ ] **G1 send the right card** (AI-93 high, AI-94, AI-100, AI-115, AI-120)
-- [ ] **G2 chat durability and the bell** (AI-96, AI-97, AI-99, AI-116, AI-117, AI-118, AI-123)
-- [ ] **G3 numbers and card wording** (AI-101 to AI-110, AI-113, AI-114, AI-121, AI-122, AI-124, AI-125, AI-130)
-- [ ] **G4 admin, memory, clock** (AI-95, AI-98, AI-111, AI-119, AI-126 to AI-129)
+- [x] **G1 send the right card** (AI-93 high, AI-94, AI-100, AI-115, AI-120)
+- [x] **G2 chat durability and the bell** (AI-96, AI-97, AI-99, AI-116, AI-117, AI-118, AI-123)
+- [x] **G3 numbers and card wording** (AI-101 to AI-110, AI-113, AI-114, AI-121, AI-122, AI-124, AI-125, AI-130)
+- [x] **G4 admin, memory, clock** (AI-95, AI-98, AI-111, AI-119, AI-126 to AI-129)
 - [ ] then speed (AI-112, measured on a production build) and the run sheet again (AI-131)
 
 ## Round 3 fixes (after round 2, 2026-10-16)
