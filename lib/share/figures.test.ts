@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { TH } from "@/lib/i18n/th";
-import { contradictionOf, figuresOf, measureOf } from "./figures";
+import { contradictionOf, figuresOf } from "./figures";
 
 function answer(compare: string, deltaPercent: number | null, rows: { value: number }[] = [{ value: 100 }], metric = "net_sales_volume") {
   return { ok: true, rows, summary: "", headline: { aggregate: "sum", value: "1", periodLabel: "", rowCount: rows.length, deltaPercent, compareLabel: null, compareNote: null, top: [] }, provenance: {}, query: { metric, compare, dims: [], filters: {}, range: { from: "2026-11-01", to: "2026-11-26" }, grain: "month", limit: null, scopeApplied: {}, labels: {} } };
@@ -11,11 +11,6 @@ describe("what a card's numbers say", () => {
     expect(figuresOf(answer("target", -12.1))).toEqual({ attainment: 87.9, change: null });
     expect(figuresOf(answer("prev_period", -4))).toEqual({ attainment: null, change: -4 });
     expect(figuresOf({ ok: false, error: "x" })).toBeNull();
-  });
-
-  test("a goal reads attainment or the total off the result", () => {
-    expect(measureOf(answer("target", 3), "attainment")).toBe(103);
-    expect(measureOf(answer("none", null, [{ value: 40 }, { value: 60 }]), "total")).toBe(100);
   });
 });
 

@@ -8,7 +8,7 @@ import { alerts, notifications } from "@/lib/server/agent/collections";
 import { runWatchJob } from "@/lib/server/watches";
 import { actOnMatter } from "./act";
 import { createShare } from "./deliver";
-import { goalMet, goalOf, goalReading, onLatestDay } from "./goal";
+import { attainmentNow, goalLabel, goalOf, goalReached, onLatestDay } from "./goal";
 import { shares } from "./shares";
 
 setDefaultTimeout(60_000);
@@ -32,10 +32,10 @@ async function matterOnPath(): Promise<string> {
 }
 
 async function withGoalAround(code: string, offset: number): Promise<MatterGoal> {
-  const total: MatterGoal = { query: { ...TARGET_READ, compare: "none" }, measure: "total", line: 0, reach: "at_least" };
-  const reading = await goalReading(total, user("u_thana"));
+  const target = { kind: "attainment" as const, query: TARGET_READ, atLeast: 0 };
+  const reading = await attainmentNow(target, user("u_thana"));
   if (reading === null) throw new Error("the goal's read returned nothing");
-  const goal = { ...total, line: reading + offset };
+  const goal = { ...target, atLeast: reading + offset };
   const stored = shares().get(code);
   if (!stored) throw new Error("matter missing");
   shares().put({ ...stored, goal });
@@ -55,17 +55,21 @@ afterAll(() => {
 
 describe("the goal a matter is sent with", () => {
   test("a card against target closes when attainment reaches 100%; a card with neither a target nor an alert has no goal", () => {
-    expect(goalOf(TARGET_CARD, [])).toMatchObject({ measure: "attainment", line: 100, reach: "at_least" });
+    expect(goalOf(TARGET_CARD, [])).toEqual({ kind: "attainment", query: TARGET_READ, atLeast: 100 });
     expect(goalOf({ kind: "tool", reads: [{ tool: "query_metric", input: { ...TARGET_READ, compare: "prev_period" } }] }, [])).toBeNull();
   });
 
-  test("a matter about an open alert closes when the number is back where it was expected, from the side it left", () => {
+  test("a matter about an open alert closes once the anomaly engine finds the number back within what was expected", async () => {
     const alert = { id: "al_goal_test", metric: "net_sales_volume", dims: { agent: "ag_nea_05" }, window: { from: "2026-11-13", to: "2026-11-26" }, observed: 2220, expected: 12928, direction: "down", status: "open" } as unknown as Alert;
     alerts().put(alert);
     try {
-      expect(goalOf(TARGET_CARD, [alert.id])).toMatchObject({ measure: "total", line: 12928, reach: "at_least", query: { metric: "net_sales_volume", filters: { agent: ["ag_nea_05"] } } });
-      expect(goalMet({ query: {}, measure: "total", line: 12928, reach: "at_least" }, 13000)).toBe(true);
-      expect(goalMet({ query: {}, measure: "total", line: 12928, reach: "at_least" }, 2220)).toBe(false);
+      const goal = goalOf(TARGET_CARD, [alert.id]);
+      expect(goal).toEqual({ kind: "alert", alertId: alert.id });
+      if (!goal) throw new Error("no goal");
+      expect(goalLabel(goal)).toBe(TH.matter.goal.back("ปริมาณขายเข้า (Sell-in)"));
+      expect(await goalReached(goal, user("u_anucha"))).toBe(false);
+      alerts().put({ ...alert, status: "resolved" });
+      expect(await goalReached(goal, user("u_anucha"))).toBe(true);
     } finally {
       alerts().remove(alert.id);
     }

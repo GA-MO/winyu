@@ -122,7 +122,7 @@ export const MATTER_RULES: Rules = {
 };
 
 /** A matter whose number reached its goal: Winyu adds a goal_met line and closes it, and its sender and everyone on its path hear it once. Pure; the watch job stores, audits and notifies. */
-export function goalReached(matter: Matter, at: string): Step {
+export function goalMetOn(matter: Matter, at: string): Step {
   const line: MatterEvent = { userId: null, at, kind: "goal_met", text: null, toUserId: null };
   const tell = everyoneOn(matter).map((userId): Telling => ({ userId, handed: false, change: "goal_met", text: null, toUserId: null }));
   return { matter: moved(matter, at, matter.path, line, { status: "done" }), tell };

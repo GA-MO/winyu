@@ -1,6 +1,5 @@
 import type { MetricResult } from "@/lib/contracts";
 import { TH } from "@/lib/i18n/th";
-import type { GoalMeasure } from "./matter";
 
 /** What a card's numbers say, read by code from its result: attainment against target and change against its comparison, in percent; null where the card does not tell it. */
 export type CardFigures = { attainment: number | null; change: number | null };
@@ -37,19 +36,6 @@ export function figuresOf(result: unknown): CardFigures | null {
   if (!isMetricAnswer(result)) return null;
   const change = COMPARED.has(result.query.compare) ? result.headline.deltaPercent : null;
   return { attainment: attainmentOf(result), change };
-}
-
-function totalOf(answer: MetricAnswer): number | null {
-  const values = answer.rows.map((row) => row.value).filter((value): value is number => typeof value === "number");
-  if (values.length === 0) return null;
-  const sum = values.reduce((total, value) => total + value, 0);
-  return answer.headline.aggregate === "average" ? sum / values.length : sum;
-}
-
-/** The one number a goal reads off a result: attainment in percent, or the total (the mean for a metric that averages); null when the result does not tell it. */
-export function measureOf(result: unknown, measure: GoalMeasure): number | null {
-  if (!isMetricAnswer(result)) return null;
-  return measure === "attainment" ? attainmentOf(result) : totalOf(result);
 }
 
 function percentLabel(value: number): string {

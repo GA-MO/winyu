@@ -43,13 +43,8 @@ export type HopState = "sent" | "seen" | "accepted" | "asked" | "passed_on";
 /** One person a matter reached, who passed it to them (null when Winyu did), when, and where they stand. */
 export type Hop = { userId: string; fromUserId: string | null; at: string; state: HopState };
 
-export const GOAL_MEASURES = ["attainment", "total"] as const;
-
-/** What a goal reads off its query's result: attainment against target in percent, or the total of the value. */
-export type GoalMeasure = (typeof GOAL_MEASURES)[number];
-
-/** The number that closes a matter by itself: a read (its input as the card stored it, run again on the latest data day) whose measure reaches a line from below or from above. */
-export type MatterGoal = { query: Record<string, unknown>; measure: GoalMeasure; line: number; reach: "at_least" | "at_most" };
+/** What closes a matter by itself: a card against target whose read (its input as the card stored it, run again on the latest data day) reaches a share of target, or the alert it is about found back within what was expected (the anomaly engine resolves it). */
+export type MatterGoal = { kind: "attainment"; query: Record<string, unknown>; atLeast: number } | { kind: "alert"; alertId: string };
 
 export type MatterEventKind = "note" | "accepted" | "asked" | "passed_on" | "goal_met" | "done";
 

@@ -1967,7 +1967,7 @@ export const TH = {
     },
     goal: {
       attainment: (metric: string) => `ปิดเองเมื่อ${metric}ถึง 100% ของเป้า`,
-      back: (metric: string, line: string) => `ปิดเองเมื่อ${metric}กลับมาที่ ${line}`,
+      back: (metric: string) => `ปิดเองเมื่อ${metric}กลับมาเป็นปกติ`,
       unknown: "ปิดเองเมื่อตัวเลขถึงเป้า",
       keep: "ปิดเรื่องเองเมื่อถึงเป้า",
     },

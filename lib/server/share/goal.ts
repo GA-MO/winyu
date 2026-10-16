@@ -1,15 +1,15 @@
 import { liveAccessFor } from "@/lib/access/enforce";
-import { metricQueryInputSchema, type Alert, type MetricQueryInput, type User } from "@/lib/contracts";
+import { metricQueryInputSchema, type MetricQueryInput, type User } from "@/lib/contracts";
 import { addDays, daysBetween, DATA_AS_OF } from "@/lib/data/dates";
 import { findUser } from "@/lib/data/entities/users";
-import { formatMetricValue, metricLabel } from "@/lib/dashboard/metric-display";
+import { metricLabel } from "@/lib/dashboard/metric-display";
 import { TH } from "@/lib/i18n/th";
 import { resolveQuery } from "@/lib/semantic/periods";
 import { TARGET_METRICS } from "@/lib/semantic/metrics";
 import type { SharedCard, SharedRead } from "@/lib/share/card";
-import { figuresOf, measureOf, type CardFigures } from "@/lib/share/figures";
+import { figuresOf, type CardFigures } from "@/lib/share/figures";
 import type { Matter, MatterGoal } from "@/lib/share/matter";
-import { goalReached } from "@/lib/share/matter-actions";
+import { goalMetOn } from "@/lib/share/matter-actions";
 import { alerts } from "@/lib/server/agent/collections";
 import { recordMatterEvent } from "@/lib/server/audit";
 import { runMetric } from "@/lib/server/metrics";
@@ -41,21 +41,15 @@ export async function cardFigures(card: SharedCard, viewer: User): Promise<CardF
   return input ? figuresOf(await answerOf(input, viewer)) : null;
 }
 
-function alertGoal(alert: Alert): MatterGoal {
-  const filters = Object.fromEntries(Object.entries(alert.dims).map(([dim, id]) => [dim, [id]]));
-  const query = { metric: alert.metric, dims: [], filters, range: alert.window, grain: "day", compare: "none", limit: null };
-  return { query, measure: "total", line: alert.expected, reach: alert.direction === "down" ? "at_least" : "at_most" };
-}
-
 function targetGoal(input: MetricQueryInput): MatterGoal | null {
   const againstTarget = input.metric === "target_attainment" || (input.compare === "target" && TARGET_METRICS.has(input.metric));
-  return againstTarget ? { query: { ...input }, measure: "attainment", line: FULL_TARGET, reach: "at_least" } : null;
+  return againstTarget ? { kind: "attainment", query: { ...input }, atLeast: FULL_TARGET } : null;
 }
 
-/** The number that closes a matter by itself, when the card has one: an alert it is about coming back to what was expected, else a card against target reaching 100% of it; null otherwise. */
+/** What closes a matter by itself, when the card has it: an open alert it is about coming back within what was expected, else a card against target reaching 100% of it; null otherwise. */
 export function goalOf(card: SharedCard, alertIds: readonly string[]): MatterGoal | null {
   const alert = alertIds.flatMap((id) => alerts().get(id) ?? []).find((candidate) => candidate.status === "open");
-  if (alert) return alertGoal(alert);
+  if (alert) return { kind: "alert", alertId: alert.id };
   const input = firstMetricInput(card);
   return input ? targetGoal(input) : null;
 }
@@ -67,28 +61,32 @@ export function onLatestDay(input: MetricQueryInput, asOf: string = DATA_AS_OF):
   return { ...input, range: { from: addDays(asOf, -days), to: asOf } };
 }
 
-/** Where the goal's number stands now for this person, or null when the read no longer answers. */
-export async function goalReading(goal: MatterGoal, viewer: User, asOf: string = DATA_AS_OF): Promise<number | null> {
+/** Attainment against target in percent on the latest data day for this person, or null when the read no longer answers. */
+export async function attainmentNow(goal: Extract<MatterGoal, { kind: "attainment" }>, viewer: User, asOf: string = DATA_AS_OF): Promise<number | null> {
   const parsed = metricQueryInputSchema.safeParse(goal.query);
   if (!parsed.success) return null;
-  return measureOf(await answerOf(onLatestDay(parsed.data, asOf), viewer), goal.measure);
+  return figuresOf(await answerOf(onLatestDay(parsed.data, asOf), viewer))?.attainment ?? null;
 }
 
-/** Whether a reading reaches the goal's line from the side it was set. */
-export function goalMet(goal: MatterGoal, reading: number): boolean {
-  return goal.reach === "at_least" ? reading >= goal.line : reading <= goal.line;
+/** Whether the goal is reached now: attainment at or over its line under the sender's access, or the alert resolved by the anomaly engine (its window ended and the number came back). */
+export async function goalReached(goal: MatterGoal, sender: User, asOf: string = DATA_AS_OF): Promise<boolean> {
+  if (goal.kind === "alert") return alerts().get(goal.alertId)?.status === "resolved";
+  const attainment = await attainmentNow(goal, sender, asOf);
+  return attainment !== null && attainment >= goal.atLeast;
 }
 
 /** The goal as one line for the sheet and the matter page. */
 export function goalLabel(goal: MatterGoal): string {
+  if (goal.kind === "alert") {
+    const alert = alerts().get(goal.alertId);
+    return alert ? TH.matter.goal.back(metricLabel(alert.metric)) : TH.matter.goal.unknown;
+  }
   const metric = metricInputOf({ tool: METRIC_READ, input: goal.query })?.metric;
-  if (!metric) return TH.matter.goal.unknown;
-  if (goal.measure === "attainment") return TH.matter.goal.attainment(metricLabel(metric));
-  return TH.matter.goal.back(metricLabel(metric), formatMetricValue(metric, goal.line));
+  return metric ? TH.matter.goal.attainment(metricLabel(metric)) : TH.matter.goal.unknown;
 }
 
 function closeOnGoal(matter: Matter, at: Date): void {
-  const step = goalReached(matter, at.toISOString());
+  const step = goalMetOn(matter, at.toISOString());
   const stored = shares().put(step.matter);
   recordMatterEvent({ userId: WINYU, code: stored.id, action: "goal_met", toUserId: null, refusal: null });
   for (const telling of step.tell) notify(telling.userId, null, { kind: "matter_update", refId: stored.id, actorName: TH.notifications.winyu, cardTitle: stored.title, change: "goal_met", text: null }, at);
@@ -101,8 +99,7 @@ export async function runGoalChecks(at = new Date(), asOf: string = DATA_AS_OF):
   for (const matter of open) {
     const sender = findUser(matter.senderId);
     if (!sender || !matter.goal) continue;
-    const reading = await goalReading(matter.goal, sender, asOf);
-    if (reading === null || !goalMet(matter.goal, reading)) continue;
+    if (!(await goalReached(matter.goal, sender, asOf))) continue;
     closeOnGoal(matter, at);
     closed += 1;
   }
