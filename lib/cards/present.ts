@@ -471,11 +471,18 @@ function heroOf(query: MetricQuery, result: OkResult): CardHero {
   return { label: heroLabelOf(query, result), value: result.headline.value, unit: null, ...headlineMoveOf(query, result), detail: result.headline.compareLabel };
 }
 
+/** Days of one week or one month ("ยอดอาทิตย์นี้", "เดือนนี้รายวัน") ask about that period: its total against its comparison leads, the days are only the picture; a longer trend reads its latest bucket instead. */
+function asksAboutOnePeriod(query: MetricQuery): boolean {
+  if (query.grain !== "day") return false;
+  return weekKeyOfIso(query.range.from) === weekKeyOfIso(query.range.to) || monthKeyOfIso(query.range.from) === monthKeyOfIso(query.range.to);
+}
+
 type LatestBucket = { label: string; previous: string; value: string; deltaPercent: number; deltaPoints: number; versus: string };
 
 /** A series with no breakdown is read at its latest full bucket against the one before: a sum always (the range total moves to a tile), a rate when nothing else is compared; the total or average of the whole line hides the turn someone asked about. */
 function latestBucketOf(query: MetricQuery, result: OkResult, rows: MetricRow[]): LatestBucket | null {
   if (result.headline.aggregate === "average" && result.headline.deltaPercent !== null) return null;
+  if (asksAboutOnePeriod(query)) return null;
   if (!timeDimOf(query) || groupDimsOf(query).length > 0 || rows.length < 2) return null;
   const [previous, latest] = rows.slice(-2);
   const previousValue = numericOf(previous, "value");

@@ -6,7 +6,7 @@ import { findUser } from "@/lib/data/entities/users";
 import { runMetric } from "@/lib/data/query";
 import { TH } from "@/lib/i18n/th";
 import { LOW_COVER_DAYS } from "@/lib/semantic/metrics";
-import { changeToneOf } from "@/lib/dashboard/metric-display";
+import { changeToneOf, formatChange } from "@/lib/dashboard/metric-display";
 import { pairedIndexes, presentCard, presentForecast, weakestRow, type CardBody, type CardParts, type CardView, type ForecastAnswer, type SortBy } from "./present";
 import type { ReadRow, Strip } from "./reading";
 import { metricTitle } from "./tool-answers";
@@ -322,6 +322,17 @@ describe("two metrics on one card", () => {
     const strip = stripOf(card.body);
     expect(strip.rows.length).toBeGreaterThan(1);
     strip.rows.forEach((row) => expect(row.sub).toStartWith(TH.dash.compare.prev_period));
+  });
+});
+
+describe("a period split into days", () => {
+  test("this week by day leads with the week's total against the week before, not its last day (AI-71)", () => {
+    const { query, result } = answer({ metric: "net_sales_volume", dims: ["date"], grain: "day", range: { from: "2026-08-17", to: "2026-08-23" } });
+    if (!result.ok) throw new Error(result.error);
+    const card = presentCard({ title: "t", query, result });
+    expect(card.hero?.value).toBe(result.headline.value);
+    expect(card.hero?.delta).toBe(formatChange(query.metric, result.headline.deltaPercent, result.headline.deltaPoints ?? null));
+    expect(card.body.kind).toBe("line");
   });
 });
 
