@@ -41,7 +41,7 @@ describe("openApprovalsOf", () => {
     const messages = agUiMessagesOf([QUESTION, reply([invocation("c-open", "pin_widget", "call"), invocation("c-spent", "pin_widget", "call"), invocation("c-other", "pin_widget", "call")])]);
     recordAsked("mastra-approval::r::c-open", "u_thana", "c-open", "pin_widget");
     recordAsked("mastra-approval::r::c-spent", "u_thana", "c-spent", "pin_widget");
-    markAnswered("mastra-approval::r::c-spent");
+    markAnswered("mastra-approval::r::c-spent", true);
     recordAsked("mastra-approval::r::c-other", "u_krit", "c-other", "pin_widget");
     expect(openApprovalsOf(messages, "u_thana")).toEqual([
       { interruptId: "mastra-approval::r::c-open", toolCallId: "c-open", tool: "pin_widget", input: { metric: "net_sales_value" }, exchangeId: "u1", position: Number.MAX_SAFE_INTEGER },

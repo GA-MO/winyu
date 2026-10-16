@@ -4,8 +4,11 @@ export const APPROVALS_COLLECTION = "approvals";
 
 const MAX_KEPT_APPROVALS = 1000;
 
-/** One approval the server asked a person for: whose it is, which call it covers, and whether an answer already spent it. */
-export type ApprovalRecord = { id: string; userId: string; toolCallId: string; tool: string; status: "asked" | "answered"; at: string };
+/** Where one approval stands: asked and waiting, answered yes (the call may act once), answered no, or its yes already carried the call out. */
+export type ApprovalStatus = "asked" | "approved" | "declined" | "spent";
+
+/** One approval the server asked a person for: whose it is, which call it covers, and what became of it. */
+export type ApprovalRecord = { id: string; userId: string; toolCallId: string; tool: string; status: ApprovalStatus; at: string };
 
 export type ApprovalProblem = "unknown" | "other_user" | "already_answered" | "other_call";
 
@@ -33,13 +36,21 @@ export function problemOf(approvalId: string, userId: string, toolCallId: string
   if (!record) return "unknown";
   if (record.userId !== userId) return "other_user";
   if (record.toolCallId !== toolCallId) return "other_call";
-  return record.status === "answered" ? "already_answered" : null;
+  return record.status === "asked" ? null : "already_answered";
 }
 
-/** Spends an approval: the signed answer can never run its tool a second time. */
-export function markAnswered(approvalId: string): void {
+/** Records the person's one answer to an approval: the signed answer can never be given again. */
+export function markAnswered(approvalId: string, approved: boolean): void {
   const record = approvals().get(approvalId);
-  if (record) approvals().put({ ...record, status: "answered", at: new Date().toISOString() });
+  if (record) approvals().put({ ...record, status: approved ? "approved" : "declined", at: new Date().toISOString() });
+}
+
+/** Spends this person's yes to this very call of this tool, so the call acts once; false when nobody said yes to it, it was declined, or its yes is already spent. */
+export function spendYes(userId: string, toolCallId: string, tool: string): boolean {
+  const [record] = approvals().where((entry) => entry.userId === userId && entry.toolCallId === toolCallId && entry.tool === tool && entry.status === "approved");
+  if (!record) return false;
+  approvals().put({ ...record, status: "spent", at: new Date().toISOString() });
+  return true;
 }
 
 /** The tool an approval was asked for, or null for an id the server never asked. */

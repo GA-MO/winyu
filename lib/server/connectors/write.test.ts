@@ -11,6 +11,7 @@ import { GENERATOR_PORTS } from "@/lib/server/ports/generator";
 import { runWithAccess } from "@/lib/server/request-context";
 import { collection } from "@/lib/server/store/json-store";
 import { type ConnectorView, type ToolDraft, type WriteDraft } from "@/lib/connectors/spec";
+import { approvedCallId } from "@/scripts/approved-call";
 import { assetsDemoFetchFor } from "@/scripts/mcp-demo-assets";
 import { resetClientPool } from "./pool";
 import { CONNECTOR_HOSTS_ENV } from "./egress";
@@ -69,7 +70,8 @@ function hashOf(view: ConnectorView, name: string): string {
 async function call(userId: string, remote: string, input: Record<string, unknown>, toolCallId = randomUUID()): Promise<Result> {
   const tool = winyuTools()[`${ID}__${remote}`];
   if (!tool) throw new Error(`${remote} is not live`);
-  return (await runWithAccess(liveAccessFor(userOf(userId)), () => tool.execute(tool.inputSchema().parse(input), { toolCallId }))) as Result;
+  const approved = approvedCallId(userId, tool.entry.name, toolCallId);
+  return (await runWithAccess(liveAccessFor(userOf(userId)), () => tool.execute(tool.inputSchema().parse(input), { toolCallId: approved }))) as Result;
 }
 
 async function asks(userId: string, remote: string, input: Record<string, unknown>): Promise<boolean> {

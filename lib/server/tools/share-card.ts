@@ -1,5 +1,7 @@
 import type { User } from "@/lib/contracts";
 import { metricLabel } from "@/lib/dashboard/metric-display";
+import { notReady } from "@/lib/harness/gateway";
+import type { Unready } from "@/lib/harness/types";
 import { findUser } from "@/lib/data/entities/users";
 import { TH } from "@/lib/i18n/th";
 import { channelFor, shareCardInputSchema, type ShareCardInput } from "@/lib/share/card";
@@ -25,15 +27,18 @@ function noteFromPerson(note: string | undefined): boolean {
   return (note?.match(NUMBER) ?? []).every((number) => question.includes(number));
 }
 
-function isReady(input: unknown): boolean {
-  const parsed = shareCardInputSchema.safeParse(input);
-  return parsed.success && noteFromPerson(parsed.data.note) && resolvedPeople(recipientMatches(parsed.data.to, currentAccess().userId)) !== null;
-}
-
 function unresolvedLine(match: RecipientMatch<User>): string | null {
   if (match.kind === "unknown") return TH.share.chat.unknown(match.asked);
   if (match.kind === "ambiguous") return TH.share.chat.ambiguous(match.asked, match.candidates.map((user) => TH.share.chat.candidate(user.nameTh, user.title, user.id)).join(", "));
   return null;
+}
+
+function unready(input: unknown): Unready | null {
+  const parsed = shareCardInputSchema.safeParse(input);
+  if (!parsed.success) return notReady(TH.harness.notReady);
+  if (!noteFromPerson(parsed.data.note)) return notReady(TH.share.chat.noteNumbers, NOTE_NUMBERS);
+  const matches = recipientMatches(parsed.data.to, currentAccess().userId);
+  return resolvedPeople(matches) ? null : notReady(matches.flatMap((match) => unresolvedLine(match) ?? []).join(" · "), UNRESOLVED);
 }
 
 export const shareCardTool = defineTool({
@@ -43,7 +48,7 @@ export const shareCardTool = defineTool({
   roles: "all",
   description: "Share the newest card of this conversation with colleagues for their information: they get its title, the note and a link into Winyu, and see the numbers under their own access. `to` = each colleague as the user named them (\"คุณกฤต\") or a user id, no lookup first. `channel` only when the user names one; `note` only when the user gives a message to pass on, in their words. The user approves it first.",
   input: shareCardInputSchema,
-  ready: isReady,
+  ready: unready,
   redact: ["note"],
   verify: shareHolds,
   execute: async (input: ShareCardInput) => {

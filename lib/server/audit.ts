@@ -13,7 +13,7 @@ export const AUDIT_COLLECTION = "audit";
 const HASH_LENGTH = 16;
 const ARGS_MAX_CHARS = 400;
 const ARG_VALUE_MAX_CHARS = 80;
-const DENIED_CODES: ReadonlySet<string> = new Set(["PERMISSION_DENIED", "TOOL_NOT_ALLOWED", "POLICY_RULE", "RUN_LIMIT", "VERIFICATION_FAILED", THROWN_CODE]);
+const DENIED_CODES: ReadonlySet<string> = new Set(["PERMISSION_DENIED", "TOOL_NOT_ALLOWED", "POLICY_RULE", "RUN_LIMIT", "NOT_APPROVED", "VERIFICATION_FAILED", THROWN_CODE]);
 
 export function auditLog() {
   return collection<AuditEntry>(AUDIT_COLLECTION);

@@ -177,7 +177,7 @@ async function serveRun(access: AccessContext, req: Request, turn: ChatTurn, gua
   if (turn.answers.length > 1) return refused(run, turn.answers.map((answer) => answer.interruptId).join(", "), "more than one answer in one run");
   const spent = turn.answers.map((answer) => ({ answer, problem: problemOf(answer.interruptId, access.userId, answer.toolCallId) })).find((entry) => entry.problem !== null);
   if (spent) return refused(run, spent.answer.interruptId, spent.problem ?? "unknown");
-  for (const answer of turn.answers) markAnswered(answer.interruptId);
+  for (const answer of turn.answers) markAnswered(answer.interruptId, answer.approved);
   return streamRun(access, req, run, turn, options, guarded);
 }
 

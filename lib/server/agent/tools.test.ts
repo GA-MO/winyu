@@ -12,6 +12,7 @@ import { runWithAccess, runWithTurn } from "@/lib/server/request-context";
 import { notifications, outbox, packets } from "./collections";
 import type { WinyuTool } from "@/lib/server/tools/define";
 import { toolSurface } from "@/lib/server/tools/registry";
+import { approvedCallId } from "@/scripts/approved-call";
 import { winyuTools, toolsForAccess } from "./tools";
 
 const TODAY = DATA_AS_OF;
@@ -43,7 +44,7 @@ function toolNamesOf(tools: WinyuTool[]): string[] {
 async function call<T>(userId: string, name: string, input: unknown): Promise<T> {
   const access = accessOf(userId);
   const { execute } = winyuTools()[name];
-  return runWithAccess(access, () => execute(input) as Promise<T>);
+  return runWithAccess(access, () => execute(input, { toolCallId: approvedCallId(userId, name) }) as Promise<T>);
 }
 
 const NATIONAL_WEEKLY_FLOOR_HL = 30_000;
@@ -187,7 +188,7 @@ describe("create_handoff", () => {
     const turn = { turnId: "turn-handoff-digest", threadId: "thread-handoff-digest", preloadPacketId: null, question: "ส่งงานให้ผู้รับผิดชอบ", queries: [], transcript };
     const input = { toUserId: "u_pim", title: "ยอดอีสานต่ำกว่าเป้า", ask: "ช่วยตรวจสอบ", urgency: "medium", evidence: [], alertIds: [] };
     const { execute } = winyuTools().create_handoff;
-    const result = (await runWithAccess(accessOf("u_anucha"), () => runWithTurn(turn, () => execute(input)))) as { ok: boolean; data: { packetId: string } };
+    const result = (await runWithAccess(accessOf("u_anucha"), () => runWithTurn(turn, () => execute(input, { toolCallId: approvedCallId("u_anucha", "create_handoff") })))) as { ok: boolean; data: { packetId: string } };
     const digest = packets().get(result.data.packetId)?.conversationDigest ?? "";
     expect(digest).toContain("ยอดขายภาคอีสานเดือนนี้เทียบเป้า");
     expect(digest).toContain("ต่ำกว่าเป้า 10%");

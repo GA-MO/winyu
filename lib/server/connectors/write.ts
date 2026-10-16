@@ -1,6 +1,7 @@
 import { z } from "zod";
 import type { AccessContext } from "@/lib/contracts";
 import { fence } from "@/lib/harness/fence";
+import { notReady } from "@/lib/harness/gateway";
 import type { Readiness, Verdict, Verifier } from "@/lib/harness/types";
 import { TH } from "@/lib/i18n/th";
 import { currentAccess } from "@/lib/server/request-context";
@@ -9,6 +10,7 @@ import type { ConnectorRow, ConnectorToolBinding, ConnectorWrite } from "./types
 
 const ANY_ARGS = z.looseObject({});
 const READINESS_CALL_ID = "readiness-check";
+const PERMISSION_DENIED = "PERMISSION_DENIED";
 
 /** Reads one tool's rows as a person under that tool's own scope, before masking and fencing; null when the server did not answer. */
 export type RowsReader = (binding: ConnectorToolBinding, args: Record<string, unknown>, access: AccessContext) => Promise<ConnectorRow[] | null>;
@@ -57,12 +59,13 @@ export async function sentArgs(binding: ConnectorToolBinding, write: ConnectorWr
   return refusal ? { ok: false, error: refusal } : { ok: true, args: pinned };
 }
 
-/** Asks the person only for a write Winyu would send: it parses, the caller has every pinned value, and every guard passes. A write that fails here runs unasked and is refused by the same check. */
+/** Asks the person only for a write Winyu would send: it parses, the caller has every pinned value, and every guard passes. A write that fails here is never sent and the model reads why. */
 export function writeReadiness(binding: ConnectorToolBinding, write: ConnectorWrite, read: RowsReader): Readiness {
   return async (input) => {
     const parsed = (binding.config.input ?? ANY_ARGS).safeParse(input);
-    if (!parsed.success) return false;
-    return (await sentArgs(binding, write, parsed.data as Record<string, unknown>, currentAccess(), READINESS_CALL_ID, read)).ok;
+    if (!parsed.success) return notReady(TH.harness.notReady);
+    const sent = await sentArgs(binding, write, parsed.data as Record<string, unknown>, currentAccess(), READINESS_CALL_ID, read);
+    return sent.ok ? null : notReady(sent.error, PERMISSION_DENIED);
   };
 }
 

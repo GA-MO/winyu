@@ -1,5 +1,4 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { randomUUID } from "node:crypto";
 import type { AccessContext } from "@/lib/contracts";
 import { liveAccessFor } from "@/lib/access/enforce";
 import { businessDay } from "@/lib/data/dates";
@@ -14,6 +13,7 @@ import { GENERATOR_PORTS } from "./generator";
 import { DEMO_LEAVE_REQUESTS } from "./generator-leave";
 import { ports, registerPorts, resetPorts } from "./index";
 import { PortUnavailable } from "./unavailable";
+import { approvedCallId } from "@/scripts/approved-call";
 
 const REP = "u_krit";
 
@@ -28,7 +28,7 @@ function callTool(userId: string, name: string, args: Record<string, unknown>): 
   if (!tool) throw new Error(`no tool ${name}`);
   const run = newRun(userId, null, { initiator: "system" });
   const turn = { turnId: run.id, threadId: null, preloadPacketId: null, question: `test ${name}`, queries: [] };
-  return runWithAccess(accessOf(userId), () => runWithTurn(turn, () => runWithRun(run, () => tool.execute(tool.inputSchema().parse(args), { toolCallId: randomUUID() }))));
+  return runWithAccess(accessOf(userId), () => runWithTurn(turn, () => runWithRun(run, () => tool.execute(tool.inputSchema().parse(args), { toolCallId: approvedCallId(userId, name) }))));
 }
 
 function linkOf(requestId: string) {

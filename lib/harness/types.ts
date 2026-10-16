@@ -28,13 +28,16 @@ export type CorrectInput = { input: unknown; observation: Observation; verdict: 
 /** How the model can fix a call the tool refused or the harness did not trust: one instruction with the values that would work, or null when the model cannot fix it. */
 export type Corrector = (check: CorrectInput) => string | null;
 
-/** Whether a write call names everything it needs (its people, its subject) and may touch what it names, so the person can be asked; a call that is not ready runs at once, does nothing and returns the fix or the refusal. The run makes the same check again, so a call that runs unasked can never act. */
-export type Readiness = (input: unknown) => boolean | Promise<boolean>;
+/** Why a write call cannot be asked about yet: the code the audit and the card read it by, and the fix the model reads. */
+export type Unready = { code: string; fix: string };
+
+/** Whether a write call names everything it needs (its people, its subject) and may touch what it names: null when the person can be asked, otherwise why not. The gateway checks it before any write acts, so a call that is not ready never runs its tool and returns this. */
+export type Readiness = (input: unknown) => Unready | null | Promise<Unready | null>;
 
 /** One tool as the harness governs it: its surface entry (connector, tier = risk, roles) plus how long a read may take, whether a write is complete enough to ask about, what must hold afterwards, how the model can fix a failed call, and which arguments are personal text the audit never keeps. */
 export type Capability = ToolSurfaceEntry & { timeoutMs: number; ready: Readiness | null; verify: Verifier | null; correct: Corrector | null; redact: readonly string[] };
 
-export type DenyCode = "TOOL_NOT_ALLOWED" | "POLICY_RULE" | "RUN_LIMIT";
+export type DenyCode = "TOOL_NOT_ALLOWED" | "POLICY_RULE" | "RUN_LIMIT" | "NOT_APPROVED";
 
 /** A refusal: its code, the reason the model is told, and the admin rule when one refused. */
 export type Denial = { decision: "deny"; code: Exclude<DenyCode, "POLICY_RULE">; reason: string } | { decision: "deny"; code: "POLICY_RULE"; reason: string; rule: RuleRef };

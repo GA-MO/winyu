@@ -1,25 +1,32 @@
 import { randomUUID } from "node:crypto";
-import type { AccessContext } from "@/lib/contracts";
+import type { AccessContext, RuleRef } from "@/lib/contracts";
 import { TH } from "@/lib/i18n/th";
 import { recordToolCall, type AuditedCall } from "@/lib/server/audit";
 import { currentAccess } from "@/lib/server/request-context";
 import { PortUnavailable, portDownOf } from "@/lib/server/ports/unavailable";
+import { spendYes } from "./approvals";
 import { observe, type Attempt } from "./observation";
 import { authorize, type CallContext } from "./policy";
 import { failureOf, recover } from "./recovery";
 import { currentRun, emit } from "./runtime";
-import type { Capability, Denial, DenyCode, Observation, Verdict } from "./types";
+import type { Capability, Denial, Observation, Unready, Verdict } from "./types";
 import type { Run } from "./runtime";
 
 const MS_PER_SECOND = 1000;
+const NOT_READY = "NOT_READY";
 
 /** What the engine passes along with a tool call; a call from server code passes nothing. */
 export type ToolCallOptions = { toolCallId?: string };
 
-export type RefusalCode = DenyCode | "VERIFICATION_FAILED" | "TIMEOUT";
+/** What a refused, withheld or not-ready call returns to its caller, in the shape every tool already uses for a refusal: a gateway code (a deny code, VERIFICATION_FAILED, TIMEOUT) or the code a write's own readiness check gave. */
+export type Refusal = { ok: false; code: string; error: string };
 
-/** What a refused or withheld call returns to its caller, in the shape every tool already uses for a refusal. */
-export type Refusal = { ok: false; code: RefusalCode; error: string };
+type Held = { code: string; reason: string; rule?: RuleRef };
+
+/** A write that is not ready to ask about, under the gateway's own code unless its check names a sharper one (PERMISSION_DENIED for a scope it may not touch). */
+export function notReady(fix: string, code: string = NOT_READY): Unready {
+  return { code, fix };
+}
 
 export type GatedTool<Input, Output = unknown> = (input: Input, options?: ToolCallOptions) => Promise<Output | Refusal>;
 
@@ -95,10 +102,13 @@ function spendCorrection(owner: Run | null, tool: string): void {
   if (owner) owner.corrections[tool] = (owner.corrections[tool] ?? 0) + 1;
 }
 
-function refused(call: AuditedCall, ref: Ref, denial: Denial): Refusal {
-  const rule = denial.code === "POLICY_RULE" ? denial.rule : undefined;
-  emit("gateway", { type: "tool.denied", payload: { ...ref, code: denial.code, reason: denial.reason, ...(rule ? { rule } : {}) } });
-  const refusal: Refusal = { ok: false, code: denial.code, error: denial.reason };
+function heldOf(denial: Denial): Held {
+  return denial.code === "POLICY_RULE" ? { code: denial.code, reason: denial.reason, rule: denial.rule } : { code: denial.code, reason: denial.reason };
+}
+
+function refused(call: AuditedCall, ref: Ref, { code, reason, rule }: Held): Refusal {
+  emit("gateway", { type: "tool.denied", payload: { ...ref, code, reason, ...(rule ? { rule } : {}) } });
+  const refusal: Refusal = { ok: false, code, error: reason };
   recordToolCall({ ...call, ...(rule ? { rule } : {}) }, observe(ref.toolCallId, ref.tool, { returned: refusal }));
   return refusal;
 }
@@ -107,13 +117,30 @@ function callContextOf(owner: Run | null, input: unknown): CallContext {
   return { input, initiator: owner?.initiator ?? "system", used: owner?.toolCalls ?? 0, limit: owner?.toolBudget ?? Number.POSITIVE_INFINITY };
 }
 
+async function unready(capability: Capability, input: unknown): Promise<Unready | null> {
+  if (!capability.ready) return null;
+  try {
+    return await capability.ready(input);
+  } catch (thrown) {
+    if (!(thrown instanceof PortUnavailable)) return notReady(TH.harness.notReady);
+    const down = portDownOf(thrown);
+    return notReady(down.error, down.code);
+  }
+}
+
 /** Whether the person is asked before this call: only when its risk needs a yes, the policy would let it through and the call names everything it needs, so nobody approves a call the gateway then refuses or the tool cannot carry out. */
 export async function asksApproval(capability: Capability, input: unknown): Promise<boolean> {
   if (authorize(currentAccess(), capability, callContextOf(currentRun(), input)).decision !== "require_approval") return false;
-  return capability.ready ? capability.ready(input) : true;
+  return (await unready(capability, input)) === null;
 }
 
-/** The one door every tool call goes through, whoever asks (the model, a pressed button, server code): policy, the tool under a timeout, what it showed, whether that holds, and what to do when it does not; one audit row per call. */
+async function heldBackOrSpendYes(capability: Capability, input: unknown, userId: string, toolCallId: string): Promise<Held | null> {
+  const missing = await unready(capability, input);
+  if (missing) return { code: missing.code, reason: missing.fix };
+  return spendYes(userId, toolCallId, capability.name) ? null : { code: "NOT_APPROVED", reason: TH.harness.notApproved };
+}
+
+/** The one door every tool call goes through, whoever asks (the model, a pressed button, server code): policy, the tool under a timeout, what it showed, whether that holds, and what to do when it does not; one audit row per call. Fails closed on approval: a call whose risk needs a yes runs its tool only when it is ready and the person's recorded yes to this very tool call id is there to spend (a pressed button reaches a write only through the model and that same card; server code and jobs hold no yes, so their writes are refused); a call that is not ready returns its fix and acts on nothing. */
 export function gated<Input, Output>(capability: Capability, run: (input: Input, call: CallRef) => Promise<Output>): GatedTool<Input, Output> {
   return async (input, options) => {
     const access = currentAccess();
@@ -123,7 +150,9 @@ export function gated<Input, Output>(capability: Capability, run: (input: Input,
     const call = { tool: capability.name, connector: capability.connector, userId: access.userId, args: input, redact: capability.redact, startedAt: Date.now(), toolCallId: ref.toolCallId, runId: owner?.id ?? null, initiator: context.initiator };
     const decision = authorize(access, capability, context);
     if (owner) owner.toolCalls += 1;
-    if (decision.decision === "deny") return refused(call, ref, decision);
+    if (decision.decision === "deny") return refused(call, ref, heldOf(decision));
+    const held = decision.decision === "require_approval" ? await heldBackOrSpendYes(capability, input, access.userId, ref.toolCallId) : null;
+    if (held) return refused(call, ref, held);
     emit("gateway", { type: "tool.authorized", payload: { ...ref, approval: decision.decision === "require_approval" ? "required" : "never" } });
     for (let attempt = 1; ; attempt += 1) {
       emit("gateway", { type: "tool.started", payload: { ...ref, attempt } });

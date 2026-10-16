@@ -1,4 +1,4 @@
-import { createTool } from "@mastra/core/tools";
+import { createTool, validateToolInput } from "@mastra/core/tools";
 import type { ToolsInput } from "@mastra/core/agent";
 import type { AccessContext } from "@/lib/contracts";
 import { approvalOf } from "@/lib/harness/approval";
@@ -23,9 +23,14 @@ function gatewayStepsOf(toolCallId: string): GatewayStep[] {
   });
 }
 
+async function asksAboutWhatRuns(winyuTool: WinyuTool, input: unknown): Promise<boolean> {
+  const validated = validateToolInput(winyuTool.inputSchema(), input, winyuTool.entry.name);
+  return validated.error ? false : asksApproval(winyuTool.capability, validated.data);
+}
+
 function mastraToolOf(winyuTool: WinyuTool, access: AccessContext) {
   const { capability, execute } = winyuTool;
-  const approval = approvalOf(capability.tier) === "required" ? { requireApproval: (input: unknown) => inAccess(access, () => asksApproval(capability, input)) } : {};
+  const approval = approvalOf(capability.tier) === "required" ? { requireApproval: (input: unknown) => inAccess(access, () => asksAboutWhatRuns(winyuTool, input)) } : {};
   const { modelView } = winyuTool;
   const modelOutput = modelView ? { toModelOutput: (output: unknown) => ({ type: "json" as const, value: modelView(output) }) } : {};
   return createTool({
@@ -43,7 +48,7 @@ function mastraToolOf(winyuTool: WinyuTool, access: AccessContext) {
   });
 }
 
-/** Neutral tools as a Mastra tool set: approval only for a call the policy would let through (reads never), the gateway as the only execute, the model reading a tool's model view where it has one, whose decisions (authorized or denied, observed, verified, recovered) are written onto the call's Mastra span. A call that runs outside the chat request's scope (Studio's background thread runs) is gated in the access the tools were resolved for. */
+/** Neutral tools as a Mastra tool set: approval only for a call the policy would let through (reads never), judged on the input as Mastra will hand it to execute (nulls normalised the same way), the gateway as the only execute, the model reading a tool's model view where it has one, whose decisions (authorized or denied, observed, verified, recovered) are written onto the call's Mastra span. A call that runs outside the chat request's scope (Studio's background thread runs) is gated in the access the tools were resolved for. */
 export function mastraTools(tools: readonly WinyuTool[], access: AccessContext): ToolsInput {
   return Object.fromEntries(tools.map((winyuTool) => [winyuTool.entry.name, mastraToolOf(winyuTool, access)]));
 }
