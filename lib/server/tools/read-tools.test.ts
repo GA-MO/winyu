@@ -133,6 +133,8 @@ describe("admin_audit", () => {
     const row = rows.find((candidate) => candidate.user_name === findUser(REP)?.nameTh && candidate.tool_label === TH.admin.tools.create_handoff.label);
     expect(row).toBeDefined();
     expect(row?.role_label).toBe(TH.role.sales_rep);
+    expect(row?.policy_label).toBe(TH.adminAudit.policyHeld);
+    expect(report.ok === true && "summary" in report && String(report.summary)).toContain("เป็นไปตามสิทธิ์ของบทบาท");
     const shown = JSON.stringify(report);
     expect(shown).not.toContain(SECRET_ASK);
     expect(shown).not.toContain(SECRET_QUESTION);

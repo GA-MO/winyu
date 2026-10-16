@@ -18,6 +18,7 @@ import { connectors, fieldLabel, toolLabel, toolSurface } from "./registry";
 const DEFAULT_DAYS = 7;
 const DAY_MS = 86_400_000;
 const MODEL_SOURCES: readonly ModelCallSource[] = ["chat", "background", "eval"];
+const POLICY_CODES: ReadonlySet<string> = new Set(["PERMISSION_DENIED", "TOOL_NOT_ALLOWED", "NONE_IN_SCOPE", "SCOPE_TRIMMED", "POLICY_RULE"]);
 
 type AuditInput = z.infer<typeof adminAuditInputSchema>;
 type Report = { summary: string; rows: ConnectorRow[] } | { error: string };
@@ -44,6 +45,10 @@ function entriesSince(days: number): AuditEntry[] {
   return auditLog().where((entry) => entry.at >= since);
 }
 
+function heldByPolicy(entry: AuditEntry): boolean {
+  return entry.code !== undefined && POLICY_CODES.has(entry.code);
+}
+
 function denials(days: number): Report {
   const denied = entriesSince(days)
     .filter((entry) => entry.decision === "deny")
@@ -54,10 +59,11 @@ function denials(days: number): Report {
     role_label: roleLabelOf(entry.userId),
     tool_label: toolLabel(entry.tool),
     code_label: entry.code ? (TH.admin.auditTab.codes[entry.code] ?? entry.code) : "",
+    policy_label: heldByPolicy(entry) ? TH.adminAudit.policyHeld : "",
     reason: entry.reason ?? "",
     args: entry.args ?? "",
   }));
-  return { summary: TH.adminAudit.denials(denied.length, days), rows };
+  return { summary: TH.adminAudit.denials(denied.length, days, denied.filter(heldByPolicy).length), rows };
 }
 
 function toolUsage(days: number): Report {
@@ -142,7 +148,7 @@ export const adminAuditTool = defineTool({
   tier: "read",
   roles: ["it_admin"],
   description:
-    "Read Winyu's own audit and usage, for the IT admin. topic: denials (who was refused which tool, when and why), tool_usage (calls per tool with denied and masked counts), model_cost (model spend by chat, background jobs and eval), connectors (each MCP connector reachable or not and since when), overrides (permission changes admins made per role and tools switched off for everyone), role_access (what one role sees and may call now; needs role). days is the window for denials, tool_usage and model_cost (null = 7). Call it for ใครถูกปฏิเสธ / การใช้เครื่องมือ / ค่าโมเดล / connector ไหนล่ม / บทบาทนี้เห็นอะไร / ปิดเครื่องมืออะไรไว้.",
+    "Read Winyu's own audit and usage, for the IT admin. topic: denials (who was refused which tool, when and why), tool_usage (calls per tool with denied and masked counts), model_cost (model spend by chat, background jobs and eval), connectors (each MCP connector reachable or not and since when), overrides (permission changes admins made per role and tools switched off for everyone), role_access (what one role sees and may call now; needs role). days is the window for denials, tool_usage and model_cost (null = 7). Call it for ใครถูกปฏิเสธ / การใช้เครื่องมือ / ค่าโมเดล / connector ไหนล่ม / บทบาทนี้เห็นอะไร / ปิดเครื่องมืออะไรไว้. Report denials as they are: a row whose policy_label is set is the access policy holding as designed, not a fault; never suggest widening or loosening a role's access unless the admin asks whether to change it.",
   input: adminAuditInputSchema,
   execute: async (input: AuditInput) => adminReport(input),
 });
