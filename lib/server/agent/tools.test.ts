@@ -4,6 +4,7 @@ import { accessFor } from "@/lib/access/policies";
 import { liveAccessFor, setHandoffEnabled, withAdminSwitches } from "@/lib/access/enforce";
 import { resetRoleOverrides } from "@/lib/access/role-overrides";
 import type { AccessContext, MetricQuery, MetricResult } from "@/lib/contracts";
+import { DATA_AS_OF, addDays, formatThaiDate, monthStart } from "@/lib/data/dates";
 import { findUser } from "@/lib/data/entities/users";
 import { auditLog } from "@/lib/server/audit";
 import { TH } from "@/lib/i18n/th";
@@ -13,8 +14,8 @@ import type { WinyuTool } from "@/lib/server/tools/define";
 import { toolSurface } from "@/lib/server/tools/registry";
 import { winyuTools, toolsForAccess } from "./tools";
 
-const TODAY = "2026-09-22";
-const MONTH_START = "2026-09-01";
+const TODAY = DATA_AS_OF;
+const MONTH_START = monthStart(DATA_AS_OF);
 
 function accessOf(userId: string): AccessContext {
   const user = findUser(userId);
@@ -220,6 +221,24 @@ describe("analytics plane tools", () => {
     expect(national.weeks[0].value).toBeGreaterThan(NATIONAL_WEEKLY_FLOOR_HL);
     const memory = await call<{ summary: string }>("u_anucha", "recall_memory", { query: "ไม่มีความจำไหนตรงกับคำนี้แน่นอน" });
     expect(memory.summary).toContain("ยังไม่มี");
+  });
+});
+
+describe("get_forecast for a month", () => {
+  const THURSDAY_OFFSET = 3;
+  const monthOf = (date: string) => addDays(date, THURSDAY_OFFSET).slice(0, 7);
+
+  test("returns only the weeks that belong to the month, with their dates in the summary; a month already past points to the actuals", async () => {
+    const input = { metric: "net_sales_volume", dims: {} };
+    const all = await call<{ weeks: { date: string }[] }>("u_thana", "get_forecast", { ...input, weeks: 26 });
+    const month = monthOf(all.weeks[3].date);
+    const result = await call<{ summary: string; weeks: { date: string }[] }>("u_thana", "get_forecast", { ...input, weeks: 8, month });
+    expect(result.weeks.map((week) => week.date)).toEqual(all.weeks.map((week) => week.date).filter((date) => monthOf(date) === month));
+    expect(result.summary).toContain(formatThaiDate(result.weeks[0].date));
+    expect(result.summary).toContain(formatThaiDate(addDays(result.weeks[result.weeks.length - 1].date, 6)));
+    const past = await call<{ summary: string; weeks: unknown[] }>("u_thana", "get_forecast", { ...input, weeks: 8, month: monthStart(DATA_AS_OF, 2).slice(0, 7) });
+    expect(past.weeks).toEqual([]);
+    expect(past.summary).toContain("query_metric");
   });
 });
 

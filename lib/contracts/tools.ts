@@ -29,6 +29,7 @@ export type ToolSurfaceEntry = { name: ToolName; connector: string; tier: ToolTi
 const MAX_FORECAST_WEEKS = 26;
 const MAX_ALERTS = 60;
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+const MONTH_KEY = /^\d{4}-\d{2}$/;
 
 export const ENTITY_KINDS = ["agent", "sku", "dc", "campaign", "user"] as const;
 export const JOBS = ["anomaly", "forecast", "compose", "watches", "digest"] as const;
@@ -43,7 +44,7 @@ export const getAlertsInputSchema = z.object({
   metric: metricIdSchema.nullable().optional(),
   dims: z.partialRecord(dimSchema, z.string()).nullable().optional(),
 });
-export const getForecastInputSchema = z.object({ ...metricScope, weeks: z.number().int().min(1).max(MAX_FORECAST_WEEKS) });
+export const getForecastInputSchema = z.object({ ...metricScope, weeks: z.number().int().min(1).max(MAX_FORECAST_WEEKS), month: z.string().regex(MONTH_KEY).nullable().optional() });
 export const explainGapInputSchema = z.object({
   metric: metricIdSchema,
   split: dimSchema,
@@ -66,7 +67,7 @@ export const trainingHistoryInputSchema = z.object({ employeeId: z.string().null
 export const storeVisitsInputSchema = z.object({ agentId: z.string().nullable() });
 export const getPersonInputSchema = z.object({ id: z.string().nullable(), name: z.string().nullable() });
 export const listCandidatesInputSchema = z.object({ position: z.string().nullable(), stage: z.enum(CANDIDATE_STAGES).nullable() });
-export const listCoursesInputSchema = z.object({ month: z.string().regex(/^\d{4}-\d{2}$/).nullable(), query: z.string().nullable() });
+export const listCoursesInputSchema = z.object({ month: z.string().regex(MONTH_KEY).nullable(), query: z.string().nullable() });
 export const getPolicyInputSchema = z.object({ topic: z.enum(["leave", "benefits"]) });
 export const requestLeaveInputSchema = z.object({
   kind: z.enum(LEAVE_KINDS),

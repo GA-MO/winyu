@@ -646,6 +646,11 @@ export const TH = {
     rangeAfterData: (day: string) => `ช่วงที่ขอยังไม่มีข้อมูล ข้อมูลล่าสุดถึง ${day}`,
     missing: "ระบุ period (เช่น this_month) หรือ range อย่างใดอย่างหนึ่ง",
   },
+  forecastTool: {
+    span: (from: string, to: string) => `${from} – ${to}`,
+    outsideMonth: (month: string, span: string) => `พยากรณ์ไม่มีสัปดาห์ของ ${month} (พยากรณ์ครอบคลุม ${span}) · ยอดของเดือนที่ผ่านไปแล้วดูด้วย query_metric`,
+    monthWeeks: (month: string) => ` เฉพาะสัปดาห์ของ ${month}`,
+  },
   dash: {
     pinnedZone: "การ์ดที่ปักไว้",
     suggestedZone: "การ์ดอื่นสำหรับบทบาทคุณ",

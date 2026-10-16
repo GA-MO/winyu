@@ -110,7 +110,7 @@ const BUILDERS: { [Name in NativeToolName]: Builder } = {
   list_metrics: () => read(TH.trail.listMetrics),
   describe_entity: (args) => read(TH.trail.findEntity(TH.trail.entity[String(args.kind)] ?? TH.trail.someData), quoted(args.query)),
   get_alerts: () => read(TH.trail.alerts),
-  get_forecast: (args) => read(TH.trail.forecast(metricOf(args.metric)), regionsOf(argsOf(args.dims).region), typeof args.weeks === "number" ? TH.trail.weeksAhead(args.weeks) : null),
+  get_forecast: (args) => read(TH.trail.forecast(metricOf(args.metric)), regionsOf(argsOf(args.dims).region), typeof args.month === "string" ? periodLabelTh(args.month) : typeof args.weeks === "number" ? TH.trail.weeksAhead(args.weeks) : null),
   explain_gap: (args) => read(TH.trail.gap(metricOf(args.metric)), splitLabel(args.split), regionFilter(args.filters), TH.trail.compare[String(args.compare)] ?? null, rangeLabel(args.range)),
   get_calendar: (args) => read(TH.trail.calendar, rangeLabel(args)),
   recall_memory: () => read(TH.trail.memory),
