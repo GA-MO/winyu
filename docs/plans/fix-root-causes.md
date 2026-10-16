@@ -44,7 +44,7 @@ Round 4 walked the run sheet in four windows and asked 26 likely demo-day questi
 - [x] **H3 cards** (AI-140, AI-141, AI-142, AI-144, AI-156, AI-157): one base per breakdown card; a verdict on the gap card, with the forecast first for month-end questions; R10 pairs only related results; verdict counts every row that meets it; scorecards and one-row cards follow the card rules; the landing tile labels the bucket it shows.
 - [x] **H4 prompt, scope, story metric** (AI-134, AI-136, AI-143, AI-145, AI-146, AI-147, AI-158, AI-161, AI-162, AI-163): a rep's "ผม" is the agents he owns; the morning story uses the sales measure chat uses; whole-company asks outside scope are refused, not narrowed; "why" answers say when no contributor dominates.
 - [x] **H5 IT answers** (AI-148, AI-149, AI-150, AI-151, AI-160): phone-width audit cards, `role_access` filtered by visibility, usage per person, console permission changes audited, Thai labels.
-- [x] then speed (AI-133, measured on a production build): chat reasoning effort medium (`4df953e`), demo turns 38.8 s worst over 35 turns; lookups still about 23 s, and low effort (8 s) waits on two answer fixes.
+- [x] then speed (AI-133, measured on a production build): chat reasoning effort medium (`d8236c3`), demo turns 38.8 s worst over 35 turns; lookups still about 23 s, and low effort (8 s) waits on two answer fixes.
 - [x] the run sheet rewritten against the screens (AI-135, walked again in round 5).
 
 ## Round 4 fixes (after round 3, 2026-10-17)
@@ -86,6 +86,6 @@ Each wave runs its work packages in parallel, one agent per package in its own w
 
 ### Wave 3
 
-- [x] **RC9 speed.** Measure baseline, low reasoning effort, and the standard provider tier on a production build, then set the winner: medium effort on the flex tier (AI-133, `4df953e`).
+- [x] **RC9 speed.** Measure baseline, low reasoning effort, and the standard provider tier on a production build, then set the winner: medium effort on the flex tier (AI-133, `d8236c3`).
 - [ ] **Send-the-card phases 3 and 4** ([`send-the-card.md`](send-the-card.md)).
 - [ ] **Final simulated-user round** on the four demo roles and the roles not yet tested, replaying every earlier failing turn.

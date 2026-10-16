@@ -1747,7 +1747,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 | ข้อ | ระดับ | สถานะ | ปัญหา |
 |---|---|---|---|
 | AI-132 (เดิม AI-96) | สูง | แก้แล้ว `bacdb0f` · รอยืนยันกับโมเดล | An approved chat send fails when the model read the card in the same step as send_card: the approval shows one card, but the resumed run resolves against the older screen and refuses with raw cardRef ids |
-| AI-133 (เดิม AI-112) | กลาง | แก้แล้วบางส่วน `4df953e` · วัดบน production build: เดโม median 22.8 s ช้าสุด 38.8 s (เดิม 27.7 / 155.9 s) ค้นหา 22.7 s | Turns over 40 s on the demo path, almost all of it in unbounded final-step reasoning |
+| AI-133 (เดิม AI-112) | กลาง | แก้แล้วบางส่วน `d8236c3` · วัดบน production build: เดโม median 22.8 s ช้าสุด 38.8 s (เดิม 27.7 / 155.9 s) ค้นหา 22.7 s | Turns over 40 s on the demo path, almost all of it in unbounded final-step reasoning |
 | AI-134 (เดิม AI-90) | กลาง | แก้แล้ว `85151f5` · รอยืนยันกับโมเดล | 'ผม/ของผม' for the rep resolves to Khon Kaen province (2 of his 4 agents), so chat and the home pin give different attainment |
 | AI-135 (เดิม AI-131) | กลาง | แก้แล้ว (เอกสาร) · รอเดินยืนยันรอบ 5 | The run sheet describes buttons and texts the product does not show |
 | AI-136 | กลาง | แก้แล้ว `9209e23` · รอยืนยันกับโมเดล | The run-sheet story card is in litres while every chat answer about the same Isan month is in baht (79.7% vs 77.3%, both 'ของเป้าทั้งเดือน') |
@@ -1798,7 +1798,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-133. Turns over 40 s on the demo path, almost all of it in unbounded final-step reasoning
 
-- **สถานะ:** แก้แล้วบางส่วน `4df953e` · เดิม AI-112 · วัดบน production build แล้ว: เทิร์นเดโมไม่เกิน 40 s ทุกครั้ง (35 เทิร์น ช้าสุด 38.8 s) แต่คำถามค้นหายังราว 23 s ไม่ใช่ 15 s
+- **สถานะ:** แก้แล้วบางส่วน `d8236c3` · เดิม AI-112 · วัดบน production build แล้ว: เทิร์นเดโมไม่เกิน 40 s ทุกครั้ง (35 เทิร์น ช้าสุด 38.8 s) แต่คำถามค้นหายังราว 23 s ไม่ใช่ 15 s
 - **ที่แก้:** แชทส่ง reasoning effort `medium` ให้ Gemini ผ่าน OpenRouter (`lib/server/models.ts` CHAT_REASONING_EFFORT, เปลี่ยนด้วย `OPENROUTER_CHAT_REASONING_EFFORT`; test ใน `lib/server/models.test.ts` ตรึงค่าที่ส่งไป OpenRouter) งานเบื้องหลัง (สืบตอนเช้า ความจำ digest) ยังใช้ค่าของโมเดลเอง เพราะไม่มีใครรอและยังไม่ได้วัดคุณภาพที่ effort ต่ำ
 - **ผลวัด (2026-10-17):** `bun run bench:speed` บน `next build` + `next start` port 3140, `WINYU_SCHEDULER=off`, ข้อมูล seed ใหม่ + investigations ของรอบ 4, 7 คำถามที่ช้า + 2 คำถามค้นหา × 3 รอบต่อ config สลับลำดับ config ทุกรอบ ค่าโมเดลรวม $1.69
 
