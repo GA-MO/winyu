@@ -35,7 +35,7 @@ export default async function MemoryPage() {
     }));
 
   return (
-    <div className="relative min-h-dvh overflow-hidden">
+    <div className="relative min-h-page overflow-hidden">
       <GlowBackdrop />
       <div className="relative mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-10 sm:px-8">
         <header className="flex flex-col gap-1">

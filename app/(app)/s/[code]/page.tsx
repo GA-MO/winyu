@@ -35,7 +35,7 @@ const STATE_TONE: Record<PathStep["state"], string> = {
 
 function Closed({ title, body }: { title: string; body: string }) {
   return (
-    <div className="relative min-h-dvh overflow-hidden">
+    <div className="relative min-h-page overflow-hidden">
       <GlowBackdrop />
       <div className={COLUMN}>
         <section className="flex flex-col items-start gap-3 rounded-2xl border border-border bg-card p-6 shadow-card">
@@ -117,7 +117,7 @@ export default async function MatterPage({ params }: PageProps) {
   const brief = briefOf(matter, viewer.id);
 
   return (
-    <div className="relative min-h-dvh overflow-hidden">
+    <div className="relative min-h-page overflow-hidden">
       <GlowBackdrop />
       <div className={COLUMN}>
         <header className="flex flex-col gap-3">

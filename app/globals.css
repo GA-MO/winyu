@@ -473,14 +473,24 @@ h3 {
 }
 
 .winyu-main {
+  --winyu-header-inset: 3.5rem;
   padding-left: 0;
   transition: padding-left 0.3s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @media (min-width: 768px) {
   .winyu-main {
+    --winyu-header-inset: 0px;
     padding-left: var(--winyu-rail-offset, var(--winyu-rail-collapsed));
   }
+}
+
+@utility min-h-page {
+  min-height: calc(100dvh - var(--winyu-header-inset, 0px));
+}
+
+@utility h-page {
+  height: calc(100dvh - var(--winyu-header-inset, 0px));
 }
 
 @media (prefers-reduced-motion: reduce) {

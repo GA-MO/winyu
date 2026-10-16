@@ -25,7 +25,7 @@ export default async function DashboardPage() {
   const history = layoutHistory(access);
   const restorable = history.find((entry) => entry.savedAt.slice(0, 10) < new Date().toISOString().slice(0, 10)) ?? null;
   return (
-    <div className="relative min-h-dvh overflow-hidden">
+    <div className="relative min-h-page overflow-hidden">
       <GlowBackdrop />
       <div className="relative mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 py-10 sm:px-8">
         <header className="flex flex-col gap-1">

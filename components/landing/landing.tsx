@@ -22,7 +22,7 @@ import { PILL } from "./pill";
 const QUICK_ACTIONS_ENDPOINT = "/api/quick-actions";
 const DASHBOARD_PATH = "/dashboard";
 const MAX_CHIPS = 4;
-const PAGE = "relative mx-auto flex min-h-dvh w-full max-w-3xl flex-col gap-6 px-4 pt-20 sm:justify-center sm:gap-8 sm:px-6 sm:pb-16";
+const PAGE = "relative mx-auto flex min-h-page w-full max-w-3xl flex-col gap-6 px-4 pt-6 md:pt-20 sm:justify-center sm:gap-8 sm:px-6 sm:pb-16";
 const ASK_DOCK = "sticky bottom-0 z-10 -mx-4 mt-auto flex flex-col gap-3 bg-gradient-to-t from-background from-70% to-transparent px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-6 sm:static sm:mx-0 sm:mt-0 sm:bg-none sm:p-0";
 const CHIP_ROW = "-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [mask-image:linear-gradient(to_right,black_80%,transparent)] sm:mx-0 sm:[mask-image:none] sm:flex-wrap sm:justify-center sm:overflow-visible sm:px-0 sm:pb-0";
 const KPI_COLUMNS: Record<number, string> = { 1: "sm:grid-cols-1", 2: "sm:grid-cols-2", 3: "sm:grid-cols-3", 4: "sm:grid-cols-4" };
@@ -104,7 +104,7 @@ export function Landing({
   );
 
   return (
-    <div className="relative min-h-dvh overflow-x-clip">
+    <div className="relative min-h-page overflow-x-clip">
       <GlowBackdrop />
 
       <div className={PAGE}>

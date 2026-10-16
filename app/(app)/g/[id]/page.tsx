@@ -28,7 +28,7 @@ const BUTTON = "inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm 
 
 function Closed({ title, body }: { title: string; body: string }) {
   return (
-    <div className="relative min-h-dvh overflow-hidden">
+    <div className="relative min-h-page overflow-hidden">
       <GlowBackdrop />
       <div className={COLUMN}>
         <section className={cn(PANEL, "items-start")}>
@@ -113,7 +113,7 @@ export default async function GrantRequestPage({ params, searchParams }: PagePro
   const refused = refusedCode((await searchParams).refused);
 
   return (
-    <div className="relative min-h-dvh overflow-hidden">
+    <div className="relative min-h-page overflow-hidden">
       <GlowBackdrop />
       <div className={COLUMN}>
         <header className="flex flex-col gap-2">
