@@ -11,8 +11,8 @@ export type TrailState = "running" | "done" | "failed";
 /** One tool call of an answer as the trail lists it. */
 export type TrailEntry = { id: string; action: ToolAction; state: TrailState };
 
-/** What the agent does while no tool runs: deciding how to answer before its first step, or reading what came back. */
-export type TrailPause = "planning" | "reading";
+/** What the agent does while no tool runs: deciding how to answer before its first step, reading what came back, or writing the answer until it ends. */
+export type TrailPause = "planning" | "reading" | "writing";
 
 /** The actions of one answer in the order they ran, and the pause the agent is in when nothing runs. */
 export type Trail = { entries: TrailEntry[]; pause: TrailPause | null };
@@ -32,10 +32,10 @@ function pauseOf(steps: readonly ReplyStep[], entries: readonly TrailEntry[], st
   if (!streaming || entries.some((entry) => entry.state === "running")) return null;
   const last = steps[steps.length - 1];
   if (!last) return "planning";
-  return last.kind === "tool" ? "reading" : null;
+  return last.kind === "tool" ? "reading" : "writing";
 }
 
-/** The trail of one answer from its reply steps: every tool call named from its arguments with where it stands (calls made together all run at once), and while the answer streams with no call running, whether the agent is planning or reading results; `labels` are the surface's Thai tool labels. */
+/** The trail of one answer from its reply steps: every tool call named from its arguments with where it stands (calls made together all run at once), and while the answer streams with no call running, whether the agent is planning, reading results or writing; `labels` are the surface's Thai tool labels. */
 export function trailOf(steps: readonly ReplyStep[], streaming: boolean, labels: Readonly<Record<string, string>>): Trail {
   const entries = steps.flatMap((step): TrailEntry[] => {
     if (step.kind !== "tool") return [];

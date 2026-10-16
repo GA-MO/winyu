@@ -3,12 +3,13 @@
 import { useEffect, useState } from "react";
 import { Check, ChevronDown, ListChecks, LoaderCircle, X } from "lucide-react";
 import { TH } from "@/lib/i18n/th";
-import { trailSummary, type Trail, type TrailEntry } from "./trail";
+import { trailSummary, type Trail, type TrailEntry, type TrailPause } from "./trail";
 
 const STILL_WORKING_AFTER_S = 6;
 const TICK_MS = 1000;
 const LIVE_JOIN = " และ ";
 const DETAIL_SEPARATOR = " · ";
+const PAUSE_TEXT: Record<TrailPause, string> = { planning: TH.trail.planning, reading: TH.trail.reading, writing: TH.trail.writing };
 
 function useSecondsOn(key: string): number {
   const [tick, setTick] = useState({ key, seconds: 0 });
@@ -50,15 +51,13 @@ function LiveEntry({ entry }: { entry: TrailEntry }) {
 function currentOf(trail: Trail): string | null {
   const running = trail.entries.filter((entry) => entry.state === "running").map(nowText);
   if (running.length > 0) return running.join(LIVE_JOIN);
-  if (trail.pause === "planning") return TH.trail.planning;
-  if (trail.pause === "reading") return TH.trail.reading;
-  return null;
+  return trail.pause === null ? null : PAUSE_TEXT[trail.pause];
 }
 
 function RunningTrail({ trail }: { trail: Trail }) {
   const current = currentOf(trail);
   const seconds = useSecondsOn(current ?? "");
-  const pause = trail.pause === null ? null : trail.pause === "planning" ? TH.trail.planning : TH.trail.reading;
+  const pause = trail.pause === null ? null : PAUSE_TEXT[trail.pause];
   if (trail.entries.length === 0 && !current) return null;
   return (
     <section aria-label={TH.trail.listLabel} className="flex flex-col gap-1.5 text-sm">

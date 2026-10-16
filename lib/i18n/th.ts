@@ -173,6 +173,7 @@ export const TH = {
     failed: (action: string) => `${action}ไม่สำเร็จ`,
     planning: "กำลังวางแผนคำตอบ…",
     reading: "กำลังอ่านผลและสรุป…",
+    writing: "กำลังเขียนคำตอบ…",
     stillWorking: (seconds: number) => `ยังทำอยู่ · ${seconds} วินาที`,
     sources: (count: number) => `ใช้ข้อมูล ${count} แหล่ง`,
     requests: (count: number) => `เตรียมคำขอ ${count} รายการ`,
