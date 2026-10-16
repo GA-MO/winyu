@@ -489,7 +489,16 @@ function withAskedRows(reading: Breakdown, input: BreakdownInput): Breakdown {
   if (!only) return { ...reading, rows };
   const label = labelOf(query, only);
   const hero: CardHero = { label, value: valueTextOf(query, only), unit: null, ...rowMove(query, only), detail: baseOf(query, only) ?? result.headline.compareLabel };
-  return { ...reading, rows, verdict: askedVerdictOf(query, result, only), lead: { row: label, hero } };
+  const verdict = askedVerdictOf(query, result, only);
+  const top = rows.find((row) => row.label === label);
+  if (!reading.overall || !top) return { ...reading, rows, verdict, lead: { row: label, hero } };
+  const overall: ReadRow = { ...top, sub: joinedText([top.sub, overallLine(reading.overall)]) };
+  return { ...reading, overall, rows: rows.filter((row) => row !== top), verdict, hero, lead: { row: label, hero } };
+}
+
+/** The overall row in one line under the named row that took its place on top ("เฉลี่ยทุกกลุ่มธุรกิจ 27.3% +0.8 จุด"). */
+function overallLine(row: ReadRow): string {
+  return [row.label, row.text, row.change].filter(Boolean).join(" ");
 }
 
 function scaleOf(form: StripForm, baseline: number, measures: number[]): { low: number; high: number } {

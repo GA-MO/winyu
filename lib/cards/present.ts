@@ -376,7 +376,11 @@ function scopeLabelsOf(query: MetricQuery, result: OkResult): readonly string[] 
 
 /** What a card's headline number is about in full, metric and scope ("มูลค่าขายเข้า รวมทุกภาค"), for places that show it without the card's title. */
 export function subjectOf(query: MetricQuery, result: MetricResult): string {
-  return result.ok ? heroLabelOf(query, result) : metricLabel(query.metric);
+  if (!result.ok) return metricLabel(query.metric);
+  const [row] = result.rows;
+  const groups = groupDimsOf(query);
+  const named = groups.length > 0 ? (result.rows.length === 1 && row ? labelAlong(groups, row) : null) : scopeLabelsOf(query, result).join(", ") || null;
+  return named && !timeDimOf(query) ? TH.dash.ownScope(metricLabel(query.metric), named) : heroLabelOf(query, result);
 }
 
 /** A breakdown's headline stands for every group in scope, not only the rows the card lists; the label says which, and a total over everything the person may see says so. */
@@ -543,15 +547,24 @@ function paceVerdict(label: string, paced: number): string {
   return paced >= PERCENT ? TH.read.onPace(label) : TH.read.behindPace(label, percentText(PERCENT - paced));
 }
 
-/** A month still running against its target has one base, the whole month's target: the hero is the share of it done so far, then what is left to it, the share of the target spread over the days so far (named "ตามเวลา"), and where the month ends at the recent pace; nothing left is ever set beside the forecast. */
+/** A month still running against its target has one base, the whole month's target: the hero is the share of it done so far, then what is left to it and where the month ends at the recent pace (style C, two tiles beside the hero); the verdict says whether the month is on pace and where it ends in words, so no figure on another base reaches the card (AI-141, AI-156); nothing left is ever set beside the forecast. */
 function monthToDateLead(name: string, paced: number, actual: string, projection: MonthEndProjection): Lead {
   const behind = paced < PERCENT;
   const left = projection.shortBy ? tileOf(TH.read.toTarget, projection.shortBy, TH.read.ofMonthTarget) : null;
+  const ends = percentIn(projection.attainment);
   return {
     hero: { label: name, value: projection.attainmentToDate, unit: TH.read.ofMonthTarget, delta: null, trend: behind ? "down" : "neutral", tone: behind ? "bad" : "neutral", detail: `${TH.read.actual} ${actual}` },
-    tiles: [left, tileOf(TH.read.pacedTarget, percentText(paced), null), tileOf(TH.read.monthEnd, projection.attainment, TH.read.ofMonthTarget)].filter((tile): tile is Tile => tile !== null),
-    verdict: paceVerdict(name, paced),
+    tiles: [left, tileOf(TH.read.monthEnd, projection.attainment, TH.read.ofMonthTarget)].filter((tile): tile is Tile => tile !== null),
+    verdict: TH.read.monthPace(name, behind, ends !== null && ends >= PERCENT),
   };
+}
+
+/** One level with nothing to compare it with: judged against its deciding line when the metric has one ("สต๊อกพอขายเกิน 10 วัน"), else no verdict, since the headline would only repeat the hero (AI-156). */
+function levelVerdictOf(query: MetricQuery, name: string, rows: MetricRow[]): string {
+  const line = LEVEL_LINES[query.metric];
+  const value = rows.length === 1 ? numericOf(rows[0], "value") : null;
+  if (!line || line.line.kind !== "cover" || value === null) return "";
+  return TH.read.cover.level(name, value >= line.at, line.line.days);
 }
 
 /** One number about one scope (R1, R2, a total): its share of target when there is one, else its change with the value it is compared with, plus where the month ends. */
@@ -580,7 +593,7 @@ function summaryLead(facts: Facts, name: string, subject: string): Lead {
   return {
     hero: { label: previous ? TH.read.current : subject, value: result.headline.value, unit: null, ...move, detail: result.headline.compareLabel },
     tiles: [previous, projection].filter((tile): tile is Tile => tile !== null),
-    verdict: summaryVerdict({ label: name, attainment: null, change, changeText: move.delta, flat: isFlat(move), versus: result.headline.compareLabel ?? "", value: result.headline.value }),
+    verdict: change === null || move.delta === null ? levelVerdictOf(query, name, rows) : summaryVerdict({ label: name, attainment: null, change, changeText: move.delta, flat: isFlat(move), versus: result.headline.compareLabel ?? "", value: result.headline.value }),
   };
 }
 
@@ -1339,5 +1352,5 @@ export function presentCard(input: PresentInput): CardParts {
   const lead = leadOf({ ...facts, rows: shape.rows }, fit, shape.rows, view) ?? { hero: heroOf(query, result), tiles: NO_TILES, verdict: "" };
   const verdict = lead.verdict || chartVerdict(shape, view, body, extras) || summaryLead(facts, shortMetric(query.metric), heroLabelOf(query, result)).verdict;
   const shown = body.kind === "share" && body.centerValue === lead.hero.value ? { ...body, centerValue: "" } : body;
-  return { ...base, style: lead.tiles.length > 0 ? "scorecard" : "chart", verdict: spaced(verdict), hero: lead.hero, tiles: lead.tiles, body: shown };
+  return { ...base, style: lead.tiles.length > 0 ? "scorecard" : "chart", verdict: verdict ? spaced(verdict) : null, hero: lead.hero, tiles: lead.tiles, body: shown };
 }

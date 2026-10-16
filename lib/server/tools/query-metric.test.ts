@@ -50,7 +50,7 @@ describe("query_metric for a running month against target", () => {
     if (projection.shortBy) expect(forecast).not.toContain(projection.shortBy);
   });
 
-  test("its card says the same as its summary: the hero is the share of the whole month's target, then what is left and the pace figure by name (AI-53)", async () => {
+  test("its card says the same as its summary: the hero is the share of the whole month's target, then what is left and where the month ends, every tile on that base (AI-53, AI-156)", async () => {
     const result = await askMonthToDate("u_krit", ["month"]);
     const projection = result.headline.projection;
     if (!projection) throw new Error("no projection");
@@ -58,7 +58,7 @@ describe("query_metric for a running month against target", () => {
     expect(card.hero?.value).toBe(projection.attainmentToDate);
     expect(card.hero?.unit).toBe(TH.read.ofMonthTarget);
     const tiles = new Map(card.tiles.map((tile) => [tile.label, tile.value]));
-    expect(tiles.get(TH.read.pacedTarget)).toBe(`${Math.round((100 + (result.headline.deltaPercent ?? 0)) * 10) / 10}%`);
+    expect(card.tiles.length).toBeLessThanOrEqual(2);
     if (projection.shortBy) expect(tiles.get(TH.read.toTarget)).toBe(projection.shortBy);
     expect(tiles.get(TH.read.monthEnd)).toBe(projection.attainment);
   });
@@ -182,11 +182,13 @@ describe("a breakdown whose question names one of its rows", () => {
     return (await runWithAccess(accessFor(user), () => runWithTurn(turn, () => tool.execute(tool.inputSchema().parse(query))))) as Extract<MetricResult, { ok: true }>;
   }
 
-  test("draws the named group with its value and change and says the verdict about it, not the company average (AI-107)", async () => {
+  test("leads with the named group on top with its value and change and says the verdict about it, not the company average (AI-107, AI-156)", async () => {
     const beer = await askAs("u_thana", "ฝ่ายการเงินบอกว่ามาร์จินกลุ่มเบียร์เดือนนี้ขึ้นไป 30% แล้ว ใช่ไหม", { metric: "gross_margin", dims: ["business_unit"], filters: {}, period: "this_month", grain: "month", compare: "none", sort: "value_desc", limit: 10 });
     const beerCard = presentCard({ title: "t", query: beer.query, result: beer, sortBy: "value_desc" });
     if (beerCard.body.kind !== "strip") throw new Error("not a strip");
-    const beerRow = beerCard.body.strip.rows.find((row) => row.label === "กลุ่มเบียร์");
+    const beerRow = beerCard.body.strip.overall;
+    expect(beerRow?.label).toBe("กลุ่มเบียร์");
+    expect(beerCard.hero?.label).toBe("กลุ่มเบียร์");
     expect(beerRow?.valued).toBe(true);
     expect(beerRow?.text).toBe(String(beer.rows.find((row) => row.business_unit === "กลุ่มเบียร์")?.value_label));
     expect(beerCard.verdict).toStartWith("กลุ่มเบียร์");
@@ -194,7 +196,8 @@ describe("a breakdown whose question names one of its rows", () => {
     const imports = await askAs("u_thana", "กำไรขั้นต้นกลุ่มนำเข้าเดือนนี้โตขึ้น 5% ตามที่ CFO รายงานใช่ไหม", { metric: "gross_margin", dims: ["month", "business_unit"], filters: {}, period: "this_month", grain: "month", compare: "prev_period", limit: 10 });
     const importCard = presentCard({ title: "t", query: imports.query, result: imports });
     if (importCard.body.kind !== "strip") throw new Error("not a strip");
-    const importRow = importCard.body.strip.rows.find((row) => row.label === "กลุ่มนำเข้า");
+    const importRow = importCard.body.strip.overall;
+    expect(importRow?.label).toBe("กลุ่มนำเข้า");
     expect(importRow?.valued).toBe(true);
     expect(importRow?.sub).toContain("จุด");
     expect(importCard.verdict).toStartWith("กลุ่มนำเข้า");
