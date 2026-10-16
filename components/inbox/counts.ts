@@ -7,7 +7,7 @@ import type { InboxCounts } from "./types";
 const COUNTS_ENDPOINT = "/api/notifications";
 const NONE: InboxCounts = { decisions: 0, sharedUnread: 0 };
 
-/** The bell's and the rail's counts, fetched again on every page and whenever `key` changes. */
+/** The bell's and the rail's counts, fetched again on every page, whenever the window regains focus, and whenever `key` changes. */
 export function useInboxCounts(key: unknown = null): { counts: InboxCounts; refresh: () => void } {
   const pathname = usePathname();
   const [counts, setCounts] = useState<InboxCounts>(NONE);
@@ -18,5 +18,9 @@ export function useInboxCounts(key: unknown = null): { counts: InboxCounts; refr
       .catch(() => undefined);
   }, []);
   useEffect(refresh, [refresh, pathname, key]);
+  useEffect(() => {
+    window.addEventListener("focus", refresh);
+    return () => window.removeEventListener("focus", refresh);
+  }, [refresh]);
   return { counts, refresh };
 }

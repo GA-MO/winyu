@@ -5,7 +5,7 @@ import { TH } from "@/lib/i18n/th";
 import { ROLE_IDS } from "@/lib/contracts";
 import { DEMO_PATH } from "@/components/login/demo-path";
 
-mock.module("next/navigation", () => ({ useRouter: () => ({ push: () => {}, refresh: () => {} }) }));
+mock.module("next/navigation", () => ({ useRouter: () => ({ push: () => {}, refresh: () => {} }), usePathname: () => "/login" }));
 
 const { default: LoginPage } = await import("./page");
 
