@@ -1,10 +1,10 @@
 import {
   type AccessContext, type Brand, type Dim, type FactRequest, type FactResult, type FactRow, type LabelShift, type MetricDef, type MetricId,
-  type MetricQuery, type MetricSort, type MetricHeadline, type MetricResult, type MetricRow, type Provenance, type Region, type UnderLine, type ValueFilter,
+  type DimValues, type MetricQuery, type MetricSort, type MetricHeadline, type MetricResult, type MetricRow, type Provenance, type Region, type ResolvedQuery, type UnderLine, type ValueFilter,
 } from "@/lib/contracts";
 import { DECIDING_LINES, MONTHLY_METRICS, RATIO_METRICS, TARGET_METRICS, TIME_DIMS, metricDef } from "@/lib/semantic/metrics";
 import { MIN_CELL_SIZE, SUPPRESSED_FIELDS, SUPPRESSED_VALUE, cellScopeOf, isSmallCell } from "@/lib/access/suppression";
-import type { Dictionary } from "@/lib/semantic/dictionary";
+import { namesOf, resolveFilters, type Dictionary } from "@/lib/semantic/dictionary";
 import { DAY_COUNT, ISO_OF_DAY, MONTH_COUNT, MONTH_FIRST_DAY, MONTH_OF_DAY, TODAY, daysInMonthIndex, formatThaiDate, toDayIndex } from "@/lib/data/dates";
 
 const DEFAULT_LIMIT = 60;
@@ -48,18 +48,11 @@ function scopeBrands(access: AccessContext): Brand[] | null {
 }
 
 function normalizeFilters(query: MetricQuery, def: MetricDef, dictionary: Dictionary): Filters | Failure {
-  const filters: Filters = new Map();
-  for (const [dim, values] of Object.entries(query.filters) as [Dim, string[] | undefined][]) {
-    if (!values || values.length === 0) continue;
-    if (!def.dims.includes(dim)) return fail("BAD_QUERY", `ตัวกรอง ${dim} ใช้กับเมตริก ${def.id} ไม่ได้`);
-    const resolved = new Set<string>();
-    for (const value of values) {
-      const id = dictionary.resolveDimValue(dim, value);
-      if (!id) return fail("BAD_QUERY", `ไม่รู้จักค่า "${value}" ของมิติ ${dim}`);
-      resolved.add(id);
-    }
-    filters.set(dim, resolved);
-  }
+  const foreign = (Object.entries(query.filters) as [Dim, string[] | undefined][]).find(([dim, values]) => values && values.length > 0 && !def.dims.includes(dim));
+  if (foreign) return fail("BAD_QUERY", `ตัวกรอง ${foreign[0]} ใช้กับเมตริก ${def.id} ไม่ได้`);
+  const resolved = resolveFilters(dictionary, query.filters);
+  if (!resolved.ok) return fail("BAD_QUERY", `ไม่รู้จักค่า "${resolved.value}" ของมิติ ${resolved.dim}`);
+  const filters: Filters = new Map((Object.entries(resolved.filters) as [Dim, string[]][]).map(([dim, ids]) => [dim, new Set(ids)]));
   for (const [dim, value] of Object.entries(defaultFiltersOf(def.id, dictionary)) as [Dim, string][]) {
     if (!filters.has(dim) && !query.dims.includes(dim)) filters.set(dim, new Set([value]));
   }
@@ -415,8 +408,8 @@ function dedupe(dims: Dim[]): Dim[] {
   return [...new Set(dims)];
 }
 
-function filtersToRecord(filters: Filters, scopeApplied: Partial<Record<Dim, string[]>>): Partial<Record<Dim, string[]>> {
-  const out: Partial<Record<Dim, string[]>> = {};
+function askedFilters(filters: Filters, scopeApplied: DimValues): DimValues {
+  const out: DimValues = {};
   for (const [dim, values] of filters) {
     if (scopeApplied[dim]) continue;
     out[dim] = [...values];
@@ -424,14 +417,16 @@ function filtersToRecord(filters: Filters, scopeApplied: Partial<Record<Dim, str
   return out;
 }
 
-/** Thai names of the filters the caller narrowed to, beyond their own scope and the dimensions the rows already name. */
-function filterLabelsOf(dictionary: Dictionary, filters: Filters, dims: Dim[], scopeApplied: Partial<Record<Dim, string[]>>): string[] {
-  const labels: string[] = [];
-  for (const [dim, values] of filters) {
-    if (scopeApplied[dim] || dims.includes(dim)) continue;
-    for (const value of values) labels.push(dictionary.displayLabel(dim, value));
-  }
-  return labels;
+function resolvedQueryOf(plan: MetricPlan): ResolvedQuery {
+  const filters = askedFilters(plan.filters, plan.scopeApplied);
+  return { ...plan.query, dims: plan.dims, filters, scopeApplied: plan.scopeApplied, labels: namesOf(plan.dictionary, { ...filters, ...plan.scopeApplied }) };
+}
+
+/** Thai names of every slice the answer is narrowed to, the role's scope included, except a dimension whose several values the rows already name one by one. */
+function filterLabelsOf(query: ResolvedQuery): string[] {
+  return (Object.entries(query.labels) as [Dim, string[]][])
+    .filter(([dim, labels]) => !(query.dims.includes(dim) && labels.length > 1))
+    .flatMap(([, labels]) => labels);
 }
 
 function factRequest(def: MetricDef, measure: FactRequest["measure"], dims: Dim[], filters: Filters, from: number, to: number, labelShift: LabelShift): FactRequest {
@@ -539,15 +534,14 @@ export function finishMetric(plan: MetricPlan, current: FactResult, comparison: 
   const sort = effectiveSort(query.sort ?? null, compareRows);
   const capped = sort && !masked && !firstTimeDim(dims) ? orderedRows(aggregated, sort, limit, compareRows) : sortRows(aggregated, dims, limit, masked, lowFirst);
   const rows = buildRows(dictionary, def, dims, capped, compareRows, masked, suppressed);
+  const resolved = resolvedQueryOf(plan);
   const provenance: Provenance = {
     metric: def.id,
     certified: def.certified,
     sourceSystem: def.sourceSystem,
     asOf: TODAY,
     rowCount: rows.length,
-    filtersApplied: filtersToRecord(filters, plan.scopeApplied),
-    filterLabels: [...filterLabelsOf(dictionary, filters, dims, plan.scopeApplied), ...(query.where ? [whereLabelOf(def, query.where)] : [])],
-    scopeApplied: plan.scopeApplied,
+    filterLabels: [...filterLabelsOf(resolved), ...(query.where ? [whereLabelOf(def, query.where)] : [])],
     masked: masked || suppressed.size > 0 ? [...SUPPRESSED_FIELDS] : [],
     trust: def.certified ? "verified" : "derived",
   };
@@ -562,6 +556,7 @@ export function finishMetric(plan: MetricPlan, current: FactResult, comparison: 
     summary: suppressed.size > 0 ? `${summary} · ปิด ${suppressed.size} แถวที่รวมข้อมูลน้อยกว่า ${MIN_CELL_SIZE} เอเย่นต์` : summary,
     headline,
     provenance,
+    query: resolved,
   };
 }
 

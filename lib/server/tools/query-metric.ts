@@ -3,6 +3,7 @@ import { metricAccess } from "@/lib/access/grants";
 import { metricQuerySchema } from "@/lib/contracts";
 import { loadDictionary } from "@/lib/server/master-data";
 import { runMetric } from "@/lib/server/metrics";
+import { askedQuery } from "@/lib/semantic/resolved";
 import { actionsForMetric, followUpsForMetric } from "@/lib/server/next-actions";
 import { currentAccess, recordQuery } from "@/lib/server/request-context";
 import { defineTool } from "./define";
@@ -20,12 +21,12 @@ export const queryMetricTool = defineTool({
   verify: metricAnswerHolds,
   correct: metricQueryFix,
   execute: async (input: z.infer<typeof metricQuerySchema>) => {
-    recordQuery(input);
     const { access, grant } = metricAccess(currentAccess(), input.metric, new Date());
     const result = await runMetric(input, access);
     if (!result.ok) return result;
-    const nextActions = actionsForMetric(access, input, result, await loadDictionary());
+    recordQuery(askedQuery(result.query));
+    const nextActions = actionsForMetric(access, result.query, result, await loadDictionary());
     const provenance = grant ? { ...result.provenance, grant } : result.provenance;
-    return { ...result, provenance, query: input, nextActions, followUps: followUpsForMetric(access, input, result, nextActions) };
+    return { ...result, provenance, nextActions, followUps: followUpsForMetric(access, result.query, result, nextActions) };
   },
 });

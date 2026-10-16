@@ -19,7 +19,8 @@ function result(deltaPercent: number | null, rows: MetricRow[] = []): MetricResu
     rows,
     summary: "",
     headline: { aggregate: "sum", value: "1,000 ลัง", periodLabel: "ก.ย.", rowCount: rows.length, deltaPercent, compareLabel: "เทียบช่วงก่อนหน้า", compareNote: null, top: [] },
-    provenance: { metric: "net_sales_volume", certified: true, sourceSystem: "SAP", asOf: "2026-09-22", rowCount: rows.length, filtersApplied: {}, scopeApplied: {}, masked: [], trust: "verified" },
+    provenance: { metric: "net_sales_volume", certified: true, sourceSystem: "SAP", asOf: "2026-09-22", rowCount: rows.length, masked: [], trust: "verified" },
+    query: { ...query(), scopeApplied: {}, labels: {} },
   } as MetricResult;
 }
 

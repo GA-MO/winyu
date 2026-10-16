@@ -121,10 +121,10 @@ async function salesRepSeesOneRegion(): Promise<string[]> {
   console.log(`\n(b) sales_rep ${SALES_REP}: ${SALES_BY_REGION}`);
   const reply = await run(threadOf(SALES_REP, SALES_BY_REGION));
   console.log(`  ${summary(reply)}`);
-  const result = resultOf(reply, "query_metric") as { ok?: boolean; rows?: Record<string, unknown>[]; provenance?: { scopeApplied?: { region?: string[] } } } | null;
+  const result = resultOf(reply, "query_metric") as { ok?: boolean; rows?: Record<string, unknown>[]; query?: { scopeApplied?: { region?: string[] } } } | null;
   const regions = [...new Set((result?.rows ?? []).map((row) => row.region))];
   check(result?.ok === true && (result.rows?.length ?? 0) > 0, `query_metric result (${result?.rows?.length ?? 0} rows)`);
-  check(JSON.stringify(result?.provenance?.scopeApplied?.region) === JSON.stringify(["northeast"]) && regions.length <= 1, `rows scoped to northeast only (scope ${JSON.stringify(result?.provenance?.scopeApplied?.region)}, regions ${JSON.stringify(regions)})`);
+  check(JSON.stringify(result?.query?.scopeApplied?.region) === JSON.stringify(["northeast"]) && regions.length <= 1, `rows scoped to northeast only (scope ${JSON.stringify(result?.query?.scopeApplied?.region)}, regions ${JSON.stringify(regions)})`);
   check(auditOf(reply.runId, "query_metric").length > 0, "audit row for this run");
   return [reply.runId];
 }

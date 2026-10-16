@@ -1,10 +1,10 @@
-import { METRIC_IDS, type AlertRow, type MetricId, type MetricQuery, type MetricResult, type NextAction } from "@/lib/contracts";
+import { METRIC_IDS, type AlertRow, type MetricId, type MetricResult, type NextAction } from "@/lib/contracts";
 import { metricLabel } from "@/lib/dashboard/metric-display";
 import { TH } from "@/lib/i18n/th";
 import { type CardParts, type ForecastAnswer, type PresentSource, type RefusalNotice, refusalNoticeOf } from "./present";
 
 /** A query_metric result as its card reads it: the rows and headline, the query that made them, and what the card offers next. */
-export type MetricAnswer = Extract<MetricResult, { ok: true }> & { query: MetricQuery; nextActions: NextAction[] };
+export type MetricAnswer = Extract<MetricResult, { ok: true }> & { nextActions: NextAction[] };
 
 type AlertAnswer = { ok?: boolean; rows?: AlertRow[]; nextActions?: NextAction[] };
 

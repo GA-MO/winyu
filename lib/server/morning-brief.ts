@@ -5,7 +5,7 @@ import { runMetric } from "@/lib/server/metrics";
 async function evidenceFor(story: Story, access: AccessContext): Promise<EvidenceAnswer | null> {
   if (!story.evidence) return null;
   const result = await runMetric(story.evidence.query, access);
-  return result.ok ? { ...result, query: story.evidence.query, nextActions: [] } : null;
+  return result.ok ? { ...result, nextActions: [] } : null;
 }
 
 /** The last investigation for this viewer with every story's evidence drawn from today's data under their own scope; null before Winyu has investigated for them. */

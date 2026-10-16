@@ -353,7 +353,8 @@ describe("every value masked", () => {
       rows: [{ department: "ขาย", value: "***", value_label: "***" }, { department: "ไอที", value: "***", value_label: "***" }],
       summary: "",
       headline: { aggregate: "average", value: "—", periodLabel: "ส.ค. 2569", rowCount: 2, deltaPercent: null, compareLabel: null, compareNote: null, top: [] },
-      provenance: { metric: "avg_salary", certified: true, sourceSystem: "HRIS", asOf: "2026-09-22", rowCount: 2, filtersApplied: {}, scopeApplied: {}, masked: ["value"], trust: "verified" },
+      provenance: { metric: "avg_salary", certified: true, sourceSystem: "HRIS", asOf: "2026-09-22", rowCount: 2, masked: ["value"], trust: "verified" },
+      query: { ...query, scopeApplied: {}, labels: {} },
     };
     const parts = presentCard({ title: "t", query, result });
     expect(parts.denied?.body).toContain("ฝ่าย");

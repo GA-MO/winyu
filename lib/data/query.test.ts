@@ -86,8 +86,8 @@ describe("access control", () => {
     const scoped = runMetric(query({ metric: "net_sales_volume", dims: ["brand"] }), RSM_NORTHEAST);
     const national = runMetric(query({ metric: "net_sales_volume", dims: ["brand"], filters: { region: ["northeast"] } }), CEO);
     expect(totalOf(scoped)).toBe(totalOf(national));
-    if (scoped.ok) expect(scoped.provenance.scopeApplied.region).toEqual(["northeast"]);
-    if (national.ok) expect(national.provenance.scopeApplied.region).toBeUndefined();
+    if (scoped.ok) expect(scoped.query.scopeApplied.region).toEqual(["northeast"]);
+    if (national.ok) expect(national.query.scopeApplied.region).toBeUndefined();
   });
 
   test("an out-of-scope region filter is denied", () => {

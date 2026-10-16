@@ -59,7 +59,7 @@ describe("query_metric", () => {
   test("an unfiltered RSM question is narrowed to its own region", async () => {
     const result = await call<MetricResult>("u_anucha", "query_metric", query({}));
     if (!result.ok) throw new Error(result.error);
-    expect(result.provenance.scopeApplied).toEqual({ region: ["northeast"] });
+    expect(result.query.scopeApplied).toEqual({ region: ["northeast"] });
     expect(result.rows.every((row) => row.region === "ภาคอีสาน")).toBe(true);
   });
 

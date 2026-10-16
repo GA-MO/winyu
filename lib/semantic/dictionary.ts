@@ -1,4 +1,4 @@
-import { REGIONS, type Brand, type Dim, type MasterData, type Region } from "@/lib/contracts";
+import { REGIONS, type Brand, type Dim, type DimValues, type MasterData, type Region } from "@/lib/contracts";
 import { USERS } from "@/lib/data/entities/users";
 
 export type EntityKind =
@@ -149,6 +149,31 @@ export type Dictionary = {
   /** The brand a dimension value belongs to, or null when the dimension carries no brand. */
   brandOf(dim: Dim, value: string): Brand | null;
 };
+
+/** Filter values as the model or a person wrote them ("ภาคอีสาน", "อุบลศรีสุข"), turned into canonical ids at the boundary; the first value no entity matches is named instead. */
+export function resolveFilters(dictionary: Dictionary, filters: Partial<Record<Dim, readonly string[]>>): { ok: true; filters: DimValues } | { ok: false; dim: Dim; value: string } {
+  const resolved: DimValues = {};
+  for (const [dim, values] of Object.entries(filters) as [Dim, readonly string[] | undefined][]) {
+    if (!values || values.length === 0) continue;
+    const ids: string[] = [];
+    for (const value of values) {
+      const id = dictionary.resolveDimValue(dim, value);
+      if (!id) return { ok: false, dim, value };
+      if (!ids.includes(id)) ids.push(id);
+    }
+    resolved[dim] = ids;
+  }
+  return { ok: true, filters: resolved };
+}
+
+/** The Thai name of every id in a set of filters, in the same order. */
+export function namesOf(dictionary: Dictionary, filters: DimValues): DimValues {
+  const labels: DimValues = {};
+  for (const [dim, ids] of Object.entries(filters) as [Dim, string[] | undefined][]) {
+    if (ids) labels[dim] = ids.map((id) => dictionary.displayLabel(dim, id));
+  }
+  return labels;
+}
 
 /** Builds the dictionary for one master-data snapshot. */
 export function createDictionary(master: MasterData): Dictionary {

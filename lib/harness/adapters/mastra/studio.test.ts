@@ -5,7 +5,7 @@ const STUDIO_ORIGIN = "http://localhost:3213";
 const EXECUTE = "http://studio.test/api/agents/winyu/tools/query_metric/execute";
 const SALES_BY_REGION = { metric: "net_sales_volume", dims: ["region"], filters: {}, range: { from: "2026-09-01", to: "2026-09-30" }, grain: "month", compare: "none", limit: 10 };
 
-type ToolAnswer = { ok?: boolean; provenance?: { scopeApplied?: { region?: string[] } }; error?: unknown };
+type ToolAnswer = { ok?: boolean; query?: { scopeApplied?: { region?: string[] } }; error?: unknown };
 
 async function execute(requestContext?: Record<string, string>): Promise<{ status: number; body: ToolAnswer }> {
   const app = await studioApi(STUDIO_ORIGIN);
@@ -18,7 +18,7 @@ describe("the Studio API", () => {
     const { status, body } = await execute({ userId: "u_krit" });
     expect(status).toBe(200);
     expect(body.ok).toBe(true);
-    expect(body.provenance?.scopeApplied?.region).toEqual(["northeast"]);
+    expect(body.query?.scopeApplied?.region).toEqual(["northeast"]);
   });
 
   test("grants nothing without a persona", async () => {

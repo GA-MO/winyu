@@ -23,7 +23,7 @@ export type StoryEvidence = { title: string; query: MetricQuery };
 export type Story = Omit<DraftStory, "evidence"> & { id: string; evidence: StoryEvidence | null };
 export type Investigation = { id: string; userId: string; at: string; model: string; stories: Story[]; checkedCount: number; costUsd: number };
 /** A story's evidence as the viewer's card draws it: the query's result, run again under the viewer's scope. */
-export type EvidenceAnswer = Extract<MetricResult, { ok: true }> & { query: MetricQuery; nextActions: NextAction[] };
+export type EvidenceAnswer = Extract<MetricResult, { ok: true }> & { nextActions: NextAction[] };
 export type StoryCard = { story: Story; evidence: EvidenceAnswer | null };
 /** What the stories drawer opens on: when Winyu investigated, how much it looked at, and each story with its card. */
 export type MorningBrief = { at: string; checkedCount: number; cards: StoryCard[] };

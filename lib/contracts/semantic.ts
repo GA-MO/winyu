@@ -15,15 +15,18 @@ export type ValueFilter = { op: "below" | "above"; value: number };
 export type MetricQuery = { metric: MetricId; dims: Dim[]; filters: Partial<Record<Dim, string[]>>;
   range: { from: string; to: string }; grain: Grain; compare: "none" | "prev_period" | "prev_year" | "target"; limit: number | null; sort?: MetricSort | null; where?: ValueFilter | null };
 export type MetricRow = Record<string, string | number | null>;
+export type DimValues = Partial<Record<Dim, string[]>>;
+/** A question as the engine read it: every filter value as its canonical id, the slice the caller's role added because the question left it open, and the Thai name of every value in both, in the same order. Code after the engine reads this, never the words the model wrote. */
+export type ResolvedQuery = MetricQuery & { scopeApplied: DimValues; labels: DimValues };
 export type Provenance = { metric: MetricId; certified: boolean; sourceSystem: string; asOf: string; rowCount: number;
-  filtersApplied: Partial<Record<Dim, string[]>>; filterLabels?: string[]; scopeApplied: Partial<Record<Dim, string[]>>; masked: string[]; trust: "verified" | "derived" | "estimated"; grant?: GrantRef };
+  filterLabels?: string[]; masked: string[]; trust: "verified" | "derived" | "estimated"; grant?: GrantRef };
 /** Where a month still running ends against its target at the recent pace, formatted for the card and the model. */
 export type MonthEndProjection = { recentDays: number; projected: string; monthTarget: string; attainment: string };
 /** How many groups of a breakdown sit under the metric's deciding line, counted over every group in scope before the row cap. */
 export type UnderLine = { line: number; count: number; of: number };
 export type MetricHeadline = { aggregate: "sum" | "average"; value: string; periodLabel: string; rowCount: number;
   deltaPercent: number | null; compareLabel: string | null; compareNote: string | null; top: { label: string; value: string }[]; projection?: MonthEndProjection | null; underLine?: UnderLine | null };
-export type MetricResult = { ok: true; rows: MetricRow[]; summary: string; headline: MetricHeadline; provenance: Provenance } | { ok: false; error: string; code: "PERMISSION_DENIED" | "UNKNOWN_METRIC" | "BAD_QUERY" | "CONNECTOR_UNAVAILABLE" };
+export type MetricResult = { ok: true; rows: MetricRow[]; summary: string; headline: MetricHeadline; provenance: Provenance; query: ResolvedQuery } | { ok: false; error: string; code: "PERMISSION_DENIED" | "UNKNOWN_METRIC" | "BAD_QUERY" | "CONNECTOR_UNAVAILABLE" };
 
 export const METRIC_IDS = ["net_sales_volume", "net_sales_value", "sell_out_volume", "target_attainment",
   "stock_on_hand", "days_of_cover", "production_output", "capacity_utilization", "forecast_mape",

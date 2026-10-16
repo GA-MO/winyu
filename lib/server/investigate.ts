@@ -11,6 +11,7 @@ import { TODAY } from "@/lib/data/dates";
 import { USERS, findUser } from "@/lib/data/entities/users";
 import { TH } from "@/lib/i18n/th";
 import { runMetric } from "@/lib/server/metrics";
+import { askedQuery } from "@/lib/semantic/resolved";
 import { aiSdkTools } from "@/lib/server/agent/ai-sdk-tools";
 import { winyuTools, toolsForAccess } from "@/lib/server/agent/tools";
 import { tracedRun } from "@/lib/harness/runtime";
@@ -181,7 +182,7 @@ export function evidenceQueryOf(query: MetricQuery): MetricQuery {
 
 async function answerOf(query: MetricQuery, access: AccessContext): Promise<MetricAnswer | null> {
   const result = await runMetric(query, access);
-  return result.ok ? { ...result, query } : null;
+  return result.ok ? result : null;
 }
 
 async function queryAnswerOf(call: ToolCall, access: AccessContext): Promise<MetricAnswer | null> {
@@ -257,7 +258,7 @@ function isBlocked(entry: ReviewedDraft): boolean {
 function storyOf(entry: ReviewedDraft, calls: readonly ToolCall[], evidenceIndex: EvidenceIndex, id: string): Story {
   const called = new Set(calls.map((call) => call.tool));
   const answer = entry.draft.evidence ? evidenceIndex.get(entry.draft.evidence.call) : undefined;
-  const evidence = answer && entry.draft.evidence ? { title: entry.draft.evidence.title, query: answer.query } : null;
+  const evidence = answer && entry.draft.evidence ? { title: entry.draft.evidence.title, query: askedQuery(answer.query) } : null;
   const ruledOut = entry.draft.ruledOut.filter((item) => called.has(item.source) && !REMEMBERED.has(item.source));
   return { ...entry.draft, id, evidence, ruledOut };
 }
