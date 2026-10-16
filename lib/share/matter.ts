@@ -1,5 +1,7 @@
 import { isPressed } from "@/components/chat/pressed";
+import { daysBetween } from "@/lib/data/dates";
 import type { DeliveryChannel, FallbackReason, SharedCard } from "./card";
+import { writtenDeadline } from "./deadline";
 
 export const MATTER_INTENTS = ["act", "fyi"] as const;
 export const MATTER_URGENCIES = ["now", "today", "this_week"] as const;
@@ -26,11 +28,23 @@ export function saysUrgent(text: string): boolean {
   return URGENT_WORDS.test(text);
 }
 
-/** The urgency a matter sent from chat goes out with: "now" only when the person's own words say urgent, what a pressed button carried when they pressed one, a calmer one the model passed, and the intent's default otherwise; the model never makes a matter urgent by itself. */
-export function matterUrgency(asked: MatterUrgency | undefined, question: string | null, intent: MatterIntent): MatterUrgency {
-  if (question && isPressed(question)) return asked ?? defaultUrgency(intent);
-  if (question && saysUrgent(question)) return "now";
-  return asked && asked !== "now" ? asked : defaultUrgency(intent);
+/** When a matter is due: how urgent it is, and the day it is due by when the sender named one (Bangkok, YYYY-MM-DD). */
+export type MatterDeadline = { urgency: MatterUrgency; due: string | null };
+
+function deadlineOfDay(today: string, due: string, urgent: boolean): MatterDeadline {
+  if (urgent) return { urgency: "now", due };
+  return { urgency: daysBetween(today, due) <= 0 ? "today" : "this_week", due };
+}
+
+/** When a matter sent from chat is due, from the person's own words counted from `today`: "now" only when they say urgent, the day they wrote (พรุ่งนี้, ภายในศุกร์นี้, ภายในวันที่ 20) with today's urgency only when that day is today, what a pressed button carried when they pressed one, a calmer urgency the model passed, and the intent's default otherwise; the model never makes a matter urgent by itself. */
+export function matterDeadline(asked: MatterUrgency | undefined, question: string | null, intent: MatterIntent, today: string): MatterDeadline {
+  if (question && isPressed(question)) return { urgency: asked ?? defaultUrgency(intent), due: null };
+  const urgent = question !== null && saysUrgent(question);
+  const written = question ? writtenDeadline(question, today) : null;
+  if (written?.kind === "day") return deadlineOfDay(today, written.day, urgent);
+  if (urgent) return { urgency: "now", due: null };
+  if (written?.kind === "this_week") return { urgency: "this_week", due: null };
+  return { urgency: asked && asked !== "now" ? asked : defaultUrgency(intent), due: null };
 }
 export type MatterStatus = "open" | "done" | "dropped";
 
@@ -65,6 +79,7 @@ export type Matter = {
   ask: string;
   intent: MatterIntent;
   urgency: MatterUrgency;
+  due?: string | null;
   goal: MatterGoal | null;
   alertIds: string[];
   path: Hop[];
@@ -96,6 +111,7 @@ export function matterOf(stored: StoredMatter): Matter {
     ask: stored.ask ?? note ?? "",
     intent: stored.intent ?? "fyi",
     urgency: stored.urgency ?? "this_week",
+    due: stored.due ?? null,
     goal: stored.goal ?? null,
     alertIds: stored.alertIds ?? [],
     path: stored.path ?? pathOf(stored),

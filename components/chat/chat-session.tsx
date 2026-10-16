@@ -9,7 +9,7 @@ import { CardActionsProvider } from "@/components/cards/card-actions";
 import { TOOL_CARDS } from "@/components/cards/registry";
 import { Composer } from "@/components/composer/composer";
 import { GlowBackdrop } from "@/components/ui/glow-backdrop";
-import { cardsToSendEach } from "./card-to-share";
+import { screenCardsEach } from "./card-to-share";
 import { ExchangeView, type ExchangeLive } from "./exchange-view";
 import { useFollowLatest } from "./follow-latest";
 import { answeredMetrics, chipRow, latestFollowUps } from "./follow-ups";
@@ -112,7 +112,7 @@ export function ChatSession({ threadId, initialPrompt, initialMessages, initialA
   };
 
   const requestedCourses = useMemo(() => requestedCoursesOf(exchanges), [exchanges]);
-  const cardsToSend = useMemo(() => cardsToSendEach(exchanges, CARD_TOOLS), [exchanges]);
+  const screens = useMemo(() => screenCardsEach(exchanges, CARD_TOOLS), [exchanges]);
 
   const live = (index: number): ExchangeLive => {
     const isLast = index === exchanges.length - 1;
@@ -126,7 +126,7 @@ export function ChatSession({ threadId, initialPrompt, initialMessages, initialA
       stopped: isLast && session.stoppedExchangeId === exchanges[index].id,
       error: isLast ? session.error : null,
       requestedCourses,
-      cardToSend: cardsToSend[index] ?? null,
+      onScreen: screens[index] ?? null,
       toolLabels,
       durationMs: session.durations[exchanges[index].id] ?? null,
     };

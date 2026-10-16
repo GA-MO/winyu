@@ -7,7 +7,7 @@ import { ShareChrome } from "@/components/share/share-sheet";
 import { describeToolCall } from "@/lib/cards/describe-call";
 import { TOOL_CARDS, type ToolCard } from "@/components/cards/registry";
 import { maskPersonalData } from "@/lib/harness/guard";
-import { sharedComposedCard, sharedToolCard, type ExchangeRead, type ShareTarget } from "@/lib/share/card";
+import { sharedComposedCard, sharedToolCard, type ExchangeRead, type ScreenCards, type ShareTarget } from "@/lib/share/card";
 import { TH } from "@/lib/i18n/th";
 import { ActionTrail } from "./action-trail";
 import { ComposedCardView } from "./composed-card";
@@ -21,7 +21,7 @@ import type { PendingApproval } from "./use-chat-session";
 
 const CARDS: Record<string, ToolCard> = TOOL_CARDS;
 const CARD_TOOLS: ReadonlySet<string> = new Set(Object.keys(CARDS));
-/** What one exchange needs from the live chat: whether it is the newest, whether a reply streams, the approvals asked and answered, how it ended, the course seats the conversation has requested since, the card "ส่งการ์ดนี้" asked here would send (the one this exchange drew, else the newest before it), the Thai tool labels its trail names connector calls by, and how long its runs took when this tab saw them. */
+/** What one exchange needs from the live chat: whether it is the newest, whether a reply streams, the approvals asked and answered, how it ended, the course seats the conversation has requested since, the cards on screen when a send was asked here (the ones a send_card call names), the Thai tool labels its trail names connector calls by, and how long its runs took when this tab saw them. */
 export type ExchangeLive = {
   isLast: boolean;
   running: boolean;
@@ -32,7 +32,7 @@ export type ExchangeLive = {
   stopped: boolean;
   error: string | null;
   requestedCourses: ReadonlySet<string>;
-  cardToSend: ShareTarget | null;
+  onScreen: ScreenCards | null;
   toolLabels: Readonly<Record<string, string>>;
   durationMs: number | null;
 };
@@ -139,7 +139,7 @@ function ToolStepView({ step, steps, live, plan, streaming, sharing, asked }: { 
         approved: view.approved,
         approve: () => live.decide(step.toolCallId, true),
         reject: () => live.decide(step.toolCallId, false),
-        cardToSend: live.cardToSend,
+        onScreen: live.onScreen,
         question: asked,
         labelTh: live.toolLabels[view.tool],
       })}

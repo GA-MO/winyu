@@ -1,6 +1,6 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 import type { AccessContext, Dim, MetricQuery } from "@/lib/contracts";
-import type { ShareTarget } from "@/lib/share/card";
+import type { CardOnScreen, ScreenCards } from "@/lib/share/card";
 
 const NO_ACCESS = "currentAccess() called outside runWithAccess()";
 
@@ -28,8 +28,22 @@ export type SpokenTurn = { role: string; text: string; metrics?: string[] };
 /** The person's answer to one approval card: the tool it was for, and whether they said yes. */
 export type AnsweredApproval = { tool: string; approved: boolean };
 
-/** The chat turn being served; `transcript` reads the thread's saved conversation and `cardToSend` the card "ส่งการ์ดนี้" means on it, both absent outside a chat run; `subjects` are the entities the turn resolved by name; `answered` holds the approval answers this run carries out or declines. */
-export type TurnContext = { turnId: string | null; threadId: string | null; question: string | null; queries: MetricQuery[]; subjects?: TurnSubject[]; transcript?: () => Promise<SpokenTurn[]>; cardToSend?: () => Promise<ShareTarget | null>; answered?: readonly AnsweredApproval[] };
+/** A tool call the turn finished: its id, the tool, what it was asked and what came back. */
+export type FinishedCall = { toolCallId: string; tool: string; args: unknown; output: unknown };
+
+/** The chat turn being served; `transcript` reads the thread's saved conversation and `screenCards` the cards on screen when this question was asked (this run's finished calls included), both absent outside a chat run; `onScreen` lists the cards earlier questions left, for the model to name one; `subjects` are the entities the turn resolved by name; `finished` the calls this run finished so far; `answered` holds the approval answers this run carries out or declines. */
+export type TurnContext = {
+  turnId: string | null;
+  threadId: string | null;
+  question: string | null;
+  queries: MetricQuery[];
+  subjects?: TurnSubject[];
+  transcript?: () => Promise<SpokenTurn[]>;
+  screenCards?: () => Promise<ScreenCards>;
+  onScreen?: readonly CardOnScreen[];
+  finished?: FinishedCall[];
+  answered?: readonly AnsweredApproval[];
+};
 
 const EMPTY_TURN: TurnContext = { turnId: null, threadId: null, question: null, queries: [] };
 
@@ -51,6 +65,12 @@ export type TurnSubject = { dim: Dim; id: string };
 export function recordSubject(subject: TurnSubject): void {
   const turn = turns.getStore();
   if (turn) turn.subjects = [...(turn.subjects ?? []), subject];
+}
+
+/** Remembers a call this run finished, so a later call of the same run (a send) sees the card it drew before memory holds it. */
+export function recordFinished(call: FinishedCall): void {
+  const turn = turns.getStore();
+  if (turn) turn.finished = [...(turn.finished ?? []), call];
 }
 
 /** The records the turn resolved so far, in order. */

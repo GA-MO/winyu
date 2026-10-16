@@ -12,9 +12,11 @@ import { sharedWith } from "@/lib/cards/describe-call";
 import { formatDateTh } from "@/lib/i18n/format";
 import { metricLabel } from "@/lib/dashboard/metric-display";
 import { TH } from "@/lib/i18n/th";
-import { shareTitle, type SendPreview, type ShareContact, type SharedCard, type ShareTarget } from "@/lib/share/card";
+import { cardNamed } from "@/components/chat/card-to-share";
+import { businessToday } from "@/lib/data/dates";
+import { shareTitle, type ScreenCards, type SendPreview, type ShareContact, type SharedCard } from "@/lib/share/card";
 import { contradictionOf } from "@/lib/share/figures";
-import { matterUrgency, MATTER_INTENTS, MATTER_URGENCIES, sendIntent, type MatterIntent, type MatterUrgency } from "@/lib/share/matter";
+import { matterDeadline, MATTER_INTENTS, MATTER_URGENCIES, sendIntent, type MatterIntent, type MatterUrgency } from "@/lib/share/matter";
 import { matchRecipients } from "@/lib/share/recipients";
 
 const COURSES_ENDPOINT = "/api/courses";
@@ -33,14 +35,14 @@ const CONFIRM =
 const CANCEL =
   "inline-flex items-center rounded-full border border-border bg-card px-4 py-2.5 text-sm font-medium text-muted-foreground transition hover:border-foreground/25 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
-/** A write tool call waiting for the user: `approved` is null until they decide; `cardToSend` is the card a send_card call would send when it carries none (null when the conversation has none yet, absent where nobody knows). */
+/** A write tool call waiting for the user: `approved` is null until they decide; `onScreen` holds the cards on screen when it was asked, the ones a send_card call names (null when the conversation has none yet, absent where nobody knows). */
 export type ApprovalRequest = {
   tool: string;
   input: unknown;
   approved: boolean | null;
   approve: () => void;
   reject: () => void;
-  cardToSend?: ShareTarget | null;
+  onScreen?: ScreenCards | null;
   question?: string | null;
   labelTh?: string;
 };
@@ -55,6 +57,7 @@ type Decision = {
   chips: string[];
   chipsLabel?: string;
   urgency: MatterUrgency | null;
+  due?: string | null;
   effect: string;
   confirm: string;
   cancel: string;
@@ -73,9 +76,11 @@ type LeaveInput = { kind?: string; from?: string; to?: string; reason?: string }
 type EnrollInput = { courseId?: string };
 type RememberInput = { type?: string; value?: string; until?: string | null };
 type ForgetInput = { about?: string };
-type SendInput = { to?: unknown; ask?: unknown; intent?: unknown; urgency?: unknown; card?: { reads?: unknown; alertIds?: unknown } };
-/** The send sheet as the approval shows it: the card, who gets it (and whether that is the card's owner), what it asks, how soon, and what the server found. */
-type SendPlan = { title: string | null; recipients: ShareContact[]; owner: boolean; ask: string; intent: MatterIntent; urgency: MatterUrgency; preview: SendPreview };
+type SendInput = { cardRef?: unknown; to?: unknown; ask?: unknown; intent?: unknown; urgency?: unknown; card?: { reads?: unknown; alertIds?: unknown } };
+/** The card a send would carry as the sheet shows it (its title and headline figure), or why there is none to show: no card on screen, or several and the call named none. */
+type CardToSend = { card: SharedCard; title: string; hero: string | null } | { card: null; problem: "none" | "unclear" };
+/** The send sheet as the approval shows it: the card, who gets it (and whether that is the card's owner), what it asks, how soon and by when, and what the server found. */
+type SendPlan = { sending: CardToSend; recipients: ShareContact[]; owner: boolean; ask: string; intent: MatterIntent; urgency: MatterUrgency; due: string | null; preview: SendPreview };
 type CourseSummary = { id: string; title: string; starts: string; days: number };
 
 const PERMISSION_VALUE_LABEL: Record<string, string> = {
@@ -290,6 +295,16 @@ function typedNames(input: SendInput): string[] {
   return Array.isArray(input.to) ? input.to.filter((name): name is string => typeof name === "string") : [];
 }
 
+/** The card this send_card call carries, by the same rule the server applies: a pressed button's card, else the card on screen its `cardRef` names, else the one card there is. */
+function cardToSend(input: SendInput, onScreen: ScreenCards | null | undefined): CardToSend {
+  const pressed = readsOf(input);
+  if (pressed) return { card: pressed, title: shareTitle(pressed), hero: null };
+  if (!onScreen) return { card: null, problem: "none" };
+  const choice = cardNamed(onScreen, typeof input.cardRef === "string" ? input.cardRef : undefined);
+  if (choice.kind === "card") return { card: choice.card.target.card, title: choice.card.title, hero: choice.card.hero };
+  return { card: null, problem: choice.kind === "none" ? "none" : "unclear" };
+}
+
 function readsOf(input: SendInput): SharedCard | null {
   const reads = input.card?.reads;
   if (!Array.isArray(reads) || reads.length === 0) return null;
@@ -313,19 +328,37 @@ function recipientsOf(input: SendInput, contacts: ShareContact[] | null, preview
   return owner ? { people: [owner], owner: true } : { people: [], owner: false };
 }
 
-/** The send sheet filled in the way send_card will send it: the same intent, urgency, draft ask and recipient rules the server applies. */
-function sendPlan(input: SendInput, card: SharedCard | null, contacts: ShareContact[] | null, preview: SendPreview, question: string | null): SendPlan {
-  const title = card ? shareTitle(card) : null;
+/** The send sheet filled in the way send_card will send it: the same card, intent, urgency, deadline, draft ask and recipient rules the server applies. */
+function sendPlan(input: SendInput, sending: CardToSend, contacts: ShareContact[] | null, preview: SendPreview, question: string | null): SendPlan {
   const { people, owner } = recipientsOf(input, contacts, preview);
   const intent = sendIntent(oneOf(MATTER_INTENTS, input.intent), Math.max(people.length, 1));
   const typed = typeof input.ask === "string" ? input.ask.trim() : "";
-  const ask = typed || (intent === "act" && title ? TH.share.askDraft(title) : "");
-  return { title, recipients: people, owner, ask, intent, urgency: matterUrgency(oneOf(MATTER_URGENCIES, input.urgency), question, intent), preview };
+  const ask = typed || (intent === "act" && sending.card ? TH.share.askDraft(sending.title) : "");
+  const { urgency, due } = matterDeadline(oneOf(MATTER_URGENCIES, input.urgency), question, intent, businessToday());
+  return { sending, recipients: people, owner, ask, intent, urgency, due, preview };
+}
+
+function CardPreview({ sending }: { sending: CardToSend }) {
+  if (!sending.card) return null;
+  return (
+    <div className="min-w-0 rounded-xl border border-border px-3.5 py-3" data-send-card>
+      <p className="text-[11px] text-muted-foreground">{TH.approve.card}</p>
+      <p className="mt-0.5 text-sm font-medium wrap-anywhere" data-send-card-title>
+        {sending.title}
+      </p>
+      {sending.hero ? (
+        <p className="mt-1 text-xl font-semibold tracking-tight tabular-nums" data-send-card-hero>
+          {sending.hero}
+        </p>
+      ) : null}
+    </div>
+  );
 }
 
 function SendSheet({ plan, scopes }: { plan: SendPlan; scopes: readonly RecipientScope[] }) {
   return (
     <div className="flex min-w-0 flex-col gap-3" data-send-sheet>
+      <CardPreview sending={plan.sending} />
       {plan.recipients.length > 0 ? (
         <div className="min-w-0">
           <p className="text-[11px] text-muted-foreground">{plan.owner ? TH.share.suggested : TH.approve.sendRecipients}</p>
@@ -355,7 +388,7 @@ function SendSheet({ plan, scopes }: { plan: SendPlan; scopes: readonly Recipien
 }
 
 function blockedOf(plan: SendPlan, contactsLoaded: boolean): string | undefined {
-  if (plan.title === null) return TH.approve.sendNoCard;
+  if (!plan.sending.card) return plan.sending.problem === "unclear" ? TH.approve.sendUnclearCard : TH.approve.sendNoCard;
   if (contactsLoaded && plan.recipients.length === 0) return TH.approve.sendNoRecipient;
   return undefined;
 }
@@ -367,10 +400,11 @@ function sendDecision(plan: SendPlan, scopes: readonly RecipientScope[], contact
     title: TH.approve.sendDone(names),
     person: plan.recipients.length === 1 ? `${plan.recipients[0].title}` : null,
     subjectLabel: TH.approve.card,
-    subject: plan.title,
+    subject: null,
     body: plan.ask ? { label: TH.approve.askLabel, text: plan.ask } : null,
     chips: [],
     urgency: plan.intent === "act" ? plan.urgency : null,
+    due: plan.intent === "act" ? plan.due : null,
     effect: TH.approve.effectSend(names, plan.intent),
     confirm: TH.approve.confirmSend,
     cancel: TH.approve.cancelSend,
@@ -453,8 +487,8 @@ function DecisionCard({ decision, request }: { decision: Decision; request: Appr
           {decision.person ? <p className="truncate text-xs text-muted-foreground">{decision.person}</p> : null}
         </div>
         {decision.urgency ? (
-          <span className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-medium ${URGENCY_BADGE[decision.urgency]}`}>
-            {TH.share.urgency[decision.urgency]}
+          <span className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-medium ${URGENCY_BADGE[decision.urgency]}`} data-send-urgency={decision.urgency}>
+            {decision.due ? TH.share.dueBy(formatDateTh(decision.due)) : TH.share.urgency[decision.urgency]}
           </span>
         ) : null}
       </header>
@@ -581,10 +615,11 @@ function CourseApproval({ request }: { request: ApprovalRequest }) {
 function SendApproval({ request }: { request: ApprovalRequest }) {
   const contacts = useShareContacts();
   const input = (request.input ?? {}) as SendInput;
-  const card = readsOf(input) ?? request.cardToSend?.card ?? null;
+  const sending = cardToSend(input, request.onScreen);
+  const card = sending.card;
   const asking = request.approved === null;
   const preview = useSendPreview(asking ? card : null, alertIdsOf(input));
-  const plan = sendPlan(input, card, contacts, preview, request.question ?? null);
+  const plan = sendPlan(input, sending, contacts, preview, request.question ?? null);
   const scopes = useRecipientScopes(asking ? card : null, plan.recipients.map((contact) => contact.id));
   return <Approval decision={sendDecision(plan, scopes, contacts !== null, input)} request={request} />;
 }

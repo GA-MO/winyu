@@ -22,6 +22,7 @@ import { METRIC_IDS } from "@/lib/contracts";
 import { toolLabel, toolSurface } from "./registry";
 import { runWithAccess, runWithTurn } from "@/lib/server/request-context";
 import { approvedCallId } from "@/scripts/approved-call";
+import { screenWith } from "@/scripts/screen-cards";
 
 const REP = "u_krit";
 const OTHER_REP = "u_nok";
@@ -201,7 +202,7 @@ describe("admin_audit", () => {
     const before = new Set(auditLog().all().map((entry) => entry.id));
     const ceo = findUser(CEO);
     if (!ceo) throw new Error("no CEO");
-    const turn = { turnId: `run_${randomUUID()}`, threadId: null, question: SECRET_QUESTION, queries: [], cardToSend: async () => ({ card: CARD, question: SECRET_QUESTION }) };
+    const turn = { turnId: `run_${randomUUID()}`, threadId: null, question: SECRET_QUESTION, queries: [], screenCards: async () => screenWith([{ card: CARD, question: SECRET_QUESTION }]) };
     const sent = (await runWithAccess(accessOf(CEO), () => runWithTurn(turn, () => winyuTools().send_card.execute({ to: [RSM], ask: SECRET_ASK }, { toolCallId: approvedCallId(CEO, "send_card") })))) as { ok: boolean; data?: { code: string; title: string } };
     if (!sent.ok || !sent.data) throw new Error("not sent");
     made.matters.push(sent.data.code);

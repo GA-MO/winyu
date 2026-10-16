@@ -5,12 +5,18 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { findUser } from "@/lib/data/entities/users";
 import { TH } from "@/lib/i18n/th";
 import type { SendPreview, ShareContact, ShareTarget } from "@/lib/share/card";
+import { addDays, businessToday } from "@/lib/data/dates";
+import { formatDateTh } from "@/lib/i18n/format";
+import { onScreen, screenWith } from "@/scripts/screen-cards";
 import { renderApproval, type ApprovalRequest } from "./approval-card";
 
 const NORTHEAST = { metric: "net_sales_volume", dims: ["agent"], filters: { region: ["northeast"] }, range: { from: "2026-11-01", to: "2026-11-26" }, grain: "month", compare: "target", limit: 10 };
 const CARD_TO_SEND: ShareTarget = { card: { kind: "tool", reads: [{ tool: "query_metric", input: NORTHEAST }] }, question: "ยอดขายเข้าภาคอีสานเดือนนี้เทียบเป้า" };
 const ON_TARGET_CLAIM = "บอกว่าเดือนนี้ผมจะปิดเกินเป้าแน่นอน";
 const NO_PREVIEW: SendPreview = { ownerId: null, line: [], figures: null, goal: null };
+const ONE_CARD = screenWith([CARD_TO_SEND]);
+const BY_REGION: ShareTarget = { card: { kind: "tool", reads: [{ tool: "query_metric", input: { metric: "net_sales_value", dims: ["region"], filters: {} } }] }, question: "ยอดขายแยกตามภาค" };
+const TWO_CARDS = screenWith([onScreen(CARD_TO_SEND, "earlier-exchange", "3.9 ล้านลิตร"), onScreen(BY_REGION, "earlier-exchange", "฿412.5M")]);
 
 function contactOf(userId: string): ShareContact {
   const user = findUser(userId);
@@ -45,7 +51,7 @@ function render(tool: string, input: unknown, overrides: Partial<ApprovalRequest
 
 describe("the approval card", () => {
   test("a send with no recipient named is the send sheet filled in: the card's owner, the card, the ask, and the urgency the person's words gave", async () => {
-    const host = await drawnSend({ ask: "ช่วยดูอีสานหน่อย" }, { cardToSend: CARD_TO_SEND, question: "ส่งเรื่องนี้ให้ผู้จัดการขายภาคอีสาน ด่วน" }, { ...NO_PREVIEW, ownerId: "u_anucha" });
+    const host = await drawnSend({ ask: "ช่วยดูอีสานหน่อย" }, { onScreen: ONE_CARD, question: "ส่งเรื่องนี้ให้ผู้จัดการขายภาคอีสาน ด่วน" }, { ...NO_PREVIEW, ownerId: "u_anucha" });
     expect(host.querySelector("[data-send-recipient]")?.getAttribute("data-send-recipient")).toBe("u_anucha");
     expect(host.textContent).toContain(TH.share.suggested);
     expect(host.textContent).toContain("ปริมาณขายเข้า");
@@ -57,14 +63,14 @@ describe("the approval card", () => {
   });
 
   test("the model's 'now' without the person saying urgent goes out as today", async () => {
-    const host = await drawnSend({ to: ["u_anucha"], urgency: "now" }, { cardToSend: CARD_TO_SEND, question: "ฝากผู้จัดการขายภาคอีสานดูหน่อย" });
+    const host = await drawnSend({ to: ["u_anucha"], urgency: "now" }, { onScreen: ONE_CARD, question: "ฝากผู้จัดการขายภาคอีสานดูหน่อย" });
     expect(host.textContent).toContain(TH.share.urgency.today);
     expect(host.textContent).not.toContain(TH.share.urgency.now);
   });
 
   test("an ask that claims the card is over target while it shows 87.9% carries one warning line from code, and can still be sent", async () => {
     const preview = { ...NO_PREVIEW, ownerId: "u_anucha", figures: { attainment: 87.9, change: null } };
-    const host = await drawnSend({ to: ["พี่อนุชา"], ask: ON_TARGET_CLAIM }, { cardToSend: CARD_TO_SEND, question: ON_TARGET_CLAIM }, preview);
+    const host = await drawnSend({ to: ["พี่อนุชา"], ask: ON_TARGET_CLAIM }, { onScreen: ONE_CARD, question: ON_TARGET_CLAIM }, preview);
     expect(host.querySelector("[data-send-warning]")?.textContent).toBe(TH.share.contradicts.atTarget("87.9%"));
     expect(host.querySelector("[data-send-recipient]")?.getAttribute("data-send-recipient")).toBe("u_anucha");
     expect(offersSend(host)).toBe(true);
@@ -72,21 +78,40 @@ describe("the approval card", () => {
 
   test("an ask the card agrees with carries no warning", async () => {
     const preview = { ...NO_PREVIEW, figures: { attainment: 87.9, change: null } };
-    const host = await drawnSend({ to: ["u_anucha"], ask: "เดือนนี้ไม่ถึงเป้า ช่วยดูหน่อย" }, { cardToSend: CARD_TO_SEND }, preview);
+    const host = await drawnSend({ to: ["u_anucha"], ask: "เดือนนี้ไม่ถึงเป้า ช่วยดูหน่อย" }, { onScreen: ONE_CARD }, preview);
     expect(host.querySelector("[data-send-warning]")).toBeNull();
   });
 
   test("with no card in the conversation the sheet says so and offers no ส่ง", async () => {
-    const host = await drawnSend({ to: ["u_anucha"] }, { cardToSend: null });
+    const host = await drawnSend({ to: ["u_anucha"] }, { onScreen: screenWith([]) });
     expect(host.textContent).toContain(TH.approve.sendNoCard);
     expect(offersSend(host)).toBe(false);
   });
 
+  test("the sheet shows the exact card that goes: the one the call names by ref, with its title and headline figure", async () => {
+    const host = await drawnSend({ to: ["u_anucha"], cardRef: onScreen(BY_REGION).ref }, { onScreen: TWO_CARDS });
+    expect(host.querySelector("[data-send-card-title]")?.textContent).toBe("มูลค่าขายเข้า · รายภาค");
+    expect(host.querySelector("[data-send-card-hero]")?.textContent).toBe("฿412.5M");
+    expect(offersSend(host)).toBe(true);
+  });
+
+  test("with two cards on screen and none named, the sheet says it does not know which and offers no ส่ง", async () => {
+    const host = await drawnSend({ to: ["u_anucha"] }, { onScreen: TWO_CARDS });
+    expect(host.querySelector("[data-send-card]")).toBeNull();
+    expect(host.textContent).toContain(TH.approve.sendUnclearCard);
+    expect(offersSend(host)).toBe(false);
+  });
+
+  test("a deadline the sender wrote shows as the day it is due", async () => {
+    const host = await drawnSend({ to: ["u_anucha"] }, { onScreen: ONE_CARD, question: "โทรตามหนี้ภายในพรุ่งนี้แล้วตอบกลับมา" });
+    expect(host.querySelector("[data-send-urgency]")?.textContent).toBe(TH.share.dueBy(formatDateTh(addDays(businessToday(), 1))));
+  });
+
   test("an answered send becomes a receipt with no buttons left", async () => {
-    const approved = await drawnSend({ to: ["u_anucha"] }, { approved: true, cardToSend: CARD_TO_SEND });
+    const approved = await drawnSend({ to: ["u_anucha"] }, { approved: true, onScreen: ONE_CARD });
     expect(approved.textContent).toContain(TH.approve.doneSend("คุณอนุชา พรหมศรี"));
     expect(offersSend(approved)).toBe(false);
-    const rejected = await drawnSend({ to: ["u_anucha"] }, { approved: false, cardToSend: CARD_TO_SEND });
+    const rejected = await drawnSend({ to: ["u_anucha"] }, { approved: false, onScreen: ONE_CARD });
     expect(rejected.textContent).toContain(TH.approve.notDone);
   });
 

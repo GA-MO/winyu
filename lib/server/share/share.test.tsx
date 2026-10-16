@@ -24,6 +24,7 @@ const { DataCard } = await import("@/components/cards/data-card");
 const { createShare, channelsFor } = await import("./deliver");
 const { mayOpen, shareCode, SHARE_CODE_LENGTH, shares } = await import("./shares");
 const { openShare, regrounded } = await import("./view");
+const { matterOf } = await import("@/lib/share/matter");
 
 const BY_REGION = { metric: "net_sales_value", dims: ["region"], grain: "month", range: { from: "2026-09-01", to: "2026-09-22" }, compare: "target", filters: {}, sort: "value_desc", limit: 10 };
 const QUESTION = "ยอดขายแยกตามภาคเดือนนี้";
@@ -192,13 +193,13 @@ describe("a share can carry a temporary grant", () => {
 });
 
 describe("a composed card is re-grounded against the viewer's own results", () => {
-  test("u_krit's copy of the CEO's team card reads his own get_person result, not the CEO's", async () => {
+  test("a team card is people data and is never sent now; one stored before still reads u_krit's own get_person result, not the CEO's", async () => {
     const card = { kind: "composed" as const, reads: TEAM_READS, components: GEMINI_TEAM_CARD as never };
-    const outcome = await createShare(user("u_thana"), { card, question: "ใครดูแลภาคอีสาน", intent: "fyi", ask: "", recipients: [{ userId: "u_krit", channel: "email" }] });
-    if (!outcome.ok) throw new Error(outcome.error);
-    expect(outcome.share.title).toBe("ผู้ดูแลและทีมขายภาคอีสาน");
-    const ceo = await openShare(outcome.share, user("u_thana"));
-    const krit = await openShare(outcome.share, user("u_krit"));
+    const refused = await createShare(user("u_thana"), { card, question: "ใครดูแลภาคอีสาน", intent: "fyi", ask: "", recipients: [{ userId: "u_krit", channel: "email" }] });
+    expect(refused.ok).toBe(false);
+    const stored = matterOf({ id: "team-card-before", at: "2026-10-01T03:00:00.000Z", senderId: "u_thana", title: "ผู้ดูแลและทีมขายภาคอีสาน", question: "ใครดูแลภาคอีสาน", card, deliveries: [{ userId: "u_krit", asked: "email", via: "email", fallback: null }], lastViewedAt: null });
+    const ceo = await openShare(stored, user("u_thana"));
+    const krit = await openShare(stored, user("u_krit"));
     expect(ceo.surface?.components.length).toBeGreaterThan(2);
     expect(krit.surface).not.toBeNull();
     const kritOwn = (await readAs("u_krit", "get_person", TEAM_READS[2].input)) as { data: { facts: unknown } };

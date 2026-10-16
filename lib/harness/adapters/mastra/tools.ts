@@ -5,7 +5,7 @@ import { approvalOf } from "@/lib/harness/approval";
 import type { HarnessEvent } from "@/lib/harness/events";
 import { asksApproval } from "@/lib/harness/gateway";
 import { currentRun } from "@/lib/harness/runtime";
-import { accessOrNull, runWithAccess } from "@/lib/server/request-context";
+import { accessOrNull, recordFinished, runWithAccess } from "@/lib/server/request-context";
 import type { WinyuTool } from "@/lib/server/tools/define";
 
 function inAccess<T>(access: AccessContext, work: () => T): T {
@@ -42,13 +42,15 @@ function mastraToolOf(winyuTool: WinyuTool, access: AccessContext) {
     execute: async (input: unknown, context) => {
       const toolCallId = context.agent?.toolCallId;
       const result = await inAccess(access, () => execute(input, { toolCallId }));
-      if (toolCallId) context.tracingContext?.currentSpan?.update({ metadata: { gateway: gatewayStepsOf(toolCallId) } });
+      if (!toolCallId) return result;
+      recordFinished({ toolCallId, tool: winyuTool.entry.name, args: input, output: result });
+      context.tracingContext?.currentSpan?.update({ metadata: { gateway: gatewayStepsOf(toolCallId) } });
       return result;
     },
   });
 }
 
-/** Neutral tools as a Mastra tool set: approval only for a call the policy would let through (reads never), judged on the input as Mastra will hand it to execute (nulls normalised the same way), the gateway as the only execute, the model reading a tool's model view where it has one, whose decisions (authorized or denied, observed, verified, recovered) are written onto the call's Mastra span. A call that runs outside the chat request's scope (Studio's background thread runs) is gated in the access the tools were resolved for. */
+/** Neutral tools as a Mastra tool set: approval only for a call the policy would let through (reads never), judged on the input as Mastra will hand it to execute (nulls normalised the same way), the gateway as the only execute, the model reading a tool's model view where it has one, each finished call remembered on the turn (a send later in the run sees the card it drew), whose decisions (authorized or denied, observed, verified, recovered) are written onto the call's Mastra span. A call that runs outside the chat request's scope (Studio's background thread runs) is gated in the access the tools were resolved for. */
 export function mastraTools(tools: readonly WinyuTool[], access: AccessContext): ToolsInput {
   return Object.fromEntries(tools.map((winyuTool) => [winyuTool.entry.name, mastraToolOf(winyuTool, access)]));
 }

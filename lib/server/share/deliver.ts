@@ -94,7 +94,7 @@ function newMatter(sender: User, request: ShareRequest, sent: { code: string; at
   const access = liveAccessFor(sender);
   const alertIds = (request.alertIds ?? []).filter((id) => visibleAlert(id, access) !== null);
   const goal = request.closeOnGoal === false ? null : goalOf(request.card, alertIds);
-  return { id: sent.code, at: sent.at, updatedAt: sent.at, senderId: sender.id, title: sent.title, question: request.question, ask: sent.ask, intent: request.intent, urgency: request.urgency ?? defaultUrgency(request.intent), goal, alertIds, path, thread: [], status: "open", card: request.card, deliveries: sent.deliveries, openedBy: [], lastViewedAt: null };
+  return { id: sent.code, at: sent.at, updatedAt: sent.at, senderId: sender.id, title: sent.title, question: request.question, ask: sent.ask, intent: request.intent, urgency: request.urgency ?? defaultUrgency(request.intent), due: request.due ?? null, goal, alertIds, path, thread: [], status: "open", card: request.card, deliveries: sent.deliveries, openedBy: [], lastViewedAt: null };
 }
 
 /** Sends a card as a matter: stores the reads (never their values) under a short code, tells each recipient in Winyu (in the Inbox when it asks for an answer, on Shared when it is for information), also on the outside channel picked (email when that channel cannot reach them), and leaves one audit row; with grant days, also grants each recipient what the card showed the sender, when the sender may. No model call. */

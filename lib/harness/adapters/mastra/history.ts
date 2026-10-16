@@ -1,10 +1,10 @@
 import type { Message } from "@ag-ui/core";
-import { newestCardOf } from "@/components/chat/card-to-share";
-import { exchangesOf } from "@/components/chat/timeline";
+import { screenCardsEach } from "@/components/chat/card-to-share";
+import { exchangesOf, type Exchange, type ToolStep } from "@/components/chat/timeline";
 import { openApprovalsFor } from "@/lib/harness/approvals";
-import type { ShareTarget } from "@/lib/share/card";
+import type { ScreenCards } from "@/lib/share/card";
 import { toolTiers } from "@/lib/server/agent/tools";
-import type { SpokenTurn } from "@/lib/server/request-context";
+import type { FinishedCall, SpokenTurn } from "@/lib/server/request-context";
 import { ReplyCards, type CarriedCall, type StreamEvent } from "./card-stream";
 
 const RESULT_SUFFIX = ":result";
@@ -191,11 +191,26 @@ function readTools(): ReadonlySet<string> {
   return new Set(Object.keys(tiers).filter((tool) => tiers[tool] === "read"));
 }
 
-/** The card "ส่งการ์ดนี้" means on this thread: the card the exchange being answered drew when it drew one (memory holds it once the run that asked for the approval ended), else the newest card an earlier exchange drew. */
-export async function cardToSendOn(threadId: string, userId: string): Promise<ShareTarget | null> {
-  return newestCardOf(exchangesOf(await threadHistory(threadId, userId)), readTools());
+function toolStepOf(call: FinishedCall): ToolStep {
+  return { kind: "tool", toolCallId: call.toolCallId, name: call.tool, args: call.args, outcome: { state: "returned", result: call.output } };
 }
 
+/** The exchanges with the one being answered (`messageId`) carrying the calls this run finished that memory does not hold yet: a run's calls reach memory only when the run ends, and a send in it must see the card it drew. */
+function withFinished(exchanges: readonly Exchange[], messageId: string, question: string | null, finished: readonly FinishedCall[]): Exchange[] {
+  const index = exchanges.findIndex((exchange) => exchange.id === messageId);
+  const current: Exchange = index >= 0 ? exchanges[index] : { id: messageId, question: question ? { kind: "typed", text: question } : null, steps: [] };
+  const known = new Set(current.steps.flatMap((step) => (step.kind === "tool" ? [step.toolCallId] : [])));
+  const answered: Exchange = { ...current, steps: [...current.steps, ...finished.filter((call) => !known.has(call.toolCallId)).map(toolStepOf)] };
+  return index >= 0 ? exchanges.map((exchange, at) => (at === index ? answered : exchange)) : [...exchanges, answered];
+}
+
+/** The cards on screen on this thread when the person asked `messageId`: what earlier questions drew and what this one drew so far (`finished` holds this run's calls), the cards a send may name. */
+export async function screenCardsOn(threadId: string, userId: string, messageId: string | null, question: string | null, finished: readonly FinishedCall[]): Promise<ScreenCards> {
+  const history = exchangesOf(await threadHistory(threadId, userId));
+  const exchanges = messageId ? withFinished(history, messageId, question, finished) : history;
+  const each = screenCardsEach(exchanges, readTools());
+  return each.find((screen) => screen.exchangeId === messageId) ?? each.at(-1) ?? { exchangeId: messageId, cards: [], warned: false };
+}
 
 /** Removes a thread and its messages from Mastra memory; a thread that never ran has nothing to remove. */
 export async function forgetThread(threadId: string, userId: string): Promise<void> {

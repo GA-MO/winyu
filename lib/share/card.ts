@@ -29,9 +29,26 @@ const READS_MAX = 12;
 const ALERTS_MAX = 10;
 const COMPONENTS_MAX = 80;
 const CHANNEL_PREFERENCE: readonly ShareChannel[] = ["teams", "line", "email"];
+const CARD_REF_MAX = 40;
+const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;
+const CARD_REF_PREFIX = "c";
+const FNV_OFFSET = 0x811c9dc5;
+const FNV_PRIME = 0x01000193;
+const BASE36 = 36;
 
-/** Reads that cannot be shared: the person's own memory, and the metric catalog the model browses on the way to an answer. */
-export const UNSHAREABLE_TOOLS: ReadonlySet<string> = new Set(["recall_memory", "list_metrics"]);
+/** Reads that cannot be shared: the person's own memory, the metric catalog the model browses on the way to an answer, the lookups that find a person, an owner or a master-data record, and people data (profiles, candidates, training, the inbox, the audit). */
+export const UNSHAREABLE_TOOLS: ReadonlySet<string> = new Set([
+  "recall_memory",
+  "list_metrics",
+  "describe_entity",
+  "find_people",
+  "get_person",
+  "resolve_owner",
+  "list_candidates",
+  "training_history",
+  "inbox",
+  "admin_audit",
+]);
 
 /** One read behind a shared card: the tool and the exact input it was called with. Never its result. */
 export type SharedRead = { tool: string; input: Record<string, unknown> };
@@ -47,6 +64,15 @@ export type ShareContact = Persona & { name: string; channels: ChannelOption[] }
 
 /** A card someone is about to share: the reads behind it and the question that drew it. */
 export type ShareTarget = { card: SharedCard; question: string | null; draftAsk?: string };
+
+/** A card the conversation drew that may be sent, as the model and the send sheet name it: `ref` comes from what the card is (its reads and layout), so the server and the browser give the same card the same ref; `hero` is its headline figure when it has one. */
+export type CardOnScreen = { ref: string; exchangeId: string; target: ShareTarget; title: string; hero: string | null };
+
+/** The sendable cards of a conversation up to the exchange a send was asked in (`exchangeId`), oldest first, and whether an earlier exchange held a send back because its words contradicted its card. */
+export type ScreenCards = { exchangeId: string | null; cards: CardOnScreen[]; warned: boolean };
+
+/** The send_card refusal code for an ask the card's numbers contradict, given once before the person has seen the figure. */
+export const ASK_CONTRADICTS_CARD = "ASK_CONTRADICTS_CARD";
 
 /** What a send shows before it leaves, worked out by the server: whom to put first, what the card's numbers say for the sender (to check the ask against), and the goal that would close the matter. */
 export type SendPreview = MatterSuggestions & { figures: CardFigures | null; goal: string | null };
@@ -102,6 +128,7 @@ export const shareRequestSchema = z.object({
   ask: z.string().max(MATTER_ASK_MAX),
   intent: z.enum(MATTER_INTENTS),
   urgency: z.enum(MATTER_URGENCIES).optional(),
+  due: z.string().regex(ISO_DAY).nullable().optional(),
   recipients: z.array(z.object({ userId: z.string().min(1), channel: z.enum(DELIVERY_CHANNELS) })).min(1).max(SHARE_RECIPIENTS_MAX),
   grantDays: grantDaysSchema.nullable().optional(),
   alertIds: z.array(z.string().min(1).max(120)).max(ALERTS_MAX).optional(),
@@ -110,8 +137,9 @@ export const shareRequestSchema = z.object({
 
 export type ShareRequest = z.infer<typeof shareRequestSchema>;
 
-/** What the chat agent passes to send the card this exchange answered with as a matter: who it goes to (names as the person typed them, or user ids; none means the card's owner), the ask in the person's words, whether it waits on an answer, how soon (only from the person's words), and the card itself only when a pressed button carried it. */
+/** What the chat agent passes to send a card on screen as a matter: which card (`cardRef`, the ref the cards-on-screen list gives it; left out for the one card this reply drew), who it goes to (names as the person typed them, or user ids; none means the card's owner), the ask in the person's words, whether it waits on an answer, how soon (only from the person's words), and the card itself only when a pressed button carried it. */
 export const sendCardInputSchema = z.object({
+  cardRef: z.string().min(1).max(CARD_REF_MAX).optional(),
   to: z.array(z.string().min(1).max(80)).max(SHARE_RECIPIENTS_MAX).optional(),
   ask: z.string().max(MATTER_ASK_MAX).optional(),
   intent: z.enum(MATTER_INTENTS).optional(),
@@ -170,4 +198,22 @@ export function shareTitle(card: SharedCard): string {
   if (first.tool === "get_forecast") return forecastTitle(null, first.input);
   if (first.tool === "get_alerts") return TH.cards.alertsTitle;
   return TH.share.titles[first.tool] ?? TH.share.defaultTitle;
+}
+
+function canonical(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(canonical);
+  if (typeof value !== "object" || value === null) return value;
+  const entries = Object.entries(value).filter(([, entry]) => entry !== undefined && entry !== null);
+  return Object.fromEntries(entries.sort(([left], [right]) => left.localeCompare(right)).map(([key, entry]) => [key, canonical(entry)]));
+}
+
+function fnv1a(text: string): number {
+  let hash = FNV_OFFSET;
+  for (let index = 0; index < text.length; index += 1) hash = Math.imul(hash ^ text.charCodeAt(index), FNV_PRIME) >>> 0;
+  return hash;
+}
+
+/** The short ref a card goes by in the cards-on-screen list: a hash of its reads and layout with keys sorted and empty arguments dropped, so the same card has the same ref wherever it is worked out. */
+export function cardRefOf(card: SharedCard): string {
+  return `${CARD_REF_PREFIX}${fnv1a(JSON.stringify(canonical(card))).toString(BASE36)}`;
 }

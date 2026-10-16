@@ -101,7 +101,7 @@ describe("the run that answers an approval continues the asking run", () => {
     const interrupt = interruptOf(await run(threadId, message, null));
     scripted.script([{ text: "ส่งแล้ว" }]);
     await run(threadId, message, interrupt);
-    expect(sentLast(calm)?.urgency).toBe("today");
+    expect(sentLast(calm)?.urgency).toBe("this_week");
 
     const urgentThread = `carry-urgent-${Date.now()}`;
     const urgent = "ด่วน ดูวันนี้";

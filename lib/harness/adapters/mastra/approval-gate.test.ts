@@ -18,6 +18,7 @@ const { APPROVALS_COLLECTION } = await import("@/lib/harness/approvals");
 
 const RUN_URL = "http://localhost/api/copilotkit/agent/winyu/run";
 const THREAD = `approval-gate-${Date.now()}`;
+const DRAW_AND_SEND_THREAD = `${THREAD}-draw-and-send`;
 const BY_REGION = { metric: "net_sales_value", dims: ["region"], grain: "month", range: { from: "2026-09-01", to: "2026-09-22" }, compare: "target", filters: {}, sort: "value_desc", limit: 10 };
 const NORTHEAST_BY_PROVINCE = { metric: "net_sales_volume", dims: ["province"], grain: "month", range: { from: "2026-11-01", to: "2026-11-26" }, compare: "target", filters: { region: ["northeast"] }, sort: "value_asc", limit: 10 };
 
@@ -39,9 +40,9 @@ function ceo() {
   return liveAccessFor(found);
 }
 
-async function chatTurn(message: Message, answer: { interruptId: string; approved: boolean } | null = null): Promise<{ id: string; tool: string }[]> {
+async function chatTurn(message: Message, answer: { interruptId: string; approved: boolean } | null = null, threadId = THREAD): Promise<{ id: string; tool: string }[]> {
   const resume = answer ? { resume: [{ interruptId: answer.interruptId, status: "resolved", payload: { approved: answer.approved } }] } : {};
-  const body = { threadId: THREAD, runId: crypto.randomUUID(), state: {}, messages: [{ ...message, role: "user" }], tools: [], context: [], forwardedProps: {}, ...resume };
+  const body = { threadId, runId: crypto.randomUUID(), state: {}, messages: [{ ...message, role: "user" }], tools: [], context: [], forwardedProps: {}, ...resume };
   const request = new Request(RUN_URL, { method: "POST", headers: { "content-type": "application/json", accept: "text/event-stream" }, body: JSON.stringify(body) });
   return interruptsOf(await (await serveCopilot(ceo(), request, LEARNING)).text());
 }
@@ -102,12 +103,14 @@ describe("a write the model calls with the nulls Gemini sends for optional field
   });
 
   test("ส่งการ์ดนี้ in the exchange that drew a card sends that card, not the one before it", async () => {
+    scripted.script([{ call: "query_metric", args: BY_REGION }, { text: "ภาคอีสานต่ำกว่าเป้า" }]);
+    await chatTurn({ id: crypto.randomUUID(), content: "ยอดขายแยกตามภาคเดือนนี้" }, null, DRAW_AND_SEND_THREAD);
     scripted.script([{ call: "query_metric", args: NORTHEAST_BY_PROVINCE }, { call: "send_card", args: { to: ["พี่อนุชา"] } }, { text: "ส่งแล้ว" }]);
     const message = { id: crypto.randomUUID(), content: "ขอยอดอีสานรายจังหวัดเทียบเป้า แล้วส่งการ์ดนี้ให้พี่อนุชา" };
-    const asked = await chatTurn(message);
+    const asked = await chatTurn(message, null, DRAW_AND_SEND_THREAD);
     expect(asked.map((interrupt) => interrupt.tool)).toEqual(["send_card"]);
     scripted.script([{ text: "ส่งให้คุณอนุชาแล้ว" }]);
-    await chatTurn(message, { interruptId: asked[0]?.id ?? "", approved: true });
+    await chatTurn(message, { interruptId: asked[0]?.id ?? "", approved: true }, DRAW_AND_SEND_THREAD);
     const sent = sentByCeo().sort((left, right) => right.at.localeCompare(left.at))[0];
     expect(sent?.path.map((hop) => hop.userId)).toEqual(["u_anucha"]);
     expect(sent?.card.reads[0]?.input).toMatchObject({ metric: "net_sales_volume", dims: ["province"] });

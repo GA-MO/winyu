@@ -3,7 +3,7 @@ import { sharedComposedCard, sharedToolCard, shareTitle, type ExchangeRead } fro
 
 const CALLS: ExchangeRead[] = [
   { toolCallId: "a", tool: "query_metric", args: { metric: "net_sales_value", dims: ["region"] }, returned: true },
-  { toolCallId: "c", tool: "get_person", args: { id: "u_anucha", name: "" }, returned: true },
+  { toolCallId: "c", tool: "get_site", args: { site: "โรงงานปทุมธานี" }, returned: true },
   { toolCallId: "e", tool: "find_people", args: { manager: "u_anucha" }, returned: false },
 ];
 
@@ -14,10 +14,10 @@ describe("the share behind a card is its reads", () => {
   });
 
   test("a composed card shares the composable reads that returned, in call order, with its components", () => {
-    const surface = { surfaceId: "s", components: [{ id: "root", component: "Card" as const, title: "ทีม 5 คน", children: ["x"] }, { id: "x", component: "Person" as const, name: { path: "/get_person/data/name" } }], dataModel: {}, done: true };
+    const surface = { surfaceId: "s", components: [{ id: "root", component: "Card" as const, title: "อุบัติเหตุ 5 ครั้ง", children: ["x"] }, { id: "x", component: "Metric" as const, label: "ครั้ง", value: { path: "/get_site/data/incidents" } }], dataModel: {}, done: true };
     const card = sharedComposedCard(CALLS, surface);
-    expect(card?.reads.map((read) => read.tool)).toEqual(["get_person"]);
-    expect(card && shareTitle(card)).toBe("ทีม คน");
+    expect(card?.reads.map((read) => read.tool)).toEqual(["get_site"]);
+    expect(card && shareTitle(card)).toBe("อุบัติเหตุ ครั้ง");
   });
 
   test("a title comes from what was asked, never from a result", () => {
@@ -40,6 +40,12 @@ describe("the share pill follows the server's rule", () => {
 
   test("a composed card leaves unshareable reads out, and has no share when nothing else remains", () => {
     expect(sharedComposedCard(UNSHAREABLE, SURFACE)).toBeNull();
-    expect(sharedComposedCard([...UNSHAREABLE, ...CALLS], SURFACE)?.reads.map((read) => read.tool)).toEqual(["get_person"]);
+    expect(sharedComposedCard([...UNSHAREABLE, ...CALLS], SURFACE)?.reads.map((read) => read.tool)).toEqual(["get_site"]);
+  });
+
+  test("a person, an owner, a master-data record or people data never shares, fixed or composed (AI-93)", () => {
+    const lookups: ExchangeRead[] = ["get_person", "find_people", "resolve_owner", "describe_entity", "list_candidates", "training_history"].map((tool) => ({ toolCallId: tool, tool, args: {}, returned: true }));
+    for (const lookup of lookups) expect(sharedToolCard(lookups, lookup.toolCallId)).toBeNull();
+    expect(sharedComposedCard(lookups, SURFACE)).toBeNull();
   });
 });

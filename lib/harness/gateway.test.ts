@@ -8,6 +8,7 @@ import { auditLog } from "@/lib/server/audit";
 import { runWithAccess, runWithTurn, type TurnContext } from "@/lib/server/request-context";
 import { shares } from "@/lib/server/share/shares";
 import { approvedCallId } from "@/scripts/approved-call";
+import { screenWith } from "@/scripts/screen-cards";
 import { markAnswered, recordAsked } from "./approvals";
 import { gated } from "./gateway";
 import type { Capability } from "./types";
@@ -17,7 +18,7 @@ const BY_REGION = { metric: "net_sales_value", dims: ["region"], grain: "month",
 const TO_KRIT = { to: ["คุณกฤต"], ask: "ช่วยดูภาคอีสานหน่อย" };
 
 function turn(): TurnContext {
-  return { turnId: null, threadId: null, question: "ส่งการ์ดนี้ให้คุณกฤต", queries: [], cardToSend: async () => ({ card: { kind: "tool", reads: [{ tool: "query_metric", input: BY_REGION }] }, question: "ยอดขายแยกตามภาค" }) };
+  return { turnId: null, threadId: null, question: "ส่งการ์ดนี้ให้คุณกฤต", queries: [], screenCards: async () => screenWith([{ card: { kind: "tool", reads: [{ tool: "query_metric", input: BY_REGION }] }, question: "ยอดขายแยกตามภาค" }]) };
 }
 
 function sender() {
