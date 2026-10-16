@@ -7,7 +7,7 @@ import { runMetric } from "@/lib/data/query";
 import { TH } from "@/lib/i18n/th";
 import { LOW_COVER_DAYS } from "@/lib/semantic/metrics";
 import { changeToneOf, formatChange, formatMetricValue, metricLabel } from "@/lib/dashboard/metric-display";
-import { pairedIndexes, presentCard, presentForecast, weakestRow, type CardBody, type CardParts, type CardView, type ForecastAnswer, type SortBy } from "./present";
+import { pairedIndexes, presentCard, presentForecast, subjectOf, weakestRow, type CardBody, type CardParts, type CardView, type ForecastAnswer, type SortBy } from "./present";
 import type { ReadRow, Strip } from "./reading";
 import { metricTitle } from "./tool-answers";
 
@@ -780,6 +780,51 @@ describe("a breakdown whose level decides", () => {
     if (!result.ok) throw new Error(result.error);
     expect(result.headline.underLine ?? null).toBeNull();
     expect(presentCard({ title: "t", query, result }).hero?.label).not.toBe(TH.dash.underCover(LOW_COVER_DAYS));
+  });
+});
+
+describe("scorecards and one-row cards keep to the card rules (AI-156)", () => {
+  const PROJECTION = { recentDays: 7, projected: "371.9 ล้านบาท", monthTarget: "424.8 ล้านบาท", attainment: "87.5%", attainmentToDate: "77.3%", shortBy: "96.4 ล้านบาท", remaining: "เหลืออีก 96.4 ล้านบาท ถึงเป้าทั้งเดือน" };
+
+  test("a month-to-date scorecard has two tiles beside its hero, all on the whole month's base, and its verdict says where the month ends without a number from another base", () => {
+    const query = { ...queryOf({ metric: "net_sales_value", dims: ["region"], range: MONTH_TO_DATE, compare: "target" }), filters: { region: ["northeast"] } };
+    const result = runMetric(query, CEO);
+    if (!result.ok) throw new Error(result.error);
+    const card = presentCard({ title: "t", query, result: { ...result, headline: { ...result.headline, projection: PROJECTION } } });
+    expect(card.style).toBe("scorecard");
+    expect(card.hero).toMatchObject({ label: "ภาคอีสาน", value: "77.3%", unit: TH.read.ofMonthTarget });
+    expect(card.tiles.map((tile) => tile.label)).toEqual([TH.read.toTarget, TH.read.monthEnd]);
+    const paced = Math.round((100 + (result.headline.deltaPercent ?? 0)) * 10) / 10;
+    expect(card.verdict).toBe(paced < 100 ? "ภาคอีสานช้ากว่าเป้าตามเวลา คาดปิดเดือนไม่ถึงเป้า" : "ภาคอีสานทันเป้าตามเวลา แต่คาดปิดเดือนไม่ถึงเป้า");
+  });
+
+  test("one row with nothing to judge it by never repeats its hero as the headline", () => {
+    const card = cardOf({ metric: "net_sales_value", dims: ["region"], range: MONTH_TO_DATE, compare: "none" }, { filters: { region: ["northeast"] } });
+    expect(card.hero?.label).toBe("ภาคอีสาน");
+    expect(card.verdict ?? "").not.toContain(card.hero?.value ?? "-");
+  });
+
+  test("one row of cover is judged against the low-cover line, not restated", () => {
+    const card = cardOf({ metric: "days_of_cover", dims: ["dc"], range: MONTH_TO_DATE, compare: "none" }, { filters: { dc: ["dc_khonkaen"] } });
+    expect(card.verdict).toMatch(new RegExp(`(เกิน|ไม่ถึง) ${LOW_COVER_DAYS} วัน$`));
+    expect(card.verdict ?? "").not.toContain(card.hero?.value ?? "-");
+  });
+
+  test("a breakdown whose question named one group leads with that group on top, the overall level beside it, never the all-group average as the hero", () => {
+    const { query, result } = answer({ metric: "gross_margin", dims: ["business_unit"] });
+    if (!result.ok) throw new Error(result.error);
+    const named = String(result.rows[1].business_unit);
+    const card = presentCard({ title: "t", query, result: { ...result, headline: { ...result.headline, asked: [named] } } });
+    expect(card.hero?.label).toBe(named);
+    const strip = stripOf(card.body);
+    expect(strip.overall?.label).toBe(named);
+    expect(strip.overall?.sub).toContain(result.headline.value);
+    expect(strip.rows.map((row) => row.label)).not.toContain(named);
+  });
+
+  test("a one-row card's subject names its row, so a pinned tile says which region it is", () => {
+    const query = { ...queryOf({ metric: "net_sales_value", dims: ["region"], range: MONTH_TO_DATE, compare: "target" }), filters: { region: ["northeast"] } };
+    expect(subjectOf(query, runMetric(query, CEO))).toBe(TH.dash.ownScope(metricLabel("net_sales_value"), "ภาคอีสาน"));
   });
 });
 
