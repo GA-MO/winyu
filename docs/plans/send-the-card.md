@@ -10,7 +10,7 @@ The share has the right card and the handoff has the right workflow. This plan m
 Delivery stays inside Winyu. The sheet stops offering email, Teams, and LINE. The demo runs on four Winyu windows, and a second app would make it harder to follow. The channel code stays where it is for later.
 
 ## สถานะ (2026-10-16)
-ยังไม่เริ่ม รอผู้ใช้อ่านและตัดสิน "Decisions for the user" ท้ายไฟล์
+ผู้ใช้รับทั้ง 4 ข้อตามที่แนะนำ (2026-10-16) phase 1 กับ phase 5 เสร็จและตรวจใน browser แล้ว: ส่งจากชีต 0.3 วินาที กระดิ่งผู้จัดการภาคขยับเองภายใน 12 วินาที กำลังทำ phase 2
 
 ## What a user needs from sending work
 
@@ -75,7 +75,7 @@ Each phase ends with `bun run typecheck`, `bun run test`, and a walk through the
 - [x] Add the matter fields to the share record and its parser. Existing shares load as `intent: "fyi"` with a one-hop path.
 - [x] In the sheet, suggest the first recipient from `responsibleFor`, draft the ask, add the **ต้องตอบ** and **ให้ดู** toggle, and remove the channel choice.
 - [x] Gate the **ส่งต่อ** pill, `/api/shares`, and `share_card` on `handoffEnabled()`. Today the admin copy says the switch hides the button on every page, but the card pill stays (`lib/access/enforce.ts` gates only `create_handoff` and `send_email`).
-- [ ] Check: the CEO sends the northeast story card to the RSM from the sheet in under 5 seconds. The RSM's bell shows it. `.data/model-calls.json` gains no row.
+- [x] Check: the CEO sends the northeast story card to the RSM from the sheet in under 5 seconds. The RSM's bell shows it. `.data/model-calls.json` gains no row.
 
 ### Phase 2. The recipient answers on the card
 
@@ -100,7 +100,7 @@ Each phase ends with `bun run typecheck`, `bun run test`, and a walk through the
 ### Phase 5. The bell moves by itself
 
 - [x] While the window is visible, fetch the counts every 10 seconds in `components/inbox/counts.ts`, as well as on focus. Stop while the window is hidden.
-- [ ] Check: with the RSM window visible next to the CEO window, a matter the CEO sends shows on the RSM's bell within 10 seconds, with no click.
+- [x] Check: with the RSM window visible next to the CEO window, a matter the CEO sends shows on the RSM's bell within 10 seconds, with no click.
 
 ## The demo after this plan
 
