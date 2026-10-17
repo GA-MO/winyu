@@ -362,6 +362,13 @@ describe("lines that invite a question or an action follow what the role can cal
     expect(denied).toContain("ไม่ใช่ `compare` `none`");
   });
 
+  test("the text carries one sign per change, a severity in words, and a named period (AI-223)", () => {
+    const words = WINYU_RULES.find((line) => line.startsWith("ภาษาในข้อความตอบ")) ?? "";
+    expect(words).toContain("คำว่าลดลงหรือเพิ่มขึ้นแล้ว ไม่ใส่เครื่องหมายซ้ำ (ลดลง 9.3% ไม่ใช่ลดลง -9.3%)");
+    expect(words).toContain(`ไม่พิมพ์ (P1) (P2) (P3) ให้เขียนว่า${TH.severity.P1} ${TH.severity.P2} หรือ${TH.severity.P3} ตามการ์ด`);
+    expect(words).toContain("ไม่เรียกช่วงว่าช่วงนี้หรืองวดก่อน");
+  });
+
   test("the text names a metric as its card does (AI-192)", () => {
     const words = WINYU_RULES.find((line) => line.startsWith("ภาษาในข้อความตอบ")) ?? "";
     expect(words).toContain("ใช้ชื่อเดียวกับการ์ด เช่น `net_sales_value` = มูลค่าขายเข้า ไม่ใช่มูลค่าขายสุทธิ");
