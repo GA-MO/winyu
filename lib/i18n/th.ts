@@ -423,7 +423,7 @@ export const TH = {
     markAllRead: "อ่านทั้งหมดแล้ว",
     openInbox: "เปิด Inbox",
     openShared: "ดูใน Shared",
-    close: "ปิด",
+    close: "ปิดแจ้งเตือน",
     allCaughtUp: "ไม่มีเรื่องรอคุณ",
     acted: { accept: "รับเรื่องแล้ว", ask: "ส่งคำถามแล้ว", reply: "ตอบแล้ว", pass_on: "ส่งต่อแล้ว", not_mine: "แจ้งว่าไม่ใช่ของคุณแล้ว", done: "ปิดเรื่องแล้ว" },
     openMatter: "เปิดเรื่อง",
@@ -638,6 +638,7 @@ export const TH = {
     forecastReason: "ดูว่าถ้าเป็นแบบนี้ต่อไปจะเกิดอะไร",
   },
   stories: {
+    close: "ปิดเรื่องที่ Winyu สืบ",
     ranAt: (time: string, asOf: string) => `Winyu สืบให้เมื่อ ${time} · ข้อมูลถึง ${asOf}`,
     toDecide: (count: number) => `${count} เรื่องด่วน`,
     toWatch: (count: number) => `${count} เรื่องน่าจับตา`,

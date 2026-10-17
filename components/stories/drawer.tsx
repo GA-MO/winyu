@@ -35,7 +35,7 @@ export function StoriesDrawer({ brief, asOf, open, onClose }: { brief: MorningBr
               {TH.stories.ranAt(BANGKOK_TIME.format(new Date(brief.at)), formatThaiDate(asOf))} · {TH.stories.looked(brief.checkedCount)}
             </p>
           </div>
-          <button type="button" onClick={onClose} aria-label={TH.common.close} className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground">
+          <button type="button" onClick={onClose} aria-label={TH.stories.close} className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground">
             <X className="size-4" aria-hidden />
           </button>
         </header>

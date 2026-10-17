@@ -33,10 +33,11 @@ function Probe({ seen }: { seen: { open: boolean; set: (open: boolean) => void }
 }
 
 describe("the stories drawer (AI-259)", () => {
-  test("offers one close button; the dimmed backdrop closes it on a tap but is not a second 'ปิด' for a screen reader", async () => {
+  test("offers one close button, named for the drawer, not the bell; the dimmed backdrop closes it on a tap but is not a second close button for a screen reader", async () => {
     const host = await draw(<StoriesDrawer brief={BRIEF} asOf="2026-11-26" open onClose={() => undefined} />);
-    const named = [...host.querySelectorAll("button")].filter((button) => button.getAttribute("aria-label") === TH.common.close && button.getAttribute("aria-hidden") !== "true");
-    expect(named).toHaveLength(1);
+    const named = [...host.querySelectorAll("button")].filter((button) => button.getAttribute("aria-hidden") !== "true" && (button.getAttribute("aria-label") ?? "").startsWith("ปิด"));
+    expect(named.map((button) => button.getAttribute("aria-label"))).toEqual([TH.stories.close]);
+    expect(TH.stories.close).not.toBe(TH.notifications.close);
   });
 
   test("stays open across a visit and back: opening writes it into the address, and the page opens it again from there", async () => {
