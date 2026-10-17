@@ -771,6 +771,8 @@ export const TH = {
     againstTarget: (value: string, target: string) => `${value} · เป้า ${target}`,
     goal: "เป้า",
     pacedGoal: "เป้าตามเวลา",
+    priorName: { week: "สัปดาห์ก่อน", month: "เดือนก่อน", year: "ปีก่อน", period: "ช่วงก่อนหน้า" },
+    priorRange: (name: string, from: string, to: string) => `${name} (${from} – ${to})`,
     onPace: (label: string) => `${label}ทันเป้าตามเวลา`,
     behindPace: (label: string, gap: string) => `${label}ช้ากว่าเป้าตามเวลา ${gap}`,
     aboveTarget: "เกินเป้า",

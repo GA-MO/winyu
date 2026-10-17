@@ -421,6 +421,12 @@ describe("lines that invite a question or an action follow what the role can cal
     expect(base).toContain("คาดปิดเดือนคู่กับยอดที่สิ้นเดือนยังขาด (`monthEndShortBy`, `month_end_short_label`)");
   });
 
+  test("a year-target question reads the year so far against target by month, so its card names the worst month, never a forecast that may not exist (AI-213)", () => {
+    const alerts = WINYU_RULES.find((line) => line.startsWith("ความผิดปกติ = `get_alerts`")) ?? "";
+    expect(alerts).toContain("ทั้งปีจะถึงเป้าไหม = `query_metric` `period` `ytd` `compare` `target` dims `[\"month\"]`");
+    expect(alerts).toContain("ไม่ใช่ `get_forecast`");
+  });
+
   test("permission stays in code: no invitation line is phrased as a permission rule", () => {
     for (const userId of ["u_krit", "u_ton"]) expect(promptOf(userId)).not.toMatch(/ไม่มีสิทธิ์ใช้|ห้ามใช้เครื่องมือ|ไม่ได้รับอนุญาตให้/);
   });

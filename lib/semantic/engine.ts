@@ -406,6 +406,22 @@ function priorWindow(compare: MetricQuery["compare"], from: number, to: number, 
   return daysBack(from, to, compare === "prev_year" ? PREV_YEAR_DAYS : weekdayAlignedDays(to - from + 1));
 }
 
+/** A prior window named the way people say it: the same days a week, a month or a year back, else the period just before. */
+function priorNameOf(compare: MetricQuery["compare"], shift: LabelShift): string {
+  if (compare === "prev_year") return TH.read.priorName.year;
+  if (shift.months === 1) return TH.read.priorName.month;
+  return shift.months === 0 && shift.days === DAYS_PER_WEEK ? TH.read.priorName.week : TH.read.priorName.period;
+}
+
+/** The days a prior-period or prior-year comparison of a range reads, with what to call them ("สัปดาห์ก่อน" for the same days a week back); null for a target, no comparison, or one the data cannot serve. */
+export function priorPeriodOf(metric: MetricId, compare: MetricQuery["compare"], range: MetricQuery["range"]): { name: string; from: string; to: string } | null {
+  const def = metricDef(metric);
+  if (!def) return null;
+  const window = priorWindow(compare, toDayIndex(range.from), toDayIndex(range.to), MONTHLY_METRICS.has(def.id), SNAPSHOT_METRICS.has(def.id));
+  const [from, to] = window ? [ISO_OF_DAY[window.from], ISO_OF_DAY[window.to]] : [];
+  return window && from && to ? { name: priorNameOf(compare, window.shift), from, to } : null;
+}
+
 /** For a monthly total whose window ends in a month the data has only partly reached, the share of the window's calendar days the data covers; the comparison is scaled by it so September's 22 days are not read against a whole August. */
 function coveredShare(def: MetricDef, compare: MetricQuery["compare"], from: number, to: number): number {
   if (!MONTHLY_METRICS.has(def.id) || RATIO_METRICS.has(def.id) || SNAPSHOT_METRICS.has(def.id)) return 1;

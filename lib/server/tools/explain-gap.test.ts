@@ -60,6 +60,17 @@ describe("a drop the first split leaves without a main cause is checked along ot
     }
   });
 
+  test("the period it is compared with is named, with its dates: the same days a week back are 'สัปดาห์ก่อน', so the card never reads 'ต่ำกว่าช่วงก่อนหน้า' (AI-214, AI-223)", async () => {
+    const result = await gapAs("u_thana", WEEK_BY_REGION);
+    expect(result.compare_label).toMatch(/^สัปดาห์ก่อน \(\d+ พ\.ย\. 2569 – \d+ พ\.ย\. 2569\) [\d,.]+ ล้านบาท$/);
+    const card = presentGap({ answer: result as unknown as GapAnswer, metric: "net_sales_value", split: "region" });
+    expect(card.verdict).toContain("ต่ำกว่าสัปดาห์ก่อน");
+    const lastMonth = await gapAs("u_thana", { metric: "net_sales_value", split: "region", filters: {}, range: { from: "2026-10-01", to: "2026-10-31" }, compare: "prev_period" });
+    expect(lastMonth.compare_label.startsWith("เดือนก่อน (")).toBe(true);
+    const lastYear = await gapAs("u_thana", { ...WEEK_BY_REGION, compare: "prev_year" });
+    expect(lastYear.compare_label.startsWith("ปีก่อน (")).toBe(true);
+  });
+
   test("a gap with a clear main cause, or two agents that made it together, is not split again", async () => {
     const isan = await gapAs("u_thana", { metric: "net_sales_value", split: "agent", filters: { region: ["northeast"] }, range: { from: monthStart(DATA_AS_OF), to: DATA_AS_OF }, compare: "target" });
     expect(isan.other_splits).toBeNull();

@@ -1,7 +1,8 @@
 import type { z } from "zod";
 import { explainGapInputSchema, type AccessContext, type Dim, type MetricQuery, type MetricResult, type MetricRow, type MonthEndProjection } from "@/lib/contracts";
 import { metricLabel } from "@/lib/dashboard/metric-display";
-import { formatForSummary } from "@/lib/semantic/engine";
+import { formatForSummary, priorPeriodOf } from "@/lib/semantic/engine";
+import { formatThaiDate } from "@/lib/data/dates";
 import { metricDef } from "@/lib/semantic/metrics";
 import { formatDelta } from "@/lib/dashboard/metric-display";
 import { breakDownGap, fellHarder, formatShare, isBroad, leadingParts, mainCauses, type Contribution, type GapBreakdown, type GapPart } from "@/lib/engine/gap";
@@ -21,6 +22,13 @@ type Input = z.infer<typeof explainGapInputSchema>;
 function amountOf(input: Input, value: number): string {
   const def = metricDef(input.metric);
   return def ? formatForSummary(def, value) : String(value);
+}
+
+/** What the gap is measured against, named: the paced target in a month still running, the target, or the prior days by name and dates ("สัปดาห์ก่อน (16 พ.ย. 2569 – 19 พ.ย. 2569)"), so the card never says only "ช่วงก่อนหน้า". */
+function versusOf(input: Input, projection: MonthEndProjection | null): string {
+  if (input.compare === "target") return projection ? TH.read.pacedGoal : COMPARE_LABELS.target;
+  const prior = priorPeriodOf(input.metric, input.compare, input.range);
+  return prior ? TH.read.priorRange(prior.name, formatThaiDate(prior.from), formatThaiDate(prior.to)) : COMPARE_LABELS[input.compare];
 }
 
 function queryOf(input: Input, dims: MetricQuery["dims"]): MetricQuery {
@@ -151,7 +159,7 @@ export const explainGapTool = defineTool({
     const whole = partOf(total.rows[0] ?? {}, metricLabel(input.metric));
     const breakdown = breakDownGap(whole, partsOf(split, input.split));
     const projection = total.headline.projection ?? null;
-    const versus = projection ? TH.read.pacedGoal : COMPARE_LABELS[input.compare];
+    const versus = versusOf(input, projection);
     const checked = mainCauses(breakdown.contributors).length === 0 && breakdown.contributors.length > 0 ? await otherSplits(input, whole, access) : null;
     return {
       ok: true as const,
