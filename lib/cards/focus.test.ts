@@ -48,3 +48,21 @@ describe("the alert a metric card follows (AI-77)", () => {
     expect(cardFocus(result, alertForAnswer(result, [elsewhere], dictionary), dictionary).row).toBe(worst);
   });
 });
+
+describe("the alert a total card follows (AI-224)", () => {
+  const book = ["ag_nea_01", "ag_nea_02", "ag_nea_03", "ag_nea_05"];
+  const total = (agents: string[]): MetricQuery => ({ metric: "net_sales_value", dims: ["month"], filters: { agent: agents }, range: { from: "2026-11-01", to: "2026-11-26" }, grain: "month", compare: "target", limit: null });
+  const onAgent = (id: string): Alert => ({ ...alertOn(`on-${id}`, "northeast"), metric: "net_sales_value", dims: { agent: id, brand: "singha" } });
+
+  test("a total over several agents is about none of them, so an alert on one agent's brands gives it no button", async () => {
+    const dictionary = await loadDictionary();
+    const result = runMetric(total(book), CEO) as Extract<MetricResult, { ok: true }>;
+    expect(alertForAnswer(result, [onAgent("ag_nea_02")], dictionary)).toBeNull();
+  });
+
+  test("a total pinned to one agent still follows that agent's alert", async () => {
+    const dictionary = await loadDictionary();
+    const result = runMetric(total(["ag_nea_02"]), CEO) as Extract<MetricResult, { ok: true }>;
+    expect(alertForAnswer(result, [onAgent("ag_nea_02")], dictionary)?.id).toBe("on-ag_nea_02");
+  });
+});
