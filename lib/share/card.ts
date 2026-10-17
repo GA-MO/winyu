@@ -230,7 +230,7 @@ export function shareTitle(card: SharedCard, names: DimValues = {}, read: Shared
   const composed = rootTitle(card);
   if (composed) return composed;
   const base = baseTitle(read, names);
-  const subject = read.tool === "get_alerts" ? null : shareSubject(card, names, read);
+  const subject = shareSubject(card, names, read);
   return subject ? `${base}${SUBJECT_PART_SEPARATOR}${subject}` : base;
 }
 

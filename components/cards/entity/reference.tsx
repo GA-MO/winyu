@@ -15,7 +15,8 @@ const ENTITY_NAME_KEY = "ชื่อ";
 const THAI = /[\u0E00-\u0E7F]/;
 const MAX_CONNECTOR_ROWS_SHOWN = 12;
 const GROUPED_FROM = 10_000;
-const HIDDEN_CONNECTOR_KEY = /(^|_)id$|^region$|^visited_on$|^date$|^order_value$|^score$/;
+const HIDDEN_CONNECTOR_KEY = /(^|_)id$|^region$|^visited_on$|^date$|^order_value$|^score$|^path$/;
+const MATTER_PATH = /^\/s\/[A-Za-z0-9_-]+$/;
 
 /** get_calendar: the next day that moves sales on top, every day as a row with what it did last year. */
 export function CalendarCard({ result }: { result: unknown }) {
@@ -175,6 +176,11 @@ function cellOf(value: unknown): string {
   return String(value);
 }
 
+/** Where a row opens: an inbox matter's own page (`/s/<code>`); any other path a connector sent is never a link. */
+function matterLinkOf(row: Record<string, unknown>): string | null {
+  return typeof row.path === "string" && MATTER_PATH.test(row.path) ? row.path : null;
+}
+
 /** A connector result's rows as a table with Thai column labels, cut to the first rows a phone shows with a line saying how many there were. */
 export function ConnectorTable({ rows }: { rows: Record<string, unknown>[] }) {
   if (rows.length === 0) return null;
@@ -185,6 +191,7 @@ export function ConnectorTable({ rows }: { rows: Record<string, unknown>[] }) {
         props={{
           columns: keys.map((key) => ({ key, label: columnLabel(key) })),
           rows: rows.slice(0, MAX_CONNECTOR_ROWS_SHOWN).map((row) => Object.fromEntries(keys.map((key) => [key, cellOf(row[key])]))),
+          links: rows.slice(0, MAX_CONNECTOR_ROWS_SHOWN).map(matterLinkOf),
           nowrap: true,
         }}
       />

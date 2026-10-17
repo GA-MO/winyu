@@ -1,12 +1,22 @@
-import { dimFiltersSchema, DIMS, type Dim, type DimValues } from "@/lib/contracts";
+import { dimFiltersSchema, DIMS, getAlertsInputSchema, type Dim, type DimValues } from "@/lib/contracts";
 import { isTimeDim } from "@/lib/cards/rows";
 import { namesOf, resolveFilters, type Dictionary } from "@/lib/semantic/dictionary";
+import { filtersOfSlice } from "@/lib/semantic/resolved";
 import { loadDictionary } from "@/lib/server/master-data";
 import { shareSubject, shareTitle, withFocus, type SharedCard, type SharedRead } from "@/lib/share/card";
 
+const ALERTS_READ = "get_alerts";
+
+/** The filters a read asked for: an anomaly read names its slice as one value per dimension (`dims`), every other read as `filters`. */
+function askedFilters(read: SharedRead | undefined): unknown {
+  if (read?.tool !== ALERTS_READ) return read?.input.filters ?? {};
+  const parsed = getAlertsInputSchema.safeParse(read.input);
+  return parsed.success ? filtersOfSlice(parsed.data.dims ?? {}) : {};
+}
+
 /** The Thai names of the filters a read asked for (its words as the model wrote them, resolved through the dictionary); none when it asked for none or a word places nothing. */
 function askedNames(read: SharedRead | undefined, dictionary: Dictionary): DimValues {
-  const parsed = dimFiltersSchema.safeParse(read?.input.filters ?? {});
+  const parsed = dimFiltersSchema.safeParse(askedFilters(read));
   if (!parsed.success) return {};
   const resolved = resolveFilters(dictionary, parsed.data);
   return resolved.ok ? namesOf(dictionary, resolved.filters) : {};

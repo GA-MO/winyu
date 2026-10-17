@@ -121,4 +121,13 @@ describe("the figure the send approval shows for a card", () => {
     const [screen] = screenCardsEach([exchange("q1", "ยอดขายสัปดาห์นี้ตกจากสัปดาห์ก่อนใช่ไหม ทำไมตกอะ", [returned("g1", "explain_gap", args, answer)])], new Set(["explain_gap"]));
     expect(screen.cards[0]).toMatchObject({ title: "มูลค่าขายเข้า · รายภาค", hero: "248.1 ล้านบาท −9.3%" });
   });
+
+  test("an anomaly card leads with the alert it draws first, by place, metric and signed gap, not a bare title (AI-297)", async () => {
+    const args = { dims: { region: "northeast" }, status: "open" };
+    const ceo = findUser("u_thana");
+    if (!ceo) throw new Error("no u_thana");
+    const result = await runWithAccess(liveAccessFor(ceo), () => winyuTools().get_alerts.execute(args, { toolCallId: "a-hero" }));
+    const [screen] = screenCardsEach([exchange("q1", "อีสานมีอะไรผิดปกติ", [returned("a-hero", "get_alerts", args, result)])], new Set(["get_alerts"]));
+    expect(screen.cards[0]).toMatchObject({ title: "ความผิดปกติที่ต้องดู", hero: "อีสานรุ่งโรจน์ ค้าส่ง · ปริมาณขายเข้า −89%" });
+  });
 });

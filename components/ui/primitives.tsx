@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Children, type ReactNode } from "react";
 import { ArrowDownRight, ArrowUpRight, ChevronRight, Minus } from "lucide-react";
 import { cn } from "./cn";
@@ -237,6 +238,8 @@ export type TableProps = {
   columns?: TableColumn[] | null;
   rows?: Array<Record<string, string | number>> | null;
   nowrap?: boolean | null;
+  /** Where each row opens, by index: its first cell links there; a missing or null entry leaves the row plain. */
+  links?: Array<string | null> | null;
 };
 
 const columnToneClass = {
@@ -283,7 +286,7 @@ export function Table({ props }: { props: TableProps }) {
         <tbody>
           {rows.map((row, index) => (
             <tr key={index} className="border-t border-border/50 transition-colors first:border-t-0 hover:bg-muted/40">
-              {columns.map((column) => (
+              {columns.map((column, columnIndex) => (
                 <td
                   key={column.key}
                   className={cn(
@@ -293,7 +296,13 @@ export function Table({ props }: { props: TableProps }) {
                     cellClass(column, row[column.key] ?? ""),
                   )}
                 >
-                  {row[column.key] ?? ""}
+                  {columnIndex === 0 && props.links?.[index] ? (
+                    <Link href={props.links[index]} className="font-medium text-primary underline-offset-2 hover:underline">
+                      {row[column.key] ?? ""}
+                    </Link>
+                  ) : (
+                    (row[column.key] ?? "")
+                  )}
                 </td>
               ))}
             </tr>

@@ -1,9 +1,9 @@
 import type { z } from "zod";
 import { verifyStepsFor } from "@/lib/access/verify-steps";
 import { alertRowOf } from "@/lib/cards/alert-row";
-import { getAlertsInputSchema, type Dim } from "@/lib/contracts";
+import { getAlertsInputSchema, type AccessContext, type Alert, type Dim, type DimValues } from "@/lib/contracts";
 import { metricLabel } from "@/lib/dashboard/metric-display";
-import { namesOf, resolveFilters } from "@/lib/semantic/dictionary";
+import { namesOf, resolveFilters, type Dictionary } from "@/lib/semantic/dictionary";
 import { excludedIn, isExcluded } from "@/lib/semantic/exclusion";
 import { sliceCovers } from "@/lib/semantic/geo";
 import { filtersOfSlice } from "@/lib/semantic/resolved";
@@ -20,6 +20,17 @@ const NO_ALERTS = "ไม่พบความผิดปกติที่เ�
 const DEFAULT_ALERT_LIMIT = 10;
 const IN_SCOPE = "ในขอบเขตของคุณ";
 
+type AlertsInput = z.infer<typeof getAlertsInputSchema>;
+
+/** The alerts a get_alerts read shows this person, the one way the tool and a shared anomaly card read them: in their scope, open or all, on the asked metric's family and slice (`slice`, by id or Thai name), without what the question set aside, newest first and cut to the read's limit; with the slice it resolved to, or the word it could not place. */
+export function alertsShown(access: AccessContext, input: AlertsInput, slice: Partial<Record<Dim, string>>, dictionary: Dictionary, excluded: DimValues = {}): { ok: true; alerts: Alert[]; filters: DimValues } | { ok: false; dim: Dim; value: string } {
+  const resolved = resolveFilters(dictionary, filtersOfSlice(slice));
+  if (!resolved.ok) return resolved;
+  const inScope = input.status === "open" ? openAlertsFor(access) : allAlertsFor(access);
+  const found = inScope.filter((alert) => (!input.metric || sameMeasure(alert.metric, input.metric)) && sliceCovers(dictionary, resolved.filters, alert.dims) && !isExcluded(dictionary, excluded, alert.dims));
+  return { ok: true, alerts: found.slice(0, input.limit ?? DEFAULT_ALERT_LIMIT), filters: resolved.filters };
+}
+
 /** With no slice given, the one record the turn resolved by name ("อีสานรุ่งโรจน์ค้าส่ง เกิดอะไรขึ้น") is the slice: the alerts of a single-agent question are that agent's, not every alert in scope. Several records, or none, leave the alerts whole. */
 function subjectSlice(): Partial<Record<Dim, string>> {
   const subjects = turnSubjects();
@@ -35,15 +46,14 @@ export const getAlertsTool = defineTool({
   roles: "all",
   description: "Read the anomalies the detection engine raised for this user's scope, newest first, each with a hypothesis (a guess, not a finding) and the checks this user can run. Call it when the user asks what is wrong, what changed, or what needs attention. When the talk is about one metric or place (\"why did Ubon drop\"), pass metric and dims (region, province, agent and the like, by id or Thai name) so only the alerts on that slice come back. A sell-in metric finds the sell-in alerts in litres, baht or against target alike, each in its own unit.",
   input: getAlertsInputSchema,
-  execute: async ({ status, limit, metric, dims }: z.infer<typeof getAlertsInputSchema>) => {
+  execute: async (input: AlertsInput) => {
+    const { metric, dims } = input;
     const access = currentAccess();
     const dictionary = await loadDictionary();
-    const slice = resolveFilters(dictionary, filtersOfSlice(dims ?? subjectSlice()));
-    if (!slice.ok) return { ok: false as const, code: "BAD_QUERY", error: `ไม่รู้จักค่า "${slice.value}" ของมิติ ${slice.dim}` };
-    const inScope = status === "open" ? openAlertsFor(access) : allAlertsFor(access);
     const excluded = excludedIn(currentTurn().question, dictionary);
-    const found = inScope.filter((alert) => (!metric || sameMeasure(alert.metric, metric)) && sliceCovers(dictionary, slice.filters, alert.dims) && !isExcluded(dictionary, excluded, alert.dims));
-    const shown = found.slice(0, limit ?? DEFAULT_ALERT_LIMIT);
+    const slice = alertsShown(access, input, dims ?? subjectSlice(), dictionary, excluded);
+    if (!slice.ok) return { ok: false as const, code: "BAD_QUERY", error: `ไม่รู้จักค่า "${slice.value}" ของมิติ ${slice.dim}` };
+    const shown = slice.alerts;
     const rows = shown.map((alert) => ({ ...alertRowOf(alert, dictionary), verifySteps: verifyStepsFor(access, alert) }));
     if (rows.length === 0) return { ok: true as const, summary: NO_ALERTS, rows: [], lessons: [], nextActions: [] };
     const lessons = shown.flatMap((alert) => {

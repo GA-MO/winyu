@@ -1080,6 +1080,23 @@ function signalOf(alert: AlertRow, why: string | null): SignalItem {
   };
 }
 
+/** What one alert is about as its signal row names it: the place first in its scope ("อีสานรุ่งโรจน์ ค้าส่ง" of "อีสานรุ่งโรจน์ ค้าส่ง · สิงห์, ลีโอ · ภาคอีสาน"). */
+export function alertPlaceOf(alert: AlertRow): string {
+  return signalOf(alert, null).name;
+}
+
+/** One alert as a hero, read the way its signal row reads it: its place with its metric, the signed gap from what was expected (the observed level when it has none) in the alert's colour, and observed against expected. */
+export function alertHeroOf(alert: AlertRow): CardHero {
+  const signal = signalOf(alert, null);
+  const metric = alert.metricLabel.replace(PARENTHETICAL, "");
+  return { label: `${signal.name}${SCOPE_SEPARATOR}${metric}`, value: signal.gap ?? alert.observedLabel, unit: null, delta: null, trend: alert.direction, tone: signal.gapTone, detail: signal.numbers };
+}
+
+/** The alert an anomaly card leads with: the first that hurts, else the first. */
+export function leadingAlertOf(alerts: readonly AlertRow[]): AlertRow | null {
+  return alerts.find(hurts) ?? alerts[0] ?? null;
+}
+
 function hurts(alert: AlertRow): boolean {
   return toneOf(alert.metric, alert.direction === "down" ? -PERCENT : PERCENT) === "bad";
 }

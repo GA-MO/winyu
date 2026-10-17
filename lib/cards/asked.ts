@@ -46,8 +46,13 @@ export function rowPassagesIn(text: string, query: MetricQuery, rows: readonly M
 /** The labels (along the group dims) of the rows a question names, so a card can draw the row asked about with its value and change; empty when none is named, or when every row is, which singles nothing out. */
 export function rowsNamedIn(question: string | null, query: MetricQuery, rows: readonly MetricRow[]): string[] {
   const dims = groupDimsOf(query);
-  if (!question || dims.length === 0) return [];
-  const labels = [...new Set(rows.flatMap((row) => labelAlong(dims, row) ?? []))];
+  if (dims.length === 0) return [];
+  return labelsNamedIn(question, [...new Set(rows.flatMap((row) => labelAlong(dims, row) ?? []))]);
+}
+
+/** The labels of a card's rows (an anomaly list's places, a breakdown's groups) a text names, each by any of the ways `namesOf` allows; empty when none is named, or when every one of several is, which singles nothing out. */
+export function labelsNamedIn(question: string | null, labels: readonly string[]): string[] {
+  if (!question) return [];
   const prefix = sharedPrefixOf(labels);
   const text = squeezed(question);
   const named = labels.filter((label) => namesOf(label, labels, prefix).some((name) => text.includes(name)));

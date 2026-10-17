@@ -773,6 +773,7 @@ export const TH = {
     eachOfSome: (count: number, unit: string) => `ทั้ง ${count} ${unit}`,
     ofTarget: "ของเป้า",
     ofMonthTarget: "ของเป้าทั้งเดือน",
+    rowsTogether: (names: string) => `${names} รวมกัน`,
     base: { prev_period: "งวดก่อน", prev_year: "ปีก่อน" } as Partial<Record<string, string>>,
     ofPacedTarget: "ของเป้าตามเวลา",
     paceMark: (share: string) => `ถึงวันนี้ควรได้ ${share}`,

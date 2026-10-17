@@ -7,6 +7,7 @@ import { groupDimsOf, labelAlong } from "@/lib/cards/rows";
 import { TH } from "@/lib/i18n/th";
 import type { CardFocus, SharedCard } from "@/lib/share/card";
 import { rowContradictionOf, type RowFigure } from "@/lib/share/figures";
+import { alertFocusIn, cardAlerts } from "./alert-card";
 import { askedFigure, askedHero, cardAnswers } from "./goal";
 
 const PERCENT = 100;
@@ -44,9 +45,10 @@ function focusIn(answer: MetricAnswer, texts: readonly string[]): CardFocus | nu
   return { labels, hero: askedHero(answer, labels), figure: askedFigure(answer, labels), row, claim: claimAbout(texts, answer, row) };
 }
 
-/** What a send is about beyond the card's own filters: the rows the first of `words` that names any (the ask, then what the person typed, newest first) singles out, in the first of the card's metric reads that shows them (a paired card draws the region total and its agents), read again under the sender's access, with what any of those words claim about the one row; null when none names a row. No model call. */
+/** What a send is about beyond the card's own filters: the rows the first of `words` that names any (the ask, then what the person typed, newest first) singles out, in the first of the card's metric reads that shows them (a paired card draws the region total and its agents), else among the places its anomaly reads list (AI-291), read again under the sender's access, with what any of those words claim about the one row; null when none names a row. No model call. */
 export async function cardFocus(card: SharedCard, viewer: User, words: readonly (string | null | undefined)[]): Promise<CardFocus | null> {
   const texts = words.filter((text): text is string => Boolean(text?.trim()));
   const answers = (await cardAnswers(card, viewer)).filter((answer): answer is MetricAnswer => answer.ok);
-  return answers.map((answer) => focusIn(answer, texts)).find((focus) => focus !== null) ?? null;
+  const metricFocus = answers.map((answer) => focusIn(answer, texts)).find((focus) => focus !== null);
+  return metricFocus ?? alertFocusIn(await cardAlerts(card, viewer), texts);
 }

@@ -14,7 +14,7 @@ import { pendingStaffRequestsFor, type StaffRequest } from "@/lib/server/staff-r
 import { currentAccess } from "@/lib/server/request-context";
 import { briefOf } from "@/lib/server/share/act";
 import { cardHero } from "@/lib/server/share/goal";
-import { mattersWaitingOn } from "@/lib/server/share/shares";
+import { mattersWaitingOn, sharePath } from "@/lib/server/share/shares";
 import { matterSubject } from "@/lib/server/share/title";
 import { defineTool } from "./define";
 
@@ -44,7 +44,7 @@ function dueLabel(matter: Matter): string {
   return matter.due ? TH.share.dueBy(formatDateTh(matter.due)) : TH.share.urgency[matter.urgency];
 }
 
-/** A matter as the model reads it: what it is about and its headline figure for the viewer, so a reply can name the agent, brand or region and the number; when it is due; and where the viewer stands on it. */
+/** A matter as the model reads it: what it is about and its headline figure for the viewer, so a reply can name the agent, brand or region and the number; when it is due; where the viewer stands on it; and where it opens, so its row on the card links to the matter (AI-297). */
 async function matterItem(matter: Matter, viewer: User): Promise<WaitingItem> {
   const brief = briefOf(matter, viewer.id);
   const hop = holdingHop(matter);
@@ -61,6 +61,7 @@ async function matterItem(matter: Matter, viewer: User): Promise<WaitingItem> {
       due_label: dueLabel(matter),
       status_label: hop ? TH.matter.state[hop.state] : TH.waiting.yourCall,
       at_label: formatDateTh(brief.at),
+      path: sharePath(matter.id),
     },
   };
 }

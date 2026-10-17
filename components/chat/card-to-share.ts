@@ -1,12 +1,13 @@
 import { ASK_CONTRADICTS_CARD, CARD_MISSES_SUBJECT, cardRefOf, sharedComposedCard, sharedToolCard, shareTitle, type CardOnScreen, type ExchangeRead, type ScreenCards, type SharedCard } from "@/lib/share/card";
 import type { Exchange, ReplyStep, ToolStep } from "./timeline";
-import { presentCard, presentGap } from "@/lib/cards/present";
+import { alertHeroOf, leadingAlertOf, presentCard, presentGap } from "@/lib/cards/present";
 import { gapResult } from "@/components/cards/entity/shapes";
-import { metricAnswerOf, metricTitle, othersOf } from "@/lib/cards/tool-answers";
+import { alertsOf, metricAnswerOf, metricTitle, othersOf } from "@/lib/cards/tool-answers";
 import { cardPlanOf, composedCalls, drawsNoCard, isRefused, pairedResultsOf, wroteBlock, type CardPlan } from "./tool-view";
 
 const SEND_TOOL = "send_card";
 const GAP_TOOL = "explain_gap";
+const ALERTS_TOOL = "get_alerts";
 const SAID_KEPT = 2;
 
 /** Which card a send names: the one card it means, none on screen, several it could mean, or a ref no card on screen has. */
@@ -42,10 +43,19 @@ function gapHeroOf(result: unknown): string | null {
   return hero ? [hero.value, hero.unit, hero.delta].filter(Boolean).join(" ") : null;
 }
 
-/** The figure a card leads with, as the drawn card shows it: a metric card's hero from the same card plan (none when the card draws none), a why card's hero, else the result's headline. */
+/** An anomaly card's figure: the alert it leads with, by place, metric and signed gap ("อีสานรุ่งโรจน์ ค้าส่ง · ปริมาณขายเข้า −89%"), so its send names what and how much (AI-297). */
+function alertsHeroOf(result: unknown): string | null {
+  const leading = leadingAlertOf(alertsOf(result));
+  if (!leading) return null;
+  const hero = alertHeroOf(leading);
+  return `${hero.label} ${hero.value}`;
+}
+
+/** The figure a card leads with, as the drawn card shows it: a metric card's hero from the same card plan (none when the card draws none), a why card's hero, an anomaly card's leading alert, else the result's headline. */
 function heroOf(step: ReplyStep, plan: CardPlan, toolSteps: readonly ToolStep[]): string | null {
   if (step.kind !== "tool" || step.outcome.state !== "returned") return null;
   if (step.name === GAP_TOOL) return gapHeroOf(step.outcome.result);
+  if (step.name === ALERTS_TOOL) return alertsHeroOf(step.outcome.result);
   const answer = metricAnswerOf(step.outcome.result);
   if (answer) {
     const others = othersOf(pairedResultsOf(plan, toolSteps, step.toolCallId));

@@ -19,7 +19,9 @@ import { alerts } from "@/lib/server/agent/collections";
 import { recordMatterEvent } from "@/lib/server/audit";
 import { runMetric } from "@/lib/server/metrics";
 import { notify } from "@/lib/server/notify";
+import { alertCardHero } from "./alert-card";
 import { shares } from "./shares";
+import { togetherFigure } from "./together";
 
 const FULL_TARGET = 100;
 const METRIC_READ = "query_metric";
@@ -71,8 +73,10 @@ export async function cardFigures(card: SharedCard, viewer: User): Promise<CardF
   return figuresOf(await cardAnswer(card, viewer));
 }
 
-/** The hero a card draws for one answer with `labels` as the rows asked about, its change written with a minus sign. */
+/** The hero a card draws for one answer with `labels` as the rows asked about, its change written with a minus sign; several rows lead together on that same base (AI-303) where they add up. */
 export function askedFigure(answer: MetricAnswer, labels: readonly string[]): CardHero | null {
+  const together = labels.length > 1 ? togetherFigure(answer, labels) : null;
+  if (together) return together;
   const hero = presentCard({ title: "", query: answer.query, result: { ...answer, headline: { ...answer.headline, asked: [...labels] } } }).hero;
   return hero ? { ...hero, delta: hero.delta ? withMinusSign(hero.delta) : null } : null;
 }
@@ -83,13 +87,15 @@ export function askedHero(answer: MetricAnswer, labels: readonly string[]): stri
   return hero ? [hero.label, hero.value, hero.unit, hero.delta, hero.detail].filter(Boolean).join(" ") : null;
 }
 
-/** The card's headline figure for this person, as words a reply can quote: with rows the matter singles out, the hero the card leads with for them (the matter page draws the same); else the share of the whole month's target while the month runs, else its headline value; null when the card has no metric read or it no longer answers. */
+/** The card's headline figure for this person, as words a reply can quote: with rows the matter singles out, the hero the card leads with for them (the matter page draws the same); an anomaly card's leading alert, or the singled-out places' alerts (AI-297); else the share of the whole month's target while the month runs, else its headline value; null when the card has no metric or anomaly read or it no longer answers. */
 export async function cardHero(card: SharedCard, viewer: User, focus: readonly string[] = []): Promise<string | null> {
   if (focus.length > 0) {
     const answers = (await cardAnswers(card, viewer)).filter((answer): answer is MetricAnswer => answer.ok);
     const showing = answers.find((answer) => showsRows(answer, focus));
     if (showing) return askedHero(showing, focus);
   }
+  const alerted = await alertCardHero(card, viewer, focus);
+  if (alerted) return alerted;
   const input = firstMetricInput(card);
   const answer = input ? await answerOf(input, viewer) : null;
   if (!answer?.ok) return null;
