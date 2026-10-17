@@ -6,6 +6,7 @@ const FOLLOW_SLACK_PX = 120;
 const ANCHOR_GAP_PX = 16;
 const PAST_ANCHOR_PX = 8;
 const EXCHANGE_SELECTOR = "[data-exchange]";
+const WAITING_SELECTOR = "[data-approval-waiting]";
 
 /** Where a scroll container stands: its scroll offset, the height of what it holds, and the height it shows. */
 export type ScrollView = { top: number; height: number; viewport: number };
@@ -34,10 +35,11 @@ function viewOf(node: HTMLElement): ScrollView {
   return { top: node.scrollTop, height: node.scrollHeight, viewport: node.clientHeight };
 }
 
+/** Where the newest exchange starts, the point a tall reply is read from; none while it ends in an approval still waiting, since the decision at its end is what the person must reach. */
 function latestTopOf(node: HTMLElement): number | null {
   const exchanges = node.querySelectorAll<HTMLElement>(EXCHANGE_SELECTOR);
   const latest = exchanges[exchanges.length - 1];
-  if (!latest) return null;
+  if (!latest || latest.querySelector(WAITING_SELECTOR)) return null;
   return latest.getBoundingClientRect().top - node.getBoundingClientRect().top + node.scrollTop;
 }
 

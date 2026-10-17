@@ -27,6 +27,18 @@ export function useRunAction(): (action: CardAction) => void {
   return useContext(CardActionsContext).runAction;
 }
 
+const SendingContext = createContext(false);
+
+/** Marks the cards of an exchange whose reply already raises a send, so none offers a send of its own beside that approval. */
+export function SendingProvider({ sending, children }: { sending: boolean; children: ReactNode }) {
+  return <SendingContext.Provider value={sending}>{children}</SendingContext.Provider>;
+}
+
+/** Whether the reply around this card already raises a send. */
+export function useSending(): boolean {
+  return useContext(SendingContext);
+}
+
 /** A row press: ask the chat this question. */
 export function askAction(prompt: string): AskAction {
   return { id: `ask-${prompt}`, kind: "ask", label: prompt, prompt };

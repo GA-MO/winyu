@@ -160,7 +160,7 @@ export const TH = {
   chat: {
     emptyTitle: "เริ่มต้นคุยกับ Winyu",
     emptyDescription: "ถามเป็นภาษาไทยได้เลย ระบบจะตอบพร้อมกราฟและตาราง",
-    send: "ส่ง",
+    send: "ส่งข้อความ",
     stop: "หยุด",
     unanswered: "รอบนี้ตอบไม่สำเร็จ ลองถามใหม่อีกครั้ง",
     carouselHint: "ปัดหรือลากเพื่อดูต่อ",

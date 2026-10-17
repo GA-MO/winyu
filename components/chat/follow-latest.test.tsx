@@ -26,20 +26,22 @@ afterEach(() => {
   globalThis.ResizeObserver = RealResizeObserver;
 });
 
-function Chat({ ids }: { ids: string[] }) {
+function Chat({ ids, waiting = [] }: { ids: string[]; waiting?: string[] }) {
   const { scroller, content, onScroll } = useFollowLatest(ids[ids.length - 1] ?? null);
   return (
     <div ref={scroller} onScroll={onScroll} data-scroller>
       <div ref={content}>
         {ids.map((id) => (
-          <article key={id} data-exchange={id} />
+          <article key={id} data-exchange={id}>
+            {waiting.includes(id) ? <section data-approval-waiting /> : null}
+          </article>
         ))}
       </div>
     </div>
   );
 }
 
-type Mounted = { scroller: HTMLElement; layout: Layout; show: (ids: string[]) => Promise<void>; scrollTo: (top: number) => Promise<void>; grow: (height: number) => Promise<void>; unmount: () => Promise<void> };
+type Mounted = { scroller: HTMLElement; layout: Layout; show: (ids: string[], waiting?: string[]) => Promise<void>; scrollTo: (top: number) => Promise<void>; grow: (height: number) => Promise<void>; unmount: () => Promise<void> };
 
 const realRect = HTMLElement.prototype.getBoundingClientRect;
 
@@ -67,7 +69,7 @@ async function mount(layout: Layout): Promise<Mounted> {
   return {
     scroller,
     layout,
-    show: async (ids) => act(async () => root.render(<Chat ids={ids} />)),
+    show: async (ids, waiting) => act(async () => root.render(<Chat ids={ids} waiting={waiting} />)),
     scrollTo: async (top) => {
       scroller.scrollTop = top;
       await act(async () => scroller.dispatchEvent(new Event("scroll", { bubbles: true })));
@@ -128,6 +130,14 @@ describe("the chat as it grows", () => {
     await chat.grow(2600);
     await chat.grow(3200);
     expect(chat.scroller.scrollTop).toBe(2400);
+    await chat.unmount();
+  });
+
+  test("a reply taller than the screen that ends in an approval still waiting rests at the bottom, so its buttons clear the composer (AI-256)", async () => {
+    const chat = await mount({ height: 1500, tops: { a: 64, b: 1200 } });
+    await chat.show(["a", "b"], ["b"]);
+    await chat.grow(2600);
+    expect(chat.scroller.scrollTop).toBe(1800);
     await chat.unmount();
   });
 

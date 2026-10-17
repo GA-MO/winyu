@@ -10,7 +10,7 @@ import type { CardHero, CardParts } from "@/lib/cards/present";
 import type { CardFooter, Tile } from "@/lib/cards/reading";
 import type { Tone } from "@/lib/dashboard/metric-display";
 import { TH } from "@/lib/i18n/th";
-import { useRunAction } from "./card-actions";
+import { useRunAction, useSending } from "./card-actions";
 import { CardBodyView } from "./charts/card-body";
 import { ChangeChip } from "./charts/strip";
 
@@ -85,11 +85,13 @@ function Tiles({ hero, tiles }: { hero: CardHero; tiles: Tile[] }) {
   );
 }
 
-/** One primary next step as a button; the others behind a small ⋯ that opens them in place, reachable by keyboard and touch. */
-function Actions({ primary, more }: { primary: NextAction | null; more: NextAction[] }) {
+/** One primary next step as a button; the others behind a small ⋯ that opens them in place, reachable by keyboard and touch; no send while the reply around the card already raises one. */
+function Actions({ actions }: { actions: NextAction[] }) {
   const run = useRunAction();
+  const sending = useSending();
   const [open, setOpen] = useState(false);
   const id = useId();
+  const [primary, ...more] = sending ? actions.filter((action) => action.kind !== "send") : actions;
   if (!primary) return null;
   const closeOnEscape = (event: KeyboardEvent) => {
     if (event.key === "Escape") setOpen(false);
@@ -165,7 +167,7 @@ export function CardPartsView({ parts }: { parts: CardParts }) {
       <CardShareProvider value={null}>
         {parts.denied ? <Alert props={{ title: parts.denied.title, body: parts.denied.body, tone: "warning", meta: null }} /> : null}
         <Face parts={parts} />
-        <Actions primary={parts.primary} more={parts.more} />
+        <Actions actions={parts.primary ? [parts.primary, ...parts.more] : []} />
       </CardShareProvider>
       <Footer footer={parts.footer} />
     </Shell>

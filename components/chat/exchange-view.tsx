@@ -3,6 +3,7 @@
 import { Component, type ReactNode } from "react";
 import { AlertCircle, CircleSlash, MousePointerClick, ShieldCheck } from "lucide-react";
 import { renderApproval } from "@/components/cards/approval-card";
+import { SendingProvider } from "@/components/cards/card-actions";
 import { ShareChrome } from "@/components/share/share-sheet";
 import { describeToolCall } from "@/lib/cards/describe-call";
 import { TOOL_CARDS, type ToolCard } from "@/components/cards/registry";
@@ -13,7 +14,7 @@ import { ActionTrail } from "./action-trail";
 import { ComposedCardView } from "./composed-card";
 import { Markdown } from "./markdown";
 import type { Exchange, Question, ReplyStep, ToolStep } from "./timeline";
-import { cardPlanOf, composedCalls, isRefused, pairedResultsOf, toolViewOf, wroteBlock, type CardPlan } from "./tool-view";
+import { cardPlanOf, composedCalls, isDeclined, isRefused, pairedResultsOf, toolViewOf, wroteBlock, type CardPlan } from "./tool-view";
 import { withRequestedCourses } from "./requested-courses";
 import { trailOf } from "./trail";
 import { pressedText } from "./pressed";
@@ -21,6 +22,7 @@ import type { PendingApproval } from "./use-chat-session";
 
 const CARDS: Record<string, ToolCard> = TOOL_CARDS;
 const CARD_TOOLS: ReadonlySet<string> = new Set(Object.keys(CARDS));
+const SEND_TOOL = "send_card";
 /** What one exchange needs from the live chat: whether it is the newest, whether a reply streams, the approvals asked and answered, how it ended, the course seats the conversation has requested since, the cards on screen when a send was asked here (the ones a send_card call names), the Thai tool labels its trail names connector calls by, and how long its runs took when this tab saw them. */
 export type ExchangeLive = {
   isLast: boolean;
@@ -192,6 +194,11 @@ function stepsWithApprovals(exchange: Exchange, asked: readonly PendingApproval[
   return steps;
 }
 
+/** Whether the reply raises a send the person has not turned down: waiting, approved or sent. */
+function raisesSend(steps: readonly ReplyStep[], live: ExchangeLive): boolean {
+  return steps.some((step) => step.kind === "tool" && step.name === SEND_TOOL && live.decisions[step.toolCallId] !== false && !(step.outcome.state === "returned" && isDeclined(step.outcome.result)));
+}
+
 function askedText(question: Question | null): string | null {
   if (!question) return null;
   return question.kind === "typed" ? question.text : pressedText(question);
@@ -208,9 +215,11 @@ export function ExchangeView({ exchange, live }: { exchange: Exchange; live: Exc
     <article data-exchange={exchange.id} className="flex flex-col gap-4">
       {exchange.question ? <UserBubble question={exchange.question} /> : null}
       <ActionTrail trail={trailOf(steps, streaming, live.toolLabels)} streaming={streaming} durationMs={live.durationMs} />
-      {steps.map((step) => (
-        <StepView key={step.kind === "tool" ? step.toolCallId : `${step.kind}-${step.id}`} step={step} toolSteps={toolSteps} live={live} plan={plan} streaming={streaming} sharing={sharing} asked={askedText(exchange.question)} />
-      ))}
+      <SendingProvider sending={raisesSend(steps, live)}>
+        {steps.map((step) => (
+          <StepView key={step.kind === "tool" ? step.toolCallId : `${step.kind}-${step.id}`} step={step} toolSteps={toolSteps} live={live} plan={plan} streaming={streaming} sharing={sharing} asked={askedText(exchange.question)} />
+        ))}
+      </SendingProvider>
       <Ending exchange={exchange} live={live} />
     </article>
   );

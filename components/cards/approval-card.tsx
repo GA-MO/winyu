@@ -71,6 +71,7 @@ type Decision = {
   due?: string | null;
   effect: string;
   confirm: string;
+  confirmLabel?: string;
   cancel: string;
   done: string;
   extra?: ReactNode;
@@ -486,6 +487,7 @@ function sendDecision(plan: SendPlan, scopes: readonly RecipientScope[], contact
     due: plan.intent === "act" ? plan.due : null,
     effect: TH.approve.effectSend(names, plan.intent),
     confirm: TH.approve.confirmSend,
+    confirmLabel: TH.approve.sendDone(names),
     cancel: TH.approve.cancelSend,
     done: TH.approve.doneSend(names),
     extra: <SendSheet plan={plan} scopes={scopes} />,
@@ -554,14 +556,14 @@ function Receipt({ decision, approved }: { decision: Decision; approved: boolean
 function DecisionCard({ decision, request }: { decision: Decision; request: ApprovalRequest }) {
   const Icon = decision.icon;
   return (
-    <section className="w-full overflow-hidden rounded-2xl border border-border bg-card shadow-lift animate-hero-rise">
+    <section className="w-full overflow-hidden rounded-2xl border border-border bg-card shadow-lift animate-hero-rise" data-approval-waiting>
       <header className="flex items-start gap-3 border-b border-border bg-muted/40 px-4 py-3.5">
         <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-ink text-ink-foreground">
           <Icon className="size-4" aria-hidden />
         </span>
         <div className="min-w-0 flex-1">
           <p className="text-[11px] font-medium tracking-wide text-muted-foreground">{TH.approve.waiting}</p>
-          <h3 className="truncate text-[15px] font-semibold tracking-tight">{decision.title}</h3>
+          <h3 className="text-[15px] font-semibold tracking-tight text-balance wrap-anywhere">{decision.title}</h3>
           {decision.person ? <p className="truncate text-xs text-muted-foreground">{decision.person}</p> : null}
         </div>
         {decision.urgency ? (
@@ -611,7 +613,7 @@ function DecisionCard({ decision, request }: { decision: Decision; request: Appr
             {decision.cancel}
           </button>
           {decision.blocked ? null : (
-            <button type="button" className={CONFIRM} onClick={request.approve}>
+            <button type="button" className={CONFIRM} onClick={request.approve} aria-label={decision.confirmLabel}>
               <Check className="size-4" aria-hidden />
               {decision.confirm}
             </button>

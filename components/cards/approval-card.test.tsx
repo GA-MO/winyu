@@ -30,7 +30,7 @@ function offersSend(host: HTMLElement): boolean {
 
 async function drawnSend(input: unknown, overrides: Partial<ApprovalRequest>, preview: SendPreview = NO_PREVIEW): Promise<HTMLElement> {
   const spy = spyOn(globalThis, "fetch").mockImplementation((async (url: string) => {
-    if (url.endsWith("/contacts")) return Response.json({ contacts: [contactOf("u_anucha"), contactOf("u_krit")], mayGrant: false });
+    if (url.endsWith("/contacts")) return Response.json({ contacts: [contactOf("u_anucha"), contactOf("u_krit"), contactOf("u_saranya")], mayGrant: false });
     if (url.endsWith("/preview")) return Response.json(preview);
     return Response.json({ scopes: [] });
   }) as unknown as typeof fetch);
@@ -60,6 +60,18 @@ describe("the approval card", () => {
     expect(host.querySelector("[data-send-intent]")?.getAttribute("data-send-intent")).toBe("act");
     expect(offersSend(host)).toBe(true);
     expect(host.textContent).not.toContain("send_card");
+  });
+
+  test("the send approval names its recipient in full beside the deadline, and its ส่ง reads apart from the composer's (AI-252, AI-256)", async () => {
+    const name = findUser("u_saranya")?.nameTh ?? "missing";
+    const host = await drawnSend({ to: ["u_saranya"], urgency: "today" }, { onScreen: ONE_CARD, question: "ส่งเรื่องนี้ให้ผู้จัดการขายภาคใต้ ขอภายในศุกร์นี้" });
+    const heading = host.querySelector("h3");
+    expect(heading?.textContent).toBe(TH.approve.sendDone(name));
+    expect(heading?.className.split(" ")).not.toContain("truncate");
+    const confirm = [...host.querySelectorAll("button")].find((button) => button.textContent === TH.approve.confirmSend);
+    expect(confirm?.getAttribute("aria-label")).toBe(TH.approve.sendDone(name));
+    expect(TH.chat.send).toBe("ส่งข้อความ");
+    expect(host.querySelector("[data-approval-waiting]")).not.toBeNull();
   });
 
   test("the model's 'now' without the person saying urgent goes out as today", async () => {
