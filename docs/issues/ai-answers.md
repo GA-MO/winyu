@@ -3491,7 +3491,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 | AI-286 (เดิม AI-231) | ต่ำ | แก้แล้ว `843038f` · นอกเส้นทางเดโม | The rep's month-total card prefills a send ask that lists all 4 agent names |
 | AI-287 | ต่ำ | เปิด (ใหม่) · นอกเส้นทางเดโม | A no-sale-days question gets a holiday card whose hero is วันพ่อแห่งชาติ |
 | AI-288 | ต่ำ | แก้แล้ว `8053010` · นอกเส้นทางเดโม | The admin usage tab shows the repository path 'docs/pilot.md' to users |
-| AI-289 | กลาง | เปิด (ใหม่) | A reply named the RSM "คุณอนุชา วงศ์สุวรรณ"; the real surname is พรหมศรี and appears in no tool result of the turn |
+| AI-289 | กลาง | แก้แล้ว `90c0bb5` | A reply named the RSM "คุณอนุชา วงศ์สุวรรณ"; the real surname is พรหมศรี and appears in no tool result of the turn |
 | AI-290 | กลาง | เปิด (ใหม่) | The CEO's send after ถามต่อ took 43.0 s: the first send_card picked the anomaly card and got CARD_MISSES_SUBJECT, and resolve_owner's step took 17.5 s |
 
 ### AI-265. Asked to send to the Isan regional sales manager, the CEO's chat send goes to a Khon Kaen sales rep, with a false reason
@@ -3764,7 +3764,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-289. A reply invents a colleague's surname
 
-- **สถานะ:** เปิด (ใหม่)
+- **สถานะ:** แก้แล้ว `90c0bb5` · คำตอบที่เขียนชื่อต้นของเพื่อนร่วมงานตามด้วยนามสกุลที่ไม่มีในรายชื่อ (เช่น คุณอนุชา วงศ์สุวรรณ) ถูกแก้เป็นชื่อในรายชื่อพนักงานระหว่างสตรีมและบันทึกเป็น finding ใน trace และ audit ส่วนรายการการ์ดบนจอกับเรื่องที่สืบไว้บอกชื่อเต็มของผู้รับ
 - **ระดับ:** กลาง · **หมวด:** `grounding` · **บทบาท:** u_thana (CEO) ถามต่อ
 - **อาการ:** Seen by package L2 on the real model: the reply named the RSM "คุณอนุชา วงศ์สุวรรณ"; the directory name is คุณอนุชา พรหมศรี, and that surname is in no tool result of the turn.
 - **ที่ควรเป็น:** People are named only as a tool result or the directory names them; with no tool naming the person, the role is used.
@@ -3790,30 +3790,30 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 | ข้อ | ระดับ | สถานะ | ปัญหา |
 |---|---|---|---|
-| AI-291 (เดิม AI-290) | กลาง | ยังเสีย | Chat send after ถามต่อ takes 42.9 s because the first send_card is refused: the subject check cannot read an anomaly card |
-| AI-292 (เดิม AI-290 (same refused first send)) | กลาง | เปิด (ใหม่) | A red 'ไม่ได้ส่งการ์ด' block above the CEO's approval shows internal card ids and a false claim |
+| AI-291 (เดิม AI-290) | กลาง | แก้แล้ว `dd945ae` | Chat send after ถามต่อ takes 42.9 s because the first send_card is refused: the subject check cannot read an anomaly card |
+| AI-292 (เดิม AI-290 (same refused first send)) | กลาง | แก้แล้ว `151fe6e` | A red 'ไม่ได้ส่งการ์ด' block above the CEO's approval shows internal card ids and a false claim |
 | AI-293 (เดิม AI-236 (also AI-266)) | กลาง | แก้แล้ว `26a7b48` | CEO month-close question with a region breakdown shows the to-date pace card (83.9%) first and the month-end card (96.3%) second |
 | AI-294 (เดิม card-fit R4) | กลาง | แก้แล้ว `26a7b48` | The rep's 'which agent dropped most' card leads with a green +16.1% total |
 | AI-295 (เดิม AI-272) | กลาง | แก้แล้ว `26a7b48` | One reply gives two drop figures for the same store (−89% at 1,785 L/day and −65.9% at 8,951 L/day) and does not explain the difference |
 | AI-296 (เดิม card-fit worst example rsm-own-region) | กลาง | แก้แล้ว `26a7b48` | The rep's explain_gap card for one store does not name the store |
-| AI-297 (เดิม AI-267 / AI-273) | ต่ำ | เปิด (ใหม่) | A sent anomaly card is titled only 'ความผิดปกติที่ต้องดู' and shows no store or figure on the approval, share, bell, matter or inbox row |
-| AI-298 (เดิม AI-281) | ต่ำ | ยังเสีย | After ถามต่อ the reply still offers to send 'เรื่องนี้' to คุณอนุชา, who already holds it |
+| AI-297 (เดิม AI-267 / AI-273) | ต่ำ | แก้แล้ว `dd945ae` | A sent anomaly card is titled only 'ความผิดปกติที่ต้องดู' and shows no store or figure on the approval, share, bell, matter or inbox row |
+| AI-298 (เดิม AI-281) | ต่ำ | แก้แล้ว `86490b8` | After ถามต่อ the reply still offers to send 'เรื่องนี้' to คุณอนุชา, who already holds it |
 | AI-299 (เดิม AI-282) | ต่ำ | แก้แล้ว (เอกสาร) · รอเดินยืนยันรอบ 10 | The run sheet does not match the screen: card title, pace-line position, all rows red, IT data date, activity scroll |
 | AI-300 (เดิม AI-284) | ต่ำ | แก้แล้ว (เอกสาร) · รอเดินยืนยันรอบ 10 | Chat-option timings exceed the run sheet: ถามต่อ took 31.6 s (sheet 20–30) and the typed send took 42.9 s (sheet 20–35) |
 | AI-301 (เดิม AI-274) | ต่ำ | แก้แล้ว `26a7b48` | The gap strip folds a single part into 'อีก 1 รายการ' when offsetting parts exist |
 | AI-302 (เดิม AI-222 / AI-185) | ต่ำ | แก้แล้ว `26a7b48` | The gap card verdict names a to-date part amount after a month-end judgement, so the headline mixes bases |
-| AI-303 (เดิม AI-283) | ต่ำ | เปิด (ใหม่) | The chat send approval names two agents but shows the all-agent 77.3% as its hero |
+| AI-303 (เดิม AI-283) | ต่ำ | แก้แล้ว `dd945ae` | The chat send approval names two agents but shows the all-agent 77.3% as its hero |
 | AI-304 | ต่ำ | แก้แล้ว `26a7b48` | The year-against-target chart stops at October while the tiles and footer run to 26 พ.ย. |
 | AI-305 | ต่ำ | แก้แล้ว `26a7b48` | The week-why hero sub-line 'ยอดจริง · สัปดาห์ก่อน (…) 273.6 ล้านบาท' reads as if 273.6 were this week's actual |
 | AI-306 (เดิม AI-266 (wrap noted there)) | ต่ำ | แก้แล้ว `26a7b48` | Money tiles wrap 'ล้าน / บาท' onto a second line at phone width |
 | AI-307 (เดิม AI-276) | ต่ำ | แก้แล้ว `26a7b48` | IT spend card: the top two tie at $0.13 but only one is named, and the rows sum to $0.48 against a $0.47 total |
 | AI-308 (เดิม AI-271) | ต่ำ | แก้แล้ว `26a7b48` | The IT card for 'would the rep see the south' spends 18 rows on unrelated hidden metrics and tools |
 | AI-309 | ต่ำ | แก้แล้ว `26a7b48` | The chat rail drawer shows open over the chat at phone width |
-| AI-310 (เดิม AI-265 (same root)) | ต่ำ | เปิด (ใหม่) · นอกเส้นทางเดโม | resolve_owner returns the asking RSM himself when he asks for the store's sales rep |
+| AI-310 (เดิม AI-265 (same root)) | ต่ำ | แก้แล้ว `7555bdd` | resolve_owner returns the asking RSM himself when he asks for the store's sales rep |
 
 ### AI-291. Chat send after ถามต่อ takes 42.9 s because the first send_card is refused: the subject check cannot read an anomaly card
 
-- **สถานะ:** ยังเสีย · เดิม AI-290
+- **สถานะ:** แก้แล้ว `dd945ae` · ชั้นแชร์อ่านการ์ดความผิดปกติด้วย การ์ดความผิดปกติที่มีเอเย่นต์ที่ขอส่งจึงผ่านการตรวจหัวเรื่องตั้งแต่ครั้งแรก บน production build ส่งหลังถามต่อ 2 รอบใช้ 24.7 และ 22.9 วินาที ไม่มีการปฏิเสธ · เดิม AI-290
 - **ระดับ:** กลาง · **หมวด:** `latency` · **บทบาท:** u_thana (CEO), chain alt-2/3
 - **อาการ:** Run f766d322 took 42.9 s. resolve_owner took 15 s. The first send_card (cardRef c13rzz5r, the anomaly list) was refused with CARD_MISSES_SUBJECT, saying the card lacks อีสานรุ่งโรจน์ ค้าส่ง and อุบลศรีสุข เทรดดิ้ง. The get_alerts result from the same turn lists both agents as rows 1 and 2. The retry with csutimq raised the approval at 03:38:26. The run sheet allows 20 to 35 s.
 - **ที่ควรเป็น:** Under 40 s and inside the sheet's 20 to 35 s. An anomaly card that lists the named agents passes the subject check.
@@ -3825,7 +3825,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-292. A red 'ไม่ได้ส่งการ์ด' block above the CEO's approval shows internal card ids and a false claim
 
-- **สถานะ:** เปิด (ใหม่) · เดิม AI-290 (same refused first send)
+- **สถานะ:** แก้แล้ว `151fe6e` · รหัสที่ send_card ปฏิเสธทุกตัวมีประโยคไทยสำหรับคน ไม่มี ref การ์ด และครั้งที่ถูกปฏิเสธหายไปทันทีที่โมเดลเรียกใหม่ ทั้งระหว่างรออนุมัติ หลังส่ง และหลังกดยังไม่ส่ง · เดิม AI-290 (same refused first send)
 - **ระดับ:** กลาง · **หมวด:** `wording` · **บทบาท:** u_thana (CEO), chain alt-3, presenter
 - **อาการ:** Above the approval the CEO sees the validator's text for the model: 'การ์ด «ความผิดปกติที่ต้องดู» ไม่มี อีสานรุ่งโรจน์ ค้าส่ง, อุบลศรีสุข เทรดดิ้ง · … csutimq «…» · c5spkig «…»'. It names internal refs, and the claim is false because the anomaly card on the same screen lists both agents. The block stays until the approval is decided. The run sheet does not mention it.
 - **ที่ควรเป็น:** A refusal written for the model is either hidden from the person or mapped to a Thai line for them. A retry that succeeds hides the failed attempt.
@@ -3880,7 +3880,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-297. A sent anomaly card is titled only 'ความผิดปกติที่ต้องดู' and shows no store or figure on the approval, share, bell, matter or inbox row
 
-- **สถานะ:** เปิด (ใหม่) · เดิม AI-267 / AI-273
+- **สถานะ:** แก้แล้ว `dd945ae` · การ์ดความผิดปกติที่ส่งมีชื่อตามพื้นที่ที่ถาม (ความผิดปกติที่ต้องดู · อีสานรุ่งโรจน์ ค้าส่ง) ตัวเลขนำจาก alert (อีสานรุ่งโรจน์ ค้าส่ง · ปริมาณขายเข้า −89%) บนการอนุมัติและ Inbox และแถวใน Inbox กดเปิดเรื่องได้ · เดิม AI-267 / AI-273
 - **ระดับ:** ต่ำ · **หมวด:** `write-flow` · **บทบาท:** u_anucha (RSM) send; u_krit (rep) inbox turn
 - **อาการ:** Share 77wd11SpRUjK (get_alerts filtered to อีสานรุ่งโรจน์ ค้าส่ง) is titled generically everywhere and has no headline. The inbox row has subject and hero null, so the rep's reply states the task but not the −89%. The inbox row also has no link to the matter.
 - **ที่ควรเป็น:** A title and hero taken from the alert, such as 'อีสานรุ่งโรจน์ ค้าส่ง · ปริมาณขายเข้า −89%', and an inbox row that opens the matter.
@@ -3892,7 +3892,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-298. After ถามต่อ the reply still offers to send 'เรื่องนี้' to คุณอนุชา, who already holds it
 
-- **สถานะ:** ยังเสีย · เดิม AI-281
+- **สถานะ:** แก้แล้ว `86490b8` · รายการการ์ดบนจอและเรื่องที่สืบไว้บอกโมเดลว่าการ์ดใบไหนส่งให้ใครแล้วด้วยชื่อเต็ม แทนกฎในพรอมต์ บน production build คำตอบหลังถามต่อ 2 รอบไม่เสนอส่งให้คุณอนุชาอีก · เดิม AI-281
 - **ระดับ:** ต่ำ · **หมวด:** `write-flow` · **บทบาท:** u_thana (CEO), chain alt-1
 - **อาการ:** The card button part is fixed: it shows 'ส่งแล้ว'. The reply text still ends 'ต้องการให้ส่งเรื่องนี้ให้คุณอนุชาเลยหรือไม่', and the anomaly card offers 'ส่งให้คุณอนุชา'.
 - **ที่ควรเป็น:** The reply does not offer a card the recipient already holds (rule abf8803).
@@ -3946,7 +3946,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-303. The chat send approval names two agents but shows the all-agent 77.3% as its hero
 
-- **สถานะ:** เปิด (ใหม่) · เดิม AI-283
+- **สถานะ:** แก้แล้ว `dd945ae` · การอนุมัติที่ระบุสองเอเย่นต์นำด้วยตัวเลขรวมของสองเอเย่นต์บนฐานเป้าทั้งเดือน (52.1% ของเป้าทั้งเดือน) แทน 77.3% ของทุกเอเย่นต์ · เดิม AI-283
 - **ระดับ:** ต่ำ · **หมวด:** `card-fit` · **บทบาท:** u_thana (CEO), chain alt-3
 - **อาการ:** The title names อีสานรุ่งโรจน์ ค้าส่ง and อุบลศรีสุข เทรดดิ้ง, but the hero is '77.3% ของเป้าทั้งเดือน · รวมทุกเอเย่นต์'. The two agents together are at about 52%.
 - **ที่ควรเป็น:** Lead with the singled-out rows on the month base, or leave them out of the title.
@@ -4022,7 +4022,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-310. resolve_owner returns the asking RSM himself when he asks for the store's sales rep
 
-- **สถานะ:** เปิด (ใหม่) · เดิม AI-265 (same root) · นอกเส้นทางเดโม
+- **สถานะ:** แก้แล้ว `7555bdd` · resolve_owner ไม่ตอบคนที่ถามเอง: ถามถึงเอเย่นต์ได้ผู้แทนขายที่ดูแลเอเย่นต์นั้น ไม่มีเอเย่นต์ได้หัวหน้าของคนที่ถาม · เดิม AI-265 (same root) · นอกเส้นทางเดโม
 - **ระดับ:** ต่ำ · **หมวด:** `tool-routing` · **บทบาท:** u_anucha (RSM) probe
 - **อาการ:** resolve_owner at agent level returned u_anucha. The model recovered with describe_entity (คุณกฤต) at the cost of one extra 3.3 s step. The send was correct.
 - **ที่ควรเป็น:** Owner lookup never returns the asker, and an agent filter resolves to the agent's rep.
