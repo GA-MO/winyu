@@ -3491,6 +3491,8 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 | AI-286 (เดิม AI-231) | ต่ำ | แก้แล้ว `843038f` · นอกเส้นทางเดโม | The rep's month-total card prefills a send ask that lists all 4 agent names |
 | AI-287 | ต่ำ | เปิด (ใหม่) · นอกเส้นทางเดโม | A no-sale-days question gets a holiday card whose hero is วันพ่อแห่งชาติ |
 | AI-288 | ต่ำ | แก้แล้ว `8053010` · นอกเส้นทางเดโม | The admin usage tab shows the repository path 'docs/pilot.md' to users |
+| AI-289 | กลาง | เปิด (ใหม่) | A reply named the RSM "คุณอนุชา วงศ์สุวรรณ"; the real surname is พรหมศรี and appears in no tool result of the turn |
+| AI-290 | กลาง | เปิด (ใหม่) | The CEO's send after ถามต่อ took 43.0 s: the first send_card picked the anomaly card and got CARD_MISSES_SUBJECT, and resolve_owner's step took 17.5 s |
 
 ### AI-265. Asked to send to the Isan regional sales manager, the CEO's chat send goes to a Khon Kaen sales rep, with a false reason
 
@@ -3759,3 +3761,23 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 - **หลักฐาน:**
 	- r8-runs/it/console-usage.png
 - **สาเหตุ:** verified: lib/i18n/th.ts:1326.
+
+### AI-289. A reply invents a colleague's surname
+
+- **สถานะ:** เปิด (ใหม่)
+- **ระดับ:** กลาง · **หมวด:** `grounding` · **บทบาท:** u_thana (CEO) ถามต่อ
+- **อาการ:** Seen by package L2 on the real model: the reply named the RSM "คุณอนุชา วงศ์สุวรรณ"; the directory name is คุณอนุชา พรหมศรี, and that surname is in no tool result of the turn.
+- **ที่ควรเป็น:** People are named only as a tool result or the directory names them; with no tool naming the person, the role is used.
+- **หลักฐาน:**
+	- /private/tmp/claude-501/-Users-sbpdigital-Development-Cop/9cb96cb6-db79-40fc-93ee-aea9b1847cf8/scratchpad/l2-bench.jsonl (ceo-askmore-overdue)
+- **สาเหตุ:** guess: no check grounds person names in the reply text; the prompt names roles, not people.
+
+### AI-290. The CEO's chat send after ถามต่อ takes 43 s
+
+- **สถานะ:** เปิด (ใหม่)
+- **ระดับ:** กลาง · **หมวด:** `latency` · **บทบาท:** u_thana (CEO)
+- **อาการ:** Seen by package L2: step 1 (resolve_owner) 17.5 s; the first send_card attached the anomaly card and got CARD_MISSES_SUBJECT; the retry cost 16.4 s.
+- **ที่ควรเป็น:** Under 40 s; the send picks the card about the story's subject the first time.
+- **หลักฐาน:**
+	- /private/tmp/claude-501/-Users-sbpdigital-Development-Cop/9cb96cb6-db79-40fc-93ee-aea9b1847cf8/scratchpad/l2-bench.jsonl (ceo-askmore-send)
+- **สาเหตุ:** guess: the cards-on-screen list does not mark which card is about the story, so the model picks the anomaly list first.
