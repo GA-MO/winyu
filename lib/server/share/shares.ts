@@ -31,12 +31,23 @@ export function shares(): Collection<Matter> {
   };
 }
 
-/** A title no matter carries yet: the title itself, else the first "(ครั้งที่ n)" of it from 2 that is free, so the bell, the matter page and the audit tell two matters about one card apart. */
-export function unusedTitle(title: string): string {
-  const taken = new Set(shares().all().map((matter) => matter.title));
-  if (!taken.has(title)) return title;
+/** Who sends a matter, to whom, asking what: two sends of one card that differ in any of these read apart by the sender, the recipients or the ask every surface already shows beside the title. */
+export type SendKey = { senderId: string; recipientIds: readonly string[]; ask: string };
+
+function recipientSet(ids: readonly string[]): string {
+  return [...new Set(ids)].sort().join(",");
+}
+
+function sameSend(matter: Matter, send: SendKey): boolean {
+  return matter.senderId === send.senderId && matter.ask.trim() === send.ask.trim() && recipientSet(matter.deliveries.map((delivery) => delivery.userId)) === recipientSet(send.recipientIds);
+}
+
+/** A matter's title: the card's own, with "(ครั้งที่ n)" from 2 only when the same sender already sent this card to the same people with the same ask, the one repeat nothing else on screen tells apart. */
+export function unusedTitle(title: string, send: SendKey): string {
+  const repeats = new Set(shares().where((matter) => sameSend(matter, send)).map((matter) => matter.title));
+  if (!repeats.has(title)) return title;
   let count = FIRST_REPEAT;
-  while (taken.has(TH.share.repeatTitle(title, count))) count += 1;
+  while (repeats.has(TH.share.repeatTitle(title, count))) count += 1;
   return TH.share.repeatTitle(title, count);
 }
 

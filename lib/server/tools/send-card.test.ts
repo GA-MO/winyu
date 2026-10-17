@@ -54,8 +54,9 @@ describe("send_card", () => {
     const sent = await send({});
     const matter = matterOf(sent);
     expect(matter?.path.map((hop) => hop.userId)).toEqual(["u_anucha"]);
-    expect(matter?.title).toStartWith("ปริมาณขายเข้า (Sell-in) · รายจังหวัด · ภาคอีสาน");
-    expect(matter).toMatchObject({ intent: "act", ask: TH.share.askDraft(matter?.title ?? ""), card: ON_SCREEN.card, question: ON_SCREEN.question });
+    const title = "ปริมาณขายเข้า (Sell-in) · รายจังหวัด · ภาคอีสาน";
+    expect(matter?.title).toStartWith(title);
+    expect(matter).toMatchObject({ intent: "act", ask: TH.share.askDraft(title), card: ON_SCREEN.card, question: ON_SCREEN.question });
     expect(matter?.goal).toMatchObject({ kind: "attainment", atLeast: 100 });
     expect(sent.data?.goal).not.toBeNull();
   });

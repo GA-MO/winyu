@@ -131,8 +131,8 @@ export async function createShare(sender: User, asked: MatterRequest, at = new D
   const recipients = recipientsOf(request, sender.id);
   if (recipients.length === 0) return { ok: false, error: "no recipients" };
   const code = shareCode();
-  const title = unusedTitle(await matterTitle(request.card, request.focus));
   const ask = request.ask.trim();
+  const title = unusedTitle(await matterTitle(request.card, request.focus), { senderId: sender.id, recipientIds: recipients.map(({ user }) => user.id), ask });
   const message: ShareMessage = { title, senderName: sender.nameTh, senderTitle: sender.title, note: ask || null, url: shareUrl(code) };
   const deliveries: ShareDelivery[] = [];
   for (const { user, channel } of recipients) deliveries.push(await deliver(message, sender, user, channel, code));

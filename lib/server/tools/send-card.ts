@@ -11,7 +11,7 @@ import { contradictionOf, sendWarning } from "@/lib/share/figures";
 import { askAboutOf, askNaming, deadlineWords, followsEarlier, matterAsk, matterDeadline, sendIntent } from "@/lib/share/matter";
 import { resolvedPeople, type RecipientMatch } from "@/lib/share/recipients";
 import { cardFigures, goalLabel } from "@/lib/server/share/goal";
-import { receiptsOf, recipientMatches, sharePath, unusedTitle } from "@/lib/server/share/shares";
+import { receiptsOf, recipientMatches, sharePath } from "@/lib/server/share/shares";
 import { suggestedRecipient } from "@/lib/server/share/suggest";
 import { cardFocus } from "@/lib/server/share/focus";
 import { matterSubject, matterTitle } from "@/lib/server/share/title";
@@ -161,7 +161,7 @@ export const sendCardTool = defineTool({
     const people = recipientsOf(input, target, sender);
     if (!people) return input.to?.length ? refusal(UNRESOLVED, unresolved(input.to, sender.id) ?? TH.share.chat.noRecipient) : refusal(NO_RECIPIENT, TH.share.chat.noRecipient);
     const focus = await focusOf(input, chosen, sender);
-    const title = unusedTitle(await matterTitle(target.card, focus?.labels));
+    const title = await matterTitle(target.card, focus?.labels);
     const intent = sendIntent(input.intent, people.length);
     const ask = askNaming(matterAsk(input.ask ?? "", intent, title), askAboutOf(focus, await matterSubject(target.card)));
     const question = currentTurn().question;
