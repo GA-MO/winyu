@@ -61,10 +61,16 @@ describe("pin_widget", () => {
 
   test("the pin approval names the pinned card the new one replaces, and nothing for a metric with none pinned (AI-215)", async () => {
     const ceo = accessOf("u_thana");
-    const countryValue = metricQueryInputSchema.parse({ metric: "net_sales_value", dims: [], filters: {}, grain: "month", compare: "target", limit: null, period: "this_month", range: null });
-    const monthEnd = await pinPreview("ปิดเดือนทั้งประเทศ", "month_end", countryValue, ceo, "ทั้งประเทศจะปิดเดือนที่กี่ %");
-    expect(monthEnd.replaces).toEqual(["ยอดขายทั้งประเทศเทียบเป้า"]);
-    const mape = metricQueryInputSchema.parse({ metric: "forecast_mape", dims: [], filters: {}, grain: "month", compare: "none", limit: null, period: "this_month", range: null });
-    expect((await pinPreview("ความคลาดเคลื่อน", "metric", mape, ceo, null)).replaces).toEqual([]);
+    const before = layouts().get("u_thana");
+    try {
+      const countryValue = metricQueryInputSchema.parse({ metric: "net_sales_value", dims: [], filters: {}, grain: "month", compare: "target", limit: null, period: "this_month", range: null });
+      const monthEnd = await pinPreview("ปิดเดือนทั้งประเทศ", "month_end", countryValue, ceo, "ทั้งประเทศจะปิดเดือนที่กี่ %");
+      expect(monthEnd.replaces).toEqual(["ยอดขายทั้งประเทศเทียบเป้า"]);
+      const mape = metricQueryInputSchema.parse({ metric: "forecast_mape", dims: [], filters: {}, grain: "month", compare: "none", limit: null, period: "this_month", range: null });
+      expect((await pinPreview("ความคลาดเคลื่อน", "metric", mape, ceo, null)).replaces).toEqual([]);
+    } finally {
+      if (before) layouts().put(before);
+      else layouts().remove("u_thana");
+    }
   });
 });
