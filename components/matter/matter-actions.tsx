@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Forward } from "lucide-react";
 import { MoreMenu, Primary, Quiet, type MenuItem } from "@/components/inbox/row";
 import { PeoplePicker, useShareContacts } from "@/components/share/share-sheet";
@@ -26,8 +26,12 @@ async function sendPress(code: string, press: Press): Promise<string | null> {
   return body?.error ?? COPY.failed;
 }
 
-function PassOn({ suggested, chosen, choose }: { suggested: MatterSuggestions; chosen: string | null; choose: (id: string) => void }) {
+function PassOn({ suggested, chosen, choose, shown }: { suggested: MatterSuggestions; chosen: string | null; choose: (id: string) => void; shown: () => void }) {
   const contacts = useShareContacts();
+  const listed = contacts !== null;
+  useEffect(() => {
+    if (listed) shown();
+  }, [listed, shown]);
   return (
     <div className="flex flex-col gap-1 rounded-xl border border-border bg-card">
       <p className="px-4 pt-2.5 text-xs font-medium text-muted-foreground">{COPY.passPick}</p>
@@ -87,10 +91,7 @@ export function MatterActions({ brief, onActed, settling = false }: { brief: Pic
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
   const passing = useRef<HTMLDivElement>(null);
-  const opened = mode.kind === "passing";
-  useEffect(() => {
-    if (opened) passing.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
-  }, [opened]);
+  const showPassing = useCallback(() => passing.current?.scrollIntoView({ block: "nearest", behavior: "smooth" }), []);
   const working = busy || settling;
   const allowed = new Set(brief.actions);
 
@@ -165,7 +166,7 @@ export function MatterActions({ brief, onActed, settling = false }: { brief: Pic
       ) : null}
       {mode.kind === "passing" ? (
         <div ref={passing} className="flex scroll-mb-4 flex-col gap-2">
-          <PassOn suggested={brief.suggested} chosen={passTo} choose={(to) => setMode({ kind: "passing", to })} />
+          <PassOn suggested={brief.suggested} chosen={passTo} choose={(to) => setMode({ kind: "passing", to })} shown={showPassing} />
           <div className="flex items-center gap-1">
             <Primary onClick={() => passTo && void run({ kind: "pass_on", toUserId: passTo })} disabled={working || !passTo}>
               <Forward className="size-3.5" aria-hidden />

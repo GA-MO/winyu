@@ -58,15 +58,15 @@ describe("matter actions", () => {
       if (String(url).includes("/contacts")) return Response.json({ contacts: [{ id: "u_krit", nameTh: "คุณกฤต จันทร์เสน", title: "พนักงานขาย", role: "sales_rep", region: "northeast", photo: null, name: "Krit", channels: [] }], mayGrant: false });
       return new Promise<Response>((resolve) => (answer = resolve));
     }) as unknown as typeof fetch);
-    const scrolled: Element[] = [];
+    const scrolled: string[] = [];
     const scrollSpy = spyOn(Element.prototype, "scrollIntoView").mockImplementation(function (this: Element) {
-      scrolled.push(this);
+      scrolled.push(this.textContent ?? "");
     });
     const brief = { ...briefOf(["accept", "pass_on"], false), suggested: { ownerId: "u_krit", line: [] } };
     const host = await drawn(brief);
     await act(async () => buttonNamed(host, TH.matter.actions.pass_on)?.click());
     for (let tick = 0; tick < 3; tick += 1) await act(async () => new Promise((resolve) => setTimeout(resolve, 0)));
-    expect(scrolled.some((element) => element.textContent?.includes(TH.matter.passPick) && element.textContent.includes(TH.matter.actions.pass_on))).toBe(true);
+    expect(scrolled.some((text) => text.includes("คุณกฤต จันทร์เสน") && text.includes(TH.matter.actions.pass_on))).toBe(true);
     await act(async () => buttonNamed(host, TH.matter.actions.pass_on)?.click());
     const working = buttonNamed(host, TH.matter.passingOn);
     expect(working?.disabled).toBe(true);
