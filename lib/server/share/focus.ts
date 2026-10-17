@@ -9,6 +9,8 @@ import type { CardFocus, SharedCard } from "@/lib/share/card";
 import { rowContradictionOf, type RowFigure } from "@/lib/share/figures";
 import { askedFigure, askedHero, cardAnswers } from "./goal";
 
+const PERCENT = 100;
+
 type MetricAnswer = Extract<MetricResult, { ok: true }>;
 
 /** A row of a month still running against its target as its card row prints it: its share of the whole month's target and where the month should be by today; null on any other card. */
@@ -16,7 +18,7 @@ function printedOnMonthBase(answer: MetricAnswer, row: MetricAnswer["rows"][numb
   const paced = answer.headline.projection ? attainmentOf(row) : null;
   if (paced === null) return undefined;
   const elapsed = monthElapsedOf(answer.query, answer.provenance.asOf);
-  return `${percentText(paced * elapsed)} ${TH.read.ofMonthTarget} (${TH.read.paceMark(percentText(elapsed))})`;
+  return `${percentText(paced * elapsed)} ${TH.read.ofMonthTarget} (${TH.read.paceMark(percentText(elapsed * PERCENT))})`;
 }
 
 function rowFigureOf(answer: MetricAnswer, labels: readonly string[]): RowFigure | null {
