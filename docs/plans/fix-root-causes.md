@@ -43,7 +43,7 @@ Round 6 walked the production-build run sheet in four windows and replayed the r
 - [x] **J2 cards and tiles** (AI-204 card part, AI-205, AI-206, AI-212, AI-213, AI-221, AI-222, AI-223, AI-228, AI-229, AI-231): month-end tiles carry the month-end shortfall, the landing tile names a forecast, balance metrics keep the running month, visit priority shows its basis, a year-target question gets the year-end answer, labels and signs.
 - [ ] **J3 what the model reads, and speed** (AI-204 text part, AI-207, AI-211, AI-214, AI-216, AI-217, AI-218): one base for multi-row target answers, the projection's own shortfall, no reference to a hidden button, a checked reason for a weekly drop, demo turns under 40 s.
 - [x] **J4 IT** (AI-225, AI-226, AI-232): Thai reasons for blocked sends in the denials card, the tab row at phone width before Audit is chosen, one usage count across surfaces.
-- [ ] then the run sheet against the screens (AI-219, AI-227).
+- [x] then the run sheet against the screens (AI-219, AI-227; walked again in round 7).
 
 ## Round 6 fixes (after round 5, 2026-10-17)
 

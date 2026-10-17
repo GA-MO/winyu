@@ -2702,7 +2702,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 | AI-216 (เดิม AI-180) | กลาง | เปิด (ใหม่) | The RSM delegation turn takes 52.8 s before the rebuttal |
 | AI-217 (เดิม AI-180) | กลาง | เปิด (ใหม่) | The rep's visit-priority turn takes 44.2 s |
 | AI-218 (เดิม AI-180) | กลาง | เปิด (ใหม่) | The CEO's send to the South RSM takes 40.9 s to the approval |
-| AI-219 (เดิม AI-193) | กลาง | ยังเสีย | The run sheet does not say the matter actions are below the fold; the biggest button in view starts a model call |
+| AI-219 (เดิม AI-193) | กลาง | แก้แล้ว (เอกสาร) · รอเดินยืนยันรอบ 7 | The run sheet does not say the matter actions are below the fold; the biggest button in view starts a model call |
 | AI-220 (เดิม AI-168) | ต่ำ | แก้แล้ว `6bd9442` | The RSM→rep approval keeps the 'ตกหนัก' warning after the ask was rewritten; the '-1.6%' headline has an ASCII hyphen and no colour |
 | AI-221 (เดิม AI-169) | ต่ำ | แก้แล้ว `0222eed` | The CEO risk answer: the DC-average cover card calms ('ยังเกิน 10 วัน') above a P1 6.3-day stock-out at the same DC, and the list shows upside rows |
 | AI-222 (เดิม AI-174) | ต่ำ | แก้แล้ว `0222eed` | The explain_gap card puts the 64.6% hero right under the headline's 64.2% share |
@@ -2710,7 +2710,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 | AI-224 (เดิม AI-186) | ต่ำ | แก้แล้ว `ce203fe` | The rep's month-total card offers a send prefilled with an ask about one agent's Singha/Leo alert |
 | AI-225 (เดิม AI-160) | ต่ำ | แก้แล้ว `45373ae` | The IT denials card counts a blocked contradictory send as a denial with no reason, and the overview shows raw codes ('ASK_CONTRADICTS_CARD', 'Out of scope') |
 | AI-226 (เดิม AI-196) | ต่ำ | แก้แล้ว `8939288` | On a phone, the Admin tab row shows 'Audi' cut at the edge before Audit is selected |
-| AI-227 (เดิม AI-193) | ต่ำ | ยังเสีย | The run sheet's wording differs from the screen: switch vs checkbox, line label, Korat story, login '1 ถึง 4', IT timing, ส่ง under the composer, no 'ด่วน' on the bell item, 4 update rows |
+| AI-227 (เดิม AI-193) | ต่ำ | แก้แล้ว (เอกสาร) · รอเดินยืนยันรอบ 7 | The run sheet's wording differs from the screen: switch vs checkbox, line label, Korat story, login '1 ถึง 4', IT timing, ส่ง under the composer, no 'ด่วน' on the bell item, 4 update rows |
 | AI-228 (เดิม AI-173) | ต่ำ | แก้แล้ว `0222eed` | Change and target strips leave near-top movers unlabelled, and a brand pace card shows four empty rows |
 | AI-229 (เดิม AI-157) | ต่ำ | แก้แล้ว `0222eed` | CEO landing tiles mix October volume with November value |
 | AI-230 (เดิม AI-198) | ต่ำ | แก้แล้ว `e0d1bde` · นอกเส้นทางเดโม | The South-agent send approval warns 'ส่วนที่เหลือถูกล็อก' although the agent is fully in the recipient's scope |
@@ -2902,7 +2902,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-219. The run sheet does not say the matter actions are below the fold; the biggest button in view starts a model call
 
-- **สถานะ:** ยังเสีย · เดิม AI-193
+- **สถานะ:** แก้แล้ว (เอกสาร) · รอเดินยืนยันรอบ 7: run sheet บอกว่าปุ่มของเรื่องอยู่ใต้การ์ดต้องเลื่อนลง อย่ากดปุ่มดำในการ์ด สวิตช์ปิดเรื่อง ปุ่มลูกศรส่ง แท็บ admin 5 ช่อง แผงกระดิ่งอัปเดตเอง ส่งแล้วอยู่หลัง reload และวิธีแก้เมื่อปุ่มส่งถูกบัง
 - **ระดับ:** กลาง · **หมวด:** `run-sheet` · **บทบาท:** presenter, u_anucha (chain step 2)
 - **อาการ:** รับ / ขอข้อมูลเพิ่ม / ส่งต่อ sit below the card. The black drill button is the most prominent control. Sheet 2.3-2.4 has no scroll step.
 - **ที่ควรเป็น:** The sheet says to scroll to ส่งต่อ, or the actions sit above the drill.
@@ -2992,7 +2992,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-227. The run sheet's wording differs from the screen: switch vs checkbox, line label, Korat story, login '1 ถึง 4', IT timing, ส่ง under the composer, no 'ด่วน' on the bell item, 4 update rows
 
-- **สถานะ:** ยังเสีย · เดิม AI-193
+- **สถานะ:** แก้แล้ว (เอกสาร) · รอเดินยืนยันรอบ 7: run sheet บอกว่าปุ่มของเรื่องอยู่ใต้การ์ดต้องเลื่อนลง อย่ากดปุ่มดำในการ์ด สวิตช์ปิดเรื่อง ปุ่มลูกศรส่ง แท็บ admin 5 ช่อง แผงกระดิ่งอัปเดตเอง ส่งแล้วอยู่หลัง reload และวิธีแก้เมื่อปุ่มส่งถูกบัง
 - **ระดับ:** ต่ำ · **หมวด:** `run-sheet` · **บทบาท:** presenter
 - **อาการ:** Several sheet lines quote controls, labels or timings that the screen does not show (see the review 2 list).
 - **ที่ควรเป็น:** The sheet quotes what is on screen.
