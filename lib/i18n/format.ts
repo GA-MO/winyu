@@ -15,6 +15,7 @@ const MILLION_WORD = "ล้าน";
 const numberFormat = new Intl.NumberFormat(LOCALE, { maximumFractionDigits: 1 });
 const wholeFormat = new Intl.NumberFormat(LOCALE, { maximumFractionDigits: 0 });
 const percentFormat = new Intl.NumberFormat(LOCALE, { maximumFractionDigits: 1 });
+const oneDecimalPercentFormat = new Intl.NumberFormat(LOCALE, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 const dateFormat = new Intl.DateTimeFormat(BUDDHIST_LOCALE, { day: "numeric", month: "short", year: "numeric" });
 const timeFormat = new Intl.DateTimeFormat(LOCALE, { hour: "2-digit", minute: "2-digit" });
 
@@ -50,6 +51,11 @@ export function formatPercent(value: number | string | null): string {
   const numeric = typeof value === "number" ? value : Number(value);
   if (!Number.isFinite(numeric)) return String(value);
   return `${percentFormat.format(numeric)}%`;
+}
+
+/** A percent always written with one decimal ("86.0%"), so numbers set side by side on a card line up and never read as rounded differently (AI-254). */
+export function formatPercentOneDecimal(value: number): string {
+  return `${oneDecimalPercentFormat.format(value)}%`;
 }
 
 /** A Thai date in พ.ศ. ("22 ก.ย. 2569"); an unparsable value comes back untouched. */

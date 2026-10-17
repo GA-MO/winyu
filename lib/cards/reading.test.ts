@@ -88,7 +88,7 @@ describe("one verdict per rule, built only from the result", () => {
   test("R5 leaderboard: the row whose change stands apart and whether it moved more, less or against the rest", () => {
     const format = percentText;
     const labels = ["กรุงเทพฯ", "ภาคอีสาน", "ภาคใต้", "ภาคกลาง"];
-    expect(boardVerdict({ unit: "ภาค", labels, changes: [-10.1, -9.8, -10.3, 12], notable: new Set([3]), format, slice: null })).toBe("ภาคกลางเพิ่มขึ้น 12% สวนทางภาคอื่น");
+    expect(boardVerdict({ unit: "ภาค", labels, changes: [-10.1, -9.8, -10.3, 12], notable: new Set([3]), format, slice: null })).toBe("ภาคกลางเพิ่มขึ้น 12.0% สวนทางภาคอื่น");
     expect(boardVerdict({ unit: "ภาค", labels, changes: [-17.6, -36.6, -32.9, -20.7], notable: new Set([0, 3]), format, slice: null })).toBe("กรุงเทพฯกับภาคกลางลดลงน้อยกว่าภาคอื่น");
     expect(boardVerdict({ unit: "ภาค", labels, changes: [-10, -9, -11, -10], notable: new Set(), format, slice: null })).toBe("กรุงเทพฯมากสุด ทุกภาคลดลงใกล้กัน");
   });
@@ -150,7 +150,7 @@ describe("a plain region breakdown is a leaderboard", () => {
       ["ภาคใต้", "neutral"],
       ["ภาคตะวันออก", "good"],
     ]);
-    expect(card.verdict).toBe("ภาคตะวันออกเพิ่มขึ้น 12% สวนทางภาคอื่น");
+    expect(card.verdict).toBe("ภาคตะวันออกเพิ่มขึ้น 12.0% สวนทางภาคอื่น");
   });
 
   test("with every change alike no pill is coloured and the verdict says who leads", () => {

@@ -447,7 +447,7 @@ describe("the headline says what it stands for", () => {
     const attainment = 100 + Number(result.rows[0].delta_pct);
     expect(card.style).toBe("scorecard");
     expect(card.hero?.label).toBe("ภาคอีสาน");
-    expect(card.hero?.value).toBe(`${Math.round(attainment * 10) / 10}%`);
+    expect(card.hero?.value).toBe(`${(Math.round(attainment * 10) / 10).toFixed(1)}%`);
     expect(card.tiles[0]).toMatchObject({ label: TH.read.actual, value: result.headline.value });
     expect(card.body.kind).toBe("none");
   });
@@ -603,7 +603,7 @@ describe("a target card in a month still running", () => {
     if (!result.ok) throw new Error(result.error);
     const delta = result.headline.deltaPercent ?? 0;
     const card = presentCard({ title: "t", query, result });
-    expect(card.hero?.value).toBe(`${Math.round((100 + delta) * 10) / 10}%`);
+    expect(card.hero?.value).toBe(`${(Math.round((100 + delta) * 10) / 10).toFixed(1)}%`);
     expect(card.hero?.unit).toBe(TH.read.ofPacedTarget);
     expect(card.hero?.tone).toBe(delta < 0 ? "bad" : "neutral");
     const strip = stripOf(card.body);

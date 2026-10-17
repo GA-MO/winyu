@@ -1,5 +1,5 @@
 import type { Tone } from "@/lib/dashboard/metric-display";
-import { formatDateTh, formatPercent } from "@/lib/i18n/format";
+import { formatDateTh, formatPercent, formatPercentOneDecimal } from "@/lib/i18n/format";
 import { TH } from "@/lib/i18n/th";
 
 const SPREAD_SHARE = 0.3;
@@ -47,9 +47,9 @@ function round1(value: number): number {
   return Math.round(value * 10) / 10;
 }
 
-/** A percent with one decimal at most: "48.6%". */
+/** A percent with one decimal: "48.6%", "86.0%". */
 export function percentText(value: number): string {
-  return formatPercent(round1(value));
+  return formatPercentOneDecimal(round1(value));
 }
 
 /** How many rows at the leading end of an ordered list stand clear of the rest: the widest step between neighbours within the first half, when it is at least `minGap` and a clear share of the whole spread; 0 when no step stands out, 1 for a list of one. */

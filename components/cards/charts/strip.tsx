@@ -79,7 +79,7 @@ function LineStrip({ strip }: { strip: Strip }) {
         return (
           <div key={row.label} className="contents">
             <div className="flex min-w-0 flex-col" style={{ gridColumn: 1, gridRow }}>
-              <span title={row.label} className={cn("truncate", row.exception ? "text-[13px] font-medium text-foreground" : "text-[12px] text-muted-foreground")}>
+              <span title={row.label} className={cn("line-clamp-2 break-words leading-snug", row.exception ? "text-[13px] font-medium text-foreground" : "text-[12px] text-muted-foreground")}>
                 {nameOf(row.label)}
               </span>
               {placeOf(row.label) ? <span className="truncate text-[11px] leading-snug text-muted-foreground">{placeOf(row.label)}</span> : null}

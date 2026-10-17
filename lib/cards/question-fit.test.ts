@@ -429,6 +429,15 @@ describe("an overall row over a subset names the subset (AI-238)", () => {
   });
 });
 
+const REGIONS_AGAINST_TARGET: MetricQuery = { metric: "net_sales_value", dims: ["region"], filters: {}, range: NOVEMBER, grain: "month", compare: "target", limit: null, sort: "delta_asc" };
+
+describe("a strip prints every row with one decimal (AI-254)", () => {
+  test("the CEO's regions this month read 86.0% for ภาคกลาง beside 85.6%, never 86%", async () => {
+    const card = presentCard({ title: "t", query: REGIONS_AGAINST_TARGET, result: await runProjectedMetric(REGIONS_AGAINST_TARGET, CEO) });
+    expect(stripOf(card.body).rows.map((row) => `${row.label} ${row.text}`)).toEqual(["ภาคอีสาน 77.3%", "ภาคเหนือ 85.4%", "ภาคใต้ 85.5%", "ภาคตะวันออก 85.6%", "ภาคกลาง 86.0%", "กรุงเทพฯ และปริมณฑล 86.5%"]);
+  });
+});
+
 describe("every card form names the month's gap the same way (AI-239)", () => {
   test("the B strip's month detail names the 71.4 left as the gap to the whole month's target, the scorecards' words", async () => {
     const card = presentCard({ title: "t", query: REP_AGENTS, result: await runProjectedMetric(REP_AGENTS, CEO) });

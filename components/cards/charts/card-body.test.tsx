@@ -17,6 +17,14 @@ describe("strip rows named along two splits", () => {
     expect(html).toContain(">อุบลศรีสุข เทรดดิ้ง</span>");
     expect(html).toContain(">อุบลราชธานี</span>");
   });
+
+  test("a long name wraps onto a second line instead of being cut with an ellipsis, so กรุงเทพฯ และปริมณฑล reads whole on a phone (AI-254)", () => {
+    const row = { label: "กรุงเทพฯ และปริมณฑล", sub: null, measure: 86.5, fill: 0.86, text: "86.5%", change: null, tone: "bad" as const, exception: true, valued: true };
+    const html = render({ kind: "strip", strip: { form: "line", baseline: 86.7, low: 70, high: 90, overall: null, rows: [row] } });
+    const name = html.match(/<span title="กรุงเทพฯ และปริมณฑล" class="([^"]*)">/)?.[1] ?? "";
+    expect(name).toContain("line-clamp-2");
+    expect(name).not.toContain("truncate");
+  });
 });
 
 describe("stacked", () => {
