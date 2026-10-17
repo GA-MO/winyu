@@ -8,7 +8,7 @@ import type { ShareTarget } from "@/lib/share/card";
 import { layouts } from "@/lib/server/agent/collections";
 import { winyuTools } from "@/lib/server/agent/tools";
 import { runWithAccess, runWithTurn } from "@/lib/server/request-context";
-import { pinHero, pinPreview } from "@/lib/server/tools/pin-widget";
+import { pinPreview } from "@/lib/server/tools/pin-widget";
 import { approvedCallId } from "@/scripts/approved-call";
 import { screenWith } from "@/scripts/screen-cards";
 
@@ -44,8 +44,8 @@ describe("pin_widget", () => {
   });
 
   test("the pin approval's figure is the one the widget will show: the rep's own agents for his own-book question, the region for a whole-region one (AI-184)", async () => {
-    const own = await pinHero("เอเย่นต์ของผม", "bar", AGENTS_AGAINST_TARGET, accessOf(REP), "เอเย่นต์ของผมเดือนนี้ถึงเป้าแค่ไหน");
-    const region = await pinHero("ทั้งภาค", "bar", AGENTS_AGAINST_TARGET, accessOf(REP), "ทั้งภาคเดือนนี้ถึงเป้าแค่ไหน");
+    const own = (await pinPreview("เอเย่นต์ของผม", "bar", AGENTS_AGAINST_TARGET, accessOf(REP), "เอเย่นต์ของผมเดือนนี้ถึงเป้าแค่ไหน")).hero;
+    const region = (await pinPreview("ทั้งภาค", "bar", AGENTS_AGAINST_TARGET, accessOf(REP), "ทั้งภาคเดือนนี้ถึงเป้าแค่ไหน")).hero;
     expect(own).toMatch(/\d/);
     expect(region).toMatch(/\d/);
     expect(own).not.toBe(region);
@@ -53,8 +53,8 @@ describe("pin_widget", () => {
 
   test("a month_end pin's approval shows where the month closes, not the month to date (AI-184 with I3's month_end kind)", async () => {
     const query = metricQueryInputSchema.parse(THIS_MONTH);
-    const toDate = await pinHero("ยอดอีสานเดือนนี้", "metric", query, accessOf(USER), "อีสานเดือนนี้ถึงเป้าแค่ไหน");
-    const monthEnd = await pinHero("ยอดอีสานปิดเดือน", "month_end", query, accessOf(USER), "อีสานจะปิดเดือนที่กี่ %");
+    const toDate = (await pinPreview("ยอดอีสานเดือนนี้", "metric", query, accessOf(USER), "อีสานเดือนนี้ถึงเป้าแค่ไหน")).hero;
+    const monthEnd = (await pinPreview("ยอดอีสานปิดเดือน", "month_end", query, accessOf(USER), "อีสานจะปิดเดือนที่กี่ %")).hero;
     expect(monthEnd).toMatch(/\d/);
     expect(monthEnd).not.toBe(toDate);
   });

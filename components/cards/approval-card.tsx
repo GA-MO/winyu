@@ -2,7 +2,7 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
-import { BellRing, Brain, CalendarDays, Check, Eraser, Forward, GraduationCap, LayoutGrid, Mail, PlugZap, RefreshCw, ShieldCheck, Target, X } from "lucide-react";
+import { ArrowLeftRight, BellRing, Brain, CalendarDays, Check, Eraser, Forward, GraduationCap, LayoutGrid, Mail, PlugZap, RefreshCw, ShieldCheck, Target, X } from "lucide-react";
 import { OutboxNote } from "@/components/share/outbox-note";
 import { ContradictionNote, RecipientWarnings, useRecipientScopes, useSendPreview, useShareContacts } from "@/components/share/share-sheet";
 import { METRIC_IDS, ROLE_IDS, type MetricId, type MetricQuery, type RecipientScope, type RoleId, type WatchCondition } from "@/lib/contracts";
@@ -24,6 +24,9 @@ const COURSES_ENDPOINT = "/api/courses";
 const PERMISSION_LABEL_ENDPOINT = "/api/permissions/label";
 const LABELS_ENDPOINT = "/api/labels";
 const PIN_PREVIEW_ENDPOINT = "/api/pins/preview";
+const NO_PIN_PREVIEW: PinPreviewInfo = { hero: null, replaces: [] };
+
+type PinPreviewInfo = { hero: string | null; replaces: string[] };
 const MAX_SCOPE_LABELS = 2;
 const CONNECTOR_TOOL = /^[a-z][a-z0-9_]*__/;
 const MAX_ARG_CHIPS = 4;
@@ -125,20 +128,31 @@ function emailDecision(input: EmailInput): Decision {
   };
 }
 
-function PinPreview({ title, hero }: { title: string; hero: string }) {
+function PinPreview({ title, preview }: { title: string | null; preview: PinPreviewInfo }) {
   return (
-    <div className="min-w-0 rounded-xl border border-border px-3.5 py-3" data-pin-card>
-      <p className="text-[11px] text-muted-foreground">{TH.approve.card}</p>
-      <p className="mt-0.5 text-sm font-medium wrap-anywhere">{title}</p>
-      <p className="mt-1 text-xl font-semibold tracking-tight tabular-nums" data-pin-hero>
-        {hero}
-      </p>
+    <div className="flex min-w-0 flex-col gap-2">
+      {preview.hero && title ? (
+        <div className="min-w-0 rounded-xl border border-border px-3.5 py-3" data-pin-card>
+          <p className="text-[11px] text-muted-foreground">{TH.approve.card}</p>
+          <p className="mt-0.5 text-sm font-medium wrap-anywhere">{title}</p>
+          <p className="mt-1 text-xl font-semibold tracking-tight tabular-nums" data-pin-hero>
+            {preview.hero}
+          </p>
+        </div>
+      ) : null}
+      {preview.replaces.length > 0 ? (
+        <p className="flex items-start gap-1.5 text-xs leading-relaxed text-foreground" data-pin-replaces>
+          <ArrowLeftRight className="mt-0.5 size-3.5 shrink-0 text-warning" aria-hidden />
+          {TH.approve.pinReplaces(preview.replaces)}
+        </p>
+      ) : null}
     </div>
   );
 }
 
-function pinDecision(input: PinInput, hero: string | null = null): Decision {
+function pinDecision(input: PinInput, preview: PinPreviewInfo = NO_PIN_PREVIEW): Decision {
   const title = input.title ?? null;
+  const hero = preview.hero;
   return {
     icon: LayoutGrid,
     title: TH.approve.pinDone,
@@ -151,25 +165,25 @@ function pinDecision(input: PinInput, hero: string | null = null): Decision {
     effect: TH.approve.effectPin,
     confirm: TH.approve.confirmPin,
     cancel: TH.approve.cancelDo,
-    done: TH.approve.donePin,
-    extra: hero && title ? <PinPreview title={title} hero={hero} /> : undefined,
+    done: preview.replaces.length > 0 ? TH.approve.donePinInstead(preview.replaces) : TH.approve.donePin,
+    extra: (hero && title) || preview.replaces.length > 0 ? <PinPreview title={title} preview={preview} /> : undefined,
   };
 }
 
-/** The figure a pin's widget will lead with for the signed-in person, asked of the server with the question that drew the card it pins; null until it answers or when it cannot. */
-function usePinHero(input: PinInput, question: string | null): string | null {
-  const [hero, setHero] = useState<string | null>(null);
+/** What pinning shows for the signed-in person, asked of the server with the question that drew the card it pins: the figure the widget will lead with (null until it answers or when it cannot) and the pinned cards it replaces; kept once the person has answered, so the receipt still names them. */
+function usePinPreview(input: PinInput, question: string | null): PinPreviewInfo {
+  const [preview, setPreview] = useState<PinPreviewInfo>(NO_PIN_PREVIEW);
   const body = input.title && input.query ? JSON.stringify({ title: input.title, kind: input.kind ?? "metric", query: input.query, question }) : null;
   useEffect(() => {
     if (!body) return;
     const controller = new AbortController();
     fetch(PIN_PREVIEW_ENDPOINT, { method: "POST", headers: { "content-type": "application/json" }, body, signal: controller.signal })
-      .then((response) => (response.ok ? (response.json() as Promise<{ hero?: string | null }>) : null))
-      .then((payload) => setHero(payload?.hero ?? null))
+      .then((response) => (response.ok ? (response.json() as Promise<Partial<PinPreviewInfo>>) : null))
+      .then((payload) => setPreview({ hero: payload?.hero ?? null, replaces: Array.isArray(payload?.replaces) ? payload.replaces : [] }))
       .catch(() => undefined);
     return () => controller.abort();
   }, [body]);
-  return hero;
+  return preview;
 }
 
 function scopeOf(query: MetricQuery, labels: Labels): string {
@@ -654,8 +668,8 @@ function CourseApproval({ request }: { request: ApprovalRequest }) {
 function PinApproval({ request }: { request: ApprovalRequest }) {
   const input = (request.input ?? {}) as PinInput;
   const question = pinQuestion(request.onScreen?.cards ?? [], input.query, request.question ?? null);
-  const hero = usePinHero(request.approved === null ? input : {}, question);
-  return <Approval decision={pinDecision(input, hero)} request={request} />;
+  const preview = usePinPreview(request.approved === null ? input : {}, question);
+  return <Approval decision={pinDecision(input, preview)} request={request} />;
 }
 
 function SendApproval({ request }: { request: ApprovalRequest }) {

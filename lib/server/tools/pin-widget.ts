@@ -3,7 +3,8 @@ import { pinWidgetInputSchema, type AccessContext, type MetricQueryInput, type W
 import { presentCard } from "@/lib/cards/present";
 import { resolveQuery } from "@/lib/semantic/periods";
 import { pinQuestion } from "@/lib/share/pin";
-import { pinNewWidget } from "@/lib/server/dashboard";
+import { displacedBy } from "@/lib/dashboard/one-per-metric";
+import { layoutFor, pinNewWidget } from "@/lib/server/dashboard";
 import { loadDictionary } from "@/lib/server/master-data";
 import { runMetric } from "@/lib/server/metrics";
 import { currentAccess, currentTurn } from "@/lib/server/request-context";
@@ -17,13 +18,17 @@ export async function pinnedQuery(asked: MetricQueryInput, access: AccessContext
   return ownBookQuery(asked, access, question, await loadDictionary())?.input ?? asked;
 }
 
-/** The figure the widget will lead with for this person, as its card draws it in the widget's `kind` (a month_end widget leads with where the month closes); null when the query does not resolve or answer. No model call. */
-export async function pinHero(title: string, kind: WidgetKind, asked: MetricQueryInput, access: AccessContext, question: string | null): Promise<string | null> {
+/** What a pin approval shows: the figure the widget will lead with, and the titles of the pinned cards it moves to the tray. */
+export type PinPreview = { hero: string | null; replaces: string[] };
+
+/** What pinning this would do for this person: the figure the widget will lead with, as its card draws it in the widget's `kind` (a month_end widget leads with where the month closes), null when the query does not resolve or answer; and the pinned cards on the same metric it would move to the tray, by title, since one metric keeps one pinned card. No model call. */
+export async function pinPreview(title: string, kind: WidgetKind, asked: MetricQueryInput, access: AccessContext, question: string | null): Promise<PinPreview> {
   const resolved = resolveQuery(await pinnedQuery(asked, access, question));
-  if (!resolved.ok) return null;
+  if (!resolved.ok) return { hero: null, replaces: [] };
   const result = await runMetric(resolved.query, access);
   const hero = result.ok ? presentCard({ title, query: resolved.query, result, view: kind }).hero : null;
-  return hero ? [hero.value, hero.unit].filter(Boolean).join(" ") : null;
+  const replaces = displacedBy(layoutFor(access).widgets, { kind, query: resolved.query }).map((widget) => widget.title);
+  return { hero: hero ? [hero.value, hero.unit].filter(Boolean).join(" ") : null, replaces };
 }
 
 export const pinWidgetTool = defineTool({
