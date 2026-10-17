@@ -9,10 +9,15 @@ const PILL = "ml-auto inline-flex shrink-0 items-center gap-1.5 rounded-full bor
 const PILL_IDLE = "border-border text-muted-foreground hover:border-foreground/25 hover:text-foreground";
 const PILL_SENT = "border-success/30 bg-success/[0.08] text-success hover:border-success/50";
 
-/** How the outermost card offers ส่งต่อ: the action, its accessible label, and once the card went out, the receipt to draw under it (null once the person folded it away). */
-export type CardShare = { share: () => void; label: string; sent: { note: ReactNode } | null };
+/** How the outermost card offers ส่งต่อ: the action, its accessible label, and once the card went out, the receipt to draw under it (null once the person folded it away) and who holds it now. */
+export type CardShare = { share: () => void; label: string; sent: { note: ReactNode; heldBy: readonly string[] } | null };
 
 const CardShareContext = createContext<CardShare | null>(null);
+
+/** The ส่งต่อ of the card being drawn, read before the card hands its children none: whether it went out and to whom. */
+export function useCardShare(): CardShare | null {
+  return useContext(CardShareContext);
+}
 
 /** Gives the next `Card` inside its ส่งต่อ; the card hands its own children none, so nested cards stay bare. */
 export function CardShareProvider({ value, children }: { value: CardShare | null; children: ReactNode }) {

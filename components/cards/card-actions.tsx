@@ -39,6 +39,21 @@ export function useSending(): boolean {
   return useContext(SendingContext);
 }
 
+function recipientsOf(action: NextAction): string[] {
+  const to = (action.input as { to?: unknown } | null)?.to;
+  return Array.isArray(to) ? to.filter((id): id is string => typeof id === "string") : [];
+}
+
+/** The next steps a card offers: no send while the reply around it already raises one, and no send to people who all hold this card already (`heldBy`, whom the person sent it to), so a sent card never offers to go out twice (AI-281). */
+export function offeredActions(actions: readonly NextAction[], sending: boolean, heldBy: readonly string[]): NextAction[] {
+  return actions.filter((action) => {
+    if (action.kind !== "send") return true;
+    if (sending) return false;
+    const to = recipientsOf(action);
+    return to.length === 0 || !to.every((id) => heldBy.includes(id));
+  });
+}
+
 /** A row press: ask the chat this question. */
 export function askAction(prompt: string): AskAction {
   return { id: `ask-${prompt}`, kind: "ask", label: prompt, prompt };

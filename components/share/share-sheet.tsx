@@ -488,6 +488,6 @@ export function ShareChrome({ target, children }: { target: ShareTarget | null; 
   const key = target ? cardRefOf(target.card) : null;
   const sent = key ? byCard[key] : undefined;
   const note = sent && key && !sent.folded ? <ShareSent receipts={sent.receipts} grants={sent.grants} hidden={sent.hidden} days={sent.days} path={sent.path} at={sent.at} close={() => fold(key)} /> : null;
-  const value = share && target ? { share: () => share(target), label: TH.share.buttonLabel(shareTitle(target.card)), sent: sent ? { note } : null } : null;
+  const value = share && target ? { share: () => share(target), label: TH.share.buttonLabel(shareTitle(target.card)), sent: sent ? { note, heldBy: sent.receipts.map((receipt) => receipt.userId) } : null } : null;
   return <CardShareProvider value={value}>{children}</CardShareProvider>;
 }

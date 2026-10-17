@@ -3,14 +3,14 @@
 import { useId, useState, type KeyboardEvent, type ReactNode } from "react";
 import { BadgeCheck, ChevronDown, Ellipsis } from "lucide-react";
 import { Alert } from "@/components/ui/primitives";
-import { CardShareProvider, SharePill } from "@/components/ui/card-share";
+import { CardShareProvider, SharePill, useCardShare } from "@/components/ui/card-share";
 import { cn } from "@/components/ui/cn";
 import type { NextAction } from "@/lib/contracts";
 import type { CardHero, CardParts } from "@/lib/cards/present";
 import type { CardFooter, Tile } from "@/lib/cards/reading";
 import type { Tone } from "@/lib/dashboard/metric-display";
 import { TH } from "@/lib/i18n/th";
-import { useRunAction, useSending } from "./card-actions";
+import { offeredActions, useRunAction, useSending } from "./card-actions";
 import { CardBodyView } from "./charts/card-body";
 import { ChangeChip } from "./charts/strip";
 
@@ -19,6 +19,7 @@ const PRIMARY = "inline-flex min-h-10 items-center rounded-full bg-ink px-4 text
 const SECONDARY = "inline-flex min-h-9 items-center rounded-full border border-border bg-card px-3.5 text-[12px] font-medium text-muted-foreground transition hover:border-foreground/25 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 const MORE = "inline-flex size-10 items-center justify-center rounded-full border border-border text-muted-foreground transition hover:border-foreground/25 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 const TILE_COLUMNS = ["grid-cols-1", "grid-cols-2", "grid-cols-3"] as const;
+const NO_ONE: readonly string[] = [];
 
 function Shell({ children }: { children: ReactNode }) {
   return (
@@ -86,12 +87,12 @@ function Tiles({ hero, tiles }: { hero: CardHero; tiles: Tile[] }) {
 }
 
 /** One primary next step as a button; the others behind a small ⋯ that opens them in place, reachable by keyboard and touch; no send while the reply around the card already raises one. */
-function Actions({ actions }: { actions: NextAction[] }) {
+function Actions({ actions, heldBy }: { actions: NextAction[]; heldBy: readonly string[] }) {
   const run = useRunAction();
   const sending = useSending();
   const [open, setOpen] = useState(false);
   const id = useId();
-  const [primary, ...more] = sending ? actions.filter((action) => action.kind !== "send") : actions;
+  const [primary, ...more] = offeredActions(actions, sending, heldBy);
   if (!primary) return null;
   const closeOnEscape = (event: KeyboardEvent) => {
     if (event.key === "Escape") setOpen(false);
@@ -161,13 +162,14 @@ function Face({ parts }: { parts: CardParts }) {
 
 /** One `CardParts` rendered as React, in the chat and on the dashboard alike: verdict, hero, body by style, one next step, one footer line. */
 export function CardPartsView({ parts }: { parts: CardParts }) {
+  const heldBy = useCardShare()?.sent?.heldBy ?? NO_ONE;
   return (
     <Shell>
       <Headline title={parts.title} verdict={parts.denied ? null : parts.verdict} />
       <CardShareProvider value={null}>
         {parts.denied ? <Alert props={{ title: parts.denied.title, body: parts.denied.body, tone: "warning", meta: null }} /> : null}
         <Face parts={parts} />
-        <Actions actions={parts.primary ? [parts.primary, ...parts.more] : []} />
+        <Actions actions={parts.primary ? [parts.primary, ...parts.more] : []} heldBy={heldBy} />
       </CardShareProvider>
       <Footer footer={parts.footer} />
     </Shell>
