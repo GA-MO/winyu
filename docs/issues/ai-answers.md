@@ -2687,26 +2687,26 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 | ข้อ | ระดับ | สถานะ | ปัญหา |
 |---|---|---|---|
 | AI-203 (เดิม AI-201) | กลาง | แก้แล้ว `aabdff8` | A matter shows two numbers for one viewer: the rep's inbox says 77.3% (RSM's whole region), but the matter page shows 72.6% over his 4 agents, labelled 'รวมทุกเอเย่นต์' |
-| AI-204 (เดิม AI-185) | กลาง | แก้แล้ว `0222eed` `fe20cfe` | The month-end figure is paired with the to-date gap: '87.5% … ขาดอีก 96.4 ล้านบาท', and 'ขาดอีก' tiles are sub-labelled 'ของเป้าทั้งเดือน' |
+| AI-204 (เดิม AI-185) | กลาง | แก้แล้ว `0222eed` `3b64699` | The month-end figure is paired with the to-date gap: '87.5% … ขาดอีก 96.4 ล้านบาท', and 'ขาดอีก' tiles are sub-labelled 'ของเป้าทั้งเดือน' |
 | AI-205 (เดิม AI-171) | กลาง | แก้แล้ว `0222eed` | After the CEO's month-close pin, the landing tile shows the 96.3% forecast labelled as a plain total ('มูลค่าขายเข้า รวมทั้งหมด · พ.ย.') |
 | AI-206 (เดิม AI-170) | กลาง | แก้แล้ว `0222eed` | The RSM overdue card drops November and leads with a green October fall, while the text says overdue rose in November and confirms the credit hypothesis |
-| AI-207 (เดิม AI-141) | กลาง | แก้แล้ว `fe20cfe` · บางส่วน | The multi-row ถามต่อ reply quotes the paced-base 40.3%/39.5% while the card shows 51.7%/52.4% of the month target; the probe text has −10.8% that is on no card |
+| AI-207 (เดิม AI-141) | กลาง | แก้แล้ว `3b64699` · บางส่วน | The multi-row ถามต่อ reply quotes the paced-base 40.3%/39.5% while the card shows 51.7%/52.4% of the month target; the probe text has −10.8% that is on no card |
 | AI-208 (เดิม AI-167) | กลาง | แก้แล้ว `aabdff8` `b8a35f2` | The RSM's 'visit ขอนแก่นมหาชัย' matter carries the whole-team card, whose headline and drill name a different agent, and its auto-close goal is the whole Isan region |
 | AI-209 (เดิม AI-197) | กลาง | แก้แล้ว `5fd359f` | The CEO's green 'ส่งแล้ว' disappears after navigation, so the Isan card can be sent twice |
 | AI-210 | กลาง | แก้แล้ว `6aadabe` | An open bell panel never refreshes: the badge shows 1 while the panel reads 'ไม่มีเรื่องรอคุณ' |
-| AI-211 (เดิม AI-191) | กลาง | แก้แล้ว `55345a0` · รอยืนยันกับโมเดล | The RSM's 'ภาคใต้เทียบอีสาน' reply says to press the request-access button on the card, but the denied card is hidden |
+| AI-211 (เดิม AI-191) | กลาง | แก้แล้ว `527546b` · รอยืนยันกับโมเดล | The RSM's 'ภาคใต้เทียบอีสาน' reply says to press the request-access button on the card, but the denied card is hidden |
 | AI-212 (เดิม AI-182) | กลาง | แก้แล้ว `0222eed` | The visit-priority card leads with 'ปริมาณขายเข้า −89%' without brands or window, and each row has a second, unlabelled % |
-| AI-213 (เดิม AI-174) | กลาง | แก้แล้ว `0222eed` `c756850` | The CEO's 'ทั้งปีนี้ยอดขายจะถึงเป้าไหม' gets a non-answer: no year-end projection, no amount left, no worst month |
-| AI-214 (เดิม AI-190) | กลาง | แก้แล้ว `fe20cfe` · รอยืนยันกับโมเดล | The CEO's 'ทำไมตกอะ' (week) still gives no checked reason, and the headline names Bangkok as the main drag at 23.0% vs Isan 22.9% |
+| AI-213 (เดิม AI-174) | กลาง | แก้แล้ว `0222eed` `f5c66d1` | The CEO's 'ทั้งปีนี้ยอดขายจะถึงเป้าไหม' gets a non-answer: no year-end projection, no amount left, no worst month |
+| AI-214 (เดิม AI-190) | กลาง | แก้แล้ว `3b64699` · รอยืนยันกับโมเดล | The CEO's 'ทำไมตกอะ' (week) still gives no checked reason, and the headline names Bangkok as the main drag at 23.0% vs Isan 22.9% |
 | AI-215 | กลาง | แก้แล้ว `d2f0ba0` | A pin silently replaces another pinned card of the same metric; neither the approval nor the reply says so |
-| AI-216 (เดิม AI-180) | กลาง | แก้แล้ว `47d3742` · 16.6–26.9 s | The RSM delegation turn takes 52.8 s before the rebuttal |
-| AI-217 (เดิม AI-180) | กลาง | แก้แล้ว `0e0bfca` · 13.6–17.7 s | The rep's visit-priority turn takes 44.2 s |
-| AI-218 (เดิม AI-180) | กลาง | แก้แล้ว `0e0bfca` · 11.8–18.7 s | The CEO's send to the South RSM takes 40.9 s to the approval |
+| AI-216 (เดิม AI-180) | กลาง | แก้แล้ว `c515761` · 16.6–26.9 s | The RSM delegation turn takes 52.8 s before the rebuttal |
+| AI-217 (เดิม AI-180) | กลาง | แก้แล้ว `0b434a7` · 13.6–17.7 s | The rep's visit-priority turn takes 44.2 s |
+| AI-218 (เดิม AI-180) | กลาง | แก้แล้ว `0b434a7` · 11.8–18.7 s | The CEO's send to the South RSM takes 40.9 s to the approval |
 | AI-219 (เดิม AI-193) | กลาง | แก้แล้ว (เอกสาร) · รอเดินยืนยันรอบ 7 | The run sheet does not say the matter actions are below the fold; the biggest button in view starts a model call |
 | AI-220 (เดิม AI-168) | ต่ำ | แก้แล้ว `6bd9442` | The RSM→rep approval keeps the 'ตกหนัก' warning after the ask was rewritten; the '-1.6%' headline has an ASCII hyphen and no colour |
 | AI-221 (เดิม AI-169) | ต่ำ | แก้แล้ว `0222eed` | The CEO risk answer: the DC-average cover card calms ('ยังเกิน 10 วัน') above a P1 6.3-day stock-out at the same DC, and the list shows upside rows |
 | AI-222 (เดิม AI-174) | ต่ำ | แก้แล้ว `0222eed` | The explain_gap card puts the 64.6% hero right under the headline's 64.2% share |
-| AI-223 (เดิม AI-192) | ต่ำ | แก้แล้ว `0222eed` `9de66a5` | Wording: double signs ('ลดลง -9.3%'), raw '(P1)', unnamed periods ('ช่วงนี้/งวดก่อน'), and a forward button named รายภาค on a รายเอเย่นต์ card |
+| AI-223 (เดิม AI-192) | ต่ำ | แก้แล้ว `0222eed` `7f664c8` | Wording: double signs ('ลดลง -9.3%'), raw '(P1)', unnamed periods ('ช่วงนี้/งวดก่อน'), and a forward button named รายภาค on a รายเอเย่นต์ card |
 | AI-224 (เดิม AI-186) | ต่ำ | แก้แล้ว `ce203fe` | The rep's month-total card offers a send prefilled with an ask about one agent's Singha/Leo alert |
 | AI-225 (เดิม AI-160) | ต่ำ | แก้แล้ว `45373ae` | The IT denials card counts a blocked contradictory send as a denial with no reason, and the overview shows raw codes ('ASK_CONTRADICTS_CARD', 'Out of scope') |
 | AI-226 (เดิม AI-196) | ต่ำ | แก้แล้ว `8939288` | On a phone, the Admin tab row shows 'Audi' cut at the edge before Audit is selected |
@@ -2735,7 +2735,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-204. The month-end figure is paired with the to-date gap: '87.5% … ขาดอีก 96.4 ล้านบาท', and 'ขาดอีก' tiles are sub-labelled 'ของเป้าทั้งเดือน'
 
-- **สถานะ:** แก้แล้ว `0222eed` · ส่วนการ์ด: ไทล์ยอดที่ขาดบอกว่า "ถึงวันนี้ยังขาด … ถึงเป้าทั้งเดือน" และการ์ด month_end แสดงยอดที่คาดว่าขาด ณ สิ้นเดือนของตัวเอง (ข้อความในผลของ tool เป็นงานของ J3) · ส่วนข้อความ แก้แล้ว `fe20cfe`: ผลที่โมเดลอ่านจาก query_metric และ explain_gap มียอดที่คาดว่าขาด ณ สิ้นเดือน (`endShortBy`, `month_end_short_label`) คู่กับคาดปิดเดือน และยอดถึงวันนี้เขียนว่า "ถึงวันนี้ยังขาด … ถึงเป้าทั้งเดือน" ตรงกับไทล์ · production build port 3163 คำถาม RSM "ภาคอีสานจะปิดเดือนได้ถึงเป้าไหม" 4 รอบ: ทุกรอบคู่ 87.5% กับ 52.9 ล้านบาท ณ สิ้นเดือน (เดิม 96.4) · เดิม AI-185
+- **สถานะ:** แก้แล้ว `0222eed` · ส่วนการ์ด: ไทล์ยอดที่ขาดบอกว่า "ถึงวันนี้ยังขาด … ถึงเป้าทั้งเดือน" และการ์ด month_end แสดงยอดที่คาดว่าขาด ณ สิ้นเดือนของตัวเอง (ข้อความในผลของ tool เป็นงานของ J3) · ส่วนข้อความ แก้แล้ว `3b64699`: ผลที่โมเดลอ่านจาก query_metric และ explain_gap มียอดที่คาดว่าขาด ณ สิ้นเดือน (`endShortBy`, `month_end_short_label`) คู่กับคาดปิดเดือน และยอดถึงวันนี้เขียนว่า "ถึงวันนี้ยังขาด … ถึงเป้าทั้งเดือน" ตรงกับไทล์ · production build port 3163 คำถาม RSM "ภาคอีสานจะปิดเดือนได้ถึงเป้าไหม" 4 รอบ: ทุกรอบคู่ 87.5% กับ 52.9 ล้านบาท ณ สิ้นเดือน (เดิม 96.4) · เดิม AI-185
 - **ระดับ:** กลาง · **หมวด:** `grounding` · **บทบาท:** u_anucha (RSM), u_krit (sales rep)
 - **อาการ:** The RSM text reads 'จะปิดสิ้นเดือนได้ประมาณ 87.5% ของเป้าทั้งเดือน (ขาดอีก 96.4 ล้านบาท)'. The 96.4 is the gap from today. The month-end shortfall at 87.5% is 52.9. The Isan scorecard and the pinned month_end widget show 'ขาดอีก 96.4 ล้านบาท / ของเป้าทั้งเดือน' beside 'คาดสิ้นเดือน 87.5%'. The rep's cards show '0.93 ล้านลิตร / ของเป้าทั้งเดือน' and '12.2 ล้านบาท / ของเป้าทั้งเดือน', which reads as if the shortfall were a share of the target. (Merged: review 1 AI-185 text half, and review 2's tile sub-label.)
 - **ที่ควรเป็น:** The month-end figure carries its own shortfall, or the tile says 'ถึงวันนี้ยังขาด … ถึงเป้าทั้งเดือน'.
@@ -2769,7 +2769,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-207. The multi-row ถามต่อ reply quotes the paced-base 40.3%/39.5% while the card shows 51.7%/52.4% of the month target; the probe text has −10.8% that is on no card
 
-- **สถานะ:** แก้แล้ว `fe20cfe` · ทุกคำตอบเดือนนี้เทียบเป้า ทั้งยอดรวมและแยกกลุ่ม ถึงโมเดลด้วยฐานเดียวกับการ์ด: แต่ละแถวมี `month_target_share` เท่ากับที่แถวการ์ดพิมพ์ ไม่มี compare_value หรือ delta_pct ตามเวลา (query-metric.test เทียบกับการ์ดจริงของ 3 บทบาท) explain_gap ไม่ส่ง % ตามเวลาระหว่างเดือน · −10.8% ของ probe คือคำตอบ 6 ภาค (run 89be6b01) ไม่ใช่แถวเดียว · ยังเหลือ: เหตุผลของ `ASK_CONTRADICTS_CARD` จาก send_card (lib/share/figures.ts) ยังบอก "−1.6% เทียบเป้าตามเวลา" และคำค้านของ RSM ทวนตัวเลขนั้นใน 6 จาก 7 รอบที่วัด · รอยืนยันกับโมเดลสำหรับคำถามต่อแบบหลายแถว · เดิม AI-141
+- **สถานะ:** แก้แล้ว `3b64699` · ทุกคำตอบเดือนนี้เทียบเป้า ทั้งยอดรวมและแยกกลุ่ม ถึงโมเดลด้วยฐานเดียวกับการ์ด: แต่ละแถวมี `month_target_share` เท่ากับที่แถวการ์ดพิมพ์ ไม่มี compare_value หรือ delta_pct ตามเวลา (query-metric.test เทียบกับการ์ดจริงของ 3 บทบาท) explain_gap ไม่ส่ง % ตามเวลาระหว่างเดือน · −10.8% ของ probe คือคำตอบ 6 ภาค (run 89be6b01) ไม่ใช่แถวเดียว · ยังเหลือ: เหตุผลของ `ASK_CONTRADICTS_CARD` จาก send_card (lib/share/figures.ts) ยังบอก "−1.6% เทียบเป้าตามเวลา" และคำค้านของ RSM ทวนตัวเลขนั้นใน 6 จาก 7 รอบที่วัด · รอยืนยันกับโมเดลสำหรับคำถามต่อแบบหลายแถว · เดิม AI-141
 - **ระดับ:** กลาง · **หมวด:** `grounding` · **บทบาท:** u_thana (chain alt step 6), u_anucha (probe)
 - **อาการ:** The prose says 'ต่ำกว่าเป้าตามเวลาถึง 40.3% และ 39.5%', which is the rows' delta_pct on the paced base. The card's base is the share of the whole month's target. Review 1 saw the same thing in the probe: the text says −10.8% on the pace base, and the card shows 77.3% against 86.7%.
 - **ที่ควรเป็น:** The text uses the card's base.
@@ -2814,7 +2814,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-211. The RSM's 'ภาคใต้เทียบอีสาน' reply says to press the request-access button on the card, but the denied card is hidden
 
-- **สถานะ:** แก้แล้ว `55345a0` `0e0bfca` · การ์ดคำปฏิเสธที่มีปุ่มขอสิทธิ์ไม่ถูกนับว่าแก้แล้วเมื่อ query_metric ตัวถัดไปตอบ (components/chat/tool-view.ts recoveredFailures) จึงขึ้นคู่กับการ์ดอีสาน และข้อความ "ปุ่มบนการ์ด" ชี้สิ่งที่อยู่บนจอจริง · กฎใหม่: พูดถึงการ์ดด้วยชื่อ ไม่บอกตำแหน่ง (ด้านบน ด้านล่าง) · รอยืนยันกับโมเดล · เดิม AI-191
+- **สถานะ:** แก้แล้ว `527546b` `0b434a7` · การ์ดคำปฏิเสธที่มีปุ่มขอสิทธิ์ไม่ถูกนับว่าแก้แล้วเมื่อ query_metric ตัวถัดไปตอบ (components/chat/tool-view.ts recoveredFailures) จึงขึ้นคู่กับการ์ดอีสาน และข้อความ "ปุ่มบนการ์ด" ชี้สิ่งที่อยู่บนจอจริง · กฎใหม่: พูดถึงการ์ดด้วยชื่อ ไม่บอกตำแหน่ง (ด้านบน ด้านล่าง) · รอยืนยันกับโมเดล · เดิม AI-191
 - **ระดับ:** กลาง · **หมวด:** `permission-ux` · **บทบาท:** u_anucha (RSM)
 - **อาการ:** The South query was denied with a request_access nextAction. Only the Isan card was drawn. The text says to press 'ปุ่มบนการ์ด' and that the Isan card is 'ด้านล่าง', but the card sits above the text.
 - **ที่ควรเป็น:** The denied card with 'ขอสิทธิ์จากคุณประสิทธิ์' is drawn beside the Isan card.
@@ -2836,7 +2836,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-213. The CEO's 'ทั้งปีนี้ยอดขายจะถึงเป้าไหม' gets a non-answer: no year-end projection, no amount left, no worst month
 
-- **สถานะ:** แก้แล้ว `0222eed` · การ์ดทั้งปีนำด้วยยอดสะสมทั้งปีเทียบเป้า ยอดที่ยังขาด และวันที่เหลือของปี ส่วนการคาดปิดปีทำไม่ได้เพราะคลังไม่มีเป้าหลังวันที่ข้อมูลหยุด · ส่วน prompt แก้แล้ว `c756850`: "ทั้งปีจะถึงเป้าไหม" = query_metric ytd เทียบเป้าแยกรายเดือน การ์ดจึงบอกเดือนที่ต่ำกว่าเป้ามากสุด ไม่ใช่ get_forecast · รอยืนยันกับโมเดล · เดิม AI-174
+- **สถานะ:** แก้แล้ว `0222eed` · การ์ดทั้งปีนำด้วยยอดสะสมทั้งปีเทียบเป้า ยอดที่ยังขาด และวันที่เหลือของปี ส่วนการคาดปิดปีทำไม่ได้เพราะคลังไม่มีเป้าหลังวันที่ข้อมูลหยุด · ส่วน prompt แก้แล้ว `f5c66d1`: "ทั้งปีจะถึงเป้าไหม" = query_metric ytd เทียบเป้าแยกรายเดือน การ์ดจึงบอกเดือนที่ต่ำกว่าเป้ามากสุด ไม่ใช่ get_forecast · รอยืนยันกับโมเดล · เดิม AI-174
 - **ระดับ:** กลาง · **หมวด:** `capability` · **บทบาท:** u_thana (CEO)
 - **อาการ:** The YTD lead is fixed (98.2% of pace). get_forecast for net_sales_value returned nothing, and the reply says it cannot conclude. The card is a 2-tile scorecard.
 - **ที่ควรเป็น:** The amount left to the annual target and a year-end projection at the recent pace, or at least the R12 series with the worst month.
@@ -2848,7 +2848,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-214. The CEO's 'ทำไมตกอะ' (week) still gives no checked reason, and the headline names Bangkok as the main drag at 23.0% vs Isan 22.9%
 
-- **สถานะ:** แก้แล้ว `fe20cfe` `0e0bfca` `c756850` · ส่วนที่ใหญ่สุดเป็นสาเหตุหลักเมื่อนำชัดเท่านั้น (lib/engine/gap.ts mainCauses): กรุงเทพฯ 23.0% กับอีสาน 22.9% รวมไม่ถึงครึ่ง ไม่ถูกเรียกว่าตัวหลักทั้งหัวการ์ดและ share_note · explain_gap ตรวจช่องทางและแบรนด์ให้เอง (`other_splits`, ส่วนที่ลดแรงกว่าภาพรวมด้วย fellHarder): สัปดาห์นี้ทุกช่องทางลด −9.5% ถึง −9.2% ทุกแบรนด์ −10.4% ถึง −7.6% คำตอบจึงบอกได้ว่าตรวจอะไรแล้วและไม่มีสาเหตุเดียว · การ์ดเรียกช่วงเทียบว่า "สัปดาห์ก่อน (16 พ.ย. 2569 – 19 พ.ย. 2569)" แทน "ช่วงก่อนหน้า" · รอยืนยันกับโมเดล · เดิม AI-190
+- **สถานะ:** แก้แล้ว `3b64699` `0b434a7` `f5c66d1` · ส่วนที่ใหญ่สุดเป็นสาเหตุหลักเมื่อนำชัดเท่านั้น (lib/engine/gap.ts mainCauses): กรุงเทพฯ 23.0% กับอีสาน 22.9% รวมไม่ถึงครึ่ง ไม่ถูกเรียกว่าตัวหลักทั้งหัวการ์ดและ share_note · explain_gap ตรวจช่องทางและแบรนด์ให้เอง (`other_splits`, ส่วนที่ลดแรงกว่าภาพรวมด้วย fellHarder): สัปดาห์นี้ทุกช่องทางลด −9.5% ถึง −9.2% ทุกแบรนด์ −10.4% ถึง −7.6% คำตอบจึงบอกได้ว่าตรวจอะไรแล้วและไม่มีสาเหตุเดียว · การ์ดเรียกช่วงเทียบว่า "สัปดาห์ก่อน (16 พ.ย. 2569 – 19 พ.ย. 2569)" แทน "ช่วงก่อนหน้า" · รอยืนยันกับโมเดล · เดิม AI-190
 - **ระดับ:** กลาง · **หมวด:** `wrong-answer` · **บทบาท:** u_thana (CEO)
 - **อาการ:** Only a region split was run. The text says the drop is spread evenly, while the headline names one main region. The scorecard repeats the gap hero, and the periods read 'ช่วงนี้/งวดก่อน'.
 - **ที่ควรเป็น:** Name a cause that was checked (channel, brand or agent), or say which splits were checked and found even. Name no 'main' region when the shares are tied.
@@ -2871,7 +2871,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-216. The RSM delegation turn takes 52.8 s before the rebuttal
 
-- **สถานะ:** แก้แล้ว `0e0bfca` `9866520` `47d3742` · สาเหตุ (reasoning ของ run cfef8f5b และรอบวัด): step แรกชั่งกฎที่ขัดกัน (ตัดสินเองว่า "ตกเยอะ" ขัดกับการ์ดไหม หรือส่งแล้วให้ระบบตรวจ) ค้น describe_entity เอเย่นต์และคุณกฤต และรายการการ์ดบนจอเรียกการ์ดทีมว่า "รายภาค" โมเดลจึงอ่านเอเย่นต์ใหม่ (รอบแย่สุด step แรก 59 s, 10,141 token) · แก้: คำบรรยายไม่ใช่เงื่อนไข ส่งด้วยคำผู้ใช้แล้วระบบตรวจ, ชื่อคนใส่ `to` ตรง ๆ, เรื่องที่เป็นแถวของการ์ดบนจอส่งการ์ดใบนั้น, รายการการ์ดบอก "มีแถวรายเอเย่นต์ด้วย" · production build port 3163 effort medium: 21.5 / 16.6 / 26.9 s (เดิม 52.8) reasoning 2,227 / 1,565 / 3,369 (เดิม 6,293) 2 ขั้นทุกรอบ ส่งการ์ดทีมด้วย cardRef และได้คำค้านทุกรอบ · ยังเหลือ: คำค้านทวน "−1.6% เทียบเป้าตามเวลา" จากเหตุผลของ send_card (ดู AI-207) · เดิม AI-180
+- **สถานะ:** แก้แล้ว `0b434a7` `8407afb` `c515761` · สาเหตุ (reasoning ของ run cfef8f5b และรอบวัด): step แรกชั่งกฎที่ขัดกัน (ตัดสินเองว่า "ตกเยอะ" ขัดกับการ์ดไหม หรือส่งแล้วให้ระบบตรวจ) ค้น describe_entity เอเย่นต์และคุณกฤต และรายการการ์ดบนจอเรียกการ์ดทีมว่า "รายภาค" โมเดลจึงอ่านเอเย่นต์ใหม่ (รอบแย่สุด step แรก 59 s, 10,141 token) · แก้: คำบรรยายไม่ใช่เงื่อนไข ส่งด้วยคำผู้ใช้แล้วระบบตรวจ, ชื่อคนใส่ `to` ตรง ๆ, เรื่องที่เป็นแถวของการ์ดบนจอส่งการ์ดใบนั้น, รายการการ์ดบอก "มีแถวรายเอเย่นต์ด้วย" · production build port 3163 effort medium: 21.5 / 16.6 / 26.9 s (เดิม 52.8) reasoning 2,227 / 1,565 / 3,369 (เดิม 6,293) 2 ขั้นทุกรอบ ส่งการ์ดทีมด้วย cardRef และได้คำค้านทุกรอบ · ยังเหลือ: คำค้านทวน "−1.6% เทียบเป้าตามเวลา" จากเหตุผลของ send_card (ดู AI-207) · เดิม AI-180
 - **ระดับ:** กลาง · **หมวด:** `latency` · **บทบาท:** u_anucha (RSM)
 - **อาการ:** Step 1 reasoned for 26.3 s. The hold-back adds a third round (9.5 s + 15.4 s).
 - **ที่ควรเป็น:** 40 s or less.
@@ -2881,7 +2881,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-217. The rep's visit-priority turn takes 44.2 s
 
-- **สถานะ:** แก้แล้ว `0e0bfca` · สาเหตุ (reasoning ของ run 4c7ba508): ขั้นเขียนชั่งว่า visit_plan วาดการ์ดเองหรือต้องประกอบ a2ui แล้วออกแบบการ์ดจาก component ทั้งชุด (footnote ที่เลือกผิดชนิดถูกทิ้ง) · แก้: บรรทัด visit_plan ให้บล็อกการ์ดคัดลอกได้เลย (VISIT_PLAN_CARD) ตรวจแล้วว่าประกอบครบกับผลจริงของ visit_plan · production build port 3163: 17.7 / 14.8 / 13.6 / 13.6 s (เดิม 44.2) reasoning 1,967 / 1,231 / 1,523 / 1,075 (เดิม 5,634) การ์ดประกอบครบทุกรอบ · เดิม AI-180
+- **สถานะ:** แก้แล้ว `0b434a7` · สาเหตุ (reasoning ของ run 4c7ba508): ขั้นเขียนชั่งว่า visit_plan วาดการ์ดเองหรือต้องประกอบ a2ui แล้วออกแบบการ์ดจาก component ทั้งชุด (footnote ที่เลือกผิดชนิดถูกทิ้ง) · แก้: บรรทัด visit_plan ให้บล็อกการ์ดคัดลอกได้เลย (VISIT_PLAN_CARD) ตรวจแล้วว่าประกอบครบกับผลจริงของ visit_plan · production build port 3163: 17.7 / 14.8 / 13.6 / 13.6 s (เดิม 44.2) reasoning 1,967 / 1,231 / 1,523 / 1,075 (เดิม 5,634) การ์ดประกอบครบทุกรอบ · เดิม AI-180
 - **ระดับ:** กลาง · **หมวด:** `latency` · **บทบาท:** u_krit (sales rep)
 - **อาการ:** The writing step reasoned for 5,105 tokens before it composed the a2ui card.
 - **ที่ควรเป็น:** 40 s or less.
@@ -2892,7 +2892,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-218. The CEO's send to the South RSM takes 40.9 s to the approval
 
-- **สถานะ:** แก้แล้ว `0e0bfca` · สาเหตุ (reasoning ของ run 51e8624f): กฎบอกให้ resolve_owner ผู้รับที่เป็นตำแหน่ง โมเดลใช้ metric ของเรื่อง (ar_overdue) ได้นักวิเคราะห์การเงิน จึงต้องค้นซ้ำ และ describe_entity เอเย่นต์ก่อนอ่านหนี้ · แก้: ตำแหน่งฝ่ายขาย = resolve_owner `net_sales_value` กับภาคนั้น และอ่านการ์ดด้วยชื่อที่พิมพ์ในขั้นเดียวกัน · production build port 3163: 17.6 / 18.7 / 11.8 / 17.7 s ถึงใบอนุมัติ (เดิม 40.9) 2 ขั้นทุกรอบ ผู้รับคุณสรัญญาทุกรอบ · เดิม AI-180
+- **สถานะ:** แก้แล้ว `0b434a7` · สาเหตุ (reasoning ของ run 51e8624f): กฎบอกให้ resolve_owner ผู้รับที่เป็นตำแหน่ง โมเดลใช้ metric ของเรื่อง (ar_overdue) ได้นักวิเคราะห์การเงิน จึงต้องค้นซ้ำ และ describe_entity เอเย่นต์ก่อนอ่านหนี้ · แก้: ตำแหน่งฝ่ายขาย = resolve_owner `net_sales_value` กับภาคนั้น และอ่านการ์ดด้วยชื่อที่พิมพ์ในขั้นเดียวกัน · production build port 3163: 17.6 / 18.7 / 11.8 / 17.7 s ถึงใบอนุมัติ (เดิม 40.9) 2 ขั้นทุกรอบ ผู้รับคุณสรัญญาทุกรอบ · เดิม AI-180
 - **ระดับ:** กลาง · **หมวด:** `latency` · **บทบาท:** u_thana (CEO)
 - **อาการ:** It took three steps, because resolve_owner(ar_overdue) returned the finance analyst first. The recipient was correct.
 - **ที่ควรเป็น:** 40 s or less.
@@ -2946,7 +2946,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-223. Wording: double signs ('ลดลง -9.3%'), raw '(P1)', unnamed periods ('ช่วงนี้/งวดก่อน'), and a forward button named รายภาค on a รายเอเย่นต์ card
 
-- **สถานะ:** แก้แล้ว `0222eed` · ส่วนการ์ด: การ์ดตัวเลขเดียวตั้งชื่อช่วงเวลา (พ.ย. 69 เทียบ ต.ค. 69, สัปดาห์ก่อน) และการ์ดแยกตามเอเย่นต์หรือ DC ไม่เสนอปุ่มแยกตามภาค ส่วนเครื่องหมายซ้ำและ (P1) ในข้อความเป็นงานของ prompt (J3) · ส่วนข้อความ แก้แล้ว `9de66a5`: กฎภาษาให้ใช้คำหรือเครื่องหมายอย่างใดอย่างหนึ่ง (ลดลง 9.3%) ระดับเป็นคำของการ์ด (ต้องรีบดู ควรดู เฝ้าระวัง) และชื่อช่วงตามผล tool · รอยืนยันกับโมเดล · เดิม AI-192
+- **สถานะ:** แก้แล้ว `0222eed` · ส่วนการ์ด: การ์ดตัวเลขเดียวตั้งชื่อช่วงเวลา (พ.ย. 69 เทียบ ต.ค. 69, สัปดาห์ก่อน) และการ์ดแยกตามเอเย่นต์หรือ DC ไม่เสนอปุ่มแยกตามภาค ส่วนเครื่องหมายซ้ำและ (P1) ในข้อความเป็นงานของ prompt (J3) · ส่วนข้อความ แก้แล้ว `7f664c8`: กฎภาษาให้ใช้คำหรือเครื่องหมายอย่างใดอย่างหนึ่ง (ลดลง 9.3%) ระดับเป็นคำของการ์ด (ต้องรีบดู ควรดู เฝ้าระวัง) และชื่อช่วงตามผล tool · รอยืนยันกับโมเดล · เดิม AI-192
 - **ระดับ:** ต่ำ · **หมวด:** `wording` · **บทบาท:** u_thana (CEO), u_anucha (RSM)
 - **อาการ:** Examples: 'ต่ำกว่าเป้าตามเวลา -1.8%', 'ลดลง -9.3%', and '(P1)' in the RSM opener. The margin scorecard does not name October. The landing 26.9% and the chat 27.3% sit side by side with no explanation.
 - **ที่ควรเป็น:** One sign per change, Thai severity words, and named periods.
