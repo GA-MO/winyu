@@ -31,4 +31,12 @@ describe("the cards a person sent, as their screens name them (AI-209)", () => {
     expect(sent?.receipts.map((receipt) => receipt.userId)).toEqual(["u_anucha"]);
     expect(sentCardsOf("u_anucha").some((entry) => entry.ref === cardRefOf(SCREEN_CARD))).toBe(false);
   });
+
+  test("a sent card carries when it went out, so a later chat that draws the same card can say it was sent earlier (AI-260)", async () => {
+    const at = "2026-10-17T01:04:03.916Z";
+    const outcome = await createShare(user("u_thana"), { card: SCREEN_CARD, question: null, ask: "ช่วยดูหน่อย", intent: "act", recipients: [{ userId: "u_anucha", channel: "winyu" }] }, at);
+    if (!outcome.ok) throw new Error(outcome.error);
+    made.push(outcome.share.id);
+    expect(sentCardsOf("u_thana").find((entry) => entry.path === `/s/${outcome.share.id}`)?.at).toBe(at);
+  });
 });

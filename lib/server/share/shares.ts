@@ -117,9 +117,9 @@ export function sharePath(code: string): string {
 }
 
 /** One card a person sent, as their screens name it: its ref, the latest matter it went out as, and who got that one. */
-export type SentCard = { ref: string; path: string; receipts: ShareReceipt[] };
+export type SentCard = { ref: string; path: string; receipts: ShareReceipt[]; at: string };
 
-/** The cards one person sent, newest matter first per card, keyed by the ref their screen drew the card under (stored at send time, else the stored card's own), so a card reads as sent wherever it is drawn again. */
+/** The cards one person sent, newest matter first per card with when it went out, keyed by the ref their screen drew the card under (stored at send time, else the stored card's own), so a card reads as sent wherever it is drawn again. */
 export function sentCardsOf(senderId: string): SentCard[] {
   const latest = new Map<string, Matter>();
   for (const matter of shares().where((candidate) => candidate.senderId === senderId)) {
@@ -127,7 +127,7 @@ export function sentCardsOf(senderId: string): SentCard[] {
     const kept = latest.get(ref);
     if (!kept || matter.at > kept.at) latest.set(ref, matter);
   }
-  return [...latest].map(([ref, matter]) => ({ ref, path: sharePath(matter.id), receipts: receiptsOf(matter) }));
+  return [...latest].map(([ref, matter]) => ({ ref, path: sharePath(matter.id), receipts: receiptsOf(matter), at: matter.at }));
 }
 
 /** Each delivery with the recipient's name, for the sheet and Shared. */

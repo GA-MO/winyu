@@ -3,6 +3,7 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { findUser } from "@/lib/data/entities/users";
 import { TH } from "@/lib/i18n/th";
+import { formatDateTh, formatTimeTh } from "@/lib/i18n/format";
 import { cardRefOf, type ShareContact, type ShareReceipt, type ShareTarget } from "@/lib/share/card";
 
 let pathname = "/c/one";
@@ -99,6 +100,24 @@ describe("a card the person already sent (AI-209)", () => {
     spy.mockRestore();
     expect(pillOf(host)?.textContent).toContain(TH.share.sentButton);
     expect(host.querySelector("[data-share-sent]")?.textContent).toContain(RECEIPT.name);
+  });
+
+  test("says when it went out, so a card sent from the morning story reads as that earlier send, not as one just made (AI-260)", async () => {
+    const at = "2026-10-17T01:04:03.916Z";
+    const spy = spyOn(globalThis, "fetch").mockImplementation((async (url: string, init?: RequestInit) => {
+      if (url === "/api/shares" && (init?.method ?? "GET") === "GET") return Response.json({ sent: [{ ref: cardRefOf(TARGET.card), path: "/s/abc", receipts: [RECEIPT], at }] });
+      return Response.json({});
+    }) as unknown as typeof fetch);
+    const { host } = mount(
+      <ShareProvider open>
+        <ShareChrome target={TARGET}>
+          <Card props={{ title: "ปริมาณขายเข้า", footnote: "1–26 พ.ย." }} />
+        </ShareChrome>
+      </ShareProvider>,
+    );
+    await settle();
+    spy.mockRestore();
+    expect(host.querySelector("[data-share-sent]")?.textContent).toContain(TH.share.sentAt(`${formatDateTh(at)} ${formatTimeTh(at)}`));
   });
 });
 

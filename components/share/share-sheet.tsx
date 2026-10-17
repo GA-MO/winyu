@@ -9,6 +9,7 @@ import { CardShareProvider } from "@/components/ui/card-share";
 import { Portrait } from "@/components/ui/portrait";
 import { DEFAULT_GRANT_DAYS, GRANT_DAYS, type GrantDays, type RecipientScope } from "@/lib/contracts/grant";
 import { metricLabel } from "@/lib/dashboard/metric-display";
+import { formatDateTh, formatTimeTh } from "@/lib/i18n/format";
 import { TH } from "@/lib/i18n/th";
 import { cardRefOf, MATTER_ASK_MAX, SHARE_RECIPIENTS_MAX, shareTitle, type SendPreview, type ShareChannel, type ShareContact, type ShareGrantReceipt, type ShareReceipt, type ShareTarget } from "@/lib/share/card";
 import { contradictionOf } from "@/lib/share/figures";
@@ -30,7 +31,7 @@ export const CHANNEL_ICON: Record<ShareChannel, typeof Mail> = { email: Mail, te
 type Phase = { kind: "picking" } | { kind: "sending" } | { kind: "failed"; refused: boolean };
 
 /** What one send left: the receipts, grants and hidden parts the server reported, the grant days picked, the matter's link, and whether the person folded the receipt away (the card still reads as sent). */
-type SentShare = { receipts: ShareReceipt[]; grants: ShareGrantReceipt[]; hidden: RecipientScope[]; days: GrantDays | null; path: string; folded: boolean };
+type SentShare = { receipts: ShareReceipt[]; grants: ShareGrantReceipt[]; hidden: RecipientScope[]; days: GrantDays | null; path: string; at: string; folded: boolean };
 
 type SentShares = { byCard: Readonly<Record<string, SentShare>>; fold: (key: string) => void };
 
@@ -231,13 +232,13 @@ export function RecipientWarnings({ scopes, granting, grant }: { scopes: readonl
 }
 
 /** What a share left, under the card it sent: who got it on which channel, what it still hides from whom, any grants, the Outbox when any of it went by mail, and the matter's link; it stays where the person sent from, covering nothing, until they fold it. */
-export function ShareSent({ receipts, grants, hidden = [], days, path, close }: { receipts: ShareReceipt[]; grants: ShareGrantReceipt[]; hidden?: RecipientScope[]; days: GrantDays | null; path: string; close: () => void }) {
+export function ShareSent({ receipts, grants, hidden = [], days, path, at, close }: { receipts: ShareReceipt[]; grants: ShareGrantReceipt[]; hidden?: RecipientScope[]; days: GrantDays | null; path: string; at: string; close: () => void }) {
   const url = typeof window === "undefined" ? path : `${window.location.origin}${path}`;
   return (
     <aside role="status" aria-label={TH.share.sentTitle} data-share-sent className={SENT_NOTE}>
       <div className="flex items-start gap-2">
         <Check className="mt-0.5 size-4 shrink-0 text-success" aria-hidden />
-        <p className="min-w-0 flex-1 text-sm font-medium text-success">{TH.share.sentTitle}</p>
+        <p className="min-w-0 flex-1 text-sm font-medium text-success">{TH.share.sentAt(`${formatDateTh(at)} ${formatTimeTh(at)}`)}</p>
         <button type="button" onClick={close} aria-label={TH.common.close} className="-m-1 rounded-lg p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground">
           <X className="size-4" aria-hidden />
         </button>
@@ -377,7 +378,7 @@ function Sheet({ target, close, onSent }: { target: ShareTarget; close: () => vo
     const response = await fetch(SHARES_ENDPOINT, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) }).catch(() => null);
     const payload = response?.ok ? ((await response.json()) as { receipts: ShareReceipt[]; grants?: ShareGrantReceipt[]; hidden?: RecipientScope[]; path: string }) : null;
     if (!payload) return setPhase({ kind: "failed", refused: response?.status === REFUSED_STATUS });
-    onSent({ receipts: payload.receipts, grants: payload.grants ?? [], hidden: payload.hidden ?? [], days: grantDays, path: payload.path, folded: false });
+    onSent({ receipts: payload.receipts, grants: payload.grants ?? [], hidden: payload.hidden ?? [], days: grantDays, path: payload.path, at: new Date().toISOString(), folded: false });
   };
 
   return (
@@ -431,11 +432,11 @@ function Sheet({ target, close, onSent }: { target: ShareTarget; close: () => vo
   );
 }
 
-type SentCard = { ref: string; path: string; receipts: ShareReceipt[] };
+type SentCard = { ref: string; path: string; receipts: ShareReceipt[]; at: string };
 
 /** What the server says the person sent, added under each card's ref where this page has not recorded a send of its own (that one carries its grants and whether its receipt was folded). */
 function withServerSends(current: Record<string, SentShare>, sent: readonly SentCard[]): Record<string, SentShare> {
-  const added = sent.filter((card) => !current[card.ref]).map((card): [string, SentShare] => [card.ref, { receipts: card.receipts, grants: [], hidden: [], days: null, path: card.path, folded: false }]);
+  const added = sent.filter((card) => !current[card.ref]).map((card): [string, SentShare] => [card.ref, { receipts: card.receipts, grants: [], hidden: [], days: null, path: card.path, at: card.at, folded: false }]);
   return added.length > 0 ? { ...current, ...Object.fromEntries(added) } : current;
 }
 
@@ -486,7 +487,7 @@ export function ShareChrome({ target, children }: { target: ShareTarget | null; 
   const { byCard, fold } = useContext(SentContext);
   const key = target ? cardRefOf(target.card) : null;
   const sent = key ? byCard[key] : undefined;
-  const note = sent && key && !sent.folded ? <ShareSent receipts={sent.receipts} grants={sent.grants} hidden={sent.hidden} days={sent.days} path={sent.path} close={() => fold(key)} /> : null;
+  const note = sent && key && !sent.folded ? <ShareSent receipts={sent.receipts} grants={sent.grants} hidden={sent.hidden} days={sent.days} path={sent.path} at={sent.at} close={() => fold(key)} /> : null;
   const value = share && target ? { share: () => share(target), label: TH.share.buttonLabel(shareTitle(target.card)), sent: sent ? { note } : null } : null;
   return <CardShareProvider value={value}>{children}</CardShareProvider>;
 }
