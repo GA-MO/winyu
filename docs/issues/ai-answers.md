@@ -3074,12 +3074,12 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 | ข้อ | ระดับ | สถานะ | ปัญหา |
 |---|---|---|---|
 | AI-234 (เดิม AI-207) | สูง | แก้แล้ว `d340cf6` | Hold-back notice prints the pace mark as 0.9% instead of 86.7%, and the model then calls 85.3% 'ยังอยู่ในเกณฑ์ดี' |
-| AI-235 (เดิม AI-207, AI-220) | กลาง | ยังเสีย | The focused agent ขอนแก่นมหาชัย appears on the pace base (−1.6%) in the approval preview, the inbox and the matter headline, next to an 85.3% month-base hero |
+| AI-235 (เดิม AI-207, AI-220) | กลาง | แก้แล้ว `c0605cd` | The focused agent ขอนแก่นมหาชัย appears on the pace base (−1.6%) in the approval preview, the inbox and the matter headline, next to an 85.3% month-base hero |
 | AI-236 (เดิม AI-205) | กลาง | แก้แล้ว `da9b02b` | Asked where the month will close, the chat card leads with 83.9% to date, while the pinned card for the same question leads with 96.3% |
 | AI-237 | กลาง | แก้แล้ว `da9b02b` | A pinned month-end projection with a red 96.3% miss is filed under 'ปกติ 2 การ์ด' |
-| AI-238 (เดิม AI-203) | กลาง | ยังเสีย | The overall row 'รวมทุกเอเย่นต์' is used for 2, 4 and 8 agents, and a 2-agent card is headed 'ทุกเอเย่นต์ต่ำกว่าเป้าตามเวลา' |
-| AI-239 (เดิม AI-204) | กลาง | ยังเสีย | The B target strip pairs 'ขาดอีก' (the full-month gap) with 'ถึงวันนี้ควรได้ 86.7%', and the rep's reply drops 'ถึงเป้าทั้งเดือน' |
-| AI-240 (เดิม AI-222) | กลาง | เปิด (ใหม่) | The Isan story headline '51.7% และอุบลศรีสุข 48.3%' (gap shares) contradicts the 52.4% card row beneath it, and the sentence travels down the chain as the ask |
+| AI-238 (เดิม AI-203) | กลาง | แก้แล้ว `e11444b` | The overall row 'รวมทุกเอเย่นต์' is used for 2, 4 and 8 agents, and a 2-agent card is headed 'ทุกเอเย่นต์ต่ำกว่าเป้าตามเวลา' |
+| AI-239 (เดิม AI-204) | กลาง | แก้แล้ว `d1b5af9` | The B target strip pairs 'ขาดอีก' (the full-month gap) with 'ถึงวันนี้ควรได้ 86.7%', and the rep's reply drops 'ถึงเป้าทั้งเดือน' |
+| AI-240 (เดิม AI-222) | กลาง | แก้แล้ว `42d9f80` | The Isan story headline '51.7% และอุบลศรีสุข 48.3%' (gap shares) contradicts the 52.4% card row beneath it, and the sentence travels down the chain as the ask |
 | AI-241 (เดิม AI-206) | กลาง | แก้แล้ว `da9b02b` | The RSM overdue check is still a single October tile, and the reply calls it support for the credit hypothesis |
 | AI-242 (เดิม AI-200) | กลาง | เปิด (ใหม่) | On the IT activity card, the 6 folded rows lose the action and the card title, and those are exactly the demo chain's sends |
 | AI-243 (เดิม AI-232) | กลาง | เปิด (ใหม่) | 'ใครใช้เงินเยอะสุด' gets no answer although every call records its user, and the chat says 7 days where the console says 14 for the same $0.52 |
@@ -3087,16 +3087,16 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 | AI-245 (เดิม AI-219) | กลาง | เปิด (ใหม่) | The RSM forward picker opens below the fold on a phone, and ส่งต่อ takes about 5 s with no busy state |
 | AI-246 (เดิม AI-215) | ต่ำ | แก้แล้ว `da9b02b` | The pin receipt and reply do not name the replaced card, and the warning calls 96.3% and 83.9% 'ตัวเลขเดียวกัน' |
 | AI-247 (เดิม AI-230) | ต่ำ | ยังเสีย | The CEO's send to the South RSM warns 'ส่วนที่เหลือถูกล็อก' for an agent fully in her scope, and calls her 'เขา' |
-| AI-248 (เดิม AI-204) | ต่ำ | ยังเสีย | The RSM s1t3 reply sets the to-date gap shares (45.4%/42.0%) beside the month-end shortfall of 52.9 |
-| AI-249 (เดิม AI-204) | ต่ำ | เปิด (ใหม่) | 'ถึงวันนี้ยังขาด' means the paced gap on the year card and the full-month gap on the month cards |
+| AI-248 (เดิม AI-204) | ต่ำ | แก้แล้ว `42d9f80` | The RSM s1t3 reply sets the to-date gap shares (45.4%/42.0%) beside the month-end shortfall of 52.9 |
+| AI-249 (เดิม AI-204) | ต่ำ | แก้แล้ว `d1b5af9` | 'ถึงวันนี้ยังขาด' means the paced gap on the year card and the full-month gap on the month cards |
 | AI-250 (เดิม AI-211) | ต่ำ | ยังเสีย | The reply still points at 'การ์ดด้านล่าง' while the cards render above the text |
 | AI-251 (เดิม AI-223) | ต่ำ | แก้แล้ว `da9b02b` | The year answer uses '(YTD)' and leaves out the 477.7 ล้านบาท / 35 days that the card leads with |
 | AI-252 | ต่ำ | เปิด (ใหม่) | The CEO send approval header is cut to 'คุณสรัญญ…' by the deadline pill, and the card's primary button offers 'ส่งให้คุณอาร์ม', a different person |
 | AI-253 (เดิม AI-214) | ต่ำ | แก้แล้ว `da9b02b` | The week 'why' answer draws three cards: two repeat 248.1/−25.5, and an unrelated anomaly list sits beside 'ไม่มีส่วนใดเป็นสาเหตุหลัก' |
-| AI-254 | ต่ำ | เปิด (ใหม่) | The region strip prints '86%' beside '85.6%', and the Bangkok label is cut off |
+| AI-254 | ต่ำ | แก้แล้ว `9b61251` | The region strip prints '86%' beside '85.6%', and the Bangkok label is cut off |
 | AI-255 (เดิม AI-227) | ต่ำ | ยังเสีย | Run sheet wording still differs from the screen: the '· ภาคอีสาน' suffix, the drill button example, the 'ขั้นที่ n' labels, the Korat story label, and an unwarned black button |
 | AI-256 (เดิม AI-227) | ต่ำ | ยังเสีย | The approval's 'ส่ง' button sits half under the composer and shares the accessible name 'ส่ง' with the composer send button |
-| AI-257 (เดิม AI-220) | ต่ำ | ยังเสีย | The visit-plan card has an ASCII hyphen in '-9.5% · 28 วัน', uncoloured deltas, a first row that repeats the hero, and a '2 ราย' summary over 4 rows |
+| AI-257 (เดิม AI-220) | ต่ำ | แก้แล้ว `fdd0413` | The visit-plan card has an ASCII hyphen in '-9.5% · 28 วัน', uncoloured deltas, a first row that repeats the hero, and a '2 ราย' summary over 4 rows |
 | AI-258 | ต่ำ | เปิด (ใหม่) | The Isan story recommends the sales director and the CFO, while the demo sends the card to the RSM |
 | AI-259 | ต่ำ | เปิด (ใหม่) | CEO bell and drawer friction: the red dot stays until every update is opened, the drawer closes after back, and two buttons are named 'ปิด' |
 | AI-260 | ต่ำ | เปิด (ใหม่) | The ถามต่อ answer ends below the fold, and its first card already shows 'ส่งแล้ว' before the send command |
@@ -3118,7 +3118,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-235. The focused agent ขอนแก่นมหาชัย appears on the pace base (−1.6%) in the approval preview, the inbox and the matter headline, next to an 85.3% month-base hero
 
-- **สถานะ:** ยังเสีย · เดิม AI-207, AI-220
+- **สถานะ:** แก้แล้ว `c0605cd` · แถวที่ถูกเอ่ยถึงของเดือนที่ยังไม่จบอ่านบนฐานเดียวกับการ์ดทุกที่: ชีตส่ง แถว Inbox และหัวเรื่องขึ้น "ขอนแก่นมหาชัย 85.3% ของเป้าทั้งเดือน" สีแดง ใต้ว่า "ถึงวันนี้ควรได้ 86.7%" หัวเรื่องว่า "ขอนแก่นมหาชัยช้ากว่าเป้าตามเวลา" และบรรทัดสองบอกเป้าทั้งเดือน 83.2 ล้านบาท · สาเหตุจริง: preview.focus.figure ไม่ได้ว่าง แต่ฮีโร่ของแถวที่ถูกเอ่ยถึง (withAskedRows ใน lib/cards/breakdown.ts) ใช้มูลค่าและ % ตามเวลา ส่วน −1.6% บนจอเป็นเครื่องหมายลบ U+2212 อยู่แล้ว ฟอนต์วาดสั้น · เดิม AI-207, AI-220
 - **ระดับ:** กลาง · **หมวด:** `grounding` · **บทบาท:** u_anucha (RSM) s1t2 approval; u_krit receiving c43g2LkFQ5Ql
 - **อาการ:** The RSM approval preview shows '71.0 ล้านบาท -1.6% · เทียบเป้าตามเวลา' in grey with an ASCII hyphen, right after the chat said 85.3% of the month target. The rep's inbox row shows '71.0 ล้านบาท −1.6% เทียบเป้าตามเวลา'. The matter page's hero is 85.3% (red) of the month target, while its headline 'ยังขาดเป้า 1.6%' is 100 − 98.4, the paced attainment. One card mixes two bases.
 - **ที่ควรเป็น:** Under 'one base per card', every surface shows the row the way its card prints it: 85.3% of the month target, pace mark 86.7%, tone colour and U+2212. Pace is described in words only.
@@ -3157,7 +3157,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-238. The overall row 'รวมทุกเอเย่นต์' is used for 2, 4 and 8 agents, and a 2-agent card is headed 'ทุกเอเย่นต์ต่ำกว่าเป้าตามเวลา'
 
-- **สถานะ:** ยังเสีย · เดิม AI-203
+- **สถานะ:** แก้แล้ว `e11444b` · แถวรวมของรายการที่คำถามเลือกมานับจำนวน: "รวม 2 เอเย่นต์" และหัวการ์ด "ทั้ง 2 เอเย่นต์ต่ำกว่าเป้าตามเวลา" ส่วนทุกเอเย่นต์ของภาคยังเป็น "รวมทุกเอเย่นต์" (ใช้ชื่อเดียวกับทุกคนที่เห็นการ์ด จึงไม่ใส่ "ที่คุณดูแล") · เดิม AI-203
 - **ระดับ:** กลาง · **หมวด:** `grounding` · **บทบาท:** u_thana (chain step 1), u_anucha, u_krit
 - **อาการ:** The CEO's Isan story evidence is filtered to 2 agents, yet the card says 'รวมทุกเอเย่นต์ 52.1%' under 'ภาคอีสาน'. In the same session the region card shows ภาคอีสาน at 77.3%. The rep's own card uses the same label for his 4 agents (72.6%), and his matter page uses it for all 8 (77.3%). The card travels down the chain. There is no leak, because the rep's scope is northeast.
 - **ที่ควรเป็น:** An overall row over a subset names the subset ('2 เอเย่นต์', '4 เอเย่นต์ที่คุณดูแล'). 'ทุกเอเย่นต์' is used only when every agent in scope is shown.
@@ -3170,7 +3170,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-239. The B target strip pairs 'ขาดอีก' (the full-month gap) with 'ถึงวันนี้ควรได้ 86.7%', and the rep's reply drops 'ถึงเป้าทั้งเดือน'
 
-- **สถานะ:** ยังเสีย · เดิม AI-204
+- **สถานะ:** แก้แล้ว `d1b5af9` · แถบ B ใช้คำเดียวกับ scorecard: "ถึงวันนี้ควรได้ 86.7% · ถึงวันนี้ยังขาด 71.4 ล้านบาท ถึงเป้าทั้งเดือน" (การตัดคำของโมเดลยังไม่ได้วัด) · เดิม AI-204
 - **ระดับ:** กลาง · **หมวด:** `grounding` · **บทบาท:** u_krit probe; u_thana chain step 1 card
 - **อาการ:** The strip sub reads 'ของเป้าทั้งเดือน · ถึงวันนี้ควรได้ 86.7% · ขาดอีก 71.4 ล้านบาท' (and 48.2 on the CEO card). Both figures are gaps to the full-month target, not to today's pace (about 36.6). The reply says 'ถึงวันนี้ยังขาดอีก 71.4 ล้านบาท' without the qualifier.
 - **ที่ควรเป็น:** Every card form, the B strip included, reads 'ถึงวันนี้ยังขาด … ถึงเป้าทั้งเดือน', and the reply text keeps the qualifier.
@@ -3183,7 +3183,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-240. The Isan story headline '51.7% และอุบลศรีสุข 48.3%' (gap shares) contradicts the 52.4% card row beneath it, and the sentence travels down the chain as the ask
 
-- **สถานะ:** เปิด (ใหม่) · เดิม AI-222
+- **สถานะ:** แก้แล้ว `42d9f80` · การตรวจเรื่องตอนเช้าขอให้เขียนใหม่เมื่อหัวเรื่องใส่ % ข้างแถวที่การ์ดพิมพ์ตัวเลขอื่น (48.3% ของอุบลศรีสุขข้าง 52.4%) และ prompt ให้บอกสัดส่วนของช่องว่างเป็นจำนวนเงิน · รอวัดกับโมเดลในรอบถัดไป · เดิม AI-222
 - **ระดับ:** กลาง · **หมวด:** `grounding` · **บทบาท:** u_thana (chain step 1); u_anucha, u_krit receive it
 - **อาการ:** The headline percentages add up to 100, so they are shares of the gap. The evidence card shows 51.7% and 52.4% of the month target, so 51.7% means two different things on one screen. The sentence is prefilled into 'ขออะไร' and stored as the ask and question that the RSM and the rep read.
 - **ที่ควรเป็น:** The story states the gap share in baht or uses the card's base. No headline percentage sits beside a different percentage for the same row.
@@ -3278,7 +3278,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-248. The RSM s1t3 reply sets the to-date gap shares (45.4%/42.0%) beside the month-end shortfall of 52.9
 
-- **สถานะ:** ยังเสีย · เดิม AI-204
+- **สถานะ:** แก้แล้ว `42d9f80` · explain_gap เขียนสัดส่วนพร้อมฐาน "45.4% ของช่องว่างถึงวันนี้" ทั้งในรายการและใน share_note ที่โมเดลคัดลอก · รอวัดกับโมเดลในรอบถัดไป · เดิม AI-204
 - **ระดับ:** ต่ำ · **หมวด:** `grounding` · **บทบาท:** u_anucha (RSM) s1t3
 - **อาการ:** The shares belong to the 39.8 to-date gap, not to 52.9, and the card never prints 52.9.
 - **ที่ควรเป็น:** The shares name the gap they divide, or the card prints the shortfall the reply cites.
@@ -3289,7 +3289,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-249. 'ถึงวันนี้ยังขาด' means the paced gap on the year card and the full-month gap on the month cards
 
-- **สถานะ:** เปิด (ใหม่) · เดิม AI-204
+- **สถานะ:** แก้แล้ว `d1b5af9` · "ถึงวันนี้ยังขาด" หมายถึงยอดที่ขาดถึงเป้าทั้งเดือนอย่างเดียว ไทล์ของการ์ดทั้งปีและซีรีส์เปลี่ยนเป็น "ต่ำกว่าเป้าตามเวลา … ถึงวันนี้" · เดิม AI-204
 - **ระดับ:** ต่ำ · **หมวด:** `wording` · **บทบาท:** u_thana S1T2, u_anucha s2t2
 - **อาการ:** One lead phrase covers two different gaps, and only the small sub-label tells them apart. explain_gap shows a third figure.
 - **ที่ควรเป็น:** 'ต่ำกว่าเป้าตามเวลา' for the paced gap, 'ยังขาดถึงเป้าทั้งเดือน' for the full-month gap.
@@ -3344,7 +3344,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-254. The region strip prints '86%' beside '85.6%', and the Bangkok label is cut off
 
-- **สถานะ:** เปิด (ใหม่)
+- **สถานะ:** แก้แล้ว `9b61251` · ตัวเลข % บนการ์ดมีทศนิยมหนึ่งตำแหน่งเสมอ (86.0% ข้าง 85.6%) และชื่อแถวยาวขึ้นสองบรรทัดแทนการตัด
 - **ระดับ:** ต่ำ · **หมวด:** `ui` · **บทบาท:** u_thana (CEO) probe
 - **อาการ:** 85.97 rounds to 86.0, and the trailing .0 is stripped.
 - **ที่ควรเป็น:** One decimal on every row of a strip, and the full region label.
@@ -3375,7 +3375,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-257. The visit-plan card has an ASCII hyphen in '-9.5% · 28 วัน', uncoloured deltas, a first row that repeats the hero, and a '2 ราย' summary over 4 rows
 
-- **สถานะ:** ยังเสีย · เดิม AI-220
+- **สถานะ:** แก้แล้ว `fdd0413` · แผนเยี่ยมใช้เครื่องหมายลบ U+2212 ตัวเลขมีสีตามทิศ และรายการใต้ฮีโร่ไม่ซ้ำเอเย่นต์ที่ฮีโร่บอกแล้ว (ส่วน "2 ราย" บน 4 แถวยังไม่ได้แก้) · เดิม AI-220
 - **ระดับ:** ต่ำ · **หมวด:** `wording` · **บทบาท:** u_krit (sales rep)
 - **อาการ:** The visit_plan tool emits the ASCII hyphen itself, and the card block binds both metrics[0] and every row.
 - **ที่ควรเป็น:** A typographic minus, a coloured change, and no duplicated hero row.

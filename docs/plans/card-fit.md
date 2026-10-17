@@ -7,6 +7,7 @@ The user (2026-10-16): "ไม่ใช่แสดง card หน้าตา�
 2026-10-17 รอบ 6 (I3): เพิ่ม R12 ซีรีส์เทียบเป้า, R13 ซีรีส์ที่ยอดเปลี่ยนระดับ, ค่าที่ปลายทั้งสองของแถบ, widget แบบ `month_end` เช็กใน `lib/cards/question-fit.test.ts`
 2026-10-17 รอบ 7 (J2): ไทล์บอกว่าตัวเองคืออะไร (ถึงวันนี้ยังขาด / คาดว่าขาด ณ สิ้นเดือน), ยอดคงค้างเก็บเดือนที่ยังไม่จบ, R12 ทั้งปีบอกยอดที่ต้องทำเพิ่มและวันที่เหลือ, ช่วงเวลามีชื่อ, R11 ระบุส่วนที่ฉุดเป็นจำนวน, แถวใกล้ปลายและแท่งสั้นมีค่า, รายการความผิดปกติเอาเรื่องที่เสียหายขึ้นก่อน
 2026-10-17 รอบ 8 (K2): R14 คำถามว่าเดือนนี้จะปิดที่เท่าไหร่ได้การ์ด `month_end` ในแชตเหมือนการ์ดที่ปัก, การ์ด `month_end` ที่ปักไว้และคาดว่าไม่ถึงเป้าอยู่ในกลุ่มที่ต้องดูบน Dashboard, คำตอบว่าทำไมวาดการ์ดเดียวต่อเรื่อง (ยอดรวมที่การ์ดช่องว่างบอกแล้ว และรายการความผิดปกติข้างช่องว่างที่ไม่มีสาเหตุหลัก ไม่ซ้ำ)
+2026-10-17 รอบ 8 (K1): แถวที่ถูกเอ่ยถึงอยู่บนฐานทั้งเดือนทุกที่ (ชีตส่ง Inbox หัวเรื่อง), แถวรวมของรายการที่เลือกมานับจำนวน (รวม 2 เอเย่นต์), "ถึงวันนี้ยังขาด" ใช้กับยอดที่ขาดถึงเป้าทั้งเดือนเท่านั้น, % ทศนิยมหนึ่งตำแหน่งเสมอ, ชื่อแถวยาวขึ้นสองบรรทัด
 
 ## Worst examples
 
@@ -40,7 +41,7 @@ The user (2026-10-16): "ไม่ใช่แสดง card หน้าตา�
 | R9 | time series of a summed metric, no grouping | latest full bucket vs the one before; range total in the note | line | `ceo-trend`, `compare-stock-weekly` |
 | R10 | 2+ `query_metric` results in one turn with the same dimensions and range, of metrics that read together | the pairing | funnel, scatter, parity gap, or two lines on one chart | `shape-funnel`, `shape-scatter`, `shape-sell-through`, `landing-visit` |
 | R11 | an `explain_gap` answer | where the month ends at the recent pace (a running month), the share of target (a closed month), or the actual with its change | the whole gap named by its base, the parts over 10% of it drawn, the rest and the offsetting parts folded | present.test.ts "a gap card" |
-| R12 | time series against target, no grouping; also one total of the year so far against target | the whole range's share of target ("ยอดสะสม 98.2% ของเป้าตามเวลา" while a month still runs), tiles for what is behind ("ถึงวันนี้ยังขาด") and the bucket that missed most (a one-row year: the days left in the year); a range from 1 January adds what the rest of the year must make up ("ต้องทำเกินเป้าอีก 477.7 ล้านบาท ภายในสิ้นปี (เหลือ 35 วัน)") | line with the target dashed | question-fit.test.ts (round-5 and round-6 CEO "ทั้งปีนี้ยอดขายจะถึงเป้าไหม") |
+| R12 | time series against target, no grouping; also one total of the year so far against target | the whole range's share of target ("ยอดสะสม 98.2% ของเป้าตามเวลา" while a month still runs), tiles for what is behind ("ต่ำกว่าเป้าตามเวลา … ถึงวันนี้" while the range runs, AI-249) and the bucket that missed most (a one-row year: the days left in the year); a range from 1 January adds what the rest of the year must make up ("ต้องทำเกินเป้าอีก 477.7 ล้านบาท ภายในสิ้นปี (เหลือ 35 วัน)") | line with the target dashed | question-fit.test.ts (round-5 and round-6 CEO "ทั้งปีนี้ยอดขายจะถึงเป้าไหม") |
 | R13 | day or week series of a sum, no grouping, that stepped to a new level (`lib/cards/step.ts`: each side ≥ 3 buckets, a shift ≥ 40%, the two levels explain ≥ half the spread) | the level since the step ("เฉลี่ยตั้งแต่ 15 พ.ย. 8,951 ลิตร ต่อวัน", red), the level before in the detail; verdict "ตั้งแต่ 15 พ.ย. ลดลงจากวันละ 26,215 ลิตร เหลือ 8,951 ลิตร" | line | question-fit.test.ts (round-5 rep why-drop) |
 | R14 | a this-month total against target whose question asks where the month closes ("จะปิดที่กี่เปอร์เซ็นต์", "จะปิดเดือนได้ถึงเป้าไหม"; `asksMonthEnd`, set by query_metric from the turn's question in `lib/cards/asked.ts`) | where the month ends at the recent pace ("96.3% ของเป้าทั้งเดือน"), the share done so far and the month end's own shortfall as tiles: the `month_end` card the pin draws | none | question-fit.test.ts "asked where the month closes" (round-7 CEO S1T1, AI-236) |
 
@@ -75,6 +76,11 @@ The year end itself is not projected: the warehouse holds no target past the day
 - A list of alerts shows what hurts and folds moves that do no harm behind it, whenever something hurts (AI-221).
 - A landing tile of a pinned `month_end` card says it is the projection ("คาดปิดเดือน · …") with the share done so far under it (AI-205); a series tile that leads with the last full month while its month still runs says "เดือนที่ปิดแล้ว" (AI-229).
 - A split by a place (agent, DC, province) never offers a split by a coarser one (AI-223).
+- A row the question or a send singles out, in a month still running against target, leads with its share of the whole month's target in its tone and the pace mark under it ("ขอนแก่นมหาชัย 85.3% ของเป้าทั้งเดือน · ถึงวันนี้ควรได้ 86.7%"), its verdict says pace in words ("ช้ากว่าเป้าตามเวลา"), and its second line names the whole month's target. The send preview, the inbox row and the matter headline draw that row from the same hero, so no surface quotes its change on the pace base (AI-235).
+- An overall row over groups the question picked counts them ("รวม 2 เอเย่นต์", verdict "ทั้ง 2 เอเย่นต์…"); "ทุก" only when every group in scope is shown (AI-238).
+- "ถึงวันนี้ยังขาด … ถึงเป้าทั้งเดือน" names the gap to the whole month's target on every form, the B strip's month detail included; the gap to the paced target is "ต่ำกว่าเป้าตามเวลา" (AI-239, AI-249).
+- Every percent a card writes has one decimal ("86.0%" beside "85.6%"), and a strip row's name wraps to two lines instead of being cut (AI-254).
+- A part's share of a gap names the gap it divides ("45.4% ของช่องว่างถึงวันนี้"), and a morning story says gap shares in money: the review asks for a rewrite when a finding sets a percent beside a row its card prints a different figure for (AI-240, AI-248).
 
 ## Check
 
