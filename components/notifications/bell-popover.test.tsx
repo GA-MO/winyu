@@ -173,3 +173,24 @@ describe("bell rows on a phone (AI-159)", () => {
     for (const node of [...holding(LONG), ...holding(MATTER_TITLE)]) expect(node.className).not.toMatch(/\btruncate\b|line-clamp-1\b/);
   });
 });
+
+describe("an open bell panel (AI-210)", () => {
+  test("loads again when the bell's counts change, so a matter that arrives while it is open shows without closing it", async () => {
+    const matter = { code: "m2", title: "ปริมาณขายเข้า · ภาคอีสาน", ask: "ช่วยดู", senderName: "คุณธนา", passerName: "คุณอนุชา", at: AT, actions: ["accept" as const], suggested: { ownerId: null, line: [] }, judges: false, sent: false };
+    const arrived: BellPayload = { decide: [{ key: "matter:m2", kind: "matter", refId: "m2", title: "t", person: null, at: AT, read: false, target: "/s/m2", notificationId: "n-m2", matter }], updates: [] };
+    let current: BellPayload = { decide: [], updates: [] };
+    const spy = spyOn(globalThis, "fetch").mockImplementation((async () => Response.json(current)) as unknown as typeof fetch);
+    const host = document.createElement("div");
+    document.body.append(host);
+    const root = createRoot(host);
+    mounted = { root, host };
+    const draw = (decisions: number) => root.render(<BellPopover counts={{ decisions, sharedUnread: 0, unreadUpdates: 0 }} onClose={() => undefined} onOpenInbox={() => undefined} onChanged={() => undefined} navigate={() => undefined} />);
+    await act(async () => draw(0));
+    expect(host.querySelector('[data-bell-decision="matter"]')).toBeNull();
+    current = arrived;
+    await act(async () => draw(1));
+    await act(async () => new Promise((resolve) => setTimeout(resolve, 0)));
+    spy.mockRestore();
+    expect(host.querySelector('[data-bell-decision="matter"]')?.textContent).toContain(matter.title);
+  });
+});
