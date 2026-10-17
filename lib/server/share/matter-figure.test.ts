@@ -72,8 +72,8 @@ describe("a send about one agent opens on that agent (AI-208)", () => {
     const agents = view.reads.map((read) => read.result).find((result) => answerOf(result).query.dims.includes("agent"));
     const answer = answerOf(agents);
     expect(answer.headline.asked).toEqual([FOCUS_AGENT]);
-    const drill = ((agents as { nextActions?: NextAction[] }).nextActions ?? []).find((action) => action.kind === "drill");
-    expect(drill?.prompt ?? "").toContain(FOCUS_AGENT);
+    const drills = view.reads.map((read) => ((read.result as { nextActions?: NextAction[] }).nextActions ?? []).find((action) => action.kind === "drill")?.prompt ?? "");
+    expect(drills).toEqual(view.reads.map(() => expect.stringContaining(FOCUS_AGENT)));
     expect((await cardHero(matter.card, user(REP), matter.focus)) ?? "").toStartWith(FOCUS_AGENT);
   });
 });
