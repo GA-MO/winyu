@@ -7,6 +7,7 @@ import { MatterActions } from "@/components/matter/matter-actions";
 import { matterFrom, type MatterActionKind } from "@/lib/share/matter-actions";
 import { cn } from "@/components/ui/cn";
 import { TH } from "@/lib/i18n/th";
+import type { InboxCounts } from "@/components/inbox/types";
 import { hasUnread, type BellDecision, type BellItem, type BellPayload } from "./items";
 import { Face, UnreadDot, When } from "./parts";
 
@@ -182,10 +183,10 @@ function readEverything(payload: BellPayload): BellPayload {
   return { decide: payload.decide.map((item) => ({ ...item, read: true })), updates: payload.updates.map((item) => ({ ...item, read: true })) };
 }
 
-type BellPopoverProps = { onClose: () => void; onOpenInbox: () => void; onChanged: () => void; navigate: (href: string) => void };
+type BellPopoverProps = { counts?: InboxCounts; onClose: () => void; onOpenInbox: () => void; onChanged: () => void; navigate: (href: string) => void };
 
-/** What the bell opens: decisions on top, each with its one action, then updates; a popover under the bell, a bottom sheet on a phone. Opening it reads nothing. */
-export function BellPopover({ onClose, onOpenInbox, onChanged, navigate }: BellPopoverProps) {
+/** What the bell opens: decisions on top, each with its one action, then updates; a popover under the bell, a bottom sheet on a phone. Opening it reads nothing. While open it loads again whenever the bell's `counts` change, so the list never disagrees with the badge. */
+export function BellPopover({ counts, onClose, onOpenInbox, onChanged, navigate }: BellPopoverProps) {
   const dialog = useRef<HTMLDialogElement>(null);
   const titleId = useId();
   const [payload, setPayload] = useState<BellPayload | null>(null);
@@ -212,9 +213,10 @@ export function BellPopover({ onClose, onOpenInbox, onChanged, navigate }: BellP
     };
   }, []);
 
+  const countsKey = counts ? `${counts.decisions}:${counts.sharedUnread}:${counts.unreadUpdates}` : null;
   useEffect(() => {
     void load();
-  }, [load]);
+  }, [load, countsKey]);
 
   const open = useCallback(
     (item: BellItem) => {

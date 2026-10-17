@@ -50,7 +50,7 @@ export function InboxBell({ className }: { className: string }) {
         ) : null}
         {signal.badge === "dot" ? <span data-inbox-badge="dot" className="absolute right-0 top-0 size-2.5 rounded-full bg-danger ring-2 ring-card" /> : null}
       </button>
-      {popoverOpen ? <BellPopover onClose={closePopover} onOpenInbox={openDrawer} onChanged={refresh} navigate={navigate} /> : null}
+      {popoverOpen ? <BellPopover counts={counts} onClose={closePopover} onOpenInbox={openDrawer} onChanged={refresh} navigate={navigate} /> : null}
       <InboxDrawer open={drawerOpen} onClose={closeDrawer} focus={focusFromParams(params)} onChanged={refresh} />
     </>
   );
