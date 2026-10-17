@@ -3792,23 +3792,23 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 |---|---|---|---|
 | AI-291 (เดิม AI-290) | กลาง | ยังเสีย | Chat send after ถามต่อ takes 42.9 s because the first send_card is refused: the subject check cannot read an anomaly card |
 | AI-292 (เดิม AI-290 (same refused first send)) | กลาง | เปิด (ใหม่) | A red 'ไม่ได้ส่งการ์ด' block above the CEO's approval shows internal card ids and a false claim |
-| AI-293 (เดิม AI-236 (also AI-266)) | กลาง | แก้แล้ว `1a0812c` | CEO month-close question with a region breakdown shows the to-date pace card (83.9%) first and the month-end card (96.3%) second |
-| AI-294 (เดิม card-fit R4) | กลาง | แก้แล้ว `1a0812c` | The rep's 'which agent dropped most' card leads with a green +16.1% total |
-| AI-295 (เดิม AI-272) | กลาง | แก้แล้ว `1a0812c` | One reply gives two drop figures for the same store (−89% at 1,785 L/day and −65.9% at 8,951 L/day) and does not explain the difference |
-| AI-296 (เดิม card-fit worst example rsm-own-region) | กลาง | แก้แล้ว `1a0812c` | The rep's explain_gap card for one store does not name the store |
+| AI-293 (เดิม AI-236 (also AI-266)) | กลาง | แก้แล้ว `26a7b48` | CEO month-close question with a region breakdown shows the to-date pace card (83.9%) first and the month-end card (96.3%) second |
+| AI-294 (เดิม card-fit R4) | กลาง | แก้แล้ว `26a7b48` | The rep's 'which agent dropped most' card leads with a green +16.1% total |
+| AI-295 (เดิม AI-272) | กลาง | แก้แล้ว `26a7b48` | One reply gives two drop figures for the same store (−89% at 1,785 L/day and −65.9% at 8,951 L/day) and does not explain the difference |
+| AI-296 (เดิม card-fit worst example rsm-own-region) | กลาง | แก้แล้ว `26a7b48` | The rep's explain_gap card for one store does not name the store |
 | AI-297 (เดิม AI-267 / AI-273) | ต่ำ | เปิด (ใหม่) | A sent anomaly card is titled only 'ความผิดปกติที่ต้องดู' and shows no store or figure on the approval, share, bell, matter or inbox row |
 | AI-298 (เดิม AI-281) | ต่ำ | ยังเสีย | After ถามต่อ the reply still offers to send 'เรื่องนี้' to คุณอนุชา, who already holds it |
 | AI-299 (เดิม AI-282) | ต่ำ | แก้แล้ว (เอกสาร) · รอเดินยืนยันรอบ 10 | The run sheet does not match the screen: card title, pace-line position, all rows red, IT data date, activity scroll |
 | AI-300 (เดิม AI-284) | ต่ำ | แก้แล้ว (เอกสาร) · รอเดินยืนยันรอบ 10 | Chat-option timings exceed the run sheet: ถามต่อ took 31.6 s (sheet 20–30) and the typed send took 42.9 s (sheet 20–35) |
-| AI-301 (เดิม AI-274) | ต่ำ | แก้แล้ว `1a0812c` | The gap strip folds a single part into 'อีก 1 รายการ' when offsetting parts exist |
-| AI-302 (เดิม AI-222 / AI-185) | ต่ำ | แก้แล้ว `1a0812c` | The gap card verdict names a to-date part amount after a month-end judgement, so the headline mixes bases |
+| AI-301 (เดิม AI-274) | ต่ำ | แก้แล้ว `26a7b48` | The gap strip folds a single part into 'อีก 1 รายการ' when offsetting parts exist |
+| AI-302 (เดิม AI-222 / AI-185) | ต่ำ | แก้แล้ว `26a7b48` | The gap card verdict names a to-date part amount after a month-end judgement, so the headline mixes bases |
 | AI-303 (เดิม AI-283) | ต่ำ | เปิด (ใหม่) | The chat send approval names two agents but shows the all-agent 77.3% as its hero |
-| AI-304 | ต่ำ | แก้แล้ว `1a0812c` | The year-against-target chart stops at October while the tiles and footer run to 26 พ.ย. |
-| AI-305 | ต่ำ | แก้แล้ว `1a0812c` | The week-why hero sub-line 'ยอดจริง · สัปดาห์ก่อน (…) 273.6 ล้านบาท' reads as if 273.6 were this week's actual |
-| AI-306 (เดิม AI-266 (wrap noted there)) | ต่ำ | แก้แล้ว `1a0812c` | Money tiles wrap 'ล้าน / บาท' onto a second line at phone width |
-| AI-307 (เดิม AI-276) | ต่ำ | แก้แล้ว `1a0812c` | IT spend card: the top two tie at $0.13 but only one is named, and the rows sum to $0.48 against a $0.47 total |
-| AI-308 (เดิม AI-271) | ต่ำ | แก้แล้ว `1a0812c` | The IT card for 'would the rep see the south' spends 18 rows on unrelated hidden metrics and tools |
-| AI-309 | ต่ำ | แก้แล้ว `1a0812c` | The chat rail drawer shows open over the chat at phone width |
+| AI-304 | ต่ำ | แก้แล้ว `26a7b48` | The year-against-target chart stops at October while the tiles and footer run to 26 พ.ย. |
+| AI-305 | ต่ำ | แก้แล้ว `26a7b48` | The week-why hero sub-line 'ยอดจริง · สัปดาห์ก่อน (…) 273.6 ล้านบาท' reads as if 273.6 were this week's actual |
+| AI-306 (เดิม AI-266 (wrap noted there)) | ต่ำ | แก้แล้ว `26a7b48` | Money tiles wrap 'ล้าน / บาท' onto a second line at phone width |
+| AI-307 (เดิม AI-276) | ต่ำ | แก้แล้ว `26a7b48` | IT spend card: the top two tie at $0.13 but only one is named, and the rows sum to $0.48 against a $0.47 total |
+| AI-308 (เดิม AI-271) | ต่ำ | แก้แล้ว `26a7b48` | The IT card for 'would the rep see the south' spends 18 rows on unrelated hidden metrics and tools |
+| AI-309 | ต่ำ | แก้แล้ว `26a7b48` | The chat rail drawer shows open over the chat at phone width |
 | AI-310 (เดิม AI-265 (same root)) | ต่ำ | เปิด (ใหม่) · นอกเส้นทางเดโม | resolve_owner returns the asking RSM himself when he asks for the store's sales rep |
 
 ### AI-291. Chat send after ถามต่อ takes 42.9 s because the first send_card is refused: the subject check cannot read an anomaly card
@@ -3836,7 +3836,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-293. CEO month-close question with a region breakdown shows the to-date pace card (83.9%) first and the month-end card (96.3%) second
 
-- **สถานะ:** แก้แล้ว `1a0812c` · คำถามว่าเดือนนี้จะปิดที่เท่าไหร่แยกตามภาคได้การ์ดที่นำด้วย 96.3% ณ สิ้นเดือนและคาดว่าขาด 68.8 ล้านบาท ภาคอยู่ใต้บนฐานทั้งเดือน และถ้ามีการ์ดช่องว่างที่คาดปิดเดือนอยู่แล้ว การ์ดแยกภาคไม่วาดซ้ำ เหลือการ์ดเดียว · เดิม AI-236 (also AI-266)
+- **สถานะ:** แก้แล้ว `26a7b48` · คำถามว่าเดือนนี้จะปิดที่เท่าไหร่แยกตามภาคได้การ์ดที่นำด้วย 96.3% ณ สิ้นเดือนและคาดว่าขาด 68.8 ล้านบาท ภาคอยู่ใต้บนฐานทั้งเดือน และถ้ามีการ์ดช่องว่างที่คาดปิดเดือนอยู่แล้ว การ์ดแยกภาคไม่วาดซ้ำ เหลือการ์ดเดียว · เดิม AI-236 (also AI-266)
 - **ระดับ:** กลาง · **หมวด:** `card-fit` · **บทบาท:** u_thana (CEO) probe 'เดือนนี้น่าจะปิดที่เท่าไร ถึงเป้าไหม'
 - **อาการ:** query_metric {period:this_month, compare:target, dims:[region]} returned 6 rows with asksMonthEnd true and a projection of 96.3%. The first card is the R3 pace leaderboard at 83.9%. The month-end answer (96.3%, 68.8 short) comes second, below the fold. The text is correct.
 - **ที่ควรเป็น:** R14: one month_end card leading with 96.3% and the 68.8 shortfall. Any breakdown sits under that answer.
@@ -3847,7 +3847,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-294. The rep's 'which agent dropped most' card leads with a green +16.1% total
 
-- **สถานะ:** แก้แล้ว `1a0812c` · การ์ดจัดอันดับตามการเปลี่ยนแปลงแบบ B นำด้วยแถวแรก (อีสานรุ่งโรจน์ ค้าส่ง −17.0% สีแดง) และย้าย "รวม 4 เอเย่นต์ +16.1%" ไปเป็นบรรทัดใต้แถวนั้น · เดิม card-fit R4
+- **สถานะ:** แก้แล้ว `26a7b48` · การ์ดจัดอันดับตามการเปลี่ยนแปลงแบบ B นำด้วยแถวแรก (อีสานรุ่งโรจน์ ค้าส่ง −17.0% สีแดง) และย้าย "รวม 4 เอเย่นต์ +16.1%" ไปเป็นบรรทัดใต้แถวนั้น · เดิม card-fit R4
 - **ระดับ:** กลาง · **หมวด:** `card-fit` · **บทบาท:** u_krit (rep), chain break 1 and the break-2 send
 - **อาการ:** query_metric was sorted delta_asc against prev_period. The hero is 'รวม 4 เอเย่นต์ +16.1%' in green. The answer, อีสานรุ่งโรจน์ ค้าส่ง −17.0%, is only the first bar. A send from break 2 would carry this green headline with the ask 'ช่วยดูด่วน'.
 - **ที่ควรเป็น:** R4: lead with the first row's label and its change in red (−17.0%) and put the total in the note.
@@ -3858,7 +3858,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-295. One reply gives two drop figures for the same store (−89% at 1,785 L/day and −65.9% at 8,951 L/day) and does not explain the difference
 
-- **สถานะ:** แก้แล้ว `1a0812c` · รายการความผิดปกติบอกช่วงวันของตัวเอง (14–26 พ.ย. 2569) ต่อจากตัวเลขจริงกับที่คาด และการ์ดรายวันของร้านเดียวบอก "ทุกแบรนด์" ที่ท้ายการ์ด ตัวเลขสองตัวจึงอ่านแยกกันได้ · เดิม AI-272
+- **สถานะ:** แก้แล้ว `26a7b48` · รายการความผิดปกติบอกช่วงวันของตัวเอง (14–26 พ.ย. 2569) ต่อจากตัวเลขจริงกับที่คาด และการ์ดรายวันของร้านเดียวบอก "ทุกแบรนด์" ที่ท้ายการ์ด ตัวเลขสองตัวจึงอ่านแยกกันได้ · เดิม AI-272
 - **ระดับ:** กลาง · **หมวด:** `card-fit` · **บทบาท:** u_krit (rep) probe
 - **อาการ:** The anomaly card covers สิงห์ and ลีโอ from 14 to 26 พ.ย. (−89%). The series card below it covers all products since 15 พ.ย. (−65.9%). Each figure is correct for its own scope, but neither card nor the text names that scope.
 - **ที่ควรเป็น:** Either one figure for the drop, or the scope named on each card (ทุกสินค้า versus สิงห์ and ลีโอ).
@@ -3869,7 +3869,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-296. The rep's explain_gap card for one store does not name the store
 
-- **สถานะ:** แก้แล้ว `1a0812c` · explain_gap ส่ง scope_labels กลับมา และท้ายการ์ดช่องว่างบอกชื่อร้านกับภาค (1–26 พ.ย. 2569 · อีสานรุ่งโรจน์ ค้าส่ง · ภาคอีสาน) · เดิม card-fit worst example rsm-own-region
+- **สถานะ:** แก้แล้ว `26a7b48` · explain_gap ส่ง scope_labels กลับมา และท้ายการ์ดช่องว่างบอกชื่อร้านกับภาค (1–26 พ.ย. 2569 · อีสานรุ่งโรจน์ ค้าส่ง · ภาคอีสาน) · เดิม card-fit worst example rsm-own-region
 - **ระดับ:** กลาง · **หมวด:** `card-fit` · **บทบาท:** u_krit (rep) probe
 - **อาการ:** The card 'มูลค่าขายเข้า · รายแบรนด์ — คาดปิดเดือนไม่ถึงเป้า ลีโอฉุดมากสุด 11.0 ล้านบาท' is filtered to อีสานรุ่งโรจน์ ค้าส่ง, but neither its title nor its footer names the store. A screenshot reads as the rep's whole territory.
 - **ที่ควรเป็น:** A filtered card names its scope in the title or the footer.
@@ -3924,7 +3924,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-301. The gap strip folds a single part into 'อีก 1 รายการ' when offsetting parts exist
 
-- **สถานะ:** แก้แล้ว `1a0812c` · ส่วนเล็กส่วนเดียวถูกวาดเป็นแถวของตัวเองแม้มีส่วนที่ช่วยชดเชย บรรทัดที่พับเหลือแค่ "5 รายการช่วยชดเชย" · เดิม AI-274
+- **สถานะ:** แก้แล้ว `26a7b48` · ส่วนเล็กส่วนเดียวถูกวาดเป็นแถวของตัวเองแม้มีส่วนที่ช่วยชดเชย บรรทัดที่พับเหลือแค่ "5 รายการช่วยชดเชย" · เดิม AI-274
 - **ระดับ:** ต่ำ · **หมวด:** `card-fit` · **บทบาท:** u_anucha (RSM) S1T2
 - **อาการ:** explain_gap by brand returned 3 contributors and 5 offsetting parts. The third contributor (โซดาสิงห์, 0.2%) is folded into 'อีก 1 รายการ'.
 - **ที่ควรเป็น:** A lone part is never folded. Only the offsetting parts are.
@@ -3935,7 +3935,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-302. The gap card verdict names a to-date part amount after a month-end judgement, so the headline mixes bases
 
-- **สถานะ:** แก้แล้ว `1a0812c` · หัวการ์ดช่องว่างที่คาดปิดเดือนบอกส่วนที่ฉุดว่าเป็นยอดถึงวันนี้ (คาดปิดเดือนไม่ถึงเป้า ถึงวันนี้ลีโอฉุดมากสุด 11.0 ล้านบาท) · เดิม AI-222 / AI-185
+- **สถานะ:** แก้แล้ว `26a7b48` · หัวการ์ดช่องว่างที่คาดปิดเดือนบอกส่วนที่ฉุดว่าเป็นยอดถึงวันนี้ (คาดปิดเดือนไม่ถึงเป้า ถึงวันนี้ลีโอฉุดมากสุด 11.0 ล้านบาท) · เดิม AI-222 / AI-185
 - **ระดับ:** ต่ำ · **หมวด:** `card-fit` · **บทบาท:** u_thana (CEO) probe; u_anucha (RSM) S1T2
 - **อาการ:** 'คาดปิดเดือนไม่ถึงเป้า ภาคอีสานฉุดมากสุด 39.8 ล้านบาท' sits over a hero of 96.3% (68.8 short at month end), but 39.8 is a to-date gap. The RSM card has the same problem: 11.0 to date against 24.0 at month end.
 - **ที่ควรเป็น:** The verdict names the part on the hero's base, or labels the amount 'ถึงวันนี้'.
@@ -3957,7 +3957,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-304. The year-against-target chart stops at October while the tiles and footer run to 26 พ.ย.
 
-- **สถานะ:** แก้แล้ว `1a0812c` · กราฟซีรีส์เทียบเป้าเก็บเดือนที่ยังไม่จบไว้ (เป้านับถึงวันเดียวกัน) กราฟทั้งปีจึงไปถึง พ.ย. 69 เท่ากับไทล์และท้ายการ์ด
+- **สถานะ:** แก้แล้ว `26a7b48` · กราฟซีรีส์เทียบเป้าเก็บเดือนที่ยังไม่จบไว้ (เป้านับถึงวันเดียวกัน) กราฟทั้งปีจึงไปถึง พ.ย. 69 เท่ากับไทล์และท้ายการ์ด
 - **ระดับ:** ต่ำ · **หมวด:** `card-fit` · **บทบาท:** u_thana (CEO) s2t1
 - **อาการ:** query_metric returned 11 months including November. The tiles (98.2%, 477.7) include November, but the chart draws only ม.ค.–ต.ค., so 50.9 of the 477.7 shortfall is not on the chart.
 - **ที่ควรเป็น:** A series against a paced target keeps the running month, or the card says the month is left out.
@@ -3968,7 +3968,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-305. The week-why hero sub-line 'ยอดจริง · สัปดาห์ก่อน (…) 273.6 ล้านบาท' reads as if 273.6 were this week's actual
 
-- **สถานะ:** แก้แล้ว `1a0812c` · หัวการ์ดช่องว่างเทียบช่วงก่อนบอกวันของตัวเลขและสิ่งที่เทียบ (23–26 พ.ย. 2569 · เทียบ สัปดาห์ก่อน (16 พ.ย. 2569 – 19 พ.ย. 2569) 273.6 ล้านบาท) ไม่มีคำว่า ยอดจริง ติดกับตัวเลขสัปดาห์ก่อนอีก
+- **สถานะ:** แก้แล้ว `26a7b48` · หัวการ์ดช่องว่างเทียบช่วงก่อนบอกวันของตัวเลขและสิ่งที่เทียบ (23–26 พ.ย. 2569 · เทียบ สัปดาห์ก่อน (16 พ.ย. 2569 – 19 พ.ย. 2569) 273.6 ล้านบาท) ไม่มีคำว่า ยอดจริง ติดกับตัวเลขสัปดาห์ก่อนอีก
 - **ระดับ:** ต่ำ · **หมวด:** `wording` · **บทบาท:** u_thana (CEO) s1t1
 - **อาการ:** The 'ยอดจริง' label runs straight into last week's figure on a phone. The numbers themselves are correct.
 - **ที่ควรเป็น:** Name only the comparison, or put 'ยอดจริง' next to the hero figure.
@@ -3979,7 +3979,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-306. Money tiles wrap 'ล้าน / บาท' onto a second line at phone width
 
-- **สถานะ:** แก้แล้ว `1a0812c` · ไทล์ตัวเลขเงินแยกหน่วยเป็นตัวเล็กข้างตัวเลขและไม่ตัดบรรทัด (52.9 ล้านบาท และ 477.7 ล้านบาท อยู่บรรทัดเดียวที่ 390 px) · เดิม AI-266 (wrap noted there)
+- **สถานะ:** แก้แล้ว `26a7b48` · ไทล์ตัวเลขเงินแยกหน่วยเป็นตัวเล็กข้างตัวเลขและไม่ตัดบรรทัด (52.9 ล้านบาท และ 477.7 ล้านบาท อยู่บรรทัดเดียวที่ 390 px) · เดิม AI-266 (wrap noted there)
 - **ระดับ:** ต่ำ · **หมวด:** `layout` · **บทบาท:** u_anucha (RSM) S1T1; u_thana (CEO) s2t1
 - **อาการ:** The shortfall tile breaks between 'ล้าน' and 'บาท' at 393 px (52.9 on the RSM card, 477.7 on the CEO card).
 - **ที่ควรเป็น:** The number and its unit stay on one line.
@@ -3990,7 +3990,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-307. IT spend card: the top two tie at $0.13 but only one is named, and the rows sum to $0.48 against a $0.47 total
 
-- **สถานะ:** แก้แล้ว `1a0812c` · การ์ดค่าโมเดลใช้ทศนิยมสามตำแหน่งเมื่อสองอันดับแรกเท่ากันที่หลักเซ็นต์ ($0.131 กับ $0.128) และปัดแต่ละแถวให้รวมได้เท่ายอดรวมเสมอ · เดิม AI-276
+- **สถานะ:** แก้แล้ว `26a7b48` · การ์ดค่าโมเดลใช้ทศนิยมสามตำแหน่งเมื่อสองอันดับแรกเท่ากันที่หลักเซ็นต์ ($0.131 กับ $0.128) และปัดแต่ละแถวให้รวมได้เท่ายอดรวมเสมอ · เดิม AI-276
 - **ระดับ:** ต่ำ · **หมวด:** `wording` · **บทบาท:** u_ton (IT)
 - **อาการ:** อนุชา shows $0.1313 and ธนา $0.1284, both rounded to $0.13, and only อนุชา is named. The rows add up to $0.48 against a $0.47 hero, and the hero has no week-over-week change.
 - **ที่ควรเป็น:** Three decimals when leaders tie at the cent, and rows that add up to the hero.
@@ -4001,7 +4001,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-308. The IT card for 'would the rep see the south' spends 18 rows on unrelated hidden metrics and tools
 
-- **สถานะ:** แก้แล้ว `1a0812c` · role_access ที่ไม่ได้ระบุ level นำด้วยขอบเขตข้อมูลอย่างเดียว ส่วนแถวทั้งหมดพับไว้ใต้บรรทัดเดียว "ถูกซ่อนหรือปิด 18 รายการ · เห็นเต็ม 7 เมตริก · ใช้ได้ 30 เครื่องมือ" · เดิม AI-271
+- **สถานะ:** แก้แล้ว `26a7b48` · role_access ที่ไม่ได้ระบุ level นำด้วยขอบเขตข้อมูลอย่างเดียว ส่วนแถวทั้งหมดพับไว้ใต้บรรทัดเดียว "ถูกซ่อนหรือปิด 18 รายการ · เห็นเต็ม 7 เมตริก · ใช้ได้ 30 เครื่องมือ" · เดิม AI-271
 - **ระดับ:** ต่ำ · **หมวด:** `card-fit` · **บทบาท:** u_ton (IT)
 - **อาการ:** The scope hero answers correctly (AI-271 fixed). Below it, 14 metric rows and 4 tool rows list what reps cannot use, and none of them is about regions.
 - **ที่ควรเป็น:** The scope hero alone, or rows narrowed to the asked metric.
@@ -4012,7 +4012,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-309. The chat rail drawer shows open over the chat at phone width
 
-- **สถานะ:** แก้แล้ว `1a0812c` · สาเหตุ: rail ตั้ง transition-all ไว้ตลอดและ padding ของหน้าเลื่อนตามบนมือถือด้วย พอหน้าต่างเปลี่ยนจากจอกว้างเป็นมือถือ rail จึงค้างครึ่งทางถ้าหน้าต่างไม่ได้วาดใหม่ แก้: rail บนมือถือเลื่อนเฉพาะหลังคนกดเปิด และ transition ของ padding มีแค่จอกว้าง
+- **สถานะ:** แก้แล้ว `26a7b48` · สาเหตุ: rail ตั้ง transition-all ไว้ตลอดและ padding ของหน้าเลื่อนตามบนมือถือด้วย พอหน้าต่างเปลี่ยนจากจอกว้างเป็นมือถือ rail จึงค้างครึ่งทางถ้าหน้าต่างไม่ได้วาดใหม่ แก้: rail บนมือถือเลื่อนเฉพาะหลังคนกดเปิด และ transition ของ padding มีแค่จอกว้าง
 - **ระดับ:** ต่ำ · **หมวด:** `ui` · **บทบาท:** u_thana (CEO) alt-3; u_ton (IT) s1 t1
 - **อาการ:** The left rail covers the chat edge and clips the hamburger. The IT tester saw it once before the first send, and it did not return after a reload.
 - **ที่ควรเป็น:** The rail stays closed on a phone unless the user opens it.
