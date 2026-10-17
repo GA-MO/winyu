@@ -394,6 +394,7 @@ describe("lines that invite a question or an action follow what the role can cal
     expect(prompt).toContain("ผู้รับที่ผู้ใช้เอ่ยชื่อ (คุณกฤต พี่อนุชา) = ใส่ชื่อนั้นใน `to` ตามที่พิมพ์ ระบบหาคนเอง ไม่ต้อง `describe_entity` หรือ `resolve_owner`");
     expect(prompt).toContain("ผู้จัดการขายภาคหรือพนักงานขาย = `resolve_owner` `net_sales_value` กับภาคนั้น ไม่ใช่ metric ของเรื่องที่ส่ง");
     expect(prompt).toContain("กรองด้วยชื่อที่ผู้ใช้พิมพ์ ไม่ต้อง `describe_entity` ก่อน");
+    expect(prompt).toContain("เรื่องที่เป็นแถวหนึ่งของการ์ดบนจอ (เอเย่นต์ในการ์ดทีม) = ส่งการ์ดใบนั้นด้วย `cardRef` ไม่ต้อง query ใหม่");
     expect(prompt).toContain("ไม่ต้องตัดสินเองว่าขัดกับการ์ด: เรียก `send_card` ด้วยคำของผู้ใช้");
     expect(prompt).not.toContain("ผู้รับที่บอกเป็นตำแหน่งหรือพื้นที่ ให้ `resolve_owner` ก่อน");
     const claims = WINYU_RULES.find((line) => line.startsWith("สิ่งที่ผู้ใช้อ้างเองในแชต")) ?? "";
