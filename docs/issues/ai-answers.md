@@ -2686,34 +2686,34 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 | ข้อ | ระดับ | สถานะ | ปัญหา |
 |---|---|---|---|
-| AI-203 (เดิม AI-201) | กลาง | เปิด (ใหม่) | A matter shows two numbers for one viewer: the rep's inbox says 77.3% (RSM's whole region), but the matter page shows 72.6% over his 4 agents, labelled 'รวมทุกเอเย่นต์' |
+| AI-203 (เดิม AI-201) | กลาง | แก้แล้ว `178a27e` | A matter shows two numbers for one viewer: the rep's inbox says 77.3% (RSM's whole region), but the matter page shows 72.6% over his 4 agents, labelled 'รวมทุกเอเย่นต์' |
 | AI-204 (เดิม AI-185) | กลาง | แก้แล้ว `0222eed` | The month-end figure is paired with the to-date gap: '87.5% … ขาดอีก 96.4 ล้านบาท', and 'ขาดอีก' tiles are sub-labelled 'ของเป้าทั้งเดือน' |
 | AI-205 (เดิม AI-171) | กลาง | แก้แล้ว `0222eed` | After the CEO's month-close pin, the landing tile shows the 96.3% forecast labelled as a plain total ('มูลค่าขายเข้า รวมทั้งหมด · พ.ย.') |
 | AI-206 (เดิม AI-170) | กลาง | แก้แล้ว `0222eed` | The RSM overdue card drops November and leads with a green October fall, while the text says overdue rose in November and confirms the credit hypothesis |
 | AI-207 (เดิม AI-141) | กลาง | เปิด (ใหม่) | The multi-row ถามต่อ reply quotes the paced-base 40.3%/39.5% while the card shows 51.7%/52.4% of the month target; the probe text has −10.8% that is on no card |
-| AI-208 (เดิม AI-167) | กลาง | ยังเสีย | The RSM's 'visit ขอนแก่นมหาชัย' matter carries the whole-team card, whose headline and drill name a different agent, and its auto-close goal is the whole Isan region |
-| AI-209 (เดิม AI-197) | กลาง | ยังเสีย | The CEO's green 'ส่งแล้ว' disappears after navigation, so the Isan card can be sent twice |
-| AI-210 | กลาง | เปิด (ใหม่) | An open bell panel never refreshes: the badge shows 1 while the panel reads 'ไม่มีเรื่องรอคุณ' |
+| AI-208 (เดิม AI-167) | กลาง | แก้แล้ว `178a27e` `b05735a` | The RSM's 'visit ขอนแก่นมหาชัย' matter carries the whole-team card, whose headline and drill name a different agent, and its auto-close goal is the whole Isan region |
+| AI-209 (เดิม AI-197) | กลาง | แก้แล้ว `9cb63a3` | The CEO's green 'ส่งแล้ว' disappears after navigation, so the Isan card can be sent twice |
+| AI-210 | กลาง | แก้แล้ว `9dcbe64` | An open bell panel never refreshes: the badge shows 1 while the panel reads 'ไม่มีเรื่องรอคุณ' |
 | AI-211 (เดิม AI-191) | กลาง | เปิด (ใหม่) | The RSM's 'ภาคใต้เทียบอีสาน' reply says to press the request-access button on the card, but the denied card is hidden |
 | AI-212 (เดิม AI-182) | กลาง | แก้แล้ว `0222eed` | The visit-priority card leads with 'ปริมาณขายเข้า −89%' without brands or window, and each row has a second, unlabelled % |
 | AI-213 (เดิม AI-174) | กลาง | แก้แล้ว `0222eed` | The CEO's 'ทั้งปีนี้ยอดขายจะถึงเป้าไหม' gets a non-answer: no year-end projection, no amount left, no worst month |
 | AI-214 (เดิม AI-190) | กลาง | ยังเสีย | The CEO's 'ทำไมตกอะ' (week) still gives no checked reason, and the headline names Bangkok as the main drag at 23.0% vs Isan 22.9% |
-| AI-215 | กลาง | เปิด (ใหม่) | A pin silently replaces another pinned card of the same metric; neither the approval nor the reply says so |
+| AI-215 | กลาง | แก้แล้ว `ad01bb2` | A pin silently replaces another pinned card of the same metric; neither the approval nor the reply says so |
 | AI-216 (เดิม AI-180) | กลาง | เปิด (ใหม่) | The RSM delegation turn takes 52.8 s before the rebuttal |
 | AI-217 (เดิม AI-180) | กลาง | เปิด (ใหม่) | The rep's visit-priority turn takes 44.2 s |
 | AI-218 (เดิม AI-180) | กลาง | เปิด (ใหม่) | The CEO's send to the South RSM takes 40.9 s to the approval |
 | AI-219 (เดิม AI-193) | กลาง | ยังเสีย | The run sheet does not say the matter actions are below the fold; the biggest button in view starts a model call |
-| AI-220 (เดิม AI-168) | ต่ำ | เปิด (ใหม่) | The RSM→rep approval keeps the 'ตกหนัก' warning after the ask was rewritten; the '-1.6%' headline has an ASCII hyphen and no colour |
+| AI-220 (เดิม AI-168) | ต่ำ | แก้แล้ว `86cbf31` | The RSM→rep approval keeps the 'ตกหนัก' warning after the ask was rewritten; the '-1.6%' headline has an ASCII hyphen and no colour |
 | AI-221 (เดิม AI-169) | ต่ำ | แก้แล้ว `0222eed` | The CEO risk answer: the DC-average cover card calms ('ยังเกิน 10 วัน') above a P1 6.3-day stock-out at the same DC, and the list shows upside rows |
 | AI-222 (เดิม AI-174) | ต่ำ | แก้แล้ว `0222eed` | The explain_gap card puts the 64.6% hero right under the headline's 64.2% share |
 | AI-223 (เดิม AI-192) | ต่ำ | แก้แล้ว `0222eed` | Wording: double signs ('ลดลง -9.3%'), raw '(P1)', unnamed periods ('ช่วงนี้/งวดก่อน'), and a forward button named รายภาค on a รายเอเย่นต์ card |
-| AI-224 (เดิม AI-186) | ต่ำ | เปิด (ใหม่) | The rep's month-total card offers a send prefilled with an ask about one agent's Singha/Leo alert |
+| AI-224 (เดิม AI-186) | ต่ำ | แก้แล้ว `bf2c458` | The rep's month-total card offers a send prefilled with an ask about one agent's Singha/Leo alert |
 | AI-225 (เดิม AI-160) | ต่ำ | แก้แล้ว `45373ae` | The IT denials card counts a blocked contradictory send as a denial with no reason, and the overview shows raw codes ('ASK_CONTRADICTS_CARD', 'Out of scope') |
 | AI-226 (เดิม AI-196) | ต่ำ | แก้แล้ว `8939288` | On a phone, the Admin tab row shows 'Audi' cut at the edge before Audit is selected |
 | AI-227 (เดิม AI-193) | ต่ำ | ยังเสีย | The run sheet's wording differs from the screen: switch vs checkbox, line label, Korat story, login '1 ถึง 4', IT timing, ส่ง under the composer, no 'ด่วน' on the bell item, 4 update rows |
 | AI-228 (เดิม AI-173) | ต่ำ | แก้แล้ว `0222eed` | Change and target strips leave near-top movers unlabelled, and a brand pace card shows four empty rows |
 | AI-229 (เดิม AI-157) | ต่ำ | แก้แล้ว `0222eed` | CEO landing tiles mix October volume with November value |
-| AI-230 (เดิม AI-198) | ต่ำ | เปิด (ใหม่) · นอกเส้นทางเดโม | The South-agent send approval warns 'ส่วนที่เหลือถูกล็อก' although the agent is fully in the recipient's scope |
+| AI-230 (เดิม AI-198) | ต่ำ | แก้แล้ว `b5596b5` · นอกเส้นทางเดโม | The South-agent send approval warns 'ส่วนที่เหลือถูกล็อก' although the agent is fully in the recipient's scope |
 | AI-231 (เดิม AI-187) | ต่ำ | เปิด (ใหม่) · นอกเส้นทางเดโม | The rep's starter dashboard card joins 5 scope names into its headline and uses the pace base beside the month-base card |
 | AI-232 | ต่ำ | แก้แล้ว `45373ae` · นอกเส้นทางเดโม | IT usage figures differ between surfaces (4 vs 5 users), and answered admin, send and pin requests are listed as unanswered |
 | AI-233 | ต่ำ | เปิด (ใหม่) · นอกเส้นทางเดโม | Admin Access tab at phone width squeezes the role title and the Full/Masked/None chips into a narrow right column |
@@ -2722,7 +2722,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-203. A matter shows two numbers for one viewer: the rep's inbox says 77.3% (RSM's whole region), but the matter page shows 72.6% over his 4 agents, labelled 'รวมทุกเอเย่นต์'
 
-- **สถานะ:** เปิด (ใหม่) · เดิม AI-201
+- **สถานะ:** แก้แล้ว `178a27e` · เดิม AI-201 · เรื่องเก็บการ์ดตามที่ผู้ส่งเห็นแล้ว เปิดซ้ำจึงไม่ตีความคำถามของผู้ส่งใหม่ หน้าเรื่อง กล่องงาน และเป้าปิดเรื่องอ่านทางเดียวกัน คุณกฤตเห็น 77.3% ทั้งภาคเหมือนกันทุกที่
 - **ระดับ:** กลาง · **หมวด:** `grounding` · **บทบาท:** u_krit (sales rep) receiving u_anucha's matter Ck66Abr7insK
 - **อาการ:** The inbox hero reads '77.3% ของเป้าทั้งเดือน'. When /s/Ck66Abr7insK is opened, the reads are narrowed to krit's 4 agents and show 72.6% 'รวมทุกเอเย่นต์' with 4 rows. Neither number is the card the RSM saw (8 agents, limit 5).
 - **ที่ควรเป็น:** The inbox and the matter page show the same card, within the receiver's scope (northeast: 8 agents, 77.3%).
@@ -2781,7 +2781,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-208. The RSM's 'visit ขอนแก่นมหาชัย' matter carries the whole-team card, whose headline and drill name a different agent, and its auto-close goal is the whole Isan region
 
-- **สถานะ:** ยังเสีย · เดิม AI-167
+- **สถานะ:** แก้แล้ว `178a27e` `b05735a` · เดิม AI-167 · การ์ดของผู้รับขึ้นต้นด้วยเอเย่นต์ที่ส่งมา ปุ่มทำไมถามถึงเอเย่นต์นั้น และเป้าปิดเรื่องคือเอเย่นต์นั้นถึง 100% ของเป้า
 - **ระดับ:** กลาง · **หมวด:** `chain` · **บทบาท:** u_anucha → u_krit
 - **อาการ:** The title and ask name ขอนแก่นมหาชัย (fixed). The card is the team attainment card (region + agent, limit 5). On the rep's matter page it reads 'หนักสุดอีสานรุ่งโรจน์ ค้าส่ง' and offers 'ทำไมภาคอีสานถึงเป็นแบบนี้'. ขอนแก่นมหาชัย is an ordinary row. The goal is ≥100% of the Isan region query, so 'ระบบจะปิดงานให้อัตโนมัติ…' refers to the region. The CEO's one-agent send (ctaiyEpTAdxw) did filter to its agent.
 - **ที่ควรเป็น:** A send about one agent opens on, or highlights, that agent. The headline, primary drill and goal follow the focus.
@@ -2793,7 +2793,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-209. The CEO's green 'ส่งแล้ว' disappears after navigation, so the Isan card can be sent twice
 
-- **สถานะ:** ยังเสีย · เดิม AI-197
+- **สถานะ:** แก้แล้ว `9cb63a3` · เดิม AI-197 · ปุ่ม "ส่งแล้ว" กับบรรทัดผู้รับอ่านจากเรื่องที่ส่งไปจริงบน server จึงอยู่ครบหลังเปลี่ยนหน้าและ reload
 - **ระดับ:** กลาง · **หมวด:** `run-sheet` · **บทบาท:** presenter, u_thana (chain step 1)
 - **อาการ:** After leaving the page and coming back, the card showed plain 'ส่งต่อ' again and the receipt was gone. Run sheet 1.5 says it stays 'จนกว่าจะกด ✕'.
 - **ที่ควรเป็น:** The sent state is rebuilt from the server, so it survives navigation and reload.
@@ -2804,7 +2804,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-210. An open bell panel never refreshes: the badge shows 1 while the panel reads 'ไม่มีเรื่องรอคุณ'
 
-- **สถานะ:** เปิด (ใหม่)
+- **สถานะ:** แก้แล้ว `9dcbe64` · แผงกระดิ่งที่เปิดค้างโหลดรายการใหม่ทุกครั้งที่ตัวเลขบนกระดิ่งเปลี่ยน
 - **ระดับ:** กลาง · **หมวด:** `run-sheet` · **บทบาท:** presenter, u_krit (chain step 10)
 - **อาการ:** Matter 2 arrived while the panel was open. The badge showed 1, but the panel stayed empty until ✕ and reopen. The sheet's 'ถ้าเกิดเหตุ' table does not cover this.
 - **ที่ควรเป็น:** The open panel polls on the bell's cadence, or the sheet says to close it after each step.
@@ -2859,7 +2859,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-215. A pin silently replaces another pinned card of the same metric; neither the approval nor the reply says so
 
-- **สถานะ:** เปิด (ใหม่)
+- **สถานะ:** แก้แล้ว `ad01bb2` · ยังคงปักได้หนึ่งการ์ดต่อหนึ่งตัวเลข แต่การ์ดอนุมัติบอกก่อนกดว่าจะแทนการ์ดไหน และใบยืนยันหลังกดบอกซ้ำ
 - **ระดับ:** กลาง · **หมวด:** `write-flow` · **บทบาท:** u_krit (sales rep), u_thana (CEO)
 - **อาการ:** The rep's pin unpinned 'เอเย่นต์ที่คุณดูแล' (pinned:false). The CEO's month_end pin replaced 'ยอดขายทั้งประเทศเทียบเป้า'. In both cases the tool summary said 'แทน …' but the approval and the reply did not. (Merged: review 2's finding with review 1's AI-171 note. The CEO case is on the demo path.)
 - **ที่ควรเป็น:** The approval states which card the pin replaces, and the reply repeats it. A by-agent table and a month total are not the same subject.
@@ -2913,7 +2913,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-220. The RSM→rep approval keeps the 'ตกหนัก' warning after the ask was rewritten; the '-1.6%' headline has an ASCII hyphen and no colour
 
-- **สถานะ:** เปิด (ใหม่) · เดิม AI-168
+- **สถานะ:** แก้แล้ว `86cbf31` · เดิม AI-168 · คำเตือนจากคำพูดเก่าหายไปเมื่อแชตชี้แจงไปแล้วและคำขอที่ส่งไม่ได้อ้างแบบนั้นอีก ตัวเลขของเอเย่นต์แสดง −1.6% เป็นสีแดง
 - **ระดับ:** ต่ำ · **หมวด:** `write-flow` · **บทบาท:** u_anucha (RSM)
 - **อาการ:** The approved clean ask still showed the warning 'ข้อความบอกว่าขอนแก่นมหาชัยตกหนัก…'. (The goal-scope half is merged into the AI-167 finding.)
 - **ที่ควรเป็น:** Drop the warning once the corrected ask is accepted, or reword it as 'คุณเคยบอกว่า…'.
@@ -2957,7 +2957,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-224. The rep's month-total card offers a send prefilled with an ask about one agent's Singha/Leo alert
 
-- **สถานะ:** เปิด (ใหม่) · เดิม AI-186
+- **สถานะ:** แก้แล้ว `bf2c458` · เดิม AI-186 · การ์ดยอดรวมหลายเอเย่นต์ไม่ผูกกับ alert ของเอเย่นต์ใดเอเย่นต์หนึ่ง คำขอที่เติมไว้จึงตรงกับการ์ด
 - **ระดับ:** ต่ำ · **หมวด:** `chips` · **บทบาท:** u_krit (sales rep)
 - **อาการ:** The send ask on the 4-agent total card is 'ช่วยตรวจอีสานรุ่งโรจน์ ค้าส่ง · สิงห์, ลีโอ…'.
 - **ที่ควรเป็น:** The prefilled ask matches the card's subject.
@@ -3023,7 +3023,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-230. The South-agent send approval warns 'ส่วนที่เหลือถูกล็อก' although the agent is fully in the recipient's scope
 
-- **สถานะ:** เปิด (ใหม่) · เดิม AI-198 · นอกเส้นทางเดโม
+- **สถานะ:** แก้แล้ว `b5596b5` · เดิม AI-198 · นอกเส้นทางเดโม · การ์ดที่กรองเฉพาะเอเย่นต์หรือจังหวัดนับเป็นภาคของที่นั้น ผู้จัดการภาคใต้จึงไม่เห็นคำเตือนว่าถูกล็อก
 - **ระดับ:** ต่ำ · **หมวด:** `permission-ux` · **บทบาท:** u_thana (CEO)
 - **อาการ:** The read is filtered to ag_sou_06 (South), yet send_card reported hidden data for the South RSM.
 - **ที่ควรเป็น:** No warning for an entity inside the recipient's scope.
