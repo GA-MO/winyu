@@ -60,6 +60,13 @@ describe("the alert a total card follows (AI-224)", () => {
     expect(alertForAnswer(result, [onAgent("ag_nea_02")], dictionary)).toBeNull();
   });
 
+  test("the rep's month total over his four agents is about 'ทั้ง 4 เอเย่นต์', never the four names joined (AI-286)", async () => {
+    const dictionary = await loadDictionary();
+    const result = runMetric(total(book), accessFor(findUser("u_krit")!)) as Extract<MetricResult, { ok: true }>;
+    const focus = cardFocus(result, null, dictionary);
+    expect(focus.subject).toBe("ทั้ง 4 เอเย่นต์ · ภาคอีสาน");
+  });
+
   test("a total pinned to one agent still follows that agent's alert", async () => {
     const dictionary = await loadDictionary();
     const result = runMetric(total(["ag_nea_02"]), CEO) as Extract<MetricResult, { ok: true }>;

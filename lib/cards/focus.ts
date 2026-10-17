@@ -11,6 +11,7 @@ import { effectiveFilters } from "@/lib/semantic/resolved";
 const HARM_MIN_PCT = 5;
 const PERIOD_COMPARES: ReadonlySet<ResolvedQuery["compare"]> = new Set(["prev_period", "prev_year"]);
 const LABEL_SEPARATOR = ", ";
+const MAX_NAMED = 2;
 const PART_SEPARATOR = " · ";
 
 function rankDimOf(query: ResolvedQuery): Dim | null {
@@ -43,10 +44,15 @@ function worstRow(result: Extract<MetricResult, { ok: true }>): string | null {
   return weakestRow(result.query, result)?.label ?? harm;
 }
 
+/** A narrowed dimension in words: its one or two names, or how many of them ("ทั้ง 4 เอเย่นต์"), so an ask never runs four names together (AI-231, AI-286). */
+function namesOrCount(dim: Dim, labels: readonly string[]): string {
+  return labels.length > MAX_NAMED ? TH.read.eachOfSome(labels.length, TH.dash.dimUnit[dim]) : labels.join(LABEL_SEPARATOR);
+}
+
 function sliceOf(query: ResolvedQuery, rankDim: Dim | null): string | null {
   const narrowed = (Object.entries(query.labels) as [Dim, string[]][])
     .filter(([dim, labels]) => !isTimeDim(dim) && labels.length > 0 && !(dim === rankDim && labels.length > 1))
-    .map(([, labels]) => labels.join(LABEL_SEPARATOR));
+    .map(([dim, labels]) => namesOrCount(dim, labels));
   const split = rankDim && pinnedRow(query, rankDim) === null ? TH.next.splitBy(TH.dash.dimUnit[rankDim]) : null;
   const parts = split ? [...narrowed, split] : narrowed;
   return parts.length > 0 ? parts.join(PART_SEPARATOR) : null;
