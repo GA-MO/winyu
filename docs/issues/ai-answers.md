@@ -4029,3 +4029,258 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 - **หลักฐาน:**
 	- trace 4cd798736f84d5a4a92c4de9ff2874e7
 - **สาเหตุ:** verified: lib/server/share/owner.ts:38-42 suggestOwner never excludes fromUserId, and agentId routes only overdue debt
+
+## รอบทดสอบที่ 10 (2026-10-17) เฉพาะเส้นทางเดโม บน production build
+
+เดิน run sheet ใน 4 หน้าต่างก่อน แล้วบทบาท 4 คนเล่นซ้ำ turn ที่เสียในรอบ 9 server `:3110` commit `bd76272` ข้อมูล seed ใหม่ สืบตอนเช้า $0.29 ค่าโมเดลรอบทดสอบ $0.24 ผล: แก้แล้ว 14 · ยังเสีย 8 · ใหม่ 11 · ไม่มีข้อสูง · run sheet ขั้นหลัก 1 ถึง 5 ผ่าน ทางเลือกแชตยังสะดุด · เงื่อนไขหยุดยังไม่ผ่าน (กลางบนเส้นทางเดโม 8 ข้อ: 18, 15, 17, 11, 7, 6, 8 ตั้งแต่รอบ 4) มีข้อหนึ่งเป็นผลถอยจากการแก้ AI-293
+
+ยืนยันกับโมเดลแล้วว่าแก้แล้ว: AI-293, AI-297, AI-302, AI-306, AI-294, AI-295, AI-296, AI-298 (in-chat part), AI-300, AI-301, AI-303 (approval part), AI-307 (rows part), AI-308 (fold part), AI-310
+
+| ข้อ | ระดับ | สถานะ | ปัญหา |
+|---|---|---|---|
+| AI-311 (เดิม AI-253 (related: repeated cards in one reply)) | กลาง | เปิด (ใหม่) | CEO 'which region fell most vs last month' draws three cards that disagree (Nov MTD all grew, Oct all fell, plus a byte-identical repeat), the text uses only one, and the turn takes 53.2 s |
+| AI-312 (เดิม AI-203 (same two-scopes problem); regression from the AI-293 change) | กลาง | เปิด (ใหม่) | Rep's 'เดือนนี้ผมจะปิดยอดถึงเป้าไหม': the card shows the whole Isan region (87.5%, 52.9 short) while the text answers for his 4 agents (81.3%, 48.7 short) |
+| AI-313 (เดิม AI-240 (story headline vs evidence card)) | กลาง | เปิด (ใหม่) | CEO's top morning story claims 'น่าจะติดเพดานสินเชื่อ' and '2 เอเย่นต์ใหญ่', but its evidence card shows one agent and the overdue it read was falling; ถามต่อ then contradicts it on stage |
+| AI-314 (เดิม AI-303 (also AI-208 for the goal)) | กลาง | เปิด (ใหม่) | Second matter: CEO approves 47.3% (สิงห์, ลีโอ) but the RSM and rep open a matter page leading with 51.8% for all brands, and the auto-close goal tracks the whole agent |
+| AI-315 (เดิม AI-291) | กลาง | ยังเสีย | Chat send after ถามต่อ takes 44.1 s: send_card is refused twice with a false CARD_MISSES_SUBJECT because the subject check ignores an anomaly card's brand scope |
+| AI-316 (เดิม AI-292) | กลาง | ยังเสีย | Two red 'ไม่ได้ส่งการ์ด' blocks stay above the CEO's waiting approval, with a false reason |
+| AI-317 (เดิม AI-223 (unnamed periods); also the window part of the rep's AI-294 card) | กลาง | ยังเสีย | Change cards and replies never name the comparison window: 'งวดก่อน 1,164.9 ล้านบาท' is 1–26 ต.ค., so +33% reads as implausible and one prior value appears as 266.8 and 341.9 in one reply |
+| AI-318 (เดิม AI-299) | กลาง | ยังเสีย | The run sheet does not match the screens: it describes a per-agent regional card (screen shows one agent's brands), quotes an outdated approval line, top-story text and title, and omits the refusal blocks, permission checkbox and bell menu |
+| AI-319 | กลาง | เปิด (ใหม่) · นอกเส้นทางเดโม | 'สต๊อกที่ DC ขอนแก่นพอขายกี่วัน' gets a 26-day average (14.7 วัน, 'พอขายเกิน 10 วัน') that hides the 8.2-day SKU on the rep's landing tile |
+| AI-320 (เดิม AI-294) | ต่ำ | ยังเสีย | A change ranking where no row moved the asked way still leads with the green total (+33.0%) |
+| AI-321 (เดิม AI-298 (in-chat part fixed)) | ต่ำ | ยังเสีย | In a new thread the CEO's why-answer offers to send the Isan anomaly to คุณอนุชา, who already holds two matters on it and passed the anomaly on |
+| AI-322 (เดิม AI-297 (bell row part fixed)) | ต่ำ | ยังเสีย | The rep's chat inbox card has no figure and no link although the inbox tool returns both |
+| AI-323 (เดิม AI-223 (forward button named by the wrong split)) | ต่ำ | ยังเสีย | The forward button on the month-close card is named 'ส่งต่อการ์ด มูลค่าขายเข้า · รายเดือน' |
+| AI-324 | ต่ำ | เปิด (ใหม่) | The month_end card leaves off the projected closing amount the question asks for |
+| AI-325 | ต่ำ | เปิด (ใหม่) | A single-anomaly list leads with 'ด่วนทั้งหมด 1 เรื่อง' instead of the −89% |
+| AI-326 | ต่ำ | เปิด (ใหม่) | Thai text breaks inside words on the approval ('พรุ่ง / นี้', 'คุณ / กฤต จันทร์เสน') |
+| AI-327 (เดิม AI-294) | ต่ำ | เปิด (ใหม่) | Rep's 'dropped most' card prints the 4-agent total inside row 1's sub-line, and '48 ล้านบาท' loses its decimal |
+| AI-328 (เดิม AI-308 (fold part fixed)) | ต่ำ | เปิด (ใหม่) | IT 'would the Khon Kaen rep see the south' hero lists all 7 reps and regions |
+| AI-329 (เดิม AI-307 (rows part fixed)) | ต่ำ | เปิด (ใหม่) | IT spend hero has no week-over-week change |
+
+### AI-311. CEO 'which region fell most vs last month' draws three cards that disagree (Nov MTD all grew, Oct all fell, plus a byte-identical repeat), the text uses only one, and the turn takes 53.2 s
+
+- **สถานะ:** เปิด (ใหม่) · เดิม AI-253 (related: repeated cards in one reply)
+- **ระดับ:** กลาง · **หมวด:** `card-fit` · **บทบาท:** u_thana (CEO) s1t2
+- **อาการ:** Run 1de24da8 made three query_metric calls: this_month vs prev_period (every region grew), last_month (every region fell, ภาคกลาง −3.6%), then call 1 again with identical arguments and result. ui.rendered drew all three. The text says no region fell and never mentions the October card. The model's reasoning says it re-ran call 1 because it believed the last metric call becomes the card. Step 3 alone took 30.8 s of a 53.2 s turn (4 chat + 2 background calls, $0.0253). The two reviewer findings (duplicate cards, latency) share this root and are merged here.
+- **ที่ควรเป็น:** One answer per question: month to date against the same October days or the last closed month, with the other reading in a sentence. An identical repeated call never draws a second card. Under 40 s.
+- **หลักฐาน:**
+	- runs.json 1de24da8: query_metric 04:58:43 (this_month), 04:58:48 (last_month), 04:59:20 (repeat); ui.rendered [query_metric x3]; 04:58:35.2 to 04:59:28.4
+	- mastra_messages caa917e3 reasoning; 936a345e final text
+	- model-calls.json turnId 1de24da8: 6 calls, $0.0253
+	- /private/tmp/claude-501/-Users-sbpdigital-Development-Cop/9cb96cb6-db79-40fc-93ee-aea9b1847cf8/scratchpad/r10-runs/ceo/s1t2-v0.png, s1t2-v1.png, s1t2-v3.png
+- **สาเหตุ:** verified: components/chat/tool-view.ts:302-309 cardPlanOf has no rule hiding a metric call whose query repeats an earlier call in the exchange (repeatedByGap :280-289 covers gap repeats only), and lib/cards/tool-answers.ts:99 metricPairsOf does not pair identical reads. guess: lib/server/agent/persona.ts:121 does not say every metric call is drawn, so the model re-queried.
+
+### AI-312. Rep's 'เดือนนี้ผมจะปิดยอดถึงเป้าไหม': the card shows the whole Isan region (87.5%, 52.9 short) while the text answers for his 4 agents (81.3%, 48.7 short)
+
+- **สถานะ:** เปิด (ใหม่) · เดิม AI-203 (same two-scopes problem); regression from the AI-293 change
+- **ระดับ:** กลาง · **หมวด:** `card-fit` · **บทบาท:** u_krit (rep) probe
+- **อาการ:** query_metric narrowed itself to the rep's 4 agents (target 260.7, 81.3%, 48.7 short). explain_gap in the same turn ran on the whole region (424.8, 87.5%, 52.9 short). Only the regional gap card is drawn; the 4-agent card is hidden as a repeat. Card and text disagree, and the text tells him to pin a card he cannot see. Not a permission leak.
+- **ที่ควรเป็น:** One scope per answer: the rep's own 4 agents on card and text, month-end figure first.
+- **หลักฐาน:**
+	- mastra_messages 2d6f652f (run c54a0158) query_metric 81.3%/48.7 vs explain_gap 87.5%/424.8/52.9
+	- mastra_messages 8cbe882f reply text
+	- /private/tmp/claude-501/-Users-sbpdigital-Development-Cop/9cb96cb6-db79-40fc-93ee-aea9b1847cf8/scratchpad/r10-runs/rep/t4-probe-card.png
+- **สาเหตุ:** verified: explain_gap has no own-agents narrowing (only lib/server/tools/query-metric.ts:152-155 narrowedForQuestion). components/chat/tool-view.ts:256-259 sameSlice compares the model's asked filters ({} == {}) and ignores answer.query.filters, so repeatsGap (tool-view.ts:269-276, AI-293 sameMonthEnd branch) hides the 4-agent card.
+
+### AI-313. CEO's top morning story claims 'น่าจะติดเพดานสินเชื่อ' and '2 เอเย่นต์ใหญ่', but its evidence card shows one agent and the overdue it read was falling; ถามต่อ then contradicts it on stage
+
+- **สถานะ:** เปิด (ใหม่) · เดิม AI-240 (story headline vs evidence card)
+- **ระดับ:** กลาง · **หมวด:** `grounding` · **บทบาท:** u_thana (CEO) morning story, chain step 1 and opt-1
+- **อาการ:** Story u_thana-0 names อีสานรุ่งโรจน์ and อุบลศรีสุข and a credit-ceiling cause with ruledOut []. Evidence is per-brand for ag_nea_02 only. The job read ar_overdue for both agents and it was falling (4.5→2.9, 5.8→2.9 ล้าน). ถามต่อ (run e3ad8a82) says the credit hypothesis weakens, right after the CEO sent that headline as the ask.
+- **ที่ควรเป็น:** A story names a cause only when the data it read supports it, else says it is unverified; its evidence covers the agents the headline names.
+- **หลักฐาน:**
+	- investigations.json u_thana-0 (evidence agent [ag_nea_02], ruledOut [])
+	- audit.json job u_thana 04:39:37 query_metric ar_overdue
+	- mastra_messages f7eeb308 / ce5fdd00
+	- shares.json ziGE3nsLEvRQ ask = story headline
+	- /private/tmp/claude-501/-Users-sbpdigital-Development-Cop/9cb96cb6-db79-40fc-93ee-aea9b1847cf8/scratchpad/r10-runs/chain/opt-1-askmore-full.png
+- **สาเหตุ:** guess: the investigate job lets the model copy one branch of the alert hypothesis into the finding with no check against the ar_overdue rows, and the evidence picker takes the first agent's breakdown
+
+### AI-314. Second matter: CEO approves 47.3% (สิงห์, ลีโอ) but the RSM and rep open a matter page leading with 51.8% for all brands, and the auto-close goal tracks the whole agent
+
+- **สถานะ:** เปิด (ใหม่) · เดิม AI-303 (also AI-208 for the goal)
+- **ระดับ:** กลาง · **หมวด:** `write-flow` · **บทบาท:** u_thana → u_anucha → u_krit, chain opt-3 and second-matter step 2
+- **อาการ:** Share 3ZZHaVwk8QHq stores focus [สิงห์, ลีโอ] and the approval hero is 47.3%. The recipient's matter page leads with 51.8% 'รวมทุกแบรนด์' with all 8 brands; the goal is the whole agent reaching 100%. A presenter saying 'ตัวเลขเดียวกัน' would be wrong.
+- **ที่ควรเป็น:** The recipient's page leads with the focused figure the sender approved, and the goal tracks the focused rows.
+- **หลักฐาน:**
+	- shares.json 3ZZHaVwk8QHq focus ['สิงห์','ลีโอ'], goal.query filters {agent:[ag_nea_02]} only
+	- mastra_messages 079e718d send_card result goal
+	- /private/tmp/claude-501/-Users-sbpdigital-Development-Cop/9cb96cb6-db79-40fc-93ee-aea9b1847cf8/scratchpad/r10-runs/chain/opt-3-approval.png
+	- /private/tmp/claude-501/-Users-sbpdigital-Development-Cop/9cb96cb6-db79-40fc-93ee-aea9b1847cf8/scratchpad/r10-runs/chain/c2-3-rsm-story.png
+- **สาเหตุ:** verified in part: lib/server/share/goal.ts:91-95 cardHero narrows by focus only for approval and inbox; lib/server/share/view.ts:86 passes share.focus to the matter page only for buttons and row emphasis; goal.ts:112-113 goalOf/focusedInput returns null unless focus has exactly one label
+
+### AI-315. Chat send after ถามต่อ takes 44.1 s: send_card is refused twice with a false CARD_MISSES_SUBJECT because the subject check ignores an anomaly card's brand scope
+
+- **สถานะ:** ยังเสีย · เดิม AI-291
+- **ระดับ:** กลาง · **หมวด:** `latency` · **บทบาท:** u_thana (CEO), chain opt-2/3
+- **อาการ:** Run 418acc86: the anomaly card ca9ds1q was refused twice ('ไม่มี สิงห์, ลีโอ') although its alert scopeLabel is 'อีสานรุ่งโรจน์ ค้าส่ง · สิงห์, ลีโอ · ภาคอีสาน'. The third call (metric card c1rsayon) raised the approval at 04:51:39. The AI-291 fix covered agent names only.
+- **ที่ควรเป็น:** Under 40 s; an anomaly card whose alert covers the named brands passes on the first call.
+- **หลักฐาน:**
+	- runs.json 418acc86: tool.denied send_card 04:51:18.944, 04:51:27.275; approval.requested 04:51:39.849
+	- mastra_messages 880c45c0 / 89ae0fc5 refused, 079e718d accepted; 9604de38 get_alerts row al_ed6dca9e1dab4e48
+	- /private/tmp/claude-501/-Users-sbpdigital-Development-Cop/9cb96cb6-db79-40fc-93ee-aea9b1847cf8/scratchpad/r10-runs/chain/opt-3-approval.png
+- **สาเหตุ:** verified: lib/server/share/alert-card.ts:53-58 alertFocusIn matches only against alertPlaceOf (lib/cards/present.ts:1084), never the alert's brand scope, so cardFocus (lib/server/share/focus.ts) returns no focus and send-card refuses
+
+### AI-316. Two red 'ไม่ได้ส่งการ์ด' blocks stay above the CEO's waiting approval, with a false reason
+
+- **สถานะ:** ยังเสีย · เดิม AI-292
+- **ระดับ:** กลาง · **หมวด:** `write-flow` · **บทบาท:** u_thana (CEO), chain opt-3, presenter
+- **อาการ:** While the approval waited, two refusal cards read 'การ์ดที่เลือกไม่ได้แสดงเรื่องที่ขอส่ง'. They vanished only after ส่ง. On stage they look like failures, and the reason is untrue (see AI-291). The internal-id part of AI-292 is fixed.
+- **ที่ควรเป็น:** A refused send_card hides once a later send_card waits for approval, as the AI-292 test asserts.
+- **หลักฐาน:**
+	- /private/tmp/claude-501/-Users-sbpdigital-Development-Cop/9cb96cb6-db79-40fc-93ee-aea9b1847cf8/scratchpad/r10-runs/chain/opt-3-approval.png
+	- /private/tmp/claude-501/-Users-sbpdigital-Development-Cop/9cb96cb6-db79-40fc-93ee-aea9b1847cf8/scratchpad/r10-runs/chain/opt-4-approved.png
+	- runs.json 418acc86 ui.rendered [resolve_owner, send_card, send_card] at 04:51:39.849
+- **สาเหตุ:** guess: components/chat/tool-view.ts:141-146 retried() needs a later send_card step that is pending or decided; live, the waiting call is probably rendered from the interrupt, not as a pending step, so nothing matches until the approved result arrives
+
+### AI-317. Change cards and replies never name the comparison window: 'งวดก่อน 1,164.9 ล้านบาท' is 1–26 ต.ค., so +33% reads as implausible and one prior value appears as 266.8 and 341.9 in one reply
+
+- **สถานะ:** ยังเสีย · เดิม AI-223 (unnamed periods); also the window part of the rep's AI-294 card
+- **ระดับ:** กลาง · **หมวด:** `wording` · **บทบาท:** u_thana (CEO) s1t2; u_krit (rep) t2
+- **อาการ:** CEO: the November card says 'งวดก่อน 1,164.9' (true for 1–26 ต.ค. per call-tool) while the October card in the same reply says 'งวดก่อน 1,538.2' (September); the text says 'ช่วงก่อนหน้า'. Rep t2: asked 'เทียบเดือนก่อน', the card says 'งวดก่อน' and the text 'ช่วงก่อนหน้า' with no dates. Merged from both reviews by cause.
+- **ที่ควรเป็น:** Name both windows wherever a change shows ('เทียบ 1–26 ต.ค. 2569', 'ต.ค. 69 เทียบ ก.ย. 69').
+- **หลักฐาน:**
+	- mastra_messages 529ffd3c compareLabel 'เทียบช่วงก่อนหน้า'
+	- call-tool u_thana query_metric 2026-10-01..2026-10-26: 1,164.9, ภาคอีสาน 266.8
+	- mastra_messages a7c0a5d1 (run 5d1f528f)
+	- /private/tmp/claude-501/-Users-sbpdigital-Development-Cop/9cb96cb6-db79-40fc-93ee-aea9b1847cf8/scratchpad/r10-runs/ceo/s1t2-v1.png
+	- /private/tmp/claude-501/-Users-sbpdigital-Development-Cop/9cb96cb6-db79-40fc-93ee-aea9b1847cf8/scratchpad/r10-runs/rep/t2-dropped-most.png
+- **สาเหตุ:** verified: lib/cards/present.ts:942-947 baseTotalOf writes TH.read.base[compare] ('งวดก่อน', lib/i18n/th.ts:783) with no dates; lib/semantic/engine.ts:246-251 COMPARE_LABELS is fixed although priorPeriodOf (engine.ts:417) can name the window; only present.ts:686 names it
+
+### AI-318. The run sheet does not match the screens: it describes a per-agent regional card (screen shows one agent's brands), quotes an outdated approval line, top-story text and title, and omits the refusal blocks, permission checkbox and bell menu
+
+- **สถานะ:** ยังเสีย · เดิม AI-299
+- **ระดับ:** กลาง · **หมวด:** `run-sheet` · **บทบาท:** presenter
+- **อาการ:** Merged from both reviews. §1.2 'แถวละเอเย่นต์…' vs the screen's 'มูลค่าขายเข้า · รายแบรนด์ · อีสานรุ่งโรจน์ ค้าส่ง'; pace text sits under 'รวมทุกแบรนด์'; morning step 2 quotes a different top story; chat step 3 promises an agent total but the approval narrowed to brands (47.3%) and added '· สิงห์, ลีโอ'; alt step 3 quotes 'อีสานรุ่งโรจน์ ค้าส่ง · ปริมาณขายเข้า −89%' but the approval now has title 'ความผิดปกติที่ต้องดู · …' and a separate −89% hero; red refusal blocks, 'ให้สิทธิ์ชั่วคราว' and 'ตัวเลือกเพิ่ม' are not mentioned; closing message 7.8 s vs 15–20 s; the Audit 'ใครส่งงานอะไรให้ใคร' panel needs a full screen of scrolling.
+- **ที่ควรเป็น:** The sheet quotes what the screen shows, or tells the presenter which strings change with the morning's evidence.
+- **หลักฐาน:**
+	- /Users/sbpdigital/Development/Cop/docs/demo-run-sheet.md §เช้าวันงาน 2, §1.2, §5.3, ทางเลือก steps 3-4
+	- /private/tmp/claude-501/-Users-sbpdigital-Development-Cop/9cb96cb6-db79-40fc-93ee-aea9b1847cf8/scratchpad/r10-runs/chain/s1-5-sent.png
+	- /private/tmp/claude-501/-Users-sbpdigital-Development-Cop/9cb96cb6-db79-40fc-93ee-aea9b1847cf8/scratchpad/r10-runs/chain/s5-3-whosent.png
+	- /private/tmp/claude-501/-Users-sbpdigital-Development-Cop/9cb96cb6-db79-40fc-93ee-aea9b1847cf8/scratchpad/r10-runs/rsm/s1-t1-approved.png
+	- runs.json 5a2f889d 7.835 s
+- **สาเหตุ:** verified by reading docs/demo-run-sheet.md against the screens after dd945ae changed the approval layout; the evidence form follows investigations.json u_thana-0 (dims [brand], agent ag_nea_02)
+
+### AI-319. 'สต๊อกที่ DC ขอนแก่นพอขายกี่วัน' gets a 26-day average (14.7 วัน, 'พอขายเกิน 10 วัน') that hides the 8.2-day SKU on the rep's landing tile
+
+- **สถานะ:** เปิด (ใหม่) · นอกเส้นทางเดโม
+- **ระดับ:** กลาง · **หมวด:** `wrong-answer` · **บทบาท:** u_krit (rep), chain break-2
+- **อาการ:** First query_metric failed BAD_QUERY (no period); retry used this_month dims [dc], averaging 14.7 days over 1–26 พ.ย. The landing tile says อาซาฮี ถัง 30 ลิตร 8.2 วัน. 21.3 s.
+- **ที่ควรเป็น:** Current days of cover at the DC, leading with or naming the lowest SKU.
+- **หลักฐาน:**
+	- mastra_messages f7688db8, 77117fbb, 1067bb55 (run c9f1fee1)
+	- /private/tmp/claude-501/-Users-sbpdigital-Development-Cop/9cb96cb6-db79-40fc-93ee-aea9b1847cf8/scratchpad/r10-runs/chain/b2-final.png
+- **สาเหตุ:** guess: days_of_cover over this_month aggregates as a window average and nothing steers 'พอขายกี่วัน' to the latest day by SKU
+
+### AI-320. A change ranking where no row moved the asked way still leads with the green total (+33.0%)
+
+- **สถานะ:** ยังเสีย · เดิม AI-294
+- **ระดับ:** ต่ำ · **หมวด:** `card-fit` · **บทบาท:** u_thana (CEO) s1t2
+- **อาการ:** Sorted delta_asc, every row grew; hero is 'ทั้งประเทศ +33.0%' with ภาคอีสาน +23.1% below. The verdict does answer. The October card has the same layout.
+- **ที่ควรเป็น:** R4: lead with the first row (ภาคอีสาน +23.1%) under the verdict, total in the note.
+- **หลักฐาน:**
+	- mastra_messages 529ffd3c
+	- /private/tmp/claude-501/-Users-sbpdigital-Development-Cop/9cb96cb6-db79-40fc-93ee-aea9b1847cf8/scratchpad/r10-runs/ceo/s1t2-v0.png
+	- docs/plans/card-fit.md:38 R4
+- **สาเหตุ:** verified: lib/cards/breakdown.ts:304-306 sets leading=0 when the first row moved the wrong way, so :345 lead is null and withLeadOnTop (:466-471) keeps the overall row as hero
+
+### AI-321. In a new thread the CEO's why-answer offers to send the Isan anomaly to คุณอนุชา, who already holds two matters on it and passed the anomaly on
+
+- **สถานะ:** ยังเสีย · เดิม AI-298 (in-chat part fixed)
+- **ระดับ:** ต่ำ · **หมวด:** `write-flow` · **บทบาท:** u_thana (CEO) probe
+- **อาการ:** Run 5ba5b08b offers 'ส่งให้คุณอนุชา' although ziGE3nsLEvRQ and 3ZZHaVwk8QHq went to คุณอนุชา → คุณกฤต (accepted) and Q6d8CppfMdEn was already passed to คุณกฤต. The CEO's open matters are not in context.
+- **ที่ควรเป็น:** The reply knows open matters on the same subject and says it is already with คุณอนุชา and คุณกฤต.
+- **หลักฐาน:**
+	- mastra_messages 122d7b1a
+	- shares.json ziGE3nsLEvRQ, 3ZZHaVwk8QHq, Q6d8CppfMdEn
+	- runs.json 5ba5b08b context.composed (cards-on-screen only)
+- **สาเหตุ:** verified: lib/server/agent/persona.ts:250-253 reports 'ส่งให้ … แล้ว' only for cards on screen in this chat; get_alerts nextActions still offers send to ownerUserId u_anucha
+
+### AI-322. The rep's chat inbox card has no figure and no link although the inbox tool returns both
+
+- **สถานะ:** ยังเสีย · เดิม AI-297 (bell row part fixed)
+- **ระดับ:** ต่ำ · **หมวด:** `card-fit` · **บทบาท:** u_krit (rep) inbox turn
+- **อาการ:** inbox returned hero '… −89%' and path '/s/Q6d8CppfMdEn'; the model's a2ui ListItem used only title, from_name, ask, due_label. The text says to reply via the card, but nothing is tappable; the deadline repeats.
+- **ที่ควรเป็น:** The inbox card shows the matter's figure and opens the matter.
+- **หลักฐาน:**
+	- mastra_messages 377a6171, a6228691 (run 566e709f)
+	- /private/tmp/claude-501/-Users-sbpdigital-Development-Cop/9cb96cb6-db79-40fc-93ee-aea9b1847cf8/scratchpad/r10-runs/rep/t3-inbox.png
+- **สาเหตุ:** verified: lib/server/tools/inbox.ts returns hero/path, but the card is model-composed a2ui (message a6228691), not drawn in code, so the fields are dropped
+
+### AI-323. The forward button on the month-close card is named 'ส่งต่อการ์ด มูลค่าขายเข้า · รายเดือน'
+
+- **สถานะ:** ยังเสีย · เดิม AI-223 (forward button named by the wrong split)
+- **ระดับ:** ต่ำ · **หมวด:** `wording` · **บทบาท:** u_thana (CEO) s1t1
+- **อาการ:** dims ['month'] gives the share title 'รายเดือน', while the card reads 'คาดปิดเดือนไม่ถึงเป้า'.
+- **ที่ควรเป็น:** The forward name follows the headline ('มูลค่าขายเข้า · คาดปิดเดือน').
+- **หลักฐาน:**
+	- mastra_messages a33344dd args dims ['month']
+	- /private/tmp/claude-501/-Users-sbpdigital-Development-Cop/9cb96cb6-db79-40fc-93ee-aea9b1847cf8/scratchpad/r10-runs/ceo/s1t1-full.png
+- **สาเหตุ:** guess: lib/share/card.ts baseTitle builds metric · dimension and does not treat a one-bucket time dimension as no split
+
+### AI-324. The month_end card leaves off the projected closing amount the question asks for
+
+- **สถานะ:** เปิด (ใหม่)
+- **ระดับ:** ต่ำ · **หมวด:** `card-fit` · **บทบาท:** u_thana (CEO) s1t1; u_anucha (RSM) probe
+- **อาการ:** Tiles show 96.3%, 83.9%, 68.8 ล้านบาท short; 1,777.7 ล้านบาท is only in the text. RSM card omits 371.9 entirely. The explain_gap card does show 'คาดได้ 1,777.7 จากเป้า 1,846.5'.
+- **ที่ควรเป็น:** The projected amount on the card, e.g. under 96.3%.
+- **หลักฐาน:**
+	- mastra_messages a33344dd, 0dc5baf5 projection.projected
+	- /private/tmp/claude-501/-Users-sbpdigital-Development-Cop/9cb96cb6-db79-40fc-93ee-aea9b1847cf8/scratchpad/r10-runs/ceo/s1t1.png
+	- /private/tmp/claude-501/-Users-sbpdigital-Development-Cop/9cb96cb6-db79-40fc-93ee-aea9b1847cf8/scratchpad/r10-runs/rsm/probe-top.png
+- **สาเหตุ:** guess: the month_end widget renders attainment, attainmentToDate and endShortBy but not projected/monthTarget
+
+### AI-325. A single-anomaly list leads with 'ด่วนทั้งหมด 1 เรื่อง' instead of the −89%
+
+- **สถานะ:** เปิด (ใหม่)
+- **ระดับ:** ต่ำ · **หมวด:** `card-fit` · **บทบาท:** u_anucha (RSM) s1-t1
+- **อาการ:** get_alerts returned one row; the headline is the count and −89% sits in the row. The approval leads with −89%.
+- **ที่ควรเป็น:** With one anomaly, lead with its deciding figure.
+- **หลักฐาน:**
+	- mastra_messages a0172d50
+	- /private/tmp/claude-501/-Users-sbpdigital-Development-Cop/9cb96cb6-db79-40fc-93ee-aea9b1847cf8/scratchpad/r10-runs/rsm/s1-t1-card.png
+- **สาเหตุ:** guess: the anomaly list body always heads with a severity count (card-fit.md:113)
+
+### AI-326. Thai text breaks inside words on the approval ('พรุ่ง / นี้', 'คุณ / กฤต จันทร์เสน')
+
+- **สถานะ:** เปิด (ใหม่)
+- **ระดับ:** ต่ำ · **หมวด:** `layout` · **บทบาท:** u_anucha (RSM) s1-t1
+- **อาการ:** At 393 px the ask and approval title wrap mid-word and split the honorific from the name.
+- **ที่ควรเป็น:** No break inside a Thai word; honorific stays with the name.
+- **หลักฐาน:**
+	- /private/tmp/claude-501/-Users-sbpdigital-Development-Cop/9cb96cb6-db79-40fc-93ee-aea9b1847cf8/scratchpad/r10-runs/rsm/s1-t1-card.png
+- **สาเหตุ:** guess: browser line breaking without Thai segmentation (no Intl.Segmenter or nowrap on names)
+
+### AI-327. Rep's 'dropped most' card prints the 4-agent total inside row 1's sub-line, and '48 ล้านบาท' loses its decimal
+
+- **สถานะ:** เปิด (ใหม่) · เดิม AI-294
+- **ระดับ:** ต่ำ · **หมวด:** `wording` · **บทบาท:** u_krit (rep) t2
+- **อาการ:** 'รวม 4 เอเย่นต์ +16.1%' reads as part of อีสานรุ่งโรจน์'s row; โคราชสหภัณฑ์'s prior prints '48 ล้านบาท' while others keep one decimal. (The unnamed-window part is merged into the AI-223 medium.)
+- **ที่ควรเป็น:** Total sits apart from row 1; money labels keep one decimal.
+- **หลักฐาน:**
+	- mastra_messages a7c0a5d1 compare_value 47,962,151
+	- /private/tmp/claude-501/-Users-sbpdigital-Development-Cop/9cb96cb6-db79-40fc-93ee-aea9b1847cf8/scratchpad/r10-runs/rep/t2-dropped-most.png
+- **สาเหตุ:** guess: the R4 B-strip in lib/cards/present.ts appends the overall note to the first row's detail, and the money formatter drops a trailing .0
+
+### AI-328. IT 'would the Khon Kaen rep see the south' hero lists all 7 reps and regions
+
+- **สถานะ:** เปิด (ใหม่) · เดิม AI-308 (fold part fixed)
+- **ระดับ:** ต่ำ · **หมวด:** `card-fit` · **บทบาท:** u_ton (IT) s1t1
+- **อาการ:** The hero detail lists every sales rep and region instead of คุณกฤต · ภาคอีสาน, and does not name southern sales as denied. 12.0 s.
+- **ที่ควรเป็น:** Hero names the asked person's scope and the denied ask.
+- **หลักฐาน:**
+	- mastra_messages 14da839b (run 5291163e)
+	- /private/tmp/claude-501/-Users-sbpdigital-Development-Cop/9cb96cb6-db79-40fc-93ee-aea9b1847cf8/scratchpad/r10-runs/it/s1t1.png
+- **สาเหตุ:** guess: role_access is called by role (sales_rep) with no person or region narrowing
+
+### AI-329. IT spend hero has no week-over-week change
+
+- **สถานะ:** เปิด (ใหม่) · เดิม AI-307 (rows part fixed)
+- **ระดับ:** ต่ำ · **หมวด:** `card-fit` · **บทบาท:** u_ton (IT) s1t2
+- **อาการ:** '$0.51' (matches 89 calls, $0.507) shows no coloured delta against the previous week.
+- **ที่ควรเป็น:** Headline number with one coloured delta.
+- **หลักฐาน:**
+	- mastra_messages bc173228 (run 0f900051)
+	- /private/tmp/claude-501/-Users-sbpdigital-Development-Cop/9cb96cb6-db79-40fc-93ee-aea9b1847cf8/scratchpad/r10-runs/it/s1t2.png
+- **สาเหตุ:** guess: admin_audit model_cost computes only the current 7-day window
