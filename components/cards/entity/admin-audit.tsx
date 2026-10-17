@@ -1,6 +1,6 @@
 "use client";
 
-import { FoldView } from "@/components/cards/charts/strip";
+import { FoldToggle, FoldView } from "@/components/cards/charts/strip";
 import { cn } from "@/components/ui/cn";
 import { Card, Metric } from "@/components/ui/primitives";
 import type { ReadRow } from "@/lib/cards/reading";
@@ -78,23 +78,29 @@ function AuditItem({ entry }: { entry: Item }) {
   );
 }
 
-function foldRowOf(entry: Item): ReadRow {
-  return { label: entry.primary, sub: null, measure: null, fill: 0, text: entry.aside || entry.meta, change: null, tone: "neutral", exception: false, valued: true };
+function AuditItems({ items }: { items: Item[] }) {
+  return (
+    <ul className="flex flex-col divide-y divide-border/70 border-t border-border/70">
+      {items.map((entry, index) => (
+        <AuditItem key={`${entry.primary}-${index}`} entry={entry} />
+      ))}
+    </ul>
+  );
 }
 
-/** Every row stacked to fit a phone; past eight rows only the first five are drawn and the rest fold into one line, unless the result already folded its normal rows apart and every row left is an exception. */
+/** Every row stacked to fit a phone; past eight rows only the first five are drawn and the rest fold into one line that opens to the same rows, unless the result already folded its normal rows apart and every row left is an exception. */
 function AuditList({ items, exceptions }: { items: Item[]; exceptions: boolean }) {
   const folds = !exceptions && items.length > MAX_ROWS;
   const shown = folds ? items.slice(0, SHOWN_WHEN_FOLDED) : items;
   const rest = folds ? items.slice(SHOWN_WHEN_FOLDED) : [];
   return (
     <div className="flex flex-col">
-      <ul className="flex flex-col divide-y divide-border/70 border-t border-border/70">
-        {shown.map((entry, index) => (
-          <AuditItem key={`${entry.primary}-${index}`} entry={entry} />
-        ))}
-      </ul>
-      {rest.length > 0 ? <FoldView fold={{ line: TH.adminAudit.more(rest.length), rows: rest.map(foldRowOf) }} ruled /> : null}
+      <AuditItems items={shown} />
+      {rest.length > 0 ? (
+        <FoldToggle line={TH.adminAudit.more(rest.length)} ruled>
+          <AuditItems items={rest} />
+        </FoldToggle>
+      ) : null}
     </div>
   );
 }

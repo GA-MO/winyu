@@ -1,4 +1,6 @@
-import { describe, expect, test } from "bun:test";
+import { afterEach, describe, expect, test } from "bun:test";
+import { act } from "react";
+import { createRoot, type Root } from "react-dom/client";
 import { renderToStaticMarkup } from "react-dom/server";
 import { accessFor } from "@/lib/access/policies";
 import { permissionsFor } from "@/lib/access/role-overrides";
@@ -32,6 +34,23 @@ async function adminAudit(input: Record<string, unknown>): Promise<Report> {
 
 function drawn(result: Report): string {
   return renderToStaticMarkup(<>{TOOL_CARDS.admin_audit(result)}</>);
+}
+
+let mounted: { root: Root; host: HTMLElement } | null = null;
+
+afterEach(() => {
+  if (mounted) act(() => mounted?.root.unmount());
+  mounted?.host.remove();
+  mounted = null;
+});
+
+async function mount(result: unknown): Promise<HTMLElement> {
+  const host = document.createElement("div");
+  document.body.append(host);
+  const root = createRoot(host);
+  mounted = { root, host };
+  await act(async () => root.render(<>{TOOL_CARDS.admin_audit(result)}</>));
+  return host;
 }
 
 function textOf(html: string): string {
@@ -156,5 +175,27 @@ describe("the admin audit card", () => {
     const html = drawn(result);
     expect(html).not.toContain("<table");
     expect(textOf(html)).toContain(nameOf("u_krit"));
+  });
+
+  test("a folded activity row keeps who → whom, the action and the card, and two steps between the same people both stay (AI-242)", async () => {
+    const step = (index: number, action: string, subject: string) => ({ at_label: `17 ต.ค. 2569 08:0${index}`, user_name: "คุณธนา วงศ์สกุล", role_label: "CEO", action_label: action, subject_label: subject, to_names: "คุณอนุชา พรหมศรี", approval_label: "กดเองบนการ์ด" });
+    const rows = [
+      ...Array.from({ length: 5 }, (_, index) => step(index, "ปักการ์ด", `การ์ดบนสุด ${index}`)),
+      step(5, "ส่งเรื่อง", "มูลค่าขายเข้า · ภาคอีสาน"),
+      step(6, "ส่งต่อ", "มูลค่าขายเข้า · ภาคอีสาน · ขอนแก่นมหาชัย"),
+      step(7, "รับเรื่อง", "ยอดค้างชำระเกินกำหนด · นครศรีรุ่งเจริญ"),
+      step(8, "ปิดเรื่อง", "กำไรขั้นต้น · ภาคใต้"),
+    ];
+    const result = { ok: true, topic: "activity", summary: "การส่งงาน 9 ครั้ง", headline: null, folded: null, rows, provenance: { sourceSystem: TH.adminAudit.source, asOf: "2026-10-17", masked: [] } };
+    const card = await mount(result);
+    const fold = [...card.querySelectorAll("button")].find((button) => button.textContent?.includes(TH.adminAudit.more(4)));
+    expect(fold).toBeDefined();
+    await act(async () => fold?.click());
+    const text = card.textContent ?? "";
+    for (const row of rows.slice(5)) {
+      expect(text).toContain(`${row.action_label} · ${row.subject_label}`);
+      expect(text).toContain(row.at_label);
+    }
+    expect(text.split("คุณธนา วงศ์สกุล → คุณอนุชา พรหมศรี")).toHaveLength(rows.length + 1);
   });
 });

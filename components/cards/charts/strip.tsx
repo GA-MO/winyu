@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useId, useState, type ReactNode } from "react";
 import { ChevronDown } from "lucide-react";
 import { cn } from "@/components/ui/cn";
 import type { Fold, ReadRow, Strip } from "@/lib/cards/reading";
@@ -183,8 +183,8 @@ function PlainRow({ row }: { row: ReadRow }) {
   );
 }
 
-/** Style A's folded rows: one muted line that expands to the rows, ruled off from what is drawn above it. */
-export function FoldView({ fold, ruled }: { fold: Fold; ruled: boolean }) {
+/** One muted line that expands to what it folds, ruled off from what is drawn above it. */
+export function FoldToggle({ line, ruled, children }: { line: string; ruled: boolean; children: ReactNode }) {
   const [open, setOpen] = useState(false);
   const id = useId();
   return (
@@ -196,17 +196,24 @@ export function FoldView({ fold, ruled }: { fold: Fold; ruled: boolean }) {
         onClick={() => setOpen(!open)}
         className="flex min-h-9 w-full items-center justify-between gap-3 rounded-lg text-left text-[13px] text-muted-foreground transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
-        <span className="min-w-0">{open ? TH.read.hide : fold.line}</span>
+        <span className="min-w-0">{open ? TH.read.hide : line}</span>
         <ChevronDown aria-hidden className={cn("size-4 shrink-0 transition-transform", open && "rotate-180")} />
       </button>
-      {open ? (
-        <ul id={id} className="flex flex-col">
-          {fold.rows.map((row) => (
-            <PlainRow key={row.label} row={row} />
-          ))}
-        </ul>
-      ) : null}
+      {open ? <div id={id}>{children}</div> : null}
     </div>
+  );
+}
+
+/** Style A's folded rows: one muted line that expands to the rows, ruled off from what is drawn above it. */
+export function FoldView({ fold, ruled }: { fold: Fold; ruled: boolean }) {
+  return (
+    <FoldToggle line={fold.line} ruled={ruled}>
+      <ul className="flex flex-col">
+        {fold.rows.map((row) => (
+          <PlainRow key={row.label} row={row} />
+        ))}
+      </ul>
+    </FoldToggle>
   );
 }
 
