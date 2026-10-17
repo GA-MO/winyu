@@ -36,6 +36,13 @@ Stop when a round on the four demo roles (CEO, RSM อีสาน, sales rep �
 - [x] **Card-fit audit** ($0) over the 63 recorded cases and the 75 sim screenshots; rules R1–R10 in [`card-fit.md`](card-fit.md).
 - [x] **Card-fit fix** from that rule set.
 
+## Round 9 fixes (after round 8, 2026-10-17)
+
+Round 8 walked the run sheet (14 of 16 steps match; the two misses are the sheet's wording about the second matter) and replayed the 12 round-7 failures ($0.26 plus $0.23 for the morning investigation): 16 fixed, 4 still broken, 20 new. The one high (AI-265, the CEO's chat send to "ผู้จัดการขายภาคอีสาน" went to the rep because the usual-recipient count credited forwarded accepts) is fixed in `643ab3a`. 7 medium findings remain on the demo path, down from 18 in round 4. Packages:
+- [ ] **L1 cards and titles** (AI-266, AI-267, AI-268, AI-269 card part, AI-272, AI-273, AI-274, AI-281, AI-286): R14 for a one-row region month-close, explain_gap send titles, a balance check card that leads with its direction over the range, a verdict that covers the asked rows, one figure per alert, titles that follow the focused read.
+- [ ] **L2 what the model says, and IT** (AI-269 text and ask, AI-270, AI-271, AI-275, AI-276, AI-277, AI-278, AI-279, AI-288): hypotheses stay hedged in replies and sends, the IT opener under 40 s, role access includes data scope, one spend figure, Thai codes, IT card covers both halves of the question.
+- [ ] then the run sheet against the screens (AI-282, AI-283, AI-284).
+
 ## Round 8 fixes (after round 7, 2026-10-17)
 
 Round 7 walked the run sheet and replayed the 13 round-6 failures ($0.25 plus $0.28 for the morning investigation): 19 fixed, 12 still broken, 17 new. The one high (AI-234) was a bug in the lead's own AI-207 follow-up, a fraction printed as a percent, fixed in `d340cf6` with a pinned value. 11 medium findings remain on the demo path. Packages, by files:
