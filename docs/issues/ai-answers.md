@@ -3102,6 +3102,8 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 | AI-260 | ต่ำ | แก้แล้ว `78cec96` | The ถามต่อ answer ends below the fold, and its first card already shows 'ส่งแล้ว' before the send command |
 | AI-261 (เดิม AI-232) | ต่ำ | เปิด (ใหม่) · นอกเส้นทางเดโม | The IT usage ranking counts and lists a user with 0 questions and 0 tool calls |
 | AI-262 | ต่ำ | เปิด (ใหม่) · นอกเส้นทางเดโม | After a reload, the chat's source line loses its duration |
+| AI-263 | กลาง | เปิด (ใหม่) · นอกเส้นทางเดโม | A second chat send in a thread opened by URL, with both tool calls in one step, draws an approval "ส่งการ์ดให้ เจ้าของการ์ด / อ่านผลลัพธ์นี้ไม่ได้" that is gone after a reload |
+| AI-264 | ต่ำ | เปิด (ใหม่) | After a chat send, the card's "ส่งต่อแล้วเมื่อ…" receipt shows the earlier send time until the page reloads |
 
 ### AI-234. Hold-back notice prints the pace mark as 0.9% instead of 86.7%, and the model then calls 85.3% 'ยังอยู่ในเกณฑ์ดี'
 
@@ -3436,3 +3438,23 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 - **หลักฐาน:**
 	- tester note
 - **สาเหตุ:** guess: the duration lives only in client state.
+
+### AI-263. A second chat send in a URL-opened thread draws a broken approval that vanishes on reload
+
+- **สถานะ:** เปิด (ใหม่) · นอกเส้นทางเดโม
+- **ระดับ:** กลาง · **หมวด:** `chain` · **บทบาท:** —
+- **อาการ:** Seen by package K3 with the stand-in model: both tool calls in one step; the approval read "ส่งการ์ดให้ เจ้าของการ์ด / อ่านผลลัพธ์นี้ไม่ได้" and was gone after a reload. Not investigated; unknown whether main does the same with the real model.
+- **ที่ควรเป็น:** The approval names the recipient and the card, and survives a reload.
+- **หลักฐาน:**
+	- /private/tmp/claude-501/-Users-sbpdigital-Development-Cop/9cb96cb6-db79-40fc-93ee-aea9b1847cf8/scratchpad/k3/244-second-approval.png
+- **สาเหตุ:** guess: the approval preview runs before the step's read result is stored.
+
+### AI-264. The sent receipt shows the earlier send time after a new chat send until a reload
+
+- **สถานะ:** เปิด (ใหม่)
+- **ระดับ:** ต่ำ · **หมวด:** `ui` · **บทบาท:** u_thana
+- **อาการ:** Seen by package K3: within one live page, after a chat send the card's receipt keeps the step-1 time.
+- **ที่ควรเป็น:** The receipt follows the latest send.
+- **หลักฐาน:**
+	- K3 report (round 8)
+- **สาเหตุ:** guess: ShareProvider reads server sends on load only.
