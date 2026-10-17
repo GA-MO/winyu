@@ -14,6 +14,12 @@ import { bangkokDate, businessToday } from "@/lib/data/dates";
 import { adminAuditTool } from "@/lib/server/tools/admin-audit";
 import { winyuTools } from "@/lib/server/agent/tools";
 import { runWithAccess } from "@/lib/server/request-context";
+import { liveAccessFor } from "@/lib/access/enforce";
+import { gated } from "@/lib/harness/gateway";
+import type { Capability } from "@/lib/harness/types";
+import { ASK_CONTRADICTS_CARD } from "@/lib/share/card";
+import { toolLabel } from "@/lib/server/tools/registry";
+import { approvedCallId } from "@/scripts/approved-call";
 import { TOOL_CARDS } from "../registry";
 
 type Report = { ok: boolean; summary: string; provenance: { asOf: string }; headline: { label: string; value: string } | null; rows: Record<string, unknown>[]; folded: { line: string; rows: Record<string, unknown>[] } | null };
@@ -104,6 +110,24 @@ describe("the admin audit card", () => {
     expect(textOf(html)).not.toContain('"metric"');
     expect(textOf(html)).toContain(metricLabel("net_sales_value"));
     expect(textOf(html)).toContain(nameOf("u_anucha"));
+    expect(textOf(html)).toContain("คุณไม่มีสิทธิ์ดูข้อมูลของ ภาคใต้");
+  });
+
+  test("a write held back by its own check (a send whose words contradict its card) is not a denial anywhere the admin counts them (AI-225)", async () => {
+    const before = await adminAudit({ topic: "denials", days: 1 });
+    const usageBefore = await adminAudit({ topic: "tool_usage", days: 1 });
+    const capability: Capability = { name: "send_card", connector: "winyu", tier: "write", roles: "all", labelTh: "", bodyTh: "", timeoutMs: 1000, ready: () => ({ code: ASK_CONTRADICTS_CARD, fix: "ยังไม่ได้ส่ง: ข้อความขัดกับการ์ด" }), verify: null, correct: null, redact: [] };
+    const send = gated(capability, async () => ({ ok: true }));
+    const sender = findUser("u_anucha");
+    if (!sender) throw new Error("no u_anucha");
+    const toolCallId = approvedCallId("u_anucha", "send_card");
+    expect(await runWithAccess(liveAccessFor(sender), () => send({}, { toolCallId }))).toMatchObject({ ok: false, code: ASK_CONTRADICTS_CARD });
+    const held = auditLog().where((entry) => entry.toolCallId === toolCallId);
+    expect(held.map((entry) => ({ decision: entry.decision, code: entry.code }))).toEqual([{ decision: "allow", code: ASK_CONTRADICTS_CARD }]);
+    const after = await adminAudit({ topic: "denials", days: 1 });
+    expect(after.rows).toHaveLength(before.rows.length);
+    const sendsDenied = (report: Report) => Number(report.rows.find((row) => row.tool_label === toolLabel("send_card"))?.denied ?? 0);
+    expect(sendsDenied(await adminAudit({ topic: "tool_usage", days: 1 }))).toBe(sendsDenied(usageBefore));
   });
 
   test("role access asked for one level returns only that level, so the card and the reply agree (AI-149)", async () => {
