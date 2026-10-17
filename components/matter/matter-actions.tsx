@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Forward } from "lucide-react";
 import { MoreMenu, Primary, Quiet, type MenuItem } from "@/components/inbox/row";
 import { PeoplePicker, useShareContacts } from "@/components/share/share-sheet";
@@ -82,10 +82,16 @@ function Confirming({ label, busy, close, cancel }: { label: string; busy: boole
 }
 
 /** What the viewer may press: the main presses as buttons and the rest under "…"; closing (เสร็จ, or ปิดเรื่อง for the one who sent it) is never the main button and always asks once, since it closes the matter for everyone on its path; asking and passing on open in place, so it works inside the bell's sheet at phone width. */
-export function MatterActions({ brief, onActed }: { brief: Pick<MatterBrief, "code" | "actions" | "suggested" | "judges" | "sent">; onActed: (kind: MatterActionKind) => void }) {
+export function MatterActions({ brief, onActed, settling = false }: { brief: Pick<MatterBrief, "code" | "actions" | "suggested" | "judges" | "sent">; onActed: (kind: MatterActionKind) => void; settling?: boolean }) {
   const [mode, setMode] = useState<Mode>({ kind: "idle" });
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
+  const passing = useRef<HTMLDivElement>(null);
+  const opened = mode.kind === "passing";
+  useEffect(() => {
+    if (opened) passing.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }, [opened]);
+  const working = busy || settling;
   const allowed = new Set(brief.actions);
 
   if (allowed.size === 0) return null;
@@ -120,11 +126,11 @@ export function MatterActions({ brief, onActed }: { brief: Pick<MatterBrief, "co
         <div className="flex flex-wrap items-center gap-1">
           {[...shown, ...inline].map((kind, index) =>
             index === 0 && kind !== "done" ? (
-              <Primary key={kind} onClick={() => start(kind)} disabled={busy}>
+              <Primary key={kind} onClick={() => start(kind)} disabled={working}>
                 {labelOf(kind)}
               </Primary>
             ) : (
-              <Quiet key={kind} onClick={() => start(kind)} disabled={busy} className="border border-border">
+              <Quiet key={kind} onClick={() => start(kind)} disabled={working} className="border border-border">
                 {labelOf(kind)}
               </Quiet>
             ),
@@ -158,16 +164,18 @@ export function MatterActions({ brief, onActed }: { brief: Pick<MatterBrief, "co
         </form>
       ) : null}
       {mode.kind === "passing" ? (
-        <>
+        <div ref={passing} className="flex scroll-mb-4 flex-col gap-2">
           <PassOn suggested={brief.suggested} chosen={passTo} choose={(to) => setMode({ kind: "passing", to })} />
           <div className="flex items-center gap-1">
-            <Primary onClick={() => passTo && void run({ kind: "pass_on", toUserId: passTo })} disabled={busy || !passTo}>
+            <Primary onClick={() => passTo && void run({ kind: "pass_on", toUserId: passTo })} disabled={working || !passTo}>
               <Forward className="size-3.5" aria-hidden />
-              {COPY.actions.pass_on}
+              {busy ? COPY.passingOn : COPY.actions.pass_on}
             </Primary>
-            <Quiet onClick={() => setMode({ kind: "idle" })}>{COPY.cancel}</Quiet>
+            <Quiet onClick={() => setMode({ kind: "idle" })} disabled={busy}>
+              {COPY.cancel}
+            </Quiet>
           </div>
-        </>
+        </div>
       ) : null}
       {mode.kind === "confirming" ? <Confirming label={labelOf("done")} busy={busy} close={() => void run({ kind: "done" })} cancel={() => setMode({ kind: "idle" })} /> : null}
       {mode.kind === "closing" ? <Closing mode={mode} busy={busy} change={setMode} close={(verdict, outcome) => void run({ kind: "done", verdict, outcome })} cancel={() => setMode({ kind: "idle" })} /> : null}
