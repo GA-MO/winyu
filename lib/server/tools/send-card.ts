@@ -7,7 +7,7 @@ import { notReady } from "@/lib/harness/gateway";
 import type { Unready } from "@/lib/harness/types";
 import { TH } from "@/lib/i18n/th";
 import { ASK_CONTRADICTS_CARD, CARD_MISSES_SUBJECT, sendCardInputSchema, shareTitle, type CardFocus, type CardOnScreen, type SendCardInput, type SharedCard, type ShareTarget } from "@/lib/share/card";
-import { contradictionOf } from "@/lib/share/figures";
+import { contradictionOf, sendWarning } from "@/lib/share/figures";
 import { askAboutOf, askNaming, deadlineWords, followsEarlier, matterAsk, matterDeadline, sendIntent } from "@/lib/share/matter";
 import { resolvedPeople, type RecipientMatch } from "@/lib/share/recipients";
 import { cardFigures, goalLabel } from "@/lib/server/share/goal";
@@ -173,7 +173,7 @@ export const sendCardTool = defineTool({
     if (!outcome.ok) return refusal(NOT_SHAREABLE, outcome.error);
     const receipts = receiptsOf(outcome.share);
     const hidden = outcome.hidden.map((scope) => TH.share.recipientHidden[scope.hidden](scope.name, metricLabel(scope.metric)));
-    const warning = await contradiction(ask, target.card, sender, focus);
+    const warning = sendWarning(ask, await cardFigures(target.card, sender), focus, chosen.warned);
     return {
       ok: true as const,
       summary: `${TH.share.chat.sent(outcome.share.title, receipts.map((receipt) => receipt.name).join(", "))}${hidden.length > 0 ? TH.share.chat.hidden(hidden.join(" · ")) : ""}`,

@@ -176,16 +176,16 @@ describe("a send about one agent on the region's card names that agent, and a cl
     const before = shares().where((matter) => matter.senderId === RSM).length;
     const held = await send({ to: ["u_krit"], ask: DEICTIC_ASK }, FALSE_CLAIM, screenWith([REGION_CARD], false, [FALSE_CLAIM]), RSM);
     expect(held).toMatchObject({ ok: false, code: "ASK_CONTRADICTS_CARD" });
-    expect(held.error ?? "").toMatch(new RegExp(`^ยังไม่ได้ส่ง: .*${AGENT}.* ${AGENT} -?\\d+\\.\\d% เทียบเป้าตามเวลา$`));
+    expect(held.error ?? "").toMatch(new RegExp(`^ยังไม่ได้ส่ง: .*${AGENT}.* ${AGENT} −?\\d+\\.\\d% เทียบเป้าตามเวลา$`));
     expect(shares().where((matter) => matter.senderId === RSM).length).toBe(before);
   });
 
-  test("once the person has read the figure the send goes, and its title, its ask and the rep's inbox row name the agent", async () => {
+  test("once the person has read the figure the send goes with no warning left over from the claim it answered (AI-220), and its title, its ask and the rep's inbox row name the agent", async () => {
     const sent = await send({ to: ["u_krit"], ask: DEICTIC_ASK }, "ส่งไปเลย", screenWith([REGION_CARD], true, ["ส่งไปเลย", FALSE_CLAIM]), RSM);
     const matter = matterOf(sent);
     expect(matter?.title).toContain(AGENT);
     expect(matter?.ask).toContain(AGENT);
-    expect(sent.data?.warning ?? "").toContain(AGENT);
+    expect(sent.data?.warning ?? null).toBeNull();
     expect(sent.data?.urgency).toBe("this_week");
     const krit = findUser("u_krit");
     if (!krit) throw new Error("no u_krit");

@@ -18,6 +18,8 @@ const ATTAINMENT_CLAIM = /(\d+(?:\.\d+)?)\s*%\s*ของเป้า/;
 const CLAIM_TOLERANCE = 1;
 const FELL_HARD = /ตกเยอะ|ตกหนัก|ตกมาก|ตกแรง|ตกฮวบ|ร่วงหนัก|ร่วงแรง|ดิ่ง|ลดลงเยอะ|ลดลงมาก|ลดฮวบ|แย่มาก/;
 const HARD_FALL_LINE = -5;
+const MINUS_SIGN = "−";
+const LEADING_HYPHEN = /^-/;
 
 function isMetricAnswer(result: unknown): result is MetricAnswer {
   if (typeof result !== "object" || result === null) return false;
@@ -45,8 +47,13 @@ export function figuresOf(result: unknown): CardFigures | null {
   return { attainment: attainmentOf(result), change };
 }
 
+/** A signed figure as people read it: a fall with a minus sign, never the ASCII hyphen. */
+export function withMinusSign(text: string): string {
+  return text.replace(LEADING_HYPHEN, MINUS_SIGN);
+}
+
 function percentLabel(value: number): string {
-  return `${value.toFixed(1)}%`;
+  return withMinusSign(`${value.toFixed(1)}%`);
 }
 
 function targetWarning(text: string, attainment: number | null): string | null {
@@ -97,6 +104,12 @@ export function rowContradictionOf(text: string, row: RowFigure): string | null 
   if (RISING.test(text)) return row.change < 0 ? TH.share.contradicts.rowRose(row.label, shown) : null;
   if (FALLING.test(text)) return row.change > 0 ? TH.share.contradicts.rowFell(row.label, shown) : null;
   return null;
+}
+
+/** The one warning a send shows: what the ask that goes out claims against the card's figures or against the row it singles out, and, until the conversation has pointed it out once (`pointedOut`), what the person's earlier words claimed about that row; null when nothing it says disagrees. */
+export function sendWarning(ask: string, figures: CardFigures | null, focus: { row?: RowFigure | null; claim: string | null } | null | undefined, pointedOut: boolean): string | null {
+  const askClaim = contradictionOf(ask, figures) ?? (focus?.row ? rowContradictionOf(ask, focus.row) : null);
+  return askClaim ?? (pointedOut ? null : (focus?.claim ?? null));
 }
 
 /** One line, worked out by code, when the words the sender sends with a card claim what its numbers do not show (on target while the card is under it, growth while it fell, a percent of target or a change the card does not show); null when they agree or say nothing the card measures. The sender can still send. */

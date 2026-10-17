@@ -1,6 +1,6 @@
 import { liveAccessFor } from "@/lib/access/enforce";
 import { metricAccess } from "@/lib/access/grants";
-import { presentCard } from "@/lib/cards/present";
+import { presentCard, type CardHero } from "@/lib/cards/present";
 import { isTimeDim, labelAlong } from "@/lib/cards/rows";
 import { metricQueryInputSchema, type Dim, type MetricQueryInput, type MetricResult, type User } from "@/lib/contracts";
 import { addDays, daysBetween, DATA_AS_OF } from "@/lib/data/dates";
@@ -12,7 +12,7 @@ import { TH } from "@/lib/i18n/th";
 import { resolveQuery } from "@/lib/semantic/periods";
 import { TARGET_METRICS } from "@/lib/semantic/metrics";
 import type { SharedCard, SharedRead } from "@/lib/share/card";
-import { figuresOf, type CardFigures } from "@/lib/share/figures";
+import { figuresOf, withMinusSign, type CardFigures } from "@/lib/share/figures";
 import type { Matter, MatterGoal } from "@/lib/share/matter";
 import { goalMetOn } from "@/lib/share/matter-actions";
 import { alerts } from "@/lib/server/agent/collections";
@@ -71,9 +71,15 @@ export async function cardFigures(card: SharedCard, viewer: User): Promise<CardF
   return figuresOf(await cardAnswer(card, viewer));
 }
 
-/** The hero a card draws for one answer with `labels` as the rows asked about, as words: label, value, change and its base. */
-export function askedHero(answer: MetricAnswer, labels: readonly string[]): string | null {
+/** The hero a card draws for one answer with `labels` as the rows asked about, its change written with a minus sign. */
+export function askedFigure(answer: MetricAnswer, labels: readonly string[]): CardHero | null {
   const hero = presentCard({ title: "", query: answer.query, result: { ...answer, headline: { ...answer.headline, asked: [...labels] } } }).hero;
+  return hero ? { ...hero, delta: hero.delta ? withMinusSign(hero.delta) : null } : null;
+}
+
+/** That hero as words: label, value, change and its base. */
+export function askedHero(answer: MetricAnswer, labels: readonly string[]): string | null {
+  const hero = askedFigure(answer, labels);
   return hero ? [hero.label, hero.value, hero.unit, hero.delta, hero.detail].filter(Boolean).join(" ") : null;
 }
 

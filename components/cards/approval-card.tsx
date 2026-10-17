@@ -9,13 +9,15 @@ import { METRIC_IDS, ROLE_IDS, type MetricId, type MetricQuery, type RecipientSc
 import { conditionLabel } from "@/lib/engine/personal-watches";
 import { USERS, findUser } from "@/lib/data/entities/users";
 import { sharedWith } from "@/lib/cards/describe-call";
+import type { CardHero } from "@/lib/cards/present";
+import { cn } from "@/components/ui/cn";
 import { formatDateTh } from "@/lib/i18n/format";
 import { metricLabel } from "@/lib/dashboard/metric-display";
 import { TH } from "@/lib/i18n/th";
 import { cardNamed } from "@/components/chat/card-to-share";
 import { businessToday } from "@/lib/data/dates";
 import { shareTitle, type ScreenCards, type SendPreview, type ShareContact, type SharedCard } from "@/lib/share/card";
-import { contradictionOf } from "@/lib/share/figures";
+import { sendWarning, withMinusSign } from "@/lib/share/figures";
 import { askAboutOf, askNaming, deadlineWords, followsEarlier, matterAsk, matterDeadline, MATTER_INTENTS, MATTER_URGENCIES, sendIntent, type MatterIntent, type MatterUrgency } from "@/lib/share/matter";
 import { pinQuestion } from "@/lib/share/pin";
 import { matchRecipients } from "@/lib/share/recipients";
@@ -24,6 +26,7 @@ const COURSES_ENDPOINT = "/api/courses";
 const PERMISSION_LABEL_ENDPOINT = "/api/permissions/label";
 const LABELS_ENDPOINT = "/api/labels";
 const PIN_PREVIEW_ENDPOINT = "/api/pins/preview";
+const DELTA_TONE: Record<CardHero["tone"], string> = { bad: "bg-danger/10 text-danger", good: "bg-success/10 text-success", neutral: "bg-muted text-muted-foreground" };
 const NO_PIN_PREVIEW: PinPreviewInfo = { hero: null, replaces: [] };
 
 type PinPreviewInfo = { hero: string | null; replaces: string[] };
@@ -86,7 +89,7 @@ type SendInput = { cardRef?: unknown; to?: unknown; ask?: unknown; intent?: unkn
 /** The card a send would carry as the sheet shows it (its title and headline figure), or why there is none to show: no card on screen, or several and the call named none. */
 type CardToSend = { card: SharedCard; title: string; hero: string | null } | { card: null; problem: "none" | "unclear" };
 /** The send sheet as the approval shows it: the card, who gets it (and whether that is the card's owner), what it asks, how soon and by when, and what the server found. */
-type SendPlan = { sending: CardToSend; recipients: ShareContact[]; owner: boolean; ask: string; intent: MatterIntent; urgency: MatterUrgency; due: string | null; preview: SendPreview };
+type SendPlan = { sending: CardToSend; recipients: ShareContact[]; owner: boolean; ask: string; intent: MatterIntent; urgency: MatterUrgency; due: string | null; preview: SendPreview; pointedOut: boolean };
 type CourseSummary = { id: string; title: string; starts: string; days: number };
 
 const PERMISSION_VALUE_LABEL: Record<string, string> = {
@@ -382,17 +385,35 @@ function recipientsOf(input: SendInput, contacts: ShareContact[] | null, preview
 }
 
 /** The send sheet filled in the way send_card will send it: the same card, intent, urgency, deadline, draft ask and recipient rules the server applies. */
-function sendPlan(input: SendInput, sending: CardToSend, contacts: ShareContact[] | null, preview: SendPreview, question: string | null): SendPlan {
+function sendPlan(input: SendInput, sending: CardToSend, contacts: ShareContact[] | null, preview: SendPreview, question: string | null, pointedOut: boolean): SendPlan {
   const { people, owner } = recipientsOf(input, contacts, preview);
   const intent = sendIntent(oneOf(MATTER_INTENTS, input.intent), Math.max(people.length, 1));
   const typed = typeof input.ask === "string" ? input.ask.trim() : "";
   const titled = sending.card ? { ...sending, title: preview.title ?? sending.title, hero: preview.focus?.hero ?? sending.hero } : sending;
   const ask = titled.card ? askNaming(matterAsk(typed, intent, titled.title), askAboutOf(preview.focus, preview.subject ?? null)) : typed;
   const { urgency, due } = matterDeadline(oneOf(MATTER_URGENCIES, input.urgency), question, intent, businessToday());
-  return { sending: titled, recipients: people, owner, ask, intent, urgency, due, preview };
+  return { sending: titled, recipients: people, owner, ask, intent, urgency, due, preview, pointedOut };
 }
 
-function CardPreview({ sending }: { sending: CardToSend }) {
+/** The singled-out row's figure as the card draws it: its value, its change in the card's colour, and what it is of. */
+function FocusFigure({ figure }: { figure: CardHero }) {
+  return (
+    <div className="mt-1 flex min-w-0 flex-col gap-0.5" data-send-card-hero>
+      <p className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-1">
+        <span className="text-xl font-semibold tracking-tight tabular-nums">{figure.value}</span>
+        {figure.unit ? <span className="text-xs text-muted-foreground">{figure.unit}</span> : null}
+        {figure.delta ? (
+          <span data-send-card-delta className={cn("rounded-full px-1.5 py-0.5 text-[11px] font-semibold tabular-nums", DELTA_TONE[figure.tone])}>
+            {withMinusSign(figure.delta)}
+          </span>
+        ) : null}
+      </p>
+      <p className="text-xs text-muted-foreground wrap-anywhere">{[figure.label, figure.detail].filter(Boolean).join(" · ")}</p>
+    </div>
+  );
+}
+
+function CardPreview({ sending, figure }: { sending: CardToSend; figure: CardHero | null }) {
   if (!sending.card) return null;
   return (
     <div className="min-w-0 rounded-xl border border-border px-3.5 py-3" data-send-card>
@@ -400,7 +421,7 @@ function CardPreview({ sending }: { sending: CardToSend }) {
       <p className="mt-0.5 text-sm font-medium wrap-anywhere" data-send-card-title>
         {sending.title}
       </p>
-      {sending.hero ? (
+      {figure ? <FocusFigure figure={figure} /> : sending.hero ? (
         <p className="mt-1 text-xl font-semibold tracking-tight tabular-nums" data-send-card-hero>
           {sending.hero}
         </p>
@@ -412,7 +433,7 @@ function CardPreview({ sending }: { sending: CardToSend }) {
 function SendSheet({ plan, scopes }: { plan: SendPlan; scopes: readonly RecipientScope[] }) {
   return (
     <div className="flex min-w-0 flex-col gap-3" data-send-sheet>
-      <CardPreview sending={plan.sending} />
+      <CardPreview sending={plan.sending} figure={plan.preview.focus?.figure ?? null} />
       {plan.recipients.length > 0 ? (
         <div className="min-w-0">
           <p className="text-[11px] text-muted-foreground">{plan.owner ? TH.share.suggested : TH.approve.sendRecipients}</p>
@@ -429,7 +450,7 @@ function SendSheet({ plan, scopes }: { plan: SendPlan; scopes: readonly Recipien
       <p className="text-xs text-muted-foreground" data-send-intent={plan.intent}>
         {TH.share.intent[plan.intent]} · {TH.share.intentHint[plan.intent]}
       </p>
-      <ContradictionNote text={contradictionOf(plan.ask, plan.preview.figures) ?? plan.preview.focus?.claim ?? null} />
+      <ContradictionNote text={sendWarning(plan.ask, plan.preview.figures, plan.preview.focus, plan.pointedOut)} />
       <RecipientWarnings scopes={scopes} granting={false} grant={null} />
       {plan.intent === "act" && plan.preview.goal ? (
         <p className="flex items-center gap-1.5 text-xs text-muted-foreground" data-send-goal>
@@ -681,7 +702,8 @@ function SendApproval({ request }: { request: ApprovalRequest }) {
   const preview = useSendPreview(asking ? card : null, alertIdsOf(input), wordsOf(input, request));
   const asked = request.question ?? null;
   const earlier = request.onScreen?.said.find((text) => text !== asked) ?? null;
-  const plan = sendPlan(input, sending, contacts, preview, deadlineWords(asked, earlier, followsEarlier(asked, request.onScreen?.warned ?? false, preview.focus), businessToday()));
+  const pointedOut = request.onScreen?.warned ?? false;
+  const plan = sendPlan(input, sending, contacts, preview, deadlineWords(asked, earlier, followsEarlier(asked, pointedOut, preview.focus), businessToday()), pointedOut);
   const scopes = useRecipientScopes(asking ? card : null, plan.recipients.map((contact) => contact.id));
   return <Approval decision={sendDecision(plan, scopes, contacts !== null, input)} request={request} />;
 }

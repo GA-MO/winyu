@@ -39,7 +39,7 @@ describe("words that the card's numbers contradict", () => {
   });
 
   test("growth claimed on a card that fell is flagged; words the card does not measure are not", () => {
-    expect(contradictionOf("ยอดเพิ่มขึ้นดีมาก", fell)).toBe(TH.share.contradicts.rising("-6.0%"));
+    expect(contradictionOf("ยอดเพิ่มขึ้นดีมาก", fell)).toBe(TH.share.contradicts.rising("−6.0%"));
     expect(contradictionOf("ช่วยดูอุบลศรีสุขหน่อย", under)).toBeNull();
     expect(contradictionOf("จะปิดเกินเป้า", null)).toBeNull();
   });
