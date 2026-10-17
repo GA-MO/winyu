@@ -128,10 +128,15 @@ function retried(step: ToolStep, later: ToolStep): boolean {
   return answered(later) || (rejectedBeforeRunning(step) && later.outcome.state === "pending");
 }
 
-/** Failed calls the model made again: corrected when a later call of the tool answered, and a call the runtime rejected before it ran (its arguments failed the schema) as soon as a later call of the tool is waiting, so a retry that waits for approval stands alone. */
+/** A refusal that offers a way to more (a request for a temporary grant) is an answer of its own: a later call of the tool asked something else, such as the other side of a comparison (AI-211). */
+function offersWayOn(step: ToolStep): boolean {
+  return step.outcome.state === "returned" && isRefused(step.outcome.result) && offersNextStep(step.outcome.result);
+}
+
+/** Failed calls the model made again: corrected when a later call of the tool answered, and a call the runtime rejected before it ran (its arguments failed the schema) as soon as a later call of the tool is waiting, so a retry that waits for approval stands alone; a refusal that offers a request for access is never one. */
 function recoveredFailures(steps: readonly ToolStep[]): string[] {
   return steps.flatMap((step, index) => {
-    if (answered(step) || step.outcome.state === "pending") return [];
+    if (answered(step) || step.outcome.state === "pending" || offersWayOn(step)) return [];
     return steps.slice(index + 1).some((later) => retried(step, later)) ? [step.toolCallId] : [];
   });
 }

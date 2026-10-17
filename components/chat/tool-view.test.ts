@@ -98,6 +98,15 @@ describe("only answers draw cards (AI-63)", () => {
     expect(hiddenOf(steps)).toEqual(["o1", "p1"]);
   });
 
+  test("a scope refusal that offers a request for access stays on screen beside the other side of the comparison, so the reply's 'ปุ่มบนการ์ด' is there to press (AI-211)", () => {
+    const denied = { ok: false, code: "PERMISSION_DENIED", error: "อยู่นอกขอบเขต", nextActions: [{ id: "request", kind: "request_access", label: "ขอสิทธิ์จากคุณประสิทธิ์" }] };
+    const steps = [returned("q1", "query_metric", { filters: { region: ["south"] } }, denied), returned("q2", "query_metric", { filters: { region: ["northeast"] } }, METRIC_ANSWER)];
+    expect(hiddenOf(steps)).toEqual([]);
+    expect(drawsNoCard(denied)).toBe(false);
+    const bare = { ok: false, code: "PERMISSION_DENIED", error: "อยู่นอกขอบเขต" };
+    expect(hiddenOf([returned("q1", "query_metric", { filters: { region: ["south"] } }, bare), returned("q2", "query_metric", { filters: { region: ["northeast"] } }, METRIC_ANSWER)])).toEqual(["q1"]);
+  });
+
   test("the whole catalog asked for on its own is the answer and draws its card", () => {
     expect(hiddenOf([returned("c1", "list_metrics", { search: null }, CATALOG)])).toEqual([]);
   });
