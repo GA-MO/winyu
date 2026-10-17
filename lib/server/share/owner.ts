@@ -20,11 +20,15 @@ function takersOf(matter: Matter): string[] {
   return matter.path.filter((hop) => hop.state === "accepted").map((hop) => hop.userId);
 }
 
-/** The colleague who took matters on this metric and region from this sender at least twice (accepted them, not only received them). */
+function takersFrom(matter: Matter, fromUserId: string): string[] {
+  return matter.path.filter((hop) => hop.state === "accepted" && hop.fromUserId === fromUserId).map((hop) => hop.userId);
+}
+
+/** The colleague who took matters on this metric and region straight from this sender at least twice (accepted them, not only received them); someone who took one after another person passed it on is that person's recipient, not this sender's. */
 export function usualRecipient(fromUserId: string, metric: MetricId, region: Region | null): { userId: string; sent: number } | null {
   const counts = new Map<string, number>();
   for (const matter of shares().where((entry) => entry.senderId === fromUserId && entry.intent === "act" && isAbout(entry, metric, region))) {
-    for (const taker of takersOf(matter)) counts.set(taker, (counts.get(taker) ?? 0) + 1);
+    for (const taker of takersFrom(matter, fromUserId)) counts.set(taker, (counts.get(taker) ?? 0) + 1);
   }
   const [best] = [...counts.entries()].sort((left, right) => right[1] - left[1]);
   return best && best[1] >= MIN_USUAL_SENDS ? { userId: best[0], sent: best[1] } : null;
