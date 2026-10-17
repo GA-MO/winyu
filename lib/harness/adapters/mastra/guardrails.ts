@@ -1,5 +1,5 @@
 import { RegexFilterProcessor, type ProcessToolResultArgs, type Processor } from "@mastra/core/processors";
-import { injectionIn, maskPersonalData, NEVER_IN_REPLY, withoutInjection, type GuardFinding, type InjectionKind, type PersonalKind } from "@/lib/harness/guard";
+import { injectionIn, maskPersonalData, NEVER_IN_REPLY, withoutInjection, wrongSurnameRules, type GuardFinding, type InjectionKind, type PersonalKind } from "@/lib/harness/guard";
 import { currentRun } from "@/lib/harness/runtime";
 import { TH } from "@/lib/i18n/th";
 import { recordGuardFinding } from "@/lib/server/audit";
@@ -7,6 +7,7 @@ import { accessOrNull } from "@/lib/server/request-context";
 import type { RunInput } from "./turn";
 
 const REPLY_CARRYOVER_CHARS = 32;
+const WRONG_SURNAME = "wrong_surname";
 
 type InputMessage = NonNullable<NonNullable<RunInput>["messages"]>[number];
 
@@ -79,20 +80,23 @@ export class ToolResultInjectionGuard implements Processor<"tool-result-injectio
   }
 }
 
-/** Masks a Thai national ID or a bank account number in the model's reply, streamed and saved, holding back only enough characters to catch one split across chunks; phones and emails pass, since the only ones the model can see are colleagues' work contacts the gateway already scoped. */
-export function replyPersonalDataGuard(): RegexFilterProcessor {
+/** One pass over the model's reply, streamed and saved, holding back only enough characters to catch a match split across chunks (one processor, since two regex filters on one stream share its carryover): a Thai national ID or a bank account number is masked (phones and emails pass, since the only ones the model can see are colleagues' work contacts the gateway already scoped), and a colleague's first name written with a surname the directory does not hold takes their directory name (AI-289: "คุณอนุชา วงศ์สุวรรณ" becomes "คุณอนุชา พรหมศรี"; the prompt already says names come only from tools or the person's words, this holds when the model breaks it). Each kind is recorded on the run and the audit. */
+export function replyGuard(): RegexFilterProcessor {
   const guard = new RegexFilterProcessor({
     rules: [
       { name: "national_id", pattern: NEVER_IN_REPLY.national_id, replacement: TH.guard.mask.national_id },
       { name: "bank_account", pattern: NEVER_IN_REPLY.bank_account, replacement: TH.guard.mask.bank_account },
+      ...wrongSurnameRules(),
     ],
     strategy: "redact",
     phase: "output",
     streamCarryoverSize: REPLY_CARRYOVER_CHARS,
   });
   guard.onViolation = ({ detail }) => {
-    const redactions = (detail as { redactions?: { rule: string }[] } | undefined)?.redactions ?? [];
-    record({ source: "model_output", check: "personal_data", kinds: [...new Set(redactions.map((redaction) => redaction.rule))], action: "masked" });
+    const rules = new Set(((detail as { redactions?: { rule: string }[] } | undefined)?.redactions ?? []).map((redaction) => redaction.rule));
+    const personal = [...rules].filter((rule) => rule !== WRONG_SURNAME);
+    if (personal.length > 0) record({ source: "model_output", check: "personal_data", kinds: personal, action: "masked" });
+    if (rules.has(WRONG_SURNAME)) record({ source: "model_output", check: "person_name", kinds: [WRONG_SURNAME], action: "corrected" });
   };
   return guard;
 }

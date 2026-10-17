@@ -18,7 +18,7 @@ import { toolsForAccess } from "@/lib/server/agent/tools";
 import { CACHED_SYSTEM_PROMPT, agentModel } from "@/lib/server/models";
 import { currentTurn } from "@/lib/server/request-context";
 import { DATA_DIR } from "@/lib/server/store/json-store";
-import { ToolResultInjectionGuard, replyPersonalDataGuard } from "./guardrails";
+import { ToolResultInjectionGuard, replyGuard } from "./guardrails";
 import { ChatDurableAgent, persistsSnapshot } from "./durable";
 import { winyuWorkflows, schedulerEnabled } from "./jobs";
 import { winyuObservability } from "./observability";
@@ -96,7 +96,7 @@ function buildMastra(): Mastra {
       return mastraTools(toolsForAccess(access), access);
     },
     memory: new Memory({ options: { lastMessages: REMEMBERED_MESSAGES, semanticRecall: false, generateTitle: false } }),
-    outputProcessors: [new ToolResultInjectionGuard(), replyPersonalDataGuard()],
+    outputProcessors: [new ToolResultInjectionGuard(), replyGuard()],
     defaultOptions: { maxSteps: LIMITS.maxSteps, prepareStep: toldTheAnswerThenWrapUp },
   });
   const durable = new ChatDurableAgent({ agent, shouldPersistSnapshot: persistsSnapshot });

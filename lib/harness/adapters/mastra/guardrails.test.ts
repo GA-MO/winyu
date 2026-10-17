@@ -6,7 +6,7 @@ import { z } from "zod";
 import { newRun, runWithRun, type Run } from "@/lib/harness/runtime";
 import { TH } from "@/lib/i18n/th";
 import { auditLog, GUARD_AUDIT_TOOL } from "@/lib/server/audit";
-import { guardedRunInput, inputFindings, replyPersonalDataGuard, ToolResultInjectionGuard } from "./guardrails";
+import { guardedRunInput, inputFindings, replyGuard, ToolResultInjectionGuard } from "./guardrails";
 
 const USAGE = { inputTokens: { total: 10, noCache: 10, cacheRead: 0, cacheWrite: 0 }, outputTokens: { total: 10, text: 10, reasoning: 0 } };
 const STOP = { unified: "stop" as const, raw: "stop" };
@@ -38,7 +38,7 @@ const storeNote = createTool({
 });
 
 function guardedAgent(model: MockLanguageModelV3): Agent {
-  return new Agent({ id: "guard-test", name: "guard-test", instructions: "test", model, tools: { store_note: storeNote }, outputProcessors: [new ToolResultInjectionGuard(), replyPersonalDataGuard()] });
+  return new Agent({ id: "guard-test", name: "guard-test", instructions: "test", model, tools: { store_note: storeNote }, outputProcessors: [new ToolResultInjectionGuard(), replyGuard()] });
 }
 
 async function streamed(run: Run, agent: Agent): Promise<{ text: string; toolResults: unknown[] }> {
@@ -108,6 +108,21 @@ describe("guardrail processors on a real Mastra agent", () => {
     const { toolResults } = await streamed(run, guardedAgent(scriptedModel([toolStep, textStep(["สรุปแล้ว"])])));
     expect(toolResults).toEqual([{ ok: true, rows: [{ store: "ส.รุ่งเรือง", note: `ร้านปิดซ่อม 2 วัน\n${TH.guard.cut}.` }] }]);
     expect(guardEvents(run)).toEqual([{ source: "tool_result", check: "injection", kinds: ["override"], action: "neutralized" }]);
+  });
+
+  test("a colleague named with a surname the directory does not hold reaches the reader with the directory name, split across chunks, and the trace records it (AI-289)", async () => {
+    const run = newRun("u_thana", null, { initiator: "person" });
+    const { text } = await streamed(run, guardedAgent(scriptedModel([textStep(["แนะนำให้คุณอนุชา วงศ์", "สุวรรณ ที่ดูแลภาคอีสานตรวจเพิ่ม และคุณกฤต วงศ์สกุล เข้าพบเอเย่นต์"])])));
+    expect(text).toBe("แนะนำให้คุณอนุชา พรหมศรี ที่ดูแลภาคอีสานตรวจเพิ่ม และคุณกฤต จันทร์เสน เข้าพบเอเย่นต์");
+    expect(guardEvents(run)).toContainEqual({ source: "model_output", check: "person_name", kinds: ["wrong_surname"], action: "corrected" });
+  });
+
+  test("a colleague's first name followed by words that are not a surname is left as written (AI-289)", async () => {
+    const run = newRun("u_thana", null, { initiator: "person" });
+    const reply = "ส่งให้คุณอนุชา พรหมศรี แล้ว คุณอนุชา ผู้จัดการขายภาคอีสาน ช่วยตรวจ คุณอนุชา อุบลศรีสุข เทรดดิ้ง กับคุณอนุชา เข้าใจดี และคุณนก ยินดี";
+    const { text } = await streamed(run, guardedAgent(scriptedModel([textStep([reply])])));
+    expect(text).toBe(reply);
+    expect(guardEvents(run)).toEqual([]);
   });
 
   test("a clean reply and a clean tool result leave no finding", async () => {

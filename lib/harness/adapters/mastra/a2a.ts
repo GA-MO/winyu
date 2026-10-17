@@ -8,7 +8,7 @@ import type { AccessContext } from "@/lib/contracts";
 import { LIMITS } from "@/lib/harness/limits";
 import type { WinyuTool } from "@/lib/server/tools/define";
 import { USER_ID_KEY, winyuMastra, wrapUpAtLimit } from "./agent";
-import { ToolResultInjectionGuard, replyPersonalDataGuard } from "./guardrails";
+import { ToolResultInjectionGuard, replyGuard } from "./guardrails";
 import { HARNESS_RUN_KEY } from "./observability";
 import { mastraTools } from "./tools";
 
@@ -55,7 +55,7 @@ function buildA2aAgent() {
       const surface = surfaceOf(requestContext);
       return mastraTools(surface.tools, surface.access);
     },
-    outputProcessors: [new ToolResultInjectionGuard(), replyPersonalDataGuard()],
+    outputProcessors: [new ToolResultInjectionGuard(), replyGuard()],
     defaultOptions: { maxSteps: LIMITS.maxSteps, prepareStep: wrapUpAtLimit },
   });
 }

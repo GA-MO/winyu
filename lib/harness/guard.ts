@@ -1,4 +1,5 @@
-import { EMAIL_DOMAIN } from "@/lib/data/entities/users";
+import { AGENTS } from "@/lib/data/entities/agents";
+import { EMAIL_DOMAIN, USERS } from "@/lib/data/entities/users";
 import { TH } from "@/lib/i18n/th";
 import { INVISIBLE_CHARS } from "./fence";
 
@@ -11,10 +12,10 @@ export type InjectionKind = "override" | "persona" | "prompt_leak" | "bypass" | 
 /** Where a guarded piece of text came from: typed by the person, written by the model, or untrusted data re-entering the prompt. */
 export type GuardSource = "user_input" | "model_output" | "tool_result" | "memory" | "matter";
 
-export type GuardCheck = "personal_data" | "injection";
+export type GuardCheck = "personal_data" | "injection" | "person_name";
 
-/** What the guard did: replaced the data with a label, cut the instruction out, or only recorded it. */
-export type GuardAction = "masked" | "neutralized" | "warned";
+/** What the guard did: replaced the data with a label, cut the instruction out, put the directory's name in place of an invented one, or only recorded it. */
+export type GuardAction = "masked" | "neutralized" | "corrected" | "warned";
 
 /** One guard decision as the trace and the audit keep it: its source, check, kinds and action, never the text itself. */
 export type GuardFinding = { source: GuardSource; check: GuardCheck; kinds: string[]; action: GuardAction };
@@ -41,6 +42,35 @@ export const NEVER_IN_REPLY: Record<"national_id" | "bank_account", RegExp> = {
   national_id: /(?<![\d-])\d[ -]?\d{4}[ -]?\d{5}[ -]?\d{2}[ -]?\d(?![\d-])/g,
   bank_account: /(?<![\d-])\d{3}-\d-\d{5}-\d(?![\d-])/g,
 };
+
+const HONORIFIC = "(?<=คุณ|พี่|น้อง)";
+const THAI_LETTER = "[ก-๎]";
+const SURNAME_ENDINGS = ["วงศ์", "วงษ์", "สุวรรณ", "ศรี", "กุล", "สกุล", "พงษ์", "พงศ์", "รัตน์", "ศักดิ์", "วัฒน์", "ภูมิ", "เสน", "สวัสดิ์", "ประเสริฐ", "ไพบูลย์", "พันธ์", "พันธุ์", "ฤทธิ์", "เดช", "ปัญญา"];
+const SURNAME_STEM_MAX = 10;
+const NOT_SURNAME_STARTS = ["ช่วย", "และ", "ที่", "ให้", "ได้", "ไม่", "ยัง", "จะ", "เป็น", "ก็", "ซึ่ง", "ว่า", "ผู้", "ตรวจ", "ดู", "ส่ง", "รับ", "เข้า", "ทำ", "กับ", "หรือ", "แล้ว"];
+
+/** One colleague's reply rule: their first name after คุณ, พี่ or น้อง, followed by a surname-shaped word that is not theirs, becomes their directory name. */
+export type SurnameRule = { name: string; pattern: RegExp; replacement: string };
+
+function firstAndLast(nameTh: string): { first: string; last: string } | null {
+  const [first, last, ...rest] = nameTh.replace(/^คุณ/, "").split(" ");
+  return first && last && rest.length === 0 ? { first, last } : null;
+}
+
+/** The rules that put a colleague's directory name in place of a surname the model made up (AI-289), one per colleague whose first name nobody else in the directory has. A surname-shaped word is another colleague's surname or a short word ending the way Thai surnames end ("วงศ์สุวรรณ"); a word that opens a clause ("ช่วยตรวจ", "ผู้จัดการ…") or an agent's name ("อุบลศรีสุข") never is, so a reply that goes on after the first name is left as written. */
+export function wrongSurnameRules(): SurnameRule[] {
+  const names = USERS.flatMap((user) => firstAndLast(user.nameTh) ?? []);
+  const surnames = names.map((name) => name.last).join("|");
+  const notSurname = [...NOT_SURNAME_STARTS, ...AGENTS.map((agent) => agent.nameTh.split(" ")[0])].join("|");
+  const shaped = `(?:${surnames}|${THAI_LETTER}{0,${SURNAME_STEM_MAX}}(?:${SURNAME_ENDINGS.join("|")}))(?!${THAI_LETTER})`;
+  return names
+    .filter((name) => names.filter((other) => other.first === name.first).length === 1)
+    .map((name) => ({
+      name: "wrong_surname",
+      pattern: new RegExp(`${HONORIFIC}${name.first} +(?!${name.last}(?!${THAI_LETTER}))(?!${notSurname})${shaped}`, "g"),
+      replacement: `${name.first} ${name.last}`,
+    }));
+}
 
 const INJECTION_PATTERNS: readonly { kind: InjectionKind; pattern: RegExp }[] = [
   { kind: "override", pattern: /\b(?:ignore|disregard|forget|override)\b[^.\n]{0,30}?\b(?:previous|prior|above|earlier|all|your|the|system)\b[^.\n]{0,20}?\b(?:instructions?|prompts?|rules?|guidelines?|directives?)\b/gi },

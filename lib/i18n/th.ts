@@ -2006,12 +2006,13 @@ export const TH = {
   },
   guard: {
     mask: { national_id: "[เลขบัตรประชาชนถูกซ่อน]", phone: "[เบอร์โทรถูกซ่อน]", email: "[อีเมลถูกซ่อน]", bank_account: "[เลขบัญชีถูกซ่อน]" },
-    kind: { national_id: "เลขบัตรประชาชน", phone: "เบอร์โทร", email: "อีเมล", bank_account: "เลขบัญชี", override: "สั่งให้ลืมกฎ", persona: "สั่งให้เปลี่ยนบทบาท", prompt_leak: "ขอดูคำสั่งระบบ", bypass: "สั่งให้ข้ามสิทธิ์", role_marker: "แอบอ้างเป็นข้อความของระบบ" } as Record<string, string>,
+    kind: { national_id: "เลขบัตรประชาชน", phone: "เบอร์โทร", email: "อีเมล", bank_account: "เลขบัญชี", override: "สั่งให้ลืมกฎ", persona: "สั่งให้เปลี่ยนบทบาท", prompt_leak: "ขอดูคำสั่งระบบ", bypass: "สั่งให้ข้ามสิทธิ์", role_marker: "แอบอ้างเป็นข้อความของระบบ", wrong_surname: "นามสกุลที่ไม่มีในรายชื่อ" } as Record<string, string>,
     cut: "[ตัดข้อความที่สั่งให้ AI ทำตามออก]",
     typedNotice: (kinds: string) => `ซ่อน${kinds}ที่พิมพ์ไว้แล้ว ทั้ง AI และบันทึกการใช้งานจะไม่เห็น`,
     source: { user_input: "สิ่งที่ผู้ใช้พิมพ์", model_output: "คำตอบของ AI", tool_result: "ผลจากเครื่องมือ", memory: "ความจำ", matter: "เรื่องที่ส่งต่อมา" } as Record<string, string>,
-    action: { masked: "ซ่อนแล้ว", neutralized: "ตัดออกแล้ว", warned: "บันทึกไว้ ส่งต่อตามเดิม" } as Record<string, string>,
-    flagged: (check: "personal_data" | "injection", source: string) => (check === "personal_data" ? `พบข้อมูลส่วนตัวใน${source}` : `พบข้อความที่พยายามสั่ง AI ใน${source}`),
+    action: { masked: "ซ่อนแล้ว", neutralized: "ตัดออกแล้ว", corrected: "แก้เป็นชื่อในรายชื่อพนักงานแล้ว", warned: "บันทึกไว้ ส่งต่อตามเดิม" } as Record<string, string>,
+    flagged: (check: "personal_data" | "injection" | "person_name", source: string) =>
+      check === "personal_data" ? `พบข้อมูลส่วนตัวใน${source}` : check === "person_name" ? `พบนามสกุลที่ไม่ตรงกับรายชื่อพนักงานใน${source}` : `พบข้อความที่พยายามสั่ง AI ใน${source}`,
   },
   channels: {
     askOnWeb: "แชทนี้ Winyu ใช้ส่งการ์ดที่เพื่อนร่วมงานแชร์ให้คุณเท่านั้น ถ้าต้องการถามข้อมูล เปิด Winyu บนเว็บหรือมือถือได้เลยครับ",
