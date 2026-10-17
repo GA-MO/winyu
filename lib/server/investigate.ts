@@ -3,6 +3,8 @@ import { fenceAsData } from "@/lib/harness/fence";
 import { z } from "zod";
 import { accessFor } from "@/lib/access/policies";
 import { managerOf } from "@/lib/access/raci";
+import { rowPassagesIn } from "@/lib/cards/asked";
+import { percentIn } from "@/lib/cards/breakdown";
 import { presentCard, weakestRow } from "@/lib/cards/present";
 import { isTimeDim } from "@/lib/cards/rows";
 import { toneOf } from "@/lib/dashboard/metric-display";
@@ -29,6 +31,7 @@ const GAP_TOOL = "explain_gap";
 const ALERT_INPUT = { status: "open", limit: ALERT_LIMIT } as const;
 const NUMBER = /\d+(?:[.,]\d+)*/g;
 const TRIVIAL_NUMBER = /^\d{1,2}$/;
+const UNSIGNED_PERCENT = /(?<![+−\-\d.,])\d+(?:\.\d+)?%/g;
 const CHANGE_SORTS: ReadonlySet<string> = new Set(["delta_asc", "delta_desc"]);
 const RISE = 100;
 const MINUS = /^[−-]/;
@@ -82,7 +85,7 @@ const STORY_SYSTEM = [
   "- `finding`: what is happening, where, and what it means for this person, in one or two short sentences.",
   "- `evidence`: the one query_metric or explain_gap call that proves the finding, by its `index` in the tool results. Winyu draws it as a card: a query_metric result as it is, an explain_gap call as the same metric split the same way against the same comparison, biggest shortfall first. The card shows the number, the comparison, the pace to target and where the month ends. `evidence.title` names the card: what and where, no numbers. A matter no such call shows (an incident, a licence, a vacancy) has evidence null.",
   "- `action`: the one thing THIS person does next in their role. The owner acts; a manager asks the role that owns it a specific question; someone who only follows gets null. It never repeats the finding.",
-  "The card shows the numbers, so the finding never repeats the card's headline number or its month-end projection: it says what they mean (\"จะปิดเดือนต่ำกว่าเป้า\", \"ของจะหมดก่อนรอบเติม\"). A number the card does not show (a date, a count, a share from explain_gap) may appear, copied exactly as the tool wrote it.",
+  "The card shows the numbers, so the finding never repeats the card's headline number or its month-end projection: it says what they mean (\"จะปิดเดือนต่ำกว่าเป้า\", \"ของจะหมดก่อนรอบเติม\"). A number the card does not show (a date, a count) may appear, copied exactly as the tool wrote it. A part's share of a gap is said as its amount (gap_label), never as a percent: the card prints its own percent for the same row, and two percents for one row read as one number.",
   "Pick as evidence the call whose rows show where the problem sits, in the same scope as the finding. A card must agree with its finding: a story about one agent is not proven by a whole region's total.",
   "Winyu draws a sell-in card in baht (net_sales_value), the measure chat answers sales in, even when the analysis worked in litres: a finding about sell-in quotes no litre amount.",
   "`ruledOut`: at most two explanations a tool result in this run showed are NOT the cause, each with that tool's name as `source`. Empty when nothing was ruled out.",
@@ -292,6 +295,26 @@ export function repeatedIn(draft: DraftStory, evidence: EvidenceIndex): string[]
   return cardNumbersOf(answer, draft.evidence.title).filter((number) => finding.includes(number));
 }
 
+/** Each row of an evidence card by label, with the figure the card prints for it ("52.4%"). */
+function printedRowsOf(answer: MetricAnswer, title: string): Map<string, string> {
+  const { body } = presentCard({ title, query: answer.query, result: answer });
+  if (body.kind !== "strip" && body.kind !== "exceptions") return new Map();
+  const folded = body.kind === "exceptions" ? (body.fold?.rows ?? []) : [];
+  return new Map([...body.strip.rows, ...folded].map((row) => [row.label, row.text]));
+}
+
+/** Unsigned percentages a finding sets beside a row its card prints a different figure for (a share of the gap, 48.3%, over a row the card shows at 52.4% of the month target, AI-240): one number with two meanings on one screen, and the sentence travels down the chain as the ask. */
+export function sharesBesideCardIn(draft: DraftStory, evidence: EvidenceIndex): string[] {
+  const answer = draft.evidence ? evidence.get(draft.evidence.call) : undefined;
+  if (!answer || !draft.evidence) return [];
+  const printed = printedRowsOf(answer, draft.evidence.title);
+  return rowPassagesIn(draft.finding, answer.query, answer.rows).flatMap(({ label, words }) => {
+    const shown = printed.get(label);
+    const quoted = words.match(UNSIGNED_PERCENT) ?? [];
+    return shown ? quoted.filter((text) => percentIn(text) !== percentIn(shown)).map((text) => `finding quotes ${text} for ${label} while its card prints ${shown} for that row: say a share of the gap as its amount in money, or the card's own figure`) : [];
+  });
+}
+
 function namePatternsOf(user: User): string[] {
   const first = user.nameTh.replace(HONORIFIC, "").trim().split(/\s+/)[0] ?? "";
   if (!first) return [];
@@ -329,7 +352,7 @@ export function reviewDrafts(drafts: readonly DraftStory[], calls: readonly Tool
   return drafts.map((draft) => {
     const wrongEvidence = draft.evidence && !evidence.has(draft.evidence.call) ? [`evidence.call ${draft.evidence.call} is not a successful query_metric or explain_gap call`] : [];
     const repeated = repeatedIn(draft, evidence).map((number) => `finding repeats the card's number ${number}`);
-    const problems = [...tooLongIn(draft), ...wrongEvidence, ...repeated, ...litresUnderBaht(draft, evidence), ...guessesStatedAsFact(draft, anomalies)];
+    const problems = [...tooLongIn(draft), ...wrongEvidence, ...repeated, ...sharesBesideCardIn(draft, evidence), ...litresUnderBaht(draft, evidence), ...guessesStatedAsFact(draft, anomalies)];
     return { draft, ungrounded: ungroundedIn(draft, calls), names: roleHoldersNamedIn(draft), problems };
   });
 }

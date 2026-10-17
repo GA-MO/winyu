@@ -101,3 +101,24 @@ describe("a month still running reaches the model on the month's own base (AI-20
     expect(JSON.stringify(result)).not.toContain("remaining_label");
   });
 });
+
+const ISAN_MONTH_BY_AGENT = { metric: "net_sales_value", split: "agent", filters: { region: ["northeast"] }, range: { from: monthStart(DATA_AS_OF), to: DATA_AS_OF }, compare: "target" };
+
+describe("a share of the gap names the gap it divides (AI-248)", () => {
+  test("Isan's month splits the gap to date, and each share the reply copies says so, so 45.4% never sits beside the 52.9 month-end shortfall as its share", async () => {
+    const result = await gapAs("u_anucha", ISAN_MONTH_BY_AGENT);
+    expect(result.contributors.slice(0, 2).map((part) => `${part.label} ${part.share_label}`)).toEqual(["อีสานรุ่งโรจน์ ค้าส่ง 45.4% ของช่องว่างถึงวันนี้", "อุบลศรีสุข เทรดดิ้ง 42.0% ของช่องว่างถึงวันนี้"]);
+    expect(result.share_note ?? "").toStartWith("อีสานรุ่งโรจน์ ค้าส่ง (45.4% ของช่องว่างถึงวันนี้) และ อุบลศรีสุข เทรดดิ้ง (42.0% ของช่องว่างถึงวันนี้)");
+  });
+
+  test("the card drawn from it still reads each part as its share of the gap row above it", async () => {
+    const result = await gapAs("u_anucha", ISAN_MONTH_BY_AGENT);
+    const card = presentGap({ answer: result as unknown as GapAnswer, metric: "net_sales_value", split: "agent" });
+    if (card.body.kind !== "strip" && card.body.kind !== "exceptions") throw new Error(`no strip: ${card.body.kind}`);
+    const parts = card.body.strip.rows.filter((row) => result.contributors.some((part) => part.label === row.label));
+    expect(parts.slice(0, 2).map((row) => [row.label, row.sub, row.measure])).toEqual([
+      ["อีสานรุ่งโรจน์ ค้าส่ง", "45.4% ของช่องว่าง", 45.4],
+      ["อุบลศรีสุข เทรดดิ้ง", "42.0% ของช่องว่าง", 42],
+    ]);
+  });
+});

@@ -30,6 +30,19 @@ function namesOf(label: string, labels: readonly string[], prefix: string): stri
   return names.map(squeezed).filter((name) => name.length >= MIN_NAME_LENGTH);
 }
 
+/** What a text says about each row it names, every row included: the words from the row's first mention up to the next row's, read without spaces ("อุบลศรีสุข48.3%น่าจะติดเครดิต"), in the order the text names them. */
+export function rowPassagesIn(text: string, query: MetricQuery, rows: readonly MetricRow[]): { label: string; words: string }[] {
+  const dims = groupDimsOf(query);
+  const labels = [...new Set(rows.flatMap((row) => labelAlong(dims, row) ?? []))];
+  const prefix = sharedPrefixOf(labels);
+  const flat = squeezed(text);
+  const mentions = labels
+    .map((label) => ({ label, at: Math.min(...namesOf(label, labels, prefix).map((name) => flat.indexOf(name)).filter((at) => at >= 0)) }))
+    .filter((mention) => Number.isFinite(mention.at))
+    .sort((left, right) => left.at - right.at);
+  return mentions.map((mention, index) => ({ label: mention.label, words: flat.slice(mention.at, mentions[index + 1]?.at ?? flat.length) }));
+}
+
 /** The labels (along the group dims) of the rows a question names, so a card can draw the row asked about with its value and change; empty when none is named, or when every row is, which singles nothing out. */
 export function rowsNamedIn(question: string | null, query: MetricQuery, rows: readonly MetricRow[]): string[] {
   const dims = groupDimsOf(query);

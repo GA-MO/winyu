@@ -150,6 +150,7 @@ const WORST_WHEN_HIGH: ReadonlySet<MetricId> = new Set(["ar_overdue", "forecast_
 const MAX_RANK_ROWS = 8;
 const MAX_ALERTS = 4;
 const MAX_HISTORY_POINTS = 12;
+const LEADING_PERCENT = /^[+−-]?[\d,]+(?:\.\d+)?%/;
 const MASKED = "***";
 const PARENTHETICAL = /\s*\(.*\)$/;
 const SCOPE_SEPARATOR = " · ";
@@ -1461,6 +1462,18 @@ export function presentForecast(input: PresentForecastInput): CardParts {
 }
 
 export type GapShare = { label: string; gap_label: string; share_label: string };
+
+/** A part's share of the whole gap, whether explain_gap wrote it bare ("45.4%") or with the gap it divides ("45.4% ของช่องว่างถึงวันนี้", AI-248). */
+function gapShareOf(part: GapShare): number | null {
+  return percentIn(part.share_label.match(LEADING_PERCENT)?.[0] ?? "");
+}
+
+/** A part's share as its row says it, under the gap row that already names the gap's base. */
+function ofGapText(part: GapShare): string {
+  const share = gapShareOf(part);
+  return TH.cards.gap.ofGap(share === null ? part.share_label : percentText(share));
+}
+
 export type GapAnswer = {
   period_label: string;
   actual_label: string;
@@ -1528,19 +1541,19 @@ export function presentGap(input: PresentGapInput): CardParts {
   const tone: Tone = metric ? toneOf(metric, below ? -PERCENT : PERCENT) : below ? "bad" : "good";
   const parts = [...answer.contributors, ...(answer.rest ? [answer.rest] : [])];
   const [lead] = answer.contributors;
-  const drawn = parts.filter((part) => part === lead || (part !== answer.rest && (percentIn(part.share_label) ?? 0) >= MIN_GAP_SHARE));
+  const drawn = parts.filter((part) => part === lead || (part !== answer.rest && (gapShareOf(part) ?? 0) >= MIN_GAP_SHARE));
   const smaller = parts.filter((part) => !drawn.includes(part));
   const rows = [
     gapRow(`${answer.projection ? TH.cards.gap.toDate : ""}${TH.cards.gap.whole(below, versus)}`, unsignedLabel(answer.gap_label), null, null, tone),
-    ...drawn.map((part) => gapRow(part.label, unsignedLabel(part.gap_label), TH.cards.gap.ofGap(part.share_label), percentIn(part.share_label), tone)),
+    ...drawn.map((part) => gapRow(part.label, unsignedLabel(part.gap_label), ofGapText(part), gapShareOf(part), tone)),
   ];
   const folded = [
-    ...smaller.map((part): ReadRow => ({ label: part.label, sub: TH.cards.gap.ofGap(part.share_label), measure: null, fill: 0, text: unsignedLabel(part.gap_label), change: null, tone: "neutral", exception: false, valued: true })),
+    ...smaller.map((part): ReadRow => ({ label: part.label, sub: ofGapText(part), measure: null, fill: 0, text: unsignedLabel(part.gap_label), change: null, tone: "neutral", exception: false, valued: true })),
     ...answer.offsetting.map((part): ReadRow => ({ label: part.label, sub: null, measure: null, fill: 0, text: part.gap_label, change: null, tone: "neutral", exception: false, valued: true })),
   ];
-  const smallerShare = smaller.reduce((sum, part) => sum + (percentIn(part.share_label) ?? 0), 0);
+  const smallerShare = smaller.reduce((sum, part) => sum + (gapShareOf(part) ?? 0), 0);
   const foldLine = joined([smaller.length > 0 ? TH.cards.gap.smallerFold(smaller.length, percentText(smallerShare)) : null, answer.offsetting.length > 0 ? TH.cards.gap.offsetFold(answer.offsetting.length) : null]);
-  const causes = mainCauses(answer.contributors.map((part) => ({ share: (percentIn(part.share_label) ?? 0) / PERCENT })));
+  const causes = mainCauses(answer.contributors.map((part) => ({ share: (gapShareOf(part) ?? 0) / PERCENT })));
   const named = lead && causes.length > 0 ? TH.cards.gap.lead(lead.label, below, unsignedLabel(lead.gap_label)) : lead ? TH.cards.gap.spread : null;
   const verdict = [rule.opening(facts), named].filter(Boolean).join(" ");
   return {

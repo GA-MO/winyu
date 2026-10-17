@@ -44,8 +44,15 @@ function signed(input: Input, amount: number): string {
   return `${sign}${amountOf(input, Math.abs(Math.round(amount)))}`;
 }
 
-function contributionRow(input: Input, contribution: Contribution) {
-  return { label: contribution.label, gap_label: signed(input, contribution.gap), share_label: formatShare(contribution.share) };
+/** How a part's share of the gap is written for the model to copy: with the gap it divides, the gap to date in a month still running, so a reply never sets it beside the month-end shortfall as that shortfall's share (AI-248). */
+type ShareWords = (share: number) => string;
+
+function shareWordsOf(toDate: boolean): ShareWords {
+  return (share) => TH.cards.gap.shareOfGap(formatShare(share), toDate);
+}
+
+function contributionRow(input: Input, contribution: Contribution, words: ShareWords) {
+  return { label: contribution.label, gap_label: signed(input, contribution.gap), share_label: words(contribution.share) };
 }
 
 function offsettingRow(input: Input, contribution: Contribution) {
@@ -70,23 +77,23 @@ function sharesOverWhole(breakdown: GapBreakdown): boolean {
   return [...breakdown.contributors, ...(breakdown.rest ? [breakdown.rest] : [])].some((part) => part.share > 1);
 }
 
-function partsLine(parts: readonly Contribution[]): string {
-  return parts.map((part) => TH.cards.gap.partShare(part.label, formatShare(part.share))).join(" และ ");
+function partsLine(parts: readonly Contribution[], words: ShareWords): string {
+  return parts.map((part) => TH.cards.gap.partShare(part.label, words(part.share))).join(" และ ");
 }
 
 /** Why no part, or no single part, is the gap's main cause: spread so wide that the biggest is under a fifth, the leading parts about equal yet together under half of it, or the leading parts about equal and making it together. */
-function causeNoteOf(breakdown: GapBreakdown): string | null {
+function causeNoteOf(breakdown: GapBreakdown, words: ShareWords): string | null {
   const [biggest] = breakdown.contributors;
   if (!biggest) return null;
   if (isBroad(breakdown)) return TH.cards.gap.broad(biggest.label, formatShare(biggest.share));
   const causes = mainCauses(breakdown.contributors);
-  if (causes.length > 1) return TH.cards.gap.joint(partsLine(causes));
-  return causes.length === 0 ? TH.cards.gap.even(partsLine(leadingParts(breakdown.contributors))) : null;
+  if (causes.length > 1) return TH.cards.gap.joint(partsLine(causes, words));
+  return causes.length === 0 ? TH.cards.gap.even(partsLine(leadingParts(breakdown.contributors), words)) : null;
 }
 
 /** What the model must know before naming a cause: shares above 100%, and why no single part is the main cause when none is. */
-function shareNoteOf(breakdown: GapBreakdown): string | null {
-  const notes = [...(sharesOverWhole(breakdown) ? [TH.cards.gap.overHundred] : []), causeNoteOf(breakdown)].filter((note): note is string => note !== null);
+function shareNoteOf(breakdown: GapBreakdown, words: ShareWords): string | null {
+  const notes = [...(sharesOverWhole(breakdown) ? [TH.cards.gap.overHundred] : []), causeNoteOf(breakdown, words)].filter((note): note is string => note !== null);
   return notes.length > 0 ? notes.join(" · ") : null;
 }
 
@@ -112,14 +119,14 @@ function rangeLabel(changes: readonly number[]): string {
 }
 
 /** One other split checked for parts that moved harder than the whole, each with its gap, share and own change, and one line the reply may copy: who moved harder, or that every part moved alike and by how much. */
-function splitCheck(input: Input, whole: GapPart, dim: Dim, parts: readonly GapPart[]) {
+function splitCheck(input: Input, whole: GapPart, dim: Dim, parts: readonly GapPart[], words: ShareWords) {
   const label = TH.dash.dimUnit[dim] ?? dim;
   const harder = fellHarder(whole, parts);
   const gap = whole.value - whole.compare;
   const changes = parts.filter((part) => part.compare !== 0).map(changeOf);
   return {
     split_label: label,
-    moved_harder: harder.map((part) => ({ ...contributionRow(input, { label: part.label, gap: part.value - part.compare, share: gap === 0 ? 0 : (part.value - part.compare) / gap }), change_label: changeLabel(changeOf(part)) })),
+    moved_harder: harder.map((part) => ({ ...contributionRow(input, { label: part.label, gap: part.value - part.compare, share: gap === 0 ? 0 : (part.value - part.compare) / gap }, words), change_label: changeLabel(changeOf(part)) })),
     note: harder.length > 0
       ? TH.cards.gap.movedHarder(harder.map((part) => `${part.label} ${changeLabel(changeOf(part))}`).join(", "), changeLabel(changeOf(whole)))
       : TH.cards.gap.movedAlike(label, changes.length > 0 ? rangeLabel(changes) : changeLabel(changeOf(whole))),
@@ -133,12 +140,12 @@ function otherSplitsOf(input: Input): Dim[] {
 }
 
 /** The same gap along each other split, each with the parts that moved harder than the whole or none, so a reply names a cause that was checked or says which splits moved alike (AI-214). */
-async function otherSplits(input: Input, whole: GapPart, access: AccessContext) {
+async function otherSplits(input: Input, whole: GapPart, access: AccessContext, words: ShareWords) {
   const dims = otherSplitsOf(input);
   const results = await Promise.all(dims.map((dim) => runMetric(queryOf(input, [dim]), access)));
   return dims.flatMap((dim, index) => {
     const result = results[index];
-    return result?.ok ? [splitCheck(input, whole, dim, partsOf(result, dim))] : [];
+    return result?.ok ? [splitCheck(input, whole, dim, partsOf(result, dim), words)] : [];
   });
 }
 
@@ -160,7 +167,8 @@ export const explainGapTool = defineTool({
     const breakdown = breakDownGap(whole, partsOf(split, input.split));
     const projection = total.headline.projection ?? null;
     const versus = versusOf(input, projection);
-    const checked = mainCauses(breakdown.contributors).length === 0 && breakdown.contributors.length > 0 ? await otherSplits(input, whole, access) : null;
+    const words = shareWordsOf(projection !== null);
+    const checked = mainCauses(breakdown.contributors).length === 0 && breakdown.contributors.length > 0 ? await otherSplits(input, whole, access, words) : null;
     return {
       ok: true as const,
       summary: `${metricLabel(input.metric)} ${total.headline.periodLabel}: จริง ${amountOf(input, whole.value)} · ${versus} ${amountOf(input, whole.compare)} · ช่องว่าง ${signed(input, breakdown.gap)}`,
@@ -170,10 +178,10 @@ export const explainGapTool = defineTool({
       gap_label: signed(input, breakdown.gap),
       change_label: input.compare !== "target" && whole.compare !== 0 ? changeLabel(changeOf(whole)) : null,
       attainment_label: input.compare === "target" && !projection && whole.compare > 0 ? `${((whole.value / whole.compare) * 100).toFixed(1)}%` : null,
-      contributors: breakdown.contributors.map((contribution) => contributionRow(input, contribution)),
-      rest: breakdown.rest ? contributionRow(input, { ...breakdown.rest, label: OTHERS }) : null,
+      contributors: breakdown.contributors.map((contribution) => contributionRow(input, contribution, words)),
+      rest: breakdown.rest ? contributionRow(input, { ...breakdown.rest, label: OTHERS }, words) : null,
       offsetting: breakdown.offsetting.map((contribution) => offsettingRow(input, contribution)),
-      share_note: shareNoteOf(breakdown),
+      share_note: shareNoteOf(breakdown, words),
       other_splits: checked,
       projection: projection ? projectionOf(projection) : null,
     };

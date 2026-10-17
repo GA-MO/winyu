@@ -209,6 +209,34 @@ describe("a story is checked before it is kept", () => {
   });
 });
 
+describe("a story never quotes a share beside a different percentage its card prints for the same row (AI-240)", () => {
+  const CEO = accessOf("u_thana");
+  const TWO_AGENTS: MetricQuery = { metric: "net_sales_value", dims: ["agent"], filters: { agent: ["ag_nea_02", "ag_nea_05"] }, range: { from: monthStart(DATA_AS_OF), to: DATA_AS_OF }, grain: "day", compare: "target", limit: null, sort: "delta_asc" };
+  const ISAN_STORY = "ยอดจะปิดเดือนต่ำกว่าเป้า โดยอีสานรุ่งโรจน์มีสัดส่วน 51.7% และอุบลศรีสุข 48.3% น่าจะติดเครดิต";
+
+  async function storyCalls(): Promise<ToolCall[]> {
+    const result = await runMetric(TWO_AGENTS, CEO);
+    if (!result.ok) throw new Error(result.error);
+    return [{ tool: "get_alerts", input: { status: "open", limit: 10 }, output: { ok: true, rows: [] } }, { tool: "query_metric", input: TWO_AGENTS, output: { ...result, query: TWO_AGENTS, nextActions: [] } }];
+  }
+
+  function storyOf(finding: string): DraftStory {
+    return { kind: "urgent", finding, scope: "ภาคอีสาน", subject: { metric: "net_sales_value", region: "northeast" }, evidence: { call: 1, title: "มูลค่าขายเข้า 2 เอเย่นต์อีสานเทียบเป้า" }, ruledOut: [], action: "ถามผู้จัดการขายภาคอีสานว่าสองเอเย่นต์ติดวงเงินหรือไม่" };
+  }
+
+  test("the Isan story's gap shares, 48.3% for อุบลศรีสุข over a card row of 52.4% of the month target, ask for a rewrite", async () => {
+    const calls = await storyCalls();
+    const [reviewed] = reviewDrafts([storyOf(ISAN_STORY)], calls, await evidenceIndexOf(calls, CEO));
+    expect(reviewed.problems).toContain("finding quotes 48.3% for อุบลศรีสุข เทรดดิ้ง while its card prints 52.4% for that row: say a share of the gap as its amount in money, or the card's own figure");
+  });
+
+  test("the same story with each part's gap in money passes", async () => {
+    const calls = await storyCalls();
+    const [reviewed] = reviewDrafts([storyOf("ยอดจะปิดเดือนต่ำกว่าเป้า อีสานรุ่งโรจน์กับอุบลศรีสุขขาดรวมกันเกือบทั้งหมด น่าจะติดเครดิต")], calls, await evidenceIndexOf(calls, CEO));
+    expect(reviewed.problems).toEqual([]);
+  });
+});
+
 describe("every P1 matter of the person gets a story (AI-166)", () => {
   const CEO = "u_thana";
   const NOTES = "Four P1 matters: Lamphun cover, South AR, the Isan sell-in drop at two agents, Korat market share.";

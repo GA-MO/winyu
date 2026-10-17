@@ -1771,6 +1771,7 @@ export const TH = {
       lead: (label: string, below: boolean, amount: string) => `${label}${below ? "ฉุด" : "ดัน"}มากสุด ${amount}`,
       spread: "กระจายไปทั่ว ไม่มีส่วนไหนเด่น",
       ofGap: (share: string) => `${share} ของช่องว่าง`,
+      shareOfGap: (share: string, toDate: boolean) => `${share} ของช่องว่าง${toDate ? "ถึงวันนี้" : ""}`,
       offsetFold: (count: number) => `${count} รายการช่วยชดเชย`,
       smallerFold: (count: number, share: string) => `อีก ${count} รายการรวม ${share} ของช่องว่าง`,
       overHundred: "บางส่วนเกิน 100% เพราะมีส่วนที่ช่วยชดเชย ช่องว่างสุทธิจึงเล็กกว่าผลรวมของส่วนที่ทำให้ห่าง",
