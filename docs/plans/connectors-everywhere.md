@@ -1,12 +1,20 @@
 # Native tools where they belong, systems of record behind ports
 
-Status 2026-10-09: units 1 to 4 are done (`92d40b0`, `4725ff2`, `4d576b0`, `227e845`). The approver is still chosen by Winyu (`approverOf`, the nearest manager with a login) and passed to the leave system and the LMS. A real HRIS would route approvals itself, which waits for a chosen system, together with the Inbox pull of requests filed outside Winyu.
+## สถานะ (updated 2026-10-09)
+ทำแล้ว: units 1-4 (`92d40b0` describe_entity scope, `4725ff2` engines ผ่าน metrics port, `4d576b0` ระบบลาเป็นเจ้าของยอด/ใบลา, `227e845` LMS เป็นเจ้าของที่นั่ง, ลบ `staff-requests`)
+ทำแล้ว: เดโมทุก port = generator ไม่ใช่ MCP (`73620f0` คลังข้อมูล, `f0d541c` port อื่น, ลบ `WINYU_PORTS`); LMS ประวัติอบรม + CRM เป็น native `training_history`/`store_visits` บน learning/`crm` port, ลบ code connector (`b97fc58`); health ของ console connector ไม่ค้าง (`0e659ed`); push `winyu-mastra` แล้ว
+ค้าง: eval stale 56/67 (`bun run eval --stale`) อัดแล้วแค่ 9 case เสี่ยง + admin-tool/admin-field; อัดที่เหลือ ≈ $0.30 รอผู้ใช้ตัดสิน
+ค้าง: ยังไม่ได้พิสูจน์ใน browser: การ์ด `store_visits` (CrmVisitsCard) และ `training_history` (LmsTrainingCard) ในแชตจริงทุกบทบาท ตรวจแค่ `bun run call-tool` + หน้า admin
+ค้าง: ผู้อนุมัติยังเลือกโดย Winyu (`approverOf` ใน `lib/server/staff-requests.ts`) แล้วส่งให้ระบบลา/LMS; Inbox ยังไม่ดึงคำขอที่ยื่นนอก Winyu (รอ HRIS จริง)
+ค้าง: dev ที่รันอยู่ต้อง `make stop && make up` ให้ probe ใหม่ใน `instrumentation.ts` มีผล
+ค้นพบ: หลักของผู้ใช้ = Winyu ไม่ถือข้อมูลของใคร มีแค่ tool ที่เรียกระบบเจ้าของ; generator คือตัวจำลองระบบเหล่านั้น เดโมจึงไม่ควรมี MCP ซ้อนอีกชั้น
+ค้นพบ: connector = ระบบรองที่ IT เพิ่มจาก console เท่านั้น ระบบที่ Winyu มีความสามารถรองรับ (คลังข้อมูล HRIS LMS CRM EHS ปฏิทิน อีเมล) อยู่หลัง port + native tool
+ค้นพบ: เปลี่ยนชื่อ/คำอธิบาย native tool ตัวไหนก็ stale ทั้ง 67 case เพราะเกือบทุก tool เปิดให้ทุกบทบาท; อัดเฉพาะ case เสี่ยงแล้ว model เลือก tool เดิมทุกข้อ (policy-leave แปรปรวนครั้งเดียว อัดซ้ำผ่าน)
+ถัดไป: /go ตรวจ การ์ด store_visits และ training_history ในแชตทุกบทบาทที่เห็น ตาม docs/plans/connectors-everywhere.md
 
-Later the same day the demo ports became the generator alone: the MCP contracts and demo servers for the warehouse, HRIS, EHS, calendar and the LMS catalogue were removed. The leave and LMS surfaces above stay as port methods that the generator fills, and a deployment's adapter fills for the real system.
+Decided 2026-10-09. Winyu's capabilities stay native tools: code reviewed in git, permission in `lib/access`, covered by the recorded eval. Every outside system is reached through a port; a deployment fills each port with an adapter for the customer's system, and the demo fills them with the generator. The console connectors from `connector-ui.md` remain the way for a customer's IT to add a secondary system Winyu does not know. They are not the way to move a native tool out of code.
 
-Decided 2026-10-09. Winyu's capabilities stay native tools: code reviewed in git, permission in `lib/access`, covered by the recorded eval. Every outside system is reached through a port, and a port reads or writes its system over MCP against a contract Winyu defines. The console connectors from `connector-ui.md` remain the way for a customer's IT to add a secondary system Winyu does not know. They are not the way to move a native tool out of code.
-
-Moving the ports behind MCP (`mcp-first.md`) was the right shape and stays. Four things around it were wrong:
+The units below fixed four things that were wrong around the ports:
 
 - The engines bypass the metrics port.
 - `describe_entity` has no scope.
