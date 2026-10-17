@@ -27,6 +27,13 @@ describe("before a card is sent, the sender learns what each recipient would not
     expect(recipientScopesFor(user("u_thana"), SALES_CARD, ["u_prasit"])).toEqual([]);
   });
 
+  test("a card about one South agent hides nothing from the South manager, though it names no region (AI-230)", () => {
+    const southAgent: SharedCard = { kind: "tool", reads: [{ tool: "query_metric", input: { metric: "ar_overdue", dims: ["agent"], period: "this_month", grain: "month", compare: "none", filters: { agent: "ag_sou_06" } } }] };
+    expect(recipientScopesFor(user("u_thana"), southAgent, ["u_saranya"])).toEqual([]);
+    const isanAgent: SharedCard = { kind: "tool", reads: [{ tool: "query_metric", input: { ...southAgent.reads[0].input, filters: { agent: ["ag_nea_02"] } } }] };
+    expect(recipientScopesFor(user("u_thana"), isanAgent, ["u_saranya"]).map((scope) => scope.hidden)).toEqual(["rows"]);
+  });
+
   test("the send itself reports who still sees the card masked", async () => {
     const outcome = await createShare(user("u_thana"), { card: AR_CARD, question: "ลูกหนี้ค้างชำระแยกตามภาค", ask: "ช่วยตามหนี้", intent: "act", recipients: [{ userId: "u_krit", channel: "winyu" }] });
     expect(outcome.ok && outcome.hidden.map((scope) => [scope.userId, scope.hidden])).toEqual([["u_krit", "masked"]]);
