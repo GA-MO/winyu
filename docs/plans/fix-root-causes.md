@@ -41,7 +41,7 @@ Stop when a round on the four demo roles (CEO, RSM อีสาน, sales rep �
 Round 9 walked the run sheet (14 of 16 steps match) and replayed the 8 round-8 failures ($0.24 plus $0.24 for the morning investigation): 9 fixed, 6 still broken, 14 new, no high. Medium findings on the demo path by round: 18, 15, 17, 11, 7, 6. Packages:
 - [ ] **M1 the share layer reads every card, and failed attempts stay out of sight** (AI-291, AI-292, AI-297, AI-298, AI-303, AI-310, AI-289): the subject check, titles and heroes read anomaly cards too; a refusal meant for the model shows the person one Thai line or nothing once a retry succeeds; the approval's hero is the focused rows'; resolve_owner never returns the asker; person names in a reply come from a tool or the directory.
 - [ ] **M2 card fit** (AI-293, AI-294, AI-295, AI-296, AI-301, AI-302, AI-304, AI-305, AI-306, AI-307, AI-308, AI-309): a month-close question leads with the month end even over a breakdown; a change ranking leads with its first row; every filtered card names its scope; the small card items.
-- [ ] then the run sheet against the screens (AI-299, AI-300).
+- [x] then the run sheet against the screens (AI-299, AI-300; walked again in round 10).
 
 ## Round 9 fixes (after round 8, 2026-10-17)
 

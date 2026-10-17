@@ -3798,8 +3798,8 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 | AI-296 (เดิม card-fit worst example rsm-own-region) | กลาง | เปิด (ใหม่) | The rep's explain_gap card for one store does not name the store |
 | AI-297 (เดิม AI-267 / AI-273) | ต่ำ | เปิด (ใหม่) | A sent anomaly card is titled only 'ความผิดปกติที่ต้องดู' and shows no store or figure on the approval, share, bell, matter or inbox row |
 | AI-298 (เดิม AI-281) | ต่ำ | ยังเสีย | After ถามต่อ the reply still offers to send 'เรื่องนี้' to คุณอนุชา, who already holds it |
-| AI-299 (เดิม AI-282) | ต่ำ | ยังเสีย | The run sheet does not match the screen: card title, pace-line position, all rows red, IT data date, activity scroll |
-| AI-300 (เดิม AI-284) | ต่ำ | ยังเสีย | Chat-option timings exceed the run sheet: ถามต่อ took 31.6 s (sheet 20–30) and the typed send took 42.9 s (sheet 20–35) |
+| AI-299 (เดิม AI-282) | ต่ำ | แก้แล้ว (เอกสาร) · รอเดินยืนยันรอบ 10 | The run sheet does not match the screen: card title, pace-line position, all rows red, IT data date, activity scroll |
+| AI-300 (เดิม AI-284) | ต่ำ | แก้แล้ว (เอกสาร) · รอเดินยืนยันรอบ 10 | Chat-option timings exceed the run sheet: ถามต่อ took 31.6 s (sheet 20–30) and the typed send took 42.9 s (sheet 20–35) |
 | AI-301 (เดิม AI-274) | ต่ำ | ยังเสีย | The gap strip folds a single part into 'อีก 1 รายการ' when offsetting parts exist |
 | AI-302 (เดิม AI-222 / AI-185) | ต่ำ | เปิด (ใหม่) | The gap card verdict names a to-date part amount after a month-end judgement, so the headline mixes bases |
 | AI-303 (เดิม AI-283) | ต่ำ | เปิด (ใหม่) | The chat send approval names two agents but shows the all-agent 77.3% as its hero |
@@ -3903,7 +3903,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-299. The run sheet does not match the screen: card title, pace-line position, all rows red, IT data date, activity scroll
 
-- **สถานะ:** ยังเสีย · เดิม AI-282
+- **สถานะ:** แก้แล้ว (เอกสาร) · รอเดินยืนยันรอบ 10: run sheet บอกข้อความเทาข้างตัวเลขใหญ่ ทุกแถวแดงได้ เรียกการ์ดว่าการ์ดยอดขายเข้าอีสาน เลื่อนลงในแผง Audit วันทำการกับวันที่ข้อมูล และเวลารอของทางเลือกแชต
 - **ระดับ:** ต่ำ · **หมวด:** `run-sheet` · **บทบาท:** presenter
 - **อาการ:** (1) The card title and the share title differ. (2) The 86.7% pace line sits to the left of the big number, not under it. (3) All 8 rows are below the line, so all are red and there is no contrast to point at. (4) The IT header says 27 พ.ย., but the sheet says 26 พ.ย. (5) Step 5.3 lists 3 rows, but only 2 fit above the fold on a phone.
 - **ที่ควรเป็น:** The sheet quotes the screen, or it says which strings change by day and where to scroll.
@@ -3914,7 +3914,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-300. Chat-option timings exceed the run sheet: ถามต่อ took 31.6 s (sheet 20–30) and the typed send took 42.9 s (sheet 20–35)
 
-- **สถานะ:** ยังเสีย · เดิม AI-284
+- **สถานะ:** แก้แล้ว (เอกสาร) · รอเดินยืนยันรอบ 10: run sheet บอกข้อความเทาข้างตัวเลขใหญ่ ทุกแถวแดงได้ เรียกการ์ดว่าการ์ดยอดขายเข้าอีสาน เลื่อนลงในแผง Audit วันทำการกับวันที่ข้อมูล และเวลารอของทางเลือกแชต
 - **ระดับ:** ต่ำ · **หมวด:** `run-sheet` · **บทบาท:** presenter
 - **อาการ:** Run 78aba563 took 31.6 s and f766d322 took 42.9 s. The closing message took 13.5 s, which is inside the sheet's range.
 - **ที่ควรเป็น:** The sheet's ranges cover the measured times, or AI-290 is fixed.
