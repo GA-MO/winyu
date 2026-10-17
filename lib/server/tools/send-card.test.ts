@@ -172,11 +172,12 @@ describe("a send about one agent on the region's card names that agent, and a cl
   const AGENT = "ขอนแก่นมหาชัย";
   const RSM = "u_anucha";
 
-  test("the user's 'fell a lot' about an agent close to pace is held back with that agent's own figure, and nothing is sent", async () => {
+  test("the user's 'fell a lot' about an agent close to pace is held back with that agent's own figure as its card row prints it, and nothing is sent", async () => {
     const before = shares().where((matter) => matter.senderId === RSM).length;
     const held = await send({ to: ["u_krit"], ask: DEICTIC_ASK }, FALSE_CLAIM, screenWith([REGION_CARD], false, [FALSE_CLAIM]), RSM);
     expect(held).toMatchObject({ ok: false, code: "ASK_CONTRADICTS_CARD" });
-    expect(held.error ?? "").toMatch(new RegExp(`^ยังไม่ได้ส่ง: .*${AGENT}.* ${AGENT} −?\\d+\\.\\d% เทียบเป้าตามเวลา$`));
+    expect(held.error ?? "").toMatch(new RegExp(`^ยังไม่ได้ส่ง: .*${AGENT}.* ${AGENT} \\d+\\.\\d% ของเป้าทั้งเดือน \\(ถึงวันนี้ควรได้ \\d+\\.\\d%\\)$`));
+    expect(held.error ?? "").not.toContain("เทียบเป้าตามเวลา");
     expect(shares().where((matter) => matter.senderId === RSM).length).toBe(before);
   });
 
