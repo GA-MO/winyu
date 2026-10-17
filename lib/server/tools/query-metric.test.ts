@@ -9,6 +9,7 @@ import { TH } from "@/lib/i18n/th";
 import { METRICS, TARGET_METRICS } from "@/lib/semantic/metrics";
 import { winyuTools } from "@/lib/server/agent/tools";
 import { presentCard } from "@/lib/cards/present";
+import { queryMetricTool } from "./query-metric";
 
 function dimsNamedFor(description: string, metric: MetricId): string[] | null {
   const table = description.match(/\(any other is refused\): ([^.]+)\./)?.[1] ?? "";
@@ -25,7 +26,7 @@ describe("query_metric for a running month against target", () => {
     const result = (await runWithAccess(accessFor(user), () => tool.execute(tool.inputSchema().parse(query)))) as Extract<MetricResult, { ok: true }>;
     const projection = result.headline.projection;
     expect(projection?.attainmentToDate).toMatch(/^\d+\.\d%$/);
-    expect(projection?.remaining).toMatch(/^(เหลืออีก .+ ถึงเป้าทั้งเดือน|ถึงเป้าทั้งเดือนแล้ว)$/);
+    expect(projection?.remaining).toMatch(/^(ถึงวันนี้ยังขาด .+ ถึงเป้าทั้งเดือน|ถึงเป้าทั้งเดือนแล้ว)$/);
     expect(result.summary).toContain(projection?.remaining ?? "-");
     expect(result.summary).toContain(projection?.attainmentToDate ?? "-");
   });
@@ -48,6 +49,43 @@ describe("query_metric for a running month against target", () => {
     const forecast = result.summary.split(" · ").find((part) => part.includes(projection.attainment));
     expect(forecast).toContain(TH.read.ofMonthTarget);
     if (projection.shortBy) expect(forecast).not.toContain(projection.shortBy);
+  });
+
+  test("the month end is told with its own shortfall, and what is left is told as counted from today, so the two amounts are never paired the wrong way (AI-204)", async () => {
+    const printed = (label: string) => Number((label.match(/[\d,.]+/)?.[0] ?? "").replace(/,/g, ""));
+    for (const userId of ["u_thana", "u_anucha", "u_krit"]) {
+      const result = await askMonthToDate(userId, []);
+      const projection = result.headline.projection;
+      if (!projection?.shortBy) throw new Error(`${userId} met the month target, nothing to tell apart`);
+      const projected = printed(projection.projected);
+      const target = printed(projection.monthTarget);
+      if (projected >= target) continue;
+      if (!projection.endShortBy) throw new Error(`${userId}: no month-end shortfall`);
+      expect(Math.abs(target - projected - printed(projection.endShortBy))).toBeLessThanOrEqual(0.15);
+      expect(projection.endShortBy).not.toBe(projection.shortBy);
+      const parts = result.summary.split(" · ");
+      const monthEnd = parts.find((part) => part.includes(projection.attainment)) ?? "";
+      expect(monthEnd).toContain(projection.endShortBy);
+      expect(parts.find((part) => part.includes(projection.shortBy ?? "-"))).toContain("ถึงวันนี้ยังขาด");
+    }
+  });
+
+  test("what the model reads of a breakdown is what its card rows print: each row's share of its whole month's target, and no paced figure (AI-207)", async () => {
+    const modelView = queryMetricTool.modelView;
+    if (!modelView) throw new Error("query_metric has no model view");
+    for (const [userId, dim] of [["u_krit", "agent"], ["u_thana", "region"], ["u_anucha", "agent"]] as const) {
+      const result = await askMonthToDate(userId, [dim]);
+      const card = presentCard({ title: "t", query: result.query, result });
+      if (card.body.kind !== "strip") throw new Error("not a strip");
+      const printedByRow = new Map(card.body.strip.rows.map((row) => [row.label, row.text]));
+      const read = modelView(result) as { rows: Record<string, unknown>[] };
+      expect(read.rows.length).toBe(result.rows.length);
+      for (const row of read.rows) {
+        expect(row).not.toHaveProperty("delta_pct");
+        expect(row).not.toHaveProperty("compare_value");
+        expect(row.month_target_share).toBe(`${printedByRow.get(String(row[dim]))} ${TH.read.ofMonthTarget}`);
+      }
+    }
   });
 
   test("its card says the same as its summary: the hero is the share of the whole month's target, then what is left and where the month ends, every tile on that base (AI-53, AI-156)", async () => {
@@ -94,7 +132,7 @@ describe("query_metric for a running month against target", () => {
         const tool = winyuTools().query_metric;
         const result = (await runWithAccess(accessFor(user), () => tool.execute(tool.inputSchema().parse(query)))) as Extract<MetricResult, { ok: true }>;
         const projection = result.headline.projection;
-        if (!projection || !projection.remaining.startsWith("เหลืออีก")) continue;
+        if (!projection || !projection.shortBy) continue;
         const roundingOfTwoLabels = 100_000;
         expect(Math.abs(printed(projection.monthTarget) - printed(result.headline.value) - printed(projection.remaining))).toBeLessThanOrEqual(roundingOfTwoLabels);
       }

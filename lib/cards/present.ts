@@ -1,4 +1,4 @@
-import { standsOut } from "@/lib/engine/gap";
+import { mainCauses } from "@/lib/engine/gap";
 import { HEADLINE_OWN_ROW, SNAPSHOT_METRICS } from "@/lib/semantic/metrics";
 import { stepOf } from "./step";
 import { WIDGET_KINDS, type Alert, type AlertRow, type Dim, type Forecast, type Grain, type MetricId, type MetricQuery, type MetricResult, type MetricRow, type MonthEndProjection, type NextAction, type UnderLine, type WidgetKind } from "@/lib/contracts";
@@ -453,7 +453,7 @@ function paceNoteOf(query: MetricQuery, asOf: string): string | null {
 }
 
 /** How much of the month the target is counted to, 0 to 1: the share of the whole month's target a month on pace has reached by now. */
-function monthElapsedOf(query: MetricQuery, asOf: string): number {
+export function monthElapsedOf(query: MetricQuery, asOf: string): number {
   const through = targetThrough(query, asOf);
   return Number(through.slice(8)) / Number(lastDayOfMonth(through).slice(8));
 }
@@ -1513,7 +1513,8 @@ export function presentGap(input: PresentGapInput): CardParts {
   ];
   const smallerShare = smaller.reduce((sum, part) => sum + (percentIn(part.share_label) ?? 0), 0);
   const foldLine = joined([smaller.length > 0 ? TH.cards.gap.smallerFold(smaller.length, percentText(smallerShare)) : null, answer.offsetting.length > 0 ? TH.cards.gap.offsetFold(answer.offsetting.length) : null]);
-  const named = lead && standsOut((percentIn(lead.share_label) ?? 0) / PERCENT) ? TH.cards.gap.lead(lead.label, below, unsignedLabel(lead.gap_label)) : lead ? TH.cards.gap.spread : null;
+  const causes = mainCauses(answer.contributors.map((part) => ({ share: (percentIn(part.share_label) ?? 0) / PERCENT })));
+  const named = lead && causes.length > 0 ? TH.cards.gap.lead(lead.label, below, unsignedLabel(lead.gap_label)) : lead ? TH.cards.gap.spread : null;
   const verdict = [rule.opening(facts), named].filter(Boolean).join(" ");
   return {
     title: metric ? TH.dash.ownScope(metricLabel(metric), split ? TH.dash.byDims([TH.dash.dimUnit[split]]) : TH.cards.gap.contributors) : TH.cards.gap.contributors,

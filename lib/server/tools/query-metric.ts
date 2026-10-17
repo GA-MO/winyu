@@ -1,6 +1,9 @@
 import { metricAccess } from "@/lib/access/grants";
 import { outOfScopeFilters, type OutOfScope } from "@/lib/access/enforce";
-import { REGIONS, metricQueryInputSchema, type AccessContext, type Dim, type MetricId, type MetricQuery, type MetricQueryInput, type MetricResult, type MetricRow } from "@/lib/contracts";
+import { REGIONS, metricQueryInputSchema, type AccessContext, type Dim, type MetricId, type MetricQuery, type MetricQueryInput, type MetricResult, type MetricRow, type MonthEndProjection } from "@/lib/contracts";
+import { attainmentOf } from "@/lib/cards/breakdown";
+import { monthElapsedOf } from "@/lib/cards/present";
+import { percentText } from "@/lib/cards/reading";
 import { ownAgentsFilter } from "@/lib/data/entities/agents";
 import { TH } from "@/lib/i18n/th";
 import { METRICS, TARGET_METRICS } from "@/lib/semantic/metrics";
@@ -73,19 +76,36 @@ function isAnswered(output: unknown): output is Answered {
   return typeof output === "object" && output !== null && (output as { ok?: unknown }).ok === true && "headline" in output && Array.isArray((output as { rows?: unknown }).rows);
 }
 
-function withoutPaced(row: MetricRow): MetricRow {
-  return Object.fromEntries(Object.entries(row).filter(([key]) => !(PACED_FIELDS as readonly string[]).includes(key)));
+/** A row as the model reads it on the month's base: its share of its own whole month's target, as its card row prints it, in place of the paced target and the gap to it. */
+function onMonthBase(row: MetricRow, elapsed: number): MetricRow {
+  const paced = attainmentOf(row);
+  const kept = Object.fromEntries(Object.entries(row).filter(([key]) => !(PACED_FIELDS as readonly string[]).includes(key)));
+  return paced === null ? kept : { ...kept, month_target_share: `${percentText(paced * elapsed)} ${TH.read.ofMonthTarget}` };
 }
 
-/** What the model reads of a month-to-date total against target: the card's one base. The card leads with the share of the whole month's target done so far and leaves the paced target out, so the model reads that share as the headline and never the paced figure, which it otherwise spent minutes reconciling with the card (AI-180); any other result, and the card, the audit and the person, get the result itself. */
+/** The month end as the model reads it, each amount under the name of what it is: the share done so far and what is left from today, then the month end and what it will still lack then, so the two shortfalls are never paired the wrong way (AI-204). */
+function projectionForModel(projection: MonthEndProjection) {
+  return {
+    recentDays: projection.recentDays,
+    monthTarget: projection.monthTarget,
+    doneSoFar: projection.attainmentToDate,
+    leftFromToday: projection.remaining,
+    monthEnd: projection.attainment,
+    monthEndProjected: projection.projected,
+    monthEndShortBy: projection.endShortBy ?? null,
+  };
+}
+
+/** What the model reads of a month-to-date answer against target, a total or a breakdown: the card's one base. The card leads with the share of the whole month's target done so far, puts every row on that base and leaves the paced target out, so the model reads those shares and never a paced figure, which it otherwise spent minutes reconciling with the card (AI-180) or quoted beside it (AI-207); any other result, and the card, the audit and the person, get the result itself. */
 function oneBaseForModel(output: unknown): unknown {
-  if (!isAnswered(output) || output.rows.length !== 1) return output;
+  if (!isAnswered(output) || output.query.compare !== "target") return output;
   const { projection, compareLabel } = output.headline;
-  if (!projection || output.query.compare !== "target") return output;
+  if (!projection) return output;
   const paced = compareLabel ? `${compareLabel} ` : null;
   const summary = output.summary.split(SUMMARY_SEPARATOR).filter((part) => !paced || !part.startsWith(paced)).join(SUMMARY_SEPARATOR);
-  const headline = { ...output.headline, value: `${projection.attainmentToDate} ${TH.read.ofMonthTarget}`, actual: output.headline.value, deltaPercent: null, deltaPoints: null, compareLabel: null };
-  return { ...output, summary, headline, rows: output.rows.map(withoutPaced) };
+  const headline = { ...output.headline, value: `${projection.attainmentToDate} ${TH.read.ofMonthTarget}`, actual: output.headline.value, deltaPercent: null, deltaPoints: null, compareLabel: null, projection: projectionForModel(projection) };
+  const elapsed = monthElapsedOf(output.query, output.provenance.asOf);
+  return { ...output, summary, headline, rows: output.rows.map((row) => onMonthBase(row, elapsed)) };
 }
 
 /** A question that sets places aside ("นอกจากเรื่องอีสาน") reads the places that remain, so the card and its rows follow the question; null when it sets none aside or the query keeps them anyway. */

@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { breakDownGap, formatShare, isBroad, projectMonthEnd } from "./gap";
+import { breakDownGap, fellHarder, formatShare, isBroad, mainCauses, projectMonthEnd } from "./gap";
 
 describe("breakDownGap", () => {
   test("two parts that together exceed the whole gap each carry their own share, and parts above target offset", () => {
@@ -27,6 +27,33 @@ describe("breakDownGap", () => {
     ];
     expect(isBroad(breakDownGap(total, concentrated))).toBe(false);
     expect(isBroad(breakDownGap({ label: "all", value: 100, compare: 100 }, []))).toBe(false);
+  });
+
+  test("the main cause is one part that clearly leads, or parts about equal that together make most of the gap; two equal parts making under half of it are no main cause (AI-214)", () => {
+    const shares = (...values: number[]) => values.map((share, index) => ({ label: `p${index}`, share }));
+    expect(mainCauses(shares(0.781, 0.061)).map((part) => part.label)).toEqual(["p0"]);
+    expect(mainCauses(shares(0.539, 0.529)).map((part) => part.label)).toEqual(["p0", "p1"]);
+    expect(mainCauses(shares(0.23, 0.229, 0.154, 0.135, 0.133))).toEqual([]);
+    expect(mainCauses(shares(0.15, 0.12))).toEqual([]);
+    expect(mainCauses(shares(0.3, 0.2))).toEqual([shares(0.3)[0]]);
+    expect(mainCauses([])).toEqual([]);
+  });
+
+  test("a part fell harder than the whole when it made a fifth of the gap and fell at least half again as much as the whole, in percent; a drop every part shares names none (AI-214)", () => {
+    const whole = { label: "all", value: 248, compare: 274 };
+    const even = [
+      { label: "โมเดิร์นเทรด", value: 88.3, compare: 97.4 },
+      { label: "ร้านค้าปลีกดั้งเดิม", value: 78.3, compare: 86.3 },
+      { label: "ร้านอาหาร", value: 74.4, compare: 82.2 },
+    ];
+    expect(fellHarder(whole, even)).toEqual([]);
+    const oneHit = [
+      { label: "โมเดิร์นเทรด", value: 97.0, compare: 97.4 },
+      { label: "ร้านค้าปลีกดั้งเดิม", value: 85.0, compare: 86.3 },
+      { label: "ร้านอาหาร", value: 58.0, compare: 82.2 },
+    ];
+    expect(fellHarder(whole, oneHit).map((part) => part.label)).toEqual(["ร้านอาหาร"]);
+    expect(fellHarder({ label: "all", value: 100, compare: 100 }, oneHit)).toEqual([]);
   });
 
   test("beyond five drivers the rest is summed into one line", () => {

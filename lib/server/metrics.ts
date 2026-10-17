@@ -71,13 +71,18 @@ export async function monthEndProjection(query: MetricQuery, access: AccessConte
   };
 }
 
-/** Runs one certified metric query under the caller's access scope: Winyu plans and finishes, the metrics port only reads facts; a month-to-date total against target also says where the month ends. */
+function monthEndLine(projection: MonthEndProjection): string {
+  const monthEnd = TH.dash.monthEnd(projection);
+  return projection.endShortBy ? `${monthEnd} ${TH.dash.monthEndShort(projection.endShortBy)}` : monthEnd;
+}
+
+/** Runs one certified metric query under the caller's access scope: Winyu plans and finishes, the metrics port only reads facts; a month-to-date total against target also says where the month ends and what it will still lack then. */
 export async function runMetric(query: MetricQuery, access: AccessContext): Promise<MetricResult> {
   const result = await runPlain(query, access);
   if (!result.ok) return result;
   const projection = await monthEndProjection(query, access);
   if (!projection) return result;
-  return { ...result, summary: `${result.summary} · ${TH.dash.monthSoFar(projection)} · ${TH.dash.monthEnd(projection)}`, headline: { ...result.headline, projection } };
+  return { ...result, summary: `${result.summary} · ${TH.dash.monthSoFar(projection)} · ${monthEndLine(projection)}`, headline: { ...result.headline, projection } };
 }
 
 export type { SeriesQuery };
