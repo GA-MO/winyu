@@ -334,6 +334,17 @@ describe("lines that invite a question or an action follow what the role can cal
     expect(why).toContain("บอกหน่วยและช่วงของ alert เอง");
   });
 
+  test("the year to date is written out in Thai, never as YTD (AI-251)", () => {
+    const language = WINYU_RULES.find((line) => line.startsWith("ภาษาในข้อความตอบ")) ?? "";
+    expect(language).toContain("ห้ามใช้ตัวย่อ MoM YoY QoQ YTD");
+    expect(language).toContain("ยอดสะสมทั้งปี");
+  });
+
+  test("a pin that replaced a card says which one in the reply (AI-246)", () => {
+    const writes = WINYU_RULES.find((line) => line.startsWith("tool ที่เขียนข้อมูล")) ?? "";
+    expect(writes).toContain("ผลของ `pin_widget` มี `replaced` = บอกในประโยคเดียวว่าปักแทนการ์ดใด");
+  });
+
   test("a check over the last months reads the months through this one and says which way they went; one month's balance supports nothing (AI-241)", () => {
     const why = WINYU_RULES.find((line) => line.startsWith("ผู้ใช้ถามว่าทำไม")) ?? "";
     expect(why).toContain("รายเดือน N เดือนล่าสุด");
