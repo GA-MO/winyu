@@ -2,7 +2,7 @@ import { z } from "zod";
 import { COMPONENT_NAMES, type ComposedComponent, type ComposedSurface } from "@/lib/compose/catalog";
 import { headingWithoutNumbers } from "@/lib/compose/composer";
 import { UNCOMPOSABLE_TOOLS } from "@/lib/compose/ground";
-import { forecastTitle, metricTitle } from "@/lib/cards/tool-answers";
+import { forecastTitle, gapTitle, metricTitle } from "@/lib/cards/tool-answers";
 import { TH } from "@/lib/i18n/th";
 import { grantDaysSchema, type GrantRefusalCode } from "@/lib/contracts/grant";
 import type { DimValues, MetricId } from "@/lib/contracts/semantic";
@@ -203,9 +203,9 @@ function askedDims(read: SharedRead): string[] {
   return Array.isArray(dims) ? dims.filter((dim): dim is string => typeof dim === "string") : [];
 }
 
-/** What a card is about, in Thai: the names of the filters its first read asked for ("ภาคอีสาน · ลีโอ"), except a dimension whose several values the card's rows name one by one; null when it asked for none. */
-export function shareSubject(card: SharedCard, names: DimValues): string | null {
-  const dims = askedDims(card.reads[0]);
+/** What a card is about, in Thai: the names of the filters its read asked for (the first read unless `read` names the one the send is about: "ภาคอีสาน · ลีโอ"), except a dimension whose several values the card's rows name one by one; null when it asked for none. */
+export function shareSubject(card: SharedCard, names: DimValues, read: SharedRead = card.reads[0]): string | null {
+  const dims = askedDims(read);
   const parts = Object.entries(names)
     .filter(([dim, labels]) => labels && labels.length > 0 && !(dims.includes(dim) && labels.length > 1))
     .map(([, labels]) => (labels ?? []).join(SUBJECT_VALUE_SEPARATOR));
@@ -220,17 +220,17 @@ function breakdownOnly(read: SharedRead, names: DimValues): Record<string, unkno
 function baseTitle(read: SharedRead, names: DimValues): string {
   if (read.tool === "query_metric") return metricTitle(null, breakdownOnly(read, names));
   if (read.tool === "get_forecast") return forecastTitle(null, read.input);
+  if (read.tool === "explain_gap") return gapTitle(read.input);
   if (read.tool === "get_alerts") return TH.cards.alertsTitle;
   return TH.share.titles[read.tool] ?? TH.share.defaultTitle;
 }
 
-/** The card's name as the message shows it, from what was asked and never from what came back: the metric's name with what it is about (`names`, the Thai names of the filters asked for, which the server looks up), the composed card's heading without numbers, or the tool's kind of card. */
-export function shareTitle(card: SharedCard, names: DimValues = {}): string {
+/** The card's name as the message shows it, from what was asked and never from what came back: the metric's name with what it is about (`names`, the Thai names of the filters `read` asked for, which the server looks up; `read` is the first unless the send is about another of the card's reads), the composed card's heading without numbers, or the tool's kind of card. */
+export function shareTitle(card: SharedCard, names: DimValues = {}, read: SharedRead = card.reads[0]): string {
   const composed = rootTitle(card);
   if (composed) return composed;
-  const [first] = card.reads;
-  const base = baseTitle(first, names);
-  const subject = first.tool === "get_alerts" ? null : shareSubject(card, names);
+  const base = baseTitle(read, names);
+  const subject = read.tool === "get_alerts" ? null : shareSubject(card, names, read);
   return subject ? `${base}${SUBJECT_PART_SEPARATOR}${subject}` : base;
 }
 

@@ -1,7 +1,7 @@
-import { METRIC_IDS, type AlertRow, type MetricId, type MetricResult, type MonthEndProjection, type NextAction } from "@/lib/contracts";
+import { DIMS, METRIC_IDS, type AlertRow, type MetricId, type MetricResult, type MonthEndProjection, type NextAction } from "@/lib/contracts";
 import { metricLabel } from "@/lib/dashboard/metric-display";
 import { TH } from "@/lib/i18n/th";
-import { type CardParts, type ForecastAnswer, pairedIndexes, type PresentSource, type RefusalNotice, refusalNoticeOf } from "./present";
+import { type CardParts, type ForecastAnswer, gapTitleOf, pairedIndexes, type PresentSource, type RefusalNotice, refusalNoticeOf } from "./present";
 
 /** A query_metric result as its card reads it: the rows and headline, the query that made them, and what the card offers next. */
 export type MetricAnswer = Extract<MetricResult, { ok: true }> & { nextActions: NextAction[] };
@@ -113,6 +113,12 @@ export function metricPairsOf(results: readonly TurnResult[]): ReadonlyMap<strin
     pairs.set(lead.id, partners);
   });
   return pairs;
+}
+
+/** An explain_gap card's title from the call's arguments: the metric and the split asked for. */
+export function gapTitle(args: unknown): string {
+  const split = typeof args === "object" && args !== null ? (args as { split?: unknown }).split : null;
+  return gapTitleOf(metricOf(args), DIMS.find((dim) => dim === split) ?? null);
 }
 
 export function forecastTitle(result: unknown, args: unknown): string {

@@ -114,4 +114,11 @@ describe("the figure the send approval shows for a card", () => {
     const [screen] = screenCardsEach([exchange("q1", "ยอดเอเย่นต์อีสานเทียบเป้า", [returned("m-hero", "query_metric", args, result)])], CARD_TOOLS);
     expect(screen.cards[0]?.hero).toBe(drawn.unit ? `${drawn.value} ${drawn.unit}` : drawn.value);
   });
+
+  test("a why card is named by its metric and split and shows its verdict figure, the week's 248.1 ล้านบาท and its −9.3% (AI-267)", () => {
+    const args = { range: { to: "2026-11-26", from: "2026-11-23" }, split: "region", metric: "net_sales_value", compare: "prev_period", filters: {} };
+    const answer = { ok: true, summary: "", period_label: "23 พ.ย. 2569 – 26 พ.ย. 2569", actual_label: "248.1 ล้านบาท", compare_label: "สัปดาห์ก่อน 273.6 ล้านบาท", gap_label: "−25.5 ล้านบาท", change_label: "−9.3%", attainment_label: null, contributors: [{ label: "กรุงเทพฯ และปริมณฑล", gap_label: "−5.9 ล้านบาท", share_label: "23.0% ของช่องว่าง" }], rest: null, offsetting: [], projection: null };
+    const [screen] = screenCardsEach([exchange("q1", "ยอดขายสัปดาห์นี้ตกจากสัปดาห์ก่อนใช่ไหม ทำไมตกอะ", [returned("g1", "explain_gap", args, answer)])], new Set(["explain_gap"]));
+    expect(screen.cards[0]).toMatchObject({ title: "มูลค่าขายเข้า · รายภาค", hero: "248.1 ล้านบาท −9.3%" });
+  });
 });

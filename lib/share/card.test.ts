@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { sharedComposedCard, sharedToolCard, shareTitle, type ExchangeRead } from "./card";
+import { sharedComposedCard, sharedToolCard, shareTitle, type ExchangeRead, type SharedCard } from "./card";
 
 const CALLS: ExchangeRead[] = [
   { toolCallId: "a", tool: "query_metric", args: { metric: "net_sales_value", dims: ["region"] }, returned: true },
@@ -23,6 +23,13 @@ describe("the share behind a card is its reads", () => {
   test("a title comes from what was asked, never from a result", () => {
     expect(shareTitle({ kind: "tool", reads: [{ tool: "query_metric", input: { metric: "net_sales_value" } }] })).toBe("มูลค่าขายเข้า");
     expect(shareTitle({ kind: "tool", reads: [{ tool: "find_people", input: {} }] })).toBe("คนและทีม");
+  });
+
+  test("a sent why card names its metric, its split and its scope, as a metric card does (AI-267)", () => {
+    const weekWhy: SharedCard = { kind: "tool", reads: [{ tool: "explain_gap", input: { range: { to: "2026-11-26", from: "2026-11-23" }, split: "region", metric: "net_sales_value", compare: "prev_period", filters: {} } }] };
+    expect(shareTitle(weekWhy)).toBe("มูลค่าขายเข้า · รายภาค");
+    const isanWhy: SharedCard = { kind: "tool", reads: [{ tool: "explain_gap", input: { split: "province", metric: "net_sales_value", compare: "target", filters: { region: "northeast" } } }] };
+    expect(shareTitle(isanWhy, { region: ["ภาคอีสาน"] })).toBe("มูลค่าขายเข้า · รายจังหวัด · ภาคอีสาน");
   });
 });
 

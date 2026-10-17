@@ -1,10 +1,12 @@
 import { ASK_CONTRADICTS_CARD, CARD_MISSES_SUBJECT, cardRefOf, sharedComposedCard, sharedToolCard, shareTitle, type CardOnScreen, type ExchangeRead, type ScreenCards, type SharedCard } from "@/lib/share/card";
 import type { Exchange, ReplyStep, ToolStep } from "./timeline";
-import { presentCard } from "@/lib/cards/present";
+import { presentCard, presentGap } from "@/lib/cards/present";
+import { gapResult } from "@/components/cards/entity/shapes";
 import { metricAnswerOf, metricTitle, othersOf } from "@/lib/cards/tool-answers";
 import { cardPlanOf, composedCalls, drawsNoCard, isRefused, pairedResultsOf, wroteBlock, type CardPlan } from "./tool-view";
 
 const SEND_TOOL = "send_card";
+const GAP_TOOL = "explain_gap";
 const SAID_KEPT = 2;
 
 /** Which card a send names: the one card it means, none on screen, several it could mean, or a ref no card on screen has. */
@@ -33,9 +35,17 @@ function cardOfStep(step: ReplyStep, plan: CardPlan, reads: readonly ExchangeRea
   return sharedToolCard(reads, step.toolCallId, plan.paired.get(step.toolCallId) ?? []);
 }
 
-/** The figure a card leads with, as the drawn card shows it: a metric card's hero from the same card plan (none when the card draws none), else the result's headline. */
+/** A why card's figure as its hero shows it: where the month ends, the share of target, or the actual with its change ("248.1 ล้านบาท −9.3%"), so its send names a number (AI-267). */
+function gapHeroOf(result: unknown): string | null {
+  const parsed = gapResult.safeParse(result);
+  const hero = parsed.success ? presentGap({ answer: parsed.data, metric: null, split: null }).hero : null;
+  return hero ? [hero.value, hero.unit, hero.delta].filter(Boolean).join(" ") : null;
+}
+
+/** The figure a card leads with, as the drawn card shows it: a metric card's hero from the same card plan (none when the card draws none), a why card's hero, else the result's headline. */
 function heroOf(step: ReplyStep, plan: CardPlan, toolSteps: readonly ToolStep[]): string | null {
   if (step.kind !== "tool" || step.outcome.state !== "returned") return null;
+  if (step.name === GAP_TOOL) return gapHeroOf(step.outcome.result);
   const answer = metricAnswerOf(step.outcome.result);
   if (answer) {
     const others = othersOf(pairedResultsOf(plan, toolSteps, step.toolCallId));
