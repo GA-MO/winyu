@@ -2,6 +2,8 @@ import { afterAll, describe, expect, setDefaultTimeout, test } from "bun:test";
 import type { MetricResult, NextAction, User } from "@/lib/contracts";
 import { AGENTS } from "@/lib/data/entities/agents";
 import { findUser } from "@/lib/data/entities/users";
+import { presentCard, type CardHero } from "@/lib/cards/present";
+import { cardFocus } from "./focus";
 import { cardHero } from "./goal";
 import { createShare } from "./deliver";
 import { shares } from "./shares";
@@ -75,5 +77,28 @@ describe("a send about one agent opens on that agent (AI-208)", () => {
     const drills = view.reads.map((read) => ((read.result as { nextActions?: NextAction[] }).nextActions ?? []).find((action) => action.kind === "drill")?.prompt ?? "");
     expect(drills).toEqual(view.reads.map(() => expect.stringContaining(FOCUS_AGENT)));
     expect((await cardHero(matter.card, user(REP), matter.focus)) ?? "").toStartWith(FOCUS_AGENT);
+  });
+});
+
+describe("a focused agent reads on its card's month base on every surface (AI-235)", () => {
+  const MONTH_HERO: CardHero = { label: FOCUS_AGENT, value: "85.3%", unit: "ของเป้าทั้งเดือน", delta: null, trend: "down", tone: "bad", detail: "ถึงวันนี้ควรได้ 86.7%" };
+  const MONTH_WORDS = "ขอนแก่นมหาชัย 85.3% ของเป้าทั้งเดือน ถึงวันนี้ควรได้ 86.7%";
+
+  test("the send preview shows ขอนแก่นมหาชัย as 85.3% of the month target in the danger tone with the 86.7% pace mark, never 71.0 ล้านบาท −1.6% on the pace base", async () => {
+    const focus = await cardFocus(TEAM_CARD, user(RSM), ["ฝากเข้าไปติดตามสถานการณ์และพูดคุยกับขอนแก่นมหาชัย"]);
+    expect(focus?.figure).toEqual(MONTH_HERO);
+    expect(focus?.hero).toBe(MONTH_WORDS);
+  });
+
+  test("the rep's inbox row and the matter headline say the same, with no figure on the pace base", async () => {
+    const matter = await teamMatter([FOCUS_AGENT]);
+    expect(await cardHero(matter.card, user(REP), matter.focus)).toBe(MONTH_WORDS);
+    const view = await openShare(matter, user(REP));
+    const agents = answerOf(view.reads.map((read) => read.result).find((result) => answerOf(result).query.dims.includes("agent")));
+    const card = presentCard({ title: "", query: agents.query, result: agents });
+    expect(card.verdict).toBe("ขอนแก่นมหาชัยช้ากว่าเป้าตามเวลา");
+    expect(card.hero).toEqual(MONTH_HERO);
+    const top = card.body.kind === "strip" ? card.body.strip.overall : null;
+    expect(top?.sub ?? "").toStartWith("71.0 ล้านบาท · เป้าทั้งเดือน 83.2 ล้านบาท");
   });
 });

@@ -27,6 +27,7 @@ const PERMISSION_LABEL_ENDPOINT = "/api/permissions/label";
 const LABELS_ENDPOINT = "/api/labels";
 const PIN_PREVIEW_ENDPOINT = "/api/pins/preview";
 const DELTA_TONE: Record<CardHero["tone"], string> = { bad: "bg-danger/10 text-danger", good: "bg-success/10 text-success", neutral: "bg-muted text-muted-foreground" };
+const VALUE_TONE: Record<CardHero["tone"], string> = { bad: "text-danger", good: "text-success", neutral: "text-foreground" };
 const NO_PIN_PREVIEW: PinPreviewInfo = { hero: null, replaces: [] };
 
 type PinPreviewInfo = { hero: string | null; replaces: string[] };
@@ -396,12 +397,14 @@ function sendPlan(input: SendInput, sending: CardToSend, contacts: ShareContact[
   return { sending: titled, recipients: people, owner, ask, intent, urgency, due, preview, pointedOut };
 }
 
-/** The singled-out row's figure as the card draws it: its value, its change in the card's colour, and what it is of. */
+/** The singled-out row's figure as the card draws it: its value (in the card's colour when it has no change, a share of the month target), its change in the card's colour, and what it is of. */
 function FocusFigure({ figure }: { figure: CardHero }) {
   return (
     <div className="mt-1 flex min-w-0 flex-col gap-0.5" data-send-card-hero>
       <p className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-1">
-        <span className="text-xl font-semibold tracking-tight tabular-nums">{figure.value}</span>
+        <span data-send-card-value className={cn("text-xl font-semibold tracking-tight tabular-nums", figure.delta ? null : VALUE_TONE[figure.tone])}>
+          {figure.value}
+        </span>
         {figure.unit ? <span className="text-xs text-muted-foreground">{figure.unit}</span> : null}
         {figure.delta ? (
           <span data-send-card-delta className={cn("rounded-full px-1.5 py-0.5 text-[11px] font-semibold tabular-nums", DELTA_TONE[figure.tone])}>

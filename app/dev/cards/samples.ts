@@ -157,6 +157,17 @@ export const WRITE_SAMPLES: WriteSample[] = [
       card: { reads: [{ tool: "query_metric", input: TOP_AGENTS }] },
     },
   },
+  {
+    tool: "send_card",
+    caption: "send_card · one agent of the team card",
+    input: {
+      to: ["u_krit"],
+      ask: "ฝากเข้าไปติดตามสถานการณ์และพูดคุยกับขอนแก่นมหาชัย",
+      intent: "act",
+      urgency: "this_week",
+      card: { reads: [{ tool: "query_metric", input: { metric: "net_sales_value", dims: ["region"], filters: { region: "northeast" }, period: "this_month", grain: "month", compare: "target" } }, { tool: "query_metric", input: { metric: "net_sales_value", dims: ["agent"], filters: { region: "northeast" }, period: "this_month", grain: "month", compare: "target", sort: "delta_asc", limit: 5 } }] },
+    },
+  },
   { tool: "send_email", caption: "send_email", input: { toUserId: "u_may", subject: "ขอสิทธิ์ดูเงินเดือนเฉลี่ย", body: "ขอสิทธิ์ดูเงินเดือนเฉลี่ยของฝ่ายขายเพื่อวางแผนปีหน้าครับ" } },
   { tool: "pin_widget", caption: "pin_widget", input: { title: "ยอดขายเป็นเงินแยกตามภาค", kind: "bar", query: SALES_BY_REGION } },
   { tool: "watch_metric", caption: "watch_metric", input: { title: "สต๊อกลำพูนต่ำกว่า 10 วัน", query: { ...SALES_BY_REGION, metric: "days_of_cover", dims: ["dc"], filters: { dc: ["dc_lamphun"] } }, condition: { kind: "below", value: 10 } } },

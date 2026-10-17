@@ -54,7 +54,7 @@ export function Gallery({ reads, writes }: { reads: SampleResult[]; writes: Writ
       </div>
       <div className="mt-6 columns-1 gap-4 md:columns-2 xl:columns-3">
         {writes.map((sample) => (
-          <figure key={sample.tool} className="mb-4 flex break-inside-avoid flex-col gap-1.5" data-tool={sample.tool}>
+          <figure key={sample.caption} className="mb-4 flex break-inside-avoid flex-col gap-1.5" data-tool={sample.tool}>
             <Caption tool={sample.caption} detail="approval" />
             <ApprovalSample sample={sample} />
           </figure>

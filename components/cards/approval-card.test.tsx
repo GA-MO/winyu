@@ -141,6 +141,26 @@ describe("the approval card", () => {
     expect(delta?.className ?? "").toContain("text-danger");
   });
 
+  test("a row the card prints on the month base shows its share of the month target in its tone with the pace mark under it, and no change on the pace base (AI-235)", async () => {
+    const figure = { label: "ขอนแก่นมหาชัย", value: "85.3%", unit: "ของเป้าทั้งเดือน", delta: null, trend: "down", tone: "bad", detail: "ถึงวันนี้ควรได้ 86.7%" };
+    const focus = { labels: ["ขอนแก่นมหาชัย"], hero: "ขอนแก่นมหาชัย 85.3% ของเป้าทั้งเดือน ถึงวันนี้ควรได้ 86.7%", figure, row: null, claim: null };
+    const preview = { ...NO_PREVIEW, title: "มูลค่าขายเข้า · รายเอเย่นต์ · ภาคอีสาน · ขอนแก่นมหาชัย", focus, subject: null };
+    const spy = spyOn(globalThis, "fetch").mockImplementation((async (url: string) => {
+      if (url.endsWith("/contacts")) return Response.json({ contacts: [contactOf("u_krit")], mayGrant: false });
+      if (url.endsWith("/preview")) return Response.json(preview);
+      return Response.json({ scopes: [] });
+    }) as unknown as typeof fetch);
+    const host = document.createElement("div");
+    await act(async () => createRoot(host).render(renderApproval(request("send_card", { to: ["u_krit"], cardRef: onScreen(BY_REGION).ref, ask: "ฝากเข้าไปติดตามสถานการณ์และพูดคุยกับขอนแก่นมหาชัย" }, { onScreen: TWO_CARDS, question: "ได้ครับ ส่งตามนั้นเลย" }))));
+    for (let tick = 0; tick < 4; tick += 1) await act(async () => new Promise((resolve) => setTimeout(resolve, 0)));
+    spy.mockRestore();
+    const value = host.querySelector("[data-send-card-value]");
+    expect(value?.textContent).toBe("85.3%");
+    expect(value?.className ?? "").toContain("text-danger");
+    expect(host.querySelector("[data-send-card-delta]")).toBeNull();
+    expect(host.querySelector("[data-send-card-hero]")?.textContent).toBe("85.3%ของเป้าทั้งเดือนขอนแก่นมหาชัย · ถึงวันนี้ควรได้ 86.7%");
+  });
+
   test("with two cards on screen and none named, the sheet says it does not know which and offers no ส่ง", async () => {
     const host = await drawnSend({ to: ["u_anucha"] }, { onScreen: TWO_CARDS });
     expect(host.querySelector("[data-send-card]")).toBeNull();

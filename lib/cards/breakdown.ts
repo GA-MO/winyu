@@ -87,6 +87,13 @@ function scaled(value: number | null, scale: number): number | null {
   return value === null ? null : value * scale;
 }
 
+/** How much of the month has passed when a breakdown's rows are read on the whole month's target (a month still running, groups against target), so a row's share of it is its paced attainment times this; null on any other breakdown. */
+function monthScaleOf(input: BreakdownInput): number | null {
+  const { query, target } = input;
+  const overTarget = query.compare === "target" && query.metric !== "target_attainment";
+  return overTarget && timeDimOf(query) === null && target.month ? target.month.elapsed : null;
+}
+
 /** What the decision table knows about one breakdown: its rows in the order asked, the bars it draws, the unit word, the overall row's label, whether the question set a threshold (R7), and what a target figure is a share of ("ของเป้าตามเวลา" in a month still running) with the whole month beside it, the base total a change ranking moved from, whether the line is read from above (the top of a capped ranking, or rows above a value), whether the list was cut by a limit, so its verdict speaks for the rows shown, never for every group, and the rows the question named. */
 export type BreakdownInput = { query: MetricQuery; result: OkResult; rows: MetricRow[]; bars: BreakdownBars; unit: string; scope: string; threshold: boolean; additive: boolean; falling: boolean; target: TargetBase; baseTotal: string | null; high: boolean; capped: boolean; asked: ReadonlySet<string> };
 
@@ -184,7 +191,7 @@ function lineReading(input: BreakdownInput, line: LevelLine): Breakdown {
   const overTarget = query.compare === "target" && query.metric !== "target_attainment";
   const overTime = timeDimOf(query) !== null;
   const ofTarget = line.line.kind === "target";
-  const month = ofTarget && overTarget && !overTime ? input.target.month : null;
+  const month = ofTarget && monthScaleOf(input) !== null ? input.target.month : null;
   const scale = month?.elapsed ?? 1;
   const at = line.at * scale;
   const measureOf = (row: MetricRow) => (overTarget ? scaled(attainmentOf(row), scale) : numericOf(row, "value"));
@@ -471,8 +478,17 @@ function readByBars(input: BreakdownInput): Breakdown {
   return lineReading(input, line);
 }
 
-/** The second line of a row the question named: its value against target, or its change against the window it is compared with ("+0.6 จุด เทียบช่วงก่อนหน้า"). */
-function askedSubOf(query: MetricQuery, result: OkResult, row: MetricRow): string | null {
+/** A row of a month still running against the whole month's target ("71.0 ล้านบาท · เป้าทั้งเดือน 83.2 ล้านบาท"): the target to date the engine compared it with, spread over the days that passed. */
+function monthTargetSubOf(query: MetricQuery, row: MetricRow, scale: number): string | null {
+  const toDate = numericOf(row, "compare_value");
+  return toDate === null || scale <= 0 ? null : TH.read.againstMonthTarget(valueTextOf(query, row), formatMetricValue(query.metric, toDate / scale));
+}
+
+/** The second line of a row the question named: its value against target (the whole month's while it runs), or its change against the window it is compared with ("+0.6 จุด เทียบช่วงก่อนหน้า"). */
+function askedSubOf(input: BreakdownInput, row: MetricRow): string | null {
+  const { query, result } = input;
+  const scale = monthScaleOf(input);
+  if (scale !== null) return monthTargetSubOf(query, row, scale);
   if (query.compare === "target") return targetSubOf(query, row);
   const change = changeTextOf(query.metric, row);
   return change ? [change, result.headline.compareLabel].filter(Boolean).join(" ") : null;
@@ -513,6 +529,19 @@ function askedVerdictOf(input: BreakdownInput, row: MetricRow): string {
   });
 }
 
+/** The one named row of a month still running against target, on the card's one base (AI-235): its share of the whole month's target, red when it is behind where the month should be by today, that line under it, and a verdict that says pace in words, so no surface that leads with the row (the send preview, the inbox, the matter headline) quotes its change on the pace base. Null on any other breakdown. */
+function monthAskedOf(input: BreakdownInput, row: MetricRow): { hero: CardHero; verdict: string } | null {
+  const scale = monthScaleOf(input);
+  const share = scale === null ? null : scaled(attainmentOf(row), scale);
+  if (scale === null || share === null) return null;
+  const label = labelOf(input.query, row);
+  const behind = share < TARGET_LINE.at * scale;
+  return {
+    hero: { label, value: percentText(share), unit: TH.read.ofMonthTarget, delta: null, trend: behind ? "down" : "neutral", tone: behind ? "bad" : "neutral", detail: TH.read.paceMark(percentText(TARGET_LINE.at * scale)) },
+    verdict: behind ? TH.read.offPace(label) : TH.read.onPace(label),
+  };
+}
+
 /** A breakdown whose question named rows ("มาร์จินกลุ่มเบียร์"): those rows are drawn as exceptions with their value and change, and one named row leads the verdict and style A's hero, so the card shows what was asked even when it is not an extreme. */
 function withAskedRows(reading: Breakdown, input: BreakdownInput): Breakdown {
   const { query, result, asked } = input;
@@ -520,13 +549,14 @@ function withAskedRows(reading: Breakdown, input: BreakdownInput): Breakdown {
   if (named.size === 0) return reading;
   const rows = reading.rows.map((row) => {
     const source = named.get(row.label);
-    return source ? { ...row, exception: true, valued: true, sub: row.sub ?? askedSubOf(query, result, source) } : row;
+    return source ? { ...row, exception: true, valued: true, sub: row.sub ?? askedSubOf(input, source) } : row;
   });
   const [only] = named.size === 1 ? [...named.values()] : [];
   if (!only) return { ...reading, rows };
   const label = labelOf(query, only);
-  const hero: CardHero = { label, value: valueTextOf(query, only), unit: null, ...rowMove(query, only), detail: baseOf(query, only) ?? result.headline.compareLabel };
-  const verdict = askedVerdictOf(input, only);
+  const onMonth = monthAskedOf(input, only);
+  const hero: CardHero = onMonth?.hero ?? { label, value: valueTextOf(query, only), unit: null, ...rowMove(query, only), detail: baseOf(query, only) ?? result.headline.compareLabel };
+  const verdict = onMonth?.verdict ?? askedVerdictOf(input, only);
   const top = rows.find((row) => row.label === label);
   if (!reading.overall || !top) return { ...reading, rows, verdict, lead: { row: label, hero } };
   const overall: ReadRow = { ...top, sub: joinedText([top.sub, overallLine(reading.overall)]) };
