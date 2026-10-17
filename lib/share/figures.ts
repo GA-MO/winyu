@@ -94,12 +94,12 @@ function changeClaimWarning(text: string, change: number | null): string | null 
   return Math.abs(signed - change) > CLAIM_TOLERANCE ? TH.share.contradicts.changeBy(signedLabel(signed), signedLabel(change)) : null;
 }
 
-/** One row the person's words single out on a card: its label, its change against the card's comparison in percent, and that comparison in words ("เทียบเป้าตามเวลา"). */
-export type RowFigure = { label: string; change: number; versus: string };
+/** One row the person's words single out on a card: its label, its change against the card's comparison in percent, that comparison in words ("เทียบเป้าตามเวลา"), and, in a month still running against its target, the row as its card prints it ("85.3% ของเป้าทั้งเดือน (ถึงวันนี้ควรได้ 86.7%)"). */
+export type RowFigure = { label: string; change: number; versus: string; printed?: string };
 
 /** One line, worked out by code, when the person's words about one row of a card claim what that row does not show: a hard fall ("ตกเยอะ") for a row within a few percent of its base, a fall for a row that rose, a rise for one that fell; null when they agree or claim nothing about its direction. */
 export function rowContradictionOf(text: string, row: RowFigure): string | null {
-  const shown = [row.label, signedLabel(row.change), row.versus].filter(Boolean).join(" ");
+  const shown = [row.label, ...(row.printed ? [row.printed] : [signedLabel(row.change), row.versus])].filter(Boolean).join(" ");
   if (FELL_HARD.test(text)) return row.change > HARD_FALL_LINE ? TH.share.contradicts.rowFellHard(row.label, shown) : null;
   if (RISING.test(text)) return row.change < 0 ? TH.share.contradicts.rowRose(row.label, shown) : null;
   if (FALLING.test(text)) return row.change > 0 ? TH.share.contradicts.rowFell(row.label, shown) : null;
