@@ -21,7 +21,7 @@ import { GRANTS_COLLECTION } from "@/lib/access/enforce";
 import type { Grant } from "@/lib/contracts";
 import { forgetAbout, learnExtracted } from "@/lib/engine/memory";
 import { collection } from "@/lib/server/store/json-store";
-import { FORGOTTEN_TERMS_HEADER, GUIDANCE_HEADER, INJECTION_NOTICE, LAPSED_GRANTS_HEADER, MEMORY_HEADER, WINYU_RULES, contextFor, personaFor, promptLines } from "./persona";
+import { FORGOTTEN_TERMS_HEADER, GUIDANCE_HEADER, INJECTION_NOTICE, LAPSED_GRANTS_HEADER, MEMORY_HEADER, VISIT_PLAN_CARD, WINYU_RULES, contextFor, personaFor, promptLines } from "./persona";
 
 const TODAY = DATA_AS_OF;
 const MATTER_CODE = "mttrPersonaT";
@@ -387,6 +387,38 @@ describe("lines that invite a question or an action follow what the role can cal
     expect(rules).toContain("\"ไม่มีข้อมูล\"");
     expect(rules).toContain("คำอ้างที่ระบบยังไม่ได้ตรวจ");
     expect(rules).toContain("ตัวเลขยังมาจากผล tool เท่านั้น");
+  });
+
+  test("a send reaches send_card without detours: a named colleague goes in `to` as typed, a role is resolved by the metric that role answers for, and a claim the card may contradict is left to the server's check (AI-216, AI-218)", () => {
+    const prompt = promptOf("u_anucha");
+    expect(prompt).toContain("ผู้รับที่ผู้ใช้เอ่ยชื่อ (คุณกฤต พี่อนุชา) = ใส่ชื่อนั้นใน `to` ตามที่พิมพ์ ระบบหาคนเอง ไม่ต้อง `describe_entity` หรือ `resolve_owner`");
+    expect(prompt).toContain("ผู้จัดการขายภาคหรือพนักงานขาย = `resolve_owner` `net_sales_value` กับภาคนั้น ไม่ใช่ metric ของเรื่องที่ส่ง");
+    expect(prompt).toContain("กรองด้วยชื่อที่ผู้ใช้พิมพ์ ไม่ต้อง `describe_entity` ก่อน");
+    expect(prompt).toContain("ไม่ต้องตัดสินเองว่าขัดกับการ์ด: เรียก `send_card` ด้วยคำของผู้ใช้");
+    expect(prompt).not.toContain("ผู้รับที่บอกเป็นตำแหน่งหรือพื้นที่ ให้ `resolve_owner` ก่อน");
+    const claims = WINYU_RULES.find((line) => line.startsWith("สิ่งที่ผู้ใช้อ้างเองในแชต")) ?? "";
+    expect(claims).toContain("การส่งที่ผู้ใช้ตั้งเงื่อนไขไว้");
+    expect(claims).not.toContain("ระบบจะไม่ส่งจนกว่าผู้ใช้เห็นตัวเลขของการ์ด");
+  });
+
+  test("the rep's visit plan comes with the card to copy, so the writing step has nothing to design (AI-217)", () => {
+    const prompt = promptOf("u_krit");
+    for (const line of VISIT_PLAN_CARD) expect(prompt).toContain(line);
+    expect(promptOf("u_anucha")).not.toContain(VISIT_PLAN_CARD[0] ?? "-");
+  });
+
+  test("a why whose split names no main cause reads the other splits explain_gap checked, and names a cause only from them (AI-214)", () => {
+    const why = WINYU_RULES.find((line) => line.startsWith("ผู้ใช้ถามว่าทำไม")) ?? "";
+    expect(why).toContain("`other_splits`");
+    expect(why).toContain("`moved_harder`");
+    expect(why).toContain("ตรวจแยกตาม");
+  });
+
+  test("the text points at a card by its name, never by where it sits, and pairs the month end with its own shortfall (AI-211, AI-204)", () => {
+    const repeat = WINYU_RULES.find((line) => line.startsWith("ข้อความห้ามทวนหัวเลขหรือแถวที่การ์ดแสดง")) ?? "";
+    expect(repeat).toContain("ไม่บอกตำแหน่งของการ์ด (ด้านบน ด้านล่าง)");
+    const base = WINYU_RULES.find((line) => line.startsWith("ข้อความอ้างตัวเลขหรือทิศทางได้เฉพาะที่การ์ดของเทิร์นนี้แสดง")) ?? "";
+    expect(base).toContain("คาดปิดเดือนคู่กับยอดที่สิ้นเดือนยังขาด (`monthEndShortBy`, `month_end_short_label`)");
   });
 
   test("permission stays in code: no invitation line is phrased as a permission rule", () => {
