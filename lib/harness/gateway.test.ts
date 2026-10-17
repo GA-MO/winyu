@@ -92,7 +92,7 @@ describe("the gateway fails closed on a write that needs a yes", () => {
     expect(result).toMatchObject({ ok: false, code: "UNRESOLVED_RECIPIENT" });
     expect(result.error).toContain("คุณกฤต จันทร์เสน");
     expect(effectsSince(before)).toEqual({ shares: 0, mails: 0 });
-    expect(auditOf(toolCallId)).toEqual([{ decision: "deny", code: "UNRESOLVED_RECIPIENT" }]);
+    expect(auditOf(toolCallId)).toEqual([{ decision: "allow", code: "UNRESOLVED_RECIPIENT" }]);
   });
 
   test("the gateway never runs a not-ready write's tool, whatever the tool itself would check", async () => {

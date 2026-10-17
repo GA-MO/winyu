@@ -3,7 +3,8 @@ import type { LucideIcon } from "lucide-react";
 import { alertsInboxEnabled, alertsInboxSwitch, connectorEnabled, handoffEnabled, handoffSwitch, killedTools, type SwitchEntry } from "@/lib/access/enforce";
 import { defaultOf, roleOverrides, type RoleOverride, type Visibility } from "@/lib/access/role-overrides";
 import { USERS, findUser } from "@/lib/data/entities/users";
-import type { RoleId } from "@/lib/contracts";
+import type { AuditEntry, RoleId } from "@/lib/contracts";
+import { auditCodeLabel } from "@/lib/i18n/audit-codes";
 import { metricLabel } from "@/lib/dashboard/metric-display";
 import { TH } from "@/lib/i18n/th";
 import { adoptionSummary } from "@/lib/server/adoption";
@@ -35,9 +36,8 @@ function overrideSubject(entry: RoleOverride): string {
   return entry.kind === "metric" ? metricLabel(entry.key) : toolLabel(entry.key);
 }
 
-function deniedReason(code: string | undefined): string | null {
-  if (!code) return null;
-  return TH.admin.auditTab.codes[code] ?? TH.admin.auditTab.otherCode(code);
+function deniedReason(entry: AuditEntry): string | null {
+  return entry.code ? auditCodeLabel(entry.code, entry.reason) : null;
 }
 
 type SwitchCopy = { title: string; body: string; on: string; off: string; changed: (name: string, at: string) => string };
@@ -189,7 +189,7 @@ function RecentDenied() {
                 {person?.nameTh ?? entry.userId}
                 <span className="font-normal text-muted-foreground">{` · ${toolLabel(entry.tool)}`}</span>
               </p>
-              {deniedReason(entry.code) ? <p className="text-[12px] text-danger">{deniedReason(entry.code)}</p> : null}
+              {deniedReason(entry) ? <p className="text-[12px] text-danger">{deniedReason(entry)}</p> : null}
               {entry.question ? <p className="truncate text-[11px] text-muted-foreground">{`“${entry.question}”`}</p> : null}
             </div>
             <p className="shrink-0 text-[11px] text-muted-foreground">{stamp(entry.at)}</p>

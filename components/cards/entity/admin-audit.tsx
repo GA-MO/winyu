@@ -48,7 +48,7 @@ const ITEM_OF: Record<AdminAuditTopic, (row: Row) => Item> = {
     item({
       primary: textOf(row.user_name),
       note: textOf(row.role_label),
-      detail: joined(row.asked_label || row.tool_label, row.code_label),
+      detail: joined(row.asked_label || row.tool_label, row.reason || row.code_label),
       meta: joined(row.at_label, row.policy_label ? TH.adminAudit.policyShort : ""),
       tone: row.policy_label ? "" : "danger",
     }),

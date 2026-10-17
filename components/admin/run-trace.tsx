@@ -10,13 +10,13 @@ import { stateOf } from "@/lib/harness/state";
 import { timelineOf, type TimelineEntry, type ToolStory } from "@/lib/harness/timeline";
 import { studioTraceUrl } from "@/lib/harness/trace-link";
 import { findUser } from "@/lib/data/entities/users";
+import { auditCodeLabel } from "@/lib/i18n/audit-codes";
 import { TH } from "@/lib/i18n/th";
 import { untilLabel } from "@/lib/share/grant-label";
 import { toolLabel } from "@/lib/server/tools/registry";
 import { FOCUS, Pill, type Tone } from "./parts";
 
 const COPY = TH.admin.trace;
-const CODES = TH.admin.auditTab.codes;
 const MS_PER_SECOND = 1000;
 const JOB_INTENT_PREFIX = "job:";
 const MCP_INTENT_PREFIX = "mcp:";
@@ -41,7 +41,7 @@ function toolsText(names: readonly string[]): string {
 }
 
 function codeText(code: string): string {
-  return CODES[code] ?? code;
+  return auditCodeLabel(code);
 }
 
 function toolTone(story: ToolStory): Tone {

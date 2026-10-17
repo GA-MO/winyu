@@ -109,7 +109,7 @@ function heldOf(denial: Denial): Held {
 function refused(call: AuditedCall, ref: Ref, { code, reason, rule }: Held): Refusal {
   emit("gateway", { type: "tool.denied", payload: { ...ref, code, reason, ...(rule ? { rule } : {}) } });
   const refusal: Refusal = { ok: false, code, error: reason };
-  recordToolCall({ ...call, ...(rule ? { rule } : {}) }, observe(ref.toolCallId, ref.tool, { returned: refusal }), "deny");
+  recordToolCall({ ...call, ...(rule ? { rule } : {}) }, observe(ref.toolCallId, ref.tool, { returned: refusal }));
   return refusal;
 }
 

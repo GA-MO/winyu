@@ -105,7 +105,7 @@ describe("the admin audit card", () => {
     const html = drawn(await adminAudit({ topic: "denials", days: 1 }));
     expect(html).not.toContain("<table");
     expect(html).not.toContain("policy_label");
-    expect(html).not.toContain(TH.admin.auditTab.codes.PERMISSION_DENIED ?? "missing");
+    expect(html).not.toContain("Out of scope");
     expect(textOf(html)).not.toContain("&quot;metric&quot;");
     expect(textOf(html)).not.toContain('"metric"');
     expect(textOf(html)).toContain(metricLabel("net_sales_value"));

@@ -4,6 +4,7 @@ import { cn } from "@/components/ui/cn";
 import type { AuditEntry, Initiator } from "@/lib/contracts";
 import { connectorLabel, connectors, toolLabel, toolSurface } from "@/lib/server/tools/registry";
 import { USERS, findUser } from "@/lib/data/entities/users";
+import { auditCodeLabel } from "@/lib/i18n/audit-codes";
 import { TH } from "@/lib/i18n/th";
 import { AUDIT_ACTIVITY_KIND, AUDIT_RANGES, auditConnector, auditEntries, inAuditScope, type AuditFilter, type AuditRange } from "@/lib/server/usage";
 import { activitiesFrom, actorName, approvalLabel, recipientNames, type Activity } from "@/lib/server/activity";
@@ -60,7 +61,7 @@ function reasonOf(entry: AuditEntry): string | null {
   if (OWN_REASON_TOOLS.has(entry.tool)) return entry.reason ?? null;
   if (entry.decision === "masked") return COPY.maskedReason;
   if (!entry.code) return null;
-  return COPY.codes[entry.code] ?? COPY.otherCode(entry.code);
+  return auditCodeLabel(entry.code, entry.reason);
 }
 
 function connectorOf(entry: AuditEntry): string | null {

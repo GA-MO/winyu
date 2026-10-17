@@ -74,6 +74,15 @@ function rank(keys: string[]): IntentCount[] {
     .slice(0, TOP_INTENTS);
 }
 
+function turnKey(userId: string, threadId: string | null | undefined, question: string | null | undefined): string {
+  return JSON.stringify([userId, threadId ?? null, question ?? ""]);
+}
+
+/** The questions whose turn ran a tool that answered, of any kind (a metric read, a send, a pin, an admin report), keyed by who asked what in which thread; a refused call answers nothing. */
+function answeredTurns(entries: readonly AuditEntry[]): Set<string> {
+  return new Set(entries.filter((entry) => entry.decision !== "deny" && entry.question).map((entry) => turnKey(entry.userId, entry.threadId, entry.question)));
+}
+
 function decisionCount(entries: AuditEntry[], decision: AuditEntry["decision"]): number {
   return entries.filter((entry) => entry.decision === decision).length;
 }
@@ -83,8 +92,9 @@ export function usageSummary(): UsageSummary {
   const entries = toolCalls(auditLog().all());
   const events = actionEvents().all();
   const questions = events.filter((event) => event.kind === "question" || event.kind === "quick_action");
+  const answered = answeredTurns(auditLog().all());
   const unanswered: UnansweredQuestion[] = events
-    .filter((event) => event.kind === "question" && event.metric === null && event.prompt)
+    .filter((event) => event.kind === "question" && event.metric === null && event.prompt && !answered.has(turnKey(event.userId, event.threadId, event.prompt)))
     .map((event) => ({ prompt: event.prompt ?? "", at: event.at, userId: event.userId }));
 
   const modelId = defaultModelId();

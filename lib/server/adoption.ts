@@ -1,10 +1,12 @@
-import type { ActionEvent, Alert, OutboxEntry, PersonalWatch, RoleId, WidgetSpec } from "@/lib/contracts";
+import type { ActionEvent, Alert, AuditEntry, OutboxEntry, PersonalWatch, RoleId, WidgetSpec } from "@/lib/contracts";
 import type { Matter } from "@/lib/share/matter";
 import { ROLE_IDS } from "@/lib/contracts";
 import { USERS } from "@/lib/data/entities/users";
 import { thresholdKey } from "@/lib/engine/anomaly";
 import { actionEvents, alerts, layouts, outbox, personalWatches } from "./agent/collections";
+import { auditLog } from "./audit";
 import { shares } from "./share/shares";
+import { sinceDaysStart, toolCalls } from "./tool-activity";
 
 const DAY_MS = 86_400_000;
 const HOUR_MS = 3_600_000;
@@ -23,6 +25,7 @@ export type AdoptionSummary = { activeByRole: RoleActivity[]; alerts: AlertFate;
 
 export type AdoptionInput = {
   events: readonly ActionEvent[];
+  calls: readonly AuditEntry[];
   alerts: readonly Alert[];
   matters: readonly Matter[];
   widgets: readonly WidgetSpec[];
@@ -41,8 +44,15 @@ function median(values: number[]): number | null {
   return sorted.length % 2 === 0 ? (sorted[middle - 1] + sorted[middle]) / 2 : sorted[middle];
 }
 
-function activeByRole(events: readonly ActionEvent[], now: number): RoleActivity[] {
-  const active = new Set(events.filter((event) => within(event.at, ACTIVE_DAYS, now)).map((event) => event.userId));
+/** Who used Winyu since a moment: anyone who did anything in it (asked, opened their feed or an alert) or had a tool called on their own behalf. The console's active count and the admin's usage-by-person report both count people from this one set. */
+export function activeUserIds(events: readonly ActionEvent[], calls: readonly AuditEntry[], since: string): Set<string> {
+  const actors = events.filter((event) => event.at >= since).map((event) => event.userId);
+  const callers = calls.filter((entry) => entry.at >= since && (entry.initiator ?? "person") === "person").map((entry) => entry.userId);
+  return new Set([...actors, ...callers]);
+}
+
+function activeByRole(input: AdoptionInput, now: number): RoleActivity[] {
+  const active = activeUserIds(input.events, input.calls, sinceDaysStart(ACTIVE_DAYS, now));
   return ROLE_IDS.map((role) => {
     const people = USERS.filter((user) => user.role === role);
     return { role, active: people.filter((user) => active.has(user.id)).length, total: people.length };
@@ -88,7 +98,7 @@ function cardUse(input: AdoptionInput, now: number): CardUse {
 /** Pure over its input so the numbers can be tested; `adoptionSummary` feeds it the store. */
 export function adoptionOf(input: AdoptionInput, now = Date.now()): AdoptionSummary {
   return {
-    activeByRole: activeByRole(input.events, now),
+    activeByRole: activeByRole(input, now),
     alerts: alertFate(input),
     matters: matterFlow(input.matters),
     cards: cardUse(input, now),
@@ -105,6 +115,7 @@ export function adoptionSummary(now = Date.now()): AdoptionSummary {
   return adoptionOf(
     {
       events: actionEvents().all(),
+      calls: toolCalls(auditLog().all()),
       alerts: alerts().all(),
       matters: shares().all(),
       widgets: layouts().all().flatMap((layout) => layout.widgets),

@@ -6,7 +6,9 @@ import { metricLabel } from "@/lib/dashboard/metric-display";
 import { bangkokDate } from "@/lib/data/dates";
 import { findUser } from "@/lib/data/entities/users";
 import { formatDateTh, formatTimeTh } from "@/lib/i18n/format";
+import { auditCodeLabel } from "@/lib/i18n/audit-codes";
 import { TH } from "@/lib/i18n/th";
+import { activeUserIds } from "@/lib/server/adoption";
 import { activitiesFrom, actorName, approvalLabel, recipientNames, type Activity } from "@/lib/server/activity";
 import { actionEvents } from "@/lib/server/agent/collections";
 import { auditLog } from "@/lib/server/audit";
@@ -74,7 +76,7 @@ function denials(days: number): Report {
     role_label: roleLabelOf(entry.userId),
     tool_label: toolLabel(entry.tool),
     asked_label: askedLabel(entry.args),
-    code_label: entry.code ? (TH.adminAudit.codes[entry.code] ?? TH.adminAudit.otherCode) : "",
+    code_label: entry.code ? auditCodeLabel(entry.code) : "",
     policy_label: heldByPolicy(entry) ? TH.adminAudit.policyHeld : "",
     reason: entry.reason ?? "",
   }));
@@ -113,6 +115,7 @@ function userUsage(days: number): Report {
     use[field] += 1;
     byUser.set(userId, use);
   };
+  for (const userId of activeUserIds(actionEvents().all(), toolCalls(auditLog().all()), since)) byUser.set(userId, { questions: 0, calls: 0 });
   for (const event of actionEvents().where((item) => item.kind === "question" && item.at >= since)) tally(event.userId, "questions");
   for (const entry of toolCalls(auditLog().all(), since)) if ((entry.initiator ?? "person") === "person") tally(entry.userId, "calls");
   const ranked = [...byUser].sort(([, left], [, right]) => right.questions - left.questions || right.calls - left.calls);

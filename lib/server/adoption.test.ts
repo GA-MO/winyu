@@ -25,6 +25,7 @@ describe("whether Winyu is used", () => {
   const summary = adoptionOf(
     {
       events: [event("u_anucha", "question", "x", 2), event("u_krit", "question", "x", 20), event("u_anucha", "alert_open", `alert:${thresholdKey("net_sales_volume", { region: "east" })}`, 1)],
+      calls: [],
       alerts: ALERTS,
       matters: [MATTER],
       widgets: [],
