@@ -178,6 +178,7 @@ describe("a send about one agent on the region's card names that agent, and a cl
     expect(held).toMatchObject({ ok: false, code: "ASK_CONTRADICTS_CARD" });
     expect(held.error ?? "").toMatch(new RegExp(`^ยังไม่ได้ส่ง: .*${AGENT}.* ${AGENT} \\d+\\.\\d% ของเป้าทั้งเดือน \\(ถึงวันนี้ควรได้ \\d+\\.\\d%\\)$`));
     expect(held.error ?? "").not.toContain("เทียบเป้าตามเวลา");
+    expect(held.error ?? "").toContain("(ถึงวันนี้ควรได้ 86.7%)");
     expect(shares().where((matter) => matter.senderId === RSM).length).toBe(before);
   });
 
