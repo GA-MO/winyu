@@ -120,6 +120,27 @@ describe("the approval card", () => {
     expect(host.querySelector("[data-send-warning]")?.textContent).toBe(focus.claim);
   });
 
+  test("once the conversation pointed out an earlier claim and the ask was rewritten, the sheet drops the warning; the row's change shows with a minus sign in its colour (AI-220)", async () => {
+    const row = { label: "ขอนแก่นมหาชัย", change: -1.6, versus: "เทียบเป้าตามเวลา" };
+    const figure = { label: "ขอนแก่นมหาชัย", value: "71.0", unit: "ล้านบาท", delta: "-1.6%", trend: "down", tone: "bad", detail: "เทียบเป้าตามเวลา" };
+    const focus = { labels: ["ขอนแก่นมหาชัย"], hero: "ขอนแก่นมหาชัย 71.0 ล้านบาท −1.6% เทียบเป้าตามเวลา", figure, row, claim: "ข้อความบอกว่าขอนแก่นมหาชัยตกหนัก แต่การ์ดแสดง ขอนแก่นมหาชัย −1.6% เทียบเป้าตามเวลา" };
+    const preview = { ...NO_PREVIEW, title: "มูลค่าขายเข้า · ภาคอีสาน · ขอนแก่นมหาชัย", focus, subject: null };
+    const spy = spyOn(globalThis, "fetch").mockImplementation((async (url: string) => {
+      if (url.endsWith("/contacts")) return Response.json({ contacts: [contactOf("u_krit")], mayGrant: false });
+      if (url.endsWith("/preview")) return Response.json(preview);
+      return Response.json({ scopes: [] });
+    }) as unknown as typeof fetch);
+    const screen = { ...TWO_CARDS, warned: true, said: ["ได้ครับ ส่งตามนั้นเลย", "ขอนแก่นมหาชัยตกหนัก ฝากคุณกฤตเข้าไปคุย"] };
+    const host = document.createElement("div");
+    await act(async () => createRoot(host).render(renderApproval(request("send_card", { to: ["u_krit"], cardRef: onScreen(BY_REGION).ref, ask: "ฝากคุณกฤตเข้าไปพูดคุยและติดตามยอดขาย" }, { onScreen: screen, question: "ได้ครับ ส่งตามนั้นเลย" }))));
+    for (let tick = 0; tick < 4; tick += 1) await act(async () => new Promise((resolve) => setTimeout(resolve, 0)));
+    spy.mockRestore();
+    expect(host.querySelector("[data-send-warning]")).toBeNull();
+    const delta = host.querySelector("[data-send-card-delta]");
+    expect(delta?.textContent).toBe("−1.6%");
+    expect(delta?.className ?? "").toContain("text-danger");
+  });
+
   test("with two cards on screen and none named, the sheet says it does not know which and offers no ส่ง", async () => {
     const host = await drawnSend({ to: ["u_anucha"] }, { onScreen: TWO_CARDS });
     expect(host.querySelector("[data-send-card]")).toBeNull();
