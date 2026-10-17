@@ -8,7 +8,7 @@ import type { ShareTarget } from "@/lib/share/card";
 import { layouts } from "@/lib/server/agent/collections";
 import { winyuTools } from "@/lib/server/agent/tools";
 import { runWithAccess, runWithTurn } from "@/lib/server/request-context";
-import { pinHero } from "@/lib/server/tools/pin-widget";
+import { pinHero, pinPreview } from "@/lib/server/tools/pin-widget";
 import { approvedCallId } from "@/scripts/approved-call";
 import { screenWith } from "@/scripts/screen-cards";
 
@@ -57,5 +57,14 @@ describe("pin_widget", () => {
     const monthEnd = await pinHero("ยอดอีสานปิดเดือน", "month_end", query, accessOf(USER), "อีสานจะปิดเดือนที่กี่ %");
     expect(monthEnd).toMatch(/\d/);
     expect(monthEnd).not.toBe(toDate);
+  });
+
+  test("the pin approval names the pinned card the new one replaces, and nothing for a metric with none pinned (AI-215)", async () => {
+    const ceo = accessOf("u_thana");
+    const countryValue = metricQueryInputSchema.parse({ metric: "net_sales_value", dims: [], filters: {}, grain: "month", compare: "target", limit: null, period: "this_month", range: null });
+    const monthEnd = await pinPreview("ปิดเดือนทั้งประเทศ", "month_end", countryValue, ceo, "ทั้งประเทศจะปิดเดือนที่กี่ %");
+    expect(monthEnd.replaces).toEqual(["ยอดขายทั้งประเทศเทียบเป้า"]);
+    const mape = metricQueryInputSchema.parse({ metric: "forecast_mape", dims: [], filters: {}, grain: "month", compare: "none", limit: null, period: "this_month", range: null });
+    expect((await pinPreview("ความคลาดเคลื่อน", "metric", mape, ceo, null)).replaces).toEqual([]);
   });
 });
