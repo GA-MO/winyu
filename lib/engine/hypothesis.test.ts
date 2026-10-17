@@ -13,6 +13,12 @@ describe("what a movement is put down to", async () => {
     }
   });
 
+  test("the Korat share story quotes the alert's own 3.5-point drop below expected, never a second figure on another base (AI-272)", async () => {
+    const window = { from: "2026-08-01", to: "2026-10-31" };
+    const found = await explain({ metric: "market_share", dims: { province: "pv_nakhonratchasima", region: "northeast" }, direction: "down", window, observed: 59.4, expected: 62.9, region: "northeast", detail: null });
+    expect(found.hypothesis).toContain("ส่วนแบ่งของเราต่ำกว่าที่คาด 3.5 จุด");
+  });
+
   test("a promotion explains a rise in what it sells, never a fall or a plant's output", async () => {
     const window = { from: dataDay(-12), to: DATA_AS_OF };
     const soda = { sku: "sku_singha_soda_can320", channel: "modern_trade", region: "bkk" };

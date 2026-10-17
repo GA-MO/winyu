@@ -4,7 +4,7 @@ import { bucketOf } from "@/components/notifications/items";
 import { alertsInboxEnabled, handoffEnabled, isToolAllowed } from "@/lib/access/enforce";
 import { verifyStepsFor } from "@/lib/access/verify-steps";
 import { findUser } from "@/lib/data/entities/users";
-import { formatDelta, formatMetricValue, metricLabel, toneOf } from "@/lib/dashboard/metric-display";
+import { formatChange, formatMetricValue, metricLabel, toneOf } from "@/lib/dashboard/metric-display";
 import { formatDateTh } from "@/lib/i18n/format";
 import { TH } from "@/lib/i18n/th";
 import type { Dictionary } from "@/lib/semantic/dictionary";
@@ -38,13 +38,13 @@ function scopeOf(alert: Alert, dictionary: Dictionary): string {
   return shown.map((dim) => dictionary.displayLabel(dim, alert.dims[dim] as string)).join(" · ");
 }
 
-/** An alert's movement as people read it, with observed over expected for the bars; no ratio when either side is not a positive amount. */
+/** An alert's movement as people read it, with observed over expected for the bars; a percent metric moves in points (R8), so a share alert gives one figure; no ratio when either side is not a positive amount. */
 export function movementOf(alert: Pick<Alert, "metric" | "observed" | "expected">): Movement {
   const delta = alert.expected === 0 ? null : ((alert.observed - alert.expected) / Math.abs(alert.expected)) * PERCENT;
   return {
     observed: formatMetricValue(alert.metric, alert.observed),
     expected: formatMetricValue(alert.metric, alert.expected),
-    delta: formatDelta(delta),
+    delta: formatChange(alert.metric, delta, alert.observed - alert.expected),
     tone: toneOf(alert.metric, delta),
     ratio: alert.expected > 0 && alert.observed >= 0 ? alert.observed / alert.expected : null,
   };

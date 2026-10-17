@@ -1403,7 +1403,7 @@ export const TH = {
       arUpDrivers: (scope: string, drivers: readonly { name: string; growth: number }[]) =>
         `ยอดค้างชำระของ${scope}สูงกว่าช่วงเดียวกันของปีก่อนมาก ส่วนใหญ่มาจาก ${drivers.map((driver) => `${driver.name} (+${driver.growth}%)`).join(", ")} ควรคุยเรื่องการวางบิลและวงเงินกับเอเย่นต์กลุ่มนี้`,
       arUp: (agent: string) => `ยอดค้างชำระของ ${agent} สูงกว่าระดับปกติมาก น่าจะเกิดจากการวางบิลล่าช้าหรือความสามารถในการชำระที่ลดลง`,
-      rivalGain: (place: string, rival: string, gained: string, below: string) => `ใน${place} ${rival}ได้ส่วนแบ่งตลาดเบียร์เพิ่ม ${gained} จุดในช่วงเดียวกับที่ส่วนแบ่งของเราลดลง ${below} จุด น่าจะมีการทำตลาดหรือตั้งราคาเชิงรุกในพื้นที่นี้`,
+      rivalGain: (place: string, rival: string, gained: string, below: string) => `ใน${place} ${rival}ได้ส่วนแบ่งตลาดเบียร์เพิ่ม ${gained} จุดจากช่วงก่อนหน้า ในช่วงเดียวกับที่ส่วนแบ่งของเราต่ำกว่าที่คาด ${below} จุด น่าจะมีการทำตลาดหรือตั้งราคาเชิงรุกในพื้นที่นี้`,
       genericUp: (what: string, place: string) => `${what}ใน${place}สูงผิดปกติ ยังหาสาเหตุไม่ได้จากข้อมูลที่มี`,
       genericDown: (what: string, place: string) => `${what}ใน${place}ต่ำผิดปกติ ยังหาสาเหตุไม่ได้จากข้อมูลที่มี`,
     },

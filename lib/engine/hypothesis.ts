@@ -180,7 +180,7 @@ async function shareExplanation(context: Context, place: string): Promise<Explan
   const verifySteps = steps(step(TH.engine.verify.makersOfPlace(place), "market_share"), step(TH.engine.verify.sellOutLastYear(place), "sell_out_volume"));
   if (!own || !rival || rival.points <= 0) return { hypothesis: TH.engine.hypothesis.genericDown(TH.metric.market_share, place), verifySteps, explained: false };
   return {
-    hypothesis: TH.engine.hypothesis.rivalGain(place, GENERATOR_DICTIONARY.displayLabel("maker", rival.maker), rival.points.toFixed(SHARE_DECIMALS), Math.abs(own.points).toFixed(SHARE_DECIMALS)),
+    hypothesis: TH.engine.hypothesis.rivalGain(place, GENERATOR_DICTIONARY.displayLabel("maker", rival.maker), rival.points.toFixed(SHARE_DECIMALS), Math.abs(context.observed - context.expected).toFixed(SHARE_DECIMALS)),
     verifySteps,
     explained: false,
   };

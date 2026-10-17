@@ -135,6 +135,10 @@ describe("the Inbox payload", () => {
     expect([...told].sort()).toEqual(["al_1", "al_2", "al_3"]);
   });
 
+  test("the Korat share alert moves in points, the one figure its bar and its story give (AI-272)", () => {
+    expect(movementOf({ metric: "market_share", observed: 59.4, expected: 62.9 })).toMatchObject({ delta: "-3.5 จุด", observed: "59.4%", expected: "62.9%", tone: "bad" });
+  });
+
   test("an alert a matter waiting on the viewer carries is told by the matter, and not listed again", async () => {
     const alert = alertOnViewer();
     expect(movementOf(alert).delta).toBe("-82.8%");
