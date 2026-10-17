@@ -47,6 +47,8 @@ const QUESTIONS: Question[] = [
     question: "ขอนแก่นมหาชัยก็ตกเยอะเหมือนกัน ฝากงานให้คุณกฤตเข้าไปคุยกับเอเย่นต์เจ้านี้ภายในสัปดาห์นี้",
   },
   { key: "rsm-month-close", userId: "u_anucha", question: "ถ้าเป็นแบบนี้ต่อไป ภาคอีสานจะปิดเดือนได้ถึงเป้าไหม" },
+  { key: "ceo-month-close", userId: "u_thana", question: "ทั้งบริษัทเดือนนี้จะปิดที่กี่เปอร์เซ็นต์ของเป้า" },
+  { key: "rsm-why-agent", userId: "u_anucha", question: "ทำไมอีสานรุ่งโรจน์ ค้าส่งยอดตกหนักขนาดนี้" },
   { key: "rep-visit-week", userId: "u_krit", question: "สัปดาห์นี้ผมควรไปเยี่ยมเอเย่นต์รายไหนก่อน เพราะอะไร" },
   { key: "ceo-send-south", userId: "u_thana", question: "ส่งเรื่องหนี้นครศรีรุ่งเจริญให้ผู้จัดการขายภาคใต้ตามต่อหน่อย ขอแผนเก็บเงินภายในศุกร์นี้" },
   { key: "rsm-leave", userId: "u_anucha", question: "คุณนกปีนี้ใช้วันลาไปแล้วกี่วัน ลาป่วยกี่วัน" },

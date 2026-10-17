@@ -3075,24 +3075,24 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 |---|---|---|---|
 | AI-234 (เดิม AI-207) | สูง | แก้แล้ว `d340cf6` | Hold-back notice prints the pace mark as 0.9% instead of 86.7%, and the model then calls 85.3% 'ยังอยู่ในเกณฑ์ดี' |
 | AI-235 (เดิม AI-207, AI-220) | กลาง | ยังเสีย | The focused agent ขอนแก่นมหาชัย appears on the pace base (−1.6%) in the approval preview, the inbox and the matter headline, next to an 85.3% month-base hero |
-| AI-236 (เดิม AI-205) | กลาง | เปิด (ใหม่) | Asked where the month will close, the chat card leads with 83.9% to date, while the pinned card for the same question leads with 96.3% |
-| AI-237 | กลาง | เปิด (ใหม่) | A pinned month-end projection with a red 96.3% miss is filed under 'ปกติ 2 การ์ด' |
+| AI-236 (เดิม AI-205) | กลาง | แก้แล้ว `da9b02b` | Asked where the month will close, the chat card leads with 83.9% to date, while the pinned card for the same question leads with 96.3% |
+| AI-237 | กลาง | แก้แล้ว `da9b02b` | A pinned month-end projection with a red 96.3% miss is filed under 'ปกติ 2 การ์ด' |
 | AI-238 (เดิม AI-203) | กลาง | ยังเสีย | The overall row 'รวมทุกเอเย่นต์' is used for 2, 4 and 8 agents, and a 2-agent card is headed 'ทุกเอเย่นต์ต่ำกว่าเป้าตามเวลา' |
 | AI-239 (เดิม AI-204) | กลาง | ยังเสีย | The B target strip pairs 'ขาดอีก' (the full-month gap) with 'ถึงวันนี้ควรได้ 86.7%', and the rep's reply drops 'ถึงเป้าทั้งเดือน' |
 | AI-240 (เดิม AI-222) | กลาง | เปิด (ใหม่) | The Isan story headline '51.7% และอุบลศรีสุข 48.3%' (gap shares) contradicts the 52.4% card row beneath it, and the sentence travels down the chain as the ask |
-| AI-241 (เดิม AI-206) | กลาง | ยังเสีย | The RSM overdue check is still a single October tile, and the reply calls it support for the credit hypothesis |
+| AI-241 (เดิม AI-206) | กลาง | แก้แล้ว `da9b02b` | The RSM overdue check is still a single October tile, and the reply calls it support for the credit hypothesis |
 | AI-242 (เดิม AI-200) | กลาง | เปิด (ใหม่) | On the IT activity card, the 6 folded rows lose the action and the card title, and those are exactly the demo chain's sends |
 | AI-243 (เดิม AI-232) | กลาง | เปิด (ใหม่) | 'ใครใช้เงินเยอะสุด' gets no answer although every call records its user, and the chat says 7 days where the console says 14 for the same $0.52 |
 | AI-244 (เดิม AI-227) | กลาง | เปิด (ใหม่) | '(ครั้งที่ 2)' appears on a fresh seed when the chat option follows step 1, which trips the run sheet's 'reseed' troubleshooting row |
 | AI-245 (เดิม AI-219) | กลาง | เปิด (ใหม่) | The RSM forward picker opens below the fold on a phone, and ส่งต่อ takes about 5 s with no busy state |
-| AI-246 (เดิม AI-215) | ต่ำ | ยังเสีย | The pin receipt and reply do not name the replaced card, and the warning calls 96.3% and 83.9% 'ตัวเลขเดียวกัน' |
+| AI-246 (เดิม AI-215) | ต่ำ | แก้แล้ว `da9b02b` | The pin receipt and reply do not name the replaced card, and the warning calls 96.3% and 83.9% 'ตัวเลขเดียวกัน' |
 | AI-247 (เดิม AI-230) | ต่ำ | ยังเสีย | The CEO's send to the South RSM warns 'ส่วนที่เหลือถูกล็อก' for an agent fully in her scope, and calls her 'เขา' |
 | AI-248 (เดิม AI-204) | ต่ำ | ยังเสีย | The RSM s1t3 reply sets the to-date gap shares (45.4%/42.0%) beside the month-end shortfall of 52.9 |
 | AI-249 (เดิม AI-204) | ต่ำ | เปิด (ใหม่) | 'ถึงวันนี้ยังขาด' means the paced gap on the year card and the full-month gap on the month cards |
 | AI-250 (เดิม AI-211) | ต่ำ | ยังเสีย | The reply still points at 'การ์ดด้านล่าง' while the cards render above the text |
-| AI-251 (เดิม AI-223) | ต่ำ | ยังเสีย | The year answer uses '(YTD)' and leaves out the 477.7 ล้านบาท / 35 days that the card leads with |
+| AI-251 (เดิม AI-223) | ต่ำ | แก้แล้ว `da9b02b` | The year answer uses '(YTD)' and leaves out the 477.7 ล้านบาท / 35 days that the card leads with |
 | AI-252 | ต่ำ | เปิด (ใหม่) | The CEO send approval header is cut to 'คุณสรัญญ…' by the deadline pill, and the card's primary button offers 'ส่งให้คุณอาร์ม', a different person |
-| AI-253 (เดิม AI-214) | ต่ำ | เปิด (ใหม่) | The week 'why' answer draws three cards: two repeat 248.1/−25.5, and an unrelated anomaly list sits beside 'ไม่มีส่วนใดเป็นสาเหตุหลัก' |
+| AI-253 (เดิม AI-214) | ต่ำ | แก้แล้ว `da9b02b` | The week 'why' answer draws three cards: two repeat 248.1/−25.5, and an unrelated anomaly list sits beside 'ไม่มีส่วนใดเป็นสาเหตุหลัก' |
 | AI-254 | ต่ำ | เปิด (ใหม่) | The region strip prints '86%' beside '85.6%', and the Bangkok label is cut off |
 | AI-255 (เดิม AI-227) | ต่ำ | ยังเสีย | Run sheet wording still differs from the screen: the '· ภาคอีสาน' suffix, the drill button example, the 'ขั้นที่ n' labels, the Korat story label, and an unwarned black button |
 | AI-256 (เดิม AI-227) | ต่ำ | ยังเสีย | The approval's 'ส่ง' button sits half under the composer and shares the accessible name 'ส่ง' with the composer send button |
@@ -3132,7 +3132,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-236. Asked where the month will close, the chat card leads with 83.9% to date, while the pinned card for the same question leads with 96.3%
 
-- **สถานะ:** เปิด (ใหม่) · เดิม AI-205
+- **สถานะ:** แก้แล้ว `da9b02b` · เดิม AI-205: คำถามว่าเดือนนี้จะปิดที่เท่าไหร่ได้การ์ด `month_end` ในแชต นำด้วย 96.3% เหมือนการ์ดที่ปัก (R14) ยืนยันกับโมเดลจริงแล้ว
 - **ระดับ:** กลาง · **หมวด:** `card-fit` · **บทบาท:** u_thana (CEO) S1T1
 - **อาการ:** For 'ทั้งบริษัทเดือนนี้จะปิดที่กี่เปอร์เซ็นต์ของเป้า', the chat card is the C scorecard with the hero 'พ.ย. 69 83.9% ของเป้าทั้งเดือน'. The 96.3% answer appears only in the third tile. The approval and the pinned month_end card lead with 96.3%. The reply text is correct.
 - **ที่ควรเป็น:** The hero answers the question. A month-close question is drawn in the month_end view in chat too.
@@ -3145,7 +3145,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-237. A pinned month-end projection with a red 96.3% miss is filed under 'ปกติ 2 การ์ด'
 
-- **สถานะ:** เปิด (ใหม่)
+- **สถานะ:** แก้แล้ว `da9b02b`: การ์ด `month_end` ที่ปักไว้และคาดว่าไม่ถึงเป้าอยู่ในกลุ่มที่ต้องดูบน Dashboard พร้อมเหตุผล "คาดปิดเดือนไม่ถึงเป้า"
 - **ระดับ:** กลาง · **หมวด:** `card-fit` · **บทบาท:** u_thana (CEO) S1T1 dashboard
 - **อาการ:** /dashboard puts the card that projects a 68.8 ล้านบาท shortfall in the folded 'steady' group, next to gross margin.
 - **ที่ควรเป็น:** A month_end card that projects a miss stays in full view with the reason 'คาดปิดเดือนไม่ถึงเป้า'.
@@ -3196,7 +3196,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-241. The RSM overdue check is still a single October tile, and the reply calls it support for the credit hypothesis
 
-- **สถานะ:** ยังเสีย · เดิม AI-206
+- **สถานะ:** แก้แล้ว `da9b02b` · เดิม AI-206: กฎขั้นตรวจ N เดือนล่าสุดอ่านรายเดือนถึงเดือนนี้ (มิ.ย.–พ.ย. 69) และคำตอบบอกว่ายอดค้างลดจาก 4.5 เหลือ 2.9 ล้านบาท สมมติฐานเครดิตจึงอ่อนลง ยืนยันกับโมเดลจริงแล้ว
 - **ระดับ:** กลาง · **หมวด:** `grounding` · **บทบาท:** u_anucha (RSM) s2t1
 - **อาการ:** The query was ar_overdue with period last_month and limit 6, so the card holds one tile (2.3 ล้านบาท ต.ค. 69). The verifySteps asked for 6 months. The reply calls that one balance support for the hypothesis. The present.ts fix for the running month is never reached.
 - **ที่ควรเป็น:** The query covers recent months through the running month, and the reply says whether overdue rose.
@@ -3254,7 +3254,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-246. The pin receipt and reply do not name the replaced card, and the warning calls 96.3% and 83.9% 'ตัวเลขเดียวกัน'
 
-- **สถานะ:** ยังเสีย · เดิม AI-215
+- **สถานะ:** แก้แล้ว `da9b02b` · เดิม AI-215: ใบยืนยันอ่านการ์ดที่ถูกแทนจากผลของ pin_widget และคำเตือนใช้คำว่า "เรื่องเดียวกัน" ส่วนข้อความตอบของโมเดลยังไม่เอ่ยชื่อการ์ดเดิม
 - **ระดับ:** ต่ำ · **หมวด:** `write-flow` · **บทบาท:** u_thana (CEO) S1T1
 - **อาการ:** The approval warns about the replacement, which is fixed. After approval, the receipt is the plain TH.approve.donePin, although pin_widget returned replaced.
 - **ที่ควรเป็น:** TH.approve.donePinInstead with the card name, and the warning says 'เรื่องเดียวกัน'.
@@ -3311,7 +3311,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-251. The year answer uses '(YTD)' and leaves out the 477.7 ล้านบาท / 35 days that the card leads with
 
-- **สถานะ:** ยังเสีย · เดิม AI-223
+- **สถานะ:** แก้แล้ว `da9b02b` · เดิม AI-223: โมเดลอ่านยอดที่ต้องทำเพิ่มกับวันที่เหลือแบบเดียวกับการ์ด ส่วนคำย่อ YTD ต้องเพิ่มในกฎภาษา ซึ่งรอบนี้ไม่ได้แก้
 - **ระดับ:** ต่ำ · **หมวด:** `wording` · **บทบาท:** u_thana (CEO) S1T2
 - **อาการ:** The reply uses an English abbreviation and does not give the amount and the days left. The card verdict runs to 4 lines on a phone. The card numbers are correct.
 - **ที่ควรเป็น:** Thai only, and the reply names the amount left and the days left.
@@ -3333,7 +3333,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-253. The week 'why' answer draws three cards: two repeat 248.1/−25.5, and an unrelated anomaly list sits beside 'ไม่มีส่วนใดเป็นสาเหตุหลัก'
 
-- **สถานะ:** เปิด (ใหม่) · เดิม AI-214
+- **สถานะ:** แก้แล้ว `da9b02b` · เดิม AI-214: คำตอบว่าทำไมวาดการ์ดช่องว่างใบเดียว ไม่วาดยอดรวมที่ซ้ำและรายการความผิดปกติข้างช่องว่างที่ไม่มีสาเหตุหลัก การ์ดช่องว่างบอก −9.3% ของช่วงเอง
 - **ระดับ:** ต่ำ · **หมวด:** `card-fit` · **บทบาท:** u_thana (CEO) S2T1
 - **อาการ:** The scorecard and the gap card repeat the same fact. Ten alerts from 13-14 Nov are shown without noting that they do not explain the week-on-week drop.
 - **ที่ควรเป็น:** One gap card, and alerts only when they bear on the asked window.

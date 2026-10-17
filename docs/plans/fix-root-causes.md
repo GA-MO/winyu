@@ -40,7 +40,7 @@ Stop when a round on the four demo roles (CEO, RSM อีสาน, sales rep �
 
 Round 7 walked the run sheet and replayed the 13 round-6 failures ($0.25 plus $0.28 for the morning investigation): 19 fixed, 12 still broken, 17 new. The one high (AI-234) was a bug in the lead's own AI-207 follow-up, a fraction printed as a percent, fixed in `d340cf6` with a pinned value. 11 medium findings remain on the demo path. Packages, by files:
 - [ ] **K1 one base on every surface** (AI-235, AI-238, AI-239, AI-240, AI-248, AI-249, AI-254, AI-257): a focused row reads on its card's base in the approval, the inbox and the matter headline; an overall row over a subset names the subset; "ขาดอีก" says from when to what; story headlines carry no unbased share; signs and colours.
-- [ ] **K2 month-close card and dashboard** (AI-236, AI-237, AI-241, AI-246, AI-251, AI-253): a month-close question draws the month-end view in chat; a pinned projection that misses stays in view; a balance trend for a why; the pin receipt names what it replaced; one card per point in a why answer.
+- [x] **K2 month-close card and dashboard** (`da9b02b`) (AI-236, AI-237, AI-241, AI-246, AI-251, AI-253): a month-close question draws the month-end view in chat; a pinned projection that misses stays in view; a balance trend for a why; the pin receipt names what it replaced; one card per point in a why answer.
 - [ ] **K3 IT and presenter friction** (AI-242, AI-243, AI-244, AI-245, AI-252, AI-256, AI-259, AI-260): folded IT activity rows keep action and card; spend per person; titles of two sends of one card; the forward picker and its busy state on a phone; approval header and button; bell and drawer friction.
 - [ ] then the run sheet against the screens (AI-244 wording, AI-255, AI-258).
 
