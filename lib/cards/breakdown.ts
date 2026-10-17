@@ -87,6 +87,11 @@ function scaled(value: number | null, scale: number): number | null {
   return value === null ? null : value * scale;
 }
 
+/** What a verdict calls every row when the question picked the groups ("ทั้ง 2 เอเย่นต์"); null when the rows are every group in scope. */
+function someOf(input: BreakdownInput): string | null {
+  return input.subset === null ? null : TH.read.eachOfSome(input.subset, input.unit);
+}
+
 /** How much of the month has passed when a breakdown's rows are read on the whole month's target (a month still running, groups against target), so a row's share of it is its paced attainment times this; null on any other breakdown. */
 function monthScaleOf(input: BreakdownInput): number | null {
   const { query, target } = input;
@@ -95,7 +100,7 @@ function monthScaleOf(input: BreakdownInput): number | null {
 }
 
 /** What the decision table knows about one breakdown: its rows in the order asked, the bars it draws, the unit word, the overall row's label, whether the question set a threshold (R7), and what a target figure is a share of ("ของเป้าตามเวลา" in a month still running) with the whole month beside it, the base total a change ranking moved from, whether the line is read from above (the top of a capped ranking, or rows above a value), whether the list was cut by a limit, so its verdict speaks for the rows shown, never for every group, and the rows the question named. */
-export type BreakdownInput = { query: MetricQuery; result: OkResult; rows: MetricRow[]; bars: BreakdownBars; unit: string; scope: string; threshold: boolean; additive: boolean; falling: boolean; target: TargetBase; baseTotal: string | null; high: boolean; capped: boolean; asked: ReadonlySet<string> };
+export type BreakdownInput = { query: MetricQuery; result: OkResult; rows: MetricRow[]; bars: BreakdownBars; unit: string; scope: string; threshold: boolean; additive: boolean; falling: boolean; target: TargetBase; baseTotal: string | null; high: boolean; capped: boolean; subset: number | null; asked: ReadonlySet<string> };
 
 /** A breakdown read for styles B and A: the strip, the verdict, the hero the overall row stands for, the row style A leads with instead (a change ranking), and how the rows style A folds away read in one line. */
 export type Breakdown = {
@@ -255,7 +260,7 @@ function lineReading(input: BreakdownInput, line: LevelLine): Breakdown {
       goal: input.target.paced ? TH.read.pacedGoal : TH.read.goal,
       sums: input.additive,
       weakest: answer ? { label: labelOf(query, answer.row), text: textOf(answer) } : null,
-      slice: input.capped && !result.headline.underLine ? TH.read.shown(rows.length, input.unit) : null,
+      slice: input.capped && !result.headline.underLine ? TH.read.shown(rows.length, input.unit) : someOf(input),
       averaged: line.line.kind === "cover" && !query.dims.includes("sku"),
     }),
     hero: month
@@ -334,7 +339,7 @@ function changeReading(input: BreakdownInput): Breakdown {
       leading: claimed.map((entry) => ({ label: labelOf(query, entry.row), size: Math.abs(entry.measure) })),
       changes: known.map((entry) => entry.measure),
       format,
-      slice: input.capped ? TH.read.topMovers(input.rows.length, input.unit, input.falling ? TH.read.fell : TH.read.rose) : null,
+      slice: input.capped ? TH.read.topMovers(input.rows.length, input.unit, input.falling ? TH.read.fell : TH.read.rose) : someOf(input),
     }),
     hero: { label: input.scope, value: overall.delta ?? result.headline.value, unit: null, delta: null, trend: overall.trend, tone: overall.tone, detail: input.baseTotal ?? result.headline.compareLabel },
     lead: leadRow && leading > 0 ? { row: labelOf(query, leadRow.row), hero: { label: labelOf(query, leadRow.row), value: valueTextOf(query, leadRow.row), unit: null, ...rowMove(query, leadRow.row), detail: baseOf(query, leadRow.row) ?? result.headline.compareLabel } } : null,
@@ -370,7 +375,7 @@ function boardReading(input: BreakdownInput): Breakdown {
     baseline: 0,
     overall: { label: input.scope, sub: overall.delta ? result.headline.compareLabel : null, measure: null, fill: 0, text: result.headline.value, change: overall.delta, tone: overall.tone, exception: true, valued: true },
     rows,
-    verdict: boardVerdict({ unit: input.unit, labels: rows.map((row) => row.label), changes, notable, format, slice: input.capped ? TH.read.shown(rows.length, input.unit) : null }),
+    verdict: boardVerdict({ unit: input.unit, labels: rows.map((row) => row.label), changes, notable, format, slice: input.capped ? TH.read.shown(rows.length, input.unit) : someOf(input) }),
     hero: { label: input.scope, value: result.headline.value, unit: null, ...overall, detail: result.headline.compareLabel },
     lead: null,
     pickWhenNone: LEADERS,

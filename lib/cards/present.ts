@@ -191,6 +191,13 @@ function rankDimOf(query: MetricQuery): Dim | null {
   return groupDimsOf(query)[0] ?? null;
 }
 
+/** How many groups a breakdown was narrowed to along its own dimension (two agents picked by name, a rep's own four), so its overall row and verdict speak for those and never for every group in scope (AI-238); null when nothing narrows that dimension. */
+function subsetOf(query: MetricQuery): number | null {
+  const dim = rankDimOf(query);
+  const picked = dim ? (query.filters[dim]?.length ?? 0) : 0;
+  return picked > 1 ? picked : null;
+}
+
 function endsOnFullBucket(grain: MetricQuery["grain"], lastDay: string): boolean {
   if (grain === "month") return monthKeyOfIso(addDays(lastDay, 1)) !== monthKeyOfIso(lastDay);
   if (grain === "week") return new Date(`${lastDay}T00:00:00Z`).getUTCDay() === SUNDAY;
@@ -411,17 +418,23 @@ function heroLabelOf(query: MetricQuery, result: OkResult): string {
   if (!dim && !timeDimOf(query) && scopeLabelsOf(query, result).length === 0) return TH.dash.wholeScope(label, result.headline.aggregate === "average");
   if (!dim || timeDimOf(query) || result.rows.length <= 1 || leadsWithOwnRow(query)) return label;
   const unit = TH.dash.dimUnit[dim];
-  return result.headline.aggregate === "average" ? TH.dash.averageAcross(label, unit) : TH.dash.totalAcross(label, unit);
+  const average = result.headline.aggregate === "average";
+  const subset = subsetOf(query);
+  if (subset !== null) return average ? TH.dash.averageAcrossSome(label, subset, unit) : TH.dash.totalAcrossSome(label, subset, unit);
+  return average ? TH.dash.averageAcross(label, unit) : TH.dash.totalAcross(label, unit);
 }
 
-/** What the overall row of a breakdown is called: the whole country for regions nobody narrowed, else every group of the unit, summed or averaged. */
+/** What the overall row of a breakdown is called: the whole country for regions nobody narrowed, the groups counted when the question picked some ("รวม 2 เอเย่นต์"), else every group of the unit, summed or averaged. */
 function overallLabelOf(query: MetricQuery, result: OkResult): string {
   if (leadsWithOwnRow(query)) return TH.read.ownShare;
   const dim = rankDimOf(query);
   const unit = verdictUnitOf(query);
+  const average = result.headline.aggregate === "average";
+  const subset = subsetOf(query);
+  if (subset !== null) return average ? TH.read.averageOfSome(subset, unit) : TH.read.sumOfSome(subset, unit);
   const narrowed = scopeLabelsOf(query, result).length > 0 || Object.keys(result.query.scopeApplied ?? {}).length > 0;
   if (dim === "region" && !narrowed) return TH.read.nationwide;
-  return result.headline.aggregate === "average" ? TH.read.averageOf(unit) : TH.read.allOf(unit);
+  return average ? TH.read.averageOf(unit) : TH.read.allOf(unit);
 }
 
 /** The unit word a verdict counts groups in ("ภาค", "SKU", "DC"), or periods in ("เดือน") when the rows are a short series. */
@@ -842,6 +855,7 @@ function readingOf(facts: Facts, bars: Bars, rows: MetricRow[]): Breakdown {
     baseTotal: baseTotalOf(facts),
     high: (facts.sortBy === "value_desc" && facts.capped) || facts.query.where?.op === "above",
     capped: facts.capped,
+    subset: subsetOf(facts.query),
     asked: new Set(facts.result.headline.asked ?? []),
   });
 }

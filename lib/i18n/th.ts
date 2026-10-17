@@ -701,6 +701,8 @@ export const TH = {
     lockedAsk: "ขอดู",
     lockedRow: (label: string) => `${label}: ซ่อนตามสิทธิ์ของคุณ`,
     totalAcross: (metric: string, unit: string) => `${metric} รวมทุก${/^[A-Za-z]/.test(unit) ? " " : ""}${unit}`,
+    totalAcrossSome: (metric: string, count: number, unit: string) => `${metric} รวม ${count} ${unit}`,
+    averageAcrossSome: (metric: string, count: number, unit: string) => `${metric} เฉลี่ย ${count} ${unit}`,
     averageAcross: (metric: string, unit: string) => `${metric} เฉลี่ยทุก${/^[A-Za-z]/.test(unit) ? " " : ""}${unit}`,
     alsoRows: (units: readonly string[]) => `มีแถวราย${units.join(" ราย")}ด้วย`,
     dimUnit: {
@@ -763,6 +765,9 @@ export const TH = {
     nationwide: "ทั้งประเทศ",
     allOf: (unit: string) => `รวมทุก${/^[A-Za-z]/.test(unit) ? " " : ""}${unit}`,
     averageOf: (unit: string) => `เฉลี่ยทุก${/^[A-Za-z]/.test(unit) ? " " : ""}${unit}`,
+    sumOfSome: (count: number, unit: string) => `รวม ${count} ${unit}`,
+    averageOfSome: (count: number, unit: string) => `เฉลี่ย ${count} ${unit}`,
+    eachOfSome: (count: number, unit: string) => `ทั้ง ${count} ${unit}`,
     ofTarget: "ของเป้า",
     ofMonthTarget: "ของเป้าทั้งเดือน",
     base: { prev_period: "งวดก่อน", prev_year: "ปีก่อน" } as Partial<Record<string, string>>,

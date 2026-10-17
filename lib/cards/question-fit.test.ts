@@ -390,3 +390,34 @@ describe("the rep's starter card is short and on the month base (AI-231)", () =>
     expect(tile?.query).toMatchObject({ metric: "net_sales_value", compare: "target" });
   });
 });
+
+const TWO_AGENTS: MetricQuery = { metric: "net_sales_value", dims: ["agent"], filters: { agent: ["ag_nea_02", "ag_nea_05"] }, range: NOVEMBER, grain: "day", compare: "target", limit: null, sort: "delta_asc" };
+const REP_AGENTS: MetricQuery = { metric: "net_sales_value", dims: ["agent"], filters: { agent: ["ag_nea_01", "ag_nea_02", "ag_nea_03", "ag_nea_05"] }, range: NOVEMBER, grain: "month", compare: "target", limit: null };
+const REGION_AGENTS: MetricQuery = { metric: "net_sales_value", dims: ["agent"], filters: { region: ["northeast"] }, range: NOVEMBER, grain: "month", compare: "target", limit: null, sort: "delta_asc" };
+const TWO_AGENTS_OVERDUE: MetricQuery = { metric: "ar_overdue", dims: ["agent"], filters: { agent: ["ag_nea_02", "ag_nea_05"] }, range: NOVEMBER, grain: "month", compare: "prev_period", limit: null };
+
+function overallOf(query: MetricQuery): { label: string; verdict: string | null } {
+  const card = presentCard({ title: "t", query, result: runMetric(query, CEO) });
+  return { label: stripOf(card.body).overall?.label ?? "", verdict: card.verdict };
+}
+
+describe("an overall row over a subset names the subset (AI-238)", () => {
+  test("the CEO's Isan story card over two agents reads รวม 2 เอเย่นต์, and its verdict speaks for those two", () => {
+    expect(overallOf(TWO_AGENTS)).toEqual({ label: "รวม 2 เอเย่นต์", verdict: "ทั้ง 2 เอเย่นต์ต่ำกว่าเป้าตามเวลา หนักสุดอีสานรุ่งโรจน์ ค้าส่ง" });
+  });
+
+  test("the rep's own four agents read รวม 4 เอเย่นต์", () => {
+    expect(overallOf(REP_AGENTS).label).toBe("รวม 4 เอเย่นต์");
+  });
+
+  test("every agent of the region the card is about stays รวมทุกเอเย่นต์", () => {
+    expect(overallOf(REGION_AGENTS).label).toBe("รวมทุกเอเย่นต์");
+  });
+
+  test("the overdue card beside it says ทั้ง 2 เอเย่นต์, never ทุกเอเย่นต์", () => {
+    const { label, verdict } = overallOf(TWO_AGENTS_OVERDUE);
+    expect(label).toBe("รวม 2 เอเย่นต์");
+    expect(verdict ?? "").toContain("ทั้ง 2 เอเย่นต์");
+    expect(verdict ?? "").not.toContain("ทุกเอเย่นต์");
+  });
+});
