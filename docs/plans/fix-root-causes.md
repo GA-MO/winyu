@@ -40,7 +40,7 @@ Stop when a round on the four demo roles (CEO, RSM อีสาน, sales rep �
 
 Round 8 walked the run sheet (14 of 16 steps match; the two misses are the sheet's wording about the second matter) and replayed the 12 round-7 failures ($0.26 plus $0.23 for the morning investigation): 16 fixed, 4 still broken, 20 new. The one high (AI-265, the CEO's chat send to "ผู้จัดการขายภาคอีสาน" went to the rep because the usual-recipient count credited forwarded accepts) is fixed in `643ab3a`. 7 medium findings remain on the demo path, down from 18 in round 4. Packages:
 - [x] **L1 cards and titles** (`939fdee` `e99dd8c` `af56887` `552e872` `843038f`) (AI-266, AI-267, AI-268, AI-269 card part, AI-272, AI-273, AI-274, AI-281, AI-286): R14 for a one-row region month-close, explain_gap send titles, a balance check card that leads with its direction over the range, a verdict that covers the asked rows, one figure per alert, titles that follow the focused read.
-- [ ] **L2 what the model says, and IT** (AI-269 text and ask, AI-270, AI-271, AI-275, AI-276, AI-277, AI-278, AI-279, AI-288): hypotheses stay hedged in replies and sends, the IT opener under 40 s, role access includes data scope, one spend figure, Thai codes, IT card covers both halves of the question.
+- [x] **L2 what the model says, and IT** (AI-269 text and ask, AI-270, AI-271, AI-275, AI-276, AI-277, AI-278, AI-279, AI-288): hypotheses stay hedged in replies and sends, the IT opener under 40 s, role access includes data scope, one spend figure, Thai codes, IT card covers both halves of the question.
 - [x] then the run sheet against the screens (AI-282, AI-283, AI-284; walked again in round 9).
 
 ## Round 8 fixes (after round 7, 2026-10-17)

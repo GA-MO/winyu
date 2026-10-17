@@ -3471,17 +3471,17 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 | AI-266 (เดิม AI-236) | กลาง | แก้แล้ว `939fdee` | RSM month-close question with a region dimension gets the to-date scorecard (77.3% red first, 87.5% third), plus a second card that repeats 87.5% |
 | AI-267 | กลาง | แก้แล้ว `af56887` | The forwarded explain_gap card is titled only 'ทำไมตัวเลขถึงเป็นแบบนี้' with no number, and the ask repeats the user's words |
 | AI-268 (เดิม AI-241) | กลาง | แก้แล้ว `939fdee` | RSM overdue trend card's headline says +22.9% month on month (red), while the reply concludes from the six-month fall that the credit hypothesis is weaker |
-| AI-269 (เดิม AI-241 (same overclaim on an overdue check)) | กลาง | ส่วนการ์ดแก้แล้ว `939fdee` · ข้อความรอ L2 | In the CEO's ถามต่อ, the overdue card leads with ขอนแก่นมหาชัย, the reply calls a small rise proof of the credit hypothesis, and the CEO's send states it as fact |
-| AI-270 | กลาง | เปิด (ใหม่) | The IT demo opener (denials and who sent what) takes 42.1 s |
-| AI-271 | กลาง | เปิด (ใหม่) | Asked whether the rep would see southern sales, IT gets the role's metric and tool list, not its data scope, and the scope claim comes from no tool |
+| AI-269 (เดิม AI-241 (same overclaim on an overdue check)) | กลาง | ส่วนการ์ดแก้แล้ว `939fdee` · ข้อความและคำขอแก้แล้ว `8053010` | In the CEO's ถามต่อ, the overdue card leads with ขอนแก่นมหาชัย, the reply calls a small rise proof of the credit hypothesis, and the CEO's send states it as fact |
+| AI-270 | กลาง | แก้แล้ว `8053010` · 15.4 / 13.2 / 11.1 s (เดิม 42.1) | The IT demo opener (denials and who sent what) takes 42.1 s |
+| AI-271 | กลาง | แก้แล้ว `8053010` | Asked whether the rep would see southern sales, IT gets the role's metric and tool list, not its data scope, and the scope claim comes from no tool |
 | AI-272 | กลาง | แก้แล้ว `e99dd8c` | The Korat share alert gives three figures for one drop: −5.6% (relative), a 3.5-point bar and '3.8 จุด' in the AI line |
 | AI-273 (เดิม AI-208 / AI-223 / follows AI-235) | ต่ำ | แก้แล้ว `af56887` | Matter title follows the first read: the agent card RSM → rep is titled 'มูลค่าขายเข้า · รายภาค · ขอนแก่นมหาชัย' |
 | AI-274 (เดิม AI-228) | ต่ำ | แก้แล้ว `939fdee` | The week-why gap strip folds a single 6th region at 11.9% into 'อีก 1 รายการ' |
-| AI-275 (เดิม AI-251) | ต่ำ | ยังเสีย | The year answer still leaves out the 35 days left and does not say whether the year will reach target |
-| AI-276 (เดิม AI-243) | ต่ำ | เปิด (ใหม่) | The IT spend card shows background spend as $0.25 in the hero split and $0.14 in the leaderboard row |
-| AI-277 (เดิม AI-225) | ต่ำ | เปิด (ใหม่) | Raw error code 'PERMISSION_DENIED' appears in the Thai IT reply |
-| AI-278 (เดิม AI-242) | ต่ำ | เปิด (ใหม่) | The IT activity row for the chat-confirmed send cuts the card title to '…เทรดด…' |
-| AI-279 | ต่ำ | เปิด (ใหม่) | The 'who was denied' half of the IT question appears only in the text; the card shows activity only |
+| AI-275 (เดิม AI-251) | ต่ำ | แก้แล้ว `8053010` | The year answer still leaves out the 35 days left and does not say whether the year will reach target |
+| AI-276 (เดิม AI-243) | ต่ำ | แก้แล้ว `8053010` | The IT spend card shows background spend as $0.25 in the hero split and $0.14 in the leaderboard row |
+| AI-277 (เดิม AI-225) | ต่ำ | แก้แล้ว `8053010` | Raw error code 'PERMISSION_DENIED' appears in the Thai IT reply |
+| AI-278 (เดิม AI-242) | ต่ำ | แก้แล้ว `8053010` | The IT activity row for the chat-confirmed send cuts the card title to '…เทรดด…' |
+| AI-279 | ต่ำ | แก้แล้ว `8053010` | The 'who was denied' half of the IT question appears only in the text; the card shows activity only |
 | AI-280 (เดิม AI-264) | ต่ำ | ยังเสีย | After the 09:26 chat send, the chat send receipt still shows the step-1 time (09:22) |
 | AI-281 (เดิม AI-252) | ต่ำ | แก้แล้ว `552e872` | Chat cards still show a black 'ส่งให้คุณอนุชา' after the card was sent, and the reply offers to send again |
 | AI-282 (เดิม AI-255 (also AI-227)) | ต่ำ | แก้แล้ว (เอกสาร) · รอเดินยืนยันรอบ 9 | The run sheet still quotes text the screen does not show (pill suffix, card title, drill button, pace line, switch, RSM 'อัปเดต') |
@@ -3490,7 +3490,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 | AI-285 | ต่ำ | เปิด (ใหม่) · นอกเส้นทางเดโม | Pin turn: no answer text before approval, and the landing calls the replaced card by a second name |
 | AI-286 (เดิม AI-231) | ต่ำ | แก้แล้ว `843038f` · นอกเส้นทางเดโม | The rep's month-total card prefills a send ask that lists all 4 agent names |
 | AI-287 | ต่ำ | เปิด (ใหม่) · นอกเส้นทางเดโม | A no-sale-days question gets a holiday card whose hero is วันพ่อแห่งชาติ |
-| AI-288 | ต่ำ | เปิด (ใหม่) · นอกเส้นทางเดโม | The admin usage tab shows the repository path 'docs/pilot.md' to users |
+| AI-288 | ต่ำ | แก้แล้ว `8053010` · นอกเส้นทางเดโม | The admin usage tab shows the repository path 'docs/pilot.md' to users |
 
 ### AI-265. Asked to send to the Isan regional sales manager, the CEO's chat send goes to a Khon Kaen sales rep, with a false reason
 
@@ -3540,7 +3540,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-269. In the CEO's ถามต่อ, the overdue card leads with ขอนแก่นมหาชัย, the reply calls a small rise proof of the credit hypothesis, and the CEO's send states it as fact
 
-- **สถานะ:** ส่วนการ์ดแก้แล้ว `939fdee` · เดิม AI-241 (same overclaim on an overdue check): คำตัดสินบอกสองเอเย่นต์ที่ถาม "อุบลศรีสุข เทรดดิ้ง +12.8% อันดับ 4 · อีสานรุ่งโรจน์ ค้าส่ง +22.9% อันดับ 5 จาก 8 เอเย่นต์ · ปากช่องเบเวอเรจเพิ่มขึ้นมากสุด +38.4%" (ข้อความและคำขอเป็นงานของ L2)
+- **สถานะ:** ส่วนการ์ดแก้แล้ว `939fdee` · เดิม AI-241 (same overclaim on an overdue check): คำตัดสินบอกสองเอเย่นต์ที่ถาม "อุบลศรีสุข เทรดดิ้ง +12.8% อันดับ 4 · อีสานรุ่งโรจน์ ค้าส่ง +22.9% อันดับ 5 จาก 8 เอเย่นต์ · ปากช่องเบเวอเรจเพิ่มขึ้นมากสุด +38.4%" (ข้อความและคำขอเป็นงานของ L2) · ข้อความและคำขอแก้แล้ว `8053010`: สาเหตุ (reasoning ของ run 96e87142) โมเดลเห็นเฉพาะสองรายที่ถามขึ้น ไม่เคยเทียบกับแถวอื่น และ `send_card` ไม่มีกฎหรือการตรวจคำขอที่บอกสาเหตุเป็นข้อเท็จจริง · แก้: model view ของ `query_metric` เพิ่ม `headline.askedVsOthers` (รายที่ถามเทียบทุกแถว บอกรายอื่นที่เปลี่ยนมากกว่า), กฎความผิดปกติให้บอกตัวอย่างค้านและห้ามคำว่ายืนยัน/พิสูจน์/สนับสนุน, `send_card` ระงับคำขอที่บอกสาเหตุที่ผู้ใช้ไม่ได้พิมพ์ราวกับรู้แล้ว (`ASK_STATES_CAUSE`, lib/share/cause.ts) · production build port 3182 effort medium ข้อมูลรอบ 8: ถามต่อ 35.2 s ข้อความบอก "รายอื่นก็เพิ่มขึ้นเช่นกันโดยปากช่องเบเวอเรจเพิ่มขึ้นมากสุด 38.4% ข้อมูลนี้จึงยังไม่ได้แยกรายที่ถามออกจากรายอื่น และเรื่องติดปัญหาเครดิตยังคงเป็นสมมติฐาน" · ส่งต่อด่วนได้คำขอ "ช่วยตรวจสอบ…ว่าติดปัญหาการวางบิล…หรือไม่" (43.0 s รวมรอบที่เลือกการ์ดผิดแล้วได้ CARD_MISSES_SUBJECT)
 - **ระดับ:** กลาง · **หมวด:** `grounding` · **บทบาท:** u_thana (CEO), chain alt-1/alt-3
 - **อาการ:** ar_overdue by agent puts the two asked agents at 2.9 ล้านบาท each, 4th and 5th of 8. The card verdict reads 'ขอนแก่นมหาชัยมากสุด ตามด้วยโคราชสหภัณฑ์', although ขอนแก่นมหาชัย's overdue fell 21.9%. The reply says the +22.9%/+12.8% rise 'สนับสนุนสมมติฐาน…ติดปัญหาเครดิต', but ปากช่องเบเวอเรจ rose +38.4% and its sell-in is on pace. The CEO's send ask then asked to 'เร่งแก้ไขปัญหาเครดิต', which passes the hypothesis down the chain as fact.
 - **ที่ควรเป็น:** The verdict covers the asked rows (their rise and rank). The reply calls the evidence suggestive and names the counter-example. The send asks the RSM to check credit.
@@ -3552,7 +3552,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-270. The IT demo opener (denials and who sent what) takes 42.1 s
 
-- **สถานะ:** เปิด (ใหม่)
+- **สถานะ:** แก้แล้ว `8053010` · สาเหตุ (reasoning ของ run 7991c0e9 step 2, 31 s): กฎการ์ดบอกให้ประกอบ a2ui สำหรับ "แถวจาก connector" และบอกเฉพาะ query_metric/get_alerts/get_forecast/explain_gap ว่าระบบวาดเอง โมเดลจึงชั่งหลายรอบว่าต้องประกอบการ์ดให้ admin_audit ไหม และบรรทัดวันที่จริงสั่งให้บอกวันที่ในคำตอบ ขัดกับกฎวันที่ข้อมูล · แก้: admin_audit อยู่ใน UNCOMPOSABLE_TOOLS บรรทัด admin_audit บอกว่าระบบวาดเองและคำถามสองเรื่องเรียกครั้งละ topic ในขั้นเดียว คำอธิบาย tool ไม่สั่งให้ไล่แถวหรือบอกวันที่ (การ์ดประทับให้เอง) · production build port 3182 effort medium ข้อมูลรอบ 8 3 รอบ: 15.4 / 13.2 / 11.1 s (เดิม 42.1) reasoning 1,317 / 1,534 / 956 (เดิม 4,722 ใน step เดียว) 2 ขั้นทุกรอบ $0.004–0.005 ต่อเทิร์น ตอบครบสองเรื่องทุกรอบ
 - **ระดับ:** กลาง · **หมวด:** `latency` · **บทบาท:** u_ton (IT admin)
 - **อาการ:** 'สัปดาห์นี้ใครถูกปฏิเสธสิทธิ์บ้าง และใครส่งงานอะไรให้ใคร' took 42.1 s on the server and 42.6 s on screen. The tools took milliseconds. The final step spent 31 s writing 4,722 output tokens, mostly reasoning.
 - **ที่ควรเป็น:** Under 40 s. The run sheet offers this question as the IT window's live chat moment.
@@ -3564,7 +3564,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-271. Asked whether the rep would see southern sales, IT gets the role's metric and tool list, not its data scope, and the scope claim comes from no tool
 
-- **สถานะ:** เปิด (ใหม่)
+- **สถานะ:** แก้แล้ว `8053010` · สาเหตุ: lib/server/tools/admin-audit.ts roleAccess อ่านแค่ metricAcl กับ toolAllow ไม่อ่าน ROLE_POLICIES.regions · แก้: role_access ขึ้นต้นด้วย headline ขอบเขตข้อมูล (ทุกภาค หรือ "เฉพาะภาคของตัวเอง" พร้อมภาคของแต่ละคนในบทบาท และแบรนด์) และ summary บอกขอบเขตเดียวกัน · production build port 3182 effort medium ข้อมูลรอบ 8: 56.4 s รอบแรก (step 2 ใช้ 52.1 s กับ reasoning 575 token: ผู้ให้บริการค้าง) รอบสอง 11.5 s · คำตอบ "พนักงานขายจะเห็นข้อมูลยอดขายเฉพาะภาคที่ตนเองรับผิดชอบ… คุณอาร์ม สิทธิชัย ซึ่งดูแลภาคใต้จะเห็นยอดขายภาคใต้ได้" มาจากผล tool
 - **ระดับ:** กลาง · **หมวด:** `card-fit` · **บทบาท:** u_ton (IT admin)
 - **อาการ:** admin_audit {topic: role_access, role: sales_rep} returned 18 hidden or disabled metrics and tools. The card shows that list. The reply says the rep is limited to ขอนแก่น/ภาคอีสาน and that ภาคใต้ would be denied. That is true (policies.ts:47), but no tool result states it, and the card shows neither the asked metric nor the region boundary.
 - **ที่ควรเป็น:** A card that shows the rep's scope (ภาคอีสาน) and that ภาคใต้ is outside it for มูลค่าขายเข้า, drawn from a tool that reports scope.
@@ -3610,7 +3610,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-275. The year answer still leaves out the 35 days left and does not say whether the year will reach target
 
-- **สถานะ:** ยังเสีย · เดิม AI-251
+- **สถานะ:** แก้แล้ว `8053010` · เดิม AI-251 · สาเหตุ (reasoning ของ thread 0ee9aef4): โมเดลเห็น "477.7 ล้านบาท ภายในสิ้นปี (เหลือ 35 วัน)" ใน summary แต่กฎห้ามทวนตัวเลขบนการ์ดทำให้ตัดจำนวนวันทิ้ง และไม่มีอะไรบอกว่านั่นคือคำตอบของ "จะถึงไหม" · แก้: model view ใส่ `headline.yearEnd` เป็นประโยคคำตอบ ("ยังไม่ถึงเป้าตามเวลา จะถึงเป้าทั้งปีต่อเมื่อ 35 วันที่เหลือทำเกินเป้ารวมอีก 477.7 ล้านบาท") และกฎบอกให้ตอบด้วยประโยคนั้น · production build port 3182 effort medium ข้อมูลรอบ 8: 14.9 s คำตอบประโยคแรกตรงตามนั้น
 - **ระดับ:** ต่ำ · **หมวด:** `wording` · **บทบาท:** u_thana (CEO) S1T2
 - **อาการ:** '(YTD)' is gone, and 477.7 ล้านบาท traces to the tool. The reply omits the 35 days that the card leads with and never answers 'จะถึงเป้าไหม'. The card headline wraps three facts over 4 lines.
 - **ที่ควรเป็น:** The reply names the amount and the days left, and says what that means for the year.
@@ -3621,7 +3621,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-276. The IT spend card shows background spend as $0.25 in the hero split and $0.14 in the leaderboard row
 
-- **สถานะ:** เปิด (ใหม่) · เดิม AI-243
+- **สถานะ:** แก้แล้ว `8053010` · เดิม AI-243 · แก้: การ์ดค่าโมเดลแบ่งทางเดียว (รายคน) hero detail บอกว่ายอดรายคนรวมงานเบื้องหลังที่ทำให้คนนั้น summary ไม่มียอดแยกตามแหล่งอีก (หน้า console ยังแยกตามแหล่งเหมือนเดิม)
 - **ระดับ:** ต่ำ · **หมวด:** `card-fit` · **บทบาท:** u_ton (IT admin)
 - **อาการ:** The hero splits by source (แชต $0.21 · งานเบื้องหลัง $0.25), and the rows split by person ('งานเบื้องหลังของระบบ' $0.14). Investigations run for a person count as background in the hero and as that person in the rows. Nothing on the card says so, and the reply repeats both figures.
 - **ที่ควรเป็น:** One cut per card, or a label saying that person rows include the jobs run for them.
@@ -3632,7 +3632,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-277. Raw error code 'PERMISSION_DENIED' appears in the Thai IT reply
 
-- **สถานะ:** เปิด (ใหม่) · เดิม AI-225
+- **สถานะ:** แก้แล้ว `8053010` · เดิม AI-225 · แก้: กฎภาษาห้ามพิมพ์รหัสจากผล tool (PERMISSION_DENIED, TOOL_NOT_ALLOWED) ให้บอกความหมายเป็นไทย · production build port 3182 effort medium ข้อมูลรอบ 8: คำตอบเรื่องขอบเขตใช้ "อยู่นอกขอบเขตข้อมูล" ไม่มีรหัส
 - **ระดับ:** ต่ำ · **หมวด:** `wording` · **บทบาท:** u_ton (IT admin)
 - **อาการ:** The reply reads '…ระบบจะปฏิเสธการเข้าถึง (PERMISSION_DENIED)…'.
 - **ที่ควรเป็น:** Thai wording only.
@@ -3643,7 +3643,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-278. The IT activity row for the chat-confirmed send cuts the card title to '…เทรดด…'
 
-- **สถานะ:** เปิด (ใหม่) · เดิม AI-242
+- **สถานะ:** แก้แล้ว `8053010` · เดิม AI-242 · สาเหตุ (ยืนยันแล้ว): lib/server/audit.ts ตัดค่า args ที่ 80 ตัวอักษร และ lib/server/activity.ts matterTitle ใช้ title จาก args ก่อน shares.json · แก้: ใช้ชื่อเรื่องที่เก็บไว้ก่อน args เป็นสำรองเมื่อเรื่องถูกลบ
 - **ระดับ:** ต่ำ · **หมวด:** `ui` · **บทบาท:** u_ton (IT admin), run sheet chat option step 5
 - **อาการ:** The CEO's 09:26 'ส่งเรื่อง' row has a clipped subject_label, while the forward and accept rows of the same matter show the full title. The console Audit panel shows the same clipping.
 - **ที่ควรเป็น:** The same full title on every row of one matter.
@@ -3654,7 +3654,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-279. The 'who was denied' half of the IT question appears only in the text; the card shows activity only
 
-- **สถานะ:** เปิด (ใหม่)
+- **สถานะ:** แก้แล้ว `8053010` · สาเหตุ (ยืนยันแล้ว): components/chat/tool-view.ts isEmptyAnswer ไม่วาดผลที่ไม่มีแถว · แก้: รายงานของ admin_audit บอก `drawsWhenEmpty` จึงวาดการ์ด "การปฏิเสธ · ไม่มีใครถูกปฏิเสธใน 7 วันล่าสุด" ก่อนการ์ดกิจกรรม (ภาพหน้าจอ production build 393 px)
 - **ระดับ:** ต่ำ · **หมวด:** `card-fit` · **บทบาท:** u_ton (IT admin)
 - **อาการ:** The query returned 0 denials and 8 activity rows. The card draws only the feed. The reply leaves out the CEO's pin and does not say that คุณกฤต accepted.
 - **ที่ควรเป็น:** A denial line ('ไม่มีใครถูกปฏิเสธ') on the card next to the feed.
@@ -3676,7 +3676,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-281. Chat cards still show a black 'ส่งให้คุณอนุชา' after the card was sent, and the reply offers to send again
 
-- **สถานะ:** แก้แล้ว `552e872` · เดิม AI-252: การ์ดที่ส่งให้คุณอนุชาแล้วไม่มีปุ่มส่งให้คุณอนุชาซ้ำ ปุ่มหลักเป็นขั้นต่อไปแทน (คำเสนอส่งซ้ำในข้อความยังเป็นงานของ prompt)
+- **สถานะ:** แก้แล้ว `552e872` · เดิม AI-252: การ์ดที่ส่งให้คุณอนุชาแล้วไม่มีปุ่มส่งให้คุณอนุชาซ้ำ ปุ่มหลักเป็นขั้นต่อไปแทน (คำเสนอส่งซ้ำในข้อความยังเป็นงานของ prompt) · ข้อความ: กฎ `abf8803` ห้ามเสนอส่งการ์ดที่ผู้รับมีแล้วซ้ำ ยังไม่ได้วัดกับโมเดล
 - **ระดับ:** ต่ำ · **หมวด:** `write-flow` · **บทบาท:** u_thana (chain alt-1), u_krit (break-2)
 - **อาการ:** Card 1 shows 'ส่งแล้ว' to คุณอนุชา but still offers the black send button, and the anomaly card offers another. The reply ends 'ต้องการให้ส่งการ์ดนี้ให้คุณอนุชา…ไหมครับ'. A presenter could tap it and raise a third send.
 - **ที่ควรเป็น:** No primary send to someone who already holds the card, or a run sheet line that names this button.
@@ -3752,7 +3752,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-288. The admin usage tab shows the repository path 'docs/pilot.md' to users
 
-- **สถานะ:** เปิด (ใหม่) · นอกเส้นทางเดโม
+- **สถานะ:** แก้แล้ว `8053010` · นอกเส้นทางเดโม · แก้: ตัด docs/pilot.md และ docs/sso.md ออกจากข้อความ UI และ lib/i18n/th.test.ts ตรวจว่าไม่มี path ของ repo ในข้อความ UI
 - **ระดับ:** ต่ำ · **หมวด:** `wording` · **บทบาท:** u_ton (IT admin console)
 - **อาการ:** The usage note reads 'เกณฑ์หยุดอยู่ใน docs/pilot.md'.
 - **ที่ควรเป็น:** No internal file path in the UI.
