@@ -3,7 +3,7 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { findUser } from "@/lib/data/entities/users";
 import { TH } from "@/lib/i18n/th";
-import type { ShareContact, ShareReceipt, ShareTarget } from "@/lib/share/card";
+import { cardRefOf, type ShareContact, type ShareReceipt, type ShareTarget } from "@/lib/share/card";
 
 let pathname = "/c/one";
 mock.module("next/navigation", () => ({ usePathname: () => pathname, useRouter: () => ({ push: () => {}, refresh: () => {} }) }));
@@ -79,6 +79,26 @@ describe("after a card is sent (AI-197)", () => {
     expect(receipt?.className ?? "").not.toContain("fixed");
     expect(receipt?.textContent).toContain(RECEIPT.name);
     expect(document.querySelectorAll("[data-share-sent]")).toHaveLength(1);
+  });
+});
+
+describe("a card the person already sent (AI-209)", () => {
+  test("reads as sent with its receipt when the page is drawn again, from what the server says they sent, not from memory", async () => {
+    const spy = spyOn(globalThis, "fetch").mockImplementation((async (url: string, init?: RequestInit) => {
+      if (url === "/api/shares" && (init?.method ?? "GET") === "GET") return Response.json({ sent: [{ ref: cardRefOf(TARGET.card), path: "/s/abc", receipts: [RECEIPT] }] });
+      return Response.json({});
+    }) as unknown as typeof fetch);
+    const { host } = mount(
+      <ShareProvider open>
+        <ShareChrome target={TARGET}>
+          <Card props={{ title: "ปริมาณขายเข้า", footnote: "1–26 พ.ย." }} />
+        </ShareChrome>
+      </ShareProvider>,
+    );
+    await settle();
+    spy.mockRestore();
+    expect(pillOf(host)?.textContent).toContain(TH.share.sentButton);
+    expect(host.querySelector("[data-share-sent]")?.textContent).toContain(RECEIPT.name);
   });
 });
 
