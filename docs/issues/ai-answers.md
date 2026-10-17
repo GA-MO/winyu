@@ -2708,14 +2708,14 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 | AI-222 (เดิม AI-174) | ต่ำ | ยังเสีย | The explain_gap card puts the 64.6% hero right under the headline's 64.2% share |
 | AI-223 (เดิม AI-192) | ต่ำ | เปิด (ใหม่) | Wording: double signs ('ลดลง -9.3%'), raw '(P1)', unnamed periods ('ช่วงนี้/งวดก่อน'), and a forward button named รายภาค on a รายเอเย่นต์ card |
 | AI-224 (เดิม AI-186) | ต่ำ | เปิด (ใหม่) | The rep's month-total card offers a send prefilled with an ask about one agent's Singha/Leo alert |
-| AI-225 (เดิม AI-160) | ต่ำ | เปิด (ใหม่) | The IT denials card counts a blocked contradictory send as a denial with no reason, and the overview shows raw codes ('ASK_CONTRADICTS_CARD', 'Out of scope') |
-| AI-226 (เดิม AI-196) | ต่ำ | ยังเสีย | On a phone, the Admin tab row shows 'Audi' cut at the edge before Audit is selected |
+| AI-225 (เดิม AI-160) | ต่ำ | แก้แล้ว `45373ae` | The IT denials card counts a blocked contradictory send as a denial with no reason, and the overview shows raw codes ('ASK_CONTRADICTS_CARD', 'Out of scope') |
+| AI-226 (เดิม AI-196) | ต่ำ | แก้แล้ว `8939288` | On a phone, the Admin tab row shows 'Audi' cut at the edge before Audit is selected |
 | AI-227 (เดิม AI-193) | ต่ำ | ยังเสีย | The run sheet's wording differs from the screen: switch vs checkbox, line label, Korat story, login '1 ถึง 4', IT timing, ส่ง under the composer, no 'ด่วน' on the bell item, 4 update rows |
 | AI-228 (เดิม AI-173) | ต่ำ | เปิด (ใหม่) | Change and target strips leave near-top movers unlabelled, and a brand pace card shows four empty rows |
 | AI-229 (เดิม AI-157) | ต่ำ | เปิด (ใหม่) | CEO landing tiles mix October volume with November value |
 | AI-230 (เดิม AI-198) | ต่ำ | เปิด (ใหม่) · นอกเส้นทางเดโม | The South-agent send approval warns 'ส่วนที่เหลือถูกล็อก' although the agent is fully in the recipient's scope |
 | AI-231 (เดิม AI-187) | ต่ำ | เปิด (ใหม่) · นอกเส้นทางเดโม | The rep's starter dashboard card joins 5 scope names into its headline and uses the pace base beside the month-base card |
-| AI-232 | ต่ำ | เปิด (ใหม่) · นอกเส้นทางเดโม | IT usage figures differ between surfaces (4 vs 5 users), and answered admin, send and pin requests are listed as unanswered |
+| AI-232 | ต่ำ | แก้แล้ว `45373ae` · นอกเส้นทางเดโม | IT usage figures differ between surfaces (4 vs 5 users), and answered admin, send and pin requests are listed as unanswered |
 
 ### AI-203. A matter shows two numbers for one viewer: the rep's inbox says 77.3% (RSM's whole region), but the matter page shows 72.6% over his 4 agents, labelled 'รวมทุกเอเย่นต์'
 
@@ -2965,7 +2965,8 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-225. The IT denials card counts a blocked contradictory send as a denial with no reason, and the overview shows raw codes ('ASK_CONTRADICTS_CARD', 'Out of scope')
 
-- **สถานะ:** เปิด (ใหม่) · เดิม AI-160
+- **สถานะ:** แก้แล้ว `45373ae` · เดิม AI-160
+- **การแก้:** การส่งที่ระบบกันไว้ตรวจก่อน (ASK_CONTRADICTS_CARD และรหัสตรวจก่อนส่งอื่น) บันทึกเป็น allow พร้อมรหัส ไม่นับเป็นการปฏิเสธ การ์ดและหน้า Admin แสดงเหตุผลภาษาไทยจากตารางเดียว ไม่แสดงรหัสดิบ (แถว deny เก่าที่บันทึกก่อนแก้ยังอยู่ แต่ขึ้นป้าย 'ตรวจก่อนส่ง' แทนรหัส)
 - **ระดับ:** ต่ำ · **หมวด:** `wording` · **บทบาท:** u_ton (IT admin)
 - **อาการ:** The row shows a red 'ไม่สำเร็จ' even though the tool row has a reason.
 - **ที่ควรเป็น:** Label it as a send check, show the reason, and use Thai labels.
@@ -2976,7 +2977,8 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-226. On a phone, the Admin tab row shows 'Audi' cut at the edge before Audit is selected
 
-- **สถานะ:** ยังเสีย · เดิม AI-196
+- **สถานะ:** แก้แล้ว `8939288` · เดิม AI-196
+- **การแก้:** บนมือถือแถบกลุ่มของ Admin เป็นห้าช่องเท่ากัน ไอคอนอยู่เหนือชื่อ เห็นครบทั้งห้ากลุ่มโดยไม่ต้องเลื่อน (ตรวจที่ 375, 393, 640 และ 1360 px)
 - **ระดับ:** ต่ำ · **หมวด:** `ui` · **บทบาท:** u_ton (chain step 5)
 - **อาการ:** Audit is only fully visible once it is selected. The live-refresh half is fixed (5.2 s). A chip on the Overview looks like the target but sends a chat command.
 - **ที่ควรเป็น:** Audit is fully visible on first load at 393 px.
@@ -3040,7 +3042,8 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-232. IT usage figures differ between surfaces (4 vs 5 users), and answered admin, send and pin requests are listed as unanswered
 
-- **สถานะ:** เปิด (ใหม่) · นอกเส้นทางเดโม
+- **สถานะ:** แก้แล้ว `45373ae` · นอกเส้นทางเดโม
+- **การแก้:** หน้าภาพรวมและ user_usage นับคนจากชุดเดียวกัน (ทำอะไรใน Winyu หรือเรียกเครื่องมือใน 7 วัน) คำถามที่เครื่องมือใดตอบได้ไม่ถูกนับว่ายังตอบไม่ได้ และเวลาตอบกลับต่ำกว่าชั่วโมงแสดงเป็นนาที
 - **ระดับ:** ต่ำ · **หมวด:** `grounding` · **บทบาท:** u_ton (IT admin)
 - **อาการ:** user_usage reports 4 users, and the overview reports 5 จาก 26. The usage tab misfiles answered requests and shows a 0.0 ชม. median.
 - **ที่ควรเป็น:** Each figure names its basis. Requests answered by non-semantic tools count as answered.
