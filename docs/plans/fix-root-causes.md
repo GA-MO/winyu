@@ -36,6 +36,15 @@ Stop when a round on the four demo roles (CEO, RSM อีสาน, sales rep �
 - [x] **Card-fit audit** ($0) over the 63 recorded cases and the 75 sim screenshots; rules R1–R10 in [`card-fit.md`](card-fit.md).
 - [x] **Card-fit fix** from that rule set.
 
+## Round 7 fixes (after round 6, 2026-10-17)
+
+Round 6 walked the production-build run sheet in four windows and replayed the round-5 failures ($0.42 plus $0.21 for the morning investigation): 20 fixed, 8 still broken, 22 new. No high is open and every run-sheet step passes; 17 medium findings remain on the demo path, mostly one figure shown two ways. Packages, by files:
+- [ ] **J1 matter and share state** (AI-203, AI-208, AI-209, AI-210, AI-215, AI-220, AI-224, AI-230): a matter shows its receiver one number everywhere; a send about one agent opens on that agent with a goal that follows it; "ส่งแล้ว" survives navigation; an open bell panel refreshes; a pin says what it replaces; approval warnings follow the final ask.
+- [ ] **J2 cards and tiles** (AI-204 card part, AI-205, AI-206, AI-212, AI-213, AI-221, AI-222, AI-223, AI-228, AI-229, AI-231): month-end tiles carry the month-end shortfall, the landing tile names a forecast, balance metrics keep the running month, visit priority shows its basis, a year-target question gets the year-end answer, labels and signs.
+- [ ] **J3 what the model reads, and speed** (AI-204 text part, AI-207, AI-211, AI-214, AI-216, AI-217, AI-218): one base for multi-row target answers, the projection's own shortfall, no reference to a hidden button, a checked reason for a weekly drop, demo turns under 40 s.
+- [ ] **J4 IT** (AI-225, AI-226, AI-232): Thai reasons for blocked sends in the denials card, the tab row at phone width before Audit is chosen, one usage count across surfaces.
+- [ ] then the run sheet against the screens (AI-219, AI-227).
+
 ## Round 6 fixes (after round 5, 2026-10-17)
 
 Round 5 replayed the round-4 failures per role and walked the rewritten run sheet in four windows on a production build at medium reasoning ($0.37 plus $0.40 for two morning investigations): 17 fixed, 16 still broken, 18 new. Run-sheet steps 1 to 5 pass end to end. The stop condition does not hold: one high on the demo path (AI-167, a chat send about one agent attaches the region card with a deictic ask, so the matter never names the agent) and 15 medium. Packages, by files:

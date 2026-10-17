@@ -2677,3 +2677,374 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 - **หลักฐาน:**
 	- I1 and I3 reports (round 6)
 - **สาเหตุ:** guess: shared state or timing with other files in a full run.
+
+## รอบทดสอบที่ 6 (2026-10-17) เฉพาะเส้นทางเดโม บน production build
+
+เดิน run sheet ฉบับ production build ใน 4 หน้าต่างก่อน แล้วบทบาท 4 คนเล่นซ้ำ turn ที่เสียในรอบ 5 server `:3110` commit `2ad9956` ข้อมูล seed ใหม่ สืบตอนเช้า $0.21 ค่าโมเดลรอบทดสอบ $0.42 ผล: แก้แล้ว 20 · ยังเสีย 8 · ใหม่ 22 · ไม่มีข้อระดับสูงเปิดอยู่ · run sheet เดินผ่านทุกขั้น (กับดักเดียว: แผงกระดิ่งที่เปิดค้างไม่อัปเดต) · เงื่อนไขหยุดยังไม่ผ่าน (กลางบนเส้นทางเดโม 17 ข้อ)
+
+ยืนยันกับโมเดลแล้วว่าแก้แล้ว: AI-167, AI-168, AI-169, AI-170, AI-171, AI-172, AI-173, AI-175, AI-180, AI-181, AI-183, AI-184, AI-178, AI-177, AI-195, AI-185, AI-187, AI-188, AI-191, AI-192, AI-200, AI-198
+
+| ข้อ | ระดับ | สถานะ | ปัญหา |
+|---|---|---|---|
+| AI-203 (เดิม AI-201) | กลาง | เปิด (ใหม่) | A matter shows two numbers for one viewer: the rep's inbox says 77.3% (RSM's whole region), but the matter page shows 72.6% over his 4 agents, labelled 'รวมทุกเอเย่นต์' |
+| AI-204 (เดิม AI-185) | กลาง | เปิด (ใหม่) | The month-end figure is paired with the to-date gap: '87.5% … ขาดอีก 96.4 ล้านบาท', and 'ขาดอีก' tiles are sub-labelled 'ของเป้าทั้งเดือน' |
+| AI-205 (เดิม AI-171) | กลาง | เปิด (ใหม่) | After the CEO's month-close pin, the landing tile shows the 96.3% forecast labelled as a plain total ('มูลค่าขายเข้า รวมทั้งหมด · พ.ย.') |
+| AI-206 (เดิม AI-170) | กลาง | เปิด (ใหม่) | The RSM overdue card drops November and leads with a green October fall, while the text says overdue rose in November and confirms the credit hypothesis |
+| AI-207 (เดิม AI-141) | กลาง | เปิด (ใหม่) | The multi-row ถามต่อ reply quotes the paced-base 40.3%/39.5% while the card shows 51.7%/52.4% of the month target; the probe text has −10.8% that is on no card |
+| AI-208 (เดิม AI-167) | กลาง | ยังเสีย | The RSM's 'visit ขอนแก่นมหาชัย' matter carries the whole-team card, whose headline and drill name a different agent, and its auto-close goal is the whole Isan region |
+| AI-209 (เดิม AI-197) | กลาง | ยังเสีย | The CEO's green 'ส่งแล้ว' disappears after navigation, so the Isan card can be sent twice |
+| AI-210 | กลาง | เปิด (ใหม่) | An open bell panel never refreshes: the badge shows 1 while the panel reads 'ไม่มีเรื่องรอคุณ' |
+| AI-211 (เดิม AI-191) | กลาง | เปิด (ใหม่) | The RSM's 'ภาคใต้เทียบอีสาน' reply says to press the request-access button on the card, but the denied card is hidden |
+| AI-212 (เดิม AI-182) | กลาง | ยังเสีย | The visit-priority card leads with 'ปริมาณขายเข้า −89%' without brands or window, and each row has a second, unlabelled % |
+| AI-213 (เดิม AI-174) | กลาง | เปิด (ใหม่) | The CEO's 'ทั้งปีนี้ยอดขายจะถึงเป้าไหม' gets a non-answer: no year-end projection, no amount left, no worst month |
+| AI-214 (เดิม AI-190) | กลาง | ยังเสีย | The CEO's 'ทำไมตกอะ' (week) still gives no checked reason, and the headline names Bangkok as the main drag at 23.0% vs Isan 22.9% |
+| AI-215 | กลาง | เปิด (ใหม่) | A pin silently replaces another pinned card of the same metric; neither the approval nor the reply says so |
+| AI-216 (เดิม AI-180) | กลาง | เปิด (ใหม่) | The RSM delegation turn takes 52.8 s before the rebuttal |
+| AI-217 (เดิม AI-180) | กลาง | เปิด (ใหม่) | The rep's visit-priority turn takes 44.2 s |
+| AI-218 (เดิม AI-180) | กลาง | เปิด (ใหม่) | The CEO's send to the South RSM takes 40.9 s to the approval |
+| AI-219 (เดิม AI-193) | กลาง | ยังเสีย | The run sheet does not say the matter actions are below the fold; the biggest button in view starts a model call |
+| AI-220 (เดิม AI-168) | ต่ำ | เปิด (ใหม่) | The RSM→rep approval keeps the 'ตกหนัก' warning after the ask was rewritten; the '-1.6%' headline has an ASCII hyphen and no colour |
+| AI-221 (เดิม AI-169) | ต่ำ | เปิด (ใหม่) | The CEO risk answer: the DC-average cover card calms ('ยังเกิน 10 วัน') above a P1 6.3-day stock-out at the same DC, and the list shows upside rows |
+| AI-222 (เดิม AI-174) | ต่ำ | ยังเสีย | The explain_gap card puts the 64.6% hero right under the headline's 64.2% share |
+| AI-223 (เดิม AI-192) | ต่ำ | เปิด (ใหม่) | Wording: double signs ('ลดลง -9.3%'), raw '(P1)', unnamed periods ('ช่วงนี้/งวดก่อน'), and a forward button named รายภาค on a รายเอเย่นต์ card |
+| AI-224 (เดิม AI-186) | ต่ำ | เปิด (ใหม่) | The rep's month-total card offers a send prefilled with an ask about one agent's Singha/Leo alert |
+| AI-225 (เดิม AI-160) | ต่ำ | เปิด (ใหม่) | The IT denials card counts a blocked contradictory send as a denial with no reason, and the overview shows raw codes ('ASK_CONTRADICTS_CARD', 'Out of scope') |
+| AI-226 (เดิม AI-196) | ต่ำ | ยังเสีย | On a phone, the Admin tab row shows 'Audi' cut at the edge before Audit is selected |
+| AI-227 (เดิม AI-193) | ต่ำ | ยังเสีย | The run sheet's wording differs from the screen: switch vs checkbox, line label, Korat story, login '1 ถึง 4', IT timing, ส่ง under the composer, no 'ด่วน' on the bell item, 4 update rows |
+| AI-228 (เดิม AI-173) | ต่ำ | เปิด (ใหม่) | Change and target strips leave near-top movers unlabelled, and a brand pace card shows four empty rows |
+| AI-229 (เดิม AI-157) | ต่ำ | เปิด (ใหม่) | CEO landing tiles mix October volume with November value |
+| AI-230 (เดิม AI-198) | ต่ำ | เปิด (ใหม่) · นอกเส้นทางเดโม | The South-agent send approval warns 'ส่วนที่เหลือถูกล็อก' although the agent is fully in the recipient's scope |
+| AI-231 (เดิม AI-187) | ต่ำ | เปิด (ใหม่) · นอกเส้นทางเดโม | The rep's starter dashboard card joins 5 scope names into its headline and uses the pace base beside the month-base card |
+| AI-232 | ต่ำ | เปิด (ใหม่) · นอกเส้นทางเดโม | IT usage figures differ between surfaces (4 vs 5 users), and answered admin, send and pin requests are listed as unanswered |
+
+### AI-203. A matter shows two numbers for one viewer: the rep's inbox says 77.3% (RSM's whole region), but the matter page shows 72.6% over his 4 agents, labelled 'รวมทุกเอเย่นต์'
+
+- **สถานะ:** เปิด (ใหม่) · เดิม AI-201
+- **ระดับ:** กลาง · **หมวด:** `grounding` · **บทบาท:** u_krit (sales rep) receiving u_anucha's matter Ck66Abr7insK
+- **อาการ:** The inbox hero reads '77.3% ของเป้าทั้งเดือน'. When /s/Ck66Abr7insK is opened, the reads are narrowed to krit's 4 agents and show 72.6% 'รวมทุกเอเย่นต์' with 4 rows. Neither number is the card the RSM saw (8 agents, limit 5).
+- **ที่ควรเป็น:** The inbox and the matter page show the same card, within the receiver's scope (northeast: 8 agents, 77.3%).
+- **หลักฐาน:**
+	- acd78274 inbox hero 77.3%
+	- shares.json Ck66Abr7insK reads region filter only
+	- run de1bed76
+	- r6-runs/rep/t5.png, t6-matter.png
+- **สาเหตุ:** verified: lib/server/share/view.ts:70-72 runs the share's reads with turn.question = share.question (the sender's 'ทีมผม…'). Then lib/server/tools/query-metric.ts:121 and :46-54 (ownBookQuery) match the VIEWER's sales_rep role against the SENDER's first person and narrow to krit's agents. The inbox hero (lib/server/tools/inbox.ts:58 → lib/server/share/goal.ts:33-35,57) runs runMetric with no turn, so it is not narrowed.
+
+### AI-204. The month-end figure is paired with the to-date gap: '87.5% … ขาดอีก 96.4 ล้านบาท', and 'ขาดอีก' tiles are sub-labelled 'ของเป้าทั้งเดือน'
+
+- **สถานะ:** เปิด (ใหม่) · เดิม AI-185
+- **ระดับ:** กลาง · **หมวด:** `grounding` · **บทบาท:** u_anucha (RSM), u_krit (sales rep)
+- **อาการ:** The RSM text reads 'จะปิดสิ้นเดือนได้ประมาณ 87.5% ของเป้าทั้งเดือน (ขาดอีก 96.4 ล้านบาท)'. The 96.4 is the gap from today. The month-end shortfall at 87.5% is 52.9. The Isan scorecard and the pinned month_end widget show 'ขาดอีก 96.4 ล้านบาท / ของเป้าทั้งเดือน' beside 'คาดสิ้นเดือน 87.5%'. The rep's cards show '0.93 ล้านลิตร / ของเป้าทั้งเดือน' and '12.2 ล้านบาท / ของเป้าทั้งเดือน', which reads as if the shortfall were a share of the target. (Merged: review 1 AI-185 text half, and review 2's tile sub-label.)
+- **ที่ควรเป็น:** The month-end figure carries its own shortfall, or the tile says 'ถึงวันนี้ยังขาด … ถึงเป้าทั้งเดือน'.
+- **หลักฐาน:**
+	- run b24a213c explain_gap projection remaining_label 'เหลืออีก 96.4 ล้านบาท ถึงเป้าทั้งเดือน'
+	- r6-runs/rsm/s1t3.png, s2t2-card.png, s2probe-dashboard.png
+	- r6-runs/rep/t1.png, t4-dashboard.png, t6.png
+- **สาเหตุ:** guess: the projection block in query_metric/explain_gap carries the to-date remaining_label, and the month_end scorecard (lib/cards/present.ts:579) gives every tile the hero's 'ของเป้าทั้งเดือน' sub-label.
+
+### AI-205. After the CEO's month-close pin, the landing tile shows the 96.3% forecast labelled as a plain total ('มูลค่าขายเข้า รวมทั้งหมด · พ.ย.')
+
+- **สถานะ:** เปิด (ใหม่) · เดิม AI-171
+- **ระดับ:** กลาง · **หมวด:** `grounding` · **บทบาท:** u_thana (CEO)
+- **อาการ:** The landing tile reads 'มูลค่าขายเข้า รวมทั้งหมด · พ.ย. 96.3% ของเป้าทั้งเดือน' and has no forecast word. The actual to date is 83.9%, so a viewer reads the projection as achieved. The dashboard row title is cut at 'คาดการณ์มูลค่าขา…'.
+- **ที่ควรเป็น:** The tile names the projection ('คาดปิดเดือน 96.3%', 83.9% so far).
+- **หลักฐาน:**
+	- run 466aa252 pin_widget {kind:month_end}
+	- r6-runs/ceo/s1t3-landing-after.png, s1t3-dashboard.png
+- **สาเหตุ:** verified: lib/server/dashboard.ts:210-220 landingKpis labels each tile with subjectOf(widget.query) and takes the hero from presentCard(view: widget.kind). Neither widget.kind nor the widget title reaches the label.
+
+### AI-206. The RSM overdue card drops November and leads with a green October fall, while the text says overdue rose in November and confirms the credit hypothesis
+
+- **สถานะ:** เปิด (ใหม่) · เดิม AI-170
+- **ระดับ:** กลาง · **หมวด:** `grounding` · **บทบาท:** u_anucha (RSM)
+- **อาการ:** The rows run Jun 4.5, Jul 5.5, Aug 3.7, Sep 3.2, Oct 2.3, Nov 2.9 ล้านบาท. The hero reads 'ต.ค. 69 ลดลง 27.3%' in green, the line ends at ต.ค., and the November balance is labelled 'ทั้งช่วง 2.9 ล้านบาท'. The text says overdue 'เพิ่มขึ้นในเดือน พ.ย. สอดคล้องกับสมมติฐานเรื่องปัญหาเครดิต', but November is low against Jun–Sep.
+- **ที่ควรเป็น:** A balance metric keeps its current-month point. The card and the text describe the same movement, and the hypothesis stays hedged.
+- **หลักฐาน:**
+	- run 57ce7fac query_metric ar_overdue dims [month]
+	- r6-runs/rsm/s2t1-overdue.png
+- **สาเหตุ:** verified in part: lib/cards/present.ts:199-217 partialBucketKey drops the running month for every month-grain series, balance metrics included. guess: the 'sum' headline for a balance metric takes the latest value but labels it as the range total.
+
+### AI-207. The multi-row ถามต่อ reply quotes the paced-base 40.3%/39.5% while the card shows 51.7%/52.4% of the month target; the probe text has −10.8% that is on no card
+
+- **สถานะ:** เปิด (ใหม่) · เดิม AI-141
+- **ระดับ:** กลาง · **หมวด:** `grounding` · **บทบาท:** u_thana (chain alt step 6), u_anucha (probe)
+- **อาการ:** The prose says 'ต่ำกว่าเป้าตามเวลาถึง 40.3% และ 39.5%', which is the rows' delta_pct on the paced base. The card's base is the share of the whole month's target. Review 1 saw the same thing in the probe: the text says −10.8% on the pace base, and the card shows 77.3% against 86.7%.
+- **ที่ควรเป็น:** The text uses the card's base.
+- **หลักฐาน:**
+	- thread 8626d334 rows delta_pct -40.3, -39.5
+	- r6-runs/chain/21-ceo-askmore-done.png
+	- thread 036b6263 reply 23:40:00
+- **สาเหตุ:** verified: lib/server/tools/query-metric.ts:81 oneBaseForModel returns early unless rows.length === 1, so multi-row target breakdowns still pass paced compare_value/delta_pct to the model. The one-row probe case is unexplained (guess: projection fields still expose the paced delta).
+
+### AI-208. The RSM's 'visit ขอนแก่นมหาชัย' matter carries the whole-team card, whose headline and drill name a different agent, and its auto-close goal is the whole Isan region
+
+- **สถานะ:** ยังเสีย · เดิม AI-167
+- **ระดับ:** กลาง · **หมวด:** `chain` · **บทบาท:** u_anucha → u_krit
+- **อาการ:** The title and ask name ขอนแก่นมหาชัย (fixed). The card is the team attainment card (region + agent, limit 5). On the rep's matter page it reads 'หนักสุดอีสานรุ่งโรจน์ ค้าส่ง' and offers 'ทำไมภาคอีสานถึงเป็นแบบนี้'. ขอนแก่นมหาชัย is an ordinary row. The goal is ≥100% of the Isan region query, so 'ระบบจะปิดงานให้อัตโนมัติ…' refers to the region. The CEO's one-agent send (ctaiyEpTAdxw) did filter to its agent.
+- **ที่ควรเป็น:** A send about one agent opens on, or highlights, that agent. The headline, primary drill and goal follow the focus.
+- **หลักฐาน:**
+	- shares.json Ck66Abr7insK reads region+agent limit 5, focus ['ขอนแก่นมหาชัย'], goal.query filters {region:[northeast]}
+	- r6-runs/rep/t6-matter.png
+	- r6-runs/rsm/s1t2b.png
+- **สาเหตุ:** guess: focus feeds only the title, ask, approval and inbox (lib/server/share/deliver.ts, lib/server/tools/send-card.ts). The card reads and the goal come from the on-screen card's first read.
+
+### AI-209. The CEO's green 'ส่งแล้ว' disappears after navigation, so the Isan card can be sent twice
+
+- **สถานะ:** ยังเสีย · เดิม AI-197
+- **ระดับ:** กลาง · **หมวด:** `run-sheet` · **บทบาท:** presenter, u_thana (chain step 1)
+- **อาการ:** After leaving the page and coming back, the card showed plain 'ส่งต่อ' again and the receipt was gone. Run sheet 1.5 says it stays 'จนกว่าจะกด ✕'.
+- **ที่ควรเป็น:** The sent state is rebuilt from the server, so it survives navigation and reload.
+- **หลักฐาน:**
+	- r6-runs/chain/03-ceo-sent.png
+	- commit 24531fe
+- **สาเหตุ:** verified in part: 24531fe keeps the sent state in client ShareProvider memory (components/ui/card-share.tsx, components/share/share-sheet.tsx). guess: nothing rebuilds it from shares.json on mount.
+
+### AI-210. An open bell panel never refreshes: the badge shows 1 while the panel reads 'ไม่มีเรื่องรอคุณ'
+
+- **สถานะ:** เปิด (ใหม่)
+- **ระดับ:** กลาง · **หมวด:** `run-sheet` · **บทบาท:** presenter, u_krit (chain step 10)
+- **อาการ:** Matter 2 arrived while the panel was open. The badge showed 1, but the panel stayed empty until ✕ and reopen. The sheet's 'ถ้าเกิดเหตุ' table does not cover this.
+- **ที่ควรเป็น:** The open panel polls on the bell's cadence, or the sheet says to close it after each step.
+- **หลักฐาน:**
+	- r6-runs/chain/27-rep-bell2-stale-open.png
+- **สาเหตุ:** verified: components/notifications/bell-popover.tsx:215-217 calls load() on mount and after an action only. It has no interval or visibility refresh.
+
+### AI-211. The RSM's 'ภาคใต้เทียบอีสาน' reply says to press the request-access button on the card, but the denied card is hidden
+
+- **สถานะ:** เปิด (ใหม่) · เดิม AI-191
+- **ระดับ:** กลาง · **หมวด:** `permission-ux` · **บทบาท:** u_anucha (RSM)
+- **อาการ:** The South query was denied with a request_access nextAction. Only the Isan card was drawn. The text says to press 'ปุ่มบนการ์ด' and that the Isan card is 'ด้านล่าง', but the card sits above the text.
+- **ที่ควรเป็น:** The denied card with 'ขอสิทธิ์จากคุณประสิทธิ์' is drawn beside the Isan card.
+- **หลักฐาน:**
+	- run 60e592c8 query_metric {region:south} PERMISSION_DENIED with nextActions
+	- r6-runs/rsm/s2t2-card.png, s2t2.png
+- **สาเหตุ:** verified: components/chat/tool-view.ts:126-137 retried() counts any later success of the same tool name as recovery, whatever its arguments. recoveredFailures() therefore hides the denial and overrides drawsNoCard's refusal-with-nextActions exception (line 62).
+
+### AI-212. The visit-priority card leads with 'ปริมาณขายเข้า −89%' without brands or window, and each row has a second, unlabelled %
+
+- **สถานะ:** ยังเสีย · เดิม AI-182
+- **ระดับ:** กลาง · **หมวด:** `card-fit` · **บทบาท:** u_krit (sales rep)
+- **อาการ:** The text correctly says Singha and Leo fell 89% (14–26 พ.ย.). The card reads as the whole agent falling 89% (the daily card shows −65.9%, and 28 days −9.5%). The trailing −9.5% / −8.9% has no basis label.
+- **ที่ควรเป็น:** Each figure carries its basis (the alert_label, and '28 วันเทียบ 28 วันก่อน').
+- **หลักฐาน:**
+	- run 4c7ba508 visit_plan rows reason vs alert_label
+	- r6-runs/rep/t3b.png
+- **สาเหตุ:** verified: lib/server/tools/visit-plan.ts:33 sets reason = stop.reason (no brands, no window), and :57 copies it into metrics[0].detail. The composed card ignores alert_label and sales_basis.
+
+### AI-213. The CEO's 'ทั้งปีนี้ยอดขายจะถึงเป้าไหม' gets a non-answer: no year-end projection, no amount left, no worst month
+
+- **สถานะ:** เปิด (ใหม่) · เดิม AI-174
+- **ระดับ:** กลาง · **หมวด:** `capability` · **บทบาท:** u_thana (CEO)
+- **อาการ:** The YTD lead is fixed (98.2% of pace). get_forecast for net_sales_value returned nothing, and the reply says it cannot conclude. The card is a 2-tile scorecard.
+- **ที่ควรเป็น:** The amount left to the annual target and a year-end projection at the recent pace, or at least the R12 series with the worst month.
+- **หลักฐาน:**
+	- run bf94fb75
+	- r6-data/forecasts.json has no net_sales_value series
+	- r6-runs/ceo/s2t1.png
+- **สาเหตุ:** verified in part: lib/server/tools/get-forecast.ts:40-42 returns NO_FORECAST, and the store has no net_sales_value forecast. guess: query_metric computes a projection only for this_month.
+
+### AI-214. The CEO's 'ทำไมตกอะ' (week) still gives no checked reason, and the headline names Bangkok as the main drag at 23.0% vs Isan 22.9%
+
+- **สถานะ:** ยังเสีย · เดิม AI-190
+- **ระดับ:** กลาง · **หมวด:** `wrong-answer` · **บทบาท:** u_thana (CEO)
+- **อาการ:** Only a region split was run. The text says the drop is spread evenly, while the headline names one main region. The scorecard repeats the gap hero, and the periods read 'ช่วงนี้/งวดก่อน'.
+- **ที่ควรเป็น:** Name a cause that was checked (channel, brand or agent), or say which splits were checked and found even. Name no 'main' region when the shares are tied.
+- **หลักฐาน:**
+	- run cd4c0cc6 explain_gap region 23.0/22.9/15.4/13.5/13.3%
+	- r6-runs/ceo/s2t2-all.png
+- **สาเหตุ:** guess: the R11 verdict always names the largest part, and the why rule does not require a second split when the first is even.
+
+### AI-215. A pin silently replaces another pinned card of the same metric; neither the approval nor the reply says so
+
+- **สถานะ:** เปิด (ใหม่)
+- **ระดับ:** กลาง · **หมวด:** `write-flow` · **บทบาท:** u_krit (sales rep), u_thana (CEO)
+- **อาการ:** The rep's pin unpinned 'เอเย่นต์ที่คุณดูแล' (pinned:false). The CEO's month_end pin replaced 'ยอดขายทั้งประเทศเทียบเป้า'. In both cases the tool summary said 'แทน …' but the approval and the reply did not. (Merged: review 2's finding with review 1's AI-171 note. The CEO case is on the demo path.)
+- **ที่ควรเป็น:** The approval states which card the pin replaces, and the reply repeats it. A by-agent table and a month total are not the same subject.
+- **หลักฐาน:**
+	- thread 2e353235 pin_widget summary
+	- layouts.json u_krit w_u_krit_agents pinned:false
+	- run 466aa252 summary 'แทน "ยอดขายทั้งประเทศเทียบเป้า"'
+- **สาเหตุ:** verified: lib/server/dashboard.ts:299-300 (displacedBy, onePinnedPerMetric) unpins any other widget of the same metric, and lib/server/tools/pin-widget.ts:43 reports it only in the summary. guess: the approval preview does not call displacedBy.
+
+### AI-216. The RSM delegation turn takes 52.8 s before the rebuttal
+
+- **สถานะ:** เปิด (ใหม่) · เดิม AI-180
+- **ระดับ:** กลาง · **หมวด:** `latency` · **บทบาท:** u_anucha (RSM)
+- **อาการ:** Step 1 reasoned for 26.3 s. The hold-back adds a third round (9.5 s + 15.4 s).
+- **ที่ควรเป็น:** 40 s or less.
+- **หลักฐาน:**
+	- run cfef8f5b 23:33:01.3→23:33:53.7
+- **สาเหตุ:** guess: model reasoning on step 1, plus the extra round from the AI-168 hold-back.
+
+### AI-217. The rep's visit-priority turn takes 44.2 s
+
+- **สถานะ:** เปิด (ใหม่) · เดิม AI-180
+- **ระดับ:** กลาง · **หมวด:** `latency` · **บทบาท:** u_krit (sales rep)
+- **อาการ:** The writing step reasoned for 5,105 tokens before it composed the a2ui card.
+- **ที่ควรเป็น:** 40 s or less.
+- **หลักฐาน:**
+	- runs.json 4c7ba508 44.213 s
+	- model-calls.json reasoning [529, 5105, 463, 0]
+- **สาเหตุ:** verified from model-calls.json: Gemini reasoning on the composed-card step. The AI-180 fix covered only query_metric's one-row target.
+
+### AI-218. The CEO's send to the South RSM takes 40.9 s to the approval
+
+- **สถานะ:** เปิด (ใหม่) · เดิม AI-180
+- **ระดับ:** กลาง · **หมวด:** `latency` · **บทบาท:** u_thana (CEO)
+- **อาการ:** It took three steps, because resolve_owner(ar_overdue) returned the finance analyst first. The recipient was correct.
+- **ที่ควรเป็น:** 40 s or less.
+- **หลักฐาน:**
+	- run 51e8624f 23:38:12.7→23:38:52.4
+- **สาเหตุ:** guess: resolve_owner resolves by metric, so finding the regional sales manager for an AR matter needed a second lookup.
+
+### AI-219. The run sheet does not say the matter actions are below the fold; the biggest button in view starts a model call
+
+- **สถานะ:** ยังเสีย · เดิม AI-193
+- **ระดับ:** กลาง · **หมวด:** `run-sheet` · **บทบาท:** presenter, u_anucha (chain step 2)
+- **อาการ:** รับ / ขอข้อมูลเพิ่ม / ส่งต่อ sit below the card. The black drill button is the most prominent control. Sheet 2.3-2.4 has no scroll step.
+- **ที่ควรเป็น:** The sheet says to scroll to ส่งต่อ, or the actions sit above the drill.
+- **หลักฐาน:**
+	- r6-runs/chain/08-rsm-forwarded.png
+	- docs/demo-run-sheet.md §2.3-2.4
+- **สาเหตุ:** verified by reading the sheet against the screen.
+
+### AI-220. The RSM→rep approval keeps the 'ตกหนัก' warning after the ask was rewritten; the '-1.6%' headline has an ASCII hyphen and no colour
+
+- **สถานะ:** เปิด (ใหม่) · เดิม AI-168
+- **ระดับ:** ต่ำ · **หมวด:** `write-flow` · **บทบาท:** u_anucha (RSM)
+- **อาการ:** The approved clean ask still showed the warning 'ข้อความบอกว่าขอนแก่นมหาชัยตกหนัก…'. (The goal-scope half is merged into the AI-167 finding.)
+- **ที่ควรเป็น:** Drop the warning once the corrected ask is accepted, or reword it as 'คุณเคยบอกว่า…'.
+- **หลักฐาน:**
+	- thread b379cb5e send_card data.warning
+	- r6-runs/rsm/s1t2b.png
+- **สาเหตุ:** verified: lib/server/tools/send-card.ts:176 recomputes contradiction(), and focusOf (line 99) includes chosen.said from the earlier question.
+
+### AI-221. The CEO risk answer: the DC-average cover card calms ('ยังเกิน 10 วัน') above a P1 6.3-day stock-out at the same DC, and the list shows upside rows
+
+- **สถานะ:** เปิด (ใหม่) · เดิม AI-169
+- **ระดับ:** ต่ำ · **หมวด:** `card-fit` · **บทบาท:** u_thana (CEO)
+- **อาการ:** The headline reads 'DC ลำพูน เหลือน้อยสุด 13.2 วัน', while the alert puts เพอร์ร่า at 6.3 days. Rows 3-4 are P3 soda spikes that the alert itself calls not abnormal.
+- **ที่ควรเป็น:** The DC card notes the SKU alert. A risk list leads with downside or P1/P2 rows.
+- **หลักฐาน:**
+	- run a357513a
+	- r6-runs/ceo/s1t2-all.png
+- **สาเหตุ:** guess: the R6 verdict ignores the turn's alerts, and the anomaly card orders rows by severity and size regardless of direction.
+
+### AI-222. The explain_gap card puts the 64.6% hero right under the headline's 64.2% share
+
+- **สถานะ:** ยังเสีย · เดิม AI-174
+- **ระดับ:** ต่ำ · **หมวด:** `card-fit` · **บทบาท:** u_krit (sales rep)
+- **อาการ:** 'ลีโอฉุดมากสุด 64.2%' sits above '64.6% ของเป้าทั้งเดือน': two near-identical percentages with different meanings.
+- **ที่ควรเป็น:** State the gap share in litres, or otherwise set it apart from attainment.
+- **หลักฐาน:**
+	- run 47061956
+	- r6-runs/rep/t2.png
+- **สาเหตุ:** guess: R11 names the largest part by its share. No check flags two close percentages.
+
+### AI-223. Wording: double signs ('ลดลง -9.3%'), raw '(P1)', unnamed periods ('ช่วงนี้/งวดก่อน'), and a forward button named รายภาค on a รายเอเย่นต์ card
+
+- **สถานะ:** เปิด (ใหม่) · เดิม AI-192
+- **ระดับ:** ต่ำ · **หมวด:** `wording` · **บทบาท:** u_thana (CEO), u_anucha (RSM)
+- **อาการ:** Examples: 'ต่ำกว่าเป้าตามเวลา -1.8%', 'ลดลง -9.3%', and '(P1)' in the RSM opener. The margin scorecard does not name October. The landing 26.9% and the chat 27.3% sit side by side with no explanation.
+- **ที่ควรเป็น:** One sign per change, Thai severity words, and named periods.
+- **หลักฐาน:**
+	- thread 036b6263, b379cb5e
+	- r6-runs/ceo/s1t1.png, s2probe-all.png
+- **สาเหตุ:** guess: the model copies the signed delta_pct after a direction word, and the prompt does not forbid severity codes.
+
+### AI-224. The rep's month-total card offers a send prefilled with an ask about one agent's Singha/Leo alert
+
+- **สถานะ:** เปิด (ใหม่) · เดิม AI-186
+- **ระดับ:** ต่ำ · **หมวด:** `chips` · **บทบาท:** u_krit (sales rep)
+- **อาการ:** The send ask on the 4-agent total card is 'ช่วยตรวจอีสานรุ่งโรจน์ ค้าส่ง · สิงห์, ลีโอ…'.
+- **ที่ควรเป็น:** The prefilled ask matches the card's subject.
+- **หลักฐาน:**
+	- thread 2e353235 fc4e6e29 nextActions
+	- r6-runs/rep/t4-dashboard.png
+- **สาเหตุ:** guess: actionsForMetric attaches the scope's open alert to every card in that scope.
+
+### AI-225. The IT denials card counts a blocked contradictory send as a denial with no reason, and the overview shows raw codes ('ASK_CONTRADICTS_CARD', 'Out of scope')
+
+- **สถานะ:** เปิด (ใหม่) · เดิม AI-160
+- **ระดับ:** ต่ำ · **หมวด:** `wording` · **บทบาท:** u_ton (IT admin)
+- **อาการ:** The row shows a red 'ไม่สำเร็จ' even though the tool row has a reason.
+- **ที่ควรเป็น:** Label it as a send check, show the reason, and use Thai labels.
+- **หลักฐาน:**
+	- thread 11707be8
+	- r6-runs/it/s1t1.png
+- **สาเหตุ:** guess: the denials topic includes every failed write, and the card omits reason when policy_label is empty.
+
+### AI-226. On a phone, the Admin tab row shows 'Audi' cut at the edge before Audit is selected
+
+- **สถานะ:** ยังเสีย · เดิม AI-196
+- **ระดับ:** ต่ำ · **หมวด:** `ui` · **บทบาท:** u_ton (chain step 5)
+- **อาการ:** Audit is only fully visible once it is selected. The live-refresh half is fixed (5.2 s). A chip on the Overview looks like the target but sends a chat command.
+- **ที่ควรเป็น:** Audit is fully visible on first load at 393 px.
+- **หลักฐาน:**
+	- r6-runs/chain/17-it-activity.png
+	- r6-runs/it/s1t3-audit-tab.png
+- **สาเหตุ:** guess: 6f57c0c scrolls only the selected tab into view.
+
+### AI-227. The run sheet's wording differs from the screen: switch vs checkbox, line label, Korat story, login '1 ถึง 4', IT timing, ส่ง under the composer, no 'ด่วน' on the bell item, 4 update rows
+
+- **สถานะ:** ยังเสีย · เดิม AI-193
+- **ระดับ:** ต่ำ · **หมวด:** `run-sheet` · **บทบาท:** presenter
+- **อาการ:** Several sheet lines quote controls, labels or timings that the screen does not show (see the review 2 list).
+- **ที่ควรเป็น:** The sheet quotes what is on screen.
+- **หลักฐาน:**
+	- r6-runs/chain/03, 22, 24, 31
+	- docs/demo-run-sheet.md §1.1, 1.2, 1.4, 4.2, 5
+- **สาเหตุ:** verified by reading the sheet against the screens.
+
+### AI-228. Change and target strips leave near-top movers unlabelled, and a brand pace card shows four empty rows
+
+- **สถานะ:** เปิด (ใหม่) · เดิม AI-173
+- **ระดับ:** ต่ำ · **หมวด:** `card-fit` · **บทบาท:** u_krit (chain steps 13-15)
+- **อาการ:** ขอนแก่นมหาชัย (+36%) has no label while โคราช +37.5% has one. ส.รุ่งเรือง has no label. อาซาฮี and three other brands show no bar or value.
+- **ที่ควรเป็น:** Near-extreme movers carry labels, and a listed row is never left empty.
+- **หลักฐาน:**
+	- r6-runs/chain/41, 46, 48
+- **สาเหตุ:** guess: lib/cards/present.ts labels only the extremes in the asked direction and treats rows with tiny targets as empty.
+
+### AI-229. CEO landing tiles mix October volume with November value
+
+- **สถานะ:** เปิด (ใหม่) · เดิม AI-157
+- **ระดับ:** ต่ำ · **หมวด:** `card-quality` · **บทบาท:** u_thana (chain step 1)
+- **อาการ:** The 'ปริมาณขายเข้า ต.ค. 69 24.2 ล้านลิตร' tile sits next to 'มูลค่าขายเข้า พ.ย. 83.9%'.
+- **ที่ควรเป็น:** The tiles read the running month, or explain the last full month.
+- **หลักฐาน:**
+	- r6-runs/chain/03-ceo-sent.png
+- **สาเหตุ:** guess: R9 (latest full bucket) still drives series tiles.
+
+### AI-230. The South-agent send approval warns 'ส่วนที่เหลือถูกล็อก' although the agent is fully in the recipient's scope
+
+- **สถานะ:** เปิด (ใหม่) · เดิม AI-198 · นอกเส้นทางเดโม
+- **ระดับ:** ต่ำ · **หมวด:** `permission-ux` · **บทบาท:** u_thana (CEO)
+- **อาการ:** The read is filtered to ag_sou_06 (South), yet send_card reported hidden data for the South RSM.
+- **ที่ควรเป็น:** No warning for an entity inside the recipient's scope.
+- **หลักฐาน:**
+	- run b9bf32bc data.hidden
+	- shares.json ctaiyEpTAdxw
+- **สาเหตุ:** verified: lib/access/grants.ts:105-112 grantedSlice narrows only by region and brand. An agent filter leaves the slice at all regions.
+
+### AI-231. The rep's starter dashboard card joins 5 scope names into its headline and uses the pace base beside the month-base card
+
+- **สถานะ:** เปิด (ใหม่) · เดิม AI-187 · นอกเส้นทางเดโม
+- **ระดับ:** ต่ำ · **หมวด:** `card-quality` · **บทบาท:** u_krit (sales rep)
+- **อาการ:** The headline reads 'ภาคอีสาน, ขอนแก่นมหาชัย, … อุบลศรีสุข เทรดดิ้งช้ากว่าเป้าตามเวลา 12.1%', and the hero is 87.9% of pace. The card above shows 76.2% of the month target.
+- **ที่ควรเป็น:** One short scope name, on the month-target base.
+- **หลักฐาน:**
+	- r6-runs/rep/t4-dashboard.png
+	- layouts.json w_u_krit_attainment
+- **สาเหตุ:** guess: the target_attainment verdict joins every filter label, and the widget kind was not moved by the AI-141/187 fixes.
+
+### AI-232. IT usage figures differ between surfaces (4 vs 5 users), and answered admin, send and pin requests are listed as unanswered
+
+- **สถานะ:** เปิด (ใหม่) · นอกเส้นทางเดโม
+- **ระดับ:** ต่ำ · **หมวด:** `grounding` · **บทบาท:** u_ton (IT admin)
+- **อาการ:** user_usage reports 4 users, and the overview reports 5 จาก 26. The usage tab misfiles answered requests and shows a 0.0 ชม. median.
+- **ที่ควรเป็น:** Each figure names its basis. Requests answered by non-semantic tools count as answered.
+- **หลักฐาน:**
+	- thread 11707be8
+	- r6-runs/it/usage-tab.png
+- **สาเหตุ:** guess: the overview counts visits.json, user_usage counts chat runs, and the unanswered rule checks only for semantic-layer calls.
