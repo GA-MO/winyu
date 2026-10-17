@@ -9,6 +9,9 @@ import { metricLabel } from "@/lib/dashboard/metric-display";
 import { auditLog, recordShare } from "@/lib/server/audit";
 import { recordAction } from "@/lib/server/threads";
 import { sinceDaysStart, toolCalls } from "@/lib/server/tool-activity";
+import { modelCalls, type ModelCallSource } from "@/lib/server/model-ledger";
+import { usageSummary } from "@/lib/server/usage";
+import { SpendStat } from "@/components/admin/spend-stat";
 import { findUser } from "@/lib/data/entities/users";
 import { TH } from "@/lib/i18n/th";
 import { formatDateTh } from "@/lib/i18n/format";
@@ -24,7 +27,7 @@ import { toolLabel } from "@/lib/server/tools/registry";
 import { approvedCallId } from "@/scripts/approved-call";
 import { TOOL_CARDS } from "../registry";
 
-type Report = { ok: boolean; summary: string; provenance: { asOf: string }; headline: { label: string; value: string } | null; rows: Record<string, unknown>[]; folded: { line: string; rows: Record<string, unknown>[] } | null };
+type Report = { ok: boolean; summary: string; provenance: { asOf: string }; headline: { label: string; value: string; detail?: string } | null; rows: Record<string, unknown>[]; folded: { line: string; rows: Record<string, unknown>[] } | null };
 
 async function adminAudit(input: Record<string, unknown>): Promise<Report> {
   const user = findUser("u_ton");
@@ -69,6 +72,34 @@ describe("the admin audit card", () => {
     expect(hero).toBeGreaterThanOrEqual(0);
     expect(html.indexOf(result.headline?.value ?? "missing", hero)).toBeGreaterThan(hero);
     expect(html.indexOf(TH.adminAudit.sources.chat)).toBeGreaterThan(hero);
+  });
+
+  test("model cost ranks spend by person, keeps spend no one person caused as its own last row, and names the console's 14-day window (AI-243)", async () => {
+    for (const call of modelCalls().all()) modelCalls().remove(call.id);
+    const daysAgo = (days: number) => new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+    const call = (id: string, userId: string | null, source: ModelCallSource, usd: number, at: string) =>
+      modelCalls().put({ id, at, modelId: "google/gemini-3.8-flash", source, userId, turnId: null, inputTokens: 1, cachedTokens: 0, outputTokens: 1, reasoningTokens: 0, billedUsd: usd, estimatedUsd: usd });
+    call("k3-anucha-old", "u_anucha", "chat", 9, daysAgo(10));
+    call("k3-anucha", "u_anucha", "chat", 1, daysAgo(0));
+    call("k3-thana-chat", "u_thana", "chat", 3, daysAgo(0));
+    call("k3-thana-job", "u_thana", "background", 0.5, daysAgo(1));
+    call("k3-nobody", null, "background", 20, daysAgo(2));
+    call("k3-too-old", "u_krit", "chat", 100, daysAgo(30));
+    const result = await adminAudit({ topic: "model_cost" });
+    const console = textOf(renderToStaticMarkup(<SpendStat spend={usageSummary().spend} />));
+    for (const id of ["k3-anucha-old", "k3-anucha", "k3-thana-chat", "k3-thana-job", "k3-nobody", "k3-too-old"]) modelCalls().remove(id);
+    expect(result.headline).toEqual({ label: TH.adminAudit.costTotal(14), value: "$33.50", detail: `${TH.adminAudit.sources.chat} $13.00 · ${TH.adminAudit.sources.background} $20.50 · ${TH.adminAudit.sources.eval} $0.00` });
+    expect(result.rows.map((row) => [row.user_name, row.cost_label])).toEqual([
+      [nameOf("u_anucha"), "$10.00"],
+      [nameOf("u_thana"), "$3.50"],
+      [TH.adminAudit.unattributed, "$20.00"],
+    ]);
+    expect(result.summary).toContain(`${nameOf("u_anucha")} $10.00`);
+    expect(console).toContain("ค่าโมเดล 14 วัน");
+    expect(console).toContain("$33.50");
+    const text = textOf(drawn(result));
+    expect(text).toContain(`${nameOf("u_thana")} · ${TH.role.ceo}`);
+    expect(text).toContain(TH.adminAudit.unattributed);
   });
 
   test("Winyu's own operations are counted and stamped on the real date and labelled as system data, never on Winyu's business day", async () => {

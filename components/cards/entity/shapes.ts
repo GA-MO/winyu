@@ -175,7 +175,7 @@ export const connectorResult = z.object({
 
 export const adminAuditResult = connectorResult.extend({
   topic: z.enum(ADMIN_AUDIT_TOPICS).nullish(),
-  headline: z.object({ label: z.string(), value: z.string() }).nullish(),
+  headline: z.object({ label: z.string(), value: z.string(), detail: z.string().nullish() }).nullish(),
   folded: z.object({ line: z.string(), rows: z.array(z.record(z.string(), z.unknown())) }).nullish(),
 });
 

@@ -56,7 +56,8 @@ const ITEM_OF: Record<AdminAuditTopic, (row: Row) => Item> = {
     item({ primary: textOf(row.tool_label), aside: TH.adminAudit.times(countOf(row.calls)), meta: TH.adminAudit.deniedMasked(countOf(row.denied), countOf(row.masked)) }),
   user_usage: (row) =>
     item({ primary: textOf(row.user_name), note: textOf(row.role_label), aside: TH.adminAudit.questions(countOf(row.questions)), meta: TH.adminAudit.calls(countOf(row.calls)) }),
-  model_cost: (row) => item({ primary: textOf(row.source_label), aside: textOf(row.cost_label) }),
+  model_cost: (row) =>
+    item({ primary: textOf(row.user_name ?? row.source_label), note: textOf(row.role_label), aside: textOf(row.cost_label), meta: row.calls === undefined ? "" : TH.adminAudit.modelCalls(countOf(row.calls)) }),
   connectors: (row) => item({ primary: textOf(row.connector_label), aside: textOf(row.status_label), tone: row.since_label ? "danger" : "", meta: textOf(row.since_label) }),
   overrides: (row) => item({ primary: textOf(row.key_label), note: textOf(row.role_label || row.kind_label), aside: textOf(row.value_label), meta: joined(row.by_name, row.at_label) }),
   role_access: (row) => item({ primary: textOf(row.key_label), note: textOf(row.kind_label), aside: textOf(row.value_label), tone: textOf(row.tone) }),
@@ -122,7 +123,7 @@ export function AdminAuditCard({ result }: { result: unknown }) {
         const title = topic ? (TH.adminAudit.topic[topic] ?? TITLE) : TITLE;
         return (
           <Card props={{ title, meta: headline ? undefined : verdictOf(summary, provenance.asOf), footnote: TH.adminAudit.footnote(provenance.sourceSystem, formatDateTh(provenance.asOf)) }}>
-            {headline ? <Metric props={{ label: headline.label, value: headline.value, size: "lg" }} /> : null}
+            {headline ? <Metric props={{ label: headline.label, value: headline.value, detail: headline.detail ?? undefined, size: "lg" }} /> : null}
             {topic ? rows.length > 0 ? <AuditList items={rows.map(ITEM_OF[topic])} exceptions={Boolean(folded)} /> : null : <ConnectorTable rows={rows} />}
             {folded && folded.rows.length > 0 ? <FoldView fold={{ line: folded.line, rows: folded.rows.map(readRowOf) }} ruled={rows.length === 0} /> : null}
           </Card>

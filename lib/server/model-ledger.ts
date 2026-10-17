@@ -21,6 +21,12 @@ export type ModelCall = {
   estimatedUsd: number;
 };
 
+/** The days of model spend the Admin console and the IT admin's chat both report, counted back from today. */
+export const SPEND_DAYS = 14;
+
+/** What one person's calls cost, or the calls made for no one person (background jobs, eval). */
+export type PersonSpend = { usd: number; calls: number };
+
 export type ModelSpend = {
   calls: number;
   billedCalls: number;
@@ -29,6 +35,8 @@ export type ModelSpend = {
   inputTokens: number;
   outputTokens: number;
   bySource: Record<ModelCallSource, number>;
+  byUser: Record<string, PersonSpend>;
+  unattributed: PersonSpend;
 };
 
 export function modelCalls() {
@@ -39,9 +47,9 @@ export function recordModelCall(call: Omit<ModelCall, "id" | "at">): void {
   modelCalls().put({ id: randomUUID(), at: new Date().toISOString(), ...call });
 }
 
-/** What the models cost since a moment: billed where the provider said, estimated only for calls it did not. */
+/** What the models cost since a moment, in all, by source and by the person each call served: billed where the provider said, estimated only for calls it did not. */
 export function modelSpend(since: string | null): ModelSpend {
-  const spend: ModelSpend = { calls: 0, billedCalls: 0, totalUsd: 0, billedUsd: 0, inputTokens: 0, outputTokens: 0, bySource: { chat: 0, eval: 0, background: 0 } };
+  const spend: ModelSpend = { calls: 0, billedCalls: 0, totalUsd: 0, billedUsd: 0, inputTokens: 0, outputTokens: 0, bySource: { chat: 0, eval: 0, background: 0 }, byUser: {}, unattributed: { usd: 0, calls: 0 } };
   for (const call of modelCalls().all()) {
     if (since && call.at < since) continue;
     const usd = call.billedUsd ?? call.estimatedUsd;
@@ -50,6 +58,9 @@ export function modelSpend(since: string | null): ModelSpend {
     spend.inputTokens += call.inputTokens;
     spend.outputTokens += call.outputTokens;
     spend.bySource[call.source] += usd;
+    const person = call.userId ? (spend.byUser[call.userId] ??= { usd: 0, calls: 0 }) : spend.unattributed;
+    person.usd += usd;
+    person.calls += 1;
     if (call.billedUsd === null) continue;
     spend.billedCalls += 1;
     spend.billedUsd += call.billedUsd;

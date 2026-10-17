@@ -283,14 +283,14 @@ describe("admin_audit", () => {
 
   test("model cost leads with the total it was asked for, the split by source under it", async () => {
     const report = (await call(IT, "admin_audit", { topic: "model_cost", days: 7, role: null })) as Rows & { headline?: { label: string; value: string } | null };
-    expect(report.ok === true && report.headline).toEqual({ label: TH.adminAudit.costTotal(7), value: TH.adminAudit.usd(modelSpend(sinceDays7()).totalUsd) });
+    expect(report.ok === true && report.headline).toMatchObject({ label: TH.adminAudit.costTotal(7), value: TH.adminAudit.usd(modelSpend(sinceDays7()).totalUsd) });
   });
 
   test("tool usage and model cost answer from the audit and the ledger", async () => {
     const usage = rowsOf(await call(IT, "admin_audit", { topic: "tool_usage", days: 30, role: null }));
     expect(usage.every((row) => typeof row.calls === "number" && typeof row.tool_label === "string")).toBe(true);
     const cost = rowsOf(await call(IT, "admin_audit", { topic: "model_cost", days: 30, role: null }));
-    expect(cost.map((row) => row.source_label)).toEqual([TH.adminAudit.sources.chat, TH.adminAudit.sources.background, TH.adminAudit.sources.eval]);
+    expect(cost.every((row) => typeof row.user_name === "string" && typeof row.calls === "number")).toBe(true);
     expect(cost.every((row) => String(row.cost_label).startsWith("$"))).toBe(true);
   });
 });

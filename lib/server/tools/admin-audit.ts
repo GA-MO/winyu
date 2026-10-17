@@ -15,7 +15,7 @@ import { auditLog } from "@/lib/server/audit";
 import { connectorHealth, offlineSince } from "@/lib/server/connectors/catalog";
 import { fencedRows, MAX_CONNECTOR_ROWS } from "@/lib/server/connectors/output";
 import type { ConnectorRow } from "@/lib/server/connectors/types";
-import { modelSpend, type ModelCallSource } from "@/lib/server/model-ledger";
+import { modelSpend, SPEND_DAYS, type ModelCallSource, type PersonSpend } from "@/lib/server/model-ledger";
 import { sinceDaysStart, toolActivity, toolCalls } from "@/lib/server/tool-activity";
 import { defineTool } from "./define";
 import { connectors, fieldLabel, toolLabel, toolSurface } from "./registry";
@@ -28,7 +28,7 @@ const EXCEPTION_ORDER: readonly Exclude<Visibility, "full">[] = ["none", "masked
 const LIMIT_TONE: Record<RoleAccessLevel, "danger" | "warning"> = { none: "danger", masked: "warning", off: "danger" };
 
 type AuditInput = z.infer<typeof adminAuditInputSchema>;
-type Headline = { label: string; value: string };
+type Headline = { label: string; value: string; detail?: string };
 type Folded = { line: string; rows: ConnectorRow[] };
 type Report = { summary: string; rows: ConnectorRow[]; headline?: Headline; folded?: Folded } | { error: string };
 type Limit = { level: RoleAccessLevel; row: ConnectorRow };
@@ -134,11 +134,21 @@ export function usageSummaryOf(rows: readonly UsageRow[], days: number): string 
   return TH.adminAudit.people(rows.length, days, { name: top.user_name, questions: top.questions, calls: top.calls });
 }
 
+function spendRow(name: string, note: string, spent: PersonSpend): ConnectorRow {
+  return { user_name: name, role_label: note, cost_label: TH.adminAudit.usd(spent.usd), calls: spent.calls };
+}
+
+/** Who the model spend went to, most first, from the person each call served; the calls no one person caused (background jobs, eval) are one row of their own, last. */
 function modelCost(days: number): Report {
   const spend = modelSpend(sinceDaysStart(days));
-  const rows = MODEL_SOURCES.map((source) => ({ source_label: TH.adminAudit.sources[source], cost_label: TH.adminAudit.usd(spend.bySource[source]) }));
-  const headline = { label: TH.adminAudit.costTotal(days), value: TH.adminAudit.usd(spend.totalUsd) };
-  return { summary: TH.adminAudit.cost(TH.adminAudit.usd(spend.totalUsd), spend.calls, days), headline, rows };
+  const people = Object.entries(spend.byUser).sort(([, left], [, right]) => right.usd - left.usd);
+  const rows = people.map(([userId, spent]) => spendRow(nameOf(userId), roleLabelOf(userId), spent));
+  if (spend.unattributed.calls > 0) rows.push(spendRow(TH.adminAudit.unattributed, TH.adminAudit.unattributedNote, spend.unattributed));
+  const detail = MODEL_SOURCES.map((source) => `${TH.adminAudit.sources[source]} ${TH.adminAudit.usd(spend.bySource[source])}`).join(" · ");
+  const headline = { label: TH.adminAudit.costTotal(days), value: TH.adminAudit.usd(spend.totalUsd), detail };
+  const [top] = people;
+  const summary = TH.adminAudit.cost(TH.adminAudit.usd(spend.totalUsd), spend.calls, days);
+  return { summary: top ? `${summary} · ${TH.adminAudit.costTop(nameOf(top[0]), TH.adminAudit.usd(top[1].usd))} · ${detail}` : summary, headline, rows };
 }
 
 function connectorStatus(): Report {
@@ -191,7 +201,7 @@ const TOPICS: Record<AdminAuditTopic, (input: AuditInput) => Report> = {
   denials: ({ days }) => denials(days ?? DEFAULT_DAYS),
   tool_usage: ({ days }) => toolUsage(days ?? DEFAULT_DAYS),
   user_usage: ({ days }) => userUsage(days ?? DEFAULT_DAYS),
-  model_cost: ({ days }) => modelCost(days ?? DEFAULT_DAYS),
+  model_cost: ({ days }) => modelCost(days ?? SPEND_DAYS),
   connectors: () => connectorStatus(),
   overrides: () => overrides(),
   role_access: ({ role, level }) => roleAccess(role, level ?? null),
@@ -219,7 +229,7 @@ export const adminAuditTool = defineTool({
   tier: "read",
   roles: ["it_admin"],
   description:
-    "Read Winyu's own audit and usage, for the IT admin. topic: activity (each send, pass-on, accept, close, permission change (from chat or the Admin console, with the old and new level) and write that acted: who, what, on which matter, to whom, when and whose yes let it act), denials (who was refused which tool, when and why), tool_usage (calls per tool with denied and masked counts), user_usage (who uses Winyu most: questions asked and tool calls per person with their role, most first; never what they typed), model_cost (model spend by chat, background jobs and eval), connectors (each MCP connector reachable or not and since when), overrides (permission changes admins made per role and tools switched off for everyone), role_access (what one role may not see in full or may not call now, the metrics it sees in full and the tools it may call folded apart; needs role; level narrows the rows to one kind when the admin asks for only that: masked = metrics shown with numbers hidden, none = metrics not shown, off = tools switched off, null = all of them). days is the window for activity, denials, tool_usage, user_usage and model_cost (null = 7), counted back from the real calendar date, not from Winyu's business day: Winyu's own operations (cost, usage, audit) happen on the real calendar, and the summary opens with that date; say it as that date when you answer. Call it for ใครส่งงานให้ใคร / ใครรับหรือส่งต่อ / ใครถูกปฏิเสธ / การใช้เครื่องมือ / ใครใช้ Winyu เยอะสุด / ค่าโมเดล / connector ไหนล่ม / บทบาทนี้เห็นอะไร / ปิดเครื่องมืออะไรไว้. When headline is set it is the answer: lead with it (model_cost: the total) and put the rows under it. Every topic is a report: say what is hidden, switched off or refused in neutral terms and stop there. A denial row whose policy_label is set is the access policy holding as designed, not a fault. Never offer or suggest opening, widening or loosening anyone's access (no closing line such as 'หากต้องการเปิดสิทธิ์…'), unless the admin asks whether to change it.",
+    "Read Winyu's own audit and usage, for the IT admin. topic: activity (each send, pass-on, accept, close, permission change (from chat or the Admin console, with the old and new level) and write that acted: who, what, on which matter, to whom, when and whose yes let it act), denials (who was refused which tool, when and why), tool_usage (calls per tool with denied and masked counts), user_usage (who uses Winyu most: questions asked and tool calls per person with their role, most first; never what they typed), model_cost (model spend per person with their role and calls, most first, then the spend no one person caused (background jobs, eval) as one row of its own; headline.detail splits the total by chat, background jobs and eval), connectors (each MCP connector reachable or not and since when), overrides (permission changes admins made per role and tools switched off for everyone), role_access (what one role may not see in full or may not call now, the metrics it sees in full and the tools it may call folded apart; needs role; level narrows the rows to one kind when the admin asks for only that: masked = metrics shown with numbers hidden, none = metrics not shown, off = tools switched off, null = all of them). days is the window for activity, denials, tool_usage, user_usage and model_cost (null = 7, but 14 for model_cost, the window the Admin console shows), counted back from the real calendar date, not from Winyu's business day: Winyu's own operations (cost, usage, audit) happen on the real calendar, and the summary opens with that date; say it as that date when you answer. Call it for ใครส่งงานให้ใคร / ใครรับหรือส่งต่อ / ใครถูกปฏิเสธ / การใช้เครื่องมือ / ใครใช้ Winyu เยอะสุด / ค่าโมเดล / ใครใช้เงินเยอะสุด / connector ไหนล่ม / บทบาทนี้เห็นอะไร / ปิดเครื่องมืออะไรไว้. When headline is set it is the answer: lead with it (model_cost: the total) and put the rows under it. Every topic is a report: say what is hidden, switched off or refused in neutral terms and stop there. A denial row whose policy_label is set is the access policy holding as designed, not a fault. Never offer or suggest opening, widening or loosening anyone's access (no closing line such as 'หากต้องการเปิดสิทธิ์…'), unless the admin asks whether to change it.",
   input: adminAuditInputSchema,
   execute: async (input: AuditInput) => adminReport(input),
 });

@@ -4,7 +4,7 @@ import { auditLog } from "@/lib/server/audit";
 import { actionEvents } from "@/lib/server/agent/collections";
 import { shares } from "@/lib/server/share/shares";
 import { agentModel } from "@/lib/server/models";
-import { modelSpend, type ModelSpend } from "@/lib/server/model-ledger";
+import { modelSpend, SPEND_DAYS, type ModelSpend } from "@/lib/server/model-ledger";
 import { sinceDaysStart, toolCalls } from "@/lib/server/tool-activity";
 import { surfaceEntry } from "@/lib/server/tools/registry";
 
@@ -52,10 +52,6 @@ function defaultModelId(): string {
   return agentModel()?.id ?? "";
 }
 
-function sinceDaysAgo(days: number): string {
-  return `${lastDays(days)[0]}T00:00:00.000Z`;
-}
-
 function countsPerDay(stamps: string[]): UsagePoint[] {
   const table = new Map(lastDays(DAYS).map((day) => [day, 0]));
   for (const stamp of stamps) {
@@ -98,7 +94,7 @@ export function usageSummary(): UsageSummary {
     .map((event) => ({ prompt: event.prompt ?? "", at: event.at, userId: event.userId }));
 
   const modelId = defaultModelId();
-  const spend = modelSpend(sinceDaysAgo(DAYS));
+  const spend = modelSpend(sinceDaysStart(SPEND_DAYS));
   return {
     modelId,
     questions: questions.length,

@@ -1,4 +1,4 @@
-import type { ModelSpend } from "@/lib/server/model-ledger";
+import { SPEND_DAYS, type ModelSpend } from "@/lib/server/model-ledger";
 import { TH } from "@/lib/i18n/th";
 import { Stat } from "./parts";
 
@@ -18,7 +18,7 @@ function billingLine(spend: ModelSpend): string {
 
 /** What the models cost this fortnight, as OpenRouter billed each call, split by chat, eval and background jobs. */
 export function SpendStat({ spend }: { spend: ModelSpend }) {
-  if (spend.calls === 0) return <Stat label={COPY.spendLabel} value="$0.00" sub={COPY.spendNone} />;
+  if (spend.calls === 0) return <Stat label={COPY.spendLabel(SPEND_DAYS)} value="$0.00" sub={COPY.spendNone} />;
   const sources = COPY.spendSources(usd(spend.bySource.chat), usd(spend.bySource.eval), usd(spend.bySource.background));
-  return <Stat label={COPY.spendLabel} value={usd(spend.totalUsd)} sub={`${billingLine(spend)} · ${sources}`} />;
+  return <Stat label={COPY.spendLabel(SPEND_DAYS)} value={usd(spend.totalUsd)} sub={`${billingLine(spend)} · ${sources}`} />;
 }
