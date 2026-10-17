@@ -6,7 +6,7 @@ import { findUser } from "@/lib/data/entities/users";
 import { notReady } from "@/lib/harness/gateway";
 import type { Unready } from "@/lib/harness/types";
 import { TH } from "@/lib/i18n/th";
-import { ASK_CONTRADICTS_CARD, CARD_MISSES_SUBJECT, sendCardInputSchema, shareTitle, type CardFocus, type CardOnScreen, type SendCardInput, type SharedCard, type ShareTarget } from "@/lib/share/card";
+import { ASK_CONTRADICTS_CARD, CARD_MISSES_SUBJECT, sendCardInputSchema, shareTitle, type CardFocus, type CardOnScreen, type SendCardInput, type SendCardRefusal, type SharedCard, type ShareTarget } from "@/lib/share/card";
 import { causeStatedAsFact } from "@/lib/share/cause";
 import { contradictionOf, sendWarning } from "@/lib/share/figures";
 import { askAboutOf, askNaming, deadlineWords, followsEarlier, matterAsk, matterDeadline, sendIntent } from "@/lib/share/matter";
@@ -20,21 +20,21 @@ import { currentAccess, currentTurn } from "@/lib/server/request-context";
 import { defineTool } from "./define";
 import { matterHolds } from "./verify";
 
-const UNRESOLVED = "UNRESOLVED_RECIPIENT";
-const NO_RECIPIENT = "NO_RECIPIENT";
-const NO_CARD = "NO_CARD";
-const CARD_UNCLEAR = "CARD_UNCLEAR";
-const CARD_UNKNOWN = "CARD_UNKNOWN";
-const NOT_SHAREABLE = "NOT_SHAREABLE";
-const ASK_NUMBERS = "ASK_CARRIES_NUMBERS";
-const ASK_STATES_CAUSE = "ASK_STATES_CAUSE";
+const UNRESOLVED: SendCardRefusal = "UNRESOLVED_RECIPIENT";
+const NO_RECIPIENT: SendCardRefusal = "NO_RECIPIENT";
+const NO_CARD: SendCardRefusal = "NO_CARD";
+const CARD_UNCLEAR: SendCardRefusal = "CARD_UNCLEAR";
+const CARD_UNKNOWN: SendCardRefusal = "CARD_UNKNOWN";
+const NOT_SHAREABLE: SendCardRefusal = "NOT_SHAREABLE";
+const ASK_NUMBERS: SendCardRefusal = "ASK_CARRIES_NUMBERS";
+const ASK_STATES_CAUSE: SendCardRefusal = "ASK_STATES_CAUSE";
 const NUMBER = /[0-9๐-๙]+/g;
 const SUBJECT_PARTS = / · |, /;
 
 const DESCRIPTION =
   "Send one card on screen to a colleague as a matter: it lands in their bell with the ask, they answer on the card, can pass it on, and it closes itself when its number reaches its goal. Use it for every 'ส่ง… ให้…', 'ฝาก… ดู', 'แชร์ให้', 'มอบหมาย'. `cardRef` = the ref of the card the user means, copied from the cards-on-screen list (the card they point at: first, above, by its name, or the card the request is about, e.g. the overdue card for a collection); leave it out only to send the one card this reply drew. A person, owner, profile or master-data lookup is never a card to send. `to` = each colleague as the user named them (\"พี่อนุชา\", \"ผู้จัดการขายภาคอีสาน\" → resolve_owner first) or a user id; leave it out to send to the card's owner. `ask` = what the user wants done, in their words, no number they did not type and no suspected cause stated as fact: a cause still a hypothesis goes as a check (ช่วยตรวจว่า…หรือไม่). `intent` fyi only when the user only wants them to look. Leave `urgency` out unless the user's words say when; the server reads ด่วน and deadlines (พรุ่งนี้, ภายในศุกร์นี้) itself. `card` only when a pressed button passes it; copy it unchanged. The user sees the filled send sheet and approves it first.";
 
-type Chosen = { ok: true; target: ShareTarget; warned: boolean; said: readonly string[]; others: readonly CardOnScreen[]; redirected: boolean } | { ok: false; code: string; fix: string };
+type Chosen = { ok: true; target: ShareTarget; warned: boolean; said: readonly string[]; others: readonly CardOnScreen[]; redirected: boolean } | { ok: false; code: SendCardRefusal; fix: string };
 type Picked = Extract<Chosen, { ok: true }>;
 
 function channelDelivery() {
@@ -139,9 +139,9 @@ function recipientsOf(input: SendCardInput, target: ShareTarget, sender: User): 
   return owner ? [owner.user] : null;
 }
 
-type Refused = { ok: false; code: string; error: string };
+type Refused = { ok: false; code: SendCardRefusal; error: string };
 
-function refusal(code: string, error: string): Refused {
+function refusal(code: SendCardRefusal, error: string): Refused {
   return { ok: false, code, error };
 }
 

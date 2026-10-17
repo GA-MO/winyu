@@ -9,6 +9,7 @@ import type { ReplyStep, ToolStep } from "./timeline";
 
 const DECLINED_TEXT = /not approved|declined|rejected|denied/i;
 const LEFT_FOR_NEW_QUESTION = "LEFT_FOR_NEW_QUESTION";
+const NOT_APPROVED = "NOT_APPROVED";
 const ANSWER_LISTS = ["rows", "weeks", "data"] as const;
 const CATALOG_TOOL = "list_metrics";
 const RECALL_TOOL = "recall_memory";
@@ -128,9 +129,20 @@ function rejectedBeforeRunning(step: ToolStep): boolean {
   return step.outcome.state === "returned" && (step.outcome.result as { error?: unknown } | null)?.error === true;
 }
 
-function retried(step: ToolStep, later: ToolStep): boolean {
+function refusedWrite(step: ToolStep, cardTools: ReadonlySet<string>): boolean {
+  return !cardTools.has(step.name) && step.outcome.state === "returned" && isRefused(step.outcome.result);
+}
+
+function decidedByPerson(step: ToolStep): boolean {
+  return step.outcome.state === "returned" && (isDeclined(step.outcome.result) || (step.outcome.result as { code?: unknown } | null)?.code === NOT_APPROVED);
+}
+
+/** Whether `later` is the model calling the tool again after `step` failed: it answered; or `step` never ran (its arguments failed the schema, or a write the server refused before acting) and the later call waits for the person or they decided on it, so the attempt they decide on stands alone (AI-292). */
+function retried(step: ToolStep, later: ToolStep, cardTools: ReadonlySet<string>): boolean {
   if (later.name !== step.name) return false;
-  return answered(later) || (rejectedBeforeRunning(step) && later.outcome.state === "pending");
+  if (answered(later)) return true;
+  const neverRan = rejectedBeforeRunning(step) || refusedWrite(step, cardTools);
+  return neverRan && (later.outcome.state === "pending" || decidedByPerson(later));
 }
 
 /** A refusal that offers a way to more (a request for a temporary grant) is an answer of its own: a later call of the tool asked something else, such as the other side of a comparison (AI-211). */
@@ -139,10 +151,10 @@ function offersWayOn(step: ToolStep): boolean {
 }
 
 /** Failed calls the model made again: corrected when a later call of the tool answered, and a call the runtime rejected before it ran (its arguments failed the schema) as soon as a later call of the tool is waiting, so a retry that waits for approval stands alone; a refusal that offers a request for access is never one. */
-function recoveredFailures(steps: readonly ToolStep[]): string[] {
+function recoveredFailures(steps: readonly ToolStep[], cardTools: ReadonlySet<string>): string[] {
   return steps.flatMap((step, index) => {
     if (answered(step) || step.outcome.state === "pending" || offersWayOn(step)) return [];
-    return steps.slice(index + 1).some((later) => retried(step, later)) ? [step.toolCallId] : [];
+    return steps.slice(index + 1).some((later) => retried(step, later, cardTools)) ? [step.toolCallId] : [];
   });
 }
 
@@ -289,7 +301,7 @@ export function pairedResultsOf(plan: CardPlan, steps: readonly ToolStep[], tool
 /** One card per question: a composed card holds only read results, so a write's receipt is never left out for it; a people lookup that found the recipient of a later card or email sent in the exchange is left out, a refused or failed call the model corrected later in the exchange (the same tool answered after it) is left out, metric answers of the same dimensions and range that pair draw one card on the first of them (`paired`), and lookups the model made on the way are left out (`plumbingLookups`); `composed` are the calls a composed card already holds, `blockWritten` whether the reply wrote a card block at all (a shared card, drawn as it is, counts as one). */
 export function cardPlanOf(steps: readonly ToolStep[], composed: ReadonlySet<string>, cardTools: ReadonlySet<string>, blockWritten = true): CardPlan {
   const heldInCard = steps.flatMap((step) => (composed.has(step.toolCallId) && cardTools.has(step.name) ? [step.toolCallId] : []));
-  const hidden = new Set([...heldInCard, ...recoveredFailures(steps), ...recipientLookups(steps), ...earlierRecalls(steps), ...repeatedByGap(steps)]);
+  const hidden = new Set([...heldInCard, ...recoveredFailures(steps, cardTools), ...recipientLookups(steps), ...earlierRecalls(steps), ...repeatedByGap(steps)]);
   const paired = metricPairs(steps, hidden);
   for (const partners of paired.values()) for (const id of partners) hidden.add(id);
   for (const id of plumbingLookups(steps, hidden, cardTools, blockWritten)) hidden.add(id);

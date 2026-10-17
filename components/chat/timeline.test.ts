@@ -1,10 +1,11 @@
 import { COMPOSED_CARD_ACTIVITY } from "@/lib/compose/catalog";
 import { describe, expect, test } from "bun:test";
 import { pressedText } from "./pressed";
-import { exchangesOf, type ChatMessage } from "./timeline";
+import { exchangesOf, type ChatMessage, type ToolStep } from "./timeline";
 import { cardPlanOf, composedCalls, isEmptyAnswer, toolViewOf, type ToolLive } from "./tool-view";
 import { sinceLastQuestion } from "@/components/providers/copilot-provider";
 import { TH } from "@/lib/i18n/th";
+import { SEND_CARD_REFUSALS } from "@/lib/share/card";
 
 const CARD_TOOLS = new Set(["query_metric"]);
 const IDLE: ToolLive = { running: false, asking: false, decided: undefined, left: false, hidden: false };
@@ -97,6 +98,25 @@ describe("toolViewOf", () => {
     const waiting = { ...write, toolCallId: "c-retry" };
     expect(cardPlanOf([rejected, waiting], new Set(), CARD_TOOLS).hidden.has("c-bad")).toBe(true);
     expect(cardPlanOf([rejected], new Set(), CARD_TOOLS).hidden.has("c-bad")).toBe(false);
+  });
+
+  test("a send the server refused and the model sent again is out of sight while the retry waits for approval, after it is sent, and after the person declines it (AI-292)", () => {
+    const send = { kind: "tool" as const, name: "send_card", args: { cardRef: "c13rzz5r" } };
+    const refused = { ...send, toolCallId: "s-first", outcome: { state: "returned" as const, result: { ok: false, code: "CARD_MISSES_SUBJECT", error: "การ์ด «ความผิดปกติที่ต้องดู» ไม่มี อีสานรุ่งโรจน์ ค้าส่ง · การ์ดบนจอที่มี อีสานรุ่งโรจน์ ค้าส่ง: csutimq «มูลค่าขายเข้า · รายเอเย่นต์ 77.3% ของเป้าทั้งเดือน»" } } };
+    const hiddenWith = (retry: ToolStep) => cardPlanOf([refused, retry], new Set(), CARD_TOOLS).hidden.has("s-first");
+    expect(hiddenWith({ ...send, toolCallId: "s-retry", outcome: { state: "pending" } })).toBe(true);
+    expect(hiddenWith({ ...send, toolCallId: "s-retry", outcome: { state: "returned", result: { ok: true, summary: "ส่งแล้ว" } } })).toBe(true);
+    expect(hiddenWith({ ...send, toolCallId: "s-retry", outcome: { state: "returned", result: { ok: false, code: "NOT_APPROVED", error: TH.harness.notApproved } } })).toBe(true);
+    expect(cardPlanOf([refused], new Set(), CARD_TOOLS).hidden.has("s-first")).toBe(false);
+  });
+
+  test("every send_card refusal shows the person one Thai line of its own, never the text written for the model (AI-292)", () => {
+    for (const code of SEND_CARD_REFUSALS) {
+      const step = { ...write, name: "send_card", outcome: { state: "returned" as const, result: { ok: false, code, error: "การ์ด «ความผิดปกติที่ต้องดู» ไม่มี อีสานรุ่งโรจน์ ค้าส่ง · การ์ดบนจอที่มี: csutimq «มูลค่าขายเข้า»" } } };
+      const view = toolViewOf(step, IDLE, CARD_TOOLS);
+      expect(view).toEqual({ kind: "not-done", tool: "send_card", reason: TH.conversation.notDoneWhy[code] });
+      expect(TH.conversation.notDoneWhy[code]).not.toMatch(/[A-Za-z«]/);
+    }
   });
 
   test("a composed card never hides a write's receipt", () => {

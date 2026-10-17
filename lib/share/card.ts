@@ -80,6 +80,22 @@ export const CARD_MISSES_SUBJECT = "CARD_MISSES_SUBJECT";
 /** The send_card refusal code for an ask the card's numbers contradict, given once before the person has seen the figure. */
 export const ASK_CONTRADICTS_CARD = "ASK_CONTRADICTS_CARD";
 
+/** Every code send_card refuses with; each is written for the model, and the chat shows the person its own Thai line instead (AI-292). */
+export const SEND_CARD_REFUSALS = [
+  "UNRESOLVED_RECIPIENT",
+  "NO_RECIPIENT",
+  "NO_CARD",
+  "CARD_UNCLEAR",
+  "CARD_UNKNOWN",
+  "NOT_SHAREABLE",
+  "ASK_CARRIES_NUMBERS",
+  "ASK_STATES_CAUSE",
+  CARD_MISSES_SUBJECT,
+  ASK_CONTRADICTS_CARD,
+] as const;
+
+export type SendCardRefusal = (typeof SEND_CARD_REFUSALS)[number];
+
 /** The rows of a card the sender's words single out ("ขอนแก่นมหาชัย" on the region's agents card): their labels, the figure the card draws for them (as words, and as the hero with its coloured change), the one row's own change, and the line code writes when the words that named one row claim what that row does not show. */
 export type CardFocus = { labels: string[]; hero: string | null; figure?: CardHero | null; row?: RowFigure | null; claim: string | null };
 
