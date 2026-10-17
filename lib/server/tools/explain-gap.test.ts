@@ -71,6 +71,15 @@ describe("a drop the first split leaves without a main cause is checked along ot
     expect(lastYear.compare_label.startsWith("ปีก่อน (")).toBe(true);
   });
 
+  test("the week's own change is on the gap card, since the gap card is the one card of a why answer and the week total it repeats draws none (AI-253)", async () => {
+    const result = (await gapAs("u_thana", WEEK_BY_REGION)) as GapResult & { change_label?: string | null };
+    expect(result.change_label).toMatch(/^−\d+\.\d%$/);
+    const card = presentGap({ answer: result as unknown as GapAnswer, metric: "net_sales_value", split: "region" });
+    expect(card.hero?.delta).toBe(result.change_label ?? "-");
+    const target = (await gapAs("u_thana", { ...WEEK_BY_REGION, compare: "target" })) as GapResult & { change_label?: string | null };
+    expect(target.change_label ?? null).toBeNull();
+  });
+
   test("a gap with a clear main cause, or two agents that made it together, is not split again", async () => {
     const isan = await gapAs("u_thana", { metric: "net_sales_value", split: "agent", filters: { region: ["northeast"] }, range: { from: monthStart(DATA_AS_OF), to: DATA_AS_OF }, compare: "target" });
     expect(isan.other_splits).toBeNull();

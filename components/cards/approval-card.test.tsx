@@ -201,6 +201,19 @@ describe("the approval card", () => {
     expect(host.textContent).toContain("ยอดขายทั้งประเทศเทียบเป้า");
   });
 
+  test("a pin receipt drawn again from the transcript names the card the pin replaced, from the tool's result (AI-246)", () => {
+    const input = { title: "คาดการณ์ยอดขายปิดสิ้นเดือนเทียบเป้าหมาย", kind: "month_end", query: NORTHEAST };
+    const result = { ok: true, summary: "", data: { widgetId: "w1", position: 0, replaced: ["ยอดขายทั้งประเทศเทียบเป้า"] } };
+    const host = document.createElement("div");
+    host.innerHTML = render("pin_widget", input, { approved: true, result });
+    expect(host.textContent).toContain(TH.approve.donePinInstead(["ยอดขายทั้งประเทศเทียบเป้า"]));
+  });
+
+  test("the replacement warning calls the two cards the same subject, not the same number (AI-246)", () => {
+    expect(TH.approve.pinReplaces(["ยอดขายทั้งประเทศเทียบเป้า"])).toContain("เรื่องเดียวกัน");
+    expect(TH.approve.pinReplaces(["ยอดขายทั้งประเทศเทียบเป้า"])).not.toContain("ตัวเลขเดียวกัน");
+  });
+
   test("a job is named in Thai", () => {
     const html = render("run_job", { job: "forecast" });
     expect(html).toContain(TH.approve.jobs.forecast);

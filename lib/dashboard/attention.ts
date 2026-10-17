@@ -1,6 +1,7 @@
 import type { ActionEvent, Alert, FeedItem, MetricId, MetricResult, WidgetSpec } from "@/lib/contracts";
 import { kindLabel, metricOfFeedKind } from "@/lib/engine/feed-learning";
 import { headlineChangeOf, sharpestHarm, weakestRow } from "@/lib/cards/present";
+import { percentIn } from "@/lib/cards/breakdown";
 import { formatChange, formatMetricValue, toneOf } from "@/lib/dashboard/metric-display";
 import { TH } from "@/lib/i18n/th";
 import { LOW_COVER_DAYS } from "@/lib/semantic/metrics";
@@ -11,6 +12,7 @@ export const STALE_DAYS = 14;
 const DAY_MS = 86_400_000;
 const LEVEL_FLOORS: Partial<Record<MetricId, number>> = { target_attainment: 95, days_of_cover: LOW_COVER_DAYS };
 const TIER_SPAN = 100;
+const FULL_TARGET = 100;
 const TIER = { feed: 5, alert: 4, floor: 3, harmfulHeadline: 2, headline: 1, row: 0 } as const;
 const SEVERITY_WEIGHT: Record<Alert["severity"], number> = { P1: 2, P2: 1, P3: 0 };
 const SEVERITY_SPAN = 33;
@@ -48,9 +50,17 @@ function belowFloor(widget: WidgetSpec, result: Extract<MetricResult, { ok: true
   return { level: "moved", score: scoreIn(TIER.floor, gapPercent), reason: weakest ? TH.attention.belowAt(line, weakest.label, weakest.value) : TH.attention.below(line, result.headline.value) };
 }
 
+/** A pinned month end that will close short of target: the card leads with that projection, so it stays in view however little the paced change moved (AI-237). */
+function projectedMiss(widget: WidgetSpec, result: Extract<MetricResult, { ok: true }>): Attention | null {
+  if (widget.kind !== "month_end") return null;
+  const share = percentIn(result.headline.projection?.attainment ?? "");
+  if (share === null || share >= FULL_TARGET) return null;
+  return { level: "moved", reason: TH.cards.gap.monthEnd(false), score: scoreIn(TIER.floor, FULL_TARGET - share) };
+}
+
 /**
  * Whether a pinned card has something to say today and how urgently, in this order: an open alert on its metric (worst severity first, no count line — the card already shows it),
- * a level under its floor (furthest under first), a headline that moved (the harmful direction before the good one, bigger first), one row that fell hard.
+ * a month end projected short of target, a level under its floor (furthest under first), a headline that moved (the harmful direction before the good one, bigger first), one row that fell hard.
  * A card that could not be read stays in full view after those, never folded among the steady ones it cannot claim to be.
  */
 export function attentionOf({ widget, result, alerts }: AttentionInput): Attention {
@@ -58,6 +68,8 @@ export function attentionOf({ widget, result, alerts }: AttentionInput): Attenti
   if (onMetric.length > 0) return { level: "moved", reason: null, score: scoreIn(TIER.alert, alertMagnitude(onMetric)) };
   if (!result.ok) return UNREAD;
   if (widget.kind === "alert_list") return STEADY;
+  const miss = projectedMiss(widget, result);
+  if (miss) return miss;
   const floor = belowFloor(widget, result);
   if (floor) return floor;
   const { deltaPercent: delta, deltaPoints, compareLabel } = headlineChangeOf(widget.query, result);

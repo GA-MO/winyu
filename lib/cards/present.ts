@@ -308,8 +308,14 @@ function wholeOrBars(facts: Facts): CardView {
 
 const always = (view: CardView) => () => view;
 
+/** Whether the question asked where the running month closes (`asksMonthEnd`, read from the turn's question by query_metric) and the answer projects it. */
+function closesMonth(result: OkResult): boolean {
+  return Boolean(result.headline.projection && result.headline.asksMonthEnd);
+}
+
 /** The one decision table: the first rule whose condition holds decides the form, the hero, the bars and the style family (breakdowns B or A above 8 rows, one scope C, any other chart). */
 const CARD_RULES: readonly CardRule[] = [
+  { rule: "R14 where the month closes", when: (f) => f.groups === 0 && closesMonth(f.result), view: always("month_end"), bars: "auto", hero: "target", look: "summary" },
   { rule: "R7 threshold met by few", when: (f) => Boolean(f.query.where) && f.under !== null && f.groups === 1 && !f.time && f.rows.length > 0, view: always("bar"), bars: "level", hero: "reading", look: "breakdown" },
   { rule: "R1 one row", when: (f) => f.rows.length <= 1 && (f.query.dims.length > 0 || f.filtered), view: always("metric"), bars: "auto", hero: "single", look: "summary" },
   { rule: "R2 short series against target", when: (f) => f.time && f.groups === 0 && f.buckets >= RANK_MIN_ROWS && f.buckets < MIN_LINE_BUCKETS && f.query.compare === "target" && hasChange(f.rows), view: always("bar"), bars: "target", hero: "reading", look: "breakdown" },
@@ -610,7 +616,8 @@ function shortfallOf(query: MetricQuery, rows: readonly MetricRow[]): number | n
 }
 
 /** What the rest of a year must make up, said in the verdict of a year against its target ("ต้องทำเกินเป้าอีก 477.7 ล้านบาท ภายในสิ้นปี (เหลือ 35 วัน)"); null when the year is not behind. The warehouse holds no target past the day the data stops, so the year end itself cannot be projected (AI-213). */
-function yearCatchUpOf(query: MetricQuery, result: OkResult): string | null {
+/** What the rest of the year must make up and the days left ("ต้องทำเกินเป้าอีก 477.7 ล้านบาท ภายในสิ้นปี (เหลือ 35 วัน)") for a range from 1 January against target; null for any other range or when nothing is short. */
+export function yearCatchUpOf(query: MetricQuery, result: OkResult): string | null {
   const short = spansYear(query) ? shortfallOf(query, result.rows) : null;
   return short === null ? null : TH.read.yearCatchUp(formatMetricValue(query.metric, short), TH.read.daysLeft(daysLeftInYear(result.provenance.asOf)));
 }
@@ -1440,6 +1447,7 @@ export type GapAnswer = {
   actual_label: string;
   compare_label: string;
   gap_label: string;
+  change_label?: string | null;
   attainment_label: string | null;
   contributors: GapShare[];
   rest: GapShare | null;
@@ -1481,7 +1489,7 @@ const GAP_RULES: readonly GapRule[] = [
   {
     rule: "R11 against a period",
     when: () => true,
-    hero: (f) => ({ label: TH.read.actual, value: f.answer.actual_label, unit: null, delta: f.answer.gap_label, trend: f.below ? "down" : "up", tone: f.metric ? toneOf(f.metric, f.below ? -PERCENT : PERCENT) : f.below ? "bad" : "good", detail: f.answer.compare_label }),
+    hero: (f) => ({ label: TH.read.actual, value: f.answer.actual_label, unit: null, delta: f.answer.change_label ?? f.answer.gap_label, trend: f.below ? "down" : "up", tone: f.metric ? toneOf(f.metric, f.below ? -PERCENT : PERCENT) : f.below ? "bad" : "good", detail: f.answer.compare_label }),
     opening: (f) => `${TH.cards.gap.whole(f.below, f.versus)} ${unsignedLabel(f.answer.gap_label)}`,
   },
 ];
@@ -1620,6 +1628,7 @@ export function presentCard(input: PresentInput): CardParts {
   const facts = factsOf(whole, result);
   const fit = fitOf(facts);
   const view = hidden > 0 && visibleRows.length < RANK_MIN_ROWS ? "table" : viewFor(whole, input.view ?? "auto", masked, extras, fit);
+  if (view === "month_end" && result.headline.projection) return monthEndCard(input, result, result.headline.projection);
   const trimmed = withoutPartialBucket(query, view, visibleRows, result.provenance.asOf);
   const shape: Shape = { ...whole, rows: sorted(query, trimmed.rows, sortBy) };
   const footer = footerOf(query, result, [trimmed.note, hiddenGroupsNote(shape, view), hiddenLineOf(query, hidden), paceNoteOf(query, result.provenance.asOf), projectionNote(result)]);

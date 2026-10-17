@@ -545,7 +545,7 @@ export const TH = {
     doneEmail: (name: string) => `ส่งอีเมลถึง${name}แล้ว`,
     donePin: "ปักการ์ดไว้บน Dashboard แล้ว",
     donePinInstead: (titles: readonly string[]) => `ปักการ์ดไว้บน Dashboard แล้ว แทน ${titles.map((title) => `"${title}"`).join(", ")}`,
-    pinReplaces: (titles: readonly string[]) => `จะแทนการ์ด ${titles.map((title) => `"${title}"`).join(", ")} ที่ปักไว้ เพราะเป็นตัวเลขเดียวกัน การ์ดเดิมย้ายไปถาดการ์ด กดปักกลับได้`,
+    pinReplaces: (titles: readonly string[]) => `จะแทนการ์ด ${titles.map((title) => `"${title}"`).join(", ")} ที่ปักไว้ เพราะเป็นเรื่องเดียวกัน การ์ดเดิมย้ายไปถาดการ์ด กดปักกลับได้`,
     doneJob: (job: string) => `สั่งรันงาน${job}แล้ว`,
     notDone: "คุณเลือกไม่ทำรายการนี้",
     guard: "ไม่มีอะไรเกิดขึ้นจนกว่าคุณจะกดอนุมัติ",

@@ -1,4 +1,6 @@
 import { metricPairsOf } from "@/lib/cards/tool-answers";
+import { groupDimsOf } from "@/lib/cards/rows";
+import type { MetricQuery } from "@/lib/contracts";
 import { UNCOMPOSABLE_TOOLS } from "@/lib/compose/ground";
 import { findUser } from "@/lib/data/entities/users";
 import { TH } from "@/lib/i18n/th";
@@ -11,6 +13,8 @@ const ANSWER_LISTS = ["rows", "weeks", "data"] as const;
 const CATALOG_TOOL = "list_metrics";
 const RECALL_TOOL = "recall_memory";
 const METRIC_TOOL = "query_metric";
+const GAP_TOOL = "explain_gap";
+const ALERTS_TOOL = "get_alerts";
 const PEOPLE_LOOKUPS: ReadonlySet<string> = new Set(["find_people", "get_person", "resolve_owner"]);
 const ENTITY_LOOKUP = "describe_entity";
 const USER_ENTITY = "user";
@@ -20,7 +24,7 @@ const LOOKUP_TOOLS: ReadonlySet<string> = new Set([CATALOG_TOOL, RECALL_TOOL, ..
 /** How one tool call shows in a reply: its card, the decision it waits on or its receipt, the receipt of a write that did nothing and why, a quiet note, or nothing (a call still running shows in the action trail). */
 export type ToolView =
   | { kind: "card"; name: string; result: unknown; args: unknown }
-  | { kind: "decision"; tool: string; input: unknown; approved: boolean | null }
+  | { kind: "decision"; tool: string; input: unknown; approved: boolean | null; result?: unknown }
   | { kind: "not-done"; tool: string; reason: string | null }
   | { kind: "not-run" }
   | { kind: "none" };
@@ -84,7 +88,7 @@ function writeView(step: ToolStep, live: ToolLive): ToolView {
   if (live.asking) return { ...decision, approved: live.decided ?? null };
   if (step.outcome.state === "returned") {
     if (isDeclined(step.outcome.result)) return { ...decision, approved: false };
-    if (isDone(step.outcome.result)) return { ...decision, approved: true };
+    if (isDone(step.outcome.result)) return { ...decision, approved: true, result: step.outcome.result };
     return live.hidden ? { kind: "none" } : { kind: "not-done", tool: step.name, reason: reasonOf(step.outcome.result) };
   }
   if (step.outcome.state === "failed") return { kind: "none" };
@@ -208,6 +212,43 @@ function recipientLookups(steps: readonly ToolStep[]): string[] {
   });
 }
 
+type GapAsked = { metric: unknown; compare: unknown; range: { from?: unknown; to?: unknown } | null; filters: string };
+
+function filtersKey(filters: unknown): string {
+  if (typeof filters !== "object" || filters === null) return "";
+  const entries = Object.entries(filters as Record<string, unknown>).map(([dim, values]) => [dim, [values ?? []].flat().map(String).sort()] as const);
+  return JSON.stringify(entries.filter(([, values]) => values.length > 0).sort(([left], [right]) => left.localeCompare(right)));
+}
+
+/** The gaps the exchange explained (explain_gap answered), as they were asked, with whether they found no main cause (`share_note` set). */
+function gapsAnswered(steps: readonly ToolStep[]): { asked: GapAsked; spread: boolean }[] {
+  return steps.flatMap((step) => {
+    if (step.name !== GAP_TOOL || !answered(step) || step.outcome.state !== "returned") return [];
+    const args = (step.args ?? {}) as { metric?: unknown; compare?: unknown; range?: { from?: unknown; to?: unknown }; filters?: unknown };
+    const note = (step.outcome.result as { share_note?: unknown } | null)?.share_note;
+    return [{ asked: { metric: args.metric, compare: args.compare, range: args.range ?? null, filters: filtersKey(args.filters) }, spread: typeof note === "string" && note.trim() !== "" }];
+  });
+}
+
+function repeatsGap(step: ToolStep, gap: GapAsked): boolean {
+  if (step.name !== METRIC_TOOL || !answered(step) || step.outcome.state !== "returned") return false;
+  const query = (step.outcome.result as { query?: Partial<MetricQuery> } | null)?.query;
+  if (!query?.range || !query.dims || groupDimsOf(query as MetricQuery).length > 0) return false;
+  const args = (step.args ?? {}) as { filters?: unknown };
+  return query.metric === gap.metric && query.compare === gap.compare && query.range.from === gap.range?.from && query.range.to === gap.range?.to && filtersKey(args.filters) === gap.filters;
+}
+
+/** One card per point in a why answer (AI-253): a metric total with no breakdown over the metric, window, comparison and filters of a gap the exchange explained repeats the gap card's lead, and an alert list beside a company-wide gap that found no main cause reads as the cause the gap card says there is not. */
+function repeatedByGap(steps: readonly ToolStep[]): string[] {
+  const gaps = gapsAnswered(steps);
+  if (gaps.length === 0) return [];
+  const spreadAcrossCompany = gaps.some((gap) => gap.spread && gap.asked.filters === filtersKey({}));
+  return steps.flatMap((step) => {
+    if (gaps.some((gap) => repeatsGap(step, gap.asked))) return [step.toolCallId];
+    return spreadAcrossCompany && step.name === ALERTS_TOOL ? [step.toolCallId] : [];
+  });
+}
+
 function metricPairs(steps: readonly ToolStep[], hidden: ReadonlySet<string>): ReadonlyMap<string, readonly string[]> {
   const results = steps.flatMap((step) => (step.name === METRIC_TOOL && step.outcome.state === "returned" && !hidden.has(step.toolCallId) ? [{ id: step.toolCallId, result: step.outcome.result }] : []));
   return metricPairsOf(results);
@@ -222,7 +263,7 @@ export function pairedResultsOf(plan: CardPlan, steps: readonly ToolStep[], tool
 /** One card per question: a composed card holds only read results, so a write's receipt is never left out for it; a people lookup that found the recipient of a later card or email sent in the exchange is left out, a refused or failed call the model corrected later in the exchange (the same tool answered after it) is left out, metric answers of the same dimensions and range that pair draw one card on the first of them (`paired`), and lookups the model made on the way are left out (`plumbingLookups`); `composed` are the calls a composed card already holds, `blockWritten` whether the reply wrote a card block at all (a shared card, drawn as it is, counts as one). */
 export function cardPlanOf(steps: readonly ToolStep[], composed: ReadonlySet<string>, cardTools: ReadonlySet<string>, blockWritten = true): CardPlan {
   const heldInCard = steps.flatMap((step) => (composed.has(step.toolCallId) && cardTools.has(step.name) ? [step.toolCallId] : []));
-  const hidden = new Set([...heldInCard, ...recoveredFailures(steps), ...recipientLookups(steps), ...earlierRecalls(steps)]);
+  const hidden = new Set([...heldInCard, ...recoveredFailures(steps), ...recipientLookups(steps), ...earlierRecalls(steps), ...repeatedByGap(steps)]);
   const paired = metricPairs(steps, hidden);
   for (const partners of paired.values()) for (const id of partners) hidden.add(id);
   for (const id of plumbingLookups(steps, hidden, cardTools, blockWritten)) hidden.add(id);

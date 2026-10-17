@@ -111,3 +111,37 @@ describe("only answers draw cards (AI-63)", () => {
     expect(hiddenOf([returned("c1", "list_metrics", { search: null }, CATALOG)])).toEqual([]);
   });
 });
+
+describe("a why answer draws one card per point (AI-253)", () => {
+  const WHY_TOOLS: ReadonlySet<string> = new Set(["query_metric", "explain_gap", "get_alerts"]);
+  const WEEK = { from: "2026-11-23", to: "2026-11-26" };
+  const WEEK_TOTAL = { ok: true, rows: [{ value: 248123456, value_label: "248.1 ล้านบาท", delta_pct: -9.3 }], summary: "", headline: { value: "248.1 ล้านบาท", deltaPercent: -9.3 }, query: { metric: "net_sales_value", dims: [], filters: {}, range: WEEK, grain: "week", compare: "prev_period", limit: null } };
+  const WEEK_ARGS = { dims: [], period: "this_week", metric: "net_sales_value", filters: {}, grain: "week", compare: "prev_period" };
+  const SPREAD_GAP = { ok: true, actual_label: "248.1 ล้านบาท", gap_label: "−25.5 ล้านบาท", contributors: [{ label: "กรุงเทพฯ และปริมณฑล", gap_label: "−5.9 ล้านบาท", share_label: "23.0%" }], share_note: "ช่องว่างกระจายหลายส่วน จึงไม่มีส่วนใดเป็นสาเหตุหลัก" };
+  const GAP_ARGS = { range: WEEK, filters: {}, metric: "net_sales_value", split: "region", compare: "prev_period" };
+  const ALERTS = { ok: true, summary: "มีความผิดปกติที่เปิดอยู่ 10 รายการ", rows: [{ id: "al_1", window: "14 พ.ย. 2569 – 26 พ.ย. 2569", scope: { agent: "ag_nea_02" } }] };
+
+  function hiddenIn(steps: ToolStep[]): string[] {
+    return [...cardPlanOf(steps, new Set(), WHY_TOOLS).hidden].sort();
+  }
+
+  test("round 7's week why draws the gap card alone: the week total it repeats and the alerts beside 'no main cause' are left out", () => {
+    const steps = [returned("q1", "query_metric", WEEK_ARGS, WEEK_TOTAL), returned("g1", "explain_gap", GAP_ARGS, SPREAD_GAP), returned("a1", "get_alerts", { metric: "net_sales_value", status: "open" }, ALERTS)];
+    expect(hiddenIn(steps)).toEqual(["a1", "q1"]);
+  });
+
+  test("a gap that names a main cause keeps the alerts, and a total of another window, metric or comparison keeps its card", () => {
+    const named = { ...SPREAD_GAP, share_note: null };
+    expect(hiddenIn([returned("g1", "explain_gap", GAP_ARGS, named), returned("a1", "get_alerts", {}, ALERTS)])).toEqual([]);
+    expect(hiddenIn([returned("q1", "query_metric", WEEK_ARGS, { ...WEEK_TOTAL, query: { ...WEEK_TOTAL.query, range: { from: "2026-11-01", to: "2026-11-26" } } }), returned("g1", "explain_gap", GAP_ARGS, SPREAD_GAP)])).toEqual([]);
+    expect(hiddenIn([returned("q1", "query_metric", { ...WEEK_ARGS, metric: "ar_overdue" }, { ...WEEK_TOTAL, query: { ...WEEK_TOTAL.query, metric: "ar_overdue" } }), returned("g1", "explain_gap", GAP_ARGS, SPREAD_GAP)])).toEqual([]);
+    expect(hiddenIn([returned("q1", "query_metric", { ...WEEK_ARGS, compare: "prev_year" }, { ...WEEK_TOTAL, query: { ...WEEK_TOTAL.query, compare: "prev_year" } }), returned("g1", "explain_gap", GAP_ARGS, SPREAD_GAP)])).toEqual([]);
+  });
+
+  test("a breakdown of the same window keeps its card, and a gap about one agent keeps that agent's alerts", () => {
+    const byRegion = { ...WEEK_TOTAL, query: { ...WEEK_TOTAL.query, dims: ["region"] } };
+    expect(hiddenIn([returned("q1", "query_metric", { ...WEEK_ARGS, dims: ["region"] }, byRegion), returned("g1", "explain_gap", GAP_ARGS, SPREAD_GAP)])).toEqual([]);
+    const agentGap = { ...GAP_ARGS, filters: { agent: "อีสานรุ่งโรจน์ ค้าส่ง" }, split: "brand" };
+    expect(hiddenIn([returned("a1", "get_alerts", { dims: { agent: "อีสานรุ่งโรจน์ ค้าส่ง" } }, ALERTS), returned("g1", "explain_gap", agentGap, SPREAD_GAP)])).toEqual([]);
+  });
+});

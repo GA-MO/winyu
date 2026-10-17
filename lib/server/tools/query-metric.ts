@@ -2,7 +2,7 @@ import { metricAccess } from "@/lib/access/grants";
 import { outOfScopeFilters, type OutOfScope } from "@/lib/access/enforce";
 import { REGIONS, metricQueryInputSchema, type AccessContext, type Dim, type MetricId, type MetricQuery, type MetricQueryInput, type MetricResult, type MetricRow, type MonthEndProjection } from "@/lib/contracts";
 import { attainmentOf } from "@/lib/cards/breakdown";
-import { monthElapsedOf } from "@/lib/cards/present";
+import { monthElapsedOf, yearCatchUpOf } from "@/lib/cards/present";
 import { percentText } from "@/lib/cards/reading";
 import { ownAgentsFilter } from "@/lib/data/entities/agents";
 import { TH } from "@/lib/i18n/th";
@@ -14,7 +14,7 @@ import { runMetric } from "@/lib/server/metrics";
 import { askedQuery } from "@/lib/semantic/resolved";
 import { excludedIn, filtersWithout } from "@/lib/semantic/exclusion";
 import { namesOf } from "@/lib/semantic/dictionary";
-import { rowsNamedIn } from "@/lib/cards/asked";
+import { asksMonthEnd, rowsNamedIn } from "@/lib/cards/asked";
 import { groupDimsOf, labelAlong } from "@/lib/cards/rows";
 import { actionsForMetric, actionsForRefusal, followUpsForMetric } from "@/lib/server/next-actions";
 import { currentAccess, currentTurn, recordQuery } from "@/lib/server/request-context";
@@ -108,6 +108,13 @@ function oneBaseForModel(output: unknown): unknown {
   return { ...output, summary, headline, rows: output.rows.map((row) => onMonthBase(row, elapsed)) };
 }
 
+/** A year so far against target as the model reads it: the summary adds what the rest of the year must make up and the days left, the line the card's verdict ends with, so the reply can name them (AI-251). */
+function withYearEnd(output: unknown): unknown {
+  if (!isAnswered(output) || output.query.compare !== "target") return output;
+  const catchUp = yearCatchUpOf(output.query, output);
+  return catchUp ? { ...output, summary: [output.summary, catchUp].join(SUMMARY_SEPARATOR) } : output;
+}
+
 /** A question that sets places aside ("นอกจากเรื่องอีสาน") reads the places that remain, so the card and its rows follow the question; null when it sets none aside or the query keeps them anyway. */
 function withoutSetAside(input: MetricQueryInput, access: AccessContext, question: string | null, dictionary: Dictionary): { input: MetricQueryInput; places: string } | null {
   const excluded = excludedIn(question, dictionary);
@@ -156,7 +163,7 @@ export const queryMetricTool = defineTool({
   input: metricQueryInputSchema,
   verify: metricAnswerHolds,
   correct: metricQueryFix,
-  modelView: oneBaseForModel,
+  modelView: (output: unknown) => withYearEnd(oneBaseForModel(output)),
   execute: async (asked: MetricQueryInput) => {
     const dictionary = await loadDictionary();
     const narrowed = narrowedForQuestion(asked, currentAccess(), askedQuestion(), dictionary);
@@ -173,7 +180,8 @@ export const queryMetricTool = defineTool({
     const notes = [...(narrowed.ownAgents !== null ? [TH.quick.ownAgentsApplied(narrowed.ownAgents)] : []), ...(narrowed.setAside !== null ? [TH.quick.excludedApplied(narrowed.setAside)] : [])];
     const summary = [result.summary, ...notes].join(" · ");
     const named = askedRows(result.query, result.rows);
-    const answered = named.length > 0 ? { ...result, headline: { ...result.headline, asked: named } } : result;
+    const closing = Boolean(result.headline.projection) && asksMonthEnd(askedQuestion());
+    const answered = { ...result, headline: { ...result.headline, ...(named.length > 0 ? { asked: named } : {}), ...(closing ? { asksMonthEnd: true } : {}) } };
     const nextActions = actionsForMetric(access, answered, dictionary);
     return { ...answered, summary, provenance, nextActions, followUps: followUpsForMetric(access, answered, dictionary, nextActions) };
   },

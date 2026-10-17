@@ -68,6 +68,26 @@ describe("which pinned cards have something to say", () => {
   });
 });
 
+describe("a pinned month-end projection (AI-237)", () => {
+  const MONTH_END = widget("w", { kind: "month_end", query: query({ metric: "net_sales_value", dims: ["month"], compare: "target" }) });
+  const PROJECTION = { recentDays: 7, projected: "1,777.7 ล้านบาท", monthTarget: "1,846.5 ล้านบาท", attainment: "96.3%", attainmentToDate: "83.9%", shortBy: "297.1 ล้านบาท", endShortBy: "68.8 ล้านบาท", remaining: "ถึงวันนี้ยังขาด 297.1 ล้านบาท ถึงเป้าทั้งเดือน" };
+
+  function projecting(attainment: string): MetricResult {
+    const steady = result(-3.2) as Extract<MetricResult, { ok: true }>;
+    return { ...steady, headline: { ...steady.headline, projection: { ...PROJECTION, attainment, endShortBy: attainment === "96.3%" ? "68.8 ล้านบาท" : null } } };
+  }
+
+  test("that misses the target stays in view, saying the month is expected to close short, although its paced change is under 5%", () => {
+    const attention = attentionOf({ widget: MONTH_END, result: projecting("96.3%"), alerts: [] });
+    expect(attention.level).toBe("moved");
+    expect(attention.reason).toBe("คาดปิดเดือนไม่ถึงเป้า");
+  });
+
+  test("that reaches the target is steady when nothing else moved", () => {
+    expect(attentionOf({ widget: MONTH_END, result: projecting("101.2%"), alerts: [] }).level).toBe("steady");
+  });
+});
+
 function scoreOf(card: WidgetSpec, cardResult: MetricResult, alerts: Alert[] = []): number {
   return attentionOf({ widget: card, result: cardResult, alerts }).score;
 }

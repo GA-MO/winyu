@@ -6,7 +6,7 @@ import { runMetric } from "@/lib/data/query";
 import { DATA_AS_OF, monthStart } from "@/lib/data/dates";
 import { templateFor } from "@/lib/dashboard/templates";
 import { TH } from "@/lib/i18n/th";
-import { presentAlerts, presentCard, presentGap, type CardBody, type CardParts, type GapAnswer } from "./present";
+import { presentAlerts, presentCard, presentGap, widgetKindFor, type CardBody, type CardParts, type GapAnswer } from "./present";
 import type { Strip } from "./reading";
 
 const AS_OF = "2026-11-26";
@@ -151,6 +151,35 @@ describe("a month-end projection is a card of its own and a widget kind (AI-171)
 
   test("a widget may be pinned as month_end", () => {
     expect(widgetKindSchema.safeParse("month_end").success).toBe(true);
+  });
+});
+
+const CLOSE_QUERY: MetricQuery = { metric: "net_sales_value", dims: ["month"], filters: {}, range: NOVEMBER, grain: "month", compare: "target", limit: null, period: "this_month" };
+const CLOSE_PROJECTION = { ...PROJECTION, endShortBy: "68.8 ล้านบาท", remaining: "ถึงวันนี้ยังขาด 297.1 ล้านบาท ถึงเป้าทั้งเดือน" };
+const CLOSE_ROWS: MetricRow[] = [{ month: "2026-11", value: 1549380543, value_label: "1,549.4 ล้านบาท", compare_value: 1600280786, delta_pct: -3.2 }];
+
+describe("asked where the month closes, the chat card is the month-end card (R14, AI-236)", () => {
+  const headline = { value: "1,549.4 ล้านบาท", deltaPercent: -3.2, compareLabel: "เทียบเป้าตามเวลา", projection: CLOSE_PROJECTION };
+  const asked = resultOf(CLOSE_QUERY, CLOSE_ROWS, { ...headline, asksMonthEnd: true });
+
+  test("round 7's company month close leads with 96.3% at month end and its 68.8 ล้านบาท shortfall, the 83.9% so far beside it, as the pinned card does", () => {
+    const chat = presentCard({ title: "t", query: CLOSE_QUERY, result: asked });
+    const pinned = presentCard({ title: "t", query: CLOSE_QUERY, result: asked, view: "month_end" });
+    expect(chat.hero).toMatchObject({ label: TH.cards.gap.monthEndLabel, value: "96.3%", unit: TH.read.ofMonthTarget, tone: "bad" });
+    expect(chat.verdict).toBe(TH.cards.gap.monthEnd(false));
+    expect(chat.tiles.map((tile) => tile.value)).toEqual(["83.9%", "68.8 ล้านบาท"]);
+    expect(chat.hero).toEqual(pinned.hero);
+    expect(widgetKindFor(CLOSE_QUERY, asked)).toBe("month_end");
+  });
+
+  test("the same answer to a question about the month so far keeps leading with the share done so far", () => {
+    const soFar = presentCard({ title: "t", query: CLOSE_QUERY, result: resultOf(CLOSE_QUERY, CLOSE_ROWS, headline) });
+    expect(soFar.hero?.value).toBe("83.9%");
+  });
+
+  test("a breakdown asked where the month closes keeps its rows", () => {
+    const byUnit = presentCard({ title: "t", query: BOARD_QUERY, result: resultOf(BOARD_QUERY, BOARD_ROWS, { value: "1,549.4 ล้านบาท", deltaPercent: -3.2, compareLabel: "เทียบเป้าตามเวลา", projection: PROJECTION, asksMonthEnd: true }) });
+    expect(byUnit.body.kind).toBe("strip");
   });
 });
 

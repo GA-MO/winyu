@@ -168,6 +168,7 @@ export const explainGapTool = defineTool({
       actual_label: amountOf(input, whole.value),
       compare_label: `${versus} ${amountOf(input, whole.compare)}`,
       gap_label: signed(input, breakdown.gap),
+      change_label: input.compare !== "target" && whole.compare !== 0 ? changeLabel(changeOf(whole)) : null,
       attainment_label: input.compare === "target" && !projection && whole.compare > 0 ? `${((whole.value / whole.compare) * 100).toFixed(1)}%` : null,
       contributors: breakdown.contributors.map((contribution) => contributionRow(input, contribution)),
       rest: breakdown.rest ? contributionRow(input, { ...breakdown.rest, label: OTHERS }) : null,

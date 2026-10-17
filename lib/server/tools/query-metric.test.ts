@@ -242,6 +242,34 @@ describe("a breakdown whose question names one of its rows", () => {
   });
 });
 
+describe("a question about where the month closes (AI-236)", () => {
+  const MONTH_TO_DATE = { metric: "net_sales_value", dims: ["month"], filters: {}, period: "this_month", grain: "month", compare: "target" };
+
+  async function askCeo(question: string) {
+    const user = findUser("u_thana");
+    if (!user) throw new Error("no CEO");
+    const tool = winyuTools().query_metric;
+    const turn = { turnId: null, threadId: null, question, queries: [] };
+    return (await runWithAccess(accessFor(user), () => runWithTurn(turn, () => tool.execute(tool.inputSchema().parse(MONTH_TO_DATE))))) as Extract<MetricResult, { ok: true }>;
+  }
+
+  test("is answered with the month end in chat: the card leads with where the month closes, as the pinned card does", async () => {
+    const closing = await askCeo("ทั้งบริษัทเดือนนี้จะปิดที่กี่เปอร์เซ็นต์ของเป้า");
+    const projection = closing.headline.projection;
+    if (!projection) throw new Error("no month-end projection");
+    expect(closing.headline.asksMonthEnd).toBe(true);
+    const card = presentCard({ title: "t", query: closing.query, result: closing });
+    expect(card.hero?.value).toBe(projection.attainment);
+    expect(card.hero?.label).toBe(TH.cards.gap.monthEndLabel);
+  });
+
+  test("a question about the month so far keeps the share done so far", async () => {
+    const soFar = await askCeo("ทั้งบริษัทเดือนนี้ทำได้กี่เปอร์เซ็นต์ของเป้าแล้ว");
+    expect(soFar.headline.asksMonthEnd ?? null).toBeNull();
+    expect(presentCard({ title: "t", query: soFar.query, result: soFar }).hero?.value).toBe(soFar.headline.projection?.attainmentToDate ?? "-");
+  });
+});
+
 describe("query_metric tells the model what each metric accepts", () => {
   const description = winyuTools().query_metric.description();
 

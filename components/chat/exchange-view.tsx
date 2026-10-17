@@ -138,6 +138,7 @@ function ToolStepView({ step, steps, live, plan, streaming, sharing, asked }: { 
         tool: view.tool,
         input: view.input,
         approved: view.approved,
+        result: view.result,
         approve: () => live.decide(step.toolCallId, true),
         reject: () => live.decide(step.toolCallId, false),
         onScreen: live.onScreen,

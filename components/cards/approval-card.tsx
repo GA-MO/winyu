@@ -44,11 +44,12 @@ const CONFIRM =
 const CANCEL =
   "inline-flex items-center rounded-full border border-border bg-card px-4 py-2.5 text-sm font-medium text-muted-foreground transition hover:border-foreground/25 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
-/** A write tool call waiting for the user: `approved` is null until they decide; `onScreen` holds the cards on screen when it was asked, the ones a send_card call names (null when the conversation has none yet, absent where nobody knows). */
+/** A write tool call waiting for the user: `approved` is null until they decide; `result` is what the tool returned once it ran; `onScreen` holds the cards on screen when it was asked, the ones a send_card call names (null when the conversation has none yet, absent where nobody knows). */
 export type ApprovalRequest = {
   tool: string;
   input: unknown;
   approved: boolean | null;
+  result?: unknown;
   approve: () => void;
   reject: () => void;
   onScreen?: ScreenCards | null;
@@ -686,11 +687,18 @@ function CourseApproval({ request }: { request: ApprovalRequest }) {
   return <Approval decision={enrollDecision(input, course)} request={request} />;
 }
 
+/** The titles of the pinned cards a pin moved to the tray, as pin_widget returned them; null before it ran. */
+function replacedBy(result: unknown): string[] | null {
+  const replaced = (result as { data?: { replaced?: unknown } } | null)?.data?.replaced;
+  return Array.isArray(replaced) ? replaced.filter((title): title is string => typeof title === "string") : null;
+}
+
 function PinApproval({ request }: { request: ApprovalRequest }) {
   const input = (request.input ?? {}) as PinInput;
   const question = pinQuestion(request.onScreen?.cards ?? [], input.query, request.question ?? null);
   const preview = usePinPreview(request.approved === null ? input : {}, question);
-  return <Approval decision={pinDecision(input, preview)} request={request} />;
+  const replaced = replacedBy(request.result);
+  return <Approval decision={pinDecision(input, replaced ? { ...preview, replaces: replaced } : preview)} request={request} />;
 }
 
 function SendApproval({ request }: { request: ApprovalRequest }) {

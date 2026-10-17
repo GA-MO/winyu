@@ -334,6 +334,15 @@ describe("lines that invite a question or an action follow what the role can cal
     expect(why).toContain("บอกหน่วยและช่วงของ alert เอง");
   });
 
+  test("a check over the last months reads the months through this one and says which way they went; one month's balance supports nothing (AI-241)", () => {
+    const why = WINYU_RULES.find((line) => line.startsWith("ผู้ใช้ถามว่าทำไม")) ?? "";
+    expect(why).toContain("รายเดือน N เดือนล่าสุด");
+    expect(why).toContain("dims `[\"month\"]` และ `range` ตั้งแต่วันที่ 1 ของ N−1 เดือนก่อนเดือนนี้ถึงวันนี้");
+    expect(why).toContain("ไม่ใช่ `period` `last_month` (ได้เดือนเดียว) และ `limit` ไม่ได้ขยายช่วง");
+    expect(why).toContain("บอกว่าเดือนแรกกับเดือนล่าสุดขึ้นหรือลง");
+    expect(why).toContain("ยอดเดือนเดียวไม่มีอะไรให้เทียบ ห้ามเรียกว่าสนับสนุนหรือหักล้างสมมติฐาน");
+  });
+
   test("the text never calls a topic safe that the anomaly card it draws marks urgent (AI-169)", () => {
     const literal = WINYU_RULES.find((line) => line.startsWith("ประโยคแรกตอบสิ่งที่ผู้ใช้ถามตรง ๆ")) ?? "";
     expect(literal).toContain("ห้ามตอบด้วยความเสี่ยงสต๊อกขาดแทน");

@@ -3,6 +3,7 @@ import { groupDimsOf, labelAlong } from "./rows";
 
 const MIN_NAME_LENGTH = 3;
 const SPACES = /\s+/g;
+const MONTH_CLOSE = /จะปิด|ปิดเดือน|ปิดที่|จะถึงเป้า|ทันเป้า/;
 
 function squeezed(text: string): string {
   return text.replace(SPACES, "");
@@ -38,4 +39,9 @@ export function rowsNamedIn(question: string | null, query: MetricQuery, rows: r
   const text = squeezed(question);
   const named = labels.filter((label) => namesOf(label, labels, prefix).some((name) => text.includes(name)));
   return named.length === labels.length && labels.length > 1 ? [] : named;
+}
+
+/** Whether a question asks where the running month will close ("จะปิดที่กี่เปอร์เซ็นต์", "จะปิดเดือนได้ถึงเป้าไหม") rather than how far it has come. */
+export function asksMonthEnd(question: string | null): boolean {
+  return question !== null && MONTH_CLOSE.test(squeezed(question));
 }

@@ -99,3 +99,37 @@ describe("the month end carries its own shortfall, apart from what is left from 
     expect(projection).not.toHaveProperty("shortBy");
   });
 });
+
+/** The CEO's "ทั้งปีนี้ยอดขายจะถึงเป้าไหม" as query_metric answered it in round 7 (run 5b326258): the year so far by month against target. */
+const YEAR_SO_FAR = {
+  ok: true,
+  rows: [
+    { month: "2026-01", value: 2538658662, value_label: "2,538.7 ล้านบาท", compare_value: 2644164984, delta_pct: -4 },
+    { month: "2026-02", value: 2577470555, value_label: "2,577.5 ล้านบาท", compare_value: 2683760956, delta_pct: -4 },
+    { month: "2026-03", value: 3100114308, value_label: "3,100.1 ล้านบาท", compare_value: 3234503231, delta_pct: -4.2 },
+    { month: "2026-04", value: 3697482183, value_label: "3,697.5 ล้านบาท", compare_value: 3720881703, delta_pct: -0.6 },
+    { month: "2026-05", value: 3018787032, value_label: "3,018.8 ล้านบาท", compare_value: 3100610818, delta_pct: -2.6 },
+    { month: "2026-06", value: 2765394422, value_label: "2,765.4 ล้านบาท", compare_value: 2713428881, delta_pct: 1.9 },
+    { month: "2026-07", value: 2369606112, value_label: "2,369.6 ล้านบาท", compare_value: 2144295675, delta_pct: 10.5 },
+    { month: "2026-08", value: 1718664416, value_label: "1,718.7 ล้านบาท", compare_value: 1749638538, delta_pct: -1.8 },
+    { month: "2026-09", value: 1538211131, value_label: "1,538.2 ล้านบาท", compare_value: 1533370007, delta_pct: 0.3 },
+    { month: "2026-10", value: 1490050282, value_label: "1,490.1 ล้านบาท", compare_value: 1716576153, delta_pct: -13.2 },
+    { month: "2026-11", value: 1549380543, value_label: "1,549.4 ล้านบาท", compare_value: 1600280786, delta_pct: -3.2 },
+  ],
+  summary: "มูลค่าขายเข้า 1 ม.ค. 2569 – 26 พ.ย. 2569: รวม 26,363.8 ล้านบาท · เทียบเป้าตามเวลา -1.8% · (11 แถว · certified · SAP SD) · ข้อมูลถึง 26 พ.ย. 2569",
+  headline: { aggregate: "sum", value: "26,363.8 ล้านบาท", periodLabel: "1 ม.ค. 2569 – 26 พ.ย. 2569", rowCount: 11, deltaPercent: -1.8, compareLabel: PACED, compareNote: null, top: [], underLine: null },
+  provenance: { metric: "net_sales_value", certified: true, sourceSystem: "SAP SD", asOf: "2026-11-26", rowCount: 11, masked: [], trust: "verified" },
+  query: { metric: "net_sales_value", dims: ["month"], filters: {}, grain: "month", compare: "target", limit: null, range: { from: "2026-01-01", to: "2026-11-26" }, period: "ytd", scopeApplied: {}, labels: {} },
+  nextActions: [],
+};
+
+describe("the model reads what the rest of the year must make up (AI-251)", () => {
+  test("the year so far against target tells the model the amount and the days left that the card's verdict names", () => {
+    const read = modelReads(YEAR_SO_FAR) as typeof YEAR_SO_FAR;
+    expect(read.summary).toContain("ต้องทำเกินเป้าอีก 477.7 ล้านบาท ภายในสิ้นปี (เหลือ 35 วัน)");
+  });
+
+  test("a month to date against target gains no year line", () => {
+    expect((modelReads(REP_OPENER) as typeof REP_OPENER).summary).not.toContain("ภายในสิ้นปี");
+  });
+});
