@@ -29,7 +29,7 @@ describe("visit_plan shows the numbers its order rests on (AI-182)", () => {
     expect(plan.rows).toHaveLength(owned.length);
     for (const row of plan.rows) {
       expect(row.sales_basis).toContain("28 วัน");
-      if (row.sales_change_pct !== null) expect(row.sales_change_label).toMatch(/^[+−-]?\d+(\.\d)?%$/);
+      if (row.sales_change_pct !== null) expect(row.sales_change_label).toMatch(/^[+−-]?\d+(\.\d)?% · 28 วัน$/);
     }
   });
 
@@ -50,5 +50,18 @@ describe("visit_plan shows the numbers its order rests on (AI-182)", () => {
     const quiet = plan.rows.findIndex((row) => row.alert_label === null);
     expect(plan.rows.findIndex((row) => row.agent_name === agent.nameTh)).toBeLessThan(quiet === -1 ? plan.rows.length : quiet);
     expect(plan.metrics[0]).toMatchObject({ value: plan.rows[0].agent_name, label: "ควรไปก่อน" });
+  });
+
+  test("the reason a card shows for an alerted agent names the brands and the days the drop covers, so it never reads as the whole agent falling (AI-212)", async () => {
+    const [agent] = agentsOwnedBy(REP);
+    alerts().put({
+      id: ALERT_ID, at: `${DATA_AS_OF}T06:00:00.000Z`, severity: "P1", metric: "net_sales_volume", dims: { agent: agent.id, region: "northeast" }, window: { from: addDays(DATA_AS_OF, -12), to: DATA_AS_OF },
+      observed: 1784.7, expected: 16478.2, zScore: -29, direction: "down", hypothesis: "test", verifySteps: [{ text: "a", metrics: ["net_sales_volume"] }, { text: "b", metrics: ["ar_overdue"] }], ownerUserId: "u_anucha", status: "open", dismissCount: 0, parentId: null, relatedIds: [], campaignId: null, alsoOwnerIds: [], brands: ["leo", "singha"],
+    });
+    const plan = await planFor(REP);
+    const alerted = plan.rows.find((row) => row.agent_name === agent.nameTh);
+    expect(alerted?.reason).toContain("ลีโอ");
+    expect(alerted?.reason).toContain("พ.ย.");
+    expect(plan.metrics[0].detail).toBe(plan.rows[0].reason);
   });
 });

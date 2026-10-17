@@ -170,6 +170,9 @@ export const RATIO_METRICS: ReadonlySet<MetricId> = new Set<MetricId>([
   "campaign_uplift", "share_of_voice", "sentiment_score", "gross_margin", "attrition_rate", "avg_salary", "headcount", "market_share",
 ]);
 
+/** Metrics that are a level on a day (a stock, a balance owed): a period reads its last day, never the sum of its days, so the month still running is as whole as any other. */
+export const SNAPSHOT_METRICS: ReadonlySet<MetricId> = new Set<MetricId>(["stock_on_hand", "days_of_cover", "ar_overdue"]);
+
 /** Metrics the warehouse keeps by month, so a comparison window is read in whole calendar months. */
 export const MONTHLY_METRICS: ReadonlySet<MetricId> = new Set<MetricId>([
   "forecast_mape", "gross_margin", "trade_spend", "ar_overdue", "market_share", "headcount", "attrition_rate", "avg_salary",

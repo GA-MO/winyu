@@ -2,7 +2,7 @@ import {
   type AccessContext, type Brand, type Dim, type FactRequest, type FactResult, type FactRow, type LabelShift, type MetricDef, type MetricId,
   type DimValues, type MetricQuery, type MetricSort, type MetricHeadline, type MetricResult, type MetricRow, type Provenance, type Region, type ResolvedQuery, type UnderLine, type ValueFilter,
 } from "@/lib/contracts";
-import { DECIDING_LINES, HEADLINE_OWN_ROW, MONTHLY_METRICS, RATIO_METRICS, TARGET_METRICS, TIME_DIMS, metricDef } from "@/lib/semantic/metrics";
+import { DECIDING_LINES, HEADLINE_OWN_ROW, MONTHLY_METRICS, RATIO_METRICS, SNAPSHOT_METRICS, TARGET_METRICS, TIME_DIMS, metricDef } from "@/lib/semantic/metrics";
 import { MIN_CELL_SIZE, SUPPRESSED_FIELDS, SUPPRESSED_VALUE, cellScopeOf, isSmallCell } from "@/lib/access/suppression";
 import { namesOf, resolveFilters, type Dictionary } from "@/lib/semantic/dictionary";
 import { DATA_AS_OF, DAY_COUNT, ISO_OF_DAY, MONTH_COUNT, MONTH_FIRST_DAY, MONTH_OF_DAY, daysInMonthIndex, formatThaiDate, toDayIndex } from "@/lib/data/dates";
@@ -32,8 +32,6 @@ const ALREADY_VS_TARGET: ReadonlySet<MetricId> = new Set<MetricId>(["target_atta
 function defaultFiltersOf(metric: MetricId, dictionary: Dictionary): Partial<Record<Dim, string>> {
   return HEADLINE_OWN_ROW[metric] === "maker" ? { maker: dictionary.master.ownMaker } : {};
 }
-
-const SNAPSHOT_METRICS: ReadonlySet<MetricId> = new Set<MetricId>(["stock_on_hand", "days_of_cover", "ar_overdue"]);
 
 const SUMMED_ACROSS_NON_TIME: ReadonlySet<MetricId> = new Set<MetricId>(["headcount"]);
 

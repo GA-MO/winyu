@@ -55,9 +55,9 @@ function KpiStrip({ kpis }: { kpis: LandingKpi[] }) {
           </span>
           <span className="font-display text-lg font-semibold leading-tight tabular-nums tracking-tight sm:text-xl">{kpi.value}</span>
           {kpi.note ? <span className="line-clamp-2 text-[11px] font-medium text-warning">{kpi.note}</span> : null}
-          {kpi.delta ? (
+          {kpi.delta || kpi.detail ? (
             <span className="flex min-w-0 items-center gap-1.5 text-[11px]">
-              <span className={cn("shrink-0 rounded-full px-1.5 py-0.5 font-medium tabular-nums", DELTA_TONE[kpi.tone])}>{kpi.delta}</span>
+              {kpi.delta ? <span className={cn("shrink-0 rounded-full px-1.5 py-0.5 font-medium tabular-nums", DELTA_TONE[kpi.tone])}>{kpi.delta}</span> : null}
               {kpi.detail ? <span className="truncate text-muted-foreground">{kpi.detail}</span> : null}
             </span>
           ) : null}

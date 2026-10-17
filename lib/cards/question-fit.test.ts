@@ -1,12 +1,12 @@
 import { describe, expect, test } from "bun:test";
-import { widgetKindSchema, type MetricHeadline, type MetricQuery, type MetricResult, type MetricRow } from "@/lib/contracts";
+import { widgetKindSchema, type AlertRow, type MetricHeadline, type MetricQuery, type MetricResult, type MetricRow } from "@/lib/contracts";
 import { accessFor } from "@/lib/access/policies";
 import { findUser } from "@/lib/data/entities/users";
 import { runMetric } from "@/lib/data/query";
 import { DATA_AS_OF, monthStart } from "@/lib/data/dates";
 import { templateFor } from "@/lib/dashboard/templates";
 import { TH } from "@/lib/i18n/th";
-import { presentCard, presentGap, type CardBody, type CardParts, type GapAnswer } from "./present";
+import { presentAlerts, presentCard, presentGap, type CardBody, type CardParts, type GapAnswer } from "./present";
 import type { Strip } from "./reading";
 
 const AS_OF = "2026-11-26";
@@ -114,7 +114,7 @@ describe("a series against its target leads with the whole range against target 
 
   test("what is left to target and the month that missed most are on the card", () => {
     const tiles = card.tiles.map((tile) => `${tile.label} ${tile.value}`);
-    expect(tiles).toContain(`${TH.read.toTarget} 477.7 ล้านบาท`);
+    expect(tiles).toContain(`${TH.read.leftToDate} 477.7 ล้านบาท`);
     expect(card.verdict).toContain("ต.ค. 69");
   });
 });
@@ -196,5 +196,168 @@ describe("our own market share is named as ours (AI-189)", () => {
     ], { aggregate: "average", value: "59.3%", deltaPercent: 0.1, deltaPoints: 0.1, compareLabel: "เทียบช่วงก่อนหน้า" });
     const card = presentCard({ title: "t", query, result });
     expect(card.hero?.label).toBe(TH.read.ownShare);
+  });
+});
+
+const ISAN_QUERY: MetricQuery = { metric: "net_sales_value", dims: ["region"], filters: { region: ["northeast"] }, range: NOVEMBER, grain: "month", compare: "target", limit: null };
+const ISAN_PROJECTION = { recentDays: 7, projected: "371.9 ล้านบาท", monthTarget: "424.8 ล้านบาท", attainment: "87.5%", attainmentToDate: "77.3%", shortBy: "96.4 ล้านบาท", endShortBy: "52.9 ล้านบาท", remaining: "เหลืออีก 96.4 ล้านบาท ถึงเป้าทั้งเดือน" };
+const ISAN_RESULT = resultOf(ISAN_QUERY, [{ region: "ภาคอีสาน", value: 328402399, value_label: "328.4 ล้านบาท", compare_value: 368176591, delta_pct: -10.8 }], { value: "328.4 ล้านบาท", deltaPercent: -10.8, compareLabel: "เทียบเป้าตามเวลา", projection: ISAN_PROJECTION }, ["ภาคอีสาน"]);
+
+describe("every month-end tile says what it is (AI-204)", () => {
+  test("the Isan scorecard's 96.4 is the shortfall to date toward the whole month's target, never a share of it", () => {
+    const card = presentCard({ title: "t", query: ISAN_QUERY, result: ISAN_RESULT });
+    expect(card.tiles.find((tile) => tile.value === "96.4 ล้านบาท")).toMatchObject({ label: TH.read.leftToDate, sub: TH.read.toMonthTarget });
+    expect(card.tiles.find((tile) => tile.value === "87.5%")?.sub).toBe(TH.read.ofMonthTarget);
+  });
+
+  test("the pinned month_end card sets the month-end shortfall beside the month-end share, never the shortfall to date", () => {
+    const card = presentCard({ title: "t", query: ISAN_QUERY, result: ISAN_RESULT, view: "month_end" });
+    expect(card.hero?.value).toBe("87.5%");
+    expect(card.tiles.find((tile) => tile.value === "52.9 ล้านบาท")).toMatchObject({ label: TH.read.endShort, sub: TH.read.atMonthEnd });
+    expect(card.tiles.map((tile) => tile.value)).not.toContain("96.4 ล้านบาท");
+  });
+});
+
+const OVERDUE_QUERY: MetricQuery = { metric: "ar_overdue", dims: ["month"], filters: { agent: ["ag_nea_02"] }, range: { from: "2026-06-01", to: AS_OF }, grain: "month", compare: "none", limit: null };
+const OVERDUE_ROWS: MetricRow[] = [["2026-06", 4457401], ["2026-07", 5464459], ["2026-08", 3688243], ["2026-09", 3199064], ["2026-10", 2324459], ["2026-11", 2857256]].map(([month, value]) => ({ month, value }));
+const OVERDUE_RESULT = resultOf(OVERDUE_QUERY, OVERDUE_ROWS, { value: "2.9 ล้านบาท", periodLabel: "1 มิ.ย. 2569 – 26 พ.ย. 2569" }, ["อีสานรุ่งโรจน์ ค้าส่ง", "ภาคอีสาน"]);
+
+describe("a balance keeps the month still running (AI-206)", () => {
+  const card = presentCard({ title: "t", query: OVERDUE_QUERY, result: OVERDUE_RESULT });
+
+  test("overdue money by month ends at November and leads with November's rise in red, not October's fall in green", () => {
+    expect(card.hero).toMatchObject({ label: "พ.ย. 69", trend: "up", tone: "bad" });
+    if (card.body.kind !== "line") throw new Error(`no line: ${card.body.kind}`);
+    expect(card.body.labels[card.body.labels.length - 1]).toBe("พ.ย. 69");
+  });
+
+  test("the balance is never labelled as a total of the range", () => {
+    expect(card.tiles.map((tile) => tile.label)).not.toContain(TH.read.wholeRange);
+  });
+});
+
+const YEAR_QUERY: MetricQuery = { metric: "net_sales_value", dims: [], filters: {}, range: { from: "2026-01-01", to: AS_OF }, grain: "month", compare: "target", limit: null };
+const YEAR_RESULT = resultOf(YEAR_QUERY, [{ value: 26363819646, value_label: "26,363.8 ล้านบาท", compare_value: 26841511732, delta_pct: -1.8 }], { value: "26,363.8 ล้านบาท", periodLabel: "1 ม.ค. 2569 – 26 พ.ย. 2569", deltaPercent: -1.8, compareLabel: "เทียบเป้าตามเวลา" });
+
+describe("a year against its target says where the year stands and what is left (AI-213)", () => {
+  test("asked whether the year reaches target, the card leads with the year to date against target, the amount behind and the days left in the year", () => {
+    const card = presentCard({ title: "t", query: YEAR_QUERY, result: YEAR_RESULT });
+    expect(card.hero).toMatchObject({ label: TH.read.yearToDate, value: "98.2%", unit: TH.read.ofPacedTarget, tone: "bad" });
+    expect(card.tiles.find((tile) => tile.value === "477.7 ล้านบาท")?.label).toBe(TH.read.leftToDate);
+    expect(card.tiles.map((tile) => tile.value)).toContain(TH.read.daysLeft(35));
+    expect(card.verdict).toContain("477.7 ล้านบาท");
+    expect(card.verdict).toContain(TH.read.daysLeft(35));
+  });
+
+  test("the year by month also says what is left in the days left of the year", () => {
+    const card = presentCard({ title: "t", query: YTD_QUERY, result: YTD_RESULT });
+    expect(card.verdict).toContain(TH.read.daysLeft(35));
+    expect(card.verdict).toContain("ต.ค. 69");
+  });
+});
+
+const GAP_ANSWER: GapAnswer = {
+  period_label: "1 พ.ย. 2569 – 26 พ.ย. 2569",
+  actual_label: "467,572 ลิตร",
+  compare_label: "เป้า 674,882 ลิตร",
+  gap_label: "−207,310 ลิตร",
+  attainment_label: "69.3%",
+  contributors: [{ label: "ลีโอ", gap_label: "−133,008 ลิตร", share_label: "64.2%" }, { label: "สิงห์", gap_label: "−75,743 ลิตร", share_label: "36.5%" }, { label: "โซดาสิงห์", gap_label: "−950 ลิตร", share_label: "0.5%" }],
+  rest: null,
+  offsetting: [{ label: "น้ำดื่มสิงห์", gap_label: "+1,208 ลิตร" }],
+  projection: { basis: "", projected_label: "502,913 ลิตร", month_target_label: "778,710 ลิตร", attainment_label: "64.6%" },
+};
+
+describe("a gap card never sets two near-equal percentages of different things together (AI-222)", () => {
+  test("the part that pulled furthest is named by its amount, so 64.2% of the gap never sits over the 64.6% month-end hero", () => {
+    const card = presentGap({ answer: GAP_ANSWER, metric: "net_sales_volume", split: "brand" });
+    expect(card.hero?.value).toBe("64.6%");
+    expect(card.verdict).toContain("133,008 ลิตร");
+    expect(card.verdict).not.toContain("64.2%");
+  });
+});
+
+const WEEK_QUERY: MetricQuery = { metric: "net_sales_value", dims: [], filters: {}, range: { from: "2026-11-23", to: AS_OF }, grain: "week", compare: "prev_period", limit: null };
+const WEEK_RESULT = resultOf(WEEK_QUERY, [{ value: 248100786, value_label: "248.1 ล้านบาท", compare_value: 273619404, delta_pct: -9.3 }], { value: "248.1 ล้านบาท", periodLabel: "23 พ.ย. 2569 – 26 พ.ย. 2569", deltaPercent: -9.3, compareLabel: "เทียบช่วงก่อนหน้า" });
+const MONTH_MARGIN_QUERY: MetricQuery = { metric: "gross_margin", dims: [], filters: {}, range: NOVEMBER, grain: "month", compare: "prev_period", limit: null };
+const MONTH_MARGIN_RESULT = resultOf(MONTH_MARGIN_QUERY, [{ value: 27.3, value_label: "27.3%", compare_value: 26.6, delta_pct: 2.8, delta_pt: 0.8 }], { aggregate: "average", value: "27.3%", periodLabel: "1 พ.ย. 2569 – 26 พ.ย. 2569", deltaPercent: 2.8, deltaPoints: 0.8, compareLabel: "เทียบช่วงก่อนหน้า" });
+
+describe("a one-number change names both periods (AI-223)", () => {
+  test("this week against last week reads as the days of this week and สัปดาห์ก่อน, never ช่วงนี้ and งวดก่อน", () => {
+    const card = presentCard({ title: "t", query: WEEK_QUERY, result: WEEK_RESULT });
+    expect(card.hero?.label).toBe("23–26 พ.ย. 2569");
+    expect(card.tiles.map((tile) => tile.label)).toContain(TH.read.lastWeek);
+    expect(card.verdict).toContain(TH.read.lastWeek);
+  });
+
+  test("this month's margin against last month names November and October", () => {
+    const card = presentCard({ title: "t", query: MONTH_MARGIN_QUERY, result: MONTH_MARGIN_RESULT });
+    expect(card.hero?.label).toBe("พ.ย. 69");
+    expect(card.tiles.map((tile) => tile.label)).toContain("ต.ค. 69");
+    expect(card.verdict).toContain("ต.ค. 69");
+  });
+});
+
+const FALL_QUERY: MetricQuery = { metric: "net_sales_value", dims: ["agent"], filters: { agent: ["ag_nea_01", "ag_nea_02", "ag_nea_03", "ag_nea_05"] }, range: NOVEMBER, grain: "month", compare: "prev_period", limit: 4, sort: "delta_asc" };
+const FALL_RESULT = resultOf(FALL_QUERY, [
+  { agent: "อีสานรุ่งโรจน์ ค้าส่ง", value: 26792888, value_label: "26.8 ล้านบาท", compare_value: 32297916, delta_pct: -17 },
+  { agent: "อุบลศรีสุข เทรดดิ้ง", value: 25626214, value_label: "25.6 ล้านบาท", compare_value: 30458847, delta_pct: -15.9 },
+  { agent: "ขอนแก่นมหาชัย", value: 70967921, value_label: "71.0 ล้านบาท", compare_value: 52318619, delta_pct: 35.6 },
+  { agent: "โคราชสหภัณฑ์", value: 65966163, value_label: "66.0 ล้านบาท", compare_value: 47962151, delta_pct: 37.5 },
+], { value: "189.4 ล้านบาท", deltaPercent: 16.1, compareLabel: "เทียบช่วงก่อนหน้า" }, ["ภาคอีสาน"]);
+const PACE_QUERY: MetricQuery = { metric: "target_attainment", dims: ["brand"], filters: { region: ["northeast"] }, range: NOVEMBER, grain: "month", compare: "none", limit: null };
+const PACE_ROWS: [string, number][] = [["ลีโอ", 87.4], ["สิงห์", 88.6], ["โซดาสิงห์", 98.9], ["คาร์ลสเบิร์ก", 100.5], ["สิงห์ เลมอนโซดา", 100.7], ["อาซาฮี", 101.4], ["น้ำดื่มสิงห์", 101.8], ["เพอร์ร่า", 102.3]];
+const PACE_RESULT = resultOf(PACE_QUERY, PACE_ROWS.map(([brand, value]) => ({ brand, value, value_label: `${value}%` })), { aggregate: "average", value: "92.0%" }, ["ภาคอีสาน"]);
+
+describe("a strip never leaves a row that matters unlabelled (AI-228)", () => {
+  test("an agent that rose almost as much as the top one carries its change", () => {
+    const card = presentCard({ title: "t", query: FALL_QUERY, result: FALL_RESULT });
+    expect(valuedLabels(card)).toContain("ขอนแก่นมหาชัย");
+  });
+
+  test("a brand just over the pace line, whose bar is too short to see, carries its value", () => {
+    const card = presentCard({ title: "t", query: PACE_QUERY, result: PACE_RESULT });
+    expect(valuedLabels(card)).toEqual(expect.arrayContaining(["คาร์ลสเบิร์ก", "สิงห์ เลมอนโซดา", "อาซาฮี", "น้ำดื่มสิงห์"]));
+  });
+});
+
+const COVER_QUERY: MetricQuery = { metric: "days_of_cover", dims: ["dc"], filters: {}, range: NOVEMBER, grain: "month", compare: "none", limit: null, sort: "value_desc" };
+const COVER_ROWS: [string, number][] = [["ศูนย์กระจายสินค้าชลบุรี", 15.46], ["ศูนย์กระจายสินค้ากรุงเทพฯ", 14.29], ["ศูนย์กระจายสินค้าลำพูน", 13.24]];
+const COVER_RESULT = resultOf(COVER_QUERY, COVER_ROWS.map(([dc, value]) => ({ dc, value, value_label: `${value} วัน` })), { aggregate: "average", value: "14.4 วัน", underLine: { line: 10, count: 0, of: 3 } });
+
+function alertOf(id: string, severity: "P1" | "P3", metric: MetricQuery["metric"], direction: "up" | "down"): AlertRow {
+  return { id, severity, severityLabel: severity, metric, metricLabel: metric, scope: {}, scopeLabel: id, window: "", observedLabel: "", expectedLabel: "", gapLabel: "40%", yearOverYear: false, direction, hypothesis: id, ownerUserId: "u_wee" };
+}
+
+describe("a risk answer never calms over a stock-out it cannot see (AI-221)", () => {
+  test("cover averaged over every product of a DC says it is an average, never that the DC is clear", () => {
+    const card = presentCard({ title: "t", query: COVER_QUERY, result: COVER_RESULT });
+    expect(card.verdict).toContain(TH.read.cover.averaged);
+    expect(card.verdict).not.toContain("ยังเกิน");
+  });
+
+  test("a list of alerts shows what hurts; rises that do no harm are folded behind it", () => {
+    const card = presentAlerts({ title: "t", alerts: [alertOf("soda", "P3", "sell_out_volume", "up"), alertOf("cover", "P1", "days_of_cover", "down"), alertOf("ar", "P1", "ar_overdue", "up"), alertOf("leo", "P3", "net_sales_volume", "down")] });
+    if (card.body.kind !== "alerts") throw new Error(card.body.kind);
+    expect(card.body.items.map((item) => item.id)).toEqual(["cover", "ar", "leo"]);
+    expect(card.body.more.map((item) => item.id)).toEqual(["soda"]);
+  });
+});
+
+const REP_TILE_QUERY: MetricQuery = { metric: "net_sales_volume", dims: [], filters: { region: ["northeast"], agent: ["ag_nea_01", "ag_nea_02", "ag_nea_03", "ag_nea_05"] }, range: NOVEMBER, grain: "month", compare: "target", limit: null };
+
+describe("the rep's starter card is short and on the month base (AI-231)", () => {
+  test("a card over four agents names them as four agents, never five names joined", () => {
+    const result = resultOf(REP_TILE_QUERY, [{ value: 2974278, value_label: "3.0 ล้านลิตร", compare_value: 3384258, delta_pct: -12.1 }], { value: "3.0 ล้านลิตร", deltaPercent: -12.1, compareLabel: "เทียบเป้าตามเวลา" }, ["ขอนแก่นมหาชัย", "อีสานรุ่งโรจน์ ค้าส่ง", "โคราชสหภัณฑ์", "อุบลศรีสุข เทรดดิ้ง", "ภาคอีสาน"]);
+    const card = presentCard({ title: "t", query: REP_TILE_QUERY, result });
+    expect(card.verdict).toContain(`4 ${TH.dash.dimUnit.agent}`);
+    expect(card.verdict).not.toContain("ขอนแก่นมหาชัย");
+  });
+
+  test("the rep's template tile asks the same question as the chat's month card, so it reads on the month's base", () => {
+    const rep = findUser("u_krit");
+    if (!rep) throw new Error("no rep");
+    const tile = templateFor(accessFor(rep)).find((seed) => seed.key === "attainment");
+    expect(tile?.query).toMatchObject({ metric: "net_sales_value", compare: "target" });
   });
 });

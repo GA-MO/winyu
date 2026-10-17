@@ -59,7 +59,7 @@ describe("query_metric for a running month against target", () => {
     expect(card.hero?.unit).toBe(TH.read.ofMonthTarget);
     const tiles = new Map(card.tiles.map((tile) => [tile.label, tile.value]));
     expect(card.tiles.length).toBeLessThanOrEqual(2);
-    if (projection.shortBy) expect(tiles.get(TH.read.toTarget)).toBe(projection.shortBy);
+    if (projection.shortBy) expect(tiles.get(TH.read.leftToDate)).toBe(projection.shortBy);
     expect(tiles.get(TH.read.monthEnd)).toBe(projection.attainment);
   });
 

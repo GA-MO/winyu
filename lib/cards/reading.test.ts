@@ -68,7 +68,7 @@ describe("one verdict per rule, built only from the result", () => {
   });
 
   test("R3: against a target the verdict names the one group that sank the total, or counts them with the worst", () => {
-    const base = { line: TARGET, unit: "ภาค", of: 6, overallUnder: true, goal: "เป้า", sums: true, weakest: null, slice: null };
+    const base = { line: TARGET, unit: "ภาค", of: 6, overallUnder: true, goal: "เป้า", sums: true, weakest: null, slice: null, averaged: false };
     expect(lineVerdict({ ...base, count: 1, worst: "ภาคอีสาน" })).toBe("ยอดรวมหลุดเป้าเพราะภาคอีสานภาคเดียว");
     expect(lineVerdict({ ...base, count: 1, worst: "ภาคอีสาน", overallUnder: false })).toBe("ภาคอีสานภาคเดียวยังไม่ถึงเป้า");
     expect(lineVerdict({ ...base, unit: "จังหวัด", of: 24, count: 3, worst: "อุบลราชธานี" })).toBe("3 จังหวัดต่ำกว่าเป้า หนักสุดอุบลราชธานี");
@@ -100,7 +100,7 @@ describe("one verdict per rule, built only from the result", () => {
   });
 
   test("R6: against the low-cover line the verdict names the lowest when nothing is under, else counts the ones under", () => {
-    const base = { line: COVER, unit: "DC", of: 8, overallUnder: false, goal: "เป้า", sums: false, slice: null };
+    const base = { line: COVER, unit: "DC", of: 8, overallUnder: false, goal: "เป้า", sums: false, slice: null, averaged: false };
     expect(lineVerdict({ ...base, count: 0, worst: null, weakest: { label: "DC เชียงใหม่", text: "13.9 วัน" } })).toBe("DC เชียงใหม่ เหลือน้อยสุด 13.9 วัน ยังเกิน 10 วัน");
     expect(spaced(lineVerdict({ ...base, count: 2, worst: "DC ลำพูน", weakest: null }))).toBe("2 DC สต๊อกพอขายไม่ถึง 10 วัน หนักสุด DC ลำพูน");
   });

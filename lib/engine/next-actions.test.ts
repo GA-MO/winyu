@@ -145,6 +145,15 @@ describe("nextActionsFor", () => {
     expect(idsOf(actions)).toContain("drill-province");
   });
 
+  test("a split by agent or DC never offers a split by region, which would step back out (AI-223)", () => {
+    const byAgent = nextActionsFor(accessOf(CEO), contextOf({ query: queryOf("net_sales_value"), focus: NO_FOCUS }));
+    const cover = resolvedFor({ metric: "days_of_cover", dims: ["dc"], filters: {}, range: { from: "2026-09-01", to: "2026-09-22" }, grain: "month", compare: "none", limit: 10 });
+    const byDc = nextActionsFor(accessOf(CEO), contextOf({ query: cover, focus: NO_FOCUS }));
+    expect(idsOf(byAgent)).not.toContain("drill-region");
+    expect(idsOf(byAgent)).not.toContain("drill-province");
+    expect(idsOf(byDc)).not.toContain("drill-region");
+  });
+
   test("a masked answer offers no drill into numbers nobody can read", () => {
     const actions = nextActionsFor(accessOf("u_ton"), contextOf({ masked: ["value"], query: resolvedFor({ ...queryOf("net_sales_volume"), metric: "forecast_mape", dims: ["month"] }, "u_ton"), focus: NO_FOCUS }));
     expect(idsOf(actions).some((id) => id.startsWith("drill"))).toBe(false);

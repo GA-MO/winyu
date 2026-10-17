@@ -5,6 +5,7 @@ The user (2026-10-16): "ไม่ใช่แสดง card หน้าตา�
 ## สถานะ (2026-10-16)
 แก้แล้ว: ตารางตัดสินใจ `CARD_RULES` ใน `lib/cards/present.ts`, การ์ดคู่ (R10) ผ่าน `cardPlanOf`, เช็ก `answeredHero` และ `drewShape` ต่อเคสใน `lib/eval/cases.ts`
 2026-10-17 รอบ 6 (I3): เพิ่ม R12 ซีรีส์เทียบเป้า, R13 ซีรีส์ที่ยอดเปลี่ยนระดับ, ค่าที่ปลายทั้งสองของแถบ, widget แบบ `month_end` เช็กใน `lib/cards/question-fit.test.ts`
+2026-10-17 รอบ 7 (J2): ไทล์บอกว่าตัวเองคืออะไร (ถึงวันนี้ยังขาด / คาดว่าขาด ณ สิ้นเดือน), ยอดคงค้างเก็บเดือนที่ยังไม่จบ, R12 ทั้งปีบอกยอดที่ต้องทำเพิ่มและวันที่เหลือ, ช่วงเวลามีชื่อ, R11 ระบุส่วนที่ฉุดเป็นจำนวน, แถวใกล้ปลายและแท่งสั้นมีค่า, รายการความผิดปกติเอาเรื่องที่เสียหายขึ้นก่อน
 
 ## Worst examples
 
@@ -38,7 +39,7 @@ The user (2026-10-16): "ไม่ใช่แสดง card หน้าตา�
 | R9 | time series of a summed metric, no grouping | latest full bucket vs the one before; range total in the note | line | `ceo-trend`, `compare-stock-weekly` |
 | R10 | 2+ `query_metric` results in one turn with the same dimensions and range, of metrics that read together | the pairing | funnel, scatter, parity gap, or two lines on one chart | `shape-funnel`, `shape-scatter`, `shape-sell-through`, `landing-visit` |
 | R11 | an `explain_gap` answer | where the month ends at the recent pace (a running month), the share of target (a closed month), or the actual with its change | the whole gap named by its base, the parts over 10% of it drawn, the rest and the offsetting parts folded | present.test.ts "a gap card" |
-| R12 | time series against target, no grouping | the whole range's share of target ("ยอดสะสม 98.2% ของเป้าตามเวลา" while a month still runs), tiles for what is left and the bucket that missed most; verdict names both | line with the target dashed | question-fit.test.ts (round-5 CEO "ทั้งปีนี้ยอดขายจะถึงเป้าไหม") |
+| R12 | time series against target, no grouping; also one total of the year so far against target | the whole range's share of target ("ยอดสะสม 98.2% ของเป้าตามเวลา" while a month still runs), tiles for what is behind ("ถึงวันนี้ยังขาด") and the bucket that missed most (a one-row year: the days left in the year); a range from 1 January adds what the rest of the year must make up ("ต้องทำเกินเป้าอีก 477.7 ล้านบาท ภายในสิ้นปี (เหลือ 35 วัน)") | line with the target dashed | question-fit.test.ts (round-5 and round-6 CEO "ทั้งปีนี้ยอดขายจะถึงเป้าไหม") |
 | R13 | day or week series of a sum, no grouping, that stepped to a new level (`lib/cards/step.ts`: each side ≥ 3 buckets, a shift ≥ 40%, the two levels explain ≥ half the spread) | the level since the step ("เฉลี่ยตั้งแต่ 15 พ.ย. 8,951 ลิตร ต่อวัน", red), the level before in the detail; verdict "ตั้งแต่ 15 พ.ย. ลดลงจากวันละ 26,215 ลิตร เหลือ 8,951 ลิตร" | line | question-fit.test.ts (round-5 rep why-drop) |
 
 R12 and R13 come before R9 in `CARD_RULES`: R9 (latest bucket against the one before) answers "how did the last month go" and nothing else, so a target question or a series that broke never leads with it (AI-174). Months are left out of R13 because a month-level shift is the season, not an event. A tile, the landing period tag and the attention check read the same change the hero leads with (`headlineChangeOf`, `leadBucketOf`).
@@ -47,7 +48,9 @@ A metric query can also be drawn and pinned as `month_end` (a widget kind): a th
 
 R10 also needs the exchange view to pass the turn's other results to `DataCard` as `with`. Two metrics read together only when one family in `READ_TOGETHER` (`lib/cards/present.ts`) holds both: the goods flow (production, sell-in, sell-out, stock, cover), the money of the same sales (sell-in, value, attainment, margin, trade spend, overdue), a campaign and what it moved, the workforce. Stock cover and overdue money asked side by side keep their own cards (AI-140).
 
-R11's verdict opens with the hero's judgement ("คาดปิดเดือนไม่ถึงเป้า", "ต่ำกว่าปีก่อน 39.8 ล้านบาท") and names the part that pulled furthest ("ภาคอีสานฉุดมากสุด 78.1%"), so a month-end question and a "which region" question are both answered in the headline (AI-142).
+R11's verdict opens with the hero's judgement ("คาดปิดเดือนไม่ถึงเป้า", "ต่ำกว่าปีก่อน 39.8 ล้านบาท") and names the part that pulled furthest by its amount ("ลีโอฉุดมากสุด 133,008 ลิตร"), so a month-end question and a "which region" question are both answered in the headline (AI-142), and the part's share of the gap never sits as a second, near-equal percentage over the month-end hero (AI-222). The share stays on the part's row.
+
+The year end itself is not projected: the warehouse holds no target past the day the data stops, so R12 says what the rest of the year must make up instead (AI-213).
 
 ## One base per card (AI-141, AI-156)
 
@@ -61,6 +64,15 @@ R11's verdict opens with the hero's judgement ("คาดปิดเดือ�
 - An explain_gap card whose hero is the month end names its gap row "ถึงวันนี้ต่ำกว่าเป้าตามเวลา", so the paced gap under a month-end hero reads as a different base (AI-185).
 - A headline that is the company's own row of the split (market share by maker, `HEADLINE_OWN_ROW`) is labelled "ส่วนแบ่งของเรา", never an average of every row (AI-189).
 - A paired card's second metric puts its comparison word in the footer, as its rows do, so the overall line is never clamped mid-phrase (AI-188).
+- Every tile says what it is. The shortfall beside a month-to-date hero is "ถึงวันนี้ยังขาด … ถึงเป้าทั้งเดือน", never sub-labelled as a share; a `month_end` card sets the month end's own shortfall beside it ("คาดว่าขาด 52.9 ล้านบาท ณ สิ้นเดือน", `MonthEndProjection.endShortBy`), never the shortfall to date (AI-204).
+- A balance (stock, cover, overdue money, `SNAPSHOT_METRICS`) keeps the month still running: it is read on its last day, so its series ends at the running month and has no "ทั้งช่วง" total (AI-206).
+- A one-number change names both windows: "พ.ย. 69" against "ต.ค. 69" (or "พ.ย. 68" a year back), days of one week against "สัปดาห์ก่อน", never "ช่วงนี้" and "งวดก่อน" (AI-223).
+- A scope of more than two names is counted ("4 เอเย่นต์"), never joined into the headline (AI-231).
+- A strip values the rows close behind either end (within a fifth of the spread) and any row whose bar is too short to see, so a near-top mover is never unlabelled and a listed row never reads as empty (AI-228).
+- Cover split by DC or region is an average over every product: when nothing is under the line its verdict says so ("เป็นค่าเฉลี่ยทุกสินค้า ยังไม่ได้ดูราย SKU") instead of calling the DC clear (AI-221).
+- A list of alerts shows what hurts and folds moves that do no harm behind it, whenever something hurts (AI-221).
+- A landing tile of a pinned `month_end` card says it is the projection ("คาดปิดเดือน · …") with the share done so far under it (AI-205); a series tile that leads with the last full month while its month still runs says "เดือนที่ปิดแล้ว" (AI-229).
+- A split by a place (agent, DC, province) never offers a split by a coarser one (AI-223).
 
 ## Check
 

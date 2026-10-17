@@ -16,7 +16,8 @@ function projectionOf(value: unknown): MonthEndProjection | null {
   const candidate = value as Record<string, unknown>;
   if (typeof candidate.recentDays !== "number" || !PROJECTION_TEXTS.every((key) => typeof candidate[key] === "string")) return null;
   const shortBy = typeof candidate.shortBy === "string" ? candidate.shortBy : null;
-  return { ...(candidate as MonthEndProjection), shortBy };
+  const endShortBy = typeof candidate.endShortBy === "string" ? candidate.endShortBy : null;
+  return { ...(candidate as MonthEndProjection), shortBy, endShortBy };
 }
 
 export function metricAnswerOf(source: unknown): MetricAnswer | null {

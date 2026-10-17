@@ -150,7 +150,7 @@ export function compactPeriod(label: string): string {
 export type LineKind = { kind: "target" } | { kind: "cover"; days: number };
 
 /** R3 and R6: how many groups sit on the wrong side of the line out of every group in scope, the worst of them, whether the overall level is under the line too, the target's name ("เป้าตามเวลา" in a month still running), the weakest row when nothing is under, and what the shown rows are when the list was cut (null when every group is shown). */
-export type LineVerdictInput = { line: LineKind; unit: string; count: number; of: number; worst: string | null; overallUnder: boolean; goal: string; sums: boolean; weakest: { label: string; text: string } | null; slice: string | null };
+export type LineVerdictInput = { line: LineKind; unit: string; count: number; of: number; worst: string | null; overallUnder: boolean; goal: string; sums: boolean; weakest: { label: string; text: string } | null; slice: string | null; averaged: boolean };
 
 /** The verdict of a breakdown read against a target or the low-cover line: who sits under it, or that nobody does. */
 export function lineVerdict(input: LineVerdictInput): string {
@@ -163,6 +163,7 @@ export function lineVerdict(input: LineVerdictInput): string {
     if (count === 1) return input.overallUnder ? TH.read.target.oneSinks(worst, unit, input.sums, goal) : TH.read.target.one(worst, unit, goal);
     return TH.read.target.some(count, unit, worst, goal);
   }
+  if ((count === 0 || !worst) && input.weakest && input.averaged) return `${TH.read.cover.lowest(input.weakest.label, input.weakest.text)} ${TH.read.cover.averaged}`;
   if (count === 0 || !worst) return input.weakest ? TH.read.cover.none(unit, line.days, input.weakest.label, input.weakest.text) : TH.read.every(unit);
   if (count === of && of > 1) return TH.read.cover.all(unit, line.days, worst);
   if (count === 1) return TH.read.cover.one(worst, line.days);

@@ -4,7 +4,7 @@ import { metricLabel, metricSource, toneOf } from "@/lib/dashboard/metric-displa
 import { GEO_LEVELS, finestGeoLevel } from "@/lib/semantic/geo";
 import { askedQuery, effectiveFilters, pinnedSlice } from "@/lib/semantic/resolved";
 import { focusTitle } from "@/lib/cards/focus";
-import { METRICS } from "@/lib/semantic/metrics";
+import { METRICS, REGION_SCOPE_DIMS } from "@/lib/semantic/metrics";
 import { findUser } from "@/lib/data/entities/users";
 import { shortName } from "@/lib/i18n/format";
 import { TH } from "@/lib/i18n/th";
@@ -100,10 +100,16 @@ function coveredByScope(context: NextActionContext, dim: Dim): boolean {
   return level !== -1 && level <= finestGeoLevel(pinnedSlice(effectiveFilters(context.query)));
 }
 
+/** True when the card already splits by a place at or below that level (agents, DCs, provinces under a region), so splitting by it would step back out (AI-223). */
+function finerPlaceSplit(context: NextActionContext, dim: Dim): boolean {
+  const level = REGION_SCOPE_DIMS.indexOf(dim);
+  return level !== -1 && context.query.dims.some((used) => REGION_SCOPE_DIMS.indexOf(used) >= level);
+}
+
 function drillDim(context: NextActionContext): Dim | null {
   const used = new Set(context.query.dims);
   return DRILL_DIM_ORDER.find(
-    (dim) => !used.has(dim) && !coveredByScope(context, dim) && METRICS[context.query.metric].dims.includes(dim),
+    (dim) => !used.has(dim) && !coveredByScope(context, dim) && !finerPlaceSplit(context, dim) && METRICS[context.query.metric].dims.includes(dim),
   ) ?? null;
 }
 

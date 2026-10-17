@@ -58,6 +58,7 @@ export async function monthEndProjection(query: MetricQuery, access: AccessConte
   if (!projection) return null;
   const monthTarget = Math.round(projection.monthTarget);
   const shortBy = projection.remaining > 0 ? formatGapForSummary(def, projection.remaining, monthTarget) : null;
+  const endShort = projection.monthTarget - projection.projected;
   return {
     recentDays: RECENT_DAYS,
     projected: formatForSummary(def, Math.round(projection.projected)),
@@ -65,6 +66,7 @@ export async function monthEndProjection(query: MetricQuery, access: AccessConte
     attainment: `${projection.attainment.toFixed(1)}%`,
     attainmentToDate: `${projection.attainmentToDate.toFixed(1)}%`,
     shortBy,
+    endShortBy: endShort > 0 ? formatGapForSummary(def, endShort, monthTarget) : null,
     remaining: shortBy ? TH.dash.monthLeft(shortBy) : TH.dash.monthMet,
   };
 }

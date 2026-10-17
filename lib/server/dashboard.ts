@@ -7,14 +7,15 @@ import { alertRowOf } from "@/lib/cards/alert-row";
 import { actionsForAlert, actionsForMetric } from "@/lib/server/next-actions";
 import { composeSuggestion } from "@/lib/engine/compose";
 import type { LandingKpi, VisitStop } from "@/lib/dashboard/ambient";
-import { DATA_AS_OF, addDays } from "@/lib/data/dates";
+import { DATA_AS_OF, addDays, monthKeyOfIso } from "@/lib/data/dates";
 import { ownAgentsFilter } from "@/lib/data/entities/agents";
 import type { Dictionary } from "@/lib/semantic/dictionary";
 import { loadDictionary } from "@/lib/server/master-data";
 import { formatDelta } from "@/lib/dashboard/metric-display";
 import { leadBucketOf, presentCard, sharpestHarm, subjectOf, weakestRow, type CardParts } from "@/lib/cards/present";
 import { percentIn } from "@/lib/cards/breakdown";
-import { formatPercent } from "@/lib/i18n/format";
+import { compactPeriod } from "@/lib/cards/reading";
+import { formatPercent, periodLabelTh } from "@/lib/i18n/format";
 import { TH } from "@/lib/i18n/th";
 import { templateFor } from "@/lib/dashboard/templates";
 import { displacedBy, onePinnedPerMetric } from "@/lib/dashboard/one-per-metric";
@@ -38,6 +39,7 @@ const VISIT_SCAN_LIMIT = 20;
 const VISIT_WINDOW_DAYS = 27;
 const ALERT_FIRST = -1000;
 const PARENTHETICAL = /\s*\(.*\)$/;
+const BRAND_SEPARATOR = ", ";
 const DAY_MS = 86_400_000;
 const FOUR_WEEKS_DAYS = 31;
 const MONTH_SHORT = new Intl.DateTimeFormat("th-TH", { month: "short" });
@@ -208,7 +210,7 @@ export async function landingKpis(access: AccessContext): Promise<LandingKpi[]> 
     const parts = presentCard({ title: widget.title, query: widget.query, result, view: widget.kind });
     const hero = parts.hero;
     const value = hero?.unit ? `${hero.value} ${hero.unit}` : hero?.value;
-    const label = subjectOf(widget.query, result);
+    const label = kpiLabelOf(widget, result);
     if (!hero || !value || kpis.some((kpi) => kpi.label === label && kpi.value === value)) continue;
     const mover = shownMetrics.has(widget.query.metric) ? moverKpi(widget, result, hero.detail) : null;
     if (mover) {
@@ -217,9 +219,25 @@ export async function landingKpis(access: AccessContext): Promise<LandingKpi[]> 
     }
     shownMetrics.add(widget.query.metric);
     const note = kpiNoteOf(widget.query, result, parts);
-    kpis.push({ id: widget.id, label, value, delta: hero.delta, tone: hero.tone, detail: hero.detail, note, period: leadBucketOf(widget.query, result) ?? periodTag(widget.query.range) });
+    const lead = leadBucketOf(widget.query, result);
+    kpis.push({ id: widget.id, label, value, delta: hero.delta, tone: hero.tone, detail: kpiDetailOf(widget, parts, lead), note, period: lead ?? periodTag(widget.query.range) });
   }
   return kpis;
+}
+
+/** What a tile is about: a pinned month end says it is the projection ("คาดปิดเดือน · มูลค่าขายเข้า รวมทั้งหมด"), so the forecast never reads as a plain total (AI-205). */
+function kpiLabelOf(widget: WidgetSpec, result: MetricResult): string {
+  const subject = subjectOf(widget.query, result);
+  return widget.kind === "month_end" && result.ok && result.headline.projection ? TH.landing.monthEnd(subject) : subject;
+}
+
+/** The line under a tile's number: a month end's share done so far beside the projection (AI-205); a series that leads with the last full month while its last month still runs says so, beside tiles of the running month (AI-229). */
+function kpiDetailOf(widget: WidgetSpec, parts: CardParts, lead: string | null): string | null {
+  const detail = parts.hero?.detail ?? null;
+  const soFar = widget.kind === "month_end" ? parts.tiles.find((tile) => tile.label === TH.read.doneSoFar) : undefined;
+  if (soFar) return [soFar.label, soFar.value, soFar.sub].filter(Boolean).join(" ");
+  const running = periodLabelTh(monthKeyOfIso(widget.query.range.to));
+  return lead && widget.query.grain === "month" && lead !== running ? [TH.landing.lastFullMonth, detail].filter(Boolean).join(" · ") : detail;
 }
 
 /** A short name for a tile's period: the month, "4 สัปดาห์ล่าสุด", or the months it spans. */
@@ -230,10 +248,13 @@ function periodTag(range: MetricQuery["range"]): string {
   return `${MONTH_SHORT.format(new Date(range.from))}–${MONTH_SHORT.format(new Date(range.to))}`;
 }
 
+/** Why an alerted agent is visited, with its own basis: the brands that moved and the days the move covers ("ปริมาณขายเข้า สิงห์, ลีโอ −89% (14–26 พ.ย.)"), so it never reads as the whole agent falling (AI-212). */
 function alertReason(alert: Alert, dictionary: Dictionary): string {
   const row = alertRowOf(alert, dictionary);
   const sign = alert.direction === "down" ? "−" : "+";
-  return row.gapLabel ? TH.landing.visitAlert(row.metricLabel.replace(PARENTHETICAL, ""), `${sign}${row.gapLabel}`) : row.severityLabel;
+  const brands = (alert.brands ?? []).map((brand) => dictionary.displayLabel("brand", brand)).join(BRAND_SEPARATOR);
+  const what = [row.metricLabel.replace(PARENTHETICAL, ""), brands].filter(Boolean).join(" ");
+  return row.gapLabel ? TH.landing.visitAlert(what, `${sign}${row.gapLabel}`, compactPeriod(row.window)) : row.severityLabel;
 }
 
 /** One agent of a rep's book in visit order: its sell-in change over the last four weeks against the four before, its open alert, and whether either asks for a visit. */

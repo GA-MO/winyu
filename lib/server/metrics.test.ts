@@ -161,6 +161,16 @@ describe("where the month ends", () => {
     expect(result.summary).toContain(shortBy);
   });
 
+  test("the month end carries its own shortfall, smaller than the shortfall to date when the month keeps selling (AI-204)", async () => {
+    const result = await runMetric(northeastByAgent, DIRECTOR);
+    if (!result.ok) throw new Error(result.error);
+    const projection = result.headline.projection;
+    const amount = (text: string | null | undefined) => Number((text ?? "").split(" ")[0].replace(/,/g, ""));
+    expect(projection?.endShortBy).toMatch(/ล้านลิตร$/);
+    expect(amount(projection?.endShortBy)).toBeGreaterThan(0);
+    expect(amount(projection?.endShortBy)).toBeLessThan(amount(projection?.shortBy));
+  });
+
   test("a role that sees the metric masked learns nothing about the month end", async () => {
     const result = await runMetric(question({ metric: "net_sales_volume", range: MONTH_TO_DATE, compare: "target" }), accessFor(findUser("u_ton")!));
     expect(result.ok && result.headline.projection).toBeFalsy();

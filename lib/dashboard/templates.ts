@@ -86,7 +86,7 @@ const SALES_RSM_SEEDS: WidgetSeed[] = [
 ];
 
 const SALES_REP_SEEDS: WidgetSeed[] = [
-  seed({ key: "attainment", title: "ยอดขายของคุณเทียบเป้า", kind: "metric", metric: "target_attainment", compare: "none" }),
+  seed({ key: "attainment", title: "ยอดขายของคุณเทียบเป้า", kind: "metric", metric: "net_sales_value", compare: "target" }),
   seed({ key: "agents", title: "เอเย่นต์ที่คุณดูแล", kind: "table", metric: "net_sales_volume", dims: ["agent"], range: MONTH_TO_DATE, compare: "prev_period", limit: TOP_ROWS }),
   seed({ key: "stock", title: "สต๊อกคงเหลือตาม SKU", kind: "kv", metric: "stock_on_hand", dims: ["sku"], limit: TOP_ROWS }),
 ];

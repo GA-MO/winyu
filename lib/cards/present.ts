@@ -1,5 +1,5 @@
 import { standsOut } from "@/lib/engine/gap";
-import { HEADLINE_OWN_ROW } from "@/lib/semantic/metrics";
+import { HEADLINE_OWN_ROW, SNAPSHOT_METRICS } from "@/lib/semantic/metrics";
 import { stepOf } from "./step";
 import { WIDGET_KINDS, type Alert, type AlertRow, type Dim, type Forecast, type Grain, type MetricId, type MetricQuery, type MetricResult, type MetricRow, type MonthEndProjection, type NextAction, type UnderLine, type WidgetKind } from "@/lib/contracts";
 import { TH } from "@/lib/i18n/th";
@@ -160,6 +160,8 @@ const SUNDAY = 0;
 const MONDAY = 1;
 const DAYS_PER_WEEK = 7;
 const MONTH_FIRST = "-01";
+const YEAR_FIRST = "-01-01";
+const YEAR_LAST = "-12-31";
 const PERCENT = 100;
 const NO_EXTRAS: CardExtras = {};
 const NO_ACTIONS: NextAction[] = [];
@@ -195,8 +197,9 @@ function endsOnFullBucket(grain: MetricQuery["grain"], lastDay: string): boolean
   return true;
 }
 
-/** The bucket still running on the last day the data holds: a range asked to the end of September is still cut on the day the data stops. */
+/** The bucket still running on the last day the data holds: a range asked to the end of September is still cut on the day the data stops. A balance has none: it is read on its last day, so the month still running is as whole as any other (AI-206). */
 function partialBucketKey(query: MetricQuery, asOf: string): string | null {
+  if (SNAPSHOT_METRICS.has(query.metric)) return null;
   const lastDay = query.range.to < asOf ? query.range.to : asOf;
   if (endsOnFullBucket(query.grain, lastDay)) return null;
   if (query.grain === "month") return monthKeyOfIso(lastDay);
@@ -385,7 +388,7 @@ export function subjectOf(query: MetricQuery, result: MetricResult): string {
   if (!result.ok) return metricLabel(query.metric);
   const [row] = result.rows;
   const groups = groupDimsOf(query);
-  const named = groups.length > 0 ? (result.rows.length === 1 && row ? labelAlong(groups, row) : null) : scopeLabelsOf(query, result).join(", ") || null;
+  const named = groups.length > 0 ? (result.rows.length === 1 && row ? labelAlong(groups, row) : null) : scopeNameOf(query, result) || null;
   return named && !timeDimOf(query) ? TH.dash.ownScope(metricLabel(query.metric), named) : heroLabelOf(query, result);
 }
 
@@ -572,7 +575,7 @@ function paceVerdict(label: string, paced: number): string {
 /** A month still running against its target has one base, the whole month's target: the hero is the share of it done so far, then what is left to it and where the month ends at the recent pace (style C, two tiles beside the hero); the verdict says whether the month is on pace and where it ends in words, so no figure on another base reaches the card (AI-141, AI-156); nothing left is ever set beside the forecast. */
 function monthToDateLead(name: string, paced: number, actual: string, projection: MonthEndProjection): Lead {
   const behind = paced < PERCENT;
-  const left = projection.shortBy ? tileOf(TH.read.toTarget, projection.shortBy, TH.read.ofMonthTarget) : null;
+  const left = projection.shortBy ? tileOf(TH.read.leftToDate, projection.shortBy, TH.read.toMonthTarget) : null;
   const ends = percentIn(projection.attainment);
   return {
     hero: { label: name, value: projection.attainmentToDate, unit: TH.read.ofMonthTarget, delta: null, trend: behind ? "down" : "neutral", tone: behind ? "bad" : "neutral", detail: `${TH.read.actual} ${actual}` },
@@ -589,7 +592,72 @@ function levelVerdictOf(query: MetricQuery, name: string, rows: MetricRow[]): st
   return TH.read.cover.level(name, value >= line.at, line.line.days);
 }
 
-/** One number about one scope (R1, R2, a total): its share of target when there is one, else its change with the value it is compared with, plus where the month ends. */
+/** Whether a range runs from the first of January into a later month: the year so far. */
+function spansYear(query: MetricQuery): boolean {
+  return query.range.from.endsWith(YEAR_FIRST) && monthKeyOfIso(query.range.from) !== monthKeyOfIso(query.range.to);
+}
+
+function daysLeftInYear(asOf: string): number {
+  return daysBetween(asOf, `${asOf.slice(0, 4)}${YEAR_LAST}`);
+}
+
+/** How far a range's rows are behind their target in the metric's unit, or null when they are not behind or a capped list cannot add up to it. */
+function shortfallOf(query: MetricQuery, rows: readonly MetricRow[]): number | null {
+  if (isCapped(query, rows.length)) return null;
+  const target = rows.reduce((sum, row) => sum + (numericOf(row, "compare_value") ?? 0), 0);
+  const actual = rows.reduce((sum, row) => sum + (numericOf(row, "value") ?? 0), 0);
+  return target > actual ? target - actual : null;
+}
+
+/** What the rest of a year must make up, said in the verdict of a year against its target ("ต้องทำเกินเป้าอีก 477.7 ล้านบาท ภายในสิ้นปี (เหลือ 35 วัน)"); null when the year is not behind. The warehouse holds no target past the day the data stops, so the year end itself cannot be projected (AI-213). */
+function yearCatchUpOf(query: MetricQuery, result: OkResult): string | null {
+  const short = spansYear(query) ? shortfallOf(query, result.rows) : null;
+  return short === null ? null : TH.read.yearCatchUp(formatMetricValue(query.metric, short), TH.read.daysLeft(daysLeftInYear(result.provenance.asOf)));
+}
+
+/** A year so far against its target, one number: its share of target to date leads, what it is behind and the days left in the year beside it, and the verdict says what the rest of the year must make up (AI-213). */
+function yearLead(facts: Facts, attainment: number): Lead {
+  const { query, result } = facts;
+  const asOf = result.provenance.asOf;
+  const paced = isPacedTarget(query, asOf);
+  const behind = attainment < PERCENT;
+  const goal = paced ? TH.read.pacedGoal : TH.read.goal;
+  const short = shortfallOf(query, result.rows);
+  const name = TH.read.yearToDate;
+  const standing = paced ? paceVerdict(name, attainment) : behind ? TH.read.belowGoal(name, goal, percentText(PERCENT - attainment)) : TH.read.met(name);
+  return {
+    hero: { label: name, value: percentText(attainment), unit: paced ? TH.read.ofPacedTarget : TH.read.ofTarget, delta: null, trend: behind ? "down" : "neutral", tone: behind ? "bad" : "neutral", detail: `${TH.read.actual} ${result.headline.value}` },
+    tiles: [short === null ? null : tileOf(TH.read.leftToDate, formatMetricValue(query.metric, short), TH.read.toGoal(goal)), tileOf(TH.read.toYearEnd, TH.read.daysLeft(daysLeftInYear(asOf)), null)].filter((tile): tile is Tile => tile !== null),
+    verdict: [standing, yearCatchUpOf(query, result)].filter(Boolean).join(" "),
+  };
+}
+
+type Windows = { current: string; previous: string };
+
+/** What the two windows of a one-number change are called, so neither reads as "ช่วงนี้" or "งวดก่อน" (AI-223): a calendar month by its name against the month or the year before ("พ.ย. 69", "ต.ค. 69"), days of one week by their dates against "สัปดาห์ก่อน", anything else by its dates against what it is compared with. */
+function windowsOf(query: MetricQuery, result: OkResult): Windows {
+  const { from, to } = query.range;
+  const month = from.endsWith(MONTH_FIRST) && monthKeyOfIso(from) === monthKeyOfIso(to) ? monthKeyOfIso(from) : null;
+  if (month) {
+    const before = query.compare === "prev_year" ? `${Number(month.slice(0, 4)) - 1}${month.slice(4)}` : monthKeyOfIso(addDays(from, -1));
+    return { current: periodLabelTh(month), previous: periodLabelTh(before) };
+  }
+  const oneWeek = query.compare === "prev_period" && weekKeyOfIso(from) === weekKeyOfIso(to) && daysBetween(from, to) < DAYS_PER_WEEK;
+  return { current: compactPeriod(result.headline.periodLabel), previous: oneWeek ? TH.read.lastWeek : (TH.read.base[query.compare] ?? TH.read.previous) };
+}
+
+const MAX_NAMED_SCOPES = 2;
+
+/** What a card about a narrowed scope calls it: the names when there are one or two, else how many of the dimension the question named most of ("4 เอเย่นต์"), so a headline never runs five names together (AI-231). */
+function scopeNameOf(query: MetricQuery, result: OkResult): string {
+  const labels = scopeLabelsOf(query, result);
+  if (labels.length <= MAX_NAMED_SCOPES) return labels.join(", ");
+  const [widest] = (Object.entries(query.filters) as [Dim, string[] | undefined][]).sort(([, left], [, right]) => (right?.length ?? 0) - (left?.length ?? 0));
+  const [dim, values] = widest ?? [null, undefined];
+  return dim && values && values.length > 1 ? `${values.length} ${TH.dash.dimUnit[dim]}` : labels[0];
+}
+
+/** One number about one scope (R1, R2, a total): its share of target when there is one (a year so far with what the rest of the year must make up), else its change against the window it is compared with, each named, plus where the month ends. */
 function summaryLead(facts: Facts, name: string, subject: string): Lead {
   const { query, result, rows } = facts;
   const [row] = rows;
@@ -600,6 +668,7 @@ function summaryLead(facts: Facts, name: string, subject: string): Lead {
     const tone: Tone = attainment < PERCENT ? "bad" : "neutral";
     const trend = attainment < PERCENT ? "down" : "neutral";
     if (result.headline.projection && overTarget) return monthToDateLead(name, attainment, result.headline.value, result.headline.projection);
+    if (overTarget && spansYear(query)) return yearLead(facts, attainment);
     const paced = isPacedTarget(query, result.provenance.asOf);
     const actual = overTarget ? tileOf(TH.read.actual, result.headline.value, null) : null;
     return {
@@ -611,11 +680,13 @@ function summaryLead(facts: Facts, name: string, subject: string): Lead {
   const move = headlineMoveOf(query, result);
   const change = metricFormat(query.metric) === "percent" ? (result.headline.deltaPoints ?? null) : result.headline.deltaPercent;
   const previousValue = row && rows.length === 1 ? numericOf(row, "compare_value") : null;
-  const previous = previousValue === null ? null : tileOf(TH.read.base[query.compare] ?? TH.read.previous, formatMetricValue(query.metric, previousValue), null);
+  const windows = windowsOf(query, result);
+  const previous = previousValue === null ? null : tileOf(windows.previous, formatMetricValue(query.metric, previousValue), null);
+  const versus = previous ? TH.dash.versusBucket(windows.previous) : result.headline.compareLabel;
   return {
-    hero: { label: previous ? TH.read.current : subject, value: result.headline.value, unit: null, ...move, detail: result.headline.compareLabel },
+    hero: { label: previous ? windows.current : subject, value: result.headline.value, unit: null, ...move, detail: versus },
     tiles: [previous, projection].filter((tile): tile is Tile => tile !== null),
-    verdict: change === null || move.delta === null ? levelVerdictOf(query, name, rows) : summaryVerdict({ label: name, attainment: null, change, changeText: move.delta, flat: isFlat(move), versus: result.headline.compareLabel ?? "", value: result.headline.value }),
+    verdict: change === null || move.delta === null ? levelVerdictOf(query, name, rows) : summaryVerdict({ label: name, attainment: null, change, changeText: move.delta, flat: isFlat(move), versus: versus ?? "", value: result.headline.value }),
   };
 }
 
@@ -623,13 +694,13 @@ function summaryLead(facts: Facts, name: string, subject: string): Lead {
 function singleLead(facts: Facts): Lead {
   const { query, result, rows } = facts;
   const row = rows[0];
-  const name = (row ? labelAlong(query.dims, row) : null) ?? scopeLabelsOf(query, result).join(", ");
+  const name = (row ? labelAlong(query.dims, row) : null) ?? scopeNameOf(query, result);
   return summaryLead(facts, name || shortMetric(query.metric), name || heroLabelOf(query, result));
 }
 
-/** The whole range of a summed series as one tile beside a hero that reads part of it. */
+/** The whole range of a summed series as one tile beside a hero that reads part of it; a balance has no range total, its headline is the latest level the hero already shows. */
 function wholeRangeTiles(query: MetricQuery, result: OkResult): Tile[] {
-  if (result.headline.aggregate !== "sum") return NO_TILES;
+  if (result.headline.aggregate !== "sum" || SNAPSHOT_METRICS.has(query.metric)) return NO_TILES;
   const range = headlineMoveOf(query, result);
   return [{ label: TH.read.wholeRange, value: result.headline.value, delta: range.delta, tone: range.tone, sub: result.headline.compareLabel }];
 }
@@ -690,9 +761,8 @@ function targetSeriesLead(facts: Facts): Lead {
   const paced = isPacedTarget(query, result.provenance.asOf);
   const goal = paced ? TH.read.pacedGoal : TH.read.goal;
   const behind = attainment < PERCENT;
-  const target = result.rows.reduce((sum, row) => sum + (numericOf(row, "compare_value") ?? 0), 0);
-  const actual = result.rows.reduce((sum, row) => sum + (numericOf(row, "value") ?? 0), 0);
-  const left = behind && !isCapped(query, result.rows.length) && target > actual ? tileOf(TH.read.toTarget, formatMetricValue(query.metric, target - actual), TH.read.toGoal(goal)) : null;
+  const short = behind ? shortfallOf(query, result.rows) : null;
+  const left = short === null ? null : tileOf(paced ? TH.read.leftToDate : TH.read.toTarget, formatMetricValue(query.metric, short), TH.read.toGoal(goal));
   const worst = result.rows
     .map((row) => ({ label: labelOf(query, row), share: attainmentOf(row) }))
     .reduce<{ label: string; share: number } | null>((low, entry) => (entry.share !== null && entry.share < PERCENT && (low === null || entry.share < low.share) ? { label: entry.label, share: entry.share } : low), null);
@@ -701,14 +771,14 @@ function targetSeriesLead(facts: Facts): Lead {
   return {
     hero: { label: name, value: percentText(attainment), unit: paced ? TH.read.ofPacedTarget : TH.read.ofTarget, delta: null, trend: behind ? "down" : "neutral", tone: behind ? "bad" : "neutral", detail: `${TH.read.actual} ${result.headline.value}` },
     tiles: [left, worst ? tileOf(worst.label, percentText(worst.share), TH.read.missedMostTile) : null].filter((tile): tile is Tile => tile !== null),
-    verdict: [standing, worst ? TH.read.missedMost(worst.label, percentText(PERCENT - worst.share)) : null].filter(Boolean).join(" "),
+    verdict: [standing, yearCatchUpOf(query, result), worst ? TH.read.missedMost(worst.label, percentText(PERCENT - worst.share)) : null].filter(Boolean).join(" "),
   };
 }
 
-/** A metric query drawn as where its running month ends (pinned as `month_end`): the month-end share of the whole month's target leads, the share done so far and what is left beside it, so a pinned projection shows the projection, never the month to date (AI-171). */
+/** A metric query drawn as where its running month ends (pinned as `month_end`): the month-end share of the whole month's target leads, the share done so far and what the month end falls short by beside it, so a pinned projection shows the projection and its own shortfall, never the month to date's (AI-171, AI-204). */
 function monthEndCard(input: PresentInput, result: OkResult, projection: MonthEndProjection): CardParts {
   const reaches = (percentIn(projection.attainment) ?? 0) >= PERCENT;
-  const left = projection.shortBy ? tileOf(TH.read.toTarget, projection.shortBy, TH.read.ofMonthTarget) : null;
+  const left = projection.endShortBy ? tileOf(TH.read.endShort, projection.endShortBy, TH.read.atMonthEnd) : null;
   return {
     title: input.title,
     style: "scorecard",
@@ -911,14 +981,22 @@ function signalOf(alert: AlertRow, why: string | null): SignalItem {
   };
 }
 
+function hurts(alert: AlertRow): boolean {
+  return toneOf(alert.metric, alert.direction === "down" ? -PERCENT : PERCENT) === "bad";
+}
+
+/** Signals in the order a risk question reads them: what hurts in view, in the order given (most urgent first); moves that do no harm are folded behind the rest whenever something hurts (AI-221). */
 function alertsBody(alerts: AlertRow[]): CardBody {
   const said = new Set<string>();
-  const items = alerts.map((alert) => {
+  const harmful = alerts.filter(hurts);
+  const ordered = [...harmful, ...alerts.filter((alert) => !hurts(alert))];
+  const items = ordered.map((alert) => {
     const repeated = said.has(alert.hypothesis);
     said.add(alert.hypothesis);
     return signalOf(alert, repeated ? null : alert.hypothesis);
   });
-  return { kind: "alerts", items: items.slice(0, MAX_ALERTS), more: items.slice(MAX_ALERTS) };
+  const shown = Math.min(MAX_ALERTS, harmful.length > 0 ? harmful.length : MAX_ALERTS);
+  return { kind: "alerts", items: items.slice(0, shown), more: items.slice(shown) };
 }
 
 function alertsVerdict(alerts: AlertRow[]): string {
@@ -1435,7 +1513,7 @@ export function presentGap(input: PresentGapInput): CardParts {
   ];
   const smallerShare = smaller.reduce((sum, part) => sum + (percentIn(part.share_label) ?? 0), 0);
   const foldLine = joined([smaller.length > 0 ? TH.cards.gap.smallerFold(smaller.length, percentText(smallerShare)) : null, answer.offsetting.length > 0 ? TH.cards.gap.offsetFold(answer.offsetting.length) : null]);
-  const named = lead && standsOut((percentIn(lead.share_label) ?? 0) / PERCENT) ? TH.cards.gap.lead(lead.label, below, lead.share_label) : lead ? TH.cards.gap.spread : null;
+  const named = lead && standsOut((percentIn(lead.share_label) ?? 0) / PERCENT) ? TH.cards.gap.lead(lead.label, below, unsignedLabel(lead.gap_label)) : lead ? TH.cards.gap.spread : null;
   const verdict = [rule.opening(facts), named].filter(Boolean).join(" ");
   return {
     title: metric ? TH.dash.ownScope(metricLabel(metric), split ? TH.dash.byDims([TH.dash.dimUnit[split]]) : TH.cards.gap.contributors) : TH.cards.gap.contributors,

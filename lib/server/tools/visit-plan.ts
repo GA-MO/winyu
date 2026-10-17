@@ -32,7 +32,7 @@ function rowOf(visit: PlannedVisit, order: number, dictionary: Dictionary) {
     agent_name: visit.stop.agent,
     reason: visit.needsVisit ? visit.stop.reason : TH.visitPlan.steady,
     sales_change_pct: visit.change,
-    sales_change_label: formatDelta(visit.change) ?? "—",
+    sales_change_label: visit.change === null ? "—" : TH.visitPlan.change(formatDelta(visit.change) ?? "—", VISIT_WINDOW),
     sales_basis: TH.visitPlan.basis(VISIT_WINDOW),
     alert_label: visit.alert ? alertLabelOf(visit.alert, dictionary) : null,
   };

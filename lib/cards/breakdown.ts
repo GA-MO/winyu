@@ -34,6 +34,8 @@ export type LevelLine = { at: number; line: LineKind; underLabel: string; aboveW
 const PERCENT = 100;
 const MAX_STRIP_ROWS = 8;
 const FULLY_VALUED_ROWS = 3;
+const NEAR_END_SHARE = 0.2;
+const SHORT_BAR_SHARE = 0.15;
 const LEADERS = 3;
 const MIN_GAP_PERCENT = 5;
 const MIN_GAP_POINTS = 1;
@@ -247,6 +249,7 @@ function lineReading(input: BreakdownInput, line: LevelLine): Breakdown {
       sums: input.additive,
       weakest: answer ? { label: labelOf(query, answer.row), text: textOf(answer) } : null,
       slice: input.capped && !result.headline.underLine ? TH.read.shown(rows.length, input.unit) : null,
+      averaged: line.line.kind === "cover" && !query.dims.includes("sku"),
     }),
     hero: month
       ? { label: input.scope, value: month.attainment, unit: TH.read.ofMonthTarget, delta: null, trend: overallUnder ? "down" : "neutral", tone: overallTone, detail: monthDetail }
@@ -447,13 +450,17 @@ export function readBreakdown(input: BreakdownInput): Breakdown {
   return input.asked.size === 0 ? reading : withAskedRows(reading, input);
 }
 
-/** Rows that carry their value whatever else the strip mutes: both ends of the measure, so the row furthest in the asked direction always says how far (AI-173), and every row of a strip this short, where one bar without a number reads as missing (AI-188). */
+/** Rows that carry their value whatever else the strip mutes: both ends of the measure and the rows close behind them, so the rows furthest in either direction always say how far (AI-173, AI-228); a row whose bar is too short to see, so a listed row never reads as empty (AI-228); and every row of a strip this short, where one bar without a number reads as missing (AI-188). */
 function withValuedEnds(reading: Breakdown): Breakdown {
   const known = measuresOf(reading.rows);
   if (known.length === 0) return reading;
-  const ends = new Set([Math.min(...known), Math.max(...known)]);
+  const [low, high] = [Math.min(...known), Math.max(...known)];
+  const base = reading.form === "board" ? 0 : reading.baseline;
+  const span = Math.max(high, base) - Math.min(low, base);
+  const nearEnd = (measure: number) => high - measure <= NEAR_END_SHARE * span || measure - low <= NEAR_END_SHARE * span;
+  const unseen = (measure: number) => Math.abs(measure - base) < SHORT_BAR_SHARE * span;
   const every = reading.rows.length <= FULLY_VALUED_ROWS;
-  return { ...reading, rows: reading.rows.map((row) => (every || (row.measure !== null && ends.has(row.measure)) ? { ...row, valued: true } : row)) };
+  return { ...reading, rows: reading.rows.map((row) => (every || (row.measure !== null && (nearEnd(row.measure) || unseen(row.measure))) ? { ...row, valued: true } : row)) };
 }
 
 function readByBars(input: BreakdownInput): Breakdown {
