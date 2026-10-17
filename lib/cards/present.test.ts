@@ -866,12 +866,12 @@ describe("a gap card (explain_gap)", () => {
   test("in a month still running leads with where the month ends and a verdict built from the result, the gap's base named above its parts, never a double minus (AI-142)", () => {
     const card = presentGap({ answer: NORTHEAST_BY_BRAND, metric: "net_sales_value", split: "brand" });
     expect(card.hero).toMatchObject({ label: TH.cards.gap.monthEndLabel, value: "87.5%", unit: TH.read.ofMonthTarget, tone: "bad" });
-    expect(card.verdict).toBe("คาดปิดเดือนไม่ถึงเป้า ลีโอฉุดมากสุด 25.1 ล้านบาท");
+    expect(card.verdict).toBe("คาดปิดเดือนไม่ถึงเป้า ถึงวันนี้ลีโอฉุดมากสุด 25.1 ล้านบาท");
     const body = expectKind(card.body, "exceptions");
     expect(body.strip.rows[0]).toMatchObject({ label: `${TH.cards.gap.toDate}ต่ำกว่าเป้าตามเวลา`, text: "39.8 ล้านบาท" });
-    expect(body.strip.rows.slice(1).map((row) => row.label)).toEqual(["ลีโอ", "สิงห์"]);
-    expect(body.fold?.rows.map((row) => row.label)).toEqual(["โซดาสิงห์", "น้ำดื่มสิงห์", "เพอร์ร่า"]);
-    expect(body.fold?.line).toBe(`${TH.cards.gap.smallerFold(1, "0.3%")} · ${TH.cards.gap.offsetFold(2)}`);
+    expect(body.strip.rows.slice(1).map((row) => row.label)).toEqual(["ลีโอ", "สิงห์", "โซดาสิงห์"]);
+    expect(body.fold?.rows.map((row) => row.label)).toEqual(["น้ำดื่มสิงห์", "เพอร์ร่า"]);
+    expect(body.fold?.line).toBe(TH.cards.gap.offsetFold(2));
     expect(`${card.title} ${card.verdict} ${body.strip.rows.map((row) => row.text).join(" ")}`).not.toMatch(/[−-]/);
     expect(card.title).toBe(TH.dash.ownScope(metricLabel("net_sales_value"), TH.dash.byDims([TH.dash.dimUnit.brand])));
   });
@@ -907,6 +907,7 @@ describe("a change ranking's verdict", () => {
     expect(doubled.length).toBeGreaterThanOrEqual(3);
     const card = presentCard({ title: "t", query, result });
     expect(card.verdict).toBe(`${doubled.length} เอเย่นต์${TH.read.gained}${TH.read.overDouble}`);
-    expect(stripOf(card.body).rows.filter((row) => row.exception).map((row) => row.label)).toEqual(doubled.map((row) => String(row.agent)));
+    const strip = stripOf(card.body);
+    expect([strip.overall, ...strip.rows].filter((row) => row?.exception).map((row) => row?.label)).toEqual(doubled.map((row) => String(row.agent)));
   });
 });

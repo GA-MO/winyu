@@ -26,6 +26,9 @@ const POLICY_CODES: ReadonlySet<string> = new Set(["PERMISSION_DENIED", "TOOL_NO
 
 const EXCEPTION_ORDER: readonly Exclude<Visibility, "full">[] = ["none", "masked"];
 const LIMIT_TONE: Record<RoleAccessLevel, "danger" | "warning"> = { none: "danger", masked: "warning", off: "danger" };
+const CENT_DIGITS = 2;
+const TIE_DIGITS = 3;
+const ROUNDING_SLACK = 1e-9;
 
 type AuditInput = z.infer<typeof adminAuditInputSchema>;
 type Headline = { label: string; value: string; detail?: string };
@@ -134,20 +137,41 @@ export function usageSummaryOf(rows: readonly UsageRow[], days: number): string 
   return TH.adminAudit.people(rows.length, days, { name: top.user_name, questions: top.questions, calls: top.calls });
 }
 
-function spendRow(name: string, note: string, spent: PersonSpend): ConnectorRow {
-  return { user_name: name, role_label: note, cost_label: TH.adminAudit.usd(spent.usd), calls: spent.calls };
+function spendRow(name: string, note: string, cost: string, spent: PersonSpend): ConnectorRow {
+  return { user_name: name, role_label: note, cost_label: cost, calls: spent.calls };
+}
+
+function sameAt(left: number, right: number, digits: number): boolean {
+  const scale = 10 ** digits;
+  return Math.round(left * scale) === Math.round(right * scale);
+}
+
+/** Dollar labels for spend rows and the total they sit under (AI-307): to the cent, or to a tenth of a cent when the two biggest rows differ but would read the same, so the person named as the top spender is never one of a tie on the card; each row is rounded by largest remainder, so the rows add up to the total they sit under. */
+export function spendLabelsOf(amounts: readonly number[], total: number): { rows: string[]; total: string } {
+  const [first, second] = [...amounts].sort((left, right) => right - left);
+  const tied = first !== undefined && second !== undefined && first !== second && sameAt(first, second, CENT_DIGITS);
+  const digits = tied ? TIE_DIGITS : CENT_DIGITS;
+  const scale = 10 ** digits;
+  const exact = amounts.map((amount) => amount * scale);
+  const units = exact.map((value) => Math.floor(value + ROUNDING_SLACK));
+  const missing = Math.max(0, Math.min(units.length, Math.round(total * scale) - units.reduce((sum, value) => sum + value, 0)));
+  const byRemainder = exact.map((value, index) => ({ index, remainder: value - units[index] })).sort((left, right) => right.remainder - left.remainder);
+  for (const { index } of byRemainder.slice(0, missing)) units[index] += 1;
+  return { rows: units.map((value) => TH.adminAudit.usd(value / scale, digits)), total: TH.adminAudit.usd(total, digits) };
 }
 
 /** Who the model spend went to, most first, from the person each call served (a background job run for someone counts as theirs); the calls no one person caused (background jobs, eval) are one row of their own, last. One cut only: a split by source beside the rows would count the same job twice (AI-276). */
 function modelCost(days: number): Report {
   const spend = modelSpend(sinceDaysStart(days));
   const people = Object.entries(spend.byUser).sort(([, left], [, right]) => right.usd - left.usd);
-  const rows = people.map(([userId, spent]) => spendRow(nameOf(userId), roleLabelOf(userId), spent));
-  if (spend.unattributed.calls > 0) rows.push(spendRow(TH.adminAudit.unattributed, TH.adminAudit.unattributedNote, spend.unattributed));
-  const headline = { label: TH.adminAudit.costTotal(days), value: TH.adminAudit.usd(spend.totalUsd), detail: TH.adminAudit.costPeopleNote };
+  const unattributed = spend.unattributed.calls > 0 ? [spend.unattributed] : [];
+  const labels = spendLabelsOf([...people.map(([, spent]) => spent.usd), ...unattributed.map((spent) => spent.usd)], spend.totalUsd);
+  const rows = people.map(([userId, spent], index) => spendRow(nameOf(userId), roleLabelOf(userId), labels.rows[index], spent));
+  for (const spent of unattributed) rows.push(spendRow(TH.adminAudit.unattributed, TH.adminAudit.unattributedNote, labels.rows[people.length], spent));
+  const headline = { label: TH.adminAudit.costTotal(days), value: labels.total, detail: TH.adminAudit.costPeopleNote };
   const [top] = people;
-  const summary = TH.adminAudit.cost(TH.adminAudit.usd(spend.totalUsd), spend.calls, days);
-  return { summary: top ? `${summary} · ${TH.adminAudit.costTop(nameOf(top[0]), TH.adminAudit.usd(top[1].usd))} · ${TH.adminAudit.costPeopleNote}` : summary, headline, rows };
+  const summary = TH.adminAudit.cost(labels.total, spend.calls, days);
+  return { summary: top ? `${summary} · ${TH.adminAudit.costTop(nameOf(top[0]), labels.rows[0])} · ${TH.adminAudit.costPeopleNote}` : summary, headline, rows };
 }
 
 function connectorStatus(): Report {
@@ -197,12 +221,16 @@ function roleAccess(role: RoleId | null, level: RoleAccessLevel | null): Report 
   const fullMetrics = METRIC_IDS.filter((metric) => metricAcl[metric] === "full").map(metricRow);
   const usableTools = toolSurface().filter((entry) => usable(entry.name)).map((entry) => ({ kind_label: TH.adminAudit.kind.tool, key_label: entry.labelTh, value_label: TH.adminAudit.allowed }));
   const limits = [...hiddenMetrics, ...offTools];
-  const asked = level ? limits.filter((limit) => limit.level === level) : limits;
-  const others = level ? limits.filter((limit) => limit.level !== level) : [];
   const line = TH.adminAudit.roleAccessFolded(fullMetrics.length, usableTools.length);
-  const limited = level ? TH.adminAudit.roleAccessAt(TH.role[role], TH.adminAudit.level[level], asked.length) : TH.adminAudit.roleAccess(TH.role[role], asked.length);
+  const summary = (limited: string) => `${TH.adminAudit.scopeLine(scope.value, scope.detail ?? "")} · ${limited}`;
+  if (!level) {
+    const folded = { line: limits.length > 0 ? TH.adminAudit.roleAccessLimitedFolded(limits.length, line) : line, rows: [...limits.map((limit) => limit.row), ...fullMetrics, ...usableTools] };
+    return { summary: summary(TH.adminAudit.roleAccess(TH.role[role], limits.length)), headline: scope, rows: [], folded };
+  }
+  const asked = limits.filter((limit) => limit.level === level);
+  const others = limits.filter((limit) => limit.level !== level);
   return {
-    summary: `${TH.adminAudit.scopeLine(scope.value, scope.detail ?? "")} · ${limited}`,
+    summary: summary(TH.adminAudit.roleAccessAt(TH.role[role], TH.adminAudit.level[level], asked.length)),
     headline: scope,
     rows: asked.map((limit) => limit.row),
     folded: { line: others.length > 0 ? TH.adminAudit.roleAccessOthers(others.length, line) : line, rows: [...others.map((limit) => limit.row), ...fullMetrics, ...usableTools] },

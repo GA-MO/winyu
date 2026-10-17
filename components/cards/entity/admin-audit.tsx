@@ -107,7 +107,7 @@ function AuditList({ items, exceptions }: { items: Item[]; exceptions: boolean }
 }
 
 function readRowOf(row: Row): ReadRow {
-  return { label: textOf(row.key_label), sub: null, measure: null, fill: 0, text: textOf(row.value_label), change: null, tone: "neutral", exception: false, valued: true };
+  return { label: textOf(row.key_label), sub: null, measure: null, fill: 0, text: textOf(row.value_label), change: null, tone: row.tone ? "bad" : "neutral", exception: false, valued: true };
 }
 
 function verdictOf(summary: string, asOf: string): string {

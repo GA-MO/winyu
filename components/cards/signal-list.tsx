@@ -26,7 +26,7 @@ function SignalHead({ item }: { item: SignalItem }) {
         <span className="sr-only">{item.severityLabel}</span>
         <p className="truncate text-[15px] font-semibold leading-snug">{item.name}</p>
         <p className="truncate text-xs text-muted-foreground">{item.place}</p>
-        <p className="mt-1 truncate text-xs tabular-nums text-muted-foreground">{item.numbers}</p>
+        <p className="mt-1 break-words text-xs tabular-nums text-muted-foreground">{item.numbers}</p>
       </div>
       {item.gap ? (
         <div className="flex shrink-0 flex-col items-end justify-center">

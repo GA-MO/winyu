@@ -184,6 +184,7 @@ export const explainGapTool = defineTool({
       share_note: shareNoteOf(breakdown, words),
       other_splits: checked,
       projection: projection ? projectionOf(projection) : null,
+      scope_labels: total.provenance.filterLabels ?? [],
     };
   },
 });

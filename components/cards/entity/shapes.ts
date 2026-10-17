@@ -146,6 +146,7 @@ export const gapResult = z.object({
   projection: z
     .object({ label: z.string(), basis: z.string(), projected_label: z.string(), month_target_label: z.string(), attainment_label: z.string(), month_end_short_label: z.string().nullable().optional() })
     .nullable(),
+  scope_labels: z.array(z.string()).nullable().optional(),
 });
 
 export const entityResult = z.object({ summary: z.string(), data: z.record(z.string(), z.unknown()) });

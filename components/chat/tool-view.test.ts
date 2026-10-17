@@ -154,4 +154,15 @@ describe("a why answer draws one card per point (AI-253)", () => {
     const agentGap = { ...GAP_ARGS, filters: { agent: "อีสานรุ่งโรจน์ ค้าส่ง" }, split: "brand" };
     expect(hiddenIn([returned("a1", "get_alerts", { dims: { agent: "อีสานรุ่งโรจน์ ค้าส่ง" } }, ALERTS), returned("g1", "explain_gap", agentGap, SPREAD_GAP)])).toEqual([]);
   });
+
+  test("round 9's CEO month close by region draws one card: the gap card that leads with 96.3% at month end, never the region breakdown above it (AI-293)", () => {
+    const closeArgs = { compare: "target", grain: "month", metric: "net_sales_value", filters: {}, period: "this_month", dims: ["region"] };
+    const projection = { attainment: "96.3%", attainmentToDate: "83.9%", endShortBy: "68.8 ล้านบาท" };
+    const byRegion = { ok: true, rows: [{ region: "ภาคอีสาน", value: 328402399 }, { region: "ภาคเหนือ", value: 200284015 }], summary: "", headline: { value: "1,549.4 ล้านบาท", periodLabel: "1 พ.ย. 2569 – 26 พ.ย. 2569", projection, asksMonthEnd: true }, query: { metric: "net_sales_value", dims: ["region"], filters: {}, range: { from: "2026-11-01", to: "2026-11-26" }, grain: "month", compare: "target", limit: null, scopeApplied: {}, labels: {} } };
+    const gapArgs = { split: "region", metric: "net_sales_value", filters: {}, compare: "target", range: { to: "2026-11-26", from: "2026-11-01" } };
+    const gap = { ok: true, period_label: "1 พ.ย. 2569 – 26 พ.ย. 2569", actual_label: "1,549.4 ล้านบาท", gap_label: "−50.9 ล้านบาท", contributors: [], share_note: null, projection: { attainment_label: "96.3%" } };
+    expect(hiddenIn([returned("q1", "query_metric", closeArgs, byRegion), returned("g1", "explain_gap", gapArgs, gap)])).toEqual(["q1"]);
+    const soFar = { ...byRegion, headline: { ...byRegion.headline, asksMonthEnd: undefined } };
+    expect(hiddenIn([returned("q1", "query_metric", closeArgs, soFar), returned("g1", "explain_gap", gapArgs, gap)])).toEqual([]);
+  });
 });

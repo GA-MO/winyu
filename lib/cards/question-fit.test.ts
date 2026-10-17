@@ -545,3 +545,149 @@ describe("a gap card never folds one part away (AI-274)", () => {
     expect(card.body.fold).toBeNull();
   });
 });
+
+const CEO_CLOSE_QUERY: MetricQuery = { metric: "net_sales_value", dims: ["region"], filters: {}, range: NOVEMBER, grain: "month", compare: "target", limit: null };
+const CEO_CLOSE_ROWS: MetricRow[] = [
+  { region: "กรุงเทพฯ และปริมณฑล", value: 380692023, value_label: "380.7 ล้านบาท", compare_value: 381479503, delta_pct: -0.2 },
+  { region: "ภาคอีสาน", value: 328402399, value_label: "328.4 ล้านบาท", compare_value: 368176591, delta_pct: -10.8 },
+  { region: "ภาคตะวันออก", value: 227388747, value_label: "227.4 ล้านบาท", compare_value: 230131070, delta_pct: -1.2 },
+  { region: "ภาคกลาง", value: 211182214, value_label: "211.2 ล้านบาท", compare_value: 212909307, delta_pct: -0.8 },
+  { region: "ภาคใต้", value: 201431145, value_label: "201.4 ล้านบาท", compare_value: 204203270, delta_pct: -1.4 },
+  { region: "ภาคเหนือ", value: 200284015, value_label: "200.3 ล้านบาท", compare_value: 203381045, delta_pct: -1.5 },
+];
+const CEO_CLOSE_RESULT = resultOf(CEO_CLOSE_QUERY, CEO_CLOSE_ROWS, { value: "1,549.4 ล้านบาท", periodLabel: "1 พ.ย. 2569 – 26 พ.ย. 2569", deltaPercent: -3.2, compareLabel: "เทียบเป้าตามเวลา", projection: CLOSE_PROJECTION, asksMonthEnd: true });
+
+describe("a month-close question leads with the month end even over a breakdown (R14, AI-293)", () => {
+  const card = presentCard({ title: "t", query: CEO_CLOSE_QUERY, result: CEO_CLOSE_RESULT });
+
+  test("the CEO's 'เดือนนี้น่าจะปิดที่เท่าไร ถึงเป้าไหม' by region leads with 96.3% at month end and its 68.8 ล้านบาท shortfall, the 83.9% so far beside it", () => {
+    expect(card.hero).toMatchObject({ label: TH.cards.gap.monthEndLabel, value: "96.3%", unit: TH.read.ofMonthTarget, tone: "bad" });
+    expect(card.tiles.map((tile) => tile.value)).toEqual(["83.9%", "68.8 ล้านบาท"]);
+    expect(card.verdict?.startsWith(TH.cards.gap.monthEnd(false))).toBe(true);
+  });
+
+  test("the regions sit under that answer on the month's base, with no overall row repeating the 83.9% tile", () => {
+    const strip = stripOf(card.body);
+    expect(strip.overall).toBeNull();
+    expect(strip.rows).toHaveLength(6);
+    expect(strip.rows.find((row) => row.label === "ภาคอีสาน")?.text).toBe("77.3%");
+  });
+
+  test("a pin of it keeps the regions", () => {
+    expect(widgetKindFor(CEO_CLOSE_QUERY, CEO_CLOSE_RESULT)).toBe("bar");
+  });
+});
+
+const REP_DROP_QUERY: MetricQuery = { metric: "net_sales_value", dims: ["agent"], filters: { agent: ["ag_nea_01", "ag_nea_02", "ag_nea_03", "ag_nea_05"] }, range: NOVEMBER, grain: "month", compare: "prev_period", limit: 4, sort: "delta_asc" };
+const REP_DROP_ROWS: MetricRow[] = [
+  { agent: "อีสานรุ่งโรจน์ ค้าส่ง", value: 26792888, value_label: "26.8 ล้านบาท", compare_value: 32297916, delta_pct: -17 },
+  { agent: "อุบลศรีสุข เทรดดิ้ง", value: 25626214, value_label: "25.6 ล้านบาท", compare_value: 30458847, delta_pct: -15.9 },
+  { agent: "ขอนแก่นมหาชัย", value: 70967921, value_label: "71.0 ล้านบาท", compare_value: 52318619, delta_pct: 35.6 },
+  { agent: "โคราชสหภัณฑ์", value: 65966163, value_label: "66.0 ล้านบาท", compare_value: 47962151, delta_pct: 37.5 },
+];
+
+describe("a change ranking leads with the row that answers (R4, AI-294)", () => {
+  const card = presentCard({ title: "t", query: REP_DROP_QUERY, result: resultOf(REP_DROP_QUERY, REP_DROP_ROWS, { value: "189.4 ล้านบาท", deltaPercent: 16.1, compareLabel: "เทียบช่วงก่อนหน้า" }, ["ภาคอีสาน"]) });
+
+  test("the rep's 'which agent dropped most' leads with อีสานรุ่งโรจน์ ค้าส่ง and its fall in red, never the green +16.1% total", () => {
+    expect(card.hero).toMatchObject({ label: "อีสานรุ่งโรจน์ ค้าส่ง", delta: "-17.0%", tone: "bad" });
+    expect(stripOf(card.body).overall).toMatchObject({ label: "อีสานรุ่งโรจน์ ค้าส่ง", tone: "bad" });
+  });
+
+  test("the four agents' total moves to the note under the first row", () => {
+    const strip = stripOf(card.body);
+    expect(strip.overall?.sub).toContain("รวม 4 เอเย่นต์ +16.1%");
+    expect(strip.rows.map((row) => row.label)).toEqual(["อุบลศรีสุข เทรดดิ้ง", "ขอนแก่นมหาชัย", "โคราชสหภัณฑ์"]);
+  });
+});
+
+describe("a store-level card names the products it covers (AI-295)", () => {
+  test("the rep's daily series for one store says it is every brand, so its −65.9% reads apart from the anomaly on สิงห์ and ลีโอ", () => {
+    const card = presentCard({ title: "t", query: DAILY_QUERY, result: DAILY_RESULT });
+    expect(card.footer?.line).toContain(TH.dash.allBrands);
+  });
+
+  test("a card already narrowed to a brand says no such thing", () => {
+    const query: MetricQuery = { ...DAILY_QUERY, filters: { ...DAILY_QUERY.filters, brand: ["leo"] } };
+    const card = presentCard({ title: "t", query, result: resultOf(query, DAILY_RESULT.ok ? DAILY_RESULT.rows : [], { value: "1 ลิตร" }, ["อีสานรุ่งโรจน์ ค้าส่ง", "ลีโอ"]) });
+    expect(card.footer?.line).not.toContain(TH.dash.allBrands);
+  });
+
+  test("the anomaly on the same store names the days it covers", () => {
+    const alert: AlertRow = { ...alertOf("al", "P1", "net_sales_volume", "down"), scopeLabel: "อีสานรุ่งโรจน์ ค้าส่ง · สิงห์, ลีโอ · ภาคอีสาน", window: "14 พ.ย. 2569 – 26 พ.ย. 2569", observedLabel: "1,785 ลิตร/วัน", expectedLabel: "16,478 ลิตร/วัน", gapLabel: "89%" };
+    const card = presentAlerts({ title: "t", alerts: [alert] });
+    if (card.body.kind !== "alerts") throw new Error(card.body.kind);
+    expect(card.body.items[0].numbers).toContain("14–26 พ.ย. 2569");
+  });
+});
+
+const STORE_GAP: GapAnswer = {
+  period_label: "1 พ.ย. 2569 – 26 พ.ย. 2569",
+  actual_label: "26.8 ล้านบาท",
+  compare_label: "เป้าตามเวลา 44.9 ล้านบาท",
+  gap_label: "−18.1 ล้านบาท",
+  change_label: null,
+  attainment_label: null,
+  contributors: [
+    { label: "ลีโอ", gap_label: "−11.0 ล้านบาท", share_label: "61.1% ของช่องว่างถึงวันนี้" },
+    { label: "สิงห์", gap_label: "−7.0 ล้านบาท", share_label: "39.0% ของช่องว่างถึงวันนี้" },
+    { label: "โซดาสิงห์", gap_label: "−30,151 บาท", share_label: "0.2% ของช่องว่างถึงวันนี้" },
+  ],
+  rest: null,
+  offsetting: [
+    { label: "เพอร์ร่า", gap_label: "+20,916 บาท" },
+    { label: "น้ำดื่มสิงห์", gap_label: "+13,167 บาท" },
+    { label: "คาร์ลสเบิร์ก", gap_label: "+9,978 บาท" },
+    { label: "สิงห์ เลมอนโซดา", gap_label: "+2,558 บาท" },
+    { label: "อาซาฮี", gap_label: "+745 บาท" },
+  ],
+  share_note: null,
+  projection: { basis: "", projected_label: "27.8 ล้านบาท", month_target_label: "51.8 ล้านบาท", attainment_label: "53.7%", month_end_short_label: "24.0 ล้านบาท" },
+  scope_labels: ["อีสานรุ่งโรจน์ ค้าส่ง", "ภาคอีสาน"],
+};
+
+describe("the rep's store gap card (round 9)", () => {
+  const card = presentGap({ answer: STORE_GAP, metric: "net_sales_value", split: "brand" });
+
+  test("names the store it is filtered to (AI-296)", () => {
+    expect(card.footer?.line).toBe("1–26 พ.ย. 2569 · อีสานรุ่งโรจน์ ค้าส่ง · ภาคอีสาน");
+  });
+
+  test("draws its lone small part as a row and folds only the parts that offset (AI-301)", () => {
+    if (card.body.kind !== "exceptions") throw new Error(card.body.kind);
+    expect(card.body.strip.rows.map((row) => row.label)).toContain("โซดาสิงห์");
+    expect(card.body.fold?.line).toBe(TH.cards.gap.offsetFold(5));
+  });
+
+  test("names the part that pulled furthest on the to-date base it is counted on, after the month-end judgement (AI-302)", () => {
+    expect(card.verdict).toBe(`${TH.cards.gap.monthEnd(false)} ${TH.cards.gap.toDate}ลีโอฉุดมากสุด 11.0 ล้านบาท`);
+  });
+});
+
+describe("a week's gap card says which week its figure is (AI-305)", () => {
+  const answer: GapAnswer = {
+    period_label: "23 พ.ย. 2569 – 26 พ.ย. 2569",
+    actual_label: "248.1 ล้านบาท",
+    compare_label: "สัปดาห์ก่อน (16 พ.ย. 2569 – 19 พ.ย. 2569) 273.6 ล้านบาท",
+    gap_label: "−25.5 ล้านบาท",
+    change_label: "−9.3%",
+    attainment_label: null,
+    contributors: [{ label: "กรุงเทพฯ และปริมณฑล", gap_label: "−5.9 ล้านบาท", share_label: "23.0% ของช่องว่าง" }],
+    rest: null,
+    offsetting: [],
+    projection: null,
+  };
+
+  test("the hero line names this week's days and what it is compared with, never 'ยอดจริง' run into last week's figure", () => {
+    const card = presentGap({ answer, metric: "net_sales_value", split: "region" });
+    expect(card.hero).toMatchObject({ label: "23–26 พ.ย. 2569", value: "248.1 ล้านบาท", detail: "เทียบ สัปดาห์ก่อน (16 พ.ย. 2569 – 19 พ.ย. 2569) 273.6 ล้านบาท" });
+  });
+});
+
+describe("a year against target draws the running month it counts (AI-304)", () => {
+  test("the CEO's year chart runs to พ.ย. 69, the month its tiles and footer include", () => {
+    const card = presentCard({ title: "t", query: YTD_QUERY, result: YTD_RESULT });
+    if (card.body.kind !== "line") throw new Error(card.body.kind);
+    expect(card.body.labels[card.body.labels.length - 1]).toBe("พ.ย. 69");
+  });
+});

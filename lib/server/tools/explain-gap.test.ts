@@ -122,3 +122,17 @@ describe("a share of the gap names the gap it divides (AI-248)", () => {
     ]);
   });
 });
+
+describe("a filtered gap names its scope (AI-296)", () => {
+  test("the rep's gap for one store by brand names the store, so a screenshot never reads as his whole territory", async () => {
+    const result = (await gapAs("u_krit", { metric: "net_sales_value", split: "brand", filters: { agent: ["อีสานรุ่งโรจน์ ค้าส่ง"] }, range: { from: monthStart(DATA_AS_OF), to: DATA_AS_OF }, compare: "target" })) as GapResult & { scope_labels?: string[] };
+    expect(result.scope_labels).toContain("อีสานรุ่งโรจน์ ค้าส่ง");
+    const card = presentGap({ answer: result as unknown as GapAnswer, metric: "net_sales_value", split: "brand" });
+    expect(card.footer?.line).toContain("อีสานรุ่งโรจน์ ค้าส่ง");
+  });
+
+  test("a company-wide gap names no scope", async () => {
+    const result = (await gapAs("u_thana", WEEK_BY_REGION)) as GapResult & { scope_labels?: string[] };
+    expect(result.scope_labels).toEqual([]);
+  });
+});

@@ -66,13 +66,14 @@ function grouped(threads: readonly ThreadSummary[], query: string) {
   return GROUP_ORDER.map((group) => ({ group, items: visible.filter((thread) => threadGroupOf(thread.updatedAt) === group) })).filter((entry) => entry.items.length > 0);
 }
 
-/** The fixed full-height rail: the mark, new chat, dashboard, inbox, shared (dotted while a share is unread), then search and the threads grouped by day with rename and delete in place; icons only until expanded (remembered), a drawer on mobile. */
+/** The fixed full-height rail: the mark, new chat, dashboard, inbox, shared (dotted while a share is unread), then search and the threads grouped by day with rename and delete in place; icons only until expanded (remembered), a drawer on mobile that slides only once the person opens it, so a resize or a late style never leaves it half open over the chat (AI-309). */
 export function ThreadRail() {
   const pathname = usePathname();
   const router = useRouter();
   const { threads, load } = useThreads();
   const [open, setOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [slides, setSlides] = useState(false);
   const [query, setQuery] = useState("");
   const [mode, setMode] = useState<RowMode>({ kind: "view" });
   const { counts } = useInboxCounts();
@@ -110,12 +111,17 @@ export function ThreadRail() {
     [load, router],
   );
 
+  const openOnPhone = useCallback(() => {
+    setSlides(true);
+    setMobileOpen(true);
+  }, []);
+
   const expanded = open || mobileOpen;
   const groups = grouped(threads, query);
 
   return (
     <>
-      <button type="button" onClick={() => setMobileOpen(true)} aria-label={TEXT.expand} className={cn(ICON_BUTTON, "fixed left-2 top-2 z-30 border border-border bg-card shadow-card md:hidden")}>
+      <button type="button" onClick={openOnPhone} aria-label={TEXT.expand} className={cn(ICON_BUTTON, "fixed left-2 top-2 z-30 border border-border bg-card shadow-card md:hidden")}>
         <Menu className="size-5" aria-hidden />
       </button>
       {mobileOpen ? <button type="button" aria-label={TH.common.close} onClick={() => setMobileOpen(false)} className="fixed inset-0 z-30 bg-foreground/10 backdrop-blur-sm md:hidden" /> : null}
@@ -123,7 +129,8 @@ export function ThreadRail() {
       <aside
         aria-label={TEXT.label}
         className={cn(
-          "fixed left-0 top-0 z-40 flex h-dvh shrink-0 flex-col gap-2 border-r border-border bg-card py-3 transition-all duration-300",
+          "fixed left-0 top-0 z-40 flex h-dvh shrink-0 flex-col gap-2 border-r border-border bg-card py-3 md:transition-[width,padding] md:duration-300",
+          slides ? "transition-transform duration-300" : "",
           expanded ? "w-72 px-3" : "w-14 px-2",
           mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
         )}

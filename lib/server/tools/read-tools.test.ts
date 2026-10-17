@@ -20,6 +20,7 @@ import { toolActivity } from "@/lib/server/tool-activity";
 import { sinceOf } from "@/lib/server/usage";
 import { METRIC_IDS } from "@/lib/contracts";
 import { toolLabel, toolSurface } from "./registry";
+import { spendLabelsOf } from "./admin-audit";
 import { runWithAccess, runWithTurn } from "@/lib/server/request-context";
 import { approvedCallId } from "@/scripts/approved-call";
 import { screenWith } from "@/scripts/screen-cards";
@@ -240,7 +241,7 @@ describe("admin_audit", () => {
     setRoleTool("sales_rep", "store_visits", false, IT);
     try {
       const after = await roleAccessOf("sales_rep");
-      expect(after.rows.find((row) => row.key_label === TH.admin.tools.store_visits.label)?.value_label).toBe(TH.adminAudit.off);
+      expect([...after.rows, ...after.folded].find((row) => row.key_label === TH.admin.tools.store_visits.label)?.value_label).toBe(TH.adminAudit.off);
       const changes = rowsOf(await call(IT, "admin_audit", { topic: "overrides", days: null, role: null }));
       expect(changes.some((row) => row.key_label === TH.admin.tools.store_visits.label && row.role_label === TH.role.sales_rep)).toBe(true);
     } finally {
@@ -254,15 +255,24 @@ describe("admin_audit", () => {
     expect(values.filter((value) => /[A-Za-z]/.test(value))).toEqual([]);
   });
 
-  test("role_access leads with what the role may not see in full or call, hidden metrics first, and folds the rest apart", async () => {
+  test("role_access with no level leads with the data scope alone and folds every row under it, what the role may not see or call first (AI-308)", async () => {
     const access = await roleAccessOf("sales_rep");
+    expect(access.rows).toEqual([]);
     const order: string[] = [TH.adminAudit.visibility.none, TH.adminAudit.visibility.masked, TH.adminAudit.off];
-    const ranks = access.rows.map((row) => order.indexOf(String(row.value_label)));
-    expect(ranks.every((rank) => rank >= 0)).toBe(true);
+    const limited = access.folded.filter((row) => order.includes(String(row.value_label)));
+    const ranks = limited.map((row) => order.indexOf(String(row.value_label)));
     expect(ranks).toEqual([...ranks].sort((left, right) => left - right));
-    expect(access.folded.every((row) => row.value_label === TH.adminAudit.visibility.full || row.value_label === TH.adminAudit.allowed)).toBe(true);
-    expect(access.rows.length + access.folded.length).toBe(METRIC_IDS.length + toolSurface().length);
-    expect(access.line).toBe(TH.adminAudit.roleAccessFolded(access.folded.filter((row) => row.value_label === TH.adminAudit.visibility.full).length, access.folded.filter((row) => row.value_label === TH.adminAudit.allowed).length));
+    expect(access.folded.slice(0, limited.length)).toEqual(limited);
+    expect(access.folded.length).toBe(METRIC_IDS.length + toolSurface().length);
+    const full = access.folded.filter((row) => row.value_label === TH.adminAudit.visibility.full).length;
+    const usable = access.folded.filter((row) => row.value_label === TH.adminAudit.allowed).length;
+    expect(access.line).toBe(TH.adminAudit.roleAccessLimitedFolded(limited.length, TH.adminAudit.roleAccessFolded(full, usable)));
+  });
+
+  test("role_access asked for one level lists those rows and folds the rest", async () => {
+    const result = (await call(IT, "admin_audit", { topic: "role_access", days: null, role: "sales_rep", level: "none" })) as Rows;
+    expect(rowsOf(result).length).toBeGreaterThan(0);
+    expect(rowsOf(result).every((row) => row.value_label === TH.adminAudit.visibility.none)).toBe(true);
   });
 
   test("role_access without a role asks for one instead of guessing", async () => {
@@ -284,7 +294,9 @@ describe("admin_audit", () => {
 
   test("model cost leads with the total it was asked for, the split by source under it", async () => {
     const report = (await call(IT, "admin_audit", { topic: "model_cost", days: 7, role: null })) as Rows & { headline?: { label: string; value: string } | null };
-    expect(report.ok === true && report.headline).toMatchObject({ label: TH.adminAudit.costTotal(7), value: TH.adminAudit.usd(modelSpend(sinceDays7()).totalUsd) });
+    const spend = modelSpend(sinceDays7());
+    const amounts = [...Object.values(spend.byUser).map((spent) => spent.usd), ...(spend.unattributed.calls > 0 ? [spend.unattributed.usd] : [])];
+    expect(report.ok === true && report.headline).toMatchObject({ label: TH.adminAudit.costTotal(7), value: spendLabelsOf(amounts, spend.totalUsd).total });
   });
 
   test("tool usage and model cost answer from the audit and the ledger", async () => {
@@ -344,5 +356,20 @@ describe("admin_audit answers the IT window's questions on one card each (round 
     expect(rep.summary).toContain("คุณกฤต จันทร์เสน ภาคอีสาน");
     const ceo = (await call(IT, "admin_audit", { topic: "role_access", days: null, role: "ceo" })) as Headlined;
     expect(ceo.ok === true && ceo.headline?.value).toBe(TH.adminAudit.scopeAll);
+  });
+
+  test("model cost never names one of two people tied at the cent, and its rows add up to the total (AI-307)", () => {
+    const spend = spendLabelsOf([0.1313, 0.1284, 0.0961, 0.0063, 0.1069], 0.469);
+    expect(spend.total).toBe("$0.469");
+    expect(spend.rows).toEqual(["$0.131", "$0.129", "$0.096", "$0.006", "$0.107"]);
+    const apart = spendLabelsOf([0.21, 0.13, 0.11], 0.45);
+    expect(apart).toEqual({ rows: ["$0.21", "$0.13", "$0.11"], total: "$0.45" });
+  });
+
+  test("rows rounded to the cent are apportioned so they add up to the total they sit under", () => {
+    const spend = spendLabelsOf([0.134, 0.124, 0.104, 0.014, 0.104], 0.48);
+    const cents = spend.rows.map((label) => Math.round(Number(label.slice(1)) * 100));
+    expect(cents.reduce((sum, value) => sum + value, 0)).toBe(48);
+    expect(spend.total).toBe("$0.48");
   });
 });

@@ -20,6 +20,7 @@ const SECONDARY = "inline-flex min-h-9 items-center rounded-full border border-b
 const MORE = "inline-flex size-10 items-center justify-center rounded-full border border-border text-muted-foreground transition hover:border-foreground/25 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 const TILE_COLUMNS = ["grid-cols-1", "grid-cols-2", "grid-cols-3"] as const;
 const NO_ONE: readonly string[] = [];
+const UNIT_AFTER_NUMBER = /^([−+-]?[$฿]?[\d,]+(?:\.\d+)?)\s+(\S.*)$/;
 
 function Shell({ children }: { children: ReactNode }) {
   return (
@@ -58,11 +59,29 @@ function HeroLine({ hero }: { hero: CardHero }) {
   );
 }
 
+/** A tile value split into its number and the unit after it ("52.9" and "ล้านบาท"); a value with no unit word ("77.3%") has none. */
+function numberAndUnit(value: string): { number: string; unit: string | null } {
+  const match = UNIT_AFTER_NUMBER.exec(value);
+  return match ? { number: match[1], unit: match[2] } : { number: value, unit: null };
+}
+
+/** A tile's value as one run that never breaks between the number and its unit (AI-306): the unit is set smaller beside the number, so "52.9 ล้านบาท" fits a third of a phone without wrapping. */
+function TileValue({ tile, lead }: { tile: Tile; lead: boolean }) {
+  const { number, unit } = numberAndUnit(tile.value);
+  return (
+    <dd className={cn("font-semibold leading-tight tracking-tight tabular-nums", unit ? "whitespace-nowrap" : "break-words", lead ? "text-[20px]" : "text-[17px]", tile.delta ? "text-foreground" : TONE_TEXT[tile.tone])}>
+      {number}
+      {unit ? " " : null}
+      {unit ? <span className="text-[11px] font-medium">{unit}</span> : null}
+    </dd>
+  );
+}
+
 function TileView({ tile, lead }: { tile: Tile; lead: boolean }) {
   return (
     <div className="flex min-w-0 flex-col gap-1 rounded-xl bg-muted/60 px-2.5 py-2.5">
       <dt className="truncate text-[11px] text-muted-foreground">{tile.label}</dt>
-      <dd className={cn("break-words font-semibold leading-tight tracking-tight tabular-nums", lead ? "text-[20px]" : "text-[17px]", tile.delta ? "text-foreground" : TONE_TEXT[tile.tone])}>{tile.value}</dd>
+      <TileValue tile={tile} lead={lead} />
       {tile.delta ? (
         <dd>
           <ChangeChip text={tile.delta} tone={tile.tone} />

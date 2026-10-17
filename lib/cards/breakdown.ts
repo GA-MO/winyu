@@ -459,7 +459,15 @@ export function parityReading(input: { gaps: readonly ParityGap[]; hero: CardHer
 /** Reads one breakdown the way styles B and A draw it, by the bars the decision table chose. */
 export function readBreakdown(input: BreakdownInput): Breakdown {
   const reading = withValuedEnds(readByBars(input));
-  return input.asked.size === 0 ? reading : withAskedRows(reading, input);
+  return withLeadOnTop(input.asked.size === 0 ? reading : withAskedRows(reading, input));
+}
+
+/** The row a reading leads with (the first of a change ranking, R4, AI-294; the one row the question named) takes the overall row's place on top of the strip, the overall line under it as its note, so the picture leads with the answer and never with a total that moved the other way. */
+function withLeadOnTop(reading: Breakdown): Breakdown {
+  const { lead, overall } = reading;
+  const top = lead ? reading.rows.find((row) => row.label === lead.row) : undefined;
+  if (!lead || !overall || !top) return reading;
+  return { ...reading, overall: { ...top, sub: joinedText([top.sub, overallLine(overall)]) }, rows: reading.rows.filter((row) => row !== top), hero: lead.hero };
 }
 
 /** Rows that carry their value whatever else the strip mutes: both ends of the measure and the rows close behind them, so the rows furthest in either direction always say how far (AI-173, AI-228); a row whose bar is too short to see, so a listed row never reads as empty (AI-228); and every row of a strip this short, where one bar without a number reads as missing (AI-188). */
@@ -597,10 +605,7 @@ function withAskedRows(reading: Breakdown, input: BreakdownInput): Breakdown {
   const onMonth = monthAskedOf(input, only);
   const hero: CardHero = onMonth?.hero ?? { label, value: valueTextOf(query, only), unit: null, ...rowMove(query, only), detail: baseOf(query, only) ?? result.headline.compareLabel };
   const verdict = onMonth?.verdict ?? askedVerdictOf(input, only);
-  const top = rows.find((row) => row.label === label);
-  if (!reading.overall || !top) return { ...reading, rows, verdict, lead: { row: label, hero } };
-  const overall: ReadRow = { ...top, sub: joinedText([top.sub, overallLine(reading.overall)]) };
-  return { ...reading, overall, rows: rows.filter((row) => row !== top), verdict, hero, lead: { row: label, hero } };
+  return { ...reading, rows, verdict, lead: { row: label, hero } };
 }
 
 /** The overall row in one line under the named row that took its place on top ("เฉลี่ยทุกกลุ่มธุรกิจ 27.3% +0.8 จุด"). */

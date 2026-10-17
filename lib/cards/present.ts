@@ -1,5 +1,5 @@
 import { mainCauses } from "@/lib/engine/gap";
-import { HEADLINE_OWN_ROW, SNAPSHOT_METRICS } from "@/lib/semantic/metrics";
+import { HEADLINE_OWN_ROW, metricDef, SNAPSHOT_METRICS } from "@/lib/semantic/metrics";
 import { stepOf } from "./step";
 import { WIDGET_KINDS, type Alert, type AlertRow, type Dim, type Forecast, type Grain, type MetricId, type MetricQuery, type MetricResult, type MetricRow, type MonthEndProjection, type NextAction, type UnderLine, type WidgetKind } from "@/lib/contracts";
 import { TH } from "@/lib/i18n/th";
@@ -177,6 +177,7 @@ const SHARE_METRICS: ReadonlySet<MetricId> = new Set(["market_share", "share_of_
 const SEVERITY_TONES: Record<Alert["severity"], AlertTone> = { P1: "danger", P2: "warning", P3: "info" };
 const VERDICT_UNITS: Partial<Record<Dim, string>> = { dc: "DC" };
 const STRONG_CORRELATION = 0.5;
+const PRODUCT_DIMS: readonly Dim[] = ["brand", "sku", "pack"];
 const RECENT_WEEKS = 4;
 const MIN_GAP_SHARE = 10;
 /** Metrics that answer one question together (R10): the goods flowing from plant to shelf, the money of the same sales, a campaign and what it moved, a workforce. Two answers of one turn share a card only when one family holds both, so stock cover and overdue money asked side by side keep their own cards (AI-140). */
@@ -285,8 +286,8 @@ function timeView(shape: Shape): CardView {
 
 type OkResult = Extract<MetricResult, { ok: true }>;
 
-/** What the card leads with when it is not a breakdown drawn as bars: the total, the one row it has, the row that ranks first, the latest full bucket, where a balance went over its range, the whole range against its target, the level a series stepped to, or the overall row of the breakdown reading. */
-type HeroKind = "total" | "single" | "leader" | "latest" | "range" | "target" | "step" | "reading";
+/** What the card leads with when it is not a breakdown drawn as bars: the total, the one row it has, the row that ranks first, the latest full bucket, where a balance went over its range, the whole range against its target, the level a series stepped to, or the overall row of the breakdown reading; a breakdown asked where the month closes leads with the month end (`month_end`) over its bars. */
+type HeroKind = "total" | "single" | "leader" | "latest" | "range" | "target" | "step" | "reading" | "month_end";
 
 /** Which bars a breakdown draws; `auto` picks the change when the list is ranked by it, the deciding line when the metric has one, a leaderboard for a sum, a reference level for a rate. */
 type Bars = "auto" | BreakdownBars;
@@ -324,6 +325,7 @@ function closesMonth(result: OkResult): boolean {
 /** The one decision table: the first rule whose condition holds decides the form, the hero, the bars and the style family (breakdowns B or A above 8 rows, one scope C, any other chart). */
 const CARD_RULES: readonly CardRule[] = [
   { rule: "R14 where the month closes", when: (f) => (f.groups === 0 || f.rows.length === 1) && closesMonth(f.result), view: always("month_end"), bars: "auto", hero: "target", look: "summary" },
+  { rule: "R14 where the month closes, by group", when: (f) => f.groups === 1 && !f.time && f.query.compare === "target" && f.rows.length >= RANK_MIN_ROWS && closesMonth(f.result), view: always("bar"), bars: "target", hero: "month_end", look: "breakdown" },
   { rule: "R7 threshold met by few", when: (f) => Boolean(f.query.where) && f.under !== null && f.groups === 1 && !f.time && f.rows.length > 0, view: always("bar"), bars: "level", hero: "reading", look: "breakdown" },
   { rule: "R1 one row", when: (f) => f.rows.length <= 1 && (f.query.dims.length > 0 || f.filtered), view: always("metric"), bars: "auto", hero: "single", look: "summary" },
   { rule: "R2 short series against target", when: (f) => f.time && f.groups === 0 && f.buckets >= RANK_MIN_ROWS && f.buckets < MIN_LINE_BUCKETS && f.query.compare === "target" && hasChange(f.rows), view: always("bar"), bars: "target", hero: "reading", look: "breakdown" },
@@ -487,12 +489,19 @@ function projectionNote(result: OkResult): string | null {
   return result.headline.projection ? TH.dash.monthEnd(result.headline.projection) : null;
 }
 
-/** The footer every data card closes with: the date span, what the question was narrowed to and the source in one line; trust, as-of, coverage, masking and the notes behind it. */
-function footerOf(query: MetricQuery, result: OkResult, notes: readonly (string | null)[]): CardFooter {
+/** "ทุกแบรนด์" for one store's series over every product: an anomaly on a store is scoped to the brands that broke over its own days, so the store's trend beside it says it is wider and the two drops read apart (AI-295); null when the card is narrowed to or split by a product, is about more than one store, or is not a series. */
+function everyBrandOf(query: MetricQuery): string | null {
+  if (query.filters.agent?.length !== 1 || !timeDimOf(query)) return null;
+  if (PRODUCT_DIMS.some((dim) => (query.filters[dim]?.length ?? 0) > 0 || query.dims.includes(dim))) return null;
+  return metricDef(query.metric)?.dims.includes("brand") ? TH.dash.allBrands : null;
+}
+
+/** The footer every data card closes with: the date span, what the question was narrowed to (and `products`, the products it covers when that needs saying) and the source in one line; trust, as-of, coverage, masking and the notes behind it. */
+function footerOf(query: MetricQuery, result: OkResult, notes: readonly (string | null)[], products: string | null = null): CardFooter {
   const provenance = result.provenance;
   const masked = provenance.masked.length > 0 ? TH.dash.maskedNote(provenance.masked.length) : null;
   return {
-    line: [compactPeriod(result.headline.periodLabel), ...scopeLabelsOf(query, result), provenance.sourceSystem].join(" · "),
+    line: [compactPeriod(result.headline.periodLabel), ...scopeLabelsOf(query, result), ...(products ? [products] : []), provenance.sourceSystem].join(" · "),
     verified: provenance.trust === "verified",
     details: joined([TH.dash.trust[provenance.trust], TH.read.asOf(formatDateTh(provenance.asOf)), result.headline.compareLabel, provenance.coverage?.label ?? null, masked, result.headline.compareNote, ...notes]),
   };
@@ -552,6 +561,11 @@ function latestBucketOf(query: MetricQuery, result: OkResult, rows: MetricRow[])
     deltaPoints: latestValue - previousValue,
     versus: TH.dash.versusBucket(labelOf(query, previous)),
   };
+}
+
+/** The rows a card draws over time: a series against target keeps its running bucket, since its target is counted to the same day and the tiles beside the chart count that bucket too (AI-304); any other trend drops it and says so. */
+function drawnBuckets(query: MetricQuery, view: CardView, rows: MetricRow[], asOf: string): { rows: MetricRow[]; note: string | null } {
+  return query.compare === "target" ? { rows, note: null } : withoutPartialBucket(query, view, rows, asOf);
 }
 
 function fullBucketRows(query: MetricQuery, rows: MetricRow[], asOf: string): MetricRow[] {
@@ -844,19 +858,36 @@ function targetSeriesLead(facts: Facts): Lead {
 
 /** A metric query drawn as where its running month ends (pinned as `month_end`): the month-end share of the whole month's target leads, the share done so far and what the month end falls short by beside it, so a pinned projection shows the projection and its own shortfall, never the month to date's (AI-171, AI-204). */
 function monthEndCard(input: PresentInput, result: OkResult, projection: MonthEndProjection): CardParts {
-  const reaches = (percentIn(projection.attainment) ?? 0) >= PERCENT;
-  const left = projection.endShortBy ? tileOf(TH.read.endShort, projection.endShortBy, TH.read.atMonthEnd) : null;
+  const lead = monthEndLead(projection);
   return {
     title: input.title,
     style: "scorecard",
-    verdict: spaced(TH.cards.gap.monthEnd(reaches)),
-    hero: { label: TH.cards.gap.monthEndLabel, value: projection.attainment, unit: TH.read.ofMonthTarget, delta: null, ...underTone(projection.attainment), detail: TH.cards.gap.projected(projection.projected, projection.monthTarget) },
-    tiles: [tileOf(TH.read.doneSoFar, projection.attainmentToDate, TH.read.ofMonthTarget), left].filter((tile): tile is Tile => tile !== null),
+    verdict: spaced(lead.verdict),
+    hero: lead.hero,
+    tiles: lead.tiles,
     body: { kind: "none" },
     ...actionsOf(input.actions ?? NO_ACTIONS),
     footer: footerOf(input.query, result, [projectionNote(result)]),
     denied: null,
   };
+}
+
+/** Where the running month ends at the recent pace, as the `month_end` card leads with it: the month-end share of the whole month's target, the share done so far and the month end's own shortfall beside it. */
+function monthEndLead(projection: MonthEndProjection): Lead {
+  const reaches = (percentIn(projection.attainment) ?? 0) >= PERCENT;
+  const left = projection.endShortBy ? tileOf(TH.read.endShort, projection.endShortBy, TH.read.atMonthEnd) : null;
+  return {
+    hero: { label: TH.cards.gap.monthEndLabel, value: projection.attainment, unit: TH.read.ofMonthTarget, delta: null, ...underTone(projection.attainment), detail: TH.cards.gap.projected(projection.projected, projection.monthTarget) },
+    tiles: [tileOf(TH.read.doneSoFar, projection.attainmentToDate, TH.read.ofMonthTarget), left].filter((tile): tile is Tile => tile !== null),
+    verdict: TH.cards.gap.monthEnd(reaches),
+  };
+}
+
+/** R14 over a breakdown (AI-293): a month-close question asked by group leads with the month end as the `month_end` card does, and the groups sit under it on the month's base; the overall row is left off the strip, since the share done so far is already a tile beside the hero. */
+function monthEndBreakdownCard(base: Omit<CardParts, "style" | "verdict" | "hero" | "body" | "tiles">, reading: Breakdown, projection: MonthEndProjection): CardParts {
+  const lead = monthEndLead(projection);
+  const body: CardBody = fitsOneStrip(reading) ? { kind: "strip", strip: stripOf({ ...reading, overall: null }) } : { kind: "exceptions", ...exceptionsOf(reading) };
+  return { ...base, style: "scorecard", verdict: spaced(`${lead.verdict} ${reading.verdict}`), hero: lead.hero, tiles: lead.tiles, body };
 }
 
 /** R5 drawn as a donut: the first row of the ranking. */
@@ -1042,7 +1073,7 @@ function signalOf(alert: AlertRow, why: string | null): SignalItem {
     gap: signedGapOf(alert),
     gapTone: toneOf(alert.metric, alert.direction === "down" ? -PERCENT : PERCENT),
     gapCaption: alert.gapLabel ? (alert.direction === "down" ? TH.dash.belowExpected : TH.dash.aboveExpected) : null,
-    numbers: alert.yearOverYear ? alert.observedLabel : TH.dash.actualVsExpected(alert.observedLabel, alert.expectedLabel),
+    numbers: joined([alert.yearOverYear ? alert.observedLabel : TH.dash.actualVsExpected(alert.observedLabel, alert.expectedLabel), alert.window ? compactPeriod(alert.window) : null]) ?? "",
     severity: SEVERITY_TONES[alert.severity],
     severityLabel: alert.severityLabel,
     why,
@@ -1527,6 +1558,7 @@ export type GapAnswer = {
   offsetting: { label: string; gap_label: string }[];
   share_note?: string | null;
   projection: { basis: string; projected_label: string; month_target_label: string; attainment_label: string; month_end_short_label?: string | null } | null;
+  scope_labels?: readonly string[] | null;
 };
 export type PresentGapInput = { answer: GapAnswer; metric: MetricId | null; split: Dim | null };
 
@@ -1569,7 +1601,7 @@ const GAP_RULES: readonly GapRule[] = [
   {
     rule: "R11 against a period",
     when: () => true,
-    hero: (f) => ({ label: TH.read.actual, value: f.answer.actual_label, unit: null, delta: f.answer.change_label ?? f.answer.gap_label, trend: f.below ? "down" : "up", tone: f.metric ? toneOf(f.metric, f.below ? -PERCENT : PERCENT) : f.below ? "bad" : "good", detail: f.answer.compare_label }),
+    hero: (f) => ({ label: compactPeriod(f.answer.period_label), value: f.answer.actual_label, unit: null, delta: f.answer.change_label ?? f.answer.gap_label, trend: f.below ? "down" : "up", tone: f.metric ? toneOf(f.metric, f.below ? -PERCENT : PERCENT) : f.below ? "bad" : "good", detail: TH.dash.versusBucket(f.answer.compare_label) }),
     opening: (f) => `${TH.cards.gap.whole(f.below, f.versus)} ${unsignedLabel(f.answer.gap_label)}`,
   },
 ];
@@ -1597,7 +1629,7 @@ export function presentGap(input: PresentGapInput): CardParts {
   const [lead] = answer.contributors;
   const over = parts.filter((part) => part === lead || (part !== answer.rest && (gapShareOf(part) ?? 0) >= MIN_GAP_SHARE));
   const under = parts.filter((part) => !over.includes(part));
-  const foldsOne = under.length === 1 && under[0] !== answer.rest && answer.offsetting.length === 0;
+  const foldsOne = under.length === 1 && under[0] !== answer.rest;
   const drawn = foldsOne ? parts : over;
   const smaller = foldsOne ? [] : under;
   const rows = [
@@ -1611,7 +1643,8 @@ export function presentGap(input: PresentGapInput): CardParts {
   const smallerShare = smaller.reduce((sum, part) => sum + (gapShareOf(part) ?? 0), 0);
   const foldLine = joined([smaller.length > 0 ? TH.cards.gap.smallerFold(smaller.length, percentText(smallerShare)) : null, answer.offsetting.length > 0 ? TH.cards.gap.offsetFold(answer.offsetting.length) : null]);
   const causes = mainCauses(answer.contributors.map((part) => ({ share: (gapShareOf(part) ?? 0) / PERCENT })));
-  const named = lead && causes.length > 0 ? TH.cards.gap.lead(lead.label, below, unsignedLabel(lead.gap_label)) : lead ? TH.cards.gap.spread : null;
+  const leading = lead && causes.length > 0 ? TH.cards.gap.lead(lead.label, below, unsignedLabel(lead.gap_label)) : null;
+  const named = leading && answer.projection ? `${TH.cards.gap.toDate}${leading}` : (leading ?? (lead ? TH.cards.gap.spread : null));
   const verdict = [rule.opening(facts), named].filter(Boolean).join(" ");
   return {
     title: gapTitleOf(metric, split),
@@ -1622,7 +1655,7 @@ export function presentGap(input: PresentGapInput): CardParts {
     body: { kind: "exceptions", strip: { form: "line", baseline: 0, low: 0, high: PERCENT, overall: null, rows }, fold: foldLine ? { line: foldLine, rows: folded } : null },
     primary: null,
     more: NO_ACTIONS,
-    footer: { line: compactPeriod(answer.period_label), verified: false, details: joined([answer.projection?.basis ?? null, answer.share_note ?? null]) },
+    footer: { line: [compactPeriod(answer.period_label), ...(answer.scope_labels ?? [])].join(" · "), verified: false, details: joined([answer.projection?.basis ?? null, answer.share_note ?? null]) },
     denied: null,
   };
 }
@@ -1719,12 +1752,14 @@ export function presentCard(input: PresentInput): CardParts {
   const fit = fitOf(facts);
   const view = hidden > 0 && visibleRows.length < RANK_MIN_ROWS ? "table" : viewFor(whole, input.view ?? "auto", masked, extras, fit);
   if (view === "month_end" && result.headline.projection) return monthEndCard(input, result, result.headline.projection);
-  const trimmed = withoutPartialBucket(query, view, visibleRows, result.provenance.asOf);
+  const trimmed = drawnBuckets(query, view, visibleRows, result.provenance.asOf);
   const shape: Shape = { ...whole, rows: sorted(query, trimmed.rows, sortBy) };
-  const footer = footerOf(query, result, [trimmed.note, hiddenGroupsNote(shape, view), hiddenLineOf(query, hidden), paceNoteOf(query, result.provenance.asOf), projectionNote(result)]);
+  const footer = footerOf(query, result, [trimmed.note, hiddenGroupsNote(shape, view), hiddenLineOf(query, hidden), paceNoteOf(query, result.provenance.asOf), projectionNote(result)], everyBrandOf(query));
   const base = { title, ...actions, footer, denied: null };
   const quiet = masked || hidden > 0;
   const barsDrawn = view === "bar" && fit.look === "breakdown" && shape.rows.length > 0 && (shape.rows.length >= RANK_MIN_ROWS || fit.bars === "level");
+  const projection = result.headline.projection;
+  if (barsDrawn && !quiet && fit.hero === "month_end" && projection) return monthEndBreakdownCard(base, readingOf(facts, fit.bars, shape.rows), projection);
   if (barsDrawn && !quiet) return breakdownCard(base, readingOf(facts, fit.bars, shape.rows));
   const body = barsDrawn ? tableBody(query, shape.rows, query.compare !== "none") : chartBodyFor(shape, view, extras);
   if (quiet || view === "alert_list") return { ...base, style: "chart", verdict: view === "alert_list" ? alertsVerdict(extras.alerts ?? []) : null, hero: null, tiles: NO_TILES, body };
