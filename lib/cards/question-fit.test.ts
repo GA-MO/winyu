@@ -7,7 +7,7 @@ import { runMetric as runProjectedMetric } from "@/lib/server/metrics";
 import { DATA_AS_OF, monthStart } from "@/lib/data/dates";
 import { templateFor } from "@/lib/dashboard/templates";
 import { TH } from "@/lib/i18n/th";
-import { presentAlerts, presentCard, presentGap, widgetKindFor, type CardBody, type CardParts, type GapAnswer } from "./present";
+import { headlineChangeOf, presentAlerts, presentCard, presentGap, widgetKindFor, type CardBody, type CardParts, type GapAnswer } from "./present";
 import type { Strip } from "./reading";
 
 const AS_OF = "2026-11-26";
@@ -255,8 +255,8 @@ const OVERDUE_RESULT = resultOf(OVERDUE_QUERY, OVERDUE_ROWS, { value: "2.9 ล�
 describe("a balance keeps the month still running (AI-206)", () => {
   const card = presentCard({ title: "t", query: OVERDUE_QUERY, result: OVERDUE_RESULT });
 
-  test("overdue money by month ends at November and leads with November's rise in red, not October's fall in green", () => {
-    expect(card.hero).toMatchObject({ label: "พ.ย. 69", trend: "up", tone: "bad" });
+  test("overdue money by month ends at November, the running month", () => {
+    expect(card.hero?.label).toBe("พ.ย. 69");
     if (card.body.kind !== "line") throw new Error(`no line: ${card.body.kind}`);
     expect(card.body.labels[card.body.labels.length - 1]).toBe("พ.ย. 69");
   });
@@ -442,5 +442,106 @@ describe("every card form names the month's gap the same way (AI-239)", () => {
   test("the B strip's month detail names the 71.4 left as the gap to the whole month's target, the scorecards' words", async () => {
     const card = presentCard({ title: "t", query: REP_AGENTS, result: await runProjectedMetric(REP_AGENTS, CEO) });
     expect(stripOf(card.body).overall?.sub).toBe("ของเป้าทั้งเดือน · ถึงวันนี้ควรได้ 86.7% · ถึงวันนี้ยังขาด 71.4 ล้านบาท ถึงเป้าทั้งเดือน");
+  });
+});
+
+describe("a month-close question about one region is answered by where the month ends (R14, AI-266)", () => {
+  const asked = resultOf(ISAN_QUERY, [{ region: "ภาคอีสาน", value: 328402399, value_label: "328.4 ล้านบาท", compare_value: 368176591, delta_pct: -10.8 }], { value: "328.4 ล้านบาท", deltaPercent: -10.8, compareLabel: "เทียบเป้าตามเวลา", projection: ISAN_PROJECTION, asksMonthEnd: true }, ["ภาคอีสาน"]);
+
+  test("the RSM's one-row Isan breakdown leads with 87.5% at month end and its 52.9 ล้านบาท shortfall, the 77.3% so far beside it", () => {
+    const card = presentCard({ title: "t", query: ISAN_QUERY, result: asked });
+    expect(card.hero).toMatchObject({ label: TH.cards.gap.monthEndLabel, value: "87.5%", unit: TH.read.ofMonthTarget, tone: "bad" });
+    expect(card.tiles.map((tile) => tile.value)).toEqual(["77.3%", "52.9 ล้านบาท"]);
+    expect(widgetKindFor(ISAN_QUERY, asked)).toBe("month_end");
+  });
+
+  test("the gap card that answers the same question names the month end's own shortfall beside its 87.5%", () => {
+    const answer: GapAnswer = {
+      period_label: "1 พ.ย. 2569 – 26 พ.ย. 2569",
+      actual_label: "328.4 ล้านบาท",
+      compare_label: "เป้าตามเวลา 368.2 ล้านบาท",
+      gap_label: "−39.8 ล้านบาท",
+      attainment_label: null,
+      contributors: [{ label: "ขอนแก่น", gap_label: "−19.2 ล้านบาท", share_label: "48.3% ของช่องว่างถึงวันนี้" }],
+      rest: null,
+      offsetting: [],
+      projection: { basis: "", projected_label: "371.9 ล้านบาท", month_target_label: "424.8 ล้านบาท", attainment_label: "87.5%", month_end_short_label: "52.9 ล้านบาท" },
+    };
+    const card = presentGap({ answer, metric: "net_sales_value", split: "province" });
+    expect(card.hero?.value).toBe("87.5%");
+    expect(card.hero?.detail).toContain("คาดว่าขาด 52.9 ล้านบาท ณ สิ้นเดือน");
+  });
+});
+
+describe("a balance read over months leads with where it went over the range (AI-268)", () => {
+  const card = presentCard({ title: "t", query: OVERDUE_QUERY, result: OVERDUE_RESULT });
+
+  test("the RSM's overdue check leads with the fall from 4.5 in June to 2.9 in November, and names November's uptick in the verdict", () => {
+    expect(card.hero).toMatchObject({ label: "พ.ย. 69", value: "2.9 ล้านบาท", delta: "-35.9%", trend: "down", tone: "good", detail: "เทียบ มิ.ย. 69" });
+    expect(card.verdict).toBe("ตั้งแต่ มิ.ย. 69 ลดลงจาก 4.5 ล้านบาท เหลือ 2.9 ล้านบาท แต่ พ.ย. 69 เพิ่มขึ้น 22.9% จาก ต.ค. 69");
+  });
+
+  test("a balance that kept falling says the range alone", () => {
+    const query: MetricQuery = { ...OVERDUE_QUERY, range: { from: "2026-06-01", to: "2026-10-31" } };
+    const steady = presentCard({ title: "t", query, result: resultOf(query, OVERDUE_ROWS.slice(0, 5), { value: "2.3 ล้านบาท" }) });
+    expect(steady.verdict).toBe("ตั้งแต่ มิ.ย. 69 ลดลงจาก 4.5 ล้านบาท เหลือ 2.3 ล้านบาท");
+  });
+
+  test("the landing tile and the attention check read the same change the hero leads with", () => {
+    const change = headlineChangeOf(OVERDUE_QUERY, OVERDUE_RESULT);
+    expect(change.compareLabel).toBe("เทียบ มิ.ย. 69");
+    expect(Math.round((change.deltaPercent ?? 0) * 10) / 10).toBe(-35.9);
+  });
+});
+
+const OVERDUE_BY_AGENT: MetricQuery = { metric: "ar_overdue", dims: ["agent"], filters: { region: ["northeast"] }, range: NOVEMBER, grain: "month", compare: "prev_period", limit: null };
+const OVERDUE_AGENT_ROWS: MetricRow[] = [
+  { agent: "ขอนแก่นมหาชัย", value: 3319236, value_label: "3.3 ล้านบาท", compare_value: 4250951, delta_pct: -21.9 },
+  { agent: "โคราชสหภัณฑ์", value: 3226632, value_label: "3.2 ล้านบาท", compare_value: 2953862, delta_pct: 9.2 },
+  { agent: "ส.รุ่งเรือง เทรดดิ้ง", value: 3179070, value_label: "3.2 ล้านบาท", compare_value: 3062868, delta_pct: 3.8 },
+  { agent: "อุบลศรีสุข เทรดดิ้ง", value: 2933989, value_label: "2.9 ล้านบาท", compare_value: 2601749, delta_pct: 12.8 },
+  { agent: "อีสานรุ่งโรจน์ ค้าส่ง", value: 2857256, value_label: "2.9 ล้านบาท", compare_value: 2324459, delta_pct: 22.9 },
+  { agent: "นางรองค้าส่ง", value: 2388108, value_label: "2.4 ล้านบาท", compare_value: 2225065, delta_pct: 7.3 },
+  { agent: "ปากช่องเบเวอเรจ", value: 2209668, value_label: "2.2 ล้านบาท", compare_value: 1596167, delta_pct: 38.4 },
+  { agent: "วารินพาณิชย์", value: 2185816, value_label: "2.2 ล้านบาท", compare_value: 2287046, delta_pct: -4.4 },
+];
+
+describe("a breakdown whose question named several rows speaks for them (AI-269)", () => {
+  test("the CEO's overdue check names the two asked agents with their rise and rank, and the agent that rose more", () => {
+    const result = resultOf(OVERDUE_BY_AGENT, OVERDUE_AGENT_ROWS, { value: "22.3 ล้านบาท", deltaPercent: 4.7, compareLabel: "เทียบช่วงก่อนหน้า", asked: ["อุบลศรีสุข เทรดดิ้ง", "อีสานรุ่งโรจน์ ค้าส่ง"] }, ["ภาคอีสาน"]);
+    const card = presentCard({ title: "t", query: OVERDUE_BY_AGENT, result });
+    expect(card.verdict).toBe("อุบลศรีสุข เทรดดิ้ง +12.8% อันดับ 4 · อีสานรุ่งโรจน์ ค้าส่ง +22.9% อันดับ 5 จาก 8 เอเย่นต์ · ปากช่องเบเวอเรจเพิ่มขึ้นมากสุด +38.4%");
+  });
+
+  test("the month's target card beside it keeps judging every agent on the month's one base, never a change on the pace base", async () => {
+    const result = await runProjectedMetric(REGION_AGENTS, CEO);
+    if (!result.ok) throw new Error("no answer");
+    const asked = { ...result, headline: { ...result.headline, asked: ["อีสานรุ่งโรจน์ ค้าส่ง", "อุบลศรีสุข เทรดดิ้ง"] } };
+    expect(presentCard({ title: "t", query: REGION_AGENTS, result: asked }).verdict).toBe(presentCard({ title: "t", query: REGION_AGENTS, result }).verdict);
+  });
+});
+
+describe("a gap card never folds one part away (AI-274)", () => {
+  test("one part under a tenth of the gap is drawn as its own row, not 'อีก 1 รายการ'", () => {
+    const answer: GapAnswer = {
+      period_label: "23 พ.ย. 2569 – 26 พ.ย. 2569",
+      actual_label: "248.1 ล้านบาท",
+      compare_label: "สัปดาห์ก่อน 273.6 ล้านบาท",
+      gap_label: "−25.5 ล้านบาท",
+      change_label: "−9.3%",
+      attainment_label: null,
+      contributors: [
+        { label: "กรุงเทพฯ และปริมณฑล", gap_label: "−14.0 ล้านบาท", share_label: "55.0% ของช่องว่าง" },
+        { label: "ภาคอีสาน", gap_label: "−9.0 ล้านบาท", share_label: "35.3% ของช่องว่าง" },
+        { label: "ภาคใต้", gap_label: "−2.5 ล้านบาท", share_label: "9.7% ของช่องว่าง" },
+      ],
+      rest: null,
+      offsetting: [],
+      projection: null,
+    };
+    const card = presentGap({ answer, metric: "net_sales_value", split: "region" });
+    if (card.body.kind !== "exceptions") throw new Error(`no exceptions: ${card.body.kind}`);
+    expect(card.body.strip.rows.map((row) => row.label)).toContain("ภาคใต้");
+    expect(card.body.fold).toBeNull();
   });
 });

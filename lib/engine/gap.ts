@@ -25,8 +25,9 @@ export function breakDownGap(total: GapPart, parts: readonly GapPart[]): GapBrea
   const withGap = parts.map((part) => ({ label: part.label, gap: gapOf(part) }));
   const drivers = withGap.filter((part) => sameSign(part.gap, gap)).sort((left, right) => Math.abs(right.gap) - Math.abs(left.gap));
   const share = (partGap: number) => (gap === 0 ? 0 : partGap / gap);
-  const contributors = drivers.slice(0, TOP_CONTRIBUTORS).map((part) => ({ ...part, share: share(part.gap) }));
-  const restGap = drivers.slice(TOP_CONTRIBUTORS).reduce((sum, part) => sum + part.gap, 0);
+  const named = drivers.length === TOP_CONTRIBUTORS + 1 ? drivers.length : TOP_CONTRIBUTORS;
+  const contributors = drivers.slice(0, named).map((part) => ({ ...part, share: share(part.gap) }));
+  const restGap = drivers.slice(named).reduce((sum, part) => sum + part.gap, 0);
   const offsetting = withGap.filter((part) => part.gap !== 0 && !sameSign(part.gap, gap)).sort((left, right) => Math.abs(right.gap) - Math.abs(left.gap)).slice(0, TOP_CONTRIBUTORS).map((part) => ({ ...part, share: share(part.gap) }));
   return { gap, contributors, rest: restGap === 0 ? null : { label: "", gap: restGap, share: share(restGap) }, offsetting };
 }

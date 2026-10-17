@@ -212,7 +212,7 @@ function recipientLookups(steps: readonly ToolStep[]): string[] {
   });
 }
 
-type GapAsked = { metric: unknown; compare: unknown; range: { from?: unknown; to?: unknown } | null; filters: string };
+type GapAsked = { metric: unknown; compare: unknown; range: { from?: unknown; to?: unknown } | null; period: unknown; filters: string };
 
 function filtersKey(filters: unknown): string {
   if (typeof filters !== "object" || filters === null) return "";
@@ -225,17 +225,35 @@ function gapsAnswered(steps: readonly ToolStep[]): { asked: GapAsked; spread: bo
   return steps.flatMap((step) => {
     if (step.name !== GAP_TOOL || !answered(step) || step.outcome.state !== "returned") return [];
     const args = (step.args ?? {}) as { metric?: unknown; compare?: unknown; range?: { from?: unknown; to?: unknown }; filters?: unknown };
-    const note = (step.outcome.result as { share_note?: unknown } | null)?.share_note;
-    return [{ asked: { metric: args.metric, compare: args.compare, range: args.range ?? null, filters: filtersKey(args.filters) }, spread: typeof note === "string" && note.trim() !== "" }];
+    const { share_note: note, period_label: period } = (step.outcome.result as { share_note?: unknown; period_label?: unknown } | null) ?? {};
+    return [{ asked: { metric: args.metric, compare: args.compare, range: args.range ?? null, period: period ?? null, filters: filtersKey(args.filters) }, spread: typeof note === "string" && note.trim() !== "" }];
   });
 }
 
+type MetricAnswered = { query?: Partial<MetricQuery> & { scopeApplied?: Record<string, unknown> }; rows?: unknown[]; headline?: { periodLabel?: unknown } };
+
+/** Whether a metric answer reads the window a gap read: the same dates asked, or the same days both tools say they read ("1 พ.ย. 2569 – 26 พ.ย. 2569" when the gap was asked to a day past the data). */
+function sameWindow(answer: MetricAnswered, gap: GapAsked): boolean {
+  const range = answer.query?.range;
+  if (range && range.from === gap.range?.from && range.to === gap.range?.to) return true;
+  return typeof gap.period === "string" && answer.headline?.periodLabel === gap.period;
+}
+
+/** Whether a metric answer covers the slice a gap read: the filters asked, or what they came to with the asker's own scope (an RSM's ภาคอีสาน). */
+function sameSlice(step: ToolStep, answer: MetricAnswered, gap: GapAsked): boolean {
+  const args = (step.args ?? {}) as { filters?: unknown };
+  if (filtersKey(args.filters) === gap.filters) return true;
+  return filtersKey({ ...answer.query?.scopeApplied, ...answer.query?.filters }) === gap.filters;
+}
+
+/** A total, or a breakdown that came back as one row, of the metric, comparison, window and slice a gap read: the gap card leads with the same figure. */
 function repeatsGap(step: ToolStep, gap: GapAsked): boolean {
   if (step.name !== METRIC_TOOL || !answered(step) || step.outcome.state !== "returned") return false;
-  const query = (step.outcome.result as { query?: Partial<MetricQuery> } | null)?.query;
-  if (!query?.range || !query.dims || groupDimsOf(query as MetricQuery).length > 0) return false;
-  const args = (step.args ?? {}) as { filters?: unknown };
-  return query.metric === gap.metric && query.compare === gap.compare && query.range.from === gap.range?.from && query.range.to === gap.range?.to && filtersKey(args.filters) === gap.filters;
+  const answer = (step.outcome.result ?? {}) as MetricAnswered;
+  const query = answer.query;
+  if (!query?.range || !query.dims) return false;
+  const oneFigure = groupDimsOf(query as MetricQuery).length === 0 || answer.rows?.length === 1;
+  return oneFigure && query.metric === gap.metric && query.compare === gap.compare && sameWindow(answer, gap) && sameSlice(step, answer, gap);
 }
 
 /** One card per point in a why answer (AI-253): a metric total with no breakdown over the metric, window, comparison and filters of a gap the exchange explained repeats the gap card's lead, and an alert list beside a company-wide gap that found no main cause reads as the cause the gap card says there is not. */

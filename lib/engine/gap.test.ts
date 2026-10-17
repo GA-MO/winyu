@@ -17,6 +17,24 @@ describe("breakDownGap", () => {
     expect(breakdown.rest).toBeNull();
   });
 
+  test("the CEO's week by six regions names the sixth region, never folds it alone into the rest (AI-274)", () => {
+    const regions = [
+      { label: "กรุงเทพฯ และปริมณฑล", value: 62_880_808, compare: 68_740_751 },
+      { label: "ภาคอีสาน", value: 47_204_061, compare: 53_051_003 },
+      { label: "ภาคตะวันออก", value: 37_220_018, compare: 41_137_695 },
+      { label: "ภาคเหนือ", value: 32_716_414, compare: 36_173_430 },
+      { label: "ภาคใต้", value: 33_101_875, compare: 36_491_440 },
+      { label: "ภาคกลาง", value: 34_977_610, compare: 38_025_084 },
+    ];
+    const total = { label: "all", value: regions.reduce((sum, part) => sum + part.value, 0), compare: regions.reduce((sum, part) => sum + part.compare, 0) };
+    const breakdown = breakDownGap(total, regions);
+    expect(breakdown.contributors).toHaveLength(6);
+    expect(breakdown.rest).toBeNull();
+    const seven = breakDownGap({ label: "all", value: 630, compare: 700 }, Array.from({ length: 7 }, (_, index) => ({ label: `p${index}`, value: 90, compare: 100 })));
+    expect(seven.contributors).toHaveLength(5);
+    expect(formatShare(seven.rest?.share ?? 0)).toBe("28.6%");
+  });
+
   test("a gap no part explains a fifth of is broad; one part making half of it is not (AI-145)", () => {
     const even = Array.from({ length: 7 }, (_, index) => ({ label: `p${index}`, value: 90, compare: 100 }));
     expect(isBroad(breakDownGap({ label: "all", value: 630, compare: 700 }, even))).toBe(true);

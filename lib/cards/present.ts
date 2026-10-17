@@ -285,8 +285,8 @@ function timeView(shape: Shape): CardView {
 
 type OkResult = Extract<MetricResult, { ok: true }>;
 
-/** What the card leads with when it is not a breakdown drawn as bars: the total, the one row it has, the row that ranks first, the latest full bucket, the whole range against its target, the level a series stepped to, or the overall row of the breakdown reading. */
-type HeroKind = "total" | "single" | "leader" | "latest" | "target" | "step" | "reading";
+/** What the card leads with when it is not a breakdown drawn as bars: the total, the one row it has, the row that ranks first, the latest full bucket, where a balance went over its range, the whole range against its target, the level a series stepped to, or the overall row of the breakdown reading. */
+type HeroKind = "total" | "single" | "leader" | "latest" | "range" | "target" | "step" | "reading";
 
 /** Which bars a breakdown draws; `auto` picks the change when the list is ranked by it, the deciding line when the metric has one, a leaderboard for a sum, a reference level for a rate. */
 type Bars = "auto" | BreakdownBars;
@@ -323,13 +323,14 @@ function closesMonth(result: OkResult): boolean {
 
 /** The one decision table: the first rule whose condition holds decides the form, the hero, the bars and the style family (breakdowns B or A above 8 rows, one scope C, any other chart). */
 const CARD_RULES: readonly CardRule[] = [
-  { rule: "R14 where the month closes", when: (f) => f.groups === 0 && closesMonth(f.result), view: always("month_end"), bars: "auto", hero: "target", look: "summary" },
+  { rule: "R14 where the month closes", when: (f) => (f.groups === 0 || f.rows.length === 1) && closesMonth(f.result), view: always("month_end"), bars: "auto", hero: "target", look: "summary" },
   { rule: "R7 threshold met by few", when: (f) => Boolean(f.query.where) && f.under !== null && f.groups === 1 && !f.time && f.rows.length > 0, view: always("bar"), bars: "level", hero: "reading", look: "breakdown" },
   { rule: "R1 one row", when: (f) => f.rows.length <= 1 && (f.query.dims.length > 0 || f.filtered), view: always("metric"), bars: "auto", hero: "single", look: "summary" },
   { rule: "R2 short series against target", when: (f) => f.time && f.groups === 0 && f.buckets >= RANK_MIN_ROWS && f.buckets < MIN_LINE_BUCKETS && f.query.compare === "target" && hasChange(f.rows), view: always("bar"), bars: "target", hero: "reading", look: "breakdown" },
   { rule: "R2 short series", when: (f) => f.time && f.groups === 0 && f.buckets < MIN_LINE_BUCKETS, view: always("metric"), bars: "auto", hero: "total", look: "summary" },
   { rule: "R12 series against target", when: (f) => f.time && f.groups === 0 && f.query.compare === "target", view: always("line"), bars: "auto", hero: "target", look: "summary" },
   { rule: "R13 step", when: (f) => f.time && f.groups === 0 && seriesStepOf(f.query, f.result, f.rows) !== null, view: always("line"), bars: "auto", hero: "step", look: "summary" },
+  { rule: "R15 balance over a range", when: (f) => f.time && f.groups === 0 && balanceRangeOf(f.query, f.rows) !== null, view: always("line"), bars: "auto", hero: "range", look: "summary" },
   { rule: "R9 trend", when: (f) => f.time && f.groups === 0, view: always("line"), bars: "auto", hero: "latest", look: "summary" },
   { rule: "time × group", when: (f) => f.time, view: timeView, bars: "auto", hero: "total", look: "chart" },
   { rule: "R3 against target", when: (f) => f.query.compare === "target" && f.rows.length >= RANK_MIN_ROWS && !isDenseGrid(f) && hasChange(f.rows), view: always("bar"), bars: "target", hero: "reading", look: "breakdown" },
@@ -562,6 +563,8 @@ export function headlineChangeOf(query: MetricQuery, result: MetricResult): { de
   if (!result.ok) return { deltaPercent: null, deltaPoints: null, compareLabel: null };
   const step = seriesStepOf(query, result, result.rows);
   if (step) return { deltaPercent: ((step.after - step.before) / Math.abs(step.before)) * PERCENT, deltaPoints: step.after - step.before, compareLabel: TH.read.since(step.since) };
+  const range = balanceRangeOf(query, result.rows);
+  if (range) return { deltaPercent: range.deltaPercent, deltaPoints: range.deltaPoints, compareLabel: TH.dash.versusBucket(range.first) };
   const latest = latestBucketOf(query, result, fullBucketRows(query, result.rows, result.provenance.asOf));
   if (latest) return { deltaPercent: latest.deltaPercent, deltaPoints: latest.deltaPoints, compareLabel: latest.versus };
   return { deltaPercent: result.headline.deltaPercent, deltaPoints: result.headline.deltaPoints ?? null, compareLabel: result.headline.compareLabel };
@@ -729,6 +732,38 @@ function wholeRangeTiles(query: MetricQuery, result: OkResult): Tile[] {
   if (result.headline.aggregate !== "sum" || SNAPSHOT_METRICS.has(query.metric)) return NO_TILES;
   const range = headlineMoveOf(query, result);
   return [{ label: TH.read.wholeRange, value: result.headline.value, delta: range.delta, tone: range.tone, sub: result.headline.compareLabel }];
+}
+
+const MIN_RANGE_BUCKETS = 3;
+
+type RangeMove = { first: string; firstValue: number; latestValue: number; deltaPercent: number; deltaPoints: number };
+
+/** R15: where a balance (overdue money, stock, cover) went over a series of 3 or more buckets with no breakdown, first bucket to latest; null for a flow, a target, a breakdown, a short or flat series. */
+function balanceRangeOf(query: MetricQuery, rows: MetricRow[]): RangeMove | null {
+  if (!SNAPSHOT_METRICS.has(query.metric) || query.compare === "target" || !timeDimOf(query) || groupDimsOf(query).length > 0 || rows.length < MIN_RANGE_BUCKETS) return null;
+  const firstValue = numericOf(rows[0], "value");
+  const latestValue = numericOf(rows[rows.length - 1], "value");
+  if (firstValue === null || latestValue === null || firstValue === 0 || firstValue === latestValue) return null;
+  return { first: labelOf(query, rows[0]), firstValue, latestValue, deltaPercent: ((latestValue - firstValue) / Math.abs(firstValue)) * PERCENT, deltaPoints: latestValue - firstValue };
+}
+
+/** R15: a balance read over months leads with where it went from the first bucket to the latest, coloured by that direction; the verdict says the range in words and names the latest move when it went the other way, so a check over six months never leads with one month's uptick the reply does not draw from (AI-268). */
+function rangeLead(facts: Facts): Lead {
+  const { query, result, rows } = facts;
+  const range = balanceRangeOf(query, rows);
+  const latest = latestBucketOf(query, result, rows);
+  if (!range || !latest) return latestLead(facts);
+  const move = moveOf({ ...query, compare: "prev_period" }, range.deltaPercent, range.deltaPoints);
+  const falling = range.latestValue < range.firstValue;
+  const stepped = TH.read.step(range.first, falling, "", formatMetricValue(query.metric, range.firstValue), latest.value);
+  const latestMove = moveOf({ ...query, compare: "prev_period" }, latest.deltaPercent, latest.deltaPoints);
+  const turned = !isFlat(latestMove) && latest.deltaPercent < 0 !== falling;
+  const change = metricFormat(query.metric) === "percent" ? latest.deltaPoints : latest.deltaPercent;
+  return {
+    hero: { label: latest.label, value: latest.value, unit: null, ...move, detail: TH.dash.versusBucket(range.first) },
+    tiles: NO_TILES,
+    verdict: turned ? `${stepped} ${TH.read.butThen(trendVerdict(latest.label, latest.previous, change, latestMove.delta ?? "", false))}` : stepped,
+  };
 }
 
 /** R9: a series leads with its latest full bucket against the one before; the range total is its second fact. */
@@ -1485,7 +1520,7 @@ export type GapAnswer = {
   rest: GapShare | null;
   offsetting: { label: string; gap_label: string }[];
   share_note?: string | null;
-  projection: { basis: string; projected_label: string; month_target_label: string; attainment_label: string } | null;
+  projection: { basis: string; projected_label: string; month_target_label: string; attainment_label: string; month_end_short_label?: string | null } | null;
 };
 export type PresentGapInput = { answer: GapAnswer; metric: MetricId | null; split: Dim | null };
 
@@ -1504,12 +1539,19 @@ function underTone(percent: string | null): Pick<CardHero, "tone" | "trend"> {
   return value !== null && value < PERCENT ? { tone: "bad", trend: "down" } : { tone: "neutral", trend: "neutral" };
 }
 
+/** Under a month-end hero, what the month makes against its whole target and the month end's own shortfall, so the gap card answers a month-close question as the `month_end` card does (AI-266). */
+function monthEndDetail(projection: GapAnswer["projection"]): string {
+  if (!projection) return "";
+  const projected = TH.cards.gap.projected(projection.projected_label, projection.month_target_label);
+  return projection.month_end_short_label ? `${projected} · ${TH.read.endShort} ${projection.month_end_short_label} ${TH.read.atMonthEnd}` : projected;
+}
+
 /** R11, the explain_gap decision table: a month still running leads with where it ends at the recent pace (whatever was asked, the month end decides "ทั้งเดือนจะปิดที่เท่าไหร่" and "จะถึงเป้าไหม"); a closed month against target with its share of target; any other comparison with the actual and its one coloured change. The verdict opens with that and names the part that pulled furthest, so "ภาคไหนน่าห่วงที่สุด" is answered in the headline (AI-142). */
 const GAP_RULES: readonly GapRule[] = [
   {
     rule: "R11 month end",
     when: (f) => f.answer.projection !== null,
-    hero: (f) => ({ label: TH.cards.gap.monthEndLabel, value: f.answer.projection?.attainment_label ?? "", unit: TH.read.ofMonthTarget, delta: null, ...underTone(f.answer.projection?.attainment_label ?? null), detail: TH.cards.gap.projected(f.answer.projection?.projected_label ?? "", f.answer.projection?.month_target_label ?? "") }),
+    hero: (f) => ({ label: TH.cards.gap.monthEndLabel, value: f.answer.projection?.attainment_label ?? "", unit: TH.read.ofMonthTarget, delta: null, ...underTone(f.answer.projection?.attainment_label ?? null), detail: monthEndDetail(f.answer.projection) }),
     opening: (f) => TH.cards.gap.monthEnd((percentIn(f.answer.projection?.attainment_label ?? "") ?? 0) >= PERCENT),
   },
   {
@@ -1530,6 +1572,12 @@ function gapRow(label: string, text: string, sub: string | null, share: number |
   return { label, sub, measure: share, fill: share === null ? 1 : Math.min(1, Math.max(0, share / PERCENT)), text, change: null, tone, exception: true, valued: true };
 }
 
+/** A gap card's title: the metric and the split its parts are by ("มูลค่าขายเข้า · รายภาค"), the card and every message about it alike (AI-267). */
+export function gapTitleOf(metric: MetricId | null, split: Dim | null): string {
+  if (!metric) return TH.cards.gap.contributors;
+  return TH.dash.ownScope(metricLabel(metric), split ? TH.dash.byDims([TH.dash.dimUnit[split]]) : TH.cards.gap.contributors);
+}
+
 /** An explain_gap answer in the shared anatomy (style A): the verdict, the hero the decision table picks, the whole gap named by its base ("ต่ำกว่าเป้าตามเวลา 39.8 ล้านบาท") with the parts that made it under it, and the parts that offset it folded into one line. */
 export function presentGap(input: PresentGapInput): CardParts {
   const { answer, metric, split } = input;
@@ -1541,8 +1589,11 @@ export function presentGap(input: PresentGapInput): CardParts {
   const tone: Tone = metric ? toneOf(metric, below ? -PERCENT : PERCENT) : below ? "bad" : "good";
   const parts = [...answer.contributors, ...(answer.rest ? [answer.rest] : [])];
   const [lead] = answer.contributors;
-  const drawn = parts.filter((part) => part === lead || (part !== answer.rest && (gapShareOf(part) ?? 0) >= MIN_GAP_SHARE));
-  const smaller = parts.filter((part) => !drawn.includes(part));
+  const over = parts.filter((part) => part === lead || (part !== answer.rest && (gapShareOf(part) ?? 0) >= MIN_GAP_SHARE));
+  const under = parts.filter((part) => !over.includes(part));
+  const foldsOne = under.length === 1 && under[0] !== answer.rest && answer.offsetting.length === 0;
+  const drawn = foldsOne ? parts : over;
+  const smaller = foldsOne ? [] : under;
   const rows = [
     gapRow(`${answer.projection ? TH.cards.gap.toDate : ""}${TH.cards.gap.whole(below, versus)}`, unsignedLabel(answer.gap_label), null, null, tone),
     ...drawn.map((part) => gapRow(part.label, unsignedLabel(part.gap_label), ofGapText(part), gapShareOf(part), tone)),
@@ -1557,7 +1608,7 @@ export function presentGap(input: PresentGapInput): CardParts {
   const named = lead && causes.length > 0 ? TH.cards.gap.lead(lead.label, below, unsignedLabel(lead.gap_label)) : lead ? TH.cards.gap.spread : null;
   const verdict = [rule.opening(facts), named].filter(Boolean).join(" ");
   return {
-    title: metric ? TH.dash.ownScope(metricLabel(metric), split ? TH.dash.byDims([TH.dash.dimUnit[split]]) : TH.cards.gap.contributors) : TH.cards.gap.contributors,
+    title: gapTitleOf(metric, split),
     style: "exceptions",
     verdict: spaced(verdict),
     hero: rule.hero(facts),
@@ -1617,6 +1668,7 @@ function oneBucketBreakdown(query: MetricQuery, rows: MetricRow[]): MetricQuery 
 function leadOf(facts: Facts, fit: Fit, rows: MetricRow[], view: CardView): Lead | null {
   if (fit.hero === "single") return singleLead(facts);
   if (fit.hero === "latest") return latestLead(facts);
+  if (fit.hero === "range") return rangeLead(facts);
   if (fit.hero === "target") return targetSeriesLead(facts);
   if (fit.hero === "step") return stepLead(facts);
   if (fit.look === "summary") return summaryLead(facts, shortMetric(facts.query.metric), heroLabelOf(facts.query, facts.result));

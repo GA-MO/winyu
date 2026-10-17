@@ -138,8 +138,18 @@ describe("a why answer draws one card per point (AI-253)", () => {
     expect(hiddenIn([returned("q1", "query_metric", { ...WEEK_ARGS, compare: "prev_year" }, { ...WEEK_TOTAL, query: { ...WEEK_TOTAL.query, compare: "prev_year" } }), returned("g1", "explain_gap", GAP_ARGS, SPREAD_GAP)])).toEqual([]);
   });
 
+  test("round 8's RSM month close draws the gap card alone: the one-row region breakdown, read in the RSM's own region and over the days the data holds, repeats its 87.5% (AI-266)", () => {
+    const isanArgs = { compare: "target", dims: ["region"], metric: "net_sales_value", filters: {}, period: "this_month", grain: "month" };
+    const isan = { ok: true, rows: [{ region: "ภาคอีสาน", value: 328402399 }], summary: "", headline: { value: "328.4 ล้านบาท", periodLabel: "1 พ.ย. 2569 – 26 พ.ย. 2569", asksMonthEnd: true }, query: { metric: "net_sales_value", dims: ["region"], filters: {}, range: { from: "2026-11-01", to: "2026-11-26" }, grain: "month", compare: "target", limit: null, scopeApplied: { region: ["northeast"] }, labels: { region: ["ภาคอีสาน"] } } };
+    const gapArgs = { filters: { region: "northeast" }, range: { to: "2026-11-27", from: "2026-11-01" }, split: "province", metric: "net_sales_value", compare: "target" };
+    const gap = { ok: true, period_label: "1 พ.ย. 2569 – 26 พ.ย. 2569", actual_label: "328.4 ล้านบาท", gap_label: "−39.8 ล้านบาท", contributors: [], share_note: null };
+    expect(hiddenIn([returned("q1", "query_metric", isanArgs, isan), returned("g1", "explain_gap", gapArgs, gap)])).toEqual(["q1"]);
+    const southGap = { ...gapArgs, filters: { region: "south" } };
+    expect(hiddenIn([returned("q1", "query_metric", isanArgs, isan), returned("g1", "explain_gap", southGap, gap)])).toEqual([]);
+  });
+
   test("a breakdown of the same window keeps its card, and a gap about one agent keeps that agent's alerts", () => {
-    const byRegion = { ...WEEK_TOTAL, query: { ...WEEK_TOTAL.query, dims: ["region"] } };
+    const byRegion = { ...WEEK_TOTAL, rows: [{ region: "ภาคอีสาน", value: 47204061 }, { region: "ภาคเหนือ", value: 32716414 }], query: { ...WEEK_TOTAL.query, dims: ["region"] } };
     expect(hiddenIn([returned("q1", "query_metric", { ...WEEK_ARGS, dims: ["region"] }, byRegion), returned("g1", "explain_gap", GAP_ARGS, SPREAD_GAP)])).toEqual([]);
     const agentGap = { ...GAP_ARGS, filters: { agent: "อีสานรุ่งโรจน์ ค้าส่ง" }, split: "brand" };
     expect(hiddenIn([returned("a1", "get_alerts", { dims: { agent: "อีสานรุ่งโรจน์ ค้าส่ง" } }, ALERTS), returned("g1", "explain_gap", agentGap, SPREAD_GAP)])).toEqual([]);

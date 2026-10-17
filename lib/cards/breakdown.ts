@@ -547,6 +547,41 @@ function monthAskedOf(input: BreakdownInput, row: MetricRow): { hero: CardHero; 
   };
 }
 
+const MAX_NAMED_IN_VERDICT = 3;
+
+/** The row that moved furthest the way the named rows moved, when the question did not name it: a counter-example the verdict owes the reader before the named rows' moves read as proof (AI-269). */
+function furthestUnnamed(input: BreakdownInput, named: ReadonlyMap<string, MetricRow>): string | null {
+  const { query } = input;
+  const changes = [...named.values()].map((row) => changeOf(query, row));
+  const rising = changes.every((change) => change !== null && change > 0);
+  const falling = changes.every((change) => change !== null && change < 0);
+  if (!rising && !falling) return null;
+  const furthest = input.rows.reduce<{ row: MetricRow; size: number } | null>((best, row) => {
+    const change = changeOf(query, row);
+    if (change === null || change > 0 !== rising) return best;
+    return best === null || Math.abs(change) > best.size ? { row, size: Math.abs(change) } : best;
+  }, null);
+  if (!furthest || named.has(labelOf(query, furthest.row))) return null;
+  const delta = rowMove(query, furthest.row).delta;
+  return delta ? TH.read.movedMost(rising ? TH.read.rose : TH.read.fell, labelOf(query, furthest.row), delta) : null;
+}
+
+/** The verdict of a breakdown whose question named two or three rows: each named row with its change and its place on the card (its level is on its row), then the row that moved further the same way when it was not named, so the headline speaks for what was asked instead of the top row (AI-269); null for one row, more than three, or a target card, whose verdict already judges every row on the month's one base. */
+function namedRowsVerdict(input: BreakdownInput, reading: Breakdown, named: ReadonlyMap<string, MetricRow>): string | null {
+  const { query } = input;
+  if (named.size < 2 || named.size > MAX_NAMED_IN_VERDICT || query.compare === "target") return null;
+  const order = reading.rows.map((row) => row.label);
+  const placed = [...named]
+    .map(([label, row]) => ({ label, row, rank: order.indexOf(label) + 1 }))
+    .filter((entry) => entry.rank > 0)
+    .sort((left, right) => left.rank - right.rank);
+  if (placed.length < 2) return null;
+  const each = placed.map((entry) => [entry.label, rowMove(query, entry.row).delta, TH.read.rank(entry.rank)].filter(Boolean).join(" "));
+  const counted = `${each.join(" · ")} ${TH.read.outOf(order.length, input.unit)}`;
+  const further = furthestUnnamed(input, named);
+  return further ? `${counted} · ${further}` : counted;
+}
+
 /** A breakdown whose question named rows ("มาร์จินกลุ่มเบียร์"): those rows are drawn as exceptions with their value and change, and one named row leads the verdict and style A's hero, so the card shows what was asked even when it is not an extreme. */
 function withAskedRows(reading: Breakdown, input: BreakdownInput): Breakdown {
   const { query, result, asked } = input;
@@ -557,7 +592,7 @@ function withAskedRows(reading: Breakdown, input: BreakdownInput): Breakdown {
     return source ? { ...row, exception: true, valued: true, sub: row.sub ?? askedSubOf(input, source) } : row;
   });
   const [only] = named.size === 1 ? [...named.values()] : [];
-  if (!only) return { ...reading, rows };
+  if (!only) return { ...reading, rows, verdict: namedRowsVerdict(input, reading, named) ?? reading.verdict };
   const label = labelOf(query, only);
   const onMonth = monthAskedOf(input, only);
   const hero: CardHero = onMonth?.hero ?? { label, value: valueTextOf(query, only), unit: null, ...rowMove(query, only), detail: baseOf(query, only) ?? result.headline.compareLabel };
