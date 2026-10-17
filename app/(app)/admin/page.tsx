@@ -15,7 +15,6 @@ import { readUser } from "@/lib/server/session";
 import { liveAccessFor } from "@/lib/access/enforce";
 import { adminSuggestionsFor } from "@/lib/server/quick-actions";
 import { AccessTab } from "@/components/admin/access-tab";
-import { ActiveTabInView } from "@/components/admin/active-tab-in-view";
 import { AuditTab } from "@/components/admin/audit-tab";
 import { AUDIT_ACTIVITY_KIND, AUDIT_RANGES, sinceOf, type AuditRange } from "@/lib/server/usage";
 import { OverviewTab } from "@/components/admin/overview-tab";
@@ -129,35 +128,28 @@ function groupOf(tab: Tab): Group {
   return GROUPS.find((group) => (group.tabs as readonly Tab[]).includes(tab)) ?? GROUPS[0];
 }
 
-const EDGE_FADE =
-  "data-[edge=right]:[mask-image:linear-gradient(to_right,black_calc(100%-2.5rem),transparent)] data-[edge=left]:[mask-image:linear-gradient(to_left,black_calc(100%-2.5rem),transparent)] data-[edge=both]:[mask-image:linear-gradient(to_right,transparent,black_2.5rem,black_calc(100%-2.5rem),transparent)]";
 const PILL_BAR = "inline-flex gap-1 rounded-full border border-border bg-panel p-1 shadow-card backdrop-blur-xl";
+const GROUP_BAR = "grid w-full grid-cols-5 gap-1 rounded-[1.25rem] border border-border bg-panel p-1 shadow-card backdrop-blur-xl sm:inline-flex sm:w-max sm:rounded-full";
+const GROUP_TAB = "flex min-w-0 flex-col items-center justify-center gap-0.5 rounded-2xl px-1 py-1.5 text-[11px] leading-tight transition sm:h-9 sm:shrink-0 sm:flex-row sm:gap-1.5 sm:rounded-full sm:px-3.5 sm:py-0 sm:text-sm";
 
 function GroupTabs({ current }: { current: Group }) {
   return (
-    <div className={cn("-mx-1 max-w-full overflow-x-auto px-1 [scrollbar-width:none]", EDGE_FADE)}>
-      <div className={cn(PILL_BAR, "w-max")}>
-        {GROUPS.map((group) => {
-          const Icon = group.icon;
-          const active = group.id === current.id;
-          return (
-            <Link
-              key={group.id}
-              href={`/admin?tab=${group.tabs[0]}`}
-              aria-current={active ? "page" : undefined}
-              className={cn(
-                "inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full px-3.5 text-sm transition",
-                FOCUS,
-                active ? "bg-ink font-medium text-ink-foreground shadow-card" : "text-muted-foreground hover:bg-muted hover:text-foreground",
-              )}
-            >
-              <Icon className="size-4" aria-hidden />
-              {TH.admin.groups[group.id]}
-            </Link>
-          );
-        })}
-      </div>
-      <ActiveTabInView current={current.id} />
+    <div className={GROUP_BAR}>
+      {GROUPS.map((group) => {
+        const Icon = group.icon;
+        const active = group.id === current.id;
+        return (
+          <Link
+            key={group.id}
+            href={`/admin?tab=${group.tabs[0]}`}
+            aria-current={active ? "page" : undefined}
+            className={cn(GROUP_TAB, FOCUS, active ? "bg-ink font-medium text-ink-foreground shadow-card" : "text-muted-foreground hover:bg-muted hover:text-foreground")}
+          >
+            <Icon className="size-4 shrink-0" aria-hidden />
+            <span className="max-w-full whitespace-nowrap">{TH.admin.groups[group.id]}</span>
+          </Link>
+        );
+      })}
     </div>
   );
 }
