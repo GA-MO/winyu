@@ -110,7 +110,7 @@ describe("query_metric for a running month against target", () => {
       const card = presentCard({ title: "t", query: result.query, result });
       expect(card.hero?.value).toBe(projection.attainmentToDate);
       expect(card.hero?.unit).toBe(TH.read.ofMonthTarget);
-      expect(card.hero?.detail).toBe([TH.read.paceMark(`${Math.round(elapsed * 1000) / 10}%`), projection.shortBy ? `${TH.read.toTarget} ${projection.shortBy}` : null].filter(Boolean).join(" · "));
+      expect(card.hero?.detail).toBe([TH.read.paceMark(`${Math.round(elapsed * 1000) / 10}%`), projection.shortBy ? `${TH.read.leftToDate} ${projection.shortBy} ${TH.read.toMonthTarget}` : null].filter(Boolean).join(" · "));
       if (card.body.kind !== "strip") throw new Error("not a strip");
       expect(card.body.strip.overall?.text).toBe(projection.attainmentToDate);
       expect(card.body.strip.overall?.measure).toBe(Number(projection.attainmentToDate.replace("%", "")));

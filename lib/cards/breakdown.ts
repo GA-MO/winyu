@@ -230,7 +230,7 @@ function lineReading(input: BreakdownInput, line: LevelLine): Breakdown {
   const format = overTarget ? percentText : (value: number) => formatMetricValue(query.metric, value);
   const fold = foldLine(input.unit, () => line.aboveWords, measuresOf, format);
   const goalUnit = input.target.paced ? TH.read.ofPacedTarget : TH.read.ofTarget;
-  const monthDetail = month ? joinedText([TH.read.paceMark(percentText(at)), month.left ? `${TH.read.toTarget} ${month.left}` : null]) : null;
+  const monthDetail = month ? joinedText([TH.read.paceMark(percentText(at)), month.left ? `${TH.read.leftToDate} ${month.left} ${TH.read.toMonthTarget}` : null]) : null;
   if (input.threshold) {
     return {
       form: "line",

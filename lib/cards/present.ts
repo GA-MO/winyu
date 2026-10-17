@@ -587,6 +587,11 @@ function tileOf(label: string, value: string, sub: string | null): Tile {
   return { label, value, delta: null, tone: "neutral", sub };
 }
 
+/** What a range is behind its target by: against the target to date while it still runs ("ต่ำกว่าเป้าตามเวลา … ถึงวันนี้"), since "ถึงวันนี้ยังขาด" names only the gap to the whole month's target (AI-249); else what is left to the target. */
+function shortTileOf(short: string, paced: boolean): Tile {
+  return paced ? tileOf(TH.read.belowPacedTarget, short, TH.cards.gap.toDate) : tileOf(TH.read.toTarget, short, TH.read.toGoal(TH.read.goal));
+}
+
 function paceVerdict(label: string, paced: number): string {
   return paced >= PERCENT ? TH.read.onPace(label) : TH.read.behindPace(label, percentText(PERCENT - paced));
 }
@@ -647,7 +652,7 @@ function yearLead(facts: Facts, attainment: number): Lead {
   const standing = paced ? paceVerdict(name, attainment) : behind ? TH.read.belowGoal(name, goal, percentText(PERCENT - attainment)) : TH.read.met(name);
   return {
     hero: { label: name, value: percentText(attainment), unit: paced ? TH.read.ofPacedTarget : TH.read.ofTarget, delta: null, trend: behind ? "down" : "neutral", tone: behind ? "bad" : "neutral", detail: `${TH.read.actual} ${result.headline.value}` },
-    tiles: [short === null ? null : tileOf(TH.read.leftToDate, formatMetricValue(query.metric, short), TH.read.toGoal(goal)), tileOf(TH.read.toYearEnd, TH.read.daysLeft(daysLeftInYear(asOf)), null)].filter((tile): tile is Tile => tile !== null),
+    tiles: [short === null ? null : shortTileOf(formatMetricValue(query.metric, short), paced), tileOf(TH.read.toYearEnd, TH.read.daysLeft(daysLeftInYear(asOf)), null)].filter((tile): tile is Tile => tile !== null),
     verdict: [standing, yearCatchUpOf(query, result)].filter(Boolean).join(" "),
   };
 }
@@ -782,7 +787,7 @@ function targetSeriesLead(facts: Facts): Lead {
   const goal = paced ? TH.read.pacedGoal : TH.read.goal;
   const behind = attainment < PERCENT;
   const short = behind ? shortfallOf(query, result.rows) : null;
-  const left = short === null ? null : tileOf(paced ? TH.read.leftToDate : TH.read.toTarget, formatMetricValue(query.metric, short), TH.read.toGoal(goal));
+  const left = short === null ? null : shortTileOf(formatMetricValue(query.metric, short), paced);
   const worst = result.rows
     .map((row) => ({ label: labelOf(query, row), share: attainmentOf(row) }))
     .reduce<{ label: string; share: number } | null>((low, entry) => (entry.share !== null && entry.share < PERCENT && (low === null || entry.share < low.share) ? { label: entry.label, share: entry.share } : low), null);

@@ -3,6 +3,7 @@ import { widgetKindSchema, type AlertRow, type MetricHeadline, type MetricQuery,
 import { accessFor } from "@/lib/access/policies";
 import { findUser } from "@/lib/data/entities/users";
 import { runMetric } from "@/lib/data/query";
+import { runMetric as runProjectedMetric } from "@/lib/server/metrics";
 import { DATA_AS_OF, monthStart } from "@/lib/data/dates";
 import { templateFor } from "@/lib/dashboard/templates";
 import { TH } from "@/lib/i18n/th";
@@ -114,7 +115,7 @@ describe("a series against its target leads with the whole range against target 
 
   test("what is left to target and the month that missed most are on the card", () => {
     const tiles = card.tiles.map((tile) => `${tile.label} ${tile.value}`);
-    expect(tiles).toContain(`${TH.read.leftToDate} 477.7 ล้านบาท`);
+    expect(tiles).toContain(`${TH.read.belowPacedTarget} 477.7 ล้านบาท`);
     expect(card.verdict).toContain("ต.ค. 69");
   });
 });
@@ -272,7 +273,7 @@ describe("a year against its target says where the year stands and what is left 
   test("asked whether the year reaches target, the card leads with the year to date against target, the amount behind and the days left in the year", () => {
     const card = presentCard({ title: "t", query: YEAR_QUERY, result: YEAR_RESULT });
     expect(card.hero).toMatchObject({ label: TH.read.yearToDate, value: "98.2%", unit: TH.read.ofPacedTarget, tone: "bad" });
-    expect(card.tiles.find((tile) => tile.value === "477.7 ล้านบาท")?.label).toBe(TH.read.leftToDate);
+    expect(card.tiles.find((tile) => tile.value === "477.7 ล้านบาท")?.label).toBe(TH.read.belowPacedTarget);
     expect(card.tiles.map((tile) => tile.value)).toContain(TH.read.daysLeft(35));
     expect(card.verdict).toContain("477.7 ล้านบาท");
     expect(card.verdict).toContain(TH.read.daysLeft(35));
@@ -282,6 +283,12 @@ describe("a year against its target says where the year stands and what is left 
     const card = presentCard({ title: "t", query: YTD_QUERY, result: YTD_RESULT });
     expect(card.verdict).toContain(TH.read.daysLeft(35));
     expect(card.verdict).toContain("ต.ค. 69");
+  });
+
+  test("the year's gap to its paced target is ต่ำกว่าเป้าตามเวลา, so ถึงวันนี้ยังขาด only ever means the gap to the whole month's target (AI-249)", () => {
+    for (const card of [presentCard({ title: "t", query: YEAR_QUERY, result: YEAR_RESULT }), presentCard({ title: "t", query: YTD_QUERY, result: YTD_RESULT })]) {
+      expect(card.tiles.find((tile) => tile.value === "477.7 ล้านบาท")).toMatchObject({ label: "ต่ำกว่าเป้าตามเวลา", sub: "ถึงวันนี้" });
+    }
   });
 });
 
@@ -419,5 +426,12 @@ describe("an overall row over a subset names the subset (AI-238)", () => {
     expect(label).toBe("รวม 2 เอเย่นต์");
     expect(verdict ?? "").toContain("ทั้ง 2 เอเย่นต์");
     expect(verdict ?? "").not.toContain("ทุกเอเย่นต์");
+  });
+});
+
+describe("every card form names the month's gap the same way (AI-239)", () => {
+  test("the B strip's month detail names the 71.4 left as the gap to the whole month's target, the scorecards' words", async () => {
+    const card = presentCard({ title: "t", query: REP_AGENTS, result: await runProjectedMetric(REP_AGENTS, CEO) });
+    expect(stripOf(card.body).overall?.sub).toBe("ของเป้าทั้งเดือน · ถึงวันนี้ควรได้ 86.7% · ถึงวันนี้ยังขาด 71.4 ล้านบาท ถึงเป้าทั้งเดือน");
   });
 });

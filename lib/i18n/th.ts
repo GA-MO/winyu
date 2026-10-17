@@ -868,6 +868,7 @@ export const TH = {
     actual: "ยอดจริง",
     toTarget: "ขาดอีก",
     leftToDate: "ถึงวันนี้ยังขาด",
+    belowPacedTarget: "ต่ำกว่าเป้าตามเวลา",
     toMonthTarget: "ถึงเป้าทั้งเดือน",
     endShort: "คาดว่าขาด",
     atMonthEnd: "ณ สิ้นเดือน",
