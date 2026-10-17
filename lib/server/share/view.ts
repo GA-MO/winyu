@@ -50,6 +50,20 @@ function withoutSendsTo(read: FreshRead, people: ReadonlySet<string>): FreshRead
   return { ...read, result: { ...result, nextActions: result.nextActions.filter((action) => !sendsTo(action, people)) } };
 }
 
+type Offering = { headline?: { asked?: string[] }; nextActions?: NextAction[]; followUps?: unknown[] } | null;
+
+function leadsWithFocus(read: FreshRead): boolean {
+  return ((read.result as Offering)?.headline?.asked?.length ?? 0) > 0;
+}
+
+/** Every read offers the buttons of the read that leads with the matter's focus: a paired card draws the region total's buttons over the agents it pairs with, and those must ask about the agent the matter is about. */
+function withFocusedActions(reads: FreshRead[]): FreshRead[] {
+  const leading = reads.find(leadsWithFocus);
+  const offers = leading?.result as Offering;
+  if (!offers) return reads;
+  return reads.map((read) => (leadsWithFocus(read) || !read.result || typeof read.result !== "object" ? read : { ...read, result: { ...read.result, nextActions: offers.nextActions ?? [], followUps: offers.followUps ?? [] } }));
+}
+
 function onPath(share: Matter, viewer: User): Set<string> {
   return new Set([share.senderId, viewer.id, ...share.path.map((hop) => hop.userId)]);
 }
@@ -76,7 +90,7 @@ export async function openShare(share: Matter, viewer: User): Promise<SharedView
   const lockedOf = (read: SharedRead) => (sender && share.card.kind === "tool" ? lockedRowsOf(read, sender, viewer, askHref) : null);
   try {
     const people = onPath(share, viewer);
-    const reads = (await runWithAccess(access, () => runWithTurn(turn, () => runWithRun(run, () => rerun(share.card, lockedOf))))).map((read) => withoutSendsTo(read, people));
+    const reads = withFocusedActions(await runWithAccess(access, () => runWithTurn(turn, () => runWithRun(run, () => rerun(share.card, lockedOf))))).map((read) => withoutSendsTo(read, people));
     emitTo(run, "runtime", { type: "agent.completed", payload: { finishReason: "done" } });
     return { reads, surface: regrounded(share.card, reads, `share:${share.id}`), scope };
   } finally {
