@@ -1,6 +1,6 @@
 import { metricAccess } from "@/lib/access/grants";
 import { outOfScopeFilters, type OutOfScope } from "@/lib/access/enforce";
-import { REGIONS, metricQueryInputSchema, type AccessContext, type Dim, type MetricId, type MetricQueryInput, type MetricResult, type MetricRow } from "@/lib/contracts";
+import { REGIONS, metricQueryInputSchema, type AccessContext, type Dim, type MetricId, type MetricQuery, type MetricQueryInput, type MetricResult, type MetricRow } from "@/lib/contracts";
 import { ownAgentsFilter } from "@/lib/data/entities/agents";
 import { TH } from "@/lib/i18n/th";
 import { METRICS, TARGET_METRICS } from "@/lib/semantic/metrics";
@@ -12,6 +12,7 @@ import { askedQuery } from "@/lib/semantic/resolved";
 import { excludedIn, filtersWithout } from "@/lib/semantic/exclusion";
 import { namesOf } from "@/lib/semantic/dictionary";
 import { rowsNamedIn } from "@/lib/cards/asked";
+import { groupDimsOf, labelAlong } from "@/lib/cards/rows";
 import { actionsForMetric, actionsForRefusal, followUpsForMetric } from "@/lib/server/next-actions";
 import { currentAccess, currentTurn, recordQuery } from "@/lib/server/request-context";
 import { defineTool } from "./define";
@@ -95,6 +96,26 @@ function withoutSetAside(input: MetricQueryInput, access: AccessContext, questio
   return { input: { ...input, filters }, places: Object.values(namesOf(dictionary, excluded)).flat().join(", ") };
 }
 
+/** What query_metric runs for a question: a rep's own book, then the places the question sets aside, with what each changed for the summary. A matter stores the read this way when it is sent, so re-running it never needs the sender's question. */
+export function narrowedForQuestion(asked: MetricQueryInput, access: AccessContext, question: string | null, dictionary: Dictionary): { input: MetricQueryInput; ownAgents: number | null; setAside: string | null } {
+  const own = ownBookQuery(asked, access, question, dictionary);
+  const setAside = withoutSetAside(own?.input ?? asked, access, question, dictionary);
+  return { input: setAside?.input ?? own?.input ?? asked, ownAgents: own?.agents ?? null, setAside: setAside?.places ?? null };
+}
+
+/** The question a read answers: none when the turn re-runs a matter's stored reads, which were narrowed for the sender's question when it was sent. */
+function askedQuestion(): string | null {
+  return currentTurn().matter ? null : currentTurn().question;
+}
+
+/** The rows a matter singles out when the turn re-runs one, else the rows the question names. */
+function askedRows(query: MetricQuery, rows: readonly MetricRow[]): string[] {
+  const focus = currentTurn().matter?.focus;
+  if (!focus) return rowsNamedIn(currentTurn().question, query, rows);
+  const dims = groupDimsOf(query);
+  return dims.length === 0 ? [] : [...new Set(rows.flatMap((row) => labelAlong(dims, row) ?? []))].filter((label) => focus.includes(label));
+}
+
 const DESCRIPTION =
   "Read one certified metric from the semantic layer. Call it for every number you report: volumes, values, attainment, days of cover, margin, AR, headcount. Group with dims, narrow with filters, use compare for prev_period / prev_year / target. With a limit, set sort to the order the question asks (delta_asc = fell most, delta_desc = grew most, value_asc = lowest, value_desc = highest): rows are ranked by it before the limit cuts, so \"top 10 that fell\" really is the ten that fell most. A threshold in the question (\"under 10 days\", \"over 5 million\") goes in where { op: below | above, value } so only the rows that meet it come back. For a period the user names (this week, this month, last month, this year, the last 7 or 30 days) set period and leave range null: the server turns it into dates and says in the summary how far the data reaches; use range only for dates the user gives.";
 
@@ -118,23 +139,22 @@ export const queryMetricTool = defineTool({
   modelView: oneBaseForModel,
   execute: async (asked: MetricQueryInput) => {
     const dictionary = await loadDictionary();
-    const own = ownBookQuery(asked, currentAccess(), currentTurn().question, dictionary);
-    const setAside = withoutSetAside(own?.input ?? asked, currentAccess(), currentTurn().question, dictionary);
-    const input = setAside?.input ?? own?.input ?? asked;
+    const narrowed = narrowedForQuestion(asked, currentAccess(), askedQuestion(), dictionary);
+    const input = narrowed.input;
     const resolved = resolveQuery(input);
     if (!resolved.ok) return resolved;
     const { access, grant } = metricAccess(currentAccess(), resolved.query.metric, new Date());
-    const beyond = wholeCompanyBeyondScope(resolved.query, access, currentTurn().question);
+    const beyond = wholeCompanyBeyondScope(resolved.query, access, askedQuestion());
     if (beyond.length > 0) return { ...wholeCompanyRefusal(beyond, dictionary), nextActions: actionsForRefusal(access, resolved.query) };
     const result = await runMetric(resolved.query, access);
     if (!result.ok) return result.code === "PERMISSION_DENIED" ? { ...result, nextActions: actionsForRefusal(access, resolved.query) } : result;
     recordQuery(askedQuery(result.query));
-    const nextActions = actionsForMetric(access, result, dictionary);
     const provenance = grant ? { ...result.provenance, grant } : result.provenance;
-    const notes = [...(own ? [TH.quick.ownAgentsApplied(own.agents)] : []), ...(setAside ? [TH.quick.excludedApplied(setAside.places)] : [])];
+    const notes = [...(narrowed.ownAgents !== null ? [TH.quick.ownAgentsApplied(narrowed.ownAgents)] : []), ...(narrowed.setAside !== null ? [TH.quick.excludedApplied(narrowed.setAside)] : [])];
     const summary = [result.summary, ...notes].join(" · ");
-    const named = rowsNamedIn(currentTurn().question, result.query, result.rows);
-    const headline = named.length > 0 ? { ...result.headline, asked: named } : result.headline;
-    return { ...result, summary, headline, provenance, nextActions, followUps: followUpsForMetric(access, result, dictionary, nextActions) };
+    const named = askedRows(result.query, result.rows);
+    const answered = named.length > 0 ? { ...result, headline: { ...result.headline, asked: named } } : result;
+    const nextActions = actionsForMetric(access, answered, dictionary);
+    return { ...answered, summary, provenance, nextActions, followUps: followUpsForMetric(access, answered, dictionary, nextActions) };
   },
 });

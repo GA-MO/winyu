@@ -1,7 +1,7 @@
 import { metricQueryInputSchema, type RecipientScope, type User } from "@/lib/contracts";
 import { findUser, USERS } from "@/lib/data/entities/users";
 import { type ChannelOption, type DeliveryChannel, type ShareChannel, type ShareContact, type ShareGrantReceipt, type ShareRequest, type SharedCard, type SharedRead } from "@/lib/share/card";
-import { defaultUrgency, type Matter, type ShareDelivery } from "@/lib/share/matter";
+import { defaultUrgency, type Matter, type MatterGoal, type ShareDelivery } from "@/lib/share/matter";
 import { recordShare } from "@/lib/server/audit";
 import { untilLabel } from "@/lib/share/grant-label";
 import { grantOnShare, recipientScopesFor, shareGrantUntil } from "@/lib/server/grants";
@@ -18,7 +18,7 @@ import { liveAccessFor } from "@/lib/access/enforce";
 import { visibleAlert } from "@/lib/server/alerts";
 import { goalOf } from "./goal";
 import { loadDictionary } from "@/lib/server/master-data";
-import { ownBookQuery } from "@/lib/server/tools/query-metric";
+import { narrowedForQuestion } from "@/lib/server/tools/query-metric";
 import { matterTitle } from "./title";
 import { shareableProblem, shareCode, shares, unusedTitle } from "./shares";
 
@@ -97,25 +97,29 @@ function recipientsOf(request: ShareRequest, senderId: string): Array<{ user: Us
 /** A matter as the server sends it: the request the browser may make, and the rows of the card the sender singled out in chat, which only the server works out. */
 export type MatterRequest = ShareRequest & { focus?: string[] };
 
-function newMatter(sender: User, request: MatterRequest, sent: { code: string; at: string; title: string; ask: string; deliveries: ShareDelivery[] }): Matter {
+function newMatter(sender: User, request: MatterRequest, sent: { code: string; at: string; title: string; ask: string; deliveries: ShareDelivery[]; goal: MatterGoal | null }): Matter {
   const path = sent.deliveries.map((delivery) => ({ userId: delivery.userId, fromUserId: sender.id, at: sent.at, state: "sent" as const }));
-  const access = liveAccessFor(sender);
-  const alertIds = (request.alertIds ?? []).filter((id) => visibleAlert(id, access) !== null);
-  const goal = request.closeOnGoal === false ? null : goalOf(request.card, alertIds);
+  const alertIds = alertIdsFor(sender, request);
+  const goal = sent.goal;
   const focus = request.focus && request.focus.length > 0 ? { focus: request.focus } : {};
   return { id: sent.code, at: sent.at, updatedAt: sent.at, senderId: sender.id, title: sent.title, question: request.question, ask: sent.ask, intent: request.intent, urgency: request.urgency ?? defaultUrgency(request.intent), due: request.due ?? null, goal, alertIds, path, thread: [], status: "open", card: request.card, ...focus, deliveries: sent.deliveries, openedBy: [], lastViewedAt: null };
 }
 
-async function ownBookRead(read: SharedRead, sender: User, question: string | null): Promise<SharedRead> {
-  const parsed = read.tool === METRIC_READ ? metricQueryInputSchema.safeParse(read.input) : null;
-  if (!parsed?.success) return read;
-  const own = ownBookQuery(parsed.data, liveAccessFor(sender), question, await loadDictionary());
-  return own ? { ...read, input: own.input } : read;
+function alertIdsFor(sender: User, request: MatterRequest): string[] {
+  const access = liveAccessFor(sender);
+  return (request.alertIds ?? []).filter((id) => visibleAlert(id, access) !== null);
 }
 
-/** The card as the sender saw it: a rep's own-book read keeps the agents query_metric narrowed it to, so the receiver re-runs the card the rep looked at, not the whole region. */
+async function asReadFor(read: SharedRead, sender: User, question: string | null): Promise<SharedRead> {
+  const parsed = read.tool === METRIC_READ ? metricQueryInputSchema.safeParse(read.input) : null;
+  if (!parsed?.success) return read;
+  const narrowed = narrowedForQuestion(parsed.data, liveAccessFor(sender), question, await loadDictionary());
+  return narrowed.input === parsed.data ? read : { ...read, input: narrowed.input };
+}
+
+/** The card as the sender saw it: every read keeps what query_metric narrowed it to for their question (a rep's own agents, the places the question set aside), so each receiver re-runs the card the sender looked at, with no question of anyone's applied again. */
 async function asSeenBy(card: SharedCard, sender: User, question: string | null): Promise<SharedCard> {
-  const reads = await Promise.all(card.reads.map((read) => ownBookRead(read, sender, question)));
+  const reads = await Promise.all(card.reads.map((read) => asReadFor(read, sender, question)));
   return { ...card, reads };
 }
 
@@ -132,7 +136,8 @@ export async function createShare(sender: User, asked: MatterRequest, at = new D
   const message: ShareMessage = { title, senderName: sender.nameTh, senderTitle: sender.title, note: ask || null, url: shareUrl(code) };
   const deliveries: ShareDelivery[] = [];
   for (const { user, channel } of recipients) deliveries.push(await deliver(message, sender, user, channel, code));
-  const share = shares().put(newMatter(sender, request, { code, at, title, ask, deliveries }));
+  const goal = request.closeOnGoal === false ? null : await goalOf(request.card, alertIdsFor(sender, request), request.focus);
+  const share = shares().put(newMatter(sender, request, { code, at, title, ask, deliveries, goal }));
   recordShare({ userId: sender.id, code, title, reads: request.card.reads.map((read) => read.tool), deliveries });
   const grants = request.grantDays ? grantOnShare(sender, request.card, deliveries.map((delivery) => delivery.userId), request.grantDays, code, new Date(at)) : [];
   for (const delivery of deliveries) {

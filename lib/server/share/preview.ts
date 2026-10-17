@@ -8,8 +8,8 @@ import { matterSubject, matterTitle } from "./title";
 
 /** What a send shows before it leaves, worked out by code: the title the matter will carry (with the rows the sender's `words` single out, and a repeat number when another matter has it), whom to put first (the card's owner, then the sender's line), what the card's numbers say for the sender, the goal that would close the matter, the singled-out rows with their own figure and any claim they refute, and the card's own subject. */
 export async function sendPreview(card: SharedCard, sender: User, alertIds: readonly string[] = [], words: readonly string[] = []): Promise<SendPreview> {
-  const goal = goalOf(card, alertIds);
   const focus = await cardFocus(card, sender, words);
+  const goal = await goalOf(card, alertIds, focus?.labels);
   return {
     ...suggestionsFor(card, sender.id),
     title: unusedTitle(await matterTitle(card, focus?.labels)),

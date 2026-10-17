@@ -1,6 +1,11 @@
 import { liveAccessFor } from "@/lib/access/enforce";
-import { metricQueryInputSchema, type MetricQueryInput, type MetricResult, type User } from "@/lib/contracts";
+import { metricAccess } from "@/lib/access/grants";
+import { presentCard } from "@/lib/cards/present";
+import { isTimeDim, labelAlong } from "@/lib/cards/rows";
+import { metricQueryInputSchema, type Dim, type MetricQueryInput, type MetricResult, type User } from "@/lib/contracts";
 import { addDays, daysBetween, DATA_AS_OF } from "@/lib/data/dates";
+import { agentById } from "@/lib/data/entities/agents";
+import { loadDictionary } from "@/lib/server/master-data";
 import { findUser } from "@/lib/data/entities/users";
 import { metricLabel } from "@/lib/dashboard/metric-display";
 import { TH } from "@/lib/i18n/th";
@@ -20,6 +25,8 @@ const FULL_TARGET = 100;
 const METRIC_READ = "query_metric";
 const WINYU = "winyu";
 
+type MetricAnswer = Extract<MetricResult, { ok: true }>;
+
 function metricInputOf(read: SharedRead): MetricQueryInput | null {
   if (read.tool !== METRIC_READ) return null;
   const parsed = metricQueryInputSchema.safeParse(read.input);
@@ -30,9 +37,20 @@ function firstMetricInput(card: SharedCard): MetricQueryInput | null {
   return card.reads.map(metricInputOf).find((input) => input !== null) ?? null;
 }
 
+/** One stored read run as this person the way query_metric runs it for them: resolved, widened by a live grant on its metric, and read. No question narrows it, because the read was stored as its sender saw it. */
 async function answerOf(input: MetricQueryInput, viewer: User): Promise<MetricResult | null> {
   const resolved = resolveQuery(input);
-  return resolved.ok ? runMetric(resolved.query, liveAccessFor(viewer)) : null;
+  if (!resolved.ok) return null;
+  return runMetric(resolved.query, metricAccess(liveAccessFor(viewer), resolved.query.metric, new Date()).access);
+}
+
+function groupDims(input: Pick<MetricQueryInput, "dims">): Dim[] {
+  return input.dims.filter((dim) => !isTimeDim(dim));
+}
+
+function showsRows(answer: MetricAnswer, labels: readonly string[]): boolean {
+  const dims = groupDims(answer.query);
+  return dims.length > 0 && answer.rows.some((row) => labels.includes(labelAlong(dims, row) ?? ""));
 }
 
 /** Every metric read of the card (a paired card draws several) run again under this person's access, in the card's order; reads that no longer resolve are left out. No model call, no audit row. */
@@ -53,8 +71,19 @@ export async function cardFigures(card: SharedCard, viewer: User): Promise<CardF
   return figuresOf(await cardAnswer(card, viewer));
 }
 
-/** The card's headline figure for this person, as words a reply can quote: the share of the whole month's target while the month runs, else its headline value; null when the card has no metric read or it no longer answers. */
-export async function cardHero(card: SharedCard, viewer: User): Promise<string | null> {
+/** The hero a card draws for one answer with `labels` as the rows asked about, as words: label, value, change and its base. */
+export function askedHero(answer: MetricAnswer, labels: readonly string[]): string | null {
+  const hero = presentCard({ title: "", query: answer.query, result: { ...answer, headline: { ...answer.headline, asked: [...labels] } } }).hero;
+  return hero ? [hero.label, hero.value, hero.unit, hero.delta, hero.detail].filter(Boolean).join(" ") : null;
+}
+
+/** The card's headline figure for this person, as words a reply can quote: with rows the matter singles out, the hero the card leads with for them (the matter page draws the same); else the share of the whole month's target while the month runs, else its headline value; null when the card has no metric read or it no longer answers. */
+export async function cardHero(card: SharedCard, viewer: User, focus: readonly string[] = []): Promise<string | null> {
+  if (focus.length > 0) {
+    const answers = (await cardAnswers(card, viewer)).filter((answer): answer is MetricAnswer => answer.ok);
+    const showing = answers.find((answer) => showsRows(answer, focus));
+    if (showing) return askedHero(showing, focus);
+  }
   const input = firstMetricInput(card);
   const answer = input ? await answerOf(input, viewer) : null;
   if (!answer?.ok) return null;
@@ -67,11 +96,23 @@ function targetGoal(input: MetricQueryInput): MatterGoal | null {
   return againstTarget ? { kind: "attainment", query: { ...input }, atLeast: FULL_TARGET } : null;
 }
 
-/** What closes a matter by itself, when the card has it: an open alert it is about coming back within what was expected, else a card against target reaching 100% of it; null otherwise. */
-export function goalOf(card: SharedCard, alertIds: readonly string[]): MatterGoal | null {
+/** The card's read that is broken down by the one row a send singles out, narrowed to that row; null unless `focus` names exactly one row along a read's single group dim. */
+async function focusedInput(card: SharedCard, focus: readonly string[]): Promise<MetricQueryInput | null> {
+  if (focus.length !== 1) return null;
+  const dictionary = await loadDictionary();
+  for (const input of card.reads.map(metricInputOf)) {
+    const dims = input ? groupDims(input) : [];
+    const id = input && dims.length === 1 ? dictionary.resolveDimValue(dims[0], focus[0]) : null;
+    if (input && id) return { ...input, filters: { ...input.filters, [dims[0]]: [id] }, limit: null, sort: null };
+  }
+  return null;
+}
+
+/** What closes a matter by itself, when the card has it: an open alert it is about coming back within what was expected, else a card against target reaching 100% of it, about the one row the send singles out when it singles one out; null otherwise. */
+export async function goalOf(card: SharedCard, alertIds: readonly string[], focus: readonly string[] = []): Promise<MatterGoal | null> {
   const alert = alertIds.flatMap((id) => alerts().get(id) ?? []).find((candidate) => candidate.status === "open");
   if (alert) return { kind: "alert", alertId: alert.id };
-  const input = firstMetricInput(card);
+  const input = (await focusedInput(card, focus)) ?? firstMetricInput(card);
   return input ? targetGoal(input) : null;
 }
 
@@ -102,8 +143,11 @@ export function goalLabel(goal: MatterGoal): string {
     const alert = alerts().get(goal.alertId);
     return alert ? TH.matter.goal.back(metricLabel(alert.metric)) : TH.matter.goal.unknown;
   }
-  const metric = metricInputOf({ tool: METRIC_READ, input: goal.query })?.metric;
-  return metric ? TH.matter.goal.attainment(metricLabel(metric)) : TH.matter.goal.unknown;
+  const input = metricInputOf({ tool: METRIC_READ, input: goal.query });
+  if (!input) return TH.matter.goal.unknown;
+  const agents = input.filters.agent ?? [];
+  const agent = agents.length === 1 ? agentById(agents[0]) : null;
+  return TH.matter.goal.attainment(agent ? `${metricLabel(input.metric)} ${agent.nameTh}` : metricLabel(input.metric));
 }
 
 function closeOnGoal(matter: Matter, at: Date): void {

@@ -31,6 +31,11 @@ function pinnedRow(query: ResolvedQuery, dim: Dim): string | null {
   return labels.length === 1 ? labels[0] : null;
 }
 
+function askedRow(result: Extract<MetricResult, { ok: true }>): string | null {
+  const asked = result.headline.asked ?? [];
+  return asked.length === 1 ? asked[0] : null;
+}
+
 function worstRow(result: Extract<MetricResult, { ok: true }>): string | null {
   const harm = sharpestHarm(result.query, result, HARM_MIN_PCT)?.label ?? null;
   if (PERIOD_COMPARES.has(result.query.compare)) return harm;
@@ -46,10 +51,10 @@ function sliceOf(query: ResolvedQuery, rankDim: Dim | null): string | null {
   return parts.length > 0 ? parts.join(PART_SEPARATOR) : null;
 }
 
-/** The open alert a metric card is about, of those on its metric and slice: the one on the row the answer points at (the row asked for, else the weakest or sharpest-falling row), so the card's buttons follow the answer; with no such row the first of them; an alert on another row belongs to another answer. */
+/** The open alert a metric card is about, of those on its metric and slice: the one on the row the answer points at (the row pinned or asked for, else the weakest or sharpest-falling row), so the card's buttons follow the answer; with no such row the first of them; an alert on another row belongs to another answer. */
 export function alertForAnswer(result: Extract<MetricResult, { ok: true }>, alerts: readonly Alert[], dictionary: Dictionary): Alert | null {
   const rankDim = rankDimOf(result.query);
-  const answer = rankDim ? (pinnedRow(result.query, rankDim) ?? worstRow(result)) : null;
+  const answer = rankDim ? (pinnedRow(result.query, rankDim) ?? askedRow(result) ?? worstRow(result)) : null;
   if (!rankDim || !answer) return alerts[0] ?? null;
   return alerts.find((alert) => alertRow(rankDim, alert, dictionary) === answer) ?? null;
 }
@@ -58,7 +63,7 @@ export function alertForAnswer(result: Extract<MetricResult, { ok: true }>, aler
 export function cardFocus(result: Extract<MetricResult, { ok: true }>, alert: Alert | null, dictionary: Dictionary): CardFocus {
   const { query } = result;
   const rankDim = rankDimOf(query);
-  const row = rankDim ? (alertRow(rankDim, alert, dictionary) ?? pinnedRow(query, rankDim) ?? worstRow(result)) : null;
+  const row = rankDim ? (alertRow(rankDim, alert, dictionary) ?? pinnedRow(query, rankDim) ?? askedRow(result) ?? worstRow(result)) : null;
   const slice = sliceOf(query, rankDim);
   return { slice, row, subject: alert ? alertScopeLabel(alert, dictionary) : (row ?? slice) };
 }

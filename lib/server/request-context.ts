@@ -31,7 +31,7 @@ export type AnsweredApproval = { tool: string; approved: boolean };
 /** A tool call the turn finished: its id, the tool, what it was asked and what came back. */
 export type FinishedCall = { toolCallId: string; tool: string; args: unknown; output: unknown };
 
-/** The chat turn being served; `transcript` reads the thread's saved conversation and `screenCards` the cards on screen when this question was asked (this run's finished calls included), both absent outside a chat run; `onScreen` lists the cards earlier questions left, for the model to name one; `subjects` are the entities the turn resolved by name; `finished` the calls this run finished so far; `answered` holds the approval answers this run carries out or declines. */
+/** The chat turn being served; `transcript` reads the thread's saved conversation and `screenCards` the cards on screen when this question was asked (this run's finished calls included), both absent outside a chat run; `onScreen` lists the cards earlier questions left, for the model to name one; `subjects` are the entities the turn resolved by name; `finished` the calls this run finished so far; `answered` holds the approval answers this run carries out or declines; `matter` marks a turn that re-runs a matter's stored reads: its question is the sender's, kept for the audit, never narrowing those reads again, and `focus` names the rows the matter singles out, which lead the card. */
 export type TurnContext = {
   turnId: string | null;
   threadId: string | null;
@@ -43,6 +43,7 @@ export type TurnContext = {
   onScreen?: readonly CardOnScreen[];
   finished?: FinishedCall[];
   answered?: readonly AnsweredApproval[];
+  matter?: { focus: readonly string[] };
 };
 
 const EMPTY_TURN: TurnContext = { turnId: null, threadId: null, question: null, queries: [] };

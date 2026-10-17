@@ -62,7 +62,7 @@ describe("a send about one agent opens on that agent (AI-208)", () => {
     const matter = await teamMatter([FOCUS_AGENT]);
     const agentId = AGENTS.find((agent) => agent.nameTh === FOCUS_AGENT)?.id;
     expect(matter.goal?.kind).toBe("attainment");
-    const filters = matter.goal?.kind === "attainment" ? matter.goal.query.filters : null;
+    const filters = matter.goal?.kind === "attainment" ? (matter.goal.query.filters as Record<string, unknown>) : null;
     expect(filters?.agent).toEqual([agentId ?? "missing"]);
   });
 

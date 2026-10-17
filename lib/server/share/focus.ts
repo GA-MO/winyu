@@ -1,18 +1,11 @@
 import type { MetricResult, User } from "@/lib/contracts";
 import { rowsNamedIn } from "@/lib/cards/asked";
-import { presentCard } from "@/lib/cards/present";
 import { groupDimsOf, labelAlong } from "@/lib/cards/rows";
 import type { CardFocus, SharedCard } from "@/lib/share/card";
 import { rowContradictionOf } from "@/lib/share/figures";
-import { cardAnswers } from "./goal";
+import { askedHero, cardAnswers } from "./goal";
 
 type MetricAnswer = Extract<MetricResult, { ok: true }>;
-
-function heroOf(answer: MetricAnswer, labels: readonly string[]): string | null {
-  const parts = presentCard({ title: "", query: answer.query, result: { ...answer, headline: { ...answer.headline, asked: [...labels] } } });
-  const hero = parts.hero;
-  return hero ? [hero.label, hero.value, hero.unit, hero.delta, hero.detail].filter(Boolean).join(" ") : null;
-}
 
 function claimOf(text: string, answer: MetricAnswer, label: string): string | null {
   const dims = groupDimsOf(answer.query);
@@ -30,7 +23,7 @@ function claimAbout(texts: readonly string[], answer: MetricAnswer, labels: read
 
 function focusIn(answer: MetricAnswer, texts: readonly string[]): CardFocus | null {
   const labels = texts.map((text) => rowsNamedIn(text, answer.query, answer.rows)).find((named) => named.length > 0);
-  return labels ? { labels, hero: heroOf(answer, labels), claim: claimAbout(texts, answer, labels) } : null;
+  return labels ? { labels, hero: askedHero(answer, labels), claim: claimAbout(texts, answer, labels) } : null;
 }
 
 /** What a send is about beyond the card's own filters: the rows the first of `words` that names any (the ask, then what the person typed, newest first) singles out, in the first of the card's metric reads that shows them (a paired card draws the region total and its agents), read again under the sender's access, with what any of those words claim about the one row; null when none names a row. No model call. */

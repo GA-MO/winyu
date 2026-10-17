@@ -63,13 +63,13 @@ export function regrounded(card: SharedCard, reads: readonly FreshRead[], surfac
   return outcome.surface ? { surfaceId, components: outcome.surface.components, dataModel: outcome.surface.dataModel, done: true } : null;
 }
 
-/** Opens a share for one viewer: every stored read runs again through the gateway as that viewer (their scope, masking, rules and kill switches; one audit row each, initiator person) in a harness run of its own, and the card is drawn from those fresh results, offering no send to anyone already on the matter. */
+/** Opens a share for one viewer: every stored read runs again through the gateway as that viewer (their scope, masking, rules and kill switches; one audit row each, initiator person) in a harness run of its own, and the card is drawn from those fresh results, offering no send to anyone already on the matter. The reads were stored as the sender saw them, so the sender's question (kept for the audit) narrows nothing again; the rows the matter singles out lead the card. */
 export async function openShare(share: Matter, viewer: User): Promise<SharedView> {
   const access = liveAccessFor(viewer);
   const run = newRun(viewer.id, null, { initiator: "person" });
   const question = share.question ?? share.title;
   emitTo(run, "runtime", { type: "agent.started", payload: { goal: { id: run.id, userMessage: question, intent: "share", status: "active" }, userId: viewer.id, threadId: null } });
-  const turn = { turnId: run.id, threadId: null, question, queries: [] };
+  const turn = { turnId: run.id, threadId: null, question, queries: [], matter: { focus: share.focus ?? [] } };
   const scope = shareScopeFor(share, viewer);
   const sender = findUser(share.senderId);
   const askHref = scope?.requestable ? `#${GRANT_REQUEST_ANCHOR}` : null;

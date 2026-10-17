@@ -54,16 +54,16 @@ afterAll(() => {
 });
 
 describe("the goal a matter is sent with", () => {
-  test("a card against target closes when attainment reaches 100%; a card with neither a target nor an alert has no goal", () => {
-    expect(goalOf(TARGET_CARD, [])).toEqual({ kind: "attainment", query: TARGET_READ, atLeast: 100 });
-    expect(goalOf({ kind: "tool", reads: [{ tool: "query_metric", input: { ...TARGET_READ, compare: "prev_period" } }] }, [])).toBeNull();
+  test("a card against target closes when attainment reaches 100%; a card with neither a target nor an alert has no goal", async () => {
+    expect(await goalOf(TARGET_CARD, [])).toEqual({ kind: "attainment", query: TARGET_READ, atLeast: 100 });
+    expect(await goalOf({ kind: "tool", reads: [{ tool: "query_metric", input: { ...TARGET_READ, compare: "prev_period" } }] }, [])).toBeNull();
   });
 
   test("a matter about an open alert closes once the anomaly engine finds the number back within what was expected", async () => {
     const alert = { id: "al_goal_test", metric: "net_sales_volume", dims: { agent: "ag_nea_05" }, window: { from: "2026-11-13", to: "2026-11-26" }, observed: 2220, expected: 12928, direction: "down", status: "open" } as unknown as Alert;
     alerts().put(alert);
     try {
-      const goal = goalOf(TARGET_CARD, [alert.id]);
+      const goal = await goalOf(TARGET_CARD, [alert.id]);
       expect(goal).toEqual({ kind: "alert", alertId: alert.id });
       if (!goal) throw new Error("no goal");
       expect(goalLabel(goal)).toBe(TH.matter.goal.back("ปริมาณขายเข้า (Sell-in)"));
@@ -75,8 +75,8 @@ describe("the goal a matter is sent with", () => {
     }
   });
 
-  test("the goal line reads as Thai with a space after the metric's name, never 'Sell-in)ถึง' (AI-155)", () => {
-    const attainment = goalOf(TARGET_CARD, []);
+  test("the goal line reads as Thai with a space after the metric's name, never 'Sell-in)ถึง' (AI-155)", async () => {
+    const attainment = await goalOf(TARGET_CARD, []);
     if (!attainment) throw new Error("no goal");
     expect(goalLabel(attainment)).toContain("ปริมาณขายเข้า (Sell-in) ถึง 100% ของเป้า");
   });
