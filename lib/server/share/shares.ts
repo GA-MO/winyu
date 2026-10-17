@@ -142,6 +142,18 @@ export function sentCardsOf(senderId: string): SentCard[] {
   return [...latest].map(([ref, matter]) => ({ ref, path: sharePath(matter.id), receipts: receiptsOf(matter), at: matter.at }));
 }
 
+/** Whom one person already sent each card to, by the ref their screen drew it under: every recipient of every matter it went out as, first sent first, so the model reads who holds a card instead of a rule about not offering it again (AI-298). */
+export function cardHoldersOf(senderId: string): Map<string, string[]> {
+  const holders = new Map<string, string[]>();
+  const sent = shares().where((matter) => matter.senderId === senderId).sort((left, right) => left.at.localeCompare(right.at));
+  for (const matter of sent) {
+    const ref = matter.cardRef ?? cardRefOf(matter.card);
+    const known = holders.get(ref) ?? [];
+    holders.set(ref, [...new Set([...known, ...matter.deliveries.map((delivery) => delivery.userId)])]);
+  }
+  return holders;
+}
+
 /** Each delivery with the recipient's name, for the sheet and Shared. */
 export function receiptsOf(share: Matter): ShareReceipt[] {
   return share.deliveries.map((delivery) => ({ ...delivery, name: findUser(delivery.userId)?.nameTh ?? delivery.userId }));

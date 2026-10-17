@@ -3,7 +3,7 @@ import type { PersonaContext } from "./persona";
 import { liveAccessFor } from "@/lib/access/enforce";
 import { accessFor } from "@/lib/access/policies";
 import { resetRoleOverrides, setRoleTool } from "@/lib/access/role-overrides";
-import type { Story } from "@/lib/contracts";
+import type { MetricQuery, Story } from "@/lib/contracts";
 import type { ShareTarget } from "@/lib/share/card";
 import type { Matter } from "@/lib/share/matter";
 import { runWithTurn } from "@/lib/server/request-context";
@@ -628,5 +628,47 @@ describe("round 8 rules on what the model says (L2)", () => {
 
   test("a card every recipient already holds is not offered to them again in the reply (AI-281 text)", () => {
     expect(promptFor("u_thana", null)).toContain("การ์ดที่ส่งไปแล้วในบทสนทนานี้ (ผล `send_card` ok) ผู้รับทุกคนมีแล้ว ห้ามเสนอส่งการ์ดใบนั้นให้คนเดิมอีก");
+  });
+});
+
+describe("what the model reads names who already holds a card, by full name (AI-298, AI-289)", () => {
+  const STORY_THREAD = "thread-persona-held-story";
+  const STORY_ID = "u_thana-held-test";
+  const ISAN_AGENTS: MetricQuery = { metric: "net_sales_value", dims: ["agent"], filters: { region: ["northeast"] }, range: { from: "2026-11-01", to: "2026-11-26" }, grain: "day", compare: "target", limit: null, sort: "delta_asc", where: null };
+  const HELD_CODE = "heldPersonaT";
+  const story: Story = {
+    id: STORY_ID,
+    kind: "urgent",
+    finding: "ยอดขายเข้าภาคอีสานจะปิดต่ำกว่าเป้า",
+    scope: "ภาคอีสาน",
+    subject: { metric: "net_sales_value", region: "northeast" },
+    evidence: { title: "ช่องว่างยอดขายเข้าภาคอีสาน แยกตามเอเย่นต์", query: ISAN_AGENTS },
+    ruledOut: [],
+    action: "ประสานผู้จัดการขายภาค ภาคอีสาน",
+  };
+  const sent: Matter = { ...matterFor("u_anucha"), id: HELD_CODE, card: { kind: "tool", reads: [{ tool: "query_metric", input: ISAN_AGENTS }] } };
+
+  afterEach(() => {
+    threads().remove(STORY_THREAD);
+    shares().remove(HELD_CODE);
+  });
+
+  test("asking on from a story whose card the person already sent tells the model who holds it", () => {
+    const saved = investigations().get("u_thana");
+    shares().put(sent);
+    investigations().put({ id: "u_thana", userId: "u_thana", at: TODAY, model: "test", stories: [story], checkedCount: 1, costUsd: 0 });
+    threads().put({ id: STORY_THREAD, userId: "u_thana", title: "t", createdAt: TODAY, updatedAt: TODAY, preload: null, storyId: STORY_ID });
+    const lines = personaOf("u_thana", { threadId: STORY_THREAD }).join("\n");
+    if (saved) investigations().put(saved);
+    else investigations().remove("u_thana");
+    expect(lines).toContain("ส่งแล้ว: การ์ดหลักฐานนี้ส่งให้ คุณอนุชา พรหมศรี แล้ว");
+  });
+
+  test("a card on screen the person already sent says whom it went to", () => {
+    shares().put(sent);
+    const target: ShareTarget = { card: sent.card, question: null };
+    const turn = { turnId: null, threadId: "t", question: "ส่งเรื่องนี้ให้ผู้จัดการขายภาคอีสาน ด่วน", queries: [], onScreen: [onScreen(target, "earlier", "77.3% ของเป้าทั้งเดือน")] };
+    const prompt = runWithTurn(turn, () => promptFor("u_thana", turn.question));
+    expect(prompt).toContain(`- ${onScreen(target).ref} · มูลค่าขายเข้า · รายเอเย่นต์ · 77.3% ของเป้าทั้งเดือน · ส่งให้ คุณอนุชา พรหมศรี แล้ว`);
   });
 });
