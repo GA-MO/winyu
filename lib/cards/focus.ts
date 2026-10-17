@@ -6,6 +6,7 @@ import { metricLabel } from "@/lib/dashboard/metric-display";
 import { TH } from "@/lib/i18n/th";
 import type { Dictionary } from "@/lib/semantic/dictionary";
 import { GEO_LEVELS, geoValueOf } from "@/lib/semantic/geo";
+import { effectiveFilters } from "@/lib/semantic/resolved";
 
 const HARM_MIN_PCT = 5;
 const PERIOD_COMPARES: ReadonlySet<ResolvedQuery["compare"]> = new Set(["prev_period", "prev_year"]);
@@ -51,11 +52,22 @@ function sliceOf(query: ResolvedQuery, rankDim: Dim | null): string | null {
   return parts.length > 0 ? parts.join(PART_SEPARATOR) : null;
 }
 
-/** The open alert a metric card is about, of those on its metric and slice: the one on the row the answer points at (the row pinned or asked for, else the weakest or sharpest-falling row), so the card's buttons follow the answer; with no such row the first of them; an alert on another row belongs to another answer. */
+/** A card with no rows to rank is about the place its slice narrows to at its finest filtered level; several places there (a rep's four agents) are no one place, so an alert on one of them belongs to another answer. */
+function alertInPlace(query: ResolvedQuery, alerts: readonly Alert[], dictionary: Dictionary): Alert | null {
+  const filters = effectiveFilters(query);
+  const level = [...GEO_LEVELS].reverse().find((dim) => (filters[dim]?.length ?? 0) > 0);
+  const places = level ? (filters[level] ?? []) : [];
+  if (!level) return alerts[0] ?? null;
+  if (places.length !== 1) return null;
+  return alerts.find((alert) => geoValueOf(dictionary, alert.dims, level) === places[0]) ?? null;
+}
+
+/** The open alert a metric card is about, of those on its metric and slice: the one on the row the answer points at (the row pinned or asked for, else the weakest or sharpest-falling row), so the card's buttons follow the answer; with no such row the first of them; an alert on another row belongs to another answer; a card with no rows follows the one place it covers. */
 export function alertForAnswer(result: Extract<MetricResult, { ok: true }>, alerts: readonly Alert[], dictionary: Dictionary): Alert | null {
   const rankDim = rankDimOf(result.query);
-  const answer = rankDim ? (pinnedRow(result.query, rankDim) ?? askedRow(result) ?? worstRow(result)) : null;
-  if (!rankDim || !answer) return alerts[0] ?? null;
+  if (!rankDim) return alertInPlace(result.query, alerts, dictionary);
+  const answer = pinnedRow(result.query, rankDim) ?? askedRow(result) ?? worstRow(result);
+  if (!answer) return alerts[0] ?? null;
   return alerts.find((alert) => alertRow(rankDim, alert, dictionary) === answer) ?? null;
 }
 
