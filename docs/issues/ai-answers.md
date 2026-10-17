@@ -3254,7 +3254,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-246. The pin receipt and reply do not name the replaced card, and the warning calls 96.3% and 83.9% 'ตัวเลขเดียวกัน'
 
-- **สถานะ:** แก้แล้ว `da9b02b` · เดิม AI-215: ใบยืนยันอ่านการ์ดที่ถูกแทนจากผลของ pin_widget และคำเตือนใช้คำว่า "เรื่องเดียวกัน" ส่วนข้อความตอบของโมเดลยังไม่เอ่ยชื่อการ์ดเดิม
+- **สถานะ:** แก้แล้ว `da9b02b` · เดิม AI-215: ใบยืนยันอ่านการ์ดที่ถูกแทนจากผลของ pin_widget และคำเตือนใช้คำว่า "เรื่องเดียวกัน" ส่วนข้อความตอบของโมเดลยังไม่เอ่ยชื่อการ์ดเดิม · `b012d44`: กฎ prompt ให้คำตอบบอกว่าปักแทนการ์ดใด · รอยืนยันกับโมเดล
 - **ระดับ:** ต่ำ · **หมวด:** `write-flow` · **บทบาท:** u_thana (CEO) S1T1
 - **อาการ:** The approval warns about the replacement, which is fixed. After approval, the receipt is the plain TH.approve.donePin, although pin_widget returned replaced.
 - **ที่ควรเป็น:** TH.approve.donePinInstead with the card name, and the warning says 'เรื่องเดียวกัน'.
@@ -3311,7 +3311,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-251. The year answer uses '(YTD)' and leaves out the 477.7 ล้านบาท / 35 days that the card leads with
 
-- **สถานะ:** แก้แล้ว `da9b02b` · เดิม AI-223: โมเดลอ่านยอดที่ต้องทำเพิ่มกับวันที่เหลือแบบเดียวกับการ์ด ส่วนคำย่อ YTD ต้องเพิ่มในกฎภาษา ซึ่งรอบนี้ไม่ได้แก้
+- **สถานะ:** แก้แล้ว `da9b02b` · เดิม AI-223: โมเดลอ่านยอดที่ต้องทำเพิ่มกับวันที่เหลือแบบเดียวกับการ์ด ส่วนคำย่อ YTD ต้องเพิ่มในกฎภาษา ซึ่งรอบนี้ไม่ได้แก้ · `b012d44`: ห้ามใช้ YTD ให้เขียนยอดสะสมทั้งปี · รอยืนยันกับโมเดล
 - **ระดับ:** ต่ำ · **หมวด:** `wording` · **บทบาท:** u_thana (CEO) S1T2
 - **อาการ:** The reply uses an English abbreviation and does not give the amount and the days left. The card verdict runs to 4 lines on a phone. The card numbers are correct.
 - **ที่ควรเป็น:** Thai only, and the reply names the amount left and the days left.
