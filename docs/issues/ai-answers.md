@@ -2687,16 +2687,16 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 | ข้อ | ระดับ | สถานะ | ปัญหา |
 |---|---|---|---|
 | AI-203 (เดิม AI-201) | กลาง | เปิด (ใหม่) | A matter shows two numbers for one viewer: the rep's inbox says 77.3% (RSM's whole region), but the matter page shows 72.6% over his 4 agents, labelled 'รวมทุกเอเย่นต์' |
-| AI-204 (เดิม AI-185) | กลาง | เปิด (ใหม่) | The month-end figure is paired with the to-date gap: '87.5% … ขาดอีก 96.4 ล้านบาท', and 'ขาดอีก' tiles are sub-labelled 'ของเป้าทั้งเดือน' |
-| AI-205 (เดิม AI-171) | กลาง | เปิด (ใหม่) | After the CEO's month-close pin, the landing tile shows the 96.3% forecast labelled as a plain total ('มูลค่าขายเข้า รวมทั้งหมด · พ.ย.') |
-| AI-206 (เดิม AI-170) | กลาง | เปิด (ใหม่) | The RSM overdue card drops November and leads with a green October fall, while the text says overdue rose in November and confirms the credit hypothesis |
+| AI-204 (เดิม AI-185) | กลาง | แก้แล้ว `24a4db7` | The month-end figure is paired with the to-date gap: '87.5% … ขาดอีก 96.4 ล้านบาท', and 'ขาดอีก' tiles are sub-labelled 'ของเป้าทั้งเดือน' |
+| AI-205 (เดิม AI-171) | กลาง | แก้แล้ว `24a4db7` | After the CEO's month-close pin, the landing tile shows the 96.3% forecast labelled as a plain total ('มูลค่าขายเข้า รวมทั้งหมด · พ.ย.') |
+| AI-206 (เดิม AI-170) | กลาง | แก้แล้ว `24a4db7` | The RSM overdue card drops November and leads with a green October fall, while the text says overdue rose in November and confirms the credit hypothesis |
 | AI-207 (เดิม AI-141) | กลาง | เปิด (ใหม่) | The multi-row ถามต่อ reply quotes the paced-base 40.3%/39.5% while the card shows 51.7%/52.4% of the month target; the probe text has −10.8% that is on no card |
 | AI-208 (เดิม AI-167) | กลาง | ยังเสีย | The RSM's 'visit ขอนแก่นมหาชัย' matter carries the whole-team card, whose headline and drill name a different agent, and its auto-close goal is the whole Isan region |
 | AI-209 (เดิม AI-197) | กลาง | ยังเสีย | The CEO's green 'ส่งแล้ว' disappears after navigation, so the Isan card can be sent twice |
 | AI-210 | กลาง | เปิด (ใหม่) | An open bell panel never refreshes: the badge shows 1 while the panel reads 'ไม่มีเรื่องรอคุณ' |
 | AI-211 (เดิม AI-191) | กลาง | เปิด (ใหม่) | The RSM's 'ภาคใต้เทียบอีสาน' reply says to press the request-access button on the card, but the denied card is hidden |
-| AI-212 (เดิม AI-182) | กลาง | ยังเสีย | The visit-priority card leads with 'ปริมาณขายเข้า −89%' without brands or window, and each row has a second, unlabelled % |
-| AI-213 (เดิม AI-174) | กลาง | เปิด (ใหม่) | The CEO's 'ทั้งปีนี้ยอดขายจะถึงเป้าไหม' gets a non-answer: no year-end projection, no amount left, no worst month |
+| AI-212 (เดิม AI-182) | กลาง | แก้แล้ว `24a4db7` | The visit-priority card leads with 'ปริมาณขายเข้า −89%' without brands or window, and each row has a second, unlabelled % |
+| AI-213 (เดิม AI-174) | กลาง | แก้แล้ว `24a4db7` | The CEO's 'ทั้งปีนี้ยอดขายจะถึงเป้าไหม' gets a non-answer: no year-end projection, no amount left, no worst month |
 | AI-214 (เดิม AI-190) | กลาง | ยังเสีย | The CEO's 'ทำไมตกอะ' (week) still gives no checked reason, and the headline names Bangkok as the main drag at 23.0% vs Isan 22.9% |
 | AI-215 | กลาง | เปิด (ใหม่) | A pin silently replaces another pinned card of the same metric; neither the approval nor the reply says so |
 | AI-216 (เดิม AI-180) | กลาง | เปิด (ใหม่) | The RSM delegation turn takes 52.8 s before the rebuttal |
@@ -2704,19 +2704,21 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 | AI-218 (เดิม AI-180) | กลาง | เปิด (ใหม่) | The CEO's send to the South RSM takes 40.9 s to the approval |
 | AI-219 (เดิม AI-193) | กลาง | ยังเสีย | The run sheet does not say the matter actions are below the fold; the biggest button in view starts a model call |
 | AI-220 (เดิม AI-168) | ต่ำ | เปิด (ใหม่) | The RSM→rep approval keeps the 'ตกหนัก' warning after the ask was rewritten; the '-1.6%' headline has an ASCII hyphen and no colour |
-| AI-221 (เดิม AI-169) | ต่ำ | เปิด (ใหม่) | The CEO risk answer: the DC-average cover card calms ('ยังเกิน 10 วัน') above a P1 6.3-day stock-out at the same DC, and the list shows upside rows |
-| AI-222 (เดิม AI-174) | ต่ำ | ยังเสีย | The explain_gap card puts the 64.6% hero right under the headline's 64.2% share |
-| AI-223 (เดิม AI-192) | ต่ำ | เปิด (ใหม่) | Wording: double signs ('ลดลง -9.3%'), raw '(P1)', unnamed periods ('ช่วงนี้/งวดก่อน'), and a forward button named รายภาค on a รายเอเย่นต์ card |
+| AI-221 (เดิม AI-169) | ต่ำ | แก้แล้ว `24a4db7` | The CEO risk answer: the DC-average cover card calms ('ยังเกิน 10 วัน') above a P1 6.3-day stock-out at the same DC, and the list shows upside rows |
+| AI-222 (เดิม AI-174) | ต่ำ | แก้แล้ว `24a4db7` | The explain_gap card puts the 64.6% hero right under the headline's 64.2% share |
+| AI-223 (เดิม AI-192) | ต่ำ | แก้แล้ว `24a4db7` | Wording: double signs ('ลดลง -9.3%'), raw '(P1)', unnamed periods ('ช่วงนี้/งวดก่อน'), and a forward button named รายภาค on a รายเอเย่นต์ card |
 | AI-224 (เดิม AI-186) | ต่ำ | เปิด (ใหม่) | The rep's month-total card offers a send prefilled with an ask about one agent's Singha/Leo alert |
 | AI-225 (เดิม AI-160) | ต่ำ | แก้แล้ว `45373ae` | The IT denials card counts a blocked contradictory send as a denial with no reason, and the overview shows raw codes ('ASK_CONTRADICTS_CARD', 'Out of scope') |
 | AI-226 (เดิม AI-196) | ต่ำ | แก้แล้ว `8939288` | On a phone, the Admin tab row shows 'Audi' cut at the edge before Audit is selected |
 | AI-227 (เดิม AI-193) | ต่ำ | ยังเสีย | The run sheet's wording differs from the screen: switch vs checkbox, line label, Korat story, login '1 ถึง 4', IT timing, ส่ง under the composer, no 'ด่วน' on the bell item, 4 update rows |
-| AI-228 (เดิม AI-173) | ต่ำ | เปิด (ใหม่) | Change and target strips leave near-top movers unlabelled, and a brand pace card shows four empty rows |
-| AI-229 (เดิม AI-157) | ต่ำ | เปิด (ใหม่) | CEO landing tiles mix October volume with November value |
+| AI-228 (เดิม AI-173) | ต่ำ | แก้แล้ว `24a4db7` | Change and target strips leave near-top movers unlabelled, and a brand pace card shows four empty rows |
+| AI-229 (เดิม AI-157) | ต่ำ | แก้แล้ว `24a4db7` | CEO landing tiles mix October volume with November value |
 | AI-230 (เดิม AI-198) | ต่ำ | เปิด (ใหม่) · นอกเส้นทางเดโม | The South-agent send approval warns 'ส่วนที่เหลือถูกล็อก' although the agent is fully in the recipient's scope |
 | AI-231 (เดิม AI-187) | ต่ำ | เปิด (ใหม่) · นอกเส้นทางเดโม | The rep's starter dashboard card joins 5 scope names into its headline and uses the pace base beside the month-base card |
 | AI-232 | ต่ำ | แก้แล้ว `45373ae` · นอกเส้นทางเดโม | IT usage figures differ between surfaces (4 vs 5 users), and answered admin, send and pin requests are listed as unanswered |
 | AI-233 | ต่ำ | เปิด (ใหม่) · นอกเส้นทางเดโม | Admin Access tab at phone width squeezes the role title and the Full/Masked/None chips into a narrow right column |
+| AI-231 (เดิม AI-187) | ต่ำ | แก้แล้ว `24a4db7` | The rep's starter dashboard card joins 5 scope names into its headline and uses the pace base beside the month-base card |
+| AI-232 | ต่ำ | เปิด (ใหม่) · นอกเส้นทางเดโม | IT usage figures differ between surfaces (4 vs 5 users), and answered admin, send and pin requests are listed as unanswered |
 
 ### AI-203. A matter shows two numbers for one viewer: the rep's inbox says 77.3% (RSM's whole region), but the matter page shows 72.6% over his 4 agents, labelled 'รวมทุกเอเย่นต์'
 
@@ -2733,7 +2735,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-204. The month-end figure is paired with the to-date gap: '87.5% … ขาดอีก 96.4 ล้านบาท', and 'ขาดอีก' tiles are sub-labelled 'ของเป้าทั้งเดือน'
 
-- **สถานะ:** เปิด (ใหม่) · เดิม AI-185
+- **สถานะ:** แก้แล้ว `24a4db7` · ส่วนการ์ด: ไทล์ยอดที่ขาดบอกว่า "ถึงวันนี้ยังขาด … ถึงเป้าทั้งเดือน" และการ์ด month_end แสดงยอดที่คาดว่าขาด ณ สิ้นเดือนของตัวเอง (ข้อความในผลของ tool เป็นงานของ J3) · เดิม AI-185
 - **ระดับ:** กลาง · **หมวด:** `grounding` · **บทบาท:** u_anucha (RSM), u_krit (sales rep)
 - **อาการ:** The RSM text reads 'จะปิดสิ้นเดือนได้ประมาณ 87.5% ของเป้าทั้งเดือน (ขาดอีก 96.4 ล้านบาท)'. The 96.4 is the gap from today. The month-end shortfall at 87.5% is 52.9. The Isan scorecard and the pinned month_end widget show 'ขาดอีก 96.4 ล้านบาท / ของเป้าทั้งเดือน' beside 'คาดสิ้นเดือน 87.5%'. The rep's cards show '0.93 ล้านลิตร / ของเป้าทั้งเดือน' and '12.2 ล้านบาท / ของเป้าทั้งเดือน', which reads as if the shortfall were a share of the target. (Merged: review 1 AI-185 text half, and review 2's tile sub-label.)
 - **ที่ควรเป็น:** The month-end figure carries its own shortfall, or the tile says 'ถึงวันนี้ยังขาด … ถึงเป้าทั้งเดือน'.
@@ -2745,7 +2747,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-205. After the CEO's month-close pin, the landing tile shows the 96.3% forecast labelled as a plain total ('มูลค่าขายเข้า รวมทั้งหมด · พ.ย.')
 
-- **สถานะ:** เปิด (ใหม่) · เดิม AI-171
+- **สถานะ:** แก้แล้ว `24a4db7` · ไทล์หน้าแรกของการ์ดคาดปิดเดือนขึ้นต้นว่า "คาดปิดเดือน ·" และบอก "ทำได้แล้ว 83.9% ของเป้าทั้งเดือน" ใต้ตัวเลข · เดิม AI-171
 - **ระดับ:** กลาง · **หมวด:** `grounding` · **บทบาท:** u_thana (CEO)
 - **อาการ:** The landing tile reads 'มูลค่าขายเข้า รวมทั้งหมด · พ.ย. 96.3% ของเป้าทั้งเดือน' and has no forecast word. The actual to date is 83.9%, so a viewer reads the projection as achieved. The dashboard row title is cut at 'คาดการณ์มูลค่าขา…'.
 - **ที่ควรเป็น:** The tile names the projection ('คาดปิดเดือน 96.3%', 83.9% so far).
@@ -2756,7 +2758,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-206. The RSM overdue card drops November and leads with a green October fall, while the text says overdue rose in November and confirms the credit hypothesis
 
-- **สถานะ:** เปิด (ใหม่) · เดิม AI-170
+- **สถานะ:** แก้แล้ว `24a4db7` · ยอดคงค้างเก็บเดือน พ.ย. ที่ยังไม่จบไว้ การ์ดนำด้วย พ.ย. เพิ่มขึ้น 22.9% สีแดง และไม่มีไทล์ "ทั้งช่วง" · เดิม AI-170
 - **ระดับ:** กลาง · **หมวด:** `grounding` · **บทบาท:** u_anucha (RSM)
 - **อาการ:** The rows run Jun 4.5, Jul 5.5, Aug 3.7, Sep 3.2, Oct 2.3, Nov 2.9 ล้านบาท. The hero reads 'ต.ค. 69 ลดลง 27.3%' in green, the line ends at ต.ค., and the November balance is labelled 'ทั้งช่วง 2.9 ล้านบาท'. The text says overdue 'เพิ่มขึ้นในเดือน พ.ย. สอดคล้องกับสมมติฐานเรื่องปัญหาเครดิต', but November is low against Jun–Sep.
 - **ที่ควรเป็น:** A balance metric keeps its current-month point. The card and the text describe the same movement, and the hypothesis stays hedged.
@@ -2823,7 +2825,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-212. The visit-priority card leads with 'ปริมาณขายเข้า −89%' without brands or window, and each row has a second, unlabelled %
 
-- **สถานะ:** ยังเสีย · เดิม AI-182
+- **สถานะ:** แก้แล้ว `24a4db7` · เหตุผลในแผนเยี่ยมบอกแบรนด์และช่วงวัน (สิงห์, ลีโอ −89% (14–26 พ.ย.)) และตัวเลข 4 สัปดาห์ต่อท้ายด้วย "· 28 วัน" · เดิม AI-182
 - **ระดับ:** กลาง · **หมวด:** `card-fit` · **บทบาท:** u_krit (sales rep)
 - **อาการ:** The text correctly says Singha and Leo fell 89% (14–26 พ.ย.). The card reads as the whole agent falling 89% (the daily card shows −65.9%, and 28 days −9.5%). The trailing −9.5% / −8.9% has no basis label.
 - **ที่ควรเป็น:** Each figure carries its basis (the alert_label, and '28 วันเทียบ 28 วันก่อน').
@@ -2834,7 +2836,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-213. The CEO's 'ทั้งปีนี้ยอดขายจะถึงเป้าไหม' gets a non-answer: no year-end projection, no amount left, no worst month
 
-- **สถานะ:** เปิด (ใหม่) · เดิม AI-174
+- **สถานะ:** แก้แล้ว `24a4db7` · การ์ดทั้งปีนำด้วยยอดสะสมทั้งปีเทียบเป้า ยอดที่ยังขาด และวันที่เหลือของปี ส่วนการคาดปิดปีทำไม่ได้เพราะคลังไม่มีเป้าหลังวันที่ข้อมูลหยุด · เดิม AI-174
 - **ระดับ:** กลาง · **หมวด:** `capability` · **บทบาท:** u_thana (CEO)
 - **อาการ:** The YTD lead is fixed (98.2% of pace). get_forecast for net_sales_value returned nothing, and the reply says it cannot conclude. The card is a 2-tile scorecard.
 - **ที่ควรเป็น:** The amount left to the annual target and a year-end projection at the recent pace, or at least the R12 series with the worst month.
@@ -2922,7 +2924,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-221. The CEO risk answer: the DC-average cover card calms ('ยังเกิน 10 วัน') above a P1 6.3-day stock-out at the same DC, and the list shows upside rows
 
-- **สถานะ:** เปิด (ใหม่) · เดิม AI-169
+- **สถานะ:** แก้แล้ว `24a4db7` · การ์ดวันครอบคลุมราย DC บอกว่าเป็นค่าเฉลี่ยทุกสินค้าแทนการบอกว่าปลอดภัย และรายการความผิดปกติพับรายการที่ไม่เสียหายไว้ข้างหลัง · เดิม AI-169
 - **ระดับ:** ต่ำ · **หมวด:** `card-fit` · **บทบาท:** u_thana (CEO)
 - **อาการ:** The headline reads 'DC ลำพูน เหลือน้อยสุด 13.2 วัน', while the alert puts เพอร์ร่า at 6.3 days. Rows 3-4 are P3 soda spikes that the alert itself calls not abnormal.
 - **ที่ควรเป็น:** The DC card notes the SKU alert. A risk list leads with downside or P1/P2 rows.
@@ -2933,7 +2935,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-222. The explain_gap card puts the 64.6% hero right under the headline's 64.2% share
 
-- **สถานะ:** ยังเสีย · เดิม AI-174
+- **สถานะ:** แก้แล้ว `24a4db7` · หัวการ์ดบอกส่วนที่ฉุดเป็นจำนวน (ลีโอฉุดมากสุด 133,008 ลิตร) จึงไม่มี % ใกล้ 64.6% ซ้อนกันอีก · เดิม AI-174
 - **ระดับ:** ต่ำ · **หมวด:** `card-fit` · **บทบาท:** u_krit (sales rep)
 - **อาการ:** 'ลีโอฉุดมากสุด 64.2%' sits above '64.6% ของเป้าทั้งเดือน': two near-identical percentages with different meanings.
 - **ที่ควรเป็น:** State the gap share in litres, or otherwise set it apart from attainment.
@@ -2944,7 +2946,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-223. Wording: double signs ('ลดลง -9.3%'), raw '(P1)', unnamed periods ('ช่วงนี้/งวดก่อน'), and a forward button named รายภาค on a รายเอเย่นต์ card
 
-- **สถานะ:** เปิด (ใหม่) · เดิม AI-192
+- **สถานะ:** แก้แล้ว `24a4db7` · ส่วนการ์ด: การ์ดตัวเลขเดียวตั้งชื่อช่วงเวลา (พ.ย. 69 เทียบ ต.ค. 69, สัปดาห์ก่อน) และการ์ดแยกตามเอเย่นต์หรือ DC ไม่เสนอปุ่มแยกตามภาค ส่วนเครื่องหมายซ้ำและ (P1) ในข้อความเป็นงานของ prompt (J3) · เดิม AI-192
 - **ระดับ:** ต่ำ · **หมวด:** `wording` · **บทบาท:** u_thana (CEO), u_anucha (RSM)
 - **อาการ:** Examples: 'ต่ำกว่าเป้าตามเวลา -1.8%', 'ลดลง -9.3%', and '(P1)' in the RSM opener. The margin scorecard does not name October. The landing 26.9% and the chat 27.3% sit side by side with no explanation.
 - **ที่ควรเป็น:** One sign per change, Thai severity words, and named periods.
@@ -3001,7 +3003,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-228. Change and target strips leave near-top movers unlabelled, and a brand pace card shows four empty rows
 
-- **สถานะ:** เปิด (ใหม่) · เดิม AI-173
+- **สถานะ:** แก้แล้ว `24a4db7` · แถบใส่ค่าให้แถวที่ใกล้ปลายทั้งสองข้างและแถวที่แท่งสั้นจนมองไม่เห็น · เดิม AI-173
 - **ระดับ:** ต่ำ · **หมวด:** `card-fit` · **บทบาท:** u_krit (chain steps 13-15)
 - **อาการ:** ขอนแก่นมหาชัย (+36%) has no label while โคราช +37.5% has one. ส.รุ่งเรือง has no label. อาซาฮี and three other brands show no bar or value.
 - **ที่ควรเป็น:** Near-extreme movers carry labels, and a listed row is never left empty.
@@ -3011,7 +3013,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-229. CEO landing tiles mix October volume with November value
 
-- **สถานะ:** เปิด (ใหม่) · เดิม AI-157
+- **สถานะ:** แก้แล้ว `24a4db7` · ไทล์ที่อ่านเดือนที่ปิดแล้วบอก "เดือนที่ปิดแล้ว" ข้างไทล์ของเดือนที่ยังไม่จบ · เดิม AI-157
 - **ระดับ:** ต่ำ · **หมวด:** `card-quality` · **บทบาท:** u_thana (chain step 1)
 - **อาการ:** The 'ปริมาณขายเข้า ต.ค. 69 24.2 ล้านลิตร' tile sits next to 'มูลค่าขายเข้า พ.ย. 83.9%'.
 - **ที่ควรเป็น:** The tiles read the running month, or explain the last full month.
@@ -3032,7 +3034,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-231. The rep's starter dashboard card joins 5 scope names into its headline and uses the pace base beside the month-base card
 
-- **สถานะ:** เปิด (ใหม่) · เดิม AI-187 · นอกเส้นทางเดโม
+- **สถานะ:** แก้แล้ว `24a4db7` · การ์ดเริ่มต้นของพนักงานขายเป็นมูลค่าขายเข้าเทียบเป้าบนฐานทั้งเดือน และเรียกขอบเขตว่า "4 เอเย่นต์" · เดิม AI-187 · นอกเส้นทางเดโม
 - **ระดับ:** ต่ำ · **หมวด:** `card-quality` · **บทบาท:** u_krit (sales rep)
 - **อาการ:** The headline reads 'ภาคอีสาน, ขอนแก่นมหาชัย, … อุบลศรีสุข เทรดดิ้งช้ากว่าเป้าตามเวลา 12.1%', and the hero is 87.9% of pace. The card above shows 76.2% of the month target.
 - **ที่ควรเป็น:** One short scope name, on the month-target base.
