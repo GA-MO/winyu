@@ -1,5 +1,7 @@
 import { BRANDS, METRIC_IDS, REGIONS, type AccessContext, type ActiveGrant, type Brand, type GrantDays, type GrantRef, type GrantRefusal, type GrantSlice, type MetricId, type Region, type RoleId } from "@/lib/contracts";
 import type { SharedRead } from "@/lib/share/card";
+import { agentById } from "@/lib/data/entities/agents";
+import { provinceById } from "@/lib/data/entities/org";
 import { METRIC_DOMAINS, type MetricDomain } from "./policies";
 import { factsOf, ruleThatDenies, type PolicyRule } from "./policy-rules";
 
@@ -15,6 +17,7 @@ export const DEFAULT_GRANT_AUTHORITY: Partial<Record<RoleId, readonly GrantDomai
 export const GRANT_RULE_TOOL = { name: "grant_access", connector: "winyu", tier: "write" } as const;
 
 const GRANTABLE_TOOLS: ReadonlySet<string> = new Set(["query_metric", "get_forecast"]);
+const PLACE_DIMS = ["agent", "province"] as const;
 
 type Scope = { regions: Region[] | "all"; brands: Brand[] | "all" };
 
@@ -92,9 +95,25 @@ function filterValues(value: unknown): string[] | null {
   return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : null;
 }
 
+function regionOfPlace(dim: "agent" | "province", id: string): Region | null {
+  return dim === "agent" ? (agentById(id)?.region ?? null) : (provinceById(id)?.region ?? null);
+}
+
+/** The regions a read covers: its region filter, else the regions of the agents or provinces it names, so a card about one agent is about that agent's region; null when it names no place it can place. */
+function askedRegions(source: Record<string, unknown> | undefined): string[] | null {
+  const regions = filterValues(source?.region);
+  if (regions) return regions;
+  for (const dim of PLACE_DIMS) {
+    const ids = filterValues(source?.[dim]) ?? [];
+    const placed = ids.map((id) => regionOfPlace(dim, id));
+    if (ids.length > 0 && placed.every((region): region is Region => region !== null)) return [...new Set(placed)];
+  }
+  return null;
+}
+
 function askedDims(read: SharedRead): { region: string[] | null; brand: string[] | null } {
   const source = (read.tool === "query_metric" ? read.input.filters : read.input.dims) as Record<string, unknown> | undefined;
-  return { region: filterValues(source?.region), brand: filterValues(source?.brand) };
+  return { region: askedRegions(source), brand: filterValues(source?.brand) };
 }
 
 function isMetric(value: unknown): value is MetricId {
