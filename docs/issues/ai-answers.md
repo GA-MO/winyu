@@ -3484,9 +3484,9 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 | AI-279 | ต่ำ | เปิด (ใหม่) | The 'who was denied' half of the IT question appears only in the text; the card shows activity only |
 | AI-280 (เดิม AI-264) | ต่ำ | ยังเสีย | After the 09:26 chat send, the chat send receipt still shows the step-1 time (09:22) |
 | AI-281 (เดิม AI-252) | ต่ำ | เปิด (ใหม่) | Chat cards still show a black 'ส่งให้คุณอนุชา' after the card was sent, and the reply offers to send again |
-| AI-282 (เดิม AI-255 (also AI-227)) | ต่ำ | ยังเสีย | The run sheet still quotes text the screen does not show (pill suffix, card title, drill button, pace line, switch, RSM 'อัปเดต') |
-| AI-283 (เดิม AI-244) | ต่ำ | เปิด (ใหม่) | The run sheet says the second (chat) matter keeps the card title; on screen the title adds the agent names and the update rows add no ask |
-| AI-284 (เดิม AI-255) | ต่ำ | เปิด (ใหม่) | Chat option timings run longer than the run sheet says, or are not stated |
+| AI-282 (เดิม AI-255 (also AI-227)) | ต่ำ | แก้แล้ว (เอกสาร) · รอเดินยืนยันรอบ 9 | The run sheet still quotes text the screen does not show (pill suffix, card title, drill button, pace line, switch, RSM 'อัปเดต') |
+| AI-283 (เดิม AI-244) | ต่ำ | แก้แล้ว (เอกสาร) · รอเดินยืนยันรอบ 9 | The run sheet says the second (chat) matter keeps the card title; on screen the title adds the agent names and the update rows add no ask |
+| AI-284 (เดิม AI-255) | ต่ำ | แก้แล้ว (เอกสาร) · รอเดินยืนยันรอบ 9 | Chat option timings run longer than the run sheet says, or are not stated |
 | AI-285 | ต่ำ | เปิด (ใหม่) · นอกเส้นทางเดโม | Pin turn: no answer text before approval, and the landing calls the replaced card by a second name |
 | AI-286 (เดิม AI-231) | ต่ำ | เปิด (ใหม่) · นอกเส้นทางเดโม | The rep's month-total card prefills a send ask that lists all 4 agent names |
 | AI-287 | ต่ำ | เปิด (ใหม่) · นอกเส้นทางเดโม | A no-sale-days question gets a holiday card whose hero is วันพ่อแห่งชาติ |
@@ -3687,7 +3687,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-282. The run sheet still quotes text the screen does not show (pill suffix, card title, drill button, pace line, switch, RSM 'อัปเดต')
 
-- **สถานะ:** ยังเสีย · เดิม AI-255 (also AI-227)
+- **สถานะ:** แก้แล้ว (เอกสาร) · รอเดินยืนยันรอบ 9: run sheet บอกคำต่อท้ายป้ายเรื่องน่าจับตา ช่องติ๊กแทนสวิตช์ เส้นตั้งกับบรรทัดเทา ปุ่มดำ ทำไม…ถึงเป็นแบบนี้ เวลาจริงกับวันที่ข้อมูล ปุ่มส่งให้คุณอนุชาในคำตอบ เวลารอของทางเลือกแชต ชื่อเรื่องที่สองที่ยาวขึ้น และปิดแผงเรื่องก่อนหรือไม่ก็ได้
 - **ระดับ:** ต่ำ · **หมวด:** `run-sheet` · **บทบาท:** presenter
 - **อาการ:** (a) The pill reads '3 เรื่องด่วน · 1 เรื่องน่าจับตา', but the sheet quotes 'N เรื่องด่วน'. (b) The forward sheet's title is the story kicker 'ช่องว่างยอดขายเข้าตามเอเย่นต์ ภาคอีสาน', and later screens say 'มูลค่าขายเข้า · รายเอเย่นต์ · ภาคอีสาน'. (c) The drill button reads 'ทำไมอีสานรุ่งโรจน์ ค้าส่งถึงเป็นแบบนี้', not 'ตรวจสาเหตุ'. (d) The pace line has no label. (e) The switch renders as a checkbox. (f) On the second pass the RSM bell has an 'อัปเดต' section. The sheet items fixed earlier do match the screen.
 - **ที่ควรเป็น:** The sheet quotes the screen, or says which strings change by day.
@@ -3698,7 +3698,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-283. The run sheet says the second (chat) matter keeps the card title; on screen the title adds the agent names and the update rows add no ask
 
-- **สถานะ:** เปิด (ใหม่) · เดิม AI-244
+- **สถานะ:** แก้แล้ว (เอกสาร) · รอเดินยืนยันรอบ 9: run sheet บอกคำต่อท้ายป้ายเรื่องน่าจับตา ช่องติ๊กแทนสวิตช์ เส้นตั้งกับบรรทัดเทา ปุ่มดำ ทำไม…ถึงเป็นแบบนี้ เวลาจริงกับวันที่ข้อมูล ปุ่มส่งให้คุณอนุชาในคำตอบ เวลารอของทางเลือกแชต ชื่อเรื่องที่สองที่ยาวขึ้น และปิดแผงเรื่องก่อนหรือไม่ก็ได้
 - **ระดับ:** ต่ำ · **หมวด:** `run-sheet` · **บทบาท:** presenter, u_thana chain alt
 - **อาการ:** The chat send's title adds 'อีสานรุ่งโรจน์ ค้าส่ง, อุบลศรีสุข เทรดดิ้ง' through withFocus. Because the titles differ, no ask suffix is added. The bell names 2 agents, and the card shows 8.
 - **ที่ควรเป็น:** The sheet says the second title adds the agents the CEO named.
@@ -3710,7 +3710,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-284. Chat option timings run longer than the run sheet says, or are not stated
 
-- **สถานะ:** เปิด (ใหม่) · เดิม AI-255
+- **สถานะ:** แก้แล้ว (เอกสาร) · รอเดินยืนยันรอบ 9: run sheet บอกคำต่อท้ายป้ายเรื่องน่าจับตา ช่องติ๊กแทนสวิตช์ เส้นตั้งกับบรรทัดเทา ปุ่มดำ ทำไม…ถึงเป็นแบบนี้ เวลาจริงกับวันที่ข้อมูล ปุ่มส่งให้คุณอนุชาในคำตอบ เวลารอของทางเลือกแชต ชื่อเรื่องที่สองที่ยาวขึ้น และปิดแผงเรื่องก่อนหรือไม่ก็ได้
 - **ระดับ:** ต่ำ · **หมวด:** `run-sheet` · **บทบาท:** presenter
 - **อาการ:** ถามต่อ took 27.5 s (the sheet says about 25 s). The typed send took 34.9 s to reach approval, and the sheet gives no time. After ส่ง, a third model round takes 16.2 s that the sheet does not mention.
 - **ที่ควรเป็น:** The sheet gives about 30 s and about 35 s, and says 'ไม่ต้องรอข้อความหลังกดส่ง'.
