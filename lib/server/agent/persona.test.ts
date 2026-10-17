@@ -625,4 +625,8 @@ describe("round 8 rules on what the model says (L2)", () => {
     expect(anomaly).toContain("ข้อความแนบขอให้ผู้รับตรวจว่าใช่สาเหตุไหม");
     expect(promptFor("u_thana", null)).toContain("`ASK_STATES_CAUSE` = เรียก `send_card` ใหม่ทันที");
   });
+
+  test("a card every recipient already holds is not offered to them again in the reply (AI-281 text)", () => {
+    expect(promptFor("u_thana", null)).toContain("การ์ดที่ส่งไปแล้วในบทสนทนานี้ (ผล `send_card` ok) ผู้รับทุกคนมีแล้ว ห้ามเสนอส่งการ์ดใบนั้นให้คนเดิมอีก");
+  });
 });
