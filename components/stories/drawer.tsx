@@ -26,7 +26,7 @@ export function StoriesDrawer({ brief, asOf, open, onClose }: { brief: MorningBr
 
   return (
     <>
-      <button type="button" aria-label={TH.common.close} onClick={onClose} className="fixed inset-x-0 bottom-0 top-(--winyu-header-inset) z-40 bg-foreground/10 backdrop-blur-sm" />
+      <button type="button" aria-hidden tabIndex={-1} onClick={onClose} className="fixed inset-x-0 bottom-0 top-(--winyu-header-inset) z-40 bg-foreground/10 backdrop-blur-sm" />
       <aside className={PANEL} aria-label={TH.stories.landingLead(counts)}>
         <header className="flex items-start justify-between gap-3 border-b border-border px-5 py-4">
           <div className="flex min-w-0 flex-col gap-1">

@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { NOTIFICATION_KINDS, type Notification, type NotificationKind } from "@/lib/contracts";
 import { notificationHome, notificationTitle, type NotificationEvent, type NotificationHome } from "@/lib/share/notification-kinds";
 import { notifications } from "@/lib/server/agent/collections";
+import { bucketOf } from "@/components/notifications/items";
 
 /** Puts one unread notification in a person's bell, its title written by its kind; `from` is who caused it, null when Winyu did. */
 export function notify<K extends NotificationKind>(userId: string, from: string | null, event: NotificationEvent<K>, at = new Date()): Notification {
@@ -36,6 +37,11 @@ export function markHomeRead(userId: string, home: NotificationHome): void {
 /** Marks read the one notification the person opened; someone else's is left alone. */
 export function markOneRead(userId: string, id: string): void {
   markRead(notificationsOf(userId).filter((item) => item.id === id));
+}
+
+/** Marks read the person's updates (news that waits on nothing, the bell's dot) once the bell showed them; decisions and shares stay as they are. */
+export function markUpdatesRead(userId: string): void {
+  markRead(notificationsOf(userId).filter((item) => bucketOf(item.kind) === "update"));
 }
 
 /** Marks read every notification the person has. */

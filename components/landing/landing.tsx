@@ -13,6 +13,7 @@ import { GlowBackdrop } from "@/components/ui/glow-backdrop";
 import { GradientText } from "@/components/ui/gradient-text";
 import { countsLine, storyCounts, type StoryCounts } from "@/components/stories/story-list";
 import { StoriesDrawer } from "@/components/stories/drawer";
+import { useOpenInUrl } from "@/components/stories/use-open-in-url";
 import { chatHref } from "./chat-entry";
 import { ChatLinkActions } from "./chat-link-actions";
 import { ChipIcon } from "./chip-icon";
@@ -21,6 +22,7 @@ import { PILL } from "./pill";
 
 const QUICK_ACTIONS_ENDPOINT = "/api/quick-actions";
 const DASHBOARD_PATH = "/dashboard";
+const STORIES_PARAM = "stories";
 const MAX_CHIPS = 4;
 const PAGE = "relative mx-auto flex min-h-page w-full max-w-3xl flex-col gap-6 px-4 pt-6 md:pt-20 sm:justify-center sm:gap-8 sm:px-6 sm:pb-16";
 const ASK_DOCK = "sticky bottom-0 z-10 -mx-4 mt-auto flex flex-col gap-3 bg-gradient-to-t from-background from-70% to-transparent px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-6 sm:static sm:mx-0 sm:mt-0 sm:bg-none sm:p-0";
@@ -85,7 +87,7 @@ export function Landing({
 }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
-  const [storiesOpen, setStoriesOpen] = useState(false);
+  const [storiesOpen, setStoriesOpen] = useOpenInUrl(STORIES_PARAM);
 
   const start = useCallback(
     (prompt: string, intentKey?: string) => {

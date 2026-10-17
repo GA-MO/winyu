@@ -22,7 +22,7 @@ const DIALOG =
   "sm:left-auto sm:right-4 sm:top-[3.75rem] sm:max-h-[min(36rem,calc(100dvh-5rem))] sm:w-[22rem] sm:overflow-visible sm:rounded-2xl sm:border";
 const LINK = "rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
-function postRead(body: { id: string } | { all: true }): Promise<unknown> {
+function postRead(body: { id: string } | { all: true } | { updates: true }): Promise<unknown> {
   return fetch(READ_ENDPOINT, { method: "POST", headers: JSON_HEADERS, body: JSON.stringify(body), keepalive: true }).catch(() => undefined);
 }
 
@@ -185,7 +185,7 @@ function readEverything(payload: BellPayload): BellPayload {
 
 type BellPopoverProps = { counts?: InboxCounts; onClose: () => void; onOpenInbox: () => void; onChanged: () => void; navigate: (href: string) => void };
 
-/** What the bell opens: decisions on top, each with its one action, then updates; a popover under the bell, a bottom sheet on a phone. Opening it reads nothing. While open it loads again whenever the bell's `counts` change, so the list never disagrees with the badge. */
+/** What the bell opens: decisions on top, each with its one action, then updates; a popover under the bell, a bottom sheet on a phone. Opening it reads nothing; closing it after it showed unread updates marks those updates seen, so the bell's dot goes, while decisions still wait. While open it loads again whenever the bell's `counts` change, so the list never disagrees with the badge. */
 export function BellPopover({ counts, onClose, onOpenInbox, onChanged, navigate }: BellPopoverProps) {
   const dialog = useRef<HTMLDialogElement>(null);
   const titleId = useId();
@@ -213,7 +213,20 @@ export function BellPopover({ counts, onClose, onOpenInbox, onChanged, navigate 
     };
   }, []);
 
-  const countsKey = counts ? `${counts.decisions}:${counts.sharedUnread}:${counts.unreadUpdates}` : null;
+  const showedNews = useRef(false);
+  const changed = useRef(onChanged);
+  changed.current = onChanged;
+  useEffect(() => {
+    if (payload?.updates.some((item) => !item.read)) showedNews.current = true;
+  }, [payload]);
+  useEffect(
+    () => () => {
+      if (showedNews.current) void postRead({ updates: true }).then(() => changed.current());
+    },
+    [],
+  );
+
+  const countsKey = counts ?`${counts.decisions}:${counts.sharedUnread}:${counts.unreadUpdates}` : null;
   useEffect(() => {
     void load();
   }, [load, countsKey]);

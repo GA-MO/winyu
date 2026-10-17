@@ -147,6 +147,28 @@ describe("the bell popover", () => {
     expect(seen.went).toEqual(["/s/m1"]);
   });
 
+  test("closing it after its updates were shown marks those updates seen, so the bell's dot goes; decisions still wait (AI-259)", async () => {
+    const server = fakeServer(PAYLOAD);
+    const { seen } = await openPopover();
+    await act(async () => mounted?.root.unmount());
+    mounted?.host.remove();
+    mounted = null;
+    await act(async () => new Promise((resolve) => setTimeout(resolve, 0)));
+    server.spy.mockRestore();
+    expect(server.calls.filter((call) => call.method === "POST")).toEqual([{ url: "/api/notifications", method: "POST", body: { updates: true } }]);
+    expect(seen.changed).toBe(1);
+  });
+
+  test("closing it when it showed no unread update marks nothing", async () => {
+    const server = fakeServer({ decide: PAYLOAD.decide, updates: [] });
+    await openPopover();
+    await act(async () => mounted?.root.unmount());
+    mounted?.host.remove();
+    mounted = null;
+    server.spy.mockRestore();
+    expect(server.calls.filter((call) => call.method === "POST")).toEqual([]);
+  });
+
   test("with nothing waiting and nothing new it says so", async () => {
     const server = fakeServer({ decide: [], updates: [] });
     const { host } = await openPopover();
