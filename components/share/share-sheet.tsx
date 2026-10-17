@@ -239,7 +239,7 @@ export function ShareSent({ receipts, grants, hidden = [], days, path, at, close
       <div className="flex items-start gap-2">
         <Check className="mt-0.5 size-4 shrink-0 text-success" aria-hidden />
         <p className="min-w-0 flex-1 text-sm font-medium text-success">{TH.share.sentAt(`${formatDateTh(at)} ${formatTimeTh(at)}`)}</p>
-        <button type="button" onClick={close} aria-label={TH.common.close} className="-m-1 rounded-lg p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground">
+        <button type="button" onClick={close} aria-label={TH.share.hideSent} className="-m-1 rounded-lg p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground">
           <X className="size-4" aria-hidden />
         </button>
       </div>

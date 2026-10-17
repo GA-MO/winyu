@@ -118,6 +118,7 @@ describe("a card the person already sent (AI-209)", () => {
     await settle();
     spy.mockRestore();
     expect(host.querySelector("[data-share-sent]")?.textContent).toContain(TH.share.sentAt(`${formatDateTh(at)} ${formatTimeTh(at)}`));
+    expect(host.querySelector("[data-share-sent] button")?.getAttribute("aria-label")).toBe(TH.share.hideSent);
   });
 });
 

@@ -2043,6 +2043,7 @@ export const TH = {
     sending: "กำลังส่ง…",
     sentTitle: "ส่งต่อแล้ว",
     sentAt: (when: string) => `ส่งต่อแล้วเมื่อ ${when}`,
+    hideSent: "ซ่อนบรรทัดส่งต่อแล้ว",
     sentButton: "ส่งแล้ว",
     sentVia: (name: string, channel: string) => `${name} ทาง ${channel}`,
     fellBack: (name: string) => `${name} ทางอีเมลแทน (ยังไม่เคยทัก Winyu ใน Teams)`,
