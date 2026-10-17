@@ -1,7 +1,8 @@
 import { fence, fenceAsData } from "@/lib/harness/fence";
 import { injectionIn, withoutInjection, type GuardSource } from "@/lib/harness/guard";
 import { recordGuardFinding } from "@/lib/server/audit";
-import type { AccessContext, Grant, MemoryFact, NativeToolName, RoleId, Story, User } from "@/lib/contracts";
+import type { AccessContext, Dim, Grant, MemoryFact, NativeToolName, RoleId, Story, User } from "@/lib/contracts";
+import { TIME_DIMS } from "@/lib/semantic/metrics";
 import type { CardOnScreen } from "@/lib/share/card";
 import { holdingHop, type Matter } from "@/lib/share/matter";
 import { mayOpen, shares } from "@/lib/server/share/shares";
@@ -232,8 +233,17 @@ function matterBlock(matter: Matter): string {
   ].join("\n");
 }
 
+/** The groups a card drawn from more than one read also shows beyond its first read ("รายเอเย่นต์" under a card titled by region), so the model sees the row it is asked about on the card it would send (AI-216). */
+function otherRowsOf(card: CardOnScreen): string | null {
+  const [first, ...rest] = card.target.card.reads;
+  const named = (read: { input: Record<string, unknown> } | undefined) => (Array.isArray(read?.input.dims) ? read.input.dims.filter((dim): dim is string => typeof dim === "string" && !TIME_DIMS.includes(dim as Dim)) : []);
+  const shown = new Set(named(first));
+  const others = [...new Set(rest.flatMap(named))].filter((dim) => !shown.has(dim)).map((dim) => TH.dash.dimUnit[dim] ?? dim);
+  return others.length > 0 ? TH.dash.alsoRows(others) : null;
+}
+
 function cardLine(card: CardOnScreen): string {
-  return `- ${card.ref} · ${card.title}${card.hero ? ` · ${card.hero}` : ""}`;
+  return [`- ${card.ref}`, card.title, card.hero, otherRowsOf(card)].filter((part): part is string => Boolean(part)).join(" · ");
 }
 
 function preloadedStory(access: AccessContext, context: Record<string, unknown>): Story | null {

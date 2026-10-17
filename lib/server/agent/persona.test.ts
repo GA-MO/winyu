@@ -465,6 +465,12 @@ describe("the cards on screen (AI-93)", () => {
     expect(prompt).toContain("`cardRef`");
   });
 
+  test("a card drawn from more than one read says which other rows it shows, so the model sees an agent on the region card without re-reading it (AI-216)", () => {
+    const TEAM: ShareTarget = { card: { kind: "tool", reads: [{ tool: "query_metric", input: { metric: "net_sales_value", dims: ["region"] } }, { tool: "query_metric", input: { metric: "net_sales_value", dims: ["agent"] } }] }, question: "ทีมผมเดือนนี้ถึงเป้าแค่ไหนแล้ว" };
+    expect(promptOnScreen([TEAM])).toContain(`- ${onScreen(TEAM).ref} · มูลค่าขายเข้า · รายภาค · 5.1 ล้านลิตร · มีแถวรายเอเย่นต์ด้วย`);
+    expect(promptOnScreen([AGENTS])).not.toContain("มีแถวราย");
+  });
+
   test("are not listed when nothing was drawn", () => {
     expect(promptOnScreen([])).not.toContain("การ์ดบนจอที่ส่งต่อได้");
   });

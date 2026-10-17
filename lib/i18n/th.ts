@@ -702,6 +702,7 @@ export const TH = {
     lockedRow: (label: string) => `${label}: ซ่อนตามสิทธิ์ของคุณ`,
     totalAcross: (metric: string, unit: string) => `${metric} รวมทุก${/^[A-Za-z]/.test(unit) ? " " : ""}${unit}`,
     averageAcross: (metric: string, unit: string) => `${metric} เฉลี่ยทุก${/^[A-Za-z]/.test(unit) ? " " : ""}${unit}`,
+    alsoRows: (units: readonly string[]) => `มีแถวราย${units.join(" ราย")}ด้วย`,
     dimUnit: {
       date: "วัน", week: "สัปดาห์", month: "เดือน", region: "ภาค", province: "จังหวัด", channel: "ช่องทาง",
       brand: "แบรนด์", sku: "SKU", pack: "ขนาดบรรจุ", agent: "เอเย่นต์", dc: "ศูนย์กระจายสินค้า", plant: "โรงงาน",
