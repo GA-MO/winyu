@@ -3094,10 +3094,10 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 | AI-252 | ต่ำ | แก้แล้ว `efd3177` | The CEO send approval header is cut to 'คุณสรัญญ…' by the deadline pill, and the card's primary button offers 'ส่งให้คุณอาร์ม', a different person |
 | AI-253 (เดิม AI-214) | ต่ำ | แก้แล้ว `da9b02b` | The week 'why' answer draws three cards: two repeat 248.1/−25.5, and an unrelated anomaly list sits beside 'ไม่มีส่วนใดเป็นสาเหตุหลัก' |
 | AI-254 | ต่ำ | แก้แล้ว `8801598` | The region strip prints '86%' beside '85.6%', and the Bangkok label is cut off |
-| AI-255 (เดิม AI-227) | ต่ำ | ยังเสีย | Run sheet wording still differs from the screen: the '· ภาคอีสาน' suffix, the drill button example, the 'ขั้นที่ n' labels, the Korat story label, and an unwarned black button |
+| AI-255 (เดิม AI-227) | ต่ำ | แก้แล้ว (เอกสาร) · รอเดินยืนยันรอบ 8 | Run sheet wording still differs from the screen: the '· ภาคอีสาน' suffix, the drill button example, the 'ขั้นที่ n' labels, the Korat story label, and an unwarned black button |
 | AI-256 (เดิม AI-227) | ต่ำ | แก้แล้ว `efd3177` | The approval's 'ส่ง' button sits half under the composer and shares the accessible name 'ส่ง' with the composer send button |
 | AI-257 (เดิม AI-220) | ต่ำ | แก้แล้ว `9be3921` | The visit-plan card has an ASCII hyphen in '-9.5% · 28 วัน', uncoloured deltas, a first row that repeats the hero, and a '2 ราย' summary over 4 rows |
-| AI-258 | ต่ำ | เปิด (ใหม่) | The Isan story recommends the sales director and the CFO, while the demo sends the card to the RSM |
+| AI-258 | ต่ำ | แก้แล้ว (เอกสาร) · รอเดินยืนยันรอบ 8 | The Isan story recommends the sales director and the CFO, while the demo sends the card to the RSM |
 | AI-259 | ต่ำ | แก้แล้ว `a911de4` `79cebb4` `87f2c67` | CEO bell and drawer friction: the red dot stays until every update is opened, the drawer closes after back, and two buttons are named 'ปิด' |
 | AI-260 | ต่ำ | แก้แล้ว `78cec96` | The ถามต่อ answer ends below the fold, and its first card already shows 'ส่งแล้ว' before the send command |
 | AI-261 (เดิม AI-232) | ต่ำ | เปิด (ใหม่) · นอกเส้นทางเดโม | The IT usage ranking counts and lists a user with 0 questions and 0 tool calls |
@@ -3233,7 +3233,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-244. '(ครั้งที่ 2)' appears on a fresh seed when the chat option follows step 1, which trips the run sheet's 'reseed' troubleshooting row
 
-- **สถานะ:** แก้แล้ว `35023b1` `dd9dd30` · "(ครั้งที่ n)" ขึ้นเฉพาะเมื่อคนเดิมส่งการ์ดเดิมให้คนเดิมด้วยคำขอเดิม ส่งที่ขอต่างกันใช้ชื่อการ์ดเดิม และอัปเดตในกระดิ่งบอกสิ่งที่ขอเมื่อมีเรื่องชื่อซ้ำ · เดิม AI-227
+- **สถานะ:** แก้แล้ว `35023b1` `dd9dd30` · "(ครั้งที่ n)" ขึ้นเฉพาะเมื่อคนเดิมส่งการ์ดเดิมให้คนเดิมด้วยคำขอเดิม ส่งที่ขอต่างกันใช้ชื่อการ์ดเดิม และอัปเดตในกระดิ่งบอกสิ่งที่ขอเมื่อมีเรื่องชื่อซ้ำ · เดิม AI-227 · run sheet แก้ตามจอหลังรวม K1 ถึง K3 (ชื่อการ์ดไม่ผูกกับคำลงท้าย, เวลาที่ส่ง, ปุ่มกำลังส่งต่อ, ปิดแผงเรื่อง, ชื่อปุ่มส่งข้อความ, ส่งแล้วในแชตทางเลือก, ครั้งที่ 2 เฉพาะส่งซ้ำ, คำตอบเมื่อถูกถามว่าทำไมไม่ส่งตามคำแนะนำ) · รอเดินยืนยันรอบ 8
 - **ระดับ:** กลาง · **หมวด:** `run-sheet` · **บทบาท:** presenter; u_thana → u_anucha → u_krit (chain alt)
 - **อาการ:** The second send of the same card to the same RSM gets a near-identical title. The rep's bell then shows more than one item, which the sheet says means 'seed ใหม่'. Neither the reply nor the approval mentions the earlier send.
 - **ที่ควรเป็น:** The sheet says the chat option repeats step 1, or replaces it, and the troubleshooting row excludes this case. The send reply names the earlier send.
@@ -3356,7 +3356,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-255. Run sheet wording still differs from the screen: the '· ภาคอีสาน' suffix, the drill button example, the 'ขั้นที่ n' labels, the Korat story label, and an unwarned black button
 
-- **สถานะ:** ยังเสีย · เดิม AI-227
+- **สถานะ:** ยังเสีย · เดิม AI-227 · run sheet แก้ตามจอหลังรวม K1 ถึง K3 (ชื่อการ์ดไม่ผูกกับคำลงท้าย, เวลาที่ส่ง, ปุ่มกำลังส่งต่อ, ปิดแผงเรื่อง, ชื่อปุ่มส่งข้อความ, ส่งแล้วในแชตทางเลือก, ครั้งที่ 2 เฉพาะส่งซ้ำ, คำตอบเมื่อถูกถามว่าทำไมไม่ส่งตามคำแนะนำ) · รอเดินยืนยันรอบ 8
 - **ระดับ:** ต่ำ · **หมวด:** `run-sheet` · **บทบาท:** presenter
 - **อาการ:** Sheet sections §1.3, 2.2, 2.3, 4.2 and the screen-setup table quote text the screens do not show. The title suffix depends on the day's evidence filters.
 - **ที่ควรเป็น:** The sheet quotes the screen, and describes the title suffix as variable.
@@ -3388,7 +3388,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-258. The Isan story recommends the sales director and the CFO, while the demo sends the card to the RSM
 
-- **สถานะ:** เปิด (ใหม่)
+- **สถานะ:** เปิด (ใหม่) · run sheet แก้ตามจอหลังรวม K1 ถึง K3 (ชื่อการ์ดไม่ผูกกับคำลงท้าย, เวลาที่ส่ง, ปุ่มกำลังส่งต่อ, ปิดแผงเรื่อง, ชื่อปุ่มส่งข้อความ, ส่งแล้วในแชตทางเลือก, ครั้งที่ 2 เฉพาะส่งซ้ำ, คำตอบเมื่อถูกถามว่าทำไมไม่ส่งตามคำแนะนำ) · รอเดินยืนยันรอบ 8
 - **ระดับ:** ต่ำ · **หมวด:** `wording` · **บทบาท:** u_thana (chain step 1)
 - **อาการ:** The recommended roles differ from the card's responsible person, คุณอนุชา.
 - **ที่ควรเป็น:** The story names the role that the owner logic picks.
