@@ -1,5 +1,6 @@
-import type { MetricId, Region } from "@/lib/contracts";
-import { responsibleFor } from "@/lib/access/raci";
+import type { MetricId, Region, User } from "@/lib/contracts";
+import { managerOf, responsibleFor } from "@/lib/access/raci";
+import { agentById } from "@/lib/data/entities/agents";
 import { findUser } from "@/lib/data/entities/users";
 import { TH } from "@/lib/i18n/th";
 import { holdingHop, type Matter } from "@/lib/share/matter";
@@ -34,16 +35,30 @@ export function usualRecipient(fromUserId: string, metric: MetricId, region: Reg
   return best && best[1] >= MIN_USUAL_SENDS ? { userId: best[0], sent: best[1] } : null;
 }
 
-/** Who should get this: whom this user usually sends it to, else the RACI owner; with how many such matters they took before and how many they hold open now. */
-export function suggestOwner(metric: MetricId, region: Region | null, fromUserId: string | null = null, agentId: string | null = null): OwnerSuggestion | null {
-  const raci = responsibleFor(metric, region, agentId);
+type Candidate = { user: User; basis: string };
+
+/** Whom a lookup may answer, in order: whom this user usually sends it to, the RACI owner, then, since the asker is never the answer (AI-310), the rep who owns the one agent asked about and the asker's own manager. */
+function candidatesFor(metric: MetricId, region: Region | null, fromUserId: string | null, agentId: string | null): Candidate[] {
   const usual = fromUserId ? usualRecipient(fromUserId, metric, region) : null;
   const usualUser = usual ? findUser(usual.userId) : null;
-  const target = usualUser ?? raci?.user ?? null;
-  if (!target) return null;
+  const raci = responsibleFor(metric, region, agentId);
+  const rep = agentId ? findUser(agentById(agentId)?.ownerId ?? "") : null;
+  const manager = fromUserId ? managerOf(fromUserId) : null;
+  return [
+    ...(usual && usualUser ? [{ user: usualUser, basis: TH.owner.usualReason(usual.sent, usualUser.nameTh) }] : []),
+    ...(raci ? [{ user: raci.user, basis: raci.basis }] : []),
+    ...(rep ? [{ user: rep, basis: TH.owner.agentRep }] : []),
+    ...(manager ? [{ user: manager, basis: TH.owner.askerManager }] : []),
+  ];
+}
+
+/** Who should get this: whom this user usually sends it to, else the RACI owner, never the person asking (the agent's rep, else their manager, when they own it themselves); with how many such matters they took before and how many they hold open now. */
+export function suggestOwner(metric: MetricId, region: Region | null, fromUserId: string | null = null, agentId: string | null = null): OwnerSuggestion | null {
+  const chosen = candidatesFor(metric, region, fromUserId, agentId).find((candidate) => candidate.user.id !== fromUserId);
+  if (!chosen) return null;
+  const target = chosen.user;
   const all = shares().all();
   const handledBefore = all.filter((matter) => takersOf(matter).includes(target.id) && cardSubject(matter.card).metric === metric).length;
   const openLoad = all.filter((matter) => matter.status === "open" && matter.intent === "act" && holdingHop(matter)?.userId === target.id).length;
-  const basis = usual && usualUser ? TH.owner.usualReason(usual.sent, usualUser.nameTh) : (raci?.basis ?? "");
-  return { userId: target.id, nameTh: target.nameTh, title: target.title, reason: TH.owner.reason(basis, handledBefore, openLoad), openLoad, handledBefore };
+  return { userId: target.id, nameTh: target.nameTh, title: target.title, reason: TH.owner.reason(chosen.basis, handledBefore, openLoad), openLoad, handledBefore };
 }

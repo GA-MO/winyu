@@ -36,3 +36,14 @@ describe("whom the CEO usually sends Isan sales to", () => {
     expect(suggestOwner("net_sales_value", "northeast", "u_thana")?.userId).toBe("u_anucha");
   });
 });
+
+describe("the owner lookup never answers the person asking (AI-310)", () => {
+  test("the RSM asking who owns one of his agents' sales gets the rep who owns that agent", () => {
+    expect(suggestOwner("net_sales_value", "northeast", "u_anucha", "ag_nea_02")?.userId).toBe("u_krit");
+  });
+
+  test("the RSM asking who owns his own region's sales gets the next person up, not himself; anyone else still gets him", () => {
+    expect(suggestOwner("net_sales_value", "northeast", "u_anucha")?.userId).toBe("u_prasit");
+    expect(suggestOwner("net_sales_value", "northeast", "u_thana", "ag_nea_02")?.userId).toBe("u_anucha");
+  });
+});

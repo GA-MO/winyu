@@ -1,6 +1,7 @@
 import type { MetricId, Region, RoleId, User } from "@/lib/contracts";
 import { AGENTS } from "@/lib/data/entities/agents";
 import { USERS, findUser } from "@/lib/data/entities/users";
+import { TH } from "@/lib/i18n/th";
 
 export type Responsible = { userId: string; user: User; role: RoleId; basis: string };
 
@@ -14,7 +15,6 @@ const HR_METRICS: MetricId[] = ["headcount", "attrition_rate", "avg_salary"];
 
 /** Metrics whose work on one agent belongs to the rep assigned to it: collecting its overdue debt. Sales on one agent stay with the region's RSM. */
 const AGENT_ACCOUNT_METRICS: ReadonlySet<MetricId> = new Set(["ar_overdue"]);
-const AGENT_OWNER_BASIS = "ผู้แทนขายที่ดูแลเอเย่นต์รายนี้ (ระดับเอเย่นต์)";
 
 const SALES: MetricGroup = { role: "sales_rsm", fallbackRole: "sales_director", basis: "เจ้าของตัวเลขยอดขายของพื้นที่" };
 const SUPPLY: MetricGroup = { role: "supply_planner", fallbackRole: "supply_planner", basis: "ผู้วางแผนซัพพลายของพื้นที่" };
@@ -39,7 +39,7 @@ function nationalWith(role: RoleId): User | null {
 function agentOwner(metric: MetricId, agentId: string | null): Responsible | null {
   if (!agentId || !AGENT_ACCOUNT_METRICS.has(metric)) return null;
   const owner = findUser(AGENTS.find((agent) => agent.id === agentId)?.ownerId ?? "");
-  return owner ? { userId: owner.id, user: owner, role: owner.role, basis: AGENT_OWNER_BASIS } : null;
+  return owner ? { userId: owner.id, user: owner, role: owner.role, basis: TH.owner.agentRep } : null;
 }
 
 /** The person accountable for a metric in a region (null for the whole country), or for one agent's account work the rep assigned to that agent: the RACI table `resolve_owner`, card buttons and the alert engine read. */

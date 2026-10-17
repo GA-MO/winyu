@@ -1434,6 +1434,8 @@ export const TH = {
   owner: {
     usualReason: (sent: number, name: string) => `${name}รับเรื่องนี้จากคุณไปจัดการแล้ว ${sent} ครั้ง`,
     reason: (basis: string, handled: number, load: number) => `${basis} · เคยรับเรื่องลักษณะนี้ ${handled} ครั้ง · ตอนนี้มีเรื่องค้าง ${load} เรื่อง`,
+    agentRep: "ผู้แทนขายที่ดูแลเอเย่นต์รายนี้ (ระดับเอเย่นต์)",
+    askerManager: "หัวหน้าของผู้ถาม เพราะผู้ถามคือเจ้าของตัวเลขนี้เอง",
   },
   memory: {
     interest: (metric: string) => `สนใจ${metric}เป็นประจำ`,

@@ -136,7 +136,7 @@ describe("resolve_owner", () => {
   });
 
   test("an agent without a region resolves to the RSM of the agent's region", async () => {
-    const result = await call<{ ok: boolean; data: { userId: string } }>("u_anucha", "resolve_owner", {
+    const result = await call<{ ok: boolean; data: { userId: string } }>("u_thana", "resolve_owner", {
       metric: "net_sales_volume",
       dims: { agent: "ag_nea_05" },
     });
