@@ -2716,6 +2716,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 | AI-230 (เดิม AI-198) | ต่ำ | เปิด (ใหม่) · นอกเส้นทางเดโม | The South-agent send approval warns 'ส่วนที่เหลือถูกล็อก' although the agent is fully in the recipient's scope |
 | AI-231 (เดิม AI-187) | ต่ำ | เปิด (ใหม่) · นอกเส้นทางเดโม | The rep's starter dashboard card joins 5 scope names into its headline and uses the pace base beside the month-base card |
 | AI-232 | ต่ำ | แก้แล้ว `45373ae` · นอกเส้นทางเดโม | IT usage figures differ between surfaces (4 vs 5 users), and answered admin, send and pin requests are listed as unanswered |
+| AI-233 | ต่ำ | เปิด (ใหม่) · นอกเส้นทางเดโม | Admin Access tab at phone width squeezes the role title and the Full/Masked/None chips into a narrow right column |
 
 ### AI-203. A matter shows two numbers for one viewer: the rep's inbox says 77.3% (RSM's whole region), but the matter page shows 72.6% over his 4 agents, labelled 'รวมทุกเอเย่นต์'
 
@@ -3051,3 +3052,13 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 	- thread 11707be8
 	- r6-runs/it/usage-tab.png
 - **สาเหตุ:** guess: the overview counts visits.json, user_usage counts chat runs, and the unanswered rule checks only for semantic-layer calls.
+
+### AI-233. Admin Access tab at phone width squeezes the role title and the Full/Masked/None chips into a narrow right column
+
+- **สถานะ:** เปิด (ใหม่) · นอกเส้นทางเดโม
+- **ระดับ:** ต่ำ · **หมวด:** `layout` · **บทบาท:** u_ton (IT)
+- **อาการ:** Seen by package J4 at iphone-15: the role detail card puts "พนักงานขาย" and the visibility chips in a narrow column.
+- **ที่ควรเป็น:** The role detail stacks at phone width.
+- **หลักฐาน:**
+	- /private/tmp/claude-501/-Users-sbpdigital-Development-Cop/9cb96cb6-db79-40fc-93ee-aea9b1847cf8/scratchpad/j4/after-iphone-15-access.png
+- **สาเหตุ:** guess: a two-column layout without a phone breakpoint in app/(app)/admin access tab.
