@@ -4,6 +4,8 @@ import { TH } from "@/lib/i18n/th";
 import type { SharedCard } from "@/lib/share/card";
 import { createShare } from "./deliver";
 import { shares } from "./shares";
+import { actOnMatter } from "./act";
+import { notifications } from "@/lib/server/agent/collections";
 
 setDefaultTimeout(60_000);
 
@@ -37,5 +39,14 @@ describe("matter titles when one card is sent more than once (AI-244)", () => {
     expect(await send("u_anucha", "u_krit", STORY_ASK)).toBe(first);
     expect(await send("u_thana", "u_anucha", ` ${STORY_ASK} `)).toBe(TH.share.repeatTitle(first, 2));
     expect(await send("u_thana", "u_anucha", STORY_ASK)).toBe(TH.share.repeatTitle(first, 3));
+  });
+
+  test("an update about one of two matters sharing a title names what that matter asks, so the sender's bell reads them apart", async () => {
+    const title = await send("u_thana", "u_anucha", CHAT_ASK);
+    const code = made[made.length - 1];
+    const outcome = actOnMatter(user("u_anucha"), code, { kind: "pass_on", toUserId: "u_krit" });
+    expect(outcome.ok).toBe(true);
+    const told = notifications().where((note) => note.userId === "u_thana" && note.refId === code && note.kind === "matter_update");
+    expect(told.map((note) => note.title)).toEqual([TH.notify.matterUpdate.passed_on(user("u_anucha").nameTh, TH.share.titleAsking(title, `${Array.from(CHAT_ASK).slice(0, 40).join("")}…`), user("u_krit").nameTh)]);
   });
 });

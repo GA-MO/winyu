@@ -17,7 +17,12 @@ const { bellFor } = await import("@/lib/server/bell");
 const { notificationsOf } = await import("@/lib/server/notify");
 const { auditLog } = await import("@/lib/server/audit");
 const { TH } = await import("@/lib/i18n/th");
-const { openingOf, shares } = await import("./shares");
+const { matterLabel, openingOf, shares } = await import("./shares");
+
+function labelOf(code: string): string {
+  const matter = shares().get(code);
+  return matter ? matterLabel(matter) : "";
+}
 const { createShare } = await import("./deliver");
 const { actOnMatter, briefOf } = await import("./act");
 const { alerts } = await import("@/lib/server/agent/collections");
@@ -81,7 +86,7 @@ describe("รับ", () => {
     expect(shares().get(code)).toMatchObject({ status: "open", path: [{ userId: "u_anucha", fromUserId: "u_thana", state: "accepted" }], thread: [{ userId: "u_anucha", kind: "accepted", text: null, toUserId: null }] });
     expect(inboxCountsFor("u_anucha").decisions).toBe(before - 1);
     expect(told("u_thana", code)).toHaveLength(1);
-    expect(lastTold("u_thana", code)).toMatchObject({ kind: "matter_update", fromUserId: "u_anucha", title: TH.notify.matterUpdate.accepted(user("u_anucha").nameTh, shares().get(code)?.title ?? "") });
+    expect(lastTold("u_thana", code)).toMatchObject({ kind: "matter_update", fromUserId: "u_anucha", title: TH.notify.matterUpdate.accepted(user("u_anucha").nameTh, labelOf(code)) });
     expect(told("u_anucha", code)).toHaveLength(1);
   });
 });
@@ -126,7 +131,7 @@ describe("ส่งต่อ", () => {
     expect(told("u_krit", code)).toHaveLength(1);
     expect(lastTold("u_krit", code)).toMatchObject({ kind: "matter", fromUserId: "u_anucha", title: TH.notify.matter(user("u_anucha").nameTh, ASK) });
     expect(told("u_thana", code)).toHaveLength(1);
-    expect(lastTold("u_thana", code)).toMatchObject({ kind: "matter_update", fromUserId: "u_anucha", title: TH.notify.matterUpdate.passed_on(user("u_anucha").nameTh, shares().get(code)?.title ?? "", user("u_krit").nameTh) });
+    expect(lastTold("u_thana", code)).toMatchObject({ kind: "matter_update", fromUserId: "u_anucha", title: TH.notify.matterUpdate.passed_on(user("u_anucha").nameTh, labelOf(code), user("u_krit").nameTh) });
     expect(inboxCountsFor("u_anucha").decisions).toBe(rsmBefore - 1);
     expect(inboxCountsFor("u_krit").decisions).toBe(repBefore + 1);
   });
@@ -144,7 +149,7 @@ describe("ส่งต่อ", () => {
     expect(lastTold("u_anucha", code)).toMatchObject({ kind: "matter_update", fromUserId: "u_krit" });
     expect(told("u_anucha", code).filter((note) => note.fromUserId === "u_krit")).toHaveLength(1);
     expect(told("u_thana", code)).toHaveLength(2);
-    expect(lastTold("u_thana", code)).toMatchObject({ kind: "matter_update", fromUserId: "u_krit", title: TH.notify.matterUpdate.accepted(user("u_krit").nameTh, shares().get(code)?.title ?? "") });
+    expect(lastTold("u_thana", code)).toMatchObject({ kind: "matter_update", fromUserId: "u_krit", title: TH.notify.matterUpdate.accepted(user("u_krit").nameTh, labelOf(code)) });
   });
 });
 
@@ -159,7 +164,7 @@ describe("ไม่ใช่ของผม", () => {
       ["u_anucha", "sent"],
     ]);
     expect(told("u_anucha", code)).toHaveLength(1);
-    expect(told("u_thana", code).map((note) => note.title)).toEqual([TH.notify.matterUpdate.passed_on(user("u_krit").nameTh, shares().get(code)?.title ?? "", user("u_anucha").nameTh)]);
+    expect(told("u_thana", code).map((note) => note.title)).toEqual([TH.notify.matterUpdate.passed_on(user("u_krit").nameTh, labelOf(code), user("u_anucha").nameTh)]);
   });
 
   test("when the holder is the owner, it asks the sender who should take it instead", async () => {
@@ -218,7 +223,7 @@ describe("เสร็จ", () => {
     expect(shares().get(code)?.status).toBe("done");
     for (const holder of ["u_anucha", "u_krit"]) {
       expect(told(holder, code)).toHaveLength(2);
-      expect(lastTold(holder, code)).toMatchObject({ kind: "matter_update", title: TH.notify.matterUpdate.done(user("u_thana").nameTh, shares().get(code)?.title ?? "") });
+      expect(lastTold(holder, code)).toMatchObject({ kind: "matter_update", title: TH.notify.matterUpdate.done(user("u_thana").nameTh, labelOf(code)) });
     }
     expect(told("u_thana", code).map((note) => note.fromUserId)).toEqual(["u_anucha"]);
     expect(inboxCountsFor("u_krit").decisions).toBe(repBefore - 1);

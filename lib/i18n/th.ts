@@ -2021,6 +2021,7 @@ export const TH = {
     askDraft: (title: string) => `ช่วยดู ${title} หน่อย`,
     askAbout: (subject: string) => `(${subject})`,
     repeatTitle: (title: string, count: number) => `${title} (ครั้งที่ ${count})`,
+    titleAsking: (title: string, ask: string) => `${title} · ${ask}`,
     intent: { act: "ต้องตอบ", fyi: "ให้ดู" },
     urgencyLabel: "ต้องการเมื่อไร",
     urgency: { now: "ด่วน", today: "วันนี้", this_week: "สัปดาห์นี้" },

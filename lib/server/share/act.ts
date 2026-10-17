@@ -5,7 +5,7 @@ import { notify } from "@/lib/server/notify";
 import { holdingHop, type Matter } from "@/lib/share/matter";
 import { allowedActions, transition, type MatterAction, type MatterBrief, type MatterRefusal, type Telling } from "@/lib/share/matter-actions";
 import { recordOutcome } from "@/lib/server/outcomes";
-import { mayOpen, shares } from "./shares";
+import { matterLabel, mayOpen, shares } from "./shares";
 import { cardOwner, suggestionsFor } from "./suggest";
 
 /** A press as a person sends it: not_mine names nobody, the server looks up the card's owner. */
@@ -28,7 +28,7 @@ function tell(telling: Telling, matter: Matter, actor: User, at: Date): void {
     return;
   }
   const text = telling.text ?? (telling.toUserId ? nameOf(telling.toUserId) : null);
-  notify(telling.userId, actor.id, { kind: "matter_update", refId: matter.id, actorName: actor.nameTh, cardTitle: matter.title, change: telling.change, text }, at);
+  notify(telling.userId, actor.id, { kind: "matter_update", refId: matter.id, actorName: actor.nameTh, cardTitle: matterLabel(matter), change: telling.change, text }, at);
 }
 
 function refused(actor: User, code: string, press: MatterPress, refusal: MatterRefusal): MatterOutcome {

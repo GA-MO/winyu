@@ -15,6 +15,7 @@ export const SHARE_CODE_LENGTH = 12;
 const CODE_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 const UNBIASED_BYTE_LIMIT = 248;
 const FIRST_REPEAT = 2;
+const ASK_IN_LABEL = 40;
 
 /** Every matter, each read through `matterOf` so a share stored before matters loads as one. */
 export function shares(): Collection<Matter> {
@@ -49,6 +50,17 @@ export function unusedTitle(title: string, send: SendKey): string {
   let count = FIRST_REPEAT;
   while (repeats.has(TH.share.repeatTitle(title, count))) count += 1;
   return TH.share.repeatTitle(title, count);
+}
+
+function clipped(text: string): string {
+  const characters = Array.from(text.trim());
+  return characters.length > ASK_IN_LABEL ? `${characters.slice(0, ASK_IN_LABEL).join("")}…` : characters.join("");
+}
+
+/** How a line about one matter names it: its title, and what it asks when another matter carries the same title, so two sends of one card read apart in the bell without a counter. */
+export function matterLabel(matter: Matter): string {
+  const twin = shares().where((other) => other.id !== matter.id && other.title === matter.title).length > 0;
+  return twin && matter.ask.trim() ? TH.share.titleAsking(matter.title, clipped(matter.ask)) : matter.title;
 }
 
 /** The open matters that wait on this person's answer. */
