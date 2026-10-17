@@ -3468,27 +3468,27 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 | ข้อ | ระดับ | สถานะ | ปัญหา |
 |---|---|---|---|
 | AI-265 | สูง | แก้แล้ว `643ab3a` | Asked to send to the Isan regional sales manager, the CEO's chat send goes to a Khon Kaen sales rep, with a false reason |
-| AI-266 (เดิม AI-236) | กลาง | ยังเสีย | RSM month-close question with a region dimension gets the to-date scorecard (77.3% red first, 87.5% third), plus a second card that repeats 87.5% |
-| AI-267 | กลาง | เปิด (ใหม่) | The forwarded explain_gap card is titled only 'ทำไมตัวเลขถึงเป็นแบบนี้' with no number, and the ask repeats the user's words |
-| AI-268 (เดิม AI-241) | กลาง | เปิด (ใหม่) | RSM overdue trend card's headline says +22.9% month on month (red), while the reply concludes from the six-month fall that the credit hypothesis is weaker |
-| AI-269 (เดิม AI-241 (same overclaim on an overdue check)) | กลาง | เปิด (ใหม่) | In the CEO's ถามต่อ, the overdue card leads with ขอนแก่นมหาชัย, the reply calls a small rise proof of the credit hypothesis, and the CEO's send states it as fact |
+| AI-266 (เดิม AI-236) | กลาง | แก้แล้ว `939fdee` | RSM month-close question with a region dimension gets the to-date scorecard (77.3% red first, 87.5% third), plus a second card that repeats 87.5% |
+| AI-267 | กลาง | แก้แล้ว `af56887` | The forwarded explain_gap card is titled only 'ทำไมตัวเลขถึงเป็นแบบนี้' with no number, and the ask repeats the user's words |
+| AI-268 (เดิม AI-241) | กลาง | แก้แล้ว `939fdee` | RSM overdue trend card's headline says +22.9% month on month (red), while the reply concludes from the six-month fall that the credit hypothesis is weaker |
+| AI-269 (เดิม AI-241 (same overclaim on an overdue check)) | กลาง | ส่วนการ์ดแก้แล้ว `939fdee` · ข้อความรอ L2 | In the CEO's ถามต่อ, the overdue card leads with ขอนแก่นมหาชัย, the reply calls a small rise proof of the credit hypothesis, and the CEO's send states it as fact |
 | AI-270 | กลาง | เปิด (ใหม่) | The IT demo opener (denials and who sent what) takes 42.1 s |
 | AI-271 | กลาง | เปิด (ใหม่) | Asked whether the rep would see southern sales, IT gets the role's metric and tool list, not its data scope, and the scope claim comes from no tool |
-| AI-272 | กลาง | เปิด (ใหม่) | The Korat share alert gives three figures for one drop: −5.6% (relative), a 3.5-point bar and '3.8 จุด' in the AI line |
-| AI-273 (เดิม AI-208 / AI-223 / follows AI-235) | ต่ำ | เปิด (ใหม่) | Matter title follows the first read: the agent card RSM → rep is titled 'มูลค่าขายเข้า · รายภาค · ขอนแก่นมหาชัย' |
-| AI-274 (เดิม AI-228) | ต่ำ | เปิด (ใหม่) | The week-why gap strip folds a single 6th region at 11.9% into 'อีก 1 รายการ' |
+| AI-272 | กลาง | แก้แล้ว `e99dd8c` | The Korat share alert gives three figures for one drop: −5.6% (relative), a 3.5-point bar and '3.8 จุด' in the AI line |
+| AI-273 (เดิม AI-208 / AI-223 / follows AI-235) | ต่ำ | แก้แล้ว `af56887` | Matter title follows the first read: the agent card RSM → rep is titled 'มูลค่าขายเข้า · รายภาค · ขอนแก่นมหาชัย' |
+| AI-274 (เดิม AI-228) | ต่ำ | แก้แล้ว `939fdee` | The week-why gap strip folds a single 6th region at 11.9% into 'อีก 1 รายการ' |
 | AI-275 (เดิม AI-251) | ต่ำ | ยังเสีย | The year answer still leaves out the 35 days left and does not say whether the year will reach target |
 | AI-276 (เดิม AI-243) | ต่ำ | เปิด (ใหม่) | The IT spend card shows background spend as $0.25 in the hero split and $0.14 in the leaderboard row |
 | AI-277 (เดิม AI-225) | ต่ำ | เปิด (ใหม่) | Raw error code 'PERMISSION_DENIED' appears in the Thai IT reply |
 | AI-278 (เดิม AI-242) | ต่ำ | เปิด (ใหม่) | The IT activity row for the chat-confirmed send cuts the card title to '…เทรดด…' |
 | AI-279 | ต่ำ | เปิด (ใหม่) | The 'who was denied' half of the IT question appears only in the text; the card shows activity only |
 | AI-280 (เดิม AI-264) | ต่ำ | ยังเสีย | After the 09:26 chat send, the chat send receipt still shows the step-1 time (09:22) |
-| AI-281 (เดิม AI-252) | ต่ำ | เปิด (ใหม่) | Chat cards still show a black 'ส่งให้คุณอนุชา' after the card was sent, and the reply offers to send again |
+| AI-281 (เดิม AI-252) | ต่ำ | แก้แล้ว `552e872` | Chat cards still show a black 'ส่งให้คุณอนุชา' after the card was sent, and the reply offers to send again |
 | AI-282 (เดิม AI-255 (also AI-227)) | ต่ำ | แก้แล้ว (เอกสาร) · รอเดินยืนยันรอบ 9 | The run sheet still quotes text the screen does not show (pill suffix, card title, drill button, pace line, switch, RSM 'อัปเดต') |
 | AI-283 (เดิม AI-244) | ต่ำ | แก้แล้ว (เอกสาร) · รอเดินยืนยันรอบ 9 | The run sheet says the second (chat) matter keeps the card title; on screen the title adds the agent names and the update rows add no ask |
 | AI-284 (เดิม AI-255) | ต่ำ | แก้แล้ว (เอกสาร) · รอเดินยืนยันรอบ 9 | Chat option timings run longer than the run sheet says, or are not stated |
 | AI-285 | ต่ำ | เปิด (ใหม่) · นอกเส้นทางเดโม | Pin turn: no answer text before approval, and the landing calls the replaced card by a second name |
-| AI-286 (เดิม AI-231) | ต่ำ | เปิด (ใหม่) · นอกเส้นทางเดโม | The rep's month-total card prefills a send ask that lists all 4 agent names |
+| AI-286 (เดิม AI-231) | ต่ำ | แก้แล้ว `843038f` · นอกเส้นทางเดโม | The rep's month-total card prefills a send ask that lists all 4 agent names |
 | AI-287 | ต่ำ | เปิด (ใหม่) · นอกเส้นทางเดโม | A no-sale-days question gets a holiday card whose hero is วันพ่อแห่งชาติ |
 | AI-288 | ต่ำ | เปิด (ใหม่) · นอกเส้นทางเดโม | The admin usage tab shows the repository path 'docs/pilot.md' to users |
 
@@ -3506,7 +3506,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-266. RSM month-close question with a region dimension gets the to-date scorecard (77.3% red first, 87.5% third), plus a second card that repeats 87.5%
 
-- **สถานะ:** ยังเสีย · เดิม AI-236
+- **สถานะ:** แก้แล้ว `939fdee` · เดิม AI-236: คำถามว่าภาคอีสานจะปิดเดือนที่เท่าไหร่ได้การ์ดคาดปิดเดือน 87.5% กับ 77.3% และคาดว่าขาด 52.9 ล้านบาท แม้ได้แถวเดียว และคำตอบที่มีการ์ดช่องว่างวาดการ์ดเดียวที่บอก 52.9 ข้าง 87.5%
 - **ระดับ:** กลาง · **หมวด:** `card-fit` · **บทบาท:** u_anucha (RSM) probe
 - **อาการ:** For 'ภาคอีสานสิ้นเดือนนี้จะปิดได้กี่เปอร์เซ็นต์ของเป้า', query_metric returned asksMonthEnd:true with a projection of 87.5%. With dims ['region'] (one row), the card is the C scorecard: ภาคอีสาน 77.3% in red, then the to-date shortfall of 96.4 wrapped across lines, then 87.5% uncoloured. The explain_gap card below leads with 87.5% again, so two cards answer one question. The text is correct.
 - **ที่ควรเป็น:** R14: the month_end card leads with 87.5% and shows the month end's own shortfall (52.9) beside it, whether or not the query names the region as a dimension. One card per answer.
@@ -3518,7 +3518,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-267. The forwarded explain_gap card is titled only 'ทำไมตัวเลขถึงเป็นแบบนี้' with no number, and the ask repeats the user's words
 
-- **สถานะ:** เปิด (ใหม่)
+- **สถานะ:** แก้แล้ว `af56887`: การ์ดทำไมที่ส่งต่อชื่อ "มูลค่าขายเข้า · รายภาค" ตามขอบเขต และการ์ดอนุมัติแสดงตัวเลข "248.1 ล้านบาท −9.3%" เหมือนการ์ดในแชต
 - **ระดับ:** กลาง · **หมวด:** `write-flow` · **บทบาท:** u_thana (CEO) S2 probe
 - **อาการ:** The approval for the week-why gap card titled it 'ทำไมตัวเลขถึงเป็นแบบนี้', with no metric, no −25.5 ล้านบาท or −9.3%, and no scope. On screen the same card reads 'มูลค่าขายเข้า · รายภาค: ต่ำกว่าสัปดาห์ก่อน 25.5 ล้านบาท…'. The ask was 'ช่วยดูหน่อย ให้ตอบกลับภายในศุกร์นี้'.
 - **ที่ควรเป็น:** The send preview and the matter title name the metric, the scope and the verdict figure, as query_metric cards do.
@@ -3529,7 +3529,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-268. RSM overdue trend card's headline says +22.9% month on month (red), while the reply concludes from the six-month fall that the credit hypothesis is weaker
 
-- **สถานะ:** เปิด (ใหม่) · เดิม AI-241
+- **สถานะ:** แก้แล้ว `939fdee` · เดิม AI-241: R15: ยอดคงค้างหลายเดือนนำด้วย "ตั้งแต่ มิ.ย. 69 ลดลงจาก 4.5 ล้านบาท เหลือ 2.9 ล้านบาท" สีเขียว และบอก "แต่ พ.ย. 69 เพิ่มขึ้น 22.9% จาก ต.ค. 69" การ์ดกับข้อความพูดเรื่องเดียวกัน
 - **ระดับ:** กลาง · **หมวด:** `grounding` · **บทบาท:** u_anucha (RSM) s2t1
 - **อาการ:** The AI-241 range fix holds (มิ.ย.–พ.ย. 69: 4.5, 5.5, 3.7, 3.2, 2.3, 2.9 ล้าน). The card headline is 'พ.ย. 69 เพิ่มขึ้น 22.9% จาก ต.ค. 69' in red. The text says the balance fell from 4.5 to 2.9 and that the credit hypothesis is weaker, and never mentions the November rise. The text also uses the jargon 'ชั้นเมตริก' and leaves 'ตามเวลา' off 'ต่ำกว่าเป้าหมาย 18.1'.
 - **ที่ควรเป็น:** For a balance series used to check a hypothesis, the card leads with the direction over the range, or the text names the November uptick. The card and the text say the same thing.
@@ -3540,7 +3540,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-269. In the CEO's ถามต่อ, the overdue card leads with ขอนแก่นมหาชัย, the reply calls a small rise proof of the credit hypothesis, and the CEO's send states it as fact
 
-- **สถานะ:** เปิด (ใหม่) · เดิม AI-241 (same overclaim on an overdue check)
+- **สถานะ:** ส่วนการ์ดแก้แล้ว `939fdee` · เดิม AI-241 (same overclaim on an overdue check): คำตัดสินบอกสองเอเย่นต์ที่ถาม "อุบลศรีสุข เทรดดิ้ง +12.8% อันดับ 4 · อีสานรุ่งโรจน์ ค้าส่ง +22.9% อันดับ 5 จาก 8 เอเย่นต์ · ปากช่องเบเวอเรจเพิ่มขึ้นมากสุด +38.4%" (ข้อความและคำขอเป็นงานของ L2)
 - **ระดับ:** กลาง · **หมวด:** `grounding` · **บทบาท:** u_thana (CEO), chain alt-1/alt-3
 - **อาการ:** ar_overdue by agent puts the two asked agents at 2.9 ล้านบาท each, 4th and 5th of 8. The card verdict reads 'ขอนแก่นมหาชัยมากสุด ตามด้วยโคราชสหภัณฑ์', although ขอนแก่นมหาชัย's overdue fell 21.9%. The reply says the +22.9%/+12.8% rise 'สนับสนุนสมมติฐาน…ติดปัญหาเครดิต', but ปากช่องเบเวอเรจ rose +38.4% and its sell-in is on pace. The CEO's send ask then asked to 'เร่งแก้ไขปัญหาเครดิต', which passes the hypothesis down the chain as fact.
 - **ที่ควรเป็น:** The verdict covers the asked rows (their rise and rank). The reply calls the evidence suggestive and names the counter-example. The send asks the RSM to check credit.
@@ -3576,7 +3576,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-272. The Korat share alert gives three figures for one drop: −5.6% (relative), a 3.5-point bar and '3.8 จุด' in the AI line
 
-- **สถานะ:** เปิด (ใหม่)
+- **สถานะ:** แก้แล้ว `e99dd8c`: แถวใน Inbox บอก −3.5 จุด แทน −5.6% และสมมติฐานบอก "ต่ำกว่าที่คาด 3.5 จุด" ตัวเลขเดียวกับแถบ
 - **ระดับ:** กลาง · **หมวด:** `grounding` · **บทบาท:** u_krit inbox drawer; the same alert appears in the CEO's stories and on the ถามต่อ anomaly card
 - **อาการ:** The row นครราชสีมา · ส่วนแบ่งตลาดเบียร์ shows a red −5.6% with 62.9% → 59.4% (3.5 points). Its hypothesis says 'ลดลง 3.8 จุด'.
 - **ที่ควรเป็น:** Per R8, show the change as '−3.5 จุด'. The hypothesis quotes the same gap or names its different base.
@@ -3587,7 +3587,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-273. Matter title follows the first read: the agent card RSM → rep is titled 'มูลค่าขายเข้า · รายภาค · ขอนแก่นมหาชัย'
 
-- **สถานะ:** เปิด (ใหม่) · เดิม AI-208 / AI-223 / follows AI-235
+- **สถานะ:** แก้แล้ว `af56887` · เดิม AI-208 / AI-223 / follows AI-235: ชื่อเรื่องตาม read ที่ส่งถึง: "มูลค่าขายเข้า · รายเอเย่นต์ · ขอนแก่นมหาชัย"
 - **ระดับ:** ต่ำ · **หมวด:** `wording` · **บทบาท:** u_anucha → u_krit (s1t1, s1t2, rep bell, inbox, IT activity)
 - **อาการ:** Matter bgR1CQaCUwbJ stores [region rollup, agent ranking]. The approval, receipt, bell, inbox and IT activity all say รายภาค, while the matter page draws the agent strip 'รายเอเย่นต์' with ขอนแก่นมหาชัย 85.3% as the hero. The 8 agents are within the rep's scope, so this is not a leak. The auto-close goal is 100% of the month target, which the 87.5% forecast makes unlikely.
 - **ที่ควรเป็น:** The title follows the drawn and focused read ('มูลค่าขายเข้า · รายเอเย่นต์ · ขอนแก่นมหาชัย').
@@ -3599,7 +3599,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-274. The week-why gap strip folds a single 6th region at 11.9% into 'อีก 1 รายการ'
 
-- **สถานะ:** เปิด (ใหม่) · เดิม AI-228
+- **สถานะ:** แก้แล้ว `939fdee` · เดิม AI-228: ช่องว่างไม่พับแถวเดียว ภาคกลาง 11.9% ขึ้นเป็นแถวของตัวเอง
 - **ระดับ:** ต่ำ · **หมวด:** `card-fit` · **บทบาท:** u_thana (CEO) S2T1
 - **อาการ:** The rest bucket is one region at −3.0 ล้านบาท (11.9% of the gap), shown as 'อีก 1 รายการรวม 11.9% ของช่องว่าง'.
 - **ที่ควรเป็น:** R11 draws every part over 10% of the gap, and a fold of one row shows that row.
@@ -3676,7 +3676,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-281. Chat cards still show a black 'ส่งให้คุณอนุชา' after the card was sent, and the reply offers to send again
 
-- **สถานะ:** เปิด (ใหม่) · เดิม AI-252
+- **สถานะ:** แก้แล้ว `552e872` · เดิม AI-252: การ์ดที่ส่งให้คุณอนุชาแล้วไม่มีปุ่มส่งให้คุณอนุชาซ้ำ ปุ่มหลักเป็นขั้นต่อไปแทน (คำเสนอส่งซ้ำในข้อความยังเป็นงานของ prompt)
 - **ระดับ:** ต่ำ · **หมวด:** `write-flow` · **บทบาท:** u_thana (chain alt-1), u_krit (break-2)
 - **อาการ:** Card 1 shows 'ส่งแล้ว' to คุณอนุชา but still offers the black send button, and the anomaly card offers another. The reply ends 'ต้องการให้ส่งการ์ดนี้ให้คุณอนุชา…ไหมครับ'. A presenter could tap it and raise a third send.
 - **ที่ควรเป็น:** No primary send to someone who already holds the card, or a run sheet line that names this button.
@@ -3731,7 +3731,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-286. The rep's month-total card prefills a send ask that lists all 4 agent names
 
-- **สถานะ:** เปิด (ใหม่) · เดิม AI-231 · นอกเส้นทางเดโม
+- **สถานะ:** แก้แล้ว `843038f` · เดิม AI-231 · นอกเส้นทางเดโม: คำขอเริ่มต้นเป็น "ช่วยตรวจทั้ง 4 เอเย่นต์ · ภาคอีสาน …" ไม่เรียงชื่อทั้ง 4
 - **ระดับ:** ต่ำ · **หมวด:** `wording` · **บทบาท:** u_krit S1-T1
 - **อาการ:** The ask reads 'ช่วยตรวจขอนแก่นมหาชัย, อีสานรุ่งโรจน์ ค้าส่ง, โคราชสหภัณฑ์, อุบลศรีสุข เทรดดิ้ง · ภาคอีสาน…', while the card says 'เอเย่นต์ทั้ง 4 ราย'.
 - **ที่ควรเป็น:** 'ช่วยตรวจ 4 เอเย่นต์ที่ผมดูแล…'.
