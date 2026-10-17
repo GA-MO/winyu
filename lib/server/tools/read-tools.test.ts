@@ -23,6 +23,7 @@ import { toolLabel, toolSurface } from "./registry";
 import { runWithAccess, runWithTurn } from "@/lib/server/request-context";
 import { approvedCallId } from "@/scripts/approved-call";
 import { screenWith } from "@/scripts/screen-cards";
+import { drawsNoCard } from "@/components/chat/tool-view";
 
 const REP = "u_krit";
 const OTHER_REP = "u_nok";
@@ -313,5 +314,35 @@ describe("get_person leave", () => {
     const peer = (await call(OTHER_REP, "get_person", { id: REP, name: null })) as unknown as Profile;
     expect(peer.data.leave).toEqual([]);
     expect(peer.data.leave_note).toBe(TH.people.leaveHidden(findUser(RSM)?.nameTh ?? null));
+  });
+});
+
+type Headlined = Rows & { headline?: { label: string; value: string; detail?: string | null } | null };
+
+describe("admin_audit answers the IT window's questions on one card each (round 8)", () => {
+  test("model cost cuts its spend one way: the person rows, with no second background figure by source above them (AI-276)", async () => {
+    const report = (await call(IT, "admin_audit", { topic: "model_cost", days: 7, role: null })) as Headlined;
+    if (!report.ok) throw new Error(report.error);
+    expect(report.headline?.detail).toBe(TH.adminAudit.costPeopleNote);
+    expect(JSON.stringify({ summary: report.summary, headline: report.headline })).not.toContain(`${TH.adminAudit.sources.background} $`);
+  });
+
+  test("a report that found nothing still draws its card, so the half of a two-topic question with no rows is on screen too (AI-279)", async () => {
+    const none = await call(IT, "admin_audit", { topic: "role_access", days: null, role: "ceo", level: "masked" });
+    expect(rowsOf(none)).toEqual([]);
+    expect(drawsNoCard(none)).toBe(false);
+    expect(TH.adminAudit.denials(0, 7, 0)).toBe("ไม่มีใครถูกปฏิเสธใน 7 วันล่าสุด");
+  });
+
+  test("role_access says what data the role sees, region by region per person who holds it, so a scope answer comes from the tool (AI-271)", async () => {
+    const rep = (await call(IT, "admin_audit", { topic: "role_access", days: null, role: "sales_rep" })) as Headlined;
+    if (!rep.ok) throw new Error(rep.error);
+    expect(rep.headline?.label).toBe(TH.adminAudit.scopeLabel(TH.role.sales_rep));
+    expect(rep.headline?.value).toBe(TH.adminAudit.scopeOwn);
+    expect(rep.headline?.detail).toContain("คุณกฤต จันทร์เสน ภาคอีสาน");
+    expect(rep.headline?.detail).toContain("คุณอาร์ม สิทธิชัย ภาคใต้");
+    expect(rep.summary).toContain("คุณกฤต จันทร์เสน ภาคอีสาน");
+    const ceo = (await call(IT, "admin_audit", { topic: "role_access", days: null, role: "ceo" })) as Headlined;
+    expect(ceo.ok === true && ceo.headline?.value).toBe(TH.adminAudit.scopeAll);
   });
 });

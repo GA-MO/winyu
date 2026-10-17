@@ -96,6 +96,17 @@ describe("send_card", () => {
     expect(sent.data?.warning ?? "").toMatch(/^ข้อความบอกว่าถึงหรือเกินเป้า แต่การ์ดแสดง \d+\.\d% ของเป้า$/);
   });
 
+  test("an ask that states a suspected cause as fact is held back for an ask that has the receiver check it; the person's own words and a check go (AI-269)", async () => {
+    const question = "ส่งเรื่องนี้ให้ผู้จัดการขายภาคอีสาน ด่วน";
+    const before = sentCount();
+    const held = await send({ to: ["u_anucha"], ask: "ช่วยตรวจสอบและเร่งแก้ไขปัญหาเครดิตของอีสานรุ่งโรจน์และอุบลศรีสุขด่วน" }, question);
+    expect(held).toMatchObject({ ok: false, code: "ASK_STATES_CAUSE" });
+    expect(held.error ?? "").toContain("แก้ไขปัญหาเครดิต");
+    expect(sentCount()).toBe(before);
+    expect((await send({ to: ["u_anucha"], ask: "ช่วยตรวจว่าอีสานรุ่งโรจน์และอุบลศรีสุขติดปัญหาเครดิตหรือไม่" }, question)).ok).toBe(true);
+    expect((await send({ to: ["u_anucha"], ask: "แก้ปัญหาเครดิตด่วน" }, "ส่งให้พี่อนุชา บอกให้แก้ปัญหาเครดิตด่วน")).ok).toBe(true);
+  });
+
   test("the card named by its ref is the one sent; with two cards on screen and none named, or a ref nobody drew, nothing is sent and the cards on screen are listed", async () => {
     const byRegion: ShareTarget = { card: { kind: "tool", reads: [{ tool: "query_metric", input: BY_REGION }] }, question: "ยอดขายแยกตามภาค" };
     const two = screenWith([ON_SCREEN, byRegion]);

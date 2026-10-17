@@ -1,8 +1,10 @@
+import { randomUUID } from "node:crypto";
 import { appendFileSync, readFileSync } from "node:fs";
 import path from "node:path";
+import { sessionCookie } from "@/lib/server/auth/session-token";
 import { DATA_DIR } from "@/lib/server/store/json-store";
 import { rateOf } from "@/lib/server/usage-meter";
-import { type AgUiEvent, type Reply, followUp, interruptsOf, run, threadOf } from "./chat-client";
+import { type AgUiEvent, type Reply, type Thread, followUp, interruptsOf, run, threadOf } from "./chat-client";
 
 const SETTLE_MS = 4000;
 const LEDGER_WAIT_MS = 15000;
@@ -11,8 +13,10 @@ const MS_PER_SECOND = 1000;
 const CARD_ACTIVITY = "ACTIVITY_SNAPSHOT";
 const CACHE_READ_SHARE = 0.1;
 const TOKENS_PER_MILLION = 1_000_000;
+const BASE_URL = process.env.PROBE_URL ?? "http://localhost:3100";
+const OPENED_THREAD = /^\/c\/([^?]+)\?prompt=(.*)$/;
 
-type Question = { key: string; userId: string; question: string; setup?: string };
+type Question = { key: string; userId: string; question: string; setup?: string; story?: string };
 type Call = { turnId: string | null; modelId: string; source: string; inputTokens: number; cachedTokens: number; reasoningTokens: number; outputTokens: number; billedUsd: number | null; estimatedUsd: number };
 type TraceEvent = { type: string; at: string };
 type Trace = { id: string; events: TraceEvent[] };
@@ -64,7 +68,21 @@ const QUESTIONS: Question[] = [
   { key: "lookup-ceo-regions", userId: "u_thana", question: "ยอดขายเดือนนี้แยกตามภาค" },
   { key: "lookup-rep-stock", userId: "u_krit", question: "อีสานรุ่งโรจน์ของในสต็อกพอขายได้อีกกี่วัน" },
   { key: "it-audit", userId: "u_ton", question: "สัปดาห์นี้ใครถูกปฏิเสธสิทธิ์บ้าง และใครส่งงานอะไรให้ใคร" },
+  { key: "ceo-askmore-overdue", userId: "u_thana", story: "u_thana-0", question: "" },
+  { key: "ceo-askmore-send", userId: "u_thana", story: "u_thana-0", question: "ส่งเรื่องนี้ให้ผู้จัดการขายภาคอีสาน ด่วน" },
+  { key: "ceo-year", userId: "u_thana", question: "ทั้งปีนี้ยอดขายจะถึงเป้าไหม" },
+  { key: "it-rep-scope", userId: "u_ton", question: "ถ้าพนักงานขายถามยอดขายภาคใต้ เขาจะเห็นไหม" },
 ];
+
+/** A thread opened from a morning story the way the ถามต่อ button opens it, so the turn runs with the story preloaded; its first question is the one the button asks. */
+async function storyThread(userId: string, storyId: string): Promise<Thread> {
+  const cookie = sessionCookie({ via: "demo", userId });
+  const response = await fetch(`${BASE_URL}/c/new?story=${encodeURIComponent(storyId)}`, { headers: { cookie: `${cookie.name}=${cookie.value}` }, redirect: "manual" });
+  const location = new URL(response.headers.get("location") ?? "", BASE_URL);
+  const opened = OPENED_THREAD.exec(location.pathname + location.search);
+  if (!opened?.[1] || opened[2] === undefined) throw new Error(`story ${storyId} did not open a thread (HTTP ${response.status})`);
+  return { id: opened[1], userId, messages: [{ id: randomUUID(), role: "user", content: decodeURIComponent(opened[2]) }] };
+}
 
 function argOf(name: string): string | null {
   return process.argv.find((arg) => arg.startsWith(`--${name}=`))?.slice(name.length + 3) ?? null;
@@ -128,9 +146,10 @@ function errorOf(reply: Reply): string | null {
 }
 
 async function timedTurn(question: Question, rep: number): Promise<Turn> {
-  const opening = threadOf(question.userId, question.setup ?? question.question);
-  const thread = question.setup ? followUp(opening, question.question) : opening;
-  if (question.setup) await run(opening);
+  const opening = question.story ? await storyThread(question.userId, question.story) : threadOf(question.userId, question.setup ?? question.question);
+  const asksAfter = question.setup !== undefined || (question.story !== undefined && question.question !== "");
+  const thread = asksAfter ? followUp(opening, question.question) : opening;
+  if (asksAfter) await run(opening);
   const startedAt = performance.now();
   const reply = await run(thread);
   const wallSeconds = (performance.now() - startedAt) / MS_PER_SECOND;

@@ -125,11 +125,63 @@ const YEAR_SO_FAR = {
 
 describe("the model reads what the rest of the year must make up (AI-251)", () => {
   test("the year so far against target tells the model the amount and the days left that the card's verdict names", () => {
-    const read = modelReads(YEAR_SO_FAR) as typeof YEAR_SO_FAR;
-    expect(read.summary).toContain("ต้องทำเกินเป้าอีก 477.7 ล้านบาท ภายในสิ้นปี (เหลือ 35 วัน)");
+    const read = JSON.stringify(modelReads(YEAR_SO_FAR));
+    expect(read).toContain("477.7 ล้านบาท");
+    expect(read).toContain("35 วันที่เหลือ");
   });
 
   test("a month to date against target gains no year line", () => {
     expect((modelReads(REP_OPENER) as typeof REP_OPENER).summary).not.toContain("ภายในสิ้นปี");
+  });
+});
+
+describe("the model reads the year's yes or no with the amount and the days left (AI-275)", () => {
+  test("a year behind target reads one answer line naming the amount the rest of the year must make up and the days left", () => {
+    const read = modelReads(YEAR_SO_FAR) as typeof YEAR_SO_FAR & { headline: { yearEnd?: string } };
+    expect(read.headline.yearEnd).toBe("ยังไม่ถึงเป้าตามเวลา จะถึงเป้าทั้งปีต่อเมื่อ 35 วันที่เหลือทำเกินเป้ารวมอีก 477.7 ล้านบาท");
+  });
+
+  test("a month to date reads no year line", () => {
+    expect((modelReads(REP_OPENER) as { headline: { yearEnd?: string } }).headline.yearEnd).toBeUndefined();
+  });
+});
+
+/** The CEO's ถามต่อ overdue check in round 8 (run 96e87142): the two agents asked about rose, and so did five others, one of them more. */
+const OVERDUE_BY_AGENT = {
+  ok: true,
+  rows: [
+    { agent: "ขอนแก่นมหาชัย", value: 3319236, value_label: "3.3 ล้านบาท", compare_value: 4250951, delta_pct: -21.9 },
+    { agent: "โคราชสหภัณฑ์", value: 3226632, value_label: "3.2 ล้านบาท", compare_value: 2953862, delta_pct: 9.2 },
+    { agent: "ส.รุ่งเรือง เทรดดิ้ง", value: 3179070, value_label: "3.2 ล้านบาท", compare_value: 3062868, delta_pct: 3.8 },
+    { agent: "อุบลศรีสุข เทรดดิ้ง", value: 2933989, value_label: "2.9 ล้านบาท", compare_value: 2601749, delta_pct: 12.8 },
+    { agent: "อีสานรุ่งโรจน์ ค้าส่ง", value: 2857256, value_label: "2.9 ล้านบาท", compare_value: 2324459, delta_pct: 22.9 },
+    { agent: "นางรองค้าส่ง", value: 2388108, value_label: "2.4 ล้านบาท", compare_value: 2225065, delta_pct: 7.3 },
+    { agent: "ปากช่องเบเวอเรจ", value: 2209668, value_label: "2.2 ล้านบาท", compare_value: 1596167, delta_pct: 38.4 },
+    { agent: "วารินพาณิชย์", value: 2185816, value_label: "2.2 ล้านบาท", compare_value: 2287046, delta_pct: -4.4 },
+  ],
+  summary: "ยอดค้างชำระเกินกำหนด 1 พ.ย. 2569 – 26 พ.ย. 2569: รวม 22.3 ล้านบาท · เทียบช่วงก่อนหน้า +4.7% · (8 แถว · certified · SAP FI)",
+  headline: { aggregate: "sum", value: "22.3 ล้านบาท", periodLabel: "1 พ.ย. 2569 – 26 พ.ย. 2569", rowCount: 8, deltaPercent: 4.7, compareLabel: "เทียบช่วงก่อนหน้า", compareNote: null, top: [], underLine: null, asked: ["อุบลศรีสุข เทรดดิ้ง", "อีสานรุ่งโรจน์ ค้าส่ง"] },
+  provenance: { metric: "ar_overdue", certified: true, sourceSystem: "SAP FI", asOf: "2026-11-26", rowCount: 8, masked: [], trust: "verified" },
+  query: { metric: "ar_overdue", dims: ["agent"], filters: { region: ["northeast"] }, grain: "month", compare: "prev_period", limit: null, range: { from: "2026-11-01", to: "2026-11-26" }, period: "this_month" },
+  nextActions: [],
+};
+
+type AskedRead = { headline: { askedVsOthers?: string } };
+
+describe("a check on the rows asked about reads them against every other row (AI-269)", () => {
+  test("when other rows moved the same way, the model reads the one that moved most, so a rise in the asked rows is not proof", () => {
+    const read = modelReads(OVERDUE_BY_AGENT) as AskedRead;
+    expect(read.headline.askedVsOthers).toBe("รายที่ถาม: อุบลศรีสุข เทรดดิ้ง +12.8%, อีสานรุ่งโรจน์ ค้าส่ง +22.9% · รายอื่นเพิ่มขึ้นด้วย 4 ราย มากสุด ปากช่องเบเวอเรจ +38.4% ข้อมูลนี้จึงไม่ได้แยกรายที่ถามออกจากรายอื่น");
+  });
+
+  test("when no other row moved as far, the model reads that, still as a lead and not a cause", () => {
+    const rows = OVERDUE_BY_AGENT.rows.map((row) => (row.agent === "ปากช่องเบเวอเรจ" ? { ...row, delta_pct: 5.1 } : row));
+    const read = modelReads({ ...OVERDUE_BY_AGENT, rows }) as AskedRead;
+    expect(read.headline.askedVsOthers).toBe("รายที่ถาม: อุบลศรีสุข เทรดดิ้ง +12.8%, อีสานรุ่งโรจน์ ค้าส่ง +22.9% · รายอื่นเพิ่มขึ้นด้วย 4 ราย แต่ไม่มีรายใดเพิ่มขึ้นมากเท่ารายที่ถาม");
+  });
+
+  test("a result that names no rows reads as it was", () => {
+    const { asked: _asked, ...headline } = OVERDUE_BY_AGENT.headline;
+    expect((modelReads({ ...OVERDUE_BY_AGENT, headline }) as AskedRead).headline.askedVsOthers).toBeUndefined();
   });
 });

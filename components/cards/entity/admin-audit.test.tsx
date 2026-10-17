@@ -65,13 +65,13 @@ function nameOf(userId: string): string {
 }
 
 describe("the admin audit card", () => {
-  test("model cost shows the total as the hero above the split by source", async () => {
+  test("model cost shows the total as the hero, with the note that each person's figure includes the jobs run for them (AI-276)", async () => {
     const result = await adminAudit({ topic: "model_cost", days: 7 });
     const html = drawn(result);
     const hero = html.indexOf(TH.adminAudit.costTotal(7));
     expect(hero).toBeGreaterThanOrEqual(0);
     expect(html.indexOf(result.headline?.value ?? "missing", hero)).toBeGreaterThan(hero);
-    expect(html.indexOf(TH.adminAudit.sources.chat)).toBeGreaterThan(hero);
+    expect(html.indexOf(TH.adminAudit.costPeopleNote)).toBeGreaterThan(hero);
   });
 
   test("model cost ranks spend by person, keeps spend no one person caused as its own last row, and names the console's 14-day window (AI-243)", async () => {
@@ -88,7 +88,7 @@ describe("the admin audit card", () => {
     const result = await adminAudit({ topic: "model_cost" });
     const console = textOf(renderToStaticMarkup(<SpendStat spend={usageSummary().spend} />));
     for (const id of ["k3-anucha-old", "k3-anucha", "k3-thana-chat", "k3-thana-job", "k3-nobody", "k3-too-old"]) modelCalls().remove(id);
-    expect(result.headline).toEqual({ label: TH.adminAudit.costTotal(14), value: "$33.50", detail: `${TH.adminAudit.sources.chat} $13.00 · ${TH.adminAudit.sources.background} $20.50 · ${TH.adminAudit.sources.eval} $0.00` });
+    expect(result.headline).toEqual({ label: TH.adminAudit.costTotal(14), value: "$33.50", detail: TH.adminAudit.costPeopleNote });
     expect(result.rows.map((row) => [row.user_name, row.cost_label])).toEqual([
       [nameOf("u_anucha"), "$10.00"],
       [nameOf("u_thana"), "$3.50"],

@@ -2,7 +2,7 @@ import { metricAccess } from "@/lib/access/grants";
 import { outOfScopeFilters, type OutOfScope } from "@/lib/access/enforce";
 import { REGIONS, metricQueryInputSchema, type AccessContext, type Dim, type MetricId, type MetricQuery, type MetricQueryInput, type MetricResult, type MetricRow, type MonthEndProjection } from "@/lib/contracts";
 import { attainmentOf } from "@/lib/cards/breakdown";
-import { monthElapsedOf, yearCatchUpOf } from "@/lib/cards/present";
+import { monthElapsedOf, yearBehindOf } from "@/lib/cards/present";
 import { percentText } from "@/lib/cards/reading";
 import { ownAgentsFilter } from "@/lib/data/entities/agents";
 import { TH } from "@/lib/i18n/th";
@@ -15,7 +15,7 @@ import { askedQuery } from "@/lib/semantic/resolved";
 import { excludedIn, filtersWithout } from "@/lib/semantic/exclusion";
 import { namesOf } from "@/lib/semantic/dictionary";
 import { asksMonthEnd, rowsNamedIn } from "@/lib/cards/asked";
-import { groupDimsOf, labelAlong } from "@/lib/cards/rows";
+import { changeTextOf, deltaPercentOf, groupDimsOf, labelAlong, timeDimOf } from "@/lib/cards/rows";
 import { actionsForMetric, actionsForRefusal, followUpsForMetric } from "@/lib/server/next-actions";
 import { currentAccess, currentTurn, recordQuery } from "@/lib/server/request-context";
 import { defineTool } from "./define";
@@ -108,11 +108,36 @@ function oneBaseForModel(output: unknown): unknown {
   return { ...output, summary, headline, rows: output.rows.map((row) => onMonthBase(row, elapsed)) };
 }
 
-/** A year so far against target as the model reads it: the summary adds what the rest of the year must make up and the days left, the line the card's verdict ends with, so the reply can name them (AI-251). */
+/** A year so far against target as the model reads it: one line that answers "will the year reach target" with the amount the rest of the year must make up and the days left, the figures the card's verdict ends with, so the reply names both (AI-251, AI-275). */
 function withYearEnd(output: unknown): unknown {
   if (!isAnswered(output) || output.query.compare !== "target") return output;
-  const catchUp = yearCatchUpOf(output.query, output);
-  return catchUp ? { ...output, summary: [output.summary, catchUp].join(SUMMARY_SEPARATOR) } : output;
+  const behind = yearBehindOf(output.query, output);
+  return behind ? { ...output, headline: { ...output.headline, yearEnd: TH.modelView.yearReach(behind.amount, behind.daysLeft) } } : output;
+}
+
+function changeOf(query: MetricQuery, row: MetricRow): { label: string; change: number; text: string } | null {
+  const label = labelAlong(groupDimsOf(query), row);
+  const change = deltaPercentOf(row);
+  const text = changeTextOf(query.metric, row);
+  return label === null || change === null || text === null ? null : { label, change, text };
+}
+
+/** The rows the question named, read against every other row of the result: how many others moved the same way, and the one that moved furthest when it went further than the asked rows, so a check on the asked rows is never read as proof when the rest moved alike (AI-269). Only for one row per group and a change against an earlier window. */
+function askedAgainstOthers(output: unknown): unknown {
+  if (!isAnswered(output) || output.query.compare === "target" || timeDimOf(output.query) !== null) return output;
+  const asked = output.headline.asked ?? [];
+  if (asked.length === 0) return output;
+  const changes = output.rows.flatMap((row) => changeOf(output.query, row) ?? []);
+  const named = changes.filter((entry) => asked.includes(entry.label));
+  const rising = named.every((entry) => entry.change > 0);
+  if (named.length === 0 || (!rising && !named.every((entry) => entry.change < 0))) return output;
+  const way = TH.modelView.way(rising);
+  const smallest = Math.min(...named.map((entry) => Math.abs(entry.change)));
+  const alike = changes.filter((entry) => !asked.includes(entry.label) && (rising ? entry.change > 0 : entry.change < 0)).sort((left, right) => Math.abs(right.change) - Math.abs(left.change));
+  const [furthest] = alike;
+  const others = !furthest ? TH.modelView.othersNone(way) : [TH.modelView.othersToo(way, alike.length), Math.abs(furthest.change) > smallest ? TH.modelView.othersFurther(furthest.label, furthest.text) : TH.modelView.othersNotAsFar(way)].join(" ");
+  const line = [TH.modelView.asked(named.map((entry) => `${entry.label} ${entry.text}`).join(", ")), others].join(SUMMARY_SEPARATOR);
+  return { ...output, headline: { ...output.headline, askedVsOthers: line } };
 }
 
 /** A question that sets places aside ("นอกจากเรื่องอีสาน") reads the places that remain, so the card and its rows follow the question; null when it sets none aside or the query keeps them anyway. */
@@ -163,7 +188,7 @@ export const queryMetricTool = defineTool({
   input: metricQueryInputSchema,
   verify: metricAnswerHolds,
   correct: metricQueryFix,
-  modelView: (output: unknown) => withYearEnd(oneBaseForModel(output)),
+  modelView: (output: unknown) => askedAgainstOthers(withYearEnd(oneBaseForModel(output))),
   execute: async (asked: MetricQueryInput) => {
     const dictionary = await loadDictionary();
     const narrowed = narrowedForQuestion(asked, currentAccess(), askedQuestion(), dictionary);

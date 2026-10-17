@@ -640,8 +640,14 @@ function shortfallOf(query: MetricQuery, rows: readonly MetricRow[]): number | n
 /** What the rest of a year must make up, said in the verdict of a year against its target ("ต้องทำเกินเป้าอีก 477.7 ล้านบาท ภายในสิ้นปี (เหลือ 35 วัน)"); null when the year is not behind. The warehouse holds no target past the day the data stops, so the year end itself cannot be projected (AI-213). */
 /** What the rest of the year must make up and the days left ("ต้องทำเกินเป้าอีก 477.7 ล้านบาท ภายในสิ้นปี (เหลือ 35 วัน)") for a range from 1 January against target; null for any other range or when nothing is short. */
 export function yearCatchUpOf(query: MetricQuery, result: OkResult): string | null {
+  const behind = yearBehindOf(query, result);
+  return behind === null ? null : TH.read.yearCatchUp(behind.amount, TH.read.daysLeft(behind.daysLeft));
+}
+
+/** The amount a year so far is behind its target and the days left in the year; null for any other range or when nothing is short. */
+export function yearBehindOf(query: MetricQuery, result: OkResult): { amount: string; daysLeft: number } | null {
   const short = spansYear(query) ? shortfallOf(query, result.rows) : null;
-  return short === null ? null : TH.read.yearCatchUp(formatMetricValue(query.metric, short), TH.read.daysLeft(daysLeftInYear(result.provenance.asOf)));
+  return short === null ? null : { amount: formatMetricValue(query.metric, short), daysLeft: daysLeftInYear(result.provenance.asOf) };
 }
 
 /** A year so far against its target, one number: its share of target to date leads, what it is behind and the days left in the year beside it, and the verdict says what the rest of the year must make up (AI-213). */

@@ -64,9 +64,10 @@ function idsOf(value: unknown): string[] {
   return listed.map((item) => String(item).split(":")[0] ?? "").filter((id) => findUser(id) !== undefined);
 }
 
+/** The matter's own title, the one every row of it shows; the title in the audit arguments is clipped, so it stands in only for a matter that is gone. */
 function matterTitle(code: string | undefined, parsed: Parsed): string {
-  if (typeof parsed.title === "string") return parsed.title;
-  return (code ? shares().get(code)?.title : undefined) ?? "";
+  const stored = code ? shares().get(code)?.title : undefined;
+  return stored ?? (typeof parsed.title === "string" ? parsed.title : "");
 }
 
 function madeInside(inner: AuditEntry, call: AuditEntry): boolean {

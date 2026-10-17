@@ -21,6 +21,8 @@ import { GRANTS_COLLECTION } from "@/lib/access/enforce";
 import type { Grant } from "@/lib/contracts";
 import { forgetAbout, learnExtracted } from "@/lib/engine/memory";
 import { collection } from "@/lib/server/store/json-store";
+import { UNCOMPOSABLE_TOOLS } from "@/lib/compose/ground";
+import { adminAuditTool } from "@/lib/server/tools/admin-audit";
 import { FORGOTTEN_TERMS_HEADER, GUIDANCE_HEADER, INJECTION_NOTICE, LAPSED_GRANTS_HEADER, MEMORY_HEADER, VISIT_PLAN_CARD, WINYU_RULES, contextFor, personaFor, promptLines } from "./persona";
 
 const TODAY = DATA_AS_OF;
@@ -582,5 +584,45 @@ describe("leave of someone else", () => {
     const rule = WINYU_RULES.find((line) => line.includes("ระเบียบการลา")) ?? "";
     expect(rule).toContain("วันลาคงเหลือหรือใบลาของคนอื่น (เช่นลูกทีม) = `get_person`");
     expect(rule).toContain("`leave_note`");
+  });
+});
+
+describe("round 8 rules on what the model says (L2)", () => {
+  test("every tool Winyu draws itself is named as drawn by the system, admin_audit among them, so the writing step never weighs composing a card for it (AI-270)", () => {
+    const cards = WINYU_RULES.find((line) => line.startsWith("ทุกคำตอบที่แสดงคน")) ?? "";
+    const it = promptFor("u_ton", null);
+    expect(UNCOMPOSABLE_TOOLS).toContain("admin_audit");
+    for (const tool of UNCOMPOSABLE_TOOLS.filter((name) => name !== "admin_audit")) expect(cards).toContain(`\`${tool}\` `.trim());
+    expect(it).toContain("ผลของ `admin_audit` ระบบวาดการ์ดเองทุกครั้ง แม้มีชื่อคน: ไม่ประกอบ a2ui");
+  });
+
+  test("the IT admin is not told to restate the real date the card already stamps, and admin_audit asks for a short answer, not its rows (AI-270)", () => {
+    const prompt = promptFor("u_ton", null);
+    expect(prompt).not.toContain("เมื่อรายงานให้บอกว่าเป็นข้อมูลระบบ ณ วันที่จริง");
+    expect(prompt).toContain("การ์ดของ `admin_audit` ประทับวันที่จริงให้เอง ข้อความไม่ต้องบอกวันที่");
+    expect(prompt).toContain("เรียกครั้งละ `topic` ในขั้นเดียวกัน");
+    const description = adminAuditTool.description();
+    expect(description).not.toContain("say it as that date when you answer");
+    expect(description).not.toContain("put the rows under it");
+    expect(description).toContain("never lists the rows");
+  });
+
+  test("a code from a tool result is never printed in the reply (AI-277)", () => {
+    const language = WINYU_RULES.find((line) => line.startsWith("ภาษาในข้อความตอบ")) ?? "";
+    expect(language).toContain("ห้ามพิมพ์รหัสจากผล tool เช่น PERMISSION_DENIED");
+  });
+
+  test("the year's yes or no answers with the line that names the amount and the days left (AI-275)", () => {
+    const alerts = WINYU_RULES.find((line) => line.startsWith("ความผิดปกติ = `get_alerts`")) ?? "";
+    expect(alerts).toContain("`headline.yearEnd`");
+  });
+
+  test("a check that seems to confirm a hypothesis is read against every row and stays hedged, and a send asks the receiver to check the cause (AI-269)", () => {
+    const anomaly = WINYU_RULES.find((line) => line.startsWith("ความผิดปกติ: บอกก่อนว่าอะไรเปลี่ยน")) ?? "";
+    expect(anomaly).toContain("`headline.askedVsOthers`");
+    expect(anomaly).toContain("บอกชื่อรายนั้นกับตัวเลขของมัน");
+    expect(anomaly).toContain("ห้ามใช้คำว่ายืนยัน พิสูจน์ หรือสนับสนุน");
+    expect(anomaly).toContain("ข้อความแนบขอให้ผู้รับตรวจว่าใช่สาเหตุไหม");
+    expect(promptFor("u_thana", null)).toContain("`ASK_STATES_CAUSE` = เรียก `send_card` ใหม่ทันที");
   });
 });
