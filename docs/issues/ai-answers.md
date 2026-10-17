@@ -3081,25 +3081,25 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 | AI-239 (เดิม AI-204) | กลาง | แก้แล้ว `dde3fc3` | The B target strip pairs 'ขาดอีก' (the full-month gap) with 'ถึงวันนี้ควรได้ 86.7%', and the rep's reply drops 'ถึงเป้าทั้งเดือน' |
 | AI-240 (เดิม AI-222) | กลาง | แก้แล้ว `3a6d4b1` | The Isan story headline '51.7% และอุบลศรีสุข 48.3%' (gap shares) contradicts the 52.4% card row beneath it, and the sentence travels down the chain as the ask |
 | AI-241 (เดิม AI-206) | กลาง | แก้แล้ว `da9b02b` | The RSM overdue check is still a single October tile, and the reply calls it support for the credit hypothesis |
-| AI-242 (เดิม AI-200) | กลาง | แก้แล้ว `a0f4854` | On the IT activity card, the 6 folded rows lose the action and the card title, and those are exactly the demo chain's sends |
-| AI-243 (เดิม AI-232) | กลาง | แก้แล้ว `a26e0e7` | 'ใครใช้เงินเยอะสุด' gets no answer although every call records its user, and the chat says 7 days where the console says 14 for the same $0.52 |
-| AI-244 (เดิม AI-227) | กลาง | แก้แล้ว `991cea0` `b1dcfbf` | '(ครั้งที่ 2)' appears on a fresh seed when the chat option follows step 1, which trips the run sheet's 'reseed' troubleshooting row |
-| AI-245 (เดิม AI-219) | กลาง | แก้แล้ว `6c5015e` `20cbf7e` | The RSM forward picker opens below the fold on a phone, and ส่งต่อ takes about 5 s with no busy state |
+| AI-242 (เดิม AI-200) | กลาง | แก้แล้ว `5bdc15f` | On the IT activity card, the 6 folded rows lose the action and the card title, and those are exactly the demo chain's sends |
+| AI-243 (เดิม AI-232) | กลาง | แก้แล้ว `65295e3` | 'ใครใช้เงินเยอะสุด' gets no answer although every call records its user, and the chat says 7 days where the console says 14 for the same $0.52 |
+| AI-244 (เดิม AI-227) | กลาง | แก้แล้ว `35023b1` `dd9dd30` | '(ครั้งที่ 2)' appears on a fresh seed when the chat option follows step 1, which trips the run sheet's 'reseed' troubleshooting row |
+| AI-245 (เดิม AI-219) | กลาง | แก้แล้ว `1f1ba9f` `e4baedb` | The RSM forward picker opens below the fold on a phone, and ส่งต่อ takes about 5 s with no busy state |
 | AI-246 (เดิม AI-215) | ต่ำ | แก้แล้ว `da9b02b` | The pin receipt and reply do not name the replaced card, and the warning calls 96.3% and 83.9% 'ตัวเลขเดียวกัน' |
 | AI-247 (เดิม AI-230) | ต่ำ | ยังเสีย | The CEO's send to the South RSM warns 'ส่วนที่เหลือถูกล็อก' for an agent fully in her scope, and calls her 'เขา' |
 | AI-248 (เดิม AI-204) | ต่ำ | แก้แล้ว `3a6d4b1` | The RSM s1t3 reply sets the to-date gap shares (45.4%/42.0%) beside the month-end shortfall of 52.9 |
 | AI-249 (เดิม AI-204) | ต่ำ | แก้แล้ว `dde3fc3` | 'ถึงวันนี้ยังขาด' means the paced gap on the year card and the full-month gap on the month cards |
 | AI-250 (เดิม AI-211) | ต่ำ | ยังเสีย | The reply still points at 'การ์ดด้านล่าง' while the cards render above the text |
 | AI-251 (เดิม AI-223) | ต่ำ | แก้แล้ว `da9b02b` | The year answer uses '(YTD)' and leaves out the 477.7 ล้านบาท / 35 days that the card leads with |
-| AI-252 | ต่ำ | แก้แล้ว `65ce866` | The CEO send approval header is cut to 'คุณสรัญญ…' by the deadline pill, and the card's primary button offers 'ส่งให้คุณอาร์ม', a different person |
+| AI-252 | ต่ำ | แก้แล้ว `efd3177` | The CEO send approval header is cut to 'คุณสรัญญ…' by the deadline pill, and the card's primary button offers 'ส่งให้คุณอาร์ม', a different person |
 | AI-253 (เดิม AI-214) | ต่ำ | แก้แล้ว `da9b02b` | The week 'why' answer draws three cards: two repeat 248.1/−25.5, and an unrelated anomaly list sits beside 'ไม่มีส่วนใดเป็นสาเหตุหลัก' |
 | AI-254 | ต่ำ | แก้แล้ว `8801598` | The region strip prints '86%' beside '85.6%', and the Bangkok label is cut off |
 | AI-255 (เดิม AI-227) | ต่ำ | ยังเสีย | Run sheet wording still differs from the screen: the '· ภาคอีสาน' suffix, the drill button example, the 'ขั้นที่ n' labels, the Korat story label, and an unwarned black button |
-| AI-256 (เดิม AI-227) | ต่ำ | แก้แล้ว `65ce866` | The approval's 'ส่ง' button sits half under the composer and shares the accessible name 'ส่ง' with the composer send button |
+| AI-256 (เดิม AI-227) | ต่ำ | แก้แล้ว `efd3177` | The approval's 'ส่ง' button sits half under the composer and shares the accessible name 'ส่ง' with the composer send button |
 | AI-257 (เดิม AI-220) | ต่ำ | แก้แล้ว `9be3921` | The visit-plan card has an ASCII hyphen in '-9.5% · 28 วัน', uncoloured deltas, a first row that repeats the hero, and a '2 ราย' summary over 4 rows |
 | AI-258 | ต่ำ | เปิด (ใหม่) | The Isan story recommends the sales director and the CFO, while the demo sends the card to the RSM |
-| AI-259 | ต่ำ | แก้แล้ว `6275eb7` `24a1994` `d00587a` | CEO bell and drawer friction: the red dot stays until every update is opened, the drawer closes after back, and two buttons are named 'ปิด' |
-| AI-260 | ต่ำ | แก้แล้ว `68adfba` | The ถามต่อ answer ends below the fold, and its first card already shows 'ส่งแล้ว' before the send command |
+| AI-259 | ต่ำ | แก้แล้ว `a911de4` `79cebb4` `87f2c67` | CEO bell and drawer friction: the red dot stays until every update is opened, the drawer closes after back, and two buttons are named 'ปิด' |
+| AI-260 | ต่ำ | แก้แล้ว `78cec96` | The ถามต่อ answer ends below the fold, and its first card already shows 'ส่งแล้ว' before the send command |
 | AI-261 (เดิม AI-232) | ต่ำ | เปิด (ใหม่) · นอกเส้นทางเดโม | The IT usage ranking counts and lists a user with 0 questions and 0 tool calls |
 | AI-262 | ต่ำ | เปิด (ใหม่) · นอกเส้นทางเดโม | After a reload, the chat's source line loses its duration |
 
@@ -3208,7 +3208,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-242. On the IT activity card, the 6 folded rows lose the action and the card title, and those are exactly the demo chain's sends
 
-- **สถานะ:** แก้แล้ว `a0f4854` · แถวที่พับไว้เปิดออกเป็นแถวแบบเดียวกับข้างบน มีผู้ส่ง → ผู้รับ สิ่งที่ทำ และชื่อการ์ดครบ · เดิม AI-200
+- **สถานะ:** แก้แล้ว `5bdc15f` · แถวที่พับไว้เปิดออกเป็นแถวแบบเดียวกับข้างบน มีผู้ส่ง → ผู้รับ สิ่งที่ทำ และชื่อการ์ดครบ · เดิม AI-200
 - **ระดับ:** กลาง · **หมวด:** `card-fit` · **บทบาท:** u_ton (IT admin), run sheet step 5
 - **อาการ:** Under 'อีก 6 รายการ', the ส่งเรื่อง/ส่งต่อ/รับเรื่อง events show only names and times, cut off at phone width.
 - **ที่ควรเป็น:** A folded row keeps 'action · card title'.
@@ -3219,7 +3219,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-243. 'ใครใช้เงินเยอะสุด' gets no answer although every call records its user, and the chat says 7 days where the console says 14 for the same $0.52
 
-- **สถานะ:** แก้แล้ว `a26e0e7` · ค่าโมเดลเรียงรายคนจากมากไปน้อย งานเบื้องหลังที่ไม่ได้ทำให้ใครเป็นแถวของตัวเอง และแชตกับหน้า console ใช้ช่วง 14 วันเดียวกัน · เดิม AI-232
+- **สถานะ:** แก้แล้ว `65295e3` · ค่าโมเดลเรียงรายคนจากมากไปน้อย งานเบื้องหลังที่ไม่ได้ทำให้ใครเป็นแถวของตัวเอง และแชตกับหน้า console ใช้ช่วง 14 วันเดียวกัน · เดิม AI-232
 - **ระดับ:** กลาง · **หมวด:** `wrong-answer` · **บทบาท:** u_ton (IT admin) visitor probe
 - **อาการ:** The reply says there is no per-person cost and lists only sources. model-calls.json has a userId on each call. The headline says 7 days and the console says 14.
 - **ที่ควรเป็น:** model_cost ranks spend by person, with unattributed background spend as its own row, and both surfaces name the same window.
@@ -3231,7 +3231,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-244. '(ครั้งที่ 2)' appears on a fresh seed when the chat option follows step 1, which trips the run sheet's 'reseed' troubleshooting row
 
-- **สถานะ:** แก้แล้ว `991cea0` `b1dcfbf` · "(ครั้งที่ n)" ขึ้นเฉพาะเมื่อคนเดิมส่งการ์ดเดิมให้คนเดิมด้วยคำขอเดิม ส่งที่ขอต่างกันใช้ชื่อการ์ดเดิม และอัปเดตในกระดิ่งบอกสิ่งที่ขอเมื่อมีเรื่องชื่อซ้ำ · เดิม AI-227
+- **สถานะ:** แก้แล้ว `35023b1` `dd9dd30` · "(ครั้งที่ n)" ขึ้นเฉพาะเมื่อคนเดิมส่งการ์ดเดิมให้คนเดิมด้วยคำขอเดิม ส่งที่ขอต่างกันใช้ชื่อการ์ดเดิม และอัปเดตในกระดิ่งบอกสิ่งที่ขอเมื่อมีเรื่องชื่อซ้ำ · เดิม AI-227
 - **ระดับ:** กลาง · **หมวด:** `run-sheet` · **บทบาท:** presenter; u_thana → u_anucha → u_krit (chain alt)
 - **อาการ:** The second send of the same card to the same RSM gets a near-identical title. The rep's bell then shows more than one item, which the sheet says means 'seed ใหม่'. Neither the reply nor the approval mentions the earlier send.
 - **ที่ควรเป็น:** The sheet says the chat option repeats step 1, or replaces it, and the troubleshooting row excludes this case. The send reply names the earlier send.
@@ -3243,7 +3243,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-245. The RSM forward picker opens below the fold on a phone, and ส่งต่อ takes about 5 s with no busy state
 
-- **สถานะ:** แก้แล้ว `6c5015e` `20cbf7e` · กล่องเลือกคนเลื่อนเข้าจอพร้อมปุ่ม ปุ่มขึ้น "กำลังส่งต่อ…" และกระดิ่งนับใหม่ทันที ตัวการส่งต่อใช้ราว 0.3 วินาทีบน production build · เดิม AI-219
+- **สถานะ:** แก้แล้ว `1f1ba9f` `e4baedb` · กล่องเลือกคนเลื่อนเข้าจอพร้อมปุ่ม ปุ่มขึ้น "กำลังส่งต่อ…" และกระดิ่งนับใหม่ทันที ตัวการส่งต่อใช้ราว 0.3 วินาทีบน production build · เดิม AI-219
 - **ระดับ:** กลาง · **หมวด:** `run-sheet` · **บทบาท:** presenter, u_anucha (chain step 2.4)
 - **อาการ:** The presenter has to scroll to tick คุณกฤต and to reach the button. Sheet step 2.4 has no scroll step, and the bell badge lags.
 - **ที่ควรเป็น:** The picker scrolls into view or opens as a sheet, or the run sheet says to scroll. The button shows it is working.
@@ -3322,7 +3322,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-252. The CEO send approval header is cut to 'คุณสรัญญ…' by the deadline pill, and the card's primary button offers 'ส่งให้คุณอาร์ม', a different person
 
-- **สถานะ:** แก้แล้ว `65ce866` · ชื่อผู้รับในหัวการ์ดอนุมัติขึ้นบรรทัดใหม่แทนการตัด และการ์ดในคำตอบที่กำลังส่งไม่มีปุ่ม "ส่งให้…" คนอื่นแข่ง
+- **สถานะ:** แก้แล้ว `efd3177` · ชื่อผู้รับในหัวการ์ดอนุมัติขึ้นบรรทัดใหม่แทนการตัด และการ์ดในคำตอบที่กำลังส่งไม่มีปุ่ม "ส่งให้…" คนอื่นแข่ง
 - **ระดับ:** ต่ำ · **หมวด:** `ui` · **บทบาท:** u_thana (CEO) S2T2
 - **อาการ:** At 393 px the header truncates the recipient's name. The card's nextActions offer a second recipient while a send is pending.
 - **ที่ควรเป็น:** The recipient's name is never truncated, and the card offers no rival primary send.
@@ -3365,7 +3365,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-256. The approval's 'ส่ง' button sits half under the composer and shares the accessible name 'ส่ง' with the composer send button
 
-- **สถานะ:** แก้แล้ว `65ce866` · แชตเลื่อนลงให้การ์ดอนุมัติที่รออยู่พ้นช่องพิมพ์ ปุ่มส่งของการ์ดชื่อ "ส่งการ์ดให้ …" และปุ่มช่องพิมพ์ชื่อ "ส่งข้อความ" · เดิม AI-227
+- **สถานะ:** แก้แล้ว `efd3177` · แชตเลื่อนลงให้การ์ดอนุมัติที่รออยู่พ้นช่องพิมพ์ ปุ่มส่งของการ์ดชื่อ "ส่งการ์ดให้ …" และปุ่มช่องพิมพ์ชื่อ "ส่งข้อความ" · เดิม AI-227
 - **ระดับ:** ต่ำ · **หมวด:** `ui` · **บทบาท:** u_thana (chain alt-3)
 - **อาการ:** The button's lower edge is cut off by the composer.
 - **ที่ควรเป็น:** The approval scrolls clear of the composer, and its button has its own name.
@@ -3397,7 +3397,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-259. CEO bell and drawer friction: the red dot stays until every update is opened, the drawer closes after back, and two buttons are named 'ปิด'
 
-- **สถานะ:** แก้แล้ว `6275eb7` `24a1994` `d00587a` · ปิดกระดิ่งหลังเห็นอัปเดตแล้วจุดแดงหาย แผงเรื่องที่ Winyu สืบยังเปิดอยู่หลังกดย้อนกลับ และปุ่มปิดแต่ละอันมีชื่อของตัวเอง
+- **สถานะ:** แก้แล้ว `a911de4` `79cebb4` `87f2c67` · ปิดกระดิ่งหลังเห็นอัปเดตแล้วจุดแดงหาย แผงเรื่องที่ Winyu สืบยังเปิดอยู่หลังกดย้อนกลับ และปุ่มปิดแต่ละอันมีชื่อของตัวเอง
 - **ระดับ:** ต่ำ · **หมวด:** `ui` · **บทบาท:** u_thana (chain step 4, break-3)
 - **อาการ:** After one update is opened, the other stays unread. Going back from a story leaves the drawer closed.
 - **ที่ควรเป็น:** The dot clears when the panel opens, or the sheet notes it. The drawer state survives back, and the two buttons have distinct names.
@@ -3407,7 +3407,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-260. The ถามต่อ answer ends below the fold, and its first card already shows 'ส่งแล้ว' before the send command
 
-- **สถานะ:** แก้แล้ว `68adfba` · "ส่งแล้ว" ถูกต้องเพราะการ์ดใบเดียวกันส่งไปตั้งแต่ขั้น 1 บรรทัดใต้การ์ดจึงบอกวันเวลาที่ส่ง ส่วนคำตอบที่ยาวกว่าจอยังพักที่คำถามตามที่ออกแบบไว้ (660b74e)
+- **สถานะ:** แก้แล้ว `78cec96` · "ส่งแล้ว" ถูกต้องเพราะการ์ดใบเดียวกันส่งไปตั้งแต่ขั้น 1 บรรทัดใต้การ์ดจึงบอกวันเวลาที่ส่ง ส่วนคำตอบที่ยาวกว่าจอยังพักที่คำถามตามที่ออกแบบไว้ (660b74e)
 - **ระดับ:** ต่ำ · **หมวด:** `ui` · **บทบาท:** u_thana (chain alt-1)
 - **อาการ:** After 24.0 s the view stays at the top. Step 1's sent state appears before the presenter types the send.
 - **ที่ควรเป็น:** The chat follows the answer as it finishes, and the sheet mentions the sent state.
