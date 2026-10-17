@@ -48,6 +48,7 @@ export const COMPOSE_CATALOG = {
       media: z.enum(["avatar", "thumb", "none"]).optional(),
       badges: badgeList.optional(),
       trailing: text.optional(),
+      trailingTone: text.optional(),
       action: action.optional(),
     }),
   },

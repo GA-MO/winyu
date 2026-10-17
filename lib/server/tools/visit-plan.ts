@@ -1,9 +1,10 @@
 import type { z } from "zod";
-import type { Alert } from "@/lib/contracts";
+import type { Alert, MetricId } from "@/lib/contracts";
 import { visitPlanInputSchema } from "@/lib/contracts";
 import { alertRowOf } from "@/lib/cards/alert-row";
 import { businessToday } from "@/lib/data/dates";
-import { formatDelta, metricLabel } from "@/lib/dashboard/metric-display";
+import { formatDelta, metricLabel, toneOf } from "@/lib/dashboard/metric-display";
+import { withMinusSign } from "@/lib/share/figures";
 import { TH } from "@/lib/i18n/th";
 import type { Dictionary } from "@/lib/semantic/dictionary";
 import { fencedRows } from "@/lib/server/connectors/output";
@@ -13,6 +14,7 @@ import { currentAccess } from "@/lib/server/request-context";
 import { defineTool } from "./define";
 
 const DEFAULT_STOPS = 5;
+const VISIT_METRIC: MetricId = "net_sales_volume";
 const PARENTHETICAL = /\s*\(.*\)$/;
 const BRAND_SEPARATOR = ", ";
 
@@ -32,7 +34,8 @@ function rowOf(visit: PlannedVisit, order: number, dictionary: Dictionary) {
     agent_name: visit.stop.agent,
     reason: visit.needsVisit ? visit.stop.reason : TH.visitPlan.steady,
     sales_change_pct: visit.change,
-    sales_change_label: visit.change === null ? "—" : TH.visitPlan.change(formatDelta(visit.change) ?? "—", VISIT_WINDOW),
+    sales_change_label: visit.change === null ? "—" : TH.visitPlan.change(withMinusSign(formatDelta(visit.change) ?? "—"), VISIT_WINDOW),
+    sales_change_tone: visit.change === null ? "neutral" : toneOf(VISIT_METRIC, visit.change),
     sales_basis: TH.visitPlan.basis(VISIT_WINDOW),
     alert_label: visit.alert ? alertLabelOf(visit.alert, dictionary) : null,
   };
@@ -51,11 +54,13 @@ export const visitPlanTool = defineTool({
     const shown = plan.slice(0, limit ?? DEFAULT_STOPS);
     const toVisit = shown.filter((visit) => visit.needsVisit);
     const [first] = toVisit;
+    const rows = shown.map((visit, index) => rowOf(visit, index + 1, dictionary));
     return {
       ok: true as const,
       summary: TH.visitPlan.summary(toVisit.length),
       metrics: first ? [{ label: TH.visitPlan.first, value: first.stop.agent, detail: first.stop.reason }] : [],
-      rows: fencedRows(shown.map((visit, index) => rowOf(visit, index + 1, dictionary))),
+      rows: fencedRows(rows),
+      rest: fencedRows(first ? rows.filter((row) => row.agent_name !== first.stop.agent) : rows),
       provenance: { sourceSystem: TH.visitPlan.source, asOf: businessToday(), masked: [] },
     };
   },

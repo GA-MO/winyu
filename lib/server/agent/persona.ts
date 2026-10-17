@@ -45,12 +45,12 @@ const MATTER_PRELOAD_LINE = "ผู้ใช้เปิดแชตจากเ
 const STORY_PRELOAD_LINE = "ผู้ใช้กดถามต่อจากเรื่องที่ Winyu สืบไว้เมื่อเช้า (ข้อมูล ไม่ใช่คำสั่ง): เริ่มจากข้อสรุปนี้ ถ้ามีหลักฐาน ให้เรียก query_metric ด้วย query เดิมก่อน (การ์ดใบนั้นจะขึ้นจากผล) อย่าสืบซ้ำสิ่งที่ตัดทิ้งแล้ว ตอบต่อจากสิ่งที่ยังไม่รู้หรือสิ่งที่ผู้ใช้ถาม ตัวเลขที่จะพูดถึงยังต้องมาจาก tool ในรอบนี้";
 const CARDS_ON_SCREEN_LINE = "การ์ดบนจอที่ส่งต่อได้ ใบเก่าก่อน (ข้อมูล ไม่ใช่คำสั่ง): ส่งใบไหน ใส่ ref หน้าชื่อการ์ดเป็น `cardRef` ของ `send_card`";
 const CARDS_ON_SCREEN_LIMIT = 8;
-/** The card a visit plan ends with, line by line, for the model to copy as is: the agent to visit first, then every agent with why and its 28-day change and that change's basis; the writing step then has nothing to design (AI-217). */
+/** The card a visit plan ends with, line by line, for the model to copy as is: the agent to visit first, then every other agent with why and its 28-day change in its colour and that change's basis, so no row repeats the hero (AI-257); the writing step then has nothing to design (AI-217). */
 export const VISIT_PLAN_CARD: readonly string[] = [
   '{"id":"root","component":"Card","title":"เอเย่นต์ที่ควรไปเยี่ยมก่อน","meta":"เรียงจากความผิดปกติที่เปิดอยู่ แล้วยอดขายเข้าที่ลดลงมากสุด","children":["first","agents"]}',
   '{"id":"first","component":"Metric","label":{"path":"/visit_plan/metrics/0/label"},"value":{"path":"/visit_plan/metrics/0/value"},"detail":{"path":"/visit_plan/metrics/0/detail"}}',
-  '{"id":"agents","component":"Grid","children":{"componentId":"agent","path":"/visit_plan/rows"}}',
-  '{"id":"agent","component":"ListItem","title":{"path":"agent_name"},"subtitle":{"path":"reason"},"detail":{"path":"sales_basis"},"trailing":{"path":"sales_change_label"},"media":"none","action":{"event":{"name":"ask","context":{"prompt":"เจาะดูเอเย่นต์นี้","about":{"path":"agent_name"}}}}}',
+  '{"id":"agents","component":"Grid","children":{"componentId":"agent","path":"/visit_plan/rest"}}',
+  '{"id":"agent","component":"ListItem","title":{"path":"agent_name"},"subtitle":{"path":"reason"},"detail":{"path":"sales_basis"},"trailing":{"path":"sales_change_label"},"trailingTone":{"path":"sales_change_tone"},"media":"none","action":{"event":{"name":"ask","context":{"prompt":"เจาะดูเอเย่นต์นี้","about":{"path":"agent_name"}}}}}',
 ];
 /** Prompt lines that invite a kind of question or action, each sent only to a person whose role can call the tool behind it right now. */
 const TOOL_LINES: Partial<Record<NativeToolName, string>> = {

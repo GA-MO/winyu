@@ -25,4 +25,13 @@ describe("the visit-plan card the prompt hands the rep (AI-217)", () => {
     const rows = (output as { rows: unknown[] }).rows;
     expect(rows.length).toBeGreaterThan(1);
   });
+
+  test("lists every agent but the one the hero names, each change with the tone its colour comes from (AI-257)", async () => {
+    const output = (await visitPlanOf("u_krit")) as { metrics: { value: string }[]; rows: { agent_name: string }[] };
+    const composer = new CardComposer([{ tool: "visit_plan", output }]);
+    for (const line of VISIT_PLAN_CARD) composer.read(line);
+    const listed = ((composer.finish().surface?.dataModel.visit_plan as { rest?: { agent_name: string; sales_change_tone: string }[] }) ?? {}).rest ?? [];
+    expect(listed.map((row) => row.agent_name)).toEqual(output.rows.filter((row) => row.agent_name !== output.metrics[0]?.value).map((row) => row.agent_name));
+    expect(listed.map((row) => row.sales_change_tone)).toEqual(["bad", "good", "good"]);
+  });
 });

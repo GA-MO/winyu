@@ -5,7 +5,7 @@ import { A2UIProvider, A2UIRenderer, createCatalog, useA2UIActions, type Catalog
 import { askAction, useRunAction, type CardAction } from "@/components/cards/card-actions";
 import { RowGrid } from "@/components/cards/entity/frame";
 import { Carousel } from "@/components/ui/carousel";
-import { Avatar, Badge, Button, Callout, Card, Image, KeyValue, ListItem, Metric, RankList, Table, type ListItemBadge } from "@/components/ui/primitives";
+import { Avatar, Badge, Button, Callout, Card, Image, KeyValue, ListItem, Metric, RankList, Table, type ListItemBadge, type ListItemProps } from "@/components/ui/primitives";
 import { A2UI_VERSION, ASK_EVENT, COMPOSE_ACTION_TOOLS, COMPOSE_CATALOG, COMPOSE_CATALOG_ID, type A2uiMessage, type ComposedSurface } from "@/lib/compose/catalog";
 
 type Child = string | { id: string; basePath: string };
@@ -15,6 +15,7 @@ type UserAction = { userAction?: { name?: unknown; context?: unknown } };
 type Pair = { label: string; value: string; detail: string | null };
 
 const ACTION_TOOLS: ReadonlySet<string> = new Set(COMPOSE_ACTION_TOOLS);
+const TRAILING_TONES = ["good", "bad", "neutral"] as const;
 
 function textOf(value: unknown): string | null {
   if (typeof value === "string") return value || null;
@@ -63,6 +64,10 @@ function tableRowsOf(props: Resolved): Array<Record<string, string>> {
   return listOf<Resolved>(props.rows).map((row) => Object.fromEntries(Object.entries(row).map(([key, value]) => [key, textOf(value) ?? ""])));
 }
 
+function trailingToneOf(text: string | null): ListItemProps["trailingTone"] {
+  return TRAILING_TONES.find((tone) => tone === text) ?? null;
+}
+
 type Renderer = (args: RendererProps<Resolved>) => ReactNode;
 
 const RENDERERS: Record<keyof typeof COMPOSE_CATALOG, Renderer> = {
@@ -99,6 +104,7 @@ const RENDERERS: Record<keyof typeof COMPOSE_CATALOG, Renderer> = {
         media: (textOf(props.media) as "avatar" | "thumb" | "none" | null) ?? (textOf(props.src) ? "avatar" : "none"),
         badges: badgesOf(props.badges),
         trailing: textOf(props.trailing),
+        trailingTone: trailingToneOf(textOf(props.trailingTone)),
       }}
       onPress={pressOf(props.action)}
     />

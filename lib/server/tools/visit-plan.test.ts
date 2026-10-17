@@ -11,8 +11,8 @@ import { runWithAccess } from "@/lib/server/request-context";
 const REP = "u_krit";
 const ALERT_ID = "al_test_visit_plan";
 
-type VisitRow = { order: number; agent_name: string; reason: string; sales_change_pct: number | null; sales_change_label: string; sales_basis: string; alert_label: string | null };
-type VisitPlan = { ok: true; summary: string; rows: VisitRow[]; metrics: { label: string; value: string; detail: string | null }[] };
+type VisitRow = { order: number; agent_name: string; reason: string; sales_change_pct: number | null; sales_change_label: string; sales_change_tone: string; sales_basis: string; alert_label: string | null };
+type VisitPlan = { ok: true; summary: string; rows: VisitRow[]; rest: VisitRow[]; metrics: { label: string; value: string; detail: string | null }[] };
 
 async function planFor(userId: string): Promise<VisitPlan> {
   const user = findUser(userId);
@@ -63,5 +63,23 @@ describe("visit_plan shows the numbers its order rests on (AI-182)", () => {
     expect(alerted?.reason).toContain("ลีโอ");
     expect(alerted?.reason).toContain("พ.ย.");
     expect(plan.metrics[0].detail).toBe(plan.rows[0].reason);
+  });
+});
+
+describe("the visit plan's changes read like every card's (AI-257)", () => {
+  test("each 28-day change is written with a minus sign and carries the tone its colour comes from", async () => {
+    const plan = await planFor(REP);
+    expect(plan.rows.map((row) => [row.agent_name, row.sales_change_label, row.sales_change_tone])).toEqual([
+      ["อีสานรุ่งโรจน์ ค้าส่ง", "−9.5% · 28 วัน", "bad"],
+      ["อุบลศรีสุข เทรดดิ้ง", "−8.9% · 28 วัน", "bad"],
+      ["ขอนแก่นมหาชัย", "+23.7% · 28 วัน", "good"],
+      ["โคราชสหภัณฑ์", "+26.2% · 28 วัน", "good"],
+    ]);
+  });
+
+  test("the list under the agent to visit first leaves that agent out, so the card never repeats its hero", async () => {
+    const plan = await planFor(REP);
+    expect(plan.metrics[0]?.value).toBe(plan.rows[0]?.agent_name ?? "none");
+    expect(plan.rest.map((row) => row.agent_name)).toEqual(plan.rows.slice(1).map((row) => row.agent_name));
   });
 });
