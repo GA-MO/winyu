@@ -431,7 +431,29 @@ function Sheet({ target, close, onSent }: { target: ShareTarget; close: () => vo
   );
 }
 
-/** Lets every card inside offer ส่งต่อ, with one sheet for the whole surface that closes when the person moves to another page, and remembers what each card's send left so the card reads as sent; with `open` false (the admin turned sending work off) no card offers it. */
+type SentCard = { ref: string; path: string; receipts: ShareReceipt[] };
+
+/** What the server says the person sent, added under each card's ref where this page has not recorded a send of its own (that one carries its grants and whether its receipt was folded). */
+function withServerSends(current: Record<string, SentShare>, sent: readonly SentCard[]): Record<string, SentShare> {
+  const added = sent.filter((card) => !current[card.ref]).map((card): [string, SentShare] => [card.ref, { receipts: card.receipts, grants: [], hidden: [], days: null, path: card.path, folded: false }]);
+  return added.length > 0 ? { ...current, ...Object.fromEntries(added) } : current;
+}
+
+/** The cards the signed-in person sent, read again on every page, so a sent card reads as sent after navigation and reload. */
+function useServerSends(pathname: string, merge: (sent: SentCard[]) => void): void {
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch(SHARES_ENDPOINT, { signal: controller.signal })
+      .then((response) => (response.ok ? (response.json() as Promise<{ sent?: SentCard[] }>) : null))
+      .then((payload) => {
+        if (Array.isArray(payload?.sent)) merge(payload.sent);
+      })
+      .catch(() => undefined);
+    return () => controller.abort();
+  }, [pathname, merge]);
+}
+
+/** Lets every card inside offer ส่งต่อ, with one sheet for the whole surface that closes when the person moves to another page, and knows which cards the person sent (from the server, and each send made here) so the card reads as sent; with `open` false (the admin turned sending work off) no card offers it. */
 export function ShareProvider({ open, children }: { open: boolean; children: ReactNode }) {
   const [target, setTarget] = useState<ShareTarget | null>(null);
   const [byCard, setByCard] = useState<Record<string, SentShare>>({});
@@ -439,6 +461,8 @@ export function ShareProvider({ open, children }: { open: boolean; children: Rea
   const show = useCallback((next: ShareTarget) => setTarget(next), []);
   const close = useCallback(() => setTarget(null), []);
   useEffect(close, [close, pathname]);
+  const merge = useCallback((sent: SentCard[]) => setByCard((current) => withServerSends(current, sent)), []);
+  useServerSends(pathname, merge);
   const value = useMemo(() => (open ? show : null), [open, show]);
   const fold = useCallback((key: string) => setByCard((current) => (current[key] ? { ...current, [key]: { ...current[key], folded: true } } : current)), []);
   const sentShares = useMemo(() => ({ byCard, fold }), [byCard, fold]);

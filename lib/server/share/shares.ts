@@ -1,6 +1,6 @@
 import { randomBytes } from "node:crypto";
 import type { User } from "@/lib/contracts";
-import { UNSHAREABLE_TOOLS, type SharedCard, type ShareReceipt } from "@/lib/share/card";
+import { cardRefOf, UNSHAREABLE_TOOLS, type SharedCard, type ShareReceipt } from "@/lib/share/card";
 import { matterOf, seenBy, waitsOn, type Matter, type StoredMatter } from "@/lib/share/matter";
 import { findUser, USERS } from "@/lib/data/entities/users";
 import { TH } from "@/lib/i18n/th";
@@ -103,6 +103,20 @@ export function noteView(share: Matter, viewerId: string, at: string): Matter {
 /** Where a share opens inside Winyu. */
 export function sharePath(code: string): string {
   return `/s/${code}`;
+}
+
+/** One card a person sent, as their screens name it: its ref, the latest matter it went out as, and who got that one. */
+export type SentCard = { ref: string; path: string; receipts: ShareReceipt[] };
+
+/** The cards one person sent, newest matter first per card, keyed by the ref their screen drew the card under (stored at send time, else the stored card's own), so a card reads as sent wherever it is drawn again. */
+export function sentCardsOf(senderId: string): SentCard[] {
+  const latest = new Map<string, Matter>();
+  for (const matter of shares().where((candidate) => candidate.senderId === senderId)) {
+    const ref = matter.cardRef ?? cardRefOf(matter.card);
+    const kept = latest.get(ref);
+    if (!kept || matter.at > kept.at) latest.set(ref, matter);
+  }
+  return [...latest].map(([ref, matter]) => ({ ref, path: sharePath(matter.id), receipts: receiptsOf(matter) }));
 }
 
 /** Each delivery with the recipient's name, for the sheet and Shared. */

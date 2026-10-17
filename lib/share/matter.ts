@@ -135,7 +135,7 @@ export type MatterEvent = { userId: string | null; at: string; kind: MatterEvent
 /** How one recipient was reached: the channel the sender picked, the one that carried it, and why they differ. */
 export type ShareDelivery = { userId: string; asked: DeliveryChannel; via: DeliveryChannel; fallback: FallbackReason | null };
 
-/** A card sent to colleagues: the reads behind it (never their results) under its short code `id`, the one-line ask, whether it waits on an answer, the alerts it is about, the number that closes it, the rows of the card the sender singled out (`focus`, "ขอนแก่นมหาชัย" on the region's card), the people it went through, and which recipients opened it. */
+/** A card sent to colleagues: the reads behind it (never their results) under its short code `id`, the one-line ask, whether it waits on an answer, the alerts it is about, the number that closes it, the rows of the card the sender singled out (`focus`, "ขอนแก่นมหาชัย" on the region's card), the ref of the card as the sender's screen drew it (`cardRef`, so their screens show it sent), the people it went through, and which recipients opened it. */
 export type Matter = {
   id: string;
   at: string;
@@ -154,6 +154,7 @@ export type Matter = {
   status: MatterStatus;
   card: SharedCard;
   focus?: string[];
+  cardRef?: string;
   deliveries: ShareDelivery[];
   openedBy?: string[];
   lastViewedAt: string | null;

@@ -3,8 +3,15 @@ import { findUser } from "@/lib/data/entities/users";
 import { TH } from "@/lib/i18n/th";
 import { shareRequestSchema } from "@/lib/share/card";
 import { createShare } from "@/lib/server/share/deliver";
-import { receiptsOf, sharePath } from "@/lib/server/share/shares";
+import { receiptsOf, sentCardsOf, sharePath } from "@/lib/server/share/shares";
 import { badRequest, readBody, requireAccess, unauthenticated } from "../_guard";
+
+/** The cards the signed-in person sent, each under the ref their screens draw it with, its matter's link and recipients, so a card reads as sent after navigation and reload. */
+export async function GET() {
+  const access = await requireAccess();
+  if (!access) return unauthenticated();
+  return Response.json({ sent: sentCardsOf(access.userId) });
+}
 
 /** Sends a card as a matter: the person's own press, so no approval card; the reads are checked and stored, the recipients told in Winyu, and the send audited. Closed while the admin has sending work turned off. */
 export async function POST(req: Request) {

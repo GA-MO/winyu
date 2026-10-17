@@ -1,6 +1,6 @@
 import { metricQueryInputSchema, type RecipientScope, type User } from "@/lib/contracts";
 import { findUser, USERS } from "@/lib/data/entities/users";
-import { type ChannelOption, type DeliveryChannel, type ShareChannel, type ShareContact, type ShareGrantReceipt, type ShareRequest, type SharedCard, type SharedRead } from "@/lib/share/card";
+import { cardRefOf, type ChannelOption, type DeliveryChannel, type ShareChannel, type ShareContact, type ShareGrantReceipt, type ShareRequest, type SharedCard, type SharedRead } from "@/lib/share/card";
 import { defaultUrgency, type Matter, type MatterGoal, type ShareDelivery } from "@/lib/share/matter";
 import { recordShare } from "@/lib/server/audit";
 import { untilLabel } from "@/lib/share/grant-label";
@@ -97,12 +97,12 @@ function recipientsOf(request: ShareRequest, senderId: string): Array<{ user: Us
 /** A matter as the server sends it: the request the browser may make, and the rows of the card the sender singled out in chat, which only the server works out. */
 export type MatterRequest = ShareRequest & { focus?: string[] };
 
-function newMatter(sender: User, request: MatterRequest, sent: { code: string; at: string; title: string; ask: string; deliveries: ShareDelivery[]; goal: MatterGoal | null }): Matter {
+function newMatter(sender: User, request: MatterRequest, sent: { code: string; at: string; title: string; ask: string; deliveries: ShareDelivery[]; goal: MatterGoal | null; cardRef: string }): Matter {
   const path = sent.deliveries.map((delivery) => ({ userId: delivery.userId, fromUserId: sender.id, at: sent.at, state: "sent" as const }));
   const alertIds = alertIdsFor(sender, request);
   const goal = sent.goal;
   const focus = request.focus && request.focus.length > 0 ? { focus: request.focus } : {};
-  return { id: sent.code, at: sent.at, updatedAt: sent.at, senderId: sender.id, title: sent.title, question: request.question, ask: sent.ask, intent: request.intent, urgency: request.urgency ?? defaultUrgency(request.intent), due: request.due ?? null, goal, alertIds, path, thread: [], status: "open", card: request.card, ...focus, deliveries: sent.deliveries, openedBy: [], lastViewedAt: null };
+  return { id: sent.code, at: sent.at, updatedAt: sent.at, senderId: sender.id, title: sent.title, question: request.question, ask: sent.ask, intent: request.intent, urgency: request.urgency ?? defaultUrgency(request.intent), due: request.due ?? null, goal, alertIds, path, thread: [], status: "open", card: request.card, ...focus, cardRef: sent.cardRef, deliveries: sent.deliveries, openedBy: [], lastViewedAt: null };
 }
 
 function alertIdsFor(sender: User, request: MatterRequest): string[] {
@@ -137,7 +137,7 @@ export async function createShare(sender: User, asked: MatterRequest, at = new D
   const deliveries: ShareDelivery[] = [];
   for (const { user, channel } of recipients) deliveries.push(await deliver(message, sender, user, channel, code));
   const goal = request.closeOnGoal === false ? null : await goalOf(request.card, alertIdsFor(sender, request), request.focus);
-  const share = shares().put(newMatter(sender, request, { code, at, title, ask, deliveries, goal }));
+  const share = shares().put(newMatter(sender, request, { code, at, title, ask, deliveries, goal, cardRef: cardRefOf(asked.card) }));
   recordShare({ userId: sender.id, code, title, reads: request.card.reads.map((read) => read.tool), deliveries });
   const grants = request.grantDays ? grantOnShare(sender, request.card, deliveries.map((delivery) => delivery.userId), request.grantDays, code, new Date(at)) : [];
   for (const delivery of deliveries) {
