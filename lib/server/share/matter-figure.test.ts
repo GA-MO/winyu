@@ -98,7 +98,8 @@ describe("a focused agent reads on its card's month base on every surface (AI-23
     const card = presentCard({ title: "", query: agents.query, result: agents });
     expect(card.verdict).toBe("ขอนแก่นมหาชัยช้ากว่าเป้าตามเวลา");
     expect(card.hero).toEqual(MONTH_HERO);
-    const top = card.body.kind === "strip" ? card.body.strip.overall : null;
-    expect(top?.sub ?? "").toStartWith("71.0 ล้านบาท · เป้าทั้งเดือน 83.2 ล้านบาท");
+    const strip = card.body.kind === "strip" ? card.body.strip : null;
+    expect(strip?.overall?.sub).toBe("71.0 · เป้าทั้งเดือน 83.2 ล้านบาท");
+    expect(strip?.total ?? "").toStartWith("รวม");
   });
 });

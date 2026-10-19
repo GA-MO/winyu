@@ -191,7 +191,7 @@ function aboveLineReading(input: BreakdownInput, line: LevelLine): Breakdown {
 /** What a period was against its target in the metric's own unit ("1.8 ล้านลิตร · เป้า 1.8 ล้านลิตร"), so a month asked about shows its figure and its target, not only the share. */
 function targetSubOf(query: MetricQuery, row: MetricRow): string | null {
   const target = numericOf(row, "compare_value");
-  return target === null ? null : TH.read.againstTarget(valueTextOf(query, row), formatMetricValue(query.metric, target));
+  return target === null ? null : TH.read.againstTarget(...unitOnce(valueTextOf(query, row), formatMetricValue(query.metric, target)));
 }
 
 /** R3 and R6: groups read against the deciding line, the furthest under first; periods (a short series against target) stay in time order, each with its value and target. */
@@ -288,14 +288,17 @@ export function baseOf(query: MetricQuery, row: MetricRow): string | null {
   return word && previous !== null ? `${word} ${formatMetricValue(query.metric, previous)}` : null;
 }
 
-/** Where a row moved from and to, the unit written once when both share it ("30.5 → 25.6 ล้านบาท"); what it is compared with is named on the overall row. */
+/** Where a row moved from and to ("30.5 → 25.6 ล้านบาท"); what it is compared with is named on the overall row. */
 function baseToLevel(query: MetricQuery, row: MetricRow): string | null {
   const previous = numericOf(row, "compare_value");
   if (previous === null || TH.read.base[query.compare] === undefined) return null;
-  const from = formatMetricValue(query.metric, previous);
-  const to = valueTextOf(query, row);
-  const [fromNumber, fromUnit] = numberAndUnit(from);
-  return TH.read.fromTo(fromUnit !== "" && fromUnit === numberAndUnit(to)[1] ? fromNumber : from, to);
+  return TH.read.fromTo(...unitOnce(formatMetricValue(query.metric, previous), valueTextOf(query, row)));
+}
+
+/** Two amounts written side by side, the first without its unit when the second ends in the same one ("30.5", "25.6 ล้านบาท"), so a row's detail fits one line. */
+function unitOnce(first: string, second: string): [string, string] {
+  const [number, unit] = numberAndUnit(first);
+  return [unit !== "" && unit === numberAndUnit(second)[1] ? number : first, second];
 }
 
 function numberAndUnit(text: string): [string, string] {
@@ -530,7 +533,7 @@ function levelLineOf(input: BreakdownInput): LevelLine {
 /** A row of a month still running against the whole month's target ("71.0 ล้านบาท · เป้าทั้งเดือน 83.2 ล้านบาท"): the target to date the engine compared it with, spread over the days that passed. */
 function monthTargetSubOf(query: MetricQuery, row: MetricRow, scale: number): string | null {
   const toDate = numericOf(row, "compare_value");
-  return toDate === null || scale <= 0 ? null : TH.read.againstMonthTarget(valueTextOf(query, row), formatMetricValue(query.metric, toDate / scale));
+  return toDate === null || scale <= 0 ? null : TH.read.againstMonthTarget(...unitOnce(valueTextOf(query, row), formatMetricValue(query.metric, toDate / scale)));
 }
 
 /** The second line of a row the question named: its value against target (the whole month's while it runs), or its change against the window it is compared with ("+0.6 จุด เทียบช่วงก่อนหน้า"). */

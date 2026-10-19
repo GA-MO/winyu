@@ -681,7 +681,9 @@ describe("two months of one province against target", () => {
     expect(strip.overall).toBeNull();
     expect(metricTitle(result, query)).not.toContain(TH.dash.dimUnit.province);
     const september = result.rows.find((row) => row.month === "2026-09");
-    expect(strip.rows[0].sub).toBe(TH.read.againstTarget(String(september?.value_label), formatMetricValue("net_sales_volume", Number(september?.compare_value))));
+    const [value, unit] = String(september?.value_label).split(" ");
+    expect(strip.rows[0].sub).toBe(`${value} · เป้า ${formatMetricValue("net_sales_volume", Number(september?.compare_value))}`);
+    expect(strip.rows[0].sub).toEndWith(` ${unit}`);
   });
 });
 

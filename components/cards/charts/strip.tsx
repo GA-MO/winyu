@@ -79,7 +79,7 @@ function LineStrip({ strip }: { strip: Strip }) {
           <div className="flex min-w-0 flex-col text-muted-foreground" style={{ gridColumn: overall.measure === null ? "1 / 3" : 1, gridRow: 1 }}>
             <span title={overall.label} className="line-clamp-2 break-words text-[12px] leading-snug">{nameOf(overall.label)}</span>
             {placeOf(overall.label) ? <span className="truncate text-[11px] leading-snug">{placeOf(overall.label)}</span> : null}
-            {leadSub ? <span title={leadSub} className="truncate text-[11px] leading-snug tabular-nums">{leadSub}</span> : null}
+            {leadSub ? <span className="line-clamp-2 break-words text-[11px] leading-snug tabular-nums">{leadSub}</span> : null}
           </div>
           {overall.measure !== null ? (
             <div className="relative h-6" style={{ gridColumn: 2, gridRow: 1 }}>
