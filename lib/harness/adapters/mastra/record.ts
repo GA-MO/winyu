@@ -91,7 +91,8 @@ async function askBefore(userId: string, caseId: string, prompt: string): Promis
   const threadId = `eval-${caseId}-before-${randomUUID()}`;
   await ask(userId, threadId, prompt);
   const steps = stepsOf(await storedMessages(threadId, userId));
-  await learnFromTurn({ userId, threadId, turnId: randomUUID(), question: prompt, queries: queriesOf(steps) });
+  const tools = [...new Set(steps.flatMap((step) => (step.kind === "call" ? [step.tool] : [])))];
+  await learnFromTurn({ userId, threadId, turnId: randomUUID(), question: prompt, queries: queriesOf(steps), tools });
   return { prompt, steps };
 }
 

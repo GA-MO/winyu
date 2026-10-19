@@ -28,7 +28,6 @@ const STOP_PREFIX = `${BASE_PATH}/agent/${AGENT_ID}/stop/`;
 const NOT_YOUR_THREAD = { error: "ไม่พบบทสนทนานี้" };
 const NOT_SERVED = { error: "Not found" };
 const QUERY_TOOL = "query_metric";
-const MEMORY_TOOLS: ReadonlySet<string> = new Set(["remember", "forget"]);
 const RESUME_KEY = "resume";
 const LEFT_FOR_NEW_QUESTION = "LEFT_FOR_NEW_QUESTION";
 const MESSAGES_SNAPSHOT = "MESSAGES_SNAPSHOT";
@@ -114,17 +113,18 @@ function lastDecision(run: Run): { stepId: string; finishReason: string } {
   return decision?.type === "agent.decided" ? decision.payload : { stepId: `${run.id}:${run.steps}`, finishReason: "none" };
 }
 
-/** Whether the person asked this turn to remember or forget something (asked, approved, declined or carried out): the tool did what they asked, so the turn itself is neither learned from nor made findable. */
-function changedMemory(run: Run): boolean {
-  return run.events.some((event) => {
+/** Every tool the turn called, asked for, approved or declined, once each. */
+function toolsOf(run: Run): string[] {
+  const tools = run.events.flatMap((event) => {
     const payload: Record<string, unknown> = event.payload;
-    return typeof payload.tool === "string" && MEMORY_TOOLS.has(payload.tool);
+    return typeof payload.tool === "string" ? [payload.tool] : [];
   });
+  return [...new Set(tools)];
 }
 
 function learnFrom(run: Run, turn: ChatTurn, context: TurnContext): void {
   if (!turn.question) return;
-  const finished = { userId: run.userId, threadId: turn.threadId, turnId: run.id, question: turn.question, queries: context.queries, memoryCommand: changedMemory(run) };
+  const finished = { userId: run.userId, threadId: turn.threadId, turnId: run.id, question: turn.question, queries: context.queries, tools: toolsOf(run) };
   runWithTurn(context, () => learnFromTurn(finished)).catch((error: unknown) => {
     console.error(`memory extraction after run ${run.id} failed`, error);
   });
