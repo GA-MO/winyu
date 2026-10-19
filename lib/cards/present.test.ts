@@ -328,6 +328,12 @@ describe("two metrics on one card", () => {
     expect(Math.max(...body.stages.map((stage) => stage.width))).toBe(1);
   });
 
+  test("the funnel's hero says what its ratio is of: sold out over produced, not a bare 'อัตราส่วน'", () => {
+    const { query, result } = answer({ metric: "production_output", dims: [] });
+    const card = presentCard({ title: "t", query, result, others: [answer({ metric: "net_sales_volume", dims: [] }), answer({ metric: "sell_out_volume", dims: [] })] });
+    expect(card.hero?.label).toBe(`อัตราส่วน${metricLabel("sell_out_volume").replace(/\s*\(.*\)$/, "")}ต่อ${metricLabel("production_output").replace(/\s*\(.*\)$/, "")}`);
+  });
+
   test("metrics in different units over the same months are indexed lines", () => {
     const { query, result } = answer({ metric: "net_sales_volume", dims: ["month"], range: SIX_MONTHS });
     const card = presentCard({ title: "t", query, result, others: [answer({ metric: "campaign_spend", dims: ["month"], range: SIX_MONTHS })] });

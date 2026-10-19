@@ -1283,7 +1283,7 @@ function ratioOf(base: Source, other: Source): { hero: CardHero; verdict: string
   const [otherLabel, baseLabel] = [shortMetricLabel(other), shortMetricLabel(base)];
   const verdict = gap === percentText(0) ? TH.read.ratioEven(otherLabel, baseLabel) : ratio > PERCENT ? TH.read.ratioAbove(otherLabel, baseLabel, gap) : TH.read.ratioBelow(otherLabel, baseLabel, gap);
   return {
-    hero: { label: TH.read.ratio, value: percentText(ratio), unit: null, delta: null, trend: "neutral", tone: "neutral", detail: null },
+    hero: { label: TH.read.ratio(otherLabel, baseLabel), value: percentText(ratio), unit: null, delta: null, trend: "neutral", tone: "neutral", detail: null },
     verdict,
   };
 }

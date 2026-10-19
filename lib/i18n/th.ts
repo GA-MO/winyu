@@ -901,7 +901,7 @@ export const TH = {
     yearCatchUp: (amount: string, days: string) => `ต้องทำเกินเป้าอีก ${amount} ภายในสิ้นปี (${days})`,
     previous: "งวดก่อน",
     lastWeek: "สัปดาห์ก่อน",
-    ratio: "อัตราส่วน",
+    ratio: (other: string, base: string) => `อัตราส่วน${other}ต่อ${base}`,
     wholeRange: "ทั้งช่วง",
     verified: "รับรองแล้ว",
     asOf: (date: string) => `ข้อมูล ณ ${date}`,
