@@ -21,6 +21,11 @@ const PARITY_RATIO = 3;
 const WIDE_GAP_PCT = 5;
 const PARENTHETICAL = /\s*\(.*\)$/;
 const PERCENT_METRIC_SHARE: ReadonlySet<MetricId> = new Set(["market_share", "share_of_voice"]);
+const MILLION = 1_000_000;
+const THOUSAND = 1_000;
+const TWO_DECIMALS_UNDER = 10;
+const ONE_DECIMAL_UNDER = 100;
+const CELL_LOCALE = "th-TH";
 
 type Group = { key: string; total: number; values: Map<string, number> };
 
@@ -110,11 +115,43 @@ function standoutsOf(query: MetricQuery, rows: MetricRow[], scale: ColorScale): 
   return new Set([...outliersOf(values, peak * CELL_GAP_SHARE)].map((index) => rows[index]));
 }
 
-function cellPainter(query: MetricQuery, rows: MetricRow[], scale: ColorScale): CellPainter {
+/** One scale for every cell of a grid: what each value is divided by, how many decimals it keeps, and the unit named once beside the grid ("ล้านลิตร", "%", "จุด"). */
+type GridScale = { divisor: number; digits: number; signed: boolean; unit: string };
+
+function digitsFor(peak: number): number {
+  if (peak < TWO_DECIMALS_UNDER) return 2;
+  return peak < ONE_DECIMAL_UNDER ? 1 : 0;
+}
+
+function gridScaleOf(query: MetricQuery, rows: MetricRow[], scale: ColorScale): GridScale {
+  const format = metricFormat(query.metric);
+  if (scale === "delta") return { divisor: 1, digits: 1, signed: true, unit: format === "percent" ? TH.cards.heat.points : TH.cards.heat.percent };
+  if (format === "percent") return { divisor: 1, digits: 1, signed: false, unit: TH.cards.heat.percent };
+  const unit = format === "currency" ? TH.cards.heat.baht : metricUnit(query.metric);
+  const peak = Math.max(0, ...rows.map((row) => Math.abs(numericOf(row, "value") ?? 0)));
+  if (peak >= MILLION) return { divisor: MILLION, digits: digitsFor(peak / MILLION), signed: false, unit: TH.cards.heat.millions(unit) };
+  if (peak >= THOUSAND) return { divisor: THOUSAND, digits: digitsFor(peak / THOUSAND), signed: false, unit: TH.cards.heat.thousands(unit) };
+  return { divisor: 1, digits: digitsFor(peak), signed: false, unit };
+}
+
+function cellNumber(value: number, grid: GridScale): string {
+  const scaledValue = value / grid.divisor;
+  const text = new Intl.NumberFormat(CELL_LOCALE, { minimumFractionDigits: grid.digits, maximumFractionDigits: grid.digits }).format(Math.abs(scaledValue));
+  if (Number(text.replace(/,/g, "")) === 0) return grid.signed ? "0" : text;
+  if (scaledValue < 0) return `-${text}`;
+  return grid.signed ? `+${text}` : text;
+}
+
+function detailOf(parts: readonly (string | null)[]): string | null {
+  return parts.filter((part): part is string => part !== null).join(" · ") || null;
+}
+
+function cellPainter(query: MetricQuery, rows: MetricRow[], scale: ColorScale, grid: GridScale): CellPainter {
   const values = rows.map((row) => numericOf(row, "value")).filter((value): value is number => value !== null);
   const range = values.length > 0 ? spread(values) : { min: 0, max: 0 };
   const deltaMax = deltaScaleOf(rows) ?? 1;
   const standouts = standoutsOf(query, rows, scale);
+  const inPoints = metricFormat(query.metric) === "percent";
   return (row) => {
     const value = numericOf(row, "value");
     if (value === null) return null;
@@ -122,10 +159,11 @@ function cellPainter(query: MetricQuery, rows: MetricRow[], scale: ColorScale): 
     const deltaText = changeTextOf(query.metric, row);
     const exception = standouts.has(row);
     if (scale === "delta") {
-      return { text: deltaText ?? "—", detail: valueTextOf(query, row), intensity: delta === null ? 0 : scaled(Math.abs(delta) / deltaMax), tone: toneOf(query.metric, delta), exception };
+      const change = inPoints ? deltaPointsOf(row) : delta;
+      return { text: change === null ? "—" : cellNumber(change, grid), detail: detailOf([deltaText, valueTextOf(query, row)]), intensity: delta === null ? 0 : scaled(Math.abs(delta) / deltaMax), tone: toneOf(query.metric, delta), exception };
     }
     const width = range.max - range.min;
-    return { text: valueTextOf(query, row), detail: deltaText, intensity: scaled(width === 0 ? 1 : (value - range.min) / width), tone: "neutral", exception };
+    return { text: cellNumber(value, grid), detail: detailOf([valueTextOf(query, row), deltaText]), intensity: scaled(width === 0 ? 1 : (value - range.min) / width), tone: "neutral", exception };
   };
 }
 
@@ -169,14 +207,15 @@ function orderedKeys(rows: MetricRow[], dims: Dim[], order: RowOrder): string[] 
   return [...scores.keys()].sort((left, right) => (ascending ? score(left) - score(right) : score(right) - score(left)));
 }
 
-/** A grid of groups × groups (or groups × time), each cell coloured by its value or by its change; the text always says what the colour says. */
+/** A grid of groups × groups (or groups × time), each cell coloured by its value or by its change; the text always says what the colour says, every cell a bare number on one scale whose unit the grid names once. */
 export function heatmapBody(query: MetricQuery, rows: MetricRow[], order: RowOrder | null): CardBody {
   const { rowDims, columnDims } = axesOf(query, rows);
   const timeColumns = timeDimOf(query) !== null;
   const rowKeys = orderedKeys(rows, rowDims, order ?? "value_desc");
   const columnKeys = timeColumns ? bucketsOf(query, rows) : orderedKeys(rows, columnDims, "value_desc");
   const scale = scaleFor(query, rows);
-  const paint = cellPainter(query, rows, scale);
+  const grid = gridScaleOf(query, rows, scale);
+  const paint = cellPainter(query, rows, scale, grid);
   const byCell = new Map<string, MetricRow>();
   for (const row of rows) {
     const rowKey = labelAlong(rowDims, row);
@@ -194,6 +233,7 @@ export function heatmapBody(query: MetricQuery, rows: MetricRow[], order: RowOrd
       }),
     ),
     scale,
+    unit: grid.unit,
   };
 }
 

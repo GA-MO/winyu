@@ -1710,6 +1710,15 @@ export const TH = {
     devCards: "ดูการ์ดทุกแบบ",
   },
   cards: {
+    heat: {
+      percent: "%",
+      points: "จุด",
+      baht: "บาท",
+      millions: (unit: string) => `ล้าน${unit}`,
+      thousands: (unit: string) => `พัน${unit}`,
+      unit: (unit: string) => `หน่วย: ${unit}`,
+      changeUnit: (unit: string) => `ตัวเลขคือการเปลี่ยนแปลง · หน่วย: ${unit}`,
+    },
     source: {
       hris: "แหล่งข้อมูล: HRIS",
       she: "แหล่งข้อมูล: ระบบรายงานความปลอดภัย (SHE)",

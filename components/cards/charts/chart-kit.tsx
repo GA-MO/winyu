@@ -134,5 +134,5 @@ export function toneTextClass(tone: Tone): string {
 }
 
 export function heatCellTitle(row: string, column: string, cell: HeatCell): string {
-  return cell.detail ? `${row} · ${column}: ${cell.text} · ${cell.detail}` : `${row} · ${column}: ${cell.text}`;
+  return `${row} · ${column}: ${cell.detail ?? cell.text}`;
 }

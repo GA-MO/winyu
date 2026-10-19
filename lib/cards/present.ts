@@ -82,7 +82,7 @@ export type CardBody =
   | { kind: "line"; labels: string[]; series: ChartSeries[]; format: MetricFormat }
   | { kind: "stacked"; shape: "bar" | "area"; labels: string[]; series: ChartSeries[]; format: MetricFormat }
   | { kind: "share"; slices: ShareSlice[]; centerValue: string; centerLabel: string }
-  | { kind: "heatmap"; rowLabels: string[]; columnLabels: string[]; cells: (HeatCell | null)[][]; scale: ColorScale }
+  | { kind: "heatmap"; rowLabels: string[]; columnLabels: string[]; cells: (HeatCell | null)[][]; scale: ColorScale; unit: string }
   | { kind: "scatter"; points: ScatterPoint[]; x: ScatterAxis; y: ScatterAxis; r: number }
   | { kind: "funnel"; stages: FunnelStage[] }
   | { kind: "table"; columns: CardColumn[]; rows: Record<string, string>[] }

@@ -30,7 +30,7 @@ export function CardBodyView({ body }: { body: CardBody }) {
   }
   if (body.kind === "stacked") return <StackedArea labels={body.labels} series={body.series} format={body.format} />;
   if (body.kind === "share") return <ShareDonut slices={body.slices} centerValue={body.centerValue} centerLabel={body.centerLabel} />;
-  if (body.kind === "heatmap") return <Heatmap rowLabels={body.rowLabels} columnLabels={body.columnLabels} cells={body.cells} />;
+  if (body.kind === "heatmap") return <Heatmap rowLabels={body.rowLabels} columnLabels={body.columnLabels} cells={body.cells} scale={body.scale} unit={body.unit} />;
   if (body.kind === "scatter") return <Scatter points={body.points} x={body.x} y={body.y} />;
   if (body.kind === "funnel") return <Funnel stages={body.stages} />;
   if (body.kind === "table") return <Table props={{ columns: body.columns, rows: body.rows }} />;

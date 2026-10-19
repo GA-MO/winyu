@@ -115,7 +115,16 @@ describe("two groups", () => {
     const cells = body.cells.flat().filter((cell) => cell !== null);
     expect(cells.length).toBe(body.rowLabels.length * body.columnLabels.length);
     expect(cells.every((cell) => cell.intensity >= 0 && cell.intensity <= 1)).toBe(true);
-    expect(cells.every((cell) => /%$/.test(cell.text) && cell.detail !== null)).toBe(true);
+    expect(cells.every((cell) => /^([+-][\d.]+|0)$/.test(cell.text) && /%/.test(cell.detail ?? ""))).toBe(true);
+    expect(body.unit).toBe("%");
+  });
+
+  test("a grid of volumes writes every cell on one scale with no unit, the unit named once, so no cell needs cutting", () => {
+    const body = expectKind(bodyOf({ metric: "net_sales_volume", dims: ["region", "brand"], compare: "none" }), "heatmap");
+    const cells = body.cells.flat().filter((cell) => cell !== null);
+    expect(body.unit).toBe("ล้านลิตร");
+    expect(cells.every((cell) => /^\d+(\.\d+)?$/.test(cell.text) && cell.text.length <= 5)).toBe(true);
+    expect(new Set(cells.map((cell) => cell.text.split(".")[1]?.length ?? 0)).size).toBe(1);
   });
 });
 
