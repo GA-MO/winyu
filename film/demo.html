@@ -153,6 +153,7 @@ svg.i{width:28px;height:28px;fill:none;stroke:currentColor;stroke-width:2;stroke
 #bar button{width:36px;height:36px;border-radius:50%;border:0;background:#fff;box-shadow:0 2px 8px rgba(30,27,75,.15);cursor:pointer;display:flex;align-items:center;justify-content:center}
 #bar input{width:min(60vw,720px);accent-color:#4f46e5}
 #tlabel{font-variant-numeric:tabular-nums;min-width:96px}
+#bar #snd[aria-pressed="false"]{opacity:.45}
 body.capture #bar{display:none}
 body.capture #frame{border-radius:0;box-shadow:none}
 body.capture #app{justify-content:flex-start;align-items:flex-start}
@@ -427,10 +428,11 @@ body.capture #app{justify-content:flex-start;align-items:flex-start}
   </div>
 </div>
 </div>
-<div id="bar"><button id="pp" aria-label="play/pause"><svg id="ppi" width="14" height="14" viewBox="0 0 14 14"></svg></button><input id="scrub" type="range" min="0" max="42" step="0.01" value="0"><span id="tlabel">0.00 / 42.00</span></div>
+<div id="bar"><button id="pp" aria-label="play/pause"><svg id="ppi" width="14" height="14" viewBox="0 0 14 14"></svg></button><button id="snd" aria-label="sound" aria-pressed="false"><svg width="16" height="16" viewBox="0 0 16 16"><path d="M2 6h3l4-3.5v11L5 10H2z" fill="#4f46e5"/><path d="M11.5 5.2a4 4 0 0 1 0 5.6M13.3 3.5a6.5 6.5 0 0 1 0 9" fill="none" stroke="#4f46e5" stroke-width="1.5" stroke-linecap="round"/></svg></button><input id="scrub" type="range" min="0" max="42" step="0.01" value="0"><span id="tlabel">0.00 / 42.00</span></div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="sound.js"></script>
 <script>
 (() => {
 const OLD = 36;
@@ -464,6 +466,12 @@ const TYPE_M = 'จำไว้ว่าผมดูแลภาคอีสา�
 const TYPE_Q = 'ยอดขายเดือนนี้เป็นยังไง';
 const TYPE5A = 'เหลือวันลากี่วัน';
 const TYPE5 = 'ขอลาพักร้อน 29\u00a0ก.ย.\u00a0–\u00a01\u00a0ต.ค.';
+const Q1_TYPE = {at: 3.3, dur: 0.62, end: 4.42};
+const MOMENT = {answer: 4.95, flagChip: 6.35, mail: 15.9, badge: 16.0, lock: 25.4, connected: 28.7, endTile: 31.95};
+const LV = {tap1: 0.7, typeA: [0.75, 1.3], send1: 1.5, bal: 1.85, tap2: 4.55, typeB: [4.6, 5.35], send2: 5.55, lv: 5.95, ok: 8.3};
+const APP_AT = (i) => 0.45 + i * 0.05;
+const BEAT = 0.76;
+const BREATH = 0.3;
 
 const $ = (id) => document.getElementById(id);
 const appsEl = $('apps');
@@ -482,6 +490,8 @@ const seg = (s) => {
 };
 const GM = seg(TYPE_M), GQ = seg(TYPE_Q);
 const G1 = seg(TYPE1), G5 = seg(TYPE5), G5A = seg(TYPE5A);
+const typedN = (G, v, a, b) => v < a ? 0 : Math.min(G.length, Math.floor((v - a) / (b - a) * G.length) + 1);
+const q1Typed = (t) => t >= Q1_TYPE.at && t < Q1_TYPE.end ? Math.min(G1.length, Math.floor((t - Q1_TYPE.at) / Q1_TYPE.dur * G1.length) + 1) : 0;
 
 const EZ = {};
 const ez = (n) => EZ[n] || (EZ[n] = gsap.parseEase(n));
@@ -537,7 +547,8 @@ function measure() {
   buildCursor();
 }
 
-let CUR = [], CLICKS = [];
+let CUR = [];
+const CLICKS = [3.25, 4.38, 14.12, 15.08, 16.52, 24.95, 28.05];
 function buildCursor() {
   const off = {x: 1420, y: 960};
   CUR = [
@@ -562,7 +573,6 @@ function buildCursor() {
     [29.1, P.cBtn.x + 60, P.cBtn.y + 140],
     [OLD, off.x, off.y],
   ];
-  CLICKS = [3.25, 4.38, 14.12, 15.08, 16.52, 24.95, 28.05];
 }
 const CUR_VIS = [[0,0],[2.6,0],[2.9,1,'power2.out'],[4.8,1],[5.2,0,'power2.in'],[13.5,0],[13.75,1,'power2.out'],[17.1,1],[17.5,0,'power2.in'],[24.0,0],[24.3,1,'power2.out'],[26.0,1],[26.4,0,'power2.in'],[27.45,0],[27.7,1,'power2.out'],[28.8,1],[29.15,0,'power2.in'],[OLD,0]];
 function cursorAt(t) {
@@ -591,12 +601,15 @@ const els = {};
   .concat(NEW_IDS).forEach(id => els[id] = $(id));
 const E = els;
 const REAL = [...document.querySelectorAll('#c3 .real')];
-function render(tIn) {
+function timeOf(tIn) {
   const tg = ((tIn % LEN) + LEN) % LEN;
   let g = SEG[SEG.length - 1];
   for (const x of SEG) { if (tg < x.s + x.d) { g = x; break; } }
   const u = tg - g.s;
-  const T = g.fn ? g.at : g.hold !== undefined ? g.hold : g.a + u;
+  return {tg, g, u, T: g.fn ? g.at : g.hold !== undefined ? g.hold : g.a + u};
+}
+function render(tIn) {
+  const {tg, g, u, T} = timeOf(tIn);
   renderOld(T, tg);
   renderLearn(g.fn === 'learn' ? u : -1, g.d);
   renderDyn(g.fn === 'dyn' ? u : -1, g.d);
@@ -621,7 +634,7 @@ function renderOld(t, tg) {
 
   const endIn = t >= 31 ? 1 : 0;
   const endOut = 1 - prog(t, 0.15, 0.7, 'power2.in');
-  const tileP = endIn ? prog(t, 31.95, 32.75, 'expo.out') : endOut;
+  const tileP = endIn ? prog(t, MOMENT.endTile, 32.75, 'expo.out') : endOut;
   const wordP = endIn ? prog(t, 32.1, 32.9, 'expo.out') : endOut;
   const tagP = endIn ? prog(t, 32.35, 33.15, 'expo.out') : endOut;
   S(E.endTile, tileP, 0, 0, endIn ? 0.6 + 0.4 * tileP : 0.94 + 0.06 * endOut);
@@ -631,7 +644,7 @@ function renderOld(t, tg) {
 
   APPS.forEach((a, i) => {
     const el = $('app' + i);
-    const a0 = 0.45 + i * 0.05;
+    const a0 = APP_AT(i);
     const pin = prog(t, a0, a0 + 0.7, 'back.out(1.5)');
     const c0 = 1.5 + Math.abs(i - 3) * 0.04;
     const pc = prog(t, c0, c0 + 0.5, 'power3.in');
@@ -674,8 +687,7 @@ function renderOld(t, tg) {
   const glowP = vis(t, 2.4, 0.3, 2.85, 0.6, 'power2.out', 'power2.inOut');
   S(E.glow, glowP, 0, HOME_DY * (1 - compDown));
 
-  let nT = 0;
-  if (t >= 3.3 && t < 4.42) nT = Math.min(G1.length, Math.floor((t - 3.3) / 0.62 * G1.length) + 1);
+  const nT = q1Typed(t);
   E.typed.textContent = G1.slice(0, nT).join('');
   E.ph.style.display = nT ? 'none' : '';
   E.ph.style.opacity = t < 4 ? prog(t, 2.5, 2.8, 'power2.out') : 1;
@@ -685,12 +697,12 @@ function renderOld(t, tg) {
 
   S(E.L2, 1 - prog(t, 8.8, 9.15, 'power2.in'), 0, -24 * prog(t, 8.8, 9.15, 'power2.in'));
   rise(E.b2q, t, 4.45, undefined, 0.6, 30);
-  rise(E.c2, t, 4.95, undefined, 0.7, 24);
+  rise(E.c2, t, MOMENT.answer, undefined, 0.7, 24);
   rise(E.c2h, t, 5.15, undefined, 0.6, 12);
   rise(E.c2t, t, 5.4, undefined, 0.6, 12);
   rise(E.c2r1, t, 5.75, undefined, 0.6, 12);
   rise(E.c2r2, t, 5.92, undefined, 0.6, 12);
-  const chipP = prog(t, 6.35, 6.85, 'back.out(2)');
+  const chipP = prog(t, MOMENT.flagChip, 6.85, 'back.out(2)');
   S(E.c2c, clamp(chipP * 1.5), 0, 0, 0.9 + 0.1 * chipP);
   if (t < 4.4) { E.L2.style.visibility = 'hidden'; }
 
@@ -715,9 +727,9 @@ function renderOld(t, tg) {
   const doneP = prog(t, 15.12, 15.3, 'power2.out');
   E.popSend.style.opacity = 1 - doneP; E.popDone.style.opacity = doneP;
 
-  const mailP = prog(t, 15.9, 16.4, 'expo.out') * (1 - prog(t, 16.6, 16.9, 'power2.in'));
+  const mailP = prog(t, MOMENT.mail, 16.4, 'expo.out') * (1 - prog(t, 16.6, 16.9, 'power2.in'));
   S(E.mail, mailP, (1 - prog(t, 15.9, 16.4, 'expo.out')) * 60, 0);
-  const badgeP = prog(t, 16.0, 16.4, 'back.out(3)') * (1 - prog(t, 16.55, 16.7, 'power2.in'));
+  const badgeP = prog(t, MOMENT.badge, 16.4, 'back.out(3)') * (1 - prog(t, 16.55, 16.7, 'power2.in'));
   S(E.badge, clamp(badgeP * 1.5), 0, 0, Math.max(0.001, badgeP));
 
   const sevenA = prog(t, 26.95, 27.3, 'power2.out') * (1 - prog(t, 29.05, 29.4, 'power2.in'));
@@ -726,7 +738,7 @@ function renderOld(t, tg) {
   S(E.cRow, rowP, 0, (1 - rowP) * 24);
   E.cRow.style.boxShadow = `0 0 0 ${(4 * (1 - prog(t, 28.75, 29.1))).toFixed(2)}px rgba(124,58,237,.18), 0 20px 40px -24px rgba(49,46,129,.3)`;
   const ing = prog(t, 28.15, 28.28, 'power2.out') * (1 - prog(t, 28.65, 28.8, 'power2.in'));
-  const okP = prog(t, 28.7, 29.05, 'back.out(2)');
+  const okP = prog(t, MOMENT.connected, 29.05, 'back.out(2)');
   S(E.cBtn, 1 - prog(t, 28.07, 28.15), 0, 0, t > 28.0 && t < 28.12 ? 0.95 : 1);
   S(E.cIng, ing);
   S(E.cOk, clamp(okP * 1.4), 0, 0, 0.85 + 0.15 * okP);
@@ -767,7 +779,7 @@ function renderOld(t, tg) {
   const blur6 = prog(t, 25.2, 25.65, 'power2.out');
   E.k6bv.style.filter = `blur(${(blur6 * 14).toFixed(2)}px)`;
   E.k6bv.style.opacity = (1 - 0.45 * blur6).toFixed(3);
-  const lk = prog(t, 25.4, 25.85, 'back.out(1.8)');
+  const lk = prog(t, MOMENT.lock, 25.85, 'back.out(1.8)');
   S(E.lock6, clamp(lk * 1.4), 0, 0, 0.9 + 0.1 * lk);
 
   const cp = cursorAt(t);
@@ -779,7 +791,7 @@ function renderOld(t, tg) {
 
 function typeInto(G, v, a, b, sendAt) {
   if (v < a - 0.15 || v >= sendAt + 0.05) return false;
-  const n = v < a ? 0 : Math.min(G.length, Math.floor((v - a) / (b - a) * G.length) + 1);
+  const n = typedN(G, v, a, b);
   E.typed.textContent = G.slice(0, n).join('');
   E.ph.style.display = n ? 'none' : '';
   E.caret.style.display = '';
@@ -938,10 +950,10 @@ function renderLeave(v, D) {
   S(heads[4], hi * (1 - ho), (1 - hi) * -30, -14 * ho);
   E.scene.style.transform = 'translate(0px,0px) scale(1)';
 
-  const L = {tap1: 0.7, typeA: [0.75, 1.3], send1: 1.5, bal: 1.85, tap2: 4.55, typeB: [4.6, 5.35], send2: 5.55, lv: 5.95, ok: 8.3};
+  const L = LV;
   let txt = '', focus = false, n = 0, G = null;
-  if (v >= L.typeA[0] && v < L.send1 + 0.05) { G = G5A; n = Math.min(G.length, Math.floor((v - L.typeA[0]) / (L.typeA[1] - L.typeA[0]) * G.length) + 1); focus = true; }
-  if (v >= L.typeB[0] && v < L.send2 + 0.05) { G = G5; n = Math.min(G.length, Math.floor((v - L.typeB[0]) / (L.typeB[1] - L.typeB[0]) * G.length) + 1); focus = true; }
+  if (v >= L.typeA[0] && v < L.send1 + 0.05) { G = G5A; n = typedN(G, v, ...L.typeA); focus = true; }
+  if (v >= L.typeB[0] && v < L.send2 + 0.05) { G = G5; n = typedN(G, v, ...L.typeB); focus = true; }
   if ((v >= L.tap1 && v < L.typeA[0]) || (v >= L.tap2 && v < L.typeB[0])) focus = true;
   txt = G ? G.slice(0, n).join('') : '';
   E.ptyped.textContent = txt;
@@ -1010,17 +1022,73 @@ function fit() {
 }
 addEventListener('resize', fit); fit();
 
+const filmAt = (T) => { const g = SEG.find((x) => x.a !== undefined && T >= x.a && T < x.b); return g.s + (T - g.a); };
+const fnAt = (name, u) => SEG.find((x) => x.fn === name).s + u;
+const startOf = (name) => fnAt(name, 0);
+const oldTyped = (t) => { const {g, T} = timeOf(t); return g.a !== undefined ? q1Typed(T) : 0; };
+const keysIn = (count, from, to) => Sound.steps(count, from - 0.01, to + 0.01, 0.05).map((at, i) => ({at, sfx: 'key', step: i}));
+const fnTyped = (name, G, span) => keysIn((t) => typedN(G, t - startOf(name), ...span), fnAt(name, span[0]), fnAt(name, span[1]));
+const SOUND = {
+  music: 'suite',
+  tempo: {beat: BEAT, on: fnAt('learn', LM.conf)},
+  sections: [
+    {at: 0, mix: 'open', fade: 1.2},
+    {at: filmAt(MOMENT.answer), mix: 'calm', fade: 1.0},
+    {at: startOf('learn'), mix: 'flow', fade: 0.8},
+    {at: fnAt('learn', LM.conf) - BREATH, mix: 'hold', fade: 0.2},
+    {at: fnAt('learn', LM.drawer), mix: 'flow', fade: 0.8},
+    {at: startOf('dyn'), mix: 'lift', fade: 0.8},
+    {at: filmAt(HEAD_T[3][0]), mix: 'flow', fade: 0.8},
+    {at: startOf('leave'), mix: 'calm', fade: 0.8},
+    {at: filmAt(HEAD_T[5][0]), mix: 'flow', fade: 0.8},
+    {at: filmAt(MOMENT.endTile), mix: 'end', fade: 1.2},
+  ],
+  cues: [
+    ...APPS.map((_, i) => ({at: filmAt(APP_AT(i)), sfx: 'pop', step: i})),
+    ...CLICKS.map((c) => ({at: filmAt(c), sfx: 'click'})),
+    ...keysIn(oldTyped, filmAt(Q1_TYPE.at), filmAt(Q1_TYPE.at + Q1_TYPE.dur)),
+    {at: filmAt(CLICKS[1]), sfx: 'send'},
+    {at: filmAt(MOMENT.answer), sfx: 'air'},
+    {at: filmAt(MOMENT.flagChip), sfx: 'notify'},
+    ...fnTyped('learn', GM, LM.typeA),
+    {at: fnAt('learn', LM.sendA), sfx: 'send'},
+    {at: fnAt('learn', LM.conf), sfx: 'memory'},
+    {at: fnAt('learn', LM.day), sfx: 'dawn'},
+    ...fnTyped('learn', GQ, LM.typeB),
+    {at: fnAt('learn', LM.sendB), sfx: 'send'},
+    {at: fnAt('learn', LM.hl), sfx: 'memory'},
+    {at: fnAt('learn', LM.ins), sfx: 'echo'},
+    {at: fnAt('dyn', 0.2), sfx: 'send'},
+    ...RC.map((_, k) => ({at: fnAt('dyn', DD.row + k * DD.gap), sfx: 'pop', step: k + 2})),
+    {at: filmAt(MOMENT.mail), sfx: 'whoosh'},
+    {at: filmAt(MOMENT.badge), sfx: 'bell'},
+    {at: fnAt('leave', LV.tap1), sfx: 'click'},
+    ...fnTyped('leave', G5A, LV.typeA),
+    {at: fnAt('leave', LV.send1), sfx: 'send'},
+    {at: fnAt('leave', LV.tap2), sfx: 'click'},
+    ...fnTyped('leave', G5, LV.typeB),
+    {at: fnAt('leave', LV.send2), sfx: 'send'},
+    {at: fnAt('leave', LV.ok), sfx: 'glow'},
+    {at: filmAt(MOMENT.lock), sfx: 'lock'},
+    {at: filmAt(CLICKS[6]), sfx: 'plug'},
+    {at: filmAt(MOMENT.connected), sfx: 'toggle'},
+    {at: filmAt(MOMENT.endTile), sfx: 'sting'},
+  ],
+};
+let rendered = null;
+window.film = { length: LEN, render: (t) => { render(t); }, audio: () => (rendered ??= Sound.renderScore(SOUND, LEN)) };
+const speaker = capture ? null : Sound.speaker(window.film);
 let playing = !capture, cur = 0, last = null;
 const scrub = $('scrub'); scrub.max = LEN; const tl = $('tlabel'), ppi = $('ppi');
 const PLAY = '<path d="M3 1.5v11l9.5-5.5z" fill="#4f46e5"/>', PAUSE = '<rect x="2.5" y="1.5" width="3.2" height="11" rx="1" fill="#4f46e5"/><rect x="8.3" y="1.5" width="3.2" height="11" rx="1" fill="#4f46e5"/>';
 function show(t) { cur = t; render(t); scrub.value = t.toFixed(2); tl.textContent = `${t.toFixed(2)} / ${LEN.toFixed(2)}`; ppi.innerHTML = playing ? PAUSE : PLAY; }
-$('pp').onclick = () => { playing = !playing; last = null; show(cur); };
-scrub.oninput = () => { playing = false; show(parseFloat(scrub.value)); };
+$('pp').onclick = () => { playing = !playing; last = null; show(cur); speaker?.sync(cur, playing); };
+scrub.oninput = () => { playing = false; show(parseFloat(scrub.value)); speaker?.sync(cur, playing); };
+$('snd').onclick = async () => { const on = await speaker.toggle(); $('snd').setAttribute('aria-pressed', String(on)); speaker.sync(cur, playing); };
 function loop(ts) {
-  if (playing) { if (last !== null) cur = (cur + (ts - last) / 1000) % LEN; last = ts; show(cur); } else last = null;
+  if (playing) { const heard = speaker?.clock(); if (heard != null) cur = heard; else if (last !== null) cur = (cur + (ts - last) / 1000) % LEN; last = ts; show(cur); } else last = null;
   requestAnimationFrame(loop);
 }
-window.film = { length: LEN, render: (t) => { render(t); } };
 document.fonts.ready.then(() => { measure(); if (fixedT !== null) { playing = false; show(fixedT); window.film.ready = true; return; } show(0); window.film.ready = true; requestAnimationFrame(loop); });
 })();
 </script>
