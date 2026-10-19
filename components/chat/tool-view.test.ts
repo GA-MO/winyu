@@ -71,6 +71,12 @@ describe("memory recalls", () => {
   test("a single recall draws its card", () => {
     expect([...cardPlanOf([returned("r1", "recall_memory", { query: "ลีโอ" }, RECALL)], new Set(), new Set(["recall_memory"])).hidden]).toEqual([]);
   });
+
+  test("a recall that found past conversations and no facts draws its card, so the person can open them (AI-344); one that found nothing is said in words", () => {
+    const conversation = { threadId: "t_ar", title: "หนี้ค้างชำระภาคใต้", at: "2026-10-19T09:00:00.000Z", question: "หนี้ค้างชำระภาคใต้ตอนนี้เป็นยังไง", reply: "สูงขึ้น", queries: [], score: 0.86 };
+    expect(drawsNoCard({ ...RECALL, conversations: [conversation] })).toBe(false);
+    expect(drawsNoCard(RECALL)).toBe(true);
+  });
 });
 
 describe("only answers draw cards (AI-63)", () => {

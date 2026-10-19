@@ -10,7 +10,7 @@ import type { ReplyStep, ToolStep } from "./timeline";
 const DECLINED_TEXT = /not approved|declined|rejected|denied/i;
 const LEFT_FOR_NEW_QUESTION = "LEFT_FOR_NEW_QUESTION";
 const NOT_APPROVED = "NOT_APPROVED";
-const ANSWER_LISTS = ["rows", "weeks", "data"] as const;
+const ANSWER_LISTS = ["rows", "weeks", "data", "conversations"] as const;
 const CATALOG_TOOL = "list_metrics";
 const RECALL_TOOL = "recall_memory";
 const METRIC_TOOL = "query_metric";
@@ -44,7 +44,7 @@ function isDone(result: unknown): boolean {
   return typeof result === "object" && result !== null && (result as { ok?: unknown }).ok === true;
 }
 
-/** A successful read that found nothing (no rows, no forecast weeks, an empty search): the reply says so in words, as the prompt asks, so no empty card is drawn. A report whose nothing is itself the answer (no one was denied) says so with `drawsWhenEmpty` and keeps its card (AI-279). */
+/** A successful read that found nothing (no rows, no forecast weeks, an empty search, a recall with no facts and no past conversations): the reply says so in words, as the prompt asks, so no empty card is drawn. A report whose nothing is itself the answer (no one was denied) says so with `drawsWhenEmpty` and keeps its card (AI-279). */
 export function isEmptyAnswer(result: unknown): boolean {
   if (typeof result !== "object" || result === null || (result as { ok?: unknown }).ok !== true) return false;
   if ((result as { drawsWhenEmpty?: unknown }).drawsWhenEmpty === true) return false;
