@@ -23,7 +23,7 @@ const BRAND_MARK = "flex size-8 shrink-0 items-center justify-center rounded-[10
 const RAIL_OFFSET = "--winyu-rail-offset";
 const TEXT = TH.conversation.rail;
 
-type ThreadSummary = { id: string; title: string; createdAt: string; updatedAt: string; matterCode: string | null };
+type ThreadSummary = { id: string; title: string; question: string | null; createdAt: string; updatedAt: string; matterCode: string | null };
 
 type RowMode = { kind: "view" } | { kind: "rename"; id: string; draft: string } | { kind: "confirm-delete"; id: string };
 
@@ -62,7 +62,7 @@ function useThreads() {
 
 function grouped(threads: readonly ThreadSummary[], query: string) {
   const needle = query.trim().toLowerCase();
-  const visible = needle ? threads.filter((thread) => thread.title.toLowerCase().includes(needle)) : threads;
+  const visible = needle ? threads.filter((thread) => [thread.title, thread.question ?? ""].some((text) => text.toLowerCase().includes(needle))) : threads;
   return GROUP_ORDER.map((group) => ({ group, items: visible.filter((thread) => threadGroupOf(thread.updatedAt) === group) })).filter((entry) => entry.items.length > 0);
 }
 

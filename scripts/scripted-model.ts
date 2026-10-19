@@ -1,6 +1,7 @@
 import { simulateReadableStream } from "ai";
 import { MockLanguageModelV3 } from "ai/test";
 import * as models from "@/lib/server/models";
+import type { CallOwner } from "@/lib/server/usage-meter";
 
 type StreamResult = Awaited<ReturnType<MockLanguageModelV3["doStream"]>>;
 type GenerateResult = Awaited<ReturnType<MockLanguageModelV3["doGenerate"]>>;
@@ -15,6 +16,7 @@ type SpokenStep = Exclude<ScriptedStep, { hang: true } | { silentAfter: Scripted
 
 const USAGE = { inputTokens: { total: 10, noCache: 10, cacheRead: 0, cacheWrite: 0 }, outputTokens: { total: 5, text: 5, reasoning: 0 } };
 const FALLBACK_TEXT = "ไม่มีขั้นต่อไปในสคริปต์";
+const SCRIPTED_TITLE = "ชื่อบทสนทนาจากสคริปต์";
 
 function toolCallsOf(calls: readonly ScriptedCall[], index: number): StreamPart[] {
   return [
@@ -52,11 +54,25 @@ function silentAfter(parts: StreamPart[]): ReadableStream<StreamPart> {
 export class ScriptedModel {
   private steps: ScriptedStep[] = [];
   private served = 0;
+  private titleText: string | null = SCRIPTED_TITLE;
   readonly model = new MockLanguageModelV3({ provider: "scripted", modelId: "scripted", doStream: async () => this.next(), doGenerate: () => this.generated() });
+  /** Whom each thread title was billed to, in the order they were asked. */
+  readonly titleOwners: CallOwner[] = [];
+  /** The title model: apart from the script, so naming a thread never takes a step meant for a chat turn; it answers `titleText`, or never when that is null. */
+  readonly titleModel = new MockLanguageModelV3({
+    provider: "scripted",
+    modelId: "scripted-title",
+    doGenerate: () => (this.titleText === null ? new Promise(() => {}) : Promise.resolve(generatedOf({ text: this.titleText }, 0))),
+  });
 
   /** How many model calls this stand-in has served. */
   get calls(): number {
     return this.served;
+  }
+
+  /** What the title model answers from now on; null makes it never answer. */
+  titles(text: string | null): void {
+    this.titleText = text;
   }
 
   /** Replaces what the model says next. */
@@ -66,8 +82,13 @@ export class ScriptedModel {
 
   /** The `@/lib/server/models` module with this model as the agent's model and no utility model (the rest as it is), for `mock.module`. */
   modelsModule() {
-    const agentModel = (): models.AgentModel => ({ id: "scripted", name: "scripted", chat: () => this.model, chatFallback: () => this.model, model: () => this.model, title: () => this.model });
+    const agentModel = (): models.AgentModel => ({ id: "scripted", name: "scripted", chat: () => this.model, chatFallback: () => this.model, model: () => this.model, title: (owner) => this.titleFor(owner) });
     return { ...models, agentModel, utilityModel: () => null };
+  }
+
+  private titleFor(owner: CallOwner): MockLanguageModelV3 {
+    this.titleOwners.push(owner);
+    return this.titleModel;
   }
 
   private generated(): Promise<GenerateResult> {

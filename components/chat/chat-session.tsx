@@ -26,6 +26,8 @@ const CHIP =
 
 /** The window event the chat fires when a reply ends, so the thread rail can pick up a new or retitled thread. */
 export const THREADS_CHANGED = "winyu:threads-changed";
+/** The server names a thread a few seconds after its first answer (a title model call), so the rail looks again then. */
+const TITLE_RECHECKS_MS = [3_000, 8_000];
 
 /** The matter this thread was opened from: its page, its title and who sent it. */
 export type SessionPreload = { matterCode: string; title: string; fromName: string };
@@ -94,10 +96,17 @@ export function ChatSession({ threadId, initialPrompt, initialMessages, initialA
     window.history.replaceState(null, "", `/c/${threadId}`);
   }, [initialPrompt, ready, send, threadId]);
 
+  const firstExchange = exchanges.length === 1;
   useEffect(() => {
-    if (wasRunning.current && !running) window.dispatchEvent(new Event(THREADS_CHANGED));
+    const finished = wasRunning.current && !running;
     wasRunning.current = running;
-  }, [running]);
+    if (!finished) return;
+    const changed = () => window.dispatchEvent(new Event(THREADS_CHANGED));
+    changed();
+    if (!firstExchange) return;
+    const timers = TITLE_RECHECKS_MS.map((ms) => setTimeout(changed, ms));
+    return () => timers.forEach(clearTimeout);
+  }, [running, firstExchange]);
 
   const { scroller, content, onScroll } = useFollowLatest(exchanges[exchanges.length - 1]?.id ?? null);
 

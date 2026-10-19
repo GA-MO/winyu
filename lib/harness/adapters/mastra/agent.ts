@@ -5,6 +5,7 @@ import type { RequestContext } from "@mastra/core/request-context";
 import type { CoreSystemMessage } from "@mastra/core/llm";
 import { LibSQLStore } from "@mastra/libsql";
 import { Memory } from "@mastra/memory";
+import type { LanguageModel } from "ai";
 import { liveAccessFor } from "@/lib/access/enforce";
 import type { AccessContext } from "@/lib/contracts";
 import { businessToday } from "@/lib/data/dates";
@@ -17,11 +18,12 @@ import { WINYU_RULES, personaFor } from "@/lib/server/agent/persona";
 import { toolsForAccess } from "@/lib/server/agent/tools";
 import { CACHED_SYSTEM_PROMPT, agentModel } from "@/lib/server/models";
 import { currentTurn } from "@/lib/server/request-context";
+import { adoptGeneratedTitle } from "@/lib/server/threads-read";
 import { DATA_DIR } from "@/lib/server/store/json-store";
 import { ToolResultInjectionGuard, replyGuard } from "./guardrails";
 import { ChatDurableAgent, persistsSnapshot } from "./durable";
 import { winyuWorkflows, schedulerEnabled } from "./jobs";
-import { winyuObservability } from "./observability";
+import { HARNESS_RUN_KEY, winyuObservability } from "./observability";
 import { mastraTools } from "./tools";
 
 /** The one chat agent's id: the Mastra registry key and the CopilotKit agent name. */
@@ -110,6 +112,35 @@ const CHAT_MODELS = [
   { id: "standard", model: () => configuredModel().chatFallback(), maxRetries: 0 },
 ];
 
+const NOTHING_USED = { inputTokens: { total: 0, noCache: 0, cacheRead: 0, cacheWrite: 0 }, outputTokens: { total: 0, text: 0, reasoning: 0 } };
+
+/** A title model that says nothing and calls no one: a run that is not a served chat run (a Studio run) gets no title and spends nothing. */
+const NO_TITLE: Extract<LanguageModel, { specificationVersion: "v3" }> = {
+  specificationVersion: "v3",
+  provider: "winyu",
+  modelId: "no-title",
+  supportedUrls: {},
+  doGenerate: async () => ({ content: [], finishReason: { unified: "stop", raw: undefined }, usage: NOTHING_USED, warnings: [] }),
+  doStream: async () => ({ stream: new ReadableStream({ start: (controller) => controller.close() }) }),
+};
+
+/** The model that names a thread after its first answer: the cheap title model, billed as background work to the person whose served chat run it follows; anything else (Studio) gets NO_TITLE. */
+function titleModelFor({ requestContext }: { requestContext: RequestContext }) {
+  const userId = requestContext.get(USER_ID_KEY);
+  const runId = requestContext.get(HARNESS_RUN_KEY);
+  if (typeof userId !== "string" || typeof runId !== "string") return NO_TITLE;
+  return configuredModel().title({ source: "background", userId, turnId: runId });
+}
+
+/** Mastra memory that hands each generated title to the thread store, which keeps it only on the person's own thread and only while the first question still names it. */
+class ChatMemory extends Memory {
+  override async updateThread(args: Parameters<Memory["updateThread"]>[0]) {
+    const thread = await super.updateThread(args);
+    if (args.title) adoptGeneratedTitle(thread.id, thread.resourceId, args.title);
+    return thread;
+  }
+}
+
 function buildMastra(): Mastra {
   const storage = new LibSQLStore({ id: AGENT_ID, url: `file:${path.join(DATA_DIR, STORAGE_FILE)}` });
   const agent = new Agent<typeof AGENT_ID, ToolsInput, undefined, UserContext>({
@@ -121,7 +152,7 @@ function buildMastra(): Mastra {
       const access = accessOf(requestContext);
       return mastraTools(toolsForAccess(access), access);
     },
-    memory: new Memory({ options: { lastMessages: REMEMBERED_MESSAGES, semanticRecall: false, generateTitle: false } }),
+    memory: new ChatMemory({ options: { lastMessages: REMEMBERED_MESSAGES, semanticRecall: false, generateTitle: { model: titleModelFor, instructions: TH.harness.titleInstructions } } }),
     outputProcessors: [new ToolResultInjectionGuard(), replyGuard()],
     defaultOptions: () => ({ maxSteps: LIMITS.maxSteps, prepareStep: toldTheAnswerThenWrapUp, modelSettings: { timeout: chatTimeBudget() } }),
   });
