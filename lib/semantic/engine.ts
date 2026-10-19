@@ -168,6 +168,7 @@ function effectiveSort(sort: MetricSort | null, compareRows: Aggregated[] | null
   return byChange && !compareRows ? null : sort;
 }
 
+/** Rows in answer order under the cap: a series keeps its latest buckets, and only whole ones, so a split by brand never draws a first week that holds some of its brands (round 12). */
 function sortRows(rows: Aggregated[], dims: Dim[], limit: number, masked: boolean, lowFirst: boolean): Aggregated[] {
   const timeDim = firstTimeDim(dims);
   if (masked && !timeDim) {
@@ -177,7 +178,11 @@ function sortRows(rows: Aggregated[], dims: Dim[], limit: number, masked: boolea
     return [...rows].sort((left, right) => (lowFirst ? left.value - right.value : right.value - left.value)).slice(0, limit);
   }
   const sorted = [...rows].sort((left, right) => (left.dims[timeDim] < right.dims[timeDim] ? -1 : left.dims[timeDim] > right.dims[timeDim] ? 1 : right.value - left.value));
-  return sorted.length > limit ? sorted.slice(sorted.length - limit) : sorted;
+  if (sorted.length <= limit) return sorted;
+  const kept = sorted.slice(sorted.length - limit);
+  const oldest = kept[0]?.dims[timeDim];
+  const cutThrough = sorted[sorted.length - limit - 1]?.dims[timeDim] === oldest;
+  return cutThrough ? kept.filter((row) => row.dims[timeDim] !== oldest) : kept;
 }
 
 function rangeDays(query: MetricQuery): { from: number; to: number } | Failure {

@@ -327,3 +327,16 @@ describe("a sell-out breakdown asked against sell-in (AI-332)", () => {
     expect(await ask("ขายออกรายเอเย่นต์อีสานเดือนนี้", "sell_out_volume")).not.toHaveProperty("parity");
   });
 });
+
+test("a series split by brand over the row cap keeps its latest weeks whole: no first week drawn with some of its brands (round 12)", async () => {
+  const user = findUser("u_thana");
+  if (!user) throw new Error("no u_thana");
+  const tool = winyuTools().query_metric;
+  const turn = { turnId: null, threadId: null, question: "ยอดขายรายสัปดาห์แยกแบรนด์ 2 เดือนล่าสุด", queries: [] };
+  const query = { metric: "net_sales_value", dims: ["week", "brand"], filters: {}, grain: "week", compare: "none", limit: null, last: { count: 3, unit: "month" } };
+  const result = (await runWithAccess(accessFor(user), () => runWithTurn(turn, () => tool.execute(tool.inputSchema().parse(query))))) as Extract<MetricResult, { ok: true }>;
+  const brandsByWeek = new Map<string, number>();
+  for (const row of result.rows) brandsByWeek.set(String(row.week), (brandsByWeek.get(String(row.week)) ?? 0) + 1);
+  expect(result.rows.length).toBeLessThanOrEqual(60);
+  expect(new Set(brandsByWeek.values()).size).toBe(1);
+});
