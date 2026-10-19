@@ -468,9 +468,8 @@ const TYPE5A = 'เหลือวันลากี่วัน';
 const TYPE5 = 'ขอลาพักร้อน 29\u00a0ก.ย.\u00a0–\u00a01\u00a0ต.ค.';
 const Q1_TYPE = {at: 3.3, dur: 0.62, end: 4.42};
 const MOMENT = {answer: 4.95, flagChip: 6.35, mail: 15.9, badge: 16.0, lock: 25.4, connected: 28.7, endTile: 31.95};
-const LV = {tap1: 0.7, typeA: [0.75, 1.3], send1: 1.5, bal: 1.85, tap2: 4.55, typeB: [4.6, 5.35], send2: 5.55, lv: 5.95, ok: 8.3};
+const LV = {head: 0.15, tap1: 0.7, typeA: [0.75, 1.3], send1: 1.5, bal: 1.85, tap2: 4.55, typeB: [4.6, 5.35], send2: 5.55, lv: 5.95, ok: 8.3};
 const APP_AT = (i) => 0.45 + i * 0.05;
-const BEAT = 0.76;
 const BREATH = 0.3;
 
 const $ = (id) => document.getElementById(id);
@@ -819,6 +818,7 @@ const RC = [0, 1, 2].map(i => {
   return {el, chip: $('dc' + i), skl: el.querySelector('.skl'), sks: [...el.querySelectorAll('.skl i')], pcs: [...el.querySelectorAll('.pc')], fls: [...el.querySelectorAll('.fl')], band: b, wrap: w};
 });
 const DD = {split: 3.45, row: 4.1, gap: 0.5, zoom: 8.35};
+const DYN_HEAD = DD.split + 0.45;
 function renderDyn(u, D) {
   if (u < 0) { S(E.LD, 0); S(E.h3b, 0); S(E.h3c, 0); return; }
   const hOut = 1 - prog(u, 0, 0.35, 'power2.in');
@@ -830,7 +830,7 @@ function renderDyn(u, D) {
 
   const h1i = prog(u, 0.0, 0.7, 'expo.out'), h1o = prog(u, DD.split + 0.2, DD.split + 0.45, 'power2.in');
   S(E.h3b, h1i * (1 - h1o), 0, (1 - h1i) * 26 - 14 * h1o);
-  const h2i = prog(u, DD.split + 0.45, DD.split + 1.15, 'expo.out'), h2o = prog(u, D - 0.45, D - 0.15, 'power2.in');
+  const h2i = prog(u, DYN_HEAD, DYN_HEAD + 0.7, 'expo.out'), h2o = prog(u, D - 0.45, D - 0.15, 'power2.in');
   S(E.h3c, h2i * (1 - h2o), 0, (1 - h2i) * 26 - 14 * h2o);
 
   const CAM = [[0,1,1008],[DD.zoom,1,1008],[DD.zoom + 0.5,1.35,324],[DD.zoom + 1.0,1.35,324],[DD.zoom + 1.5,1.35,1008],[DD.zoom + 2.0,1.35,1008],[DD.zoom + 2.5,1.35,1716],[DD.zoom + 3.0,1.35,1716],[DD.zoom + 3.5,1,1008],[D,1,1008]];
@@ -946,7 +946,7 @@ function renderLeave(v, D) {
   const phOut = prog(v, D - 0.4, D, 'power3.in');
   const PS = 1.2 * (1 - 0.04 * phOut);
   S(E.phone, phIn * (1 - phOut), 1040 - 772, 98 - 248 + (1 - phIn) * 120 + phOut * 60, PS);
-  const hi = prog(v, 0.15, 0.85, 'expo.out'), ho = prog(v, D - 0.45, D - 0.15, 'power2.in');
+  const hi = prog(v, LV.head, LV.head + 0.7, 'expo.out'), ho = prog(v, D - 0.45, D - 0.15, 'power2.in');
   S(heads[4], hi * (1 - ho), (1 - hi) * -30, -14 * ho);
   E.scene.style.transform = 'translate(0px,0px) scale(1)';
 
@@ -1028,20 +1028,23 @@ const startOf = (name) => fnAt(name, 0);
 const oldTyped = (t) => { const {g, T} = timeOf(t); return g.a !== undefined ? q1Typed(T) : 0; };
 const keysIn = (count, from, to) => Sound.steps(count, from - 0.01, to + 0.01, 0.05).map((at, i) => ({at, sfx: 'key', step: i}));
 const fnTyped = (name, G, span) => keysIn((t) => typedN(G, t - startOf(name), ...span), fnAt(name, span[0]), fnAt(name, span[1]));
+const HEADLINES = [filmAt(HEAD_T[0][0]), filmAt(HEAD_T[1][0]), startOf('learn'), startOf('dyn'), fnAt('dyn', DYN_HEAD), filmAt(HEAD_T[3][0]), fnAt('leave', LV.head), filmAt(HEAD_T[5][0]), filmAt(HEAD_T[6][0])];
 const SOUND = {
-  music: 'suite',
-  tempo: {beat: BEAT, on: fnAt('learn', LM.conf)},
+  music: QS.get('music') ?? 'pop',
+  tempo: {on: fnAt('learn', LM.conf)},
   sections: [
-    {at: 0, mix: 'open', fade: 1.2},
-    {at: filmAt(MOMENT.answer), mix: 'calm', fade: 1.0},
-    {at: startOf('learn'), mix: 'flow', fade: 0.8},
-    {at: fnAt('learn', LM.conf) - BREATH, mix: 'hold', fade: 0.2},
-    {at: fnAt('learn', LM.drawer), mix: 'flow', fade: 0.8},
-    {at: startOf('dyn'), mix: 'lift', fade: 0.8},
-    {at: filmAt(HEAD_T[3][0]), mix: 'flow', fade: 0.8},
-    {at: startOf('leave'), mix: 'calm', fade: 0.8},
-    {at: filmAt(HEAD_T[5][0]), mix: 'flow', fade: 0.8},
-    {at: filmAt(MOMENT.endTile), mix: 'end', fade: 1.2},
+    {at: 0, mix: 'intro'},
+    {at: HEADLINES[1], mix: 'drive'},
+    {at: HEADLINES[2], mix: 'drive'},
+    {at: fnAt('learn', LM.conf) - BREATH, mix: 'hold', fade: 0.15},
+    {at: fnAt('learn', LM.drawer), mix: 'drive', fade: 0.3},
+    {at: HEADLINES[3], mix: 'full'},
+    {at: HEADLINES[4], mix: 'full'},
+    {at: HEADLINES[5], mix: 'drive'},
+    {at: HEADLINES[6], mix: 'break'},
+    {at: HEADLINES[7], mix: 'build'},
+    {at: HEADLINES[8], mix: 'peak'},
+    {at: filmAt(MOMENT.endTile), mix: 'end'},
   ],
   cues: [
     ...APPS.map((_, i) => ({at: filmAt(APP_AT(i)), sfx: 'pop', step: i})),
@@ -1073,6 +1076,8 @@ const SOUND = {
     {at: filmAt(CLICKS[6]), sfx: 'plug'},
     {at: filmAt(MOMENT.connected), sfx: 'toggle'},
     {at: filmAt(MOMENT.endTile), sfx: 'sting'},
+    ...HEADLINES.map((at, i) => ({at, sfx: 'hit', step: at === fnAt('dyn', DYN_HEAD) ? 1 : 0})),
+    {at: filmAt(MOMENT.endTile), sfx: 'hit'},
   ],
 };
 let rendered = null;
