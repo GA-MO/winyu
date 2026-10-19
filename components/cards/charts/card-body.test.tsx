@@ -225,3 +225,10 @@ test("a line strip's overall detail sits on its own full-width line instead of u
   const html = render({ kind: "strip", strip: { form: "line", baseline: 100, low: 70, high: 100, overall, rows: [] } });
   expect(html).toMatch(/grid-column:1 \/ -1;grid-row:2"><p>ของเป้าทั้งเดือน/);
 });
+
+test("a line strip exception's detail stays one line under its name, the full text kept in the name's tooltip", () => {
+  const row = { ...ROW, label: "ภาคอีสาน", sub: "30.5 → 25.6 ล้านบาท", measure: -16, text: "-16.0%", tone: "bad" as const, exception: true };
+  const html = render({ kind: "strip", strip: { form: "line", baseline: 0, low: -20, high: 5, overall: null, rows: [row] } });
+  expect(html.match(/<span class="([^"]*)">30\.5 → 25\.6 ล้านบาท<\/span>/)?.[1]).toContain("truncate");
+  expect(html).toContain('title="ภาคอีสาน\n30.5 → 25.6 ล้านบาท"');
+});

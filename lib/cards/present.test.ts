@@ -338,10 +338,11 @@ describe("two metrics on one card", () => {
     expect(card.footer?.details).toContain(`อัตรากำไรขั้นต้น ${margin.result.headline.compareLabel}`);
   });
 
-  test("a change ranking names what each row moved from, and the hero what the whole was, so last year's amount is on the card (AI-68)", () => {
+  test("a change ranking names what each row moved from and to in one short line, the unit once, and the hero what the whole was, so last year's amount is on the card (AI-68)", () => {
     const card = cardOf({ metric: "ar_overdue", dims: ["region"], compare: "prev_year" }, { sort: "delta_desc" });
     const strip = stripOf(card.body);
-    strip.rows.forEach((row) => expect(row.sub).toMatch(/ · ปีก่อน .+บาท$/));
+    expect(strip.rows.length).toBeGreaterThan(1);
+    strip.rows.forEach((row) => expect(row.sub).toMatch(/^[\d,.]+ → [\d,.]+ ?(ล้าน)?บาท$/));
     expect(card.hero?.detail).toMatch(/^ปีก่อน .+บาท$/);
   });
 

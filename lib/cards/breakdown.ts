@@ -45,6 +45,7 @@ const SCALE_PAD = 0.04;
 const MIN_PEAK_PERCENT = 10;
 const MIN_PEAK_POINTS = 2;
 const PERCENT_NUMBER = /^[+−-]?[\d,]+(\.\d+)?%$/;
+const LEADING_NUMBER = /^[−-]?[\d,]+(\.\d+)?/;
 
 /** The 100% target line. */
 export const TARGET_LINE: LevelLine = {
@@ -283,9 +284,19 @@ export function baseOf(query: MetricQuery, row: MetricRow): string | null {
   return word && previous !== null ? `${word} ${formatMetricValue(query.metric, previous)}` : null;
 }
 
-function levelAndBase(query: MetricQuery, row: MetricRow): string | null {
-  const base = baseOf(query, row);
-  return base ? `${valueTextOf(query, row)} · ${base}` : null;
+/** Where a row moved from and to, the unit written once when both share it ("30.5 → 25.6 ล้านบาท"); what it is compared with is named on the overall row. */
+function baseToLevel(query: MetricQuery, row: MetricRow): string | null {
+  const previous = numericOf(row, "compare_value");
+  if (previous === null || TH.read.base[query.compare] === undefined) return null;
+  const from = formatMetricValue(query.metric, previous);
+  const to = valueTextOf(query, row);
+  const [fromNumber, fromUnit] = numberAndUnit(from);
+  return TH.read.fromTo(fromUnit !== "" && fromUnit === numberAndUnit(to)[1] ? fromNumber : from, to);
+}
+
+function numberAndUnit(text: string): [string, string] {
+  const match = LEADING_NUMBER.exec(text);
+  return match ? [match[0], text.slice(match[0].length)] : [text, ""];
 }
 
 type ScoredChange = { row: MetricRow; measure: number };
@@ -316,7 +327,7 @@ function changeReading(input: BreakdownInput): Breakdown {
     const exception = exceptions.has(entry.row);
     return {
       label: labelOf(query, entry.row),
-      sub: levelAndBase(query, entry.row),
+      sub: baseToLevel(query, entry.row),
       second: null,
       measure: entry.measure,
       fill: entry.measure === null ? 0 : Math.min(1, Math.abs(entry.measure) / (inPoints ? peak : PERCENT)),

@@ -784,6 +784,7 @@ export const TH = {
     ofPacedTarget: "ของเป้าตามเวลา",
     paceMark: (share: string) => `ถึงวันนี้ควรได้ ${share}`,
     monthPace: (label: string, behind: boolean, reaches: boolean) => `${label}${behind ? "ช้ากว่า" : "ทัน"}เป้าตามเวลา ${behind === reaches ? "แต่" : ""}คาดปิดเดือน${reaches ? "ถึง" : "ไม่ถึง"}เป้า`,
+    fromTo: (from: string, to: string) => `${from} → ${to}`,
     againstTarget: (value: string, target: string) => `${value} · เป้า ${target}`,
     againstMonthTarget: (value: string, target: string) => `${value} · เป้าทั้งเดือน ${target}`,
     goal: "เป้า",
