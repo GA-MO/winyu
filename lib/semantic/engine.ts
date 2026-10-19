@@ -2,7 +2,7 @@ import {
   type AccessContext, type Brand, type Dim, type FactRequest, type FactResult, type FactRow, type LabelShift, type MetricDef, type MetricId,
   type DimValues, type MetricQuery, type MetricSort, type MetricHeadline, type MetricResult, type MetricRow, type Provenance, type Region, type ResolvedQuery, type SeriesFold, type UnderLine, type ValueFilter,
 } from "@/lib/contracts";
-import { DECIDING_LINES, HEADLINE_OWN_ROW, MONTHLY_METRICS, RATIO_METRICS, SNAPSHOT_METRICS, TARGET_METRICS, TIME_DIMS, metricDef } from "@/lib/semantic/metrics";
+import { DECIDING_LINES, HEADLINE_OWN_ROW, MONTHLY_METRICS, RATIO_METRICS, SNAPSHOT_METRICS, TARGET_METRICS, TIME_DIMS, metricDef, rowCapOf } from "@/lib/semantic/metrics";
 import { MIN_CELL_SIZE, SUPPRESSED_FIELDS, SUPPRESSED_VALUE, cellScopeOf, isSmallCell } from "@/lib/access/suppression";
 import { namesOf, resolveFilters, type Dictionary } from "@/lib/semantic/dictionary";
 import { DATA_AS_OF, DAY_COUNT, ISO_OF_DAY, MONTH_COUNT, MONTH_FIRST_DAY, MONTH_OF_DAY, daysInMonthIndex, formatThaiDate, toDayIndex } from "@/lib/data/dates";
@@ -10,7 +10,6 @@ import { TH } from "@/lib/i18n/th";
 import { periodLabelTh } from "@/lib/i18n/format";
 import { coverageOfQuery } from "@/lib/semantic/periods";
 
-const DEFAULT_LIMIT = 60;
 const WHOLE_PARTITIONS: ReadonlySet<Dim> = new Set(["region", "channel", "business_unit"]);
 const PREV_YEAR_DAYS = 364;
 const MONTHS_PER_YEAR = 12;
@@ -714,7 +713,7 @@ function limitAsked(query: MetricQuery, dims: Dim[]): number | null {
 }
 
 function limitOf(query: MetricQuery, dims: Dim[]): number {
-  return limitAsked(query, dims) ?? DEFAULT_LIMIT;
+  return limitAsked(query, dims) ?? rowCapOf(dims);
 }
 
 function passes(where: ValueFilter, value: number): boolean {

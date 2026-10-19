@@ -1,10 +1,11 @@
 import { inScope, outOfScopeFilters } from "@/lib/access/enforce";
 import { metricAccess } from "@/lib/access/grants";
 import { fieldVisibilityOf, permissionsFor } from "@/lib/access/role-overrides";
-import { DIMS, MAX_ROWS, type AccessContext, type Dim, type MemoryFactType, type MetricId, type MetricQuery, type RoleId } from "@/lib/contracts";
+import { DIMS, type AccessContext, type Dim, type MemoryFactType, type MetricId, type MetricQuery, type RoleId } from "@/lib/contracts";
 import { isBuried, memoryAbout } from "@/lib/engine/memory";
 import type { Verdict, Verifier, VerifyInput } from "@/lib/harness/types";
 import type { Dictionary } from "@/lib/semantic/dictionary";
+import { rowCapOf } from "@/lib/semantic/metrics";
 import { layouts, memoryFacts, outbox } from "@/lib/server/agent/collections";
 import { loadDictionary } from "@/lib/server/master-data";
 import { ports } from "@/lib/server/ports";
@@ -51,8 +52,9 @@ function maskCheck(rows: Row[], masked: string[], query: MetricQuery, access: Ac
   return { name: "masked_fields_hidden", failure: leaked ? `masked field ${leaked} carries a number` : null };
 }
 
-function capCheck(rows: Row[]): Check {
-  return { name: "rows_capped", failure: rows.length > MAX_ROWS ? `${rows.length} rows, over the ${MAX_ROWS} the model may receive` : null };
+function capCheck(rows: Row[], dims: Dim[]): Check {
+  const cap = rowCapOf(dims);
+  return { name: "rows_capped", failure: rows.length > cap ? `${rows.length} rows, over the ${cap} the model may receive` : null };
 }
 
 function verdictOf(checks: Check[]): Verdict {
@@ -65,7 +67,7 @@ export const metricAnswerHolds: Verifier = async ({ input, observation, access }
   const rows = rowsOf(observation.data);
   const query = input as MetricQuery;
   const scoped = metricAccess(access, query.metric, new Date()).access;
-  return verdictOf([scopeCheck(rows, scoped, await loadDictionary()), maskCheck(rows, observation.evidence.masked, query, scoped), capCheck(rows)]);
+  return verdictOf([scopeCheck(rows, scoped, await loadDictionary()), maskCheck(rows, observation.evidence.masked, query, scoped), capCheck(rows, query.dims)]);
 };
 
 function dataOf<T>(check: VerifyInput): Partial<T> {

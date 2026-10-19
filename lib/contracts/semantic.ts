@@ -51,6 +51,8 @@ export const METRIC_PERIODS = ["this_week", "last_week", "this_month", "last_mon
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 /** The most rows any tool hands the model; the model copies them into props, so the cap is part of the grounding contract. */
 export const MAX_ROWS = 60;
+/** The cap for a series split by one group over time, larger so six regions by twelve months or eight brands by eight weeks come back whole: the model copies a handful of named groups, not 120 independent facts. */
+export const MAX_SERIES_ROWS = 120;
 
 export const metricIdSchema = z.enum(METRIC_IDS);
 export const dimSchema = z.enum(DIMS);

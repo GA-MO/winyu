@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { accessFor } from "@/lib/access/policies";
-import { METRIC_IDS, type MetricId, type MetricResult } from "@/lib/contracts";
+import { MAX_ROWS, MAX_SERIES_ROWS, METRIC_IDS, type MetricId, type MetricResult } from "@/lib/contracts";
 import { DATA_AS_OF, monthEnd, monthStart } from "@/lib/data/dates";
 import { findUser } from "@/lib/data/entities/users";
 import { runWithAccess, runWithTurn } from "@/lib/server/request-context";
@@ -332,7 +332,7 @@ describe("a sell-out breakdown asked against sell-in (AI-332)", () => {
   });
 });
 
-test("a series split by brand over the row cap keeps its latest weeks whole: no first week drawn with some of its brands (round 12)", async () => {
+test("a series split by brand keeps every week whole: no week drawn with some of its brands (round 12)", async () => {
   const user = findUser("u_thana");
   if (!user) throw new Error("no u_thana");
   const tool = winyuTools().query_metric;
@@ -341,7 +341,7 @@ test("a series split by brand over the row cap keeps its latest weeks whole: no 
   const result = (await runWithAccess(accessFor(user), () => runWithTurn(turn, () => tool.execute(tool.inputSchema().parse(query))))) as Extract<MetricResult, { ok: true }>;
   const brandsByWeek = new Map<string, number>();
   for (const row of result.rows) brandsByWeek.set(String(row.week), (brandsByWeek.get(String(row.week)) ?? 0) + 1);
-  expect(result.rows.length).toBeLessThanOrEqual(60);
+  expect(result.rows.length).toBeLessThanOrEqual(MAX_SERIES_ROWS);
   expect(new Set(brandsByWeek.values()).size).toBe(1);
 });
 
@@ -357,38 +357,51 @@ function bucketsOf(rows: readonly Record<string, unknown>[], dim: string): strin
   return [...new Set(rows.map((row) => String(row[dim])))].sort();
 }
 
-describe("a series split by a group over the row cap keeps every bucket and folds the smaller groups into อื่น ๆ (AI-338..340)", () => {
-  test("8 weeks by 8 brands: every week, the 6 largest brands and one อื่น ๆ per week, the same total as the unfolded rows", async () => {
+describe("a series split by one group may carry 120 rows before the smaller groups fold into อื่น ๆ (AI-338..340)", () => {
+  test("8 weeks by 8 brands: 64 rows, every week and every brand, nothing folded", async () => {
     const result = await askedAsCeo("ยอดขายรายสัปดาห์แยกแบรนด์ 2 เดือนล่าสุด", { metric: "net_sales_value", dims: ["week", "brand"], filters: {}, grain: "week", compare: "none", limit: null, last: { count: 2, unit: "month" } });
-    expect(result.rows.length).toBeLessThanOrEqual(60);
+    expect(result.rows).toHaveLength(64);
     expect(bucketsOf(result.rows, "week")).toHaveLength(8);
-    expect(result.rows.filter((row) => row.brand === TH.dash.others)).toHaveLength(8);
-    expect(result.headline.folded).toEqual({ kept: 6, of: 8, rule: "total" });
-    expect(result.summary).toContain('อีก 2 แบรนด์รวมเป็นแถว "อื่น ๆ"');
-    const total = result.rows.reduce((sum, row) => sum + Number(row.value), 0);
-    expect(Math.abs(total / 1_000_000 - 2957.3)).toBeLessThan(0.1);
+    expect(bucketsOf(result.rows, "brand")).toHaveLength(8);
+    expect(result.headline.folded).toBeUndefined();
     expect(result.headline.value).toBe("2,957.3 ล้านบาท");
   });
 
-  test("30 days by brand: all 30 days drawn, the footer says which brands stand alone", async () => {
+  test("6 regions by 11 months of attainment this year: all 66 rows, January to the running November, no อื่น ๆ", async () => {
+    const result = await askedAsCeo("แต่ละภาคทำได้กี่ % ของเป้า รายเดือนปีนี้", { metric: "target_attainment", dims: ["month", "region"], filters: {}, grain: "month", compare: "none", limit: null, period: "ytd" });
+    expect(result.rows).toHaveLength(66);
+    expect(bucketsOf(result.rows, "month")).toEqual(["2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09", "2026-10", "2026-11"]);
+    expect(bucketsOf(result.rows, "region")).toHaveLength(6);
+    expect(result.rows.some((row) => row.region === TH.dash.others)).toBe(false);
+    expect(result.headline.folded).toBeUndefined();
+    const card = presentCard({ title: "t", query: result.query, result });
+    expect(card.verdict).toContain("ต.ค. 69 ทุกภาค");
+    expect(card.verdict).toContain("ภาคอีสาน พ.ย. 69 (92.0% ของเป้าตามเวลา)");
+  });
+
+  test("30 days by 8 brands: 240 rows fold to every day with floor(120 / 30) - 1 = 3 brands and one อื่น ๆ per day, the same total", async () => {
     const result = await askedAsCeo("ยอดขายรายวันแยกแบรนด์ 30 วันล่าสุด", { metric: "net_sales_value", dims: ["date", "brand"], filters: {}, grain: "day", compare: "none", limit: null, period: "last_30_days" });
+    expect(result.rows.length).toBeLessThanOrEqual(MAX_SERIES_ROWS);
     expect(bucketsOf(result.rows, "date")).toHaveLength(30);
+    expect(result.headline.folded).toEqual({ kept: 3, of: 8, rule: "total" });
+    expect(result.rows.filter((row) => row.brand === TH.dash.others)).toHaveLength(30);
+    expect(result.summary).toContain('อีก 5 แบรนด์รวมเป็นแถว "อื่น ๆ"');
     expect(result.summary).not.toContain("แถวแสดงเฉพาะ");
     const card = presentCard({ title: "t", query: result.query, result });
     if (card.body.kind !== "stacked") throw new Error(`not stacked: ${card.body.kind}`);
     expect(card.body.labels).toHaveLength(30);
-    expect(card.footer?.details).toContain('แยก 1 แบรนด์ที่ยอดรวมสูงสุด อีก 7 แบรนด์รวมใน "อื่น ๆ"');
+    expect(card.footer?.details).toContain('แยก 3 แบรนด์ที่ยอดรวมสูงสุด อีก 5 แบรนด์รวมใน "อื่น ๆ"');
   });
 
-  test("attainment by month and region this year: January to the running November, the regions furthest under kept, and the verdict names the weak cells", async () => {
-    const result = await askedAsCeo("แต่ละภาคทำได้กี่ % ของเป้า รายเดือนปีนี้", { metric: "target_attainment", dims: ["month", "region"], filters: {}, grain: "month", compare: "none", limit: null, period: "ytd" });
-    expect(bucketsOf(result.rows, "month")).toEqual(["2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09", "2026-10", "2026-11"]);
-    expect(result.headline.folded?.rule).toBe("lowest");
-    expect(result.rows.some((row) => row.region === "ภาคอีสาน")).toBe(true);
-    const card = presentCard({ title: "t", query: result.query, result });
-    expect(card.verdict).toContain("ต.ค. 69 ทุกภาค");
-    expect(card.verdict).toContain("ภาคอีสาน พ.ย. 69 (92.0% ของเป้าตามเวลา)");
-    expect(card.body).toMatchObject({ kind: "line", axis: "fitted" });
+  test("a plain breakdown (province by brand, 192 cells) is still capped at 60", async () => {
+    const result = await askedAsCeo("ยอดขายเดือนนี้แยกจังหวัดกับแบรนด์", { metric: "net_sales_value", dims: ["province", "brand"], filters: {}, grain: "month", compare: "none", limit: null, period: "this_month" });
+    expect(result.rows).toHaveLength(MAX_ROWS);
+  });
+
+  test("a series split by two groups is still capped at 60", async () => {
+    const result = await askedAsCeo("ยอดขายรายเดือนปีนี้แยกภาคกับแบรนด์", { metric: "net_sales_value", dims: ["month", "region", "brand"], filters: {}, grain: "month", compare: "none", limit: null, period: "ytd" });
+    expect(result.rows.length).toBeLessThanOrEqual(MAX_ROWS);
+    expect(result.rows.length).toBeGreaterThan(40);
   });
 });
 

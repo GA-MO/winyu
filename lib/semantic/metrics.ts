@@ -1,8 +1,19 @@
-import { METRIC_IDS, type Dim, type MetricDef, type MetricId } from "@/lib/contracts";
+import { MAX_ROWS, MAX_SERIES_ROWS, METRIC_IDS, type Dim, type MetricDef, type MetricId } from "@/lib/contracts";
 
 export const REGION_SCOPE_DIMS: readonly Dim[] = ["region", "province", "agent", "dc", "plant"];
 export const BRAND_SCOPE_DIMS: readonly Dim[] = ["brand", "sku", "business_unit"];
 export const TIME_DIMS: readonly Dim[] = ["date", "week", "month"];
+
+/** Whether the dims ask for a series split by exactly one group: one time dim and one other. */
+export function isGroupedSeries(dims: readonly Dim[]): boolean {
+  const times = dims.filter((dim) => TIME_DIMS.includes(dim)).length;
+  return times === 1 && dims.length === 2;
+}
+
+/** The most rows an answer over these dims may carry: `MAX_SERIES_ROWS` for a series split by one group, `MAX_ROWS` for everything else. */
+export function rowCapOf(dims: readonly Dim[]): number {
+  return isGroupedSeries(dims) ? MAX_SERIES_ROWS : MAX_ROWS;
+}
 
 const THAI_TONE_MARKS = /[็-๋]/g;
 const SALES_DIMS: Dim[] =["date", "week", "month", "region", "province", "channel", "brand", "sku", "pack", "agent", "business_unit"];
