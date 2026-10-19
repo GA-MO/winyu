@@ -67,6 +67,15 @@ describe("conversation recall", () => {
     expect(await forgetOrphanedConversations()).toBe(0);
   });
 
+  test("an empty thread store clears no vectors, so a missing threads file never wipes everyone's recall", async () => {
+    await indexTurn(turn(USER, "t_kept", "อัตราการลาออกแต่ละฝ่ายเป็นยังไง", "ฝ่ายขายสูงสุด"));
+    const saved = threads().all();
+    for (const thread of saved) threads().remove(thread.id);
+    expect(await forgetOrphanedConversations()).toBe(0);
+    for (const thread of saved) threads().put(thread);
+    expect((await searchConversations(USER, "อัตราการลาออก")).map((found) => found.threadId)).toEqual(["t_kept"]);
+  });
+
   test("a turn whose thread was deleted while it was being embedded is not indexed", async () => {
     const late = turn(USER, "t_deleted", "อัตราการลาออกแต่ละฝ่ายเป็นยังไง", "ฝ่ายขายสูงสุด");
     threads().remove("t_deleted");

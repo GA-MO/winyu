@@ -63,6 +63,7 @@ function ownedTitle(threadId: string, userId: string): string | null {
 
 /** Deletes the vectors of every thread whose record is gone (a crash between deleting a thread and its vectors, an index written while the thread was being deleted, a reseeded data folder), so they stop taking search slots; returns how many threads it cleared, and nothing the second time. */
 async function pruneOrphans(store: LibSQLVector): Promise<number> {
+  if (threads().all().length === 0) return 0;
   const { storedVectors } = await import("./exact-vector-store");
   const orphans = new Map<string, { resource_id: string; thread_id: string }>();
   for (const row of await storedVectors({ url: storeUrl(), indexName: INDEX_NAME })) {
