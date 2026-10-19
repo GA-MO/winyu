@@ -1,6 +1,7 @@
 "use client";
 
 import type { ScatterAxis, ScatterPoint } from "@/lib/cards/present";
+import { spacedTicks } from "@/components/ui/charts";
 import { TH } from "@/lib/i18n/th";
 import { AXIS_COLOR, ChartFrame, EmptyChart, GRID_COLOR, clipLabel, formatTick, niceRange, scaleLinear, useContainerWidth } from "./chart-kit";
 
@@ -12,7 +13,6 @@ const PLOT_BOTTOM = 38;
 const MIN_PLOT_LEFT = 40;
 const MAX_PLOT_LEFT = 96;
 const TICK_CHAR_PX = 5.6;
-const TICK_GAP_PX = 4;
 const PLOT_RIGHT = 12;
 const TICK_COUNTS = [4, 5, 6] as const;
 const LABEL_MAX_PX = 124;
@@ -59,27 +59,6 @@ function placeLabel(text: string, cx: number, cy: number, dots: { all: Box[]; na
   const inside = (box: Box) => box.left >= bounds.left && box.right <= bounds.right && box.top >= bounds.top && box.bottom <= bounds.bottom;
   const clear = (avoid: Box[]) => spots.find((spot) => inside(spot.box) && !avoid.some((dot) => overlaps(dot, spot.box)) && !placed.some((label) => overlaps(label.box, spot.box)));
   return clear(dots.all) ?? clear(dots.named) ?? null;
-}
-
-type Tick = { value: number; at: number; text: string; anchor: "start" | "middle" | "end" };
-
-function tickBox(tick: Tick): { left: number; right: number } {
-  const width = tick.text.length * TICK_CHAR_PX;
-  if (tick.anchor === "start") return { left: tick.at, right: tick.at + width };
-  if (tick.anchor === "end") return { left: tick.at - width, right: tick.at };
-  return { left: tick.at - width / 2, right: tick.at + width / 2 };
-}
-
-/** The axis ticks whose labels fit side by side: the two ends always, and a middle tick only when its text clears both neighbours kept. */
-export function spacedTicks(ticks: readonly Tick[]): Tick[] {
-  if (ticks.length <= 2) return [...ticks];
-  const last = ticks[ticks.length - 1];
-  const kept: Tick[] = [ticks[0]];
-  for (const tick of ticks.slice(1, -1)) {
-    const box = tickBox(tick);
-    if (box.left > tickBox(kept[kept.length - 1]).right + TICK_GAP_PX && box.right < tickBox(last).left - TICK_GAP_PX) kept.push(tick);
-  }
-  return [...kept, last];
 }
 
 /** Two metrics of the same things against each other: medians split the plot, the few points that answer the question are named and coloured, the rest stay muted. */

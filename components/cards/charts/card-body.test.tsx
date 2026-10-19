@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { renderToStaticMarkup } from "react-dom/server";
 import type { CardBody, ChartSeries } from "@/lib/cards/present";
 import { CardBodyView } from "./card-body";
-import { spacedTicks } from "./scatter";
+import { lineAxisLabels, spacedTicks } from "@/components/ui/charts";
 
 const HEX_COLOR = /#[0-9a-f]{3,8}\b/i;
 
@@ -228,6 +228,16 @@ test("scatter x ticks keep both ends and drop a middle label that would touch th
   const tick = (value: number, at: number, anchor: "start" | "middle" | "end") => ({ value, at, text: `${value} ล้าน`, anchor });
   const kept = spacedTicks([tick(0, 40, "start"), tick(20, 110, "middle"), tick(40, 180, "middle"), tick(60, 250, "middle"), tick(80, 280, "end")]);
   expect(kept.map((entry) => entry.value)).toEqual([0, 20, 40, 80]);
+});
+
+test("a line chart's x labels never run into each other at the ends: the first and last stay, a label that would touch its neighbour is dropped (AI-331)", () => {
+  const labels = Array.from({ length: 11 }, (_, index) => `สัปดาห์ ${37 + index}`);
+  const kept = [...lineAxisLabels(labels, (index) => 60 * index, 56, 616)].sort((left, right) => left - right);
+  expect(kept[0]).toBe(0);
+  expect(kept[kept.length - 1]).toBe(10);
+  expect(kept).not.toContain(1);
+  expect(kept).not.toContain(9);
+  expect(kept.length).toBeGreaterThanOrEqual(4);
 });
 
 test("a paired reading shows under every row of a line strip, not only the exceptions, and is never cut", () => {

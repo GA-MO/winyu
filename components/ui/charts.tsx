@@ -119,6 +119,39 @@ function thinLabels(count: number, maxLabels: number): Set<number> {
   return new Set(picked);
 }
 
+const LABEL_CHAR_PX = 5.6;
+const LABEL_GAP_PX = 4;
+
+/** One axis label at its x position, anchored the way it is drawn (the first label starts at its point, the last ends at it). */
+export type AxisTick = { value: number; at: number; text: string; anchor: "start" | "middle" | "end" };
+
+function tickBox(tick: AxisTick): { left: number; right: number } {
+  const width = tick.text.length * LABEL_CHAR_PX;
+  if (tick.anchor === "start") return { left: tick.at, right: tick.at + width };
+  if (tick.anchor === "end") return { left: tick.at - width, right: tick.at };
+  return { left: tick.at - width / 2, right: tick.at + width / 2 };
+}
+
+/** The axis labels that fit side by side: the two ends always, and a middle label only when its text clears both neighbours kept. */
+export function spacedTicks(ticks: readonly AxisTick[]): AxisTick[] {
+  if (ticks.length <= 2) return [...ticks];
+  const last = ticks[ticks.length - 1];
+  const kept: AxisTick[] = [ticks[0]];
+  for (const tick of ticks.slice(1, -1)) {
+    const box = tickBox(tick);
+    if (box.left > tickBox(kept[kept.length - 1]).right + LABEL_GAP_PX && box.right < tickBox(last).left - LABEL_GAP_PX) kept.push(tick);
+  }
+  return [...kept, last];
+}
+
+/** The bucket labels a line chart writes under its x axis: at most one per `slotPx`, then only those whose text clears its kept neighbours, so the end labels never run into the next one ("สัปดาห์ 37สัปดาห์ 38", AI-331). */
+export function lineAxisLabels(labels: readonly string[], xOf: (index: number) => number, slotPx: number, width: number): Set<number> {
+  const n = labels.length;
+  const thinned = [...thinLabels(n, Math.max(2, Math.min(12, Math.floor(width / slotPx))))].sort((left, right) => left - right);
+  const ticks = thinned.map((index): AxisTick => ({ value: index, at: xOf(index), text: labels[index] ?? "", anchor: index === 0 ? "start" : index === n - 1 ? "end" : "middle" }));
+  return new Set(spacedTicks(ticks).map((tick) => tick.value));
+}
+
 function useContainerWidth(fallback = 320) {
   const [width, setWidth] = useState(fallback);
   const ref = useCallback((node: HTMLDivElement | null) => {
@@ -393,7 +426,7 @@ export function LineChart({ props }: { props: LineChartProps }) {
   const top = ticks[ticks.length - 1] ?? 0;
   const x = scale(0, Math.max(1, n - 1), AXIS_W + 4, width - 8);
   const y = scale(0, top, plotH, 6);
-  const shown = thinLabels(n, Math.max(2, Math.min(12, Math.floor((width - AXIS_W) / 56))));
+  const shown = lineAxisLabels(labels, x, 56, width - AXIS_W);
   const dots = (props.showDots ?? false) || n <= 14;
   const fmt = (v: number) => formatChartValue(formatter, format, v);
 
