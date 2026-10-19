@@ -193,7 +193,10 @@
     };
   }
 
-  /** Which section each bar plays, read one beat after its downbeat, with how many bars of that section came before and remain. */
+  /**
+   * Which section each bar plays, read one beat after its downbeat, with how many bars of that section came before and remain.
+   * A section that starts inside a bar enters on its first beat: `next` names the step it joins on, and its first bar counts as `since: -1`.
+   */
   function barSections(sections, g, length) {
     const sorted = [...sections].sort((p, q) => p.at - q.at);
     const indexAt = (x) => sorted.reduce((found, s, i) => (s.at <= wrap(x, length) ? i : found), sorted.length - 1);
@@ -201,7 +204,12 @@
     const since = [], left = [];
     index.forEach((s, b) => (since[b] = b && index[b - 1] === s ? since[b - 1] + 1 : 0));
     for (let b = g.bars - 1; b >= 0; b--) left[b] = b < g.bars - 1 && index[b + 1] === index[b] ? left[b + 1] + 1 : 1;
-    return index.map((s, b) => ({ mix: sorted[s].mix, since: since[b], left: left[b] }));
+    const joinStep = (s, bar) => Math.round(4 * Math.ceil(wrap(s.at - g.at(bar * 4), length) / g.beat - 1e-6));
+    return index.map((s, b) => {
+      const n = (s + 1) % sorted.length, step = joinStep(sorted[n], b);
+      const next = step > 0 && step < 16 ? { section: n, mix: sorted[n].mix, step, left: (index[(b + 1) % g.bars] === n ? left[(b + 1) % g.bars] : 0) + 1 } : null;
+      return { section: s, mix: sorted[s].mix, since: since[b], left: left[b], next };
+    });
   }
 
   function duckCurve(cues, length) {
@@ -273,15 +281,16 @@
     for (let s = 0; s < g.bars * 16; s++) {
       const t = g.phase + s * sixteenth;
       const bar = Math.floor(s / 16);
-      const place = { bar, bars: g.bars, ...plan.bars[bar] };
-      const chord = BOUNCE.chord(place);
+      const { next, section, ...own } = plan.bars[bar];
+      const chord = BOUNCE.chord(own);
+      const place = { bar, bars: g.bars, ...(next && s % 16 >= next.step ? { mix: next.mix, since: -1, left: next.left } : own) };
       for (const [name, play] of Object.entries(BOUNCE.layers)) {
         const level = plan.levels[name];
         if (!BOUNCE.mixes[place.mix][name] || (level(t) <= 0.001 && level(t + g.beat) <= 0.001)) continue;
         play({ ...v, out: buses[name] }, { ...place, t, step: s % 16, chord, beat: g.beat, seed: s });
       }
     }
-    score.cues.forEach((cue, i) => SFX[cue.sfx].play(v, { ...cue, step: cue.step ?? 0, seed: i, beat: g.beat }));
+    score.cues.forEach((cue, i) => SFX[cue.sfx].play(v, { ...cue, step: cue.step ?? 0, seed: i, beat: g.beat, phase: g.phase }));
     return ctx.startRendering();
   }
 
@@ -407,6 +416,16 @@
     return buffer;
   }
 
+  /** Each section in time order with the moment its layers start playing: its first beat, or `at` itself when a bar line already passed it. */
+  function sections(score, length) {
+    const g = grid(score, length), bars = barSections(score.sections, g, length);
+    return [...score.sections].sort((p, q) => p.at - q.at).map((s, i) => {
+      const early = bars.findIndex((bar) => bar.next?.section === i);
+      const joins = early >= 0 ? g.at(early * 4 + bars[early].next.step / 4) : Math.max(s.at, g.at(4 * bars.findIndex((bar) => bar.section === i)));
+      return { mix: s.mix, at: +s.at.toFixed(3), joins: +wrap(joins, length).toFixed(3) };
+    });
+  }
+
   const degree = (key, step, octave = 0) => hz(key.root + 12 * (octave + Math.floor(step / key.scale.length)) + key.scale[wrap(step, key.scale.length)]);
 
   const SPARKLE = [[1, 1, 1], [2.01, 0.3, 0.5], [3.02, 0.12, 0.3], [5.4, 0.05, 0.15]];
@@ -422,8 +441,14 @@
     return chords[names[i]];
   };
   const hook = (notes) => new Map(notes.map(([step, m, len]) => [step, { m, len }]));
-  const hookNote = (phrase, n, fromBar = 0) => phrase.get(((n.since + fromBar) % 4) * 16 + n.step);
-  const rise = (n) => (n.since + n.step / 16) / (n.since + n.left);
+  const hookNote = (phrase, n, fromBar = 0) => phrase.get(wrap(n.since + fromBar, 4) * 16 + n.step);
+  const rise = (n) => clamp((n.since + n.step / 16) / (n.since + n.left));
+  /** A motif's note times: the first on its cue, each next on the first eighth of the beat grid at least an eighth after the one before. */
+  const eighths = (c, count) => {
+    const eighth = c.beat / 2, times = [c.at];
+    while (times.length < count) times.push(c.phase + Math.ceil((times[times.length - 1] + eighth - c.phase) / eighth - 1e-6) * eighth);
+    return times;
+  };
 
   const SFX = {
     key: { duck: 0, play: (v, c) => {
@@ -492,14 +517,16 @@
       v.struck({ t: c.at + 0.015, f: f * 2, partials: GLOCK, d: 0.25, gain: 0.025, pan, send: 0.3 });
     } },
     memory: { duck: 0.5, play: (v, c) => {
+      const at = eighths(c, 3);
       [degree(v.key, 2, 1), degree(v.key, 3, 1), degree(v.key, 0, 2)].forEach((f, i) => {
-        v.struck({ t: c.at + i * c.beat / 2, f, partials: GLOCK, d: i === 2 ? 1.6 : 0.9, gain: 0.13, pan: (i - 1) * 0.25, send: 0.45 });
-        v.struck({ t: c.at + i * c.beat / 2, f: f / 2, partials: EP, d: 0.8, gain: 0.06, pan: (i - 1) * 0.25, send: 0.3 });
+        v.struck({ t: at[i], f, partials: GLOCK, d: i === 2 ? 1.6 : 0.9, gain: 0.13, pan: (i - 1) * 0.25, send: 0.45 });
+        v.struck({ t: at[i], f: f / 2, partials: EP, d: 0.8, gain: 0.06, pan: (i - 1) * 0.25, send: 0.3 });
       });
-      v.tone({ t: c.at + c.beat, f: degree(v.key, 0, 2), from: degree(v.key, 0, 1), glide: 0.06, a: 0.003, d: 0.12, gain: 0.04, send: 0.3 });
+      v.tone({ t: at[2], f: degree(v.key, 0, 2), from: degree(v.key, 0, 1), glide: 0.06, a: 0.003, d: 0.12, gain: 0.04, send: 0.3 });
     } },
     echo: { duck: 0.25, play: (v, c) => {
-      [degree(v.key, 3, 1), degree(v.key, 0, 2)].forEach((f, i) => v.struck({ t: c.at + i * c.beat / 2, f, partials: GLOCK, d: 0.9, gain: 0.07, pan: 0.25, send: 0.5 }));
+      const at = eighths(c, 2);
+      [degree(v.key, 3, 1), degree(v.key, 0, 2)].forEach((f, i) => v.struck({ t: at[i], f, partials: GLOCK, d: 0.9, gain: 0.07, pan: 0.25, send: 0.5 }));
     } },
     sting: { duck: 0.4, play: (v, c) => {
       [0, 1, 2, 3, 4, 5].forEach((s, i) => v.struck({ t: c.at + i * 0.06, f: degree(v.key, s, 1), partials: GLOCK, d: 1.0, gain: 0.07, pan: (i - 2.5) * 0.15, send: 0.45 }));
@@ -556,7 +583,7 @@
     mixes: {
       intro: { kick: 0.8, snap: 0.7, bass: 0.85, chank: 0.6 },
       drive: { kick: 1, snap: 0.9, jingle: 0.85, bass: 1, chank: 0.85, keys: 0.6 },
-      hold: {},
+      hold: { pad: 1, keys: 0.3 },
       full: { kick: 1, snap: 1, jingle: 0.9, bass: 1, chank: 0.85, keys: 0.55, glock: 0.85 },
       break: { kick: 0.7, snap: 0.7, jingle: 0.4, bass: 0.75, chank: 0.5, keys: 0.85 },
       build: { kick: 1, snap: 0.9, jingle: 1, bass: 1, chank: 0.8, keys: 0.5, roll: 1 },
@@ -596,6 +623,12 @@
         const t = swung(n);
         n.chord.pad.slice(1).forEach((m, i) => v.synth({ t: t + i * 0.005, f: hz(m + 12), a: 0.001, d: 0.05, gain: 0.032 * l, cut: 3000, cutTo: 900, cutIn: 0.04, q: 1.6, pan: 0.32, send: 0.1, out: v.out }));
         v.hiss({ t, f: 3800, q: 1.2, a: 0.0005, d: 0.008, gain: 0.03 * l, out: v.out, pan: 0.32, send: 0.05, seed: n.seed });
+      },
+      pad(v, n) {
+        if (n.step) return;
+        const h = 4 * n.beat - 0.7;
+        n.chord.pad.forEach((m, i) => v.synth({ t: n.t + i * 0.012, f: hz(m), type: "triangle", a: 0.35, h, d: 0.9, gain: 0.012, cut: 1800, pan: -0.3 + i * 0.2, send: 0.45, out: v.out }));
+        v.tone({ t: n.t, f: hz(n.chord.root + 12), a: 0.3, h, d: 0.8, gain: 0.022, send: 0.1, out: v.out });
       },
       keys(v, n) {
         const l = KEYS[n.step];
@@ -650,5 +683,5 @@
     };
   }
 
-  window.Sound = { renderScore, steps, lufs, speaker };
+  window.Sound = { renderScore, sections, steps, lufs, speaker };
 })();

@@ -1096,7 +1096,7 @@ const SOUND = {
   ],
 };
 let rendered = null;
-window.film = { length: LENGTH, render, audio: () => (rendered ??= Sound.renderScore(SOUND, LENGTH)) };
+window.film = { length: LENGTH, render, score: SOUND, audio: () => (rendered ??= Sound.renderScore(SOUND, LENGTH)) };
 
 const stage = $('stage'), frame = $('frame');
 const capture = /capture/.test(location.search);

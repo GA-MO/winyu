@@ -4,13 +4,14 @@ import { waitFor, withHeadlessPage } from "./chrome";
 const PORT = Number(process.env.BOOTH_CHECK_PORT ?? 3233);
 const FILM_DIR = import.meta.dir;
 
-const [mp4, onsetsArg] = process.argv.slice(2);
-if (!mp4) throw new Error("Usage: bun run check-audio <film.mp4> [t1,t2,...]  (times to look for an audio onset near)");
+const [mp4, onsetsArg, windowsArg] = process.argv.slice(2);
+if (!mp4) throw new Error("Usage: bun run check-audio <film.mp4> [t1,t2,...] [from:to,...]  (times to look for an audio onset near, spans to measure the RMS of)");
 const onsets = onsetsArg ? onsetsArg.split(",").map(Number) : [];
+const windows = windowsArg ? windowsArg.split(",").map((span) => span.split(":").map(Number)) : [];
 
 const probe = `
 import { ALL_FORMATS, Input, UrlSource } from "mediabunny";
-window.__probe = async (onsets) => {
+window.__probe = async (onsets, windows) => {
   const input = new Input({ source: new UrlSource("/film.mp4"), formats: ALL_FORMATS });
   const video = await input.getPrimaryVideoTrack();
   const audio = await input.getPrimaryAudioTrack();
@@ -69,6 +70,7 @@ window.__probe = async (onsets) => {
       maxStep: +sorted[sorted.length - 1].toFixed(5),
     },
     onsets: onsets.map(onsetNear),
+    windows: windows.map(([from, to]) => ({ from, to, rmsDbfs: +db(rms(mono, Math.round(from * rate), Math.round(to * rate))).toFixed(2) })),
   };
   return report;
 };
@@ -98,7 +100,7 @@ try {
   await withHeadlessPage({ width: 400, height: 300, scale: 1 }, async ({ navigate, evaluate }) => {
     await navigate(`http://localhost:${PORT}/`);
     await waitFor("the probe", async () => ((await evaluate("typeof window.__probe === 'function'")) ? true : null));
-    const report = await evaluate(`window.__probe(${JSON.stringify(onsets)})`) as Record<string, unknown>;
+    const report = await evaluate(`window.__probe(${JSON.stringify(onsets)}, ${JSON.stringify(windows)})`) as Record<string, unknown>;
     console.log(JSON.stringify({ file: mp4, ...report }, null, 2));
   });
 } finally {

@@ -40,7 +40,7 @@ The app's data date moves, so a rebuild can change the numbers. Check the stills
 ## Film contract
 
 ```js
-window.film = { length, render(t), ready, audio() };
+window.film = { length, render(t), ready, audio(), score };
 ```
 
 `render.ts` waits for `ready`, then calls `render(t)` for every frame and muxes the buffer `audio()` resolves to. With `?capture` the film hides its player, draws at 1:1 and plays no sound.
@@ -61,8 +61,8 @@ window.film.audio = () => Sound.renderScore(SOUND, LENGTH);
 The score is lively and playful, for a miniature town: F major, swung, about 108 BPM, with finger snaps, tambourine, slap bass, muted-guitar chops, electric piano, a toy glockenspiel hook and bubble pops. Everything is synthesized (oscillators, filtered noise and a generated room), with no audio files.
 
 - `tempo.on` phases the beat so that time falls on a beat. The tempo is the one nearest 108 BPM that fits a whole number of 4/4 bars into the film. The film puts the memory motif ("จำไว้แล้ว") on a downbeat.
-- `sections` set which layers play from each time on. `mix` is one of `intro`, `drive`, `hold`, `full`, `break`, `build`, `peak` and `end`; an unknown mix throws. A section restarts its own chord progression at its first bar, and a layer it adds joins on that bar line. `hold` drops everything under the memory motif, `break` is half time with electric piano, and a `build` lands on the dominant at its last bar.
-- Each `sfx` is a key in the `SFX` registry of `sound.js`, and `step` picks the note or variant. SFX are tuned to the key and dip the music while they sound. `memory` plays again when the film shows that Winyu remembered. `hit` is a two-beat riser into an impact: one per headline, one when the first headline returns at the loop, and one on the logo. `step: 1` is the smaller hit.
+- `sections` set which layers play from each time on. `mix` is one of `intro`, `drive`, `hold`, `full`, `break`, `build`, `peak` and `end`; an unknown mix throws. A layer a section adds joins on the first beat at or after the section starts, so a section that starts with a headline hit arrives with it; the melody plays the end of its phrase as a pickup until the next bar line. A section restarts its own chord progression at its first full bar. `hold` drops the drums under the memory motif and keeps a soft pad and electric piano, `break` is half time with electric piano, and a `build` lands on the dominant at its last bar. `Sound.sections(film.score, film.length)` lists each section with the time its layers join.
+- Each `sfx` is a key in the `SFX` registry of `sound.js`, and `step` picks the note or variant. SFX are tuned to the key and dip the music while they sound. `memory` plays again when the film shows that Winyu remembered. Its first note sounds on its cue and the others fall on the next eighths of the beat grid, so a cue between beats still sits in the groove. `hit` is a two-beat riser into an impact: one per headline, one when the first headline returns at the loop, and one on the logo. `step: 1` is the smaller hit.
 
 `Sound.renderScore` renders the score with `OfflineAudioContext` as a pure function of the timeline, so the preview and the MP4 carry the same buffer. It renders in 4-second windows. Each window builds only the voices that start in it, with 4 seconds of tail, and the windows render in parallel and sum. The mix is linear, so the sum equals one long render up to float rounding of start frames, at a fraction of the cost: about 2 s instead of about 90 s in headless Chrome.
 
