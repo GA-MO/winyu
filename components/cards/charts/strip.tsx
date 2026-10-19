@@ -13,6 +13,8 @@ const TONE_CHIP: Record<Tone, string> = { bad: "bg-danger/10 text-danger", good:
 const MIN_BAR_PCT = 0.8;
 const FULL = 100;
 const LABEL_SEPARATOR = " · ";
+const FREE_START = "9999px 0 0 9999px";
+const FREE_END = "0 9999px 9999px 0";
 
 function at(strip: Strip, value: number): number {
   return ((value - strip.low) / (strip.high - strip.low || 1)) * FULL;
@@ -26,7 +28,7 @@ export function ChangeChip({ text, tone }: { text: string; tone: Tone }) {
 function Bar({ strip, value, className }: { strip: Strip; value: number; className: string }) {
   const from = at(strip, Math.min(strip.baseline, value));
   const width = Math.max(at(strip, Math.max(strip.baseline, value)) - from, MIN_BAR_PCT);
-  return <div className={cn("absolute top-1/2 -translate-y-1/2 rounded-full", className)} style={{ left: `${from}%`, width: `${width}%` }} />;
+  return <div className={cn("absolute top-1/2 -translate-y-1/2", className)} style={{ left: `${from}%`, width: `${width}%`, borderRadius: value < strip.baseline ? FREE_START : FREE_END }} />;
 }
 
 function OverallLabel({ row }: { row: ReadRow }) {
@@ -46,6 +48,10 @@ function nameOf(label: string): string {
 function placeOf(label: string): string | null {
   const rest = label.split(LABEL_SEPARATOR).slice(1);
   return rest.length > 0 ? rest.join(LABEL_SEPARATOR) : null;
+}
+
+function detailOf(row: ReadRow): string {
+  return row.sub ? `${row.label}\n${row.sub}` : row.label;
 }
 
 function LineStrip({ strip }: { strip: Strip }) {
@@ -79,16 +85,14 @@ function LineStrip({ strip }: { strip: Strip }) {
         return (
           <div key={row.label} className="contents">
             <div className="flex min-w-0 flex-col" style={{ gridColumn: 1, gridRow }}>
-              <span title={row.label} className={cn("line-clamp-2 break-words leading-snug", row.exception ? "text-[13px] font-medium text-foreground" : "text-[12px] text-muted-foreground")}>
-                {nameOf(row.label)}
-              </span>
+              <span title={detailOf(row)} className={cn("line-clamp-2 break-words text-[13px] leading-snug text-foreground", row.exception ? "font-semibold" : "font-medium")}>{nameOf(row.label)}</span>
               {placeOf(row.label) ? <span className="truncate text-[11px] leading-snug text-muted-foreground">{placeOf(row.label)}</span> : null}
-              <RowSub row={row} />
+              {row.exception && row.sub ? <span className="truncate text-[11px] leading-snug text-muted-foreground tabular-nums">{row.sub}</span> : null}
             </div>
             <div className="relative h-4" style={{ gridColumn: 2, gridRow }}>
               {row.measure !== null ? <Bar strip={strip} value={row.measure} className={row.exception ? cn("h-2.5", TONE_BAR[row.tone]) : "h-1 bg-muted-foreground/30"} /> : null}
             </div>
-            <span className={cn("text-right tabular-nums", row.exception ? cn("text-[13px] font-semibold", TONE_TEXT[row.tone]) : "text-[12px] text-muted-foreground")} style={{ gridColumn: 3, gridRow }}>
+            <span className={cn("text-right tabular-nums", row.exception ? cn("text-[13px] font-semibold", TONE_TEXT[row.tone]) : "text-[13px] text-foreground/75")} style={{ gridColumn: 3, gridRow }}>
               {row.valued ? row.text : ""}
             </span>
           </div>

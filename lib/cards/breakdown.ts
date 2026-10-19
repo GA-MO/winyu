@@ -33,7 +33,7 @@ export type LevelLine = { at: number; line: LineKind; underLabel: string; aboveW
 
 const PERCENT = 100;
 const MAX_STRIP_ROWS = 8;
-const FULLY_VALUED_ROWS = 3;
+const FULLY_VALUED_ROWS = MAX_STRIP_ROWS;
 const NEAR_END_SHARE = 0.2;
 const SHORT_BAR_SHARE = 0.15;
 const LEADERS = 3;
@@ -470,7 +470,7 @@ function withLeadOnTop(reading: Breakdown): Breakdown {
   return { ...reading, overall: { ...top, sub: joinedText([top.sub, overallLine(overall)]) }, rows: reading.rows.filter((row) => row !== top), hero: lead.hero };
 }
 
-/** Rows that carry their value whatever else the strip mutes: both ends of the measure and the rows close behind them, so the rows furthest in either direction always say how far (AI-173, AI-228); a row whose bar is too short to see, so a listed row never reads as empty (AI-228); and every row of a strip this short, where one bar without a number reads as missing (AI-188). */
+/** Rows that carry their value whatever else the strip mutes: both ends of the measure and the rows close behind them, so the rows furthest in either direction always say how far (AI-173, AI-228); a row whose bar is too short to see, so a listed row never reads as empty (AI-228); and every row of a style B strip (up to 8 rows), where one bar without a number reads as missing (AI-188). */
 function withValuedEnds(reading: Breakdown): Breakdown {
   const known = measuresOf(reading.rows);
   if (known.length === 0) return reading;

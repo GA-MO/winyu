@@ -31,6 +31,28 @@ function axisWidthFor(ticks: string[]): number {
   return Math.max(MIN_AXIS_W, Math.ceil(longest * TICK_CHAR_PX) + TICK_GAP_PX);
 }
 
+const BAR_RADIUS = 3;
+
+type BarEnd = "top" | "right" | null;
+
+/** A bar rounded only at its free end: flat where it meets the axis or the segment below it in a stack. */
+function barPath(x: number, y: number, w: number, h: number, end: BarEnd): string {
+  if (end === "top") {
+    const r = Math.min(BAR_RADIUS, w / 2, h);
+    return `M${x},${y + h}V${y + r}Q${x},${y} ${x + r},${y}H${x + w - r}Q${x + w},${y} ${x + w},${y + r}V${y + h}Z`;
+  }
+  if (end === "right") {
+    const r = Math.min(BAR_RADIUS, h / 2, w);
+    return `M${x},${y}H${x + w - r}Q${x + w},${y} ${x + w},${y + r}V${y + h - r}Q${x + w},${y + h} ${x + w - r},${y + h}H${x}Z`;
+  }
+  return `M${x},${y}H${x + w}V${y + h}H${x}Z`;
+}
+
+function lastFilledSeries(series: ChartSeries[], index: number): number {
+  for (let si = series.length - 1; si >= 0; si -= 1) if ((series[si]?.values[index] ?? 0) > 0) return si;
+  return -1;
+}
+
 function scale(d0: number, d1: number, r0: number, r1: number) {
   const span = d1 - d0 || 1;
   return (v: number) => r0 + ((v - d0) / span) * (r1 - r0);
@@ -223,18 +245,11 @@ export function BarChart({ props }: { props: BarChartProps }) {
                     if (stacked) acc += v;
                     const by = stacked || series.length === 1 ? y0 + 4 : y0 + 5 + si * 12;
                     const x0 = x(start);
+                    const free = !stacked || si === lastFilledSeries(series, i);
                     return (
-                      <rect
-                        key={s.name}
-                        x={x0}
-                        y={by}
-                        width={Math.max(0, x(start + v) - x0)}
-                        height={barH}
-                        rx={3}
-                        fill={color(si)}
-                      >
+                      <path key={s.name} d={barPath(x0, by, Math.max(0, x(start + v) - x0), barH, free ? "right" : null)} fill={color(si)}>
                         <title>{`${label} · ${s.name}: ${fmt(v)}`}</title>
-                      </rect>
+                      </path>
                     );
                   })}
                   {showValues ? (
@@ -321,18 +336,11 @@ export function BarChart({ props }: { props: BarChartProps }) {
                       ? cx - groupW / 2
                       : cx - groupW / 2 + si * barW;
                   const yTop = y(start + v);
+                  const free = !stacked || si === lastFilledSeries(series, i);
                   return (
-                    <rect
-                      key={s.name}
-                      x={bx}
-                      y={yTop}
-                      width={Math.max(1, barW - 1)}
-                      height={Math.max(0, y(start) - yTop)}
-                      rx={3}
-                      fill={color(si)}
-                    >
+                    <path key={s.name} d={barPath(bx, yTop, Math.max(1, barW - 1), Math.max(0, y(start) - yTop), free ? "top" : null)} fill={color(si)}>
                       <title>{`${label} · ${s.name}: ${fmt(v)}`}</title>
-                    </rect>
+                    </path>
                   );
                 })}
                 {showValues ? (
