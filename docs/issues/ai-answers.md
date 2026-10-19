@@ -4556,13 +4556,13 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 เกณฑ์ราว 0.81 แยกคำทักทาย (P6 สูงสุด 0.798) ออกจากข้อที่อ้างถึงของเก่า (ต่ำสุด P4 0.832) ได้ในชุดนี้ แต่ห่างกันแค่ 0.03 และไม่มีเกณฑ์ไหนแยก P7 (ไม่ได้อ้างถึงอะไร 0.902) ออกจาก P4 (อ้างถึง 0.832) ได้ การฉีดทุกเทิร์นจึงใส่ thread เก่าพร้อมตัวเลขเก่าเข้า P5 และ P7 และใน P2 thread ที่ถูกตกไปอันดับ 3 ขณะที่ query สั้นที่โมเดลเขียนเอง ("หนี้ค้าง") ได้อันดับ 1 ผลนี้ยืนยันการเลือก on-demand ใน `docs/memory.md`
 
 ข้อสังเกตที่ไม่เปิดเป็นข้อใหม่:
-- index ของ u_krit มี 7 threads แต่ 6 threads ไม่อยู่ใน `.data/threads.json` แล้ว (vector ค้าง) `searchConversations` กรองออกด้วย `ownedTitle` จึงไม่รั่ว แต่ vector ค้างกินที่ใน `SEARCH_TOP_K` = 12 ถ้ามีมากพอ thread จริงจะหลุดจากผล
-- การ์ดความจำใน P1 P3 P4 ถูกซ่อนเพราะมีการ์ดตัวเลขตอบแล้ว (`plumbingLookups` ใน `components/chat/tool-view.ts`) ตามที่ออกแบบ ผู้ใช้จึงไม่เห็นว่า Winyu หยิบบทสนทนาไหนมา นอกจากคำตอบจะบอกเอง
+- index ของ u_krit มี 7 threads แต่ 6 threads ไม่อยู่ใน `.data/threads.json` แล้ว (vector ค้าง) `searchConversations` กรองออกด้วย `ownedTitle` จึงไม่รั่ว แต่ vector ค้างกินที่ใน `SEARCH_TOP_K` = 12 ถ้ามีมากพอ thread จริงจะหลุดจากผล · แก้แล้ว `268a17e`: การลบ thread ผ่าน `DELETE /api/threads/[id]` ลบ vector อยู่แล้ว 6 threads นี้ยังมีข้อความใน `mastra_threads`/`mastra_messages` จึงไม่ได้ถูกลบทางนั้น `bun run seed` ลบ `.json` ทุกไฟล์ใน `.data` รวม `threads.json` แต่เก็บ `mastra.db` ไว้ (สาเหตุนี้อนุมาน) ตอนนี้ index ลบ vector ของ thread ที่ไม่มี record ทุกครั้งที่เปิด และ `indexTurn` ไม่เขียน vector ของ thread ที่ถูกลบระหว่าง embed สำเนาของ `mastra.db` รอบนี้ลดจาก 130 vectors 52 threads เหลือ 74 vectors 37 threads (ตรงกับ 37 threads ใน `threads.json`) u_krit เหลือ 1 thread เปิดครั้งที่สองลบ 0
+- การ์ดความจำใน P1 P3 P4 ถูกซ่อนเพราะมีการ์ดตัวเลขตอบแล้ว (`plumbingLookups` ใน `components/chat/tool-view.ts`) ตามที่ออกแบบ ผู้ใช้จึงไม่เห็นว่า Winyu หยิบบทสนทนาไหนมา นอกจากคำตอบจะบอกเอง แถวใน action trail เขียนแค่ 'ทบทวนสิ่งที่จำได้' (`lib/cards/tool-action.ts` สร้างจาก args เท่านั้น) ข้อเสนอที่เล็กที่สุด (ยังไม่ทำ): เมื่อ recall ถูกซ่อนเพราะการ์ดอื่นตอบ ให้แสดงบรรทัดที่มาหนึ่งบรรทัดใต้การ์ดคำตอบ 'จากบทสนทนา «ชื่อ thread» · วันที่' ลิงก์ไป `/c/<threadId>` จาก `conversations` ของ recall ที่ถูกซ่อน ยังเป็นการ์ดเดียวต่อคำถาม
 - P1 เรียก `recall_memory` พร้อม `query_metric` ในขั้นเดียวกัน โมเดลเดา query จากคำถามได้ก่อนเห็นผล recall
 
 ### AI-344. 'จำได้ไหมว่าเราคุยอะไรกันเรื่องหนี้ค้าง': recall found three conversations and no facts, and the reply drew no memory card
 
-- **สถานะ:** เปิด
+- **สถานะ:** แก้แล้ว `cb576a0` · `conversations` เป็นรายการคำตอบใน `ANSWER_LISTS` เหมือน `rows` `weeks` `data` ผล recall ที่เจอบทสนทนาแต่ไม่มี fact จึงวาดการ์ดความจำพร้อมลิงก์ ผลที่ไม่เจออะไรเลย (P8) ยังไม่วาด และคำตอบบอกเป็นคำ ตามกฎเดียวกับการอ่านอื่นที่ว่าง ไม่ใช้ `drawsWhenEmpty` เพราะธงนั้นมีไว้สำหรับรายงานที่ "ไม่มี" คือคำตอบ (AI-279) และจะวาดการ์ดว่างใน P8 ที่บอกซ้ำกับคำตอบ ทดสอบใน `tool-view.test.ts` ยังไม่ได้ยืนยันในแชตจริง
 - **ระดับ:** กลาง · **หมวด:** `ui` · **บทบาท:** u_thana (CEO)
 - **อาการ:** `recall_memory` returned `data: []` and 3 conversations (S2 first). The reply summarised them in words, and the chat drew no card, so the person cannot see or open the threads the answer came from. P8 (`data: []`, no conversations) also drew nothing, which hides the 'nothing remembered' card.
 - **ที่ควรเป็น:** A recall that found conversations draws the memory card with links to them (`docs/memory.md`: "the memory card shows it to them").
@@ -4573,7 +4573,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-345. A turn that only recalled is indexed as a conversation and outranks the thread it recalled
 
-- **สถานะ:** เปิด
+- **สถานะ:** แก้แล้ว `61005ca` · เทิร์นที่จบแล้วส่งชื่อ tool ที่เรียกไปให้ `learnFromTurn` เทิร์นที่เรียกแต่ `recall_memory` ยังเรียนรู้ fact และเข้า log พฤติกรรม แต่ไม่ถูก index เทิร์นที่ recall แล้วดึงตัวเลขใหม่ (P3) ยังถูก index เพราะมี query ของตัวเอง ทดสอบใน `learn.test.ts` ยังไม่ได้ยืนยันในแชตจริง
 - **ระดับ:** ต่ำ · **หมวด:** `memory` · **บทบาท:** u_thana (CEO)
 - **อาการ:** In P3 the first hit (0.873) was P2's thread "จำได้ไหมว่าเราคุยอะไรกันเรื่องหนี้ค้าง", which holds no metric query. S2, whose query the answer needed, came second (0.860). The model still re-ran S2's query, but each memory question adds one more thread without queries that competes with the source.
 - **ที่ควรเป็น:** The thread that holds the data ranks first. A recall-only turn either is not indexed or carries the queries of the threads it recalled.
@@ -4593,7 +4593,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-347. `recall_memory` took 1.1 to 17.3 s per call; the slowest calls were the query embedding
 
-- **สถานะ:** เปิด
+- **สถานะ:** วัดแล้ว ยังไม่แก้ `de25488` · ทุกแถว embedding ใน `.data/model-calls.json` มี `latencyMs` (เวลาเรียก `embedMany` ทั้งหมด) รอบหน้าเทียบกับ `tool_call` span ของ `recall_memory` ได้ว่าเวลาที่เหลือเป็นของการค้น vector หรือไม่ ยังไม่ได้ใส่ timeout หรือ trigram fallback
 - **ระดับ:** ต่ำ · **หมวด:** `harness` · **บทบาท:** u_thana, u_krit
 - **อาการ:** `tool_call` span durations for `recall_memory`: P1 1.1 s, P2 1.7 s, P3 1.6 s, P4 3.0 s and 7.7 s, P8 17.3 s. `docs/memory.md` says one embedding call takes about 1.2 to 2.3 s. P8's reply took 33.6 s for one recall and a sentence.
 - **ที่ควรเป็น:** A recall answers within a few seconds or gives up and says so.
