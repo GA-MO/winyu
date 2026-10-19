@@ -292,6 +292,17 @@ describe("two metrics on one card", () => {
     expect(card.verdict).toMatch(/เอเย่นต์/);
   });
 
+  test("sell-in against sell-out of the eight agents in the northeast values every row, so a grey bar a hair from the red ones still says its share (AI-332)", () => {
+    const filters = { region: ["northeast"] };
+    const sellIn = { ...queryOf({ metric: "net_sales_volume", dims: ["agent"], range: MONTH_TO_DATE, compare: "none" }), filters };
+    const sellOut = { ...sellIn, metric: "sell_out_volume" as const };
+    const card = presentCard({ title: "t", query: sellIn, result: runMetric(sellIn, CEO), others: [{ query: sellOut, result: runMetric(sellOut, CEO) }] });
+    const rows = stripOf(card.body).rows;
+    expect(rows.length).toBeGreaterThanOrEqual(3);
+    expect(rows.length).toBeLessThanOrEqual(8);
+    rows.forEach((row) => expect(row.valued).toBe(true));
+  });
+
   test("produced → sold in → sold out is a funnel in the order given", () => {
     const body = expectKind(
       bodyOf({ metric: "production_output", dims: [] }, { others: [{ metric: "net_sales_volume", dims: [] }, { metric: "sell_out_volume", dims: [] }] }),

@@ -455,9 +455,10 @@ function referenceReading(input: BreakdownInput): Breakdown {
   };
 }
 
-/** R10 parity in the B anatomy: one thing measured twice (sell-out against sell-in) read as the second over the first around the 100% line, the things falling well short drawn thick with their share, the rest thin and muted; the overall share on top. */
+/** R10 parity in the B anatomy: one thing measured twice (sell-out against sell-in) read as the second over the first around the 100% line, the things falling well short drawn thick with their share, the rest thin and muted, every row valued in a strip of up to 8 like any style B strip (AI-332); the overall share on top. */
 export function parityReading(input: { gaps: readonly ParityGap[]; hero: CardHero; verdict: string; unit: string }): Breakdown {
   const { gaps, hero } = input;
+  const every = gaps.length <= FULLY_VALUED_ROWS;
   const rows: ReadRow[] = gaps.map((gap, index) => ({
     label: gap.label,
     sub: null,
@@ -468,7 +469,7 @@ export function parityReading(input: { gaps: readonly ParityGap[]; hero: CardHer
     change: null,
     tone: gap.short ? "bad" : "neutral",
     exception: gap.short,
-    valued: gap.short || index === gaps.length - 1,
+    valued: every || gap.short || index === gaps.length - 1,
   }));
   const overallMeasure = percentIn(hero.value);
   return {
