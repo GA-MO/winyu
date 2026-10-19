@@ -129,10 +129,7 @@ const HERO_FIELDS = ["label", "value", "delta"] as const;
 const WORD_LIMIT = 45;
 
 function metricQueries(turn: EvalTurn): MetricQuery[] {
-  return turn.calls.filter((call) => call.tool === METRIC_TOOL).map((call) => {
-    const resolved = "result" in call && isRecord(call.result) && isRecord(call.result.query) ? call.result.query : call.args;
-    return resolved as MetricQuery;
-  });
+  return turn.calls.flatMap((call) => (call.tool === METRIC_TOOL && "result" in call && isRecord(call.result) && isRecord(call.result.query) ? [call.result.query as MetricQuery] : []));
 }
 
 function filterValues(query: MetricQuery, dim: string): string[] {
