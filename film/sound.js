@@ -446,8 +446,8 @@
   const GLOCK = [[1, 1, 1], [2.76, 0.32, 0.45], [5.4, 0.12, 0.22], [8.93, 0.05, 0.1]];
   const EP = [[1, 1, 1], [2, 0.32, 0.45], [3, 0.1, 0.25], [7.02, 0.04, 0.08]];
 
-  const ENDS_ON_DOMINANT = new Set(["build"]);
-  /** Each section plays its own progression from its first bar; a build is aligned to its last bar so it always lands on the dominant. */
+  const ENDS_ON_DOMINANT = new Set(["build", "turn"]);
+  /** Each section plays its own progression from its first bar; a build and the turnaround are aligned to their last bar so they always land on the dominant. */
   const progression = (chords, table) => ({ mix, since, left }) => {
     const names = table[mix];
     const i = ENDS_ON_DOMINANT.has(mix) ? names.length - 1 - ((left - 1) % names.length) : since % names.length;
@@ -569,7 +569,8 @@
     break: ["Bbmaj7", "Am7", "Gm7", "C7sus"],
     build: ["Gm7", "Am7", "Bb", "C"],
     peak: ["F", "D7", "Gm7", "C7"],
-    end: ["Bb", "C7"],
+    end: ["F"],
+    turn: ["Gm7", "C7"],
   };
   const HOOK = hook([
     [0, 84, 1], [2, 81, 1], [3, 84, 1], [6, 86, 2], [8, 84, 1], [10, 81, 2], [12, 77, 2], [14, 79, 1],
@@ -604,7 +605,8 @@
       break: { kick: 0.7, snap: 0.7, jingle: 0.55, bass: 0.75, chank: 0.5, keys: 0.85, pad: 0.75, fill: 1 },
       build: { kick: 1, snap: 0.9, jingle: 1, bass: 1, chank: 0.8, keys: 0.5, roll: 1, pad: 0.65, fill: 1 },
       peak: { kick: 1, snap: 1, jingle: 1, bass: 1, chank: 0.9, keys: 0.55, glock: 1, bubbles: 1, pad: 0.6, fill: 1 },
-      end: { kick: 1, snap: 1, jingle: 1, bass: 1, chank: 0.9, glock: 1, bubbles: 0.8, roll: 0.8, pad: 0.6, fill: 1 },
+      end: { kick: 1, snap: 1, jingle: 1, bass: 1, chank: 0.9, keys: 0.6, pad: 0.8, fill: 1 },
+      turn: { kick: 0.85, snap: 0.8, jingle: 0.7, bass: 0.9, chank: 0.7, keys: 0.6, pad: 0.75, fill: 1 },
     },
     layers: {
       kick(v, n) {
@@ -661,10 +663,10 @@
         const f = degree(v.key, Math.floor(r() * 6), 1);
         v.tone({ t: swung(n), f, from: f * 0.5, glide: 0.035, a: 0.002, d: 0.07, gain: 0.045, out: v.out, pan: r() - 0.5, send: 0.25 });
       },
-      /** The last beat of a section: snaps and toms rising into the bar line. A fill into a thinner section is half as loud. */
+      /** The last beat of a section, or the last two beats of the loop leading back into its first bar: snaps and toms rising into the bar line. A fill into a thinner section is half as loud. */
       fill(v, n) {
         if (n.left !== 1 || n.into === n.mix) return;
-        const from = 12;
+        const from = n.bar === n.bars - 1 ? 8 : 12;
         if (n.step < from) return;
         const r = (n.step - from + 1) / (16 - from), soft = Object.keys(BOUNCE.mixes[n.into]).length < Object.keys(BOUNCE.mixes[n.mix]).length ? 0.5 : 1;
         v.hiss({ t: n.t, f: 2300 + 1200 * r, q: 2.2, a: 0.0008, d: 0.04, gain: (0.06 + 0.14 * r) * soft, out: v.out, pan: 0.2 - 0.4 * r, send: 0.3, seed: n.seed });

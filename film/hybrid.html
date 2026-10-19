@@ -267,10 +267,11 @@ const T = {
   leave: [45.25, 0.85], conf: 46.45, press: 47.5, done: 47.8, pull3: [48.7, 49.6], approved: 49.95, leaveOut: 50.4,
   permIn: 50.75, split: [51.4, 59.3], push4: [52.3, 53.3], nums: 53.4, flip: 55.0, lock: 55.25, pull4: [57.8, 58.7], permOut: 59.0,
   connIn: 59.35, plug: [60.4, 0.45], win3: [60.1, 68.3], push5: [61.3, 62.2], connClick: 62.7, connected: 63.5, ask5: 63.95, assets: 64.2,
-  pull5: [66.8, 67.7], logo: 68.2, endOut: 70.4, hlRein: 70.8,
+  pull5: [66.45, 67.35], logo: 67.6, endOut: 70.4, hlRein: 70.8,
 };
 const LENGTH = Math.round(71.8 * 30) / 30;
 const GRID = Sound.grid({ tempo: { on: T.memc } }, LENGTH);
+T.logo = GRID.snap(T.logo, 0.25);
 const HLS = [['hl0', -1, T.ask + 0.7], ['hl1', T.sun + 0.15, T.pull1[1] - 0.25], ['hl2', T.memIn - 0.4, T.wall - 0.35], ['hlA', T.wall, T.dyn - 0.35], ['hlB', T.dyn, T.fwd - 0.35], ['hl3', T.fwd, T.leaveIn - 0.4], ['hl4', T.leaveIn - 0.05, T.permIn - 0.4], ['hl5', T.permIn, T.connIn - 0.4], ['hl6', T.connIn, T.pull5[1]]].map(([id, a, b]) => [id, a < 0 ? a : GRID.snap(a, 2), b]);
 const UNIT = 72;
 const FIG = 1.35;
@@ -1221,6 +1222,7 @@ const SOUND = {
     { at: T.permIn - 0.15, mix: 'full' },
     { at: T.connIn - 0.15, mix: 'peak' },
     { at: T.logo, mix: 'end' },
+    { at: GRID.at(4 * (GRID.bars - 1)), mix: 'turn' },
   ],
   cues: [
     ...SYS.map((_, i) => ({ at: T.sysAt(i), sfx: 'pop', step: i })),
@@ -1255,8 +1257,6 @@ const SOUND = {
     { at: T.ask5, sfx: 'send' },
     { at: T.logo, sfx: 'sting' },
     ...HLS.filter(([, inT]) => inT >= 0).map(([id, at]) => ({ at, sfx: 'hit', step: id === 'hlB' ? 1 : 0 })),
-    { at: T.hlRein, sfx: 'hit' },
-    { at: GRID.snap(T.logo, 2), sfx: 'hit' },
   ],
 };
 let rendered = null;

@@ -1049,7 +1049,7 @@ function render(t) {
 
 const keysIn = (count, from, to) => Sound.steps(count, from - 0.01, to + 0.01, 0.05).map((at, i) => ({at, sfx: 'key', step: i}));
 const typedKeys = (W, span, G) => keysIn((t) => typedCount(W(t), span, G), W.r(span[0]), W.r(span[0] + span[1]));
-const HITS = [...HLS.filter(([, inT]) => inT >= 0).map(([id, at]) => ({at, step: id === 'hlB' ? 1 : 0})), {at: GRID.snap(HL_REIN, 2), step: 0}, {at: GRID.snap(W8.r(MOMENT.logo), 2), step: 0}];
+const HITS = HLS.filter(([, inT]) => inT >= 0).map(([id, at]) => ({at, step: id === 'hlB' ? 1 : 0}));
 const SOUND = {
   tempo: {on: W3.r(MOMENT.memc)},
   sections: [
@@ -1064,6 +1064,7 @@ const SOUND = {
     {at: W6.S, mix: 'full'},
     {at: W7.S, mix: 'peak'},
     {at: W8.r(MOMENT.logo), mix: 'end'},
+    {at: GRID.at(4 * (GRID.bars - 1)), mix: 'turn'},
   ],
   cues: [
     ...SYS.map((_, i) => ({at: W1.r(SYS_AT(i)), sfx: 'pop', step: i})),
