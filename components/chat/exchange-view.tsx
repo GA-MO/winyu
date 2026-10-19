@@ -16,7 +16,7 @@ import { ActionTrail } from "./action-trail";
 import { ComposedCardView } from "./composed-card";
 import { Markdown } from "./markdown";
 import type { Exchange, Question, ReplyStep, ToolStep } from "./timeline";
-import { cardPlanOf, composedCalls, firstCardOf, isDeclined, isRefused, pairedResultsOf, recallSourcesOf, toolViewOf, wroteBlock, type CardPlan, type RecallSource } from "./tool-view";
+import { cardPlanOf, composedCalls, firstCardOf, isDeclined, isRefused, pairedResultsOf, recallSourceOf, toolViewOf, wroteBlock, type CardPlan, type RecallSource } from "./tool-view";
 import { withRequestedCourses } from "./requested-courses";
 import { trailOf } from "./trail";
 import { pressedText } from "./pressed";
@@ -201,20 +201,15 @@ function StepView({ step, toolSteps, live, plan, streaming, sharing, asked }: { 
   );
 }
 
-/** One quiet line under the answer card naming the past conversations it came from, when the memory card that would show them is left out. */
-function RecallSourceLine({ sources }: { sources: readonly RecallSource[] }) {
+/** One quiet line under the answer card naming the past conversation it came from, when the memory card that would show it is left out. */
+function RecallSourceLine({ source }: { source: RecallSource }) {
   return (
     <p className="-mt-2 text-xs text-muted-foreground">
       {TH.memory.recalledFrom}{" "}
-      {sources.map((source, index) => (
-        <Fragment key={source.threadId}>
-          {index > 0 ? ", " : null}
-          <Link href={`/c/${source.threadId}`} className="underline-offset-2 hover:text-foreground hover:underline">
-            «{source.title}»
-          </Link>
-          {` · ${formatDateTh(source.at)}`}
-        </Fragment>
-      ))}
+      <Link href={`/c/${source.threadId}`} className="underline-offset-2 hover:text-foreground hover:underline">
+        «{source.title}»
+      </Link>
+      {` · ${formatDateTh(source.at)}`}
     </p>
   );
 }
@@ -264,8 +259,8 @@ export function ExchangeView({ exchange, live }: { exchange: Exchange; live: Exc
   const plan = cardPlanOf(toolSteps, composedCalls(exchange.steps, streaming), CARD_TOOLS, wroteBlock(exchange.steps));
   const sharing = sharingOf(exchange, toolSteps, streaming);
   const steps = stepsWithApprovals(exchange, live.asked);
-  const sources = recallSourcesOf(toolSteps, plan);
-  const sourcedCard = sources.length > 0 ? firstCardOf(steps, plan, CARD_TOOLS) : undefined;
+  const source = recallSourceOf(toolSteps, plan);
+  const sourcedCard = source ? firstCardOf(steps, plan, CARD_TOOLS) : undefined;
   return (
     <article data-exchange={exchange.id} className="flex flex-col gap-4">
       {exchange.question ? <UserBubble question={exchange.question} /> : null}
@@ -274,7 +269,7 @@ export function ExchangeView({ exchange, live }: { exchange: Exchange; live: Exc
         {steps.map((step) => (
           <Fragment key={stepKey(step)}>
             <StepView step={step} toolSteps={toolSteps} live={live} plan={plan} streaming={streaming} sharing={sharing} asked={askedText(exchange.question)} />
-            {step === sourcedCard ? <RecallSourceLine sources={sources} /> : null}
+            {source && step === sourcedCard ? <RecallSourceLine source={source} /> : null}
           </Fragment>
         ))}
       </SendingProvider>

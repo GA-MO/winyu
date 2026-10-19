@@ -317,14 +317,15 @@ function conversationsFound(result: unknown): FoundConversation[] {
   });
 }
 
-/** The past conversations behind an answer whose memory card is left out: those whose stored metric the reply asked for again, else the closest one; none when the memory card is drawn or the recall found no conversation. */
-export function recallSourcesOf(steps: readonly ToolStep[], plan: CardPlan): RecallSource[] {
+/** The past conversation behind an answer whose memory card is left out: the closest one whose stored metric the reply asked for again, else the closest one; so it fits one quiet line; null when the memory card is drawn or the recall found no conversation. */
+export function recallSourceOf(steps: readonly ToolStep[], plan: CardPlan): RecallSource | null {
   const recall = steps.filter((step) => step.name === RECALL_TOOL && answered(step)).at(-1);
-  if (!recall || recall.outcome.state !== "returned" || !plan.hidden.has(recall.toolCallId)) return [];
+  if (!recall || recall.outcome.state !== "returned" || !plan.hidden.has(recall.toolCallId)) return null;
   const found = conversationsFound(recall.outcome.result);
   const asked = new Set(steps.flatMap((step) => (step.name === METRIC_TOOL ? metricsOf([step.args]) : [])));
   const used = found.filter((conversation) => conversation.metrics.some((metric) => asked.has(metric)));
-  return (used.length > 0 ? used : found.slice(0, 1)).map(({ threadId, title, at }) => ({ threadId, title, at }));
+  const source = used[0] ?? found[0];
+  return source ? { threadId: source.threadId, title: source.title, at: source.at } : null;
 }
 
 /** The first card a reply draws (a composed card, or a tool card not left out), under which the recall source line goes. */

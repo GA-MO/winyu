@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import type { ToolStep } from "./timeline";
-import { cardPlanOf, drawsNoCard, recallSourcesOf } from "./tool-view";
+import { cardPlanOf, drawsNoCard, recallSourceOf } from "./tool-view";
 
 const CARD_TOOLS: ReadonlySet<string> = new Set(["query_metric", "find_people", "get_person", "resolve_owner", "describe_entity", "list_metrics"]);
 const KRIT_ROW = { id: "u_krit", name: "คุณกฤต จันทร์เสน", title: "พนักงานขาย ขอนแก่น" };
@@ -87,20 +87,22 @@ describe("the conversation an answer came from", () => {
   const recall = (conversations: unknown[]) => returned("r1", "recall_memory", { query: "แผนก" }, { ok: true, summary: "จำได้", data: [], conversations });
 
   function sourcesOf(steps: ToolStep[]) {
-    return recallSourcesOf(steps, cardPlanOf(steps, new Set(), new Set([...CARD_TOOLS, "recall_memory"])));
+    return recallSourceOf(steps, cardPlanOf(steps, new Set(), new Set([...CARD_TOOLS, "recall_memory"])));
   }
 
-  test("an answer card that hides the memory card names the conversation whose query it asked again, not the closer one it did not use (AI-344)", () => {
-    expect(sourcesOf([recall([SALES, TURNOVER]), returned("q1", "query_metric", ATTRITION, ANSWER)])).toEqual([{ threadId: "t_turnover", title: TURNOVER.title, at: TURNOVER.at }]);
+  test("an answer card that hides the memory card names one conversation, the closest whose query it asked again, not a closer one it did not use (AI-344)", () => {
+    expect(sourcesOf([recall([SALES, TURNOVER]), returned("q1", "query_metric", ATTRITION, ANSWER)])).toEqual({ threadId: "t_turnover", title: TURNOVER.title, at: TURNOVER.at });
+    const later = { ...TURNOVER, threadId: "t_turnover_later", score: 0.8 };
+    expect(sourcesOf([recall([SALES, TURNOVER, later]), returned("q1", "query_metric", ATTRITION, ANSWER)])?.threadId).toBe("t_turnover");
   });
 
   test("with no query in common it names the closest conversation", () => {
-    expect(sourcesOf([recall([SALES, TURNOVER]), returned("q1", "query_metric", { metric: "headcount" }, { ...ANSWER, query: { metric: "headcount" } })]).map((source) => source.threadId)).toEqual(["t_sales"]);
+    expect(sourcesOf([recall([SALES, TURNOVER]), returned("q1", "query_metric", { metric: "headcount" }, { ...ANSWER, query: { metric: "headcount" } })])?.threadId).toBe("t_sales");
   });
 
   test("names nothing when the memory card itself is drawn or the recall found no conversation", () => {
-    expect(sourcesOf([recall([TURNOVER])])).toEqual([]);
-    expect(sourcesOf([recall([]), returned("q1", "query_metric", ATTRITION, ANSWER)])).toEqual([]);
+    expect(sourcesOf([recall([TURNOVER])])).toBeNull();
+    expect(sourcesOf([recall([]), returned("q1", "query_metric", ATTRITION, ANSWER)])).toBeNull();
   });
 });
 
