@@ -1,5 +1,6 @@
 import type { Dim, MetricId, MetricQuery, MetricResult, MetricRow } from "@/lib/contracts";
 import { TH } from "@/lib/i18n/th";
+import { DECIDING_LINES } from "@/lib/semantic/metrics";
 import { formatPercent, periodLabelTh } from "@/lib/i18n/format";
 import { directionOf, formatDelta, formatMetricValue, metricFormat, metricLabel, metricUnit, toneOf, type Tone } from "@/lib/dashboard/metric-display";
 import { changeTextOf, deltaPercentOf, deltaPointsOf, groupDimsOf, labelAlong, labelOf, numericOf, timeDimOf, valueTextOf } from "./rows";
@@ -14,6 +15,8 @@ const MAX_NAMED_POINTS = 3;
 const MIN_CELL_GAP_PERCENT = 5;
 const MIN_CELL_GAP_POINTS = 1;
 const CELL_GAP_SHARE = 0.1;
+const MAX_PLAIN_UNDER = 2;
+const MIN_UNDER_STEP = 1;
 const TREND_CORRELATION = 0.5;
 const MIN_INTENSITY = 0.15;
 const PERCENT = 100;
@@ -53,7 +56,7 @@ function groupsOf(query: MetricQuery, rows: MetricRow[]): Group[] {
     if (dim) group.values.set(String(row[dim]), value);
     groups.set(key, group);
   }
-  return [...groups.values()].sort((left, right) => right.total - left.total);
+  return [...groups.values()].sort((left, right) => Number(left.key === TH.dash.others) - Number(right.key === TH.dash.others) || right.total - left.total);
 }
 
 /** How many distinct groups a time × group result has, the way the chart would draw them. */
@@ -105,8 +108,25 @@ function deltaScaleOf(rows: MetricRow[]): number | null {
 
 type CellPainter = (row: MetricRow) => HeatCell | null;
 
+/** The cells of a metric judged against a line (attainment against 100%, cover against its low mark) that sit clearly under it: every cell under the line below the widest step between them, the line itself counting as the top of the last step, so a month every group missed and a group that missed alone both stand out while cells just under the line do not (AI-340). */
+export function underLineStandouts(query: MetricQuery, rows: MetricRow[]): Set<MetricRow> {
+  const line = DECIDING_LINES[query.metric];
+  if (line === undefined) return new Set();
+  const under = rows.flatMap((row) => {
+    const value = numericOf(row, "value");
+    return value !== null && value < line ? [{ row, value }] : [];
+  }).sort((left, right) => left.value - right.value);
+  if (under.length <= MAX_PLAIN_UNDER) return new Set(under.map((entry) => entry.row));
+  const tops = [...under.slice(1).map((entry) => entry.value), line];
+  const steps = under.map((entry, index) => tops[index] - entry.value);
+  const widest = steps.reduce((best, step, index) => (step > steps[best] ? index : best), 0);
+  if (steps[widest] < MIN_UNDER_STEP) return new Set();
+  return new Set(under.slice(0, widest + 1).map((entry) => entry.row));
+}
+
 /** The cells that stand apart from the rest on the grid's colour scale; only they carry colour, so the eye lands on the decision. */
 function standoutsOf(query: MetricQuery, rows: MetricRow[], scale: ColorScale): Set<MetricRow> {
+  if (scale === "value" && DECIDING_LINES[query.metric] !== undefined) return underLineStandouts(query, rows);
   if (scale === "delta") {
     const inPoints = metricFormat(query.metric) === "percent";
     const changes = rows.map((row) => (inPoints ? deltaPointsOf(row) : deltaPercentOf(row)));
@@ -214,7 +234,8 @@ function orderedKeys(rows: MetricRow[], dims: Dim[], order: RowOrder): string[] 
     return averageChange ? entry.sum / entry.count : entry.sum;
   };
   const ascending = order === "value_asc" || order === "delta_asc";
-  return [...scores.keys()].sort((left, right) => (ascending ? score(left) - score(right) : score(right) - score(left)));
+  const folded = (key: string) => Number(key === TH.dash.others);
+  return [...scores.keys()].sort((left, right) => folded(left) - folded(right) || (ascending ? score(left) - score(right) : score(right) - score(left)));
 }
 
 /** A grid of groups × groups (or groups × time), each cell coloured by its value or by its change; the text always says what the colour says, every cell a bare number on one scale whose unit the grid names once. */

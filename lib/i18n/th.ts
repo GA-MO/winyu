@@ -13,6 +13,8 @@ function spacedBefore(name: string): string {
   return /^([ก-ฮ]{1,2}\.|[A-Za-z0-9])/.test(name) ? ` ${name}` : name;
 }
 
+const FOLD_RULE_WORDS: Record<"total" | "weight" | "lowest", string> = { total: "ที่ยอดรวมสูงสุด", weight: "ที่ใหญ่สุด", lowest: "ที่ค่าต่ำสุด" };
+
 export const TH = {
   app: { name: "Winyu", tagline: "ผู้ช่วยข้อมูลสำหรับทุกคนในองค์กร" },
   nav: {
@@ -667,6 +669,8 @@ export const TH = {
     steady: "ปกติดี",
   },
   period: {
+    seriesFolded: (kept: number, of: number, unit: string, rule: "total" | "weight" | "lowest", cap: number) =>
+      `แถวครบทุกช่วงของช่วงที่ถาม: แยก ${kept} ${unit}${FOLD_RULE_WORDS[rule]} อีก ${of - kept} ${unit}รวมเป็นแถว "อื่น ๆ" ในแต่ละช่วง เพราะส่งได้ไม่เกิน ${cap} แถว`,
     seriesCut: (kept: number, total: number, first: string, last: string, cap: number) => `แถวแสดงเฉพาะ ${kept} จาก ${total} ช่วงล่าสุด (${first} – ${last}) เพราะส่งได้ไม่เกิน ${cap} แถว ยอดรวมนับทั้งช่วง`,
     name: {
       this_week: "สัปดาห์นี้",
@@ -765,6 +769,7 @@ export const TH = {
     partialFirstWeek: (days: number) => `สัปดาห์แรกไม่ครบ (${days} วัน) ไม่ได้แสดง`,
     partialFirstMonth: (days: number) => `เดือนแรกไม่ครบ (${days} วัน) ไม่ได้แสดง`,
     drawnSpan: (first: string, last: string) => `กราฟและตัวเลขนับ ${first} – ${last}`,
+    foldedGroups: (kept: number, of: number, unit: string, rule: "total" | "weight" | "lowest") => `แยก ${kept} ${unit}${FOLD_RULE_WORDS[rule]} อีก ${of - kept} ${unit}รวมใน "อื่น ๆ"`,
     chartSpan: (first: string, last: string) => `กราฟแสดงเฉพาะ ${first} – ${last} ตัวเลขด้านบนนับทั้งช่วง`,
     partialSeries: (label: string, days: number) => `${label} มีข้อมูล ${days} วัน`,
     versusBucket: (bucket: string) => `เทียบ ${bucket}`,
@@ -880,6 +885,12 @@ export const TH = {
     highest: (label: string) => `${label}สูงสุดทั้งช่วง`,
     gridOne: (label: string, verb: string, unit: string, range: string) => `${label}${verb}แรงกว่า${unit}อื่น ${range}`,
     gridSome: (count: number, verb: string, lead: string) => `${count} ช่อง${verb}แรงกว่ากลุ่ม หนักสุด${lead}`,
+    gridUnderLine: (under: string, cells: string) => `ที่${under}ชัดคือ ${cells}`,
+    gridColumn: (period: string, every: string, range: string) => `${period} ${every} (${range})`,
+    gridCell: (group: string, period: string, value: string) => `${group} ${period} (${value})`,
+    gridMoreCells: (count: number) => `อีก ${count} ช่อง`,
+    gridNoneClear: (under: string) => `ไม่มีช่องไหน${under}ชัด`,
+    gridNoneUnder: (under: string) => `ไม่มีช่องไหน${under}`,
     gridOneTarget: (label: string, verb: string, unit: string, range: string) => `${label}${verb} ${range} มากกว่า${unit}อื่น`,
     gridSomeTarget: (count: number, verb: string, lead: string) => `${count} ช่อง${verb}มากกว่ากลุ่ม หนักสุด${lead}`,
     ratioAbove: (other: string, base: string, gap: string) => `${other}สูงกว่า${base} ${gap}`,

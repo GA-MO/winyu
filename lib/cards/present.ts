@@ -26,6 +26,7 @@ import {
   seriesByGroup,
   shareBody,
   type Source,
+  underLineStandouts,
 } from "./chart-bodies";
 import {
   changeDirectionOf,
@@ -581,7 +582,12 @@ function latestBucketOf(query: MetricQuery, result: OkResult, rows: MetricRow[])
 
 /** The rows a card draws over time: a series against target keeps its running bucket, since its target is counted to the same day and the tiles beside the chart count that bucket too (AI-304); any other trend drops it and says so. */
 function drawnBuckets(query: MetricQuery, view: CardView, rows: MetricRow[], asOf: string): { rows: MetricRow[]; note: string | null } {
-  return query.compare === "target" ? { rows, note: null } : withoutPartialBucket(query, view, rows, asOf);
+  return readsAgainstTarget(query) ? { rows, note: null } : withoutPartialBucket(query, view, rows, asOf);
+}
+
+/** A result whose figures are already against the target to date: compared with target, or attainment itself (AI-340: its running month is what the reply talks about). */
+function readsAgainstTarget(query: MetricQuery): boolean {
+  return query.compare === "target" || query.metric === "target_attainment";
 }
 
 function fullBucketRows(query: MetricQuery, rows: MetricRow[], asOf: string): MetricRow[] {
@@ -1169,11 +1175,46 @@ function largestGroupVerdict(query: MetricQuery, rows: MetricRow[], additive: bo
   for (const row of rows) {
     const label = labelAlong([dim], row);
     const value = numericOf(row, "value");
-    if (label && value !== null) totals.set(label, (totals.get(label) ?? 0) + value);
+    if (label && label !== TH.dash.others && value !== null) totals.set(label, (totals.get(label) ?? 0) + value);
   }
+  const folded = rows.some((row) => labelAlong([dim], row) === TH.dash.others);
   const [top] = [...totals.entries()].sort((left, right) => right[1] - left[1]);
-  if (!top || totals.size < RANK_MIN_ROWS) return null;
+  if (!top || totals.size + Number(folded) < RANK_MIN_ROWS) return null;
   return additive ? TH.read.biggest(top[0]) : TH.read.highest(top[0]);
+}
+
+const MAX_NAMED_CELLS = 2;
+
+/** A grid over time of a metric judged against a line (attainment by month and region): the cells clearly under the line, as whole periods every group missed and then the single cells, the running month named as against its target to date; the same cells the grid colours (AI-340). */
+function lineGridVerdict(query: MetricQuery, rows: MetricRow[], asOf: string): string | null {
+  const line = LEVEL_LINES[query.metric];
+  const time = timeDimOf(query);
+  const group = rankDimOf(query);
+  if (!line || !time || !group) return null;
+  const standouts = [...underLineStandouts(query, rows)];
+  if (standouts.length === 0) {
+    const anyUnder = rows.some((row) => (numericOf(row, "value") ?? line.at) < line.at);
+    return anyUnder ? TH.read.gridNoneClear(line.underLabel) : TH.read.gridNoneUnder(line.underLabel);
+  }
+  const groups = new Set(rows.map((row) => String(row[group]))).size;
+  const running = line.line.kind === "target" && isPacedTarget(query, asOf) ? runningBucketKey(query, asOf) : null;
+  const byBucket = new Map<string, MetricRow[]>();
+  for (const row of standouts) byBucket.set(String(row[time]), [...(byBucket.get(String(row[time])) ?? []), row]);
+  const whole = [...byBucket].filter(([, cells]) => groups > 1 && cells.length === groups).sort(([left], [right]) => left.localeCompare(right));
+  const wholeKeys = new Set(whole.map(([bucket]) => bucket));
+  const columns = whole.map(([bucket, cells]) => TH.read.gridColumn(periodLabelTh(bucket), TH.read.every(TH.dash.dimUnit[group] ?? TH.dash.item), rangeText(cells.flatMap((cell) => numericOf(cell, "value") ?? []), (value) => formatMetricValue(query.metric, value))));
+  const single = standouts.filter((row) => !wholeKeys.has(String(row[time]))).sort((left, right) => (numericOf(left, "value") ?? 0) - (numericOf(right, "value") ?? 0));
+  const named = single.slice(0, MAX_NAMED_CELLS).map((row) => {
+    const value = valueTextOf(query, row);
+    return TH.read.gridCell(String(row[group]), periodLabelTh(String(row[time])), String(row[time]) === running ? `${value} ${TH.read.ofPacedTarget}` : value);
+  });
+  const more = single.length > MAX_NAMED_CELLS ? [TH.read.gridMoreCells(single.length - MAX_NAMED_CELLS)] : [];
+  return TH.read.gridUnderLine(line.underLabel, joinedAnd([...columns, ...named, ...more]));
+}
+
+function joinedAnd(parts: readonly string[]): string {
+  if (parts.length <= 2) return parts.join(" และ ");
+  return `${parts.slice(0, -1).join(" ")} และ ${parts[parts.length - 1]}`;
 }
 
 /** A grid's verdict: the cells whose change stands apart, named by the row they share when they share one, else how many; or that every cell moved alike. */
@@ -1213,10 +1254,11 @@ function verbOf(query: MetricQuery, negative: boolean): string {
   return negative ? TH.read.fell : TH.read.rose;
 }
 
-function chartVerdict(shape: Shape, view: CardView, body: CardBody, extras: CardExtras): string | null {
+function chartVerdict(shape: Shape, view: CardView, body: CardBody, extras: CardExtras, asOf: string): string | null {
   if (view === "alert_list") return alertsVerdict(extras.alerts ?? []);
   if (body.kind === "share") return body.slices.length > 0 ? shareVerdict(body.slices.map((slice) => slice.label), body.slices[0].share) : null;
   if (body.kind === "heatmap" && !timeDimOf(shape.query)) return gridVerdict(shape.query, shape.rows, shape.additive);
+  if (LEVEL_LINES[shape.query.metric] && timeDimOf(shape.query) && rankDimOf(shape.query)) return lineGridVerdict(shape.query, shape.rows, asOf);
   return largestGroupVerdict(shape.query, shape.rows, shape.additive);
 }
 
@@ -1375,6 +1417,16 @@ function drawnSpanNote(query: MetricQuery, rows: MetricRow[], dropped: boolean):
   const [first, last] = [keys[0], keys[keys.length - 1]];
   if (!dropped && first === bucketKeyOf(query, query.range.from)) return null;
   return TH.dash.drawnSpan(periodLabelTh(first), periodLabelTh(last));
+}
+
+/** A series the engine folded to fit the row cap says which groups it draws on their own and how many sit in "อื่น ๆ". */
+function foldedNote(query: MetricQuery, result: OkResult, body: CardBody | null): string | null {
+  const fold = result.headline.folded;
+  const group = rankDimOf(query);
+  if (!fold || !group || !body) return null;
+  const drawn = body.kind === "stacked" || body.kind === "line" ? body.series.map((series) => series.name) : body.kind === "heatmap" ? body.rowLabels : [];
+  const named = drawn.filter((name) => name !== TH.dash.others).length;
+  return named > 0 ? TH.dash.foldedGroups(named, fold.of, TH.dash.dimUnit[group] ?? TH.dash.item, fold.rule) : null;
 }
 
 /** A series split by a group that the row cap cut to its latest buckets says what the chart draws, since its hero still counts the whole range (round 12: 30 days by brand drew 20–26 พ.ย.). */
@@ -1860,17 +1912,18 @@ export function presentCard(input: PresentInput): CardParts {
   if (view === "month_end" && result.headline.projection) return monthEndCard(input, result, result.headline.projection);
   const trimmed = drawnBuckets(query, view, visibleRows, result.provenance.asOf);
   const shape: Shape = { ...whole, rows: sorted(query, trimmed.rows, sortBy) };
-  const footer = footerOf(query, result, [trimmed.note, cutSeriesNote(query, trimmed.rows), hiddenGroupsNote(shape, view), hiddenLineOf(query, hidden), paceNoteOf(query, result.provenance.asOf), projectionNote(result)], everyBrandOf(query));
-  const base = { title, ...actions, footer, denied: null };
+  const footerFor = (body: CardBody | null) => footerOf(query, result, [trimmed.note, cutSeriesNote(query, trimmed.rows), foldedNote(query, result, body), hiddenGroupsNote(shape, view), hiddenLineOf(query, hidden), paceNoteOf(query, result.provenance.asOf), projectionNote(result)], everyBrandOf(query));
+  const base = { title, ...actions, footer: footerFor(null), denied: null };
   const quiet = masked || hidden > 0;
   const barsDrawn = view === "bar" && fit.look === "breakdown" && shape.rows.length > 0 && (shape.rows.length >= RANK_MIN_ROWS || fit.bars === "level");
   const projection = result.headline.projection;
   if (barsDrawn && !quiet && fit.hero === "month_end" && projection) return monthEndBreakdownCard(base, readingOf(facts, fit.bars, shape.rows), projection);
   if (barsDrawn && !quiet) return breakdownCard(base, readingOf(facts, fit.bars, shape.rows));
   const body = barsDrawn ? tableBody(query, shape.rows, query.compare !== "none") : chartBodyFor(shape, view, extras);
-  if (quiet || view === "alert_list") return { ...base, style: "chart", verdict: view === "alert_list" ? alertsVerdict(extras.alerts ?? []) : null, hero: null, tiles: NO_TILES, body };
+  const charted = { ...base, footer: footerFor(body) };
+  if (quiet || view === "alert_list") return { ...charted, style: "chart", verdict: view === "alert_list" ? alertsVerdict(extras.alerts ?? []) : null, hero: null, tiles: NO_TILES, body };
   const lead = leadOf({ ...facts, rows: shape.rows }, fit, shape.rows, view) ?? { hero: heroOf(query, result), tiles: NO_TILES, verdict: "" };
-  const verdict = lead.verdict || chartVerdict(shape, view, body, extras) || summaryLead(facts, shortMetric(query.metric), heroLabelOf(query, result)).verdict;
+  const verdict = lead.verdict || chartVerdict(shape, view, body, extras, result.provenance.asOf) || summaryLead(facts, shortMetric(query.metric), heroLabelOf(query, result)).verdict;
   const shown = body.kind === "share" && body.centerValue === lead.hero.value ? { ...body, centerValue: "" } : body;
-  return { ...base, style: lead.tiles.length > 0 ? "scorecard" : "chart", verdict: verdict ? spaced(verdict) : null, hero: lead.hero, tiles: lead.tiles, body: shown };
+  return { ...charted, style: lead.tiles.length > 0 ? "scorecard" : "chart", verdict: verdict ? spaced(verdict) : null, hero: lead.hero, tiles: lead.tiles, body: shown };
 }

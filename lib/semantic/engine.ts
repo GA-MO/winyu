@@ -1,6 +1,6 @@
 import {
   type AccessContext, type Brand, type Dim, type FactRequest, type FactResult, type FactRow, type LabelShift, type MetricDef, type MetricId,
-  type DimValues, type MetricQuery, type MetricSort, type MetricHeadline, type MetricResult, type MetricRow, type Provenance, type Region, type ResolvedQuery, type UnderLine, type ValueFilter,
+  type DimValues, type MetricQuery, type MetricSort, type MetricHeadline, type MetricResult, type MetricRow, type Provenance, type Region, type ResolvedQuery, type SeriesFold, type UnderLine, type ValueFilter,
 } from "@/lib/contracts";
 import { DECIDING_LINES, HEADLINE_OWN_ROW, MONTHLY_METRICS, RATIO_METRICS, SNAPSHOT_METRICS, TARGET_METRICS, TIME_DIMS, metricDef } from "@/lib/semantic/metrics";
 import { MIN_CELL_SIZE, SUPPRESSED_FIELDS, SUPPRESSED_VALUE, cellScopeOf, isSmallCell } from "@/lib/access/suppression";
@@ -186,6 +186,66 @@ function sortRows(rows: Aggregated[], dims: Dim[], limit: number, masked: boolea
   return cutThrough ? kept.filter((row) => row.dims[timeDim] !== oldest) : kept;
 }
 
+type FoldRule = SeriesFold["rule"];
+type GroupSpan = { id: string; total: number; weight: number; rate: number };
+
+/** Which groups of a series stay on their own when it is folded to fit the cap, the first ones in this order: a sum keeps its largest totals; a rate read low-is-risk (attainment, cover) keeps its lowest, the ones a reader must see; any other rate keeps the groups that weigh most in the whole. */
+const FOLD_ORDER: Record<FoldRule, (left: GroupSpan, right: GroupSpan) => number> = {
+  total: (left, right) => right.total - left.total,
+  lowest: (left, right) => left.rate - right.rate,
+  weight: (left, right) => right.weight - left.weight,
+};
+
+/** The one place a series split by a group decides how it fits the row cap: every bucket of the span stays, the groups past what fits fold per bucket into "อื่น ๆ" (summed, or weighted by the rate's own denominator, which is exact), so the chart, the hero and the reply cover the same span (AI-338..340). */
+function foldRuleOf(def: MetricDef, averaged: boolean): FoldRule {
+  if (!averaged) return "total";
+  return RISK_WHEN_LOW.has(def.id) ? "lowest" : "weight";
+}
+
+type Folded = { rows: Aggregated[]; compare: Aggregated[] | null; fold: SeriesFold };
+
+function groupSpans(rows: Aggregated[], groupDim: Dim, averaged: boolean): GroupSpan[] {
+  const byGroup = new Map<string, Aggregated[]>();
+  for (const row of rows) byGroup.set(row.dims[groupDim], [...(byGroup.get(row.dims[groupDim]) ?? []), row]);
+  return [...byGroup].map(([id, members]) => ({ id, total: combined(members, false), weight: members.reduce((sum, row) => sum + row.weight, 0), rate: combined(members, averaged) }));
+}
+
+function foldInto(rows: Aggregated[], dims: Dim[], groupDim: Dim, kept: ReadonlySet<string>, averaged: boolean): Aggregated[] {
+  const rest = new Map<string, Aggregated[]>();
+  const out: Aggregated[] = [];
+  for (const row of rows) {
+    if (kept.has(row.dims[groupDim])) {
+      out.push(row);
+      continue;
+    }
+    const bucket = dims.filter((dim) => dim !== groupDim).map((dim) => row.dims[dim]).join("\u0001");
+    rest.set(bucket, [...(rest.get(bucket) ?? []), row]);
+  }
+  for (const members of rest.values()) {
+    const folded = { ...members[0].dims, [groupDim]: TH.dash.others };
+    out.push({ key: dims.map((dim) => folded[dim]).join("\u0001"), dims: folded, value: combined(members, averaged), weight: members.reduce((sum, row) => sum + row.weight, 0) });
+  }
+  return out;
+}
+
+function foldSeries(def: MetricDef, dims: Dim[], rows: Aggregated[], compareRows: Aggregated[] | null, limit: number, averaged: boolean): Folded | null {
+  const timeDim = firstTimeDim(dims);
+  const groupDims = dims.filter((dim) => !TIME_DIMS.includes(dim));
+  if (!timeDim || groupDims.length !== 1) return null;
+  const [groupDim] = groupDims;
+  const buckets = new Set(rows.map((row) => row.dims[timeDim])).size;
+  const spans = groupSpans(rows, groupDim, averaged);
+  const room = Math.floor(limit / Math.max(1, buckets)) - 1;
+  if (buckets * spans.length <= limit || room < 1) return null;
+  const rule = foldRuleOf(def, averaged);
+  const kept = new Set([...spans].sort(FOLD_ORDER[rule]).slice(0, room).map((span) => span.id));
+  return {
+    rows: foldInto(rows, dims, groupDim, kept, averaged),
+    compare: compareRows ? foldInto(compareRows, dims, groupDim, kept, averaged) : null,
+    fold: { kept: kept.size, of: spans.length, rule },
+  };
+}
+
 function rangeDays(query: MetricQuery): { from: number; to: number } | Failure {
   const from = toDayIndex(query.range.from);
   const to = toDayIndex(query.range.to);
@@ -323,7 +383,7 @@ function underLineOf(def: MetricDef, dims: Dim[], all: Aggregated[], suppressed:
   return { line, count: visible.filter((row) => roundValue(def.format, row.value) < line).length, of: visible.length };
 }
 
-function headlineOf(dictionary: Dictionary, def: MetricDef, query: MetricQuery, rows: Aggregated[], all: Aggregated[], ratio: boolean, compareRows: Aggregated[] | null, masked: boolean, suppressed: Set<string>, context: HeadlineContext): MetricHeadline {
+function headlineOf(dictionary: Dictionary, def: MetricDef, query: MetricQuery, rows: Aggregated[], all: Aggregated[], named: Aggregated[], ratio: boolean, compareRows: Aggregated[] | null, masked: boolean, suppressed: Set<string>, context: HeadlineContext): MetricHeadline {
   const { periodLabel, compareNote } = context;
   const aggregate = ratio ? "average" : "sum";
   if (masked || all.length === 0) {
@@ -342,7 +402,7 @@ function headlineOf(dictionary: Dictionary, def: MetricDef, query: MetricQuery, 
     ...(deltaPoints === null ? {} : { deltaPoints }),
     compareLabel: deltaPercent === null ? null : context.compareLabel,
     compareNote,
-    top: topOf(dictionary, def, query, all, suppressed),
+    top: topOf(dictionary, def, query, named, suppressed),
   };
 }
 
@@ -595,8 +655,11 @@ export function finishMetric(plan: MetricPlan, current: FactResult, comparison: 
   const limit = limitOf(query, dims);
   const lowFirst = RISK_WHEN_LOW.has(def.id);
   const sort = effectiveSort(query.sort ?? null, compareRows);
-  const capped = sort && !masked && !firstTimeDim(dims) ? orderedRows(aggregated, sort, limit, compareRows) : sortRows(aggregated, dims, limit, masked, lowFirst);
-  const rows = buildRows(dictionary, def, dims, capped, compareRows, masked, suppressed);
+  const folded = masked ? null : foldSeries(def, dims, aggregated, compareRows, limit, ratio && !SUMMED_ACROSS_NON_TIME.has(def.id));
+  const series = folded?.rows ?? aggregated;
+  const seriesCompare = folded ? folded.compare : compareRows;
+  const capped = sort && !masked && !firstTimeDim(dims) ? orderedRows(aggregated, sort, limit, compareRows) : sortRows(series, dims, limit, masked, lowFirst);
+  const rows = buildRows(dictionary, def, dims, capped, seriesCompare, masked, suppressed);
   const resolved = resolvedQueryOf(plan);
   const provenance: Provenance = {
     metric: def.id,
@@ -611,11 +674,12 @@ export function finishMetric(plan: MetricPlan, current: FactResult, comparison: 
     coverage: coverageOfQuery(query),
   };
   const headline = {
-    ...headlineOf(dictionary, def, query, capped, aggregated, averagedHeadline(def, query, ratio), compareRows, masked, suppressed, { periodLabel: plan.periodLabel, compareLabel: plan.compareLabel, compareNote: plan.compareNote }),
+    ...headlineOf(dictionary, def, query, capped, aggregated, series, averagedHeadline(def, query, ratio), compareRows, masked, suppressed, { periodLabel: plan.periodLabel, compareLabel: plan.compareLabel, compareNote: plan.compareNote }),
     underLine: masked ? null : underLineOf(def, query.dims, all, suppressed),
+    ...(folded ? { folded: folded.fold } : {}),
   };
   const coverage = masked ? null : (provenance.coverage?.label ?? null);
-  const summary = [summarize(def, query, headline, masked, aggregated.length === 0), coverage, seriesCutLine(dims, aggregated, capped, limit)].filter((part): part is string => part !== null).join(" · ");
+  const summary = [summarize(def, query, headline, masked, aggregated.length === 0), coverage, folded ? foldLine(dims, folded.fold, limit) : null, seriesCutLine(dims, series, capped, limit)].filter((part): part is string => part !== null).join(" · ");
   return {
     ok: true,
     rows,
@@ -634,6 +698,12 @@ function seriesCutLine(dims: Dim[], all: Aggregated[], kept: Aggregated[], cap: 
   const [every, shown] = [bucketsOf(all), bucketsOf(kept)];
   if (shown.length === every.length || shown.length === 0) return null;
   return TH.period.seriesCut(shown.length, every.length, periodLabelTh(shown[0]), periodLabelTh(shown[shown.length - 1]), cap);
+}
+
+/** What a folded series says to the model, so the reply names "อื่น ๆ" as the groups it holds and never a group the rows do not carry. */
+function foldLine(dims: Dim[], fold: SeriesFold, cap: number): string {
+  const groupDim = dims.find((dim) => !TIME_DIMS.includes(dim));
+  return TH.period.seriesFolded(fold.kept, fold.of, TH.dash.dimUnit[groupDim ?? ""] ?? TH.dash.item, fold.rule, cap);
 }
 
 /** The row limit an answer honours: none for a breakdown by one of the few parts that make up the company (six regions, the channels, the business units), since a missing part reads as a part that is fine; any other list keeps the limit asked. */

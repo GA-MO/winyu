@@ -341,18 +341,50 @@ test("a series split by brand over the row cap keeps its latest weeks whole: no 
   expect(new Set(brandsByWeek.values()).size).toBe(1);
 });
 
-test("30 days by brand over the row cap says in the summary and on the card which days it draws, while the total counts the whole range (round 12)", async () => {
+async function askedAsCeo(question: string, query: Record<string, unknown>): Promise<Extract<MetricResult, { ok: true }>> {
   const user = findUser("u_thana");
   if (!user) throw new Error("no u_thana");
   const tool = winyuTools().query_metric;
-  const turn = { turnId: null, threadId: null, question: "ยอดขายรายวันแยกแบรนด์ 30 วันล่าสุด", queries: [] };
-  const query = { metric: "net_sales_value", dims: ["date", "brand"], filters: {}, grain: "day", compare: "none", limit: null, period: "last_30_days" };
-  const result = (await runWithAccess(accessFor(user), () => runWithTurn(turn, () => tool.execute(tool.inputSchema().parse(query))))) as Extract<MetricResult, { ok: true }>;
-  const days = [...new Set(result.rows.map((row) => String(row.date)))].length;
-  expect(days).toBeLessThan(30);
-  expect(result.summary).toContain(`แถวแสดงเฉพาะ ${days} จาก 30 ช่วงล่าสุด`);
-  const card = presentCard({ title: "t", query: result.query, result });
-  expect(JSON.stringify(card.footer)).toContain("กราฟแสดงเฉพาะ");
+  const turn = { turnId: null, threadId: null, question, queries: [] };
+  return (await runWithAccess(accessFor(user), () => runWithTurn(turn, () => tool.execute(tool.inputSchema().parse(query))))) as Extract<MetricResult, { ok: true }>;
+}
+
+function bucketsOf(rows: readonly Record<string, unknown>[], dim: string): string[] {
+  return [...new Set(rows.map((row) => String(row[dim])))].sort();
+}
+
+describe("a series split by a group over the row cap keeps every bucket and folds the smaller groups into อื่น ๆ (AI-338..340)", () => {
+  test("8 weeks by 8 brands: every week, the 6 largest brands and one อื่น ๆ per week, the same total as the unfolded rows", async () => {
+    const result = await askedAsCeo("ยอดขายรายสัปดาห์แยกแบรนด์ 2 เดือนล่าสุด", { metric: "net_sales_value", dims: ["week", "brand"], filters: {}, grain: "week", compare: "none", limit: null, last: { count: 2, unit: "month" } });
+    expect(result.rows.length).toBeLessThanOrEqual(60);
+    expect(bucketsOf(result.rows, "week")).toHaveLength(8);
+    expect(result.rows.filter((row) => row.brand === TH.dash.others)).toHaveLength(8);
+    expect(result.headline.folded).toEqual({ kept: 6, of: 8, rule: "total" });
+    expect(result.summary).toContain('อีก 2 แบรนด์รวมเป็นแถว "อื่น ๆ"');
+    const total = result.rows.reduce((sum, row) => sum + Number(row.value), 0);
+    expect(Math.abs(total / 1_000_000 - 2957.3)).toBeLessThan(0.1);
+    expect(result.headline.value).toBe("2,957.3 ล้านบาท");
+  });
+
+  test("30 days by brand: all 30 days drawn, the footer says which brands stand alone", async () => {
+    const result = await askedAsCeo("ยอดขายรายวันแยกแบรนด์ 30 วันล่าสุด", { metric: "net_sales_value", dims: ["date", "brand"], filters: {}, grain: "day", compare: "none", limit: null, period: "last_30_days" });
+    expect(bucketsOf(result.rows, "date")).toHaveLength(30);
+    expect(result.summary).not.toContain("แถวแสดงเฉพาะ");
+    const card = presentCard({ title: "t", query: result.query, result });
+    if (card.body.kind !== "stacked") throw new Error(`not stacked: ${card.body.kind}`);
+    expect(card.body.labels).toHaveLength(30);
+    expect(card.footer?.details).toContain('แยก 1 แบรนด์ที่ยอดรวมสูงสุด อีก 7 แบรนด์รวมใน "อื่น ๆ"');
+  });
+
+  test("attainment by month and region this year: January to the running November, the regions furthest under kept, and the verdict names the weak cells", async () => {
+    const result = await askedAsCeo("แต่ละภาคทำได้กี่ % ของเป้า รายเดือนปีนี้", { metric: "target_attainment", dims: ["month", "region"], filters: {}, grain: "month", compare: "none", limit: null, period: "ytd" });
+    expect(bucketsOf(result.rows, "month")).toEqual(["2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09", "2026-10", "2026-11"]);
+    expect(result.headline.folded?.rule).toBe("lowest");
+    expect(result.rows.some((row) => row.region === "ภาคอีสาน")).toBe(true);
+    const card = presentCard({ title: "t", query: result.query, result });
+    expect(card.verdict).toContain("ต.ค. 69 ทุกภาค");
+    expect(card.verdict).toContain("ภาคอีสาน พ.ย. 69 (92.0% ของเป้าตามเวลา)");
+  });
 });
 
 test("two months against target name the worse month apart from the verdict's words ('หนักสุด ต.ค. 69') and keep each month's target line whole (round 12)", async () => {
