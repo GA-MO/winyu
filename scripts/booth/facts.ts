@@ -12,13 +12,18 @@ import { GENERATOR_PORTS } from "@/lib/server/ports/generator";
 import { assetsOf } from "../mcp-demo-assets";
 import { EMPLOYEES } from "@/lib/data/entities/people";
 import { GENERATOR_LEAVE } from "@/lib/server/ports/generator-leave";
+import { defaultActionsFor } from "@/lib/server/quick-actions";
+import { quickActionsFrom } from "@/lib/engine/recommend";
+import { seasonalHints } from "@/lib/engine/seasons";
 
 const OUTPUT = path.join(process.cwd(), "film", "facts.json");
 const ALERTS = path.join(process.cwd(), ".data", "alerts.json");
 const MONTH_START = `${DATA_AS_OF.slice(0, 7)}-01`;
 const SPOTLIGHT_REGION = "northeast";
 const SPOTLIGHT_LABEL = "ภาคอีสาน";
-const VIEWERS = { director: "u_prasit", ceo: "u_thana", rep: "u_nok" } as const;
+const VIEWERS = { director: "u_prasit", ceo: "u_thana", rep: "u_nok", hr: "u_may" } as const;
+const KEEP_EXISTING = process.argv.includes("--keep");
+const COVER_ROWS = 3;
 const LEAVE = { from: businessDay(7), to: businessDay(9), reason: "พาครอบครัวไปเที่ยว" };
 const KIND_LABELS: Record<string, string> = { notebook: "โน้ตบุ๊ก", phone: "โทรศัพท์", tablet: "แท็บเล็ต" };
 
@@ -105,6 +110,57 @@ async function spotlightAssets() {
   return [...counts].map(([kind, count]) => ({ label: KIND_LABELS[kind] ?? kind, count }));
 }
 
+function accessOf(userId: string) {
+  const user = findUser(userId);
+  if (!user) throw new Error(`Unknown persona ${userId}`);
+  return accessFor(user);
+}
+
+async function metric(userId: string, query: Omit<MetricQuery, "range" | "grain" | "limit" | "filters">) {
+  const result = await runMetric({ filters: {}, range: { from: MONTH_START, to: DATA_AS_OF }, grain: "month", limit: null, ...query } as MetricQuery, accessOf(userId));
+  if (!result.ok) throw new Error(`${userId} ${query.metric}: ${result.error}`);
+  return result;
+}
+
+/** The director's landing chips as the recommender builds them: the first one learned from what he asks, and the first the calendar suggests on the data date. */
+function directorChips() {
+  const access = accessOf(VIEWERS.director);
+  const learned = quickActionsFrom(access, defaultActionsFor(access)).find((action) => action.id.startsWith("qa_learned"));
+  const seasonal = seasonalHints(access, Date.parse(`${DATA_AS_OF}T09:00:00+07:00`))[0];
+  if (!learned || !seasonal) throw new Error("Expected a learned and a seasonal chip for the director");
+  return [learned, seasonal].map((action) => ({ label: action.label, reason: action.reason }));
+}
+
+async function channelShare() {
+  const result = await metric(VIEWERS.director, { metric: "net_sales_value", dims: ["channel"], compare: "none" });
+  const rows = result.rows as { channel: string; value: number; value_label: string }[];
+  const total = rows.reduce((sum, row) => sum + row.value, 0);
+  return { total: result.headline.value, rows: rows.map((row) => ({ label: row.channel, value: row.value_label, share: Math.round((row.value / total) * 1000) / 10 })) };
+}
+
+async function lowestCover() {
+  const result = await metric(VIEWERS.director, { metric: "days_of_cover", dims: ["brand"], compare: "none", sort: "value_asc" } as Omit<MetricQuery, "range" | "grain" | "limit" | "filters">);
+  const rows = result.rows as { brand: string; value: number; value_label: string }[];
+  return { average: result.headline.value, rows: rows.slice(0, COVER_ROWS).map((row) => ({ label: row.brand, days: row.value, value: row.value_label })) };
+}
+
+async function monthClose() {
+  const result = await metric(VIEWERS.director, { metric: "net_sales_value", dims: [], compare: "target" });
+  const projection = result.headline.projection;
+  if (!projection) throw new Error("Expected a month-end projection");
+  return { projected: projection.attainment, toDate: projection.attainmentToDate };
+}
+
+async function grossMargin() {
+  const result = await metric(VIEWERS.ceo, { metric: "gross_margin", dims: [], compare: "none" });
+  return { value: result.headline.value, source: result.provenance.sourceSystem };
+}
+
+async function headcount() {
+  const result = await metric(VIEWERS.hr, { metric: "headcount", dims: [], compare: "prev_year" });
+  return { value: result.headline.value, delta: result.headline.deltaPercent };
+}
+
 const director = await salesByRegion(VIEWERS.director);
 const facts = {
   spotlight: SPOTLIGHT_LABEL,
@@ -117,6 +173,13 @@ const facts = {
   trend: await spotlightTrend(),
   team: await spotlightTeam(),
   leaveBalance: await repLeaveBalance(),
+  chips: directorChips(),
+  channels: await channelShare(),
+  cover: await lowestCover(),
+  close: await monthClose(),
+  margin: await grossMargin(),
+  headcount: await headcount(),
 };
-writeFileSync(OUTPUT, `${JSON.stringify(facts, null, 2)}\n`);
+const kept = KEEP_EXISTING ? (JSON.parse(readFileSync(OUTPUT, "utf8")) as Record<string, unknown>) : {};
+writeFileSync(OUTPUT, `${JSON.stringify({ ...facts, ...kept }, null, 2)}\n`);
 console.log(`Wrote ${OUTPUT}`);
