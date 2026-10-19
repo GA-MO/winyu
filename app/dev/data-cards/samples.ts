@@ -9,6 +9,7 @@ const MONTH = { filters: {}, grain: "month", period: "this_month", limit: null }
 const TWELVE_WEEKS = { from: addDays(DATA_AS_OF, -83), to: DATA_AS_OF };
 const THIRTY_DAYS = { from: addDays(DATA_AS_OF, -29), to: DATA_AS_OF };
 const TWO_MONTHS = { from: "2026-10-01", to: DATA_AS_OF };
+const SINCE_SEPTEMBER = { from: "2026-09-01", to: DATA_AS_OF };
 const YEAR = { from: "2026-01-01", to: DATA_AS_OF };
 const NORTHEAST = { region: ["northeast"] };
 
@@ -51,6 +52,8 @@ export const DATA_CARD_SAMPLES: DataCardSample[] = [
   { group: PAIRED, tool: "query_metric", caption: "baselines · เทียบเป้าและงวดก่อน", question: "ลีโออีสาน เอเย่นต์ไหนลดลงหนักสุด", input: { ...MONTH, metric: "net_sales_value", dims: ["agent"], filters: { region: ["northeast"], brand: ["leo"] }, compare: "target", sort: "delta_asc", limit: 5 }, with: { ...MONTH, metric: "net_sales_value", dims: ["agent"], filters: { region: ["northeast"], brand: ["leo"] }, compare: "prev_period", sort: "delta_asc", limit: 5 } },
   { group: PAIRED, tool: "query_metric", caption: "funnel · ขายเข้า → ขายออก", question: "ขายเข้ากับขายออกเดือนนี้", input: { ...MONTH, metric: "net_sales_volume", dims: [], compare: "none" }, with: { ...MONTH, metric: "sell_out_volume", dims: [], compare: "none" } },
   { group: PAIRED, tool: "query_metric", caption: "overlay · สองเส้นเวลา", question: "ขายเข้ากับขายออกรายสัปดาห์", input: { metric: "net_sales_volume", dims: ["week"], filters: {}, range: TWELVE_WEEKS, grain: "week", compare: "none", limit: null }, with: { metric: "sell_out_volume", dims: ["week"], filters: {}, range: TWELVE_WEEKS, grain: "week", compare: "none", limit: null } },
+  { group: PAIRED, tool: "query_metric", caption: "funnel · ผลิต → ขายออก (สองแหล่ง)", question: "เดือนนี้ผลิตกับขายออกได้เท่าไหร่", input: { ...MONTH, metric: "production_output", dims: [], compare: "none" }, with: { ...MONTH, metric: "sell_out_volume", dims: [], compare: "none" } },
+  { group: PAIRED, tool: "query_metric", caption: "overlay · 13 สัปดาห์ limit 12 (AI-331)", question: "ขายเข้ากับขายออกรายสัปดาห์ 12 สัปดาห์ล่าสุด", input: { metric: "net_sales_volume", dims: ["week"], filters: {}, range: SINCE_SEPTEMBER, grain: "week", compare: "none", limit: 12 }, with: { metric: "sell_out_volume", dims: ["week"], filters: {}, range: SINCE_SEPTEMBER, grain: "week", compare: "none", limit: 12 } },
   { group: PAIRED, tool: "query_metric", caption: "gap · ขายเข้าเทียบขายออก รายเอเย่นต์", question: "เทียบยอดขายเข้ากับยอดขายออกของเอเย่นต์", input: { ...MONTH, metric: "net_sales_volume", dims: ["agent"], filters: NORTHEAST, compare: "none" }, with: { ...MONTH, metric: "sell_out_volume", dims: ["agent"], filters: NORTHEAST, compare: "none" } },
   { group: PAIRED, tool: "query_metric", caption: "scatter · ยอดขาย × หนี้ค้าง", question: "ยอดขายแยกจังหวัด เทียบกับหนี้ค้าง", input: { ...MONTH, metric: "net_sales_value", dims: ["province"], compare: "none" }, with: { ...MONTH, metric: "ar_overdue", dims: ["province"], compare: "none" } },
   { group: PAIRED, tool: "query_metric", caption: "twin · ยอดขายเทียบเป้า + กำไร", question: "ยอดขายเทียบเป้ากับกำไร แยกภาค", input: { ...MONTH, metric: "net_sales_value", dims: ["region"], compare: "target" }, with: { ...MONTH, metric: "gross_margin", dims: ["region"], compare: "prev_year" } },
