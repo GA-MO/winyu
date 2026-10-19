@@ -1,4 +1,5 @@
 {
   "share-card-chat": ["rightTool", "askedApproval", "rightRecipient"],
-  "handoff-not-share": ["rightTool", "askedApproval", "rightRecipient"]
+  "handoff-not-share": ["rightTool", "askedApproval", "rightRecipient"],
+  "compare-top-decliners": ["answeredHero", "fewWords"]
 }
