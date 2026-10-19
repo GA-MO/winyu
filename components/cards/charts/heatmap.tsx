@@ -2,7 +2,7 @@
 
 import { Fragment } from "react";
 import { cn } from "@/components/ui/cn";
-import type { ColorScale, HeatCell } from "@/lib/cards/present";
+import type { HeatCell } from "@/lib/cards/present";
 import { TH } from "@/lib/i18n/th";
 import { heatCellTitle } from "./chart-kit";
 
@@ -10,8 +10,7 @@ type HeatmapProps = {
   rowLabels: string[];
   columnLabels: string[];
   cells: (HeatCell | null)[][];
-  scale: ColorScale;
-  unit: string;
+  caption: string;
 };
 
 const CELL_TONE: Record<HeatCell["tone"], string> = {
@@ -25,10 +24,10 @@ function EmptyCell() {
 }
 
 /** A grid of groups × groups (or groups × time) that fits the card's width: every cell a bare number on one scale whose unit is named once above the grid, only the cells that stand apart carry colour, and a long column name wraps to two lines with its full name on hover or long-press. */
-export function Heatmap({ rowLabels, columnLabels, cells, scale, unit }: HeatmapProps) {
+export function Heatmap({ rowLabels, columnLabels, cells, caption }: HeatmapProps) {
   return (
     <div className="flex w-full min-w-0 flex-col gap-1.5">
-      <p className="text-right text-[11px] text-muted-foreground">{scale === "delta" ? TH.cards.heat.changeUnit(unit) : TH.cards.heat.unit(unit)}</p>
+      <p className="text-right text-[11px] text-muted-foreground">{caption}</p>
       <div className="grid w-full min-w-0 gap-1" style={{ gridTemplateColumns: `minmax(0, 5.5rem) repeat(${columnLabels.length}, minmax(0, 1fr))` }}>
         <div />
         {columnLabels.map((column) => (

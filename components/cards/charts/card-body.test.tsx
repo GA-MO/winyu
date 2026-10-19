@@ -69,6 +69,7 @@ describe("heatmap", () => {
       cells: [[{ text: "-18.5", detail: "-18.5% · 1.2 ล้าน", intensity: 0.8, tone: "bad", exception: true }], [{ text: "-9.5", detail: "-9.5% · 2.0 ล้าน", intensity: 0.4, tone: "bad", exception: false }]],
       scale: "delta",
       unit: "%",
+      caption: "ตัวเลขคือการเปลี่ยนแปลง · หน่วย: %",
     });
     expect(html).toContain("ภาคอีสาน · ส.ค. 69: -18.5% · 1.2 ล้าน");
     expect(html).toContain(">-18.5</span>");
@@ -79,7 +80,7 @@ describe("heatmap", () => {
   });
 
   test("a null cell shows a muted dash", () => {
-    const html = render({ kind: "heatmap", rowLabels: ["ภาคใต้"], columnLabels: ["ก.ย. 69"], cells: [[null]], scale: "value", unit: "ลิตร" });
+    const html = render({ kind: "heatmap", rowLabels: ["ภาคใต้"], columnLabels: ["ก.ย. 69"], cells: [[null]], scale: "value", unit: "ลิตร", caption: "หน่วย: ลิตร" });
     expect(html).toContain("—");
   });
 });
@@ -226,7 +227,7 @@ test("none of the new chart bodies render a raw hex colour", () => {
   const bodies: CardBody[] = [
     { kind: "stacked", shape: "area", labels: ["A", "B"], series: [{ name: "s", values: [1, 2], style: null }], format: "number" },
     { kind: "share", slices: [{ label: "A", valueText: "1", share: 1, shareText: "100%", isOther: false }], centerValue: "100%", centerLabel: "A" },
-    { kind: "heatmap", rowLabels: ["A"], columnLabels: ["B"], cells: [[{ text: "1", detail: null, intensity: 0.5, tone: "neutral", exception: true }]], scale: "value", unit: "ลิตร" },
+    { kind: "heatmap", rowLabels: ["A"], columnLabels: ["B"], cells: [[{ text: "1", detail: null, intensity: 0.5, tone: "neutral", exception: true }]], scale: "value", unit: "ลิตร", caption: "หน่วย: ลิตร" },
     {
       kind: "scatter",
       points: [{ label: "A", x: 1, y: 1, xText: "1", yText: "1", named: true }],

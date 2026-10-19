@@ -724,3 +724,14 @@ test("a level that barely moved over the range says it held, as its grey pill do
   expect(card.hero?.trend).toBe("neutral");
   expect(card.verdict).toBe("ตั้งแต่ สัปดาห์ 37 ทรงตัว 14.9 วัน → 14.7 วัน");
 });
+
+test("a region × brand grid against target says which cells sit under target, never that they fell (round 12 heatmap)", () => {
+  const query: MetricQuery = { metric: "net_sales_value", dims: ["region", "brand"], filters: {}, range: { from: "2026-11-01", to: AS_OF }, grain: "month", compare: "target", limit: null, period: "this_month" };
+  const regions = ["กรุงเทพฯ และปริมณฑล", "ภาคอีสาน", "ภาคตะวันออก", "ภาคกลาง", "ภาคใต้", "ภาคเหนือ"];
+  const gaps: Record<string, number[]> = { ลีโอ: [-1.1, -12.7, -1.2, -1.6, -1.6, -1.5], สิงห์: [-0.4, -11.4, -2.0, -1.2, -1.8, -2.3], โซดาสิงห์: [4.2, -1.1, -2.3, 4.9, -2.5, -0.5] };
+  const rows: MetricRow[] = Object.entries(gaps).flatMap(([brand, deltas]) => deltas.map((delta, index) => ({ region: regions[index], brand, value: 100_000_000 * (1 + delta / 100), compare_value: 100_000_000, delta_pct: delta })));
+  const card = presentCard({ title: "t", query, result: resultOf(query, rows, { value: "1,549.4 ล้านบาท", deltaPercent: -3.2, compareLabel: "เทียบเป้าตามเวลา" }) });
+  if (card.body.kind !== "heatmap") throw new Error(`not a heatmap: ${card.body.kind}`);
+  expect(card.verdict).toBe("ภาคอีสานต่ำกว่าเป้า 11.4–12.7% มากกว่าภาคอื่น");
+  expect(card.body.caption).toBe("ตัวเลขคือส่วนที่ต่ำหรือสูงกว่าเป้า · หน่วย: %");
+});

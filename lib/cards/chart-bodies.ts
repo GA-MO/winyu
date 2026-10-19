@@ -244,6 +244,7 @@ export function heatmapBody(query: MetricQuery, rows: MetricRow[], order: RowOrd
     ),
     scale,
     unit: grid.unit,
+    caption: scale === "value" ? TH.cards.heat.unit(grid.unit) : query.compare === "target" ? TH.cards.heat.targetUnit(grid.unit) : TH.cards.heat.changeUnit(grid.unit),
   };
 }
 

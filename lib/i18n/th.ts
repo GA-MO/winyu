@@ -871,6 +871,8 @@ export const TH = {
     highest: (label: string) => `${label}สูงสุดทั้งช่วง`,
     gridOne: (label: string, verb: string, unit: string, range: string) => `${label}${verb}แรงกว่า${unit}อื่น ${range}`,
     gridSome: (count: number, verb: string, lead: string) => `${count} ช่อง${verb}แรงกว่ากลุ่ม หนักสุด${lead}`,
+    gridOneTarget: (label: string, verb: string, unit: string, range: string) => `${label}${verb} ${range} มากกว่า${unit}อื่น`,
+    gridSomeTarget: (count: number, verb: string, lead: string) => `${count} ช่อง${verb}มากกว่ากลุ่ม หนักสุด${lead}`,
     ratioAbove: (other: string, base: string, gap: string) => `${other}สูงกว่า${base} ${gap}`,
     ratioBelow: (other: string, base: string, gap: string) => `${other}ต่ำกว่า${base} ${gap}`,
     ratioEven: (other: string, base: string) => `${other}เท่ากับ${base}`,
@@ -1726,6 +1728,7 @@ export const TH = {
       thousands: (unit: string) => `พัน${unit}`,
       unit: (unit: string) => `หน่วย: ${unit}`,
       changeUnit: (unit: string) => `ตัวเลขคือการเปลี่ยนแปลง · หน่วย: ${unit}`,
+      targetUnit: (unit: string) => `ตัวเลขคือส่วนที่ต่ำหรือสูงกว่าเป้า · หน่วย: ${unit}`,
     },
     source: {
       hris: "แหล่งข้อมูล: HRIS",

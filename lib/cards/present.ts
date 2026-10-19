@@ -84,7 +84,7 @@ export type CardBody =
   | { kind: "line"; labels: string[]; series: ChartSeries[]; format: MetricFormat }
   | { kind: "stacked"; shape: "bar" | "area"; labels: string[]; series: ChartSeries[]; format: MetricFormat }
   | { kind: "share"; slices: ShareSlice[]; centerValue: string; centerLabel: string }
-  | { kind: "heatmap"; rowLabels: string[]; columnLabels: string[]; cells: (HeatCell | null)[][]; scale: ColorScale; unit: string }
+  | { kind: "heatmap"; rowLabels: string[]; columnLabels: string[]; cells: (HeatCell | null)[][]; scale: ColorScale; unit: string; caption: string }
   | { kind: "scatter"; points: ScatterPoint[]; x: ScatterAxis; y: ScatterAxis; r: number }
   | { kind: "funnel"; stages: FunnelStage[] }
   | { kind: "table"; columns: CardColumn[]; rows: Record<string, string>[] }
@@ -1172,20 +1172,27 @@ function gridVerdict(query: MetricQuery, rows: MetricRow[], additive: boolean): 
   if (picked.length === 0) {
     const known = changes.filter((change): change is number => change !== null);
     const sameWay = known.every((change) => change < 0) || known.every((change) => change > 0);
-    const verb = (known[0] ?? 0) < 0 ? TH.read.fell : TH.read.rose;
+    const verb = verbOf(query, (known[0] ?? 0) < 0);
     if (!sameWay) return TH.read.noneStandsOut(TH.dash.item, verb);
     const range = rangeText(known.map(Math.abs), format);
     return isCapped(query, rows.length) ? TH.read.sliceRange(TH.read.shown(rows.length, TH.dash.item), verb, range) : TH.read.allClose(TH.read.every(TH.dash.item), verb, range);
   }
-  const verb = picked[0].change < 0 ? TH.read.fell : TH.read.rose;
+  const verb = verbOf(query, picked[0].change < 0);
   const range = rangeText(picked.map((entry) => Math.abs(entry.change)), format);
+  const target = query.compare === "target";
   for (const dim of [first, second]) {
     const names = new Set(picked.map((entry) => labelAlong([dim], entry.row)));
     const [name] = names;
-    if (names.size === 1 && name) return TH.read.gridOne(name, verb, TH.dash.dimUnit[dim], range);
+    if (names.size === 1 && name) return (target ? TH.read.gridOneTarget : TH.read.gridOne)(name, verb, TH.dash.dimUnit[dim], range);
   }
   const [lead] = [...picked].sort((left, right) => Math.abs(right.change) - Math.abs(left.change));
-  return TH.read.gridSome(picked.length, verb, labelOf(query, lead.row));
+  return (target ? TH.read.gridSomeTarget : TH.read.gridSome)(picked.length, verb, labelOf(query, lead.row));
+}
+
+/** A grid cell's move in words: against target it is under or over the target, never a fall or a rise. */
+function verbOf(query: MetricQuery, negative: boolean): string {
+  if (query.compare === "target") return negative ? TH.dash.underTarget : TH.read.aboveTarget;
+  return negative ? TH.read.fell : TH.read.rose;
 }
 
 function chartVerdict(shape: Shape, view: CardView, body: CardBody, extras: CardExtras): string | null {
