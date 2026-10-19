@@ -917,6 +917,7 @@ export const TH = {
     perBucket: { day: "ต่อวัน", week: "ต่อสัปดาห์", month: "ต่อเดือน" } as Record<string, string>,
     everyBucket: { day: "วันละ", week: "สัปดาห์ละ", month: "เดือนละ" } as Record<string, string>,
     beforeStep: (every: string, value: string) => `ก่อนหน้า${every} ${value}`,
+    stepFlat: (since: string, before: string, after: string) => `ตั้งแต่ ${since} ทรงตัว ${before} → ${after}`,
     step: (since: string, falling: boolean, every: string, before: string, after: string) => `ตั้งแต่ ${since} ${falling ? "ลดลง" : "เพิ่มขึ้น"}จาก${every} ${before} ${falling ? "เหลือ" : "เป็น"} ${after}`,
   },
   memoryPage: {

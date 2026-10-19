@@ -772,7 +772,7 @@ function balanceRangeOf(query: MetricQuery, rows: MetricRow[]): RangeMove | null
   return { first: labelOf(query, rows[0]), firstValue, latestValue, deltaPercent: ((latestValue - firstValue) / Math.abs(firstValue)) * PERCENT, deltaPoints: latestValue - firstValue };
 }
 
-/** R15: a balance read over months leads with where it went from the first bucket to the latest, coloured by that direction; the verdict says the range in words and names the latest move when it went the other way, so a check over six months never leads with one month's uptick the reply does not draw from (AI-268). */
+/** R15: a balance read over months leads with where it went from the first bucket to the latest, coloured by that direction; the verdict says the range in words ("ทรงตัว" when the move is inside the metric's flat band, as its pill is) and names the latest move when it went the other way, so a check over six months never leads with one month's uptick the reply does not draw from (AI-268). */
 function rangeLead(facts: Facts): Lead {
   const { query, result, rows } = facts;
   const range = balanceRangeOf(query, rows);
@@ -780,9 +780,10 @@ function rangeLead(facts: Facts): Lead {
   if (!range || !latest) return latestLead(facts);
   const move = moveOf({ ...query, compare: "prev_period" }, range.deltaPercent, range.deltaPoints);
   const falling = range.latestValue < range.firstValue;
-  const stepped = TH.read.step(range.first, falling, "", formatMetricValue(query.metric, range.firstValue), latest.value);
+  const before = formatMetricValue(query.metric, range.firstValue);
+  const stepped = isFlat(move) ? TH.read.stepFlat(range.first, before, latest.value) : TH.read.step(range.first, falling, "", before, latest.value);
   const latestMove = moveOf({ ...query, compare: "prev_period" }, latest.deltaPercent, latest.deltaPoints);
-  const turned = !isFlat(latestMove) && latest.deltaPercent < 0 !== falling;
+  const turned = !isFlat(move) && !isFlat(latestMove) && latest.deltaPercent < 0 !== falling;
   const change = metricFormat(query.metric) === "percent" ? latest.deltaPoints : latest.deltaPercent;
   return {
     hero: { label: latest.label, value: latest.value, unit: null, ...move, detail: TH.dash.versusBucket(range.first) },

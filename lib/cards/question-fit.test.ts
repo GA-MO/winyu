@@ -716,3 +716,11 @@ describe("headcount over the year reads as a level, like a balance (round 12)", 
     expect(card.verdict).toBe("ตั้งแต่ ม.ค. 69 เพิ่มขึ้นจาก 4,438 คน เป็น 4,530 คน");
   });
 });
+
+test("a level that barely moved over the range says it held, as its grey pill does, never that it fell (round 12 cover over 12 weeks)", () => {
+  const query: MetricQuery = { metric: "days_of_cover", dims: ["week"], filters: {}, range: { from: "2026-09-07", to: AS_OF }, grain: "week", compare: "none", limit: null };
+  const rows: MetricRow[] = [14.9, 14.9, 14.7, 14.7, 14.9, 14.4, 15.5, 13.9, 14.8, 14.8, 14.6, 14.7].map((value, index) => ({ week: `2026-W${37 + index}`, value }));
+  const card = presentCard({ title: "t", query, result: resultOf(query, rows, { value: "14.7 วัน", aggregate: "average" }) });
+  expect(card.hero?.trend).toBe("neutral");
+  expect(card.verdict).toBe("ตั้งแต่ สัปดาห์ 37 ทรงตัว 14.9 วัน → 14.7 วัน");
+});
