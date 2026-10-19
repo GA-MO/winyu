@@ -43,11 +43,13 @@
     return out;
   }
 
+  /** The film's beat grid: a whole number of bars in the loop, with `tempo.on` on a downbeat. `snap(t, per)` moves t to the nearest 1/per of a beat. */
   function grid(score, length) {
     const bars = Math.max(1, Math.round(length / (4 * 60 / BOUNCE.bpm)));
     const beat = length / (bars * 4);
-    const phase = wrap(score.tempo.on, beat);
-    return { bars, beat, phase, at: (beatIndex) => phase + beatIndex * beat };
+    const phase = wrap(score.tempo.on, 4 * beat);
+    const at = (beatIndex) => phase + beatIndex * beat;
+    return { bars, beat, phase, at, snap: (t, per = 1) => at(Math.round(((t - phase) / beat) * per) / per) };
   }
 
   function noiseBuffer(seconds, seed) {
@@ -140,6 +142,7 @@
       if (!ours(at)) return;
       const src = ctx.createBufferSource();
       src.buffer = noise;
+      src.loop = true;
       const bq = ctx.createBiquadFilter();
       bq.type = type;
       bq.Q.value = q;
@@ -180,36 +183,25 @@
     param.setValueCurveAtTime(curve, 0, (n - 1) / CONTROL_RATE);
   }
 
-  function sectionLevel(sections, layer, length) {
-    const sorted = [...sections].sort((p, q) => p.at - q.at);
-    const level = (s) => BOUNCE.mixes[s.mix][layer] ?? 0;
+  /** A layer's level at film time x: its section's level, ramping over the last beat of a section into the next one's, so layers cross on the bar line. */
+  function sectionLevel(bars, g, layer, length) {
+    const level = (mix) => BOUNCE.mixes[mix][layer] ?? 0;
     return (x) => {
-      const u = wrap(x, length);
-      const next = sorted.findIndex((s) => s.at > u);
-      const i = (next <= 0 ? sorted.length : next) - 1;
-      const cur = sorted[i], prev = sorted[(i - 1 + sorted.length) % sorted.length];
-      const since = wrap(u - cur.at, length), fade = cur.fade ?? 0.05;
-      return since < fade ? level(prev) + (level(cur) - level(prev)) * (since / fade) : level(cur);
+      const pos = wrap(x - g.phase, length) / g.beat, b = Math.floor(pos / 4) % g.bars, into = (pos % 4) - 3;
+      const cur = level(bars[b].mix), next = level(bars[(b + 1) % g.bars].mix);
+      return into > 0 ? cur + (next - cur) * into : cur;
     };
   }
 
-  /**
-   * Which section each bar plays, read one beat after its downbeat, with how many bars of that section came before and remain.
-   * A section that starts inside a bar enters on its first beat: `next` names the step it joins on, and its first bar counts as `since: -1`.
-   */
+  /** Each bar's section, with how many bars of it came before and remain and the mix of the bar after. A section starts on the bar line nearest its `at`. */
   function barSections(sections, g, length) {
     const sorted = [...sections].sort((p, q) => p.at - q.at);
-    const indexAt = (x) => sorted.reduce((found, s, i) => (s.at <= wrap(x, length) ? i : found), sorted.length - 1);
-    const index = Array.from({ length: g.bars }, (_, bar) => indexAt(g.at(bar * 4 + 1)));
+    const first = sorted.map((s) => clamp(Math.round((s.at - g.phase) / (4 * g.beat)), 0, g.bars - 1));
+    const index = Array.from({ length: g.bars }, (_, bar) => first.reduce((found, f, i) => (f <= bar ? i : found), sorted.length - 1));
     const since = [], left = [];
     index.forEach((s, b) => (since[b] = b && index[b - 1] === s ? since[b - 1] + 1 : 0));
     for (let b = g.bars - 1; b >= 0; b--) left[b] = b < g.bars - 1 && index[b + 1] === index[b] ? left[b + 1] + 1 : 1;
-    const joinStep = (s, bar) => Math.round(4 * Math.ceil(wrap(s.at - g.at(bar * 4), length) / g.beat - 1e-6));
-    return index.map((s, b) => {
-      const n = (s + 1) % sorted.length, step = joinStep(sorted[n], b);
-      const next = step > 0 && step < 16 ? { section: n, mix: sorted[n].mix, step, left: (index[(b + 1) % g.bars] === n ? left[(b + 1) % g.bars] : 0) + 1 } : null;
-      return { section: s, mix: sorted[s].mix, since: since[b], left: left[b], next };
-    });
+    return index.map((s, b) => ({ section: s, mix: sorted[s].mix, since: since[b], left: left[b], into: sorted[index[(b + 1) % g.bars]].mix }));
   }
 
   function duckCurve(cues, length) {
@@ -281,9 +273,9 @@
     for (let s = 0; s < g.bars * 16; s++) {
       const t = g.phase + s * sixteenth;
       const bar = Math.floor(s / 16);
-      const { next, section, ...own } = plan.bars[bar];
+      const { section, ...own } = plan.bars[bar];
       const chord = BOUNCE.chord(own);
-      const place = { bar, bars: g.bars, ...(next && s % 16 >= next.step ? { mix: next.mix, since: -1, left: next.left } : own) };
+      const place = { bar, bars: g.bars, ...own };
       for (const [name, play] of Object.entries(BOUNCE.layers)) {
         const level = plan.levels[name];
         if (!BOUNCE.mixes[place.mix][name] || (level(t) <= 0.001 && level(t + g.beat) <= 0.001)) continue;
@@ -297,11 +289,11 @@
   async function renderPass(score, length, stem) {
     checkScore(score, length);
     const span = PRE + length + TAIL;
-    const g = grid(score, length);
+    const g = grid(score, length), bars = barSections(score.sections, g, length);
     const plan = {
       g,
-      bars: barSections(score.sections, g, length),
-      levels: Object.fromEntries(Object.keys(BOUNCE.layers).map((name) => [name, sectionLevel(score.sections, name, length)])),
+      bars,
+      levels: Object.fromEntries(Object.keys(BOUNCE.layers).map((name) => [name, sectionLevel(bars, g, name, length)])),
       duck: duckCurve(score.cues, length),
       noise: noiseBuffer(4, 7),
       room: impulse(BOUNCE.room.seconds, BOUNCE.room.damp, 3),
@@ -437,13 +429,12 @@
     return out;
   }
 
-  /** Each section in time order with the moment its layers start playing: its first beat, or `at` itself when a bar line already passed it. */
+  /** Each section in time order with the bar line its layers start on. */
   function sections(score, length) {
     const g = grid(score, length), bars = barSections(score.sections, g, length);
     return [...score.sections].sort((p, q) => p.at - q.at).map((s, i) => {
-      const early = bars.findIndex((bar) => bar.next?.section === i);
-      const joins = early >= 0 ? g.at(early * 4 + bars[early].next.step / 4) : Math.max(s.at, g.at(4 * bars.findIndex((bar) => bar.section === i)));
-      return { mix: s.mix, at: +s.at.toFixed(3), joins: +wrap(joins, length).toFixed(3) };
+      const bar = bars.findIndex((b) => b.section === i);
+      return { mix: s.mix, at: +s.at.toFixed(3), joins: bar < 0 ? null : +wrap(g.at(4 * bar), length).toFixed(3), bars: bars.filter((b) => b.section === i).length };
     });
   }
 
@@ -455,14 +446,15 @@
   const GLOCK = [[1, 1, 1], [2.76, 0.32, 0.45], [5.4, 0.12, 0.22], [8.93, 0.05, 0.1]];
   const EP = [[1, 1, 1], [2, 0.32, 0.45], [3, 0.1, 0.25], [7.02, 0.04, 0.08]];
 
+  const ENDS_ON_DOMINANT = new Set(["build"]);
   /** Each section plays its own progression from its first bar; a build is aligned to its last bar so it always lands on the dominant. */
   const progression = (chords, table) => ({ mix, since, left }) => {
     const names = table[mix];
-    const i = mix === "build" ? names.length - 1 - ((left - 1) % names.length) : since % names.length;
+    const i = ENDS_ON_DOMINANT.has(mix) ? names.length - 1 - ((left - 1) % names.length) : since % names.length;
     return chords[names[i]];
   };
   const hook = (notes) => new Map(notes.map(([step, m, len]) => [step, { m, len }]));
-  const hookNote = (phrase, n, fromBar = 0) => phrase.get(wrap(n.since + fromBar, 4) * 16 + n.step);
+  const hookNote = (phrase, n) => phrase.get(wrap(n.since, 4) * 16 + n.step);
   const rise = (n) => clamp((n.since + n.step / 16) / (n.since + n.left));
   /** A motif's note times: the first on its cue, each next on the first eighth of the beat grid at least an eighth after the one before. */
   const eighths = (c, count) => {
@@ -478,67 +470,67 @@
       v.hiss({ t: c.at, f: 9000, q: 1, a: 0.0004, d: 0.004, gain: 0.03, pan: (r() - 0.5) * 0.5, send: 0, seed: c.seed + 1 });
       v.tone({ t: c.at, f: 420 + 60 * r(), a: 0.001, d: 0.014, gain: 0.03, send: 0 });
     } },
-    click: { duck: 0.1, play: (v, c) => {
+    click: { duck: 0.05, play: (v, c) => {
       v.hiss({ t: c.at, f: 3400, q: 2, a: 0.0005, d: 0.007, gain: 0.1, send: 0.05, seed: c.seed });
       v.hiss({ t: c.at, f: 9000, q: 1, a: 0.0004, d: 0.004, gain: 0.04, send: 0, seed: c.seed + 1 });
       v.tone({ t: c.at, f: degree(v.key, 0, 1), a: 0.001, d: 0.03, gain: 0.045, send: 0.05 });
     } },
-    send: { duck: 0.25, play: (v, c) => {
+    send: { duck: 0.1, play: (v, c) => {
       v.hiss({ t: c.at - 0.04, f: 1200, to: 7000, q: 1.2, a: 0.05, d: 0.16, gain: 0.08, pan: 0.2, send: 0.3, seed: c.seed });
       v.tone({ t: c.at + 0.06, f: degree(v.key, 4, 1), from: degree(v.key, 2, 1), glide: 0.04, a: 0.002, d: 0.12, gain: 0.05, pan: 0.25, send: 0.3 });
     } },
-    air: { duck: 0.2, play: (v, c) => {
+    air: { duck: 0.1, play: (v, c) => {
       [0, 1, 2, 3, 4].forEach((s, i) => v.struck({ t: c.at + i * 0.045, f: degree(v.key, s, 1), partials: SPARKLE, d: 0.7, gain: 0.05, pan: (i - 2) * 0.18, send: 0.45 }));
       v.hiss({ t: c.at, f: 8500, q: 0.8, a: 0.12, d: 0.5, gain: 0.025, send: 0.5, seed: c.seed });
     } },
-    notify: { duck: 0.3, play: (v, c) => {
+    notify: { duck: 0.1, play: (v, c) => {
       [[4, 0], [7, 0.1]].forEach(([s, dt]) => v.struck({ t: c.at + dt, f: degree(v.key, s, 0), partials: GLASS, d: 0.9, gain: 0.11, pan: 0.2, send: 0.35 }));
     } },
-    dawn: { duck: 0.15, play: (v, c) => {
+    dawn: { duck: 0.1, play: (v, c) => {
       v.hiss({ t: c.at - 0.3, f: 1500, to: 7000, q: 0.8, a: 0.3, d: 0.5, gain: 0.045, send: 0.45, seed: c.seed });
       v.struck({ t: c.at, f: degree(v.key, 2, 1), partials: GLASS, d: 1.2, gain: 0.06, pan: -0.2, send: 0.5 });
     } },
-    whoosh: { duck: 0.3, play: (v, c) => {
+    whoosh: { duck: 0.1, play: (v, c) => {
       const [lo, hi] = c.step ? [6500, 450] : [500, 8000];
       v.hiss({ t: c.at - 0.35, f: lo, to: hi, q: 0.9, a: 0.3, d: 0.22, gain: 0.12, pan: c.step ? 0.25 : -0.25, send: 0.3, seed: c.seed });
       v.hiss({ t: c.at - 0.3, f: lo * 1.4, to: hi, q: 1.4, a: 0.28, d: 0.18, gain: 0.06, pan: c.step ? -0.35 : 0.35, send: 0.3, seed: c.seed + 4 });
     } },
-    bell: { duck: 0.45, play: (v, c) => {
+    bell: { duck: 0.15, play: (v, c) => {
       v.struck({ t: c.at, f: degree(v.key, 0, 1), partials: BELL, d: 1.5, gain: 0.15, pan: 0.25, send: 0.45 });
       [4, 5, 6, 7, 9].forEach((s, i) => v.struck({ t: c.at + 0.06 + i * 0.04, f: degree(v.key, s, 1), partials: SPARKLE, d: 0.5, gain: 0.03, pan: 0.4 - i * 0.15, send: 0.5 }));
       v.hiss({ t: c.at + 0.02, f: 9000, q: 0.9, a: 0.01, d: 0.6, gain: 0.018, send: 0.5, seed: c.seed });
     } },
-    glow: { duck: 0.25, play: (v, c) => {
+    glow: { duck: 0.1, play: (v, c) => {
       [[2, 0], [4, 0.09]].forEach(([s, dt]) => v.struck({ t: c.at + dt, f: degree(v.key, s, 1), partials: GLASS, d: 0.9, gain: 0.08, pan: 0.15, send: 0.4 }));
     } },
-    lock: { duck: 0.3, play: (v, c) => {
+    lock: { duck: 0.1, play: (v, c) => {
       v.hiss({ t: c.at, f: 3600, q: 2, a: 0.0005, d: 0.006, gain: 0.12, send: 0.08, seed: c.seed });
       v.hiss({ t: c.at + 0.045, f: 2400, q: 2, a: 0.0005, d: 0.01, gain: 0.12, send: 0.08, seed: c.seed + 3 });
       v.tone({ t: c.at + 0.045, f: 150, from: 260, glide: 0.02, a: 0.001, d: 0.08, gain: 0.18, send: 0.05 });
       v.hiss({ t: c.at + 0.045, f: 8500, q: 1, a: 0.0005, d: 0.01, gain: 0.035, send: 0.05, seed: c.seed + 6 });
     } },
-    plug: { duck: 0.3, play: (v, c) => {
+    plug: { duck: 0.1, play: (v, c) => {
       v.tone({ t: c.at, f: 110, from: 180, glide: 0.04, a: 0.001, d: 0.1, gain: 0.25, send: 0.05 });
       v.hiss({ t: c.at, f: 3000, q: 1.5, a: 0.0005, d: 0.01, gain: 0.1, send: 0.08, seed: c.seed });
       v.synth({ t: c.at + 0.01, f: degree(v.key, 4, 1), type: "square", a: 0.002, d: 0.12, gain: 0.04, cut: 6000, cutTo: 1500, cutIn: 0.1, send: 0.25 });
     } },
-    toggle: { duck: 0.3, play: (v, c) => {
+    toggle: { duck: 0.1, play: (v, c) => {
       v.hiss({ t: c.at, f: 3200, q: 2, a: 0.0005, d: 0.008, gain: 0.09, send: 0.05, seed: c.seed });
       [2, 3, 4, 5].forEach((s, i) => v.struck({ t: c.at + 0.02 + i * 0.055, f: degree(v.key, s, 1), partials: GLASS, d: 0.5, gain: 0.06, pan: (i - 1.5) * 0.2, send: 0.35 }));
     } },
-    hit: { duck: 0.6, play: (v, c) => {
+    hit: { duck: 0.2, play: (v, c) => {
       const big = !c.step, swell = 2 * c.beat;
       v.hiss({ t: c.at - swell, f: 600, to: 6000, q: 1.2, a: swell - 0.02, d: 0.05, gain: big ? 0.05 : 0.03, send: 0.35, seed: c.seed });
       v.tone({ t: c.at, f: 62, from: 200, glide: 0.08, a: 0.001, h: 0.04, d: 0.35, gain: big ? 0.36 : 0.22, send: 0.1 });
       v.hiss({ t: c.at, f: 2500, type: "lowpass", a: 0.001, d: 0.1, gain: big ? 0.15 : 0.09, send: 0.35, seed: c.seed + 1 });
       v.hiss({ t: c.at, f: 7500, q: 0.6, a: 0.004, d: big ? 0.9 : 0.4, gain: big ? 0.022 : 0.014, pan: 0.1, send: 0.5, seed: c.seed + 2 });
     } },
-    pop: { duck: 0.08, play: (v, c) => {
+    pop: { duck: 0.03, play: (v, c) => {
       const f = degree(v.key, c.step, 1), pan = ((c.step % 3) - 1) * 0.3;
       v.tone({ t: c.at, f, from: f * 0.45, glide: 0.03, a: 0.002, d: 0.08, gain: 0.08, pan, send: 0.2 });
       v.struck({ t: c.at + 0.015, f: f * 2, partials: GLOCK, d: 0.25, gain: 0.025, pan, send: 0.3 });
     } },
-    memory: { duck: 0.5, play: (v, c) => {
+    memory: { duck: 0.2, play: (v, c) => {
       const at = eighths(c, 3);
       [degree(v.key, 2, 1), degree(v.key, 3, 1), degree(v.key, 0, 2)].forEach((f, i) => {
         v.struck({ t: at[i], f, partials: GLOCK, d: i === 2 ? 1.6 : 0.9, gain: 0.13, pan: (i - 1) * 0.25, send: 0.45 });
@@ -546,11 +538,11 @@
       });
       v.tone({ t: at[2], f: degree(v.key, 0, 2), from: degree(v.key, 0, 1), glide: 0.06, a: 0.003, d: 0.12, gain: 0.04, send: 0.3 });
     } },
-    echo: { duck: 0.25, play: (v, c) => {
+    echo: { duck: 0.1, play: (v, c) => {
       const at = eighths(c, 2);
       [degree(v.key, 3, 1), degree(v.key, 0, 2)].forEach((f, i) => v.struck({ t: at[i], f, partials: GLOCK, d: 0.9, gain: 0.07, pan: 0.25, send: 0.5 }));
     } },
-    sting: { duck: 0.4, play: (v, c) => {
+    sting: { duck: 0.15, play: (v, c) => {
       [0, 1, 2, 3, 4, 5].forEach((s, i) => v.struck({ t: c.at + i * 0.06, f: degree(v.key, s, 1), partials: GLOCK, d: 1.0, gain: 0.07, pan: (i - 2.5) * 0.15, send: 0.45 }));
       v.tone({ t: c.at + 0.4, f: degree(v.key, 0, 2), from: degree(v.key, 0, 0), glide: 0.12, a: 0.003, d: 0.15, gain: 0.05, send: 0.3 });
     } },
@@ -585,12 +577,14 @@
     [32, 79, 1], [34, 82, 1], [35, 86, 2], [38, 82, 1], [40, 79, 2], [43, 77, 1], [44, 79, 2], [46, 82, 1],
     [48, 84, 2], [51, 82, 1], [52, 79, 2], [54, 76, 2], [56, 79, 1], [58, 82, 1], [60, 84, 4],
   ]);
-  const HOOK_FROM = { end: 2 };
-  const KICK = { groove: { 0: 1, 3: 0.5, 8: 0.9, 10: 0.65 }, break: { 0: 0.8, 10: 0.45 } };
+  const KICK = { groove: { 0: 1, 3: 0.5, 8: 0.9, 10: 0.65, 14: 0.45 }, break: { 0: 0.8, 10: 0.45, 14: 0.35 }, hold: { 0: 0.8, 8: 0.6 } };
   const SNAP = { groove: new Set([4, 12]), break: new Set([8]) };
-  const SLAP = { 0: [0, 1], 3: [12, 0.75, true], 6: [0, 0.55], 8: [7, 0.7], 10: [12, 0.85, true], 13: [0, 0.5], 14: [7, 0.45] };
+  const SLAP = {
+    groove: { 0: [0, 1], 3: [12, 0.75, true], 6: [0, 0.55], 8: [7, 0.7], 10: [12, 0.85, true], 13: [0, 0.5], 14: [7, 0.45] },
+    hold: { 0: [0, 0.9], 6: [0, 0.5], 8: [7, 0.7], 14: [12, 0.5] },
+  };
   const CHANK = { 2: 1, 6: 0.75, 9: 0.5, 10: 1, 14: 0.75 };
-  const KEYS = { 0: 1, 6: 0.7 };
+  const KEYS = { 0: 1, 6: 0.7, 10: 0.5, 14: 0.6 };
   const SWING = 0.24;
   const swung = (n) => n.t + (n.step % 2 ? SWING * n.beat / 4 : 0);
 
@@ -603,14 +597,14 @@
     glue: { threshold: -26, knee: 8, ratio: 4, attack: 0.002, release: 0.12 },
     chord: progression(CHORDS, PROGRESSIONS),
     mixes: {
-      intro: { kick: 0.8, snap: 0.7, bass: 0.85, chank: 0.6 },
-      drive: { kick: 1, snap: 0.9, jingle: 0.85, bass: 1, chank: 0.85, keys: 0.6 },
-      hold: { pad: 1, keys: 0.3 },
-      full: { kick: 1, snap: 1, jingle: 0.9, bass: 1, chank: 0.85, keys: 0.55, glock: 0.85 },
-      break: { kick: 0.7, snap: 0.7, jingle: 0.4, bass: 0.75, chank: 0.5, keys: 0.85 },
-      build: { kick: 1, snap: 0.9, jingle: 1, bass: 1, chank: 0.8, keys: 0.5, roll: 1 },
-      peak: { kick: 1, snap: 1, jingle: 1, bass: 1, chank: 0.9, keys: 0.55, glock: 1, bubbles: 1 },
-      end: { kick: 1, snap: 1, jingle: 1, bass: 1, chank: 0.9, glock: 1, bubbles: 0.8, roll: 0.8 },
+      intro: { kick: 0.8, snap: 0.7, jingle: 0.55, bass: 0.85, chank: 0.6, keys: 0.4, pad: 0.75, fill: 1 },
+      drive: { kick: 1, snap: 0.9, jingle: 0.85, bass: 1, chank: 0.85, keys: 0.6, pad: 0.7, fill: 1 },
+      hold: { kick: 0.6, jingle: 0.45, bass: 0.75, keys: 0.45, pad: 1, fill: 1 },
+      full: { kick: 1, snap: 1, jingle: 0.9, bass: 1, chank: 0.85, keys: 0.55, glock: 0.85, pad: 0.65, fill: 1 },
+      break: { kick: 0.7, snap: 0.7, jingle: 0.55, bass: 0.75, chank: 0.5, keys: 0.85, pad: 0.75, fill: 1 },
+      build: { kick: 1, snap: 0.9, jingle: 1, bass: 1, chank: 0.8, keys: 0.5, roll: 1, pad: 0.65, fill: 1 },
+      peak: { kick: 1, snap: 1, jingle: 1, bass: 1, chank: 0.9, keys: 0.55, glock: 1, bubbles: 1, pad: 0.6, fill: 1 },
+      end: { kick: 1, snap: 1, jingle: 1, bass: 1, chank: 0.9, glock: 1, bubbles: 0.8, roll: 0.8, pad: 0.6, fill: 1 },
     },
     layers: {
       kick(v, n) {
@@ -628,15 +622,15 @@
         v.tone({ t: n.t, f: 1500, from: 2300, glide: 0.006, a: 0.0005, d: 0.012, gain: 0.03, out: v.out, pan: 0.12, send: 0.1 });
       },
       jingle(v, n) {
-        const accent = n.step % 4 === 2 ? 1 : n.step % 2 ? 0.3 : 0.45;
+        const accent = n.step % 4 === 2 ? 1 : n.step % 2 ? 0.5 : 0.65;
         v.hiss({ t: swung(n), f: 8600, q: 2.2, a: 0.001, d: accent === 1 ? 0.07 : 0.032, gain: 0.03 * accent, out: v.out, pan: -0.35, send: 0.08, seed: n.seed });
       },
       bass(v, n) {
-        const h = SLAP[n.step];
+        const h = (SLAP[n.mix] ?? SLAP.groove)[n.step];
         if (!h) return;
         const [interval, l, slap] = h, t = swung(n), f = hz(n.chord.root + interval);
-        v.synth({ t, f, type: "sawtooth", a: 0.002, h: 0.035, d: 0.13, gain: 0.15 * l, cut: slap ? 3400 : 1900, cutTo: 260, cutIn: 0.08, q: 3, send: 0.02, out: v.out });
-        v.synth({ t, f, type: "square", a: 0.002, h: 0.035, d: 0.13, gain: 0.06 * l, cut: 800, send: 0, out: v.out });
+        v.synth({ t, f, type: "sawtooth", a: 0.002, h: 0.07, d: 0.2, gain: 0.15 * l, cut: slap ? 3400 : 1900, cutTo: 260, cutIn: 0.08, q: 3, send: 0.02, out: v.out });
+        v.synth({ t, f, type: "square", a: 0.002, h: 0.07, d: 0.2, gain: 0.06 * l, cut: 800, send: 0, out: v.out });
         if (slap) v.hiss({ t, f: 2600, q: 1.5, a: 0.0005, d: 0.006, gain: 0.07 * l, out: v.out, send: 0, seed: n.seed });
       },
       chank(v, n) {
@@ -648,9 +642,9 @@
       },
       pad(v, n) {
         if (n.step) return;
-        const h = 4 * n.beat - 0.7;
-        n.chord.pad.forEach((m, i) => v.synth({ t: n.t + i * 0.012, f: hz(m), type: "triangle", a: 0.35, h, d: 0.9, gain: 0.012, cut: 1800, pan: -0.3 + i * 0.2, send: 0.45, out: v.out }));
-        v.tone({ t: n.t, f: hz(n.chord.root + 12), a: 0.3, h, d: 0.8, gain: 0.022, send: 0.1, out: v.out });
+        const h = 4 * n.beat - 0.15;
+        n.chord.pad.forEach((m, i) => v.synth({ t: n.t + i * 0.012, f: hz(m), type: "triangle", a: 0.25, h, d: 0.9, gain: 0.02, cut: 1800, pan: -0.3 + i * 0.2, send: 0.45, out: v.out }));
+        v.tone({ t: n.t, f: hz(n.chord.root + 12), a: 0.25, h, d: 0.8, gain: 0.035, send: 0.1, out: v.out });
       },
       keys(v, n) {
         const l = KEYS[n.step];
@@ -658,7 +652,7 @@
         n.chord.pad.forEach((m, i) => v.struck({ t: swung(n) + i * 0.003, f: hz(m), partials: EP, d: 0.5, gain: 0.045 * l, out: v.out, pan: -0.25 + i * 0.05, send: 0.25 }));
       },
       glock(v, n) {
-        const note = hookNote(HOOK, n, HOOK_FROM[n.mix]);
+        const note = hookNote(HOOK, n);
         if (note) v.struck({ t: swung(n), f: hz(note.m), partials: GLOCK, d: 0.9, gain: 0.075, out: v.out, pan: 0.15, send: 0.35 });
       },
       bubbles(v, n) {
@@ -666,6 +660,18 @@
         if (n.step % 4 === 0 || r() > 0.22) return;
         const f = degree(v.key, Math.floor(r() * 6), 1);
         v.tone({ t: swung(n), f, from: f * 0.5, glide: 0.035, a: 0.002, d: 0.07, gain: 0.045, out: v.out, pan: r() - 0.5, send: 0.25 });
+      },
+      /** The last beat of a section: snaps and toms rising into the bar line. A fill into a thinner section is half as loud. */
+      fill(v, n) {
+        if (n.left !== 1 || n.into === n.mix) return;
+        const from = 12;
+        if (n.step < from) return;
+        const r = (n.step - from + 1) / (16 - from), soft = Object.keys(BOUNCE.mixes[n.into]).length < Object.keys(BOUNCE.mixes[n.mix]).length ? 0.5 : 1;
+        v.hiss({ t: n.t, f: 2300 + 1200 * r, q: 2.2, a: 0.0008, d: 0.04, gain: (0.06 + 0.14 * r) * soft, out: v.out, pan: 0.2 - 0.4 * r, send: 0.3, seed: n.seed });
+        if (n.step % 2 === 0) {
+          const f = degree(v.key, 4 - Math.round(4 * r), -1);
+          v.tone({ t: n.t, f, from: f * 1.6, glide: 0.04, type: "triangle", a: 0.001, d: 0.18, gain: (0.1 + 0.08 * r) * soft, out: v.out, pan: 0.3 - 0.6 * r, send: 0.2 });
+        }
       },
       roll(v, n) {
         if (n.step % (n.left === 1 ? 1 : 2)) return;

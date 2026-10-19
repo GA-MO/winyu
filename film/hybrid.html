@@ -270,8 +270,8 @@ const T = {
   pull5: [66.8, 67.7], logo: 68.2, endOut: 70.4, hlRein: 70.8,
 };
 const LENGTH = Math.round(71.8 * 30) / 30;
-const HLS = [['hl0', -1, T.ask + 0.7], ['hl1', T.sun + 0.15, T.pull1[1] - 0.25], ['hl2', T.memIn - 0.4, T.wall - 0.35], ['hlA', T.wall, T.dyn - 0.35], ['hlB', T.dyn, T.fwd - 0.35], ['hl3', T.fwd, T.leaveIn - 0.4], ['hl4', T.leaveIn - 0.05, T.permIn - 0.4], ['hl5', T.permIn, T.connIn - 0.4], ['hl6', T.connIn, T.pull5[1]]];
-const BREATH = 0.3;
+const GRID = Sound.grid({ tempo: { on: T.memc } }, LENGTH);
+const HLS = [['hl0', -1, T.ask + 0.7], ['hl1', T.sun + 0.15, T.pull1[1] - 0.25], ['hl2', T.memIn - 0.4, T.wall - 0.35], ['hlA', T.wall, T.dyn - 0.35], ['hlB', T.dyn, T.fwd - 0.35], ['hl3', T.fwd, T.leaveIn - 0.4], ['hl4', T.leaveIn - 0.05, T.permIn - 0.4], ['hl5', T.permIn, T.connIn - 0.4], ['hl6', T.connIn, T.pull5[1]]].map(([id, a, b]) => [id, a < 0 ? a : GRID.snap(a, 2), b]);
 const UNIT = 72;
 const FIG = 1.35;
 const C30 = Math.cos(Math.PI / 6);
@@ -1212,8 +1212,8 @@ const SOUND = {
   sections: [
     { at: 0, mix: 'intro' },
     { at: T.sun, mix: 'drive' },
-    { at: T.memc - BREATH, mix: 'hold', fade: 0.2 },
-    { at: T.memDrop, mix: 'drive', fade: 0.3 },
+    { at: T.memc, mix: 'hold' },
+    { at: T.memDrop, mix: 'drive' },
     { at: T.wall - 0.15, mix: 'full' },
     { at: T.fwd - 0.15, mix: 'drive' },
     { at: T.leaveIn - 0.2, mix: 'break' },
@@ -1228,7 +1228,7 @@ const SOUND = {
     { at: T.ask, sfx: 'send' },
     { at: T.sun, sfx: 'air' },
     { at: T.isan, sfx: 'notify' },
-    ...VISITS.flatMap(v => [{ at: v.push[0] + SWEEP, sfx: 'whoosh' }, { at: v.pull[0] + SWEEP, sfx: 'whoosh', step: 1 }]),
+    ...VISITS.flatMap(v => [{ at: GRID.snap(v.push[0] + SWEEP, 2), sfx: 'whoosh' }, { at: GRID.snap(v.pull[0] + SWEEP, 2), sfx: 'whoosh', step: 1 }]),
     { at: T.say1, sfx: 'send' },
     { at: T.memc, sfx: 'memory' },
     { at: T.memDrop + 0.5, sfx: 'glow', step: 0 },
@@ -1256,7 +1256,7 @@ const SOUND = {
     { at: T.logo, sfx: 'sting' },
     ...HLS.filter(([, inT]) => inT >= 0).map(([id, at]) => ({ at, sfx: 'hit', step: id === 'hlB' ? 1 : 0 })),
     { at: T.hlRein, sfx: 'hit' },
-    { at: T.logo, sfx: 'hit' },
+    { at: GRID.snap(T.logo, 2), sfx: 'hit' },
   ],
 };
 let rendered = null;

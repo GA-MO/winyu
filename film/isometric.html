@@ -295,7 +295,6 @@ const LENGTH = Math.round(W8.E * 30) / 30;
 const MOMENT = {ask: 4.85, sun: 5.0, isan: 7.15, shops: 8.6, dq: 0.2, say1: 0.8, memc: 1.75, memDrop: 3.5, day: 4.1, say2: 6.1, why: 8.3, swap: 10.6, fwdPress: 15.1, envArrive: 16.8, bell: 16.85, leaveAsk: 19.95, press: 27.5, approved: 28.85, lock: 27.7, plug: [30.5, 0.4], connected: 31.25, logo: 33.95};
 const SYS_AT = (i) => 0.6 + i * 0.1;
 const TYPED = {q: [3.5, 0.8], leaveQ: [20.05, 0.55], leave: [24.45, 0.85]};
-const BREATH = 0.3;
 let RT = 0;
 const UNIT = 72;
 const FIG = 1.35;
@@ -835,7 +834,8 @@ function endCard(t) {
   $('end-tag').style.transform = `translateY(${f1((1 - tg) * 24)}px)`;
 }
 
-const HLS = [['hl0', -1, W1.r(4.6)], ['hl1', W2.r(5.15), W3.S - 0.3], ['hl2', W3.r(0.15), W3.r(12.0)], ['hlA', WD.r(0.15), WD.r(3.65)], ['hlB', WD.r(4.0), WD.r(8.65)], ['hl3', W4.S + 0.05, W4.r(18.6)], ['hl4', W5.r(19.15), W5.r(30.6)], ['hl5', W6.r(24.15), W6.r(29.0)], ['hl6', W7.r(29.15), W7.r(33.1)]];
+const GRID = Sound.grid({tempo: {on: W3.r(MOMENT.memc)}}, LENGTH);
+const HLS = [['hl0', -1, W1.r(4.6)], ['hl1', W2.r(5.15), W3.S - 0.3], ['hl2', W3.r(0.15), W3.r(12.0)], ['hlA', WD.r(0.15), WD.r(3.65)], ['hlB', WD.r(4.0), WD.r(8.65)], ['hl3', W4.S + 0.05, W4.r(18.6)], ['hl4', W5.r(19.15), W5.r(30.6)], ['hl5', W6.r(24.15), W6.r(29.0)], ['hl6', W7.r(29.15), W7.r(33.1)]].map(([id, a, b]) => [id, a < 0 ? a : GRID.snap(a, 2), b]);
 const HL_REIN = W8.r(36.55);
 function headlines(t) {
   HLS.forEach(([id, inT, outT]) => {
@@ -1049,14 +1049,14 @@ function render(t) {
 
 const keysIn = (count, from, to) => Sound.steps(count, from - 0.01, to + 0.01, 0.05).map((at, i) => ({at, sfx: 'key', step: i}));
 const typedKeys = (W, span, G) => keysIn((t) => typedCount(W(t), span, G), W.r(span[0]), W.r(span[0] + span[1]));
-const HITS = [...HLS.filter(([, inT]) => inT >= 0).map(([id, at]) => ({at, step: id === 'hlB' ? 1 : 0})), {at: HL_REIN, step: 0}, {at: W8.r(MOMENT.logo), step: 0}];
+const HITS = [...HLS.filter(([, inT]) => inT >= 0).map(([id, at]) => ({at, step: id === 'hlB' ? 1 : 0})), {at: GRID.snap(HL_REIN, 2), step: 0}, {at: GRID.snap(W8.r(MOMENT.logo), 2), step: 0}];
 const SOUND = {
   tempo: {on: W3.r(MOMENT.memc)},
   sections: [
     {at: 0, mix: 'intro'},
     {at: W2.r(MOMENT.sun), mix: 'drive'},
-    {at: W3.r(MOMENT.memc) - BREATH, mix: 'hold', fade: 0.2},
-    {at: W3.r(MOMENT.memDrop), mix: 'drive', fade: 0.3},
+    {at: W3.r(MOMENT.memc), mix: 'hold'},
+    {at: W3.r(MOMENT.memDrop), mix: 'drive'},
     {at: WD.S, mix: 'full'},
     {at: W4.S, mix: 'drive'},
     {at: W5.S, mix: 'break'},
@@ -1091,7 +1091,7 @@ const SOUND = {
     {at: W6.r(MOMENT.lock), sfx: 'lock'},
     {at: W7.r(MOMENT.plug[0] + MOMENT.plug[1]), sfx: 'plug'},
     {at: W7.r(MOMENT.connected), sfx: 'toggle'},
-    {at: W8.r(MOMENT.logo), sfx: 'sting'},
+    {at: GRID.snap(W8.r(MOMENT.logo), 2), sfx: 'sting'},
     ...HITS.map((hit) => ({...hit, sfx: 'hit'})),
   ],
 };

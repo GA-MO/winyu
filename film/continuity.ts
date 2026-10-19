@@ -5,13 +5,13 @@ import { waitFor, withHeadlessPage } from "./chrome";
 const PORT = Number(process.env.BOOTH_CONTINUITY_PORT ?? 3234);
 const FILM_DIR = import.meta.dir;
 
-const [mp4, filmName, outDir = "out/continuity"] = process.argv.slice(2);
-if (!mp4 || !filmName) throw new Error("Usage: bun run continuity <film.mp4> <film.html> [out dir]  (momentary loudness of the mix and of the music alone, every drop, and a chart)");
+const [filmName, outDir = "out/continuity", mp4] = process.argv.slice(2);
+if (!filmName) throw new Error("Usage: bun run continuity <film.html> [out dir] [film.mp4]  (momentary loudness of the mix and of the music alone, every drop, and a chart; without an MP4 it reads the film's own rendered score)");
 
-const probe = `async () => {
+const probe = `async (HAS_MP4) => {
   const film = window.film, length = film.length, rate = 48000, HOP = 0.05, BLOCK = 0.4;
   const DROP_DB = 6, DROP_WITHIN = 0.25, HOLE_DB = 15, HOLE_MIN = 0.03, FRAME = 0.01;
-  const decoded = await new OfflineAudioContext(2, 1, rate).decodeAudioData(await (await fetch("/film.mp4")).arrayBuffer());
+  const decoded = HAS_MP4 ? await new OfflineAudioContext(2, 1, rate).decodeAudioData(await (await fetch("/film.mp4")).arrayBuffer()) : await film.audio();
   const n = Math.round(length * rate);
   const mix = [0, 1].map((c) => decoded.getChannelData(Math.min(c, decoded.numberOfChannels - 1)).slice(0, n));
   const stem = await Sound.musicStem(film.score, length);
@@ -58,12 +58,14 @@ const probe = `async () => {
   const seamSteps = (F, at) => at.map((t) => { const k = Math.round(t / FRAME); return Math.abs(F[(k + 1) % F.length] - F[(k - 1 + F.length) % F.length]); });
   const median = (a) => { const s = [...a].sort((p, q) => p - q); return s[s.length >> 1]; };
   const M = Sound.momentary(mix, HOP), S = Sound.momentary(stem, HOP);
+  const barSwing = (L) => median(bars.map((b, i) => { const from = Math.round(b / HOP), to = Math.round((b + 4 * g.beat) / HOP); const v = Array.from({ length: to - from }, (_, j) => L[(from + j) % L.length]); return Math.max(...v) - Math.min(...v); }));
   const FS = frames(stem);
   const random = Array.from({ length: 400 }, (_, i) => (i + 0.5) * length / 400);
   const report = {
     length, bars: g.bars, beat: +g.beat.toFixed(4), phase: +g.phase.toFixed(3),
-    mix: { medianLufs: +median(M).toFixed(1), minLufs: +Math.min(...M).toFixed(1), drops: drops(M) },
-    music: { medianLufs: +median(S).toFixed(1), minLufs: +Math.min(...S).toFixed(1), drops: drops(S), holes: holes(FS) },
+    source: HAS_MP4 ? "mp4" : "score",
+    mix: { medianLufs: +median(M).toFixed(1), minLufs: +Math.min(...M).toFixed(1), barSwingDb: +barSwing(M).toFixed(1), drops: drops(M) },
+    music: { medianLufs: +median(S).toFixed(1), minLufs: +Math.min(...S).toFixed(1), barSwingDb: +barSwing(S).toFixed(1), drops: drops(S), holes: holes(FS) },
     windowSeams: { count: windows.length, medianStepDb: +median(seamSteps(FS, windows)).toFixed(2), maxStepDb: +Math.max(...seamSteps(FS, windows)).toFixed(2), randomMedianStepDb: +median(seamSteps(FS, random)).toFixed(2) },
     sections,
   };
@@ -96,7 +98,7 @@ const server = Bun.serve({
   port: PORT,
   async fetch(request) {
     const { pathname } = new URL(request.url);
-    if (pathname === "/film.mp4") return new Response(Bun.file(path.resolve(mp4)));
+    if (pathname === "/film.mp4" && mp4) return new Response(Bun.file(path.resolve(mp4)));
     const file = Bun.file(path.join(FILM_DIR, path.normalize(decodeURIComponent(pathname)).replace(/^(\.\.[/\\])+/, "")));
     return (await file.exists()) ? new Response(file) : new Response("Not found", { status: 404 });
   },
@@ -106,12 +108,12 @@ try {
   await withHeadlessPage({ width: 1920, height: 1080, scale: 1 }, async ({ send, evaluate }) => {
     await send("Page.navigate", { url: `http://localhost:${PORT}/${filmName}?capture` });
     await waitFor("the film", async () => ((await evaluate("Boolean(window.film && window.film.ready)")) ? true : null));
-    const { report, png } = (await evaluate(`(${probe})()`)) as { report: Record<string, unknown>; png: string };
+    const { report, png } = (await evaluate(`(${probe})(${Boolean(mp4)})`)) as { report: Record<string, unknown>; png: string };
     mkdirSync(outDir, { recursive: true });
-    const base = path.join(outDir, path.basename(mp4, ".mp4"));
+    const base = path.join(outDir, path.basename(mp4 ?? filmName, mp4 ? ".mp4" : ".html"));
     writeFileSync(`${base}-continuity.png`, Buffer.from(png, "base64"));
-    writeFileSync(`${base}-continuity.json`, JSON.stringify({ file: mp4, ...report }, null, 2));
-    console.log(JSON.stringify({ file: mp4, chart: `${base}-continuity.png`, ...report }, null, 2));
+    writeFileSync(`${base}-continuity.json`, JSON.stringify({ file: mp4 ?? filmName, ...report }, null, 2));
+    console.log(JSON.stringify({ file: mp4 ?? filmName, chart: `${base}-continuity.png`, ...report }, null, 2));
   });
 } finally {
   server.stop(true);
