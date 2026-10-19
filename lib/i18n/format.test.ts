@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { dueTimeTh, threadGroupOf, timeOfDay } from "./format";
+import { dueTimeTh, formatCurrency, formatNumber, threadGroupOf, timeOfDay } from "./format";
 
 describe("threadGroupOf", () => {
   const NOW = new Date("2026-10-09T01:00:00Z");
@@ -39,5 +39,13 @@ describe("dueTimeTh", () => {
 
   test("a passed deadline says how late it is", () => {
     expect(dueTimeTh("2026-09-24T09:30:00Z", NOW)).toBe("เลยกำหนด 30 นาที");
+  });
+});
+
+describe("formatNumber", () => {
+  test("an amount in millions keeps one decimal even when it is whole, like the engine's labels beside it (AI-327)", () => {
+    expect(formatCurrency(47_962_151)).toBe("48.0 ล้านบาท");
+    expect(formatCurrency(35_020_000)).toBe("35.0 ล้านบาท");
+    expect(formatNumber(1_234_567)).toBe("1.2 ล้าน");
   });
 });

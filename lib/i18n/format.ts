@@ -13,6 +13,7 @@ const WHOLE_FROM = 100;
 const MILLION = 1_000_000;
 const MILLION_WORD = "ล้าน";
 const numberFormat = new Intl.NumberFormat(LOCALE, { maximumFractionDigits: 1 });
+const millionFormat = new Intl.NumberFormat(LOCALE, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 const wholeFormat = new Intl.NumberFormat(LOCALE, { maximumFractionDigits: 0 });
 const percentFormat = new Intl.NumberFormat(LOCALE, { maximumFractionDigits: 1 });
 const oneDecimalPercentFormat = new Intl.NumberFormat(LOCALE, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
@@ -23,13 +24,14 @@ function isMasked(value: unknown): boolean {
   return typeof value === "string" && value.includes(MASKED);
 }
 
+/** A number as cards print it: millions always with one decimal ("48.0 ล้าน", the way the engine's labels read, AI-327), whole numbers from 100, one decimal at most below. */
 export function formatNumber(value: number | string | null): string {
   if (value === null) return "—";
   if (isMasked(value)) return MASKED;
   const numeric = typeof value === "number" ? value : Number(value);
   if (!Number.isFinite(numeric)) return String(value);
   const size = Math.abs(numeric);
-  if (size >= MILLION) return `${numberFormat.format(numeric / MILLION)} ${MILLION_WORD}`;
+  if (size >= MILLION) return `${millionFormat.format(numeric / MILLION)} ${MILLION_WORD}`;
   return size >= WHOLE_FROM ? wholeFormat.format(numeric) : numberFormat.format(numeric);
 }
 

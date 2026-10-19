@@ -57,6 +57,17 @@ const SHARE_REGION_ROWS: MetricRow[] = [
   { region: "กรุงเทพฯ และปริมณฑล", value: 58.1, value_label: "58.1%", compare_value: 57.8, delta_pct: 0.5, delta_pt: 0.3 },
 ];
 
+describe("a change ranking's row detail reads base to current with one decimal on both (AI-327)", () => {
+  test("a base of 47,962,151 baht reads 48.0, never 48, beside 17.9", () => {
+    const rows: MetricRow[] = [
+      { region: "ภาคอีสาน", value: 17_912_000, value_label: "17.9 ล้านบาท", compare_value: 47_962_151, delta_pct: -62.7 },
+      { region: "ภาคเหนือ", value: 32_716_414, value_label: "32.7 ล้านบาท", compare_value: 36_173_430, delta_pct: -9.6 },
+    ];
+    const card = presentCard({ title: "t", query: WEEK_BY_REGION, result: resultOf(WEEK_BY_REGION, rows, { value: "50.6 ล้านบาท", deltaPercent: -39.5, compareLabel: "เทียบช่วงก่อนหน้า" }) });
+    expect(stripOf(card.body).overall?.sub).toBe("48.0 → 17.9 ล้านบาท");
+  });
+});
+
 describe("a change strip values the row that answers (AI-173)", () => {
   test("asked why sales fell this week, the region that fell most carries its value, not only the last row", () => {
     const card = presentCard({ title: "t", query: WEEK_BY_REGION, result: resultOf(WEEK_BY_REGION, WEEK_ROWS, { value: "248.1 ล้านบาท", deltaPercent: -9.3, compareLabel: "เทียบช่วงก่อนหน้า" }) });
