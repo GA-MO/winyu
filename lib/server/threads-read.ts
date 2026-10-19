@@ -5,7 +5,7 @@ import { TH } from "@/lib/i18n/th";
 
 export const THREADS_COLLECTION = "threads";
 
-const TITLE_LENGTH = 40;
+const TITLE_LENGTH = 120;
 
 export type ThreadSummary = { id: string; title: string; createdAt: string; updatedAt: string; matterCode: string | null };
 
@@ -16,7 +16,7 @@ export function threads() {
 export function titleFrom(firstMessage: string): string {
   const trimmed = firstMessage.trim();
   if (!trimmed) return TH.session.newThreadTitle;
-  return trimmed.length > TITLE_LENGTH ? trimmed.slice(0, TITLE_LENGTH) : trimmed;
+  return trimmed.length > TITLE_LENGTH ? `${trimmed.slice(0, TITLE_LENGTH).trimEnd()}…` : trimmed;
 }
 
 function summaryOf(thread: Thread): ThreadSummary {

@@ -18,7 +18,7 @@ const ICON_BUTTON =
   "flex size-10 shrink-0 items-center justify-center rounded-xl text-muted-foreground transition hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 const ROW = "group flex min-h-9 items-center gap-1.5 rounded-full px-3 py-1.5 text-sm text-muted-foreground transition hover:bg-muted hover:text-foreground";
 const ROW_ACTIVE = "bg-bubble text-foreground";
-const ROW_ACTION = "rounded-md p-1 opacity-0 transition focus-visible:opacity-100 group-hover:opacity-100 hover:text-foreground";
+const ROW_ACTION = "hidden rounded-md p-1 transition hover:text-foreground group-hover:inline-flex group-focus-within:inline-flex";
 const BRAND_MARK = "flex size-8 shrink-0 items-center justify-center rounded-[10px] bg-linear-135 from-primary via-brand-violet to-brand-coral text-white shadow-sm";
 const RAIL_OFFSET = "--winyu-rail-offset";
 const TEXT = TH.conversation.rail;
