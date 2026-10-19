@@ -6,10 +6,11 @@ import { winyuTools } from "@/lib/server/agent/tools";
 import { auditLog } from "@/lib/server/audit";
 import { runWithAccess, runWithTurn } from "@/lib/server/request-context";
 
-const USAGE = "usage: bun run call-tool <userId> <tool> [json-args]";
+const USAGE = "usage: bun run call-tool <userId> <tool> [json-args] [--full]";
 const SHOWN_CHARS = 600;
 
-const [userId, toolName, rawArgs = "{}"] = process.argv.slice(2);
+const FULL = process.argv.includes("--full");
+const [userId, toolName, rawArgs = "{}"] = process.argv.slice(2).filter((arg) => arg !== "--full");
 const user = userId ? findUser(userId) : null;
 if (!user || !toolName) {
   console.error(USAGE);
@@ -32,4 +33,4 @@ saveRun(run);
 const audit = auditLog().where((entry) => entry.turnId === run.id);
 console.log(`${user.id} (${access.role}) · offered: ${toolsFor(access).includes(toolName as never) ? "yes" : "no"} · run ${run.id}`);
 console.log(`audit: ${audit.map((entry) => `${entry.tool} ${entry.decision}${entry.code ? ` ${entry.code}` : ""}${entry.rule ? ` rule "${entry.rule.name}"` : ""}${entry.grant ? ` grant ${entry.grant.id} from ${entry.grant.grantorId} until ${entry.grant.expiresAt}` : ""}`).join("; ") || "none"}`);
-console.log(JSON.stringify(output).slice(0, SHOWN_CHARS));
+console.log(FULL ? JSON.stringify(output) : JSON.stringify(output).slice(0, SHOWN_CHARS));
