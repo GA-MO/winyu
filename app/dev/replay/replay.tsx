@@ -24,7 +24,7 @@ export function Replay({ exchanges, streaming, toolLabels, durationMs }: { excha
             <ExchangeView
               key={exchange.id}
               exchange={exchange}
-              live={{ isLast: index === exchanges.length - 1, running: streaming, asked: [], waiting: new Set(), decisions: {}, left: new Set(), decide: NOTHING, stopped: false, error: null, requestedCourses, onScreen: screens[index] ?? null, toolLabels, durationMs }}
+              live={{ isLast: index === exchanges.length - 1, running: streaming, asked: [], waiting: new Set(), decisions: {}, left: new Set(), decide: NOTHING, stopped: false, error: null, slow: false, retry: null, requestedCourses, onScreen: screens[index] ?? null, toolLabels, durationMs }}
             />
           ))}
         </div>

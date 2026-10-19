@@ -13,6 +13,7 @@ const { serveCopilot, LEARNING } = await import("./serve");
 const { findUser } = await import("@/lib/data/entities/users");
 const { liveAccessFor } = await import("@/lib/access/enforce");
 const { inflightRunOn, runStore } = await import("@/lib/harness/runtime");
+const { threadHistory } = await import("./history");
 
 const USER = "u_thana";
 const AGENT_URL = "http://localhost/api/copilotkit/agent/winyu";
@@ -39,10 +40,15 @@ function access() {
   return liveAccessFor(user);
 }
 
-async function ask(question: string): Promise<{ threadId: string; runId: string; events: SseEvent[] }> {
-  const threadId = `budget-${crypto.randomUUID()}`;
+type UserMessage = { id: string; role: "user"; content: string };
+
+function said(content: string): UserMessage {
+  return { id: crypto.randomUUID(), role: "user", content };
+}
+
+async function ask(question: string | UserMessage, threadId = `budget-${crypto.randomUUID()}`): Promise<{ threadId: string; runId: string; events: SseEvent[] }> {
   const runId = crypto.randomUUID();
-  const body = { threadId, runId, state: {}, messages: [{ id: crypto.randomUUID(), role: "user", content: question }], tools: [], context: [], forwardedProps: {} };
+  const body = { threadId, runId, state: {}, messages: [typeof question === "string" ? said(question) : question], tools: [], context: [], forwardedProps: {} };
   const response = await serveCopilot(access(), new Request(`${AGENT_URL}/run`, { method: "POST", headers: { "content-type": "application/json", accept: "text/event-stream" }, body: JSON.stringify(body) }), LEARNING);
   const sse = await response.text();
   const events = sse.split("\n").flatMap((line) => (line.startsWith("data:") ? [JSON.parse(line.slice("data:".length)) as SseEvent] : []));
@@ -75,6 +81,21 @@ describe("the chat's time budget", () => {
     expect(failure?.message).toContain("timed out");
     expect(inflightRunOn(threadId, USER)).toBeNull();
     expect(runStore().get(runId)?.events.some((event) => event.type === "agent.failed")).toBe(true);
+  });
+
+  test("asking again after a run timed out answers that question once: the model reads it once and memory keeps it once", async () => {
+    const question = said("ยอดขายภาคใต้เดือนนี้");
+    scripted.script([{ hang: true }, { hang: true }]);
+    const failed = await ask(question);
+    expect(failed.events.some((event) => event.type === "RUN_ERROR")).toBe(true);
+    scripted.script([{ text: FALLBACK_REPLY }]);
+    const retried = await ask(question, failed.threadId);
+    expect(replyOf(retried.events)).toBe(FALLBACK_REPLY);
+    const prompt = JSON.stringify(scripted.model.doStreamCalls.at(-1)?.prompt ?? []);
+    expect(prompt.split(question.content).length - 1).toBe(1);
+    const kept = await threadHistory(failed.threadId, USER);
+    expect(kept.map((message) => message.role)).toEqual(["user", "assistant"]);
+    expect(kept[0]?.id).toBe(question.id);
   });
 
   test("a step that goes silent after asking for a tool never runs that call, and the person never sees it start; the fallback's own call runs once", async () => {

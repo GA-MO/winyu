@@ -55,11 +55,11 @@ function currentOf(trail: Trail): string | null {
   return trail.pause === null ? null : PAUSE_TEXT[trail.pause];
 }
 
-function RunningTrail({ trail }: { trail: Trail }) {
+function RunningTrail({ trail, slow }: { trail: Trail; slow: boolean }) {
   const current = currentOf(trail);
   const seconds = useSecondsOn(current ?? "");
   const pause = trail.pause === null ? null : PAUSE_TEXT[trail.pause];
-  if (trail.entries.length === 0 && !current) return null;
+  if (trail.entries.length === 0 && !current && !slow) return null;
   return (
     <section aria-label={TH.trail.listLabel} className="flex flex-col gap-1.5 text-sm">
       <ol className="flex flex-col gap-1.5">
@@ -73,13 +73,17 @@ function RunningTrail({ trail }: { trail: Trail }) {
           </li>
         ) : null}
       </ol>
-      {current && seconds >= STILL_WORKING_AFTER_S ? (
+      {slow ? (
+        <p className="pl-5.5 text-xs text-muted-foreground" aria-hidden>
+          {TH.trail.slow}
+        </p>
+      ) : current && seconds >= STILL_WORKING_AFTER_S ? (
         <p className="pl-5.5 text-xs text-muted-foreground" aria-hidden>
           {TH.trail.stillWorking(seconds)}
         </p>
       ) : null}
       <p className="sr-only" aria-live="polite">
-        {current ?? ""}
+        {slow ? TH.trail.slow : (current ?? "")}
       </p>
     </section>
   );
@@ -107,7 +111,7 @@ function FinishedTrail({ trail, durationMs }: { trail: Trail; durationMs: number
   );
 }
 
-/** What the agent is doing for one answer: while it streams, a list that grows with each action named from its call (a spinner on the ones running now, a check on the finished ones) and what it does between steps; once it ends, one quiet line that opens to the list. */
-export function ActionTrail({ trail, streaming, durationMs }: { trail: Trail; streaming: boolean; durationMs: number | null }) {
-  return streaming ? <RunningTrail trail={trail} /> : <FinishedTrail trail={trail} durationMs={durationMs} />;
+/** What the agent is doing for one answer: while it streams, a list that grows with each action named from its call (a spinner on the ones running now, a check on the finished ones), what it does between steps, and a calm word when nothing new has shown for a while (`slow`); once it ends, one quiet line that opens to the list. */
+export function ActionTrail({ trail, streaming, durationMs, slow = false }: { trail: Trail; streaming: boolean; durationMs: number | null; slow?: boolean }) {
+  return streaming ? <RunningTrail trail={trail} slow={slow} /> : <FinishedTrail trail={trail} durationMs={durationMs} />;
 }

@@ -1,5 +1,6 @@
 import { describe, expect, mock, test } from "bun:test";
 import { renderToStaticMarkup } from "react-dom/server";
+import type { ExchangeLive } from "./exchange-view";
 
 mock.module("next/navigation", () => ({ useRouter: () => ({ push: () => {}, refresh: () => {} }), usePathname: () => "/" }));
 
@@ -22,8 +23,8 @@ async function deniedForRsm(): Promise<unknown> {
   return runWithAccess(liveAccessFor(rsm), () => winyuTools().query_metric.execute(SOUTH, { toolCallId: "denied-south" }));
 }
 
-function live(isLast: boolean) {
-  return { isLast, running: false, asked: [], waiting: new Set<string>(), decisions: {}, left: new Set<string>(), decide: () => {}, stopped: false, error: null, requestedCourses: new Set<string>(), onScreen: null, toolLabels: {}, durationMs: null };
+function live(isLast: boolean): ExchangeLive {
+  return { isLast, running: false, asked: [], waiting: new Set<string>(), decisions: {}, left: new Set<string>(), decide: () => {}, stopped: false, error: null, slow: false, retry: null, requestedCourses: new Set<string>(), onScreen: null, toolLabels: {}, durationMs: null };
 }
 
 describe("a card in an exchange that is already sending", () => {
@@ -59,5 +60,35 @@ describe("a card for a read the person may not see", () => {
     expect(html).toContain("นอกขอบเขตสิทธิ์");
     expect(html).not.toContain(TH.share.button);
     expect(screenCardsEach([exchange], CARD_TOOLS)[0]?.cards).toEqual([]);
+  });
+});
+
+describe("a reply that takes long or fails", () => {
+  const asked = { id: "q-slow", question: { kind: "typed" as const, text: "ยอดขายเดือนนี้" }, steps: [] };
+
+  function drawn(live: ExchangeLive) {
+    return renderToStaticMarkup(
+      <ShareProvider open>
+        <ExchangeView exchange={asked} live={live} />
+      </ShareProvider>,
+    );
+  }
+
+  function liveOf(overrides: Partial<ExchangeLive>): ExchangeLive {
+    return { ...live(true), ...overrides };
+  }
+
+  test("while it runs with nothing new on screen, the trail says calmly that it is taking longer than usual", () => {
+    expect(drawn(liveOf({ running: true, slow: true }))).toContain(TH.trail.slow);
+    expect(drawn(liveOf({ running: true, slow: false }))).not.toContain(TH.trail.slow);
+  });
+
+  test("once the server gives up, a clear failure line with an ask-again button; none when asking again cannot help", () => {
+    const failed = drawn(liveOf({ error: TH.conversation.timedOut, retry: () => {} }));
+    expect(failed).toContain(TH.conversation.timedOut);
+    expect(failed).toContain(TH.conversation.retry);
+    const signedOut = drawn(liveOf({ error: TH.conversation.signedOut, retry: null }));
+    expect(signedOut).toContain(TH.conversation.signedOut);
+    expect(signedOut).not.toContain(TH.conversation.retry);
   });
 });

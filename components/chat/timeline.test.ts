@@ -1,7 +1,7 @@
 import { COMPOSED_CARD_ACTIVITY } from "@/lib/compose/catalog";
 import { describe, expect, test } from "bun:test";
 import { pressedText } from "./pressed";
-import { exchangesOf, type ChatMessage, type ToolStep } from "./timeline";
+import { exchangesOf, progressOf, type ChatMessage, type Exchange, type ToolStep } from "./timeline";
 import { cardPlanOf, composedCalls, isEmptyAnswer, toolViewOf, type ToolLive } from "./tool-view";
 import { sinceLastQuestion } from "@/components/providers/copilot-provider";
 import { TH } from "@/lib/i18n/th";
@@ -154,5 +154,18 @@ describe("composedCalls", () => {
 describe("sinceLastQuestion", () => {
   test("sends the newest question and what followed it, never the history Mastra memory already holds", () => {
     expect(sinceLastQuestion(TRANSCRIPT).map((message) => message.id)).toEqual(["u2", "a3"]);
+  });
+});
+
+describe("progressOf", () => {
+  test("changes with every word, step and result the person can see, and stays put while nothing new shows", () => {
+    const asking: Exchange = { id: "q1", question: { kind: "typed", text: "ยอดขาย" }, steps: [] };
+    const calling: Exchange = { ...asking, steps: [{ kind: "tool", toolCallId: "c1", name: "query_metric", args: {}, outcome: { state: "pending" } }] };
+    const answered: Exchange = { ...asking, steps: [{ kind: "tool", toolCallId: "c1", name: "query_metric", args: {}, outcome: { state: "returned", result: {} } }] };
+    const writing: Exchange = { ...answered, steps: [...answered.steps, { kind: "text", id: "t1", text: "ยอด" }] };
+    const wrote: Exchange = { ...answered, steps: [...answered.steps, { kind: "text", id: "t1", text: "ยอดขาย" }] };
+    const marks = [asking, calling, answered, writing, wrote].map(progressOf);
+    expect(new Set(marks).size).toBe(marks.length);
+    expect(progressOf({ ...wrote })).toBe(progressOf(wrote));
   });
 });

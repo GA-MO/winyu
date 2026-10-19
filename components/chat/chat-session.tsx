@@ -127,6 +127,8 @@ export function ChatSession({ threadId, initialPrompt, initialMessages, initialA
       decide: session.decide,
       stopped: isLast && session.stoppedExchangeId === exchanges[index].id,
       error: isLast ? session.error : null,
+      slow: isLast && session.slow,
+      retry: isLast ? session.retry : null,
       requestedCourses,
       onScreen: screens[index] ?? null,
       toolLabels,

@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { durationsAfter, runStartedAt, unansweredOf, type PendingApproval } from "./use-chat-session";
+import { TH } from "@/lib/i18n/th";
+import { askedAgain, durationsAfter, failureOf, runStartedAt, unansweredOf, type PendingApproval } from "./use-chat-session";
 
 function asked(toolCallId: string): PendingApproval {
   return { interruptId: `mastra-approval::run::${toolCallId}`, toolCallId, tool: "send_card", input: {}, exchangeId: "q1", position: 0 };
@@ -40,5 +41,26 @@ describe("the time shown for a turn", () => {
 
   test("adds the time of a run that answers a question", () => {
     expect(durationsAfter({ q1: 8000 }, "q2", 3000, false)).toEqual({ q1: 8000, q2: 3000 });
+  });
+});
+
+describe("a run that ended without an answer", () => {
+  test("a run the server gave up on reads as timed out and may be asked again; signed out and a spent approval may not", () => {
+    expect(failureOf("Model call timed out after 60000ms (modelSettings.timeout.stepMs)")).toEqual({ text: TH.conversation.timedOut, retryable: true });
+    expect(failureOf(new Error("network down"))).toEqual({ text: TH.conversation.failed, retryable: true });
+    expect(failureOf(new Error("HTTP 401"))).toMatchObject({ retryable: false });
+    expect(failureOf(new Error("HTTP 409"))).toMatchObject({ retryable: false });
+  });
+
+  test("asking again keeps the transcript up to the last question, so what the failed run left goes and the question is not sent twice", () => {
+    const messages = [
+      { id: "q1", role: "user" },
+      { id: "a1", role: "assistant" },
+      { id: "q2", role: "user" },
+      { id: "partial", role: "assistant" },
+      { id: "call", role: "tool" },
+    ];
+    expect(askedAgain(messages)?.map((message) => message.id)).toEqual(["q1", "a1", "q2"]);
+    expect(askedAgain([{ id: "a0", role: "assistant" }])).toBeNull();
   });
 });

@@ -89,3 +89,15 @@ export function exchangesOf(messages: readonly ChatMessage[]): Exchange[] {
   }
   return exchanges;
 }
+
+function sizeOf(step: ReplyStep): string {
+  if (step.kind === "text") return `t${step.text.length}`;
+  if (step.kind === "tool") return `c${step.outcome.state}`;
+  return `s${step.surface.components.length}${step.surface.done ? "d" : ""}`;
+}
+
+/** What the person can see of one exchange so far, as a mark that changes whenever anything new shows: a step, a word, a tool's result, a card's part. */
+export function progressOf(exchange: Exchange | undefined): string {
+  if (!exchange) return "";
+  return `${exchange.id}:${exchange.steps.map(sizeOf).join(",")}`;
+}

@@ -182,6 +182,7 @@ export const TH = {
     reading: "กำลังอ่านผลและสรุป…",
     writing: "กำลังเขียนคำตอบ…",
     stillWorking: (seconds: number) => `ยังทำอยู่ · ${seconds} วินาที`,
+    slow: "ใช้เวลานานกว่าปกติ…",
     sources: (count: number) => `ใช้ข้อมูล ${count} แหล่ง`,
     requests: (count: number) => `เตรียมคำขอ ${count} รายการ`,
     seconds: (seconds: string) => `${seconds} วินาที`,
@@ -251,6 +252,8 @@ export const TH = {
     } as Record<string, string>,
     signedOut: "หมดเวลาเข้าสู่ระบบ กรุณาเข้าสู่ระบบใหม่",
     failed: "ตอบไม่สำเร็จ ลองถามใหม่อีกครั้ง",
+    timedOut: "รอบนี้ตอบไม่ทัน ระบบรอโมเดลนานเกินไปจึงหยุดไว้ก่อน",
+    retry: "ถามอีกครั้ง",
     pressed: "กดปุ่ม",
     rail: {
       label: "แชต",

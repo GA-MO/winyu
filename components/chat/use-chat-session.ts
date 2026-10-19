@@ -7,12 +7,15 @@ import type { CardAction } from "@/components/cards/card-actions";
 import { CHAT_AGENT_ID } from "@/components/providers/copilot-provider";
 import { TH } from "@/lib/i18n/th";
 import { pressedText } from "./pressed";
-import { exchangesOf, type Exchange } from "./timeline";
+import { exchangesOf, progressOf, type Exchange } from "./timeline";
 
 const UPDATES = [UseAgentUpdate.OnMessagesChanged, UseAgentUpdate.OnRunStatusChanged];
 const THROTTLE_MS = 50;
 const SIGNED_OUT = /\b401\b/;
 const SPENT = /\b409\b/;
+const TIMED_OUT = /timed out/i;
+/** A chat step sends its first content within 12 s and rarely runs past 30 s, so 20 s with nothing new on screen is worth a word. */
+const SLOW_AFTER_MS = 20_000;
 
 /** A write tool call the agent paused for the person: the interrupt the answer must quote, the call it pauses, what it would do, the exchange that asked, and how many reply steps came before it. */
 export type PendingApproval = { interruptId: string; toolCallId: string; tool: string; input: unknown; exchangeId: string | null; position: number };
@@ -27,6 +30,8 @@ export type ChatSession = {
   decisions: Readonly<Record<string, boolean>>;
   left: ReadonlySet<string>;
   error: string | null;
+  slow: boolean;
+  retry: (() => void) | null;
   stoppedExchangeId: string | null;
   durations: Readonly<Record<string, number>>;
   send: (text: string) => void;
@@ -50,11 +55,32 @@ function lastQuestionId(messages: readonly AgentMessage[]): string | null {
   return messages.findLast((message) => message.role === "user")?.id ?? null;
 }
 
-function messageOfError(error: unknown): string {
+/** Why the last run ended without an answer, in the person's words, and whether asking the same question again could help: not when they are signed out or answered an approval twice. */
+export type Failure = { text: string; retryable: boolean };
+
+export function failureOf(error: unknown): Failure {
   const text = error instanceof Error ? error.message : String(error ?? "");
-  if (SIGNED_OUT.test(text)) return TH.conversation.signedOut;
-  if (SPENT.test(text)) return TH.harness.approvalSpent;
-  return TH.conversation.failed;
+  if (SIGNED_OUT.test(text)) return { text: TH.conversation.signedOut, retryable: false };
+  if (SPENT.test(text)) return { text: TH.harness.approvalSpent, retryable: false };
+  if (TIMED_OUT.test(text)) return { text: TH.conversation.timedOut, retryable: true };
+  return { text: TH.conversation.failed, retryable: true };
+}
+
+/** The transcript to ask again from: everything up to and including the last question, so what a failed run left on screen goes and the question is sent again under its own id, which memory already holds once. */
+export function askedAgain<Message extends { role: string }>(messages: readonly Message[]): Message[] | null {
+  const last = messages.findLastIndex((message) => message.role === "user");
+  return last < 0 ? null : messages.slice(0, last + 1);
+}
+
+/** Whether a running reply has shown nothing new for SLOW_AFTER_MS. */
+function useSlow(running: boolean, progress: string): boolean {
+  const [slowOn, setSlowOn] = useState<string | null>(null);
+  useEffect(() => {
+    if (!running) return;
+    const timer = setTimeout(() => setSlowOn(progress), SLOW_AFTER_MS);
+    return () => clearTimeout(timer);
+  }, [running, progress]);
+  return running && slowOn === progress;
 }
 
 function newId(): string {
@@ -93,7 +119,7 @@ export function runStartedAt(runId: string, live: LiveRun | null, now: number): 
 /** What the page restored for one thread: the saved transcript, the approvals still open, and the run still replying when the page was opened (null when none). */
 export type RestoredThread = { threadId: string; initialMessages: readonly AgentMessage[]; initialApprovals: readonly PendingApproval[]; liveRun: LiveRun | null };
 
-/** One thread's chat over the CopilotKit runtime: restores the saved transcript and joins a reply still running (a page reloaded mid-reply shows the question, the working state and the reply as it lands), sends questions and pressed buttons, answers approval interrupts (a question sent while one waits declines it, so the card reads not done and the new question runs), and stops a reply. */
+/** One thread's chat over the CopilotKit runtime: restores the saved transcript and joins a reply still running (a page reloaded mid-reply shows the question, the working state and the reply as it lands), sends questions and pressed buttons, answers approval interrupts (a question sent while one waits declines it, so the card reads not done and the new question runs), says when a reply shows nothing new for a while, asks the last question again after a failed run (the runtime supersedes any run of the thread still going, so two never run at once), and stops a reply. */
 export function useChatSession({ threadId, initialMessages, initialApprovals, liveRun }: RestoredThread): ChatSession {
   const { copilotkit } = useCopilotKit();
   const { agent, isReady } = useAgent({ agentId: `${CHAT_AGENT_ID}:${threadId}`, runtimeAgentId: CHAT_AGENT_ID, threadId, updates: UPDATES, throttleMs: THROTTLE_MS });
@@ -102,7 +128,7 @@ export function useChatSession({ threadId, initialMessages, initialApprovals, li
   const [batch, setBatch] = useState<PendingApproval[]>(() => [...initialApprovals]);
   const [decisions, setDecisions] = useState<Record<string, boolean>>({});
   const [left, setLeft] = useState<ReadonlySet<string>>(() => new Set());
-  const [error, setError] = useState<string | null>(null);
+  const [failure, setFailure] = useState<Failure | null>(null);
   const [stoppedExchangeId, setStoppedExchangeId] = useState<string | null>(null);
   const [durations, setDurations] = useState<Record<string, number>>({});
   const batchRef = useRef(batch);
@@ -151,24 +177,24 @@ export function useChatSession({ threadId, initialMessages, initialApprovals, li
         setAsked((current) => [...current.filter((approval) => !fresh.some((entry) => entry.toolCallId === approval.toolCallId)), ...fresh]);
         setBatch(fresh);
       },
-      onRunErrorEvent: ({ event }) => setError(messageOfError(event.message)),
-      onRunFailed: ({ error: failure }) => setError(messageOfError(failure)),
+      onRunErrorEvent: ({ event }) => setFailure(failureOf(event.message)),
+      onRunFailed: ({ error }) => setFailure(failureOf(error)),
     });
     return () => subscription.unsubscribe();
   }, [agent]);
 
   useEffect(() => {
     if (!restored || !liveRun) return;
-    agent.connectAgent({ runId: liveRun.id }).catch((failure: unknown) => setError(messageOfError(failure)));
+    agent.connectAgent({ runId: liveRun.id }).catch((error: unknown) => setFailure(failureOf(error)));
   }, [agent, liveRun, restored]);
 
   const run = useCallback(
     (resume?: ResumeEntry[]) => {
-      setError(null);
+      setFailure(null);
       setStoppedExchangeId(null);
-      copilotkit.runAgent({ agent, ...(resume ? { resume } : {}) }).catch((failure: unknown) => {
+      copilotkit.runAgent({ agent, ...(resume ? { resume } : {}) }).catch((error: unknown) => {
         answeringRef.current = false;
-        setError(messageOfError(failure));
+        setFailure(failureOf(error));
       });
     },
     [agent, copilotkit],
@@ -211,7 +237,15 @@ export function useChatSession({ threadId, initialMessages, initialApprovals, li
     [agent, run],
   );
 
+  const askAgain = useCallback(() => {
+    const kept = askedAgain(agent.messages);
+    if (!kept || agent.isRunning) return;
+    agent.setMessages(kept);
+    run();
+  }, [agent, run]);
+
   const exchanges = exchangesOf(agent.messages);
+  const slow = useSlow(agent.isRunning, progressOf(exchanges.at(-1)));
   const waiting = useMemo(() => new Set(batch.filter((approval) => !(approval.toolCallId in decisions)).map((approval) => approval.toolCallId)), [batch, decisions]);
 
   const stop = useCallback(() => {
@@ -219,5 +253,6 @@ export function useChatSession({ threadId, initialMessages, initialApprovals, li
     copilotkit.stopAgent({ agent });
   }, [agent, copilotkit, exchanges]);
 
-  return { ready: isReady && restored, exchanges, running: agent.isRunning, asked, waiting, decisions, left, error, stoppedExchangeId, durations, send, runAction, decide, stop };
+  const retry = failure?.retryable && !agent.isRunning ? askAgain : null;
+  return { ready: isReady && restored, exchanges, running: agent.isRunning, asked, waiting, decisions, left, error: failure?.text ?? null, slow, retry, stoppedExchangeId, durations, send, runAction, decide, stop };
 }

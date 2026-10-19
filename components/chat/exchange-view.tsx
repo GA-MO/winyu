@@ -1,7 +1,7 @@
 "use client";
 
 import { Component, type ReactNode } from "react";
-import { AlertCircle, CircleSlash, MousePointerClick, ShieldCheck } from "lucide-react";
+import { AlertCircle, CircleSlash, MousePointerClick, RotateCcw, ShieldCheck } from "lucide-react";
 import { renderApproval } from "@/components/cards/approval-card";
 import { SendingProvider } from "@/components/cards/card-actions";
 import { ShareChrome } from "@/components/share/share-sheet";
@@ -23,7 +23,7 @@ import type { PendingApproval } from "./use-chat-session";
 const CARDS: Record<string, ToolCard> = TOOL_CARDS;
 const CARD_TOOLS: ReadonlySet<string> = new Set(Object.keys(CARDS));
 const SEND_TOOL = "send_card";
-/** What one exchange needs from the live chat: whether it is the newest, whether a reply streams, the approvals asked and answered, how it ended, the course seats the conversation has requested since, the cards on screen when a send was asked here (the ones a send_card call names), the Thai tool labels its trail names connector calls by, and how long its runs took when this tab saw them. */
+/** What one exchange needs from the live chat: whether it is the newest, whether a reply streams and whether it has shown nothing new for a while, the approvals asked and answered, how it ended and how to ask it again when it failed, the course seats the conversation has requested since, the cards on screen when a send was asked here (the ones a send_card call names), the Thai tool labels its trail names connector calls by, and how long its runs took when this tab saw them. */
 export type ExchangeLive = {
   isLast: boolean;
   running: boolean;
@@ -34,6 +34,8 @@ export type ExchangeLive = {
   decide: (toolCallId: string, approved: boolean) => void;
   stopped: boolean;
   error: string | null;
+  slow: boolean;
+  retry: (() => void) | null;
   requestedCourses: ReadonlySet<string>;
   onScreen: ScreenCards | null;
   toolLabels: Readonly<Record<string, string>>;
@@ -85,6 +87,20 @@ function Note({ text, tone }: { text: string; tone: "muted" | "danger" }) {
       <Icon className="size-4 shrink-0" aria-hidden />
       {text}
     </p>
+  );
+}
+
+function Failed({ text, retry }: { text: string; retry: (() => void) | null }) {
+  return (
+    <div className="flex flex-col items-start gap-2">
+      <Note text={text} tone="danger" />
+      {retry ? (
+        <button type="button" onClick={retry} className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-sm text-foreground transition hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+          <RotateCcw className="size-3.5" aria-hidden />
+          {TH.conversation.retry}
+        </button>
+      ) : null}
+    </div>
   );
 }
 
@@ -176,7 +192,7 @@ function shows(step: ReplyStep): boolean {
 
 function Ending({ exchange, live }: { exchange: Exchange; live: ExchangeLive }) {
   if (!live.isLast || live.running) return null;
-  if (live.error) return <Note text={live.error} tone="danger" />;
+  if (live.error) return <Failed text={live.error} retry={live.retry} />;
   if (live.stopped) return <Note text={TH.conversation.stopped} tone="muted" />;
   if (live.asked.length > 0 || exchange.steps.some(shows)) return null;
   return <Note text={TH.chat.unanswered} tone="muted" />;
@@ -214,7 +230,7 @@ export function ExchangeView({ exchange, live }: { exchange: Exchange; live: Exc
   return (
     <article data-exchange={exchange.id} className="flex flex-col gap-4">
       {exchange.question ? <UserBubble question={exchange.question} /> : null}
-      <ActionTrail trail={trailOf(steps, streaming, live.toolLabels)} streaming={streaming} durationMs={live.durationMs} />
+      <ActionTrail trail={trailOf(steps, streaming, live.toolLabels)} streaming={streaming} durationMs={live.durationMs} slow={streaming && live.slow} />
       <SendingProvider sending={raisesSend(steps, live)}>
         {steps.map((step) => (
           <StepView key={step.kind === "tool" ? step.toolCallId : `${step.kind}-${step.id}`} step={step} toolSteps={toolSteps} live={live} plan={plan} streaming={streaming} sharing={sharing} asked={askedText(exchange.question)} />
