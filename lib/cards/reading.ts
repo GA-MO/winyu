@@ -201,8 +201,8 @@ export function changeVerdict(input: ChangeVerdictInput): string {
   return TH.read.someMoved(input.leading.length, input.unit, verb, size);
 }
 
-/** A leaderboard: labels by size, every row's signed change, the rows whose change stands out (by index), how a change size is written, and what the rows are when the list was cut. */
-export type BoardVerdictInput = { unit: string; labels: readonly string[]; changes: readonly (number | null)[]; notable: ReadonlySet<number>; format: (value: number) => string; slice: string | null };
+/** A leaderboard: labels in the order drawn (smallest first when the question asked for the lowest), every row's signed change, the rows whose change stands out (by index), how a change size is written, and what the rows are when the list was cut. */
+export type BoardVerdictInput = { unit: string; labels: readonly string[]; lowestFirst: boolean; changes: readonly (number | null)[]; notable: ReadonlySet<number>; format: (value: number) => string; slice: string | null };
 
 function medianOf(values: readonly number[]): number {
   const ordered = [...values].sort((left, right) => left - right);
@@ -234,8 +234,9 @@ export function boardVerdict(input: BoardVerdictInput): string {
   const [leader = "", next] = input.labels;
   const changes = known.map((entry) => entry.change);
   const sameWay = changes.length === input.labels.length && changes.length > 1 && (changes.every((change) => change < 0) || changes.every((change) => change > 0));
-  if (sameWay) return TH.read.boardLeaderClose(leader, input.slice ?? TH.read.every(input.unit), directionWord(changes[0]));
-  return next ? TH.read.boardLeader(leader, next) : leader;
+  const end = input.lowestFirst ? TH.read.least : TH.read.most;
+  if (sameWay) return TH.read.boardLeaderClose(leader, end, input.slice ?? TH.read.every(input.unit), directionWord(changes[0]));
+  return next ? TH.read.boardLeader(leader, end, next) : leader;
 }
 
 /** The verdict of a donut: the largest part, said as more than half when it is, else who follows it. */

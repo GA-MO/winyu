@@ -913,12 +913,17 @@ function monthEndBreakdownCard(base: Omit<CardParts, "style" | "verdict" | "hero
   return { ...base, style: "scorecard", verdict: spaced(`${lead.verdict} ${reading.verdict}`), hero: lead.hero, tiles: lead.tiles, body };
 }
 
+/** Whether a ranking is drawn from its smallest row: only when the question sorted lowest first. */
+function leadsWithLowest(sortBy: SortBy | null): boolean {
+  return sortBy === "value_asc";
+}
+
 /** R5 drawn as a donut: the first row of the ranking. */
 function leaderHero(facts: Facts): CardHero {
   const { query, result, rows, sortBy } = facts;
   const first = rows[0];
   if (!first) return heroOf(query, result);
-  return { label: TH.dash.rowHero(sortBy === "value_asc" ? TH.dash.lowest : TH.dash.highest, labelOf(query, first)), value: valueTextOf(query, first), unit: null, ...rowMoveOf(query, first), detail: result.headline.compareLabel };
+  return { label: TH.dash.rowHero(leadsWithLowest(sortBy) ? TH.dash.lowest : TH.dash.highest, labelOf(query, first)), value: valueTextOf(query, first), unit: null, ...rowMoveOf(query, first), detail: result.headline.compareLabel };
 }
 
 function falling(facts: Facts, rows: MetricRow[]): boolean {
@@ -955,6 +960,7 @@ function readingOf(facts: Facts, bars: Bars, rows: MetricRow[]): Breakdown {
     target: targetBaseOf(facts),
     baseTotal: baseTotalOf(facts),
     high: (facts.sortBy === "value_desc" && facts.capped) || facts.query.where?.op === "above",
+    lowestFirst: leadsWithLowest(facts.sortBy),
     capped: facts.capped,
     subset: subsetOf(facts.query),
     asked: new Set(facts.result.headline.asked ?? []),

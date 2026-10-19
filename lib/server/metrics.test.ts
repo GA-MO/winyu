@@ -133,6 +133,29 @@ describe("runMetric over the metrics port", () => {
   });
 });
 
+describe("the summary names the end the question sorted by (AI-348)", () => {
+  const southByProvince = (sort: MetricQuery["sort"]) => runOnGenerator(question({ metric: "net_sales_value", dims: ["province"], filters: { region: ["south"] }, compare: "prev_period", sort }), CEO);
+  const valuesOf = (result: ReturnType<typeof southByProvince>) => (result.ok ? result.rows.map((row) => Number(row.value)) : []);
+  const labelsOf = (result: ReturnType<typeof southByProvince>) => (result.ok ? result.rows.map((row) => String(row.province)) : []);
+
+  test("sorted lowest first, the rows rise and the summary leads with the lowest, worded ต่ำสุด", () => {
+    const result = southByProvince("value_asc");
+    if (!result.ok) throw new Error(result.error);
+    const values = valuesOf(result);
+    expect(values).toEqual([...values].sort((left, right) => left - right));
+    expect(result.summary).toContain(`ต่ำสุด: ${labelsOf(result)[0]} `);
+    expect(result.summary).not.toContain("สูงสุด:");
+  });
+
+  test("sorted highest first, the summary still leads with the highest, worded สูงสุด", () => {
+    const result = southByProvince("value_desc");
+    if (!result.ok) throw new Error(result.error);
+    const values = valuesOf(result);
+    expect(values).toEqual([...values].sort((left, right) => right - left));
+    expect(result.summary).toContain(`สูงสุด: ${labelsOf(result)[0]} `);
+  });
+});
+
 describe("where the month ends", () => {
   const DIRECTOR = accessFor(findUser("u_prasit")!);
   const MONTH_TO_DATE = { from: monthStart(DATA_AS_OF), to: DATA_AS_OF };

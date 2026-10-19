@@ -143,6 +143,13 @@ function firstTimeDim(dims: Dim[]): Dim | null {
 
 const RISK_WHEN_LOW: ReadonlySet<MetricId> = new Set<MetricId>(["days_of_cover", "target_attainment"]);
 
+/** Which end a breakdown's headline names first: the end the question sorted by, else the low end for a metric read low-is-risk. */
+function lowFirstOf(def: MetricDef, sort: MetricSort | null | undefined): boolean {
+  if (sort === "value_asc") return true;
+  if (sort === "value_desc") return false;
+  return RISK_WHEN_LOW.has(def.id);
+}
+
 function changeOf(row: Aggregated, previous: Map<string, number> | null): number | null {
   const before = previous?.get(row.key);
   if (before === undefined || before === 0) return null;
@@ -350,7 +357,7 @@ function topOf(dictionary: Dictionary, def: MetricDef, query: MetricQuery, all: 
   if (!nonTimeDim) return [];
   return all
     .filter((row) => !suppressed.has(row.key))
-    .sort((left, right) => (RISK_WHEN_LOW.has(def.id) ? left.value - right.value : right.value - left.value))
+    .sort((left, right) => (lowFirstOf(def, query.sort) ? left.value - right.value : right.value - left.value))
     .slice(0, TOP_IN_HEADLINE)
     .map((row) => ({ label: dictionary.displayLabel(nonTimeDim, row.dims[nonTimeDim]), value: formatForSummary(def, row.value) }));
 }
@@ -411,7 +418,7 @@ function summarize(def: MetricDef, query: MetricQuery, headline: MetricHeadline,
   if (empty) return `${def.labelTh} ${span}: ไม่พบข้อมูลตามเงื่อนไขที่ขอ`;
   const lead = headline.aggregate === "average" ? "เฉลี่ย" : "รวม";
   const parts = [`${def.labelTh} ${span}: ${lead} ${headline.value}`];
-  if (headline.top.length > 0) parts.push(`${RISK_WHEN_LOW.has(def.id) ? "ต่ำสุด" : "สูงสุด"}: ${headline.top.map((row) => `${row.label} ${row.value}`).join(" · ")}`);
+  if (headline.top.length > 0) parts.push(`${lowFirstOf(def, query.sort) ? "ต่ำสุด" : "สูงสุด"}: ${headline.top.map((row) => `${row.label} ${row.value}`).join(" · ")}`);
   if (headline.deltaPercent !== null) {
     const [change, unit] = typeof headline.deltaPoints === "number" ? [headline.deltaPoints, ` ${POINTS_UNIT}`] : [headline.deltaPercent, "%"];
     parts.push(`${headline.compareLabel} ${change >= 0 ? "+" : ""}${formatNumber(change, 1)}${unit}`);

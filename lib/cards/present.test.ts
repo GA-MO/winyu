@@ -786,6 +786,26 @@ describe("a breakdown with changes", () => {
   });
 });
 
+describe("a leaderboard read from the end the question asked (AI-348)", () => {
+  const southByProvince = (sort: SortBy) => cardOf({ metric: "net_sales_value", dims: ["province"], range: MONTH_TO_DATE, compare: "prev_period" }, { sort, filters: { region: ["south"] } });
+
+  test("asked for the lowest, the verdict names the smallest province as the smallest, not as the biggest", () => {
+    const card = southByProvince("value_asc");
+    const rows = stripOf(card.body).rows;
+    const lowest = rows[0].label;
+    expect(Math.min(...measures(rows))).toBe(rows[0].measure ?? NaN);
+    expect(String(card.verdict).startsWith(`${lowest}น้อยสุด`)).toBe(true);
+    expect(card.verdict).not.toContain(`${lowest}มากสุด`);
+  });
+
+  test("asked for the highest, the verdict still names the biggest province as the biggest", () => {
+    const card = southByProvince("value_desc");
+    const rows = stripOf(card.body).rows;
+    expect(Math.max(...measures(rows))).toBe(rows[0].measure ?? NaN);
+    expect(String(card.verdict).startsWith(`${rows[0].label}มากสุด`)).toBe(true);
+  });
+});
+
 describe("one scope against a comparison", () => {
   test("labels the tile of the value compared with by its window: the same month last year, or the month before, never งวดก่อน (AI-114, AI-223)", () => {
     const tiles = (compare: MetricQuery["compare"]) => cardOf({ metric: "net_sales_value", dims: ["region"], range: MONTH_TO_DATE, compare }, { filters: { region: ["northeast"] } }).tiles.map((tile) => tile.label);

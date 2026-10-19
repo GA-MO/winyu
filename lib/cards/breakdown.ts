@@ -101,7 +101,7 @@ function monthScaleOf(input: BreakdownInput): number | null {
 }
 
 /** What the decision table knows about one breakdown: its rows in the order asked, the bars it draws, the unit word, the overall row's label, whether the question set a threshold (R7), and what a target figure is a share of ("ของเป้าตามเวลา" in a month still running) with the whole month beside it, the base total a change ranking moved from, whether the line is read from above (the top of a capped ranking, or rows above a value), whether the list was cut by a limit, so its verdict speaks for the rows shown, never for every group, and the rows the question named. */
-export type BreakdownInput = { query: MetricQuery; result: OkResult; rows: MetricRow[]; bars: BreakdownBars; unit: string; scope: string; threshold: boolean; additive: boolean; falling: boolean; target: TargetBase; baseTotal: string | null; high: boolean; capped: boolean; subset: number | null; asked: ReadonlySet<string> };
+export type BreakdownInput = { query: MetricQuery; result: OkResult; rows: MetricRow[]; bars: BreakdownBars; unit: string; scope: string; threshold: boolean; additive: boolean; falling: boolean; target: TargetBase; baseTotal: string | null; high: boolean; lowestFirst: boolean; capped: boolean; subset: number | null; asked: ReadonlySet<string> };
 
 /** A breakdown read for styles B and A: the strip, the verdict, the hero the overall row stands for, the row style A leads with instead (a change ranking), and how the rows style A folds away read in one line. */
 export type Breakdown = {
@@ -410,7 +410,7 @@ function boardReading(input: BreakdownInput): Breakdown {
     baseline: 0,
     overall: { label: input.scope, sub: overall.delta ? result.headline.compareLabel : null, second: null, measure: null, fill: 0, text: result.headline.value, change: overall.delta, tone: overall.tone, exception: true, valued: true },
     rows,
-    verdict: boardVerdict({ unit: input.unit, labels: rows.map((row) => row.label), changes, notable, format, slice: input.capped ? TH.read.shown(rows.length, input.unit) : someOf(input) }),
+    verdict: boardVerdict({ unit: input.unit, labels: rows.map((row) => row.label), lowestFirst: input.lowestFirst, changes, notable, format, slice: input.capped ? TH.read.shown(rows.length, input.unit) : someOf(input) }),
     hero: { label: input.scope, value: result.headline.value, unit: null, ...overall, detail: result.headline.compareLabel },
     lead: null,
     total: null,
