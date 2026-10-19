@@ -348,3 +348,12 @@ describe("a level's line starts its axis near its own values (AI-335)", () => {
     expect(ticks[0]).toBe("0");
   });
 });
+
+test("a stacked area of millions of baht leaves room for its widest tick, so '100 ล้านบาท' is not cut at the card's edge (round 13)", () => {
+  const values = Array.from({ length: 30 }, (_, index) => 30_000_000 + index * 1_000_000);
+  const html = render({ kind: "stacked", shape: "area", labels: values.map((_, index) => `d${index}`), series: [{ name: "ลีโอ", values, style: null }, { name: "อื่น ๆ", values, style: null }], format: "currency" });
+  const ticks = [...html.matchAll(/<text x="([\d.]+)"[^>]*text-anchor="end"[^>]*>([^<]+)</g)].map((match) => ({ x: Number(match[1]), text: match[2] }));
+  const widest = ticks.reduce((best, tick) => (tick.text.length > best.text.length ? tick : best));
+  expect(widest.text).toContain("ล้าน");
+  expect(widest.x).toBeGreaterThanOrEqual(widest.text.length * 5.4);
+});

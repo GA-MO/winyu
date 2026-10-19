@@ -10,7 +10,6 @@ export const SERIES_COLORS = ["var(--chart-1)", "var(--chart-2)", "var(--chart-3
 export const GRID_COLOR = "var(--border)";
 export const AXIS_COLOR = "var(--muted-foreground)";
 export const CHART_HEIGHT = { sm: 120, md: 180, lg: 260 } as const;
-export const AXIS_W = 44;
 
 
 /** Maps a domain span onto a pixel range, the way every chart in this kit places a value on an axis. */

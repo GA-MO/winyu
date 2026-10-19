@@ -5,7 +5,6 @@ import type { MetricFormat } from "@/lib/dashboard/metric-display";
 import { TH } from "@/lib/i18n/th";
 import {
   AXIS_COLOR,
-  AXIS_W,
   CHART_HEIGHT,
   ChartFrame,
   ChartLegend,
@@ -19,6 +18,7 @@ import {
   thinLabels,
   useContainerWidth,
 } from "./chart-kit";
+import { axisWidthFor } from "@/components/ui/charts";
 
 const MAX_SERIES = 5;
 const STROKE_WIDTH = 1.5;
@@ -52,6 +52,7 @@ export function StackedArea({ labels, series, format }: StackedAreaProps) {
   const plotH = height - 24;
   const totals = labels.map((_, i) => bandTop(capped, capped.length - 1, i));
   const ticks = niceTicks(Math.max(...totals, 0));
+  const AXIS_W = axisWidthFor(ticks.map((t) => formatTick(t, format)));
   const top = ticks[ticks.length - 1] ?? 0;
   const x = scaleLinear(0, Math.max(1, n - 1), AXIS_W + 4, width - 8);
   const y = scaleLinear(0, top, plotH, 6);

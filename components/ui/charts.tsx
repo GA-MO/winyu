@@ -26,7 +26,8 @@ const TICK_CHAR_PX = 5.4;
 const TICK_GAP_PX = 10;
 
 /** Room for the longest tick label, so "4,000 ล้าน" is never cut at the left edge. */
-function axisWidthFor(ticks: string[]): number {
+/** The width a value axis needs for its longest tick label, so "100 ล้านบาท" is never cut at the card's edge. */
+export function axisWidthFor(ticks: string[]): number {
   const longest = Math.max(0, ...ticks.map((tick) => tick.length));
   return Math.max(MIN_AXIS_W, Math.ceil(longest * TICK_CHAR_PX) + TICK_GAP_PX);
 }

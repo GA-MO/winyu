@@ -4,7 +4,6 @@ import type { MetricFormat } from "@/lib/dashboard/metric-display";
 import { TH } from "@/lib/i18n/th";
 import {
   AXIS_COLOR,
-  AXIS_W,
   CHART_HEIGHT,
   ChartFrame,
   ChartLegend,
@@ -18,6 +17,7 @@ import {
   thinLabels,
   useContainerWidth,
 } from "./chart-kit";
+import { axisWidthFor } from "@/components/ui/charts";
 
 const ACTUAL_COLOR = SERIES_COLORS[0];
 const FORECAST_COLOR = SERIES_COLORS[1];
@@ -64,6 +64,7 @@ export function ForecastBand({ labels, actual, forecast, lo, hi, format }: Forec
   const height = CHART_HEIGHT.md;
   const plotH = height - 24;
   const ticks = niceRange(Math.min(...all), Math.max(...all));
+  const AXIS_W = axisWidthFor(ticks.map((t) => formatTick(t, format)));
   const x = scaleLinear(0, Math.max(1, n - 1), AXIS_W + 4, width - 8);
   const low = ticks[0] ?? 0;
   const high = ticks.length > 1 ? ticks[ticks.length - 1] : low + 1;
