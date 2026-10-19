@@ -4,7 +4,7 @@ import { useEmbedder } from "@/lib/server/recall/embedder";
 import { TRIGRAM_EMBEDDER } from "@/lib/server/recall/trigram-embedder";
 import type { Embedder, RecallTurn } from "@/lib/server/recall/types";
 import { threadForRun, threads } from "@/lib/server/threads-read";
-import { forgetConversation, forgetConversations, indexTurn, prepareRecallIndex, recallableThreads, searchConversations } from "./recall";
+import { forgetConversation, forgetConversations, forgetOrphanedConversations, indexTurn, prepareRecallIndex, recallableThreads, searchConversations } from "./recall";
 
 const USER = "u_recall_test";
 const OTHER = "u_recall_other";
@@ -54,6 +54,24 @@ describe("conversation recall", () => {
     await indexTurn(turn(USER, "t_gone", "อัตราการลาออกรายเดือน", "ทรงตัว"));
     threads().remove("t_gone");
     expect(await searchConversations(USER, "อัตราการลาออก", { excludeThreadId: "t_now" })).toEqual([]);
+  });
+
+  test("vectors of threads whose record is gone stop taking search slots once cleared, and clearing again finds nothing", async () => {
+    const asked = "หนี้ค้างชำระภาคใต้ตอนนี้เป็นยังไง";
+    for (let index = 0; index < 7; index += 1) await indexTurn(turn(USER, `t_orphan_${index}`, asked, asked));
+    await indexTurn(turn(USER, "t_live", "ลูกหนี้ค้างชำระภาคใต้แยกเอเย่นต์", "สงขลานำ"));
+    for (let index = 0; index < 7; index += 1) threads().remove(`t_orphan_${index}`);
+    expect(await searchConversations(USER, asked)).toEqual([]);
+    expect(await forgetOrphanedConversations()).toBe(7);
+    expect((await searchConversations(USER, asked)).map((found) => found.threadId)).toEqual(["t_live"]);
+    expect(await forgetOrphanedConversations()).toBe(0);
+  });
+
+  test("a turn whose thread was deleted while it was being embedded is not indexed", async () => {
+    const late = turn(USER, "t_deleted", "อัตราการลาออกแต่ละฝ่ายเป็นยังไง", "ฝ่ายขายสูงสุด");
+    threads().remove("t_deleted");
+    await indexTurn(late);
+    expect(await forgetOrphanedConversations()).toBe(0);
   });
 
   test("indexing a turn twice keeps one entry, one thread comes back once, and listing counts its turns", async () => {

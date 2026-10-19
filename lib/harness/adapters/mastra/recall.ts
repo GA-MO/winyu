@@ -52,15 +52,38 @@ async function reembedResized(setup: LibSQLVector, url: string, embedder: Embedd
   return { ids: rows.map((row) => row.id), vectors, metadata: rows.map((row) => row.metadata) };
 }
 
+function storeUrl(): string {
+  return `file:${path.join(DATA_DIR, STORAGE_FILE)}`;
+}
+
+function ownedTitle(threadId: string, userId: string): string | null {
+  const thread = threads().get(threadId);
+  return thread && thread.userId === userId ? thread.title : null;
+}
+
+/** Deletes the vectors of every thread whose record is gone (a crash between deleting a thread and its vectors, an index written while the thread was being deleted, a reseeded data folder), so they stop taking search slots; returns how many threads it cleared, and nothing the second time. */
+async function pruneOrphans(store: LibSQLVector): Promise<number> {
+  const { storedVectors } = await import("./exact-vector-store");
+  const orphans = new Map<string, { resource_id: string; thread_id: string }>();
+  for (const row of await storedVectors({ url: storeUrl(), indexName: INDEX_NAME })) {
+    const parsed = turnMetadataSchema.safeParse(row.metadata);
+    if (!parsed.success || ownedTitle(parsed.data.thread_id, parsed.data.resource_id) !== null) continue;
+    orphans.set(`${parsed.data.resource_id}:${parsed.data.thread_id}`, { resource_id: parsed.data.resource_id, thread_id: parsed.data.thread_id });
+  }
+  for (const filter of orphans.values()) await store.deleteVectors({ indexName: INDEX_NAME, filter });
+  return orphans.size;
+}
+
 async function openStore(embedder: Embedder): Promise<LibSQLVector> {
   const [{ LibSQLVector }, { reopenExact }] = await Promise.all([import("@mastra/libsql"), import("./exact-vector-store")]);
-  const url = `file:${path.join(DATA_DIR, STORAGE_FILE)}`;
+  const url = storeUrl();
   const setup = new LibSQLVector({ id: VECTOR_STORE_ID, url });
   const carried = await reembedResized(setup, url, embedder);
   if (carried) await setup.deleteIndex({ indexName: INDEX_NAME });
   await setup.createIndex({ indexName: INDEX_NAME, dimension: embedder.dimension });
   const store = await reopenExact(setup, { id: VECTOR_STORE_ID, url, indexName: INDEX_NAME });
   if (carried && carried.ids.length > 0) await store.upsert({ indexName: INDEX_NAME, ...carried });
+  await pruneOrphans(store);
   return store;
 }
 
@@ -96,11 +119,6 @@ function queriesOf(json: string): MetricQuery[] {
   }
 }
 
-function ownedTitle(threadId: string, userId: string): string | null {
-  const thread = threads().get(threadId);
-  return thread && thread.userId === userId ? thread.title : null;
-}
-
 function hitsOf(results: readonly { score: number; metadata?: Record<string, unknown> }[]): Hit[] {
   return results.flatMap((result) => {
     const parsed = turnMetadataSchema.safeParse(result.metadata);
@@ -130,10 +148,11 @@ function recalled(hit: Hit, title: string): RecalledConversation {
   };
 }
 
-/** Makes one finished turn findable: its question and its reply each as a vector under the person's id; indexing the same turn again replaces it. */
+/** Makes one finished turn findable: its question and its reply each as a vector under the person's id; indexing the same turn again replaces it, and a thread deleted while its turn was being embedded is left out. */
 export async function indexTurn(turn: RecallTurn): Promise<void> {
   const texts = [turn.question, turn.reply];
   const vectors = await currentEmbedder().passages(texts);
+  if (ownedTitle(turn.threadId, turn.userId) === null) return;
   await (await vectorStore()).upsert({
     indexName: INDEX_NAME,
     vectors,
@@ -158,6 +177,11 @@ export async function searchConversations(userId: string, query: string, options
 /** Takes one conversation out of recall; the thread itself stays in the chat history. */
 export async function forgetConversation(userId: string, threadId: string): Promise<void> {
   await (await vectorStore()).deleteVectors({ indexName: INDEX_NAME, filter: { resource_id: userId, thread_id: threadId } });
+}
+
+/** Takes the conversations of deleted threads out of recall; it also runs each time the index opens. */
+export async function forgetOrphanedConversations(): Promise<number> {
+  return pruneOrphans(await vectorStore());
 }
 
 /** Takes every conversation of the person out of recall. */
