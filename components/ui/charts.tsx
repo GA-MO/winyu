@@ -144,12 +144,18 @@ export function spacedTicks(ticks: readonly AxisTick[]): AxisTick[] {
   return [...kept, last];
 }
 
-/** The bucket labels a line chart writes under its x axis: at most one per `slotPx`, then only those whose text clears its kept neighbours, so the end labels never run into the next one ("สัปดาห์ 37สัปดาห์ 38", AI-331). */
+/** The bucket labels a line chart writes under its x axis: every `step`-th bucket counted back from the latest, with the smallest step whose labels fit (at most one per `slotPx`, each clear of its neighbours), so the steps stay even and the latest bucket is always named ("สัปดาห์ 37 39 … 47", never "… 44, 47"; AI-331, round 12). */
 export function lineAxisLabels(labels: readonly string[], xOf: (index: number) => number, slotPx: number, width: number): Set<number> {
   const n = labels.length;
-  const thinned = [...thinLabels(n, Math.max(2, Math.min(12, Math.floor(width / slotPx))))].sort((left, right) => left - right);
-  const ticks = thinned.map((index): AxisTick => ({ value: index, at: xOf(index), text: labels[index] ?? "", anchor: index === 0 ? "start" : index === n - 1 ? "end" : "middle" }));
-  return new Set(spacedTicks(ticks).map((tick) => tick.value));
+  const maxLabels = Math.max(2, Math.min(12, Math.floor(width / slotPx)));
+  const tickAt = (index: number): AxisTick => ({ value: index, at: xOf(index), text: labels[index] ?? "", anchor: index === 0 ? "start" : index === n - 1 ? "end" : "middle" });
+  for (let step = 1; step < n; step += 1) {
+    const indices = Array.from({ length: Math.floor((n - 1) / step) + 1 }, (_, k) => n - 1 - k * step).reverse();
+    if (indices.length > maxLabels) continue;
+    const ticks = indices.map(tickAt);
+    if (spacedTicks(ticks).length === ticks.length) return new Set(indices);
+  }
+  return new Set(n > 0 ? [n - 1] : []);
 }
 
 function useContainerWidth(fallback = 320) {

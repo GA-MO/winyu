@@ -320,3 +320,11 @@ test("a lead row on top of a line strip keeps its own detail under its name and 
   expect(html).toMatch(/grid-column:1;grid-row:1">(?:(?!grid-row).)*>32\.3 → 26\.8 ล้านบาท<\/span>/);
   expect(html).toMatch(/grid-column:1 \/ -1;grid-row:2"><p>รวม 4 เอเย่นต์ \+16\.1% เทียบช่วงก่อนหน้า<\/p><\/div>/);
 });
+
+test("a line chart's x labels keep one even step counted back from the latest bucket, so the last two are never closer than the rest (round 12)", () => {
+  const labels = Array.from({ length: 12 }, (_, index) => `สัปดาห์ ${36 + index}`);
+  const kept = [...lineAxisLabels(labels, (index) => 60 * index, 56, 700)].sort((left, right) => left - right);
+  expect(kept[kept.length - 1]).toBe(11);
+  expect(new Set(kept.slice(1).map((index, at) => index - kept[at])).size).toBe(1);
+  expect(kept.length).toBeGreaterThanOrEqual(4);
+});
