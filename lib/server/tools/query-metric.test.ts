@@ -354,3 +354,14 @@ test("30 days by brand over the row cap says in the summary and on the card whic
   const card = presentCard({ title: "t", query: result.query, result });
   expect(JSON.stringify(card.footer)).toContain("กราฟแสดงเฉพาะ");
 });
+
+test("two months against target name the worse month apart from the verdict's words ('หนักสุด ต.ค. 69') and keep each month's target line whole (round 12)", async () => {
+  const user = findUser("u_thana");
+  if (!user) throw new Error("no u_thana");
+  const tool = winyuTools().query_metric;
+  const turn = { turnId: null, threadId: null, question: "ยอดขาย ต.ค. กับ พ.ย. ทำได้ตามเป้าไหม", queries: [] };
+  const query = { metric: "net_sales_value", dims: ["month"], filters: {}, range: { from: "2026-10-01", to: "2026-11-30" }, grain: "month", compare: "target", limit: null };
+  const result = (await runWithAccess(accessFor(user), () => runWithTurn(turn, () => tool.execute(tool.inputSchema().parse(query))))) as Extract<MetricResult, { ok: true }>;
+  const card = presentCard({ title: "t", query: result.query, result });
+  expect(card.verdict).toContain("หนักสุด ต.ค. 69");
+});

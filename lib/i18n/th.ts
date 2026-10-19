@@ -8,6 +8,11 @@ const NOT_DONE: Record<string, string> = {
   enroll_course: "ไม่ได้ลงทะเบียนคอร์ส",
 };
 
+/** A name set after a Thai word: an abbreviated month ("ต.ค. 69") or a Latin or numeric name gets a space before it, a Thai name joins as Thai text does. */
+function spacedBefore(name: string): string {
+  return /^([ก-ฮ]{1,2}\.|[A-Za-z0-9])/.test(name) ? ` ${name}` : name;
+}
+
 export const TH = {
   app: { name: "Winyu", tagline: "ผู้ช่วยข้อมูลสำหรับทุกคนในองค์กร" },
   nav: {
@@ -807,10 +812,10 @@ export const TH = {
     aboveCover: (days: number) => `พอขายเกิน ${days} วัน`,
     target: {
       none: (every: string, goal: string) => `${every}ถึง${goal}`,
-      all: (every: string, worst: string, goal: string) => `${every}ต่ำกว่า${goal} หนักสุด${worst}`,
+      all: (every: string, worst: string, goal: string) => `${every}ต่ำกว่า${goal} หนักสุด${spacedBefore(worst)}`,
       oneSinks: (label: string, unit: string, sums: boolean, goal: string) => `${sums ? "ยอดรวม" : "ภาพรวม"}หลุด${goal}เพราะ${label}${unit}เดียว`,
       one: (label: string, unit: string, goal: string) => `${label}${unit}เดียวยังไม่ถึง${goal}`,
-      some: (count: number, unit: string, worst: string, goal: string) => `${count} ${unit}ต่ำกว่า${goal} หนักสุด${worst}`,
+      some: (count: number, unit: string, worst: string, goal: string) => `${count} ${unit}ต่ำกว่า${goal} หนักสุด${spacedBefore(worst)}`,
     },
     points: (value: number) => `${value} จุด`,
     nearHalf: "เกือบครึ่ง",

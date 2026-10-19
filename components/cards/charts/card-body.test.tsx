@@ -308,10 +308,12 @@ test("a line strip's overall detail sits on its own full-width line instead of u
   expect(html).toMatch(/grid-column:1 \/ -1;grid-row:2"><p>ของเป้าทั้งเดือน/);
 });
 
-test("a line strip exception's detail stays one line under its name, the full text kept in the name's tooltip", () => {
+test("a line strip exception's detail wraps under its name instead of being cut ('1,490.1 · เป้า 1,716.6 ล…', round 12), the full text also kept in the name's tooltip", () => {
   const row = { ...ROW, label: "ภาคอีสาน", sub: "30.5 → 25.6 ล้านบาท", measure: -16, text: "-16.0%", tone: "bad" as const, exception: true };
   const html = render({ kind: "strip", strip: { form: "line", baseline: 0, low: -20, high: 5, total: null, overall: null, rows: [row] } });
-  expect(html.match(/<span class="([^"]*)">30\.5 → 25\.6 ล้านบาท<\/span>/)?.[1]).toContain("truncate");
+  const classes = html.match(/<span class="([^"]*)">30\.5 → 25\.6 ล้านบาท<\/span>/)?.[1] ?? "";
+  expect(classes).not.toContain("truncate");
+  expect(classes).toContain("line-clamp-2");
   expect(html).toContain('title="ภาคอีสาน\n30.5 → 25.6 ล้านบาท"');
 });
 

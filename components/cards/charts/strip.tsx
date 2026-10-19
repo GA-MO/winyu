@@ -108,7 +108,7 @@ function LineStrip({ strip }: { strip: Strip }) {
               <span title={detailOf(row)} className={cn("line-clamp-2 break-words text-[13px] leading-snug text-foreground", row.exception ? "font-semibold" : "font-medium")}>{nameOf(row.label)}</span>
               {placeOf(row.label) ? <span className="truncate text-[11px] leading-snug text-muted-foreground">{placeOf(row.label)}</span> : null}
               <RowSecond row={row} />
-              {row.exception && row.sub ? <span className="truncate text-[11px] leading-snug text-muted-foreground tabular-nums">{row.sub}</span> : null}
+              {row.exception ? <RowSub row={row} /> : null}
             </div>
             <div className="relative h-4" style={{ gridColumn: 2, gridRow }}>
               {row.measure !== null ? <Bar strip={strip} value={row.measure} className={row.exception ? cn("h-2.5", TONE_BAR[row.tone]) : "h-1 bg-muted-foreground/30"} /> : null}
