@@ -8,7 +8,7 @@ import { TH } from "@/lib/i18n/th";
 import { LOW_COVER_DAYS } from "@/lib/semantic/metrics";
 import { changeToneOf, formatChange, formatMetricValue, metricLabel } from "@/lib/dashboard/metric-display";
 import { pairedIndexes, presentCard, presentForecast, presentGap, subjectOf, weakestRow, type CardBody, type CardParts, type CardView, type ForecastAnswer, type GapAnswer, type SortBy } from "./present";
-import type { ReadRow, Strip } from "./reading";
+import { spaced, type ReadRow, type Strip } from "./reading";
 import { metricTitle } from "./tool-answers";
 
 const CEO = accessFor(findUser("u_thana")!);
@@ -764,6 +764,19 @@ describe("a breakdown whose level decides", () => {
     if (!below.ok) throw new Error(below.error);
     expect(below.headline.underLine).toEqual(result.headline.underLine ?? null);
     expect(below.headline.underLine?.of).toBeGreaterThan(below.headline.underLine?.count ?? 0);
+  });
+
+  test("asked for the groups under a threshold of its own, the card counts and names that threshold, agreeing with the rows it draws (R7)", () => {
+    const query: MetricQuery = { metric: "target_attainment", dims: ["agent"], filters: { region: ["northeast"] }, range: MONTH_TO_DATE, grain: "month", compare: "none", limit: null, where: { op: "below", value: 90 } };
+    const result = runMetric(query, CEO);
+    if (!result.ok) throw new Error(result.error);
+    const card = presentCard({ title: "t", query, result });
+    const rows = stripOf(card.body).rows;
+    const of = result.headline.underLine?.of ?? 0;
+    expect(result.headline.underLine?.count).not.toBe(rows.length);
+    rows.forEach((row) => expect(row.measure ?? Infinity).toBeLessThan(90));
+    expect(card.verdict).toBe(spaced(TH.read.countOf(rows.length, of, "เอเย่นต์", TH.read.underShareOfTarget("90%"))));
+    expect(card.hero?.value).toBe(TH.dash.countOf(rows.length, of, "เอเย่นต์"));
   });
 
   test("attainment by region says which regions are under target, the overall level on top", () => {

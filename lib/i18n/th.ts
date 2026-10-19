@@ -794,6 +794,8 @@ export const TH = {
     behindPace: (label: string, gap: string) => `${label}ช้ากว่าเป้าตามเวลา ${gap}`,
     offPace: (label: string) => `${label}ช้ากว่าเป้าตามเวลา`,
     aboveTarget: "เกินเป้า",
+    underShareOfTarget: (share: string) => `ต่ำกว่า ${share} ของเป้า`,
+    reachShareOfTarget: (share: string) => `ถึง ${share} ของเป้า`,
     aboveCover: (days: number) => `พอขายเกิน ${days} วัน`,
     target: {
       none: (every: string, goal: string) => `${every}ถึง${goal}`,

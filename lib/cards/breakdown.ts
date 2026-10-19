@@ -1,4 +1,5 @@
 import type { MetricId, MetricQuery, MetricResult, MetricRow } from "@/lib/contracts";
+import { formatPercent } from "@/lib/i18n/format";
 import { TH } from "@/lib/i18n/th";
 import { DECIDING_LINES, LOW_COVER_DAYS } from "@/lib/semantic/metrics";
 import { changeDirectionOf, changeToneOf, directionOf, formatChange, formatDelta, formatMetricValue, metricFormat, toneOf, type Direction, type Tone } from "@/lib/dashboard/metric-display";
@@ -227,7 +228,8 @@ function lineReading(input: BreakdownInput, line: LevelLine): Breakdown {
   const overallUnder = overallMeasure !== null && overallMeasure < line.at;
   const overallTone: Tone = overallUnder ? "bad" : "neutral";
   const overallText = overTarget && overallMeasure !== null ? percentText(overallMeasure) : result.headline.value;
-  const count = result.headline.underLine?.count ?? under.length;
+  const engineCount = result.headline.underLine?.line === line.at ? result.headline.underLine.count : null;
+  const count = engineCount ?? under.length;
   const of = result.headline.underLine?.of ?? scored.length;
   const format = overTarget ? percentText : (value: number) => formatMetricValue(query.metric, value);
   const fold = foldLine(input.unit, () => line.aboveWords, measuresOf, format);
@@ -493,8 +495,17 @@ function readByBars(input: BreakdownInput): Breakdown {
   if (input.bars === "change") return changeReading(input);
   if (input.bars === "board") return boardReading(input);
   if (input.bars === "reference") return referenceReading(input);
+  return lineReading(input, levelLineOf(input));
+}
+
+/** The line a level breakdown is read against: the threshold the question set when it asked for the rows under a value other than the metric's own line ("ต่ำกว่า 90% ของเป้า"), else the metric's deciding line. */
+function levelLineOf(input: BreakdownInput): LevelLine {
   const line = input.bars === "target" ? TARGET_LINE : (LEVEL_LINES[input.query.metric] ?? TARGET_LINE);
-  return lineReading(input, line);
+  const where = input.query.where;
+  if (!input.threshold || !where || where.op !== "below" || where.value === line.at) return line;
+  if (line.line.kind === "cover") return { at: where.value, line: { kind: "cover", days: where.value }, underLabel: TH.dash.underCover(where.value), aboveWords: TH.read.aboveCover(where.value) };
+  const share = formatPercent(where.value);
+  return { at: where.value, line: line.line, underLabel: TH.read.underShareOfTarget(share), aboveWords: TH.read.reachShareOfTarget(share) };
 }
 
 /** A row of a month still running against the whole month's target ("71.0 ล้านบาท · เป้าทั้งเดือน 83.2 ล้านบาท"): the target to date the engine compared it with, spread over the days that passed. */
