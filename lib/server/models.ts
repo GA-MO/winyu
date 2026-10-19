@@ -78,8 +78,13 @@ function stalledFlex(): LanguageModelMiddleware[] {
   return process.env[STALL_FLEX_ENV] === "1" && process.env.NODE_ENV !== PRODUCTION ? [STALLED] : [];
 }
 
-function metered(modelId: string, model: Exclude<LanguageModel, string>, inner: LanguageModelMiddleware[] = [], owner?: CallOwner): MeteredModel {
-  return wrapLanguageModel({ model: model as WrappableModel, middleware: [traceMiddleware(), meterMiddleware(modelId, owner), ...inner] });
+function metered(modelId: string, model: Exclude<LanguageModel, string>, inner: LanguageModelMiddleware[] = []): MeteredModel {
+  return wrapLanguageModel({ model: model as WrappableModel, middleware: [traceMiddleware(), meterMiddleware(modelId), ...inner] });
+}
+
+/** Metered for `owner` and kept out of the run trace: a title is named after the run's last step and is not one of its steps. */
+function meteredFor(owner: CallOwner, modelId: string, model: Exclude<LanguageModel, string>, inner: LanguageModelMiddleware[]): MeteredModel {
+  return wrapLanguageModel({ model: model as WrappableModel, middleware: [meterMiddleware(modelId, owner), ...inner] });
 }
 
 /** Usage in every reply, and where OpenRouter sends the call (null lets it choose); fallbacks stay allowed. */
@@ -104,7 +109,7 @@ export function agentModel(): AgentModel | null {
     chat: () => metered(id, client(id, chatSettings), stalledFlex()),
     chatFallback: () => metered(id, client(id, fallbackSettings)),
     model: () => metered(id, client(id, settings), [deadlineMiddleware(BACKGROUND_CALL_MS)]),
-    title: (owner) => metered(id, client(id, titleSettings), [deadlineMiddleware(TITLE_CALL_MS)], owner),
+    title: (owner) => meteredFor(owner, id, client(id, titleSettings), [deadlineMiddleware(TITLE_CALL_MS)]),
   };
 }
 
