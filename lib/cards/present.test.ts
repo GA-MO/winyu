@@ -799,7 +799,7 @@ describe("a breakdown whose level decides", () => {
     const of = result.headline.underLine?.of ?? 0;
     expect(result.headline.underLine?.count).not.toBe(rows.length);
     rows.forEach((row) => expect(row.measure ?? Infinity).toBeLessThan(90));
-    expect(card.verdict).toBe(spaced(TH.read.countOf(rows.length, of, "เอเย่นต์", TH.read.underShareOfTarget("90%"))));
+    expect(card.verdict).toBe(spaced(TH.read.countOf(rows.length, of, "เอเย่นต์", TH.read.underShareOfTarget("90.0%"))));
     expect(card.hero?.value).toBe(TH.dash.countOf(rows.length, of, "เอเย่นต์"));
   });
 

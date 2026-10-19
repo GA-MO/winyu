@@ -1,5 +1,4 @@
 import type { MetricId, MetricQuery, MetricResult, MetricRow } from "@/lib/contracts";
-import { formatPercent } from "@/lib/i18n/format";
 import { TH } from "@/lib/i18n/th";
 import { DECIDING_LINES, LOW_COVER_DAYS } from "@/lib/semantic/metrics";
 import { changeDirectionOf, changeToneOf, directionOf, formatChange, formatDelta, formatMetricValue, metricFormat, toneOf, type Direction, type Tone } from "@/lib/dashboard/metric-display";
@@ -520,13 +519,13 @@ function readByBars(input: BreakdownInput): Breakdown {
   return lineReading(input, levelLineOf(input));
 }
 
-/** The line a level breakdown is read against: the threshold the question set when it asked for the rows under a value other than the metric's own line ("ต่ำกว่า 90% ของเป้า"), else the metric's deciding line. */
+/** The line a level breakdown is read against: the threshold the question set when it asked for the rows under a value other than the metric's own line ("ต่ำกว่า 90.0% ของเป้า", one decimal like every percent on a card, AI-254), else the metric's deciding line. */
 function levelLineOf(input: BreakdownInput): LevelLine {
   const line = input.bars === "target" ? TARGET_LINE : (LEVEL_LINES[input.query.metric] ?? TARGET_LINE);
   const where = input.query.where;
   if (!input.threshold || !where || where.op !== "below" || where.value === line.at) return line;
   if (line.line.kind === "cover") return { at: where.value, line: { kind: "cover", days: where.value }, underLabel: TH.dash.underCover(where.value), aboveWords: TH.read.aboveCover(where.value) };
-  const share = formatPercent(where.value);
+  const share = percentText(where.value);
   return { at: where.value, line: line.line, underLabel: TH.read.underShareOfTarget(share), aboveWords: TH.read.reachShareOfTarget(share) };
 }
 
