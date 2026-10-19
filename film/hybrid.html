@@ -187,6 +187,16 @@ svg.i{width:28px;height:28px;fill:none;stroke:currentColor;stroke-width:2;stroke
 .lock6{position:absolute;left:30px;top:70px;height:62px;gap:12px;color:#3730a3;opacity:0}
 .lock6 .lk{width:56px;height:56px;border-radius:50%;background:#fff;box-shadow:0 6px 18px -6px rgba(30,27,75,.35);display:flex;align-items:center;justify-content:center}
 
+.t34{font-size:34px;line-height:1.35;font-weight:500}
+.t40{font-size:40px;line-height:1.3;font-weight:600}
+.t56{font-size:56px;line-height:1.2;font-weight:700;letter-spacing:-.01em}
+.t96{font-size:96px;line-height:1.05;font-weight:700;letter-spacing:-.02em}
+.qpill{display:flex;flex-direction:column;align-items:flex-start;gap:6px}
+.qpill .qp{display:inline-flex;align-items:center;gap:14px;height:76px;padding:0 30px 0 22px;border-radius:38px;border:2px solid #e2e4ee;background:#fff;color:var(--s-ink);white-space:nowrap;box-shadow:0 10px 24px -16px rgba(30,27,75,.3)}
+.qpill .qp svg.i{width:30px;height:30px;color:#6366f1}
+.qpill .why{display:inline-flex;align-items:center;gap:8px;padding-left:26px;color:var(--s-muted);white-space:nowrap}
+.qpill.mem .qp{border-color:transparent;background:linear-gradient(#fff,#fff) padding-box,var(--grad) border-box}
+.qpill.mem .why{color:#6d28d9;font-weight:600}
 #transport{position:absolute;left:0;right:0;bottom:0;height:64px;display:flex;align-items:center;gap:16px;padding:0 24px;font:500 14px/1 'Anuphan',system-ui,sans-serif;color:#4a4566}
 #transport button{width:40px;height:40px;border-radius:50%;border:0;background:#1f1b3a;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center}
 #transport input{flex:1;accent-color:#4f46e5}
@@ -217,7 +227,7 @@ svg.i{width:28px;height:28px;fill:none;stroke:currentColor;stroke-width:2;stroke
   <div id="labels"></div>
   <div id="ui">
     <div id="qbox" class="ui card"><div class="mini"><svg viewBox="0 0 44 44"><path d="M6 14 L13 31 L20 19 L27 29 L37 9" stroke="#fff" stroke-width="3.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="37" cy="9" r="3.2" fill="#fff"/></svg></div><span class="t44" id="qtext"></span></div>
-    <div id="say1" class="ui say t32">จำไว้ว่าผมดูแลภาคอีสานเป็นพิเศษ</div>
+    <div id="say1" class="ui say t40">จำไว้ว่าผมดูแลภาคอีสานเป็นพิเศษ</div>
     <div id="memc" class="ui card memc"><span class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-6-4-6 4z"/></svg></span><span class="t44" id="memtext"></span></div>
     <div id="daychip" class="ui"><span class="pill t44"><svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="#4f46e5" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>วันถัดมา</span></div>
     <div id="env" class="ui"><svg viewBox="0 0 150 104" width="150" height="104"><rect x="2" y="2" width="146" height="100" rx="16" fill="#fff" stroke="#c7cdfd" stroke-width="3"/><path id="envflap" d="M6 8 L75 58 L144 8" fill="#ede9fe" stroke="#7c3aed" stroke-width="4" stroke-linejoin="round"/></svg></div>
@@ -255,24 +265,27 @@ const FACTS = await (await fetch('facts.json')).json();
 
 const T = {
   sysAt: (i) => 0.55 + i * 0.1, fold: 2.3, qIn: 2.85, q: [3.1, 0.8], ask: 4.5,
-  sun: 5.6, isan: 7.75, shops: 8.6, morningOut: 14.3,
-  win1: [8.4, 14.9], push1: [9.2, 10.2], card1: 10.25, pull1: [13.4, 14.3],
-  memIn: 14.75, say1: 15.0, memc: 15.95, memDrop: 17.6, day: 18.15,
-  win2: [17.4, 39.2], push2: [19.0, 20.0], ask2: 20.15, card2: 20.4, why: 21.3,
-  wall: 23.35, ask3: 23.5, panes: 23.75,
-  dyn: 27.35, chips: [27.55, 27.95, 28.35],
-  fwd: 32.35, fwdClick: 33.3, pop: 33.45, sendClick: 34.2, sent: 34.35, pull2: [35.1, 36.0],
-  envFly: [36.05, 1.0], bell: 37.1, mini: 37.55, fwdOut: 39.0,
-  leaveIn: 39.4, phone: [39.7, 50.3], push3: [40.4, 41.4], leaveQ: [41.6, 0.55], bal: 42.55, scroll: 45.15,
-  leave: [45.25, 0.85], conf: 46.45, press: 47.5, done: 47.8, pull3: [48.7, 49.6], approved: 49.95, leaveOut: 50.4,
-  permIn: 50.75, split: [51.4, 59.3], push4: [52.3, 53.3], nums: 53.4, flip: 55.0, lock: 55.25, pull4: [57.8, 58.7], permOut: 59.0,
-  connIn: 59.35, plug: [60.4, 0.45], win3: [60.1, 68.3], push5: [61.3, 62.2], connClick: 62.7, connected: 63.5, ask5: 63.95, assets: 64.2,
-  pull5: [66.45, 67.35], logo: 67.6, endOut: 70.4, hlRein: 70.8,
+  sun: 5.6, shops: 6.6, alert: 7.2, morningOut: 13.2,
+  win1: [7.4, 13.7], push1: 8.2, card1: 9.4, pull1: 12.3,
+  memIn: 14.45, say1: 14.7, memc: 15.65, memDrop: 17.25, day: 17.75,
+  win2: [17.15, 41.65], push2: 18.65, pills: 19.85, memPill: 20.65, tap: 22.25, card2: 22.55, pull2: 25.25,
+  wall: 26.75, push3: 27.35, ask3: 28.65, panes: 28.85,
+  dyn: 31.85, chips: [32.05, 32.45, 32.85],
+  fwd: 36.65, fwdClick: 37.55, pop: 37.7, sendClick: 38.45, sent: 38.6, pull3: 39.25,
+  envFly: [40.45, 1.0], bell: 41.5, mini: 41.95, fwdOut: 43.25,
+  leaveIn: 43.65, phone: [43.95, 54.75], push4: 44.65, leaveQ: [45.95, 0.55], bal: 46.85, scroll: 49.35,
+  leave: [49.45, 0.85], conf: 50.65, press: 51.65, done: 51.95, pull4: 52.85, approved: 54.15, leaveOut: 54.65,
+  permIn: 55.05, split: [55.65, 63.65], push5: 56.55, nums: 57.75, flip: 59.35, lock: 59.6, pull5: 62.15, permOut: 63.35,
+  connIn: 63.7, plug: [64.75, 0.45], win3: [64.45, 71.6], push6: 65.4, connClick: 66.85, connected: 67.55, assets: 67.95,
+  pull6: 70.1, logo: 71.5, endOut: 74.55, hlRein: 74.95,
 };
-const LENGTH = Math.round(71.8 * 30) / 30;
+const MOVES = ['push1', 'pull1', 'push2', 'pull2', 'push3', 'pull3', 'push4', 'pull4', 'push5', 'pull5', 'push6', 'pull6'];
+const MOVE_BEATS = 2;
+const LENGTH = Math.round(75.95 * 30) / 30;
 const GRID = Sound.grid({ tempo: { on: T.memc } }, LENGTH);
+for (const key of MOVES) { const at = GRID.snap(T[key]); T[key] = [at, at + MOVE_BEATS * GRID.beat]; }
 T.logo = GRID.snap(T.logo, 0.25);
-const HLS = [['hl0', -1, T.ask + 0.7], ['hl1', T.sun + 0.15, T.pull1[1] - 0.25], ['hl2', T.memIn - 0.4, T.wall - 0.35], ['hlA', T.wall, T.dyn - 0.35], ['hlB', T.dyn, T.fwd - 0.35], ['hl3', T.fwd, T.leaveIn - 0.4], ['hl4', T.leaveIn - 0.05, T.permIn - 0.4], ['hl5', T.permIn, T.connIn - 0.4], ['hl6', T.connIn, T.pull5[1]]].map(([id, a, b]) => [id, a < 0 ? a : GRID.snap(a, 2), b]);
+const HLS = [['hl0', -1, T.ask + 0.7], ['hl1', T.sun + 0.15, T.pull1[1] - 0.25], ['hl2', T.memIn - 0.4, T.wall - 0.35], ['hlA', T.wall, T.dyn - 0.35], ['hlB', T.dyn, T.fwd - 0.35], ['hl3', T.fwd, T.leaveIn - 0.4], ['hl4', T.leaveIn - 0.05, T.permIn - 0.4], ['hl5', T.permIn, T.connIn - 0.4], ['hl6', T.connIn, T.pull6[1]]].map(([id, a, b]) => [id, a < 0 ? a : GRID.snap(a, 2), b]);
 const UNIT = 72;
 const FIG = 1.35;
 const C30 = Math.cos(Math.PI / 6);
@@ -292,16 +305,18 @@ const typedCount = (t, [a, d], G) => Math.round(k(t, a, d, LIN) * G.length);
 const $ = id => document.getElementById(id);
 let RT = 0;
 
-const SPOT = FACTS.director.rows.find(r => r.label === FACTS.spotlight);
-const amount = v => parseFloat(v.replace(/,/g, ''));
-const pct = d => `${d < 0 ? '−' : '+'}${Math.abs(d).toFixed(1)}%`;
 const dayMonth = d => d.replace(/\s\d{4}$/, '');
-const MAX_ROW = Math.max(...FACTS.director.rows.map(r => amount(r.value)));
 const Q = graphemes('ภาคไหนยอดลดมากที่สุด');
 const LEAVE_Q = graphemes('เหลือวันลากี่วัน');
 const LEAVE = graphemes(`ขอลาพักร้อน ${dayMonth(FACTS.leave.from)} – ${dayMonth(FACTS.leave.to)}`);
-const TEAM_SHOWN = 4;
-const CONNECT_STEPS = ['เชื่อมต่อ', 'เลือกเครื่องมือ', 'บทบาท', 'ขอบเขตข้อมูล', 'ตรวจและทดสอบ'];
+const ANNUAL = FACTS.leaveBalance[0];
+const TEAM_SHOWN = 3;
+const CREDIT = FACTS.drops[0].hypothesis.match(/น่าจะติดปัญหา\S+/)[0];
+const CHIPS = [{ label: `แนวโน้ม${FACTS.spotlight}`, reason: `เพราะคุณสนใจ${FACTS.spotlight}` }, ...FACTS.chips];
+const SHARE_COLORS = ['#4f46e5', '#a78bfa', '#10b981', '#f59e0b'];
+const SEVERITY_P1 = 'ต้องรีบดู';
+const DENIED = 'นอกขอบเขตข้อมูล';
+const short = role => role.split(' ')[0];
 
 const M = {
   stone: { t: '#ffffff', l: '#f1ebe3', r: '#e4dccf' },
@@ -482,98 +497,85 @@ const ICON = {
 const ASSET_ICON = { 'โน้ตบุ๊ก': ICON.laptop, 'โทรศัพท์': ICON.phone };
 const CURSOR = '<svg viewBox="0 0 28 28"><path d="M7 4 L7 23 L11.6 18.6 L14.8 25.4 L18 24 L14.9 17.3 L21.2 17.1 Z" fill="#111827" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/></svg>';
 const logoBox = (size, inner) => `<span class="logo" style="width:${size}px;height:${size}px;border-radius:${Math.round(size * 0.3)}px"><svg viewBox="0 0 44 44" style="width:${inner}px;height:${inner}px">${LOGO}</svg></span>`;
-const who = (role, cls = '') => `<div class="who t24 b5 ${cls}"><span class="av">${ICON.user}</span>${role}</div>`;
-const bar = (value, hot) => `<div class="track"><div class="fill${hot ? ' hot' : ''}" style="width:${(amount(value) / MAX_ROW * 100).toFixed(1)}%"></div></div>`;
+
+function donut(rows, r = 120, w = 44) {
+  let at = -90, s = '';
+  rows.forEach((row, i) => {
+    const sweep = row.share / 100 * 360, a0 = at * Math.PI / 180, a1 = (at + sweep - 0.8) * Math.PI / 180;
+    s += `<path d="M ${f1(r * Math.cos(a0))} ${f1(r * Math.sin(a0))} A ${r} ${r} 0 ${sweep > 180 ? 1 : 0} 1 ${f1(r * Math.cos(a1))} ${f1(r * Math.sin(a1))}" fill="none" stroke="${SHARE_COLORS[i % SHARE_COLORS.length]}" stroke-width="${w}"/>`;
+    at += sweep;
+  });
+  return `<svg width="${2 * r + w}" height="${2 * r + w}" viewBox="${-r - w / 2} ${-r - w / 2} ${2 * r + w} ${2 * r + w}">${s}</svg>`;
+}
 
 function buildWindow() {
-  const rows3 = FACTS.director.rows.slice(0, 3);
-  const regionRow = (r) => {
-    const hot = r.label === FACTS.spotlight;
-    const why = hot ? `<span class="sc-pill t24" id="w2why" style="height:40px;gap:6px;padding:0 14px 0 10px;background:var(--grad);color:#fff">${ICON.spark}เพราะคุณสนใจ${FACTS.spotlight}</span>` : '';
-    return `<div class="piece" style="height:62px;margin-top:14px">${hot ? '<div class="ab" id="w2tint" style="left:-14px;right:-14px;top:-6px;bottom:-4px;border-radius:16px;background:#f5f3ff;box-shadow:inset 0 0 0 1.5px #ddd6fe"></div>' : ''}<div style="position:relative"><div class="sc-row" style="height:44px"><span class="t30${hot ? ' b6' : ''}">${r.label}</span>${why}<span style="flex:1"></span><span class="t30 b6">${r.value}</span><span style="width:124px;display:flex;justify-content:flex-end"><span class="sc-pill pred t24">${pct(r.delta)}</span></span></div>${bar(r.value, hot)}</div></div>`;
-  };
-  const drows = FACTS.director.rows.map((r, i) => `<div class="drow${r.label === FACTS.spotlight ? ' hot' : ''}" id="dr${i}"><span class="lb t24">${r.label}</span><span class="tk"><span class="fl" style="width:${(amount(r.value) / MAX_ROW * 100).toFixed(1)}%"></span></span><span class="vl t24">${r.value}</span></div>`).join('');
-  const crows = FACTS.director.rows.map((r) => `<div class="crow${r.label === FACTS.spotlight ? ' hot' : ''}"><div class="tp"><span class="lb t24">${r.label}</span><span class="t24 b6">${amount(r.value).toFixed(1)}</span></div><div class="tk"><div class="fl" style="width:${(amount(r.value) / MAX_ROW * 100).toFixed(1)}%"></div></div></div>`).join('');
-  const team = FACTS.team.slice(0, TEAM_SHOWN).map((m) => `<div class="prow"><img src="${m.photo}" alt=""><div class="tx"><div class="t24 b6">${m.name}</div><div class="t24" style="color:var(--s-muted)">${m.title}</div></div></div>`).join('');
   const weeks = FACTS.trend.weeks;
-  const spotUnit = FACTS.director.total.replace(/^[\d.,]+\s*/, '');
+  const pill = (c, i) => `<div class="qpill ab${i ? '' : ' mem'}" id="qp${i}" style="left:120px;top:${70 + i * 170}px"><span class="qp t40">${i ? ICON.hist : ICON.spark}${c.label}</span><span class="why t34">${c.reason}</span></div>`;
+  const maxCover = Math.max(...FACTS.cover.rows.map(r => r.days));
+  const team = FACTS.team.slice(0, TEAM_SHOWN).map((m) => `<div class="prow" style="height:96px"><img src="${m.photo}" alt="" style="width:72px;height:72px"><div class="t34 b6" style="white-space:nowrap">${m.name.replace(/^คุณ/, '')}</div></div>`).join('');
   $('win').innerHTML = `
-    <div class="tb"><div class="lights"><i></i><i></i><i></i></div><div class="url t24">${ICON.lockS.replace('class="i"', 'class="i" style="width:18px;height:18px"')}winyu.app</div><div id="wwho"></div></div>
+    <div class="tb"><div class="lights"><i></i><i></i><i></i></div></div>
     <div class="side">${logoBox(44, 32).replace('class="logo"', 'class="logo" style="position:absolute;left:20px;top:18px"')}<div class="sact" id="sact"></div>
       ${[ICON.menu, ICON.chat, ICON.grid, ICON.inbox, ICON.fwd, ICON.search, ICON.hist].map((ic, i) => `<div class="sbtn" style="top:${86 + i * 60}px">${ic}</div>`).join('')}</div>
     <div class="chat">
-      <div class="apphead"><span>${ICON.bell.replace('class="i"', 'class="i" style="width:22px;height:22px"')}</span><span class="av">${ICON.user.replace('class="i"', 'class="i" style="width:22px;height:22px"')}</span></div>
       <div class="layer" id="L1">
-        <div class="sc-bubble t30" id="w1q" style="right:212px;top:26px">ภาคไหนยอดลดมากที่สุด</div>
-        <div class="sc-card" style="left:212px;top:108px;width:960px;padding:30px 36px 32px">
-          <div class="sc-row t24 piece" id="w1a" style="gap:10px;color:var(--s-muted)"><span style="width:40px;height:40px;border-radius:12px;background:var(--s-amberbg);color:#d97706;display:flex;align-items:center;justify-content:center">${ICON.sun.replace('class="i"', 'class="i" style="width:24px;height:24px"')}</span>ตรวจไว้แล้วตั้งแต่เช้า</div>
-          <div class="sc-row piece" id="w1b" style="margin-top:14px;gap:20px"><span class="t48">${FACTS.spotlight}</span><span class="sc-pill pred t30" style="height:52px;padding:0 18px;border-radius:26px">${ICON.down}${Math.abs(SPOT.delta).toFixed(1)}%</span><span class="t30" style="color:var(--s-muted)">ยอดขายลดมากที่สุด</span></div>
-          <div style="margin-top:18px;background:var(--s-soft);border-radius:22px;padding:8px 20px">
-            ${FACTS.drops.map((d, i) => `${i ? '<div style="height:1px;background:#e9ebf2"></div>' : ''}<div class="sc-row piece" id="w1r${i}" style="height:72px"><span style="width:48px;height:48px;border-radius:14px;background:#fff;color:var(--s-indigo);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(30,27,75,.08)">${ICON.store}</span><span class="t30 b5" style="flex:1">${d.agent}</span><span class="t24" style="color:var(--s-muted)">แทบไม่สั่งซื้อ ตั้งแต่ ${dayMonth(d.since)}</span></div>`).join('')}
-          </div>
-          <div class="piece" id="w1c" style="margin-top:20px"><span class="sc-pill t24" style="background:var(--s-amberbg);color:var(--s-amber);height:48px;padding:0 20px;border-radius:24px;gap:10px">${ICON.spark}น่าจะติดปัญหาเครดิต</span></div>
+        <div class="sc-card" style="left:150px;top:70px;width:1090px;padding:36px 44px 40px">
+          <div class="sc-row piece" id="w1a" style="gap:16px"><span style="width:60px;height:60px;border-radius:18px;background:var(--s-amberbg);color:#d97706;display:flex;align-items:center;justify-content:center">${ICON.sun.replace('class="i"', 'class="i" style="width:36px;height:36px"')}</span><span class="sc-pill t34" style="height:56px;padding:0 24px;border-radius:28px;background:var(--s-redbg);color:var(--s-red)">${SEVERITY_P1}</span></div>
+          ${FACTS.drops.map((d, i) => `<div class="sc-row piece" id="w1r${i}" style="height:110px;gap:22px;${i ? 'border-top:1.5px solid #eef0f5' : 'margin-top:12px'}"><span style="width:68px;height:68px;border-radius:20px;background:var(--s-ind50);color:var(--s-indigo);display:flex;align-items:center;justify-content:center">${ICON.store.replace('class="i"', 'class="i" style="width:36px;height:36px"')}</span><span class="t48" style="flex:1;white-space:nowrap">${d.agent}</span><span class="t34" style="color:var(--s-muted);white-space:nowrap">ตั้งแต่ ${dayMonth(d.since)}</span></div>`).join('')}
+          <div class="piece" id="w1c" style="margin-top:18px"><span class="sc-pill t40" style="background:var(--s-amberbg);color:var(--s-amber);height:68px;padding:0 30px;border-radius:34px;gap:12px">${ICON.spark.replace('class="i"', 'class="i" style="width:30px;height:30px"')}${CREDIT}</span></div>
         </div>
       </div>
-      <div class="layer" id="L2">
-        <div class="sc-bubble t30" id="w2q" style="right:212px;top:26px">ยอดขายเดือนนี้เป็นยังไง</div>
-        <div class="sc-card" id="w2card" style="left:212px;top:100px;width:960px;padding:26px 36px 24px">
-          <div class="t24 piece eyebrow" id="w2a">มูลค่าขายเข้า · รายภาค</div>
-          <div class="sc-row piece" id="w2b" style="height:66px;margin-top:4px;gap:18px"><span class="t48">${FACTS.director.total}</span><span class="sc-pill pred t24">${ICON.down}${Math.abs(FACTS.director.delta).toFixed(1)}%</span></div>
-          <div id="w2rows">${rows3.map(regionRow).join('')}</div>
-          <div class="foot t24 piece" id="w2f"><span class="sc-row" style="gap:8px">${FACTS.director.period} · ${FACTS.director.source}${ICON.okc}</span><span class="fwd t24 b5" id="fwdBtn">${ICON.fwd}ส่งต่อ</span></div>
-        </div>
-        <div class="sc-card" id="pop" style="left:700px;top:150px;width:460px;padding:24px;border-radius:24px;box-shadow:0 40px 80px -24px rgba(30,27,75,.38),0 0 0 1px rgba(15,23,42,.04);transform-origin:100% 100%;opacity:0">
-          <div class="t24" style="color:var(--s-muted)">ส่งต่อให้</div>
-          <div class="sc-row" style="margin-top:10px;height:60px;gap:14px"><span style="width:52px;height:52px;border-radius:50%;background:var(--s-ind50);color:var(--s-indigo);display:flex;align-items:center;justify-content:center">${ICON.user}</span><span class="t30 b6">${FACTS.ceo.role}</span></div>
-          <div style="position:relative;margin-top:20px;height:56px">
-            <div class="sc-btn bgrad t24 ab" id="popSend" style="left:0;top:0;width:100%;height:56px;border-radius:28px">${ICON.send}ส่ง</div>
-            <div class="sc-btn t24 ab" id="popDone" style="left:0;top:0;width:100%;height:56px;border-radius:28px;background:var(--s-greenbg);color:var(--s-green);opacity:0">${ICON.ok}ส่งแล้ว</div>
-          </div>
-        </div>
-      </div>
+      <div class="layer" id="L2">${CHIPS.map(pill).join('')}</div>
       <div class="layer" id="L3">
-        <div class="sc-bubble t30" id="w3q" style="right:150px;top:24px">ยอดแต่ละภาคเป็นยังไง</div>
-        <div class="dpane" id="w3a" style="left:40px">
-          <div class="dlab t24 b6" style="background:#f1f2f6;color:var(--s-muted)"><span style="width:32px;height:32px;border-radius:10px;background:#cbd2de;color:#fff;display:flex;align-items:center;justify-content:center">${ICON.bot}</span>แชตบอททั่วไป</div>
-          <div class="ab" style="left:28px;right:28px;top:96px">${[100, 96, 99, 92, 97, 94, 100, 95, 98, 90, 72].map((w, i) => `<div class="wline" id="ww${i}" style="width:${w}%"></div>`).join('')}</div>
-        </div>
-        <div class="dpane" id="w3b" style="left:724px">
-          <div class="dlab t24 b6" style="background:var(--s-ind50);color:#3730a3">${logoBox(32, 24)}Winyu</div>
-          <div class="ab" style="left:28px;right:28px;top:96px">${drows}</div>
+        <div class="sc-card" style="left:150px;top:60px;width:1090px;height:520px;padding:34px 44px">
+          <div class="t34 b6" style="color:var(--s-muted)">${FACTS.trend.metric}</div>
+          <div style="position:relative;margin-top:10px;width:1000px;height:400px"><svg id="trend" width="1000" height="400" viewBox="0 0 1000 400" style="position:absolute;left:0;top:0;overflow:visible"></svg>
+          <div class="ab t48" id="trA" style="color:#4338ca;white-space:nowrap">${weeks[0].label}</div><div class="ab t48" id="trB" style="color:#e11d48;white-space:nowrap">${weeks[weeks.length - 1].label}</div></div>
         </div>
       </div>
       <div class="layer" id="L4">
-        <div class="qchip t24" id="w4q0" style="left:40px">ยอดแต่ละภาค</div>
-        <div class="qchip t24" id="w4q1" style="left:477px">แนวโน้ม${FACTS.spotlight}</div>
-        <div class="qchip t24" id="w4q2" style="left:914px">ทีมขาย${FACTS.spotlight.replace(/^ภาค/, '')}มีใครบ้าง</div>
-        <div class="rcard" id="w4c0" style="left:40px"><div class="t24 b6" style="height:40px">มูลค่าขายเข้า · ${spotUnit}</div><div style="margin-top:8px">${crows}</div></div>
-        <div class="rcard" id="w4c1" style="left:477px"><div class="sc-row" style="justify-content:space-between;height:40px"><span class="t24 b6">${FACTS.trend.metric} ${FACTS.spotlight}</span><span class="t24" style="color:var(--s-muted)">${weeks.length} สัปดาห์</span></div>
-          <div style="position:relative;margin-top:14px;width:360px;height:380px"><svg id="trend" width="360" height="380" viewBox="0 0 360 380" style="position:absolute;left:0;top:0;overflow:visible"></svg>
-          <div class="ab t24 b6" id="trA" style="color:#4338ca;white-space:nowrap">${weeks[0].label}</div><div class="ab t24 b6" id="trB" style="color:#e11d48;white-space:nowrap">${weeks[weeks.length - 1].label}</div></div></div>
-        <div class="rcard" id="w4c2" style="left:914px"><div class="sc-row" style="justify-content:space-between;height:40px"><span class="t24 b6">ทีมขาย${FACTS.spotlight.replace(/^ภาค/, '')}</span><span class="sc-pill t24" style="background:var(--s-ind50);color:#3730a3;height:36px">${FACTS.team.length} คน</span></div><div style="margin-top:6px">${team}</div><div class="t24" style="color:var(--s-muted);margin-top:4px">+ อีก ${FACTS.team.length - TEAM_SHOWN} คน</div></div>
+        <div class="sc-bubble t40" id="w3q" style="right:150px;top:24px">ขายผ่านช่องทางไหน</div>
+        <div class="dpane" id="w3a" style="left:40px;width:600px;height:480px;top:110px">
+          <div class="dlab t34 b6" style="height:56px;background:#f1f2f6;color:var(--s-muted)"><span style="width:40px;height:40px;border-radius:12px;background:#cbd2de;color:#fff;display:flex;align-items:center;justify-content:center">${ICON.bot}</span>แชตบอททั่วไป</div>
+          <div class="ab" style="left:28px;right:28px;top:110px">${[100, 96, 99, 92, 97, 94, 100, 95, 98, 90, 72].map((w, i) => `<div class="wline" id="ww${i}" style="width:${w}%"></div>`).join('')}</div>
+        </div>
+        <div class="dpane" id="w3b" style="left:700px;width:600px;height:480px;top:110px">
+          <div class="dlab t34 b6" style="height:56px;background:var(--s-ind50);color:#3730a3">${logoBox(40, 30)}Winyu</div>
+          <div class="ab" id="w3donut" style="left:50%;top:94px;transform:translateX(-50%)">${donut(FACTS.channels.rows)}<div class="ab" style="inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center"><span class="t56">${FACTS.channels.rows[0].share.toFixed(1)}%</span><span class="t34" style="color:var(--s-muted)">${FACTS.channels.rows[0].label}</span></div></div>
+        </div>
       </div>
       <div class="layer" id="L5">
-        <div class="ab t48" style="left:120px;top:20px;background:linear-gradient(90deg,#4f46e5,#7c3aed 60%,#fb7185);-webkit-background-clip:text;background-clip:text;color:transparent">Admin console</div>
-        <div class="ab tabs t24" style="left:120px;top:102px"><span>${ICON.grid}ภาพรวม</span><span>${ICON.shield.replace('width:32px;height:32px', 'width:20px;height:20px')}สิทธิ์</span><span>${ICON.wrench}เครื่องมือ</span><span>${ICON.list}Audit</span><span class="on">${ICON.plug.replace('class="i"', 'class="i" style="width:20px;height:20px"')}การเชื่อมต่อ</span></div>
-        <div class="sc-card" style="left:120px;top:184px;width:1120px;padding:28px 32px 30px">
-          <div class="t30 b6">เชื่อมต่อระบบใหม่</div>
-          <div class="t24" style="color:var(--s-muted)">ต่อระบบอื่นของบริษัทผ่าน MCP ให้ Winyu ใช้ได้ โดยทุกคนเห็นเฉพาะข้อมูลในสิทธิ์ของตัวเอง</div>
-          <div class="sc-row" style="margin-top:18px;gap:10px">${CONNECT_STEPS.map((n, i) => `<span class="step t24" id="cs${i}"><b>${i + 1}</b>${n}</span>`).join('')}</div>
-          <div class="sc-row" id="cRow" style="margin-top:22px;height:92px;padding:0 22px;gap:18px;border-radius:22px;background:var(--s-soft)"><span style="width:56px;height:56px;border-radius:16px;background:var(--grad);color:#fff;display:flex;align-items:center;justify-content:center">${ICON.laptop}</span><span class="t30 b6">ทะเบียนทรัพย์สิน</span><span class="sc-pill t24" style="background:var(--s-ind50);color:#3730a3;height:36px">MCP</span><span style="flex:1"></span>
-            <span style="position:relative;width:230px;height:52px">
-              <span class="sc-btn bdark t24 ab" id="cBtn" style="right:0;top:0;height:52px">${ICON.plug.replace('class="i"', 'class="i" style="width:22px;height:22px"')}เชื่อม</span>
-              <span class="sc-pill t24 ab" id="cIng" style="right:0;top:6px;background:var(--s-amberbg);color:var(--s-amber);gap:10px;opacity:0"><svg class="i" id="cSpin" viewBox="0 0 24 24" style="width:22px;height:22px"><path d="M21 12a9 9 0 1 1-6.2-8.6"/></svg>กำลังเชื่อม…</span>
-              <span class="sc-pill t24 ab" id="cOk" style="right:0;top:6px;background:var(--s-greenbg);color:var(--s-green);gap:8px;opacity:0"><i style="width:10px;height:10px;border-radius:50%;background:#10b981"></i>เชื่อมแล้ว</span>
-            </span>
+        <div class="qchip t34" id="w4q0" style="left:40px;height:60px">ทีมขายมีใครบ้าง</div>
+        <div class="qchip t34" id="w4q1" style="left:487px;height:60px">สต๊อกพอขายกี่วัน</div>
+        <div class="qchip t34" id="w4q2" style="left:934px;height:60px">พนักงานทั้งหมด</div>
+        <div class="rcard" id="w4c0" style="left:40px;width:420px;height:470px;top:116px;padding:30px">${team}</div>
+        <div class="rcard" id="w4c1" style="left:487px;width:420px;height:470px;top:116px;padding:30px">${FACTS.cover.rows.map((r) => `<div style="margin-bottom:26px"><div class="sc-row t34" style="justify-content:space-between;white-space:nowrap"><span>${r.label}</span><span class="b6">${r.value}</span></div><div class="track" style="height:16px;border-radius:8px"><div class="fill" style="height:16px;border-radius:8px;width:${(r.days / maxCover * 100).toFixed(1)}%"></div></div></div>`).join('')}</div>
+        <div class="rcard" id="w4c2" style="left:934px;width:420px;height:470px;top:116px;padding:30px;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:18px"><span style="width:84px;height:84px;border-radius:24px;background:var(--s-ind50);color:var(--s-indigo);display:flex;align-items:center;justify-content:center">${ICON.people.replace('class="i"', 'class="i" style="width:48px;height:48px"')}</span><span class="t96">${FACTS.headcount.value.replace(/\s.*$/, '')}</span><span class="sc-row" style="gap:14px"><span class="t40 b6">คน</span><span class="sc-pill t34" style="height:52px;padding:0 18px;border-radius:26px;background:var(--s-greenbg);color:var(--s-green)">${FACTS.headcount.delta > 0 ? '+' : '−'}${Math.abs(FACTS.headcount.delta).toFixed(1)}%</span></span></div>
+      </div>
+      <div class="layer" id="L6">
+        <div class="sc-card" id="w6card" style="left:150px;top:70px;width:1090px;padding:40px 48px 44px">
+          <div class="t40 b6" style="color:var(--s-muted)">คาดปิดเดือน</div>
+          <div class="sc-row" style="gap:22px;align-items:baseline;margin-top:6px"><span class="t96" style="color:var(--s-red)">${FACTS.close.projected}</span><span class="t40 b6">ของเป้า</span></div>
+          <div style="position:relative;margin-top:26px;height:28px;border-radius:14px;background:#f0f1f6;overflow:hidden"><div class="ab" style="left:0;top:0;bottom:0;width:${parseFloat(FACTS.close.projected)}%;background:#fecdd3"></div><div class="ab" style="left:0;top:0;bottom:0;width:${parseFloat(FACTS.close.toDate)}%;background:linear-gradient(90deg,#fb7185,#e11d48);border-radius:14px"></div></div>
+          <div class="sc-row" style="justify-content:flex-end;margin-top:34px"><span class="fwd t40 b6" id="fwdBtn" style="height:68px;padding:0 30px;border-radius:34px;gap:12px">${ICON.fwd.replace('class="i"', 'class="i" style="width:30px;height:30px"')}ส่งต่อ</span></div>
+        </div>
+        <div class="sc-card" id="pop" style="left:700px;top:150px;width:460px;padding:28px;border-radius:28px;box-shadow:0 40px 80px -24px rgba(30,27,75,.38),0 0 0 1px rgba(15,23,42,.04);transform-origin:100% 100%;opacity:0">
+          <div class="sc-row" style="height:64px;gap:16px"><span style="width:60px;height:60px;border-radius:50%;background:var(--s-ind50);color:var(--s-indigo);display:flex;align-items:center;justify-content:center">${ICON.user}</span><span class="t40 b6">CEO</span></div>
+          <div style="position:relative;margin-top:22px;height:68px">
+            <div class="sc-btn bgrad t40 ab" id="popSend" style="left:0;top:0;width:100%;height:68px;border-radius:34px">${ICON.send}ส่ง</div>
+            <div class="sc-btn t40 ab" id="popDone" style="left:0;top:0;width:100%;height:68px;border-radius:34px;background:var(--s-greenbg);color:var(--s-green);opacity:0">${ICON.ok}ส่งแล้ว</div>
           </div>
         </div>
       </div>
-      <div class="layer" id="L6">
-        <div class="sc-bubble t30" id="w6q" style="right:212px;top:26px">อุปกรณ์ของทีม${FACTS.spotlight}</div>
-        <div class="sc-card" id="w6card" style="left:212px;top:108px;width:960px;padding:28px 36px 32px">
-          <div class="sc-row piece" id="w6a" style="gap:14px"><span class="sc-pill t24" style="background:var(--s-ind50);color:#3730a3;gap:8px;font-weight:500">${ICON.db.replace('class="i"', 'class="i" style="width:22px;height:22px"')}ทะเบียนทรัพย์สิน</span><span class="t30 b6">ทีม${FACTS.spotlight}</span></div>
-          <div class="sc-row" style="margin-top:22px;gap:20px;align-items:stretch">${FACTS.assets.map((a, i) => `<div class="piece" id="w6t${i}" style="flex:1;background:var(--s-soft);border-radius:22px;padding:20px 26px"><div class="sc-row t24" style="gap:10px;color:var(--s-muted)"><span style="color:var(--s-indigo);display:flex">${ASSET_ICON[a.label] ?? ICON.laptop}</span>${a.label}</div><div class="t48" style="margin-top:4px">${a.count} เครื่อง</div></div>`).join('')}</div>
+      <div class="layer" id="L7">
+        <div class="sc-row ab" id="cRow" style="left:150px;top:40px;width:1090px;height:180px;padding:0 44px;gap:28px;border-radius:32px;background:#fff;border:1.5px solid var(--s-line);box-shadow:0 26px 60px -30px rgba(49,46,129,.28)"><span style="width:92px;height:92px;border-radius:26px;background:var(--grad);color:#fff;display:flex;align-items:center;justify-content:center">${ICON.laptop.replace('class="i"', 'class="i" style="width:50px;height:50px"')}</span><span class="t56">ทะเบียนทรัพย์สิน</span><span style="flex:1"></span>
+          <span style="position:relative;width:300px;height:76px">
+            <span class="sc-btn bdark t40 ab" id="cBtn" style="right:0;top:0;height:76px;padding:0 36px;border-radius:38px">${ICON.plug.replace('class="i"', 'class="i" style="width:30px;height:30px"')}เชื่อม</span>
+            <span class="sc-pill t40 ab" id="cIng" style="right:0;top:4px;height:68px;padding:0 26px;border-radius:34px;background:var(--s-amberbg);color:var(--s-amber);gap:12px;opacity:0"><svg class="i" id="cSpin" viewBox="0 0 24 24" style="width:30px;height:30px"><path d="M21 12a9 9 0 1 1-6.2-8.6"/></svg>กำลังเชื่อม…</span>
+            <span class="sc-pill t40 ab" id="cOk" style="right:0;top:4px;height:68px;padding:0 28px;border-radius:34px;background:var(--s-greenbg);color:var(--s-green);gap:12px;opacity:0"><i style="width:14px;height:14px;border-radius:50%;background:#10b981"></i>เชื่อมแล้ว</span>
+          </span>
         </div>
+        <div class="sc-row ab" id="w6a" style="left:150px;top:250px;width:1090px;gap:24px;align-items:stretch">${FACTS.assets.map((a, i) => `<div class="piece" id="w6t${i}" style="flex:1;background:#fff;border:1.5px solid var(--s-line);box-shadow:0 26px 60px -30px rgba(49,46,129,.28);border-radius:26px;padding:28px 34px"><div class="sc-row t40 b6" style="gap:14px;color:var(--s-muted)"><span style="color:var(--s-indigo);display:flex">${(ASSET_ICON[a.label] ?? ICON.laptop).replace('class="i"', 'class="i" style="width:40px;height:40px"')}</span>${a.label}</div><div class="t96" style="margin-top:8px">${a.count}<span class="t40 b6" style="margin-left:14px">เครื่อง</span></div></div>`).join('')}</div>
       </div>
       <div class="cursor" id="wcur">${CURSOR}</div>
       <div class="ripple" id="wrip"></div>
@@ -581,40 +583,40 @@ function buildWindow() {
 }
 
 function buildPhone() {
-  const bal = FACTS.leaveBalance.map((b, i) => `<div class="balr" id="pb${i}" style="margin-top:12px"><div class="sc-row" style="justify-content:space-between;height:34px"><span class="t24">${b.label}</span><span class="t24"><b class="b7">${b.left}</b><span style="color:var(--s-muted)">/${b.entitled} วัน</span></span></div><div class="track"><div class="fill" id="pbf${i}" style="width:${(b.left / b.entitled * 100).toFixed(1)}%"></div></div></div>`).join('');
   $('phone').innerHTML = `<div id="pscr">
     <div class="island"></div>
-    <div class="sc-row ab" style="left:18px;top:60px;gap:12px">${logoBox(44, 32)}<div class="pchip t24 b5"><span class="av">${ICON.user}</span>${FACTS.rep.role}</div></div>
-    <div class="ab" style="left:0;right:0;top:120px;height:1px;background:#eef0f5"></div>
-    <div class="ab" style="left:0;right:0;top:121px;bottom:118px;overflow:hidden">
+    <div class="sc-row ab" style="left:18px;top:58px;gap:12px">${logoBox(48, 36)}</div>
+    <div class="ab" style="left:0;right:0;top:122px;height:1px;background:#eef0f5"></div>
+    <div class="ab" style="left:0;right:0;top:123px;bottom:118px;overflow:hidden">
       <div class="ab" id="pscroll" style="left:0;right:0;top:0;height:900px">
-        <div class="sc-bubble t24" id="pq0" style="right:16px;top:18px;padding:12px 20px;border-radius:24px 24px 6px 24px"></div>
-        <div class="sc-card" id="pbal" style="left:16px;top:92px;width:320px;padding:16px 20px 18px;border-radius:26px"><div class="t30 b6">วันลาคงเหลือ</div>${bal}</div>
-        <div class="sc-bubble t24" id="pq1" style="right:16px;top:392px;white-space:normal;width:250px;padding:12px 20px;border-radius:24px 24px 6px 24px"></div>
-        <div class="sc-card" id="plv" style="left:16px;top:498px;width:320px;padding:20px;border-radius:26px">
-          <div class="sc-row" style="gap:12px"><span style="width:44px;height:44px;border-radius:50%;background:var(--s-ink);color:#fff;display:flex;align-items:center;justify-content:center;flex:none">${ICON.cal}</span><span class="t30 b6" style="white-space:nowrap">ยื่นใบลาพักร้อน</span></div>
-          <div style="margin-top:12px"><div class="t24" style="color:var(--s-muted)">ช่วงวันลา</div><div class="t30 b5">${dayMonth(FACTS.leave.from)} – ${dayMonth(FACTS.leave.to)}</div></div>
-          <div style="position:relative;margin-top:14px;height:52px">
-            <div class="sc-row ab" id="plvBtns" style="left:0;top:0;width:280px;gap:12px"><span class="sc-btn bline t24" style="flex:1;padding:0">ยังไม่ส่ง</span><span class="sc-btn bdark t24" id="plvOk" style="flex:1;padding:0">ยื่นใบลา</span></div>
-            <div class="sc-btn t24 ab" id="plvDone" style="left:0;top:0;width:280px;padding:0;background:var(--s-greenbg);color:var(--s-green);opacity:0">${ICON.ok}ส่งเข้าระบบ HR แล้ว</div>
+        <div class="sc-bubble t34" id="pq0" style="right:16px;top:18px;padding:12px 22px;border-radius:26px 26px 6px 26px"></div>
+        <div class="sc-card" id="pbal" style="left:16px;top:108px;width:320px;padding:22px 24px 24px;border-radius:26px"><div class="t34 b6" style="color:var(--s-muted)">${ANNUAL.label}</div><div style="margin-top:2px"><span class="t96">${ANNUAL.left}</span><span class="t40 b6" style="color:var(--s-muted)">/${ANNUAL.entitled} วัน</span></div><div class="track" style="height:14px;border-radius:7px;margin-top:12px"><div class="fill" id="pbf" style="height:14px;border-radius:7px;width:${(ANNUAL.left / ANNUAL.entitled * 100).toFixed(1)}%"></div></div></div>
+        <div class="sc-bubble t34" id="pq1" style="right:16px;top:392px;white-space:normal;width:290px;padding:12px 22px;border-radius:26px 26px 6px 26px"></div>
+        <div class="sc-card" id="plv" style="left:16px;top:520px;width:320px;padding:24px;border-radius:26px">
+          <div class="t34 b6" style="color:var(--s-muted)">ยื่นใบลา</div>
+          <div class="t40 b6" style="margin-top:4px;white-space:nowrap">${dayMonth(FACTS.leave.from)} – ${dayMonth(FACTS.leave.to)}</div>
+          <div style="position:relative;margin-top:18px;height:68px">
+            <div class="sc-btn bdark t40 ab" id="plvOk" style="left:0;top:0;width:272px;height:68px;border-radius:34px;padding:0">ยื่นใบลา</div>
+            <div class="sc-btn t34 ab" id="plvDone" style="left:0;top:0;width:272px;height:68px;border-radius:34px;padding:0;background:var(--s-greenbg);color:var(--s-green);opacity:0">${ICON.ok}ส่ง HR แล้ว</div>
           </div>
         </div>
       </div>
     </div>
-    <div class="pcomp t24"><span id="pph" style="color:var(--s-muted)">พิมพ์บอกได้เลย</span><span id="ptyped"></span><span class="pcaret" id="pcaret"></span><div class="psend">${ICON.up}</div></div>
+    <div class="pcomp t34" style="min-height:72px"><span id="ptyped"></span><span class="pcaret" id="pcaret" style="height:34px"></span><div class="psend">${ICON.up}</div></div>
     <div class="home-ind"></div>
     <div class="touch" id="ptouch"></div>
   </div>`;
 }
 
 function buildSplit() {
-  const kpi = (v, id, extra = '') => `<div class="sc-card" id="${id}" style="left:40px;top:150px;width:760px;padding:24px 30px;box-shadow:none"><div class="t24" style="color:var(--s-muted)">มูลค่าขายเข้า</div>${extra}<div id="${id}v"><div class="t48">${v.total}</div><div class="sc-row" style="margin-top:8px;gap:14px"><span class="sc-pill t24" style="background:var(--s-ind50);color:#3730a3">${v.rows.length} ภาค</span><span class="t24" style="color:var(--s-muted)">ที่มา ${v.source}</span></div></div></div>`;
-  const lock = `<div class="sc-row lock6" id="s6lock"><span class="lk">${ICON.lockS}</span><span class="t30 b6">ถูกปิดตามสิทธิ์</span></div>`;
+  const answer = (id, extra = '') => `<div class="sc-card" id="${id}" style="left:40px;top:172px;width:760px;height:200px;padding:24px 36px;box-shadow:none"><div class="t40 b6" style="color:var(--s-muted)">อัตรากำไรขั้นต้น</div>${extra}<div id="${id}v" class="t96" style="margin-top:6px">${FACTS.margin.value}</div></div>`;
+  const lock = `<div class="sc-row lock6" id="s6lock" style="top:90px;height:76px;gap:16px"><span class="lk" style="width:72px;height:72px">${ICON.lockS.replace('class="i"', 'class="i" style="width:36px;height:36px"')}</span><span class="t40 b6">${DENIED}</span></div>`;
+  const head = (role) => `<div class="tb" style="height:64px"><div class="lights" style="top:25px"><i></i><i></i><i></i></div><div class="who t34 b6 mid" style="height:52px;top:6px;padding:0 22px 0 8px"><span class="av" style="width:38px;height:38px">${ICON.user}</span>${role}</div></div>`;
   $('split').innerHTML = `
-    <div class="win" id="s6a" style="left:0;top:0;width:840px;height:400px"><div class="tb"><div class="lights"><i></i><i></i><i></i></div>${who(FACTS.ceo.role, 'mid')}</div><div class="sc-bubble t30" id="s6qa" style="right:40px;top:72px">ยอดขายเดือนนี้</div>${kpi(FACTS.ceo, 's6ka')}</div>
-    <div class="win" id="s6b" style="left:888px;top:0;width:840px;height:400px"><div class="tb"><div class="lights"><i></i><i></i><i></i></div>${who(FACTS.rep.role, 'mid')}</div><div class="sc-bubble t30" id="s6qb" style="right:40px;top:72px">ยอดขายเดือนนี้</div>${kpi(FACTS.rep, 's6kb', lock)}</div>
-    <div class="win" id="s6c" style="left:504px;top:448px;width:720px;height:252px"><div class="tb"><div class="lights"><i></i><i></i><i></i></div>${who('ฝ่ายไอที', 'mid')}</div>
-      <div class="sc-row ab" style="left:36px;right:36px;top:52px;height:200px;gap:20px"><span style="width:64px;height:64px;border-radius:18px;background:var(--s-ind50);color:var(--s-indigo);display:flex;align-items:center;justify-content:center">${ICON.shield}</span><div style="flex:1"><div class="t30 b6">พนักงานขาย</div><div class="t24" style="color:var(--s-muted)">ดูยอดขายทุกภาค</div></div><div class="tog" id="tog"><div class="ab" id="togOn" style="inset:0;border-radius:28px;background:var(--grad)"></div><div class="ab" id="togOff" style="inset:0;border-radius:28px;background:#cfd5e1;opacity:0"></div><div class="knob" id="knob"></div></div></div>
+    <div class="win" id="s6a" style="left:0;top:0;width:840px;height:400px">${head('CEO')}<div class="sc-bubble t40" id="s6qa" style="right:40px;top:80px">กำไรเดือนนี้</div>${answer('s6ka')}</div>
+    <div class="win" id="s6b" style="left:888px;top:0;width:840px;height:400px">${head(short(FACTS.rep.role))}<div class="sc-bubble t40" id="s6qb" style="right:40px;top:80px">กำไรเดือนนี้</div>${answer('s6kb', lock)}</div>
+    <div class="win" id="s6c" style="left:504px;top:448px;width:720px;height:252px">${head('ฝ่ายไอที')}
+      <div class="sc-row ab" style="left:40px;right:40px;top:64px;height:188px;gap:24px"><span style="width:76px;height:76px;border-radius:22px;background:var(--s-ind50);color:var(--s-indigo);display:flex;align-items:center;justify-content:center">${ICON.shield}</span><div style="flex:1"><div class="t40 b6">${short(FACTS.rep.role)}</div><div class="t34" style="color:var(--s-muted)">ดูกำไร</div></div><div class="tog" id="tog"><div class="ab" id="togOn" style="inset:0;border-radius:28px;background:var(--grad)"></div><div class="ab" id="togOff" style="inset:0;border-radius:28px;background:#cfd5e1;opacity:0"></div><div class="knob" id="knob"></div></div></div>
       <div class="cursor" id="scur">${CURSOR}</div></div>`;
 }
 
@@ -622,28 +624,31 @@ buildWindow();
 buildPhone();
 buildSplit();
 $('memtext').textContent = `จำไว้แล้ว · สนใจ${FACTS.spotlight}`;
-$('mini').innerHTML = `<span class="t26 muted">มูลค่าขายเข้า</span><div class="r"><span class="t44 num">${FACTS.director.total}</span><span class="chip" style="background:var(--coral-soft);color:var(--coral-ink)">${pct(FACTS.director.delta)}</span></div>`;
+$('mini').innerHTML = `<span class="t40 muted">คาดปิดเดือน</span><span class="t76 num" style="color:var(--coral-ink)">${FACTS.close.projected}</span>`;
 
 const DEV = {
   win: { el: $('win'), lw: 1480, lh: 690, ww: 2.7, flat: [960, 652, 1.22] },
-  phone: { el: $('phone'), lw: 376, lh: 736, ww: 0.62, flat: [1010, 612, 1.18] },
+  phone: { el: $('phone'), lw: 376, lh: 736, ww: 0.62, flat: [1250, 600, 1.18] },
   split: { el: $('split'), lw: 1728, lh: 700, ww: 3.2, flat: [960, 652, 1.0] },
 };
 DEV.win.el.style.width = DEV.win.lw + 'px'; DEV.win.el.style.height = DEV.win.lh + 'px';
 const PLINTH = 0.06;
 const VISITS = [
-  { dev: DEV.win, at: [3.7, -3.1], show: T.win1, push: T.push1, pull: T.pull1 },
-  { dev: DEV.win, at: [1.6, 4.4], show: T.win2, push: T.push2, pull: T.pull2 },
-  { dev: DEV.phone, at: [6.6, 2.5], show: T.phone, push: T.push3, pull: T.pull3 },
-  { dev: DEV.split, at: [2.2, 3.8], show: T.split, push: T.push4, pull: T.pull4 },
-  { dev: DEV.win, at: [3.4, 3.0], show: T.win3, push: T.push5, pull: T.pull5 },
+  { dev: DEV.win, at: [3.7, -3.1], show: T.win1, moves: [[T.push1, T.pull1]] },
+  { dev: DEV.win, at: [1.6, 4.4], show: T.win2, moves: [[T.push2, T.pull2], [T.push3, T.pull3]] },
+  { dev: DEV.phone, at: [8.6, 4.5], show: T.phone, moves: [[T.push4, T.pull4]], town: true },
+  { dev: DEV.split, at: [2.2, 3.8], show: T.split, moves: [[T.push5, T.pull5]] },
+  { dev: DEV.win, at: [3.4, 3.0], show: T.win3, moves: [[T.push6, T.pull6]] },
 ];
 const depthOf = (d) => d.ww * d.lh / d.lw;
 function visitU(v, t) {
-  if (t < v.push[0] || t >= v.pull[1]) return 0;
-  if (t < v.push[1]) return EIO3((t - v.push[0]) / (v.push[1] - v.push[0]));
-  if (t < v.pull[0]) return 1;
-  return 1 - EIO3((t - v.pull[0]) / (v.pull[1] - v.pull[0]));
+  for (const [push, pull] of v.moves) {
+    if (t < push[0] || t >= pull[1]) continue;
+    if (t < push[1]) return EIO3((t - push[0]) / (push[1] - push[0]));
+    if (t < pull[0]) return 1;
+    return 1 - EIO3((t - pull[0]) / (pull[1] - pull[0]));
+  }
+  return 0;
 }
 function projectOn(W, x, y, z) { const s = UNIT * W.z; return [W.cx + (x - y) * C30 * s, W.cy + (x + y) * 0.5 * s - z * s]; }
 function pose(v, W, u) {
@@ -669,15 +674,15 @@ const V = {
   morning: look(1.6, -4.6, 1010, 600, 1.0),
   memory: look(1.2, 3.0, 980, 770, 1.0),
   forward: look(2.8, 1.6, 1000, 660, 0.98),
-  leave: look(4.6, 1.0, 1000, 640, 1.08),
+  leave: look(7.0, 5.6, 960, 520, 1.0),
   perm: look(2.0, 2.0, 960, 610, 0.98),
   conn: look(2.4, 2.0, 980, 640, 1.0),
   wide: look(1.2, 0.8, 960, 650, 0.92),
 };
 const CAM_KEYS = [
-  [T.sun - 0.3, 1.2, V.morning], [T.pull1[1] + 0.05, 1.0, V.memory], [T.pull2[0] - 0.6, 0.5, V.forward],
+  [T.sun - 0.3, 1.2, V.morning], [T.pull1[1] + 0.05, 1.0, V.memory], [T.pull3[0] - 0.6, 0.5, V.forward],
   [T.fwdOut - 0.1, 1.0, V.leave], [T.leaveOut - 0.1, 1.0, V.perm], [T.permOut - 0.1, 1.0, V.conn],
-  [T.pull5[0] - 0.6, 0.5, V.wide], [T.endOut, 1.2, V.open],
+  [T.pull6[0] - 0.6, 0.5, V.wide], [T.endOut, 1.2, V.open],
 ];
 function townCam(t) {
   let cur = V.open;
@@ -688,25 +693,27 @@ function townCam(t) {
   }
   return cur;
 }
+const ZOOM_CAP = 1.8, TOWN_ZOOM_CAP = 1.6;
+/** How far the town zooms while a screen grows by `ratio`: with the screen at first, then easing to `cap`, so the town never blows up into giant blocks. */
+const townZoom = (ratio, cap) => 1 + (cap - 1) * Math.tanh((ratio - 1) / (cap - 1));
 function solve(t) {
   const W = townCam(t);
-  const moving = VISITS.find(v => { const u = visitU(v, t); return u > 0 && u < 1; });
+  const active = VISITS.find(v => visitU(v, t) > 0);
   let world = W;
   const poses = new Map();
-  if (moving) {
-    const p = pose(moving, W, visitU(moving, t));
-    poses.set(moving, p);
-    const z = W.z * p.S / p.k;
-    world = look(moving.at[0], moving.at[1], p.x, p.y, z, PLINTH);
+  if (active) {
+    const p = pose(active, W, visitU(active, t));
+    poses.set(active, p);
+    world = look(active.at[0], active.at[1], p.x, p.y, W.z * townZoom(p.S / p.k, active.town ? TOWN_ZOOM_CAP : ZOOM_CAP), PLINTH);
   }
   for (const v of VISITS) if (!poses.has(v)) poses.set(v, pose(v, world, visitU(v, t)));
-  const shown = VISITS.filter(v => t > v.show[0] && t < v.show[1]);
-  const inside = Math.max(0, ...shown.map(v => k(visitU(v, t), 0.3, 0.6, LIN)));
+  const shown = VISITS.filter(v => !v.town && t > v.show[0] && t < v.show[1]);
+  const inside = Math.max(0, ...shown.map(v => k(visitU(v, t), 0.25, 0.55, LIN)));
   const away = Math.max(0, ...shown.map(v => k(visitU(v, t), 0, 0.2, LIN)));
   return { world, poses, inside, away };
 }
 
-const PULSES = [T.ask, T.isan - 0.2, T.memDrop + 0.4, T.sent + 1.3, T.leave[0] + T.leave[1] + 3.5, T.plug[0] + T.plug[1], T.connected + 4.3];
+const PULSES = [T.ask, T.alert - 0.2, T.memDrop + 0.4, T.sent + 1.3, T.press + 0.3, T.plug[0] + T.plug[1], T.connected + 1.2];
 function hubTileCenter() {
   const bob = 0.06 * Math.sin(2 * Math.PI * RT * Math.round(LENGTH / 4.2) / LENGTH);
   return P(0, 0, 2.05 + bob);
@@ -757,7 +764,7 @@ function townSystems(acc, t) {
     flowDots(acc, path, t, 1.1 + i * 0.05, T.fold + 0.5, { n: 2, speed: 0.8, phase: i * 0.13, color: i % 2 ? '#7c3aed' : '#4f46e5' });
     const lo = k(t, T.sysAt(i), 0.5) * (1 - k(t, T.fold - 0.1, 0.4, EI3));
     const [lx, ly] = P(x, y, h + 0.2);
-    label('sys' + i, `<span class="pill sys t32">${sy.n}</span>`, lx, ly, lo, { s: lerp(0.85, 1, k(t, T.sysAt(i), 0.6, EBK)) });
+    label('sys' + i, `<span class="pill sys t40">${sy.n}</span>`, lx, ly, lo, { s: lerp(0.85, 1, k(t, T.sysAt(i), 0.6, EBK)) });
   });
   const qo = win(t, T.qIn, 0.6, T.ask, 0.4);
   const n = typedCount(t, T.q, Q);
@@ -769,63 +776,44 @@ function townSystems(acc, t) {
   if (qo > 0.01) stem(acc, tx, ty - 58, tx, ty - 90, qo);
 }
 
-const REGIONS = [...FACTS.director.rows.filter(r => r.label !== FACTS.spotlight), SPOT];
-const BAR_X = 1.2, BAR_Y0 = -2.3, BAR_STEP = 1.2, BAR_W = 0.86;
+const SHOPS = FACTS.drops.map((_, j) => [3.0, -7.4 - j * 1.3]);
 function townMorning(acc, t) {
   if (t < T.sun - 0.2 || t > T.morningOut + 0.6) return;
   const exit = k(t, T.morningOut, 0.45, EIO3);
-  const L = t - T.sun + 5.0;
-  const sunK = k(L, 5.0, 1.6, EO3) * (1 - exit);
+  const sunK = k(t, T.sun, 1.6, EO3) * (1 - exit);
   if (sunK > 0.01) {
     const [sx0, sy0] = P(-1.5, -6.5, 0);
     const sy = lerp(sy0 + 60, sy0 - 150, sunK);
     acc.under.unshift(`<circle cx="${f1(sx0)}" cy="${f1(sy)}" r="150" fill="url(#gSun)" opacity="${(0.85 * sunK).toFixed(3)}"/><circle cx="${f1(sx0)}" cy="${f1(sy)}" r="54" fill="#fde68a" opacity="${(0.9 * sunK).toFixed(3)}"/>`);
   }
-  const scanPath = [[0, -1.4], [0, BAR_Y0 - BAR_STEP * 5 - 0.6]];
-  acc.under.push(groundPath(scanPath, k(L, 5.3, 0.5) * (1 - exit)));
-  flowDots(acc, scanPath, L, 5.5, 7.0, { n: 3, speed: 0.9, color: '#4f46e5' });
-  const hot = REGIONS.length - 1;
-  REGIONS.forEach((r, i) => {
-    const x = BAR_X, y = BAR_Y0 - i * BAR_STEP;
-    const now = amount(r.value), prev = now / (1 + r.delta / 100);
-    const hPrev = prev / MAX_ROW * 2.6, hNow = now / MAX_ROW * 2.6;
-    const rs = k(L, 5.3 + i * 0.09, 0.9, EOX);
-    const drop = k(L, 6.6 + i * 0.04, 0.8, EIO3);
-    const h = lerp(hPrev, hNow, drop) * rs * (1 - exit);
-    const heat = i === hot ? k(L, 6.9, 0.6, EIO3) : 0;
-    const lit = bump(L, 5.6 + i * 0.22, 0.5);
-    acc.items.push({ d: x + y, s: shadow(x, y, BAR_W, BAR_W, rs * (1 - exit)) + boxC(x, y, 0, BAR_W, BAR_W, h, mixMat(M.violet, M.coral, heat), clamp(rs * 3) * (1 - exit)) + (lit > 0.02 ? isoEllipse(x, y, h + 0.01, 0.3, '#fff', `opacity="${(lit * 0.9).toFixed(3)}"`) : '') });
-    if (i === hot) {
-      const ring = (RT % 1.2) / 1.2;
-      if (L > 7.2) acc.under.push(isoEllipse(x, y, 0.02, 0.6 + ring * 0.9, 'none', `stroke="#fb7185" stroke-width="3" opacity="${(0.6 * (1 - ring) * (1 - exit)).toFixed(3)}"`));
-      const lo = k(t, T.isan, 0.6) * (1 - exit);
-      const [ax, ay] = P(x, y, h);
-      stem(acc, ax, ay, ax + 70, ay - 12, lo);
-      label('isan', `<div class="numcard"><span class="t32">${r.label}</span><span class="t44 num" style="color:var(--coral-ink)">${pct(r.delta)}</span></div>`, ax + 70, ay - 12, lo, { ax: 0, ay: 0.5, s: lerp(0.9, 1, k(t, T.isan, 0.6, EBK)) });
-    }
-  });
-  FACTS.drops.forEach((_, j) => {
-    const x = 3.0, y = -7.4 - j * 1.3;
+  const scanPath = [[0, -1.4], [0, -8.05], [2.3, -8.05]];
+  acc.under.push(groundPath(scanPath, k(t, T.sun + 0.3, 0.5) * (1 - exit)));
+  flowDots(acc, scanPath, t, T.sun + 0.5, T.alert + 0.2, { n: 3, speed: 0.9, color: '#4f46e5' });
+  SHOPS.forEach(([x, y], j) => {
     const rs = k(t, T.shops + j * 0.12, 0.7, EOX) * (1 - exit);
     acc.items.push({ d: x + y, s: shadow(x, y, 0.9, 0.9, rs) + boxC(x, y, 0, 0.9, 0.9, 0.6 * rs, M.amber, clamp(rs * 3)) + boxC(x + 0.05, y, 0.6 * rs, 1.0, 1.0, 0.12 * rs, M.coral, clamp(rs * 3)) });
+    const ring = ((RT + j * 0.4) % 1.2) / 1.2;
+    if (t > T.alert) acc.under.push(isoEllipse(x, y, 0.02, 0.6 + ring * 0.9, 'none', `stroke="#fb7185" stroke-width="3" opacity="${(0.6 * (1 - ring) * (1 - exit)).toFixed(3)}"`));
     const [px, py] = P(x, y, 1.15);
-    const po = k(t, T.shops + 0.4 + j * 0.1, 0.4) * (1 - exit);
+    const po = k(t, T.alert + j * 0.1, 0.4) * (1 - exit);
     if (po > 0.01) acc.fx.push(`<g opacity="${po.toFixed(3)}"><circle cx="${f1(px)}" cy="${f1(py)}" r="20" fill="#fff" stroke="#fda4af" stroke-width="2"/><rect x="${f1(px - 7)}" y="${f1(py - 8)}" width="5" height="16" rx="1.5" fill="#e11d48"/><rect x="${f1(px + 2)}" y="${f1(py - 8)}" width="5" height="16" rx="1.5" fill="#e11d48"/></g>`);
   });
+  const [lx, ly] = P(SHOPS[0][0] + 0.6, SHOPS[0][1] - 0.6, 1.6);
+  const lo = k(t, T.alert + 0.2, 0.5) * (1 - exit);
+  label('alert', `<span class="pill t40" style="color:var(--coral-ink)">${SEVERITY_P1}</span>`, lx + 40, ly, lo, { ax: 0, ay: 1, s: lerp(0.9, 1, k(t, T.alert + 0.2, 0.5, EBK)) });
 }
 
 const F3 = [-1.4, 4.2], VAULT = [3.6, 2.6];
 function townMemory(acc, t) {
   const ids = ['say1', 'memc', 'daychip'];
-  if (t < T.memIn - 0.3 || t > T.push2[1] + 1) { ids.forEach(id => setUI($(id), 0)); return; }
-  const exit = k(t, T.push2[1] + 0.3, 0.4, EI3);
+  if (t < T.memIn - 0.3 || t > T.push3[1] + 1) { ids.forEach(id => setUI($(id), 0)); return; }
+  const exit = k(t, T.push3[0] + 0.4, 0.4, EI3);
   const [fx, fy] = F3;
   const fin = k(t, T.memIn, 0.6, EOX) * (1 - exit);
   acc.items.push({ d: fx + fy, s: figure(fx, fy, 'indigo', clamp(fin * 3), (1 - fin) * 0.4) });
   const [hx0, hy0] = figHead(fx, fy);
-  label('f3', `<span class="pill t32">${FACTS.director.role}</span>`, hx0, hy0 - 14, k(t, T.memIn + 0.25, 0.4) * (1 - exit), { s: lerp(0.9, 1, k(t, T.memIn + 0.1, 0.4, EBK)) });
   const s1 = k(t, T.say1, 0.4, EBK) * (1 - k(t, T.memDrop, 0.35, EI3));
-  setUI($('say1'), s1 > 0.01 ? clamp(s1) : 0, hx0 - 430, hy0 - 178, lerp(0.85, 1, clamp(s1)));
+  setUI($('say1'), s1 > 0.01 ? clamp(s1) : 0, hx0 - 560, hy0 - 120, lerp(0.85, 1, clamp(s1)));
   const askPath = [[fx + 0.5, fy], [0, fy], [0, 1.4]];
   acc.under.push(groundPath(askPath, k(t, T.say1 + 0.2, 0.4) * (1 - k(t, T.memc + 0.3, 0.4))));
   flowDots(acc, askPath, t, T.say1 + 0.2, T.memc + 0.1, { n: 3, speed: 1.4, color: '#4f46e5' });
@@ -846,8 +834,6 @@ function townMemory(acc, t) {
     v += `<polyline points="${pts([P(VAULT[0] - 0.35, VAULT[1] - 0.1, vin + 0.01), P(VAULT[0] + 0.35, VAULT[1] - 0.1, vin + 0.01)])}" stroke="#6d28d9" stroke-width="5" stroke-linecap="round" opacity="${(0.6 * clamp(vin * 3)).toFixed(3)}"/>`;
     if (glow > 0.01) v += isoEllipse(VAULT[0], VAULT[1], vin + 0.02, 0.32 + pulse * 0.1, '#fff', `opacity="${(0.7 * glow).toFixed(3)}"`);
     acc.items.push({ d: VAULT[0] + VAULT[1], s: v });
-    const [lx, ly] = P(VAULT[0], VAULT[1], 1.3);
-    label('vault', `<span class="pill t26">ความจำ</span>`, lx, ly - 4, vin * k(t, T.memIn + 0.6, 0.4), {});
   }
   const day = k(t, T.day + 0.1, 0.6, EIO3);
   const dayO = k(t, T.day, 0.3, LIN) * (1 - k(t, T.push2[0] + 0.2, 0.3, EI3));
@@ -862,13 +848,13 @@ function townMemory(acc, t) {
 const CEO_AT = [5.4, -1.6];
 function townForward(acc, t, winCenter) {
   const ids = ['env', 'bell', 'mini'];
-  if (t < T.pull2[0] - 0.5 || t > T.fwdOut + 0.6) { ids.forEach(id => setUI($(id), 0)); return; }
+  if (t < T.pull3[0] - 0.5 || t > T.fwdOut + 0.6) { ids.forEach(id => setUI($(id), 0)); return; }
   const exit = k(t, T.fwdOut, 0.45, EI3);
   const [RX, RY] = CEO_AT;
-  const rr = k(t, T.pull2[0], 0.7, EOX) * (1 - exit);
+  const rr = k(t, T.pull3[0], 0.7, EOX) * (1 - exit);
   acc.items.push({ d: RX + RY, s: figure(RX, RY, 'violet', clamp(rr * 3), (1 - rr) * 0.4) });
   const [fhx, fhy] = figHead(RX, RY);
-  label('ceoF', `<span class="pill t26">${FACTS.ceo.role}</span>`, fhx, fhy - 14, k(t, T.pull2[1] - 0.3, 0.5) * (1 - exit));
+  label('ceoF', `<span class="pill t40">CEO</span>`, fhx, fhy - 14, k(t, T.pull3[1] - 0.3, 0.5) * (1 - exit));
   const fly = clamp((t - T.envFly[0]) / T.envFly[1]);
   const envO = k(t, T.envFly[0], 0.2, LIN) * (1 - k(t, T.envFly[0] + T.envFly[1] + 0.4, 0.3, LIN));
   const src = winCenter, tgt = [fhx, fhy - 210];
@@ -882,28 +868,25 @@ function townForward(acc, t, winCenter) {
   setUI($('bell'), bo > 0.01 ? clamp(bo) : 0, fhx + 150, fhy - 110, bo, ` rotate(${f1(Math.sin((t - T.bell) * 18) * 12 * (1 - k(t, T.bell, 0.9, LIN)))}deg)`);
   $('badge').style.transform = `scale(${k(t, T.bell + 0.2, 0.4, EBK).toFixed(3)})`;
   const mi = k(t, T.mini, 0.6, EOX) * (1 - exit);
-  setUI($('mini'), mi, fhx - 250, fhy - 300 + (1 - mi) * 40, lerp(0.85, 1, mi));
+  setUI($('mini'), mi, fhx - 330, fhy - 330 + (1 - mi) * 40, lerp(0.85, 1, mi));
 }
 
-const REP_AT = [6.4, 1.2], HR_AT = [4.2, -1.6];
+const REP_AT = [7.6, 7.1], HR_AT = [5.1, 7.4];
 function townLeave(acc, t) {
   if (t < T.leaveIn - 0.4 || t > T.leaveOut + 0.6) return;
   const exit = k(t, T.leaveOut, 0.45, EI3);
   const rin = k(t, T.leaveIn, 0.6, EOX) * (1 - exit);
   acc.items.push({ d: REP_AT[0] + REP_AT[1], s: figure(REP_AT[0], REP_AT[1], 'coral', clamp(rin * 3), (1 - rin) * 0.4) });
   const [rx, ry] = figHead(...REP_AT);
-  label('rep7', `<span class="pill t26">${FACTS.rep.role}</span>`, rx, ry - 14, k(t, T.leaveIn + 0.2, 0.5) * (1 - exit));
+  label('rep7', `<span class="pill t40">${short(FACTS.rep.role)}</span>`, rx, ry - 14, k(t, T.leaveIn + 0.2, 0.5) * (1 - exit));
   const hr = k(t, T.leaveIn + 0.15, 0.9, EOX) * (1 - exit);
   acc.items.push({ d: HR_AT[0] + HR_AT[1], s: building(HR_AT[0], HR_AT[1], 1.4, 1.7 * hr, M.coral, clamp(hr * 3)) });
   const [lx, ly] = P(HR_AT[0], HR_AT[1], 1.7 * hr + 0.2);
   const ok = k(t, T.approved, 0.5, EBK);
-  label('hr7', `<span class="pill t32">HR${ok > 0.01 ? `<span class="chip ok" style="padding:2px 10px;transform:scale(${ok.toFixed(3)})">${ICON.check}</span>` : ''}</span>`, lx, ly, k(t, T.leaveIn + 0.4, 0.5) * (1 - exit));
-  const toHub = [[REP_AT[0] - 0.4, REP_AT[1]], [REP_AT[0] - 0.4, 0], [1.4, 0]];
-  const toHr = [[1.4, 0], [HR_AT[0], 0], [HR_AT[0], HR_AT[1] + 0.7]];
-  const po = k(t, T.leaveIn + 0.4, 0.5) * (1 - exit);
-  acc.under.push(groundPath(toHub, po), groundPath(toHr, po));
-  flowDots(acc, toHub, t, T.pull3[1] - 0.2, T.approved - 0.1, { n: 3, speed: 1.6, color: '#7c3aed' });
-  flowDots(acc, toHr, t, T.pull3[1] + 0.1, T.approved + 0.3, { n: 3, speed: 1.6, color: '#fb7185' });
+  label('hr7', `<span class="pill t40">HR${ok > 0.01 ? `<span class="chip ok t34" style="padding:2px 12px;transform:scale(${ok.toFixed(3)})">${ICON.check}</span>` : ''}</span>`, lx, ly, k(t, T.leaveIn + 0.4, 0.5) * (1 - exit));
+  const toHr = [[REP_AT[0] - 0.4, REP_AT[1] + 0.1], [HR_AT[0] + 0.8, REP_AT[1] + 0.1], [HR_AT[0] + 0.8, HR_AT[1]]];
+  acc.under.push(groundPath(toHr, k(t, T.leaveIn + 0.4, 0.5) * (1 - exit)));
+  flowDots(acc, toHr, t, T.done - 0.1, T.approved + 0.3, { n: 3, speed: 1.6, color: '#fb7185' });
 }
 
 const PERM = { ceo: [-1.8, 5.4], rep: [6.0, -1.2], it: [6.0, 3.4], gate: [3.6, -0.6] };
@@ -928,9 +911,9 @@ function townPerm(acc, t) {
   g += boxC(GX, GY, 1.2, 0.24, 1.64, 0.14, M.violet, po);
   acc.items.push({ d: GX + GY, s: g });
   const [cx, cy] = figHead(CX, CY), [rx, ry] = figHead(RX, RY), [ix, iy] = figHead(IX, IY);
-  label('ceo', `<span class="pill t26">${FACTS.ceo.role}</span>`, cx, cy - 14, fr(0));
-  label('rep', `<span class="pill t26">${FACTS.rep.role}</span>`, rx, ry - 14, fr(1));
-  label('it', `<span class="pill t26">ฝ่ายไอที</span>`, ix, iy - 14, fr(2));
+  label('ceo', `<span class="pill t40">CEO</span>`, cx, cy - 14, fr(0));
+  label('rep', `<span class="pill t40">${short(FACTS.rep.role)}</span>`, rx, ry - 14, fr(1));
+  label('it', `<span class="pill t40">ฝ่ายไอที</span>`, ix, iy - 14, fr(2));
   const [gx, gy] = P(GX, GY, 1.5);
   const lk = k(t, T.lock, 0.45, EBK) * (1 - exit);
   label('lock', `<div class="lockb">${ICON.lock}</div>`, gx, gy - 8, lk, { s: lk });
@@ -943,7 +926,7 @@ function townConnect(acc, t) {
   const itIn = k(t, T.connIn + 0.1, 0.7, EOX) * (1 - exit);
   acc.items.push({ d: IT_AT[0] + IT_AT[1], s: figure(IT_AT[0], IT_AT[1], 'mint', clamp(itIn * 3), (1 - itIn) * 0.4) });
   const [ix, iy] = figHead(...IT_AT);
-  label('it8', `<span class="pill t26">ฝ่ายไอที</span>`, ix, iy - 14, k(t, T.connIn + 0.4, 0.5) * (1 - exit));
+  label('it8', `<span class="pill t40">ฝ่ายไอที</span>`, ix, iy - 14, k(t, T.connIn + 0.4, 0.5) * (1 - exit));
   const slide = k(t, T.connIn + 0.1, 1.0, EOX);
   const AX = lerp(REG_AT[0] + 4.6, REG_AT[0], slide), AY = REG_AT[1];
   const ao = clamp(slide * 2.5) * (1 - exit);
@@ -962,24 +945,28 @@ function townConnect(acc, t) {
   flowDots(acc, [[AX - 0.75, 0], [1.4, 0]], t, T.connected, T.logo - 0.3, { n: 3, speed: 1.0, color: '#059669', z: 0.3 });
   const [lx, ly] = P(AX, AY, 2.0);
   const status = t < T.connected
-    ? `<span class="chip soft"><span class="spin" style="transform:rotate(${f1(RT * 400)}deg)"></span>กำลังเชื่อม…</span>`
-    : `<span class="chip ok">${ICON.check}เชื่อมแล้ว</span>`;
-  label('reg', `<div class="stack"><span class="pill t32">ทะเบียนทรัพย์สิน</span>${status}</div>`, lx, ly, k(t, T.connIn + 0.6, 0.5) * (1 - exit), { s: lerp(0.9, 1, k(t, T.connIn + 0.6, 0.5, EBK)) });
+    ? `<span class="chip soft t34"><span class="spin" style="transform:rotate(${f1(RT * 400)}deg)"></span>กำลังเชื่อม…</span>`
+    : `<span class="chip ok t34">${ICON.check}เชื่อมแล้ว</span>`;
+  label('reg', `<div class="stack"><span class="pill t40">ทะเบียนทรัพย์สิน</span>${status}</div>`, lx, ly, k(t, T.connIn + 0.6, 0.5) * (1 - exit), { s: lerp(0.9, 1, k(t, T.connIn + 0.6, 0.5, EBK)) });
 }
 
 const centerIn = (el, root) => { let x = el.offsetWidth / 2, y = el.offsetHeight / 2; for (let e = el; e && e !== root; e = e.offsetParent) { x += e.offsetLeft; y += e.offsetTop; } return [x, y]; };
-let CUR_KEYS = null;
+let CUR_KEYS = null, PHONE_TAPS = null;
 function measure() {
   const chat = $('L2').parentElement;
   const [fx, fy] = centerIn($('fwdBtn'), chat);
   const pop = $('pop');
   pop.style.left = f1(fx + $('fwdBtn').offsetWidth / 2 - pop.offsetWidth) + 'px';
-  pop.style.top = f1(fy - $('fwdBtn').offsetHeight / 2 - pop.offsetHeight - 14) + 'px';
+  pop.style.top = f1(fy - $('fwdBtn').offsetHeight / 2 - pop.offsetHeight - 16) + 'px';
   const [sx, sy] = centerIn($('popSend'), chat), [cx, cy] = centerIn($('cBtn'), chat);
+  const [px, py] = centerIn($('qp0').firstElementChild, chat);
   CUR_KEYS = {
+    pill: [[T.memPill + 0.2, px + 760, py + 360], [T.tap, px + 40, py], [T.tap + 0.6, px + 120, py + 140]],
     fwd: [[T.fwd + 0.2, fx + 160, fy + 120], [T.fwdClick, fx, fy], [T.fwdClick + 0.5, fx - 30, fy + 30], [T.sendClick, sx, sy], [T.sendClick + 0.6, sx + 90, sy + 140]],
-    conn: [[T.push5[1], cx + 120, cy + 170], [T.connClick, cx, cy], [T.connClick + 0.8, cx + 80, cy + 140]],
+    conn: [[T.push6[1], cx + 120, cy + 170], [T.connClick, cx, cy], [T.connClick + 0.8, cx + 80, cy + 140]],
   };
+  const scr = $('pscr'), send = centerIn($('pcaret').parentElement.querySelector('.psend'), scr), ok = centerIn($('plvOk'), scr);
+  PHONE_TAPS = [[T.leaveQ[0] + T.leaveQ[1] + 0.05, ...send], [T.leave[0] + T.leave[1] + 0.05, ...send], [T.press, ok[0], ok[1] - 376]];
 }
 function cursorAt(keys, t) {
   if (t <= keys[0][0]) return [keys[0][1], keys[0][2]];
@@ -989,25 +976,26 @@ function cursorAt(keys, t) {
 function trendSvg(prog) {
   const weeks = FACTS.trend.weeks, vals = weeks.map(w => w.value);
   const lo = Math.min(...vals), hi = Math.max(...vals), n = weeks.length - 1;
-  const pt = i => [12 + i / n * 336, 40 + (hi - vals[i]) / (hi - lo) * 260];
+  const pt = i => [24 + i / n * 950, 70 + (hi - vals[i]) / (hi - lo) * 250];
   const shown = [];
   for (let i = 0; i <= n; i++) { if (i <= prog) shown.push(pt(i)); else { const q = prog - (i - 1); if (q > 0) { const a = pt(i - 1), b = pt(i); shown.push([lerp(a[0], b[0], q), lerp(a[1], b[1], q)]); } break; } }
-  let s = `<line x1="0" y1="340" x2="360" y2="340" stroke="#eceef4" stroke-width="2"/>`;
+  let s = `<line x1="0" y1="380" x2="1000" y2="380" stroke="#eceef4" stroke-width="2"/>`;
   if (shown.length > 1) {
     const last = shown[shown.length - 1];
     s += `<defs><linearGradient id="trg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6366f1" stop-opacity=".22"/><stop offset="1" stop-color="#6366f1" stop-opacity="0"/></linearGradient></defs>`;
-    s += `<polygon points="${f1(shown[0][0])},340 ${pts(shown)} ${f1(last[0])},340" fill="url(#trg)"/><polyline points="${pts(shown)}" fill="none" stroke="#6366f1" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>`;
+    s += `<polygon points="${f1(shown[0][0])},380 ${pts(shown)} ${f1(last[0])},380" fill="url(#trg)"/><polyline points="${pts(shown)}" fill="none" stroke="#6366f1" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>`;
   }
-  for (let i = 0; i <= n && i <= prog + 1e-6; i++) { const [x, y] = pt(i); s += `<circle cx="${f1(x)}" cy="${f1(y)}" r="${i === 0 || i === n ? 9 : 5}" fill="#fff" stroke="${i === n ? '#e11d48' : '#6366f1'}" stroke-width="4"/>`; }
+  for (let i = 0; i <= n && i <= prog + 1e-6; i++) { const [x, y] = pt(i); s += `<circle cx="${f1(x)}" cy="${f1(y)}" r="${i === 0 || i === n ? 13 : 7}" fill="#fff" stroke="${i === n ? '#e11d48' : '#6366f1'}" stroke-width="5"/>`; }
   return { svg: s, a: pt(0), b: pt(n) };
 }
-const layerOf = (t) => t < T.pull1[1] + 0.5 ? 'L1' : t < T.wall ? 'L2' : t < T.dyn ? 'L3' : t < T.fwd ? 'L4' : t < T.pull2[1] + 0.5 ? 'L2' : t < T.ask5 ? 'L5' : 'L6';
+const LAYERS = [['L1', T.pull1[1] + 0.5], ['L2', T.card2], ['L3', T.wall], ['L4', T.dyn], ['L5', T.fwd], ['L6', T.pull3[1] + 0.5], ['L7', Infinity]];
+const layerOf = (t) => LAYERS.find(([, until]) => t < until)[0];
+const SWAPS = [T.card2, T.wall, T.dyn, T.fwd];
 const LAYER_SWAP = 0.35;
 function screenWin(t) {
-  const swaps = [T.wall, T.dyn, T.fwd, T.ask5];
-  const near = swaps.find(s => Math.abs(t - s) < LAYER_SWAP);
+  const near = SWAPS.find(s => Math.abs(t - s) < LAYER_SWAP);
   const cur = layerOf(t);
-  ['L1', 'L2', 'L3', 'L4', 'L5', 'L6'].forEach(id => {
+  LAYERS.forEach(([id]) => {
     let o = id === cur ? 1 : 0;
     if (near !== undefined) {
       const q = clamp((t - near + LAYER_SWAP) / (2 * LAYER_SWAP));
@@ -1016,43 +1004,42 @@ function screenWin(t) {
     }
     fade($(id), o);
   });
-  const W2_ROLE = FACTS.director.role;
-  const roleHtml = cur === 'L5' || cur === 'L6' ? who('ฝ่ายไอที') : who(W2_ROLE);
-  const ww = $('wwho'); if (ww._h !== roleHtml) { ww.innerHTML = roleHtml; ww._h = roleHtml; }
-  $('sact').style.top = (cur === 'L5' || cur === 'L6' ? 204 : 144) + 'px';
+  $('sact').style.top = (cur === 'L7' ? 204 : 144) + 'px';
 
-  rise($('w1q'), k(t, T.push1[0] - 0.4, 0.4, EBK), 10);
-  [['w1a', 0], ['w1b', 0.15], ...FACTS.drops.map((_, i) => ['w1r' + i, 0.4 + i * 0.15]), ['w1c', 0.8]].forEach(([id, d]) => rise($(id), k(t, T.card1 + d, 0.45, EOX)));
+  [['w1a', 0], ...FACTS.drops.map((_, i) => ['w1r' + i, 0.3 + i * 0.2]), ['w1c', 0.9]].forEach(([id, d]) => rise($(id), k(t, T.card1 + d, 0.45, EOX)));
 
-  const recall = cur === 'L2' && t < T.wall;
-  rise($('w2q'), recall ? k(t, T.ask2, 0.4, EBK) : 1, 10);
-  [['w2a', 0], ['w2b', 0.12], ['w2rows', 0.25], ['w2f', 0.4]].forEach(([id, d]) => rise($(id), recall ? k(t, T.card2 + d, 0.45, EOX) : 1));
-  $('w2tint').style.opacity = (recall ? k(t, T.why - 0.3, 0.4, EIO3) : 1).toFixed(3);
-  const why = recall ? k(t, T.why, 0.45, EBK) : 1;
-  $('w2why').style.opacity = clamp(why).toFixed(3);
-  $('w2why').style.transform = `scale(${lerp(0.7, 1, clamp(why)).toFixed(3)})`;
+  CHIPS.forEach((_, i) => rise($('qp' + i), k(t, T.pills + i * 0.15, 0.45, EOX), 24));
+  const lit = k(t, T.memPill, 0.5, EIO3), tap = bump(t, T.tap, 0.25);
+  const mem = $('qp0').firstElementChild;
+  mem.style.boxShadow = `0 0 0 ${f1(8 * lit)}px rgba(124,58,237,${(0.18 * lit).toFixed(3)}),0 ${f1(10 + 14 * lit)}px ${f1(24 + 20 * lit)}px -16px rgba(79,70,229,${(0.3 + 0.3 * lit).toFixed(3)})`;
+  mem.style.transform = `scale(${(1 + 0.05 * lit - 0.05 * tap).toFixed(3)})`;
+  mem.style.transformOrigin = '0 50%';
+
+  const tr = trendSvg(clamp((t - T.card2 - 0.2) / 1.0) * (FACTS.trend.weeks.length - 1));
+  const sv = $('trend'); if (sv._h !== tr.svg) { sv.innerHTML = tr.svg; sv._h = tr.svg; }
+  const ta = $('trA'), tb = $('trB');
+  ta.style.left = f1(tr.a[0] - 10) + 'px'; ta.style.top = f1(tr.a[1] - 76) + 'px'; ta.style.opacity = k(t, T.card2 + 0.3, 0.3).toFixed(3);
+  tb.style.right = '0px'; tb.style.top = f1(tr.b[1] + 26) + 'px'; tb.style.opacity = k(t, T.card2 + 1.2, 0.3).toFixed(3);
+
+  rise($('w3q'), k(t, T.ask3, 0.4, EBK), 10);
+  rise($('w3a'), k(t, T.panes, 0.5, EOX), 24);
+  rise($('w3b'), k(t, T.panes + 0.2, 0.5, EOX), 24);
+  for (let i = 0; i < 11; i++) $('ww' + i).style.opacity = k(t, T.panes + 0.2 + i * 0.07, 0.15, LIN).toFixed(3);
+  const dn = k(t, T.panes + 0.5, 0.7, EOX);
+  $('w3donut').style.opacity = dn.toFixed(3);
+  $('w3donut').style.transform = `translateX(-50%) rotate(${f1(-40 * (1 - dn))}deg) scale(${lerp(0.85, 1, dn).toFixed(3)})`;
+
+  T.chips.forEach((c, i) => { rise($('w4q' + i), k(t, c, 0.4, EBK), 10); rise($('w4c' + i), k(t, c + 0.15, 0.5, EOX), 24); });
+
   const press = bump(t, T.fwdClick, 0.25);
   $('fwdBtn').style.transform = `scale(${(1 - press * 0.08).toFixed(3)})`;
-  const pop = k(t, T.pop, 0.4, EBK) * (1 - k(t, T.pull2[0] - 0.1, 0.3, EI3));
+  const pop = k(t, T.pop, 0.4, EBK) * (1 - k(t, T.pull3[0] - 0.1, 0.3, EI3));
   $('pop').style.opacity = clamp(pop).toFixed(3);
   $('pop').style.transform = `scale(${lerp(0.85, 1, clamp(pop)).toFixed(3)})`;
   const sent = k(t, T.sent, 0.25, LIN);
   $('popSend').style.opacity = (1 - sent).toFixed(3);
   $('popSend').style.transform = `scale(${(1 - bump(t, T.sendClick, 0.25) * 0.06).toFixed(3)})`;
   $('popDone').style.opacity = sent.toFixed(3);
-
-  rise($('w3q'), k(t, T.ask3, 0.4, EBK), 10);
-  rise($('w3a'), k(t, T.panes, 0.5, EOX), 24);
-  rise($('w3b'), k(t, T.panes + 0.2, 0.5, EOX), 24);
-  for (let i = 0; i < 11; i++) $('ww' + i).style.opacity = k(t, T.panes + 0.2 + i * 0.07, 0.15, LIN).toFixed(3);
-  FACTS.director.rows.forEach((_, i) => rise($('dr' + i), k(t, T.panes + 0.45 + i * 0.1, 0.4, EOX), 12));
-
-  T.chips.forEach((c, i) => { rise($('w4q' + i), k(t, c, 0.4, EBK), 10); rise($('w4c' + i), k(t, c + 0.15, 0.5, EOX), 24); });
-  const tr = trendSvg(clamp((t - T.chips[1] - 0.4) / 0.9) * (FACTS.trend.weeks.length - 1));
-  const sv = $('trend'); if (sv._h !== tr.svg) { sv.innerHTML = tr.svg; sv._h = tr.svg; }
-  const ta = $('trA'), tb = $('trB');
-  ta.style.left = f1(tr.a[0] - 8) + 'px'; ta.style.top = f1(tr.a[1] - 48) + 'px'; ta.style.opacity = k(t, T.chips[1] + 0.5, 0.3).toFixed(3);
-  tb.style.right = '0px'; tb.style.top = f1(tr.b[1] + 16) + 'px'; tb.style.opacity = k(t, T.chips[1] + 1.3, 0.3).toFixed(3);
 
   const cPress = bump(t, T.connClick, 0.25);
   $('cBtn').style.opacity = (1 - k(t, T.connClick + 0.1, 0.2, LIN)).toFixed(3);
@@ -1062,21 +1049,19 @@ function screenWin(t) {
   const ok = k(t, T.connected, 0.4, EBK);
   $('cOk').style.opacity = clamp(ok).toFixed(3);
   $('cOk').style.transform = `scale(${lerp(0.8, 1, clamp(ok)).toFixed(3)})`;
-  $('cRow').style.boxShadow = `0 0 0 ${f1(3 * k(t, T.connected, 0.4))}px rgba(16,185,129,.35)`;
-  const stepEvery = (T.connected - T.connClick - 0.1) / CONNECT_STEPS.length;
-  CONNECT_STEPS.forEach((_, i) => { const done = t >= T.connClick + 0.1 + (i + 1) * stepEvery, on = !done && (i === 0 || t >= T.connClick + 0.1 + i * stepEvery); $('cs' + i).className = `step t24${done ? ' done' : on ? ' on' : ''}`; });
-  rise($('w6q'), k(t, T.ask5, 0.4, EBK), 10);
+  $('cRow').style.boxShadow = `0 0 0 ${f1(4 * k(t, T.connected, 0.4))}px rgba(16,185,129,.35),0 26px 60px -30px rgba(49,46,129,.28)`;
   rise($('w6a'), k(t, T.assets, 0.45, EOX));
   FACTS.assets.forEach((_, i) => rise($('w6t' + i), k(t, T.assets + 0.2 + i * 0.15, 0.45, EOX)));
 
-  const fwdCur = t > T.fwd && t < T.pull2[0];
-  const connCur = t > T.push5[1] - 0.2 && t < T.ask5;
-  const keys = fwdCur ? CUR_KEYS.fwd : CUR_KEYS.conn;
+  const pillCur = t > T.memPill && t < T.card2 + 0.3;
+  const fwdCur = t > T.fwd && t < T.pull3[0];
+  const connCur = t > T.push6[1] - 0.2 && t < T.connected + 0.5;
+  const keys = pillCur ? CUR_KEYS.pill : fwdCur ? CUR_KEYS.fwd : CUR_KEYS.conn;
   const [cx, cy] = cursorAt(keys, t);
-  const co = fwdCur ? k(t, T.fwd + 0.2, 0.3) * (1 - k(t, T.pull2[0] - 0.4, 0.3)) : connCur ? k(t, T.push5[1], 0.3) * (1 - k(t, T.ask5 - 0.4, 0.3)) : 0;
+  const co = pillCur ? k(t, T.memPill + 0.2, 0.3) * (1 - k(t, T.card2, 0.3)) : fwdCur ? k(t, T.fwd + 0.2, 0.3) * (1 - k(t, T.pull3[0] - 0.4, 0.3)) : connCur ? k(t, T.push6[1], 0.3) * (1 - k(t, T.connected + 0.2, 0.3)) : 0;
   const cur2 = $('wcur');
   cur2.style.opacity = co.toFixed(3);
-  const clickT = [T.fwdClick, T.sendClick, T.connClick].find(c => t > c - 0.1 && t < c + 0.5);
+  const clickT = [T.tap, T.fwdClick, T.sendClick, T.connClick].find(c => t > c - 0.1 && t < c + 0.5);
   cur2.style.transform = `translate(${f1(cx - 11)}px,${f1(cy - 6)}px) scale(${(1 - (clickT ? bump(t, clickT, 0.25) * 0.12 : 0)).toFixed(3)})`;
   const rip = $('wrip'), rp = clickT ? clamp((t - clickT) / 0.5) : 0;
   rip.style.opacity = (rp > 0 && rp < 1 ? 1 - rp : 0).toFixed(3);
@@ -1088,7 +1073,6 @@ function screenPhone(t) {
   const sent0 = t >= T.leaveQ[0] + T.leaveQ[1] + 0.15, sent1 = t >= T.leave[0] + T.leave[1] + 0.15;
   const typing = !sent0 ? LEAVE_Q.slice(0, n0).join('') : sent0 && !sent1 ? LEAVE.slice(0, n1).join('') : '';
   const pt = $('ptyped'); if (pt._h !== typing) { pt.textContent = typing; pt._h = typing; }
-  $('pph').style.display = typing ? 'none' : 'inline';
   $('pcaret').style.opacity = (typing || Math.floor(RT * 2.4) % 2 === 0) ? '1' : '0';
   const q0 = $('pq0'), q1 = $('pq1');
   if (q0._h === undefined) { q0.textContent = LEAVE_Q.join(''); q1.textContent = LEAVE.join(''); q0._h = 1; }
@@ -1096,25 +1080,24 @@ function screenPhone(t) {
   q0.style.opacity = clamp(b0).toFixed(3); q0.style.transform = `scale(${lerp(0.7, 1, clamp(b0)).toFixed(3)})`;
   q1.style.opacity = clamp(b1).toFixed(3); q1.style.transform = `scale(${lerp(0.7, 1, clamp(b1)).toFixed(3)})`;
   rise($('pbal'), k(t, T.bal, 0.45, EOX), 24);
-  FACTS.leaveBalance.forEach((b, i) => { const p = k(t, T.bal + 0.15 + i * 0.15, 0.45, EOX); $('pb' + i).style.opacity = p.toFixed(3); $('pbf' + i).style.width = (b.left / b.entitled * 100 * p).toFixed(1) + '%'; });
+  $('pbf').style.width = (ANNUAL.left / ANNUAL.entitled * 100 * k(t, T.bal + 0.2, 0.6, EOX)).toFixed(1) + '%';
   $('pscroll').style.transform = `translateY(${f1(-k(t, T.scroll, 0.5, EIO3) * 376)}px)`;
   rise($('plv'), k(t, T.conf, 0.5, EOX), 30);
   const okP = bump(t, T.press, 0.3);
   $('plvOk').style.transform = `scale(${(1 - okP * 0.08).toFixed(3)})`;
   const dn = k(t, T.done, 0.4, EBK);
-  $('plvBtns').style.opacity = (1 - clamp(dn * 2)).toFixed(3);
+  $('plvOk').style.opacity = (1 - clamp(dn * 2)).toFixed(3);
   $('plvDone').style.opacity = clamp(dn).toFixed(3);
   $('plvDone').style.transform = `scale(${lerp(0.85, 1, clamp(dn)).toFixed(3)})`;
-  const taps = [[T.leaveQ[0] + T.leaveQ[1] + 0.05, 307, 650], [T.leave[0] + T.leave[1] + 0.05, 307, 650], [T.press, 243, 507]];
-  const tap = taps.find(([a]) => t > a - 0.25 && t < a + 0.35);
+  const tap = PHONE_TAPS.find(([a]) => t > a - 0.25 && t < a + 0.35);
   const touch = $('ptouch');
   touch.style.opacity = tap ? (bump(t, tap[0] - 0.25, 0.6) * 0.9).toFixed(3) : '0';
-  if (tap) touch.style.transform = `translate(${tap[1]}px,${tap[2]}px) scale(${(1 - bump(t, tap[0], 0.25) * 0.2).toFixed(3)})`;
+  if (tap) touch.style.transform = `translate(${f1(tap[1])}px,${f1(tap[2])}px) scale(${(1 - bump(t, tap[0], 0.25) * 0.2).toFixed(3)})`;
 }
 
 function screenSplit(t) {
-  rise($('s6qa'), k(t, T.push4[0] - 0.3, 0.4, EBK), 10);
-  rise($('s6qb'), k(t, T.push4[0] - 0.1, 0.4, EBK), 10);
+  rise($('s6qa'), k(t, T.push5[0] - 0.3, 0.4, EBK), 10);
+  rise($('s6qb'), k(t, T.push5[0] - 0.1, 0.4, EBK), 10);
   rise($('s6ka'), k(t, T.nums, 0.5, EOX), 24);
   rise($('s6kb'), k(t, T.nums + 0.2, 0.5, EOX), 24);
   const flip = k(t, T.flip, 0.35, EIO3);
@@ -1122,14 +1105,14 @@ function screenSplit(t) {
   $('togOff').style.opacity = flip.toFixed(3);
   const blur = k(t, T.lock - 0.1, 0.5, EIO3);
   const v = $('s6kbv');
-  v.style.filter = `blur(${f1(blur * 14)}px)`;
-  v.style.opacity = (1 - blur * 0.45).toFixed(3);
+  v.style.filter = `blur(${f1(blur * 18)}px)`;
+  v.style.opacity = (1 - blur * 0.55).toFixed(3);
   const lk = k(t, T.lock, 0.45, EBK);
   $('s6lock').style.opacity = clamp(lk).toFixed(3);
   $('s6lock').style.transform = `scale(${lerp(0.8, 1, clamp(lk)).toFixed(3)})`;
-  const [cx, cy] = cursorAt([[T.push4[1], 600, 230], [T.flip - 0.05, 618, 128], [T.flip + 0.6, 660, 210]], t);
+  const [cx, cy] = cursorAt([[T.push5[1], 600, 250], [T.flip - 0.05, 630, 160], [T.flip + 0.6, 670, 230]], t);
   const sc = $('scur');
-  sc.style.opacity = (k(t, T.push4[1], 0.3) * (1 - k(t, T.flip + 0.7, 0.3))).toFixed(3);
+  sc.style.opacity = (k(t, T.push5[1], 0.3) * (1 - k(t, T.flip + 0.7, 0.3))).toFixed(3);
   sc.style.transform = `translate(${f1(cx)}px,${f1(cy)}px) scale(${(1 - bump(t, T.flip - 0.1, 0.25) * 0.12).toFixed(3)})`;
 }
 
@@ -1200,6 +1183,9 @@ function render(t) {
   wg.setAttribute('opacity', clamp(wo).toFixed(3));
   fxg.innerHTML = acc.fx.join('');
   $('fx').style.opacity = (1 - solved.inside).toFixed(3);
+  const haze = solved.inside > 0.005 ? `blur(${f1(solved.inside * 8)}px)` : 'none';
+  $('world').style.filter = haze;
+  $('fx').style.filter = haze;
   $('labels').style.opacity = (1 - solved.away).toFixed(3);
   $('ui').style.opacity = (1 - solved.away).toFixed(3);
   for (const [id, el] of pool) if (!used.has(id)) el.style.display = 'none';
@@ -1207,7 +1193,6 @@ function render(t) {
 
 const keysIn = (count, from, to) => Sound.steps(count, from - 0.01, to + 0.01, 0.05).map((at, i) => ({ at, sfx: 'key', step: i }));
 const typed = (span, G) => keysIn((t) => typedCount(t, span, G), span[0], span[0] + span[1]);
-const SWEEP = 0.6;
 const SOUND = {
   tempo: { on: T.memc },
   sections: [
@@ -1229,14 +1214,15 @@ const SOUND = {
     ...typed(T.q, Q),
     { at: T.ask, sfx: 'send' },
     { at: T.sun, sfx: 'air' },
-    { at: T.isan, sfx: 'notify' },
-    ...VISITS.flatMap(v => [{ at: GRID.snap(v.push[0] + SWEEP, 2), sfx: 'whoosh' }, { at: GRID.snap(v.pull[0] + SWEEP, 2), sfx: 'whoosh', step: 1 }]),
+    { at: T.alert, sfx: 'notify' },
+    ...VISITS.flatMap(v => v.moves.flatMap(([push, pull]) => [{ at: push[0] + GRID.beat, sfx: 'whoosh' }, { at: pull[0] + GRID.beat, sfx: 'whoosh', step: 1 }])),
     { at: T.say1, sfx: 'send' },
     { at: T.memc, sfx: 'memory' },
     { at: T.memDrop + 0.5, sfx: 'glow', step: 0 },
     { at: T.day, sfx: 'dawn' },
-    { at: T.ask2, sfx: 'send' },
-    { at: T.why, sfx: 'memory' },
+    ...CHIPS.map((_, i) => ({ at: T.pills + i * 0.15, sfx: 'pop', step: i + 1 })),
+    { at: T.memPill, sfx: 'memory' },
+    { at: T.tap, sfx: 'click' },
     { at: T.ask3, sfx: 'send' },
     ...T.chips.map((at) => ({ at, sfx: 'pop', step: 2 })),
     { at: T.fwdClick, sfx: 'click' },
@@ -1254,7 +1240,6 @@ const SOUND = {
     { at: T.plug[0] + T.plug[1], sfx: 'plug' },
     { at: T.connClick, sfx: 'click' },
     { at: T.connected, sfx: 'toggle' },
-    { at: T.ask5, sfx: 'send' },
     { at: T.logo, sfx: 'sting' },
     ...HLS.filter(([, inT]) => inT >= 0).map(([id, at]) => ({ at, sfx: 'hit', step: id === 'hlB' ? 1 : 0 })),
   ],
@@ -1290,7 +1275,7 @@ function loop(ts) {
 }
 await Promise.all([
   document.fonts.load('600 80px Anuphan', 'ภาคไหน'), document.fonts.load('700 48px Anuphan', '1,110.2'),
-  document.fonts.load('600 32px Anuphan', 'ภาค'), document.fonts.load('500 24px Anuphan', 'ภาค'), document.fonts.load('400 30px Anuphan', 'ภาค'),
+  document.fonts.load('600 32px Anuphan', 'ภาค'), document.fonts.load('500 34px Anuphan', 'ภาค'), document.fonts.load('600 40px Anuphan', 'ภาค'), document.fonts.load('700 96px Anuphan', '96.3%'),
 ]);
 await document.fonts.ready;
 await Promise.all([...document.images].map(img => img.decode().catch(() => null)));
