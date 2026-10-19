@@ -10,8 +10,8 @@ const USAGE = `usage: bun run history:bench [--mastra-db=<path>]
   longest     the thread with the most questions, all of it as the history of its next call, by part, before and after HistoryTrim`;
 
 const QUESTION_SLACK_MS = 5_000;
-const BILLED_CHARS_PER_TOKEN = 1.5;
-const PARTS = ["question", "replyText", "reasoning", "toolCall", "toolResult"] as const;
+const CHARS_PER_TOKEN: Record<Part, number> = { question: 1.7, replyText: 1.7, reasoning: Infinity, signature: 15, toolCall: 1.7, toolResult: 1.7 };
+const PARTS = ["question", "replyText", "reasoning", "signature", "toolCall", "toolResult"] as const;
 
 type Part = (typeof PARTS)[number];
 type PartChars = Record<Part, number>;
@@ -78,7 +78,12 @@ function storedThrough(db: Database, threadId: string, questionAt: string): Stor
 }
 
 function emptyParts(): PartChars {
-  return { question: 0, replyText: 0, reasoning: 0, toolCall: 0, toolResult: 0 };
+  return { question: 0, replyText: 0, reasoning: 0, signature: 0, toolCall: 0, toolResult: 0 };
+}
+
+function signatureChars(options: unknown): number {
+  const details = (options as { openrouter?: { reasoning_details?: { data?: unknown }[] } } | undefined)?.openrouter?.reasoning_details ?? [];
+  return details.reduce((sum, detail) => sum + (typeof detail.data === "string" ? detail.data.length : 0), 0);
 }
 
 function partChars(prompt: ModelPrompt): PartChars {
@@ -87,7 +92,8 @@ function partChars(prompt: ModelPrompt): PartChars {
     if (message.role === "system") continue;
     for (const part of message.content) {
       if (part.type === "text") chars[message.role === "user" ? "question" : "replyText"] += part.text.length;
-      if (part.type === "reasoning") chars.reasoning += part.text.length + JSON.stringify(part.providerOptions ?? {}).length;
+      if (part.type === "reasoning") chars.reasoning += part.text.length;
+      if (part.type === "reasoning") chars.signature += signatureChars(part.providerOptions);
       if (part.type === "tool-call") chars.toolCall += part.toolName.length + JSON.stringify(part.input).length;
       if (part.type === "tool-result") chars.toolResult += JSON.stringify(part.output).length;
     }
@@ -96,17 +102,16 @@ function partChars(prompt: ModelPrompt): PartChars {
 }
 
 async function parts(db: Database, turns: Turn[]): Promise<void> {
-  console.log("\nparts: history characters the first call of each later turn carries, against its uncached input tokens");
-  console.log(`  thread | turn | uncached tokens | ${PARTS.join(" | ")} | billed chars per uncached token | estimated tokens | after HistoryTrim`);
+  console.log("\nparts: history characters the first call of each later turn carries, against its uncached input tokens (history plus question)");
+  console.log(`  thread | turn | uncached tokens | ${PARTS.join(" | ")} | estimated tokens | after HistoryTrim`);
   for (const turn of turns.filter((candidate) => candidate.position > 1).sort((a, b) => a.threadId.localeCompare(b.threadId) || a.position - b.position)) {
     const first = turn.calls[0];
     if (!first) continue;
     const prompt = await storedHistoryPrompt(turn.threadId, storedThrough(db, turn.threadId, turn.questionAt));
     const chars = partChars(prompt);
-    const billed = PARTS.filter((part) => part !== "reasoning").reduce((sum, part) => sum + chars[part], 0);
     const uncached = first.input - first.cached;
     const after = historyTokens(trimmedHistory(prompt));
-    console.log(`  ${turn.threadId.slice(0, 8)} | ${turn.position} | ${uncached} | ${PARTS.map((part) => chars[part]).join(" | ")} | ${(billed / uncached).toFixed(2)} | ${historyTokens(prompt)} | ${after}`);
+    console.log(`  ${turn.threadId.slice(0, 8)} | ${turn.position} | ${uncached} | ${PARTS.map((part) => chars[part]).join(" | ")} | ${historyTokens(prompt)} | ${after}`);
   }
 }
 
@@ -117,7 +122,7 @@ function longestThread(db: Database): string | null {
 
 function tokensByPart(prompt: ModelPrompt): string {
   const chars = partChars(prompt);
-  return PARTS.map((part) => (part === "reasoning" ? `${part} ${chars[part]} chars, not billed` : `${part} ${Math.round(chars[part] / BILLED_CHARS_PER_TOKEN)}`)).join(" · ");
+  return PARTS.map((part) => `${part} ${Math.round(chars[part] / CHARS_PER_TOKEN[part])}`).join(" · ");
 }
 
 async function longest(db: Database): Promise<void> {
@@ -126,7 +131,7 @@ async function longest(db: Database): Promise<void> {
   const rows = storedThrough(db, threadId, new Date().toISOString());
   const prompt = await storedHistoryPrompt(threadId, rows);
   const trimmed = trimmedHistory([...prompt, { role: "user", content: [{ type: "text", text: "" }] }]).slice(0, -1);
-  console.log(`\nlongest: thread ${threadId}, ${rows.filter((row) => row.role === "user").length} questions, as the next call's history (estimated tokens)`);
+  console.log(`\nlongest: thread ${threadId}, ${rows.filter((row) => row.role === "user").length} questions, as the next call's history (estimated tokens; reasoning text is sent but not billed)`);
   console.log(`  before: ${historyTokens(prompt)} · ${tokensByPart(prompt)}`);
   console.log(`  after:  ${historyTokens(trimmed)} · ${tokensByPart(trimmed)}`);
 }

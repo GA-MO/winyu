@@ -3,7 +3,10 @@ import type { ProcessLLMRequestArgs, ProcessLLMRequestResult, Processor } from "
 import { TH } from "@/lib/i18n/th";
 
 const KEEP_WHOLE_CHARS = 600;
-const CHARS_PER_TOKEN = 1.5;
+const CHARS_PER_TOKEN = 1.7;
+const SIGNATURE_CHARS_PER_TOKEN = 15;
+const REASONING_PROVIDER = "openrouter";
+const REASONING_DETAILS = "reasoning_details";
 const ROW_LISTS = ["rows", "data", "conversations"] as const;
 const KEPT_FIELDS = ["ok", "summary", "query", "error", "code"] as const;
 
@@ -17,6 +20,8 @@ type PromptMessage = ModelPrompt[number];
 type ToolResultOutput = Extract<Extract<PromptMessage, { role: "tool" }>["content"][number], { type: "tool-result" }>["output"];
 type JsonValue = Extract<ToolResultOutput, { type: "json" }>["value"];
 type JsonRecord = { [key: string]: JsonValue };
+type ProviderOptions = NonNullable<Extract<PromptMessage, { role: "assistant" }>["providerOptions"]>;
+type AssistantPart = Extract<PromptMessage, { role: "assistant" }>["content"][number];
 
 /** One row of Mastra's message table, as `mastra_messages` holds it. */
 export type StoredMessageRow = { id: string; role: string; content: string; createdAt: string; type: string; resourceId: string };
@@ -58,25 +63,51 @@ function trimmedOutput(output: ToolResultOutput): ToolResultOutput {
   return { type: "json", value: stubOf(output.value) };
 }
 
-function withStubbedResults(message: PromptMessage): PromptMessage {
-  if (message.role !== "tool") return message;
-  return { ...message, content: message.content.map((part) => (part.type === "tool-result" ? { ...part, output: trimmedOutput(part.output) } : part)) };
+function withoutReasoningDetails(options: ProviderOptions | undefined): ProviderOptions | undefined {
+  const provider = options?.[REASONING_PROVIDER];
+  if (!options || !provider || !(REASONING_DETAILS in provider)) return options;
+  const { [REASONING_DETAILS]: _details, ...rest } = provider;
+  return { ...options, [REASONING_PROVIDER]: rest };
 }
 
-function billedChars(message: PromptMessage): number {
-  if (message.role === "system") return 0;
-  let chars = 0;
+function withoutThoughts(part: AssistantPart): AssistantPart {
+  return part.providerOptions ? { ...part, providerOptions: withoutReasoningDetails(part.providerOptions) } : part;
+}
+
+/** An earlier turn's message as it is worth sending: results stubbed, and the model's reasoning and thought signatures gone, since the model reads only the current turn's (measured: signatures are billed, about 15 characters per token). */
+function lightened(message: PromptMessage): PromptMessage {
+  if (message.role === "tool") return { ...message, content: message.content.map((part) => (part.type === "tool-result" ? { ...part, output: trimmedOutput(part.output) } : part)) };
+  if (message.role !== "assistant") return message;
+  const content = message.content.filter((part) => part.type !== "reasoning").map(withoutThoughts);
+  return { ...message, content, providerOptions: withoutReasoningDetails(message.providerOptions) };
+}
+
+function hasContent(message: PromptMessage): boolean {
+  return message.role === "system" || message.content.length > 0;
+}
+
+function signatureChars(options: ProviderOptions | undefined): number {
+  const details = options?.[REASONING_PROVIDER]?.[REASONING_DETAILS];
+  if (!Array.isArray(details)) return 0;
+  return details.reduce<number>((sum, detail) => sum + (isRecord(detail) && typeof detail.data === "string" ? detail.data.length : 0), 0);
+}
+
+function billedChars(message: PromptMessage): { text: number; signatures: number } {
+  const chars = { text: 0, signatures: 0 };
+  if (message.role === "system") return chars;
   for (const part of message.content) {
-    if (part.type === "text") chars += part.text.length;
-    if (part.type === "tool-call") chars += JSON.stringify(part.input).length;
-    if (part.type === "tool-result") chars += JSON.stringify(part.output).length;
+    if (part.type === "text") chars.text += part.text.length;
+    if (part.type === "tool-call") chars.text += JSON.stringify(part.input).length;
+    if (part.type === "tool-result") chars.text += JSON.stringify(part.output).length;
+    if (part.type === "reasoning") chars.signatures += signatureChars(part.providerOptions);
   }
   return chars;
 }
 
-/** Estimated input tokens of the messages as the model bills them: earlier turns' reasoning is sent back but measured as not billed (docs/memory.md, Long threads). */
+/** Estimated input tokens of the messages as the model bills them, fitted on 14 measured turns (docs/memory.md, Long threads): text, tool calls and results at 1.7 characters per token, thought signatures at 15, reasoning text not at all. */
 export function historyTokens(messages: readonly PromptMessage[]): number {
-  return Math.ceil(messages.reduce((sum, message) => sum + billedChars(message), 0) / CHARS_PER_TOKEN);
+  const chars = messages.map(billedChars).reduce((sum, next) => ({ text: sum.text + next.text, signatures: sum.signatures + next.signatures }), { text: 0, signatures: 0 });
+  return Math.ceil(chars.text / CHARS_PER_TOKEN + chars.signatures / SIGNATURE_CHARS_PER_TOKEN);
 }
 
 function turnsOf(history: readonly PromptMessage[]): PromptMessage[][] {
@@ -96,12 +127,12 @@ function underCeiling(history: readonly PromptMessage[]): PromptMessage[] {
   return turns.flat();
 }
 
-/** The prompt with earlier turns made light: each old tool result becomes a stub, and the oldest turns leave whole while history passes the ceiling; the system messages before the first turn and the current turn (from the newest question on) stay as they are. */
+/** The prompt with earlier turns made light: each old tool result becomes a stub, old reasoning and thought signatures are dropped, and the oldest turns leave whole while history passes the ceiling; the system messages before the first turn and the current turn (from the newest question on) stay as they are. */
 export function trimmedHistory(prompt: ModelPrompt): ModelPrompt {
   const newestQuestion = prompt.findLastIndex((message) => message.role === "user");
   if (newestQuestion <= 0) return prompt;
   const firstTurn = prompt.findIndex((message) => message.role !== "system");
-  const history = underCeiling(prompt.slice(firstTurn, newestQuestion).map(withStubbedResults));
+  const history = underCeiling(prompt.slice(firstTurn, newestQuestion).map(lightened).filter(hasContent));
   return [...prompt.slice(0, firstTurn), ...history, ...prompt.slice(newestQuestion)];
 }
 

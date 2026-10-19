@@ -118,4 +118,25 @@ describe("a long thread's history", () => {
     expect(history.slice(-2)).toEqual(earlier.slice(-2));
     expect(history.length).toBeLessThan(earlier.length);
   });
+
+  test("an earlier turn's reasoning and thought signatures stay out of the prompt, the current turn keeps its own", () => {
+    const signed = { openrouter: { reasoning_details: [{ type: "reasoning.encrypted", data: "c2lnbmF0dXJl", format: "google-gemini-v1" }] } };
+    const thinking = (id: string): ModelPrompt[number] => ({
+      role: "assistant",
+      content: [
+        { type: "reasoning", text: "คิดก่อนตอบ", providerOptions: signed },
+        { type: "tool-call", toolCallId: id, toolName: "query_metric", input: BY_PROVINCE, providerOptions: signed },
+      ],
+    });
+    const result = (id: string): ModelPrompt[number] => ({ role: "tool", content: [{ type: "tool-result", toolCallId: id, toolName: "query_metric", output: { type: "json", value: { ok: true, summary: "ผล" } } }] });
+    const current: ModelPrompt = [{ role: "user", content: [{ type: "text", text: question(2) }] }, thinking("now"), result("now")];
+    const prompt: ModelPrompt = [{ role: "user", content: [{ type: "text", text: question(1) }] }, thinking("before"), result("before"), { role: "assistant", content: [{ type: "reasoning", text: "สรุป", providerOptions: signed }] }, { role: "assistant", content: [{ type: "text", text: reply(1) }] }, ...current];
+
+    const trimmed = trimmedHistory(prompt);
+    const earlier = trimmed.slice(0, trimmed.length - current.length);
+    expect(JSON.stringify(earlier)).not.toContain("reasoning");
+    expect(earlier.map((message) => message.role)).toEqual(["user", "assistant", "tool", "assistant"]);
+    expect(earlier[1]?.content).toEqual([{ type: "tool-call", toolCallId: "before", toolName: "query_metric", input: BY_PROVINCE, providerOptions: { openrouter: {} } }]);
+    expect(trimmed.slice(-current.length)).toEqual(current);
+  });
 });
