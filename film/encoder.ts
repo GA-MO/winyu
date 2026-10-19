@@ -1,11 +1,13 @@
 import type { BufferTarget, Output, VideoSampleSource } from "mediabunny";
+import { trimAacPriming } from "./edit-list";
 const FPS = 30;
 
 const BITRATE = 12_000_000;
+const AUDIO_BITRATE = 192_000;
 const KEYFRAME_EVERY_S = 2;
 const BASE64_SLICE = 0x8000;
 
-type Session = { output: Output<never, BufferTarget>; source: VideoSampleSource; buffer: ArrayBuffer | null };
+type Session = { output: Output<never, BufferTarget>; source: VideoSampleSource; audioSamples: number; buffer: ArrayBuffer | null };
 
 let session: Session | null = null;
 
@@ -22,14 +24,20 @@ function bytesToBase64(bytes: Uint8Array): string {
   return btoa(binary);
 }
 
-/** Opens an in-memory H.264 MP4 at the booth frame rate. */
-export async function startEncoder(): Promise<void> {
-  const { BufferTarget, Mp4OutputFormat, Output, VideoSampleSource } = await import("mediabunny");
+/** Opens an in-memory H.264 MP4 at the booth frame rate, with the film's score as an AAC track when it has one. */
+export async function startEncoder(audio: AudioBuffer | null): Promise<void> {
+  const { AudioBufferSource, BufferTarget, Mp4OutputFormat, Output, VideoSampleSource } = await import("mediabunny");
   const output = new Output({ format: new Mp4OutputFormat({ fastStart: "in-memory" }), target: new BufferTarget() });
   const source = new VideoSampleSource({ codec: "avc", bitrate: BITRATE });
   output.addVideoTrack(source, { frameRate: FPS });
+  const sound = audio ? new AudioBufferSource({ codec: "aac", bitrate: AUDIO_BITRATE }) : null;
+  if (sound) output.addAudioTrack(sound);
   await output.start();
-  session = { output: output as Output<never, BufferTarget>, source, buffer: null };
+  if (sound && audio) {
+    await sound.add(audio);
+    sound.close();
+  }
+  session = { output: output as Output<never, BufferTarget>, source, audioSamples: audio?.length ?? 0, buffer: null };
 }
 
 /** Encodes one captured JPEG frame at its place in the timeline. */
@@ -47,7 +55,8 @@ export async function addFrame(jpegBase64: string, frame: number): Promise<void>
 export async function finishEncoder(): Promise<number> {
   if (!session) throw new Error("Encoder not started");
   await session.output.finalize();
-  session.buffer = session.output.target.buffer;
+  const mp4 = session.output.target.buffer;
+  session.buffer = mp4 && session.audioSamples ? trimAacPriming(mp4, session.audioSamples) : mp4;
   return session.buffer?.byteLength ?? 0;
 }
 

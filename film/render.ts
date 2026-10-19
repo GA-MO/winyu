@@ -41,7 +41,8 @@ try {
 
     const length = Number(await evaluate("window.film.length"));
     const frames = Math.round(length * FPS);
-    console.log(`Rendering ${frames} frames (${length.toFixed(2)} s at ${FPS} fps) from ${filmName}`);
+    const sound = Boolean(await evaluate("typeof window.film.audio === 'function'"));
+    console.log(`Rendering ${frames} frames (${length.toFixed(2)} s at ${FPS} fps) from ${filmName}${sound ? " with its score" : ", silent"}`);
     await evaluate("window.__encoder.startEncoder()");
     const startedAt = Date.now();
     for (let frame = 0; frame < frames; frame += 1) {
