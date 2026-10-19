@@ -10,6 +10,7 @@ Winyu on Mastra copied the harness of Winyu (Vexa build, before 2026-10-05): the
 | Jobs on a timetable | Adopted: Mastra scheduled workflows; the copied scheduler is deleted | `jobs.ts` |
 | An inbox event reaches an idle thread | Rejected: Winyu already writes handoff replies into the thread | `appendHandoffReply` in `history.ts` |
 | A stalled model call does not hold the chat | Adopted: Mastra time budgets and a model fallback list; a calm slow state and ask-again in the chat | `agent.ts`, `durable.ts`, `models.ts`, `use-chat-session.ts` |
+| Long threads do not resend every old result | Own input processor on Mastra's `processLLMRequest` stage; `ToolCallFilter` and `TokenLimiterProcessor` rejected | `history-trim.ts` |
 
 ## 1. Durable runs
 
@@ -94,6 +95,15 @@ One difference from the copy: on the first boot of a fresh data folder, the engi
 - Stall demo with `WINYU_DEV_STALL_FLEX=1`: run 26bffea7. Each of its two steps has an aborted flex row 20 s after the step began, then a standard-tier row. The reply took 89.8 s, the chat showed 'ใช้เวลานานกว่าปกติ…' at 20 s, and the answer card arrived (`resil-fallback-slow.png`, `resil-fallback.png` in the session scratchpad).
 - Failure demo with `WINYU_CHAT_BUDGET_MS=1000,60000,150000`: the failure line and 'ถามอีกครั้ง' appeared after 2.6 s (`resil-failed.png`). After a restart with the normal budgets and a reload, the button answered the question. A second reload shows the question once.
 - Tests: `time-budget.test.ts` (a stalled first chunk fails over, an all-stalled run ends in a timed-out run error with nothing in flight, asking again keeps one question, a silent tool step runs no tool twice), `usage-meter.test.ts` (an aborted stream is kept), `models.test.ts` (the fallback tier), `exchange-view.test.tsx`, `use-chat-session.test.ts`, `timeline.test.ts`.
+## 6. History trimming
+
+**What the copy did.** Mastra memory gives the chat agent the last 20 messages of the thread, and every one reached the model as stored: each earlier tool result with all its rows, and the model's encrypted thought signatures. Measured on the development store, each earlier turn added about 2,000 uncached input tokens to every call of every later turn (`bun run history:bench`, docs/memory.md, Long threads).
+
+**What Mastra gives.** Input processors with a `processLLMRequest` hook, which rewrites the provider prompt just before each model call without touching stored messages. `ToolCallFilter` drops earlier tool calls with their results, optionally keeping the result's model view as text. `TokenLimiterProcessor` drops the oldest message groups past a token limit.
+
+**Adopted.** `HistoryTrim` (`lib/harness/adapters/mastra/history-trim.ts`) runs at that stage. Before the newest question, a tool result longer than 600 characters becomes a stub (`ok`, `summary`, `query`, `error`, `code`, `rowCount` and a note), reasoning and thought signatures are dropped, and the oldest turns leave whole while history passes 8,000 estimated tokens. The current turn, the system messages and the cached prefix are untouched. Stored messages, the restored transcript, cards, recall and traces keep every result whole. Evidence: `history-trim.test.ts` runs six turns through the real chat agent with a scripted model, and the live check in docs/memory.md measured turn 4's first call at 1,255 uncached tokens against an estimated 8,414 for the same history untrimmed.
+
+**Rejected.** `ToolCallFilter` drops the call's arguments, which a follow-up reads ("the first region we looked at"), and its kept text is the model view, which for `query_metric` holds every row. `TokenLimiterProcessor` counts the system prompt into its limit, stops the run with a tripwire when the system prompt alone passes it, and can keep a reply without its question.
 
 ## Open
 

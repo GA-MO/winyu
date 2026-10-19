@@ -151,7 +151,76 @@ FastEmbed's multilingual E5 large, Mastra's documented local option, found fewer
 
 Observational memory runs an Observer model in the background once a thread's history passes a token threshold, and a Reflector when the notes grow. It compresses one long thread. Its resource scope, the only mode that would carry across threads, is deprecated.
 
-The main development store holds 15 threads with a median of 1 turn and about 8,000 stored tokens per turn, because tool results are stored with the messages (estimate at 2.5 characters per token). One thread passed the 30,000-token observation threshold. Twelve passed the first 6,000-token buffer, after which observational memory would run about 1.3 Observer calls per turn. F6 did not run it live: it is a single-thread mechanism, and the estimate already rules it out. Each Observer call is estimated at about $0.004 (a 6,000-token chunk in, the notes out), a third of a median chat turn. Most Winyu threads are one to three turns long, so the notes would rarely be read. The notes are also model-written text that keeps figures from tool results, injected into the system prompt and invisible on `/memory`. If long threads become a cost problem, a history processor that trims old tool results is cheaper.
+The main development store holds 15 threads with a median of 1 turn and about 8,000 stored tokens per turn, because tool results are stored with the messages (estimate at 2.5 characters per token). One thread passed the 30,000-token observation threshold. Twelve passed the first 6,000-token buffer, after which observational memory would run about 1.3 Observer calls per turn. F6 did not run it live: it is a single-thread mechanism, and the estimate already rules it out. Each Observer call is estimated at about $0.004 (a 6,000-token chunk in, the notes out), a third of a median chat turn. Most Winyu threads are one to three turns long, so the notes would rarely be read. The notes are also model-written text that keeps figures from tool results, injected into the system prompt and invisible on `/memory`. Long threads are now handled by a history processor that trims old tool results (next section).
+
+The 8,000 stored tokens per turn overstate what a turn adds to later calls. Most of the stored text is the model's reasoning, which is sent back but not billed (see Long threads).
+
+## Long threads
+
+The chat agent keeps the last 20 messages of a thread (`lastMessages: 20`), about five to ten turns, since a turn stores two to four messages. Before 2026-10-19 every earlier turn rode along whole on every later call: the question, the model's reasoning, its tool calls, every tool result with all its rows, and the reply.
+
+### What history cost (measured 2026-10-19, $0)
+
+`bun run history:bench` reads the traced model steps and the stored messages in `.data/mastra.db`. Before the live check below, the development store held 8 threads with more than one question (13 later turns with a traced first call, at most 5 questions). The fit below also uses the live thread's turn 2.
+
+| Turn in thread | Turns measured | First call input (p50) | First call uncached (p50) |
+|---|---|---|---|
+| 1 | 48 | 15,748 | 15 |
+| 2 | 7 | 12,675 | 2,376 |
+| 3 | 3 | 14,323 | 4,335 |
+| 4 | 3 | 16,478 | 6,490 |
+
+The cached prefix is the system prompt and the tool definitions (`CACHED_SYSTEM_PROMPT` in `lib/server/models.ts`): 16,231 tokens for u_thana today, about 10,600 in the threads before 2026-10-19. Turns 2 to 4 above mostly come from those older threads, so their total input is lower than today's turn 1. The uncached part of a turn's first call is its history plus its question, so it is the clean measure: each earlier turn added about 2,000 input tokens to every call of every later turn. At turn 4, history was 39% of the call's input in those threads, and it is billed at full price, while the prefix is read from the cache at a quarter of the price.
+
+The system prompt for u_thana is 21,473 characters. Two prompt versions (11,249 characters with 11,286 cached tokens, and 21,473 characters with 16,231) put it at about 10,400 tokens and the tools at about 5,900. That split is inferred and assumes the tool definitions did not change between the two versions.
+
+**What history is made of.** The bench rebuilds each later turn's history from the stored messages with Mastra's own conversion (`storedHistoryPrompt` in `lib/harness/adapters/mastra/history-trim.ts`) and fits the parts against the turn's uncached tokens (14 turns, least squares):
+
+- Questions, reply text, tool-call arguments and tool results cost about 1.7 characters per token.
+- Thought signatures cost about 15 characters per token. Gemini returns its reasoning as an encrypted blob (`reasoning_details` with `data`), Mastra stores it on the assistant message, and the OpenRouter provider sends it back with every later call. One live turn's signatures were 27,516 characters, about 1,800 tokens.
+- The reasoning text itself (1,800 to 12,000 characters per history) is not billed: adding it to the fit gives it a negative weight.
+- With these two rates the estimate is within 13% of the measured tokens in 13 of 14 turns (the 14th, a short history, is 40% over).
+- Tool results are the largest billed part: 61% to 71% of the estimated history tokens at turn 4, and 82% in the thread with two large results (b6e862a6).
+
+**The longest thread** (814eda76, 5 questions, a gross-margin analysis that ends in a handoff), as the history of its next call: about 8,800 tokens. Questions 445, reply text 1,019, tool-call arguments 852, tool results 5,041, thought signatures 1,533. With today's 16,231-token prefix, that call would send about 25,000 input tokens, a third of them history at full price.
+
+### What is trimmed and why
+
+`HistoryTrim` (`lib/harness/adapters/mastra/history-trim.ts`) is an input processor on the chat agent. In `processLLMRequest`, just before each model call, it rewrites the provider prompt:
+
+- **The current turn is untouched.** Everything from the newest question on keeps every tool result whole, so the model can draw cards from the rows it just fetched.
+- **Each earlier tool result becomes a stub** when it is longer than 600 characters: `ok`, `summary` (the result's one-line headline with its figures), `query` (the resolved metric query, with its dates), `error` and `code` when it failed, `rowCount`, and a note that the rows were dropped and that the same query can be run again. Smaller results, such as `resolve_owner` and `create_handoff`, stay whole, because a follow-up may need a person's id from them.
+- **Earlier reasoning and thought signatures are dropped.** Gemini validates signatures only for the current turn, and the model does not read earlier reasoning text, so they cost tokens and carry nothing.
+- **Questions, reply text and tool-call arguments stay**, so "the first region we looked at" still finds the call and its arguments.
+- **History stops at 8,000 tokens** (`HISTORY_TOKEN_CEILING`, counted with the fitted rates above). Past it, the oldest turns leave whole: a question never stays without its reply.
+
+The rewrite is transient. Stored messages, the restored transcript, the cards, recall and traces keep every result whole. The system messages before the first turn are not touched, so the cached prefix stays byte for byte the same.
+
+**Why not Mastra's processors.** `ToolCallFilter` removes a call and its result as a pair. With `preserveModelOutput` it keeps the result's model view as text, but drops the call's arguments, and for `query_metric` the model view is the full result with every row. It cannot keep a summary and a row count. `TokenLimiterProcessor` counts the system prompt into its limit and stops the whole run with a tripwire when the system prompt alone passes it. It drops message groups from the oldest, so it can keep a reply without its question. A ceiling of whole turns inside `HistoryTrim` avoids both.
+
+**Estimated effect on stored threads.** `bun run history:bench` reports, for each later turn, the estimated history tokens before and after the trim:
+
+| Thread, turn | History before | After |
+|---|---|---|
+| 77761e67, 4 | 4,919 | 1,824 |
+| 814eda76, 4 | 7,413 | 2,934 |
+| cefa5132, 4 | 6,904 | 2,162 |
+| b6e862a6, 2 (two large results) | 10,446 | 1,417 |
+| 814eda76 next call (5 questions) | 8,838 | 3,952 |
+
+**Live check (2026-10-19, one thread, u_thana, $0.1451 estimated, $0.0302 billed).** Four turns in one conversation: sales this month by region, then the south by province, then the lowest province against last month, then "back to the first region we looked at, what was the total". Turn 2 ran with the result stubs only. The signature trim was added after turn 2 measured 27,516 characters of signatures in its history. Turns 3 and 4 ran with both.
+
+| Turn | First call input | Uncached (history and question) | Same history untrimmed (estimate) | Billed cost of the turn |
+|---|---|---|---|---|
+| 1 | 16,238 | 7 | | $0.0089 |
+| 2 | 19,676 | 3,364 | 3,317 | $0.0078 |
+| 3 | 17,139 | 810 | 5,635 | $0.0065 |
+| 4 | 17,613 | 1,255 | 8,414 | $0.0071 |
+
+Before the trim, the first call of turns 3 and 4 carried a median 4,335 and 6,490 uncached tokens in the stored threads. Each turn makes about two calls, so turn 4 sent about 14,000 fewer input tokens than it would have untrimmed (inferred from the estimate). Every follow-up kept its scope: turn 2 queried `filters: {region: "south"}, dims: ["province"]`, turn 3 the same with `compare: "prev_period"` and `sort: "value_asc"`, and turn 4 read "the first region" as the first row of turn 1's result (Bangkok and vicinity, from the stub's summary) and queried it again (380.7 million baht, the same figure turn 1 showed). Turn 4's prompt held no rows and no reasoning from turns 1 to 3, and its own result whole. Memory still holds every result with its rows.
+
+The four turns cost about $0.036 each at the ledger's estimate, which counts all input at the uncached price. The two remaining planned follow-ups ("which brand dragged it down", "summarize everything") were not run, to stay under the $0.15 estimate. Turn 2's first model call waited about six minutes at the provider before it answered (no model timeout yet).
+
 
 ## Thread titles: Mastra's generateTitle adopted (2026-10-19)
 
@@ -180,4 +249,4 @@ Costs are per chat turn. The median chat turn costs $0.0115 (42 turns in the mai
 
 ## Reproduce the numbers
 
-`bun run memory:bench` measures retrieval, prompt sizes, thread sizes, and extraction cost. Only retrieval spends: each embedding model in `--embedders` (the recall model by default) embeds about 15,000 tokens, under $0.0002 at $0.01 per million. `--mastra-db=<path>` and `--ledger=<path>` point it at another store or ledger. The two-thread behaviour is graded by the eval cases `memory-remember-region` and `memory-recall-thread` (`bun run eval --case=memory-remember-region,memory-recall-thread`), recorded live once.
+`bun run history:bench` measures what history costs each chat call, before and after `HistoryTrim`, and spends nothing. `bun run memory:bench` measures retrieval, prompt sizes, thread sizes, and extraction cost. Only retrieval spends: each embedding model in `--embedders` (the recall model by default) embeds about 15,000 tokens, under $0.0002 at $0.01 per million. `--mastra-db=<path>` and `--ledger=<path>` point it at another store or ledger. The two-thread behaviour is graded by the eval cases `memory-remember-region` and `memory-recall-thread` (`bun run eval --case=memory-remember-region,memory-recall-thread`), recorded live once.
