@@ -31,7 +31,9 @@ export type UnderLine = { line: number; count: number; of: number };
 /** What a metric card leads with; `asked` are the rows the question named, `asksMonthEnd` that it asked where the running month closes. */
 export type MetricHeadline = { aggregate: "sum" | "average"; value: string; periodLabel: string; rowCount: number;
   deltaPercent: number | null; deltaPoints?: number | null; compareLabel: string | null; compareNote: string | null; top: { label: string; value: string }[]; projection?: MonthEndProjection | null; underLine?: UnderLine | null; asked?: string[] | null; asksMonthEnd?: boolean | null };
-export type MetricResult = { ok: true; rows: MetricRow[]; summary: string; headline: MetricHeadline; provenance: Provenance; query: ResolvedQuery } | { ok: false; error: string; code: "PERMISSION_DENIED" | "UNKNOWN_METRIC" | "BAD_QUERY" | "CONNECTOR_UNAVAILABLE" };
+/** A metric answer; `parityBase` is the sell-in read of the same slice a sell-out breakdown asked against sell-in carries, so its card draws the parity reading the model answers from (AI-332). */
+export type MetricAnswer = { ok: true; rows: MetricRow[]; summary: string; headline: MetricHeadline; provenance: Provenance; query: ResolvedQuery; parityBase?: MetricAnswer };
+export type MetricResult = MetricAnswer | { ok: false; error: string; code: "PERMISSION_DENIED" | "UNKNOWN_METRIC" | "BAD_QUERY" | "CONNECTOR_UNAVAILABLE" };
 
 export const METRIC_IDS = ["net_sales_volume", "net_sales_value", "sell_out_volume", "target_attainment",
   "stock_on_hand", "days_of_cover", "production_output", "capacity_utilization", "forecast_mape",

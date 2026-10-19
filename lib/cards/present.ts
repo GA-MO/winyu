@@ -1810,6 +1810,8 @@ export function presentCard(input: PresentInput): CardParts {
   if (oneBucket) return presentCard({ ...input, query: oneBucket });
   const unpinned = withoutPinnedGroups(query, visibleRows);
   if (unpinned) return presentCard({ ...input, query: unpinned });
+  const asParity = !masked && hidden === 0 && result.parityBase && okSources(input.others).length === 0 ? pairingOf({ query: result.parityBase.query, result: result.parityBase }, [{ query, result }]) : null;
+  if (asParity?.view === "gap") return parityCard({ ...input, query: asParity.sources[0].query, result: asParity.sources[0].result, others: [{ query, result }] }, asParity);
   const pairing = masked || hidden > 0 ? null : pairingOf({ query, result }, okSources(input.others));
   if (pairing?.view === "whole") return wholeCard(input, pairing);
   if (pairing?.view === "baselines") return withBaseline(presentCard({ ...input, others: [] }), pairing.sources[1]);

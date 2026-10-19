@@ -179,7 +179,13 @@ async function withParity(answered: Answered, access: AccessContext): Promise<An
   const base = await runMetric({ ...asked, metric: PARITY.base, compare: "none", limit: null, sort: null, where: null }, access);
   if (!base.ok) return answered;
   const parity = parityForModel({ query: base.query, result: base }, { query: answered.query, result: answered }, TH.dash.dimUnit[dim]);
-  return parity ? { ...answered, parity } : answered;
+  return parity ? { ...answered, parity, parityBase: base } : answered;
+}
+
+function withoutParityBase(output: unknown): unknown {
+  if (!isAnswered(output) || !output.parityBase) return output;
+  const { parityBase: _base, ...rest } = output;
+  return rest;
 }
 
 const DESCRIPTION =
@@ -202,7 +208,7 @@ export const queryMetricTool = defineTool({
   input: metricQueryInputSchema,
   verify: metricAnswerHolds,
   correct: metricQueryFix,
-  modelView: (output: unknown) => askedAgainstOthers(withYearEnd(oneBaseForModel(output))),
+  modelView: (output: unknown) => askedAgainstOthers(withYearEnd(oneBaseForModel(withoutParityBase(output)))),
   execute: async (asked: MetricQueryInput) => {
     const dictionary = await loadDictionary();
     const narrowed = narrowedForQuestion(asked, currentAccess(), askedQuestion(), dictionary);

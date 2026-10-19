@@ -312,6 +312,17 @@ describe("a sell-out breakdown asked against sell-in (AI-332)", () => {
     expect(sellIn).not.toHaveProperty("parity");
   });
 
+  test("asked alone, the sell-out result draws the parity card the reply reads, and the model never sees the sell-in rows it carries", async () => {
+    const sellOut = await ask(QUESTION, "sell_out_volume");
+    const card = presentCard({ title: "t", query: sellOut.query, result: sellOut });
+    if (card.body.kind !== "strip") throw new Error(`not a strip: ${card.body.kind}`);
+    expect(card.verdict).toBe(sellOut.parity?.verdict ?? "");
+    expect(card.body.strip.rows.filter((row) => row.exception).map((row) => row.label)).toEqual(sellOut.parity?.rows.filter((row) => row.short).map((row) => row.label) ?? []);
+    const read = queryMetricTool.modelView?.(sellOut) as Record<string, unknown>;
+    expect(read).not.toHaveProperty("parityBase");
+    expect(read).toHaveProperty("parity");
+  });
+
   test("a sell-out question that does not ask about sell-in carries no parity reading", async () => {
     expect(await ask("ขายออกรายเอเย่นต์อีสานเดือนนี้", "sell_out_volume")).not.toHaveProperty("parity");
   });
