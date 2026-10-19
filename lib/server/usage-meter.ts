@@ -64,7 +64,7 @@ function sourceOf(context: CallContext): ModelCallSource {
   return context.userId ? "chat" : "background";
 }
 
-function record(modelId: string, usage: CallUsage, metadata: ProviderMetadata, context: CallContext): void {
+function record(modelId: string, usage: CallUsage, metadata: ProviderMetadata, context: CallContext, latencyMs?: number): void {
   const { meter } = context;
   const input = usage.inputTokens.total ?? 0;
   const output = usage.outputTokens.total ?? 0;
@@ -82,6 +82,7 @@ function record(modelId: string, usage: CallUsage, metadata: ProviderMetadata, c
     reasoningTokens: usage.outputTokens.reasoning ?? 0,
     billedUsd: billed,
     estimatedUsd: estimated,
+    ...(latencyMs === undefined ? {} : { latencyMs }),
   });
   if (!meter) return;
   meter.calls += 1;
@@ -128,7 +129,7 @@ export function meterMiddleware(modelId: string): LanguageModelMiddleware {
   };
 }
 
-/** Records one embedding call in the ledger and the current `measure` scope: its input tokens and the cost OpenRouter billed. */
-export function recordEmbedding(modelId: string, tokens: number, metadata: ProviderMetadata): void {
-  record(modelId, { inputTokens: { total: tokens, cacheRead: 0 }, outputTokens: { total: 0, reasoning: 0 } }, metadata, contextNow());
+/** Records one embedding call in the ledger and the current `measure` scope: its input tokens, the cost OpenRouter billed, and how long it took. */
+export function recordEmbedding(modelId: string, tokens: number, metadata: ProviderMetadata, latencyMs: number): void {
+  record(modelId, { inputTokens: { total: tokens, cacheRead: 0 }, outputTokens: { total: 0, reasoning: 0 } }, metadata, contextNow(), latencyMs);
 }

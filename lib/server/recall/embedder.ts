@@ -11,12 +11,13 @@ async function embed(spec: EmbeddingSpec, texts: string[]): Promise<number[][]> 
   const [{ embedMany }, { embeddingModel }, { recordEmbedding }] = await Promise.all([import("ai"), import("@/lib/server/models"), import("@/lib/server/usage-meter")]);
   const model = embeddingModel(spec.modelId);
   if (!model) throw new Error("recall needs OPENROUTER_API_KEY to embed");
+  const started = performance.now();
   const result = await embedMany({ model, values: texts });
-  recordEmbedding(spec.modelId, result.usage.tokens, result.providerMetadata);
+  recordEmbedding(spec.modelId, result.usage.tokens, result.providerMetadata, Math.round(performance.now() - started));
   return result.embeddings;
 }
 
-/** An embedder that calls one OpenRouter embedding model; every call is metered into the model ledger. */
+/** An embedder that calls one OpenRouter embedding model; every call is metered into the model ledger with how long it took. */
 export function openRouterEmbedder(spec: EmbeddingSpec): Embedder {
   return {
     id: spec.modelId,

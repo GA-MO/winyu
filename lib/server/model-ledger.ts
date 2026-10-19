@@ -19,6 +19,7 @@ export type ModelCall = {
   reasoningTokens: number;
   billedUsd: number | null;
   estimatedUsd: number;
+  latencyMs?: number;
 };
 
 /** The days of model spend the Admin console and the IT admin's chat both report, counted back from today. */
