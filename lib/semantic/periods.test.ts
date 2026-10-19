@@ -78,25 +78,30 @@ describe("the last N days, weeks or months (AI-331)", () => {
   const AS_OF = "2026-11-26";
 
   test("'12 สัปดาห์ล่าสุด' of a sum is the 12 whole weeks the data has finished, Monday to Sunday, so the card draws exactly 12", () => {
-    const window = recentWindow({ count: 12, unit: "week" }, "net_sales_volume", AS_OF);
+    const window = recentWindow({ count: 12, unit: "week" }, "week", "net_sales_volume", AS_OF);
     expect(window).toEqual({ from: "2026-08-31", to: "2026-11-22" });
     expect((daysBetween(window.from, window.to) + 1) / 7).toBe(12);
   });
 
   test("a balance keeps the running week or month as its last bucket, as its card does", () => {
-    expect(recentWindow({ count: 6, unit: "month" }, "ar_overdue", AS_OF)).toEqual({ from: "2026-06-01", to: AS_OF });
-    expect(recentWindow({ count: 4, unit: "week" }, "days_of_cover", AS_OF)).toEqual({ from: "2026-11-02", to: AS_OF });
+    expect(recentWindow({ count: 6, unit: "month" }, "month", "ar_overdue", AS_OF)).toEqual({ from: "2026-06-01", to: AS_OF });
+    expect(recentWindow({ count: 4, unit: "week" }, "week", "days_of_cover", AS_OF)).toEqual({ from: "2026-11-02", to: AS_OF });
   });
 
   test("months of a sum end with the last finished month; days end on the last data day; a finished bucket on the last data day counts", () => {
-    expect(recentWindow({ count: 3, unit: "month" }, "net_sales_value", AS_OF)).toEqual({ from: "2026-08-01", to: "2026-10-31" });
-    expect(recentWindow({ count: 30, unit: "day" }, "net_sales_value", AS_OF)).toEqual({ from: "2026-10-28", to: AS_OF });
-    expect(recentWindow({ count: 2, unit: "week" }, "net_sales_volume", "2026-11-29")).toEqual({ from: "2026-11-16", to: "2026-11-29" });
+    expect(recentWindow({ count: 3, unit: "month" }, "month", "net_sales_value", AS_OF)).toEqual({ from: "2026-08-01", to: "2026-10-31" });
+    expect(recentWindow({ count: 30, unit: "day" }, "day", "net_sales_value", AS_OF)).toEqual({ from: "2026-10-28", to: AS_OF });
+    expect(recentWindow({ count: 2, unit: "week" }, "week", "net_sales_volume", "2026-11-29")).toEqual({ from: "2026-11-16", to: "2026-11-29" });
+  });
+
+  test("'2 เดือนล่าสุด' by week reaches the latest finished week and starts on the first whole week of the span, never two finished months (round 12)", () => {
+    expect(recentWindow({ count: 2, unit: "month" }, "week", "net_sales_value", AS_OF)).toEqual({ from: "2026-09-28", to: "2026-11-22" });
+    expect(recentWindow({ count: 30, unit: "day" }, "day", "net_sales_value", AS_OF)).toEqual({ from: "2026-10-28", to: AS_OF });
   });
 
   test("query_metric resolves `last` into those dates with no period and no limit", () => {
     const resolved = resolveQuery({ ...BASE, grain: "week", dims: ["week"], last: { count: 12, unit: "week" } });
-    expect(resolved.ok && resolved.query.range).toEqual(recentWindow({ count: 12, unit: "week" }, "net_sales_volume"));
+    expect(resolved.ok && resolved.query.range).toEqual(recentWindow({ count: 12, unit: "week" }, "week", "net_sales_volume"));
     expect(resolved.ok && resolved.query.period).toBeNull();
   });
 });

@@ -1,4 +1,4 @@
-import type { Coverage, MetricId, MetricPeriod, MetricQuery, MetricQueryInput, RecentSpan } from "@/lib/contracts";
+import type { Coverage, Grain, MetricId, MetricPeriod, MetricQuery, MetricQueryInput, RecentSpan } from "@/lib/contracts";
 import { LEVEL_METRICS } from "@/lib/semantic/metrics";
 import { DATA_AS_OF, DATA_START, addDays, businessToday, daysBetween, formatThaiDate, monthEnd, monthStart } from "@/lib/data/dates";
 import { TH } from "@/lib/i18n/th";
@@ -61,23 +61,36 @@ export function coverageOfQuery(query: MetricQuery): Coverage {
   return window && window.from === query.range.from ? coverageOf(window, query.period ?? null) : coverageOf(query.range, null);
 }
 
-function earlier(left: string, right: string): string {
-  return left < right ? left : right;
+function bucketStart(grain: Grain, iso: string): string {
+  if (grain === "week") return mondayOf(iso);
+  return grain === "month" ? monthStart(iso) : iso;
 }
 
-function lastBucketStart(unit: "week" | "month", asOf: string, keepsRunning: boolean): string {
-  const start = unit === "week" ? mondayOf(asOf) : monthStart(asOf);
-  const end = unit === "week" ? addDays(start, DAYS_PER_WEEK - 1) : monthEnd(asOf);
-  if (keepsRunning || end === asOf) return start;
-  return unit === "week" ? addDays(start, -DAYS_PER_WEEK) : monthStart(asOf, 1);
+function bucketEnd(grain: Grain, start: string): string {
+  if (grain === "week") return addDays(start, DAYS_PER_WEEK - 1);
+  return grain === "month" ? monthEnd(start) : start;
 }
 
-/** The last `count` days, weeks or months: days end on the last data day; weeks and months are whole ones, ending with the last one the data has finished, or with the running one for a level (stock, cover, overdue, headcount), which a card keeps, so the card draws exactly `count` buckets. */
-export function recentWindow(span: RecentSpan, metric: MetricId, asOf: string = DATA_AS_OF): Range {
-  if (span.unit === "day") return { from: addDays(asOf, 1 - span.count), to: asOf };
-  const start = lastBucketStart(span.unit, asOf, LEVEL_METRICS.has(metric));
-  if (span.unit === "week") return { from: addDays(start, -DAYS_PER_WEEK * (span.count - 1)), to: earlier(addDays(start, DAYS_PER_WEEK - 1), asOf) };
-  return { from: monthStart(start, span.count - 1), to: earlier(monthEnd(start), asOf) };
+/** The last day of the latest bucket a card draws: the running one for a level, which its card keeps, else the last one the data has finished. */
+function lastDrawnDay(grain: Grain, asOf: string, keepsRunning: boolean): string {
+  const start = bucketStart(grain, asOf);
+  if (keepsRunning || bucketEnd(grain, start) === asOf) return asOf;
+  return addDays(start, -1);
+}
+
+function spanStart(span: RecentSpan, end: string): string {
+  if (span.unit === "day") return addDays(end, 1 - span.count);
+  if (span.unit === "week") return addDays(end, 1 - DAYS_PER_WEEK * span.count);
+  const [year, month, day] = end.split("-").map(Number);
+  return new Date(Date.UTC(year ?? 1970, (month ?? 1) - 1 - span.count, (day ?? 1) + 1)).toISOString().slice(0, 10);
+}
+
+/** The last `count` days, weeks or months, drawn in `grain` buckets: they end with the last bucket the data has finished (the running one for a level such as stock, cover, overdue or headcount, which its card keeps) and start on the first whole bucket inside the span, so "12 สัปดาห์ล่าสุด" is exactly 12 weeks and "2 เดือนล่าสุด" by week reaches the latest finished week. */
+export function recentWindow(span: RecentSpan, grain: Grain, metric: MetricId, asOf: string = DATA_AS_OF): Range {
+  const to = lastDrawnDay(grain, asOf, LEVEL_METRICS.has(metric));
+  const rough = spanStart(span, to);
+  const from = bucketStart(grain, rough) === rough ? rough : addDays(bucketEnd(grain, bucketStart(grain, rough)), 1);
+  return { from, to };
 }
 
 export type PeriodResolution = { ok: true; query: MetricQuery } | { ok: false; error: string; code: "BAD_QUERY" };
@@ -85,7 +98,7 @@ export type PeriodResolution = { ok: true; query: MetricQuery } | { ok: false; e
 /** Turns what the model asked into dates: a named period becomes its calendar window cut at the last data day, the last N buckets their whole buckets; explicit dates pass through. */
 export function resolveQuery(input: MetricQueryInput): PeriodResolution {
   const { period, range, last, ...rest } = input;
-  if (last && !period) return { ok: true, query: { ...rest, range: recentWindow(last, input.metric), period: null } };
+  if (last && !period) return { ok: true, query: { ...rest, range: recentWindow(last, input.grain, input.metric), period: null } };
   if (period) {
     const window = periodWindow(period);
     const coverage = coverageOf(window, period);
