@@ -32,7 +32,9 @@ function stripOf(body: CardBody): Strip {
 }
 
 function valuedLabels(card: CardParts): string[] {
-  return stripOf(card.body).rows.filter((row) => row.valued).map((row) => row.label);
+  const strip = stripOf(card.body);
+  const lead = strip.total !== null && strip.overall ? [strip.overall.label] : [];
+  return [...lead, ...strip.rows.filter((row) => row.valued).map((row) => row.label)];
 }
 
 const WEEK_BY_REGION: MetricQuery = { metric: "net_sales_value", dims: ["region"], filters: {}, range: { from: "2026-11-23", to: AS_OF }, grain: "week", compare: "prev_period", limit: null, sort: "delta_asc" };

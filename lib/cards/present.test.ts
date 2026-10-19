@@ -137,7 +137,8 @@ describe("bars measure the number beside them", () => {
     expect(strip.baseline).toBe(0);
     expect(measures(strip.rows)).toEqual([...measures(strip.rows)].sort((left, right) => left - right));
     expect(strip.rows.every((row) => row.text.endsWith("%"))).toBe(true);
-    expect(strip.overall?.label).toBe("รวมทุกเอเย่นต์");
+    expect(strip.overall?.measure).toBeLessThanOrEqual(measures(strip.rows)[0]);
+    expect(strip.total?.startsWith("รวมทุกเอเย่นต์")).toBe(true);
   });
 
   test("the query's own sort orders the card when the card names none, so a pinned card keeps it", () => {
@@ -426,20 +427,30 @@ describe("a rate over time", () => {
 });
 
 describe("the headline says what it stands for", () => {
-  test("ranked by what fell, style B leads with every agent's change and style A with the agent that fell most (R4)", () => {
+  test("ranked by what fell, styles B and A both lead with the agent that fell most, the total on its own line (R4, AI-294)", () => {
     const picture = cardOf({ metric: "net_sales_volume", dims: ["agent"] }, { limit: 5, sort: "delta_asc" });
-    expect(picture.hero?.label).toBe("รวมทุกเอเย่นต์");
+    const top = stripOf(picture.body);
+    expect(picture.hero?.label).toBe(top.overall?.label);
+    expect(top.total?.startsWith("รวมทุกเอเย่นต์")).toBe(true);
     const query = { ...queryOf({ metric: "net_sales_volume", dims: ["agent"] }), sort: "delta_asc" as const };
     const result = runMetric(query, CEO);
     if (!result.ok) throw new Error(result.error);
     const longer = presentCard({ title: "t", query, result });
     expect(longer.style).toBe("exceptions");
     const [first] = result.rows;
-    if (longer.hero?.label !== "รวมทุกเอเย่นต์") {
-      expect(longer.hero?.label).toBe(String(first.agent));
-      expect(longer.hero?.value).toBe(String(first.value_label));
-      expect(longer.hero?.tone).toBe("bad");
-    }
+    expect(longer.hero?.label).toBe(String(first.agent));
+    expect(longer.hero?.value).toBe(String(first.value_label));
+  });
+
+  test("ranked by what fell when every row rose, the card still leads with the first row and its change, never the green total (R4, AI-320)", () => {
+    const card = cardOf({ metric: "net_sales_value", dims: ["region"], range: MONTH_TO_DATE }, { sort: "delta_asc" });
+    const strip = stripOf(card.body);
+    expect(measures([strip.overall!, ...strip.rows]).every((change) => change > 0)).toBe(true);
+    expect(card.hero?.label).toBe("ภาคอีสาน");
+    expect(card.hero?.delta).toBe("+23.1%");
+    expect(strip.overall?.label).toBe("ภาคอีสาน");
+    expect(strip.overall?.text).toBe("+23.1%");
+    expect(strip.total).toBe("ทั้งประเทศ +33.0% งวดก่อน 1,164.9 ล้านบาท");
   });
 
   test("a ranking of a rate is read around its average, the overall row on top (R5)", () => {
