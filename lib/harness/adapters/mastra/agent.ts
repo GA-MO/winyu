@@ -22,6 +22,7 @@ import { adoptGeneratedTitle } from "@/lib/server/threads-read";
 import { DATA_DIR } from "@/lib/server/store/json-store";
 import { ToolResultInjectionGuard, replyGuard } from "./guardrails";
 import { ChatDurableAgent, persistsSnapshot } from "./durable";
+import { HistoryTrim } from "./history-trim";
 import { winyuWorkflows, schedulerEnabled } from "./jobs";
 import { HARNESS_RUN_KEY, winyuObservability } from "./observability";
 import { mastraTools } from "./tools";
@@ -153,6 +154,7 @@ function buildMastra(): Mastra {
       return mastraTools(toolsForAccess(access), access);
     },
     memory: new ChatMemory({ options: { lastMessages: REMEMBERED_MESSAGES, semanticRecall: false, generateTitle: { model: titleModelFor, instructions: TH.harness.titleInstructions } } }),
+    inputProcessors: [new HistoryTrim()],
     outputProcessors: [new ToolResultInjectionGuard(), replyGuard()],
     defaultOptions: () => ({ maxSteps: LIMITS.maxSteps, prepareStep: toldTheAnswerThenWrapUp, modelSettings: { timeout: chatTimeBudget() } }),
   });
