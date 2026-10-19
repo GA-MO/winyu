@@ -4284,3 +4284,61 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 	- mastra_messages bc173228 (run 0f900051)
 	- /private/tmp/claude-501/-Users-sbpdigital-Development-Cop/9cb96cb6-db79-40fc-93ee-aea9b1847cf8/scratchpad/r10-runs/it/s1t2.png
 - **สาเหตุ:** guess: admin_audit model_cost computes only the current 7-day window
+
+## รอบทดสอบที่ 11 (2026-10-19) การ์ดข้อมูลที่รอบก่อนยังไม่เคยถาม บน dev build ของกิ่ง datacard-readability
+
+ถามในแชตจริงที่กว้าง 1100px (baton, Chrome) เป็น u_thana (CEO) หนึ่งบทสนทนาต่อคำถาม ถามครั้งเดียวไม่ถามซ้ำ dev server `:3100` `WINYU_SCHEDULER=off` commit `45d4b0c` ค่าโมเดลวัดจาก `estimatedUsd` ใน `.data/model-calls.json` ที่เพิ่มหลังเริ่มรอบ: 24 calls $0.2307 (billed $0.0532) ราว $0.04 ต่อคำถาม หยุดหลังข้อ 6 เพราะยอดเกิน $0.22 จึงถามก่อนเฉพาะการ์ดคู่ (R10) ที่ไม่เคยวาดในรอบใด ข้อที่ยังไม่ได้ถาม: R2 ซีรีส์สั้นเทียบเป้า, R13 จำนวนพนักงาน, R15 สต๊อกพอขายรายสัปดาห์, heatmap ภาค × แบรนด์, stacked รายสัปดาห์แยกแบรนด์, area รายวันแยกแบรนด์, % ของเป้ารายเดือนแยกภาค, R7 เกณฑ์ 90% ผล: เหมาะ 3 · ไม่เหมาะ 3 · ใหม่ 3 (ไม่มีข้อสูง)
+
+| คำถาม | การ์ดที่วาด (กฎ / pairing) | ผล |
+|---|---|---|
+| "ยอดขายกับหนี้ค้างของแต่ละจังหวัดไปด้วยกันไหม" | scatter มูลค่าขายเข้า × ยอดค้างชำระ รายจังหวัด 24 จุด (R10 `scatter`) | ไม่เหมาะ (d) AI-330 |
+| "เดือนนี้ผลิต ขายเข้า ขายออก ได้เท่าไหร่" | funnel ผลิต → ขายเข้า → ขายออก, hero 93.7% (R10 `funnel`) | เหมาะ |
+| "ขายเข้ากับขายออกรายสัปดาห์ 12 สัปดาห์ล่าสุด" | สองเส้นบนกราฟเดียว, tiles อัตราส่วน 97.7% · 74.0 · 72.7 ล้านลิตร (R10 `overlay`) | ไม่เหมาะ (a)(b)(d) AI-331 |
+| "เอเย่นต์อีสานไหนขายออกต่ำกว่าขายเข้ามาก" | แถบช่องว่างขายออกเทียบขายเข้า 8 เอเย่นต์ (R10 `gap`) และรายการความผิดปกติ | ไม่เหมาะ (c)(b) AI-332 |
+| "ยอดขายเทียบเป้ากับอัตรากำไรขั้นต้นแยกตามภาค" | แถบเทียบเป้า 6 ภาค, อัตรากำไรขั้นต้นใต้ทุกแถว (R3 + R10 `twin`) | เหมาะ |
+| "เอเย่นต์ลีโออีสาน เทียบทั้งเป้าและเดือนก่อน ใครแย่สุด" | แถบเทียบเป้า 5 เอเย่นต์, % เทียบช่วงก่อนหน้าใต้ทุกแถว (R3 + R10 `baselines`) | เหมาะ (ชื่อช่วงเทียบยังเป็นแบบ AI-317) |
+
+ข้อสังเกตที่ไม่เปิดเป็นข้อใหม่:
+- funnel และ overlay ใช้ป้าย hero "อัตราส่วน" เฉย ๆ (`TH.dash` `ratio`, lib/i18n/th.ts:901) คำตัดสินด้านบนบอกความหมายอยู่แล้ว แต่ป้ายนี้ไม่บอกว่าเป็นอัตราส่วนของอะไรกับอะไร
+- footer ของ funnel ระบุแค่ "MES" ทั้งที่การ์ดอ่านจาก MES และ SAP SD
+- คำตอบของ funnel บอกว่า "เติบโตขึ้นทุกด้านเมื่อเทียบกับช่วงก่อนหน้า" ข้อมูลยืนยันว่าจริง (+8.9%, +25.8%, +14.6% เทียบ 1–26 ต.ค.) แต่ตัวเลขเหล่านี้ไม่มีทั้งบนการ์ดและในคำตอบ
+- การ์ด twin บอก "+0.8 จุด" ใต้ทุกแถวของอัตรากำไรขั้นต้น แต่ footer ไม่บอกว่าเทียบกับช่วงไหน
+- การ์ด baselines และคำตอบเรียกช่วงเทียบว่า "ช่วงก่อนหน้า" และ "เดือนก่อน" ทั้งที่เป็น 1–26 ต.ค. เป็นอาการเดียวกับ AI-317 ซึ่งยังเปิดอยู่ ทั้งสอง call ใช้ `limit 5, sort delta_asc` แยกกัน รอบนี้บังเอิญได้ 5 เอเย่นต์ชุดเดียวกัน ถ้าได้คนละชุด แถวที่ไม่ตรงกันจะไม่มีค่าที่สอง (คาดเดา ยังไม่ได้เห็นจริง)
+- ตอนเลื่อนแชต ปุ่มกระดิ่งกับรูปโปรไฟล์มุมขวาบนลอยทับกล่องคำถามของผู้ใช้ (chat-q8.png, chat-q10-b.png)
+- การ์ดคู่ขายเข้าเทียบขายออก (overlay, gap) มีปุ่มหลัก "ส่งให้คุณประสิทธิ์" หรือ "ส่งให้คุณอนุชา" ทั้งที่คำถามเป็นการดูข้อมูลเฉย ๆ
+
+### AI-330. Scatter of sales against overdue by province draws both axes to twice the largest value, so the 24 points crowd the lower-left quarter and Bangkok, which the reply names, has no label
+
+- **สถานะ:** เปิด (ใหม่)
+- **ระดับ:** ต่ำ · **หมวด:** `card-fit` · **บทบาท:** u_thana (CEO)
+- **อาการ:** query_metric `{"metric":"net_sales_value","dims":["province"],"compare":"none","period":"this_month"}` and the same for `ar_overdue` paired as scatter. The data's maxima are 205.0 ล้านบาท (x) and 10.2 ล้านบาท (y, both กรุงเทพมหานคร), but the axes run to 400.0 and 20.0 ล้านบาท. The points fill about a quarter of the plot. The labels near the cluster overlap neighbouring dots, so it is unclear which dot is นครศรีธรรมราช. The three named points are off-trend provinces (สุราษฎร์ธานี, สงขลา, นครศรีธรรมราช). The reply builds its story on กรุงเทพมหานคร and ชลบุรี "สัดส่วนสูงทั้งสองด้าน", and neither is labelled. The verdict "มูลค่าขายเข้ามาก ยอดค้างชำระเกินกำหนดมักมากตาม" and the reply agree.
+- **ที่ควรเป็น:** The axes end at the next round value above the data (250 and 12 ล้านบาท), so the points spread over the plot. The extreme point the reply relies on (the largest province) is labelled with the off-trend ones.
+- **หลักฐาน:**
+	- run e85f6ba3-3a41-49e4-a5cf-dbffdd36b93c, thread 9d3ddaaf; audit.json turn e85f6ba3 (2 query_metric calls, 24 rows each)
+	- /private/tmp/claude-501/-Users-sbpdigital-Development-winyu/474dc05d-39dc-4517-83a1-d4539c1e19ff/scratchpad/chat-q8.png
+	- call-tool rerun of the same args: กรุงเทพมหานคร 205.0 ล้านบาท / 10.2 ล้านบาท, สงขลา 73.7 / 7.0 ล้านบาท
+- **สาเหตุ:** verified: components/cards/charts/scatter.tsx:17 `TICK_COUNT = 2` passes to `niceRange` (components/cards/charts/chart-kit.tsx:35). For 0–205M the rough step is 102.5M, which rounds up to a 200M unit and an end of 400M; 0–10.2M gives a 10M unit and an end of 20M. lib/cards/chart-bodies.ts:336 `scatterBody` names only the `MAX_NAMED_POINTS` points furthest off the fitted line (`offTrend`) when |r| is high, so the point that carries the trend is never named.
+
+### AI-331. 'ขายเข้ากับขายออกรายสัปดาห์ 12 สัปดาห์ล่าสุด': the chart shows 11 weeks (W37–W47) while the tiles add 13 partial weeks (74.0 / 72.7 ล้านลิตร), and the x-axis labels at both ends run into each other
+
+- **สถานะ:** เปิด (ใหม่)
+- **ระดับ:** ต่ำ · **หมวด:** `card-fit` · **บทบาท:** u_thana (CEO)
+- **อาการ:** The model asked `{"metric":"net_sales_volume","dims":["week"],"range":{"from":"2026-09-01","to":"2026-11-26"},"grain":"week","limit":12}` and the same for `sell_out_volume`. That range holds 13 weeks: W36 starts mid-week and W48 runs to 26 พ.ย. `limit: 12` drops W36 from the rows. The overlay then drops the running W48, which leaves 11 weeks on the chart. The tiles and the 97.7% ratio read the headline of the whole range (74,021,277 ลิตร = all 13 weeks, W36 and W48 included). No footer note says that a week was left out, because `withoutLeadingPartial` looks for W36 and the rows no longer hold it. Labels 'สัปดาห์ 37สัปดาห์ 38' and 'สัปดาห์ 46สัปดาห์ 47' overlap at 1100px. The reply says "12 สัปดาห์ล่าสุด" and names week 48.
+- **ที่ควรเป็น:** The query for "12 สัปดาห์ล่าสุด" covers the last 12 full weeks (W36 is outside the range). The tiles add exactly the buckets the chart draws, or say what span they cover. A dropped bucket is named in the footer. The end labels of the x-axis do not overlap.
+- **หลักฐาน:**
+	- run de567e74-f08a-42cd-852a-844064a991e5, thread 5a515515; audit.json turn de567e74
+	- /private/tmp/claude-501/-Users-sbpdigital-Development-winyu/474dc05d-39dc-4517-83a1-d4539c1e19ff/scratchpad/chat-q10.png, chat-q10-b.png
+	- call-tool rerun with `limit: null`: 13 rows W36–W48, sum 74,021,277 = headline '74.0 ล้านลิตร'
+- **สาเหตุ:** verified (a): the model's range starts on 1 ก.ย. (13 weeks) and uses `limit` to cut it to 12, so the rows and the headline cover different weeks. verified (b): lib/cards/present.ts:1300-1311 `pairedLead` builds the ratio and `totalTile`s from the headline of the whole span, while the overlay body draws the rows after `withoutPartialBucket` and `withoutLeadingPartial` (present.ts:1320-1330). `withoutLeadingPartial` keys on `range.from` and does nothing when `limit` already removed that bucket. guess (d): the line chart's x-axis tick thinning does not reserve room for the first and last labels.
+
+### AI-332. 'เอเย่นต์อีสานไหนขายออกต่ำกว่าขายเข้ามาก': the card marks วารินพาณิชย์ and นางรองค้าส่ง as the 2 short by more than 5%, and the reply names ขอนแก่นมหาชัย and โคราชสหภัณฑ์ and says none is abnormal
+
+- **สถานะ:** เปิด (ใหม่)
+- **ระดับ:** กลาง · **หมวด:** `card-fit` · **บทบาท:** u_thana (CEO)
+- **อาการ:** query_metric `net_sales_volume` and `sell_out_volume` by agent, `filters {"region":["northeast"]}`, this_month, paired as a parity gap. Verdict '2 จาก 8 เอเย่นต์ ปริมาณขายออกต่ำกว่าปริมาณขายเข้าเกิน 5%', with วารินพาณิชย์ 94.8% and นางรองค้าส่ง 95.0% thick and red. ขอนแก่นมหาชัย, โคราชสหภัณฑ์ and ปากช่องเบเวอเรจ sit at about 95.2–95.3% as unvalued grey bars of almost the same length. Five agents sit within 0.5 points of each other, and the 5% cut turns two of them red. The reply ranks by litres ('ขอนแก่นมหาชัย ต่างกัน 51,984 ลิตร', 'โคราชสหภัณฑ์ 48,019 ลิตร'), names neither red agent, and ends 'ไม่พบรายที่ขายออกต่ำกว่าขายเข้าผิดปกติอย่างมีนัยสำคัญ', which contradicts the card's headline. A second card (open alerts for the region) follows. The reply uses it to say อีสานรุ่งโรจน์ and อุบลศรีสุข sell out far more than they buy.
+- **ที่ควรเป็น:** The reply and the card name the same agents on the same base (share or litres). A cut that splits a tight cluster either values every row in the cluster or says that the five are about 95%.
+- **หลักฐาน:**
+	- run cd46a3ad-a147-4786-a2f0-c9e050358fc3, thread a4b450ae; audit.json turn cd46a3ad (query_metric ×2, get_alerts)
+	- /private/tmp/claude-501/-Users-sbpdigital-Development-winyu/474dc05d-39dc-4517-83a1-d4539c1e19ff/scratchpad/chat-q11.png, chat-q11-b.png
+	- call-tool rerun: sell-in / sell-out วารินพาณิชย์ 389,301 / 369,143, นางรองค้าส่ง 505,181 / 479,788, โคราชสหภัณฑ์ 992,487 / 944,468 ลิตร
+- **สาเหตุ:** verified (c): the reply reads the two results as litre differences and ignores the card's verdict. The prompt does not say that a paired card's verdict is what the reply must agree with (guess). verified (b): lib/cards/chart-bodies.ts:386-388 `parityGaps` sets `short` by a fixed `WIDE_GAP_PCT` cut, and lib/cards/breakdown.ts:459 `parityReading` values only `short` rows and the last row, so rows 0.3 points from the cut get no value.
