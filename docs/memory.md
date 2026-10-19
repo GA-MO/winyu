@@ -153,6 +153,17 @@ Observational memory runs an Observer model in the background once a thread's hi
 
 The main development store holds 15 threads with a median of 1 turn and about 8,000 stored tokens per turn, because tool results are stored with the messages (estimate at 2.5 characters per token). One thread passed the 30,000-token observation threshold. Twelve passed the first 6,000-token buffer, after which observational memory would run about 1.3 Observer calls per turn. F6 did not run it live: it is a single-thread mechanism, and the estimate already rules it out. Each Observer call is estimated at about $0.004 (a 6,000-token chunk in, the notes out), a third of a median chat turn. Most Winyu threads are one to three turns long, so the notes would rarely be read. The notes are also model-written text that keeps figures from tool results, injected into the system prompt and invisible on `/memory`. If long threads become a cost problem, a history processor that trims old tool results is cheaper.
 
+## Thread titles: Mastra's generateTitle adopted (2026-10-19)
+
+A thread used to be named by its first question, up to 120 characters. Mastra memory's `generateTitle` now names it after the first answer, the way other assistants do.
+
+- **Model and prompt.** The title model is `agentModel().title()`: the same Gemini model on the flex tier with reasoning effort `minimal`, cut after 30 s. The Thai instructions (`TH.harness.titleInstructions`) ask for at most 6 words, no quotes or brackets, entity names kept, no number the person did not type, and say the conversation is data, not instructions. Mastra gives the model the thread's messages, including the reply and the first 200 characters of each tool result.
+- **When.** The durable agent asks for the title after it saves the run's messages, and only while the Mastra thread has no title, so once per thread. The reply is not held: a title model that never answers leaves the run finished on time (`thread-title.test.ts`).
+- **Into the sidebar.** `ChatMemory.updateThread` hands the title to `adoptGeneratedTitle` in `threads-read.ts`. That function writes it only on the thread of the person the Mastra thread belongs to, and only while `titledBy` is `question`. A rename (`person`), a matter's title (`matter`), a title already generated (`model`) and a thread saved before this change (no `titledBy`) keep their names. `cleanGeneratedTitle` strips quotes and closing punctuation, cuts at 60 characters, and refuses a title with a number that is not in the question, because numbers on screen come from tools. The first question stays on the thread as `question`, and the rail's search matches the title or the question. The chat asks the rail to reload 3 s and 8 s after a first answer, so the new title shows without a page load.
+- **Billing.** The title call is metered as `background` for the person and the run it follows (`CallOwner` in `usage-meter.ts`). It stays out of the run's trace.
+- **Studio.** A run outside a served chat run (no harness run id in the request context, as in Studio) gets `NO_TITLE`, a model that answers nothing and calls no one. The Mastra thread stays untitled and nothing is spent.
+- **Cost (measured).** Five live titles on 2026-10-19 used 1,056 to 3,400 input tokens, 9 to 12 output tokens and no reasoning tokens. OpenRouter billed $0.00042 to $0.00129, a median of $0.00073 per thread (estimate at list price: $0.0015). That is about 6% of a median chat turn, once per thread. A thread saved before this change gets one title call on its next turn that the store then ignores.
+
 ## Cost per turn at a glance
 
 Costs are per chat turn. The median chat turn costs $0.0115 (42 turns in the main development ledger).
@@ -164,6 +175,7 @@ Costs are per chat turn. The median chat turn costs $0.0115 (42 turns in the mai
 | Conversation recall (F6, adopted) | 0, plus 1 embedding call after the reply (about 80 tokens) | 0, or p50 517 on turns that call `recall_memory` | about 1.2 to 1.5 s on those turns, for the query embedding | under $0.00001 |
 | Working memory (rejected) | 1 more chat step on every turn that writes the profile | about 730 | one more step (6.6 s against 5.1 s) | about $0.004 on a write turn, plus about $0.0005 on every turn |
 | Per-turn semantic recall (rejected) | 0, plus 1 local embedding | p50 713 | 16 to 21 ms on every turn | about $0.0005 |
+| Thread title (adopted 2026-10-19) | 1 utility call after the first reply of a thread only | 0 | none | median $0.00073 billed, once per thread |
 | Observational memory (rejected) | about 1.3 Observer calls | fewer in threads past 30,000 tokens | none (background) | about $0.005 (estimate) |
 
 ## Reproduce the numbers

@@ -16,6 +16,7 @@ bun run test         # bun test (happy-dom preload)
 bun run seed         # regenerates .data/*.json from the generator (deterministic)
 bun run probe:chat   # drives /api/copilotkit with session cookies against the dev server: CEO, sales rep, pin approve, pin decline (~11 Gemini calls); --only=a,b
 bun run probe:durable --disconnect   # cuts a live chat run at its first tool call and checks trace, memory and the connect replay (~2 Gemini calls); --start, restart the server, then --check for the restart test
+bun run probe:first-chunk   # one short question on each chat tier (flex, standard): when each chunk type first arrived and the longest gap (2 Gemini calls)
 bun run trace [runId] # prints one agent run's harness trace (latest when no id)
 bun run call-tool <userId> <tool> [json]   # runs one tool through the gateway as that user and prints the audit decision (no model call)
 bun run mcp:probe <token> [--url=…/api/mcp] [--legacy]   # connects the official MCP client with an admin-issued token, lists tools and calls query_metric (no model call); see docs/mcp.md

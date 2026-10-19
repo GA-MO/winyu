@@ -9,6 +9,7 @@ Winyu on Mastra copied the harness of Winyu (Vexa build, before 2026-10-05): the
 | Long work does not block | Adopted for the investigation as a Mastra workflow started in the background; tool-level background tasks rejected | `jobs.ts`, `app/api/jobs/run/route.ts` |
 | Jobs on a timetable | Adopted: Mastra scheduled workflows; the copied scheduler is deleted | `jobs.ts` |
 | An inbox event reaches an idle thread | Rejected: Winyu already writes handoff replies into the thread | `appendHandoffReply` in `history.ts` |
+| A stalled model call does not hold the chat | Adopted: Mastra time budgets and a model fallback list; a calm slow state and ask-again in the chat | `agent.ts`, `durable.ts`, `models.ts`, `use-chat-session.ts` |
 
 ## 1. Durable runs
 
@@ -61,7 +62,42 @@ One difference from the copy: on the first boot of a fresh data folder, the engi
 
 **Rejected.** Persisting a signal for the next turn is what `appendHandoffReply` already does, and switching would change how history restores the reply card for no new behaviour. Waking an idle thread spends a model call on an answer nobody is there to read. Delivering into a running loop only helps when the sender is mid-reply at the moment a colleague answers, which is rare. Alerts have no thread to signal.
 
+## 5. Time budgets and the fallback tier
+
+**What happened.** AI-341: one chat step sent its first reasoning chunk after 5.6 s and then nothing for 235 s. It used 885 reasoning tokens, a normal amount, so the provider stream stalled; the model did not think for four minutes. Nothing bounded a model call, so the chat showed 'กำลังวางแผนคำตอบ…' for four minutes.
+
+**What Mastra gives.** `modelSettings.timeout` (`@mastra/core` 1.74) has three budgets. `firstChunkMs` limits the wait for the first content chunk of a call. `stepMs` limits one whole model call. `totalMs` limits one execution session of a run. A call past `firstChunkMs` or `stepMs` fails with `MastraTimeoutError`, which Mastra does not retry on the same model. It moves to the next entry of the agent's model list. A run past `totalMs` fails at once and skips the fallbacks.
+
+**Adopted.** `CHAT_TIME_BUDGET` in `agent.ts`, each number from the traces in `.data/mastra.db` (about 150 chat steps):
+
+| Budget | Value | Why |
+|---|---|---|
+| `firstChunkMs` | 20 s | The first content chunk of a chat step arrived in 2.1 to 11.9 s (median about 3.5 s). |
+| `stepMs` | 60 s | The longest normal step took 47 s, a long reply. AI-341's stall is caught only by this budget, because its first chunk came at 5.6 s. |
+| `totalMs` | 150 s | The longest normal run took 42 s. 150 s leaves room for one failed-over step and is about as long as a person waits. |
+
+- **Reasoning chunks count as content.** Mastra's `isContentChunk` accepts `reasoning-delta` as well as text and tool chunks. OpenRouter streams Gemini's reasoning summaries as `reasoning-delta`, and they arrive about 2.6 s into a call (`bun run probe:first-chunk`: 2.6 s on flex, 2.7 s on the standard tier). The longest gap between chunks in one probe was 3.4 s. A model that thinks without streaming would need a larger `firstChunkMs`.
+- **The fallback.** The agent's model is a list: `flex` (`agentModel().chat()`, provider order `google-ai-studio/flex` then `google-ai-studio`) and then `standard` (`chatFallback()`, provider order `google-ai-studio` only). Both have `maxRetries: 0`, so a stalled or failed step makes one more attempt, on the standard tier. Each step starts on flex again. The fallback sends the same request with the same cache-marked system prompt. The cache did not suffer: in the stall demo the standard tier's first step read 16,231 of its 16,241 input tokens from the cache (`.data/model-calls.json`). A miss would cost one uncached prompt.
+- **The meter keeps both attempts.** `meterMiddleware` records a call that is cancelled, fails or ends without a finish chunk as a ledger row with `aborted: true`, 0 tokens and `billedUsd: null`. The provider never reports what a cut call used, so these rows mean "unknown", not zero. Whether OpenRouter bills a cancelled stream is not visible from here.
+- **No tool runs twice.** The durable agent's LLM step collects tool calls per attempt (`const toolCalls = []` inside the attempt loop of `createDurableLLMExecutionStep`) and returns only those of the attempt that finished. Tools run in the next workflow step, so the calls of a timed-out attempt are never run. The tool-call chunks of that attempt did reach the stream, though, so `ChatDurableAgent` holds tool-call chunks until the step stands (`withoutAbandonedCalls` in `durable.ts`). It drops held calls on the next attempt's `step-start` or an `error`, and lets them through with any other chunk. Test: `time-budget.test.ts` scripts a step that sends a tool call and goes silent. The tool runs once, and the client stream shows only the fallback's call.
+- **Errors as text.** A run's error crosses Mastra's workflow as a plain object, which the AG-UI bridge printed as "[object Object]". `withReadableErrors` turns it into `MastraTimeoutError: …`, so the client and the trace can tell a timeout from other failures.
+- **Durable runs.** Budgets are serialized with the run's options (`serializeModelSettings` keeps `timeout`), so a recovered run has them. `totalMs` is re-armed for each execution session: a run that pauses for an approval and continues, or one recovered after a restart, gets a fresh 150 s. A step cut by a budget is not checkpointed as a finished step, so a restart during the fallback repeats that step, as it repeats any interrupted step.
+- **Background jobs.** The AI SDK jobs (investigation, digest, memory extraction, composer) use `agentModel().model()` on the same flex tier. They have no fallback; a person does not wait on them. `deadlineMiddleware` cuts any background call after 300 s, twice the longest default-effort thinking measured (145 s, AI-133), so a stalled call cannot hold a job slot forever.
+
+**The chat.** `use-chat-session.ts` keeps a mark of what the last exchange shows (`progressOf`: steps, words, results, card parts). When a reply runs for 20 s with the mark unchanged, the trail shows 'ใช้เวลานานกว่าปกติ…' under its current line. When the server gives up, the run's error contains "timed out" and the exchange shows 'รอบนี้ตอบไม่ทัน ระบบรอโมเดลนานเกินไปจึงหยุดไว้ก่อน' with a 'ถามอีกครั้ง' button. Other failures show the existing failed line with the same button. A sign-out or a spent approval shows no button. A question that a reload finds without an answer also gets the button. Asking again keeps the transcript up to the last question and runs the agent again, so the question keeps its message id. The AG-UI bridge then sends no new message, and Mastra memory keeps the question once (`time-budget.test.ts`). The CopilotKit runner supersedes any run still going on the thread (`onConcurrentRun: "supersede"` aborts it), so asking again never runs beside an earlier run.
+
+**Try it in development.** Both switches are ignored when `NODE_ENV=production`.
+- `WINYU_DEV_STALL_FLEX=1` makes the flex tier open a stream and send nothing, without calling the provider. Each step then fails over at 20 s.
+- `WINYU_CHAT_BUDGET_MS=first,step,total` replaces the budgets, in ms. `1000,60000,150000` makes both tiers time out and shows the failure line. A tiny `firstChunkMs` cannot show the fallback, because the durable agent applies one `modelSettings` to every model in the list.
+
+**Evidence (2026-10-19).**
+- Stall demo with `WINYU_DEV_STALL_FLEX=1`: run 26bffea7. Each of its two steps has an aborted flex row 20 s after the step began, then a standard-tier row. The reply took 89.8 s, the chat showed 'ใช้เวลานานกว่าปกติ…' at 20 s, and the answer card arrived (`resil-fallback-slow.png`, `resil-fallback.png` in the session scratchpad).
+- Failure demo with `WINYU_CHAT_BUDGET_MS=1000,60000,150000`: the failure line and 'ถามอีกครั้ง' appeared after 2.6 s (`resil-failed.png`). After a restart with the normal budgets and a reload, the button answered the question. A second reload shows the question once.
+- Tests: `time-budget.test.ts` (a stalled first chunk fails over, an all-stalled run ends in a timed-out run error with nothing in flight, asking again keeps one question, a silent tool step runs no tool twice), `usage-meter.test.ts` (an aborted stream is kept), `models.test.ts` (the fallback tier), `exchange-view.test.tsx`, `use-chat-session.test.ts`, `timeline.test.ts`.
+
 ## Open
+
+- **A stall after the first chunk waits 60 s.** AI-341 would now fail over at 60 s and answer at about 75 s. A gap budget of about 15 s between chunks would catch it sooner. Mastra 1.74 has none, and the gap data is one probe (3.4 s longest), so it is not built.
 
 - **Two module copies in `next dev`.** `instrumentation.ts` and the route handlers load separate copies of the app's modules, so they have two Mastra instances on one LibSQL file (measured: two builds logged). Recovery runs in the instrumentation copy. A browser that reconnects during a recovered run therefore gets no live `connect` replay. It sees the finished reply from memory on reload.
 - **Lease loss.** One recovery attempt in dev lost Mastra's 30 s recovery lease after the event loop stalled for more than 30 s, on the first boot after a code change. The run stayed checkpointed and the next boot resumed it. The aborted attempt's model call was not metered (about $0.005).
