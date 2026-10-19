@@ -18,10 +18,12 @@ const realFetch = globalThis.fetch;
 const savedEnv = new Map<string, string | undefined>();
 let sent: SentBody[] = [];
 
-async function bodySentToOpenRouter(use: "chat" | "model" = "chat"): Promise<SentBody> {
+const OWNER = { source: "background" as const, userId: "u_thana", turnId: "run-1" };
+
+async function bodySentToOpenRouter(use: "chat" | "chatFallback" | "model" | "title" = "chat"): Promise<SentBody> {
   const model = agentModel();
   if (!model) throw new Error("no model configured");
-  await generateText({ model: model[use](), prompt: "hi" });
+  await generateText({ model: use === "title" ? model.title(OWNER) : model[use](), prompt: "hi" });
   const body = sent.at(-1);
   if (!body) throw new Error("nothing was sent");
   return body;
@@ -77,6 +79,19 @@ describe("the settings sent to OpenRouter", () => {
   test("an unknown effort is refused instead of silently sent", () => {
     process.env.OPENROUTER_CHAT_REASONING_EFFORT = "fast";
     expect(() => agentModel()).toThrow("OPENROUTER_CHAT_REASONING_EFFORT");
+  });
+
+  test("the chat's fallback runs the same model and effort on the standard tier only", async () => {
+    const body = await bodySentToOpenRouter("chatFallback");
+    expect(body.model).toBe("google/gemini-3.8-flash");
+    expect(body.provider).toEqual({ order: ["google-ai-studio"], allow_fallbacks: true });
+    expect(body.reasoning).toEqual({ effort: "medium" });
+  });
+
+  test("a thread title thinks as little as the model allows", async () => {
+    const body = await bodySentToOpenRouter("title");
+    expect(body.reasoning).toEqual({ effort: "minimal" });
+    expect(body.provider).toEqual({ order: ["google-ai-studio/flex", "google-ai-studio"], allow_fallbacks: true });
   });
 
   test("OPENROUTER_PROVIDER_ORDER sends the standard tier without changing the effort", async () => {

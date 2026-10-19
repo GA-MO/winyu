@@ -5,7 +5,7 @@ export const MODEL_CALLS_COLLECTION = "model-calls";
 
 export type ModelCallSource = "chat" | "eval" | "background";
 
-/** One model call as the provider reported it: tokens, and the cost it billed when it says so. */
+/** One model call as the provider reported it: tokens, and the cost it billed when it says so; `aborted` marks a call cut off or failed before the provider said what it used (a time budget ran out, the run was stopped, the provider erred), so its tokens and cost are unknown, not zero. */
 export type ModelCall = {
   id: string;
   at: string;
@@ -20,6 +20,7 @@ export type ModelCall = {
   billedUsd: number | null;
   estimatedUsd: number;
   latencyMs?: number;
+  aborted?: true;
 };
 
 /** The days of model spend the Admin console and the IT admin's chat both report, counted back from today. */

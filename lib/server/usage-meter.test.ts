@@ -6,7 +6,7 @@ import { liveAccessFor } from "@/lib/access/enforce";
 import { currentRun, tracedRun } from "@/lib/harness/runtime";
 import { modelCalls, modelSpend, runSpend } from "./model-ledger";
 import { runWithAccess, runWithTurn } from "./request-context";
-import { measure, meterMiddleware } from "./usage-meter";
+import { measure, meterMiddleware, type CallOwner } from "./usage-meter";
 
 const MODEL_ID = "google/gemini-3.8-flash";
 const USAGE = {
@@ -15,7 +15,7 @@ const USAGE = {
 };
 const BILLED = { openrouter: { usage: { cost: 0.0123 } } };
 
-function model(providerMetadata: typeof BILLED | undefined) {
+function model(providerMetadata: typeof BILLED | undefined, owner?: CallOwner) {
   const mock = new MockLanguageModelV3({
     doGenerate: async () => ({ content: [{ type: "text", text: "ok" }], finishReason: { unified: "stop", raw: "stop" }, usage: USAGE, warnings: [], providerMetadata }),
     doStream: async () => ({
@@ -29,7 +29,7 @@ function model(providerMetadata: typeof BILLED | undefined) {
       }),
     }),
   });
-  return wrapLanguageModel({ model: mock, middleware: meterMiddleware(MODEL_ID) });
+  return wrapLanguageModel({ model: mock, middleware: meterMiddleware(MODEL_ID, owner) });
 }
 
 function currentRunId(): string {
@@ -96,6 +96,28 @@ describe("model ledger", () => {
     expect(calls.map((call) => call.source).sort()).toEqual(["background", "eval"]);
     expect(spend.billedCalls).toBe(1);
     expect(spend.totalUsd).toBeCloseTo(0.0123 + 0.75 + 0.2 * 3.75);
+  });
+
+  test("a stream cut off before its finish chunk is still kept, as aborted with nothing reported", async () => {
+    const before = new Set(modelCalls().all().map((call) => call.id));
+    const stalled = new MockLanguageModelV3({ doStream: async () => ({ stream: new ReadableStream({ start: (controller) => controller.enqueue({ type: "stream-start", warnings: [] }) }) }) });
+    const metered = wrapLanguageModel({ model: stalled, middleware: meterMiddleware(MODEL_ID) });
+    const { stream } = await metered.doStream({ prompt: [{ role: "user", content: [{ type: "text", text: "hi" }] }] });
+    const reader = stream.getReader();
+    await reader.read();
+    await reader.cancel(new Error("first chunk budget ran out"));
+    const [call] = newCalls(before);
+    expect([call.aborted, call.inputTokens, call.billedUsd, call.estimatedUsd]).toEqual([true, 0, null, 0]);
+  });
+
+  test("a call that names its owner is billed to that person as background work, whatever request it runs in", async () => {
+    const user = findUser("u_krit");
+    if (!user) throw new Error("missing u_krit");
+    const before = new Set(modelCalls().all().map((call) => call.id));
+    const titled = model(BILLED, { source: "background", userId: "u_thana", turnId: "run-title" });
+    await runWithAccess(liveAccessFor(user), () => generateText({ model: titled, prompt: "hi" }));
+    const [call] = newCalls(before);
+    expect([call.source, call.userId, call.turnId]).toEqual(["background", "u_thana", "run-title"]);
   });
 
   test("a job's measured calls are background spend kept on the job's run", async () => {

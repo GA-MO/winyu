@@ -51,17 +51,26 @@ function billedCostOf(metadata: ProviderMetadata): number | null {
   return typeof usage?.cost === "number" ? usage.cost : null;
 }
 
-type CallContext = { meter: Metered | undefined; userId: string | null; turnId: string | null; byJob: boolean };
+/** Who a call is for when the call itself knows better than the request around it: a thread title is utility work done for one person after their turn. */
+export type CallOwner = { source: ModelCallSource; userId: string | null; turnId: string | null };
 
-function contextNow(): CallContext {
+type CallContext = { meter: Metered | undefined; owner: CallOwner };
+
+function ownerNow(): CallOwner {
   const run = currentRun();
-  return { meter: scope.getStore(), userId: accessOrNull()?.userId ?? null, turnId: currentTurn().turnId ?? run?.id ?? null, byJob: run?.initiator === "job" };
+  const meter = scope.getStore();
+  const userId = accessOrNull()?.userId ?? null;
+  const source: ModelCallSource = run?.initiator === "job" ? "background" : meter ? "eval" : userId ? "chat" : "background";
+  return { source, userId, turnId: currentTurn().turnId ?? run?.id ?? null };
 }
 
-function sourceOf(context: CallContext): ModelCallSource {
-  if (context.byJob) return "background";
-  if (context.meter) return "eval";
-  return context.userId ? "chat" : "background";
+function contextNow(owner?: CallOwner): CallContext {
+  return { meter: scope.getStore(), owner: owner ?? ownerNow() };
+}
+
+function recordAborted(modelId: string, context: CallContext): void {
+  recordModelCall({ modelId, ...context.owner, inputTokens: 0, cachedTokens: 0, outputTokens: 0, reasoningTokens: 0, billedUsd: null, estimatedUsd: 0, aborted: true });
+  if (context.meter) context.meter.calls += 1;
 }
 
 function record(modelId: string, usage: CallUsage, metadata: ProviderMetadata, context: CallContext, latencyMs?: number): void {
@@ -73,9 +82,7 @@ function record(modelId: string, usage: CallUsage, metadata: ProviderMetadata, c
   const estimated = (input * rate.input + output * rate.output) / PER_MILLION;
   recordModelCall({
     modelId,
-    source: sourceOf(context),
-    userId: context.userId,
-    turnId: context.turnId,
+    ...context.owner,
     inputTokens: input,
     cachedTokens: usage.inputTokens.cacheRead ?? 0,
     outputTokens: output,
@@ -103,26 +110,63 @@ export async function measure<T>(work: () => Promise<T>): Promise<{ result: T; u
   return { result, usage: meter };
 }
 
-/** Records each generate and stream call of one model in the ledger (who, which turn, tokens, billed cost) and counts it into the current `measure` scope. */
-export function meterMiddleware(modelId: string): LanguageModelMiddleware {
+type StreamPart = { type: string };
+
+/** The stream as read, recording the call once: with the usage of its finish chunk, or as aborted when it is cancelled, fails or ends without one. */
+function countedStream<Part extends StreamPart>(stream: ReadableStream<Part>, onFinish: (chunk: Part) => void, onAborted: () => void): ReadableStream<Part> {
+  const reader = stream.getReader();
+  let recorded = false;
+  const once = (write: () => void) => {
+    if (recorded) return;
+    recorded = true;
+    write();
+  };
+  return new ReadableStream<Part>({
+    async pull(controller) {
+      const next = await reader.read().catch((error: unknown) => {
+        once(onAborted);
+        throw error;
+      });
+      if (next.done) {
+        once(onAborted);
+        controller.close();
+        return;
+      }
+      if (next.value.type === "finish") once(() => onFinish(next.value));
+      controller.enqueue(next.value);
+    },
+    cancel(reason) {
+      once(onAborted);
+      return reader.cancel(reason);
+    },
+  });
+}
+
+/** Records each generate and stream call of one model in the ledger (who, which turn, tokens, billed cost) and counts it into the current `measure` scope; a call cut off before it reported its usage (a time budget, a stop) is still recorded, as aborted. `owner` names who the call is for when the request around it does not. */
+export function meterMiddleware(modelId: string, owner?: CallOwner): LanguageModelMiddleware {
   return {
     specificationVersion: "v3",
     wrapGenerate: async ({ doGenerate }) => {
-      const context = contextNow();
-      const result = await doGenerate();
+      const context = contextNow(owner);
+      const result = await Promise.resolve(doGenerate()).catch((error: unknown) => {
+        recordAborted(modelId, context);
+        throw error;
+      });
       record(modelId, result.usage, result.providerMetadata as ProviderMetadata, context);
       return result;
     },
     wrapStream: async ({ doStream }) => {
-      const context = contextNow();
-      const { stream, ...rest } = await doStream();
-      const counted = stream.pipeThrough(
-        new TransformStream({
-          transform(chunk, controller) {
-            if (chunk.type === "finish") record(modelId, chunk.usage, chunk.providerMetadata as ProviderMetadata, context);
-            controller.enqueue(chunk);
-          },
-        }),
+      const context = contextNow(owner);
+      const { stream, ...rest } = await Promise.resolve(doStream()).catch((error: unknown) => {
+        recordAborted(modelId, context);
+        throw error;
+      });
+      const counted = countedStream(
+        stream,
+        (chunk) => {
+          if (chunk.type === "finish") record(modelId, chunk.usage, chunk.providerMetadata as ProviderMetadata, context);
+        },
+        () => recordAborted(modelId, context),
       );
       return { stream: counted, ...rest };
     },
