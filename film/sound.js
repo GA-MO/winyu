@@ -521,8 +521,8 @@
     hit: { duck: 0.2, play: (v, c) => {
       const big = !c.step, swell = 2 * c.beat;
       v.hiss({ t: c.at - swell, f: 600, to: 6000, q: 1.2, a: swell - 0.02, d: 0.05, gain: big ? 0.05 : 0.03, send: 0.35, seed: c.seed });
-      v.tone({ t: c.at, f: 62, from: 200, glide: 0.08, a: 0.001, h: 0.04, d: 0.35, gain: big ? 0.36 : 0.22, send: 0.1 });
-      v.hiss({ t: c.at, f: 2500, type: "lowpass", a: 0.001, d: 0.1, gain: big ? 0.15 : 0.09, send: 0.35, seed: c.seed + 1 });
+      v.tone({ t: c.at, f: 62, from: 200, glide: 0.08, a: 0.001, h: 0.04, d: 0.35, gain: big ? 0.28 : 0.2, send: 0.1 });
+      v.hiss({ t: c.at, f: 2500, type: "lowpass", a: 0.001, d: 0.1, gain: big ? 0.12 : 0.08, send: 0.35, seed: c.seed + 1 });
       v.hiss({ t: c.at, f: 7500, q: 0.6, a: 0.004, d: big ? 0.9 : 0.4, gain: big ? 0.022 : 0.014, pan: 0.1, send: 0.5, seed: c.seed + 2 });
     } },
     pop: { duck: 0.03, play: (v, c) => {
