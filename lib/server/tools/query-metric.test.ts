@@ -388,6 +388,7 @@ describe("a series split by a group over the row cap keeps every bucket and fold
     const card = presentCard({ title: "t", query: result.query, result });
     expect(card.verdict).toContain("ต.ค. 69 ทุกภาค");
     expect(card.verdict).toContain("ภาคอีสาน พ.ย. 69 (92.0% ของเป้าตามเวลา)");
+    expect(card.body).toMatchObject({ kind: "line", axis: "fitted" });
   });
 });
 

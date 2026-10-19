@@ -50,7 +50,7 @@ export type CardView = WidgetKind | "auto" | "scatter" | "funnel";
 export type CardHero = { label: string; value: string; unit: string | null; delta: string | null; trend: Direction; tone: Tone; detail: string | null };
 export type RankRow = { label: string; value: string; share: number | null; delta: string | null; trend: Direction; tone: Tone; note: string | null };
 export type CardColumn = { key: string; label: string; align: "start" | "end" | null; tone: "default" | "muted" | "delta" | null };
-/** Where a line's value axis starts: zero for a flow, fitted to the data for a level (headcount, a balance), whose change is the story and would flatten against zero (AI-335). */
+/** Where a line's value axis starts: zero for a flow, fitted to the data for a level (headcount, a balance) or a rate read against its line (attainment around 100%), whose movement is the story and would flatten against zero (AI-335). */
 export type LineAxis = "zero" | "fitted";
 export type ChartSeries = { name: string; values: (number | null)[]; style: "solid" | "dashed" | null };
 export type SignalItem = {
@@ -1013,7 +1013,7 @@ function compareSeries(query: MetricQuery, rows: MetricRow[]): ChartSeries | nul
 }
 
 function lineAxisOf(query: MetricQuery): LineAxis {
-  return LEVEL_METRICS.has(query.metric) ? "fitted" : "zero";
+  return LEVEL_METRICS.has(query.metric) || LEVEL_LINES[query.metric] ? "fitted" : "zero";
 }
 
 function lineBody(shape: Shape, extras: CardExtras): CardBody {
