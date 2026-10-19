@@ -353,6 +353,8 @@ T.nums = T.push5[1] - 0.35;
 T.chips = [T.dyn - 0.05, T.dyn + 0.2, T.dyn + 0.45];
 const HL_IN = [['hl0', -1], ['hl1', T.sun + 0.15], ['hl2', T.memIn - 0.4], ['hlA', T.wall], ['hlB', T.dyn], ['hl3', T.fwd], ['hl4', T.leaveIn - 0.05], ['hl5', T.permIn], ['hl6', T.connIn]].map(([id, a]) => [id, a < 0 ? a : GRID.snap(a, 2)]);
 const HL_GAP = 0.45;
+/** Headlines that land inside a build or a thinned bar take the small hit, so the groove after the impact never falls more than 6 dB. */
+const SMALL_HITS = new Set(['hlB', 'hl5']);
 const HLS = HL_IN.map(([id, a], i) => [id, a, i === 0 ? T.ask + 0.7 : i < HL_IN.length - 1 ? HL_IN[i + 1][1] - HL_GAP : T.pull6[1]]);
 const UNIT = 72;
 const FIG = 1.35;
@@ -1388,7 +1390,7 @@ const SOUND = {
     { at: T.connSend, sfx: 'send' },
     { at: T.connAnswer + 0.35, sfx: 'pop', step: 3 },
     { at: T.logo, sfx: 'sting' },
-    ...HLS.filter(([, inT]) => inT >= 0).map(([id, at]) => ({ at, sfx: 'hit', step: id === 'hlB' ? 1 : 0 })),
+    ...HLS.filter(([, inT]) => inT >= 0).map(([id, at]) => ({ at, sfx: 'hit', step: SMALL_HITS.has(id) ? 1 : 0 })),
   ],
 };
 let rendered = null;
