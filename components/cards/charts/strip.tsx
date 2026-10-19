@@ -54,20 +54,27 @@ function detailOf(row: ReadRow): string {
   return row.sub ? `${row.label}\n${row.sub}` : row.label;
 }
 
+function DecidingLine({ strip, gridRow }: { strip: Strip; gridRow: string }) {
+  return (
+    <div aria-hidden className="pointer-events-none relative self-stretch" style={{ gridColumn: 2, gridRow }}>
+      <div className="absolute inset-y-0 w-px bg-foreground/25" style={{ left: `${at(strip, strip.baseline)}%` }} />
+    </div>
+  );
+}
+
 function LineStrip({ strip }: { strip: Strip }) {
   const overall = strip.overall;
-  const lines = strip.rows.length + (overall ? 2 : 0);
-  const lineRows = overall && overall.measure === null ? `3 / span ${strip.rows.length}` : `1 / span ${lines}`;
+  const headRows = overall ? (overall.sub ? 3 : 2) : 0;
+  const rowsLine = `${overall ? headRows : 1} / span ${strip.rows.length + (overall ? 1 : 0)}`;
   return (
     <div className="relative grid grid-cols-[minmax(0,7.5rem)_minmax(0,1fr)_max-content] items-center gap-x-2.5 gap-y-1.5">
-      <div aria-hidden className="pointer-events-none relative self-stretch" style={{ gridColumn: 2, gridRow: lineRows }}>
-        <div className="absolute inset-y-0 w-px bg-foreground/25" style={{ left: `${at(strip, strip.baseline)}%` }} />
-      </div>
+      <DecidingLine strip={strip} gridRow={rowsLine} />
       {overall ? (
         <>
-          <div style={{ gridColumn: overall.measure === null ? "1 / 3" : 1, gridRow: 1 }}>
-            <OverallLabel row={overall} />
-          </div>
+          {overall.measure !== null ? <DecidingLine strip={strip} gridRow="1" /> : null}
+          <span className="truncate text-[12px] leading-snug text-muted-foreground" style={{ gridColumn: overall.measure === null ? "1 / 3" : 1, gridRow: 1 }}>
+            {overall.label}
+          </span>
           {overall.measure !== null ? (
             <div className="relative h-6" style={{ gridColumn: 2, gridRow: 1 }}>
               <Bar strip={strip} value={overall.measure} className={cn("h-3", TONE_BAR[overall.tone])} />
@@ -77,11 +84,16 @@ function LineStrip({ strip }: { strip: Strip }) {
             <span className={cn("text-[22px] font-semibold leading-none tracking-tight tabular-nums", overall.change ? "text-foreground" : TONE_TEXT[overall.tone])}>{overall.text}</span>
             {overall.change ? <ChangeChip text={overall.change} tone={overall.tone} /> : null}
           </div>
-          <div aria-hidden className="h-px bg-border/70" style={{ gridColumn: "1 / -1", gridRow: 2 }} />
+          {overall.sub ? (
+            <p className="text-[11px] leading-snug text-muted-foreground tabular-nums" style={{ gridColumn: "1 / -1", gridRow: 2 }}>
+              {overall.sub}
+            </p>
+          ) : null}
+          <div aria-hidden className="h-px bg-border/70" style={{ gridColumn: "1 / -1", gridRow: headRows }} />
         </>
       ) : null}
       {strip.rows.map((row, index) => {
-        const gridRow = index + 1 + (overall ? 2 : 0);
+        const gridRow = index + 1 + headRows;
         return (
           <div key={row.label} className="contents">
             <div className="flex min-w-0 flex-col" style={{ gridColumn: 1, gridRow }}>
