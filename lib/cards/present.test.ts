@@ -264,9 +264,18 @@ describe("two metrics on one card", () => {
     const card = presentCard({ title: "t", query, result, others: [answer({ metric: "ar_overdue", dims: ["agent"] })] });
     const body = expectKind(card.body, "scatter");
     expect(body.points.length).toBeGreaterThanOrEqual(4);
-    expect(body.points.filter((point) => point.named).length).toBe(3);
+    expect(body.points.filter((point) => point.named).length).toBeGreaterThanOrEqual(3);
     expect(card.verdict).not.toMatch(/r = |\d\.\d\d/);
     expect(body.x.label).not.toBe(body.y.label);
+  });
+
+  test("sales against overdue money by province names the province largest on each axis beside the ones off the trend, so the point a reply leans on has its name (AI-330)", () => {
+    const { query, result } = answer({ metric: "net_sales_value", dims: ["province"], range: MONTH_TO_DATE, compare: "none" });
+    const card = presentCard({ title: "t", query, result, others: [answer({ metric: "ar_overdue", dims: ["province"], range: MONTH_TO_DATE, compare: "none" })] });
+    const body = expectKind(card.body, "scatter");
+    const largest = (axis: "x" | "y") => body.points.reduce((best, point) => (point[axis] > best[axis] ? point : best));
+    expect(largest("x").named).toBe(true);
+    expect(largest("y").named).toBe(true);
   });
 
   test("sell-in against sell-out is a B breakdown around 100%: the overall share on top, the agents falling well short drawn as exceptions, no 'x → y' under any row", () => {

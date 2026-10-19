@@ -332,7 +332,7 @@ export function isParityPair(first: Source, second: Source): boolean {
   return comparableScale(median(joined.map((entry) => numericOf(entry.x, "value") as number)), median(joined.map((entry) => numericOf(entry.y, "value") as number)));
 }
 
-/** Two metrics of the same things against each other: medians split the plot, the outliers are named, the note says how tightly they move together. */
+/** Two metrics of the same things against each other: medians split the plot, the largest on each axis and the outliers are named, the note says how tightly they move together. */
 export function scatterBody(first: Source, second: Source): CardBody {
   const joined = joinedRows(first, second);
   const xs = joined.map((entry) => numericOf(entry.x, "value") as number);
@@ -346,12 +346,15 @@ export function scatterBody(first: Source, second: Source): CardBody {
   const offTrend = (index: number) => Math.abs(ys[index] - (fit.intercept + fit.slope * xs[index])) / ySpan;
   const distance = (index: number) => Math.hypot((xs[index] - x.median) / xSpan, (ys[index] - y.median) / ySpan);
   const standsOut = Math.abs(r) >= TREND_CORRELATION ? offTrend : distance;
-  const named = new Set(
-    joined
+  const largest = (values: number[]) => values.indexOf(Math.max(...values));
+  const named = new Set([
+    largest(xs),
+    largest(ys),
+    ...joined
       .map((_, index) => index)
       .sort((left, right) => standsOut(right) - standsOut(left))
       .slice(0, MAX_NAMED_POINTS),
-  );
+  ]);
   const points: ScatterPoint[] = joined.map((entry, index) => ({
     label: entry.label,
     x: xs[index],

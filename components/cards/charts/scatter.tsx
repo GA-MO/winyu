@@ -14,7 +14,7 @@ const MAX_PLOT_LEFT = 96;
 const TICK_CHAR_PX = 5.6;
 const TICK_GAP_PX = 4;
 const PLOT_RIGHT = 12;
-const TICK_COUNT = 2;
+const TICK_COUNTS = [4, 5, 6] as const;
 const LABEL_MAX_PX = 124;
 const LABEL_CHAR_PX = 5.8;
 const LABEL_H = 12;
@@ -36,6 +36,12 @@ function domainOf(values: number[]): [number, number] {
   return [Math.min(0, ...values), Math.max(0, ...values)];
 }
 
+/** Round ticks whose ends sit closest to the data (205 ล้าน ends at 250, not 400), so the points spread over the plot; on a tie the fewer ticks win. */
+export function fittedTicks(min: number, max: number): number[] {
+  const overshoot = (ticks: number[]) => (ticks[ticks.length - 1] ?? max) - max + (min - (ticks[0] ?? min));
+  return TICK_COUNTS.map((count) => niceRange(min, max, count)).reduce((best, ticks) => (overshoot(ticks) < overshoot(best) ? ticks : best));
+}
+
 function overlaps(left: Box, right: Box): boolean {
   return left.left < right.right && right.left < left.right && left.top < right.bottom && right.top < left.bottom;
 }
@@ -46,12 +52,13 @@ function candidate(cx: number, cy: number, width: number, right: boolean, above:
   return { x, y, anchor: right ? "start" : "end", box: { left: right ? x : x - width, right: right ? x + width : x, top: y - LABEL_H, bottom: y } };
 }
 
-/** Where a point's name fits: right or left of the dot, above or below, inside the plot, clear of every other name and every other named dot (the muted dots may sit under it); null when nowhere fits. */
-function placeLabel(text: string, cx: number, cy: number, dots: Box[], placed: Placed[], bounds: Box): Placed | null {
+/** Where a point's name fits: right or left of the dot, above or below, inside the plot, clear of every other name; clear of every other dot when a spot allows, else only of the named dots (a muted dot may then sit under it); null when nowhere fits. */
+function placeLabel(text: string, cx: number, cy: number, dots: { all: Box[]; named: Box[] }, placed: Placed[], bounds: Box): Placed | null {
   const width = Math.min(LABEL_MAX_PX, text.length * LABEL_CHAR_PX);
   const spots = [candidate(cx, cy, width, true, true), candidate(cx, cy, width, false, true), candidate(cx, cy, width, true, false), candidate(cx, cy, width, false, false)];
   const inside = (box: Box) => box.left >= bounds.left && box.right <= bounds.right && box.top >= bounds.top && box.bottom <= bounds.bottom;
-  return spots.find((spot) => inside(spot.box) && !dots.some((dot) => overlaps(dot, spot.box)) && !placed.some((label) => overlaps(label.box, spot.box))) ?? null;
+  const clear = (avoid: Box[]) => spots.find((spot) => inside(spot.box) && !avoid.some((dot) => overlaps(dot, spot.box)) && !placed.some((label) => overlaps(label.box, spot.box)));
+  return clear(dots.all) ?? clear(dots.named) ?? null;
 }
 
 type Tick = { value: number; at: number; text: string; anchor: "start" | "middle" | "end" };
@@ -87,8 +94,8 @@ export function Scatter({ points, x, y }: ScatterProps) {
   }
   const [xRawMin, xRawMax] = domainOf(points.map((point) => point.x));
   const [yRawMin, yRawMax] = domainOf(points.map((point) => point.y));
-  const xTicks = niceRange(xRawMin, xRawMax, TICK_COUNT);
-  const yTicks = niceRange(yRawMin, yRawMax, TICK_COUNT);
+  const xTicks = fittedTicks(xRawMin, xRawMax);
+  const yTicks = fittedTicks(yRawMin, yRawMax);
   const xMin = xTicks[0] ?? 0;
   const xMax = xTicks[xTicks.length - 1] ?? 1;
   const yMin = yTicks[0] ?? 0;
@@ -104,7 +111,9 @@ export function Scatter({ points, x, y }: ScatterProps) {
   const labels = new Map<number, Placed>();
   points.forEach((point, index) => {
     if (!point.named) return;
-    const dots = centres.filter((_, other) => other !== index && points[other].named).map(({ cx, cy }) => ({ left: cx - DOT_R, right: cx + DOT_R, top: cy - DOT_R, bottom: cy + DOT_R }));
+    const boxOf = ({ cx, cy }: { cx: number; cy: number }): Box => ({ left: cx - DOT_R, right: cx + DOT_R, top: cy - DOT_R, bottom: cy + DOT_R });
+    const others = centres.flatMap((centre, other) => (other === index ? [] : [{ box: boxOf(centre), named: points[other].named }]));
+    const dots = { all: others.map((other) => other.box), named: others.filter((other) => other.named).map((other) => other.box) };
     const spot = placeLabel(clipLabel(point.label, LABEL_MAX_PX), centres[index].cx, centres[index].cy, dots, placed, bounds);
     if (!spot) return;
     placed.push(spot);

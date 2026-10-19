@@ -99,6 +99,25 @@ describe("scatter", () => {
     expect(html).not.toContain("มัธยฐาน");
     expect(html).not.toContain("0.58");
   });
+
+  test("ends both axes at the next round value above the data, not twice the largest point, so the points spread over the plot (AI-330)", () => {
+    const html = render({
+      kind: "scatter",
+      points: [
+        { label: "กรุงเทพมหานคร", x: 205_000_000, y: 10_200_000, xText: "205.0 ล้านบาท", yText: "10.2 ล้านบาท", named: true },
+        { label: "สงขลา", x: 73_700_000, y: 7_000_000, xText: "73.7 ล้านบาท", yText: "7.0 ล้านบาท", named: true },
+        { label: "ตราด", x: 10_000_000, y: 1_000_000, xText: "10.0 ล้านบาท", yText: "1.0 ล้านบาท", named: false },
+      ],
+      x: { label: "มูลค่าขายเข้า", format: "currency", median: 73_700_000, medianText: "73.7 ล้านบาท" },
+      y: { label: "ยอดค้างชำระ", format: "currency", median: 7_000_000, medianText: "7.0 ล้านบาท" },
+      r: 0.9,
+    });
+    const ticks = [...html.matchAll(/<text[^>]*>([\d.,]+ ล้านบาท)<\/text>/g)].map((match) => Number(match[1].replace(/[^\d.]/g, "")));
+    expect(Math.max(...ticks.filter((tick) => tick > 100))).toBe(250);
+    expect(ticks).toContain(12);
+    expect(ticks).not.toContain(400);
+    expect(ticks).not.toContain(20);
+  });
 });
 
 
