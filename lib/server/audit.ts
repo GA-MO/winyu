@@ -3,7 +3,7 @@ import type { AuditEntry, GrantSlice, Initiator, RuleRef } from "@/lib/contracts
 import { TH } from "@/lib/i18n/th";
 import type { GuardFinding } from "@/lib/harness/guard";
 import { THROWN_CODE } from "@/lib/harness/observation";
-import { currentRun, emit } from "@/lib/harness/runtime";
+import { currentRun, emit, initiatorOutsideRun } from "@/lib/harness/runtime";
 import type { Observation } from "@/lib/harness/types";
 import { currentTurn } from "@/lib/server/request-context";
 import { collection } from "@/lib/server/store/json-store";
@@ -200,7 +200,7 @@ export function recordGuardFinding(finding: GuardFinding, userId: string): void 
     reason: `${TH.guard.flagged(finding.check, TH.guard.source[finding.source] ?? finding.source)}: ${kinds} · ${TH.guard.action[finding.action] ?? finding.action}`,
     args: argsPreview(finding),
     toolCallId: randomUUID(),
-    initiator: run?.initiator ?? "person",
+    initiator: run?.initiator ?? initiatorOutsideRun() ?? "person",
     ...(turnId ? { turnId } : {}),
     ...(turn.threadId ? { threadId: turn.threadId } : {}),
     ...(turn.question ? { question: turn.question } : {}),

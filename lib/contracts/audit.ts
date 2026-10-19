@@ -1,7 +1,7 @@
 import type { GrantRef } from "./grant";
 
-/** Who started the work a tool call belongs to: a person in the chat, a person's own MCP client (Claude, Copilot) holding their token, another team's agent asking over A2A with a token IT issued in a person's name, a background job, or server code outside any run. */
-export type Initiator = "person" | "mcp" | "a2a" | "job" | "system";
+/** Who started the work a tool call belongs to: a person in the chat, a person's own MCP client (Claude, Copilot) holding their token, another team's agent asking over A2A with a token IT issued in a person's name, a background job, a developer trying a persona in Mastra Studio, or server code outside any run. */
+export type Initiator = "person" | "mcp" | "a2a" | "job" | "studio" | "system";
 
 /** The admin rule that refused a call, as the trace and the audit name it. */
 export type RuleRef = { id: string; name: string };

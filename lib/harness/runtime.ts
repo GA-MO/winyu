@@ -19,6 +19,8 @@ type RunOptions = { initiator: Initiator; id?: string; toolBudget?: number };
 
 const runs = new AsyncLocalStorage<Run>();
 
+const initiators = new AsyncLocalStorage<Initiator>();
+
 /** A run for one surface; the initiator is always named, so no caller is audited as the person by default. */
 export function newRun(userId: string, threadId: string | null, { initiator, id = randomUUID(), toolBudget = LIMITS.maxToolCalls }: RunOptions): Run {
   return { id, userId, threadId, initiator, startedAt: Date.now(), events: [], toolCalls: 0, toolBudget, steps: 0, corrections: {} };
@@ -31,6 +33,21 @@ export function runWithRun<T>(run: Run, fn: () => T): T {
 /** The run being served, or null for a tool called outside one (a background job, a script). */
 export function currentRun(): Run | null {
   return runs.getStore() ?? null;
+}
+
+/** Runs work that has no harness run (a Studio request) on behalf of a named initiator, so the gateway's policy, the audit and the spend ledger say who started it. */
+export function runAsInitiator<T>(initiator: Initiator, fn: () => T): T {
+  return initiators.run(initiator, fn);
+}
+
+/** The initiator named for the work outside a run (`runAsInitiator`), if any. */
+export function initiatorOutsideRun(): Initiator | null {
+  return initiators.getStore() ?? null;
+}
+
+/** Who started the work being done: the run's initiator, else the one named for work outside a run, else the system. */
+export function currentInitiator(): Initiator {
+  return currentRun()?.initiator ?? initiatorOutsideRun() ?? "system";
 }
 
 /** Appends one event to a run's trace and returns it. */

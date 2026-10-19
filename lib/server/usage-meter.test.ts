@@ -3,7 +3,7 @@ import { generateText, streamText, wrapLanguageModel } from "ai";
 import { MockLanguageModelV3, simulateReadableStream } from "ai/test";
 import { findUser } from "@/lib/data/entities/users";
 import { liveAccessFor } from "@/lib/access/enforce";
-import { currentRun, tracedRun } from "@/lib/harness/runtime";
+import { currentRun, runAsInitiator, tracedRun } from "@/lib/harness/runtime";
 import { modelCalls, modelSpend, runSpend } from "./model-ledger";
 import { runWithAccess, runWithTurn } from "./request-context";
 import { measure, meterMiddleware, type CallOwner } from "./usage-meter";
@@ -135,5 +135,17 @@ describe("model ledger", () => {
     const [call] = newCalls(before);
     expect([call.source, call.turnId]).toEqual(["background", runId]);
     expect(spend).toEqual({ calls: 1, inputTokens: 1_000_000, outputTokens: 200_000, usd: 0.0123 });
+  });
+
+  test("a call made as a persona in Studio is studio spend, kept on that persona", async () => {
+    const user = findUser("u_thana");
+    if (!user) throw new Error("missing u_thana");
+    const before = new Set(modelCalls().all().map((call) => call.id));
+    const since = new Date(Date.now() - 1000).toISOString();
+    await runWithAccess(liveAccessFor(user), () => runAsInitiator("studio", () => generateText({ model: model(BILLED), prompt: "hi" })));
+    const studioUsd = modelSpend(since).bySource.studio;
+    const [call] = newCalls(before);
+    expect([call.source, call.userId]).toEqual(["studio", "u_thana"]);
+    expect(studioUsd).toBeCloseTo(0.0123);
   });
 });

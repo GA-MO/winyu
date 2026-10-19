@@ -3,7 +3,7 @@ import { collection } from "@/lib/server/store/json-store";
 
 export const MODEL_CALLS_COLLECTION = "model-calls";
 
-export type ModelCallSource = "chat" | "eval" | "background";
+export type ModelCallSource = "chat" | "eval" | "background" | "studio";
 
 /** One model call as the provider reported it: tokens, and the cost it billed when it says so; `aborted` marks a call cut off or failed before the provider said what it used (a time budget ran out, the run was stopped, the provider erred), so its tokens and cost are unknown, not zero. */
 export type ModelCall = {
@@ -51,7 +51,7 @@ export function recordModelCall(call: Omit<ModelCall, "id" | "at">): void {
 
 /** What the models cost since a moment, in all, by source and by the person each call served: billed where the provider said, estimated only for calls it did not. */
 export function modelSpend(since: string | null): ModelSpend {
-  const spend: ModelSpend = { calls: 0, billedCalls: 0, totalUsd: 0, billedUsd: 0, inputTokens: 0, outputTokens: 0, bySource: { chat: 0, eval: 0, background: 0 }, byUser: {}, unattributed: { usd: 0, calls: 0 } };
+  const spend: ModelSpend = { calls: 0, billedCalls: 0, totalUsd: 0, billedUsd: 0, inputTokens: 0, outputTokens: 0, bySource: { chat: 0, eval: 0, background: 0, studio: 0 }, byUser: {}, unattributed: { usd: 0, calls: 0 } };
   for (const call of modelCalls().all()) {
     if (since && call.at < since) continue;
     const usd = call.billedUsd ?? call.estimatedUsd;

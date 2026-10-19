@@ -16,9 +16,9 @@ function billingLine(spend: ModelSpend): string {
   return COPY.spendPartly(spend.calls - spend.billedCalls);
 }
 
-/** What the models cost this fortnight, as OpenRouter billed each call, split by chat, eval and background jobs. */
+/** What the models cost this fortnight, as OpenRouter billed each call, split by chat, eval, background jobs and Mastra Studio. */
 export function SpendStat({ spend }: { spend: ModelSpend }) {
   if (spend.calls === 0) return <Stat label={COPY.spendLabel(SPEND_DAYS)} value="$0.00" sub={COPY.spendNone} />;
-  const sources = COPY.spendSources(usd(spend.bySource.chat), usd(spend.bySource.eval), usd(spend.bySource.background));
+  const sources = COPY.spendSources(usd(spend.bySource.chat), usd(spend.bySource.eval), usd(spend.bySource.background), usd(spend.bySource.studio));
   return <Stat label={COPY.spendLabel(SPEND_DAYS)} value={usd(spend.totalUsd)} sub={`${billingLine(spend)} · ${sources}`} />;
 }

@@ -1,7 +1,7 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 import type { LanguageModelMiddleware } from "ai";
 import { recordModelCall, type ModelCallSource } from "./model-ledger";
-import { currentRun } from "@/lib/harness/runtime";
+import { currentInitiator, currentRun } from "@/lib/harness/runtime";
 import { accessOrNull, currentTurn } from "./request-context";
 
 const PER_MILLION = 1_000_000;
@@ -57,11 +57,11 @@ export type CallOwner = { source: ModelCallSource; userId: string | null; turnId
 type CallContext = { meter: Metered | undefined; owner: CallOwner };
 
 function ownerNow(): CallOwner {
-  const run = currentRun();
+  const initiator = currentInitiator();
   const meter = scope.getStore();
   const userId = accessOrNull()?.userId ?? null;
-  const source: ModelCallSource = run?.initiator === "job" ? "background" : meter ? "eval" : userId ? "chat" : "background";
-  return { source, userId, turnId: currentTurn().turnId ?? run?.id ?? null };
+  const source: ModelCallSource = initiator === "job" ? "background" : initiator === "studio" ? "studio" : meter ? "eval" : userId ? "chat" : "background";
+  return { source, userId, turnId: currentTurn().turnId ?? currentRun()?.id ?? null };
 }
 
 function contextNow(owner?: CallOwner): CallContext {

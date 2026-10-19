@@ -8,7 +8,7 @@ import { spendYes } from "./approvals";
 import { observe, type Attempt } from "./observation";
 import { authorize, type CallContext } from "./policy";
 import { failureOf, recover } from "./recovery";
-import { currentRun, emit } from "./runtime";
+import { currentInitiator, currentRun, emit } from "./runtime";
 import type { Capability, Denial, Observation, Unready, Verdict } from "./types";
 import type { Run } from "./runtime";
 
@@ -114,7 +114,7 @@ function refused(call: AuditedCall, ref: Ref, { code, reason, rule }: Held): Ref
 }
 
 function callContextOf(owner: Run | null, input: unknown): CallContext {
-  return { input, initiator: owner?.initiator ?? "system", used: owner?.toolCalls ?? 0, limit: owner?.toolBudget ?? Number.POSITIVE_INFINITY };
+  return { input, initiator: currentInitiator(), used: owner?.toolCalls ?? 0, limit: owner?.toolBudget ?? Number.POSITIVE_INFINITY };
 }
 
 async function unready(capability: Capability, input: unknown): Promise<Unready | null> {
