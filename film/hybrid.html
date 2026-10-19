@@ -1204,7 +1204,63 @@ function render(t) {
   for (const [id, el] of pool) if (!used.has(id)) el.style.display = 'none';
 }
 
-window.film = { length: LENGTH, render };
+const keysIn = (count, from, to) => Sound.steps(count, from - 0.01, to + 0.01, 0.05).map((at, i) => ({ at, sfx: 'key', step: i }));
+const typed = (span, G) => keysIn((t) => typedCount(t, span, G), span[0], span[0] + span[1]);
+const SWEEP = 0.6;
+const SOUND = {
+  tempo: { on: T.memc },
+  sections: [
+    { at: 0, mix: 'intro' },
+    { at: T.sun, mix: 'drive' },
+    { at: T.memc - BREATH, mix: 'hold', fade: 0.2 },
+    { at: T.memDrop, mix: 'drive', fade: 0.3 },
+    { at: T.wall - 0.15, mix: 'full' },
+    { at: T.fwd - 0.15, mix: 'drive' },
+    { at: T.leaveIn - 0.2, mix: 'break' },
+    { at: T.leave[0] + T.leave[1], mix: 'build' },
+    { at: T.permIn - 0.15, mix: 'full' },
+    { at: T.connIn - 0.15, mix: 'peak' },
+    { at: T.logo, mix: 'end' },
+  ],
+  cues: [
+    ...SYS.map((_, i) => ({ at: T.sysAt(i), sfx: 'pop', step: i })),
+    ...typed(T.q, Q),
+    { at: T.ask, sfx: 'send' },
+    { at: T.sun, sfx: 'air' },
+    { at: T.isan, sfx: 'notify' },
+    ...VISITS.flatMap(v => [{ at: v.push[0] + SWEEP, sfx: 'whoosh' }, { at: v.pull[0] + SWEEP, sfx: 'whoosh', step: 1 }]),
+    { at: T.say1, sfx: 'send' },
+    { at: T.memc, sfx: 'memory' },
+    { at: T.memDrop + 0.5, sfx: 'glow', step: 0 },
+    { at: T.day, sfx: 'dawn' },
+    { at: T.ask2, sfx: 'send' },
+    { at: T.why, sfx: 'memory' },
+    { at: T.ask3, sfx: 'send' },
+    ...T.chips.map((at) => ({ at, sfx: 'pop', step: 2 })),
+    { at: T.fwdClick, sfx: 'click' },
+    { at: T.sendClick, sfx: 'click' },
+    { at: T.envFly[0] + T.envFly[1], sfx: 'whoosh' },
+    { at: T.bell, sfx: 'bell' },
+    ...typed(T.leaveQ, LEAVE_Q),
+    { at: T.leaveQ[0] + T.leaveQ[1] + 0.15, sfx: 'send' },
+    ...typed(T.leave, LEAVE),
+    { at: T.leave[0] + T.leave[1] + 0.15, sfx: 'send' },
+    { at: T.press, sfx: 'click' },
+    { at: T.approved, sfx: 'glow', step: 1 },
+    { at: T.flip, sfx: 'click' },
+    { at: T.lock, sfx: 'lock' },
+    { at: T.plug[0] + T.plug[1], sfx: 'plug' },
+    { at: T.connClick, sfx: 'click' },
+    { at: T.connected, sfx: 'toggle' },
+    { at: T.ask5, sfx: 'send' },
+    { at: T.logo, sfx: 'sting' },
+    ...HLS.filter(([, inT]) => inT >= 0).map(([id, at]) => ({ at, sfx: 'hit', step: id === 'hlB' ? 1 : 0 })),
+    { at: T.hlRein, sfx: 'hit' },
+    { at: T.logo, sfx: 'hit' },
+  ],
+};
+let rendered = null;
+window.film = { length: LENGTH, render, score: SOUND, audio: () => (rendered ??= Sound.renderScore(SOUND, LENGTH)) };
 
 const stage = $('stage'), frame = $('frame');
 const capture = /capture/.test(location.search);
@@ -1222,12 +1278,12 @@ fit();
 const scrub = $('scrub'), tm = $('tm'), ppi = $('ppi');
 scrub.max = LENGTH;
 let playing = !capture, cur = 0, last = null;
-const speaker = null;
+const speaker = capture ? null : Sound.speaker(window.film);
 const drawPP = () => { ppi.innerHTML = playing ? '<rect x="3" y="2" width="3.5" height="12" fill="#fff"/><rect x="9.5" y="2" width="3.5" height="12" fill="#fff"/>' : '<path d="M4 2 L14 8 L4 14 Z" fill="#fff"/>'; };
 const show = () => { render(cur); scrub.value = cur; tm.textContent = cur.toFixed(1) + ' / ' + LENGTH.toFixed(1) + ' s'; };
 $('pp').onclick = () => { playing = !playing; last = null; drawPP(); speaker?.sync(cur, playing); };
 scrub.oninput = () => { cur = parseFloat(scrub.value); show(); speaker?.sync(cur, playing); };
-$('snd').style.display = 'none';
+$('snd').onclick = async () => { const on = await speaker.toggle(); $('snd').setAttribute('aria-pressed', String(on)); speaker.sync(cur, playing); };
 function loop(ts) {
   if (playing) { const heard = speaker?.clock(); if (heard != null) cur = heard; else if (last !== null) cur = (cur + (ts - last) / 1000) % LENGTH; last = ts; show(); } else last = null;
   requestAnimationFrame(loop);

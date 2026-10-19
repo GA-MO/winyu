@@ -478,8 +478,9 @@
       v.struck({ t: c.at, f: degree(v.key, 2, 1), partials: GLASS, d: 1.2, gain: 0.06, pan: -0.2, send: 0.5 });
     } },
     whoosh: { duck: 0.3, play: (v, c) => {
-      v.hiss({ t: c.at - 0.35, f: 500, to: 8000, q: 0.9, a: 0.3, d: 0.22, gain: 0.12, pan: -0.25, send: 0.3, seed: c.seed });
-      v.hiss({ t: c.at - 0.3, f: 700, to: 8000, q: 1.4, a: 0.28, d: 0.18, gain: 0.06, pan: 0.35, send: 0.3, seed: c.seed + 4 });
+      const [lo, hi] = c.step ? [6500, 450] : [500, 8000];
+      v.hiss({ t: c.at - 0.35, f: lo, to: hi, q: 0.9, a: 0.3, d: 0.22, gain: 0.12, pan: c.step ? 0.25 : -0.25, send: 0.3, seed: c.seed });
+      v.hiss({ t: c.at - 0.3, f: lo * 1.4, to: hi, q: 1.4, a: 0.28, d: 0.18, gain: 0.06, pan: c.step ? -0.35 : 0.35, send: 0.3, seed: c.seed + 4 });
     } },
     bell: { duck: 0.45, play: (v, c) => {
       v.struck({ t: c.at, f: degree(v.key, 0, 1), partials: BELL, d: 1.5, gain: 0.15, pan: 0.25, send: 0.45 });
