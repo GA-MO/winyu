@@ -4,7 +4,7 @@ Two looping films tell the Winyu story in the same nine headlines, from "หล�
 
 | File | Style | Length |
 |---|---|---|
-| `isometric.html` | A miniature isometric city, with screens shown flat over it when they must be read | 73.6 s |
+| `isometric.html` | A miniature isometric city, with screens shown flat over it when they must be read | 75.2 s |
 | `hybrid.html` | ผสม: the city carries the big picture, and the camera pushes into a real Winyu screen lying in the city when there is something to read, then pulls back out | 78.2 s |
 
 ## View

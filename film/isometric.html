@@ -107,11 +107,13 @@ svg{display:block}
 .lp{display:inline-flex;align-items:center;gap:8px;padding:6px 18px;border-radius:999px;border:1.5px solid var(--line);background:#fff;color:var(--muted);font-size:26px;line-height:1.5;font-weight:600;white-space:nowrap;box-shadow:var(--shadow)}
 .lp svg{width:24px;height:24px;flex:none}
 .lp.mem{color:var(--ink);border-color:transparent;background:linear-gradient(#fff,#fff) padding-box,linear-gradient(90deg,#4f46e5,#7c3aed 60%,#fb7185) border-box}
-#qtip{left:0;top:0;padding:6px 16px;border-radius:14px;background:#1e1b4b;color:#fff;font-size:26px;line-height:1.5;font-weight:600;white-space:nowrap}
-#qtip:after{content:'';position:absolute;left:50%;bottom:-8px;margin-left:-8px;border:8px solid transparent;border-bottom:0;border-top-color:#1e1b4b}
-#qask{left:0;top:0;width:840px;height:104px;display:flex;align-items:center;gap:16px;padding:0 20px 0 32px;border-radius:52px;border:2px solid transparent;background:linear-gradient(#fff,#fff) padding-box,linear-gradient(90deg,#7c3aed,#4f46e5 50%,#22d3ee) border-box;box-shadow:var(--shadow)}
-#qask .field{flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
-#qask .send{width:64px;height:64px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;background:#e7e9f0;color:#94a3b8}
+#qtip{left:0;top:0;display:inline-flex;align-items:center;gap:12px;padding:6px 22px 6px 7px;border-radius:999px;background:#f5f3ff;border:1.5px solid #ddd6fe;color:#6d28d9;font-size:26px;line-height:1.5;font-weight:600;white-space:nowrap;box-shadow:0 14px 30px -16px rgba(109,40,217,.5)}
+#qtip:after{content:'';position:absolute;left:50%;bottom:-9px;margin-left:-8px;width:16px;height:16px;background:#f5f3ff;border-right:1.5px solid #ddd6fe;border-bottom:1.5px solid #ddd6fe;transform:rotate(45deg)}
+#qtip .mk{width:40px;height:40px;border-radius:999px;background:linear-gradient(135deg,#7c3aed,#fb7185);display:flex;align-items:center;justify-content:center;flex:none}
+#qtip .mk svg{width:22px;height:22px}
+#qask,#cask{left:0;top:0;width:840px;height:104px;display:flex;align-items:center;gap:16px;padding:0 20px 0 32px;border-radius:52px;border:2px solid transparent;background:linear-gradient(#fff,#fff) padding-box,linear-gradient(90deg,#7c3aed,#4f46e5 50%,#22d3ee) border-box;box-shadow:var(--shadow)}
+#qask .field,#cask .field{flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+#qask .send,#cask .send{width:64px;height:64px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;background:#e7e9f0;color:#94a3b8}
 #qrow{left:0;top:0;display:flex;gap:12px;justify-content:center;width:840px}
 #mcard{top:260px}
 #msvg{position:absolute;left:30px;top:100px}
@@ -156,8 +158,17 @@ svg{display:block}
 .composer i{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#4f46e5,#7c3aed)}
 .ripple{position:absolute;border-radius:50%;border:4px solid rgba(124,58,237,.6)}
 
-#assets{left:1240px;top:330px;width:520px;padding:32px 40px 28px}
+#assets{left:1200px;top:420px;width:600px;padding:28px 36px 24px}
+#cask{width:620px}
+#cq{left:0;top:0}
 #assets .arow{display:flex;align-items:center;gap:20px;margin-top:16px}
+#assets .units{display:flex;gap:8px;margin:10px 0 0 84px}
+#assets .units i{display:block;width:20px;height:28px;border-radius:7px;background:#4f46e5;transform-origin:50% 100%}
+#assets #a-u1 i{background:#a78bfa}
+#assets .src{display:flex;align-items:center;gap:12px;margin-top:22px;padding-top:18px;border-top:1.5px solid var(--line);color:var(--ink)}
+#assets .sic{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#4f46e5,#7c3aed 55%,#fb7185);display:flex;align-items:center;justify-content:center}
+#assets .sic svg{width:24px;height:24px}
+#assets .ok{width:30px;height:30px;color:#059669}
 #assets .ic{width:64px;height:64px;border-radius:18px;background:#efedfb;display:flex;align-items:center;justify-content:center;flex:none}
 #assets .ic svg{width:36px;height:36px}
 #assets .arow .nm{flex:1}
@@ -230,9 +241,12 @@ svg{display:block}
 
     <div id="assets" class="ui card">
       <div class="pc" id="a-head"><span class="chip soft"></span></div>
-      <div class="pc arow" id="a-r0"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#4f46e5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="11" rx="2"/><path d="M2 19h20"/></svg></span><span class="nm t32"></span><span class="t44 num"></span><span class="t26 muted">เครื่อง</span></div>
-      <div class="pc arow" id="a-r1"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#4f46e5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18h2"/></svg></span><span class="nm t32"></span><span class="t44 num"></span><span class="t26 muted">เครื่อง</span></div>
+      <div class="pc" id="a-r0"><div class="arow"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#4f46e5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="11" rx="2"/><path d="M2 19h20"/></svg></span><span class="nm t32"></span><span class="t44 num"></span><span class="t26 muted">เครื่อง</span></div><div class="units" id="a-u0"></div></div>
+      <div class="pc" id="a-r1"><div class="arow"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#4f46e5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18h2"/></svg></span><span class="nm t32"></span><span class="t44 num"></span><span class="t26 muted">เครื่อง</span></div><div class="units" id="a-u1"></div></div>
+      <div class="pc src" id="a-src"><span class="sic"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="11" rx="2"/><path d="M2 19h20"/></svg></span><span class="t26 b">ทะเบียนทรัพย์สิน</span><svg class="ok" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8.5 12.5l2.5 2.5 4.5-5"/></svg></div>
     </div>
+    <div id="cask" class="ui"><div class="field t32"><span id="ctyped"></span><span id="ccaret" style="display:inline-block;width:3px;height:36px;margin-left:2px;vertical-align:-6px;background:#4f46e5;border-radius:2px"></span><span id="cph" class="muted">ถาม Winyu เรื่องยอดขาย สต๊อก แคมเปญ หรือการเงิน…</span></div><div class="send" id="csend"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></div></div>
+    <div id="cq" class="ui ask t32"></div>
 
     <div id="dq" class="ui ask t32">ยอดแต่ละภาคเป็นยังไง</div>
     <div id="dl0" class="ui"><span class="pill t32 muted"><i class="gdot"></i>แชตบอททั่วไป</span></div>
@@ -287,6 +301,7 @@ const MAX_ROW = Math.max(...FACTS.director.rows.map(r => amount(r.value)));
 const REG_ORDER = ['กรุงเทพฯ และปริมณฑล', 'ภาคกลาง', 'ภาคตะวันออก', 'ภาคใต้', 'ภาคเหนือ', FACTS.spotlight];
 const BAL_ORDER = ['พักร้อน', 'ลากิจ', 'ลาป่วย'];
 const TEAM_SHOWN = 4;
+const QUIET_CHIP = 0.45;
 const ASK_X = 960, ASK_Y = 560;
 const CHIPS = [{ label: `แนวโน้ม${FACTS.spotlight}`, reason: `เพราะคุณสนใจ${FACTS.spotlight}` }, ...FACTS.chips];
 const ICON_SPARK = '<svg viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/></svg>';
@@ -319,12 +334,13 @@ const WD = makeWarp(W3.E, 0, 9.15, [], 0, 0.3);
 const W4 = makeWarp(WD.E, 14.5, 19.0, [[14.5, 0.4], [18.4, 1.3]], 0, 0.45);
 const W5 = makeWarp(W4.E, 19.0, 31.0, [], 0.1, 0.5);
 const W6 = makeWarp(W5.E, 24.0, 29.4, [[26.15, 1.0], [28.3, 1.2]], 0.1, 0.4);
-const W7 = makeWarp(W6.E, 29.0, 33.5, [[32.75, 1.2]], 0.1, 0.45);
+const W7 = makeWarp(W6.E, 29.0, 35.7, [[34.4, 0.6]], 0.1, 0.45);
 const W8 = makeWarp(W7.E, 33.5, 37.5, [[35.3, 0.6]], 0.1, 0);
 const LENGTH = Math.round(W8.E * 30) / 30;
 const MOMENT = {ask: 4.85, sun: 5.0, isan: 7.15, shops: 8.6, dq: 0.2, say1: 0.8, memc: 1.75, memDrop: 3.5, day: 4.1, pills: 6.1, memPill: 7.0, tap: 8.1, askSend: 8.6, answer: 9.1, fwdPress: 15.1, envArrive: 16.8, bell: 16.85, leaveAsk: 19.95, press: 27.5, approved: 28.85, lock: 27.7, plug: [30.5, 0.4], connected: 31.25, logo: 33.95};
 const SYS_AT = (i) => 0.6 + i * 0.1;
-const TYPED = {q: [3.5, 0.8], leaveQ: [20.05, 0.55], leave: [24.45, 0.85]};
+const TYPED = {q: [3.5, 0.8], leaveQ: [20.05, 0.55], leave: [24.45, 0.85], conn: [31.85, 0.8]};
+const CONN = {box: 31.55, send: 32.8, answer: 33.0, source: 34.1, out: 35.35};
 let RT = 0;
 const UNIT = 72;
 const FIG = 1.35;
@@ -689,6 +705,7 @@ function beat4(acc, t) {
 }
 
 const LEAVE_Q = graphemes('เหลือวันลากี่วัน');
+const CONN_Q = graphemes(`อุปกรณ์ของทีม${FACTS.spotlight}`);
 const PHONE_S = 1.26;
 const BAL = BAL_ORDER.map((label) => { const b = FACTS.leaveBalance.find(row => row.label === label); return [label, b.left, b.entitled]; });
 function beat5(acc, t) {
@@ -698,10 +715,10 @@ function beat5(acc, t) {
   const pin = k(t, 19.2, 0.8, EOX);
   setUI(phone, pin * (1 - exit), 0, (1 - pin) * 80 - exit * 30, PHONE_S);
   label('rep5', `<span class="pill t40">พนักงานขาย</span>`, 1148, 250, k(t, 19.6, 0.5) * (1 - exit), { ax: 1, ay: 0.5 });
-  const scroll = k(t, 23.85, 0.5, EIO3);
+  const scroll = k(t, 23.9, 0.55, EIO3);
   const ph1 = $('ph1');
   ph1.style.transform = `translateY(${f1(-scroll * 440)}px)`;
-  ph1.style.opacity = (1 - scroll).toFixed(3);
+  ph1.style.opacity = (1 - clamp((scroll - 0.4) / 0.6)).toFixed(3);
   const b1 = $('bub1'), bo1 = k(t, MOMENT.leaveAsk, 0.35, EBK);
   b1.style.opacity = clamp(bo1).toFixed(3);
   b1.style.transform = `scale(${lerp(0.7, 1, bo1).toFixed(3)})`;
@@ -717,7 +734,7 @@ function beat5(acc, t) {
     $('br' + i).style.opacity = p.toFixed(3);
     $('bri' + i).style.width = (l / e * 100 * p).toFixed(1) + '%';
   });
-  const bo = k(t, 24.35, 0.35, EBK);
+  const bo = k(t, 24.15, 0.35, EBK);
   const bub = $('bub');
   bub.style.opacity = clamp(bo).toFixed(3);
   bub.style.transform = `scale(${lerp(0.7, 1, bo).toFixed(3)})`;
@@ -803,8 +820,8 @@ function beat6(acc, t) {
 
 function beat7(acc, t) {
   const as = $('assets');
-  if (t < 28.9 || t > 33.9) { setUI(as, 0); return; }
-  const exit = k(t, 33.15, 0.45, EI3);
+  if (t < 28.9 || t > CONN.out + 0.75) { ['assets', 'cask', 'cq'].forEach(id => setUI($(id), 0)); return; }
+  const exit = k(t, CONN.out, 0.45, EI3);
   const IX = -1.0, IY = 3.9;
   const itIn = k(t, 29.4, 0.7, EOX) * (1 - exit);
   acc.items.push({ d: IX + IY, s: figure(IX, IY, 'mint', clamp(itIn * 3), (1 - itIn) * 0.4) });
@@ -831,7 +848,7 @@ function beat7(acc, t) {
     const a = P(AX - 0.75, 0, 0.3), b = P(end[0], 0, 0.3);
     acc.items.push({ d: 1.5, s: `<line x1="${f1(a[0])}" y1="${f1(a[1])}" x2="${f1(b[0])}" y2="${f1(b[1])}" stroke="#8b80f0" stroke-width="7" stroke-linecap="round" opacity="${(1 - exit).toFixed(3)}"/>` });
   }
-  flowDots(acc, cable, t, 30.9, 33.1, { n: 3, speed: 1.0, color: '#059669', z: 0.3 });
+  flowDots(acc, cable, t, 30.9, CONN.out - 0.05, { n: 3, speed: 1.0, color: '#059669', z: 0.3 });
   const [lx, ly] = P(AX, AY, 2.0);
   const connected = k(t, MOMENT.connected, 0.45, EBK);
   const status = t < MOMENT.connected
@@ -839,24 +856,51 @@ function beat7(acc, t) {
     : `<span class="chip ok" style="transform:scale(${lerp(0.85, 1, connected).toFixed(3)})">${ICON_CHECK}เชื่อมแล้ว</span>`;
   const lo = k(t, 30.2, 0.5) * (1 - exit);
   label('reg', `<div class="stack"><span class="pill t40">ทะเบียนทรัพย์สิน</span>${status}</div>`, lx, ly, lo, { s: lerp(0.9, 1, k(t, 30.2, 0.5, EBK)) });
-  const ci = k(t, 31.6, 0.7, EOX);
-  setUI(as, ci * (1 - exit), (1 - ci) * 40, 0, 1);
-  [['a-head', 31.7], ['a-r0', 31.95], ['a-r1', 32.2]].forEach(([id, a]) => {
+  const ask = k(t, CONN.box, 0.45, EOX) * (1 - k(t, CONN.send + 0.05, 0.25, EI3));
+  setUI($('cask'), ask, 1180, 286 + (1 - ask) * 16, 1);
+  const cn = typedCount(t, TYPED.conn, CONN_Q), cSent = t >= CONN.send;
+  const cv = cSent ? '' : CONN_Q.slice(0, cn).join('');
+  const ct = $('ctyped'); if (ct._h !== cv) { ct.textContent = cv; ct._h = cv; }
+  $('cph').style.display = cv || t > TYPED.conn[0] ? 'none' : 'inline';
+  $('ccaret').style.opacity = (cv || Math.floor(RT * 2.4) % 2 === 0) ? '1' : '0';
+  $('csend').style.background = cv ? '#1f1b3a' : '#e7e9f0';
+  $('csend').style.color = cv ? '#fff' : '#94a3b8';
+  $('csend').style.transform = `scale(${(1 - bump(t, CONN.send - 0.05, 0.25) * 0.1).toFixed(3)})`;
+  const cq = $('cq'), qIn = k(t, CONN.send + 0.15, 0.4, EBK) * (1 - exit);
+  setUI(cq, clamp(qIn), 1800 - cq.offsetWidth, 300 + (1 - clamp(qIn)) * 12, lerp(0.9, 1, clamp(qIn)));
+  cq.style.transformOrigin = '100% 100%';
+  const ci = k(t, CONN.answer, 0.6, EOX);
+  setUI(as, ci * (1 - exit), 0, (1 - ci) * 30, 1);
+  [['a-head', CONN.answer - 0.05], ['a-r0', CONN.answer], ['a-r1', CONN.answer + 0.2], ['a-src', CONN.source]].forEach(([id, a]) => {
     const p = k(t, a, 0.5, EOX);
     $(id).style.opacity = p.toFixed(3);
     $(id).style.transform = `translateY(${f1((1 - p) * 18)}px)`;
   });
+  FACTS.assets.forEach((a, i) => {
+    for (let j = 0; j < a.count; j++) {
+      const g = k(t, CONN.answer + 0.4 + i * 0.25 + j * 0.035, 0.25, EBK);
+      const u = $(`au${i}_${j}`);
+      u.style.opacity = clamp(g).toFixed(3);
+      u.style.transform = `scaleY(${lerp(0.3, 1, clamp(g)).toFixed(3)})`;
+    }
+  });
   const [hx, hy] = hubTileCenter();
-  screenDots(acc, [hx + 46, hy], [1100, 380], [1236, 420], t, 31.3, 32.3, { n: 3, speed: 1.6, color: '#7c3aed' });
+  screenDots(acc, [hx + 46, hy], [1100, 300], [1200, 460], t, CONN.send, CONN.answer + 0.7, { n: 3, speed: 1.6, color: '#7c3aed' });
 }
 
+const END_OUT = 36.3;
+/** The end logo grows out of the hub tile and flies home into it again, so the city and the end tile dissolve on one shape. */
 function endCard(t) {
   const end = $('end');
-  const o = k(t, MOMENT.logo, 0.6, EOX) * (1 - k(t, 36.3, 0.4, EI3));
-  setUI(end, o, 0, 0, 1);
-  const lg = k(t, MOMENT.logo, 0.8, EBK), wm = k(t, 34.25, 0.7, EOX), tg = k(t, 34.55, 0.7, EOX);
-  $('end-logo').style.transform = `scale(${lerp(0.6, 1, lg).toFixed(3)})`;
-  $('end-logo').style.opacity = clamp(lg).toFixed(3);
+  setUI(end, k(t, MOMENT.logo - 0.45, 0.1, LIN) * (1 - k(t, END_OUT + 0.6, 0.1, LIN)), 0, 0, 1);
+  const words = 1 - k(t, END_OUT - 0.4, 0.35, EI3);
+  const wm = k(t, 34.25, 0.7, EOX) * words, tg = k(t, 34.55, 0.7, EOX) * words;
+  const logo = $('end-logo');
+  const atHub = Math.max(1 - k(t, MOMENT.logo - 0.4, 0.8, EIO3), k(t, END_OUT - 0.35, 0.75, EIO3));
+  const [hx, hy] = hubTileCenter();
+  const lx = logo.offsetLeft + logo.offsetWidth / 2, ly = logo.offsetTop + logo.offsetHeight / 2;
+  logo.style.transform = `translate(${f1((hx - lx) * atHub)}px,${f1((hy - ly) * atHub)}px) scale(${lerp(1, 92 * cam.z / logo.offsetWidth, atHub).toFixed(4)})`;
+  logo.style.opacity = (k(t, MOMENT.logo - 0.45, 0.15, LIN) * (1 - k(t, END_OUT + 0.3, 0.3, LIN))).toFixed(3);
   $('end-wm').style.opacity = wm.toFixed(3);
   $('end-wm').style.transform = `translateY(${f1((1 - wm) * 24)}px)`;
   $('end-tag').style.opacity = tg.toFixed(3);
@@ -864,8 +908,8 @@ function endCard(t) {
 }
 
 const GRID = Sound.grid({tempo: {on: W3.r(MOMENT.memc)}}, LENGTH);
-const HLS = [['hl0', -1, W1.r(4.6)], ['hl1', W2.r(5.15), W3.S - 0.3], ['hl2', W3.r(0.15), W3.r(12.0)], ['hlA', WD.r(0.15), WD.r(3.65)], ['hlB', WD.r(4.0), WD.r(8.65)], ['hl3', W4.S + 0.05, W4.r(18.6)], ['hl4', W5.r(19.15), W5.r(30.6)], ['hl5', W6.r(24.15), W6.r(29.0)], ['hl6', W7.r(29.15), W7.r(33.1)]].map(([id, a, b]) => [id, a < 0 ? a : GRID.snap(a, 2), b]);
-const HL_REIN = W8.r(36.55);
+const HLS = [['hl0', -1, W1.r(4.6)], ['hl1', W2.r(5.15), W3.S - 0.3], ['hl2', W3.r(0.15), W3.r(12.0)], ['hlA', WD.r(0.15), WD.r(3.65)], ['hlB', WD.r(4.0), WD.r(8.65)], ['hl3', W4.S + 0.05, W4.r(18.6)], ['hl4', W5.r(19.15), W5.r(30.6)], ['hl5', W6.r(24.15), W6.r(29.0)], ['hl6', W7.r(29.15), W7.r(35.3)]].map(([id, a, b]) => [id, a < 0 ? a : GRID.snap(a, 2), b]);
+const HL_REIN = W8.r(END_OUT + 0.15);
 function headlines(t) {
   HLS.forEach(([id, inT, outT]) => {
     const el = $(id);
@@ -910,7 +954,8 @@ const SLOT = [96, 596, 1096], CW = 460, PW = 690, PANEL = [96, 856], CY = 372;
   });
   $('f-dates').textContent = DATES;
   $('a-head').firstElementChild.textContent = `ทีม${FACTS.spotlight}`;
-  FACTS.assets.forEach((a, i) => { $('a-r' + i).querySelector('.nm').textContent = a.label; $('a-r' + i).querySelector('.t44').textContent = String(a.count); });
+  FACTS.assets.forEach((a, i) => { $('a-r' + i).querySelector('.nm').textContent = a.label; $('a-r' + i).querySelector('.t44').textContent = String(a.count); $('a-u' + i).innerHTML = Array.from({ length: a.count }, (_, j) => `<i id="au${i}_${j}"></i>`).join(''); });
+  $('cq').textContent = CONN_Q.join('');
   const weeks = FACTS.trend.weeks;
   $('f-weeks').textContent = `${weeks.length} สัปดาห์`;
   $('ma').textContent = weeks[0].label;
@@ -920,7 +965,7 @@ const SLOT = [96, 596, 1096], CW = 460, PW = 690, PANEL = [96, 856], CY = 372;
 })();
 (function buildMemory() {
   $('qrow').innerHTML = CHIPS.map((c, i) => `<span class="lp${i ? '' : ' mem'}" id="qp${i}">${i ? ICON_HIST : ICON_SPARK}${c.label}</span>`).join('');
-  $('qtip').innerHTML = CHIPS[0].reason;
+  $('qtip').innerHTML = `<span class="mk"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-6-4-6 4z"/></svg></span>${CHIPS[0].reason}`;
   const maxCover = Math.max(...FACTS.cover.rows.map(r => r.days));
   $('dc2rows').innerHTML = FACTS.cover.rows.map((r, i) => `<div class="wr" id="cv${i}" style="margin-top:22px"><div class="wrt"><span class="t32">${r.label}</span><span class="t32 b num">${r.value}</span></div><div class="bar"><i style="width:${(r.days / maxCover * 100).toFixed(1)}%"></i></div></div>`).join('');
 })();
@@ -1059,14 +1104,14 @@ function beat3n(acc, t) {
   setUI($('qask'), boxIn, ASK_X, ASK_Y + (1 - boxIn) * 16, 1);
   const rowOut = 1 - k(t, MOMENT.askSend + 0.05, 0.3, EI3);
   setUI($('qrow'), Math.max(...CHIPS.map((_, n) => k(t, MOMENT.pills + n * 0.15, 0.45, EOX))) * rowOut, ASK_X, ASK_Y - 72, 1);
-  CHIPS.forEach((_, n) => { const p = k(t, MOMENT.pills + n * 0.15, 0.45, EOX); const el = $('qp' + n); el.style.opacity = p.toFixed(3); el.style.transform = `translateY(${f1((1 - p) * 12)}px)`; });
   const lit = k(t, MOMENT.memPill, 0.5, EIO3), tap = bump(t, MOMENT.tap, 0.25);
+  CHIPS.forEach((_, n) => { const p = k(t, MOMENT.pills + n * 0.15, 0.45, EOX); const el = $('qp' + n); el.style.opacity = (p * (n ? lerp(1, QUIET_CHIP, lit) : 1)).toFixed(3); el.style.transform = `translateY(${f1((1 - p) * 12)}px)`; });
   const mem = $('qp0');
   mem.style.boxShadow = `0 0 0 ${f1(8 * lit)}px rgba(124,58,237,${(0.16 * lit).toFixed(3)}),0 18px 40px -12px rgba(49,46,129,.22)`;
   mem.style.transform = `scale(${(1 - 0.05 * tap).toFixed(3)})`;
   const px = ASK_X + mem.offsetLeft + mem.offsetWidth / 2, py = ASK_Y - 72;
-  const tip = $('qtip'), to = k(t, MOMENT.memPill + 0.1, 0.35, EBK) * (1 - k(t, MOMENT.tap + 0.2, 0.2, LIN));
-  setUI(tip, clamp(to), px - tip.offsetWidth / 2, py - tip.offsetHeight - 16 + (1 - clamp(to)) * 8, lerp(0.9, 1, clamp(to)));
+  const tip = $('qtip'), to = k(t, MOMENT.memPill, 0.4, EBK);
+  setUI(tip, clamp(to) * rowOut, px - tip.offsetWidth / 2, py - tip.offsetHeight - 18 + (1 - clamp(to)) * 8, lerp(0.85, 1, clamp(to)));
   if (t > MOMENT.memPill - 0.3 && t < MOMENT.memPill + 0.5) { const [vx2, vy2] = P(VAULT[0], VAULT[1], 1.2); screenDots(acc, [vx2, vy2], [vx2 + 60, py - 160], [px, py - 50], t, MOMENT.memPill - 0.3, MOMENT.memPill + 0.5, { n: 3, speed: 1.8, color: '#7c3aed' }); }
   const rp = clamp((t - MOMENT.tap) / 0.5);
   if (rp > 0 && rp < 1) acc.fx.push(`<circle cx="${f1(px)}" cy="${f1(py + 26)}" r="${f1(24 + rp * 50)}" fill="none" stroke="#7c3aed" stroke-width="3" opacity="${(0.6 * (1 - rp)).toFixed(3)}"/>`);
@@ -1107,7 +1152,7 @@ function render(t) {
   headlines(t);
   acc.items.sort((a, b) => a.d - b.d);
   const L8 = W8(t);
-  const wo = L8 < 0 ? 1 : (1 - k(L8, 33.5, 0.6, EIO3)) + k(L8, 36.35, 0.9, EIO3);
+  const wo = L8 < 0 ? 1 : (1 - k(L8, 33.5, 0.6, EIO3)) + k(L8, END_OUT - 0.25, 0.8, EIO3);
   floorEl.innerHTML = drawFloor();
   floorEl.setAttribute('opacity', clamp(wo).toFixed(3));
   wg.innerHTML = acc.under.join('') + acc.items.map(i => i.s).join('');
@@ -1163,6 +1208,9 @@ const SOUND = {
     {at: W6.r(MOMENT.lock), sfx: 'lock'},
     {at: W7.r(MOMENT.plug[0] + MOMENT.plug[1]), sfx: 'plug'},
     {at: W7.r(MOMENT.connected), sfx: 'toggle'},
+    ...typedKeys(W7, TYPED.conn, CONN_Q),
+    {at: W7.r(CONN.send), sfx: 'send'},
+    {at: W7.r(CONN.answer + 0.4), sfx: 'pop', step: 3},
     {at: GRID.snap(W8.r(MOMENT.logo), 2), sfx: 'sting'},
     ...HITS.map((hit) => ({...hit, sfx: 'hit'})),
   ],
