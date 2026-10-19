@@ -10,6 +10,7 @@ const CHUNK_BYTES = 4 * 1024 * 1024;
 const LOG_EVERY = 150;
 const FILM_DIR = import.meta.dir;
 const CAPTURE_ENTRY = path.join(FILM_DIR, "capture.ts");
+const FILM_QUERY = process.env.FILM_QUERY ? `&${process.env.FILM_QUERY}` : "";
 
 const [filmName, outPath] = process.argv.slice(2);
 if (!filmName || !outPath) throw new Error("Usage: bun run render <film.html> <out.mp4>  (a film exposes window.film = { length, render(t), ready })");
@@ -33,7 +34,7 @@ const server = Bun.serve({
 
 try {
   await withHeadlessPage(STAGE, async ({ send, evaluate }) => {
-    await send("Page.navigate", { url: `http://localhost:${PORT}/${filmName}?capture` });
+    await send("Page.navigate", { url: `http://localhost:${PORT}/${filmName}?capture${FILM_QUERY}` });
     await waitFor("the film", async () => ((await evaluate("Boolean(window.film && window.film.ready)")) ? true : null));
     await evaluate("document.fonts.ready.then(() => true)");
     await evaluate(`new Promise((resolve, reject) => { const s = document.createElement('script'); s.type = 'module'; s.src = '/encoder.js'; s.onload = resolve; s.onerror = reject; document.head.appendChild(s); })`);
@@ -42,7 +43,7 @@ try {
     const length = Number(await evaluate("window.film.length"));
     const frames = Math.round(length * FPS);
     const sound = Boolean(await evaluate("typeof window.film.audio === 'function'"));
-    console.log(`Rendering ${frames} frames (${length.toFixed(2)} s at ${FPS} fps) from ${filmName}${sound ? " with its score" : ", silent"}`);
+    console.log(`Rendering ${frames} frames (${length.toFixed(2)} s at ${FPS} fps) from ${filmName}${FILM_QUERY}${sound ? " with its score" : ", silent"}`);
     await evaluate("window.__encoder.startEncoder()");
     const startedAt = Date.now();
     for (let frame = 0; frame < frames; frame += 1) {
